@@ -1768,13 +1768,41 @@ export default function SudokuGame() {
                 styles.cell,
                 {
                   width: cellSize, height: cellSize, backgroundColor: bg,
+                  /**
+                   * 🔴 ТОНКАЯ ЛИНИЯ — РОВНО ОДИН ПИКСЕЛЬ, А НЕ 0,5 ТОЧКИ.
+                   *
+                   * Два отчёта Валентины: «границы между числами гуляют, то
+                   * появляются, то исчезли» и «опять границы стёрлись где цифры 6».
+                   * Обе про одно.
+                   *
+                   * Здесь стояло `0.5` — это ПОЛОВИНА логической точки. На экране с
+                   * плотностью 2 она даёт целый пиксель, на 3 — полтора, и система
+                   * округляет их по-разному в зависимости от того, куда попал край
+                   * клетки: одна линия выходит в пиксель, соседняя — в ноль. Отсюда
+                   * и «гуляют», и «стёрлись»: это не цвет и не тема, это округление.
+                   *
+                   * `StyleSheet.hairlineWidth` — ровно один физический пиксель на
+                   * любой плотности, по определению. Линии перестают спорить между
+                   * собой.
+                   *
+                   * ⚠️ И РАЗНИЦА БЛОКОВ ТЕПЕРЬ НЕ ТОЛЬКО В ТОЛЩИНЕ. Раньше обе линии
+                   * были одного цвета, и на телефоне 2 против 0,5 читались как
+                   * «одна чуть жирнее». Граница блока остаётся цветом текста, линия
+                   * клетки уходит в цвет рамки — светлее. Тогда блоки видно сразу,
+                   * а не после разглядывания.
+                   */
                   borderRightWidth: variant === 'jigsaw' && regions
-                    ? (c !== N - 1 && regions[r][c] !== regions[r][c + 1] ? 2 : 0.5)
-                    : ((c + 1) % BC === 0 && c !== N - 1 ? 2 : 0.5),
+                    ? (c !== N - 1 && regions[r][c] !== regions[r][c + 1] ? 2 : StyleSheet.hairlineWidth)
+                    : ((c + 1) % BC === 0 && c !== N - 1 ? 2 : StyleSheet.hairlineWidth),
                   borderBottomWidth: variant === 'jigsaw' && regions
-                    ? (r !== N - 1 && regions[r][c] !== regions[r + 1][c] ? 2 : 0.5)
-                    : ((r + 1) % BR === 0 && r !== N - 1 ? 2 : 0.5),
-                  borderColor: colors.text,
+                    ? (r !== N - 1 && regions[r][c] !== regions[r + 1][c] ? 2 : StyleSheet.hairlineWidth)
+                    : ((r + 1) % BR === 0 && r !== N - 1 ? 2 : StyleSheet.hairlineWidth),
+                  borderRightColor: (variant === 'jigsaw' && regions
+                    ? (c !== N - 1 && regions[r][c] !== regions[r][c + 1])
+                    : ((c + 1) % BC === 0 && c !== N - 1)) ? colors.text : colors.border,
+                  borderBottomColor: (variant === 'jigsaw' && regions
+                    ? (r !== N - 1 && regions[r][c] !== regions[r + 1][c])
+                    : ((r + 1) % BR === 0 && r !== N - 1)) ? colors.text : colors.border,
                 },
               ]}
             >

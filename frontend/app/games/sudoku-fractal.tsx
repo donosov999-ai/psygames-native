@@ -231,7 +231,8 @@ export default function FractalSudokuScreen() {
    * в тренажёре — рабочий материал (§12.4 карты геймификации).
    */
   const [redHint, setRedHint] = useState(false);
-  const redHintShownRef = useRef(false);
+  /** Когда подпись про красный показывали в последний раз (мс). 0 — ещё ни разу. */
+  const redHintShownRef = useRef(0);
   /**
    * Клетка, которую задача ещё не определяет. Не ошибка — неопределённость, и
    * говорить о ней надо словами: цвет тут соврал бы про правило.
@@ -289,7 +290,7 @@ export default function FractalSudokuScreen() {
     setPuzzle(p);
     setPlay(startPlayState(p));
     setErrors(0);
-    redHintShownRef.current = false; setRedHint(false);
+    redHintShownRef.current = 0; setRedHint(false);
     setElapsed(0);
     setOpenChild(null);
     setSelected(null);
@@ -427,8 +428,23 @@ export default function FractalSudokuScreen() {
       if (right) sndPlace();
       else if (provable) {
         sndWrong(); setErrors((e) => e + 1);
-        if (!redHintShownRef.current) {
-          redHintShownRef.current = true;
+        /**
+         * 🔴 ОБЪЯСНЕНИЕ КРАСНОГО — НА КАЖДУЮ ОШИБКУ, А НЕ ОДИН РАЗ ЗА ПАРТИЮ.
+         *
+         * Отчёты 28.08.2026: «Что за красные цифры???» и «Зачем 5, почему они
+         * появились???» — при том, что подпись существует и код её показывал.
+         *
+         * Показывал ровно один раз, на семь секунд, в момент ПЕРВОЙ ошибки — то
+         * есть когда человек смотрит на доску, а не на строку под клавиатурой.
+         * Дальше красные цифры на доске оставались, а объяснение исчезало
+         * навсегда. Вопрос задают позже, чем показана подсказка.
+         *
+         * Теперь подпись выходит на каждую ошибку, но не чаще раза в двадцать
+         * секунд: объяснение под рукой, а мельтешения нет.
+         */
+        const теперь = gameNow();
+        if (теперь - redHintShownRef.current > 20000) {
+          redHintShownRef.current = теперь;
           setRedHint(true);
           setTimeout(() => setRedHint(false), 7000);   // прочитать успевают, мешать не успевает
         }

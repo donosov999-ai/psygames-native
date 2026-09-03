@@ -504,6 +504,12 @@ export default function TrailMakingGame() {
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
             {currentIdx < nodes.length ? `${t('nextLabel')}: ${nodes[currentIdx].label}` : t('done')}
           </Text>
+          {/* Правило — до первого касания и только тогда: дальше оно уже мешает. */}
+          {currentIdx === 0 && (
+            <Text style={[styles.hintText, { color: colors.textSecondary, opacity: 0.8 }]}>
+              {t('trailCrossOk')}
+            </Text>
+          )}
           <View
             ref={canvasRef}
             onLayout={measureCanvas}

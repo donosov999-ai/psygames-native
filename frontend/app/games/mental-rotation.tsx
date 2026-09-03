@@ -46,6 +46,7 @@ import Svg, { Polygon, G, Rect } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { hudTime } from '@/src/services/hudTime';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -383,6 +384,7 @@ function shadeColor(hex: string, percent: number): string {
 export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
 
 export default function MentalRotationGame() {
+  const winW = useScreenWidth();
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -621,13 +623,41 @@ export default function MentalRotationGame() {
   // игровая фаза — на едином каркасе GameShell: варианты-ответы прибиты к низу,
   // эталон в центре поля; модалка правил поверх каркаса (паттерн digit-span)
   if (phase === 'playing') {
-    const baseSize = 130;
-    const optSize = 110;
+    /**
+     * 🔴 РАЗМЕРЫ СЧИТАЮТСЯ ОТ ЭКРАНА, А НЕ ЗАШИТЫ ЧИСЛОМ.
+     *
+     * Отчёт 02.09.2026: «картинка съехала вправо». Замер браузером на 360 px: три
+     * варианта по 110 плюс два зазора по 10 и отступы коробок дают 350 при
+     * доступных 344 — ряд не помещается, и его сносит вправо на 25 px относительно
+     * эталона. На 390 всё влезало, поэтому глазами это не ловилось.
+     *
+     * Считаем от доступной ширины: три варианта в ряд с зазорами и внутренними
+     * отступами коробки (8+8 на каждую). Потолок оставляем прежним — на широком
+     * экране ничего не меняется.
+     */
+    const доступно = winW - 32;                       // поле каркаса за вычетом отступов
+    const optSize = Math.max(64, Math.min(110, Math.floor((доступно - 2 * 10) / 3) - 16));
+    const baseSize = Math.max(80, Math.min(130, Math.floor(доступно * 0.36)));
     return (
       <View style={{ flex: 1 }}>
         <GameShell
           title={t('mentalRotation')}
           onBack={() => goBackOrHome()}
+          /**
+           * 🔴 ПОЛЕ ПРОКРУЧИВАЕТСЯ. Отчёт 02.09.2026: «после ошибки какое-то
+           * подвисание, непонятно как пройти дальше».
+           *
+           * Подвисания нет — есть недостижимая кнопка. Промах разворачивает разбор
+           * (подсказка, лента кадров поворота, подпись шага) и кнопку «дальше» под
+           * ним; на телефоне это уезжает ниже экрана. Закрыть разбор нечем, игра
+           * стоит — и со стороны это ровно «подвисло».
+           *
+           * ⚠️ С 2.34.0 стало хуже, и по моей же правке: поле каркаса перестало
+           * отдавать касание прокрутке (лечили «экран ездит под пальцем»), то есть
+           * дотянуть содержимое пальцем тоже нельзя. Правка была верной, но здесь
+           * она сняла последний способ добраться до кнопки.
+           */
+          scrollableField
           /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
           hud={[
             { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}`, pop: true },

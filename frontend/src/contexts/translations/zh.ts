@@ -1187,6 +1187,7 @@ const t: Record<string, string> = {
   // ── v1.137: хвост инлайн-тернаров — экраны зарядки/оценки + карточки уровней игр
   // (+бэкфилл secShort/btn_rules). Плейсхолдеры {n}/{w}/{p}/… не переводить.
   "secShort": "秒",
+  "trailCrossOk": "连线可以交叉——重要的是顺序和速度",
   "btn_rules": "规则",
   "msShort": "毫秒",
   "shuffleBtn": "洗牌",

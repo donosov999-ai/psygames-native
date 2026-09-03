@@ -414,10 +414,20 @@ const styles = StyleSheet.create({
   problemArea: { paddingVertical: 32, paddingHorizontal: 28, borderRadius: 14, minWidth: 240, alignItems: 'center' },
   // RTL-пин: «a − b = ?» в RTL-bidi перестраивается в «? = b − a» — математика всегда LTR
   problemText: { fontSize: 48, fontWeight: '900', writingDirection: 'ltr' },
+  /**
+   * 🔴 ПОТОЛОК ШИРИНЫ У ПОЛЯ ВВОДА. Замер 03.09.2026 на 360 px: поле выходило 448
+   * и обрезалось слева на 44 — цифры уезжали за край, хотя вводить их надо именно
+   * туда.
+   *
+   * Причина не в стилях, а в природе элемента: в вебе `TextInput` — это `<input>`,
+   * а у него собственная ширина по умолчанию, около двадцати знаков. При кегле 36
+   * это и даёт 448. `minWidth` тут не спасает: он задаёт нижнюю границу, а
+   * проблема в верхней.
+   */
   input: {
     fontSize: 36, fontWeight: '700', textAlign: 'center', letterSpacing: 4,
     paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12, borderWidth: 2,
-    minWidth: 180,
+    minWidth: 180, maxWidth: '100%', alignSelf: 'stretch',
   },
   submitBtn: { minHeight: 48, paddingVertical: 14, paddingHorizontal: 48, borderRadius: 16 , justifyContent: 'center'},
   submitText: { color: '#FFF', fontSize: 16, fontWeight: '700' },

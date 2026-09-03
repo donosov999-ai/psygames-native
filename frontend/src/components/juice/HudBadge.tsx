@@ -55,6 +55,15 @@ export default function HudBadge({ icon, label, value, colors = ['#3b82f6', '#1d
       Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }),
     ]).start();
   }, [value, pop, reduced, scale]);
+  const пилюля = (
+    <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.pill}>
+      <View style={styles.highlight} pointerEvents="none" />
+      {icon ? <Ionicons name={icon} size={14} color={tint} style={{ marginRight: 4 }} /> : null}
+      {!icon && label ? <Text numberOfLines={1} style={[styles.label, { color: tint }]}>{label} </Text> : null}
+      <Text numberOfLines={1} style={[styles.value, { color: tint }]}>{value}</Text>
+    </LinearGradient>
+  );
+
   return (
     /**
      * 🔴 ЕСТЬ ЗНАЧОК — СЛОВО НЕ ПИШЕМ. Решение Дениса 03.09.2026: «сократить слова
@@ -76,20 +85,31 @@ export default function HudBadge({ icon, label, value, colors = ['#3b82f6', '#1d
       accessibilityHint={подпись}
       style={[styles.shadow, { transform: [{ scale }] }, style]}
     >
-      <Pressable
-        onPress={подпись ? () => setОткрыто((v) => !v) : undefined}
-        // Без пояснения пилюля остаётся неинтерактивной: ложная кнопка, которая
-        // ничего не делает, хуже её отсутствия.
-        accessibilityRole={подпись ? 'button' : undefined}
-        hitSlop={6}
-      >
-        <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.pill}>
-          <View style={styles.highlight} pointerEvents="none" />
-          {icon ? <Ionicons name={icon} size={14} color={tint} style={{ marginRight: 4 }} /> : null}
-          {!icon && label ? <Text numberOfLines={1} style={[styles.label, { color: tint }]}>{label} </Text> : null}
-          <Text numberOfLines={1} style={[styles.value, { color: tint }]}>{value}</Text>
-        </LinearGradient>
-      </Pressable>
+      {/**
+        * 🔴 ЦЕЛЬ НАЖАТИЯ 48, ПИЛЮЛЯ — КОМПАКТНАЯ; А БЕЗ ПОЯСНЕНИЯ КНОПКИ НЕТ ВОВСЕ.
+        *
+        * Две правки сошлись: пилюлю ужали (значок вместо слова), и по тапу она
+        * стала объяснять себя — то есть превратилась в кнопку. Кнопка ростом 29
+        * ловится аудитом нажатий как мелкая, и справедливо: норма Material 48.
+        * Поэтому видимая пилюля остаётся маленькой, а прозрачная область вокруг
+        * добирает до 48: глазу компактно, пальцу норма.
+        *
+        * ⚠️ И ветка БЕЗ пояснения обязана быть обычным `View`, а не `Pressable`
+        * без обработчика. Замер показал почему: `Pressable` в вебе всё равно
+        * получает `tabindex`, то есть становится точкой обхода с клавиатуры и
+        * попадает в аудит нажатий как мелкая кнопка — при том, что нажимать её
+        * незачем. Ложная кнопка хуже отсутствующей.
+        */}
+      {подпись ? (
+        <Pressable
+          style={styles.tapTarget}
+          onPress={() => setОткрыто((v) => !v)}
+          accessibilityRole="button"
+          hitSlop={6}
+        >
+          {пилюля}
+        </Pressable>
+      ) : пилюля}
       {открыто && подпись ? (
         <View pointerEvents="none" style={styles.tip}>
           <Text style={styles.tipText} numberOfLines={2}>{подпись}</Text>
@@ -107,6 +127,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(17,24,39,0.94)', zIndex: 50,
   },
   tipText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  tapTarget: { minHeight: 48, minWidth: 48, justifyContent: 'center', alignItems: 'center' },
   shadow: { flexShrink: 1, minWidth: 0, borderRadius: 16, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 4, shadowOffset: { width: 0, height: 3 }, elevation: 4 },
   /**
    * 🔴 БЕЙДЖ УЖИМАЕТСЯ, А НЕ ВЫТАЛКИВАЕТ СОСЕДЕЙ ЗА КРАЙ.

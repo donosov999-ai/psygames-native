@@ -1,6 +1,6 @@
 /* psygames-game-breathing · VER 1 · 19.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView , Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -160,6 +160,8 @@ export default function BreathingGame() {
 
   // Wim Hof state
   const [wimRound, setWimRound] = useState(1);
+  /** Название техники по тапу на ритм: в тесноте шапки слово уступает числам. */
+  const [techHint, setTechHint] = useState(false);
   const [wimStage, setWimStage] = useState<'breaths' | 'hold' | 'recover'>('breaths');
   const [wimBreath, setWimBreath] = useState(0);
   const [wimHoldSec, setWimHoldSec] = useState(0);
@@ -523,10 +525,45 @@ export default function BreathingGame() {
                     методик (4-7-8 Вейля, physiological sigh: длинный выдох включает
                     парасимпатику). Но раньше на экране был только счётчик, человек не помнил,
                     что сам выбрал 4-7-8 → длинный выдох читался как баг. Теперь ритм на виду. */}
-                <Text style={[styles.exStep, { color: colors.textSecondary }]} numberOfLines={1}>
-                  {t(tech.nameKey)} · {tech.phases.map((p) => p.sec).join('–')}
-                </Text>
-                <Text style={[styles.exTimer, { color: colors.text }]}>{t('timeLeftLabel')} {remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
+                {/*
+                  🔴 РИТМ БЕЗ НАЗВАНИЯ ТЕХНИКИ, А НАЗВАНИЕ — ПО ТАПУ.
+                  Замер браузером 03.09.2026 на 360 px: строка «Квадратное дыхание ·
+                  4–4–4–4» обрезалась ровно посередине — «Квадратное д…». То есть
+                  из двух сведений, которые она несёт, не читалось ни одно: ни
+                  название целиком, ни ритм.
+                  Ритм — то, ради чего строка добавлялась (репорт Вали «выдох
+                  слишком длинный»): он объясняет асимметрию прямо во время
+                  упражнения. Название техники человек только что выбрал сам, и в
+                  тесноте оно уступает. Полностью оно не пропало: доступно по
+                  нажатию, как счётчики в шапке.
+                */}
+                <Pressable
+                  onPress={() => setTechHint((v) => !v)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t(tech.nameKey)} · ${tech.phases.map((p) => p.sec).join('–')}`}
+                  style={styles.techTap}
+                >
+                  <View style={styles.hudNum}>
+                    {/* Значок вместо слова: «ритм» подписан для скринридера на
+                        самой кнопке (accessibilityLabel выше), а глазу его
+                        объясняет форма волны рядом с числами. */}
+                    <Ionicons name="pulse" size={14} color={colors.textSecondary} />
+                    <Text style={[styles.exStep, { color: colors.textSecondary }]} numberOfLines={1}>
+                      {tech.phases.map((p) => p.sec).join('–')}
+                    </Text>
+                  </View>
+                </Pressable>
+                {techHint && (
+                  <Text style={[styles.exStep, { color: colors.primary }]} numberOfLines={1}>
+                    {t(tech.nameKey)}
+                  </Text>
+                )}
+                <View style={styles.hudNum} accessibilityLabel={`${t('timeLeftLabel')} ${remainTotal}`}>
+                  <Ionicons name="time" size={14} color={colors.text} />
+                  <Text style={[styles.exTimer, { color: colors.text }]} numberOfLines={1}>
+                    {remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}
+                  </Text>
+                </View>
               </>
             )}
           </View>
@@ -678,6 +715,9 @@ const styles = StyleSheet.create({
   techRhythm: { fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
   techDesc: { fontSize: 12, marginTop: 2 },
   warnText: { fontSize: 14, lineHeight: 21 },
+  /** Ритм — нажимаемый: по тапу показывает название техники. Цель нажатия 48. */
+  hudNum: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  techTap: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 4 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 4 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { fontSize: 16, fontWeight: '700' },
