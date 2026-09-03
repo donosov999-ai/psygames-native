@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.35.0',
+    date: '2026-09-03',
+    ru: [
+      '«Поворот фигур»: после ошибки игра больше не встаёт — кнопка «дальше» переехала в нижний ряд, откуда она не может уехать за край экрана',
+      'Маджонг: слои перестали обманывать. Плитка теперь выглядит доступной ровно тогда, когда она доступна на самом деле',
+      'Открывается по уровням: подсказка со 2-го, отмена хода с 3-го, наряды питомца с 8-го. Запертая кнопка не прячется — на ней видно, когда откроется',
+      'Сундук коллекции: у игры появилась дальняя цель, которая видна с главной',
+    ],
+    en: [
+      'Mental rotation: the game no longer stalls after a mistake — the “next” button moved to the bottom row, where it cannot slide off screen',
+      'Mahjong: layers stopped lying. A tile now looks available exactly when it actually is',
+      'Unlocks by level: hints from level 2, undo from 3, pet outfits from 8. A locked button is not hidden — it shows when it opens',
+      'Collection chest: a long-term goal that is visible from the home screen',
+    ],
+  },
+  {
     version: '2.34.5',
     date: '2026-09-03',
     ru: [
