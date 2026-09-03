@@ -87,16 +87,33 @@ for (let попытка = 1; попытка <= 30; попытка += 1) {
 }
 if (!build) { console.log('⚠️  сборка не дождалась обработки — внешнее ревью не подано'); process.exit(0); }
 
-// 1. Цепляем к внешней группе, иначе ревью подавать не к чему.
+/**
+ * 1. ЦЕПЛЯЕМ КО ВСЕМ ГРУППАМ — И ВНУТРЕННЕЙ ТОЖЕ.
+ *
+ * 🔴 ЗАМЕР 03.09.2026, ВТОРАЯ ПОЛОВИНА ТОЙ ЖЕ БЕДЫ. Первая редакция цепляла только
+ * ко внешней группе — и Денис всё равно видел в TestFlight 2.34.2. Оказалось,
+ * сборки 2.34.4, 2.34.5 и 2.35.0 не состояли НИ В ОДНОЙ группе: внутренней ревью не
+ * нужно вовсе, но без группы она не видна и внутреннему тестировщику.
+ *
+ * То есть я починил половину задачи и отчитался за целую. Теперь сборка идёт во все
+ * группы приложения: внутренние показывают её сразу, внешняя — после ревью.
+ */
 const группы = await get(`apps/${APP_ID}/betaGroups?limit=20`);
-const группа = группы.data.find((g) => g.attributes.name === GROUP);
-if (!группа) { console.log(`⚠️  внешней группы «${GROUP}» нет — пропускаю`); process.exit(0); }
+if (!группы.data.length) { console.log('⚠️  групп тестировщиков нет — пропускаю'); process.exit(0); }
 
-const прикрепить = await fetch(`${API}betaGroups/${группа.id}/relationships/builds`, {
-  method: 'POST', headers: H,
-  body: JSON.stringify({ data: [{ type: 'builds', id: build.id }] }),
-});
-console.log(прикрепить.ok ? `✅ сборка ${версия} в группе «${GROUP}»` : `⚠️  в группу не встала: ${прикрепить.status}`);
+for (const г of группы.data) {
+  const прикрепить = await fetch(`${API}betaGroups/${г.id}/relationships/builds`, {
+    method: 'POST', headers: H,
+    body: JSON.stringify({ data: [{ type: 'builds', id: build.id }] }),
+  });
+  const внутр = г.attributes.isInternalGroup ? 'внутренняя, видна сразу' : 'внешняя, после ревью';
+  console.log(прикрепить.ok
+    ? `✅ ${версия} → «${г.attributes.name}» (${внутр})`
+    : `⚠️  «${г.attributes.name}»: ${прикрепить.status}`);
+}
+
+const группа = группы.data.find((g) => !g.attributes.isInternalGroup);
+if (!группа) { console.log('ℹ️  внешних групп нет — ревью подавать не для кого'); process.exit(0); }
 
 // 2. Подаём на внешнее ревью. Уже поданная отвечает 409 — это не ошибка.
 const подать = await fetch(`${API}betaAppReviewSubmissions`, {

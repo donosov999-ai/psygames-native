@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.1',
+    date: '2026-09-03',
+    ru: [
+      'Питомец вернулся на экран: в 2.37.0 он оказался под кнопкой правил и был не виден вовсе',
+      '«Дворец памяти»: предметы и места теперь помещаются вместе — не надо бегать вверх-вниз, чтобы их сопоставить',
+      'Там же добавлена строка о том, ЗАЧЕМ игра: раньше объясняли только, что нажимать',
+    ],
+    en: [
+      'The pet is back on screen: in 2.37.0 it ended up under the rules button and was invisible',
+      'Memory Palace: items and places now fit together — no more scrolling up and down to match them',
+      'And a line about WHY the game exists: before, only the mechanics were explained',
+    ],
+  },
+  {
     version: '2.37.0',
     date: '2026-09-03',
     ru: [

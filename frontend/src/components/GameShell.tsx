@@ -617,8 +617,21 @@ export default function GameShell({
         */}
         <View
           style={[
-            styles.headerRight,
-            (headerRight || wuStep) ? (rtl ? { marginLeft: HELP_FAB_GUTTER } : { marginRight: HELP_FAB_GUTTER }) : null,
+            styles.headerRightWide,
+            /**
+             * 🔴 ОТСТУП ПОД ПЛАВАЮЩУЮ СПРАВКУ — ТЕПЕРЬ ВСЕГДА, А НЕ «КОГДА В СЛОТЕ
+             * ЧТО-ТО ЕСТЬ».
+             *
+             * Отчёт Дениса 03.09.2026 по 2.37.0: питомец пропал с экрана совсем —
+             * ни слева в плашке, ни справа у «?». Причина: слот получал отступ под
+             * кнопку справки только при `headerRight || wuStep`, а питомец в это
+             * условие не попал. Слот встал вплотную к краю, ровно под плавающую
+             * кнопку, и она его накрыла — код рисовался, на экране пусто.
+             *
+             * Слот больше не бывает пустым: питомец в нём есть всегда. Значит и
+             * условие не нужно — оно осталось от времени, когда слот пустовал.
+             */
+            rtl ? { marginLeft: HELP_FAB_GUTTER } : { marginRight: HELP_FAB_GUTTER },
           ]}
         >
           <GamePet mood={pet ?? autoMood} size={30} />
@@ -987,6 +1000,11 @@ const styles = StyleSheet.create({
   title: { flex: 1, minWidth: 0, fontSize: 18, fontWeight: '800', textAlign: 'center' },
   headerBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   headerRight: { width: 44, alignItems: 'flex-end', flexShrink: 0 },
+  /**
+   * Слот с питомцем: шире прежнего, потому что рядом может стоять кнопка игры
+   * (`headerRight`) или пропуск шага зарядки. 44 хватало на один элемент.
+   */
+  headerRightWide: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 6, flexShrink: 0 },
   stats: { paddingHorizontal: PAD_H, paddingBottom: PAD_V },
   // Питомец слева, счётчики занимают остаток: строка не разъезжается, когда
   // питомца нет (игра не передала `pet`) или он выключен в настройках.
