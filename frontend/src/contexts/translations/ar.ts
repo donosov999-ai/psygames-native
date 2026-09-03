@@ -332,6 +332,8 @@ const t: Record<string, string> = {
   "ladderLockedShort": "م {n}",
   "chestToNext": "‏⭐{n} أخرى لتمثال جديد · تم جمع {have}/{all}",
   "chestFull": "اكتملت المجموعة",
+  "wheelSpin": "أدر العجلة",
+  "wheelWon": "×{m} — {n} ⭐ إضافية",
   "collectionTitle": "المجموعة",
   "collectionSub": "{have} من {all} · ⭐{earned} إجمالاً",
   "collectionLocked": "يُفتح عند ⭐{n}",

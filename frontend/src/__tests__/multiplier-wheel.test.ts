@@ -1,3 +1,4 @@
+declare const __dirname: string;
 import { WHEEL, wheelMean, spinWheel, angleForSector, applyWheel } from '@/src/services/multiplierWheel';
 
 /**
@@ -56,6 +57,30 @@ describe('колесо множителя', () => {
       expect(a).toBeGreaterThan(before * 360);
       expect(a).toBeLessThan((before + WHEEL[i].weight) * 360);
     }
+  });
+
+  it('🔴 колесо трогает ТОЛЬКО валюту, а не измерение человека', () => {
+    /**
+     * Карта §12.5 сняла колесо как «ломающее валидность балла». Возражение про
+     * БАЛЛ — про `cognitive_sessions` (точность, время реакции). Колесо живёт
+     * отдельно и умножает звёзды. Проба сторожит именно это разделение: если
+     * ядро колеса когда-нибудь потянет к себе запись сессии, здесь станет красно.
+     */
+    const fs = require('fs');
+    const path = require('path');
+    const src = fs.readFileSync(path.resolve(__dirname, '../services/multiplierWheel.ts'), 'utf8');
+    /**
+     * ⚠️ Смотрим на ВВОЗЫ И ВЫЗОВЫ, а не на слова: первый вид пробы искал строку
+     * `cognitive_sessions` — и покраснел на моём же комментарии, который объясняет,
+     * почему её здесь нет. Гейт по словам краснеет на объяснении, гейт по коду — на
+     * коде.
+     */
+    const ввозы = (src.match(/^\s*import .+$/gm) ?? []).join(' ');
+    expect(ввозы).toBe('');                                   // ядро колеса ни от чего не зависит
+    const код = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+    expect(код).not.toMatch(/saveSession|cognitive_sessions|addTokens|addEarned/);
+    // И наоборот: область действия названа словами прямо в файле, а не подразумевается.
+    expect(src).toMatch(/умножает только ЗВЁЗДЫ/i);
   });
 
   it('🔴 множитель не отнимает: округление вверх', () => {

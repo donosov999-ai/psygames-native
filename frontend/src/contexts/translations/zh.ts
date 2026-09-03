@@ -1200,6 +1200,8 @@ const t: Record<string, string> = {
   "ladderLockedShort": "{n} 级",
   "chestToNext": "再得 ⭐{n} 即可获得新摆件 · 已收集 {have}/{all}",
   "chestFull": "收藏已集齐",
+  "wheelSpin": "转动转盘",
+  "wheelWon": "×{m} — 再得 {n} ⭐",
   "collectionTitle": "收藏",
   "collectionSub": "已收集 {have}/{all} · 累计 ⭐{earned}",
   "collectionLocked": "⭐{n} 解锁",
