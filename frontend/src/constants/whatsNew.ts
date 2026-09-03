@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.34.5',
+    date: '2026-09-03',
+    ru: [
+      'Счётчики в шапке теперь правильно читаются вслух: подпись стоит на самой кнопке',
+      'После взятого уровня видно, сколько звёзд стало в копилке, а не только сколько начислено',
+    ],
+    en: [
+      'Header counters are announced correctly by screen readers now',
+      'After a cleared level you see the new star balance, not just what was earned',
+    ],
+  },
+  {
     version: '2.34.4',
     date: '2026-09-03',
     ru: [
