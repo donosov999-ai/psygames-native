@@ -114,6 +114,7 @@ export default function GamePet({ mood = 'idle', size = 46 }: { mood?: PetMood; 
     // Питомец — не кнопка и не сообщение: скринридер его пропускает, состояние
     // партии он получает от самих клеток и счётчиков.
     <Animated.View
+      testID="game-pet"
       style={[styles.box, { transform: [{ scale: pop }] }]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"

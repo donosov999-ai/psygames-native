@@ -55,8 +55,15 @@ BUILT="$(python3 -c "import plistlib;print(plistlib.load(open('$APP/Info.plist',
 [ "$BUILT" = "$WANT" ] || { echo "❌ собрана $BUILT, а в исходниках $WANT — сборка взяла старое"; exit 1; }
 
 xcrun simctl terminate "$UDID" "$BUNDLE" 2>/dev/null || true
-xcrun simctl uninstall "$UDID" "$BUNDLE" 2>/dev/null || true
-xcrun simctl install "$UDID" "$APP"
+# ⚠️ БЕЗ `uninstall` ПО УМОЛЧАНИЮ: он стирает прогресс тестировщика — пройденные
+# уровни, звёзды, профиль. За день это несколько партий, снесённых ради проверки
+# вёрстки. Сносим только если обычная установка не прошла (сменилась подпись или
+# структура пакета), и тогда говорим об этом вслух.
+if ! xcrun simctl install "$UDID" "$APP" 2>/dev/null; then
+  echo "⚠️  обычная установка не прошла — сношу приложение (прогресс на симуляторе будет стёрт)"
+  xcrun simctl uninstall "$UDID" "$BUNDLE" 2>/dev/null || true
+  xcrun simctl install "$UDID" "$APP"
+fi
 
 # 🔴 ПОСЛЕДНЯЯ И ГЛАВНАЯ ПРОВЕРКА: что реально СТОИТ на устройстве.
 CONTAINER="$(xcrun simctl get_app_container "$UDID" "$BUNDLE" app)"

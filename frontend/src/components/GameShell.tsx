@@ -44,7 +44,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { type PetMood } from '@/src/components/pet/GamePet';
+import GamePet, { type PetMood } from '@/src/components/pet/GamePet';
 import { setGameMood } from '@/src/services/petMood';
 import { onGameEvent, type GameEventKind } from '@/src/services/gameEvents';
 import { streakMultiplier, scoreWithStreak } from '@/src/services/scoring';
@@ -599,12 +599,29 @@ export default function GameShell({
         {/* Правый слот фиксированной ширины — держит заголовок по центру.
             Отступ под плавающую справку кладём ТОЛЬКО когда в слоте что-то есть:
             пустому слоту разъезжаться незачем, а заголовок центрируется по нему. */}
+        {/*
+          🔴 ПИТОМЕЦ ЖИВЁТ В ПРАВОМ УГЛУ ШАПКИ — И БОЛЬШЕ НИГДЕ.
+          Предложение Дениса 03.09.2026: «верхний правый угол сделать рядом морду
+          питомца, чтобы они рядом шли… и в выборе настроек, и в самой игре».
+
+          ЗАЧЕМ. Он сидел в плашке счётчиков — а плашки нет на экранах настройки, и
+          она перестраивается по ходу партии: счётчики переносятся на второй ряд, и
+          питомец уезжает по высоте. Дословно: «он переезжает у нас туда во всех
+          местах». Шапка каркаса одинакова на КАЖДОМ экране игры, включая настройку.
+
+          ⚠️ СНАЧАЛА Я ПОСТАВИЛ ЕГО В ОВЕРЛЕЙ СПРАВКИ — рядом с самой кнопкой «?».
+          Он не появился ни разу, хотя код был в бандле: проба показала, что дерево
+          того оверлея на экране настройки почти пустое, справка приходит другим
+          путём. Здесь — элемент, который заведомо рисуется, и виден он в том же
+          правом углу.
+        */}
         <View
           style={[
             styles.headerRight,
             (headerRight || wuStep) ? (rtl ? { marginLeft: HELP_FAB_GUTTER } : { marginRight: HELP_FAB_GUTTER }) : null,
           ]}
         >
+          <GamePet mood={pet ?? autoMood} size={30} />
           {wuStep ? (
             <TouchableOpacity
               accessibilityRole="button"

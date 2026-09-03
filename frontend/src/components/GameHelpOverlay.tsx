@@ -5,8 +5,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import GamePet from '@/src/components/pet/GamePet';
-import { useGameMood } from '@/src/services/petMood';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { HELP_MAP } from '@/src/constants/helpMap';
@@ -50,8 +48,6 @@ export default function GameHelpOverlay() {
   const insets = useSafeAreaInsets();
   const HELP_LABEL: Record<string, string> = { ru: 'Справка', en: 'Help', es: 'Ayuda', pt: 'Ajuda', hi: 'मदद', zh: '帮助', de: 'Hilfe' };
   const helpLabel = HELP_LABEL[language] || 'Help';
-  // Питомец отвечает на ход игры: канал настроения (см. petMood.ts).
-  const настроение = useGameMood();
   // RTL: «?» зеркалится к левому краю (кнопка фидбека при этом уходит вправо вниз)
   const rtl = isRTLLang(language);
   const pathname = usePathname() || '';
@@ -154,42 +150,45 @@ export default function GameHelpOverlay() {
   return (
     <>
       {/*
-        🔴 ПИТОМЕЦ ЖИВЁТ РЯДОМ СО СПРАВКОЙ — И БОЛЬШЕ НИГДЕ (предложение Дениса
-        03.09.2026: «предлагаю верхний правый угол сделать рядом морду питомца,
-        чтобы они рядом шли… и в выборе настроек, и в самой игре»).
+        ⚠️ ПИТОМЦА ЗДЕСЬ НЕТ, И ЭТО ЗАМЕР, А НЕ ПЕРЕДУМАЛ. Я поставил его сюда —
+        рядом со справкой, как просил Денис, — и он не появился на экране ни разу,
+        хотя код лежал в бандле. Проба показала почему: дерево этого оверлея на
+        экране настройки почти пустое (82 символа), справка приходит другим путём.
+        Питомец переехал в шапку `GameShell`, которая рисуется заведомо, и встал в
+        том же правом углу — визуально ровно то, что просили.
+        Предложение Дениса 03.09.2026: «верхний правый угол сделать рядом морду
+        питомца, чтобы они рядом шли… и в выборе настроек, и в самой игре».
 
-        ЗАЧЕМ. До этого он сидел в плашке счётчиков — а плашки нет на экранах
-        настройки, и она сама перестраивается по ходу партии. Питомец из-за этого
-        «переезжает» (дословная жалоба): то слева в плашке, то нигде, то на другой
-        высоте, когда счётчики переносятся на второй ряд. Угол справки — единственное
-        место, которое одинаково на КАЖДОМ экране игры, потому что сама справка
-        плавающая и не зависит ни от счётчиков, ни от фазы.
+        ⚠️ ПЕРВАЯ РЕДАКЦИЯ СТАВИЛА ПИТОМЦА ОТДЕЛЬНЫМ АБСОЛЮТНЫМ БЛОКОМ рядом —
+        и он не появился на экране вовсе, хотя код лежал в бандле. Разбираться,
+        какой из двух абсолютных слоёв кого перекрыл, дороже, чем не заводить
+        второй: теперь они в ОДНОМ ряду, и положение питомца выводится из того же
+        элемента, который заведомо рисуется.
 
-        ⚠️ Морда, а не фигурка: в кружке 34 точки фигурка целиком даёт голову
-        примерно в 11 — пятно. Крупный план головы делает `GamePet` (см. ЗУМ там).
+        ЗАЧЕМ вообще переезд: питомец сидел в плашке счётчиков, а плашки нет на
+        экранах настройки и она перестраивается по ходу партии — он «переезжал»
+        (дословная жалоба). Угол справки одинаков на каждом экране игры.
       */}
       <View
-        pointerEvents="none"
-        style={[styles.petWrap, rtl ? { left: 4 + 52 } : { right: 4 + 52 }, { top: insets.top + 10 }]}
+        style={[styles.cornerRow, rtl ? { left: 4 } : { right: 4 }, { top: insets.top + 10 }]}
+        pointerEvents="box-none"
       >
-        <GamePet mood={настроение} size={34} />
+        {/* Кнопка = кружок «?» + подпись словом. Голая иконка не читалась как справка. */}
+        <TouchableOpacity
+          accessibilityLabel={helpLabel}
+          accessibilityRole="button"
+          onPress={openHelp}
+          activeOpacity={0.85}
+          style={styles.fabInRow}
+        >
+          <View style={[styles.fabCircle, { backgroundColor: accent }]}>
+            <Ionicons name="help-circle" size={26} color={accentFg} />
+          </View>
+          <Text style={[styles.fabLabel, { backgroundColor: accent, color: accentFg }]} numberOfLines={1}>
+            {t('btn_rules')}
+          </Text>
+        </TouchableOpacity>
       </View>
-
-      {/* Кнопка = кружок «?» + подпись словом. Голая иконка не читалась как справка. */}
-      <TouchableOpacity
-        accessibilityLabel={helpLabel}
-        accessibilityRole="button"
-        onPress={openHelp}
-        activeOpacity={0.85}
-        style={[styles.fabWrap, rtl ? { left: 4 } : { right: 4 }, { top: insets.top + 10 }]}
-      >
-        <View style={[styles.fabCircle, { backgroundColor: accent }]}>
-          <Ionicons name="help-circle" size={26} color={accentFg} />
-        </View>
-        <Text style={[styles.fabLabel, { backgroundColor: accent, color: accentFg }]} numberOfLines={1}>
-          {t('btn_rules')}
-        </Text>
-      </TouchableOpacity>
 
       {coach ? (
         <View
@@ -328,8 +327,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   // Сторона и выравнивание — в рендере (RTL-зеркало вместе с «?»-кнопкой)
-  /** Питомец слева от «?»: 52 = кружок справки 44 + зазор 8. */
-  petWrap: { position: 'absolute', zIndex: 100, alignItems: 'center', justifyContent: 'center' },
+  /** Ряд «питомец + справка» в углу: один абсолютный слой вместо двух. */
+  cornerRow: { position: 'absolute', zIndex: 100, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  /** Кнопка внутри ряда: своё позиционирование ей больше не нужно. */
+  fabInRow: { alignItems: 'center' },
   coachWrap: { position: 'absolute', maxWidth: 270, zIndex: 101 },
   coachArrow: {
     width: 0,

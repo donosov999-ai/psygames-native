@@ -698,6 +698,21 @@ jobs:
           xcrun altool --upload-app -f "$IPA" -t ios \
             --apiKey "$KEY_ID" --apiIssuer "$ISSUER"
 
+      # 🔴 ВНЕШНЕЕ РЕВЬЮ — ОТДЕЛЬНЫЙ ШАГ, БЕЗ НЕГО ЗАГРУЗКА НЕ ДОХОДИТ ДО ЛЮДЕЙ.
+      #
+      # Замер 03.09.2026 по App Store Connect: внешняя группа «Семья и близкие»
+      # открыта, публичная ссылка работает — а сборки 2.34.4, 2.34.5 и 2.35.0 на
+      # внешнее ревью НЕ ПОДАВАЛИСЬ вовсе. Загрузка в TestFlight шла успешно, лента
+      # задач молчала, внутренние тестировщики получали всё сразу — и заметить, что
+      # внешние видят старьё, было нельзя ничем, кроме прямого запроса к Apple.
+      - name: Подать на внешнее ревью TestFlight
+        if: steps.keys.outputs.ready == 'yes' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: node .github/scripts/testflight-external.mjs
+        continue-on-error: true
+
       - name: Стереть ключ
         if: always() && steps.keys.outputs.ready == 'yes'
         run: rm -rf ~/private_keys
