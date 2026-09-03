@@ -16,7 +16,7 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
-    version: '2.37.8',
+    version: '2.37.9',
     date: '2026-09-04',
     ru: [
       'Голосовая заметка показывает уровень и на телефонах со старым браузером: видно сразу, слышно вас или нет',
