@@ -461,7 +461,20 @@ const MEASURE_OVERFLOW = () => {
   for (const el of document.querySelectorAll('[role="button"], button, [tabindex], div, span, text')) {
     const r = el.getBoundingClientRect();
     if (r.width < 4 || r.height < 4) continue;
-    if (r.top > зона) continue;                       // не шапка
+    /**
+     * 🔴 ПРОВЕРЯЕМ ШАПКУ И НИЖНИЙ РЯД, А НЕ ОДНУ ШАПКУ.
+     *
+     * Отчёт Дениса 03.09.2026 со скриншотом симулятора: в «Сортировке товаров»
+     * кнопка «Перемешать» срезана правым краем, а «Отменить» начинается на 20
+     * точках при отступе контейнера 68 — ряд шире коробки и вылезает с ОБЕИХ
+     * сторон. Гейт при этом был зелёным: он смотрел только верхнюю четверть окна,
+     * а служебный ряд живёт внизу.
+     *
+     * Три захода на починку ушли вслепую именно потому, что мерить было нечем —
+     * каждая проверка стоила пересборки под симулятор. Теперь низ меряется здесь.
+     */
+    const низ = r.top >= window.innerHeight * 0.72;
+    if (r.top > зона && !низ) continue;                 // ни шапка, ни нижний ряд
     const st = getComputedStyle(el);
     if (st.visibility === 'hidden' || st.opacity === '0' || st.display === 'none') continue;
     if (st.position === 'fixed' && r.top < 0) continue;
@@ -508,7 +521,7 @@ const MEASURE_OVERFLOW = () => {
    */
   for (const el of document.querySelectorAll('div, span')) {
     const r = el.getBoundingClientRect();
-    if (r.width < 20 || r.top > зона) continue;
+    if (r.width < 20 || (r.top > зона && r.top < window.innerHeight * 0.72)) continue;
     const st = getComputedStyle(el);
     if (st.overflowX !== 'hidden' && st.overflow !== 'hidden') continue;
     const спрятано = el.scrollWidth - el.clientWidth;
