@@ -557,6 +557,9 @@ const translations: Translations = {
    */
   chestToNext: { ru: 'Ещё ⭐{n} — и новая фигурка · собрано {have}/{all}', en: '⭐{n} more for a new figure · {have}/{all} collected' },
   chestFull: { ru: 'Коллекция собрана целиком', en: 'Collection complete' },
+  /** Колесо множителя после уровня (задача ac44fc2d, пункт 5). Рекламы в нём нет. */
+  wheelSpin:  { ru: 'Крутить колесо', en: 'Spin the wheel' },
+  wheelWon:   { ru: '×{m} — ещё {n} ⭐', en: '×{m} — {n} ⭐ more' },
   /**
    * ВИТРИНА КОЛЛЕКЦИИ (задача 6e564484, шаг 2). Сундук говорил «собрано 3 из 12»,
    * а посмотреть на эти три было негде: цель числовая, а не предметная. Двенадцать

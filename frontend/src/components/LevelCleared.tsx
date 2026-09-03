@@ -11,7 +11,9 @@ import { saveLevelStars } from '@/src/services/levelStars';
 import { getCleanRun } from '@/src/services/cleanRun';
 import { freshEarn, onEarn, earnReasonKey, EarnEntry } from '@/src/services/earn';
 import { useProfile } from '@/src/contexts/ProfileContext';
-import { getTokens } from '@/src/services/tokens';
+import { getTokens, addTokens } from '@/src/services/tokens';
+import { addEarned } from '@/src/services/collection';
+import { spinWheel, applyWheel } from '@/src/services/multiplierWheel';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import Act from '@/src/components/juice/Act';
 import { IS_WEB_DEMO, demoDownloadUrl } from '@/src/services/buildTarget';
@@ -168,6 +170,18 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
    * через мгновение.
    */
   const [earn, setEarn] = useState<EarnEntry | null>(() => freshEarn());
+  /**
+   * 🔴 КОЛЕСО МНОЖИТЕЛЯ (задача ac44fc2d, пункт 5). Рекламы в нём нет и не будет:
+   * у эталона это место для ролика, у нас платные профили — взята механика без кассы.
+   *
+   * Умножаются ТОЛЬКО звёзды. Измерение человека (`cognitive_sessions`) колесо не
+   * трогает — возражение карты §12.5 было про балл, а не про валюту (подробности в
+   * шапке `multiplierWheel.ts`).
+   *
+   * `null` — колесо ещё не крутили; число — выпавший множитель.
+   */
+  const [колесо, setКолесо] = useState<{ mult: number; bonus: number } | null>(null);
+  const [крутится, setКрутится] = useState(false);
   /** Итог копилки после начисления: связь партии с метой, см. блок начисления ниже. */
   const [баланс, setБаланс] = useState<number | null>(null);
   useEffect(() => onEarn(setEarn), []);
@@ -393,6 +407,51 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
               <Ionicons name="people-outline" size={17} color={fg} />
               <Text style={[styles.comparisonText, { color: fg }]}>{comparisonLine}</Text>
             </View>
+          </Act>
+        )}
+        {/*
+          🔴 КОЛЕСО КРУТИТСЯ ПО НАЖАТИЮ, А НЕ САМО. Награда, которая падает без
+          участия, читается как часть начисления; вся ценность приёма в том, что
+          человек СДЕЛАЛ движение и ждал исхода. Один раз за уровень.
+        */}
+        {passed && earn && earn.total > 0 && !compact && (
+          <Act at={ACT.compare + 80}>
+            {колесо ? (
+              <View style={[styles.earnBadge, { backgroundColor: scrim }]}>
+                <Text style={[styles.earnText, { color: fg }]}>
+                  {t('wheelWon').replace('{m}', String(колесо.mult)).replace('{n}', String(колесо.bonus))}
+                </Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                accessibilityRole="button"
+                testID="wheel-spin"
+                disabled={крутится}
+                activeOpacity={0.85}
+                onPress={() => {
+                  if (крутится || колесо) return;
+                  setКрутится(true);
+                  const { mult } = spinWheel(Math.random());
+                  const bonus = Math.max(0, applyWheel(earn.total, mult) - earn.total);
+                  /**
+                   * ⚠️ Бонус пишется ОТДЕЛЬНОЙ добавкой после начисления, а не
+                   * подменяет множитель в `earn.ts`. Иначе рядом с настоящим
+                   * правилом награды завелось бы второе, и они разошлись бы при
+                   * первой правке — молча, как это уже было со счётом на экране.
+                   */
+                  if (bonus > 0 && profile?.id) {
+                    void addTokens(profile.id, bonus).then(setБаланс).catch(() => {});
+                    void addEarned(profile.id, bonus).catch(() => {});
+                  }
+                  setКолесо({ mult, bonus });
+                  setКрутится(false);
+                }}
+                style={[styles.earnBadge, { backgroundColor: scrim }]}
+              >
+                <Ionicons name="sync-outline" size={16} color={fg} />
+                <Text style={[styles.earnText, { color: fg }]}>{t('wheelSpin')}</Text>
+              </TouchableOpacity>
+            )}
           </Act>
         )}
         {/* Web-demo: авто-старта следующего уровня нет — строку «Запускаю уровень N+1» не показываем */}

@@ -1200,6 +1200,8 @@ const t: Record<string, string> = {
   "ladderLockedShort": "Nív. {n}",
   "chestToNext": "Mais ⭐{n} para uma nova figura · {have}/{all} reunidas",
   "chestFull": "Coleção completa",
+  "wheelSpin": "Girar a roda",
+  "wheelWon": "×{m} — mais {n} ⭐",
   "collectionTitle": "Coleção",
   "collectionSub": "{have} de {all} · ⭐{earned} no total",
   "collectionLocked": "Abre em ⭐{n}",
