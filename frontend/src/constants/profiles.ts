@@ -397,14 +397,14 @@ const FREE: ProfileDef = {
   display_name: 'Стандарт',
   emoji: '🎁',
   color: '#f59e0b',
-  description: '9 тренажёров · подобранный набор для старта',
-  long_description: 'Набор для старта, без кода. По одному тренажёру из каждой категории: Шульте (внимание), Парные картинки (память), Мишени (реакция), Математический спринт + Считалка, Поиск отличий, Анаграммы, Ханойская башня, N-back (рабочая память — облегчённая). Девять — это осознанный размер: полный каталог в первый день не помогает, а отпугивает. Остальные профили — такие же подборки под конкретную задачу, открываются кодом.',
-  long_description_en: 'The starter set — no code needed. One trainer from each category: Schulte tables (attention), Picture Pairs (memory), Targets (reaction), Math Sprint + Counter, Spot the Difference, Anagrams, Tower of Hanoi, N-back (working memory — light version). Themed profiles unlock with an access code.',
+  description: '10 тренажёров · подобранный набор для старта',
+  long_description: 'Набор для старта, без кода. По одному тренажёру из каждой категории: Шульте (внимание), Парные картинки (память), Мишени (реакция), Математический спринт + Считалка, Поиск отличий, Анаграммы, Ханойская башня, Сортировка товаров, N-back (рабочая память — облегчённая). Десять — это осознанный размер: полный каталог в первый день не помогает, а отпугивает. Остальные профили — такие же подборки под конкретную задачу, открываются кодом.',
+  long_description_en: 'The starter set — no code needed. One trainer from each category: Schulte tables (attention), Picture Pairs (memory), Targets (reaction), Math Sprint + Counter, Spot the Difference, Anagrams, Tower of Hanoi, Goods Sort, N-back (working memory — light version). Themed profiles unlock with an access code.',
   audience: 'Знакомство с приложением',
   audience_en: 'First look at the app',
   session_minutes: '3-10 мин',
-  sales_hook: '🎁 9 тренажёров без кода — по одному из каждой категории.',
-  sales_hook_en: '🎁 9 trainers, no code needed — one from each category.',
+  sales_hook: '🎁 10 тренажёров без кода — по одному из каждой категории.',
+  sales_hook_en: '🎁 10 trainers, no code needed — one from each category.',
   tier: 'trial',
   group: 'themed',
   // v1.2.0 «1+1+1+1 + 5 темовых»: one game per category + funnel teasers
@@ -420,6 +420,15 @@ const FREE: ProfileDef = {
     'anagrams',          // ещё logic — буквенные пазлы
     'counter',           // ещё action — устный счёт
     'targets',           // ещё action — реакция
+    /**
+     * Решение Дениса 03.09.2026: «Сортировка товаров» — в «Стандарт».
+     *
+     * Её не было в стартовом наборе, и её видели только те, кто нашёл
+     * «Микро-релакс». А это самая длинная по удержанию игра каталога: сорок
+     * уровней с растущими механиками, а не одна проба на три минуты. Прятать
+     * такую за выбором профиля — терять её у всех, кто не полез в список.
+     */
+    'goods_sort',        // logic — длинная лестница уровней, лучший крючок каталога
   ],
   // v1.204.0, решение Дениса 16.08.2026: зарядка есть у ВСЕХ профилей.
   // Была выключена как «hook на подписку», но спрятанное не продаёт: блок просто
