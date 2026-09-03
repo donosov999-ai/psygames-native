@@ -239,6 +239,28 @@ function OnboardingInner() {
 
     return (
       <SafeAreaView style={[styles.pickerContainer, { backgroundColor: colors.background }]}>
+        {/*
+          🔴 ВЫХОД ЗАКРЕПЛЁН СВЕРХУ, А НЕ ЛЕЖИТ В КОНЦЕ ПРОКРУТКИ.
+          Отчёт Дениса 03.09.2026 со скриншотом: «и как отсюда выйти на шаг назад?
+          Это архитектурная ошибка во всех упражнениях». Он прав: «Пропустить» на
+          этом экране было ОДНО и стояло под всем списком игр — с середины экрана
+          выхода не видно вовсе, и человек заперт на первом же экране приложения.
+          Тот же дефект я чинил сегодня в «Повороте фигур»: единственный выход
+          внизу прокрутки — это отсутствие выхода.
+        */}
+        <View style={[styles.pickerTopBar, { borderBottomColor: colors.border }]}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('skip')}
+            testID="onb-exit"
+            disabled={busy}
+            onPress={skipPicker}
+            style={styles.pickerTopExit}
+          >
+            <Ionicons name="arrow-back" size={20} color={colors.text} />
+            <Text style={[styles.pickerTopExitText, { color: colors.text }]}>{t('skip')}</Text>
+          </TouchableOpacity>
+        </View>
         <ScrollView
           contentContainerStyle={[styles.pickerScroll, { width: containerW }]}
           showsVerticalScrollIndicator={false}
@@ -404,6 +426,10 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12 },
   stepCounter: { fontSize: 13, fontWeight: '700' },
   skipBtn: { fontSize: 14, fontWeight: '600' },
+  /** Закреплённая полоса выхода: она не прокручивается и потому не может пропасть. */
+  pickerTopBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderBottomWidth: StyleSheet.hairlineWidth },
+  pickerTopExit: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 48, minWidth: 48, paddingHorizontal: 8 },
+  pickerTopExitText: { fontSize: 15, fontWeight: '600' },
   slideCard: { padding: 32, borderRadius: 24, alignItems: 'center', gap: 16, marginTop: 24 },
   emoji: { fontSize: 80 },
   title: { color: '#FFF', fontSize: 26, fontWeight: '900', textAlign: 'center', letterSpacing: 1 },
