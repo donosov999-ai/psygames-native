@@ -80,9 +80,10 @@ export default function HudBadge({ icon, label, value, colors = ['#3b82f6', '#1d
      * в тот слой, где он нужен».
      */
     <Animated.View
-      accessible
-      accessibilityLabel={label ? `${label}: ${value}` : String(value)}
-      accessibilityHint={подпись}
+      // Когда пилюля нажимаемая, доступность живёт на кнопке внутри: два узла
+      // подряд с одной подписью скринридер читает дважды.
+      accessible={!подпись}
+      accessibilityLabel={подпись ? undefined : (label ? `${label}: ${value}` : String(value))}
       style={[styles.shadow, { transform: [{ scale }] }, style]}
     >
       {/**
@@ -101,10 +102,22 @@ export default function HudBadge({ icon, label, value, colors = ['#3b82f6', '#1d
         * незачем. Ложная кнопка хуже отсутствующей.
         */}
       {подпись ? (
+        /*
+          ⚠️ ПОДПИСЬ — НА САМОЙ КНОПКЕ, А НЕ НА ОБЁРТКЕ. Первая редакция держала её
+          на внешнем `Animated.View`, и гейт доступности честно упал: «нажимаемый
+          элемент без подписи». Он прав не по форме — скринридер объявляет ТО, ЧТО
+          фокусируется, а фокусируется кнопка; подпись на родителе до неё не доходит.
+
+          ⚠️ И комментарий стоит ВЫШЕ элемента, а не среди его свойств: разбор
+          аудита ищет конец открывающего тега по первому `>`, и знак внутри
+          комментария обрывал ему чтение — подпись за ним переставала находиться.
+        */
         <Pressable
           style={styles.tapTarget}
           onPress={() => setОткрыто((v) => !v)}
           accessibilityRole="button"
+          accessibilityLabel={label ? `${label}: ${value}` : String(value)}
+          accessibilityHint={подпись}
           hitSlop={6}
         >
           {пилюля}
