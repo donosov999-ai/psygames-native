@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
-import PetSprite from './PetSprite';
+import PetSprite, { petHeadCenter } from './PetSprite';
 import { getPetSkin, getPetVisible, PET_VISIBLE_EVENT } from '@/src/services/pet';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { settle } from '@/src/components/juice/motion';
@@ -49,6 +49,14 @@ const FRAME: Record<PetMood, { ring: string; fill: string }> = {
   bad:  { ring: '#94a3b8', fill: 'rgba(148,163,184,0.16)' },
   win:  { ring: '#fbbf24', fill: 'rgba(251,191,36,0.24)' },
 };
+
+/**
+ * Во сколько раз спрайт крупнее окна медальона. Три — не «на глаз»: при кропе по
+ * глазам голова занимает примерно треть кадра, значит ×3 даёт голову почти во всё
+ * окно. Меньше — просьба Дениса «в два раза минимум» не выполнена, больше — в окно
+ * попадает уже не морда, а один глаз.
+ */
+const ЗУМ = 3;
 
 export default function GamePet({ mood = 'idle', size = 46 }: { mood?: PetMood; size?: number }) {
   const reduced = useReducedMotion();
@@ -123,7 +131,37 @@ export default function GamePet({ mood = 'idle', size = 46 }: { mood?: PetMood; 
           },
         ]}
       >
-        <PetSprite state={state} size={size} skin={skin} />
+        {/*
+          🔴 В МЕДАЛЬОНЕ КРУПНЫМ ПЛАНОМ ГОЛОВА, А НЕ ФИГУРКА ЦЕЛИКОМ.
+          Отчёт Дениса 03.09.2026 со скриншотом: «надо увеличить питомца в верхнем
+          тулбаре, его самое ценное — голова и морда, в два раза минимум, даже если
+          остальное не будет входить».
+
+          Он прав по существу: в окошке 46 точек фигурка целиком даёт голову
+          примерно в 14 точек — это пятно, а не морда. Увеличивать сам медальон
+          нельзя, он и так занимает высоту шапки.
+
+          Поэтому спрайт рисуется ВТРОЕ крупнее окна и сдвигается так, чтобы
+          ГЛАЗА оказались в центре: голова получается ~42 точки вместо 14 — втрое,
+          а не вдвое, как просил Денис, потому что кроп по глазам даёт запас.
+          Хвост и лапы уходят за край медальона, и это ровно то, что он и просил:
+          «типа в окошке голова торчит».
+
+          ⚠️ Смещение считается ПО ЯКОРЯМ КАДРА, а не одним числом на облик: у кота,
+          робота и созвездия головы в разных местах, и в прыжке они выше, чем в
+          покое. Своё число здесь означало бы съехавшую морду у двух обликов из трёх
+          — ровно та беда, из-за которой якоря и заводились (бабочка на пузе).
+        */}
+        <View pointerEvents="none" style={{ width: size, height: size, overflow: 'hidden', alignItems: 'flex-start', justifyContent: 'flex-start' }}>
+          <View style={{
+            width: size * ЗУМ,
+            height: size * ЗУМ,
+            marginLeft: -(petHeadCenter(skin, state).x / 100) * size * ЗУМ + size / 2,
+            marginTop: -(petHeadCenter(skin, state).y / 100) * size * ЗУМ + size / 2,
+          }}>
+            <PetSprite state={state} size={size * ЗУМ} skin={skin} />
+          </View>
+        </View>
       </View>
     </Animated.View>
   );
