@@ -1196,6 +1196,7 @@ const t: Record<string, string> = {
   "ladderRecords": "Rekordübersicht",
   "ladderStreakMap": "Serienkarte",
   "ladderNext": "Noch {n} — dann öffnet sich: {what}",
+  "ladderLockedAt": "Ab Level {n} verfügbar",
   "btn_rules": "Regeln",
   "msShort": "ms",
   "shuffleBtn": "Mischen",

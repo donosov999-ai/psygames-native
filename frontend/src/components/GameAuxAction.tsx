@@ -26,6 +26,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLanguage } from '@/src/contexts/LanguageContext';
+import { useLadderLock } from '@/src/contexts/PlayerLevelContext';
 
 export interface GameAuxActionProps {
   /** Иконка Ionicons. Без неё кнопка остаётся текстовой — так у «СТОП». */
@@ -47,39 +49,72 @@ export interface GameAuxActionProps {
    */
   danger?: boolean;
   disabled?: boolean;
+  /**
+   * Ключ лестницы замков (`hint`, `undo`, …). Если приём ещё не открыт по
+   * уровню игрока, кнопка рисуется ЗАПЕРТОЙ, а не прячется.
+   *
+   * 🔴 ПОЧЕМУ НЕ ПРЯТАТЬ. Пропавшая кнопка читается как «в этой игре такого
+   * нет» — и приём, открывшийся через два уровня, игрок просто не заметит.
+   * Видимый замок работает наоборот: он сам объясняет, что впереди есть куда
+   * идти, и делает это бесплатно. Ради этого лестница и заводилась.
+   *
+   * ⚠️ Без ключа поведение прежнее — ни одна из сорока трёх игр не меняется,
+   * пока её автор не назовёт приём.
+   */
+  ladder?: string;
   onPress: () => void;
 }
 
 /** Красный «СТОП» — один и тот же во всех упражнениях с сеансом. */
 const DANGER = '#f43f5e';
 
-export function GameAuxAction({ icon, label, count, tint, danger, disabled, onPress }: GameAuxActionProps) {
+export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladder, onPress }: GameAuxActionProps) {
   const { colors } = useTheme();
-  const fg = danger ? DANGER : colors.text;
+  const { t } = useLanguage();
+  const { заперт, порог } = useLadderLock(ladder);
+  const [сказали, setСказали] = React.useState(false);
+
+  const fg = заперт ? colors.textSecondary : (danger ? DANGER : colors.text);
   return (
     <TouchableOpacity
       testID="game-aux"
       accessibilityRole="button"
       // Счётчик уходит в подпись для скринридера: «Перемешать · 3» вслух
       // читается как одно слово с числом, а не как два соседних элемента.
-      accessibilityLabel={count === undefined ? label : `${label} — ${count}`}
-      accessibilityState={{ disabled: !!disabled }}
-      disabled={disabled}
-      onPress={onPress}
+      accessibilityLabel={
+        заперт ? `${label} — ${t('ladderLockedAt').replace('{n}', String(порог))}`
+        : count === undefined ? label : `${label} — ${count}`
+      }
+      accessibilityState={{ disabled: !!disabled || заперт }}
+      // Запертую кнопку НЕ отключаем: нажатие обязано ответить «откроется на
+      // уровне N». Отключённая кнопка на нажатие молчит, и замок превращается
+      // в поломку — ровно та жалоба, что уже приходила про кончившийся ресурс.
+      disabled={disabled && !заперт}
+      onPress={заперт ? () => setСказали((v) => !v) : onPress}
       activeOpacity={0.8}
       style={[
         styles.btn,
         {
           backgroundColor: colors.surface,
-          borderColor: danger ? DANGER : colors.border,
-          opacity: disabled ? 0.4 : 1,
+          borderColor: заперт ? colors.border : (danger ? DANGER : colors.border),
+          opacity: заперт ? 0.55 : (disabled ? 0.4 : 1),
         },
       ]}
     >
-      {icon ? <Ionicons name={icon} size={18} color={tint ?? fg} /> : null}
+      {заперт
+        ? <Ionicons name="lock-closed" size={18} color={colors.textSecondary} />
+        : (icon ? <Ionicons name={icon} size={18} color={tint ?? fg} /> : null)}
       <Text style={[styles.label, { color: fg }]} numberOfLines={1}>
-        {count === undefined ? label : `${label} · ${count}`}
+        {заперт || count === undefined ? label : `${label} · ${count}`}
       </Text>
+      {/* Ответ на нажатие по замку: чем именно он откроется. */}
+      {сказали && порог !== null ? (
+        <View style={[styles.tip, { backgroundColor: colors.text }]}>
+          <Text style={[styles.tipText, { color: colors.background }]} numberOfLines={2}>
+            {t('ladderLockedAt').replace('{n}', String(порог))}
+          </Text>
+        </View>
+      ) : null}
     </TouchableOpacity>
   );
 }
@@ -96,6 +131,23 @@ export function GameAuxBar({ children }: { children: React.ReactNode }) {
 }
 
 const styles = StyleSheet.create({
+  /**
+   * Пузырь ответа на нажатие по замку. Абсолютный и БЕЗ влияния на поток: ряд
+   * служебных кнопок и так вылезал за край на узких экранах, и всплывающая
+   * подпись не имеет права добавлять туда ширину.
+   */
+  tip: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    marginTop: 6,
+    maxWidth: 190,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 8,
+    zIndex: 20,
+  },
+  tipText: { fontSize: 12, fontWeight: '600' },
   /**
    * Зазор 6, а не 8: при переносе на вторую строку каждая лишняя пара точек
    * между кнопками отнимается у поля дважды — по горизонтали и по вертикали.

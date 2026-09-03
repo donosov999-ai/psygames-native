@@ -17,6 +17,7 @@ import {
   CAGE_ACCENTS, blendHex, thermoThick, thermoColor, thermoSegment, thermoBulb, cageSumFontSize,
 } from '@/src/services/sudoku-overlay';
 import GlassButton from '@/src/components/GlassButton';
+import { useLadderLock } from '@/src/contexts/PlayerLevelContext';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
 import BossRound, { BossType } from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -583,6 +584,8 @@ export default function SudokuGame() {
   const [rejectWhy, setRejectWhy] = useState('');
   const [over, setOver] = useState(false);   // жизни кончились (3 ошибки) → game over + рестарт
   const [rulesOpen, setRulesOpen] = useState(false);   // v1.111.0: справка правил уровня (тап по бейджу / авто при первом входе)
+  // Лестница замков: открыта ли подсказка на уровне игрока (см. useLadderLock).
+  const { заперт: подсказкаЗаперта, порог: порогПодсказки } = useLadderLock('hint');
   const [hintUses, setHintUses] = useState(0);
   const [backtrackCount, setBacktrackCount] = useState(0);
   const [startTime, setStartTime] = useState(0);
@@ -2004,14 +2007,23 @@ export default function SudokuGame() {
      * сейчас пишет палец. Счётчик пометок на кнопке нужен потому, что при выключённом
      * карандаше слоя не видно, и без числа непонятно, есть ли там что-нибудь вообще.
      */
+    /**
+     * Подсказка судоку нарисована `GlassButton`, а не служебной кнопкой каркаса,
+     * поэтому замок лестницы навешивается здесь вручную — но решение о нём берётся
+     * из ОБЩЕГО хука `useLadderLock`, а не считается тут заново: своя копия правила
+     * рано или поздно разойдётся с оригиналом, и разойдётся молча.
+     *
+     * Запертая кнопка не прячется и не молчит: на ней прямо написано, на каком
+     * уровне она откроется. Пузырь-подсказка здесь не нужен — надпись и есть ответ.
+     */
     const hintBtn = (
       <GlassButton
         grow
         tone="warn"
-        icon="bulb"
-        label={t('btn_hint')}
-        onPress={handleHint}
-        disabled={!selected || hintUses >= hintMax}
+        icon={подсказкаЗаперта ? 'lock-closed' : 'bulb'}
+        label={подсказкаЗаперта ? t('ladderLockedAt').replace('{n}', String(порогПодсказки)) : t('btn_hint')}
+        onPress={подсказкаЗаперта ? () => {} : handleHint}
+        disabled={подсказкаЗаперта || !selected || hintUses >= hintMax}
       />
     );
     /**

@@ -550,7 +550,7 @@ export default function HanoiGame() {
         <GameAuxBar>
           <GameAuxAction
             icon="arrow-undo"
-            label={t('btn_undo')}
+            ladder="undo" label={t('btn_undo')}
             disabled={!moveHistory.canUndo}
             onPress={handleUndo}
           />

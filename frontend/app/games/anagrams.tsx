@@ -492,7 +492,7 @@ export default function AnagramGame() {
             <GameAuxBar>
               <GameAuxAction
                 icon="bulb" tint="#d97706"
-                label={t('btn_hint')} count={hintUses > 0 ? hintUses : undefined}
+                ladder="hint" label={t('btn_hint')} count={hintUses > 0 ? hintUses : undefined}
                 onPress={revealHint}
               />
             </GameAuxBar>

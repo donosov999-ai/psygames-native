@@ -534,6 +534,12 @@ const translations: Translations = {
   ladderRecords: { ru: 'Экран рекордов', en: 'Records screen' },
   ladderStreakMap: { ru: 'Карта серии', en: 'Streak map' },
   ladderNext: { ru: 'Ещё {n} — и откроется: {what}', en: '{n} more to unlock: {what}' },
+  /**
+   * Надпись на ЗАПЕРТОЙ служебной кнопке. Кнопка не исчезает: пропавший приём
+   * читается как «в этой игре его нет», а запертый — как «будет». Замок обязан
+   * быть виден, иначе это не лестница, а просто отсутствие.
+   */
+  ladderLockedAt: { ru: 'Откроется на уровне {n}', en: 'Unlocks at level {n}' },
   trailCrossOk: { ru: 'Линии могут пересекаться — важен порядок и скорость', en: 'Lines may cross — order and speed are what count' },
 
   // Sudoku

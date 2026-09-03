@@ -12,6 +12,7 @@ import { Platform } from 'react-native';
 import { vibrate } from '@/src/services/feedback';
 import * as Notifications from 'expo-notifications';
 import { ProfileProvider } from '@/src/contexts/ProfileContext';
+import { PlayerLevelProvider } from '@/src/contexts/PlayerLevelContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import NativeInsetBridge from '@/src/components/NativeInsetBridge';
@@ -201,9 +202,18 @@ export default function RootLayout() {
           <ProfileProvider>
             <ThemeProvider>
               <LanguageProvider>
+                {/*
+                  Уровень игрока читается ОДИН раз на приложение: по нему приёмы
+                  решают, открыты они или заперты (лестница замков, b96bfc4b).
+                  ⚠️ Провайдер обязан стоять ВЫШЕ экранов игр, а не внутри каркаса:
+                  кнопка подсказки судоку живёт в самом экране, и из-под каркаса
+                  она уровня не увидела бы — замок молча не появился бы.
+                */}
+                <PlayerLevelProvider>
                 <WarmupProvider>
                   <RootLayoutNav />
                 </WarmupProvider>
+                </PlayerLevelProvider>
               </LanguageProvider>
             </ThemeProvider>
           </ProfileProvider>

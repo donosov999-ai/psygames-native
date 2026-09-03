@@ -350,6 +350,7 @@ export default function PatternGame() {
           <GameAuxBar>
             <GameAuxAction
               icon="bulb" tint={GRADIENT[0]}
+              ladder="hint"
               label={hintStage === 0 ? t('btn_hint') : hintStage === 1 ? t('hintMoreRule') : t('hintUsed')}
               disabled={hintStage >= 2 || feedback !== null}
               onPress={useHint}
