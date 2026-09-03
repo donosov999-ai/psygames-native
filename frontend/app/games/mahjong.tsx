@@ -31,7 +31,7 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {saveResume, clearResume} from '@/src/services/resume';
-import { availablePairs, blockersOf, coveredFromAbove, isFree, tilePlacement, type Tile } from '@/src/games/mahjong/board';
+import { availablePairs, blockersOf, coveredFromAbove, isFree, tilePlacement, type Tile, layerOffsetFor } from '@/src/games/mahjong/board';
 import { buildPositions, silhouetteForLevel, type SilhouetteKey } from '@/src/games/mahjong/silhouettes';
 import { layoutForLevel } from '@/src/games/mahjong/layouts';
 import { mahjongExtent } from '@/src/games/mahjong/extent';
@@ -740,7 +740,40 @@ export default function MahjongGame() {
   const half = Math.max(10, Math.floor(boardW / Math.max(8, maxHalfX + 2)));   // размер полуклетки в px
   const tileW = half * 2 - 2;
   const tileH = half * 2 - 2;
-  const layerOffset = Math.max(3, Math.round(half * 0.35));   // псевдо-3D смещение слоя
+  /**
+   * 🔴 СДВИГ СЛОЁВ ОБЯЗАН СОГЛАСОВЫВАТЬСЯ С ПРАВИЛОМ ДОСТУПНОСТИ.
+   *
+   * Отчёт Дениса 03.09.2026: «слои всё ещё криво доступны и скачут». Два прежних
+   * лечения (постоянный верхний слой, край из раскладки) убрали прыжки геометрии, а
+   * это — другое: врала САМА КАРТИНКА.
+   *
+   * ЗАМЕР, а не рассуждение. Доступность считается по СЕТКЕ: плитка накрыта, если
+   * выше лежит другая с |Δx| < 2 и |Δy| < 2 полуклетки (`overlaps`). А рисовалась она
+   * со сдвигом `half * 0.35`, который НАКАПЛИВАЕТСЯ по слоям и о сетке ничего не
+   * знает. На пяти слоях сдвиг набегал больше полуклетки, и картинка расходилась с
+   * правилом в обе стороны. Прогон по всем 40 уровням (`mahjong-layer-offset-honest`):
+   *
+   *   было `half*0.35` → 4283 плитки ВЫГЛЯДЯТ накрытыми, будучи свободными,
+   *                    и 369 накрыты по правилу, но по виду свободны;
+   *   стало `6/слои`   → 0 и 0.
+   *
+   * Отсюда и «скачут»: доступность менялась не там, где её ждёшь, и предсказать её
+   * глазом было нельзя.
+   *
+   * ⚠️ ЦЕНА ЧЕСТНОСТИ. На пятислойных уровнях сдвиг падает до 1 px, и доска выглядит
+   * площе. Это осознанный размен: глубина ради глубины мешала играть, а свободу от
+   * занятости и так показывают заливка и приглушение. Тень по слоям усилена, чтобы
+   * стопка читалась без вранья.
+   *
+   * ⚠️ ПРАВИЛЬНОЕ ЛЕЧЕНИЕ ВДОЛГУЮ — вернуть сдвиг В ДАННЫЕ раскладки, чтобы `overlaps`
+   * его ВИДЕЛ, а обрезание краёв лечить отступом контейнера (из-за него сдвиг из
+   * данных когда-то и убрали, см. `tilePlacement`). Тогда картинка и правило совпадут
+   * по построению, а не по подобранному числу.
+   *
+   * `maxLayer` берётся из параметров уровня, а не из живых плиток: величина постоянна
+   * на весь уровень, поэтому сдвиг не может поехать посреди партии.
+   */
+  const layerOffset = layerOffsetFor(levelParams(level).layers - 1);
   const boardPxW = maxHalfX * half + (levelParams(level).layers) * layerOffset;
   const boardPxH = maxHalfY * half + (levelParams(level).layers) * layerOffset;
 
@@ -795,7 +828,8 @@ export default function MahjongGame() {
             borderWidth: blames ? 3 : 1.5,
             // Виновную видно даже в нижнем слое: приглушение снимаем.
             opacity: blames ? 1 : free ? 1 : 0.6,
-            shadowOpacity: 0.25 + tt.layer * 0.06,
+            // Глубина теперь держится на тени, а не на сдвиге: см. layerOffset.
+            shadowOpacity: 0.22 + tt.layer * 0.13,
           },
         ]}
       >
