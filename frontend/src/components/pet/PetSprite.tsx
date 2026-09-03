@@ -17,13 +17,50 @@ import { a11yDecor } from '@/src/services/a11y';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { FRAME_ANCHORS } from './petAnchors.generated';
 
-export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep';
+/**
+ * Состояния питомца. Первые пять есть кадрами во ВСЕХ скинах; `celebrate` и `eat`
+ * — заявленные (задача 00218752), кадров под них пока нет ни в одном паке.
+ */
+export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep' | 'celebrate' | 'eat';
+
+/** Состояния, которые обязаны быть в каждом скине. Остальные — по наличию. */
+export type PetStateBase = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep';
+
+/**
+ * 🔴 ЗАМЕНА ДЛЯ СОСТОЯНИЯ, КОТОРОГО В СКИНЕ ЕЩЁ НЕТ (задача 00218752).
+ *
+ * Праздник рекорда и кормление сейчас переиспользуют `jump` и `wave` — это писали
+ * ПО МЕСТУ, в трёх разных файлах: `GamePet`, `WalkingPet`, `app/pet.tsx`. Из-за
+ * этого «подключить celebrate за час, когда кадры появятся» означало бы найти все
+ * три места и не забыть ни одного, а забытое молчит: питомец просто прыгает вместо
+ * праздника, и никто не замечает.
+ *
+ * Теперь замена одна и живёт здесь. Появятся кадры в паке — код звать `'celebrate'`
+ * уже умеет, и правка сведётся к добавлению набора кадров: ни один экран трогать
+ * не придётся.
+ */
+const ЗАМЕНА: Record<PetState, PetStateBase> = {
+  walk: 'walk', idle: 'idle', wave: 'wave', jump: 'jump', sleep: 'sleep',
+  celebrate: 'jump',   // праздник — пока кульбит
+  eat: 'wave',         // кормление — пока помахивание
+};
+
+/** Есть ли у скина собственные кадры этого состояния. */
+export function petHasState(skin: PetSkin, state: PetState): boolean {
+  const набор = SKINS[skin] as Record<string, unknown[] | undefined>;
+  return Array.isArray(набор[state]) && (набор[state] as unknown[]).length > 0;
+}
+
+/** Состояние, кадры которого реально есть: своё или замена. */
+export function petResolveState(skin: PetSkin, state: PetState): PetStateBase {
+  return petHasState(skin, state) ? (state as PetStateBase) : ЗАМЕНА[state];
+}
 export type PetSkin = 'cat' | 'robot' | 'constellation';
 /** Аксессуары из магазина (type 'pet' в COSMETICS). Рисуются вектором поверх
  *  кадров — не зависят от скина и не требуют перерисовки спрайт-листов. */
 export type PetAccessory = 'party_hat' | 'bow' | 'glasses' | 'bow_tie';
 
-const CAT: Record<PetState, any[]> = {
+const CAT: Partial<Record<PetState, any[]>> & Record<PetStateBase, any[]> = {
   walk: [
     require('../../../assets/images/pet/cat/walk0.webp'),
     require('../../../assets/images/pet/cat/walk1.webp'),
@@ -56,7 +93,7 @@ const CAT: Record<PetState, any[]> = {
   ],
 };
 
-const ROBOT: Record<PetState, any[]> = {
+const ROBOT: Partial<Record<PetState, any[]>> & Record<PetStateBase, any[]> = {
   walk: [
     require('../../../assets/images/pet/robot/walk0.webp'),
     require('../../../assets/images/pet/robot/walk1.webp'),
@@ -90,7 +127,7 @@ const ROBOT: Record<PetState, any[]> = {
 };
 
 
-const CONSTELLATION: Record<PetState, any[]> = {
+const CONSTELLATION: Partial<Record<PetState, any[]>> & Record<PetStateBase, any[]> = {
   walk: [
     require('../../../assets/images/pet/constellation/walk0.webp'),
     require('../../../assets/images/pet/constellation/walk1.webp'),
@@ -123,16 +160,20 @@ const CONSTELLATION: Record<PetState, any[]> = {
   ],
 };
 
-const SKINS: Record<PetSkin, Record<PetState, any[]>> = { cat: CAT, robot: ROBOT, constellation: CONSTELLATION };
+const SKINS: Record<PetSkin, Partial<Record<PetState, any[]>> & Record<PetStateBase, any[]>> = { cat: CAT, robot: ROBOT, constellation: CONSTELLATION };
 
 /** Один кадр скина (для превью выбора и мини-аватара шапки). */
 export function petFrame(skin: PetSkin, state: PetState = 'idle', frame = 0) {
-  return SKINS[skin][state][frame];
+  const есть = petResolveState(skin, state);
+  const набор = SKINS[skin][есть] ?? SKINS[skin].idle;
+  return набор[frame % набор.length];
 }
 
 /** Кадровая частота по состоянию: шаг бодрый, сон медленный. */
 const FRAME_MS: Record<PetState, number> = {
   walk: 140, idle: 420, wave: 180, jump: 150, sleep: 600,
+  // Праздник и еда живее прыжка: событие короткое, и вялый темп его гасит.
+  celebrate: 130, eat: 200,
 };
 
 /**
@@ -178,7 +219,9 @@ const SKIN_SCALE: Record<PetSkin, number> = { cat: 1.0, robot: 0.896, constellat
  * чужого кадра» нельзя было даже случайно: состояние и номер кадра обязательны.
  */
 export function petAnchor(skin: PetSkin, state: PetState, frame: number, at: AnchorName) {
-  const list = FRAME_ANCHORS[skin][state];
+  // Якоря лежат по РАЗРЕШЁННОМУ состоянию: у `celebrate`/`eat` своих кадров нет,
+  // значит и якорей нет — берём те же, что у состояния-замены.
+  const list = FRAME_ANCHORS[skin][petResolveState(skin, state)] ?? FRAME_ANCHORS[skin].idle!;
   return list[((frame % list.length) + list.length) % list.length][at];
 }
 
@@ -290,7 +333,8 @@ function AccessoryOverlay({ kind, size, skin, state, frame }: {
 export default function PetSprite({ state, size = 56, skin = 'cat', accessory = null }: {
   state: PetState; size?: number; skin?: PetSkin; accessory?: PetAccessory | null;
 }) {
-  const frames = SKINS[skin][state];
+    // Кадры берём по РАЗРЕШЁННОМУ состоянию: у `celebrate`/`eat` своих пока нет.
+  const frames = SKINS[skin][petResolveState(skin, state)] ?? SKINS[skin].idle;
   const [frame, setFrame] = React.useState(0);
   const reduced = useReducedMotion();
   React.useEffect(() => {

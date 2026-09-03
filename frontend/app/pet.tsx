@@ -190,7 +190,9 @@ export default function PetScreen() {
 
         {/* v1.140: живой портрет — анимированный idle текущего скина (512px кадры);
             после угощения пару секунд прыгает от радости */}
-        <PetSprite state={feastAnim ? 'jump' : 'idle'} size={portrait} skin={skin} accessory={accessory} />
+        {/* Кормление — состояние `eat` (задача 00218752). Кадров под него пока нет,
+            `PetSprite` подставляет `wave`; появятся — заиграет само. */}
+        <PetSprite state={feastAnim ? 'eat' : 'idle'} size={portrait} skin={skin} accessory={accessory} />
         <Text style={[styles.stageName, { color: colors.text }]}>{stageName}</Text>
         <Text style={[styles.stageHint, { color: colors.textSecondary }]}>
           {t('petGrowsHint')}
