@@ -1261,6 +1261,14 @@ jobs:
               '    fun requestMic() { runOnUiThread { psyRequestMic() } }\n'
               '    @android.webkit.JavascriptInterface\n'
               '    fun startRec(): String = psyStartRec()\n'
+              # 🔴 УРОВЕНЬ НА НАТИВНОМ ПУТИ. Без него человек не знает, слышно ли его:
+              # веб-путь меряет пик через WebAudio, а нативный писал measured: false,
+              # и полоска уровня пряталась. Ровно так Валя наговорила 169 секунд в
+              # заглушённый системой микрофон и была уверена, что отчёт ушёл.
+              # getMaxAmplitude отдаёт максимум ПОСЛЕ предыдущего вызова (0..32767),
+              # поэтому первый вызов после старта — сброс базы, его JS отбрасывает.
+              '    @android.webkit.JavascriptInterface\n'
+              '    fun recLevel(): Int = try { psyRec?.maxAmplitude ?: -1 } catch (e: Throwable) { -1 }\n'
               '    @android.webkit.JavascriptInterface\n'
               '    fun stopRec(): String = psyStopRec()\n'
               '    @android.webkit.JavascriptInterface\n'

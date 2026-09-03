@@ -60,7 +60,11 @@ describe('патч моста микрофона (build.yml) — прогон н
     const calls = patched.match(/\n\s*psyInstallMicBridge\(\)\n/g) || [];
     expect(calls.length).toBe(2);
     // Запись: и натив, и его лицо в мосте.
-    for (const needle of ['psyStartRec', 'psyStopRec', 'psyCancelRec', 'fun startRec()', 'fun stopRec()', 'MediaRecorder']) {
+    // `recLevel`/`maxAmplitude` — уровень записи на нативном пути (04.09.2026). Без
+    // него полоска уровня прячется, и человек не узнаёт, что телефон пишет тишину:
+    // так ушли 80 немых заметок с одного аппарата, каждая — уверенность, что отчёт
+    // отправлен. Держим в списке обязательного, чтобы правка моста не унесла замер.
+    for (const needle of ['psyStartRec', 'psyStopRec', 'psyCancelRec', 'fun startRec()', 'fun stopRec()', 'fun recLevel()', 'maxAmplitude', 'MediaRecorder']) {
       expect(patched).toContain(needle);
     }
     // Разрешение спрашивается по-прежнему — запись его не вытеснила.
