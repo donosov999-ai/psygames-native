@@ -208,9 +208,16 @@ describe('двенадцать локалей каталога', () => {
     expect(text(breathing.title, 'ja' as PauseLocale)).toBe('呼吸');
   });
 
-  it('непереведённое поле честно фолбэчит на en (summary пока ru/en)', () => {
-    const breathing = PRACTICE_CATALOG.find((s) => s.id === 'breathing')!;
-    expect(text(breathing.summary, 'de' as PauseLocale)).toBe(breathing.summary.en);
-    expect(text(breathing.summary, 'ru' as PauseLocale)).toBe(breathing.summary.ru);
+  it('непереведённое поле честно фолбэчит на en', () => {
+    /**
+     * ⚠️ 03.09.2026 ПРОБА СМЕНИЛА ОБРАЗЕЦ. Раньше здесь стоял `summary` набора
+     * «Дыхание» как заведомо непереведённое поле — теперь он переведён на все
+     * двенадцать локалей (задача b019f547), и проба падала на СДЕЛАННОЙ работе.
+     * Фолбэк проверяется тем, чем он и является: строкой, которой в словаре нет.
+     */
+    const выдуманное = { ru: 'нет такой строки в словаре', en: 'no such string in the dictionary' };
+    expect(text(выдуманное, 'de' as PauseLocale)).toBe(выдуманное.en);
+    expect(text(выдуманное, 'ja' as PauseLocale)).toBe(выдуманное.en);
+    expect(text(выдуманное, 'ru' as PauseLocale)).toBe(выдуманное.ru);
   });
 });

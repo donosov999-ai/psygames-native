@@ -508,8 +508,9 @@ async function selfTestClipPredicate(page) {
   if (!r.текст) беды.push('обрезанный ТЕКСТ больше не считается дефектом — вернулась беда плашки счётчиков');
   if (!r.кнопка) беды.push('обрезанная КНОПКА больше не считается дефектом');
   if (r.картинка) беды.push('окно в картинку снова считается дефектом — красить будет питомца');
+  if (r.полосаВОкне) беды.push('полоса кадров внутри окна снова считается вылезшей за край');
   if (беды.length) { console.log('\n🔴 Самопроверка обрезания провалена:'); for (const b of беды) console.log('    ' + b); return 1; }
-  console.log('   самопроверка обрезания: текст ✓ кнопка ✓ окно-картинка ✓');
+  console.log('   самопроверка обрезания: текст ✓ кнопка ✓ окно-картинка ✓ полоса-в-окне ✓');
   return 0;
 }
 
@@ -537,7 +538,26 @@ const MEASURE_OVERFLOW = () => {
     const st = getComputedStyle(el);
     if (st.visibility === 'hidden' || st.opacity === '0' || st.display === 'none') continue;
     if (st.position === 'fixed' && r.top < 0) continue;
-    const выход = Math.max(Math.round(r.right - W), Math.round(-r.left));
+    /**
+     * 🔴 «ВЫЛЕЗЛО» ЗНАЧИТ ВИДНО ЗА КРАЕМ, А НЕ ПРОСТО ШИРЕ ОКНА.
+     *
+     * Замер 03.09.2026: выпуск v2.37.3 покраснел на 27 играх с «+121 px за край».
+     * Виновником оказался лист кадров питомца: облик приезжает с маскот-канала одной
+     * горизонтальной полосой, её растягивают на `размер × число кадров` и двигают
+     * внутри окна `overflow: hidden` шириной в один кадр. Собственный прямоугольник
+     * полосы и правда шире экрана — но видно из неё ровно один кадр, и он на месте.
+     * Считаем ВИДИМУЮ часть: обрезаем прямоугольник каждым предком, который режет.
+     */
+    let vl = r.left, vr = r.right;
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const st2 = getComputedStyle(p);
+      if (st2.overflow === 'hidden' || st2.overflowX === 'hidden' || st2.overflow === 'clip' || st2.overflowX === 'clip') {
+        const pr = p.getBoundingClientRect();
+        vl = Math.max(vl, pr.left); vr = Math.min(vr, pr.right);
+      }
+    }
+    if (vr <= vl) continue;                              // видимой части не осталось
+    const выход = Math.max(Math.round(vr - W), Math.round(-vl));
     if (выход <= 2) continue;
     // Внешний виноватый достаточно назвать один раз: потомок вылез вместе с ним.
     if (el.parentElement) {

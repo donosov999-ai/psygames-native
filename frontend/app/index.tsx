@@ -73,6 +73,9 @@ const GRID_GAP = 12;
 // Вместо полного каталога — компактный лендинг (игра дня + CTA «Скачать приложение»).
 // IS_WEB_DEMO — build-time константа (инлайнится при экспорте), ветка статична:
 // FullHome в демо не монтируется вовсе (включая онбординг-гейт psygames_onboarded).
+/** Сколько игр показывает блок «Сегодня». Больше — и он выдавливает рекомендации. */
+const TODAY_ROWS_MAX = 3;
+
 /** Палитра кнопки «Зарядка» по времени суток — совпадает с экраном выбора. */
 const SLOT_TINT: Record<WarmupSlot, [string, string]> = {
   morning: ['#f7b733', '#fc4a1a'],
@@ -929,7 +932,22 @@ function FullHome() {
             честнее исчезнувшего блока — иначе в день, когда ещё не играли, экран молча
             теряет строку, и понять, что она вообще бывает, неоткуда. Строка «партий: N»
             рядом с суммой отвечает на вопрос «за что», а не только «сколько». */}
-        <View style={[styles.todayBlock, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        {/**
+          * 🔴 НЕ БОЛЬШЕ ТРЁХ СТРОК, И БЛОК КЛИКАБЕЛЬНЫЙ. Просьба Дениса 03.09.2026:
+          * «надо чтобы блок сегодня давал не больше 3 строк игры, и чтобы можно было
+          * кликнуть по нему и перейти уже на развёрнутую статистику по сегодня».
+          * В активный день список рос без предела и выдавливал вниз всё остальное —
+          * «Рекомендуем сегодня» уезжало за экран. Три строки — столько же, сколько
+          * карточек в рекомендациях: полоса читается одним взглядом, а полный список
+          * живёт на своём экране.
+          */}
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t('today')}
+          activeOpacity={0.85}
+          onPress={() => router.push('/statistics' as any)}
+          style={[styles.todayBlock, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        >
           <View style={styles.todayHeader}>
             <View style={[styles.sectionDot, { backgroundColor: '#f59e0b' }]} />
             <Ionicons name="today-outline" size={19} color="#f59e0b" />
@@ -951,7 +969,7 @@ function FullHome() {
             </Text>
           ) : (
             <>
-              {today.rows.map((row) => {
+              {today.rows.slice(0, TODAY_ROWS_MAX).map((row) => {
                 const game = GAMES.find((g) => g.id === row.game);
                 return (
                   <View key={row.game} style={styles.todayRow}>
@@ -968,6 +986,13 @@ function FullHome() {
                   </View>
                 );
               })}
+              {/* Остальное не прячем молча: строка говорит, сколько игр не поместилось,
+                  и ведёт туда же, куда весь блок. */}
+              {today.rows.length > TODAY_ROWS_MAX && (
+                <Text style={[styles.todayMore, { color: colors.textSecondary }]}>
+                  {t('todayMore').replace('{n}', String(today.rows.length - TODAY_ROWS_MAX))}
+                </Text>
+              )}
               {/* Серия дней показывается только когда она уже даёт множитель: обещать
                   «за режим — вдвое» на первом дне значило бы обещать несбывшееся. */}
               {today.dayStreak >= DAY_STREAK_FOR_MULT && (
@@ -977,7 +1002,7 @@ function FullHome() {
               )}
             </>
           )}
-        </View>
+        </TouchableOpacity>
 
         {/* 🎯 «Рекомендуем сегодня» — три упражнения вместо выбора из семидесяти одного.
             Под каждым сказано, ПОЧЕМУ оно здесь: причину считает recommend.ts по партиям
@@ -1045,6 +1070,18 @@ function FullHome() {
             освободившегося слота сюда переехало Дыхание, которого на главной не было
             вовсе (замысел Дениса 02.08). Три карточки — предел: на 360-412pt это
             103-120pt каждая, четвёртая ужимает до 74-88pt и текст перестаёт влезать. */}
+        {/**
+          * 🔴 У РЯДА ПРАКТИК ПОЯВИЛСЯ ЗАГОЛОВОК. Просьба Дениса 03.09.2026: «блок где
+          * зарядки, дыхания, тоже сверху бы подписать, чтобы отдельник визуально не
+          * много». Ряд шёл без подписи сразу за «Рекомендуем сегодня» и читался как
+          * продолжение рекомендаций, хотя это другое: там упражнения на выбор, здесь —
+          * ежедневные практики и вызов. Заголовок той же формы, что у соседей.
+          */}
+        <View style={styles.sectionHeader}>
+          <View style={[styles.sectionDot, { backgroundColor: '#10b981' }]} />
+          <Ionicons name="leaf-outline" size={19} color="#10b981" />
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('practicesTitle')}</Text>
+        </View>
         <View style={styles.heroRow}>
           {/* 🏃 Зарядка — подпись по часам, набор выбирается на /warmup-picker */}
           {profile.warmup_enabled && (
@@ -1283,6 +1320,7 @@ const styles = StyleSheet.create({
   },
   // Блок рекомендаций: заголовок с подсказкой и ряд карточек. Отступ снизу — тот же,
   // что у карточки «Продолжить», чтобы ритм первого экрана не сбивался.
+  todayMore: { fontSize: 12, marginTop: 4, textAlign: 'right' },
   // Блок «Сегодня»: рамка, а не карточка-градиент — он про факт, а не про призыв,
   // и не должен спорить за внимание с рекомендациями и практиками ниже.
   todayBlock: { marginBottom: 14, borderWidth: 1, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 10, gap: 6 },

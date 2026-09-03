@@ -9,6 +9,8 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { HELP_MAP } from '@/src/constants/helpMap';
 import { isRTLLang } from '@/src/services/rtl';
+import GamePet, { type PetMood } from '@/src/components/pet/GamePet';
+import { useGameMood } from '@/src/services/petMood';
 import { a11yModal } from '@/src/services/a11y';
 import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 import type { GameContextHelp } from '@/src/services/gameContextHelp';
@@ -42,7 +44,61 @@ const DEEP_LABELS: Record<string, Record<string, string>> = {
 };
 const PROSE_KEYS = ['about', 'benefit', 'history', 'creator', 'methods', 'duration', 'research', 'rec'] as const;
 
+/**
+ * УГОЛ СПРАВКИ: питомец и кнопка «?» в одном ряду.
+ *
+ * 🔴 ВЫНЕСЕН ОТДЕЛЬНО, ЧТОБЫ ПРОВЕРЯТЬСЯ РИСОВАНИЕМ. Место питомца ломалось три
+ * раза за день — пропадал под кнопкой, вставал не рядом, отсутствовал на экране
+ * настройки, — и каждый раз это было видно только в НАРИСОВАННОМ дереве. Отдельная
+ * единица позволяет гейту `pet-next-to-help` нарисовать угол и посмотреть порядок,
+ * не поднимая весь оверлей с роутером и картой справки.
+ */
+export function HelpCornerRow({ rtl, mood, top, label, helpLabel, accent, accentFg, onPress }: {
+  rtl: boolean; mood: PetMood; top: number; label: string; helpLabel: string;
+  accent: string; accentFg: string; onPress: () => void;
+}) {
+  return (
+    <View
+      testID="help-corner-row"
+      style={[styles.cornerRow, rtl ? { left: 4 } : { right: 4 }, { top }]}
+      pointerEvents="box-none"
+    >
+      {/**
+        * 🔴 ПИТОМЕЦ ЖИВЁТ ЗДЕСЬ, А НЕ В ШАПКЕ КАРКАСА — ПОТОМУ ЧТО ЭТОТ СЛОЙ СКВОЗНОЙ.
+        *
+        * Просьба Дениса 03.09.2026: «по идее я хочу, чтобы он сквозной был». В шапке
+        * `GameShell` он появлялся только там, где эта шапка есть: на экране настройки
+        * «Доски в уме» шапку рисует сама игра, и питомца там не было — прислан кадр.
+        * Этот слой монтируется в корневом макете и показывается на КАЖДОМ экране с
+        * правилами: и в настройке, и в партии.
+        *
+        * ⚠️ Прежняя попытка «не появилась на экране, хотя код был в бандле» — причина
+        * оказалась не в слоях: сборка для симулятора два дня вшивала веб от 2 сентября
+        * (разобрано в scripts/sim-run.sh VER 4).
+        */}
+      <GamePet mood={mood} size={38} />
+      {/* Кнопка = кружок «?» + подпись словом. Голая иконка не читалась как справка. */}
+      <TouchableOpacity
+        accessibilityLabel={helpLabel}
+        accessibilityRole="button"
+        testID="help-fab"
+        onPress={onPress}
+        activeOpacity={0.85}
+        style={styles.fabInRow}
+      >
+        <View style={[styles.fabCircle, { backgroundColor: accent }]}>
+          <Ionicons name="help-circle" size={26} color={accentFg} />
+        </View>
+        <Text style={[styles.fabLabel, { backgroundColor: accent, color: accentFg }]} numberOfLines={1}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function GameHelpOverlay() {
+  const mood = useGameMood();
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const insets = useSafeAreaInsets();
@@ -169,26 +225,8 @@ export default function GameHelpOverlay() {
         экранах настройки и она перестраивается по ходу партии — он «переезжал»
         (дословная жалоба). Угол справки одинаков на каждом экране игры.
       */}
-      <View
-        style={[styles.cornerRow, rtl ? { left: 4 } : { right: 4 }, { top: insets.top + 10 }]}
-        pointerEvents="box-none"
-      >
-        {/* Кнопка = кружок «?» + подпись словом. Голая иконка не читалась как справка. */}
-        <TouchableOpacity
-          accessibilityLabel={helpLabel}
-          accessibilityRole="button"
-          onPress={openHelp}
-          activeOpacity={0.85}
-          style={styles.fabInRow}
-        >
-          <View style={[styles.fabCircle, { backgroundColor: accent }]}>
-            <Ionicons name="help-circle" size={26} color={accentFg} />
-          </View>
-          <Text style={[styles.fabLabel, { backgroundColor: accent, color: accentFg }]} numberOfLines={1}>
-            {t('btn_rules')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <HelpCornerRow rtl={rtl} mood={mood} top={insets.top + 10} label={t('btn_rules')}
+        helpLabel={helpLabel} accent={accent} accentFg={accentFg} onPress={openHelp} />
 
       {coach ? (
         <View

@@ -27,6 +27,7 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { nextUnanswered } from '@/src/games/chess-blind/core/blocks';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { readChessAssist, writeChessAssist, CHESS_ASSIST_DEFAULT, type ChessAssist } from '@/src/games/chess-blind/core/assist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   recordBlock, seriesComplete, seriesSession, startSeries,
@@ -496,6 +497,21 @@ export default function ChessBlindGame() {
   const seriesIvRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const seriesKey = `psygames_chess_blind_series_${(profile as any)?.id ?? 'default'}`;
 
+  /**
+   * ПОДСКАЗКИ: пустая доска и подписи полей. Просьба Дениса 03.09.2026 по кадру
+   * блока «Цвет полей». Выключено по умолчанию — почему именно так, разобрано в
+   * шапке `src/games/chess-blind/core/assist.ts`.
+   */
+  const [assist, setAssist] = React.useState<ChessAssist>(CHESS_ASSIST_DEFAULT);
+  React.useEffect(() => { void readChessAssist((profile as any)?.id).then(setAssist); }, [profile]);
+  const переключить = React.useCallback((поле: keyof ChessAssist) => {
+    setAssist((было) => {
+      const стало = { ...было, [поле]: !было[поле] };
+      void writeChessAssist((profile as any)?.id, стало);
+      return стало;
+    });
+  }, [profile]);
+
   useEffect(() => {
     let alive = true;
     AsyncStorage.getItem(seriesKey)
@@ -951,6 +967,68 @@ export default function ChessBlindGame() {
    * другое, и разошлись бы они молча. Контраст даёт обводка тенью, а не второй
    * набор символов.
    */
+  /**
+   * ПОДПИСИ ПОЛЕЙ ПО КРАЯМ — a–h снизу и 1–8 слева.
+   *
+   * Просьба Дениса 03.09.2026: «и ещё как опция показывать разметку a, b и т. д. по
+   * краям доски». Раньше буквы и цифры рисовались ВНУТРИ угловых клеток мелким
+   * серым — на телефоне их не видно, и человек считал файлы пальцем от края.
+   */
+  const ФАЙЛЫ = 'abcdefgh';
+  const renderCoords = (сторона: 'files' | 'ranks') => (
+    <View style={сторона === 'files'
+      ? { flexDirection: 'row', width: boardSize }
+      : { flexDirection: 'column', height: boardSize, justifyContent: 'space-between' }}>
+      {Array.from({ length: BOARD_SIDE }).map((_, i) => (
+        <Text
+          key={i}
+          style={{
+            color: colors.textSecondary, fontSize: Math.max(10, Math.round(cellSize * 0.28)),
+            fontWeight: '600', textAlign: 'center',
+            ...(сторона === 'files' ? { width: cellSize } : { height: cellSize, lineHeight: cellSize, width: 16 }),
+          }}
+        >
+          {сторона === 'files' ? ФАЙЛЫ[i] : String(BOARD_SIDE - i)}
+        </Text>
+      ))}
+    </View>
+  );
+
+  /**
+   * Доска с подписями по краям, если они включены. `position === null` — ПУСТАЯ
+   * доска-подсказка: она помогает найти e1 и f7, но не выдаёт запомненную позицию.
+   */
+  const renderBoardWithCoords = (position: ChessPosition | null) => (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', alignSelf: 'center' }}>
+      {assist.coords ? renderCoords('ranks') : null}
+      <View>
+        {position ? renderSeriesBoard(position) : renderEmptyBoard()}
+        {assist.coords ? renderCoords('files') : null}
+      </View>
+    </View>
+  );
+
+  /** Пустая доска — только клетки, без фигур. */
+  const renderEmptyBoard = () => (
+    <View style={{ width: boardSize, height: boardSize, borderRadius: 6, overflow: 'hidden', writingDirection: 'ltr' } as any}>
+      {Array.from({ length: BOARD_SIDE }).map((_, row) => (
+        <View key={row} style={{ flexDirection: 'row' }}>
+          {Array.from({ length: BOARD_SIDE }).map((_, col) => {
+            const index = coreIndex(row * BOARD_SIDE + col);
+            return (
+              <View
+                key={col}
+                accessible
+                accessibilityLabel={squareName(index)}
+                style={{ width: cellSize, height: cellSize, backgroundColor: isLightSquare(index) ? '#9c7a5b' : '#6b4f3a' }}
+              />
+            );
+          })}
+        </View>
+      ))}
+    </View>
+  );
+
   const renderSeriesBoard = (position: ChessPosition) => (
     // RTL-пин: доска канонически LTR (a-файл слева) — зеркальная нарушает нотацию.
     <View style={{ width: boardSize, height: boardSize, borderRadius: 6, overflow: 'hidden', writingDirection: 'ltr' } as any}>
@@ -1063,6 +1141,9 @@ export default function ChessBlindGame() {
                 {questionText(chessStrings, question)}
               </Text>
               <Text style={[styles.hintText, { color: colors.textSecondary }]}>{header.rule}</Text>
+              {/* Подсказка: ПУСТАЯ доска. Позиции на ней нет — иначе блок памяти
+                  превратился бы в чтение с картинки. */}
+              {assist.board ? renderBoardWithCoords(null) : null}
             </>
           ) : recallStage === 'ready' ? (
             <>
@@ -1082,7 +1163,7 @@ export default function ChessBlindGame() {
               <View style={[styles.barTrack, { width: boardSize, backgroundColor: colors.surface }]}>
                 <View style={[styles.barFill, { width: `${exposePct}%` }]} />
               </View>
-              {renderSeriesBoard(state.position)}
+              {renderBoardWithCoords(state.position)}
             </>
           ) : null}
         </View>
@@ -1240,6 +1321,35 @@ export default function ChessBlindGame() {
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
             {descBits.join(' · ')}
+          </Text>
+        </View>
+        {/**
+          * ПОДСКАЗКИ. Просьба Дениса 03.09.2026: доска и разметка полей — опциями.
+          * Подпись под переключателем не смягчена нарочно: с доской это уже не работа
+          * вслепую, и человек должен это знать, а не обнаружить по лёгкости.
+          */}
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('chessAssistTitle')}</Text>
+          <TouchableOpacity
+            accessibilityRole="switch"
+            accessibilityState={{ checked: assist.board }}
+            onPress={() => переключить('board')}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 }}
+          >
+            <Ionicons name={assist.board ? 'checkbox' : 'square-outline'} size={22} color={GRADIENT[0]} />
+            <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{t('chessAssistBoard')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="switch"
+            accessibilityState={{ checked: assist.coords }}
+            onPress={() => переключить('coords')}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 }}
+          >
+            <Ionicons name={assist.coords ? 'checkbox' : 'square-outline'} size={22} color={GRADIENT[0]} />
+            <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>{t('chessAssistCoords')}</Text>
+          </TouchableOpacity>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>
+            {t('chessAssistNote')}
           </Text>
         </View>
         {/* СЕРИЯ ИЗ ТРЁХ БЛОКОВ. Под кнопкой — с какой полосы она начнётся и какие

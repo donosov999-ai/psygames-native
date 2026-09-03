@@ -5,6 +5,8 @@
  * фолбэком на en в text(). Так 156 шагов переводятся ПОЭТАПНО, а не «всё или
  * ничего»: непереведённое честно говорит по-английски, не ключом и не пустотой.
  */
+import { PAUSE_I18N } from './i18nSteps';
+
 export type PauseLocale = 'ru' | 'en' | 'de' | 'es' | 'fr' | 'it' | 'pt' | 'ar' | 'hi' | 'ja' | 'ko' | 'zh';
 
 export type PracticeSetId =
@@ -231,7 +233,12 @@ export interface PracticeSession {
   readonly result: PracticeResult | null;
 }
 
-const l = (ru: string, en: string): LocalizedText => ({ ru, en });
+/**
+ * ⚠️ ПЕРЕВОДЫ ПОДМЕШИВАЮТСЯ ЗДЕСЬ, А НЕ В КАЖДОМ ВЫЗОВЕ. Словарь наложен по
+ * русскому исходнику (`i18nSteps.ts`): нет перевода — остаётся английский фолбэк,
+ * и это видно гейту, а не человеку в бою.
+ */
+const l = (ru: string, en: string): LocalizedText => ({ ru, en, ...(PAUSE_I18N[ru] ?? {}) });
 const s = (
   id: string,
   ruTitle: string,
