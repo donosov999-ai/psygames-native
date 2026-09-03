@@ -79,6 +79,9 @@ export default function DailyGoalCard({
     </TouchableOpacity>
   );
 
+  /** Развёрнута ли форма цели. Свёрнутая — одна строка, см. комментарий ниже. */
+  const [развернуто, setРазвернуто] = React.useState(false);
+
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <View style={styles.header}>
@@ -88,7 +91,33 @@ export default function DailyGoalCard({
         {closeBtn}
       </View>
 
-      {state === 'ask' && (
+      {/**
+        * 🔴 СПРОШЕНО ОДНОЙ СТРОКОЙ, РАЗВЁРНУТО ПО НАЖАТИЮ.
+        *
+        * Просьба Дениса 03.09.2026: «цель бы тоже компактнее сделать, а то дофига места
+        * заняла, думаю как либо в квадрат свернуть». В свёрнутом виде карточка занимала
+        * девять строк — вопрос, пояснение, поле, две кнопки, заголовок примеров и три
+        * примера, — и выдавливала вниз «Сегодня» и рекомендации.
+        *
+        * Сам вопрос остаётся ВИДИМЫМ: сворачивать его в значок значило бы, что цель дня
+        * перестанут ставить вовсе — а ради неё карточка и заведена. Разворачивается тот,
+        * кто и правда хочет написать.
+        */}
+      {state === 'ask' && !развернуто && (
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t('dayGoalAsk')}
+          activeOpacity={0.8}
+          onPress={() => setРазвернуто(true)}
+          style={styles.compactRow}
+        >
+          <Text style={[styles.ask, { color: colors.text, flex: 1 }]} numberOfLines={1}>{t('dayGoalAsk')}</Text>
+          <Text style={[styles.compactCta, { color: accent }]}>{t('dayGoalSave')}</Text>
+          <Ionicons name="chevron-forward" size={16} color={accent} />
+        </TouchableOpacity>
+      )}
+
+      {state === 'ask' && развернуто && (
         <>
           <Text style={[styles.ask, { color: colors.text }]}>{t('dayGoalAsk')}</Text>
           <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('dayGoalAskHint')}</Text>
@@ -209,6 +238,8 @@ const styles = StyleSheet.create({
   primaryText: { fontSize: 14, fontWeight: '800' },
   ghost: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 10, borderWidth: 1 },
   ghostText: { fontSize: 14, fontWeight: '700' },
+  compactRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 },
+  compactCta: { fontSize: 14, fontWeight: '700' },
   examplesTitle: { fontSize: 12, fontWeight: '700', marginTop: 4 },
   example: { fontSize: 12, fontWeight: '600', lineHeight: 17 },
   lead: { fontSize: 12, fontWeight: '700' },

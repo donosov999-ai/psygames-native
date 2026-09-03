@@ -533,7 +533,31 @@ interface CardProps {
   onOutcome?: (o: 'done' | 'not_today') => void;
 }
 
+/**
+ * ⚠️ 03.09.2026 КАРТОЧКА СПРАШИВАЕТ ОДНОЙ СТРОКОЙ. Просьба Дениса «цель бы тоже
+ * компактнее сделать, а то дофига места заняла»: форма разворачивается по нажатию на
+ * вопрос. Все обязательства ниже проверяются на РАЗВЁРНУТОЙ форме — они никуда не
+ * делись, просто до них теперь один тап. Само сворачивание проверяет отдельная проба.
+ */
 function render(props: CardProps) {
+  let r: any;
+  TestRenderer.act(() => {
+    r = TestRenderer.create(React.createElement(DailyGoalCard as any, {
+      goalText: null, outcome: null, reward: null, roundsToday: 0, colors: COLORS, t,
+      onSave: () => {}, onDismiss: () => {}, onOutcome: () => {}, ...props,
+    }));
+  });
+  if (props.state === 'ask') {
+    const развернуть = r.root.findAll((n: any) => n.props?.accessibilityRole === 'button'
+      && n.props?.accessibilityLabel === t('dayGoalAsk')
+      && typeof n.props?.onPress === 'function', { deep: true })[0];
+    if (развернуть) TestRenderer.act(() => { развернуть.props.onPress(); });
+  }
+  return r;
+}
+
+/** Рисует карточку КАК ЕСТЬ, без разворачивания — для проверки самой компактности. */
+function renderRaw(props: CardProps) {
   let r: any;
   TestRenderer.act(() => {
     r = TestRenderer.create(React.createElement(DailyGoalCard as any, {
@@ -595,6 +619,26 @@ describe('карточка: закрытая не занимает места', 
 });
 
 describe('карточка: приглашение назвать цель', () => {
+  it('🔴 свёрнутая карточка — ОДНА строка: вопрос виден, поля и примеров нет', () => {
+    /**
+     * Просьба Дениса 03.09.2026: «цель бы тоже компактнее сделать, а то дофига места
+     * заняла». Развёрнутая форма занимала девять строк и выдавливала вниз «Сегодня» и
+     * рекомендации. Сворачиваем ФОРМУ, но не вопрос: спрятать и его значило бы, что
+     * цель дня перестанут ставить вовсе, а ради неё карточка и заведена.
+     */
+    const r = renderRaw({ state: 'ask' });
+    const текст = shown(r);
+    expect(текст).toContain(t('dayGoalAsk'));            // вопрос виден
+    expect(текст).not.toContain(t('dayGoalPlaceholder')); // поля ввода нет
+    expect(текст).not.toContain(t(DAY_GOAL_EXAMPLE_KEYS[0])); // примеров нет
+    // И разворачивается одним нажатием на сам вопрос.
+    const кнопка = r.root.findAll((n: any) => n.props?.accessibilityRole === 'button'
+      && n.props?.accessibilityLabel === t('dayGoalAsk'), { deep: true })[0];
+    expect(кнопка).toBeTruthy();
+    TestRenderer.act(() => { кнопка.props.onPress(); });
+    expect(shown(r)).toContain(t('dayGoalPlaceholder'));
+  });
+
   it('🔴 нажатие «Запомнить» на ПУСТОМ поле не сохраняет ничего', () => {
     const saved: string[] = [];
     const r = render({ state: 'ask', onSave: (x) => saved.push(x) });
