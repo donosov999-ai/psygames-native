@@ -47,7 +47,7 @@ import { Linking } from 'react-native';
 import { getUnlocked } from '@/src/services/achievements';
 import { ACHIEVEMENTS } from '@/src/services/achievements';
 import ProfileSwitcherModal from '@/src/components/ProfileSwitcherModal';
-import { petFrame, PetSkin } from '@/src/components/pet/PetSprite';
+import { PetStill, PetSkin } from '@/src/components/pet/PetSprite';
 import { getPetStats, PetStage, getPetSkin } from '@/src/services/pet';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
 import DemoLanding from '@/src/components/DemoLanding';
@@ -659,7 +659,7 @@ function FullHome() {
             accessibilityLabel={t('petSynapse')}
             style={{ width: 44, height: 44, marginVertical: -6, flexShrink: 0, marginLeft: 2, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' }}
           >
-            <Image source={petFrame(petSkin, 'idle', 0)} style={{ width: 32, height: 32 }} resizeMode="contain" />
+            <PetStill skin={petSkin} state="idle" size={32} />
           </TouchableOpacity>
         </View>
         <View style={styles.headerRow}>

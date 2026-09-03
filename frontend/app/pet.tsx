@@ -7,7 +7,7 @@
  * что человек реально натренировал. Математика — в src/services/pet.ts.
  */
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, Redirect, router } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
@@ -17,8 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
-import PetSprite, { PetAccessory, PetSkin, petFrame } from '@/src/components/pet/PetSprite';
-import { Image } from 'react-native';
+import PetSprite, { PetAccessory, PetSkin, PetStill } from '@/src/components/pet/PetSprite';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import {
   getFedToday, getPetAccessory, getPetName, getPetSkinChoice, getPetStats, markFedToday,
   PET_FEED_COST, PetSkinChoice, pickReaction, PetStats, resolvePetSkin, setPetName, setPetSkin,
@@ -27,12 +27,14 @@ import { pickPettedLine } from '@/src/services/petLines';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getTokens, spendTokens } from '@/src/services/tokens';
 import { sndToken, sndWrong } from '@/src/services/feedback';
-import { a11yDecor } from '@/src/services/a11y';
 import { CATEGORY_TO_SKILL } from '@/src/services/pet';
 import { GAMES } from '@/src/constants/games';
 import { isGameAllowed } from '@/src/constants/profiles';
 
 /** Цвета шкал — 1:1 с сайта (.pet-skill-memory и т.д.) */
+/** Сторона превьюшки облика в выборе — числом, а не дважды в стиле и в компоненте. */
+const SKIN_THUMB = 52;
+
 const SKILL_COLORS: Record<keyof PetStats['skills'], string> = {
   memory: '#8a68f5',
   attention: '#25b989',
@@ -56,7 +58,22 @@ export default function PetScreen() {
   const { t, language } = useLanguage();
   const ru = language === 'ru';   // остался только для русской плюрализации (ruTrainings)
 
-  const { width: winW, height: winH } = useWindowDimensions();
+  /**
+   * 🔴 РАЗМЕР ЭКРАНА — ЧЕРЕЗ ХУК-ЗАЩИТУ, А НЕ НАПРЯМУЮ.
+   *
+   * Замер 03.09.2026 в веб-сборке (а Android у нас WebView, то есть это и телефон):
+   * портрет питомца на этом экране имел размер 0×0 — и на кадрах канала, и на
+   * вшитых. Причина ровно та, под которую хук и заведён: `useWindowDimensions()`
+   * на первом кадре отдаёт ноль, а `resize` при обычном заходе не приходит, и ноль
+   * запекается навсегда. Здесь он попадал в `Math.round(winH * 0.34)`, а нижнего
+   * ограничителя у формулы нет — в отличие от соседей по списку долга, которые
+   * держались на `Math.max(...)` случайно.
+   *
+   * Долг в src/__tests__/screen-width-guard.test.ts уверял, что «они не
+   * схлопываются, проверка первого кадра показала 64 экрана чистыми». Для этого
+   * экрана это было неправдой: питомца на нём просто не было видно.
+   */
+  const { w: winW, h: winH } = useScreenSize();
   // Жалоба «питомец мелкий на Mac»: портрет адаптивный — desktop крупнее,
   // но не выше трети окна, чтобы шкалы не уезжали.
   const portrait = Math.min(winW >= 768 ? 300 : 220, Math.round(winH * 0.34));
@@ -282,7 +299,7 @@ export default function PetScreen() {
                 onPress={() => pickSkin(s)}
                 activeOpacity={0.75}
               >
-                <Image {...a11yDecor} source={petFrame(thumbSkin, 'idle', 0)} style={styles.skinThumb} resizeMode="contain" />
+                <PetStill skin={thumbSkin} state="idle" size={SKIN_THUMB} />
                 {заперт && (
                   <Ionicons name="lock-closed" size={13} color={colors.textSecondary} style={styles.autoBadge} />
                 )}
@@ -399,7 +416,7 @@ const styles = StyleSheet.create({
   skinScroll: { marginTop: 6, alignSelf: 'stretch' },
   skinRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 4, flexGrow: 1, justifyContent: 'center' },
   skinCard: { borderRadius: 15, paddingVertical: 8, paddingHorizontal: 14, alignItems: 'center', minWidth: 96 },
-  skinThumb: { width: 52, height: 52 },
+  skinThumb: { width: SKIN_THUMB, height: SKIN_THUMB },
   skinLabel: { fontSize: 11.5, fontWeight: '800', marginTop: 3 },
   statusRow: { flexDirection: 'row', gap: 10, marginTop: 14, marginBottom: 6 },
   statusBox: {

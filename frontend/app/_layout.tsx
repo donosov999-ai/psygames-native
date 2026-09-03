@@ -10,6 +10,7 @@ import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { WarmupProvider, useWarmup } from '@/src/contexts/WarmupContext';
 import { Platform } from 'react-native';
 import { vibrate } from '@/src/services/feedback';
+import { loadMascotChannel } from '@/src/services/mascotChannel';
 import * as Notifications from 'expo-notifications';
 import { ProfileProvider } from '@/src/contexts/ProfileContext';
 import { PlayerLevelProvider } from '@/src/contexts/PlayerLevelContext';
@@ -176,6 +177,12 @@ export default function RootLayout() {
    * уровень вместо достигнутого. Одно пакетное чтение на весь запуск.
    */
   React.useEffect(() => { void warmLevelCache(); }, []);
+  /**
+   * Облики питомца из маскот-канала. Тянем ОДИН раз на запуск и молча: пока не
+   * приехало — рисуются вшитые кадры, и человек ничего не ждёт. Нет сети —
+   * остаётся вшитое навсегда, это штатный режим, а не ошибка.
+   */
+  React.useEffect(() => { void loadMascotChannel(); }, []);
 
   React.useEffect(() => {
     let cancelled = false;

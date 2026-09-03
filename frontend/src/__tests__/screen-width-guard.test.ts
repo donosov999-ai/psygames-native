@@ -80,7 +80,6 @@ const DEBT: string[] = [
   'app/games/word-pairs.tsx',
   'app/index.tsx',
   'app/onboarding.tsx',
-  'app/pet.tsx',
   'app/settings.tsx',
   'app/warmup-picker.tsx',
   'src/components/GameCard.tsx',
