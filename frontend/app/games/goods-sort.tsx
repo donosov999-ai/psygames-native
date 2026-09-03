@@ -969,6 +969,8 @@ export function hiddenInfo(L: number): boolean {
  */
 export interface GsLayout {
   boardW: number; cellW: number; itemSize: number; itemH: number;
+  /** Размер товара для ниши такой вместимости (см. `itemBox` в `gsLayout`). */
+  itemBox: (cap: number) => { w: number; h: number };
   nicheH: number; shelfH: number;
   /** Доля перекрытия соседних товаров в нише: 0 — встык, 0,3 — как на полке. */
   overlap: number;
@@ -1042,7 +1044,28 @@ export function gsLayout(
   const шагРяда = itemSize * (1 - OVERLAP) + CELL_GAP;
   const rowW = Math.round(itemSize + (capWide - 1) * шагРяда);
 
-  return { boardW, cellW, itemSize, itemH, nicheH, shelfH, overlap: OVERLAP, rowW };
+  /**
+   * 🔴 РАЗМЕР ТОВАРА — ПО СВОЕЙ НИШЕ, А НЕ ПО САМОЙ ЖАДНОЙ НА ДОСКЕ.
+   *
+   * Замер 03.09.2026 (телефон 390, уровень 20): с 18-го уровня появляется одна
+   * ниша на четыре товара, и `capWideHere = Math.max(...caps)` ужимал товар во
+   * ВСЁМ шкафу — 44 → 33 по стороне, почти вдвое по площади. Семнадцать ниш
+   * платили за одну. Это и есть вторая половина жалобы Вали «ужасно товары
+   * мелкие»: первую (арифметику «три встык») закрыл нахлёст, а эту — нет.
+   *
+   * Высота ниши общая: ряды обязаны совпадать по всей доске, иначе полки
+   * разъедутся. А ширина у каждой ниши своя, и товар в ней считается от её
+   * собственной вместимости.
+   */
+  const itemBox = (cap: number): { w: number; h: number } => {
+    const c = Math.max(1, Math.round(cap));
+    const дел = 1 + (c - 1) * (1 - OVERLAP);
+    const поШирине = Math.floor((cellW - CELL_GAP * (c - 1)) / дел);
+    const w = Math.max(18, Math.min(148, поШирине, fitsInRow));
+    return { w, h: Math.round(w / ITEM_ASPECT) };
+  };
+
+  return { boardW, cellW, itemSize, itemH, nicheH, shelfH, overlap: OVERLAP, rowW, itemBox };
 }
 
 export function gsRulesForLevel(L: number): LevelRule[] {
@@ -3125,6 +3148,7 @@ export default function GoodsSortGame() {
   const liveRef = useRef({
     geom: { cols: 3, rows: 3, cellW: 0, nicheH: 0, pad: 9, gap: 9, boardW: 0 } as BoardGeom,
     itemSize: 0, overlap: 0, mask: [] as boolean[], cells: [] as number[][],
+    itemSizeOf: (_i: number): number => 0,
     covered: new Set<string>(),
     usable: (_i: number): boolean => false,
     live: false,
@@ -3178,7 +3202,7 @@ export default function GoodsSortGame() {
         // ничем не кончится, хуже, чем не начать: товар «поднимется» и упадёт назад.
         if (!stack.length || !L.usable(cell)) return;
         const xInCell = pageX - boardBox.current.x - (nicheRect(cell, L.geom, L.mask)?.x ?? 0);
-        const idx = itemAtX(xInCell, stack.length, L.geom.cellW, L.itemSize, 2, L.overlap);
+        const idx = itemAtX(xInCell, stack.length, L.geom.cellW, L.itemSizeOf(cell) || L.itemSize, 2, L.overlap);
         if (idx === null) return;
         const held = { cell, idx, type: stack[idx] };
         dragRef.current = held;
@@ -3591,6 +3615,13 @@ export default function GoodsSortGame() {
   liveRef.current = {
     geom: { cols: gridDim.cols, rows: gridDim.rows, cellW, nicheH, pad: SHELF_PAD, gap: SHELF_GAP, boardW },
     itemSize, overlap, mask, cells,
+    /**
+     * ⚠️ Размер товара для КОНКРЕТНОЙ ниши. С тех пор как он считается по её
+     * собственной вместимости, единого числа на доску не существует, а
+     * `itemAtX` делит нишу по шагу ряда — подставь чужой размер, и палец
+     * попадёт не в тот товар, причём ошибка будет расти к правому краю.
+     */
+    itemSizeOf: (i: number) => LAY.itemBox(capOf(i)).w,
     covered,
     usable: cellUsable,
     // Жест обязан звать СВЕЖИЙ moveItem: старый замкнул прошлую доску и переложил бы
@@ -3774,7 +3805,10 @@ export default function GoodsSortGame() {
         />
         {/* Рисуем ТОЛЬКО реальные товары (по центру) — без пустых боксов; пустое место ячейки = куда класть */}
         <View pointerEvents="box-none" style={styles.cellRow}>
+          {/* Размер товара — по вместимости ЭТОЙ ниши (см. `itemBox` в `gsLayout`):
+              одна ниша на четыре не имеет права ужимать весь шкаф. */}
           {cell.map((tp, s) => {
+            const { w: iS, h: iH } = LAY.itemBox(capOf(i));
             const selected = isSelCell && sel?.idx === s;
             /** Товар, который советует подсказка: подсвечен вместе со своей нишей-целью. */
             const hinted = hint?.fromCell === i && hint?.fromIdx === s;
@@ -3789,7 +3823,7 @@ export default function GoodsSortGame() {
                 accessibilityLabel={`${spokenGood(i, s, tp)}, ${t('a11yShelf')} ${i + 1}`}
                 accessibilityState={{ selected }}
                 style={[styles.itemSlot, {
-                  width: itemSize, height: itemH,
+                  width: iS, height: iH,
                   /**
                    * 🔴 ВНАХЛЁСТ, А НЕ ВСТЫК — И ПЕРЕДНИЙ ПОВЕРХ ЗАДНЕГО.
                    *
@@ -3804,7 +3838,7 @@ export default function GoodsSortGame() {
                    * нельзя прятать под соседним товаром, иначе подсветка теряется
                    * ровно в тот момент, когда она нужна.
                    */
-                  marginLeft: s === 0 ? 0 : -Math.round(itemSize * overlap),
+                  marginLeft: s === 0 ? 0 : -Math.round(iS * overlap),
                   zIndex: (selected || hinted) ? 20 : Math.max(1, 10 - s),
                 },
                 selected && styles.itemSel, hinted && styles.itemHint, inHand && { opacity: 0.2 }, arriving && { opacity: 0 }]}>
@@ -3817,7 +3851,7 @@ export default function GoodsSortGame() {
                      * Рисовать скрытое силуэтом значило бы тихо ослабить режим
                      * до «накрытого товара» с восьмого уровня.
                      */
-                    <UnknownGood width={itemSize} height={itemH - 2} />
+                    <UnknownGood width={iS} height={iH - 2} />
                   ) : (
                   /**
                    * НАКРЫТЫЙ ТОВАР: силуэт есть, что именно — не видно.
@@ -3827,11 +3861,11 @@ export default function GoodsSortGame() {
                    * неполная информация: надо запомнить, что открылось.
                    */
                   <Image {...a11yDecor} source={GOOD_SPRITES[tp % GOOD_SPRITES.length]}
-                    style={{ width: itemSize, height: itemH - 2, tintColor: 'rgba(35,20,8,0.82)' }}
+                    style={{ width: iS, height: iH - 2, tintColor: 'rgba(35,20,8,0.82)' }}
                     resizeMode="contain" />
                   )
                 ) : (
-                  <GoodIcon type={tp} width={itemSize} height={itemH - 2} />
+                  <GoodIcon type={tp} width={iS} height={iH - 2} />
                 )}
               </TouchableOpacity>
             );
@@ -4261,7 +4295,9 @@ export default function GoodsSortGame() {
               { translateY: flyAt.interpolate({ inputRange: [0, 1], outputRange: [fly.ay, fly.by] }) },
             ],
           }]}>
-            <View style={{ transform: [{ translateX: -itemSize / 2 }, { translateY: -itemH / 2 }] }}>
+            {/* Летящий товар меряется нишей, КУДА он летит: иначе он приземлится
+                другого размера, чем стал бы на полке, и посадка дёрнется. */}
+            <View style={{ transform: [{ translateX: -LAY.itemBox(capOf(fly.toCell)).w / 2 }, { translateY: -LAY.itemBox(capOf(fly.toCell)).h / 2 }] }}>
               {/* Скрытый летит «?», а не силуэтом: тип вскрывается ПРИБЫТИЕМ на
                   фронт ниши-цели, и показать его в полёте значило бы вскрыть
                   на 200 мс раньше — а на скорости полёта это уже подглядка. */}
@@ -4281,7 +4317,8 @@ export default function GoodsSortGame() {
         {drag && (
           <Animated.View pointerEvents="none"
             style={[styles.dragLayer, { transform: [{ translateX: dragPos.x }, { translateY: dragPos.y }] }]}>
-            <View style={[styles.dragGhost, { width: itemSize, height: itemH, marginLeft: -itemSize / 2, marginTop: -itemH - 10 }]}>
+            {/* Призрак под пальцем — размера той ниши, ОТКУДА товар взяли. */}
+            <View style={[styles.dragGhost, { width: LAY.itemBox(capOf(drag.cell)).w, height: LAY.itemBox(capOf(drag.cell)).h, marginLeft: -LAY.itemBox(capOf(drag.cell)).w / 2, marginTop: -LAY.itemBox(capOf(drag.cell)).h - 10 }]}>
               {/* Под пальцем скрытый — тоже «?»: поднять товар ещё не значит
                   вскрыть, вскрывает только укладка (см. полёт выше). */}
               {covered.has(`${drag.cell}:${drag.idx}`) ? (
