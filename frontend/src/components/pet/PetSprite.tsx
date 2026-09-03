@@ -21,7 +21,7 @@ import { FRAME_ANCHORS } from './petAnchors.generated';
  * Состояния питомца. Первые пять есть кадрами во ВСЕХ скинах; `celebrate` и `eat`
  * — заявленные (задача 00218752), кадров под них пока нет ни в одном паке.
  */
-import { channelPack, onChannelChange, type ChannelState } from '@/src/services/mascotChannel';
+import { channelPack, onChannelChange, ensureMascotChannel, type ChannelState } from '@/src/services/mascotChannel';
 
 export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep' | 'celebrate' | 'eat';
 
@@ -178,7 +178,10 @@ function изКанала(skin: PetSkin, state: PetState): ChannelState | undefi
 /** Подписка на приезд облика: пришёл — перерисовываемся, не пришёл — рисуем вшитое. */
 function useChannel(): number {
   const [n, setN] = React.useState(0);
-  React.useEffect(() => onChannelChange(() => setN((x) => x + 1)), []);
+  React.useEffect(() => {
+    ensureMascotChannel();                       // первый показ питомца и есть момент загрузки
+    return onChannelChange(() => setN((x) => x + 1));
+  }, []);
   return n;
 }
 
