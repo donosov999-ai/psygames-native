@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.16',
+    date: '2026-09-04',
+    ru: [
+      'Каталог собрался в развилки: Счёт, Слова, Слух, Поиск глазами, Гибкость, Решения под риском, Зрительная память, Мнемотехники и Языки',
+      'Пока это предпросмотр в профиле НЗТ-48 — в остальных профилях каталог прежний',
+    ],
+    en: [
+      'The catalogue folded into hubs: Counting, Words, Hearing, Visual Search, Flexibility, Decisions Under Risk, Visual Memory, Mnemonics and Languages',
+      'For now it is a preview in the NZT-48 profile — other profiles keep the catalogue as it was',
+    ],
+  },
+  {
     version: '2.37.15',
     date: '2026-09-04',
     ru: [
