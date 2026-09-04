@@ -43,10 +43,20 @@ export type ChannelState = {
   size: number;
   frames: number;
   fps: number;
-  strip: string;               // абсолютный URL листа
+  strip: string;               // абсолютный URL листа на сервисе (канон, ключ кэша)
+  /**
+   * ТОТ ЖЕ ЛИСТ, ВТЯНУТЫЙ В СВОЙ ORIGIN (`blob:`) — им и рисуем.
+   * Почему не рисовать прямо по `strip` — см. `всвой()` ниже.
+   */
+  local?: string;
   anchors: ChannelFrameAnchors[];
 };
 export type ChannelPack = { version: string; states: Record<string, ChannelState> };
+
+/** URL листа ДЛЯ ОТРИСОВКИ: втянутая копия, пока она есть; иначе адрес сервиса. */
+export function stripUri(s: ChannelState): string {
+  return s.local || s.strip;
+}
 
 /** Какой пак канала соответствует какому облику приложения. */
 export const PACK_OF_SKIN: Record<string, string> = {
@@ -165,11 +175,94 @@ export async function loadMascotChannel(): Promise<void> {
       if (pack && await прогреть(pack)) свежие[skin] = pack;
     }
     if (Object.keys(свежие).length) {
+      for (const [skin, pack] of Object.entries(свежие)) {
+        if (готовые[skin] && готовые[skin] !== pack) отпустить(готовые[skin]);
+      }
       готовые = { ...готовые, ...свежие };
       слушатели.forEach((f) => f());
-      try { await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(готовые)); } catch { /* кэш — удобство */ }
+      /**
+       * ⚠️ В КЭШ ЛОЖИТСЯ АДРЕС СЕРВИСА, А НЕ ВТЯНУТАЯ КОПИЯ. `blob:` живёт ровно
+       * столько, сколько документ: записать его — значит на следующем запуске
+       * достать из кэша ссылку в никуда.
+       */
+      try {
+        const безКопий = JSON.stringify(готовые, (k, v) => (k === 'local' ? undefined : v));
+        await AsyncStorage.setItem(CACHE_KEY, безКопий);
+      } catch { /* кэш — удобство */ }
     }
   } catch { /* нет сети или канал молчит — вшитые кадры уже рисуются */ }
+}
+
+/**
+ * ВТЯНУТЬ ЛИСТ В СВОЙ ORIGIN.
+ *
+ * 🔴 ПОЧЕМУ НЕЛЬЗЯ РИСОВАТЬ ПРЯМО ПО АДРЕСУ СЕРВИСА. Отчёт 6734447a (04.09.2026,
+ * iPhone, v2.37.48): «кот дырявый», на снимке пустое место вместо питомца и пустые
+ * все четыре карточки обликов, — при том что в приложении кот был виден. Снимок
+ * экрана делает html2canvas по DOM и перекачивает каждую картинку заново в
+ * CORS-режиме (`useCORS`). А `mascot.asibots.pro` — это R2 за Cloudflare, и он, как
+ * всякий S3-совместимый бакет, отдаёт `Access-Control-Allow-Origin` и `Vary: Origin`
+ * ТОЛЬКО когда в запросе есть заголовок `Origin`. Обычный `<img>` его не шлёт, и в
+ * кэш ложится ответ без разрешения и без `Vary`, живущий 4 часа; следующий запрос
+ * того же адреса в CORS-режиме получает из кэша ровно его, проверку не проходит —
+ * и картинка молча выпадает из снимка.
+ *
+ * 📍 Замер 04.09.2026 в браузере на одном свежем адресе:
+ *    CORS-загрузка первой            → ok  (CORS у канала исправен)
+ *    обычная, затем CORS тем же URL  → ОШИБКА
+ * То есть ломает не сервис, а порядок обращений. Договориться с кэшем нельзя:
+ * `crossOrigin` react-native-web у `Image` не поддерживает (ни в `Image`, ни в
+ * `ImageLoader` версии 0.21.2), а заголовок на кромке CF нам не поправить —
+ * `mascot.asibots.pro` это CNAME на `public.r2.dev`, и токен зоны прав на Transform
+ * Rules не имеет.
+ *
+ * Поэтому вопрос снимается по устройству: лист скачивается ОДИН раз честным
+ * CORS-запросом и дальше живёт как `blob:` — свой origin, перекачивать нечего,
+ * канвас чистый. Заодно исчезает второй, «обычный» запрос за той же картинкой.
+ */
+async function всвой(url: string): Promise<string | null> {
+  const естьBlobUrl = typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function';
+  // Не веб (родной рантайм) — CORS там ни при чём, греем загрузчиком платформы.
+  if (!естьBlobUrl) {
+    return Image.prefetch(url).then(() => url).catch(() => null);
+  }
+  /**
+   * 🔴 ВТОРАЯ ПОПЫТКА В ОБХОД КЭША — НЕ ПЕРЕСТРАХОВКА, А ЛЕЧЕНИЕ УЖЕ ОТРАВЛЕННЫХ.
+   *
+   * Честного `mode: 'cors'` мало тем, кто обновляется со сборки, где лист грузился
+   * обычным `<img>`: отравленная запись уже лежит в кэше и живёт 4 часа, и наш
+   * CORS-запрос достанет из неё ответ без разрешения. Замер 04.09.2026 на
+   * собранном вебе: 20 запросов за листами, все 20 — `blocked by CORS policy: No
+   * 'Access-Control-Allow-Origin'`, при том что curl с тем же Origin получает
+   * `ACAO: *`. То есть сервис исправен, а кэш — нет.
+   *
+   * `cache: 'reload'` заставляет сходить в сеть мимо кэша и ПЕРЕЗАПИСАТЬ запись
+   * правильным ответом (с `Vary: Origin`), после чего отравление снято до конца
+   * жизни кэша. Платим лишней закачкой только там, где иначе облик не включился бы
+   * вовсе, — в обычном случае первая попытка проходит и второй не будет.
+   */
+  const один = async (обходКэша: boolean): Promise<string | null> => {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+    try {
+      const r = await fetch(url, {
+        mode: 'cors', signal: ctl.signal, ...(обходКэша ? { cache: 'reload' as RequestCache } : {}),
+      });
+      if (!r.ok) return null;
+      const b = await r.blob();
+      if (!b.size) return null;           // пустое тело — это не картинка
+      return URL.createObjectURL(b);
+    } catch { return null; } finally { clearTimeout(t); }
+  };
+  return (await один(false)) ?? (await один(true));
+}
+
+/** Отпустить втянутые копии заменяемого пака — иначе память течёт при смене версии. */
+function отпустить(pack: ChannelPack | undefined): void {
+  if (!pack || typeof URL === 'undefined' || typeof URL.revokeObjectURL !== 'function') return;
+  for (const s of Object.values(pack.states)) {
+    if (s.local && s.local.startsWith('blob:')) { try { URL.revokeObjectURL(s.local); } catch { /* уже отпущен */ } }
+  }
 }
 
 /**
@@ -178,7 +271,7 @@ export async function loadMascotChannel(): Promise<void> {
  */
 async function прогреть(pack: ChannelPack): Promise<boolean> {
   try {
-    const все = НУЖНЫ.map((st) => pack.states[st]?.strip).filter(Boolean) as string[];
+    const все = НУЖНЫ.map((st) => pack.states[st]).filter(Boolean);
     /**
      * ⚠️ УСПЕХ — ЭТО «НЕ БРОСИЛО», А НЕ «ВЕРНУЛО true». Замер 03.09.2026 в вебе:
      * все 34 запроса к каналу отдали 200, листы скачались — и облик всё равно не
@@ -186,7 +279,12 @@ async function прогреть(pack: ChannelPack): Promise<boolean> {
      * значения, а проверка стояла `every(Boolean)`. Питомец рисовался вшитым при
      * полностью исправном канале, и по картинке это неотличимо от «нет сети».
      */
-    const ok = await Promise.all(все.map((u) => Image.prefetch(u).then(() => true).catch(() => false)));
+    const ok = await Promise.all(все.map(async (s) => {
+      const свой = await всвой(s.strip);
+      if (!свой) return false;
+      s.local = свой;
+      return true;
+    }));
     return ok.every(Boolean);
   } catch { return false; }
 }

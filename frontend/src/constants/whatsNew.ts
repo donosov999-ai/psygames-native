@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.49',
+    date: '2026-09-05',
+    ru: ['Питомец больше не пропадает со скриншота в отчёте об ошибке — кадры облика теперь берутся в свой origin'],
+    en: ['The pet no longer vanishes from bug-report screenshots — skin frames are now pulled into our own origin'],
+  },
+  {
     version: '2.37.48',
     date: '2026-09-04',
     ru: ['Починена сборка: новая развилка «Торможение» не была вписана в аудит, и релиз не публиковался'],

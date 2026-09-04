@@ -21,7 +21,7 @@ import { FRAME_ANCHORS } from './petAnchors.generated';
  * Состояния питомца. Первые пять есть кадрами во ВСЕХ скинах; `celebrate` и `eat`
  * — заявленные (задача 00218752), кадров под них пока нет ни в одном паке.
  */
-import { channelPack, onChannelChange, ensureMascotChannel, type ChannelState } from '@/src/services/mascotChannel';
+import { channelPack, onChannelChange, ensureMascotChannel, stripUri, type ChannelState } from '@/src/services/mascotChannel';
 
 export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep' | 'celebrate' | 'eat';
 
@@ -246,7 +246,7 @@ export function PetStill({ skin, state = 'idle', frame = 0, size }: {
       <View style={{ width: size, height: size, overflow: 'hidden' }}>
         <Image
           {...a11yDecor}
-          source={{ uri: кан.strip }}
+          source={{ uri: stripUri(кан) }}
           style={{ position: 'absolute', top: 0, left: -i * size, width: size * кан.frames, height: size }}
           resizeMode="stretch"
           fadeDuration={0}
@@ -518,7 +518,7 @@ export default function PetSprite({ state, size = 56, skin = 'cat', accessory = 
       <View style={{ width: size, height: size, overflow: 'hidden' }}>
         <Image
           {...a11yDecor}
-          source={{ uri: кан.strip }}
+          source={{ uri: stripUri(кан) }}
           style={{ position: 'absolute', top: 0, left: -shown * size, width: size * кан.frames, height: size }}
           resizeMode="stretch"
           fadeDuration={0}
