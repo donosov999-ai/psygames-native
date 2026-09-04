@@ -402,11 +402,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillVisualSearch",
     "introKey": "searchGroupIntroDesc"
   },
-  "/games/flexibility-hub": {
-    "nameKey": "flexibilityGroup",
-    "skillKey": "skillSwitching",
-    "introKey": "flexibilityGroupIntroDesc"
-  },
   "/games/risk-hub": {
     "nameKey": "riskGroup",
     "skillKey": "skillRisk",
@@ -436,5 +431,10 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "routesGroup",
     "skillKey": "skillPlanning",
     "introKey": "routesGroupIntroDesc"
+  },
+  "/games/flexibility-hub": {
+    "nameKey": "flexibilityGroup",
+    "skillKey": "skillSwitching",
+    "introKey": "flexibilityGroupIntroDesc"
   }
 };

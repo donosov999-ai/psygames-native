@@ -636,6 +636,7 @@ export const GAMES: GameConfig[] = [
     icon: 'analytics',
     route: '/games/pattern',
     category: 'logic',
+    mergedInto: 'flexibility_group',
   },
   {
     id: 'set_game',
@@ -646,6 +647,7 @@ export const GAMES: GameConfig[] = [
     icon: 'shapes',
     route: '/games/set-game',
     category: 'logic',
+    mergedInto: 'flexibility_group',
   },
   {
     id: 'mental_rotation',
@@ -788,7 +790,8 @@ export const GAMES: GameConfig[] = [
     icon: 'swap-horizontal',
     route: '/games/trail-making',
     category: 'logic',
-    mergedInto: 'flexibility_group',
+    // соединить цепочку 1-А-2-Б: путь, который обязан покрыть всё
+    mergedInto: 'routes_group',
   },
   {
     id: 'switching_task',
@@ -799,7 +802,8 @@ export const GAMES: GameConfig[] = [
     icon: 'swap-horizontal',
     route: '/games/switching-task',
     category: 'logic',
-    mergedInto: 'flexibility_group',
+    // правило меняется по сигналу — та же перестройка, что у Струпа и фланкера
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'wcst',
@@ -810,7 +814,8 @@ export const GAMES: GameConfig[] = [
     icon: 'shuffle',
     route: '/games/wcst',
     category: 'intuition',
-    mergedInto: 'flexibility_group',
+    // правило меняется МОЛЧА, заметить надо самому — крайний случай той же перестройки
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'flanker',
@@ -963,6 +968,7 @@ export const GAMES: GameConfig[] = [
     icon: 'apps',
     route: '/games/sdmt',
     category: 'action',
+    mergedInto: 'flexibility_group',
   },
   {
     id: 'posner',
@@ -1141,22 +1147,6 @@ export const GAMES: GameConfig[] = [
   },
   {
     /**
-     * Развилка «Гибкость» (04.09.2026, решение Дениса). Каталог из 52 карточек
-     * не листается; эти пробы меряют одно и то же и жили рядом порознь.
-     */
-    id: 'flexibility_group',
-    previewIn: ['nzt48'],
-    nameKey: 'flexibilityGroup',
-    descKey: 'flexibilityGroupDesc',
-    skillKey: 'skillSwitching',
-    gradient: ['#6366f1', '#14b8a6'],
-    icon: 'swap-horizontal',
-    route: '/games/flexibility-hub',
-    category: 'logic',
-    hub: true,
-  },
-  {
-    /**
      * Развилка «Решения под риском» (04.09.2026, решение Дениса). Каталог из 52 карточек
      * не листается; эти пробы меряют одно и то же и жили рядом порознь.
      */
@@ -1246,6 +1236,23 @@ export const GAMES: GameConfig[] = [
     gradient: ['#0f766e', '#4f46e5'],
     icon: 'git-network',
     route: '/games/routes-hub',
+    category: 'logic',
+    hub: true,
+  },
+  {
+    /**
+     * Развилка «Гибкость» (04.09.2026, состав от Дениса). Три пробы, где
+     * переключаться надо САМОМУ, без внешнего сигнала: бросить негодную гипотезу,
+     * сменить признак поиска, перейти между строками ключа.
+     */
+    id: 'flexibility_group',
+    previewIn: ['nzt48'],
+    nameKey: 'flexibilityGroup',
+    descKey: 'flexibilityGroupDesc',
+    skillKey: 'skillSwitching',
+    gradient: ['#6366f1', '#14b8a6'],
+    icon: 'swap-horizontal',
+    route: '/games/flexibility-hub',
     category: 'logic',
     hub: true,
   },

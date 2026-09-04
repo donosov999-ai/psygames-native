@@ -27,6 +27,7 @@ export default function RoutesHub() {
       games={[
         { route: '/games/dots-connect', icon: 'ellipse', nameKey: 'dotsConnect', descKey: 'dotsConnectDesc' },
         { route: '/games/one-line', icon: 'analytics', nameKey: 'oneLine', descKey: 'oneLineDesc' },
+        { route: '/games/trail-making', icon: 'git-network', nameKey: 'trailMaking', descKey: 'trailMakingDesc' },
       ]}
     />
   );
