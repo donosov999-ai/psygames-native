@@ -1217,9 +1217,14 @@ const translations: Translations = {
   attentionConflict:        { ru: 'Конфликт внимания',                en: 'Attention Conflict' },
   attentionConflictDesc:    { ru: 'Подавление автоматического конфликтующего ответа', en: 'Suppress automatic conflicting response' },
   attentionConflictPickMode:{ ru: 'Выбери парадигму',  en: 'Choose paradigm' },
+  /**
+   * ⚠️ БЕЗ ЧИСЛА РЕЖИМОВ. Стояло «Все три» — с тех пор парадигм стало десять, и
+   * подпись полгода врала на экране. Счёт в тексте устаревает молча при каждом
+   * добавлении и каждом переезде в соседний хаб; формулировка без числа — нет.
+   */
   attentionConflictFootnote:{
-    ru: 'Все три тренируют одну способность — interference resolution. Биомаркер (interference effect = RT_inc − RT_con) сохраняется отдельно для каждой парадигмы.',
-    en: 'All three train one ability — interference resolution. Biomarker (interference effect = RT_inc − RT_con) saved separately per paradigm.'
+    ru: 'Все парадигмы хаба тренируют одну способность — interference resolution. Биомаркер (interference effect = RT_inc − RT_con) сохраняется отдельно для каждой парадигмы.',
+    en: 'Every paradigm here trains one ability — interference resolution. Biomarker (interference effect = RT_inc − RT_con) saved separately per paradigm.'
   },
 
   // Span group (Digit Span + Corsi + Spatial Span)
