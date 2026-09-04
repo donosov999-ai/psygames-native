@@ -6,25 +6,55 @@
  * к APK. Поэтому здесь проверяется поведение клиента: берёт запись, если она есть,
  * и честно падает на системный голос, если нет.
  */
+import { voiceUrl, voiceIndexReady, ensureVoiceIndex } from '@/src/services/voiceSamples';
+import { VOICE_INDEX, VOICE_INDEX_COUNTS } from '@/src/constants/voiceIndex.generated';
+
 declare const __dirname: string;
 declare function require(m: string): any;
+
+// Файлы читаем через require: гейт типов в CI гоняет свой tsconfig без типов node.
 const fs = require('fs');
 const path = require('path');
-
-import { voiceUrl, voiceIndexReady, ensureVoiceIndex } from '@/src/services/voiceSamples';
 
 const код = (п: string) => fs.readFileSync(path.join(__dirname, '../..', п), 'utf8');   // от frontend/
 
 describe('записи стимулов', () => {
-  it('🔴 без загруженного указателя адреса нет — молча в тишину не уходим', () => {
+  it('🔴 у неизвестного языка записей нет — молча в тишину не уходим', () => {
     expect(voiceIndexReady('xx')).toBe(false);
     expect(voiceUrl('дом', 'xx')).toBeNull();
   });
 
-  it('сеть молчит — ensureVoiceIndex не роняет игру', async () => {
-    (globalThis as { fetch?: unknown }).fetch = () => Promise.reject(new Error('нет сети'));
+  it('ensureVoiceIndex ничего не грузит и не роняет игру', async () => {
     await expect(ensureVoiceIndex('zz')).resolves.toBeUndefined();
     expect(voiceUrl('что угодно', 'zz')).toBeNull();
+  });
+
+  /**
+   * 🔴 УКАЗАТЕЛЬ В БАНДЛЕ, ЗВУК СНАРУЖИ — И ЭТО НЕ ПРОИЗВОЛ. Замер 04.09.2026:
+   * у psy-games.pro НЕТ заголовков CORS, значит `fetch` указателя из приложения
+   * браузер заблокировал бы, и озвучка молча осталась бы на системном голосе.
+   * Тег `Audio` CORS не требует — поэтому 4 МБ звука снаружи, 50 КБ указателя внутри.
+   */
+  it('🔴 в указателе не меньше 150 записей на каждый из семи языков', () => {
+    const мало = Object.entries(VOICE_INDEX_COUNTS).filter(([, n]) => n < 150).map(([л, n]) => `${л}:${n}`);
+    expect(мало).toEqual([]);
+    expect(Object.keys(VOICE_INDEX_COUNTS).length).toBeGreaterThanOrEqual(7);
+  });
+
+  it('🔴 адрес записи ведёт на сайт, а не в бандл', () => {
+    const слово = Object.keys(VOICE_INDEX.ru!)[0]!;
+    const url = voiceUrl(слово, 'ru');
+    expect(url).toMatch(/^https:\/\/psy-games\.pro\/voice\/ru\/[0-9a-f]{16}\.opus$/);
+  });
+
+  it('слова, которого нет в корпусе, — нет и адреса (падаем на системный голос)', () => {
+    expect(voiceUrl('такогословаточнонет', 'ru')).toBeNull();
+  });
+
+  it('счётчики не врут про содержимое указателя', () => {
+    for (const [язык, n] of Object.entries(VOICE_INDEX_COUNTS)) {
+      expect(`${язык}: ${Object.keys(VOICE_INDEX[язык] ?? {}).length}`).toBe(`${язык}: ${n}`);
+    }
   });
 
   it('🔴 tts берёт запись ПЕРЕД синтезом, а не вместо фолбэка', () => {

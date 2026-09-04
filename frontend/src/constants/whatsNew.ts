@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.26',
+    date: '2026-09-04',
+    ru: ['Слова в «Слуховом охвате», «Минимальных парах» и «Диктанте» звучат живой записью, а не машинным голосом — 1438 записей на семи языках'],
+    en: ['Words in Listening Span, Minimal Pairs and Dictation now play as real recordings instead of the machine voice — 1438 samples across seven languages'],
+  },
+  {
     version: '2.37.25',
     date: '2026-09-04',
     ru: [
