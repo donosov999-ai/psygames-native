@@ -1,4 +1,4 @@
-/* psygames-hub-screen · VER 1 · 04.09.2026 */
+/* psygames-hub-screen · VER 2 · 04.09.2026 */
 /**
  * ОБЩИЙ КАРКАС РАЗВИЛКИ (хаба).
  *
@@ -22,6 +22,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { goBackOrHome } from '@/src/utils/nav';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { filterAllowedGames } from '@/src/constants/profiles';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
@@ -53,6 +55,27 @@ export default function HubScreen({ titleKey, descKey, pickKey, footnoteKey, ico
   const { colors } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
+  const { profile, ready: профильГотов } = useProfile();
+
+  /**
+   * 🔴 РАЗВИЛКА ПОКАЗЫВАЕТ ТОЛЬКО ТО, ЧТО ПОЛОЖЕНО ЭТОМУ ПРОФИЛЮ.
+   *
+   * Правило «развилка открыта, если открыта хоть одна игра за ней» (profiles.ts)
+   * решает, показывать ли КАРТОЧКУ. Второй половины не было: сам список внутри
+   * оставался общим. Замер 04.09.2026 перед включением развилок всем: «Детям»
+   * открывались шахматы вслепую, самурай и Висконсинский тест, «Старшим» — трекер
+   * объектов, «Шахматисту» — весь набор охвата памяти. Двенадцать профилей, от 12
+   * до 28 лишних входов в каждом. Из сетки это не видно вовсе: карточек стало
+   * МЕНЬШЕ, а доступного — больше.
+   *
+   * Пока профиль не прочитан, список пуст: полсекунды без карточек лучше, чем
+   * полсекунды с чужими.
+   */
+  const список = React.useMemo(() => {
+    if (!профильГотов) return [];
+    const можно = new Set(filterAllowedGames(profile).map((g) => g.route));
+    return games.filter((g) => можно.has(g.route));
+  }, [games, profile, профильГотов]);
   const onGrad = onGradientText(gradient[0], gradient[1]);
   const onGradSoft = onGradientTextMuted(onGrad);
 
@@ -78,7 +101,7 @@ export default function HubScreen({ titleKey, descKey, pickKey, footnoteKey, ico
           <Text style={[styles.heroDesc, { color: onGradSoft }]}>{t(descKey)}</Text>
         </GradientSurface>
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t(pickKey)}</Text>
-        {games.map((g) => (
+        {список.map((g) => (
           <TouchableOpacity
             accessibilityRole="button"
             key={g.route}

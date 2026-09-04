@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.34',
+    date: '2026-09-04',
+    ru: [
+      'Развилки открыты всем профилям: каталог стал короче, а упражнения — на месте, внутри своей развилки',
+      'Внутри развилки видно только то, что открыто твоему профилю',
+      'Питомец в шапке стал заметно крупнее',
+    ],
+    en: [
+      'Hubs are now open to every profile: a shorter catalogue with the same exercises, grouped inside',
+      'A hub shows only the exercises your profile has access to',
+      'The pet in the header is noticeably bigger',
+    ],
+  },
+  {
     version: '2.37.33',
     date: '2026-09-04',
     ru: [
