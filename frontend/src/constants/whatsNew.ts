@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.46',
+    date: '2026-09-04',
+    ru: [
+      'Питомца теперь видно, как кормят: лакомство подлетает ему в рот и исчезает',
+      'Живые записи слов добавились для испанского и португальского — 988 записей на пяти языках',
+    ],
+    en: [
+      'Feeding the pet is now visible: a treat flies to its mouth and disappears',
+      'Real human recordings added for Spanish and Portuguese — 988 samples across five languages',
+    ],
+  },
+  {
     version: '2.37.45',
     date: '2026-09-04',
     ru: ['«Рекомендуем сегодня» учитывает разбор последней зарядки: если навык просел, назавтра предложит упражнение именно из него'],
