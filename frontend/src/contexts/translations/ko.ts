@@ -2137,6 +2137,8 @@ const t: Record<string, string> = {
   "sourcesTitle": "출처",
   "sourcesIntro": "공개 자료에서 가져온 데이터와 그림, 그리고 사용 조건입니다.",
   "sourceHsk30": "중국어 단어의 병음·성조·등급. 원출처는 중국 교육부 어휘 목록.",
+  "sourceWiktionaryVoice": "사람이 직접 녹음한 발음 632개(러시아어·독일어·영어). 위키낱말사전과 Lingua Libre 프로젝트의 원어민이 읽었습니다.",
+  "voiceCreditsTitle": "단어를 읽는 사람",
   "sourceCburnett": "‘머릿속 체스판’ 연습의 벡터 체스 기물.",
   "recoWhyWeakspot": "지금 가장 약한 부분",
   "recoWhyBranch": "이 분야가 가장 적게 연습됐어요",

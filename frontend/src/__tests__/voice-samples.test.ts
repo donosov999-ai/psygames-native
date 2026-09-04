@@ -41,10 +41,15 @@ describe('записи стимулов', () => {
     expect(Object.keys(VOICE_INDEX_COUNTS).length).toBeGreaterThanOrEqual(7);
   });
 
+  /**
+   * 04.09.2026: корпусов стало два. Живые записи людей лежат в /voice-live и идут
+   * первыми, машинные остались в /voice подпоркой для языков без живых записей.
+   * Смысл проверки прежний: адрес ведёт на САЙТ, а не в бандл — иначе +17 МБ к APK.
+   */
   it('🔴 адрес записи ведёт на сайт, а не в бандл', () => {
     const слово = Object.keys(VOICE_INDEX.ru!)[0]!;
     const url = voiceUrl(слово, 'ru');
-    expect(url).toMatch(/^https:\/\/psy-games\.pro\/voice\/ru\/[0-9a-f]{16}\.opus$/);
+    expect(url).toMatch(/^https:\/\/psy-games\.pro\/voice(-live)?\/ru\/[0-9a-f]{16}\.opus$/);
   });
 
   it('слова, которого нет в корпусе, — нет и адреса (падаем на системный голос)', () => {

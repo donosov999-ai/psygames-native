@@ -75,3 +75,7 @@ AuthKey_*
 *.p12
 *.mobileprovision
 *.cer
+
+# Живой корпус произношения: 632 файла лежат на psy-games.pro/voice-live,
+# в репозитории держим только указатель и список авторов (voiceLive.generated.ts).
+voice-wiktionary/

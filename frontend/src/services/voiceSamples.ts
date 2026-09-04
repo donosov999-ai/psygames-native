@@ -1,4 +1,4 @@
-/* psygames-voice-samples · VER 1 · 04.09.2026 */
+/* psygames-voice-samples · VER 2 · 04.09.2026 */
 /**
  * ГОТОВЫЕ ЗАПИСИ СТИМУЛОВ — ФАЙЛАМИ, А НЕ СИНТЕЗОМ НА ЛЕТУ (задача a382fd2f).
  *
@@ -24,9 +24,12 @@
  * них остаётся системный голос, и это правильный инструмент, а не запасной.
  */
 import { VOICE_INDEX, VOICE_INDEX_COUNTS } from '@/src/constants/voiceIndex.generated';
+import { VOICE_LIVE, VOICE_LIVE_COUNTS } from '@/src/constants/voiceLive.generated';
 
-/** Где лежит корпус. Тот же хост, что раздаёт /play и бинарники. */
+/** Где лежит машинный корпус. Тот же хост, что раздаёт /play и бинарники. */
 const БАЗА = 'https://psy-games.pro/voice';
+/** Где лежат ЖИВЫЕ записи людей — они идут первыми. */
+const БАЗА_ЖИВАЯ = 'https://psy-games.pro/voice-live';
 
 /**
  * 🔴 УКАЗАТЕЛЬ ЛЕЖИТ В БАНДЛЕ, А НЕ ТЯНЕТСЯ С САЙТА — ЗАМЕР 04.09.2026.
@@ -44,13 +47,29 @@ export async function ensureVoiceIndex(_lang: string): Promise<void> {
   // экраны зовут её при выборе языка, и однажды корпус может снова уехать в сеть.
 }
 
-/** Адрес записи или null, если её нет. Синхронно: зовётся внутри пробы. */
+/**
+ * Адрес записи или null, если её нет. Синхронно: зовётся внутри пробы.
+ *
+ * 🔴 ЖИВАЯ ЗАПИСЬ ИДЁТ ПЕРВОЙ, МАШИННАЯ ОСТАЁТСЯ ПОДПОРКОЙ. Отчёт a4a2a0f4:
+ * «надо языковую модель менять, это не вытягивает, даже английский очень криво
+ * произносит». Спорить с машиной о том, как звучит слово, бессмысленно, когда
+ * слово уже произнёс человек: покрытие живыми записями ru 211/211, de 208/208,
+ * en 215/216. Там, где живой записи нет (китайский, хинди, часть испанского и
+ * португальского), машинная остаётся — молчания быть не должно.
+ */
 export function voiceUrl(text: string, lang: string): string | null {
+  const живая = VOICE_LIVE[lang]?.[text];
+  if (живая) return `${БАЗА_ЖИВАЯ}/${lang}/${живая}`;
   const имя = VOICE_INDEX[lang]?.[text];
   return имя ? `${БАЗА}/${lang}/${имя}` : null;
 }
 
+/** Голос человека, а не машины — для честной подписи на экране. */
+export function voiceIsLive(text: string, lang: string): boolean {
+  return Boolean(VOICE_LIVE[lang]?.[text]);
+}
+
 /** Есть ли для языка загруженный указатель — для честной подписи на экране. */
 export function voiceIndexReady(lang: string): boolean {
-  return (VOICE_INDEX_COUNTS[lang] ?? 0) > 0;
+  return (VOICE_INDEX_COUNTS[lang] ?? 0) + (VOICE_LIVE_COUNTS[lang] ?? 0) > 0;
 }
