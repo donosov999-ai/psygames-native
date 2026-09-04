@@ -933,6 +933,16 @@ export default function SettingsScreen() {
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
+        {/* v2.37.11: экран источников — часть лицензий требует указания авторства
+            в самом приложении, а не в репозитории (BSD-3 у шахматных фигур). */}
+        <TouchableOpacity
+          accessibilityRole="button" style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={() => router.push('/sources' as any)}>
+          <View style={styles.settingInfo}>
+            <Ionicons name="library-outline" size={24} color={colors.primary} />
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t('sourcesTitle')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
         <TouchableOpacity
           accessibilityRole="button" style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={replayOnboarding}>
           <View style={styles.settingInfo}>

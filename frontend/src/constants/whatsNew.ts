@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.11',
+    date: '2026-09-04',
+    ru: [
+      'У китайских слов появились пиньинь и тоны — 189 слов словаря',
+      '«Минимальные пары» заговорили по-китайски: 13 пар на zh/z, ch/c, sh/s и -n/-ng, с пиньинем на кнопке',
+      'Новый экран «Источники» в настройках: откуда взяты данные и картинки и на каких условиях',
+    ],
+    en: [
+      'Chinese words now have pinyin and tones — 189 words in the dictionary',
+      'Minimal Pairs now speaks Chinese: 13 pairs for zh/z, ch/c, sh/s and -n/-ng, with pinyin on the button',
+      'New “Sources” screen in settings: where the data and artwork come from and under what terms',
+    ],
+  },
+  {
     version: '2.37.10',
     date: '2026-09-04',
     ru: [

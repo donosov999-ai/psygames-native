@@ -21,6 +21,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
+import { ZH_PINYIN } from '@/src/constants/zhPinyin.generated';
 import { useTtsAvailable, useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
@@ -110,6 +111,37 @@ const MINIMAL_PAIRS: Record<string, [string, string][]> = {
     ['avô', 'avó'],
     ['vovô', 'vovó'],
   ],
+  /**
+   * 🔴 КИТАЙСКИЙ (задача b8ea8ac8). Пары НЕ ПРИДУМАНЫ, а выведены из данных: для
+   * каждого слога взята замена противопоставляемого звука, и оставлены только те
+   * случаи, где получившийся слог ТОЖЕ существует словом в списке HSK 3.0 с тем
+   * же тоном. Источник тот же, что у словаря пиньиня (ivankra/hsk30, MIT).
+   *
+   * Противопоставления ровно те, на которых спотыкается русскоязычный: ретрофлексные
+   * zh/ch/sh против свистящих z/c/s и финаль -n против -ng. Тон внутри пары
+   * ОДИНАКОВ — иначе человек различал бы мелодию, а не звук, и упражнение
+   * проверяло бы не то.
+   *
+   * ⚠️ На кнопке к иероглифу подписывается пиньинь (см. `PINYIN_HINT`): без него
+   * выбор вслепую, а прочитать иероглиф начинающий не может.
+   */
+  zh: [
+    // easy half — оба слова из HSK 1–2, контраст крупный
+    ['山', '三'],
+    ['事', '四'],
+    ['找', '早'],
+    ['饭', '放'],
+    ['分', '风'],
+    ['班', '帮'],
+    // harder half — ретрофлексные против свистящих и -n/-ng в потоке
+    ['睡', '岁'],
+    ['出', '粗'],
+    ['成', '层'],
+    ['前', '墙'],
+    ['进', '静'],
+    ['人', '仍'],
+    ['种', '总'],
+  ],
   ru: [
     // easy half — глухость/звонкость, ы/и, у/ю
     ['дом', 'том'],
@@ -129,8 +161,17 @@ const MINIMAL_PAIRS: Record<string, [string, string][]> = {
 };
 
 const LANG_NAMES: Record<string, string> = {
-  en: 'English', es: 'Español', pt: 'Português', de: 'Deutsch', ru: 'Русский',
+  en: 'English', es: 'Español', pt: 'Português', de: 'Deutsch', ru: 'Русский', zh: '中文',
 };
+
+/**
+ * Пиньинь к иероглифам пар — берётся из сгенерированного словаря HSK, а не
+ * пишется здесь руками: одно место правды на приложение. Для нелатинских
+ * письменностей подпись обязательна, для остальных её нет и не нужно.
+ */
+const PINYIN_HINT: Record<string, string> = Object.fromEntries(
+  MINIMAL_PAIRS.zh!.flat().map((з) => [з, ZH_PINYIN[з]?.pinyin ?? '']),
+);
 const TARGET_LANGS = Object.keys(MINIMAL_PAIRS);
 
 interface Trial {
@@ -441,6 +482,9 @@ export default function PhonemePairsGame() {
                     disabled={answered !== null}
                   >
                     <Text style={[styles.wordBtnText, { color: fg }]}>{tr.words[i]}</Text>
+                    {PINYIN_HINT[tr.words[i]!] ? (
+                      <Text style={[styles.wordBtnHint, { color: fg }]}>{PINYIN_HINT[tr.words[i]!]}</Text>
+                    ) : null}
                   </TouchableOpacity>
                 );
               })}
@@ -529,6 +573,8 @@ const styles = StyleSheet.create({
   pairCol: { width: '100%', maxWidth: 420, gap: 14 },
   wordBtn: { paddingVertical: 26, paddingHorizontal: 20, borderRadius: 16, borderWidth: 2, alignItems: 'center' },
   wordBtnText: { fontSize: 30, fontWeight: '800' },
+  // Пиньинь под иероглифом: мельче и приглушённее — подсказка, а не сам ответ.
+  wordBtnHint: { fontSize: 15, fontWeight: '700', opacity: 0.75, marginTop: 2 },
   revealText: { fontSize: 16, fontWeight: '700' },
   // ⚠️ Осиротело после разводки слотов: «Ещё раз» уехало в шапку (GameAuxAction).
   // Стили ниже (replayBtn, replayText) больше никем не берутся; оставлены

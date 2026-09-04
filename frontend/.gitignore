@@ -39,3 +39,4 @@ yarn-error.*
 app-example
 # Временные сборки агентов: expo export в отдельную папку, чтобы не затирать чужую dist/
 dist-*/
+frontend/.cache/
