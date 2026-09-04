@@ -2118,6 +2118,8 @@ const t: Record<string, string> = {
   "goalDonePick": "指定の品はなくなりました——目標達成。残りは置いたままで構いません",
   "goalDoneFree": "棚の枠が空きました——目標達成。棚を空にする必要はありません",
   "goalDoneMoves": "手数の上限内",
+  "acTypeAnt": "三つの注意ネットワークを同時に",
+  "acTypeCpt": "長い流れ・すべてに押さない",
   "chineseTones": "中国語の声調",
   "chineseTonesShort": "声調",
   "chineseTonesDesc": "音節を聞いて声調を当てる",

@@ -1630,6 +1630,8 @@ const translations: Translations = {
   goalDoneMoves:          { ru: 'Уложились в лимит ходов', en: 'Within the move limit' },
   acTypeChoice:           { ru: 'Выбор из нескольких', en: 'Choice among several' },
   acTypePosner:           { ru: 'Подсказка верная и ложная', en: 'Valid and invalid cue' },
+  acTypeAnt:              { ru: 'Три сети внимания разом', en: 'Three attention networks at once' },
+  acTypeCpt:              { ru: 'Долгий поток · жать не на всё', en: 'A long stream · do not press on everything' },
   spanTypeListening:      { ru: 'Слова на слух · порядок', en: 'Words by ear · order' },
   spanTypeReading:        { ru: 'Чтение + удержание', en: 'Reading + holding' },
   spanTypeOperation:      { ru: 'Счёт + удержание', en: 'Arithmetic + holding' },

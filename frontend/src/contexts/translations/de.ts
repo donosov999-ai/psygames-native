@@ -2124,6 +2124,8 @@ const t: Record<string, string> = {
   "goalDonePick": "Die genannten Waren sind weg — Ziel erreicht, der Rest durfte bleiben",
   "goalDoneFree": "Die Nische ist frei — Ziel erreicht, die Regale mussten nicht leer werden",
   "goalDoneMoves": "Im Zuglimit geblieben",
+  "acTypeAnt": "Drei Aufmerksamkeitsnetze zugleich",
+  "acTypeCpt": "Langer Strom · nicht auf alles drücken",
   "chineseTones": "Chinesische Töne",
   "chineseTonesShort": "Töne",
   "chineseTonesDesc": "Silbe hören — den Ton bestimmen",

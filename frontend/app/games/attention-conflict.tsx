@@ -115,6 +115,20 @@ const SUB_GAMES = [
     descKey: 'posnerDesc' as const,
     typeKey: 'acTypePosner' as const,
   },
+  {
+    route: '/games/ant',
+    icon: 'git-network' as const,
+    nameKey: 'ant' as const,
+    descKey: 'antDesc' as const,
+    typeKey: 'acTypeAnt' as const,
+  },
+  {
+    route: '/games/cpt',
+    icon: 'timer' as const,
+    nameKey: 'cpt' as const,
+    descKey: 'cptDesc' as const,
+    typeKey: 'acTypeCpt' as const,
+  },
 ];
 
 function DemoAttentionRedirect() {
