@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.27',
+    date: '2026-09-04',
+    ru: ['«Трекер объектов»: последний выбранный шар засчитывает раунд сам — отдельной кнопки подтверждения больше нет'],
+    en: ['Object Tracker: the last ball you pick ends the round by itself — no separate confirm button'],
+  },
+  {
     version: '2.37.26',
     date: '2026-09-04',
     ru: ['Слова в «Слуховом охвате», «Минимальных парах» и «Диктанте» звучат живой записью, а не машинным голосом — 1438 записей на семи языках'],

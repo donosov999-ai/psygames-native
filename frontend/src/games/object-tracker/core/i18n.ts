@@ -43,7 +43,6 @@ export interface ObjectTrackerStrings {
   selectProgress: string;
   stepMotion: string;
   motionProgress: string;
-  submit: string;
   restart: string;
   exit: string;
   /** Подписи для экранного диктора */
@@ -71,7 +70,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: 'Выбрано {selected} из {total}',
     stepMotion: 'Следующий шаг движения',
     motionProgress: 'Движение {current} из {total} с',
-    submit: 'Проверить выбор',
     restart: 'Начать заново',
     exit: 'Выйти',
     objectLabel: 'Объект {index}',
@@ -95,7 +93,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: 'Selected {selected} of {total}',
     stepMotion: 'Next motion step',
     motionProgress: 'Motion {current} of {total} s',
-    submit: 'Check selection',
     restart: 'Restart',
     exit: 'Exit',
     objectLabel: 'Object {index}',
@@ -119,7 +116,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: 'Elegidos {selected} de {total}',
     stepMotion: 'Siguiente paso del movimiento',
     motionProgress: 'Movimiento {current} de {total} s',
-    submit: 'Comprobar la elección',
     restart: 'Reiniciar',
     exit: 'Salir',
     objectLabel: 'Objeto {index}',
@@ -143,7 +139,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: '{selected} von {total} gewählt',
     stepMotion: 'Nächster Bewegungsschritt',
     motionProgress: 'Bewegung {current} von {total} s',
-    submit: 'Auswahl prüfen',
     restart: 'Neu starten',
     exit: 'Beenden',
     objectLabel: 'Objekt {index}',
@@ -167,7 +162,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: '已选 {selected} / {total}',
     stepMotion: '下一步运动',
     motionProgress: '运动 {total} 秒中的第 {current} 秒',
-    submit: '检查选择',
     restart: '重新开始',
     exit: '退出',
     objectLabel: '物体 {index}',
@@ -191,7 +185,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: '{total} में से {selected} चुने',
     stepMotion: 'चलने का अगला कदम',
     motionProgress: 'चलना: {total} में से {current} सेकंड',
-    submit: 'चुनाव जाँचें',
     restart: 'नए सिरे से',
     exit: 'बाहर',
     objectLabel: 'चीज़ {index}',
@@ -215,7 +208,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: 'Escolhidos {selected} de {total}',
     stepMotion: 'Próximo passo do movimento',
     motionProgress: 'Movimento {current} de {total} s',
-    submit: 'Conferir a escolha',
     restart: 'Recomeçar',
     exit: 'Sair',
     objectLabel: 'Objeto {index}',
@@ -239,7 +231,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: '{selected} sur {total} choisis',
     stepMotion: 'Pas de mouvement suivant',
     motionProgress: 'Mouvement {current} sur {total} s',
-    submit: 'Vérifier le choix',
     restart: 'Recommencer',
     exit: 'Quitter',
     objectLabel: 'Objet {index}',
@@ -263,7 +254,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: 'Scelti {selected} di {total}',
     stepMotion: 'Passo di movimento successivo',
     motionProgress: 'Movimento {current} di {total} s',
-    submit: 'Controlla la scelta',
     restart: 'Ricomincia',
     exit: 'Esci',
     objectLabel: 'Oggetto {index}',
@@ -287,7 +277,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: '{total} 個中 {selected} 個を選択',
     stepMotion: '次の一歩',
     motionProgress: '動き {total} 秒中 {current} 秒',
-    submit: '選んだものを確かめる',
     restart: 'やり直す',
     exit: '終了',
     objectLabel: '的 {index}',
@@ -311,7 +300,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: '{total}개 중 {selected}개 선택',
     stepMotion: '다음 움직임 한 걸음',
     motionProgress: '움직임 {total}초 중 {current}초',
-    submit: '고른 것 확인',
     restart: '다시 시작',
     exit: '나가기',
     objectLabel: '물체 {index}',
@@ -335,7 +323,6 @@ const STRINGS: Record<ObjectTrackerLocale, ObjectTrackerStrings> = {
     selectProgress: 'اخترت {selected} من {total}',
     stepMotion: 'خطوة الحركة التالية',
     motionProgress: 'الحركة {current} من {total} ث',
-    submit: 'تحقّق من الاختيار',
     restart: 'إعادة البدء',
     exit: 'خروج',
     objectLabel: 'جسم {index}',

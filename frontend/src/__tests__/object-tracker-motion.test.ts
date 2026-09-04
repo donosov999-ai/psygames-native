@@ -37,6 +37,11 @@ import { holdGame, __resetGameClock } from '@/src/services/gamePause';
 import ObjectTrackerGame, { REDUCED_STEP_MS } from '@/src/games/object-tracker/ObjectTrackerGame';
 import {
   LEVELS,
+  createObjectTrackerSession,
+  startObjectTrackerRound,
+  selectTrackedObject,
+  startTrackerMovement,
+  advanceTrackerMovement,
   TRACKER_OBJECT_RADIUS,
   advanceTrackerWorld,
   generateObjectTrackerRound,
@@ -269,7 +274,10 @@ describe('щадящий режим: движение остаётся, но в�
         && typeof n.props?.onPress === 'function');
       TestRenderer.act(() => { node[0].props.onPress(); });
     }
-    press(r, RU.submit);
+    // 04.09.2026 (отчёт 701b69d7): кнопки «Проверить выбор» больше нет — последний
+    // выбранный шар закрывает раунд сам. Гейт остался тем же по смыслу: пройден ли
+    // раунд до конца в щадящем режиме; изменился только способ его закрыть.
+    expect(has(r, 'Проверить выбор')).toBe(false);
 
     expect(results.length).toBe(1);
     expect(results[0].details.level).toBe(1);
@@ -361,7 +369,7 @@ describe('часы партии — игровые, а не настенные',
         && typeof n.props?.onPress === 'function');
       TestRenderer.act(() => { node[0].props.onPress(); });
     }
-    press(r, RU.submit);
+    // подтверждения нет: набор закрылся последним касанием (отчёт 701b69d7)
     expect(results.length).toBe(1);
     // Настенные часы за этот тест столько не прошли бы никогда — значит взяты поданные.
     expect(results[0].durationMs).toBe(4_321);
@@ -460,5 +468,50 @@ describe('стыковка с приложением', () => {
   it('уровень выше потолка генератора не роняет игру', () => {
     expect(generateObjectTrackerRound('x', 999).level).toBe(LEVELS);
     expect(read('app/games/object-tracker.tsx')).toContain('Math.min(LEVELS,');
+  });
+  /**
+   * Отчёт 701b69d7: «когда выбрал — автоматом фиксировал, без лишнего нажатия».
+   * Гейт проверяет ПОВЕДЕНИЕ ядра, а не отсутствие кнопки в разметке: раунд обязан
+   * закрыться тем же касанием, что добрало последний шар. Проверять по разметке
+   * нельзя — кнопку легко вернуть под другим именем, и текстовый гейт этого не
+   * заметит; и наоборот, кнопку можно снять, забыв авто-фиксацию, и тогда раунд
+   * станет непроходимым вовсе.
+   */
+  it('последний выбранный шар закрывает раунд без кнопки', () => {
+    let s = startObjectTrackerRound(createObjectTrackerSession({ seed: 'auto-fix', level: 1 }), 0);
+    s = startTrackerMovement(s);
+    while (s.phase === 'moving') s = advanceTrackerMovement(s, REDUCED_STEP_MS);
+    expect(s.phase).toBe('selection');
+
+    const цели = s.round.targetCount;
+    const шары = s.world.objects.map((o) => o.id).slice(0, цели);
+    шары.forEach((id, i) => {
+      s = selectTrackedObject(s, id, 1_000 + i);
+      const последний = i === цели - 1;
+      expect(s.phase).toBe(последний ? 'result' : 'selection');
+    });
+    expect(s.result).toBeTruthy();
+  });
+
+  it('снятие галочки НЕ засчитывает раунд', () => {
+    // на первом уровне цель одна — снимать нечего; берём первый уровень с двумя
+    const уровень = Array.from({ length: LEVELS }, (_, i) => i + 1).find(
+      (l) => generateObjectTrackerRound('auto-fix-2', l).targetCount >= 2,
+    );
+    expect(уровень).toBeDefined();
+    let s = startObjectTrackerRound(
+      createObjectTrackerSession({ seed: 'auto-fix-2', level: уровень as number }),
+      0,
+    );
+    s = startTrackerMovement(s);
+    while (s.phase === 'moving') s = advanceTrackerMovement(s, REDUCED_STEP_MS);
+    const шары = s.world.objects.map((o) => o.id);
+    // добираем до полного набора минус один, потом снимаем — раунд обязан остаться жив
+    for (let i = 0; i < s.round.targetCount - 1; i += 1) s = selectTrackedObject(s, шары[i], 1_000);
+    const был = s.selectedIds.length;
+    expect(был).toBeGreaterThan(0);
+    s = selectTrackedObject(s, шары[0], 1_100);
+    expect(s.selectedIds.length).toBe(был - 1);
+    expect(s.phase).toBe('selection');
   });
 });
