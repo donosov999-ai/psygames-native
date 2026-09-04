@@ -16,7 +16,7 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
-    version: '2.37.11',
+    version: '2.37.12',
     date: '2026-09-04',
     ru: [
       'У китайских слов появились пиньинь и тоны — 189 слов словаря',
