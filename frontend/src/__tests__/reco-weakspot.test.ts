@@ -51,7 +51,7 @@ describe('рекомендация по слабейшему домену', () =
      * «attention_conflict»), а отбор берёт только видимое. Поэтому `weakestDomainGame`
      * отдаёт развилку, и проба спрашивает про неё же.
      */
-    const цель = 'span_group';
+    const цель = 'digit_span';   // 04.09: советуем САМО упражнение, а не развилку
     const picks = рекомендации(цель);
     expect(picks.length).toBeGreaterThan(0);
     expect(picks[0].gameId).toBe(цель);

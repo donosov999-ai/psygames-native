@@ -376,5 +376,50 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "breathing",
     "skillKey": "skillRecovery",
     "introKey": "breathingIntroDesc"
+  },
+  "/games/counting-hub": {
+    "nameKey": "countingGroup",
+    "skillKey": "skillMath",
+    "introKey": "countingGroupIntroDesc"
+  },
+  "/games/words-hub": {
+    "nameKey": "wordsGroup",
+    "skillKey": "skillVocabulary",
+    "introKey": "wordsGroupIntroDesc"
+  },
+  "/games/hearing-hub": {
+    "nameKey": "hearingGroup",
+    "skillKey": "skillListening",
+    "introKey": "hearingGroupIntroDesc"
+  },
+  "/games/search-hub": {
+    "nameKey": "searchGroup",
+    "skillKey": "skillVisualSearch",
+    "introKey": "searchGroupIntroDesc"
+  },
+  "/games/flexibility-hub": {
+    "nameKey": "flexibilityGroup",
+    "skillKey": "skillSwitching",
+    "introKey": "flexibilityGroupIntroDesc"
+  },
+  "/games/risk-hub": {
+    "nameKey": "riskGroup",
+    "skillKey": "skillRisk",
+    "introKey": "riskGroupIntroDesc"
+  },
+  "/games/visual-memory-hub": {
+    "nameKey": "visualMemoryGroup",
+    "skillKey": "skillVisualMemory",
+    "introKey": "visualMemoryGroupIntroDesc"
+  },
+  "/games/mnemonics-hub": {
+    "nameKey": "mnemonicsGroup",
+    "skillKey": "skillSequence",
+    "introKey": "mnemonicsGroupIntroDesc"
+  },
+  "/games/languages-hub": {
+    "nameKey": "languagesGroup",
+    "skillKey": "skillVocabulary",
+    "introKey": "languagesGroupIntroDesc"
   }
 };

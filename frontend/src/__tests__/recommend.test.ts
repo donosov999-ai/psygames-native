@@ -157,7 +157,17 @@ describe('🔴 рекомендуется только разрешённое п
      *     и проверку — она сравнивала пустое с пустым. Отсюда имена ниже написаны
      *     ПРЯМО, а константа сверяется с ними.
      */
-    const HUBS = ['span_group', 'attention_conflict', 'sudoku_group'];
+    /**
+     * ⚠️ Имена написаны ПРЯМО и обновляются руками — это защита от призрака (см.
+     * выше). Цена защиты: при заведении новой развилки проверка краснеет и требует
+     * дописать её сюда. 04.09.2026 так и вышло — развилок стало двенадцать.
+     */
+    const HUBS = [
+      'span_group', 'attention_conflict', 'sudoku_group',
+      'counting_group', 'words_group', 'hearing_group', 'search_group',
+      'flexibility_group', 'risk_group', 'visual_memory_group', 'mnemonics_group',
+      'languages_group',
+    ];
     expect([...RECO_GROUP_HUBS].sort()).toEqual([...HUBS].sort());
     const p = profile('odv999');
     expect(filterAllowedGames(p).map((g) => g.id)).toEqual(expect.arrayContaining(HUBS));

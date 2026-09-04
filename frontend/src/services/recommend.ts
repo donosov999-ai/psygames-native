@@ -238,15 +238,21 @@ export function recommendToday(input: RecoInput): RecoPick[] {
   const pool = filterAllowedGames(profile).filter((g) => !g.hideFromMenu && !hubs.has(g.id));
   const byId = new Map<string, GameConfig>(pool.map((g) => [g.id, g]));
   /**
-   * 🔴 ХАБ ДОПУСКАЕТСЯ ТОЛЬКО КАК «СЛАБЕЙШИЙ ДОМЕН». Хабы исключены из пула выше по
-   * веской причине: у них счётчик партий вечно ноль, и подпись «этой ветке достаётся
-   * меньше всего» не гасла бы никогда. Но у основания `weakspot` доказательство берётся
-   * НЕ из счётчика, а из оценки — там ноль партий ничего не портит. А без этого совет
-   * просто не появлялся: три игры оценки из двенадцати спрятаны именно в хабы
-   * (digit_span и corsi — «span_group», flanker — «attention_conflict»).
+   * 🔴 «СЛАБОЕ МЕСТО» ВЕДЁТ В САМО УПРАЖНЕНИЕ, ДАЖЕ ЕСЛИ ОНО СПРЯТАНО В РАЗВИЛКЕ.
+   *
+   * Часть игр оценки не показывается карточкой: digit_span и corsi живут внутри
+   * «Объёма памяти», flanker — внутри «Конфликта внимания», а с 04.09.2026 таких
+   * стало вчетверо больше. Поэтому здесь пул со СКРЫТЫМИ играми — но по-прежнему
+   * БЕЗ развилок.
+   *
+   * ⚠️ Раньше сюда пускались и развилки: казалось логичным отправить человека в
+   * меню ветки. С девятью новыми развилками блок ими и заполнился — гейт поймал
+   * (recommend: «хаб-группа не попадает в блок»). И он прав по сути: совет обязан
+   * называть УПРАЖНЕНИЕ, а не меню; спрятанная из сетки игра открывается по
+   * маршруту ничуть не хуже видимой.
    */
-  const byIdWithHubs = new Map<string, GameConfig>(
-    filterAllowedGames(profile).filter((g) => !g.hideFromMenu).map((g) => [g.id, g]),
+  const byIdIncludingHidden = new Map<string, GameConfig>(
+    filterAllowedGames(profile).filter((g) => !hubs.has(g.id)).map((g) => [g.id, g]),
   );
   if (pool.length === 0) return [];
 
@@ -279,7 +285,7 @@ export function recommendToday(input: RecoInput): RecoPick[] {
   const okEvening = (id: string): boolean => {
     // ⚠️ Карточку ищем в каталоге С ХАБАМИ: слабейший домен может вести на развилку,
     // а её в `byId` нет — и вечерняя проверка молча отвергала бы совет как «нет такой».
-    const g = byIdWithHubs.get(id) ?? byId.get(id);
+    const g = byIdIncludingHidden.get(id) ?? byId.get(id);
     return !!g && (!evening || !RECO_EVENING_BANNED.includes(g.category));
   };
 
@@ -410,7 +416,7 @@ export function recommendToday(input: RecoInput): RecoPick[] {
    * Слабейший домен: одна игра, и только если она разрешена профилю и в неё сегодня
    * ещё не играли. Проверять «давно ли» не нужно — основание не про давность.
    */
-  const weakspot: string[] = input.weakestGameId && byIdWithHubs.has(input.weakestGameId)
+  const weakspot: string[] = input.weakestGameId && byIdIncludingHidden.has(input.weakestGameId)
     ? [input.weakestGameId]
     : [];
 
@@ -435,7 +441,7 @@ export function recommendToday(input: RecoInput): RecoPick[] {
   const limit = Math.max(0, RECO_COUNT - calmSlot);
 
   const add = (id: string, reason: RecoReason): boolean => {
-    const виден = reason === 'weakspot' ? byIdWithHubs.has(id) : byId.has(id);
+    const виден = reason === 'weakspot' ? byIdIncludingHidden.has(id) : byId.has(id);
     if (taken.has(id) || !виден || !okEvening(id)) return false;
     taken.add(id);
     picks.push({

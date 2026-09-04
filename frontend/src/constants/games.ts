@@ -64,6 +64,16 @@ export interface GameConfig {
    */
   mergedInto?: string;
   /**
+   * 🔴 РАЗВИЛКА В ПРЕДПРОСМОТРЕ: ВИДНА ТОЛЬКО ПЕРЕЧИСЛЕННЫМ ПРОФИЛЯМ.
+   *
+   * Заведено 04.09.2026 по просьбе Дениса: шесть новых развилок он хочет проверить
+   * сам, а остальным профилям каталог обязан остаться прежним. Пока список задан,
+   * развилка видна ТОЛЬКО этим профилям — и только у них прячутся входящие в неё
+   * игры (`mergedInto`). У всех прочих всё как было: развилки нет, карточки на
+   * месте. Убрать поле = включить развилку всем.
+   */
+  previewIn?: string[];
+  /**
    * КАРТОЧКА-ХАБ: не упражнение, а развилка на соседние игры.
    *
    * 🔴 ЗАЧЕМ ПРИЗНАК, А НЕ СПИСОК ИМЁН. Список хабов был выписан ПЯТЬ раз — в
@@ -132,6 +142,7 @@ export const GAMES: GameConfig[] = [
     icon: 'grid',
     route: '/games/schulte',
     category: 'attention',
+    mergedInto: 'search_group',
   },
   {
     id: 'proofreading',
@@ -142,6 +153,7 @@ export const GAMES: GameConfig[] = [
     icon: 'search',
     route: '/games/proofreading',
     category: 'attention',
+    mergedInto: 'search_group',
   },
   {
     id: 'find_differences',
@@ -152,6 +164,7 @@ export const GAMES: GameConfig[] = [
     icon: 'search',
     route: '/games/find-differences',
     category: 'attention',
+    mergedInto: 'search_group',
   },
   // ⚠️ Градиент зашит и в экране (GRADIENT в app/games/object-tracker.tsx): меняешь
   // здесь — меняй и там, иначе снаружи карточка одного цвета, а внутри игра другого.
@@ -198,6 +211,7 @@ export const GAMES: GameConfig[] = [
     icon: 'link',
     route: '/games/word-pairs',
     category: 'memory',
+    mergedInto: 'mnemonics_group',
   },
   // v1.28.0 (Полиглот TIER 1 п.1): SRS-словарь — интервальные повторы SM-2
   {
@@ -209,6 +223,7 @@ export const GAMES: GameConfig[] = [
     icon: 'school',
     route: '/games/vocab-srs',
     category: 'memory',
+    mergedInto: 'words_group',
   },
   // v1.29.0 (Полиглот TIER 1 п.5): семантическая сортировка слов по категориям
   {
@@ -220,6 +235,7 @@ export const GAMES: GameConfig[] = [
     icon: 'albums',
     route: '/games/semantic-sort',
     category: 'memory',
+    mergedInto: 'words_group',
   },
   // v1.29.0 (Полиглот TIER 1 п.4): Cloze — пропущенное слово во фразе
   {
@@ -231,6 +247,7 @@ export const GAMES: GameConfig[] = [
     icon: 'create',
     route: '/games/cloze',
     category: 'logic',
+    mergedInto: 'words_group',
   },
   // v1.29.0 (Полиглот TIER 1 п.2): лексическое решение — слово/не-слово
   {
@@ -242,6 +259,7 @@ export const GAMES: GameConfig[] = [
     icon: 'flash',
     route: '/games/lexical-decision',
     category: 'action',
+    mergedInto: 'words_group',
   },
   // v1.104.0 (Полиглот TIER 2 — аудио, системный TTS): фонемы / псевдослова / слуховой охват
   {
@@ -253,6 +271,7 @@ export const GAMES: GameConfig[] = [
     icon: 'ear',
     route: '/games/phoneme-pairs',
     category: 'attention',
+    mergedInto: 'hearing_group',
   },
   {
     /**
@@ -268,6 +287,7 @@ export const GAMES: GameConfig[] = [
     icon: 'musical-note',
     route: '/games/chinese-tones',
     category: 'attention',
+    mergedInto: 'hearing_group',
   },
   {
     id: 'pseudoword_echo',
@@ -278,6 +298,7 @@ export const GAMES: GameConfig[] = [
     icon: 'mic',
     route: '/games/pseudoword-echo',
     category: 'memory',
+    mergedInto: 'hearing_group',
   },
   // Индиго → бирюза. Предложенный лабораторией #7c3aed→#ec4899 ЗАНЯТ хабом
   // «Конфликт внимания» — две карточки читались бы близнецами.
@@ -312,6 +333,7 @@ export const GAMES: GameConfig[] = [
     icon: 'grid',
     route: '/games/chess-blind',
     category: 'memory',
+    mergedInto: 'visual_memory_group',
   },
   {
     id: 'mnemonics',
@@ -322,6 +344,7 @@ export const GAMES: GameConfig[] = [
     icon: 'bulb',
     route: '/games/mnemonics',
     category: 'memory',
+    mergedInto: 'mnemonics_group',
   },
   // ⚠️ id менять нельзя: этим ключом уже записаны уровень, звёзды, незаконченная
   // партия и game_type в истории сессий — переименование стирает весь прогресс.
@@ -337,6 +360,7 @@ export const GAMES: GameConfig[] = [
     icon: 'map',
     route: '/games/memory-palace',
     category: 'memory',
+    mergedInto: 'mnemonics_group',
   },
   {
     id: 'n_back',
@@ -369,6 +393,7 @@ export const GAMES: GameConfig[] = [
     icon: 'grid',
     route: '/games/memory-matrix',
     category: 'memory',
+    mergedInto: 'visual_memory_group',
   },
   {
     id: 'picture_pairs',
@@ -379,6 +404,7 @@ export const GAMES: GameConfig[] = [
     icon: 'heart',
     route: '/games/picture-pairs',
     category: 'memory',
+    mergedInto: 'visual_memory_group',
   },
   // ⚠️ Градиент менять только с пересчётом: onGradientText считает по ОБОИМ концам,
   // и тот же цвет уходит внутрь партии подписью на кнопках ответа.
@@ -392,6 +418,7 @@ export const GAMES: GameConfig[] = [
     icon: 'people',
     route: '/games/faces-names',
     category: 'memory',
+    mergedInto: 'mnemonics_group',
   },
   // Маджонг-солитёр: ищи парные СВОБОДНЫЕ тайлы в псевдо-3D пирамиде, убирай всё.
   {
@@ -403,6 +430,7 @@ export const GAMES: GameConfig[] = [
     icon: 'grid',
     route: '/games/mahjong',
     category: 'memory',
+    mergedInto: 'search_group',
   },
   {
     id: 'reading_span',
@@ -573,6 +601,7 @@ export const GAMES: GameConfig[] = [
     icon: 'language',
     route: '/games/anagrams',
     category: 'logic',
+    mergedInto: 'words_group',
   },
   {
     id: 'pattern',
@@ -732,6 +761,7 @@ export const GAMES: GameConfig[] = [
     icon: 'swap-horizontal',
     route: '/games/trail-making',
     category: 'logic',
+    mergedInto: 'flexibility_group',
   },
   {
     id: 'switching_task',
@@ -742,6 +772,7 @@ export const GAMES: GameConfig[] = [
     icon: 'swap-horizontal',
     route: '/games/switching-task',
     category: 'logic',
+    mergedInto: 'flexibility_group',
   },
   {
     id: 'wcst',
@@ -752,6 +783,7 @@ export const GAMES: GameConfig[] = [
     icon: 'shuffle',
     route: '/games/wcst',
     category: 'intuition',
+    mergedInto: 'flexibility_group',
   },
   {
     id: 'flanker',
@@ -786,6 +818,7 @@ export const GAMES: GameConfig[] = [
     icon: 'warning',
     route: '/games/bart',
     category: 'intuition',
+    mergedInto: 'risk_group',
   },
   {
     id: 'iowa',
@@ -796,6 +829,7 @@ export const GAMES: GameConfig[] = [
     icon: 'cash',
     route: '/games/iowa',
     category: 'intuition',
+    mergedInto: 'risk_group',
   },
   {
     id: 'prl',
@@ -806,6 +840,7 @@ export const GAMES: GameConfig[] = [
     icon: 'trending-up',
     route: '/games/prl',
     category: 'intuition',
+    mergedInto: 'risk_group',
   },
 
   // MATH
@@ -818,6 +853,7 @@ export const GAMES: GameConfig[] = [
     icon: 'add-circle',
     route: '/games/counter',
     category: 'action',
+    mergedInto: 'counting_group',
   },
   {
     id: 'math_slider',
@@ -828,6 +864,7 @@ export const GAMES: GameConfig[] = [
     icon: 'options',
     route: '/games/math-slider',
     category: 'action',
+    mergedInto: 'counting_group',
   },
   {
     id: 'math_sprint',
@@ -838,6 +875,7 @@ export const GAMES: GameConfig[] = [
     icon: 'calculator',
     route: '/games/math-sprint',
     category: 'action',
+    mergedInto: 'counting_group',
   },
   {
     id: 'number_bonds',
@@ -848,6 +886,7 @@ export const GAMES: GameConfig[] = [
     icon: 'git-merge',
     route: '/games/number-bonds',
     category: 'action',
+    mergedInto: 'counting_group',
   },
 
   // SPEED / REACTION
@@ -884,6 +923,7 @@ export const GAMES: GameConfig[] = [
     icon: 'scan',
     route: '/games/visual-search',
     category: 'attention',
+    mergedInto: 'search_group',
   },
   {
     id: 'sdmt',
@@ -924,6 +964,7 @@ export const GAMES: GameConfig[] = [
     icon: 'flash',
     route: '/games/quick-count',
     category: 'attention',
+    mergedInto: 'search_group',
   },
   {
     id: 'cpt',
@@ -944,6 +985,7 @@ export const GAMES: GameConfig[] = [
     icon: 'chatbubbles',
     route: '/games/phonemic-fluency',
     category: 'logic',
+    mergedInto: 'words_group',
   },
   {
     id: 'story_recall',
@@ -994,6 +1036,146 @@ export const GAMES: GameConfig[] = [
     route: '/games/breathing',
     category: 'recovery',
   },
+  {
+    /**
+     * Развилка «Счёт» (04.09.2026, решение Дениса). Каталог из 52 карточек
+     * не листается; эти пробы меряют одно и то же и жили рядом порознь.
+     */
+    id: 'counting_group',
+    previewIn: ['nzt48'],
+    nameKey: 'countingGroup',
+    descKey: 'countingGroupDesc',
+    skillKey: 'skillMath',
+    gradient: ['#0ea5e9', '#22d3ee'],
+    icon: 'calculator',
+    route: '/games/counting-hub',
+    category: 'action',
+    hub: true,
+  },
+  {
+    /**
+     * Развилка «Слова» (04.09.2026, решение Дениса). Каталог из 52 карточек
+     * не листается; эти пробы меряют одно и то же и жили рядом порознь.
+     */
+    id: 'words_group',
+    previewIn: ['nzt48'],
+    nameKey: 'wordsGroup',
+    descKey: 'wordsGroupDesc',
+    skillKey: 'skillVocabulary',
+    gradient: ['#8b5cf6', '#ec4899'],
+    icon: 'text',
+    route: '/games/words-hub',
+    category: 'memory',
+    hub: true,
+  },
+  {
+    /**
+     * Развилка «Слух» (04.09.2026, решение Дениса). Каталог из 52 карточек
+     * не листается; эти пробы меряют одно и то же и жили рядом порознь.
+     */
+    id: 'hearing_group',
+    previewIn: ['nzt48'],
+    nameKey: 'hearingGroup',
+    descKey: 'hearingGroupDesc',
+    skillKey: 'skillListening',
+    gradient: ['#0d9488', '#84cc16'],
+    icon: 'ear',
+    route: '/games/hearing-hub',
+    category: 'attention',
+    hub: true,
+  },
+  {
+    /**
+     * Развилка «Поиск глазами» (04.09.2026, решение Дениса). Каталог из 52 карточек
+     * не листается; эти пробы меряют одно и то же и жили рядом порознь.
+     */
+    id: 'search_group',
+    previewIn: ['nzt48'],
+    nameKey: 'searchGroup',
+    descKey: 'searchGroupDesc',
+    skillKey: 'skillVisualSearch',
+    gradient: ['#f59e0b', '#ef4444'],
+    icon: 'search',
+    route: '/games/search-hub',
+    category: 'attention',
+    hub: true,
+  },
+  {
+    /**
+     * Развилка «Гибкость» (04.09.2026, решение Дениса). Каталог из 52 карточек
+     * не листается; эти пробы меряют одно и то же и жили рядом порознь.
+     */
+    id: 'flexibility_group',
+    previewIn: ['nzt48'],
+    nameKey: 'flexibilityGroup',
+    descKey: 'flexibilityGroupDesc',
+    skillKey: 'skillSwitching',
+    gradient: ['#6366f1', '#14b8a6'],
+    icon: 'swap-horizontal',
+    route: '/games/flexibility-hub',
+    category: 'logic',
+    hub: true,
+  },
+  {
+    /**
+     * Развилка «Решения под риском» (04.09.2026, решение Дениса). Каталог из 52 карточек
+     * не листается; эти пробы меряют одно и то же и жили рядом порознь.
+     */
+    id: 'risk_group',
+    previewIn: ['nzt48'],
+    nameKey: 'riskGroup',
+    descKey: 'riskGroupDesc',
+    skillKey: 'skillRisk',
+    gradient: ['#b45309', '#f59e0b'],
+    icon: 'scale',
+    route: '/games/risk-hub',
+    category: 'action',
+    hub: true,
+  },
+  {
+    /** Развилка «Зрительная память» (04.09.2026). «Память» разрослась до 14 карточек. */
+    id: 'visual_memory_group',
+    previewIn: ['nzt48'],
+    nameKey: 'visualMemoryGroup',
+    descKey: 'visualMemoryGroupDesc',
+    skillKey: 'skillVisualMemory',
+    gradient: ['#7c3aed', '#0ea5e9'],
+    icon: 'images',
+    route: '/games/visual-memory-hub',
+    category: 'memory',
+    hub: true,
+  },
+  {
+    /** Развилка «Мнемотехники» (04.09.2026). «Память» разрослась до 14 карточек. */
+    id: 'mnemonics_group',
+    previewIn: ['nzt48'],
+    nameKey: 'mnemonicsGroup',
+    descKey: 'mnemonicsGroupDesc',
+    skillKey: 'skillSequence',
+    gradient: ['#d946ef', '#f59e0b'],
+    icon: 'link',
+    route: '/games/mnemonics-hub',
+    category: 'memory',
+    hub: true,
+  },
+  {
+    /**
+     * Развилка «Языки» (04.09.2026, просьба Дениса). Зонтик над «Словами» и
+     * «Слухом»: память на слово и память на его звучание — разные памяти, и
+     * заходы туда разные. Вложенность на один уровень оправдана тем, что человек
+     * с порога выбирает, ЧТО тренирует.
+     */
+    id: 'languages_group',
+    previewIn: ['nzt48'],
+    nameKey: 'languagesGroup',
+    descKey: 'languagesGroupDesc',
+    skillKey: 'skillVocabulary',
+    gradient: ['#0891b2', '#a855f7'],
+    icon: 'language',
+    route: '/games/languages-hub',
+    category: 'memory',
+    hub: true,
+  },
 ];
 
 /**
@@ -1005,6 +1187,28 @@ export const GAMES: GameConfig[] = [
  * третий обязан попасть во все пять, и забытая копия ломается молча — разбор в
  * комментарии к полю `hub` выше.
  */
+/**
+ * 🔴 ЧТО ПОКАЗЫВАТЬ В КАТАЛОГЕ ЭТОМУ ПРОФИЛЮ.
+ *
+ * Правило одно и живёт здесь, а не в экране: развилка с `previewIn` видна только
+ * перечисленным профилям, и ТОЛЬКО у них прячутся входящие в неё игры. Остальным
+ * каталог остаётся прежним — развилки нет, карточки на месте.
+ *
+ * Заведено 04.09.2026: шесть новых развилок Денис хочет проверить сам, прежде чем
+ * включать их всем. Убрать `previewIn` у карточки = включить развилку всем.
+ */
+export function visibleInCatalog(list: GameConfig[], profileId: string | undefined): GameConfig[] {
+  const живые = new Set(
+    list.filter((g) => g.hub && (!g.previewIn || (profileId && g.previewIn.includes(profileId)))).map((g) => g.id),
+  );
+  return list.filter((g) => {
+    if (g.hub && g.previewIn && !(profileId && g.previewIn.includes(profileId))) return false;
+    if (g.hideFromMenu) return false;
+    if (g.mergedInto && живые.has(g.mergedInto)) return false;
+    return true;
+  });
+}
+
 export const HUB_GAME_IDS: readonly string[] = GAMES.filter((g) => g.hub).map((g) => g.id);
 
 /** Хаб ли это — меню, а не упражнение. */
