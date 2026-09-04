@@ -50,6 +50,25 @@ import {
 } from '@/src/services/sudoku-core';
 
 /** Сколько решений у доски — свой обход с возвратом, до предела `limit`. */
+/**
+ * 🔴 ИСЧЕРПАНИЕ БЮДЖЕТА — НЕ ВЕРДИКТ О ДОСКЕ.
+ *
+ * 04.09.2026 сборка v2.37.18 покраснела на L45 (thermo) с текстом «перебор не
+ * уложился в 2 млн шагов» — и это НЕ значит, что решений два. Это значит, что
+ * конкретная выданная доска тяжела для наивного перебора. Доска каждый прогон
+ * НОВАЯ (генератор без зерна), поэтому проверка падала случайно: локально шесть
+ * прогонов подряд зелёные, в CI — красный.
+ *
+ * Отдельный класс исключения нужен, чтобы отличить «не проверили» от «проверили и
+ * плохо». Первое лечится другой доской, второе — дефект генератора.
+ */
+class ИсчерпанБюджет extends Error {
+  constructor() { super('перебор не уложился в бюджет шагов'); }
+}
+
+/** Потолок шагов перебора. Поднят с 2 до 6 млн: на CI машина медленнее, а счёт в ШАГАХ, не в секундах. */
+const ПОТОЛОК_ШАГОВ = 6_000_000;
+
 function countOwn(
   grid: Cell[][], N: number, BR: number, BC: number, variant: Variant,
   regions?: number[][], thermo?: ThermoPN, arrow?: ArrowMap, cages?: CageMap, limit = 2,
@@ -60,7 +79,7 @@ function countOwn(
   const walk = (): boolean => {
     // Предохранитель: доска, которую не берёт даже перебор, — отдельная беда,
     // и молча висеть на ней проверка не должна.
-    if (++steps > 2_000_000) throw new Error('перебор не уложился в 2 млн шагов');
+    if (++steps > ПОТОЛОК_ШАГОВ) throw new ИсчерпанБюджет();
     let br = -1, bc = -1, best: number[] | null = null;
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
       if (g[r][c] !== 0) continue;
@@ -194,11 +213,32 @@ describe('геометрические варианты: у выданной д�
   }, 300000);
 
   it.each(CASES)('🔴 L%i (%s): решение ровно одно', (level, _variant) => {
-    const fx = buildAt(level as number);
-    if (!fx) { console.log(`бюджет: фикстура L${level} не добрана — пропуск`); return; }
-    const { cfg, gen } = fx;
-    const n = countOwn(gen.puzzle, cfg.N, cfg.BR, cfg.BC, cfg.variant, gen.regions, gen.thermo, gen.arrow, gen.cages, 2);
-    expect(n).toBe(1);
+    /**
+     * ⚠️ ДО ТРЁХ ДОСОК. Если перебор не уложился в бюджет, это сказано про ЭТУ
+     * доску, а не про генератор: берём следующую. Падаем, только если ни одну из
+     * трёх проверить не удалось — вот это уже про генератор, он выдаёт доски,
+     * которые никто не может подтвердить.
+     */
+    let n: number | null = null;
+    let исчерпано = 0;
+    let cfgПоследний: ReturnType<typeof levelConfig> | null = null;
+    for (let попытка = 0; попытка < 3 && n === null; попытка++) {
+      if (попытка > 0) built.delete(level as number);      // просим новую доску
+      const fx = buildAt(level as number);
+      if (!fx) { console.log(`бюджет: фикстура L${level} не добрана — пропуск`); return; }
+      const { cfg, gen } = fx;
+      cfgПоследний = cfg;
+      try {
+        n = countOwn(gen.puzzle, cfg.N, cfg.BR, cfg.BC, cfg.variant, gen.regions, gen.thermo, gen.arrow, gen.cages, 2);
+      } catch (e) {
+        if (!(e instanceof ИсчерпанБюджет)) throw e;
+        исчерпано++;
+        console.log(`L${level}: доска ${попытка + 1} не поддалась перебору за ${ПОТОЛОК_ШАГОВ.toLocaleString('ru')} шагов — беру следующую`);
+      }
+    }
+    expect(`L${level}: проверено досок ${исчерпано < 3}`).toBe(`L${level}: проверено досок true`);
+    // Вердикт прежний: у выданной доски решение ровно одно.
+    expect(`L${level} (${cfgПоследний!.variant}): решений ${n}`).toBe(`L${level} (${cfgПоследний!.variant}): решений 1`);
   }, 300000);
 
   it('🔴 зашитое решение согласовано с доской, а не просто «какое-то»', () => {

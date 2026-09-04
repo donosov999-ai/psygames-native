@@ -526,6 +526,7 @@ export const GAMES: GameConfig[] = [
     icon: 'extension-puzzle',
     route: '/games/hanoi',
     category: 'logic',
+    mergedInto: 'towers_group',
   },
   // Карточка-развилка на три доски судоку. Стоит первой из четырёх записей судоку:
   // это единственный вход, остальные три скрыты и открываются отсюда.
@@ -657,6 +658,7 @@ export const GAMES: GameConfig[] = [
     icon: 'git-branch',
     route: '/games/tower-london',
     category: 'logic',
+    mergedInto: 'towers_group',
   },
   // ⚠️ Градиент зашит в экране и по нему посчитан цвет текста на плашке: оба конца
   // берут AA белым (5.17 и 5.47), вуаль не нужна. Меняешь — пересчитывай.
@@ -1193,6 +1195,23 @@ export const GAMES: GameConfig[] = [
     icon: 'language',
     route: '/games/languages-hub',
     category: 'memory',
+    hub: true,
+  },
+  {
+    /**
+     * Развилка «Башни» (04.09.2026, замечание Дениса). Ханойская башня и башня
+     * Лондона — одна семья: переложить по правилам, продумав ходы вперёд.
+     * «Сортировка товаров» сюда не входит — там классификация, а не планирование.
+     */
+    id: 'towers_group',
+    previewIn: ['nzt48'],
+    nameKey: 'towersGroup',
+    descKey: 'towersGroupDesc',
+    skillKey: 'skillPlanning',
+    gradient: ['#7c3aed', '#0ea5e9'],
+    icon: 'albums',
+    route: '/games/towers-hub',
+    category: 'logic',
     hub: true,
   },
 ];
