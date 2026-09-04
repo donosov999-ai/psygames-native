@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.19',
+    date: '2026-09-04',
+    ru: [
+      'Новая развилка «Башни»: ханойская башня и башня Лондона теперь рядом — обе про план на несколько ходов вперёд',
+    ],
+    en: [
+      'New “Towers” hub: the Tower of Hanoi and the Tower of London side by side — both about planning moves ahead',
+    ],
+  },
+  {
     version: '2.37.18',
     date: '2026-09-04',
     ru: [

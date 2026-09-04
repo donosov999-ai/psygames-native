@@ -91,6 +91,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'switching-task': { ver: 1, date: '19.08.2026' },
   'targets': { ver: 2, date: '27.08.2026' },
   'tower-london': { ver: 1, date: '19.08.2026' },
+  'towers-hub': { ver: 1, date: '04.09.2026' },
   'trail-making': { ver: 2, date: '28.08.2026' },
   'visual-memory-hub': { ver: 1, date: '04.09.2026' },
   'visual-search': { ver: 1, date: '19.08.2026' },
