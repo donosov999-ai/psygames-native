@@ -69,13 +69,7 @@ const SUB_GAMES = [
    * общая лестница (`usePersistentLevel('inhibition')`) и переключатель Go/No-Go ↔
    * Stop-Signal. Развести их двумя входами значило бы разрезать прогресс надвое.
    */
-  {
-    route: '/games/inhibition',
-    icon: 'hand-left' as const,
-    nameKey: 'inhibition' as const,
-    descKey: 'inhibitionDesc' as const,
-    typeKey: 'acTypeInhibition' as const,
-  },
+
   /**
    * «Мишени» тоже сюда (Денис, 04.09.2026: «мишени тоже закинуть, логика похожа»).
    * И правда та же ось: два объекта одного цвета — жать, иначе держать руку.
@@ -108,13 +102,7 @@ const SUB_GAMES = [
     descKey: 'choiceRtDesc' as const,
     typeKey: 'acTypeChoice' as const,
   },
-  {
-    route: '/games/posner',
-    icon: 'locate' as const,
-    nameKey: 'posner' as const,
-    descKey: 'posnerDesc' as const,
-    typeKey: 'acTypePosner' as const,
-  },
+
   {
     route: '/games/ant',
     icon: 'git-network' as const,
