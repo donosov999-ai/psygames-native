@@ -14,6 +14,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { SOURCES } from '@/src/constants/sources';
 import { VOICE_LIVE_CREDITS } from '@/src/constants/voiceLive.generated';
+import { LETTER_VOICE_CREDITS } from '@/src/constants/letterVoice.generated';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 
 export default function SourcesScreen() {
@@ -67,7 +68,7 @@ export default function SourcesScreen() {
         */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.name, { color: colors.text }]}>{t('voiceCreditsTitle')}</Text>
-          {VOICE_LIVE_CREDITS.map((к) => (
+          {[...VOICE_LIVE_CREDITS, ...LETTER_VOICE_CREDITS].map((к) => (
             <View key={`${к.author}·${к.license}`} style={styles.row}>
               <Text style={[styles.credit, { color: colors.text }]}>{к.author}</Text>
               <Text style={[styles.license, { color: colors.primary }]}>{к.license}</Text>

@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.44',
+    date: '2026-09-04',
+    ru: ['N-back: буквы в слуховом потоке читает живой человек, а не системный голос'],
+    en: ['N-back: the letters in the audio stream are now read by a real person, not the system voice'],
+  },
+  {
     version: '2.37.43',
     date: '2026-09-04',
     ru: [

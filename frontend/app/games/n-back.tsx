@@ -1,6 +1,6 @@
 /* psygames-game-n-back · VER 1 · 19.08.2026 */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { speak } from '@/src/services/tts';
+import { speakLetterName } from '@/src/services/tts';
 import { useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import {
   View,
@@ -94,7 +94,14 @@ type RoundReadout = { dual: boolean; visual: ChannelReadout; audio: ChannelReado
  * звука. Человек выключал звук — второй поток двойного n-back продолжал
  * говорить, а починка в общем сервисе сюда не доезжала по устройству.
  */
-const speakLetter = (letter: string) => { void speak(letter, 'en', 1.2); };
+/**
+ * 04.09.2026: буквы читает ЖИВОЙ голос, а не синтез. Десять согласных взяты
+ * записями имён букв из Викисловаря (`letterVoice.generated`); выбор шёл по
+ * ДЛИТЕЛЬНОСТИ, потому что окно пробы в двойном режиме 1800 мс и запись длиннее
+ * играла бы поверх следующего стимула. Записи нет — `speakLetterName` сам падает
+ * на системный голос, как было.
+ */
+const speakLetter = (letter: string) => { void speakLetterName(letter); };
 
 // Уровень (1..15+): L1-5 single N=1→5 · L6-8 single N=5 быстрее (ISI↓) · L9-15 DUAL (визуал+звук, классика Jaeggi) N растёт.
 function levelParams(level: number): { N: number; modality: Modality; showMs: number; gapMs: number } {
