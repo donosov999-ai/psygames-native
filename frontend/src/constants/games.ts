@@ -672,6 +672,9 @@ export const GAMES: GameConfig[] = [
     hub: true,
   },
   // Group card: Go/No-Go + Stop-Signal (action restraint vs cancellation)
+  // 04.09.2026: переехала ВНУТРЬ хаба «Конфликт внимания» (решение Дениса). Обе
+  // подпробы уже были помечены mergedInto: 'attention_conflict', а карточка
+  // висела отдельно — набор жил в двух местах сразу.
   {
     id: 'inhibition',
     nameKey: 'inhibition',
@@ -681,6 +684,8 @@ export const GAMES: GameConfig[] = [
     icon: 'hand-left',
     route: '/games/inhibition',
     category: 'action',
+    hideFromMenu: true,
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'stroop',
@@ -704,7 +709,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/go-no-go',
     category: 'action',
     hideFromMenu: true,
-    mergedInto: 'attention_conflict', // merged into 'inhibition'
+    mergedInto: 'attention_conflict', // через групповую карточку «Торможение»
   },
   {
     id: 'stop_signal',
@@ -716,7 +721,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/stop-signal',
     category: 'action',
     hideFromMenu: true,
-    mergedInto: 'attention_conflict', // merged into 'inhibition'
+    mergedInto: 'attention_conflict', // через групповую карточку «Торможение»
   },
   {
     id: 'trail_making',
@@ -855,6 +860,10 @@ export const GAMES: GameConfig[] = [
     icon: 'disc',
     route: '/games/targets',
     category: 'action',
+    // 04.09.2026: переехала внутрь хаба «Конфликт внимания» (решение Дениса) —
+    // ось та же, что у Go/No-Go: жать на мишень, держать руку на остальном.
+    hideFromMenu: true,
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'choice_rt',

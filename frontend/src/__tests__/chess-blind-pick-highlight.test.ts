@@ -161,6 +161,8 @@ describe('«Доска в уме»: вопрос про подсветку — �
  * Замер живьём после правки (Chromium, партия 3×3): картинок фигур на экране до
  * ответа 6 (только кнопки), после ответа 7 — седьмая открылась НА ДОСКЕ.
  */
+declare const __dirname: string;
+
 describe('обратная связь после ответа', () => {
   const экран: string = require('fs').readFileSync(
     require('path').join(__dirname, '../../app/games/chess-blind.tsx'), 'utf8',

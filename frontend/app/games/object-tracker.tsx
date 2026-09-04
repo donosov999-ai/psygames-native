@@ -41,10 +41,11 @@
  * объекты под окном правил. Второй конец — в `useTrackerLoop`: пауза гасит сам
  * кадровый цикл.
  */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onGradientText } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -71,6 +72,9 @@ import {
   type ObjectTrackerMetrics,
 } from '@/src/games/object-tracker/core';
 
+/** Выбор режима движения помнится: спрашивать об этом каждый заход — то же навязывание. */
+const ШАГ_КЛЮЧ = 'psygames_tracker_stepwise';
+
 const GRADIENT = ['#f59e0b', '#7c3aed'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента:
 // янтарь светлый, фиолетовый тёмный, и одним цветом AA 4.5 на обоих не берётся.
@@ -87,7 +91,31 @@ export default function ObjectTrackerScreen() {
   const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const mode = useGameMode();
-  const reducedMotion = useReducedMotion();
+  /**
+   * 🔴 СИСТЕМНАЯ НАСТРОЙКА НЕ ПЕРЕКЛЮЧАЕТ УПРАЖНЕНИЕ МОЛЧА (отчёт 1b865202,
+   * Денис второй раз: «они запускаться должны автоматом, движения на
+   * перемешивание, а не то что я тапать должен»).
+   *
+   * Было: `prefers-reduced-motion` от системы напрямую включал пошаговый режим —
+   * объекты не двигались, пока не нажмёшь «Следующий шаг движения». У большинства
+   * игр это правильно: гасим украшательство. Но здесь ДВИЖЕНИЕ И ЕСТЬ УПРАЖНЕНИЕ,
+   * и тихая подмена превращает слежение глазами в другую задачу — причём человек
+   * не знает, почему так, и винит приложение.
+   *
+   * Стало: по умолчанию движение АВТОМАТИЧЕСКОЕ всегда. Системная настройка
+   * только подсказывает, что пошаговый режим существует, а включает его человек
+   * сам — и выбор запоминается.
+   */
+  const системаПросит = useReducedMotion();
+  const [шагами, setШагами] = useState(false);
+  useEffect(() => {
+    AsyncStorage.getItem(ШАГ_КЛЮЧ).then((v) => { if (v === '1') setШагами(true); }).catch(() => {});
+  }, []);
+  const переключитьШаги = (v: boolean) => {
+    setШагами(v);
+    AsyncStorage.setItem(ШАГ_КЛЮЧ, v ? '1' : '0').catch(() => {});
+  };
+
   const screenWidth = useScreenWidth();
 
   const [phase, setPhase] = React.useState<Phase>('config');
@@ -231,7 +259,7 @@ export default function ObjectTrackerScreen() {
              * react-native-web без DOM отвечает `true`, а DOM'а нет ровно на
              * пререндере статического экспорта — режим включился бы всем подряд.
              */
-            reducedMotion={reducedMotion}
+            reducedMotion={шагами}
             screenWidth={screenWidth}
             now={gameNow}
             /**
@@ -297,9 +325,24 @@ export default function ObjectTrackerScreen() {
           <Text style={[styles.skill, { color: colors.textSecondary }]}>{strings.skill}</Text>
           <Text style={[styles.hint, { color: colors.text }]}>{strings.rulesBody}</Text>
           <Text style={[styles.hint, { color: colors.text }]}>{strings.rulesSelection}</Text>
-          {reducedMotion ? (
+          {/* Пошаговый режим — выбор человека, а не следствие системной настройки. */}
+          <TouchableOpacity
+            accessibilityRole="switch"
+            accessibilityState={{ checked: шагами }}
+            accessibilityLabel={t('trackerStepwise')}
+            onPress={() => переключитьШаги(!шагами)}
+            style={[styles.stepRow, { borderColor: шагами ? GRADIENT[1] : colors.border }]}
+          >
+            <Ionicons name={шагами ? 'checkbox' : 'square-outline'} size={22} color={шагами ? GRADIENT[1] : colors.textSecondary} />
+            <Text style={[styles.hint, { color: colors.text, flex: 1 }]}>{t('trackerStepwise')}</Text>
+          </TouchableOpacity>
+          {шагами ? (
             <Text style={[styles.hint, { color: GRADIENT[1], fontWeight: '800' }]}>
               {strings.reducedMotionInfo}
+            </Text>
+          ) : системаПросит ? (
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>
+              {t('trackerStepwiseOffered')}
             </Text>
           ) : null}
           <Text style={[styles.keys, { color: colors.textSecondary }]}>{strings.keyboardHelp}</Text>
@@ -331,6 +374,8 @@ export default function ObjectTrackerScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Строка-тумблер: цель нажатия 48 — та же норма, что у остальных кнопок.
+  stepRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, marginTop: 8 },
   root: { flex: 1 },
   /**
    * ПОЛЕ КАРКАСА РАЗДВИНУТО ДО КРАЁВ ЭКРАНА.
