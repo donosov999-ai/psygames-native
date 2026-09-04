@@ -21,6 +21,8 @@ import MathSliderGame from '@/src/games/math-slider/MathSliderGame';
 import { getMathSliderStrings } from '@/src/games/math-slider/core';
 
 declare function require(m: string): any;
+// tsconfig прогонов CI без типов node: объявляем то, что даёт jest
+declare const __dirname: string;
 type Renderer = TestRenderer.ReactTestRenderer;
 
 const RU = getMathSliderStrings('ru');

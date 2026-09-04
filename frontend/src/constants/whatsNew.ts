@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.31',
+    date: '2026-09-04',
+    ru: ['Выход жестом от левого края и «Математическая шкала» без подтверждений — доехали до сборки: два новых гейта роняли проверку типов'],
+    en: ['Edge-swipe exit and the confirm-free Math Slider now actually ship — two new gates were breaking the typecheck'],
+  },
+  {
     version: '2.37.30',
     date: '2026-09-04',
     ru: ['Из любого упражнения теперь можно выйти жестом от левого края экрана — не тянуться к кнопке в дальнем углу'],
