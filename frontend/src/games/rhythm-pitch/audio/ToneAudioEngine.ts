@@ -1,4 +1,5 @@
 /* psygames-rhythm-pitch-tone-audio-engine · VER 1 · 19.08.2026 */
+import { warmUpAudioContext } from '@/src/services/feedback';
 import type { RhythmPitchRound } from '../core/types';
 
 export interface AudioPlaybackPlan {
@@ -73,6 +74,8 @@ function clamp(value: number, min: number, max: number): number {
 
 export class WebToneAudioEngine implements ToneAudioEngine {
   private context: AudioContext | null = null;
+  /** Разогрев нужен один раз на контекст: см. ensureContext. */
+  private warmedUp = false;
   private activeTones = new Set<ActiveTone>();
   private master: GainNode | null = null;
   private finishCurrent: (() => void) | null = null;
@@ -115,6 +118,18 @@ export class WebToneAudioEngine implements ToneAudioEngine {
       }
     }
     if (this.context.state === 'suspended') await this.context.resume();
+    /**
+     * 🔴 РАЗОГРЕВ ПУСТЫМ БУФЕРОМ. Отчёт Дениса 04.09.2026: «звука вообще нет,
+     * никаких динамиков звуков не издаёт». Причина не в движке тонов, а в том, что
+     * WKWebView (Safari, Tauri на iOS/macOS) держит контекст молчащим даже после
+     * `resume()` — ему нужно проиграть пустой буфер от жеста. В общем звуке
+     * приложения этот приём стоял с июня, а здесь свой AudioContext, и его не было.
+     * Приём взят из `services/feedback`, второй копии нет: разошлись бы.
+     */
+    if (!this.warmedUp) {
+      warmUpAudioContext(this.context as unknown as Parameters<typeof warmUpAudioContext>[0]);
+      this.warmedUp = true;
+    }
     if (this.context.state === 'closed') throw new AudioOutputUnavailableError();
   }
 

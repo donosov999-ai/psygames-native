@@ -4260,6 +4260,16 @@ export default function GoodsSortGame() {
                 <LevelCleared
                   level={levelBanner === -1 ? level : levelBanner}
                   passed={levelBanner !== -1}
+                  /* За что засчитали: на целях «убрать названные» и «освободи нишу»
+                     доска остаётся частично полной, и без этой строки победа
+                     читается как преждевременный конец (отчёт Дениса 04.09). */
+                  reasonLine={(() => {
+                    const ц = levelBanner > 0 ? goalPlan(levelBanner) : null;
+                    if (!ц || ц.kind === 'all' || levelBanner === -1) return undefined;
+                    return ц.kind === 'pick' ? t('goalDonePick')
+                      : ц.kind === 'free' ? t('goalDoneFree')
+                      : t('goalDoneMoves');
+                  })()}
                   stars={starsFor(levelBanner === -1 ? level : levelBanner, movesRef.current)}
                   gradient={GRADIENT}
                   colors={colors}

@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "main": "expo-router/entry",
-  "version": "2.37.20",
+  "version": "2.37.21",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",

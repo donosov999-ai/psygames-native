@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.21',
+    date: '2026-09-04',
+    ru: [
+      '«Ритм и высота» снова звучит на телефоне',
+      'В ханойской башне диск больше не пропадает при перетаскивании',
+      '«Сортировка товаров» говорит, за что засчитан уровень, если цель была не «убрать всё»',
+    ],
+    en: [
+      'Rhythm & Pitch plays sound on the phone again',
+      'In the Tower of Hanoi the disc no longer vanishes while dragging',
+      'Goods Sort now says why a level counted when the goal was not “clear everything”',
+    ],
+  },
+  {
     version: '2.37.20',
     date: '2026-09-04',
     ru: [
