@@ -91,8 +91,17 @@ describe('развилка судоку заведена в каталоге', (
 });
 
 describe('единый список хабов — один на весь проект', () => {
-  it('список выводится из каталога и содержит все три развилки', () => {
-    expect([...HUB_GAME_IDS].sort()).toEqual(['attention_conflict', 'span_group', 'sudoku_group']);
+  /**
+   * ⚠️ Список ВЫВОДИТСЯ, а не переписывается сюда. Здесь стояло перечисление трёх
+   * развилок, и 04.09.2026 оно протухло в тот день, когда их стало двенадцать.
+   * Проверяем свойство: каждая развилка каталога попала в список, и ничего лишнего
+   * туда не попало.
+   */
+  it('список выводится из каталога и содержит каждую развилку', () => {
+    const изКаталога = GAMES.filter((g) => g.hub).map((g) => g.id).sort();
+    expect([...HUB_GAME_IDS].sort()).toEqual(изКаталога);
+    expect(изКаталога).toContain('sudoku_group');
+    expect(изКаталога.length).toBeGreaterThanOrEqual(3);
     expect(HUB_GAME_IDS.every(isHubGame)).toBe(true);
     expect(isHubGame('sudoku')).toBe(false);
   });
@@ -132,7 +141,7 @@ describe('единый список хабов — один на весь про
   });
 
   /** Разбор аудита исполняем той же логикой — молчаливый пустой список опаснее всего. */
-  it('разбор хабов из каталога находит ровно три маршрута', () => {
+  it('разбор хабов из каталога находит столько же маршрутов, сколько развилок в каталоге', () => {
     const raw = read('src/constants/games.ts');
     const src = raw.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
     const out = new Set<string>();
@@ -141,13 +150,22 @@ describe('единый список хабов — один на весь про
       const r = /route:\s*'([^']+)'/.exec(m[1]);
       if (r) out.add(r[1]);
     }
-    expect([...out].sort()).toEqual(['/games/attention-conflict', '/games/span', '/games/sudoku-hub']);
+    // Свойство, а не список: сколько развилок в каталоге, столько и маршрутов.
+    const ожидаем = GAMES.filter((g) => g.hub).map((g) => g.route).sort();
+    expect([...out].sort()).toEqual(ожидаем);
+    expect(out.has('/games/sudoku-hub')).toBe(true);
   });
 });
 
 describe('развилку не предлагают как упражнение', () => {
-  it('отсев рекомендаций знает про третью развилку', () => {
-    expect([...RECO_GROUP_HUBS].sort()).toEqual(['attention_conflict', 'span_group', 'sudoku_group']);
+  /**
+   * ⚠️ Список развилок в отсеве рекомендаций обязан совпадать с каталогом. Здесь
+   * стояло перечисление трёх, и оно протухло, когда развилок стало двенадцать:
+   * новая развилка молча попала бы в «рекомендуем сегодня» как упражнение.
+   */
+  it('отсев рекомендаций знает КАЖДУЮ развилку каталога', () => {
+    const изКаталога = GAMES.filter((g) => g.hub).map((g) => g.id).sort();
+    expect([...RECO_GROUP_HUBS].sort()).toEqual(изКаталога);
   });
 
   /**

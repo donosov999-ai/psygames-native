@@ -1,3 +1,6 @@
+import { hubScreenFiles } from './_helpers/hubScreens';
+import React from 'react';
+import GameModeSwitch from '@/src/components/GameModeSwitch';
 /**
  * ВЫБОР «УРОВНИ / СВОБОДНО»: ОДНА ПАНЕЛЬ ТАМ, ГДЕ ОН ЕСТЬ, И НИЧЕГО ТАМ, ГДЕ ЕГО НЕТ.
  *
@@ -28,17 +31,20 @@
  *   3. сам компонент проверен ПОВЕДЕНИЕМ: рендер, нажатие, вызов onChange, пометка
  *      выбранного для скринридера. Разметку без поведения гейт бы пропустил.
  */
+
+/** Развилка не игра: переключать в меню нечего. Набор берём из каталога. */
+const РАЗВИЛКИ = hubScreenFiles();
+// Записи про span/sudoku-hub/attention-conflict убраны 04.09.2026: развилки
+// отсекаются набором из каталога, ручной список был бы вторым источником.
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync, readdirSync } = require('fs');
 const { join } = require('path');
-import React from 'react';
-import GameModeSwitch from '@/src/components/GameModeSwitch';
 
 const TestRenderer = require('react-test-renderer');
 
 const DIR = join(__dirname, '../../app/games');
-const GAMES: string[] = readdirSync(DIR).filter((f: string) => f.endsWith('.tsx')).sort();
+const GAMES: string[] = readdirSync(DIR).filter((f: string) => f.endsWith('.tsx') && !РАЗВИЛКИ.has(f)).sort();
 const raw = (f: string) => readFileSync(join(DIR, f), 'utf8') as string;
 /** Комментарии режем: гейт не должен ловить собственные объяснения в шапках экранов. */
 const code = (f: string) =>
@@ -95,9 +101,6 @@ const WITHOUT_SWITCH: Record<string, string> = {
   'memory-palace.tsx': 'лесенка: уровень задаёт партию целиком — число мест (5→12) и число лишних предметов (2→4), третьей оси нет, таймера нет вовсе; свободная партия означала бы выставлять эти два числа руками, то есть собирать себе уровень мимо лесенки, а вернуться на пройденную ступень даёт тропинка',
   'dots-connect.tsx': 'лесенка: размер сетки (4×4…8×8) и число пар задаёт уровень — это две единственные оси сложности, таймера в игре нет вовсе; свободная партия означала бы выставлять размер и пары руками, то есть собирать себе уровень мимо лесенки, а вернуться на пройденную ступень даёт тропинка',
   // хаб — выбирают, куда идти, а не как играть
-  'span.tsx': 'хаб: страница выбора модальности объёма памяти, партия начинается уже на дочернем экране',
-  'sudoku-hub.tsx': 'хаб: страница выбора доски судоку, режим партии выбирают уже на дочернем экране',
-  'attention-conflict.tsx': 'хаб: страница выбора парадигмы внимания, своей партии у неё нет',
 
   // замер — свободные параметры разрушили бы саму метрику
   'ant.tsx': 'замер: три сети внимания считаются по разнице времён реакции; свои интервалы сделали бы прогон несравнимым',

@@ -1,3 +1,4 @@
+import { hubScreenFiles } from './_helpers/hubScreens';
 /**
  * ЧТО ДЕЛАТЬ — НАПИСАНО НА ЭКРАНЕ, А НЕ ТОЛЬКО В СПРАВКЕ.
  *
@@ -20,6 +21,11 @@
  * причина, почему её нет. Молчаливых пропусков быть не может: новая игра без
  * записи роняет прогон, а запись, потерявшая свою строку, роняет его тоже.
  */
+
+/** Развилки — не игры: у них нет ни партии, ни отмены, ни строки задачи. */
+const РАЗВИЛКИ = hubScreenFiles();
+// Записи про span/sudoku-hub/attention-conflict убраны 04.09.2026: развилки теперь
+// отсекаются набором из каталога, и ручной список про них был бы вторым источником.
 declare const __dirname: string;
 declare function require(m: string): any;
 const fs = require('fs');
@@ -28,7 +34,7 @@ const path = require('path');
 const ROOT = path.join(__dirname, '../..');
 const GAMES = path.join(ROOT, 'app/games');
 const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
-const files: string[] = fs.readdirSync(GAMES).filter((f: string) => f.endsWith('.tsx')).sort();
+const files: string[] = fs.readdirSync(GAMES).filter((f: string) => f.endsWith('.tsx') && !РАЗВИЛКИ.has(f)).sort();
 
 /**
  * Всё, что рисуется во время партии: каркасы игровых экранов + подставленные
@@ -149,9 +155,6 @@ const NOT_A_GAME: Record<string, string> = {
   'pause.tsx': 'хаб: меню телесных практик — выбирают обстановку, длительность и наборы, играть тут не во что; во время самой практики указание рисует модуль src/games/pause/ui/PausePracticesGame.tsx из подписи текущего шага',
   'dots-connect.tsx':
     'экран-обёртка: партию рисует модуль src/games/dots-connect/DotsConnectGame.tsx, строка живёт там (strings.rulesBody + strings.rulesCoverage на правилах, strings.trainingHint на тренировке, roundLabel над доской) вместе со своим словарём; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт dots-connect-integration.test.ts',
-  'attention-conflict.tsx': 'хаб: меню из четырёх парадигм, отсюда уходят в саму игру — играть тут не в чем',
-  'span.tsx': 'хаб: меню из трёх модальностей охвата, играть тут не в чем',
-  'sudoku-hub.tsx': 'хаб: меню из трёх досок судоку, играть тут не в чем',
   'math-slider.tsx':
     'экран-обёртка: партию рисует модуль src/games/math-slider/MathSliderGame.tsx, строка живёт там (strings.prompt) вместе со своим словарём',
   'navigator.tsx':

@@ -37,6 +37,7 @@ import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic, getMusicEnabled
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
+import { visibleInCatalog } from '@/src/constants/games';
 import {
   buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
   currentSlot, WarmupSlot,
@@ -390,7 +391,7 @@ function FullHome() {
 
   // E1: filter games by active profile + hide games merged into group cards
   const visibleGames = useMemo(
-    () => filterAllowedGames(profile).filter((g) => !g.hideFromMenu),
+    () => visibleInCatalog(filterAllowedGames(profile), profile?.id),
     [profile],
   );
 

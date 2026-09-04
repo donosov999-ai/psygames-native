@@ -1,4 +1,8 @@
+import { hubScreenFiles } from './_helpers/hubScreens';
 /* psygames-games-registry-gate · VER 1 · 26.08.2026 */
+
+/** Развилки — не игры: у них нет ни партии, ни отмены, ни строки задачи. */
+const РАЗВИЛКИ = hubScreenFiles();
 /**
  * РЕЕСТР ИГР НЕ РАСХОДИТСЯ С СОСТАВОМ ПРИЛОЖЕНИЯ.
  *
@@ -35,7 +39,7 @@ function describedIds(text: string): Set<string> {
 }
 
 describe('реестр игр покрывает состав приложения', () => {
-  const files: string[] = fs.readdirSync(GAMES_DIR).filter((f: string) => f.endsWith('.tsx'));
+  const files: string[] = fs.readdirSync(GAMES_DIR).filter((f: string) => f.endsWith('.tsx') && !РАЗВИЛКИ.has(f));
   const ref: string = fs.readFileSync(REF, 'utf8');
   const described = describedIds(ref);
 

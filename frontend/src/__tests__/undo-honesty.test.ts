@@ -1,3 +1,5 @@
+import { hubScreenFiles } from './_helpers/hubScreens';
+import { createMoveStack, MAX_HISTORY } from '@/src/services/moveStack';
 /**
  * ОТМЕНА ХОДА: ГДЕ ОНА ЧЕСТНА, ГДЕ ЕЁ НЕТ И ПОЧЕМУ.
  *
@@ -21,14 +23,18 @@
  * ни разу). Проверяется, что откат ВОЗВРАЩАЕТ: всё, что ход записал, отмена
  * записывает обратно, и лента гаснет там, где продолжать откатывать нечестно.
  */
+
+/** Развилки — не игры: у них нет ни партии, ни отмены, ни строки задачи. */
+const РАЗВИЛКИ = hubScreenFiles();
+// Записи про span/sudoku-hub/attention-conflict убраны 04.09.2026: развилки теперь
+// отсекаются набором из каталога, и ручной список про них был бы вторым источником.
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync, readdirSync } = require('fs');
 const { join } = require('path');
-import { createMoveStack, MAX_HISTORY } from '@/src/services/moveStack';
 
 const DIR = join(__dirname, '../../app/games');
-const GAMES: string[] = readdirSync(DIR).filter((f: string) => f.endsWith('.tsx')).sort();
+const GAMES: string[] = readdirSync(DIR).filter((f: string) => f.endsWith('.tsx') && !РАЗВИЛКИ.has(f)).sort();
 const src = (f: string) => readFileSync(join(DIR, f), 'utf8') as string;
 /** Комментарии режем: гейт не должен ловить собственные объяснения. */
 const code = (f: string) =>
@@ -175,9 +181,6 @@ const WITHOUT_UNDO: Record<string, string> = {
   'phonemic-fluency.tsx': 'timing: интервалы между словами кормят биомаркер',
   'eye-gym.tsx': 'n/a: ходов нет, это упражнение для глаз',
   'breathing.tsx': 'n/a: ходов нет, это дыхательная практика',
-  'span.tsx': 'n/a: хаб-страница выбора модальности',
-  'sudoku-hub.tsx': 'n/a: хаб-страница выбора доски судоку',
-  'attention-conflict.tsx': 'n/a: хаб-страница выбора парадигмы',
   'rhythm-pitch.tsx': 'already + timing: в «пути высоты» отмена есть внутри модуля — «Отменить последний» снимает ступень до отправки ответа; в «эхе ритма» отменять нечего, тап И ЕСТЬ отметка времени, и откат сдвинул бы сам замер',
 };
 
