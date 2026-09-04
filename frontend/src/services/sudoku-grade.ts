@@ -1499,7 +1499,7 @@ export function effectiveBand(variant: Variant, band: { min: number; max: number
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
   opts: { budgetMs?: number; tier?: { min: number; max: number } } = {},
-): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean } {
+): { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean; budgetSpent: boolean } {
   const budget = opts.budgetMs ?? 2200;
   const until = Date.now() + budget;
   /**
@@ -1543,7 +1543,7 @@ export function generateLogical(
         const снятие = liftByClueRemoval(итог.gen, N, BR, BC, variant, min, max, until);
         if (снятие.grade.tier > итог.grade.tier) итог = { gen: снятие.gen, grade: снятие.grade, dug: итог.dug };
       }
-      return { ...итог, fellBack: false };
+      return { ...итог, fellBack: false, budgetSpent: false };
     }
   }
 
@@ -1607,5 +1607,18 @@ export function generateLogical(
   }
   let left = 0;
   for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (gen.puzzle[r][c] === 0) left++;
-  return { gen, grade: итогГрейд, dug: left, fellBack: true };
+  /**
+   * 🔴 «НЕ УСПЕЛ» И «НЕ СМОГ» — РАЗНЫЕ ИСХОДЫ, И ИХ НАДО РАЗЛИЧАТЬ.
+   *
+   * Бюджет здесь настенный: `Date.now() + budget`. Одни и те же тридцать секунд на
+   * спокойной машине покупают в разы больше вычислений, чем на загруженной, — и
+   * гейт, читающий только `fellBack`, краснеет от чужой нагрузки, называя это
+   * регрессом генератора. Замер 04.09.2026: `sudoku-thermocage` поодиночке 18/18
+   * трижды подряд, в полном прогоне падает.
+   *
+   * `budgetSpent` отвечает на вопрос «срок вышел?» — проверка вправе на этом
+   * основании промолчать, а не выносить вердикт. Это то же правило, что уже
+   * записано в `sudoku-geometric-unique`: исчерпание бюджета не есть ответ.
+   */
+  return { gen, grade: итогГрейд, dug: left, fellBack: true, budgetSpent: Date.now() >= until };
 }

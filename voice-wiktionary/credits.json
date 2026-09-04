@@ -1,5 +1,2497 @@
 [
  {
+  "lang": "es",
+  "word": "amigo",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-amigo.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "comer",
+  "file": "File:LL-Q1321 (spa)-Rodelar-comer.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "beber",
+  "file": "File:LL-Q1321 (spa)-Rodelar-beber.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "bosque",
+  "file": "File:LL-Q1321 (spa)-Rodelar-bosque.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "año",
+  "file": "File:Es-am-lat-año.ogg",
+  "author": "Andrés Samael Cortina Ramírez",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "boca",
+  "file": "File:Es-am-lat-boca.ogg",
+  "author": "Andrés Samael Cortina Ramírez",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "aeropuerto",
+  "file": "File:Es-mx-Aeropuerto.wav",
+  "author": "Tbhotch",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "amor",
+  "file": "File:es-amor.ogg",
+  "author": "unjourparfait",
+  "license": "Public domain"
+ },
+ {
+  "lang": "es",
+  "word": "amarillo",
+  "file": "File:LL-Q1321 (spa)-Rodelar-amarillo.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "blanco",
+  "file": "File:Es-am-lat-blanco.ogg",
+  "author": "Andrés Samael Cortina Ramírez",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "agua",
+  "file": "File:Es-am-lat-agua.ogg",
+  "author": "Andrés Samael Cortina Ramírez",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "casa",
+  "file": "File:Es-am-lat-casa.ogg",
+  "author": "Andrés Samael Cortina Ramírez",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "aceite",
+  "file": "File:LL-Q1321 (spa)-Millars-aceite.wav",
+  "author": "Speaker: Millars Recorder: Millars",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "cana",
+  "file": "File:LL-Q1321 (spa)-Marreromarco-cana.wav",
+  "author": "Speaker: Marreromarco Recorder: Marreromarco",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "carne",
+  "file": "File:Es-am-lat-carne.ogg",
+  "author": "Andrés Samael Cortina Ramírez",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "cosa",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-cosa.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "camino",
+  "file": "File:LL-Q1321 (spa)-Rodelar-camino.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "bueno",
+  "file": "File:LL-Q1321 (spa)-Rodelar-bueno.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "caliente",
+  "file": "File:LL-Q1321 (spa)-Rodelar-caliente.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "cabeza",
+  "file": "File:LL-Q1321 (spa)-Rodelar-cabeza.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "café",
+  "file": "File:Es-café-bo-La Paz.ogg",
+  "author": "Alhen",
+  "license": "CC BY 2.5"
+ },
+ {
+  "lang": "es",
+  "word": "cielo",
+  "file": "File:LL-Q1321 (spa)-Rodelar-cielo.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "cama",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-cama.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "ciudad",
+  "file": "File:Es-am-lat-ciudad.ogg",
+  "author": "Andrés Samael Cortina Ramírez",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "corazón",
+  "file": "File:LL-Q1321 (spa)-Rodelar-corazón.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "aquí",
+  "file": "File:LL-Q1321 (spa)-Rodelar-aquí.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "cinco",
+  "file": "File:LL-Q1321 (spa)-Rodelar-cinco.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "cara",
+  "file": "File:Es-am-lat-cara.ogg",
+  "author": "Andrés Samael Cortina Ramírez",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "caro",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-caro.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "allí",
+  "file": "File:Es-am-lat-allí.ogg",
+  "author": "Andrés Samael Cortina Ramírez",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "bolsa",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-bolsa.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "flor",
+  "file": "File:LL-Q1321 (spa)-Rodelar-flor.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "estrella",
+  "file": "File:LL-Q1321 (spa)-Rodelar-estrella.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "dar",
+  "file": "File:Es-am-lat-dar.ogg",
+  "author": "Andrés Samael Cortina Ramírez",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "día",
+  "file": "File:LL-Q1321 (spa)-Rodelar-día.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hombre",
+  "file": "File:LL-Q1321 (spa)-Rodelar-hombre.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "huevo",
+  "file": "File:LL-Q1321 (spa)-Rodelar-huevo.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "dormir",
+  "file": "File:LL-Q1321 (spa)-Rodelar-dormir.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hola",
+  "file": "File:Es-hola.oga",
+  "author": "No machine-readable author provided. Josemoya assumed (based on copyright claims",
+  "license": "CC BY-SA 3.0"
+ },
+ {
+  "lang": "es",
+  "word": "gato",
+  "file": "File:LL-Q1321 (spa)-Millars-gato.wav",
+  "author": "Speaker: Millars Recorder: Millars",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hablar",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-hablar.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "dos",
+  "file": "File:Es-dos-mx-México.OGG",
+  "author": "Carlos Valenzuela",
+  "license": "Public domain"
+ },
+ {
+  "lang": "es",
+  "word": "esposa",
+  "file": "File:LL-Q1321 (spa)-Rodelar-esposa.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "fuego",
+  "file": "File:LL-Q1321 (spa)-Rodelar-fuego.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "fruta",
+  "file": "File:LL-Q1321 (spa)-Rodelar-fruta.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "largo",
+  "file": "File:LL-Q1321 (spa)-Rodelar-largo.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "cuatro",
+  "file": "File:LL-Q1321 (spa)-Rodelar-cuatro.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "grande",
+  "file": "File:LL-Q1321 (spa)-Rodelar-grande.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "frío",
+  "file": "File:LL-Q1321 (spa)-Rodelar-frío.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "diente",
+  "file": "File:LL-Q1321 (spa)-Rodelar-diente.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hierba",
+  "file": "File:LL-Q1321 (spa)-Rodelar-hierba.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hermano",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-hermano.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "cuchillo",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-cuchillo.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "diez",
+  "file": "File:Es-diez.ogg",
+  "author": "Oceancetaceen Alice Chodura",
+  "license": "CC BY-SA 3.0"
+ },
+ {
+  "lang": "es",
+  "word": "difícil",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-difícil.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hospital",
+  "file": "File:Es-mx-Hospital.wav",
+  "author": "Tbhotch",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hermoso",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-hermoso.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "ojo",
+  "file": "File:LL-Q1321 (spa)-Rodelar-ojo.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "nombre",
+  "file": "File:LL-Q1321 (spa)-Rodelar-nombre.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "noche",
+  "file": "File:LL-Q1321 (spa)-Rodelar-noche.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "mujer",
+  "file": "File:LL-Q1321 (spa)-Rodelar-mujer.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "nube",
+  "file": "File:LL-Q1321 (spa)-Rodelar-nube.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "nieve",
+  "file": "File:LL-Q1321 (spa)-Rodelar-nieve.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "nuevo",
+  "file": "File:LL-Q1321 (spa)-Rodelar-nuevo.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "padre",
+  "file": "File:LL-Q1321 (spa)-Rodelar-padre.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "palabra",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-palabra.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "luna",
+  "file": "File:LL-Q1321 (spa)-Rodelar-luna.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "madre",
+  "file": "File:Es-madre-bo-La Paz.ogg",
+  "author": "Alhen",
+  "license": "CC BY-SA 3.0"
+ },
+ {
+  "lang": "es",
+  "word": "mesa",
+  "file": "File:LL-Q1321 (spa)-CaroEspinoza-Mesa.wav",
+  "author": "Speaker: CaroEspinoza Recorder: CaroEspinoza",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "mar",
+  "file": "File:LL-Q1321 (spa)-Rodelar-mar.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "niño",
+  "file": "File:LL-Q1321 (spa)-Rodelar-niño.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "mano",
+  "file": "File:LL-Q1321 (spa)-Rodelar-mano.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "lluvia",
+  "file": "File:LL-Q1321 (spa)-Florenciac-lluvia.wav",
+  "author": "Speaker: Florenciac Recorder: Florenciac",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "pelo",
+  "file": "File:LL-Q1321 (spa)-Rodelar-pelo.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "nariz",
+  "file": "File:LL-Q1321 (spa)-Rodelar-nariz.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "manzana",
+  "file": "File:LL-Q1321 (spa)-Millars-manzana.wav",
+  "author": "Speaker: Millars Recorder: Millars",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "montaña",
+  "file": "File:LL-Q1321 (spa)-Rodelar-montaña.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "oreja",
+  "file": "File:LL-Q1321 (spa)-Rodelar-oreja.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "malo",
+  "file": "File:LL-Q1321 (spa)-Rodelar-malo.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "no",
+  "file": "File:LL-Q1321 (spa)-Rodelar-no.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "música",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-música.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "uno",
+  "file": "File:LL-Q1321 (spa)-Rodelar-uno.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "tres",
+  "file": "File:LL-Q1321 (spa)-Rodelar-tres.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "piedra",
+  "file": "File:LL-Q1321 (spa)-Rodelar-piedra.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "verde",
+  "file": "File:LL-Q1321 (spa)-Rodelar-verde.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "rojo",
+  "file": "File:LL-Q1321 (spa)-Rodelar-rojo.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "pájaro",
+  "file": "File:LL-Q1321 (spa)-Rodelar-pájaro.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "queso",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-queso.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "ventana",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-ventana.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "perro",
+  "file": "File:LL-Q1321 (spa)-Rodelar-perro.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "sangre",
+  "file": "File:LL-Q1321 (spa)-Rodelar-sangre.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "sol",
+  "file": "File:LL-Q1321 (spa)-Rodelar-sol.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "puerta",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-puerta.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "río",
+  "file": "File:LL-Q1321 (spa)-Rodelar-río.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "vaca",
+  "file": "File:LL-Q1321 (spa)-Millars-vaca.wav",
+  "author": "Speaker: Millars Recorder: Millars",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "pez",
+  "file": "File:Es-bo-pez.oga",
+  "author": "Alhen",
+  "license": "CC BY 2.5"
+ },
+ {
+  "lang": "es",
+  "word": "reloj",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-reloj.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "pequeño",
+  "file": "File:LL-Q1321 (spa)-Rodelar-pequeño.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "serpiente",
+  "file": "File:LL-Q1321 (spa)-Rodelar-serpiente.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "pie",
+  "file": "File:LL-Q1321 (spa)-Rodelar-pie.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "sal",
+  "file": "File:LL-Q1321 (spa)-Rodelar-sal.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "pierna",
+  "file": "File:LL-Q1321 (spa)-Rodelar-pierna.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "saber",
+  "file": "File:LL-Q1321 (spa)-Rodelar-saber.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "venir",
+  "file": "File:LL-Q1321 (spa)-Rodelar-venir.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "ver",
+  "file": "File:LL-Q1321 (spa)-Rodelar-ver.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "por favor",
+  "file": "File:Es-por favor.oga",
+  "author": "—",
+  "license": "CC BY-SA 2.5"
+ },
+ {
+  "lang": "es",
+  "word": "vivir",
+  "file": "File:LL-Q1321 (spa)-Rodelar-vivir.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "viejo",
+  "file": "File:LL-Q1321 (spa)-Rodelar-viejo.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "árbol",
+  "file": "File:LL-Q1321 (spa)-Rodelar-árbol.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "viento",
+  "file": "File:LL-Q1321 (spa)-Rodelar-viento.wav",
+  "author": "Speaker: Rodelar Recorder: Rodelar",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "abuela",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-abuela.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "abuelo",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-abuelo.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "familia",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-familia.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "leche",
+  "file": "File:LL-Q1321 (spa)-Julie Samothrace-leche.wav",
+  "author": "Speaker: Julie Samothrace Recorder: Julie Samothrace",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "calle",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-calle.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "lento",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-lento.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hacer",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-hacer.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "comprar",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-comprar.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "leer",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-leer.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "elefante",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-elefante.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "dedo",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-dedo.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hijo",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-hijo.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hija",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-hija.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hora",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-hora.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "cerdo",
+  "file": "File:LL-Q1321 (spa)-Millars-cerdo.wav",
+  "author": "Speaker: Millars Recorder: Millars",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "azul",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-azul.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "hoy",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-hoy.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "comida",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-comida.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "ahora",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-ahora.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "joven",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-joven.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "coche",
+  "file": "File:Es-coche.wav",
+  "author": "UofG Language Modules",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "mañana",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-mañana.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "cuarto",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-cuarto.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "banco",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-banco.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "abrir",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-abrir.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "escribir",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-escribir.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "juego",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-juego.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "fuerte",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-fuerte.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "escuela",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-escuela.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "dinero",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-dinero.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "estación",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-estación.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "azúcar",
+  "file": "File:Es-azucar.wav",
+  "author": "UofG Language Modules",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "llave",
+  "file": "File:Es-llave.wav",
+  "author": "UofG Language Modules",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "limpio",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-limpio.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "carro",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-carro.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "idioma",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-idioma.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "feliz",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-feliz.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "fácil",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-fácil.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "hermana",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-hermana.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "león",
+  "file": "File:LL-Q1321 (spa)-Millars-león.wav",
+  "author": "Speaker: Millars Recorder: Millars",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "arroz",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-arroz.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "caña",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-caña.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "peso",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-peso.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "mundo",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-mundo.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "moro",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-moro.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "pollo",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-pollo (with yeísmo).wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "teléfono",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-teléfono.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "oveja",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-oveja.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "sí",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-sí.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "siete",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-siete.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "pero",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-pero.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "querer",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-querer.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "vino",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-vino.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "trabajo",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-trabajo.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "ocho",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-ocho.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "nueve",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-nueve.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "seis",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-seis.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "mes",
+  "file": "File:LL-Q1321 (spa)-Rodrigo5260-mes.wav",
+  "author": "Speaker: Rodrigo5260 Recorder: Rodrigo5260",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "ratón",
+  "file": "File:LL-Q1321 (spa)-Millars-ratón.wav",
+  "author": "Speaker: Millars Recorder: Millars",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "pena",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-pena.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "minuto",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-minuto.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "oso",
+  "file": "File:LL-Q1321 (spa)-Millars-oso.wav",
+  "author": "Speaker: Millars Recorder: Millars",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "valle",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-valle.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "papel",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-papel.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "tomar",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-tomar.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "semana",
+  "file": "File:Es-semana-SerBeEtreShi.ogg",
+  "author": "Ser be etre shi",
+  "license": "CC0"
+ },
+ {
+  "lang": "es",
+  "word": "pared",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-pared.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "mercado",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-mercado.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "parque",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-parque.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "tiempo",
+  "file": "File:LL-Q1321 (spa)-Precision27-tiempo.wav",
+  "author": "Speaker: Precision27 Recorder: Precision27",
+  "license": "CC BY 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "tienda",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-tienda.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "sopa",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-sopa.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "piso",
+  "file": "File:Es-piso.oga",
+  "author": "Tino no",
+  "license": "CC BY 4.0"
+ },
+ {
+  "lang": "es",
+  "word": "verdura",
+  "file": "File:LL-Q1321 (spa)-AdrianAbdulBaha-verdura.wav",
+  "author": "Speaker: AdrianAbdulBaha Recorder: AdrianAbdulBaha",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "casa",
+  "file": "File:pt-pt-casa.ogg",
+  "author": "—",
+  "license": "CC BY-SA 3.0"
+ },
+ {
+  "lang": "pt",
+  "word": "cachorro",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-cachorro.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "parede",
+  "file": "File:Pt-pt-parede.ogg",
+  "author": "—",
+  "license": "CC BY-SA 3.0"
+ },
+ {
+  "lang": "pt",
+  "word": "maçã",
+  "file": "File:Pt-pt-maçã.ogg",
+  "author": "Malafaya",
+  "license": "CC BY-SA 3.0"
+ },
+ {
+  "lang": "pt",
+  "word": "verde",
+  "file": "File:LL-Q5146 (por)-MedK1-verde.wav",
+  "author": "Speaker: MedK1 Recorder: MedK1",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "água",
+  "file": "File:Pt-pt-água.ogg",
+  "author": "No machine-readable author provided. Malafaya assumed (based on copyright claims",
+  "license": "CC BY-SA 3.0"
+ },
+ {
+  "lang": "pt",
+  "word": "árvore",
+  "file": "File:pt-br-árvore.ogg",
+  "author": "Luiz Torro",
+  "license": "CC BY-SA 3.0"
+ },
+ {
+  "lang": "pt",
+  "word": "sal",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-sal.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "amigo",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-amigo.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "chuva",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-chuva.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "dar",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-dar.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "carne",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-carne.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "ano",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-ano.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "agora",
+  "file": "File:LL-Q5146 (por)-JnpoJuwan-agora.wav",
+  "author": "Speaker: JnpoJuwan Recorder: JnpoJuwan",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "café",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-café.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "beber",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-beber.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "cinco",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-cinco.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "comprar",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-comprar.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "comer",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-comer.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "bom",
+  "file": "File:LL-Q5146 (por)-Juliano P. Junho (Jjunho)-bom.wav",
+  "author": "Speaker: Juliano P. Junho Recorder: Jjunho",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "caro",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-caro.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "dedo",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-dedo.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "alto",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-alto.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "chá",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-chá.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "azul",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-azul.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "bonito",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-bonito.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "comida",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-comida.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "banco",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-banco.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "abrir",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-abrir.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "cidade",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-cidade.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "cadeira",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-cadeira.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "coração",
+  "file": "File:pt-br-coração.ogg",
+  "author": "Aliphee",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "cama",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-cama.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "chave",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-chave.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "carro",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-carro.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "bolsa",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-bolsa.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "branco",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-branco.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "aeroporto",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-aeroporto.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "casar",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-casar.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "céu",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-céu.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "cavalo",
+  "file": "File:LL-Q5146 (por)-Delta Atelo-cavalo.wav",
+  "author": "Speaker: Delta Atelo Recorder: Delta Atelo",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "cabelo",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-cabelo.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "aqui",
+  "file": "File:LL-Q5146 (por)-JnpoJuwan-aqui.wav",
+  "author": "Speaker: JnpoJuwan Recorder: JnpoJuwan",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "arroz",
+  "file": "File:Pt-arroz.ogg",
+  "author": "Myriam Dechamps",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "avó",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-avó.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "avô",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-avô.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "cabeça",
+  "file": "File:LL-Q5146 (por)-Juliano P. Junho (Jjunho)-cabeça.wav",
+  "author": "Speaker: Juliano P. Junho Recorder: Jjunho",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "aldeia",
+  "file": "File:LL-Q5146 (por)-Nelson Ricardo 2500-aldeia.wav",
+  "author": "Speaker: Nelson Ricardo 2500 Recorder: Nelson Ricardo 2500",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "criança",
+  "file": "File:LL-Q5146 (por)-Nelson Ricardo 2500-criança.wav",
+  "author": "Speaker: Nelson Ricardo 2500 Recorder: Nelson Ricardo 2500",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "açúcar",
+  "file": "File:Pt-açúcar.ogg",
+  "author": "Memie",
+  "license": "CC BY-SA 3.0"
+ },
+ {
+  "lang": "pt",
+  "word": "amor",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-amor.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "dia",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-dia.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "ir",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-ir.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "hospital",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-hospital.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "dois",
+  "file": "File:LL-Q5146 (por)-Juliano P. Junho (Jjunho)-dois.wav",
+  "author": "Speaker: Juliano P. Junho Recorder: Jjunho",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "livro",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-livro.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "forte",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-forte.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "lento",
+  "file": "File:LL-Q5146 (por)-MedK1-lento.wav",
+  "author": "Speaker: MedK1 Recorder: MedK1",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "dormir",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-dormir.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "fazer",
+  "file": "File:LL-Q5146 (por)-JnpoJuwan-fazer.wav",
+  "author": "Speaker: JnpoJuwan Recorder: JnpoJuwan",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "ler",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-ler.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "dinheiro",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-dinheiro.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "gato",
+  "file": "File:LL-Q5146 (por)-MedK1-gato.wav",
+  "author": "Speaker: MedK1 Recorder: MedK1",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "hora",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-hora.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "legume",
+  "file": "File:LL-Q5146 (por)-MedK1-legume.wav",
+  "author": "Speaker: MedK1 Recorder: MedK1",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "grande",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-grande.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "escola",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-escola.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "grama",
+  "file": "File:LL-Q5146 (por)-MedK1-grama.wav",
+  "author": "Speaker: MedK1 Recorder: MedK1",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "difícil",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-difícil.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "dez",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-dez.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "leão",
+  "file": "File:LL-Q5146 (por)-Nelson Ricardo 2500-leão.wav",
+  "author": "Speaker: Nelson Ricardo 2500 Recorder: Nelson Ricardo 2500",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "fogo",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-fogo.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "fruta",
+  "file": "File:LL-Q5146 (por)-Stríðsdrengur-fruta.wav",
+  "author": "Speaker: Stríðsdrengur Recorder: Stríðsdrengur",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "estrada",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-estrada.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "feliz",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-feliz.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "leite",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-leite.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "homem",
+  "file": "File:LL-Q5146 (por)-Juliano P. Junho (Jjunho)-homem.wav",
+  "author": "Speaker: Juliano P. Junho Recorder: Jjunho",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "fácil",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-fácil.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "frio",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-frio.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "hoje",
+  "file": "File:LL-Q5146 (por)-Juliano P. Junho (Jjunho)-hoje.wav",
+  "author": "Speaker: Juliano P. Junho Recorder: Jjunho",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "janela",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-janela.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "filho",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-filho.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "estação",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-estação.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "irmã",
+  "file": "File:Pt-irmã.ogg",
+  "author": "Myriam Dechamps",
+  "license": "CC BY-SA 3.0"
+ },
+ {
+  "lang": "pt",
+  "word": "escrever",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-escrever.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "irmão",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-irmão.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "família",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-família.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "floresta",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-floresta.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "limpo",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-limpo.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "escritório",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-escritório.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "faca",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-faca.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "filha",
+  "file": "File:LL-Q5146 (por)-Juliano P. Junho (Jjunho)-filha.wav",
+  "author": "Speaker: Juliano P. Junho Recorder: Jjunho",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "jovem",
+  "file": "File:LL-Q5146 (por)-Nelson Ricardo 2500-jovem.wav",
+  "author": "Speaker: Nelson Ricardo 2500 Recorder: Nelson Ricardo 2500",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "país",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-país.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "mundo",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-mundo.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "nove",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-nove.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "música",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-música.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "neve",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-neve.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "lua",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-lua.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "mesa",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-mesa.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "porta",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-porta.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "nome",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-nome.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "porco",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-porco.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "minuto",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-minuto.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "número",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-número.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "papel",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-papel.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "marido",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-marido.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "manhã",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-manhã.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "novo",
+  "file": "File:LL-Q5146 (por)-Juliano P. Junho (Jjunho)-novo.wav",
+  "author": "Speaker: Juliano P. Junho Recorder: Jjunho",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "mercado",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-mercado.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "perna",
+  "file": "File:LL-Q5146 (por)-MedK1-perna.wav",
+  "author": "Speaker: MedK1 Recorder: MedK1",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "nariz",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-nariz.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "peixe",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-peixe.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "mãe",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-mãe.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "mão",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-mão.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "loja",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-loja.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "não",
+  "file": "File:LL-Q5146 (por)-JnpoJuwan-não.wav",
+  "author": "Speaker: JnpoJuwan Recorder: JnpoJuwan",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "parque",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-parque.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "montanha",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-montanha.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "mala",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-mala.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "pai",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-pai.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "noite",
+  "file": "File:LL-Q5146 (por)-Nelson Ricardo 2500-noite.wav",
+  "author": "Speaker: Nelson Ricardo 2500 Recorder: Nelson Ricardo 2500",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "mês",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-mês.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "pau",
+  "file": "File:pt-br-pau.ogg",
+  "author": "Nonviktis",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "oito",
+  "file": "File:LL-Q5146 (por)-Nelson Ricardo 2500-oito.wav",
+  "author": "Speaker: Nelson Ricardo 2500 Recorder: Nelson Ricardo 2500",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "pegar",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-pegar.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "longo",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-longo.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "mola",
+  "file": "File:LL-Q5146 (por)-MedK1-mola.wav",
+  "author": "Speaker: MedK1 Recorder: MedK1",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "lá",
+  "file": "File:LL-Q5146 (por)-JnpoJuwan-lá.wav",
+  "author": "Speaker: JnpoJuwan Recorder: JnpoJuwan",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "pedra",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-pedra.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "preto",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-preto.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "mulher",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-mulher.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "obrigado",
+  "file": "File:LL-Q5146 (por)-Juliano P. Junho (Jjunho)-obrigado.wav",
+  "author": "Speaker: Juliano P. Junho Recorder: Jjunho",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "palavra",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-palavra.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "olá",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-olá.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "pequeno",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-pequeno.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "um",
+  "file": "File:LL-Q5146 (por)-JnpoJuwan-um.wav",
+  "author": "Speaker: JnpoJuwan Recorder: JnpoJuwan",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "tempo",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-tempo.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "sol",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-sol.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "ver",
+  "file": "File:LL-Q5146 (por)-JnpoJuwan-ver.wav",
+  "author": "Speaker: JnpoJuwan Recorder: JnpoJuwan",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "rato",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-rato.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "saber",
+  "file": "File:LL-Q5146 (por)-Juliano P. Junho (Jjunho)-saber.wav",
+  "author": "Speaker: Juliano P. Junho Recorder: Jjunho",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "vir",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-vir.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "querer",
+  "file": "File:LL-Q5146 (por)-Nelson Ricardo 2500-querer.wav",
+  "author": "Speaker: Nelson Ricardo 2500 Recorder: Nelson Ricardo 2500",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "viver",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-viver.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "quatro",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-quatro.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "vento",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-vento.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "quarto",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-quarto.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "seis",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-seis.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "pão",
+  "file": "File:LL-Q5146 (por)-Nelson Ricardo 2500-pão.wav",
+  "author": "Speaker: Nelson Ricardo 2500 Recorder: Nelson Ricardo 2500",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "tia",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-tia.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "sangue",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-sangue.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "rua",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-rua.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "semana",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-semana.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "rápido",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-rápido.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "sete",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-sete.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "quente",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-quente.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "sim",
+  "file": "File:LL-Q5146 (por)-JnpoJuwan-sim.wav",
+  "author": "Speaker: JnpoJuwan Recorder: JnpoJuwan",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "ruim",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-ruim.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "rio",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-rio.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "sopa",
+  "file": "File:LL-Q5146 (por)-MedK1-sopa.wav",
+  "author": "Speaker: MedK1 Recorder: MedK1",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "óleo",
+  "file": "File:LL-Q5146 (por)-MedK1-óleo.wav",
+  "author": "Speaker: MedK1 Recorder: MedK1",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "três",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-três.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "vinho",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-vinho.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "vermelho",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-vermelho.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "velho",
+  "file": "File:LL-Q5146 (por)-Juliano P. Junho (Jjunho)-velho.wav",
+  "author": "Speaker: Juliano P. Junho Recorder: Jjunho",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "pé",
+  "file": "File:LL-Q5146 (por)-MedK1-pé.wav",
+  "author": "Speaker: MedK1 Recorder: MedK1",
+  "license": "CC0"
+ },
+ {
+  "lang": "pt",
+  "word": "rosto",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-rosto.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "pássaro",
+  "file": "File:LL-Q5146 (por)-Nelson Ricardo 2500-pássaro.wav",
+  "author": "Speaker: Nelson Ricardo 2500 Recorder: Nelson Ricardo 2500",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "relógio",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-relógio.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "telefone",
+  "file": "File:LL-Q5146 (por)-Santamarcanda-telefone.wav",
+  "author": "Speaker: Santamarcanda Recorder: Santamarcanda",
+  "license": "CC BY-SA 4.0"
+ },
+ {
+  "lang": "pt",
+  "word": "queijo",
+  "file": "File:LL-Q5146 (por)-Nelson Ricardo 2500-queijo.wav",
+  "author": "Speaker: Nelson Ricardo 2500 Recorder: Nelson Ricardo 2500",
+  "license": "CC BY-SA 4.0"
+ },
+ {
   "lang": "ru",
   "word": "да",
   "file": "File:Ru-да.ogg",

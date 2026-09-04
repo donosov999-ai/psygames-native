@@ -18,6 +18,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
 import PetSprite, { PetAccessory, PetSkin, PetStill } from '@/src/components/pet/PetSprite';
+import PetTreat from '@/src/components/pet/PetTreat';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import {
   getFedToday, getPetAccessory, getPetName, getPetSkinChoice, getPetStats, markFedToday,
@@ -207,9 +208,17 @@ export default function PetScreen() {
 
         {/* v1.140: живой портрет — анимированный idle текущего скина (512px кадры);
             после угощения пару секунд прыгает от радости */}
-        {/* Кормление — состояние `eat` (задача 00218752). Кадров под него пока нет,
-            `PetSprite` подставляет `wave`; появятся — заиграет само. */}
-        <PetSprite state={feastAnim ? 'eat' : 'idle'} size={portrait} skin={skin} accessory={accessory} />
+        {/*
+          Кормление. Кадров состояния `eat` нет (заявка 00218752 висит с 26.08 без
+          ответа), `PetSprite` подставляет соседнее состояние. Но отчёт ca24df45 —
+          «без анимации не смотрится это угостить» — закрывается и без новых кадров:
+          лакомство едет питомцу В РОТ по якорям кадра и исчезает. Появятся кадры —
+          заиграют сами, слой лакомства им не мешает.
+        */}
+        <View style={{ width: portrait, height: portrait }}>
+          <PetSprite state={feastAnim ? 'eat' : 'idle'} size={portrait} skin={skin} accessory={accessory} />
+          <PetTreat skin={skin} size={portrait} active={feastAnim} />
+        </View>
         <Text style={[styles.stageName, { color: colors.text }]}>{stageName}</Text>
         <Text style={[styles.stageHint, { color: colors.textSecondary }]}>
           {t('petGrowsHint')}

@@ -176,8 +176,23 @@ def main() -> int:
             права.append({'lang': lang, 'word': слово, 'file': файл, 'author': автор, 'license': лиц})
             взято += 1
         print(f'{lang}: взято {взято} из {len(слова)} = {100 * взято / len(слова):.1f}%')
-    json.dump(указатель, open(os.path.join(ВЫХОД, 'index.json'), 'w'), ensure_ascii=False, indent=1)
-    json.dump(права, open(os.path.join(ВЫХОД, 'credits.json'), 'w'), ensure_ascii=False, indent=1)
+    # 🔴 СЛИВАЕМ, А НЕ ПЕРЕЗАПИСЫВАЕМ. Скрипт зовут по одному-двум языкам за раз, и
+    #    запись «как есть» стирает уже собранные: 04.09.2026 заход по `es pt` снёс
+    #    указатель ru/de/en, хотя сами файлы лежали на месте. Потеря тихая — падает
+    #    не скрипт, а игра на трёх языках.
+    путьУказателя = os.path.join(ВЫХОД, 'index.json')
+    путьПрав = os.path.join(ВЫХОД, 'credits.json')
+    if os.path.exists(путьУказателя):
+        старый = json.load(open(путьУказателя, encoding='utf-8'))
+        for язык, слова in старый.items():
+            if язык not in указатель:
+                указатель[язык] = слова
+    if os.path.exists(путьПрав):
+        прежние = json.load(open(путьПрав, encoding='utf-8'))
+        свои = {з['lang'] for з in права}
+        права = [з for з in прежние if з.get('lang') not in свои] + права
+    json.dump(указатель, open(путьУказателя, 'w'), ensure_ascii=False, indent=1)
+    json.dump(права, open(путьПрав, 'w'), ensure_ascii=False, indent=1)
     print(f'\nуказатель → {ВЫХОД}/index.json · авторы и лицензии → {ВЫХОД}/credits.json')
     return 0
 
