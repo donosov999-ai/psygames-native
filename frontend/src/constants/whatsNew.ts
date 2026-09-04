@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.48',
+    date: '2026-09-04',
+    ru: ['Починена сборка: новая развилка «Торможение» не была вписана в аудит, и релиз не публиковался'],
+    en: ['Build fixed: the new Response-inhibition hub was missing from the audit, so the release would not publish'],
+  },
+  {
     version: '2.37.47',
     date: '2026-09-04',
     ru: [
