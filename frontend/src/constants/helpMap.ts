@@ -422,6 +422,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillVocabulary",
     "introKey": "languagesGroupIntroDesc"
   },
+  "/games/inhibition-hub": {
+    "nameKey": "inhibitionGroup",
+    "skillKey": "skillInhibition",
+    "introKey": "inhibitionGroupIntroDesc"
+  },
   "/games/towers-hub": {
     "nameKey": "towersGroup",
     "skillKey": "skillPlanning",

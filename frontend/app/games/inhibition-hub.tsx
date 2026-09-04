@@ -1,0 +1,38 @@
+/* psygames-game-inhibition-hub · VER 1 · 04.09.2026 */
+/**
+ * Развилка «Торможение» — удержать руку, когда рука уже пошла.
+ *
+ * Заведена 04.09.2026 по решению Дениса. До этого пробы жили внутри «Конфликта
+ * внимания», и тот разбух до ДВЕНАДЦАТИ упражнений — развилка перестала быть
+ * развилкой и стала вторым каталогом.
+ *
+ * ⚠️ РАЗДЕЛЕНИЕ НЕ ПО ТЕСНОТЕ, А ПО ОСИ. «Конфликт внимания» меряет, как человек
+ * разрешает СПОР двух признаков: цвет против слова, стрелка против соседей. Здесь
+ * спора нет — есть готовое движение, которое надо отменить. Это разные вещи и
+ * тренируются по-разному: в конфликте помогает сузить внимание, в торможении —
+ * наоборот, не торопиться с ответом.
+ *
+ * ⚠️ Go/No-Go и Stop-Signal стоят ОДНОЙ строкой «Торможение», а не двумя: они уже
+ * сведены режимами внутри одного экрана — ровно так, как Денис просил сводить
+ * пересечения («как это сейчас в Таблицах Шульте»). Две отдельные строки вернули
+ * бы дубликаты экранов, которые числятся долгом.
+ */
+import React from 'react';
+import HubScreen from '@/src/components/HubScreen';
+
+export default function InhibitionHub() {
+  return (
+    <HubScreen
+      titleKey="inhibitionGroup"
+      descKey="inhibitionGroupDesc"
+      pickKey="hubPickExercise"
+      footnoteKey="inhibitionGroupFootnote"
+      icon="hand-left"
+      gradient={['#11998e', '#ee0979']}
+      games={[
+        { route: '/games/inhibition', icon: 'hand-left', nameKey: 'inhibition', descKey: 'inhibitionDesc' },
+        { route: '/games/posner', icon: 'navigate', nameKey: 'posner', descKey: 'posnerDesc' },
+      ]}
+    />
+  );
+}

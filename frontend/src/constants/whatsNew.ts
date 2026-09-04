@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.43',
+    date: '2026-09-04',
+    ru: [
+      'Новая развилка «Торможение»: удержать руку, когда она уже пошла. «Конфликт внимания» разгрузился с двенадцати проб до десяти',
+      'Виджет отзывов переспрашивает, если сообщение похоже на обрывок диктовки — половина ленты состояла из «I» и «The»',
+    ],
+    en: [
+      'New hub «Response inhibition»: hold your hand back once it has started. Attention Conflict is down from twelve paradigms to ten',
+      'The feedback widget now asks again when a message looks like a cut-off dictation — half the queue was «I» and «The»',
+    ],
+  },
+  {
     version: '2.37.42',
     date: '2026-09-04',
     ru: ['Экран игры перестал вести себя как веб-страница: быстрые касания в играх на реакцию больше не увеличивают её и не сдвигают'],

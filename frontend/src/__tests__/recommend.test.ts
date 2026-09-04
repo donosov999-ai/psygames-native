@@ -160,13 +160,15 @@ describe('🔴 рекомендуется только разрешённое п
     /**
      * ⚠️ Имена написаны ПРЯМО и обновляются руками — это защита от призрака (см.
      * выше). Цена защиты: при заведении новой развилки проверка краснеет и требует
-     * дописать её сюда. 04.09.2026 так и вышло — развилок стало двенадцать.
+     * дописать её сюда. 04.09.2026 так и вышло дважды: сперва развилок стало
+     * двенадцать, затем «Торможение» отделилось от «Конфликта внимания» — пятнадцать.
      */
     const HUBS = [
       'span_group', 'attention_conflict', 'sudoku_group',
       'counting_group', 'words_group', 'hearing_group', 'search_group',
       'risk_group', 'visual_memory_group', 'mnemonics_group',
       'languages_group', 'towers_group', 'routes_group', 'flexibility_group',
+      'inhibition_group',
     ];
     expect([...RECO_GROUP_HUBS].sort()).toEqual([...HUBS].sort());
     const p = profile('odv999');

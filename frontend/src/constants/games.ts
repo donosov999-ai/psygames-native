@@ -742,6 +742,22 @@ export const GAMES: GameConfig[] = [
     category: 'action',
     hub: true,
   },
+  /**
+   * Развилка «Торможение» — 04.09.2026. «Конфликт внимания» разбух до двенадцати
+   * проб; разделение идёт не по тесноте, а по оси: там разрешают СПОР двух
+   * признаков, здесь отменяют уже начатое движение.
+   */
+  {
+    id: 'inhibition_group',
+    nameKey: 'inhibitionGroup',
+    descKey: 'inhibitionGroupDesc',
+    skillKey: 'skillInhibition',
+    gradient: ['#11998e', '#ee0979'],
+    icon: 'hand-left',
+    route: '/games/inhibition-hub',
+    category: 'action',
+    hub: true,
+  },
   // Group card: Go/No-Go + Stop-Signal (action restraint vs cancellation)
   // 04.09.2026: переехала ВНУТРЬ хаба «Конфликт внимания» (решение Дениса). Обе
   // подпробы уже были помечены mergedInto: 'attention_conflict', а карточка
@@ -756,7 +772,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/inhibition',
     category: 'action',
     hideFromMenu: true,
-    mergedInto: 'attention_conflict',
+    mergedInto: 'inhibition_group',
   },
   {
     id: 'stroop',
@@ -780,7 +796,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/go-no-go',
     category: 'action',
     hideFromMenu: true,
-    mergedInto: 'attention_conflict', // через групповую карточку «Торможение»
+    mergedInto: 'inhibition_group', // через групповую карточку «Торможение»
   },
   {
     id: 'stop_signal',
@@ -792,7 +808,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/stop-signal',
     category: 'action',
     hideFromMenu: true,
-    mergedInto: 'attention_conflict', // через групповую карточку «Торможение»
+    mergedInto: 'inhibition_group', // через групповую карточку «Торможение»
   },
   {
     id: 'trail_making',
@@ -993,7 +1009,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/posner',
     category: 'attention',
     // подсказка направляет внимание, а невалидная его отвлекает — тот же конфликт
-    mergedInto: 'attention_conflict',
+    mergedInto: 'inhibition_group',
   },
   {
     id: 'ant',

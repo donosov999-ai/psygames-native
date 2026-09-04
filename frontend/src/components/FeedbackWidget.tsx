@@ -26,8 +26,6 @@ import {
 } from '@/src/services/fabPosition';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 
-/** Где человек оставил кнопку отзыва. Доля экрана, не пиксели — см. fabPosition. */
-const FAB_SPOT_KEY = 'psygames_feedback_fab_spot';
 import { DEVCHAT_VISIBLE_EVENT } from '@/src/services/pet';
 import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -46,6 +44,17 @@ import { a11yModal } from '@/src/services/a11y';
 import { getMyDialog, type DialogBubble } from '@/src/services/feedbackDialog';
 import { staleWebViewMajor, canRecord, startRecording, shouldWarnSilent, SILENCE_PEAK, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
 import { holdGame } from '@/src/services/gamePause';
+import { похожеНаОбрывок } from '@/src/services/feedbackTooShort';
+
+/**
+ * Где человек оставил кнопку отзыва. Доля экрана, не пиксели — см. fabPosition.
+ *
+ * ⚠️ Константа стояла ПОСРЕДИ списка импортов, из-за чего все шестнадцать
+ * следующих `import` считались «в теле модуля» и давали по предупреждению каждый.
+ * Правило `import/first` право: импорт после кода читается как условный, хотя
+ * он таким не бывает.
+ */
+const FAB_SPOT_KEY = 'psygames_feedback_fab_spot';
 
 const KINDS: { key: FeedbackKind; emoji: string; labelKey: string }[] = [
   { key: 'confusion', emoji: '🤷', labelKey: 'fbKindConfusion' },
@@ -198,6 +207,13 @@ export default function FeedbackWidget() {
   const [micSilent, setMicSilent] = React.useState(false);
   /** Человек увидел предупреждение о немой записи и решил отправить как есть. */
   const [silentAck, setSilentAck] = React.useState(false);
+  /**
+   * ⚠️ ЗДЕСЬ, А НЕ РЯДОМ С РАЗВИЛКОЙ. Ниже по файлу стоит ранний возврат
+   * `if (!FEEDBACK_ENABLED || hidden) return null`, и хук после него нарушил бы
+   * порядок хуков между отрисовками — это стережёт отдельный гейт, он и поймал.
+   * Согласие «отправить обрывок как есть»; сама развилка считается после возврата.
+   */
+  const [shortAck, setShortAck] = React.useState(false);
   /** Запись остановилась сама, упершись в потолок длины. */
   const [ceilingHit, setCeilingHit] = React.useState(false);
 
@@ -374,6 +390,9 @@ export default function FeedbackWidget() {
    * а говорить могли шёпотом.
    */
   const askSilent = !!note && micSilent && !silentAck;
+  /** Текст похож на обрывок диктовки — разбор и порог в `feedbackTooShort`. */
+  const askShort = !askSilent && !shortAck && похожеНаОбрывок(text, !!note);
+
 
   /**
    * @param ackSilent человек увидел «мы вас не слышим» и выбрал отправить как есть.
@@ -382,7 +401,7 @@ export default function FeedbackWidget() {
    * тут же зовёт отправку — состояние к этому моменту ещё не перерисовалось, и
    * чтение `silentAck` вернуло бы старое `false`. Отправка молча не произошла бы.
    */
-  const submit = async (ackSilent = false) => {
+  const submit = async (ackSilent = false, ackShort = false) => {
     // Голосом БЕЗ текста — полноценный репорт: ради этого запись и делали.
     // Раньше здесь стояло `if (!text.trim())`, а кнопка при этом была активна,
     // если есть запись, — человек жал «Отправить», не происходило ничего, и он
@@ -402,6 +421,8 @@ export default function FeedbackWidget() {
      * предупреждение и ВЫБОР, а решает он.
      */
     if (note && micSilent && !silentAck && !ackSilent) return;
+    // Обрывок диктовки — тем же правилом: спрашиваем, а не отправляем молча.
+    if (похожеНаОбрывок(text, !!note) && !shortAck && !ackShort) return;
     setSending(true);
     const res = await sendFeedback({
       kind,
@@ -762,6 +783,40 @@ export default function FeedbackWidget() {
                         <TouchableOpacity
                           accessibilityRole="button"
                           onPress={() => { setSilentAck(true); void submit(true); }}
+                          disabled={sending}
+                          style={[styles.silentBtn, { borderColor: '#b45309', backgroundColor: '#b45309' }]}
+                        >
+                          {sending
+                            ? <ActivityIndicator color="#fff" />
+                            : <Text numberOfLines={2} style={[styles.silentBtnText, { color: '#fff' }]}>
+                                {t('voiceSendAnyway')}
+                              </Text>}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ) : askShort ? (
+                    /* 🔴 ВТОРАЯ РАЗВИЛКА ТОГО ЖЕ РОДА: текст похож на обрывок диктовки.
+                       Кнопки «Отправить» здесь тоже нет — есть выбор, потому что порог
+                       отличает обрывок от короткой мысли, но не наверняка. Разбор и
+                       числа — в `feedbackTooShort`. */
+                    <View style={[styles.silentBox, { borderColor: '#b45309', backgroundColor: colors.card }]}>
+                      <Text style={[styles.silentTitle, { color: '#b45309' }]}>⚠️ {t('feedbackShortTitle')}</Text>
+                      <Text style={{ color: colors.text, fontSize: 12.5, lineHeight: 17 }}>
+                        {t('feedbackShortBody')}
+                      </Text>
+                      <View style={styles.silentBtns}>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          onPress={() => setShortAck(false)}
+                          style={[styles.silentBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+                        >
+                          <Text numberOfLines={2} style={[styles.silentBtnText, { color: colors.text }]}>
+                            {t('feedbackShortEdit')}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          onPress={() => { setShortAck(true); void submit(false, true); }}
                           disabled={sending}
                           style={[styles.silentBtn, { borderColor: '#b45309', backgroundColor: '#b45309' }]}
                         >
