@@ -18,6 +18,7 @@ import { THUMB_AUDIT } from '@/src/constants/gameThumbAudit';
 const THUMBS: Record<string, any> = {
   anagrams: require('../../assets/images/gamethumbs/anagrams.webp'),
   chinese_tones: require('../../assets/images/gamethumbs/chinese_tones.webp'),
+  dictation: require('../../assets/images/gamethumbs/dictation.webp'),
   ant: require('../../assets/images/gamethumbs/ant.webp'),
   attention_conflict: require('../../assets/images/gamethumbs/attention_conflict.webp'),
   bart: require('../../assets/images/gamethumbs/bart.webp'),

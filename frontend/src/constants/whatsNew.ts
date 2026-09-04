@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.17',
+    date: '2026-09-04',
+    ru: [
+      'Новое упражнение «Диктант»: фраза звучит, вы печатаете её целиком — опечатка не пускает дальше',
+      'На итоге видно знаки в минуту, точность и слабые клавиши',
+    ],
+    en: [
+      'New exercise “Dictation”: the phrase is read out and you type it in full — a typo blocks the way',
+      'The result shows characters per minute, accuracy and your weak keys',
+    ],
+  },
+  {
     version: '2.37.16',
     date: '2026-09-04',
     ru: [

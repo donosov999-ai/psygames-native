@@ -7,7 +7,7 @@
  *
  * Здесь проверяется поведение движка и проводка режима, а не текст на экране.
  */
-import { createState, pressChar, backspace, stats, MARK, hasPhysicalKeyboard } from '@/src/games/vocab-srs/core/typing';
+import { createState, pressChar, backspace, stats, MARK, hasPhysicalKeyboard } from '@/src/services/typing';
 
 const набрать = (слово: string, ввод: string, блок = true) => {
   const ст = createState([слово]);

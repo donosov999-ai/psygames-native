@@ -275,6 +275,21 @@ export const GAMES: GameConfig[] = [
   },
   {
     /**
+     * Диктант (04.09.2026, ТЗ f618c79b). Единственное упражнение, несущее ядро
+     * метода Шестова: сведение скорости слуха и набора торможением быстрого канала.
+     */
+    id: 'dictation',
+    nameKey: 'dictation',
+    descKey: 'dictationDesc',
+    skillKey: 'skillListening',
+    gradient: ['#0f766e', '#15803d'],
+    icon: 'headset',
+    route: '/games/dictation',
+    category: 'attention',
+    mergedInto: 'hearing_group',
+  },
+  {
+    /**
      * Тоны китайского (04.09.2026). Первое упражнение, где zh звучит и требует
      * ответа: до него китайский жил в приложении только иероглифами, и различать
      * тоны человеку было негде.

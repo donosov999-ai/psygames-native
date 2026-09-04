@@ -36,7 +36,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
 import TypingAnswer from '@/src/games/vocab-srs/TypingAnswer';
-import { hasPhysicalKeyboard } from '@/src/games/vocab-srs/core/typing';
+import { hasPhysicalKeyboard } from '@/src/services/typing';
 import {
   buildQueue,
   gradeCard,

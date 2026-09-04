@@ -141,6 +141,7 @@ const WITHOUT_UNDO: Record<string, string> = {
   'bart.tsx': 'probe: накачка шара необратима по замыслу',
   'vocab-srs.tsx': 'probe: gradeCard() пишет грейд в БД повторений до всякого UI',
   'phoneme-pairs.tsx': 'probe: «одинаково/разно» — ответ на пробу',
+  'dictation.tsx': 'probe: каждый символ сверяется немедленно, backspace даёт сам движок печати',
   'chinese-tones.tsx': 'probe: услышанный тон — ответ на пробу, отменять нечего',
   'pseudoword-echo.tsx': 'probe: воспроизведение услышанного — ответ',
   'story-recall.tsx': 'probe: пересказ, правка текста и так своя (TextInput)',

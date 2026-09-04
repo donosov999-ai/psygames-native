@@ -264,7 +264,23 @@ const chineseTones = () => {
   }).join(''));
 };
 
+/* ─────────────────────────── ДИКТАНТ ───────────────────────────
+ * «Фраза звучит — вы печатаете её целиком». Рисуем ровно это: слева волна звука,
+ * справа строка набора, где часть знаков уже введена, а остальное ещё точками.
+ * Не клавиатура: клавиатура означала бы «печать вообще», а тут связка ухо → рука.
+ */
+const dictation = () => {
+  const волна = [18, 30, 44, 30, 22, 36, 26]
+    .map((h, i) => `<rect x="${18 + i * 9}" y="${80 - h / 2}" width="5" height="${h}" rx="2.5" fill="${i % 2 ? C.tealLight : C.teal}"/>`)
+    .join('');
+  const набрано = [0, 1, 2, 3].map((i) => `<rect x="${20 + i * 14}" y="104" width="10" height="12" rx="3" fill="${C.teal}"/>`).join('');
+  const точки = [4, 5, 6, 7, 8].map((i) => `<circle cx="${25 + i * 14}" cy="110" r="2.5" fill="${C.grey}"/>`).join('');
+  const строка = `<rect x="14" y="96" width="132" height="28" rx="8" fill="${C.white}" stroke="${C.grey}" stroke-width="1.5"/>`;
+  return frame(волна + строка + набрано + точки);
+};
+
 const THUMBS = {
+  dictation,
   chinese_tones: chineseTones,
   memory_palace: memoryPalace,
   rhythm_pitch: rhythmPitch,
