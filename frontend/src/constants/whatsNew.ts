@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.41',
+    date: '2026-09-04',
+    ru: ['Судоку: подсказка перестала двоиться — счётчик уехал на саму кнопку, а шапка разжалась на одну капсулу'],
+    en: ['Sudoku: the hint no longer appears twice — the counter moved onto the button itself, freeing up the header'],
+  },
+  {
     version: '2.37.40',
     date: '2026-09-04',
     ru: ['Итог зарядки говорит, где сегодня вышло лучше обычного и где просело — по навыкам, а не голыми очками. Свёрнуто: раскрывается касанием'],

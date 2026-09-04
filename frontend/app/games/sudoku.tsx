@@ -2071,7 +2071,19 @@ export default function SudokuGame() {
         icon={подсказкаЗаперта ? 'lock-closed' : 'bulb'}
         // На кнопке — КОРОТКАЯ форма «Ур. 2»: полная фраза вылезала за край на 27 px
         // (браузерный гейт, 360 px) и обрезалась. Полная остаётся в подписи ниже.
-        label={подсказкаЗаперта ? t('ladderLockedShort').replace('{n}', String(порогПодсказки)) : t('btn_hint')}
+        /**
+         * 🔴 ЧИСЛО НА КНОПКЕ, А НЕ ОТДЕЛЬНЫМ ЧИПОМ В ШАПКЕ.
+         * Отчёт 11fb04e6 (04.09.2026): «в верхнем тулбаре есть подсказка, и эта же
+         * подсказка есть под верхним тулбаром — получается две кнопки». Он прав по
+         * виду: чип носил ТУ ЖЕ иконку лампочки и ТО ЖЕ слово, что кнопка, — то
+         * есть выглядел кнопкой, хотя был счётчиком остатка.
+         * Приём в игре уже был: «Отменить 7» и «Пометки 3» носят число на себе.
+         * Заодно чип освободил место в шапке — вторая половина того же отчёта:
+         * «кнопок много, не слишком компактно, они разъезжаются».
+         */
+        label={подсказкаЗаперта
+          ? t('ladderLockedShort').replace('{n}', String(порогПодсказки))
+          : `${t('btn_hint')} ${Math.max(0, hintMax - hintUses)}`}
         accessibilityLabel={подсказкаЗаперта ? t('ladderLockedAt').replace('{n}', String(порогПодсказки)) : undefined}
         onPress={подсказкаЗаперта ? () => {} : handleHint}
         disabled={подсказкаЗаперта || !selected || hintUses >= hintMax}
@@ -2180,7 +2192,6 @@ export default function SudokuGame() {
           ...((mode === 'towers' || mode === 'unequal') ? [{ key: 'lvl', icon: 'flag' as const, label: variantLabel(mode, language), value: `${level}/${sideStepCount(mode)}`, tone: 'accent' as const }] : []),
           { key: 'err', icon: 'close-circle', label: t('errors'), value: formatErrorCount(failure, errors), tone: 'bad' as const },
           ...(!isCalm ? [{ key: 'time', icon: 'time' as const, label: t('time'), value: hudTime(elapsedTime, t('secShort')) }] : []),
-          { key: 'hint', icon: 'bulb' as const, label: t('btn_hint'), value: hintMax - hintUses, tone: 'good' as const },
         ]}
         stats={statsEl}
         // ПОРТРЕТ: подсказка, отмена и цвет уезжают наверх, внизу остаются только цифры.
