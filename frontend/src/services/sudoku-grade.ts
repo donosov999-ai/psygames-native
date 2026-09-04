@@ -1373,7 +1373,7 @@ export function liftByClueRemoval(
 
 export function logicalBuilder(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
-  opts: { budgetMs?: number; tier?: { min: number; max: number } } = {},
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; waitMs?: number } = {},
 ): {
   steps: number;
   step: () => { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean };
@@ -1390,7 +1390,17 @@ export function logicalBuilder(
    * все заходы до единого: замер дал 25,5 с на 50-м уровне. Доска чуть легче
    * задуманной играется; доска, которой ждут полминуты, — нет.
    */
-  const deadline = Date.now() + BUILD_WAIT_MS;
+  /**
+   * ⚠️ СРОК ПЕРЕОПРЕДЕЛЯЕМ — И ЭТО НЕ ПОСЛАБЛЕНИЕ, А УСЛОВИЕ ИЗМЕРИМОСТИ.
+   * Шесть секунд НАСТЕННЫХ часов — правильная цена для игрока: доска, которой ждут
+   * полминуты, не играется. Но в полном прогоне тесты идут параллельно, и те же
+   * шесть секунд покупают в разы меньше вычислений: копание не доходит, и гейт
+   * краснеет от чужой нагрузки, а не от дефекта. Замер 04.09.2026: каждый из трёх
+   * судоку-гейтов поодиночке 3/3 зелёный, в полном прогоне падает примерно раз из
+   * трёх. Шаткая проверка хуже отсутствующей — она приучает не смотреть на красное.
+   * Поэтому проверка вправе купить себе времени; игра по-прежнему берёт 6000.
+   */
+  const deadline = Date.now() + (opts.waitMs ?? BUILD_WAIT_MS);
   let best: { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean } | null = null;
 
   return {
