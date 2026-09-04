@@ -1,11 +1,16 @@
-/* psygames-game-flexibility-hub · VER 1 · 04.09.2026 */
+/* psygames-game-flexibility-hub · VER 2 · 04.09.2026 */
 /**
- * Развилка «Гибкость» — переключаться между правилами, не залипая.
+ * Развилка «Гибкость» — не залипать на одном признаке.
  *
- * Заведена 04.09.2026 по решению Дениса: каталог из 52 карточек не листается, а эти пробы меряют одно и то же.
+ * ⚠️ VER 2 — СОСТАВ СМЕНИЛСЯ ЦЕЛИКОМ. В первой редакции здесь стояли «Следопыт»,
+ * «Переключение задач» и Висконсинский тест. 04.09.2026 Денис развёл их иначе:
+ * пробы, где правило меняют ИЗВНЕ (по сигналу или молча), уехали в «Конфликт
+ * внимания», «Следопыт» — в «Маршруты» как цепочка, которую надо покрыть.
  *
- * Весь вид — в общем каркасе `HubScreen`. Здесь только данные: шесть таких
- * экранов копиями разошлись бы на первой правке вида.
+ * Здесь остались три, где переключаться приходится САМОМУ, без внешнего сигнала:
+ * в «Закономерностях» надо бросить гипотезу, которая перестала объяснять ряд; в
+ * «Тройке признаков» — на каждом ходу менять признак, по которому ищешь; в
+ * «Символ-цифре» — держать ключ и раз за разом переходить между его строками.
  */
 import React from 'react';
 import HubScreen from '@/src/components/HubScreen';
@@ -20,9 +25,9 @@ export default function FlexibilityHub() {
       icon="swap-horizontal"
       gradient={['#6366f1', '#14b8a6']}
       games={[
-        { route: '/games/trail-making', icon: 'git-network', nameKey: 'trailMaking', descKey: 'trailMakingDesc' },
-        { route: '/games/switching-task', icon: 'repeat', nameKey: 'switchingTask', descKey: 'switchingTaskDesc' },
-        { route: '/games/wcst', icon: 'albums-outline', nameKey: 'wcst', descKey: 'wcstDesc' },
+        { route: '/games/pattern', icon: 'trending-up', nameKey: 'pattern', descKey: 'patternDesc' },
+        { route: '/games/set-game', icon: 'apps', nameKey: 'setGame', descKey: 'setGameDesc' },
+        { route: '/games/sdmt', icon: 'swap-horizontal', nameKey: 'sdmt', descKey: 'sdmtDesc' },
       ]}
     />
   );

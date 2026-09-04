@@ -79,7 +79,7 @@ const HUB_REASONS = {
   '/games/words-hub': 'развилка: шесть проб на словарь (vocab-srs / semantic-sort / cloze / lexical-decision / anagrams / phonemic-fluency), каждая проверяется своим маршрутом',
   '/games/hearing-hub': 'развилка: три пробы на слух (phoneme-pairs / chinese-tones / pseudoword-echo), каждая проверяется своим маршрутом',
   '/games/search-hub': 'развилка: шесть проб на зрительный поиск (visual-search / proofreading / find-differences / mahjong / schulte / quick-count), каждая проверяется своим маршрутом',
-  '/games/flexibility-hub': 'развилка: три пробы на переключение (trail-making / switching-task / wcst), каждая проверяется своим маршрутом',
+  '/games/flexibility-hub': 'развилка: три пробы на переключение признака (pattern / set-game / sdmt), каждая проверяется своим маршрутом',
   '/games/risk-hub': 'развилка: три пробы на решения под риском (bart / iowa / prl), каждая проверяется своим маршрутом',
   '/games/visual-memory-hub': 'развилка: три пробы на зрительную память (memory-matrix / picture-pairs / chess-blind), каждая проверяется своим маршрутом',
   '/games/mnemonics-hub': 'развилка: четыре мнемотехники (mnemonics / memory-palace / faces-names / word-pairs), каждая проверяется своим маршрутом',

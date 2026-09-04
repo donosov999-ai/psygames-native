@@ -165,8 +165,8 @@ describe('🔴 рекомендуется только разрешённое п
     const HUBS = [
       'span_group', 'attention_conflict', 'sudoku_group',
       'counting_group', 'words_group', 'hearing_group', 'search_group',
-      'flexibility_group', 'risk_group', 'visual_memory_group', 'mnemonics_group',
-      'languages_group', 'towers_group', 'routes_group',
+      'risk_group', 'visual_memory_group', 'mnemonics_group',
+      'languages_group', 'towers_group', 'routes_group', 'flexibility_group',
     ];
     expect([...RECO_GROUP_HUBS].sort()).toEqual([...HUBS].sort());
     const p = profile('odv999');

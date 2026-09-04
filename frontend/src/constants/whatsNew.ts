@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.25',
+    date: '2026-09-04',
+    ru: [
+      '«Гибкость» теперь про то, чтобы не залипать на признаке: закономерности, тройка признаков, символ-цифра',
+      '«Переключение задач» и Висконсинский тест переехали в «Конфликт внимания», «Следопыт» — в «Маршруты»',
+    ],
+    en: [
+      'Flexibility is now about not getting stuck on a feature: patterns, set, symbol-digit',
+      'The Switching Task and the Wisconsin test moved to Attention Conflict, Trail Making to Routes',
+    ],
+  },
+  {
     version: '2.37.24',
     date: '2026-09-04',
     ru: ['Новая развилка «Маршруты»: «Точки» и «Одна линия» — обе про путь, который обязан покрыть всё'],

@@ -33,7 +33,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'faces-names': { ver: 2, date: '20.08.2026' },
   'find-differences': { ver: 1, date: '19.08.2026' },
   'flanker': { ver: 1, date: '19.08.2026' },
-  'flexibility-hub': { ver: 1, date: '04.09.2026' },
+  'flexibility-hub': { ver: 2, date: '04.09.2026' },
   'go-no-go': { ver: 3, date: '28.08.2026' },
   'goods-sort': { ver: 2, date: '27.08.2026' },
   'hanoi': { ver: 3, date: '28.08.2026' },

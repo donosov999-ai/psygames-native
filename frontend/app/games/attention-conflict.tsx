@@ -129,6 +129,25 @@ const SUB_GAMES = [
     descKey: 'cptDesc' as const,
     typeKey: 'acTypeCpt' as const,
   },
+  /**
+   * Две пробы на смену правила — 04.09.2026, решение Дениса. Разница между ними в
+   * том, ГОВОРЯТ ли о смене: «Переключение задач» подаёт сигнал, Висконсинский тест
+   * меняет правило молча, и заметить это надо самому.
+   */
+  {
+    route: '/games/switching-task',
+    icon: 'repeat' as const,
+    nameKey: 'switchingTask' as const,
+    descKey: 'switchingTaskDesc' as const,
+    typeKey: 'acTypeSwitch' as const,
+  },
+  {
+    route: '/games/wcst',
+    icon: 'albums-outline' as const,
+    nameKey: 'wcst' as const,
+    descKey: 'wcstDesc' as const,
+    typeKey: 'acTypeWcst' as const,
+  },
 ];
 
 function DemoAttentionRedirect() {
