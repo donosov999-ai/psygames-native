@@ -5,7 +5,7 @@
  * Оценка автоматическая: мимо → again (карточка вернётся в сессию через 3 позиции),
  * верно → good, верно быстрее 2.5с → easy. Свои слова — через модал «Мои слова».
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { hasVocab } from '@/src/constants/translationVocab';
 import {
   View,
@@ -35,6 +35,8 @@ import LevelCleared from '@/src/components/LevelCleared';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
+import TypingAnswer from '@/src/games/vocab-srs/TypingAnswer';
+import { hasPhysicalKeyboard } from '@/src/games/vocab-srs/core/typing';
 import {
   buildQueue,
   gradeCard,
@@ -58,7 +60,16 @@ const VOCAB_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'result' | 'done';
-type Direction = 'recognize' | 'recall'; // recognize: L2→родной · recall: родной→L2
+/**
+ * recognize: L2→родной · recall: родной→L2 (оба — выбором из вариантов)
+ * typing:    родной→L2, ответ ПЕЧАТАЕТСЯ целиком (задача 676a62cb)
+ *
+ * 🔴 ЗАЧЕМ ТРЕТЬЕ. Выбор из вариантов меряет УЗНАВАНИЕ: правильный ответ лежит
+ * на экране, его надо опознать. Извлечение из памяти меряет только печать — тот
+ * самый testing effect (Roediger & Karpicke 2006: через неделю вспоминают
+ * примерно на половину больше). Это же структурное отличие от Duolingo.
+ */
+type Direction = 'recognize' | 'recall' | 'typing';
 
 /**
  * Варианты ответа: верный плюс до трёх отвлекающих, вперемешку.
@@ -112,7 +123,18 @@ export default function VocabSrsGame() {
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const [newLimit, setNewLimit] = useState(() => num('newLimit', 10));
-  const [direction, setDirection] = useState<Direction>(() => (str('direction', 'recognize') as Direction));
+  /**
+   * ⚠️ Печать доступна только там, где есть настоящая клавиатура. Проверяем УКАЗАТЕЛЬ,
+   * а не платформу: приложение живёт в WebView и на телефоне тоже, у Tauri-сборки
+   * под Android `Platform.OS === 'web'` ровно как на макбуке (см. core/typing).
+   */
+  const клавиатура = useMemo(() => hasPhysicalKeyboard(), []);
+  const [direction, setDirection] = useState<Direction>(() => {
+    const с = str('direction', 'recognize') as Direction;
+    // Сохранённый «typing» с ноутбука не должен встретить человека на телефоне
+    // полем, в которое нечем печатать.
+    return с === 'typing' && !hasPhysicalKeyboard() ? 'recall' : с;
+  });
 
   const [stats, setStats] = useState<SrsStats | null>(null);
   const [wordsModal, setWordsModal] = useState(false);
@@ -130,6 +152,7 @@ export default function VocabSrsGame() {
   const newLearnedRef = useRef<Set<string>>(new Set());
   const reviewsDoneRef = useRef(0);
   const rtSumRef = useRef(0);
+  const typosRef = useRef(0);
   const answersRef = useRef(0);
   const shownAtRef = useRef(0);
   const [startTime, setStartTime] = useState(0);
@@ -169,6 +192,7 @@ export default function VocabSrsGame() {
     newLearnedRef.current = new Set();
     reviewsDoneRef.current = 0;
     rtSumRef.current = 0;
+    typosRef.current = 0;
     answersRef.current = 0;
     setStartTime(gameNow());
     setPhase('playing');
@@ -203,11 +227,41 @@ export default function VocabSrsGame() {
           accuracy: answersRef.current > 0 ? correctCount / answersRef.current : 0,
           mean_rt_ms: answersRef.current > 0 ? Math.round(rtSumRef.current / answersRef.current) : 0,
           new_limit: newLimit,
+          typos: typosRef.current,   // опечатки, исправленные под блокировкой — не ошибки, но замер
         },
       });
     } catch (e) {
       console.error('Error saving session:', e);
     }
+  };
+
+  /**
+   * Ответ ПЕЧАТЬЮ. Проводка та же, что у выбора, — карточка, оценка SM-2, переход;
+   * отличий ровно два, и оба по ТЗ:
+   *   · дойти сюда можно только набрав слово целиком верно, значит ответ всегда верный;
+   *   · опечатки НЕ идут в ошибки сессии — они блокировали курсор и уже исправлены,
+   *     считать их провалом значило бы наказывать за то, чему упражнение учит.
+   * Опечатки не пропадают: уходят в `details.typos` и в оценку карточки —
+   * набранное без единой опечатки идёт как «easy», с опечатками как «good».
+   */
+  const handleTyped = async (typos: number) => {
+    if (picked !== null) return;
+    const card = queue[idx];
+    if (!card) return;
+    const rt = gameNow() - shownAtRef.current;
+    setPicked(card.target);
+    answersRef.current += 1;
+    rtSumRef.current += rt;
+    typosRef.current += typos;
+    setCorrectCount((c) => c + 1);
+    if (card.isNew) newLearnedRef.current.add(card.id);
+    else reviewsDoneRef.current += 1;
+    await gradeCard(language, tgt, card.id, typos === 0 && rt < EASY_RT_MS * 3 ? 'easy' : 'good');
+    setTimeout(() => {
+      const next = idx + 1;
+      if (next >= queue.length) finishSession(queue.length);
+      else { setIdx(next); makeOptions(queue[next], pool); }
+    }, 450);
   };
 
   const handlePick = async (option: string) => {
@@ -342,7 +396,10 @@ export default function VocabSrsGame() {
         <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('srsDirection')}</Text>
           <View style={styles.optionButtons}>
-            {([['recognize', t('srsRecognize')], ['recall', t('srsRecall')]] as const).map(([d, label]) => (
+            {(клавиатура
+              ? ([['recognize', t('srsRecognize')], ['recall', t('srsRecall')], ['typing', t('srsTyping')]] as const)
+              : ([['recognize', t('srsRecognize')], ['recall', t('srsRecall')]] as const)
+            ).map(([d, label]) => (
               <TouchableOpacity
                 accessibilityRole="button"
                 key={d}
@@ -359,6 +416,14 @@ export default function VocabSrsGame() {
               </TouchableOpacity>
             ))}
           </View>
+          {/* Причина, а не молчание: без клавиатуры режима печати нет, и человек
+              должен знать почему — экранная клавиатура это ДРУГОЕ упражнение под
+              тем же названием, а не облегчённая версия. */}
+          {!клавиатура && (
+            <Text style={[styles.hintText, { color: colors.textSecondary, marginTop: 8, textAlign: 'left' }]}>
+              {t('srsTypingNeedsKeyboard')}
+            </Text>
+          )}
         </View>
 
         {/* Мои слова */}
@@ -396,6 +461,7 @@ export default function VocabSrsGame() {
     const prompt = direction === 'recognize' ? card.target : card.base;
     const field = direction === 'recognize' ? 'base' : 'target';
     const right = card[field];
+    const печатаем = direction === 'typing';
 
     return (
       <GameShell
@@ -418,6 +484,16 @@ export default function VocabSrsGame() {
           </View>
         }
         toolbar={
+          печатаем ? (
+            <TypingAnswer
+              key={card.id}
+              word={card.target}
+              colors={colors}
+              hint={t('srsTypingHint')}
+              disabled={picked !== null}
+              onDone={handleTyped}
+            />
+          ) : (
           <View style={styles.toolbarOptions}>
             {options.map((o) => {
               const isRight = picked !== null && o === right;
@@ -448,6 +524,7 @@ export default function VocabSrsGame() {
               );
             })}
           </View>
+          )
         }
       >
         <View style={[styles.promptCard, { backgroundColor: colors.surface }]}>
@@ -455,7 +532,7 @@ export default function VocabSrsGame() {
         </View>
         {/* Строка «что делать»: без неё правило видно только в справке, а
             в справку во время партии не ходят. */}
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('vocabSrsHint')}</Text>
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{печатаем ? t('srsTypingTask') : t('vocabSrsHint')}</Text>
       </GameShell>
     );
   };
