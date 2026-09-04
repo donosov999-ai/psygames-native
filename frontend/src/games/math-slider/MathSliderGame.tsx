@@ -230,31 +230,6 @@ function NumberLine({
             { left: `${estimatePercent * 100}%`, backgroundColor: theme.primary },
           ]}
         />
-        {/*
-          🔴 ВЫБРАННОЕ ЧИСЛО — НАД РУЧКОЙ, А НЕ ПОД ДОРОЖКОЙ.
-          Отчёт Дениса 02.09.2026: «когда пальцем двигаем ползунок, цифра
-          получается спрятана под пальцем, то есть мы не видим цифру, которую
-          выбираем; цифру нужно поднять над ползунком».
-          Он прав по устройству руки: палец лежит НА ручке и закрывает всё, что
-          ниже и вокруг неё, — а число стояло отдельной строкой под дорожкой,
-          ровно в тени кисти. Пузырь над ручкой в тень не попадает: кисть уходит
-          вниз от точки касания.
-          Пузырь едет вместе с ручкой, потому что игра про попадание в точку:
-          число у левого края экрана пришлось бы соотносить с ручкой глазами.
-        */}
-        <View
-          pointerEvents="none"
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          style={[styles.estimateBubble, {
-            left: `${estimatePercent * 100}%`,
-            backgroundColor: theme.primary,
-          }]}
-        >
-          <Text style={styles.estimateBubbleText} numberOfLines={1}>
-            {formatNumber(estimate, locale)}
-          </Text>
-        </View>
       </View>
     </View>
   );
@@ -379,6 +354,37 @@ function MathSliderSession({
    * Экран показывал «что-то сломалось» вместо игры. Поймано проверкой в
    * браузере 19.08.2026.
    */
+  /**
+   * 🔴 ДЕСЯТЬ ПОДТВЕРЖДЕНИЙ ЗА ПАРТИЮ — ЭТО ДЕСЯТЬ ЛИШНИХ КАСАНИЙ.
+   * Отчёт 736c5831: «что за 10 подтверждений, один раз выбрал — всё; либо,
+   * грубо говоря, остановил, 3 секунды прошло — и подтверждение автоматом».
+   * Взят второй вариант его же словами, и не случайно: подтверждение по отпусканию
+   * пальца засчитывало бы промах мгновенно, а тремя секундами тишины ответ можно
+   * поправить — ползунок двигается, отсчёт начинается заново.
+   *
+   * ⚠️ ОТСЧЁТ ИДЁТ ПО ИГРОВЫМ ЧАСАМ. `now` сюда подаёт экран, и это `gameNow`,
+   * который замирает на паузе и на справке «Правила». С `Date.now` открытая
+   * справка досчитала бы до трёх и засчитала ответ за спиной у читающего — ровно
+   * та грабля, что уже описана в гейте трекера объектов.
+   *
+   * Отсчёт НЕ начинается, пока человек не тронул шкалу: иначе игра сама
+   * засчитала бы значение по умолчанию, к которому никто не прикасался.
+   */
+  const отвечает = session.phase === 'playing' || session.phase === 'training';
+  const тронул = React.useRef(0);
+  React.useEffect(() => { тронул.current = 0; }, [session.currentIndex, session.phase]);
+  React.useEffect(() => {
+    if (!отвечает) return;
+    const id = setInterval(() => {
+      if (!тронул.current) return;
+      if (now() - тронул.current < AUTO_CONFIRM_MS) return;
+      clearInterval(id);
+      setSession((current) => confirmEstimate(current, now()));
+    }, 150);
+    return () => clearInterval(id);
+    // `now` в зависимостях: экран подаёт стабильный `gameNow`, перезапуска не будет
+  }, [отвечает, session.currentIndex, now]);
+
   const autoAdvance = session.phase === 'feedback';
   React.useEffect(() => {
     if (!autoAdvance) return;
@@ -477,6 +483,25 @@ function MathSliderSession({
       <View style={[styles.expressionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <Text style={[styles.prompt, { color: theme.textSecondary }]}>{strings.prompt}</Text>
         <Text accessibilityRole="header" style={[styles.expression, { color: theme.text }]}>{formatExpression(question.expression, locale)}</Text>
+        {/*
+          🔴 ВЫБРАННОЕ ЧИСЛО — НАД ШКАЛОЙ, А НЕ НАД РУЧКОЙ.
+          Отчёт 736c5831 (04.09.2026, повторный): «уже говорил, надо переместить
+          цифру над пальцем, то есть над шкалой». Первый заход 02.09 поднял число
+          пузырём над ручкой — и этого не хватило: замер по стилям даёт 32 точки
+          от места касания до нижнего края пузыря, то есть около 5 мм. Подушечка
+          пальца закрывает вокруг точки касания примерно 8–10 мм, поэтому число
+          продолжало жить в тени кисти.
+          Здесь оно стоит в карточке выражения — там, куда и так смотрят, читая
+          пример, и куда рука не дотягивается вовсе. Ездить за ручкой перестало;
+          соотносить глазами ничего не нужно, потому что число одно на экране.
+        */}
+        <Text style={[styles.estimateCaption, { color: theme.textSecondary }]}>{strings.yourEstimate}</Text>
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[styles.estimateValue, { color: theme.primary }]}
+        >
+          {formatNumber(session.estimate, locale)}
+        </Text>
       </View>
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <NumberLine
@@ -488,7 +513,10 @@ function MathSliderSession({
           theme={theme}
           label={strings.sliderLabel}
           hint={strings.sliderHint}
-          onChange={(value) => setSession((current) => setEstimate(current, value))}
+          onChange={(value) => {
+            тронул.current = now();
+            setSession((current) => setEstimate(current, value));
+          }}
           onConfirm={() => setSession((current) => confirmEstimate(current, now()))}
         />
       </View>
@@ -500,6 +528,9 @@ function MathSliderSession({
           <View style={styles.feedbackRow}><Text style={[styles.feedbackLabel, { color: theme.textSecondary }]}>{strings.signedError}</Text><Text style={[styles.feedbackValue, { color: theme.text }]}>{feedback.signedError > 0 ? '+' : ''}{formatNumber(feedback.signedError, locale)}</Text></View>
         </View>
       ) : null}
+      {!isFeedback ? (
+        <Text style={[styles.autoHint, { color: theme.textSecondary }]}>{strings.autoConfirmHint}</Text>
+      ) : null}
       <View style={styles.actions}>
         {isFeedback ? (
           <ActionButton
@@ -507,9 +538,7 @@ function MathSliderSession({
             theme={theme}
             onPress={() => setSession((current) => advanceSession(current, now()))}
           />
-        ) : (
-          <ActionButton label={strings.confirm} theme={theme} onPress={() => setSession((current) => confirmEstimate(current, now()))} />
-        )}
+        ) : null}
         <ActionButton label={strings.playAgain} theme={theme} secondary onPress={restart} />
       </View>
     </ScrollView>
@@ -522,6 +551,9 @@ function MathSliderSession({
  * больше — превращается в ожидание.
  */
 const FEEDBACK_MS = 1800;
+
+/** Сколько тишины на шкале означает «ответ готов». Слова Дениса: «остановил, 3 секунды прошло». */
+const AUTO_CONFIRM_MS = 3000;
 
 export default function MathSliderGame(props: MathSliderGameProps) {
   const trialCount = props.trialCount ?? 8;
@@ -561,7 +593,7 @@ const styles = StyleSheet.create({
   prompt: { fontSize: 14, fontWeight: '600', textAlign: 'center' },
   expression: { fontSize: 34, lineHeight: 44, fontWeight: '900', textAlign: 'center', writingDirection: 'ltr' },
   // Отступ сверху 46, а не 16: над дорожкой теперь стоит пузырь с числом.
-  numberLineBlock: { width: '100%', paddingTop: 46, paddingBottom: 4 },
+  numberLineBlock: { width: '100%', paddingTop: 10, paddingBottom: 4 },
   trackTouchTarget: { width: '100%', minHeight: 88, justifyContent: 'flex-start', position: 'relative', borderRadius: 12 },
   track: { position: 'absolute', top: 27, left: 0, right: 0, height: 6, borderRadius: 3 },
   tick: { position: 'absolute', top: 18, width: 2, height: 24, transform: [{ translateX: -1 }] },
@@ -573,13 +605,9 @@ const styles = StyleSheet.create({
    * половину: точное значение ширины заранее неизвестно (число от «0» до
    * «12 500»), а привязка левым краем увела бы пузырь в сторону от ручки.
    */
-  estimateBubble: {
-    position: 'absolute', top: -34, minWidth: 56, marginLeft: -28,
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 4,
-  },
-  estimateBubbleText: { color: '#fff', fontSize: 20, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  estimateValue: { fontSize: 40, lineHeight: 48, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  estimateCaption: { fontSize: 12, fontWeight: '600', letterSpacing: 0.4, textTransform: 'uppercase' },
+  autoHint: { fontSize: 13, textAlign: 'center' },
   feedbackCard: { width: '100%', borderRadius: 20, borderWidth: 1, padding: 16, gap: 8 },
   feedbackRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   feedbackLabel: { flex: 1, fontSize: 14 },
