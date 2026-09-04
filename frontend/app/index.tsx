@@ -395,13 +395,43 @@ function FullHome() {
     [profile],
   );
 
+  /**
+   * 🔴 В КАЖДОЙ КАТЕГОРИИ СНАЧАЛА РАЗВИЛКИ, ПОТОМ ОДИНОЧНЫЕ УПРАЖНЕНИЯ.
+   *
+   * Просьба Дениса 04.09.2026. Смысл не в красоте: развилка ведёт к нескольким
+   * играм, и когда она стоит вперемешку с одиночными, человек сперва открывает
+   * три карточки подряд, а потом узнаёт, что четвёртая содержала ещё шесть.
+   * Порядок внутри групп сохраняем прежним — он задан каталогом осознанно.
+   */
   const grouped = useMemo(() => {
     const map: Record<GameCategory, GameConfig[]> = {
       memory: [], attention: [], logic: [], intuition: [], action: [], recovery: [],
     };
     for (const g of visibleGames) map[g.category].push(g);
+    for (const к of Object.keys(map) as GameCategory[]) {
+      // Стабильная сортировка: внутри «развилок» и внутри «одиночных» порядок каталога.
+      map[к] = [...map[к].filter((g) => g.hub), ...map[к].filter((g) => !g.hub)];
+    }
     return map;
   }, [visibleGames]);
+
+  /**
+   * Сколько УПРАЖНЕНИЙ за развилкой — число на её значке.
+   *
+   * ⚠️ Считаем вглубь. У зонтика «Языки» внутри лежат не игры, а две развилки, и
+   * прямой подсчёт дал бы «2» — то есть значок сообщал бы про меню, а не про то,
+   * сколько там занятий. Разворачиваем вложенные развилки до упражнений.
+   */
+  const составРазвилки = useMemo(() => {
+    const прямые: Record<string, string[]> = {};
+    for (const g of GAMES) if (g.mergedInto) (прямые[g.mergedInto] ??= []).push(g.id);
+    const хаб = new Set(GAMES.filter((g) => g.hub).map((g) => g.id));
+    const счёт = (id: string, глубина = 0): number =>
+      глубина > 3 ? 0 : (прямые[id] ?? []).reduce((с, вложен) => с + (хаб.has(вложен) ? счёт(вложен, глубина + 1) : 1), 0);
+    const из: Record<string, number> = {};
+    for (const id of хаб) из[id] = счёт(id);
+    return из;
+  }, []);
 
   // «⭐ X/15» на карточках — сводка пройденных уровней (пишет LevelCleared), multiGet на фокусе
   const visibleGameIds = useMemo(() => visibleGames.map((g) => g.id), [visibleGames]);
@@ -1228,6 +1258,7 @@ function FullHome() {
                     width={isWeb ? '100%' as any : cardWidth}
                     height={isWeb ? undefined : cardHeight}
                     starsInfo={levelStarsSummary[game.id]}
+                    hubCount={game.hub ? составРазвилки[game.id] : undefined}
                     onPress={() => router.push(game.route as any)}
                   />
                 ))}

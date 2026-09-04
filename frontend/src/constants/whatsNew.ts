@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.18',
+    date: '2026-09-04',
+    ru: [
+      'На карточке-развилке появился значок с числом упражнений внутри — видно сразу, что это меню, а не игра',
+      'В каждой категории развилки идут первыми, потом отдельные упражнения',
+    ],
+    en: [
+      'Hub cards now carry a badge with the number of exercises inside — you see at once it is a menu, not a game',
+      'In every category hubs come first, then the standalone exercises',
+    ],
+  },
+  {
     version: '2.37.17',
     date: '2026-09-04',
     ru: [

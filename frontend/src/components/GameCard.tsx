@@ -29,10 +29,18 @@ interface GameCardProps {
   height?: number;
   /** v1.108.0: прогресс уровней «⭐ X/15» (авто-поток). Нет данных → бейдж не рисуем. */
   starsInfo?: { completed: number };
+  /**
+   * 🔴 РАЗВИЛКА ЛИ ЭТО. Просьба Дениса 04.09.2026: «где хаб — рисовать значок в
+   * правом углу, чтобы я видел сразу». До этого развилка и упражнение выглядели
+   * одинаково, и понять, ведёт карточка в игру или в меню, можно было только
+   * нажав. Сколько игр внутри — числом рядом со значком: «меню» без числа не
+   * говорит, сколько там.
+   */
+  hubCount?: number;
 }
 
 export default function GameCard({
-  id, nameKey, descKey, skillKey, gradient, icon, onPress, width, height, starsInfo,
+  id, nameKey, descKey, skillKey, gradient, icon, onPress, width, height, starsInfo, hubCount,
 }: GameCardProps) {
   useTheme();
   const gameImg = gameIcon(id);
@@ -144,6 +152,14 @@ export default function GameCard({
             />
           </View>
         )}
+        {/* 🔴 Значок развилки — правый верхний угол, поверх превью. Ставим ДО иконки
+            игры, чтобы он не зависел от того, картинка там или глиф. */}
+        {hubCount ? (
+          <View style={[styles.hubBadge, { backgroundColor: iconBg }]} pointerEvents="none">
+            <Ionicons name="layers" size={13} color={fg} />
+            <Text style={[styles.hubBadgeText, { color: fg }]}>{hubCount}</Text>
+          </View>
+        ) : null}
         {/* Icon — top, fixed position */}
         {gameImg ? (
           <Image {...a11yDecor} source={gameImg} style={styles.iconImage} resizeMode="cover" />
@@ -180,6 +196,16 @@ export default function GameCard({
 }
 
 const styles = StyleSheet.create({
+  /**
+   * Значок развилки. Абсолютом в правом верхнем углу: карточка внутри — колонка с
+   * flex:1 у текста, и обычным потоком значок сдвинул бы заголовок.
+   */
+  hubBadge: {
+    position: 'absolute', top: 8, right: 8, zIndex: 3,
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    paddingHorizontal: 7, paddingVertical: 3, borderRadius: 999,
+  },
+  hubBadgeText: { fontSize: 12, fontWeight: '800' },
   // Слой превью: абсолютом под контентом карточки, обрезается её borderRadius
   thumbLayer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' },
   thumbImg: { width: '100%', height: '100%' },

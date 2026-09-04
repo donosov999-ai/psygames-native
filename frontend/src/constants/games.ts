@@ -1082,6 +1082,8 @@ export const GAMES: GameConfig[] = [
     route: '/games/words-hub',
     category: 'memory',
     hub: true,
+    // Входит в зонтик «Языки»: иначе карточка дублируется — сверху и внутри зонтика.
+    mergedInto: 'languages_group',
   },
   {
     /**
@@ -1098,6 +1100,8 @@ export const GAMES: GameConfig[] = [
     route: '/games/hearing-hub',
     category: 'attention',
     hub: true,
+    // Входит в зонтик «Языки»: иначе карточка дублируется — сверху и внутри зонтика.
+    mergedInto: 'languages_group',
   },
   {
     /**
