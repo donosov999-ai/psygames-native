@@ -24,6 +24,9 @@ import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientTe
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { filterAllowedGames } from '@/src/constants/profiles';
+import { visibleSuiteCards } from '@/src/constants/gameSuites';
 
 const GRADIENT = ['#0ea5e9', '#10b981'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -39,19 +42,19 @@ const SUB_GAMES = [
     descKey: 'digitSpanDesc' as const,
     typeKey: 'spanTypeDigit' as const,   // «Цифры · forward + backward» — словарь LanguageContext
   },
+  /**
+   * КАРТОЧКА НАБОРА «Позиции» — решение Дениса 05.09.2026. Под ней три экрана:
+   * матрица памяти (регулярная сетка), кубики Корси (нерегулярные блоки) и
+   * spatial-span (та же сетка, обратный порядок). Матрица переехала сюда из
+   * «Зрительной памяти»: два из трёх — тесты охвата, и меряют они одно.
+   * Разбор и вскрытый по дороге дубль — в шапке `src/constants/gameSuites.ts`.
+   */
   {
-    route: '/games/corsi',
+    route: '/games/memory-matrix',
     icon: 'grid' as const,
-    nameKey: 'corsi' as const,
-    descKey: 'corsiDesc' as const,
-    typeKey: 'spanTypeSpatialFwd' as const,
-  },
-  {
-    route: '/games/spatial-span',
-    icon: 'swap-horizontal' as const,
-    nameKey: 'spatialSpan' as const,
-    descKey: 'spatialSpanDesc' as const,
-    typeKey: 'spanTypeSpatialBwd' as const,
+    nameKey: 'suitePositions' as const,
+    descKey: 'suitePositionsDesc' as const,
+    suiteId: 'suite_positions',
   },
   /**
    * Три «охвата с нагрузкой» — добавлены 04.09.2026. Отличие от первых трёх в том,
@@ -100,13 +103,24 @@ export default function SpanGame() {
   // Web-demo: хаб-выбор модальности не показываем — сразу первая подигра.
   // Query (embed=1, lang=…) обязан пережить редирект — embed-контракт с сайтом
   // (запись Кодекса в SYNC 22.07: терялись embed/lang → всплывало интро).
-  if (isWebDemo()) {
-    return <DemoSpanRedirect />;
-  }
-
   const { colors } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
+  const { profile } = useProfile();
+  const можно = React.useMemo(
+    () => new Set(filterAllowedGames(profile).map((g: { route?: string }) => g.route as string)),
+    [profile],
+  );
+  const карточки = visibleSuiteCards(SUB_GAMES, можно, t);
+
+  /**
+   * ⚠️ ВЫХОД В WEB-DEMO СТОИТ ПОСЛЕ ХУКОВ. До правки 05.09.2026 он был выше, и
+   * четыре хука подряд оказывались условными: в demo-режиме React видел один
+   * порядок вызовов, в обычном другой.
+   */
+  if (isWebDemo()) {
+    return <DemoSpanRedirect />;
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -128,12 +142,12 @@ export default function SpanGame() {
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
           {t('spanPickModality')}
         </Text>
-        {SUB_GAMES.map((g) => (
+        {карточки.map(({ card: g, route: маршрут, tag: тип }) => (
           <TouchableOpacity
             accessibilityRole="button"
             key={g.route}
             style={[styles.subCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            onPress={() => router.push(g.route as any)}
+            onPress={() => router.push(маршрут as any)}
             activeOpacity={0.7}
           >
             <View style={[styles.iconCircle, { backgroundColor: GRADIENT[0] + '22' }]}>
@@ -142,7 +156,7 @@ export default function SpanGame() {
             <View style={styles.cardBody}>
               <Text style={[styles.cardName, { color: colors.text }]}>{t(g.nameKey)}</Text>
               <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{t(g.descKey)}</Text>
-              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{t(g.typeKey)}</Text>
+              {тип ? <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{тип}</Text> : null}
             </View>
             <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
           </TouchableOpacity>

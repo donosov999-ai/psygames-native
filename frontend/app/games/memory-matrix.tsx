@@ -29,6 +29,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#8e2de2', '#4a00e0'];
@@ -589,6 +590,7 @@ export default function MemoryMatrixGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('memoryMatrix')}</Text>
         <View style={{ width: 40 }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared gameId="memory_matrix" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}

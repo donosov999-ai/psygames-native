@@ -28,7 +28,7 @@ import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
-import { GAME_SUITES } from '@/src/constants/gameSuites';
+import { visibleSuiteCards } from '@/src/constants/gameSuites';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { filterAllowedGames } from '@/src/constants/profiles';
 
@@ -129,27 +129,6 @@ function DemoAttentionRedirect() {
  * сама. Иначе она устареет ровно так же, как устарело «Все три тренируют одну
  * способность» при десяти парадигмах.
  */
-type Карточка = { route: string; icon: any; nameKey: string; descKey: string; typeKey?: string; suiteId?: string };
-
-function видимыеКарточки(
-  можно: Set<string>,
-  t: (k: string) => string,
-): { карточка: Карточка; маршрут: string; тип: string }[] {
-  const итог: { карточка: Карточка; маршрут: string; тип: string }[] = [];
-  for (const g of SUB_GAMES as Карточка[]) {
-    if (g.suiteId) {
-      const набор = GAME_SUITES.find((s) => s.id === g.suiteId);
-      const открытые = (набор?.modes ?? []).filter((m) => можно.has(m.route));
-      if (!открытые.length) continue;
-      итог.push({ карточка: g, маршрут: открытые[0].route, тип: открытые.map((m) => t(m.labelKey)).join(' · ') });
-    } else {
-      if (!можно.has(g.route)) continue;
-      итог.push({ карточка: g, маршрут: g.route, тип: g.typeKey ? t(g.typeKey) : '' });
-    }
-  }
-  return итог;
-}
-
 export default function AttentionConflictGame() {
 
   const { colors } = useTheme();
@@ -160,7 +139,7 @@ export default function AttentionConflictGame() {
     () => new Set(filterAllowedGames(profile).map((g: { route?: string }) => g.route as string)),
     [profile],
   );
-  const карточки = видимыеКарточки(можно, t);
+  const карточки = visibleSuiteCards(SUB_GAMES, можно, t);
 
   /**
    * Web-demo: хаб-выбор парадигмы не показываем — сразу первая подигра.
@@ -194,7 +173,7 @@ export default function AttentionConflictGame() {
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
           {t('attentionConflictPickMode')}
         </Text>
-        {карточки.map(({ карточка: g, маршрут, тип }) => (
+        {карточки.map(({ card: g, route: маршрут, tag: тип }) => (
           <TouchableOpacity
             accessibilityRole="button"
             key={g.route}
