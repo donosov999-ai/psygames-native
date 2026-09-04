@@ -683,6 +683,25 @@ export const GAMES: GameConfig[] = [
     category: 'logic',
     mergedInto: 'towers_group',
   },
+  /**
+   * Сортировка жидкостей — просьба Дениса 05.09.2026 (кадры App Store «Бутылочки
+   * Пробирки. Water Sort», SortPuz). В «Башни», а не в «Поиск»: здесь стопка,
+   * ход разрешён не всякий, и выигрывает тот, кто считает наперёд — ровно ось
+   * ханойской и лондонской башен. Ограничивает ход цвет верхнего слоя, а не
+   * размер диска, но планирование то же.
+   */
+  {
+    id: 'water_sort',
+    nameKey: 'waterSort',
+    descKey: 'waterSortDesc',
+    skillKey: 'skillPlanning',
+    gradient: ['#00c6ff', '#0072ff'],
+    icon: 'flask',
+    route: '/games/water-sort',
+    category: 'logic',
+    hideFromMenu: true,
+    mergedInto: 'towers_group',
+  },
   // ⚠️ Градиент зашит в экране и по нему посчитан цвет текста на плашке: оба конца
   // берут AA белым (5.17 и 5.47), вуаль не нужна. Меняешь — пересчитывай.
   /**

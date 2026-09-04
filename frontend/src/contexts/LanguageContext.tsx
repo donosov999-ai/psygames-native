@@ -1229,6 +1229,22 @@ const translations: Translations = {
   suiteArrowsDesc:    { ru: 'Одна стрелка и две кнопки: мешают бока, позиция, число вариантов или подсказка', en: 'One arrow, two buttons: flankers, position, number of choices or a cue' },
   suiteStream:        { ru: 'Долгий поток',              en: 'Long stream' },
   suitePositions:     { ru: 'Позиции',                   en: 'Positions' },
+
+  /** Сортировка жидкостей — игра в хабе «Башни», заведена 05.09.2026. */
+  /**
+   * ⚠️ КОРОТКОЕ ИМЯ. «Пробирки: переливание» не помещалось в шапку партии: её
+   * правый край занят мини-питомцем и кнопкой правил, и на 403 px заголовок
+   * обрезался на «Пробирки: переливан». Подробность ушла в описание.
+   */
+  waterSort:            { ru: 'Пробирки',                en: 'Test Tubes' },
+  waterSortDesc:        { ru: 'Слей цвета так, чтобы в каждой пробирке остался один', en: 'Pour the colours until each tube holds just one' },
+  waterSortIntroDesc:   { ru: 'Нажми пробирку, чтобы поднять верхний столбик, и вторую — чтобы вылить. Лить можно только на свой цвет или в пустую пробирку, и только пока есть место. Уровень взят, когда каждая пробирка пуста или полна одним цветом. Заранее считай, куда денется цвет, который сейчас мешает: свободных пробирок всего две.', en: 'Tap a tube to lift its top run, tap another to pour. You may only pour onto the same colour or into an empty tube, and only while there is room. The level is done when every tube is empty or full of one colour. Think ahead about where the colour in your way will go: there are only two free tubes.' },
+  waterSortLvlParams:   { ru: '{c} цветов · по {h} порций · {e} свободные пробирки', en: '{c} colours · {h} portions each · {e} free tubes' },
+  waterSortStuck:       { ru: 'Ходов больше нет — отмени или начни уровень заново', en: 'No moves left — undo or restart the level' },
+  waterSortHint:        { ru: "Нажми пробирку, потом вторую — верхний столбик перельётся", en: "Tap one tube, then another — the top run pours across" },
+  waterSortBenefitPlan: { ru: 'Считать наперёд: ход, освобождающий пробирку сейчас, может закрыть выход потом', en: 'Planning ahead: a move that frees a tube now can block the way out later' },
+  waterSortBenefitHold: { ru: 'Держать в уме, какие цвета где спрятаны под верхним слоем', en: 'Holding in mind which colours are hidden under the top layer' },
+  waterSortBenefitPatience: { ru: 'Терпение: тупик здесь дешевле предотвратить, чем разобрать', en: 'Patience: a dead end is cheaper to avoid than to unpick' },
   suitePositionsDesc: { ru: 'Запомнить, ГДЕ загорелось: узор целиком, цепочка блоков, цепочка наоборот', en: 'Remember WHERE it lit: a whole pattern, a chain of blocks, a chain in reverse' },
   /**
    * ⚠️ «Матрица» — четвёртый заход, три предыдущих отбила проба
