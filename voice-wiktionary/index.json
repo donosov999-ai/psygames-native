@@ -1,0 +1,43 @@
+{
+ "ru": {
+  "да": "3ce292d62b8f0801.opus",
+  "день": "93e45a7fd4d58bbb.opus",
+  "деньги": "d2bb6ce1c9a32e12.opus",
+  "вода": "22e8f05273060be0.opus",
+  "белый": "cb7ef0d247939a7c.opus",
+  "аэропорт": "bd4808127c766915.opus",
+  "дом": "f1327309961da02c.opus",
+  "дорога": "bfa7dbe20d248c2c.opus",
+  "друг": "ded2fc12b361cc66.opus",
+  "бумага": "2ab2a206f5aed095.opus",
+  "глаз": "a8ee6f88b3db9352.opus",
+  "видеть": "307a3b6c02dfd258.opus"
+ },
+ "de": {
+  "Bank": "d222eeb6b6300d7b.opus",
+  "Feuer": "09504fbda438186f.opus",
+  "Hand": "1a919ad28ae40d6e.opus",
+  "Buch": "8ece84385a4e7bd2.opus",
+  "Blut": "a94eff055656e857.opus",
+  "Berg": "7812a6a7999dca7f.opus",
+  "Haus": "b0a49c2f028cc613.opus",
+  "Familie": "7fe326406b49ffee.opus",
+  "Auto": "cf926681532def3e.opus",
+  "Baum": "2aa0ee5f4d418228.opus",
+  "Stadt": "d3512f0d06f9f50f.opus",
+  "Stuhl": "11be535179584c2d.opus"
+ },
+ "en": {
+  "cat": "3c967e4015e1331b.opus",
+  "book": "25f9feaaf5ded4a7.opus",
+  "elephant": "e2281ac7b991ad2d.opus",
+  "day": "bea05a1ff52aa78f.opus",
+  "clock": "42b1d449c624320e.opus",
+  "country": "3fc58544ade73d0e.opus",
+  "apple": "9bd00079208d31e9.opus",
+  "big": "a5b9cd156ef9baf6.opus",
+  "blood": "251709b9f8d7c40d.opus",
+  "blue": "9e74809de13f8db9.opus",
+  "brother": "e43c153432569e54.opus"
+ }
+}

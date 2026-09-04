@@ -73,13 +73,6 @@ const SUB_GAMES = [
     descKey: 'readingSpanDesc' as const,
     typeKey: 'spanTypeReading' as const,
   },
-  {
-    route: '/games/ospan',
-    icon: 'calculator' as const,
-    nameKey: 'ospan' as const,
-    descKey: 'ospanDesc' as const,
-    typeKey: 'spanTypeOperation' as const,
-  },
 ];
 
 function DemoSpanRedirect() {
