@@ -53,6 +53,33 @@ const SUB_GAMES = [
     descKey: 'spatialSpanDesc' as const,
     typeKey: 'spanTypeSpatialBwd' as const,
   },
+  /**
+   * Три «охвата с нагрузкой» — добавлены 04.09.2026. Отличие от первых трёх в том,
+   * что запоминать приходится НЕ в тишине: между стимулами человек читает, слушает
+   * или считает. Именно так объём памяти меряют в клинике, и именно это ближе к
+   * жизни, где ничего не запоминается в вакууме.
+   */
+  {
+    route: '/games/listening-span',
+    icon: 'headset' as const,
+    nameKey: 'listeningSpan' as const,
+    descKey: 'listeningSpanDesc' as const,
+    typeKey: 'spanTypeListening' as const,
+  },
+  {
+    route: '/games/reading-span',
+    icon: 'book' as const,
+    nameKey: 'readingSpan' as const,
+    descKey: 'readingSpanDesc' as const,
+    typeKey: 'spanTypeReading' as const,
+  },
+  {
+    route: '/games/ospan',
+    icon: 'calculator' as const,
+    nameKey: 'ospan' as const,
+    descKey: 'ospanDesc' as const,
+    typeKey: 'spanTypeOperation' as const,
+  },
 ];
 
 function DemoSpanRedirect() {

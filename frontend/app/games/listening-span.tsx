@@ -15,6 +15,7 @@ import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
+import { ensureVoiceIndex } from '@/src/services/voiceSamples';
 import { speakSequence, ttsAvailable, ttsCancel } from '@/src/services/tts';
 import { useTtsAvailable, useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
@@ -88,6 +89,10 @@ export default function ListeningSpanGame() {
 
   const defaultTarget = language === 'en' ? 'es' : 'en';
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', defaultTarget));
+
+  // Указатель записей — заранее, при выборе языка: сетевой запрос внутри пробы
+  // вносил бы задержку в межсловный интервал, а он здесь сам измеряемый параметр.
+  useEffect(() => { ensureVoiceIndex(targetLang).catch(() => {}); }, [targetLang]);
 
   const [phase, setPhase] = useState<GamePhase>('config');
   // Правила уровня: показать при первом входе и дать перечитать по бейджу.

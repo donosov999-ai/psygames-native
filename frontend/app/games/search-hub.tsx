@@ -26,6 +26,7 @@ export default function SearchHub() {
         { route: '/games/mahjong', icon: 'grid', nameKey: 'mahjong', descKey: 'mahjongDesc' },
         { route: '/games/schulte', icon: 'apps', nameKey: 'schulteTable', descKey: 'schulteTableDesc' },
         { route: '/games/quick-count', icon: 'eye', nameKey: 'quickCount', descKey: 'quickCountDesc' },
+        { route: '/games/object-tracker', icon: 'locate', nameKey: 'objectTracker', descKey: 'objectTrackerDesc' },
       ]}
     />
   );

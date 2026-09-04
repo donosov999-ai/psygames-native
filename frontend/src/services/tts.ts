@@ -11,6 +11,8 @@
 
 import { soundOn } from '@/src/services/feedback';
 
+import { voiceUrl } from '@/src/services/voiceSamples';
+
 // Коды языков приложения (LanguageContext) → BCP-47 для голосов ОС.
 const BCP47: Record<string, string> = {
   en: 'en-US', ru: 'ru-RU', es: 'es-ES', pt: 'pt-BR',
@@ -79,7 +81,36 @@ export function ttsBlockedReason(lang: string): TtsBlock {
   return null;
 }
 
-export function speak(text: string, lang: string, rate = 0.9): Promise<void> {
+/**
+ * 🔴 СНАЧАЛА ЗАПИСЬ, ПОТОМ СИНТЕЗ. Если для стимула есть готовый файл (см.
+ * `voiceSamples`), играем его: звук одинаков на всех устройствах и не зависит от
+ * того, какие голоса поставил производитель телефона. Файла нет — работаем как
+ * раньше, системным голосом.
+ *
+ * ⚠️ Проигрывание файла живёт ТОЛЬКО в вебе и вебвью (а приложение и есть вебвью
+ * на всех платформах). На чистом React Native `Audio` нет — там сразу синтез.
+ */
+function сыграть(url: string, rate: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || typeof (window as any).Audio !== 'function') { resolve(false); return; }
+    try {
+      const a = new (window as any).Audio(url);
+      a.playbackRate = rate < 0.6 ? 0.6 : rate > 1.6 ? 1.6 : rate;
+      let готово = false;
+      const конец = (ок: boolean) => { if (!готово) { готово = true; resolve(ок); } };
+      a.onended = () => конец(true);
+      a.onerror = () => конец(false);
+      // Страховка: событие «кончилось» не приходит, если файл не начался играть.
+      setTimeout(() => конец(готово), 6000);
+      const p = a.play();
+      if (p && typeof p.catch === 'function') p.catch(() => конец(false));
+    } catch { resolve(false); }
+  });
+}
+
+export async function speak(text: string, lang: string, rate = 0.9): Promise<void> {
+  const url = voiceUrl(text, lang);
+  if (url && await сыграть(url, rate)) return;
   return new Promise((resolve) => {
     const s = synth();
     if (!s) { resolve(); return; }

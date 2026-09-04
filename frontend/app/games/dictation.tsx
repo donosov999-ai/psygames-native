@@ -35,6 +35,7 @@ import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
+import { ensureVoiceIndex } from '@/src/services/voiceSamples';
 import { speak, ttsCancel } from '@/src/services/tts';
 import { useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { hasPhysicalKeyboard } from '@/src/services/typing';
@@ -98,6 +99,8 @@ export default function DictationGame() {
 
   const tgt = языки.includes(targetLang) ? targetLang : (языки[0] ?? 'en');
   const ttsBlock = useTtsBlock(tgt);
+  // Указатель записей — заранее, до первой диктовки (см. voiceSamples).
+  useEffect(() => { ensureVoiceIndex(tgt).catch(() => {}); }, [tgt]);
   const voiceOk = ttsBlock === null;
 
   useEffect(() => () => {

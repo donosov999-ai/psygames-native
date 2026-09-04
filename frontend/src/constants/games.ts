@@ -178,6 +178,8 @@ export const GAMES: GameConfig[] = [
     icon: 'radio-button-on',
     route: '/games/object-tracker',
     category: 'attention',
+    // слежение глазами за целями среди отвлекающих
+    mergedInto: 'search_group',
   },
   {
     id: 'eye_gym',
@@ -337,6 +339,8 @@ export const GAMES: GameConfig[] = [
     icon: 'headset',
     route: '/games/listening-span',
     category: 'memory',
+    // объём памяти на слух — та же семья, что цифровой и пространственный охват
+    mergedInto: 'span_group',
   },
   // v1.105.0 «Слепые шахматы» — идея Дениса: маскированные фигуры, позиция в голове
   {
@@ -456,6 +460,8 @@ export const GAMES: GameConfig[] = [
     icon: 'book',
     route: '/games/reading-span',
     category: 'memory',
+    // объём памяти при чтении — та же семья охвата
+    mergedInto: 'span_group',
   },
   {
     id: 'corsi',
@@ -478,6 +484,8 @@ export const GAMES: GameConfig[] = [
     icon: 'calculator',
     route: '/games/ospan',
     category: 'memory',
+    // operation span: объём памяти под нагрузкой счётом. ⚠️ Денис сказал «в хаб, где счёт ведётся»; кладу в «Объём памяти», потому что меряется здесь ОХВАТ, а счёт — способ его нагрузить. Если решит иначе — одна строка
+    mergedInto: 'span_group',
   },
   {
     id: 'spatial_span',
@@ -930,6 +938,8 @@ export const GAMES: GameConfig[] = [
     icon: 'arrow-forward-circle',
     route: '/games/choice-rt',
     category: 'action',
+    // выбор из нескольких реакций — там же, где Струп, фланкер и Саймон
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'visual_search',
@@ -961,6 +971,8 @@ export const GAMES: GameConfig[] = [
     icon: 'navigate',
     route: '/games/posner',
     category: 'attention',
+    // подсказка направляет внимание, а невалидная его отвлекает — тот же конфликт
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'ant',
