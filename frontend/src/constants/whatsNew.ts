@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.42',
+    date: '2026-09-04',
+    ru: ['Экран игры перестал вести себя как веб-страница: быстрые касания в играх на реакцию больше не увеличивают её и не сдвигают'],
+    en: ['Game screens no longer behave like a web page: fast taps in reaction games can no longer zoom or shift them'],
+  },
+  {
     version: '2.37.41',
     date: '2026-09-04',
     ru: ['Судоку: подсказка перестала двоиться — счётчик уехал на саму кнопку, а шапка разжалась на одну капсулу'],
