@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.30',
+    date: '2026-09-04',
+    ru: ['Из любого упражнения теперь можно выйти жестом от левого края экрана — не тянуться к кнопке в дальнем углу'],
+    en: ['Swipe in from the left edge to leave any exercise — no more reaching for the far corner button'],
+  },
+  {
     version: '2.37.29',
     date: '2026-09-04',
     ru: [
