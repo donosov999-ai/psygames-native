@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.10',
+    date: '2026-09-04',
+    ru: [
+      'Шапка игры: под счётчиками пропали пустые белые коробки — теперь это один ряд пилюль, а не два',
+    ],
+    en: [
+      'Game header: the empty white boxes under the counters are gone — one row of pills instead of two',
+    ],
+  },
+  {
     version: '2.37.9',
     date: '2026-09-04',
     ru: [
