@@ -23,53 +23,34 @@
  * — замер 04.09), псевдослова генерируются на лету и записей иметь не могут. Для
  * них остаётся системный голос, и это правильный инструмент, а не запасной.
  */
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { VOICE_INDEX, VOICE_INDEX_COUNTS } from '@/src/constants/voiceIndex.generated';
 
 /** Где лежит корпус. Тот же хост, что раздаёт /play и бинарники. */
 const БАЗА = 'https://psy-games.pro/voice';
-const КЛЮЧ = (lang: string) => `psygames_voice_index_${lang}`;
-
-/** язык → (текст → имя файла). Пусто = индекс ещё не загружен или его нет. */
-const индексы: Record<string, Record<string, string> | null> = {};
-const загрузки: Record<string, Promise<void> | undefined> = {};
 
 /**
- * Подтянуть указатель языка. Зовётся при входе в аудио-игру, до первой пробы —
- * тянуть его посреди партии значило бы вносить сетевую задержку в измерение.
+ * 🔴 УКАЗАТЕЛЬ ЛЕЖИТ В БАНДЛЕ, А НЕ ТЯНЕТСЯ С САЙТА — ЗАМЕР 04.09.2026.
+ *
+ * Первая редакция качала `index.json` с psy-games.pro. Проверка заголовков живьём
+ * показала, что CORS там НЕТ вовсе: `fetch` из приложения (origin
+ * `tauri://localhost`) браузер заблокировал бы, и озвучка молча осталась бы на
+ * системном голосе — то есть фича выглядела бы сделанной и не работала.
+ *
+ * Указатель весит 50 КБ на все семь языков, его место внутри. Снаружи остаётся
+ * звук (4 МБ): его тянет тег `Audio`, которому CORS не нужен.
  */
-export async function ensureVoiceIndex(lang: string): Promise<void> {
-  if (индексы[lang] !== undefined) return;
-  if (загрузки[lang]) return загрузки[lang];
-  загрузки[lang] = (async () => {
-    // Сначала память устройства: указатель меняется редко, а сеть может молчать.
-    try {
-      const было = await AsyncStorage.getItem(КЛЮЧ(lang));
-      if (было) индексы[lang] = JSON.parse(было);
-    } catch { /* испорченная запись — просто пойдём в сеть */ }
-    try {
-      const отв = await fetch(`${БАЗА}/${lang}/index.json`, { cache: 'no-cache' });
-      if (отв.ok) {
-        const свежий = await отв.json();
-        индексы[lang] = свежий;
-        AsyncStorage.setItem(КЛЮЧ(lang), JSON.stringify(свежий)).catch(() => {});
-        return;
-      }
-    } catch { /* сети нет — остаёмся на том, что в памяти */ }
-    if (индексы[lang] === undefined) индексы[lang] = null;
-  })();
-  await загрузки[lang];
-  загрузки[lang] = undefined;
+export async function ensureVoiceIndex(_lang: string): Promise<void> {
+  // Ничего грузить не надо: указатель уже здесь. Функция оставлена, потому что
+  // экраны зовут её при выборе языка, и однажды корпус может снова уехать в сеть.
 }
 
 /** Адрес записи или null, если её нет. Синхронно: зовётся внутри пробы. */
 export function voiceUrl(text: string, lang: string): string | null {
-  const и = индексы[lang];
-  if (!и) return null;
-  const имя = и[text];
+  const имя = VOICE_INDEX[lang]?.[text];
   return имя ? `${БАЗА}/${lang}/${имя}` : null;
 }
 
 /** Есть ли для языка загруженный указатель — для честной подписи на экране. */
 export function voiceIndexReady(lang: string): boolean {
-  return !!индексы[lang];
+  return (VOICE_INDEX_COUNTS[lang] ?? 0) > 0;
 }
