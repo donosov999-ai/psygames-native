@@ -1,4 +1,4 @@
-/* psygames-object-tracker-session · VER 1 · 19.08.2026 */
+/* psygames-object-tracker-session · VER 2 · 04.09.2026 */
 import { generateObjectTrackerRound } from './generator';
 import { advanceTrackerWorld, cloneTrackerWorld } from './physics';
 import { scoreObjectTrackerCompletion } from './scoring';
@@ -97,6 +97,24 @@ export function toggleTrackedObject(
   if (selected.has(objectId)) selected.delete(objectId);
   else if (selected.size < session.round.targetCount) selected.add(objectId);
   return { ...session, selectedIds: [...selected].sort() };
+}
+
+/**
+ * Отчёт 701b69d7: «когда выбрал — автоматом фиксировал, без лишнего нажатия кнопки».
+ * Последний шар закрывает набор, и раунд засчитывается тем же касанием: отдельное
+ * подтверждение нужно было ровно затем, чтобы нажать его сразу после выбора.
+ * Снятие галочки по-прежнему работает — фиксирует только ДОБОР до полного набора.
+ */
+export function selectTrackedObject(
+  session: ObjectTrackerSession,
+  objectId: string,
+  now: number,
+): ObjectTrackerSession {
+  const после = toggleTrackedObject(session, objectId);
+  if (после === session) return session;
+  const добрал = после.selectedIds.length > session.selectedIds.length;
+  if (!добрал || после.selectedIds.length !== после.round.targetCount) return после;
+  return submitTrackerSelection(после, now);
 }
 
 export function submitTrackerSelection(

@@ -40,7 +40,7 @@ import { execFileSync } from 'node:child_process';
  *
  * Опускать при каждой чистке, не поднимать.
  */
-const CEILING = { errors: 605, warnings: 422 };
+const CEILING = { errors: 605, warnings: 421 };
 
 /** Насколько ниже потолка можно опуститься, не переписывая его. */
 const SLACK = 25;

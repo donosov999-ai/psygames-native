@@ -54,8 +54,7 @@ import {
   restartObjectTrackerSession,
   startObjectTrackerRound,
   startTrackerMovement,
-  submitTrackerSelection,
-  toggleTrackedObject,
+  selectTrackedObject,
   type ObjectTrackerLocale,
   type ObjectTrackerMetrics,
   type ObjectTrackerSession,
@@ -511,7 +510,9 @@ function ObjectTrackerRound({
             locale={locale}
             theme={theme}
             gameGradient={gameGradient}
-            onPress={() => setSession((current) => toggleTrackedObject(current, object.id))}
+            onPress={() =>
+              setSession((current) => selectTrackedObject(current, object.id, nowRef.current()))
+            }
           />
         ))}
       </View>
@@ -529,14 +530,6 @@ function ObjectTrackerRound({
             label={strings.stepMotion}
             theme={theme}
             onPress={() => setSession((current) => advanceTrackerMovement(current, REDUCED_STEP_MS))}
-          />
-        ) : null}
-        {session.phase === 'selection' ? (
-          <ActionButton
-            label={strings.submit}
-            theme={theme}
-            disabled={session.selectedIds.length !== session.round.targetCount}
-            onPress={() => setSession((current) => submitTrackerSelection(current, nowRef.current()))}
           />
         ) : null}
         <ActionButton label={strings.restart} theme={theme} secondary onPress={restart} />
