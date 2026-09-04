@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.35',
+    date: '2026-09-04',
+    ru: [
+      'Одиночки разошлись по развилкам: N-back в «Объём памяти», «Навигатор» в «Зрительную память», Story Recall в «Слова»',
+      '«Гимнастика глаз» вернулась карточкой в сетку — раньше до неё можно было дойти только через «Паузу»',
+    ],
+    en: [
+      'Stragglers moved into hubs: N-back into Memory Span, Navigator into Visual Memory, Story Recall into Words',
+      'Eye Gym is back as its own card — before, the only way in was through Pause',
+    ],
+  },
+  {
     version: '2.37.34',
     date: '2026-09-04',
     ru: [

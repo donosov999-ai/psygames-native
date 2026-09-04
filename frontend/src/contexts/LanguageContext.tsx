@@ -1646,6 +1646,7 @@ const translations: Translations = {
   acTypeWcst:             { ru: 'Правило меняется молча', en: 'The rule changes silently' },
   spanTypeListening:      { ru: 'Слова на слух · порядок', en: 'Words by ear · order' },
   spanTypeReading:        { ru: 'Чтение + удержание', en: 'Reading + holding' },
+  spanTypeNBack:          { ru: 'Ряд без конца · N шагов назад', en: 'Endless stream · N steps back' },
   spanTypeOperation:      { ru: 'Счёт + удержание', en: 'Arithmetic + holding' },
   towersGroup:            { ru: 'Башни', en: 'Towers' },
   towersGroupDesc:        { ru: 'Переложить по правилам, продумав ходы вперёд', en: 'Restack by the rules, planning moves ahead' },

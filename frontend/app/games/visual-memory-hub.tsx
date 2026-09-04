@@ -21,6 +21,7 @@ export default function VisualMemoryHub() {
         { route: '/games/memory-matrix', icon: 'grid', nameKey: 'memoryMatrix', descKey: 'memoryMatrixDesc' },
         { route: '/games/picture-pairs', icon: 'copy', nameKey: 'picturePairs', descKey: 'picturePairsDesc' },
         { route: '/games/chess-blind', icon: 'apps', nameKey: 'chessBlind', descKey: 'chessBlindDesc' },
+        { route: '/games/navigator', icon: 'navigate', nameKey: 'navigator', descKey: 'navigatorDesc' },
       ]}
     />
   );
