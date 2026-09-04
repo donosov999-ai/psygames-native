@@ -892,7 +892,21 @@ export default function MahjongGame() {
       onSaveBeforeExit={saveBeforeExit}
       stats={
         <View style={styles.statsRow}>
-          <HudBadge icon="flag" value={`${t('unitLevelShort')} ${level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
+          {/**
+            * 🔴 ПОКА КАРТОЧКА ИТОГА НА ЭКРАНЕ, В ШАПКЕ СТОИТ ПРОЙДЕННЫЙ УРОВЕНЬ.
+            *
+            * Отчёт Дениса 04.09.2026: «скачут уровни после взятия пар, ни с того ни
+            * с сего открывается карточка». Скачок настоящий и виден в КАЖДОМ
+            * завершении: при сборе доски `setLevel(next)` переключает счётчик на
+            * следующий уровень СРАЗУ, а карточка поверх доски говорит про
+            * пройденный. За спиной у карточки номер уже другой — и выглядит это
+            * так, будто игра перескочила сама.
+            *
+            * Проверял и вторую догадку — что доска отдаёт меньше пар, чем обещает
+            * счётчик «12/20»: замер по девяти уровням (L1…L20) показал совпадение
+            * до пары везде. Дело было не в этом.
+            */}
+          <HudBadge icon="flag" value={`${t('unitLevelShort')} ${levelBanner ?? level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
           <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
           <HudBadge icon="checkmark-done" value={`${matched}/${pairsTotal}`} colors={['#5eead4', '#0d9488']} pop />
           {/*
