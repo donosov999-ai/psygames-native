@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.37',
+    date: '2026-09-04',
+    ru: ['Сборки для iPhone снова доезжают до TestFlight: параллельные выпуски отзывали подпись друг у друга'],
+    en: ['iPhone builds reach TestFlight again: parallel releases were revoking each other\u2019s signing certificate'],
+  },
+  {
     version: '2.37.36',
     date: '2026-09-04',
     ru: [
