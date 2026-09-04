@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.29',
+    date: '2026-09-04',
+    ru: [
+      '«Математическая шкала»: выбранное число стоит над шкалой, рядом с примером — палец его больше не закрывает',
+      'Подтверждать оценку не нужно: отпусти ползунок, и через три секунды тишины ответ засчитается сам',
+    ],
+    en: [
+      'Math Slider: your estimate now sits above the scale next to the expression — your finger no longer covers it',
+      'No confirm tap: let go of the marker and after three seconds of stillness the answer is recorded',
+    ],
+  },
+  {
     version: '2.37.28',
     date: '2026-09-04',
     ru: ['«Операционный охват» переехал из «Объёма памяти» в «Счёт» — там, где ведётся счёт'],

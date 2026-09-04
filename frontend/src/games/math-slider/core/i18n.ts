@@ -16,7 +16,7 @@ export interface MathSliderStrings {
   prompt: string;
   sliderLabel: string;
   sliderHint: string;
-  confirm: string;
+  autoConfirmHint: string;
   continue: string;
   startRound: string;
   exactAnswer: string;
@@ -56,7 +56,7 @@ export const MATH_SLIDER_STRINGS: Record<MathSliderLocale, MathSliderStrings> = 
     prompt: 'Где примерно находится результат?',
     sliderLabel: 'Оценка результата на числовой шкале',
     sliderHint: 'Стрелки двигают маркер, Enter подтверждает.',
-    confirm: 'Подтвердить оценку',
+    autoConfirmHint: 'Отпусти — засчитаю через 3 секунды',
     continue: 'Следующее задание',
     startRound: 'Начать партию',
     exactAnswer: 'Точный ответ',
@@ -94,7 +94,7 @@ export const MATH_SLIDER_STRINGS: Record<MathSliderLocale, MathSliderStrings> = 
     prompt: 'Where is the result approximately?',
     sliderLabel: 'Estimated result on the number line',
     sliderHint: 'Arrow keys move the marker; Enter confirms.',
-    confirm: 'Confirm estimate',
+    autoConfirmHint: 'Let go — locked in after 3 seconds',
     continue: 'Next question',
     startRound: 'Start game',
     exactAnswer: 'Exact answer',
