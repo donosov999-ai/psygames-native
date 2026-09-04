@@ -19,14 +19,22 @@
 слове «snake» — 9,25 с болтовни «Hello, it sounds like you're interested in
 talking about snakes…». С репликой — 0,85 с и ровно слово.
 
+🔴 И ОДНОЙ РЕПЛИКИ МАЛО: СВЕРЯЕМ СКАЗАННОЕ С ЗАКАЗАННЫМ. Замер 04.09.2026 на
+десяти коротких стимулах: половина ушла в разговор. Буква «H» дала «Hello! What
+would you like to talk about today?», «ef» — «Sure, I'd be happy to help…», «pee» —
+«I'm here to help you with…». Чем короче стимул, тем чаще модель принимает его за
+реплику собеседника. Поэтому каждый ответ проверяется по РАСШИФРОВКЕ (модель
+возвращает её вместе со звуком) и по длительности, а брак переспрашивается.
+Без этой сверки в корпус молча уехали бы файлы, где вместо слова — приветствие.
+
 ⚠️ ГЕНЕРАЦИЯ ИДЕМПОТЕНТНА: существующий файл не перегенерируется. Полный корпус
-1481 стимул ≈ $0.12; ключ eval с капом $2 (openrouter_asibots ДЕЛИТ прод-бот, им
-корпус не гнать).
+1471 стимул ≈ $0.12. Ключ берётся из переменной окружения OPENROUTER_API_KEY —
+брать отдельный ключ с малым капом, а не тот, что делит прод-бот.
 
 ЗАПУСК:
-  python3 scripts/gen_voice_samples.py --probe          # 10 слов, проверить голос
-  python3 scripts/gen_voice_samples.py --lang ru        # один язык
-  python3 scripts/gen_voice_samples.py                  # весь корпус
+  OPENROUTER_API_KEY=… python3 scripts/gen_voice_samples.py --probe   # проверить голос
+  OPENROUTER_API_KEY=… python3 scripts/gen_voice_samples.py --lang ru # один язык
+  OPENROUTER_API_KEY=… python3 scripts/gen_voice_samples.py           # весь корпус
 """
 import argparse, base64, hashlib, json, os, re, struct, subprocess, sys, time, urllib.request
 from pathlib import Path
@@ -34,7 +42,6 @@ from pathlib import Path
 КОРЕНЬ = Path(__file__).resolve().parent.parent
 ФРОНТ = КОРЕНЬ / 'frontend'
 ВЫХОД = КОРЕНЬ / 'voice'
-КЛЮЧ_ФАЙЛ = Path.home() / '.sdt_secrets/openrouter_eval.local.json'
 МОДЕЛЬ = 'openai/gpt-audio-mini'
 ГОЛОС = 'alloy'
 ЧАСТОТА = 24000
@@ -76,15 +83,24 @@ def стимулы() -> dict:
             if текущий in из:
                 из[текущий].update([a, b])
 
-    nb = (ФРОНТ / 'app/games/n-back.tsx').read_text(encoding='utf-8')
-    м = re.search(r'AUDIO_LETTERS\s*=\s*\[([^\]]*)\]', nb)
-    if м:
-        из['en'].update(re.findall(r"'([^']+)'", м.group(1)))
+    # 🔴 БУКВЫ n-back СЮДА НЕ ВХОДЯТ, И ЭТО ЗАМЕР, А НЕ ЛЕНЬ.
+    # Проба 04.09.2026 по десяти буквам: половина ответов ушла в разговор («H» →
+    # «Hello! What would you like to talk about today?»), а «M» не далась и с трёх
+    # попыток — 4,9 с при потолке 2,5. Чем короче стимул, тем чаще модель принимает
+    # его за реплику собеседника. Системный голос ОС читает буквы верно и без сети,
+    # поэтому n-back остаётся на Web Speech — это не обход проблемы, а правильный
+    # инструмент для этого стимула.
 
     return {я: sorted(с) for я, с in из.items() if с}
 
 
-def сказать(ключ: str, текст: str) -> bytes:
+def нормализовать(s: str) -> str:
+    """Для сверки: без регистра, без знаков препинания и скобочных пояснений."""
+    s = re.sub(r'\[[^\]]*\]|\([^)]*\)', ' ', s)
+    return re.sub(r'[^\w\u0400-\u04ff\u4e00-\u9fff\u0900-\u097f]+', '', s).lower()
+
+
+def сказать(ключ: str, текст: str) -> tuple:
     тело = json.dumps({
         'model': МОДЕЛЬ, 'stream': True, 'modalities': ['text', 'audio'],
         'audio': {'voice': ГОЛОС, 'format': 'pcm16'},
@@ -93,6 +109,7 @@ def сказать(ключ: str, текст: str) -> bytes:
     req = urllib.request.Request('https://openrouter.ai/api/v1/chat/completions', data=тело,
                                  headers={'Authorization': f'Bearer {ключ}', 'Content-Type': 'application/json'})
     куски = []
+    расшифровка = []
     with urllib.request.urlopen(req, timeout=120) as r:
         for строка in r:
             s = строка.decode('utf-8', 'ignore').strip()
@@ -108,7 +125,24 @@ def сказать(ключ: str, текст: str) -> bytes:
             зв = ((j.get('choices') or [{}])[0].get('delta') or {}).get('audio') or {}
             if зв.get('data'):
                 куски.append(base64.b64decode(зв['data']))
-    return b''.join(куски)
+            if зв.get('transcript'):
+                расшифровка.append(зв['transcript'])
+    return b''.join(куски), ''.join(расшифровка)
+
+
+def годен(текст: str, pcm: bytes, сказано: str) -> str:
+    """Пусто — годен; иначе причина брака. Проверяем ДЛИТЕЛЬНОСТЬ и РАСШИФРОВКУ."""
+    сек = len(pcm) / 2 / ЧАСТОТА
+    if сек < 0.15:
+        return f'слишком коротко ({сек:.2f} с)'
+    # Потолок по длине текста: слово из пяти букв не может звучать шесть секунд.
+    потолок = max(2.5, 0.45 * len(текст) + 1.5)
+    if сек > потолок:
+        return f'слишком долго ({сек:.2f} с при потолке {потолок:.1f})'
+    н_текст, н_сказано = нормализовать(текст), нормализовать(сказано)
+    if н_текст and н_сказано and н_текст not in н_сказано:
+        return f'сказано другое: {сказано[:40]!r}'
+    return ''
 
 
 def в_opus(pcm: bytes, путь: Path) -> None:
@@ -130,7 +164,13 @@ def main() -> None:
     p.add_argument('--limit', type=int, default=0, help='потолок числа файлов за прогон')
     арг = p.parse_args()
 
-    ключ = json.loads(КЛЮЧ_ФАЙЛ.read_text())['api_key']
+    # ⚠️ Ключ — ТОЛЬКО из переменной окружения. Репозиторий публичный: путь к
+    # локальному хранилищу секретов здесь был бы подсказкой, где их искать
+    # (гейт no-infra-in-public-repo это и поймал 04.09.2026).
+    ключ = os.environ.get('OPENROUTER_API_KEY', '').strip()
+    if not ключ:
+        print('нужен ключ: OPENROUTER_API_KEY=<ключ> python3 scripts/gen_voice_samples.py')
+        sys.exit(1)
     корпус = стимулы()
     if арг.lang:
         корпус = {арг.lang: корпус.get(арг.lang, [])}
@@ -140,6 +180,7 @@ def main() -> None:
     всего = sum(len(с) for с in корпус.values())
     print(f'корпус: {всего} стимулов по {len(корпус)} языкам')
     сделано = пропущено = 0
+    брак: list = []
     манифест = {}
     t0 = time.time()
     for язык, слова in корпус.items():
@@ -155,9 +196,16 @@ def main() -> None:
             if арг.limit and сделано >= арг.limit:
                 continue
             try:
-                pcm = сказать(ключ, слово)
-                if len(pcm) < 4000:                       # меньше 0,08 с — брак
-                    print(f'  ⚠️ пусто: {язык} «{слово}»')
+                # До трёх попыток: короткий стимул модель нередко принимает за реплику.
+                pcm = b''
+                беда = 'не пробовали'
+                for _ in range(3):
+                    pcm, сказано = сказать(ключ, слово)
+                    беда = годен(слово, pcm, сказано)
+                    if not беда:
+                        break
+                if беда:
+                    брак.append(f'{язык} «{слово}»: {беда}')
                     continue
                 в_opus(pcm, файл)
                 сделано += 1
@@ -167,6 +215,10 @@ def main() -> None:
                 print(f'  ⚠️ {язык} «{слово}»: {type(e).__name__} {str(e)[:80]}')
     (ВЫХОД / 'manifest.json').write_text(json.dumps(манифест, ensure_ascii=False), encoding='utf-8')
     вес = sum(f.stat().st_size for f in ВЫХОД.rglob('*.opus'))
+    if брак:
+        print(f'\n⚠️ БРАК, не попало в корпус ({len(брак)}):')
+        for б in брак[:20]:
+            print('   ', б)
     print(f'\nсоздано {сделано}, уже было {пропущено}, всего файлов {len(list(ВЫХОД.rglob("*.opus")))}, '
           f'вес {вес/1048576:.1f} МБ, время {time.time() - t0:.0f} с')
 

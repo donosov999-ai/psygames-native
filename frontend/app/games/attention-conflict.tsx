@@ -98,6 +98,24 @@ const SUB_GAMES = [
     descKey: 'simonDesc' as const,
     typeKey: 'acTypeSimon' as const,
   },
+  /**
+   * Две пробы добавлены 04.09.2026 по указанию Дениса. Обе про то же: сигнал
+   * тянет реакцию в сторону, и её надо удержать.
+   */
+  {
+    route: '/games/choice-rt',
+    icon: 'git-branch' as const,
+    nameKey: 'choiceRt' as const,
+    descKey: 'choiceRtDesc' as const,
+    typeKey: 'acTypeChoice' as const,
+  },
+  {
+    route: '/games/posner',
+    icon: 'locate' as const,
+    nameKey: 'posner' as const,
+    descKey: 'posnerDesc' as const,
+    typeKey: 'acTypePosner' as const,
+  },
 ];
 
 function DemoAttentionRedirect() {

@@ -20,6 +20,7 @@ import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
+import { ensureVoiceIndex } from '@/src/services/voiceSamples';
 import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
 import { ZH_PINYIN } from '@/src/constants/zhPinyin.generated';
 import { useTtsAvailable, useTtsBlock } from '@/src/hooks/useTtsAvailable';
@@ -234,6 +235,11 @@ export default function PhonemePairsGame() {
   // язык тренировки не должен совпадать с языком интерфейса
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
   const ttsBlock = useTtsBlock(tgt);
+  /**
+   * Указатель записей тянем ЗАРАНЕЕ, при выборе языка, а не посреди партии:
+   * сетевой запрос внутри пробы вносил бы задержку в измерение.
+   */
+  useEffect(() => { ensureVoiceIndex(tgt).catch(() => {}); }, [tgt]);
   /** Играть можно, только если молчать не по чему: и голос есть, и звук включён. */
   const voiceOk = ttsBlock === null;
 
