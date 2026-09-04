@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.20',
+    date: '2026-09-04',
+    ru: [
+      'Охват памяти на слух, при чтении и со счётом переехали в развилку «Объём памяти»',
+      'Слова в аудио-упражнениях зазвучат живой записью вместо машинного голоса — по мере готовности корпуса',
+    ],
+    en: [
+      'Listening, reading and operation span moved into the “Memory Span” hub',
+      'Words in audio exercises will play as real recordings instead of the machine voice, as the corpus fills in',
+    ],
+  },
+  {
     version: '2.37.19',
     date: '2026-09-04',
     ru: [
