@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.28',
+    date: '2026-09-04',
+    ru: ['«Операционный охват» переехал из «Объёма памяти» в «Счёт» — там, где ведётся счёт'],
+    en: ['Operation Span moved from Memory Span to Counting — where the arithmetic lives'],
+  },
+  {
     version: '2.37.27',
     date: '2026-09-04',
     ru: ['«Трекер объектов»: последний выбранный шар засчитывает раунд сам — отдельной кнопки подтверждения больше нет'],

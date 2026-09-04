@@ -24,6 +24,8 @@ export default function CountingHub() {
         { route: '/games/math-slider', icon: 'swap-horizontal', nameKey: 'mathSlider', descKey: 'mathSliderDesc' },
         { route: '/games/math-sprint', icon: 'flash', nameKey: 'mathSprint', descKey: 'mathSprintDesc' },
         { route: '/games/number-bonds', icon: 'git-merge', nameKey: 'numberBonds', descKey: 'numberBondsDesc' },
+        // 04.09.2026: перенесён из «Объёма памяти» по решению Дениса (отчёт a0df2925)
+        { route: '/games/ospan', icon: 'calculator', nameKey: 'ospan', descKey: 'ospanDesc' },
       ]}
     />
   );
