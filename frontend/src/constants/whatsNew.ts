@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.39',
+    date: '2026-09-04',
+    ru: ['«Пауза» переведена целиком: указания к телу теперь звучат на своём языке на всех двенадцати, а не только заголовки программ'],
+    en: ['Pause is fully translated: the body cues now speak your language in all twelve, not just the programme titles'],
+  },
+  {
     version: '2.37.38',
     date: '2026-09-04',
     ru: ['Судоку: лестница выросла с 80 до 92 уровней — двенадцать готовых ступеней комбо-пояса были недоступны из игры'],
