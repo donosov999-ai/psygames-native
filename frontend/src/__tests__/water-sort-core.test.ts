@@ -1,0 +1,157 @@
+/**
+ * СОРТИРОВКА ЖИДКОСТЕЙ: ПРАВИЛА ХОДА, РЕШАТЕЛЬ, ГЕНЕРАТОР.
+ *
+ * Игра заведена 05.09.2026 по просьбе Дениса (кадры App Store «Бутылочки
+ * Пробирки. Water Sort» / SortPuz) в хаб «Башни».
+ *
+ * Три вещи, которые в этой игре ломаются молча, и все три проверяются здесь:
+ *
+ *  1. НЕРЕШАЕМЫЙ РАСКЛАД. Раздали случайно — и человек упирается в тупик, не
+ *     понимая, что виноват не он. Проверяется решателем на КАЖДОМ уровне лестницы.
+ *  2. ИСЧЕРПАНИЕ БЮДЖЕТА, ВЫДАННОЕ ЗА «НЕ РЕШАЕТСЯ». Тогда генератор
+ *     систематически выбрасывает самые сложные доски, и лестница из пятнадцати
+ *     уровней оказывается лестницей из лёгких — при исправном решателе.
+ *  3. ПУСТАЯ ЗАДАЧА. Раздача, где почти всё уже собрано, проходится в три хода и
+ *     выглядит как уровень.
+ */
+import {
+  makeField, canPour, pour, pourAmount, isSolved, topRun, legalMoves, fieldKey, isDone,
+} from '@/src/games/water-sort/core/tubes';
+import { solve, generateLevel, levelParams } from '@/src/games/water-sort/core/generate';
+
+/** Повторяемый датчик: расклады в пробе не должны плясать от прогона к прогону. */
+function датчик(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+
+describe('правила перелива', () => {
+  it('верхний одноцветный столбик считается снизу вверх', () => {
+    expect(topRun([1, 2, 2, 2])).toBe(3);
+    expect(topRun([2, 2, 2, 1])).toBe(1);
+    expect(topRun([])).toBe(0);
+  });
+
+  it('переливать можно только на свой цвет или в пустую', () => {
+    const f = makeField([[1, 1], [2], [], [3, 3, 3, 3]], 4);
+    expect(canPour(f, 0, 1)).toBe(false);   // 1 на 2 — нельзя
+    expect(canPour(f, 0, 2)).toBe(false);   // [1,1] однородна целиком → в пустую нельзя
+    expect(canPour(f, 3, 2)).toBe(false);   // полная одноцветная в пустую — запрещено
+  });
+
+  it('🔴 однородную пробирку не переливаем в пустую — это ход без изменения положения', () => {
+    const f = makeField([[1, 1], [], [2, 2, 2, 2]], 4);
+    // [1,1] однородна целиком → перелив в пустую ничего не меняет
+    expect(canPour(f, 0, 1)).toBe(false);
+    expect(canPour(f, 2, 1)).toBe(false);
+  });
+
+  it('переливается ВЕСЬ столбик, сколько влезло', () => {
+    const f = makeField([[3, 1, 1, 1], [1], [], []], 4);
+    expect(pourAmount(f, 0, 1)).toBe(3);
+    const после = pour(f, 0, 1)!;
+    expect(после.tubes[0]).toEqual([3]);
+    expect(после.tubes[1]).toEqual([1, 1, 1, 1]);
+  });
+
+  it('в неполную пробирку переливается только то, что помещается', () => {
+    const f = makeField([[1, 1, 1], [1, 1]], 4);
+    expect(pourAmount(f, 0, 1)).toBe(2);
+    const после = pour(f, 0, 1)!;
+    expect(после.tubes[0]).toEqual([1]);
+    expect(после.tubes[1]).toEqual([1, 1, 1, 1]);
+  });
+
+  it('решено = каждая пробирка пуста или полна одним цветом', () => {
+    expect(isSolved(makeField([[1, 1, 1, 1], [], [2, 2, 2, 2]], 4))).toBe(true);
+    expect(isSolved(makeField([[1, 1, 1], [1], [2, 2, 2, 2]], 4))).toBe(false);
+    expect(isDone(makeField([[1, 1, 1], []], 4), 0)).toBe(false);
+  });
+
+  it('ключ положения не зависит от порядка пробирок', () => {
+    const a = makeField([[1, 2], [3], []], 4);
+    const b = makeField([[3], [], [1, 2]], 4);
+    expect(fieldKey(a)).toBe(fieldKey(b));
+  });
+});
+
+describe('решатель', () => {
+  it('решает простое и возвращает законный путь', () => {
+    const f = makeField([[1, 2], [2, 1], [], []], 2);
+    const r = solve(f);
+    expect(r.outcome).toBe('solved');
+    let текущее = f;
+    for (const m of r.moves) {
+      expect(canPour(текущее, m.from, m.to)).toBe(true);
+      текущее = pour(текущее, m.from, m.to)!;
+    }
+    expect(isSolved(текущее)).toBe(true);
+  });
+
+  it('🔴 нерешаемое называет нерешаемым, а не бюджетом', () => {
+    // две полные разноцветные пробирки без свободного места — ходов нет вовсе
+    const f = makeField([[1, 2], [2, 1]], 2);
+    const r = solve(f);
+    expect(r.outcome).toBe('unsolvable');
+    expect(legalMoves(f).length).toBe(0);
+  });
+
+  it('🔴 исчерпание бюджета — отдельный исход, а не «нерешаемо»', () => {
+    const { field } = generateLevel(13, датчик(7));
+    const скупой = solve(field, 1);        // бюджета заведомо не хватит
+    expect(скупой.outcome).toBe('budget');
+    expect(скупой.outcome).not.toBe('unsolvable');
+  });
+});
+
+describe('лестница уровней', () => {
+  const УРОВНИ = [1, 2, 3, 5, 7, 9, 11, 13, 15];
+
+  it('🔴 каждый уровень раздаёт РЕШАЕМЫЙ расклад', () => {
+    const беды: string[] = [];
+    for (const L of УРОВНИ) {
+      const { field } = generateLevel(L, датчик(1000 + L));
+      const r = solve(field, 200000);
+      if (r.outcome !== 'solved') беды.push(`L${L}: ${r.outcome}, разобрано ${r.visited}`);
+    }
+    expect(беды).toEqual([]);
+  });
+
+  it('🔴 расклад не выдаётся почти собранным', () => {
+    const пустые: string[] = [];
+    for (const L of УРОВНИ) {
+      const { field, solutionMoves } = generateLevel(L, датчик(2000 + L));
+      const закрыто = field.tubes.filter((_, i) => isDone(field, i) && field.tubes[i]!.length > 0).length;
+      if (закрыто >= levelParams(L).colors - 1) пустые.push(`L${L}: собрано ${закрыто} из ${levelParams(L).colors}`);
+      if (solutionMoves > 0 && solutionMoves < 4) пустые.push(`L${L}: решение за ${solutionMoves} ходов`);
+    }
+    expect(пустые).toEqual([]);
+  });
+
+  it('🔴 трудность растёт по лестнице, а не пляшет', () => {
+    const длины = УРОВНИ.map((L) => generateLevel(L, датчик(3000 + L)).solutionMoves);
+    const первые = длины.slice(0, 3).reduce((a, b) => a + b, 0) / 3;
+    const последние = длины.slice(-3).reduce((a, b) => a + b, 0) / 3;
+    expect(`последние три уровня длиннее первых трёх: ${последние > первые} (${первые.toFixed(1)} → ${последние.toFixed(1)})`)
+      .toBe(`последние три уровня длиннее первых трёх: true (${первые.toFixed(1)} → ${последние.toFixed(1)})`);
+  });
+
+  it('генератор не вырождается: доски разные', () => {
+    const ключи = new Set([1, 2, 3, 4, 5].map((s) => fieldKey(generateLevel(6, датчик(s * 977)).field)));
+    expect(ключи.size).toBeGreaterThan(3);
+  });
+
+  it('число порций каждого цвета равно вместимости — иначе расклад не собирается в принципе', () => {
+    for (const L of [1, 6, 11, 15]) {
+      const { field } = generateLevel(L, датчик(400 + L));
+      const счёт = new Map<number, number>();
+      for (const t of field.tubes) for (const c of t) счёт.set(c, (счёт.get(c) ?? 0) + 1);
+      for (const [цвет, n] of счёт) {
+        expect(`L${L} цвет ${цвет}: ${n}`).toBe(`L${L} цвет ${цвет}: ${field.cap}`);
+      }
+    }
+  });
+});

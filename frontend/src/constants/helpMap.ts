@@ -227,6 +227,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillPlanning",
     "introKey": "dotsConnectIntroDesc"
   },
+  "/games/water-sort": {
+    "nameKey": "waterSort",
+    "skillKey": "skillPlanning",
+    "introKey": "waterSortIntroDesc"
+  },
   "/games/one-line": {
     "nameKey": "oneLine",
     "skillKey": "skillPlanning",

@@ -27,6 +27,7 @@ export default function TowersHub() {
       games={[
         { route: '/games/hanoi', icon: 'layers', nameKey: 'hanoi', descKey: 'hanoiDesc' },
         { route: '/games/tower-london', icon: 'git-network', nameKey: 'towerLondon', descKey: 'towerLondonDesc' },
+        { route: '/games/water-sort', icon: 'flask', nameKey: 'waterSort', descKey: 'waterSortDesc' },
       ]}
     />
   );

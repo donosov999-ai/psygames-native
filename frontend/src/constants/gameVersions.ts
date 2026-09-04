@@ -98,6 +98,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'visual-memory-hub': { ver: 1, date: '04.09.2026' },
   'visual-search': { ver: 1, date: '19.08.2026' },
   'vocab-srs': { ver: 1, date: '19.08.2026' },
+  'water-sort': { ver: 1, date: '05.09.2026' },
   'wcst': { ver: 1, date: '19.08.2026' },
   'word-pairs': { ver: 2, date: '23.08.2026' },
   'words-hub': { ver: 1, date: '04.09.2026' },

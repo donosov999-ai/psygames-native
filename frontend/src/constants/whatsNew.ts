@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.52',
+    date: '2026-09-05',
+    ru: ['Новая игра «Пробирки» в хабе «Башни»: переливай цвета, пока в каждой пробирке не останется один'],
+    en: ['New game “Test Tubes” in the Towers hub: pour the colours until each tube holds just one'],
+  },
+  {
     version: '2.37.51',
     date: '2026-09-05',
     ru: ['«Охват памяти»: матрица, кубики Корси и обратный порядок — теперь одна карточка «Позиции» с выбором режима'],

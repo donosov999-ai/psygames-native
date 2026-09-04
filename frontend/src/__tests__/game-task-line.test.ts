@@ -82,6 +82,7 @@ const ADDED: Record<string, string> = {
   'schulte.tsx': 'schulteHint',
   'sdmt.tsx': 'sdmtHint',
   'vocab-srs.tsx': 'vocabSrsHint',
+  'water-sort.tsx': 'waterSortHint',
 };
 
 /**
