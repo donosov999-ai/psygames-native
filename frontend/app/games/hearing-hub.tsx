@@ -23,6 +23,7 @@ export default function HearingHub() {
         { route: '/games/phoneme-pairs', icon: 'git-compare', nameKey: 'phonemePairs', descKey: 'phonemePairsDesc' },
         { route: '/games/chinese-tones', icon: 'musical-note', nameKey: 'chineseTones', descKey: 'chineseTonesDesc' },
         { route: '/games/pseudoword-echo', icon: 'mic', nameKey: 'pseudowordEcho', descKey: 'pseudowordEchoDesc' },
+        { route: '/games/dictation', icon: 'headset', nameKey: 'dictation', descKey: 'dictationDesc' },
       ]}
     />
   );

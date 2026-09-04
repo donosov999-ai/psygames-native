@@ -7,24 +7,24 @@
 
 ## 1. Базовые поля
 - **Name (≤30):** `PsyGames`
-- **Subtitle (≤30):** EN `65 brain training games` · RU `65 игр для тренировки мозга`
+- **Subtitle (≤30):** EN `66 brain training games` · RU `66 игр для тренировки мозга`
 - **Bundle ID:** `com.psygames.app`
 - **Primary category:** Education · **Secondary:** Games → Puzzle
 - **Age rating:** 4+ (нет нежелательного контента)
 - **Price:** Free (модель подписки/IAP — отдельно, если будет)
 
 ## 2. Promotional Text (≤170, можно менять без ревью)
-- **EN:** `65 cognitive games built on real neuropsychology — train memory, attention, logic and speed, and watch your progress. 12 languages, offline, no ads.`
-- **RU:** `65 когнитивных игр на реальных нейропсих-парадигмах — тренируй память, внимание, логику и скорость, отслеживай прогресс. 12 языков, офлайн, без рекламы.`
+- **EN:** `66 cognitive games built on real neuropsychology — train memory, attention, logic and speed, and watch your progress. 12 languages, offline, no ads.`
+- **RU:** `66 когнитивных игр на реальных нейропсих-парадигмах — тренируй память, внимание, логику и скорость, отслеживай прогресс. 12 языков, офлайн, без рекламы.`
 
 ## 3. Description (EN — primary)
 ```
-PsyGames is 65 cognitive training games built on validated neuropsychological paradigms — N-back, Stroop, Corsi, Trail Making, SET, Tower of London and more.
+PsyGames is 66 cognitive training games built on validated neuropsychological paradigms — N-back, Stroop, Corsi, Trail Making, SET, Tower of London and more.
 
 Train and measure the things that matter: memory, attention, logic, processing speed and self-control. Every game is a real cognitive task, not a toy — so your results are meaningful and your progress is measurable.
 
 WHAT'S INSIDE
-• 65 games across 6 categories: Memory, Attention, Logic, Intuition, Speed & Control, Recovery
+• 66 games across 6 categories: Memory, Attention, Logic, Intuition, Speed & Control, Recovery
 • Morning warm-up and a calm "before sleep" session — curated complexes that auto-run with the right settings
 • 12 profiles for different goals: languages, kids, seniors, focus, reaction, entrepreneurs and more
 • Progress tracking + a cognitive assessment that maps your strengths and weaknesses on a radar
@@ -36,12 +36,12 @@ Training reliably improves your performance on these tasks and closely related s
 
 ## 4. Description (RU — локализация)
 ```
-PsyGames — это 65 когнитивных тренажёров на основе валидированных нейропсихологических парадигм: N-back, Струп, Корси, Trail Making, SET, Башня Лондона и другие.
+PsyGames — это 66 когнитивных тренажёров на основе валидированных нейропсихологических парадигм: N-back, Струп, Корси, Trail Making, SET, Башня Лондона и другие.
 
 Тренируйте и измеряйте то, что важно: память, внимание, логику, скорость обработки и самоконтроль. Каждая игра — реальный когнитивный тест, а не игрушка, поэтому результат осмыслен, а прогресс измерим.
 
 ЧТО ВНУТРИ
-• 65 игр в 6 категориях: Память, Внимание, Логика, Интуиция, Скорость и Контроль, Восстановление
+• 66 игр в 6 категориях: Память, Внимание, Логика, Интуиция, Скорость и Контроль, Восстановление
 • Утренняя зарядка и спокойный режим «перед сном» — готовые комплексы, запускаются сразу с нужными настройками
 • 12 профилей под разные цели: языки, дети, 50+, фокус, реакция, предприниматели и др.
 • Отслеживание прогресса + оценка с радаром сильных и слабых сторон
@@ -72,7 +72,7 @@ PsyGames — это 65 когнитивных тренажёров на осно
 
 ## 9. Review Notes (для проверяющего Apple — впиши в App Review Information)
 ```
-PsyGames is a cognitive-training app with 65 standalone games. No login required — open and play. No in-app purchases in this build. Games are based on classic neuropsychology paradigms (N-back, Stroop, etc.). "BART" and "Iowa Gambling Task" are cognitive decision-making tests with virtual points only — no real money, no gambling. The app works fully offline; optional anonymous cloud sync (no personal data). No account/demo credentials needed.
+PsyGames is a cognitive-training app with 66 standalone games. No login required — open and play. No in-app purchases in this build. Games are based on classic neuropsychology paradigms (N-back, Stroop, etc.). "BART" and "Iowa Gambling Task" are cognitive decision-making tests with virtual points only — no real money, no gambling. The app works fully offline; optional anonymous cloud sync (no personal data). No account/demo credentials needed.
 ```
 
 ## 10. Screenshots (спека — снимать ПОСЛЕ нативной сборки, с iOS-симулятора/устройства)
@@ -80,7 +80,7 @@ PsyGames is a cognitive-training app with 65 standalone games. No login required
 1. Главный экран — категории + карточки игр (профиль ODV999/NZT).
    ⚠️ Число на этом экране берётся из `PUBLIC_GAME_COUNT` (`frontend/src/constants/profiles.ts`),
    а он равен `GAMES.length` = 72 и считает три карточки-развилки за тренажёры. В текстах
-   карточки стоит 65 — упражнения без развилок, как считает онбординг. Пока долг в
+   карточки стоит 66 — упражнения без развилок, как считает онбординг. Пока долг в
    `profiles.ts` не закрыт, скрин и текст разойдутся на три: снимать с оглядкой.
 2. ЗАРЯДКА + ПЕРЕД СНОМ + ОЦЕНКА (3 херо-карточки).
 3. Игра в процессе — напр. N-back или Шульте (наглядно).
@@ -91,5 +91,5 @@ PsyGames is a cognitive-training app with 65 standalone games. No login required
 Текст на скринах — на языке локали (EN для базы, RU для рус. локали).
 
 ## 11. What's New (release notes, первый релиз)
-- **EN:** `First release. 65 cognitive games, morning & evening complexes, 12 profiles, cognitive assessment, 12 languages, fully offline.`
-- **RU:** `Первый релиз. 65 когнитивных игр, утренние и вечерние комплексы, 12 профилей, оценка профиля, 12 языков, полностью офлайн.`
+- **EN:** `First release. 66 cognitive games, morning & evening complexes, 12 profiles, cognitive assessment, 12 languages, fully offline.`
+- **RU:** `Первый релиз. 66 когнитивных игр, утренние и вечерние комплексы, 12 профилей, оценка профиля, 12 языков, полностью офлайн.`

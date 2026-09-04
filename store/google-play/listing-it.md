@@ -18,7 +18,7 @@ PsyGames: Allena la mente
 ## 2. КРАТКОЕ ОПИСАНИЕ — 80 символов
 
 ```
-Memoria, concentrazione e logica: 65 esercizi offline, senza pubblicità
+Memoria, concentrazione e logica: 66 esercizi offline, senza pubblicità
 ```
 
 ---
@@ -33,7 +33,7 @@ Ascolti una lingua straniera e distingui suoni che prima sembravano uguali.
 
 Non è un talento riservato a pochi. Si può allenare — e qui puoi misurare i progressi.
 
-PsyGames offre giochi mentali, rompicapo e 65 esercizi per memoria, attenzione, logica e rapidità. Non è l'ennesimo test che indovina il tuo QI, ma pratica con risultati misurabili.
+PsyGames offre giochi mentali, rompicapo e 66 esercizi per memoria, attenzione, logica e rapidità. Non è l'ennesimo test che indovina il tuo QI, ma pratica con risultati misurabili.
 
 GIOCHI DI MEMORIA
 Allena la memoria visiva con blocchi di Corsi, matrici, coppie e storie. Rafforza la memoria di lavoro con N-back, Operation Span e Reading Span.
@@ -58,7 +58,7 @@ Molte app ripetono la stessa prova senza mostrare il cambiamento. PsyGames adatt
 • Sfida giornaliera e traguardi mantengono chiaro il prossimo obiettivo
 
 COSA TROVI NELL'APP
-• 65 esercizi per memoria, attenzione, logica, velocità e controllo
+• 66 esercizi per memoria, attenzione, logica, velocità e controllo
 • Riscaldamenti mattina, giorno, sera e notte pronti con un tocco
 • Tema scuro e un set notturno per quando non arriva il sonno: respirazione 4-7-8, schermo attenuato, senza punti né serie
 • 12 profili: lingue, bambini, 50+, concentrazione, reazione, studenti e altro

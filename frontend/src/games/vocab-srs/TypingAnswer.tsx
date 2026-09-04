@@ -14,7 +14,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Platform, Pressable } from 'react-native';
-import { createState, pressChar, backspace, MARK, type TypingState } from './core/typing';
+import { createState, pressChar, backspace, MARK, type TypingState } from '@/src/services/typing';
 
 export interface TypingAnswerProps {
   /** Слово, которое надо набрать. */
@@ -27,9 +27,16 @@ export interface TypingAnswerProps {
   hint?: string;
   /** Заблокировать ввод (идёт переход к следующей карточке). */
   disabled?: boolean;
+  /**
+   * 🔴 СКРЫВАТЬ НЕНАБРАННОЕ. В словаре образец виден целиком: человек знает, ЧТО
+   * набирает, и работа в том, чтобы вспомнить написание. В диктанте наоборот —
+   * фраза звучит, и показать её значило бы превратить диктант в списывание.
+   * Тогда ненабранные знаки рисуются точками, а набранные открываются.
+   */
+  hideUntyped?: boolean;
 }
 
-export default function TypingAnswer({ word, colors, onDone, hint, disabled }: TypingAnswerProps) {
+export default function TypingAnswer({ word, colors, onDone, hint, disabled, hideUntyped }: TypingAnswerProps) {
   const [, форсировать] = useState(0);
   const состояние = useRef<TypingState>(createState([word]));
   const ошибкаНа = useRef<number | null>(null);
@@ -80,7 +87,10 @@ export default function TypingAnswer({ word, colors, onDone, hint, disabled }: T
                 текущая && { borderBottomWidth: 3, borderBottomColor: ошибка ? '#f43f5e' : colors.text },
               ]}
             >
-              {б === ' ' ? '␣' : б}
+              {/* ⚠️ В режиме диктанта скрыта и ТЕКУЩАЯ буква. Иначе фразу можно
+                    прочитать по одному знаку, вообще не слушая — курсор всякий раз
+                    показывал бы следующую. Позицию курсора несёт подчёркивание. */}
+              {hideUntyped && !набрана ? (б === ' ' ? ' ' : '·') : (б === ' ' ? '␣' : б)}
             </Text>
           );
         })}

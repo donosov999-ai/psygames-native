@@ -24,6 +24,7 @@ export const THUMB_AUDIT: Record<string, ThumbAudit> = {
   "corsi": { about: false, yellow: 0.0, sha: '3932f5499846' },
   "counter": { about: false, yellow: 0.0, sha: '47b8aef4a613' },
   "cpt": { about: false, yellow: 0.0, sha: 'd5ea75e48bd4' },
+  "dictation": { about: false, yellow: 0.0, sha: 'ff3a4d20ecef' },
   "digit_span": { about: false, yellow: 0.0, sha: '98c50d701f48' },
   "dots_connect": { about: false, yellow: 0.0, sha: 'fca0c03b55e1' },
   "eye_gym": { about: false, yellow: 0.0, sha: 'f4fbc9b8dfd8' },
