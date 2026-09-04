@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.15',
+    date: '2026-09-04',
+    ru: [
+      '«Торможение» и «Мишени» переехали внутрь «Конфликта внимания» — каталог короче, а упражнения на месте',
+      'Трекер объектов: движение снова идёт само, пошаговый режим стал галочкой в настройке',
+    ],
+    en: [
+      'Inhibition and Targets moved inside Attention Conflict — a shorter catalogue, same exercises',
+      'Object tracker: motion runs on its own again; the step-by-step mode is now a checkbox',
+    ],
+  },
+  {
     version: '2.37.14',
     date: '2026-09-04',
     ru: [
