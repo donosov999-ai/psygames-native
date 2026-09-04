@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.40',
+    date: '2026-09-04',
+    ru: ['Итог зарядки говорит, где сегодня вышло лучше обычного и где просело — по навыкам, а не голыми очками. Свёрнуто: раскрывается касанием'],
+    en: ['The warm-up summary now says where you beat your usual and where you dipped — by skill, not raw points. Collapsed by default, one tap to open'],
+  },
+  {
     version: '2.37.39',
     date: '2026-09-04',
     ru: ['«Пауза» переведена целиком: указания к телу теперь звучат на своём языке на всех двенадцати, а не только заголовки программ'],

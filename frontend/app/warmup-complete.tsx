@@ -12,6 +12,8 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { GAMES } from '@/src/constants/games';
+import { разборПоНавыкам, type Разбор } from '@/src/services/warmupBreakdown';
+import { getSessions } from '@/src/services/api';
 import {
   loadWarmupHistory, computeStreak, brainTodayVerdict, WarmupHistoryEntry,
   PlaylistMeta,
@@ -55,6 +57,14 @@ export default function WarmupComplete() {
   // (кэш на день — первая зарядка дня зовёт сеть, остальные показы за этот день читают кэш).
   const [aiVerdictText, setAiVerdictText] = useState<string | null>(null);
 
+  /**
+   * Разбор по навыкам (отчёт 0660eb0a). Свёрнут по умолчанию: человек только что
+   * закончил зарядку, и первое, что он хочет видеть, — что она закончена, а не
+   * таблицу. Разворачивается одним касанием.
+   */
+  const [разбор, setРазбор] = useState<Разбор | null>(null);
+  const [разборРаскрыт, setРазборРаскрыт] = useState(false);
+
   // v1.13.2 fix: snapshot meta/results/startTime СРАЗУ при mount.
   // stopWarmup() в useEffect занулит warmup.meta=null в WarmupContext →
   // re-render бы показал «Сессия не найдена», даже если зарядка ОК завершена.
@@ -76,6 +86,33 @@ export default function WarmupComplete() {
   const elapsedMin = Math.floor(elapsedSec / 60);
   const elapsedSecRem = Math.floor(elapsedSec % 60);
   const completed = meta ? results.length >= meta.steps.length : false;
+
+  /**
+   * ⚠️ ПРОШЛЫЕ ПАРТИИ БЕРЁМ БЕЗ СЕГОДНЯШНИХ. Партии этой зарядки уже записаны в
+   * общую историю к моменту показа итога, и если их не отсечь, игра сравнится
+   * сама с собой — отклонение всегда выйдет около нуля, а блок будет выглядеть
+   * работающим. Отсекаем по количеству: у каждой игры выбрасываем столько
+   * последних записей, сколько её партий было сегодня.
+   */
+  useEffect(() => {
+    let жив = true;
+    getSessions().then((все) => {
+      if (!жив) return;
+      const сегодня = results.map((r) => ({ game_type: r.game_type, score: r.score }));
+      const убрать = new Map<string, number>();
+      for (const r of сегодня) убрать.set(r.game_type, (убрать.get(r.game_type) ?? 0) + 1);
+      const прошлые: { game_type: string; score: number }[] = [];
+      for (let i = все.length - 1; i >= 0; i -= 1) {
+        const s = все[i]!;
+        const надо = убрать.get(s.game_type) ?? 0;
+        if (надо > 0) { убрать.set(s.game_type, надо - 1); continue; }
+        прошлые.push({ game_type: s.game_type, score: s.score });
+      }
+      setРазбор(разборПоНавыкам(сегодня, прошлые,
+        (id) => GAMES.find((g) => g.id === id)?.skillKey));
+    }).catch(() => {});
+    return () => { жив = false; };
+  }, [results]);
 
   // PlaylistMeta исторически хранит русские подписи (ПН / перед сном).
   // В интерфейсе показываем язык пользователя, не меняя формат сохранённой истории.
@@ -266,6 +303,59 @@ export default function WarmupComplete() {
           })()}
         </View>
 
+        {/*
+          РАЗБОР ПО НАВЫКАМ — свёрнутый (отчёт 0660eb0a: «развернуть статистику,
+          сказать, где молодец и где провал, дать тенденцию и рекомендации,
+          в свёрнутом виде»).
+          Показываем только когда есть ЧТО сказать: без истории игры сравнивать
+          не с чем, и пустой раскрывающийся блок был бы обещанием без содержания.
+        */}
+        {разбор && разбор.навыки.length > 0 && (
+          <View style={[styles.totalCard, { backgroundColor: colors.surface }]}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ expanded: разборРаскрыт }}
+              onPress={() => setРазборРаскрыт((v) => !v)}
+              style={styles.breakdownHead}
+            >
+              <Text style={[styles.breakdownTitle, { color: colors.text }]}>{t('warmupBreakdownTitle')}</Text>
+              <Ionicons name={разборРаскрыт ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            {/* Сводка видна и в свёрнутом виде: ради неё блок и открывают. */}
+            <Text style={[styles.breakdownLead, { color: colors.textSecondary }]}>
+              {разбор.лучший
+                ? t('warmupBreakdownUp').replace('{skill}', t(разбор.лучший.skillKey)).replace('{pct}', String(Math.round(разбор.лучший.delta)))
+                : разбор.худший
+                ? t('warmupBreakdownDown').replace('{skill}', t(разбор.худший.skillKey)).replace('{pct}', String(Math.abs(Math.round(разбор.худший.delta))))
+                : t('warmupBreakdownFlat')}
+            </Text>
+
+            {разборРаскрыт && (
+              <View style={styles.breakdownBody}>
+                {разбор.навыки.map((н) => (
+                  <View key={н.skillKey} style={styles.breakdownRow}>
+                    <Text style={[styles.breakdownSkill, { color: colors.text }]} numberOfLines={1}>{t(н.skillKey)}</Text>
+                    <Text style={[styles.breakdownDelta, { color: н.delta >= 0 ? '#22c55e' : '#f43f5e' }]}>
+                      {н.delta >= 0 ? '+' : ''}{Math.round(н.delta)}%
+                    </Text>
+                  </View>
+                ))}
+                {разбор.худший && (
+                  <Text style={[styles.breakdownHint, { color: colors.textSecondary }]}>
+                    {t('warmupBreakdownAdvice').replace('{skill}', t(разбор.худший.skillKey))}
+                  </Text>
+                )}
+                {разбор.безИстории > 0 && (
+                  <Text style={[styles.breakdownHint, { color: colors.textSecondary }]}>
+                    {t('warmupBreakdownNoHistory').replace('{n}', String(разбор.безИстории))}
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+        )}
+
         {/* Total */}
         <View style={[styles.totalCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>{t('totalScoreLabel')}</Text>
@@ -378,6 +468,14 @@ const styles = StyleSheet.create({
   rowMetrics: { flexDirection: 'row', gap: 12, marginTop: 2 },
   metric: { fontSize: 13, fontWeight: '700' },
   skipped: { fontSize: 12, textAlign: 'center', marginTop: 4 },
+  breakdownHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', minHeight: 44 },
+  breakdownTitle: { fontSize: 16, fontWeight: '800' },
+  breakdownLead: { fontSize: 14, lineHeight: 20, marginTop: 2 },
+  breakdownBody: { width: '100%', marginTop: 10, gap: 6 },
+  breakdownRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  breakdownSkill: { flex: 1, fontSize: 14 },
+  breakdownDelta: { fontSize: 14, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  breakdownHint: { fontSize: 12.5, lineHeight: 17, marginTop: 6 },
   totalCard: { padding: 18, borderRadius: 14, alignItems: 'center' },
   totalLabel: { fontSize: 12, fontWeight: '600' },
   totalValue: { fontSize: 42, fontWeight: '900' },

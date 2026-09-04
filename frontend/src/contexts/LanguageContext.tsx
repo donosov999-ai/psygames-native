@@ -2302,6 +2302,12 @@ const translations: Translations = {
   // Warmup complete (итог зарядки)
   sessionNotFound: { ru: 'Сессия не найдена', en: 'Session not found' },
   warmupDoneTitle: { ru: 'ЗАРЯДКА ЗАВЕРШЕНА', en: 'WARM-UP COMPLETE' },
+  warmupBreakdownTitle: { ru: "Разбор по навыкам", en: "Skill breakdown" },
+  warmupBreakdownUp: { ru: "Сегодня лучше обычного: {skill}, +{pct}%", en: "Better than usual today: {skill}, +{pct}%" },
+  warmupBreakdownDown: { ru: "Просело против обычного: {skill}, −{pct}%", en: "Below your usual: {skill}, −{pct}%" },
+  warmupBreakdownFlat: { ru: "Сегодня всё в привычных пределах", en: "Everything is within your usual range today" },
+  warmupBreakdownAdvice: { ru: "Стоит вернуться к этому: {skill}", en: "Worth coming back to this: {skill}" },
+  warmupBreakdownNoHistory: { ru: "Игр без истории: {n} — их пока не с чем сравнить", en: "Games with no history: {n} — nothing to compare them with yet" },
   warmupStoppedTitle: { ru: 'ЗАРЯДКА ОСТАНОВЛЕНА', en: 'WARM-UP STOPPED' },
   personalBest: { ru: 'Личный рекорд', en: 'Personal best' },
   resultsTitle: { ru: 'Результаты', en: 'Results' },
