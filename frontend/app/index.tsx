@@ -423,15 +423,23 @@ function FullHome() {
    * сколько там занятий. Разворачиваем вложенные развилки до упражнений.
    */
   const составРазвилки = useMemo(() => {
+    /**
+     * ⚠️ И СЧИТАЕМ ПО ПРОФИЛЮ, А НЕ ПО ВСЕМУ КАТАЛОГУ. Значок «10» на «Языках» у
+     * профиля, которому положены три упражнения из десяти, — это обещание,
+     * которого экран развилки не выполнит: он с 04.09.2026 фильтрует список
+     * (см. HubScreen). Число обязано совпадать с тем, что человек там увидит.
+     */
+    const можно = new Set(filterAllowedGames(profile).map((g) => g.id));
     const прямые: Record<string, string[]> = {};
     for (const g of GAMES) if (g.mergedInto) (прямые[g.mergedInto] ??= []).push(g.id);
     const хаб = new Set(GAMES.filter((g) => g.hub).map((g) => g.id));
     const счёт = (id: string, глубина = 0): number =>
-      глубина > 3 ? 0 : (прямые[id] ?? []).reduce((с, вложен) => с + (хаб.has(вложен) ? счёт(вложен, глубина + 1) : 1), 0);
+      глубина > 3 ? 0 : (прямые[id] ?? []).reduce(
+        (с, вложен) => с + (хаб.has(вложен) ? счёт(вложен, глубина + 1) : (можно.has(вложен) ? 1 : 0)), 0);
     const из: Record<string, number> = {};
     for (const id of хаб) из[id] = счёт(id);
     return из;
-  }, []);
+  }, [profile]);
 
   // «⭐ X/15» на карточках — сводка пройденных уровней (пишет LevelCleared), multiGet на фокусе
   const visibleGameIds = useMemo(() => visibleGames.map((g) => g.id), [visibleGames]);
@@ -699,9 +707,13 @@ function FullHome() {
             activeOpacity={0.8}
             onPress={() => router.push('/pet' as any)}
             accessibilityLabel={t('petSynapse')}
-            style={{ width: 44, height: 44, marginVertical: -6, flexShrink: 0, marginLeft: 2, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' }}
+            /* Отчёт 63c255d2 (04.09.2026): «питомец мелкий, надо увеличить в шапке
+               его». Было 44×44 с фигурой 32 — цель нажатия по норме, а видно
+               плохо. Стало 56×56 с фигурой 48: фигура выросла в полтора раза,
+               шапка отдала 12 точек, и отдало их ЛОГО (flex:1), а не счётчики. */
+            style={{ width: 56, height: 56, marginVertical: -10, flexShrink: 0, marginLeft: 2, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' }}
           >
-            <PetStill skin={petSkin} state="idle" size={32} />
+            <PetStill skin={petSkin} state="idle" size={48} />
           </TouchableOpacity>
         </View>
         <View style={styles.headerRow}>

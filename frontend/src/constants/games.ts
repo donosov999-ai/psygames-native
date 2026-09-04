@@ -1085,7 +1085,6 @@ export const GAMES: GameConfig[] = [
      * не листается; эти пробы меряют одно и то же и жили рядом порознь.
      */
     id: 'counting_group',
-    previewIn: ['nzt48'],
     nameKey: 'countingGroup',
     descKey: 'countingGroupDesc',
     skillKey: 'skillMath',
@@ -1101,7 +1100,6 @@ export const GAMES: GameConfig[] = [
      * не листается; эти пробы меряют одно и то же и жили рядом порознь.
      */
     id: 'words_group',
-    previewIn: ['nzt48'],
     nameKey: 'wordsGroup',
     descKey: 'wordsGroupDesc',
     skillKey: 'skillVocabulary',
@@ -1119,7 +1117,6 @@ export const GAMES: GameConfig[] = [
      * не листается; эти пробы меряют одно и то же и жили рядом порознь.
      */
     id: 'hearing_group',
-    previewIn: ['nzt48'],
     nameKey: 'hearingGroup',
     descKey: 'hearingGroupDesc',
     skillKey: 'skillListening',
@@ -1137,7 +1134,6 @@ export const GAMES: GameConfig[] = [
      * не листается; эти пробы меряют одно и то же и жили рядом порознь.
      */
     id: 'search_group',
-    previewIn: ['nzt48'],
     nameKey: 'searchGroup',
     descKey: 'searchGroupDesc',
     skillKey: 'skillVisualSearch',
@@ -1153,7 +1149,6 @@ export const GAMES: GameConfig[] = [
      * не листается; эти пробы меряют одно и то же и жили рядом порознь.
      */
     id: 'risk_group',
-    previewIn: ['nzt48'],
     nameKey: 'riskGroup',
     descKey: 'riskGroupDesc',
     skillKey: 'skillRisk',
@@ -1166,7 +1161,6 @@ export const GAMES: GameConfig[] = [
   {
     /** Развилка «Зрительная память» (04.09.2026). «Память» разрослась до 14 карточек. */
     id: 'visual_memory_group',
-    previewIn: ['nzt48'],
     nameKey: 'visualMemoryGroup',
     descKey: 'visualMemoryGroupDesc',
     skillKey: 'skillVisualMemory',
@@ -1179,7 +1173,6 @@ export const GAMES: GameConfig[] = [
   {
     /** Развилка «Мнемотехники» (04.09.2026). «Память» разрослась до 14 карточек. */
     id: 'mnemonics_group',
-    previewIn: ['nzt48'],
     nameKey: 'mnemonicsGroup',
     descKey: 'mnemonicsGroupDesc',
     skillKey: 'skillSequence',
@@ -1197,7 +1190,6 @@ export const GAMES: GameConfig[] = [
      * с порога выбирает, ЧТО тренирует.
      */
     id: 'languages_group',
-    previewIn: ['nzt48'],
     nameKey: 'languagesGroup',
     descKey: 'languagesGroupDesc',
     skillKey: 'skillVocabulary',
@@ -1214,7 +1206,6 @@ export const GAMES: GameConfig[] = [
      * «Сортировка товаров» сюда не входит — там классификация, а не планирование.
      */
     id: 'towers_group',
-    previewIn: ['nzt48'],
     nameKey: 'towersGroup',
     descKey: 'towersGroupDesc',
     skillKey: 'skillPlanning',
@@ -1231,7 +1222,6 @@ export const GAMES: GameConfig[] = [
      * сам по себе и заводит в тупик, поэтому считать надо покрытие заранее.
      */
     id: 'routes_group',
-    previewIn: ['nzt48'],
     nameKey: 'routesGroup',
     descKey: 'routesGroupDesc',
     skillKey: 'skillPlanning',
@@ -1248,7 +1238,6 @@ export const GAMES: GameConfig[] = [
      * сменить признак поиска, перейти между строками ключа.
      */
     id: 'flexibility_group',
-    previewIn: ['nzt48'],
     nameKey: 'flexibilityGroup',
     descKey: 'flexibilityGroupDesc',
     skillKey: 'skillSwitching',
