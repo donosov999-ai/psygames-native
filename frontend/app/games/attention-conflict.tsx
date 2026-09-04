@@ -60,6 +60,36 @@ const SUB_GAMES = [
     descKey: 'flankerDesc' as const,
     typeKey: 'acTypeFlanker' as const,
   },
+  /**
+   * 04.09.2026 — «Торможение» переехало сюда по решению Дениса. В реестре
+   * `go_no_go` и `stop_signal` УЖЕ были помечены `mergedInto: 'attention_conflict'`,
+   * а хаб их не показывал, и рядом в каталоге висела отдельная карточка
+   * «Торможение» — то есть один и тот же набор жил в двух местах.
+   *
+   * ⚠️ Ведём на `/games/inhibition`, а не на две подпробы по отдельности: там
+   * общая лестница (`usePersistentLevel('inhibition')`) и переключатель Go/No-Go ↔
+   * Stop-Signal. Развести их двумя входами значило бы разрезать прогресс надвое.
+   */
+  {
+    route: '/games/inhibition',
+    icon: 'hand-left' as const,
+    nameKey: 'inhibition' as const,
+    descKey: 'inhibitionDesc' as const,
+    typeKey: 'acTypeInhibition' as const,
+  },
+  /**
+   * «Мишени» тоже сюда (Денис, 04.09.2026: «мишени тоже закинуть, логика похожа»).
+   * И правда та же ось: два объекта одного цвета — жать, иначе держать руку.
+   * Отличие от Go/No-Go лишь в том, ЧЕМ задан сигнал: там символ, здесь совпадение
+   * цвета. Конфликт «жать / не жать» один и тот же.
+   */
+  {
+    route: '/games/targets',
+    icon: 'disc' as const,
+    nameKey: 'targets' as const,
+    descKey: 'targetsDesc' as const,
+    typeKey: 'acTypeTargets' as const,
+  },
   // v1.9.1 — Simon Task: 4-я парадигма interference resolution
   {
     route: '/games/simon',
@@ -80,6 +110,7 @@ function DemoAttentionRedirect() {
 }
 
 export default function AttentionConflictGame() {
+
   // Web-demo: хаб-выбор парадигмы не показываем — сразу первая подигра.
   // Query (embed=1, lang=…) обязан пережить редирект — embed-контракт с сайтом.
   if (isWebDemo()) {
