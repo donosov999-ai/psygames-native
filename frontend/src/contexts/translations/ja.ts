@@ -1042,6 +1042,7 @@ const t: Record<string, string> = {
   "color_red": "赤",
   "phonemicAdd": "追加",
   "label_off": "オフ",
+  "sudokuLineHighlight": "行と列のハイライト",
   "label_was": "正解",
   "label_level_short": "Lv",
   "title_tip": "ヒント",

@@ -935,9 +935,20 @@ export default function ChessBlindGame() {
               const bg = isLight ? BOARD_LIGHT : BOARD_DARK;
               const coordColor = isLight ? '#5d4433' : '#c9b29a';
               let hl: string | null = null;
+              /**
+               * 🔴 СПРАШИВАЕМАЯ КЛЕТКА — ЗАЛИВКОЙ, А НЕ ВОЛОСКОМ.
+               * Отчёт a4cc1a7d (04.09.2026): «подсветка, не видно нихуя, какую
+               * фигуру выделять» — уже ВТОРОЙ про то же. Замер в браузере показал,
+               * что рамки доезжают до экрана (3 штуки, 45×45, 3 px), то есть дело
+               * не в проводке: линия в 3 точки по краю клетки 45 — это 7% её
+               * ширины, и на охристой доске под фишкой она теряется. Поэтому у
+               * СПРАШИВАЕМОЙ клетки рамка 5 и заливка: её видно целиком, а не по
+               * контуру.
+               */
+              let сильная = false;
               if (moveHl && (moveHl.from === sq || moveHl.to === sq)) hl = '#fbbf24';
-              if (pendingSqs.has(sq)) hl = '#38bdf880';   // ждёт ответа — бледная рамка
-              if (pickTargetSq === sq) hl = '#38bdf8';       // выбранная сейчас — яркая
+              if (pendingSqs.has(sq)) hl = '#38bdf8aa';   // ждёт ответа — рамка бледнее
+              if (pickTargetSq === sq) { hl = '#0284c7'; сильная = true; }   // спрашиваемая сейчас
               if (revealSq === sq) hl = '#22c55e';
               if (wrongSq === sq) hl = '#f43f5e';
               if (flipSq === sq) hl = flipRight ? '#22c55e' : '#f43f5e';
@@ -986,7 +997,16 @@ export default function ChessBlindGame() {
                       }}
                     />
                   ))}
-                  {hl && <View pointerEvents="none" style={[styles.hlOverlay, { borderColor: hl }]} />}
+                  {hl && (
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        styles.hlOverlay,
+                        { borderColor: hl },
+                        сильная && { borderWidth: 5, backgroundColor: '#38bdf855' },
+                      ]}
+                    />
+                  )}
                 </TouchableOpacity>
               );
             })}
@@ -1308,13 +1328,27 @@ export default function ChessBlindGame() {
              * словами. Даже если рамка не нарисуется, человек знает, про какую
              * клетку спрашивают, — а это ровно то, чего он не мог понять.
              */
-            ? (currentQ
-                ? `${t('chessHintWhatSquareAt')}${squareName(coreIndex(currentQ.sq))}?`
-                : t('chessHintWhatSquare'))
+            ? (currentQ ? t('chessHintWhatSquareAt').replace(/[:\s]+$/, '') : t('chessHintWhatSquare'))
             : currentQ
             ? t('chessHintWhereIs').replace('{piece}', pieceName(currentQ.answer, t)).replace('{glyph}', glyphOf(currentQ.answer))
             : ''}
         </Text>
+
+        {/*
+          🔴 ВТОРОЙ ОТВЕТ НА ТОТ ЖЕ ОТЧЁТ — КООРДИНАТА КРУПНО.
+          Отчёт f87b180b (04.09.2026): «сделать как режимы: один вариант —
+          подсвечивать какую нужно вставить, а второй — писать более крупными
+          буквами цифру-букву, которую нужно определить, типа „Г три“».
+          Режимом не делаю: оба варианта не мешают друг другу, а лишний
+          переключатель — это ещё один экран настроек и ещё одно состояние.
+          Клетка залита цветом И названа крупно; работает даже если рамка
+          почему-то не нарисуется, а именно на это была жалоба 03.09.
+        */}
+        {phase === 'quiz' && prm.quizType === 'pick' && currentQ ? (
+          <Text style={[styles.askSquare, { color: colors.primary }]} accessibilityRole="header">
+            {squareName(coreIndex(currentQ.sq))}
+          </Text>
+        ) : null}
 
         {phase === 'expose' && (
           <View style={[styles.barTrack, { width: boardSize, backgroundColor: colors.surface }]}>
@@ -1550,6 +1584,8 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center', flexWrap: 'wrap', maxWidth: '100%' },
   statText: { fontSize: 15, fontWeight: '700' },
   hintText: { fontSize: 14, textAlign: 'center', minHeight: 20, fontWeight: '600' },
+  /** Имя клетки — крупно: на него смотрят, а не на подпись под ним. */
+  askSquare: { fontSize: 40, lineHeight: 46, fontWeight: '900', textAlign: 'center', letterSpacing: 1, fontVariant: ['tabular-nums'] },
   barTrack: { height: 6, borderRadius: 3, overflow: 'hidden' },
   barFill: { height: 6, borderRadius: 3, backgroundColor: '#38bdf8' },
   coord: { position: 'absolute', fontSize: 8, fontWeight: '700' },

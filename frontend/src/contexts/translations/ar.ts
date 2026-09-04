@@ -862,6 +862,7 @@ const t: Record<string, string> = {
   "btn_undo": "تراجع",
   "label_on": "مفعّل",
   "label_off": "معطّل",
+  "sudokuLineHighlight": "إبراز الصف والعمود",
   "label_balloon": "البالون",
   "label_burst_risk": "خطر الانفجار عند النفخة التالية",
   "desc_counter_rules": "اختر أرقامًا مجموعها يساوي الهدف. إذا تجاوز المجموع الهدف — خطأ!",

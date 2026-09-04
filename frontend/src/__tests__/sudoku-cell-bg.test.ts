@@ -18,6 +18,16 @@
  */
 import { cellBackground, CAGE_ACCENTS } from '@/src/services/sudoku-overlay';
 
+const nodeRequire = require;
+declare const __dirname: string;
+
+/** Прочитать файл проекта. Вынесено, чтобы `require` стоял в одном месте. */
+function читатьИсходник(отКорня: string): string {
+  const fs = nodeRequire('fs');
+  const path = nodeRequire('path');
+  return fs.readFileSync(path.join(__dirname, '../../', отКорня), 'utf8');
+}
+
 const СВЕТЛАЯ = '#FFFFFF';
 const ТЁМНАЯ = '#1C1C1E';
 
@@ -90,5 +100,43 @@ describe('фон клетки судоку', () => {
     const безГруппы = старый('#FFFFFF', '#FFFFFF', -1, true);
     const сГруппой = старый('#FFFFFF', '#FFFFFF', 3, true);
     expect(сГруппой).toBe(безГруппы);     // старый каскад: цвет группы стёрт
+  });
+});
+
+/**
+ * ВЫКЛЮЧАТЕЛЬ ПОДСВЕТКИ СТРОКИ И СТОЛБЦА.
+ *
+ * Отчёт d71044f8 (04.09.2026): «надо добавить в настройках вот это выделение,
+ * которое подсвечивает строку и столбец, чтобы можно было его отключить».
+ *
+ * 🔴 ПОЧЕМУ ГЕЙТ. Тумблер — самое лёгкое, что можно нарисовать и не подключить:
+ * кнопка красится, состояние пишется в хранилище, а фон клетки считается по
+ * старому. Снаружи это выглядит рабочим. Поэтому проверяется ПОВЕДЕНИЕ:
+ * при выключенном тумблере клетка перекрестья обязана красить ровно так же, как
+ * клетка вне его, а подсветка одинаковой ЦИФРЫ — остаться (о ней не просили).
+ */
+describe('подсветку строки и столбца можно выключить', () => {
+  const общее = { surface: СВЕТЛАЯ, isDark: false, cageId: -1, markColor: null, isSel: false, wrongVal: false };
+
+  it('🔴 выключенная подсветка красит клетку перекрестья как обычную', () => {
+    const обычная = cellBackground({ ...общее, sameVal: false, sameLine: false });
+    const вКресте = cellBackground({ ...общее, sameVal: false, sameLine: true });
+    // включённая — отличается
+    expect(`включённая отличается: ${вКресте !== обычная}`).toBe('включённая отличается: true');
+    // выключенная: экран подаёт sameLine=false, и цвет обязан совпасть с обычной
+    const выключенная = cellBackground({ ...общее, sameVal: false, sameLine: false });
+    expect(выключенная).toBe(обычная);
+  });
+
+  it('🔴 подсветка одинаковой ЦИФРЫ остаётся: о ней не просили', () => {
+    const обычная = cellBackground({ ...общее, sameVal: false, sameLine: false });
+    const таЖеЦифра = cellBackground({ ...общее, sameVal: true, sameLine: false });
+    expect(`подсветка цифры видна: ${таЖеЦифра !== обычная}`).toBe('подсветка цифры видна: true');
+  });
+
+  it('🔴 экран ПОДАЁТ выключатель в расчёт, а не только рисует кнопку', () => {
+    const src: string = читатьИсходник('app/games/sudoku.tsx');
+    expect(src).toContain('sameLine: lineHl && !!sameRow');
+    expect(src).toContain('psygames_sudoku_linehl');
   });
 });
