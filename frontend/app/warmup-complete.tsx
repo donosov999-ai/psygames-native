@@ -13,6 +13,7 @@ import { useWarmup } from '@/src/contexts/WarmupContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { GAMES } from '@/src/constants/games';
 import { разборПоНавыкам, type Разбор } from '@/src/services/warmupBreakdown';
+import { saveWeakSkill } from '@/src/services/weakSkill';
 import { getSessions } from '@/src/services/api';
 import {
   loadWarmupHistory, computeStreak, brainTodayVerdict, WarmupHistoryEntry,
@@ -108,8 +109,12 @@ export default function WarmupComplete() {
         if (надо > 0) { убрать.set(s.game_type, надо - 1); continue; }
         прошлые.push({ game_type: s.game_type, score: s.score });
       }
-      setРазбор(разборПоНавыкам(сегодня, прошлые,
-        (id) => GAMES.find((g) => g.id === id)?.skillKey));
+      const р = разборПоНавыкам(сегодня, прошлые,
+        (id) => GAMES.find((g) => g.id === id)?.skillKey);
+      setРазбор(р);
+      // Слабое место уезжает в совет «рекомендуем сегодня»: считать его дважды
+      // в двух местах значило бы получить два разных ответа на один вопрос.
+      void saveWeakSkill(р);
     }).catch(() => {});
     return () => { жив = false; };
   }, [results]);

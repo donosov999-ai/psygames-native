@@ -37,6 +37,7 @@ import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic, getMusicEnabled
 import { useFocusEffect } from 'expo-router';
 import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
+import { loadWeakSkill, gameForWeakSkill } from '@/src/services/weakSkill';
 import { visibleInCatalog } from '@/src/constants/games';
 import {
   buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
@@ -275,7 +276,29 @@ function FullHome() {
    * «здесь пока слабее всего» просто не участвует в отборе.
    */
   const [слабейший, setСлабейший] = useState<string | null>(null);
-  useEffect(() => { void weakestDomainGame().then((w) => setСлабейший(w?.gameId ?? null)).catch(() => {}); }, []);
+  /**
+   * ⚠️ ДВА ИСТОЧНИКА, И ПОРЯДОК МЕЖДУ НИМИ НЕ СЛУЧАЕН. Оценка (`weakestDomainGame`)
+   * считает по нормам и z-баллам, но проходится раз в три месяца — почти всегда её
+   * ответ пуст, и основание «здесь пока слабее всего» не участвовало вовсе. Разбор
+   * зарядки свежий, но без норм: он говорит «ниже ТВОЕГО обычного», а не «ниже
+   * нормы». Поэтому оценка первая, разбор — запасной, и он молчит, если старше
+   * недели (см. `weakSkill`).
+   */
+  useEffect(() => {
+    let жив = true;
+    (async () => {
+      try {
+        const w = await weakestDomainGame();
+        if (!жив) return;
+        if (w?.gameId) { setСлабейший(w.gameId); return; }
+        const место = await loadWeakSkill();
+        if (!жив || !место) return;
+        const разрешено = new Set(filterAllowedGames(profile).map((g) => g.id));
+        setСлабейший(gameForWeakSkill(место, разрешено));
+      } catch { /* совет просто не появится */ }
+    })();
+    return () => { жив = false; };
+  }, [profile]);
   const reco = useMemo(
     () => recoCards({ profile, sessions, now: new Date(recoAt), weakestGameId: слабейший }),
     [profile, sessions, recoAt, слабейший],

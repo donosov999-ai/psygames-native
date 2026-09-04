@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.45',
+    date: '2026-09-04',
+    ru: ['«Рекомендуем сегодня» учитывает разбор последней зарядки: если навык просел, назавтра предложит упражнение именно из него'],
+    en: ['Today’s picks now use your last warm-up breakdown: if a skill dipped, tomorrow you get an exercise from exactly that skill'],
+  },
+  {
     version: '2.37.44',
     date: '2026-09-04',
     ru: ['N-back: буквы в слуховом потоке читает живой человек, а не системный голос'],
