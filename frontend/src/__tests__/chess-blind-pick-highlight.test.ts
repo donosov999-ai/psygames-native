@@ -149,3 +149,47 @@ describe('«Доска в уме»: вопрос про подсветку — �
     await TestRenderer.act(async () => { r.unmount(); });
   });
 });
+
+/**
+ * ОТВЕТИЛ — ВИДНО, ЧТО ВЫШЛО (отчёты 63969cc9 и 52267f4f, Денис писал ТРИ РАЗА).
+ *
+ * Было: при верном ответе не происходило ничего — звук и через 350 мс следующий
+ * вопрос; при неверном подсвечивалась правильная КНОПКА, но не было видно ни
+ * своего промаха, ни того, что стояло на клетке. Его слова: «ты вслепую ответ дал
+ * и не знаешь толком, ошибся или нет».
+ *
+ * Замер живьём после правки (Chromium, партия 3×3): картинок фигур на экране до
+ * ответа 6 (только кнопки), после ответа 7 — седьмая открылась НА ДОСКЕ.
+ */
+describe('обратная связь после ответа', () => {
+  const экран: string = require('fs').readFileSync(
+    require('path').join(__dirname, '../../app/games/chess-blind.tsx'), 'utf8',
+  );
+
+  it('🔴 фишка на спрошенной клетке открывается при ЛЮБОМ ответе, а не только при ошибке', () => {
+    // Переворот ставится до развилки верно/неверно — значит виден в обоих случаях.
+    const кусок = экран.slice(экран.indexOf('const answerPick'), экран.indexOf('const answerLocate'));
+    expect(кусок).toMatch(/setFlipSq\(q\.sq\);[\s\S]{0,120}if \(correct\)/);
+    expect(экран).toContain('showPieces || flipSq === sq');
+  });
+
+  it('🔴 клетка обводится по результату: зелёным при верном, красным при промахе', () => {
+    expect(экран).toMatch(/flipSq === sq\) hl = flipRight \? '#22c55e' : '#f43f5e'/);
+  });
+
+  it('🔴 нажатая кнопка красится — иначе промах не виден вовсе', () => {
+    expect(экран).toContain('const isPicked');
+    expect(экран).toMatch(/isPicked \? \(flipRight \? '#22c55e' : '#f43f5e'\)/);
+  });
+
+  it('пауза при верном ответе даёт увидеть открытую фигуру (было 350 мс)', () => {
+    const кусок = экран.slice(экран.indexOf('const answerPick'), экран.indexOf('const answerLocate'));
+    const мс = [...кусок.matchAll(/later\(nextQuestion, (\d+)\)/g)].map((m) => Number(m[1]));
+    expect(мс.length).toBe(2);
+    expect(Math.min(...мс)).toBeGreaterThanOrEqual(600);
+  });
+
+  it('показ сбрасывается при переходе к следующему вопросу', () => {
+    expect(экран).toContain('setFlipSq(null); setPickedOpt(null);');
+  });
+});

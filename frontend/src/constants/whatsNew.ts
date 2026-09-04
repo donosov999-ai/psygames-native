@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.14',
+    date: '2026-09-04',
+    ru: [
+      '«Доска в уме»: после ответа фишка переворачивается в настоящую фигуру — сразу видно, попал или промахнулся',
+      'Словарь: новый режим «Печатать» — набираете перевод целиком, опечатка не пускает дальше (нужна настоящая клавиатура)',
+    ],
+    en: [
+      'Blind board: after your answer the token flips into the real piece — you see at once whether you were right',
+      'Vocabulary: new “Type it” mode — type the translation in full, a typo blocks the way (needs a real keyboard)',
+    ],
+  },
+  {
     version: '2.37.13',
     date: '2026-09-04',
     ru: [

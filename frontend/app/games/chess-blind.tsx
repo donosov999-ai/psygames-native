@@ -418,6 +418,24 @@ export default function ChessBlindGame() {
   const [moveHl, setMoveHl] = useState<{ from: number; to: number } | null>(null);
   const [qIndex, setQIndex] = useState(0);
   const [revealOpt, setRevealOpt] = useState<Combo | null>(null);   // pick: подсветка правильной кнопки после ошибки
+  /**
+   * 🔴 ОТВЕТИЛ — ВИДНО, ЧТО ВЫШЛО. Денис написал об этом ТРИ РАЗА (63969cc9,
+   * 52267f4f, плюс голосом): «ты вслепую ответ дал и не знаешь толком, ошибся или
+   * нет», «чтобы можно было видеть, где ошибка… если тапнул по фигуре — ответы
+   * чтоб показывались, если неправильно, то подсвечивались красным».
+   *
+   * Так и было: при ВЕРНОМ ответе не происходило ничего — звук и через 350 мс
+   * следующий вопрос. При неверном подсвечивалась правильная КНОПКА, но не было
+   * видно ни своего промаха, ни того, что стояло на клетке.
+   *
+   * Теперь после любого ответа фишка-маска на спрошенной клетке ПЕРЕВОРАЧИВАЕТСЯ
+   * в настоящую фигуру, клетка обводится зелёным или красным, а нажатая кнопка
+   * красится по результату. Пауза при верном ответе поднята с 350 до 700 мс —
+   * иначе показ не успевает прочитаться.
+   */
+  const [flipSq, setFlipSq] = useState<number | null>(null);         // клетка, где фишка открыта после ответа
+  const [flipRight, setFlipRight] = useState(false);                 // ответ был верным
+  const [pickedOpt, setPickedOpt] = useState<Combo | null>(null);    // что человек нажал
   const [revealSq, setRevealSq] = useState<number | null>(null);     // locate: подсветка правильной клетки
   const [wrongSq, setWrongSq] = useState<number | null>(null);
   const [hits, setHits] = useState(0);
@@ -826,6 +844,7 @@ export default function ChessBlindGame() {
 
   const nextQuestion = () => {
     setRevealOpt(null); setRevealSq(null); setWrongSq(null);
+    setFlipSq(null); setPickedOpt(null);
     answeredRef.current.add(qIndexRef.current);
     setAnsweredTick((x) => x + 1);
     // Следующий НЕОТВЕЧЕННЫЙ, а не следующий по счёту: человек мог отвечать вразнобой.
@@ -853,15 +872,19 @@ export default function ChessBlindGame() {
     if (!q) return;
     qLockRef.current = true;
     const correct = opt.type === q.answer.type && opt.white === q.answer.white;
+    // Показываем результат ВСЕГДА: клетка открывается, нажатая кнопка красится.
+    setPickedOpt(opt);
+    setFlipSq(q.sq);
+    setFlipRight(correct);
     if (correct) {
       hitsRef.current += 1; setHits((h) => h + 1);
       sndCorrect();
-      later(nextQuestion, 350);
+      later(nextQuestion, 700);   // было 350 — открытую фигуру не успевали увидеть
     } else {
       errorsRef.current += 1; setErrors((e) => e + 1);
       sndWrong();
-      setRevealOpt(q.answer);   // показать правильный ответ подсветкой на 1с
-      later(nextQuestion, 1000);
+      setRevealOpt(q.answer);   // подсветить ПРАВИЛЬНУЮ кнопку рядом с нажатой
+      later(nextQuestion, 1400);
     }
   };
 
@@ -917,6 +940,7 @@ export default function ChessBlindGame() {
               if (pickTargetSq === sq) hl = '#38bdf8';       // выбранная сейчас — яркая
               if (revealSq === sq) hl = '#22c55e';
               if (wrongSq === sq) hl = '#f43f5e';
+              if (flipSq === sq) hl = flipRight ? '#22c55e' : '#f43f5e';
               const p = bySq.get(sq);
               return (
                 <TouchableOpacity
@@ -936,7 +960,7 @@ export default function ChessBlindGame() {
                       иначе одно и то же написано дважды. */}
                   {!assist.coords && c === 0 && <Text style={[styles.coord, { top: 1, left: 2, color: coordColor }]}>{8 - r}</Text>}
                   {!assist.coords && r === 7 && <Text style={[styles.coord, { bottom: 1, right: 2, color: coordColor }]}>{'abcdefgh'[c]}</Text>}
-                  {p && (showPieces ? (
+                  {p && (showPieces || flipSq === sq ? (
                     // 🔴 ФИГУРА КРУПНЕЕ: 0.82 → 0.96 клетки. Два отчёта 02.09.2026:
                     // «ни хуя фигуры непонятно, хуёво отрисовать» и «картинки на
                     // доске можно покрупнее сделать». Unicode-глиф шахматной фигуры
@@ -1228,6 +1252,9 @@ export default function ChessBlindGame() {
           <View style={[styles.optionsWrap, { width: boardSize }]}>
             {currentQ.options.map((opt, i) => {
               const isReveal = revealOpt && opt.type === revealOpt.type && opt.white === revealOpt.white;
+              // Нажатая кнопка красится по результату — без этого промах не виден вовсе.
+              const isPicked = pickedOpt && opt.type === pickedOpt.type && opt.white === pickedOpt.white;
+              const рамка = isPicked ? (flipRight ? '#22c55e' : '#f43f5e') : isReveal ? '#22c55e' : null;
               return (
                 <TouchableOpacity
                   key={i}
@@ -1245,8 +1272,8 @@ export default function ChessBlindGame() {
                       // различением чёрных и белых фигур». Теперь сторону несёт плашка,
                       // тип — форма глифа, и каналы независимы.
                       backgroundColor: opt.white ? '#e2e8f0' : '#1e293b',
-                      borderColor: isReveal ? '#22c55e' : (opt.white ? '#94a3b8' : '#475569'),
-                      borderWidth: isReveal ? 3 : 2,
+                      borderColor: рамка ?? (opt.white ? '#94a3b8' : '#475569'),
+                      borderWidth: рамка ? 4 : 2,
                     },
                   ]}
                 >
