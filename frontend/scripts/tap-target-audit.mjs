@@ -73,6 +73,17 @@ const HUB_REASONS = {
   '/games/span': 'развилка: три игры на объём памяти (digit-span / corsi / spatial-span), каждая проверяется своим маршрутом',
   '/games/attention-conflict': 'развилка: четыре игры на конфликт внимания (stroop / stroop-emotional / flanker / simon), каждая проверяется своим маршрутом',
   '/games/sudoku-hub': 'развилка: три судоку (классическая / самурай / фрактальная), каждая проверяется своим маршрутом',
+  // Девять развилок 04.09.2026. У всех устройство одно: список карточек, каждая
+  // ведёт в игру, и та проверяется своим маршрутом. Поля у развилки нет.
+  '/games/counting-hub': 'развилка: четыре пробы на счёт (counter / math-slider / math-sprint / number-bonds), каждая проверяется своим маршрутом',
+  '/games/words-hub': 'развилка: шесть проб на словарь (vocab-srs / semantic-sort / cloze / lexical-decision / anagrams / phonemic-fluency), каждая проверяется своим маршрутом',
+  '/games/hearing-hub': 'развилка: три пробы на слух (phoneme-pairs / chinese-tones / pseudoword-echo), каждая проверяется своим маршрутом',
+  '/games/search-hub': 'развилка: шесть проб на зрительный поиск (visual-search / proofreading / find-differences / mahjong / schulte / quick-count), каждая проверяется своим маршрутом',
+  '/games/flexibility-hub': 'развилка: три пробы на переключение (trail-making / switching-task / wcst), каждая проверяется своим маршрутом',
+  '/games/risk-hub': 'развилка: три пробы на решения под риском (bart / iowa / prl), каждая проверяется своим маршрутом',
+  '/games/visual-memory-hub': 'развилка: три пробы на зрительную память (memory-matrix / picture-pairs / chess-blind), каждая проверяется своим маршрутом',
+  '/games/mnemonics-hub': 'развилка: четыре мнемотехники (mnemonics / memory-palace / faces-names / word-pairs), каждая проверяется своим маршрутом',
+  '/games/languages-hub': 'развилка-зонтик: ведёт в развилки «Слова» и «Слух», обе проверяются своими маршрутами',
 };
 
 /**
