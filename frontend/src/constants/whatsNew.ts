@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.24',
+    date: '2026-09-04',
+    ru: ['Новая развилка «Маршруты»: «Точки» и «Одна линия» — обе про путь, который обязан покрыть всё'],
+    en: ['New “Routes” hub: Dots and One Line — both about a path that must cover everything'],
+  },
+  {
     version: '2.37.23',
     date: '2026-09-04',
     ru: ['«Три сети внимания» и «Устойчивое внимание» переехали в развилку «Конфликт внимания»'],
