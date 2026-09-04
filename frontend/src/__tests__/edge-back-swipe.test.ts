@@ -1,8 +1,6 @@
 /**
  * @jest-environment jsdom
  */
-/* fs/path нужны, чтобы прочитать исходник каркаса и убедиться, что слушатели пассивные. */
-/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * ВЫХОД ЖЕСТОМ ОТ КРАЯ — ГЕЙТ НА УСЛОВИЕ, А НЕ НА НАЛИЧИЕ КОДА.
  *

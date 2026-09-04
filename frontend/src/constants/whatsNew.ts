@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.32',
+    date: '2026-09-04',
+    ru: ['Выход жестом от левого края и «Математическая шкала» без подтверждений — доехали до магазинов'],
+    en: ['Edge-swipe exit and the confirm-free Math Slider have finally shipped'],
+  },
+  {
     version: '2.37.31',
     date: '2026-09-04',
     ru: ['Выход жестом от левого края и «Математическая шкала» без подтверждений — доехали до сборки: два новых гейта роняли проверку типов'],
