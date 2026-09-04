@@ -44,6 +44,28 @@ function каталог(): Карточка[] {
   return из;
 }
 
+/**
+ * СОСЕДИ ПО НАБОРУ — второй способ дойти, появившийся 05.09.2026.
+ *
+ * Парадигмы, слитые под одну карточку (`src/constants/gameSuites.ts`), больше не
+ * перечислены в хабе: до них доходят плашками переключателя ВНУТРИ первой из них.
+ * Список соседей лежит в реестре, а не в файле экрана, поэтому обход по строковым
+ * литералам их не видит и считал бы сиротами.
+ *
+ * ⚠️ ПЕРЕХОД ЗАСЧИТЫВАЕТСЯ, ТОЛЬКО ЕСЛИ ЭКРАН ДЕЙСТВИТЕЛЬНО РИСУЕТ ПЕРЕКЛЮЧАТЕЛЬ.
+ * Иначе гейт разрешал бы дойти по ссылке, которой на экране нет: убери
+ * `<GameSuiteSwitch />` из `stroop.tsx` — и Simon с ANT становятся недостижимы,
+ * а проба обязана это заметить.
+ */
+function соседиПоНабору(маршрут: string): string[] {
+  const реестр = безКомментариев(fs.readFileSync(path.join(КОРЕНЬ, 'src/constants/gameSuites.ts'), 'utf8'));
+  for (const блок of реестр.split('modes: [').slice(1)) {
+    const маршруты = [...блок.slice(0, блок.indexOf('],')).matchAll(/route:\s*'(\/games\/[a-z0-9-]+)'/g)].map((m) => m[1]!);
+    if (маршруты.includes(маршрут)) return маршруты;
+  }
+  return [];
+}
+
 /** Дойти от экрана `старт` до `цель` по ссылкам между экранами игр. */
 function достижимо(старт: string, цель: string): boolean {
   const виден = new Set<string>();
@@ -57,6 +79,9 @@ function достижимо(старт: string, цель: string): boolean {
     if (!fs.existsSync(f)) continue;
     const s = безКомментариев(fs.readFileSync(f, 'utf8'));
     for (const m of s.matchAll(/'(\/games\/[a-z0-9-]+)'/g)) if (!виден.has(m[1]!)) очередь.push(m[1]!);
+    if (s.includes('<GameSuiteSwitch')) {
+      for (const сосед of соседиПоНабору(r)) if (!виден.has(сосед)) очередь.push(сосед);
+    }
   }
   return false;
 }

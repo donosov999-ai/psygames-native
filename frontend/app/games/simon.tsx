@@ -52,6 +52,7 @@ import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#1e3a8a', '#7f1d1d'];   // blue → red (отсылка к двум цветам стимула)
@@ -433,6 +434,7 @@ export default function SimonGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('simon')}</Text>
         <View style={{ width: 40 }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound
