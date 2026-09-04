@@ -48,6 +48,7 @@ import { type PetMood } from '@/src/components/pet/GamePet';
 import { setGameMood } from '@/src/services/petMood';
 import { onGameEvent, type GameEventKind } from '@/src/services/gameEvents';
 import { streakMultiplier, scoreWithStreak } from '@/src/services/scoring';
+import { attachEdgeBack } from '@/src/services/edgeBack';
 import { bumpBestStreak } from '@/src/services/streak';
 
 import { sndCorrect, sndWrong, sndMatch, sndLose } from '@/src/services/feedback';
@@ -661,6 +662,21 @@ export default function GameShell({
       <ScorePopupLayer popups={popups} />
     </View>
   );
+
+  /**
+   * Второй выход — жестом от левого края (отчёт b7dcf92a: до кнопки в верхнем
+   * углу не дотянуться, пока рука внизу на ответах). Перехват идёт ТОЛЬКО на
+   * движении и только по условию из `edgeBack`: тап никогда не отбирается, и
+   * поле игры продолжает получать всё, что не начинается у самого края.
+   */
+  /**
+   * ⚠️ Подписка ОДНА на жизнь экрана, а свежий выход берётся из ref. С
+   * `[exitGuard]` в зависимостях эффект переподписывался на каждой перерисовке,
+   * и жест, начатый до перерисовки, терял своё начало (см. `edgeBack`).
+   */
+  const выходRef = React.useRef(exitGuard.requestExit);
+  React.useEffect(() => { выходRef.current = exitGuard.requestExit; });
+  React.useEffect(() => attachEdgeBack(() => выходRef.current()), []);
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.root, { backgroundColor: colors.background }]}>
