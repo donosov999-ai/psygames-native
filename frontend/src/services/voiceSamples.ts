@@ -25,6 +25,7 @@
  */
 import { VOICE_INDEX, VOICE_INDEX_COUNTS } from '@/src/constants/voiceIndex.generated';
 import { VOICE_LIVE, VOICE_LIVE_COUNTS } from '@/src/constants/voiceLive.generated';
+import { LETTER_VOICE } from '@/src/constants/letterVoice.generated';
 
 /** Где лежит машинный корпус. Тот же хост, что раздаёт /play и бинарники. */
 const БАЗА = 'https://psy-games.pro/voice';
@@ -62,6 +63,18 @@ export function voiceUrl(text: string, lang: string): string | null {
   if (живая) return `${БАЗА_ЖИВАЯ}/${lang}/${живая}`;
   const имя = VOICE_INDEX[lang]?.[text];
   return имя ? `${БАЗА}/${lang}/${имя}` : null;
+}
+
+/**
+ * Адрес живой записи ИМЕНИ БУКВЫ или null.
+ *
+ * 🔴 ОТДЕЛЬНОЙ ФУНКЦИЕЙ, А НЕ ЧЕРЕЗ `voiceUrl`. Буква — не слово: у слов ключ
+ * уникален в пределах языка, а буква «B» столкнулась бы с осмысленным словом «b»
+ * в любом словаре, где оно есть. Разные пространства имён — разные функции.
+ */
+export function letterVoiceUrl(letter: string): string | null {
+  const имя = LETTER_VOICE[letter.toUpperCase()];
+  return имя ? `${БАЗА_ЖИВАЯ}/letters/${имя}` : null;
 }
 
 /** Голос человека, а не машины — для честной подписи на экране. */

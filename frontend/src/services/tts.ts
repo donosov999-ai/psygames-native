@@ -11,7 +11,7 @@
 
 import { soundOn } from '@/src/services/feedback';
 
-import { voiceUrl } from '@/src/services/voiceSamples';
+import { voiceUrl, letterVoiceUrl } from '@/src/services/voiceSamples';
 
 // Коды языков приложения (LanguageContext) → BCP-47 для голосов ОС.
 const BCP47: Record<string, string> = {
@@ -106,6 +106,19 @@ function сыграть(url: string, rate: number): Promise<boolean> {
       if (p && typeof p.catch === 'function') p.catch(() => конец(false));
     } catch { resolve(false); }
   });
+}
+
+/**
+ * Произнести ИМЯ БУКВЫ живой записью.
+ *
+ * 🔴 ОТДЕЛЬНЫМ ВХОДОМ, А НЕ ЧЕРЕЗ `speak`. У букв своё пространство имён: «B» как
+ * буква и «b» как слово — разные вещи, и общий словарь их бы столкнул. Здесь же
+ * и правило скорости: имя буквы уже коротко, ускорять его нечем.
+ */
+export async function speakLetterName(letter: string): Promise<void> {
+  const url = letterVoiceUrl(letter);
+  if (url && await сыграть(url, 1)) return;
+  return speak(letter, 'en', 1.2);           // записи нет — как раньше, синтезом
 }
 
 export async function speak(text: string, lang: string, rate = 0.9): Promise<void> {
