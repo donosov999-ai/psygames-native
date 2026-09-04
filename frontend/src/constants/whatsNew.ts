@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.47',
+    date: '2026-09-04',
+    ru: [
+      'Питомец правда жуёт угощение и правда празднует рекорд — у этих состояний появились свои кадры',
+    ],
+    en: [
+      'The pet really chews its treat and really celebrates a record — both states now have their own frames',
+    ],
+  },
+  {
     version: '2.37.46',
     date: '2026-09-04',
     ru: [

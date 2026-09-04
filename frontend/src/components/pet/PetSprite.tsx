@@ -93,6 +93,33 @@ const CAT: Partial<Record<PetState, any[]>> & Record<PetStateBase, any[]> = {
     require('../../../assets/images/pet/cat/sleep2.webp'),
     require('../../../assets/images/pet/cat/sleep3.webp'),
   ],
+  /**
+   * 04.09.2026: `eat` и `celebrate` нарезаны из исходных листов маскот-сервиса
+   * (`ref/eat/sheet-codex.png`, `ref/celebrate/sheet-codex.png`, хромакей #ff7a1a).
+   * Заявка 00218752 числилась висящей девять дней — а листы всё это время лежали в
+   * соседнем репозитории `mascot-engine-psygames-actions`. Резал тем же
+   * `cut_animcycle.py`, что и остальные наборы.
+   *
+   * ⚠️ КРАЙ ЧИЩЕ, ЧЕМ У ГОТОВЫХ. Сравнение одного и того же состояния и того же
+   * листа: заново нарезанный celebrate даёт полупрозрачного края 2,56–2,83% от
+   * тела, а лежавший в `deliver/` — 4,36–5,54%. Поэтому берём свой рез, а не
+   * готовые файлы.
+   *
+   * Из восьми кадров листа берём через один: цикл покрывает всю фазу, а не первую
+   * её половину, и остаётся в общем формате «четыре кадра на состояние».
+   */
+  eat: [
+    require('../../../assets/images/pet/cat/eat0.webp'),
+    require('../../../assets/images/pet/cat/eat1.webp'),
+    require('../../../assets/images/pet/cat/eat2.webp'),
+    require('../../../assets/images/pet/cat/eat3.webp'),
+  ],
+  celebrate: [
+    require('../../../assets/images/pet/cat/celebrate0.webp'),
+    require('../../../assets/images/pet/cat/celebrate1.webp'),
+    require('../../../assets/images/pet/cat/celebrate2.webp'),
+    require('../../../assets/images/pet/cat/celebrate3.webp'),
+  ],
 };
 
 const ROBOT: Partial<Record<PetState, any[]>> & Record<PetStateBase, any[]> = {
@@ -125,6 +152,13 @@ const ROBOT: Partial<Record<PetState, any[]>> & Record<PetStateBase, any[]> = {
     require('../../../assets/images/pet/robot/sleep1.webp'),
     require('../../../assets/images/pet/robot/sleep2.webp'),
     require('../../../assets/images/pet/robot/sleep3.webp'),
+  ],
+  /** Нарезан из `psygames-robot/ref/celebrate/sheet-codex.png` тем же проходом. */
+  celebrate: [
+    require('../../../assets/images/pet/robot/celebrate0.webp'),
+    require('../../../assets/images/pet/robot/celebrate1.webp'),
+    require('../../../assets/images/pet/robot/celebrate2.webp'),
+    require('../../../assets/images/pet/robot/celebrate3.webp'),
   ],
 };
 
