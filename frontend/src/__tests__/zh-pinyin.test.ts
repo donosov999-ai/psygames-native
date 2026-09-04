@@ -15,8 +15,6 @@ import { ZH_PINYIN, ZH_PINYIN_COUNT } from '@/src/constants/zhPinyin.generated';
 import { ZH_TONE_BANK, ZH_TONE_BANK_COUNT } from '@/src/constants/zhToneBank.generated';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { SOURCES, CREDIT_REQUIRED } from '@/src/constants/sources';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 
 describe('словарь пиньиня', () => {
   it('🔴 тонов ровно столько же, сколько иероглифов — иначе тон уехал молча', () => {
@@ -112,7 +110,16 @@ describe('банк тонов для упражнения', () => {
  * лицензии выглядело выполненным, а выполнено не было. Гейт проверяет, что
  * каждая запись доезжает до экрана, а не лежит в файле.
  */
+/**
+ * ⚠️ Файлы читаем через `require`, а НЕ импортом из 'fs'. Гейт типов в CI гоняет
+ * свой tsconfig без типов node, и `import { readFileSync } from 'fs'` роняет его
+ * с TS2591 — при том, что локальный `tsc --noEmit` молчит. Та же запись, что в
+ * `fab-clearance.test.ts` и соседях.
+ */
 declare const __dirname: string;
+declare function require(m: string): any;
+const { readFileSync } = require('fs');
+const { join } = require('path');
 
 describe('источники и лицензии', () => {
   const экран = readFileSync(join(__dirname, '../../app/sources.tsx'), 'utf8');
