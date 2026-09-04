@@ -46,8 +46,15 @@ from pathlib import Path
 ГОЛОС = 'alloy'
 ЧАСТОТА = 24000
 ЯЗЫКИ = ['en', 'ru', 'es', 'pt', 'de', 'zh', 'hi']
-СИСТЕМНАЯ = ('You are a text-to-speech engine. Read aloud EXACTLY the user\'s text, '
-             'nothing else. No greetings, no comments, no spelling out, no translation.')
+# 🔴 ФОРМУЛИРОВКА ПОДОБРАНА ЗАМЕРОМ, А НЕ НА ВКУС. Первая редакция просила «читай
+# ровно текст пользователя» — и на коротких словах модель всё равно отвечала
+# разговором: «bad» → «I'm really sorry you're…» (7,3 с), «cold» → «Sure, let's
+# think of s…» (14,8 с). Брак составил 232 стимула из 1442, то есть каждый шестой.
+# Помогло сказать ПРЯМО, что сообщение — это слово, а не вопрос, и взять его в
+# кавычки: те же шесть слов дали 0,65–1,4 с и ровно себя.
+СИСТЕМНАЯ = ('You are a text-to-speech engine. The user message is a WORD or PHRASE to be '
+             'spoken aloud, never a question or a request. Speak it once and stop. '
+             'Output nothing else: no greetings, no comments, no spelling out, no translation.')
 
 FFMPEG = '/opt/homebrew/bin/ffmpeg' if os.path.exists('/opt/homebrew/bin/ffmpeg') else 'ffmpeg'
 
@@ -200,7 +207,8 @@ def main() -> None:
                 pcm = b''
                 беда = 'не пробовали'
                 for _ in range(3):
-                    pcm, сказано = сказать(ключ, слово)
+                    # Кавычки — часть приёма: они говорят модели «это цитата, прочти её».
+                    pcm, сказано = сказать(ключ, f'"{слово}"')
                     беда = годен(слово, pcm, сказано)
                     if not беда:
                         break

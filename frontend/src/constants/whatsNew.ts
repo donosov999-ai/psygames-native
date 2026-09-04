@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.22',
+    date: '2026-09-04',
+    ru: ['Маджонг больше не «перескакивает» уровень: пока карточка итога на экране, в шапке стоит пройденный'],
+    en: ['Mahjong no longer seems to skip a level: while the result card is up, the header shows the level you cleared'],
+  },
+  {
     version: '2.37.21',
     date: '2026-09-04',
     ru: [
