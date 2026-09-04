@@ -42,13 +42,37 @@ const fs = require('fs');
 const path = require('path');
 const КОРЕНЬ = path.join(__dirname, '../..');
 
+/**
+ * СОСЕДИ ПО НАБОРУ (`src/constants/gameSuites.ts`) — с 05.09.2026 часть парадигм
+ * не перечислена в развилке отдельными строками: они прячутся под карточкой
+ * набора, а карточка ведёт на ПЕРВЫЙ ОТКРЫТЫЙ ПРОФИЛЮ режим.
+ *
+ * ⚠️ РАСКРЫВАЕМ ТОЛЬКО ТОГДА, КОГДА ЭКРАН ДЕЙСТВИТЕЛЬНО ЗНАЕТ ПРО НАБОРЫ. Если
+ * из развилки убрать работу с `GAME_SUITES`, её карточка снова поведёт на первый
+ * режим списка — закрытый профилю, — и режимы под ней станут недостижимы. Проба
+ * обязана это увидеть, поэтому раскрытие висит на упоминании реестра в файле, а
+ * не выдаётся развилке авансом.
+ */
+function соседиПоНабору(маршрут: string): string[] {
+  const реестр: string = fs.readFileSync(path.join(КОРЕНЬ, 'src/constants/gameSuites.ts'), 'utf8');
+  for (const блок of реестр.split('modes: [').slice(1)) {
+    const маршруты = [...блок.slice(0, блок.indexOf('],')).matchAll(/route:\s*'(\/games\/[a-z0-9-]+)'/g)].map((m) => m[1]!);
+    if (маршруты.includes(маршрут)) return маршруты;
+  }
+  return [];
+}
+
 function ссылкиЭкрана(route: string): string[] {
   const f = path.join(КОРЕНЬ, 'app' + route + '.tsx');
   if (!fs.existsSync(f)) return [];
   const src: string = fs.readFileSync(f, 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, ' ')
     .replace(/^\s*\/\/.*$/gm, ' ');
-  return [...src.matchAll(/'(\/games\/[a-z0-9-]+)'/g)].map((m) => m[1]!);
+  const прямые = [...src.matchAll(/'(\/games\/[a-z0-9-]+)'/g)].map((m) => m[1]!);
+  if (!src.includes('GAME_SUITES')) return прямые;
+  const все = new Set(прямые);
+  for (const r of прямые) for (const сосед of соседиПоНабору(r)) все.add(сосед);
+  return [...все];
 }
 
 describe('развилка и профиль', () => {

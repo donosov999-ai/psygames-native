@@ -21,6 +21,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#8E2DE2', '#4A00E0'];
@@ -413,6 +414,7 @@ export default function StroopEmotionalGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('stroopEmotional')}</Text>
         <View style={{ width: 40 }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

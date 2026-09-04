@@ -1217,6 +1217,25 @@ const translations: Translations = {
   attentionConflict:        { ru: 'Конфликт внимания',                en: 'Attention Conflict' },
   attentionConflictDesc:    { ru: 'Подавление автоматического конфликтующего ответа', en: 'Suppress automatic conflicting response' },
   attentionConflictPickMode:{ ru: 'Выбери парадигму',  en: 'Choose paradigm' },
+
+  /**
+   * НАБОРЫ (`src/constants/gameSuites.ts`) — несколько парадигм под одной
+   * карточкой, режим выбирается плашками внутри. Подписи режимов называют НЕ
+   * игру, а спор: человек выбирает не «фланкер», а «что мешает — бока».
+   */
+  suiteStroop:        { ru: 'Струп',                     en: 'Stroop' },
+  suiteStroopDesc:    { ru: 'Цвет спорит со смыслом: чернила против слова и против эмоции', en: 'Colour argues with meaning: ink vs word, ink vs emotion' },
+  suiteArrows:        { ru: 'Стрелки',                   en: 'Arrows' },
+  suiteArrowsDesc:    { ru: 'Одна стрелка и две кнопки: мешают бока, позиция, число вариантов или подсказка', en: 'One arrow, two buttons: flankers, position, number of choices or a cue' },
+  suiteStream:        { ru: 'Долгий поток',              en: 'Long stream' },
+  suiteStreamDesc:    { ru: 'Поток проб без пауз: держать редкую цель и держать правило, которое меняется', en: 'A stream with no breaks: hold a rare target, hold a rule that keeps changing' },
+  suiteModeEmotion:   { ru: 'Эмоциональный',             en: 'Emotional' },
+  suiteModeFlanker:   { ru: 'Бока',                      en: 'Flankers' },
+  suiteModeSimon:     { ru: 'Позиция',                   en: 'Position' },
+  suiteModeChoice:    { ru: 'Выбор',                     en: 'Choice' },
+  suiteModeAnt:       { ru: 'Подсказка',                 en: 'Cue' },
+  suiteModeVigilance: { ru: 'Редкая цель',               en: 'Rare target' },
+  suiteModeSwitch:    { ru: 'Смена правил',              en: 'Rule switch' },
   /**
    * ⚠️ БЕЗ ЧИСЛА РЕЖИМОВ. Стояло «Все три» — с тех пор парадигм стало десять, и
    * подпись полгода врала на экране. Счёт в тексте устаревает молча при каждом

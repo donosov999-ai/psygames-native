@@ -42,6 +42,7 @@ import { countsForRecord } from '@/src/services/leaderboard';
 import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmark';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#fdc830', '#f37335'];
@@ -391,6 +392,7 @@ export default function ChoiceRtGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('choiceRt')}</Text>
         <View style={{ width: 40 }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       <LeaderboardModal
         visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}

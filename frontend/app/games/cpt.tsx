@@ -46,6 +46,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -649,6 +650,7 @@ export default function CPTGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('cpt')}</Text>
         <View style={{ width: 40 }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

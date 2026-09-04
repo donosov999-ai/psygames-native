@@ -28,6 +28,9 @@ import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
+import { GAME_SUITES } from '@/src/constants/gameSuites';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { filterAllowedGames } from '@/src/constants/profiles';
 
 const GRADIENT = ['#7c3aed', '#ec4899'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -37,103 +40,67 @@ const GRADIENT = ['#7c3aed', '#ec4899'];
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 
-const SUB_GAMES = [
+/**
+ * 🔴 ПЯТЬ КАРТОЧЕК ВМЕСТО ДЕСЯТИ — ПЕРВИЧНОЕ ОБЪЕДИНЕНИЕ 05.09.2026.
+ *
+ * Решение Дениса по кадрам хаба: «1 и 2 слить в одно, режимом; 3 4 5 6 — тоже;
+ * 7 и 8 — тоже. Делаем как Шульте. Сейчас первичное объединение, где интерфейсы
+ * и логика почти не отличаются». Четыре карточки из десяти были одной и той же
+ * стрелкой с двумя кнопками — список читался как десять разных игр, хотя рука
+ * делала одно и то же.
+ *
+ * ⚠️ КАРТОЧКА НАБОРА ВЕДЁТ НА ПЕРВЫЙ РЕЖИМ, А НЕ НА НОВЫЙ ЭКРАН. Парадигмы
+ * остались на своих маршрутах — вместе с ними остались справка (`HELP_MAP` по
+ * маршруту), лесенка уровней и замеры, привязанные к `gameId`. Переключатель
+ * внутри игры (`GameSuiteSwitch`) просто меняет маршрут. Разбор — в шапке
+ * `src/constants/gameSuites.ts`.
+ *
+ * `suiteId` — карточка набора: подпись-тип собирается из имён режимов.
+ * `typeKey` — одиночная парадигма, как было.
+ */
+const SUB_GAMES: {
+  route: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  nameKey: string;
+  descKey: string;
+  typeKey?: string;
+  suiteId?: string;
+}[] = [
   {
     route: '/games/stroop',
     icon: 'color-palette' as const,
-    nameKey: 'stroop' as const,
-    descKey: 'stroopDesc' as const,
-    typeKey: 'acTypeStroop' as const,   // «Цвет vs Слово» — словарь LanguageContext
-  },
-  {
-    route: '/games/stroop-emotional',
-    icon: 'heart' as const,
-    nameKey: 'stroopEmotional' as const,
-    descKey: 'stroopEmotionalDesc' as const,
-    typeKey: 'acTypeStroopEmotional' as const,
+    nameKey: 'suiteStroop',
+    descKey: 'suiteStroopDesc',
+    suiteId: 'suite_stroop',
   },
   {
     route: '/games/flanker',
     icon: 'arrow-forward' as const,
-    nameKey: 'flanker' as const,
-    descKey: 'flankerDesc' as const,
-    typeKey: 'acTypeFlanker' as const,
-  },
-  /**
-   * 04.09.2026 — «Торможение» переехало сюда по решению Дениса. В реестре
-   * `go_no_go` и `stop_signal` УЖЕ были помечены `mergedInto: 'attention_conflict'`,
-   * а хаб их не показывал, и рядом в каталоге висела отдельная карточка
-   * «Торможение» — то есть один и тот же набор жил в двух местах.
-   *
-   * ⚠️ Ведём на `/games/inhibition`, а не на две подпробы по отдельности: там
-   * общая лестница (`usePersistentLevel('inhibition')`) и переключатель Go/No-Go ↔
-   * Stop-Signal. Развести их двумя входами значило бы разрезать прогресс надвое.
-   */
-
-  /**
-   * «Мишени» тоже сюда (Денис, 04.09.2026: «мишени тоже закинуть, логика похожа»).
-   * И правда та же ось: два объекта одного цвета — жать, иначе держать руку.
-   * Отличие от Go/No-Go лишь в том, ЧЕМ задан сигнал: там символ, здесь совпадение
-   * цвета. Конфликт «жать / не жать» один и тот же.
-   */
-  {
-    route: '/games/targets',
-    icon: 'disc' as const,
-    nameKey: 'targets' as const,
-    descKey: 'targetsDesc' as const,
-    typeKey: 'acTypeTargets' as const,
-  },
-  // v1.9.1 — Simon Task: 4-я парадигма interference resolution
-  {
-    route: '/games/simon',
-    icon: 'flash' as const,
-    nameKey: 'simon' as const,
-    descKey: 'simonDesc' as const,
-    typeKey: 'acTypeSimon' as const,
-  },
-  /**
-   * Две пробы добавлены 04.09.2026 по указанию Дениса. Обе про то же: сигнал
-   * тянет реакцию в сторону, и её надо удержать.
-   */
-  {
-    route: '/games/choice-rt',
-    icon: 'git-branch' as const,
-    nameKey: 'choiceRt' as const,
-    descKey: 'choiceRtDesc' as const,
-    typeKey: 'acTypeChoice' as const,
-  },
-
-  {
-    route: '/games/ant',
-    icon: 'git-network' as const,
-    nameKey: 'ant' as const,
-    descKey: 'antDesc' as const,
-    typeKey: 'acTypeAnt' as const,
+    nameKey: 'suiteArrows',
+    descKey: 'suiteArrowsDesc',
+    suiteId: 'suite_arrows',
   },
   {
     route: '/games/cpt',
     icon: 'timer' as const,
-    nameKey: 'cpt' as const,
-    descKey: 'cptDesc' as const,
-    typeKey: 'acTypeCpt' as const,
+    nameKey: 'suiteStream',
+    descKey: 'suiteStreamDesc',
+    suiteId: 'suite_stream',
   },
-  /**
-   * Две пробы на смену правила — 04.09.2026, решение Дениса. Разница между ними в
-   * том, ГОВОРЯТ ли о смене: «Переключение задач» подаёт сигнал, Висконсинский тест
-   * меняет правило молча, и заметить это надо самому.
-   */
+  // Мишени и WCST остаются одиночными: у первой свой носитель (цветные объекты,
+  // а не стрелка), у второй правило не объявляется вовсе — сливать не с чем.
   {
-    route: '/games/switching-task',
-    icon: 'repeat' as const,
-    nameKey: 'switchingTask' as const,
-    descKey: 'switchingTaskDesc' as const,
-    typeKey: 'acTypeSwitch' as const,
+    route: '/games/targets',
+    icon: 'locate' as const,
+    nameKey: 'targets',
+    descKey: 'targetsDesc',
+    typeKey: 'acTypeTargets' as const,
   },
   {
     route: '/games/wcst',
-    icon: 'albums-outline' as const,
-    nameKey: 'wcst' as const,
-    descKey: 'wcstDesc' as const,
+    icon: 'grid' as const,
+    nameKey: 'wcst',
+    descKey: 'wcstDesc',
     typeKey: 'acTypeWcst' as const,
   },
 ];
@@ -147,17 +114,65 @@ function DemoAttentionRedirect() {
   return null;
 }
 
-export default function AttentionConflictGame() {
+/**
+ * КУДА ВЕДЁТ КАРТОЧКА И ЧТО НА НЕЙ НАПИСАНО — С ОГЛЯДКОЙ НА ПРОФИЛЬ.
+ *
+ * 🔴 Замер 05.09.2026, из-за которого это здесь. У профиля «chess» из десяти
+ * парадигм открыты две: `choice-rt` и `cpt`. Карточка набора «Стрелки» ведёт на
+ * первый режим — `flanker`, а он этому профилю закрыт. Наивная карточка увела бы
+ * шахматиста в игру, которой у него нет, и одновременно СПРЯТАЛА бы `choice-rt`,
+ * который у него есть. Поэтому карточка ведёт на первый ОТКРЫТЫЙ режим, а если
+ * открытых нет — её нет вовсе.
+ *
+ * Подпись-тип у набора — перечень открытых режимов, собранный из реестра, а не
+ * отдельная строка перевода: список меняется в одном месте, и подпись едет за ним
+ * сама. Иначе она устареет ровно так же, как устарело «Все три тренируют одну
+ * способность» при десяти парадигмах.
+ */
+type Карточка = { route: string; icon: any; nameKey: string; descKey: string; typeKey?: string; suiteId?: string };
 
-  // Web-demo: хаб-выбор парадигмы не показываем — сразу первая подигра.
-  // Query (embed=1, lang=…) обязан пережить редирект — embed-контракт с сайтом.
-  if (isWebDemo()) {
-    return <DemoAttentionRedirect />;
+function видимыеКарточки(
+  можно: Set<string>,
+  t: (k: string) => string,
+): { карточка: Карточка; маршрут: string; тип: string }[] {
+  const итог: { карточка: Карточка; маршрут: string; тип: string }[] = [];
+  for (const g of SUB_GAMES as Карточка[]) {
+    if (g.suiteId) {
+      const набор = GAME_SUITES.find((s) => s.id === g.suiteId);
+      const открытые = (набор?.modes ?? []).filter((m) => можно.has(m.route));
+      if (!открытые.length) continue;
+      итог.push({ карточка: g, маршрут: открытые[0].route, тип: открытые.map((m) => t(m.labelKey)).join(' · ') });
+    } else {
+      if (!можно.has(g.route)) continue;
+      итог.push({ карточка: g, маршрут: g.route, тип: g.typeKey ? t(g.typeKey) : '' });
+    }
   }
+  return итог;
+}
+
+export default function AttentionConflictGame() {
 
   const { colors } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
+  const { profile } = useProfile();
+  const можно = React.useMemo(
+    () => new Set(filterAllowedGames(profile).map((g: { route?: string }) => g.route as string)),
+    [profile],
+  );
+  const карточки = видимыеКарточки(можно, t);
+
+  /**
+   * Web-demo: хаб-выбор парадигмы не показываем — сразу первая подигра.
+   * Query (embed=1, lang=…) обязан пережить редирект — embed-контракт с сайтом.
+   *
+   * ⚠️ ВЫХОД СТОИТ ПОСЛЕ ХУКОВ, А НЕ ДО НИХ. Был выше — и пять хуков подряд
+   * оказывались условными: в demo-режиме React видел один порядок вызовов, в
+   * обычном другой. Линт ругался на это тремя ошибками ещё до правки 05.09.2026.
+   */
+  if (isWebDemo()) {
+    return <DemoAttentionRedirect />;
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -179,12 +194,12 @@ export default function AttentionConflictGame() {
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
           {t('attentionConflictPickMode')}
         </Text>
-        {SUB_GAMES.map((g) => (
+        {карточки.map(({ карточка: g, маршрут, тип }) => (
           <TouchableOpacity
             accessibilityRole="button"
             key={g.route}
             style={[styles.subCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            onPress={() => router.push(g.route as any)}
+            onPress={() => router.push(маршрут as any)}
             activeOpacity={0.7}
           >
             <View style={[styles.iconCircle, { backgroundColor: GRADIENT[0] + '22' }]}>
@@ -193,7 +208,7 @@ export default function AttentionConflictGame() {
             <View style={styles.cardBody}>
               <Text style={[styles.cardName, { color: colors.text }]}>{t(g.nameKey)}</Text>
               <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{t(g.descKey)}</Text>
-              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{t(g.typeKey)}</Text>
+              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{тип}</Text>
             </View>
             <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
           </TouchableOpacity>

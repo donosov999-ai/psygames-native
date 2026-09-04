@@ -23,6 +23,25 @@ const НЗТ = 'nzt48';
 const КОРЕНЬ = path.join(__dirname, '../..');
 const безКомментариев = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
 
+/**
+ * СОСЕДИ ПО НАБОРУ — второй способ дойти, с 05.09.2026.
+ *
+ * Часть парадигм больше не перечислена в развилке отдельными строками: они
+ * прячутся под карточкой набора (`src/constants/gameSuites.ts`), а внутри
+ * переключаются плашками. Список соседей лежит в реестре, а не в файле экрана.
+ *
+ * ⚠️ Переход засчитывается ТОЛЬКО у экрана, который действительно рисует
+ * переключатель: убери `<GameSuiteSwitch />` — и соседи снова недостижимы.
+ */
+function соседиПоНабору(маршрут: string): string[] {
+  const реестр: string = fs.readFileSync(path.join(КОРЕНЬ, 'src/constants/gameSuites.ts'), 'utf8');
+  for (const блок of реестр.split('modes: [').slice(1)) {
+    const маршруты = [...блок.slice(0, блок.indexOf('],')).matchAll(/route:\s*'(\/games\/[a-z0-9-]+)'/g)].map((m) => m[1]!);
+    if (маршруты.includes(маршрут)) return маршруты;
+  }
+  return [];
+}
+
 /** Все маршруты, до которых можно дойти из экрана развилки по ссылкам. */
 function изРазвилки(route: string): Set<string> {
   const виден = new Set<string>();
@@ -33,8 +52,12 @@ function изРазвилки(route: string): Set<string> {
     виден.add(r);
     const f = path.join(КОРЕНЬ, 'app' + r + '.tsx');
     if (!fs.existsSync(f)) continue;
-    for (const m of безКомментариев(fs.readFileSync(f, 'utf8')).matchAll(/'(\/games\/[a-z0-9-]+)'/g)) {
+    const исходник = безКомментариев(fs.readFileSync(f, 'utf8'));
+    for (const m of исходник.matchAll(/'(\/games\/[a-z0-9-]+)'/g)) {
       if (!виден.has(m[1]!)) очередь.push(m[1]!);
+    }
+    if (исходник.includes('<GameSuiteSwitch')) {
+      for (const сосед of соседиПоНабору(r)) if (!виден.has(сосед)) очередь.push(сосед);
     }
   }
   return виден;
@@ -129,7 +152,19 @@ describe('профиль НЗТ-48 показывает всё', () => {
       const f = path.join(КОРЕНЬ, 'app' + родитель.route + '.tsx');
       if (!fs.existsSync(f)) { беспризорные.push(`${g.id}: экрана родителя ${родитель.route} нет`); continue; }
       const текст = безКомментариев(fs.readFileSync(f, 'utf8'));
-      if (!текст.includes(`'${g.route}'`)) {
+      /**
+       * Прямая ссылка ИЛИ вход через набор: развилка ссылается на первый режим,
+       * а экран того режима рисует переключатель на остальные. Второй путь
+       * засчитывается, только если ОБА звена на месте — карточка набора в
+       * развилке и `<GameSuiteSwitch />` на экране, куда она ведёт.
+       */
+      const прямо = текст.includes(`'${g.route}'`);
+      const черезНабор = !прямо && соседиПоНабору(g.route).some((сосед) => {
+        if (сосед === g.route || !текст.includes(`'${сосед}'`)) return false;
+        const экран = path.join(КОРЕНЬ, 'app' + сосед + '.tsx');
+        return fs.existsSync(экран) && String(fs.readFileSync(экран, 'utf8')).includes('<GameSuiteSwitch');
+      });
+      if (!прямо && !черезНабор) {
         беспризорные.push(`${g.id} числится в ${g.mergedInto}, но ${родитель.route} на него не ссылается`);
       }
     }

@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.50',
+    date: '2026-09-05',
+    ru: ['«Конфликт внимания»: десять карточек свёрнуты в пять — родственные парадигмы стали режимами внутри одной игры'],
+    en: ['Attention Conflict: ten cards folded into five — related paradigms are now modes inside one game'],
+  },
+  {
     version: '2.37.49',
     date: '2026-09-05',
     ru: ['Питомец больше не пропадает со скриншота в отчёте об ошибке — кадры облика теперь берутся в свой origin'],
