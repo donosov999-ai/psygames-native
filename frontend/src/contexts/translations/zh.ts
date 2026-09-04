@@ -2124,6 +2124,8 @@ const t: Record<string, string> = {
   "goalDonePick": "指定的货品已清空——目标达成，其余可以留着",
   "goalDoneFree": "格位已腾空——目标达成，货架不必清空",
   "goalDoneMoves": "在步数上限之内",
+  "acTypeAnt": "三套注意网络同时",
+  "acTypeCpt": "长时间流 · 不是每个都按",
   "chineseTones": "汉语声调",
   "chineseTonesShort": "声调",
   "chineseTonesDesc": "听音节，判断声调",

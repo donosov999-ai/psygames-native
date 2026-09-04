@@ -2127,6 +2127,8 @@ const t: Record<string, string> = {
   "goalDonePick": "बताए गए सामान हट गए — लक्ष्य पूरा, बाक़ी रह सकता था",
   "goalDoneFree": "ख़ाना खाली हो गया — लक्ष्य पूरा, अलमारी खाली करनी ज़रूरी नहीं थी",
   "goalDoneMoves": "चालों की सीमा के भीतर",
+  "acTypeAnt": "ध्यान के तीन तंत्र एक साथ",
+  "acTypeCpt": "लंबी धारा · हर चीज़ पर मत दबाइए",
   "chineseTones": "चीनी के स्वराघात",
   "chineseTonesShort": "स्वराघात",
   "chineseTonesDesc": "शब्दांश सुनिए और उसका स्वर पहचानिए",

@@ -983,6 +983,8 @@ export const GAMES: GameConfig[] = [
     icon: 'git-network',
     route: '/games/ant',
     category: 'attention',
+    // три сети внимания разом, и разрешение конфликта — одна из них
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'quick_count',
@@ -1004,6 +1006,8 @@ export const GAMES: GameConfig[] = [
     icon: 'time',
     route: '/games/cpt',
     category: 'attention',
+    // удержание внимания под потоком, где давить надо не на всё подряд
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'phonemic_fluency',

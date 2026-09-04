@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.23',
+    date: '2026-09-04',
+    ru: ['«Три сети внимания» и «Устойчивое внимание» переехали в развилку «Конфликт внимания»'],
+    en: ['Attention Network Test and Continuous Performance Test moved into the “Attention Conflict” hub'],
+  },
+  {
     version: '2.37.22',
     date: '2026-09-04',
     ru: ['Маджонг больше не «перескакивает» уровень: пока карточка итога на экране, в шапке стоит пройденный'],

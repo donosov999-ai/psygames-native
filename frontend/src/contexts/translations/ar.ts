@@ -2120,6 +2120,8 @@ const t: Record<string, string> = {
   "goalDonePick": "اختفت السلع المذكورة — تحقق الهدف، والباقي كان يمكن أن يبقى",
   "goalDoneFree": "الخانة صارت فارغة — تحقق الهدف، ولم يلزم إفراغ الرفوف",
   "goalDoneMoves": "ضمن حد النقلات",
+  "acTypeAnt": "ثلاث شبكات انتباه معًا",
+  "acTypeCpt": "تدفق طويل · لا تضغط على كل شيء",
   "chineseTones": "نغمات الصينية",
   "chineseTonesShort": "النغمات",
   "chineseTonesDesc": "تسمع مقطعًا فتحدّد نغمته",

@@ -2119,6 +2119,8 @@ const t: Record<string, string> = {
   "goalDonePick": "Les articles nommés ont disparu : objectif atteint, le reste pouvait rester",
   "goalDoneFree": "La niche est libre : objectif atteint, inutile de vider les rayons",
   "goalDoneMoves": "Dans la limite de coups",
+  "acTypeAnt": "Trois réseaux attentionnels à la fois",
+  "acTypeCpt": "Flux long · ne pas appuyer sur tout",
   "chineseTones": "Tons du chinois",
   "chineseTonesShort": "Tons",
   "chineseTonesDesc": "Écoutez une syllabe, dites son ton",

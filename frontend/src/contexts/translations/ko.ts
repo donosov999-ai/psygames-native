@@ -2119,6 +2119,8 @@ const t: Record<string, string> = {
   "goalDonePick": "지정된 물건이 사라졌습니다 — 목표 달성, 나머지는 두어도 됩니다",
   "goalDoneFree": "칸이 비었습니다 — 목표 달성, 선반을 비울 필요는 없었습니다",
   "goalDoneMoves": "수 제한 안에서 완료",
+  "acTypeAnt": "세 가지 주의 네트워크 동시에",
+  "acTypeCpt": "긴 흐름 · 모두 누르지 않기",
   "chineseTones": "중국어 성조",
   "chineseTonesShort": "성조",
   "chineseTonesDesc": "음절을 듣고 성조를 고르기",
