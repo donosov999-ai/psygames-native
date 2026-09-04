@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.38',
+    date: '2026-09-04',
+    ru: ['Судоку: лестница выросла с 80 до 92 уровней — двенадцать готовых ступеней комбо-пояса были недоступны из игры'],
+    en: ['Sudoku: the ladder now runs to 92 levels instead of 80 — twelve finished combo-belt steps were unreachable'],
+  },
+  {
     version: '2.37.37',
     date: '2026-09-04',
     ru: ['Сборки для iPhone снова доезжают до TestFlight: параллельные выпуски отзывали подпись друг у друга'],
