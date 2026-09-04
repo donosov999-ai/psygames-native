@@ -2136,6 +2136,8 @@ const t: Record<string, string> = {
   "sourcesTitle": "出典",
   "sourcesIntro": "オープンな資料から取り入れたデータと画像、およびその利用条件です。",
   "sourceHsk30": "中国語の語のピンイン・声調・レベル。原典は中国教育部の語彙リスト。",
+  "sourceWiktionaryVoice": "人の声による発音録音632件（ロシア語・ドイツ語・英語）。ウィクショナリーと Lingua Libre のネイティブ話者による収録です。",
+  "voiceCreditsTitle": "単語を読んでいる人",
   "sourceCburnett": "「頭の中の盤」で使うベクター形式のチェス駒。",
   "recoWhyWeakspot": "今いちばん弱いところ",
   "recoWhyBranch": "この分野の練習が最も少ない",

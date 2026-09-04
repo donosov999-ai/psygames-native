@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.33',
+    date: '2026-09-04',
+    ru: [
+      'Слова в аудио-упражнениях читают живые люди, а не машина: 632 записи носителей на русском, немецком и английском',
+      'Кто именно читает — на экране «Источники»: имена чтецов и лицензии',
+    ],
+    en: [
+      'Words in audio exercises are now read by real people, not a machine: 632 native-speaker recordings in Russian, German and English',
+      'Who reads them is listed on the Sources screen, with names and licences',
+    ],
+  },
+  {
     version: '2.37.32',
     date: '2026-09-04',
     ru: ['Выход жестом от левого края и «Математическая шкала» без подтверждений — доехали до магазинов'],

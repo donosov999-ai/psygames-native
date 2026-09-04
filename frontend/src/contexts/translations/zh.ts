@@ -2142,6 +2142,8 @@ const t: Record<string, string> = {
   "sourcesTitle": "资料来源",
   "sourcesIntro": "来自开放资源的数据与图像，以及使用条款。",
   "sourceHsk30": "汉语词汇的拼音、声调与等级。原始来源：中国教育部词表。",
+  "sourceWiktionaryVoice": "真人发音录音 632 条，涵盖俄语、德语和英语，由维基词典与 Lingua Libre 项目的母语者录制。",
+  "voiceCreditsTitle": "谁在朗读这些词",
   "sourceCburnett": "“盲棋”练习棋盘上的矢量棋子。",
   "recoWhyWeakspot": "目前这里最弱",
   "recoWhyBranch": "这个分支练得最少",

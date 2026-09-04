@@ -2137,6 +2137,8 @@ const t: Record<string, string> = {
   "sourcesTitle": "Fonti",
   "sourcesIntro": "Dati e immagini presi da fonti aperte, e le condizioni con cui vengono usati.",
   "sourceHsk30": "Pinyin, toni e livelli delle parole cinesi. Origine: l’elenco del Ministero dell’Istruzione cinese.",
+  "sourceWiktionaryVoice": "Registrazioni di pronuncia con voci reali: 632 parole in russo, tedesco e inglese, lette da madrelingua di Wikizionario e del progetto Lingua Libre.",
+  "voiceCreditsTitle": "Chi legge le parole",
   "sourceCburnett": "Pezzi degli scacchi vettoriali sulla scacchiera nell’esercizio «Scacchiera a mente».",
   "recoWhyWeakspot": "qui sei più debole al momento",
   "recoWhyBranch": "Questo ramo è il meno allenato",

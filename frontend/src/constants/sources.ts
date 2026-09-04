@@ -37,6 +37,22 @@ export const SOURCES: SourceEntry[] = [
     key: 'sourceHsk30',
   },
   {
+    /**
+     * ⚠️ Запись здесь — не формальность, а условие использования. 632 живые
+     * записи произношения (ru 208, de 208, en 216) взяты из Викисловаря по
+     * лицензиям CC BY-SA 4.0/3.0/2.5, CC BY 4.0/3.0/2.0, CC0 и public domain.
+     * Все они разрешают распространение, в том числе коммерческое, НО требуют
+     * назвать автора. Полный список — 64 имени — показывается на этом же экране
+     * из `VOICE_LIVE_CREDITS`; список сгенерирован скриптом вместе с корпусом,
+     * поэтому разъехаться с ним не может.
+     */
+    name: 'Записи произношения Викисловаря',
+    url: 'https://commons.wikimedia.org/wiki/Category:Pronunciation',
+    license: 'CC BY-SA',
+    credit: 'Авторы Викисловаря и Lingua Libre — полный список ниже',
+    key: 'sourceWiktionaryVoice',
+  },
+  {
     name: 'Шахматные фигуры Cburnett',
     url: 'https://en.wikipedia.org/wiki/User:Cburnett/GFDL_images/Chess',
     license: 'BSD-3-Clause',

@@ -1621,6 +1621,8 @@ const translations: Translations = {
   sourcesTitle:     { ru: 'Источники', en: 'Sources' },
   sourcesIntro:     { ru: 'Данные и графика, взятые из открытых источников, — и условия, на которых они используются.', en: 'Data and artwork taken from open sources, and the terms they are used under.' },
   sourceHsk30:      { ru: 'Пиньинь, тоны и уровни для китайских слов. Первоисточник — список Министерства образования КНР.', en: 'Pinyin, tones and levels for Chinese words. Original source: the PRC Ministry of Education word list.' },
+  sourceWiktionaryVoice: { ru: 'Живые записи произношения слов: 632 записи на русском, немецком и английском. Читают носители языка — участники Викисловаря и проекта Lingua Libre.', en: 'Real human pronunciation recordings: 632 samples in Russian, German and English, read by native speakers from Wiktionary and the Lingua Libre project.' },
+  voiceCreditsTitle: { ru: 'Кто читает слова', en: 'Who reads the words' },
   sourceCburnett:   { ru: 'Векторные шахматные фигуры на доске в упражнении «Доска в уме».', en: 'Vector chess pieces on the board in the “Blind board” exercise.' },
   acTypeInhibition:       { ru: 'Удержать руку', en: 'Hold the hand' },
   acTypeTargets:          { ru: 'Мишень или нет', en: 'Target or not' },

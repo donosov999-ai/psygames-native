@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { SOURCES } from '@/src/constants/sources';
+import { VOICE_LIVE_CREDITS } from '@/src/constants/voiceLive.generated';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 
 export default function SourcesScreen() {
@@ -56,6 +57,24 @@ export default function SourcesScreen() {
             </TouchableOpacity>
           </View>
         ))}
+
+        {/*
+          🔴 ИМЕНА ЧТЕЦОВ — ЧАСТЬ ЛИЦЕНЗИИ, А НЕ ПРИЛОЖЕНИЕ К НЕЙ. CC BY и CC BY-SA
+          разрешают распространять записи, в том числе за деньги, ровно при одном
+          условии: назвать автора. Список приезжает из того же файла, что и сам
+          корпус (`voiceLive.generated`), поэтому разъехаться с записями не может:
+          сгенерированы одним проходом скрипта.
+        */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.name, { color: colors.text }]}>{t('voiceCreditsTitle')}</Text>
+          {VOICE_LIVE_CREDITS.map((к) => (
+            <View key={`${к.author}·${к.license}`} style={styles.row}>
+              <Text style={[styles.credit, { color: colors.text }]}>{к.author}</Text>
+              <Text style={[styles.license, { color: colors.primary }]}>{к.license}</Text>
+              <Text style={[styles.what, { color: colors.textSecondary }]}>· {к.count}</Text>
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
