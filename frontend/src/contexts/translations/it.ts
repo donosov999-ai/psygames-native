@@ -862,6 +862,7 @@ const t: Record<string, string> = {
   "btn_undo": "Annulla",
   "label_on": "On",
   "label_off": "Off",
+  "sudokuLineHighlight": "Evidenzia riga e colonna",
   "label_balloon": "Palloncino",
   "label_burst_risk": "Rischio di scoppio alla prossima pompata",
   "desc_counter_rules": "Seleziona i numeri che sommati danno l'obiettivo. Se la somma supera l'obiettivo - errore!",

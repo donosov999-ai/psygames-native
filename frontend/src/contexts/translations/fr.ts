@@ -862,6 +862,7 @@ const t: Record<string, string> = {
   "btn_undo": "Annuler",
   "label_on": "Activé",
   "label_off": "Désactivé",
+  "sudokuLineHighlight": "Surbrillance ligne et colonne",
   "label_balloon": "Ballon",
   "label_burst_risk": "Risque d'éclatement au prochain gonflage",
   "desc_counter_rules": "Sélectionne des nombres dont la somme égale la cible. Si la somme dépasse la cible — erreur !",

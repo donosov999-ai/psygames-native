@@ -862,6 +862,7 @@ const t: Record<string, string> = {
   "btn_undo": "실행 취소",
   "label_on": "켜짐",
   "label_off": "꺼짐",
+  "sudokuLineHighlight": "행과 열 강조",
   "label_balloon": "풍선",
   "label_burst_risk": "다음에 펌프하면 터질 위험",
   "desc_counter_rules": "합이 목표 값이 되는 숫자를 고르세요. 합이 목표를 넘으면 오류예요!",

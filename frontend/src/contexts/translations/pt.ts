@@ -712,6 +712,7 @@ const t: Record<string, string> = {
   "btn_undo": "Desfazer",
   "label_on": "Lig",
   "label_off": "Desl",
+  "sudokuLineHighlight": "Destacar linha e coluna",
   "label_balloon": "Balão",
   "label_burst_risk": "Risco de estourar na próxima bomba",
   "desc_counter_rules": "Selecione números cuja soma seja igual ao alvo. Se a soma passar do alvo - erro!",

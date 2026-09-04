@@ -712,6 +712,7 @@ const t: Record<string, string> = {
   "btn_undo": "撤销",
   "label_on": "开",
   "label_off": "关",
+  "sudokuLineHighlight": "行列高亮",
   "label_balloon": "气球",
   "label_burst_risk": "下次充气有爆裂风险",
   "desc_counter_rules": "选择若干数字，使其和等于目标数。若和超过目标——即出错！",

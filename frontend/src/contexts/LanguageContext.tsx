@@ -1433,6 +1433,7 @@ const translations: Translations = {
   btn_undo: { ru: 'Отменить', en: 'Undo' },
   label_on: { ru: 'Вкл', en: 'On' },
   label_off: { ru: 'Выкл', en: 'Off' },
+  sudokuLineHighlight:    { ru: 'Подсветка строки и столбца', en: 'Row and column highlight' },
   label_balloon: { ru: 'Шар', en: 'Balloon' },
   label_burst_risk: { ru: 'Риск взрыва на след. pump', en: 'Burst risk on next pump' },
   desc_counter_rules: { ru: 'Выберите числа, сумма которых равна целевому числу. Если сумма превысит цель - ошибка!', en: 'Select numbers that sum to the target. If sum exceeds target - error!' },

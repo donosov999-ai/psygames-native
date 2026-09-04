@@ -712,6 +712,7 @@ const t: Record<string, string> = {
   "btn_undo": "Deshacer",
   "label_on": "Sí",
   "label_off": "No",
+  "sudokuLineHighlight": "Resaltar fila y columna",
   "label_balloon": "Globo",
   "label_burst_risk": "Riesgo de explotar al siguiente inflado",
   "desc_counter_rules": "Selecciona números que sumen el objetivo. Si la suma lo supera, ¡error!",

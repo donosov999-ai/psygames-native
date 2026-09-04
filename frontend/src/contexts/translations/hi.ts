@@ -715,6 +715,7 @@ const t: Record<string, string> = {
   "btn_undo": "पूर्ववत करें",
   "label_on": "चालू",
   "label_off": "बंद",
+  "sudokuLineHighlight": "पंक्ति और स्तंभ की हाइलाइट",
   "label_balloon": "गुब्बारा",
   "label_burst_risk": "अगले पंप पर फटने का जोखिम",
   "desc_counter_rules": "ऐसी संख्याएँ चुनें जिनका योग लक्ष्य के बराबर हो। योग लक्ष्य से ज़्यादा हुआ तो — गलती!",

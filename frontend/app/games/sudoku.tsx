@@ -410,6 +410,19 @@ export default function SudokuGame() {
   const [digitMode, setDigitMode] = useState<'plain' | 'drawn'>('plain');
   useEffect(() => { AsyncStorage.getItem('psygames_sudoku_digitmode').then((v) => { if (v === 'plain' || v === 'drawn') setDigitMode(v); }).catch(() => {}); }, []);
   const changeDigitMode = (m: 'plain' | 'drawn') => { setDigitMode(m); AsyncStorage.setItem('psygames_sudoku_digitmode', m).catch(() => {}); };
+
+  /**
+   * ПОДСВЕТКА СТРОКИ И СТОЛБЦА — ВЫКЛЮЧАЕМАЯ.
+   *
+   * Отчёт d71044f8 (04.09.2026): «надо добавить в настройках вот это выделение,
+   * которое подсвечивает строку и столбец, чтобы можно было его отключить».
+   * Подсказка полезна новичку и мешает тому, кто считает сам: перекрестье
+   * подсвечивает ровно те клетки, которые человек и должен просмотреть глазами.
+   * Подсветка одинаковой ЦИФРЫ остаётся — это другая помощь и о ней не просили.
+   */
+  const [lineHl, setLineHl] = useState(true);
+  useEffect(() => { AsyncStorage.getItem('psygames_sudoku_linehl').then((v) => { if (v === 'off') setLineHl(false); }).catch(() => {}); }, []);
+  const changeLineHl = (on: boolean) => { setLineHl(on); AsyncStorage.setItem('psygames_sudoku_linehl', on ? 'on' : 'off').catch(() => {}); };
   const router = useRouter();
   const { width, height } = useWindowDimensions();
 
@@ -1478,6 +1491,24 @@ export default function SudokuGame() {
           ))}
         </View>
       </View>
+      {/* Подсветка строки и столбца — по просьбе Дениса (отчёт d71044f8) */}
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('sudokuLineHighlight')}</Text>
+        <View style={styles.optionButtons}>
+          {([[true, t('label_on')], [false, t('label_off')]] as const).map(([v, lbl]) => (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ selected: lineHl === v }}
+              key={String(v)}
+              onPress={() => changeLineHl(v)}
+              style={[styles.modeButton, lineHl === v
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}>
+              <Text style={[styles.modeButtonText, { color: lineHl === v ? textOn(GRADIENT[0]) : colors.text }]}>{lbl}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
       {/* Стиль рисованных цифр — только в режиме «Рисованные» */}
       {digitMode === 'drawn' && (
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -1758,7 +1789,7 @@ export default function SudokuGame() {
             markColor: markColor >= 0 && markColor < paintPalette.length ? paintPalette[markColor]! : null,
             isSel,
             sameVal: !!sameVal,
-            sameLine: !!sameRow,
+            sameLine: lineHl && !!sameRow,
             wrongVal,
           });
           // v1.113.0: заливку доп. зон убрали — её перебивала подсветка строки/столбца выделения

@@ -712,6 +712,7 @@ const t: Record<string, string> = {
   "btn_undo": "Rückgängig",
   "label_on": "An",
   "label_off": "Aus",
+  "sudokuLineHighlight": "Zeilen- und Spaltenhervorhebung",
   "label_balloon": "Ballon",
   "label_burst_risk": "Platzrisiko beim nächsten Pump",
   "desc_counter_rules": "Wähle Zahlen, deren Summe das Ziel ergibt. Übersteigt die Summe das Ziel – Fehler!",

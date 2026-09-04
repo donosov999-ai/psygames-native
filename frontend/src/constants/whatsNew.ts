@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.36',
+    date: '2026-09-04',
+    ru: [
+      '«Доска в уме»: спрашиваемая клетка теперь залита цветом, а её имя написано крупно — не приходится выискивать тонкую рамку',
+      'Судоку: подсветку строки и столбца можно выключить в настройках',
+    ],
+    en: [
+      'Board in Mind: the asked square is filled with colour and its name is printed large — no more hunting for a thin outline',
+      'Sudoku: the row and column highlight can now be switched off in settings',
+    ],
+  },
+  {
     version: '2.37.35',
     date: '2026-09-04',
     ru: [
