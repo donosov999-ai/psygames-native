@@ -14,6 +14,10 @@
  */
 import { EDGE_PX, BACK_DX, H_RATIO, shouldGoBack, attachEdgeBack } from '@/src/services/edgeBack';
 
+// tsconfig прогонов CI без типов node: объявляем то, что даёт jest
+declare function require(m: string): any;
+declare const __dirname: string;
+
 describe('жест выхода от левого края', () => {
   it('🔴 начатое НЕ у края не выводит никогда, как далеко ни тащи', () => {
     for (const x0 of [EDGE_PX + 1, 60, 200, 380]) {
