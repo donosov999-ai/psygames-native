@@ -228,6 +228,22 @@ export default function HanoiGame() {
    */
   const DRAG_SLOP = 8;
   const areaRef = useRef<View>(null);
+  /**
+   * 🔴 НАЧАЛО КООРДИНАТ СЛОЯ «ДИСК В РУКЕ».
+   *
+   * Отчёт Дениса 04.09.2026: «пропадает при перетаскивании шайба». Диск не
+   * пропадал — он улетал за экран. Палец даёт СТРАНИЧНЫЕ координаты (pageX/pageY),
+   * а слой лежит внутри поля игры, у которого свой отсчёт: сверху шапка каркаса,
+   * слева отступы. Поставить страничную координату во вложенный слой значит сдвинуть
+   * диск ровно на высоту шапки вниз — на телефоне это ниже края экрана.
+   *
+   * Поэтому меряем начало поля и вычитаем. Мерить надо КАЖДЫЙ раз при взятии диска:
+   * шапка перестраивается по ходу партии (счётчики, подсказка), и запомненное
+   * однажды смещение к середине игры уже врёт.
+   */
+  const fieldRef = useRef<View>(null);
+  const originX = useRef(0);
+  const originY = useRef(0);
   const areaX = useRef(0);
   const areaW = useRef(0);
   const dragPos = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
@@ -251,6 +267,21 @@ export default function HanoiGame() {
     }
     node.measureInWindow?.((x: number, _y: number, w: number) => { areaX.current = x; areaW.current = w; });
   };
+
+  /** Начало координат слоя «диск в руке» — см. `fieldRef`. */
+  const syncFieldOrigin = () => {
+    const node: any = fieldRef.current;
+    if (!node) return;
+    if (typeof node.getBoundingClientRect === 'function') {
+      const r = node.getBoundingClientRect();
+      originX.current = r.left; originY.current = r.top;
+      return;
+    }
+    node.measureInWindow?.((x: number, y: number) => { originX.current = x; originY.current = y; });
+  };
+
+  /** Точка пальца в координатах слоя. */
+  const вСлое = (pageX: number, pageY: number) => ({ x: pageX - originX.current, y: pageY - originY.current });
 
   /** Стержень под точкой x (в координатах экрана). null — мимо поля. */
   const pegAtX = (pageX: number): number | null => {
@@ -284,6 +315,7 @@ export default function HanoiGame() {
 
       onPanResponderGrant: (e) => {
         syncAreaBounds();
+        syncFieldOrigin();
         const idx = pegAtX(e.nativeEvent.pageX);
         if (idx === null) return;
         const peg = pegsRef.current[idx];
@@ -292,12 +324,12 @@ export default function HanoiGame() {
         dragRef.current = { from: idx, size };
         setDragging({ from: idx, size });
         setHoverPeg(idx);
-        dragPos.setValue({ x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
+        dragPos.setValue(вСлое(e.nativeEvent.pageX, e.nativeEvent.pageY));
       },
 
       onPanResponderMove: (e) => {
         if (!dragRef.current) return;
-        dragPos.setValue({ x: e.nativeEvent.pageX, y: e.nativeEvent.pageY });
+        dragPos.setValue(вСлое(e.nativeEvent.pageX, e.nativeEvent.pageY));
         setHoverPeg(pegAtX(e.nativeEvent.pageX));
       },
 
@@ -574,7 +606,7 @@ export default function HanoiGame() {
         </View>
       }
     >
-      <View style={styles.fieldCol}>
+      <View style={styles.fieldCol} ref={fieldRef}>
       <View
         style={styles.pegsArea}
         {...pan.panHandlers}

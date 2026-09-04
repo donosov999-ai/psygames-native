@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import GradientSurface from '@/src/components/GradientSurface';
 import { onGradientText, onGradientTextMuted, innerScrim, accentOn, AA_LARGE } from '@/src/services/onGradientText';
@@ -80,6 +79,14 @@ interface Props {
   comparisonLine?: string;  // свой итог · лучший среди игроков / личный рекорд при офлайне
   /** Рекорд-строка лидерборда — отдельным слотом, тем же правилом, что в GameResult. */
   recordLine?: string;
+  /**
+   * 🔴 ЗА ЧТО ЗАСЧИТАН УРОВЕНЬ. Отчёт Дениса 04.09.2026 по «Сортировке товаров»:
+   * «уровень заканчивается, даже если не все парные собраны, неоднократно». Правило
+   * верное — на уровнях с целью «убрать названные товары» партия и должна кончаться,
+   * когда их не осталось, а прочее на полках стоит. Но на финише об этом не
+   * говорилось ни слова, и честная победа читалась как сбой.
+   */
+  reasonLine?: string;
   onContinue: () => void;   // запустить следующий уровень (passed) / тот же уровень заново (!passed)
   onStop: () => void;       // куда именно — говорит stopKind, см. ниже
   /**
@@ -129,7 +136,7 @@ interface Props {
  */
 const ACT = { stars: 120, run: 220, earn: 320, record: 420, compare: 500 } as const;
 
-export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, recordLine, onContinue, onStop, stopKind = 'config', variant = 'screen' }: Props) {
+export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, recordLine, reasonLine, onContinue, onStop, stopKind = 'config', variant = 'screen' }: Props) {
   const { t, language } = useLanguage();
   /**
    * ЦВЕТ ТЕКСТА НА КАРТОЧКЕ СЧИТАЕТСЯ, А НЕ ЗАШИТ.
@@ -428,6 +435,11 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
             </View>
           </Act>
         ) : null}
+        {/* За что засчитан уровень — когда цель была не «убрать всё». Без этой
+            строки честная победа на частично полной доске читается как сбой. */}
+        {reasonLine && passed && !compact && (
+          <Text style={[styles.comparisonText, { color: fg, opacity: 0.95 }]} numberOfLines={2}>{reasonLine}</Text>
+        )}
         {recordLine && !compact && (
           <Act at={ACT.record}>
             <View style={[styles.comparisonBadge, { backgroundColor: scrim }]}>

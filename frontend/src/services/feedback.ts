@@ -131,17 +131,36 @@ function getAudioCtx(): any {
   return _audioCtx;
 }
 
+/**
+ * 🔴 РАЗОГРЕВ ПУСТЫМ БУФЕРОМ — ОБЩИЙ ПРИЁМ, А НЕ МЕСТНАЯ ХИТРОСТЬ.
+ *
+ * WKWebView (Safari, Tauri на macOS и iOS) держит звук молчащим даже после
+ * `resume()`: контексту нужно проиграть ПУСТОЙ буфер от пользовательского жеста.
+ * В Chrome одного `resume()` хватает — отсюда обманка: в браузере звук есть, на
+ * телефоне тишина, и баг не виден при проверке.
+ *
+ * ⚠️ ЭКСПОРТИРУЕТСЯ ПОТОМУ, ЧТО КОНТЕКСТ В ПРИЛОЖЕНИИ НЕ ОДИН. У «Ритма и высоты»
+ * свой AudioContext (движок тонов из лаборатории), и 04.09.2026 он молчал на
+ * телефоне Дениса ровно из-за отсутствия этих четырёх строк — здесь они были, там
+ * нет. Второй копии приёма быть не должно: разойдутся.
+ */
+export function warmUpAudioContext(c: { createBuffer: (a: number, b: number, d: number) => unknown; createBufferSource: () => any; destination: unknown }): void {
+  try {
+    const buf = c.createBuffer(1, 1, 22050);
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    src.connect(c.destination);
+    src.start(0);
+  } catch { /* нет Web Audio — молча, звук просто не заработает */ }
+}
+
 // Разблокировка аудио по первому жесту окна (на случай если первый beep пришёл не прямо из тап-обработчика).
 if (typeof window !== 'undefined' && (window as any).addEventListener) {
   const _unlock = () => {
     const c = getAudioCtx();
     if (!c) return;
     // WKWebView (Safari/Tauri macOS) требует «разогрев» пустым буфером от жеста — одного resume() мало (урок TypeRIGHTing).
-    try {
-      const buf = c.createBuffer(1, 1, 22050);
-      const src = c.createBufferSource();
-      src.buffer = buf; src.connect(c.destination); src.start(0);
-    } catch { /* no-op */ }
+    warmUpAudioContext(c);
     if (c.state === 'running') {
       ['pointerdown', 'keydown', 'touchend'].forEach((e) => (window as any).removeEventListener(e, _unlock));
     }
