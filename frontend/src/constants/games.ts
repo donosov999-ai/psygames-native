@@ -255,6 +255,21 @@ export const GAMES: GameConfig[] = [
     category: 'attention',
   },
   {
+    /**
+     * Тоны китайского (04.09.2026). Первое упражнение, где zh звучит и требует
+     * ответа: до него китайский жил в приложении только иероглифами, и различать
+     * тоны человеку было негде.
+     */
+    id: 'chinese_tones',
+    nameKey: 'chineseTones',
+    descKey: 'chineseTonesDesc',
+    skillKey: 'skillListening',
+    gradient: ['#b91c1c', '#c2410c'],
+    icon: 'musical-note',
+    route: '/games/chinese-tones',
+    category: 'attention',
+  },
+  {
     id: 'pseudoword_echo',
     nameKey: 'pseudowordEcho',
     descKey: 'pseudowordEchoDesc',

@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.13',
+    date: '2026-09-04',
+    ru: [
+      'Новое упражнение «Тоны китайского»: слышите слог — определяете тон, дальше выбираете слог целиком',
+    ],
+    en: [
+      'New exercise “Chinese Tones”: hear a syllable, name its tone, then pick the whole syllable',
+    ],
+  },
+  {
     version: '2.37.12',
     date: '2026-09-04',
     ru: [

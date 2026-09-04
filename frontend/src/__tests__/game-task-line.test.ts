@@ -93,6 +93,7 @@ const ALREADY: Record<string, string> = {
   'bart.tsx': "t('bartHint')",
   'breathing.tsx': 'phaseLabel(curPhase.type)',
   'chess-blind.tsx': "t('chessHintWhereIs')",
+  'chinese-tones.tsx': "t('ctPickTone')",
   'cloze.tsx': "t('clozeHint')",
   'corsi.tsx': "t('watchSequence')",
   'cpt.tsx': "'cptTapAX' : 'cptTapX'",
