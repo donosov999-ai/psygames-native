@@ -242,7 +242,30 @@ const dotsConnect = () => {
   return frame(grid + paths + free + ends);
 };
 
+/* ─────────────────────────── ТОНЫ КИТАЙСКОГО ───────────────────────────
+ * «Звучит слог — какой в нём тон». Рисуем ровно то, что человек выбирает:
+ * четыре контура высоты — ровный, восходящий, падающе-восходящий, падающий.
+ * Не иероглиф: иероглиф на превью означал бы чтение, а упражнение про СЛУХ.
+ */
+const chineseTones = () => {
+  // Каждая клетка 60×46, контур внутри неё — ломаная из точек (доля клетки).
+  const клетки = [
+    [16, 22, [[0, 0.5], [1, 0.5]]],                    // 1: ровный
+    [86, 22, [[0, 0.85], [1, 0.15]]],                  // 2: восходящий
+    [16, 88, [[0, 0.3], [0.5, 0.9], [1, 0.2]]],        // 3: падающе-восходящий
+    [86, 88, [[0, 0.15], [1, 0.9]]],                   // 4: падающий
+  ];
+  const W = 58, H = 44;
+  const цвета = [C.coral, C.amber, C.teal, C.indigo];
+  return frame(клетки.map(([x, y, точки], i) => {
+    const плашка = `<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="12" fill="${C.white}"/>`;
+    const путь = точки.map(([dx, dy], j) => `${j ? 'L' : 'M'}${x + 6 + dx * (W - 12)} ${y + 6 + dy * (H - 12)}`).join(' ');
+    return плашка + `<path d="${путь}" fill="none" stroke="${цвета[i]}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
+  }).join(''));
+};
+
 const THUMBS = {
+  chinese_tones: chineseTones,
   memory_palace: memoryPalace,
   rhythm_pitch: rhythmPitch,
   navigator,

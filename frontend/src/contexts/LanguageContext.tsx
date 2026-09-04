@@ -1622,6 +1622,13 @@ const translations: Translations = {
   sourcesIntro:     { ru: 'Данные и графика, взятые из открытых источников, — и условия, на которых они используются.', en: 'Data and artwork taken from open sources, and the terms they are used under.' },
   sourceHsk30:      { ru: 'Пиньинь, тоны и уровни для китайских слов. Первоисточник — список Министерства образования КНР.', en: 'Pinyin, tones and levels for Chinese words. Original source: the PRC Ministry of Education word list.' },
   sourceCburnett:   { ru: 'Векторные шахматные фигуры на доске в упражнении «Доска в уме».', en: 'Vector chess pieces on the board in the “Blind board” exercise.' },
+  chineseTones:      { ru: 'Тоны китайского', en: 'Chinese Tones' },
+  chineseTonesShort: { ru: 'Тоны', en: 'Tones' },
+  chineseTonesDesc:  { ru: 'Слышите слог — определяете тон', en: 'Hear a syllable, name its tone' },
+  ctConfigDesc:      { ru: 'В китайском тон — это смысл: mā «мама», mà «ругать». Звучит слог — вы отвечаете, какой в нём тон. Дальше — слог целиком.', en: 'In Chinese the tone is the meaning: mā “mother”, mà “to scold”. A syllable is played — you name its tone. Later, the whole syllable.' },
+  ctPickTone:        { ru: 'Какой тон прозвучал?', en: 'Which tone did you hear?' },
+  ctPickPinyin:      { ru: 'Какой слог прозвучал?', en: 'Which syllable did you hear?' },
+  ctTone:            { ru: 'тон', en: 'tone' },
   recoWhyBranch:    { ru: 'Этой ветке достаётся меньше всего', en: 'This branch gets the least practice' },
   recoWhyFresh:     { ru: 'Новое в приложении', en: 'New in the app' },
   recoWhyCalm:      { ru: 'Под вечер — без гонки', en: 'For the evening — no rush' },
@@ -2572,6 +2579,10 @@ const translations: Translations = {
   petSkinConstellation: { ru: 'Нейрон', en: 'Neuron' },   // скин ≠ стадия «Созвездие» (коллизия имён, аудит Кодекса)
 
   // Справка для семи игр, у которых раньше открывалось пустое окно «как играть».
+  chineseTonesIntroDesc: {
+    ru: 'Звучит один китайский слог. Ты отвечаешь, каким тоном он произнесён: ровным, восходящим, падающе-восходящим или падающим. Дальше — выбираешь и сам слог из четырёх написаний.\n\nВ китайском тон не украшение, а часть слова: mā — «мама», mà — «ругать», один и тот же слог. Для уха, выросшего на русском, это самая непривычная часть языка: у нас высота голоса несёт интонацию фразы, а не смысл слова, и мозг поначалу просто не слышит разницу. Здесь она разбирается по одному слогу, пока не станет слышна сама.',
+    en: 'One Chinese syllable is played. You answer which tone it carried: level, rising, dipping, or falling. Later you also pick the syllable itself from four spellings.\n\nIn Chinese the tone is not decoration but part of the word: mā is “mother”, mà is “to scold” — the same syllable. For an ear raised on a non-tonal language this is the most alien part of the language: pitch there carries the melody of a sentence, not the meaning of a word, and at first the brain simply does not hear the difference. Here it is taken apart one syllable at a time, until it becomes audible on its own.',
+  },
   phonemePairsIntroDesc: {
     ru: 'Два слова звучат почти одинаково и различаются одним-единственным звуком: ship или sheep, bad или bed. Слушаешь запись и выбираешь, что прозвучало.\n\nРодной язык глушит чужие звуки: тех, которых в нём нет, мозг подгоняет под привычные и со временем перестаёт их различать вообще. Упражнение возвращает слух к этой разнице — с неё начинается и понимание беглой речи, и собственное произношение.',
     en: 'Two words sound nearly identical and differ by a single sound: ship or sheep, bad or bed. You listen and pick which one was said.\n\nYour native language mutes foreign sounds: the ones it lacks get bent into familiar shapes until you stop hearing the difference at all. This brings that distinction back — and both understanding fast speech and your own pronunciation start there.',

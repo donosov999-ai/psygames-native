@@ -62,6 +62,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillListening",
     "introKey": "phonemePairsIntroDesc"
   },
+  "/games/chinese-tones": {
+    "nameKey": "chineseTones",
+    "skillKey": "skillListening",
+    "introKey": "chineseTonesIntroDesc"
+  },
   "/games/pseudoword-echo": {
     "nameKey": "pseudowordEcho",
     "skillKey": "skillListening",

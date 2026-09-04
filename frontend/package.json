@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "main": "expo-router/entry",
-  "version": "2.37.12",
+  "version": "2.37.13",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -71,6 +71,7 @@
     "jest-expo": "~56.0.5",
     "playwright": "^1.62.1",
     "react-test-renderer": "19.2.3",
+    "sharp": "^0.35.4",
     "typescript": "~6.0.3"
   },
   "private": true,
