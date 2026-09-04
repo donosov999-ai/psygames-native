@@ -33,6 +33,7 @@ import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getAbilityCount, useAbility } from '@/src/services/abilities';
@@ -477,6 +478,7 @@ export default function CorsiGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('corsi')}</Text>
         <View style={{ width: 40 }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       <LeaderboardModal
         visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}

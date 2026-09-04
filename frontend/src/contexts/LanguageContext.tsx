@@ -1228,6 +1228,20 @@ const translations: Translations = {
   suiteArrows:        { ru: 'Стрелки',                   en: 'Arrows' },
   suiteArrowsDesc:    { ru: 'Одна стрелка и две кнопки: мешают бока, позиция, число вариантов или подсказка', en: 'One arrow, two buttons: flankers, position, number of choices or a cue' },
   suiteStream:        { ru: 'Долгий поток',              en: 'Long stream' },
+  suitePositions:     { ru: 'Позиции',                   en: 'Positions' },
+  suitePositionsDesc: { ru: 'Запомнить, ГДЕ загорелось: узор целиком, цепочка блоков, цепочка наоборот', en: 'Remember WHERE it lit: a whole pattern, a chain of blocks, a chain in reverse' },
+  /**
+   * ⚠️ «Матрица» — четвёртый заход, три предыдущих отбила проба
+   * suite-labels-dont-shadow-settings, и каждый раз по делу:
+   *   «Сетка»  — лежит внутри своей же настройки «Размер сетки»
+   *   «Клетки» — внутри подсказок партии «Запомните клетки!»
+   *   «Узор»   — внутри СОБСТВЕННОГО переключателя игры «Static (pattern)»
+   * Последнее и есть случай Струпа: у матрицы памяти уже есть свой выбор режима
+   * (узор разом / по одной клетке), и плашка набора не смеет его повторять.
+   */
+  suiteModeGrid:      { ru: 'Матрица',                   en: 'Matrix' },
+  suiteModeCorsi:     { ru: 'Блоки Корси',               en: 'Corsi blocks' },
+  suiteModeBackward:  { ru: 'Наоборот',                  en: 'Backward' },
   suiteStreamDesc:    { ru: 'Поток проб без пауз: держать редкую цель и держать правило, которое меняется', en: 'A stream with no breaks: hold a rare target, hold a rule that keeps changing' },
   suiteModeEmotion:   { ru: 'Эмоциональный',             en: 'Emotional' },
   suiteModeFlanker:   { ru: 'Бока',                      en: 'Flankers' },

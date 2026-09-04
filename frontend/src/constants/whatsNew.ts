@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.51',
+    date: '2026-09-05',
+    ru: ['«Охват памяти»: матрица, кубики Корси и обратный порядок — теперь одна карточка «Позиции» с выбором режима'],
+    en: ['Memory Span: matrix, Corsi blocks and reverse order are now one card, “Positions”, with a mode picker'],
+  },
+  {
     version: '2.37.50',
     date: '2026-09-05',
     ru: ['«Конфликт внимания»: десять карточек свёрнуты в пять — родственные парадигмы стали режимами внутри одной игры'],

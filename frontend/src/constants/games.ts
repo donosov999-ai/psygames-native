@@ -421,7 +421,7 @@ export const GAMES: GameConfig[] = [
     icon: 'grid',
     route: '/games/memory-matrix',
     category: 'memory',
-    mergedInto: 'visual_memory_group',
+    mergedInto: 'span_group',
   },
   {
     id: 'picture_pairs',

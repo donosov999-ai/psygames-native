@@ -27,6 +27,7 @@ import { filterAllowedGames } from '@/src/constants/profiles';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
+import { visibleSuiteCards } from '@/src/constants/gameSuites';
 
 export interface HubSubGame {
   /** Куда уводит карточка. */
@@ -37,6 +38,13 @@ export interface HubSubGame {
   descKey: string;
   /** Короткая подпись «чем эта парадигма отличается». Необязательна. */
   typeKey?: string;
+  /**
+   * КАРТОЧКА НАБОРА (`src/constants/gameSuites.ts`): под ней несколько парадигм,
+   * режим выбирается плашками внутри игры. `route` тогда — вход по умолчанию, но
+   * ведёт карточка на первый ОТКРЫТЫЙ профилю режим, а подпись-тип собирается из
+   * имён открытых режимов. Разбор — в шапке реестра.
+   */
+  suiteId?: string;
 }
 
 export interface HubScreenProps {
@@ -74,8 +82,8 @@ export default function HubScreen({ titleKey, descKey, pickKey, footnoteKey, ico
   const список = React.useMemo(() => {
     if (!профильГотов) return [];
     const можно = new Set(filterAllowedGames(profile).map((g) => g.route));
-    return games.filter((g) => можно.has(g.route));
-  }, [games, profile, профильГотов]);
+    return visibleSuiteCards(games, можно, t);
+  }, [games, profile, профильГотов, t]);
   const onGrad = onGradientText(gradient[0], gradient[1]);
   const onGradSoft = onGradientTextMuted(onGrad);
 
@@ -101,12 +109,12 @@ export default function HubScreen({ titleKey, descKey, pickKey, footnoteKey, ico
           <Text style={[styles.heroDesc, { color: onGradSoft }]}>{t(descKey)}</Text>
         </GradientSurface>
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t(pickKey)}</Text>
-        {список.map((g) => (
+        {список.map(({ card: g, route: маршрут, tag: тип }) => (
           <TouchableOpacity
             accessibilityRole="button"
             key={g.route}
             style={[styles.subCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            onPress={() => router.push(g.route as any)}
+            onPress={() => router.push(маршрут as any)}
             activeOpacity={0.7}
           >
             <View style={[styles.iconCircle, { backgroundColor: gradient[0] + '22' }]}>
@@ -115,7 +123,7 @@ export default function HubScreen({ titleKey, descKey, pickKey, footnoteKey, ico
             <View style={styles.cardBody}>
               <Text style={[styles.cardName, { color: colors.text }]}>{t(g.nameKey)}</Text>
               <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{t(g.descKey)}</Text>
-              {g.typeKey ? <Text style={[styles.cardTag, { color: gradient[1] }]}>{t(g.typeKey)}</Text> : null}
+              {тип ? <Text style={[styles.cardTag, { color: gradient[1] }]}>{тип}</Text> : null}
             </View>
             <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
           </TouchableOpacity>

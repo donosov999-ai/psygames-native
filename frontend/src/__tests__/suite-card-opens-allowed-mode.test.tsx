@@ -50,6 +50,7 @@ jest.mock('@/src/contexts/ProfileContext', () => ({
 const METRICS = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } };
 
 import AttentionConflictGame from '@/app/games/attention-conflict';
+import SpanGame from '@/app/games/span';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -61,12 +62,25 @@ function вОкружении(узел: any) {
       React.createElement(LanguageProvider, null, узел)));
 }
 
-function нарисоватьХаб(профиль: any) {
+/**
+ * 🔴 РАЗВИЛОК НЕСКОЛЬКО, И ПРОБА ОБЯЗАНА ОТКРЫТЬ КАЖДУЮ.
+ *
+ * Первый вариант рисовал только «Конфликт внимания». Когда 05.09.2026 появился
+ * четвёртый набор — «Позиции» в «Охвате памяти», — проба этого не увидела и
+ * зазеленела на развилке, которой в глаза не смотрела. Гейт, знающий один экран
+ * из двух, врёт ровно в половине случаев.
+ */
+const РАЗВИЛКИ: { id: string; экран: any }[] = [
+  { id: '/games/attention-conflict', экран: AttentionConflictGame },
+  { id: '/games/span', экран: SpanGame },
+];
+
+function нарисоватьХаб(профиль: any, экран: any) {
   mockПрофиль = профиль;
   mockПереходы.length = 0;
   let r: any;
   TestRenderer.act(() => {
-    r = TestRenderer.create(вОкружении(React.createElement(AttentionConflictGame as any)));
+    r = TestRenderer.create(вОкружении(React.createElement(экран)));
   });
   return r;
 }
@@ -86,20 +100,48 @@ describe('карточка набора и профиль', () => {
     for (const s of GAME_SUITES) expect(s.modes.length).toBeGreaterThan(1);
   });
 
+  /**
+   * 🔴 САМОПРОВЕРКА ОТ ПОВТОРА СЛЕПОТЫ. Проба открывает конечный список развилок;
+   * набор, попавший в развилку не из списка, проверяться перестанет — и проба
+   * останется зелёной. Ровно это случилось 05.09.2026 с «Позициями». Поэтому
+   * здесь требуется, чтобы КАЖДЫЙ набор реестра встречался хотя бы в одной
+   * открываемой развилке.
+   */
+  it('🔴 каждый набор реестра попадает хотя бы в одну открываемую развилку', () => {
+    const самый = [...PROFILES].sort(
+      (a, b) => filterAllowedGames(b).length - filterAllowedGames(a).length,
+    )[0];
+    const входы = new Set<string>();
+    for (const развилка of РАЗВИЛКИ) {
+      const r = нарисоватьХаб(самый, развилка.экран);
+      for (const строка of карточки(r)) {
+        mockПереходы.length = 0;
+        TestRenderer.act(() => { строка.props.onPress(); });
+        for (const куда of mockПереходы) входы.add(куда);
+      }
+      r.unmount();
+    }
+    const непроверенные = GAME_SUITES
+      .filter((s) => !s.modes.some((m) => входы.has(m.route)))
+      .map((s) => `${s.id} — ни одна открываемая развилка на него не ведёт, проба его не видит`);
+    expect(непроверенные).toEqual([]);
+  });
+
   it('🔴 нажатие на любую карточку ведёт в игру, открытую этому профилю', () => {
     const беды: string[] = [];
     for (const p of PROFILES) {
       const можно = new Set(filterAllowedGames(p).map((g: any) => g.route));
-      const r = нарисоватьХаб(p);
-      const строки = карточки(r);
-      for (const строка of строки) {
-        mockПереходы.length = 0;
-        TestRenderer.act(() => { строка.props.onPress(); });
-        for (const куда of mockПереходы) {
-          if (!можно.has(куда)) беды.push(`${p.id}: карточка ведёт в закрытый ${куда}`);
+      for (const развилка of РАЗВИЛКИ) {
+        const r = нарисоватьХаб(p, развилка.экран);
+        for (const строка of карточки(r)) {
+          mockПереходы.length = 0;
+          TestRenderer.act(() => { строка.props.onPress(); });
+          for (const куда of mockПереходы) {
+            if (!можно.has(куда)) беды.push(`${p.id} @ ${развилка.id}: карточка ведёт в закрытый ${куда}`);
+          }
         }
+        r.unmount();
       }
-      r.unmount();
     }
     expect(беды).toEqual([]);
   });
@@ -111,15 +153,17 @@ describe('карточка набора и профиль', () => {
       const ждём = [...маршрутыНаборов].filter((r) => можно.has(r));
       if (!ждём.length) continue;
 
-      // куда уводят карточки развилки
-      const r = нарисоватьХаб(p);
+      // куда уводят карточки ВСЕХ развилок
       const входы: string[] = [];
-      for (const строка of карточки(r)) {
-        mockПереходы.length = 0;
-        TestRenderer.act(() => { строка.props.onPress(); });
-        входы.push(...mockПереходы);
+      for (const развилка of РАЗВИЛКИ) {
+        const r = нарисоватьХаб(p, развилка.экран);
+        for (const строка of карточки(r)) {
+          mockПереходы.length = 0;
+          TestRenderer.act(() => { строка.props.onPress(); });
+          входы.push(...mockПереходы);
+        }
+        r.unmount();
       }
-      r.unmount();
 
       // и куда можно уйти дальше плашками внутри набора
       const достижимо = new Set(входы);

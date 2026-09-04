@@ -21,6 +21,7 @@ import { FlashCell } from '@/src/components/juice';
 import { sndWrong, sndMatch } from '@/src/services/feedback';
 import { type PetMood } from '@/src/components/pet/GamePet';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { getPersonalBest, bumpPersonalBest } from '@/src/services/streak';
 import { levelOutcome } from '@/src/services/levelOutcome';
@@ -414,6 +415,7 @@ export default function SpatialSpanGame() {
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('spatialSpan')}</Text>
         <View style={{ width: 40 }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (

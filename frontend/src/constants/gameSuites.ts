@@ -74,6 +74,36 @@ export const GAME_SUITES: GameSuite[] = [
       { route: '/games/ant', labelKey: 'suiteModeAnt' },
     ],
   },
+  /**
+   * ПОЗИЦИИ — решение Дениса 05.09.2026: «матрица памяти, кубики Корси и spatial
+   * span — объединить в одно?». Померено кодом, а не по названиям:
+   *
+   *   memory-matrix  регулярная сетка 3×3→6×6, два режима внутри (узор разом /
+   *                  по одной клетке), прямой порядок
+   *   corsi          ДЕВЯТЬ НЕРЕГУЛЯРНЫХ блоков с зашитыми координатами,
+   *                  по одной, прямой; с 10-го уровня обязательный обратный
+   *   spatial-span   регулярная сетка 4×4→5×5, по одной, ОБРАТНЫЙ порядок
+   *
+   * ⚠️ ЗДЕСЬ ЛЕЖИТ ДУБЛЬ, И НАБОР ЕГО НЕ ЛЕЧИТ. `spatial-span` — это
+   * `memory-matrix` в режиме `sequential` с обратным порядком; в словаре он так и
+   * подписан, «Spatial Span (обратный)», а обратный порядок уже есть и у Корси.
+   * Набор сводит карточки, но три экрана остаются тремя экранами. Снос дубля —
+   * отдельная работа: он трогает лесенку и сохранённый прогресс.
+   *
+   * ⚠️ КОРСИ НЕ ЗАМЕНЯЕТСЯ СЕТКОЙ. Его девять блоков расставлены нерегулярно
+   * НАРОЧНО: на регулярной сетке позиции запоминаются строками и столбцами, span
+   * завышается и перестаёт сравниваться с опубликованными нормами Корси.
+   */
+  {
+    id: 'suite_positions',
+    titleKey: 'suitePositions',
+    descKey: 'suitePositionsDesc',
+    modes: [
+      { route: '/games/memory-matrix', labelKey: 'suiteModeGrid' },
+      { route: '/games/corsi', labelKey: 'suiteModeCorsi' },
+      { route: '/games/spatial-span', labelKey: 'suiteModeBackward' },
+    ],
+  },
   {
     id: 'suite_stream',
     titleKey: 'suiteStream',
@@ -84,6 +114,39 @@ export const GAME_SUITES: GameSuite[] = [
     ],
   },
 ];
+
+/**
+ * СПИСОК КАРТОЧЕК РАЗВИЛКИ С ОГЛЯДКОЙ НА ПРОФИЛЬ — ОДНА РЕАЛИЗАЦИЯ НА ВСЕ ЭКРАНЫ.
+ *
+ * 🔴 Развилок три вида: общий `HubScreen` и два экрана со своим списком
+ * (`attention-conflict.tsx`, `span.tsx`). Правило «карточка ведёт на первый
+ * ОТКРЫТЫЙ режим» пришлось бы написать трижды, а разъехалось бы оно молча: в
+ * одной развилке шахматист попадал бы в закрытую игру, в двух других нет, и
+ * увидеть это можно было бы только открыв все три под всеми профилями.
+ *
+ * Замер, ради которого правило существует: у профиля «chess» из четырёх
+ * стрелочных парадигм открыта одна (`choice-rt`). Карточка, ведущая на первый
+ * режим списка, увела бы его в закрытый `flanker` И СПРЯТАЛА бы открытый.
+ */
+export function visibleSuiteCards<T extends { route: string; typeKey?: string; suiteId?: string }>(
+  cards: readonly T[],
+  allowed: Set<string>,
+  t: (key: string) => string,
+): { card: T; route: string; tag: string }[] {
+  const итог: { card: T; route: string; tag: string }[] = [];
+  for (const c of cards) {
+    if (c.suiteId) {
+      const набор = GAME_SUITES.find((s) => s.id === c.suiteId);
+      const открытые = (набор?.modes ?? []).filter((m) => allowed.has(m.route));
+      if (!открытые.length) continue;                    // ни одного открытого — карточки нет
+      итог.push({ card: c, route: открытые[0].route, tag: открытые.map((m) => t(m.labelKey)).join(' · ') });
+    } else {
+      if (!allowed.has(c.route)) continue;
+      итог.push({ card: c, route: c.route, tag: c.typeKey ? t(c.typeKey) : '' });
+    }
+  }
+  return итог;
+}
 
 /** Набор, которому принадлежит маршрут. Не принадлежит — переключателя нет. */
 export function suiteOfRoute(route: string): GameSuite | undefined {
