@@ -697,6 +697,7 @@ export const GAMES: GameConfig[] = [
     icon: 'share-social',
     route: '/games/dots-connect',
     category: 'logic',
+    mergedInto: 'routes_group',
   },
   // ⚠️ Тот же градиент зашит в экране. Левый конец сдвинут с #7c3aed нарочно:
   // тот совпадал с хабом «Конфликт внимания». Белый даёт 7.90 и 4.60 — вуаль не нужна.
@@ -710,6 +711,7 @@ export const GAMES: GameConfig[] = [
     icon: 'share-social',
     route: '/games/one-line',
     category: 'logic',
+    mergedInto: 'routes_group',
   },
 
   // CONTROL / INHIBITION
@@ -1227,6 +1229,23 @@ export const GAMES: GameConfig[] = [
     gradient: ['#7c3aed', '#0ea5e9'],
     icon: 'albums',
     route: '/games/towers-hub',
+    category: 'logic',
+    hub: true,
+  },
+  {
+    /**
+     * Развилка «Маршруты» (04.09.2026, выбор Дениса). Соединить пары непересекающимися
+     * путями и обойти все рёбра ровно по разу — одна работа: почти каждый ход законен
+     * сам по себе и заводит в тупик, поэтому считать надо покрытие заранее.
+     */
+    id: 'routes_group',
+    previewIn: ['nzt48'],
+    nameKey: 'routesGroup',
+    descKey: 'routesGroupDesc',
+    skillKey: 'skillPlanning',
+    gradient: ['#0f766e', '#4f46e5'],
+    icon: 'git-network',
+    route: '/games/routes-hub',
     category: 'logic',
     hub: true,
   },

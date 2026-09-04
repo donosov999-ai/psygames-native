@@ -431,5 +431,10 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "towersGroup",
     "skillKey": "skillPlanning",
     "introKey": "towersGroupIntroDesc"
+  },
+  "/games/routes-hub": {
+    "nameKey": "routesGroup",
+    "skillKey": "skillPlanning",
+    "introKey": "routesGroupIntroDesc"
   }
 };
