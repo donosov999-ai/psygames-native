@@ -26,6 +26,7 @@ export default function WordsHub() {
         { route: '/games/lexical-decision', icon: 'checkmark-done', nameKey: 'lexicalDecision', descKey: 'lexicalDecisionDesc' },
         { route: '/games/anagrams', icon: 'shuffle', nameKey: 'anagrams', descKey: 'anagramsDesc' },
         { route: '/games/phonemic-fluency', icon: 'chatbubbles', nameKey: 'phonemicFluency', descKey: 'phonemicFluencyDesc' },
+        { route: '/games/story-recall', icon: 'book', nameKey: 'storyRecall', descKey: 'storyRecallDesc' },
       ]}
     />
   );

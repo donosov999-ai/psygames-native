@@ -2108,6 +2108,7 @@ const t: Record<string, string> = {
   "towersGroupIntroDesc": "Two classic planning paradigms: the Tower of Hanoi and the Tower of London. Both measure how many moves you hold in your head before the first one.",
   "spanTypeListening": "耳で聞く語・順序",
   "spanTypeReading": "読む＋保つ",
+  "spanTypeNBack": "途切れない系列・N個前",
   "spanTypeOperation": "計算＋保つ",
   "acTypeChoice": "複数からの選択",
   "acTypePosner": "有効な手がかりと無効な手がかり",

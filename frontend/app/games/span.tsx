@@ -73,6 +73,18 @@ const SUB_GAMES = [
     descKey: 'readingSpanDesc' as const,
     typeKey: 'spanTypeReading' as const,
   },
+  /**
+   * N-back — тот же объём удерживаемого в голове, только ряд не кончается:
+   * держать надо не «сколько запомнил», а «что было N шагов назад». Стояла
+   * отдельной карточкой до 04.09.2026 — при том, что меряет ровно это.
+   */
+  {
+    route: '/games/n-back',
+    icon: 'sync' as const,
+    nameKey: 'nBack' as const,
+    descKey: 'nBackDesc' as const,
+    typeKey: 'spanTypeNBack' as const,
+  },
 ];
 
 function DemoSpanRedirect() {

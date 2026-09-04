@@ -190,7 +190,14 @@ export const GAMES: GameConfig[] = [
     icon: 'eye',
     route: '/games/eye-gym',
     category: 'attention',
-    hideFromMenu: true,   // вход — заметная карточка вверху главной (во ВСЕХ профилях); в сетке не дублируем
+    /**
+     * 04.09.2026: карточка вернулась в сетку. Комментарий, стоявший здесь,
+     * обещал «заметную карточку вверху главной» — а её не стало 26.08, когда
+     * «Гимнастику глаз» и «Дыхание» слили в одну кнопку «Пауза». С тех пор
+     * упражнение жило ТОЛЬКО внутри набора «Паузы», то есть правило «в НЗТ-48
+     * видно всё» держалось на честном слове гейта-исключения. При этом соседнее
+     * `breathing` из сетки никто не убирал — симметрии не было вовсе.
+     */
   },
   {
     id: 'goods_sort',
@@ -390,6 +397,8 @@ export const GAMES: GameConfig[] = [
     icon: 'analytics',
     route: '/games/n-back',
     category: 'memory',
+    // 04.09.2026: объём удерживаемого в голове — то же, что меряют охваты; отличается только тем, что ряд не кончается
+    mergedInto: 'span_group',
   },
   {
     id: 'digit_span',
@@ -512,6 +521,8 @@ export const GAMES: GameConfig[] = [
     icon: 'compass',
     route: '/games/navigator',
     category: 'memory',
+    // 04.09.2026: запоминание увиденного маршрута — зрительная память, только развёрнутая во времени
+    mergedInto: 'visual_memory_group',
   },
   // Group card combining digit_span + corsi + spatial_span
   {
@@ -1039,6 +1050,8 @@ export const GAMES: GameConfig[] = [
     icon: 'book',
     route: '/games/story-recall',
     category: 'memory',
+    // 04.09.2026: память на слова, собранные в рассказ: удержать нужно смысл, а не отдельные слова
+    mergedInto: 'words_group',
   },
   {
     id: 'rmet',
