@@ -54,9 +54,16 @@ export interface HubScreenProps {
   footnoteKey?: string;
   icon: React.ComponentProps<typeof Ionicons>['name'];
   gradient: [string, string];
+  /**
+   * ⚠️ ЧТО ПОКАЗАТЬ НАД СПИСКОМ УПРАЖНЕНИЙ. Развилке иногда есть что предложить
+   * сверх выбора «во что играть» — например, зарядку из всех её упражнений
+   * подряд. Слот, а не свой экран: иначе у каждой развилки завёлся бы свой
+   * каркас, и они разъехались бы при первой же правке шапки.
+   */
+  headerSlot?: React.ReactNode;
 }
 
-export default function HubScreen({ hubRoute, titleKey, descKey, pickKey, footnoteKey, icon, gradient }: HubScreenProps) {
+export default function HubScreen({ hubRoute, titleKey, descKey, pickKey, footnoteKey, icon, gradient, headerSlot }: HubScreenProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
@@ -105,6 +112,7 @@ export default function HubScreen({ hubRoute, titleKey, descKey, pickKey, footno
           <Text style={[styles.heroTitle, { color: onGrad.color }]}>{t(titleKey)}</Text>
           <Text style={[styles.heroDesc, { color: onGradSoft }]}>{t(descKey)}</Text>
         </GradientSurface>
+        {headerSlot}
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t(pickKey)}</Text>
         {список.map(({ card: g, route: маршрут, tag: тип }) => (
           <TouchableOpacity
