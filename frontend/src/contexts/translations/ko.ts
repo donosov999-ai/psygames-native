@@ -748,6 +748,7 @@ const t: Record<string, string> = {
   "waterSortLvlParams": "{c}가지 색 · 각 {h}칸 · 빈 시험관 {e}개",
   "waterSortStuck": "둘 수가 없습니다 — 되돌리거나 단계를 다시 시작하세요",
   "waterSortHint": "시험관을 하나 누르고 다른 하나를 누르면 맨 위 덩어리가 옮겨집니다",
+  "waterSortEmptyTube": "빈 시험관",
   "waterSortBenefitPlan": "앞을 내다보기: 지금 한 개를 비우는 수가 나중에 출구를 막을 수 있다",
   "waterSortBenefitHold": "맨 위층 아래에 어떤 색이 숨어 있는지 기억하기",
   "waterSortBenefitPatience": "인내: 막다른 길은 푸는 것보다 피하는 편이 싸다",

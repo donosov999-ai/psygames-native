@@ -445,6 +445,7 @@ const t: Record<string, string> = {
   "waterSortLvlParams": "{c} 种颜色 · 每种 {h} 份 · {e} 支空试管",
   "waterSortStuck": "无步可走——撤销或重开本关",
   "waterSortHint": "点一支试管，再点另一支——顶部的同色段就倒过去",
+  "waterSortEmptyTube": "空试管",
   "waterSortBenefitPlan": "提前盘算：此刻腾空一支试管的一步，稍后可能堵死出路",
   "waterSortBenefitHold": "记住哪些颜色藏在最上层之下",
   "waterSortBenefitPatience": "耐心：避开死局比拆解死局便宜",

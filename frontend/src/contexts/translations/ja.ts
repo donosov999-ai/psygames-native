@@ -1385,6 +1385,7 @@ const t: Record<string, string> = {
   "waterSortLvlParams": "{c} 色 · 各 {h} 杯 · 空きの試験管 {e} 本",
   "waterSortStuck": "手がありません——取り消すか、面をやり直してください",
   "waterSortHint": "試験管を押し、次に別の試験管を押すと上のかたまりが移ります",
+  "waterSortEmptyTube": "空の試験管",
   "waterSortBenefitPlan": "先読み：いま一本空ける手が、あとで出口をふさぐことがある",
   "waterSortBenefitHold": "上の層の下にどの色が隠れているかを覚えておく",
   "waterSortBenefitPatience": "忍耐：詰みは解くより避けるほうが安い",

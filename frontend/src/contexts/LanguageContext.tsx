@@ -1242,6 +1242,7 @@ const translations: Translations = {
   waterSortLvlParams:   { ru: '{c} цветов · по {h} порций · {e} свободные пробирки', en: '{c} colours · {h} portions each · {e} free tubes' },
   waterSortStuck:       { ru: 'Ходов больше нет — отмени или начни уровень заново', en: 'No moves left — undo or restart the level' },
   waterSortHint:        { ru: "Нажми пробирку, потом вторую — верхний столбик перельётся", en: "Tap one tube, then another — the top run pours across" },
+  waterSortEmptyTube:   { ru: "Пустая пробирка", en: "Empty tube" },
   waterSortBenefitPlan: { ru: 'Считать наперёд: ход, освобождающий пробирку сейчас, может закрыть выход потом', en: 'Planning ahead: a move that frees a tube now can block the way out later' },
   waterSortBenefitHold: { ru: 'Держать в уме, какие цвета где спрятаны под верхним слоем', en: 'Holding in mind which colours are hidden under the top layer' },
   waterSortBenefitPatience: { ru: 'Терпение: тупик здесь дешевле предотвратить, чем разобрать', en: 'Patience: a dead end is cheaper to avoid than to unpick' },

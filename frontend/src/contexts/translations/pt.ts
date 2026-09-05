@@ -445,6 +445,7 @@ const t: Record<string, string> = {
   "waterSortLvlParams": "{c} cores · {h} porções cada · {e} tubos livres",
   "waterSortStuck": "Sem jogadas: desfaça ou recomece o nível",
   "waterSortHint": "Toque num tubo e depois noutro — a coluna do topo é despejada",
+  "waterSortEmptyTube": "Tubo vazio",
   "waterSortBenefitPlan": "Planear: uma jogada que liberta um tubo agora pode fechar a saída depois",
   "waterSortBenefitHold": "Guardar na memória que cores estão escondidas sob a camada de cima",
   "waterSortBenefitPatience": "Paciência: evitar um beco sem saída custa menos do que desfazê-lo",

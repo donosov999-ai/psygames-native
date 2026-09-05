@@ -18,7 +18,7 @@
  * что у ханойской башни в этом же хабе.
  */
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -37,6 +37,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { gameNow } from '@/src/services/gamePause';
 import { hudTime } from '@/src/services/hudTime';
 import {
@@ -98,12 +99,97 @@ const БОНУСЫ = [
   { icon: 'hourglass-outline', textKey: 'waterSortBenefitPatience' },
 ];
 
+/**
+ * 🔴 48 px — НИЖНЯЯ ГРАНИЦА, А НЕ ПОЖЕЛАНИЕ. Первая редакция сужала пробирку до
+ * 34 px, когда их больше восьми, — и это ровно то, что ловит аудит целей нажатия
+ * в CI. Порогов у него ДВА: 44 по маршрутам и 48 НА ПОЛЕ (`MIN_FIELD` в
+ * `scripts/tap-target-audit.mjs`), а пробирка — цель именно на поле. Пробирок
+ * бывает до четырнадцати, и они ложатся в два ряда: 48 + 8 отступа = 56, семь
+ * штук на 403 px дают 392. Тесноту решает перенос строки, а не уменьшение цели
+ * под пальцем.
+ */
+/**
+ * 🔴 48 px — НИЖНЯЯ ГРАНИЦА ЦЕЛИ НАЖАТИЯ, А НЕ РАЗМЕР. Аудит целей в CI держит
+ * два порога: 44 по маршрутам и 48 НА ПОЛЕ (`MIN_FIELD` в
+ * `scripts/tap-target-audit.mjs`), а пробирка — цель на поле. Первая редакция
+ * сужала её до 34 px при девяти и более пробирках и на этом валила сборку.
+ *
+ * Но 48 — это ПОЛ, а не потолок: на трёх пробирках пол-экрана оставалось пустым.
+ * Ширина считается от доступного места, потолок 72 — выше пробирка начинает
+ * выглядеть колбой, а два ряда перестают помещаться по высоте.
+ */
+const ШИРИНА_МИН = 48;
+const ШИРИНА_МАКС = 72;
+const ОТСТУП = 8;
+/**
+ * ⚠️ ЗАПАС НА ЧУЖИЕ ПОЛЯ. Ширина экрана — не ширина поля: между ними отступы
+ * самого поля (6+6) и внутренние поля каркаса. Замер 05.09.2026: с запасом 16
+ * пять пробирок по расчёту помещались в ряд, а на экране пятая уезжала вниз —
+ * ряд не влезал в НАСТОЯЩУЮ ширину. 32 покрывает и то и другое.
+ */
+const ЗАПАС_ПОЛЕЙ = 32;
+
+/**
+ * Сколько пробирок в ряду.
+ *
+ * 🔴 КОЛОНКИ ОГРАНИЧЕНЫ ШИРИНОЙ ЭКРАНА, А НЕ ТОЛЬКО ЧИСЛОМ ПРОБИРОК. Первая
+ * редакция считала «до шести — одним рядом, дальше по семь» и не смотрела на
+ * экран вовсе. На 403 pt это сходилось случайно, а на 320 pt (маленький Android,
+ * старый SE) семь пробирок по 48 требуют 384 pt при 304 доступных — ряд вылезал
+ * за край. Уменьшать пробирку нельзя: 48 — норма цели нажатия. Значит уменьшаем
+ * ЧИСЛО КОЛОНОК и добавляем ряд.
+ */
+export function колонокДля(n: number, доступно: number): number {
+  const влезаетПоМинимуму = Math.max(1, Math.floor((доступно + ОТСТУП) / (ШИРИНА_МИН + ОТСТУП)));
+  const желаемых = n <= 6 ? n : Math.ceil(n / Math.ceil(n / 7));
+  return Math.max(1, Math.min(желаемых, влезаетПоМинимуму));
+}
+
+/** Ширина пробирки под ширину экрана. Не уже нормы цели и не шире разумного. */
+export function ширинаПробирки(n: number, доступно: number): number {
+  const колонок = колонокДля(n, доступно);
+  const влезает = Math.floor((доступно - ОТСТУП * (колонок - 1)) / колонок);
+  return Math.max(ШИРИНА_МИН, Math.min(ШИРИНА_МАКС, влезает));
+}
+
+/**
+ * СТЕКЛО — КАРТИНКА ПОВЕРХ ЖИДКОСТИ, А НЕ РАМКА ВОКРУГ НЕЁ.
+ *
+ * Денис 05.09.2026 по первой редакции: «по дизайну пробирки у тебя конечно
+ * говно редкое… отрисуй сеткой что ли на кие». Первая редакция рисовала цветные
+ * прямоугольники в рамке — ни стекла, ни дна, ни бликов.
+ *
+ * Стекло нарисовано в kie сеткой 3×3 (девять форм на сплошном #FF7A1A), выбран
+ * вариант с прямыми стенками и круглым дном, фон выбит хромакеем — тем же
+ * приёмом, что у маскот-паков. ⚠️ Стекло ОБЕСЦВЕЧЕНО: модель рисовала на
+ * оранжевом фоне, и блики унесли его подтон — над синей жидкостью это читалось
+ * как грязь. Каждый пиксель переведён в свою яркость, цвет стекла стал нулевым.
+ *
+ * Числа ниже сняты С САМОГО ФАЙЛА (замер по альфа-каналу на середине высоты), а
+ * не подобраны на глаз: перерисуют стекло — их надо снять заново, иначе жидкость
+ * вылезет за стенки.
+ */
+const СТЕКЛО = require('../../assets/images/games/water-sort/tube-glass.png');
+const СТЕКЛО_ОТНОШЕНИЕ = 577 / 192;     // высота к ширине
+const ВНУТРИ_СЛЕВА = 0.182;             // доля ширины: левая стенка
+const ВНУТРИ_СПРАВА = 0.818;            // правая стенка
+const ВНУТРИ_СВЕРХУ = 0.10;             // низ ободка
+const ВНУТРИ_СНИЗУ = 0.955;             // внутренняя точка дна
+
 type GamePhase = 'config' | 'playing' | 'cleared' | 'result';
 
 export default function WaterSortGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const lvl = usePersistentLevel(GAME_ID);
+  /**
+   * ⚠️ ГОТОВЫЙ ХУК, А НЕ СВОЙ `useWindowDimensions` С ЗАПАСНЫМ ЧИСЛОМ. В проекте
+   * уже разобрано, почему: `useWindowDimensions` на первом кадре отдаёт 0, а
+   * подставленная константа однажды осталась в вёрстке и дала «390 + 32» вместо
+   * настоящей ширины. `useScreenWidth` спрашивает `window.innerWidth` (наши
+   * Android и iOS — WebView) и падает на константу только там, где `window` нет.
+   */
+  const ширинаЭкрана = useScreenWidth();
   const { isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
 
@@ -249,41 +335,68 @@ export default function WaterSortGame() {
    */
   useEffect(() => { if (тупик) тупикБылRef.current = true; }, [тупик]);
 
-  const ширинаПробирки = (n: number) => (n > 8 ? 34 : 44);
-
-  const рисоватьПробирку = (t: readonly number[], i: number) => {
-    const ш = ширинаПробирки(field!.tubes.length);
-    const высотаПорции = 22;
+  const рисоватьПробирку = (трубка: readonly number[], i: number) => {
+    const ш = ширинаПробирки(field!.tubes.length, ширинаЭкрана - ЗАПАС_ПОЛЕЙ);
+    const в = Math.round(ш * СТЕКЛО_ОТНОШЕНИЕ);
     const выбор = выбрана === i;
-    const подсвечена = подсказка && (подсказка.from === i || подсказка.to === i);
+    const подсвечена = !!подсказка && (подсказка.from === i || подсказка.to === i);
+
+    // внутренний столбик, куда льётся жидкость
+    const левo = ш * ВНУТРИ_СЛЕВА;
+    const ширинаЖ = ш * (ВНУТРИ_СПРАВА - ВНУТРИ_СЛЕВА);
+    const верхЖ = в * ВНУТРИ_СВЕРХУ;
+    const высотаСтолба = в * (ВНУТРИ_СНИЗУ - ВНУТРИ_СВЕРХУ);
+    const высотаПорции = высотаСтолба / field!.cap;
+
     return (
       <TouchableOpacity
         key={i}
         accessibilityRole="button"
-        accessibilityLabel={`${t.length ? t.map((c) => ЦВЕТА[c % ЦВЕТА.length]!.mark).join(' ') : t as unknown as string}`}
+        accessibilityLabel={трубка.length
+          ? трубка.map((c) => ЦВЕТА[c % ЦВЕТА.length]!.mark).join(' ')
+          : t('waterSortEmptyTube')}
         accessibilityState={{ selected: выбор }}
         onPress={() => нажать(i)}
-        activeOpacity={0.8}
-        style={[
-          styles.пробирка,
-          {
-            width: ш,
-            height: высотаПорции * field!.cap + 8,
-            borderColor: подсвечена ? '#f1c40f' : выбор ? GRADIENT[1] : colors.border,
-            borderWidth: выбор || подсвечена ? 3 : 2,
-            backgroundColor: colors.surface,
-            transform: [{ translateY: выбор ? -10 : 0 }],
-          },
-        ]}
+        activeOpacity={0.85}
+        style={[styles.гнездо, { width: ш, height: в, transform: [{ translateY: выбор ? -14 : 0 }] }]}
       >
-        {[...t].reverse().map((c, k) => (
+        {/* Жидкость: снизу вверх, дно скруглено по форме пробирки. */}
+        <View style={[styles.столб, { left: левo, width: ширинаЖ, top: верхЖ, height: высотаСтолба }]}>
+          {[...трубка].reverse().map((c, k) => {
+            const снизу = трубка.length - 1 - k;                 // индекс порции от дна
+            const дно = снизу === 0;
+            return (
+              <View
+                key={k}
+                style={[
+                  styles.порция,
+                  {
+                    height: высотаПорции,
+                    backgroundColor: ЦВЕТА[c % ЦВЕТА.length]!.fill,
+                    borderBottomLeftRadius: дно ? ширинаЖ / 2 : 0,
+                    borderBottomRightRadius: дно ? ширинаЖ / 2 : 0,
+                  },
+                ]}
+              >
+                <Text style={styles.знак}>{ЦВЕТА[c % ЦВЕТА.length]!.mark}</Text>
+              </View>
+            );
+          })}
+        </View>
+
+        {/* Стекло поверх: блики и ободок ложатся НА жидкость, как в настоящей пробирке. */}
+        <Image source={СТЕКЛО} style={{ position: 'absolute', width: ш, height: в }} resizeMode="stretch" />
+
+        {/* Обводка выбора и подсказки — вокруг стекла, не поверх него. */}
+        {(выбор || подсвечена) ? (
           <View
-            key={k}
-            style={[styles.порция, { height: высотаПорции, backgroundColor: ЦВЕТА[c % ЦВЕТА.length]!.fill }]}
-          >
-            <Text style={styles.знак}>{ЦВЕТА[c % ЦВЕТА.length]!.mark}</Text>
-          </View>
-        ))}
+            pointerEvents="none"
+            style={[
+              styles.обводка,
+              { borderColor: подсвечена ? '#f1c40f' : GRADIENT[1], borderRadius: ш / 2 },
+            ]}
+          />
+        ) : null}
       </TouchableOpacity>
     );
   };
@@ -345,7 +458,7 @@ export default function WaterSortGame() {
           */}
         <View style={styles.середина}>
           <View style={styles.поле}>
-            {field.tubes.map((t2, i) => рисоватьПробирку(t2, i))}
+            {field.tubes.map((тр, i) => рисоватьПробирку(тр, i))}
           </View>
           {/* Строка «что делать»: правило партии на виду, а не только в справке. */}
           <Text style={[styles.задание, { color: colors.textSecondary }]}>{t('waterSortHint')}</Text>
@@ -438,8 +551,10 @@ const styles = StyleSheet.create({
   optionLabel: { fontSize: 16, fontWeight: '700' },
   optionHint: { fontSize: 13 },
   середина: { flex: 1, justifyContent: 'center' },
-  поле: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'flex-end', gap: 10, paddingHorizontal: 8, paddingTop: 12 },
-  пробирка: { borderRadius: 12, borderTopLeftRadius: 4, borderTopRightRadius: 4, overflow: 'hidden', justifyContent: 'flex-end', padding: 3 },
+  поле: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'flex-end', gap: 8, paddingHorizontal: 6, paddingTop: 12 },
+  гнездо: { justifyContent: 'flex-end' },
+  столб: { position: 'absolute', justifyContent: 'flex-end', overflow: 'hidden' },
+  обводка: { position: 'absolute', top: -3, left: -3, right: -3, bottom: -3, borderWidth: 3 },
   порция: { width: '100%', alignItems: 'center', justifyContent: 'center' },
   знак: { fontSize: 11, color: 'rgba(255,255,255,0.85)' },
   задание: { textAlign: 'center', fontSize: 13, paddingHorizontal: 16, paddingTop: 8 },

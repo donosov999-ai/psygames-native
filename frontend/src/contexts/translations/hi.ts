@@ -448,6 +448,7 @@ const t: Record<string, string> = {
   "waterSortLvlParams": "{c} रंग · हर एक {h} भाग · {e} खाली परखनलियाँ",
   "waterSortStuck": "कोई चाल नहीं बची — पलटें या स्तर फिर से शुरू करें",
   "waterSortHint": "एक परखनली दबाएँ, फिर दूसरी — ऊपर की परत उँडेल जाएगी",
+  "waterSortEmptyTube": "खाली परखनली",
   "waterSortBenefitPlan": "आगे की सोच: अभी एक परखनली खाली करने वाली चाल बाद में रास्ता बंद कर सकती है",
   "waterSortBenefitHold": "याद रखना कि ऊपरी परत के नीचे कौन-से रंग छिपे हैं",
   "waterSortBenefitPatience": "धैर्य: गतिरोध को सुलझाने से बचाना सस्ता है",

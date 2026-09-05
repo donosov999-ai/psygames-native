@@ -748,6 +748,7 @@ const t: Record<string, string> = {
   "waterSortLvlParams": "{c} ألوان · {h} جرعات لكلٍّ · {e} أنبوبان فارغان",
   "waterSortStuck": "لا نقلات متاحة — تراجَع أو أعد المرحلة",
   "waterSortHint": "المس أنبوبًا ثم آخر — ينسكب العمود العلوي",
+  "waterSortEmptyTube": "أنبوب فارغ",
   "waterSortBenefitPlan": "التخطيط المسبق: نقلة تُفرغ أنبوبًا الآن قد تسدّ المخرج لاحقًا",
   "waterSortBenefitHold": "تذكّر أي الألوان مخبّأ تحت الطبقة العليا",
   "waterSortBenefitPatience": "الصبر: تفادي الطريق المسدود أرخص من حلّه",

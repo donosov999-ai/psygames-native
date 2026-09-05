@@ -748,6 +748,7 @@ const t: Record<string, string> = {
   "waterSortLvlParams": "{c} colori · {h} porzioni ciascuno · {e} provette libere",
   "waterSortStuck": "Nessuna mossa: annulla o ricomincia il livello",
   "waterSortHint": "Tocca una provetta, poi un’altra: la colonna in cima si versa",
+  "waterSortEmptyTube": "Provetta vuota",
   "waterSortBenefitPlan": "Pianificare: una mossa che libera una provetta ora può chiudere l'uscita dopo",
   "waterSortBenefitHold": "Tenere a mente quali colori sono nascosti sotto lo strato superiore",
   "waterSortBenefitPatience": "Pazienza: evitare un vicolo cieco costa meno che scioglierlo",
