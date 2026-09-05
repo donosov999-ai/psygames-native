@@ -40,6 +40,11 @@ interface WarmupCtx extends WarmupState {
   startNight: () => void;                // v1.179 — «Не спится»: НЕ тренировка, вне стрика
   startFinancialBattery: () => void;     // D1 — Iowa+BART+PRL session
   startAssessment: () => void;            // G1 — 12-domain skill assessment
+  /**
+   * Запустить ГОТОВЫЙ набор. Нужен развилкам, которые собирают свою зарядку из
+   * своих же упражнений — например шахматной (отчёт Дениса 05.09.2026).
+   */
+  startPlaylist: (meta: PlaylistMeta) => void;
   recordResult: (r: StepResult) => Promise<void>;
   advanceToNext: (fromIdx?: number) => void;   // переход к следующей игре или на /warmup-complete
   skipCurrent: () => void;
@@ -332,7 +337,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   }, [stopWarmup, router]);
 
   return (
-    <Ctx.Provider value={{ ...state, currentStep, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startAssessment, recordResult, advanceToNext, skipCurrent, stopWarmup }}>
+    <Ctx.Provider value={{ ...state, currentStep, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startAssessment, startPlaylist: startSlotPlaylist, recordResult, advanceToNext, skipCurrent, stopWarmup }}>
       {children}
     </Ctx.Provider>
   );

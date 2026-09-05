@@ -46,9 +46,17 @@ function вОкружении(узел: any) {
   const { ThemeProvider } = require('@/src/contexts/ThemeContext');
   const { LanguageProvider } = require('@/src/contexts/LanguageContext');
   const { SafeAreaProvider } = require('react-native-safe-area-context');
+  /**
+   * ⚠️ ЗАРЯДКА В ОКРУЖЕНИИ. Развилка «Шахматы» с 06.09.2026 показывает над
+   * списком зарядку из обоих своих упражнений, а та спрашивает `useWarmup`.
+   * В приложении провайдер стоит всегда (`app/_layout.tsx`), поэтому его место
+   * и здесь: иначе проба рисует развилку в окружении, которого не бывает.
+   */
+  const { WarmupProvider } = require('@/src/contexts/WarmupContext');
   return React.createElement(SafeAreaProvider, { initialMetrics: METRICS } as any,
     React.createElement(ThemeProvider, null,
-      React.createElement(LanguageProvider, null, узел)));
+      React.createElement(LanguageProvider, null,
+        React.createElement(WarmupProvider, null, узел))));
 }
 
 /** Экран развилки по её маршруту из каталога — берём настоящий, а не пересобранный. */

@@ -94,14 +94,19 @@ describe('развилка и профиль', () => {
     const нарисовать = (route: string) => {
       const { ThemeProvider } = require('@/src/contexts/ThemeContext');
       const { LanguageProvider } = require('@/src/contexts/LanguageContext');
+      const { WarmupProvider } = require('@/src/contexts/WarmupContext');
       const { SafeAreaProvider } = require('react-native-safe-area-context');
       const Экран = require('../../app/games/' + route.replace('/games/', '')).default;
       let r: any;
       TestRenderer.act(() => {
         r = TestRenderer.create(
+          // ⚠️ Провайдер зарядки: развилка «Шахматы» с 06.09.2026 показывает над
+          // списком зарядку из обоих своих упражнений и спрашивает `useWarmup`.
+          // В приложении он стоит всегда (`app/_layout.tsx`).
           React.createElement(SafeAreaProvider, { initialMetrics: METRICS },
             React.createElement(ThemeProvider, null,
-              React.createElement(LanguageProvider, null, React.createElement(Экран)))));
+              React.createElement(LanguageProvider, null,
+                React.createElement(WarmupProvider, null, React.createElement(Экран))))));
       });
       /**
        * ⚠️ ЧИТАЕМ ПОДПИСИ СТРОК, А НЕ ВЕСЬ ЭКРАН. Первая редакция искала имя игры
