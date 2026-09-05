@@ -16,6 +16,28 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.43.0',
+    date: '2026-09-06',
+    ru: [
+      '«Детский мат»: один список вместо трёх входов. Мат с жертвой стал таким же узором, как остальные, а «Поток · 10 мин» теперь включается к чему угодно — к лестнице, к жертве, к любому узору',
+      '«Детский мат»: после подхода в любом режиме есть следующий уровень. Раньше игра упиралась в карточку итога и дальше идти было некуда',
+      '«Детский мат»: доска переворачивается и в отработке узора, а не только в лестнице',
+      '«Одна линия»: шары стали нормального размера — раньше они закрывали собой линии графа',
+      'Филворды: подсказка показывает слово целиком. Двух клеток не хватало — путей оставалось семь, и подсказка тратилась впустую',
+      'Анаграммы и «Беглость речи»: выбор языка слов отдельно от языка приложения',
+      'Сортировка товаров: нижний ряд полок больше не обрезается',
+    ],
+    en: [
+      'Scholar\'s Mate: one list instead of three entry points. Sacrifice mate is now a motif like any other, and “Flow · 10 min” applies to anything — the ladder, the sacrifice, any motif',
+      'Scholar\'s Mate: every mode now leads to a next level. It used to stop at a results card with nowhere to go',
+      'Scholar\'s Mate: the board flips in motif drills too, not only in the ladder',
+      'One Line: the balls are a sane size again — they used to cover the graph edges',
+      'Word Search: a hint now reveals the whole word. Two cells left seven possible paths, so the hint was spent for nothing',
+      'Anagrams and Verbal Fluency: pick the language of the words separately from the app language',
+      'Goods Sort: the bottom shelf row is no longer cut off',
+    ],
+  },
+  {
     version: '2.42.0',
     date: '2026-09-05',
     ru: [
