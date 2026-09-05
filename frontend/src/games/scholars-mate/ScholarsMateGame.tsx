@@ -178,6 +178,8 @@ export default function ScholarsMateGame({
         bestMs: времена.length ? Math.min(...времена) : 0,
         streak: лучшая,
         accuracy: попытки.current.length ? верные.length / попытки.current.length : 0,
+        // Хоть одно касание доски за подход — иначе это не игра, а открытый экран.
+        touched: попытки.current.some((a) => !a.timeout),
       });
       return;
     }

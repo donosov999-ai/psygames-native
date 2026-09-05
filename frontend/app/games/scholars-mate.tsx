@@ -133,6 +133,19 @@ export default function ScholarsMateScreen() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => setPhase('playing'));
 
   const onComplete = React.useCallback(async (r: ScholarsResult) => {
+    /**
+     * 🔴 ПОДХОД БЕЗ ЕДИНОГО КАСАНИЯ НЕ СЧИТАЕТСЯ ВОВСЕ.
+     *
+     * 📍 В живых данных 05.09.2026 нашлись три таких: 0 решённых, 10–11
+     * таймаутов, нулевая медиана. Экран оставили открытым, секундомер добил
+     * позиции сам. И это НЕ безобидно: доля верных 0 < порога, значит уровень
+     * понижался за игру, которой не было, а в статистику уходил подход,
+     * который человек не играл.
+     */
+    if (!r.touched) {
+      setPhase('config');
+      return;
+    }
     const passed = r.accuracy >= PASS;
     setLast(r);
     setPlayedLevel(level);
