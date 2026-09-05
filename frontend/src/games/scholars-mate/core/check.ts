@@ -62,6 +62,14 @@ export interface Verdict {
   readonly fenAfter?: string;
   /** Мат уже поставлен — партия окончена. */
   readonly mated?: boolean;
+  /**
+   * 🔴 ЧЕМ НАКАЗАЛИ. Ход соперника, который матует после НЕВЕРНОЙ защиты.
+   *
+   * Без него разбор ошибки половинчатый: человек видит «верно было Qe7», но не
+   * видит, что случилось с его ходом. А учит именно это — своя ошибка, доведённая
+   * до конца: «после Nf6 — Qxf7#».
+   */
+  readonly refutation?: string;
 }
 
 /**
@@ -86,7 +94,20 @@ export function check(p: ScholarsPuzzle, uci: string): Verdict {
   if (p.kind === 'defend') {
     const спасся = !естьМатВОдин(после);
     // ⚠️ Лучший ход считается, а не берётся из списка — см. `bestDefence`.
-    return { correct: спасся, best: bestDefence(p) ?? p.san?.[0], fenAfter: после };
+    return {
+      correct: спасся,
+      best: bestDefence(p) ?? p.san?.[0],
+      fenAfter: после,
+      /**
+       * Ошиблись — показываем не только верный ход, но и чем наказали.
+       *
+       * ⚠️ `спасся ?` здесь ЭКОНОМИЯ, А НЕ ЗАЩИТА, и это проверено мутацией:
+       * если убрать условие, ничего не изменится — после верной защиты мата в
+       * один нет, и `матующийХод` вернёт `undefined` сам. Условие экономит
+       * полный перебор ходов на каждом ВЕРНОМ ответе, то есть на большинстве.
+       */
+      refutation: спасся ? undefined : матующийХод(после),
+    };
   }
 
   if (g.isCheckmate()) {
@@ -110,6 +131,22 @@ export function check(p: ScholarsPuzzle, uci: string): Verdict {
   }
 
   return { correct: (p.solutions as string[]).includes(uci), best: p.san?.[0], fenAfter: после };
+}
+
+/**
+ * Матующий ход в записи SAN, если он есть. Это и есть опровержение неверной
+ * защиты: то, что соперник сыграет и чего человек не увидел.
+ */
+export function матующийХод(fen: string): string | undefined {
+  try {
+    const g = new Chess(fen);
+    for (const m of g.moves({ verbose: true }) as { from: string; to: string; promotion?: string; san: string }[]) {
+      const t = new Chess(fen);
+      try { t.move({ from: m.from, to: m.to, ...(m.promotion ? { promotion: m.promotion } : {}) }); } catch { continue; }
+      if (t.isCheckmate()) return m.san;
+    }
+  } catch { /* битая позиция */ }
+  return undefined;
 }
 
 /** Есть ли у стороны, чей ход, мат в один. */

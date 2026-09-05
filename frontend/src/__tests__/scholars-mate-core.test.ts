@@ -691,3 +691,68 @@ describe('«Детский мат»: показанная защита не те
     expect(подвешенные.slice(0, 5)).toEqual([]);
   });
 });
+
+/**
+ * 🔴 РАЗБОР ОШИБКИ ДОВОДИТСЯ ДО КОНЦА: «верно было Qe7 · Qxf7#».
+ *
+ * Рецензия 05.09.2026: после промаха человек видел только верный ход и не
+ * видел, ЧЕМ наказали его собственный. А учит именно это — своя ошибка,
+ * доигранная до мата.
+ */
+describe('«Детский мат»: чем наказали за неверную защиту', () => {
+  /** Позиция «защитись» и ход, который НЕ спасает. */
+  function промах() {
+    for (const p of puzzlesOf('defend').slice(0, 60)) {
+      const g = new Chess(shownFen(p));
+      for (const m of g.moves({ verbose: true }) as { from: string; to: string }[]) {
+        const t = new Chess(shownFen(p));
+        try { t.move({ from: m.from, to: m.to }); } catch { continue; }
+        if (естьМатВОдин(t.fen())) return { p, uci: m.from + m.to };
+      }
+    }
+    return null;
+  }
+
+  it('есть что проверять: неспасающий ход нашёлся', () => {
+    expect(промах()).toBeTruthy();
+  });
+
+  it('🔴 у неверной защиты названо опровержение, и оно действительно матует', () => {
+    const пары = [] as { p: ReturnType<typeof puzzlesOf>[number]; uci: string }[];
+    for (const p of puzzlesOf('defend').slice(0, 40)) {
+      const g = new Chess(shownFen(p));
+      const плохой = (g.moves({ verbose: true }) as { from: string; to: string }[]).find((m) => {
+        const t = new Chess(shownFen(p));
+        try { t.move({ from: m.from, to: m.to }); } catch { return false; }
+        return естьМатВОдин(t.fen());
+      });
+      if (плохой) пары.push({ p, uci: плохой.from + плохой.to });
+    }
+    expect(пары.length).toBeGreaterThan(10);
+
+    const без: string[] = [];
+    for (const { p, uci } of пары) {
+      const v = check(p, uci);
+      expect(v.correct).toBe(false);
+      if (!v.refutation) { без.push(`нет опровержения: ${p.fen} ← ${uci}`); continue; }
+      // И оно обязано реально ставить мат на доске после нашего промаха.
+      const g = new Chess(shownFen(p));
+      g.move({ from: uci.slice(0, 2), to: uci.slice(2, 4) });
+      const t = new Chess(g.fen());
+      try { t.move(v.refutation); } catch { без.push(`незаконно: ${v.refutation}`); continue; }
+      if (!t.isCheckmate()) без.push(`не мат: ${v.refutation} — ${p.fen}`);
+    }
+    expect(без.slice(0, 5)).toEqual([]);
+  });
+
+  it('🔴 у ВЕРНОЙ защиты опровержения нет — иначе оно врёт', () => {
+    for (const p of puzzlesOf('defend').slice(0, 30)) {
+      const san = bestDefence(p)!;
+      const g = new Chess(shownFen(p));
+      const ход = g.move(san);
+      const v = check(p, ход.from + ход.to);
+      expect(`${san}: верно ${v.correct}, опровержение ${v.refutation ?? 'нет'}`)
+        .toBe(`${san}: верно true, опровержение нет`);
+    }
+  });
+});

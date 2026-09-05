@@ -107,7 +107,7 @@ export default function ScholarsMateGame({
   const [fen, setFen] = React.useState(() => shownFen(колода[0]!));
   const [выбрана, setВыбрана] = React.useState<string | null>(null);
   const [подсветка, setПодсветка] = React.useState<string[]>([]);
-  const [вердикт, setВердикт] = React.useState<{ ok: boolean; best?: string } | null>(null);
+  const [вердикт, setВердикт] = React.useState<{ ok: boolean; best?: string; наказание?: string } | null>(null);
   const [осталось, setОсталось] = React.useState(п.seconds);
   /**
    * Сколько осталось до конца потока, «м:сс».
@@ -195,7 +195,7 @@ export default function ScholarsMateGame({
    * к следующей перерисовке, а внутри одного кадра его ещё нет. Замер: в кадре
    * без перерисовки набежало 1422 попытки на колоду из восьми позиций.
    */
-  const ответить = React.useCallback((answer: string, correct: boolean, best?: string, timeout = false) => {
+  const ответить = React.useCallback((answer: string, correct: boolean, best?: string, timeout = false, наказание?: string) => {
     if (!задача || отвечаем.current || кончено.current) return;
     отвечаем.current = true;
     const полное = now() - началоRef.current;
@@ -206,7 +206,7 @@ export default function ScholarsMateGame({
       msFirst: первоеКасание.current ? первоеКасание.current - началоRef.current : полное,
     });
     onProgress?.(scholarsArmed(попытки.current));
-    setВердикт({ ok: correct, best });
+    setВердикт({ ok: correct, best, наказание });
   }, [задача, now, onProgress]);
 
   /**
@@ -311,7 +311,7 @@ export default function ScholarsMateGame({
       }
       const v = check(задача, uci);
       if (v.fenAfter) setFen(v.fenAfter);
-      ответить(uci, v.correct, v.best);
+      ответить(uci, v.correct, v.best, false, v.refutation);
       return;
     }
     const ходы = movesFrom(fen, имя);
@@ -435,7 +435,9 @@ export default function ScholarsMateGame({
 
       {вердикт ? (
         <Text style={[стили.вердикт, { color: вердикт.ok ? theme.success : theme.danger }]}>
-          {вердикт.ok ? '✓' : `✕ ${вердикт.best ? `${labels.best} ${вердикт.best}` : ''}`}
+          {вердикт.ok
+            ? '✓'
+            : `✕ ${вердикт.best ? `${labels.best} ${вердикт.best}` : ''}${вердикт.наказание ? ` · ${вердикт.наказание}#` : ''}`}
         </Text>
       ) : (
         <Text style={[стили.вердикт, { color: 'transparent' }]}>·</Text>
