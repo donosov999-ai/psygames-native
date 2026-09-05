@@ -1265,6 +1265,7 @@ const t: Record<string, string> = {
   "timeIsUp": "O tempo acabou",
   "timeLeftLabel": "Restante",
   "themeLabel": "Tema",
+  "wordLangLabel": "Idioma das palavras",
   "passCorrect80Window": "Para passar: ≥80% de respostas corretas (não responder a tempo conta como erro)",
   "trialsWindowParams": "{n} tentativas · janela de resposta {w} s",
   "startingInN": "⏱ Começa em {n}...",

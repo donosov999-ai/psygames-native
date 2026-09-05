@@ -1388,6 +1388,7 @@ const t: Record<string, string> = {
   "timeIsUp": "시간 종료",
   "timeLeftLabel": "남은 시간",
   "themeLabel": "주제",
+  "wordLangLabel": "단어 언어",
   "passCorrect80Window": "통과 조건: 정답률 80% 이상 (제한 시간 내 미응답은 오류 처리)",
   "trialsWindowParams": "{n}회 시행 · 응답 시간 {w}초",
   "startingInN": "⏱ {n}초 후 시작...",

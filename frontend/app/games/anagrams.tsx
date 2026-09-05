@@ -24,6 +24,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { useWordLanguage } from '@/src/hooks/useWordLanguage';
+import { WORD_LANGS, WORD_LANG_LABEL } from '@/src/services/wordLanguage';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { sndPlace } from '@/src/services/feedback';
@@ -91,6 +94,13 @@ function shuffle<T>(arr: T[]): T[] {
 export default function AnagramGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  /**
+   * 🔴 ЯЗЫК СЛОВ ОТДЕЛЬНО ОТ ЯЗЫКА МЕНЮ. Отчёт Дениса 05.09.2026: «надо
+   * добавить выбор языка». Банк слов брался как `language === 'ru'`, и при
+   * русском интерфейсе английские анаграммы были недоступны вовсе.
+   */
+  const { profile } = useProfile();
+  const wordLang = useWordLanguage('anagrams', profile?.id, language);
   const router = useRouter();
 
   const { isPreset, autostart, num, isCalm } = useGamePreset();
@@ -174,7 +184,7 @@ export default function AnagramGame() {
   useEffect(() => () => clearAllTimers(), []);
 
   const wordsBank = (len: WordLen, th: string): WordEntry[] => {
-    const isRu = language === 'ru';
+    const isRu = wordLang.lang === 'ru';
     const cl = isRu ? 'ru' : 'en';       // язык слова
     // курированные банки (с осмысленными подсказками-определениями); не-ru/en → английский набор
     const curated: WordEntry[] = isRu
@@ -204,7 +214,7 @@ export default function AnagramGame() {
     let bank = wordsBank(len, theme);
     if (bank.length < 4) bank = wordsBank(len, 'all');   // мало слов этой темы на этой длине → вся длина
     // сет валидных слов для зачёта альтернативных анаграмм — по ВСЕМ темам этой длины
-    const vKey = `${len}_${language}`;
+    const vKey = `${len}_${wordLang.lang}`;
     if (validKeyRef.current !== vKey) {
       validWordsRef.current = new Set(wordsBank(len, 'all').map((e) => e.w.toUpperCase()));
       validKeyRef.current = vKey;
@@ -387,6 +397,23 @@ export default function AnagramGame() {
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
+        </View>
+
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('wordLangLabel')}</Text>
+          <View style={styles.optionButtons}>
+            {WORD_LANGS.map((wl) => (
+              <TouchableOpacity
+                accessibilityRole="button" key={wl} style={[styles.modeButton, wordLang.lang === wl
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                onPress={() => wordLang.pick(wl)}>
+                <Text style={[styles.modeButtonText, { color: wordLang.lang === wl ? '#3f2b96' : colors.text }]}>
+                  {WORD_LANG_LABEL[wl]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>

@@ -1389,6 +1389,7 @@ const t: Record<string, string> = {
   "timeIsUp": "انتهى الوقت",
   "timeLeftLabel": "الوقت المتبقي",
   "themeLabel": "الموضوع",
+  "wordLangLabel": "لغة الكلمات",
   "passCorrect80Window": "للاجتياز: ٨٠٪ أو أكثر إجابات صحيحة (تفويت نافذة الإجابة يُحسب خطأ)",
   "trialsWindowParams": "{n} محاولات · نافذة الإجابة {w} ث",
   "startingInN": "⏱ البدء خلال {n}...",

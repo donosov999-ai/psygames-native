@@ -1268,6 +1268,7 @@ const t: Record<string, string> = {
   "timeIsUp": "समय समाप्त",
   "timeLeftLabel": "बचा समय",
   "themeLabel": "थीम",
+  "wordLangLabel": "शब्दों की भाषा",
   "passCorrect80Window": "पास करने के लिए: ≥80% सही उत्तर (समय पर उत्तर न देना = त्रुटि)",
   "trialsWindowParams": "{n} प्रयास · उत्तर विंडो {w} से",
   "startingInN": "⏱ {n} में शुरू...",

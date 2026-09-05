@@ -646,6 +646,7 @@ const t: Record<string, string> = {
   "timeIsUp": "時間切れ",
   "timeLeftLabel": "残り時間",
   "themeLabel": "テーマ",
+  "wordLangLabel": "単語の言語",
   "passCorrect80Window": "クリア条件：正答率80%以上（時間内に答えないとミス扱い）",
   "trialsWindowParams": "{n} 試行 · 回答時間 {w} 秒",
   "startingInN": "⏱ あと {n} 秒で開始...",
