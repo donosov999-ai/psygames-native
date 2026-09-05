@@ -545,7 +545,20 @@ function OneLineBoard({
               source={ballImage(ballStyle, isCurrent ? 'purple'
                 : (isHint || isStart) ? 'yellow'
                 : visited ? 'white' : 'blue')}
-              style={[StyleSheet.absoluteFill as any, visited && { opacity: 0.55 }]}
+              /**
+               * 🔴 РАЗМЕР ЯВНО, А НЕ `absoluteFill`. Третий случай одной и той
+               * же беды: `absoluteFill` даёт `inset:0` без ширины, и в вебе
+               * `<img>` берёт СВОЮ природную ширину — шар вылезал за узел и
+               * закрывал собой рёбра графа.
+               *
+               * 📍 ОТЧЁТ ДЕНИСА 05.09.2026 со скриншотом: «что за огромные мега
+               * шары, ни хуя не видно». До этого то же было у плитки маджонга
+               * (255 px вместо 44) и у клетки «Вспышки» (192 px).
+               */
+              style={[
+                { position: 'absolute', left: 0, top: 0, width: '100%', height: '100%' },
+                visited && { opacity: 0.55 },
+              ]}
               resizeMode="contain"
               fadeDuration={0}
               accessibilityElementsHidden
@@ -848,7 +861,8 @@ const styles = StyleSheet.create({
   // рамка спорит с линией и делает поле теснее, чем оно есть.
   board: { width: '100%', maxWidth: 620, alignSelf: 'center', aspectRatio: 1, overflow: 'hidden', position: 'relative' },
   svg: { position: 'absolute', left: 0, top: 0 },
-  vertexTarget: { position: 'absolute', width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  // `overflow:'hidden'` — вторая страховка: что бы ни легло внутрь, за узел оно не выйдет.
+  vertexTarget: { position: 'absolute', width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 2, overflow: 'hidden' },
   hintedVertex: { borderWidth: 6 },
   vertexText: { fontSize: 15, fontWeight: '900', textAlign: 'center' },
   scoreLeft: { fontSize: 30, fontWeight: '900', textAlign: 'left', marginTop: 2 },
