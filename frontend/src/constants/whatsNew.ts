@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.44.0',
+    date: '2026-09-06',
+    ru: [
+      'Анаграммы: буквы теперь по кругу, и слово ведётся пальцем одним движением. Нажимать по одной по-прежнему можно',
+      'Анаграммы: новый режим «Слово-квадрат» — четыре слова по краям поля из одного банка букв, углы у соседей общие. Больше 470 раскладок',
+      'Шахматы: зарядка из обоих упражнений подряд, каждое со своего уровня, на 5, 10 или 15 минут',
+      '«Ментальная ротация»: варианты больше не отличаются числом кубиков — раньше задание можно было решить, просто пересчитав их, не вращая',
+      '«Ментальная ротация»: эталон и варианты одного цвета — раньше одна и та же фигура была покрашена в два разных',
+      'Игры на память: карточка правил больше не всплывает, пока вы держите ряд в голове. Теперь она показывается до старта — исправлено в девяти играх сразу',
+    ],
+    en: [
+      'Anagrams: the letters now sit in a circle and the word is drawn with one swipe. Tapping them one by one still works',
+      'Anagrams: a new Word Square mode — four words around the board from a single letter bank, neighbours share their corners. Over 470 puzzles',
+      'Chess: a warm-up running both exercises in turn, each from its own level, for 5, 10 or 15 minutes',
+      'Mental Rotation: the options no longer differ in cube count — the task used to be solvable by counting instead of rotating',
+      'Mental Rotation: the reference and the options share one colour — the same figure used to be painted in two',
+      'Memory games: the level-rule card no longer pops up while you are holding a sequence in mind. It now appears before the round — fixed across nine games at once',
+    ],
+  },
+  {
     version: '2.43.0',
     date: '2026-09-06',
     ru: [

@@ -91,7 +91,24 @@ export default function MemoryMatrixGame() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   // Правила уровня: показать при первом входе и дать перечитать по бейджу.
-  const levelRules = useLevelRules('memory_matrix', lvl.level, MEMORYMATRIX_RULES, phase === 'input');
+  /**
+   * 🔴 ПРАВИЛА ПОКАЗЫВАЮТСЯ ДО КРУГА, А НЕ В МИГ ВСПОМИНАНИЯ.
+   *
+   * 📍 ОТЧЁТ ВАЛИ 06.09.2026, дословно: «вначале вылезла сетка с теми
+   * квадратами, которые нужно запомнить, и пока я их запоминала, сетка
+   * исчезла, а вместо пустых квадратов появилась расшифровка… естественно, я
+   * забыла всю сетку. Как можно вначале показать сетку, дать время на
+   * запоминание, а потом окно с правилами?»
+   *
+   * Она права по механике, и это не мелочь: карточка правил в фазе
+   * вспоминания СТИРАЕТ то, что человек держит в рабочей памяти, — ровно то,
+   * что упражнение и меряет. Замер 06.09.2026: так было в ДЕВЯТИ играх на
+   * память сразу (`recall`, `input`, `eq`, `memorize`).
+   *
+   * Правильный момент — экран настройки: правило прочитано ДО старта, а круг
+   * идёт без единой помехи.
+   */
+  const levelRules = useLevelRules('memory_matrix', lvl.level, MEMORYMATRIX_RULES, phase === 'config');
   const [gridSize, setGridSize] = useState(() => num('size', 3));
   const [matrixMode, setMatrixMode] = useState<MatrixMode>(() => (str('mode', 'static') as MatrixMode));
   const [litCells, setLitCells] = useState<Set<number>>(new Set());
