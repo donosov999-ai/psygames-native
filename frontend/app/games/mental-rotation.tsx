@@ -103,6 +103,17 @@ const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 // Цвет 3D-фигур: тёмно-фиолетовый GRADIENT[0] сливался с тёмной темой (образец не виден).
 // Светлый насыщенный фиолет читается и на светлой, и на тёмной теме.
+/**
+ * 🔴 ОДИН ЦВЕТ У ЭТАЛОНА И У ВАРИАНТОВ.
+ *
+ * 📍 ОТЧЁТ ДЕНИСА 05.09.2026 со скриншотом: «картинки на редкость уродские».
+ * На снимке эталон фиолетовый (`SHAPE_BASE`), а варианты оливковые
+ * (`GRADIENT[1]`) — одна и та же фигура была покрашена в два разных цвета.
+ * В задаче на мысленное вращение это прямая помеха: разный цвет читается как
+ * «разные предметы», и сравнивать приходится вопреки картинке, а не благодаря.
+ *
+ * Цвет тут не украшение, а часть условия: «это ТА ЖЕ фигура, просто повёрнутая».
+ */
 const SHAPE_BASE = '#9B6BFF';
 const OK_COLOR = '#22c55e';
 const BAD_COLOR = '#f43f5e';
@@ -715,7 +726,7 @@ export default function MentalRotationGame() {
                     borderWidth: feedback ? 3 : 1,
                   }]}
                 >
-                  {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1])}
+                  {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, SHAPE_BASE)}
                   {task.kind === 'projection' && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
                   {task.kind === 'net' && renderMarkedCube((opt as { faces: FaceMap }).faces, optSize, GRADIENT[1])}
                   <Text style={[styles.optionLabel2, { color: colors.textSecondary }]}>
