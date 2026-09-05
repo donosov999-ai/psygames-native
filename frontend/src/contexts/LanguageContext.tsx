@@ -1762,7 +1762,7 @@ const translations: Translations = {
   ballStyleTitle: { ru: 'Вид шаров', en: 'Ball look' },
   // «Детский мат» — этюды на скорость (просьба Дениса 05.09.2026).
   scholarsMate:        { ru: 'Детский мат', en: 'Scholar’s mate' },
-  scholarsMateDesc:    { ru: 'Один и тот же узор — ферзь и слон на f7. Он заучен: меряется не «сможешь ли», а за сколько увидишь. Время на позицию сокращается с уровнем.', en: 'One pattern — queen and bishop on f7. You already know it: what is measured is not whether you can, but how fast you see it. Time per position shrinks with the level.' },
+  scholarsMateDesc:    { ru: 'Заученный узор на скорость: меряется не «сможешь ли», а за сколько увидишь. Начинается с детского мата, дальше приходят соседние — ферзь при коне, мат слоном, удушающий, мат дурака. Время на позицию падает с 20 секунд до 4.', en: 'A memorised pattern against the clock: what is measured is not whether you can, but how fast you see it. It starts with the scholar’s mate, then neighbouring ones arrive — queen with a knight, bishop mate, smothered mate, fool’s mate. Time per position drops from 20 seconds to 4.' },
   scholarsMateIntroDesc: { ru: "Один и тот же узор: ферзь и слон бьют на f7 — у чёрных на f2. Тапни фигуру, потом клетку; ход один, время на него идёт полосой сверху. Дальше по лестнице времени меньше, а позиции приходят из настоящих партий; под конец — маты с жертвой: сначала отдаёшь фигуру, потом ставишь мат. Звёзды идут за СКОРОСТЬ, а не за число решённых: узор вы и так знаете.", en: "One and the same pattern: queen and bishop strike f7 — f2 for Black. Tap a piece, then a square; one move, and the bar on top is your time. Higher up the ladder there is less time and the positions come from real games; at the end come mates with a sacrifice: give up a piece first, then mate. Stars are for SPEED, not for how many you solved — you know the pattern already." },
   scholarsMateAsk:     { ru: 'Поставь мат в один ход', en: 'Mate in one' },
   scholarsDefendAsk:   { ru: 'Грозит мат — защитись', en: 'Mate is threatened — defend' },
@@ -1779,6 +1779,7 @@ const translations: Translations = {
   scholarsSacrificeModeHint: { ru: 'Отдать фигуру, вскрыть поле и доиграть до мата — в два-три хода', en: 'Give up a piece, open the square and play it out to mate — in two or three moves' },
   scholarsFlow:           { ru: 'Поток · 10 мин', en: 'Flow · 10 min' },
   scholarsFlowHint:       { ru: 'Без перерывов и уровней: позиции идут подряд, пока не кончится время', en: 'No breaks, no levels: positions keep coming until time runs out' },
+  scholarsBank:        { ru: 'Позиций в наборе: {n}', en: 'Positions in the set: {n}' },
   scholarsMedian:      { ru: 'Медиана', en: 'Median' },
   scholarsBest:        { ru: 'Верно было', en: 'Correct was' },
   // Да/нет для вопроса «грозит ли мат»: общих ключей в словаре нет.

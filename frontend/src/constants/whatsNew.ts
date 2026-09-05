@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.40.0',
+    date: '2026-09-05',
+    ru: [
+      '«Детский мат»: узоров теперь семь, а не один. К детскому мату по ходу лестницы добавляются ферзь при коне, мат слоном, удушающий, мат дурака — и каждый назван на экране',
+      'Весь подход идёт за одну сторону: доска больше не показывает чёрную позицию с белой стороны',
+      'Два новых режима: «Поток» — 10 минут позиций подряд без перерывов, и «Мат с жертвой» — доступен сразу, а не с двадцать девятого уровня. И жертва доигрывается до мата, а не засчитывается первым ходом',
+      'На итоге видна медиана времени и личный рекорд по уровню',
+      'Гимнастика для глаз: спираль, волна и пульсирующая точка для перефокусировки, плюс вибрация в начале, на смене упражнения и в конце',
+      '«Доска в уме»: чёрные фигуры больше не сливаются с тёмной плашкой выбора',
+    ],
+    en: [
+      'Scholar\'s Mate: seven patterns instead of one. As you climb, queen-with-knight, bishop mate, smothered mate and fool\'s mate join in — and each is named on screen',
+      'A whole run is played from one side: the board no longer shows a black position from White\'s point of view',
+      'Two new modes: Flow — 10 minutes of positions with no breaks, and Mate with a Sacrifice — available from the start instead of level 29. And the sacrifice is now played out to mate rather than counted on the first move',
+      'The results screen shows your median time and your personal best for the level',
+      'Eye gym: a spiral, a wave and a pulsing dot for refocusing, plus haptics at the start, at each change of exercise and at the end',
+      'Board in Mind: black pieces no longer blend into the dark selection plaque',
+    ],
+  },
+  {
     version: '2.39.0',
     date: '2026-09-05',
     ru: [

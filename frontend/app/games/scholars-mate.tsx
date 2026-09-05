@@ -314,8 +314,13 @@ export default function ScholarsMateScreen() {
                 {п.seconds} {t('secShort')} · {п.count}
               </Text>
             </View>
+            {/*
+              ⚠️ Было четыре голых числа подряд — «38028 · 378 · 3000 · 371».
+              Что это, не понимал никто, включая меня через час. Теперь одна
+              подписанная цифра: сколько всего позиций в наборе.
+            */}
             <Text style={[стили.мелко, { color: colors.textSecondary }]}>
-              {c.mate + c.fromGames} · {c.defend} · {c.threat} · {c.sacrifice}
+              {t('scholarsBank').replace('{n}', String(c.mate + c.fromGames + c.defend + c.threat + c.sacrifice))}
             </Text>
             {/* Источник называем по правилу лицензии CC0. */}
             <Text style={[стили.мелко, { color: colors.textSecondary }]}>Lichess puzzle DB · CC0</Text>
