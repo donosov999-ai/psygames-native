@@ -26,7 +26,7 @@
  */
 import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -66,6 +66,20 @@ const PASS = 0.75;
 
 type Phase = 'config' | 'playing' | 'cleared' | 'result';
 
+/**
+ * 🔴 РЕЖИМ ПОТОКА — просьба Дениса 05.09.2026: «надо добавить режим поток,
+ * 10 минут, без перерыва».
+ *
+ * Зачем он в этой игре. Уровень — это 8–10 позиций, то есть полторы минуты, и
+ * между ними экран итога. Узнавание узора так не разгоняется: человек всё
+ * время выходит из потока. Десять минут подряд — это и есть та самая практика
+ * без опоры, ради которой упражнение задумано.
+ *
+ * ⚠️ Уровень в потоке НЕ повышается и НЕ понижается: там нет порога, который
+ * можно взять или не взять. Поток даёт цифру скорости, а не ступень.
+ */
+const FLOW_MS = 10 * 60 * 1000;
+
 export default function ScholarsMateScreen() {
   const { colors } = useTheme();
   const { language, t } = useLanguage();
@@ -82,6 +96,8 @@ export default function ScholarsMateScreen() {
   const [clearedPassed, setClearedPassed] = React.useState(false);
   const [armed, setArmed] = React.useState(false);
   const [attempt, setAttempt] = React.useState(0);
+  const [поток, setПоток] = React.useState(false);
+  const [режим, setРежим] = React.useState<'sacrifice' | null>(null);
 
   const level = num('level', lvl.level);
   /**
@@ -117,10 +133,13 @@ export default function ScholarsMateScreen() {
     const passed = r.accuracy >= PASS;
     setLast(r);
     setPlayedLevel(level);
-    if (!isPreset && passed && shouldChainNextLevel(mode)) lvl.reach(level + 1);
-    else if (!isPreset && !passed) lvl.fail();
+    // В потоке ступень не двигается: там нет порога, который берут или не берут.
+    // Лестницу двигает только обычный подход: у потока и у режима жертвы порога нет.
+    const свободный = поток || режим !== null;
+    if (!isPreset && !свободный && passed && shouldChainNextLevel(mode)) lvl.reach(level + 1);
+    else if (!isPreset && !свободный && !passed) lvl.fail();
 
-    if (isPreset) setPhase('result');
+    if (isPreset || свободный) setPhase('result');
     else { setClearedPassed(passed); setPhase('cleared'); }
 
     try {
@@ -130,7 +149,7 @@ export default function ScholarsMateScreen() {
         score: r.solved,
         time_seconds: Math.round(r.attempts.reduce((s, a) => s + a.ms, 0) / 1000),
         difficulty: level <= 10 ? 'easy' : level <= 25 ? 'medium' : 'hard',
-        mode: `${п.seconds}s`,
+        mode: режим === 'sacrifice' ? 'sacrifice' : поток ? 'flow10' : `${п.seconds}s`,
         errors: r.total - r.solved,
         details: {
           level,
@@ -145,7 +164,7 @@ export default function ScholarsMateScreen() {
         },
       });
     } catch (err) { console.error(err); }
-  }, [isPreset, mode, level, lvl, п.seconds, п.kinds]);
+  }, [isPreset, mode, level, lvl, поток, режим, п.seconds, п.kinds]);
 
   /**
    * Звёзды по СКОРОСТИ, а не по доле решённых.
@@ -187,7 +206,34 @@ export default function ScholarsMateScreen() {
       : своё;
   }, [last, рекорд, t]);
 
-  const start = () => { setPlayedLevel(null); setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
+  /**
+   * Имя узора для экрана. Ключи заведены на 12 языков: человек обязан видеть,
+   * КАКОЙ мат он сейчас ищет, — иначе новый узор на лестнице неотличим от
+   * старого (замечание Дениса 05.09.2026).
+   */
+  const имяУзора = React.useCallback((m: string) => {
+    const ключи: Record<string, string> = {
+      // ⚠️ Имя узора здесь то же, что название игры: заводить второй ключ с тем
+      // же текстом — это ровно тот дубль, который ловит гейт словаря.
+      scholar: 'scholarsMate',
+      queenKnight: 'scholarsMotifQueenKnight',
+      bishopF7: 'scholarsMotifBishopF7',
+      queenAlone: 'scholarsMotifQueenAlone',
+      fool: 'scholarsMotifFool',
+      knightOpening: 'scholarsMotifKnight',
+      smothered: 'scholarsMotifSmothered',
+    };
+    return ключи[m] ? t(ключи[m]!) : '';
+  }, [t]);
+
+  const start = (режимПотока = false, только: 'sacrifice' | null = null) => {
+    setПоток(режимПотока);
+    setРежим(только);
+    setPlayedLevel(null);
+    setArmed(false);
+    setAttempt((n) => n + 1);
+    setPhase('playing');
+  };
 
   if (phase === 'playing') {
     const сторона = Math.min(width - 32, 420);
@@ -197,6 +243,8 @@ export default function ScholarsMateScreen() {
           key={attempt}
           level={level}
           seed={attempt + 1}
+          flowMs={поток ? FLOW_MS : undefined}
+          onlyKind={режим ?? undefined}
           size={сторона}
           now={gameNow}
           theme={{
@@ -205,6 +253,7 @@ export default function ScholarsMateScreen() {
           }}
           onProgress={setArmed}
           onComplete={onComplete}
+          motifName={имяУзора}
           labels={{
             mate: t('scholarsMateAsk'),
             defend: t('scholarsDefendAsk'),
@@ -227,6 +276,25 @@ export default function ScholarsMateScreen() {
     <SafeAreaView style={[стили.корень, { backgroundColor: colors.background }]}>
       <GradientSurface colors={GRADIENT as [string, string]} style={стили.шапка}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        {/*
+          🔴 ВЫХОД С ЭКРАНА НАСТРОЙКИ. Отчёт Дениса 05.09.2026, дословно: «из
+          окна детского мата невозможно выйти из настройки, где перед игрой —
+          как туда провалился». Так и было: назад вела только партия (её рисует
+          GameShell со своей кнопкой), а на экране настройки кнопки не стояло
+          вовсе — человек попадал сюда и оставался.
+
+          ⚠️ Аппаратной «назад» на iOS нет, а жест от края уводит из приложения,
+          а не из экрана. То есть выхода не было НИ ОДНОГО.
+        */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('a11yBack')}
+          onPress={() => goBackOrHome()}
+          style={стили.назад}
+          hitSlop={8}
+        >
+          <Ionicons name="arrow-back" size={22} color={ON_GRAD.color} />
+        </Pressable>
         <Text style={[стили.заголовок, { color: ON_GRAD.color }]} numberOfLines={1}>{t('scholarsMate')}</Text>
         {/* Резерв под сквозной уголок (питомец + «Правила») — см. HELP_CORNER_SPACE. */}
         <View style={{ width: HELP_CORNER_SPACE }} />
@@ -252,11 +320,45 @@ export default function ScholarsMateScreen() {
             {/* Источник называем по правилу лицензии CC0. */}
             <Text style={[стили.мелко, { color: colors.textSecondary }]}>Lichess puzzle DB · CC0</Text>
           </View>
+
+          {/*
+            🔴 «МАТ С ЖЕРТВОЙ» — ОТДЕЛЬНЫМ ВХОДОМ. Просьба Дениса 05.09.2026:
+            «нужно как режим в детском мате сделать — мат с жертвой». До этого
+            жертва жила только на ступенях с 29-й: чтобы увидеть то, ради чего
+            её и просили, надо было пройти двадцать восемь уровней.
+            ⚠️ Ступень тут не двигается: порога нет, есть замер скорости.
+          */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('scholarsSacrificeMode')}
+            onPress={() => start(false, 'sacrifice')}
+            style={[стили.карточка, { backgroundColor: colors.surface, borderColor: GRADIENT[0], borderWidth: 1 }]}
+          >
+            <View style={стили.строка}>
+              <Ionicons name="flame-outline" size={20} color={GRADIENT[0]} />
+              <Text style={[стили.уровень, { color: colors.text }]}>{t('scholarsSacrificeMode')}</Text>
+            </View>
+            <Text style={[стили.подсказка, { color: colors.textSecondary }]}>{t('scholarsSacrificeModeHint')}</Text>
+            <Text style={[стили.мелко, { color: colors.textSecondary }]}>{c.sacrifice}</Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('scholarsFlow')}
+            onPress={() => start(true)}
+            style={[стили.карточка, { backgroundColor: colors.surface, borderColor: GRADIENT[0], borderWidth: 1 }]}
+          >
+            <View style={стили.строка}>
+              <Ionicons name="infinite-outline" size={20} color={GRADIENT[0]} />
+              <Text style={[стили.уровень, { color: colors.text }]}>{t('scholarsFlow')}</Text>
+            </View>
+            <Text style={[стили.подсказка, { color: colors.textSecondary }]}>{t('scholarsFlowHint')}</Text>
+          </Pressable>
         </ScrollView>
       )}
 
       {phase === 'config' && (
-        <GameSetupBar label={t('start')} onStart={start} colors={GRADIENT as [string, string]} />
+        <GameSetupBar label={t('start')} onStart={() => start(false)} colors={GRADIENT as [string, string]} />
       )}
 
       {phase === 'cleared' && (
@@ -286,6 +388,8 @@ export default function ScholarsMateScreen() {
 const стили = StyleSheet.create({
   корень: { flex: 1 },
   шапка: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
+  // 44 — норма цели нажатия; кнопка выхода обязана быть не меньше остальных.
+  назад: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   заголовок: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0, marginHorizontal: 8 },
   тело: { padding: 16, gap: 14, paddingBottom: SETUP_BAR_SPACE },
   карточка: { padding: 16, borderRadius: 16, gap: 8 },

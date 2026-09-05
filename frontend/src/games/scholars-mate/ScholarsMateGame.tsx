@@ -52,17 +52,50 @@ export interface ScholarsMateGameProps {
   now: () => number;
   onComplete: (r: ScholarsResult) => void;
   onProgress?: (armed: boolean) => void;
+  /**
+   * 🔴 РЕЖИМ ПОТОКА — просьба Дениса 05.09.2026: «надо добавить режим поток,
+   * 10 минут, без перерыва». Позиции идут подряд, пока не кончится время;
+   * колода кончиться не может — она добирается новыми наборами.
+   */
+  flowMs?: number;
+  /**
+   * Имя узора по его коду. Функция, а не строка: узор МЕНЯЕТСЯ от позиции к
+   * позиции, и статическая подпись врала бы на каждой второй.
+   */
+  motifName?: (motif: string) => string;
+  /** Играть только одним видом заданий — так устроен режим «Мат с жертвой». */
+  onlyKind?: 'mate' | 'defend' | 'threat' | 'fromGames' | 'sacrifice';
   labels: {
     mate: string; defend: string; threat: string; sacrifice: string;
     yes: string; no: string; best: string; timeUp: string; sec: string;
+
   };
 }
 
 export default function ScholarsMateGame({
-  level, seed = 1, size, theme, now, onComplete, onProgress, labels,
+  level, seed = 1, size, theme, now, onComplete, onProgress, labels, flowMs, motifName, onlyKind,
 }: ScholarsMateGameProps) {
   const п = React.useMemo(() => levelParams(level), [level]);
-  const колода = React.useMemo(() => buildDeck(level, seed), [level, seed]);
+  /**
+   * В потоке колода набирается длинной: несколько наборов подряд, без повторов
+   * между ними. Десять минут при секунде-двух на позицию — это сотни позиций.
+   */
+  const колода = React.useMemo(() => {
+    if (!flowMs) return buildDeck(level, seed, onlyKind);
+    const наборов = Math.max(4, Math.ceil(flowMs / 1000 / 3 / levelParams(level).count));
+    const всё: ScholarsAttempt['puzzle'][] = [];
+    const видели = new Set<string>();
+    for (let n = 0; n < наборов; n++) {
+      for (const p of buildDeck(level, seed + n * 101, onlyKind)) {
+        const ключ = `${p.fen}|${p.pre ?? ''}`;
+        if (видели.has(ключ)) continue;
+        видели.add(ключ);
+        всё.push(p);
+      }
+    }
+    return всё;
+  }, [level, seed, flowMs, onlyKind]);
+  const началоПотока = React.useRef(0);
 
   const [шаг, setШаг] = React.useState(0);
   const [fen, setFen] = React.useState(() => shownFen(колода[0]!));
@@ -87,6 +120,7 @@ export default function ScholarsMateGame({
   const первоеКасание = React.useRef(0);
   const попытки = React.useRef<ScholarsAttempt[]>([]);
   const началоRef = React.useRef(now());
+  React.useEffect(() => { началоПотока.current = now(); }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   /**
    * 🔴 ПОДХОД ЗАКАНЧИВАЕТСЯ РОВНО ОДИН РАЗ.
    *
@@ -112,7 +146,8 @@ export default function ScholarsMateGame({
     setВыбрана(null);
     setПодсветка([]);
     const след = шаг + 1;
-    if (след >= колода.length) {
+    const потокВышел = flowMs ? now() - началоПотока.current >= flowMs : false;
+    if (след >= колода.length || потокВышел) {
       if (кончено.current) return;
       кончено.current = true;
       const верные = попытки.current.filter((a) => a.correct);
@@ -135,7 +170,7 @@ export default function ScholarsMateGame({
     setFen(shownFen(колода[след]!));
     setОсталось(п.seconds);
     началоRef.current = now();
-  }, [шаг, колода, onComplete, п.seconds, now]);
+  }, [шаг, колода, onComplete, п.seconds, now, flowMs]);
 
   /** Записать попытку и показать ответ на секунду. */
   /**
@@ -288,6 +323,15 @@ export default function ScholarsMateGame({
   return (
     <View style={стили.колонка}>
       <Text style={[стили.вопрос, { color: theme.text }]}>{вопрос}</Text>
+      {/*
+        🔴 УЗОР НАЗЫВАЕТСЯ. Замечание Дениса 05.09.2026: «по сути одна
+        комбинация… я бы не сказал, что это разные». Половина беды была в том,
+        что узоры и правда были одни; вторая — в том, что человек не видел их
+        имени и не мог заметить, когда пришёл новый.
+      */}
+      {задача.motif && motifName ? (
+        <Text style={[стили.узор, { color: theme.textSecondary }]}>{motifName(задача.motif)}</Text>
+      ) : null}
 
       {/* Полоса времени — она и есть предмет упражнения, поэтому крупная. */}
       <View style={[стили.полоса, { backgroundColor: theme.border }]}>
@@ -378,6 +422,7 @@ export default function ScholarsMateGame({
 const стили = StyleSheet.create({
   колонка: { alignItems: 'center', gap: 8, width: '100%' },
   вопрос: { fontSize: 15, fontWeight: '600', textAlign: 'center', paddingHorizontal: 12 },
+  узор: { fontSize: 12, textAlign: 'center' },
   полоса: { height: 8, borderRadius: 4, width: '86%', overflow: 'hidden' },
   счёт: { fontSize: 13 },
   доска: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 2, borderRadius: 6, overflow: 'hidden' },
