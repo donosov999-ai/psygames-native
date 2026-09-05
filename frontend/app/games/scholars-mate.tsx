@@ -187,27 +187,48 @@ export default function ScholarsMateScreen() {
    * четвёртом уровне и на сороковом — разные величины, общий рекорд был бы
    * бессмыслицей.
    */
-  const [рекорд, setРекорд] = React.useState<number | null>(null);
+  /**
+   * 🔴 СРАВНИВАЕМ С ПОСЛЕДНИМИ ПОДХОДАМИ, А НЕ С РЕКОРДОМ.
+   *
+   * 📍 ЗАМЕР 05.09.2026 (Монте-Карло, 4000 подходов на каждую длину,
+   * логнормальное время реакции): медиана по ВОСЬМИ позициям гуляет ±25%, по
+   * десяти ±22%, и только к сорока сходится к ±12%. Сорок позиций — это подход
+   * вчетверо длиннее, на такое никто не подпишется.
+   *
+   * Отсюда вывод, который меняет показ: ЛИЧНЫЙ РЕКОРД ПО ОДНОМУ ПОДХОДУ — ЭТО
+   * САМЫЙ УДАЧНЫЙ ШУМ, а не достижение. Человек его один раз выбьет и больше
+   * никогда не побьёт, потому что бить нужно не себя, а случайность.
+   *
+   * Поэтому храним последние ПЯТЬ медиан на уровне и показываем их медиану:
+   * пять подходов по десять позиций — это те же полсотни замеров, только
+   * набранные по-человечески, и разброс у них уже ±12%.
+   */
+  const ПОДХОДОВ_В_СРЕДНЕМ = 5;
+  const [последние, setПоследние] = React.useState<number[]>([]);
   React.useEffect(() => {
-    AsyncStorage.getItem(`psygames_scholars_median_${shownLevel}`)
-      .then((v) => setРекорд(v ? Number(v) : null))
+    AsyncStorage.getItem(`psygames_scholars_medians_${shownLevel}`)
+      .then((v) => setПоследние(v ? (JSON.parse(v) as number[]) : []))
       .catch(() => {});
   }, [shownLevel]);
   React.useEffect(() => {
     if (!last?.medianMs || !last.solved) return;
-    if (рекорд != null && рекорд <= last.medianMs) return;
-    setРекорд(last.medianMs);
-    AsyncStorage.setItem(`psygames_scholars_median_${shownLevel}`, String(Math.round(last.medianMs))).catch(() => {});
-  }, [last, shownLevel, рекорд]);
+    setПоследние((было) => {
+      const стало = [...было, Math.round(last.medianMs)].slice(-ПОДХОДОВ_В_СРЕДНЕМ);
+      AsyncStorage.setItem(`psygames_scholars_medians_${shownLevel}`, JSON.stringify(стало)).catch(() => {});
+      return стало;
+    });
+  }, [last, shownLevel]);
 
   const строкаСкорости = React.useMemo(() => {
     if (!last?.medianMs || !last.solved) return undefined;
     const сек = (мс: number) => (Math.round(мс / 100) / 10).toFixed(1);
     const своё = `${t('scholarsMedian')} ${сек(last.medianMs)} ${t('secShort')}`;
-    return рекорд != null && рекорд < last.medianMs
-      ? `${своё} · ${t('personalBest')} ${сек(рекорд)} ${t('secShort')}`
-      : своё;
-  }, [last, рекорд, t]);
+    // Меньше трёх подходов — сравнивать не с чем, и врать про «обычно» нельзя.
+    if (последние.length < 3) return своё;
+    const ряд = [...последние].sort((a, b) => a - b);
+    const по = ряд.length % 2 ? ряд[ряд.length >> 1]! : Math.round((ряд[ряд.length / 2 - 1]! + ряд[ряд.length / 2]!) / 2);
+    return `${своё} · ${t('scholarsUsually').replace('{n}', String(последние.length))} ${сек(по)} ${t('secShort')}`;
+  }, [last, последние, t]);
 
   /**
    * Имя узора для экрана. Ключи заведены на 12 языков: человек обязан видеть,

@@ -2138,6 +2138,7 @@ const t: Record<string, string> = {
   "scholarsFlowHint": "بلا فواصل ولا مستويات: الأوضاع تتوالى حتى ينتهي الوقت",
   "scholarsBank": "أوضاع في المجموعة: {n}",
   "scholarsMedian": "الوسيط",
+  "scholarsUsually": "خلال {n} جولات",
   "scholarsBest": "الصواب كان",
   "scholarsYes": "نعم",
   "scholarsNo": "لا",

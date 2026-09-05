@@ -2136,6 +2136,7 @@ const t: Record<string, string> = {
   "scholarsFlowHint": "休みもレベルもなし：時間が尽きるまで局面が続きます",
   "scholarsBank": "セット内の局面：{n}",
   "scholarsMedian": "中央値",
+  "scholarsUsually": "直近{n}回",
   "scholarsBest": "正解は",
   "scholarsYes": "はい",
   "scholarsNo": "いいえ",

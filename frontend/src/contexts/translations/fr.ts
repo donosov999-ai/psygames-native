@@ -2137,6 +2137,7 @@ const t: Record<string, string> = {
   "scholarsFlowHint": "Sans pauses ni niveaux : les positions s’enchaînent jusqu’à la fin du temps",
   "scholarsBank": "Positions dans le jeu : {n}",
   "scholarsMedian": "Médiane",
+  "scholarsUsually": "sur {n} manches",
   "scholarsBest": "La bonne réponse était",
   "scholarsYes": "Oui",
   "scholarsNo": "Non",

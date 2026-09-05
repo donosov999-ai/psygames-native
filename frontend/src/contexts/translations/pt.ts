@@ -2142,6 +2142,7 @@ const t: Record<string, string> = {
   "scholarsFlowHint": "Sem pausas nem níveis: as posições vêm em sequência até o tempo acabar",
   "scholarsBank": "Posições no conjunto: {n}",
   "scholarsMedian": "Mediana",
+  "scholarsUsually": "em {n} rodadas",
   "scholarsBest": "O certo era",
   "scholarsYes": "Sim",
   "scholarsNo": "Não",

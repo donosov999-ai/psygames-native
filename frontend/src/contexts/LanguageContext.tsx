@@ -1801,6 +1801,7 @@ const translations: Translations = {
   scholarsFlowHint:       { ru: 'Без перерывов и уровней: позиции идут подряд, пока не кончится время', en: 'No breaks, no levels: positions keep coming until time runs out' },
   scholarsBank:        { ru: 'Позиций в наборе: {n}', en: 'Positions in the set: {n}' },
   scholarsMedian:      { ru: 'Медиана', en: 'Median' },
+  scholarsUsually:     { ru: 'за {n} подходов', en: 'over {n} runs' },
   scholarsBest:        { ru: 'Верно было', en: 'Correct was' },
   // Да/нет для вопроса «грозит ли мат»: общих ключей в словаре нет.
   // ⚠️ `с` и `Время вышло` НЕ заводим — они уже есть как secShort и timeIsUp;

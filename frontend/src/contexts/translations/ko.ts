@@ -2137,6 +2137,7 @@ const t: Record<string, string> = {
   "scholarsFlowHint": "쉼도 레벨도 없이: 시간이 끝날 때까지 국면이 이어집니다",
   "scholarsBank": "세트의 국면: {n}",
   "scholarsMedian": "중앙값",
+  "scholarsUsually": "최근 {n}회",
   "scholarsBest": "정답은",
   "scholarsYes": "예",
   "scholarsNo": "아니오",
