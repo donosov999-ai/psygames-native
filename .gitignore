@@ -79,3 +79,10 @@ AuthKey_*
 # Живой корпус произношения: 632 файла лежат на psy-games.pro/voice-live,
 # в репозитории держим только указатель и список авторов (voiceLive.generated.ts).
 voice-wiktionary/
+
+# Сборка словника: скачанные исходники и окружение — в репозиторий не идут.
+# Идёт только собранный набор (frontend/src/constants/allWordsRu.json) и скрипт.
+wordlist-build/.venv/
+wordlist-build/ru_RU.dic
+wordlist-build/ru_50k.txt
+wordlist-build/en_50k.txt
