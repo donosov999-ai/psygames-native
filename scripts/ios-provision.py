@@ -26,6 +26,7 @@ import os
 import sys
 import time
 import urllib.error
+import time
 import urllib.request
 
 try:
@@ -63,9 +64,31 @@ def токен() -> str:
     )
 
 
+ПОПЫТОК = 4
+ПАУЗА_СЕК = 5
+
+
+def стоит_повторить(код: int) -> bool:
+    """
+    🔴 ПОВТОРЯЕМ ТОЛЬКО СЕРВЕРНЫЕ ОШИБКИ И ПЕРЕГРУЗКУ.
+
+    📍 06.09.2026 ТРИ выпуска подряд (2.42.0, 2.43.0, 2.44.0, 2.45.0 — четыре)
+    легли на шаге «Сертификат и профиль» с одним и тем же ответом Apple:
+    `{"code": "UNEXPECTED_ERROR", "title": "An unexpected error occurred.",
+    "detail": "An unexpected error occurred on the server side"}` — то есть 500.
+    Каждый раз тот же прогон, запущенный заново без единой правки, проходил.
+    Три совпадения подряд — это уже не случайность, а свойство API.
+
+    ⚠️ ЧЕТЫРЁХСОТЫЕ НЕ ПОВТОРЯЕМ. 401 (ключ не тот), 403 (нет прав), 404 (не тот
+    идентификатор), 409 (профиль уже есть) — это НАСТОЯЩИЕ ошибки, и повтор их не
+    вылечит, а только спрячет за четырьмя минутами ожидания и запутает разбор.
+    """
+    return код == 429 or 500 <= код <= 599
+
+
 def запрос(tok: str, method: str, path: str, body=None) -> dict:
     """
-    Вызов App Store Connect API.
+    Вызов App Store Connect API. Серверные ошибки повторяются — см. `стоит_повторить`.
 
     🔴 ОТВЕТ БЫВАЕТ ПУСТЫМ, И ЭТО НЕ ОШИБКА. На `DELETE` Apple отвечает 204 без
     тела. Первая редакция звала `json.loads` безусловно и падала на пустой строке:
@@ -76,17 +99,34 @@ def запрос(tok: str, method: str, path: str, body=None) -> dict:
     02.09.2026 и был признан рабочим. На следующей же сборке профиль уже был, и
     джоба iOS упала на ровном месте. Поэтому: пустое тело → пустой словарь.
     """
-    r = urllib.request.Request(f'{BASE}{path}',
-                               data=json.dumps(body).encode() if body else None, method=method)
-    r.add_header('Authorization', f'Bearer {tok}')
-    r.add_header('Content-Type', 'application/json')
-    try:
-        сырое = urllib.request.urlopen(r, timeout=90).read()
-    except urllib.error.HTTPError as e:
-        sys.exit(f'{method} {path} → {e.code}: {e.read().decode()[:400]}')
-    if not сырое.strip():
-        return {}
-    return json.loads(сырое)
+    for попытка in range(1, ПОПЫТОК + 1):
+        r = urllib.request.Request(f'{BASE}{path}',
+                                   data=json.dumps(body).encode() if body else None, method=method)
+        r.add_header('Authorization', f'Bearer {tok}')
+        r.add_header('Content-Type', 'application/json')
+        try:
+            сырое = urllib.request.urlopen(r, timeout=90).read()
+        except urllib.error.HTTPError as e:
+            текст = e.read().decode()[:400]
+            if стоит_повторить(e.code) and попытка < ПОПЫТОК:
+                пауза = ПАУЗА_СЕК * (2 ** (попытка - 1))
+                print(f'  ⚠️ {method} {path} → {e.code}, попытка {попытка} из {ПОПЫТОК}, '
+                      f'повтор через {пауза} с: {текст[:120]}', flush=True)
+                time.sleep(пауза)
+                continue
+            sys.exit(f'{method} {path} → {e.code}: {текст}')
+        except urllib.error.URLError as e:
+            if попытка < ПОПЫТОК:
+                пауза = ПАУЗА_СЕК * (2 ** (попытка - 1))
+                print(f'  ⚠️ {method} {path} → сеть не отвечает, попытка {попытка} из {ПОПЫТОК}, '
+                      f'повтор через {пауза} с: {e.reason}', flush=True)
+                time.sleep(пауза)
+                continue
+            sys.exit(f'{method} {path} → сеть: {e.reason}')
+        if not сырое.strip():
+            return {}
+        return json.loads(сырое)
+    return {}          # недостижимо: цикл либо вернул, либо вышел через sys.exit
 
 
 def идентификатор_ios() -> str:
