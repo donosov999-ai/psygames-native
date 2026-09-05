@@ -109,7 +109,7 @@ function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.len
 //   - доля эмоционально заряженных слов (threat/positive) растёт 40%→85% — интерференции больше
 //   - межстимульная пауза сокращается (темп растёт)
 const TRIALS_PER_ROUND = 18;
-function levelParams(level: number): { trials: number; answerWindowMs: number; emotionalRatio: number; isiBaseMs: number; isiJitterMs: number } {
+export function levelParams(level: number): { trials: number; answerWindowMs: number; emotionalRatio: number; isiBaseMs: number; isiJitterMs: number } {
   return {
     trials: TRIALS_PER_ROUND,
     answerWindowMs: Math.max(1400, 3500 - (level - 1) * 150),
