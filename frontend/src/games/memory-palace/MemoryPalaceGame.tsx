@@ -40,6 +40,10 @@ import {
   type PalaceItem,
   type PalaceLocus,
 } from './core/index';
+import {
+  PLACE_LAYOUT,
+  palaceLocusBasis,
+} from './placeLayout';
 
 export interface MemoryPalaceTheme {
   background: string;
@@ -273,6 +277,8 @@ function LocusTile({
   selectedItem,
   highlighted = false,
   concealItem = false,
+  compact = false,
+  compactBasis,
 }: {
   locus: PalaceLocus;
   item: PalaceItem | null;
@@ -284,6 +290,22 @@ function LocusTile({
   selectedItem?: PalaceItem | null;
   highlighted?: boolean;
   concealItem?: boolean;
+  /**
+   * 🔴 КОМПАКТНАЯ ПЛИТКА МЕСТА — ФАЗА РАЗМЕЩЕНИЯ (отзыв afa77c5a).
+   *
+   * Полная плитка объявлена как `flexBasis: 145`, и на 375 точках в ряд влезает
+   * РОВНО ОДНА: 2 × 145 + зазор 10 = 300 против 287 внутренних. Пять мест — 820
+   * точек сцены, двенадцать — под 1940. При этом внутри плитки шириной 287 стоят
+   * ромб 54, короткое название и мелкий предмет: место тратится на пустоту.
+   *
+   * Компактная — 92 точки высотой, три-четыре в ряд (`palaceLocusBasis`), без
+   * подписи под предметом: какой предмет лежит, видно по той же фигуре и цвету,
+   * что и в ленте выбора, а название несёт `accessibilityLabel`. Ровно тем же
+   * рассуждением уже сделана компактная плитка предмета выше.
+   */
+  compact?: boolean;
+  /** Доля ширины под плитку: считается от числа мест, см. `palaceLocusBasis`. */
+  compactBasis?: string;
 }) {
   const strings = getMemoryPalaceStrings(locale);
   const locusName = getLocusLabel(locus, locale);
@@ -307,7 +329,8 @@ function LocusTile({
       accessibilityLabel={label}
       onPress={onPress}
       style={({ pressed }) => [
-        styles.locusTile,
+        compact ? styles.locusTileCompact : styles.locusTile,
+        compact && compactBasis ? { flexBasis: compactBasis as any } : null,
         { backgroundColor: theme.surface, borderColor: highlighted ? theme.warning : theme.border },
         highlighted && styles.highlightedLocus,
         pressed && onPress && styles.pressed,
@@ -319,12 +342,26 @@ function LocusTile({
         } as any),
       ]}
     >
-      <View style={styles.diamondWrap}>
-        <View style={[styles.diamond, { backgroundColor: locus.color, borderColor: gameGradient[1] }]} />
-        <Text style={[styles.diamondOrder, { color: gameGradientText }]}>{locus.order}</Text>
+      <View style={compact ? styles.diamondWrapCompact : styles.diamondWrap}>
+        <View style={[compact ? styles.diamondCompact : styles.diamond, { backgroundColor: locus.color, borderColor: gameGradient[1] }]} />
+        <Text style={[compact ? styles.diamondOrderCompact : styles.diamondOrder, { color: gameGradientText }]}>{locus.order}</Text>
       </View>
-      <Text style={[styles.locusName, { color: theme.text }]}>{locusName}</Text>
-      {item ? (
+      <Text
+        numberOfLines={compact ? 2 : undefined}
+        style={[compact ? styles.locusNameCompact : styles.locusName, { color: theme.text }]}
+      >
+        {locusName}
+      </Text>
+      {compact ? (
+        /*
+          Слот ПОСТОЯННОЙ высоты, а не «предмет или ничего»: иначе занятые плитки
+          выше пустых, ряды сетки пляшут после каждого хода, и человек ищет место
+          заново там, где оно только что было.
+        */
+        <View style={styles.placedSlotCompact}>
+          {item ? <ItemAsset item={item} size={20} /> : null}
+        </View>
+      ) : item ? (
         <View style={styles.placedAsset}>
           <ItemAsset item={item} size={32} />
           <Text numberOfLines={2} style={[styles.placedLabel, { color: theme.textSecondary }]}>{itemName}</Text>
@@ -345,6 +382,7 @@ function PalaceScene({
   showItems,
   onLocusPress,
   highlightedLocusId,
+  compact = false,
 }: {
   session: MemoryPalaceSession;
   locale: MemoryPalaceLocale;
@@ -354,12 +392,21 @@ function PalaceScene({
   showItems: boolean;
   onLocusPress?: (index: number) => void;
   highlightedLocusId?: string | null;
+  /** Компактная сетка мест — только фаза размещения, см. `LocusTile.compact`. */
+  compact?: boolean;
 }) {
   const selectedItem = findPalaceItem(session, session.selectedPlacementItemId);
+  const basis = palaceLocusBasis(session.round.lociCount);
   return (
-    <View style={[styles.scene, { backgroundColor: theme.card, borderColor: gameGradient[1] }]}>
+    <View
+      style={[
+        styles.scene,
+        compact && styles.sceneCompact,
+        { backgroundColor: theme.card, borderColor: gameGradient[1] },
+      ]}
+    >
       <View style={[styles.routeLine, { backgroundColor: gameGradient[1] }]} />
-      <View style={styles.lociGrid}>
+      <View style={compact ? styles.lociGridCompact : styles.lociGrid}>
         {session.round.loci.map((locus, index) => (
           <LocusTile
             key={locus.id}
@@ -371,6 +418,8 @@ function PalaceScene({
             gameGradientText={gameGradientText}
             selectedItem={selectedItem}
             highlighted={highlightedLocusId === locus.id || session.selectedPlacementLocusIndex === index}
+            compact={compact}
+            compactBasis={basis}
             onPress={onLocusPress ? () => onLocusPress(index) : undefined}
           />
         ))}
@@ -609,8 +658,18 @@ function MemoryPalaceSessionView({
       <View style={styles.gameHeader}>
         <View style={styles.gameHeaderText}>
           <Text accessibilityRole="header" style={[styles.gameTitle, { color: theme.text }]}>{phaseTitle}</Text>
+          {/*
+            Счётчик размещения переехал СЮДА из-под сцены: отдельной строкой внизу
+            он стоил 18 точек плюс зазор, а в шапке уже было место под «5 мест» —
+            и «Заполнено 2 из 5» говорит то же самое и ещё сколько осталось.
+          */}
           <Text style={[styles.progress, { color: theme.primary }]}>
-            {interpolateMemoryPalace(strings.routeCount, { count: session.round.lociCount })}
+            {session.phase === 'place'
+              ? interpolateMemoryPalace(strings.placementProgress, {
+                current: session.placements.filter(Boolean).length,
+                total: session.round.lociCount,
+              })
+              : interpolateMemoryPalace(strings.routeCount, { count: session.round.lociCount })}
           </Text>
         </View>
         <ActionButton label={strings.pause} theme={theme} secondary onPress={() => applySession((current) => pauseMemoryPalaceSession(current, now()))} />
@@ -626,17 +685,53 @@ function MemoryPalaceSessionView({
       {(session.phase === 'route' || session.phase === 'place') ? (
         <Text style={[styles.purpose, { color: theme.text }]}>{strings.purpose}</Text>
       ) : null}
-      <Text style={[styles.body, { color: theme.textSecondary }]}>
-        {session.phase === 'route'
-          ? strings.routeBody
-          : session.phase === 'place'
-            ? strings.placeBody
-            : strings.studyBody}
-      </Text>
+      {/*
+        В РАЗМЕЩЕНИИ ИНСТРУКЦИЯ ОДНИМ БЛОКОМ И МЕЛЬЧЕ. Про одно и то же было
+        написано трижды: `placeBody` («выбранный предмет можно перенести»),
+        `placementChangeHint` под сценой («до проверки можно менять без штрафа») и
+        живая строка выбора. Два первых текста стояли по разные стороны сцены и
+        вместе с зазорами отнимали 142 точки — больше, чем вся сетка мест после
+        правки. Теперь они рядом, кеглем 13, и подсказка читается ДО первого хода,
+        а не после того, как человек доскроллил до кнопки.
+      */}
+      {session.phase === 'place' ? (
+        <Text style={[styles.bodyCompact, { color: theme.textSecondary }]}>
+          {strings.placeBody + ' '}
+          <Text style={{ color: theme.primary, fontWeight: '700' }}>{strings.placementChangeHint}</Text>
+        </Text>
+      ) : (
+        <Text style={[styles.body, { color: theme.textSecondary }]}>
+          {session.phase === 'route' ? strings.routeBody : strings.studyBody}
+        </Text>
+      )}
 
       {session.phase === 'place' ? (
         <>
-          <View style={styles.itemGrid}>
+          {/*
+            🔴 ЛЕНТА, А НЕ ПЕРЕНОСИМАЯ СЕТКА (отзыв afa77c5a, 02.09.2026).
+
+            Замер живой сборки 05.09.2026 на 375×812: сетка предметов занимала 162
+            точки (два ряда по 76), первое место начиналось на 613 при видимой
+            высоте 741 — пара «предмет + место», которую и надо совместить, вместе
+            не помещалась, и человек прокручивал экран НА КАЖДОМ ХОДУ.
+
+            Горизонтальная лента держит ряд ОДНОЙ строкой при любом числе
+            предметов: пять на первом уровне, двенадцать на пятнадцатом — 76 точек
+            и там, и там. Сетка с переносом дала бы 162 на пяти и 248 на
+            двенадцати, и ровно на эту величину отодвигала бы места вниз.
+
+            Плитка 76 — цель нажатия с запасом к норме 48. В ленте шириной 327
+            видно три плитки целиком и почти всю четвёртую: обрезанный край и есть
+            признак, что лента едет вбок. Порядок обхода с клавиатуры не меняется —
+            браузер сам подкручивает ленту к элементу в фокусе.
+          */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            style={styles.itemStrip}
+            contentContainerStyle={styles.itemStripContent}
+          >
             {session.round.targetItems.map((item) => (
               <ItemChoice
                 key={item.id}
@@ -648,7 +743,7 @@ function MemoryPalaceSessionView({
                 onPress={() => applySession((current) => selectPlacementItem(current, item.id))}
               />
             ))}
-          </View>
+          </ScrollView>
           <Text accessibilityLiveRegion="polite" style={[styles.selectedText, { color: theme.text }]}>
             {/*
               🔴 ВЫБОР ВИДЕН, С КАКОЙ БЫ СТОРОНЫ ЧЕЛОВЕК НИ НАЧАЛ. Отчёт Вали
@@ -680,6 +775,7 @@ function MemoryPalaceSessionView({
         gameGradient={gameGradient}
         gameGradientText={gameGradientText}
         showItems={session.phase === 'place' || session.phase === 'study'}
+        compact={session.phase === 'place'}
         onLocusPress={session.phase === 'place'
           ? (index) => applySession((current) => placeSelectedItemAtLocus(current, index))
           : undefined}
@@ -688,21 +784,13 @@ function MemoryPalaceSessionView({
       {session.phase === 'route' ? (
         <ActionButton label={strings.continueToPlace} theme={theme} onPress={() => applySession(continueToPlacement)} />
       ) : session.phase === 'place' ? (
-        <>
-          <Text style={[styles.progress, { color: theme.textSecondary }]}>
-            {interpolateMemoryPalace(strings.placementProgress, {
-              current: session.placements.filter(Boolean).length,
-              total: session.round.lociCount,
-            })}
-          </Text>
-          <Text style={[styles.keyboardHelp, { color: theme.primary }]}>{strings.placementChangeHint}</Text>
-          <ActionButton
-            label={strings.studyPlacements}
-            theme={theme}
-            disabled={!memoryPalacePlacementComplete(session)}
-            onPress={() => applySession(confirmMemoryPalacePlacements)}
-          />
-        </>
+        /* Счётчик уехал в шапку, подсказка — к инструкции: под сценой только кнопка. */
+        <ActionButton
+          label={strings.studyPlacements}
+          theme={theme}
+          disabled={!memoryPalacePlacementComplete(session)}
+          onPress={() => applySession(confirmMemoryPalacePlacements)}
+        />
       ) : (
         <ActionButton label={strings.startRecall} theme={theme} onPress={() => applySession(startMemoryPalaceRecall)} />
       )}
@@ -716,9 +804,31 @@ export function MemoryPalaceGame(props: MemoryPalaceGameProps) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
+  /**
+   * 🔴 ШИРИНА ЗАДАНА ЯВНО, И ЭТО НЕ УКРАШЕНИЕ. Прокрутка страницы стоит в колонке
+   * с `alignItems: center`, поэтому её ширину браузер считает ПО СОДЕРЖИМОМУ и
+   * НЕ обрезает по экрану. Первый прогон ленты предметов 05.09.2026: лента 424
+   * точки растянула прокрутку до 452 при экране 375, всё уехало влево на 38 —
+   * заголовок обрезан слева, «Пауза» справа, а горизонтальной прокрутки страницы
+   * при этом нет, так что по разметке всё выглядит правильно. `width: '100%'`
+   * прибивает прокрутку к экрану, и лента едет внутри себя, как задумано.
+   */
+  root: { flex: 1, width: '100%' },
   content: { width: '100%', maxWidth: 880, alignSelf: 'center', padding: 20, gap: 16 },
-  gameContent: { width: '100%', maxWidth: 1000, alignSelf: 'center', padding: 20, gap: 18, flexGrow: 1 },
+  /**
+   * ПОЛЕ И ЗАЗОРЫ БЕРУТСЯ ИЗ `PLACE_LAYOUT`, А НЕ ПИШУТСЯ ЧИСЛОМ. Было 20 и 18:
+   * на девяти блоках фазы размещения одни только зазоры стоили 162 точки, поле —
+   * ещё 40. Числа объявлены один раз в `placeLayout.ts`, оттуда же их читает
+   * проба высоты — вернуть старую раскладку, не тронув формулу, нельзя.
+   */
+  gameContent: {
+    width: '100%',
+    maxWidth: 1000,
+    alignSelf: 'center',
+    padding: PLACE_LAYOUT.contentPadding,
+    gap: PLACE_LAYOUT.contentGap,
+    flexGrow: 1,
+  },
   centered: { alignItems: 'center', justifyContent: 'center', padding: 20 },
   hero: { borderRadius: 24, padding: 24, gap: 8 },
   heroTitle: { fontSize: 32, fontWeight: '800' },
@@ -728,6 +838,8 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 24, fontWeight: '800', textAlign: 'center' },
   gameTitle: { fontSize: 26, fontWeight: '800' },
   body: { fontSize: 16, lineHeight: 24, textAlign: 'center' },
+  /** Инструкция фазы размещения: 13/18 против 16/24 — четыре строки вместо шести. */
+  bodyCompact: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
   rule: { fontSize: 16, lineHeight: 23 },
   boundary: { fontSize: 15, lineHeight: 22, fontWeight: '700' },
   keyboardHelp: { fontSize: 13, lineHeight: 19, textAlign: 'center' },
@@ -750,6 +862,40 @@ const styles = StyleSheet.create({
   routeLine: { position: 'absolute', left: '8%', right: '8%', top: '50%', height: 4, transform: [{ rotateZ: '-4deg' }] },
   lociGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, maxWidth: '100%' },
   locusTile: { minWidth: 128, minHeight: 150, maxWidth: 210, flexBasis: 145, flexGrow: 1, borderWidth: 1, borderRadius: 18, padding: 11, alignItems: 'center', gap: 7 },
+  /** Компактная сцена размещения. Слагаемые высоты плитки — в `PLACE_LAYOUT`. */
+  sceneCompact: { padding: PLACE_LAYOUT.scenePadding },
+  lociGridCompact: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: PLACE_LAYOUT.sceneGap,
+    maxWidth: '100%',
+  },
+  locusTileCompact: {
+    minWidth: PLACE_LAYOUT.locusTileMinWidth,
+    maxWidth: PLACE_LAYOUT.locusTileMaxWidth,
+    minHeight: PLACE_LAYOUT.locusTileHeight,
+    flexGrow: 1,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 4,
+    paddingHorizontal: 3,
+    alignItems: 'center',
+    gap: 2,
+  },
+  diamondWrapCompact: { width: 26, height: 26, alignItems: 'center', justifyContent: 'center' },
+  diamondCompact: { position: 'absolute', width: 21, height: 21, borderWidth: 2, borderRadius: 4, transform: [{ rotateZ: '45deg' }] },
+  diamondOrderCompact: { fontSize: 12, fontWeight: '900' },
+  /**
+   * 10/12, а не 11/13. Замер 05.09.2026 на уровне 15 (четыре колонки, плитка 72):
+   * «Библиотека», «Мастерская» и «Обсерватория» рвались ПОСЕРЕДИНЕ СЛОВА —
+   * «Библиоте/ка». Название места здесь материал упражнения, человек его
+   * проговаривает; рваное слово ломает не вид, а сам приём. На 10 точках самое
+   * длинное «Обсерватория» встаёт в строку целиком.
+   */
+  locusNameCompact: { fontSize: 10, lineHeight: 12, fontWeight: '800', textAlign: 'center' },
+  /** 20 точек под предмет — ровно столько же у пустого места, чтобы ряды не прыгали. */
+  placedSlotCompact: { height: 20, alignItems: 'center', justifyContent: 'center' },
   highlightedLocus: { borderWidth: 3 },
   diamondWrap: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center' },
   diamond: { position: 'absolute', width: 39, height: 39, borderWidth: 2, borderRadius: 5, transform: [{ rotateZ: '45deg' }] },
@@ -758,15 +904,31 @@ const styles = StyleSheet.create({
   placedAsset: { alignItems: 'center', gap: 6 },
   placedLabel: { fontSize: 12, textAlign: 'center' },
   emptyLabel: { fontSize: 12, fontStyle: 'italic' },
+  /** Сетка с переносом осталась ОПРОСУ: там кандидатов больше и ленты мало. */
   itemGrid: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10 },
   /**
-   * Компакт: 76×76 — палец попадает (норма 48 с запасом), а ряд из шести встаёт
-   * в одну строку на экране 360 (6 × 76 + зазоры ≈ 500 → перенос в две плотные
-   * строки по 190 точек вместо 230 у полного вида и всё равно короче).
+   * Лента размещения. `flexGrow: 0` обязателен: ScrollView внутри колонки иначе
+   * растягивается на весь остаток и уводит сцену мест вниз — то самое, ради чего
+   * лента и заводилась.
+   */
+  itemStrip: { width: '100%', flexGrow: 0, flexShrink: 0 },
+  itemStripContent: { flexDirection: 'row', alignItems: 'center', gap: PLACE_LAYOUT.itemGap, paddingHorizontal: 2 },
+  /**
+   * Компакт: 76×76 — палец попадает с запасом к норме 48, подписи под картинкой
+   * нет (имя ушло в `accessibilityLabel`). Раньше эти плитки лежали в сетке с
+   * переносом и давали два ряда — 162 точки; с 05.09.2026 они едут лентой
+   * вбок (`itemStrip`), и ряд остаётся один при любом числе предметов.
    */
   /** Строка смысла: заметнее механики, но не заголовок — она читается один раз. */
   purpose: { fontSize: 14, fontWeight: '700', textAlign: 'center', lineHeight: 19 },
-  itemChoiceCompact: { width: 76, height: 76, borderWidth: 1, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  itemChoiceCompact: {
+    width: PLACE_LAYOUT.itemTile,
+    height: PLACE_LAYOUT.itemTile,
+    borderWidth: 1,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   itemChoice: { minWidth: 112, minHeight: 108, maxWidth: 180, flexBasis: 125, flexGrow: 1, borderWidth: 1, borderRadius: 16, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 9 },
   selectedChoice: { borderWidth: 3 },
   // Израсходованная плитка гасится, но не до нечитаемости: теперь на ней есть

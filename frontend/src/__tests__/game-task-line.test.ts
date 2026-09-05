@@ -115,7 +115,7 @@ const ALREADY: Record<string, string> = {
   'iowa.tsx': "t('iowaHint')",
   'lexical-decision.tsx': "t('ldHint')",
   'listening-span.tsx': "t('lspanMemorizeHint')",
-  'mahjong.tsx': "t('mahjongHint')",
+  'mahjong.tsx': "t(stuckKey ?? 'mahjongHint')",
   'math-sprint.tsx': "t('mathHint')",
   'memory-matrix.tsx': "t('matrixRecall')",
   'mental-rotation.tsx': "t('mentalRotationHint')",
