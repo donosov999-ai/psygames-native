@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.42.0',
+    date: '2026-09-05',
+    ru: [
+      '«Детский мат»: звёзды снова что-то значат. Раньше три звезды доставались почти за любой подход — теперь порог по времени узнавания и растёт с уровнем',
+      'Экран, оставленный открытым, больше не считается сыгранным подходом и не понижает уровень',
+      'После ошибки видно не только верный ход, но и чем наказали ваш: «верно было Qe7 · Qxf7#»',
+      'Подсказка защиты больше не советует ход, после которого фигуру просто съедают',
+      'На итоге вместо личного рекорда — ваша обычная скорость за последние подходы: рекорд по одному подходу это чаще везение, чем рост',
+    ],
+    en: [
+      'Scholar\'s Mate: the stars mean something again. Three stars used to come with almost any run — the threshold is now recognition time and it grows with the level',
+      'A screen left open no longer counts as a played run and no longer lowers your level',
+      'After a mistake you see not only the right move but what punished yours: “Qe7 was right · Qxf7#”',
+      'The defence hint no longer suggests a move that simply drops a piece',
+      'The results screen shows your usual speed over recent runs instead of a personal best: a best from a single run is luck more often than progress',
+    ],
+  },
+  {
     version: '2.41.0',
     date: '2026-09-05',
     ru: [
