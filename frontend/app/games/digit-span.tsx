@@ -61,9 +61,29 @@ type GamePhase = 'intro' | 'config' | 'showing' | 'input' | 'cleared' | 'result'
 export type Direction = 'forward' | 'backward' | 'ascending';
 export const DIRECTIONS: Direction[] = ['forward', 'backward', 'ascending'];
 
-/** Чем подан стимул: цифру ВИДНО или её СЛЫШНО. */
-export type Delivery = 'screen' | 'voice';
-export const DELIVERIES: Delivery[] = ['screen', 'voice'];
+/**
+ * Чем подан стимул: цифру ВИДНО по одной, её СЛЫШНО, или ВЕСЬ РЯД СРАЗУ.
+ *
+ * 🔴 `all` добавлен по отчёту тестировщицы 05.09.2026, дословно: «надо добавить
+ * вариант, когда цифры сразу показываются на экране, а так получается что это
+ * последовательно долго ждать, это утомляет; по-разному в памяти работает».
+ *
+ * Она права и по механике: последовательный показ грузит фонологическую петлю
+ * (цифры проговариваются про себя по мере появления), а ряд, показанный разом,
+ * — зрительный охват: его считывают глазами и удерживают картинкой. Это разные
+ * памяти, и мерить их одним способом подачи нельзя.
+ *
+ * ⚠️ ВРЕМЯ ПОКАЗА РАВНОЕ. Ряд держится на экране столько же, сколько заняла бы
+ * та же длина по одной цифре, — иначе новый способ был бы просто «полегче», а
+ * не другим упражнением.
+ */
+export type Delivery = 'screen' | 'voice' | 'all';
+export const DELIVERIES: Delivery[] = ['screen', 'voice', 'all'];
+
+/** Сколько держать весь ряд на экране: столько же, сколько шёл бы показ по одной. */
+export function allAtOnceMs(len: number, gapMs: number): number {
+  return Math.max(600, len * gapMs);
+}
 
 /** Ступени темпа показа. Живые только в свободной партии — см. showTiming. */
 export type Pace = 'slow' | 'normal' | 'fast';
@@ -343,6 +363,17 @@ export default function DigitSpanGame() {
       })();
       return;
     }
+    if (deliveryRef.current === 'all') {
+      // Весь ряд разом: показываем, ждём столько же, сколько шёл бы показ по
+      // одной цифре, и уходим к вводу.
+      setShowIdx(-3);                                    // -3 = «показан весь ряд»
+      setTimeout(() => {
+        if (runIdRef.current !== myRun) return;
+        setShowIdx(-2);
+        setTimeout(() => setPhase('input'), 300);
+      }, allAtOnceMs(seq.length, gapMsRef.current));
+      return;
+    }
     let i = 0;
     showTimerRef.current = setInterval(() => {
       if (i >= seq.length) {
@@ -590,7 +621,7 @@ export default function DigitSpanGame() {
                 onPress={() => !off && setDelivery(d)}
               >
                 <Text style={[styles.modeButtonText, { color: delivery === d && !off ? textOn(GRADIENT[0]) : colors.text }]}>
-                  {d === 'screen' ? ds.deliveryScreen : ds.deliveryVoice}
+                  {d === 'screen' ? ds.deliveryScreen : d === 'voice' ? ds.deliveryVoice : ds.deliveryAll}
                 </Text>
               </TouchableOpacity>
             );
@@ -692,7 +723,9 @@ export default function DigitSpanGame() {
             ) : (
               <View style={styles.digitArea}>
                 <Text testID="ds-digit" style={[styles.bigDigit, { color: colors.text }]}>
-                  {showIdx >= 0 && showIdx < sequence.length ? sequence[showIdx] : ' '}
+                  {showIdx === -3
+                    ? sequence.join(' ')
+                    : showIdx >= 0 && showIdx < sequence.length ? sequence[showIdx] : ' '}
                 </Text>
               </View>
             )
