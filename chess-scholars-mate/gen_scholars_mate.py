@@ -8,7 +8,7 @@
 Позиции рождаются разыгрыванием дебюта: атакующая сторона ведёт Q+B на f7/f2, защищающаяся ходит правдоподобно-небрежно.
 Формат записи: {type, fen, side, solutions[uci], solutions_san[], ply, threat(bool), source:"generated"}.
 """
-import chess, random, json, sys
+import chess, random, json, pathlib, sys
 random.seed(7)
 
 def mates_in_1(board):
