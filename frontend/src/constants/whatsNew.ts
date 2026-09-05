@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.45.0',
+    date: '2026-09-06',
+    ru: [
+      'Анаграммы: третий режим — «Все слова». Из одного набора букв ищите все слова сразу, пустые клетки показывают, сколько букв в каждом',
+      'Русских раскладок 739, английских 2000 — по 6–14 слов в каждой',
+    ],
+    en: [
+      'Anagrams: a third mode — All Words. Find every word hidden in one set of letters; the empty cells show how long each one is',
+      '739 Russian puzzles and 2000 English ones, 6–14 words each',
+    ],
+  },
+  {
     version: '2.44.0',
     date: '2026-09-06',
     ru: [
