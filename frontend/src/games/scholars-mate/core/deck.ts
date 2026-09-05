@@ -23,6 +23,8 @@ interface СыраяЗапись {
 interface СыройНабор {
   mate: СыраяЗапись[]; defend: СыраяЗапись[]; threat: СыраяЗапись[];
   fromGames: СыраяЗапись[]; sacrifice: СыраяЗапись[];
+  /** Пулы именованных узоров для ручного выбора: ключ — имя темы Lichess. */
+  named?: Record<string, СыраяЗапись[]>;
 }
 
 const НАБОР = сырые as unknown as СыройНабор;
@@ -50,6 +52,48 @@ const ПО_ВИДАМ: Record<ScholarsKind, СыраяЗапись[]> = {
   fromGames: НАБОР.fromGames ?? [],
   sacrifice: НАБОР.sacrifice ?? [],
 };
+
+/**
+ * 🔴 ИМЕНОВАННЫЕ УЗОРЫ ДЛЯ РУЧНОГО ВЫБОРА — просьба Дениса 05.09.2026: «сделай
+ * выпадающим списком выбор режима… чтобы можно было выбрать и отрабатывать
+ * отдельный».
+ *
+ * ⚠️ ЭТО НЕ ТО ЖЕ, ЧТО УЗОРЫ ЛЕСТНИЦЫ. В лестнице узор обязан быть узнаваем в
+ * ДЕБЮТНОЙ позиции — там знакомая картинка и мало фигур; дебютных у арабского
+ * мата 18 на 7 474, лестницы из них не выйдет. При ручном выборе человек уже
+ * знает, что тренирует, поэтому берётся весь пул.
+ */
+export const NAMED_MOTIFS: readonly string[] = Object.keys(НАБОР.named ?? {}).sort(
+  (a, b) => (НАБОР.named![b]!.length - НАБОР.named![a]!.length),
+);
+
+/** Сколько позиций в пуле именованного узора. */
+export function namedMotifCount(имя: string): number {
+  return (НАБОР.named?.[имя] ?? []).length;
+}
+
+/**
+ * Набор на подход по одному именованному узору. Лестницы тут нет: человек
+ * выбрал, что отрабатывать, и получает только это. Секунды берутся с уровня —
+ * чтобы отработка шла в том же темпе, в каком он играет лестницу.
+ */
+export function buildNamedDeck(имя: string, level: number, seed = 1, count?: number): ScholarsPuzzle[] {
+  const сырые = НАБОР.named?.[имя] ?? [];
+  if (!сырые.length) return [];
+  const п = levelParams(level);
+  const сколько = Math.min(count ?? п.count, сырые.length);
+  const rnd = случай(seed * 7919 + имя.length * 104729 + level);
+  const колода: ScholarsPuzzle[] = [];
+  const взятые = new Set<string>();
+  for (let i = 0; колода.length < сколько && i < сколько * 60; i++) {
+    const x = перевести('fromGames', сырые[Math.floor(rnd() * сырые.length)]!);
+    const ключ = показанныйКлюч(x);
+    if (взятые.has(ключ)) continue;
+    взятые.add(ключ);
+    колода.push(x);
+  }
+  return колода;
+}
 
 /** Все позиции одного вида. Порядок исходный: у Lichess он по рейтингу. */
 export function puzzlesOf(kind: ScholarsKind): ScholarsPuzzle[] {

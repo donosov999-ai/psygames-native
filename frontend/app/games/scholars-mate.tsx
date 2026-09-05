@@ -49,7 +49,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
-import { LEVELS, counts, levelParams } from '@/src/games/scholars-mate/core/deck';
+import { LEVELS, NAMED_MOTIFS, counts, levelParams, namedMotifCount } from '@/src/games/scholars-mate/core/deck';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
 
 const GRADIENT = ['#8e5b2f', '#2f2a24'];
@@ -98,6 +98,9 @@ export default function ScholarsMateScreen() {
   const [attempt, setAttempt] = React.useState(0);
   const [поток, setПоток] = React.useState(false);
   const [режим, setРежим] = React.useState<'sacrifice' | null>(null);
+  /** Выбранный именованный узор и открыт ли список. */
+  const [узор, setУзор] = React.useState<string | null>(null);
+  const [списокОткрыт, setСписокОткрыт] = React.useState(false);
 
   const level = num('level', lvl.level);
   /**
@@ -135,7 +138,7 @@ export default function ScholarsMateScreen() {
     setPlayedLevel(level);
     // В потоке ступень не двигается: там нет порога, который берут или не берут.
     // Лестницу двигает только обычный подход: у потока и у режима жертвы порога нет.
-    const свободный = поток || режим !== null;
+    const свободный = поток || режим !== null || узор !== null;
     if (!isPreset && !свободный && passed && shouldChainNextLevel(mode)) lvl.reach(level + 1);
     else if (!isPreset && !свободный && !passed) lvl.fail();
 
@@ -149,7 +152,7 @@ export default function ScholarsMateScreen() {
         score: r.solved,
         time_seconds: Math.round(r.attempts.reduce((s, a) => s + a.ms, 0) / 1000),
         difficulty: level <= 10 ? 'easy' : level <= 25 ? 'medium' : 'hard',
-        mode: режим === 'sacrifice' ? 'sacrifice' : поток ? 'flow10' : `${п.seconds}s`,
+        mode: узор ? `motif:${узор}` : режим === 'sacrifice' ? 'sacrifice' : поток ? 'flow10' : `${п.seconds}s`,
         errors: r.total - r.solved,
         details: {
           level,
@@ -164,7 +167,7 @@ export default function ScholarsMateScreen() {
         },
       });
     } catch (err) { console.error(err); }
-  }, [isPreset, mode, level, lvl, поток, режим, п.seconds, п.kinds]);
+  }, [isPreset, mode, level, lvl, поток, режим, узор, п.seconds, п.kinds]);
 
   /**
    * Звёзды по СКОРОСТИ, а не по доле решённых.
@@ -223,12 +226,22 @@ export default function ScholarsMateScreen() {
       knightOpening: 'scholarsMotifKnight',
       smothered: 'scholarsMotifSmothered',
     };
-    return ключи[m] ? t(ключи[m]!) : '';
+    if (ключи[m]) return t(ключи[m]!);
+    /**
+     * Именованные узоры выпадающего списка: у них ключ строится по имени темы
+     * Lichess. Без этой ветки человек, выбравший «Арабский мат», не видел бы,
+     * что именно он отрабатывает, — а это ровно то, ради чего список сделан.
+     */
+    const ключ = `scholarsMotif_${m}`;
+    const имя = t(ключ);
+    return имя === ключ ? '' : имя;
   }, [t]);
 
-  const start = (режимПотока = false, только: 'sacrifice' | null = null) => {
+  const start = (режимПотока = false, только: 'sacrifice' | null = null, имяУзораДляОтработки: string | null = null) => {
     setПоток(режимПотока);
     setРежим(только);
+    setУзор(имяУзораДляОтработки);
+    setСписокОткрыт(false);
     setPlayedLevel(null);
     setArmed(false);
     setAttempt((n) => n + 1);
@@ -245,6 +258,7 @@ export default function ScholarsMateScreen() {
           seed={attempt + 1}
           flowMs={поток ? FLOW_MS : undefined}
           onlyKind={режим ?? undefined}
+          namedMotif={узор ?? undefined}
           size={сторона}
           now={gameNow}
           theme={{
@@ -359,6 +373,46 @@ export default function ScholarsMateScreen() {
             </View>
             <Text style={[стили.подсказка, { color: colors.textSecondary }]}>{t('scholarsFlowHint')}</Text>
           </Pressable>
+
+          {/*
+            🔴 ВЫБОР ОТДЕЛЬНОГО УЗОРА — просьба Дениса 05.09.2026: «сделай
+            выпадающим списком выбор режима… чтобы можно было выбрать и
+            отрабатывать отдельный».
+
+            ⚠️ СПИСОК СВЁРНУТ ПО УМОЛЧАНИЮ. Девятнадцать строк поверх лестницы
+            и двух режимов превратили бы экран настройки в стену: человек,
+            который просто хочет играть, должен видеть кнопку «Начать», а не
+            каталог матов.
+          */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: списокОткрыт }}
+            accessibilityLabel={t('scholarsPickMotif')}
+            onPress={() => setСписокОткрыт((v) => !v)}
+            style={[стили.карточка, { backgroundColor: colors.surface }]}
+          >
+            <View style={стили.строка}>
+              <Ionicons name={списокОткрыт ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textSecondary} />
+              <Text style={[стили.уровень, { color: colors.text }]}>{t('scholarsPickMotif')}</Text>
+            </View>
+            <Text style={[стили.подсказка, { color: colors.textSecondary }]}>{t('scholarsPickMotifHint')}</Text>
+          </Pressable>
+
+          {списокОткрыт && NAMED_MOTIFS.map((имя) => (
+            <Pressable
+              key={имя}
+              accessibilityRole="button"
+              accessibilityLabel={t(`scholarsMotif_${имя}`)}
+              onPress={() => start(false, null, имя)}
+              style={[стили.узорСтрока, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            >
+              <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]} numberOfLines={1}>
+                {t(`scholarsMotif_${имя}`)}
+              </Text>
+              <Text style={[стили.мелко, { color: colors.textSecondary }]}>{namedMotifCount(имя)}</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+            </Pressable>
+          ))}
         </ScrollView>
       )}
 
@@ -401,5 +455,7 @@ const стили = StyleSheet.create({
   уровень: { fontSize: 18, fontWeight: '700' },
   подсказка: { fontSize: 14 },
   мелко: { fontSize: 12 },
+  // 48 — норма цели нажатия: строки списка нажимают пальцем, а не мышью.
+  узорСтрока: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1 },
   строка: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });

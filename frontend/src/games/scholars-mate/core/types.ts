@@ -47,7 +47,22 @@ export type ScholarsMotif =
   | 'bishopF7'       // матует слон, а не ферзь
   | 'fool'           // мат дурака: ферзь на h4/h5 в первые ходы
   | 'knightOpening'  // мат конём в дебюте (сюда попадает и мат Легаля)
-  | 'smothered';     // удушающий мат конём
+  | 'smothered'      // удушающий мат конём
+  /**
+   * 🔴 ИМЕНОВАННЫЕ УЗОРЫ ДЛЯ РУЧНОГО ВЫБОРА — просьба Дениса 05.09.2026:
+   * «сделай выпадающим списком выбор режима… чтобы можно было выбрать и
+   * отрабатывать отдельный».
+   *
+   * ⚠️ В лестнице их нет, и это не забывчивость. Там узор обязан быть узнаваем
+   * в ДЕБЮТНОЙ позиции, а дебютных у арабского мата 18 на 7 474 — лестницы из
+   * них не выйдет. При ручном выборе человек уже знает, что тренирует, поэтому
+   * ограничение снято и берётся весь пул.
+   */
+  | 'backRankMate' | 'pillsburysMate' | 'operaMate' | 'epauletteMate'
+  | 'cornerMate' | 'hookMate' | 'swallowstailMate' | 'arabianMate'
+  | 'anastasiaMate' | 'morphysMate' | 'bodenMate' | 'doubleBishopMate'
+  | 'dovetailMate' | 'killBoxMate' | 'vukovicMate' | 'balestraMate'
+  | 'triangleMate' | 'blindSwineMate';
 
 export type ScholarsKind = 'mate' | 'fromGames' | 'sacrifice' | 'defend' | 'threat';
 
