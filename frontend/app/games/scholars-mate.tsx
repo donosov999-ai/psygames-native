@@ -50,6 +50,7 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
 import { LEVELS, NAMED_MOTIFS, counts, levelParams, namedMotifCount } from '@/src/games/scholars-mate/core/deck';
+import { starsFor } from '@/src/games/scholars-mate/core/run';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
 
 const GRADIENT = ['#8e5b2f', '#2f2a24'];
@@ -119,16 +120,6 @@ export default function ScholarsMateScreen() {
   /** Уровень, на котором ИГРАЛИ: `lvl.reach` поднимает потолок раньше, чем рисуется итог. */
   const [playedLevel, setPlayedLevel] = React.useState<number | null>(null);
   const shownLevel = playedLevel ?? level;
-  /**
-   * 🔴 ЗВЁЗДЫ СЧИТАЮТСЯ ПО ЛИМИТУ СЫГРАННОГО УРОВНЯ, А НЕ СЛЕДУЮЩЕГО.
-   *
-   * 📍 `lvl.reach(level + 1)` меняет `level` ДО отрисовки итога, `п`
-   * пересчитывается, и медиана делилась на секунды СЛЕДУЮЩЕГО уровня. Замер:
-   * 17 переходов из 39 сдвигают звёзды, и `LevelCleared` их сохраняет. На
-   * переходе 20→21 медиана 4000–5250 мс заслуживала двух звёзд, а показывалось
-   * три; на 11→12 наоборот — заслужено три, показано две.
-   */
-  const пСыгранного = React.useMemo(() => levelParams(shownLevel), [shownLevel]);
 
   useAutostartWhenReady(() => autostart && lvl.loaded, () => setPhase('playing'));
 
@@ -189,11 +180,10 @@ export default function ScholarsMateScreen() {
    * перестала бы что-либо значить: узор-то один. Пороги — доли отведённого на
    * позицию времени: уложился в треть — три звезды.
    */
-  const stars = React.useMemo(() => {
-    if (!last || !last.solved) return 1;
-    const доля = last.medianMs / (пСыгранного.seconds * 1000);
-    return доля <= 0.33 ? 3 : доля <= 0.6 ? 2 : 1;
-  }, [last, пСыгранного.seconds]);
+  const stars = React.useMemo(
+    () => (last && last.solved ? starsFor(last.medianMs, shownLevel) : 1),
+    [last, shownLevel],
+  );
 
   /**
    * Медиана подхода и личный рекорд. Рекорд хранится по уровню: медиана на
