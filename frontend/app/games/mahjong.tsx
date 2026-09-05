@@ -4,7 +4,7 @@ import { hudTime } from '@/src/services/hudTime';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView,
+  View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -31,12 +31,16 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {saveResume, clearResume} from '@/src/services/resume';
-import { availablePairs, blockersOf, coveredFromAbove, isFree, tilePlacement, tileScaleFor, layerTintFor, type Tile, layerOffsetFor } from '@/src/games/mahjong/board';
+import { availablePairs, blockersOf, coveredFromAbove, isFree, tilePlacement, tileScaleFor, layerShadeFor, type Tile, layerOffsetFor } from '@/src/games/mahjong/board';
 import { buildPositions, silhouetteForLevel, type SilhouetteKey } from '@/src/games/mahjong/silhouettes';
 import { layoutForLevel } from '@/src/games/mahjong/layouts';
 import { mahjongExtent } from '@/src/games/mahjong/extent';
 import { dealSolvable, type Place } from '@/src/games/mahjong/vendor/solvable';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
+
+/** Костяная плашка под символом. Толщину плитки по-прежнему рисует код
+ *  (`borderBottomWidth`): в картинке только ЛИЦО, вид строго сверху. */
+const ПЛАШКА = require('@/assets/images/games/mahjong-tile.webp');
 
 const GRADIENT = ['#2d6a4f', '#95d5b2'];
 // Тёмно-зелёный `#04341f` был подобран на глаз и на тёмном конце давал 2.17 —
@@ -835,7 +839,19 @@ export default function MahjongGame() {
           {
             width: ш, height: в, left: left + дх, top: top + ду,
             zIndex: tt.layer * 100 + tt.y,
-            backgroundColor: blames ? '#fecaca' : sel ? '#fde68a' : free ? layerTintFor(tt.layer, maxLayer) : '#b6c2d1',
+            /**
+             * ПОД ПЛИТКОЙ ТЕПЕРЬ КОСТЯНАЯ ПЛАШКА, А НЕ ЗАЛИВКА ЦВЕТОМ.
+             * Денис 05.09.2026 прислал референс костяных плиток: «отрисуй для
+             * маджонга тоже новые». Заливка `#b6c2d1` была не «сдержанной», а
+             * никакой — доска читалась как таблица, а не как разбираемая стопка.
+             *
+             * ⚠️ Признаки этажа при этом ОСТАЛИСЬ ТЕ ЖЕ: размер (`tileScaleFor`),
+             * тон (`layerShadeFor` — тёмная плёнка поверх кости, тем гуще, чем ниже) и
+             * растущая тень. Замени тон на «просто картинку без плёнки» — и проба
+             * `mahjong-layers-are-visible` покраснеет, потому что этажи снова
+             * станут неразличимы.
+             */
+            backgroundColor: 'transparent',
             borderColor: blames ? '#dc2626' : sel ? '#f59e0b' : '#94a3b8',
             borderWidth: blames ? 3 : 1.5,
             // Виновную видно даже в нижнем слое: приглушение снимаем.
@@ -855,6 +871,30 @@ export default function MahjongGame() {
           },
         ]}
       >
+        <Image
+          source={ПЛАШКА}
+          style={StyleSheet.absoluteFill as any}
+          resizeMode="stretch"
+          fadeDuration={0}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        />
+        {/*
+          Плёнка поверх кости: тон этажа, выбор и подсветка виновной. Полупрозрачная —
+          кость обязана просвечивать, иначе от новой плашки ничего не остаётся.
+        */}
+        <View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill as any,
+            {
+              backgroundColor: blames ? '#fecaca' : sel ? '#fde68a'
+                : free ? '#262a34' : '#7b8798',
+              opacity: blames ? 0.55 : sel ? 0.5
+                : free ? layerShadeFor(tt.layer, maxLayer) : 0.42,
+            },
+          ]}
+        />
         <Text style={{ fontSize: ш * 0.5, opacity: blames || free ? 1 : 0.7 }}>{masked ? '?' : (SYMBOLS[tt.symbol] ?? '🀄')}</Text>
       </TouchableOpacity>
     );

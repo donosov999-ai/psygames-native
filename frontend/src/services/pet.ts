@@ -65,9 +65,30 @@ export async function getPetSkinChoice(): Promise<PetSkinChoice> {
     return v === 'robot' || v === 'constellation' || v === 'auto' ? v : 'cat';
   } catch { return 'cat'; }
 }
+/**
+ * 🔴 РОСТ — ЭТО ВЗРОСЛЕЮЩИЙ КОТ, А НЕ ПОДМЕНА ПЕРСОНАЖА.
+ *
+ * Здесь стояло `stage >= 3 ? 'constellation' : stage === 2 ? 'robot' : 'cat'`:
+ * питомец, за которым ухаживали, на десятой тренировке ПРЕВРАЩАЛСЯ в робота, а
+ * на тридцатой — в созвездие. Денис 05.09.2026: «да надо взрослеющего кота».
+ * Он прав и по сути: смена вида должна читаться как «мой кот вырос», а не как
+ * «моего кота забрали и дали другого».
+ *
+ * Возраст теперь показывает ряд `care_age` — семь ступеней от котёнка до
+ * взрослого кота (`services/petLook.ts`). Это ТОТ ЖЕ зверь, просто старше.
+ *
+ * ⚠️ ВТОРАЯ ПРИЧИНА, ЧИСТО ТЕХНИЧЕСКАЯ, И ОНА РЕШАЮЩАЯ. Шкалы внешности
+ * нарисованы только коту. Пока `auto` на второй стадии отдавал робота, вся
+ * забота переставала быть видимой у любого, кто прошёл десять тренировок, —
+ * то есть у всех, кроме новичков. Ради кого тогда рисовались 56 кадров.
+ *
+ * Робот и Созвездие никуда не делись: их по-прежнему можно выбрать РУКАМИ на
+ * экране /pet. Убран только автоматический подмен за спиной.
+ */
 export function resolvePetSkin(choice: PetSkinChoice, stage: PetStage): 'cat' | 'robot' | 'constellation' {
   if (choice !== 'auto') return choice;
-  return stage >= 3 ? 'constellation' : stage === 2 ? 'robot' : 'cat';
+  void stage;
+  return 'cat';
 }
 /** Разрешённый скин (для точек показа, которым не нужен сам выбор). */
 export async function getPetSkin(): Promise<'cat' | 'robot' | 'constellation'> {
@@ -114,7 +135,84 @@ export async function getFedToday(): Promise<boolean> {
   try { return (await AsyncStorage.getItem(FED_KEY)) === dayStamp(); } catch { return false; }
 }
 export async function markFedToday(): Promise<void> {
-  try { await AsyncStorage.setItem(FED_KEY, dayStamp()); } catch {}
+  try {
+    await AsyncStorage.setItem(FED_KEY, dayStamp());
+    await запомнитьКормление();
+  } catch {}
+}
+
+/**
+ * ИСТОРИЯ ЗАБОТЫ — чтобы вид питомца было из чего считать (см. `petLook.ts`).
+ *
+ * До 05.09.2026 о кормлении хранился ОДИН факт: «кормили ли сегодня». По нему
+ * нельзя отличить того, кого кормят каждый день, от того, кого вспомнили впервые
+ * за месяц, — а Денис просил ровно это различие: «если жрёт много... или не
+ * кормят». Поэтому рядом с флагом дня лежит список дней кормления за две недели.
+ *
+ * Список, а не счётчик: счётчик пришлось бы уменьшать по таймеру, а таймера в
+ * приложении нет — оно живёт короткими заходами. Список сам стареет при чтении.
+ */
+const FED_LOG_KEY = 'psygames_pet_fed_log';
+const ОКНО_ДНЕЙ = 14;
+
+/** Метка дня → номер дня (целые сутки), чтобы считать разницу. */
+function деньЧислом(stamp: string): number {
+  const [y, m, d] = stamp.split('-').map(Number);
+  return Math.floor(Date.UTC(y, (m || 1) - 1, d || 1) / 86400000);
+}
+
+async function запомнитьКормление(): Promise<void> {
+  const дни = await прочитатьКормления();
+  const сегодня = dayStamp();
+  if (дни.includes(сегодня)) return;
+  const свежие = [...дни, сегодня].slice(-ОКНО_ДНЕЙ * 2);
+  try { await AsyncStorage.setItem(FED_LOG_KEY, JSON.stringify(свежие)); } catch {}
+}
+
+async function прочитатьКормления(): Promise<string[]> {
+  try {
+    const raw = await AsyncStorage.getItem(FED_LOG_KEY);
+    const v = raw ? JSON.parse(raw) : [];
+    return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : [];
+  } catch { return []; }
+}
+
+/**
+ * Сколько дней из последних 14 питомца кормили.
+ *
+ * ⚠️ Старые устройства историю не вели. Там, где флаг «кормили сегодня» стоит, а
+ * списка нет, засчитываем один день — иначе давний хозяин, кормивший кота вчера,
+ * при обновлении разом увидел бы его отощавшим. Пустая история у нового
+ * пользователя честно даёт ноль: его кот и правда ещё не кормлен.
+ */
+export async function getFedDays(): Promise<number> {
+  const дни = await прочитатьКормления();
+  const сегодня = деньЧислом(dayStamp());
+  const свежих = new Set(
+    дни.map(деньЧислом).filter((d) => сегодня - d < ОКНО_ДНЕЙ && сегодня - d >= 0),
+  ).size;
+  if (свежих === 0 && (await getFedToday())) return 1;
+  return свежих;
+}
+
+/**
+ * МЫТЬЁ. Денис назвал его в списке заботы («или не моют»), а действия такого в
+ * приложении не было вовсе. Бесплатное и раз в сутки: это уход, а не покупка,
+ * и брать за него токены значило бы штрафовать за заботу.
+ */
+const WASH_KEY = 'psygames_pet_washed_at';
+export async function markWashed(): Promise<void> {
+  try { await AsyncStorage.setItem(WASH_KEY, String(Date.now())); } catch {}
+}
+
+/** Дней с последнего мытья. Ни разу не мыли — 999 (кот грязный по умолчанию). */
+export async function getDaysSinceWash(): Promise<number> {
+  try {
+    const raw = await AsyncStorage.getItem(WASH_KEY);
+    const t = raw ? Number(raw) : NaN;
+    if (!Number.isFinite(t)) return 999;
+    return Math.max(0, (Date.now() - t) / 86400000);
+  } catch { return 999; }
 }
 
 /** Маркер свежего рекорда: пишет api.saveSession, читает WalkingPet, чтобы

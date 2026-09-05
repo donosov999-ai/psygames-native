@@ -16,6 +16,7 @@ import { Image, View } from 'react-native';
 import { a11yDecor } from '@/src/services/a11y';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { FRAME_ANCHORS } from './petAnchors.generated';
+import { CAT_FRAMES, CAT_LOOK } from './catFrames.generated';
 
 /**
  * Состояния питомца. Первые пять есть кадрами во ВСЕХ скинах; `celebrate` и `eat`
@@ -23,7 +24,41 @@ import { FRAME_ANCHORS } from './petAnchors.generated';
  */
 import { channelPack, onChannelChange, ensureMascotChannel, stripUri, type ChannelState } from '@/src/services/mascotChannel';
 
-export type PetState = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep' | 'celebrate' | 'eat';
+export type PetState =
+  /* базовые — есть во всех трёх обликах */
+  | 'walk' | 'idle' | 'wave' | 'jump' | 'sleep' | 'celebrate' | 'eat'
+  /* лист мастера, ряд 8 */
+  | 'sad'
+  /* лист реакций 7×8 */
+  | 'cheer' | 'surprise' | 'point' | 'groom' | 'proud' | 'turnaround' | 'wiggle' | 'dance'
+  /* лист мелочей безделья 7×8 — их питомец делает сам, стоя на месте */
+  | 'yawn' | 'tailchase' | 'earflick' | 'curious' | 'sneeze' | 'stretch' | 'scratch' | 'lookaround'
+  /* лист сна 7×8 (5:4 — лежачему коту нужна широкая клетка) */
+  | 'sleepcurl' | 'sleepside' | 'sleepback' | 'sleepface' | 'sleepdrool'
+  | 'sleeploaf' | 'sleephalf' | 'wake';
+
+/**
+ * МЕЛОЧИ БЕЗДЕЛЬЯ — то, что кот делает сам, пока стоит.
+ *
+ * Денис 05.09.2026: «какие ещё состояния можем добавить? ты сделал только что я
+ * сказал, расширить надо, чтобы весело было». Двадцать новых состояний, которые
+ * никто не вызывает, весельем не станут — они станут мёртвым грузом в сборке.
+ * Поэтому список лежит здесь, а `WalkingPet` берёт из него случайное во время
+ * отдыха между переходами.
+ *
+ * ⚠️ Сюда идут только состояния, из которых кот возвращается в ту же позу
+ * сидя/стоя: после них он продолжит гулять. Сон и реакции на события — не сюда.
+ */
+export const PET_FIDGETS: PetState[] = [
+  'yawn', 'tailchase', 'earflick', 'curious', 'sneeze', 'stretch', 'scratch',
+  'lookaround', 'groom', 'wiggle',
+];
+
+/** Позы сна: длинный отдых выбирает одну из них, а не всегда клубок. */
+export const PET_SLEEP_POSES: PetState[] = [
+  'sleepcurl', 'sleepside', 'sleepback', 'sleepface', 'sleepdrool',
+  'sleeploaf', 'sleephalf',
+];
 
 /** Состояния, которые обязаны быть в каждом скине. Остальные — по наличию. */
 export type PetStateBase = 'walk' | 'idle' | 'wave' | 'jump' | 'sleep';
@@ -45,6 +80,19 @@ const ЗАМЕНА: Record<PetState, PetStateBase> = {
   walk: 'walk', idle: 'idle', wave: 'wave', jump: 'jump', sleep: 'sleep',
   celebrate: 'jump',   // праздник — пока кульбит
   eat: 'wave',         // кормление — пока помахивание
+  /**
+   * Всё, что дорисовано коту 05.09.2026. У робота и Созвездия этих кадров нет и
+   * не планируется: облики второстепенные, а перерисовывать под них 25 состояний
+   * значит утроить работу ради того, что видят единицы. Замена подобрана по
+   * СМЫСЛУ движения, а не «всё в idle»: вздрогнул — прыжок, показал — помахал.
+   */
+  sad: 'idle',
+  cheer: 'jump', dance: 'jump', wiggle: 'jump', surprise: 'jump',
+  point: 'wave', proud: 'wave', turnaround: 'walk', groom: 'idle',
+  yawn: 'idle', tailchase: 'walk', earflick: 'idle', curious: 'idle',
+  sneeze: 'idle', stretch: 'idle', scratch: 'idle', lookaround: 'idle',
+  sleepcurl: 'sleep', sleepside: 'sleep', sleepback: 'sleep', sleepface: 'sleep',
+  sleepdrool: 'sleep', sleeploaf: 'sleep', sleephalf: 'sleep', wake: 'idle',
 };
 
 /** Есть ли у скина собственные кадры этого состояния. */
@@ -62,65 +110,24 @@ export type PetSkin = 'cat' | 'robot' | 'constellation';
  *  кадров — не зависят от скина и не требуют перерисовки спрайт-листов. */
 export type PetAccessory = 'party_hat' | 'bow' | 'glasses' | 'bow_tie';
 
-const CAT: Partial<Record<PetState, any[]>> & Record<PetStateBase, any[]> = {
-  walk: [
-    require('../../../assets/images/pet/cat/walk0.webp'),
-    require('../../../assets/images/pet/cat/walk1.webp'),
-    require('../../../assets/images/pet/cat/walk2.webp'),
-    require('../../../assets/images/pet/cat/walk3.webp'),
-  ],
-  idle: [
-    require('../../../assets/images/pet/cat/idle0.webp'),
-    require('../../../assets/images/pet/cat/idle1.webp'),
-    require('../../../assets/images/pet/cat/idle2.webp'),
-    require('../../../assets/images/pet/cat/idle3.webp'),
-  ],
-  wave: [
-    require('../../../assets/images/pet/cat/wave0.webp'),
-    require('../../../assets/images/pet/cat/wave1.webp'),
-    require('../../../assets/images/pet/cat/wave2.webp'),
-    require('../../../assets/images/pet/cat/wave3.webp'),
-  ],
-  jump: [
-    require('../../../assets/images/pet/cat/jump0.webp'),
-    require('../../../assets/images/pet/cat/jump1.webp'),
-    require('../../../assets/images/pet/cat/jump2.webp'),
-    require('../../../assets/images/pet/cat/jump3.webp'),
-  ],
-  sleep: [
-    require('../../../assets/images/pet/cat/sleep0.webp'),
-    require('../../../assets/images/pet/cat/sleep1.webp'),
-    require('../../../assets/images/pet/cat/sleep2.webp'),
-    require('../../../assets/images/pet/cat/sleep3.webp'),
-  ],
-  /**
-   * 04.09.2026: `eat` и `celebrate` нарезаны из исходных листов маскот-сервиса
-   * (`ref/eat/sheet-codex.png`, `ref/celebrate/sheet-codex.png`, хромакей #ff7a1a).
-   * Заявка 00218752 числилась висящей девять дней — а листы всё это время лежали в
-   * соседнем репозитории `mascot-engine-psygames-actions`. Резал тем же
-   * `cut_animcycle.py`, что и остальные наборы.
-   *
-   * ⚠️ КРАЙ ЧИЩЕ, ЧЕМ У ГОТОВЫХ. Сравнение одного и того же состояния и того же
-   * листа: заново нарезанный celebrate даёт полупрозрачного края 2,56–2,83% от
-   * тела, а лежавший в `deliver/` — 4,36–5,54%. Поэтому берём свой рез, а не
-   * готовые файлы.
-   *
-   * Из восьми кадров листа берём через один: цикл покрывает всю фазу, а не первую
-   * её половину, и остаётся в общем формате «четыре кадра на состояние».
-   */
-  eat: [
-    require('../../../assets/images/pet/cat/eat0.webp'),
-    require('../../../assets/images/pet/cat/eat1.webp'),
-    require('../../../assets/images/pet/cat/eat2.webp'),
-    require('../../../assets/images/pet/cat/eat3.webp'),
-  ],
-  celebrate: [
-    require('../../../assets/images/pet/cat/celebrate0.webp'),
-    require('../../../assets/images/pet/cat/celebrate1.webp'),
-    require('../../../assets/images/pet/cat/celebrate2.webp'),
-    require('../../../assets/images/pet/cat/celebrate3.webp'),
-  ],
-};
+/**
+ * КАДРЫ КОТА СОБИРАЮТСЯ СКРИПТОМ, А НЕ ПЕРЕЧИСЛЯЮТСЯ ЗДЕСЬ.
+ *
+ * Здесь лежал список из 28 строк `require` — по четыре кадра на семь состояний.
+ * 05.09.2026 у кота стало 32 состояния по 7 фаз плюс 8 шкал внешности: 280
+ * строк. Список такой длины не поддерживают руками — пропущенный кадр даёт в
+ * игре чёрный квадрат, а в сборке молчание.
+ *
+ * Таблица собирается из того, что реально лежит в assets:
+ *   node scripts/build-pet-frames.mjs
+ * Перерисовали лист, нарезали, положили кадры — прогнать скрипт заново. Он же
+ * ловит дыры в нумерации: `walk0,walk1,walk3` без `walk2` — ошибка, а не «шесть
+ * кадров вместо семи».
+ *
+ * ⚠️ Робот и Созвездие остаются перечисленными ниже: у них по-прежнему пять
+ * состояний по четыре кадра, и переписывать рабочее ради единообразия незачем.
+ */
+const CAT = CAT_FRAMES as Partial<Record<PetState, any[]>> & Record<PetStateBase, any[]>;
 
 const ROBOT: Partial<Record<PetState, any[]>> & Record<PetStateBase, any[]> = {
   walk: [
@@ -219,6 +226,28 @@ function useChannel(): number {
   return n;
 }
 
+/**
+ * 🔴 ВНЕШНОСТЬ ЗАБОТЫ ПОДМЕНЯЕТ ПОКОЙ, А НЕ ДОБАВЛЯЕТСЯ ОТДЕЛЬНЫМ СОСТОЯНИЕМ.
+ *
+ * Ряды `care_*` — не анимация, а ШКАЛЫ: из ряда берут ОДИН кадр по тому, как за
+ * питомцем ухаживают (`services/petLook.ts`). Показывать их вместо ПОКОЯ, а не
+ * вместо движения, — единственный способ уместить их в игру, не перерисовывая
+ * тридцать состояний в восьми видах: кот стоит на экране большую часть времени,
+ * и именно стоящего человек и разглядывает.
+ *
+ * ⚠️ ТОЛЬКО КОТ. У робота и Созвездия шкал нет и не будет — там вернётся обычный
+ * покой, молча и без дыр.
+ *
+ * ⚠️ АКСЕССУАРОВ НА ЭТИХ КАДРАХ НЕТ: якорей у рядов заботы не снято (почему —
+ * в шапке scripts/measure-pet-anchors.mjs), и вещь села бы наугад.
+ */
+export function petLookFrame(skin: PetSkin, look: { axis: string; stage: number } | null | undefined) {
+  if (!look || skin !== 'cat') return null;
+  const ряд = CAT_LOOK[look.axis];
+  if (!ряд || !ряд.length) return null;
+  return ряд[Math.max(0, Math.min(ряд.length - 1, Math.round(look.stage)))] ?? null;
+}
+
 /** Один кадр скина (для превью выбора и мини-аватара шапки). */
 export function petFrame(skin: PetSkin, state: PetState = 'idle', frame = 0) {
   const есть = petResolveState(skin, state);
@@ -262,7 +291,24 @@ const FRAME_MS: Record<PetState, number> = {
   walk: 140, idle: 420, wave: 180, jump: 150, sleep: 600,
   // Праздник и еда живее прыжка: событие короткое, и вялый темп его гасит.
   celebrate: 130, eat: 200,
+  sad: 460,
+  // Реакции на события: короткие и заметные.
+  cheer: 130, surprise: 140, point: 190, groom: 260, proud: 300,
+  turnaround: 200, wiggle: 150, dance: 140,
+  // Мелочи безделья: неспешные, кот их делает между делом.
+  yawn: 260, tailchase: 130, earflick: 170, curious: 240, sneeze: 150,
+  stretch: 230, scratch: 130, lookaround: 300,
+  // Сон: медленно, дыхание. Пробуждение бодрее — иначе зевок тянется полминуты.
+  sleepcurl: 620, sleepside: 620, sleepback: 620, sleepface: 620,
+  sleepdrool: 620, sleeploaf: 620, sleephalf: 480, wake: 240,
 };
+
+/** Сколько миллисекунд идёт полный цикл состояния — нужно, чтобы вернуть покой
+ *  ровно к концу, а не оборвать движение на середине. */
+export function petCycleMs(skin: PetSkin, state: PetState): number {
+  const набор = SKINS[skin][petResolveState(skin, state)] ?? SKINS[skin].idle;
+  return набор.length * FRAME_MS[state];
+}
 
 /**
  * v1.170: ЯКОРНЫЕ ТОЧКИ ВМЕСТО ОБЩИХ КООРДИНАТ.
@@ -306,6 +352,13 @@ const SKIN_SCALE: Record<PetSkin, number> = { cat: 1.0, robot: 0.896, constellat
  * Якорь КОНКРЕТНОГО кадра. Единственный вход в таблицу — чтобы «взять idle0 для
  * чужого кадра» нельзя было даже случайно: состояние и номер кадра обязательны.
  */
+/** Точки, промахнувшиеся мимо силуэта на этом кадре (см. `off` в таблице). */
+export function petAnchorOff(skin: PetSkin, state: PetState, frame: number): AnchorName[] {
+  const набор = FRAME_ANCHORS[skin]?.[petResolveState(skin, state)];
+  if (!набор || !набор.length) return [];
+  return набор[((frame % набор.length) + набор.length) % набор.length]?.off ?? [];
+}
+
 export function petAnchor(skin: PetSkin, state: PetState, frame: number, at: AnchorName) {
   /**
    * 🔴 ЯКОРЬ БЕРЁТСЯ ОТТУДА ЖЕ, ОТКУДА КАДР. У канала своя съёмка: тот же
@@ -416,6 +469,19 @@ function AccessoryOverlay({ kind, size, skin, state, frame }: {
   // ⚠️ Якорь ТЕКУЩЕГО кадра, а не idle0. Кадр компонент и так знает — он им
   // анимирует; брать чужой и была та самая «бабочка на пузе».
   const a = petAnchor(skin, state, frame, mount.at);
+  /**
+   * 🔴 НА ПОМЕЧЕННОМ КАДРЕ ВЕЩИ НЕТ ВОВСЕ.
+   *
+   * Замер якорей отмечает точки, промахнувшиеся мимо силуэта: кот на спине
+   * (`sleepback`) — «макушкой» выходит пузо; лапа у уха (`scratch`) разрезает
+   * силуэт. Правило поиска головы описывает стоящего зверя и к таким позам
+   * неприменимо, а общий порог ради трёх состояний трогать нельзя — уедут
+   * полсотни проверенных кадров.
+   *
+   * Лучше кадр без шляпы, чем шляпа на пузе. Ровно это и была жалоба Вали
+   * 19.08.2026, с которой весь покадровый замер начался.
+   */
+  if (petAnchorOff(skin, state, frame).includes(mount.at)) return null;
   const scale = SKIN_SCALE[skin];
 
   // Якорь задан в процентах кадра — переводим в пиксели текущего размера питомца.
@@ -454,13 +520,17 @@ function AccessoryOverlay({ kind, size, skin, state, frame }: {
   );
 }
 
-export default function PetSprite({ state, size = 56, skin = 'cat', accessory = null }: {
+export default function PetSprite({ state, size = 56, skin = 'cat', accessory = null, look = null }: {
   state: PetState; size?: number; skin?: PetSkin; accessory?: PetAccessory | null;
+  /** Вид по заботе (`petLook`) — подменяет ПОКОЙ одним неподвижным кадром. */
+  look?: { axis: string; stage: number } | null;
 }) {
   useChannel();                                   // приехал облик канала — перерисуемся
-  const кан = изКанала(skin, state);
+  const видЗаботы = state === 'idle' ? petLookFrame(skin, look) : null;
+  const кан = видЗаботы ? undefined : изКанала(skin, state);
     // Кадры берём по РАЗРЕШЁННОМУ состоянию: у `celebrate`/`eat` своих пока нет.
-  const frames = SKINS[skin][petResolveState(skin, state)] ?? SKINS[skin].idle;
+  // Вид заботы — один неподвижный кадр вместо цикла покоя.
+  const frames = видЗаботы ? [видЗаботы] : (SKINS[skin][petResolveState(skin, state)] ?? SKINS[skin].idle);
   /** Сколько кадров листать: у канала своя длина съёмки, у бандла своя. */
   const кадров = кан ? кан.frames : frames.length;
   /** Темп: канал сообщает свой fps, у вшитых кадров темп задан по состоянию. */
@@ -523,7 +593,13 @@ export default function PetSprite({ state, size = 56, skin = 'cat', accessory = 
           resizeMode="stretch"
           fadeDuration={0}
         />
-        {accessory && <AccessoryOverlay kind={accessory} size={size} skin={skin} state={state} frame={shown} />}
+        {/*
+          ⚠️ НА КАДРЕ ЗАБОТЫ ВЕЩИ НЕТ. Ряды `care_*` якорей не имеют (правило
+          поиска макушки на них ломается — см. шапку measure-pet-anchors.mjs), и
+          вещь села бы по якорю ПОКОЯ, то есть наугад. Лучше без шляпы, чем
+          шляпа мимо головы.
+        */}
+        {accessory && !видЗаботы && <AccessoryOverlay kind={accessory} size={size} skin={skin} state={state} frame={shown} />}
       </View>
     );
   }
@@ -544,7 +620,13 @@ export default function PetSprite({ state, size = 56, skin = 'cat', accessory = 
           fadeDuration={0}
         />
       ))}
-      {accessory && <AccessoryOverlay kind={accessory} size={size} skin={skin} state={state} frame={shown} />}
+      {/*
+          ⚠️ НА КАДРЕ ЗАБОТЫ ВЕЩИ НЕТ. Ряды `care_*` якорей не имеют (правило
+          поиска макушки на них ломается — см. шапку measure-pet-anchors.mjs), и
+          вещь села бы по якорю ПОКОЯ, то есть наугад. Лучше без шляпы, чем
+          шляпа мимо головы.
+        */}
+        {accessory && !видЗаботы && <AccessoryOverlay kind={accessory} size={size} skin={skin} state={state} frame={shown} />}
     </View>
   );
 }

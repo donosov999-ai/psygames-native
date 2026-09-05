@@ -559,8 +559,18 @@ const styles = StyleSheet.create({
   знак: { fontSize: 11, color: 'rgba(255,255,255,0.85)' },
   задание: { textAlign: 'center', fontSize: 13, paddingHorizontal: 16, paddingTop: 8 },
   тупик: { textAlign: 'center', fontSize: 13, paddingVertical: 6 },
-  кнопки: { flexDirection: 'row', justifyContent: 'center', gap: 10, paddingVertical: 12 },
-  // 44 — норма цели нажатия.
-  кнопка: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1 },
+  /**
+   * 🔴 ПЕРЕНОС СТРОКИ ОБЯЗАТЕЛЕН. Замер веб-гейтов 05.09.2026 на 360 px: три
+   * кнопки в ряд занимают 122 + 126 + 105 плюс отступы = 373 при 344 доступных,
+   * и страница начинала прокручиваться вбок на 6 px. Ужимать кнопки нельзя —
+   * они и так на нижней границе цели нажатия; значит переносим строку.
+   */
+  кнопки: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 8 },
+  /**
+   * 🔴 48, А НЕ 44. У аудита целей нажатия два порога, и на ПОЛЕ он требует 48
+   * (`MIN_FIELD` в scripts/tap-target-audit.mjs). Кнопки партии считаются полем —
+   * на 44 сборка краснела «мелкие элементы на поле».
+   */
+  кнопка: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1 },
   кнопкаТекст: { fontSize: 14, fontWeight: '600' },
 });

@@ -68,6 +68,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { onGradientText } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
+import BallStylePicker from '@/src/games/balls/BallStylePicker';
 import { goBackOrHome } from '@/src/utils/nav';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -353,6 +354,12 @@ export default function OneLineScreen() {
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
           <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('oneLineDesc')}</Text>
+          {/*
+            Выбор шаров стоит ЗДЕСЬ, потому что отсюда о нём и написал Денис
+            (отчёт 50a283a2, 05.09.2026). Выбор общий на приложение — тот же ряд
+            есть у трекера объектов, и смена в одном месте видна во всех играх.
+          */}
+          <BallStylePicker level={level} colors={colors} accent={GRADIENT[1]} />
         </View>
 
         <TouchableOpacity onPress={start} accessibilityRole="button">

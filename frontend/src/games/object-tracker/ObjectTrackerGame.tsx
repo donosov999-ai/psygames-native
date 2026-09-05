@@ -41,7 +41,11 @@
  *    `useGameKeyboard`, а не свой `onKeyDown` на ScrollView.
  */
 import React from 'react';
-import { AppState, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AppState, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import {
+  ballColorForLevel, ballImage, type BallStyle, type BallColor,
+} from '@/src/games/balls/ballChoice';
 import { useGameKeyboard } from '@/src/hooks/useGameKeyboard';
 import { holdGame } from '@/src/services/gamePause';
 import {
@@ -130,6 +134,8 @@ export interface ObjectTrackerGameProps {
   now: () => number;
   theme: ObjectTrackerTheme;
   gameGradient: readonly [string, string];
+  /** Фактура шаров — выбор человека, хранится в ballChoice. */
+  ballStyle: BallStyle;
   onComplete: (result: ObjectTrackerMetrics) => void;
   /**
    * Есть ли ПРЯМО СЕЙЧАС что терять — см. `hasSomethingToLose` ниже. Экран
@@ -226,6 +232,7 @@ function TrackerObject({
   locale,
   theme,
   gameGradient,
+  ball,
   onPress,
 }: {
   object: TrackerObjectState;
@@ -238,6 +245,7 @@ function TrackerObject({
   locale: ObjectTrackerLocale;
   theme: ObjectTrackerTheme;
   gameGradient: readonly [string, string];
+  ball: { style: BallStyle; color: BallColor };
   onPress: () => void;
 }) {
   const [focused, setFocused] = React.useState(false);
@@ -279,18 +287,32 @@ function TrackerObject({
           borderRadius: diameter / 2,
           left,
           top,
-          backgroundColor: gameGradient[0],
+          /**
+           * ЗАЛИВКИ БОЛЬШЕ НЕТ — под кружком лежит картинка выбранной фактуры.
+           * Прозрачный фон обязателен: у стекла и мыльного пузыря середина
+           * просвечивает, и любой цвет под ними читался бы как грязь.
+           */
+          backgroundColor: 'transparent',
           // Кольцо цели живёт ТОЛЬКО в показе и в выборе. В движении все объекты
           // обязаны быть неразличимы — иначе следить не за чем.
-          borderColor: previewTarget || selected ? theme.primary : gameGradient[1],
-          borderWidth: previewTarget || selected ? 5 : 2,
+          borderColor: previewTarget || selected ? theme.primary : 'transparent',
+          borderWidth: previewTarget || selected ? 5 : 0,
         },
         pressed && selectable && styles.objectPressed,
         focused && selectable && ({
           outlineColor: theme.warning, outlineStyle: 'solid', outlineWidth: 3, outlineOffset: 2,
         } as any),
       ]}
-    />
+    >
+      <Image
+        source={ballImage(ball.style, ball.color)}
+        style={{ width: '100%', height: '100%' }}
+        resizeMode="contain"
+        fadeDuration={0}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      />
+    </Pressable>
   );
 }
 
@@ -311,6 +333,7 @@ function ObjectTrackerRound({
   now,
   theme,
   gameGradient,
+  ballStyle,
   onComplete,
   onProgress,
   onExit,
@@ -510,6 +533,7 @@ function ObjectTrackerRound({
             locale={locale}
             theme={theme}
             gameGradient={gameGradient}
+            ball={{ style: ballStyle, color: ballColorForLevel(session.round.level) }}
             onPress={() =>
               setSession((current) => selectTrackedObject(current, object.id, nowRef.current()))
             }
