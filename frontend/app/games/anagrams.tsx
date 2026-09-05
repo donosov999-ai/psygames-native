@@ -29,6 +29,9 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useWordLanguage } from '@/src/hooks/useWordLanguage';
 import { WORD_LANGS, WORD_LANG_LABEL } from '@/src/services/wordLanguage';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
+import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
+import { собратьКольца, ключКольца } from '@/src/games/anagrams/core/ring';
+import { wordPool, wordsOfLength } from '@/src/games/fillwords/core/words';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { sndPlace } from '@/src/services/feedback';
@@ -42,6 +45,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { levelOutcome as levelOutcomeAnagram } from '@/src/services/levelOutcome';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -109,6 +113,19 @@ export default function AnagramGame() {
   const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечер и ночь: ни писка на букву, ни победного звука
   const lvl = usePersistentLevel('anagrams');
+  /**
+   * 🔴 РЕЖИМ «СЛОВО-КВАДРАТ». Просьба Дениса 06.09.2026 со скриншотами
+   * Wordathlon: поле 5×5, по периметру четыре пятибуквенных слова с ОБЩИМИ
+   * углами, в центре 3×3 банк из девяти разных букв, из которых собраны все
+   * четыре. Устройство и его разбор — в `games/anagrams/core/ring.ts`.
+   *
+   * ⚠️ Это РЕЖИМ анаграмм, а не отдельная игра: предмет тот же — собрать слово
+   * из данных букв, — меняется только форма подачи. Отдельной игрой он завёл бы
+   * второй уровень, вторую статистику и второй вход в хабе на ту же механику.
+   */
+  const [квадрат, setКвадрат] = useState(false);
+  const [armedSquare, setArmedSquare] = useState(false);   // «есть что терять» для подтверждения выхода
+  const кольца = React.useMemo(() => собратьКольца(wordsOfLength(wordPool(wordLang.lang), 5)), [wordLang.lang]);
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
@@ -388,17 +405,54 @@ export default function AnagramGame() {
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}
           </Text>
+          {/*
+            ⚠️ ОПИСАНИЕ УРОВНЯ ЗАВИСИТ ОТ РЕЖИМА. Найдено игрой: при выбранном
+            «Слове-квадрате» карточка продолжала обещать «10 слов · 4 букв» —
+            параметры классики, которых в квадрате нет вовсе.
+          */}
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {(p.wordSec > 0 ? t('anagramsLvlParamsTimed').replace('{w}', String(p.wordSec)) : t('anagramsLvlParamsFree')).replace('{n}', String(p.trials)).replace('{l}', String(p.length))}
+            {квадрат
+              ? t('anagramSquareLvlParams')
+              : (p.wordSec > 0 ? t('anagramsLvlParamsTimed').replace('{w}', String(p.wordSec)) : t('anagramsLvlParamsFree')).replace('{n}', String(p.trials)).replace('{l}', String(p.length))}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
-            {t('anagramsPass')}
+            {квадрат ? t('anagramSquarePass') : t('anagramsPass')}
           </Text>
           {lvl.level > 1 && (
             <TouchableOpacity
               accessibilityRole="button" accessibilityLabel={t('a11yResetLevel')} onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
+          )}
+        </View>
+
+        {/*
+          🔴 РЕЖИМ ВЫБИРАЕТСЯ ЗДЕСЬ, А НЕ ОТДЕЛЬНЫМ ВХОДОМ В ХАБЕ. Урок «Детского
+          мата» той же недели: три параллельных входа в одну игру человек читает
+          как три разные игры и спрашивает, чем они отличаются.
+        */}
+        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
+          <View style={styles.optionButtons}>
+            {([false, true] as const).map((кв) => (
+              <TouchableOpacity
+                accessibilityRole="button" key={String(кв)} style={[styles.modeButton, квадрат === кв
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                onPress={() => setКвадрат(кв)}>
+                <Text style={[styles.modeButtonText, { color: квадрат === кв ? '#3f2b96' : colors.text }]}>
+                  {кв ? t('anagramSquare') : t('classicLabel')}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            {квадрат ? t('anagramSquareHint') : t('anagramClassicHint')}
+          </Text>
+          {квадрат && (
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+              {t('anagramSquareCount').replace('{n}', String(кольца.length))}
+            </Text>
           )}
         </View>
 
@@ -496,6 +550,41 @@ export default function AnagramGame() {
 
   // playing-фаза — на едином каркасе GameShell: подсказка — служебное действие,
   // значит в шапке; «Отменить/Сброс» правят черновик ответа и остаются внизу
+  if (phase === 'playing' && квадрат) {
+    /**
+     * 🔴 «СЛОВО-КВАДРАТ» — СВОЙ ЭКРАН, НО ТА ЖЕ ИГРА. Уровень берётся из той же
+     * лестницы анаграмм: раскладка выбирается по остатку, поэтому уровень N
+     * всегда даёт одно и то же кольцо, а набор проходится по кругу.
+     */
+    const к = кольца.length ? кольца[(Math.max(1, lvl.level) - 1) % кольца.length]! : null;
+    return (
+      <GameShell title={t('anagrams')} onBack={() => { clearAllTimers(); goBackOrHome(); }} confirmExit={armedSquare}>
+        {к ? (
+          <WordSquareGame
+            key={ключКольца(к.верх, к.право, к.низ, к.лево)}
+            кольцо={к}
+            size={Math.min(width - 32, 380)}
+            theme={{ surface: colors.surface, text: colors.text, textSecondary: colors.textSecondary, border: colors.border, primary: GRADIENT[0], success: '#12a594', danger: '#e24b4a' }}
+            labels={{ собрано: t('anagramSquareSolved'), промахи: t('hud_errors'), банк: t('anagramSquareBank') }}
+            now={gameNow}
+            onProgress={setArmedSquare}
+            onComplete={(промахов, мс) => {
+              setErrors(промахов);
+              setElapsedTime(Math.round(мс / 100) / 10);
+              const out = levelOutcomeAnagram({ isPreset, cleared: промахов <= 2 });
+              if (out.raiseLevel) lvl.reach(lvl.level + 1);
+              if (out.lowerLevel) lvl.fail();
+              setClearedPassed(промахов <= 2);
+              setPhase(out.phase);
+            }}
+          />
+        ) : (
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('anagramSquareEmpty')}</Text>
+        )}
+      </GameShell>
+    );
+  }
+
   if (phase === 'playing') {
     return (
       <GameShell
