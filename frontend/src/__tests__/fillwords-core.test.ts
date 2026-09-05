@@ -362,8 +362,9 @@ describe('филворды: уровень не закрывается, пока
     expect(hint).not.toBeNull();
     const shown = hint as { wordIndex: number; cells: CellIndex[] };
     expect(unfoundWordIndexes(after)).toContain(shown.wordIndex);
-    expect(shown.cells).toEqual(puzzle.words[shown.wordIndex].path.slice(0, shown.cells.length));
-    expect(shown.cells.length).toBeLessThan(puzzle.words[shown.wordIndex].path.length);
+    // Подсказка показывает путь слова ЦЕЛИКОМ: две клетки оставляли медиану 7
+    // продолжений (замер 05.09.2026), и подсказка не окупала свою цену.
+    expect(shown.cells).toEqual(puzzle.words[shown.wordIndex].path);
     expect(lettersLeft(after)).toBe(lettersLeft(session));
     expect(after.hints).toBe(1);
   });

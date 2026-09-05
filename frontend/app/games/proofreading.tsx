@@ -1221,7 +1221,8 @@ export default function ProofreadingGame() {
               const session = fwSession as FillwordsSession;
               const owner = session.owner[index];
               const traced = fwTrace.indexOf(index) >= 0;
-              const hinted = fwHint !== null && fwHint.cells.indexOf(index) >= 0;
+              // Клетку уже разобранного слова подсвечивать нечем — подсказка про неразобранные.
+              const hinted = fwHint !== null && fwHint.cells.indexOf(index) >= 0 && owner < 0;
               // Разобранное слово остаётся на поле СВОИМ цветом: видно, что уже
               // съедено, и не приходится держать это в голове.
               const takenTint = owner >= 0 ? tintForFoundOrder(session.found.indexOf(owner)) : colors.surface;
@@ -1235,9 +1236,12 @@ export default function ProofreadingGame() {
                     {
                       width: cellSize - 2,
                       height: cellSize - 2,
-                      backgroundColor: traced ? GRADIENT[0] : takenTint,
-                      borderWidth: hinted ? 2 : 0,
-                      borderColor: '#b45309',
+                      /**
+                       * Подсказка — ЗАЛИВКОЙ, как в серии, а не рамкой 2 px.
+                       * Рамка на светлой клетке почти не читается, а подсветка
+                       * теперь несёт весь путь слова, и её надо видеть целиком.
+                       */
+                      backgroundColor: traced ? GRADIENT[0] : hinted ? '#99f6e4' : takenTint,
                     },
                   ]}
                 >

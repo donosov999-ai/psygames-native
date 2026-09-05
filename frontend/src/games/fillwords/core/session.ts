@@ -170,10 +170,24 @@ export function takeHint(session: FillwordsSession): { session: FillwordsSession
   for (const index of candidates) {
     if (session.puzzle.words[index].path.length < session.puzzle.words[best].path.length) best = index;
   }
+  /**
+   * 🔴 ПОДСКАЗКА ПОКАЗЫВАЕТ СЛОВО ЦЕЛИКОМ, А НЕ ДВЕ ПЕРВЫЕ КЛЕТКИ.
+   *
+   * 📍 ОТЧЁТ ДЕНИСА 05.09.2026: «подсказка ни фига не работает» — на скриншоте
+   * блок «Поиск слов», 50 секунд, найдено 0 из 6, ошибок 6, одна подсказка уже
+   * потрачена. Замер по 30 раскладкам 5×5 объясняет почему: соседство тут
+   * ВОСЬМИСТОРОННЕЕ, и две первые клетки оставляют медиану 7 продолжений
+   * нужной длины (максимум 60) при средней длине слова 3,5. То есть подсказка
+   * тратилась, а слово всё равно бралось перебором — и каждая неверная проба
+   * шла в ошибки.
+   *
+   * Подсказок три на уровень, и каждая уже стоит звезды наравне с промахом.
+   * За такую цену человек обязан ПОЛУЧИТЬ слово, а не направление к нему.
+   */
   const path = session.puzzle.words[best].path;
   return {
     session: { ...session, hints: session.hints + 1 },
-    hint: { wordIndex: best, cells: path.slice(0, Math.min(2, path.length)) },
+    hint: { wordIndex: best, cells: path.slice() },
   };
 }
 
