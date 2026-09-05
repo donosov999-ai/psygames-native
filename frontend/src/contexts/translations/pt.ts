@@ -128,7 +128,7 @@ const t: Record<string, string> = {
   "anagramsDesc": "Remonte a palavra a partir das letras embaralhadas",
   "anagramsIntroDesc": "Remonte a palavra original a partir das letras embaralhadas o mais rápido que puder. Treina vocabulário, flexibilidade mental e reconhecimento de padrões.",
   "lettersInWord": "Letras",
-  "anagramHint": "Toque nas letras em ordem — a palavra se monta",
+  "anagramHint": "Deslize o dedo pelas letras — ou toque uma a uma",
   "clear": "Limpar",
   "benefitAnagram1": "Vocabulário ativo maior",
   "benefitAnagram2": "Aprenda palavras estrangeiras melhor",

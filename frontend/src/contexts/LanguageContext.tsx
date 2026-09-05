@@ -383,7 +383,7 @@ const translations: Translations = {
     en: 'Reassemble the original word from shuffled letters as fast as you can. Trains vocabulary, mental flexibility and pattern recognition.',
   },
   lettersInWord: { ru: 'Букв в слове', en: 'Letters' },
-  anagramHint: { ru: 'Нажимайте на буквы по очереди — слово соберётся', en: 'Tap letters in order — the word assembles' },
+  anagramHint: { ru: 'Ведите пальцем по буквам — или нажимайте по одной', en: 'Swipe across the letters — or tap them one by one' },
   clear: { ru: 'Сбросить', en: 'Clear' },
   benefitAnagram1: { ru: 'Активнее владеть языком', en: 'More active vocabulary' },
   benefitAnagram2: { ru: 'Лучше учить иностранные слова', en: 'Learn foreign words better' },

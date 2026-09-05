@@ -128,7 +128,7 @@ const t: Record<string, string> = {
   "anagramsDesc": "Reconstruye la palabra con letras revueltas",
   "anagramsIntroDesc": "Reconstruye la palabra original a partir de letras revueltas lo más rápido posible. Entrena el vocabulario, la flexibilidad mental y el reconocimiento de patrones.",
   "lettersInWord": "Letras",
-  "anagramHint": "Toca las letras en orden: la palabra se forma",
+  "anagramHint": "Desliza el dedo por las letras — o tócalas una a una",
   "clear": "Borrar",
   "benefitAnagram1": "Vocabulario activo más amplio",
   "benefitAnagram2": "Aprende mejor palabras extranjeras",
