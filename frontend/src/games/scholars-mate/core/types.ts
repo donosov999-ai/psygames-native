@@ -26,6 +26,29 @@
  */
 
 /** Вид задания. */
+/**
+ * 🔴 УЗОР МАТА — ВТОРАЯ ОСЬ ЛЕСТНИЦЫ, И ОНА ПОЯВИЛАСЬ ПО ЗАМЕЧАНИЮ ДЕНИСА.
+ *
+ * 05.09.2026, пройдя три уровня, дословно: «по сути одна комбинация, слон и
+ * ферзь, дают то за чёрных то за белых из разных позиций — я бы не сказал, что
+ * это разные». Он прав: лестница меняла секунды, сторону и обстановку, а УЗОР
+ * был один на все сорок уровней.
+ *
+ * Теперь каждые несколько ступеней приходит новый мотив, и он НАЗЫВАЕТСЯ на
+ * экране — иначе человек не знает, чему научился. Замер по всей базе Lichess
+ * (мат в 1 до 14-го хода, узор определён движком):
+ *   scholar 10 029 · queenKnight 13 429 · queenAlone 6 146 ·
+ *   knightOpening 5 806 · smothered 5 278 · bishopF7 5 136 · fool 883
+ */
+export type ScholarsMotif =
+  | 'scholar'        // детский мат: ферзь на f7/f2 при поддержке слона
+  | 'queenKnight'    // тот же удар, но поле держит конь
+  | 'queenAlone'     // ферзь на f7/f2 без поддержки
+  | 'bishopF7'       // матует слон, а не ферзь
+  | 'fool'           // мат дурака: ферзь на h4/h5 в первые ходы
+  | 'knightOpening'  // мат конём в дебюте (сюда попадает и мат Легаля)
+  | 'smothered';     // удушающий мат конём
+
 export type ScholarsKind = 'mate' | 'fromGames' | 'sacrifice' | 'defend' | 'threat';
 
 export interface ScholarsPuzzle {
@@ -47,6 +70,8 @@ export interface ScholarsPuzzle {
   readonly mateIn: number;
   /** Рейтинг Lichess; у своих позиций 0 — они вне лестницы рейтинга. */
   readonly rating: number;
+  /** Узор мата — только у позиций из партий; у своих он всегда `scholar`. */
+  readonly motif?: ScholarsMotif;
   /** Ответ да/нет для `threat`. */
   readonly threat?: boolean;
   /** Ссылка на партию — источник, называем по правилу CC0. */
@@ -79,6 +104,12 @@ export interface ScholarsLevel {
    */
   readonly minRating: number;
   readonly maxRating: number;
+  /**
+   * Какие узоры разрешены на этой ступени. Список РАСТЁТ с уровнем: новый
+   * мотив добавляется к прежним, а не заменяет их, — иначе выученное
+   * перестаёт встречаться и забывается.
+   */
+  readonly motifs: readonly ScholarsMotif[];
 }
 
 export interface ScholarsAttempt {

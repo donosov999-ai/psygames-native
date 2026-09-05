@@ -44,7 +44,7 @@ import { a11yModal } from '@/src/services/a11y';
 import { getMyDialog, type DialogBubble } from '@/src/services/feedbackDialog';
 import { staleWebViewMajor, canRecord, startRecording, shouldWarnSilent, SILENCE_PEAK, type Recorder, type VoiceNote } from '@/src/services/voiceNote';
 import { holdGame } from '@/src/services/gamePause';
-import { похожеНаОбрывок } from '@/src/services/feedbackTooShort';
+import { нужноПереспросить } from '@/src/services/feedbackTooShort';
 
 /**
  * Где человек оставил кнопку отзыва. Доля экрана, не пиксели — см. fabPosition.
@@ -212,8 +212,23 @@ export default function FeedbackWidget() {
    * `if (!FEEDBACK_ENABLED || hidden) return null`, и хук после него нарушил бы
    * порядок хуков между отрисовками — это стережёт отдельный гейт, он и поймал.
    * Согласие «отправить обрывок как есть»; сама развилка считается после возврата.
+   *
+   * 🔴 ХРАНИМ ТЕКСТ, А НЕ «ДА». Здесь стояло булево, и оно пережило свою отправку:
+   * сбрасывался `silentAck` (в трёх местах), а этот флаг — НИ В ОДНОМ. Один раз
+   * согласился «отправить как есть» — и до конца жизни виджета каждый следующий
+   * обрывок уезжал МОЛЧА, без развилки. Тестировщик пишет отчёты подряд, не
+   * закрывая приложение, поэтому «до конца жизни виджета» — это весь вечер.
+   *
+   * Со строкой согласие само перестаёт действовать, как только текст стал другим,
+   * и его не нужно нигде гасить руками — забыть сброс больше не на чем.
    */
-  const [shortAck, setShortAck] = React.useState(false);
+  const [shortAckFor, setShortAckFor] = React.useState<string | null>(null);
+  /**
+   * Поле ввода — чтобы «Дописать» в развилке возвращало курсор в текст.
+   * ⚠️ Хук объявлен ЗДЕСЬ по той же причине, что и соседний: ниже стоит ранний
+   * возврат, и хук после него сломал бы порядок хуков (гейт `feedback-widget-hooks`).
+   */
+  const inputRef = React.useRef<TextInput>(null);
   /** Запись остановилась сама, упершись в потолок длины. */
   const [ceilingHit, setCeilingHit] = React.useState(false);
 
@@ -292,6 +307,17 @@ export default function FeedbackWidget() {
   const dropNote = () => { setNote(null); setMicSilent(false); setSilentAck(false); setCeilingHit(false); };
   const [attachShot, setAttachShot] = React.useState(true);
   const [sending, setSending] = React.useState(false);
+  /**
+   * 🔴 ЗАСОВ ОТПРАВКИ — REF, А НЕ СОСТОЯНИЕ. `sending` живёт в состоянии, и до
+   * перерисовки он для второго нажатия всё ещё `false`: два тапа подряд читают
+   * одно и то же значение и уезжают ДВУМЯ отчётами. Замер по боевой базе: две
+   * пары «тот же текст, то же устройство» с разницей 0,47 и 0,32 секунды — за
+   * треть секунды человек второй отчёт не пишет, это дрогнувший палец. У
+   * голосовых это к тому же вторая заливка того же файла.
+   *
+   * Ref меняется в тот же миг, поэтому засов закрыт уже для второго вызова.
+   */
+  const sendingRef = React.useRef(false);
   const [sent, setSent] = React.useState(false);
   // Что именно уехало — показываем на экране «спасибо». Без этого голосовой
   // репорт уходил вслепую: значок 🙏 выглядел одинаково и когда запись дошла,
@@ -390,8 +416,12 @@ export default function FeedbackWidget() {
    * а говорить могли шёпотом.
    */
   const askSilent = !!note && micSilent && !silentAck;
-  /** Текст похож на обрывок диктовки — разбор и порог в `feedbackTooShort`. */
-  const askShort = !askSilent && !shortAck && похожеНаОбрывок(text, !!note);
+  /**
+   * Текст похож на обрывок диктовки — разбор и порог в `feedbackTooShort`.
+   * Согласие засчитывается ТОЛЬКО тому тексту, на который его дали: исправил
+   * строку — вопрос возвращается, потому что это уже другое сообщение.
+   */
+  const askShort = !askSilent && нужноПереспросить(text, !!note, shortAckFor);
 
 
   /**
@@ -407,7 +437,7 @@ export default function FeedbackWidget() {
     // если есть запись, — человек жал «Отправить», не происходило ничего, и он
     // решал, что отзывы не уходят (репорт Rulon, v1.170). Условие должно
     // совпадать с условием доступности кнопки, иначе кнопка врёт.
-    if ((!text.trim() && !note) || sending) return;
+    if ((!text.trim() && !note) || sendingRef.current) return;
     /**
      * 🔴 НЕМУЮ ЗАПИСЬ НЕ ОТПРАВЛЯЕМ МОЛЧА.
      *
@@ -422,7 +452,8 @@ export default function FeedbackWidget() {
      */
     if (note && micSilent && !silentAck && !ackSilent) return;
     // Обрывок диктовки — тем же правилом: спрашиваем, а не отправляем молча.
-    if (похожеНаОбрывок(text, !!note) && !shortAck && !ackShort) return;
+    if (нужноПереспросить(text, !!note, shortAckFor) && !ackShort) return;
+    sendingRef.current = true;
     setSending(true);
     const res = await sendFeedback({
       kind,
@@ -450,6 +481,7 @@ export default function FeedbackWidget() {
         level,
       },
     });
+    sendingRef.current = false;
     setSending(false);
     // Очередь — тоже успех для человека: написанное сохранено и уйдёт само.
     // Ошибкой считаем только случай, когда не сохранили вообще ничего.
@@ -458,6 +490,12 @@ export default function FeedbackWidget() {
       setSent(true);
       setText('');   // единственное место, где черновик стирается — после доставки
       setNote(null); setMicSilent(false); setSilentAck(false); setCeilingHit(false);
+      /**
+       * 🔴 СОГЛАСИЕ УМИРАЕТ ВМЕСТЕ СО СВОИМ СООБЩЕНИЕМ. Без этой строки повтор
+       * того же обрывка («I» лежит в базе пять раз) прошёл бы вторым и дальше
+       * уже без вопроса: текст совпал бы с тем, на который согласие давали.
+       */
+      setShortAckFor(null);
       /**
        * Дольше 1.3 с: тут теперь есть что прочитать, а не один значок.
        * Закрыть можно и раньше — крестик остаётся на месте.
@@ -625,6 +663,7 @@ export default function FeedbackWidget() {
                   </View>
 
                   <TextInput
+                    ref={inputRef}
                     value={text}
                     onChangeText={setText}
                     multiline
@@ -814,7 +853,7 @@ export default function FeedbackWidget() {
                       <View style={styles.silentBtns}>
                         <TouchableOpacity
                           accessibilityRole="button"
-                          onPress={() => setShortAck(false)}
+                          onPress={() => inputRef.current?.focus()}
                           style={[styles.silentBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
                         >
                           <Text numberOfLines={2} style={[styles.silentBtnText, { color: colors.text }]}>
@@ -823,7 +862,7 @@ export default function FeedbackWidget() {
                         </TouchableOpacity>
                         <TouchableOpacity
                           accessibilityRole="button"
-                          onPress={() => { setShortAck(true); void submit(false, true); }}
+                          onPress={() => { setShortAckFor(text.trim()); void submit(false, true); }}
                           disabled={sending}
                           style={[styles.silentBtn, { borderColor: '#b45309', backgroundColor: '#b45309' }]}
                         >

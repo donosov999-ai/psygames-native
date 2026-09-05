@@ -14,7 +14,7 @@
  * просто во втором случае ни один ответ не засчитывается. Поэтому здесь
  * позиции реально разыгрываются на `chess.js`.
  */
-import { buildDeck, counts, levelParams, puzzlesOf, secondsFor, LEVELS } from '@/src/games/scholars-mate/core/deck';
+import { buildDeck, counts, levelParams, motifsAt, puzzlesOf, secondsFor, LEVELS } from '@/src/games/scholars-mate/core/deck';
 import { bestDefence, check, movesFrom, shownFen, sideToMove, threatAnswer, дополнитьХод, естьМатВОдин } from '@/src/games/scholars-mate/core/check';
 import { медианаМс } from '@/src/games/scholars-mate/core/run';
 import { Chess } from 'chess.js';
@@ -481,5 +481,113 @@ describe('«Детский мат»: то, что раньше было зеле
     // И достроенный ход законен на доске.
     const g = new Chess(fen);
     expect(g.move({ from: 'e7', to: 'e8', promotion: 'q' })).toBeTruthy();
+  });
+});
+
+/**
+ * 🔴 ЛЕСТНИЦА ПО УЗОРАМ — ЗАМЕЧАНИЕ ДЕНИСА 05.09.2026 ПОСЛЕ ТРЁХ УРОВНЕЙ:
+ * «по сути одна комбинация, слон и ферзь, дают то за чёрных то за белых из
+ * разных позиций — я бы не сказал, что это разные».
+ *
+ * Он был прав дважды. Узор и правда был один на сорок ступеней, и вдобавок
+ * сторона менялась, а доска — нет, то есть чёрные позиции показывались с белой
+ * стороны: человек искал мат глазами соперника.
+ */
+describe('«Детский мат»: узоры и сторона', () => {
+  it('🔴 новые узоры приходят по лестнице, а старые не исчезают', () => {
+    const было = motifsAt(1);
+    expect(было).toEqual(['scholar']);
+    let прошлое = было.length;
+    for (let L = 2; L <= LEVELS; L++) {
+      const сейчас = motifsAt(L);
+      // Набор только растёт: выученное обязано встречаться и дальше.
+      expect(`L${L}: ${сейчас.length >= прошлое}`).toBe(`L${L}: true`);
+      for (const м of motifsAt(L - 1)) expect(сейчас).toContain(м);
+      прошлое = сейчас.length;
+    }
+    // И к верху лестницы узоров заметно больше одного.
+    expect(motifsAt(LEVELS).length).toBeGreaterThanOrEqual(6);
+  });
+
+  it('🔴 в колоде не встречается узор, который лестница ещё не открыла', () => {
+    const чужие: string[] = [];
+    for (const L of [1, 5, 8, 12, 16, 20, 26, 34, 40]) {
+      const открыты = new Set<string>(motifsAt(L));
+      for (let seed = 1; seed <= 15; seed++) {
+        for (const p of buildDeck(L, seed)) {
+          if (p.motif && !открыты.has(p.motif)) чужие.push(`L${L}: ${p.motif}`);
+        }
+      }
+    }
+    expect([...new Set(чужие)].slice(0, 5)).toEqual([]);
+  });
+
+  it('🔴 к середине лестницы узор в подходе действительно НЕ один', () => {
+    const узоров = (L: number) => new Set(
+      Array.from({ length: 25 }, (_, s) => buildDeck(L, s + 1)).flat()
+        .map((p) => p.motif).filter(Boolean),
+    ).size;
+    expect(узоров(3)).toBeLessThanOrEqual(1);      // в начале — якорный узор
+    expect(узоров(20)).toBeGreaterThan(3);          // в середине — несколько
+    expect(узоров(40)).toBeGreaterThan(5);          // наверху — почти все
+  });
+
+  /**
+   * 🔴 ПОДХОД ИДЁТ ЗА ОДНУ СТОРОНУ — иначе доска либо переворачивается посреди
+   * набора, либо показывает чужую сторону. Обе прежние редакции были плохи;
+   * правильно не смешивать.
+   */
+  it('🔴 все позиции подхода — за одну и ту же сторону', () => {
+    const смешанные: string[] = [];
+    for (let L = 1; L <= LEVELS; L++) {
+      for (let seed = 1; seed <= 8; seed++) {
+        const стороны = new Set(buildDeck(L, seed).map((p) => sideToMove(p)));
+        if (стороны.size > 1) смешанные.push(`L${L}/${seed}: ${[...стороны].join('+')}`);
+      }
+    }
+    expect(смешанные.slice(0, 5)).toEqual([]);
+  });
+
+  it('🔴 обе стороны встречаются — иначе за чёрных не поиграть вовсе', () => {
+    const стороны = new Set(
+      Array.from({ length: 30 }, (_, s) => buildDeck(12, s + 1)[0]).filter(Boolean)
+        .map((p) => sideToMove(p!)),
+    );
+    expect([...стороны].sort()).toEqual(['b', 'w']);
+  });
+});
+
+/**
+ * 🔴 РЕЖИМ «МАТ С ЖЕРТВОЙ» — просьба Дениса 05.09.2026: «нужно как режим в
+ * детском мате сделать — мат с жертвой». До этого жертва жила только на
+ * ступенях с 29-й: чтобы увидеть то, ради чего её просили, надо было пройти
+ * двадцать восемь уровней.
+ */
+describe('«Детский мат»: режим одного вида', () => {
+  it('🔴 в режиме жертвы приходят ТОЛЬКО жертвенные позиции', () => {
+    const чужие: string[] = [];
+    for (const L of [1, 5, 12, 25, 40]) {
+      for (let seed = 1; seed <= 10; seed++) {
+        for (const p of buildDeck(L, seed, 'sacrifice')) {
+          if (p.kind !== 'sacrifice') чужие.push(`L${L}: ${p.kind}`);
+        }
+      }
+    }
+    expect([...new Set(чужие)]).toEqual([]);
+  });
+
+  it('🔴 режим доступен с ПЕРВОГО уровня, а не с двадцать девятого', () => {
+    const колода = buildDeck(1, 1, 'sacrifice');
+    expect(колода.length).toBe(levelParams(1).count);
+    // И это настоящие линии в 2–3 хода, а не мат в один.
+    expect(колода.every((p) => (p.line?.length ?? 0) > 1)).toBe(true);
+  });
+
+  it('🔴 обычный подход первых уровней жертв НЕ содержит — режим не подменил лестницу', () => {
+    for (const L of [1, 5, 12]) {
+      for (let seed = 1; seed <= 5; seed++) {
+        expect(buildDeck(L, seed).some((p) => p.kind === 'sacrifice')).toBe(false);
+      }
+    }
   });
 });

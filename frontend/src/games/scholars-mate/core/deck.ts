@@ -13,11 +13,12 @@
  * обстановке. Смысл в переносе узора, а не в замене одного другим.
  */
 import сырые from '../data/puzzles.json';
-import type { ScholarsKind, ScholarsLevel, ScholarsPuzzle } from './types';
+import { sideToMove } from './check';
+import type { ScholarsKind, ScholarsLevel, ScholarsMotif, ScholarsPuzzle } from './types';
 
 interface СыраяЗапись {
   f: string; p?: string; s?: string[]; n?: string[]; a?: string[];
-  d?: number; r?: number; t?: boolean; o?: number; u?: string;
+  d?: number; r?: number; t?: boolean; o?: number; u?: string; m?: string;
 }
 interface СыройНабор {
   mate: СыраяЗапись[]; defend: СыраяЗапись[]; threat: СыраяЗапись[];
@@ -29,6 +30,7 @@ const НАБОР = сырые as unknown as СыройНабор;
 function перевести(kind: ScholarsKind, x: СыраяЗапись): ScholarsPuzzle {
   return {
     kind,
+    motif: x.m as ScholarsMotif | undefined,
     fen: x.f,
     pre: x.p,
     solutions: x.s ?? [],
@@ -121,21 +123,55 @@ function полоса(L: number): { minRating: number; maxRating: number } {
 }
 
 /**
- * Лестница из четырёх участков. Вид заданий меняется, время падает монотонно.
+ * 🔴 УЗОРЫ ПРИХОДЯТ ПО ЛЕСТНИЦЕ, А НЕ ВСЕ СРАЗУ.
+ *
+ * Замечание Дениса 05.09.2026 после трёх пройденных уровней: «по сути одна
+ * комбинация, слон и ферзь, дают то за чёрных то за белых из разных позиций —
+ * я бы не сказал, что это разные». Он прав: до этой правки лестница меняла
+ * секунды, сторону и обстановку, а УЗОР был один на все сорок ступеней.
+ *
+ * ⚠️ НОВЫЙ УЗОР ДОБАВЛЯЕТСЯ К ПРЕЖНИМ, А НЕ ЗАМЕНЯЕТ ИХ. Иначе выученное
+ * перестаёт встречаться — а вся игра про то, что узнавание держится практикой.
+ */
+const УЗОРЫ_ПО_СТУПЕНЯМ: readonly { от: number; узор: ScholarsMotif }[] = [
+  { от: 1, узор: 'scholar' },        // детский мат — якорь
+  { от: 6, узор: 'queenKnight' },    // тот же удар, поле держит конь
+  { от: 10, узор: 'bishopF7' },      // матует слон, а не ферзь
+  { от: 14, узор: 'queenAlone' },    // ферзь без поддержки
+  { от: 18, узор: 'fool' },          // мат дурака
+  { от: 23, узор: 'knightOpening' }, // конём в дебюте, сюда же мат Легаля
+  { от: 28, узор: 'smothered' },     // удушающий
+];
+
+/** Какие узоры открыты на этой ступени. */
+export function motifsAt(level: number): ScholarsMotif[] {
+  const L = Math.max(1, Math.min(LEVELS, Math.floor(level) || 1));
+  return УЗОРЫ_ПО_СТУПЕНЯМ.filter((з) => L >= з.от).map((з) => з.узор);
+}
+
+/** Узор, который ОТКРЫВАЕТСЯ именно на этом уровне; иначе undefined. */
+export function newMotifAt(level: number): ScholarsMotif | undefined {
+  return УЗОРЫ_ПО_СТУПЕНЯМ.find((з) => з.от === Math.floor(level))?.узор;
+}
+
+/**
+ * Лестница из четырёх участков. Вид заданий меняется, время падает монотонно,
+ * а набор узоров растёт.
  */
 export function levelParams(level: number): ScholarsLevel {
   const L = Math.max(1, Math.min(LEVELS, Math.floor(level) || 1));
   const секунды = secondsAt(L);
   const { minRating, maxRating } = полоса(L);
+  const motifs = motifsAt(L);
 
-  // 1…8 — свои дебютные позиции: узор в чистом виде, без чужой обстановки.
-  if (L <= 8) return { level: L, kinds: ['mate'], count: 8, seconds: секунды, minRating: 0, maxRating: 0 };
-  // 9…18 — тот же узор в настоящих партиях.
-  if (L <= 18) return { level: L, kinds: ['mate', 'fromGames'], count: 10, seconds: секунды, minRating, maxRating };
-  // 19…28 — узнать угрозу и защититься: тот же узор с другой стороны доски.
-  if (L <= 28) return { level: L, kinds: ['threat', 'defend', 'fromGames'], count: 10, seconds: секунды, minRating, maxRating };
+  // 1…5 — свои дебютные позиции: узор в чистом виде, без чужой обстановки.
+  if (L <= 5) return { level: L, kinds: ['mate'], count: 8, seconds: секунды, minRating: 0, maxRating: 0, motifs };
+  // 6…18 — те же и соседние узоры в настоящих партиях.
+  if (L <= 18) return { level: L, kinds: ['mate', 'fromGames'], count: 10, seconds: секунды, minRating, maxRating, motifs };
+  // 19…28 — узнать угрозу и защититься: узор с другой стороны доски.
+  if (L <= 28) return { level: L, kinds: ['threat', 'defend', 'fromGames'], count: 10, seconds: секунды, minRating, maxRating, motifs };
   // 29…40 — мат с ЖЕРТВОЙ в 2–3 хода плюс самые трудные позиции из партий.
-  return { level: L, kinds: ['sacrifice', 'fromGames'], count: 8, seconds: секунды, minRating, maxRating };
+  return { level: L, kinds: ['sacrifice', 'fromGames'], count: 8, seconds: секунды, minRating, maxRating, motifs };
 }
 
 /**
@@ -162,15 +198,51 @@ function случай(seed: number): () => number {
  * не «ещё одна попытка», а подсказка: вторая встреча той же позиции решается
  * памятью о предыдущей, и замер времени портится.
  */
-export function buildDeck(level: number, seed = 1): ScholarsPuzzle[] {
-  const п = levelParams(level);
+export function buildDeck(
+  level: number,
+  seed = 1,
+  /**
+   * Ограничить набор одним видом задания. Так работает режим «Мат с жертвой»:
+   * тот же уровень и та же полоса рейтинга, но позиции только жертвенные.
+   *
+   * ⚠️ Просьба Дениса 05.09.2026: «нужно как режим в детском мате сделать — мат
+   * с жертвой». До этого жертва жила только на верхних десяти ступенях, то есть
+   * чтобы её увидеть, надо было пройти двадцать восемь уровней.
+   */
+  только?: ScholarsKind,
+): ScholarsPuzzle[] {
+  const базовый = levelParams(level);
+  const п: ScholarsLevel = только
+    ? { ...базовый, kinds: [только], count: базовый.count, seconds: базовый.seconds }
+    : базовый;
   const rnd = случай(seed * 7919 + п.level * 104729);
   const колода: ScholarsPuzzle[] = [];
   const взятые = new Set<string>();
 
+  /**
+   * 🔴 ВЕСЬ ПОДХОД — ЗА ОДНУ СТОРОНУ.
+   *
+   * Замечание Дениса 05.09.2026: «когда за чёрных, доска не переворачивается —
+   * получается ходишь на мат за противника». Обе прежние редакции были плохи:
+   * переворот КАЖДОЙ позиции сбивал узнавание (замер: ориентация менялась
+   * внутри подхода в 97% колод), а закреплённая ориентация показывала чёрные
+   * позиции с белой стороны — то есть человек искал мат, глядя на доску глазами
+   * соперника. Это хуже: он не просто теряет время, он смотрит не туда.
+   *
+   * Правильно — не переворачивать и не врать, а НЕ СМЕШИВАТЬ: сторона
+   * выбирается один раз на подход, и все позиции берутся её. Позиций хватает:
+   * в пуле 16 427 только по одному узору.
+   */
+  let сторонаПодхода: 'w' | 'b' | null = null;
+
   for (let i = 0; колода.length < п.count && i < п.count * 60; i++) {
     const kind = п.kinds[Math.floor(rnd() * п.kinds.length)]!;
     let пул = puzzlesOf(kind);
+    if (п.motifs.length) {
+      // Узор пускается на ступень, только когда до него дошла лестница.
+      const по = пул.filter((x) => !x.motif || п.motifs.includes(x.motif));
+      if (по.length >= п.count) пул = по;
+    }
     if (п.maxRating > 0 && kind !== 'mate') {
       // 🔴 ПОЛОСА, А НЕ ПОТОЛОК: односторонний фильтр лестницы не строит.
       const в = пул.filter((x) => x.rating >= п.minRating && x.rating <= п.maxRating);
@@ -188,6 +260,9 @@ export function buildDeck(level: number, seed = 1): ScholarsPuzzle[] {
      * Замер: 8 повторов на 200 подходов уровней 21–30. Повтор в упражнении на
      * скорость — не вторая попытка, а подсказка.
      */
+    const сторона = sideToMove(x);
+    if (сторонаПодхода === null) сторонаПодхода = сторона;
+    else if (сторона !== сторонаПодхода) continue;
     const ключ = показанныйКлюч(x);
     if (взятые.has(ключ)) continue;
     взятые.add(ключ);
