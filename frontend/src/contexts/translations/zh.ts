@@ -128,7 +128,7 @@ const t: Record<string, string> = {
   "anagramsDesc": "用打乱的字母拼回单词",
   "anagramsIntroDesc": "尽可能快地用打乱的字母拼回原单词。训练词汇量、思维灵活性和模式识别。",
   "lettersInWord": "字母数",
-  "anagramHint": "按顺序点击字母——单词会拼出来",
+  "anagramHint": "滑动划过字母 — 或逐个点击",
   "clear": "清空",
   "benefitAnagram1": "更丰富的活跃词汇",
   "benefitAnagram2": "更好地学习外语单词",

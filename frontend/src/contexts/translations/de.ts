@@ -128,7 +128,7 @@ const t: Record<string, string> = {
   "anagramsDesc": "Wort aus gemischten Buchstaben zusammensetzen",
   "anagramsIntroDesc": "Setze das ursprüngliche Wort so schnell wie möglich aus den gemischten Buchstaben zusammen. Trainiert Wortschatz, geistige Flexibilität und Mustererkennung.",
   "lettersInWord": "Buchstaben",
-  "anagramHint": "Tippe die Buchstaben der Reihe nach an — das Wort setzt sich zusammen",
+  "anagramHint": "Wische über die Buchstaben — oder tippe sie einzeln an",
   "clear": "Löschen",
   "benefitAnagram1": "Aktiverer Wortschatz",
   "benefitAnagram2": "Fremdwörter besser lernen",

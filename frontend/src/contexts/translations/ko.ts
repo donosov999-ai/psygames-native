@@ -218,7 +218,7 @@ const t: Record<string, string> = {
   "anagramsDesc": "뒤섞인 글자로 단어를 맞춰요",
   "anagramsIntroDesc": "뒤섞인 글자로 원래 단어를 최대한 빠르게 맞추세요. 어휘력, 사고 유연성, 패턴 인식을 훈련해요.",
   "lettersInWord": "글자",
-  "anagramHint": "글자를 순서대로 누르면 단어가 완성돼요",
+  "anagramHint": "글자를 따라 밀거나 하나씩 탭하세요",
   "clear": "지우기",
   "benefitAnagram1": "활용 어휘가 늘어요",
   "benefitAnagram2": "외국어 단어를 더 잘 익혀요",

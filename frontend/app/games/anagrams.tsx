@@ -25,8 +25,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useWordLanguage } from '@/src/hooks/useWordLanguage';
 import { WORD_LANGS, WORD_LANG_LABEL } from '@/src/services/wordLanguage';
+import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { sndPlace } from '@/src/services/feedback';
@@ -94,6 +96,7 @@ function shuffle<T>(arr: T[]): T[] {
 export default function AnagramGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const width = useScreenWidth();   // сторона круга букв считается от ширины экрана
   /**
    * 🔴 ЯЗЫК СЛОВ ОТДЕЛЬНО ОТ ЯЗЫКА МЕНЮ. Отчёт Дениса 05.09.2026: «надо
    * добавить выбор языка». Банк слов брался как `language === 'ru'`, и при
@@ -565,27 +568,33 @@ export default function AnagramGame() {
               </View>
             ))}
           </View>
-          <View style={styles.lettersRow}>
-            {letters.map((l, i) => (
-              <TouchableOpacity
-                accessibilityRole="button"
-                key={i}
-                disabled={picked.includes(i)}
-                onPress={() => handleLetterPress(i)}
-                activeOpacity={0.8}
-                style={[
-                  styles.letterBtn,
-                  {
-                    backgroundColor: picked.includes(i) ? colors.surface : GRADIENT[0],
-                    opacity: picked.includes(i) ? 0.3 : 1,
-                  },
-                ]}
-              >
-                <View style={styles.tileShine} pointerEvents="none" />
-                <Text style={[styles.letterText, { color: '#3f2b96' }]}>{l}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {/*
+            🔴 КРУГ БУКВ ВМЕСТО РЯДА ПЛИТОК.
+
+            📍 ПРОСЬБА ДЕНИСА 06.09.2026, дословно: «надо круг с буквами для
+            введения у них перенять, им удобнее вводить» — про «Море слов»
+            (10 млн скачиваний) и Zen Word (50 млн).
+
+            Ряд плиток требует ОТДЕЛЬНОГО прицеливания на каждую букву: семь
+            букв — семь нажатий. Круг берётся одним движением, и путь виден
+            целиком, поэтому ошибку замечают до отпускания пальца, а не после
+            сдачи слова. Тап при этом никуда не делся — см. `LetterWheel`.
+          */}
+          <LetterWheel
+            letters={letters}
+            size={Math.min(width - 48, 320)}
+            trace={picked}
+            onTrace={(next) => {
+              // Ведение отдаёт линию целиком; игре нужен ПОСЛЕДНИЙ шаг, чтобы
+              // сработали лента отмены, звук и проверка полного слова.
+              if (next.length > picked.length) handleLetterPress(next[next.length - 1]!);
+              else if (next.length < picked.length) { setPicked([...next]); hist.push(picked); }
+            }}
+            onSubmit={() => { /* слово проверяется на полной длине в handleLetterPress */ }}
+            colors={{ surface: colors.surface, text: colors.text, primary: GRADIENT[0], border: colors.border }}
+            label={t('anagramHint')}
+            disabled={wordDoneRef.current}
+          />
         </View>
       </GameShell>
     );

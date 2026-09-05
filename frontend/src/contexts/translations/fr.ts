@@ -218,7 +218,7 @@ const t: Record<string, string> = {
   "anagramsDesc": "Recompose le mot à partir des lettres mélangées",
   "anagramsIntroDesc": "Recompose le mot d'origine à partir des lettres mélangées, le plus vite possible. Entraîne le vocabulaire, la souplesse mentale et la reconnaissance de motifs.",
   "lettersInWord": "Lettres",
-  "anagramHint": "Touche les lettres une à une — le mot se compose",
+  "anagramHint": "Faites glisser le doigt sur les lettres — ou touchez-les une à une",
   "clear": "Effacer",
   "benefitAnagram1": "Un vocabulaire plus actif",
   "benefitAnagram2": "Mieux apprendre les mots étrangers",

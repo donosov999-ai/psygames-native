@@ -218,7 +218,7 @@ const t: Record<string, string> = {
   "anagramsDesc": "シャッフルされた文字から単語を組み立てる",
   "anagramsIntroDesc": "シャッフルされた文字から元の単語をできるだけ速く組み立てます。語彙・思考の柔軟性・パターン認識を鍛えます。",
   "lettersInWord": "文字数",
-  "anagramHint": "文字を順番にタップすると、単語が完成します",
+  "anagramHint": "文字をなぞる — または1文字ずつタップ",
   "clear": "クリア",
   "benefitAnagram1": "使える語彙が増える",
   "benefitAnagram2": "外国語の単語をよりよく覚える",
