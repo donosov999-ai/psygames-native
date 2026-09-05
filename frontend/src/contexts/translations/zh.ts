@@ -2142,6 +2142,7 @@ const t: Record<string, string> = {
   "scholarsFlowHint": "没有暂停也没有关卡：局面一个接一个，直到时间结束",
   "scholarsBank": "题库中的局面：{n}",
   "scholarsMedian": "中位数",
+  "scholarsUsually": "最近 {n} 轮",
   "scholarsBest": "正确应是",
   "scholarsYes": "是",
   "scholarsNo": "否",

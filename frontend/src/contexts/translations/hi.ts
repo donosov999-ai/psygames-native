@@ -2145,6 +2145,7 @@ const t: Record<string, string> = {
   "scholarsFlowHint": "न विराम, न स्तर: समय ख़त्म होने तक स्थितियाँ आती रहेंगी",
   "scholarsBank": "सेट में स्थितियाँ: {n}",
   "scholarsMedian": "माध्यिका",
+  "scholarsUsually": "{n} दौरों में",
   "scholarsBest": "सही था",
   "scholarsYes": "हाँ",
   "scholarsNo": "नहीं",
