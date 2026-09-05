@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.41.0',
+    date: '2026-09-05',
+    ru: [
+      '«Детский мат»: выпадающий список из 19 матов — арабский, удушающий, эполетный, Бодена, оперный и другие. Выбираешь один и отрабатываешь только его, по 1200 позиций на каждый',
+      '«Охват памяти»: новый способ подачи — весь ряд цифр показывается разом, а не по одной. Это другая память: последовательный показ проговаривается про себя, а ряд целиком считывается глазами',
+      'В режиме «Поток» видно, сколько осталось времени, а не номер позиции',
+    ],
+    en: [
+      'Scholar\'s Mate: a dropdown of 19 mates — Arabian, smothered, epaulette, Boden\'s, opera and more. Pick one and drill only that, 1200 positions each',
+      'Digit Span: a new way to present the row — all digits at once instead of one by one. It is a different memory: a sequence gets rehearsed silently, a whole row is read by eye',
+      'Flow mode now shows the time left rather than the position number',
+    ],
+  },
+  {
     version: '2.40.0',
     date: '2026-09-05',
     ru: [
