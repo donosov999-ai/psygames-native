@@ -7,13 +7,11 @@ import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { mahjongLevel, mahjongHidden, canShuffle, shufflesLeft } from '@/src/services/mahjongLevels';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -298,7 +296,6 @@ export function generateDeal(
 export default function MahjongGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  const router = useRouter();
   const { width } = useWindowDimensions();
   const { popups, spawn } = useScorePopups();
 

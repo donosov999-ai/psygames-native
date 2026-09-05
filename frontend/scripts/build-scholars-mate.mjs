@@ -1,21 +1,26 @@
-#!/usr/bin/env node
+/* psygames-build-scholars-mate · VER 2 · 05.09.2026 */
 /**
- * Собрать набор позиций «Детский мат» из двух источников в один компактный файл.
+ * Сборка набора позиций для упражнения «Детский мат».
  *
- * ЗАЧЕМ ОТДЕЛЬНЫЙ СБОРЩИК. Исходники лежат вне репозитория и весят мегабайты:
- * `lichess_f7_opening_mates.json` — 4,2 МБ на 14 217 задач, столько в сборку не
- * кладут. Здесь из них берётся лестница, поля ужимаются до односимвольных, и
- * получается файл, который не жалко везти в приложение.
+ * 🔴 VER 2 ПЕРЕПИСАН ПОСЛЕ РЕЦЕНЗИИ. В VER 1 отбор шёл по ТЕМЕ Lichess
+ * `attackingF2F7` и по ПОЛЮ мата, а обещание было про УЗОР. Проверка движком по
+ * всем 12 321 отобранным задачам: узор (ферзь матует на f7/f2 при поддержке
+ * СВОЕГО СЛОНА) оказался у 3 749 — 30,4%. Остальные две трети — ферзь при
+ * поддержке коня, мат слоном, ферзь без поддержки. То есть упражнение «на
+ * скорость узнавания заученного узора» в двух случаях из трёх показывало
+ * незнакомую позицию.
+ *
+ * Причина промаха названа точно: тема `attackingF2F7` описана у Lichess как
+ * «атака на ПЕШКУ f2/f7». Она не стоит НИ У ОДНОЙ задачи, где ферзь матует на
+ * уже пустое поле, и покрывает 41,6% узора. Отбор по теме потерял 12 678
+ * настоящих детских матов из 16 427.
+ *
+ * Теперь пул отбирается ДВИЖКОМ по узору — `chess-scholars-mate/scan_pattern_m1.py`
+ * и `scan_sacrifice.py` + `scan_sacrifice_pattern.py`. Здесь только упаковка.
  *
  * ⚠️ ФОРМАТ LICHESS: в `moves` ПЕРВЫЙ ХОД — ХОД СОПЕРНИКА. Его надо сыграть из
  * `fen`, и только потом спрашивать решение. Позиция, показанная человеку, — это
- * НЕ `fen` из файла. Здесь первый ход не отбрасывается, а сохраняется отдельным
- * полем `p` (пре-ход): разыграть его должен движок, у которого есть chess.js.
- *
- * ИСТОЧНИКИ (готовит соседний чат, скрипт `gen_scholars_mate.py`):
- *   ~/Downloads/Code claude/psygames/chess-scholars-mate/scholars_mate_generated.json
- *   ~/Downloads/Code claude/psygames/chess-scholars-mate/lichess_f7_opening_mates.json
- *   /tmp/sacrifice_mates.json  (выборка «мат с жертвой», см. README раздела)
+ * НЕ `fen` из файла. Первый ход сохраняется полем `p` (пре-ход).
  *
  * ЗАПУСК: node scripts/build-scholars-mate.mjs
  * ПИШЕТ:  src/games/scholars-mate/data/puzzles.json
@@ -23,121 +28,133 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { homedir } from 'node:os';
+import { Chess } from 'chess.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FRONT = join(HERE, '..');
-const ИСХ = join(homedir(), 'Downloads', 'Code claude', 'psygames', 'chess-scholars-mate');
-
-/**
- * Сколько задач Lichess берём в сборку.
- *
- * ⚠️ НЕ «побольше». 14 217 задач — это 4 МБ; человек за всю жизнь решит из них
- * сотню. Берём ЛЕСТНИЦУ: ровный срез по рейтингу, чтобы сложность росла, а не
- * прыгала. 480 = 6 ступеней по 80.
- */
-const СТУПЕНИ = [
-  [0, 700], [700, 850], [850, 1000], [1000, 1200], [1200, 1500], [1500, 9999],
-];
-const НА_СТУПЕНЬ = 80;
+const ИСХ = join(FRONT, '..', 'chess-scholars-mate');
 
 function читать(имя) {
   const p = join(ИСХ, имя);
   if (!existsSync(p)) {
     console.log(`🔴 нет исходника ${p}`);
-    console.log('   Их готовит gen_scholars_mate.py — см. README в той же папке.');
+    console.log('   Их готовят scan_pattern_m1.py / scan_sacrifice.py — см. README рядом.');
     process.exit(1);
   }
   return JSON.parse(readFileSync(p, 'utf8'));
 }
 
 const свои = читать('scholars_mate_generated.json');
-const личесс = читать('lichess_f7_opening_mates.json');
-/**
- * 🔴 ИСХОДНИК ЖЕРТВ ЛЕЖИТ В РЕПОЗИТОРИИ, А НЕ В /tmp.
- *
- * До 05.09.2026 он читался из `/tmp/sacrifice_mates.json`, и это была тихая
- * мина: `/tmp` вычищается сам, `existsSync` возвращал false, сборка молча
- * писала ПУСТОЙ раздел `sacrifice` — и «мат с жертвой», ради которого весь
- * верх лестницы, исчезал из приложения без единого сообщения об ошибке.
- * Теперь файл рядом с остальными исходниками, а его отсутствие — отказ.
- */
-const жертвы = читать('sacrifice_mates.json');
+const узор = читать('lichess_scholar_pattern_m1.json').puzzles;
+const жертвы = читать('lichess_sacrifice_scholar.json').puzzles;
 
-/** Ровный срез по ступени рейтинга: берём каждую k-ю, а не первые N подряд. */
-function срез(список, сколько) {
-  if (список.length <= сколько) return список;
-  const шаг = список.length / сколько;
-  return Array.from({ length: сколько }, (_, i) => список[Math.floor(i * шаг)]);
-}
-
-const лестница = [];
-for (const [низ, верх] of СТУПЕНИ) {
-  const в = личесс.puzzles
-    .filter((x) => x.rating > низ && x.rating <= верх && / mateIn1( |$)|^mateIn1 /.test(` ${x.themes} `))
-    .sort((a, b) => a.rating - b.rating);
-  лестница.push(...срез(в, НА_СТУПЕНЬ));
+/** Ход uci на доске. Возвращает объект хода chess.js или null. */
+function сыграть(g, uci) {
+  try {
+    return g.move({
+      from: uci.slice(0, 2),
+      to: uci.slice(2, 4),
+      ...(uci.length > 4 ? { promotion: uci[4] } : {}),
+    });
+  } catch { return null; }
 }
 
 /**
- * Компактная запись. Однобуквенные поля — не «экономия на спичках»: на трёх
- * тысячах позиций разница между `solutions` и `s` это сотни килобайт в сборке
- * приложения, которое ставят на телефон.
+ * 🔴 SAN СЧИТАЕТСЯ ЗДЕСЬ, А НЕ ОСТАЁТСЯ ПУСТЫМ.
  *
- *   f — FEN позиции ДО пре-хода
- *   p — пре-ход соперника (uci), которого нет у своих позиций
- *   s — решения (uci); у `threat` пусто
- *   n — решения в записи SAN, для показа «лучшего»
- *   r — рейтинг Lichess, ось трудности
- *   d — мат в N ходов
- *   t — ответ да/нет для `threat`
- *   u — ссылка на партию (источник, называем по правилу CC0)
+ * 📍 В VER 1 поле `n` заполнялось только у своих позиций: 12 630 записей из
+ * 14 482 (87%) приезжали без него. На уровнях 11–40 это 100% позиций, и после
+ * ошибки человек видел голый «✕» — без ответа, который он не нашёл. Упражнение
+ * на узнавание, которое не показывает узор после промаха, не учит ничему.
  */
+function записьИзLichess(z, { линия = false } = {}) {
+  const ходы = Array.isArray(z.moves) ? z.moves : z.moves.split(' ');
+  const g = new Chess(z.fen);
+  if (!сыграть(g, ходы[0])) return null;               // битая запись — выбрасываем
+  const san = [];
+  const остаток = ходы.slice(1);
+  for (const uci of остаток) {
+    const ход = сыграть(g, uci);
+    if (!ход) return null;
+    san.push(ход.san);
+  }
+  if (!g.isCheckmate()) return null;                    // линия обязана матовать
+  const запись = {
+    f: z.fen,
+    p: ходы[0],
+    s: [остаток[0]],
+    n: [san[0]],
+    d: линия ? (z.mateIn ?? Math.ceil(остаток.length / 2)) : 1,
+    r: z.rating,
+  };
+  if (линия) {
+    запись.a = остаток;
+    запись.n = san;                                     // весь путь, а не только первый ход
+    запись.o = z.opening ? 1 : 0;
+    запись.u = z.url;
+  }
+  return запись;
+}
+
 const мат = свои.mate.map((x) => ({ f: x.fen, s: x.solutions, n: x.solutions_san, d: 1, r: 0 }));
 const защита = свои.defend.map((x) => ({ f: x.fen, s: x.solutions, n: x.solutions_san, r: 0 }));
-const угроза = свои.threat.map((x) => ({ f: x.fen, t: !!x.threat, r: 0 }));
-
-const изПартий = лестница.map((x) => {
-  const ходы = x.moves.split(' ');
-  return { f: x.fen, p: ходы[0], s: [ходы[1]], d: 1, r: x.rating, u: x.url };
-});
 
 /**
- * 🔴 ОТБОР ПО ПОЛЮ МАТА, А НЕ ПО СЛОВУ «ЖЕРТВА».
+ * 🔴 «ГРОЗИТ ЛИ» БОЛЬШЕ НЕ БЕРЁТ ПОЗИЦИИ ИЗ «ЗАЩИТИСЬ».
  *
- * 📍 ЗАМЕР 05.09.2026 по всем 434 позициям выборки: матуют на f7/f2 — 227
- * (52%), остальные 207 ставят мат на f8, f1, e6, g6 и далее, и 306 из 434
- * помечены как MIDDLEGAME, а не дебют. Это хорошие задачи, но это НЕ детский
- * мат: просьба Дениса была «детский мат с жертвой», то есть тот же узор —
- * жертвой вскрыть f7 и матовать ферзём, — а не «любой мат в 2–3 хода».
+ * 📍 В VER 1 все 378 позиций с ответом «да» были ТЕМИ ЖЕ позициями, что в
+ * блоке «защитись» — совпадение по FEN 378 из 378. Генератор копил в `threat`
+ * только «нет», а «да» дописывались копией `defend`. Два блока показывали одни
+ * и те же доски, а на уровнях 21–30, где оба вида в одной колоде, позиция
+ * попадала в подход ДВАЖДЫ (замер: 8 случаев на 200 подходов).
  *
- * Оставляем те, что кончаются на f7/f2: 227 позиций, мат в 2 — 199, мат в 3 —
- * 28, рейтинг 971…2384. Для верхних десяти ступеней по 8 позиций на подход
- * этого с запасом.
+ * Теперь «да» берутся из пула узора: позиция ДО пре-хода — это ход
+ * защищающегося, и если у соперника там уже есть мат в один, значит мат
+ * ГРОЗИТ. Проверяется нулевым ходом, тем же способом, что и в игре.
  */
-const наПолеМата = (x) => x.moves[x.moves.length - 1].slice(2, 4);
-const сЖертвой = жертвы
-  .filter((x) => наПолеМата(x) === 'f7' || наПолеМата(x) === 'f2')
-  .map((x) => ({
-    f: x.fen,
-    p: x.moves[0],
-    s: [x.moves[1]],
-    /** Полная последовательность: у мата в 2–3 хода за ответом идёт ответ соперника. */
-    a: x.moves.slice(1),
-    d: x.mateIn,
-    r: x.rating,
-    o: x.opening ? 1 : 0,
-    u: x.url,
-  }));
+function грозитЛи(fen) {
+  const части = fen.split(' ');
+  части[1] = части[1] === 'w' ? 'b' : 'w';
+  части[3] = '-';
+  try {
+    const g = new Chess(части.join(' '));
+    for (const m of g.moves({ verbose: true })) {
+      const t = new Chess(части.join(' '));
+      try { t.move({ from: m.from, to: m.to, ...(m.promotion ? { promotion: m.promotion } : {}) }); } catch { continue; }
+      if (t.isCheckmate()) return true;
+    }
+  } catch { return false; }
+  return false;
+}
+
+const узорЗаписи = [];
+const угрозаДа = [];
+for (const z of узор) {
+  const запись = записьИзLichess(z);
+  if (!запись) continue;
+  узорЗаписи.push(запись);
+  // Позиция ДО пре-хода: ходит защищающийся. Если мат уже грозит — годится в «да».
+  if (угрозаДа.length < 1200 && !new Chess(z.fen).inCheck() && грозитЛи(z.fen)) {
+    угрозаДа.push({ f: z.fen, t: true, r: z.rating });
+  }
+}
+
+const угрозаНет = свои.threat.filter((x) => !x.threat).map((x) => ({ f: x.fen, t: false, r: 0 }));
+/** Поровну «да» и «нет»: перекос делает угадывание выгодным. */
+const поровну = Math.min(угрозаДа.length, угрозаНет.length);
+const угроза = [...угрозаДа.slice(0, поровну), ...угрозаНет.slice(0, поровну)];
+
+const сЖертвой = жертвы.map((z) => записьИзLichess(z, { линия: true })).filter(Boolean);
 
 const итог = {
   _источник: 'Lichess puzzle DB (CC0) + свой генератор на python-chess',
   _лицензия: 'Lichess CC0; сгенерированные позиции — наши',
+  _отбор: 'узор проверен движком: ферзь матует на f7/f2 при поддержке своего слона',
   _собрано: new Date().toISOString().slice(0, 10),
   mate: мат,
   defend: защита,
   threat: угроза,
-  fromGames: изПартий,
+  fromGames: узорЗаписи,
   sacrifice: сЖертвой,
 };
 
@@ -148,9 +165,10 @@ writeFileSync(файл, JSON.stringify(итог));
 const кб = Math.round(readFileSync(файл).length / 1024);
 
 console.log(`записано: ${файл} (${кб} КБ)`);
-console.log(`  мат в 1 (свои):      ${мат.length}`);
-console.log(`  защитись:            ${защита.length}`);
-console.log(`  грозит ли:           ${угроза.length}`);
-console.log(`  из партий (лестница): ${изПартий.length}, рейтинг ${изПартий[0]?.r}…${изПартий[изПартий.length - 1]?.r}`);
-console.log(`  с жертвой:           ${сЖертвой.length}, из них дебютных ${сЖертвой.filter((x) => x.o).length}`);
-if (!сЖертвой.length) console.log('  ⚠️ жертв нет: не найден /tmp/sacrifice_mates.json');
+console.log(`  мат в 1 (свои):        ${мат.length}`);
+console.log(`  защитись:              ${защита.length}`);
+console.log(`  грозит ли:             ${угроза.length} (да ${поровну}, нет ${поровну})`);
+console.log(`  узор из партий:        ${узорЗаписи.length}, рейтинг ${Math.min(...узорЗаписи.map((x) => x.r))}…${Math.max(...узорЗаписи.map((x) => x.r))}`);
+console.log(`  с жертвой:             ${сЖертвой.length} (мат в 2 — ${сЖертвой.filter((x) => x.d === 2).length}, в 3 — ${сЖертвой.filter((x) => x.d === 3).length})`);
+const безSAN = [...узорЗаписи, ...сЖертвой].filter((x) => !x.n || !x.n.length).length;
+console.log(`  без разбора ошибки:    ${безSAN} (было 12 630)`);

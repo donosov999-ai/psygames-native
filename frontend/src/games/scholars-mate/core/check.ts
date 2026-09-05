@@ -40,9 +40,16 @@ function сыграть(g: Chess, uci: string): boolean {
   }
 }
 
-/** Чей ход в показанной позиции: 'w' | 'b'. */
+/**
+ * Чей ход в показанной позиции: 'w' | 'b'.
+ *
+ * ⚠️ БЕРЁМ ИЗ СТРОКИ, А НЕ РАЗБОРОМ. Сторона хода — второе поле FEN, и создавать
+ * ради неё доску незачем: замер 05.09.2026 — 0,177 мс на вызов, а доска
+ * перерисовывается десять раз в секунду по секундомеру.
+ */
 export function sideToMove(p: ScholarsPuzzle): 'w' | 'b' {
-  return new Chess(shownFen(p)).turn();
+  const fen = shownFen(p);
+  return fen.split(' ')[1] === 'b' ? 'b' : 'w';
 }
 
 export interface Verdict {
@@ -172,12 +179,42 @@ export function bestDefence(p: ScholarsPuzzle): string | undefined {
   return undefined;
 }
 
-/** Все законные ходы фигуры с клетки — подсветка при выборе фигуры на доске. */
+/**
+ * Все законные ходы фигуры С УКАЗАННОЙ КЛЕТКИ — подсветка при выборе фигуры.
+ *
+ * 🔴 Возвращает ПОЛЯ, а не ходы: превращение пешки даёт четыре хода на одно
+ * поле, и подсветка обязана показать поле один раз.
+ */
 export function movesFrom(fen: string, square: string): string[] {
-  const g = new Chess(fen);
   try {
-    return (g.moves({ square: square as never, verbose: true }) as { to: string }[]).map((m) => m.to);
+    const g = new Chess(fen);
+    const ходы = g.moves({ square: square as never, verbose: true }) as { to: string }[];
+    return [...new Set(ходы.map((m) => m.to))];
   } catch {
     return [];
+  }
+}
+
+/**
+ * 🔴 ПРЕВРАЩЕНИЕ ПЕШКИ: тап даёт четыре знака, а ход требует пятый.
+ *
+ * 📍 chess.js 1.4.0 БРОСАЕТ на `move({from:'g7',to:'g8'})` без `promotion`.
+ * Замер: на живой доске подсветка показывала g8 и тап по нему давал «✕» —
+ * попытка сгорала, доска не двигалась. В нынешнем наборе таких позиций одна на
+ * 13 726, но при любой пересборке их станет больше, а тап пятый знак выразить
+ * не может в принципе.
+ *
+ * Ферзь — единственный разумный выбор в матовой задаче: недопревращение в
+ * этих узорах не встречается.
+ */
+export function дополнитьХод(fen: string, uci: string): string {
+  if (uci.length > 4) return uci;
+  try {
+    const g = new Chess(fen);
+    const есть = (g.moves({ verbose: true }) as { from: string; to: string; promotion?: string }[])
+      .some((m) => m.from === uci.slice(0, 2) && m.to === uci.slice(2, 4) && m.promotion);
+    return есть ? `${uci}q` : uci;
+  } catch {
+    return uci;
   }
 }

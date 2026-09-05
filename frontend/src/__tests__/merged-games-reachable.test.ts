@@ -14,6 +14,8 @@
  *
  * ⚠️ Комментарии срезаем: упоминание маршрута в объяснении не считается ссылкой.
  */
+import { HUB_CONTENTS } from '@/src/constants/hubContents';
+
 declare const __dirname: string;
 declare function require(m: string): any;
 const fs = require('fs');
@@ -79,6 +81,18 @@ function достижимо(старт: string, цель: string): boolean {
     if (!fs.existsSync(f)) continue;
     const s = безКомментариев(fs.readFileSync(f, 'utf8'));
     for (const m of s.matchAll(/'(\/games\/[a-z0-9-]+)'/g)) if (!виден.has(m[1]!)) очередь.push(m[1]!);
+    /**
+     * 🔴 СОСТАВ РАЗВИЛКИ ЖИВЁТ В РЕЕСТРЕ, А НЕ В РАЗМЕТКЕ ЭКРАНА.
+     *
+     * 05.09.2026 списки карточек переехали из шестнадцати экранов в
+     * `src/constants/hubContents.ts` — иначе число на значке и список внутри
+     * расходились (24 пары профиль×развилка). Обход по ссылкам в JSX после
+     * этого перестал видеть ЛЮБУЮ игру за развилкой: гейт краснел на всех
+     * шестнадцати сразу. Свойство то же, место другое.
+     */
+    for (const карточка of HUB_CONTENTS[r] ?? []) {
+      if (!виден.has(карточка.route)) очередь.push(карточка.route);
+    }
     if (s.includes('<GameSuiteSwitch')) {
       for (const сосед of соседиПоНабору(r)) if (!виден.has(сосед)) очередь.push(сосед);
     }

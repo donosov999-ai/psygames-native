@@ -20,7 +20,7 @@ import { Chess } from 'chess.js';
 import { CHESS_PIECE_SVG } from '@/src/games/chess-blind/core/pieces';
 import { a11yDecor } from '@/src/services/a11y';
 import { buildDeck, levelParams } from './core/deck';
-import { check, movesFrom, shownFen, sideToMove, threatAnswer } from './core/check';
+import { check, movesFrom, shownFen, sideToMove, threatAnswer, дополнитьХод } from './core/check';
 import { scholarsArmed, медианаМс, размерКлетки, ширинаДоски } from './core/run';
 import type { ScholarsAttempt, ScholarsResult } from './core/types';
 
@@ -72,16 +72,32 @@ export default function ScholarsMateGame({
   const [осталось, setОсталось] = React.useState(п.seconds);
   const попытки = React.useRef<ScholarsAttempt[]>([]);
   const началоRef = React.useRef(now());
+  /**
+   * 🔴 ПОДХОД ЗАКАНЧИВАЕТСЯ РОВНО ОДИН РАЗ.
+   *
+   * 📍 ЧТО БЫЛО. `дальше` на последней позиции звал `onComplete` и делал
+   * `return`, но секундомер продолжал идти по старому `началоRef`: замер
+   * 05.09.2026 — через 25 секунд после конца подхода `onComplete` был вызван
+   * ПЯТЬ раз, а попыток записано 13 вместо 8. До человека это не доходило
+   * только потому, что экран синхронно снимает модуль, — то есть беда жила
+   * ровно до первого случая, когда снимет не сразу.
+   */
+  const кончено = React.useRef(false);
+  /** Замок от второй попытки в ОДНОМ кадре: `вердикт` доезжает только к следующему. */
+  const отвечаем = React.useRef(false);
 
   const задача = колода[шаг];
 
   /** Перейти к следующей позиции или закончить подход. */
   const дальше = React.useCallback(() => {
+    отвечаем.current = false;
     setВердикт(null);
     setВыбрана(null);
     setПодсветка([]);
     const след = шаг + 1;
     if (след >= колода.length) {
+      if (кончено.current) return;
+      кончено.current = true;
       const верные = попытки.current.filter((a) => a.correct);
       let серия = 0; let лучшая = 0;
       for (const a of попытки.current) { серия = a.correct ? серия + 1 : 0; лучшая = Math.max(лучшая, серия); }
@@ -104,12 +120,20 @@ export default function ScholarsMateGame({
   }, [шаг, колода, onComplete, п.seconds, now]);
 
   /** Записать попытку и показать ответ на секунду. */
+  /**
+   * 🔴 ЗАМОК СТОИТ НА REF, А НЕ НА СОСТОЯНИИ.
+   *
+   * 📍 `if (вердикт) return` защищает только между КАДРАМИ: состояние доезжает
+   * к следующей перерисовке, а внутри одного кадра его ещё нет. Замер: в кадре
+   * без перерисовки набежало 1422 попытки на колоду из восьми позиций.
+   */
   const ответить = React.useCallback((answer: string, correct: boolean, best?: string, timeout = false) => {
-    if (!задача || вердикт) return;
+    if (!задача || отвечаем.current || кончено.current) return;
+    отвечаем.current = true;
     попытки.current.push({ puzzle: задача, answer, correct, ms: now() - началоRef.current, timeout });
     onProgress?.(scholarsArmed(попытки.current));
     setВердикт({ ok: correct, best });
-  }, [задача, вердикт, now, onProgress]);
+  }, [задача, now, onProgress]);
 
   /**
    * Секундомер. ⚠️ Идёт по ИГРОВЫМ часам (`now` приходит извне): пока человек
@@ -117,8 +141,9 @@ export default function ScholarsMateGame({
    * меряет чтение справки.
    */
   React.useEffect(() => {
-    if (вердикт) return;
+    if (вердикт || кончено.current) return;
     const t = setInterval(() => {
+      if (кончено.current) return;
       const прошло = (now() - началоRef.current) / 1000;
       const ост = Math.max(0, п.seconds - прошло);
       setОсталось(ост);
@@ -127,19 +152,54 @@ export default function ScholarsMateGame({
     return () => clearInterval(t);
   }, [вердикт, п.seconds, now, ответить]);
 
-  /** Показ ответа, потом следующая позиция. */
+  /**
+   * Показ ответа, потом следующая позиция.
+   *
+   * 🔴 ЭФФЕКТ ЗАВИСИТ ТОЛЬКО ОТ ВЕРДИКТА, А `дальше` БЕРЁТСЯ ИЗ REF.
+   *
+   * 📍 ЧТО ЛОМАЛОСЬ. С `дальше` в зависимостях таймер перезаводился при каждой
+   * смене его тождества, а оно менялось от любой перерисовки РОДИТЕЛЯ: экран
+   * пересчитывал `levelParams(level)` каждый рендер, новый массив `kinds`
+   * попадал в зависимости `onComplete`, тот менял `дальше`. Замер: 0
+   * перерисовок — вердикт держится 550 мс, 1 — 650, 2 — 750, а при
+   * перерисовке каждые 200 мс он не снимается ВООБЩЕ. Доска замирала, и
+   * следующая позиция не приходила никогда.
+   *
+   * Мемоизация на экране это чинит, но чинит СНАРУЖИ: следующий, кто передаст
+   * сюда стрелку прямо в разметке, вернёт беду. Поэтому модуль защищается сам.
+   */
+  const дальшеRef = React.useRef(дальше);
+  React.useEffect(() => { дальшеRef.current = дальше; });
   React.useEffect(() => {
     if (!вердикт) return;
-    const t = setTimeout(дальше, вердикт.ok ? 550 : 1400);
+    const t = setTimeout(() => дальшеRef.current(), вердикт.ok ? 550 : 1400);
     return () => clearTimeout(t);
-  }, [вердикт, дальше]);
+  }, [вердикт]);
+
+  /**
+   * 🔴 ДОСКА НЕ ПЕРЕВОРАЧИВАЕТСЯ ПОСРЕДИ ПОДХОДА.
+   *
+   * 📍 Замер по 2000 колод: ориентация менялась внутри подхода в 97% случаев —
+   * 40% позиций идут за чёрных. В упражнении, которое целиком про узнавание
+   * КАРТИНКИ, разворот доски между позициями добавляет к каждому замеру время
+   * на переориентацию, и медиана этого не убирает: она убирает выбросы, а не
+   * систематическую добавку.
+   *
+   * Ориентация берётся у ПЕРВОЙ позиции набора и держится весь подход. Узор
+   * при этом остаётся узнаваемым: у чёрных он зеркальный по построению (f2
+   * вместо f7), и человек видит его так же, как видел бы за доской.
+   */
+  const снизуБелые = React.useMemo(
+    () => (колода[0] ? sideToMove(колода[0]) === 'w' : true),
+    [колода],
+  );
 
   if (!задача) return null;
 
   const тап = (имя: string) => {
     if (вердикт || задача.kind === 'threat') return;
     if (выбрана && подсветка.includes(имя)) {
-      const uci = выбрана + имя;
+      const uci = дополнитьХод(fen, выбрана + имя);
       const v = check(задача, uci);
       if (v.fenAfter) setFen(v.fenAfter);
       ответить(uci, v.correct, v.best);
@@ -157,10 +217,10 @@ export default function ScholarsMateGame({
     ответить(да ? 'yes' : 'no', да === истина, истина ? labels.yes : labels.no);
   };
 
+  const ходовНет = задача.kind === 'threat';
   const клетка = размерКлетки(size);
   const сторона = ширинаДоски(size);
   const расстановка = расставить(fen);
-  const снизуБелые = sideToMove(задача) === 'w';
   const порядок = снизуБелые
     ? Array.from({ length: 64 }, (_, i) => i)
     : Array.from({ length: 64 }, (_, i) => 63 - i);
@@ -196,10 +256,16 @@ export default function ScholarsMateGame({
           return (
             <Pressable
               key={имя}
-              accessibilityRole="button"
+              /**
+               * ⚠️ На вопросе «грозит ли мат» ходить нечем: ответ — «да»/«нет»
+               * кнопками под доской. Клетки там НЕ кнопки: 64 мёртвые цели
+               * нажатия сбивают и скринридер, и палец.
+               */
+              accessibilityRole={ходовНет ? 'image' : 'button'}
               accessibilityLabel={`${имя}${фигура ? `, ${фигура}` : ''}`}
-              accessibilityState={{ selected: выбрана === имя }}
-              onPress={() => тап(имя)}
+              accessibilityState={ходовНет ? undefined : { selected: выбрана === имя }}
+              disabled={ходовНет}
+              onPress={ходовНет ? undefined : () => тап(имя)}
               style={{
                 width: клетка,
                 height: клетка,

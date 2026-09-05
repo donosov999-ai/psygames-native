@@ -1,4 +1,4 @@
-/* psygames-memory-palace-game · VER 2 · 22.08.2026 */
+/* psygames-memory-palace-game · VER 3 · 05.09.2026 */
 import React from 'react';
 import {
   AppState,
@@ -43,6 +43,8 @@ import {
 import {
   PLACE_LAYOUT,
   palaceLocusBasis,
+  palaceTileHeight,
+  type PalacePhaseLayout,
 } from './placeLayout';
 
 export interface MemoryPalaceTheme {
@@ -277,7 +279,7 @@ function LocusTile({
   selectedItem,
   highlighted = false,
   concealItem = false,
-  compact = false,
+  variant = 'full',
   compactBasis,
 }: {
   locus: PalaceLocus;
@@ -291,23 +293,26 @@ function LocusTile({
   highlighted?: boolean;
   concealItem?: boolean;
   /**
-   * 🔴 КОМПАКТНАЯ ПЛИТКА МЕСТА — ФАЗА РАЗМЕЩЕНИЯ (отзыв afa77c5a).
+   * 🔴 ВИД ПЛИТКИ МЕСТА. `full` — прежняя большая плитка, она осталась ОПРОСУ,
+   * где место на экране ровно одно. Остальные три вида компактные, и различает
+   * их то, что у места есть в этой фазе:
+   *
+   *   `route`  — предметов ещё не выдали: ромб с номером и название. 62 точки.
+   *   `place`  — предмет кладут: ромб, название и слот 20 под фигуру. 86 точек.
+   *   `study`  — связку заучивают: ромб, название, фигура и ИМЯ предмета. 110.
    *
    * Полная плитка объявлена как `flexBasis: 145`, и на 375 точках в ряд влезает
    * РОВНО ОДНА: 2 × 145 + зазор 10 = 300 против 287 внутренних. Пять мест — 820
    * точек сцены, двенадцать — под 1940. При этом внутри плитки шириной 287 стоят
    * ромб 54, короткое название и мелкий предмет: место тратится на пустоту.
-   *
-   * Компактная — 92 точки высотой, три-четыре в ряд (`palaceLocusBasis`), без
-   * подписи под предметом: какой предмет лежит, видно по той же фигуре и цвету,
-   * что и в ленте выбора, а название несёт `accessibilityLabel`. Ровно тем же
-   * рассуждением уже сделана компактная плитка предмета выше.
    */
-  compact?: boolean;
+  variant?: 'full' | PalacePhaseLayout;
   /** Доля ширины под плитку: считается от числа мест, см. `palaceLocusBasis`. */
   compactBasis?: string;
 }) {
   const strings = getMemoryPalaceStrings(locale);
+  /** Все виды, кроме `full`, — компактные: общая рамка, свои внутренности. */
+  const compact = variant !== 'full';
   const locusName = getLocusLabel(locus, locale);
   const itemName = item ? getItemLabel(item, locale) : strings.emptyLocus;
   const label = onPress
@@ -330,6 +335,7 @@ function LocusTile({
       onPress={onPress}
       style={({ pressed }) => [
         compact ? styles.locusTileCompact : styles.locusTile,
+        compact ? { minHeight: palaceTileHeight(variant as PalacePhaseLayout) } : null,
         compact && compactBasis ? { flexBasis: compactBasis as any } : null,
         { backgroundColor: theme.surface, borderColor: highlighted ? theme.warning : theme.border },
         highlighted && styles.highlightedLocus,
@@ -352,14 +358,40 @@ function LocusTile({
       >
         {locusName}
       </Text>
-      {compact ? (
+      {variant === 'route' ? (
+        /*
+          В маршруте предметов НЕТ НИ ОДНОГО: игра выдаёт их только на следующей
+          фазе. Прежняя плитка писала под каждым местом «Пусто» — сообщала об
+          отсутствии того, чего в этой фазе и не бывает, и стоила 20 точек в
+          каждой из двенадцати плиток.
+        */
+        null
+      ) : variant === 'place' ? (
         /*
           Слот ПОСТОЯННОЙ высоты, а не «предмет или ничего»: иначе занятые плитки
           выше пустых, ряды сетки пляшут после каждого хода, и человек ищет место
           заново там, где оно только что было.
         */
         <View style={styles.placedSlotCompact}>
-          {item ? <ItemAsset item={item} size={20} /> : null}
+          {item ? <ItemAsset item={item} size={PLACE_LAYOUT.tileAssetSize} /> : null}
+        </View>
+      ) : variant === 'study' ? (
+        /*
+          🔴 В ИЗУЧЕНИИ У ПРЕДМЕТА ЕСТЬ ИМЯ, И ЭТО НЕ УКРАШЕНИЕ. На опросе
+          кандидатов рисует полная плитка `ItemChoice` — С ПОДПИСЬЮ. Предмет,
+          выученный как «зелёный кружок», пришлось бы там называть словом,
+          которого человек ни разу не читал.
+
+          Подпись НЕ обрезается `numberOfLines`: имя здесь материал упражнения,
+          и лишняя строка (плитка вырастет на 12) честнее многоточия. Замер
+          05.09.2026 по всем 12 языкам: при трёх колонках (92 точки подписи) все
+          192 имени укладываются в две строки и ни одно не рвётся внутри слова.
+        */
+        <View style={styles.studyItemCompact}>
+          {item
+            ? <ItemAsset item={item} size={PLACE_LAYOUT.tileAssetSize} />
+            : <View style={styles.placedSlotCompact} />}
+          <Text style={[styles.placedLabelCompact, { color: theme.text }]}>{itemName}</Text>
         </View>
       ) : item ? (
         <View style={styles.placedAsset}>
@@ -382,7 +414,7 @@ function PalaceScene({
   showItems,
   onLocusPress,
   highlightedLocusId,
-  compact = false,
+  variant = 'full',
 }: {
   session: MemoryPalaceSession;
   locale: MemoryPalaceLocale;
@@ -392,11 +424,15 @@ function PalaceScene({
   showItems: boolean;
   onLocusPress?: (index: number) => void;
   highlightedLocusId?: string | null;
-  /** Компактная сетка мест — только фаза размещения, см. `LocusTile.compact`. */
-  compact?: boolean;
+  /** Вид плиток и число колонок — по фазе, см. `LocusTile.variant`. */
+  variant?: 'full' | PalacePhaseLayout;
 }) {
   const selectedItem = findPalaceItem(session, session.selectedPlacementItemId);
-  const basis = palaceLocusBasis(session.round.lociCount);
+  const compact = variant !== 'full';
+  const basis = palaceLocusBasis(
+    session.round.lociCount,
+    compact ? (variant as PalacePhaseLayout) : 'place',
+  );
   return (
     <View
       style={[
@@ -418,7 +454,7 @@ function PalaceScene({
             gameGradientText={gameGradientText}
             selectedItem={selectedItem}
             highlighted={highlightedLocusId === locus.id || session.selectedPlacementLocusIndex === index}
-            compact={compact}
+            variant={variant}
             compactBasis={basis}
             onPress={onLocusPress ? () => onLocusPress(index) : undefined}
           />
@@ -662,15 +698,23 @@ function MemoryPalaceSessionView({
             Счётчик размещения переехал СЮДА из-под сцены: отдельной строкой внизу
             он стоил 18 точек плюс зазор, а в шапке уже было место под «5 мест» —
             и «Заполнено 2 из 5» говорит то же самое и ещё сколько осталось.
+
+            🔴 В ИЗУЧЕНИИ СЧЁТЧИКА НЕТ. В маршруте «12 мест» говорит, какой длины
+            дорога, до того как по ней пошли; в размещении «Заполнено 2 из 5» —
+            сколько осталось сделать. В изучении делать нечего и идти некуда: все
+            двенадцать связок уже лежат на экране, а строка повторяла их число за
+            18 точек высоты — при том что именно в изучении плитка самая высокая.
           */}
-          <Text style={[styles.progress, { color: theme.primary }]}>
-            {session.phase === 'place'
-              ? interpolateMemoryPalace(strings.placementProgress, {
-                current: session.placements.filter(Boolean).length,
-                total: session.round.lociCount,
-              })
-              : interpolateMemoryPalace(strings.routeCount, { count: session.round.lociCount })}
-          </Text>
+          {session.phase === 'study' ? null : (
+            <Text style={[styles.progress, { color: theme.primary }]}>
+              {session.phase === 'place'
+                ? interpolateMemoryPalace(strings.placementProgress, {
+                  current: session.placements.filter(Boolean).length,
+                  total: session.round.lociCount,
+                })
+                : interpolateMemoryPalace(strings.routeCount, { count: session.round.lociCount })}
+            </Text>
+          )}
         </View>
         <ActionButton label={strings.pause} theme={theme} secondary onPress={() => applySession((current) => pauseMemoryPalaceSession(current, now()))} />
       </View>
@@ -700,7 +744,13 @@ function MemoryPalaceSessionView({
           <Text style={{ color: theme.primary, fontWeight: '700' }}>{strings.placementChangeHint}</Text>
         </Text>
       ) : (
-        <Text style={[styles.body, { color: theme.textSecondary }]}>
+        /*
+          Инструкция во всех трёх фазах одним кеглем 13/18. Прежние 16/24 стоили
+          в маршруте 48 точек вместо 36, в изучении — 72 вместо 54 (замер
+          05.09.2026, ru, ширина 327): три фазы платили за один и тот же абзац
+          по-разному, хотя читается он один раз и до первого действия.
+        */
+        <Text style={[styles.bodyCompact, { color: theme.textSecondary }]}>
           {session.phase === 'route' ? strings.routeBody : strings.studyBody}
         </Text>
       )}
@@ -775,7 +825,7 @@ function MemoryPalaceSessionView({
         gameGradient={gameGradient}
         gameGradientText={gameGradientText}
         showItems={session.phase === 'place' || session.phase === 'study'}
-        compact={session.phase === 'place'}
+        variant={session.phase === 'route' ? 'route' : session.phase === 'place' ? 'place' : 'study'}
         onLocusPress={session.phase === 'place'
           ? (index) => applySession((current) => placeSelectedItemAtLocus(current, index))
           : undefined}
@@ -895,7 +945,24 @@ const styles = StyleSheet.create({
    */
   locusNameCompact: { fontSize: 10, lineHeight: 12, fontWeight: '800', textAlign: 'center' },
   /** 20 точек под предмет — ровно столько же у пустого места, чтобы ряды не прыгали. */
-  placedSlotCompact: { height: 20, alignItems: 'center', justifyContent: 'center' },
+  placedSlotCompact: {
+    height: PLACE_LAYOUT.tileAssetSize,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  /** Блок предмета в плитке изучения: фигура, под ней имя. Зазор — как в плитке. */
+  studyItemCompact: { alignItems: 'center', gap: 2 },
+  /**
+   * Имя предмета в плитке изучения — 10/12, как и название места, но начертанием
+   * легче (600 против 800): две подписи одного кегля друг под другом сливаются,
+   * а разделяет их ещё и фигура предмета между ними.
+   *
+   * 📍 Замер 05.09.2026 по всем 12 языкам при трёх колонках (92 точки подписи):
+   * самое длинное имя — итальянское «Fotocamera menta» (98 точек) — ложится в
+   * две строки, самое длинное слово — немецкое «Korallenmuschel» (87) — в одну.
+   * Ни одного переноса внутри слова.
+   */
+  placedLabelCompact: { fontSize: 10, lineHeight: 12, fontWeight: '600', textAlign: 'center' },
   highlightedLocus: { borderWidth: 3 },
   diamondWrap: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center' },
   diamond: { position: 'absolute', width: 39, height: 39, borderWidth: 2, borderRadius: 5, transform: [{ rotateZ: '45deg' }] },

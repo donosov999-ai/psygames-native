@@ -13,6 +13,8 @@ import { PROFILES, filterAllowedGames } from '@/src/constants/profiles';
  * либо сама в каталоге, либо лежит внутри развилки, которая в каталоге есть И
  * которая на неё действительно ссылается (экран развилки, а не пометка в реестре).
  */
+import { HUB_CONTENTS } from '@/src/constants/hubContents';
+
 declare const __dirname: string;
 declare function require(m: string): any;
 const fs = require('fs');
@@ -55,6 +57,10 @@ function изРазвилки(route: string): Set<string> {
     const исходник = безКомментариев(fs.readFileSync(f, 'utf8'));
     for (const m of исходник.matchAll(/'(\/games\/[a-z0-9-]+)'/g)) {
       if (!виден.has(m[1]!)) очередь.push(m[1]!);
+    }
+    // Состав развилки живёт в реестре, а не в разметке экрана (см. ниже).
+    for (const карточка of HUB_CONTENTS[r] ?? []) {
+      if (!виден.has(карточка.route)) очередь.push(карточка.route);
     }
     if (исходник.includes('<GameSuiteSwitch')) {
       for (const сосед of соседиПоНабору(r)) if (!виден.has(сосед)) очередь.push(сосед);
@@ -153,14 +159,19 @@ describe('профиль НЗТ-48 показывает всё', () => {
       if (!fs.existsSync(f)) { беспризорные.push(`${g.id}: экрана родителя ${родитель.route} нет`); continue; }
       const текст = безКомментариев(fs.readFileSync(f, 'utf8'));
       /**
-       * Прямая ссылка ИЛИ вход через набор: развилка ссылается на первый режим,
-       * а экран того режима рисует переключатель на остальные. Второй путь
-       * засчитывается, только если ОБА звена на месте — карточка набора в
-       * развилке и `<GameSuiteSwitch />` на экране, куда она ведёт.
+       * 🔴 СОСТАВ РАЗВИЛКИ БЕРЁТСЯ ИЗ РЕЕСТРА, А НЕ ИЗ РАЗМЕТКИ ЭКРАНА.
+       *
+       * 05.09.2026 списки карточек переехали из шестнадцати экранов в
+       * `src/constants/hubContents.ts`: пока их было два (значок считал по
+       * `mergedInto`, экран рисовал свой список), число на значке врало в 24
+       * парах профиль×развилка. После переезда поиск ссылки в JSX перестал
+       * находить хоть что-нибудь — гейт краснел на всех развилках разом.
        */
-      const прямо = текст.includes(`'${g.route}'`);
+      const вРеестре = (HUB_CONTENTS[родитель.route] ?? []).map((к) => к.route);
+      const прямо = вРеестре.includes(g.route) || текст.includes(`'${g.route}'`);
       const черезНабор = !прямо && соседиПоНабору(g.route).some((сосед) => {
-        if (сосед === g.route || !текст.includes(`'${сосед}'`)) return false;
+        if (сосед === g.route) return false;
+        if (!вРеестре.includes(сосед) && !текст.includes(`'${сосед}'`)) return false;
         const экран = path.join(КОРЕНЬ, 'app' + сосед + '.tsx');
         return fs.existsSync(экран) && String(fs.readFileSync(экран, 'utf8')).includes('<GameSuiteSwitch');
       });

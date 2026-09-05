@@ -216,7 +216,10 @@ export const PALACE_ITEM_LIBRARY: readonly PalaceItem[] = [
     label: {
       ru: 'Мятная камера', en: 'Mint camera', es: 'Cámara menta', de: 'Mintfarbene Kamera',
       zh: '薄荷色相机', hi: 'पुदीना रंग का कैमरा', pt: 'Câmera menta', fr: 'Appareil photo menthe',
-      it: 'Macchina fotografica menta', ja: 'ミント色のカメラ', ko: '민트색 사진기', ar: 'كاميرا نعناعية',
+      // «Fotocamera», а не «Macchina fotografica»: обиходное итальянское слово и
+      // единственная из 192 подписей, которой в плитке изучения не хватало двух
+      // строк — 147 точек кеглем 10 против 92 доступных (замер 05.09.2026).
+      it: 'Fotocamera menta', ja: 'ミント色のカメラ', ko: '민트색 사진기', ar: 'كاميرا نعناعية',
     },
   },
   {

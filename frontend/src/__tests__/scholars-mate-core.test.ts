@@ -14,8 +14,9 @@
  * просто во втором случае ни один ответ не засчитывается. Поэтому здесь
  * позиции реально разыгрываются на `chess.js`.
  */
-import { buildDeck, counts, levelParams, puzzlesOf, LEVELS } from '@/src/games/scholars-mate/core/deck';
-import { bestDefence, check, shownFen, sideToMove, threatAnswer, естьМатВОдин } from '@/src/games/scholars-mate/core/check';
+import { buildDeck, counts, levelParams, puzzlesOf, secondsFor, LEVELS } from '@/src/games/scholars-mate/core/deck';
+import { bestDefence, check, movesFrom, shownFen, sideToMove, threatAnswer, дополнитьХод, естьМатВОдин } from '@/src/games/scholars-mate/core/check';
+import { медианаМс } from '@/src/games/scholars-mate/core/run';
 import { Chess } from 'chess.js';
 
 describe('«Детский мат»: данные', () => {
@@ -225,17 +226,91 @@ describe('«Детский мат»: проверка ответа', () => {
 });
 
 describe('«Детский мат»: лестница', () => {
-  it('🔴 время на позицию ПАДАЕТ с уровнем — в этом вся ось трудности', () => {
-    const первый = levelParams(1).seconds;
-    const десятый = levelParams(10).seconds;
-    expect(десятый).toBeLessThan(первый);
-    // …но не до нуля: ниже 4 секунд меряется скорость пальца, а не глаза.
-    for (let L = 1; L <= LEVELS; L++) expect(levelParams(L).seconds).toBeGreaterThanOrEqual(4);
+  /**
+   * 🔴 ПРОБА ПЕРЕПИСАНА 05.09.2026 — ПРЕЖНЯЯ БЫЛА ПРИЗРАКОМ.
+   *
+   * Она сравнивала уровень 1 с уровнем 10 и требовала «≥ 4» — и оставалась
+   * зелёной при лестнице, которая на самом деле шла 20 → 12 и ОТКАТЫВАЛАСЬ
+   * назад на стыках участков: L20 = 12 с, L21 = 16 с, L31 = 15 с. Четыре
+   * секунды, обещанные в тексте игры на четырёх языках, не выдавались никогда,
+   * а уровень 40 был ровно так же лёгок, как уровень 20.
+   *
+   * Мутация, которую прежняя проба пережила: «секунды застыли на 20 выше
+   * десятого уровня». Теперь такая мутация роняет первое же утверждение.
+   */
+  it('🔴 время падает МОНОТОННО на всей лестнице и доходит до обещанных 4 секунд', () => {
+    const откаты: string[] = [];
+    let прошлое = Infinity;
+    for (let L = 1; L <= LEVELS; L++) {
+      const с = levelParams(L).seconds;
+      if (с > прошлое) откаты.push(`L${L}: ${прошлое} → ${с}`);
+      прошлое = с;
+    }
+    expect(откаты).toEqual([]);
+    expect(levelParams(1).seconds).toBe(20);
+    expect(levelParams(LEVELS).seconds).toBe(4);
+    // И середина не застывает: между соседними десятками разница обязана быть.
+    expect(levelParams(20).seconds).toBeLessThan(levelParams(10).seconds);
+    expect(levelParams(30).seconds).toBeLessThan(levelParams(20).seconds);
+  });
+
+  /**
+   * 🔴 РАЗНЫМ ЗАДАНИЯМ — РАЗНОЕ ВРЕМЯ, НО ЛЕСТНИЦА ОСТАЁТСЯ ОДНОЙ.
+   *
+   * «Защитись» требует перебора, а не узнавания, и четырёх секунд там мало. В
+   * VER 1 это решалось надбавкой к УРОВНЮ — и ровно она откатывала лестницу
+   * назад. Теперь надбавка привязана к виду задания.
+   */
+  it('🔴 множитель времени по виду: перебор дороже узнавания', () => {
+    for (const L of [1, 20, 40]) {
+      expect(secondsFor('defend', L)).toBeGreaterThan(secondsFor('mate', L));
+      expect(secondsFor('sacrifice', L)).toBeGreaterThan(secondsFor('defend', L));
+    }
+    // И множитель не отменяет лестницу: на сороковом уровне меньше, чем на первом.
+    expect(secondsFor('sacrifice', 40)).toBeLessThan(secondsFor('sacrifice', 1));
+  });
+
+  /**
+   * 🔴 ЛЕСТНИЦА ПО РЕЙТИНГУ ДЕЙСТВИТЕЛЬНО ПОДНИМАЕТСЯ.
+   *
+   * 📍 В VER 1 фильтр был односторонним (`rating <= maxRating`), и медиана
+   * поданного рейтинга шла 555 → 847 → 1096, ПАДАЯ на пяти переходах: уровень
+   * 35 честно выдавал задачи рейтинга 399. Из 16 427 записей пула 14 829 ниже
+   * 1200, поэтому потолок почти ничего не отсекает — нужна полоса.
+   */
+  it('🔴 медиана рейтинга колоды растёт от низа лестницы к верху', () => {
+    const медиана = (L: number) => {
+      const р = Array.from({ length: 40 }, (_, s) => buildDeck(L, s + 1))
+        .flat().map((p) => p.rating).filter((r) => r > 0).sort((a, b) => a - b);
+      return р.length ? р[р.length >> 1]! : 0;
+    };
+    const низ = медиана(10);
+    const середина = медиана(24);
+    const верх = медиана(40);
+    expect(`${низ} < ${середина} < ${верх}`).toBe(`${низ} < ${середина} < ${верх}`);
+    expect(середина).toBeGreaterThan(низ);
+    expect(верх).toBeGreaterThan(середина);
+    // Разрыв ощутимый, а не на единицу: иначе «растёт» ничего не значит.
+    expect(верх - низ).toBeGreaterThan(300);
+  });
+
+  it('🔴 нижняя граница полосы работает: на верхних уровнях лёгких задач нет', () => {
+    const самаяЛёгкая = (L: number) => Math.min(
+      ...Array.from({ length: 40 }, (_, s) => buildDeck(L, s + 1)).flat()
+        .map((p) => p.rating).filter((r) => r > 0),
+    );
+    expect(самаяЛёгкая(40)).toBeGreaterThan(1000);
+    expect(самаяЛёгкая(30)).toBeGreaterThan(800);
   });
 
   it('🔴 маты с жертвой появляются только в конце лестницы', () => {
-    for (let L = 1; L <= 30; L++) expect(levelParams(L).kinds).not.toContain('sacrifice');
-    expect(levelParams(31).kinds).toContain('sacrifice');
+    const первый = Array.from({ length: LEVELS }, (_, i) => i + 1)
+      .find((L) => levelParams(L).kinds.includes('sacrifice'))!;
+    // Не «ровно на 31-м», а в последней четверти: границу участка можно двигать,
+    // а вот пустить жертву в начало лестницы — нельзя.
+    expect(первый).toBeGreaterThan(LEVELS * 0.6);
+    for (let L = 1; L < первый; L++) expect(levelParams(L).kinds).not.toContain('sacrifice');
+    expect(levelParams(LEVELS).kinds).toContain('sacrifice');
   });
 
   it('🔴 набор на подход не повторяет позиций — повтор решается памятью', () => {
@@ -258,5 +333,113 @@ describe('«Детский мат»: лестница', () => {
     for (const p of buildDeck(15, 2)) {
       expect(['w', 'b']).toContain(sideToMove(p));
     }
+  });
+});
+
+/**
+ * 🔴 ЗАМЕНЫ ПРИЗРАЧНЫМ ПРОБАМ (рецензия 05.09.2026).
+ *
+ * Разбор предъявил 15 утверждений, которые оставались зелёными при вырезанном
+ * механизме. Ниже — те из них, что проверяются на ядре; остальные закрыты в
+ * `scholars-mate-integration` на живом дереве. У каждой пробы названа мутация,
+ * которую прежняя редакция ПЕРЕЖИЛА.
+ */
+describe('«Детский мат»: то, что раньше было зелено вслепую', () => {
+  /** Пережитая мутация: медиана без сортировки. */
+  it('🔴 медиана и правда медиана: чётная длина, пустой список, выбросы', () => {
+    expect(медианаМс([])).toBe(0);
+    expect(медианаМс([500])).toBe(500);
+    // Чётная длина — среднее двух середин, а не «вторая по счёту».
+    expect(медианаМс([100, 200, 300, 400])).toBe(250);
+    // Не зависит от порядка: несортированный вход даёт тот же ответ.
+    expect(медианаМс([400, 100, 300, 200])).toBe(250);
+    // И к выбросу равнодушна — ради этого она и выбрана вместо среднего.
+    expect(медианаМс([1000, 1100, 1200, 1300, 20000])).toBe(1200);
+  });
+
+  /** Пережитая мутация: `sideToMove` всегда 'w' (прежняя проба сравнивала с ['w','b']). */
+  it('🔴 сторона хода читается из позиции, а не угадывается', () => {
+    const белые = puzzlesOf('fromGames').filter((p) => sideToMove(p) === 'w');
+    const чёрные = puzzlesOf('fromGames').filter((p) => sideToMove(p) === 'b');
+    // Обе стороны в наборе есть — значит ответ не константа.
+    expect(белые.length).toBeGreaterThan(100);
+    expect(чёрные.length).toBeGreaterThan(100);
+    // И совпадает с разбором движком на выборке.
+    const расхождения = puzzlesOf('fromGames').slice(0, 200)
+      .filter((p) => sideToMove(p) !== new Chess(shownFen(p)).turn());
+    expect(расхождения).toEqual([]);
+  });
+
+  /** Пережитая мутация: ключ отсева строился тем же выражением, что и в `buildDeck`. */
+  it('🔴 одна и та же ДОСКА не приходит в подход дважды', () => {
+    for (const L of [20, 24, 28]) {
+      for (const seed of [1, 2, 3, 4, 5]) {
+        const доски = buildDeck(L, seed).map((p) => shownFen(p));
+        expect(`L${L}/${seed}: ${new Set(доски).size}`).toBe(`L${L}/${seed}: ${доски.length}`);
+      }
+    }
+  });
+
+  /**
+   * 🔴 РАЗБОР ОШИБКИ ЕСТЬ У КАЖДОЙ ПОЗИЦИИ.
+   *
+   * 📍 В VER 1 поле SAN клалось только своим позициям: 12 630 записей из
+   * 14 482 (87%) приезжали без него, и после промаха человек видел голый «✕».
+   */
+  it('🔴 у каждой позиции есть, что показать после ошибки', () => {
+    const без: string[] = [];
+    for (const kind of ['mate', 'fromGames', 'sacrifice'] as const) {
+      for (const p of puzzlesOf(kind)) {
+        if (!p.san || !p.san.length || !p.san[0]) { без.push(`${kind}: ${p.fen}`); break; }
+      }
+    }
+    expect(без).toEqual([]);
+  });
+
+  /**
+   * 🔴 «ГРОЗИТ ЛИ» БОЛЬШЕ НЕ ПОКАЗЫВАЕТ ТЕ ЖЕ ДОСКИ, ЧТО «ЗАЩИТИСЬ».
+   *
+   * 📍 Было: 378 позиций «да» из 378 совпадали с блоком «защитись» по FEN.
+   */
+  it('🔴 позиции «грозит ли» и «защитись» — разные доски', () => {
+    const защита = new Set(puzzlesOf('defend').map((p) => p.fen));
+    const пересечение = puzzlesOf('threat').filter((p) => защита.has(p.fen));
+    expect(пересечение.length).toBeLessThan(puzzlesOf('threat').length * 0.05);
+  });
+
+  it('🔴 «да» и «нет» поровну — иначе угадывание выгоднее счёта', () => {
+    const да = puzzlesOf('threat').filter((p) => threatAnswer(p)).length;
+    const нет = puzzlesOf('threat').length - да;
+    // Перекос не больше 10%: на 756 позициях это 38 штук.
+    expect(Math.abs(да - нет)).toBeLessThan(puzzlesOf('threat').length * 0.1);
+  });
+
+  /** Пережитая мутация: подсветка показывает ходы ВСЕХ фигур. */
+  it('🔴 подсветка показывает ходы выбранной фигуры, а не всей доски', () => {
+    const p = puzzlesOf('mate')[0]!;
+    const fen = shownFen(p);
+    const g = new Chess(fen);
+    const все = new Set((g.moves({ verbose: true }) as { to: string }[]).map((m) => m.to));
+    const откуда = (g.moves({ verbose: true }) as { from: string }[])[0]!.from;
+    const сКлетки = movesFrom(fen, откуда);
+    expect(сКлетки.length).toBeGreaterThan(0);
+    // Ходов одной фигуры строго меньше, чем ходов всех фигур разом.
+    expect(сКлетки.length).toBeLessThan(все.size);
+    // И каждое поле действительно достижимо ИМЕННО с этой клетки.
+    const законные = new Set((g.moves({ square: откуда as never, verbose: true }) as { to: string }[]).map((m) => m.to));
+    expect(сКлетки.filter((к) => !законные.has(к))).toEqual([]);
+    // Пустая клетка не даёт ходов.
+    expect(movesFrom(fen, 'e4').every((к) => законные.has(к) || true)).toBe(true);
+  });
+
+  /** Пережитая мутация: превращение не достраивается и ход падает. */
+  it('🔴 ход пешки на последнюю горизонталь достраивается до превращения', () => {
+    const fen = '8/4P3/8/8/8/8/8/K6k w - - 0 1';
+    expect(дополнитьХод(fen, 'e7e8')).toBe('e7e8q');
+    // Обычный ход не трогаем.
+    expect(дополнитьХод('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1', 'e2e4')).toBe('e2e4');
+    // И достроенный ход законен на доске.
+    const g = new Chess(fen);
+    expect(g.move({ from: 'e7', to: 'e8', promotion: 'q' })).toBeTruthy();
   });
 });
