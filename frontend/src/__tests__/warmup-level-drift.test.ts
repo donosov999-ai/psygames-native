@@ -213,9 +213,24 @@ function collectDefs(s: string): Defs {
 const KW = new Set(['true', 'false', 'null', 'undefined', 'new', 'typeof', 'void', 'in', 'of', 'await', 'return',
   'Math', 'Number', 'String', 'Boolean', 'Array', 'Object', 'JSON', 'Set', 'Map']);
 /** Имена и пути в выражении. Ключи объектных литералов, вызовы и параметры стрелок — не имена. */
+/**
+ * 🔴 ИМЕНА В ЭТОМ ПРОЕКТЕ БЫВАЮТ КИРИЛЛИЧЕСКИЕ.
+ *
+ * 📍 Разбор брал имена по латинскому алфавиту. Условие
+ * `!поток && levelOutcome({ isPreset, cleared: passed }).lowerLevel` из
+ * «Детского мата» он разобрать не мог: `поток` в свободные имена не попадал,
+ * `new Function` падал на неизвестном имени, и по правилу «непонятое — под
+ * подозрение» экран красился красным при полностью верном поведении.
+ *
+ * Это не поблажка: правило «непонятое красим» остаётся, просто понимать гейт
+ * стал больше. Ловушка общая — разбор кода регулярками по `[A-Za-z]` в
+ * кодовой базе с русскими именами слепнет ровно там, где имена русские.
+ */
+const ИМЯ = '[A-Za-z_$\\u0400-\\u04FF][\\w$\\u0400-\\u04FF]*';
+
 function atomsOf(expr: string): string[] {
   const out = new Set<string>();
-  const re = /[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*/g;
+  const re = new RegExp(`${ИМЯ}(?:\\.${ИМЯ})*`, 'g');
   let m: RegExpExecArray | null;
   while ((m = re.exec(expr))) {
     const a = m[0];
@@ -284,7 +299,7 @@ function decall(expr: string): string {
   let n = 0;
   for (let g = 0; g < 80; g++) {
     let hit: RegExpExecArray | null = null;
-    const re = /(?<![\w$.])([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*\(/g;
+    const re = new RegExp(`(?<![\\w$.])(${ИМЯ}(?:\\.${ИМЯ})*)\\s*\\(`, 'g');
     let x: RegExpExecArray | null;
     while ((x = re.exec(expr))) { if (x[1] !== 'levelOutcome') { hit = x; break; } }
     if (!hit) break;

@@ -50,7 +50,8 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
 import { LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, namedMotifCount } from '@/src/games/scholars-mate/core/deck';
-import { starsFor, итогПодхода } from '@/src/games/scholars-mate/core/run';
+import { starsFor } from '@/src/games/scholars-mate/core/run';
+import { levelOutcome } from '@/src/services/levelOutcome';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
 
 const GRADIENT = ['#8e5b2f', '#2f2a24'];
@@ -147,14 +148,31 @@ export default function ScholarsMateScreen() {
      * режим и его отрабатываешь» — отработка узора это ТА ЖЕ игра с тем же
      * секундомером, только пул уже. Значит и лестница та же.
      */
-    const итог = итогПодхода({
-      касались: r.touched, взял: passed, поток,
-      предустановка: isPreset, цепочка: shouldChainNextLevel(mode),
-    });
-    if (итог.ступень === 'вверх') lvl.reach(level + 1);
-    else if (итог.ступень === 'вниз') lvl.fail();
-    if (итог.фаза === 'cleared') setClearedPassed(passed);
-    setPhase(итог.фаза);
+    /**
+     * ⚠️ ОБЩЕЕ ПРАВИЛО ИГРЫ, В ТОЙ ЖЕ ФОРМЕ, ЧТО У ОСТАЛЬНЫХ ЭКРАНОВ.
+     * `isPreset` уходит в `levelOutcome` БУКВАЛЬНО, а не через помощника:
+     * разбор гейта `warmup-level-drift` подставляет сюда `isPreset = true` и
+     * проверяет, достижимо ли отсюда понижение уровня. Спрячь признак за вызов — и
+     * гейт по своему правилу «непонятое под подозрение» покрасит экран красным
+     * при полностью верном поведении.
+     */
+    const out = levelOutcome({ isPreset, cleared: passed });
+    /**
+     * 🔴 ПОТОК — ЕДИНСТВЕННЫЙ БЕЗ СТУПЕНЕЙ, И ЭТО НЕ ОГОВОРКА: в нём десять
+     * минут подряд без границ подхода, брать там нечего. Всё остальное —
+     * лестница, жертва, любой из 19 узоров — ступени двигает.
+     *
+     * 📍 ОТЧЁТ ДЕНИСА 05.09.2026: «партию прошёл, завершилось всё и всё висит,
+     * где следующий уровень». Подход в режиме упирался в карточку итога — без
+     * ступени, без «дальше». Второй его отчёт того же дня объясняет, почему это
+     * неверно: «выбираешь режим и его отрабатываешь» — отработка узора это ТА
+     * ЖЕ игра с тем же секундомером, только пул уже.
+     */
+    if (!поток && out.raiseLevel && shouldChainNextLevel(mode)) lvl.reach(level + 1);
+    if (!поток && out.lowerLevel) lvl.fail();
+    const фаза: 'cleared' | 'result' = поток ? 'result' : out.phase;
+    if (фаза === 'cleared') setClearedPassed(passed);
+    setPhase(фаза);
 
     try {
       await saveSession({

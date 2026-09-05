@@ -3526,7 +3526,8 @@ export default function GoodsSortGame() {
   const [hintH, setHintH] = useState(0);
   // Числа раскладки — из `gsLayout`: одна формула на игру и на гейт (см. её комментарий).
   const capWideHere = Math.max(...caps, CAP);
-  const LAY = gsLayout(width, Math.max(180, fieldH || height - 360), gridDim.cols, gridDim.rows, capWideHere, hintH || undefined);
+  const availH = Math.max(180, fieldH || height - 360);
+  const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hintH || undefined);
   const boardW = LAY.boardW;
   const cellW = LAY.cellW;
   // Размер товара ограничен И шириной (cols в ряд), И доступной высотой (rows полок) — тянемся по высоте экрана.
@@ -3543,7 +3544,6 @@ export default function GoodsSortGame() {
    * Замер честнее любой константы: сколько места контейнер реально дал,
    * столько и делим. До первого onLayout держим прежнюю оценку — один кадр.
    */
-  const availH = Math.max(180, fieldH || height - 360);
   /**
    * 🔴 РАЗМЕР ТОВАРА ПОДЧИНЯЕТСЯ ЯЧЕЙКЕ, А НЕ НАОБОРОТ.
    *
