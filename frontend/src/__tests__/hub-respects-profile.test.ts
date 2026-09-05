@@ -43,35 +43,27 @@ const path = require('path');
 const КОРЕНЬ = path.join(__dirname, '../..');
 
 /**
- * СОСЕДИ ПО НАБОРУ (`src/constants/gameSuites.ts`) — с 05.09.2026 часть парадигм
- * не перечислена в развилке отдельными строками: они прячутся под карточкой
- * набора, а карточка ведёт на ПЕРВЫЙ ОТКРЫТЫЙ ПРОФИЛЮ режим.
+ * ЧТО ЛЕЖИТ ВНУТРИ РАЗВИЛКИ — СПРАШИВАЕМ У ОБЩЕГО РЕЕСТРА (`hubContents.ts`).
  *
- * ⚠️ РАСКРЫВАЕМ ТОЛЬКО ТОГДА, КОГДА ЭКРАН ДЕЙСТВИТЕЛЬНО ЗНАЕТ ПРО НАБОРЫ. Если
- * из развилки убрать работу с `visibleSuiteCards`, её карточка снова поведёт на первый
- * режим списка — закрытый профилю, — и режимы под ней станут недостижимы. Проба
- * обязана это увидеть, поэтому раскрытие висит на упоминании реестра в файле, а
- * не выдаётся развилке авансом.
+ * ⚠️ Здесь стоял разбор ИСХОДНИКА экрана регулярками: состав был набран прямо в
+ * JSX шестнадцати `app/games/*-hub.tsx`, и другого места его взять было негде.
+ * Ровно из-за этой второй копии значок на карточке каталога врал (замер
+ * 05.09.2026: 6 развилок из 16 разошлись; «Зрительная память» — на значке 2,
+ * внутри 3). С переездом состава в один реестр разбирать нечего — и не нужно:
+ * то же самое читает и экран, и значок. Отрисовку проверяет соседняя проба
+ * `hub-badge-matches-screen`.
  */
-function соседиПоНабору(маршрут: string): string[] {
-  const реестр: string = fs.readFileSync(path.join(КОРЕНЬ, 'src/constants/gameSuites.ts'), 'utf8');
-  for (const блок of реестр.split('modes: [').slice(1)) {
-    const маршруты = [...блок.slice(0, блок.indexOf('],')).matchAll(/route:\s*'(\/games\/[a-z0-9-]+)'/g)].map((m) => m[1]!);
-    if (маршруты.includes(маршрут)) return маршруты;
-  }
-  return [];
-}
-
 function ссылкиЭкрана(route: string): string[] {
-  const f = path.join(КОРЕНЬ, 'app' + route + '.tsx');
-  if (!fs.existsSync(f)) return [];
-  const src: string = fs.readFileSync(f, 'utf8')
-    .replace(/\/\*[\s\S]*?\*\//g, ' ')
-    .replace(/^\s*\/\/.*$/gm, ' ');
-  const прямые = [...src.matchAll(/'(\/games\/[a-z0-9-]+)'/g)].map((m) => m[1]!);
-  if (!src.includes('visibleSuiteCards')) return прямые;
-  const все = new Set(прямые);
-  for (const r of прямые) for (const сосед of соседиПоНабору(r)) все.add(сосед);
+  const { HUB_CONTENTS } = require('@/src/constants/hubContents');
+  const { GAME_SUITES } = require('@/src/constants/gameSuites');
+  const все = new Set<string>();
+  for (const c of (HUB_CONTENTS[route] ?? []) as { route: string; suiteId?: string }[]) {
+    все.add(c.route);
+    if (!c.suiteId) continue;
+    // под карточкой набора живёт несколько маршрутов — они тоже достижимы
+    const набор = GAME_SUITES.find((s: any) => s.id === c.suiteId);
+    for (const m of набор?.modes ?? []) все.add(m.route);
+  }
   return [...все];
 }
 
@@ -91,34 +83,51 @@ describe('развилка и профиль', () => {
     expect(`schulte разрешён детям: ${можно.has('/games/schulte')}`)
       .toBe('schulte разрешён детям: true');
 
-    const { ThemeProvider } = require('@/src/contexts/ThemeContext');
-    const { LanguageProvider } = require('@/src/contexts/LanguageContext');
-    const { SafeAreaProvider } = require('react-native-safe-area-context');
-    const HubScreen = require('@/src/components/HubScreen').default;
-    let r: any;
-    TestRenderer.act(() => {
-      r = TestRenderer.create(
-        React.createElement(SafeAreaProvider, { initialMetrics: METRICS },
-          React.createElement(ThemeProvider, null,
-            React.createElement(LanguageProvider, null,
-              React.createElement(HubScreen, {
-                titleKey: 'visualMemoryGroup', descKey: 'visualMemoryGroupDesc',
-                pickKey: 'hubPickExercise', icon: 'image', gradient: ['#000000', '#111111'],
-                games: [
-                  { route: '/games/schulte', icon: 'grid', nameKey: 'schulteTable', descKey: 'schulteTableDesc' },
-                  { route: '/games/chess-blind', icon: 'apps', nameKey: 'chessBlind', descKey: 'chessBlindDesc' },
-                ],
-              })))),
-      );
-    });
-    // считаем СТРОКИ списка, а не слова: подпись зависит от языка проб
-    const строки = r.root.findAll((n: any) => typeof n.props?.accessibilityRole === 'string'
-      && n.props.accessibilityRole === 'button' && typeof n.props?.onPress === 'function');
-    const текст = JSON.stringify(r.toJSON());
-    expect(`«Доска в уме» на экране: ${/Доска в уме|Board in Mind/.test(текст)}`).toBe('«Доска в уме» на экране: false');
-    expect(`строк в списке: ${строки.length >= 1}`).toBe('строк в списке: true');
-    expect(`Шульте на экране: ${/Шульте|Schulte/i.test(текст)}`).toBe('Шульте на экране: true');
-    r.unmount();
+    /**
+     * ⚠️ РИСУЕМ НАСТОЯЩИЕ ЭКРАНЫ, А НЕ СОБРАННЫЙ ЗДЕСЬ СПИСОК. До 05.09.2026 сюда
+     * передавался выдуманный набор карточек пропом `games` — проба проверяла
+     * фильтр каркаса, но ни одной живой развилки в глаза не видела. Состав теперь
+     * приходит из реестра, и синтетический список стал бы проверкой самого себя.
+     * Берём две живые: за «Шахматами» лежит закрытая детям доска в уме, за
+     * «Поиском» — открытая им таблица Шульте.
+     */
+    const нарисовать = (route: string) => {
+      const { ThemeProvider } = require('@/src/contexts/ThemeContext');
+      const { LanguageProvider } = require('@/src/contexts/LanguageContext');
+      const { SafeAreaProvider } = require('react-native-safe-area-context');
+      const Экран = require('../../app/games/' + route.replace('/games/', '')).default;
+      let r: any;
+      TestRenderer.act(() => {
+        r = TestRenderer.create(
+          React.createElement(SafeAreaProvider, { initialMetrics: METRICS },
+            React.createElement(ThemeProvider, null,
+              React.createElement(LanguageProvider, null, React.createElement(Экран)))));
+      });
+      /**
+       * ⚠️ ЧИТАЕМ ПОДПИСИ СТРОК, А НЕ ВЕСЬ ЭКРАН. Первая редакция искала имя игры
+       * по всему дереву и покраснела на исправном коде: «Доска в уме» названа в
+       * СНОСКЕ развилки («chessGroupFootnote»), которая на месте у всех профилей.
+       * Гейт мерил не то место — а спрашивают у него про строки списка.
+       */
+      const строки = new Map<unknown, string>();
+      for (const n of r.root.findAll((x: any) => x.props?.accessibilityRole === 'button'
+        && typeof x.props?.onPress === 'function' && typeof x.props?.activeOpacity === 'number')) {
+        const подпись = n.findAll(() => true)
+          .flatMap((x: any) => ([] as any[]).concat(x.props?.children ?? []))
+          .filter((c: any) => typeof c === 'string').join(' ');
+        строки.set(n.props.onPress, подпись);
+      }
+      r.unmount();
+      return { текст: [...строки.values()].join(' | '), строк: строки.size };
+    };
+
+    const шахматы = нарисовать('/games/chess-hub');
+    expect(`«Доска в уме» на экране шахмат: ${/Доска в уме|Board in Mind/.test(шахматы.текст)}`)
+      .toBe('«Доска в уме» на экране шахмат: false');
+
+    const поиск = нарисовать('/games/search-hub');
+    expect(`строк в списке поиска: ${поиск.строк >= 1}`).toBe('строк в списке поиска: true');
+    expect(`Шульте на экране поиска: ${/Шульте|Schulte/i.test(поиск.текст)}`).toBe('Шульте на экране поиска: true');
   });
 
   it('🔴 открытая развилка не бывает пустой', () => {
@@ -140,5 +149,12 @@ describe('развилка и профиль', () => {
     expect(src).toContain('filterAllowedGames');
     // общий список наружу больше не идёт: обход строится по отфильтрованному
     expect(src).not.toContain('games.map(');
+    /**
+     * ⚠️ И СПИСОК КАРКАС БОЛЬШЕ НЕ ПРИНИМАЕТ СНАРУЖИ. Пока проп `games` был,
+     * развилка могла принести свой состав — и приносила: значок считал по
+     * `mergedInto`, экран рисовал JSX, расходились 6 развилок из 16.
+     */
+    expect(`каркас берёт состав по маршруту: ${src.includes('visibleHubCards(hubRoute')}`)
+      .toBe('каркас берёт состав по маршруту: true');
   });
 });

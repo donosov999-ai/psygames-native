@@ -26,7 +26,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { filterAllowedGames } from '@/src/constants/profiles';
-import { visibleSuiteCards } from '@/src/constants/gameSuites';
+import { visibleHubCards } from '@/src/constants/hubContents';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#0ea5e9', '#10b981'];
@@ -35,61 +35,15 @@ const GRADIENT = ['#0ea5e9', '#10b981'];
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 
-const SUB_GAMES = [
-  {
-    route: '/games/digit-span',
-    icon: 'keypad' as const,
-    nameKey: 'digitSpan' as const,
-    descKey: 'digitSpanDesc' as const,
-    typeKey: 'spanTypeDigit' as const,   // «Цифры · forward + backward» — словарь LanguageContext
-  },
-  /**
-   * КАРТОЧКА НАБОРА «Позиции» — решение Дениса 05.09.2026. Под ней три экрана:
-   * матрица памяти (регулярная сетка), кубики Корси (нерегулярные блоки) и
-   * spatial-span (та же сетка, обратный порядок). Матрица переехала сюда из
-   * «Зрительной памяти»: два из трёх — тесты охвата, и меряют они одно.
-   * Разбор и вскрытый по дороге дубль — в шапке `src/constants/gameSuites.ts`.
-   */
-  {
-    route: '/games/memory-matrix',
-    icon: 'grid' as const,
-    nameKey: 'suitePositions' as const,
-    descKey: 'suitePositionsDesc' as const,
-    suiteId: 'suite_positions',
-  },
-  /**
-   * Три «охвата с нагрузкой» — добавлены 04.09.2026. Отличие от первых трёх в том,
-   * что запоминать приходится НЕ в тишине: между стимулами человек читает, слушает
-   * или считает. Именно так объём памяти меряют в клинике, и именно это ближе к
-   * жизни, где ничего не запоминается в вакууме.
-   */
-  {
-    route: '/games/listening-span',
-    icon: 'headset' as const,
-    nameKey: 'listeningSpan' as const,
-    descKey: 'listeningSpanDesc' as const,
-    typeKey: 'spanTypeListening' as const,
-  },
-  {
-    route: '/games/reading-span',
-    icon: 'book' as const,
-    nameKey: 'readingSpan' as const,
-    descKey: 'readingSpanDesc' as const,
-    typeKey: 'spanTypeReading' as const,
-  },
-  /**
-   * N-back — тот же объём удерживаемого в голове, только ряд не кончается:
-   * держать надо не «сколько запомнил», а «что было N шагов назад». Стояла
-   * отдельной карточкой до 04.09.2026 — при том, что меряет ровно это.
-   */
-  {
-    route: '/games/n-back',
-    icon: 'sync' as const,
-    nameKey: 'nBack' as const,
-    descKey: 'nBackDesc' as const,
-    typeKey: 'spanTypeNBack' as const,
-  },
-];
+/**
+ * 🔴 СОСТАВ — В `src/constants/hubContents.ts`, А НЕ ЗДЕСЬ.
+ *
+ * Здесь стоял свой список из пяти карточек, а значок на карточке каталога считал
+ * по `mergedInto` и показывал 7. Замер 05.09.2026: так расходились 6 развилок из
+ * 16. Список переехал в общий реестр — его же читает значок.
+ */
+const ХАБ = '/games/span';
+
 
 function DemoSpanRedirect() {
   const router = useRouter();
@@ -112,7 +66,7 @@ export default function SpanGame() {
     () => new Set(filterAllowedGames(profile).map((g: { route?: string }) => g.route as string)),
     [profile],
   );
-  const карточки = visibleSuiteCards(SUB_GAMES, можно, t);
+  const карточки = visibleHubCards(ХАБ, можно, t);
 
   /**
    * ⚠️ ВЫХОД В WEB-DEMO СТОИТ ПОСЛЕ ХУКОВ. До правки 05.09.2026 он был выше, и

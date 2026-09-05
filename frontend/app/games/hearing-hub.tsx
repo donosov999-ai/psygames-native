@@ -13,18 +13,13 @@ import HubScreen from '@/src/components/HubScreen';
 export default function HearingHub() {
   return (
     <HubScreen
+      hubRoute="/games/hearing-hub"
       titleKey="hearingGroup"
       descKey="hearingGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="hearingGroupFootnote"
       icon="ear"
       gradient={['#0d9488', '#84cc16']}
-      games={[
-        { route: '/games/phoneme-pairs', icon: 'git-compare', nameKey: 'phonemePairs', descKey: 'phonemePairsDesc' },
-        { route: '/games/chinese-tones', icon: 'musical-note', nameKey: 'chineseTones', descKey: 'chineseTonesDesc' },
-        { route: '/games/pseudoword-echo', icon: 'mic', nameKey: 'pseudowordEcho', descKey: 'pseudowordEchoDesc' },
-        { route: '/games/dictation', icon: 'headset', nameKey: 'dictation', descKey: 'dictationDesc' },
-      ]}
     />
   );
 }

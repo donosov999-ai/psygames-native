@@ -13,21 +13,13 @@ import HubScreen from '@/src/components/HubScreen';
 export default function SearchHub() {
   return (
     <HubScreen
+      hubRoute="/games/search-hub"
       titleKey="searchGroup"
       descKey="searchGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="searchGroupFootnote"
       icon="search"
       gradient={['#f59e0b', '#ef4444']}
-      games={[
-        { route: '/games/visual-search', icon: 'scan', nameKey: 'visualSearch', descKey: 'visualSearchDesc' },
-        { route: '/games/proofreading', icon: 'create-outline', nameKey: 'proofreading', descKey: 'proofreadingDesc' },
-        { route: '/games/find-differences', icon: 'copy', nameKey: 'findDifferences', descKey: 'findDifferencesDesc' },
-        { route: '/games/mahjong', icon: 'grid', nameKey: 'mahjong', descKey: 'mahjongDesc' },
-        { route: '/games/schulte', icon: 'apps', nameKey: 'schulteTable', descKey: 'schulteTableDesc' },
-        { route: '/games/quick-count', icon: 'eye', nameKey: 'quickCount', descKey: 'quickCountDesc' },
-        { route: '/games/object-tracker', icon: 'locate', nameKey: 'objectTracker', descKey: 'objectTrackerDesc' },
-      ]}
     />
   );
 }

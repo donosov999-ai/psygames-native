@@ -37,6 +37,9 @@ import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientTe
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { filterAllowedGames } from '@/src/constants/profiles';
+import { visibleHubCards } from '@/src/constants/hubContents';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // Тёмная пара семейства судоку. Цвет текста поверх плашки считает onGradientText по
@@ -47,50 +50,21 @@ const GRADIENT = ['#3b2f7a', '#5b4d9e'];
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 
-const SUB_GAMES = [
-  {
-    route: '/games/sudoku',
-    icon: 'apps' as const,
-    nameKey: 'sudoku' as const,
-    descKey: 'sudokuDesc' as const,
-    typeKey: 'sudokuTypeClassic' as const,   // «Одна сетка · 57 ступеней» — словарь LanguageContext
-  },
-  {
-    route: '/games/sudoku-samurai',
-    icon: 'grid' as const,
-    nameKey: 'samuraiTitle' as const,
-    descKey: 'samuraiDesc' as const,
-    typeKey: 'sudokuTypeSamurai' as const,
-  },
-  {
-    route: '/games/sudoku-fractal',
-    icon: 'git-network' as const,
-    nameKey: 'fractalTitle' as const,
-    descKey: 'fractalDesc' as const,
-    typeKey: 'sudokuTypeFractal' as const,
-  },
-  /**
-   * Небоскрёбы и неравенства — РЕЖИМЫ классической доски (задача 70b58bbe):
-   * карточка ведёт на тот же экран с ?mode=…, у каждого своя мини-лестница на
-   * 8 ступеней и свой счётчик. Партии пишутся под game_type='sudoku' с
-   * mode='towers-N'/'unequal-N' — это режимы одной доски, как killer, а не
-   * отдельные доски с прогрессом (за то и различие с самураем/фракталом).
-   */
-  {
-    route: '/games/sudoku?mode=towers',
-    icon: 'business' as const,
-    nameKey: 'sudokuTowersTitle' as const,
-    descKey: 'sudokuTowersHubDesc' as const,
-    typeKey: 'sudokuTypeTowers' as const,
-  },
-  {
-    route: '/games/sudoku?mode=unequal',
-    icon: 'swap-vertical' as const,
-    nameKey: 'sudokuUnequalTitle' as const,
-    descKey: 'sudokuUnequalHubDesc' as const,
-    typeKey: 'sudokuTypeUnequal' as const,
-  },
-];
+const ХАБ = '/games/sudoku-hub';
+
+/**
+ * 🔴 СОСТАВ — В `src/constants/hubContents.ts`, А НЕ ЗДЕСЬ.
+ *
+ * Здесь стоял свой список из пяти карточек, а значок на карточке каталога считал
+ * по `mergedInto` — четыре доски, из которых одна («бездна») на экран не выходит
+ * вовсе, зато двух режимов классической доски у него не было. Отсюда «значок 4,
+ * внутри 5» у владельца и «значок 1, внутри 5» у «Микро-релакса», «Детей» и
+ * «Шахматиста». Замер 05.09.2026: так расходились 6 развилок из 16.
+ *
+ * ⚠️ ЗАОДНО ЭКРАН НАЧАЛ СПРАШИВАТЬ ПРОФИЛЬ. Он единственный из шестнадцати
+ * показывал общий список всем — то есть «Детям» предлагался самурай. Значок и
+ * список считает теперь одна функция, и обещание сходится с содержимым.
+ */
 
 function DemoSudokuRedirect() {
   const router = useRouter();
@@ -102,15 +76,27 @@ function DemoSudokuRedirect() {
 }
 
 export default function SudokuHub() {
-  // Web-demo: развилку не показываем — сразу классическая доска.
-  // Query (embed=1, lang=…) обязан пережить редирект — embed-контракт с сайтом.
-  if (isWebDemo()) {
-    return <DemoSudokuRedirect />;
-  }
-
   const { colors } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
+  const { profile } = useProfile();
+  const можно = React.useMemo(
+    () => new Set(filterAllowedGames(profile).map((g: { route?: string }) => g.route as string)),
+    [profile],
+  );
+  const карточки = visibleHubCards(ХАБ, можно, t);
+
+  /**
+   * ⚠️ ВЫХОД В WEB-DEMO СТОИТ ПОСЛЕ ХУКОВ — ровно та правка, что 05.09.2026
+   * сделана в `span.tsx`. Пока он был выше, хуки экрана оказывались условными:
+   * в demo-режиме React видел один порядок вызовов, в обычном другой.
+   *
+   * Web-demo: развилку не показываем — сразу классическая доска.
+   * Query (embed=1, lang=…) обязан пережить редирект — embed-контракт с сайтом.
+   */
+  if (isWebDemo()) {
+    return <DemoSudokuRedirect />;
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -132,12 +118,12 @@ export default function SudokuHub() {
         <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
           {t('sudokuPickBoard')}
         </Text>
-        {SUB_GAMES.map((g) => (
+        {карточки.map(({ card: g, route: маршрут, tag: тип }) => (
           <TouchableOpacity
             accessibilityRole="button"
             key={g.route}
             style={[styles.subCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            onPress={() => router.push(g.route as any)}
+            onPress={() => router.push(маршрут as any)}
             activeOpacity={0.7}
           >
             <View style={[styles.iconCircle, { backgroundColor: GRADIENT[0] + '22' }]}>
@@ -146,7 +132,7 @@ export default function SudokuHub() {
             <View style={styles.cardBody}>
               <Text style={[styles.cardName, { color: colors.text }]}>{t(g.nameKey)}</Text>
               <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{t(g.descKey)}</Text>
-              <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{t(g.typeKey)}</Text>
+              {тип ? <Text style={[styles.cardTag, { color: GRADIENT[1] }]}>{тип}</Text> : null}
             </View>
             <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
           </TouchableOpacity>

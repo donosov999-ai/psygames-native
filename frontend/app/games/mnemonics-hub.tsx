@@ -11,18 +11,13 @@ import HubScreen from '@/src/components/HubScreen';
 export default function MnemonicsHub() {
   return (
     <HubScreen
+      hubRoute="/games/mnemonics-hub"
       titleKey="mnemonicsGroup"
       descKey="mnemonicsGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="mnemonicsGroupFootnote"
       icon="link"
       gradient={['#d946ef', '#f59e0b']}
-      games={[
-        { route: '/games/mnemonics', icon: 'bulb', nameKey: 'mnemonics', descKey: 'mnemonicsDesc' },
-        { route: '/games/memory-palace', icon: 'home', nameKey: 'memoryPalace', descKey: 'memoryPalaceDesc' },
-        { route: '/games/faces-names', icon: 'person', nameKey: 'facesNames', descKey: 'facesNamesDesc' },
-        { route: '/games/word-pairs', icon: 'link', nameKey: 'wordPairs', descKey: 'wordPairsDesc' },
-      ]}
     />
   );
 }

@@ -39,6 +39,7 @@ import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '
 import { filterAllowedGames } from '@/src/constants/profiles';
 import { loadWeakSkill, gameForWeakSkill } from '@/src/services/weakSkill';
 import { visibleInCatalog } from '@/src/constants/games';
+import { hubBadgeCount } from '@/src/constants/hubContents';
 import {
   buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
   currentSlot, WarmupSlot,
@@ -439,28 +440,31 @@ function FullHome() {
   }, [visibleGames]);
 
   /**
-   * Сколько УПРАЖНЕНИЙ за развилкой — число на её значке.
+   * 🔴 ЧИСЛО НА ЗНАЧКЕ РАЗВИЛКИ = ДЛИНА ТОГО САМОГО СПИСКА, ЧТО ЧЕЛОВЕК УВИДИТ.
    *
-   * ⚠️ Считаем вглубь. У зонтика «Языки» внутри лежат не игры, а две развилки, и
-   * прямой подсчёт дал бы «2» — то есть значок сообщал бы про меню, а не про то,
-   * сколько там занятий. Разворачиваем вложенные развилки до упражнений.
+   * 📍 Отзыв тестировщицы 05.09.2026 (запись `291c2cff`), дословно: «написано
+   * например один а по факту там два стоит и так абсолютно во всех профилях».
+   * Замер в тот же день: расходились 6 развилок из 16, 24 пары профиль×развилка;
+   * «Зрительная память» — на значке 2, внутри 3, судоку — 1 против 5.
+   *
+   * ⚠️ ПОЧЕМУ ЭТО НЕ ЧИНИЛОСЬ ЦИФРОЙ. Здесь стоял свой подсчёт по полю
+   * `mergedInto`, а экран развилки рисовал свой рукописный список. Два источника
+   * правды, и оба по-своему верные: у игры ОДИН родитель, а стоять она вправе в
+   * НЕСКОЛЬКИХ развилках («матрица памяти» принадлежит охвату, но законно есть и
+   * в «Зрительной памяти»). Значок считал не то множество, а не ошибался в счёте.
+   *
+   * Теперь состав развилок живёт одним списком (`src/constants/hubContents.ts`),
+   * и `hubBadgeCount` — это буквально длина того, что рисует экран: не «столько
+   * же», а то же самое, одной функцией. `mergedInto` остался на своей работе —
+   * какая развилка ОТКРЫВАЕТ игру профилю (`filterAllowedGames`).
+   *
+   * ⚠️ И СЧИТАЕМ ПО ПРОФИЛЮ, А НЕ ПО ВСЕМУ КАТАЛОГУ: экран с 04.09.2026 фильтрует
+   * список, значит и обещание на значке обязано быть после фильтра.
    */
   const составРазвилки = useMemo(() => {
-    /**
-     * ⚠️ И СЧИТАЕМ ПО ПРОФИЛЮ, А НЕ ПО ВСЕМУ КАТАЛОГУ. Значок «10» на «Языках» у
-     * профиля, которому положены три упражнения из десяти, — это обещание,
-     * которого экран развилки не выполнит: он с 04.09.2026 фильтрует список
-     * (см. HubScreen). Число обязано совпадать с тем, что человек там увидит.
-     */
-    const можно = new Set(filterAllowedGames(profile).map((g) => g.id));
-    const прямые: Record<string, string[]> = {};
-    for (const g of GAMES) if (g.mergedInto) (прямые[g.mergedInto] ??= []).push(g.id);
-    const хаб = new Set(GAMES.filter((g) => g.hub).map((g) => g.id));
-    const счёт = (id: string, глубина = 0): number =>
-      глубина > 3 ? 0 : (прямые[id] ?? []).reduce(
-        (с, вложен) => с + (хаб.has(вложен) ? счёт(вложен, глубина + 1) : (можно.has(вложен) ? 1 : 0)), 0);
+    const можно = new Set(filterAllowedGames(profile).map((g) => g.route));
     const из: Record<string, number> = {};
-    for (const id of хаб) из[id] = счёт(id);
+    for (const g of GAMES) if (g.hub) из[g.id] = hubBadgeCount(g.route, можно);
     return из;
   }, [profile]);
 

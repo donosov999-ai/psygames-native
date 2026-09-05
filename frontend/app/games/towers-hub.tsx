@@ -18,17 +18,13 @@ import HubScreen from '@/src/components/HubScreen';
 export default function TowersHub() {
   return (
     <HubScreen
+      hubRoute="/games/towers-hub"
       titleKey="towersGroup"
       descKey="towersGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="towersGroupFootnote"
       icon="albums"
       gradient={['#7c3aed', '#0ea5e9']}
-      games={[
-        { route: '/games/hanoi', icon: 'layers', nameKey: 'hanoi', descKey: 'hanoiDesc' },
-        { route: '/games/tower-london', icon: 'git-network', nameKey: 'towerLondon', descKey: 'towerLondonDesc' },
-        { route: '/games/water-sort', icon: 'flask', nameKey: 'waterSort', descKey: 'waterSortDesc' },
-      ]}
     />
   );
 }

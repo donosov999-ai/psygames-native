@@ -43,6 +43,7 @@ import { HELP_MAP } from '@/src/constants/helpMap';
 import { RECO_GROUP_HUBS, RECO_STARTERS, recommendToday } from '@/src/services/recommend';
 import { getTodayChallenge } from '@/src/services/daily-challenge';
 import { filterAllowedGames, PROFILES } from '@/src/constants/profiles';
+import { HUB_CONTENTS } from '@/src/constants/hubContents';
 import type { HistorySession } from '@/src/services/trainingHistory';
 
 const ROOT = path.join(__dirname, '../..');
@@ -51,6 +52,15 @@ const stripComments = (s: string): string =>
   s.replace(/\{?\/\*[\s\S]*?\*\/\}?/g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
 
 const SCREEN = stripComments(read('app/games/sudoku-hub.tsx'));
+/**
+ * ⚠️ СОСТАВ РАЗВИЛКИ ПЕРЕЕХАЛ ИЗ ЭКРАНА В ОБЩИЙ РЕЕСТР (05.09.2026).
+ *
+ * Пока каждый из шестнадцати экранов нёс свой список в JSX, значок на карточке
+ * каталога считал по другому признаку (`mergedInto`) — и врал: 6 развилок из 16,
+ * у судоку «значок 1, внутри 5». Разбор — в шапке `src/constants/hubContents.ts`.
+ * Проверки состава смотрят туда; на экран остаётся то, что делает экран.
+ */
+const SUDOKU_CARDS = HUB_CONTENTS['/games/sudoku-hub'];
 const AUDIT = stripComments(read('scripts/slot-audit.mjs'));
 
 const HUB_ID = 'sudoku_group';
@@ -76,7 +86,7 @@ describe('развилка судоку заведена в каталоге', (
     for (const id of BOARDS) {
       const g = byId.get(id);
       expect(`${id}: есть=${!!g} скрыт=${!!g?.hideFromMenu}`).toBe(`${id}: есть=true скрыт=true`);
-      expect(SCREEN).toContain(`'${g?.route}'`);
+      expect(SUDOKU_CARDS.map((c) => c.route)).toContain(g?.route);
     }
   });
 
@@ -316,7 +326,8 @@ describe('экран развилки: меню, а не партия', () => {
     // 27.08.2026 (70b58bbe): к трём доскам добавились карточки режимов классической
     // доски — «Небоскрёбы» и «Неравенства» (?mode=…). Смысл гейта не тронут:
     // отсюда ТОЛЬКО уходят, и каждый уход — в семейство судоку.
-    expect([...SCREEN.matchAll(/route:\s*'\/games\//g)].length).toBe(5);
+    expect(SUDOKU_CARDS.length).toBe(5);
+    expect(SUDOKU_CARDS.every((c) => c.route.startsWith('/games/'))).toBe(true);
   });
 
   it('веб-демо уводит сразу на классическую доску и не теряет query', () => {
@@ -327,7 +338,7 @@ describe('экран развилки: меню, а не партия', () => {
 
   it('все подписи экрана берутся из словаря на двенадцати языках', () => {
     const keys = [...SCREEN.matchAll(/t\('([a-zA-Z0-9_]+)'\)/g)].map((m) => m[1])
-      .concat([...SCREEN.matchAll(/(?:nameKey|descKey|typeKey):\s*'([a-zA-Z0-9_]+)'/g)].map((m) => m[1]));
+      .concat(SUDOKU_CARDS.flatMap((c) => [c.nameKey, c.descKey, c.typeKey].filter(Boolean) as string[]));
     expect(keys.length).toBeGreaterThan(8);
     const base = read('src/contexts/LanguageContext.tsx');
     const missing = [...new Set(keys)].filter((k) => !new RegExp(`\\n {2}${k}:\\s*\\{`).test(base));

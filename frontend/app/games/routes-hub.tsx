@@ -18,17 +18,13 @@ import HubScreen from '@/src/components/HubScreen';
 export default function RoutesHub() {
   return (
     <HubScreen
+      hubRoute="/games/routes-hub"
       titleKey="routesGroup"
       descKey="routesGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="routesGroupFootnote"
       icon="git-network"
       gradient={['#0f766e', '#4f46e5']}
-      games={[
-        { route: '/games/dots-connect', icon: 'ellipse', nameKey: 'dotsConnect', descKey: 'dotsConnectDesc' },
-        { route: '/games/one-line', icon: 'analytics', nameKey: 'oneLine', descKey: 'oneLineDesc' },
-        { route: '/games/trail-making', icon: 'git-network', nameKey: 'trailMaking', descKey: 'trailMakingDesc' },
-      ]}
     />
   );
 }
