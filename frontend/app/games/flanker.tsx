@@ -53,7 +53,7 @@ interface Trial { center: Direction; kind: TrialKind; flankers: Direction[] | nu
 //   L1-5  — как easy   (50% congruent / 30% incongruent / 20% neutral), окно 3000→2200мс
 //   L6-10 — как medium (40% / 45% / 15%),                               окно 2000→1600мс
 //   L11-15— как hard   (30% / 65% / 5%),                                окно 1400→1000мс
-function levelParams(level: number): { trials: number; windowMs: number; pCong: number; pIncong: number } {
+export function levelParams(level: number): { trials: number; windowMs: number; pCong: number; pIncong: number } {
   const trials = 20;
   if (level <= 5)  return { trials, windowMs: 3000 - (level - 1) * 200, pCong: 0.5, pIncong: 0.3 };
   if (level <= 10) return { trials, windowMs: 2000 - (level - 6) * 100, pCong: 0.4, pIncong: 0.45 };
