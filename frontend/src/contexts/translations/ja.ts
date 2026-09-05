@@ -2298,6 +2298,10 @@ const t: Record<string, string> = {
   "deepSpiceDesc": "最下層に温度計と合計ケージが現れ、そのぶんヒントの数字は減ります",
   "deepSpiceRuleThermo": "温度計：球から数字が大きくなる——次のマスは必ず前より大きい",
   "deepSpiceRuleCage": "球から数字が増加。色付きケージは示された合計になり、重複なし",
+  "mahjongStuckShuffle": "取れる組がありません — 盤面が詰まりました。シャッフルしてください。",
+  "mahjongStuckUndo": "取れる組がありません — 盤面が詰まりました。一手戻してください。",
+  "mahjongStuckRestart": "取れる組がなく、シャッフルも一手戻すも残っていません。このレベルは最初からやり直しです。",
+  "mahjongRestartLevel": "レベルをやり直す",
   // >>> SCREEN_STRINGS
 };
 export default t;

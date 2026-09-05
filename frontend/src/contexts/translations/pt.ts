@@ -2304,6 +2304,10 @@ const t: Record<string, string> = {
   "deepSpiceDesc": "A camada de baixo ganha termômetros e gaiolas de soma, e menos dígitos dados",
   "deepSpiceRuleThermo": "Termômetro: a partir do bulbo os dígitos crescem — cada seguinte é maior",
   "deepSpiceRuleCage": "Os dígitos crescem a partir do bulbo; a gaiola colorida soma sua pista sem repetir",
+  "mahjongStuckShuffle": "Não há pares disponíveis — o tabuleiro travou. Embaralhe.",
+  "mahjongStuckUndo": "Não há pares disponíveis — o tabuleiro travou. Desfaça uma jogada.",
+  "mahjongStuckRestart": "Não restam pares e não há o que embaralhar nem desfazer. É preciso reiniciar o nível.",
+  "mahjongRestartLevel": "Reiniciar o nível",
   // >>> SCREEN_STRINGS
 };
 export default t;

@@ -2304,6 +2304,10 @@ const t: Record<string, string> = {
   "deepSpiceDesc": "Die unterste Ebene bekommt Thermometer und Summenkäfige, dafür weniger vorgegebene Ziffern",
   "deepSpiceRuleThermo": "Thermometer: Ab der Kugel wachsen die Ziffern — jede folgende ist größer",
   "deepSpiceRuleCage": "Ziffern wachsen ab der Kugel; ein farbiger Käfig ergibt seine Summe, ohne Wiederholung",
+  "mahjongStuckShuffle": "Keine Paare verfügbar — das Brett steckt fest. Mische.",
+  "mahjongStuckUndo": "Keine Paare verfügbar — das Brett steckt fest. Mach einen Zug rückgängig.",
+  "mahjongStuckRestart": "Keine Paare übrig, nichts zu mischen und nichts rückgängig zu machen. Dieses Level muss neu gestartet werden.",
+  "mahjongRestartLevel": "Level neu starten",
   // >>> SCREEN_STRINGS
 };
 export default t;
