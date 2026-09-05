@@ -21,12 +21,15 @@ import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import PetSprite, { PetAccessory, PetSkin, PetState } from '@/src/components/pet/PetSprite';
+import PetSprite, {
+  PetAccessory, PetSkin, PetState, PET_FIDGETS, PET_SLEEP_POSES, petCycleMs, petHasState,
+} from '@/src/components/pet/PetSprite';
 import {
-  consumeRecentRecord, getPetAccessory, getPetScale, getPetSkinChoice, getPetStats,
-  getPetVisible, PET_SCALE_DEFAULT, PET_SCALE_EVENT, PET_VISIBLE_EVENT,
-  pickPetLine, pickPettedLine, pickRecordLine, resolvePetSkin, PetStage,
+  consumeRecentRecord, getDaysSinceWash, getFedDays, getPetAccessory, getPetScale,
+  getPetSkinChoice, getPetStats, getPetVisible, PET_SCALE_DEFAULT, PET_SCALE_EVENT,
+  PET_VISIBLE_EVENT, pickPetLine, pickPettedLine, pickRecordLine, resolvePetSkin, PetStage,
 } from '@/src/services/pet';
+import { petLook, type PetLook } from '@/src/services/petLook';
 import type { PetLine, PetSkill } from '@/src/services/petLines';
 import { getSessions } from '@/src/services/api';
 import { GAMES } from '@/src/constants/games';
@@ -82,6 +85,8 @@ export default function WalkingPet() {
   const [bubble, setBubble] = React.useState<{ text: string; skill?: PetSkill } | null>(null);
   // v1.135: кадровая анимация (спрайты kie) — шаг/отдых/сон/машет/прыжок
   const [sprite, setSprite] = React.useState<PetState>('idle');
+  /** Вид по заботе — подменяет ПОКОЙ (см. petLook). */
+  const [look, setLook] = React.useState<PetLook | null>(null);
   const walkingRef = React.useRef(false);
 
   // В играх плавающие элементы мешают (проверено фидбеком) — прячемся.
@@ -131,6 +136,29 @@ export default function WalkingPet() {
       const last = ss.length ? ss[ss.length - 1]?.timestamp : null;
       lastSessionAtRef.current = last ? Date.parse(last) || null : null;
     }).catch(() => {});
+    /**
+     * 🔴 ВИД ПО ЗАБОТЕ. Ради него и рисовались восемь шкал внешности: не кормили —
+     * отощал, не мыли — грязный, забросили — унылый, всё в порядке — показывает,
+     * насколько вырос. Без этого вызова 56 кадров просто лежали бы в сборке.
+     *
+     * Считается на КАЖДОЙ навигации, а не по таймеру: вид меняется на суточном
+     * масштабе, и чаще его пересчитывать незачем.
+     */
+    Promise.all([getFedDays(), getDaysSinceWash(), getPetStats(), getSessions()])
+      .then(([fedDays, daysSinceWash, stats, ss]) => {
+        const last = ss.length ? ss[ss.length - 1]?.timestamp : null;
+        const t = last ? Date.parse(last) : NaN;
+        const daysSincePlay = Number.isFinite(t) ? (Date.now() - t) / 86400000 : 999;
+        const шкалы = Object.values(stats.skills);
+        setLook(petLook({
+          fedDays,
+          daysSinceWash,
+          daysSincePlay,
+          stage: stats.stage,
+          skillAvg: шкалы.reduce((a, b) => a + b, 0) / Math.max(1, шкалы.length),
+        }));
+      })
+      .catch(() => {});
   }, [pathname]);
 
   // Праздник рекорда: api.saveSession оставил маркер → на первой же навигации
@@ -178,6 +206,19 @@ export default function WalkingPet() {
   widthRef.current = width;
   const langRef = React.useRef(language);
   langRef.current = language;
+  /**
+   * Те же грабли, что с языком: цикл прогулки живёт в замыкании эффекта и
+   * перезапускать его из-за смены облика или режима движения не нужно.
+   *
+   * ⚠️ Синхронизация ЭФФЕКТОМ, а не присвоением в теле рендера. Соседние
+   * `widthRef`/`langRef` написаны присвоением — это старый приём файла, и линт
+   * на него ругается («Cannot access refs during render»). Повторять его значит
+   * добавлять к чужому долгу; правило храповика ровно об этом.
+   */
+  const skinRef = React.useRef(skin);
+  const reducedRef = React.useRef(reduced);
+  React.useEffect(() => { skinRef.current = skin; }, [skin]);
+  React.useEffect(() => { reducedRef.current = reduced; }, [reduced]);
   // Размер в ref: step() живёт в замыкании эффекта, а перезапускать прогулку
   // на каждый сдвиг ползунка нельзя (шторм таймеров при живом драге).
   const size = Math.round(PET_SIZE * scale);
@@ -214,8 +255,44 @@ export default function WalkingPet() {
         if (finished && alive) {
           setSprite('idle');
           const pause = PAUSE_MIN + Math.random() * PAUSE_SPAN;
-          // затяжной отдых → задремал (кадры сна с Zz)
-          if (pause > 5500) later(() => { if (!walkingRef.current) setSprite('sleep'); }, 4000);
+          if (pause > 5500) {
+            /**
+             * Затяжной отдых → задремал. Поза сна теперь случайная из семи, а не
+             * всегда клубок: питомец на экране часами, и одна и та же поза сна
+             * читается как «картинка залипла».
+             */
+            const поза = PET_SLEEP_POSES[Math.floor(Math.random() * PET_SLEEP_POSES.length)];
+            later(() => { if (!walkingRef.current) setSprite(поза); }, 4000);
+          } else if (!reducedRef.current) {
+            /**
+             * 🔴 МЕЛОЧИ БЕЗДЕЛЬЯ — ради них состояния и рисовались.
+             *
+             * Кот на коротком отдыхе зевает, чешется, гоняется за хвостом,
+             * оглядывается. Без этого двадцать дорисованных состояний остались бы
+             * мёртвым грузом в сборке: их бы никто не вызывал, и «весело» бы не
+             * стало — а Денис просил ровно этого.
+             *
+             * ⚠️ Возврат в покой считается по ДЛИНЕ ЦИКЛА, а не круглым числом:
+             * у зевка семь кадров по 260 мс, у чесания семь по 130 — обрыв на
+             * середине выглядит как рывок. Мелочь запускается, только если весь
+             * цикл успевает пройти до следующего перехода.
+             */
+            /**
+             * ⚠️ Только те мелочи, что у ОБЛИКА есть своими кадрами. У робота и
+             * Созвездия их нет, и `PetSprite` подставил бы замену: `tailchase`
+             * заменяется ходьбой, и робот «пошёл» бы, стоя на месте. Лучше
+             * ничего, чем движение не по делу.
+             */
+            const доступные = PET_FIDGETS.filter((st) => petHasState(skinRef.current, st));
+            if (!доступные.length) { later(step, pause); return; }
+            const мелочь = доступные[Math.floor(Math.random() * доступные.length)];
+            const цикл = petCycleMs(skinRef.current, мелочь);
+            const старт = 700;
+            if (старт + цикл < pause - 300) {
+              later(() => { if (!walkingRef.current) setSprite(мелочь); }, старт);
+              later(() => { if (!walkingRef.current) setSprite('idle'); }, старт + цикл);
+            }
+          }
           later(step, pause);
         }
       });
@@ -328,7 +405,7 @@ export default function WalkingPet() {
         accessibilityLabel={t('a11yPet')}
       >
         <Animated.View style={{ transform: [{ scaleX: flip }] }}>
-          <PetSprite state={sprite} size={size} skin={skin} accessory={accessory} />
+          <PetSprite state={sprite} size={size} skin={skin} accessory={accessory} look={look} />
         </Animated.View>
       </TouchableOpacity>
     </Animated.View>

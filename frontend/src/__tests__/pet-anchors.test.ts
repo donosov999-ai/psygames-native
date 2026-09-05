@@ -38,9 +38,15 @@ const { createHash } = require('crypto');
 const { gunzipSync } = require('zlib');
 
 import { FRAME_ANCHORS } from '../components/pet/petAnchors.generated';
-import { petAnchor } from '../components/pet/PetSprite';
+import { petAnchor, petAnchorOff } from '../components/pet/PetSprite';
 
 const SKINS = ['cat', 'robot', 'constellation'] as const;
+/**
+ * БАЗОВАЯ ПЯТЁРКА — состояния, которые обязаны быть у КАЖДОГО облика. Это не
+ * весь список: у кота с 05.09.2026 тридцать два состояния, у робота и Созвездия
+ * по пять. Полный перебор берётся из силуэтов (`ВСЕ`), а пятёрка нужна там, где
+ * требуется общая для всех облик опора: обязательность и глубина глаз.
+ */
 const STATES = ['walk', 'idle', 'wave', 'jump', 'sleep'] as const;
 const FRAMES = 4;
 const ANCHORS = ['head_top', 'eyes', 'neck'] as const;
@@ -61,6 +67,21 @@ const { ALPHA, DARK, SKULL_RUN, SINK, NECK_K } = SIL.thresholds;
 
 const recOf = (skin: Skin, state: State, frame: number): Rec =>
   SIL.index.find((r) => r.skin === skin && r.state === state && r.frame === frame)!;
+
+/**
+ * 🔴 ПЕРЕБОР — ПО ТОМУ, ЧТО ЕСТЬ, А НЕ ПО ВШИТОМУ ЧИСЛУ.
+ *
+ * Здесь стояло `3 облика × 5 состояний × 4 кадра = 60`, и все проверки ниже
+ * бегали этой тройной петлёй. Пока у обликов было поровну кадров, это работало.
+ * 05.09.2026 у кота стало 224 кадра, и вшитое число сделало бы гейт ХУЖЕ, чем
+ * бесполезным: он бы проверял первые четыре кадра каждого состояния и молчал про
+ * остальные 164 — то есть зеленел бы, не глядя туда, где ошибка вероятнее всего.
+ *
+ * Список кадров берётся из силуэтов, а те собраны скриптом с диска. Значит,
+ * добавили состояние — гейт проверяет и его, ничего здесь не правя.
+ */
+const ВСЕ: Rec[] = SIL.index;
+const кадры = (skin: Skin): Rec[] => ВСЕ.filter((r) => r.skin === skin);
 
 /** На строку кадра: границы самой длинной сплошной полосы и число тёмных пикселей. */
 function prof(r: Rec) {
@@ -127,8 +148,24 @@ function median(a: number[]): number {
  */
 function eyeDepth(skin: Skin): number {
   const vals: number[] = [];
-  for (const st of STATES) for (let f = 0; f < FRAMES; f++) {
-    const p = prof(recOf(skin, st, f));
+  /**
+   * ⚠️ Базовая пятёрка состояний, но ВСЕ их кадры — ровно как в
+   * scripts/measure-pet-anchors.mjs. Два условия, и оба обязательны:
+   *
+   * СОСТОЯНИЯ ограничены пятёркой, потому что глубина глаз есть свойство
+   * ЧЕРЕПА, а не набора состояний: считай её по всем состояниям подряд, и каждый
+   * новый лист двигал бы якоря на старых, проверенных. Замер 05.09.2026 при
+   * добавлении eat/celebrate: neck.x на robot/wave уехал на 4,68% ширины кадра,
+   * хотя сами кадры не менялись ни на пиксель.
+   *
+   * КАДРЫ не ограничены четырьмя, потому что у кота их теперь семь. Здесь стояло
+   * `f < FRAMES` — и гейт считал глубину по первым четырём кадрам, а скрипт по
+   * всем семи. Расхождение вышло крошечное, 0,2–0,3% кадра, и ровно поэтому
+   * опасное: 115 строк «в таблице одно, в пересчёте другое» читаются как «кто-то
+   * правил числа руками», хотя правил их сам гейт.
+   */
+  for (const r of кадры(skin).filter((x) => (STATES as readonly string[]).includes(x.state))) {
+    const p = prof(recOf(skin, r.state, r.frame));
     const H = skullRow(p);
     vals.push(((eyesRowRaw(p, H) - H) / p.h) * 100);
   }
@@ -181,7 +218,13 @@ const TOL = 0.02;
 
 describe('якоря аксессуаров питомца', () => {
   it('есть что проверять — иначе гейт зелен вслепую', () => {
-    expect(SIL.index.length).toBe(SKINS.length * STATES.length * FRAMES);
+    // Не фиксированное число: минимум — базовая пятёрка у всех трёх обликов.
+    expect(ВСЕ.length).toBeGreaterThanOrEqual(SKINS.length * STATES.length * FRAMES);
+    for (const skin of SKINS) {
+      for (const st of STATES) {
+        expect(кадры(skin).filter((r) => r.state === st).length).toBeGreaterThanOrEqual(FRAMES);
+      }
+    }
     expect(Object.keys(FRAME_ANCHORS).sort()).toEqual(['cat', 'constellation', 'robot']);
     expect(ALPHA > 0 && DARK > 0 && SKULL_RUN > 0 && NECK_K > 0).toBe(true);
   });
@@ -191,10 +234,13 @@ describe('якоря аксессуаров питомца', () => {
     const holes: string[] = [];
     for (const skin of SKINS) {
       const byState = FRAME_ANCHORS[skin] as Record<string, unknown[]>;
-      for (const st of STATES) {
+      const наДиске = new Map<string, number>();
+      for (const r of кадры(skin)) наДиске.set(r.state, Math.max(наДиске.get(r.state) ?? 0, r.frame + 1));
+      for (const st of STATES) if (!наДиске.has(st)) holes.push(`${skin}/${st}: обязательного состояния нет на диске`);
+      for (const [st, сколько] of наДиске) {
         const list = byState[st];
         if (!Array.isArray(list)) { holes.push(`${skin}/${st}: состояния нет вовсе`); continue; }
-        if (list.length !== FRAMES) { holes.push(`${skin}/${st}: кадров ${list.length}, а не ${FRAMES}`); continue; }
+        if (list.length !== сколько) { holes.push(`${skin}/${st}: якорей ${list.length}, а кадров на диске ${сколько}`); continue; }
         list.forEach((fr, i) => {
           for (const nm of ANCHORS) {
             const a = (fr as Record<string, { x: number; y: number }>)[nm];
@@ -203,14 +249,14 @@ describe('якоря аксессуаров питомца', () => {
           }
         });
       }
-      const extra = Object.keys(byState).filter((k) => !(STATES as readonly string[]).includes(k));
-      if (extra.length) holes.push(`${skin}: лишние состояния ${extra.join(',')}`);
+      const лишние = Object.keys(byState).filter((k) => !наДиске.has(k));
+      if (лишние.length) holes.push(`${skin}: якоря есть, а кадров нет — ${лишние.join(',')}`);
     }
     expect(holes).toEqual([]);
   });
 
   /* ── 2. Числа не выдуманы ────────────────────────────────────────────────── */
-  it('спрайты не перерисованы с последнего замера (sha256 всех 60 кадров)', () => {
+  it('спрайты не перерисованы с последнего замера (sha256 каждого кадра)', () => {
     const bad: string[] = [];
     for (const r of SIL.index) {
       const file = join(__dirname, `../../assets/images/pet/${r.skin}/${r.state}${r.frame}.webp`);
@@ -266,12 +312,22 @@ describe('якоря аксессуаров питомца', () => {
     for (const skin of SKINS) {
       const base = petAnchor(skin, 'idle', 0, 'neck');
       let m = 0;
-      for (const st of STATES) for (let f = 0; f < FRAMES; f++) {
-        m = Math.max(m, Math.abs(petAnchor(skin, st, f, 'neck').y - base.y));
+      /**
+       * ⚠️ ПО ВСЕМ КАДРАМ ОБЛИКА, а не по базовой пятёрке. Здесь стояла тройная
+       * петля по пяти состояниям и четырём кадрам — она описывала кота, у
+       * которого их двадцать. С 05.09.2026 у него 301 кадр, и «цена одного
+       * якоря на облик» считается по всему, что аксессуар реально накрывает.
+       * На пятёрке число выходило 9,17% и проба краснела на ровном месте: цикл
+       * сна пересняли, и прежний рекордсмен `sleep3` просто перестал
+       * существовать. Это была проба, привязанная к конкретной картинке.
+       */
+      for (const r of кадры(skin)) {
+        m = Math.max(m, Math.abs(petAnchor(skin, r.state, r.frame, 'neck').y - base.y));
       }
       worst[skin] = m;
     }
-    // Кот: idle0 против sleep3 — 13.1% высоты кадра, это пузо вместо шеи.
+    // Кот 05.09.2026: idle0 против sleepback — кот на спине, и «шея» уезжает
+    // на пузо. Ровно та картинка, которую описала Валя.
     expect(worst.cat).toBeGreaterThan(10);
     expect(Math.max(...Object.values(worst))).toBeGreaterThan(10);
   });
@@ -283,19 +339,64 @@ describe('якоря аксессуаров питомца', () => {
    * Проверка строгая: считается попадание в самую длинную сплошную полосу
    * строки, то есть в тело, а не в кончик хвоста или ухо.
    */
-  it.each(Object.keys(MOUNT))('%s: точка крепления внутри силуэта на всех 60 кадрах', (kind) => {
+  it.each(Object.keys(MOUNT))('%s: точка крепления внутри силуэта на ВСЕХ кадрах, сколько бы их ни было', (kind) => {
     const at = MOUNT[kind].at;
     const outside: string[] = [];
-    for (const skin of SKINS) for (const st of STATES) for (let f = 0; f < FRAMES; f++) {
-      const a = petAnchor(skin, st, f, at);
-      if (!insideSilhouette(skin, st, f, a.x, a.y)) outside.push(`${skin}/${st}${f}: (${a.x}, ${a.y}) мимо питомца`);
+    for (const r of ВСЕ) {
+      // Помеченные точки проверять не на что: вещь на них не рисуется (ниже).
+      if (petAnchorOff(r.skin, r.state, r.frame).includes(at)) continue;
+      const a = petAnchor(r.skin, r.state, r.frame, at);
+      if (!insideSilhouette(r.skin, r.state, r.frame, a.x, a.y)) {
+        outside.push(`${r.skin}/${r.state}${r.frame}: (${a.x}, ${a.y}) мимо питомца`);
+      }
     }
     expect(outside).toEqual([]);
   });
 
+  /**
+   * 🔴 ПОМЕТКА `off` — НЕ СПОСОБ ЗАЗЕЛЕНИТЬ ГЕЙТ.
+   *
+   * Проверка выше пропускает помеченные точки, и это открывает очевидную дыру:
+   * пометь все — и она зазеленеет на пустом месте. Поэтому здесь три условия
+   * сразу: пометок мало, каждая помеченная точка ДЕЙСТВИТЕЛЬНО промахивается
+   * (иначе её пометили зря и вещь пропала без причины), и на таком кадре вещь
+   * действительно не рисуется.
+   */
+  it('🔴 пометок мало, и каждая честна: точка правда мимо силуэта', () => {
+    const помечено: string[] = [];
+    const зря: string[] = [];
+    for (const r of ВСЕ) {
+      for (const at of ANCHORS) {
+        if (!petAnchorOff(r.skin, r.state, r.frame).includes(at)) continue;
+        помечено.push(`${r.skin}/${r.state}${r.frame}/${at}`);
+        const a = petAnchor(r.skin, r.state, r.frame, at);
+        if (insideSilhouette(r.skin, r.state, r.frame, a.x, a.y)) {
+          зря.push(`${r.skin}/${r.state}${r.frame}/${at}: помечено, а точка внутри силуэта`);
+        }
+      }
+    }
+    expect(зря).toEqual([]);
+    // 5% — потолок: больше означает, что сломано правило поиска головы, а не поза.
+    const всего = ВСЕ.length * ANCHORS.length;
+    expect(помечено.length / всего).toBeLessThan(0.05);
+    // и пометки вообще есть — иначе проверка ничего не сторожит
+    expect(помечено.length).toBeGreaterThan(0);
+  });
+
+  it('🔴 базовая пятёрка состояний пометок НЕ имеет — там вещь обязана быть всегда', () => {
+    const плохие: string[] = [];
+    for (const r of ВСЕ) {
+      if (!(STATES as readonly string[]).includes(r.state)) continue;
+      const off = petAnchorOff(r.skin, r.state, r.frame);
+      if (off.length) плохие.push(`${r.skin}/${r.state}${r.frame}: ${off.join(',')}`);
+    }
+    expect(плохие).toEqual([]);
+  });
+
   it('порядок точек в каждом кадре: макушка выше глаз, глаза выше шеи', () => {
     const wrong: string[] = [];
-    for (const skin of SKINS) for (const st of STATES) for (let f = 0; f < FRAMES; f++) {
+    for (const r of ВСЕ) {
+      const { skin, state: st, frame: f } = r;
       const a = FRAME_ANCHORS[skin][st]![f];
       if (!(a.head_top.y < a.eyes.y && a.eyes.y < a.neck.y)) {
         wrong.push(`${skin}/${st}${f}: макушка ${a.head_top.y}, глаза ${a.eyes.y}, шея ${a.neck.y}`);

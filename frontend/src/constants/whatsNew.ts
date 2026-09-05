@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.38.0',
+    date: '2026-09-05',
+    ru: [
+      'Синапс 2: у кота теперь 32 состояния вместо семи — зевает, чешется, гоняется за хвостом, чихает, потягивается, оглядывается; спит в семи разных позах, а не только клубком',
+      'Забота меняет вид: не кормите — отощает, кормите каждый день — располнеет, не моете — запачкается, забросите — загрустит и побледнеет. Когда всё в порядке — показывает, насколько вырос',
+      'Рост больше не подменяет кота роботом: он взрослеет сам, от котёнка до взрослого кота. Робот и Созвездие остаются в выборе на экране питомца',
+      'Шарики в играх перерисованы: девять фактур — глянец, стекло, мех, матовые, хром, желе, неон, камень, мыльный пузырь. Выбор в «Одной линии» и «Трекере объектов»',
+      'Маджонг: под символом теперь костяная плашка вместо плоского прямоугольника',
+    ],
+    en: [
+      'Synapse 2: the cat now has 32 states instead of seven — yawns, scratches, chases its tail, sneezes, stretches, looks around; sleeps in seven different poses, not just curled up',
+      'Care changes how it looks: skip meals and it gets thin, feed it daily and it gets round, never wash it and it gets dirty, neglect it and it turns sad and pale. When all is well it shows how much it has grown',
+      'Growth no longer swaps the cat for a robot: it grows up on its own, from kitten to adult cat. Robot and Constellation remain as manual choices',
+      'Game balls redrawn: nine textures — glossy, glass, fluffy, matte, chrome, jelly, neon, stone, soap bubble. Choose in One Line and Object Tracker',
+      'Mahjong: an ivory tile under the symbol instead of a flat rectangle',
+    ],
+  },
+  {
     version: '2.37.54',
     date: '2026-09-05',
     ru: ['Маджонг: этажи снова видно — верхние плитки светлее и меньше, нижние темнее, стопка читается глазами'],

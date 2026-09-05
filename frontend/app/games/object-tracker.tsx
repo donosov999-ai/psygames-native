@@ -42,7 +42,7 @@
  * кадровый цикл.
  */
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -56,6 +56,8 @@ import { gameNow } from '@/src/services/gamePause';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
+import BallStylePicker from '@/src/games/balls/BallStylePicker';
+import { BALL_STYLE_DEFAULT, BALL_STYLE_EVENT, getBallStyle, type BallStyle } from '@/src/games/balls/ballChoice';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
@@ -115,6 +117,20 @@ export default function ObjectTrackerScreen() {
     setШагами(v);
     AsyncStorage.setItem(ШАГ_КЛЮЧ, v ? '1' : '0').catch(() => {});
   };
+
+  /**
+   * ВИД ШАРОВ. Раньше объект был плоским кружком заливкой из градиента игры —
+   * Денис 05.09.2026 назвал такие шарики плохими и просил дать выбор фактуры.
+   * Девять фактур нарисованы листом; цвет здесь не выбирается сознательно: в
+   * трекере все объекты обязаны быть неразличимы (см. ballChoice).
+   */
+  const [стильШаров, setСтильШаров] = useState<BallStyle>(BALL_STYLE_DEFAULT);
+  useEffect(() => { getBallStyle().then(setСтильШаров).catch(() => {}); }, []);
+  // Ряд выбора шлёт событие — экран подхватывает его тем же слушателем, что и игры.
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(BALL_STYLE_EVENT, (v: BallStyle) => setСтильШаров(v));
+    return () => sub.remove();
+  }, []);
 
   const screenWidth = useScreenWidth();
 
@@ -260,6 +276,7 @@ export default function ObjectTrackerScreen() {
              * пререндере статического экспорта — режим включился бы всем подряд.
              */
             reducedMotion={шагами}
+            ballStyle={стильШаров}
             screenWidth={screenWidth}
             now={gameNow}
             /**
@@ -336,6 +353,7 @@ export default function ObjectTrackerScreen() {
             <Ionicons name={шагами ? 'checkbox' : 'square-outline'} size={22} color={шагами ? GRADIENT[1] : colors.textSecondary} />
             <Text style={[styles.hint, { color: colors.text, flex: 1 }]}>{t('trackerStepwise')}</Text>
           </TouchableOpacity>
+          <BallStylePicker level={level} colors={colors} accent={GRADIENT[1]} />
           {шагами ? (
             <Text style={[styles.hint, { color: GRADIENT[1], fontWeight: '800' }]}>
               {strings.reducedMotionInfo}

@@ -5,6 +5,7 @@ import {
   PanResponder,
   Platform,
   Pressable,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,6 +14,7 @@ import {
 } from 'react-native';
 import Svg, { Line, Polygon } from 'react-native-svg';
 import { sndPlace } from '@/src/services/feedback';
+import { ballImage, useBallStyle } from '@/src/games/balls/ballChoice';
 import {
   edgeAllowsDirection,
   edgeHasUsesLeft,
@@ -229,6 +231,8 @@ function OneLineBoard({
   }, [session.vertexTrail]);
   const hinted = React.useMemo(() => new Set(session.hintVertexIds), [session.hintVertexIds]);
   const currentId = session.vertexTrail[session.vertexTrail.length - 1] ?? null;
+  /** Фактура шаров — общий выбор приложения, меняется живьём (ballChoice). */
+  const ballStyle = useBallStyle();
 
   const choose = React.useCallback((vertexId: string) => {
     if (disabled || currentId === vertexId) return;
@@ -521,23 +525,40 @@ function OneLineBoard({
                 left: vertex.x * boardSize - 24,
                 top: vertex.y * boardSize - 24,
                 /**
-                 * Точка ЗАЛИТА и без обводки: в образце это сплошной кружок, и он
-                 * читается мгновенно, а кольцо с толстым краем спорит с линией за
-                 * внимание — глаз цепляется за обводку вместо самой фигуры.
-                 * Пройденная гаснет: видно, где линия уже была.
+                 * ПОД ТОЧКОЙ ТЕПЕРЬ ШАР, А НЕ ЗАЛИВКА. Отчёт Дениса 05.09.2026
+                 * (50a283a2, v2.37.54, tauri-ios): «шарики обнови, сделай их
+                 * нормальными красивыми, которые разрабатывали с тобой».
+                 *
+                 * ⚠️ ЗДЕСЬ ЦВЕТ НЕСЁТ СМЫСЛ — и этим игра противоположна трекеру
+                 * объектов, где все шары обязаны быть одинаковыми. Текущий,
+                 * подсказка и пройденный обязаны различаться с одного взгляда,
+                 * поэтому фактура одна (выбор человека), а ЦВЕТ разный.
                  */
-                backgroundColor: isCurrent
-                  ? theme.primary
-                  : (isHint || isStart) ? theme.warning
-                  : visited ? theme.textSecondary
-                  : theme.primary,
+                backgroundColor: 'transparent',
               },
               isCursor && { shadowColor: theme.warning, shadowOpacity: 1, shadowRadius: 0 },
               isCursor && ({ outlineColor: theme.warning, outlineStyle: 'solid', outlineWidth: 3 } as any),
               pressed && styles.pressed,
             ]}
           >
-            <Text style={[styles.vertexText, { color: isCurrent ? gameGradientText : theme.surface }]}>
+            <Image
+              source={ballImage(ballStyle, isCurrent ? 'purple'
+                : (isHint || isStart) ? 'yellow'
+                : visited ? 'white' : 'blue')}
+              style={[StyleSheet.absoluteFill as any, visited && { opacity: 0.55 }]}
+              resizeMode="contain"
+              fadeDuration={0}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            />
+            {/* Номер поверх шара: тёмный с белой каймой — читается и на светлом
+                стекле, и на тёмном неоне, а второй набор цветов заводить незачем. */}
+            <Text style={[styles.vertexText, {
+              color: '#12161d',
+              textShadowColor: 'rgba(255,255,255,0.9)',
+              textShadowOffset: { width: 0, height: 0 },
+              textShadowRadius: 3,
+            }]}>
               {visitOrder.get(vertex.id) ?? ''}
             </Text>
           </Pressable>

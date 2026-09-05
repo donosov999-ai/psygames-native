@@ -32,7 +32,7 @@ import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
-import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -42,8 +42,68 @@ const FRONT = join(HERE, '..');
 const PETS = join(FRONT, 'assets/images/pet');
 
 export const SKINS = ['cat', 'robot', 'constellation'];
+/** Состояния, которые обязаны быть у КАЖДОГО облика — без них питомец не соберётся. */
 export const STATES = ['walk', 'idle', 'wave', 'jump', 'sleep'];
-export const FRAMES = 4;
+
+/**
+ * 🔴 СОСТАВ КАДРОВ ЧИТАЕТСЯ С ДИСКА, А НЕ ЗАДАН ЧИСЛОМ.
+ *
+ * Здесь стояло `STATES` из пяти имён и `FRAMES = 4`. Пока у всех трёх обликов
+ * было ровно двадцать кадров, это работало. 05.09.2026 у кота стало 224 кадра:
+ * тридцать два состояния по семь фаз, а у робота и Созвездия осталось по
+ * двадцать. Любое фиксированное число теперь неверно хотя бы для одного облика,
+ * а неверное число здесь означает не падение, а ТИХО СТАРУЮ таблицу якорей —
+ * ровно ту поломку, из-за которой Валя видела бабочку на пузе.
+ *
+ * Поэтому облик сам рассказывает о себе именами файлов `<состояние><номер>.webp`.
+ * Пропуск в нумерации — ошибка выкладки, и о ней говорится вслух.
+ */
+/**
+ * 🔴 РЯДЫ ЗАБОТЫ ЯКОРЕЙ НЕ ПОЛУЧАЮТ, И ЭТО ОСОЗНАННОЕ ОГРАНИЧЕНИЕ.
+ *
+ * `care_*` — не анимация, а ШКАЛЫ внешности (толстый/худой, чистый/грязный,
+ * котёнок/взрослый): из ряда берут ОДИН кадр и показывают вместо покоя.
+ *
+ * Почему их нельзя просто померить вместе со всеми. Замер 05.09.2026: у кота на
+ * листе заботы уши расставлены шире, чем на остальных листах, и правило «первая
+ * строка, где сплошная полоса ≥ 40% самой широкой» находит МАКУШКУ на ушах.
+ * Точка, опущенная от неё внутрь головы, попадает в просвет между ушами — 42
+ * кадра из 56 мимо силуэта. Это ровно та «шляпа в воздухе», ради которой весь
+ * этот замер и заведён, так что записывать такие якоря нельзя.
+ *
+ * Чинится это порогом `SKULL_RUN`, но он общий на все облики и все кадры: тронь
+ * его — и уедут якоря на пятидесяти проверенных глазами кадрах, ради двадцати
+ * непроверенных. Размен неравный.
+ *
+ * Поэтому пока: на кадрах заботы аксессуары НЕ рисуются (`PetSprite` это знает),
+ * якорей у них нет, и гейт их не требует. Чтобы снять ограничение, нужен замер
+ * макушки, устойчивый к разнесённым ушам, — отдельная работа с отдельной
+ * приёмкой по контактному листу с надетой шляпой.
+ */
+const БЕЗ_ЯКОРЕЙ = /^care_/;
+
+function statesOf(skin) {
+  const счёт = new Map();
+  for (const f of readdirSync(join(PETS, skin))) {
+    const m = /^([a-z_]+?)(\d+)\.webp$/.exec(f);
+    if (!m) continue;
+    const [, имя, n] = m;
+    if (БЕЗ_ЯКОРЕЙ.test(имя)) continue;
+    if (!счёт.has(имя)) счёт.set(имя, new Set());
+    счёт.get(имя).add(Number(n));
+  }
+  const итог = [];
+  for (const [имя, номера] of [...счёт].sort((a, b) => a[0].localeCompare(b[0]))) {
+    const n = номера.size;
+    for (let i = 0; i < n; i++) {
+      if (!номера.has(i)) throw new Error(`${skin}/${имя}: кадров ${n}, но нет ${имя}${i}.webp — дыра в нумерации`);
+    }
+    итог.push([имя, n]);
+  }
+  const нет = STATES.filter((st) => !счёт.has(st));
+  if (нет.length) throw new Error(`${skin}: нет обязательных состояний ${нет.join(', ')}`);
+  return итог;
+}
 
 /* ─── Пороги замера. Не «на глаз»: эти три числа воспроизводят значения, которые
  *     уже стоят в коде для кадров idle0 (см. --check и гейт). ────────────────── */
@@ -203,8 +263,8 @@ function medianMAD(values) {
 
 async function measureSkin(dec, skin) {
   const frames = [];
-  for (const state of STATES) {
-    for (let f = 0; f < FRAMES; f++) {
+  for (const [state, сколько] of statesOf(skin)) {
+    for (let f = 0; f < сколько; f++) {
       const file = join(PETS, skin, `${state}${f}.webp`);
       const img = await dec.read(file);
       const p = profile(img);
@@ -218,8 +278,24 @@ async function measureSkin(dec, skin) {
       });
     }
   }
-  // Глубина глаз внутри головы — медиана по кадрам с видимыми зрачками.
-  const depth = medianMAD(frames.map((fr) => ((fr.eyesRaw - fr.H) / fr.p.h) * 100));
+  /**
+   * Глубина глаз внутри головы — медиана по кадрам с видимыми зрачками, но
+   * ТОЛЬКО по базовой пятёрке состояний.
+   *
+   * 🔴 ЗАЧЕМ ОГРАНИЧЕНИЕ. Глубина — свойство ЧЕРЕПА персонажа, а не набора его
+   * состояний. Пока она считалась по всем кадрам подряд, добавление нового листа
+   * меняло медиану и вместе с ней съезжали якоря глаз и шеи на СТАРЫХ, уже
+   * проверенных глазами состояниях. Замер 05.09.2026 при добавлении `eat` и
+   * `celebrate`: neck.x на robot/wave уехал на 4,68% ширины кадра, neck.y на
+   * 2,12% — при том, что сами кадры не менялись ни на пиксель.
+   *
+   * Это тихая поломка того же рода, что «бабочка на пузе»: аксессуар едет, а
+   * причина лежит в файле, которого никто не открывал. Базовая пятёрка есть у
+   * всех обликов и не растёт — значит, замер воспроизводится, сколько бы новых
+   * состояний ни дорисовали.
+   */
+  const базовые = frames.filter((fr) => STATES.includes(fr.state));
+  const depth = medianMAD(базовые.map((fr) => ((fr.eyesRaw - fr.H) / fr.p.h) * 100));
   const out = { frames: [], depth };
   for (const fr of frames) {
     const h = fr.p.h, w = fr.p.w;
@@ -227,12 +303,40 @@ async function measureSkin(dec, skin) {
     const eyesY = (fr.H / h) * 100 + depth.median;
     const neckY = eyesY + NECK_K * depth.median;
     const rowAt = (yPct) => Math.max(0, Math.min(h - 1, Math.round((yPct / 100) * h)));
-    out.frames.push({
-      state: fr.state, frame: fr.f, sha: fr.sha, w, h,
-      rawSkull: (fr.H / h) * 100, rawEyes: (fr.eyesRaw / h) * 100, rawChin: (fr.chin / h) * 100,
+    const точки = {
       head_top: { x: (fr.axis.x / w) * 100, y: headTopY },
       eyes:     { x: (runC(fr.p, rowAt(eyesY)) / w) * 100, y: eyesY },
       neck:     { x: (runC(fr.p, rowAt(neckY)) / w) * 100, y: neckY },
+    };
+    /**
+     * 🔴 ТОЧКА, ПРОМАХНУВШАЯСЯ МИМО ПИТОМЦА, ПОМЕЧАЕТСЯ — И ВЕЩЬ НА НЕЙ НЕ
+     * РИСУЕТСЯ ВООБЩЕ.
+     *
+     * Правило «макушка = первая строка, где силуэт достаточно широк» описывает
+     * стоящего или сидящего зверя. Замер 05.09.2026 на 43 состояниях кота: оно
+     * ломается там, где зверь перевёрнут или расчленён позой — `sleepback` (кот
+     * на спине, лапы кверху: «макушкой» оказывается пузо), `scratch` (задняя
+     * лапа у уха разрезает силуэт), `wiggle`. Всего 35 промахов из 903 точек.
+     *
+     * Двигать общий порог ради этих трёх состояний нельзя: он общий на все
+     * облики, и уедут пятьдесят кадров, проверенных глазами.
+     *
+     * Поэтому промах ЗАПИСЫВАЕТСЯ, а не замазывается. Лучше кадр без шляпы, чем
+     * шляпа на пузе: именно про неё была жалоба Вали 19.08.2026, с которой весь
+     * этот замер и начался.
+     */
+    const мимо = [];
+    for (const [имя, т] of Object.entries(точки)) {
+      const y = rowAt(т.y);
+      const a = fr.p.x0[y], b = fr.p.x1[y];
+      const px = (т.x / 100) * w;
+      if (a < 0 || px < a || px > b) мимо.push(имя);
+    }
+    out.frames.push({
+      state: fr.state, frame: fr.f, sha: fr.sha, w, h,
+      rawSkull: (fr.H / h) * 100, rawEyes: (fr.eyesRaw / h) * 100, rawChin: (fr.chin / h) * 100,
+      ...точки,
+      ...(мимо.length ? { off: мимо } : {}),
       prof: fr.p,
     });
   }
@@ -256,13 +360,14 @@ function tsTable(res) {
     lines.push(`  // ${skin}: глубина глаз внутри головы ${r2(d.median)}% (медиана по ${d.kept} из ${d.total} кадров,`);
     lines.push(`  // остальные — с закрытыми глазами, там правило «самая тёмная строка» неприменимо).`);
     lines.push(`  ${skin}: {`);
-    for (const st of STATES) {
+    for (const [st] of statesOf(skin)) {
       const fr = res[skin].frames.filter((x) => x.state === st);
       lines.push(`    ${st}: [`);
       for (const x of fr) {
         lines.push(`      { head_top: { x: ${r2(x.head_top.x)}, y: ${r2(x.head_top.y)} }, ` +
                    `eyes: { x: ${r2(x.eyes.x)}, y: ${r2(x.eyes.y)} }, ` +
-                   `neck: { x: ${r2(x.neck.x)}, y: ${r2(x.neck.y)} } },`);
+                   `neck: { x: ${r2(x.neck.x)}, y: ${r2(x.neck.y)} }` +
+                   (x.off ? `, off: [${x.off.map((n) => `'${n}'`).join(', ')}]` : '') + ` },`);
       }
       lines.push(`    ],`);
     }
@@ -290,9 +395,16 @@ import type { PetSkin, PetState } from './PetSprite';
 
 export interface AnchorXY { x: number; y: number }
 export type AnchorName = 'head_top' | 'eyes' | 'neck';
-export type FrameAnchors = Record<AnchorName, AnchorXY>;
+export type FrameAnchors = Record<AnchorName, AnchorXY> & {
+  /**
+   * Точки, которые на ЭТОМ кадре промахнулись мимо силуэта: поза перевёрнута или
+   * разрезана лапой, и правило поиска макушки к ней неприменимо. Вещь на такой
+   * точке НЕ рисуется — лучше кадр без шляпы, чем шляпа на пузе.
+   */
+  off?: AnchorName[];
+};
 
-export const FRAME_ANCHORS: Record<PetSkin, Record<PetState, FrameAnchors[]>> = {
+export const FRAME_ANCHORS: Record<PetSkin, Partial<Record<PetState, FrameAnchors[]>>> = {
 ${tsTable(res)}
 };
 `;
@@ -346,7 +458,7 @@ if (argv.includes('--sheet')) {
   for (const skin of SKINS) {
     const d = res[skin].depth;
     console.log(`\n══ ${skin}  глубина глаз в голове ${r2(d.median)}%  (кадров с видимыми зрачками ${d.kept}/${d.total})`);
-    for (const st of STATES) {
+    for (const [st] of statesOf(skin)) {
       const fr = res[skin].frames.filter((x) => x.state === st);
       const col = (g) => fr.map((x) => g(x).toFixed(1).padStart(6)).join('');
       const jit = Math.max(...fr.slice(1).map((x, i) => Math.abs(x.neck.y - fr[i].neck.y)));

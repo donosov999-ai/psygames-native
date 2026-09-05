@@ -1749,6 +1749,19 @@ const translations: Translations = {
   riskGroupDesc: { ru: 'Выбор, когда исход неизвестен', en: 'Choosing when the outcome is unknown' },
   riskGroupFootnote: { ru: 'Три классические пробы: рискнуть ещё раз, распознать невыгодную колоду, заметить смену правила.', en: 'Three classic paradigms: push your luck, spot the bad deck, notice the rule change.' },
   trackerStepwise:        { ru: 'Двигать шагами по кнопке', en: 'Move step by step, by button' },
+  // Вид шаров в трекере объектов (05.09.2026). Названия короткие: под ними стоит
+  // сама картинка шара, и подпись здесь — опора для голосового доступа, а не
+  // объяснение. Фактуру выбирают глазами.
+  ballStyleTitle: { ru: 'Вид шаров', en: 'Ball look' },
+  ballGlossy:     { ru: 'Глянцевые',      en: 'Glossy' },
+  ballGlass:      { ru: 'Стеклянные',     en: 'Glass' },
+  ballFluffy:     { ru: 'Пушистые',       en: 'Fluffy' },
+  ballMatte:      { ru: 'Матовые',        en: 'Matte' },
+  ballChrome:     { ru: 'Хромовые',       en: 'Chrome' },
+  ballJelly:      { ru: 'Желейные',       en: 'Jelly' },
+  ballNeon:       { ru: 'Неоновые',       en: 'Neon' },
+  ballStone:      { ru: 'Каменные',       en: 'Stone' },
+  ballBubble:     { ru: 'Мыльный пузырь', en: 'Soap bubble' },
   trackerStepwiseOffered: { ru: 'В системе включено «уменьшить движение». Здесь движение — само упражнение, поэтому оно идёт как обычно; пошаговый режим можно включить галочкой выше.', en: 'Your system has “reduce motion” on. Here motion is the exercise itself, so it runs as usual; the step-by-step mode is the checkbox above.' },
   srsTyping:              { ru: 'Печатать', en: 'Type it' },
   srsTypingHint:          { ru: 'Опечатка не пускает дальше — исправьте её', en: 'A typo blocks the way — fix it to go on' },
