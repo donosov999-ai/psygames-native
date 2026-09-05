@@ -35,10 +35,9 @@ import { playerLevel, nextLock, levelsToNextLock } from '@/src/services/featureL
 import { chestState, earnedTotal, FIGURES } from '@/src/services/collection';
 import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic, getMusicEnabled } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
-import { GAMES, CATEGORY_ORDER, CATEGORY_META, GameCategory, GameConfig } from '@/src/constants/games';
+import { GAMES, CATEGORY_ORDER, CATEGORY_META, visibleInCatalog, GameCategory, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import { loadWeakSkill, gameForWeakSkill } from '@/src/services/weakSkill';
-import { visibleInCatalog } from '@/src/constants/games';
 import { hubBadgeCount } from '@/src/constants/hubContents';
 import {
   buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,

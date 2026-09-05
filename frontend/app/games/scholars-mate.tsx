@@ -83,11 +83,32 @@ export default function ScholarsMateScreen() {
   const [attempt, setAttempt] = React.useState(0);
 
   const level = num('level', lvl.level);
-  const п = levelParams(level);
+  /**
+   * 🔴 ПАРАМЕТРЫ УРОВНЯ МЕМОИЗИРОВАНЫ — И ЭТО НЕ УКРАШЕНИЕ.
+   *
+   * 📍 ЧТО ЛОМАЛОСЬ. `levelParams` возвращает новый объект каждый вызов, а его
+   * поле `kinds` (новый массив) стояло в зависимостях `onComplete`. Любая
+   * перерисовка экрана → новый `onComplete` → новый `дальше` в модуле → эффект
+   * показа вердикта перезаводил таймер С НУЛЯ. Замер: 0 перерисовок — вердикт
+   * держится 550 мс, 1 — 650, 2 — 750, а при перерисовке каждые 200 мс он не
+   * снимается ВООБЩЕ: доска замирает, следующая позиция не приходит. Триггер
+   * стоял уже в этом файле — `onProgress={setArmed}` даёт ровно один рендер.
+   */
+  const п = React.useMemo(() => levelParams(level), [level]);
 
   /** Уровень, на котором ИГРАЛИ: `lvl.reach` поднимает потолок раньше, чем рисуется итог. */
   const [playedLevel, setPlayedLevel] = React.useState<number | null>(null);
   const shownLevel = playedLevel ?? level;
+  /**
+   * 🔴 ЗВЁЗДЫ СЧИТАЮТСЯ ПО ЛИМИТУ СЫГРАННОГО УРОВНЯ, А НЕ СЛЕДУЮЩЕГО.
+   *
+   * 📍 `lvl.reach(level + 1)` меняет `level` ДО отрисовки итога, `п`
+   * пересчитывается, и медиана делилась на секунды СЛЕДУЮЩЕГО уровня. Замер:
+   * 17 переходов из 39 сдвигают звёзды, и `LevelCleared` их сохраняет. На
+   * переходе 20→21 медиана 4000–5250 мс заслуживала двух звёзд, а показывалось
+   * три; на 11→12 наоборот — заслужено три, показано две.
+   */
+  const пСыгранного = React.useMemo(() => levelParams(shownLevel), [shownLevel]);
 
   useAutostartWhenReady(() => autostart && lvl.loaded, () => setPhase('playing'));
 
@@ -132,9 +153,9 @@ export default function ScholarsMateScreen() {
    */
   const stars = React.useMemo(() => {
     if (!last || !last.solved) return 1;
-    const доля = last.medianMs / (п.seconds * 1000);
+    const доля = last.medianMs / (пСыгранного.seconds * 1000);
     return доля <= 0.33 ? 3 : доля <= 0.6 ? 2 : 1;
-  }, [last, п.seconds]);
+  }, [last, пСыгранного.seconds]);
 
   const start = () => { setPlayedLevel(null); setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
 
