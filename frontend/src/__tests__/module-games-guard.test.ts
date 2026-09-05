@@ -240,7 +240,7 @@ const LIVE_PREDICATES: Record<string, { fresh: () => boolean; busy: () => boolea
       const p = buildScholarsDeck(4, 1)[0]!;
       const uci = p.solutions[0]!;
       const v = checkScholars(p, uci);
-      return scholarsArmed([{ puzzle: p, answer: uci, correct: v.correct, ms: 900, timeout: false }]);
+      return scholarsArmed([{ puzzle: p, answer: uci, correct: v.correct, ms: 900, msFirst: 600, timeout: false }]);
     },
   },
   'pause.tsx': {
