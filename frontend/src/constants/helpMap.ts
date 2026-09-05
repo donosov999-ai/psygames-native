@@ -87,6 +87,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillWorkingMemory",
     "introKey": "listeningSpanIntroDesc"
   },
+  "/games/scholars-mate": {
+    "nameKey": "scholarsMate",
+    "skillKey": "skillVisualMemory",
+    "introKey": "scholarsMateIntroDesc"
+  },
   "/games/chess-blind": {
     "nameKey": "chessBlind",
     "skillKey": "skillVisualMemory",
@@ -217,6 +222,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillPlanning",
     "introKey": "towerLondonIntroDesc"
   },
+  "/games/water-sort": {
+    "nameKey": "waterSort",
+    "skillKey": "skillPlanning",
+    "introKey": "waterSortIntroDesc"
+  },
   "/games/pause": {
     "nameKey": "pause",
     "skillKey": "skillRecovery",
@@ -227,11 +237,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillPlanning",
     "introKey": "dotsConnectIntroDesc"
   },
-  "/games/water-sort": {
-    "nameKey": "waterSort",
-    "skillKey": "skillPlanning",
-    "introKey": "waterSortIntroDesc"
-  },
   "/games/one-line": {
     "nameKey": "oneLine",
     "skillKey": "skillPlanning",
@@ -241,6 +246,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "attentionConflict",
     "skillKey": "skillInhibition",
     "introKey": "attentionConflictIntroDesc"
+  },
+  "/games/inhibition-hub": {
+    "nameKey": "inhibitionGroup",
+    "skillKey": "skillInhibition",
+    "introKey": "inhibitionGroupIntroDesc"
   },
   "/games/inhibition": {
     "nameKey": "inhibition",
@@ -426,11 +436,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "languagesGroup",
     "skillKey": "skillVocabulary",
     "introKey": "languagesGroupIntroDesc"
-  },
-  "/games/inhibition-hub": {
-    "nameKey": "inhibitionGroup",
-    "skillKey": "skillInhibition",
-    "introKey": "inhibitionGroupIntroDesc"
   },
   "/games/towers-hub": {
     "nameKey": "towersGroup",

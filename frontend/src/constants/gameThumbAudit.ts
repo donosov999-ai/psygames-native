@@ -62,6 +62,7 @@ export const THUMB_AUDIT: Record<string, ThumbAudit> = {
   "reading_span": { about: false, yellow: 0.0, sha: '74d24b9647a4' },
   "rhythm_pitch": { about: false, yellow: 0.0, sha: 'f78cea3ed2de' },
   "rmet": { about: false, yellow: 0.0, sha: '54b8e80cf40c' },
+  "scholars_mate": { about: false, yellow: 0.0, sha: '2cd7a350ce02' },
   "schulte_table": { about: false, yellow: 0.0, sha: '2aba2188e1b5' },
   "sdmt": { about: false, yellow: 0.0, sha: '48ff9fdd4b63' },
   "semantic_sort": { about: false, yellow: 0.0, sha: '944931c21b0c' },

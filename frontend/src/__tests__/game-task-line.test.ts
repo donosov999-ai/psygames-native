@@ -169,6 +169,8 @@ const NOT_A_GAME: Record<string, string> = {
     'экран-обёртка: партию рисует модуль src/games/rhythm-pitch/RhythmPitchGame.tsx, строка живёт там и своя на каждый тип задания (strings.rhythmPrompt «Повторите услышанный ритм», strings.pitchDirectionPrompt «Второй звук был выше или ниже?», strings.pitchSequencePrompt «Повторите путь высот»), а во время звука её место занимает strings.listening; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт rhythm-pitch-integration.test.ts',
   'memory-palace.tsx':
     'экран-обёртка: партию рисует модуль src/games/memory-palace/MemoryPalaceGame.tsx, строка живёт там и меняется по фазе (strings.routeBody → placeBody → studyBody, а в проверке strings.recallPrompt «Что находилось здесь: {место}?» с именем текущего места) вместе со своим словарём; что она РИСУЕТСЯ В ПАРТИИ, а не в выключенном экране итога модуля, стережёт memory-palace-integration.test.ts',
+  'scholars-mate.tsx':
+    'экран-обёртка: партию рисует модуль src/games/scholars-mate/ScholarsMateGame.tsx, строка живёт там и своя на каждый вид задания (labels.mate «поставьте мат в один ход», labels.defend «защититесь от мата», labels.threat «грозит ли мат?», labels.sacrifice «мат с жертвой»), а рядом с ней — полоса времени и счёт позиций; экран передаёт только подписи. Что вопрос РИСУЕТСЯ и МЕНЯЕТСЯ по виду позиции, стережёт scholars-mate-integration.test.ts на живом дереве',
   'faces-names.tsx':
     'экран-обёртка: партию рисует модуль src/games/faces-names/FacesNamesGame.tsx, строка живёт там и меняется по фазе (strings.recognitionPrompt → namePrompt → factPrompt, плюс strings.interferenceBody на помехе) вместе со своим словарём на 12 языков; что она РИСУЕТСЯ, а не лежит мёртвой, стережёт faces-names-integration.test.ts',
 };

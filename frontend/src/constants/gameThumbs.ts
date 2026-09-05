@@ -24,6 +24,7 @@ const THUMBS: Record<string, any> = {
   bart: require('../../assets/images/gamethumbs/bart.webp'),
   breathing: require('../../assets/images/gamethumbs/breathing.webp'),
   chess_blind: require('../../assets/images/gamethumbs/chess_blind.webp'),
+  scholars_mate: require('../../assets/images/gamethumbs/scholars_mate.webp'),
   choice_rt: require('../../assets/images/gamethumbs/choice_rt.webp'),
   cloze: require('../../assets/images/gamethumbs/cloze.webp'),
   corsi: require('../../assets/images/gamethumbs/corsi.webp'),

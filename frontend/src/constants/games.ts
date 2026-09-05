@@ -351,6 +351,21 @@ export const GAMES: GameConfig[] = [
   },
   // v1.105.0 «Слепые шахматы» — идея Дениса: маскированные фигуры, позиция в голове
   {
+    /**
+     * «Детский мат» — этюды на скорость (просьба Дениса 05.09.2026).
+     * ⚠️ Рядом с «Шахматами вслепую», но НЕ объединять: там позицию держат в
+     * уме и ходят медленно, здесь она на виду и всё решает скорость узнавания.
+     */
+    id: 'scholars_mate',
+    nameKey: 'scholarsMate',
+    descKey: 'scholarsMateDesc',
+    skillKey: 'skillVisualMemory',
+    gradient: ['#8e5b2f', '#2f2a24'],
+    icon: 'flash',
+    route: '/games/scholars-mate',
+    category: 'memory',
+  },
+  {
     id: 'chess_blind',
     nameKey: 'chessBlind',
     descKey: 'chessBlindDesc',

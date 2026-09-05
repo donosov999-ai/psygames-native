@@ -44,6 +44,9 @@ import {
   advanceSession as advanceMathSession,
   mathSliderArmed,
 } from '@/src/games/math-slider/core';
+import { scholarsArmed } from '@/src/games/scholars-mate/core/run';
+import { buildDeck as buildScholarsDeck } from '@/src/games/scholars-mate/core/deck';
+import { check as checkScholars } from '@/src/games/scholars-mate/core/check';
 import {
   createDotsSession,
   startRound as startDotsRound,
@@ -229,6 +232,17 @@ function pausePlan() {
 }
 
 const LIVE_PREDICATES: Record<string, { fresh: () => boolean; busy: () => boolean; why: string }> = {
+  'scholars-mate.tsx': {
+    why: 'первая записанная попытка: её время уже в медиане, а медиана здесь и есть предмет упражнения',
+    fresh: () => scholarsArmed([]),
+    busy: () => {
+      // Попытка собирается НАСТОЯЩИМ путём: позиция из колоды, ответ через `check`.
+      const p = buildScholarsDeck(4, 1)[0]!;
+      const uci = p.solutions[0]!;
+      const v = checkScholars(p, uci);
+      return scholarsArmed([{ puzzle: p, answer: uci, correct: v.correct, ms: 900, timeout: false }]);
+    },
+  },
   'pause.tsx': {
     why: 'практика пошла: сессия перешла в running — человек уже дышит, и десять минут молча не стираются',
     fresh: () => pauseArmed(createPauseSession(pausePlan())),
