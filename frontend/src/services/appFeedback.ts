@@ -223,6 +223,10 @@ interface SendArgs {
   /** Голосовая заметка: оригинал речи, а не то, что расслышал телефон. */
   audio?: {
     blob: Blob; seconds: number; mime: string; peak?: number; measured?: boolean;
+    /** Пик по САМОМУ файлу — см. `filePeak` в voiceNote. `null` = декодировать не вышло. */
+    filePeak?: number | null;
+    /** Человека предупредили о немой записи, и он выбрал отправить как есть. */
+    silentAck?: boolean;
     /** Что сказала о себе звуковая дорожка — см. `TrackState` в voiceNote. */
     track?: { muted: boolean; readyState: string; label: string; everMuted: boolean } | null;
     /** Каким путём открыт микрофон — см. `MicSource` в voiceNote. */
@@ -436,6 +440,17 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
           // было отличить webm/opus от mp4, а расшифровка спотыкается именно об это.
           audio_mime: args.audio.mime ?? null,
           audio_peak: args.audio.peak ?? null,
+          // 🔴 audio_file_peak — пик по САМОМУ ФАЙЛУ, а не по потоку рядом с ним.
+          // Замер 05.09.2026: 34 отзыва `.m4a`, у ВСЕХ `audio_peak: 0` и у 32 из них
+          // `audio_measured: false` — то есть по базе нельзя было отличить «тишина»
+          // от «мерить было нечем», и заслон молчал. Скачанные файлы оказались
+          // цифровой тишиной (ffmpeg volumedetect: −91,0 дБ). Это поле снимает
+          // вопрос на стороне телефона, до заливки. `null` — декодера не нашлось.
+          audio_filePeak: args.audio.filePeak ?? null,
+          // 🔴 audio_silent_ack — предупредили ли человека. Без него «отправил, зная
+          // что тихо» и «мы промолчали» выглядят в базе одинаково, а это ровно тот
+          // вопрос, ради которого заслон и ставился.
+          audio_silent_ack: args.audio.silentAck ?? null,
           audio_measured: args.audio.measured ?? null,
           // audio_track — прямой ответ устройства о микрофоне: `muted` значит
           // «система звук не отдаёт», `ended` — дорожку отобрали на ходу. Пик

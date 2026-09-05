@@ -350,21 +350,31 @@ describe('интерфейс показывает уровень и не отп�
    * Экран это же правило и вызывает — отдельная проверка ниже следит, чтобы он
    * не завёл своё.
    */
-  it('🔴 правило предупреждения даёт верный ответ на все четыре случая', () => {
+  it('🔴 правило предупреждения даёт верный ответ на все шесть случаев', () => {
+    /**
+     * ⚠️ РАЗМЕР БЛОБА У ЗАГОТОВКИ НАСТОЯЩИЙ. Стояло `blob: {}`, то есть заметка
+     * без файла вовсе, и на ней правило обязано ругаться — заготовка описывала
+     * случай, которого в жизни не бывает. Пять секунд opus живой речи — ~40 КБ.
+     */
     const note = (o: Partial<VoiceNote>): VoiceNote => ({
-      blob: {} as Blob, seconds: 5, mime: 'audio/webm',
-      peak: 0.5, measured: true, track: null, ...o,
+      blob: { size: 40_000 } as Blob, seconds: 5, mime: 'audio/webm',
+      peak: 0.5, filePeak: null, measured: true, track: null, ...o,
     } as VoiceNote);
     const cases: Array<[string, boolean]> = [
       [`замер дал тишину: ${shouldWarnSilent(note({ peak: 0, measured: true }))}`, true],
       [`замера не было — не знаем, молчим: ${shouldWarnSilent(note({ peak: 0, measured: false }))}`, false],
       [`дорожка зажата, замера нет: ${shouldWarnSilent(note({ peak: 0, measured: false, track: { muted: true, readyState: 'live', label: '', everMuted: true } }))}`, true],
+      // 05.09.2026: нативный путь не даёт ни дорожки, ни замера — решает сам файл.
+      [`файл немой, мерить было нечем: ${shouldWarnSilent(note({ peak: 0, measured: false, mime: 'audio/mp4', filePeak: 0 }))}`, true],
+      [`файл со звуком, замера не было: ${shouldWarnSilent(note({ peak: 0, measured: false, mime: 'audio/mp4', filePeak: 0.42 }))}`, false],
       [`всё исправно: ${shouldWarnSilent(note({}))}`, false],
     ];
     expect(cases.map(([t]) => t)).toEqual([
       'замер дал тишину: true',
       'замера не было — не знаем, молчим: false',
       'дорожка зажата, замера нет: true',
+      'файл немой, мерить было нечем: true',
+      'файл со звуком, замера не было: false',
       'всё исправно: false',
     ]);
   });

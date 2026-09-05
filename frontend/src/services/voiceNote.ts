@@ -53,6 +53,28 @@ export interface VoiceNote {
    */
   peak: number;
   /**
+   * ПИК ПО САМОМУ ФАЙЛУ, 0..1. `null` — декодировать запись не удалось.
+   *
+   * 🔴 ЗАЧЕМ ОТДЕЛЬНО ОТ `peak`. `peak` — это замер ПОТОКА во время записи, и он
+   * существует только там, где есть чем мерить: у веб-пути AudioContext, у
+   * нативного — `recLevel` с моста, которого в сборках до 04.09.2026 нет вовсе.
+   * Ровно поэтому у 32 из 34 нативных заметок в базе стоит `audio_measured: false`
+   * — а `measured: false` по правилу ниже означает «не знаем», и предупреждение
+   * НЕ показывается. Тридцать два отзыва уехали с «спасибо» при пустом звуке.
+   *
+   * Замер 05.09.2026, четыре скачанных из бакета `.m4a` (1,5 / 10,8 / 37,9 /
+   * 168,8 с), `ffmpeg -af volumedetect`: у всех четырёх
+   * `mean_volume = max_volume = −91,0 дБ` — цифровая тишина при валидном
+   * AAC 16 кГц моно и правильной длительности. Поток при этом 4057–5003 байт/с
+   * по всем 34 — и у немых, и у говорящих: AAC пишется постоянным битрейтом, и
+   * по РАЗМЕРУ немую запись от живой не отличить в принципе.
+   *
+   * Значит единственный честный источник правды — сам файл. Декодируем его после
+   * остановки и меряем пик по сэмплам: это работает на ОБОИХ путях, не зависит ни
+   * от версии моста, ни от того, проснулся ли AudioContext.
+   */
+  filePeak: number | null;
+  /**
    * Удалось ли вообще замерить уровень. `false` — анализатор не отработал ни разу
    * (нет AudioContext, или он так и не вышел из `suspended`), и тогда `peak = 0`
    * означает «не знаем», а НЕ «тишина».
@@ -175,6 +197,107 @@ export interface TrackState {
 /** Ниже этого пика считаем, что микрофон не отдал звук (тишина ≈ 0.0005). */
 export const SILENCE_PEAK = 0.01;
 
+/** Сколько ждём декодирования записи, прежде чем сдаться и ответить «не знаю». */
+export const PROBE_CAP_MS = 2000;
+
+/**
+ * ПИК ПО ГОТОВОМУ ФАЙЛУ — ЕДИНСТВЕННЫЙ ЗАМЕР, КОТОРОМУ НЕЧЕМ СОВРАТЬ.
+ *
+ * Меряем то, что реально уедет в бакет, а не поток, который мы слушали рядом.
+ * `null` — декодера нет или он не справился: тогда честно «не знаем», и решение
+ * остаётся за живым замером (см. `shouldWarnSilent`).
+ *
+ * ⚠️ КОНТЕКСТ НА 8 кГц, А НЕ НА ШТАТНЫХ 48. `decodeAudioData` разворачивает
+ * запись в float-сэмплы по частоте контекста: три минуты на 48 кГц — это 32 МБ
+ * в памяти телефона, на 8 кГц — 5,4 МБ. Пик от частоты дискретизации не зависит,
+ * а тишина остаётся тишиной при любом пересчёте.
+ *
+ * ⚠️ ПОТОЛОК ОЖИДАНИЯ ОБЯЗАТЕЛЕН. Это тот же класс, что html2canvas в отправке
+ * отзыва: декодер на кривом WebView способен не ответить НИКОГДА, а try/catch
+ * зависание не ловит. Проиграл гонку — заметка уходит без замера файла, что
+ * лучше, чем кнопка «стоп», которая не отпускает.
+ */
+export async function probeBlobPeak(
+  blob: Blob | null | undefined,
+  capMs = PROBE_CAP_MS,
+): Promise<number | null> {
+  try {
+    if (!blob || !blob.size || typeof (blob as any).arrayBuffer !== 'function') return null;
+    const OAC: any = (globalThis as any).OfflineAudioContext
+      || (globalThis as any).webkitOfflineAudioContext;
+    if (!OAC) return null;
+    const bytes = await blob.arrayBuffer();
+    const ctx = new OAC(1, 1, 8000);
+    if (typeof ctx?.decodeAudioData !== 'function') return null;
+    const decoded: any = await Promise.race([
+      new Promise<any>((res) => {
+        try {
+          // Старая (колбэчная) и новая (промисная) подписи — WebView 90 умеет обе,
+          // но какую именно, зависит от сборки; поддерживаем обе разом.
+          const p = ctx.decodeAudioData(bytes, (b: any) => res(b), () => res(null));
+          if (p && typeof p.then === 'function') p.then((b: any) => res(b), () => res(null));
+        } catch { res(null); }
+      }),
+      new Promise<null>((res) => setTimeout(() => res(null), capMs)),
+    ]);
+    if (!decoded || typeof decoded.getChannelData !== 'function') return null;
+    let m = 0;
+    const channels = Number(decoded.numberOfChannels ?? 1) || 1;
+    for (let ch = 0; ch < channels; ch++) {
+      const d: Float32Array = decoded.getChannelData(ch);
+      for (let i = 0; i < d.length; i++) {
+        const a = d[i] < 0 ? -d[i] : d[i];
+        if (a > m) m = a;
+      }
+    }
+    return m;
+  } catch {
+    return null;   // нет декодера, битый контейнер, нет памяти — всё это «не знаем»
+  }
+}
+
+/**
+ * Байт в секунду, ниже которых файл заведомо пуст — при любом кодеке.
+ *
+ * 📍 Замер 05.09.2026: 69 файлов `.webm` скачаны из бакета и промерены
+ * `ffmpeg -af volumedetect`, из них у 36 в репорте известен размер и длина.
+ * Проверка порога против вердикта ffmpeg на этих 36:
+ *   · немых поймано 35 из 35, пропущено 0;
+ *   · живых оболгано 0;
+ *   · поток у немых  — 234–384 байт/с;
+ *   · поток у живого — 16 181 байт/с;
+ *   · поток у `.m4a` (AAC 32 кбит/с, постоянный битрейт) — 4057–5003 байт/с,
+ *     и у немых, и у говорящих ОДИНАКОВО (34 отзыва, `audio_bytes` в базе).
+ *
+ * Порог 700 стоит вдвое выше самой тяжёлой тишины (384) и вшестеро ниже самого
+ * лёгкого живого потока (4057, AAC) — промахнуться между ними нечем.
+ *
+ * 🔴 ЧЕГО ЭТОТ ПОРОГ НЕ УМЕЕТ, И ЭТО ГЛАВНОЕ. Немую запись AAC он не видит В
+ * ПРИНЦИПЕ: постоянный битрейт пишет одинаковое число байт и на речь, и на
+ * тишину. Ровно поэтому приём «235 против 6300», которым ловили немой opus, за
+ * три недели не поймал ни одного из 34 немых `.m4a`, — и ровно поэтому появился
+ * `probeBlobPeak`. Здесь остаётся то, что порог умеет честно: поймать файл, в
+ * котором данных нет вовсе или почти нет (обрыв, пустой контейнер).
+ */
+export const EMPTY_STREAM_BPS = 700;
+
+/** Файл меньше этого — заголовок контейнера без данных, звука там нет ни при каком кодеке. */
+export const EMPTY_BLOB_BYTES = 1024;
+
+/**
+ * ПУСТАЯ ЛИ ЗАПИСЬ ПО ОДНОМУ ЛИШЬ ФАЙЛУ, БЕЗ ДЕКОДЕРА.
+ *
+ * Нужна там, где `probeBlobPeak` ответил «не знаю»: старый WebView без
+ * `decodeAudioData`, битый контейнер, нехватка памяти. Молчаливая потеря хуже
+ * отказа, поэтому у заслона обязан быть путь, не требующий вообще ничего.
+ */
+export function looksEmptyRecording(note: VoiceNote | null | undefined): boolean {
+  if (!note) return false;
+  const bytes = note.blob?.size ?? 0;
+  if (bytes < EMPTY_BLOB_BYTES) return true;
+  return bytes / Math.max(1, note.seconds) < EMPTY_STREAM_BPS;
+}
+
 /**
  * НАДО ЛИ СКАЗАТЬ ЧЕЛОВЕКУ «МЫ ВАС НЕ СЛЫШИМ».
  *
@@ -191,10 +314,24 @@ export const SILENCE_PEAK = 0.01;
  *
  * ⚠️ `measured: false` НЕ повод предупреждать: это «не знаем», а не «тишина».
  * Обвинить исправный микрофон хуже, чем промолчать.
+ *
+ * 🔴 ТРЕТЬЕ И ГЛАВНОЕ ОСНОВАНИЕ — САМ ФАЙЛ (05.09.2026). Два прежних работают
+ * только там, где есть чем мерить поток, и ровно там их и не было: на нативном
+ * пути `track` всегда `null` (звук в WebView не попадает), а `measured` в
+ * сборках без `recLevel` — `false`. Итог по базе: 34 отзыва `.m4a`, у ВСЕХ
+ * `audio_peak: 0`, у 32 `audio_measured: false` → правило возвращало `false` →
+ * человек видел «спасибо». Скачанные файлы при этом — цифровая тишина
+ * (`ffmpeg volumedetect`: −91,0 дБ и среднее, и пик).
+ *
+ * `filePeak` меряет то, что уедет на сервер, и потому старше обоих выводов:
+ * если файл декодирован, спор окончен — судим по нему. Живой замер мог слышать
+ * речь, а в файл её не записать; уехал бы всё равно файл.
  */
 export function shouldWarnSilent(note: VoiceNote | null | undefined): boolean {
   if (!note) return false;
   if (note.track?.everMuted) return true;
+  if (looksEmptyRecording(note)) return true;
+  if (note.filePeak != null) return note.filePeak < SILENCE_PEAK;
   return note.measured && note.peak < SILENCE_PEAK;
 }
 
@@ -472,17 +609,28 @@ function startNativeRecording(
       blob = new Blob([bytes], { type: 'audio/mp4' });
     } catch { blob = null; }
     if (!blob || !blob.size) { give?.(null); return; }
-    give?.({
+    const note: VoiceNote = {
       blob,
       seconds: Math.min(MAX_RECORD_SEC, Math.max(1, Math.round((endedAt - startedAt) / 1000))),
       mime: 'audio/mp4',
       peak: пик,
+      filePeak: null,                                   // заполнится замером файла ниже
       measured: мерим,                                  // мерим мостом — см. шапку
       track: null,
       source: 'native',
       micGate: 'granted',                               // startRec не стартует без разрешения
       access: null,
-    });
+    };
+    /**
+     * 🔴 ЗАМЕР ФАЙЛА ИМЕННО ЗДЕСЬ, А НЕ В ЭКРАНЕ. На этом пути другого источника
+     * правды нет вовсе: `track` всегда `null`, а `measured` в сборках без
+     * `recLevel` — `false`, и заслон был выключен у 32 отзывов из 34. Ждём
+     * недолго и не насмерть (см. `PROBE_CAP_MS`), а `stop()` и так возвращает
+     * промис — интерфейс уже умеет его дожидаться.
+     */
+    probeBlobPeak(blob)
+      .then((p) => { note.filePeak = p; give?.(note); })
+      .catch(() => give?.(note));
   };
 
   const timer = setInterval(() => {
@@ -661,6 +809,7 @@ export async function startRecording(
       ),
       mime: type,
       peak,
+      filePeak: null,          // заполняется в `finish` замером готового файла
       measured: reads > 0,
       track: trackState(),
       source: mic.source,
@@ -696,7 +845,15 @@ export async function startRecording(
      * «стоп», и стоит она те же пару тактов. Опрос запущен в начале, пока
      * дорожка жива: `enumerateDevices` отдаёт имена ровно при выданном доступе.
      */
-    accessAsked.then((a) => { note.access = a; done2(note); }).catch(() => done2(note));
+    /**
+     * Замер файла идёт рядом с ответом системы — оба нужны к моменту, когда
+     * заметка попадёт на экран, и оба ограничены по времени. Веб-путь мерит поток
+     * сам, но поток и файл — разные вещи: рекордер способен честно слышать речь и
+     * не записать её (кривой WebView), а уедет всё равно файл.
+     */
+    Promise.all([accessAsked.catch(() => null), probeBlobPeak(note.blob).catch(() => null)])
+      .then(([a, p]) => { note.access = a; note.filePeak = p; done2(note); })
+      .catch(() => done2(note));
   };
   rec.onstop = () => {
     finish();
