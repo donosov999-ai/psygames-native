@@ -21,7 +21,7 @@
  * Теперь раскладка вынесена в `gsLayout` (см. `app/games/goods-sort.tsx`), и
  * проверяется ровно то, что рисуется. Разойтись стало нечему.
  */
-import { gsLayout } from '../../app/games/goods-sort';
+import { gridFor, gsLayout } from '../../app/games/goods-sort';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -31,18 +31,39 @@ const CELL_GAP = 2;
 
 /** Ширины: iPhone SE, типовой Android, её экран, iPhone Pro Max, планшет. */
 const WIDTHS = [320, 360, 386, 414, 430, 768, 1024];
-/** Сетки из gridFor: до L7 3×3, до L11 4×3, дальше 4×4. */
-const GRIDS = [{ cols: 3, rows: 3 }, { cols: 3, rows: 4 }, { cols: 3, rows: 5 },
-               { cols: 4, rows: 3 }, { cols: 4, rows: 4 }];
+/** Сетки берутся из gridFor игры — список руками отставал (см. ниже). */
+/**
+ * 🔴 СЕТКИ БЕРУТСЯ ИЗ `gridFor`, А НЕ ПЕРЕПИСЫВАЮТСЯ РУКАМИ.
+ *
+ * 📍 Список был написан руками и не содержал 3×6 — а именно её игра выдаёт с
+ * 12-го уровня на любом телефоне (`gridFor(12, true)`). Гейт «шкаф не вылезает
+ * за поле» шесть недель мерил пять сеток из шести и молчал, пока Валя не
+ * прислала 05.09.2026 скриншот с обрезанным нижним рядом и словами «кошмар
+ * просто кошмар».
+ *
+ * Список, переписанный руками, отстаёт от кода молча: добавили ряд в `gridFor`
+ * — гейт об этом не узнал. Поэтому сетки теперь ПРОИЗВОДЯТСЯ из той же
+ * функции, что и в игре, по всем уровням до сотого.
+ */
+const GRIDS = (() => {
+  const набор = new Map<string, { cols: number; rows: number }>();
+  for (let L = 1; L <= 100; L++) {
+    for (const narrow of [false, true]) {
+      const g = gridFor(L, narrow);
+      набор.set(`${g.cols}x${g.rows}`, g);
+    }
+  }
+  return [...набор.values()];
+})();
 
 /**
  * Тонкая обёртка над формулой игры. `rowWidth` берётся ИЗ НЕЁ ЖЕ: 02.09.2026
  * товары поставили внахлёст, и своя формула ширины ряда в тесте сразу же дала
  * ложное «не влезает» на 25 сочетаниях — она считала по-старому, встык.
  */
-function layout(width: number, cols: number, rows: number, height = 800) {
+function layout(width: number, cols: number, rows: number, height = 800, hintH?: number) {
   const availH = Math.max(180, height - 360);
-  const l = gsLayout(width, availH, cols, rows, CAP);
+  const l = gsLayout(width, availH, cols, rows, CAP, hintH);
   return { ...l, availH, rowWidth: l.rowW };
 }
 
@@ -124,6 +145,8 @@ describe('сортировка товаров: раскладка', () => {
   /** Сетки, которые экран реально получает: узкий (<560) — не более трёх колонок. */
   const сеткиДля = (w: number) => GRIDS.filter((g) => (w < 560 ? g.cols <= 3 : true));
 
+  it('сетки взяты из игры', () => { console.log('СЕТКИ:', GRIDS.map(g=>g.cols+'x'+g.rows).join(' ')); expect(GRIDS.length).toBeGreaterThan(4); });
+
   it('🔴 шкаф заполняет доступную высоту, а не оставляет её воздухом', () => {
     const плохо: string[] = [];
     for (const э of ЭКРАНЫ) {
@@ -131,6 +154,30 @@ describe('сортировка товаров: раскладка', () => {
         const l = layout(э.w, g.cols, g.rows, э.h);
         const доля = l.shelfH / l.availH;
         if (доля < 0.75) плохо.push(`${э.имя} ${э.w}×${э.h}, ${g.cols}×${g.rows}: шкаф ${l.shelfH} из ${l.availH} (${Math.round(доля * 100)} %)`);
+      }
+    }
+    expect(плохо).toEqual([]);
+  });
+
+  /**
+   * 🔴 СТРОКА ЦЕЛИ БЫВАЕТ ВЫСОКОЙ, И ШКАФ ОБЯЗАН ЭТО ПЕРЕЖИТЬ.
+   *
+   * 📍 Отчёт Вали 05.09.2026 со скриншотом обрезанного нижнего ряда: «кошмар
+   * просто кошмар». Причина — постоянные 44 px на строку цели при измеренном
+   * поле: у цели «собрать тройки» рядом стоят значки товаров 16×26, строка
+   * умеет переноситься, а в русском текст длиннее английского. Меряем крайние
+   * случаи: одна строка (28), одна со значками (56), две со значками (92).
+   */
+  it('🔴 шкаф не режется, когда строка цели в две строки со значками', () => {
+    const плохо: string[] = [];
+    for (const э of ЭКРАНЫ) {
+      for (const g of сеткиДля(э.w)) {
+        for (const h of [28, 44, 56, 92]) {
+          const l = layout(э.w, g.cols, g.rows, э.h, h);
+          if (l.shelfH > l.availH - h + 44) {
+            плохо.push(`${э.имя}, ${g.cols}×${g.rows}, цель ${h}px: шкаф ${l.shelfH} при поле ${l.availH}`);
+          }
+        }
       }
     }
     expect(плохо).toEqual([]);
