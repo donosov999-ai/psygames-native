@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.54',
+    date: '2026-09-05',
+    ru: ['Маджонг: этажи снова видно — верхние плитки светлее и меньше, нижние темнее, стопка читается глазами'],
+    en: ['Mahjong: the layers read again — upper tiles are lighter and smaller, lower ones darker, the stack is visible'],
+  },
+  {
     version: '2.37.53',
     date: '2026-09-05',
     ru: ['«Пробирки» перерисованы: настоящее стекло, блики поверх жидкости, крупнее на просторном экране'],

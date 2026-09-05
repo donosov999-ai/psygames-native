@@ -2,7 +2,7 @@
   "expo": {
     "name": "PsyGames",
     "slug": "psygames",
-    "version": "2.37.53",
+    "version": "2.37.54",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "psygames",

@@ -31,7 +31,7 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {saveResume, clearResume} from '@/src/services/resume';
-import { availablePairs, blockersOf, coveredFromAbove, isFree, tilePlacement, type Tile, layerOffsetFor } from '@/src/games/mahjong/board';
+import { availablePairs, blockersOf, coveredFromAbove, isFree, tilePlacement, tileScaleFor, layerTintFor, type Tile, layerOffsetFor } from '@/src/games/mahjong/board';
 import { buildPositions, silhouetteForLevel, type SilhouetteKey } from '@/src/games/mahjong/silhouettes';
 import { layoutForLevel } from '@/src/games/mahjong/layouts';
 import { mahjongExtent } from '@/src/games/mahjong/extent';
@@ -812,6 +812,18 @@ export default function MahjongGame() {
      */
     const masked = mahjongHidden(levelRef.current) && coveredFromAbove(tiles, aliveMaskRef.current, i);
     const { left, top } = tilePlacement(tt, maxLayer, half, layerOffset);
+    /**
+     * ГЛУБИНА ДЕРЖИТСЯ НА РАЗМЕРЕ, А НЕ НА СДВИГЕ (см. `tileScaleFor`). Плитка
+     * верхнего слоя меньше и стоит по центру своей клетки — нижняя выглядывает
+     * из-под неё рамкой, и стопка читается глазами. Сдвиг для этого не годится:
+     * он уводит верхнюю плитку на СОСЕДНЮЮ нижнюю, которую она не накрывает, и
+     * на этом краснеет проба честности слоёв.
+     */
+    const масштаб = tileScaleFor(tt.layer, maxLayer);
+    const ш = Math.round(tileW * масштаб);
+    const в = Math.round(tileH * масштаб);
+    const дх = Math.round((tileW - ш) / 2);
+    const ду = Math.round((tileH - в) / 2);
     return (
       <TouchableOpacity
         accessibilityRole="button"
@@ -821,19 +833,29 @@ export default function MahjongGame() {
         style={[
           styles.tile,
           {
-            width: tileW, height: tileH, left, top,
+            width: ш, height: в, left: left + дх, top: top + ду,
             zIndex: tt.layer * 100 + tt.y,
-            backgroundColor: blames ? '#fecaca' : sel ? '#fde68a' : free ? '#f8fafc' : '#cbd5e1',
+            backgroundColor: blames ? '#fecaca' : sel ? '#fde68a' : free ? layerTintFor(tt.layer, maxLayer) : '#b6c2d1',
             borderColor: blames ? '#dc2626' : sel ? '#f59e0b' : '#94a3b8',
             borderWidth: blames ? 3 : 1.5,
             // Виновную видно даже в нижнем слое: приглушение снимаем.
             opacity: blames ? 1 : free ? 1 : 0.6,
-            // Глубина теперь держится на тени, а не на сдвиге: см. layerOffset.
-            shadowOpacity: 0.22 + tt.layer * 0.13,
+            /**
+             * Тень растёт со слоем — второй признак высоты после размера. Радиус
+             * и смещение тоже растут: тень радиусом 3 при белом фоне доски не
+             * видна вовсе, а это и был единственный признак этажа до правки.
+             */
+            shadowOpacity: 0.18 + tt.layer * 0.14,
+            shadowRadius: 2 + tt.layer * 2.5,
+            shadowOffset: { width: 1 + tt.layer, height: 2 + tt.layer * 2 },
+            elevation: 2 + tt.layer * 3,
+            /** Толщина: тёмная полоса по нижнему краю ВНУТРИ клетки — плитка «имеет бок». */
+            borderBottomWidth: 1.5 + tt.layer * 1.5,
+            borderBottomColor: blames ? '#dc2626' : '#7c8ba1',
           },
         ]}
       >
-        <Text style={{ fontSize: tileW * 0.5, opacity: blames || free ? 1 : 0.7 }}>{masked ? '?' : (SYMBOLS[tt.symbol] ?? '🀄')}</Text>
+        <Text style={{ fontSize: ш * 0.5, opacity: blames || free ? 1 : 0.7 }}>{masked ? '?' : (SYMBOLS[tt.symbol] ?? '🀄')}</Text>
       </TouchableOpacity>
     );
   };

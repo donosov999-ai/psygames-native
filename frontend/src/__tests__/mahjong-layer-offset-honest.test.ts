@@ -1,5 +1,5 @@
 import { mahjongExtent } from '@/src/games/mahjong/extent';
-import { tilePlacement, overlaps, layerOffsetFor } from '@/src/games/mahjong/board';
+import { tilePlacement, overlaps, layerOffsetFor, tileScaleFor } from '@/src/games/mahjong/board';
 import { layoutForLevel } from '@/src/games/mahjong/layouts';
 // Тот же источник параметров уровня, что у экрана (`app/games/mahjong.tsx:230`).
 import { mahjongLevel as levelParams } from '@/src/services/mahjongLevels';
@@ -28,6 +28,14 @@ const ДОПУСК = 4;   // px: перекрытие тоньше считае�
  */
 const сдвиг = layerOffsetFor;
 
+/**
+ * ⚠️ И МАСШТАБ СЛОЯ — ТОЖЕ ОНА САМА, А НЕ КОПИЯ. С 05.09.2026 глубина рисуется
+ * размером: верхний слой меньше и стоит по центру клетки. Если проба продолжит
+ * мерить квадраты одного размера, она будет проверять НЕ ТУ картинку, которую
+ * видит человек, — и на этом гейт становится призраком.
+ */
+const масштаб = tileScaleFor;
+
 function расхождения(level: number, ширинаЭкрана: number) {
   const lay = layoutForLevel(level) as { places?: { x: number; y: number; layer: number }[] } | undefined;
   const places = lay?.places ?? [];
@@ -40,7 +48,10 @@ function расхождения(level: number, ширинаЭкрана: number)
   const tw = half * 2 - 2;
   const кор = places.map((p) => {
     const { left, top } = tilePlacement(p, maxLayer, half, off);
-    return { ...p, left, top, right: left + tw, bottom: top + tw };
+    const м = масштаб(p.layer, maxLayer);
+    const ш = Math.round(tw * м);
+    const д = Math.round((tw - ш) / 2);
+    return { ...p, left: left + д, top: top + д, right: left + д + ш, bottom: top + д + ш };
   });
   let лже = 0, невид = 0;
   for (let i = 0; i < кор.length; i += 1) for (let j = 0; j < кор.length; j += 1) {
