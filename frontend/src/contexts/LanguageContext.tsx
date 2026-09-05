@@ -3180,6 +3180,30 @@ const translations: Translations = {
   dayGoalRewardNeedsRound: { ru: 'Очки за цель начисляют в день, когда были партии.', en: 'Goal points come on a day with rounds played.' },
   dayGoalCloseA11y: { ru: 'Убрать карточку цели на сегодня', en: 'Hide the goal card for today' },
 
+  /**
+   * ДОСКА ВСТАЛА — И СТРОКА НАЗЫВАЕТ ТОЛЬКО ТО, ЧТО ДЕЙСТВИТЕЛЬНО ВОЗМОЖНО.
+   *
+   * 🔴 `mahjongNoPairs` (выше) звал в две кнопки сразу и оставался единственным
+   * текстом на все случаи. На 15+ уровне перетасовка одна, отмен три, а лента
+   * отмены обнуляется самой перетасовкой — то есть обе названные кнопки могли
+   * быть погашены. Замер 05.09.2026 (200 партий на уровень, случайный разбор):
+   * без единого выхода заканчиваются 2 % партий на 20 уровне, 12 % на 25-м,
+   * 26 % на 40-м. Какой из четырёх текстов показать, решает `mahjongStuckKey`
+   * (`src/games/mahjong/stuck.ts`) — тем же кодом, что и набор кнопок.
+   */
+  mahjongStuckShuffle: {
+    ru: 'Доступных пар нет — доска встала. Перемешай.',
+    en: 'No pairs available — the board is stuck. Shuffle.',
+  },
+  mahjongStuckUndo: {
+    ru: 'Доступных пар нет — доска встала. Отмени ход.',
+    en: 'No pairs available — the board is stuck. Undo a move.',
+  },
+  mahjongStuckRestart: {
+    ru: 'Доступных пар нет, перемешать и отменить нечем. Уровень придётся начать заново.',
+    en: 'No pairs left, nothing to shuffle or undo. This level has to be restarted.',
+  },
+  mahjongRestartLevel: { ru: 'Начать уровень заново', en: 'Restart the level' },
   // >>> SCREEN_STRINGS
 };
 

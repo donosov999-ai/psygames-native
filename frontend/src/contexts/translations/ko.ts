@@ -2299,6 +2299,10 @@ const t: Record<string, string> = {
   "deepSpiceDesc": "맨 아래 층에 온도계와 합계 케이지가 생기고, 주어진 숫자는 줄어듭니다",
   "deepSpiceRuleThermo": "온도계: 구에서 시작해 숫자가 커집니다 — 다음 칸은 항상 더 큽니다",
   "deepSpiceRuleCage": "구에서 숫자가 커지고, 색 케이지는 표시된 합이 되며 중복이 없습니다",
+  "mahjongStuckShuffle": "맞출 수 있는 짝이 없습니다 — 판이 막혔습니다. 섞기를 사용하세요.",
+  "mahjongStuckUndo": "맞출 수 있는 짝이 없습니다 — 판이 막혔습니다. 되돌리기를 사용하세요.",
+  "mahjongStuckRestart": "맞출 짝이 없고 섞기도 되돌리기도 남지 않았습니다. 이 레벨은 처음부터 다시 해야 합니다.",
+  "mahjongRestartLevel": "레벨 다시 시작",
   // >>> SCREEN_STRINGS
 };
 export default t;

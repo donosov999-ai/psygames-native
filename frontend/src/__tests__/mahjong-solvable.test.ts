@@ -182,7 +182,10 @@ describe('🔴 экран и перетасовка не отдают мёртв
     // Ищем ВЫЗОВ списания, а не объявление состояния: объявление стоит выше всего
     // и сравнение с ним ничего не значит.
     const spend = screen.indexOf('setShufflesUsed((n) => n + 1)');
-    const guard = screen.indexOf('symbolOf === null) return');
+    // ⚠️ Ищем сам страж, а не `… ) return`: 05.09.2026 в эту ветку добавилась
+    // вибрация (молчащий отказ читался как поломка приложения), и гейт,
+    // прибитый к слову `return`, покраснел на починке.
+    const guard = screen.indexOf('symbolOf === null');
     expect(spend).toBeGreaterThan(0);
     expect(guard).toBeGreaterThan(0);
     expect(spend).toBeGreaterThan(guard);

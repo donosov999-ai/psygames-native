@@ -202,7 +202,19 @@ describe('цифра доходит до экрана, а ноль — гово�
     expect(screen).toMatch(/const boardStuck = openPairs === 0/);
     // Красная пилюля — заметить, строка под доской — понять, что делать.
     expect(screen).toMatch(/boardStuck \? \['#fb7185', '#e11d48'\]/);
-    expect(screen).toMatch(/boardStuck \? t\('mahjongNoPairs'\) : t\('mahjongHint'\)/);
+    /**
+     * ⚠️ ЗДЕСЬ СТОЯЛ ЛИТЕРАЛ `boardStuck ? t('mahjongNoPairs') : t('mahjongHint')`,
+     * и 05.09.2026 он покраснел на ПОЧИНКЕ. Текст на вставшей доске стал одним из
+     * четырёх: прежний звал в перетасовку и отмену, которых на 15+ уровне могло не
+     * быть ни одной (замер — 26 % партий на 40 уровне без единого выхода). Гейт,
+     * прибитый к тексту, требовал вернуть враньё.
+     *
+     * Поэтому он прибит к СУТИ: ноль обязан говорить, и что именно сказать —
+     * решает `mahjongStuckKey` (src/games/mahjong/stuck.ts), а не константа в
+     * экране. Оно же решает набор кнопок, поэтому текст и кнопки разойтись не могут.
+     */
+    expect(screen).toMatch(/const stuckKey = boardStuck \? mahjongStuckKey\(/);
+    expect(screen).toMatch(/t\(stuckKey \?\? 'mahjongHint'\)/);
   });
 
   it('обе подписи есть во ВСЕХ двенадцати языках', () => {

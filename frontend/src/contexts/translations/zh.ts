@@ -2304,6 +2304,10 @@ const t: Record<string, string> = {
   "deepSpiceDesc": "最底层将出现温度计与和值笼，同时提示数字变少",
   "deepSpiceRuleThermo": "温度计：从球端起数字递增，每一格都比前一格大",
   "deepSpiceRuleCage": "数字从球端递增；彩色笼内之和等于提示且不重复",
+  "mahjongStuckShuffle": "没有可以配对的牌 — 棋盘卡住了。请洗牌。",
+  "mahjongStuckUndo": "没有可以配对的牌 — 棋盘卡住了。请撤销一步。",
+  "mahjongStuckRestart": "没有可配对的牌，也没有可洗牌或可撤销的操作。本关需要重新开始。",
+  "mahjongRestartLevel": "重新开始本关",
   // >>> SCREEN_STRINGS
 };
 export default t;

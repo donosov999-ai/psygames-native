@@ -31,7 +31,8 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import {saveResume, clearResume} from '@/src/services/resume';
-import { availablePairs, blockersOf, coveredFromAbove, isFree, tilePlacement, tileScaleFor, layerShadeFor, type Tile, layerOffsetFor } from '@/src/games/mahjong/board';
+import { availablePairs, blockersOf, coveredFromAbove, isFree, tilePlacement, tileScaleFor, tileShadeFor, ПЛЁНКА_ГЛУБИНЫ, type Tile, layerOffsetFor } from '@/src/games/mahjong/board';
+import { mahjongExits, mahjongStuckKey } from '@/src/games/mahjong/stuck';
 import { buildPositions, silhouetteForLevel, type SilhouetteKey } from '@/src/games/mahjong/silhouettes';
 import { layoutForLevel } from '@/src/games/mahjong/layouts';
 import { mahjongExtent } from '@/src/games/mahjong/extent';
@@ -342,6 +343,8 @@ export default function MahjongGame() {
   const [startTime, setStartTime] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const scoreRef = useRef(0);
+  /** Счёт на СТАРТЕ текущего уровня — к нему откатывается пересдача (см. restartLevel). */
+  const levelScoreRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // alive по id (для рендера/логики свободы из текущих tiles)
@@ -361,6 +364,9 @@ export default function MahjongGame() {
 
   const loadLevel = (L: number) => {
     const p = levelParams(L);
+    // Точка отката для пересдачи. Ставится ДО раздачи: `restartLevel` сначала
+    // возвращает счёт сюда, а потом зовёт нас — значит запомнится то же число.
+    levelScoreRef.current = scoreRef.current;
     /**
      * ⚠️ ПЕРЕСОБИРАЕМ, ПОКА РАСКЛАД НЕ ВЫЙДЕТ РАЗБИРАЕМЫМ. Сборка снятием пар
      * иногда упирается в тупик (см. `generate`) — это её природа, а не поломка.
@@ -449,6 +455,9 @@ export default function MahjongGame() {
      */
     history.reset();
     scoreRef.current = r.score; setScore(r.score);
+    // Точка отката пересдачи у поднятой партии — сам поднятый счёт: очков ЭТОГО
+    // уровня в снимке уже не отделить, а откатывать чужие уровни нельзя.
+    levelScoreRef.current = r.score;
     setSelected(null); setLevelBanner(null);
     // Секундомер продолжаем с НАКОПЛЕННОГО: от прежнего startTime партия «шла» бы
     // всё то время, что телефон лежал в кармане.
@@ -624,8 +633,34 @@ export default function MahjongGame() {
     hapticTap();
   };
 
+  /**
+   * Начать уровень заново — единственный честный выход, когда доска встала, а
+   * перетасовать и отменить нечем (см. `src/games/mahjong/stuck.ts`).
+   *
+   * ⚠️ ОЧКИ ЗА УРОВЕНЬ ОТКАТЫВАЮТСЯ. Без этого пересдача становится фермой:
+   * набрал двадцать пар по 20 очков, загнал доску в тупик, начал заново — и
+   * те же пары приносят очки второй раз. Возвращаем счёт к тому, что было на
+   * старте уровня, и пересдача стоит ровно того, что на ней заработано.
+   */
+  const restartLevel = () => {
+    scoreRef.current = levelScoreRef.current;
+    setScore(scoreRef.current);
+    /**
+     * 🔴 СНИМОК МЁРТВОЙ ДОСКИ ВЫБРАСЫВАЕМ, И ЭТО НЕ МЕЛОЧЬ. Свежая раскладка
+     * не «тронута» (`touched` = false: снятых пар нет, ошибок нет, бюджеты
+     * целы), поэтому автосохранение по ней НЕ СРАБОТАЕТ, и в хранилище
+     * останется лежать та самая доска без выхода. «Продолжить» с главной
+     * позвало бы человека ровно в тот тупик, из которого он только что вышел.
+     * Тот же порядок, что в `startGame`: новая партия выбрасывает старую.
+     */
+    if (profile?.id) clearResume(GAME_ID, profile.id).catch(() => {});
+    loadLevel(level);
+  };
+
   // Перемешать символы ОСТАВШИХСЯ тайлов (страховка от тупика) — заново решаемо.
-  const reshuffle = () => {
+  // `готовые` — раздача, уже проверенная при показе строки «доска встала»: обещать
+  // перетасовку и потом раздать другую (или не раздать вовсе) нельзя.
+  const reshuffle = (готовые?: number[] | null) => {
     if (tiles.length === 0) return;
     // Перетасовка — расходуемый ресурс, а не бесплатная кнопка «сделай проще».
     if (!canShuffle(levelParams(level).shuffles, shufflesUsed)) return;
@@ -650,8 +685,21 @@ export default function MahjongGame() {
       return deal.tiles.length === 0 ? null : deal.tiles.map((t) => t.symbol);
     };
 
-    const symbolOf: number[] | null = dealSymbols();
-    if (symbolOf === null) return;                 // ресурс не тратим
+    const symbolOf: number[] | null = готовые ?? dealSymbols();
+    if (symbolOf === null) {
+      /**
+       * 🔴 ОТКАЗ БОЛЬШЕ НЕ МОЛЧИТ. Здесь стоял голый `return`: нажатие без
+       * отклика, ресурс цел, объяснения нет — тот же «отказ без объяснения»,
+       * ради которого писался `blockersOf`. Замер 05.09.2026 (60 партий на
+       * уровень): на 15 уровне 1 отказ из 60, и он ВЕЧНЫЙ — набор оставшихся
+       * мест не раздаётся и за 4000 заходов. На вставшей доске строку
+       * подсказки в этом случае считает `mahjongStuckKey` и перетасовку не
+       * предлагает вовсе; вибрация — на случай живой доски, где предложить
+       * нечего, но и молчать нельзя.
+       */
+      hapticError();
+      return;                                      // ресурс не тратим
+    }
 
     setShufflesUsed((n) => n + 1);
     const total = positions.length - (positions.length % 2);
@@ -695,6 +743,43 @@ export default function MahjongGame() {
   );
   /** Ходов нет. Молчать об этом нельзя: человек будет жать плитки, думая, что промахивается. */
   const boardStuck = openPairs === 0 && tiles.length > 0 && levelBanner === null;
+
+  /**
+   * ПЕРЕТАСОВКА, ПРОВЕРЕННАЯ ЗАРАНЕЕ. `null` = раздатчик отказался, такой
+   * перетасовки не будет — предлагать её нельзя (см. `stuck.ts`, вечный отказ).
+   *
+   * ⚠️ Считается ТОЛЬКО на вставшей доске. `dealSolvable` — это до двадцати
+   * полных разборов доски; гонять их на каждый снятый тайл незачем, а на нуле
+   * ходов партия и так остановилась, и одна проверка ничего не стоит.
+   *
+   * Готовый ответ передаётся в `reshuffle`: обещать одну раздачу, а применить
+   * другую (или не применить) — то же враньё, что предлагать пустую кнопку.
+   */
+  const stuckDeal = React.useMemo(() => {
+    if (!boardStuck) return null;
+    const positions = tiles.map((t) => ({ x: t.x, y: t.y, layer: t.layer }));
+    const deal = dealSolvable(positions, SYMBOLS.length, 20);
+    return deal.tiles.length === 0 ? null : deal.tiles.map((t) => t.symbol);
+  }, [tiles, boardStuck]);
+
+  /** Бюджет отмен и лента — то же условие, что у кнопки отмены в шапке. */
+  const canUndoNow = history.canUndo && undosUsed < UNDOS_PER_LEVEL && levelBanner === null;
+  const stuckIn = {
+    openPairs,
+    shufflesLeft: shufflesLeft(levelParams(level).shuffles, shufflesUsed),
+    shuffleDeals: stuckDeal !== null,
+    canUndo: canUndoNow,
+  };
+  /**
+   * 🔴 СТРОКА ПОД ДОСКОЙ НАЗЫВАЕТ ТОЛЬКО ВЫПОЛНИМОЕ. Здесь стоял один текст на
+   * все случаи — «Перемешай или отмени ход», — и он звал в две кнопки, которых
+   * на 15+ уровне могло не быть ни одной (перетасовка там одна, а лента отмены
+   * обнуляется самой перетасовкой). Замер 05.09.2026: 26 % партий на 40 уровне
+   * доходят до состояния без единого выхода. Что именно доступно, решает
+   * `mahjongStuckKey` — тем же кодом, которым считается набор кнопок.
+   */
+  const stuckKey = boardStuck ? mahjongStuckKey(stuckIn) : null;
+  const stuckExits = boardStuck ? mahjongExits(stuckIn) : [];
 
   // ── вёрстка пирамиды ─────────────────────────────────────────────────
   // Габариты поля в полуклетках → размер тайла под ширину экрана.
@@ -847,7 +932,8 @@ export default function MahjongGame() {
              * никакой — доска читалась как таблица, а не как разбираемая стопка.
              *
              * ⚠️ Признаки этажа при этом ОСТАЛИСЬ ТЕ ЖЕ: размер (`tileScaleFor`),
-             * тон (`layerShadeFor` — тёмная плёнка поверх кости, тем гуще, чем ниже) и
+             * тон (`tileShadeFor` — тёмная плёнка поверх кости, тем гуще, чем ниже
+             * этаж И чем плотнее плитку накрыли) и
              * растущая тень. Замени тон на «просто картинку без плёнки» — и проба
              * `mahjong-layers-are-visible` покраснеет, потому что этажи снова
              * станут неразличимы.
@@ -855,8 +941,16 @@ export default function MahjongGame() {
             backgroundColor: 'transparent',
             borderColor: blames ? '#dc2626' : sel ? '#f59e0b' : '#94a3b8',
             borderWidth: blames ? 3 : 1.5,
-            // Виновную видно даже в нижнем слое: приглушение снимаем.
-            opacity: blames ? 1 : free ? 1 : 0.6,
+            /**
+             * ⚠️ ПЛИТКА НЕПРОЗРАЧНА — И ЭТО ЧАСТЬ ПОЧИНКИ ГЛУБИНЫ. Занятая
+             * плитка стояла на `opacity: 0.6`, то есть подмешивала фон доски:
+             * на светлой теме выцветала вверх, на чёрной — вниз. Из-за этого
+             * шкала этажей получалась РАЗНОЙ в двух темах, а разброса по
+             * этажам у занятых не было вовсе (замер — в шапке `tileShadeFor`).
+             * Теперь занятость несёт та же тень, что и этаж, и картинка
+             * одинакова в обеих темах.
+             */
+            opacity: 1,
             /**
              * Тень растёт со слоем — второй признак высоты после размера. Радиус
              * и смещение тоже растут: тень радиусом 3 при белом фоне доски не
@@ -890,22 +984,36 @@ export default function MahjongGame() {
           importantForAccessibility="no-hide-descendants"
         />
         {/*
-          Плёнка поверх кости: тон этажа, выбор и подсветка виновной. Полупрозрачная —
-          кость обязана просвечивать, иначе от новой плашки ничего не остаётся.
+          🔴 ПЛЁНКА ГЛУБИНЫ — НА КАЖДОЙ ПЛИТКЕ, А НЕ ТОЛЬКО НА СВОБОДНОЙ.
+          Здесь стояла развилка: свободной доставался тон этажа
+          (`layerShadeFor`), занятой — постоянная серая плёнка 0,42 на всех
+          пяти этажах. Занятых на доске 80-90 % (замер в шапке `tileShadeFor`),
+          то есть глубина, ради которой и писался `layerShadeFor`, доходила до
+          одной плитки из шести. Теперь тень считает `tileShadeFor` — одной
+          шкалой на этаж и занятость, и её же меряет проба.
         */}
         <View
           pointerEvents="none"
           style={[
             StyleSheet.absoluteFill as any,
-            {
-              backgroundColor: blames ? '#fecaca' : sel ? '#fde68a'
-                : free ? '#262a34' : '#7b8798',
-              opacity: blames ? 0.55 : sel ? 0.5
-                : free ? layerShadeFor(tt.layer, maxLayer) : 0.42,
-            },
+            { backgroundColor: ПЛЁНКА_ГЛУБИНЫ, opacity: tileShadeFor(tt.layer, maxLayer, free) },
           ]}
         />
-        <Text style={{ fontSize: ш * 0.5, opacity: blames || free ? 1 : 0.7 }}>{masked ? '?' : (SYMBOLS[tt.symbol] ?? '🀄')}</Text>
+        {/*
+          Выбор и подсветка виновной — ОТДЕЛЬНОЙ плёнкой поверх глубины, а не
+          вместо неё: раньше выделенная плитка теряла этаж целиком, и на
+          пятислойной доске нельзя было понять, откуда ты её берёшь.
+        */}
+        {(blames || sel) && (
+          <View
+            pointerEvents="none"
+            style={[
+              StyleSheet.absoluteFill as any,
+              { backgroundColor: blames ? '#fecaca' : '#fde68a', opacity: blames ? 0.55 : 0.5 },
+            ]}
+          />
+        )}
+        <Text style={{ fontSize: ш * 0.5, opacity: blames || free ? 1 : 0.75 }}>{masked ? '?' : (SYMBOLS[tt.symbol] ?? '🀄')}</Text>
       </TouchableOpacity>
     );
   };
@@ -1036,10 +1144,17 @@ export default function MahjongGame() {
               ladder="undo" label={t('btn_undo')} count={undoLeft}
               disabled={!canUndo} onPress={undoMove}
             />
+            {/*
+              На вставшей доске отдаём УЖЕ ПРОВЕРЕННУЮ раздачу (`stuckDeal`), ту
+              самую, по которой строка выше пообещала перетасовку. И гасим кнопку,
+              если раздатчик отказался: жать её бессмысленно, а нажатие без отклика
+              читается как поломка приложения.
+            */}
             <GameAuxAction
               icon="shuffle" tint="#0d9488"
               label={t('shuffleBtn')} count={left < 0 ? undefined : left}
-              disabled={!can} onPress={reshuffle}
+              disabled={!can || (boardStuck && stuckDeal === null)}
+              onPress={() => reshuffle(boardStuck ? stuckDeal : null)}
             />
           </GameAuxBar>
         );
@@ -1047,8 +1162,25 @@ export default function MahjongGame() {
     >
       <View style={styles.fieldCol}>
         <Text style={[styles.hintText, boardStuck ? styles.hintStuck : null, { color: boardStuck ? '#e11d48' : colors.textSecondary }]}>
-          {boardStuck ? t('mahjongNoPairs') : t('mahjongHint')}
+          {t(stuckKey ?? 'mahjongHint')}
         </Text>
+        {/*
+          🔴 ВЫХОД ИЗ ТУПИКА, КОТОРЫЙ ЕСТЬ НА САМОМ ДЕЛЕ. Пока доска встала, а
+          перетасовать и отменить нечем, единственное правдивое действие — начать
+          уровень заново; без этой кнопки человеку оставалось уйти с экрана.
+          Кнопка живёт РЯДОМ СО СТРОКОЙ, которая её называет, и появляется ровно
+          по тому же условию — иначе текст и кнопка разойдутся при первой правке.
+        */}
+        {stuckExits.includes('restart') && (
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={restartLevel}
+            style={[styles.restartBtn, { borderColor: '#e11d48', backgroundColor: colors.surface }]}
+          >
+            <Ionicons name="refresh" size={16} color="#e11d48" />
+            <Text style={[styles.restartText, { color: '#e11d48' }]}>{t('mahjongRestartLevel')}</Text>
+          </TouchableOpacity>
+        )}
         <View style={{ width: boardPxW, height: boardPxH, alignSelf: 'center', marginTop: 6 }}>
           {tiles.map((tt, i) => renderTile(tt, i))}
         </View>
@@ -1124,6 +1256,10 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap', maxWidth: '100%' },
   hintText: { fontSize: 12, textAlign: 'center' },
   hintStuck: { fontSize: 13, fontWeight: '700' },   // доска встала — строка обязана быть заметнее обычной подсказки
+  // Пересдача уровня. minHeight 44 — палец, а не мышь: кнопка появляется в
+  // единственный момент, когда других действий на экране нет вовсе.
+  restartBtn: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1.5 },
+  restartText: { fontSize: 14, fontWeight: '700' },
   // overflow ЗАКРЫТ: что бы ни легло внутрь, за плитку оно не вылезет
   //  и страницу шире окна не сделает.
   tile: { overflow: 'hidden',

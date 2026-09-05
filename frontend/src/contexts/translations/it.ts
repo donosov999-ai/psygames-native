@@ -2299,6 +2299,10 @@ const t: Record<string, string> = {
   "deepSpiceDesc": "Lo strato più basso riceve termometri e gabbie-somma, e meno cifre date",
   "deepSpiceRuleThermo": "Termometro: dal bulbo le cifre crescono — ognuna maggiore della precedente",
   "deepSpiceRuleCage": "Le cifre crescono dal bulbo; una gabbia colorata dà la sua somma senza ripetizioni",
+  "mahjongStuckShuffle": "Nessuna coppia disponibile — il tavolo è bloccato. Mescola.",
+  "mahjongStuckUndo": "Nessuna coppia disponibile — il tavolo è bloccato. Annulla una mossa.",
+  "mahjongStuckRestart": "Non restano coppie e non c’è nulla da mescolare o annullare. Questo livello va ricominciato.",
+  "mahjongRestartLevel": "Ricomincia il livello",
   // >>> SCREEN_STRINGS
 };
 export default t;

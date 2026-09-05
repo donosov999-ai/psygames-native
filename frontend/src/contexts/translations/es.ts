@@ -2304,6 +2304,10 @@ const t: Record<string, string> = {
   "deepSpiceDesc": "La capa inferior recibe termómetros y jaulas de suma, y menos cifras dadas",
   "deepSpiceRuleThermo": "Termómetro: desde el bulbo las cifras crecen — cada siguiente es mayor",
   "deepSpiceRuleCage": "Las cifras crecen desde el bulbo; una jaula de color suma su pista sin repetir",
+  "mahjongStuckShuffle": "No hay pares disponibles: el tablero está bloqueado. Baraja.",
+  "mahjongStuckUndo": "No hay pares disponibles: el tablero está bloqueado. Deshaz una jugada.",
+  "mahjongStuckRestart": "No quedan pares y no hay nada que barajar ni deshacer. Hay que reiniciar el nivel.",
+  "mahjongRestartLevel": "Reiniciar el nivel",
   // >>> SCREEN_STRINGS
 };
 export default t;
