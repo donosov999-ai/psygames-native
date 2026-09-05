@@ -364,6 +364,7 @@ export const GAMES: GameConfig[] = [
     icon: 'flash',
     route: '/games/scholars-mate',
     category: 'memory',
+    mergedInto: 'chess_group',
   },
   {
     id: 'chess_blind',
@@ -374,7 +375,9 @@ export const GAMES: GameConfig[] = [
     icon: 'grid',
     route: '/games/chess-blind',
     category: 'memory',
-    mergedInto: 'visual_memory_group',
+    // 05.09.2026: ушла из «Зрительной памяти» в «Шахматы» — по просьбе Дениса
+    // шахматные упражнения собраны одним входом.
+    mergedInto: 'chess_group',
   },
   {
     id: 'mnemonics',
@@ -1259,6 +1262,24 @@ export const GAMES: GameConfig[] = [
     gradient: ['#0891b2', '#a855f7'],
     icon: 'language',
     route: '/games/languages-hub',
+    category: 'memory',
+    hub: true,
+  },
+  {
+    /**
+     * Развилка «Шахматы» (05.09.2026, просьба Дениса: «все упражнения по
+     * шахматам заказать в хаб шахматы»). Общая у них доска и обозначения полей;
+     * навыки разные — «Доска в уме» держит позицию в голове, «Детский мат»
+     * меряет скорость узнавания узора на видимой доске. Поэтому развилка, а не
+     * один экран с переключателем режимов.
+     */
+    id: 'chess_group',
+    nameKey: 'chessGroup',
+    descKey: 'chessGroupDesc',
+    skillKey: 'skillVisualMemory',
+    gradient: ['#8e5b2f', '#2f2a24'],
+    icon: 'grid',
+    route: '/games/chess-hub',
     category: 'memory',
     hub: true,
   },

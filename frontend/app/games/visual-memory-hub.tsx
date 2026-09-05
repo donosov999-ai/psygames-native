@@ -4,6 +4,10 @@
  *
  * Заведена 04.09.2026: в каталоге «память» разрослась до четырнадцати карточек и
  * перестала листаться. Весь вид — в общем каркасе `HubScreen`.
+ *
+ * ⚠️ 05.09.2026 отсюда ушла «Доска в уме» — в развилку «Шахматы» (просьба
+ * Дениса собрать шахматные упражнения одним входом). Зрительная память у неё
+ * действительно есть, но приходят в неё за шахматами.
  */
 import React from 'react';
 import HubScreen from '@/src/components/HubScreen';
@@ -20,7 +24,6 @@ export default function VisualMemoryHub() {
       games={[
         { route: '/games/memory-matrix', icon: 'grid', nameKey: 'memoryMatrix', descKey: 'memoryMatrixDesc' },
         { route: '/games/picture-pairs', icon: 'copy', nameKey: 'picturePairs', descKey: 'picturePairsDesc' },
-        { route: '/games/chess-blind', icon: 'apps', nameKey: 'chessBlind', descKey: 'chessBlindDesc' },
         { route: '/games/navigator', icon: 'navigate', nameKey: 'navigator', descKey: 'navigatorDesc' },
       ]}
     />

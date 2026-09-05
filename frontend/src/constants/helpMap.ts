@@ -437,6 +437,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillVocabulary",
     "introKey": "languagesGroupIntroDesc"
   },
+  "/games/chess-hub": {
+    "nameKey": "chessGroup",
+    "skillKey": "skillVisualMemory",
+    "introKey": "chessGroupIntroDesc"
+  },
   "/games/towers-hub": {
     "nameKey": "towersGroup",
     "skillKey": "skillPlanning",
