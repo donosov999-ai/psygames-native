@@ -13,10 +13,17 @@
  * ошибка не видна в коде игры — строка `useLevelRules(..., phase === 'recall')`
  * выглядит совершенно естественно, и именно её пишут по образцу соседней игры.
  */
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+/**
+ * ⚠️ ЧЕРЕЗ `require`, А НЕ `import`. В этом наборе проб нет типов Node, и
+ * `import … from 'node:fs'` роняет `tsc` — так уже сделано в соседних пробах,
+ * читающих исходники (`phonemic-works`, `module-games-guard`).
+ */
+declare const __dirname: string;
+declare function require(m: string): { readdirSync: (p: string) => string[]; readFileSync: (p: string, e: string) => string; join: (...a: string[]) => string };
 
-const ИГРЫ = join(__dirname, '../../app/games');
+const fs = require('fs');
+const path = require('path');
+const ИГРЫ = path.join(__dirname, '../../app/games');
 
 /**
  * Фазы, в которых человек ЧТО-ТО ДЕРЖИТ: показ ряда, удержание, ввод ответа.
@@ -28,10 +35,10 @@ const ОПАСНЫЕ = ['recall', 'input', 'memorize', 'memorise', 'showing', 'e
 const безКомментариев = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
 
 describe('правила уровня не мешают вспоминать', () => {
-  const файлы = readdirSync(ИГРЫ).filter((f) => f.endsWith('.tsx'));
+  const файлы = fs.readdirSync(ИГРЫ).filter((f) => f.endsWith('.tsx'));
   const вызовы: { файл: string; условие: string }[] = [];
   for (const f of файлы) {
-    const текст = безКомментариев(readFileSync(join(ИГРЫ, f), 'utf8'));
+    const текст = безКомментариев(fs.readFileSync(path.join(ИГРЫ, f), 'utf8'));
     for (const m of текст.matchAll(/useLevelRules\(([\s\S]*?)\);/g)) {
       вызовы.push({ файл: f, условие: m[1]!.replace(/\s+/g, ' ') });
     }
