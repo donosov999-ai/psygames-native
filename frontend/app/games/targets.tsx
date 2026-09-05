@@ -30,6 +30,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getAbilityCount, useAbility } from '@/src/services/abilities';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#ff0844', '#ffb199'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -862,7 +863,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: { fontSize: 18, fontWeight: '700' },
-  placeholder: { width: 44 },
+  placeholder: { width: HELP_CORNER_SPACE },
   configScroll: { flex: 1 },
   configContainer: { paddingHorizontal: 16, marginBottom: 12, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: {

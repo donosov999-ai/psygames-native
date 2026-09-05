@@ -61,6 +61,7 @@ import { isRTLLang } from '@/src/services/rtl';
 import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 /** Один счётчик в шапке: что показать и каким тоном. */
 export interface HudItem {
@@ -148,7 +149,18 @@ const FAB_GUTTER = 66;
  * (styles.fabWrap в GameHelpOverlay), 10 — её отступ от края экрана. Сторона
  * зеркалится вместе с ней: LTR — справа, RTL — слева.
  */
-const HELP_FAB_GUTTER = 68;   // 60→68 = обёртка 64 + отступ 4: расширена под подпись «Правила»
+/**
+ * 🔴 68 БЫЛО МАЛО: ЭТО ШИРИНА СПРАВКИ БЕЗ ПИТОМЦА.
+ *
+ * С 03.09.2026 рядом со справкой висит ещё и аватар питомца — тот же сквозной
+ * уголок. Замер 05.09.2026 браузером: ряд занимает 117 px, а не 64. Заголовок
+ * здесь `flex: 1` с центрированием: его коробка кончалась в 68 px от края, и
+ * длинное название спокойно уезжало под кнопки. У «Фрактальной судоку» — на 37 px.
+ *
+ * Величина теперь одна на всё приложение (`HELP_CORNER_SPACE`), рядом с самим
+ * уголком: разъедутся — и заголовки поедут снова.
+ */
+const HELP_FAB_GUTTER = HELP_CORNER_SPACE;
 
 export interface GameShellProps {
   /** Заголовок игры (уже переведённый). */

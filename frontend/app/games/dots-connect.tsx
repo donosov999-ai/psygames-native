@@ -384,38 +384,49 @@ export default function DotsConnectScreen() {
         <Text style={styles.title}>{strings.title}</Text>
       </GradientSurface>
 
-      <ScrollView contentContainerStyle={styles.body}>
-        {/* maxLevel из модуля: по умолчанию тропинка рисует 15 узлов, а тут их 40. */}
-        <LevelProgressMap bestLevel={lvl.best} gameId="dots_connect" currentLevel={lvl.level} maxLevel={LEVELS}
-          onPickLevel={lvl.pick} colors={colors} language={language} />
-
-        <View style={[styles.card, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{strings.rulesBody}</Text>
-          {/* Вторая строка — не украшение. «Занять ВСЮ сетку» по доске не угадывается,
-              а именно из-за этого условия игра про планирование, а не про «соедини и всё». */}
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{strings.rulesCoverage}</Text>
-        </View>
-
-        <TouchableOpacity onPress={() => start(attempt === 0)} accessibilityRole="button">
-          <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
-            <Text style={styles.startText}>{t('start')}</Text>
-          </GradientSurface>
-        </TouchableOpacity>
-
         {/*
-          Дверь обратно к правилам и тренировке. Без неё они показывались бы
-          ровно один раз за визит и потом исчезали навсегда — а вспомнить, что
-          сетку надо занять ЦЕЛИКОМ, человеку может понадобиться и на 20-м уровне.
+          🔴 ТЕЛО ЭКРАНА НАСТРОЙКИ ПРЯЧЕТСЯ, ПОКА СВЕРХУ ПЛАШКА.
+          Отчёт Дениса 05.09.2026 (c9293c23, one-line): «постоянно выскакивает
+          экран с начальным упражнением и как играть между уровнями». Так и было:
+          `LevelCleared` — обычный `flex: 1`, а не наложение, и рисовался ПОСЛЕ
+          тропинки уровней, карточки правил и кнопки «Начать». Между уровнями
+          человек видел экран настройки целиком.
+          Ровно та же дыра нашлась ещё в шести играх — правило одно на всех.
         */}
-        {attempt > 0 && (
-          <TouchableOpacity onPress={() => start(true)} accessibilityRole="button"
-            style={[styles.rulesBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}>
-            {/* Ключ `btn_help` уже есть и переведён на все 12 языков — новый заводить незачем. */}
-            <Text style={[styles.rulesText, { color: colors.text }]}>{t('btn_help')}</Text>
+      {phase === 'config' && (
+        <ScrollView contentContainerStyle={styles.body}>
+          {/* maxLevel из модуля: по умолчанию тропинка рисует 15 узлов, а тут их 40. */}
+          <LevelProgressMap bestLevel={lvl.best} gameId="dots_connect" currentLevel={lvl.level} maxLevel={LEVELS}
+            onPickLevel={lvl.pick} colors={colors} language={language} />
+
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>{strings.rulesBody}</Text>
+            {/* Вторая строка — не украшение. «Занять ВСЮ сетку» по доске не угадывается,
+                а именно из-за этого условия игра про планирование, а не про «соедини и всё». */}
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>{strings.rulesCoverage}</Text>
+          </View>
+
+          <TouchableOpacity onPress={() => start(attempt === 0)} accessibilityRole="button">
+            <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
+              <Text style={styles.startText}>{t('start')}</Text>
+            </GradientSurface>
           </TouchableOpacity>
-        )}
-      </ScrollView>
+
+          {/*
+            Дверь обратно к правилам и тренировке. Без неё они показывались бы
+            ровно один раз за визит и потом исчезали навсегда — а вспомнить, что
+            сетку надо занять ЦЕЛИКОМ, человеку может понадобиться и на 20-м уровне.
+          */}
+          {attempt > 0 && (
+            <TouchableOpacity onPress={() => start(true)} accessibilityRole="button"
+              style={[styles.rulesBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+              {/* Ключ `btn_help` уже есть и переведён на все 12 языков — новый заводить незачем. */}
+              <Text style={[styles.rulesText, { color: colors.text }]}>{t('btn_help')}</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      )}
 
       {phase === 'cleared' && (
         <LevelCleared gameId="dots_connect" level={doneLevel} stars={stars}

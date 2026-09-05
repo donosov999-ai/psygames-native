@@ -297,23 +297,34 @@ export default function NavigatorScreen() {
         <Text style={styles.title}>{navStrings.title}</Text>{/* ← ключ словаря `navigator`, когда заведут */}
       </GradientSurface>
 
-      <ScrollView contentContainerStyle={styles.body}>
-        <LevelProgressMap bestLevel={lvl.best} gameId="navigator" currentLevel={lvl.level} maxLevel={LEVELS}
-          levelLabel={(n) => getNavigatorModeLabel(locale, navigatorModeForLevel(n))}
-          onPickLevel={lvl.pick} colors={colors} language={language} />
+        {/*
+          🔴 ТЕЛО ЭКРАНА НАСТРОЙКИ ПРЯЧЕТСЯ, ПОКА СВЕРХУ ПЛАШКА.
+          Отчёт Дениса 05.09.2026 (c9293c23, one-line): «постоянно выскакивает
+          экран с начальным упражнением и как играть между уровнями». Так и было:
+          `LevelCleared` — обычный `flex: 1`, а не наложение, и рисовался ПОСЛЕ
+          тропинки уровней, карточки правил и кнопки «Начать». Между уровнями
+          человек видел экран настройки целиком.
+          Ровно та же дыра нашлась ещё в шести играх — правило одно на всех.
+        */}
+      {phase === 'config' && (
+        <ScrollView contentContainerStyle={styles.body}>
+          <LevelProgressMap bestLevel={lvl.best} gameId="navigator" currentLevel={lvl.level} maxLevel={LEVELS}
+            levelLabel={(n) => getNavigatorModeLabel(locale, navigatorModeForLevel(n))}
+            onPickLevel={lvl.pick} colors={colors} language={language} />
 
-        <View style={[styles.card, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
-          {/* ← ключ словаря `navigatorDesc`, когда заведут */}
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{navStrings.catalogDesc}</Text>
-        </View>
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
+            {/* ← ключ словаря `navigatorDesc`, когда заведут */}
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>{navStrings.catalogDesc}</Text>
+          </View>
 
-        <TouchableOpacity onPress={start} accessibilityRole="button">
-          <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
-            <Text style={styles.startText}>{t('start')}</Text>
-          </GradientSurface>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity onPress={start} accessibilityRole="button">
+            <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
+              <Text style={styles.startText}>{t('start')}</Text>
+            </GradientSurface>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
 
       {phase === 'cleared' && (
         <LevelCleared gameId="navigator" level={playedLevel} stars={stars}

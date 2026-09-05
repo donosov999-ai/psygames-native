@@ -22,6 +22,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
 import { EYE_GYM_MAX_LEVEL, eyeGymLevel, eyeGymLevelMinutes } from '@/src/services/eyeGymLevels';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#43cea2', '#185a9d'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -385,7 +386,7 @@ export default function EyeGymGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('eyeGym')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       {phase === 'done' && renderDone()}

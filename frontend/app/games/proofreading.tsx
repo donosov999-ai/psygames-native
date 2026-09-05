@@ -86,6 +86,7 @@ import {
   type ProofSeriesProgress,
   type ProofSeriesState,
 } from '@/src/games/proofreading/core';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#a8edea', '#fed6e3'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -1586,7 +1587,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: { fontSize: 18, fontWeight: '700' },
-  placeholder: { width: 44 },
+  placeholder: { width: HELP_CORNER_SPACE },
   configScroll: { flex: 1 },
   configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: {

@@ -48,6 +48,7 @@ import {
   type PhonemicScript,
 } from '@/src/services/phonemicFluency';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#16a085', '#f4d03f'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -380,7 +381,7 @@ export default function PhonemicFluencyGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('phonemic')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       {/* Итог — общим экраном «уровень пройден»: только он пишет звёзды, считает

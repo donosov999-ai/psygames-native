@@ -37,6 +37,7 @@ import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientTe
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // Тёмная пара семейства судоку. Цвет текста поверх плашки считает onGradientText по
 // ОБОИМ концам: здесь сплошной цвет даёт 7.00 при норме AA 4.5, поэтому вуаль не
@@ -119,7 +120,7 @@ export default function SudokuHub() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('sudokuGroup')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.heroCard}>

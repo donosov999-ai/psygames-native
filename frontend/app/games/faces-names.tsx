@@ -286,22 +286,33 @@ export default function FacesNamesScreen() {
         <Text style={styles.title}>{gameStrings.title}</Text>
       </GradientSurface>
 
-      <ScrollView contentContainerStyle={styles.body}>
-        <LevelProgressMap bestLevel={lvl.best} gameId="faces_names" currentLevel={lvl.level}
-          onPickLevel={lvl.pick} maxLevel={Math.max(FACES_NAMES_LEVELS, lvl.best)}
-          colors={colors} language={language} />
+        {/*
+          🔴 ТЕЛО ЭКРАНА НАСТРОЙКИ ПРЯЧЕТСЯ, ПОКА СВЕРХУ ПЛАШКА.
+          Отчёт Дениса 05.09.2026 (c9293c23, one-line): «постоянно выскакивает
+          экран с начальным упражнением и как играть между уровнями». Так и было:
+          `LevelCleared` — обычный `flex: 1`, а не наложение, и рисовался ПОСЛЕ
+          тропинки уровней, карточки правил и кнопки «Начать». Между уровнями
+          человек видел экран настройки целиком.
+          Ровно та же дыра нашлась ещё в шести играх — правило одно на всех.
+        */}
+      {phase === 'config' && (
+        <ScrollView contentContainerStyle={styles.body}>
+          <LevelProgressMap bestLevel={lvl.best} gameId="faces_names" currentLevel={lvl.level}
+            onPickLevel={lvl.pick} maxLevel={Math.max(FACES_NAMES_LEVELS, lvl.best)}
+            colors={colors} language={language} />
 
-        <View style={[styles.card, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{gameStrings.rulesBody}</Text>
-        </View>
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>{gameStrings.rulesBody}</Text>
+          </View>
 
-        <TouchableOpacity onPress={start} accessibilityRole="button">
-          <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
-            <Text style={styles.startText}>{t('start')}</Text>
-          </GradientSurface>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity onPress={start} accessibilityRole="button">
+            <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
+              <Text style={styles.startText}>{t('start')}</Text>
+            </GradientSurface>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
 
       {phase === 'cleared' && (
         <LevelCleared gameId="faces_names" level={doneLevel} stars={stars}

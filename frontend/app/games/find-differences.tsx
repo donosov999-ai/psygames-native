@@ -41,6 +41,7 @@ import { pairSpritesForProfile, SPRITE_COUNT } from '@/src/constants/pairThemes'
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { a11yDecor } from '@/src/services/a11y';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#34e89e', '#0f3443'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -533,7 +534,7 @@ export default function FindDifferencesGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('findDiff')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (

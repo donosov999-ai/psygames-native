@@ -340,44 +340,55 @@ export default function RhythmPitchScreen() {
         <Text style={styles.title}>{strings.title}</Text>{/* ← ключ словаря `rhythmPitch`, когда заведут */}
       </GradientSurface>
 
-      <ScrollView contentContainerStyle={styles.body}>
-        {/* Тропинка во всю длину лестницы: у модуля 31 ступень, а у карты по
-            умолчанию 15 — без этого человек видел бы путь вдвое короче настоящего. */}
-        <LevelProgressMap bestLevel={lvl.best} gameId="rhythm_pitch" currentLevel={lvl.level} maxLevel={LEVELS}
-          onPickLevel={lvl.pick} colors={colors} language={language} />
+        {/*
+          🔴 ТЕЛО ЭКРАНА НАСТРОЙКИ ПРЯЧЕТСЯ, ПОКА СВЕРХУ ПЛАШКА.
+          Отчёт Дениса 05.09.2026 (c9293c23, one-line): «постоянно выскакивает
+          экран с начальным упражнением и как играть между уровнями». Так и было:
+          `LevelCleared` — обычный `flex: 1`, а не наложение, и рисовался ПОСЛЕ
+          тропинки уровней, карточки правил и кнопки «Начать». Между уровнями
+          человек видел экран настройки целиком.
+          Ровно та же дыра нашлась ещё в шести играх — правило одно на всех.
+        */}
+      {phase === 'config' && (
+        <ScrollView contentContainerStyle={styles.body}>
+          {/* Тропинка во всю длину лестницы: у модуля 31 ступень, а у карты по
+              умолчанию 15 — без этого человек видел бы путь вдвое короче настоящего. */}
+          <LevelProgressMap bestLevel={lvl.best} gameId="rhythm_pitch" currentLevel={lvl.level} maxLevel={LEVELS}
+            onPickLevel={lvl.pick} colors={colors} language={language} />
 
-        <View style={[styles.card, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
-          {/* ← ключ словаря `rhythmPitchDesc`, когда заведут */}
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{strings.catalogDesc}</Text>
-        </View>
-
-        {/* Спокойный шаг главнее выключенного тумблера: там играть нельзя вовсе,
-            а здесь достаточно включить звук. */}
-        {isCalm ? (
-          <View style={[styles.card, styles.notice, { backgroundColor: colors.surface, borderColor: colors.warning }]}>
-            <Ionicons name="moon-outline" size={22} color={colors.warning} />
-            <Text style={[styles.noticeText, { color: colors.text }]}>{strings.calmNotice}</Text>
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
+            {/* ← ключ словаря `rhythmPitchDesc`, когда заведут */}
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>{strings.catalogDesc}</Text>
           </View>
-        ) : soundOff ? (
-          <View style={[styles.card, styles.notice, { backgroundColor: colors.surface, borderColor: colors.warning }]}>
-            <Ionicons name="volume-mute-outline" size={22} color={colors.warning} />
-            <View style={styles.noticeBody}>
-              <Text style={[styles.noticeText, { color: colors.text }]}>{strings.soundOffNotice}</Text>
-              <TouchableOpacity onPress={turnSoundOn} style={[styles.soundBtn, { borderColor: colors.warning }]}
-                accessibilityRole="button" accessibilityLabel={strings.enableSound}>
-                <Text style={[styles.soundBtnText, { color: colors.text }]}>{strings.enableSound}</Text>
-              </TouchableOpacity>
+
+          {/* Спокойный шаг главнее выключенного тумблера: там играть нельзя вовсе,
+              а здесь достаточно включить звук. */}
+          {isCalm ? (
+            <View style={[styles.card, styles.notice, { backgroundColor: colors.surface, borderColor: colors.warning }]}>
+              <Ionicons name="moon-outline" size={22} color={colors.warning} />
+              <Text style={[styles.noticeText, { color: colors.text }]}>{strings.calmNotice}</Text>
             </View>
-          </View>
-        ) : (
-          <TouchableOpacity onPress={start} accessibilityRole="button" accessibilityLabel={t('start')}>
-            <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
-              <Text style={styles.startText}>{t('start')}</Text>
-            </GradientSurface>
-          </TouchableOpacity>
-        )}
-      </ScrollView>
+          ) : soundOff ? (
+            <View style={[styles.card, styles.notice, { backgroundColor: colors.surface, borderColor: colors.warning }]}>
+              <Ionicons name="volume-mute-outline" size={22} color={colors.warning} />
+              <View style={styles.noticeBody}>
+                <Text style={[styles.noticeText, { color: colors.text }]}>{strings.soundOffNotice}</Text>
+                <TouchableOpacity onPress={turnSoundOn} style={[styles.soundBtn, { borderColor: colors.warning }]}
+                  accessibilityRole="button" accessibilityLabel={strings.enableSound}>
+                  <Text style={[styles.soundBtnText, { color: colors.text }]}>{strings.enableSound}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity onPress={start} accessibilityRole="button" accessibilityLabel={t('start')}>
+              <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
+                <Text style={styles.startText}>{t('start')}</Text>
+              </GradientSurface>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      )}
 
       {phase === 'cleared' && (
         <LevelCleared gameId="rhythm_pitch" level={doneLevel} stars={stars}

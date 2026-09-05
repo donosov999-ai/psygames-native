@@ -328,50 +328,61 @@ export default function ObjectTrackerScreen() {
         <Text style={styles.title}>{strings.title}</Text>
       </GradientSurface>
 
-      <ScrollView contentContainerStyle={styles.body}>
-        <LevelProgressMap bestLevel={lvl.best} gameId="object_tracker" currentLevel={lvl.level} maxLevel={LEVELS}
-          onPickLevel={lvl.pick} colors={colors} language={language} />
-
         {/*
-          Правила лежат ЗДЕСЬ, а не отдельным экраном внутри модуля: второй экран
-          правил был бы вторым «Начать» подряд и лишним тапом в шаге зарядки.
-          Текст тот же самый, из словаря модуля, — ничего не потеряно.
+          🔴 ТЕЛО ЭКРАНА НАСТРОЙКИ ПРЯЧЕТСЯ, ПОКА СВЕРХУ ПЛАШКА.
+          Отчёт Дениса 05.09.2026 (c9293c23, one-line): «постоянно выскакивает
+          экран с начальным упражнением и как играть между уровнями». Так и было:
+          `LevelCleared` — обычный `flex: 1`, а не наложение, и рисовался ПОСЛЕ
+          тропинки уровней, карточки правил и кнопки «Начать». Между уровнями
+          человек видел экран настройки целиком.
+          Ровно та же дыра нашлась ещё в шести играх — правило одно на всех.
         */}
-        <View style={[styles.card, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
-          <Text style={[styles.skill, { color: colors.textSecondary }]}>{strings.skill}</Text>
-          <Text style={[styles.hint, { color: colors.text }]}>{strings.rulesBody}</Text>
-          <Text style={[styles.hint, { color: colors.text }]}>{strings.rulesSelection}</Text>
-          {/* Пошаговый режим — выбор человека, а не следствие системной настройки. */}
-          <TouchableOpacity
-            accessibilityRole="switch"
-            accessibilityState={{ checked: шагами }}
-            accessibilityLabel={t('trackerStepwise')}
-            onPress={() => переключитьШаги(!шагами)}
-            style={[styles.stepRow, { borderColor: шагами ? GRADIENT[1] : colors.border }]}
-          >
-            <Ionicons name={шагами ? 'checkbox' : 'square-outline'} size={22} color={шагами ? GRADIENT[1] : colors.textSecondary} />
-            <Text style={[styles.hint, { color: colors.text, flex: 1 }]}>{t('trackerStepwise')}</Text>
-          </TouchableOpacity>
-          <BallStylePicker level={level} colors={colors} accent={GRADIENT[1]} />
-          {шагами ? (
-            <Text style={[styles.hint, { color: GRADIENT[1], fontWeight: '800' }]}>
-              {strings.reducedMotionInfo}
-            </Text>
-          ) : системаПросит ? (
-            <Text style={[styles.hint, { color: colors.textSecondary }]}>
-              {t('trackerStepwiseOffered')}
-            </Text>
-          ) : null}
-          <Text style={[styles.keys, { color: colors.textSecondary }]}>{strings.keyboardHelp}</Text>
-        </View>
+      {phase === 'config' && (
+        <ScrollView contentContainerStyle={styles.body}>
+          <LevelProgressMap bestLevel={lvl.best} gameId="object_tracker" currentLevel={lvl.level} maxLevel={LEVELS}
+            onPickLevel={lvl.pick} colors={colors} language={language} />
 
-        <TouchableOpacity onPress={start} accessibilityRole="button">
-          <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
-            <Text style={styles.startText}>{t('start')}</Text>
-          </GradientSurface>
-        </TouchableOpacity>
-      </ScrollView>
+          {/*
+            Правила лежат ЗДЕСЬ, а не отдельным экраном внутри модуля: второй экран
+            правил был бы вторым «Начать» подряд и лишним тапом в шаге зарядки.
+            Текст тот же самый, из словаря модуля, — ничего не потеряно.
+          */}
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
+            <Text style={[styles.skill, { color: colors.textSecondary }]}>{strings.skill}</Text>
+            <Text style={[styles.hint, { color: colors.text }]}>{strings.rulesBody}</Text>
+            <Text style={[styles.hint, { color: colors.text }]}>{strings.rulesSelection}</Text>
+            {/* Пошаговый режим — выбор человека, а не следствие системной настройки. */}
+            <TouchableOpacity
+              accessibilityRole="switch"
+              accessibilityState={{ checked: шагами }}
+              accessibilityLabel={t('trackerStepwise')}
+              onPress={() => переключитьШаги(!шагами)}
+              style={[styles.stepRow, { borderColor: шагами ? GRADIENT[1] : colors.border }]}
+            >
+              <Ionicons name={шагами ? 'checkbox' : 'square-outline'} size={22} color={шагами ? GRADIENT[1] : colors.textSecondary} />
+              <Text style={[styles.hint, { color: colors.text, flex: 1 }]}>{t('trackerStepwise')}</Text>
+            </TouchableOpacity>
+            <BallStylePicker level={level} colors={colors} accent={GRADIENT[1]} />
+            {шагами ? (
+              <Text style={[styles.hint, { color: GRADIENT[1], fontWeight: '800' }]}>
+                {strings.reducedMotionInfo}
+              </Text>
+            ) : системаПросит ? (
+              <Text style={[styles.hint, { color: colors.textSecondary }]}>
+                {t('trackerStepwiseOffered')}
+              </Text>
+            ) : null}
+            <Text style={[styles.keys, { color: colors.textSecondary }]}>{strings.keyboardHelp}</Text>
+          </View>
+
+          <TouchableOpacity onPress={start} accessibilityRole="button">
+            <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
+              <Text style={styles.startText}>{t('start')}</Text>
+            </GradientSurface>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
 
       {phase === 'cleared' && (
         <LevelCleared gameId="object_tracker" level={level} stars={stars}

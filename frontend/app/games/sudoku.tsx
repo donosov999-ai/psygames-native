@@ -40,6 +40,7 @@ import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import { failurePolicy, formatErrorCount, isOver as isFailOver } from '@/src/services/failure';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Line, Rect } from 'react-native-svg';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -2298,7 +2299,7 @@ export default function SudokuGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('sudoku').replace(/\s*\d+\s*[×xX]\s*\d+\s*$/, '')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       {/* v1.111.0: справка правил уровня (на конфиге — если открыта) */}

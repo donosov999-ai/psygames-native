@@ -345,29 +345,40 @@ export default function OneLineScreen() {
         <Text style={styles.title}>{t('oneLine')}</Text>
       </GradientSurface>
 
-      <ScrollView contentContainerStyle={styles.body}>
-        {/* Тропинка на все 48 ступеней: число берём из ядра, а не вбиваем — растянут
-            прогрессию в модуле, и тропинка вырастет сама. */}
-        <LevelProgressMap bestLevel={lvl.best} gameId="one_line" currentLevel={lvl.level} maxLevel={LEVELS}
-          onPickLevel={lvl.pick} colors={colors} language={language} />
+        {/*
+          🔴 ТЕЛО ЭКРАНА НАСТРОЙКИ ПРЯЧЕТСЯ, ПОКА СВЕРХУ ПЛАШКА.
+          Отчёт Дениса 05.09.2026 (c9293c23, one-line): «постоянно выскакивает
+          экран с начальным упражнением и как играть между уровнями». Так и было:
+          `LevelCleared` — обычный `flex: 1`, а не наложение, и рисовался ПОСЛЕ
+          тропинки уровней, карточки правил и кнопки «Начать». Между уровнями
+          человек видел экран настройки целиком.
+          Ровно та же дыра нашлась ещё в шести играх — правило одно на всех.
+        */}
+      {phase === 'config' && (
+        <ScrollView contentContainerStyle={styles.body}>
+          {/* Тропинка на все 48 ступеней: число берём из ядра, а не вбиваем — растянут
+              прогрессию в модуле, и тропинка вырастет сама. */}
+          <LevelProgressMap bestLevel={lvl.best} gameId="one_line" currentLevel={lvl.level} maxLevel={LEVELS}
+            onPickLevel={lvl.pick} colors={colors} language={language} />
 
-        <View style={[styles.card, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('oneLineDesc')}</Text>
-          {/*
-            Выбор шаров стоит ЗДЕСЬ, потому что отсюда о нём и написал Денис
-            (отчёт 50a283a2, 05.09.2026). Выбор общий на приложение — тот же ряд
-            есть у трекера объектов, и смена в одном месте видна во всех играх.
-          */}
-          <BallStylePicker level={level} colors={colors} accent={GRADIENT[1]} />
-        </View>
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('oneLineDesc')}</Text>
+            {/*
+              Выбор шаров стоит ЗДЕСЬ, потому что отсюда о нём и написал Денис
+              (отчёт 50a283a2, 05.09.2026). Выбор общий на приложение — тот же ряд
+              есть у трекера объектов, и смена в одном месте видна во всех играх.
+            */}
+            <BallStylePicker level={level} colors={colors} accent={GRADIENT[1]} />
+          </View>
 
-        <TouchableOpacity onPress={start} accessibilityRole="button">
-          <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
-            <Text style={styles.startText}>{t('start')}</Text>
-          </GradientSurface>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity onPress={start} accessibilityRole="button">
+            <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
+              <Text style={styles.startText}>{t('start')}</Text>
+            </GradientSurface>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
 
       {phase === 'cleared' && (
         <LevelCleared gameId="one_line" level={playedLevel} stars={stars}

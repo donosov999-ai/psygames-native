@@ -273,6 +273,24 @@ const KIDS: ProfileDef = {
     { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy', settings: { pairsCount: 6, previewMs: 3000 }, est_duration_sec: 100 },
     { game_id: 'memory_matrix', game_route: '/games/memory-matrix', difficulty: 'easy', settings: { size: 3 }, est_duration_sec: 80 },
     { game_id: 'hanoi',         game_route: '/games/hanoi',         difficulty: 'easy', settings: { discs: 3 }, est_duration_sec: 80 },
+    /**
+     * 🔴 «СОЕДИНИ ТОЧКИ» — ПО ПРОСЬБЕ САМОГО РЕБЁНКА (отчёт f6464438, 05.09.2026):
+     * «надо добавить в детский профиль соединение точек, которые идут игры, они
+     * как раз для детского уровня подходят».
+     *
+     * ⚠️ Игра в СПИСКЕ профиля лежала с 19.08.2026 — но список это каталог, а
+     * ребёнок открывает зарядку. Пока игры нет в комплексе, её как бы и нет:
+     * найти её можно только пролистав каталог, чего дети не делают. Отсюда и
+     * просьба «добавить» о том, что формально уже добавлено.
+     *
+     * В вечерний, а не в утренний: тихая головоломка без таймера — ровно то, чем
+     * этот комплекс и задуман («НЕ targets/math_sprint — возбуждают»).
+     */
+    // ⚠️ БЕЗ `settings`: гейт `preset-cap-coverage` требует, чтобы игра с
+    // заданным размером ограничивала пресет ОСВОЕННЫМ уровнем, иначе зарядка
+    // выдаст доску сложнее пройденного. У «точек» такого ограничителя нет —
+    // значит, размер задаёт сама игра по тропинке, и это правильнее.
+    { game_id: 'dots_connect',  game_route: '/games/dots-connect',  difficulty: 'easy', est_duration_sec: 100 },
   ],
   warmup_enabled: true,
   financial_brain_day_enabled: false,

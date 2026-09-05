@@ -44,6 +44,7 @@ import {
   Field, isDone, isSolved, canPour, pour, legalMoves,
 } from '@/src/games/water-sort/core/tubes';
 import { generateLevel, levelParams, solve } from '@/src/games/water-sort/core/generate';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GAME_ID = 'water-sort';
 /**
@@ -509,7 +510,7 @@ export default function WaterSortGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('waterSort')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (

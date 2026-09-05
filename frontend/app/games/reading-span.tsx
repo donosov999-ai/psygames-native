@@ -28,6 +28,7 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pickFresh } from '@/src/services/freshPool';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#1f4037', '#99f2c8'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -254,8 +255,6 @@ export default function ReadingSpanGame() {
       {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
       <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
       </>
-      <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
-      </View>
     </View>
   );
 
@@ -357,7 +356,7 @@ export default function ReadingSpanGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('readingSpan')}</Text>
-        <View style={{ width: 40, flexShrink: 0 }} />
+        <View style={{ width: HELP_CORNER_SPACE, flexShrink: 0 }} />
       </View>
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (

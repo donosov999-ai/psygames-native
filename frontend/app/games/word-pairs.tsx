@@ -33,6 +33,7 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#f093fb', '#f5576c'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -601,7 +602,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: { fontSize: 18, fontWeight: '700', flexShrink: 1, minWidth: 0 },  // крупный шрифт: заголовок ужимается между «назад» и спейсером
-  placeholder: { width: 44 },
+  placeholder: { width: HELP_CORNER_SPACE },
   configContainer: { flexGrow: 1, paddingHorizontal: 20, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: {
     padding: 24,
