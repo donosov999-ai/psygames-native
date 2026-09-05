@@ -23,16 +23,13 @@ import HubScreen from '@/src/components/HubScreen';
 export default function InhibitionHub() {
   return (
     <HubScreen
+      hubRoute="/games/inhibition-hub"
       titleKey="inhibitionGroup"
       descKey="inhibitionGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="inhibitionGroupFootnote"
       icon="hand-left"
       gradient={['#11998e', '#ee0979']}
-      games={[
-        { route: '/games/inhibition', icon: 'hand-left', nameKey: 'inhibition', descKey: 'inhibitionDesc' },
-        { route: '/games/posner', icon: 'navigate', nameKey: 'posner', descKey: 'posnerDesc' },
-      ]}
     />
   );
 }

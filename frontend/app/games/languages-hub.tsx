@@ -18,16 +18,13 @@ import HubScreen from '@/src/components/HubScreen';
 export default function LanguagesHub() {
   return (
     <HubScreen
+      hubRoute="/games/languages-hub"
       titleKey="languagesGroup"
       descKey="languagesGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="languagesGroupFootnote"
       icon="language"
       gradient={['#0891b2', '#a855f7']}
-      games={[
-        { route: '/games/words-hub', icon: 'text', nameKey: 'wordsGroup', descKey: 'wordsGroupDesc' },
-        { route: '/games/hearing-hub', icon: 'ear', nameKey: 'hearingGroup', descKey: 'hearingGroupDesc' },
-      ]}
     />
   );
 }

@@ -15,17 +15,13 @@ import HubScreen from '@/src/components/HubScreen';
 export default function VisualMemoryHub() {
   return (
     <HubScreen
+      hubRoute="/games/visual-memory-hub"
       titleKey="visualMemoryGroup"
       descKey="visualMemoryGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="visualMemoryGroupFootnote"
       icon="images"
       gradient={['#7c3aed', '#0ea5e9']}
-      games={[
-        { route: '/games/memory-matrix', icon: 'grid', nameKey: 'memoryMatrix', descKey: 'memoryMatrixDesc' },
-        { route: '/games/picture-pairs', icon: 'copy', nameKey: 'picturePairs', descKey: 'picturePairsDesc' },
-        { route: '/games/navigator', icon: 'navigate', nameKey: 'navigator', descKey: 'navigatorDesc' },
-      ]}
     />
   );
 }

@@ -18,17 +18,13 @@ import HubScreen from '@/src/components/HubScreen';
 export default function FlexibilityHub() {
   return (
     <HubScreen
+      hubRoute="/games/flexibility-hub"
       titleKey="flexibilityGroup"
       descKey="flexibilityGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="flexibilityGroupFootnote"
       icon="swap-horizontal"
       gradient={['#6366f1', '#14b8a6']}
-      games={[
-        { route: '/games/pattern', icon: 'trending-up', nameKey: 'pattern', descKey: 'patternDesc' },
-        { route: '/games/set-game', icon: 'apps', nameKey: 'setGame', descKey: 'setGameDesc' },
-        { route: '/games/sdmt', icon: 'swap-horizontal', nameKey: 'sdmt', descKey: 'sdmtDesc' },
-      ]}
     />
   );
 }

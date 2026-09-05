@@ -13,17 +13,13 @@ import HubScreen from '@/src/components/HubScreen';
 export default function RiskHub() {
   return (
     <HubScreen
+      hubRoute="/games/risk-hub"
       titleKey="riskGroup"
       descKey="riskGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="riskGroupFootnote"
       icon="scale"
       gradient={['#b45309', '#f59e0b']}
-      games={[
-        { route: '/games/bart', icon: 'balloon', nameKey: 'bart', descKey: 'bartDesc' },
-        { route: '/games/iowa', icon: 'card', nameKey: 'iowa', descKey: 'iowaDesc' },
-        { route: '/games/prl', icon: 'shuffle', nameKey: 'prl', descKey: 'prlDesc' },
-      ]}
     />
   );
 }

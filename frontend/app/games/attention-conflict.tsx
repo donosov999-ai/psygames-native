@@ -28,7 +28,7 @@ import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
-import { visibleSuiteCards } from '@/src/constants/gameSuites';
+import { visibleHubCards } from '@/src/constants/hubContents';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -42,69 +42,13 @@ const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 
 /**
- * 🔴 ПЯТЬ КАРТОЧЕК ВМЕСТО ДЕСЯТИ — ПЕРВИЧНОЕ ОБЪЕДИНЕНИЕ 05.09.2026.
+ * 🔴 СОСТАВ — В `src/constants/hubContents.ts`, А НЕ ЗДЕСЬ.
  *
- * Решение Дениса по кадрам хаба: «1 и 2 слить в одно, режимом; 3 4 5 6 — тоже;
- * 7 и 8 — тоже. Делаем как Шульте. Сейчас первичное объединение, где интерфейсы
- * и логика почти не отличаются». Четыре карточки из десяти были одной и той же
- * стрелкой с двумя кнопками — список читался как десять разных игр, хотя рука
- * делала одно и то же.
- *
- * ⚠️ КАРТОЧКА НАБОРА ВЕДЁТ НА ПЕРВЫЙ РЕЖИМ, А НЕ НА НОВЫЙ ЭКРАН. Парадигмы
- * остались на своих маршрутах — вместе с ними остались справка (`HELP_MAP` по
- * маршруту), лесенка уровней и замеры, привязанные к `gameId`. Переключатель
- * внутри игры (`GameSuiteSwitch`) просто меняет маршрут. Разбор — в шапке
- * `src/constants/gameSuites.ts`.
- *
- * `suiteId` — карточка набора: подпись-тип собирается из имён режимов.
- * `typeKey` — одиночная парадигма, как было.
+ * Здесь стоял свой список из пяти карточек, а значок на карточке каталога считал
+ * по `mergedInto` и показывал 10. Замер 05.09.2026: так расходились 6 развилок из
+ * 16. Список переехал в общий реестр — его же читает значок.
  */
-const SUB_GAMES: {
-  route: string;
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  nameKey: string;
-  descKey: string;
-  typeKey?: string;
-  suiteId?: string;
-}[] = [
-  {
-    route: '/games/stroop',
-    icon: 'color-palette' as const,
-    nameKey: 'suiteStroop',
-    descKey: 'suiteStroopDesc',
-    suiteId: 'suite_stroop',
-  },
-  {
-    route: '/games/flanker',
-    icon: 'arrow-forward' as const,
-    nameKey: 'suiteArrows',
-    descKey: 'suiteArrowsDesc',
-    suiteId: 'suite_arrows',
-  },
-  {
-    route: '/games/cpt',
-    icon: 'timer' as const,
-    nameKey: 'suiteStream',
-    descKey: 'suiteStreamDesc',
-    suiteId: 'suite_stream',
-  },
-  // Мишени и WCST остаются одиночными: у первой свой носитель (цветные объекты,
-  // а не стрелка), у второй правило не объявляется вовсе — сливать не с чем.
-  {
-    route: '/games/targets',
-    icon: 'locate' as const,
-    nameKey: 'targets',
-    descKey: 'targetsDesc',
-    typeKey: 'acTypeTargets' as const,
-  },
-  {
-    route: '/games/wcst',
-    icon: 'grid' as const,
-    nameKey: 'wcst',
-    descKey: 'wcstDesc',
-    typeKey: 'acTypeWcst' as const,
-  },
-];
+const ХАБ = '/games/attention-conflict';
 
 function DemoAttentionRedirect() {
   const router = useRouter();
@@ -140,7 +84,7 @@ export default function AttentionConflictGame() {
     () => new Set(filterAllowedGames(profile).map((g: { route?: string }) => g.route as string)),
     [profile],
   );
-  const карточки = visibleSuiteCards(SUB_GAMES, можно, t);
+  const карточки = visibleHubCards(ХАБ, можно, t);
 
   /**
    * Web-demo: хаб-выбор парадигмы не показываем — сразу первая подигра.

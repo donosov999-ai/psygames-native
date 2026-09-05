@@ -21,16 +21,13 @@ import HubScreen from '@/src/components/HubScreen';
 export default function ChessHub() {
   return (
     <HubScreen
+      hubRoute="/games/chess-hub"
       titleKey="chessGroup"
       descKey="chessGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="chessGroupFootnote"
       icon="grid"
       gradient={['#8e5b2f', '#2f2a24']}
-      games={[
-        { route: '/games/scholars-mate', icon: 'flash', nameKey: 'scholarsMate', descKey: 'scholarsMateDesc' },
-        { route: '/games/chess-blind', icon: 'apps', nameKey: 'chessBlind', descKey: 'chessBlindDesc' },
-      ]}
     />
   );
 }

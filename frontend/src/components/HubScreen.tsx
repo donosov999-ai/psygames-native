@@ -27,28 +27,25 @@ import { filterAllowedGames } from '@/src/constants/profiles';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
-import { visibleSuiteCards } from '@/src/constants/gameSuites';
+import { visibleHubCards } from '@/src/constants/hubContents';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
-export interface HubSubGame {
-  /** Куда уводит карточка. */
-  route: string;
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  /** Ключи словаря — имя и описание берём те же, что у карточки в каталоге. */
-  nameKey: string;
-  descKey: string;
-  /** Короткая подпись «чем эта парадигма отличается». Необязательна. */
-  typeKey?: string;
-  /**
-   * КАРТОЧКА НАБОРА (`src/constants/gameSuites.ts`): под ней несколько парадигм,
-   * режим выбирается плашками внутри игры. `route` тогда — вход по умолчанию, но
-   * ведёт карточка на первый ОТКРЫТЫЙ профилю режим, а подпись-тип собирается из
-   * имён открытых режимов. Разбор — в шапке реестра.
-   */
-  suiteId?: string;
-}
+export type { HubSubGame } from '@/src/constants/hubContents';
 
 export interface HubScreenProps {
+  /**
+   * 🔴 СОСТАВ РАЗВИЛКИ ЭКРАН НЕ ЗАДАЁТ, А СПРАШИВАЕТ — по своему маршруту.
+   *
+   * До 05.09.2026 список приходил сюда пропом `games`, то есть был набран прямо в
+   * `app/games/*-hub.tsx`. Значок на карточке каталога при этом считал совсем по
+   * другому признаку (`mergedInto`), и два списка разъехались: 6 развилок из 16,
+   * «Зрительная память» — на значке 2, внутри 3. Отзыв тестировщицы: «написано
+   * например один а по факту там два стоит и так абсолютно во всех профилях».
+   *
+   * Пропа `games` больше нет НАРОЧНО: пока экран мог принести свой список, ничто
+   * не мешало ему снова разойтись со значком.
+   */
+  hubRoute: string;
   titleKey: string;
   descKey: string;
   /** Подпись над списком: «выбери парадигму». */
@@ -57,10 +54,9 @@ export interface HubScreenProps {
   footnoteKey?: string;
   icon: React.ComponentProps<typeof Ionicons>['name'];
   gradient: [string, string];
-  games: HubSubGame[];
 }
 
-export default function HubScreen({ titleKey, descKey, pickKey, footnoteKey, icon, gradient, games }: HubScreenProps) {
+export default function HubScreen({ hubRoute, titleKey, descKey, pickKey, footnoteKey, icon, gradient }: HubScreenProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const router = useRouter();
@@ -83,8 +79,8 @@ export default function HubScreen({ titleKey, descKey, pickKey, footnoteKey, ico
   const список = React.useMemo(() => {
     if (!профильГотов) return [];
     const можно = new Set(filterAllowedGames(profile).map((g) => g.route));
-    return visibleSuiteCards(games, можно, t);
-  }, [games, profile, профильГотов, t]);
+    return visibleHubCards(hubRoute, можно, t);
+  }, [hubRoute, profile, профильГотов, t]);
   const onGrad = onGradientText(gradient[0], gradient[1]);
   const onGradSoft = onGradientTextMuted(onGrad);
 
