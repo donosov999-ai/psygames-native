@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.38.3',
+    date: '2026-09-05',
+    ru: ['«Пробирки»: кнопка «Заново» возвращает ту же доску, а не раздаёт новую — застрявший уровень теперь можно переиграть'],
+    en: ['Test Tubes: Restart brings back the same board instead of dealing a new one — you can finally retry the level you got stuck on'],
+  },
+  {
     version: '2.38.2',
     date: '2026-09-05',
     ru: ['Кубики в играх на память перерисованы теми же девятью фактурами, что и шарики: стекло, мех, хром, желе, неон, камень, лёд. Выбор общий — материал выбираете один раз, форму задаёт игра'],
