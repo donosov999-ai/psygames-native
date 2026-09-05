@@ -748,6 +748,7 @@ const t: Record<string, string> = {
   "waterSortLvlParams": "{c} couleurs · {h} doses chacune · {e} tubes libres",
   "waterSortStuck": "Plus aucun coup : annulez ou recommencez le niveau",
   "waterSortHint": "Touchez un tube, puis un autre — la colonne du dessus se verse",
+  "waterSortEmptyTube": "Tube vide",
   "waterSortBenefitPlan": "Anticiper : un coup qui libère un tube maintenant peut fermer la sortie ensuite",
   "waterSortBenefitHold": "Garder en tête quelles couleurs se cachent sous la couche du dessus",
   "waterSortBenefitPatience": "Patience : éviter une impasse coûte moins cher que la défaire",

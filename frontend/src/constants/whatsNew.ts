@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.37.53',
+    date: '2026-09-05',
+    ru: ['«Пробирки» перерисованы: настоящее стекло, блики поверх жидкости, крупнее на просторном экране'],
+    en: ['Test Tubes redrawn: real glass, highlights over the liquid, larger on roomy screens'],
+  },
+  {
     version: '2.37.52',
     date: '2026-09-05',
     ru: ['Новая игра «Пробирки» в хабе «Башни»: переливай цвета, пока в каждой пробирке не останется один'],

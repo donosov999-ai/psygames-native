@@ -445,6 +445,7 @@ const t: Record<string, string> = {
   "waterSortLvlParams": "{c} Farben · je {h} Portionen · {e} freie Gläser",
   "waterSortStuck": "Kein Zug mehr möglich — mach rückgängig oder starte die Stufe neu",
   "waterSortHint": "Tippe ein Glas an, dann ein zweites — die obere Säule fließt hinüber",
+  "waterSortEmptyTube": "Leeres Glas",
   "waterSortBenefitPlan": "Vorausdenken: ein Zug, der jetzt ein Glas frei macht, kann später den Ausweg versperren",
   "waterSortBenefitHold": "Im Kopf behalten, welche Farben unter der obersten Schicht stecken",
   "waterSortBenefitPatience": "Geduld: eine Sackgasse zu vermeiden ist billiger, als sie aufzulösen",
