@@ -38,6 +38,8 @@ export interface DigitSpanStrings {
   deliveryScreen: string;
   /** Подача: цифры звучат голосом системы. */
   deliveryVoice: string;
+  /** Весь ряд разом — просьба тестировщицы 05.09.2026. */
+  deliveryAll: string;
   /** Что написано на поле, пока цифры звучат (смотреть не на что). */
   listening: string;
   /**
@@ -63,6 +65,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: 'Подача цифр',
     deliveryScreen: 'На экране',
     deliveryVoice: 'Голосом',
+    deliveryAll: 'Все сразу',
     listening: 'Слушайте цифры',
     voiceNoVoice: 'Голоса нет в системе — цифры покажем на экране.',
     voiceSoundOff: 'Звук выключен — цифры покажем на экране. Включите звук в настройках.',
@@ -78,6 +81,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: 'How digits are presented',
     deliveryScreen: 'On screen',
     deliveryVoice: 'By voice',
+    deliveryAll: 'All at once',
     listening: 'Listen to the digits',
     voiceNoVoice: 'No voice on this device — the digits will be shown on screen.',
     voiceSoundOff: 'Sound is off — the digits will be shown on screen. Turn sound on in settings.',
@@ -93,6 +97,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: 'Presentación de las cifras',
     deliveryScreen: 'En pantalla',
     deliveryVoice: 'Por voz',
+    deliveryAll: 'Todos a la vez',
     listening: 'Escucha las cifras',
     voiceNoVoice: 'No hay voz en este dispositivo: las cifras aparecerán en pantalla.',
     voiceSoundOff: 'El sonido está apagado: las cifras aparecerán en pantalla. Actívalo en los ajustes.',
@@ -108,6 +113,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: 'Darbietung der Ziffern',
     deliveryScreen: 'Auf dem Bildschirm',
     deliveryVoice: 'Per Stimme',
+    deliveryAll: 'Alle auf einmal',
     listening: 'Hör auf die Ziffern',
     voiceNoVoice: 'Auf diesem Gerät gibt es keine Stimme — die Ziffern erscheinen auf dem Bildschirm.',
     voiceSoundOff: 'Der Ton ist aus — die Ziffern erscheinen auf dem Bildschirm. Schalte den Ton in den Einstellungen ein.',
@@ -123,6 +129,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: '数字呈现方式',
     deliveryScreen: '在屏幕上',
     deliveryVoice: '用语音',
+    deliveryAll: '一次全显示',
     listening: '请听数字',
     voiceNoVoice: '本设备没有语音，数字将显示在屏幕上。',
     voiceSoundOff: '声音已关闭，数字将显示在屏幕上。请在设置中打开声音。',
@@ -138,6 +145,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: 'अंक कैसे दिखाए जाएँ',
     deliveryScreen: 'स्क्रीन पर',
     deliveryVoice: 'आवाज़ से',
+    deliveryAll: 'सब एक साथ',
     listening: 'अंक सुनिए',
     voiceNoVoice: 'इस उपकरण में आवाज़ नहीं है — अंक स्क्रीन पर दिखाए जाएँगे।',
     voiceSoundOff: 'ध्वनि बंद है — अंक स्क्रीन पर दिखाए जाएँगे। सेटिंग्स में ध्वनि चालू करें।',
@@ -153,6 +161,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: 'Apresentação dos algarismos',
     deliveryScreen: 'Na tela',
     deliveryVoice: 'Por voz',
+    deliveryAll: 'Todos de uma vez',
     listening: 'Ouça os algarismos',
     voiceNoVoice: 'Não há voz neste aparelho — os algarismos aparecerão na tela.',
     voiceSoundOff: 'O som está desligado — os algarismos aparecerão na tela. Ligue o som nos ajustes.',
@@ -168,6 +177,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: 'Présentation des chiffres',
     deliveryScreen: 'À l’écran',
     deliveryVoice: 'À la voix',
+    deliveryAll: 'Tous à la fois',
     listening: 'Écoutez les chiffres',
     voiceNoVoice: 'Aucune voix sur cet appareil — les chiffres seront affichés à l’écran.',
     voiceSoundOff: 'Le son est coupé — les chiffres seront affichés à l’écran. Activez le son dans les réglages.',
@@ -183,6 +193,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: 'Presentazione delle cifre',
     deliveryScreen: 'Sullo schermo',
     deliveryVoice: 'A voce',
+    deliveryAll: 'Tutti insieme',
     listening: 'Ascolta le cifre',
     voiceNoVoice: 'Su questo dispositivo non c’è una voce — le cifre appariranno sullo schermo.',
     voiceSoundOff: 'L’audio è spento — le cifre appariranno sullo schermo. Attiva l’audio nelle impostazioni.',
@@ -198,6 +209,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: '数字の提示方法',
     deliveryScreen: '画面に表示',
     deliveryVoice: '音声で',
+    deliveryAll: 'いっぺんに全部',
     listening: '数字を聞いてください',
     voiceNoVoice: 'この端末には音声がありません。数字は画面に表示します。',
     voiceSoundOff: '音が切れています。数字は画面に表示します。設定で音を入れてください。',
@@ -213,6 +225,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: '숫자 제시 방식',
     deliveryScreen: '화면에 표시',
     deliveryVoice: '음성으로',
+    deliveryAll: '한꺼번에',
     listening: '숫자를 들으세요',
     voiceNoVoice: '이 기기에는 음성이 없습니다 — 숫자는 화면에 표시합니다.',
     voiceSoundOff: '소리가 꺼져 있습니다 — 숫자는 화면에 표시합니다. 설정에서 소리를 켜세요.',
@@ -228,6 +241,7 @@ const STRINGS: Record<DigitSpanLocale, DigitSpanStrings> = {
     deliveryLabel: 'طريقة عرض الأرقام',
     deliveryScreen: 'على الشاشة',
     deliveryVoice: 'بالصوت',
+    deliveryAll: 'كلها دفعة واحدة',
     listening: 'استمع إلى الأرقام',
     voiceNoVoice: 'لا يوجد صوت على هذا الجهاز — ستظهر الأرقام على الشاشة.',
     voiceSoundOff: 'الصوت مغلق — ستظهر الأرقام على الشاشة. شغّل الصوت من الإعدادات.',
