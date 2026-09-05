@@ -872,7 +872,9 @@ describe('серия: подсказка и читаемый счётчик', ()
     const before = session.hints;
     const taken = takeHint(session);
     expect(taken.hint).not.toBeNull();
-    expect(taken.hint!.cells.length).toBe(2);          // две клетки — направление, не решение
+    // Путь целиком: за цену звезды человек получает слово, а не направление
+    // к нему. Отчёт 05.09.2026: «подсказка ни фига не работает».
+    expect(taken.hint!.cells).toEqual(session.puzzle.words[taken.hint!.wordIndex]!.path);
     expect(taken.session.hints).toBe(before + 1);      // ресурс потрачен
     // подсказанные клетки принадлежат ОДНОМУ ненайденному слову
     const w = taken.session.puzzle.words[taken.hint!.wordIndex];
