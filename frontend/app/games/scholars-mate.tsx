@@ -49,7 +49,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
-import { LEVELS, NAMED_MOTIFS, counts, levelParams, namedMotifCount } from '@/src/games/scholars-mate/core/deck';
+import { LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, namedMotifCount } from '@/src/games/scholars-mate/core/deck';
 import { starsFor } from '@/src/games/scholars-mate/core/run';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
 
@@ -238,25 +238,13 @@ export default function ScholarsMateScreen() {
    * КАКОЙ мат он сейчас ищет, — иначе новый узор на лестнице неотличим от
    * старого (замечание Дениса 05.09.2026).
    */
+  /**
+   * Имя узора для экрана. Карта ключей лежит В ЯДРЕ (`MOTIF_KEY`) — по ней же
+   * ходит гейт, который не пускает пул без человеческого имени.
+   */
   const имяУзора = React.useCallback((m: string) => {
-    const ключи: Record<string, string> = {
-      // ⚠️ Имя узора здесь то же, что название игры: заводить второй ключ с тем
-      // же текстом — это ровно тот дубль, который ловит гейт словаря.
-      scholar: 'scholarsMate',
-      queenKnight: 'scholarsMotifQueenKnight',
-      bishopF7: 'scholarsMotifBishopF7',
-      queenAlone: 'scholarsMotifQueenAlone',
-      fool: 'scholarsMotifFool',
-      knightOpening: 'scholarsMotifKnight',
-      smothered: 'scholarsMotifSmothered',
-    };
-    if (ключи[m]) return t(ключи[m]!);
-    /**
-     * Именованные узоры выпадающего списка: у них ключ строится по имени темы
-     * Lichess. Без этой ветки человек, выбравший «Арабский мат», не видел бы,
-     * что именно он отрабатывает, — а это ровно то, ради чего список сделан.
-     */
-    const ключ = `scholarsMotif_${m}`;
+    const ключ = MOTIF_KEY[m];
+    if (!ключ) return '';
     const имя = t(ключ);
     return имя === ключ ? '' : имя;
   }, [t]);
@@ -426,12 +414,12 @@ export default function ScholarsMateScreen() {
             <Pressable
               key={имя}
               accessibilityRole="button"
-              accessibilityLabel={t(`scholarsMotif_${имя}`)}
+              accessibilityLabel={имяУзора(имя)}
               onPress={() => start(false, null, имя)}
               style={[стили.узорСтрока, { backgroundColor: colors.surface, borderColor: colors.border }]}
             >
               <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]} numberOfLines={1}>
-                {t(`scholarsMotif_${имя}`)}
+                {имяУзора(имя)}
               </Text>
               <Text style={[стили.мелко, { color: colors.textSecondary }]}>{namedMotifCount(имя)}</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
