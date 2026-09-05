@@ -231,9 +231,49 @@ export default function WaterSortGame() {
 
   useEffect(() => () => { if (таймерRef.current) clearInterval(таймерRef.current); }, []);
 
-  const пуск = () => {
+  /**
+   * 🔴 «ЗАНОВО» ВОЗВРАЩАЕТ ТУ ЖЕ ДОСКУ, А НЕ РАЗДАЁТ НОВУЮ.
+   *
+   * Отчёт Дениса 05.09.2026 (764330da, голосом): «чтобы она не перемешивалась, а
+   * просто… заново». Так и было: кнопка звала генератор, и каждый раз приходил
+   * НОВЫЙ случайный расклад.
+   *
+   * Почему это ломает игру, а не просто раздражает. Головоломку перезапускают,
+   * когда зашли в тупик и хотят пройти ЭТУ доску иначе; новый расклад лишает
+   * такой возможности вовсе — застрявший уровень нельзя переиграть, можно только
+   * получить другой. И обратно: кнопка превращается в перебор раздач, пока не
+   * выпадет полегче, а лестница сложности при этом считает уровень пройденным.
+   *
+   * Раздача обновляется там, где ей и место: при входе в уровень и при переходе
+   * на следующий. `свежая` разделяет эти два случая.
+   */
+  const начальнаяRef = useRef<{ level: number; field: Field; minMoves: number } | null>(null);
+
+  /**
+   * Полная копия доски — СТРАХОВКА, и это сказано честно.
+   *
+   * Сегодня она не обязательна: `pour` иммутабелен, возвращает новое поле с
+   * новыми массивами пробирок и старое не трогает (`core/tubes.ts`). Замер:
+   * убрать копию — проба «Заново возвращает ту же доску» остаётся зелёной, и
+   * это правильный зелёный, а не слепой.
+   *
+   * ⚠️ Оставлена потому, что цена ошибки несимметрична: стоит однажды написать
+   * ход на месте — и сохранённая доска поедет вместе с играемой, а «Заново»
+   * начнёт возвращать не начало, а место, где человек застрял. Заметить это по
+   * поведению почти невозможно: доска-то похожа.
+   */
+  const копия = (f: Field): Field => ({ cap: f.cap, tubes: f.tubes.map((t) => [...t]) });
+
+  const пуск = (свежая = true) => {
     if (тупикБылRef.current) { lvl.fail(); тупикБылRef.current = false; }
-    const { field: доска, solutionMoves } = generateLevel(lvl.level);
+    const сохранена = начальнаяRef.current;
+    const взять = (!свежая && сохранена && сохранена.level === lvl.level)
+      ? { field: копия(сохранена.field), solutionMoves: сохранена.minMoves }
+      : generateLevel(lvl.level);
+    if (свежая || !сохранена || сохранена.level !== lvl.level) {
+      начальнаяRef.current = { level: lvl.level, field: копия(взять.field), minMoves: взять.solutionMoves };
+    }
+    const { field: доска, solutionMoves } = взять;
     setPlayedLevel(lvl.level);
     setField(доска);
     setМинимум(solutionMoves);
@@ -488,7 +528,8 @@ export default function WaterSortGame() {
           <TouchableOpacity
             accessibilityRole="button"
             style={[styles.кнопка, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            onPress={пуск}
+            // ⚠️ `false` — та же доска, а не новая раздача (см. шапку `пуск`).
+            onPress={() => пуск(false)}
           >
             <Ionicons name="refresh" size={18} color={colors.text} />
             <Text style={[styles.кнопкаТекст, { color: colors.text }]}>{t('restart')}</Text>
