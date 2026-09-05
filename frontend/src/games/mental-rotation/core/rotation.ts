@@ -108,7 +108,22 @@ export function buildRotationTask(level: number, rng: Rng): RotationTask {
   const options: RotationOption[] = [{ shape: correctShape, isMatch: true, flaw: 'none' }];
   const taken = new Set<string>([shapeKey(correctShape)]);
 
-  const others = candidates.filter((s) => shapeKey(s) !== shapeKey(base));
+  /**
+   * 🔴 У ОТВЛЕКАЮЩЕГО СТОЛЬКО ЖЕ КУБИКОВ, СКОЛЬКО У ЭТАЛОНА.
+   *
+   * 📍 ОТЧЁТ ДЕНИСА 05.09.2026 со скриншотом: «картинки на редкость уродские».
+   * Замер по 60 заданиям объяснил, что там на самом деле не так: в 54 из них у
+   * отвлекающего было ДРУГОЕ ЧИСЛО КУБИКОВ (пять против четырёх). Поворот число
+   * кубиков не меняет, значит такой вариант отбрасывается СЧЁТОМ, и упражнение
+   * на мысленное вращение решается не вращая. Оно и выглядело «не той фигурой»
+   * — потому что ею и было.
+   *
+   * Кандидаты берутся из полосы размеров уровня (`minC…maxC`), поэтому «другая
+   * фигура» запросто оказывалась другого размера. Отбираем ровно по числу
+   * кубиков; если таких нет — остаётся зеркало, у которого число кубиков совпадает
+   * по построению.
+   */
+  const others = candidates.filter((s) => shapeKey(s) !== shapeKey(base) && s.length === base.length);
   const spoil = (): { shape: Shape; flaw: 'mirror' | 'other' } | null => {
     const wantMirror = rng() < 0.55;
     const source = wantMirror ? mirrorShape(base) : (others.length ? pick(rng, others) : mirrorShape(base));

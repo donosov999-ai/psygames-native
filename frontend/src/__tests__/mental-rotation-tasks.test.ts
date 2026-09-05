@@ -1044,3 +1044,56 @@ describe('словарь модуля знает все двенадцать я�
     expect(usedKeys(gameCode()).size).toBeGreaterThan(10);
   });
 });
+
+/**
+ * 🔴 ВРАЩЕНИЕ НЕ РЕШАЕТСЯ СЧЁТОМ КУБИКОВ.
+ *
+ * 📍 ОТЧЁТ ДЕНИСА 05.09.2026 со скриншотом: «картинки на редкость уродские».
+ * Замер по 60 заданиям объяснил, что там на самом деле: в 54 из них у
+ * отвлекающего было ДРУГОЕ число кубиков (пять против четырёх). Поворот число
+ * кубиков не меняет — значит такой вариант отбрасывается счётом, и упражнение
+ * на мысленное вращение решалось не вращая. И выглядел он «не той фигурой»,
+ * потому что ею и был.
+ */
+describe('🔴 отвлекающий не отличается размером', () => {
+  const УРОВНИ = [1, 3, 6, 10, 15, 22, 30];
+
+  it('у всех вариантов столько же кубиков, сколько у эталона', () => {
+    const плохо: string[] = [];
+    for (const level of УРОВНИ) {
+      for (let seed = 1; seed <= 30; seed++) {
+        const t = buildRotationTask(level, createRng(`fair-${level}-${seed}`));
+        for (const o of t.options) {
+          if (o.shape.length !== t.base.length) {
+            плохо.push(`L${level} seed ${seed}: эталон ${t.base.length}, вариант ${o.shape.length}`);
+          }
+        }
+      }
+    }
+    expect(плохо.slice(0, 6)).toEqual([]);
+  });
+
+  it('вариантов по-прежнему столько, сколько обещает уровень', () => {
+    const плохо: string[] = [];
+    for (const level of УРОВНИ) {
+      const надо = levelParams(level).optionCount;
+      for (let seed = 1; seed <= 20; seed++) {
+        const t = buildRotationTask(level, createRng(`cnt-${level}-${seed}`));
+        if (t.options.length !== надо) плохо.push(`L${level} seed ${seed}: вариантов ${t.options.length}, надо ${надо}`);
+      }
+    }
+    expect(плохо.slice(0, 6)).toEqual([]);
+  });
+
+  it('верный вариант ровно один — сужение отбора второго не создало', () => {
+    const плохо: string[] = [];
+    for (const level of УРОВНИ) {
+      for (let seed = 1; seed <= 20; seed++) {
+        const t = buildRotationTask(level, createRng(`one-${level}-${seed}`));
+        const верных = t.options.filter((o) => o.isMatch).length;
+        if (верных !== 1) плохо.push(`L${level} seed ${seed}: верных ${верных}`);
+      }
+    }
+    expect(плохо.slice(0, 6)).toEqual([]);
+  });
+});
