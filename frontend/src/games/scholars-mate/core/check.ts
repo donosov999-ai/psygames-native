@@ -165,18 +165,42 @@ export function threatAnswer(p: ScholarsPuzzle): boolean {
  * список годен как подсказка и негоден как истина. Показывать человеку «лучший»
  * из непроверенного списка значит иногда советовать ход, после которого мат.
  */
+const ЦЕНА_ФИГУРЫ: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+
+/**
+ * 🔴 ИЗ СПАСАЮЩИХ ХОДОВ ВЫБИРАЕТСЯ НЕ ПЕРВЫЙ, А НЕ ТЕРЯЮЩИЙ ФИГУРУ.
+ *
+ * 📍 ЗАМЕР 05.09.2026: прежняя редакция брала первый попавшийся по порядку
+ * chess.js и в 32 случаях из 378 (8%) советовала ход, после которого фигуру
+ * просто съедают — чаще всего `Bxf7+`, где слон берёт защищённую пешку. Мат при
+ * этом снят, формально «спасение», а человек, поверив подписи «верно было»,
+ * учится отдавать слона ни за что.
+ *
+ * Теперь среди всех спасающих ходов берётся тот, у которого лучший
+ * материальный исход: считаем, что соперник возьмёт пошедшую фигуру самой
+ * дешёвой из бьющих. При равенстве — первый по порядку, он же и был раньше.
+ */
 export function bestDefence(p: ScholarsPuzzle): string | undefined {
   const fen = shownFen(p);
   const g = new Chess(fen);
-  const все = g.moves({ verbose: true }) as { from: string; to: string; promotion?: string; san: string }[];
+  const все = g.moves({ verbose: true }) as
+    { from: string; to: string; promotion?: string; san: string; piece: string; captured?: string }[];
+  let лучший: { san: string; выгода: number } | undefined;
   for (const m of все) {
     const t = new Chess(fen);
     try {
       t.move({ from: m.from, to: m.to, ...(m.promotion ? { promotion: m.promotion } : {}) });
     } catch { continue; }
-    if (!естьМатВОдин(t.fen())) return m.san;
+    if (естьМатВОдин(t.fen())) continue;                 // не спасает — не наш случай
+    const взяли = m.captured ? (ЦЕНА_ФИГУРЫ[m.captured] ?? 0) : 0;
+    const бьют = (t.moves({ verbose: true }) as { to: string; captured?: string; piece: string }[])
+      .filter((x) => x.to === m.to && x.captured);
+    const отдали = бьют.length ? (ЦЕНА_ФИГУРЫ[m.piece] ?? 0) : 0;
+    const выгода = взяли - отдали;
+    if (!лучший || выгода > лучший.выгода) лучший = { san: m.san, выгода };
+    if (лучший.выгода >= 0) break;                       // не теряем материал — дальше не ищем
   }
-  return undefined;
+  return лучший?.san;
 }
 
 /**
