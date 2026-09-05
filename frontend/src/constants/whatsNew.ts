@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.39.0',
+    date: '2026-09-05',
+    ru: [
+      'Новое упражнение «Детский мат»: заученный узор на скорость. Поставить мат в один ход, защититься, увидеть угрозу — а на верхних ступенях мат с ЖЕРТВОЙ в два-три хода. Время на позицию падает с 20 секунд до 4',
+      'Развилка «Шахматы»: «Доска в уме» и «Детский мат» теперь одним входом',
+      'Маджонг: тупик, из которого не было выхода, встречался на каждой четвёртой партии сорокового уровня. Теперь есть честный выход и пересдача уровня, а глубина слоёв видна на всех плитках, а не только на свободных',
+      '«Дворец памяти» помещается в экран: предмет и место, которые надо совместить, видны одновременно',
+      'Голосовые отзывы: если микрофон записал тишину, приложение больше не говорит «спасибо» — оно предупреждает и предлагает написать текстом',
+    ],
+    en: [
+      'New exercise, Scholar\'s Mate: a memorised pattern against the clock. Mate in one, defend, spot the threat — and on the top rungs, mate with a SACRIFICE in two or three moves. Time per position drops from 20 seconds to 4',
+      'Chess hub: Board in Mind and Scholar\'s Mate now share one entrance',
+      'Mahjong: a dead end with no way out hit one game in four on level 40. There is now an honest exit and a level redeal, and layer depth is visible on every tile, not just the free ones',
+      'Memory Palace fits the screen: the item and the place you need to pair are visible at the same time',
+      'Voice feedback: if the microphone recorded silence, the app no longer says thank you — it warns you and offers to type instead',
+    ],
+  },
+  {
     version: '2.38.3',
     date: '2026-09-05',
     ru: ['«Пробирки»: кнопка «Заново» возвращает ту же доску, а не раздаёт новую — застрявший уровень теперь можно переиграть'],
