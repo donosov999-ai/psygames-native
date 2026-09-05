@@ -437,7 +437,11 @@ export default function FeedbackWidget() {
       // ради которого в v1.190 заводили AnalyserNode, до базы не доезжал ни разу.
       // Уровень со стороны сервера считает ffmpeg, но это уже посмертно — а нужен
       // ответ на вопрос «телефон отдал звук или нет» в момент отправки.
-      audio: note ? { blob: note.blob, seconds: note.seconds, mime: note.mime, peak: note.peak, measured: note.measured, track: note.track, source: note.source, access: note.access, micGate: note.micGate } : null,
+      // ⚠️ filePeak И silentAck — тоже обязательны, и по той же причине. `filePeak`
+      // это пик по САМОМУ файлу (единственный замер, работающий на нативном пути),
+      // `silentAck` отвечает на вопрос «человека предупредили или заслон молчал» —
+      // без него 34 немых `.m4a` в базе неотличимы от «предупредили, отправил как есть».
+      audio: note ? { blob: note.blob, seconds: note.seconds, mime: note.mime, peak: note.peak, filePeak: note.filePeak, measured: note.measured, track: note.track, source: note.source, access: note.access, micGate: note.micGate, silentAck: micSilent && (silentAck || ackSilent) } : null,
       // profile/level — чтобы в репорте было видно, под каким профилем и на
       // каком уровне игры это словили (не гадать по скриншоту).
       context: {
@@ -638,10 +642,13 @@ export default function FeedbackWidget() {
                         onPress={toggleRecord}
                         style={[styles.shotRow, { borderColor: rec ? '#ef4444' : colors.border }]}
                       >
+                        {/* 🔴 ЗЕЛЁНАЯ ГАЛОЧКА НА НЕМОЙ ЗАПИСИ — ЭТО ЛОЖЬ, И ИМЕННО ЕЁ
+                            видели 34 отправителя `.m4a`: файл записан, галочка зелёная,
+                            звука ноль. Значок обязан говорить то же, что и заслон. */}
                         <Ionicons
-                          name={rec ? 'stop-circle' : note ? 'checkmark-circle' : 'mic-outline'}
+                          name={rec ? 'stop-circle' : note ? (micSilent ? 'alert-circle' : 'checkmark-circle') : 'mic-outline'}
                           size={20}
-                          color={rec ? '#ef4444' : note ? '#22c55e' : colors.textSecondary}
+                          color={rec ? '#ef4444' : note ? (micSilent ? '#b45309' : '#22c55e') : colors.textSecondary}
                         />
                         <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>
                           {rec
