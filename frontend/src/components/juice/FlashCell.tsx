@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, View, StyleSheet, ViewStyle } from 'react-native';
+import { Animated, Image, Pressable, View, StyleSheet, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
+import { blockImage, nearestPieceColor, useBallStyle } from '@/src/games/balls/ballChoice';
 import { hapticTap } from './haptics';
 import { settle } from './motion';
 
@@ -84,6 +85,8 @@ export default function FlashCell({
   a11yLabel, a11yState, style,
 }: Props) {
   const reduced = useReducedMotion();
+  /** Фактура клеток — общий выбор приложения (тот же, что у шаров). */
+  const pieceStyle = useBallStyle();
   // ⚠️ `useState`, а не `useRef(...).current`: чтение `.current` в теле
   // компонента — обращение к рефу во время рендера, и линтер справедливо на
   // это ругается. Ленивый инициализатор даёт то же самое (значение создаётся
@@ -120,6 +123,36 @@ export default function FlashCell({
             start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
             style={[styles.face, { borderRadius: radius }]}
           >
+            {/**
+              * 🔴 ФАКТУРА ПОВЕРХ ЦВЕТА, А НЕ ВМЕСТО НЕГО.
+              *
+              * Денис 05.09.2026: «шариками и кубиками — отрисуй сеткой их, разные
+              * по стилю». Кубики нарисованы теми же девятью фактурами, что и шары.
+              *
+              * ⚠️ ЦВЕТ ЗДЕСЬ НЕСЁТ СМЫСЛ: подсвечена, выбрана, верно, неверно —
+              * и каждая игра задаёт его сама. Подменить его фиксированной
+              * картинкой значило бы стереть смысл ради красоты, поэтому картинка
+              * ложится ПОВЕРХ градиента ближайшим цветом набора, а сам градиент
+              * остаётся снизу и продолжает отвечать за значение.
+              *
+              * ⚠️ Значки (точка/крест/кольцо) остаются НАД фактурой: они для тех,
+              * кто не различает цвета, и закрывать их картинкой нельзя.
+              */}
+            <Image
+              source={blockImage(pieceStyle, nearestPieceColor(base))}
+              /**
+               * ⚠️ РАЗМЕР ЯВНО, А НЕ `absoluteFill`. react-native-web ставит
+               * картинке её НАТУРАЛЬНУЮ ширину (192 px у плитки), и она
+               * перебивает `inset: 0`: плитки вылезали далеко за клетку и
+               * выбеливали всю доску. Тот же промах был в маджонге часом раньше
+               * и там уже разобран — здесь я его повторил и увидел на скриншоте.
+               */
+              style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', borderRadius: radius, opacity: 0.92 }}
+              resizeMode="stretch"
+              fadeDuration={0}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            />
             <View style={[styles.gloss, { borderTopLeftRadius: radius, borderTopRightRadius: radius }]} pointerEvents="none" />
             {/* Форма поверх цвета — ответ читается без различения цветов. */}
             {state === 'correct' && <View style={styles.markDot} />}
@@ -138,7 +171,27 @@ export default function FlashCell({
             styles.idle,
             { borderRadius: radius, backgroundColor: idleColor, borderColor },
           ]}
-        />
+        >
+          {/**
+            * Погашенная клетка — фактура ЕДВА заметным рельефом поверх своего
+            * цвета, а не вместо него.
+            *
+            * ⚠️ Цвет погашенной клетки у игр ТЁМНЫЙ (`#444` у Корси), а в наборе
+            * все десять светлые: ближайший к тёмному — белый, и на 0.5 доска
+            * выбеливалась целиком (видно на скриншоте 05.09.2026). Поэтому здесь
+            * фактура берётся нейтральной белой и кладётся на 0.14: видна как
+            * материал, но тон клетки остаётся тот, что задала игра, и разница
+            * «погасла / подсвечена» такая же резкая, как была.
+            */}
+          <Image
+            source={blockImage(pieceStyle, 'white')}
+            style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', borderRadius: radius, opacity: 0.14 }}
+            resizeMode="stretch"
+            fadeDuration={0}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          />
+        </View>
       )}
     </Animated.View>
   );
@@ -162,11 +215,15 @@ const styles = StyleSheet.create({
   // к зажжённой. Поэтому поле читается как набор лунок, а не как таблица.
   idle: {
     flex: 1,
+    // overflow ЗАКРЫТ: фактура внутри не имеет права вылезти за клетку.
+    overflow: 'hidden',
     borderWidth: 1,
     borderTopWidth: 3,
     borderTopColor: 'rgba(0,0,0,0.13)',
     borderBottomColor: 'rgba(255,255,255,0.5)',
   },
+  // overflow здесь НЕ закрываем: `lit` несёт тень наружу, а `hidden` её срежет.
+  // Картинку сдерживает её собственный размер 100% (см. выше), а не обрезка.
   lit: { flex: 1, shadowOpacity: 0.55, shadowRadius: 9, shadowOffset: { width: 0, height: 0 }, elevation: 7 },
   face: {
     flex: 1, justifyContent: 'center', alignItems: 'center', overflow: 'hidden',

@@ -39,6 +39,7 @@ import { CLOZE_PHRASES } from '@/src/constants/clozePhrases';
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#f59e0b', '#ef4444'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -484,7 +485,7 @@ const styles = StyleSheet.create({
   },
   backButton: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '700' },
-  placeholder: { width: 44 },
+  placeholder: { width: HELP_CORNER_SPACE },
   configScroll: { flex: 1 },
   configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 20, alignItems: 'center', marginBottom: 8 },

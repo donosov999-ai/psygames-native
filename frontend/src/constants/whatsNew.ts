@@ -16,6 +16,12 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.38.2',
+    date: '2026-09-05',
+    ru: ['Кубики в играх на память перерисованы теми же девятью фактурами, что и шарики: стекло, мех, хром, желе, неон, камень, лёд. Выбор общий — материал выбираете один раз, форму задаёт игра'],
+    en: ['Blocks in the memory games are redrawn with the same nine textures as the balls: glass, fur, chrome, jelly, neon, stone, ice. The choice is shared — pick the material once, the game picks the shape'],
+  },
+  {
     version: '2.38.1',
     date: '2026-09-05',
     ru: [

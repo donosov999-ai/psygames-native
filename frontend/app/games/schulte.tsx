@@ -51,6 +51,7 @@ import {
   pressSeriesCell, seriesEntry, EMPTY_SERIES_PROGRESS,
   type SchulteBlockKey, type SchulteSeriesProgress, type SchulteSeriesState, type SeriesOutcome,
 } from '@/src/games/schulte/core';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#667eea', '#764ba2'];
 // Оранжевая кнопка «уровень N» — свой градиент, значит и свой цвет текста:
@@ -1555,7 +1556,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   placeholder: {
-    width: 44,
+    width: HELP_CORNER_SPACE,
   },
   configScroll: { flex: 1 },
   configContainer: {
