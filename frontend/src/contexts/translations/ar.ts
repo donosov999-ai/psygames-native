@@ -2102,6 +2102,7 @@ const t: Record<string, string> = {
   "scholarsDefendAsk": "المات يهدد — دافع",
   "scholarsThreatAsk": "هل يهدد المات في النقلة التالية؟",
   "scholarsSacrificeAsk": "مات بتضحية — ابدأ",
+  "scholarsMedian": "الوسيط",
   "scholarsBest": "الصواب كان",
   "scholarsYes": "نعم",
   "scholarsNo": "لا",

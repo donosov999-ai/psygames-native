@@ -2101,6 +2101,7 @@ const t: Record<string, string> = {
   "scholarsDefendAsk": "외통 위협 — 막아라",
   "scholarsThreatAsk": "다음 수에 외통 위협이 있는가?",
   "scholarsSacrificeAsk": "희생으로 만드는 외통 — 시작",
+  "scholarsMedian": "중앙값",
   "scholarsBest": "정답은",
   "scholarsYes": "예",
   "scholarsNo": "아니오",

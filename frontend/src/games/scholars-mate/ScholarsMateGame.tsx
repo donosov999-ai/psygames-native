@@ -70,6 +70,19 @@ export default function ScholarsMateGame({
   const [подсветка, setПодсветка] = React.useState<string[]>([]);
   const [вердикт, setВердикт] = React.useState<{ ok: boolean; best?: string } | null>(null);
   const [осталось, setОсталось] = React.useState(п.seconds);
+  /**
+   * 🔴 МАТ С ЖЕРТВОЙ ДОИГРЫВАЕТСЯ ДО МАТА, А НЕ ОБРЫВАЕТСЯ ПОСЛЕ ЖЕРТВЫ.
+   *
+   * 📍 ЧТО БЫЛО. Верность решалась строкой `line[0] === uci`: человек отдавал
+   * фигуру, видел «✓» и ехал дальше. Мат он не ставил НИ РАЗУ на всех 371
+   * позиции — то есть упражнение, названное «мат с жертвой», заканчивалось до
+   * мата. А жертва без мата — это просто отданная фигура.
+   *
+   * Теперь после верного хода играется ответ соперника, и спрашивается
+   * следующий ход. Замер времени идёт на ВСЮ линию: предмет упражнения —
+   * узнать связку целиком, а не её первый ход.
+   */
+  const [шагЛинии, setШагЛинии] = React.useState(0);
   const попытки = React.useRef<ScholarsAttempt[]>([]);
   const началоRef = React.useRef(now());
   /**
@@ -91,6 +104,7 @@ export default function ScholarsMateGame({
   /** Перейти к следующей позиции или закончить подход. */
   const дальше = React.useCallback(() => {
     отвечаем.current = false;
+    setШагЛинии(0);
     setВердикт(null);
     setВыбрана(null);
     setПодсветка([]);
@@ -200,6 +214,35 @@ export default function ScholarsMateGame({
     if (вердикт || задача.kind === 'threat') return;
     if (выбрана && подсветка.includes(имя)) {
       const uci = дополнитьХод(fen, выбрана + имя);
+      const линия = задача.line;
+      /**
+       * Позиция в два-три хода: ждём ход номер `шагЛинии * 2` из записи.
+       * Верный — играем ответ соперника и остаёмся в той же позиции; неверный
+       * или мат — закрываем попытку.
+       */
+      if (линия && линия.length > 1) {
+        const ждём = линия[шагЛинии * 2];
+        if (ждём !== uci) {
+          setВыбрана(null); setПодсветка([]);
+          ответить(uci, false, задача.san?.join(' '));
+          return;
+        }
+        const g = new Chess(fen);
+        try { g.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), ...(uci.length > 4 ? { promotion: uci[4] } : {}) }); } catch { /* невозможно: ход из записи */ }
+        const ответСоперника = линия[шагЛинии * 2 + 1];
+        if (ответСоперника) {
+          try { g.move({ from: ответСоперника.slice(0, 2), to: ответСоперника.slice(2, 4) }); } catch { /* битая запись */ }
+        }
+        setFen(g.fen());
+        setВыбрана(null);
+        setПодсветка([]);
+        if (g.isCheckmate() || !ответСоперника) {
+          ответить(uci, true, задача.san?.join(' '));
+        } else {
+          setШагЛинии((n) => n + 1);
+        }
+        return;
+      }
       const v = check(задача, uci);
       if (v.fenAfter) setFen(v.fenAfter);
       ответить(uci, v.correct, v.best);

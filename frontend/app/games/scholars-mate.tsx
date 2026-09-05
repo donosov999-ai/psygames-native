@@ -25,6 +25,7 @@
  * Растёт скорость: 6 секунд → 2 → 1,2. Она и уходит в сессию.
  */
 import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -157,6 +158,33 @@ export default function ScholarsMateScreen() {
     return доля <= 0.33 ? 3 : доля <= 0.6 ? 2 : 1;
   }, [last, пСыгранного.seconds]);
 
+  /**
+   * Медиана подхода и личный рекорд. Рекорд хранится по уровню: медиана на
+   * четвёртом уровне и на сороковом — разные величины, общий рекорд был бы
+   * бессмыслицей.
+   */
+  const [рекорд, setРекорд] = React.useState<number | null>(null);
+  React.useEffect(() => {
+    AsyncStorage.getItem(`psygames_scholars_median_${shownLevel}`)
+      .then((v) => setРекорд(v ? Number(v) : null))
+      .catch(() => {});
+  }, [shownLevel]);
+  React.useEffect(() => {
+    if (!last?.medianMs || !last.solved) return;
+    if (рекорд != null && рекорд <= last.medianMs) return;
+    setРекорд(last.medianMs);
+    AsyncStorage.setItem(`psygames_scholars_median_${shownLevel}`, String(Math.round(last.medianMs))).catch(() => {});
+  }, [last, shownLevel, рекорд]);
+
+  const строкаСкорости = React.useMemo(() => {
+    if (!last?.medianMs || !last.solved) return undefined;
+    const сек = (мс: number) => (Math.round(мс / 100) / 10).toFixed(1);
+    const своё = `${t('scholarsMedian')} ${сек(last.medianMs)} ${t('secShort')}`;
+    return рекорд != null && рекорд < last.medianMs
+      ? `${своё} · ${t('personalBest')} ${сек(рекорд)} ${t('secShort')}`
+      : своё;
+  }, [last, рекорд, t]);
+
   const start = () => { setPlayedLevel(null); setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
 
   if (phase === 'playing') {
@@ -232,6 +260,15 @@ export default function ScholarsMateScreen() {
       {phase === 'cleared' && (
         <LevelCleared gameId="scholars_mate" level={shownLevel} stars={stars} passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
+          /**
+           * 🔴 ГЛАВНУЮ ЦИФРУ ЧЕЛОВЕК ОБЯЗАН ВИДЕТЬ.
+           *
+           * Вся игра построена на медиане времени, а на экране итога рисовались
+           * одни звёзды. Рецензия 05.09.2026 назвала это прямо: «главную цифру
+           * человек не видит» — а «Шульте», на которую упражнение ссылается как
+           * на образец, показывает и время, и рекорд.
+           */
+          comparisonLine={строкаСкорости}
           onContinue={start} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && last && (

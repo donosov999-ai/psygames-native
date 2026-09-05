@@ -1765,6 +1765,7 @@ const translations: Translations = {
   scholarsDefendAsk:   { ru: 'Грозит мат — защитись', en: 'Mate is threatened — defend' },
   scholarsThreatAsk:   { ru: 'Грозит ли мат следующим ходом?', en: 'Is mate threatened next move?' },
   scholarsSacrificeAsk:{ ru: 'Мат с жертвой — начни', en: 'Mate with a sacrifice — begin' },
+  scholarsMedian:      { ru: 'Медиана', en: 'Median' },
   scholarsBest:        { ru: 'Верно было', en: 'Correct was' },
   // Да/нет для вопроса «грозит ли мат»: общих ключей в словаре нет.
   // ⚠️ `с` и `Время вышло` НЕ заводим — они уже есть как secShort и timeIsUp;
