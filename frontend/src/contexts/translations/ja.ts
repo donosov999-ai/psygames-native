@@ -2100,6 +2100,7 @@ const t: Record<string, string> = {
   "scholarsDefendAsk": "詰めろあり — 受けよ",
   "scholarsThreatAsk": "次の手で詰みがあるか？",
   "scholarsSacrificeAsk": "犠牲からの詰み — 始める",
+  "scholarsMedian": "中央値",
   "scholarsBest": "正解は",
   "scholarsYes": "はい",
   "scholarsNo": "いいえ",

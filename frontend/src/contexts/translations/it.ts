@@ -2101,6 +2101,7 @@ const t: Record<string, string> = {
   "scholarsDefendAsk": "Minaccia di matto — difenditi",
   "scholarsThreatAsk": "C’è minaccia di matto alla prossima mossa?",
   "scholarsSacrificeAsk": "Matto con sacrificio — comincia",
+  "scholarsMedian": "Mediana",
   "scholarsBest": "Giusto era",
   "scholarsYes": "Sì",
   "scholarsNo": "No",

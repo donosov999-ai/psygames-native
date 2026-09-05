@@ -2106,6 +2106,7 @@ const t: Record<string, string> = {
   "scholarsDefendAsk": "对方要将杀了 — 防守",
   "scholarsThreatAsk": "下一步会被将杀吗？",
   "scholarsSacrificeAsk": "弃子将杀 — 开始",
+  "scholarsMedian": "中位数",
   "scholarsBest": "正确应是",
   "scholarsYes": "是",
   "scholarsNo": "否",
