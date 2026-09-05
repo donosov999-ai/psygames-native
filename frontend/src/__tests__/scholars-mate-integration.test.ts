@@ -25,6 +25,7 @@ import React from 'react';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
 import { buildDeck, levelParams } from '@/src/games/scholars-mate/core/deck';
 import { check, shownFen } from '@/src/games/scholars-mate/core/check';
+import { РАМКА_ДОСКИ, размерКлетки, ширинаДоски } from '@/src/games/scholars-mate/core/run';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
 
 declare function require(m: string): any;
@@ -245,5 +246,47 @@ describe('«Детский мат»: партия на живом дереве',
     expect(r.solved).toBe(колода.length);
     expect(r.medianMs).toBeGreaterThan(0);
     expect(r.accuracy).toBe(1);
+  });
+});
+
+describe('«Детский мат»: доска не разъезжается', () => {
+  /**
+   * 🔴 ВОСЕМЬ КЛЕТОК ОБЯЗАНЫ ВЛЕЗТЬ В РЯД. Доска — `flexWrap`, и лишний пиксель
+   * в ряду переносит восьмую клетку на следующую строку: сверху семь колонок,
+   * снизу обрезанные фигуры. Позиция при этом разбирается верно, врёт только
+   * картинка, — значит ни одна проба на ядре этого не поймает.
+   *
+   * 📍 Так и было 05.09.2026 в браузере на 375 px: клетка считалась `size / 8`
+   * = 42,875, восемь таких = 343, а внутрь рамки влезало 339.
+   */
+  it('🔴 восемь клеток плюс рамка помещаются в отведённую ширину', () => {
+    const плохие: string[] = [];
+    // Ширины экранов от узкого телефона до планшета плюс потолок 420 из экрана.
+    for (let size = 200; size <= 420; size++) {
+      const клетка = размерКлетки(size);
+      if (!Number.isInteger(клетка)) плохие.push(`${size}: клетка ${клетка} дробная`);
+      if (клетка * 8 + РАМКА_ДОСКИ * 2 > size) плохие.push(`${size}: ряд ${клетка * 8} не влезает`);
+      if (ширинаДоски(size) > size) плохие.push(`${size}: доска ${ширинаДоски(size)} шире отведённого`);
+    }
+    expect(плохие.slice(0, 5)).toEqual([]);
+  });
+
+  it('🔴 клетка не съёживается: доска занимает почти всю отведённую ширину', () => {
+    // Обратная сторона: «влезает» достигается и клеткой в один пиксель.
+    for (const size of [320, 343, 360, 420]) {
+      expect(`${size}: ${ширинаДоски(size) >= size - 8}`).toBe(`${size}: true`);
+    }
+  });
+
+  it('🔴 на живом дереве все 64 клетки одного размера', () => {
+    const с = стол(1);
+    const размеры = new Set<number>();
+    с.tree.root.findAll(
+      (n: any) => typeof n.props?.onPress === 'function'
+        && /^[a-h][1-8](,|$)/.test(String(n.props.accessibilityLabel ?? '')),
+      { deep: true },
+    ).forEach((n: any) => { размеры.add(n.props.style.width); размеры.add(n.props.style.height); });
+    expect([...размеры]).toHaveLength(1);
+    expect(Number.isInteger([...размеры][0])).toBe(true);
   });
 });

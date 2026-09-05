@@ -21,7 +21,7 @@ import { CHESS_PIECE_SVG } from '@/src/games/chess-blind/core/pieces';
 import { a11yDecor } from '@/src/services/a11y';
 import { buildDeck, levelParams } from './core/deck';
 import { check, movesFrom, shownFen, sideToMove, threatAnswer } from './core/check';
-import { scholarsArmed, медианаМс } from './core/run';
+import { scholarsArmed, медианаМс, размерКлетки, ширинаДоски } from './core/run';
 import type { ScholarsAttempt, ScholarsResult } from './core/types';
 
 const БУКВЫ = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -157,7 +157,8 @@ export default function ScholarsMateGame({
     ответить(да ? 'yes' : 'no', да === истина, истина ? labels.yes : labels.no);
   };
 
-  const клетка = size / 8;
+  const клетка = размерКлетки(size);
+  const сторона = ширинаДоски(size);
   const расстановка = расставить(fen);
   const снизуБелые = sideToMove(задача) === 'w';
   const порядок = снизуБелые
@@ -186,7 +187,7 @@ export default function ScholarsMateGame({
         {осталось.toFixed(1)} {labels.sec} · {шаг + 1}/{колода.length}
       </Text>
 
-      <View style={[стили.доска, { width: size, height: size, borderColor: theme.border }]}>
+      <View style={[стили.доска, { width: сторона, height: сторона, borderColor: theme.border }]}>
         {порядок.map((i) => {
           const имя = имяКлетки(i);
           const тёмная = (Math.floor(i / 8) + (i % 8)) % 2 === 1;
