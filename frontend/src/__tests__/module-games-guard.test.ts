@@ -74,6 +74,8 @@ import {
 import type { OneLineSession } from '@/src/games/one-line/core/index';
 import { hasSomethingToLose as oneLineArmed } from '@/src/games/one-line/OneLineGame';
 
+import { квадратНачат, собратьКольца as собратьКольцаДляГейта } from '@/src/games/anagrams/core/ring';
+import { wordPool as wordPoolДляГейта, wordsOfLength as wordsOfLengthДляГейта } from '@/src/games/fillwords/core/words';
 import {
   createFacesNamesSession,
   startFacesNamesRound,
@@ -232,6 +234,16 @@ function pausePlan() {
 }
 
 const LIVE_PREDICATES: Record<string, { fresh: () => boolean; busy: () => boolean; why: string }> = {
+  'anagrams.tsx': {
+    why: 'первая взятая плитка: набранное слово уходит вместе с экраном, а закрытые стороны тем более',
+    fresh: () => квадратНачат([], []),
+    busy: () => {
+      // Кольцо берётся НАСТОЯЩЕЕ — из словаря, тем же сборщиком, что и в игре.
+      const к = собратьКольцаДляГейта(wordsOfLengthДляГейта(wordPoolДляГейта('en'), 5))[0]!;
+      const первая = к.банк.length > 0 ? [0] : [];
+      return квадратНачат(первая, []);
+    },
+  },
   'scholars-mate.tsx': {
     why: 'первая записанная попытка: её время уже в медиане, а медиана здесь и есть предмет упражнения',
     fresh: () => scholarsArmed([]),
