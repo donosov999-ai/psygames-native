@@ -1753,6 +1753,21 @@ const translations: Translations = {
   // сама картинка шара, и подпись здесь — опора для голосового доступа, а не
   // объяснение. Фактуру выбирают глазами.
   ballStyleTitle: { ru: 'Вид шаров', en: 'Ball look' },
+  // «Детский мат» — этюды на скорость (просьба Дениса 05.09.2026).
+  scholarsMate:        { ru: 'Детский мат', en: 'Scholar’s mate' },
+  scholarsMateDesc:    { ru: 'Один и тот же узор — ферзь и слон на f7. Он заучен: меряется не «сможешь ли», а за сколько увидишь. Время на позицию сокращается с уровнем.', en: 'One pattern — queen and bishop on f7. You already know it: what is measured is not whether you can, but how fast you see it. Time per position shrinks with the level.' },
+  scholarsMateIntroDesc: { ru: "Один и тот же узор: ферзь и слон бьют на f7 — у чёрных на f2. Тапни фигуру, потом клетку; ход один, время на него идёт полосой сверху. Дальше по лестнице времени меньше, а позиции приходят из настоящих партий; под конец — маты с жертвой: сначала отдаёшь фигуру, потом ставишь мат. Звёзды идут за СКОРОСТЬ, а не за число решённых: узор вы и так знаете.", en: "One and the same pattern: queen and bishop strike f7 — f2 for Black. Tap a piece, then a square; one move, and the bar on top is your time. Higher up the ladder there is less time and the positions come from real games; at the end come mates with a sacrifice: give up a piece first, then mate. Stars are for SPEED, not for how many you solved — you know the pattern already." },
+  scholarsMateAsk:     { ru: 'Поставь мат в один ход', en: 'Mate in one' },
+  scholarsDefendAsk:   { ru: 'Грозит мат — защитись', en: 'Mate is threatened — defend' },
+  scholarsThreatAsk:   { ru: 'Грозит ли мат следующим ходом?', en: 'Is mate threatened next move?' },
+  scholarsSacrificeAsk:{ ru: 'Мат с жертвой — начни', en: 'Mate with a sacrifice — begin' },
+  scholarsBest:        { ru: 'Верно было', en: 'Correct was' },
+  // Да/нет для вопроса «грозит ли мат»: общих ключей в словаре нет.
+  // ⚠️ `с` и `Время вышло` НЕ заводим — они уже есть как secShort и timeIsUp;
+  // гейт дублей это ловит, и правильно: два ключа с одним текстом расходятся
+  // при переводе, и в одном месте останется старая формулировка.
+  scholarsYes:         { ru: 'Да', en: 'Yes' },
+  scholarsNo:          { ru: 'Нет', en: 'No' },
   ballGlossy:     { ru: 'Глянцевые',      en: 'Glossy' },
   ballGlass:      { ru: 'Стеклянные',     en: 'Glass' },
   ballFluffy:     { ru: 'Пушистые',       en: 'Fluffy' },

@@ -207,6 +207,58 @@ const oneLine = () => {
  *   коралл {11,12,13,14,24,23}, синий {21,31,41,42,32}, бирюза {33,43,44,34}.
  * Свободна одна клетка (2,2) — она и показывает, что сетку ещё заполняют.
  */
+/* ─────────────────────────── ДЕТСКИЙ МАТ ───────────────────────────
+ * «Один и тот же узор: ферзь и слон бьют на f7».
+ *
+ * Рисуем не всю доску (на 160 px восемь рядов превращаются в рябь), а УГОЛ
+ * доски 4×4 с тремя вещами, по которым узор и опознаётся: чёрный король,
+ * пешка f7 под ударом, и две линии удара — от ферзя и от слона. Плюс
+ * секундомер: скорость здесь предмет упражнения, а не обстановка.
+ */
+const scholarsMate = () => {
+  const K = 26;                       // сторона клетки
+  const X0 = 26, Y0 = 30;             // левый верхний угол доски
+  const at = (c, r) => [X0 + K * c + K / 2, Y0 + K * r + K / 2];
+
+  const клетки = [];
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 4; c++) {
+      const тёмная = (r + c) % 2 === 1;
+      клетки.push(
+        `<rect x="${X0 + c * K}" y="${Y0 + r * K}" width="${K}" height="${K}" ` +
+        `fill="${тёмная ? C.greyLine : C.white}"/>`,
+      );
+    }
+  }
+
+  const [fx, fy] = at(2, 1);          // цель удара — «f7»
+  const [qx, qy] = at(0, 3);          // ферзь снизу слева
+  const [bx, by] = at(3, 3);          // слон снизу справа
+  const [kx, ky] = at(2, 0);          // король над целью
+
+  const луч = (x, y, цвет) =>
+    `<path d="M${x} ${y} L${fx} ${fy}" stroke="${цвет}" stroke-width="3" ` +
+    `stroke-linecap="round" stroke-dasharray="1 6" fill="none" opacity="0.9"/>`;
+
+  const фигура = (x, y, цвет, r) =>
+    `<circle cx="${x}" cy="${y}" r="${r}" fill="${цвет}"/>`;
+
+  return frame(
+    `<rect x="${X0 - 3}" y="${Y0 - 3}" width="${K * 4 + 6}" height="${K * 4 + 6}" rx="6" fill="${C.ink}"/>` +
+    клетки.join('') +
+    луч(qx, qy, C.coral) + луч(bx, by, C.blue) +
+    // Цель — кольцо, а не заливка: под ним «стоит» пешка, и её видно.
+    `<circle cx="${fx}" cy="${fy}" r="9" fill="none" stroke="${C.coral}" stroke-width="3"/>` +
+    фигура(fx, fy, C.greyLine, 5) +
+    фигура(kx, ky, C.ink, 7) +
+    фигура(qx, qy, C.coral, 8) +
+    фигура(bx, by, C.blue, 7) +
+    // Секундомер: предмет упражнения — время.
+    `<circle cx="132" cy="26" r="13" fill="${C.white}" stroke="${C.ink}" stroke-width="3"/>` +
+    `<path d="M132 26 L132 18 M132 26 L138 29" stroke="${C.ink}" stroke-width="3" stroke-linecap="round"/>`,
+  );
+};
+
 const dotsConnect = () => {
   const at = (c, r) => [38 + 28 * (c - 1), 38 + 28 * (r - 1)];
   const line = (cells) => `M${cells.map(([c, r]) => at(c, r).join(' ')).join(' L')}`;
@@ -289,6 +341,7 @@ const THUMBS = {
   faces_names: facesNames,
   one_line: oneLine,
   dots_connect: dotsConnect,
+  scholars_mate: scholarsMate,
 };
 
 const wanted = process.argv.slice(2);

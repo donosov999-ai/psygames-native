@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Генератор упражнений на детский мат (Scholar's mate) для PsyGames. Автор: Denis Onosov (ODV999) · 05.09.2026
+Три типа заданий, обе стороны (белые матуют на f7, чёрные — на f2):
+  mate     — «поставь детский мат»: ход, дающий мат ферзём на f7/f2 (единственный мат в 1 в позиции)
+  defend   — «защитись»: соперник грозит матом ферзём на f7/f2 следующим ходом; решения = все ходы, после которых мата в 1 у него нет
+  threat   — «есть ли угроза?»: да/нет — грозит ли детский мат следующим ходом (половина позиций без угрозы)
+Позиции рождаются разыгрыванием дебюта: атакующая сторона ведёт Q+B на f7/f2, защищающаяся ходит правдоподобно-небрежно.
+Формат записи: {type, fen, side, solutions[uci], solutions_san[], ply, threat(bool), source:"generated"}.
+"""
+import chess, random, json, sys
+random.seed(7)
+
+def mates_in_1(board):
+    out = []
+    for mv in board.legal_moves:
+        board.push(mv)
+        if board.is_checkmate(): out.append(mv)
+        board.pop()
+    return out
+
+def scholar_mate_move(board):
+    """Мат ферзём на f7 (белые) или f2 (чёрные) — единственный мат в 1."""
+    ms = mates_in_1(board)
+    if len(ms) != 1: return None
+    mv = ms[0]; tgt = chess.F7 if board.turn == chess.WHITE else chess.F2
+    if mv.to_square == tgt and board.piece_at(mv.from_square).piece_type == chess.QUEEN: return mv
+    return None
+
+def threatens_scholar(board):
+    """Грозит ли стороне, которая ходит, детский мат следующим ходом соперника (пропускаем ход)."""
+    if board.is_check(): return False
+    b = board.copy(); b.push(chess.Move.null())
+    return scholar_mate_move(b) is not None
+
+ATTACK_PLANS = {
+    chess.WHITE: [["e2e4"], ["d1h5", "d1f3"], ["f1c4"], ["d1h5", "d1f3", "h5f3", "f3h5"]],
+    chess.BLACK: [["e7e5"], ["d8h4", "d8f6"], ["f8c5"], ["d8h4", "d8f6", "h4f6", "f6h4"]],
+}
+CARELESS = {  # правдоподобные ходы защищающейся стороны, часть из них не защищает f7/f2
+    chess.BLACK: ["e7e5", "b8c6", "g8f6", "d7d6", "a7a6", "h7h6", "b7b6", "f8c5", "g7g6", "d8e7", "d8f6", "g8h6", "c7c6", "f8e7", "b8a6", "d7d5"],
+    chess.WHITE: ["e2e4", "b1c3", "g1f3", "d2d3", "a2a3", "h2h3", "b2b3", "f1c4", "g2g3", "d1e2", "d1f3", "g1h3", "c2c3", "f1e2", "b1a3", "d2d4"],
+}
+
+def play_random_game(attacker):
+    b = chess.Board(); positions = []
+    for ply in range(14):
+        if b.is_game_over(): break
+        if b.turn == attacker:
+            plan = ATTACK_PLANS[attacker]; step = min(ply // 2, len(plan) - 1)
+            cands = [chess.Move.from_uci(u) for u in plan[step]]
+            cands = [m for m in cands if m in b.legal_moves]
+            m = scholar_mate_move(b)
+            if m: positions.append(("mate", b.copy(), m)); break
+            if not cands: cands = [m for m in b.legal_moves if not b.is_capture(m)] or list(b.legal_moves)
+            mv = random.choice(cands)
+        else:
+            if threatens_scholar(b): positions.append(("defend", b.copy(), None))
+            else: positions.append(("nothreat", b.copy(), None))
+            cands = [chess.Move.from_uci(u) for u in CARELESS[b.turn]]
+            cands = [m for m in cands if m in b.legal_moves]
+            if random.random() < 0.35: cands += [m for m in b.legal_moves if not b.is_capture(m)][:6]
+            mv = random.choice(cands) if cands else random.choice(list(b.legal_moves))
+        b.push(mv)
+    return positions
+
+def rec(kind, board, mv):
+    side = "white" if board.turn == chess.WHITE else "black"
+    if kind == "mate":
+        sols = [mv]
+    elif kind == "defend":
+        sols = []
+        for m in board.legal_moves:
+            board.push(m); ok = scholar_mate_move(board) is None and not board.is_checkmate(); board.pop()
+            if ok: sols.append(m)
+        if not sols: return None
+    else:
+        sols = []
+    return {"type": kind if kind != "nothreat" else "threat", "threat": kind != "nothreat", "fen": board.fen(), "side": side,
+            "solutions": [m.uci() for m in sols], "solutions_san": [board.san(m) for m in sols], "ply": board.ply(), "source": "generated"}
+
+out = {"mate": {}, "defend": {}, "threat": {}}
+for attacker in (chess.WHITE, chess.BLACK):
+    for _ in range(3000):
+        for kind, board, mv in play_random_game(attacker):
+            if kind == "nothreat" and random.random() > 0.15: continue
+            if kind == "defend" and board.turn == attacker: continue
+            r = rec(kind, board, mv)
+            if not r: continue
+            key = r["type"]; fenkey = " ".join(r["fen"].split()[:4])
+            if fenkey not in out[key]: out[key][fenkey] = r
+# у типа threat нужны и «да», и «нет» примерно пополам
+thr = list(out["threat"].values())
+yes = [t for t in thr if t["threat"]]; no = [t for t in thr if not t["threat"]]
+defend_as_threat = [dict(d, type="threat", solutions=[], solutions_san=[]) for d in out["defend"].values()]
+yes = (yes + defend_as_threat)[:max(len(no), 60)]
+random.shuffle(no); no = no[:len(yes)]
+data = {"_source": "generated by gen_scholars_mate.py (python-chess), 05.09.2026, ODV999", "_license": "свои позиции, ограничений нет",
+        "mate": list(out["mate"].values()), "defend": list(out["defend"].values()), "threat": yes + no}
+# Путь вывода: аргументом либо рядом со скриптом. ⚠️ Абсолютный путь домашней папки
+# здесь стоять не может — репозиторий публичный, и у чужой машины его нет.
+вывод = sys.argv[1] if len(sys.argv) > 1 else str(pathlib.Path(__file__).with_name("scholars_mate_generated.json"))
+json.dump(data, open(вывод, "w"), ensure_ascii=False, indent=0)
+print("mate:", len(data["mate"]), "· defend:", len(data["defend"]), "· threat:", len(data["threat"]), "(да %d / нет %d)" % (len(yes), len(no)))
+for k in ("mate", "defend"):
+    for r in data[k][:3]:
+        print(" ", k, r["side"], "ply", r["ply"], "|", r["fen"].split()[0][:30] + "…", "→", ", ".join(r["solutions_san"][:6]))

@@ -18,7 +18,7 @@ PsyGames : Jeux de mémoire
 ## 2. КРАТКОЕ ОПИСАНИЕ — 80 символов
 
 ```
-Mémoire, concentration et logique : 67 exercices hors ligne, sans publicité
+Mémoire, concentration et logique : 68 exercices hors ligne, sans publicité
 ```
 
 ---
@@ -33,7 +33,7 @@ Dans une langue étrangère, vous distinguez des sons qui se confondaient aupara
 
 Ce n'est pas un talent réservé à quelques-uns. Cela s'entraîne — et ici, les progrès se mesurent.
 
-PsyGames, c'est de l'entraînement cérébral : jeux de réflexion, casse-tête et 67 exercices pour la mémoire, l'attention et la logique. Pas un test de QI, mais une pratique aux résultats mesurables.
+PsyGames, c'est de l'entraînement cérébral : jeux de réflexion, casse-tête et 68 exercices pour la mémoire, l'attention et la logique. Pas un test de QI, mais une pratique aux résultats mesurables.
 
 JEUX DE MÉMOIRE
 Entraînez la mémoire visuelle avec Corsi, les matrices et les paires. Renforcez la mémoire de travail avec N-back, Operation Span et Reading Span.
@@ -58,7 +58,7 @@ PsyGames adapte la difficulté et rend l'évolution visible.
 • Défi quotidien et succès donnent le prochain objectif
 
 CE QUE CONTIENT L'APPLICATION
-• 67 exercices de mémoire, d'attention, de logique, de vitesse et de contrôle
+• 68 exercices de mémoire, d'attention, de logique, de vitesse et de contrôle
 • Des échauffements matin, journée, soir et nuit, prêts en un geste
 • Thème sombre et un set de nuit quand le sommeil ne vient pas : respiration 4-7-8, écran atténué, sans points ni série
 • 12 profils : langues, enfants, 50+, concentration, réaction, étudiants et plus

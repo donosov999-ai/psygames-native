@@ -73,6 +73,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'risk-hub': { ver: 1, date: '04.09.2026' },
   'rmet': { ver: 2, date: '27.08.2026' },
   'routes-hub': { ver: 1, date: '04.09.2026' },
+  'scholars-mate': { ver: 1, date: '05.09.2026' },
   'schulte': { ver: 2, date: '23.08.2026' },
   'sdmt': { ver: 1, date: '19.08.2026' },
   'search-hub': { ver: 1, date: '04.09.2026' },
