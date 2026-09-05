@@ -53,6 +53,12 @@ const узор = читать('lichess_scholar_pattern_m1.json').puzzles;
  * Собраны `scan_motifs.py` по всей базе, узор определён движком.
  */
 const мотивы = читать('lichess_opening_motifs.json').motifs;
+/**
+ * Именованные узоры для РУЧНОГО выбора (просьба Дениса 05.09.2026: «сделай
+ * выпадающим списком выбор режима»). В лестницу они не идут — там узор обязан
+ * быть узнаваем в дебютной позиции, а дебютных у арабского мата 18 на 7 474.
+ */
+const именованные = читать('lichess_named_motifs.json').motifs;
 const жертвы = читать('lichess_sacrifice_scholar.json').puzzles;
 
 /** Ход uci на доске. Возвращает объект хода chess.js или null. */
@@ -209,6 +215,19 @@ for (const [имяУзора, список] of Object.entries(мотивы)) {
   }
 }
 
+/** Пулы именованных узоров: ключ — имя темы Lichess, значение — записи. */
+const поИменам = {};
+for (const [имя, список] of Object.entries(именованные)) {
+  const пул = [];
+  for (const x of список) {
+    const запись = записьИзLichess(x);
+    if (!запись) continue;
+    запись.m = имя;
+    пул.push(запись);
+  }
+  if (пул.length) поИменам[имя] = пул;
+}
+
 const сЖертвой = жертвы.map((z) => записьИзLichess(z, { линия: true })).filter(Boolean);
 
 const итог = {
@@ -221,6 +240,7 @@ const итог = {
   threat: угроза,
   fromGames: [...узорЗаписи, ...поМотивам],
   sacrifice: сЖертвой,
+  named: поИменам,
 };
 
 const куда = join(FRONT, 'src/games/scholars-mate/data');
@@ -237,5 +257,6 @@ const поУзорам = {};
 for (const z of итог.fromGames) поУзорам[z.m] = (поУзорам[z.m] ?? 0) + 1;
 console.log('  из партий по узорам:  ' + Object.entries(поУзорам).map(([k, v]) => `${k} ${v}`).join(' · '));
 console.log(`  с жертвой:             ${сЖертвой.length} (мат в 2 — ${сЖертвой.filter((x) => x.d === 2).length}, в 3 — ${сЖертвой.filter((x) => x.d === 3).length})`);
+console.log('  именованные узоры:    ' + Object.entries(поИменам).map(([k, v]) => `${k} ${v.length}`).join(' · '));
 const безSAN = [...узорЗаписи, ...сЖертвой].filter((x) => !x.n || !x.n.length).length;
 console.log(`  без разбора ошибки:    ${безSAN} (было 12 630)`);

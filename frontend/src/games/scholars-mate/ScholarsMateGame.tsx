@@ -19,7 +19,7 @@ import { Chess } from 'chess.js';
 
 import { CHESS_PIECE_SVG } from '@/src/games/chess-blind/core/pieces';
 import { a11yDecor } from '@/src/services/a11y';
-import { buildDeck, levelParams } from './core/deck';
+import { buildDeck, buildNamedDeck, levelParams } from './core/deck';
 import { check, movesFrom, shownFen, sideToMove, threatAnswer, дополнитьХод } from './core/check';
 import { scholarsArmed, медианаМс, размерКлетки, ширинаДоски } from './core/run';
 import type { ScholarsAttempt, ScholarsResult } from './core/types';
@@ -65,6 +65,8 @@ export interface ScholarsMateGameProps {
   motifName?: (motif: string) => string;
   /** Играть только одним видом заданий — так устроен режим «Мат с жертвой». */
   onlyKind?: 'mate' | 'defend' | 'threat' | 'fromGames' | 'sacrifice';
+  /** Отрабатывать один именованный узор (выпадающий список на экране настройки). */
+  namedMotif?: string;
   labels: {
     mate: string; defend: string; threat: string; sacrifice: string;
     yes: string; no: string; best: string; timeUp: string; sec: string;
@@ -73,7 +75,7 @@ export interface ScholarsMateGameProps {
 }
 
 export default function ScholarsMateGame({
-  level, seed = 1, size, theme, now, onComplete, onProgress, labels, flowMs, motifName, onlyKind,
+  level, seed = 1, size, theme, now, onComplete, onProgress, labels, flowMs, motifName, onlyKind, namedMotif,
 }: ScholarsMateGameProps) {
   const п = React.useMemo(() => levelParams(level), [level]);
   /**
@@ -81,6 +83,10 @@ export default function ScholarsMateGame({
    * между ними. Десять минут при секунде-двух на позицию — это сотни позиций.
    */
   const колода = React.useMemo(() => {
+    if (namedMotif) {
+      // Отработка одного узора: в потоке — длинный набор, иначе обычный подход.
+      return buildNamedDeck(namedMotif, level, seed, flowMs ? 200 : undefined);
+    }
     if (!flowMs) return buildDeck(level, seed, onlyKind);
     const наборов = Math.max(4, Math.ceil(flowMs / 1000 / 3 / levelParams(level).count));
     const всё: ScholarsAttempt['puzzle'][] = [];
@@ -94,7 +100,7 @@ export default function ScholarsMateGame({
       }
     }
     return всё;
-  }, [level, seed, flowMs, onlyKind]);
+  }, [level, seed, flowMs, onlyKind, namedMotif]);
   const началоПотока = React.useRef(0);
 
   const [шаг, setШаг] = React.useState(0);
@@ -103,6 +109,15 @@ export default function ScholarsMateGame({
   const [подсветка, setПодсветка] = React.useState<string[]>([]);
   const [вердикт, setВердикт] = React.useState<{ ok: boolean; best?: string } | null>(null);
   const [осталось, setОсталось] = React.useState(п.seconds);
+  /**
+   * Сколько осталось до конца потока, «м:сс».
+   *
+   * ⚠️ СЧИТАЕТСЯ В ТИКЕ, А НЕ В РЕНДЕРЕ. Первая редакция брала `now()` и
+   * `началоПотока.current` прямо при отрисовке — это чтение ref во время
+   * рендера, на которое линтер ругается по делу: значение может разъехаться с
+   * тем, что React уже нарисовал.
+   */
+  const [потокОсталось, setПотокОсталось] = React.useState('');
   /**
    * 🔴 МАТ С ЖЕРТВОЙ ДОИГРЫВАЕТСЯ ДО МАТА, А НЕ ОБРЫВАЕТСЯ ПОСЛЕ ЖЕРТВЫ.
    *
@@ -206,10 +221,15 @@ export default function ScholarsMateGame({
       const прошло = (now() - началоRef.current) / 1000;
       const ост = Math.max(0, п.seconds - прошло);
       setОсталось(ост);
+      if (flowMs) {
+        const мс = Math.max(0, flowMs - (now() - началоПотока.current));
+        const сек = Math.round(мс / 1000);
+        setПотокОсталось(`${Math.floor(сек / 60)}:${String(сек % 60).padStart(2, '0')}`);
+      }
       if (ост <= 0) ответить('', false, undefined, true);
     }, 100);
     return () => clearInterval(t);
-  }, [вердикт, п.seconds, now, ответить]);
+  }, [вердикт, п.seconds, now, ответить, flowMs]);
 
   /**
    * Показ ответа, потом следующая позиция.
@@ -342,8 +362,13 @@ export default function ScholarsMateGame({
           borderRadius: 4,
         }} />
       </View>
+      {/*
+        🔴 В ПОТОКЕ СЧЁТ ПОЗИЦИЙ БЕССМЫСЛЕН. Колода там набирается с запасом
+        (195 позиций на десять минут), и «1/195» человеку ничего не говорит —
+        он играет не набор, а время. Показываем, сколько осталось до конца.
+      */}
       <Text style={[стили.счёт, { color: theme.textSecondary }]}>
-        {осталось.toFixed(1)} {labels.sec} · {шаг + 1}/{колода.length}
+        {осталось.toFixed(1)} {labels.sec} · {flowMs ? потокОсталось : `${шаг + 1}/${колода.length}`}
       </Text>
 
       <View style={[стили.доска, { width: сторона, height: сторона, borderColor: theme.border }]}>

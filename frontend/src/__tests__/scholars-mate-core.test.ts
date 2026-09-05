@@ -14,7 +14,7 @@
  * просто во втором случае ни один ответ не засчитывается. Поэтому здесь
  * позиции реально разыгрываются на `chess.js`.
  */
-import { buildDeck, counts, levelParams, motifsAt, puzzlesOf, secondsFor, LEVELS } from '@/src/games/scholars-mate/core/deck';
+import { buildDeck, buildNamedDeck, counts, levelParams, motifsAt, namedMotifCount, puzzlesOf, secondsFor, NAMED_MOTIFS, LEVELS } from '@/src/games/scholars-mate/core/deck';
 import { bestDefence, check, movesFrom, shownFen, sideToMove, threatAnswer, дополнитьХод, естьМатВОдин } from '@/src/games/scholars-mate/core/check';
 import { медианаМс } from '@/src/games/scholars-mate/core/run';
 import { Chess } from 'chess.js';
@@ -589,5 +589,56 @@ describe('«Детский мат»: режим одного вида', () => {
         expect(buildDeck(L, seed).some((p) => p.kind === 'sacrifice')).toBe(false);
       }
     }
+  });
+});
+
+/**
+ * 🔴 ВЫБОР ОТДЕЛЬНОГО УЗОРА — просьба Дениса 05.09.2026: «сделай выпадающим
+ * списком выбор режима… чтобы можно было выбрать и отрабатывать отдельный».
+ *
+ * ⚠️ ЭТО НЕ УЗОРЫ ЛЕСТНИЦЫ. В лестнице узор обязан быть узнаваем в ДЕБЮТНОЙ
+ * позиции; дебютных у арабского мата 18 на 7 474 — лестницы из них не выйдет.
+ * При ручном выборе человек знает, что тренирует, и берётся весь пул.
+ */
+describe('«Детский мат»: отработка одного узора', () => {
+  it('есть что проверять: узоров в списке много и у каждого есть пул', () => {
+    expect(NAMED_MOTIFS.length).toBeGreaterThanOrEqual(15);
+    const пустые = NAMED_MOTIFS.filter((имя) => namedMotifCount(имя) < 100);
+    expect(пустые).toEqual([]);
+  });
+
+  it('🔴 список отсортирован по размеру пула — крупные узоры сверху', () => {
+    const размеры = NAMED_MOTIFS.map((имя) => namedMotifCount(имя));
+    const убывает = размеры.every((n, i) => i === 0 || размеры[i - 1]! >= n);
+    expect(`убывает: ${убывает}`).toBe('убывает: true');
+  });
+
+  it('🔴 колода узора содержит ТОЛЬКО его позиции и не повторяется', () => {
+    for (const имя of NAMED_MOTIFS.slice(0, 6)) {
+      for (const seed of [1, 2, 3]) {
+        const колода = buildNamedDeck(имя, 10, seed);
+        expect(`${имя}/${seed}: ${колода.length > 0}`).toBe(`${имя}/${seed}: true`);
+        const чужие = колода.filter((p) => p.motif !== имя);
+        expect(чужие.map((p) => p.motif)).toEqual([]);
+        const доски = колода.map((p) => `${p.fen}|${p.pre ?? ''}`);
+        expect(new Set(доски).size).toBe(доски.length);
+      }
+    }
+  });
+
+  it('🔴 каждая позиция узора действительно ставит мат — сверяем с доской', () => {
+    const плохие: string[] = [];
+    for (const имя of NAMED_MOTIFS) {
+      for (const p of buildNamedDeck(имя, 10, 4)) {
+        const v = check(p, p.solutions[0]!);
+        if (!v.correct || !v.mated) плохие.push(`${имя}: ${p.fen}`);
+      }
+    }
+    expect(плохие.slice(0, 5)).toEqual([]);
+  });
+
+  it('🔴 у неизвестного имени колода пустая, а не случайная', () => {
+    expect(buildNamedDeck('такого-узора-нет', 10, 1)).toEqual([]);
+    expect(namedMotifCount('такого-узора-нет')).toBe(0);
   });
 });
