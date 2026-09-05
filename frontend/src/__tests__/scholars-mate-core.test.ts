@@ -642,3 +642,52 @@ describe('«Детский мат»: отработка одного узора'
     expect(namedMotifCount('такого-узора-нет')).toBe(0);
   });
 });
+
+/**
+ * 🔴 СОВЕТ «ВЕРНО БЫЛО» НЕ УЧИТ ОТДАВАТЬ ФИГУРУ ЗРЯ.
+ *
+ * 📍 ЗАМЕР 05.09.2026: прежняя редакция `bestDefence` брала ПЕРВЫЙ спасающий
+ * ход по порядку chess.js и в 32 случаях из 378 (8%) советовала ход, после
+ * которого фигуру просто съедают — чаще всего `Bxf7+`, слон берёт защищённую
+ * пешку. Мат при этом снят, формально «спасение», а человек, поверив подписи
+ * «верно было», учится отдавать слона ни за что.
+ *
+ * ⚠️ Проба сторожит ОБА свойства сразу: ход обязан и спасать, и не терять
+ * материал. Починить одно, сломав другое, — самый вероятный следующий промах.
+ */
+describe('«Детский мат»: показанная защита не теряет фигуру', () => {
+  const ЦЕНА: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+
+  it('есть что проверять: совет находится у каждой позиции', () => {
+    const без = puzzlesOf('defend').filter((p) => !bestDefence(p));
+    expect(без).toEqual([]);
+  });
+
+  it('🔴 совет действительно спасает от мата', () => {
+    const плохие: string[] = [];
+    for (const p of puzzlesOf('defend')) {
+      const san = bestDefence(p)!;
+      const g = new Chess(shownFen(p));
+      try { g.move(san); } catch { плохие.push(`${san} незаконен: ${p.fen}`); continue; }
+      if (естьМатВОдин(g.fen())) плохие.push(`${san} не спасает: ${p.fen}`);
+    }
+    expect(плохие.slice(0, 5)).toEqual([]);
+  });
+
+  it('🔴 и не подвешивает фигуру', () => {
+    const подвешенные: string[] = [];
+    for (const p of puzzlesOf('defend')) {
+      const san = bestDefence(p)!;
+      const g = new Chess(shownFen(p));
+      let ход;
+      try { ход = g.move(san); } catch { continue; }
+      const взятия = (g.moves({ verbose: true }) as { to: string; captured?: string; piece: string }[])
+        .filter((m) => m.to === ход!.to && m.captured);
+      const потеря = взятия.length
+        ? (ЦЕНА[ход.piece] ?? 0) - Math.min(...взятия.map((m) => ЦЕНА[m.piece] ?? 0))
+        : 0;
+      if (потеря >= 3) подвешенные.push(`${san}: теряем ${потеря} — ${p.fen}`);
+    }
+    expect(подвешенные.slice(0, 5)).toEqual([]);
+  });
+});
