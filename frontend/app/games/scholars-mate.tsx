@@ -137,6 +137,8 @@ export default function ScholarsMateScreen() {
           accuracy: r.accuracy,
           /** 🔴 Предмет этой игры. Всё остальное — обстановка вокруг него. */
           median_ms: r.medianMs,
+          /** Полное время позиции — для сравнения с лимитом уровня. */
+          median_full_ms: r.medianFullMs,
           best_ms: r.bestMs,
           streak: r.streak,
           kinds: п.kinds.join('+'),

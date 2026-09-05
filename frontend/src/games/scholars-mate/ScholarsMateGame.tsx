@@ -83,6 +83,8 @@ export default function ScholarsMateGame({
    * узнать связку целиком, а не её первый ход.
    */
   const [шагЛинии, setШагЛинии] = React.useState(0);
+  /** Когда палец коснулся доски впервые на этой позиции. 0 — ещё не касался. */
+  const первоеКасание = React.useRef(0);
   const попытки = React.useRef<ScholarsAttempt[]>([]);
   const началоRef = React.useRef(now());
   /**
@@ -104,6 +106,7 @@ export default function ScholarsMateGame({
   /** Перейти к следующей позиции или закончить подход. */
   const дальше = React.useCallback(() => {
     отвечаем.current = false;
+    первоеКасание.current = 0;
     setШагЛинии(0);
     setВердикт(null);
     setВыбрана(null);
@@ -115,12 +118,13 @@ export default function ScholarsMateGame({
       const верные = попытки.current.filter((a) => a.correct);
       let серия = 0; let лучшая = 0;
       for (const a of попытки.current) { серия = a.correct ? серия + 1 : 0; лучшая = Math.max(лучшая, серия); }
-      const времена = верные.map((a) => a.ms);
+      const времена = верные.map((a) => a.msFirst);
       onComplete({
         attempts: попытки.current,
         solved: верные.length,
         total: попытки.current.length,
         medianMs: медианаМс(времена),
+        medianFullMs: медианаМс(верные.map((a) => a.ms)),
         bestMs: времена.length ? Math.min(...времена) : 0,
         streak: лучшая,
         accuracy: попытки.current.length ? верные.length / попытки.current.length : 0,
@@ -144,7 +148,13 @@ export default function ScholarsMateGame({
   const ответить = React.useCallback((answer: string, correct: boolean, best?: string, timeout = false) => {
     if (!задача || отвечаем.current || кончено.current) return;
     отвечаем.current = true;
-    попытки.current.push({ puzzle: задача, answer, correct, ms: now() - началоRef.current, timeout });
+    const полное = now() - началоRef.current;
+    попытки.current.push({
+      puzzle: задача, answer, correct, timeout,
+      ms: полное,
+      // Не касался вовсе (прозевал по времени) — считаем полным временем.
+      msFirst: первоеКасание.current ? первоеКасание.current - началоRef.current : полное,
+    });
     onProgress?.(scholarsArmed(попытки.current));
     setВердикт({ ok: correct, best });
   }, [задача, now, onProgress]);
@@ -212,6 +222,7 @@ export default function ScholarsMateGame({
 
   const тап = (имя: string) => {
     if (вердикт || задача.kind === 'threat') return;
+    if (!первоеКасание.current) первоеКасание.current = now();
     if (выбрана && подсветка.includes(имя)) {
       const uci = дополнитьХод(fen, выбрана + имя);
       const линия = задача.line;
@@ -256,6 +267,7 @@ export default function ScholarsMateGame({
 
   const ответДаНет = (да: boolean) => {
     if (вердикт) return;
+    if (!первоеКасание.current) первоеКасание.current = now();
     const истина = threatAnswer(задача);
     ответить(да ? 'yes' : 'no', да === истина, истина ? labels.yes : labels.no);
   };
