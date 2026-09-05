@@ -14,6 +14,7 @@ import { saveSession } from '@/src/services/api';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
+import { hapticTap, hapticMedium, hapticSuccess } from '@/src/components/juice';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { eyeGymGeometry } from '@/src/services/eyeGymGeometry';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -38,7 +39,19 @@ const EYE_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'exercise' | 'done';
-type Pattern = 'directions' | 'horizontal' | 'vertical' | 'circle' | 'figure8' | 'focus' | 'converge' | 'palming';
+/**
+ * 🔴 ТРИ УЗОРА ДОБАВЛЕНЫ ПО ОТЧЁТАМ ТЕСТИРОВЩИЦЫ 05.09.2026 (три подряд, все
+ * про эту игру), дословно:
+ *   · «добавить волнообразные, спиралеобразные движения, чтобы они были не
+ *      такие прямые предсказуемые» → `spiral`, `wave`;
+ *   · «чтобы шарик увеличивался и уменьшался в размерах, сужался в точку и
+ *      чуток расширялся, чтобы глаз мог перефокусироваться» → `pulse`.
+ *
+ * ⚠️ `pulse` — НЕ то же, что `converge`. Там точка ЕДЕТ к лицу и растёт
+ * (сведение глаз), здесь стоит на месте и меняет размер (перефокусировка
+ * хрусталика). Разные мышцы, разные упражнения.
+ */
+type Pattern = 'directions' | 'horizontal' | 'vertical' | 'circle' | 'figure8' | 'spiral' | 'wave' | 'pulse' | 'focus' | 'converge' | 'palming';
 
 interface Step { key: string; pattern: Pattern; dur: number; instrKey: string }
 
@@ -49,6 +62,9 @@ const SEQUENCE: Step[] = [
   { key: 'pursuitV', pattern: 'vertical',   dur: 18, instrKey: 'eyeInstrPursuit' },
   { key: 'circle',   pattern: 'circle',     dur: 22, instrKey: 'eyeInstrPursuit' },
   { key: 'figure8',  pattern: 'figure8',    dur: 22, instrKey: 'eyeInstrPursuit' },
+  { key: 'spiral',   pattern: 'spiral',     dur: 22, instrKey: 'eyeInstrSpiral' },
+  { key: 'wave',     pattern: 'wave',       dur: 20, instrKey: 'eyeInstrWave' },
+  { key: 'pulse',    pattern: 'pulse',      dur: 20, instrKey: 'eyeInstrPulse' },
   { key: 'focusFar', pattern: 'focus',      dur: 20, instrKey: 'eyeInstrFocusFar' },
   { key: 'converge', pattern: 'converge',   dur: 20, instrKey: 'eyeInstrConverge' },
   { key: 'palming',  pattern: 'palming',    dur: 30, instrKey: 'eyeInstrPalming' },
@@ -84,6 +100,35 @@ function dotFor(pattern: Pattern, local: number, localSec: number, RX: number, R
       const a = TAU * 2 * l;                 // лемниската Жероно → восьмёрка (растянута по ширине)
       return { x: cx + RX * Math.sin(a), y: cy + RY * Math.sin(a) * Math.cos(a), size: 26, big: false };
     }
+    /**
+     * Спираль Архимеда, туда и обратно: радиус растёт от нуля к краю и
+     * возвращается, угол крутится вдвое быстрее. Путь получается длинный и
+     * ни разу не повторяющий сам себя на глаз — ровно то, чего просили.
+     */
+    case 'spiral': {
+      const цикл = (ls % 12) / 12;                 // 12 секунд на разворот и сворачивание
+      const r = цикл < 0.5 ? цикл * 2 : (1 - цикл) * 2;
+      const a = TAU * 3 * l;
+      return { x: cx + RX * r * Math.cos(a), y: cy + RY * r * Math.sin(a), size: 26, big: false };
+    }
+    /**
+     * Волна: горизонтальный проход с вертикальной синусоидой втрое чаще —
+     * глаз ведёт не по прямой и не может «доехать» предсказанием.
+     */
+    case 'wave': {
+      const a = TAU * 1.2 * l;
+      return { x: cx + RX * Math.sin(a), y: cy + RY * 0.55 * Math.sin(a * 3), size: 26, big: false };
+    }
+    /**
+     * Пульс на месте: точка сжимается почти в точку и разжимается. Глаз
+     * перефокусируется, не двигаясь, — это про хрусталик, а не про мышцы
+     * поворота.
+     */
+    case 'pulse': {
+      const цикл = (ls % 4) / 4;                   // 4 секунды на вдох-выдох
+      const доля = цикл < 0.5 ? цикл * 2 : (1 - цикл) * 2;
+      return { x: cx, y: cy, size: 6 + доля * 54, big: false };
+    }
     case 'converge': {
       const rep = (ls % 5) / 5;              // 0..1 каждые 5 сек: далеко→близко
       return { x: cx, y: cy - RY + rep * RY, size: 14 + rep * 40, big: false };
@@ -92,6 +137,12 @@ function dotFor(pattern: Pattern, local: number, localSec: number, RX: number, R
       return { x: cx, y: cy, size: 26, big: false };
   }
 }
+
+/**
+ * Траектория наружу — только для проб. Разбирать движение глазами по коду
+ * нельзя: узор может быть заведён и при этом рисовать прямую линию.
+ */
+export const _dotForДляПроб = dotFor;
 
 export default function EyeGymGame() {
   const { colors } = useTheme();
@@ -138,8 +189,8 @@ export default function EyeGymGame() {
   // мини-режим: полный / только слежение / только фокус вдаль / только пальминг (отдых)
   const MODE_PHASES: Record<string, string[] | null> = {
     full: null,
-    pursuit: ['warmup', 'pursuitH', 'pursuitV', 'circle', 'figure8'],
-    focus: ['focusFar', 'converge'],
+    pursuit: ['warmup', 'pursuitH', 'pursuitV', 'circle', 'figure8', 'spiral', 'wave'],
+    focus: ['focusFar', 'converge', 'pulse'],
     relax: ['palming'],
   };
   // По уровню идёт ПОЛНАЯ последовательность: урезанные режимы (только слежение,
@@ -153,8 +204,21 @@ export default function EyeGymGame() {
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
+  /**
+   * 🔴 ОТКЛИК ВМЕСТО ВЗГЛЯДА НА ЭКРАН — ОТЧЁТ ТЕСТИРОВЩИЦЫ 05.09.2026:
+   * «нужен какой-то сенсорный отклик… лучше сенсорный отклик в начале и в
+   * конце». Смысл прямой: в гимнастике для глаз человек СМОТРИТ НА ТОЧКУ, а не
+   * на таймер, и узнать о конце упражнения глазами он не может, не бросив то,
+   * ради чего пришёл. Вибрация — единственный канал, который тут свободен.
+   *
+   * Три момента: начало, смена упражнения (короткий тычок) и конец (успех).
+   */
+  const прошлыйШаг = useRef(-1);
+
   const startGame = () => {
     setElapsed(0);
+    прошлыйШаг.current = -1;
+    hapticMedium();
     setPhase('exercise');
     const start = gameNow();
     timerRef.current = setInterval(() => {
@@ -170,6 +234,7 @@ export default function EyeGymGame() {
   };
 
   const finish = async () => {
+    hapticSuccess();
     const doneLevel = lvl.level;
     setPhase('done');
     // Проработку доводят до конца или бросают — провалить её нельзя. Значит уровень
@@ -208,6 +273,17 @@ export default function EyeGymGame() {
   }
   const step = steps[stepIdx];
   const remainTotal = Math.max(0, Math.ceil(totalDur - elapsed));
+
+  /**
+   * Смена упражнения — короткий тычок. Не в рендере: отклик это действие, а
+   * рендер зовётся десятки раз в секунду по таймеру.
+   */
+  useEffect(() => {
+    if (phase !== 'exercise') return;
+    if (прошлыйШаг.current === stepIdx) return;
+    if (прошлыйШаг.current >= 0) hapticTap();
+    прошлыйШаг.current = stepIdx;
+  }, [stepIdx, phase]);
 
   const renderConfig = () => (
     <View style={{ flex: 1 }}>
