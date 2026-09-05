@@ -18,9 +18,11 @@ import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
 
-import { BALL_STYLES, BALL_COLORS, BALL_IMG, type BallStyle, type BallColor } from './ballAssets.generated';
+import {
+  BALL_STYLES, BALL_COLORS, BALL_IMG, BLOCK_IMG, type BallStyle, type BallColor,
+} from './ballAssets.generated';
 
-export { BALL_STYLES, BALL_COLORS, BALL_IMG };
+export { BALL_STYLES, BALL_COLORS, BALL_IMG, BLOCK_IMG };
 export type { BallStyle, BallColor };
 
 const KEY = 'psygames_ball_style';
@@ -76,4 +78,48 @@ export function ballColorForLevel(level: number): BallColor {
 /** Картинка шара. Нет такой пары — падаем на умолчание, а не на белый квадрат. */
 export function ballImage(style: BallStyle, color: BallColor): any {
   return BALL_IMG[style]?.[color] ?? BALL_IMG[BALL_STYLE_DEFAULT][color] ?? BALL_IMG[BALL_STYLE_DEFAULT].blue;
+}
+
+/**
+ * Представительный цвет каждого набора — чтобы подобрать ближайший к тому, что
+ * игра уже использует. Числа сняты с самих картинок (средний цвет непрозрачной
+ * части ряда `glossy`), а не выбраны на глаз.
+ */
+const ЦВЕТ_НАБОРА: Record<BallColor, [number, number, number]> = {
+  red: [214, 58, 58], orange: [232, 138, 44], yellow: [235, 202, 60],
+  green: [104, 190, 74], mint: [116, 214, 172], cyan: [78, 196, 226],
+  blue: [72, 118, 214], purple: [166, 84, 214], pink: [234, 128, 176],
+  white: [238, 240, 244],
+};
+
+/**
+ * 🔴 БЛИЖАЙШИЙ ЦВЕТ НАБОРА К ТОМУ, ЧТО ИГРА УЖЕ РИСУЕТ.
+ *
+ * Клетки и кубики окрашены по СМЫСЛУ: подсвечена, выбрана, верно, неверно — и
+ * каждая игра задаёт свои цвета градиентом. Подменить их одним фиксированным
+ * набором значило бы стереть смысл ради красоты. Поэтому фактуру выбирает
+ * человек, а цвет по-прежнему приходит от игры: здесь он лишь переводится в
+ * ближайший из десяти нарисованных.
+ *
+ * ⚠️ Сравнение в простом RGB, без цветовых пространств: десять образцов
+ * разнесены далеко, и разницы между метриками тут нет. Городить CIELAB ради
+ * выбора из десяти — тот самый велосипед.
+ */
+export function nearestPieceColor(hex: string): BallColor {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return 'white';
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  let лучший: BallColor = 'white';
+  let ближе = Infinity;
+  for (const [имя, [cr, cg, cb]] of Object.entries(ЦВЕТ_НАБОРА) as [BallColor, [number, number, number]][]) {
+    const d = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2;
+    if (d < ближе) { ближе = d; лучший = имя; }
+  }
+  return лучший;
+}
+
+/** Картинка квадратной плитки той же фактуры. */
+export function blockImage(style: BallStyle, color: BallColor): any {
+  return BLOCK_IMG[style]?.[color] ?? BLOCK_IMG[BALL_STYLE_DEFAULT][color] ?? BLOCK_IMG[BALL_STYLE_DEFAULT].white;
 }

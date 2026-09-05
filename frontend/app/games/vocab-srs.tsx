@@ -45,6 +45,7 @@ import {
   CardRef,
   SrsStats,
 } from '@/src/services/vocab-srs';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#6366f1', '#8b5cf6'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -655,7 +656,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: { fontSize: 18, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }, // крупный шрифт: заголовок ужимается и не выдавливает спейсер/кнопку за край
-  placeholder: { width: 44 },
+  placeholder: { width: HELP_CORNER_SPACE },
   configScroll: { flex: 1 },
   configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: {

@@ -18,15 +18,21 @@ import { dirname, join } from 'node:path';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FRONT = join(HERE, '..');
 const ШАРЫ = join(FRONT, 'assets/images/games/balls');
+const КУБИКИ = join(FRONT, 'assets/images/games/blocks');
 
-const по = new Map();
-for (const f of readdirSync(ШАРЫ)) {
-  const m = /^([a-z]+)-([a-z]+)\.webp$/.exec(f);
-  if (!m) throw new Error(`лишний файл в папке шаров: ${f} (ждём <стиль>-<цвет>.webp)`);
-  const [, стиль, цвет] = m;
-  if (!по.has(стиль)) по.set(стиль, new Map());
-  по.get(стиль).set(цвет, f);
+function собрать(папка, подпись) {
+  const по = new Map();
+  for (const f of readdirSync(папка)) {
+    const m = /^([a-z]+)-([a-z]+)\.webp$/.exec(f);
+    if (!m) throw new Error(`лишний файл в папке ${подпись}: ${f} (ждём <стиль>-<цвет>.webp)`);
+    const [, стиль, цвет] = m;
+    if (!по.has(стиль)) по.set(стиль, new Map());
+    по.get(стиль).set(цвет, f);
+  }
+  return по;
 }
+const по = собрать(ШАРЫ, 'шаров');
+const поКубикам = собрать(КУБИКИ, 'кубиков');
 
 const стили = [...по.keys()].sort();
 const цвета = [...new Set([...по.values()].flatMap((m) => [...m.keys()]))].sort();
@@ -38,11 +44,32 @@ for (const с of стили) {
   if (нет.length) throw new Error(`${с}: нет цветов ${нет.join(', ')}`);
 }
 
-const тело = стили.map((с) => {
-  const строки = цвета.map((цв) =>
-    `    ${цв}: require('@/assets/images/games/balls/${по.get(с).get(цв)}'),`).join('\n');
-  return `  ${с}: {\n${строки}\n  },`;
-}).join('\n');
+function тело(карта, папка) {
+  return стили.map((с) => {
+    const строки = цвета.map((цв) =>
+      `    ${цв}: require('@/assets/images/games/${папка}/${карта.get(с).get(цв)}'),`).join('\n');
+    return `  ${с}: {\n${строки}\n  },`;
+  }).join('\n');
+}
+
+/**
+ * 🔴 ФАКТУРЫ ШАРОВ И КУБИКОВ ОБЯЗАНЫ СОВПАДАТЬ ПО ИМЕНАМ.
+ *
+ * Выбор человека один на приложение: он выбирает ФАКТУРУ, а форму задаёт игра.
+ * Разойдись списки — и выбранный «мыльный пузырь» у кубиков молча превратился бы
+ * в глянец. Молча — потому что подстановка по умолчанию не падает.
+ */
+{
+  const нет = стили.filter((с) => !поКубикам.has(с));
+  const лишние = [...поКубикам.keys()].filter((с) => !стили.includes(с));
+  if (нет.length || лишние.length) {
+    throw new Error(`фактуры разошлись: у кубиков нет ${нет.join(', ') || '—'}; лишние ${лишние.join(', ') || '—'}`);
+  }
+  for (const с of стили) {
+    const дыры = цвета.filter((цв) => !поКубикам.get(с).has(цв));
+    if (дыры.length) throw new Error(`кубики ${с}: нет цветов ${дыры.join(', ')}`);
+  }
+}
 
 const текст = `/* psygames-balls-assets · VER 1 · 05.09.2026 */
 /**
@@ -59,7 +86,12 @@ export type BallStyle = (typeof BALL_STYLES)[number];
 export type BallColor = (typeof BALL_COLORS)[number];
 
 export const BALL_IMG: Record<BallStyle, Record<BallColor, any>> = {
-${тело}
+${тело(по, 'balls')}
+};
+
+/** Те же фактуры и цвета, но квадратной плиткой — для клеток и кубиков. */
+export const BLOCK_IMG: Record<BallStyle, Record<BallColor, any>> = {
+${тело(поКубикам, 'blocks')}
 };
 `;
 
@@ -67,5 +99,5 @@ mkdirSync(join(FRONT, 'src/games/balls'), { recursive: true });
 const куда = join(FRONT, 'src/games/balls/ballAssets.generated.ts');
 writeFileSync(куда, текст);
 console.log(`записано: ${куда}`);
-console.log(`стилей ${стили.length}: ${стили.join(', ')}`);
+console.log(`стилей ${стили.length}: ${стили.join(', ')} (и шары, и кубики)`);
 console.log(`цветов ${цвета.length}: ${цвета.join(', ')} — всего ${стили.length * цвета.length} картинок`);

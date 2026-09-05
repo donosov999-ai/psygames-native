@@ -29,6 +29,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#4facfe', '#00f2fe'];
 // Оранжевая кнопка «уровень N» — свой градиент, значит и свой цвет текста:
@@ -551,7 +552,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: { fontSize: 18, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }, // крупный шрифт: заголовок ужимается и не выдавливает спейсер/кнопку за край
-  placeholder: { width: 44 },
+  placeholder: { width: HELP_CORNER_SPACE },
   configScroll: { flex: 1 },
   configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: {
