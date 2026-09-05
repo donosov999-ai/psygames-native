@@ -50,7 +50,7 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
 import { LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, namedMotifCount } from '@/src/games/scholars-mate/core/deck';
-import { starsFor } from '@/src/games/scholars-mate/core/run';
+import { starsFor, итогПодхода } from '@/src/games/scholars-mate/core/run';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
 
 const GRADIENT = ['#8e5b2f', '#2f2a24'];
@@ -133,21 +133,28 @@ export default function ScholarsMateScreen() {
      * понижался за игру, которой не было, а в статистику уходил подход,
      * который человек не играл.
      */
-    if (!r.touched) {
-      setPhase('config');
-      return;
-    }
     const passed = r.accuracy >= PASS;
+    if (!r.touched) { setPhase('config'); return; }
     setLast(r);
     setPlayedLevel(level);
-    // В потоке ступень не двигается: там нет порога, который берут или не берут.
-    // Лестницу двигает только обычный подход: у потока и у режима жертвы порога нет.
-    const свободный = поток || режим !== null || узор !== null;
-    if (!isPreset && !свободный && passed && shouldChainNextLevel(mode)) lvl.reach(level + 1);
-    else if (!isPreset && !свободный && !passed) lvl.fail();
-
-    if (isPreset || свободный) setPhase('result');
-    else { setClearedPassed(passed); setPhase('cleared'); }
+    /**
+     * 🔴 УРОВНИ ЕСТЬ У ВСЕГО, КРОМЕ ПОТОКА. Решение целиком — в `итогПодхода`.
+     *
+     * 📍 ОТЧЁТ ДЕНИСА 05.09.2026, дословно: «партию прошёл, завершилось всё и
+     * всё висит, где следующий уровень». Подход в режиме уходил в карточку
+     * итога — без ступени, без «дальше», без продолжения. Второй его отчёт
+     * того же дня объясняет, почему это неверно по устройству: «выбираешь
+     * режим и его отрабатываешь» — отработка узора это ТА ЖЕ игра с тем же
+     * секундомером, только пул уже. Значит и лестница та же.
+     */
+    const итог = итогПодхода({
+      касались: r.touched, взял: passed, поток,
+      предустановка: isPreset, цепочка: shouldChainNextLevel(mode),
+    });
+    if (итог.ступень === 'вверх') lvl.reach(level + 1);
+    else if (итог.ступень === 'вниз') lvl.fail();
+    if (итог.фаза === 'cleared') setClearedPassed(passed);
+    setPhase(итог.фаза);
 
     try {
       await saveSession({
@@ -353,49 +360,39 @@ export default function ScholarsMateScreen() {
           </View>
 
           {/*
-            🔴 «МАТ С ЖЕРТВОЙ» — ОТДЕЛЬНЫМ ВХОДОМ. Просьба Дениса 05.09.2026:
-            «нужно как режим в детском мате сделать — мат с жертвой». До этого
-            жертва жила только на ступенях с 29-й: чтобы увидеть то, ради чего
-            её и просили, надо было пройти двадцать восемь уровней.
-            ⚠️ Ступень тут не двигается: порога нет, есть замер скорости.
+            🔴 ОДИН СПИСОК И ОДИН ПЕРЕКЛЮЧАТЕЛЬ ВМЕСТО ТРЁХ ВХОДОВ.
+            
+            📍 ОТЧЁТ ДЕНИСА 05.09.2026, дословно: «чем мат с жертвой отличается
+            от других типов мата? по сути ты выбираешь режим и его
+            отрабатываешь, а у тебя мат с жертвой вынесен отдельно, остальные
+            отдельно, и ещё режим потока — он только к одному».
+            
+            Он прав по устройству: жертва — это ТАКОЙ ЖЕ узор, как арабский или
+            эполетный, и ей незачем свой вход. А поток — не режим, а ПАРАМЕТР
+            времени, и он обязан применяться к чему угодно: к лестнице, к
+            жертве, к любому узору из списка.
           */}
           <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('scholarsSacrificeMode')}
-            onPress={() => start(false, 'sacrifice')}
-            style={[стили.карточка, { backgroundColor: colors.surface, borderColor: GRADIENT[0], borderWidth: 1 }]}
-          >
-            <View style={стили.строка}>
-              <Ionicons name="flame-outline" size={20} color={GRADIENT[0]} />
-              <Text style={[стили.уровень, { color: colors.text }]}>{t('scholarsSacrificeMode')}</Text>
-            </View>
-            <Text style={[стили.подсказка, { color: colors.textSecondary }]}>{t('scholarsSacrificeModeHint')}</Text>
-            <Text style={[стили.мелко, { color: colors.textSecondary }]}>{c.sacrifice}</Text>
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
+            accessibilityRole="switch"
+            accessibilityState={{ checked: поток }}
             accessibilityLabel={t('scholarsFlow')}
-            onPress={() => start(true)}
-            style={[стили.карточка, { backgroundColor: colors.surface, borderColor: GRADIENT[0], borderWidth: 1 }]}
+            onPress={() => setПоток((v) => !v)}
+            style={[стили.карточка, {
+              backgroundColor: colors.surface,
+              borderColor: поток ? GRADIENT[0] : colors.border,
+              borderWidth: поток ? 2 : 1,
+            }]}
           >
             <View style={стили.строка}>
-              <Ionicons name="infinite-outline" size={20} color={GRADIENT[0]} />
-              <Text style={[стили.уровень, { color: colors.text }]}>{t('scholarsFlow')}</Text>
+              <Ionicons name={поток ? 'infinite' : 'infinite-outline'} size={20}
+                color={поток ? GRADIENT[0] : colors.textSecondary} />
+              <Text style={[стили.уровень, { color: colors.text, flex: 1 }]}>{t('scholarsFlow')}</Text>
+              <Ionicons name={поток ? 'checkmark-circle' : 'ellipse-outline'} size={22}
+                color={поток ? GRADIENT[0] : colors.border} />
             </View>
             <Text style={[стили.подсказка, { color: colors.textSecondary }]}>{t('scholarsFlowHint')}</Text>
           </Pressable>
 
-          {/*
-            🔴 ВЫБОР ОТДЕЛЬНОГО УЗОРА — просьба Дениса 05.09.2026: «сделай
-            выпадающим списком выбор режима… чтобы можно было выбрать и
-            отрабатывать отдельный».
-
-            ⚠️ СПИСОК СВЁРНУТ ПО УМОЛЧАНИЮ. Девятнадцать строк поверх лестницы
-            и двух режимов превратили бы экран настройки в стену: человек,
-            который просто хочет играть, должен видеть кнопку «Начать», а не
-            каталог матов.
-          */}
           <Pressable
             accessibilityRole="button"
             accessibilityState={{ expanded: списокОткрыт }}
@@ -410,12 +407,29 @@ export default function ScholarsMateScreen() {
             <Text style={[стили.подсказка, { color: colors.textSecondary }]}>{t('scholarsPickMotifHint')}</Text>
           </Pressable>
 
+          {/* Жертва — первой строкой того же списка: это такой же узор. */}
+          {списокОткрыт && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('scholarsSacrificeMode')}
+              onPress={() => start(поток, 'sacrifice')}
+              style={[стили.узорСтрока, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}
+            >
+              <Ionicons name="flame-outline" size={18} color={GRADIENT[0]} />
+              <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]} numberOfLines={1}>
+                {t('scholarsSacrificeMode')}
+              </Text>
+              <Text style={[стили.мелко, { color: colors.textSecondary }]}>{c.sacrifice}</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+            </Pressable>
+          )}
+
           {списокОткрыт && NAMED_MOTIFS.map((имя) => (
             <Pressable
               key={имя}
               accessibilityRole="button"
               accessibilityLabel={имяУзора(имя)}
-              onPress={() => start(false, null, имя)}
+              onPress={() => start(поток, null, имя)}
               style={[стили.узорСтрока, { backgroundColor: colors.surface, borderColor: colors.border }]}
             >
               <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]} numberOfLines={1}>
@@ -429,7 +443,7 @@ export default function ScholarsMateScreen() {
       )}
 
       {phase === 'config' && (
-        <GameSetupBar label={t('start')} onStart={() => start(false)} colors={GRADIENT as [string, string]} />
+        <GameSetupBar label={t('start')} onStart={() => start(поток)} colors={GRADIENT as [string, string]} />
       )}
 
       {phase === 'cleared' && (
@@ -444,12 +458,17 @@ export default function ScholarsMateScreen() {
            * на образец, показывает и время, и рекорд.
            */
           comparisonLine={строкаСкорости}
-          onContinue={start} onStop={() => setPhase('config')} />
+          /**
+           * 🔴 «ДАЛЬШЕ» ОСТАЁТСЯ В ТОМ ЖЕ РЕЖИМЕ. `start` без доводов сбрасывает
+           * узор и жертву в ноль — отработка оборвалась бы на первой ступени и
+           * молча подменилась смешанной лестницей.
+           */
+          onContinue={() => start(поток, режим, узор)} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && last && (
         <GameResult score={last.solved} time={Math.round(last.medianMs) / 1000}
           errors={last.total - last.solved}
-          onPlayAgain={start} onGoHome={() => goBackOrHome()}
+          onPlayAgain={() => start(поток, режим, узор)} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>
