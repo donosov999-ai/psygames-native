@@ -67,6 +67,49 @@ export const NAMED_MOTIFS: readonly string[] = Object.keys(НАБОР.named ?? {
   (a, b) => (НАБОР.named![b]!.length - НАБОР.named![a]!.length),
 );
 
+/**
+ * 🔴 КЛЮЧ СЛОВАРЯ ДЛЯ КАЖДОГО УЗОРА — В ЯДРЕ, А НЕ В ЭКРАНЕ.
+ *
+ * 📍 ПОВОД. В 2.41.0 пулов было 19, а имён я завёл 18: удушающий мат уже имел
+ * ключ от лестницы, и в списке отработки он вышел сырым —
+ * `scholarsMotif_smotheredMate` прямо на экране. Нашлось только глазами на
+ * настоящей iOS-сборке.
+ *
+ * Карта лежит здесь, чтобы гейт мог пройти по НЕЙ и по списку пулов разом:
+ * пул без имени теперь роняет прогон, а не доезжает до человека.
+ */
+export const MOTIF_KEY: Record<string, string> = {
+  // Узоры лестницы.
+  scholar: 'scholarsMate',
+  queenKnight: 'scholarsMotifQueenKnight',
+  bishopF7: 'scholarsMotifBishopF7',
+  queenAlone: 'scholarsMotifQueenAlone',
+  fool: 'scholarsMotifFool',
+  knightOpening: 'scholarsMotifKnight',
+  smothered: 'scholarsMotifSmothered',
+  // Именованные узоры списка отработки. `smotheredMate` делит ключ с лестницей:
+  // текст один, и второй ключ был бы дублем.
+  smotheredMate: 'scholarsMotifSmothered',
+  backRankMate: 'scholarsMotif_backRankMate',
+  pillsburysMate: 'scholarsMotif_pillsburysMate',
+  operaMate: 'scholarsMotif_operaMate',
+  epauletteMate: 'scholarsMotif_epauletteMate',
+  cornerMate: 'scholarsMotif_cornerMate',
+  hookMate: 'scholarsMotif_hookMate',
+  swallowstailMate: 'scholarsMotif_swallowstailMate',
+  arabianMate: 'scholarsMotif_arabianMate',
+  anastasiaMate: 'scholarsMotif_anastasiaMate',
+  morphysMate: 'scholarsMotif_morphysMate',
+  bodenMate: 'scholarsMotif_bodenMate',
+  doubleBishopMate: 'scholarsMotif_doubleBishopMate',
+  dovetailMate: 'scholarsMotif_dovetailMate',
+  killBoxMate: 'scholarsMotif_killBoxMate',
+  vukovicMate: 'scholarsMotif_vukovicMate',
+  balestraMate: 'scholarsMotif_balestraMate',
+  triangleMate: 'scholarsMotif_triangleMate',
+  blindSwineMate: 'scholarsMotif_blindSwineMate',
+};
+
 /** Сколько позиций в пуле именованного узора. */
 export function namedMotifCount(имя: string): number {
   return (НАБОР.named?.[имя] ?? []).length;
