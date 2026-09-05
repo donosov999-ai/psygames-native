@@ -38,6 +38,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { generatePseudowords, sampleRealWords } from '@/src/services/pseudowords';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#0ea5e9', '#6366f1'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -429,7 +430,7 @@ const styles = StyleSheet.create({
   },
   backButton: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 18, fontWeight: '700', flexShrink: 1, minWidth: 0, textAlign: 'center' }, // крупный шрифт: заголовок ужимается и не выдавливает спейсер/кнопку за край
-  placeholder: { width: 44 },
+  placeholder: { width: HELP_CORNER_SPACE },
   configScroll: { flex: 1 },
   configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: { padding: 24, borderRadius: 20, alignItems: 'center', marginBottom: 8 },

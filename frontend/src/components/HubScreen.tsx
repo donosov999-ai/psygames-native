@@ -28,6 +28,7 @@ import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientTe
 import GradientSurface from '@/src/components/GradientSurface';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 import { visibleSuiteCards } from '@/src/constants/gameSuites';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 export interface HubSubGame {
   /** Куда уводит карточка. */
@@ -99,7 +100,7 @@ export default function HubScreen({ titleKey, descKey, pickKey, footnoteKey, ico
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t(titleKey)}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
         <GradientSurface colors={gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
@@ -141,7 +142,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   // 48 — норма цели нажатия, та же, что у остальных экранов.
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700' },
+  // flexShrink — длинные названия развилок ужимаются, а не лезут под уголок
+  title: { fontSize: 20, fontWeight: '700', flexShrink: 1, minWidth: 0 },
   scrollContent: { padding: 16, gap: 14, paddingBottom: 40 },
   heroCard: { padding: 24, borderRadius: 16, alignItems: 'center', gap: 8, overflow: 'hidden' },
   heroTitle: { fontSize: 22, fontWeight: '700', textAlign: 'center', textShadowColor: 'rgba(0,0,0,.55)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 8 },

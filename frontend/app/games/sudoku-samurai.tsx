@@ -28,6 +28,7 @@ import BoardBuilding, { runSteps, nextFrame, type BuildStatus } from '@/src/comp
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { TECHNIQUE_TIER, type Technique } from '@/src/services/sudoku-grade';
 import { buildSolution, GRID_ORIGINS, isSolved as samuraiSolved } from '@/src/services/samurai';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import {
   emptyPencilMarks, normalizePencilMarks, pencilInput, routeDigitPress,
   visiblePencilDigits, countPencilMarks, type PencilMarks,
@@ -1874,7 +1875,7 @@ export default function SamuraiSudokuGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{megabossFrom ? `⚔️ ${t('megaBossBadge')}` : t('samuraiTitle')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       {/* Доска собирается. Экран говорит об этом словами, а не молчит секундами —

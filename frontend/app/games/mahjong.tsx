@@ -37,6 +37,7 @@ import { layoutForLevel } from '@/src/games/mahjong/layouts';
 import { mahjongExtent } from '@/src/games/mahjong/extent';
 import { dealSolvable, type Place } from '@/src/games/mahjong/vendor/solvable';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 /** Костяная плашка под символом. Толщину плитки по-прежнему рисует код
  *  (`borderBottomWidth`): в картинке только ЛИЦО, вид строго сверху. */
@@ -873,7 +874,16 @@ export default function MahjongGame() {
       >
         <Image
           source={ПЛАШКА}
-          style={StyleSheet.absoluteFill as any}
+          /**
+           * 🔴 РАЗМЕР ЗАДАН ЯВНО, А НЕ `absoluteFill`. Замер 05.09.2026 браузером:
+           * с `absoluteFill` react-native-web ставит картинке её НАТУРАЛЬНУЮ
+           * ширину (255 px у плашки) — и она перебивает `inset: 0`. Плитка
+           * вылезала на 142 px за край экрана 360 px, страница становилась шире
+           * окна, и палец начинал таскать весь документ. Ровно тот дефект, на
+           * который Денис жаловался дважды («экран сдвигается пальцем»), только
+           * в другой игре. Нашёл `scripts/pan-audit.mjs`.
+           */
+          style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%' }}
           resizeMode="stretch"
           fadeDuration={0}
           accessibilityElementsHidden
@@ -1085,7 +1095,7 @@ export default function MahjongGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('mahjong')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
@@ -1114,7 +1124,9 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap', maxWidth: '100%' },
   hintText: { fontSize: 12, textAlign: 'center' },
   hintStuck: { fontSize: 13, fontWeight: '700' },   // доска встала — строка обязана быть заметнее обычной подсказки
-  tile: {
+  // overflow ЗАКРЫТ: что бы ни легло внутрь, за плитку оно не вылезет
+  //  и страницу шире окна не сделает.
+  tile: { overflow: 'hidden',
     position: 'absolute', borderRadius: 6, borderWidth: 1.5, justifyContent: 'center', alignItems: 'center',
     shadowColor: '#04341f', shadowRadius: 3, shadowOffset: { width: 1, height: 2 },
   },

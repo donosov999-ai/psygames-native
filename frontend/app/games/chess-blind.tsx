@@ -30,6 +30,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { SvgXml } from 'react-native-svg';
 import { CHESS_PIECE_SVG } from '@/src/games/chess-blind/core/pieces';
 import { readChessAssist, writeChessAssist, CHESS_ASSIST_DEFAULT, type ChessAssist } from '@/src/games/chess-blind/core/assist';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   recordBlock, seriesComplete, seriesSession, startSeries,
@@ -1470,7 +1471,7 @@ export default function ChessBlindGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('chessBlind')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (

@@ -28,6 +28,7 @@ import { useWarmup } from '@/src/contexts/WarmupContext';
 import { hapticMedium } from '@/src/components/juice/haptics';
 import { sndTap, sndBreathIn, sndBreathHold, sndBreathOut } from '@/src/services/feedback';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT_DAY = ['#5b86e5', '#36d1dc'];   // спокойный сине-бирюзовый (отлично от eye-gym)
 // Ночной вид для сценария «Не спится»: человек открыл это, потому что не может
@@ -444,8 +445,6 @@ export default function BreathingGame() {
       {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
       <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
       </>
-      <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
-      </View>
     </View>
   );
 
@@ -680,7 +679,7 @@ export default function BreathingGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('breathing')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       {phase === 'warning' && renderWarning()}

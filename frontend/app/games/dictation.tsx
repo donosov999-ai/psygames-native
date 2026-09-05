@@ -48,6 +48,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import TypingAnswer from '@/src/games/vocab-srs/TypingAnswer';
 import { gameNow } from '@/src/services/gamePause';
 import { buildPhrases, dictationLangs, levelPhrases, levelCount, type DictationPhrase } from '@/src/games/dictation/core/phrases';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#0f766e', '#15803d'];  // белым 5,02 — гейт контраста требует AA 4,5
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
@@ -293,7 +294,7 @@ export default function DictationGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('dictation')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (

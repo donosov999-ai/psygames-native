@@ -45,6 +45,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import MathSliderGame from '@/src/games/math-slider/MathSliderGame';
 import type { MathSliderMetrics } from '@/src/games/math-slider/core';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#5b4ee8', '#12a594'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -224,24 +225,36 @@ export default function MathSliderScreen() {
           accessibilityRole="button" accessibilityLabel={t('back')}>
           <Ionicons name="arrow-back" size={24} color={ON_GRAD.color} />
         </TouchableOpacity>
-        <Text style={styles.title}>{t('mathSlider')}</Text>
+        <Text style={styles.title} numberOfLines={1}>{t('mathSlider')}</Text>
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </GradientSurface>
 
-      <ScrollView contentContainerStyle={styles.body}>
-        <LevelProgressMap bestLevel={lvl.best} gameId="math_slider" currentLevel={lvl.level}
-          onPickLevel={lvl.pick} colors={colors} language={language} />
+        {/*
+          🔴 ТЕЛО ЭКРАНА НАСТРОЙКИ ПРЯЧЕТСЯ, ПОКА СВЕРХУ ПЛАШКА.
+          Отчёт Дениса 05.09.2026 (c9293c23, one-line): «постоянно выскакивает
+          экран с начальным упражнением и как играть между уровнями». Так и было:
+          `LevelCleared` — обычный `flex: 1`, а не наложение, и рисовался ПОСЛЕ
+          тропинки уровней, карточки правил и кнопки «Начать». Между уровнями
+          человек видел экран настройки целиком.
+          Ровно та же дыра нашлась ещё в шести играх — правило одно на всех.
+        */}
+      {phase === 'config' && (
+        <ScrollView contentContainerStyle={styles.body}>
+          <LevelProgressMap bestLevel={lvl.best} gameId="math_slider" currentLevel={lvl.level}
+            onPickLevel={lvl.pick} colors={colors} language={language} />
 
-        <View style={[styles.card, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('mathSliderDesc')}</Text>
-        </View>
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.level, { color: colors.text }]}>{t('level')} {level}</Text>
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('mathSliderDesc')}</Text>
+          </View>
 
-        <TouchableOpacity onPress={start} accessibilityRole="button">
-          <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
-            <Text style={styles.startText}>{t('start')}</Text>
-          </GradientSurface>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity onPress={start} accessibilityRole="button">
+            <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
+              <Text style={styles.startText}>{t('start')}</Text>
+            </GradientSurface>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
 
       {phase === 'cleared' && (
         <LevelCleared gameId="math_slider" level={shownLevel} stars={stars}

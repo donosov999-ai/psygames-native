@@ -34,6 +34,7 @@ import { getAbilityCount, useAbility } from '@/src/services/abilities';
 import { speakSequence, ttsCancel, type TtsBlock } from '@/src/services/tts';
 import { useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { getDigitSpanStrings } from '@/src/games/digit-span/core/i18n';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const DS_RULES: LevelRule[] = [
@@ -645,8 +646,6 @@ export default function DigitSpanGame() {
       {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
       <GameSetupBar testID="ds-start" label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
       </>
-      <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
-      </View>
     </View>
   );
 
@@ -754,7 +753,7 @@ export default function DigitSpanGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('digitSpan')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       <LeaderboardModal

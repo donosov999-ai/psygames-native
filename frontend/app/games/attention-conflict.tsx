@@ -31,6 +31,7 @@ import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 import { visibleSuiteCards } from '@/src/constants/gameSuites';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { filterAllowedGames } from '@/src/constants/profiles';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#7c3aed', '#ec4899'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -161,7 +162,7 @@ export default function AttentionConflictGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('attentionConflict')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
         <GradientSurface colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.heroCard}>

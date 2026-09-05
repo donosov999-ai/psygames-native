@@ -30,6 +30,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { gameNow } from '@/src/services/gamePause';
 
 const GRADIENT = ['#8e2de2', '#4a00e0'];
@@ -475,8 +476,6 @@ export default function MemoryMatrixGame() {
       {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
       <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
       </>
-      <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
-      </View>
     </View>
   );
 
@@ -588,7 +587,16 @@ export default function MemoryMatrixGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('memoryMatrix')}</Text>
-        <View style={{ width: 40 }} />
+        {/*
+          🔴 РЕЗЕРВ ПОД СКВОЗНОЙ УГОЛОК, А НЕ 40 «НА ГЛАЗ».
+          Отчёт ребёнка 05.09.2026 (b0ceeb2e): аватар питомца и кнопка «Правила»
+          лежали поверх слова «Матрица памяти». Уголок висит поверх ЛЮБОГО экрана,
+          а место под него отводит каждый экран сам; здесь отводилось 40 при
+          настоящих 117. Замер после правки: наезд 27 px → 0.
+          ⚠️ По-английски наезда почти не было («Memory Matrix» короче на 11 px) —
+          поэтому `pan-audit` и меряет по-русски.
+        */}
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}

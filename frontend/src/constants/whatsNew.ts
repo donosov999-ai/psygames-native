@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.38.1',
+    date: '2026-09-05',
+    ru: [
+      'Между уровнями больше не выскакивает экран с правилами — плашка «уровень пройден» теперь закрывает его целиком',
+      '«Соедини точки»: решил доску — прошёл уровень, сколько бы попыток ни ушло. Аккуратность считается звёздами',
+      'Заголовок игры больше не прячется под аватаром питомца и кнопкой «Правила» — поправлено на 45 экранах',
+      '«Ритм и высота»: звук наконец звучит на телефоне — он будится прямо в нажатии «Начать»',
+    ],
+    en: [
+      'The rules screen no longer pops up between levels — the level-cleared card now covers it fully',
+      'Dots Connect: solve the board and the level is cleared, however many tries it took. Neatness counts as stars',
+      'The game title no longer hides under the pet avatar and the Rules button — fixed on 45 screens',
+      'Rhythm & Pitch: sound finally plays on the phone — it is woken inside the Start tap itself',
+    ],
+  },
+  {
     version: '2.38.0',
     date: '2026-09-05',
     ru: [

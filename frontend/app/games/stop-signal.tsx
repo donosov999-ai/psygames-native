@@ -61,6 +61,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import {
   EMPTY_LADDER,
   MIN_STOP_TRIALS,
@@ -515,7 +516,7 @@ export default function StopSignalGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('stopSignal')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (

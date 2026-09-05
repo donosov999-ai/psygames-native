@@ -42,6 +42,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#fa709a', '#fee140'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -572,7 +573,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: { fontSize: 18, fontWeight: '700' },
-  placeholder: { width: 44 },
+  placeholder: { width: HELP_CORNER_SPACE },
   configScroll: { flex: 1 },
   configContainer: { paddingHorizontal: 16, marginBottom: 16, paddingBottom: 20 + SETUP_BAR_SPACE },
   configCard: {

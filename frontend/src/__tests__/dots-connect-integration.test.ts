@@ -197,7 +197,7 @@ describe('«Соедини точки» — ядро делает то, на ч�
    * ПОРОГ ПРОХОЖДЕНИЯ ЖИВЁТ В МОДУЛЕ. Экран обязан читать его оттуда, а не
    * заводить вторую копию: две копии одного правила разъезжаются молча.
    */
-  it('🔴 чистый маршрут проходит, перебор — нет', () => {
+  it('🔴 решил честно — прошёл; перебор наказывается звёздами, а не запретом', () => {
     const clock = fakeClock();
     let session = startRound(createDotsSession({ seed: 'pass-check', level: 5 }), clock.now());
     clock.tick(1_000);
@@ -206,12 +206,19 @@ describe('«Соедини точки» — ядро делает то, на ч�
     expect(clean.accuracy).toBe(1);
     expect(isPassed(clean)).toBe(true);
 
-    // Тот же результат, но с правками больше четверти оптимального маршрута.
+    /**
+     * 🔴 ПЕРЕБОР ТЕПЕРЬ ПРОХОДИТ. Отчёт Дениса 05.09.2026 (e40516e3): «забрал с
+     * десятой попытки — не даёт перейти в любом случае». Перебор в игре про
+     * соединение точек и ЕСТЬ способ решения; доска сходится тогда, когда
+     * человек разобрался. Аккуратность осталась в ЗВЁЗДАХ — там ей и место.
+     */
     const sloppy: DotsMetrics = {
       ...clean,
       accuracy: clean.specific.optimalEdges / (clean.specific.optimalEdges + clean.specific.optimalEdges * 0.4),
     };
-    expect(isPassed(sloppy)).toBe(false);
+    expect(isPassed(sloppy)).toBe(true);
+    // …но три звезды за такую партию не дают: порог звёзд не тронут.
+    expect(sloppy.accuracy).toBeLessThan(0.9);
 
     // Неполное покрытие не проходит НИКОГДА, даже при идеальной точности.
     expect(isPassed({ ...clean, specific: { ...clean.specific, coverage: 0.99 } })).toBe(false);

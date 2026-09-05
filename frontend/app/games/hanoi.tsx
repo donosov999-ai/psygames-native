@@ -36,6 +36,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import { useMoveHistory, MoveStackData } from '@/src/hooks/useMoveHistory';
 import { gameNow } from '@/src/services/gamePause';
 import { frameStewart, hanoiScore, hanoiStars } from '@/src/games/hanoi/optimal';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 const HN_RULES: LevelRule[] = [
@@ -732,7 +733,7 @@ export default function HanoiGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('hanoi')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       <LeaderboardModal

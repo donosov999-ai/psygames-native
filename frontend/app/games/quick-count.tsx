@@ -29,6 +29,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // Быстрый подсчёт (subitizing) — новая игра v1.117.0. Отдельный когнитивный навык:
 // оценить КОЛИЧЕСТВО объектов за долю секунды БЕЗ пересчёта по одному — не пересекается
@@ -283,7 +284,7 @@ export default function QuickCountGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('quickCount')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (

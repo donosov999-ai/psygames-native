@@ -25,6 +25,7 @@ import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#7028e4', '#e5b2ca'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -301,8 +302,6 @@ export default function PatternGame() {
       {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
       <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
       </>
-      <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
-      </View>
     </View>
   );
 
@@ -404,7 +403,7 @@ export default function PatternGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('pattern')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
 

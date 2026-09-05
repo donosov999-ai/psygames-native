@@ -33,6 +33,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { gameNow } from '@/src/services/gamePause';
 import {saveResume, clearResume} from '@/src/services/resume';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 /**
@@ -4358,7 +4359,7 @@ export default function GoodsSortGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('goodsSort')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />

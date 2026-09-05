@@ -54,6 +54,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#1e3a8a', '#7f1d1d'];   // blue → red (отсылка к двум цветам стимула)
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -432,7 +433,7 @@ export default function SimonGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('simon')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}

@@ -117,19 +117,29 @@ export class WebToneAudioEngine implements ToneAudioEngine {
           : new AudioOutputUnavailableError();
       }
     }
-    if (this.context.state === 'suspended') await this.context.resume();
     /**
-     * 🔴 РАЗОГРЕВ ПУСТЫМ БУФЕРОМ. Отчёт Дениса 04.09.2026: «звука вообще нет,
-     * никаких динамиков звуков не издаёт». Причина не в движке тонов, а в том, что
-     * WKWebView (Safari, Tauri на iOS/macOS) держит контекст молчащим даже после
-     * `resume()` — ему нужно проиграть пустой буфер от жеста. В общем звуке
-     * приложения этот приём стоял с июня, а здесь свой AudioContext, и его не было.
-     * Приём взят из `services/feedback`, второй копии нет: разошлись бы.
+     * 🔴 РАЗОГРЕВ ПУСТЫМ БУФЕРОМ — И ОБЯЗАТЕЛЬНО ДО ПЕРВОГО `await`.
+     *
+     * Отчёт Дениса 04.09.2026: «звука вообще нет, никаких динамиков звуков не
+     * издаёт». WKWebView (Safari, Tauri на iOS/macOS) держит контекст молчащим
+     * даже после `resume()` — ему нужно проиграть пустой буфер ОТ ЖЕСТА.
+     *
+     * ⚠️ 05.09.2026, отчёт 79e2ff09 «звуки так и не появились»: разогрев тут уже
+     * стоял — и не работал, потому что стоял ПОСЛЕ `await this.context.resume()`.
+     * Первый `await` заканчивает задачу пользовательского жеста: всё, что после
+     * него, для WebKit уже не «в ответ на касание». Разогрев попадал в пустоту,
+     * контекст оставался немым, а игра при этом шла как ни в чём не бывало —
+     * отсюда «партия идёт, звука нет».
+     *
+     * Chrome обходится одним `resume()`, поэтому в браузере всё звучало и баг
+     * был невидим при проверке. Ровно та обманка, о которой предупреждает шапка
+     * `warmUpAudioContext` в services/feedback.
      */
     if (!this.warmedUp) {
       warmUpAudioContext(this.context as unknown as Parameters<typeof warmUpAudioContext>[0]);
       this.warmedUp = true;
     }
+    if (this.context.state === 'suspended') await this.context.resume();
     if (this.context.state === 'closed') throw new AudioOutputUnavailableError();
   }
 

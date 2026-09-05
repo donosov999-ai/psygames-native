@@ -37,6 +37,7 @@ import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmar
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#fc6076', '#ff9a44'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -584,7 +585,7 @@ export default function TrailMakingGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('trailMaking')}</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       <LeaderboardModal
