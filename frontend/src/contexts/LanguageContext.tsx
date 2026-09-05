@@ -2423,6 +2423,7 @@ const translations: Translations = {
   timeIsUp: { ru: 'Время вышло', en: 'Time is up' },
   timeLeftLabel: { ru: 'Осталось', en: 'Time left' },
   themeLabel: { ru: 'Тема', en: 'Theme' },
+  wordLangLabel: { ru: 'Язык слов', en: 'Word language' },
   passCorrect80Window: { ru: 'Проход уровня: ≥80% верных ответов (не успел в окно = ошибка)', en: 'To pass: ≥80% correct answers (missing the window counts as an error)' },
   trialsWindowParams: { ru: '{n} проб · окно ответа {w} с', en: '{n} trials · {w} s response window' },
 

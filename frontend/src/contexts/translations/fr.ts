@@ -1388,6 +1388,7 @@ const t: Record<string, string> = {
   "timeIsUp": "Temps écoulé",
   "timeLeftLabel": "Temps restant",
   "themeLabel": "Thème",
+  "wordLangLabel": "Langue des mots",
   "passCorrect80Window": "Pour réussir : ≥80 % de bonnes réponses (ne pas répondre à temps compte comme une erreur)",
   "trialsWindowParams": "{n} essais · fenêtre de réponse {w} s",
   "startingInN": "⏱ Départ dans {n}...",

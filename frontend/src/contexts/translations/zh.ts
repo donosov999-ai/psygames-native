@@ -1265,6 +1265,7 @@ const t: Record<string, string> = {
   "timeIsUp": "时间到",
   "timeLeftLabel": "剩余时间",
   "themeLabel": "主题",
+  "wordLangLabel": "单词语言",
   "passCorrect80Window": "过关条件：≥80% 回答正确（超时未答计为错误）",
   "trialsWindowParams": "{n} 次 · 作答窗口 {w} 秒",
   "startingInN": "⏱ {n} 秒后开始...",

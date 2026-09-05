@@ -31,6 +31,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { useWordLanguage } from '@/src/hooks/useWordLanguage';
+import { WORD_LANGS, WORD_LANG_LABEL } from '@/src/services/wordLanguage';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -44,7 +47,7 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import {
-  phonemicLetterPool, phonemicScriptFor, phonemicScriptIsFallback,
+  phonemicLetterPool, phonemicScriptFor,
   type PhonemicScript,
 } from '@/src/services/phonemicFluency';
 import { gameNow } from '@/src/services/gamePause';
@@ -66,6 +69,13 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'result';
 export default function PhonemicFluencyGame() {
   const { colors } = useTheme();
   const { t, language, ready: languageReady } = useLanguage() as any;
+  /**
+   * 🔴 ЯЗЫК СЛОВ ОТДЕЛЬНО ОТ ЯЗЫКА МЕНЮ. Отчёт Дениса 05.09.2026: «надо
+   * добавить сюда выбор языка». И буква задания, и проверка слова шли от
+   * языка интерфейса: при русском меню английская беглость была недоступна.
+   */
+  const { profile } = useProfile();
+  const wordLang = useWordLanguage('phonemic_fluency', profile?.id, language);
   /**
    * СЧЁТЧИК ПРОХОЖДЕНИЙ, не ступень сложности.
    *
@@ -101,7 +111,7 @@ export default function PhonemicFluencyGame() {
 
   useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
 
-  const letterPool = phonemicLetterPool(language);
+  const letterPool = phonemicLetterPool(wordLang.lang);
 
   const startGame = () => {
     const L = autoPickLetter
@@ -131,7 +141,7 @@ export default function PhonemicFluencyGame() {
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && languageReady && runs.loaded, () => startGame());
+  useAutostartWhenReady(() => autostart && languageReady && wordLang.ready && runs.loaded, () => startGame());
   /**
    * ⚠️ ПИСЬМЕННОСТЬ ПРИХОДИТ ИЗ ОДНОГО МЕСТА (`phonemicScriptFor`) — той же
    * функции, по которой выбрана буква задания. Раньше буква выбиралась в
@@ -160,7 +170,7 @@ export default function PhonemicFluencyGame() {
     setInput('');
     if (!raw) return;
     const ts = gameNow();
-    let result = isValidWord(raw, letter, phonemicScriptFor(language));
+    let result = isValidWord(raw, letter, phonemicScriptFor(wordLang.lang));
     let valid = result.valid;
     let reason: string | undefined = result.reason;
     if (valid && wordsRef.current.some(w => w.word === raw && w.valid)) {
@@ -243,16 +253,29 @@ export default function PhonemicFluencyGame() {
         <Text style={styles.configTitle}>{t('phonemic')}</Text>
         <Text style={styles.configDesc}>{t('phonemicDesc')}</Text>
         {/*
-          🔴 ПОДМЕНА ПИСЬМЕННОСТИ НАЗЫВАЕТСЯ ВСЛУХ. Беглость «на букву П» в
-          иероглифах, кане, деванагари и арабице не ставится — письменность
-          устроена иначе. Задание идёт на латинице, и человек должен знать об
-          этом ДО начала, а не гадать, почему его слова не принимаются.
+          🔴 ПРЕДУПРЕЖДЕНИЯ О ПОДМЕНЕ ПИСЬМЕННОСТИ БОЛЬШЕ НЕТ — И ЭТО НЕ ПОТЕРЯ.
+          Оно объясняло, почему при японском интерфейсе задание вдруг идёт на
+          латинице. Теперь язык слов выбирается явно, карточкой выше, и подмены
+          не остаётся: человек видит, на каком языке играет, до начала.
         */}
-        {phonemicScriptIsFallback(language) ? (
-          <Text style={styles.configDesc}>{t('phonemicScriptFallback')}</Text>
-        ) : null}
       </LinearGradient>
       <GameAbout descriptionKey="phonemicIntroDesc" benefits={FLU_BENEFITS} accent={GRADIENT[0]} />
+      <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('wordLangLabel')}</Text>
+        <View style={styles.optionButtons}>
+          {WORD_LANGS.map((wl) => (
+            <TouchableOpacity
+              accessibilityRole="button" key={wl} style={[styles.modeButton, wordLang.lang === wl
+              ? { backgroundColor: GRADIENT[0] }
+              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+              onPress={() => wordLang.pick(wl)}>
+              <Text style={[styles.modeButtonText, { color: wordLang.lang === wl ? textOn(GRADIENT[0]) : colors.text }]}>
+                {WORD_LANG_LABEL[wl]}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('duration')}</Text>
         <View style={styles.optionButtons}>

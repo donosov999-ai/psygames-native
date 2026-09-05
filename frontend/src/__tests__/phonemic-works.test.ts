@@ -18,6 +18,7 @@
 import {
   phonemicLetterPool, phonemicScriptFor, phonemicScriptIsFallback,
 } from '@/src/services/phonemicFluency';
+import { defaultWordLang } from '@/src/services/wordLanguage';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -72,13 +73,36 @@ describe('🔴 экран берёт письменность из общего 
   const screen = code(read('../../app/games/phonemic-fluency.tsx'));
 
   it('проверка слова спрашивает phonemicScriptFor, а не язык напрямую', () => {
-    expect(screen).toMatch(/isValidWord\(raw, letter, phonemicScriptFor\(language\)\)/);
+    expect(screen).toMatch(/isValidWord\(raw, letter, phonemicScriptFor\(wordLang\.lang\)\)/);
     expect(screen).not.toMatch(/language as 'ru' \| 'en'/);
   });
 
-  it('подмена письменности названа игроку', () => {
-    expect(screen).toMatch(/phonemicScriptIsFallback\(language\)/);
-    expect(screen).toMatch(/phonemicScriptFallback/);
+  /**
+   * 🔴 ЗДЕСЬ РАНЬШЕ СТОЯЛА ПРОБА, ЧИТАВШАЯ ИСХОДНИК: она требовала строки
+   * `phonemicScriptIsFallback(language)`. Такая проба зеленеет от наличия
+   * текста и ничего не говорит о поведении. Взамен — цепочка целиком: язык
+   * слов по умолчанию → пул букв → приём слова.
+   */
+  it('🔴 при нелатинском интерфейсе игра идёт на английском и слово принимается', () => {
+    for (const ui of ['ja', 'zh', 'ar', 'hi', 'ko']) {
+      const wl = defaultWordLang(ui);
+      expect(`${ui}: ${wl}`).toBe(`${ui}: en`);
+      const пул = phonemicLetterPool(wl);
+      expect(пул.every((l) => LAT.test(l))).toBe(true);
+      // Письменность буквы и письменность проверки — одна и та же, иначе
+      // принять нельзя ни одного слова (эта беда уже случалась с французским).
+      expect(phonemicScriptFor(wl)).toBe('en');
+    }
+  });
+
+  it('🔴 выбор русского даёт кириллические буквы и принимает русское слово', () => {
+    const пул = phonemicLetterPool('ru');
+    expect(пул.every((l) => CYR.test(l))).toBe(true);
+    expect(phonemicScriptFor('ru')).toBe('ru');
+    // Выбор языка слов не зависит от языка меню: при японском интерфейсе
+    // русский всё равно можно выбрать, и он останется русским.
+    expect(defaultWordLang('ru')).toBe('ru');
+    expect(defaultWordLang('ja')).toBe('en');
   });
 });
 
