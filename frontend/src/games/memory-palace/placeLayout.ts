@@ -99,6 +99,17 @@ export const PLACE_LAYOUT = {
 } as const;
 
 /**
+ * ШИРИНА ПРОКРУТКИ ИГРЫ ПО ШИРИНЕ ЭКРАНА. Формулы фаз принимают именно её.
+ * На 375 даёт 355 — замер 05.09.2026, см. `PLACE_LAYOUT.screenGutter`.
+ */
+export function memoryPalaceScrollWidth(screenWidth: number): number {
+  return screenWidth - 2 * PLACE_LAYOUT.screenGutter;
+}
+
+/** Фазы, которые рисуют сетку мест компактной плиткой. */
+export type PalacePhaseLayout = 'place' | 'route' | 'study';
+
+/**
  * СКОЛЬКО КОЛОНОК МЕСТ. Порог 6 взят не на глаз: при семи и более местах третья
  * строка сетки стоит 92 точки (плитка 86 плюс зазор 6), а четвёртая колонка
  * убирает её целиком —
@@ -123,17 +134,6 @@ export const PLACE_LAYOUT = {
  * которой фаза не влезает в экран. Маршруту и изучению платить нечем — у них
  * запас есть, поэтому они берут три колонки и читаемые подписи.
  */
-/**
- * ШИРИНА ПРОКРУТКИ ИГРЫ ПО ШИРИНЕ ЭКРАНА. Формулы фаз принимают именно её.
- * На 375 даёт 355 — замер 05.09.2026, см. `PLACE_LAYOUT.screenGutter`.
- */
-export function memoryPalaceScrollWidth(screenWidth: number): number {
-  return screenWidth - 2 * PLACE_LAYOUT.screenGutter;
-}
-
-export type PalacePhaseLayout = 'place' | 'route' | 'study';
-
-/** @see palaceColumns — порог колонок и замер, на котором он стоит. */
 export function palaceColumns(lociCount: number, phase: PalacePhaseLayout = 'place'): number {
   if (phase !== 'place') return 3;
   return lociCount > 6 ? 4 : 3;
