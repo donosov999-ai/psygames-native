@@ -14,6 +14,7 @@
  * ВАЖНО: скриншот снимается ДО открытия шторки, иначе в кадр попадёт сама
  * шторка, а не экран, на который жалуется тестировщик.
  */
+import { текстОтправки } from '@/src/services/liveFieldText';
 import { textOn } from '@/src/services/onGradientText';
 import { pushCrumb } from '@/src/services/crumbs';
 import React from 'react';
@@ -431,6 +432,9 @@ export default function FeedbackWidget() {
    * тут же зовёт отправку — состояние к этому моменту ещё не перерисовалось, и
    * чтение `silentAck` вернуло бы старое `false`. Отправка молча не произошла бы.
    */
+  /** Правило и его замер — в `services/liveFieldText.ts`. */
+  const живойТекст = (): string => текстОтправки(text, (inputRef.current as any)?.value);
+
   const submit = async (ackSilent = false, ackShort = false) => {
     // Голосом БЕЗ текста — полноценный репорт: ради этого запись и делали.
     // Раньше здесь стояло `if (!text.trim())`, а кнопка при этом была активна,
@@ -438,6 +442,8 @@ export default function FeedbackWidget() {
     // решал, что отзывы не уходят (репорт Rulon, v1.170). Условие должно
     // совпадать с условием доступности кнопки, иначе кнопка врёт.
     if ((!text.trim() && !note) || sendingRef.current) return;
+    // Живое поле спрашивается ОДИН раз и здесь: дальше по функции текст один.
+    const текст = живойТекст();
     /**
      * 🔴 НЕМУЮ ЗАПИСЬ НЕ ОТПРАВЛЯЕМ МОЛЧА.
      *
@@ -452,14 +458,17 @@ export default function FeedbackWidget() {
      */
     if (note && micSilent && !silentAck && !ackSilent) return;
     // Обрывок диктовки — тем же правилом: спрашиваем, а не отправляем молча.
-    if (нужноПереспросить(text, !!note, shortAckFor) && !ackShort) return;
+    // ⚠️ ПЕРЕСПРОС ТОЖЕ ПО ЖИВОМУ ТЕКСТУ. Иначе человек, у которого состояние
+    // отстало, видел бы «сообщение слишком короткое» на полностью набранной
+    // фразе — и это ровно тот случай, ради которого живой текст и заведён.
+    if (нужноПереспросить(текст, !!note, shortAckFor) && !ackShort) return;
     sendingRef.current = true;
     setSending(true);
     const res = await sendFeedback({
       kind,
       // Пустое сообщение читается в выгрузке как «потерялось»; ставим явную
       // пометку, чтобы было видно: смысл в записи, расшифровать её.
-      message: text.trim() || '[голосом, без текста]',
+      message: текст.trim() || '[голосом, без текста]',
       screen: pathname,
       gameId,
       shot: attachShot ? shot : null,
