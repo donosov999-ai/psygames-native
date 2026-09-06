@@ -165,7 +165,22 @@ type TaskMode = 'letters' | 'fillwords';
  * промахом: подсказка обязана стоить, иначе ею проходят уровень целиком, а
  * ценность прохождения обнуляется.
  */
-const FILLWORDS_HINTS = 3;
+/**
+ * ⚠️ ПОДСКАЗКИ БОЛЬШЕ НЕ КОНСТАНТА — ОНИ СТУПЕНЬ ЛЕСТНИЦЫ.
+ *
+ * Здесь стояло `const FILLWORDS_HINTS = 3` — одно число на все уровни. Константа
+ * на экране осью быть не может: уровень о ней не знает, и лестница ею не растёт.
+ * С 06.09.2026 число приходит из `fillwordsLevel(...).hints` и убывает 3 → 0
+ * после того, как исчерпаны объёмные оси и скорость (см. шапку `fillwordsLevel`).
+ *
+ * Значение ниже осталось только как запас для случаев, где уровня нет вовсе.
+ */
+const FILLWORDS_HINTS_ЗАПАС = 3;
+/** Сколько подсказок положено на этом уровне. */
+function подсказокНаУровне(level: number): number {
+  const c = fillwordsLevel(level);
+  return typeof c.hints === 'number' ? c.hints : FILLWORDS_HINTS_ЗАПАС;
+}
 
 // Уровень 1..15 (паттерн cpt/simon): ручные селекторы строк/колонок заменены
 // уровневым режимом. Ось усложнения:
@@ -671,14 +686,14 @@ export default function ProofreadingGame() {
   };
 
 
-  const fwHintsLeft = Math.max(0, FILLWORDS_HINTS - (fwSession ? fwSession.hints : 0));
+  const fwHintsLeft = Math.max(0, подсказокНаУровне(lvl.level) - (fwSession ? fwSession.hints : 0));
   const fwFound = fwSession ? fwSession.found.length : 0;
   const fwTotalWords = fwSession ? fwSession.puzzle.words.length : 0;
   const fwLettersLeft = fwSession ? lettersLeft(fwSession) : 0;
 
   const fwTakeHint = () => {
     const session = fwSessionRef.current;
-    if (!session || finishedRef.current || session.hints >= FILLWORDS_HINTS) return;
+    if (!session || finishedRef.current || session.hints >= подсказокНаУровне(lvl.level)) return;
     const taken = takeHint(session);
     fwSessionRef.current = taken.session;
     setFwSession(taken.session);
@@ -721,7 +736,7 @@ export default function ProofreadingGame() {
    * ⚠️ Взятая подсказка идёт в `session.hints` того же объекта, что и замер блока,
    * поэтому в итог серии она попадает сама — отдельного счётчика заводить не нужно.
    */
-  const serHintsLeft = Math.max(0, FILLWORDS_HINTS - (seriesState ? seriesState.session.hints : 0));
+  const serHintsLeft = Math.max(0, подсказокНаУровне(lvl.level) - (seriesState ? seriesState.session.hints : 0));
   const serTakeHint = () => {
     if (!seriesState || serHintsLeft === 0) return;
     const taken = takeHint(seriesState.session);
