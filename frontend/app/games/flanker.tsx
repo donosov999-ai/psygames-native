@@ -48,16 +48,75 @@ type Direction = 'left' | 'right';
 
 interface Trial { center: Direction; kind: TrialKind; flankers: Direction[] | null; }
 
-// Сложность растёт ТРУДНОСТЬЮ, не временем: окно ответа сокращается + доля конфликтных
-// (incongruent) стрелок растёт. Распределения = бывшая DIFF-таблица easy/medium/hard:
-//   L1-5  — как easy   (50% congruent / 30% incongruent / 20% neutral), окно 3000→2200мс
-//   L6-10 — как medium (40% / 45% / 15%),                               окно 2000→1600мс
-//   L11-15— как hard   (30% / 65% / 5%),                                окно 1400→1000мс
-export function levelParams(level: number): { trials: number; windowMs: number; pCong: number; pIncong: number } {
+/**
+ * ДОЛЯ КОНФЛИКТНЫХ — НЕ РУЧКА СЛОЖНОСТИ. СЛОЖНОСТЬ РАСТЁТ РАЗНОСОМ И ОКНОМ.
+ *
+ * 🔴 ЧТО БЫЛО И ПОЧЕМУ ЭТО ПОРТИЛО СОБСТВЕННЫЙ ПОКАЗАТЕЛЬ ИГРЫ. Уровень растил
+ * долю конфликтных проб: pIncong 0,30 (L1-5) → 0,45 (L6-10) → 0,65 (L11-15), а
+ * доля согласованных падала 0,50 → 0,40 → 0,30. Но `flanker_effect_ms` — это
+ * РАЗНОСТЬ времён конфликтных и согласованных проб, и величина самого эффекта
+ * зависит от их пропорции: чем больше конфликтных, тем МЕНЬШЕ измеряемый эффект
+ * (proportion-congruent effect — Jost et al. 2022, Psychophysiology,
+ * doi:10.1111/psyp.14092). То есть ручка, которой рос уровень, УМЕНЬШАЛА ровно
+ * ту величину, ради которой проба существует: на L13 эффект систематически
+ * меньше, чем на L3, и это не про игрока.
+ * Вторым ударом падала точность оценки: при 20 пробах на L11-15 согласованных
+ * оставалось 6, а нейтральных — ОДНА. Среднее по одному наблюдению не среднее.
+ * Тот же довод дословно записан у Струпа (stroop.tsx:120-133), и там долю
+ * заморозили каноном; здесь она делала прямо противоположное.
+ *
+ * ЧТО СТАЛО. Доли ЗАМОРОЖЕНЫ на 0,40 / 0,45 / 0,15 (соглас./конфл./нейтр.) —
+ * это в точности условие, на котором игра уже сдаёт оценочный замер: батарея
+ * всегда зовёт фланкер с difficulty 'medium' (assessment.ts:101), то есть
+ * effLevel 8, а норма `flanker_effect_ms` 70±30 (assessment.ts:57) одна на всех.
+ * Заморозка именно на этом условии оставляет норму верной и не трогает батарею.
+ * При 20 пробах это 8 согласованных, 9 конфликтных, 3 нейтральные на КАЖДОМ
+ * уровне — вместо 6/13/1 на верхнем.
+ *
+ * СЛОЖНОСТЬ ПЕРЕЕХАЛА НА КАНОННУЮ РУЧКУ ЭРИКСЕНА — РАЗНОС «ЦЕЛЬ ↔ ФЛАНГИ».
+ * В оригинале (Eriksen & Eriksen, 1974) разнос и был манипуляцией: три условия
+ * ~0,06° / ~0,5° / ~1,0° угла зрения, и интерференция ПАДАЕТ с ростом разноса.
+ * Значит труднее = ближе, и ось растит трудность, не трогая пропорцию.
+ *
+ * ⚠️ ПЕРЕВОД ГРАДУСОВ В ПИКСЕЛИ — ДОПУЩЕНИЕ, И ВОТ ОНО ЧИСЛОМ. Телефон 360 CSS-px
+ * шириной ≈ 64 мм → 1 px ≈ 0,178 мм; расстояние просмотра принято 35 см →
+ * 1° ≈ 350·tan1° ≈ 6,1 мм ≈ 34 px, 0,5° ≈ 17 px. Отсюда лестница 34 px (1,0°) на
+ * L1 → 4 px (≈0,12°) на L15. Нижний край НЕ доведён до канонных 0,06° (≈2 px):
+ * при глифах 36 px стрелки сливались бы в сплошную полосу, и проба мерила бы
+ * разборчивость, а не торможение. Отступление осознанное, величина названа.
+ */
+export const FLANKER_P_CONG = 0.40;
+export const FLANKER_P_INCONG = 0.45;
+/**
+ * Разнос на L1 и L15 в CSS-px.
+ *
+ * ⚠️ ВЕРХ ОПУЩЕН С КАНОННОГО 1,0° (34 px) ДО 0,82° (28 px), И ВОТ ПОЧЕМУ — ЧИСЛОМ.
+ * Ряд шириной = 4 фланга по 36 + центр 56 + 4 зазора. При 34 px это 336 px, а
+ * `stimBox` не шире 360 и живёт внутри каркаса с отступами — на телефоне 360 px
+ * ряд вылезал бы за экран. Это ровно тот класс, на который жаловался тестировщик
+ * NZT-48 («экран разъезжается»), и вносить его обратно своей же правкой нельзя.
+ * При 28 px ряд 312 px и помещается с запасом. 0,82° остаётся внутри канонного
+ * коридора Эриксена (условия 0,06° / 0,5° / 1,0°), низ 4 px ≈ 0,12°.
+ * Сторожит `attention-ladder-per-mode` пробой «ряд помещается в 360 px».
+ */
+export const FLANKER_GAP_MAX = 28;
+export const FLANKER_GAP_MIN = 4;
+/** Ширина ряда стимулов при заданном разносе — считается там же, где рисуется. */
+export const flankerRowWidthPx = (gapPx: number) => 4 * 36 + 56 + 4 * gapPx;
+
+export function levelParams(level: number): { trials: number; windowMs: number; pCong: number; pIncong: number; gapPx: number } {
   const trials = 20;
-  if (level <= 5)  return { trials, windowMs: 3000 - (level - 1) * 200, pCong: 0.5, pIncong: 0.3 };
-  if (level <= 10) return { trials, windowMs: 2000 - (level - 6) * 100, pCong: 0.4, pIncong: 0.45 };
-  return { trials, windowMs: Math.max(1000, 1400 - (level - 11) * 100), pCong: 0.3, pIncong: 0.65 };
+  const L = Math.max(1, Math.min(15, level));
+  // Окно оставлено прежним: его монотонность сторожит attention-conflict-ladders.
+  const windowMs =
+    L <= 5 ? 3000 - (L - 1) * 200 :
+    L <= 10 ? 2000 - (L - 6) * 100 :
+    Math.max(1000, 1400 - (L - 11) * 100);
+  const gapPx = Math.max(
+    FLANKER_GAP_MIN,
+    Math.round(FLANKER_GAP_MAX - (L - 1) * (FLANKER_GAP_MAX - FLANKER_GAP_MIN) / 14),
+  );
+  return { trials, windowMs, pCong: FLANKER_P_CONG, pIncong: FLANKER_P_INCONG, gapPx };
 }
 
 function makeTrial(pCong: number, pIncong: number): Trial {
@@ -90,6 +149,8 @@ export default function FlankerGame() {
   // пресет (зарядка) передаёт diff/trials; личная игра рулится уровнем
   const [difficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
   const [trials, setTrials] = useState(() => num('trials', 20));
+  /** Разнос «цель ↔ фланги» текущего уровня, px. Ось Эриксена — см. levelParams. */
+  const [gapPx, setGapPx] = useState(FLANKER_GAP_MAX);
 
   const [round, setRound] = useState(0);
   const [trial, setTrial] = useState<Trial>({ center: 'left', kind: 'congruent', flankers: ['left','left','left','left'] });
@@ -112,6 +173,7 @@ export default function FlankerGame() {
   const pCongRef = useRef(0.4);
   const pIncongRef = useRef(0.45);
   const trialsTotalRef = useRef(20);
+  const gapRef = useRef(FLANKER_GAP_MAX);
   const roundRef = useRef(0);
   const hitsRef = useRef(0);
   const errorsRef = useRef(0);
@@ -150,6 +212,8 @@ export default function FlankerGame() {
     windowRef.current = p.windowMs;
     pCongRef.current = p.pCong;
     pIncongRef.current = p.pIncong;
+    gapRef.current = p.gapPx;
+    setGapPx(p.gapPx);
     const total = isPreset ? trials : p.trials;   // в пресете длину задаёт зарядка
     trialsTotalRef.current = total;
     setTrials(total);
@@ -196,6 +260,15 @@ export default function FlankerGame() {
           level: levelRef.current,
           mean_rt: Math.round(meanRt),
           flanker_effect_ms: Math.round(incongMean - congMean),
+          /**
+           * Условие, при котором показатель снят, — рядом с самим показателем.
+           * Приём взят у Струпа (stroop.tsx пишет `incongruent_ratio`): без него
+           * два `flanker_effect_ms` из разных партий сравнивать НЕЛЬЗЯ, а по виду
+           * они одинаковые числа. Доли теперь постоянны, разнос — нет.
+           */
+          p_congruent: pCongRef.current,
+          p_incongruent: pIncongRef.current,
+          flanker_gap_px: gapRef.current,
         },
       });
     } catch (err) { console.error(err); }
@@ -315,12 +388,16 @@ export default function FlankerGame() {
       >
         <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
           {showStim ? (
-            <View style={styles.arrowRow}>
+            <View style={[styles.arrowRow, { gap: gapPx }]}>
               {trial.flankers
                 ? trial.flankers.slice(0, 2).map((d, i) => <View key={`l${i}`}>{arrowFor(d, 36, '#888')}</View>)
                 : ['—','—'].map((s, i) => <Text key={`l${i}`} style={{ fontSize: 36, color: '#888' }}>{s}</Text>)
               }
-              <View style={{ marginHorizontal: 8 }}>{arrowFor(trial.center, 56, fbColor)}</View>
+              {/* Своего поля у центральной нет: разнос задаёт РЯД (gap), одинаковый
+                  между всеми стимулами — как в оригинале Эриксена, где буквы
+                  расставлены ровно. Иначе центр стоял бы дальше флангов, чем фланги
+                  друг от друга, и «разнос цель↔фланги» означал бы не то. */}
+              <View>{arrowFor(trial.center, 56, fbColor)}</View>
               {trial.flankers
                 ? trial.flankers.slice(2).map((d, i) => <View key={`r${i}`}>{arrowFor(d, 36, '#888')}</View>)
                 : ['—','—'].map((s, i) => <Text key={`r${i}`} style={{ fontSize: 36, color: '#888' }}>{s}</Text>)

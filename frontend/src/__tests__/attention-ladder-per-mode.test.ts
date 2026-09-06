@@ -23,7 +23,7 @@ import {
   attentionLoad, flankerCongruentTrials,
 } from '@/src/games/attention/load';
 import { levelParams as stroopParams } from '@/app/games/stroop';
-import { levelParams as flankerParams } from '@/app/games/flanker';
+import { levelParams as flankerParams, flankerRowWidthPx } from '@/app/games/flanker';
 import { levelParams as cptParams } from '@/app/games/cpt';
 import { levelParams as targetsParams } from '@/app/games/targets';
 import { levelParams as wcstParams } from '@/app/games/wcst';
@@ -170,6 +170,53 @@ describe('фланкер: измеряемая величина не должн�
       .map((l) => ({ l, n: flankerCongruentTrials(l) }))
       .filter((x) => x.n < 6);
     expect(thin).toEqual([]);
+  });
+
+  /**
+   * 🔴 ГЛАВНЫЙ ЗАСЛОН ЭТОЙ ПРОБЫ: ДОЛЯ КОНФЛИКТНЫХ БОЛЬШЕ НЕ РУЧКА СЛОЖНОСТИ.
+   *
+   * Ровно такой же заслон стоит у Струпа (`conflict-ratio-is-not-difficulty`), и
+   * ровно его во фланкере не было — из-за чего лестница росла долей и уменьшала
+   * `flanker_effect_ms`, ради которого проба существует. Спрашиваем игру, что она
+   * даёт на первом и на пятнадцатом, а не читаем строчку в исходнике.
+   */
+  /**
+   * 🔴 РЯД СТИМУЛОВ ПОМЕЩАЕТСЯ В УЗКИЙ ТЕЛЕФОН НА ВСЕХ УРОВНЯХ.
+   *
+   * Разнос — ось сложности, и растить её вверх соблазнительно. Но ряд = 4 фланга
+   * по 36 + центр 56 + 4 зазора, и при разносе 34 px это 336 px: на телефоне
+   * 360 px ряд вылезает за экран. Тестировщик NZT-48 04.09.2026 жаловался ровно
+   * на это («экран разъезжается»), поэтому ось ограничена сверху пробой, а не
+   * обещанием в комментарии. Порог 328 = 360 минус отступы каркаса.
+   */
+  it('🔴 ряд стимулов фланкера помещается в 360 px на каждом уровне', () => {
+    const широкие = Array.from({ length: LADDER_RANGE.flanker }, (_, i) => i + 1)
+      .map((l) => ({ l, w: flankerRowWidthPx(flankerParams(l).gapPx) }))
+      .filter((x) => x.w > 328);
+    expect(широкие).toEqual([]);
+  });
+
+  it('🔴 доли согласованных и конфликтных НЕ зависят от уровня', () => {
+    const ls = Array.from({ length: LADDER_RANGE.flanker }, (_, i) => i + 1);
+    const доли = ls.map((l) => { const p = flankerParams(l); return `${p.pCong}/${p.pIncong}`; });
+    expect(new Set(доли).size).toBe(1);
+  });
+
+  /**
+   * И встречная половина: если доля заморожена, лестница обязана расти ЧЕМ-ТО ЕЩЁ.
+   * Иначе «доля не растёт» достигается заодно с «ничего не растёт», и проба выше
+   * останется зелёной на мёртвой лестнице.
+   */
+  it('🔴 разнос цель↔фланги сокращается на КАЖДОМ уровне — ось Эриксена жива', () => {
+    const ls = Array.from({ length: LADDER_RANGE.flanker }, (_, i) => i + 1);
+    const gaps = ls.map((l) => flankerParams(l).gapPx);
+    const плохие: string[] = [];
+    for (let i = 1; i < gaps.length; i++) {
+      if (gaps[i] >= gaps[i - 1]) плохие.push(`L${ls[i - 1]}→L${ls[i]}: ${gaps[i - 1]} → ${gaps[i]}`);
+    }
+    expect(плохие).toEqual([]);
+    // и путь пройден, а не потоптался: верх теснее низа не меньше чем впятеро
+    expect(gaps[0] / gaps[gaps.length - 1]).toBeGreaterThanOrEqual(5);
   });
 
   it('🔴 доля конфликтных не доведена до вырождения нейтральных проб в ноль', () => {

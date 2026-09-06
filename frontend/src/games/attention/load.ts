@@ -51,7 +51,7 @@ export const LADDER_RANGE: Record<AttentionMode, number> = {
 /** Что пишется в партию у этой пробы, и чем это меряется в методике. */
 export const SESSION_MEASURE: Record<AttentionMode, { field: string; norm: string }> = {
   stroop:  { field: 'interference_ms',     norm: 'интерференция ~70–200 мс у взрослых; при SOA 0 классические 72 мс' },
-  flanker: { field: 'flanker_effect_ms',   norm: 'эффект фланкера 70–100 мс у здоровых взрослых' },
+  flanker: { field: 'flanker_effect_ms',   norm: 'эффект фланкера 70–100 мс у здоровых взрослых; норма батареи 70±30 (assessment.ts:57)' },
   cpt:     { field: 'vigilance_decrement', norm: 'наклон RT по квартилям; падение ТОЧНОСТИ к концу пока не пишется' },
   targets: { field: 'mean_rt/std_rt',      norm: 'go/no-go: доля no-go 25 % либо 50 %; у нас TARGET_RATE = 0.5' },
   wcst:    { field: 'perseverative',       norm: 'канон: смена правила после 10 подряд верных (Heaton 1993)' },
@@ -72,19 +72,23 @@ export function stroopLoad(level: number): number {
 }
 
 /**
- * ФЛАНКЕР — «цена помехи».
+ * ФЛАНКЕР — «цена помехи»: насколько тесно фланги стоят к цели и как мало времени
+ * на подавление.
  *
- * ⚠️ ЗДЕСЬ ЛЕСТНИЦА И ПОКАЗАТЕЛЬ ТЯНУТ В РАЗНЫЕ СТОРОНЫ, И ЭТО ЗАПИСАННЫЙ ДЕФЕКТ,
- * А НЕ ОСОБЕННОСТЬ ФОРМУЛЫ. Уровень растёт долей конфликтных (0,30 → 0,65), а
- * proportion-congruent effect говорит, что чем больше доля конфликтных, тем МЕНЬШЕ
- * измеряемый эффект. То есть ручка, которой растёт уровень, уменьшает величину,
- * ради которой проба существует. Разбор и числа — PROJECT_REF §0, ДЕФЕКТ 1.
- * Нагрузка считается по факту (как есть сейчас); сторожит это `congruentTrials`.
+ * 🔴 РАНЬШЕ ЗДЕСЬ БЫЛА ДОЛЯ КОНФЛИКТНЫХ, И ЭТО БЫЛ ДЕФЕКТ, А НЕ ФОРМУЛА.
+ * Уровень рос долей (0,30 → 0,65), а proportion-congruent effect говорит: чем
+ * больше доля конфликтных, тем МЕНЬШЕ измеряемый эффект. Ручка, которой рос
+ * уровень, уменьшала величину, ради которой проба существует. Доли заморожены
+ * (flanker.tsx), сложность переехала на канонную ось Эриксена — разнос
+ * «цель ↔ фланги», где интерференция падает с ростом расстояния, то есть
+ * трудность растёт при СБЛИЖЕНИИ. Разбор и числа — PROJECT_REF §0 ДЕФЕКТ 1 и §3.
+ *
+ * Валюта: во сколько раз теснее, чем на первом уровне, — по разносу и по окну.
  */
 export function flankerLoad(level: number): number {
   const p = flankerParams(level);
-  const base = flankerParams(1).windowMs;
-  return p.pIncong * (base / p.windowMs);
+  const base = flankerParams(1);
+  return (base.gapPx / p.gapPx) * (base.windowMs / p.windowMs);
 }
 
 /**
