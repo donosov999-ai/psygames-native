@@ -59,12 +59,81 @@ export const MNEMONICS_RULES: LevelRule[] = [
   { key: 'method', fromLevel: 7 },   // lr_mnemonics_method_*
 ];
 
-type GamePhase = 'intro' | 'config' | 'memorize' | 'check' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'memorize' | 'gap' | 'check' | 'cleared' | 'result';
 type GameMode = 'words' | 'numbers';
 // Лесенка: старт 5 элементов (минимум для запоминания списка) → растёт при ЧИСТОМ воспроизведении.
 /** Экспортируется для замера лестницы: `memory-hearing-ladders-scan`. */
-export function levelParams(level: number): { itemCount: number } {
-  return { itemCount: Math.min(15, 4 + Math.max(1, level)) };   // L1=5, L2=6 … L11=15
+/**
+ * 🔴 ЛЕСТНИЦА «МНЕМОНИКИ» — ТРИ ОСИ ВМЕСТО ОДНОЙ ДЛИНЫ СПИСКА.
+ *
+ * 📍 ЗАМЕР ДО (проба memory-hearing-ladders-scan, 06.09.2026): плато с 11-го
+ * уровня из 15 — `itemCount` упирается в 15 и дальше не меняется НИЧЕГО. Пять
+ * уровней подряд неотличимы.
+ *
+ * ПОЧЕМУ НЕ РАСТИТЬ СПИСОК ДАЛЬШЕ. Список из двадцати слов — это не труднее, а
+ * дольше: человек всё равно дробит его на куски, и меряется усидчивость, а не
+ * память. Зато в приёме отсутствуют две классические оси удержания:
+ *
+ * · ЗАДЕРЖКА (ось 3) — пауза между показом и проверкой. Пока проверка идёт
+ *   сразу, список держится в проговаривании: повторил про себя — назвал. Пауза
+ *   заставляет его действительно ЗАПОМНИТЬ.
+ * · ИНТЕРФЕРЕНЦИЯ (ось 4) — посторонняя задача в этой паузе. Так устроен
+ *   классический OSPAN: между элементами решают простой пример, и проговаривание
+ *   рушится. Это и отличает объём памяти от объёма проговаривания.
+ *
+ * Обе оси включаются позже объёма: сначала человек осваивает сам приём.
+ */
+/**
+ * Пример для окна удержания: сложение в пределах двадцати и четыре варианта.
+ *
+ * Считать надо ровно столько, чтобы проговаривание списка развалилось, — это
+ * задача-помеха, а не второй тест. Поэтому числа маленькие, ответ один, а
+ * варианты стоят рядом (±1, ±2): выбрать наугад нельзя, но и думать долго не о
+ * чем. Ни одной буквы: экран не требует перевода на двенадцать языков.
+ */
+export function новыйПример(): { a: number; b: number; ответ: number; варианты: number[] } {
+  const a = 2 + Math.floor(Math.random() * 8);
+  const b = 2 + Math.floor(Math.random() * 8);
+  const ответ = a + b;
+  const набор = new Set<number>([ответ]);
+  /*
+   * 🔴 СТОРОЖ ЦИКЛА, НАЙДЕННЫЙ МУТАЦИЕЙ. Набор вариантов собирается случайными
+   * сдвигами, и при штатных ±1/±2 он всегда набирается: ответ не меньше четырёх,
+   * значит ответ−2 положителен. Но стоит сдвигам стать крупнее — а именно это
+   * сделала проверочная мутация 07.09.2026, — как отрицательные кандидаты
+   * отбрасываются, четвёртого варианта не находится, и цикл крутится вечно:
+   * прогон висел полтора часа, пока его не сняли руками. Ошибка была не в
+   * сдвигах, а в отсутствии выхода. Сторож даёт добор соседними числами.
+   */
+  let охрана = 0;
+  while (набор.size < 4 && охрана < 40) {
+    охрана += 1;
+    const сдвиг = [1, -1, 2, -2][Math.floor(Math.random() * 4)];
+    const v = ответ + сдвиг;
+    if (v > 0) набор.add(v);
+  }
+  for (let шаг = 1; набор.size < 4; шаг += 1) набор.add(ответ + шаг + 2);
+  const варианты = Array.from(набор);
+  for (let i = варианты.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [варианты[i], варианты[j]] = [варианты[j], варианты[i]];
+  }
+  return { a, b, ответ, варианты };
+}
+
+export function levelParams(level: number): {
+  itemCount: number;
+  /** Ось 3: пауза между показом и проверкой, мс. */
+  gapMs: number;
+  /** Ось 4: сколько примеров решить в этой паузе (0 — просто ждать). */
+  mathTrials: number;
+} {
+  const l = Math.min(15, Math.max(1, Math.floor(level)));
+  return {
+    itemCount: Math.min(15, 4 + Math.max(1, l)),   // L1=5, L2=6 … L11=15
+    gapMs: l < 5 ? 0 : Math.min(4000, (l - 4) * 350),
+    mathTrials: l < 9 ? 0 : Math.min(3, l - 8),
+  };
 }
 
 export default function MnemonicsGame() {
@@ -83,6 +152,11 @@ export default function MnemonicsGame() {
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
+  /** Окно удержания: сколько примеров осталось решить и что показано сейчас. */
+  const [примеров, setПримеров] = useState(0);
+  const [решено, setРешено] = useState(0);
+  const [пример, setПример] = useState<{ a: number; b: number; ответ: number; варианты: number[] } | null>(null);
+  const [остаток, setОстаток] = useState(0);
   // Правила уровня: показать при первом входе и дать перечитать по бейджу.
   /**
    * 🔴 ПРАВИЛА ПОКАЗЫВАЮТСЯ ДО КРУГА, А НЕ В МИГ ВСПОМИНАНИЯ.
@@ -179,7 +253,25 @@ export default function MnemonicsGame() {
     }, 100);
   };
 
+  /**
+   * Окно удержания между показом и проверкой: пауза, а на старших уровнях —
+   * ещё и примеры. Ставится ПЕРЕД перемешиванием: сначала человек отвлекается,
+   * и только потом видит список.
+   */
   const startCheck = () => {
+    const p = levelParams(lvl.level);
+    if (p.gapMs > 0 || p.mathTrials > 0) {
+      setПримеров(p.mathTrials);
+      setРешено(0);
+      setПример(новыйПример());
+      setОстаток(Math.ceil(p.gapMs / 1000));
+      setPhase('gap');
+      return;
+    }
+    начатьПроверку();
+  };
+
+  const начатьПроверку = () => {
     // Shuffle items for checking
     const shuffled = [...items];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -513,6 +605,65 @@ export default function MnemonicsGame() {
   );
 
 
+  /**
+   * Обратный отсчёт окна удержания. Работает только когда примеров нет: если
+   * они есть, окно закрывает не время, а решённые примеры — иначе человек
+   * просто переждал бы помеху, не считая.
+   */
+  useEffect(() => {
+    if (phase !== 'gap' || примеров > 0) return;
+    if (остаток <= 0) { начатьПроверку(); return; }
+    const t = setTimeout(() => setОстаток((v) => v - 1), 1000);
+    return () => clearTimeout(t);
+  }, [phase, примеров, остаток]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  const ответитьНаПример = (v: number) => {
+    if (!пример) return;
+    // Промах не штрафуется и не засчитывается: помеха нужна, чтобы занять
+    // проговаривание, а не чтобы измерять арифметику.
+    if (v !== пример.ответ) { setПример(новыйПример()); return; }
+    const стало = решено + 1;
+    setРешено(стало);
+    if (стало >= примеров) начатьПроверку();
+    else setПример(новыйПример());
+  };
+
+  const renderGap = () => (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.gapWrap}>
+        {примеров > 0 && пример ? (
+          <>
+            <Text style={[styles.gapCounter, { color: colors.textSecondary }]}>
+              {решено + 1} / {примеров}
+            </Text>
+            <Text style={[styles.gapMath, { color: colors.text }]}>
+              {пример.a} + {пример.b}
+            </Text>
+            <View style={styles.gapOptions}>
+              {пример.варианты.map((v) => (
+                <TouchableOpacity
+                  key={v}
+                  accessibilityRole="button"
+                  accessibilityLabel={String(v)}
+                  onPress={() => ответитьНаПример(v)}
+                  style={[styles.gapOption, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                >
+                  <Text style={[styles.gapOptionText, { color: colors.text }]}>{v}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        ) : (
+          <>
+            <Ionicons name="hourglass-outline" size={40} color={colors.textSecondary} />
+            <Text style={[styles.gapMath, { color: colors.text }]}>{Math.max(0, остаток)}</Text>
+          </>
+        )}
+      </View>
+    </SafeAreaView>
+  );
+
+  if (phase === 'gap') return renderGap();
   if (phase === 'memorize') return <>{renderMemorize()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
   if (phase === 'check') return <>{renderCheck()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
 
@@ -555,6 +706,13 @@ export default function MnemonicsGame() {
 }
 
 const styles = StyleSheet.create({
+  /** Окно удержания: пример-помеха или обратный отсчёт. Цифры, ни одной буквы. */
+  gapWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 18, padding: 24 },
+  gapCounter: { fontSize: 15, fontWeight: '600' },
+  gapMath: { fontSize: 44, fontWeight: '800', letterSpacing: 2 },
+  gapOptions: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' },
+  gapOption: { minWidth: 72, minHeight: 56, borderWidth: 1, borderRadius: 14, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14 },
+  gapOptionText: { fontSize: 24, fontWeight: '700' },
   container: { flex: 1 },
   header: {
     flexDirection: 'row',
