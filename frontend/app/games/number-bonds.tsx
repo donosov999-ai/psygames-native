@@ -1,14 +1,17 @@
-/* psygames-game-number-bonds · VER 1 · 19.08.2026 */
+/* psygames-game-number-bonds · VER 2 · 06.09.2026 */
 /**
  * Number Bonds — собери цель из слагаемых (разложение числа, ментальная арифметика).
  *
- * Уровни (persist, по паттерну cpt/simon): ручной селектор сложности и числа задач
- * заменён на usePersistentLevel('number_bonds') + levelParams. Ось усложнения:
- *   - числа крупнее: max значение фишки 12 → 40
- *   - пул фишек шире: 8 → 12 (больше дистракторов)
- *   - решение длиннее: 2–3 слагаемых → 3–5
- *   - окно на задачу сокращается 45с → 15с (не уложился = ошибка, задача пропускается)
- *   - число задач растёт ступенями 6 → 8 → 10
+ * Уровни (persist, по паттерну cpt/simon): лестница живёт в ОТДЕЛЬНОМ модуле
+ * src/games/counting/numberBondsLadder.ts — его же читает замер counting-chat/sim-ladder.mjs
+ * (один источник правды). VER 2 (решения Дениса R1–R3 от 06.09.2026, реф counting-chat):
+ *   - детский вход L1–L3: пары «состав до 10 → до 20», БЕЗ таймера
+ *     (на старой лестнице целей ≤10 было 17,1% — школьного входа не было);
+ *   - доля длинных решений растёт весами (sizeWeights), рубильника solMin 2→3 нет
+ *     (он давал обрыв трудности ×3,6); гейт: скачок работы соседних уровней ≤×1,5;
+ *   - окно на задачу = 2,5×прогноза времени (потолок 300 с — страховка, не стена);
+ *     старое окно 45→15с с уровня 5 было МЕНЬШЕ потребного времени — уровни не проходились;
+ *   - прогресс старой лестницы мигрирует по равной работе (migrateOldLevel, флаг в AsyncStorage).
  * Проход уровня: ≤2 ошибок за раунд → LevelCleared (авто-поток).
  * Пресеты (зарядка, wu=1): прежнее поведение — diff/trials из params, без окна, reach/fail не трогаем.
  */
@@ -34,6 +37,12 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import {
+  levelParams, makePuzzle, migrateOldLevel, NB_MAX_LEVEL,
+  type BondsCfg, type BondsPuzzle,
+} from '@/src/games/counting/numberBondsLadder';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
@@ -57,54 +66,15 @@ type Difficulty = 'easy' | 'medium' | 'hard';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 
-interface Puzzle { target: number; chips: number[]; }
-interface PuzzleCfg { pool: number; maxV: number; solMin: number; solMax: number; }
+type Puzzle = BondsPuzzle;
 
-// Уровень 1..15: числа крупнее, пул фишек шире, решение длиннее,
-// окно на задачу сокращается, число задач растёт ступенями (6 → 8 → 10).
-function levelParams(level: number): PuzzleCfg & { trials: number; windowMs: number } {
-  const trials = level <= 5 ? 6 : level <= 10 ? 8 : 10;
-  const pool = Math.min(12, 8 + Math.floor((level - 1) / 3));      // 8 → 12 фишек
-  const maxV = 12 + (level - 1) * 2;                               // max фишка 12 → 40
-  const solMin = level <= 4 ? 2 : 3;
-  const solMax = level <= 4 ? 3 : level <= 9 ? 4 : 5;              // слагаемых 2–3 → 3–5
-  const windowMs = Math.max(15000, 45000 - (level - 1) * 2200);    // окно 45с → 15с
-  return { trials, pool, maxV, solMin, solMax, windowMs };
-}
-
-// Пресеты зарядки (wu=1) продолжают ходить по старым diff-конфигам
-const DIFF_CFG: Record<Difficulty, PuzzleCfg> = {
-  easy:   { pool: 8,  maxV: 12, solMin: 2, solMax: 3 },
-  medium: { pool: 9,  maxV: 18, solMin: 3, solMax: 4 },
-  hard:   { pool: 12, maxV: 25, solMin: 3, solMax: 5 },
+// Пресеты зарядки (wu=1): прежние diff-конфиги, выраженные весами размеров
+// (uniform по старым solMin..solMax — поведение то же, генератор общий из модуля).
+const DIFF_CFG: Record<Difficulty, Omit<BondsCfg, 'trials' | 'windowMs'>> = {
+  easy:   { pool: 8,  maxV: 12, sizeWeights: { 2: 0.5, 3: 0.5 } },
+  medium: { pool: 9,  maxV: 18, sizeWeights: { 3: 0.5, 4: 0.5 } },
+  hard:   { pool: 12, maxV: 25, sizeWeights: { 3: 1 / 3, 4: 1 / 3, 5: 1 / 3 } },
 };
-
-function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
-
-function makePuzzle(cfg: PuzzleCfg): Puzzle {
-  const solSize = cfg.solMin + Math.floor(Math.random() * (cfg.solMax - cfg.solMin + 1));
-
-  // 1) Build a guaranteed solution: pick `solSize` distinct values
-  const sol: number[] = [];
-  const used = new Set<number>();
-  while (sol.length < solSize) {
-    const v = 1 + Math.floor(Math.random() * cfg.maxV);
-    if (!used.has(v)) { used.add(v); sol.push(v); }
-  }
-  const target = sol.reduce((a, b) => a + b, 0);
-
-  // 2) Add distractors so total == cfg.pool
-  const distractors: number[] = [];
-  let guard = 0;
-  while (distractors.length < cfg.pool - sol.length && guard < 200) {
-    const v = 1 + Math.floor(Math.random() * cfg.maxV);
-    // avoid trivially equal-to-target chips (would be a 1-chip "solution")
-    if (v !== target) distractors.push(v);
-    guard++;
-  }
-  const chips = shuffle([...sol, ...distractors]);
-  return { target, chips };
-}
 
 export default function NumberBondsGame() {
   const { colors } = useTheme();
@@ -114,10 +84,33 @@ export default function NumberBondsGame() {
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('number_bonds');
-    // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
-  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
-  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { profile } = useProfile();
+  /**
+   * МИГРАЦИЯ ЛЕСТНИЦЫ v1→v2 (06.09.2026): сохранённый уровень старой шкалы 1..15
+   * означает ДРУГУЮ трудность в новой шкале 1..20 — пересчитываем однократно по
+   * равной работе (migrateOldLevel), флаг per-profile, как и сам уровень.
+   * Новичок (best=1) флаг получает сразу и начинает с детского L1.
+   */
+  const [migrated, setMigrated] = useState(false);
+  useEffect(() => {
+    if (!lvl.loaded) return;
+    let cancelled = false;
+    const pid = (profile as any)?.id ?? 'default';
+    const flagKey = `psygames_number_bonds_ladderv2_${pid}`;
+    AsyncStorage.getItem(flagKey).then((v) => {
+      if (cancelled) return;
+      if (v !== '2') {
+        if (lvl.best > 1) lvl.setLevel(migrateOldLevel(lvl.best));
+        AsyncStorage.setItem(flagKey, '2').catch(() => {});
+      }
+      setMigrated(true);
+    }).catch(() => { if (!cancelled) setMigrated(true); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- одноразовый пересчёт на профиль
+  }, [lvl.loaded, (profile as any)?.id]);
+  // ⚠️ Ждём загрузки уровня И миграции. Без первого автостарт («Вызов дня», онбординг)
+  // играл ПЕРВЫЙ уровень человеку с двенадцатым; без второй — старый номер в новой шкале.
+  useAutostartWhenReady(() => autostart && lvl.loaded && migrated, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   // Пресет-параметры (только wu=1): вне пресета сложность идёт от уровня
   const [difficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
@@ -132,13 +125,14 @@ export default function NumberBondsGame() {
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [roundLeft, setRoundLeft] = useState(0);   // остаток окна текущей задачи (сек), только уровневый режим
+  const [hasWindow, setHasWindow] = useState(false); // у детских уровней L1–L3 окна нет вовсе
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл ли уровень (для баннера LevelCleared)
 
   // Рефы — счётчики/параметры раунда живут вне ре-рендеров: таймерная цепочка
   // (окно задачи → фидбек → следующая задача) в колбэках видела бы устаревший state
   // (паттерн cpt/simon).
   const levelRef = useRef(1);
-  const cfgRef = useRef<PuzzleCfg>(DIFF_CFG.medium);
+  const cfgRef = useRef<BondsCfg>({ ...DIFF_CFG.medium, trials: 8, windowMs: 0 });
   const windowMsRef = useRef(0);          // 0 = без окна (пресет)
   const trialsRef = useRef(8);
   const roundRef = useRef(0);
@@ -192,17 +186,18 @@ export default function NumberBondsGame() {
     clearAllTimers();
     if (isPreset) {
       // пресет зарядки: прежнее поведение (diff/trials из params, без окна времени)
-      cfgRef.current = DIFF_CFG[difficulty];
+      cfgRef.current = { ...DIFF_CFG[difficulty], trials: presetTrials, windowMs: 0 };
       windowMsRef.current = 0;
       trialsRef.current = presetTrials;
       levelRef.current = 0;
     } else {
       const p = levelParams(lvl.level);
       levelRef.current = lvl.level;
-      cfgRef.current = { pool: p.pool, maxV: p.maxV, solMin: p.solMin, solMax: p.solMax };
-      windowMsRef.current = p.windowMs;
+      cfgRef.current = p;
+      windowMsRef.current = p.windowMs;   // 0 на детских уровнях — таймера нет
       trialsRef.current = p.trials;
     }
+    setHasWindow(windowMsRef.current > 0);
     setTotalTrials(trialsRef.current);
     hitsRef.current = 0; errorsRef.current = 0; roundRef.current = 1;
     setHits(0); setErrors(0); setRound(1);
@@ -247,7 +242,7 @@ export default function NumberBondsGame() {
         game_type: 'number_bonds',
         score: Math.max(0, h * 100 - e * 25 - Math.floor(finalTime)),
         time_seconds: finalTime,
-        difficulty: isPreset ? difficulty : (levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard'),
+        difficulty: isPreset ? difficulty : (levelRef.current <= 8 ? 'easy' : levelRef.current <= 15 ? 'medium' : 'hard'),
         mode: isPreset ? `${trialsRef.current}t` : `lvl${levelRef.current}`,
         errors: e,
         details: {
@@ -322,6 +317,9 @@ export default function NumberBondsGame() {
 
   const renderConfig = () => {
     const p = levelParams(lvl.level);
+    const sizes = Object.keys(p.sizeWeights).map(Number);
+    const solMin = Math.min(...sizes);
+    const solMax = Math.max(...sizes);
     return (
       <>
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
@@ -332,13 +330,14 @@ export default function NumberBondsGame() {
         </LinearGradient>
         <GameAbout descriptionKey="numberBondsIntroDesc" benefits={NB_BENEFITS} accent={GRADIENT[0]} />
 
-        <LevelProgressMap bestLevel={lvl.best} gameId="number_bonds" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="number_bonds" currentLevel={lvl.level} maxLevel={NB_MAX_LEVEL} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {t('numberBondsLvlParams').replace('{n}', String(p.trials)).replace('{m}', String(p.maxV)).replace('{c}', String(p.pool)).replace('{a}', String(p.solMin)).replace('{b}', String(p.solMax)).replace('{w}', String(Math.round(p.windowMs / 1000)))}
+            {/* Детские уровни без таймера: окно «∞» читается на всех 12 языках без правки словаря */}
+            {t('numberBondsLvlParams').replace('{n}', String(p.trials)).replace('{m}', String(p.maxV)).replace('{c}', String(p.pool)).replace('{a}', String(solMin)).replace('{b}', String(solMax)).replace('{w}', p.windowMs > 0 ? String(Math.round(p.windowMs / 1000)) : '∞')}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
@@ -369,7 +368,7 @@ export default function NumberBondsGame() {
         hud={[
           { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}`, pop: true },
           { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
-          ...(!isPreset ? [{ key: 'left', icon: 'time' as const, label: t('timeLeftLabel'), value: `${Math.ceil(roundLeft)}${t('secShort')}`, tone: roundLeft <= 5 ? 'warn' as const : 'neutral' as const }] : []),
+          ...(!isPreset && hasWindow ? [{ key: 'left', icon: 'time' as const, label: t('timeLeftLabel'), value: `${Math.ceil(roundLeft)}${t('secShort')}`, tone: roundLeft <= 5 ? 'warn' as const : 'neutral' as const }] : []),
         ]}
         stats={
           <View style={styles.statsRow}>
