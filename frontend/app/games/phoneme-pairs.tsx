@@ -21,6 +21,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { ensureVoiceIndex } from '@/src/services/voiceSamples';
+import { startNoise, stopNoise } from '@/src/services/noise';
 import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
 import { ZH_PINYIN } from '@/src/constants/zhPinyin.generated';
 import { useTtsAvailable, useTtsBlock } from '@/src/hooks/useTtsAvailable';
@@ -184,10 +185,27 @@ interface Trial {
 // Лесенка: L1-5 — 8 проб, лёгкая половина пар, после ответа показываем слово;
 // L6-10 — 10 проб, весь список; L11+ — 12 проб, слепой режим (только звук).
 /** Экспортируется для замера лестницы: `memory-hearing-ladders-scan`. */
-export function levelParams(level: number): { trials: number; easyOnly: boolean; showWord: boolean; blind: boolean } {
-  if (level <= 5) return { trials: 8, easyOnly: true, showWord: true, blind: false };
-  if (level <= 10) return { trials: 10, easyOnly: false, showWord: false, blind: false };
-  return { trials: 12, easyOnly: false, showWord: false, blind: true };
+export function levelParams(level: number): {
+  trials: number; easyOnly: boolean; showWord: boolean; blind: boolean;
+  /** Ось 2: множитель темпа речи. */
+  rate: number;
+  /** Ось 5: отношение сигнал/шум в дБ; null — тишина. */
+  snrDb: number | null;
+  /** Ось 10: сколько ошибок ещё считается прохождением. */
+  maxErrors: number;
+} {
+  const l = Math.min(15, Math.max(1, Math.floor(level)));
+  const ступень = l <= 5
+    ? { trials: 8, easyOnly: true, showWord: true, blind: false }
+    : l <= 10
+      ? { trials: 10, easyOnly: false, showWord: false, blind: false }
+      : { trials: 12, easyOnly: false, showWord: false, blind: true };
+  return {
+    ...ступень,
+    rate: Math.round((0.95 - (l - 1) * 0.015) * 1000) / 1000,
+    snrDb: l < 6 ? null : Math.round(Math.max(0, 18 - (l - 6) * 2) * 10) / 10,
+    maxErrors: l <= 5 ? 2 : l <= 10 ? 1 : 0,
+  };
 }
 
 function buildTrials(pairs: [string, string][], count: number): Trial[] {
@@ -226,6 +244,8 @@ export default function PhonemePairsGame() {
   const trialsRef = useRef<Trial[]>([]);
   const hitsRef = useRef(0);
   const errorsRef = useRef(0);
+  /** Оси уровня: темп, помеха и допуск ошибок берутся отсюда. */
+  const парамRef = useRef(levelParams(1));
   const replaysRef = useRef(0);
   const levelRef = useRef(1);
   const paramsRef = useRef(levelParams(1));
@@ -249,6 +269,7 @@ export default function PhonemePairsGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     if (advanceRef.current) clearTimeout(advanceRef.current);
     ttsCancel();
+    stopNoise();   // помеха не переживает выход с экрана
   }, []);
 
   // восстановить сохранённый выбор языка (не в пресете — там параметры рулят)
@@ -283,6 +304,7 @@ export default function PhonemePairsGame() {
     trialsRef.current = buildTrials(pool, p.trials);
     hitsRef.current = 0;
     errorsRef.current = 0;
+    парамRef.current = levelParams(lvl.level);
     replaysRef.current = 0;
     setHits(0);
     setErrors(0);
@@ -300,7 +322,10 @@ export default function PhonemePairsGame() {
     if (phase !== 'playing') return;
     const tr = trialsRef.current[idx];
     if (!tr) return;
-    const to = setTimeout(() => { speak(tr.words[tr.correctIdx], tgtRef.current, 0.85); }, 400);
+    const to = setTimeout(() => {
+      startNoise(парамRef.current.snrDb);
+      speak(tr.words[tr.correctIdx], tgtRef.current, парамRef.current.rate).then(() => stopNoise());
+    }, 400);
     return () => clearTimeout(to);
   }, [phase, idx]);
 
@@ -308,7 +333,8 @@ export default function PhonemePairsGame() {
     const tr = trialsRef.current[idx];
     if (!tr || phase !== 'playing') return;
     replaysRef.current += 1;   // replay не штрафуется, только считаем
-    speak(tr.words[tr.correctIdx], tgtRef.current, 0.85);
+    startNoise(парамRef.current.snrDb);
+    speak(tr.words[tr.correctIdx], tgtRef.current, парамRef.current.rate).then(() => stopNoise());
   };
 
   const finishRound = async () => {
@@ -317,7 +343,9 @@ export default function PhonemePairsGame() {
     setElapsedTime(finalTime);
     const h = hitsRef.current;
     const e = errorsRef.current;
-    const passed = e <= 1;
+    // Ось 10, цена ошибки: на первых уровнях прощаются две, дальше одна, с
+    // одиннадцатого — ни одной. Растёт не задание, а требование к точности.
+    const passed = e <= парамRef.current.maxErrors;
     if (isPreset) {
       setPhase(passed ? 'cleared' : 'result');
     } else {
