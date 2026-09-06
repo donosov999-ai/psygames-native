@@ -21,7 +21,7 @@ import { CHESS_PIECE_SVG } from '@/src/games/chess-blind/core/pieces';
 import { a11yDecor } from '@/src/services/a11y';
 import { buildDeck, buildFlowDeck, buildNamedDeck, levelParams } from './core/deck';
 import { check, movesFrom, shownFen, sideToMove, threatAnswer, дополнитьХод } from './core/check';
-import { scholarsArmed, медианаМс, размерКлетки, ширинаДоски } from './core/run';
+import { scholarsArmed, медианаМс, прятатьВид, размерКлетки, ширинаДоски } from './core/run';
 import type { ScholarsAttempt, ScholarsResult } from './core/types';
 
 const БУКВЫ = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -342,10 +342,23 @@ export default function ScholarsMateGame({
     ? Array.from({ length: 64 }, (_, i) => i)
     : Array.from({ length: 64 }, (_, i) => 63 - i);
 
-  const вопрос = задача.kind === 'defend' ? labels.defend
+  const настоящийВопрос = задача.kind === 'defend' ? labels.defend
     : задача.kind === 'threat' ? labels.threat
     : задача.kind === 'sacrifice' ? labels.sacrifice
     : labels.mate;
+  /**
+   * 🔴 НА ВЕРХНИХ СТУПЕНЯХ ВИД ЗАДАНИЯ НЕ ОБЪЯВЛЯЕТСЯ — ось «непредсказуемость»
+   * (правило «потолков нет нигде», решение Дениса 06.09.2026). Рубеж и довод — в
+   * `объявлятьВид`.
+   *
+   * ⚠️ ЗНАКОМ, А НЕ СЛОВАМИ. Нейтральное «ваш ход» потребовало бы нового ключа в
+   * двенадцати словарях, а десять из них помечены «AUTO-GENERATED, не править
+   * руками — регенерировать воркфлоу», то есть это работа переводческого канала,
+   * а не моя. Вопросительный знак читается одинаково на всех языках и не врёт.
+   * Задача на человеческую формулировку заведена отдельно.
+   */
+  const скрыт = прятатьВид(level, задача.kind);
+  const вопрос = скрыт ? '?' : настоящийВопрос;
 
   return (
     <View style={стили.колонка}>
@@ -442,6 +455,9 @@ export default function ScholarsMateGame({
 
       {вердикт ? (
         <Text style={[стили.вердикт, { color: вердикт.ok ? theme.success : theme.danger }]}>
+          {/* Вид, который прятали, называется ПОСЛЕ ответа — иначе это загадка
+              без разгадки, а не задача. */}
+          {(скрыт ? `${настоящийВопрос} · ` : '')}
           {вердикт.ok
             ? '✓'
             : `✕ ${вердикт.best ? `${labels.best} ${вердикт.best}` : ''}${вердикт.наказание ? ` · ${вердикт.наказание}#` : ''}`}
