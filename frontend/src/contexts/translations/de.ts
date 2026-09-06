@@ -1649,6 +1649,7 @@ const t: Record<string, string> = {
   "benefitGoods3": "Fokus und systematisches Denken",
   "goalLabel": "Ziel",
   "goalAll": "Alle Regale leeren",
+  "goodsSortMapLabel": "Regalkarte: helle Punkte sind freie Fächer",
   "goalPick": "Dreiergruppen sammeln von:",
   "goalMoves": "Alles leeren. Höchstens Züge:",
   "goalFree": "Markierte Fächer frei räumen",

@@ -25,7 +25,7 @@
  * меру: связь номера уровня с числом ходов, а не «проходит ли симулятор».
  */
 // Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
-import { dealBoard, levelCfg, targetSlots, typeBudget, TYPES_ON_BOARD_MAX, strictPlacement } from '@/src/games/goods-sort/core/level';
+import { dealBoard, levelCfg, targetSlots, typeBudget, TYPES_ON_BOARD_MAX, strictPlacement , SCROLL_FROM } from '@/src/games/goods-sort/core/level';
 
 /** Игрок средней силы: выбирает лучший ход из видимых, на один шаг вперёд. */
 function playGreedy(cells0: number[][], caps: number[], rnd: () => number, maxMoves = 400): number | null {
@@ -108,7 +108,24 @@ describe('кривая трудности сортировки', () => {
     expect(строгие.length).toBeGreaterThan(3);
     for (const L of строгие) expect(targetSlots(L)).toBeLessThanOrEqual(12);
     expect(targetSlots(1)).toBe(9);
-    for (let L = 1; L <= 60; L++) expect(targetSlots(L)).toBeLessThanOrEqual(16);   // доска 4×4
+    /*
+     * Потолок кривой раздвоился 06.09.2026 вместе с витриной на два-три экрана:
+     * до `SCROLL_FROM` доска 4×4 (16 ниш), после — высокая и едущая (до 28).
+     * Числа не выдуманы: сняты с самих форм, см. комментарий у `targetSlots`.
+     */
+    for (let L = 1; L < SCROLL_FROM; L++) expect(targetSlots(L)).toBeLessThanOrEqual(16);
+    for (let L = SCROLL_FROM; L <= 60; L++) expect(targetSlots(L)).toBeLessThanOrEqual(28);
+    /*
+     * И витрина ДЕЙСТВИТЕЛЬНО больше плато — иначе строка выше ничего не значит.
+     * ⚠️ Берём НЕстрогие уровни: на строгих доска намеренно меньше, и L60 —
+     * как раз строгий. Первая редакция сравнила именно его и покраснела на
+     * верном коде: 12 против 14. Условие проверяем там, где оно про рост.
+     */
+    const витрина = [];
+    for (let L = SCROLL_FROM; L <= 60; L++) if (!strictPlacement(L)) витрина.push(targetSlots(L));
+    expect(витрина.length).toBeGreaterThan(5);
+    expect(Math.max(...витрина)).toBeGreaterThan(targetSlots(40));
+    expect(Math.min(...витрина)).toBeGreaterThan(targetSlots(40));
     expect(targetSlots(50)).toBeGreaterThan(targetSlots(5));                        // рост есть
   });
 

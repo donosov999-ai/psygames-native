@@ -291,6 +291,7 @@ const t: Record<string, string> = {
   "benefitGoods3": "تركيز وتفكير منهجي",
   "goalLabel": "الهدف",
   "goalAll": "أفرغ كل الرفوف",
+  "goodsSortMapLabel": "خريطة الرف: النقاط الفاتحة أماكن فارغة",
   "goalPick": "اجمع ثلاثيات من:",
   "goalMoves": "أفرغ كل شيء. أقصى عدد نقلات:",
   "goalFree": "أفرغ الخانات المعلَّمة",

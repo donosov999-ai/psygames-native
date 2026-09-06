@@ -1649,6 +1649,7 @@ const t: Record<string, string> = {
   "benefitGoods3": "Foco e pensamento sistemático",
   "goalLabel": "Objetivo",
   "goalAll": "Esvazie todas as prateleiras",
+  "goodsSortMapLabel": "Mapa da estante: os pontos claros são vãos livres",
   "goalPick": "Junte trios de:",
   "goalMoves": "Esvazie tudo. Jogadas no máximo:",
   "goalFree": "Libere os nichos marcados",

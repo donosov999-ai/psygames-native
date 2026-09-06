@@ -491,6 +491,8 @@ const translations: Translations = {
   benefitGoods3: { ru: 'Концентрация и системность', en: 'Focus and systematic thinking' },
   goalLabel: { ru: "Цель", en: "Goal" },
   goalAll: { ru: "Убрать всё с полок", en: "Clear every shelf" },
+  /* Мини-карта едущей витрины (§4.4). Ключ новый, чужих строк не трогаю. */
+  goodsSortMapLabel: { ru: "Карта витрины: светлые точки — свободные ниши", en: "Shelf map: light dots are free slots" },
   goalPick: { ru: "Собрать тройки:", en: "Gather triples of:" },
   goalMoves: { ru: "Убрать всё. Ходов не больше:", en: "Clear all. Moves at most:" },
   goalFree: { ru: "Освободить помеченные ниши", en: "Free the marked niches" },

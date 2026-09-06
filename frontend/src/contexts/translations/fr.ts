@@ -291,6 +291,7 @@ const t: Record<string, string> = {
   "benefitGoods3": "Concentration et esprit méthodique",
   "goalLabel": "Objectif",
   "goalAll": "Vider toutes les étagères",
+  "goodsSortMapLabel": "Carte de la vitrine : les points clairs sont des cases libres",
   "goalPick": "Réunir des trios de :",
   "goalMoves": "Tout vider. Coups au maximum :",
   "goalFree": "Libérer les niches marquées",
