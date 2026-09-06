@@ -51,6 +51,9 @@ import {
   solveDotsPuzzle,
   startRound,
   validateDotsSolution,
+  nextDotsHintPair,
+  revealDotsPair,
+  dotsRevealedSolution,
   type Cell,
   type DotsLocale,
   type DotsPuzzle,
@@ -446,5 +449,74 @@ describe('«Соедини точки» — стены действуют в п�
       if (!попробовали) беды.push(`L${level}: ни одна стена не примыкает к началу пары — проба слепа`);
     }
     expect(беды).toEqual([]);
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+/**
+ * 🔴 ДЕШЁВАЯ ПОДСКАЗКА ОТКРЫВАЕТ ТУ ПАРУ, ГДЕ ЧЕЛОВЕК ЗАСТРЯЛ.
+ *
+ * Проба поведенческая: она ВЕДЁТ путь не туда и смотрит, какую пару выберет
+ * подсказка. Гейт, проверяющий «функция существует», зеленел бы и на выборе
+ * наугад — а наугад открытая пара тратится там, где человек справился бы сам.
+ */
+describe('«Соедини точки» — подсказка по одной паре', () => {
+  const доска = () => generateDotsPuzzle('hint-a', 12);
+
+  it('🔴 открывает пару, которую ведут НЕ ТУДА, а не первую попавшуюся', () => {
+    const puzzle = доска();
+    /**
+     * ⚠️ ПАРУ ИЩЕМ ПО ВСЕЙ ДОСКЕ, А НЕ БЕРЁМ ВТОРУЮ.
+     *
+     * Первая редакция брала `pairs[1]` и, не найдя ей законного «неверного»
+     * соседа, ВЫХОДИЛА ЗЕЛЁНОЙ через бессодержательное сравнение. Мутация это
+     * вскрыла: убрал из ядра саму ветку «сначала та, что ведут не туда» — проба
+     * осталась зелёной, потому что не доходила до проверки вовсе. На 12 уровне
+     * у второй пары все соседи заняты стеной, чужим концом или самим решением.
+     */
+    const годная = puzzle.pairs
+      .map((pair) => {
+        const [от] = pair.endpoints;
+        const верный = puzzle.solution[pair.id] as Cell[];
+        const сосед = [{ row: от.row + 1, col: от.col }, { row: от.row, col: от.col + 1 },
+          { row: от.row - 1, col: от.col }, { row: от.row, col: от.col - 1 }]
+          .find((c) => c.row >= 0 && c.col >= 0 && c.row < puzzle.size && c.col < puzzle.size
+            && !(c.row === (верный[1] as Cell).row && c.col === (верный[1] as Cell).col)
+            && !(puzzle.walls ?? []).some((w) => w.row === c.row && w.col === c.col)
+            && !puzzle.pairs.some((p) => p.endpoints.some((e) => e.row === c.row && e.col === c.col)));
+        return сосед ? { id: pair.id, от, сосед } : null;
+      })
+      .filter((x): x is { id: string; от: Cell; сосед: Cell } => x !== null);
+
+    // 🔴 СЛЕПОТА — КРАСНАЯ. Если увести некуда ни одну пару, проверять нечего, и
+    // молчаливый зелёный тут хуже падения.
+    expect(`пар, которые можно увести: ${годная.length > 0}`).toBe('пар, которые можно увести: true');
+    const цель = годная[0] as { id: string; от: Cell; сосед: Cell };
+
+    const начало = startRound(createDotsSession({ seed: 'hint-a', level: 12 }), 0);
+    const сессия = extendPath(beginPath(начало, цель.от), цель.сосед, 2);
+    expect(`путь уведён: ${(сессия.paths[цель.id] ?? []).length > 1}`).toBe('путь уведён: true');
+    expect(nextDotsHintPair(сессия)).toBe(цель.id);
+  });
+
+  it('🔴 на чистой доске открывает САМУЮ КОРОТКУЮ пару — отдаёт меньше всего', () => {
+    const puzzle = доска();
+    const чистая = startRound(createDotsSession({ seed: 'hint-a', level: 12 }), 0);
+    const id = nextDotsHintPair(чистая) as string;
+    const длины = puzzle.pairs.map((p) => (puzzle.solution[p.id] as Cell[]).length);
+    expect((puzzle.solution[id] as Cell[]).length).toBe(Math.min(...длины));
+  });
+
+  it('🔴 открытое рисуется подложкой и обратно не убирается', () => {
+    const чистая = startRound(createDotsSession({ seed: 'hint-a', level: 12 }), 0);
+    expect(Object.keys(dotsRevealedSolution(чистая))).toEqual([]);
+    const после = revealDotsPair(чистая);
+    const открыт = Object.keys(dotsRevealedSolution(после));
+    expect(открыт.length).toBe(1);
+    // Латч: помощь взята, уровень уже не чистый.
+    expect(после.solutionShown).toBe(true);
+    // Вторая подсказка открывает ДРУГУЮ пару, а не ту же.
+    const третья = revealDotsPair(после);
+    expect(Object.keys(dotsRevealedSolution(третья)).length).toBe(2);
   });
 });
