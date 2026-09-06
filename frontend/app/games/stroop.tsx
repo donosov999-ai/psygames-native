@@ -152,10 +152,39 @@ export function makeTrial(level: number, palette: StroopColor[] = COLORS_DEF): S
 //   L1-5  — окно 3500→2840мс, 20 проб
 //   L6-10 — окно 2675→2015мс, 24 пробы
 //   L11-15— окно 1850→1200мс, проб 26→34
-export function levelParams(level: number): { trials: number; windowMs: number } {
-  const trials = level <= 5 ? 20 : level <= 10 ? 24 : Math.min(34, 24 + (level - 10) * 2);
-  const windowMs = Math.max(1200, 3500 - (level - 1) * 165);
-  return { trials, windowMs };
+/**
+ * ВТОРАЯ ОСЬ СЛОЖНОСТИ — СМЕНА ПРАВИЛА ВНУТРИ ПАРТИИ (task switching).
+ *
+ * Доля конфликтных заморожена каноном (см. INCONGRUENT_RATIO выше) и ручкой быть не
+ * может, поэтому вся трудность держалась на одном окне ответа — две занятые оси из
+ * десяти, и обе упирались в пол. Здесь добавлена канонная ось: часть проб идёт по
+ * ДРУГОМУ правилу (называть слово вместо цвета), и какое правило сейчас — человек
+ * узнаёт только из подсказки под стимулом. Это классический Stroop с переключением.
+ *
+ * 🔴 ЧЕГО ЭТА ОСЬ ЕДВА НЕ СЛОМАЛА, И ПОЧЕМУ СЧЁТ УСТРОЕН ИНАЧЕ.
+ * Сначала довод был такой: цена переключения — слагаемое, одинаковое для
+ * согласованных и конфликтных проб, а `interference_ms` считается их РАЗНОСТЬЮ,
+ * значит слагаемое сократится и показатель не поедет. Довод НЕВЕРЕН. На пробах
+ * «называй слово» интерференция другая по природе (обратный Струп, много меньше
+ * прямого), поэтому доля таких проб размывала бы общую разность пропорционально
+ * себе — ровно та же беда, что была у фланкера с долей конфликтных.
+ * Поэтому время реакции копится ТОЛЬКО на пробах базового правила (`ruleForTrial`
+ * совпало с выбранным режимом): переключения дают трудность, а биомаркер снимается
+ * с однородного набора. Сторожит `attention-ladder-per-mode`.
+ */
+export function levelParams(level: number): { trials: number; windowMs: number; switchRate: number } {
+  const L = Math.max(1, Math.min(15, level));
+  const trials = L <= 5 ? 20 : L <= 10 ? 24 : Math.min(34, 24 + (L - 10) * 2);
+  const windowMs = Math.max(1200, 3500 - (L - 1) * 165);
+  // До L4 переключений нет вовсе: правило надо сперва освоить. Дальше 0 → 0,40.
+  const switchRate = L <= 4 ? 0 : Number((((L - 4) * 0.40) / 11).toFixed(3));
+  return { trials, windowMs, switchRate };
+}
+
+/** Правило текущей пробы: обычно базовое, с вероятностью `switchRate` — другое. */
+export function ruleForTrial(base: 'word' | 'ink', switchRate: number, rnd = Math.random): 'word' | 'ink' {
+  if (switchRate <= 0) return base;
+  return rnd() < switchRate ? (base === 'ink' ? 'word' : 'ink') : base;
 }
 
 export default function StroopGame() {
@@ -176,6 +205,7 @@ export default function StroopGame() {
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'ink') === 'word' ? 'word' : 'ink'));
   const [word, setWord] = useState(PALETTE[0]);
   const [inkColor, setInkColor] = useState(PALETTE[1]);
+  const [trialRule, setTrialRule] = useState<Mode>('ink');
   const [round, setRound] = useState(0);
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -200,6 +230,10 @@ export default function StroopGame() {
   const answeredRef = useRef(false);
   const windowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stoppedRef = useRef(false);
+  /** Правило ТЕКУЩЕЙ пробы: обычно базовый режим, иногда — другой (ось переключения). */
+  const trialRuleRef = useRef<Mode>('ink');
+  const switchRateRef = useRef(0);
+  const switchedTrialsRef = useRef(0);
 
   useEffect(() => () => {
     stoppedRef.current = true;
@@ -211,6 +245,11 @@ export default function StroopGame() {
     const { word: w, ink: c } = makeTrial(levelRef.current, PALETTE);
     wordRef.current = w; inkRef.current = c;
     setWord(w); setInkColor(c);
+    // правило пробы разыгрывается ДО показа: подсказка под стимулом покажет его человеку
+    const r = ruleForTrial(modeRef.current, switchRateRef.current);
+    trialRuleRef.current = r;
+    setTrialRule(r);
+    if (r !== modeRef.current) switchedTrialsRef.current += 1;
     answeredRef.current = false;
     trialStartRef.current = gameNow();
     if (windowTimerRef.current) clearTimeout(windowTimerRef.current);
@@ -238,7 +277,8 @@ export default function StroopGame() {
     if (stoppedRef.current || answeredRef.current) return;
     answeredRef.current = true;
     if (windowTimerRef.current) clearTimeout(windowTimerRef.current);
-    const correctName = modeRef.current === 'ink' ? inkRef.current.name : wordRef.current.name;
+    // сверяем по правилу ПРОБЫ, а не партии: часть проб идёт по другому правилу
+    const correctName = trialRuleRef.current === 'ink' ? inkRef.current.name : wordRef.current.name;
     const isCongruent = inkRef.current.name === wordRef.current.name;
     const rt = gameNow() - trialStartRef.current;
     if (chosen.name === correctName) {
@@ -246,8 +286,17 @@ export default function StroopGame() {
       hitsRef.current += 1;
       setHits(hitsRef.current);
       // record RT only on correct trials (standard psychometric convention)
-      if (isCongruent) rtsCongruentRef.current.push(rt);
-      else rtsIncongruentRef.current.push(rt);
+      /**
+       * 🔴 ТОЛЬКО ПРОБЫ БАЗОВОГО ПРАВИЛА. На пробах другого правила интерференция
+       * иной природы (обратный Струп, много меньше прямого), и их подмешивание
+       * размывало бы `interference_ms` пропорционально доле переключений — та же
+       * беда, что была у фланкера с долей конфликтных. Ось даёт трудность,
+       * биомаркер снимается с однородного набора.
+       */
+      if (trialRuleRef.current === modeRef.current) {
+        if (isCongruent) rtsCongruentRef.current.push(rt);
+        else rtsIncongruentRef.current.push(rt);
+      }
     } else {
       hapticError();
       errorsRef.current += 1;
@@ -261,6 +310,10 @@ export default function StroopGame() {
     levelRef.current = lvl.level;
     trialsRef.current = isPreset ? num('trials', p.trials) : p.trials;
     windowMsRef.current = p.windowMs;
+    switchRateRef.current = p.switchRate;
+    switchedTrialsRef.current = 0;
+    trialRuleRef.current = mode;
+    setTrialRule(mode);
     modeRef.current = mode;
     stoppedRef.current = false;
     hitsRef.current = 0; errorsRef.current = 0; missesRef.current = 0;
@@ -318,6 +371,17 @@ export default function StroopGame() {
           accuracy: Math.round(accuracy * 100),
           window_ms: windowMsRef.current,
           incongruent_ratio: INCONGRUENT_RATIO,
+          /**
+           * Условие снятия показателя — рядом с показателем (приём тот же, что у
+           * `incongruent_ratio` строкой выше и у `flanker_gap_px` у соседа).
+           * `switch_rate` — заданная доля проб с другим правилом, `switch_trials` —
+           * сколько их РЕАЛЬНО выпало: на 20 пробах при доле 0,4 разброс заметный,
+           * а сравнивать два `interference_ms` можно только при равном условии.
+           * ⚠️ Сам `interference_ms` считается ТОЛЬКО по пробам базового правила —
+           * см. handleAnswer.
+           */
+          switch_rate: switchRateRef.current,
+          switch_trials: switchedTrialsRef.current,
           mean_rt_congruent: meanCongr,
           mean_rt_incongruent: meanIncongr,
           interference_ms: interferenceMs,
@@ -456,7 +520,7 @@ export default function StroopGame() {
             {language === 'ru' ? word.ru : word.en}
           </Text>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-            {mode === 'ink' ? t('stroopHintInk') : t('stroopHintWord')}
+            {trialRule === 'ink' ? t('stroopHintInk') : t('stroopHintWord')}
           </Text>
         </View>
       </GameShell>

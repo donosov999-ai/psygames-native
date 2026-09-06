@@ -22,7 +22,7 @@ import {
   ATTENTION_MODES, AttentionMode, LADDER_RANGE, SESSION_MEASURE,
   attentionLoad, flankerCongruentTrials,
 } from '@/src/games/attention/load';
-import { levelParams as stroopParams } from '@/app/games/stroop';
+import { levelParams as stroopParams, ruleForTrial } from '@/app/games/stroop';
 import { levelParams as flankerParams, flankerRowWidthPx } from '@/app/games/flanker';
 import { levelParams as cptParams } from '@/app/games/cpt';
 import { levelParams as targetsParams } from '@/app/games/targets';
@@ -164,6 +164,53 @@ describe('конфликт внимания: у каждой пробы своя
  * ухудшение, а не объявляет текущее состояние хорошим: разбор и три числа ущерба —
  * PROJECT_REF §0, ДЕФЕКТ 1, решение по нему за Денисом (вопрос 1).
  */
+/**
+ * СТРУП: ВТОРАЯ ОСЬ — ПЕРЕКЛЮЧЕНИЕ ПРАВИЛА, И ОНА НЕ ДОЛЖНА ТРОГАТЬ ПОКАЗАТЕЛЬ.
+ *
+ * Доля конфликтных у Струпа заморожена каноном, поэтому трудность растёт окном и
+ * долей проб с ДРУГИМ правилом. ⚠️ Само по себе переключение измеряемую величину
+ * портит: на пробах «называй слово» интерференция иной природы (обратный Струп), и
+ * подмешивание таких проб размывало бы `interference_ms` пропорционально доле —
+ * ровно та беда, что была у фланкера. Поэтому экран копит время реакции ТОЛЬКО на
+ * пробах базового правила, а здесь закреплено, что ось вообще работает и растёт.
+ */
+describe('струп: ось переключения правила', () => {
+  const ls = Array.from({ length: LADDER_RANGE.stroop }, (_, i) => i + 1);
+
+  it('🔴 доля переключений не откатывается и доходит до заметной', () => {
+    const rates = ls.map((l) => stroopParams(l).switchRate);
+    const откаты: string[] = [];
+    for (let i = 1; i < rates.length; i++) if (rates[i] < rates[i - 1]) откаты.push(`L${ls[i]}: ${rates[i - 1]} → ${rates[i]}`);
+    expect(откаты).toEqual([]);
+    expect(rates[rates.length - 1]).toBeGreaterThanOrEqual(0.3);
+  });
+
+  it('на первых уровнях переключений НЕТ — правило сперва осваивают', () => {
+    expect(stroopParams(1).switchRate).toBe(0);
+    expect(ruleForTrial('ink', stroopParams(1).switchRate, () => 0)).toBe('ink');
+  });
+
+  /**
+   * 🔴 БЕЗ ЭТОГО ПРЕДЫДУЩИЕ НИЧЕГО НЕ СТОЯТ: «доля растёт» — свойство ЧИСЛА, а не
+   * игры. Здесь проверяется, что число действительно управляет правилом пробы:
+   * при нулевой доле правило всегда базовое, при единичной — всегда другое.
+   */
+  it('🔴 доля реально управляет правилом пробы, а не лежит числом', () => {
+    expect(ruleForTrial('ink', 0, () => 0.0)).toBe('ink');
+    expect(ruleForTrial('ink', 1, () => 0.0)).toBe('word');
+    expect(ruleForTrial('word', 1, () => 0.0)).toBe('ink');
+    // и порог именно такой, как объявлен: 0,4 переключает при rnd<0.4 и не при 0.5
+    expect(ruleForTrial('ink', 0.4, () => 0.39)).toBe('word');
+    expect(ruleForTrial('ink', 0.4, () => 0.5)).toBe('ink');
+  });
+
+  it('🔴 доля конфликтных при этом НЕ поехала — канон 50/50 цел', () => {
+    // ось переключения не смеет трогать пропорцию: её сторожит отдельный гейт,
+    // здесь закреплено, что параметры уровня её вообще не содержат
+    for (const l of ls) expect(Object.keys(stroopParams(l))).not.toContain('pIncong');
+  });
+});
+
 describe('фланкер: измеряемая величина не должна вырождаться от лестницы', () => {
   it('конгруэнтных проб на каждом уровне не меньше, чем сейчас на верхнем', () => {
     const thin = Array.from({ length: LADDER_RANGE.flanker }, (_, i) => i + 1)
