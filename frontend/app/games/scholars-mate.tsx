@@ -50,7 +50,7 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
 import { LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, namedMotifCount } from '@/src/games/scholars-mate/core/deck';
-import { starsFor, ступеньПоМедиане } from '@/src/games/scholars-mate/core/run';
+import { starsFor, ступеньПоМедиане, порогУровня, допускПромахов } from '@/src/games/scholars-mate/core/run';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
 
@@ -58,13 +58,19 @@ const GRADIENT = ['#8e5b2f', '#2f2a24'];
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 
 /**
- * Порог прохождения — три четверти позиций.
+ * Порог прохождения — в `порогУровня` (ядро), и он РАСТЁТ с уровнем.
  *
- * ⚠️ Выше брать нельзя: время на позицию падает с уровнем, и на верхних
- * ступенях одна прозеванная позиция — это уже 1/8 подхода. Уровень должен
- * браться уверенным узнаванием, а не безошибочностью под секундомером.
+ * ⚠️ Здесь стояла константа 0,75 с припиской «выше брать нельзя: на верхних
+ * ступенях одна прозеванная позиция — это уже 1/8 подхода». Довод верен ровно
+ * наполовину: он объясняет, почему нельзя требовать безошибочности, но не
+ * почему допуск обязан быть ОДИНАКОВ на первой и сороковой ступени. Ось «цена
+ * ошибки» была не отвергнута, а не заведена — правило Дениса 06.09.2026
+ * «потолков нет нигде».
+ *
+ * Теперь порог задаётся допуском ПРОМАХОВ (2 → 1 с девятнадцатого уровня, где
+ * появляются угадываемые вопросы «грозит ли мат»), а доля считается из него и
+ * длины подхода. Числа и замер — в ядре.
  */
-const PASS = 0.75;
 
 type Phase = 'config' | 'playing' | 'cleared' | 'result';
 
@@ -134,7 +140,7 @@ export default function ScholarsMateScreen() {
      * понижался за игру, которой не было, а в статистику уходил подход,
      * который человек не играл.
      */
-    const passed = r.accuracy >= PASS;
+    const passed = r.accuracy >= порогУровня(level, r.total);
     if (!r.touched) { setPhase('config'); return; }
     setLast(r);
     setPlayedLevel(level);
@@ -390,7 +396,15 @@ export default function ScholarsMateScreen() {
             <View style={стили.строка}>
               <Ionicons name="timer-outline" size={18} color={colors.textSecondary} />
               <Text style={[стили.подсказка, { color: colors.text }]}>
-                {п.seconds} {t('secShort')} · {п.count}
+                {/*
+                  Допуск промахов показан ЧЕЛОВЕКУ: ось «цена ошибки» растёт с
+                  уровнем, и если о ней не сказать, повышение планки выглядит как
+                  «стало почему-то не засчитываться».
+                  ⚠️ Значком и числом, без нового ключа словаря: «✕ ≤2» читается
+                  одинаково на всех двенадцати языках, а новый ключ пришлось бы
+                  заводить в общем слое.
+                */}
+                {п.seconds} {t('secShort')} · {п.count} · ✕ ≤{допускПромахов(level)}
               </Text>
             </View>
             {/*
