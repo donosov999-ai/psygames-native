@@ -36,6 +36,14 @@ import KO from '@/src/constants/allWordsKo.json';
  * пометки чтения, а не буквы.
  */
 import AR from '@/src/constants/allWordsAr.json';
+/**
+ * ⚠️ ЯПОНСКИЙ ЗДЕСЬ — ЭТО КАТАКАНА, и оговорка обязательна. Чистой хираганой в
+ * корпусе пишутся 876 слов из 34 504 (2,5%), баз среди них 42 — на режим не
+ * хватает. Катакана даёт 4179 слов и 983 базы: пласт заимствований, живой и
+ * узнаваемый. Кандзи тут нет и быть не может — «слово из одной клетки» на них не
+ * раскладывается.
+ */
+import JA from '@/src/constants/allWordsJa.json';
 
 export interface AllWordsPack {
   /** База: 7–8 букв, из них складываются все цели. */
@@ -74,6 +82,7 @@ const НАБОРЫ: Record<string, AllWordsPack[]> = {
   pt: PT as AllWordsPack[],
   ko: KO as AllWordsPack[],
   ar: AR as AllWordsPack[],
+  ja: JA as AllWordsPack[],
 };
 
 export function allWordsLocales(): string[] {
