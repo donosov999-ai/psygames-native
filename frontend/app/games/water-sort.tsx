@@ -47,7 +47,7 @@ import {
   Field, isDone, isSolved, canPour, pour, legalMoves, capOf, stonesIn, isOpen,
 } from '@/src/games/water-sort/core/tubes';
 import {
-  generateLevel, levelParams, solve, КОРОТКИЕ_С, КАМНИ_С, ОТЛОЖЕННЫЙ_С, levelMoveReference } from '@/src/games/water-sort/core/generate';
+  generateLevel, levelParams, solve, КОРОТКИЕ_С, КАМНИ_С, ОТЛОЖЕННЫЙ_С, ХОДЫ_С, levelMoveReference, moveLimitFor } from '@/src/games/water-sort/core/generate';
 import {
   СКРЫТО_С, скрытоНаУровне, скрытыеСлои, слойВиден, звёздыПоХодам,
 } from '@/src/games/water-sort/core/hidden';
@@ -139,6 +139,8 @@ export const WATER_SORT_RULES: LevelRule[] = [
   { key: 'short', fromLevel: КОРОТКИЕ_С },
   { key: 'stones', fromLevel: КАМНИ_С },
   { key: 'sealed', fromLevel: ОТЛОЖЕННЫЙ_С },
+  /* Лимит ходов (L14+). fromLevel равен ХОДЫ_С — сторожит гейт. */
+  { key: 'movelimit', fromLevel: ХОДЫ_С },
 ];
 
 const БОНУСЫ = [
@@ -482,7 +484,26 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
     }
   };
 
-  const тупик = !!field && phase === 'playing' && legalMoves(field).length === 0 && !isSolved(field);
+  /**
+   * 🔴 ЛИМИТ ХОДОВ (L14+) — ОСЬ «ЦЕНА ОШИБКИ», КОТОРОЙ У ИГРЫ НЕ БЫЛО ВОВСЕ.
+   *
+   * Порог `ХОДЫ_С = 14` стоит ровно там, где кончается рост объёма: цвета и
+   * высота растут до L13 и дальше не растут никогда. Величина — от измеренного
+   * эталона `цвета × (высота−1)` с запасом не меньше 1,4 (см. `moveLimitFor`).
+   * Ноль означает «на этом уровне предела нет» — так на всех уровнях до 14-го и
+   * на уровнях со скрытым слоем, где ходов сверх минимума не существует.
+   */
+  const лимитХодов = moveLimitFor(playedLevel);
+  /**
+   * ⚠️ ХОДЫ КОНЧИЛИСЬ — ЭТО ПРОВАЛ ТОЙ ЖЕ ПРИРОДЫ, ЧТО И ТУПИК, и обходится с
+   * ним так же: пока есть отмена, из положения можно выйти назад, и провал
+   * засчитывается лишь когда человек начинает уровень заново. Иначе лестница
+   * поехала бы вниз от одной неудачной попытки.
+   */
+  const ходыКончились = !!field && phase === 'playing' && лимитХодов > 0
+    && ходов >= лимитХодов && !isSolved(field);
+  const тупик = (!!field && phase === 'playing' && legalMoves(field).length === 0 && !isSolved(field))
+    || ходыКончились;
   const правилаУровня = useLevelRules(gameId, lvl.level, WATER_SORT_RULES, phase === 'playing');
   /**
    * ⚠️ ОТМЕТКА ТУПИКА — В ЭФФЕКТЕ, А НЕ В ТЕЛЕ ОТРИСОВКИ. Запись в ref во время
@@ -696,8 +717,19 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
         title={t(titleKey)}
         onBack={() => { if (таймерRef.current) clearInterval(таймерRef.current); goBackOrHome(); }}
         hud={[
-          { key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'), value: `${ходов}/${Math.max(1, минимум)}`,
-            tone: ходов > минимум ? 'warn' as const : 'good' as const, pop: true },
+          /*
+           * ⚠️ ПОКАЗЫВАЕМ ПРЕДЕЛ, ЕСЛИ ОН ЕСТЬ, И ЭТАЛОН, ЕСЛИ НЕТ. Прежде здесь
+           * стояла длина найденного генератором пути и называлась минимумом —
+           * замер показал, что она длиннее настоящего минимума в 1,52 раза.
+           * Число, которое человек видит как ориентир, обязано быть тем же, по
+           * которому его потом оценят.
+           */
+          { key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'),
+            value: `${ходов}/${лимитХодов > 0 ? лимитХодов : Math.max(1, levelMoveReference(playedLevel))}`,
+            tone: лимитХодов > 0
+              ? (ходов >= лимитХодов ? 'bad' as const : ходов > лимитХодов * 0.8 ? 'warn' as const : 'good' as const)
+              : (ходов > levelMoveReference(playedLevel) ? 'warn' as const : 'good' as const),
+            pop: true },
           { key: 'time', icon: 'time', label: t('time'), value: hudTime(времени, t('secShort')) },
           { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: `${закрыто}/${levelParams(playedLevel).colors}` },
         ]}
