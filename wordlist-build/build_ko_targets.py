@@ -93,6 +93,13 @@ def влезает(слово: str, банк: str) -> bool:
 
 
 def main() -> int:
+    # ⚠️ Список брани хранится слогами, а набор живёт в чамо — переводим ТОЙ ЖЕ
+    # функцией, что и корпус, иначе сравнение шло бы между разными формами и
+    # молча ничего не находило.
+    from adult_words import взрослое
+    брань = {в_чамо(w) for w in взрослое('ko')}
+    брань.discard(None)
+
     ранг = {}
     with open(скачать(ЧАСТОТЫ, "ko_50k.txt"), encoding="utf-8") as f:
         for i, стр in enumerate(f):
@@ -106,7 +113,7 @@ def main() -> int:
         if r >= ПОТОЛОК_РАНГА or not re.fullmatch(r"[가-힣]+", w):
             continue
         ч = в_чамо(w)
-        if ч is None or not МИН_ДЛИНА <= len(ч) <= МАКС_ДЛИНА:
+        if ч is None or not МИН_ДЛИНА <= len(ч) <= МАКС_ДЛИНА or ч in брань:
             continue
         # одна чамо-форма может прийти от разных написаний — держим самое частое
         if ч not in чамо_ранг or r < чамо_ранг[ч]:
@@ -136,6 +143,10 @@ def main() -> int:
             raise SystemExit(f"не собирается из «{р['base']}»: {плохие}")
         if not 7 <= len(р["base"]) <= 8:
             raise SystemExit(f"база не 7–8 чамо: «{р['base']}»")
+    # И отдельно — что стоп-список сработал, а не просто лежит в файле.
+    в_наборе = {р["base"] for р in раскладки} | {w for р in раскладки for w in р["words"]}
+    if в_наборе & брань:
+        raise SystemExit(f"брань дожила до набора: {sorted(в_наборе & брань)}")
 
     путь = "../frontend/src/constants/allWordsKo.json"
     with open(путь, "w", encoding="utf-8") as f:

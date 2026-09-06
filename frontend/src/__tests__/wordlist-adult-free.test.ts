@@ -38,8 +38,37 @@ function взрослыеСлова(): Record<string, Set<string>> {
 const СПИСКИ = взрослыеСлова();
 const НАБОРЫ: Record<string, string> = {
   de: 'allWordsDe.json', es: 'allWordsEs.json', fr: 'allWordsFr.json',
-  it: 'allWordsIt.json', pt: 'allWordsPt.json',
+  it: 'allWordsIt.json', pt: 'allWordsPt.json', ko: 'allWordsKo.json',
 };
+
+/**
+ * 🔴 КОРЕЙСКИЙ НАБОР ЖИВЁТ В ЧАМО, А СПИСОК БРАНИ ЗАПИСАН СЛОГАМИ.
+ *
+ * Без перевода сравнение шло бы между разными формами записи и не находило бы
+ * НИЧЕГО НИКОГДА — проверка была бы зелёной ровно потому, что слепа. Перевод
+ * повторяет тот, что делает сборщик: слог = 0xAC00 + (нач×21 + глас)×28 + кон.
+ */
+const НАЧ = [...'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'];
+const ГЛАС = [...'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'];
+const КОН = ['', ...'ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ'];
+function вЧамо(слово: string): string {
+  const из: string[] = [];
+  for (const ch of слово) {
+    const k = (ch.codePointAt(0) as number) - 0xAC00;
+    if (k < 0 || k >= 11172) return слово;   // не хангыль — оставляем как есть
+    из.push(НАЧ[Math.floor(k / 588)] as string);
+    из.push(ГЛАС[Math.floor((k % 588) / 28)] as string);
+    const х = КОН[k % 28] as string;
+    if (х) из.push(х);
+  }
+  return из.join('');
+}
+
+/** Список в той же форме, в какой лежит набор этого языка. */
+function списокДляЯзыка(л: string): Set<string> {
+  const слова = СПИСКИ[л] ?? new Set<string>();
+  return л === 'ko' ? new Set([...слова].map(вЧамо)) : слова;
+}
 
 function набор(файл: string): { base: string; words: string[] }[] {
   return JSON.parse(fs.readFileSync(
@@ -55,14 +84,18 @@ describe('в наборах слов нет взрослой лексики', ()
     expect(Object.keys(СПИСКИ).sort()).toEqual(Object.keys(НАБОРЫ).sort());
     for (const [л, слова] of Object.entries(СПИСКИ)) {
       expect(`${л}: ${slovaSize(слова)}`).toBe(`${л}: ${slovaSize(слова)}`);
-      expect(слова.size).toBeGreaterThan(15);
+      // ⚠️ Порог у корейского ниже, и это ЗАМЕР, а не поблажка: весь список
+      // LDNOOBW ko — 72 слова против нескольких сотен у латинских языков, и в
+      // наш набор из них попало шесть. Требовать пятнадцати значило бы дописать
+      // список словами, которых в наборе нет, — то есть подогнать проверку.
+      expect(слова.size).toBeGreaterThan(л === 'ko' ? 3 : 15);
     }
   });
 
   it('🔴 ни одна БАЗА не бранная — база это заголовок уровня', () => {
     const плохо: string[] = [];
     for (const [л, файл] of Object.entries(НАБОРЫ)) {
-      const гр = СПИСКИ[л] as Set<string>;
+      const гр = списокДляЯзыка(л);
       for (const p of набор(файл)) {
         if (гр.has(p.base.toLowerCase())) плохо.push(`${л}: база «${p.base}»`);
       }
@@ -73,7 +106,7 @@ describe('в наборах слов нет взрослой лексики', ()
   it('🔴 ни одна ЦЕЛЬ не бранная', () => {
     const плохо: string[] = [];
     for (const [л, файл] of Object.entries(НАБОРЫ)) {
-      const гр = СПИСКИ[л] as Set<string>;
+      const гр = списокДляЯзыка(л);
       for (const p of набор(файл)) {
         for (const w of p.words) {
           if (гр.has(w.toLowerCase())) плохо.push(`${л}: «${p.base}» → «${w}»`);
