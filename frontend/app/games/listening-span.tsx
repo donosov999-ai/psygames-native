@@ -17,7 +17,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { ensureVoiceIndex } from '@/src/services/voiceSamples';
 import { speakSequence, ttsAvailable, ttsCancel } from '@/src/services/tts';
-import { useTtsAvailable, useTtsBlock } from '@/src/hooks/useTtsAvailable';
+import { useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
 import GameResult from '@/src/components/GameResult';

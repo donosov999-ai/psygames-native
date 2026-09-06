@@ -295,7 +295,6 @@ export default function DigitSpanGame() {
    * ничего не переписывая. Новые ключи заводятся только для голоса и «разом», и
    * начинаются с первого уровня — решение Дениса 06.09.2026.
    */
-  const effDelivery = effectiveDelivery(delivery, ttsBlock);
   const ladderId = ladderIdFor(delivery, ttsBlock);
   const lvl = usePersistentLevel(ladderId);
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
