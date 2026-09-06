@@ -1,10 +1,17 @@
 /**
  * Пользовательская раскраска клеток Sudoku для цепочек рассуждений.
- * -1 = без цвета, 0..4 = индекс выбранного цвета.
+ * -1 = без цвета, 0..8 = индекс выбранного цвета.
  */
 export type SudokuCellColors = number[][];
 
-export const SUDOKU_COLOR_COUNT = 5;
+/**
+ * Девять — по цвету на цифру (отчёт «Релакс» 06.09.2026, app_feedback 83584e50).
+ * Было пять, и раскрасить кандидатов по цифрам было нечем.
+ * ⚠️ Число обязано совпадать с длиной ОБЕИХ палитр экрана (CELL_COLORS и
+ * CELL_COLORS_CB): индекс приходит из сохранённой партии и в палитру подставляется
+ * напрямую. Сторожит гейт sudoku-coloring.
+ */
+export const SUDOKU_COLOR_COUNT = 9;
 export const NO_SUDOKU_COLOR = -1;
 
 export function emptySudokuCellColors(N: number): SudokuCellColors {
