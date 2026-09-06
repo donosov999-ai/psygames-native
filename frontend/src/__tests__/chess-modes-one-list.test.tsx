@@ -16,8 +16,6 @@
  */
 import React from 'react';
 
-import { buildDeck, buildFlowDeck, levelParams } from '@/src/games/scholars-mate/core/deck';
-import { starsFor, ступеньПоМедиане } from '@/src/games/scholars-mate/core/run';
 /**
  * ⚠️ Импорт экрана стоит ЗДЕСЬ, вместе с остальными, хотя ниже идут `jest.mock`.
  * Babel поднимает вызовы `jest.mock` выше импортов сам, поэтому моки успевают
