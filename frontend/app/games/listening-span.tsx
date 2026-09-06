@@ -59,10 +59,35 @@ type GamePhase = 'config' | 'listen' | 'recall' | 'cleared' | 'result';
 
 // Лесенка: L1 = 3 слова → потолок 8; пауза между словами 700мс → 500мс с ростом уровня.
 /** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
-export function levelParams(level: number): { span: number; gapMs: number } {
+/**
+ * 🔴 ОСЬ 3 — ЗАДЕРЖКА. Появилась 07.09.2026, потому что объём и скорость кончились.
+ *
+ * ЗАМЕР ДО. Прогон этой функции на L1…L60: с L9 застывало ВСЁ — `span=8` упирался
+ * в потолок слухового охвата, `gapMs=500` доходил до дна. Пятьдесят два уровня
+ * (L9…L60) были неотличимы друг от друга, но каждый требовал прохождения.
+ *
+ * ПОЧЕМУ НЕ БОЛЬШЕ СЛОВ. Слуховой охват человека 5–8 слов; девятое слово не делает
+ * пробу труднее, оно делает её невозможной для всех одинаково — а значит уровни
+ * снова перестают различать людей. Растить надо не объём, а то, что мешает его
+ * удерживать.
+ *
+ * ЧТО ДЕЛАЕТ ЗАДЕРЖКА. Пауза между последним услышанным словом и открытием ввода.
+ * Ряд уже нельзя проговаривать «по горячим следам» — его надо ДЕРЖАТЬ. Это
+ * классическая манипуляция на удержание, и в разделе её не было ни в одной игре.
+ *
+ * ⚠️ ПОТОЛКА У ЗАДЕРЖКИ НЕТ — сознательно. Правило раздела: потолков нет нигде
+ * (`span-chat/PROJECT_REF.md` §R). Ограничить рост задержки сейчас значило бы
+ * вернуть ровно то плато, которое она чинит. Когда придёт ось 4 (счёт между
+ * словами, задача 103cd98d), полосу задержки можно будет закончить и передать
+ * нагрузку ей — но закончить одну ось МОЖНО только тогда, когда началась следующая.
+ */
+export const LSPAN_VOLUME_TOP = 9;   // с этого уровня span и gapMs больше не растут — дальше держит задержка
+
+export function levelParams(level: number): { span: number; gapMs: number; holdMs: number } {
   const span = Math.min(8, 2 + level);
   const gapMs = Math.max(500, 700 - (level - 1) * 25);
-  return { span, gapMs };
+  const holdMs = Math.max(0, level - LSPAN_VOLUME_TOP) * 700;
+  return { span, gapMs, holdMs };
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -134,6 +159,9 @@ export default function ListeningSpanGame() {
   const levelRef = useRef(1);
   const spanRef = useRef(3);
   const gapRef = useRef(700);
+  const holdRef = useRef(0);
+  /** Идёт удержание: слова кончились, ввод ещё закрыт. Ось 3, см. levelParams. */
+  const [holding, setHolding] = useState(false);
   const tlRef = useRef(defaultTarget);
   const roundRef = useRef(1);
   const errorsRef = useRef(0);
@@ -178,6 +206,7 @@ export default function ListeningSpanGame() {
     levelRef.current = lvl.level;
     spanRef.current = p.span;
     gapRef.current = p.gapMs;
+    holdRef.current = p.holdMs;
     tlRef.current = tl;
     roundRef.current = 1;
     errorsRef.current = 0;
@@ -211,6 +240,7 @@ export default function ListeningSpanGame() {
     setWrongIdx(null);
     lockRef.current = false;
     setSpokenIdx(0);
+    setHolding(false);
     setPhase('listen');
 
     const myRun = ++runIdRef.current;
@@ -221,6 +251,17 @@ export default function ListeningSpanGame() {
         await speakSequence([spokenWords[i]], tlRef.current, gapRef.current);
       }
       if (runIdRef.current !== myRun) return;
+      /**
+       * 🔴 УДЕРЖАНИЕ. Ввод открывается не сразу: ряд надо додержать в уме.
+       * ⚠️ Прогон партии сверяем ПОСЛЕ паузы тоже — за это время человек мог
+       * выйти из игры, и открывать ввод было бы некуда.
+       */
+      if (holdRef.current > 0) {
+        setHolding(true);
+        await new Promise((r) => setTimeout(r, holdRef.current));
+        if (runIdRef.current !== myRun) return;
+        setHolding(false);
+      }
       setPhase('recall');
     })();
   };
@@ -373,8 +414,10 @@ export default function ListeningSpanGame() {
         {phase === 'listen' ? (
           <View style={styles.fieldCol}>
             <View style={[styles.listenBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
-              <Text style={styles.listenEmoji}>🔊</Text>
-              <Text style={[styles.listenTitle, { color: colors.text }]}>{t('lspanListening')}</Text>
+              <Text style={styles.listenEmoji}>{holding ? '🧠' : '🔊'}</Text>
+              <Text style={[styles.listenTitle, { color: colors.text }]}>
+                {holding ? t('memorize') : t('lspanListening')}
+              </Text>
               <Text style={[styles.listenCounter, { color: colors.textSecondary }]}>
                 {t('lspanWord')} {Math.max(1, spokenIdx)} / {spanRef.current}
               </Text>
