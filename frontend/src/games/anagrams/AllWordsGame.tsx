@@ -31,6 +31,8 @@ export interface AllWordsProps {
    * стороны круга, которая уже считается от ширины экрана.
    */
   maxListHeight?: number;
+  /** Язык слов: нужен, чтобы отличить настоящее слово от набора букв. */
+  locale?: string;
   /**
    * Как показать НАЙДЕННОЕ слово человеку, если клетки читаются не так, как
    * пишется слово. Нужен ровно одному языку: корейские плитки — чамо (ㅅㅏㄹㅏㅇ),
@@ -38,10 +40,10 @@ export interface AllWordsProps {
    * задаётся: там плитка и есть буква.
    */
   подписьНайденного?: (слово: string) => string;
-  labels: { найдено: string; подсказки: string; банк: string; сдать: string; сброс: string; подсказка: string };
+  labels: { найдено: string; подсказки: string; банк: string; сдать: string; сброс: string; подсказка: string; перемешать: string; копилка: string };
 }
 
-export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, maxListHeight, подписьНайденного, labels }: AllWordsProps) {
+export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, maxListHeight, locale, подписьНайденного, labels }: AllWordsProps) {
   const [найдены, setНайдены] = React.useState<string[]>([]);
   const [линия, setЛиния] = React.useState<number[]>([]);
   /**
@@ -58,9 +60,13 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
    */
   const [подсказок, setПодсказок] = React.useState(0);
   const [открытые, setОткрытые] = React.useState<Record<string, number>>({});
-  const [мигание, setМигание] = React.useState<'нет' | 'верно' | 'повтор' | 'мимо'>('нет');
+  const [мигание, setМигание] = React.useState<'нет' | 'верно' | 'повтор' | 'бонус' | 'мимо'>('нет');
+  /** Копилка: настоящие слова из букв базы, не попавшие в цели этого уровня. */
+  const [бонусы, setБонусы] = React.useState<string[]>([]);
+  /** Сколько раз нажали «перемешать». Уходит в зерно — состав банка не меняется. */
+  const [поворотов, setПоворотов] = React.useState(0);
 
-  const буквы = React.useMemo(() => allWordsLetters(pack, seed), [pack, seed]);
+  const буквы = React.useMemo(() => allWordsLetters(pack, seed + поворотов), [pack, seed, поворотов]);
   const кругРазмер = Math.max(минимальныйРазмерКруга(буквы.length), Math.min(size, 300));
   const готово = всёНайдено(pack, найдены);
 
@@ -80,9 +86,15 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
     if (готовоRef.current || слово.length < 3) { setЛиния([]); return; }
     setЛиния([]);
     setНайдены((текущие) => {
-      const исход = сдатьСлово(pack, слово, текущие);
-      setМигание(исход === 'цель' ? 'верно' : исход === 'повтор' ? 'повтор' : 'мимо');
+      const исход = сдатьСлово(pack, слово, текущие, locale);
+      setМигание(исход === 'цель' ? 'верно' : исход === 'повтор' ? 'повтор'
+        : исход === 'бонус' ? 'бонус' : 'мимо');
       setTimeout(() => setМигание('нет'), 340);
+      if (исход === 'бонус') {
+        // Копилка не приближает конец уровня — он закрывается только целями.
+        setБонусы((б) => (б.indexOf(слово.toLowerCase()) >= 0 ? б : [...б, слово.toLowerCase()]));
+        return текущие;
+      }
       if (исход !== 'цель') return текущие;
       const дальше = [...текущие, слово.toLowerCase()];
       if (всёНайдено(pack, дальше)) {
@@ -114,7 +126,8 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
   const набрано = линия.map((i) => (буквы[i] ?? '').toUpperCase()).join('');
   const цветНабора = мигание === 'мимо' ? theme.danger
     : мигание === 'верно' ? theme.success
-      : мигание === 'повтор' ? theme.textSecondary : theme.text;
+      : мигание === 'бонус' ? theme.primary
+        : мигание === 'повтор' ? theme.textSecondary : theme.text;
 
   /** Клетка слова: ширина от длины самого длинного, чтобы столбцы не прыгали. */
   const самоеДлинное = Math.max(...pack.words.map((w) => w.length));
@@ -221,6 +234,21 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
         >
           <Text style={[стили.кнопкаТекст, { color: theme.text }]}>{labels.сброс}</Text>
         </Pressable>
+        {/*
+          🔴 ПЕРЕМЕШАТЬ — НЕ ПОДСКАЗКА И НЕ ПОБЛАЖКА. Состав банка не меняется,
+          меняется только порядок плиток: когда взгляд залип на одной раскладке,
+          помогает именно перестановка. Так у Zen Word и «Моря слов». Счётчик
+          нажатий уходит в зерно, поэтому при повторном заходе на уровень с нуля
+          порядок снова тот же — уровень остаётся воспроизводимым.
+        */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={labels.перемешать}
+          onPress={() => { setЛиния([]); setПоворотов((n) => n + 1); }}
+          style={[стили.кнопка, { backgroundColor: theme.surface, borderColor: theme.border }]}
+        >
+          <Text style={[стили.кнопкаТекст, { color: theme.text }]}>{labels.перемешать}</Text>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={labels.подсказка}
@@ -244,7 +272,9 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
       </View>
 
       <Text style={[стили.счёт, { color: theme.textSecondary }]}>
-        {labels.найдено} {найдены.length}/{pack.words.length}{подсказок ? ` · ${labels.подсказки} ${подсказок}` : ''}
+        {labels.найдено} {найдены.length}/{pack.words.length}
+        {бонусы.length ? ` · ${labels.копилка} ${бонусы.length}` : ''}
+        {подсказок ? ` · ${labels.подсказки} ${подсказок}` : ''}
       </Text>
     </View>
   );
