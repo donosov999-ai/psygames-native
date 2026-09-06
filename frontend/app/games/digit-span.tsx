@@ -167,8 +167,41 @@ export function showTiming(o: { isPreset: boolean; level: number; pace: Pace }):
  * а партия идёт экраном. Требование шапки `src/services/tts.ts`: честная
  * заглушка, а НЕ беззвучное молчание.
  */
+/**
+ * Ключ лестницы для способа подачи. ЭКСПОРТИРОВАН НАРОЧНО.
+ *
+ * ⚠️ Проба обязана сверять ЭТО правило, а не свою копию. 07.09.2026 я написал гейт
+ * с копией расчёта внутри теста — мутация экрана его не покрасила, потому что копия
+ * осталась прежней. Тот же класс, что дефект матрицы: сверяли объявление, а не
+ * исполнение. Правило живёт в одном месте, и проба берёт его отсюда.
+ *
+ * ⚠️ ЭКРАННЫЙ РЕЖИМ ОСТАЁТСЯ НА ПРЕЖНЕМ КЛЮЧЕ `digit_span` — так накопленный
+ * игроками уровень переезжает сам, без миграции. Переименуешь — обнулишь всем.
+ */
+export function ladderIdFor(chosen: Delivery, block: TtsBlock): string {
+  const eff = effectiveDelivery(chosen, block);
+  return eff === 'screen' ? 'digit_span' : `digit_span_${eff}`;
+}
+
+/**
+ * 🔴 РЕЖИМ «ВЕСЬ РЯД РАЗОМ» БЫЛ МЁРТВ. Найдено 07.09.2026.
+ *
+ * Было: `return chosen === 'voice' && block === null ? 'voice' : 'screen';`
+ * При выборе `all` условие ложно, и функция отдавала `screen`. То есть человек
+ * выбирал третий способ подачи, а играл обычным показом по одной цифре, и ветка
+ * `deliveryRef.current === 'all'` в раунде не исполнялась НИКОГДА.
+ *
+ * ⚠️ ПОЧЕМУ ЭТОГО НЕ ВИДЕЛИ 58 ЗЕЛЁНЫХ ПРОБ. Они проверяли `allAtOnceMs`
+ * (арифметику времени показа) и длину списка `DELIVERIES` — то есть ОБЪЯВЛЕНИЕ
+ * режима. Ни одна не спрашивала, доходит ли выбор до партии. Это тот же класс,
+ * что дефект матрицы: обещано в одном месте, исполняется в другом. И цена выше:
+ * режим просила тестировщица (отчёт NZT-48 05.09.2026), задача считалась закрытой.
+ *
+ * Стало: от озвучки зависит ТОЛЬКО голосовой режим; экранные два отдают себя.
+ */
 export function effectiveDelivery(chosen: Delivery, block: TtsBlock): Delivery {
-  return chosen === 'voice' && block === null ? 'voice' : 'screen';
+  if (chosen === 'voice') return block === null ? 'voice' : 'screen';
+  return chosen;   // screen и all экранные — озвучка им не нужна
 }
 
 /**
@@ -192,7 +225,6 @@ export default function DigitSpanGame() {
   const router = useRouter();
 
   const gate = useLevelGate('digit_span');
-  const lvl = usePersistentLevel('digit_span');
   /**
    * ── ПРОБНЫЙ ЗАХОД (расходуемая способность, `src/services/abilities.ts`) ────
    *
@@ -235,6 +267,30 @@ export default function DigitSpanGame() {
   };
    // персист-уровень (как у судоку): старт от достигнутого, растёт
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+
+  const [delivery, setDelivery] = useState<Delivery>(() => (str('delivery', 'screen') as Delivery));
+  const ttsBlock = useTtsBlock(language);
+  /**
+   * 🔴 У КАЖДОГО СПОСОБА ПОДАЧИ СВОЯ ЛЕСТНИЦА. Разведено 07.09.2026.
+   *
+   * ЧТО БЫЛО. Уровень был ОДИН на все три режима — `usePersistentLevel('digit_span')`.
+   * Рекорд автор при этом развёл: очки пишутся только в режиме «по одной». Значит он
+   * знал, что режимы несравнимы, — заслон просто не доехал до второго потребителя.
+   * Следствие: зачёт по зрительному охвату («весь ряд разом» читают глазами) двигал
+   * ту лестницу, по которой потом играют слуховую петлю.
+   *
+   * КЛЮЧ СЧИТАЕТСЯ ОТ ЭФФЕКТИВНОГО РЕЖИМА, а не от выбранного: если озвучки нет,
+   * голосовая партия идёт экраном — и обязана двигать экранную лестницу, ровно как
+   * она уже двигает экранный рекорд. Иначе заслон снова разъедется, только наоборот.
+   *
+   * ⚠️ МИГРАЦИИ НЕТ И НЕ НУЖНО. Экранный режим оставлен на ПРЕЖНЕМ ключе
+   * `digit_span`, поэтому накопленный игроками уровень переезжает в него сам собой,
+   * ничего не переписывая. Новые ключи заводятся только для голоса и «разом», и
+   * начинаются с первого уровня — решение Дениса 06.09.2026.
+   */
+  const effDelivery = effectiveDelivery(delivery, ttsBlock);
+  const ladderId = ladderIdFor(delivery, ttsBlock);
+  const lvl = usePersistentLevel(ladderId);
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
@@ -244,7 +300,6 @@ export default function DigitSpanGame() {
   const record = useRecordBenchmark('digit_span');
   const ds = getDigitSpanStrings(language);   // подписи партии — свой словарь модуля на 12 языков
   const [direction, setDirection] = useState<Direction>(() => (str('mode', 'forward') as Direction));
-  const [delivery, setDelivery] = useState<Delivery>(() => (str('delivery', 'screen') as Delivery));
   /**
    * ⚠️ Ступень темпа приезжает из URL шага зарядки, поэтому она ПРОВЕРЯЕТСЯ:
    * незнакомое слово в параметре означало бы `showMs: undefined` и показ,
@@ -259,7 +314,6 @@ export default function DigitSpanGame() {
    * по-разному (поставить голос против включить звук), поэтому и хранится
    * причина, а не «да/нет».
    */
-  const ttsBlock = useTtsBlock(language);
   const voiceOk = ttsBlock === null;
   /** Личный рекорд — тем же источником, что и таблица лидеров (LeaderboardModal). */
   const [personalBest, setPersonalBest] = useState<number | null>(null);
@@ -574,7 +628,7 @@ export default function DigitSpanGame() {
         <Text style={styles.configDesc}>{t('digitSpanDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="digitSpanIntroDesc" benefits={DIGIT_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap bestLevel={lvl.best} gameId="digit_span" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId={ladderId} currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       {/* ПРОБНЫЙ ЗАХОД — расходуемая способность (`src/services/abilities.ts`).
           ⚠️ Остаток показывается ВСЕГДА, включая ноль: до траты человек обязан видеть,
           что у него есть и что произойдёт. Переключатель гаснет на нулевом кошельке. */}
