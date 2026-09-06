@@ -10,7 +10,7 @@
  * 60/53. Зонд перебирает правдоподобные различия по одному.
  */
 import { generateDeal, SYMBOLS } from '@/app/games/mahjong';
-import { availablePairs, freeFlags, type Tile } from '@/src/games/mahjong/board';
+import { freeFlags, type Tile } from '@/src/games/mahjong/board';
 import { layoutForLevel } from '@/src/games/mahjong/layouts';
 import { silhouetteForLevel } from '@/src/games/mahjong/silhouettes';
 import { mahjongLevel, shufflesLeft } from '@/src/services/mahjongLevels';
@@ -107,7 +107,6 @@ const проба = process.env.MAHJONG_PROBE ? it : it.skip;
       строки.push(`${имя.padEnd(36)} L${L}: ${проц.map((x) => `${x}%`.padStart(4)).join(' ')}  → разброс ${Math.min(...проц)}…${Math.max(...проц)}%`);
     }
   }
-  // eslint-disable-next-line no-console
   console.log(`\n${ПОВТОРОВ} ПОВТОРОВ ОДНОГО И ТОГО ЖЕ ПРОГОНА (${N} партий, случайная игра):\n${строки.join('\n')}\n`);
   expect(строки.length).toBe(6);
 });
