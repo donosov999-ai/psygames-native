@@ -11,6 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { превьюРежимаКорректуры } from '@/src/games/fillwords/core/modeThumbs';
+import { ширинаПодПоле } from '@/src/games/fillwords/core/generator';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -261,7 +262,7 @@ export default function ProofreadingGame() {
    */
   const fwPuzzle = useMemo<FillwordsPuzzle | null>(() => {
     if (!fwAvailable) return null;
-    const cfg = fillwordsLevel(lvl.level, показыватьСлова);
+    const cfg = fillwordsLevel(lvl.level);
     return generateFillwords({
       rows: cfg.rows,
       cols: cfg.cols,
@@ -271,7 +272,7 @@ export default function ProofreadingGame() {
       minWordLen: cfg.minWordLen,
       диагонали,
     });
-  }, [fwAvailable, language, lvl.level, fwSeed, диагонали, показыватьСлова]);
+  }, [fwAvailable, language, lvl.level, fwSeed, диагонали]);
 
   /** Языки, на которых словарь есть — их имена, а не коды: человеку читать. */
   const fwLangNames = FILLWORDS_LOCALES
@@ -358,7 +359,7 @@ export default function ProofreadingGame() {
     let r: number, c: number;
     if (fillwordsRound) {
       const puzzle = fwPuzzle as FillwordsPuzzle;
-      const cfg = fillwordsLevel(lvl.level, показыватьСлова);
+      const cfg = fillwordsLevel(lvl.level);
       r = cfg.rows; c = cfg.cols;
       setRows(r); setCols(c);
       timeLimitRef.current = cfg.timeLimitSec;
@@ -520,7 +521,22 @@ export default function ProofreadingGame() {
   // просторных экранах клетки крупные, на узких — ужимаются ровно до помещения.
   const reservedHeight = 210;
   const availableHeight = Math.max(200, height - reservedHeight);
-  const containerW = Math.min(width - 24, 760);
+  /**
+   * 🔴 СПИСОК СЛОВ СТОИТ СБОКУ, А НЕ НАД ПОЛЕМ — И ЭТО ЗАМЕР, А НЕ ВКУС.
+   *
+   * 📍 Над полем список съедает ВЫСОТУ: на экране 320×568 он забирает около 126
+   * точек из 358, и полю остаётся 232 — это десять строк при клетке 22. Сбоку он
+   * забирает ШИРИНУ, которой у поля с запасом: 90 точек оставляют 206, то есть
+   * девять столбцов, а строк снова шестнадцать. Клеток выходит 144 против 90 —
+   * поле больше в полтора раза при том же списке.
+   *
+   * Так же устроено у образца жанра: список сбоку и сгруппирован по длине.
+   */
+  const списокСбоку = показыватьСлова && taskMode === 'fillwords';
+  const ШИРИНА_СПИСКА = Math.min(120, Math.round(width * 0.3));
+  // Расчёт живёт в ядре, а не здесь: иначе проба сверяет свою копию формулы сама
+  // с собой и не замечает, что экран её не применил.
+  const containerW = ширинаПодПоле(width, списокСбоку);
   const widthBased = Math.floor(containerW / cols);
   const heightBased = Math.floor(availableHeight / rows);
   const cellSize = Math.max(22, Math.min(widthBased, heightBased, 72));   // clamp 22-72px
@@ -1298,7 +1314,32 @@ export default function ProofreadingGame() {
       }
     >
       {fwPlaying ? (
-        <View style={styles.fwField}>
+        <View style={[styles.fwField, списокСбоку ? { flexDirection: 'row', alignItems: 'flex-start' } : null]}>
+          {/*
+            Боковой список: колонка слева от поля. Слова идут сверху вниз и
+            вычёркиваются по мере находки — как в жанре «найди слова».
+          */}
+          {списокСбоку && fwSession ? (
+            <View style={[стилиСписка.колонка, { width: ШИРИНА_СПИСКА }]}>
+              {(fwSession as FillwordsSession).puzzle.words.map((w, i) => {
+                const найдено = (fwSession as FillwordsSession).found.indexOf(i) >= 0;
+                return (
+                  <Text
+                    key={`бок-${w.word}-${i}`}
+                    accessibilityLabel={найдено ? `${w.word}, найдено` : w.word}
+                    style={[стилиСписка.словоБоком, {
+                      color: найдено ? colors.textSecondary : colors.text,
+                      textDecorationLine: найдено ? 'line-through' : 'none',
+                      opacity: найдено ? 0.55 : 1,
+                    }]}
+                  >
+                    {w.word}
+                  </Text>
+                );
+              })}
+            </View>
+          ) : null}
+          <View style={списокСбоку ? { flex: 1, alignItems: 'center' } : { width: '100%', alignItems: 'center' }}>
           {/* Строка «что делать» — над полем, как у лабораторных модулей. */}
           <Text style={[styles.fwTask, { color: colors.textSecondary }]}>{fwStrings.task}</Text>
           {/*
@@ -1314,7 +1355,7 @@ export default function ProofreadingGame() {
             со списком — УЗНАВАНИЕ («где именно лежит вот это»). Второе легче по
             нагрузке на память и потому годится туда, где первое отпугивает.
           */}
-          {показыватьСлова && (
+          {показыватьСлова && !списокСбоку && (
             <View style={стилиСписка.список}>
               {(fwSession as FillwordsSession).puzzle.words.map((w, i) => {
                 const найдено = (fwSession as FillwordsSession).found.indexOf(i) >= 0;
@@ -1378,6 +1419,7 @@ export default function ProofreadingGame() {
                 </View>
               );
             })}
+          </View>
           </View>
         </View>
       ) : (
@@ -1693,6 +1735,9 @@ export default function ProofreadingGame() {
 }
 
 const стилиСписка = StyleSheet.create({
+  // Боковая колонка: слова сверху вниз, слева от поля. Ширина приходит из экрана.
+  колонка: { paddingRight: 8, paddingTop: 2 },
+  словоБоком: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
   список: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, paddingHorizontal: 12, marginBottom: 6 },
   слово: { fontSize: 15, fontWeight: '700', letterSpacing: 0.5 },
   // 44 — норма цели нажатия: переключатель жмут пальцем.
