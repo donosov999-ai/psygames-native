@@ -95,7 +95,60 @@ export function solve(start: Board, budget = 20000, prune = true): SolveResult {
  * Поэтому ищется ПУТЬ, а вызывающий его помнит и идёт по нему, пока не свернёт.
  * Тогда завершение гарантировано построением: путь — настоящее решение.
  */
-export function solvePath(start: Board, budget = 20000): { from: number; to: number }[] | null {
+function кратчайшийПуть(start: Board, budget: number): { from: number; to: number }[] | null {
+  const начало = collapse(start).board;
+  if (isCleared(начало)) return [];
+  /**
+   * 🔴 A*, А НЕ ОБХОД В ГЛУБИНУ — ЗАМЕР ЗАСТАВИЛ.
+   *
+   * Первая редакция брала первый путь, который найдёт обход в глубину. Путь
+   * был настоящим (стол разбирался), но чудовищно длинным: замер на живых
+   * столах дал 87 ходов при минимуме 24 на L4 и 155 при минимуме 45 на L10 —
+   * в 3,4–3,6 раза длиннее. Подсказка вела к решению и по дороге отнимала у
+   * игрока все звёзды.
+   *
+   * Здесь та же корзинная A* с допустимой нижней границей, что и в `minMoves`.
+   * Не уложились в бюджет — отдаём `null`: подсказки нет, и это честнее
+   * длинной. Экран в этом случае не тратит счётчик.
+   */
+  const корзины: { b: Board; путь: { from: number; to: number }[] }[][] = [];
+  const положить = (b: Board, путь: { from: number; to: number }[]) => {
+    const f = путь.length + lowerBound(b);
+    (корзины[f] ??= []).push({ b, путь });
+  };
+  const видели = new Map<string, number>([[ключ(начало), 0]]);
+  положить(начало, []);
+  let nodes = 0;
+  for (let f = 0; f < корзины.length || f < 300; f += 1) {
+    const пачка = корзины[f];
+    if (!пачка) continue;
+    while (пачка.length) {
+      const { b, путь } = пачка.pop() as { b: Board; путь: { from: number; to: number }[] };
+      if (isCleared(b)) return путь;
+      if (++nodes > budget) return null;
+      if ((видели.get(ключ(b)) ?? Infinity) < путь.length) continue;
+      for (const m of moves(b, false)) {
+        const nb = moveTop(b, m.from, m.to);
+        if (!nb) continue;
+        const k = ключ(nb);
+        const было = видели.get(k);
+        if (было !== undefined && было <= путь.length + 1) continue;
+        видели.set(k, путь.length + 1);
+        положить(nb, [...путь, m]);
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Любой путь решения — обход в глубину. Длинный, но находится почти всегда.
+ *
+ * ⚠️ Нужен ТОЛЬКО как запасной: замер на живых столах дал 87 ходов при минимуме
+ * 24 и 155 при минимуме 45 — в 3,4–3,6 раза длиннее. Подсказка по такому пути
+ * ведёт к решению и по дороге отнимает у игрока все звёзды.
+ */
+function любойПуть(start: Board, budget: number): { from: number; to: number }[] | null {
   const начало = collapse(start).board;
   if (isCleared(начало)) return [];
   const видели = new Set<string>([ключ(начало)]);
@@ -116,6 +169,22 @@ export function solvePath(start: Board, budget = 20000): { from: number; to: num
     }
   }
   return null;
+}
+
+/**
+ * 🔴 ПУТЬ РЕШЕНИЯ: СНАЧАЛА КРАТЧАЙШИЙ, ПОТОМ ХОТЬ КАКОЙ. Две ступени, и обе
+ * нужны — замер отверг каждую по отдельности.
+ *
+ * Только обход в глубину: путь находится всегда, но он в 3,4–3,6 раза длиннее
+ * минимума, и подсказка отнимает звёзды.
+ * Только A*: путь ТОЧНО оптимален (замер: 14 при минимуме 14, 24 при 24), но с
+ * шестого уровня не укладывается в бюджет, и подсказки не остаётся вовсе.
+ *
+ * Поэтому: пробуем кратчайший, не вышло — берём длинный. Подсказка, которая
+ * ведёт длинной дорогой, лучше отсутствующей; подсказка кратчайшая лучше обеих.
+ */
+export function solvePath(start: Board, budget = 20000): { from: number; to: number }[] | null {
+  return кратчайшийПуть(start, budget) ?? любойПуть(start, budget);
 }
 
 /**
