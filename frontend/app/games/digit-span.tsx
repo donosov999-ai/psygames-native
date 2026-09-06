@@ -110,14 +110,21 @@ export const PACE_STEPS: Pace[] = ['slow', 'normal', 'fast'];
  */
 export const DS_VOLUME_TOP = 14;   // с этого уровня длина и скорость больше не растут — дальше держит задержка
 
-export function levelParams(level: number): { startLen: number; showMs: number; gapMs: number; reverse: boolean; holdMs: number } {
+export function levelParams(level: number): { startLen: number; showMs: number; gapMs: number; reverse: boolean; holdMs: number; surpriseDir: boolean } {
   const startLen = Math.min(9, 3 + level);              // L1=4 → L6=9, дальше держим 9
   const fast = Math.max(0, level - 6);                   // за потолком длины (L7+) ускоряем показ
   const showMs = Math.max(350, 700 - fast * 45);
   const gapMs = Math.max(550, 1100 - fast * 70);
   const reverse = level >= 11;                            // L11+ — обязательный обратный ввод
   const holdMs = Math.max(0, level - DS_VOLUME_TOP) * 700;
-  return { startLen, showMs, gapMs, reverse, holdMs };
+  /**
+   * 🔴 ОСЬ 9 — НЕПРЕДСКАЗУЕМОСТЬ. Направление ввода объявляется ПОСЛЕ показа.
+   * Ряд приходится держать, не зная, как его отдавать: прямо, задом наперёд или
+   * по возрастанию. Это не новый режим — три направления уже есть (ось 6), меняется
+   * только МОМЕНТ объявления, и именно он делает удержание дороже.
+   */
+  const surpriseDir = level > DS_VOLUME_TOP;
+  return { startLen, showMs, gapMs, reverse, holdMs, surpriseDir };
 }
 
 /**
@@ -365,6 +372,8 @@ export default function DigitSpanGame() {
   const showMsRef = useRef(700);
   const gapMsRef = useRef(1100);
   const holdRef = useRef(0);
+  /** Направление разыграно и ещё не объявлено — ось 9, см. levelParams. */
+  const surpriseRef = useRef(false);
   /** Идёт удержание: ряд показан, ввод ещё закрыт. Ось 3, см. levelParams. */
   const [holding, setHolding] = useState(false);
   const dirRef = useRef<Direction>('forward');
@@ -407,8 +416,17 @@ export default function DigitSpanGame() {
     showMsRef.current = timing.showMs;
     gapMsRef.current = timing.gapMs;
     holdRef.current = isPreset ? 0 : p.holdMs;   // пресет идёт мимо лестницы
-    dirRef.current = isPreset ? direction : (p.reverse ? 'backward' : 'forward');
-    if (!isPreset) setDirection(dirRef.current);
+    /**
+     * Ось 9: выше порога направление РОЗЫГРЫШНОЕ и объявляется только на вводе.
+     * До порога всё как было — направление известно заранее.
+     */
+    surpriseRef.current = !isPreset && p.surpriseDir;
+    if (surpriseRef.current) {
+      dirRef.current = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
+    } else {
+      dirRef.current = isPreset ? direction : (p.reverse ? 'backward' : 'forward');
+      if (!isPreset) setDirection(dirRef.current);
+    }
     // Голос — только если говорить есть чем. Иначе партия идёт экраном, а причина
     // молчания уже написана на экране настроек (ds.voiceNoVoice / ds.voiceSoundOff).
     deliveryRef.current = effectiveDelivery(delivery, ttsBlock);
@@ -451,7 +469,12 @@ export default function DigitSpanGame() {
      * когда-то правило разбора ответа, о чём написано ниже у expectedDigits.
      */
     const openInput = (myRun: number) => {
-      const go = () => { if (runIdRef.current === myRun) { setHolding(false); setPhase('input'); } };
+      const go = () => {
+        if (runIdRef.current !== myRun) return;
+        setHolding(false);
+        if (surpriseRef.current) setDirection(dirRef.current);   // вот теперь можно сказать, как отдавать
+        setPhase('input');
+      };
       if (holdRef.current > 0) { setHolding(true); setTimeout(go, holdRef.current); return; }
       go();
     };
@@ -819,6 +842,13 @@ export default function DigitSpanGame() {
               <Text testID="ds-span-record" style={[styles.statText, { color: colors.textSecondary, fontSize: 11 }]}>
                 {t('hud_span')} {maxSpan} · {t('personalBest')} {shownRecord === null ? '—' : shownRecord}
               </Text>
+              {!isPreset && phase === 'input' && surpriseRef.current && (
+                <Text testID="ds-dir-reveal" style={[styles.statText, { color: GRADIENT[0], fontWeight: '700' }]}>
+                  {dirRef.current === 'forward' ? t('directionForward')
+                    : dirRef.current === 'backward' ? t('directionBackward')
+                    : ds.directionAscending}
+                </Text>
+              )}
               {!isPreset && phase === 'input' && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
             </View>
           }
