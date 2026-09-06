@@ -254,6 +254,20 @@ export function extendPath(session: DotsSession, cell: Cell, now: number): DotsS
   const прижимается = path.some((c, i) => i !== path.length - 1 && isAdjacent(c, cell));
   if (прижимается) return invalidMove(session);
 
+  /**
+   * 🔴 В СТЕНУ ХОДА НЕТ. Стены знали генератор, решатель и проверка — то есть
+   * ВСЕ, кроме того места, где ходит человек (замер 06.09.2026: ни одного
+   * упоминания стен в `session.ts`). Доска молча позволяла провести путь сквозь
+   * вырезанную клетку, и партия расходилась с собственным решением: проверка
+   * такой путь забраковала бы, а игра приняла.
+   *
+   * Тот же урок, что со скрытым слоем и с рёберной доской: величина, ставшая
+   * данными, обязана быть прочитана ВСЕМИ потребителями. Заслон у трёх из
+   * четырёх — это заслон у нуля.
+   */
+  const вСтену = (puzzle.walls ?? []).some((w) => w.row === cell.row && w.col === cell.col);
+  if (вСтену) return invalidMove(session);
+
   const occupiedBy = pathOwnerAt(session.paths, cell);
   if (occupiedBy && occupiedBy !== pairId) return invalidMove(session);
   const endpointOwner = endpointPairAt(puzzle, cell)?.id;

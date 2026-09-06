@@ -33,7 +33,12 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '../..');
 const GAMES = path.join(ROOT, 'app/games');
-const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+import { исходникЭкрана } from './helpers/screenSource';
+
+const read = (rel: string): string => {
+  const игра = /^app\/games\/([\w-]+)\.tsx$/.exec(rel);
+  return игра ? исходникЭкрана(игра[1] as string) : (fs.readFileSync(path.join(ROOT, rel), 'utf8') as string);
+};
 const files: string[] = fs.readdirSync(GAMES).filter((f: string) => f.endsWith('.tsx') && !РАЗВИЛКИ.has(f)).sort();
 
 /**
@@ -83,6 +88,12 @@ const ADDED: Record<string, string> = {
   'sdmt.tsx': 'sdmtHint',
   'vocab-srs.tsx': 'vocabSrsHint',
   'water-sort.tsx': 'waterSortHint',
+  // ⚠️ ТОНКИЕ МАРШРУТЫ К ТОМУ ЖЕ ЭКРАНУ. «Шарики» и «гайки» — это
+  // `SortGameScreen` переливалки с другой шкуркой, поэтому и строка «что
+  // делать» у них та же. Читатель ниже идёт по делегированию, иначе гейт
+  // требовал бы копию экрана ради своей же зелени.
+  'ball-sort.tsx': 'waterSortHint',
+  'nut-sort.tsx': 'waterSortHint',
 };
 
 /**

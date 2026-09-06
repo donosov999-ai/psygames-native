@@ -18,7 +18,7 @@ PsyGames: Treino cerebral
 ## 2. КРАТКОЕ ОПИСАНИЕ — 80 символов
 
 ```
-Memória, foco e raciocínio: 68 exercícios offline e sem anúncios
+Memória, foco e raciocínio: 70 exercícios offline e sem anúncios
 ```
 
 ---
@@ -33,7 +33,7 @@ Ouve outro idioma e percebe sons que antes pareciam todos iguais.
 
 Isso não é um dom de nascença. Dá para treinar — e aqui você mede a evolução.
 
-PsyGames é treinamento cerebral: jogos mentais, quebra-cabeças e 68 exercícios de memória, foco e lógica para o seu cérebro. Não é mais um teste que inventa seu QI: é prática com resultado acompanhado.
+PsyGames é treinamento cerebral: jogos mentais, quebra-cabeças e 70 exercícios de memória, foco e lógica para o seu cérebro. Não é mais um teste que inventa seu QI: é prática com resultado acompanhado.
 
 JOGOS DE MEMÓRIA
 Treine memória visual com blocos de Corsi, matrizes, pares e histórias. Fortaleça a memória de trabalho com N-back, Operation Span e Reading Span.
@@ -58,7 +58,7 @@ Muitos apps repetem o mesmo desafio até cansar. PsyGames ajusta a dificuldade e
 • Desafio diário e conquistas dão um próximo objetivo claro
 
 O QUE TEM NO APP
-• 68 exercícios de memória, atenção, lógica, velocidade e controle
+• 70 exercícios de memória, atenção, lógica, velocidade e controle
 • Aquecimentos de manhã, tarde e noite prontos para começar com um toque
 • Tema escuro e um conjunto noturno para quando o sono não vem: respiração 4-7-8, tela suave, sem pontos nem sequência
 • 12 perfis: idiomas, crianças, 50+, foco, reação, estudantes e mais

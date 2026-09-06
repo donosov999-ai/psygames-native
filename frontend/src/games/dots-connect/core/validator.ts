@@ -21,6 +21,12 @@ export function validateDotsSolution(
 ): SolutionValidation {
   const issues: string[] = [];
   const occupied = new Map<string, string>();
+  /**
+   * 🔴 СТЕНА — КЛЕТКА, КОТОРОЙ НА ДОСКЕ НЕТ. Она не занимается путём и не входит
+   * в покрытие: «занять всю сетку» у вырезанного поля означает «занять всё, что
+   * не стена». Без второй половины уровень со стенами не засчитывался бы никогда.
+   */
+  const стены = new Set((puzzle.walls ?? []).map(cellKey));
   const validPairIds = new Set(puzzle.pairs.map((pair) => pair.id));
   const endpointOwners = new Map<string, string>();
   for (const pair of puzzle.pairs) {
@@ -44,6 +50,7 @@ export function validateDotsSolution(
       const cell = path[index] as Cell;
       const key = cellKey(cell);
       if (!isInBounds(cell, puzzle.size)) issues.push(`pair ${pair.id} leaves the board at ${key}`);
+      if (стены.has(key)) issues.push(`pair ${pair.id} enters a wall at ${key}`);
       if (index > 0 && !isAdjacent(path[index - 1] as Cell, cell)) {
         issues.push(`pair ${pair.id} jumps before ${key}`);
       }
@@ -79,7 +86,7 @@ export function validateDotsSolution(
     }
   }
 
-  const totalCells = puzzle.size * puzzle.size;
+  const totalCells = puzzle.size * puzzle.size - стены.size;
   if (occupied.size !== totalCells) {
     issues.push(`coverage ${occupied.size}/${totalCells}`);
   }

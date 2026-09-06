@@ -406,6 +406,29 @@ function DotsBoard({
         <View key={`row-${row}`} style={styles.boardRow}>
           {Array.from({ length: puzzle.size }, (_, col) => {
             const cell = { row, col };
+            /**
+             * 🔴 СТЕНА — ЭТО «ПОЛЯ ЗДЕСЬ НЕТ», А НЕ «ПУСТАЯ КЛЕТКА».
+             *
+             * Ядро знало о стенах в четырёх местах (генератор, решатель,
+             * проверка, ход игрока), а доска — ни в одном: 06.09.2026 стены
+             * рисовались обычной клеткой. Человек видел бы сетку 11×11, где
+             * тридцать одна клетка молча не пускает, при цели «занять ВСЁ
+             * поле», — то есть невыполнимую задачу без объяснения.
+             *
+             * Поэтому стена гасится до фона доски и теряет рамку: ряд обрывается
+             * визуально, и вырезанная форма поля читается силуэтом.
+             */
+            const стена = (puzzle.walls ?? []).some((w) => w.row === row && w.col === col);
+            if (стена) {
+              return (
+                <View
+                  key={`cell-${row}-${col}`}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                  style={[styles.cell, styles.wall, { borderColor: 'transparent', backgroundColor: theme.background }]}
+                />
+              );
+            }
             const endpointPair = endpointPairAt(puzzle, cell);
             const occupiedId = occupiedPairAt(session, cell);
             const owner = occupiedId ? pairById.get(occupiedId) : endpointPair;
@@ -748,6 +771,9 @@ const styles = StyleSheet.create({
   board: { width: '100%', maxWidth: 620, alignSelf: 'center', aspectRatio: 1, borderWidth: 2, borderRadius: 18, overflow: 'hidden' },
   boardRow: { flex: 1, flexDirection: 'row' },
   cell: { flex: 1, aspectRatio: 1, borderWidth: 0.5, alignItems: 'center', justifyContent: 'center' },
+  // Стена держит место в ряду (иначе сетка съедет), но не рисует ни рамки, ни
+  // подложки: на её месте видно фон экрана, и поле читается вырезанной формой.
+  wall: { borderWidth: 0 },
   /**
    * Лента пути. Доли, а не пиксели: клетка на телефоне 48 px, на планшете вдвое
    * шире, и лента обязана расти вместе с ней. 34% ширины — читается как линия и
