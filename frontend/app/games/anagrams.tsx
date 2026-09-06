@@ -27,7 +27,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useWordLanguage } from '@/src/hooks/useWordLanguage';
-import { WORD_LANGS, WORD_LANG_LABEL } from '@/src/services/wordLanguage';
+import { wordLangsFor, WORD_LANG_LABEL } from '@/src/services/wordLanguage';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
 import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
@@ -155,6 +155,34 @@ export default function AnagramGame() {
     return лестницаКолец(собратьКольца(словарь), словарь);
   }, [wordLang.lang]);
   const раскладокВсеСлова = allWordsCount(wordLang.lang);
+  /**
+   * 🔴 ЯЗЫКИ СУЖАЮТСЯ РЕЖИМОМ, А НЕ ТОЛЬКО ИГРОЙ.
+   *
+   * Сервис отдаёт максимум игры — восемь наборов «Найди все слова». Но классика
+   * и «Квадрат слов» кормятся из `ANAGRAM_DICT` и колец пятибуквенных слов, а там
+   * ключи только `ru` и `en`. Показать в классике корейский значило бы отдать
+   * человеку пустой банк, поэтому список считается ПО ТЕКУЩЕМУ РЕЖИМУ.
+   *
+   * ⚠️ «Найди все слова» и «Кроссворд» берут слова из одного набора, поэтому
+   * языки у них одинаковые: кроссворд укладывает те же раскладки.
+   */
+  const языкиРежима = React.useMemo(() => {
+    const всеИгры = wordLangsFor('anagrams');
+    if (режимИгры === 'all' || режимИгры === 'cross') {
+      return всеИгры.filter((l) => allWordsCount(l) > 0);
+    }
+    return всеИгры.filter((l) => l === 'ru' || l === 'en');
+  }, [режимИгры]);
+
+  /**
+   * ⚠️ ВЫБРАННЫЙ ЯЗЫК МОЖЕТ СТАТЬ НЕДОСТУПНЫМ ПРИ СМЕНЕ РЕЖИМА. Человек выбрал
+   * корейский в «Найди все слова», переключился на классику — и язык, которого в
+   * списке больше нет, остался бы выбранным, а банк пришёл бы пустым. Откатываем
+   * на английский: он есть во всех режимах.
+   */
+  React.useEffect(() => {
+    if (wordLang.ready && !языкиРежима.includes(wordLang.lang)) wordLang.pick('en');
+  }, [языкиРежима, wordLang.ready, wordLang.lang, wordLang.pick]);
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
@@ -507,7 +535,7 @@ export default function AnagramGame() {
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('wordLangLabel')}</Text>
           <View style={styles.optionButtons}>
-            {WORD_LANGS.map((wl) => (
+            {языкиРежима.map((wl) => (
               <TouchableOpacity
                 accessibilityRole="button" key={wl} style={[styles.modeButton, wordLang.lang === wl
                 ? { backgroundColor: GRADIENT[0] }

@@ -12,12 +12,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { readWordLang, saveWordLang, defaultWordLang, type WordLang } from '@/src/services/wordLanguage';
 
 export function useWordLanguage(gameId: string, profileId: string | undefined, uiLanguage: string) {
-  const [lang, setLang] = useState<WordLang>(() => defaultWordLang(uiLanguage));
+  const [lang, setLang] = useState<WordLang>(() => defaultWordLang(uiLanguage, gameId));
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let живой = true;
-    if (!profileId) { setLang(defaultWordLang(uiLanguage)); setReady(true); return () => { живой = false; }; }
+    if (!profileId) { setLang(defaultWordLang(uiLanguage, gameId)); setReady(true); return () => { живой = false; }; }
     setReady(false);
     readWordLang(gameId, profileId, uiLanguage).then((v) => { if (живой) { setLang(v); setReady(true); } });
     return () => { живой = false; };
