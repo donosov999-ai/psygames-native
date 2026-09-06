@@ -110,8 +110,46 @@ describe('темы тортов под профили', () => {
     expect(cakeThemeNameForProfile('women')).not.toBe(cakeThemeNameForProfile('drivers'));
   });
 
+  /**
+   * 🔴 КАРТИНКИ ЕСТЬ У КАЖДОЙ ТЕМЫ, И ОНИ РАЗНЫЕ. Слот `plates` легко объявить
+   * и оставить одним и тем же файлом на девять тем — тогда «разные под профили»
+   * останется словами. Сверяем сами пути.
+   */
+  it('🔴 у каждой темы восемь своих тарелок, и ни один файл не делится темами', () => {
+    const пусто = Object.entries(CAKE_THEMES)
+      .filter(([, t]) => !t.plates || t.plates.length !== 8)
+      .map(([n, t]) => `${n}: тарелок ${t.plates?.length ?? 0} вместо восьми`);
+    expect(пусто).toEqual([]);
+    /**
+     * 🔴 ПРОВЕРЯЕМ ПРИСВАИВАНИЕ, А НЕ ОБЪЯВЛЕНИЯ. Первая редакция считала пути
+     * в исходнике — и мутация «отдать шахматам сладкие тарелки» её ПЕРЕЖИЛА:
+     * массив шахматных тарелок остался объявлен, семьдесят два пути на месте,
+     * а на экране у двух тем стали одни картинки. Считаем то, что реально
+     * присвоено темам: `require` отдаёт числовой id ресурса, и он различает файлы.
+     */
+    const все = Object.values(CAKE_THEMES).flatMap((t) => t.plates);
+    expect(все.length).toBe(72);
+    expect(new Set(все.map((x) => JSON.stringify(x))).size).toBe(72);
+    // Пути на диске — отдельной проверкой ниже; здесь важно, что они РАЗНЫЕ.
+    const src = read('src/constants/cakeThemes.ts');
+    const папки = new Set((src.match(/cake_plates\/([a-z]+)\//g) ?? []).map((u) => u.split('/')[1]));
+    expect(папки.size).toBe(Object.keys(CAKE_THEMES).length);
+  });
+
+  it('🔴 файлы тарелок лежат на диске — путь в коде не гарантирует картинку', () => {
+    const нет: string[] = [];
+    for (const тема of Object.keys(CAKE_THEMES)) {
+      for (let i = 0; i < 8; i += 1) {
+        const rel = `assets/images/cake_plates/${тема}/p${i}.webp`;
+        if (!fs.existsSync(path.join(ROOT, rel))) нет.push(rel);
+      }
+    }
+    expect(нет).toEqual([]);
+  });
+
   it('незнакомый профиль получает дефолт, а не пустоту', () => {
     expect(cakeThemeForProfile(undefined).colors.length).toBeGreaterThanOrEqual(CAKE_FLAVORS);
+    expect(cakeThemeForProfile(undefined).plates.length).toBe(8);
     expect(cakeThemeForProfile('такого-профиля-нет').colors.length).toBeGreaterThanOrEqual(CAKE_FLAVORS);
   });
 

@@ -23,8 +23,11 @@ export const CAKE_FLAVORS = 11;
 export interface CakeTheme {
   /** Цвета клиньев по видам начинки. Длина ≥ CAKE_FLAVORS. */
   colors: string[];
-  /** Спрайты начинки поверх клина. `null` — тема пока живёт на одном цвете. */
-  sprites: ImageSourcePropType[] | null;
+  /**
+   * Тарелки темы — 8 вариантов, чтобы стол из двадцати не выглядел обоями.
+   * Рисуются ПОД клиньями: тарелка это блюдо, а не начинка.
+   */
+  plates: ImageSourcePropType[];
 }
 
 /**
@@ -43,16 +46,124 @@ const ГЕО     = ['#2563eb', '#22c55e', '#fde047', '#ea580c', '#0ea5e9', '#a3e
 const УЮТ     = ['#ec4899', '#fbcfe8', '#a855f7', '#fde68a', '#f472b6', '#c4b5fd', '#fed7aa', '#e879f9', '#fef3c7', '#d8b4fe', '#9d174d'];
 const МОЗГ    = ['#7f7fd5', '#e0e7ff', '#8b5cf6', '#c7d2fe', '#4f46e5', '#a5b4fc', '#312e81', '#ddd6fe', '#6366f1', '#eef2ff', '#1e1b4b'];
 
+
+/**
+ * 🔴 ТАРЕЛКИ — ЭТО ТО МЕСТО, ГДЕ КАРТИНКА ВООБЩЕ ВИДНА.
+ *
+ * Первым замыслом были спрайты начинки поверх клина. Замер отменил: сектор при
+ * пяти столбцах 15,5 точки, спрайт 0,7 от него — **10,8 точки**, при четырёх
+ * 13,9. Оба ниже пола читаемости 15, который стоит на самом секторе. Тарелка же
+ * 59–104 точки и видна на любом столе, поэтому рисуется она.
+ *
+ * Лист заказан у kie одной генерацией: 9 рядов (тем) × 8 столбцов (вариантов
+ * оправы) = 72 клетки, сетка выше правила ≥7×8, клетка 464×512 px, 18 кредитов.
+ * Нарезан ПО СОДЕРЖИМОМУ (деление поровну дало 30 ложных порезов из 72, снятие
+ * сетки по провалам фона — 1: реальный шаг 451–468 по X при номинале 464).
+ * Фон снят скиллом `bg-cutout` моделью `birefnet-general`: 72 из 72, ноль
+ * провалов. Свой цветовой ключ этого не мог — одна тарелка нарисована В ЦВЕТЕ
+ * КЛЮЧА, и ключ выедал её насквозь; семантической модели цвет безразличен.
+ */
+const ТАРЕЛКИ_СЛАДКАЯ = [
+  require('../../assets/images/cake_plates/sweet/p0.webp'),
+  require('../../assets/images/cake_plates/sweet/p1.webp'),
+  require('../../assets/images/cake_plates/sweet/p2.webp'),
+  require('../../assets/images/cake_plates/sweet/p3.webp'),
+  require('../../assets/images/cake_plates/sweet/p4.webp'),
+  require('../../assets/images/cake_plates/sweet/p5.webp'),
+  require('../../assets/images/cake_plates/sweet/p6.webp'),
+  require('../../assets/images/cake_plates/sweet/p7.webp'),
+];
+const ТАРЕЛКИ_ШАХМАТЫ = [
+  require('../../assets/images/cake_plates/chess/p0.webp'),
+  require('../../assets/images/cake_plates/chess/p1.webp'),
+  require('../../assets/images/cake_plates/chess/p2.webp'),
+  require('../../assets/images/cake_plates/chess/p3.webp'),
+  require('../../assets/images/cake_plates/chess/p4.webp'),
+  require('../../assets/images/cake_plates/chess/p5.webp'),
+  require('../../assets/images/cake_plates/chess/p6.webp'),
+  require('../../assets/images/cake_plates/chess/p7.webp'),
+];
+const ТАРЕЛКИ_БИО = [
+  require('../../assets/images/cake_plates/bio/p0.webp'),
+  require('../../assets/images/cake_plates/bio/p1.webp'),
+  require('../../assets/images/cake_plates/bio/p2.webp'),
+  require('../../assets/images/cake_plates/bio/p3.webp'),
+  require('../../assets/images/cake_plates/bio/p4.webp'),
+  require('../../assets/images/cake_plates/bio/p5.webp'),
+  require('../../assets/images/cake_plates/bio/p6.webp'),
+  require('../../assets/images/cake_plates/bio/p7.webp'),
+];
+const ТАРЕЛКИ_БИЗНЕС = [
+  require('../../assets/images/cake_plates/biz/p0.webp'),
+  require('../../assets/images/cake_plates/biz/p1.webp'),
+  require('../../assets/images/cake_plates/biz/p2.webp'),
+  require('../../assets/images/cake_plates/biz/p3.webp'),
+  require('../../assets/images/cake_plates/biz/p4.webp'),
+  require('../../assets/images/cake_plates/biz/p5.webp'),
+  require('../../assets/images/cake_plates/biz/p6.webp'),
+  require('../../assets/images/cake_plates/biz/p7.webp'),
+];
+const ТАРЕЛКИ_АВТО = [
+  require('../../assets/images/cake_plates/car/p0.webp'),
+  require('../../assets/images/cake_plates/car/p1.webp'),
+  require('../../assets/images/cake_plates/car/p2.webp'),
+  require('../../assets/images/cake_plates/car/p3.webp'),
+  require('../../assets/images/cake_plates/car/p4.webp'),
+  require('../../assets/images/cake_plates/car/p5.webp'),
+  require('../../assets/images/cake_plates/car/p6.webp'),
+  require('../../assets/images/cake_plates/car/p7.webp'),
+];
+const ТАРЕЛКИ_УЧЁБА = [
+  require('../../assets/images/cake_plates/edu/p0.webp'),
+  require('../../assets/images/cake_plates/edu/p1.webp'),
+  require('../../assets/images/cake_plates/edu/p2.webp'),
+  require('../../assets/images/cake_plates/edu/p3.webp'),
+  require('../../assets/images/cake_plates/edu/p4.webp'),
+  require('../../assets/images/cake_plates/edu/p5.webp'),
+  require('../../assets/images/cake_plates/edu/p6.webp'),
+  require('../../assets/images/cake_plates/edu/p7.webp'),
+];
+const ТАРЕЛКИ_ГЕО = [
+  require('../../assets/images/cake_plates/geo/p0.webp'),
+  require('../../assets/images/cake_plates/geo/p1.webp'),
+  require('../../assets/images/cake_plates/geo/p2.webp'),
+  require('../../assets/images/cake_plates/geo/p3.webp'),
+  require('../../assets/images/cake_plates/geo/p4.webp'),
+  require('../../assets/images/cake_plates/geo/p5.webp'),
+  require('../../assets/images/cake_plates/geo/p6.webp'),
+  require('../../assets/images/cake_plates/geo/p7.webp'),
+];
+const ТАРЕЛКИ_УЮТ = [
+  require('../../assets/images/cake_plates/coz/p0.webp'),
+  require('../../assets/images/cake_plates/coz/p1.webp'),
+  require('../../assets/images/cake_plates/coz/p2.webp'),
+  require('../../assets/images/cake_plates/coz/p3.webp'),
+  require('../../assets/images/cake_plates/coz/p4.webp'),
+  require('../../assets/images/cake_plates/coz/p5.webp'),
+  require('../../assets/images/cake_plates/coz/p6.webp'),
+  require('../../assets/images/cake_plates/coz/p7.webp'),
+];
+const ТАРЕЛКИ_МОЗГ = [
+  require('../../assets/images/cake_plates/brain/p0.webp'),
+  require('../../assets/images/cake_plates/brain/p1.webp'),
+  require('../../assets/images/cake_plates/brain/p2.webp'),
+  require('../../assets/images/cake_plates/brain/p3.webp'),
+  require('../../assets/images/cake_plates/brain/p4.webp'),
+  require('../../assets/images/cake_plates/brain/p5.webp'),
+  require('../../assets/images/cake_plates/brain/p6.webp'),
+  require('../../assets/images/cake_plates/brain/p7.webp'),
+];
+
 export const CAKE_THEMES = {
-  sweet: { colors: СЛАДКАЯ, sprites: null },
-  chess: { colors: ШАХМАТЫ, sprites: null },
-  bio: { colors: БИО, sprites: null },
-  biz: { colors: БИЗНЕС, sprites: null },
-  car: { colors: АВТО, sprites: null },
-  edu: { colors: УЧЁБА, sprites: null },
-  geo: { colors: ГЕО, sprites: null },
-  coz: { colors: УЮТ, sprites: null },
-  brain: { colors: МОЗГ, sprites: null },
+  sweet: { colors: СЛАДКАЯ, plates: ТАРЕЛКИ_СЛАДКАЯ },
+  chess: { colors: ШАХМАТЫ, plates: ТАРЕЛКИ_ШАХМАТЫ },
+  bio: { colors: БИО, plates: ТАРЕЛКИ_БИО },
+  biz: { colors: БИЗНЕС, plates: ТАРЕЛКИ_БИЗНЕС },
+  car: { colors: АВТО, plates: ТАРЕЛКИ_АВТО },
+  edu: { colors: УЧЁБА, plates: ТАРЕЛКИ_УЧЁБА },
+  geo: { colors: ГЕО, plates: ТАРЕЛКИ_ГЕО },
+  coz: { colors: УЮТ, plates: ТАРЕЛКИ_УЮТ },
+  brain: { colors: МОЗГ, plates: ТАРЕЛКИ_МОЗГ },
 } as const satisfies Record<string, CakeTheme>;
 
 export type CakeThemeName = keyof typeof CAKE_THEMES;

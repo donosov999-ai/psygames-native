@@ -59,14 +59,6 @@ function wedgePath(cx: number, cy: number, r: number, index: number): string {
   return `M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z`;
 }
 
-/** Середина сектора — куда садится спрайт начинки. */
-function wedgeCenter(cx: number, cy: number, r: number, index: number): { x: number; y: number } {
-  const шаг = (Math.PI * 2) / CIRCLE;
-  const a = index * шаг - Math.PI / 2 + шаг / 2;
-  const d = r * 0.58;
-  return { x: cx + d * Math.cos(a), y: cy + d * Math.sin(a) };
-}
-
 export default function CakeSortGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -149,25 +141,24 @@ export default function CakeSortGame() {
         accessibilityLabel={`${t('cakePlate')} ${i + 1}: ${cells.length}/${CIRCLE}`}
         style={[styles.plateBox, { width: стол.plate, height: стол.plate, margin: PLATE_GAP / 2 }]}
       >
+        {/*
+          🔴 ТАРЕЛКА — КАРТИНКА, КЛИНЬЯ — ВЕКТОР. Замер: сектор при пяти
+          столбцах 15,5 точки, спрайт поверх него был бы 10,8 — ниже пола
+          читаемости. Тарелка же 59–104 точки и видна всегда, поэтому картинка
+          тратится на неё. Вариант оправы берётся от номера тарелки, чтобы стол
+          из двадцати не выглядел обоями.
+        */}
+        <Image
+          source={тема.plates[i % тема.plates.length]}
+          style={{ position: 'absolute', width: стол.plate, height: стол.plate }}
+          resizeMode="contain"
+        />
         <Svg width={стол.plate} height={стол.plate}>
-          <SvgCircle cx={r} cy={r} r={r - 1} fill={colors.card} stroke={выбрана ? '#f59e0b' : colors.border} strokeWidth={выбрана ? 3 : 1} />
           {cells.map((тип, k) => (
-            <Path key={k} d={wedgePath(r, r, r - 3, k)} fill={тема.colors[тип % тема.colors.length]} stroke={colors.card} strokeWidth={1} />
+            <Path key={k} d={wedgePath(r, r, (r - 3) * 0.72, k)} fill={тема.colors[тип % тема.colors.length]} stroke="#00000022" strokeWidth={1} />
           ))}
+          {выбрана && <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke="#f59e0b" strokeWidth={3} />}
         </Svg>
-        {/* Начинка спрайтом поверх клина: сам клин — вектор, картинка только украшает. */}
-        {тема.sprites && cells.map((тип, k) => {
-          const c = wedgeCenter(r, r, r - 3, k);
-          const s = Math.max(10, стол.sector * 0.7);
-          return (
-            <Image
-              key={`s${k}`}
-              source={тема.sprites![тип % тема.sprites!.length]}
-              style={{ position: 'absolute', left: c.x - s / 2, top: c.y - s / 2, width: s, height: s }}
-              resizeMode="contain"
-            />
-          );
-        })}
       </TouchableOpacity>
     );
   };
