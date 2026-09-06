@@ -22,7 +22,7 @@
 import { ladderCap, LADDER_MIN } from '@/src/components/LevelProgressMap';
 import { mahjongLevel, MAHJONG_LEVELS } from '@/src/services/mahjongLevels';
 import { levelParams as quickCount, QUICK_COUNT_LEVELS } from '@/app/games/quick-count';
-import { levelParams as visualSearch } from '@/app/games/visual-search';
+import { levelParams as visualSearch, VISUAL_SEARCH_LEVELS } from '@/app/games/visual-search';
 import { levelParams as proofreading } from '@/app/games/proofreading';
 import { levelParams as findDifferences } from '@/app/games/find-differences';
 import { levelParams as schulte, SCHULTE_LEVELS } from '@/app/games/schulte';
@@ -57,7 +57,7 @@ const ИГРЫ: { имя: string; лестница: (L: number) => unknown; об
   { имя: 'маджонг', лестница: mahjongLevel, объявлено: MAHJONG_LEVELS },
   { имя: 'быстрый счёт', лестница: quickCount, объявлено: QUICK_COUNT_LEVELS },
   { имя: 'слежение за объектами', лестница: () => 0, объявлено: TRACKER_LEVELS },
-  { имя: 'зрительный поиск', лестница: (L) => visualSearch(L, 1), объявлено: undefined },
+  { имя: 'зрительный поиск', лестница: (L) => visualSearch(L, 1), объявлено: VISUAL_SEARCH_LEVELS },
   { имя: 'корректура', лестница: proofreading, объявлено: undefined },
   { имя: 'найди отличия', лестница: findDifferences, объявлено: undefined },
   { имя: 'Шульте', лестница: schulte, объявлено: SCHULTE_LEVELS },
