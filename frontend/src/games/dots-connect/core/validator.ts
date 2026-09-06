@@ -27,6 +27,8 @@ export function validateDotsSolution(
    * не стена». Без второй половины уровень со стенами не засчитывался бы никогда.
    */
   const стены = new Set((puzzle.walls ?? []).map(cellKey));
+  // Ворота: клетка → чья она. Чужой путь через неё — брак решения.
+  const ворота = new Map((puzzle.gates ?? []).map((g) => [cellKey(g.cell), g.pairId]));
   const validPairIds = new Set(puzzle.pairs.map((pair) => pair.id));
   const endpointOwners = new Map<string, string>();
   for (const pair of puzzle.pairs) {
@@ -51,6 +53,11 @@ export function validateDotsSolution(
       const key = cellKey(cell);
       if (!isInBounds(cell, puzzle.size)) issues.push(`pair ${pair.id} leaves the board at ${key}`);
       if (стены.has(key)) issues.push(`pair ${pair.id} enters a wall at ${key}`);
+      // Ворота пускают ровно одного: чужой путь через них — брак решения.
+      const хозяинВорот = ворота.get(key);
+      if (хозяинВорот !== undefined && хозяинВорот !== pair.id) {
+        issues.push(`pair ${pair.id} passes gate of ${хозяинВорот} at ${key}`);
+      }
       if (index > 0 && !isAdjacent(path[index - 1] as Cell, cell)) {
         issues.push(`pair ${pair.id} jumps before ${key}`);
       }

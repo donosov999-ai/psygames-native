@@ -61,17 +61,17 @@
  *   · текст переписали так, что маркеры перестали совпадать — встроено (счёт совпадений);
  *   · описание вышло за 4000 символов Play — проверяется ниже.
  */
-declare const __dirname: string;
-declare function require(id: string): any;
-
-const fs = require('fs');
-const path = require('path');
-
 import { PUBLIC_GAME_COUNT } from '@/src/constants/profiles';
 import { GAMES, isHubGame } from '../constants/games';
 import { PROFILES, isSwitchable } from '../constants/profiles';
 import { levelConfig } from '@/src/services/sudoku-core';
 import { LANGUAGES } from '../contexts/LanguageContext';
+
+declare const __dirname: string;
+declare function require(id: string): any;
+
+const fs = require('fs');
+const path = require('path');
 
 const ROOT = path.join(__dirname, '../../..');
 const FRONT = path.join(__dirname, '../..');

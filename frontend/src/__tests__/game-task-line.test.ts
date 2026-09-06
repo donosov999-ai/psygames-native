@@ -1,4 +1,5 @@
 import { hubScreenFiles } from './_helpers/hubScreens';
+import { исходникЭкрана } from './helpers/screenSource';
 /**
  * ЧТО ДЕЛАТЬ — НАПИСАНО НА ЭКРАНЕ, А НЕ ТОЛЬКО В СПРАВКЕ.
  *
@@ -33,7 +34,6 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '../..');
 const GAMES = path.join(ROOT, 'app/games');
-import { исходникЭкрана } from './helpers/screenSource';
 
 const read = (rel: string): string => {
   const игра = /^app\/games\/([\w-]+)\.tsx$/.exec(rel);

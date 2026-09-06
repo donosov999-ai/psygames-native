@@ -424,30 +424,41 @@ function touch(x: number, y: number) {
 describe('«Соедини точки» — стены действуют в партии', () => {
   it('🔴 ход в стену игра не принимает, а поле без стен остаётся проходимым', () => {
     const беды: string[] = [];
+    let проверено = 0;
+    /**
+     * ⚠️ ИЩЕМ ПО НЕСКОЛЬКИМ ЗЁРНАМ И ПО ОБОИМ КОНЦАМ ПАРЫ.
+     *
+     * Первая редакция брала одно зерно и только НАЧАЛО пары — и однажды
+     * покраснела «проба слепа»: на той доске ни одна стена не примыкала к
+     * началу. Это ограничение пробы, а не дефект игры, и лечится расширением
+     * поиска, а не ослаблением требования: слепота по-прежнему красная, но
+     * объявляется, только когда НИ ОДНО зерно не дало годного случая.
+     */
     for (const level of [20, 30, 40]) {
-      const seed = `wall-${level}`;
-      const puzzle = generateDotsPuzzle(seed, level);
-      const стены = puzzle.walls ?? [];
-      if (стены.length === 0) { беды.push(`L${level}: стен нет — проверять нечего`); continue; }
-      // Ищем стену, СОСЕДНЮЮ с началом какой-нибудь пары: только туда и можно
-      // попытаться шагнуть первым ходом.
-      let попробовали = false;
-      for (const pair of puzzle.pairs) {
-        const [from] = pair.endpoints;
-        const рядом = стены.find((w) => Math.abs(w.row - from.row) + Math.abs(w.col - from.col) === 1);
-        if (!рядом) continue;
-        const начало = startRound(createDotsSession({ seed, level }), 0);
-        const session = beginPath(начало, from);
-        const после = extendPath(session, рядом, 2);
-        попробовали = true;
-        const путь = после.paths[pair.id] ?? [];
-        if (путь.some((c) => c.row === рядом.row && c.col === рядом.col)) {
-          беды.push(`L${level}/${pair.id}: путь зашёл в стену ${рядом.row},${рядом.col}`);
+      for (const seed of [`wall-${level}`, `wall2-${level}`, `wall3-${level}`]) {
+        const puzzle = generateDotsPuzzle(seed, level);
+        const стены = puzzle.walls ?? [];
+        if (стены.length === 0) continue;
+        let нашли = false;
+        for (const pair of puzzle.pairs) {
+          for (const конец of pair.endpoints) {
+            const рядом = стены.find((w) => Math.abs(w.row - конец.row) + Math.abs(w.col - конец.col) === 1);
+            if (!рядом) continue;
+            const начало = startRound(createDotsSession({ seed, level }), 0);
+            const сессия = extendPath(beginPath(начало, конец), рядом, 2);
+            const путь = сессия.paths[pair.id] ?? [];
+            if (путь.some((c) => c.row === рядом.row && c.col === рядом.col)) {
+              беды.push(`L${level}/${seed}/${pair.id}: путь зашёл в стену ${рядом.row},${рядом.col}`);
+            }
+            нашли = true; проверено += 1;
+            break;
+          }
+          if (нашли) break;
         }
-        break;
       }
-      if (!попробовали) беды.push(`L${level}: ни одна стена не примыкает к началу пары — проба слепа`);
     }
+    // Слепота — красная: если проверять было нечего, зелёный ничего не значит.
+    expect(`случаев проверено: ${проверено > 0}`).toBe('случаев проверено: true');
     expect(беды).toEqual([]);
   });
 });
@@ -518,5 +529,63 @@ describe('«Соедини точки» — подсказка по одной �
     // Вторая подсказка открывает ДРУГУЮ пару, а не ту же.
     const третья = revealDotsPair(после);
     expect(Object.keys(dotsRevealedSolution(третья)).length).toBe(2);
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+/**
+ * 🔴 ВОРОТА: КЛЕТКА, В КОТОРУЮ ХОДИТ ТОЛЬКО НАЗВАННАЯ ПАРА.
+ *
+ * Величина, ставшая данными, обязана быть прочитана ВСЕМИ потребителями. У
+ * стен их оказалось шесть, и я прошёл мимо трёх; у ворот СЕМЬ — добавился
+ * независимый разбор гейта, который иначе судит другую игру. Проба ходит
+ * чужой парой в ворота и смотрит ответ, а не ищет слово в исходнике.
+ */
+describe('«Соедини точки» — ворота действуют в партии', () => {
+  it('🔴 чужая пара в ворота не ходит, а хозяин — ходит', () => {
+    const беды: string[] = [];
+    let проверено = 0;
+    for (const level of [20, 30, 40]) {
+      for (const seed of [`gate-${level}`, `gate2-${level}`]) {
+        const puzzle = generateDotsPuzzle(seed, level);
+        const ворота = puzzle.gates ?? [];
+        if (ворота.length === 0) continue;
+        for (const g of ворота) {
+          // Чужая пара, у которой конец примыкает к воротам.
+          const чужая = puzzle.pairs.find((p) => p.id !== g.pairId
+            && p.endpoints.some((e) => Math.abs(e.row - g.cell.row) + Math.abs(e.col - g.cell.col) === 1));
+          if (!чужая) continue;
+          const конец = чужая.endpoints
+            .find((e) => Math.abs(e.row - g.cell.row) + Math.abs(e.col - g.cell.col) === 1) as Cell;
+          const начало = startRound(createDotsSession({ seed, level }), 0);
+          const после = extendPath(beginPath(начало, конец), g.cell, 2);
+          const путь = после.paths[чужая.id] ?? [];
+          if (путь.some((c) => c.row === g.cell.row && c.col === g.cell.col)) {
+            беды.push(`L${level}/${seed}: ${чужая.id} прошла в ворота ${g.pairId}`);
+          }
+          проверено += 1;
+          break;
+        }
+      }
+    }
+    expect(`случаев проверено: ${проверено > 0}`).toBe('случаев проверено: true');
+    expect(беды).toEqual([]);
+  });
+
+  it('🔴 решение доски свои же ворота не нарушает — иначе доска нерешаема', () => {
+    const беды: string[] = [];
+    for (const level of [14, 20, 30, 40]) {
+      const puzzle = generateDotsPuzzle(`gate-check-${level}`, level);
+      const check = validateDotsSolution(puzzle, puzzle.solution);
+      if (!check.complete) беды.push(`L${level}: ${check.issues.join('; ')}`);
+      // И ворота действительно стоят на пути СВОЕЙ пары, а не где попало.
+      for (const g of puzzle.gates ?? []) {
+        const путь = puzzle.solution[g.pairId] ?? [];
+        if (!путь.some((c) => c.row === g.cell.row && c.col === g.cell.col)) {
+          беды.push(`L${level}: ворота ${g.pairId} не на её пути — доска нерешаема`);
+        }
+      }
+    }
+    expect(беды).toEqual([]);
   });
 });

@@ -1,6 +1,7 @@
 import { hubScreenFiles } from './_helpers/hubScreens';
 import React from 'react';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
+import { исходникЭкрана } from './helpers/screenSource';
 /**
  * ВЫБОР «УРОВНИ / СВОБОДНО»: ОДНА ПАНЕЛЬ ТАМ, ГДЕ ОН ЕСТЬ, И НИЧЕГО ТАМ, ГДЕ ЕГО НЕТ.
  *
@@ -39,7 +40,6 @@ const РАЗВИЛКИ = hubScreenFiles();
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync, readdirSync } = require('fs');
-import { исходникЭкрана } from './helpers/screenSource';
 const { join } = require('path');
 
 const TestRenderer = require('react-test-renderer');

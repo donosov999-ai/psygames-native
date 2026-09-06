@@ -46,6 +46,8 @@ interface SolverBoard {
   done: Uint8Array;
   /** 1 — клетки нет на доске (стена). Такие не занимают и не покрывают. */
   wall: Uint8Array;
+  /** Чья это клетка по воротам; -1 — ничья. */
+  gate: Int16Array;
   neighbours: Int32Array; // 4 соседа на клетку, -1 если край поля
   paths: number[][];
   /**
@@ -93,6 +95,17 @@ function prepare(puzzle: DotsPuzzle): SolverBoard | null {
    * индексируют по владельцу МАССИВЫ (`done[pair]`, `head[pair]`), и −2 полез бы
    * туда молча — код бы работал по совпадению, а не по замыслу.
    */
+  /**
+   * Ворота в путевом решателе: клетка помечена номером пары, которой она
+   * принадлежит; -1 — свободна для всех. Хранится массивом, а не картой, —
+   * читается на каждом шаге перебора.
+   */
+  const gate = new Int16Array(cells).fill(-1);
+  for (const g of puzzle.gates ?? []) {
+    const индекс = puzzle.pairs.findIndex((p) => p.id === g.pairId);
+    if (индекс < 0) return null;                 // ворота чужой пары — доска сломана
+    gate[g.cell.row * size + g.cell.col] = индекс;
+  }
   const wall = new Uint8Array(cells);
   for (const w of puzzle.walls ?? []) {
     if (!isInBounds(w, size)) return null;
@@ -124,6 +137,7 @@ function prepare(puzzle: DotsPuzzle): SolverBoard | null {
     target,
     done: new Uint8Array(pairs.length),
     wall,
+    gate,
     neighbours: buildNeighbours(size),
     paths,
     region: new Int32Array(cells),
@@ -146,8 +160,13 @@ function prepare(puzzle: DotsPuzzle): SolverBoard | null {
  * досках со стенами, хотя ответ был. Три места сравнивали одно и то же
  * по-разному — классика: величина стала данными, а читатели остались старые.
  */
-function свободна(board: SolverBoard, at: number): boolean {
-  return !board.wall[at] && board.owner[at] === -1;
+function свободна(board: SolverBoard, at: number, pair?: number): boolean {
+  if (board.wall[at] || board.owner[at] !== -1) return false;
+  // Ворота: клетка свободна ДЛЯ СВОЕЙ пары и занята для всех прочих. Без
+  // второго аргумента отвечаем «свободна вообще» — так спрашивает подсчёт
+  // покрытия, которому владелец не важен.
+  const чья = board.gate[at] as number;
+  return чья < 0 || pair === undefined || чья === pair;
 }
 
 /** Может ли путь ВОЙТИ в эту клетку: она свободна либо это открытый конец пары. */
@@ -303,7 +322,9 @@ function movesFor(board: SolverBoard, pair: number): number[] {
     const near = board.neighbours[from * 4 + dir] as number;
     if (near < 0) continue;
     if (near === target) { if (!коснётсяСвоего(board, pair, near, from)) closing = near; continue; }
-    if (свободна(board, near) && !коснётсяСвоего(board, pair, near, from)) moves.push(near);
+    // ⚠️ ВЛАДЕЛЕЦ ПЕРЕДАЁТСЯ ИМЕННО ЗДЕСЬ: это единственное место, где решатель
+    // выбирает, КУДА шагнуть, — и только здесь чужие ворота обязаны отсечь ход.
+    if (свободна(board, near, pair) && !коснётсяСвоего(board, pair, near, from)) moves.push(near);
   }
   moves.sort((left, right) => freeDegree(board, left) - freeDegree(board, right));
   // Замкнуть пару пробуем последним: пока на доске есть свободные клетки, их
@@ -369,10 +390,23 @@ function forcedMove(board: SolverBoard): { pair: number; cell: number } | null |
      * его отвергнет. Такой ход не вынужденный, а мёртвый: раз клетку обязан
      * закрыть кто-то, а единственный кандидат не вправе — ветка кончилась.
      */
+    /**
+     * ⚠️ И ВОРОТА ЗДЕСЬ ТОЖЕ. Вынужденный ход идёт мимо `movesFor`, то есть мимо
+     * единственного места, где ворота уже спрошены. Не спросить их здесь значит
+     * «вынужденно» провести чужой путь через ворота — и получить решение,
+     * которое проверка отвергнет. Раз клетку обязан закрыть кто-то, а
+     * единственный кандидат не вправе, ветка кончилась.
+     */
+    const вправе = (pair: number): boolean => {
+      const чья = board.gate[at] as number;
+      return чья < 0 || чья === pair;
+    };
     if (left >= 0) {
+      if (!вправе(left)) return 'dead';
       return коснётсяСвоего(board, left, at, first) ? 'dead' : { pair: left, cell: at };
     }
     if (right >= 0) {
+      if (!вправе(right)) return 'dead';
       return коснётсяСвоего(board, right, at, second) ? 'dead' : { pair: right, cell: at };
     }
   }
@@ -586,6 +620,20 @@ function buildEdgeBoard(puzzle: DotsPuzzle): EdgeBoard | null {
    * 4000 попыток ровно с 11-го уровня, где стены и включаются. Заслон, стоящий
    * у одного потребителя, второго не прикрывает.
    */
+  /**
+   * 🔴 ВОРОТА В РЁБЕРНОМ ВЫВОДЕ — ЭТО ЗАРАНЕЕ ИЗВЕСТНЫЙ ЦВЕТ КЛЕТКИ.
+   *
+   * Здесь они работают иначе, чем в путевом решателе: тому важно «кому можно
+   * ступить», а рёберному — «чья это клетка». Красим её сразу, и вывод от
+   * противного получает опору: от ворот цепочка идёт в обе стороны.
+   */
+  const воротаПары = new Int16Array(cells).fill(-1);
+  for (const g of puzzle.gates ?? []) {
+    const индекс = puzzle.pairs.findIndex((p) => p.id === g.pairId);
+    if (индекс < 0) return null;                 // ворота несуществующей пары
+    if (!isInBounds(g.cell, size)) return null;
+    воротаПары[g.cell.row * size + g.cell.col] = индекс;
+  }
   const wall = new Uint8Array(cells);
   for (const w of puzzle.walls ?? []) {
     if (!isInBounds(w, size)) return null;
@@ -626,7 +674,14 @@ function buildEdgeBoard(puzzle: DotsPuzzle): EdgeBoard | null {
   const colour = new Int16Array(cells).fill(-1);
   for (let at = 0; at < cells; at += 1) {
     parent[at] = at;
-    colour[at] = dotOf[at];
+    /**
+     * 🔴 ВОРОТА КРАСЯТ КЛЕТКУ НАРАВНЕ С ТОЧКОЙ. Для рёберного вывода это и есть
+     * весь их смысл: цвет клетки известен ДО первого шага, значит слияние с
+     * чужим цветом отсекается сразу (`drawEdge` сравнивает цвета корней), и
+     * цепочка доказательств от ворот идёт в обе стороны. Без этой строки
+     * ворота были бы известны игроку и невидимы выводу.
+     */
+    colour[at] = dotOf[at] >= 0 ? dotOf[at] : (воротаПары[at] as number);
   }
   return {
     size, cells, need, dotOf, drawn: new Int8Array(cells), open, edge,
