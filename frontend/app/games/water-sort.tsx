@@ -44,7 +44,7 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { gameNow } from '@/src/services/gamePause';
 import { hudTime } from '@/src/services/hudTime';
 import {
-  Field, isDone, isSolved, canPour, pour, legalMoves,
+  Field, isDone, isSolved, canPour, pour, legalMoves, capOf, stonesIn, isOpen,
 } from '@/src/games/water-sort/core/tubes';
 import { generateLevel, levelParams, solve } from '@/src/games/water-sort/core/generate';
 import {
@@ -483,7 +483,24 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
     const ширинаЖ = ш * (ВНУТРИ_СПРАВА - ВНУТРИ_СЛЕВА);
     const верхЖ = в * ВНУТРИ_СВЕРХУ;
     const высотаСтолба = в * (ВНУТРИ_СНИЗУ - ВНУТРИ_СВЕРХУ);
+    /**
+     * 🔴 ПРИЁМЫ ОБЯЗАНЫ БЫТЬ ВИДНЫ, ИНАЧЕ ИХ НЕТ.
+     *
+     * Урок того же дня, оплаченный в «Соедини точки»: стены знали генератор,
+     * решатель и проверка — а доска их не рисовала, и человек видел поле, где
+     * часть клеток молча не пускает. Здесь то же самое стоило бы дороже:
+     * короткий сосуд без отметки читается как обычный, и «не льётся» выглядит
+     * поломкой игры.
+     *
+     * Высота ПОРЦИИ одна на все сосуды (по самому высокому), поэтому короткий
+     * сосуд выходит визуально коротким — ровно то сообщение, что нужно.
+     */
     const высотаПорции = высотаСтолба / field!.cap;
+    const своя = capOf(field!, i);
+    const камней = stonesIn(field!, i);
+    const запечатан = !isOpen(field!, i);
+    const высотаСвоего = высотаПорции * своя;
+    const верхСвоего = верхЖ + (высотаСтолба - высотаСвоего);
 
     return (
       <TouchableOpacity
@@ -496,10 +513,29 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
         accessibilityState={{ selected: выбор }}
         onPress={() => нажать(i)}
         activeOpacity={0.85}
-        style={[styles.гнездо, { width: ш, height: в, transform: [{ translateY: выбор ? -14 : 0 }] }]}
+        style={[styles.гнездо, {
+          width: ш, height: в,
+          transform: [{ translateY: выбор ? -14 : 0 }],
+          // Запечатанный сосуд гасится: он на поле есть, но в ход не идёт.
+          opacity: запечатан ? 0.42 : 1,
+        }]}
       >
+        {запечатан ? (
+          <View style={{ position: 'absolute', top: в * 0.34, left: 0, right: 0, alignItems: 'center', zIndex: 3 }}>
+            <Ionicons name="lock-closed" size={Math.max(14, ш * 0.34)} color="#3F444B" />
+          </View>
+        ) : null}
         {/* Жидкость: снизу вверх, дно скруглено по форме пробирки. */}
-        <View style={[styles.столб, { left: левo, width: ширинаЖ, top: верхЖ, height: высотаСтолба }]}>
+        <View style={[styles.столб, { left: левo, width: ширинаЖ, top: верхСвоего, height: высотаСвоего }]}>
+          {/* Камни на дне: сосуд-буфер, домом цвета он не станет никогда. */}
+          {камней > 0 ? (
+            <View style={{
+              position: 'absolute', left: 0, right: 0, bottom: 0,
+              height: высотаПорции * камней, backgroundColor: '#6B6F76',
+              borderTopWidth: 2, borderTopColor: '#4A4E54',
+              borderBottomLeftRadius: 8, borderBottomRightRadius: 8,
+            }} />
+          ) : null}
           {[...трубка].reverse().map((c, k) => {
             const снизу = трубка.length - 1 - k;                 // индекс порции от дна
             const дно = снизу === 0;

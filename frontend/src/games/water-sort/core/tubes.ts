@@ -26,8 +26,74 @@ export type Tube = readonly number[];
 
 export interface Field {
   readonly tubes: readonly Tube[];
-  /** Сколько порций помещается в пробирку. */
+  /**
+   * Вместимость по умолчанию и САМАЯ БОЛЬШАЯ на поле. Отдельные сосуды могут
+   * быть меньше — см. `caps`. Раскладка рисует столб по этому числу, поэтому
+   * короткий сосуд выходит визуально коротким, а не с толстыми порциями.
+   */
   readonly cap: number;
+  /**
+   * 🔴 СВОЯ ВМЕСТИМОСТЬ У СОСУДА. Пусто — все по `cap`. Короткий сосуд остаётся
+   * ПОЛНОПРАВНЫМ домом цвета: он «закрыт», когда налит одним цветом доверху
+   * СВОЕЙ высоты. Отсюда и трудность: цвет, которого шесть порций, в сосуд на
+   * четыре не убрать целиком, и его приходится делить или вести в другой.
+   */
+  readonly caps?: readonly number[];
+  /**
+   * 🔴 КАМНИ НА ДНЕ — НЕ ПРОСТО МЕНЬШЕ МЕСТА.
+   *
+   * Соблазн был сделать камни синонимом короткого сосуда: и то и другое
+   * отнимает место. Тогда это был бы один приём под двумя именами. Разница
+   * здесь смысловая: сосуд с камнями НИКОГДА НЕ СЧИТАЕТСЯ ДОМОМ ЦВЕТА. Налить
+   * в него можно, и это его смысл — временное хранилище, — но partия сходится
+   * только когда он снова пуст. То есть камни дают не «на две порции меньше», а
+   * буфер, за который придётся отчитаться.
+   */
+  readonly stones?: readonly number[];
+  /**
+   * 🔴 ОТЛОЖЕННЫЙ СОСУД: открывается, когда закрыто столько-то других. Ноль —
+   * открыт сразу. Пустой сосуд, выданный в начале, снимает половину задачи;
+   * выданный ПОСЛЕ первого собранного цвета, он делит партию на две части —
+   * дожать без него, дальше с ним.
+   */
+  readonly opensAt?: readonly number[];
+}
+
+/** Вместимость КОНКРЕТНОГО сосуда. */
+export const capOf = (f: Field, i: number): number => f.caps?.[i] ?? f.cap;
+/** Сколько камней лежит на дне сосуда. */
+export const stonesIn = (f: Field, i: number): number => f.stones?.[i] ?? 0;
+/** Сколько порций реально помещается: высота минус камни. */
+export const полезная = (f: Field, i: number): number => capOf(f, i) - stonesIn(f, i);
+/** Сосуд с камнями домом цвета не станет — только временным хранилищем. */
+export const isBuffer = (f: Field, i: number): boolean => stonesIn(f, i) > 0;
+
+/**
+ * Сколько ЦВЕТОВ собрано — от этого числа открываются отложенные сосуды.
+ *
+ * 🔴 ПУСТЫЕ НЕ В СЧЁТ, И ЭТО НЕ ПРИДИРКА. Сначала здесь стояло `isDone`, а он
+ * называет закрытым и пустой сосуд. Пустых на поле два, значит счёт начинался с
+ * двойки — и печать «откроется после первого закрытого» снималась ДО ПЕРВОГО
+ * ХОДА. Замер 06.09.2026: запечатанных сосудов на поле 0 при плане 1–3, на всех
+ * уровнях. Приём существовал только в таблице.
+ */
+export function doneCount(f: Field): number {
+  let n = 0;
+  for (let i = 0; i < f.tubes.length; i += 1) {
+    const t = f.tubes[i]!;
+    if (t.length > 0 && isDone(f, i)) n += 1;
+  }
+  return n;
+}
+
+/**
+ * Открыт ли сосуд прямо сейчас. Считается ОТ ПОЛОЖЕНИЯ, а не хранится флагом:
+ * иначе отмена хода вернула бы содержимое, но не замок, и поле рассказывало бы
+ * о себе неправду. Тот же приём, что у скрытого слоя (`hidden.ts`).
+ */
+export function isOpen(f: Field, i: number): boolean {
+  const надо = f.opensAt?.[i] ?? 0;
+  return надо <= 0 || doneCount(f) >= надо;
 }
 
 export interface Move { readonly from: number; readonly to: number }
@@ -42,7 +108,7 @@ export function makeField(tubes: readonly (readonly number[])[], cap: number): F
 
 export const isEmptyTube = (t: Tube): boolean => t.length === 0;
 export const topColor = (t: Tube): number | null => (t.length ? t[t.length - 1]! : null);
-export const roomIn = (f: Field, i: number): number => f.cap - f.tubes[i]!.length;
+export const roomIn = (f: Field, i: number): number => полезная(f, i) - f.tubes[i]!.length;
 
 /** Высота верхнего одноцветного столбика. */
 export function topRun(t: Tube): number {
@@ -53,10 +119,25 @@ export function topRun(t: Tube): number {
   return n;
 }
 
-/** Пробирка «закрыта»: пустая либо полная одним цветом. */
+/**
+ * Сосуд «закрыт»: пустой либо налит одним цветом доверху СВОЕЙ высоты.
+ *
+ * ⚠️ СОСУД С КАМНЯМИ ЗАКРЫТ ТОЛЬКО ПУСТЫМ. Он временное хранилище, а не дом:
+ * оставленный в нём цвет — незаконченное дело, и партия не сходится.
+ */
 export function isDone(f: Field, i: number): boolean {
   const t = f.tubes[i]!;
-  return t.length === 0 || (t.length === f.cap && topRun(t) === t.length);
+  if (t.length === 0) return true;
+  if (isBuffer(f, i)) return false;
+  /**
+   * ⚠️ СРАВНИВАЕМ С ПРИГОДНОЙ ВЫСОТОЙ, А НЕ С ПОЛНОЙ. Камни занимают дно, и
+   * налить поверх них можно только `capOf − камни`. Первая редакция сравнивала
+   * с `capOf`, и это было НЕЗАМЕТНО ровно потому, что строкой выше буфер
+   * отсекается: полный сосуд с камнями до сравнения не доходил. Мутация это и
+   * показала — сняв заслон «буфер не дом», проба осталась зелёной, потому что
+   * второе условие всё равно не выполнялось. Один дефект прикрывал другой.
+   */
+  return t.length === полезная(f, i) && topRun(t) === t.length;
 }
 
 export function isSolved(f: Field): boolean {
@@ -74,12 +155,22 @@ export function isSolved(f: Field): boolean {
  */
 export function canPour(f: Field, from: number, to: number): boolean {
   if (from === to) return false;
+  // Отложенный сосуд не берёт и не отдаёт, пока не открылся.
+  if (!isOpen(f, from) || !isOpen(f, to)) return false;
   const a = f.tubes[from]!;
   const b = f.tubes[to]!;
   if (!a.length) return false;
   if (roomIn(f, to) === 0) return false;
   const цвет = topColor(a)!;
-  if (b.length === 0) return topRun(a) !== a.length;   // однородную — не переливаем в пустую
+  if (b.length === 0) {
+    // ⚠️ ЗАПРЕТ «ОДНОРОДНУЮ В ПУСТУЮ» НЕ РАСПРОСТРАНЯЕТСЯ НА БУФЕР И ОБРАТНО.
+    // Из сосуда с камнями содержимое ОБЯЗАНО уйти, иначе партия не сходится, —
+    // и это единственный его ход, когда все цвета уже разобраны. А переливать
+    // однородный столбик В буфер бессмысленно ровно так же, как в пустой сосуд.
+    if (isBuffer(f, to)) return topRun(a) !== a.length;
+    if (isBuffer(f, from)) return true;
+    return topRun(a) !== a.length;
+  }
   return topColor(b) === цвет;
 }
 
@@ -99,7 +190,7 @@ export function pour(f: Field, from: number, to: number): Field | null {
     if (i === to) return [...t, ...Array(n).fill(цвет)];
     return t;
   });
-  return { tubes, cap: f.cap };
+  return { ...f, tubes };
 }
 
 export function legalMoves(f: Field): Move[] {
