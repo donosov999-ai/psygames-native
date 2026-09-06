@@ -64,7 +64,9 @@ describe('обложки карточек', () => {
   });
 
   it('игровые обложки глушить незачем — фактура для того и нужна', () => {
-    const TEXT_HEAVY = new Set(['story_recall', 'reading_span', 'mnemonics', 'proofreading', 'cloze']);
+    // Копия списка из gameThumbs.ts. proofreading убран оттуда 06.09.2026 вместе
+    // с заменой снимка экрана на рисунок — здесь тоже, иначе список тихо разойдётся.
+    const TEXT_HEAVY = new Set(['story_recall', 'reading_span', 'mnemonics', 'cloze']);
     const damped = Object.entries(THUMB_AUDIT)
       .filter(([id, a]) => !a.about && !TEXT_HEAVY.has(id) && gameThumbOpacity(id) < 0.22)
       .map(([id]) => id);
