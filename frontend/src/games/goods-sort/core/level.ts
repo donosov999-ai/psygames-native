@@ -20,7 +20,7 @@
  * ухода с которого файл и заведён.
  */
 import type { LevelRule } from '@/src/components/LevelRules';
-import { canPlace, makeBoard, removeTriple as coreRemoveTriple, tripleIn as coreTripleIn } from '@/src/games/goods-sort/core/board';
+import { canPlace, makeBoard, removeTriple as coreRemoveTriple, tripleIn as coreTripleIn, TRIPLE as CORE_TRIPLE, type Shelf } from '@/src/games/goods-sort/core/board';
 import { solvableStrict as coreSolvable, solveStrict as coreSolve } from '@/src/games/goods-sort/core/solver';
 import type { MoveStackData } from '@/src/hooks/useMoveHistory';
 
@@ -142,6 +142,11 @@ export const GS_RULES: LevelRule[] = [
    * `goods-sort-rule-for-every-threshold`.
    */
   { key: 'showcase', fromLevel: 46 },  // = SCROLL_FROM
+  /**
+   * Схлопывание полок (L56+, кроме строгих). Тексты — в словаре на двенадцати
+   * языках (`lr_goods_sort_collapse_*`). `fromLevel` равен `COLLAPSE_FROM`.
+   */
+  { key: 'collapse', fromLevel: 56 },  // = COLLAPSE_FROM
 ];
 
 /**
@@ -500,6 +505,43 @@ export const ITEM_FLOOR = 30;
  * это сторожит отдельный гейт с 05.09.2026.
  */
 export const SCROLL_FROM = 46;
+
+/**
+ * 🔴 СХЛОПЫВАНИЕ ПОЛОК — С L56. Порог поставлен ПОСЛЕ витрины, а не до.
+ *
+ * 📍 Причина замерена, а не выбрана: схлопывание работает только на большой
+ * доске. Замер 06.09.2026 по числу троек в раздаче — на уровнях до витрины ниш
+ * 8…14 при 6…11 тройках, то есть после закрытия полок осталось бы 2–3 ниши, и
+ * играть стало бы негде. На витрине (L46+) ниш 20…26, и обрушение доску не
+ * съедает: остаётся 9…15.
+ * Десять уровней между витриной и схлопыванием — не пауза, а знакомство: доска
+ * сначала учится ездить, и только потом начинает под игроком меняться.
+ */
+export const COLLAPSE_FROM = 56;
+
+/**
+ * Идёт ли на уровне схлопывание полок.
+ *
+ * ⚠️ СТРОГИЕ УРОВНИ НЕ СХЛОПЫВАЮТСЯ — по той же причине, по которой они не едут:
+ * у них доска намеренно КОРОТКАЯ (12 ниш против 20…26 на витрине), и закрытие
+ * полок съело бы её целиком. Замер 07.09.2026: с включённым схлопыванием L90
+ * (строгий, 12 ниш) не удалось доказать решаемым за 24 попытки — единственный
+ * такой уровень из тридцати пяти. С отсечением строгих доказываются все.
+ */
+export function collapseLevel(L: number): boolean {
+  const n = Math.max(1, Math.floor(L) || 1);
+  return n >= COLLAPSE_FROM && !strictPlacement(n);
+}
+
+/**
+ * Сколько полок откладывается в очередь. Ровно столько, сколько закроется:
+ * очередь конечна и известна заранее — на этом стоит доказуемость.
+ */
+export function queueSize(L: number): number {
+  if (!collapseLevel(L)) return 0;
+  return Math.min(6, 2 + Math.floor((L - COLLAPSE_FROM) / 3));
+}
+
 
 /**
  * 🔴 МИНИ-КАРТА ЕДУЩЕЙ ВИТРИНЫ. Данные, а не рисование: экран лишь красит точки.
@@ -1281,6 +1323,7 @@ export const THRESHOLD_RULES: Record<string, string | null> = {
   MONO_FROM: 'mono',
   MOVING_FROM: 'moving',
   SCROLL_FROM: 'showcase',
+  COLLAPSE_FROM: 'collapse',
 };
 
 export const HIDDEN_FROM = 34;
@@ -2455,6 +2498,82 @@ export function dealBoard(L: number, pool: number[], narrow = false): {
   for (let k = 0; k < cfg.obst.blocked && at < pick.length; k++, at++) obstacles[pick[at]] = { kind: 'blocked' };
   for (let k = 0; k < cfg.obst.locked && at < pick.length; k++, at++) obstacles[pick[at]] = { kind: 'locked', movesLeft: 5 + k * 3 };
   return { cfg, cells, obstacles, freeNiches: empties.length - at };
+}
+
+// Всё ВИДИМО — full-information сортировка (не скрытые стопки).
+
+/**
+ * 🔴 РАЗДАЧА ДЛЯ СХЛОПЫВАНИЯ: ЧАСТЬ ПОЛОК ОТКЛАДЫВАЕТСЯ В ОЧЕРЕДЬ, И ВЕСЬ
+ * РАСКЛАД ЦЕЛИКОМ ДОКАЗЫВАЕТСЯ РЕШАЕМЫМ.
+ *
+ * 📍 ЗАЧЕМ ОТДЕЛЬНАЯ ФУНКЦИЯ, А НЕ «ОТРЕЗАТЬ ХВОСТ ОТ ОБЫЧНОЙ РАЗДАЧИ». Именно
+ * так я и попробовал 06.09.2026 — механически отправил последние 30 % ниш в
+ * очередь. Замер: из 56 уровней 38 доказаны, 12 упёрлись в бюджет и ШЕСТЬ
+ * оказались ДОКАЗАННО НЕРЕШАЕМЫМИ. Причина понятная: очередь подаётся только на
+ * место ЗАКРЫВШЕЙСЯ полки, а закрывается лишь полная тройка в нише на три; если
+ * такие ниши все уехали в очередь, она не сдвинется никогда, и партия встанет.
+ * Резать хвост вслепую нельзя — нужен отбор с проверкой.
+ *
+ * ⚠️ ПРОВЕРЯЕТСЯ ВЕСЬ РАСКЛАД, А НЕ ДОСКА. `solveStrict` на доске со столбцами и
+ * очередью моделирует и закрытие полок, и подачу — то есть отвечает про ту игру,
+ * которая будет на экране. Доказали доску без очереди — не доказали ничего.
+ */
+export function dealCollapse(L: number, pool: number[], narrow = false, attempts = 24): {
+  cfg: ReturnType<typeof levelCfg>;
+  cells: number[][];
+  caps: number[];
+  col: number[];
+  ids: number[];
+  queue: Shelf[];
+  proven: boolean;
+  tries: number;
+} {
+  const cfg = levelCfg(L, pool.length, narrow);
+  const всеCaps = capsFor(L, cfg.slots);
+  const { cols } = gridFor(L, narrow);
+  const сколькоВОчередь = queueSize(L);
+
+  for (let tries = 1; tries <= attempts; tries += 1) {
+    const попытка = собрать(tries);
+    if (попытка.proven) return { cfg, ...попытка, tries };
+  }
+  /*
+   * Не доказали за отведённые попытки — отдаём БЕЗ ОЧЕРЕДИ. Это честно хуже
+   * заказанного (уровень теряет ось), но играбельно и доказуемо: обычная
+   * раздача уже проверена своим путём. Молча отдать недоказанный расклад
+   * нельзя — на этом стоит вся наша отстройка.
+   */
+  const запасCells = generate(pool, cfg.types, cfg.spares, cfg.slots, всеCaps);
+  return {
+    cfg, cells: запасCells, caps: всеCaps,
+    col: запасCells.map((_, i) => i % cols),
+    ids: запасCells.map((_, i) => i),
+    queue: [], proven: coreSolvable(makeBoard(запасCells, всеCaps), 20000), tries: attempts,
+  };
+
+  function собрать(seed: number) {
+    const все = generate(pool, cfg.types, cfg.spares, cfg.slots, всеCaps);
+    /*
+     * 🔴 В ОЧЕРЕДЬ УХОДЯТ ПОЛКИ, КОТОРЫЕ НЕ ЛИШАЮТ ДОСКУ СПОСОБНОСТИ ЗАКРЫВАТЬСЯ.
+     * Отбираем по номеру, но начиная с РАЗНЫХ мест — так перебор попыток даёт
+     * разные расклады, а не один и тот же с точностью до перемешивания.
+     */
+    const порядок = все.map((_, i) => i).filter((i) => (всеCaps[i] ?? CAP) > CORE_TRIPLE || все[i]!.length === 0);
+    const прочие = все.map((_, i) => i).filter((i) => !порядок.includes(i));
+    const кандидаты = [...порядок, ...прочие];
+    const начало = seed % Math.max(1, кандидаты.length);
+    const вОчередь = new Set<number>();
+    for (let k = 0; k < сколькоВОчередь && k < кандидаты.length; k += 1) {
+      вОчередь.add(кандидаты[(начало + k) % кандидаты.length] as number);
+    }
+    const cells = все.filter((_, i) => !вОчередь.has(i));
+    const caps = всеCaps.filter((_, i) => !вОчередь.has(i));
+    const queue: Shelf[] = [...вОчередь].map((i) => ({ cell: все[i] as number[], cap: всеCaps[i] as number }));
+    const col = cells.map((_, i) => i % cols);
+    const ids = cells.map((_, i) => i);
+    const proven = coreSolvable(makeBoard(cells, caps, { col, ids, queue }), 20000);
+    return { cells, caps, col, ids, queue, proven };
+  }
 }
 
 // Всё ВИДИМО — full-information сортировка (не скрытые стопки).

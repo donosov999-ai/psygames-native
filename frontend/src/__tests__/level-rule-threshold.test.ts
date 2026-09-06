@@ -30,7 +30,7 @@ import { CORSI_RULES, levelParams as corsi } from '@/app/games/corsi';
 import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
 // Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
-import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches, monochromeLevel, gridFor, gsLayout, ITEM_FLOOR } from '@/src/games/goods-sort/core/level';
+import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches, monochromeLevel, gridFor, gsLayout, ITEM_FLOOR, collapseLevel } from '@/src/games/goods-sort/core/level';
 import { HN_RULES, levelParams as hanoi } from '@/app/games/hanoi';
 import { WATER_SORT_RULES } from '@/app/games/water-sort';
 import { скрытоНаУровне } from '@/src/games/water-sort/core/hidden';
@@ -144,6 +144,11 @@ const МЕХАНИКИ: Механика[] = [
    * витрина не поедет. Экран телефона 390×844, поле 484: те же числа, что в
    * `goods-sort-scroll`.
    */
+  /*
+   * Схлопывание полок. ⚠️ Не «отрезок»: строгие уровни не схлопываются по
+   * построению (у них короткая доска), поэтому механика идёт с пропусками.
+   */
+  { игра: 'goods-sort', ключ: 'collapse', вид: 'порог', есть: (L) => collapseLevel(L) },
   { игра: 'goods-sort', ключ: 'showcase', вид: 'порог',
     есть: (L) => { const g = gridFor(L, true); return gsLayout(390, 484, g.cols, g.rows, 4, undefined, ITEM_FLOOR).scrolls; } },
   { игра: 'goods-sort', ключ: 'mono', вид: 'порог', есть: (L) => monochromeLevel(L) },
