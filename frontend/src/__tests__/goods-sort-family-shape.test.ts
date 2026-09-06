@@ -27,7 +27,6 @@ import * as решательТовары from '@/src/games/goods-sort/core/solve
 import * as решательТорты from '@/src/games/cake-sort/core/solver';
 
 const ЯДРА: Record<string, Record<string, unknown>> = { 'goods-sort': товары, 'cake-sort': торты };
-const РЕШАТЕЛИ: Record<string, Record<string, unknown>> = { 'goods-sort': решательТовары, 'cake-sort': решательТорты };
 
 describe('форма ядер семьи сортировок', () => {
   it('есть что проверять — ядер несколько', () => {
