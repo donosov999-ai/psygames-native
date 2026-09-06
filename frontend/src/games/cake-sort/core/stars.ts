@@ -57,3 +57,25 @@ export function starsForMoves(moves: number, reference: number): 1 | 2 | 3 {
   if (moves <= reference * 1.6) return 2;
   return 1;
 }
+
+/**
+ * 🔴 ЭТАЛОН ПАРТИИ: точный минимум, если фоновый расчёт успел, иначе калибровка.
+ *
+ * Одна функция на игру и на гейт. Раньше этот выбор жил строчкой в экране —
+ * тогда проверить его можно было только разбором исходника, а разбор исходника
+ * не проверка: он видит форму записи, а не поведение.
+ *
+ * ⚠️ Точный минимум ВСЕГДА лучше оценки: на просторном столе он заметно меньше
+ * калибровки, и звёзды по оценке выдавались бы за небрежную игру.
+ */
+export function referenceFor(types: number, exactMin: number | null): number {
+  return exactMin !== null && exactMin > 0 ? exactMin : moveReference(types);
+}
+
+/**
+ * Звёзды партии. Отдельно от `starsForMoves`, потому что здесь принимается ещё
+ * и решение «по чему меряем» — а оно и есть та часть, которая ломается молча.
+ */
+export function starsFor(moves: number, types: number, exactMin: number | null): 1 | 2 | 3 {
+  return starsForMoves(moves, referenceFor(types, exactMin));
+}

@@ -82,6 +82,52 @@ export function solve(start: Board, budget = 20000, prune = true): SolveResult {
   return { solvable: false, exhausted: false, nodes };
 }
 
+/**
+ * 🔴 ПУТЬ РЕШЕНИЯ ЦЕЛИКОМ, А НЕ ОДИН ХОД. И это не «заодно», а починка.
+ *
+ * Первая редакция отдавала только первый ход найденной ветки, а экран просил
+ * подсказку заново после каждого хода. Гейт «если ходить только по подсказкам,
+ * стол разбирается» покраснел на всех двенадцати столах: обход в глубину при
+ * каждом вызове находит ДРУГОЙ путь, и два соседних совета отменяли друг друга —
+ * подсказка честно ходила по кругу, оставаясь при этом законной на каждом шаге.
+ *
+ * Поэтому ищется ПУТЬ, а вызывающий его помнит и идёт по нему, пока не свернёт.
+ * Тогда завершение гарантировано построением: путь — настоящее решение.
+ */
+export function solvePath(start: Board, budget = 20000): { from: number; to: number }[] | null {
+  const начало = collapse(start).board;
+  if (isCleared(начало)) return [];
+  const видели = new Set<string>([ключ(начало)]);
+  const стек: { b: Board; путь: { from: number; to: number }[] }[] = [{ b: начало, путь: [] }];
+  let nodes = 0;
+  while (стек.length) {
+    const { b, путь } = стек.pop() as { b: Board; путь: { from: number; to: number }[] };
+    if (++nodes > budget) return null;
+    for (const m of moves(b)) {
+      const nb = moveTop(b, m.from, m.to);
+      if (!nb) continue;
+      const далее = [...путь, m];
+      if (isCleared(nb)) return далее;
+      const k = ключ(nb);
+      if (видели.has(k)) continue;
+      видели.add(k);
+      стек.push({ b: nb, путь: далее });
+    }
+  }
+  return null;
+}
+
+/**
+ * Подсказка — первый ход настоящего решения.
+ *
+ * ⚠️ Вернуть `null` честнее, чем выдумать: если за бюджет решение не нашлось,
+ * подсказки нет, и экран обязан не тратить её счётчик.
+ */
+export function hintMove(start: Board, budget = 20000): { from: number; to: number } | null {
+  const путь = solvePath(start, budget);
+  return путь && путь.length ? (путь[0] as { from: number; to: number }) : null;
+}
+
 /** Доказано ли, что стол НЕ разбирается. Только этим разрешено браковать раздачу. */
 export function provenUnsolvable(b: Board, budget = 20000): boolean {
   const r = solve(b, budget);
