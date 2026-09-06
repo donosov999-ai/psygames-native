@@ -518,17 +518,27 @@ const styles = StyleSheet.create({
   plateBox: { alignItems: 'center', justifyContent: 'center' },
   tools: { flexDirection: 'row', justifyContent: 'center', gap: 14, paddingTop: 4 },
   /**
-   * 🔴 44 px — НИЖНЯЯ ГРАНИЦА ЦЕЛИ НАЖАТИЯ, А НЕ ПОЖЕЛАНИЕ. Было 48×39 и 60×39:
-   * ширина проходила, высота нет. Поймала это сборка выпуска 2.47.0 — аудит
-   * добрался до поля тортов только после того, как игра появилась в каталоге,
-   * то есть дефект существовал с самого начала, но был НЕДОСТУПЕН проверке.
-   * `minHeight` вместо увеличенного отступа: отступ раздул бы и ширину.
+   * 🔴 48 px — НИЖНЯЯ ГРАНИЦА ЦЕЛИ НАЖАТИЯ НА ПОЛЕ, А НЕ 44.
+   *
+   * Было 48×39 и 60×39: ширина проходила, высота нет. Поймала это сборка
+   * выпуска 2.47.0 — аудит добрался до поля тортов только после того, как игра
+   * появилась в каталоге, то есть дефект существовал с самого начала, но был
+   * НЕДОСТУПЕН проверке.
+   *
+   * ⚠️ И ПЕРВАЯ ПОПРАВКА БЫЛА НЕ ТОЙ: я поднял высоту до 44, взяв число из
+   * ШАПКИ лога («порог 44×44»), а она от первого прохода — по маршрутам. НА
+   * ПОЛЕ порог другой, `MIN_FIELD = 48` в `scripts/tap-target-audit.mjs`:
+   * палец по доске бьёт вслепую, там цель обязана быть крупнее. Второй заход
+   * сборки покраснел на «48×44» — числом из своего же отчёта.
+   *
+   * `minHeight`/`minWidth` вместо увеличенного отступа: отступ раздул бы обе
+   * стороны и сдвинул раскладку доски.
    */
-  tool: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, backgroundColor: '#00000055', paddingHorizontal: 14, paddingVertical: 8, minHeight: 44, minWidth: 44, borderRadius: 12 },
+  tool: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, backgroundColor: '#00000055', paddingHorizontal: 14, paddingVertical: 8, minHeight: 48, minWidth: 48, borderRadius: 12 },
   toolOff: { opacity: 0.45 },
   toolNum: { color: '#fff', fontSize: 13 },
   stuck: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
-  again: { marginLeft: 10, backgroundColor: '#f59e0b', paddingHorizontal: 12, paddingVertical: 6, minHeight: 44, minWidth: 44, justifyContent: 'center', alignItems: 'center', borderRadius: 8 },
+  again: { marginLeft: 10, backgroundColor: '#f59e0b', paddingHorizontal: 12, paddingVertical: 6, minHeight: 48, minWidth: 48, justifyContent: 'center', alignItems: 'center', borderRadius: 8 },
 });
 
 /** Пол читаемости сектора — вынесен, чтобы гейт мерил ту же величину, что экран. */

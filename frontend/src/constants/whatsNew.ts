@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.47.1',
+    date: '2026-09-06',
+    ru: [
+      'Отзывы с айфона больше не теряют текст: у части людей уезжало только первое слово, а остальное пропадало — вы видели свой текст в поле и были уверены, что он ушёл',
+      '«Соедини точки»: ворота — клетка, в которую ходит только своя пара. Появляются с четырнадцатого уровня и подсказывают маршрут, а не мешают',
+      'Сортировка тортов: кнопки «Отменить» и «Подсказка» были слишком низкими, палец по ним промахивался',
+    ],
+    en: [
+      'Feedback from iPhone no longer loses your text: for some people only the first word was sent and the rest vanished — you saw your full text in the field and believed it had gone through',
+      'Dots Connect: gates — a cell only its own pair may enter. They appear from level fourteen and hint at the route rather than block it',
+      'Cake Sort: the Undo and Hint buttons were too short, so fingers kept missing them',
+    ],
+  },
+  {
     version: '2.47.0',
     date: '2026-09-06',
     ru: [
