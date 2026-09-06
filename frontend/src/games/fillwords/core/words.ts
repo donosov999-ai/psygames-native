@@ -42,7 +42,36 @@ export const FILLWORDS_MIN_WORD = 3;
 export const FILLWORDS_MAX_WORD = 8;
 
 /** Длины, на которых держится раскладка: любое число клеток ≥ 3 набирается из 3/4/5. */
-const CORE_LENGTHS = [3, 4, 5] as const;
+/**
+ * 🔴 ОПОРНЫЕ ДЛИНЫ СЧИТАЮТСЯ ОТ ПОЛА ЯЗЫКА, А НЕ ОТ ТРОЙКИ ДЛЯ ВСЕХ.
+ *
+ * Здесь стояло жёсткое `[3, 4, 5]`, и из-за этого французский и итальянский НЕ
+ * получали режим, имея 3868 и 4707 слов: у них ровно НОЛЬ трёхбуквенных.
+ *
+ * ⚠️ И это не недосмотр сборщика, а его замер: `build_fr_targets.py`, МИН_ДЛИНА
+ * = 4 — «при пороге в три буквы 19% выданных слов (4393 из 22 964) —
+ * трёхбуквенные, и их хвост негодный: ana, sin, sas, ais, abc, lol, zip, psi;
+ * раскладка assassin при пороге 3 даёт четыре мусорных слова из шести». Ронять
+ * порог ради филвордов значило бы испортить анаграммы, где эти наборы и живут.
+ *
+ * Поэтому опорные длины берутся ОТ САМОЙ КОРОТКОЙ, которая у языка есть: у
+ * русского это 3–4–5, у французского 4–5–6. Порог остаётся тем же числом слов.
+ */
+const ОПОРНЫХ_ДЛИН = 3;
+const ПОЛ_ДЛИНЫ_МИН = 3;
+const ПОЛ_ДЛИНЫ_МАКС = 5;
+
+/**
+ * Самая короткая длина, на которой у языка достаточно слов. Ниже неё поле
+ * собирать нечем, выше — уже не начало лестницы.
+ */
+export function полДлиныЯзыка(locale: string): number {
+  const pool = wordPool(locale);
+  for (let n = ПОЛ_ДЛИНЫ_МИН; n <= ПОЛ_ДЛИНЫ_МАКС; n++) {
+    if (wordsOfLength(pool, n).length >= MIN_PER_CORE_LENGTH) return n;
+  }
+  return ПОЛ_ДЛИНЫ_МИН;
+}
 /** Порог на опорную длину: меньше — и набор длин упрётся в потолок повторов. */
 const MIN_PER_CORE_LENGTH = 8;
 /** Порог на весь пул: меньше — и слова начнут повторяться из партии в партию. */
@@ -231,7 +260,11 @@ export function isFillwordsLocale(locale: string): boolean {
   if (!письменностьГодится(locale)) return false;
   const pool = wordPool(locale);
   if (pool.all.length < MIN_POOL) return false;
-  return CORE_LENGTHS.every((len) => wordsOfLength(pool, len).length >= MIN_PER_CORE_LENGTH);
+  const пол = полДлиныЯзыка(locale);
+  for (let i = 0; i < ОПОРНЫХ_ДЛИН; i++) {
+    if (wordsOfLength(pool, пол + i).length < MIN_PER_CORE_LENGTH) return false;
+  }
+  return true;
 }
 
 /**

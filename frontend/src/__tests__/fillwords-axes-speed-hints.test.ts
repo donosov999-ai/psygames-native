@@ -12,7 +12,7 @@
  * (98,1%) одинаковы.
  * ЗАМЕР ПОСЛЕ: 49 настроек, последняя новая на 202-м.
  */
-import { fillwordsLevel } from '@/src/games/fillwords/core/generator';
+import { FILLWORDS_LOCALES, fillwordsLevel, generateFillwords, полДлиныЯзыка } from '@/src/games/fillwords/core';
 
 function ключ(L: number): string {
   const c = fillwordsLevel(L);
@@ -84,4 +84,40 @@ it('оси идут по очереди: до 94-го время не трога
   expect(fillwordsLevel(94).timeLimitSec).toBe(fillwordsLevel(95).timeLimitSec);
   expect(fillwordsLevel(142).hints).toBe(3);
   expect(fillwordsLevel(203).hints).toBe(0);
+});
+
+/**
+ * ФРАНЦУЗСКИЙ И ИТАЛЬЯНСКИЙ ИГРАЮТСЯ, ХОТЯ ТРЁХБУКВЕННЫХ СЛОВ У НИХ НЕТ.
+ *
+ * 🔴 ЧТО БЫЛО. Порог пригодности требовал восьми слов на КАЖДОЙ из длин 3, 4, 5 —
+ * жёстко, для всех языков. У fr и it трёхбуквенных ровно ноль, и режим им не
+ * предлагался при 3868 и 4707 словах в пуле.
+ *
+ * ⚠️ И ЭТО НЕ ПРОБЕЛ СБОРЩИКА, А ЕГО ЗАМЕР. `wordlist-build/build_fr_targets.py`,
+ * МИН_ДЛИНА = 4: «при пороге в три буквы 19% выданных слов (4393 из 22 964) —
+ * трёхбуквенные, и их хвост негодный: ana, sin, sas, ais, abc, lol, zip, psi;
+ * раскладка assassin при пороге 3 даёт четыре мусорных слова из шести». Ронять
+ * порог сборщика ради филвордов значило бы испортить анаграммы — те же наборы.
+ *
+ * Стало: пол длины — свойство ЯЗЫКА (`полДлиныЯзыка`), опорные длины считаются от
+ * него. У ru/en/de/es/pt пол 3, у fr/it — 4. Языков в филвордах 5 → 7.
+ */
+it('fr и it поддержаны и собирают поле на всей лестнице', () => {
+  for (const l of ['fr', 'it']) {
+    expect(FILLWORDS_LOCALES).toContain(l);
+    expect(полДлиныЯзыка(l)).toBe(4);
+    for (const L of [1, 5, 20, 50, 94, 150, 202]) {
+      const c = fillwordsLevel(L);
+      const p = generateFillwords({ rows: c.rows, cols: c.cols, locale: l, seed: L * 17 + 3,
+        maxWordLen: c.maxWordLen, minWordLen: c.minWordLen });
+      // Пустая клетка означала бы поле, которое нельзя разобрать.
+      expect(p.letters.every((ch) => ch)).toBe(true);
+      // И ни одно слово не короче пола языка — иначе генератор взял бы то, чего нет.
+      for (const w of p.words) expect([...w.word].length).toBeGreaterThanOrEqual(4);
+    }
+  }
+});
+
+it('у языков с трёхбуквенными словами пол остался прежним', () => {
+  for (const l of ['ru', 'en', 'de', 'es', 'pt']) expect(полДлиныЯзыка(l)).toBe(3);
 });
