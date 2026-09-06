@@ -35,6 +35,8 @@ import GameAbout from '@/src/components/GameAbout';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useBallStyle, ballImage, nearestPieceColor } from '@/src/games/balls/ballChoice';
+import { NUT_IMG } from '@/src/games/balls/nutAssets.generated';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
@@ -207,10 +209,53 @@ const ВНУТРИ_СНИЗУ = 0.955;             // внутренняя то�
 
 type GamePhase = 'config' | 'playing' | 'cleared' | 'result';
 
-export default function WaterSortGame() {
+/**
+ * 🔴 ТРИ ИГРЫ НА ОДНОМ ДВИЖКЕ — РЕШЕНИЕ ДЕНИСА 06.09.2026, дословно: «шарики и
+ * гайки отдельными играми рядом… значит лепим, в хаб сортировка».
+ *
+ * ⚠️ Я ПРЕДЛАГАЛ ИНАЧЕ И БЫЛ ПЕРЕУБЕЖДЁН — ЭТО ЗАПИСАНО, ЧТОБЫ НЕ ПЕРЕИГРЫВАТЬ.
+ * Замер был такой: «Color Ball Sort» и «Сортировка Гаек» механически совпадают с
+ * переливалкой до правила — сосуд, слой, класть можно на свой цвет, пока есть
+ * место. По этому замеру они скины. Денис решил, что три входа лучше одного с
+ * переключателем, и это его решение.
+ *
+ * ЧТО ИЗ ЭТОГО СЛЕДУЕТ ДЛЯ КОДА. Копии экрана быть не должно: три копии
+ * шестисотстрочного файла разъедутся за неделю — в проекте это уже случалось с
+ * двумя экранами судоку. Поэтому экран ОДИН, а различаются три вещи: ключ
+ * лестницы (у каждой игры своя цифра роста), картинка сосуда и форма слоя.
+ *
+ * ⚠️ ЦЕНА НАЗВАНА ЧЕСТНО: три игры — это три лестницы, три статистики и три
+ * входа в развилке. Уровень 20 в шариках и уровень 20 в переливалке — РАЗНЫЕ
+ * достижения, и это придётся объяснять человеку, а не коду.
+ */
+export type СортировкаШкурка = 'water' | 'balls' | 'nuts';
+
+export interface SortScreenProps {
+  /** Ключ лестницы и статистики: у каждой из трёх игр он свой. */
+  gameId: string;
+  skin: СортировкаШкурка;
+  /** Ключ словаря для заголовка экрана. */
+  titleKey: string;
+}
+
+export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
   const { colors } = useTheme();
+  /**
+   * 🔴 ШАРЫ БЕРУТСЯ ГОТОВЫЕ, А НЕ РИСУЮТСЯ КРУЖКАМИ В КОДЕ.
+   *
+   * 📍 Первая редакция этого экрана лепила шарик скруглением `borderRadius` —
+   * то есть я строил заново то, что в проекте уже лежало: 90 картинок,
+   * девять фактур × десять цветов, нарисованных листом и нарезанных
+   * `scripts/build-ball-styles.mjs`. Поймал Денис вопросом «ты в кие отрисовывал
+   * под них шкурки? шарики мы уже рисовали».
+   *
+   * ⚠️ ФАКТУРА БЕРЁТСЯ ИЗ ВЫБОРА ЧЕЛОВЕКА (`useBallStyle`), а не зашита: он уже
+   * выбрал её в другой игре, и своя вторая настройка на то же самое читалась бы
+   * как рассинхрон.
+   */
+  const фактураШара = useBallStyle();
   const { t, language } = useLanguage();
-  const lvl = usePersistentLevel(GAME_ID);
+  const lvl = usePersistentLevel(gameId);
   /**
    * ⚠️ ГОТОВЫЙ ХУК, А НЕ СВОЙ `useWindowDimensions` С ЗАПАСНЫМ ЧИСЛОМ. В проекте
    * уже разобрано, почему: `useWindowDimensions` на первом кадре отдаёт 0, а
@@ -419,7 +464,7 @@ export default function WaterSortGame() {
   };
 
   const тупик = !!field && phase === 'playing' && legalMoves(field).length === 0 && !isSolved(field);
-  const правилаУровня = useLevelRules('water_sort', lvl.level, WATER_SORT_RULES, phase === 'playing');
+  const правилаУровня = useLevelRules(gameId, lvl.level, WATER_SORT_RULES, phase === 'playing');
   /**
    * ⚠️ ОТМЕТКА ТУПИКА — В ЭФФЕКТЕ, А НЕ В ТЕЛЕ ОТРИСОВКИ. Запись в ref во время
    * рендера ломает React в строгом режиме (двойной проход) и ловится линтом
@@ -465,27 +510,80 @@ export default function WaterSortGame() {
              * сообщения. Верхний слой сюда не попадает никогда (условие 1).
              */
             const видно = слойВиден(field!, скрытые, i, снизу);
+            /**
+             * 🔴 ФОРМА СЛОЯ — ЕДИНСТВЕННОЕ, ЧЕМ ТРИ ИГРЫ РАЗЛИЧАЮТСЯ НА ПОЛЕ.
+             * Вода льётся сплошным столбиком, шарики лежат кружками с зазором,
+             * гайки — гранёными плитками с отверстием. Правило хода у всех трёх
+             * одно, и это честно: скин меняет вид, а не задачу.
+             *
+             * ⚠️ ЗАЗОР У ШАРИКОВ НЕ УКРАШЕНИЕ. Без него круги слипаются в столбик
+             * и читаются как та же вода — то есть отличать игры стало бы нечем,
+             * а входов было бы три.
+             */
+            const круглый = skin === 'balls';
+            const гайка = skin === 'nuts';
+            /**
+             * ⚠️ ЦВЕТ ИГРЫ → БЛИЖАЙШИЙ ИЗ ДЕСЯТИ НАРИСОВАННЫХ, одной картой на
+             * обе шкурки. У шаров и гаек намеренно ОДИН набор цветов: разные
+             * наборы дали бы разное сопоставление, и синий в шариках оказался бы
+             * не тем синим, что в гайках.
+             */
+            const ближний = nearestPieceColor(ЦВЕТА[c % ЦВЕТА.length]!.fill);
+            const шар = видно && круглый ? ballImage(фактураШара, ближний)
+              : видно && гайка ? NUT_IMG[ближний] : null;
+            const радиус = круглый ? высотаПорции / 2 : гайка ? 6 : 0;
             return (
               <View
                 key={k}
                 style={[
                   styles.порция,
                   {
-                    height: высотаПорции,
-                    backgroundColor: видно ? ЦВЕТА[c % ЦВЕТА.length]!.fill : '#6b7280',
-                    borderBottomLeftRadius: дно ? ширинаЖ / 2 : 0,
-                    borderBottomRightRadius: дно ? ширинаЖ / 2 : 0,
+                    height: высотаПорции - (круглый ? 3 : гайка ? 2 : 0),
+                    marginBottom: круглый ? 3 : гайка ? 2 : 0,
+                    borderRadius: радиус,
+                    // У нарисованного шара фона нет: картинка сама несёт цвет и блик.
+                    backgroundColor: шар ? 'transparent' : (видно ? ЦВЕТА[c % ЦВЕТА.length]!.fill : '#6b7280'),
+                    borderBottomLeftRadius: дно && !круглый && !гайка ? ширинаЖ / 2 : радиус,
+                    borderBottomRightRadius: дно && !круглый && !гайка ? ширинаЖ / 2 : радиус,
                   },
                 ]}
               >
-                <Text style={styles.знак}>{видно ? ЦВЕТА[c % ЦВЕТА.length]!.mark : '?'}</Text>
+                {/*
+                  ⚠️ РАЗМЕР КАРТИНКИ ЗАДАН ЯВНО, А НЕ ЧЕРЕЗ absoluteFill. На
+                  react-native-web `absoluteFill` НЕ ограничивает `<Image>`:
+                  натуральная ширина перебивает inset, и шар вылезает за трубку.
+                  В проекте на это наступали трижды, есть отдельный гейт.
+                */}
+                {шар ? (
+                  <Image
+                    source={шар}
+                    style={{ width: ширинаЖ, height: высотаПорции - 3 }}
+                    resizeMode="contain"
+                  />
+                ) : null}
+                {/* Знак — вторая опора для дальтоника. На картинке шара он лежит поверх. */}
+                <Text style={[styles.знак, шар ? { position: 'absolute' } : null]}>
+                  {видно ? ЦВЕТА[c % ЦВЕТА.length]!.mark : '?'}
+                </Text>
               </View>
             );
           })}
         </View>
 
-        {/* Стекло поверх: блики и ободок ложатся НА жидкость, как в настоящей пробирке. */}
-        <Image source={СТЕКЛО} style={{ position: 'absolute', width: ш, height: в }} resizeMode="stretch" />
+        {/*
+          Стекло поверх: блики и ободок ложатся НА жидкость, как в настоящей
+          пробирке. ⚠️ У гаек стекла НЕТ — они сидят на стержне, а не в сосуде, и
+          блик поверх металла читался бы как грязь.
+        */}
+        {skin === 'nuts' ? (
+          <View pointerEvents="none" style={{
+            position: 'absolute', alignSelf: 'center', top: в * ВНУТРИ_СВЕРХУ * 0.4,
+            width: Math.max(4, ш * 0.09), height: в * 0.94, borderRadius: 4,
+            backgroundColor: 'rgba(120,124,131,0.55)',
+          }} />
+        ) : (
+          <Image source={СТЕКЛО} style={{ position: 'absolute', width: ш, height: в }} resizeMode="stretch" />
+        )}
 
         {/* Обводка выбора и подсказки — вокруг стекла, не поверх него. */}
         {(выбор || подсвечена) ? (
@@ -523,7 +621,7 @@ export default function WaterSortGame() {
           </View>
           <LevelProgressMap
             bestLevel={lvl.best}
-            gameId={GAME_ID}
+            gameId={gameId}
             currentLevel={lvl.level}
             onPickLevel={lvl.pick}
             maxLevel={Math.max(15, lvl.level)}
@@ -540,7 +638,7 @@ export default function WaterSortGame() {
     const закрыто = field.tubes.filter((_, i) => isDone(field, i) && field.tubes[i]!.length > 0).length;
     return (
       <GameShell
-        title={t('waterSort')}
+        title={t(titleKey)}
         onBack={() => { if (таймерRef.current) clearInterval(таймерRef.current); goBackOrHome(); }}
         hud={[
           { key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'), value: `${ходов}/${Math.max(1, минимум)}`,
@@ -617,7 +715,7 @@ export default function WaterSortGame() {
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared
-          gameId={GAME_ID}
+          gameId={gameId}
           level={playedLevel}
           stars={звёзды(ходов, минимум, lvl.level)}
           gradient={GRADIENT}
@@ -639,6 +737,11 @@ export default function WaterSortGame() {
       )}
     </SafeAreaView>
   );
+}
+
+/** Маршрут «Переливалка» — вода в пробирках. */
+export default function WaterSortGame() {
+  return <SortGameScreen gameId={GAME_ID} skin="water" titleKey="waterSort" />;
 }
 
 const styles = StyleSheet.create({

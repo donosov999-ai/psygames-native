@@ -442,6 +442,16 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillVisualMemory",
     "introKey": "chessGroupIntroDesc"
   },
+  "/games/ball-sort": {
+    "nameKey": "ballSort",
+    "skillKey": "skillPlanning",
+    "introKey": "waterSortIntroDesc"
+  },
+  "/games/nut-sort": {
+    "nameKey": "nutSort",
+    "skillKey": "skillPlanning",
+    "introKey": "waterSortIntroDesc"
+  },
   "/games/sorting-hub": {
     "nameKey": "sortingGroup",
     "skillKey": "skillPlanningWM",
