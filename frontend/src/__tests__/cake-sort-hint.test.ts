@@ -8,7 +8,7 @@
  * исполнением: ход применяется, и с него стол по-прежнему разбирается.
  */
 import { makeBoard, moveTop, canPlace, collapse, isCleared, completeIn, CIRCLE } from '@/src/games/cake-sort/core/plate';
-import { hintMove, solvePath } from '@/src/games/cake-sort/core/solver';
+import { hintMove, solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
 import { deal } from '@/src/games/cake-sort/core/level';
 
 jest.setTimeout(300000);
@@ -48,6 +48,35 @@ describe('подсказка тортов', () => {
    * если ходить ТОЛЬКО по подсказкам, стол обязан быть разобран за конечное
    * число ходов. Случайный законный ход этого не даёт — он ходит по кругу.
    */
+  /**
+   * 🔴 ПОДСКАЗКА НЕ ДОЛЖНА СТОИТЬ ЗВЁЗД. Первая редакция брала первый путь
+   * обхода в глубину: он настоящий, но замер дал 87 ходов при минимуме 24 на L4
+   * и 155 при 45 на L10 — в 3,4–3,6 раза длиннее. Игрок, идущий по подсказке,
+   * терял высшую оценку гарантированно. Теперь сперва ищется КРАТЧАЙШИЙ путь.
+   */
+  it('🔴 там, где кратчайший путь по карману, подсказка ведёт им, а не окольно', () => {
+    const плохо: string[] = [];
+    for (const L of [1, 2, 3, 4]) {
+      const b = deal(L).board;
+      const m = minMoves(b, 400000);
+      const p = solvePath(b, 60000);
+      expect(m.moves).not.toBeNull();
+      expect(p).not.toBeNull();
+      if (p!.length !== m.moves) плохо.push(`L${L}: путь ${p!.length} при минимуме ${m.moves}`);
+    }
+    expect(плохо).toEqual([]);
+  });
+
+  /** А там, где не по карману, путь всё равно ЕСТЬ — длинный лучше никакого. */
+  it('🔴 выше порога поиска подсказка не пропадает, а становится длиннее', () => {
+    const пусто: string[] = [];
+    for (const L of [8, 12, 16, 20]) {
+      const p = solvePath(deal(L).board, 20000);
+      if (!p || p.length === 0) пусто.push(`L${L}: пути нет`);
+    }
+    expect(пусто).toEqual([]);
+  });
+
   it('🔴 путь решения доводит стол до конца, ход за ходом', () => {
     const плохо: string[] = [];
     for (const L of УРОВНИ.slice(0, 12)) {
