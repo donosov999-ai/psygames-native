@@ -87,6 +87,19 @@ type WordLen = 4 | 5 | 6 | 7 | 8 | 9;
   Лестница классики переехала в `anagrams/core/classicLevel.ts`: проба повторяла
   расчёт своей копией, а копия сверяет себя с собой. Здесь остаётся только вызов.
 */
+/**
+ * Случайный элемент — ВНЕ компонента.
+ *
+ * ⚠️ `Math.random()` стоял прямо в теле `newRound`, объявленного внутри
+ * компонента, и линтер правил React звал это «impure function during render»:
+ * он не может доказать, что такая функция не вызовется при отрисовке, а
+ * непредсказуемый результат в рендере даёт разное дерево на одних и тех же
+ * пропах. Вынос за компонент снимает вопрос: сюда рендер не заглядывает.
+ */
+function случайный<T>(список: readonly T[]): T {
+  return список[Math.floor(Math.random() * список.length)];
+}
+
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -200,7 +213,6 @@ export default function AnagramGame() {
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame());
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл/не прошёл — для баннера LevelCleared (passed)
   // length — только для пресетов из зарядки (num('length')); в уровневом режиме перекрывается levelParams
@@ -254,6 +266,21 @@ export default function AnagramGame() {
   const errorsRef = useRef(0);
   const hintUsesRef = useRef(0);
   const wordDoneRef = useRef(false);            // слово закрыто (собрано или таймаут) — клики/дедлайн игнорим
+  /*
+    🔴 ДВОЙНИК-СОСТОЯНИЕ ДЛЯ РАЗМЕТКИ, И ЭТО НЕ УГОДА ЛИНТЕРУ.
+
+    `wordDoneRef` читался прямо в разметке (`disabled={wordDoneRef.current}`).
+    Реф МЕНЯЕТСЯ БЕЗ ПЕРЕРИСОВКИ — значит кнопка оставалась активной до тех пор,
+    пока экран не перерисуется по какой-нибудь другой причине. Работало это
+    случайно: рядом менялись другие состояния. Тот же разбор у `levelRef` ниже.
+
+    Реф остаётся: его читают обработчики, которым нужно СВЕЖЕЕ значение сразу,
+    без ожидания перерисовки. Состояние добавлено для отрисовки, и оба
+    выставляются в одном месте — иначе они разойдутся.
+  */
+  const [словоЗакрыто, setСловоЗакрыто] = useState(false);
+  const закрытьСлово = (v: boolean) => { wordDoneRef.current = v; setСловоЗакрыто(v); };
+  const [показанныйУровень, setПоказанныйУровень] = useState(1);
   const wordDeadlineAtRef = useRef(0);          // gameNow() дедлайна текущего слова (0 = нет лимита)
   const startTimeRef = useRef(0);
 
@@ -344,7 +371,7 @@ export default function AnagramGame() {
     }
     let avail = bank.filter((e) => !usedRef.current.has(e.w));
     if (avail.length === 0) { usedRef.current.clear(); avail = bank; }   // банк исчерпан → сброс
-    const entry = avail[Math.floor(Math.random() * avail.length)];
+    const entry = случайный(avail);
     usedRef.current.add(entry.w);
     const w = entry.w.toUpperCase();
     setTarget(w);
@@ -355,7 +382,7 @@ export default function AnagramGame() {
     setLetters(arr);
     setPicked([]);
     hist.reset();   // лента отмены не переезжает на новое слово: чужие буквы в неё не годятся
-    wordDoneRef.current = false;
+    закрытьСлово(false);
     // Лимит времени на слово (верхние уровни): не успел = ошибка, слово закрывается само
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
     if (wordSecRef.current > 0) {
@@ -363,7 +390,7 @@ export default function AnagramGame() {
       setWordLeft(wordSecRef.current);
       deadlineTimerRef.current = setTimeout(() => {
         if (wordDoneRef.current) return;
-        wordDoneRef.current = true;
+        закрытьСлово(true);
         // Слово закрыто по времени — откатывать больше нечего и незачем: ошибка
         // уже записана. Гасим ленту, чтобы кнопка не осталась живой над мёртвым словом.
         hist.reset();
@@ -390,6 +417,7 @@ export default function AnagramGame() {
       // ⚠️ Пресет — потолок желания (см. `presetCap`): программа просит слова из
       // шести букв, а лесенка на первых уровнях даёт короче.
       levelRef.current = lvl.level;
+      setПоказанныйУровень(lvl.level);
       const capped = capPresetByLevel({ want: length, atLevel: levelParams(lvl.level).length, atTop: lvl.level >= 15 });
       lengthRef.current = capped as typeof length;
       trialsRef.current = 10;
@@ -400,6 +428,7 @@ export default function AnagramGame() {
     } else {
       const p = levelParams(lvl.level);
       levelRef.current = lvl.level;
+      setПоказанныйУровень(lvl.level);
       lengthRef.current = p.length;
       trialsRef.current = p.trials;
       wordSecRef.current = p.wordSec;
@@ -424,6 +453,24 @@ export default function AnagramGame() {
     }, 100);
     newRound();
   };
+
+  /*
+    ⚠️ ВЫЗОВ СТОИТ ЗДЕСЬ, А НЕ ВЫШЕ, И ЭТО НЕ КОСМЕТИКА. Раньше он был до
+    объявления `startGame`, и линтер правил React звал это «Cannot access
+    variable before it is declared»: замыкание, созданное раньше объявления, не
+    обновляется, когда значение меняется со временем. Работало это только потому,
+    что хук зовёт `start()` внутри эффекта, то есть уже после объявления, — то
+    есть держалось на порядке выполнения, а не на устройстве.
+
+    Порядок хуков от переноса не плывёт: вызов безусловный и там, и тут, а React
+    требует одинаковой последовательности между отрисовками, а не конкретного
+    места в файле.
+
+    Смысл прежний: ждём загрузки уровня. Без этого автостарт («Вызов дня»,
+    онбординг) играл ПЕРВЫЙ уровень человеку с двенадцатым — уровень приезжает
+    асинхронно, а эффект монтирования всегда раньше промиса.
+  */
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame());
 
   const finish = async () => {
     clearAllTimers();
@@ -470,7 +517,7 @@ export default function AnagramGame() {
     const newPicked = [...picked, idx];
     setPicked(newPicked);
     if (newPicked.length === target.length) {
-      wordDoneRef.current = true;
+      закрытьСлово(true);
       /**
        * 🔴 ЗДЕСЬ ЖЕ ЛЕНТА И ГАСНЕТ. Последняя буква — это КОММИТ: игра сравнивает
        * набранное со словарём и показывает «верно/неверно». Оставь отмену живой
@@ -892,7 +939,7 @@ export default function AnagramGame() {
             onSubmit={() => { /* слово проверяется на полной длине в handleLetterPress */ }}
             colors={{ surface: colors.surface, text: colors.text, primary: GRADIENT[0], border: colors.border }}
             label={t('anagramHint')}
-            disabled={wordDoneRef.current}
+            disabled={словоЗакрыто}
           />
         </View>
       </GameShell>
@@ -912,7 +959,7 @@ export default function AnagramGame() {
       </View>
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
-        <LevelCleared gameId="anagrams" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+        <LevelCleared gameId="anagrams" level={показанныйУровень} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
