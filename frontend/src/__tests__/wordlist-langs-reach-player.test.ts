@@ -51,7 +51,7 @@ describe('языки слов доезжают до игрока', () => {
   it('язык по умолчанию берётся из интерфейса, если игра его знает', () => {
     expect(defaultWordLang('de', 'anagrams')).toBe('de');
     expect(defaultWordLang('de', 'phonemic_fluency')).toBe('en');
-    expect(defaultWordLang('ja', 'anagrams')).toBe('en');
+    expect(defaultWordLang('ja', 'anagrams')).toBe('ja');   // с 06.09.2026 у японского свой набор
   });
 });
 
