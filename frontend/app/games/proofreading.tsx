@@ -1829,7 +1829,7 @@ const styles = StyleSheet.create({
   },
   targetChipText: { fontSize: 20, fontWeight: '800', color: '#1a1a1a' },
   targetCount: { fontSize: 15, fontWeight: '600', marginLeft: 'auto' },
-  /** Подпись и число держатся вместе, а к краю уезжают ВДВО�ём — см. шапку серии. */
+  /** Подпись и число держатся вместе, а к краю уезжают ВДВОЁМ — см. шапку серии. */
   foundPair: { flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 'auto' },
   statBox: {
     flexDirection: 'row',
