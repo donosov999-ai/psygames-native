@@ -24,11 +24,12 @@
  * функция плана уровня (`levelParams` и родня). Гейт прогоняет L1…L60 и
  * спрашивает у кода, с какого уровня механика реально включается.
  */
+import { CS_RULES } from '@/app/games/cake-sort';
 import { CHESSBLIND_RULES } from '@/app/games/chess-blind';
 import { CORSI_RULES, levelParams as corsi } from '@/app/games/corsi';
 import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
-import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches } from '@/app/games/goods-sort';
+import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches } from '@/app/games/goods-sort';
 import { HN_RULES, levelParams as hanoi } from '@/app/games/hanoi';
 import { WATER_SORT_RULES } from '@/app/games/water-sort';
 import { скрытоНаУровне } from '@/src/games/water-sort/core/hidden';
@@ -53,11 +54,13 @@ import { LevelRule } from '@/src/components/LevelRules';
 import { puzzleLevelParams } from '@/src/games/chess-blind/core/puzzle';
 import { levelParams as rotation } from '@/src/games/mental-rotation/core/rotation';
 import { mahjongLevel, mahjongHidden } from '@/src/services/mahjongLevels';
+import { levelCfg as cakeLevel } from '@/src/games/cake-sort/core/level';
 
 const LEVELS = Array.from({ length: 60 }, (_, i) => i + 1);
 
 /** Все игры с правилами уровня. Ключ — имя игры, значение — её настоящий массив правил. */
 const RULES: Record<string, LevelRule[]> = {
+  'cake-sort': CS_RULES,
   'chess-blind': CHESSBLIND_RULES, corsi: CORSI_RULES, cpt: CPT_RULES, 'digit-span': DS_RULES,
   'goods-sort': GS_RULES, hanoi: HN_RULES, 'listening-span': LISTENINGSPAN_RULES,
   'water-sort': WATER_SORT_RULES,
@@ -84,6 +87,7 @@ interface Механика { игра: string; ключ: string; вид: Вид;
 
 const МЕХАНИКИ: Механика[] = [
   // ── дискретные переключатели ────────────────────────────────────────────────
+  { игра: 'cake-sort', ключ: 'queue', вид: 'порог', есть: (L) => cakeLevel(L).queue > 0 },
   { игра: 'chess-blind', ключ: 'moves', вид: 'порог', есть: (L) => puzzleLevelParams(L).moves > 0 },
   { игра: 'chess-blind', ключ: 'locate', вид: 'порог', есть: (L) => puzzleLevelParams(L).quizType === 'locate' },
   { игра: 'corsi', ключ: 'reverse', вид: 'порог', есть: (L) => corsi(L).reverse },
@@ -131,6 +135,7 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'goods-sort', ключ: 'strict', вид: 'порог', есть: (L) => strictPlacement(L) },
   { игра: 'goods-sort', ключ: 'hidden', вид: 'порог', есть: (L) => hiddenInfo(L) },
   { игра: 'goods-sort', ключ: 'joker', вид: 'порог', есть: (L) => jokerNiches(L, 14).length > 0 },
+  { игра: 'goods-sort', ключ: 'moving', вид: 'порог', есть: (L) => movingNiches(L) },
   /**
    * ⚠️ ПЕРЕЛИВАЛКА ЗАРЕГИСТРИРОВАНА ЗДЕСЬ 06.09.2026, В ТОТ ЖЕ ЗАХОД, ЧТО И
    * МЕХАНИКА. Первым делом её правило было НЕ ВИДНО этому гейту: массив не был
@@ -172,10 +177,10 @@ const последний = (m: Механика) => [...LEVELS].reverse().find((
 
 describe('правило уровня не врёт про свой номер', () => {
   it('есть что проверять — иначе тест зелен вслепую', () => {
-    expect(Object.keys(RULES).length).toBeGreaterThanOrEqual(23);
+    expect(Object.keys(RULES).length).toBeGreaterThanOrEqual(24);
     const всего = Object.values(RULES).reduce((n, r) => n + r.length, 0);
-    expect(всего).toBeGreaterThanOrEqual(46);
-    expect(МЕХАНИКИ.length).toBeGreaterThanOrEqual(40);
+    expect(всего).toBeGreaterThanOrEqual(48);
+    expect(МЕХАНИКИ.length).toBeGreaterThanOrEqual(43);
     expect(Object.keys(РЕДАКЦИОННЫЕ).length).toBeGreaterThan(0);
   });
 
