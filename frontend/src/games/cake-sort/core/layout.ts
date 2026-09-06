@@ -101,3 +101,31 @@ export function maxCols(width: number, limit = 8): number {
   }
   return best;
 }
+
+/**
+ * 🔴 ТАРЕЛКА ПОД ТОЧКОЙ — ЧИСТАЯ ФУНКЦИЯ, А НЕ АРИФМЕТИКА В ОБРАБОТЧИКЕ ЖЕСТА.
+ *
+ * Перетаскивание считает попадание десятки раз в секунду, и ошибка здесь не
+ * падает, а промахивается: товар едет не в ту тарелку, и на глаз промах в одну
+ * ячейку от промаха в ноль не отличить. В сортировке товаров эту арифметику
+ * пришлось выносить ровно по этой причине — ловится только замером.
+ *
+ * ⚠️ ПОПАДАНИЕ СЧИТАЕТСЯ ПО КРУГУ, А НЕ ПО КЛЕТКЕ. Тарелка круглая, и угол её
+ * клетки — пустое место: палец там означает «мимо», а не «в тарелку». Разница
+ * велика: у круга, вписанного в квадрат, вне круга остаётся 21 % площади.
+ */
+export function plateAtPoint(
+  x: number, y: number, cols: number, plate: number, count: number,
+): number | null {
+  const шаг = plate + PLATE_GAP;
+  const c = Math.floor((x - PLATE_GAP / 2) / шаг);
+  const r = Math.floor((y - PLATE_GAP / 2) / шаг);
+  if (c < 0 || c >= cols || r < 0) return null;
+  const i = r * cols + c;
+  if (i < 0 || i >= count) return null;
+  // Центр этой тарелки и проверка, что палец внутри круга, а не в углу клетки.
+  const cx = PLATE_GAP / 2 + c * шаг + plate / 2;
+  const cy = PLATE_GAP / 2 + r * шаг + plate / 2;
+  const dx = x - cx; const dy = y - cy;
+  return dx * dx + dy * dy <= (plate / 2) * (plate / 2) ? i : null;
+}

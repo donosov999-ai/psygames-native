@@ -16,7 +16,7 @@
  * размер разный. Геометрия считается в `core/layout.ts` ДО отрисовки — там же
  * лежит замер, при какой ширине сколько столбцов ещё читаемо.
  */
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Svg, { Path, Circle as SvgCircle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
@@ -41,7 +41,7 @@ import { CIRCLE, Board, canPlace, moveTop, isCleared, hasAnyMove } from '@/src/g
 import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
-import { tableLayout, maxCols, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
+import { tableLayout, maxCols, plateAtPoint, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
 import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
 
 export const CS_GAME_ID = 'cake_sort';
@@ -274,6 +274,69 @@ export default function CakeSortGame() {
    * оценка по видам; точный минимум этой раздачи лучше, и когда фон успел, берём
    * его. Разница не косметическая: на просторном столе минимум заметно меньше.
    */
+  /* ─────────────── ПЕРЕТАСКИВАНИЕ ───────────────
+   *
+   * 🔴 ПРЯМЫЕ RESPONDER-ПРОПСЫ, А НЕ `PanResponder`. Разница не в стиле.
+   * `PanResponder` создаётся ОДИН раз и замыкает первый рендер намертво — чтобы
+   * он видел живую партию, состояние приходится дублировать в ссылки, а React
+   * запрещает трогать ссылки во время рендера (линт ловит это ошибкой). Пропсы
+   * же пересоздаются каждый рендер и замыкают СВЕЖЕЕ состояние: ни ссылок, ни
+   * зеркал, ни грабли «жест считает по геометрии первого уровня», на которой
+   * стоит предупреждение в сортировке товаров и в ханойской башне.
+   *
+   * ⚠️ КАСАНИЕ НЕ ПЕРЕХВАТЫВАЕМ. Короткий тап обязан достаться кнопке тарелки —
+   * это путь, которым игру ведёт скринридер. Жест забираем только после порога
+   * сдвига, иначе один тап обработался бы дважды и ход посчитался бы за два.
+   */
+  const СДВИГ = 6;
+  const [тащим, setТащим] = useState<number | null>(null);
+  const [цель, setЦель] = useState<number | null>(null);
+  const [бокс, setБокс] = useState({ x: 0, y: 0 });
+  const столRef = useRef<View | null>(null);
+
+  const снятьБокс = () => {
+    const n: any = столRef.current;
+    if (!n) return;
+    if (typeof n.getBoundingClientRect === 'function') {
+      const r = n.getBoundingClientRect();
+      setБокс({ x: r.left, y: r.top });
+      return;
+    }
+    n.measureInWindow?.((x: number, y: number) => setБокс({ x, y }));
+  };
+
+  /** Тарелка под точкой экрана. Вся арифметика — в `plateAtPoint`. */
+  const тарелкаПод = (pageX: number, pageY: number) =>
+    (стол.plate ? plateAtPoint(pageX - бокс.x, pageY - бокс.y, стол.cols, стол.plate, cfg.plates) : null);
+
+  const жест = {
+    onStartShouldSetResponder: () => false,
+    onMoveShouldSetResponder: (e: any) => {
+      const { dx, dy } = { dx: e.nativeEvent.locationX ?? 0, dy: e.nativeEvent.locationY ?? 0 };
+      return Math.abs(dx) + Math.abs(dy) > СДВИГ;
+    },
+    onResponderGrant: (e: any) => {
+      if (!board || done) return;
+      снятьБокс();
+      const i = тарелкаПод(e.nativeEvent.pageX, e.nativeEvent.pageY);
+      // С пустой тарелки брать нечего: начать жест, который заведомо ничем не
+      // кончится, хуже, чем не начать — сектор «поднимется» и упадёт назад.
+      if (i === null || !(board.plates[i]?.length)) return;
+      setТащим(i); setЦель(i); hapticTap();
+    },
+    onResponderMove: (e: any) => {
+      if (тащим === null) return;
+      const i = тарелкаПод(e.nativeEvent.pageX, e.nativeEvent.pageY);
+      if (i !== цель) setЦель(i);
+    },
+    onResponderRelease: () => {
+      const f = тащим; const t = цель;
+      setТащим(null); setЦель(null);
+      if (f !== null && t !== null && f !== t) { setSel(f); тронуть(t); }
+    },
+    onResponderTerminate: () => { setТащим(null); setЦель(null); },
+  };
+
   const эталон = referenceFor(cfg.types, точныйМин);
   const звёзды = starsFor(moves, cfg.types, точныйМин);
   const встал = board ? !isCleared(board) && !hasAnyMove(board) : false;
@@ -281,7 +344,8 @@ export default function CakeSortGame() {
   const тарелка = (i: number) => {
     const cells = board?.plates[i] ?? [];
     const r = стол.plate / 2;
-    const выбрана = sel === i;
+    const выбрана = sel === i || тащим === i;
+    const подЦелью = тащим !== null && цель === i && цель !== тащим;
     return (
       <TouchableOpacity
         key={i}
@@ -308,6 +372,7 @@ export default function CakeSortGame() {
             <Path key={k} d={wedgePath(r, r, (r - 3) * 0.72, k)} fill={тема.colors[тип % тема.colors.length]} stroke="#00000022" strokeWidth={1} />
           ))}
           {выбрана && <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke="#f59e0b" strokeWidth={3} />}
+          {подЦелью && <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke="#38bdf8" strokeWidth={3} />}
           {(hint?.from === i || hint?.to === i) && (
             <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke={hint?.to === i ? '#38bdf8' : '#a3e635'} strokeWidth={3} strokeDasharray="6 5" />
           )}
@@ -340,7 +405,17 @@ export default function CakeSortGame() {
     >
       <LevelRuleModal lr={levelRules} colors={colors} />
       <ScorePopupLayer popups={popups} />
-      <View style={[styles.table, { width: стол.boardW }]}>
+      <View
+        ref={столRef}
+        {...жест}
+        /**
+         * ⚠️ `touchAction: 'none'` — лечение дефекта «перетаскивание лагает»
+         * (четыре отчёта за 02.09). В вебе браузер иначе толкует протаскивание
+         * как прокрутку и забирает жест себе. Работает только потому, что поле
+         * НЕ прокручивается: появится прокрутка — дефект вернётся.
+         */
+        style={[styles.table, { width: стол.boardW }, { touchAction: 'none' } as any]}
+      >
         {Array.from({ length: cfg.plates }).map((_, i) => тарелка(i))}
       </View>
       <View style={styles.tools}>
