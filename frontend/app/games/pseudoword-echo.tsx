@@ -24,6 +24,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { speak, ttsAvailable, ttsCancel } from '@/src/services/tts';
+import { startNoise, stopNoise } from '@/src/services/noise';
 import { useTtsAvailable, useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import { generatePseudowords } from '@/src/services/pseudowords';
@@ -87,11 +88,81 @@ const CONSONANTS: Record<string, string> = {
 };
 
 // Лесенка: длина псевдослова L1-4: 4-5 букв → L5-8: 6-7 → L9+: 8-9; раундов 8→10→12.
-/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
-export function levelParams(level: number): { lenMin: number; lenMax: number; trials: number } {
-  if (level <= 4) return { lenMin: 4, lenMax: 5, trials: 8 };
-  if (level <= 8) return { lenMin: 6, lenMax: 7, trials: 10 };
-  return { lenMin: 8, lenMax: 9, trials: 12 };
+/**
+ * 🔴 ЛЕСТНИЦА «ЭХА» — ЧЕТЫРЕ ОСИ ВМЕСТО ОДНОЙ ДЛИНЫ.
+ *
+ * 📍 ЗАМЕР ДО (проба memory-hearing-ladders-scan, 06.09.2026): плато с 9-го
+ * уровня из 15 — семь уровней подряд неотличимы, потому что менялись только
+ * длина слова (4→9) и число проб (8→12), обе ступенями по четыре уровня.
+ *
+ * 🔴 ПОЧЕМУ ДЛИНА — САМЫЙ СЛАБЫЙ ПАРАМЕТР ИЗ ВОЗМОЖНЫХ. В задачах на повторение
+ * псевдослов (Syllable Repetition Task, ASHA 2009) трудность определяется
+ * ФОНОЛОГИЧЕСКОЙ СТРУКТУРОЙ сильнее, чем числом букв: «страпл» тяжелее
+ * «пасата» при той же длине, потому что стечения согласных негде переспросить у
+ * артикуляции. Игра крутила ровно длину, то есть взяла слабейший из двух
+ * известных параметров.
+ *
+ * ВЗЯТЫЕ ОСИ (канон §R PROJECT_REF): ось 1 длина и число проб — как были
+ * (пороги правил `longer6`/`longer8` на них и стоят, их трогать нельзя); ось 7
+ * СХОДСТВО/СТРУКТУРА — требуемое стечение согласных растёт 1 → 2 → 3; ось 2
+ * СКОРОСТЬ — темп речи меняется каждый уровень, поэтому соседние различимы
+ * везде; ось 5 ОТВЛЕЧЕНИЕ — шум по SNR с 10-го уровня.
+ *
+ * ⚠️ Экспортирована для гейта `level-rule-threshold`: пороги правил сверяются
+ * ИСПОЛНЕНИЕМ этой функции, поэтому lenMin/lenMax и trials оставлены прежними.
+ */
+export function levelParams(level: number): {
+  lenMin: number; lenMax: number; trials: number;
+  /**
+   * Ось 7: доля слов партии, обязанных нести стечение согласных (0 — не важно).
+   *
+   * 🔴 ПОЧЕМУ ДОЛЯ, А НЕ «ПОРОГ СТЕЧЕНИЯ». Первая редакция требовала стечение
+   * длиной 1 → 2 → 3, и ЗАМЕР 07.09.2026 показал, что ось при этом ломается:
+   * на русском при требовании тройного стечения доля трудных слов ПАДАЛА до
+   * 0,867 против 0,942 при двойном — пул псевдослов беден тройными стечениями
+   * (максимум в пуле равен 3), запрос не набирался на партию, и мягкий откат
+   * скатывался к любым словам. Требование доли устойчиво к бедности пула:
+   * сколько трудных есть, столько и ставим вперёд, остаток добираем обычными,
+   * и лестница растёт монотонно.
+   */
+  hardShare: number;
+  /** Ось 2: множитель темпа речи. */
+  rate: number;
+  /** Ось 5: отношение сигнал/шум в дБ; null — тишина. */
+  snrDb: number | null;
+} {
+  const l = Math.min(15, Math.max(1, Math.floor(level)));
+  const объём = l <= 4
+    ? { lenMin: 4, lenMax: 5, trials: 8 }
+    : l <= 8
+      ? { lenMin: 6, lenMax: 7, trials: 10 }
+      : { lenMin: 8, lenMax: 9, trials: 12 };
+  return {
+    ...объём,
+    hardShare: l <= 3 ? 0 : Math.min(0.9, Math.round((l - 3) * 0.075 * 100) / 100),
+    rate: Math.round((0.95 - (l - 1) * 0.015) * 1000) / 1000,
+    snrDb: l < 10 ? null : Math.round(Math.max(0, 15 - (l - 10) * 3) * 10) / 10,
+  };
+}
+
+/**
+ * ДЛИНА САМОГО ДЛИННОГО СТЕЧЕНИЯ СОГЛАСНЫХ В СЛОВЕ.
+ *
+ * Это и есть мера фонологической трудности: одиночная согласная между гласными
+ * проговаривается сама собой, а «стрп» приходится удерживать целиком. Буквы, не
+ * попавшие ни в гласные, ни в согласные языка (диакритика, ъ/ь), стечение не
+ * разрывают и в него не считаются — иначе мягкий знак делал бы слово «проще»,
+ * ничего не меняя на слух.
+ */
+export function maxConsonantCluster(word: string, lang: string): number {
+  const гласные = VOWELS[lang] || VOWELS.en;
+  const согласные = CONSONANTS[lang] || CONSONANTS.en;
+  let макс = 0, текущее = 0;
+  for (const буква of word.toLowerCase()) {
+    if (согласные.includes(буква)) { текущее += 1; if (текущее > макс) макс = текущее; }
+    else if (гласные.includes(буква)) { текущее = 0; }
+  }
+  return макс;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -158,7 +229,8 @@ function makeOptions(word: string, lang: string): string[] {
 }
 
 /** count раундов: псевдослова нужной длины + варианты написания. */
-function buildRounds(lang: string, count: number, lenMin: number, lenMax: number): Round[] {
+/** Экспортирован для пробы: ось структуры проверяется НА СЛОВАХ партии, а не на параметрах. */
+export function buildRounds(lang: string, count: number, lenMin: number, lenMax: number, hardShare = 0): Round[] {
   const raw = Array.from(new Set(generatePseudowords(lang, count * 25).map((w) => w.toLowerCase())))
     .filter((w) => !w.includes(' ') && !w.includes('-'));
   let pool = raw.filter((w) => w.length >= lenMin && w.length <= lenMax);
@@ -169,7 +241,22 @@ function buildRounds(lang: string, count: number, lenMin: number, lenMax: number
   if (pool.length < count) {
     pool = pool.concat(raw.filter((w) => !pool.includes(w)));
   }
-  return shuffle(pool).slice(0, count).map((word) => ({ word, options: makeOptions(word, lang) }));
+  /*
+   * Ось 7 — доля трудных. Партия набирается двумя корзинами: сперва столько
+   * слов со стечением согласных, сколько требует уровень (или сколько нашлось),
+   * затем добор обычными. Порядок в итоге перемешивается, чтобы трудные не шли
+   * подряд в начале.
+   */
+  const трудные = shuffle(pool.filter((w) => maxConsonantCluster(w, lang) >= 2));
+  const простые = shuffle(pool.filter((w) => maxConsonantCluster(w, lang) < 2));
+  const надо = Math.round(count * Math.min(1, Math.max(0, hardShare)));
+  const взято = [
+    ...трудные.slice(0, надо),
+    ...простые.slice(0, Math.max(0, count - Math.min(надо, трудные.length))),
+  ];
+  const добор = shuffle(pool).filter((w) => !взято.includes(w));
+  const партия = shuffle([...взято, ...добор].slice(0, count));
+  return партия.map((word) => ({ word, options: makeOptions(word, lang) }));
 }
 
 export default function PseudowordEchoGame() {
@@ -194,6 +281,8 @@ export default function PseudowordEchoGame() {
   const hitsRef = useRef(0);
   const errorsRef = useRef(0);
   const levelRef = useRef(1);
+  /** Оси текущего уровня: темп речи и помеха берутся отсюда при каждом произнесении. */
+  const парамRef = useRef(levelParams(1));
   const tgtRef = useRef('en');
   const lenRangeRef = useRef('4-5');
   const startTimeRef = useRef(0);
@@ -221,13 +310,17 @@ export default function PseudowordEchoGame() {
   useEffect(() => () => {
     if (advTimerRef.current) clearTimeout(advTimerRef.current);
     ttsCancel();
+    stopNoise();   // помеха не переживает выход с экрана
   }, []);
 
   // озвучка текущего псевдослова при показе раунда (эффект, не setState-updater)
   useEffect(() => {
     if (phase !== 'playing') return;
     const round = rounds[idx];
-    if (round) speak(round.word, tgtRef.current, 0.85);
+    if (round) {
+      startNoise(парамRef.current.snrDb);
+      speak(round.word, tgtRef.current, парамRef.current.rate).then(() => stopNoise());
+    }
   }, [phase, idx, rounds]);
 
   const pickLang = (code: string) => {
@@ -237,6 +330,7 @@ export default function PseudowordEchoGame() {
 
   const startGame = () => {
     const p = levelParams(lvl.level);
+    парамRef.current = p;
     levelRef.current = lvl.level;
     tgtRef.current = tgt;
     lenRangeRef.current = `${p.lenMin}-${p.lenMax}`;
@@ -246,7 +340,7 @@ export default function PseudowordEchoGame() {
     setErrors(0);
     setAnswered(null);
     setIdx(0);
-    setRounds(buildRounds(tgt, p.trials, p.lenMin, p.lenMax));
+    setRounds(buildRounds(tgt, p.trials, p.lenMin, p.lenMax, p.hardShare));
     startTimeRef.current = gameNow();
     setPhase('playing');
   };
@@ -404,7 +498,10 @@ export default function PseudowordEchoGame() {
           <TouchableOpacity
             accessibilityRole="button"
             style={[styles.speakerBtn, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}
-            onPress={() => speak(round.word, tgtRef.current, 0.85)}
+            onPress={() => {
+              startNoise(парамRef.current.snrDb);
+              speak(round.word, tgtRef.current, парамRef.current.rate).then(() => stopNoise());
+            }}
             activeOpacity={0.8}
           >
             <Ionicons name="volume-high" size={44} color={GRADIENT[0]} />
