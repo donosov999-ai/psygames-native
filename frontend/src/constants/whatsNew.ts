@@ -16,6 +16,30 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.49.0',
+    date: '2026-09-07',
+    ru: [
+      'Уровни перестали повторяться: в «Объёме цифр» исчезли 47 одинаковых уровней, в «Слуховом охвате» — 51, «Диктант» рос только до седьмого уровня из пятнадцати. Теперь после запоминания идёт пауза — держать в уме дольше',
+      'Маджонг и «Быстрый счёт» показывали 15 уровней, хотя на деле их 28 и 31 — экран занижал лестницу',
+      'Переливалка давала три звезды за игру вдвое длиннее нужной. И появился лимит ходов с четырнадцатого уровня',
+      'Правила больше не выскакивают поверх сетки, которую вы запоминаете — задело 25 игр',
+      '«Дворец памяти» стало понятно, во что играть: у предметов вернулись подписи, и вы связываете с местом лампу, а не «оранжевый ромб»',
+      'Шахматы: доска смотрела не с той стороны, когда вы играли за чёрных — в половине позиций',
+      'Судоку: «Отменить» теперь снимает и пометки, и цвет клетки',
+      'Филворды растут до двухсотого уровня, у анаграмм лестницы стали вдвое длиннее',
+    ],
+    en: [
+      'Levels stopped repeating: Digit Span had 47 identical levels, Listening Span had 51, and Dictation only grew to level seven of fifteen. Now a pause follows the display — you hold it in mind longer',
+      'Mahjong and Quick Count showed 15 levels when they actually have 28 and 31 — the screen was capping the ladder',
+      'Water Sort gave three stars for a game twice as long as needed. And a move limit arrives at level fourteen',
+      'Rules no longer pop up over the grid you are memorising — this affected 25 games',
+      'Memory Palace now makes sense: items got their names back, so you link a lamp to a place, not “an orange diamond”',
+      'Chess: the board faced the wrong way when you played Black — in half the positions',
+      'Sudoku: Undo now clears pencil marks and cell colour too',
+      'Fillwords grow to level two hundred, and the Anagram ladders are twice as long',
+    ],
+  },
+  {
     version: '2.48.0',
     date: '2026-09-06',
     ru: [
