@@ -1,5 +1,6 @@
 import { hubScreenFiles } from './_helpers/hubScreens';
 import { createMoveStack, MAX_HISTORY } from '@/src/services/moveStack';
+import { исходникЭкрана } from './helpers/screenSource';
 /**
  * ОТМЕНА ХОДА: ГДЕ ОНА ЧЕСТНА, ГДЕ ЕЁ НЕТ И ПОЧЕМУ.
  *
@@ -31,7 +32,6 @@ const РАЗВИЛКИ = hubScreenFiles();
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync, readdirSync } = require('fs');
-import { исходникЭкрана } from './helpers/screenSource';
 const { join } = require('path');
 
 const DIR = join(__dirname, '../../app/games');

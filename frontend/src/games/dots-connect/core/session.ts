@@ -273,6 +273,14 @@ export function extendPath(session: DotsSession, cell: Cell, now: number): DotsS
   const вСтену = (puzzle.walls ?? []).some((w) => w.row === cell.row && w.col === cell.col);
   if (вСтену) return invalidMove(session);
 
+  /**
+   * 🔴 ЧУЖИЕ ВОРОТА НЕ ПУСКАЮТ. Тот же список потребителей, что у стен, и
+   * здесь он пройден сразу: со стенами ход игрока был третьим из шести мест,
+   * куда я не заглянул, и путь молча шёл сквозь стену.
+   */
+  const ворота = (puzzle.gates ?? []).find((g) => g.cell.row === cell.row && g.cell.col === cell.col);
+  if (ворота && ворота.pairId !== pairId) return invalidMove(session);
+
   const occupiedBy = pathOwnerAt(session.paths, cell);
   if (occupiedBy && occupiedBy !== pairId) return invalidMove(session);
   const endpointOwner = endpointPairAt(puzzle, cell)?.id;

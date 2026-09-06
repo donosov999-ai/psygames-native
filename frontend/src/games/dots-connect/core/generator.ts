@@ -60,6 +60,8 @@ export interface DotsLevelPlan {
   minPathLength: number;
   /** Сколько клеток сетки вырезано стенами. 0 — поле полное, квадратное. */
   wallCount: number;
+  /** Сколько клеток закреплено за своей парой (ворота). */
+  gateCount: number;
 }
 
 /**
@@ -182,7 +184,7 @@ const LEVEL_PLAN: readonly (readonly [size: number, pairs: number, minLen: numbe
  */
 
 /** Тренировочная доска. Маленькая — она учит ПРАВИЛУ, а не сложности. */
-export const DOTS_TRAINING_PLAN: DotsLevelPlan = { size: 4, pairCount: 4, minPathLength: 3, wallCount: 0 };
+export const DOTS_TRAINING_PLAN: DotsLevelPlan = { size: 4, pairCount: 4, minPathLength: 3, wallCount: 0, gateCount: 0 };
 
 /**
  * ⚠️ ТРЕНИРОВКА ОБЯЗАНА БЫТЬ ВЫВОДИМОЙ ЦЕЛИКОМ. Она учит правилу «занять всю
@@ -222,6 +224,20 @@ function round(value: number, digits = 6): number {
 export const WALLS_FROM = 11;
 
 /**
+ * 🔴 ВОРОТА ПРИХОДЯТ ПОСЛЕ СТЕН И ПО ДРУГОЙ ПРИЧИНЕ.
+ *
+ * Стена меняет ФОРМУ поля, ворота — ЛОГИКУ: клетка, в которую ходит только
+ * названная пара, не уменьшает задачу, а прикалывает маршрут к точке. Давать
+ * их вместе со стенами значило бы вводить два новых понятия одним уровнем.
+ *
+ * ⚠️ ВОРОТА СТАВЯТСЯ НА КЛЕТКУ ГОТОВОГО РЕШЕНИЯ, А НЕ КУДА ПОПАЛО. Случайная
+ * клетка сделала бы доску нерешаемой в большинстве раздач: путь этой пары там
+ * не проходит, и ворота просто вырезали бы клетку для всех. Взятые с решения,
+ * они по построению совместимы — и остаются подсказкой, а не ловушкой.
+ */
+export const ВОРОТА_С = 14;
+
+/**
  * Сколько клеток поля приходится на один путь. Полоса узкая и померена:
  * при 6,3–6,6 доски дают цепь вывода 9–12, при 5,1 — ноль (доска берётся
  * прямыми правилами), при 8,6 раздача практически не собирается из-за правила
@@ -254,7 +270,10 @@ export function dotsLevelPlan(level: number): DotsLevelPlan {
    */
   const поПлотности = size * size - Math.round(pairCount * ЦЕЛЬ_НА_ПУТЬ);
   const wallCount = Math.max(0, Math.max(поФорме, поПлотности));
-  return { size, pairCount, minPathLength: row[2], wallCount };
+  // Ворота: одни с 14-го, дальше по одним на каждые восемь уровней, потолок три.
+  const gateCount = safeLevel < ВОРОТА_С ? 0
+    : Math.min(3, 1 + Math.floor((safeLevel - ВОРОТА_С) / 8));
+  return { size, pairCount, minPathLength: row[2], wallCount, gateCount };
 }
 
 /**
@@ -481,6 +500,33 @@ function buildPuzzle(
     solution[pairId] = path;
   }
 
+  /**
+   * 🔴 ВОРОТА БЕРУТСЯ С СЕРЕДИНЫ ГОТОВОГО ПУТИ.
+   *
+   * Случайная клетка сделала бы доску нерешаемой в большинстве раздач: путь
+   * этой пары через неё не идёт, и ворота просто вырезали бы клетку для всех —
+   * то есть работали бы как стена, только запутаннее. Взятые с решения, они по
+   * построению совместимы, и вся их работа — сузить перебор.
+   *
+   * ⚠️ НЕ КОНЕЦ ПУТИ. Точка пары и так известна; ворота на ней не сообщают
+   * ничего и лишь тратят приём. Берётся середина — там, где маршрут ещё не
+   * очевиден. Шаг между воротами разных пар делается по номеру пары, чтобы они
+   * не сбивались в один угол.
+   */
+  const gates: { cell: Cell; pairId: string }[] = [];
+  if (plan.gateCount > 0) {
+    for (let n = 0; n < plan.gateCount && n < pairs.length; n += 1) {
+      // Пары берём с шагом, а не подряд: подряд идущие пары часто соседи по полю.
+      const индекс = (n * Math.max(1, Math.floor(pairs.length / plan.gateCount))) % pairs.length;
+      const pair = pairs[индекс] as DotsPair;
+      const путь = solution[pair.id] as Cell[];
+      if (путь.length < 3) continue;                 // серединой считать нечего
+      const середина = путь[Math.floor(путь.length / 2)] as Cell;
+      if (gates.some((g) => g.cell.row === середина.row && g.cell.col === середина.col)) continue;
+      gates.push({ cell: { ...середина }, pairId: pair.id });
+    }
+  }
+
   return {
     id,
     seed,
@@ -489,6 +535,7 @@ function buildPuzzle(
     pairCount: plan.pairCount,
     minPathLength: plan.minPathLength,
     walls: стены,
+    gates,
     difficulty,
     // ⚠️ ЗАГЛУШКА. Настоящую ступень ставит `buildForTier` — ПО ЗАМЕРУ этой самой
     // доски решателем. Здесь она ещё не известна, а поле обязательное. Берём

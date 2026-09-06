@@ -437,6 +437,18 @@ function DotsBoard({
                 />
               );
             }
+            /**
+             * 🔴 ВОРОТА ВИДНЫ ЦВЕТОМ СВОЕЙ ПАРЫ. Клетка, куда ходит только один,
+             * обязана об этом сказать: иначе «сюда не пускает» читается как
+             * поломка — ровно то, чем обернулись бы невидимые стены. Рисуем
+             * тонкой рамкой цвета пары, а не заливкой: заливка съела бы сетку и
+             * спорила бы с лентой пути, которая по этой клетке потом пройдёт.
+             */
+            const воротаКлетки = (puzzle.gates ?? [])
+              .find((g) => g.cell.row === row && g.cell.col === col);
+            const цветВорот = воротаКлетки
+              ? puzzle.pairs.find((p) => p.id === воротаКлетки.pairId)?.color ?? null
+              : null;
             const endpointPair = endpointPairAt(puzzle, cell);
             const occupiedId = occupiedPairAt(session, cell);
             const owner = occupiedId ? pairById.get(occupiedId) : endpointPair;
@@ -464,6 +476,7 @@ function DotsBoard({
                   // Клетка остаётся НЕЙТРАЛЬНОЙ: цвет несёт линия и точка, а не
                   // заливка. Заливка съедала сетку и превращала поле в мозаику.
                   { borderColor: theme.border, backgroundColor: theme.surface },
+                  цветВорот ? { borderColor: цветВорот, borderWidth: 2, borderStyle: 'dashed' } : null,
                   selected && { borderColor: theme.warning, borderWidth: 3 },
                 ]}
               >

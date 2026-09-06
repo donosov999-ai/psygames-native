@@ -119,6 +119,21 @@ function readBoard(puzzle: DotsPuzzle): Reading {
    */
   const стена = new Array<boolean>(count).fill(false);
   for (const w of puzzle.walls ?? []) стена[w.row * size + w.col] = true;
+  /**
+   * 🔴 ВОРОТА — ЗАРАНЕЕ ИЗВЕСТНЫЙ ЦВЕТ КЛЕТКИ (правка 06.09.2026).
+   *
+   * ⚠️ И БЕЗ ЭТОГО РАЗБОР ГЕЙТА МЕРИЛ ДРУГУЮ ИГРУ. Он не знал, что клетка уже
+   * закреплена за парой, и честно доказывал то, что доске известно с начала;
+   * длины цепей у гейта и у игры расходились, и гейт краснел на верном коде.
+   * Тот же промах, что со стенами, — и снова на СЕДЬМОМ потребителе: гейт,
+   * который перепроверяет игру своими силами, обязан знать те же правила, иначе
+   * он судья не той игры.
+   */
+  const воротаКлетки = new Array<number>(count).fill(-1);
+  for (const g of puzzle.gates ?? []) {
+    const индекс = puzzle.pairs.findIndex((p) => p.id === g.pairId);
+    if (индекс >= 0) воротаКлетки[g.cell.row * size + g.cell.col] = индекс;
+  }
   for (let row = 0; row < size; row += 1) {
     for (let col = 0; col < size; col += 1) {
       const at = row * size + col;
@@ -139,7 +154,7 @@ function readBoard(puzzle: DotsPuzzle): Reading {
     drawn: new Array<number>(count).fill(0),
     open: around.map((list) => list.length),
     boss: Array.from({ length: count }, (_, at) => at),
-    colour: dot.slice(),
+    colour: dot.map((owner, at) => (owner >= 0 ? owner : (воротаКлетки[at] as number))),
   };
 }
 
