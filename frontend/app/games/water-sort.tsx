@@ -47,8 +47,7 @@ import {
   Field, isDone, isSolved, canPour, pour, legalMoves, capOf, stonesIn, isOpen,
 } from '@/src/games/water-sort/core/tubes';
 import {
-  generateLevel, levelParams, solve, КОРОТКИЕ_С, КАМНИ_С, ОТЛОЖЕННЫЙ_С,
-} from '@/src/games/water-sort/core/generate';
+  generateLevel, levelParams, solve, КОРОТКИЕ_С, КАМНИ_С, ОТЛОЖЕННЫЙ_С, levelMoveReference } from '@/src/games/water-sort/core/generate';
 import {
   СКРЫТО_С, скрытоНаУровне, скрытыеСлои, слойВиден, звёздыПоХодам,
 } from '@/src/games/water-sort/core/hidden';
@@ -94,7 +93,15 @@ const ЦВЕТА: { fill: string; mark: string }[] = [
  * нет и не будет — расхождение двух формул уже стоило ханойской башне трёх звёзд
  * на каждом уровне выше пятого.
  */
-function звёзды(ходов: number, минимум: number, уровень: number): number {
+/**
+ * 🔴 ВТОРОЙ АРГУМЕНТ — ЭТАЛОН, А НЕ «МИНИМУМ». Переименовано 06.09.2026 вместе
+ * с починкой: сюда приходил `solutionMoves`, длина пути поиска В ГЛУБИНУ, и
+ * называлась минимумом. Замер поиском в ширину: она длиннее настоящего минимума
+ * в 1,52 раза в среднем, а значит три звезды выдавались за игру в 1,83 раза
+ * длиннее оптимальной. Теперь приходит `levelMoveReference` — измеренная
+ * формула `цвета × (высота − 1)`, промах по минимуму 6 %.
+ */
+function звёзды(ходов: number, эталон: number, уровень: number): number {
   /**
    * 🔴 УСЛОВИЕ 4 СКРЫТОГО СЛОЯ. Под неполной информацией минимума НЕ
    * СУЩЕСТВУЕТ: разведка стоит ходов, которых в минимуме нет, и человек,
@@ -103,8 +110,8 @@ function звёзды(ходов: number, минимум: number, уровень
    * На таких уровнях мера другая: дошёл до конца — три звезды.
    */
   if (!звёздыПоХодам(уровень)) return 3;
-  if (!минимум) return 3;
-  const доля = ходов / минимум;
+  if (!эталон) return 3;
+  const доля = ходов / эталон;
   if (доля <= 1.2) return 3;
   if (доля <= 1.8) return 2;
   return 1;
@@ -283,6 +290,8 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
   const [ходов, setХодов] = useState(0);
   const [ошибок, setОшибок] = useState(0);
   const [времени, setВремени] = useState(0);
+  /* ⚠️ Хранится ДЛИНА НАЙДЕННОГО ПУТИ, а не минимум: она нужна подсказке и
+     проверке решаемости, но НЕ оценке — та считается от `levelMoveReference`. */
   const [минимум, setМинимум] = useState(0);
   const [подсказка, setПодсказка] = useState<{ from: number; to: number } | null>(null);
   /**
@@ -763,7 +772,7 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
         <LevelCleared
           gameId={gameId}
           level={playedLevel}
-          stars={звёзды(ходов, минимум, lvl.level)}
+          stars={звёзды(ходов, levelMoveReference(lvl.level), lvl.level)}
           gradient={GRADIENT}
           language={language}
           colors={colors}

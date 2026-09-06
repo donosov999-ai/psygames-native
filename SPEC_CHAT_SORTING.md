@@ -19,16 +19,30 @@
 
 ## 1. Твои файлы
 
-```
-frontend/app/games/goods-sort.tsx
-frontend/src/games/goods-sort/**
-frontend/src/__tests__/goods-sort-*
-```
-плюс то, что заведёшь под новую игру «Торты» (см. §4.1).
+🔴 **ЗОНА РАСШИРЕНА 06.09.2026 РЕШЕНИЕМ ДЕНИСА.** Дословно: «все сортировки из
+хаба с сортировками твои, и переливалка тоже твоя». До этого здесь стояло
+«не трогаешь `src/games/water-sort/` — там работают другие»; это отменено.
 
-**За их пределы не выходишь.** Особенно не трогаешь `src/games/anagrams/`,
-`src/games/fillwords/`, `src/games/dots-connect/`, `src/games/water-sort/` —
-там работают другие.
+```
+frontend/app/games/goods-sort.tsx        frontend/src/games/goods-sort/**
+frontend/app/games/cake-sort.tsx         frontend/src/games/cake-sort/**
+frontend/app/games/water-sort.tsx        frontend/src/games/water-sort/**
+frontend/app/games/ball-sort.tsx
+frontend/app/games/nut-sort.tsx
+frontend/src/__tests__/{goods-sort,cake-sort,water-sort,ball-sort,nut-sort}-*
+```
+
+⚠️ **Шарики и Гайки — тот же движок, что Переливалка:** оба экрана это
+`SortGameScreen` из `app/games/water-sort.tsx`, своё у них только оформление.
+Значит правка ядра переливалки задевает три игры сразу, и мерить надо все три.
+
+**За пределы этого списка не выходишь.** Не трогаешь `src/games/anagrams/`,
+`src/games/fillwords/`, `src/games/dots-connect/` — там работают другие.
+
+📍 **Замер лестниц на 06.09.2026** (последний уровень, где значение ВЫРОСЛО,
+прогон до 120): товары **L52** · торты **L63** · переливалка/шарики/гайки
+**L33**. Худшая — переливалка: объём перестаёт расти уже на L13, дальше только
+три оси-осложнителя, и все упираются к L33.
 
 **Общий слой — через координатора**, сам не правишь:
 `src/constants/games.ts` · `profiles.ts` · `hubContents.ts` · `helpMap.ts` ·
