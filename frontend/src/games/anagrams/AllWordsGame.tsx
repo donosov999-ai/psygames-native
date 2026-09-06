@@ -10,7 +10,7 @@
  * понимает, сколько букв искать. Прятать её значило бы поменять игру.
  */
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { минимальныйРазмерКруга } from '@/src/components/letterWheel/geometry';
 import {
@@ -26,10 +26,15 @@ export interface AllWordsProps {
   /** Все слова найдены: сколько взято подсказок и сколько ушло времени. */
   onComplete: (подсказок: number, мс: number) => void;
   onProgress?: (начат: boolean) => void;
+  /**
+   * Сколько по высоте отдано списку слов. Необязателен: по умолчанию берётся от
+   * стороны круга, которая уже считается от ширины экрана.
+   */
+  maxListHeight?: number;
   labels: { найдено: string; подсказки: string; банк: string; сдать: string; сброс: string; подсказка: string };
 }
 
-export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, labels }: AllWordsProps) {
+export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, maxListHeight, labels }: AllWordsProps) {
   const [найдены, setНайдены] = React.useState<string[]>([]);
   const [линия, setЛиния] = React.useState<number[]>([]);
   /**
@@ -107,10 +112,31 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
   /** Клетка слова: ширина от длины самого длинного, чтобы столбцы не прыгали. */
   const самоеДлинное = Math.max(...pack.words.map((w) => w.length));
   const клетка = Math.max(16, Math.min(28, Math.floor((size - 24) / самоеДлинное) - 4));
+  /**
+   * 🔴 СПИСОК ПРОКРУЧИВАЕТСЯ, ИНАЧЕ ОН ВЫДАВЛИВАЕТ КРУГ ЗА ЭКРАН.
+   *
+   * 📍 Замер 06.09.2026 по модели вёрстки, при тех же 14 словах, что были и до
+   * правки: на телефоне 360 px английский список занимает по медиане 360 px, а
+   * худший уровень 636 px — при том, что списку на экране 740 px остаётся около
+   * 225. То есть медианный уровень уже не помещался, и круг букв уезжал вниз;
+   * заметно это не было, потому что мерили число слов, а не высоту.
+   *
+   * Высота берётся от ШИРИНЫ ЭКРАНА, а не зашита числом: на планшете список
+   * получает больше, на узком телефоне меньше.
+   *
+   * ⚠️ Считать от `кругРазмер` нельзя, хотя так и было написано сначала: круг
+   * упирается в потолок 300, и при экранах 300 и 380 px высота выходила одна и
+   * та же. Поймала проба all-words-screen-fits, а не глаз.
+   */
+  const высотаСписка = maxListHeight ?? Math.round(size * 0.7);
 
   return (
     <View style={{ alignItems: 'center', gap: 10 }}>
-      <View style={стили.список}>
+      <ScrollView
+        style={{ maxHeight: высотаСписка, alignSelf: 'stretch' }}
+        contentContainerStyle={[стили.список, { width: size }]}
+        showsVerticalScrollIndicator
+      >
         {pack.words.map((слово) => {
           const открыто = найдены.indexOf(слово) >= 0;
           const подсказано = открыто ? слово.length : (открытые[слово] ?? 0);
@@ -140,7 +166,7 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
             </View>
           );
         })}
-      </View>
+      </ScrollView>
 
       <Text style={[стили.набор, { color: цветНабора }]}>{набрано || '·'}</Text>
 
@@ -206,7 +232,9 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
 
 const стили = StyleSheet.create({
   // Зазор между СЛОВАМИ втрое больше, чем между клетками одного слова.
-  список: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
+  // ⚠️ Ширина задаётся на месте (`width: size`): flexWrap без границы ширины
+  // не переносит вовсе — на это уже наступали в других играх проекта.
+  список: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, paddingBottom: 2 },
   строкаСлова: { flexDirection: 'row', gap: 2, padding: 3, borderRadius: 7 },
   клетка: { alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 4 },
   букваСлова: { fontWeight: '800' },
