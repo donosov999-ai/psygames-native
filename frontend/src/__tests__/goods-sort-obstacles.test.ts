@@ -37,6 +37,12 @@ function shapes(): Record<string, string[][]> {
 }
 
 const PLANS = plans();
+
+/** Какие виды препятствий реально действуют на доске — после фильтра порогами. */
+function viduOn(o: { blocked: number; locked: number; covered: number; frozenRow: boolean }): string[] {
+  return [o.blocked > 0 && 'blocked', o.locked > 0 && 'locked', o.covered > 0 && 'covered', o.frozenRow && 'frozen']
+    .filter(Boolean) as string[];
+}
 const SH = shapes();
 
 /**
@@ -79,22 +85,34 @@ describe('препятствия', () => {
     }
   });
 
-  /** Первое появление каждого вида должно быть ОДИНОЧНЫМ — иначе правило не прочитать. */
-  it('каждый вид препятствия появляется впервые в одиночку', () => {
-    const firsts: Record<string, number> = {};
-    PLANS.forEach((o, i) => {
-      (['blocked', 'locked', 'covered'] as const).forEach((k) => {
-        if (o[k] > 0 && firsts[k] === undefined) firsts[k] = i;
-      });
-      if (o.frozenRow && firsts.frozen === undefined) firsts.frozen = i;
-    });
-    const bad: string[] = [];
-    Object.entries(firsts).forEach(([k, i]) => {
-      const o = PLANS[i];
-      const kinds = [o.blocked > 0, o.locked > 0, o.covered > 0, o.frozenRow].filter(Boolean).length;
-      if (kinds !== 1) bad.push(`${k}: впервые вместе с другими (набор #${i})`);
-    });
-    expect(bad).toEqual([]);
+  /**
+   * Первое появление каждого вида должно быть ОДИНОЧНЫМ — иначе правило не прочитать.
+   *
+   * 🔴 СЧИТАЕТСЯ ПО УРОВНЯМ, А НЕ ПО МЕСТУ В МАССИВЕ. Раньше здесь перебирался
+   * `PLANS` по индексу, и это было верно, пока порядок строк совпадал с порядком
+   * уровней. С тех пор как план фильтруется порогами (`ruleFrom`), не совпадает:
+   * строка приходит на уровень 8 + индекс + 10k, а её механика до своего порога
+   * вычёркивается. 06.09.2026 из-за этой подмены две сессии подряд переставляли
+   * строки «по массиву» и каждая ломала настоящий, уровневый порядок — проверка
+   * при этом оставалась зелёной, потому что мерила не то.
+   *
+   * Заодно уходит разбор исходника: `PLANS` вычитывался регуляркой из текста
+   * файла, а теперь спрашивается сама игра — `levelCfg(L).obst`.
+   */
+  it('🔴 каждый вид препятствия появляется впервые в одиночку — по уровням', () => {
+    const виды = ['blocked', 'locked', 'covered', 'frozen'] as const;
+    const дебют: Record<string, { L: number; вместе: string[] }> = {};
+    for (let L = 1; L <= 60; L++) {
+      const o = levelCfg(L, 8, false).obst;
+      const есть = viduOn(o);
+      for (const k of есть) if (!дебют[k]) дебют[k] = { L, вместе: есть };
+    }
+    // Обе стороны непусты: все четыре вида обязаны где-то дебютировать.
+    expect(Object.keys(дебют).sort()).toEqual([...виды].sort());
+    const плохо = Object.entries(дебют)
+      .filter(([, d]) => d.вместе.length !== 1)
+      .map(([k, d]) => `${k}: дебют на L${d.L} сразу с ${d.вместе.join(' + ')}`);
+    expect(плохо).toEqual([]);
   });
 
   it('🔴 каждый уровень с 1 по 60 решаем при своих препятствиях', () => {
