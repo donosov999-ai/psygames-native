@@ -47,7 +47,8 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import TypingAnswer from '@/src/games/vocab-srs/TypingAnswer';
 import { gameNow } from '@/src/services/gamePause';
-import { buildPhrases, dictationLangs, levelPhrases, levelCount, type DictationPhrase } from '@/src/games/dictation/core/phrases';
+import { buildPhrases, dictationLangs, levelPhrases, levelCount, dictationLevelParams, type DictationPhrase } from '@/src/games/dictation/core/phrases';
+import { startNoise, stopNoise } from '@/src/services/noise';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#0f766e', '#15803d'];  // белым 5,02 — гейт контраста требует AA 4,5
@@ -79,6 +80,14 @@ export default function DictationGame() {
   const [idx, setIdx] = useState(0);
   const [фразы, setФразы] = useState<DictationPhrase[]>([]);
   const [level, setLevel] = useState(1);
+  /**
+   * 🔴 ВВОД ОТКРЫТ НЕ СРАЗУ — ЭТО ОСЬ «ЗАДЕРЖКА» (уровни 8+).
+   *
+   * Пока поле доступно во время речи, человек печатает ВСЛЕД за диктором и
+   * ничего не удерживает. Пауза между концом фразы и открытием поля переводит
+   * задачу в настоящую слуховую память: услышал — удержал — записал.
+   */
+  const [вводОткрыт, setВводОткрыт] = useState(true);
   const [готово, setГотово] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);
@@ -99,6 +108,8 @@ export default function DictationGame() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const tgt = языки.includes(targetLang) ? targetLang : (языки[0] ?? 'en');
+  /** Четыре оси уровня: объём, темп речи, шум по SNR, задержка перед вводом. */
+  const парам = useMemo(() => dictationLevelParams(level), [level]);
   const ttsBlock = useTtsBlock(tgt);
   // Указатель записей — заранее, до первой диктовки (см. voiceSamples).
   useEffect(() => { ensureVoiceIndex(tgt).catch(() => {}); }, [tgt]);
@@ -107,6 +118,7 @@ export default function DictationGame() {
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
     ttsCancel();
+    stopNoise();   // помеха не должна пережить выход с экрана
   }, []);
 
   useEffect(() => {
@@ -145,15 +157,25 @@ export default function DictationGame() {
     if (phase !== 'playing') return;
     const ф = фразы[idx];
     if (!ф) return;
-    const t0 = setTimeout(() => { speak(ф.text, tgt, 0.85); }, 450);
-    return () => clearTimeout(t0);
-  }, [phase, idx, фразы, tgt]);
+    let отменено = false;
+    setВводОткрыт(парам.delayMs === 0);
+    const t0 = setTimeout(() => {
+      startNoise(парам.snrDb);
+      speak(ф.text, tgt, парам.rate).then(() => {
+        stopNoise();   // помеха звучит ровно под речью, а не фоном всей партии
+        if (отменено || парам.delayMs === 0) return;
+        setTimeout(() => { if (!отменено) setВводОткрыт(true); }, парам.delayMs);
+      });
+    }, 450);
+    return () => { отменено = true; clearTimeout(t0); stopNoise(); };
+  }, [phase, idx, фразы, tgt, парам.rate, парам.snrDb, парам.delayMs]);
 
   const повторить = () => {
     const ф = фразы[idx];
     if (!ф || phase !== 'playing') return;
     повторыRef.current += 1;   // повтор не штрафуется: это подача задания
-    speak(ф.text, tgt, 0.85);
+    startNoise(парам.snrDb);
+    speak(ф.text, tgt, парам.rate).then(() => stopNoise());
   };
 
   const завершить = async () => {
@@ -266,14 +288,30 @@ export default function DictationGame() {
           </GameAuxBar>
         }
         toolbar={
-          <TypingAnswer
-            key={`${idx}-${текущая.text}`}
-            word={текущая.text}
-            colors={colors}
-            hint={t('dictationHint')}
-            hideUntyped
-            onDone={фразаНабрана}
-          />
+          вводОткрыт ? (
+            <TypingAnswer
+              key={`${idx}-${текущая.text}`}
+              word={текущая.text}
+              colors={colors}
+              hint={t('dictationHint')}
+              hideUntyped
+              onDone={фразаНабрана}
+            />
+          ) : (
+            /*
+             * Окно удержания: фраза отзвучала, поле ещё закрыто. Показан значок
+             * ожидания без единого слова — новых строк в общий словарь заводить
+             * нельзя, он не мой, а песочные часы читаются на двенадцати языках
+             * одинаково.
+             */
+            <View
+              accessibilityRole="progressbar"
+              accessibilityLabel={t('dictationHint')}
+              style={styles.ожидание}
+            >
+              <Ionicons name="hourglass-outline" size={30} color={colors.textSecondary} />
+            </View>
+          )
         }
       >
         <View style={styles.fieldCol}>
@@ -325,6 +363,8 @@ export default function DictationGame() {
 }
 
 const styles = StyleSheet.create({
+  /** Место поля ввода, пока идёт окно удержания: та же высота, чтобы экран не прыгал. */
+  ожидание: { minHeight: 72, alignItems: 'center', justifyContent: 'center' },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 },
   backBtn: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
