@@ -48,7 +48,7 @@ const QUICKCOUNT_BENEFITS = [
   { icon: 'calculator-outline', textKey: 'benefitQuickCount3' },
 ];
 
-type GamePhase = 'intro' | 'config' | 'flash' | 'answer' | 'boss' | 'cleared' | 'result';
+type GamePhase = 'intro' | 'config' | 'flash' | 'hold' | 'answer' | 'boss' | 'cleared' | 'result';
 const BOSS_EVERY = 3;
 const TRIALS_PER_ROUND = 12;
 
@@ -69,12 +69,44 @@ const MAX_DOTS = 20;
  * Теперь потолок держит ОБЕ границы, и между ними всегда остаётся хотя бы три
  * возможных ответа: иначе это уже не счёт, а угадывание одной кнопки.
  */
-export function levelParams(level: number): { minN: number; maxN: number; exposureMs: number } {
+/**
+ * 🔴 ОСЬ «ЗАДЕРЖКА»: ПАУЗА МЕЖДУ ИСЧЕЗНОВЕНИЕМ ТОЧЕК И ПОЯВЛЕНИЕМ ОТВЕТОВ.
+ *
+ * ЗАЧЕМ. Замер 06.09.2026 по десяти осям роста: у этой игры были заняты ровно
+ * ДВЕ — объём (точек больше) и скорость (показ короче). Обе кончаются на 31-м
+ * уровне: показ упирается в пол 300 мс уже на 15-м, а `minN`/`maxN` перестают
+ * меняться на 31-м, потому что упираются в `MAX_DOTS`. Дальше 369 уровней
+ * подряд выдавали одно и то же. Это не потолок игры, а конец ДВУХ осей из
+ * десяти (правило Дениса «потолков нет нигде», `PROJECT_REF` §R).
+ *
+ * ЧТО ДЕЛАЕТ ЗАДЕРЖКА. Пока пауза равна нулю, задача — оценить количество
+ * (субитизация плюс счёт). С паузой добавляется УДЕРЖАНИЕ: число надо не только
+ * увидеть, но и продержать в уме, пока нечего делать. Это отдельная работа, а не
+ * «то же самое, но труднее».
+ *
+ * ⚠️ ЗАДЕРЖКА ВКЛЮЧАЕТСЯ ТОЛЬКО ПОСЛЕ 31-го, И ЭТО НАРОЧНО. Начни она раньше —
+ * поменялась бы трудность уровней, которые люди УЖЕ прошли, и их прогресс
+ * обесценился бы задним числом. Здесь ось не переписывает лестницу, а
+ * продолжает её: 1..31 остаются побайтно прежними, дальше идут новые ступени.
+ *
+ * ⚠️ ПОТОЛОК ОСИ 2000 мс — ЭТО ГРАНИЦА ОСИ, А НЕ ЛЕСТНИЦЫ. Держать число в уме
+ * дольше двух секунд — уже не «быстрый счёт», а проба на объём памяти, она в
+ * соседнем разделе. Кончится эта ось — лестницу продолжит следующая (свободны
+ * 4, 5, 6, 7, 8, 9, 10), а не «дальше расти некуда».
+ */
+const ОБЪЁМ_И_СКОРОСТЬ_КОНЧАЮТСЯ = 31;
+
+export function levelParams(level: number): { minN: number; maxN: number; exposureMs: number; holdMs: number } {
   const spread = 2 + Math.floor(level / 5);
   const wanted = 3 + Math.floor((level - 1) / 2);
   const maxN = Math.min(MAX_DOTS, wanted + spread);
   const minN = Math.max(2, Math.min(wanted, maxN - 2));
-  return { minN, maxN, exposureMs: Math.max(300, 900 - level * 40) };
+  return {
+    minN,
+    maxN,
+    exposureMs: Math.max(300, 900 - level * 40),
+    holdMs: Math.min(2000, Math.max(0, (level - ОБЪЁМ_И_СКОРОСТЬ_КОНЧАЮТСЯ) * 200)),
+  };
 }
 
 /**
@@ -178,7 +210,13 @@ export default function QuickCountGame() {
     setActualN(n);
     setDots(scatterDots(n, fieldW, fieldH, dotR));
     setPhase('flash');
-    flashTimerRef.current = setTimeout(() => setPhase('answer'), p.exposureMs);
+    // Точки гаснут, ответы ещё не пришли: с нулевой паузой шаг проскакивается и
+    // партия идёт ровно как раньше — уровни 1..31 остаются нетронутыми.
+    flashTimerRef.current = setTimeout(() => {
+      if (p.holdMs <= 0) { setPhase('answer'); return; }
+      setPhase('hold');
+      flashTimerRef.current = setTimeout(() => setPhase('answer'), p.holdMs);
+    }, p.exposureMs);
   };
 
   const handleAnswer = (guess: number) => {
@@ -241,7 +279,7 @@ export default function QuickCountGame() {
   );
 
   // игровые фазы (вспышка и ответ) — на едином каркасе GameShell (кнопки-варианты прибиты к низу)
-  if (phase === 'flash' || phase === 'answer') {
+  if (phase === 'flash' || phase === 'hold' || phase === 'answer') {
     const p = levelParams(levelRef.current);
     const choices = answerChoices(p);
     return (
@@ -278,7 +316,15 @@ export default function QuickCountGame() {
           ) : undefined
         }
       >
-        {phase === 'flash' ? (
+        {phase === 'hold' ? (
+          /* Удержание: поле пусто, кнопок нет, подсказка общая («Запомните») —
+             ключ `memorize` уже переведён на все двенадцать языков, свой заводить
+             незачем. */
+          <View style={styles.fieldCol}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('memorize')}</Text>
+            <View style={[styles.field, { width: fieldW, height: fieldH, backgroundColor: colors.surface }]} />
+          </View>
+        ) : phase === 'flash' ? (
           <View style={styles.fieldCol}>
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('quickCountLookHint')}</Text>
             <View style={[styles.field, { width: fieldW, height: fieldH, backgroundColor: colors.surface }]}>
