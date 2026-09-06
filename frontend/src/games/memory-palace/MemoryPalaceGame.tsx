@@ -45,6 +45,7 @@ import {
   palaceLocusBasis,
   palaceTileHeight,
   type PalacePhaseLayout,
+  palaceShowsItemNames,
 } from './placeLayout';
 
 export interface MemoryPalaceTheme {
@@ -195,6 +196,7 @@ function ItemChoice({
   selected,
   used,
   compact,
+  showLabel,
   onPress,
 }: {
   item: PalaceItem;
@@ -215,6 +217,18 @@ function ItemChoice({
    * одной строкой, и оба блока помещаются вместе.
    */
   compact?: boolean;
+  /**
+   * 🔴 ПОДПИСЬ ВНУТРИ КОМПАКТНОЙ ПЛИТКИ — первые уровни (решение Дениса 06.09.2026).
+   *
+   * Компакт заводился без подписи ради вмещения, и это вылечило беготню, но
+   * оставило предмет безымянным: имя было только в `accessibilityLabel`. Человек
+   * связывал с местом «оранжевый ромб», а на опросе его спрашивали «Оранжевая
+   * лампа?» — вход и выход стояли на разных носителях. Подпись возвращается
+   * ВНУТРЬ той же плитки 76×76 (фигура 34 → 26), поэтому лента не растёт и
+   * `memory-palace-place-fits-screen` остаётся зелёной. Сторожит
+   * `memory-palace-item-names-visible`.
+   */
+  showLabel?: boolean;
   onPress: () => void;
 }) {
   const [focused, setFocused] = React.useState(false);
@@ -259,10 +273,14 @@ function ItemChoice({
         } as any),
       ]}
     >
-      <ItemAsset item={item} size={compact ? 34 : 42} />
-      {/* В компактном виде подписи нет: имя уже в `accessibilityLabel`, а место
-          на экране нужнее — ради него компакт и заводился. */}
-      {compact ? null : <Text style={[styles.itemLabel, { color: theme.text }]}>{label}</Text>}
+      <ItemAsset item={item} size={compact ? (showLabel ? 26 : 34) : 42} />
+      {compact ? (
+        showLabel ? (
+          <Text numberOfLines={2} style={[styles.itemLabelCompact, { color: theme.text }]}>{label}</Text>
+        ) : null
+      ) : (
+        <Text style={[styles.itemLabel, { color: theme.text }]}>{label}</Text>
+      )}
       {used && !compact ? <Text style={[styles.usedNote, { color: theme.textSecondary }]}>{usedNote}</Text> : null}
     </Pressable>
   );
@@ -789,6 +807,7 @@ function MemoryPalaceSessionView({
                 locale={locale}
                 theme={theme}
                 compact
+                showLabel={palaceShowsItemNames(session.round.level)}
                 selected={session.selectedPlacementItemId === item.id}
                 onPress={() => applySession((current) => selectPlacementItem(current, item.id))}
               />
@@ -1003,6 +1022,12 @@ const styles = StyleSheet.create({
   // появилась бы формально и снова не читалась.
   usedChoice: { opacity: 0.55 },
   itemLabel: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
+  /**
+   * Подпись внутри компактной плитки. Кегль 10 при межстрочном 12 — тот же, что
+   * у названий мест в компактных плитках; две строки = 24 точки, и вместе с
+   * фигурой 26 и полями содержимое остаётся внутри 76.
+   */
+  itemLabelCompact: { fontSize: 10, lineHeight: 12, fontWeight: '700', textAlign: 'center', marginTop: 2, paddingHorizontal: 2 },
   usedNote: { fontSize: 11, fontWeight: '700', textAlign: 'center' },
   itemAsset: { borderWidth: 3, alignItems: 'center', justifyContent: 'center' },
   archAsset: { borderTopLeftRadius: 999, borderTopRightRadius: 999, borderBottomLeftRadius: 7, borderBottomRightRadius: 7 },
