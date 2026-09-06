@@ -78,6 +78,27 @@ export function levelParams(level: number): { minN: number; maxN: number; exposu
 }
 
 /**
+ * 🔴 ДОКУДА ЛЕСТНИЦА РЕАЛЬНО РАСТЁТ — СЧИТАЕТСЯ ИЗ `levelParams`, А НЕ ВПИСАНО ЧИСЛОМ.
+ *
+ * ЧТО ЛОМАЛОСЬ. Экран НЕ передавал карте уровней `maxLevel` вовсе, а её
+ * умолчание — `LADDER_MIN = 15`. Карта писала игроку «Уровень 1/15», хотя
+ * настройки меняются до 31-го: `wanted` растёт до потолка `MAX_DOTS`, а показ
+ * укорачивается 900 → 300 мс. То есть половина лестницы была не объявлена.
+ *
+ * ⚠️ Число не вписано намеренно — иначе следующая правка `levelParams`
+ * разошлась бы с подписью молча, а это и есть чинимый дефект.
+ */
+export const QUICK_COUNT_LEVELS: number = (() => {
+  let последний = 1;
+  let прежняя = JSON.stringify(levelParams(1));
+  for (let L = 2; L <= 200; L += 1) {
+    const текущая = JSON.stringify(levelParams(L));
+    if (текущая !== прежняя) { последний = L; прежняя = текущая; }
+  }
+  return последний;
+})();
+
+/**
  * Кнопки ответа. Обязаны накрывать ВЕСЬ возможный диапазон плюс запас с обеих
  * сторон — иначе верного ответа на экране может не оказаться.
  */
@@ -212,7 +233,7 @@ export default function QuickCountGame() {
         <Text style={styles.configDesc}>{t('quickCountDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="quickCountIntroDesc" benefits={QUICKCOUNT_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap bestLevel={lvl.best} gameId="quick_count" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="quick_count" currentLevel={lvl.level} maxLevel={QUICK_COUNT_LEVELS} onPickLevel={lvl.pick} colors={colors} language={language} />
     </ScrollView>
     {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
     <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />

@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackOrHome } from '@/src/utils/nav';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
-import { mahjongLevel, mahjongHidden, canShuffle, shufflesLeft } from '@/src/services/mahjongLevels';
+import { mahjongLevel, mahjongHidden, canShuffle, shufflesLeft, MAHJONG_LEVELS } from '@/src/services/mahjongLevels';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -1078,7 +1078,7 @@ export default function MahjongGame() {
         <LevelProgressMap bestLevel={lvl.best}
           gameId="mahjong"
           currentLevel={level}
-          maxLevel={Math.max(15, level, lvl.best)}
+          maxLevel={Math.max(MAHJONG_LEVELS, level, lvl.best)}
           onPickLevel={lvl.pick}
           colors={colors}
           language={language}
