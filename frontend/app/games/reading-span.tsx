@@ -123,6 +123,30 @@ export const READINGSPAN_RULES: LevelRule[] = [
   { key: 'load', fromLevel: 5 },   // lr_reading_span_load_*
 ];
 
+/**
+ * 🔴 ЛЕСТНИЦА ВЫНЕСЕНА НАРУЖУ. Раньше она жила строкой внутри `startGame`, и
+ * прогнать её пробой было нельзя — только глазами по исходнику. Ровно так
+ * прячется дефект «объявление против исполнения»: у соседней игры число клеток
+ * считалось во втором месте, и сорок уровней оказались одинаковыми.
+ *
+ * ⚠️ ЗДЕСЬ ДЕФЕКТА НЕТ, и это ЗАМЕР, а не предположение: прогон L1…L60 показывает,
+ * что каждый уровень отличается от предыдущего (`setSize` растёт на 1). Подтверждено
+ * ИГРОЙ: на живом билде L20 → «1/22», L40 → «1/42», L60 → «1/62».
+ * Поэтому потолок сюда НЕ ставится — правило раздела: потолков нет нигде, а длинный
+ * хвост, до которого не доходят, дефектом не является (недостижимость уже
+ * обезврежена гистерезисом: три провала подряд → уровень минус один).
+ *
+ * ОСЬ 3 — ЗАДЕРЖКА, и здесь она работает НА ОПЕРЕЖЕНИЕ. Набор упирается в размер
+ * словаря `SENTENCES`; на этом уровне и дальше уровни стали бы клонами. Задержка
+ * между последним предложением и вводом снимает это до того, как случится, и не
+ * зависит от того, вырастет словарь или нет.
+ */
+export function levelParams(level: number, poolSize: number): { setSize: number; holdMs: number } {
+  const setSize = Math.min(poolSize, 2 + level);
+  const наПотолкеСловаря = Math.max(0, level - (poolSize - 2));
+  return { setSize, holdMs: наПотолкеСловаря * 700 };
+}
+
 type GamePhase = 'intro' | 'config' | 'playing' | 'recall' | 'cleared' | 'result';
 
 
@@ -161,6 +185,9 @@ export default function ReadingSpanGame() {
   const levelRules = useLevelRules('reading_span', lvl.level, READINGSPAN_RULES, phase === 'config');
   const [clearedPassed, setClearedPassed] = useState(true);
   const [setSize, setSetSize] = useState(() => num('setSize', 4)); // sentences per recall set
+  const holdRef = useRef(0);
+  /** Идёт удержание: предложения кончились, ввод ещё закрыт. Ось 3, см. levelParams. */
+  const [holding, setHolding] = useState(false);
   const [seq, setSeq] = useState<SentenceItem[]>([]);
   const [stepIdx, setStepIdx] = useState(0);
   const [judgments, setJudgments] = useState<boolean[]>([]); // user's true/false answers
@@ -179,7 +206,9 @@ export default function ReadingSpanGame() {
     // уровень рулит размером набора (число слов держать = реальная нагрузка памяти; растёт без жёсткого потолка)
     // ⚠️ Пресет — потолок желания (см. `presetCap`): программа просит набор из
     // четырёх, а лесенка на первом уровне даёт три.
-    const поЛесенке = Math.min(SENTENCES.length, 2 + lvl.level);                  // L1=3, дальше +1/уровень
+    const p = levelParams(lvl.level, SENTENCES.length);
+    const поЛесенке = p.setSize;                                                  // L1=3, дальше +1/уровень
+    holdRef.current = isPreset ? 0 : p.holdMs;   // пресет идёт мимо лестницы
     const sz = isPreset
       ? capPresetByLevel({ want: setSize, atLevel: поЛесенке, atTop: поЛесенке >= SENTENCES.length })
       : поЛесенке;
@@ -213,7 +242,13 @@ export default function ReadingSpanGame() {
     const correct = says === cur.ok;
     if (correct) setJudgeHits(j => j + 1);
     setJudgments([...judgments, says]);
-    if (stepIdx + 1 >= seq.length) setPhase('recall');
+    if (stepIdx + 1 >= seq.length) {
+      // Ось 3: последние слова надо ещё додержать, прежде чем откроется ввод.
+      if (holdRef.current > 0) {
+        setHolding(true);
+        setTimeout(() => { setHolding(false); setPhase('recall'); }, holdRef.current);
+      } else setPhase('recall');
+    }
     else setStepIdx(stepIdx + 1);
   };
 
