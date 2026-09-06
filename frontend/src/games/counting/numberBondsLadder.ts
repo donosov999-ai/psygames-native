@@ -1,4 +1,4 @@
-/* counting/numberBondsLadder · VER 1 · 06.09.2026 */
+/* psygames-counting-number-bonds-ladder · VER 1 · 06.09.2026 */
 /**
  * Лестница «Состав числа» — ЕДИНСТВЕННЫЙ источник правды об уровнях.
  * Читают двое: экран app/games/number-bonds.tsx и замер counting-chat/sim-ladder.mjs

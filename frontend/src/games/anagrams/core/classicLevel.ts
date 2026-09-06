@@ -1,4 +1,4 @@
-/* psygames-anagram-classic-level · VER 1 · 06.09.2026 */
+/* psygames-anagrams-classic-level · VER 1 · 06.09.2026 */
 /**
  * ЛЕСТНИЦА КЛАССИЧЕСКИХ АНАГРАММ — В ЯДРЕ, А НЕ В ЭКРАНЕ.
  *
