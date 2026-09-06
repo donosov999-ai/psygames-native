@@ -641,6 +641,38 @@ export default function MahjongGame() {
    * старте уровня, и пересдача стоит ровно того, что на ней заработано.
    */
   const restartLevel = () => {
+    /**
+     * 🔴 ЭТО ПРОИГРЫШ, И ТЕПЕРЬ ОН ЗАПИСЫВАЕТСЯ.
+     *
+     * Кнопка появляется ТОЛЬКО когда доска встала, а перетасовать и отменить
+     * нечем (`stuckExits.includes('restart')`) — то есть нажатие означает
+     * терминальный проигрыш, а не добровольную пересдачу. До 06.09.2026 партия
+     * писалась ровно одним способом — `passed: true` при сборе уровня, — и
+     * проигрыш не доходил ни до статистики, ни до карты исходов.
+     *
+     * 📍 ЗАМЕР 06.09.2026, случайная игра, 30 партий на уровень, бюджеты из
+     * `mahjongLevel(L)`: L5 — 0 из 30 (0%), L15 — 1 из 30 (3%), L28 — 18 из 30
+     * (60%), L40 — 16 из 30 (53%). Верхняя граница: перебор заходит в тупик
+     * чаще человека. Но даже нижняя оценка означает, что на верхних уровнях
+     * проигрыш — обычное событие, а не край.
+     *
+     * ⚠️ ЛЕСТНИЦУ ЭТО НЕ ПОНИЖАЕТ. `lvl.fail()` здесь НЕ зовётся: понижение
+     * уровня меняет продвижение игрока, и это решение Дениса (задача
+     * 8543237a), а не следствие замера. Запись исхода честна сама по себе:
+     * событие произошло, статистика обязана о нём знать.
+     */
+    const p = levelParams(levelRef.current);
+    saveSession({
+      passed: false,
+      game_type: 'mahjong',
+      score: levelScoreRef.current,
+      time_seconds: Math.max(0, Math.round(elapsed)),
+      difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
+      mode: `lvl${levelRef.current}`,
+      errors,
+      details: { level: levelRef.current, pairs: p.pairs, layers: p.layers, stuck: true },
+    }).catch((e) => console.error(e));
+
     scoreRef.current = levelScoreRef.current;
     setScore(scoreRef.current);
     /**
