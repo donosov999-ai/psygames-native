@@ -517,11 +517,18 @@ const styles = StyleSheet.create({
   table: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignSelf: 'center', paddingVertical: 8 },
   plateBox: { alignItems: 'center', justifyContent: 'center' },
   tools: { flexDirection: 'row', justifyContent: 'center', gap: 14, paddingTop: 4 },
-  tool: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#00000055', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
+  /**
+   * 🔴 44 px — НИЖНЯЯ ГРАНИЦА ЦЕЛИ НАЖАТИЯ, А НЕ ПОЖЕЛАНИЕ. Было 48×39 и 60×39:
+   * ширина проходила, высота нет. Поймала это сборка выпуска 2.47.0 — аудит
+   * добрался до поля тортов только после того, как игра появилась в каталоге,
+   * то есть дефект существовал с самого начала, но был НЕДОСТУПЕН проверке.
+   * `minHeight` вместо увеличенного отступа: отступ раздул бы и ширину.
+   */
+  tool: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, backgroundColor: '#00000055', paddingHorizontal: 14, paddingVertical: 8, minHeight: 44, minWidth: 44, borderRadius: 12 },
   toolOff: { opacity: 0.45 },
   toolNum: { color: '#fff', fontSize: 13 },
   stuck: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
-  again: { marginLeft: 10, backgroundColor: '#f59e0b', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  again: { marginLeft: 10, backgroundColor: '#f59e0b', paddingHorizontal: 12, paddingVertical: 6, minHeight: 44, minWidth: 44, justifyContent: 'center', alignItems: 'center', borderRadius: 8 },
 });
 
 /** Пол читаемости сектора — вынесен, чтобы гейт мерил ту же величину, что экран. */
