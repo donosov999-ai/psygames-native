@@ -54,11 +54,8 @@
    "barra",
    "barro",
    "boda",
-   "borda",
-   "borra",
    "obra",
    "orar",
-   "rabo",
    "radar",
    "raro",
    "robada",
@@ -71,12 +68,10 @@
   "words": [
    "abra",
    "aorta",
-   "atar",
    "bar",
    "barato",
    "barra",
    "barro",
-   "bata",
    "borra",
    "obra",
    "raro",
@@ -84,8 +79,7 @@
    "rato",
    "robar",
    "tara",
-   "tarro",
-   "traba"
+   "tarro"
   ]
  },
  {
@@ -97,12 +91,10 @@
    "auto",
    "basta",
    "bolsa",
-   "ola",
    "sal",
    "sala",
    "salto",
    "sol",
-   "tabla",
    "uso"
   ]
  },
@@ -123,7 +115,6 @@
  {
   "base": "absorber",
   "words": [
-   "arre",
    "bar",
    "barbero",
    "base",
@@ -131,23 +122,19 @@
    "beso",
    "era",
    "obra",
-   "orar",
    "raro",
    "robar",
    "rosa",
    "saber",
    "sabor",
-   "sabre",
    "ser",
    "sera",
-   "sobra",
    "sobre"
   ]
  },
  {
   "base": "absurdo",
   "words": [
-   "abuso",
    "bar",
    "boda",
    "bus",
@@ -171,8 +158,7 @@
    "duro",
    "ido",
    "radio",
-   "raro",
-   "ruido"
+   "raro"
   ]
  },
  {
@@ -194,7 +180,6 @@
   "words": [
    "ama",
    "amar",
-   "arca",
    "arma",
    "cama",
    "camara",
@@ -224,14 +209,12 @@
  {
   "base": "acelerar",
   "words": [
-   "acera",
    "ala",
    "area",
    "caer",
    "cal",
    "cara",
    "carla",
-   "cera",
    "cereal",
    "clara",
    "crea",
@@ -274,14 +257,11 @@
  {
   "base": "acertado",
   "words": [
-   "acorde",
    "arte",
    "atraco",
    "cadera",
-   "caer",
    "cara",
    "carta",
-   "cerdo",
    "corte",
    "eco",
    "era",
@@ -297,16 +277,13 @@
   "base": "acertijo",
   "words": [
    "acierto",
-   "actor",
    "aire",
-   "arte",
    "cierto",
    "cita",
    "coraje",
    "corte",
    "era",
    "erotica",
-   "ira",
    "oir",
    "rato",
    "teoria",
@@ -319,7 +296,6 @@
   "base": "aclarado",
   "words": [
    "ala",
-   "arco",
    "cal",
    "calor",
    "cara",
@@ -329,12 +305,10 @@
    "claro",
    "cola",
    "colada",
-   "coral",
    "dolar",
    "lado",
    "loca",
    "ola",
-   "roca",
    "rol"
   ]
  },
@@ -342,11 +316,9 @@
   "base": "acordado",
   "words": [
    "arado",
-   "arca",
    "arco",
    "cara",
    "caro",
-   "codo",
    "coro",
    "dado",
    "dardo",
@@ -368,7 +340,6 @@
    "caro",
    "carro",
    "corra",
-   "orar",
    "radar",
    "raro",
    "roca",
@@ -388,11 +359,8 @@
    "cosa",
    "oro",
    "oso",
-   "rosa",
    "rosado",
-   "saca",
    "sacar",
-   "sorda",
    "sordo"
   ]
  },
@@ -401,7 +369,6 @@
   "words": [
    "acto",
    "asado",
-   "asco",
    "atado",
    "atascado",
    "atasco",
@@ -411,11 +378,8 @@
    "casta",
    "cosa",
    "costa",
-   "data",
    "saca",
    "sacada",
-   "saco",
-   "soda",
    "toca",
    "tocada"
   ]
@@ -433,20 +397,17 @@
    "costado",
    "costo",
    "oso",
-   "toca",
    "tocado"
   ]
  },
  {
   "base": "acostar",
   "words": [
-   "acosar",
    "atasco",
    "atraco",
    "cara",
    "carta",
    "casa",
-   "casar",
    "caso",
    "castor",
    "cosa",
@@ -454,7 +415,6 @@
    "costar",
    "rato",
    "sacar",
-   "toca",
    "tocar"
   ]
  },
@@ -468,11 +428,9 @@
    "cita",
    "citar",
    "ira",
-   "rata",
    "rica",
    "tiara",
    "tira",
-   "vaca",
    "vaciar",
    "varita",
    "via"
@@ -536,7 +494,6 @@
    "causa",
    "cosa",
    "saca",
-   "saco",
    "usado",
    "uso"
   ]
@@ -559,17 +516,14 @@
   "words": [
    "ala",
    "aldea",
-   "alta",
    "alto",
    "ante",
    "atado",
    "dan",
-   "delta",
    "dental",
    "lado",
    "lento",
    "leo",
-   "ola",
    "ten",
    "tonelada"
   ]
@@ -584,7 +538,6 @@
    "raton",
    "rodante",
    "tarde",
-   "ten",
    "tren"
   ]
  },
@@ -602,8 +555,6 @@
    "dia",
    "dona",
    "ido",
-   "indio",
-   "nacido",
    "nido"
   ]
  },
@@ -654,8 +605,7 @@
    "mirada",
    "mirar",
    "radar",
-   "rama",
-   "rima"
+   "rama"
   ]
  },
  {
@@ -664,18 +614,15 @@
    "adios",
    "amo",
    "animo",
-   "dan",
    "dia",
    "idioma",
    "ido",
-   "indio",
    "mando",
    "mano",
    "mina",
    "minado",
    "mision",
    "moda",
-   "sano",
    "son"
   ]
  },
@@ -700,11 +647,9 @@
    "dan",
    "dia",
    "ido",
-   "nacido",
    "odio",
    "oido",
    "opcion",
-   "pan",
    "panico",
    "piano",
    "poco"
@@ -718,15 +663,12 @@
    "parado",
    "parto",
    "pata",
-   "pato",
-   "porta",
    "portada",
    "rata",
    "rato",
    "ropa",
    "tapado",
    "top",
-   "trapo",
    "tropa"
   ]
  },
@@ -737,16 +679,12 @@
    "arte",
    "deriva",
    "dia",
-   "dieta",
    "era",
    "evitar",
    "idea",
    "ira",
-   "red",
-   "rivera",
    "tarde",
    "tierra",
-   "tira",
    "tirar",
    "traer",
    "ver",
@@ -756,7 +694,6 @@
  {
   "base": "afectado",
   "words": [
-   "acta",
    "acto",
    "afecto",
    "atado",
@@ -782,12 +719,10 @@
    "cara",
    "carta",
    "catre",
-   "cera",
    "crea",
    "era",
    "rata",
    "recta",
-   "tara",
    "tarea"
   ]
  },
@@ -814,15 +749,12 @@
    "aire",
    "area",
    "arte",
-   "atar",
    "era",
    "feria",
    "fiera",
    "fria",
    "frita",
    "ira",
-   "rata",
-   "tara",
    "tarea",
    "tarifa",
    "tiara",
@@ -877,8 +809,7 @@
    "mafia",
    "mira",
    "mirar",
-   "rama",
-   "rima"
+   "rama"
   ]
  },
  {
@@ -893,14 +824,11 @@
    "fin",
    "finca",
    "franco",
-   "fria",
    "frio",
    "ira",
    "oir",
    "racion",
-   "rico",
-   "ron",
-   "ronca"
+   "rico"
   ]
  },
  {
@@ -908,7 +836,6 @@
   "words": [
    "anotar",
    "antro",
-   "aorta",
    "fan",
    "faraon",
    "frotar",
@@ -918,9 +845,7 @@
    "rata",
    "rato",
    "raton",
-   "ron",
-   "tara",
-   "tarro"
+   "ron"
   ]
  },
  {
@@ -929,8 +854,6 @@
    "adorar",
    "agradar",
    "agrado",
-   "arado",
-   "ardor",
    "daga",
    "garra",
    "gorda",
@@ -963,7 +886,6 @@
   "base": "agotador",
   "words": [
    "agrado",
-   "atado",
    "gato",
    "gorda",
    "gordo",
@@ -973,8 +895,6 @@
    "rata",
    "rato",
    "roto",
-   "tara",
-   "tardo",
    "toro",
    "trago"
   ]
@@ -1000,7 +920,6 @@
    "aire",
    "era",
    "ingreso",
-   "negra",
    "negro",
    "riesgo",
    "rosa",
@@ -1019,7 +938,6 @@
    "aviso",
    "era",
    "grave",
-   "oir",
    "riesgo",
    "ser",
    "sera",
@@ -1051,7 +969,6 @@
   "base": "aguantar",
   "words": [
    "agua",
-   "atun",
    "gana",
    "ganar",
    "grata",
@@ -1081,7 +998,6 @@
   "base": "ahorcado",
   "words": [
    "arado",
-   "arca",
    "arco",
    "cara",
    "caro",
@@ -1106,13 +1022,11 @@
    "diosa",
    "ido",
    "lado",
-   "sal",
    "sala",
    "salida",
    "salido",
    "salio",
    "sida",
-   "soda",
    "sol"
   ]
  },
@@ -1120,7 +1034,6 @@
   "base": "ajustado",
   "words": [
    "ajo",
-   "asado",
    "atado",
    "ataud",
    "auto",
@@ -1166,13 +1079,11 @@
  {
   "base": "alambre",
   "words": [
-   "ala",
    "alma",
    "ama",
    "amable",
    "ambar",
    "arabe",
-   "area",
    "arma",
    "bala",
    "bar",
@@ -1221,13 +1132,11 @@
    "alto",
    "arbol",
    "bar",
-   "botar",
    "labor",
    "obra",
    "ola",
    "oro",
    "rato",
-   "robo",
    "robot",
    "rol"
   ]
@@ -1273,7 +1182,6 @@
    "carnal",
    "caza",
    "clara",
-   "lanza",
    "lanzar",
    "raza"
   ]
@@ -1296,7 +1204,6 @@
   "base": "alegria",
   "words": [
    "aire",
-   "ala",
    "alegar",
    "alegra",
    "alergia",
@@ -1316,7 +1223,6 @@
    "aleja",
    "deja",
    "dejo",
-   "jade",
    "jaleo",
    "lado",
    "leo",
@@ -1326,16 +1232,13 @@
  {
   "base": "alergia",
   "words": [
-   "agil",
    "aire",
    "ala",
    "alegar",
    "alegra",
    "alegria",
    "area",
-   "aria",
    "era",
-   "gala",
    "gira",
    "ira",
    "larga",
@@ -1349,8 +1252,6 @@
   "words": [
    "aire",
    "alegro",
-   "caer",
-   "cargo",
    "cielo",
    "claro",
    "clerigo",
@@ -1358,7 +1259,6 @@
    "era",
    "ira",
    "largo",
-   "leo",
    "loca",
    "oir",
    "regalo",
@@ -1369,8 +1269,6 @@
   "base": "alfabeto",
   "words": [
    "ala",
-   "aleta",
-   "alfa",
    "alta",
    "alto",
    "bala",
@@ -1381,7 +1279,6 @@
    "fatal",
    "feo",
    "flota",
-   "flote",
    "lata",
    "leo",
    "ola",
@@ -1411,7 +1308,6 @@
  {
   "base": "alfombra",
   "words": [
-   "ama",
    "amo",
    "amor",
    "arbol",
@@ -1478,10 +1374,8 @@
    "latino",
    "lento",
    "mal",
-   "malo",
    "mano",
    "mental",
-   "metal",
    "tenia",
    "tio",
    "toma"
@@ -1527,7 +1421,6 @@
    "ama",
    "amado",
    "amo",
-   "dama",
    "lado",
    "mal",
    "mala",
@@ -1546,7 +1439,6 @@
    "armar",
    "arroz",
    "mal",
-   "mala",
    "malo",
    "moral"
   ]
@@ -1587,10 +1479,8 @@
    "alto",
    "delatar",
    "era",
-   "ladera",
    "lado",
    "leo",
-   "letra",
    "rato",
    "red",
    "relato",
@@ -1605,17 +1495,14 @@
    "ala",
    "alerta",
    "alertar",
-   "aleta",
    "alta",
    "altar",
    "area",
    "arte",
    "atraer",
    "era",
-   "lata",
    "letra",
    "rata",
-   "tara",
    "tarea",
    "traer"
   ]
@@ -1626,7 +1513,6 @@
    "alumno",
    "amo",
    "animo",
-   "lima",
    "limon",
    "lio",
    "luna",
@@ -1637,7 +1523,6 @@
    "milan",
    "mina",
    "mona",
-   "mula",
    "ola"
   ]
  },
@@ -1670,12 +1555,9 @@
    "armada",
    "armado",
    "dama",
-   "drama",
    "gorda",
    "grado",
-   "mago",
-   "moda",
-   "morada"
+   "moda"
   ]
  },
  {
@@ -1707,10 +1589,8 @@
    "mal",
    "mala",
    "malaria",
-   "malla",
    "mil",
    "milla",
-   "millar",
    "mira"
   ]
  },
@@ -1724,7 +1604,6 @@
    "mal",
    "malo",
    "mil",
-   "milla",
    "mira",
    "moral",
    "orilla"
@@ -1737,13 +1616,11 @@
    "animo",
    "banco",
    "boca",
-   "boina",
    "cabo",
    "cambio",
    "camino",
    "camion",
    "can",
-   "coma",
    "manco",
    "mano"
   ]
@@ -1757,7 +1634,6 @@
    "mente",
    "meta",
    "miente",
-   "mina",
    "tema",
    "ten",
    "tenia"
@@ -1785,15 +1661,12 @@
   "base": "amigable",
   "words": [
    "ala",
-   "alba",
    "alma",
    "ama",
    "amable",
    "baila",
    "baile",
    "bala",
-   "belga",
-   "liga",
    "magia",
    "mal",
    "mala",
@@ -1806,7 +1679,6 @@
   "words": [
    "ama",
    "dama",
-   "data",
    "dia",
    "ida",
    "masa",
@@ -1840,15 +1712,12 @@
    "anemia",
    "anima",
    "ansia",
-   "asma",
-   "iman",
    "mania",
    "masa",
    "mes",
    "mesa",
    "mina",
    "misa",
-   "nasa",
    "semana",
    "siena"
   ]
@@ -1859,7 +1728,6 @@
    "ala",
    "alma",
    "ama",
-   "amar",
    "arma",
    "arpia",
    "ira",
@@ -1869,9 +1737,7 @@
    "mil",
    "mira",
    "par",
-   "pila",
    "prima",
-   "rama",
    "rampa"
   ]
  },
@@ -1881,8 +1747,6 @@
    "ala",
    "alias",
    "alta",
-   "anal",
-   "ansia",
    "lana",
    "lata",
    "latin",
@@ -1893,7 +1757,6 @@
    "sal",
    "sala",
    "salina",
-   "tasa",
    "tina"
   ]
  },
@@ -1902,14 +1765,12 @@
   "words": [
    "ala",
    "alianza",
-   "alza",
    "alzar",
    "aria",
    "ira",
    "lana",
    "lanza",
    "lanzar",
-   "liza",
    "nariz",
    "raiz",
    "rana",
@@ -1922,16 +1783,12 @@
    "ama",
    "amo",
    "animo",
-   "mania",
    "mano",
    "manta",
    "mata",
    "maton",
    "mina",
-   "mito",
-   "mona",
    "monta",
-   "motin",
    "nota",
    "timon",
    "tina",
@@ -1942,7 +1799,6 @@
  {
   "base": "androide",
   "words": [
-   "aire",
    "dado",
    "dan",
    "dia",
@@ -1952,8 +1808,6 @@
    "idea",
    "ido",
    "nadie",
-   "odiar",
-   "oir",
    "radio",
    "redonda",
    "reinado",
@@ -1973,13 +1827,10 @@
    "genial",
    "genio",
    "gentil",
-   "latigo",
    "legion",
-   "lento",
    "leo",
    "lio",
    "nota",
-   "ola",
    "ten",
    "tenia",
    "tio"
@@ -2005,10 +1856,8 @@
  {
   "base": "animado",
   "words": [
-   "ama",
    "amado",
    "amo",
-   "animo",
    "dama",
    "dan",
    "dia",
@@ -2028,19 +1877,16 @@
    "alma",
    "ama",
    "amo",
-   "anima",
    "animal",
    "animo",
    "limon",
-   "lio",
    "mal",
    "mala",
    "malo",
    "mania",
    "mano",
    "mil",
-   "milan",
-   "mina"
+   "milan"
   ]
  },
  {
@@ -2059,8 +1905,6 @@
  {
   "base": "anormal",
   "words": [
-   "ala",
-   "alamo",
    "ama",
    "amo",
    "amor",
@@ -2085,13 +1929,11 @@
    "dia",
    "diana",
    "edad",
-   "ida",
    "idea",
    "nadie",
    "sandia",
    "sanidad",
-   "sed",
-   "sida"
+   "sed"
   ]
  },
  {
@@ -2105,14 +1947,10 @@
    "enano",
    "mano",
    "manta",
-   "manto",
-   "mata",
-   "mate",
    "maton",
    "menton",
    "metano",
    "monta",
-   "nota",
    "tema",
    "ten",
    "toma"
@@ -2129,8 +1967,7 @@
    "tenia",
    "tierra",
    "tio",
-   "traer",
-   "tren"
+   "traer"
   ]
  },
  {
@@ -2138,7 +1975,6 @@
   "words": [
    "dan",
    "dia",
-   "ida",
    "ido",
    "nota",
    "odio",
@@ -2148,7 +1984,6 @@
    "tinto",
    "tio",
    "titan",
-   "tono",
    "tonto"
   ]
  },
@@ -2179,10 +2014,8 @@
    "contra",
    "hora",
    "nota",
-   "rancho",
    "rato",
    "ron",
-   "toca",
    "tocar"
   ]
  },
@@ -2204,7 +2037,6 @@
  {
   "base": "anunciar",
   "words": [
-   "arca",
    "can",
    "cara",
    "cria",
@@ -2212,7 +2044,6 @@
    "cura",
    "ira",
    "nana",
-   "nuca",
    "rana",
    "rica",
    "ruina",
@@ -2246,7 +2077,6 @@
    "rata",
    "rato",
    "ropa",
-   "tapar",
    "top",
    "trapo",
    "tropa"
@@ -2258,7 +2088,6 @@
    "area",
    "caer",
    "cara",
-   "crea",
    "creer",
    "era",
    "par",
@@ -2273,9 +2102,6 @@
   "words": [
    "ante",
    "aparte",
-   "area",
-   "arena",
-   "arte",
    "entera",
    "era",
    "pan",
@@ -2293,14 +2119,12 @@
  {
   "base": "apartado",
   "words": [
-   "adoptar",
    "aparato",
    "atado",
    "par",
    "parada",
    "parado",
    "parto",
-   "pata",
    "patada",
    "portada",
    "rata",
@@ -2351,15 +2175,12 @@
    "dance",
    "dean",
    "dia",
-   "dina",
-   "eden",
    "ida",
    "idea",
    "nadie",
    "pan",
    "peine",
    "pena",
-   "pica",
    "pie"
   ]
  },
@@ -2370,14 +2191,12 @@
    "apretar",
    "area",
    "arte",
-   "atraer",
    "era",
    "par",
    "parar",
    "parte",
    "perra",
    "puerta",
-   "rata",
    "ruta"
   ]
  },
@@ -2390,9 +2209,6 @@
    "pase",
    "paseo",
    "paso",
-   "pasto",
-   "pato",
-   "pesa",
    "peso",
    "poeta",
    "poste",
@@ -2421,14 +2237,12 @@
   "words": [
    "ala",
    "alta",
-   "altar",
    "asaltar",
    "astral",
    "par",
    "pasa",
    "pasar",
    "pasta",
-   "pata",
    "plata",
    "rata",
    "sal",
@@ -2441,7 +2255,6 @@
   "words": [
    "ala",
    "lapso",
-   "ola",
    "pasa",
    "paso",
    "paul",
@@ -2450,7 +2263,6 @@
    "sal",
    "sala",
    "sol",
-   "sopa",
    "uso"
   ]
  },
@@ -2462,13 +2274,10 @@
    "capa",
    "cara",
    "carla",
-   "carpa",
    "clara",
    "ira",
-   "pala",
    "par",
    "parcial",
-   "picar",
    "pila",
    "placa",
    "racial",
@@ -2480,7 +2289,6 @@
   "words": [
    "par",
    "parar",
-   "paro",
    "parto",
    "pata",
    "pato",
@@ -2491,9 +2299,6 @@
    "rata",
    "rato",
    "ropa",
-   "tapar",
-   "tara",
-   "tarro",
    "top",
    "trapo",
    "tropa"
@@ -2510,7 +2315,6 @@
    "paso",
    "pasta",
    "pastor",
-   "rato",
    "ropa",
    "top"
   ]
@@ -2518,12 +2322,10 @@
  {
   "base": "apreciar",
   "words": [
-   "acera",
    "aire",
    "area",
    "caer",
    "cara",
-   "crea",
    "crear",
    "criar",
    "era",
@@ -2552,19 +2354,16 @@
   "base": "aprendiz",
   "words": [
    "aire",
-   "dean",
    "dia",
    "era",
    "idea",
    "nadie",
    "padre",
    "par",
-   "paz",
    "pedir",
    "pena",
    "piedra",
    "pierna",
-   "prenda",
    "rapidez"
   ]
  },
@@ -2578,13 +2377,11 @@
    "par",
    "parado",
    "parte",
-   "patear",
    "peor",
    "pero",
    "portada",
    "red",
-   "ropa",
-   "tarde"
+   "ropa"
   ]
  },
  {
@@ -2601,9 +2398,7 @@
    "pata",
    "patear",
    "perra",
-   "rata",
-   "traer",
-   "trepar"
+   "rata"
   ]
  },
  {
@@ -2618,23 +2413,17 @@
    "pena",
    "peor",
    "pero",
-   "poeta",
    "poner",
    "raton",
    "ron",
    "ropa",
-   "ten",
-   "top",
-   "tren"
+   "ten"
   ]
  },
  {
   "base": "aprieto",
   "words": [
-   "aire",
    "era",
-   "oir",
-   "opera",
    "par",
    "parte",
    "parto",
@@ -2662,9 +2451,7 @@
    "par",
    "parado",
    "probado",
-   "robada",
    "robado",
-   "robo",
    "ropa"
   ]
  },
@@ -2680,8 +2467,6 @@
    "par",
    "parar",
    "paro",
-   "porra",
-   "proa",
    "probar",
    "raro",
    "robar",
@@ -2697,26 +2482,20 @@
    "dan",
    "data",
    "nota",
-   "nudo",
    "pan",
    "panda",
    "pata",
-   "patan",
    "pato",
    "punta",
    "punto",
    "tapa",
    "tapado",
-   "tapon",
    "top"
   ]
  },
  {
   "base": "apuntar",
   "words": [
-   "atar",
-   "atun",
-   "aura",
    "pan",
    "par",
    "parta",
@@ -2747,7 +2526,6 @@
    "proa",
    "puro",
    "ropa",
-   "ruda",
    "rudo"
   ]
  },
@@ -2771,8 +2549,6 @@
    "abrir",
    "bar",
    "barrio",
-   "barro",
-   "borra",
    "ira",
    "obra",
    "oir",
@@ -2781,7 +2557,6 @@
    "rato",
    "robar",
    "tio",
-   "tira",
    "tirar",
    "tiro"
   ]
@@ -2795,15 +2570,12 @@
    "bar",
    "bruto",
    "bus",
-   "busto",
    "obra",
    "rato",
    "rosa",
-   "ruso",
    "ruta",
    "sabor",
    "sobra",
-   "turbo",
    "usar",
    "uso"
   ]
@@ -2818,7 +2590,6 @@
    "ira",
    "oir",
    "rico",
-   "roca",
    "vacio",
    "via"
   ]
@@ -2848,13 +2619,11 @@
    "atender",
    "dan",
    "dia",
-   "diente",
    "entera",
    "era",
    "idea",
    "nadie",
    "tener",
-   "tenia",
    "tienda",
    "tren"
   ]
@@ -2886,15 +2655,12 @@
    "dura",
    "durar",
    "madurar",
-   "mudar",
-   "radar",
-   "rama"
+   "radar"
   ]
  },
  {
   "base": "armario",
   "words": [
-   "ama",
    "amo",
    "amor",
    "arma",
@@ -2909,10 +2675,8 @@
  {
   "base": "armonia",
   "words": [
-   "ama",
    "amo",
    "amor",
-   "animar",
    "animo",
    "aroma",
    "ira",
@@ -2943,10 +2707,8 @@
   "base": "arrastre",
   "words": [
    "area",
-   "arre",
    "arrestar",
    "arte",
-   "atar",
    "atraer",
    "era",
    "rastrear",
@@ -2958,7 +2720,6 @@
    "set",
    "tara",
    "tarea",
-   "tasa",
    "traer"
   ]
  },
@@ -2981,7 +2742,6 @@
   "words": [
    "alegro",
    "era",
-   "gorra",
    "lago",
    "largo",
    "leo",
@@ -2996,12 +2756,10 @@
   "base": "arrestar",
   "words": [
    "area",
-   "arrastre",
    "arte",
    "atraer",
    "era",
    "rastrear",
-   "resta",
    "retrasar",
    "ser",
    "sera",
@@ -3020,7 +2778,6 @@
    "retraso",
    "ser",
    "sera",
-   "set",
    "traer",
    "trasero"
   ]
@@ -3030,7 +2787,6 @@
   "words": [
    "adorar",
    "ajo",
-   "arado",
    "ardor",
    "arrojo",
    "jarra",
@@ -3064,14 +2820,11 @@
    "ala",
    "area",
    "arena",
-   "arnes",
    "era",
    "lana",
    "laser",
-   "lena",
    "nasal",
    "rana",
-   "renal",
    "sal",
    "sala",
    "sanar",
@@ -3088,8 +2841,6 @@
    "atraer",
    "era",
    "ira",
-   "rata",
-   "reir",
    "tarea",
    "tiara",
    "tierra",
@@ -3106,17 +2857,14 @@
    "alerta",
    "alta",
    "alterar",
-   "area",
    "arte",
    "arteria",
-   "atraer",
    "era",
    "ira",
    "tarea",
    "tierra",
    "tirar",
-   "traer",
-   "trailer"
+   "traer"
   ]
  },
  {
@@ -3127,7 +2875,6 @@
    "claro",
    "cuarto",
    "cuatro",
-   "ira",
    "ocultar",
    "oir",
    "tio",
@@ -3137,7 +2884,6 @@
  {
   "base": "artista",
   "words": [
-   "atar",
    "ira",
    "rata",
    "risa",
@@ -3173,12 +2919,10 @@
    "alma",
    "ama",
    "amable",
-   "bala",
    "balsa",
    "base",
    "mal",
    "mala",
-   "masa",
    "mes",
    "mesa",
    "sable",
@@ -3196,14 +2940,11 @@
    "cesar",
    "crea",
    "dan",
-   "dean",
    "desear",
    "era",
    "escaner",
    "escena",
-   "nacer",
    "red",
-   "sed",
    "ser",
    "sera"
   ]
@@ -3221,7 +2962,6 @@
    "escaso",
    "once",
    "saco",
-   "sano",
    "son"
   ]
  },
@@ -3231,7 +2971,6 @@
    "ascenso",
    "asesor",
    "carne",
-   "caso",
    "cenar",
    "cosa",
    "craneo",
@@ -3244,7 +2983,6 @@
  {
   "base": "asegurar",
   "words": [
-   "agarre",
    "agua",
    "era",
    "garra",
@@ -3261,8 +2999,6 @@
   "base": "asesinar",
   "words": [
    "aire",
-   "ansia",
-   "area",
    "arena",
    "era",
    "ira",
@@ -3284,10 +3020,8 @@
    "falsa",
    "falso",
    "falta",
-   "falto",
    "fatal",
    "flota",
-   "fosa",
    "lata",
    "ola",
    "sal",
@@ -3311,8 +3045,6 @@
    "cosa",
    "costa",
    "ostia",
-   "saca",
-   "saco",
    "sitio",
    "tio",
    "toca"
@@ -3337,7 +3069,6 @@
   "words": [
    "adios",
    "agonia",
-   "dan",
    "dia",
    "diana",
    "digno",
@@ -3347,7 +3078,6 @@
    "nido",
    "sandia",
    "sano",
-   "sida",
    "son"
   ]
  },
@@ -3355,17 +3085,14 @@
   "base": "asociado",
   "words": [
    "adios",
-   "caido",
    "casa",
    "casado",
    "caso",
    "cosa",
-   "cosido",
    "dia",
    "disco",
    "ida",
    "ido",
-   "oido",
    "osadia",
    "oso",
    "sadico",
@@ -3379,12 +3106,10 @@
    "amor",
    "bar",
    "broma",
-   "moro",
    "morsa",
    "obra",
    "oro",
    "oso",
-   "rabo",
    "ramo",
    "robo",
    "rosa",
@@ -3428,10 +3153,7 @@
  {
   "base": "aspirina",
   "words": [
-   "aria",
-   "arpia",
    "ira",
-   "irani",
    "iris",
    "nasa",
    "pan",
@@ -3497,12 +3219,10 @@
    "casa",
    "casado",
    "caso",
-   "casta",
    "cosa",
    "costa",
    "sacada",
-   "toca",
-   "tocada"
+   "toca"
   ]
  },
  {
@@ -3526,7 +3246,6 @@
    "dan",
    "entera",
    "era",
-   "renta",
    "tarde",
    "ten",
    "tender",
@@ -3545,7 +3264,6 @@
    "data",
    "dato",
    "dean",
-   "dona",
    "dote",
    "nata",
    "nota",
@@ -3557,7 +3275,6 @@
   "base": "atrapar",
   "words": [
    "apartar",
-   "atar",
    "par",
    "parar",
    "parta",
@@ -3572,10 +3289,8 @@
   "base": "atrasado",
   "words": [
    "aorta",
-   "arado",
    "asado",
    "atado",
-   "atar",
    "atraso",
    "data",
    "ostra",
@@ -3585,15 +3300,13 @@
    "soda",
    "sorda",
    "tara",
-   "tardo",
-   "tasa"
+   "tardo"
   ]
  },
  {
   "base": "atrevido",
   "words": [
    "aire",
-   "arte",
    "dia",
    "era",
    "evitar",
@@ -3602,7 +3315,6 @@
    "rato",
    "tarde",
    "teoria",
-   "tio",
    "traido",
    "ver",
    "video"
@@ -3630,7 +3342,6 @@
   "words": [
    "adicion",
    "caido",
-   "cuida",
    "cuna",
    "dan",
    "dia",
@@ -3655,7 +3366,6 @@
    "matar",
    "tarea",
    "ten",
-   "trauma",
    "tren"
   ]
  },
@@ -3670,7 +3380,6 @@
    "maton",
    "metano",
    "monta",
-   "tema",
    "ten",
    "toma"
   ]
@@ -3688,8 +3397,7 @@
    "cisne",
    "saca",
    "sauce",
-   "sauna",
-   "seca"
+   "sauna"
   ]
  },
  {
@@ -3735,7 +3443,6 @@
    "tarea",
    "ten",
    "tren",
-   "venta",
    "ventura",
    "ver"
   ]
@@ -3762,7 +3469,6 @@
   "base": "avisado",
   "words": [
    "adios",
-   "asado",
    "aviso",
    "dia",
    "diosa",
@@ -3827,12 +3533,10 @@
    "abierta",
    "aire",
    "arabe",
-   "area",
    "arte",
    "bar",
    "batear",
    "bateria",
-   "caer",
    "cara",
    "caribe",
    "carta",
@@ -3840,7 +3544,6 @@
    "era",
    "ira",
    "rabia",
-   "recta",
    "tarea"
   ]
  },
@@ -3858,7 +3561,6 @@
    "dia",
    "diablo",
    "dobla",
-   "ida",
    "ido",
    "labio",
    "lado",
@@ -3872,13 +3574,11 @@
    "abra",
    "abril",
    "ala",
-   "alba",
    "baila",
    "bailar",
    "bala",
    "bar",
    "ira",
-   "irani",
    "lana",
    "libra",
    "rabia",
@@ -3889,10 +3589,8 @@
   "base": "balance",
   "words": [
    "ala",
-   "ancla",
    "bala",
    "banca",
-   "beca",
    "blanca",
    "cable",
    "cal",
@@ -3941,16 +3639,13 @@
    "bar",
    "barco",
    "boca",
-   "bocina",
    "cabina",
-   "can",
    "canario",
    "cara",
    "carbon",
    "ira",
    "obra",
    "oir",
-   "rabia",
    "rabino",
    "rico",
    "ron"
@@ -3981,7 +3676,6 @@
    "dan",
    "dean",
    "era",
-   "rana",
    "red"
   ]
  },
@@ -3995,7 +3689,6 @@
    "dado",
    "dan",
    "dia",
-   "dina",
    "dino",
    "dona",
    "ida",
@@ -4013,7 +3706,6 @@
    "bueno",
    "era",
    "nube",
-   "nuera",
    "obra",
    "rabo",
    "reno",
@@ -4043,14 +3735,12 @@
    "abra",
    "acabar",
    "acabo",
-   "babor",
    "bar",
    "barba",
    "barco",
    "boca",
    "cabo",
    "cara",
-   "caro",
    "cobra",
    "obra"
   ]
@@ -4104,16 +3794,12 @@
    "barba",
    "billar",
    "ira",
-   "labial",
-   "libra",
-   "lila",
-   "rabia"
+   "labial"
   ]
  },
  {
   "base": "baronesa",
   "words": [
-   "area",
    "arena",
    "bar",
    "base",
@@ -4122,32 +3808,26 @@
    "obra",
    "rabano",
    "ron",
-   "rosa",
    "saber",
    "sabor",
    "ser",
    "sera",
    "sobre",
-   "son",
-   "sonar"
+   "son"
   ]
  },
  {
   "base": "barranco",
   "words": [
-   "abra",
    "acabo",
    "banco",
    "bar",
    "barco",
-   "barra",
    "boca",
    "bronca",
-   "cabo",
    "can",
    "cara",
    "carbon",
-   "carro",
    "cobrar",
    "obra",
    "rabano",
@@ -4204,9 +3884,7 @@
   "words": [
    "bar",
    "base",
-   "bus",
    "era",
-   "obra",
    "raro",
    "robar",
    "saber",
@@ -4241,11 +3919,9 @@
    "balon",
    "llanta",
    "llanto",
-   "natal",
    "nota",
    "ola",
    "tabla",
-   "tablon",
    "talla",
    "toalla"
   ]
@@ -4253,8 +3929,6 @@
  {
   "base": "bateador",
   "words": [
-   "abra",
-   "arabe",
    "area",
    "arte",
    "atado",
@@ -4263,13 +3937,11 @@
    "batear",
    "boda",
    "borde",
-   "bote",
    "era",
    "obra",
    "rato",
    "red",
    "robada",
-   "rodea",
    "tarde",
    "tarea"
   ]
@@ -4279,7 +3951,6 @@
   "words": [
    "abierta",
    "aire",
-   "arabe",
    "area",
    "arte",
    "bar",
@@ -4301,9 +3972,6 @@
    "auto",
    "bus",
    "busto",
-   "misa",
-   "mito",
-   "ostia",
    "sabio",
    "suma",
    "tio",
@@ -4348,7 +4016,6 @@
  {
   "base": "biologia",
   "words": [
-   "agil",
    "blog",
    "bola",
    "globo",
@@ -4367,7 +4034,6 @@
   "base": "bitacora",
   "words": [
    "acabo",
-   "atraco",
    "bar",
    "barato",
    "barco",
@@ -4379,10 +4045,8 @@
    "ira",
    "oir",
    "orbita",
-   "rato",
    "tabaco",
-   "tio",
-   "tocar"
+   "tio"
   ]
  },
  {
@@ -4399,13 +4063,10 @@
    "dan",
    "dia",
    "diablo",
-   "dobla",
    "ido",
    "lado",
    "lindo",
-   "lio",
-   "nido",
-   "ola"
+   "lio"
   ]
  },
  {
@@ -4423,9 +4084,7 @@
    "leo",
    "obra",
    "ola",
-   "oler",
-   "roble",
-   "rol"
+   "oler"
   ]
  },
  {
@@ -4498,15 +4157,12 @@
    "bar",
    "barro",
    "boda",
-   "borda",
    "bordo",
-   "borra",
    "borrar",
    "obra",
    "orador",
    "orar",
    "oro",
-   "rabo",
    "raro",
    "robado",
    "robar",
@@ -4533,7 +4189,6 @@
   "words": [
    "bar",
    "boda",
-   "borda",
    "borde",
    "bordo",
    "boxear",
@@ -4544,8 +4199,7 @@
    "rabo",
    "red",
    "robado",
-   "robo",
-   "rodea"
+   "robo"
   ]
  },
  {
@@ -4556,12 +4210,10 @@
    "area",
    "arte",
    "bar",
-   "batea",
    "batear",
    "bañar",
    "era",
    "rata",
-   "tara",
    "tarea",
    "traba"
   ]
@@ -4608,17 +4260,14 @@
    "era",
    "mareo",
    "obra",
-   "orar",
    "ramo",
    "raro",
-   "remar",
    "robar"
   ]
  },
  {
   "base": "bromista",
   "words": [
-   "abismo",
    "amo",
    "amor",
    "bar",
@@ -4626,9 +4275,7 @@
    "mira",
    "oir",
    "orbita",
-   "rato",
    "ritmo",
-   "sabor",
    "sombra",
    "sombria",
    "tambor",
@@ -4660,7 +4307,6 @@
    "absurdo",
    "bar",
    "barco",
-   "brusco",
    "bus",
    "busca",
    "buscar",
@@ -4670,8 +4316,6 @@
    "curado",
    "curso",
    "duro",
-   "usado",
-   "usar",
    "uso"
   ]
  },
@@ -4685,8 +4329,6 @@
    "buscar",
    "cara",
    "casa",
-   "causa",
-   "causar",
    "sacar",
    "sal",
    "usar"
@@ -4717,13 +4359,11 @@
    "arca",
    "bala",
    "bar",
-   "braga",
    "cal",
    "cara",
    "carga",
    "carla",
    "clara",
-   "gala",
    "larga"
   ]
  },
@@ -4734,7 +4374,6 @@
    "ala",
    "alcoba",
    "boca",
-   "cabo",
    "cal",
    "loca",
    "local",
@@ -4762,13 +4401,10 @@
    "acto",
    "azote",
    "azotea",
-   "bata",
    "batea",
-   "beca",
    "boca",
    "bocaza",
    "bote",
-   "cabe",
    "cabeza",
    "cabo",
    "caza",
@@ -4782,7 +4418,6 @@
   "base": "cacharro",
   "words": [
    "ahorcar",
-   "arca",
    "arco",
    "cacao",
    "cara",
@@ -4795,7 +4430,6 @@
    "corra",
    "hora",
    "horca",
-   "orar",
    "racha",
    "raro",
    "roca"
@@ -4809,8 +4443,6 @@
    "carro",
    "charco",
    "chocar",
-   "choco",
-   "chorro",
    "corra",
    "corro",
    "hora",
@@ -4828,7 +4460,6 @@
    "caer",
    "cara",
    "cavar",
-   "cerda",
    "era",
    "red",
    "ver"
@@ -4859,10 +4490,8 @@
    "balazo",
    "boca",
    "bocaza",
-   "bola",
    "cabo",
    "cal",
-   "cola",
    "loca",
    "loco",
    "ola"
@@ -4873,10 +4502,7 @@
   "words": [
    "ala",
    "alarma",
-   "alma",
    "ama",
-   "amar",
-   "arca",
    "arma",
    "cal",
    "calma",
@@ -4888,8 +4514,7 @@
    "clara",
    "mal",
    "mala",
-   "marca",
-   "rama"
+   "marca"
   ]
  },
  {
@@ -4902,17 +4527,13 @@
    "cal",
    "cara",
    "carla",
-   "cavar",
    "clara",
    "clavar",
    "clave",
-   "crea",
    "era",
    "lavar",
    "vale",
-   "valer",
-   "ver",
-   "vera"
+   "ver"
   ]
  },
  {
@@ -4921,21 +4542,18 @@
    "ante",
    "cal",
    "can",
-   "cante",
    "cena",
    "cien",
    "cine",
    "cinta",
    "cita",
-   "clan",
    "clienta",
    "etica",
    "lance",
    "latin",
    "tecnica",
    "ten",
-   "tenia",
-   "tina"
+   "tenia"
   ]
  },
  {
@@ -4969,10 +4587,8 @@
  {
   "base": "caldera",
   "words": [
-   "acera",
    "ala",
    "aldea",
-   "arca",
    "area",
    "cadera",
    "caer",
@@ -4980,7 +4596,6 @@
    "cara",
    "carla",
    "celda",
-   "cera",
    "clara",
    "crea",
    "era",
@@ -4998,11 +4613,9 @@
    "cara",
    "carne",
    "carta",
-   "cartel",
    "cena",
    "cenar",
    "central",
-   "craneal",
    "era",
    "ten",
    "tren"
@@ -5011,7 +4624,6 @@
  {
   "base": "calibre",
   "words": [
-   "abril",
    "aire",
    "baile",
    "bar",
@@ -5022,8 +4634,7 @@
    "crea",
    "era",
    "ira",
-   "libre",
-   "rica"
+   "libre"
   ]
  },
  {
@@ -5035,7 +4646,6 @@
    "cinta",
    "cita",
    "cliente",
-   "enlace",
    "ten",
    "tenia"
   ]
@@ -5052,8 +4662,7 @@
    "lado",
    "loca",
    "local",
-   "ola",
-   "olla"
+   "ola"
   ]
  },
  {
@@ -5061,7 +4670,6 @@
   "words": [
    "cal",
    "calle",
-   "can",
    "cena",
    "jane",
    "lejano",
@@ -5080,14 +4688,11 @@
    "claro",
    "color",
    "cosa",
-   "curso",
-   "loco",
    "locura",
    "ocular",
    "oraculo",
    "oro",
    "oscuro",
-   "oso",
    "sal",
    "sol",
    "solo",
@@ -5123,8 +4728,7 @@
    "cara",
    "dama",
    "drama",
-   "marca",
-   "rama"
+   "marca"
   ]
  },
  {
@@ -5137,7 +4741,6 @@
    "camaro",
    "cara",
    "comer",
-   "crear",
    "era",
    "marca",
    "marcar"
@@ -5149,11 +4752,9 @@
    "ama",
    "amo",
    "amor",
-   "arma",
    "atraco",
    "camaro",
    "cara",
-   "carta",
    "comer",
    "cometa",
    "eco",
@@ -5184,8 +4785,6 @@
    "callo",
    "cola",
    "coma",
-   "eco",
-   "leal",
    "leo",
    "loca",
    "local",
@@ -5197,7 +4796,6 @@
  {
   "base": "camerino",
   "words": [
-   "aire",
    "amo",
    "amor",
    "camino",
@@ -5205,12 +4803,10 @@
    "carne",
    "cenar",
    "comer",
-   "craneo",
    "crimen",
    "era",
    "ira",
    "mano",
-   "menor",
    "mira",
    "oir",
    "romance"
@@ -5222,7 +4818,6 @@
    "ala",
    "alma",
    "ama",
-   "cal",
    "calma",
    "cama",
    "cima",
@@ -5251,12 +4846,10 @@
   "base": "caminata",
   "words": [
    "ama",
-   "anima",
    "caiman",
    "cama",
    "can",
    "canta",
-   "cima",
    "cinta",
    "cita",
    "mania",
@@ -5278,7 +4871,6 @@
    "cita",
    "etica",
    "mes",
-   "secta",
    "set"
   ]
  },
@@ -5287,16 +4879,13 @@
   "words": [
    "amo",
    "animo",
-   "asco",
    "camino",
    "camion",
    "can",
    "canso",
    "casino",
    "caso",
-   "coma",
    "cosa",
-   "manco",
    "mano",
    "mason",
    "mosca",
@@ -5310,7 +4899,6 @@
    "amo",
    "can",
    "cena",
-   "eco",
    "epoca",
    "manco",
    "mano",
@@ -5335,14 +4923,11 @@
  {
   "base": "canario",
   "words": [
-   "arca",
    "arco",
-   "aria",
    "can",
    "canoa",
    "cara",
    "caro",
-   "cria",
    "crio",
    "ira",
    "oir",
@@ -5376,7 +4961,6 @@
    "ala",
    "alcance",
    "alce",
-   "anal",
    "ancla",
    "cal",
    "can",
@@ -5394,7 +4978,6 @@
   "words": [
    "ala",
    "alcance",
-   "caer",
    "cal",
    "cancela",
    "cancer",
@@ -5414,10 +4997,8 @@
    "cargo",
    "carne",
    "cena",
-   "cero",
    "coraje",
    "craneo",
-   "ego",
    "enojar",
    "era",
    "jane",
@@ -5441,8 +5022,7 @@
    "rango",
    "roca",
    "ron",
-   "ronca",
-   "urna"
+   "ronca"
   ]
  },
  {
@@ -5478,9 +5058,6 @@
   "base": "cantera",
   "words": [
    "ante",
-   "arena",
-   "arte",
-   "caer",
    "can",
    "cantar",
    "cara",
@@ -5548,10 +5125,7 @@
    "canela",
    "capa",
    "cena",
-   "clan",
    "lana",
-   "lance",
-   "leal",
    "llena",
    "pan",
    "pena",
@@ -5584,7 +5158,6 @@
    "cita",
    "lata",
    "pata",
-   "pila",
    "placa",
    "plata",
    "platica"
@@ -5606,14 +5179,12 @@
  {
   "base": "capitana",
   "words": [
-   "acta",
    "can",
    "canta",
    "capa",
    "capitan",
    "cinta",
    "cita",
-   "nata",
    "pan",
    "pata",
    "patan",
@@ -5628,7 +5199,6 @@
   "words": [
    "alto",
    "auto",
-   "cal",
    "copia",
    "culpa",
    "lio",
@@ -5642,7 +5212,6 @@
  {
   "base": "capricho",
   "words": [
-   "caro",
    "charco",
    "chica",
    "chico",
@@ -5655,7 +5224,6 @@
    "ira",
    "oir",
    "par",
-   "picaro",
    "rico",
    "ropa"
   ]
@@ -5672,8 +5240,6 @@
    "pasa",
    "pascal",
    "pascua",
-   "paul",
-   "pausa",
    "placa",
    "sal",
    "sala"
@@ -5690,8 +5256,6 @@
    "cuarta",
    "cura",
    "par",
-   "parta",
-   "pata",
    "rata",
    "ruta",
    "tapar"
@@ -5704,14 +5268,12 @@
    "captar",
    "captura",
    "cara",
-   "carpa",
    "carta",
    "cuarta",
    "cura",
    "curar",
    "par",
    "parar",
-   "rata",
    "ruta"
   ]
  },
@@ -5726,7 +5288,6 @@
    "loca",
    "local",
    "ola",
-   "olla",
    "palco",
    "palo",
    "paul"
@@ -5736,9 +5297,6 @@
   "base": "caracol",
   "words": [
    "ala",
-   "arca",
-   "arco",
-   "cacao",
    "cal",
    "calor",
    "cara",
@@ -5747,7 +5305,6 @@
    "clara",
    "claro",
    "cloaca",
-   "coca",
    "cola",
    "coral",
    "loca",
@@ -5762,7 +5319,6 @@
    "abarca",
    "acabar",
    "ama",
-   "amar",
    "ambar",
    "arma",
    "bar",
@@ -5777,9 +5333,7 @@
   "words": [
    "amo",
    "amor",
-   "calma",
    "calmar",
-   "camaro",
    "cara",
    "claro",
    "colera",
@@ -5813,12 +5367,10 @@
    "boca",
    "bronca",
    "cabo",
-   "can",
    "carbon",
    "corona",
    "obra",
    "oro",
-   "robo",
    "ron"
   ]
  },
@@ -5827,13 +5379,11 @@
   "words": [
    "cadena",
    "cadera",
-   "caer",
    "caldera",
    "cara",
    "carne",
    "cena",
    "cenar",
-   "clara",
    "craneal",
    "dan",
    "era",
@@ -5851,18 +5401,15 @@
    "criado",
    "dia",
    "ido",
-   "ira",
    "oir",
    "radio",
-   "rico",
-   "roca"
+   "rico"
   ]
  },
  {
   "base": "cargado",
   "words": [
    "agrado",
-   "arca",
    "arco",
    "cara",
    "carga",
@@ -5888,9 +5435,6 @@
    "cargo",
    "caro",
    "carro",
-   "daga",
-   "gorda",
-   "grado",
    "raro",
    "roca"
   ]
@@ -5900,13 +5444,11 @@
   "words": [
    "caer",
    "cargo",
-   "caro",
    "carro",
    "cero",
    "coger",
    "crea",
    "crear",
-   "cuero",
    "cura",
    "eco",
    "ego",
@@ -5914,7 +5456,6 @@
    "guarro",
    "guerra",
    "raro",
-   "roca",
    "ruego"
   ]
  },
@@ -5937,18 +5478,15 @@
   "words": [
    "año",
    "cariño",
-   "caro",
    "caso",
    "cosa",
    "ira",
    "ocaso",
    "oir",
    "oro",
-   "oso",
    "rico",
    "rocio",
    "rosa",
-   "saco",
    "socio",
    "soñar"
   ]
@@ -5963,13 +5501,11 @@
    "cara",
    "carla",
    "carnal",
-   "cavar",
    "clan",
    "clara",
    "clavar",
    "lana",
    "lavar",
-   "rana",
    "vaca"
   ]
  },
@@ -5984,13 +5520,10 @@
    "captar",
    "cara",
    "carta",
-   "crea",
    "era",
-   "etapa",
    "par",
    "parte",
    "patear",
-   "recta",
    "tarea"
   ]
  },
@@ -6020,10 +5553,8 @@
    "carter",
    "cartera",
    "crater",
-   "crea",
    "crear",
    "era",
-   "tarea",
    "traer"
   ]
  },
@@ -6035,7 +5566,6 @@
    "carro",
    "cita",
    "cortar",
-   "criar",
    "ira",
    "oir",
    "raro",
@@ -6043,7 +5573,6 @@
    "rico",
    "tio",
    "tirar",
-   "toca",
    "tocar"
   ]
  },
@@ -6074,7 +5603,6 @@
    "caja",
    "cajera",
    "cara",
-   "crea",
    "crear",
    "cura",
    "curar",
@@ -6094,7 +5622,6 @@
    "carreta",
    "carta",
    "carter",
-   "crear",
    "era",
    "traer"
   ]
@@ -6106,8 +5633,6 @@
    "carter",
    "cortar",
    "corte",
-   "crater",
-   "crear",
    "eco",
    "era",
    "raro",
@@ -6125,35 +5650,29 @@
    "actor",
    "auto",
    "autor",
-   "caucho",
    "charco",
    "chocar",
    "cuarto",
    "cuatro",
-   "cuota",
    "cura",
    "harto",
    "hora",
    "rato",
-   "ruta",
    "toca",
    "tocar",
    "trucha",
-   "truco",
-   "turco"
+   "truco"
   ]
  },
  {
   "base": "casanova",
   "words": [
    "asco",
-   "asno",
    "can",
    "canoa",
    "canso",
    "casa",
    "caso",
-   "cava",
    "cosa",
    "nasa",
    "saca",
@@ -6168,7 +5687,6 @@
  {
   "base": "castaño",
   "words": [
-   "acta",
    "acto",
    "asco",
    "atasco",
@@ -6176,13 +5694,11 @@
    "casa",
    "caso",
    "casta",
-   "caña",
    "cosa",
    "costa",
    "saca",
    "saco",
    "tacaño",
-   "taco",
    "tasa",
    "toca"
   ]
@@ -6190,7 +5706,6 @@
  {
   "base": "castigar",
   "words": [
-   "agitar",
    "cara",
    "carga",
    "carta",
@@ -6199,7 +5714,6 @@
    "casita",
    "cita",
    "gastar",
-   "gira",
    "gracia",
    "ira",
    "saca",
@@ -6215,7 +5729,6 @@
    "cosa",
    "costa",
    "gasto",
-   "gato",
    "ostia",
    "tio",
    "toca"
@@ -6230,7 +5743,6 @@
    "lista",
    "listo",
    "sal",
-   "salio",
    "social",
    "sol",
    "tio"
@@ -6247,9 +5759,7 @@
    "cola",
    "gato",
    "gol",
-   "gota",
    "lago",
-   "lata",
    "loca",
    "loco",
    "ola",
@@ -6264,9 +5774,6 @@
    "alerta",
    "alta",
    "arte",
-   "cadera",
-   "caer",
-   "cal",
    "caldera",
    "cara",
    "carta",
@@ -6288,14 +5795,11 @@
    "caotico",
    "ciclo",
    "cita",
-   "coito",
    "lio",
-   "loca",
    "loco",
    "ola",
    "talco",
-   "tio",
-   "toca"
+   "tio"
   ]
  },
  {
@@ -6306,12 +5810,10 @@
    "arte",
    "caer",
    "cerca",
-   "cero",
    "corte",
    "eco",
    "era",
    "rato",
-   "recta",
    "recto",
    "toca",
    "tocar"
@@ -6320,7 +5822,6 @@
  {
   "base": "caverna",
   "words": [
-   "acera",
    "area",
    "arena",
    "avance",
@@ -6332,11 +5833,9 @@
    "cavar",
    "cena",
    "cenar",
-   "crea",
    "era",
    "nacer",
    "nave",
-   "nevar",
    "ver",
    "vera"
   ]
@@ -6359,7 +5858,6 @@
  {
   "base": "cebolla",
   "words": [
-   "bello",
    "boca",
    "bola",
    "cabello",
@@ -6367,7 +5865,6 @@
    "cabo",
    "cal",
    "calle",
-   "cola",
    "eco",
    "leo",
    "loca",
@@ -6380,7 +5877,6 @@
   "words": [
    "bar",
    "caer",
-   "cal",
    "cereal",
    "cerebral",
    "crear",
@@ -6401,8 +5897,7 @@
    "cruel",
    "cura",
    "era",
-   "laurel",
-   "ulcera"
+   "laurel"
   ]
  },
  {
@@ -6421,8 +5916,6 @@
    "oir",
    "once",
    "reino",
-   "rene",
-   "reno",
    "rico",
    "ron"
   ]
@@ -6430,7 +5923,6 @@
  {
   "base": "censura",
   "words": [
-   "arnes",
    "caer",
    "can",
    "carne",
@@ -6438,12 +5930,10 @@
    "cenar",
    "cesar",
    "crea",
-   "cuna",
    "cura",
    "era",
    "nacer",
    "nuera",
-   "seca",
    "secar",
    "ser",
    "sera",
@@ -6460,7 +5950,6 @@
    "cante",
    "canto",
    "cena",
-   "eco",
    "nave",
    "ten",
    "venta"
@@ -6471,19 +5960,15 @@
   "words": [
    "ante",
    "arte",
-   "caer",
    "can",
    "carne",
    "carnet",
    "cena",
    "cenar",
-   "crea",
    "entera",
    "era",
    "nacer",
-   "nectar",
    "receta",
-   "renta",
    "ten",
    "tener",
    "trance",
@@ -6501,7 +5986,6 @@
    "etico",
    "mito",
    "motin",
-   "necio",
    "nieto",
    "once",
    "ten",
@@ -6514,10 +5998,8 @@
   "base": "centrado",
   "words": [
    "adentro",
-   "ante",
    "carne",
    "cena",
-   "cenar",
    "centro",
    "contar",
    "contra",
@@ -6526,7 +6008,6 @@
    "entrado",
    "era",
    "rato",
-   "red",
    "rodante",
    "tarde",
    "ten",
@@ -6553,21 +6034,17 @@
    "acera",
    "aire",
    "ama",
-   "amar",
-   "area",
    "arma",
    "caer",
    "cama",
    "cara",
    "cerca",
-   "crea",
    "crema",
    "era",
    "ira",
    "marca",
    "marea",
-   "mira",
-   "rica"
+   "mira"
   ]
  },
  {
@@ -6596,14 +6073,10 @@
    "creido",
    "decir",
    "directo",
-   "doce",
    "editor",
    "ido",
    "oir",
-   "recto",
-   "red",
    "rico",
-   "tercio",
    "tio",
    "tiro"
   ]
@@ -6616,7 +6089,6 @@
    "cal",
    "celebrar",
    "cereal",
-   "crea",
    "crear",
    "creer",
    "era",
@@ -6632,7 +6104,6 @@
    "cadera",
    "caer",
    "cara",
-   "crea",
    "crear",
    "era",
    "radar",
@@ -6688,7 +6159,6 @@
   "words": [
    "ave",
    "caer",
-   "cera",
    "cereza",
    "crea",
    "era",
@@ -6703,12 +6173,10 @@
    "acecho",
    "cal",
    "choca",
-   "coca",
    "coche",
    "cola",
    "colcha",
    "echo",
-   "eco",
    "lecho",
    "leo",
    "loca",
@@ -6806,14 +6274,12 @@
  {
   "base": "chiflado",
   "words": [
-   "acido",
    "caido",
    "calido",
    "cola",
    "dia",
    "dicho",
    "facil",
-   "fila",
    "ido",
    "lado",
    "lio",
@@ -6838,10 +6304,8 @@
  {
   "base": "cianuro",
   "words": [
-   "arco",
    "can",
    "caro",
-   "cuna",
    "cura",
    "ira",
    "oir",
@@ -6854,7 +6318,6 @@
    "ronca",
    "ruina",
    "unico",
-   "unir",
    "uranio"
   ]
  },
@@ -6882,11 +6345,9 @@
    "criar",
    "gira",
    "girar",
-   "gorra",
    "ira",
    "oir",
    "raro",
-   "rica",
    "rico",
    "roca"
   ]
@@ -6898,10 +6359,8 @@
    "cinta",
    "cita",
    "citar",
-   "cuna",
    "cura",
    "ira",
-   "rica",
    "ruina",
    "ruta",
    "rutina",
@@ -6967,7 +6426,6 @@
    "crio",
    "licor",
    "lio",
-   "lucio",
    "lucir",
    "oir",
    "rico",
@@ -6979,14 +6437,12 @@
   "words": [
    "cajon",
    "cianuro",
-   "cura",
    "ira",
    "junior",
    "juro",
    "oir",
    "rico",
    "ron",
-   "ruina",
    "unico",
    "uranio"
   ]
@@ -7006,11 +6462,8 @@
    "cocina",
    "nota",
    "noticia",
-   "tacon",
-   "tina",
    "tio",
-   "toca",
-   "tonica"
+   "toca"
   ]
  },
  {
@@ -7022,7 +6475,6 @@
    "caridad",
    "carla",
    "clara",
-   "cria",
    "criada",
    "dia",
    "ira",
@@ -7049,7 +6501,6 @@
    "calcio",
    "casco",
    "caso",
-   "ciclo",
    "cosa",
    "lio",
    "loca",
@@ -7081,14 +6532,11 @@
    "ala",
    "cal",
    "caldo",
-   "calva",
    "calvo",
-   "cava",
    "clavo",
    "cola",
    "colada",
    "lado",
-   "lava",
    "lavado",
    "loca",
    "ola",
@@ -7102,13 +6550,11 @@
    "ante",
    "cal",
    "can",
-   "cante",
    "cena",
    "cien",
    "cine",
    "cinta",
    "cita",
-   "clan",
    "etica",
    "lance",
    "latin",
@@ -7140,7 +6586,6 @@
    "boda",
    "cerdo",
    "era",
-   "obra",
    "recado",
    "red"
   ]
@@ -7158,14 +6603,10 @@
    "criada",
    "criado",
    "dia",
-   "ida",
    "ido",
-   "ira",
    "obra",
    "oir",
-   "rabia",
    "radio",
-   "rico",
    "robada"
   ]
  },
@@ -7174,12 +6615,9 @@
   "words": [
    "acecho",
    "caer",
-   "caro",
    "cerca",
-   "cerco",
    "cero",
    "charco",
-   "choca",
    "chocar",
    "coche",
    "crea",
@@ -7189,8 +6627,7 @@
    "era",
    "hacer",
    "hora",
-   "horca",
-   "roca"
+   "horca"
   ]
  },
  {
@@ -7234,7 +6671,6 @@
    "circo",
    "conocer",
    "cronico",
-   "eco",
    "oir",
    "oro",
    "reino",
@@ -7269,7 +6705,6 @@
    "lago",
    "loca",
    "loco",
-   "lodo",
    "ola"
   ]
  },
@@ -7281,18 +6716,14 @@
    "angel",
    "ante",
    "cal",
-   "can",
    "canto",
    "cena",
    "colega",
-   "ego",
    "lance",
    "lento",
    "leo",
    "loca",
-   "nota",
    "ola",
-   "tango",
    "ten"
   ]
  },
@@ -7318,14 +6749,11 @@
  {
   "base": "colmena",
   "words": [
-   "amen",
    "amo",
    "cal",
    "can",
    "cena",
    "cola",
-   "coma",
-   "eco",
    "lance",
    "leo",
    "leona",
@@ -7363,7 +6791,6 @@
    "claro",
    "cola",
    "color",
-   "coral",
    "loca",
    "loco",
    "ola",
@@ -7376,8 +6803,6 @@
   "base": "colonia",
   "words": [
    "cal",
-   "can",
-   "clan",
    "cola",
    "colin",
    "colon",
@@ -7401,14 +6826,11 @@
    "colon",
    "colonia",
    "icono",
-   "lila",
    "lio",
-   "llano",
    "loca",
    "local",
    "locion",
    "loco",
-   "lona",
    "ola",
    "olla"
   ]
@@ -7417,7 +6839,6 @@
   "base": "colorado",
   "words": [
    "cal",
-   "calor",
    "claro",
    "colado",
    "color",
@@ -7436,7 +6857,6 @@
   "words": [
    "alumno",
    "amo",
-   "cal",
    "comun",
    "comuna",
    "loca",
@@ -7452,7 +6872,6 @@
   "words": [
    "amo",
    "can",
-   "coma",
    "comoda",
    "dan",
    "manco",
@@ -7460,14 +6879,12 @@
    "mano",
    "moda",
    "modo",
-   "mona",
    "mono"
   ]
  },
  {
   "base": "combate",
   "words": [
-   "acto",
    "amo",
    "boca",
    "cabo",
@@ -7489,9 +6906,7 @@
    "broma",
    "cambio",
    "mira",
-   "oir",
    "orbita",
-   "tambor",
    "tio",
    "toma",
    "tomar"
@@ -7502,7 +6917,6 @@
   "words": [
    "amo",
    "amor",
-   "animo",
    "banco",
    "bar",
    "barco",
@@ -7511,14 +6925,11 @@
    "cambio",
    "camino",
    "camion",
-   "carbon",
    "ira",
    "mano",
    "marco",
    "mira",
-   "obra",
-   "oir",
-   "ron"
+   "oir"
   ]
  },
  {
@@ -7526,7 +6937,6 @@
   "words": [
    "amo",
    "comida",
-   "decimo",
    "dia",
    "doce",
    "idea",
@@ -7544,14 +6954,12 @@
    "cerdo",
    "cero",
    "comer",
-   "coro",
    "decoro",
    "doce",
    "eco",
    "modo",
    "oro",
    "red",
-   "rodeo",
    "romeo"
   ]
  },
@@ -7560,8 +6968,6 @@
   "words": [
    "amo",
    "amor",
-   "carne",
-   "cena",
    "centro",
    "comer",
    "contar",
@@ -7571,7 +6977,6 @@
    "era",
    "mano",
    "romance",
-   "ron",
    "ten",
    "toma",
    "tomar"
@@ -7596,12 +7001,10 @@
   "words": [
    "cero",
    "circo",
-   "coco",
    "comer",
    "comico",
    "coro",
    "eco",
-   "micro",
    "oir",
    "oro",
    "rico",
@@ -7620,7 +7023,6 @@
    "metro",
    "remo",
    "reto",
-   "temer",
    "temor"
   ]
  },
@@ -7658,7 +7060,6 @@
   "words": [
    "cinismo",
    "cono",
-   "icono",
    "mision",
    "mocion",
    "moco",
@@ -7675,7 +7076,6 @@
    "amo",
    "amor",
    "compra",
-   "demora",
    "era",
    "madre",
    "mercado",
@@ -7685,9 +7085,7 @@
    "pecador",
    "peor",
    "pero",
-   "poder",
-   "red",
-   "ropa"
+   "poder"
   ]
  },
  {
@@ -7696,9 +7094,7 @@
    "ama",
    "amo",
    "amor",
-   "amparo",
    "arma",
-   "cama",
    "cara",
    "carro",
    "compra",
@@ -7732,7 +7128,6 @@
    "peor",
    "pero",
    "pie",
-   "precio",
    "primo",
    "tiempo",
    "tio",
@@ -7742,7 +7137,6 @@
  {
   "base": "complejo",
   "words": [
-   "celo",
    "cojo",
    "colmo",
    "eco",
@@ -7781,7 +7175,6 @@
    "miel",
    "mil",
    "pelo",
-   "pico",
    "pie",
    "piel"
   ]
@@ -7794,18 +7187,14 @@
    "coro",
    "eco",
    "menor",
-   "mero",
    "mono",
    "moreno",
    "once",
    "oro",
-   "peon",
    "peor",
    "pero",
    "poco",
    "poner",
-   "remo",
-   "reno",
    "romeo",
    "ron"
   ]
@@ -7813,16 +7202,13 @@
  {
   "base": "comporta",
   "words": [
-   "actor",
    "amo",
    "amor",
    "compra",
    "corto",
-   "motor",
    "oro",
    "par",
    "poco",
-   "rato",
    "ropa",
    "tocar",
    "toma",
@@ -7842,8 +7228,7 @@
    "marco",
    "oro",
    "par",
-   "poco",
-   "ropa"
+   "poco"
   ]
  },
  {
@@ -7879,19 +7264,15 @@
   "words": [
    "bien",
    "bronce",
-   "cerco",
    "cero",
    "cien",
    "cinco",
    "cine",
    "circo",
    "cobre",
-   "crio",
    "ebrio",
    "eco",
-   "necio",
    "oir",
-   "once",
    "recibo",
    "reino",
    "rico",
@@ -7906,13 +7287,11 @@
    "can",
    "cena",
    "cola",
-   "eco",
    "jaleo",
    "jane",
    "lance",
    "lejano",
    "leo",
-   "leona",
    "loca",
    "ola"
   ]
@@ -7925,19 +7304,16 @@
    "eco",
    "noto",
    "once",
-   "peon",
    "poco",
    "ten",
    "tono",
    "top",
-   "tope",
    "topo"
   ]
  },
  {
   "base": "concluir",
   "words": [
-   "ciclo",
    "cinco",
    "circo",
    "circulo",
@@ -7946,9 +7322,7 @@
    "colin",
    "crio",
    "licor",
-   "lino",
    "lio",
-   "lucir",
    "oir",
    "rico",
    "rol",
@@ -7970,9 +7344,7 @@
    "roto",
    "ten",
    "torneo",
-   "tren",
-   "tronco",
-   "trono"
+   "tren"
   ]
  },
  {
@@ -7982,7 +7354,6 @@
    "cena",
    "conde",
    "dan",
-   "dance",
    "dean",
    "decano",
    "doce",
@@ -7995,21 +7366,17 @@
   "base": "condenar",
   "words": [
    "caer",
-   "can",
    "carne",
    "cena",
    "cenar",
    "cerdo",
    "cero",
-   "conde",
    "condena",
    "craneo",
-   "crea",
    "dan",
    "decano",
    "docena",
    "era",
-   "recado",
    "red",
    "ron"
   ]
@@ -8036,7 +7403,6 @@
    "can",
    "canto",
    "coca",
-   "cuna",
    "cuota",
    "dan",
    "nota",
@@ -8047,7 +7413,6 @@
  {
   "base": "conectar",
   "words": [
-   "carne",
    "catorce",
    "cena",
    "centro",
@@ -8056,7 +7421,6 @@
    "contra",
    "corte",
    "era",
-   "rato",
    "ron",
    "ten",
    "tren"
@@ -8068,9 +7432,7 @@
    "cien",
    "ciento",
    "cine",
-   "cojin",
    "conejo",
-   "conteo",
    "eco",
    "etico",
    "necio",
@@ -8100,7 +7462,6 @@
   "base": "confesar",
   "words": [
    "carne",
-   "caso",
    "cenar",
    "cosa",
    "craneo",
@@ -8133,11 +7494,9 @@
   "words": [
    "acido",
    "caido",
-   "codo",
    "dan",
    "dia",
    "fin",
-   "finca",
    "fondo",
    "ido",
    "nacido",
@@ -8154,7 +7513,6 @@
    "finca",
    "franco",
    "frio",
-   "ira",
    "oir",
    "racion",
    "rico"
@@ -8168,13 +7526,11 @@
    "coro",
    "eco",
    "feo",
-   "freno",
    "menor",
    "mono",
    "moreno",
    "once",
    "oro",
-   "reno",
    "romeo",
    "ron"
   ]
@@ -8184,14 +7540,10 @@
   "words": [
    "alegro",
    "caer",
-   "cal",
-   "cargo",
    "carne",
    "cena",
-   "cero",
    "claro",
    "colega",
-   "colgar",
    "era",
    "lago",
    "largo",
@@ -8208,7 +7560,6 @@
   "words": [
    "cero",
    "coger",
-   "coro",
    "coser",
    "negro",
    "once",
@@ -8229,7 +7580,6 @@
    "eco",
    "once",
    "oro",
-   "reno",
    "ron"
   ]
  },
@@ -8239,7 +7589,6 @@
    "cinco",
    "cocido",
    "coco",
-   "codo",
    "icono",
    "ido",
    "nido",
@@ -8257,7 +7606,6 @@
    "once",
    "oso",
    "seco",
-   "seno",
    "son"
   ]
  },
@@ -8271,10 +7619,8 @@
    "once",
    "receso",
    "rene",
-   "reno",
    "ron",
    "seco",
-   "seno",
    "ser",
    "sereno",
    "son"
@@ -8286,13 +7632,10 @@
    "carne",
    "casero",
    "caso",
-   "cena",
    "cenar",
-   "cesar",
    "cosa",
    "craneo",
    "era",
-   "ron",
    "ser",
    "sera",
    "son",
@@ -8304,12 +7647,9 @@
  {
   "base": "consola",
   "words": [
-   "asco",
    "cal",
-   "can",
    "canso",
    "caso",
-   "cola",
    "colon",
    "cosa",
    "loca",
@@ -8317,7 +7657,6 @@
    "ocaso",
    "ola",
    "oso",
-   "saco",
    "sal",
    "salon",
    "sol",
@@ -8330,7 +7669,6 @@
   "words": [
    "celoso",
    "colon",
-   "consul",
    "loco",
    "nucleo",
    "once",
@@ -8348,7 +7686,6 @@
    "asunto",
    "auto",
    "caso",
-   "consul",
    "cosa",
    "costa",
    "sal",
@@ -8363,10 +7700,7 @@
   "base": "consumir",
   "words": [
    "comun",
-   "crio",
-   "cursi",
    "curso",
-   "micro",
    "muro",
    "musico",
    "oir",
@@ -8376,7 +7710,6 @@
    "sincro",
    "son",
    "sucio",
-   "sumo",
    "unico",
    "unir",
    "uso"
@@ -8387,13 +7720,10 @@
   "words": [
    "acento",
    "alto",
-   "balcon",
    "banco",
    "blanco",
    "boca",
    "cable",
-   "cal",
-   "cena",
    "lento",
    "leo",
    "loca",
@@ -8408,7 +7738,6 @@
    "acto",
    "can",
    "canto",
-   "codo",
    "dan",
    "nota",
    "tacon",
@@ -8420,7 +7749,6 @@
  {
   "base": "contador",
   "words": [
-   "actor",
    "contado",
    "contra",
    "cortado",
@@ -8444,8 +7772,6 @@
    "corte",
    "eco",
    "entero",
-   "eterno",
-   "once",
    "recto",
    "reto",
    "ron",
@@ -8463,7 +7789,6 @@
    "can",
    "canto",
    "cena",
-   "eco",
    "enano",
    "encanto",
    "ten"
@@ -8532,7 +7857,6 @@
    "cinco",
    "coco",
    "coito",
-   "cono",
    "icono",
    "noto",
    "novio",
@@ -8549,7 +7873,6 @@
   "base": "cooperar",
   "words": [
    "correo",
-   "eco",
    "epoca",
    "era",
    "operar",
@@ -8560,18 +7883,15 @@
    "pero",
    "perra",
    "perro",
-   "poco",
-   "rapero"
+   "poco"
   ]
  },
  {
   "base": "copiloto",
   "words": [
-   "clip",
    "coito",
    "lio",
    "loco",
-   "opio",
    "optico",
    "pico",
    "piloto",
@@ -8609,7 +7929,6 @@
    "boca",
    "cara",
    "carta",
-   "obra",
    "rato",
    "tabaco"
   ]
@@ -8623,7 +7942,6 @@
    "coro",
    "correo",
    "corro",
-   "decoro",
    "doce",
    "eco",
    "oro",
@@ -8634,11 +7952,9 @@
  {
   "base": "cordura",
   "words": [
-   "arco",
    "caro",
    "carro",
    "corra",
-   "cruda",
    "crudo",
    "cuadro",
    "cura",
@@ -8649,8 +7965,7 @@
    "duro",
    "raro",
    "roca",
-   "rodar",
-   "rudo"
+   "rodar"
   ]
  },
  {
@@ -8664,21 +7979,17 @@
    "cero",
    "corona",
    "craneo",
-   "crea",
-   "eco",
    "era",
    "nacer",
    "oceano",
    "oro",
-   "ron",
-   "ronca"
+   "ron"
   ]
  },
  {
   "base": "coronel",
   "words": [
    "cero",
-   "cloro",
    "colon",
    "color",
    "leo",
@@ -8691,7 +8002,6 @@
  {
   "base": "corporal",
   "words": [
-   "cal",
    "calor",
    "claro",
    "color",
@@ -8703,7 +8013,6 @@
    "parroco",
    "poco",
    "polaco",
-   "raro",
    "ropa"
   ]
  },
@@ -8726,7 +8035,6 @@
    "cerdo",
    "cero",
    "cordero",
-   "coro",
    "correo",
    "correr",
    "doce",
@@ -8751,9 +8059,7 @@
    "giro",
    "oir",
    "reir",
-   "rico",
-   "riego",
-   "rigor"
+   "rico"
   ]
  },
  {
@@ -8778,14 +8084,12 @@
    "coro",
    "corro",
    "corto",
-   "curro",
    "oro",
    "poco",
    "porro",
    "puro",
    "roto",
    "top",
-   "topo",
    "toro",
    "truco",
    "turco"
@@ -8794,7 +8098,6 @@
  {
   "base": "cortado",
   "words": [
-   "acto",
    "actor",
    "corto",
    "doctor",
@@ -8810,7 +8113,6 @@
  {
   "base": "cortesia",
   "words": [
-   "caso",
    "cierto",
    "cosa",
    "era",
@@ -8833,13 +8135,11 @@
    "caer",
    "cero",
    "corte",
-   "crea",
    "eco",
    "era",
    "rato",
    "recta",
    "recto",
-   "terco",
    "toca",
    "tocar"
   ]
@@ -8857,8 +8157,6 @@
    "nota",
    "oir",
    "rato",
-   "rico",
-   "ron",
    "tio",
    "tocar"
   ]
@@ -8868,7 +8166,6 @@
   "words": [
    "acceso",
    "acecho",
-   "asco",
    "casco",
    "caso",
    "checo",
@@ -8891,7 +8188,6 @@
    "ocaso",
    "osado",
    "oso",
-   "saco",
    "toca",
    "tocado"
   ]
@@ -8899,9 +8195,7 @@
  {
   "base": "costura",
   "words": [
-   "actor",
    "auto",
-   "autor",
    "caso",
    "castor",
    "cosa",
@@ -8911,7 +8205,6 @@
    "cuatro",
    "curso",
    "rato",
-   "toca",
    "tocar",
    "truco",
    "usar",
@@ -8930,9 +8223,7 @@
    "cocina",
    "cocinar",
    "era",
-   "ira",
-   "oir",
-   "rico"
+   "oir"
   ]
  },
  {
@@ -8940,7 +8231,6 @@
   "words": [
    "acorde",
    "caer",
-   "carro",
    "cerdo",
    "cero",
    "cerrado",
@@ -8965,10 +8255,8 @@
    "erotica",
    "evitar",
    "rato",
-   "teoria",
    "tio",
    "tocar",
-   "vacio",
    "ver"
   ]
  },
@@ -8981,7 +8269,6 @@
    "creido",
    "decir",
    "doce",
-   "eco",
    "ido",
    "oir",
    "red",
@@ -8991,7 +8278,6 @@
  {
   "base": "credito",
   "words": [
-   "cerdito",
    "cierto",
    "corte",
    "creido",
@@ -9014,20 +8300,16 @@
    "cena",
    "cenar",
    "cerca",
-   "cien",
    "cine",
-   "crea",
    "era",
    "ira",
-   "nacer",
-   "rica"
+   "nacer"
   ]
  },
  {
   "base": "cretino",
   "words": [
    "centro",
-   "ciento",
    "cierto",
    "cine",
    "corte",
@@ -9069,14 +8351,12 @@
    "cura",
    "curar",
    "ira",
-   "tira",
    "tirar"
   ]
  },
  {
   "base": "criminal",
   "words": [
-   "cal",
    "clima",
    "ira",
    "irani",
@@ -9097,7 +8377,6 @@
    "latir",
    "lista",
    "rica",
-   "risa",
    "sal",
    "salir",
    "tira"
@@ -9111,12 +8390,10 @@
    "cierto",
    "corte",
    "eco",
-   "etico",
    "oir",
    "recto",
    "rector",
    "reir",
-   "reto",
    "rico",
    "tercio",
    "terco",
@@ -9155,18 +8432,15 @@
   "base": "cronica",
   "words": [
    "accion",
-   "arco",
    "can",
    "caro",
    "cinco",
    "circo",
-   "coca",
    "cocina",
    "cocinar",
    "ira",
    "oir",
    "racion",
-   "rancio",
    "rica",
    "rico",
    "roca",
@@ -9182,8 +8456,6 @@
    "celda",
    "cruel",
    "cuerda",
-   "cura",
-   "deuda",
    "duda",
    "dulce",
    "dura",
@@ -9215,7 +8487,6 @@
  {
   "base": "cruzado",
   "words": [
-   "arco",
    "arduo",
    "caro",
    "cruda",
@@ -9241,23 +8512,19 @@
    "cuadro",
    "cuerda",
    "dan",
-   "docena",
    "duro",
    "era",
-   "red",
-   "ron"
+   "red"
   ]
  },
  {
   "base": "cuadrado",
   "words": [
-   "arado",
    "cara",
    "cruda",
    "crudo",
    "cuadra",
    "cuadro",
-   "cura",
    "curado",
    "dado",
    "dardo",
@@ -9294,8 +8561,7 @@
    "cena",
    "cuenta",
    "era",
-   "ten",
-   "tren"
+   "ten"
   ]
  },
  {
@@ -9306,7 +8572,6 @@
    "cal",
    "cartel",
    "cruel",
-   "cura",
    "era",
    "lectura",
    "letra",
@@ -9323,7 +8588,6 @@
    "caribe",
    "cita",
    "era",
-   "ira",
    "rubia",
    "tribu",
    "tuberia"
@@ -9341,7 +8605,6 @@
    "rico",
    "tio",
    "tiro",
-   "tribu",
    "truco"
   ]
  },
@@ -9378,15 +8641,12 @@
    "caido",
    "criado",
    "cuadro",
-   "cuida",
    "cuidado",
    "cuidar",
-   "curado",
    "dado",
    "dia",
    "duda",
    "duro",
-   "ida",
    "ido",
    "ira",
    "oir",
@@ -9418,12 +8678,10 @@
    "curva",
    "ira",
    "lucir",
-   "rica",
    "ritual",
    "rival",
    "ruta",
    "tira",
-   "ultra",
    "util",
    "via",
    "virtual",
@@ -9438,7 +8696,6 @@
    "docil",
    "ido",
    "lio",
-   "lucido",
    "lucio",
    "mil",
    "mudo",
@@ -9450,7 +8707,6 @@
   "base": "curacion",
   "words": [
    "accion",
-   "can",
    "caro",
    "cianuro",
    "cinco",
@@ -9462,9 +8718,7 @@
    "ira",
    "oir",
    "rico",
-   "roca",
    "ron",
-   "ruina",
    "unico",
    "uranio"
   ]
@@ -9479,7 +8733,6 @@
    "oscuro",
    "rico",
    "ruso",
-   "socio",
    "sucio",
    "uso"
   ]
@@ -9548,12 +8801,10 @@
   "base": "declarar",
   "words": [
    "ala",
-   "area",
    "cadera",
    "caer",
    "caldera",
    "cara",
-   "celda",
    "cerrada",
    "clara",
    "crear",
@@ -9570,10 +8821,7 @@
    "cerda",
    "cerdo",
    "cero",
-   "crea",
    "dado",
-   "dardo",
-   "decoro",
    "dorado",
    "eco",
    "edad",
@@ -9594,19 +8842,15 @@
    "cerdo",
    "cero",
    "cerrado",
-   "cerro",
    "crea",
    "creador",
    "crear",
-   "doce",
    "eco",
    "era",
    "errado",
    "raro",
    "recado",
-   "red",
-   "rodar",
-   "rodear"
+   "red"
   ]
  },
  {
@@ -9633,10 +8877,8 @@
   "words": [
    "aire",
    "caer",
-   "cera",
    "cerda",
    "crea",
-   "cria",
    "decir",
    "dia",
    "edad",
@@ -9666,9 +8908,7 @@
  {
   "base": "defensor",
   "words": [
-   "denso",
    "deseo",
-   "enredo",
    "forense",
    "freno",
    "fresno",
@@ -9693,10 +8933,8 @@
    "dean",
    "delta",
    "dental",
-   "lana",
    "lata",
    "lealtad",
-   "letal",
    "llanta",
    "llena",
    "talla",
@@ -9741,7 +8979,6 @@
    "cielo",
    "dado",
    "dia",
-   "edad",
    "idea",
    "ido",
    "lado",
@@ -9783,7 +9020,6 @@
   "words": [
    "ama",
    "andar",
-   "area",
    "arena",
    "arma",
    "dama",
@@ -9793,19 +9029,15 @@
    "madera",
    "madre",
    "mandar",
-   "manera",
-   "nadar",
-   "red"
+   "manera"
   ]
  },
  {
   "base": "demencia",
   "words": [
-   "amen",
    "can",
    "cena",
    "cien",
-   "cima",
    "cine",
    "dan",
    "dance",
@@ -9816,7 +9048,6 @@
    "ida",
    "idea",
    "media",
-   "mina",
    "nadie"
   ]
  },
@@ -9865,7 +9096,6 @@
    "distante",
    "idea",
    "nadie",
-   "sed",
    "ten",
    "tenia",
    "tienda"
@@ -9874,7 +9104,6 @@
  {
   "base": "denuncia",
   "words": [
-   "anden",
    "can",
    "cena",
    "cien",
@@ -9894,7 +9123,6 @@
    "caer",
    "ceder",
    "cera",
-   "cerda",
    "crea",
    "echar",
    "era",
@@ -9920,11 +9148,8 @@
   "words": [
    "ama",
    "amar",
-   "arder",
    "area",
    "arma",
-   "armar",
-   "arre",
    "dama",
    "derrama",
    "drama",
@@ -9934,8 +9159,7 @@
    "marea",
    "radar",
    "rama",
-   "red",
-   "remar"
+   "red"
   ]
  },
  {
@@ -9944,14 +9168,12 @@
    "abrir",
    "aire",
    "arder",
-   "arre",
    "bar",
    "barrer",
    "dia",
    "era",
    "idea",
    "idear",
-   "ira",
    "reabrir",
    "reir",
    "ribera"
@@ -9968,7 +9190,6 @@
    "red",
    "reto",
    "rodar",
-   "rodea",
    "rodear",
    "tarde",
    "traer"
@@ -9985,8 +9206,6 @@
    "raro",
    "rato",
    "red",
-   "reto",
-   "rodear",
    "tarde",
    "terror",
    "traer"
@@ -9995,10 +9214,8 @@
  {
   "base": "desacato",
   "words": [
-   "acto",
    "asado",
    "atado",
-   "atasco",
    "casa",
    "casado",
    "caseta",
@@ -10009,8 +9226,6 @@
    "eco",
    "estaca",
    "estado",
-   "saca",
-   "secta",
    "sed",
    "set",
    "toca"
@@ -10025,15 +9240,12 @@
    "era",
    "farsa",
    "feria",
-   "fiera",
    "frase",
    "fresa",
-   "fria",
    "idea",
    "ira",
    "red",
    "safari",
-   "sed",
    "ser",
    "sera"
   ]
@@ -10049,8 +9261,7 @@
    "feo",
    "idea",
    "ido",
-   "odisea",
-   "sida"
+   "odisea"
   ]
  },
  {
@@ -10086,15 +9297,12 @@
   "words": [
    "cero",
    "cierto",
-   "credito",
    "cristo",
    "decir",
    "directo",
    "discreto",
-   "doce",
    "escrito",
    "ido",
-   "oir",
    "resto",
    "rico",
    "sector",
@@ -10139,7 +9347,6 @@
   "base": "deshacer",
   "words": [
    "caer",
-   "ceder",
    "cesar",
    "crea",
    "derecha",
@@ -10148,7 +9355,6 @@
    "era",
    "hacer",
    "red",
-   "seca",
    "sed",
    "ser",
    "sera"
@@ -10165,8 +9371,7 @@
    "ser",
    "serio",
    "tio",
-   "tiro",
-   "trio"
+   "tiro"
   ]
  },
  {
@@ -10178,7 +9383,6 @@
    "red",
    "rene",
    "reno",
-   "ron",
    "sendero",
    "seno",
    "ser",
@@ -10195,7 +9399,6 @@
    "epoca",
    "escapo",
    "paseo",
-   "paso",
    "pecado",
    "pescado",
    "sed"
@@ -10223,10 +9426,8 @@
    "par",
    "pared",
    "pase",
-   "pega",
    "pesa",
    "pesar",
-   "presa",
    "red",
    "ser",
    "sera"
@@ -10240,16 +9441,13 @@
    "desear",
    "era",
    "espera",
-   "jade",
    "padre",
    "par",
    "pared",
    "pase",
    "pesa",
    "pesar",
-   "presa",
    "red",
-   "sed",
    "ser",
    "sera"
   ]
@@ -10308,7 +9506,6 @@
    "aire",
    "deriva",
    "dia",
-   "diva",
    "era",
    "evadir",
    "idea",
@@ -10316,10 +9513,8 @@
    "ira",
    "red",
    "risa",
-   "sed",
    "ser",
    "sera",
-   "sida",
    "sidra",
    "ver",
    "vera"
@@ -10332,9 +9527,7 @@
    "cadete",
    "caer",
    "cateter",
-   "ceder",
    "cera",
-   "cerda",
    "crea",
    "era",
    "receta",
@@ -10351,9 +9544,7 @@
    "ceder",
    "cerdo",
    "cero",
-   "cetro",
    "corte",
-   "credo",
    "decreto",
    "doce",
    "dote",
@@ -10369,7 +9560,6 @@
   "base": "detenido",
   "words": [
    "diente",
-   "dino",
    "dote",
    "eden",
    "ido",
@@ -10386,7 +9576,6 @@
    "cien",
    "cine",
    "conde",
-   "doce",
    "eco",
    "envio",
    "ido",
@@ -10394,7 +9583,6 @@
    "odio",
    "oido",
    "vecino",
-   "vendi",
    "vendo",
    "video",
    "vino"
@@ -10409,7 +9597,6 @@
    "oler",
    "red",
    "relevo",
-   "velero",
    "velo",
    "ver",
    "verde",
@@ -10437,7 +9624,6 @@
   "base": "dialogo",
   "words": [
    "dia",
-   "gol",
    "ida",
    "ido",
    "idolo",
@@ -10446,7 +9632,6 @@
    "liga",
    "ligado",
    "lio",
-   "lodo",
    "logia",
    "odio",
    "oido",
@@ -10462,7 +9647,6 @@
    "dia",
    "idea",
    "mediana",
-   "mitad",
    "nadie",
    "tema",
    "ten",
@@ -10473,8 +9657,6 @@
  {
   "base": "diametro",
   "words": [
-   "aire",
-   "amo",
    "amor",
    "dia",
    "era",
@@ -10483,7 +9665,6 @@
    "madre",
    "marido",
    "meditar",
-   "metido",
    "miedo",
    "mira",
    "tarde",
@@ -10501,7 +9682,6 @@
    "arder",
    "area",
    "aria",
-   "arre",
    "dia",
    "era",
    "ida",
@@ -10531,8 +9711,6 @@
  {
   "base": "dictador",
   "words": [
-   "actor",
-   "adicto",
    "caido",
    "cita",
    "criado",
@@ -10543,7 +9721,6 @@
    "oir",
    "radio",
    "rato",
-   "rico",
    "tio",
    "tirado",
    "tocar",
@@ -10567,7 +9744,6 @@
  {
   "base": "diminuto",
   "words": [
-   "dino",
    "ido",
    "indio",
    "intimo",
@@ -10598,9 +9774,7 @@
    "dan",
    "dia",
    "diana",
-   "dina",
    "ida",
-   "iman",
    "manda",
    "mania",
    "mina"
@@ -10617,7 +9791,6 @@
    "ida",
    "intima",
    "manda",
-   "manta",
    "mata",
    "mina",
    "mitad",
@@ -10648,7 +9821,6 @@
    "amo",
    "amplio",
    "dia",
-   "ida",
    "ido",
    "lado",
    "lima",
@@ -10657,7 +9829,6 @@
    "malo",
    "mil",
    "moda",
-   "ola",
    "palido",
    "palo",
    "pila"
@@ -10669,14 +9840,12 @@
    "audio",
    "auto",
    "dado",
-   "dato",
    "dia",
    "duda",
    "ida",
    "ido",
    "patio",
    "pato",
-   "pito",
    "tio",
    "tipo",
    "top",
@@ -10691,7 +9860,6 @@
    "decir",
    "dia",
    "dictar",
-   "dieta",
    "editar",
    "era",
    "idea",
@@ -10729,7 +9897,6 @@
  {
   "base": "discreto",
   "words": [
-   "cero",
    "cierto",
    "cristo",
    "decir",
@@ -10737,9 +9904,7 @@
    "directo",
    "escrito",
    "ido",
-   "resto",
    "rico",
-   "sector",
    "ser",
    "serio",
    "tio",
@@ -10767,7 +9932,6 @@
    "ido",
    "oir",
    "rico",
-   "rudo",
    "ruido",
    "ruso",
    "sucio",
@@ -10840,9 +10004,6 @@
   "words": [
    "dinero",
    "ido",
-   "nido",
-   "oir",
-   "pedir",
    "peor",
    "perdon",
    "pero",
@@ -10853,7 +10014,6 @@
    "poder",
    "poner",
    "presion",
-   "senior",
    "ser",
    "serio",
    "son"
@@ -10873,9 +10033,7 @@
    "sed",
    "ten",
    "tenia",
-   "tienda",
-   "tina",
-   "tinta"
+   "tienda"
   ]
  },
  {
@@ -10897,20 +10055,16 @@
    "aire",
    "arte",
    "dia",
-   "dieta",
-   "editar",
    "era",
    "estira",
    "estirar",
    "idea",
    "ira",
-   "red",
    "ser",
    "sera",
    "sierra",
    "tarde",
    "tierra",
-   "tira",
    "tirar",
    "traer"
   ]
@@ -10945,7 +10099,6 @@
  {
   "base": "divorcio",
   "words": [
-   "coro",
    "ido",
    "odio",
    "oido",
@@ -10977,18 +10130,15 @@
    "dolor",
    "dorsal",
    "lado",
-   "ola",
    "olor",
    "oro",
    "oso",
    "rosa",
    "rosado",
    "sal",
-   "soda",
    "sol",
    "solar",
-   "solo",
-   "sordo"
+   "solo"
   ]
  },
  {
@@ -11012,7 +10162,6 @@
    "amo",
    "amor",
    "animo",
-   "dan",
    "dia",
    "ido",
    "mando",
@@ -11021,7 +10170,6 @@
    "minado",
    "mira",
    "mirado",
-   "moda",
    "radio"
   ]
  },
@@ -11059,8 +10207,6 @@
   "words": [
    "acido",
    "caido",
-   "can",
-   "codo",
    "dan",
    "dia",
    "icono",
@@ -11093,10 +10239,8 @@
  {
   "base": "doncella",
   "words": [
-   "cal",
    "calle",
    "cena",
-   "cola",
    "dan",
    "decano",
    "docena",
@@ -11114,7 +10258,6 @@
   "words": [
    "amo",
    "amor",
-   "dado",
    "dia",
    "ido",
    "marido",
@@ -11158,18 +10301,14 @@
  {
   "base": "duracion",
   "words": [
-   "caido",
    "cianuro",
-   "criado",
    "cuadro",
    "cuidar",
-   "cura",
    "dan",
    "dia",
    "dura",
    "duro",
    "ido",
-   "ira",
    "nacido",
    "oir",
    "radio",
@@ -11187,10 +10326,8 @@
    "camion",
    "can",
    "cena",
-   "cine",
    "eco",
    "emocion",
-   "icono",
    "mano",
    "necio"
   ]
@@ -11207,10 +10344,8 @@
    "coca",
    "cocina",
    "cuenco",
-   "cuna",
    "eco",
    "necio",
-   "nuca",
    "once",
    "unico"
   ]
@@ -11228,7 +10363,6 @@
    "indico",
    "indio",
    "necio",
-   "nido",
    "once"
   ]
  },
@@ -11240,7 +10374,6 @@
    "gato",
    "gesto",
    "gota",
-   "ostia",
    "set",
    "soga",
    "tieso",
@@ -11254,10 +10387,8 @@
    "arte",
    "caer",
    "catre",
-   "cera",
    "crea",
    "cura",
-   "cutre",
    "era",
    "receta",
    "recta",
@@ -11278,8 +10409,6 @@
    "lema",
    "mal",
    "par",
-   "peaje",
-   "pelar",
    "pelea",
    "pelear",
    "pera",
@@ -11378,14 +10507,12 @@
    "era",
    "lado",
    "leer",
-   "leo",
    "red",
    "relevo",
    "vale",
    "valor",
    "velero",
    "ver",
-   "vera",
    "verde",
    "volar"
   ]
@@ -11398,7 +10525,6 @@
    "lamer",
    "mal",
    "merlin",
-   "miel",
    "mil",
    "milan",
    "minera",
@@ -11419,7 +10545,6 @@
    "brazo",
    "broma",
    "era",
-   "marea",
    "obra"
   ]
  },
@@ -11446,7 +10571,6 @@
    "eco",
    "icono",
    "mocion",
-   "moco",
    "mono",
    "necio",
    "once"
@@ -11462,10 +10586,8 @@
    "caer",
    "cama",
    "cara",
-   "carpa",
    "crema",
    "era",
-   "mapa",
    "marca",
    "marea",
    "par"
@@ -11492,7 +10614,6 @@
    "amo",
    "amor",
    "era",
-   "opera",
    "operar",
    "par",
    "peor",
@@ -11501,7 +10622,6 @@
    "perro",
    "poema",
    "rapero",
-   "raro",
    "romper",
    "ropa"
   ]
@@ -11515,7 +10635,6 @@
    "leo",
    "mal",
    "malo",
-   "molde",
    "pelado",
    "pelea",
    "pelo",
@@ -11559,7 +10678,6 @@
   "base": "encajar",
   "words": [
    "acera",
-   "area",
    "arena",
    "caer",
    "caja",
@@ -11569,7 +10687,6 @@
    "carne",
    "cena",
    "cenar",
-   "crea",
    "era",
    "jane",
    "nacer"
@@ -11584,10 +10701,8 @@
    "cantera",
    "cara",
    "carne",
-   "carnet",
    "carta",
    "cena",
-   "cenar",
    "era",
    "ten",
    "tren"
@@ -11621,13 +10736,10 @@
    "carne",
    "cena",
    "cenar",
-   "crea",
-   "crear",
    "encarar",
    "era",
    "gana",
-   "ganar",
-   "negra"
+   "ganar"
   ]
  },
  {
@@ -11639,21 +10751,18 @@
    "ceguera",
    "cena",
    "cenar",
-   "cera",
    "crea",
    "cuna",
    "cura",
    "era",
    "green",
    "nacer",
-   "negar",
    "negra"
   ]
  },
  {
   "base": "encerrar",
   "words": [
-   "arre",
    "caer",
    "can",
    "carne",
@@ -11665,10 +10774,8 @@
    "crear",
    "creer",
    "era",
-   "nacer",
    "recrear",
-   "renacer",
-   "rene"
+   "renacer"
   ]
  },
  {
@@ -11680,17 +10787,13 @@
    "cierre",
    "cine",
    "creer",
-   "crio",
    "eco",
    "necio",
    "oir",
-   "once",
    "recreo",
    "reino",
    "reir",
    "rencor",
-   "rene",
-   "reno",
    "rico",
    "ron"
   ]
@@ -11758,7 +10861,6 @@
    "feo",
    "freno",
    "menor",
-   "mero",
    "remo",
    "rene",
    "reno",
@@ -11769,7 +10871,6 @@
   "base": "enfriar",
   "words": [
    "aire",
-   "arre",
    "era",
    "fan",
    "feria",
@@ -11803,11 +10904,8 @@
   "base": "engreido",
   "words": [
    "dinero",
-   "ego",
-   "genero",
    "genio",
    "giro",
-   "green",
    "ido",
    "negro",
    "nido",
@@ -11829,9 +10927,7 @@
    "dan",
    "dean",
    "dia",
-   "dina",
    "edema",
-   "eden",
    "ida",
    "idea",
    "iman",
@@ -11866,9 +10962,7 @@
    "daño",
    "dean",
    "deseo",
-   "doña",
    "sano",
-   "sed",
    "senado",
    "son",
    "sonda"
@@ -11878,7 +10972,6 @@
   "base": "entender",
   "words": [
    "detener",
-   "eden",
    "nene",
    "red",
    "rene",
@@ -11899,7 +10992,6 @@
    "era",
    "rato",
    "tarde",
-   "ten",
    "tener",
    "tren"
   ]
@@ -11913,9 +11005,7 @@
    "entrar",
    "era",
    "errante",
-   "rene",
    "renta",
-   "rentar",
    "ten",
    "tener",
    "ternera",
@@ -11932,8 +11022,6 @@
    "enterar",
    "entrar",
    "era",
-   "renta",
-   "rentar",
    "ten",
    "tener",
    "ternera",
@@ -11966,7 +11054,6 @@
   "words": [
    "entero",
    "eterno",
-   "nieto",
    "oir",
    "oriente",
    "reino",
@@ -12035,7 +11122,6 @@
    "entera",
    "era",
    "gente",
-   "negra",
    "ten",
    "tener",
    "tren"
@@ -12046,7 +11132,6 @@
   "words": [
    "agente",
    "ante",
-   "arte",
    "enterar",
    "entrar",
    "entrega",
@@ -12066,7 +11151,6 @@
    "enterar",
    "entrar",
    "era",
-   "renta",
    "ten",
    "tener",
    "ternera",
@@ -12098,8 +11182,6 @@
    "idea",
    "nadie",
    "nave",
-   "vena",
-   "venda",
    "vendi",
    "venia",
    "venida",
@@ -12132,7 +11214,6 @@
    "leo",
    "leve",
    "lote",
-   "luto",
    "nueve",
    "nuevo",
    "tele",
@@ -12153,7 +11234,6 @@
    "piso",
    "podio",
    "poseido",
-   "sed",
    "sodio"
   ]
  },
@@ -12161,13 +11241,11 @@
   "base": "ereccion",
   "words": [
    "cenicero",
-   "cerco",
    "cero",
    "cien",
    "cinco",
    "cine",
    "circo",
-   "crio",
    "eco",
    "necio",
    "oir",
@@ -12185,19 +11263,16 @@
    "corte",
    "corto",
    "eco",
-   "etico",
    "oir",
    "oro",
    "recto",
-   "reto",
    "rico",
    "roto",
    "teorico",
    "tercio",
    "terco",
    "tio",
-   "tiro",
-   "toro"
+   "tiro"
   ]
  },
  {
@@ -12243,9 +11318,7 @@
  {
   "base": "erupcion",
   "words": [
-   "cine",
    "cuerno",
-   "cuero",
    "cuerpo",
    "eco",
    "oir",
@@ -12254,7 +11327,6 @@
    "pie",
    "poner",
    "precio",
-   "puerco",
    "reino",
    "rico",
    "ron",
@@ -12287,7 +11359,6 @@
    "ala",
    "cara",
    "casa",
-   "casar",
    "casera",
    "clara",
    "clase",
@@ -12295,7 +11366,6 @@
    "escala",
    "sacar",
    "sal",
-   "sala",
    "ser",
    "sera"
   ]
@@ -12305,7 +11375,6 @@
   "words": [
    "casa",
    "casera",
-   "cesarea",
    "clase",
    "era",
    "escala",
@@ -12318,8 +11387,6 @@
  {
   "base": "escalon",
   "words": [
-   "cal",
-   "canso",
    "caso",
    "cena",
    "clase",
@@ -12330,7 +11397,6 @@
    "leona",
    "loca",
    "ola",
-   "saco",
    "sal",
    "salon",
    "sol",
@@ -12350,8 +11416,6 @@
    "era",
    "escena",
    "nacer",
-   "seca",
-   "secar",
    "ser",
    "sera"
   ]
@@ -12367,7 +11431,6 @@
    "pasa",
    "pasado",
    "paseo",
-   "pesca",
    "pescado",
    "sed"
   ]
@@ -12399,9 +11462,7 @@
    "saca",
    "sal",
    "sala",
-   "salve",
    "selva",
-   "vaca",
    "vale"
   ]
  },
@@ -12414,10 +11475,8 @@
    "clave",
    "cosa",
    "leo",
-   "loca",
    "sal",
    "salvo",
-   "selva",
    "sol",
    "vale"
   ]
@@ -12461,12 +11520,10 @@
    "cosido",
    "disco",
    "doce",
-   "ego",
    "ido",
    "odio",
    "oido",
    "oso",
-   "seco",
    "sed",
    "socio"
   ]
@@ -12474,7 +11531,6 @@
  {
   "base": "escolar",
   "words": [
-   "calor",
    "casero",
    "caso",
    "claro",
@@ -12482,7 +11538,6 @@
    "colera",
    "cosa",
    "era",
-   "sal",
    "ser",
    "sera",
    "sol"
@@ -12492,7 +11547,6 @@
   "base": "escolta",
   "words": [
    "alto",
-   "cal",
    "caso",
    "cesta",
    "clase",
@@ -12503,8 +11557,7 @@
    "ola",
    "sal",
    "salto",
-   "sol",
-   "toca"
+   "sol"
   ]
  },
  {
@@ -12514,7 +11567,6 @@
    "cero",
    "deseo",
    "doce",
-   "once",
    "receso",
    "red",
    "sendero",
@@ -12530,10 +11582,8 @@
    "aspecto",
    "caso",
    "cosa",
-   "costa",
    "eco",
    "epoca",
-   "escape",
    "escapo",
    "paseo",
    "paso",
@@ -12544,7 +11594,6 @@
  {
   "base": "escoria",
   "words": [
-   "aire",
    "casero",
    "caso",
    "cesar",
@@ -12553,7 +11602,6 @@
    "era",
    "ira",
    "oir",
-   "secar",
    "ser",
    "sera",
    "serio"
@@ -12563,7 +11611,6 @@
   "base": "escrita",
   "words": [
    "aire",
-   "arte",
    "cesar",
    "cita",
    "cresta",
@@ -12573,8 +11620,7 @@
    "ira",
    "recta",
    "ser",
-   "sera",
-   "set"
+   "sera"
   ]
  },
  {
@@ -12594,7 +11640,6 @@
  {
   "base": "escritor",
   "words": [
-   "cero",
    "cierto",
    "cristo",
    "escrito",
@@ -12654,14 +11699,12 @@
    "cena",
    "cien",
    "cine",
-   "cisne",
    "clase",
    "enlace",
    "escena",
    "esencia",
    "lance",
-   "sal",
-   "seca"
+   "sal"
   ]
  },
  {
@@ -12674,16 +11717,12 @@
    "bolsa",
    "lena",
    "leo",
-   "leona",
-   "lona",
    "nobel",
    "noble",
    "ola",
-   "sable",
    "sal",
    "salon",
    "sano",
-   "seno",
    "sol",
    "son"
   ]
@@ -12708,7 +11747,6 @@
   "words": [
    "caso",
    "cosa",
-   "eco",
    "epoca",
    "escapo",
    "paseo",
@@ -12726,7 +11764,6 @@
    "pedal",
    "pesada",
    "sal",
-   "sala",
    "sed"
   ]
  },
@@ -12762,12 +11799,10 @@
   "base": "espectro",
   "words": [
    "corte",
-   "cortes",
    "peor",
    "pero",
    "peso",
    "postre",
-   "preso",
    "respecto",
    "respeto",
    "resto",
@@ -12796,7 +11831,6 @@
   "words": [
    "espia",
    "espina",
-   "lena",
    "pan",
    "panel",
    "pase",
@@ -12805,13 +11839,10 @@
    "pesa",
    "pie",
    "piel",
-   "pila",
-   "pisa",
    "plan",
    "plena",
    "sal",
-   "senil",
-   "siena"
+   "senil"
   ]
  },
  {
@@ -12826,10 +11857,7 @@
    "pesar",
    "pie",
    "piel",
-   "presa",
    "prisa",
-   "risa",
-   "sal",
    "salir",
    "ser",
    "sera",
@@ -12848,11 +11876,8 @@
    "paseo",
    "paso",
    "pena",
-   "peon",
-   "pesa",
    "peso",
    "sano",
-   "sapo",
    "son",
    "sopa"
   ]
@@ -12876,7 +11901,6 @@
   "base": "esquivar",
   "words": [
    "aire",
-   "ave",
    "era",
    "esqui",
    "esquiar",
@@ -12914,7 +11938,6 @@
    "alto",
    "base",
    "beso",
-   "bola",
    "bolsa",
    "bote",
    "leo",
@@ -12922,7 +11945,6 @@
    "sable",
    "sal",
    "salto",
-   "set",
    "sol",
    "tesla"
   ]
@@ -12930,7 +11952,6 @@
  {
   "base": "estacion",
   "words": [
-   "acento",
    "asiento",
    "caso",
    "ciento",
@@ -12966,7 +11987,6 @@
    "estado",
    "idea",
    "ido",
-   "odisea",
    "sida",
    "soda",
    "tio"
@@ -12985,19 +12005,15 @@
    "saltar",
    "ser",
    "sera",
-   "talla",
-   "taller",
    "tarea"
   ]
  },
  {
   "base": "estancia",
   "words": [
-   "ante",
    "can",
    "canta",
    "casa",
-   "caseta",
    "casita",
    "cena",
    "cineasta",
@@ -13012,8 +12028,6 @@
  {
   "base": "estandar",
   "words": [
-   "andar",
-   "ante",
    "dan",
    "entrada",
    "era",
@@ -13051,7 +12065,6 @@
    "sal",
    "sala",
    "set",
-   "tasa",
    "tela",
    "tesla"
   ]
@@ -13082,16 +12095,13 @@
    "arte",
    "era",
    "estatua",
-   "rata",
    "resta",
    "ruta",
    "ser",
    "sera",
    "set",
-   "tara",
    "tarea",
    "tarta",
-   "tasa",
    "trata",
    "treta",
    "usar"
@@ -13110,7 +12120,6 @@
    "sal",
    "ser",
    "sera",
-   "set",
    "tesla"
   ]
  },
@@ -13118,14 +12127,11 @@
   "base": "estirar",
   "words": [
    "aire",
-   "arre",
    "arte",
    "era",
    "estira",
    "ira",
-   "reir",
    "resta",
-   "risa",
    "ser",
    "sera",
    "set",
@@ -13145,7 +12151,6 @@
    "gesto",
    "mes",
    "mesa",
-   "omega",
    "oso",
    "tema",
    "toma"
@@ -13161,11 +12166,9 @@
    "red",
    "resto",
    "rodea",
-   "rosa",
    "sed",
    "ser",
    "sera",
-   "sorda",
    "tarde"
   ]
  },
@@ -13181,12 +12184,10 @@
    "heroe",
    "resto",
    "reto",
-   "seco",
    "secreto",
    "sector",
    "ser",
-   "set",
-   "techo"
+   "set"
   ]
  },
  {
@@ -13197,7 +12198,6 @@
    "laser",
    "leer",
    "letra",
-   "sellar",
    "ser",
    "sera",
    "taller"
@@ -13209,10 +12209,8 @@
    "entero",
    "eterno",
    "rene",
-   "reno",
    "resto",
    "reto",
-   "ron",
    "ser",
    "sereno",
    "son",
@@ -13227,12 +12225,10 @@
   "words": [
    "beso",
    "bote",
-   "brote",
    "ebrio",
    "oir",
    "reir",
    "resto",
-   "reto",
    "ser",
    "serbio",
    "serio",
@@ -13251,13 +12247,10 @@
    "cristo",
    "escrito",
    "oir",
-   "recto",
    "resto",
-   "reto",
    "rico",
    "ser",
    "serio",
-   "set",
    "tio",
    "tiro",
    "triste"
@@ -13274,8 +12267,7 @@
    "rueda",
    "ser",
    "sera",
-   "tarde",
-   "usar"
+   "tarde"
   ]
  },
  {
@@ -13331,13 +12323,11 @@
    "caer",
    "cara",
    "cavar",
-   "cera",
    "crea",
    "cueva",
    "cura",
    "curva",
    "era",
-   "vaca",
    "ver",
    "vera"
   ]
@@ -13348,7 +12338,6 @@
    "ala",
    "area",
    "aula",
-   "aura",
    "ave",
    "era",
    "lava",
@@ -13365,16 +12354,13 @@
  {
   "base": "evasion",
   "words": [
-   "asno",
    "ave",
    "avion",
    "aviso",
    "envio",
    "nave",
    "navio",
-   "ovni",
    "sano",
-   "seno",
    "siena",
    "son",
    "vano",
@@ -13391,7 +12377,6 @@
    "aire",
    "ama",
    "animar",
-   "area",
    "arena",
    "arma",
    "era",
@@ -13451,24 +12436,20 @@
   "base": "expandir",
   "words": [
    "aire",
-   "dan",
    "dean",
    "dia",
    "era",
    "idea",
-   "idear",
    "nadie",
    "padre",
    "par",
    "pared",
    "pedir",
    "pena",
-   "pera",
    "pie",
    "piedra",
    "pierna",
-   "prenda",
-   "rienda"
+   "prenda"
   ]
  },
  {
@@ -13490,7 +12471,6 @@
   "words": [
    "era",
    "leo",
-   "ola",
    "opera",
    "operar",
    "par",
@@ -13499,7 +12479,6 @@
    "perra",
    "perro",
    "rapero",
-   "raro",
    "ropa"
   ]
  },
@@ -13515,21 +12494,18 @@
    "pelota",
    "peor",
    "pero",
-   "plato",
    "portal"
   ]
  },
  {
   "base": "expresar",
   "words": [
-   "arre",
    "era",
    "espera",
    "esperar",
    "par",
    "pase",
    "perra",
-   "persa",
    "pesa",
    "pesar",
    "presa",
@@ -13559,13 +12535,10 @@
    "laser",
    "par",
    "pase",
-   "paul",
-   "pelusa",
    "pesar",
    "presa",
    "pulsar",
    "pulsera",
-   "sal",
    "ser",
    "sera",
    "usar"
@@ -13629,7 +12602,6 @@
   "base": "extrañar",
   "words": [
    "area",
-   "arre",
    "arte",
    "atar",
    "atraer",
@@ -13662,7 +12634,6 @@
    "bar",
    "cara",
    "cifra",
-   "cria",
    "fibra",
    "fria",
    "ira",
@@ -13675,12 +12646,9 @@
   "words": [
    "abra",
    "abrir",
-   "arca",
-   "aria",
    "bar",
    "barra",
    "cara",
-   "cifra",
    "cria",
    "criar",
    "fabrica",
@@ -13700,7 +12668,6 @@
    "bufalo",
    "falso",
    "lobo",
-   "oso",
    "sal",
    "sol",
    "solo",
@@ -13710,7 +12677,6 @@
  {
   "base": "factura",
   "words": [
-   "acta",
    "actuar",
    "arca",
    "atar",
@@ -13734,7 +12700,6 @@
    "ataud",
    "cal",
    "culata",
-   "data",
    "falta",
    "fatal",
    "flauta",
@@ -13772,7 +12737,6 @@
   "base": "fanatico",
   "words": [
    "acto",
-   "atico",
    "can",
    "canta",
    "canto",
@@ -13781,7 +12745,6 @@
    "fan",
    "fin",
    "nota",
-   "tina",
    "tio",
    "toca",
    "tonica"
@@ -13823,9 +12786,7 @@
    "cama",
    "camara",
    "cara",
-   "cifra",
    "firma",
-   "fria",
    "ira",
    "mafia",
    "marca",
@@ -13837,18 +12798,15 @@
   "words": [
    "ante",
    "arena",
-   "arte",
    "era",
    "estafa",
    "estafar",
    "fan",
    "frase",
-   "renta",
    "sarten",
    "sentar",
    "ser",
    "sera",
-   "set",
    "tarea",
    "ten",
    "tren"
@@ -13878,7 +12836,6 @@
    "foto",
    "frio",
    "frito",
-   "ira",
    "oir",
    "oro",
    "rato",
@@ -13916,7 +12873,6 @@
    "lista",
    "sal",
    "selva",
-   "set",
    "vale",
    "via",
    "vista"
@@ -13942,10 +12898,8 @@
    "alias",
    "cal",
    "casa",
-   "facial",
    "facil",
    "falsa",
-   "fila",
    "fiscal",
    "fisica",
    "saca",
@@ -13963,15 +12917,12 @@
    "fan",
    "feo",
    "flota",
-   "lena",
    "lento",
    "leo",
-   "lote",
    "nota",
    "ola",
    "talento",
    "tela",
-   "telon",
    "ten",
    "total"
   ]
@@ -13997,14 +12948,12 @@
    "amo",
    "amor",
    "flor",
-   "flora",
    "forma",
    "formal",
    "fumar",
    "mal",
    "malo",
    "moral",
-   "muro",
    "ola",
    "rol"
   ]
@@ -14013,7 +12962,6 @@
   "base": "fortuna",
   "words": [
    "auto",
-   "autor",
    "fan",
    "fruta",
    "nota",
@@ -14036,7 +12984,6 @@
    "farsa",
    "frasco",
    "rosa",
-   "saca",
    "sacar"
   ]
  },
@@ -14044,8 +12991,6 @@
   "base": "fraccion",
   "words": [
    "accion",
-   "caro",
-   "cifra",
    "cinco",
    "circo",
    "cocina",
@@ -14059,16 +13004,13 @@
    "frio",
    "ira",
    "oir",
-   "rico",
-   "ron"
+   "rico"
   ]
  },
  {
   "base": "fractura",
   "words": [
    "actuar",
-   "arca",
-   "atar",
    "cara",
    "carta",
    "cuarta",
@@ -14090,7 +13032,6 @@
    "cenar",
    "era",
    "fan",
-   "frase",
    "fresca",
    "ser",
    "sera"
@@ -14101,8 +13042,6 @@
   "words": [
    "alto",
    "fan",
-   "faro",
-   "farol",
    "flor",
    "flora",
    "flota",
@@ -14119,7 +13058,6 @@
  {
   "base": "fundador",
   "words": [
-   "arduo",
    "dado",
    "dan",
    "dardo",
@@ -14131,8 +13069,6 @@
    "fan",
    "funda",
    "fundar",
-   "fundo",
-   "nudo",
    "ron",
    "rudo"
   ]
@@ -14182,10 +13118,8 @@
   "base": "galleta",
   "words": [
    "ala",
-   "aleta",
    "alta",
    "gala",
-   "gata",
    "lata",
    "leal",
    "legal",
@@ -14213,7 +13147,6 @@
  {
   "base": "ganador",
   "words": [
-   "andar",
    "daga",
    "dan",
    "dragon",
@@ -14236,7 +13169,6 @@
    "ira",
    "rata",
    "tanga",
-   "tiara",
    "tina",
    "tira"
   ]
@@ -14248,7 +13180,6 @@
    "gana",
    "ganar",
    "ganga",
-   "gata",
    "grata",
    "rana",
    "rata",
@@ -14280,10 +13211,8 @@
    "data",
    "dato",
    "gasto",
-   "gata",
    "gato",
    "gota",
-   "saga",
    "soda",
    "soga",
    "tasa"
@@ -14295,10 +13224,8 @@
    "alto",
    "gallo",
    "gato",
-   "gol",
    "lago",
    "latigo",
-   "liga",
    "lio",
    "logia",
    "ola",
@@ -14313,13 +13240,11 @@
    "alta",
    "angel",
    "ante",
-   "galan",
    "galante",
    "gana",
    "genial",
    "gentil",
    "latin",
-   "liga",
    "natal",
    "ten",
    "tenia",
@@ -14346,7 +13271,6 @@
    "green",
    "negro",
    "oro",
-   "oso",
    "rene",
    "reno",
    "seno",
@@ -14364,10 +13288,8 @@
    "cine",
    "eco",
    "ego",
-   "etico",
    "genio",
    "gente",
-   "necio",
    "niego",
    "nieto",
    "once",
@@ -14401,9 +13323,7 @@
    "anima",
    "ansia",
    "asma",
-   "gama",
    "gana",
-   "iman",
    "magia",
    "manga",
    "mania",
@@ -14425,7 +13345,6 @@
    "mina",
    "mision",
    "sano",
-   "signo",
    "son"
   ]
  },
@@ -14449,14 +13368,12 @@
    "gol",
    "gris",
    "lio",
-   "logo",
    "logro",
    "loro",
    "oir",
    "olor",
    "oro",
    "oso",
-   "rol",
    "siglo",
    "sol",
    "solo"
@@ -14470,12 +13387,9 @@
    "ego",
    "era",
    "granero",
-   "grano",
    "negra",
    "negro",
    "obra",
-   "orar",
-   "rango",
    "raro",
    "reno",
    "robar",
@@ -14493,17 +13407,14 @@
    "genio",
    "ginebra",
    "gira",
-   "giro",
    "ira",
    "negra",
    "negro",
    "obra",
    "oir",
    "origen",
-   "rabino",
    "region",
-   "reino",
-   "ron"
+   "reino"
   ]
  },
  {
@@ -14546,7 +13457,6 @@
    "gorda",
    "grado",
    "obra",
-   "rabo",
    "robada"
   ]
  },
@@ -14568,9 +13478,7 @@
   "words": [
    "agrado",
    "agua",
-   "agudo",
    "dado",
-   "dardo",
    "dorada",
    "duda",
    "dudar",
@@ -14579,23 +13487,19 @@
    "gorda",
    "grado",
    "guarda",
-   "guardado",
-   "rudo"
+   "guardado"
   ]
  },
  {
   "base": "grafico",
   "words": [
-   "arco",
    "cargo",
    "caro",
    "cifra",
-   "crio",
    "fria",
    "frio",
    "garfio",
    "gira",
-   "giro",
    "grifo",
    "ira",
    "oir",
@@ -14617,9 +13521,7 @@
    "era",
    "gana",
    "ganar",
-   "nadar",
    "negra",
-   "rana",
    "raza",
    "red"
   ]
@@ -14631,7 +13533,6 @@
    "ego",
    "era",
    "grano",
-   "negar",
    "negra",
    "negro",
    "orar",
@@ -14650,16 +13551,13 @@
    "gitano",
    "grano",
    "grita",
-   "grito",
    "ira",
    "nota",
    "oir",
    "rango",
    "rato",
-   "raton",
    "ron",
    "tio",
-   "tira",
    "tirano",
    "tiro",
    "trago"
@@ -14668,12 +13566,10 @@
  {
   "base": "granjero",
   "words": [
-   "ajo",
    "ego",
    "enojar",
    "era",
    "granero",
-   "grano",
    "jane",
    "jarron",
    "negra",
@@ -14712,7 +13608,6 @@
    "guiar",
    "ida",
    "ira",
-   "ruda",
    "ruta",
    "tira"
   ]
@@ -14721,7 +13616,6 @@
   "base": "gratuito",
   "words": [
    "auto",
-   "autor",
    "garito",
    "gato",
    "gira",
@@ -14731,11 +13625,8 @@
    "oir",
    "ratito",
    "rato",
-   "ruta",
    "tio",
-   "tira",
    "tiro",
-   "torta",
    "tortuga",
    "trago",
    "trato"
@@ -14747,7 +13638,6 @@
    "area",
    "edad",
    "era",
-   "grava",
    "grave",
    "red",
    "redada",
@@ -14769,12 +13659,8 @@
    "gana",
    "ganar",
    "guante",
-   "negar",
    "negra",
-   "nuera",
-   "rata",
    "renta",
-   "ruta",
    "tarea",
    "ten",
    "tregua",
@@ -14789,8 +13675,6 @@
    "dado",
    "dorada",
    "duda",
-   "dudar",
-   "dura",
    "duro",
    "gorda",
    "grado",
@@ -14807,7 +13691,6 @@
    "dura",
    "durar",
    "garra",
-   "grua",
    "guarda",
    "guarra",
    "radar"
@@ -14840,8 +13723,7 @@
    "guarda",
    "guardia",
    "guarida",
-   "ira",
-   "nadar"
+   "ira"
   ]
  },
  {
@@ -14849,7 +13731,6 @@
   "words": [
    "agua",
    "aria",
-   "aura",
    "daga",
    "dia",
    "dura",
@@ -14859,8 +13740,7 @@
    "guardia",
    "guiar",
    "ida",
-   "ira",
-   "ruda"
+   "ira"
   ]
  },
  {
@@ -14873,7 +13753,6 @@
    "grita",
    "gritar",
    "ira",
-   "ruta",
    "tira",
    "tirar",
    "tragar"
@@ -14888,8 +13767,6 @@
    "baila",
    "bala",
    "bata",
-   "baul",
-   "habil",
    "habla",
    "lata",
    "tabla",
@@ -14905,7 +13782,6 @@
    "bola",
    "dobla",
    "habla",
-   "hada",
    "lado",
    "ola"
   ]
@@ -14916,10 +13792,8 @@
    "cadena",
    "can",
    "cena",
-   "cien",
    "cine",
    "dan",
-   "dance",
    "dia",
    "diana",
    "dicha",
@@ -15003,7 +13877,6 @@
    "cena",
    "cenar",
    "cine",
-   "echar",
    "era",
    "hacer",
    "hernia",
@@ -15029,7 +13902,6 @@
    "home",
    "mero",
    "mes",
-   "moho",
    "oro",
    "oso",
    "remo",
@@ -15064,27 +13936,23 @@
    "ira",
    "oir",
    "reino",
-   "reno",
-   "ron"
+   "reno"
   ]
  },
  {
   "base": "hinchado",
   "words": [
    "acido",
-   "ancho",
    "caido",
    "can",
    "chino",
    "dan",
    "dia",
-   "dicha",
    "dicho",
    "dina",
    "dino",
    "dona",
    "hincha",
-   "honda",
    "ida",
    "ido",
    "nacido",
@@ -15096,8 +13964,6 @@
   "words": [
    "acepto",
    "cita",
-   "copa",
-   "copia",
    "eco",
    "epoca",
    "pecho",
@@ -15177,10 +14043,8 @@
    "danes",
    "dean",
    "helado",
-   "honda",
    "lado",
    "lena",
-   "leo",
    "sal",
    "salon",
    "sano",
@@ -15197,12 +14061,10 @@
    "ajo",
    "amen",
    "amo",
-   "heno",
    "hoja",
    "home",
    "jamon",
    "jane",
-   "majo",
    "manejo",
    "mano",
    "mona",
@@ -15213,7 +14075,6 @@
  {
   "base": "homicida",
   "words": [
-   "acido",
    "amo",
    "caido",
    "cima",
@@ -15239,8 +14100,7 @@
    "son",
    "ten",
    "tenso",
-   "tono",
-   "tose"
+   "tono"
   ]
  },
  {
@@ -15249,9 +14109,7 @@
    "adorno",
    "dan",
    "dona",
-   "donar",
    "dron",
-   "honda",
    "hondo",
    "honor",
    "honra",
@@ -15277,9 +14135,7 @@
    "mago",
    "mira",
    "oir",
-   "orgia",
-   "ramo",
-   "rima"
+   "orgia"
   ]
  },
  {
@@ -15340,7 +14196,6 @@
    "heno",
    "honra",
    "hora",
-   "huron",
    "nuera",
    "reno",
    "ron",
@@ -15387,13 +14242,10 @@
    "doce",
    "eco",
    "edicion",
-   "etico",
    "ido",
    "indice",
    "indico",
    "indio",
-   "necio",
-   "nido",
    "nieto",
    "once",
    "ten",
@@ -15411,17 +14263,14 @@
    "ira",
    "oir",
    "orar",
-   "orgia",
    "rango",
    "raro",
-   "rogar",
    "ron"
   ]
  },
  {
   "base": "igualdad",
   "words": [
-   "agil",
    "agua",
    "aguila",
    "ala",
@@ -15455,8 +14304,7 @@
    "mural",
    "rima",
    "ruina",
-   "unir",
-   "urna"
+   "unir"
   ]
  },
  {
@@ -15469,7 +14317,6 @@
    "ganar",
    "ira",
    "magia",
-   "manga",
    "marina",
    "mira"
   ]
@@ -15481,17 +14328,13 @@
    "amo",
    "amor",
    "dia",
-   "diario",
    "ido",
    "marido",
    "mira",
    "mitad",
-   "oir",
    "radio",
    "rato",
-   "ritmo",
    "tio",
-   "tiro",
    "toma",
    "tomar",
    "traido"
@@ -15501,7 +14344,6 @@
   "base": "impacto",
   "words": [
    "amo",
-   "atico",
    "cita",
    "copia",
    "pacto",
@@ -15522,7 +14364,6 @@
    "limpia",
    "limpiar",
    "mal",
-   "miel",
    "mil",
    "mira",
    "par",
@@ -15548,7 +14389,6 @@
   "base": "imponer",
   "words": [
    "menor",
-   "mero",
    "minero",
    "miron",
    "oir",
@@ -15561,7 +14401,6 @@
    "premio",
    "primo",
    "reino",
-   "remo",
    "reno",
    "ron"
   ]
@@ -15573,7 +14412,6 @@
    "amor",
    "martir",
    "mira",
-   "mirar",
    "morir",
    "par",
    "partir",
@@ -15597,10 +14435,7 @@
    "roto",
    "tio",
    "tipo",
-   "tiro",
-   "tomo",
-   "top",
-   "torso"
+   "tomo"
   ]
  },
  {
@@ -15610,7 +14445,6 @@
    "era",
    "mentir",
    "mentira",
-   "minera",
    "mira",
    "par",
    "parte",
@@ -15619,16 +14453,13 @@
    "pierna",
    "pinta",
    "pintar",
-   "prima",
    "ten",
-   "tenia",
-   "tren"
+   "tenia"
   ]
  },
  {
   "base": "impreso",
   "words": [
-   "mero",
    "mes",
    "oir",
    "peor",
@@ -15641,7 +14472,6 @@
    "premio",
    "preso",
    "primo",
-   "remo",
    "ser",
    "serio",
    "sirope"
@@ -15651,9 +14481,7 @@
   "base": "impuesto",
   "words": [
    "mes",
-   "mito",
    "museo",
-   "pesimo",
    "peso",
    "pie",
    "piso",
@@ -15663,8 +14491,7 @@
    "suite",
    "tiempo",
    "tio",
-   "tipo",
-   "uso"
+   "tipo"
   ]
  },
  {
@@ -15673,7 +14500,6 @@
    "cien",
    "cine",
    "conde",
-   "doce",
    "eco",
    "edicion",
    "ido",
@@ -15726,7 +14552,6 @@
  {
   "base": "infarto",
   "words": [
-   "antro",
    "fin",
    "frio",
    "frito",
@@ -15737,8 +14562,7 @@
    "rato",
    "raton",
    "tio",
-   "tirano",
-   "tiro"
+   "tirano"
   ]
  },
  {
@@ -15772,8 +14596,6 @@
    "fraile",
    "fria",
    "ira",
-   "lena",
-   "renal",
    "rifle"
   ]
  },
@@ -15785,7 +14607,6 @@
    "fino",
    "freno",
    "frio",
-   "neron",
    "oir",
    "reino",
    "reno"
@@ -15803,12 +14624,9 @@
    "forma",
    "formal",
    "mal",
-   "malo",
    "mano",
-   "marfil",
    "mil",
    "mira",
-   "moral",
    "morfina",
    "normal"
   ]
@@ -15822,9 +14640,7 @@
    "firmar",
    "forma",
    "formar",
-   "mano",
    "mira",
-   "mirar",
    "morfina",
    "morir",
    "oir"
@@ -15848,7 +14664,6 @@
   "base": "ingresar",
   "words": [
    "aire",
-   "arnes",
    "era",
    "gira",
    "girar",
@@ -15856,7 +14671,6 @@
    "negar",
    "negra",
    "reir",
-   "resina",
    "sangre",
    "ser",
    "sera",
@@ -15874,11 +14688,8 @@
    "oir",
    "origen",
    "region",
-   "reino",
    "reno",
    "riesgo",
-   "ron",
-   "seno",
    "ser",
    "serio",
    "son"
@@ -15890,13 +14701,10 @@
    "acido",
    "adicion",
    "caido",
-   "can",
    "dan",
    "dia",
-   "dina",
    "dino",
    "dona",
-   "ida",
    "ido",
    "indicio",
    "indico",
@@ -15941,11 +14749,9 @@
    "ciento",
    "cine",
    "cisne",
-   "coste",
    "incesto",
    "nieto",
    "once",
-   "seco",
    "set",
    "son",
    "ten",
@@ -15961,10 +14767,8 @@
    "alias",
    "alta",
    "altar",
-   "astral",
    "ira",
    "lista",
-   "rata",
    "sal",
    "sala",
    "salina",
@@ -15992,7 +14796,6 @@
   "base": "insultar",
   "words": [
    "ira",
-   "latin",
    "lista",
    "luna",
    "lunar",
@@ -16003,8 +14806,6 @@
    "sal",
    "salir",
    "sultan",
-   "sutil",
-   "tina",
    "tira",
    "usar",
    "util"
@@ -16036,13 +14837,10 @@
    "cinta",
    "cita",
    "nota",
-   "taco",
    "tacto",
    "tina",
    "tinta",
-   "tinto",
    "tio",
-   "titan",
    "toca",
    "tonica"
   ]
@@ -16057,17 +14855,13 @@
    "era",
    "genial",
    "gentil",
-   "gira",
    "grieta",
    "ira",
-   "letra",
    "letrina",
-   "litera",
    "negra",
    "regla",
    "ten",
    "tenia",
-   "tira",
    "tren"
   ]
  },
@@ -16120,7 +14914,6 @@
    "oir",
    "reino",
    "reto",
-   "ron",
    "ten",
    "tierno",
    "tio",
@@ -16163,7 +14956,6 @@
  {
   "base": "invasion",
   "words": [
-   "asno",
    "avion",
    "aviso",
    "navio",
@@ -16181,7 +14973,6 @@
   "base": "inventar",
   "words": [
    "aire",
-   "ante",
    "enviar",
    "era",
    "evitar",
@@ -16214,12 +15005,8 @@
    "envio",
    "nervio",
    "oir",
-   "reino",
    "reir",
    "reno",
-   "ron",
-   "senior",
-   "seno",
    "ser",
    "serio",
    "servir",
@@ -16239,7 +15026,6 @@
    "nervio",
    "oir",
    "ovni",
-   "reino",
    "reno",
    "ron",
    "venir",
@@ -16264,13 +15050,11 @@
   "base": "irlandes",
   "words": [
    "aire",
-   "dan",
    "dia",
    "era",
    "idea",
    "lider",
    "nadie",
-   "rienda",
    "salir",
    "ser",
    "sera",
@@ -16319,7 +15103,6 @@
    "lio",
    "natal",
    "nota",
-   "ola",
    "talon",
    "tio"
   ]
@@ -16336,9 +15119,7 @@
    "paseo",
    "paso",
    "pena",
-   "peso",
-   "son",
-   "sopa"
+   "son"
   ]
  },
  {
@@ -16355,7 +15136,6 @@
    "jura",
    "raja",
    "rata",
-   "reja",
    "ruta",
    "tara",
    "tarea",
@@ -16396,7 +15176,6 @@
  {
   "base": "jubilado",
   "words": [
-   "audio",
    "bajo",
    "boda",
    "bola",
@@ -16404,7 +15183,6 @@
    "diablo",
    "dibujo",
    "dobla",
-   "ida",
    "ido",
    "jubilo",
    "judia",
@@ -16412,14 +15190,12 @@
    "julio",
    "lado",
    "lio",
-   "lujo",
    "ola"
   ]
  },
  {
   "base": "jugador",
   "words": [
-   "agudo",
    "ajo",
    "dura",
    "duro",
@@ -16435,7 +15211,6 @@
   "words": [
    "abra",
    "ala",
-   "alba",
    "arbol",
    "bala",
    "bar",
@@ -16444,8 +15219,6 @@
    "obra",
    "ola",
    "olla",
-   "oral",
-   "rabo",
    "rallo",
    "rol"
   ]
@@ -16459,10 +15232,8 @@
    "ira",
    "lado",
    "lila",
-   "lio",
    "odiar",
    "oir",
-   "ola",
    "olla",
    "oral",
    "orilla",
@@ -16480,13 +15251,10 @@
    "aorta",
    "gato",
    "gol",
-   "grata",
    "lago",
    "larga",
    "largo",
-   "lata",
    "ola",
-   "rata",
    "rato",
    "rol",
    "trago"
@@ -16498,20 +15266,17 @@
    "ala",
    "alma",
    "ama",
-   "amar",
    "arma",
    "gira",
    "ira",
    "larga",
-   "liga",
    "ligar",
    "magia",
    "mal",
    "mala",
    "marga",
    "mil",
-   "mira",
-   "rama"
+   "mira"
   ]
  },
  {
@@ -16519,8 +15284,6 @@
   "words": [
    "aleman",
    "alentar",
-   "alma",
-   "ama",
    "amante",
    "arena",
    "arma",
@@ -16530,7 +15293,6 @@
    "manera",
    "matar",
    "maternal",
-   "metal",
    "tarea",
    "ten",
    "tren"
@@ -16562,7 +15324,6 @@
    "mala",
    "mapa",
    "par",
-   "rama",
    "rampa"
   ]
  },
@@ -16572,9 +15333,7 @@
    "ala",
    "alta",
    "alto",
-   "gato",
    "nota",
-   "ola",
    "sal",
    "sala",
    "salga",
@@ -16593,7 +15352,6 @@
    "anal",
    "dan",
    "danza",
-   "dona",
    "lado",
    "lana",
    "lanza",
@@ -16612,15 +15370,12 @@
    "lado",
    "ladron",
    "lana",
-   "lanza",
    "lanzado",
    "lanzar",
    "nadar",
    "ola",
-   "rana",
    "raza",
    "razon",
-   "rol",
    "ron",
    "zona"
   ]
@@ -16648,7 +15403,6 @@
    "lista",
    "mal",
    "mala",
-   "matar",
    "mil",
    "mira",
    "sal",
@@ -16667,8 +15421,6 @@
    "arte",
    "era",
    "lata",
-   "leal",
-   "letal",
    "letra",
    "rata",
    "talla",
@@ -16688,7 +15440,6 @@
    "leal",
    "letal",
    "talla",
-   "talle",
    "tela"
   ]
  },
@@ -16699,7 +15450,6 @@
    "cien",
    "cinco",
    "cine",
-   "clic",
    "colin",
    "eco",
    "leo",
@@ -16716,7 +15466,6 @@
    "cartel",
    "cruel",
    "cuartel",
-   "cura",
    "era",
    "letra",
    "recluta",
@@ -16745,7 +15494,6 @@
   "base": "legitimo",
   "words": [
    "ego",
-   "gol",
    "leo",
    "limite",
    "lio",
@@ -16763,23 +15511,19 @@
   "base": "lenceria",
   "words": [
    "aire",
-   "caer",
    "cal",
    "can",
    "carne",
    "cena",
    "cenar",
    "cereal",
-   "cien",
    "cine",
-   "crea",
    "enlace",
    "era",
    "ira",
    "lance",
    "leer",
-   "nacer",
-   "renal"
+   "nacer"
   ]
  },
  {
@@ -16789,17 +15533,14 @@
    "era",
    "lado",
    "leo",
-   "ola",
    "oro",
    "padre",
    "par",
    "pared",
    "pelado",
-   "pelo",
    "peor",
    "pero",
    "poder",
-   "podre",
    "red",
    "ropa"
   ]
@@ -16812,7 +15553,6 @@
    "baila",
    "baile",
    "bala",
-   "balsa",
    "base",
    "bien",
    "niebla",
@@ -16842,7 +15582,6 @@
   "words": [
    "alentar",
    "alerta",
-   "arena",
    "era",
    "nave",
    "tarea",
@@ -16860,7 +15599,6 @@
    "ave",
    "lena",
    "lente",
-   "leve",
    "nave",
    "tela",
    "tele",
@@ -16890,7 +15628,6 @@
  {
   "base": "liberar",
   "words": [
-   "abrir",
    "aire",
    "arre",
    "baile",
@@ -16900,8 +15637,7 @@
    "ira",
    "librar",
    "libre",
-   "reir",
-   "ribera"
+   "reir"
   ]
  },
  {
@@ -16913,7 +15649,6 @@
    "idea",
    "libre",
    "libreta",
-   "litera",
    "tarde",
    "tribal"
   ]
@@ -16929,14 +15664,11 @@
    "dia",
    "diablo",
    "doblar",
-   "dolar",
    "ido",
-   "ira",
    "lado",
    "libro",
    "obra",
    "oir",
-   "oral",
    "radio"
   ]
  },
@@ -16948,12 +15680,9 @@
    "arte",
    "baile",
    "bar",
-   "bate",
-   "beta",
    "era",
    "ira",
    "letra",
-   "libra",
    "libre",
    "litera",
    "tela",
@@ -16972,8 +15701,7 @@
    "cine",
    "clan",
    "clinica",
-   "lance",
-   "lena"
+   "lance"
   ]
  },
  {
@@ -16997,10 +15725,8 @@
  {
   "base": "limitado",
   "words": [
-   "alto",
    "dia",
    "idioma",
-   "ido",
    "lado",
    "lidia",
    "litio",
@@ -17018,7 +15744,6 @@
   "words": [
    "aliado",
    "amado",
-   "amo",
    "animado",
    "animal",
    "dia",
@@ -17028,8 +15753,7 @@
    "mal",
    "malo",
    "mando",
-   "mano",
-   "monada"
+   "mano"
   ]
  },
  {
@@ -17037,21 +15761,17 @@
   "words": [
    "amo",
    "animo",
-   "limon",
    "mal",
    "malo",
    "mano",
    "mason",
    "mil",
    "mina",
-   "mona",
-   "sal",
    "salino",
    "salio",
    "salmon",
    "salon",
    "sano",
-   "sol",
    "son"
   ]
  },
@@ -17081,8 +15801,7 @@
    "paz",
    "pie",
    "piel",
-   "pieza",
-   "pila"
+   "pieza"
   ]
  },
  {
@@ -17098,7 +15817,6 @@
    "misa",
    "misil",
    "mula",
-   "musa",
    "sal",
    "suma"
   ]
@@ -17108,7 +15826,6 @@
   "words": [
    "aire",
    "ante",
-   "arte",
    "era",
    "ira",
    "letra",
@@ -17216,8 +15933,6 @@
    "corto",
    "culto",
    "loco",
-   "loro",
-   "lucro",
    "luto",
    "oculto",
    "olor",
@@ -17238,7 +15953,6 @@
    "lado",
    "lago",
    "largo",
-   "lodo",
    "ola",
    "olor",
    "oro",
@@ -17255,7 +15969,6 @@
    "ido",
    "indulto",
    "lindo",
-   "lino",
    "lio",
    "luto",
    "nido",
@@ -17272,7 +15985,6 @@
    "era",
    "latir",
    "letra",
-   "litera",
    "litro",
    "oir",
    "rato",
@@ -17287,11 +15999,9 @@
    "cal",
    "calor",
    "claro",
-   "cuadro",
    "duro",
    "hora",
    "lado",
-   "loca",
    "locura",
    "lucha",
    "luchar",
@@ -17308,10 +16018,8 @@
    "canto",
    "cinta",
    "cita",
-   "colin",
    "latino",
    "lio",
-   "loca",
    "ola",
    "tio",
    "tonica",
@@ -17323,14 +16031,11 @@
   "base": "madrina",
   "words": [
    "ama",
-   "amar",
    "andar",
-   "animar",
    "arma",
    "dama",
    "dan",
    "dia",
-   "diana",
    "ira",
    "manda",
    "mandar",
@@ -17393,20 +16098,17 @@
   "base": "maestria",
   "words": [
    "aire",
-   "ama",
    "arma",
    "era",
    "estima",
    "estira",
    "ira",
    "maestra",
-   "marta",
    "marte",
    "master",
    "matar",
    "materia",
    "mes",
-   "mesita",
    "mira",
    "ser",
    "sera",
@@ -17423,7 +16125,6 @@
    "resto",
    "ser",
    "sera",
-   "toma",
    "tomar"
   ]
  },
@@ -17442,7 +16143,6 @@
    "mata",
    "mate",
    "meta",
-   "nata",
    "tanga",
    "tema",
    "ten"
@@ -17488,7 +16188,6 @@
    "aria",
    "arma",
    "ira",
-   "lama",
    "lima",
    "mal",
    "mala",
@@ -17517,18 +16216,14 @@
    "alerta",
    "arma",
    "era",
-   "letra",
    "maestra",
    "mal",
    "mala",
    "maleta",
-   "master",
    "matar",
    "mes",
    "mesa",
    "metal",
-   "sal",
-   "sala",
    "saltar",
    "ser",
    "sera",
@@ -17541,14 +16236,12 @@
    "amo",
    "amor",
    "era",
-   "leo",
    "mal",
    "malo",
    "meter",
    "metro",
    "mortal",
    "relato",
-   "remate",
    "toma",
    "tomar"
   ]
@@ -17563,7 +16256,6 @@
    "mate",
    "mental",
    "metal",
-   "miel",
    "mil",
    "tema",
    "ten",
@@ -17577,12 +16269,10 @@
    "amo",
    "animo",
    "lago",
-   "liga",
    "limon",
    "lio",
    "mal",
    "malo",
-   "mango",
    "mano",
    "mil",
    "milan",
@@ -17595,7 +16285,6 @@
   "words": [
    "ala",
    "alamo",
-   "alma",
    "ama",
    "amado",
    "amo",
@@ -17612,11 +16301,9 @@
    "ama",
    "amado",
    "amo",
-   "ancho",
    "cama",
    "can",
    "chaman",
-   "coma",
    "dama",
    "dan",
    "macho",
@@ -17624,7 +16311,6 @@
    "mando",
    "mano",
    "moda",
-   "mona",
    "monada"
   ]
  },
@@ -17641,7 +16327,6 @@
    "manda",
    "mando",
    "mano",
-   "moda",
    "monada"
   ]
  },
@@ -17651,14 +16336,12 @@
    "ama",
    "amado",
    "amo",
-   "atado",
    "dama",
    "dan",
    "manda",
    "mando",
    "mano",
    "manta",
-   "mata",
    "monada",
    "montada",
    "nota",
@@ -17686,7 +16369,6 @@
    "agua",
    "ama",
    "amar",
-   "amen",
    "area",
    "arena",
    "arma",
@@ -17696,7 +16378,6 @@
    "manera",
    "margen",
    "muera",
-   "negar",
    "negra"
   ]
  },
@@ -17713,29 +16394,23 @@
    "camion",
    "can",
    "canoa",
-   "cima",
    "coma",
-   "manco",
    "mania",
    "mano",
-   "mina",
-   "mona"
+   "mina"
   ]
  },
  {
   "base": "manicura",
   "words": [
    "ama",
-   "amar",
    "anima",
    "animar",
    "arma",
-   "caiman",
    "cama",
    "caminar",
    "can",
    "cara",
-   "cura",
    "ira",
    "mania",
    "marca",
@@ -17753,15 +16428,13 @@
    "armonia",
    "bar",
    "broma",
-   "ira",
    "mano",
    "mariano",
    "marina",
    "mira",
    "oir",
    "rabia",
-   "rabino",
-   "romana"
+   "rabino"
   ]
  },
  {
@@ -17769,7 +16442,6 @@
   "words": [
    "amo",
    "animo",
-   "asno",
    "iman",
    "mano",
    "mason",
@@ -17784,10 +16456,8 @@
  {
   "base": "manteca",
   "words": [
-   "acta",
    "ama",
    "amante",
-   "amen",
    "ante",
    "cama",
    "can",
@@ -17797,7 +16467,6 @@
    "manta",
    "mata",
    "mate",
-   "meta",
    "tema",
    "ten"
   ]
@@ -17822,13 +16491,10 @@
    "amo",
    "amor",
    "anotar",
-   "arma",
    "mano",
-   "manta",
    "matar",
    "matrona",
    "montar",
-   "rato",
    "raton",
    "romana",
    "ron",
@@ -17846,9 +16512,7 @@
    "amor",
    "arma",
    "armado",
-   "cama",
    "cara",
-   "drama",
    "marca",
    "marco",
    "morada"
@@ -17864,13 +16528,11 @@
    "amor",
    "arma",
    "armado",
-   "cama",
    "cara",
    "carro",
    "marca",
    "marcado",
    "marcar",
-   "marco",
    "morada"
   ]
  },
@@ -17886,22 +16548,18 @@
    "marca",
    "marcar",
    "marcha",
-   "racha",
-   "rama"
+   "racha"
   ]
  },
  {
   "base": "marcial",
   "words": [
-   "ala",
    "ama",
    "arma",
    "calma",
    "calmar",
-   "cama",
    "cara",
    "clara",
-   "clima",
    "ira",
    "mal",
    "marca",
@@ -17913,7 +16571,6 @@
  {
   "base": "marciano",
   "words": [
-   "ama",
    "amo",
    "amor",
    "animo",
@@ -17922,7 +16579,6 @@
    "caminar",
    "camino",
    "camion",
-   "cara",
    "ira",
    "maniaco",
    "mano",
@@ -17930,7 +16586,6 @@
    "marco",
    "marina",
    "mira",
-   "norma",
    "oir"
   ]
  },
@@ -17941,7 +16596,6 @@
    "amado",
    "amo",
    "amor",
-   "area",
    "arma",
    "armado",
    "dama",
@@ -17950,7 +16604,6 @@
    "era",
    "madera",
    "madre",
-   "marea",
    "red"
   ]
  },
@@ -17963,7 +16616,6 @@
    "mano",
    "marron",
    "menor",
-   "minero",
    "mira",
    "mirar",
    "morena",
@@ -17977,7 +16629,6 @@
    "amo",
    "amor",
    "amparo",
-   "ira",
    "mira",
    "oir",
    "par",
@@ -17985,14 +16636,12 @@
    "paramo",
    "pasa",
    "pasar",
-   "primo",
    "prisa"
   ]
  },
  {
   "base": "mariscal",
   "words": [
-   "calma",
    "camisa",
    "cara",
    "carisma",
@@ -18013,7 +16662,6 @@
    "mes",
    "mesa",
    "muera",
-   "musa",
    "quema",
    "quemar",
    "saque",
@@ -18030,7 +16678,6 @@
    "amo",
    "amor",
    "mal",
-   "millar",
    "mira",
    "moral",
    "mortal",
@@ -18053,7 +16700,6 @@
    "casar",
    "marca",
    "mascar",
-   "saca",
    "sacar"
   ]
  },
@@ -18070,7 +16716,6 @@
    "cosa",
    "costa",
    "mosca",
-   "toca",
    "toma"
   ]
  },
@@ -18079,17 +16724,14 @@
   "words": [
    "ama",
    "arma",
-   "cama",
    "camisa",
    "cara",
    "carisma",
    "carta",
    "casa",
-   "casar",
    "casita",
    "ira",
    "marca",
-   "mascar",
    "matar",
    "mira",
    "sacar"
@@ -18108,9 +16750,6 @@
    "madre",
    "mareado",
    "matador",
-   "matar",
-   "rato",
-   "red",
    "tarde",
    "toma",
    "tomada",
@@ -18125,7 +16764,6 @@
    "arma",
    "era",
    "ira",
-   "marta",
    "marte",
    "matar",
    "mira",
@@ -18143,7 +16781,6 @@
    "maleta",
    "matar",
    "materia",
-   "mil",
    "mira",
    "tarea"
   ]
@@ -18151,11 +16788,8 @@
  {
   "base": "maternal",
   "words": [
-   "ala",
    "aleman",
    "alentar",
-   "alerta",
-   "alma",
    "ama",
    "amante",
    "arena",
@@ -18166,7 +16800,6 @@
    "mala",
    "manera",
    "matar",
-   "metal",
    "tarea",
    "ten",
    "tren"
@@ -18178,7 +16811,6 @@
    "ama",
    "amen",
    "amo",
-   "asma",
    "mano",
    "masa",
    "mason",
@@ -18187,17 +16819,14 @@
    "mes",
    "mesa",
    "mona",
-   "nasa",
    "sano",
    "semana",
-   "son",
-   "yeso"
+   "son"
   ]
  },
  {
   "base": "mayoria",
   "words": [
-   "ama",
    "amo",
    "amor",
    "arma",
@@ -18222,7 +16851,6 @@
    "cien",
    "cima",
    "cine",
-   "iman",
    "mania",
    "mina"
   ]
@@ -18230,7 +16858,6 @@
  {
   "base": "mecanico",
   "words": [
-   "accion",
    "amo",
    "animo",
    "camino",
@@ -18252,9 +16879,7 @@
    "alma",
    "ama",
    "dama",
-   "lama",
    "leal",
-   "lema",
    "llama",
    "mal",
    "mala",
@@ -18265,7 +16890,6 @@
   "base": "mediana",
   "words": [
    "ama",
-   "amen",
    "anemia",
    "dama",
    "dan",
@@ -18274,9 +16898,7 @@
    "diana",
    "ida",
    "idea",
-   "iman",
    "manda",
-   "mania",
    "media",
    "mina",
    "nadie"
@@ -18304,12 +16926,8 @@
    "dia",
    "dilema",
    "edema",
-   "ida",
    "idea",
    "ideal",
-   "lema",
-   "leve",
-   "lima",
    "mal",
    "media",
    "miel",
@@ -18325,14 +16943,11 @@
    "cero",
    "comer",
    "creido",
-   "crio",
    "decimo",
    "decir",
    "doce",
-   "eco",
    "ido",
    "medico",
-   "medio",
    "merecido",
    "miedo",
    "oir",
@@ -18351,7 +16966,6 @@
    "idea",
    "idioma",
    "ido",
-   "media",
    "medida",
    "medio",
    "miedo"
@@ -18396,7 +17010,6 @@
    "idea",
    "ido",
    "lado",
-   "leido",
    "mal",
    "malo",
    "media",
@@ -18426,20 +17039,16 @@
    "amo",
    "amor",
    "era",
-   "ira",
    "lamer",
    "mal",
    "malo",
    "mareo",
    "marmol",
    "memoria",
-   "miel",
    "mil",
    "mira",
    "momia",
-   "moral",
-   "oir",
-   "oler"
+   "moral"
   ]
  },
  {
@@ -18490,7 +17099,6 @@
    "nido",
    "nieto",
    "ten",
-   "timo",
    "tio"
   ]
  },
@@ -18526,9 +17134,7 @@
   "base": "merecido",
   "words": [
    "cero",
-   "comer",
    "creido",
-   "decimo",
    "decir",
    "doce",
    "ido",
@@ -18552,11 +17158,9 @@
    "feo",
    "forma",
    "matar",
-   "metro",
    "oferta",
    "rato",
    "tarea",
-   "tema",
    "toma",
    "tomar"
   ]
@@ -18571,13 +17175,10 @@
    "clima",
    "cometa",
    "comite",
-   "leo",
-   "loca",
    "mal",
    "malo",
    "metal",
    "mil",
-   "motel",
    "tio",
    "toma"
   ]
@@ -18588,12 +17189,10 @@
    "ala",
    "alerta",
    "alma",
-   "alta",
    "ama",
    "arma",
    "era",
    "lateral",
-   "letra",
    "llama",
    "llamar",
    "mal",
@@ -18601,7 +17200,6 @@
    "maleta",
    "matar",
    "metal",
-   "taller",
    "tarea",
    "tema"
   ]
@@ -18618,9 +17216,7 @@
    "cena",
    "cien",
    "cine",
-   "coma",
    "eco",
-   "manco",
    "mano",
    "necio"
   ]
@@ -18633,15 +17229,12 @@
    "caldo",
    "celda",
    "cola",
-   "doce",
-   "eco",
    "lado",
    "leo",
    "loca",
    "mal",
    "malo",
    "mezcla",
-   "moda",
    "molde",
    "ola"
   ]
@@ -18672,7 +17265,6 @@
    "gorila",
    "largo",
    "mal",
-   "malo",
    "mil",
    "mira"
   ]
@@ -18695,12 +17287,9 @@
   "base": "mineral",
   "words": [
    "aire",
-   "amen",
    "era",
    "ira",
    "lamer",
-   "lema",
-   "lena",
    "mal",
    "merlin",
    "miel",
@@ -18732,7 +17321,6 @@
    "amo",
    "amor",
    "animo",
-   "iman",
    "ira",
    "irani",
    "ironia",
@@ -18744,7 +17332,6 @@
    "norma",
    "oir",
    "ramo",
-   "rima",
    "ron"
   ]
  },
@@ -18759,7 +17346,6 @@
    "mesa",
    "mira",
    "misa",
-   "rima",
    "risa",
    "ser",
    "sera"
@@ -18769,7 +17355,6 @@
   "base": "misterio",
   "words": [
    "emitir",
-   "iris",
    "merito",
    "mes",
    "reto",
@@ -18784,7 +17369,6 @@
   "base": "mochila",
   "words": [
    "amo",
-   "cima",
    "clima",
    "cola",
    "coma",
@@ -18801,7 +17385,6 @@
   "base": "moderno",
   "words": [
    "menor",
-   "mero",
    "modo",
    "mono",
    "moreno",
@@ -18825,14 +17408,10 @@
    "estima",
    "idea",
    "ido",
-   "mate",
    "medio",
-   "mes",
    "mesa",
-   "mesita",
    "metido",
    "miedo",
-   "mitad",
    "tema",
    "tio",
    "toma"
@@ -18867,7 +17446,6 @@
    "ser",
    "sera",
    "soltar",
-   "toma",
    "tomar"
   ]
  },
@@ -18882,7 +17460,6 @@
    "listo",
    "mal",
    "malo",
-   "salio",
    "tio",
    "toma"
   ]
@@ -18896,7 +17473,6 @@
    "motel",
    "moto",
    "oso",
-   "set",
    "sol",
    "solo",
    "tomo"
@@ -18906,14 +17482,12 @@
   "base": "monitor",
   "words": [
    "mono",
-   "moto",
    "motor",
    "oir",
    "oro",
    "ritmo",
    "ron",
    "roto",
-   "timon",
    "tio",
    "tiro",
    "tomo",
@@ -18925,16 +17499,13 @@
   "base": "monseñor",
   "words": [
    "menor",
-   "mero",
    "mes",
    "mono",
    "moreno",
    "oro",
-   "oso",
    "remo",
    "reno",
    "romeo",
-   "ron",
    "seno",
    "ser",
    "sermon",
@@ -18962,7 +17533,6 @@
    "ama",
    "amado",
    "amo",
-   "atado",
    "dama",
    "dan",
    "manda",
@@ -18971,8 +17541,6 @@
    "mano",
    "manta",
    "mata",
-   "maton",
-   "moda",
    "monada",
    "nota",
    "toma",
@@ -18983,14 +17551,12 @@
   "base": "montado",
   "words": [
    "amo",
-   "atomo",
    "dan",
    "mando",
    "mano",
    "manto",
    "maton",
    "modo",
-   "mono",
    "monta",
    "nota",
    "toma",
@@ -19022,15 +17588,13 @@
    "dia",
    "dormida",
    "ido",
-   "ira",
    "marido",
    "mira",
    "mirado",
    "moda",
    "odiar",
    "oir",
-   "radio",
-   "ramo"
+   "radio"
   ]
  },
  {
@@ -19051,9 +17615,7 @@
   "base": "mordisco",
   "words": [
    "comido",
-   "coro",
    "cosido",
-   "crio",
    "disco",
    "ido",
    "micro",
@@ -19064,7 +17626,6 @@
    "oro",
    "oso",
    "rico",
-   "rocio",
    "socio",
    "sordo"
   ]
@@ -19083,8 +17644,7 @@
    "mano",
    "mira",
    "norma",
-   "oir",
-   "ron"
+   "oir"
   ]
  },
  {
@@ -19120,7 +17680,6 @@
   "words": [
    "amo",
    "amor",
-   "ostra",
    "raro",
    "rastro",
    "rato",
@@ -19162,7 +17721,6 @@
   "words": [
    "dan",
    "dia",
-   "ida",
    "luna",
    "mal",
    "mil",
@@ -19181,8 +17739,6 @@
    "amar",
    "arma",
    "aula",
-   "aura",
-   "lama",
    "llama",
    "llamar",
    "mal",
@@ -19215,7 +17771,6 @@
    "cal",
    "cima",
    "clima",
-   "lima",
    "mal",
    "mil",
    "misa",
@@ -19234,16 +17789,12 @@
    "camino",
    "camion",
    "can",
-   "canto",
    "cinta",
    "cita",
    "comun",
-   "comuna",
    "mano",
    "minuto",
-   "nota",
    "tio",
-   "toca",
    "toma",
    "tunica",
    "unico"
@@ -19280,12 +17831,10 @@
   "base": "napoleon",
   "words": [
    "enano",
-   "lena",
    "leo",
    "ola",
    "palo",
    "pan",
-   "panel",
    "pelo",
    "pena",
    "plan",
@@ -19300,8 +17849,6 @@
   "words": [
    "adorar",
    "andar",
-   "arado",
-   "ardor",
    "dan",
    "dona",
    "donar",
@@ -19318,9 +17865,7 @@
  {
   "base": "natacion",
   "words": [
-   "acto",
    "anciano",
-   "atico",
    "can",
    "canino",
    "canta",
@@ -19330,7 +17875,6 @@
    "cita",
    "nacion",
    "nota",
-   "tina",
    "tio",
    "toca",
    "tonica"
@@ -19362,7 +17906,6 @@
    "grave",
    "nave",
    "negra",
-   "rana",
    "vengar",
    "ver",
    "vera"
@@ -19393,12 +17936,9 @@
    "idea",
    "ido",
    "nadie",
-   "niña",
    "niño",
    "venado",
    "venida",
-   "via",
-   "video",
    "vino",
    "viñedo"
   ]
@@ -19416,10 +17956,7 @@
    "eslabon",
    "leo",
    "luna",
-   "nube",
-   "ola",
    "sal",
-   "salon",
    "sano",
    "sol",
    "son",
@@ -19441,7 +17978,6 @@
    "enano",
    "genio",
    "nacion",
-   "necio",
    "niego",
    "once"
   ]
@@ -19453,7 +17989,6 @@
    "ave",
    "gana",
    "nave",
-   "tanga",
    "ten",
    "tenia",
    "tina",
@@ -19469,7 +18004,6 @@
   "words": [
    "ante",
    "avion",
-   "envio",
    "gitano",
    "nave",
    "ten",
@@ -19484,7 +18018,6 @@
   "base": "negociar",
   "words": [
    "aire",
-   "cargo",
    "carne",
    "cena",
    "craneo",
@@ -19493,7 +18026,6 @@
    "negro",
    "oir",
    "origen",
-   "region",
    "rico"
   ]
  },
@@ -19552,15 +18084,12 @@
    "luna",
    "lunar",
    "neural",
-   "nuera",
    "renta",
    "ruleta",
    "ruta",
-   "tela",
    "ten",
    "tren",
-   "tunel",
-   "ultra"
+   "tunel"
   ]
  },
  {
@@ -19585,7 +18114,6 @@
   "words": [
    "coro",
    "corto",
-   "noto",
    "oro",
    "ron",
    "roto",
@@ -19604,9 +18132,6 @@
    "dia",
    "dino",
    "dona",
-   "donar",
-   "dron",
-   "ida",
    "ido",
    "ira",
    "nariz",
@@ -19617,7 +18142,6 @@
    "raiz",
    "razon",
    "rizado",
-   "ron",
    "zona"
   ]
  },
@@ -19626,9 +18150,6 @@
   "words": [
    "amo",
    "amor",
-   "bar",
-   "baron",
-   "boda",
    "bordo",
    "broma",
    "dan",
@@ -19652,10 +18173,7 @@
    "broma",
    "mano",
    "marron",
-   "mona",
-   "norma",
    "obra",
-   "ramo",
    "raro",
    "robar",
    "ron"
@@ -19667,11 +18185,9 @@
    "alto",
    "ante",
    "balon",
-   "bola",
    "bote",
    "lento",
    "leo",
-   "nobel",
    "noble",
    "nota",
    "ola",
@@ -19683,7 +18199,6 @@
  {
   "base": "notario",
   "words": [
-   "antro",
    "ira",
    "nota",
    "notar",
@@ -19693,12 +18208,10 @@
    "raton",
    "ron",
    "roto",
-   "tina",
    "tio",
    "tira",
    "tirano",
    "tiro",
-   "tiron",
    "torno",
    "trono"
   ]
@@ -19724,7 +18237,6 @@
    "dado",
    "dan",
    "dean",
-   "dona",
    "edad",
    "nave",
    "vano",
@@ -19779,7 +18291,6 @@
    "carne",
    "cena",
    "cenar",
-   "cruel",
    "era",
    "luna",
    "neural",
@@ -19824,7 +18335,6 @@
   "base": "objecion",
   "words": [
    "bien",
-   "cebo",
    "cien",
    "cine",
    "cojin",
@@ -19849,7 +18359,6 @@
    "lado",
    "ligado",
    "lio",
-   "odio",
    "oido"
   ]
  },
@@ -19857,7 +18366,6 @@
   "base": "obligar",
   "words": [
    "abrigo",
-   "abril",
    "arbol",
    "bar",
    "bola",
@@ -19870,8 +18378,7 @@
    "libro",
    "lio",
    "obra",
-   "oir",
-   "ola"
+   "oir"
   ]
  },
  {
@@ -19894,7 +18401,6 @@
   "words": [
    "bar",
    "base",
-   "bravo",
    "era",
    "obra",
    "raro",
@@ -19928,9 +18434,7 @@
    "basto",
    "baston",
    "beso",
-   "bote",
    "nota",
-   "sano",
    "santo",
    "set",
    "son",
@@ -19960,7 +18464,6 @@
    "casino",
    "caso",
    "cosa",
-   "ocaso",
    "oso",
    "saco",
    "socio",
@@ -19971,11 +18474,9 @@
   "base": "ochenta",
   "words": [
    "acento",
-   "acto",
    "ancho",
    "ante",
    "can",
-   "cante",
    "canto",
    "cena",
    "eco",
@@ -19992,7 +18493,6 @@
    "alto",
    "auto",
    "cal",
-   "calor",
    "claro",
    "cuarto",
    "cuatro",
@@ -20048,14 +18548,12 @@
   "base": "ofensiva",
   "words": [
    "avion",
-   "aviso",
    "envio",
    "evasion",
    "feo",
    "fin",
    "nave",
    "ofensa",
-   "sano",
    "son",
    "vaso",
    "venia",
@@ -20129,7 +18627,6 @@
    "dron",
    "enfado",
    "era",
-   "fan",
    "faro",
    "feo",
    "freno",
@@ -20212,11 +18709,8 @@
    "par",
    "peor",
    "pero",
-   "perra",
    "perro",
    "poder",
-   "rapero",
-   "raro",
    "red",
    "ropa"
   ]
@@ -20239,7 +18733,6 @@
   "words": [
    "oro",
    "porton",
-   "potro",
    "pronto",
    "punto",
    "puro",
@@ -20247,8 +18740,6 @@
    "roto",
    "tono",
    "top",
-   "topo",
-   "torno",
    "toro",
    "trono",
    "turno"
@@ -20257,24 +18748,20 @@
  {
   "base": "opresion",
   "words": [
-   "oir",
    "oro",
    "penoso",
    "peor",
    "pero",
-   "peso",
    "pie",
    "pienso",
    "pionero",
    "piso",
    "poner",
    "presion",
-   "preso",
    "reino",
    "senior",
    "ser",
    "serio",
-   "sirope",
    "son"
   ]
  },
@@ -20303,7 +18790,6 @@
    "oir",
    "oro",
    "racion",
-   "rancio",
    "rico",
    "roca",
    "rocio",
@@ -20315,9 +18801,7 @@
   "words": [
    "cal",
    "calor",
-   "caro",
    "claro",
-   "cloro",
    "cola",
    "color",
    "coral",
@@ -20325,12 +18809,10 @@
    "loca",
    "loco",
    "locura",
-   "lucro",
    "ocular",
    "ola",
    "olor",
    "oro",
-   "roca",
    "rol"
   ]
  },
@@ -20340,7 +18822,6 @@
    "adorno",
    "dado",
    "dan",
-   "dean",
    "dorado",
    "edad",
    "era",
@@ -20364,8 +18845,7 @@
    "reno",
    "rodar",
    "rodea",
-   "rodear",
-   "ron"
+   "rodear"
   ]
  },
  {
@@ -20381,15 +18861,12 @@
    "rato",
    "raton",
    "ron",
-   "roto",
-   "torno",
    "trono"
   ]
  },
  {
   "base": "organico",
   "words": [
-   "can",
    "cargo",
    "caro",
    "corona",
@@ -20399,13 +18876,10 @@
    "oir",
    "oracion",
    "organo",
-   "orgia",
    "oro",
    "racion",
-   "rancio",
    "rango",
    "rico",
-   "roca",
    "ron"
   ]
  },
@@ -20417,7 +18891,6 @@
    "logo",
    "logro",
    "loro",
-   "ogro",
    "olor",
    "oro",
    "rol",
@@ -20431,7 +18904,6 @@
    "aliento",
    "alto",
    "era",
-   "lento",
    "loteria",
    "reino",
    "ten",
@@ -20439,8 +18911,7 @@
    "teoria",
    "tierno",
    "tio",
-   "tren",
-   "trineo"
+   "tren"
   ]
  },
  {
@@ -20454,7 +18925,6 @@
    "reto",
    "ten",
    "tener",
-   "tierno",
    "tio",
    "tiro",
    "tren"
@@ -20470,7 +18940,6 @@
    "ira",
    "lago",
    "largo",
-   "liga",
    "lio",
    "oir"
   ]
@@ -20481,9 +18950,7 @@
    "auto",
    "era",
    "queso",
-   "rato",
    "resto",
-   "saque",
    "saqueo",
    "ser",
    "sera",
@@ -20498,7 +18965,6 @@
   "words": [
    "bello",
    "bola",
-   "leal",
    "leo",
    "llena",
    "lleno",
@@ -20509,8 +18975,7 @@
    "pelo",
    "pena",
    "plan",
-   "plano",
-   "plena"
+   "plano"
   ]
  },
  {
@@ -20530,11 +18995,9 @@
  {
   "base": "padrino",
   "words": [
-   "dan",
    "dia",
    "ido",
    "nido",
-   "odiar",
    "opinar",
    "par",
    "paro",
@@ -20559,7 +19022,6 @@
  {
   "base": "pajarito",
   "words": [
-   "ira",
    "oir",
    "pajaro",
    "par",
@@ -20571,7 +19033,6 @@
    "ropa",
    "tio",
    "tipo",
-   "tiro",
    "tropa"
   ]
  },
@@ -20585,7 +19046,6 @@
    "lio",
    "loca",
    "ola",
-   "palco",
    "placa",
    "polaca"
   ]
@@ -20594,7 +19054,6 @@
   "base": "palanca",
   "words": [
    "ala",
-   "anal",
    "ancla",
    "cal",
    "can",
@@ -20611,21 +19070,17 @@
  {
   "base": "panadero",
   "words": [
-   "area",
    "dan",
    "era",
    "padre",
-   "pan",
    "par",
    "parado",
-   "pared",
    "paredon",
    "pena",
    "peor",
    "perdon",
    "pero",
    "poder",
-   "podre",
    "poner",
    "prenda",
    "red",
@@ -20641,16 +19096,13 @@
    "amparo",
    "arma",
    "aroma",
-   "arpon",
    "mano",
-   "mapa",
    "norma",
    "pan",
    "par",
    "paramo",
    "rampa",
    "romana",
-   "ron",
    "ropa"
   ]
  },
@@ -20675,8 +19127,6 @@
    "ala",
    "alta",
    "alto",
-   "natal",
-   "nota",
    "ola",
    "pan",
    "pantano",
@@ -20685,8 +19135,7 @@
    "planta",
    "plata",
    "platano",
-   "plato",
-   "top"
+   "plato"
   ]
  },
  {
@@ -20718,11 +19167,8 @@
    "pan",
    "par",
    "parte",
-   "patan",
    "patear",
    "pena",
-   "rata",
-   "renta",
    "tarea",
    "ten",
    "tren"
@@ -20745,7 +19191,6 @@
  {
   "base": "paradero",
   "words": [
-   "adorar",
    "era",
    "operar",
    "padre",
@@ -20756,7 +19201,6 @@
    "perro",
    "poder",
    "pradera",
-   "raro",
    "red",
    "ropa"
   ]
@@ -20790,7 +19234,6 @@
    "pasar",
    "paso",
    "pisar",
-   "piso",
    "prisa",
    "ropa"
   ]
@@ -20800,7 +19243,6 @@
   "words": [
    "ala",
    "apelar",
-   "area",
    "era",
    "leo",
    "ola",
@@ -20812,8 +19254,6 @@
    "perla",
    "pero",
    "polar",
-   "rallo",
-   "rol",
    "ropa"
   ]
  },
@@ -20831,10 +19271,7 @@
    "pario",
    "paro",
    "piano",
-   "pino",
-   "proa",
    "rana",
-   "ron",
    "ropa"
   ]
  },
@@ -20842,7 +19279,6 @@
   "base": "parasito",
   "words": [
    "apostar",
-   "ira",
    "oir",
    "par",
    "paraiso",
@@ -20854,7 +19290,6 @@
    "pirata",
    "pista",
    "prisa",
-   "ropa",
    "tio",
    "tipo"
   ]
@@ -20871,14 +19306,10 @@
    "capa",
    "cara",
    "carla",
-   "carpa",
-   "cera",
    "clara",
    "crea",
    "era",
-   "pala",
    "par",
-   "perla",
    "placa",
    "placer"
   ]
@@ -20892,11 +19323,9 @@
    "capa",
    "cara",
    "carla",
-   "carpa",
    "clara",
    "ira",
    "par",
-   "pila",
    "placa",
    "racial",
    "rica"
@@ -20908,7 +19337,6 @@
    "caer",
    "cera",
    "crea",
-   "crear",
    "creer",
    "era",
    "par",
@@ -20927,7 +19355,6 @@
    "pecador",
    "pero",
    "preciado",
-   "precio",
    "rapido"
   ]
  },
@@ -20942,7 +19369,6 @@
    "pena",
    "pie",
    "pierna",
-   "pintar",
    "tener",
    "tenia",
    "tren"
@@ -20966,21 +19392,17 @@
   "base": "parroco",
   "words": [
    "arco",
-   "capo",
    "caro",
    "carro",
    "copa",
    "coro",
    "corra",
    "corro",
-   "orar",
    "oro",
    "par",
-   "paro",
    "poco",
    "porra",
    "porro",
-   "proa",
    "raro",
    "roca",
    "ropa"
@@ -21005,7 +19427,6 @@
   "base": "partido",
   "words": [
    "dia",
-   "ido",
    "patio",
    "radio",
    "rapido",
@@ -21018,7 +19439,6 @@
  {
   "base": "pasajero",
   "words": [
-   "ajo",
    "era",
    "pajaro",
    "par",
@@ -21027,7 +19447,6 @@
    "pasar",
    "pasear",
    "paseo",
-   "paso",
    "pero",
    "pesar",
    "ser",
@@ -21037,9 +19456,7 @@
  {
   "base": "pasarela",
   "words": [
-   "ala",
    "apelar",
-   "area",
    "era",
    "laser",
    "par",
@@ -21047,8 +19464,6 @@
    "pasar",
    "pase",
    "pasear",
-   "perla",
-   "pesa",
    "pesar",
    "presa",
    "sal",
@@ -21061,7 +19476,6 @@
   "base": "pasillo",
   "words": [
    "lio",
-   "ola",
    "paso",
    "pillo",
    "piso",
@@ -21084,7 +19498,6 @@
    "poetica",
    "tio",
    "tipo",
-   "toca",
    "top"
   ]
  },
@@ -21094,7 +19507,6 @@
    "ante",
    "etapa",
    "jane",
-   "nata",
    "paja",
    "pan",
    "pata",
@@ -21114,7 +19526,6 @@
    "ira",
    "pan",
    "par",
-   "parta",
    "pata",
    "patan",
    "patria",
@@ -21122,9 +19533,7 @@
    "pintar",
    "pirata",
    "rata",
-   "tapa",
    "tapar",
-   "tara",
    "tina",
    "tira",
    "tripa"
@@ -21142,12 +19551,9 @@
    "ratito",
    "rato",
    "ropa",
-   "tarta",
    "tio",
    "tipo",
-   "tira",
    "tiro",
-   "top",
    "trata",
    "trato"
   ]
@@ -21170,11 +19576,8 @@
   "base": "pecador",
   "words": [
    "acorde",
-   "caer",
-   "cerdo",
    "copa",
    "eco",
-   "epoca",
    "era",
    "padre",
    "par",
@@ -21197,11 +19600,9 @@
    "culpa",
    "culpar",
    "era",
-   "ira",
    "lucir",
    "par",
    "paul",
-   "peluca",
    "pie",
    "piel",
    "placer",
@@ -21225,9 +19626,6 @@
    "pego",
    "pesa",
    "peso",
-   "sapo",
-   "soga",
-   "soja",
    "sopa"
   ]
  },
@@ -21237,14 +19635,12 @@
    "dan",
    "dean",
    "dia",
-   "ida",
    "idea",
    "ido",
    "nadie",
    "nido",
    "pan",
    "pena",
-   "peon",
    "piano",
    "pie",
    "pino"
@@ -21282,7 +19678,6 @@
    "lento",
    "leo",
    "lote",
-   "noto",
    "pelo",
    "pleno",
    "polo",
@@ -21290,7 +19685,6 @@
    "ten",
    "tono",
    "top",
-   "tope",
    "topo"
   ]
  },
@@ -21298,13 +19692,11 @@
   "base": "penetrar",
   "words": [
    "ante",
-   "arte",
    "entera",
    "enterar",
    "entrar",
    "era",
    "errante",
-   "pan",
    "par",
    "parte",
    "pena",
@@ -21312,7 +19704,6 @@
    "ten",
    "tener",
    "ternera",
-   "traer",
    "tren",
    "trepar"
   ]
@@ -21321,7 +19712,6 @@
   "base": "pensado",
   "words": [
    "dan",
-   "pan",
    "paseo",
    "paso",
    "pena",
@@ -21397,8 +19787,7 @@
    "peor",
    "perdon",
    "pero",
-   "poder",
-   "ropa"
+   "poder"
   ]
  },
  {
@@ -21433,7 +19822,6 @@
  {
   "base": "perforar",
   "words": [
-   "arre",
    "era",
    "error",
    "faro",
@@ -21446,8 +19834,6 @@
    "pero",
    "perra",
    "perro",
-   "porra",
-   "proa",
    "profe",
    "rapero",
    "raro",
@@ -21458,7 +19844,6 @@
   "base": "periodo",
   "words": [
    "ido",
-   "odio",
    "oido",
    "oir",
    "oro",
@@ -21506,7 +19891,6 @@
    "pero",
    "perro",
    "pie",
-   "porte",
    "prior",
    "tio",
    "tipo",
@@ -21570,7 +19954,6 @@
    "paseo",
    "paso",
    "pecado",
-   "pesca",
    "sed"
   ]
  },
@@ -21585,11 +19968,9 @@
    "pecado",
    "pecador",
    "pero",
-   "pesado",
    "pesar",
    "pescado",
    "poder",
-   "secador",
    "ser",
    "sera"
   ]
@@ -21601,7 +19982,6 @@
    "ciento",
    "cine",
    "etico",
-   "necio",
    "nieto",
    "pie",
    "ten",
@@ -21621,7 +20001,6 @@
    "porte",
    "potro",
    "repleto",
-   "rol",
    "top",
    "torpe"
   ]
@@ -21631,7 +20010,6 @@
   "words": [
    "ansia",
    "nasa",
-   "nata",
    "pan",
    "pasa",
    "pasta",
@@ -21651,10 +20029,8 @@
    "ante",
    "can",
    "cena",
-   "cine",
    "cinta",
    "cita",
-   "etica",
    "pan",
    "pena",
    "pie",
@@ -21675,8 +20051,6 @@
    "palido",
    "palo",
    "par",
-   "paro",
-   "polar",
    "radio",
    "rapido",
    "ropa"
@@ -21685,12 +20059,10 @@
  {
   "base": "pimienta",
   "words": [
-   "amen",
    "ante",
    "intima",
    "mate",
    "meta",
-   "mina",
    "mitin",
    "pan",
    "pena",
@@ -21704,7 +20076,6 @@
  {
   "base": "pinchazo",
   "words": [
-   "ancho",
    "can",
    "chino",
    "chip",
@@ -21716,11 +20087,9 @@
    "panico",
    "paz",
    "piano",
-   "pica",
    "picazon",
    "pichon",
    "pico",
-   "pizca",
    "zona"
   ]
  },
@@ -21767,9 +20136,7 @@
    "dan",
    "dia",
    "ido",
-   "nido",
    "nota",
-   "pan",
    "patio",
    "pato",
    "piano",
@@ -21777,8 +20144,7 @@
    "tapon",
    "tina",
    "tio",
-   "tipo",
-   "top"
+   "tipo"
   ]
  },
  {
@@ -21792,7 +20158,6 @@
    "punta",
    "ruta",
    "rutina",
-   "tina",
    "tira"
   ]
  },
@@ -21804,14 +20169,11 @@
    "era",
    "idea",
    "impedir",
-   "ira",
    "madre",
    "media",
    "mira",
    "padre",
    "par",
-   "pedir",
-   "pera",
    "pie",
    "piedra",
    "rima"
@@ -21851,14 +20213,12 @@
   "base": "plancha",
   "words": [
    "ala",
-   "anal",
    "ancha",
    "ancla",
    "cal",
    "can",
    "canal",
    "capa",
-   "chapa",
    "clan",
    "lana",
    "lancha",
@@ -21881,16 +20241,13 @@
    "panel",
    "par",
    "pena",
-   "penal",
    "plan",
-   "plena",
-   "rana"
+   "plena"
   ]
  },
  {
   "base": "planeta",
   "words": [
-   "ala",
    "etapa",
    "paleta",
    "pan",
@@ -21905,9 +20262,7 @@
   "base": "plantado",
   "words": [
    "ala",
-   "alta",
    "alto",
-   "atado",
    "dan",
    "lado",
    "ola",
@@ -21927,7 +20282,6 @@
    "ala",
    "alta",
    "altar",
-   "lana",
    "lata",
    "natal",
    "pan",
@@ -21937,15 +20291,13 @@
    "plan",
    "planta",
    "plata",
-   "rata",
-   "tapar"
+   "rata"
   ]
  },
  {
   "base": "plastica",
   "words": [
    "ala",
-   "alta",
    "cal",
    "capital",
    "casa",
@@ -21954,18 +20306,15 @@
    "lista",
    "pasa",
    "pascal",
-   "pasta",
    "pista",
    "plata",
    "platica",
-   "sal",
-   "sala"
+   "sal"
   ]
  },
  {
   "base": "plastico",
   "words": [
-   "caso",
    "cosa",
    "lista",
    "listo",
@@ -21987,10 +20336,7 @@
    "natal",
    "nota",
    "ola",
-   "palo",
    "pan",
-   "pata",
-   "patan",
    "plan",
    "plano",
    "planta",
@@ -22006,18 +20352,15 @@
    "aldea",
    "alta",
    "alto",
-   "etapa",
    "lado",
    "leo",
    "ola",
    "paleta",
-   "pata",
    "pelado",
    "pelo",
    "pelota",
    "plata",
    "plato",
-   "tapado",
    "top"
   ]
  },
@@ -22025,18 +20368,15 @@
   "base": "platino",
   "words": [
    "alto",
-   "latin",
    "latino",
    "lio",
    "nota",
    "ola",
-   "palo",
    "pan",
    "patio",
    "piano",
    "pinta",
    "plan",
-   "plano",
    "plato",
    "tina",
    "tio",
@@ -22048,17 +20388,14 @@
   "base": "plegaria",
   "words": [
    "aire",
-   "alegar",
    "alegra",
    "alegria",
    "alergia",
    "apelar",
    "area",
    "era",
-   "gripe",
    "ira",
    "larga",
-   "paga",
    "pagar",
    "pagare",
    "par",
@@ -22071,7 +20408,6 @@
   "base": "plomero",
   "words": [
    "leo",
-   "lomo",
    "loro",
    "mero",
    "moro",
@@ -22113,11 +20449,9 @@
    "obra",
    "opera",
    "par",
-   "paro",
    "paz",
    "peor",
    "pero",
-   "pez",
    "pobre",
    "ropa"
   ]
@@ -22131,7 +20465,6 @@
    "copia",
    "gol",
    "lago",
-   "liga",
    "lio",
    "loca",
    "logia",
@@ -22139,16 +20472,13 @@
    "ola",
    "pago",
    "palco",
-   "palo",
-   "pico",
-   "pila"
+   "palo"
   ]
  },
  {
   "base": "poderoso",
   "words": [
    "oro",
-   "oso",
    "peor",
    "pero",
    "peso",
@@ -22203,7 +20533,6 @@
    "loca",
    "local",
    "ola",
-   "palo",
    "pillo",
    "policia"
   ]
@@ -22213,7 +20542,6 @@
   "words": [
    "coito",
    "lio",
-   "litio",
    "loco",
    "piloto",
    "poco",
@@ -22232,7 +20560,6 @@
    "oro",
    "palo",
    "par",
-   "paro",
    "pavo",
    "polvo",
    "rol",
@@ -22246,7 +20573,6 @@
   "base": "popular",
   "words": [
    "ola",
-   "palo",
    "par",
    "paul",
    "polar",
@@ -22260,13 +20586,11 @@
  {
   "base": "porcion",
   "words": [
-   "cono",
    "coro",
    "crio",
    "icono",
    "oir",
    "opcion",
-   "opio",
    "oro",
    "pico",
    "pino",
@@ -22285,13 +20609,11 @@
    "par",
    "parado",
    "parto",
-   "pata",
    "rata",
    "rato",
    "ropa",
    "tapado",
    "top",
-   "trapo",
    "tropa"
   ]
  },
@@ -22308,9 +20630,7 @@
    "rato",
    "ropa",
    "roto",
-   "tardo",
    "top",
-   "topo",
    "toro",
    "trapo",
    "tropa"
@@ -22332,10 +20652,7 @@
    "rodar",
    "ropa",
    "roto",
-   "top",
-   "toro",
-   "trapo",
-   "tropa"
+   "top"
   ]
  },
  {
@@ -22345,7 +20662,6 @@
    "oir",
    "par",
    "pilotar",
-   "plato",
    "portal",
    "ratito",
    "ropa",
@@ -22361,15 +20677,12 @@
    "oro",
    "par",
    "parto",
-   "pavo",
    "paz",
    "portazo",
-   "pozo",
    "rato",
    "ropa",
    "roto",
    "top",
-   "tropa",
    "trozo",
    "vapor",
    "votar",
@@ -22385,13 +20698,11 @@
    "pero",
    "perro",
    "porro",
-   "potro",
    "reto",
    "ropero",
    "roto",
    "top",
    "torero",
-   "toro",
    "torpe"
   ]
  },
@@ -22416,11 +20727,9 @@
   "words": [
    "esposo",
    "oso",
-   "penoso",
    "peso",
    "pie",
    "pienso",
-   "pino",
    "piso",
    "seis",
    "sesion",
@@ -22463,7 +20772,6 @@
    "tio",
    "tipo",
    "top",
-   "topo",
    "visto",
    "voto"
   ]
@@ -22479,12 +20787,10 @@
    "pero",
    "peso",
    "poner",
-   "pop",
    "preso",
    "propenso",
    "reno",
    "ron",
-   "seno",
    "ser",
    "son"
   ]
@@ -22497,9 +20803,7 @@
    "par",
    "parto",
    "paso",
-   "pasto",
    "pastor",
-   "rato",
    "ropa",
    "top",
    "tropa",
@@ -22510,19 +20814,15 @@
  {
   "base": "potasio",
   "words": [
-   "apto",
-   "opio",
    "oso",
    "ostia",
    "paso",
    "pasto",
    "patio",
    "pato",
-   "pisa",
    "piso",
    "pista",
    "pito",
-   "sapo",
    "sopa",
    "tio",
    "tipo",
@@ -22540,7 +20840,6 @@
    "picante",
    "pie",
    "poetica",
-   "ten",
    "tenia",
    "tio",
    "tipo"
@@ -22570,10 +20869,8 @@
    "copia",
    "copiar",
    "cripta",
-   "ira",
    "oir",
    "par",
-   "rato",
    "ropa",
    "tio",
    "tipo",
@@ -22608,16 +20905,13 @@
    "padre",
    "par",
    "parecido",
-   "pecado",
    "pecador",
-   "pedir",
    "peor",
    "pero",
    "piedra",
    "poder",
    "precio",
-   "rapido",
-   "ropa"
+   "rapido"
   ]
  },
  {
@@ -22641,7 +20935,6 @@
    "pie",
    "poco",
    "precio",
-   "preciso",
    "proceso",
    "ser",
    "serio",
@@ -22652,7 +20945,6 @@
  {
   "base": "preciso",
   "words": [
-   "coser",
    "oir",
    "peor",
    "pero",
@@ -22684,17 +20976,13 @@
   "base": "prefecto",
   "words": [
    "cero",
-   "cofre",
    "corte",
    "eco",
    "efecto",
    "feo",
-   "feto",
    "peor",
    "perfecto",
    "pero",
-   "porte",
-   "profe",
    "recto",
    "reto",
    "terco",
@@ -22763,7 +21051,6 @@
   "base": "prestamo",
   "words": [
    "amo",
-   "amor",
    "era",
    "maestro",
    "parte",
@@ -22784,7 +21071,6 @@
    "parte",
    "pase",
    "perra",
-   "pesa",
    "presta",
    "ser",
    "sera",
@@ -22811,9 +21097,7 @@
   "words": [
    "peor",
    "pero",
-   "pie",
    "postre",
-   "previo",
    "resto",
    "ser",
    "serio",
@@ -22885,7 +21169,6 @@
    "arbol",
    "bar",
    "era",
-   "leo",
    "opera",
    "par",
    "peor",
@@ -22906,7 +21189,6 @@
    "oro",
    "par",
    "robado",
-   "robo",
    "ropa"
   ]
  },
@@ -22928,7 +21210,6 @@
   "words": [
    "cerdo",
    "cero",
-   "cerro",
    "creer",
    "doce",
    "eco",
@@ -22937,7 +21218,6 @@
    "pero",
    "perro",
    "poder",
-   "podre",
    "recreo",
    "red"
   ]
@@ -22945,9 +21225,7 @@
  {
   "base": "procesar",
   "words": [
-   "caso",
    "cosa",
-   "eco",
    "era",
    "escapo",
    "operar",
@@ -22979,7 +21257,6 @@
  {
   "base": "procura",
   "words": [
-   "arco",
    "caro",
    "carro",
    "copa",
@@ -22989,9 +21266,7 @@
    "curro",
    "ocupar",
    "par",
-   "paro",
    "porra",
-   "proa",
    "puro",
    "raro",
    "roca",
@@ -23018,7 +21293,6 @@
  {
   "base": "producir",
   "words": [
-   "crio",
    "crudo",
    "cupido",
    "curro",
@@ -23029,7 +21303,6 @@
    "prior",
    "puro",
    "rico",
-   "rudo",
    "ruido"
   ]
  },
@@ -23037,7 +21310,6 @@
   "base": "producto",
   "words": [
    "corto",
-   "crudo",
    "doctor",
    "duro",
    "oro",
@@ -23058,15 +21330,12 @@
    "epoca",
    "era",
    "feria",
-   "oir",
-   "opera",
    "par",
    "peor",
    "pero",
    "picaro",
    "pie",
-   "precio",
-   "ropa"
+   "precio"
   ]
  },
  {
@@ -23085,11 +21354,9 @@
  {
   "base": "profeta",
   "words": [
-   "arte",
    "era",
    "feo",
    "oferta",
-   "opera",
    "par",
    "parte",
    "parto",
@@ -23117,7 +21384,6 @@
  {
   "base": "progreso",
   "words": [
-   "gorro",
    "grosero",
    "oro",
    "oso",
@@ -23136,9 +21402,7 @@
    "ido",
    "medio",
    "miedo",
-   "modo",
    "oido",
-   "oir",
    "oro",
    "peor",
    "periodo",
@@ -23151,7 +21415,6 @@
  {
   "base": "prometer",
   "words": [
-   "mero",
    "meter",
    "metro",
    "peor",
@@ -23163,8 +21426,7 @@
    "temer",
    "temor",
    "top",
-   "tope",
-   "torpe"
+   "tope"
   ]
  },
  {
@@ -23209,17 +21471,14 @@
    "apostar",
    "atraso",
    "par",
-   "parto",
    "pasa",
    "pasar",
    "paso",
    "pasta",
    "pastor",
-   "rata",
    "rato",
    "ropa",
    "rosa",
-   "sopa",
    "tarta",
    "top",
    "trasto",
@@ -23254,10 +21513,7 @@
    "pero",
    "pie",
    "pierna",
-   "pintar",
    "poner",
-   "reino",
-   "ropa",
    "tenia",
    "teoria",
    "tio",
@@ -23284,7 +21540,6 @@
  {
   "base": "provocar",
   "words": [
-   "caro",
    "carro",
    "copa",
    "corra",
@@ -23293,7 +21548,6 @@
    "par",
    "parroco",
    "poco",
-   "porro",
    "raro",
    "ropa",
    "vapor"
@@ -23333,8 +21587,6 @@
    "arte",
    "bar",
    "bate",
-   "beta",
-   "bruta",
    "buda",
    "dura",
    "era",
@@ -23344,9 +21596,7 @@
    "parte",
    "prueba",
    "puerta",
-   "pure",
    "red",
-   "rueda",
    "ruta",
    "tarde"
   ]
@@ -23370,7 +21620,6 @@
   "words": [
    "abril",
    "bar",
-   "cal",
    "club",
    "culpa",
    "culpar",
@@ -23408,16 +21657,13 @@
    "malo",
    "mano",
    "moral",
-   "norma",
    "normal",
    "pan",
    "par",
    "plan",
    "plano",
    "pluma",
-   "pulmon",
-   "ron",
-   "rumano"
+   "pulmon"
   ]
  },
  {
@@ -23429,8 +21675,6 @@
    "pase",
    "paul",
    "pelusa",
-   "perla",
-   "pesa",
    "pesar",
    "presa",
    "pulsar",
@@ -23445,9 +21689,7 @@
   "words": [
    "bar",
    "boda",
-   "borda",
    "borde",
-   "buda",
    "dura",
    "duro",
    "era",
@@ -23504,8 +21746,7 @@
    "sabio",
    "sabor",
    "sobra",
-   "sobrio",
-   "sorbo"
+   "sobrio"
   ]
  },
  {
@@ -23517,15 +21758,13 @@
    "carnal",
    "clara",
    "claro",
-   "cola",
    "ira",
    "lio",
    "loca",
    "oir",
    "racial",
    "racion",
-   "rico",
-   "ron"
+   "rico"
   ]
  },
  {
@@ -23533,10 +21772,7 @@
   "words": [
    "amo",
    "amor",
-   "asco",
-   "caro",
    "caso",
-   "coma",
    "cosa",
    "ira",
    "marco",
@@ -23547,19 +21783,15 @@
    "mosca",
    "oir",
    "rico",
-   "rosa",
-   "saco"
+   "rosa"
   ]
  },
  {
   "base": "radiador",
   "words": [
    "adorar",
-   "arado",
-   "ardor",
    "aria",
    "dado",
-   "dardo",
    "dia",
    "dorada",
    "ida",
@@ -23578,7 +21810,6 @@
   "base": "radiante",
   "words": [
    "aire",
-   "ante",
    "dan",
    "dia",
    "editar",
@@ -23587,8 +21818,6 @@
    "idea",
    "nadie",
    "tarde",
-   "tarea",
-   "ten",
    "tenia",
    "tienda",
    "tirada",
@@ -23599,8 +21828,6 @@
   "base": "radical",
   "words": [
    "ala",
-   "arca",
-   "cal",
    "cara",
    "carla",
    "clara",
@@ -23621,16 +21848,13 @@
    "dia",
    "era",
    "idea",
-   "idear",
    "padre",
    "par",
    "pared",
    "paz",
    "pedir",
    "pera",
-   "pie",
    "piedra",
-   "pieza",
    "raiz"
   ]
  },
@@ -23657,7 +21881,6 @@
    "arte",
    "atraer",
    "era",
-   "resta",
    "retrasar",
    "ser",
    "sera",
@@ -23670,9 +21893,7 @@
   "base": "rastreo",
   "words": [
    "arresto",
-   "arte",
    "era",
-   "ostra",
    "raro",
    "rastro",
    "rato",
@@ -23717,9 +21938,7 @@
   "words": [
    "aire",
    "alerta",
-   "alta",
    "era",
-   "ira",
    "lista",
    "sal",
    "sala",
@@ -23740,7 +21959,6 @@
    "area",
    "era",
    "ira",
-   "raiz",
    "rareza",
    "raza",
    "reir",
@@ -23757,12 +21975,10 @@
    "libro",
    "liebre",
    "lio",
-   "noble",
    "oir",
    "oler",
    "reino",
    "rene",
-   "rol",
    "ron"
   ]
  },
@@ -23777,11 +21993,8 @@
    "crear",
    "cuadra",
    "cuerda",
-   "cura",
-   "curar",
    "dura",
    "durar",
-   "educar",
    "era",
    "radar",
    "red",
@@ -23792,7 +22005,6 @@
   "base": "receptor",
   "words": [
    "cero",
-   "cerro",
    "corte",
    "creer",
    "eco",
@@ -23800,13 +22012,11 @@
    "pero",
    "perro",
    "recreo",
-   "recto",
    "rector",
    "reto",
    "tercer",
    "tercero",
    "top",
-   "tope",
    "torpe"
   ]
  },
@@ -23824,15 +22034,13 @@
    "era",
    "hacer",
    "haz",
-   "rareza",
-   "rezar"
+   "rareza"
   ]
  },
  {
   "base": "rechazo",
   "words": [
    "caer",
-   "caro",
    "cero",
    "choza",
    "crea",
@@ -23843,8 +22051,7 @@
    "hacer",
    "haz",
    "hora",
-   "horca",
-   "roca"
+   "horca"
   ]
  },
  {
@@ -23869,9 +22076,7 @@
    "caer",
    "cal",
    "cartel",
-   "catre",
    "cita",
-   "citar",
    "crea",
    "era",
    "etica",
@@ -23879,8 +22084,7 @@
    "latir",
    "letra",
    "litera",
-   "recta",
-   "tira"
+   "recta"
   ]
  },
  {
@@ -23891,17 +22095,13 @@
    "caer",
    "carter",
    "cita",
-   "citar",
    "crater",
    "crea",
    "crear",
    "criar",
    "era",
-   "etica",
    "ira",
    "recta",
-   "reir",
-   "rica",
    "tierra",
    "tira",
    "tirar",
@@ -23914,16 +22114,13 @@
    "ala",
    "ama",
    "arma",
-   "cal",
    "calma",
    "calmar",
    "cama",
    "cara",
-   "clara",
    "crear",
    "era",
    "mal",
-   "mala",
    "marca",
    "marcar"
   ]
@@ -23934,14 +22131,11 @@
    "amo",
    "amor",
    "caer",
-   "cal",
    "calor",
    "cero",
    "claro",
-   "cola",
    "colera",
    "comer",
-   "crema",
    "era",
    "leo",
    "loca",
@@ -23958,7 +22152,6 @@
    "caer",
    "cal",
    "cartel",
-   "catre",
    "crea",
    "cruel",
    "cuartel",
@@ -23968,8 +22161,6 @@
    "letra",
    "recta",
    "ruleta",
-   "ruta",
-   "tela",
    "ulcera",
    "ultra"
   ]
@@ -23982,30 +22173,24 @@
    "cal",
    "cartel",
    "carter",
-   "crater",
    "crea",
    "crear",
    "cruel",
    "cuartel",
    "cura",
-   "curar",
    "era",
    "lectura",
-   "letra",
    "recluta",
    "ruleta",
-   "ruta",
    "traer"
   ]
  },
  {
   "base": "recogida",
   "words": [
-   "acorde",
    "aire",
    "caer",
    "cargo",
-   "coger",
    "creido",
    "criado",
    "decir",
@@ -24013,7 +22198,6 @@
    "era",
    "idea",
    "ido",
-   "ira",
    "oir",
    "radio",
    "recado",
@@ -24024,19 +22208,16 @@
   "base": "recogido",
   "words": [
    "cerdo",
-   "cero",
    "codigo",
    "coger",
    "cogido",
    "creido",
    "decir",
-   "gordo",
    "ido",
    "odio",
    "oido",
    "oir",
    "oro",
-   "red",
    "rico"
   ]
  },
@@ -24074,12 +22255,9 @@
    "cero",
    "corte",
    "cuento",
-   "cuero",
    "eco",
    "entero",
-   "eterno",
    "once",
-   "rene",
    "reto",
    "ron",
    "ten",
@@ -24127,12 +22305,9 @@
    "cero",
    "creido",
    "cuerdo",
-   "cuero",
    "decir",
    "deducir",
-   "doce",
    "duro",
-   "eco",
    "ido",
    "oir",
    "red",
@@ -24144,13 +22319,10 @@
   "base": "refinado",
   "words": [
    "aire",
-   "dan",
-   "dean",
    "dia",
    "dinero",
    "enfado",
    "era",
-   "feria",
    "fin",
    "fria",
    "frio",
@@ -24200,12 +22372,10 @@
   "words": [
    "cero",
    "cerro",
-   "cofre",
    "coser",
    "creer",
    "eco",
    "feo",
-   "force",
    "fresco",
    "ofrecer",
    "receso",
@@ -24241,12 +22411,10 @@
    "lago",
    "larga",
    "largo",
-   "legado",
    "leo",
    "oler",
    "red",
-   "regalo",
-   "regla"
+   "regalo"
   ]
  },
  {
@@ -24273,17 +22441,14 @@
   "words": [
    "aire",
    "alegro",
-   "angel",
    "era",
    "genial",
    "gira",
-   "gloria",
    "ira",
    "lago",
    "largo",
    "leo",
    "liga",
-   "lio",
    "negra",
    "negro",
    "oir",
@@ -24300,7 +22465,6 @@
    "riesgo",
    "ser",
    "serio",
-   "tigre",
    "tio",
    "tiro"
   ]
@@ -24346,12 +22510,9 @@
    "nadie",
    "nido",
    "odiar",
-   "oir",
    "radio",
    "reino",
-   "reno",
-   "rienda",
-   "rodea"
+   "rienda"
   ]
  },
  {
@@ -24379,7 +22540,6 @@
    "dejar",
    "era",
    "jade",
-   "jalar",
    "jalea",
    "ladera",
    "ladra",
@@ -24396,10 +22556,8 @@
    "era",
    "evitar",
    "letra",
-   "litera",
    "loteria",
    "oir",
-   "rato",
    "relato",
    "teoria",
    "tio",
@@ -24408,8 +22566,7 @@
    "ver",
    "violeta",
    "volar",
-   "voltear",
-   "votar"
+   "voltear"
   ]
  },
  {
@@ -24424,7 +22581,6 @@
    "oler",
    "origen",
    "region",
-   "reino",
    "reno"
   ]
  },
@@ -24499,12 +22655,10 @@
    "carne",
    "cena",
    "cenar",
-   "cien",
    "cine",
    "era",
    "ira",
    "nacer",
-   "nuera",
    "ruina"
   ]
  },
@@ -24514,17 +22668,14 @@
    "aire",
    "arte",
    "era",
-   "ira",
    "par",
    "parte",
    "partir",
    "perra",
    "pie",
-   "reir",
    "retirar",
    "tierra",
    "tira",
-   "tirar",
    "traer",
    "trepar"
   ]
@@ -24554,11 +22705,9 @@
    "aire",
    "caer",
    "cal",
-   "cera",
    "crea",
    "era",
    "ira",
-   "lepra",
    "par",
    "pecar",
    "pelar",
@@ -24566,7 +22715,6 @@
    "picar",
    "pie",
    "piel",
-   "pila",
    "placer",
    "rica"
   ]
@@ -24583,9 +22731,7 @@
    "pero",
    "perra",
    "perro",
-   "portar",
    "raro",
-   "rato",
    "ropa",
    "terror",
    "top",
@@ -24601,11 +22747,9 @@
    "postre",
    "preso",
    "puesto",
-   "puro",
    "respeto",
    "resto",
    "ser",
-   "set",
    "suerte",
    "top",
    "torpe",
@@ -24626,8 +22770,7 @@
    "sacar",
    "ser",
    "sera",
-   "set",
-   "traer"
+   "set"
   ]
  },
  {
@@ -24641,8 +22784,7 @@
    "recta",
    "secreta",
    "ser",
-   "sera",
-   "set"
+   "sera"
   ]
  },
  {
@@ -24695,7 +22837,6 @@
    "lado",
    "padre",
    "par",
-   "paso",
    "pelado",
    "pero",
    "pesado",
@@ -24703,14 +22844,12 @@
    "poder",
    "ser",
    "sera",
-   "sol",
    "soplar"
   ]
  },
  {
   "base": "respecto",
   "words": [
-   "corte",
    "espectro",
    "peor",
    "pero",
@@ -24724,7 +22863,6 @@
  {
   "base": "respetar",
   "words": [
-   "arte",
    "era",
    "espera",
    "esperar",
@@ -24735,8 +22873,7 @@
    "presta",
    "prestar",
    "ser",
-   "sera",
-   "traer"
+   "sera"
   ]
  },
  {
@@ -24749,7 +22886,6 @@
    "preste",
    "resto",
    "ser",
-   "set",
    "top"
   ]
  },
@@ -24760,7 +22896,6 @@
    "era",
    "espiar",
    "par",
-   "pase",
    "perra",
    "prisa",
    "ser",
@@ -24778,7 +22913,6 @@
    "sol",
    "suelo",
    "suelto",
-   "suero",
    "suerte",
    "tele",
    "uso"
@@ -24804,14 +22938,12 @@
    "arte",
    "era",
    "laser",
-   "lastre",
    "letra",
    "resulta",
    "ruleta",
    "sal",
    "ser",
    "sera",
-   "set",
    "suelta",
    "traer",
    "usar"
@@ -24820,7 +22952,6 @@
  {
   "base": "retirado",
   "words": [
-   "aire",
    "dia",
    "era",
    "idea",
@@ -24859,18 +22990,14 @@
    "mareo",
    "marte",
    "mate",
-   "meta",
    "metro",
    "raro",
    "rato",
-   "reto",
-   "tarro",
    "tema",
    "temor",
    "toma",
    "tomar",
-   "traer",
-   "tramo"
+   "traer"
   ]
  },
  {
@@ -24881,14 +23008,10 @@
    "cartero",
    "cierto",
    "cita",
-   "cortar",
    "corte",
-   "crear",
    "era",
-   "ira",
    "oir",
    "raro",
-   "rato",
    "recitar",
    "teoria",
    "tierra",
@@ -24904,7 +23027,6 @@
    "arrastre",
    "arrestar",
    "arte",
-   "atar",
    "atraer",
    "era",
    "rastrear",
@@ -24913,9 +23035,7 @@
    "ser",
    "sera",
    "set",
-   "tara",
    "tarea",
-   "tasa",
    "traer"
   ]
  },
@@ -24926,12 +23046,10 @@
    "era",
    "raro",
    "rastro",
-   "rato",
    "resto",
    "ser",
    "sera",
    "set",
-   "tarro",
    "traer",
    "trasero"
   ]
@@ -24949,15 +23067,12 @@
    "teatro",
    "torta",
    "traer",
-   "trato",
-   "treta"
+   "trato"
   ]
  },
  {
   "base": "revancha",
   "words": [
-   "area",
-   "arena",
    "avance",
    "ave",
    "caer",
@@ -24971,14 +23086,12 @@
    "era",
    "hacer",
    "nave",
-   "ver",
-   "vera"
+   "ver"
   ]
  },
  {
   "base": "revelar",
   "words": [
-   "arre",
    "ave",
    "elevar",
    "era",
@@ -24996,14 +23109,11 @@
   "base": "reventar",
   "words": [
    "ante",
-   "ave",
    "entera",
    "enterar",
    "entrar",
    "era",
-   "errante",
    "nave",
-   "nevera",
    "ten",
    "tener",
    "ternera",
@@ -25018,7 +23128,6 @@
   "words": [
    "aire",
    "era",
-   "ira",
    "rivera",
    "ser",
    "sera",
@@ -25032,7 +23141,6 @@
   "base": "revista",
   "words": [
    "aire",
-   "arte",
    "era",
    "evitar",
    "ser",
@@ -25075,7 +23183,6 @@
    "velero",
    "velo",
    "ver",
-   "veto",
    "vuelo",
    "vuelto"
   ]
@@ -25101,18 +23208,14 @@
    "ante",
    "arte",
    "dan",
-   "dante",
-   "dean",
    "detonar",
    "entrado",
    "era",
-   "nota",
    "notar",
    "rato",
    "raton",
    "red",
    "renta",
-   "ron",
    "tarde",
    "ten",
    "tren"
@@ -25126,7 +23229,6 @@
    "carmen",
    "carne",
    "cena",
-   "cenar",
    "comer",
    "craneo",
    "era",
@@ -25144,14 +23246,11 @@
    "corona",
    "cortina",
    "corto",
-   "ira",
    "nota",
-   "notario",
    "oir",
    "oracion",
    "oro",
    "rato",
-   "rico",
    "tio",
    "tocar"
   ]
@@ -25166,7 +23265,6 @@
    "oir",
    "oro",
    "oso",
-   "rudo",
    "ruido",
    "ruso",
    "sodio",
@@ -25193,7 +23291,6 @@
  {
   "base": "saborear",
   "words": [
-   "abra",
    "area",
    "bar",
    "barra",
@@ -25204,13 +23301,10 @@
    "obra",
    "raro",
    "robar",
-   "rosa",
    "saber",
    "sabor",
-   "sabre",
    "ser",
    "sera",
-   "sobra",
    "sobre"
   ]
  },
@@ -25229,35 +23323,28 @@
    "bate",
    "batea",
    "beso",
-   "beta",
-   "bota",
    "bote",
-   "set",
-   "tasa"
+   "set"
   ]
  },
  {
   "base": "sabotear",
   "words": [
    "arte",
-   "atraso",
    "bar",
    "barato",
    "base",
    "basta",
    "bastar",
    "batear",
-   "beso",
    "era",
-   "obra",
    "rato",
    "resto",
    "saber",
    "ser",
    "sera",
    "set",
-   "sobre",
-   "tarea"
+   "sobre"
   ]
  },
  {
@@ -25292,7 +23379,6 @@
   "base": "sacudir",
   "words": [
    "acudir",
-   "cria",
    "cruda",
    "cuida",
    "cuidar",
@@ -25304,8 +23390,6 @@
    "ira",
    "rica",
    "risa",
-   "ruda",
-   "sida",
    "sidra",
    "sudar",
    "usar"
@@ -25315,7 +23399,6 @@
   "base": "sagrado",
   "words": [
    "agrado",
-   "asado",
    "daga",
    "gorda",
    "grado",
@@ -25330,8 +23413,6 @@
   "base": "salario",
   "words": [
    "aislar",
-   "aria",
-   "ira",
    "oir",
    "risa",
    "rosa",
@@ -25352,14 +23433,12 @@
    "asado",
    "atado",
    "lado",
-   "lata",
    "ola",
    "sal",
    "sala",
    "salado",
    "saldo",
    "salto",
-   "soda",
    "sol"
   ]
  },
@@ -25371,7 +23450,6 @@
    "aura",
    "dura",
    "ladra",
-   "ruda",
    "sal",
    "sala",
    "saldar",
@@ -25408,8 +23486,7 @@
    "salvar",
    "salvo",
    "sol",
-   "valor",
-   "volar"
+   "valor"
   ]
  },
  {
@@ -25417,16 +23494,13 @@
   "words": [
    "ama",
    "amar",
-   "aria",
    "arma",
-   "asma",
    "asumir",
    "ira",
    "masa",
    "mira",
    "misa",
    "rama",
-   "rima",
    "risa",
    "suma",
    "sumar",
@@ -25468,10 +23542,8 @@
    "data",
    "dia",
    "diana",
-   "dina",
    "ida",
    "nasa",
-   "nata",
    "sandia",
    "sanidad",
    "sida",
@@ -25486,8 +23558,6 @@
    "ama",
    "amo",
    "amor",
-   "arma",
-   "aroma",
    "camaro",
    "cara",
    "casa",
@@ -25497,7 +23567,6 @@
    "marca",
    "marco",
    "mascar",
-   "mosca",
    "sacar"
   ]
  },
@@ -25509,7 +23578,6 @@
    "negro",
    "resto",
    "sangre",
-   "sentar",
    "ser",
    "sera",
    "tren"
@@ -25536,13 +23604,10 @@
    "auto",
    "autor",
    "nota",
-   "notar",
    "rato",
    "raton",
    "ron",
    "rosa",
-   "ruso",
-   "ruta",
    "santo",
    "son",
    "sonar",
@@ -25557,7 +23622,6 @@
    "cien",
    "cinco",
    "cine",
-   "cisco",
    "cisne",
    "eco",
    "necio",
@@ -25614,16 +23678,13 @@
  {
   "base": "sediento",
   "words": [
-   "denso",
    "deseo",
    "diente",
-   "dino",
    "dote",
    "eden",
    "ido",
    "nido",
    "nieto",
-   "sed",
    "seno",
    "sentido",
    "siete",
@@ -25641,19 +23702,15 @@
    "corte",
    "cortes",
    "cuerdo",
-   "curso",
    "doce",
    "duro",
-   "eco",
    "escudo",
    "red",
    "resto",
-   "reto",
    "ruso",
    "sector",
    "sed",
    "ser",
-   "set",
    "truco",
    "uso"
   ]
@@ -25711,15 +23768,12 @@
    "amor",
    "era",
    "famoso",
-   "fase",
    "forma",
    "frase",
    "fresa",
-   "mareo",
    "mes",
    "mesa",
    "oro",
-   "oso",
    "romeo",
    "rosa",
    "ser",
@@ -25735,14 +23789,11 @@
    "ama",
    "amen",
    "lana",
-   "lema",
-   "lena",
    "mal",
    "mala",
    "masa",
    "mes",
    "mesa",
-   "nasa",
    "nasal",
    "sal",
    "sala",
@@ -25758,7 +23809,6 @@
    "lente",
    "mal",
    "mantel",
-   "mate",
    "mental",
    "mente",
    "mes",
@@ -25766,8 +23816,7 @@
    "metal",
    "sal",
    "tema",
-   "ten",
-   "tesla"
+   "ten"
   ]
  },
  {
@@ -25775,9 +23824,7 @@
   "words": [
    "leal",
    "leila",
-   "lema",
    "lila",
-   "lima",
    "mal",
    "mes",
    "mesa",
@@ -25800,8 +23847,7 @@
    "ser",
    "sera",
    "son",
-   "sonar",
-   "sonda"
+   "sonar"
   ]
  },
  {
@@ -25813,7 +23859,6 @@
    "leo",
    "lesion",
    "lleno",
-   "once",
    "sillon",
    "sol",
    "son"
@@ -25824,14 +23869,12 @@
   "words": [
    "denso",
    "deseo",
-   "dron",
    "eden",
    "enredo",
    "red",
    "rene",
    "reno",
    "ron",
-   "sed",
    "seno",
    "ser",
    "sereno",
@@ -25908,7 +23951,6 @@
    "pasado",
    "pasar",
    "pero",
-   "pesado",
    "poder",
    "ser",
    "sera"
@@ -25926,7 +23968,6 @@
    "pase",
    "pasear",
    "perra",
-   "pesa",
    "pesar",
    "ser",
    "sera"
@@ -25936,7 +23977,6 @@
   "base": "septimo",
   "words": [
    "mes",
-   "mito",
    "pesimo",
    "peso",
    "pie",
@@ -25958,7 +23998,6 @@
    "dia",
    "edad",
    "era",
-   "ida",
    "idea",
    "idear",
    "ira",
@@ -25968,7 +24007,6 @@
    "ser",
    "sera",
    "serie",
-   "sida",
    "sidra"
   ]
  },
@@ -25991,7 +24029,6 @@
    "desvio",
    "ido",
    "oir",
-   "red",
    "reir",
    "ser",
    "serio",
@@ -25999,8 +24036,7 @@
    "siervo",
    "ver",
    "verso",
-   "video",
-   "visor"
+   "video"
   ]
  },
  {
@@ -26037,7 +24073,6 @@
   "words": [
    "oir",
    "oro",
-   "oso",
    "resto",
    "reto",
    "roto",
@@ -26046,12 +24081,10 @@
    "señor",
    "sorteo",
    "tesoro",
-   "tieso",
    "tio",
    "tiro",
    "toro",
-   "torso",
-   "trio"
+   "torso"
   ]
  },
  {
@@ -26061,16 +24094,13 @@
    "bola",
    "bolsa",
    "bota",
-   "labio",
    "lio",
    "lista",
    "listo",
    "ola",
-   "sabio",
    "sal",
    "salio",
    "salto",
-   "silba",
    "sol",
    "tio"
   ]
@@ -26107,13 +24137,11 @@
   "words": [
    "ira",
    "iris",
-   "lima",
    "mal",
    "mil",
    "mira",
    "misa",
    "misil",
-   "rima",
    "risa",
    "sal",
    "salir"
@@ -26131,7 +24159,6 @@
    "pasa",
    "pasta",
    "pata",
-   "pisa",
    "pista",
    "tapa",
    "tasa"
@@ -26149,8 +24176,6 @@
    "misa",
    "mula",
    "mural",
-   "musa",
-   "rima",
    "risa",
    "sal",
    "salir",
@@ -26180,9 +24205,7 @@
    "dinero",
    "ido",
    "medio",
-   "mes",
    "miedo",
-   "minero",
    "nido",
    "reno",
    "seno",
@@ -26210,8 +24233,6 @@
   "words": [
    "gira",
    "gris",
-   "grua",
-   "guiar",
    "igual",
    "ira",
    "liga",
@@ -26224,7 +24245,6 @@
    "sal",
    "salir",
    "unir",
-   "urna",
    "usar"
   ]
  },
@@ -26237,14 +24257,11 @@
    "mason",
    "maton",
    "mina",
-   "mona",
    "monta",
-   "motin",
    "nota",
    "sano",
    "santo",
    "son",
-   "timon",
    "tina",
    "tio",
    "toma"
@@ -26287,14 +24304,11 @@
   "words": [
    "bar",
    "base",
-   "besar",
    "beso",
    "era",
    "obra",
    "oro",
-   "oso",
    "robo",
-   "rosa",
    "saber",
    "sabor",
    "ser",
@@ -26309,8 +24323,6 @@
   "words": [
    "bar",
    "baron",
-   "barro",
-   "bono",
    "borron",
    "obra",
    "oro",
@@ -26322,7 +24334,6 @@
    "rosa",
    "sabor",
    "sano",
-   "sobra",
    "son",
    "sonar"
   ]
@@ -26414,8 +24425,7 @@
    "solo",
    "sorteo",
    "tesoro",
-   "torso",
-   "toser"
+   "torso"
   ]
  },
  {
@@ -26429,8 +24439,7 @@
    "solo",
    "son",
    "sucio",
-   "unico",
-   "uso"
+   "unico"
   ]
  },
  {
@@ -26484,7 +24493,6 @@
    "par",
    "parto",
    "paso",
-   "raro",
    "rastro",
    "ropa",
    "rostro",
@@ -26505,7 +24513,6 @@
    "roto",
    "ser",
    "tesoro",
-   "top",
    "torpe"
   ]
  },
@@ -26513,7 +24520,6 @@
   "base": "soprano",
   "words": [
    "arpon",
-   "asno",
    "oro",
    "oso",
    "pan",
@@ -26521,7 +24527,6 @@
    "paro",
    "paso",
    "posar",
-   "proa",
    "ron",
    "ropa",
    "rosa",
@@ -26537,7 +24542,6 @@
   "words": [
    "era",
    "esposa",
-   "operar",
    "pero",
    "perra",
    "perro",
@@ -26556,7 +24560,6 @@
    "escapo",
    "escaso",
    "esposa",
-   "pase",
    "paseo",
    "paso",
    "pecho"
@@ -26573,10 +24576,8 @@
    "reto",
    "ser",
    "son",
-   "sosten",
    "ten",
    "tener",
-   "tenso",
    "tren"
   ]
  },
@@ -26608,7 +24609,6 @@
    "seco",
    "sed",
    "sucio",
-   "sueco",
    "uso"
   ]
  },
@@ -26623,13 +24623,11 @@
    "once",
    "seco",
    "seis",
-   "seno",
    "sesion",
    "son",
    "suceso",
    "sucio",
    "sueco",
-   "sueno",
    "unico",
    "uso"
   ]
@@ -26672,7 +24670,6 @@
   "base": "sudadera",
   "words": [
    "area",
-   "aura",
    "deuda",
    "duda",
    "dudar",
@@ -26681,7 +24678,6 @@
    "era",
    "red",
    "redada",
-   "ruda",
    "rueda",
    "sed",
    "ser",
@@ -26729,7 +24725,6 @@
    "par",
    "pase",
    "perra",
-   "persa",
    "pesa",
    "pesar",
    "presa",
@@ -26746,7 +24741,6 @@
    "pero",
    "perro",
    "pie",
-   "piso",
    "ser",
    "serio",
    "sirope",
@@ -26761,11 +24755,9 @@
    "peso",
    "poner",
    "preso",
-   "puro",
    "ron",
    "ser",
    "son",
-   "sueno",
    "suero",
    "supero",
    "uso"
@@ -26781,12 +24773,10 @@
    "muera",
    "par",
    "pase",
-   "persa",
    "pesar",
    "presa",
    "ser",
    "sera",
-   "suma",
    "usar"
   ]
  },
@@ -26794,14 +24784,12 @@
   "base": "supremo",
   "words": [
    "mes",
-   "muro",
    "museo",
    "peor",
    "pero",
    "peso",
    "preso",
    "puro",
-   "ruso",
    "ser",
    "suero",
    "supero",
@@ -26858,7 +24846,6 @@
  {
   "base": "taberna",
   "words": [
-   "abra",
    "ante",
    "arabe",
    "area",
@@ -26870,7 +24857,6 @@
    "renta",
    "tarea",
    "ten",
-   "traba",
    "tren"
   ]
  },
@@ -26881,12 +24867,10 @@
    "arbol",
    "arte",
    "bar",
-   "brote",
    "era",
    "labor",
    "leo",
    "letra",
-   "obra",
    "ola",
    "rato",
    "relato",
@@ -26913,8 +24897,6 @@
    "alta",
    "altar",
    "alto",
-   "aorta",
-   "arado",
    "atado",
    "dolar",
    "lado",
@@ -26924,7 +24906,6 @@
    "rata",
    "rato",
    "rol",
-   "tara",
    "tardo"
   ]
  },
@@ -26945,14 +24926,12 @@
  {
   "base": "talisman",
   "words": [
-   "ala",
    "alias",
    "alma",
    "alta",
    "ama",
    "animal",
    "lastima",
-   "latin",
    "lista",
    "mal",
    "mala",
@@ -26962,7 +24941,6 @@
    "mil",
    "sal",
    "sala",
-   "salami",
    "salina"
   ]
  },
@@ -26977,9 +24955,7 @@
    "padre",
    "par",
    "parada",
-   "pared",
    "parte",
-   "pata",
    "patada",
    "rata",
    "red",
@@ -27022,7 +24998,6 @@
   "words": [
    "ala",
    "alerta",
-   "aleta",
    "alta",
    "altar",
    "area",
@@ -27032,12 +25007,9 @@
    "lata",
    "letra",
    "rata",
-   "tara",
    "tarea",
    "tarta",
-   "tela",
-   "trata",
-   "treta"
+   "trata"
   ]
  },
  {
@@ -27048,9 +25020,7 @@
    "cal",
    "caldo",
    "celda",
-   "cola",
    "delta",
-   "doce",
    "eco",
    "lado",
    "leo",
@@ -27058,7 +25028,6 @@
    "ola",
    "talco",
    "tecla",
-   "tela",
    "toca"
   ]
  },
@@ -27069,7 +25038,6 @@
    "can",
    "cante",
    "cena",
-   "cien",
    "cine",
    "cinta",
    "cita",
@@ -27113,10 +25081,8 @@
    "arte",
    "bar",
    "bate",
-   "beta",
    "era",
    "lamer",
-   "lema",
    "letra",
    "mal",
    "marte",
@@ -27157,7 +25123,6 @@
    "parte",
    "pelota",
    "pero",
-   "plato",
    "templo",
    "toma",
    "tomar"
@@ -27170,7 +25135,6 @@
    "amor",
    "apreton",
    "era",
-   "montar",
    "parte",
    "patron",
    "pero",
@@ -27180,8 +25144,6 @@
  {
   "base": "tenedor",
   "words": [
-   "dote",
-   "enredo",
    "entero",
    "eterno",
    "red",
@@ -27231,15 +25193,12 @@
   "words": [
    "adentro",
    "ante",
-   "arte",
    "atento",
    "dan",
    "entrado",
    "era",
    "rato",
    "raton",
-   "red",
-   "rodante",
    "tarde",
    "teatro",
    "ten",
@@ -27253,7 +25212,6 @@
   "words": [
    "aire",
    "aparte",
-   "area",
    "arte",
    "era",
    "par",
@@ -27289,8 +25247,7 @@
    "recto",
    "rector",
    "reto",
-   "tercer",
-   "trece"
+   "tercer"
   ]
  },
  {
@@ -27298,7 +25255,6 @@
   "words": [
    "aire",
    "era",
-   "letra",
    "mal",
    "maletin",
    "mental",
@@ -27307,8 +25263,7 @@
    "metal",
    "mil",
    "mira",
-   "tenia",
-   "tren"
+   "tenia"
   ]
  },
  {
@@ -27342,14 +25297,12 @@
   "base": "ternera",
   "words": [
    "ante",
-   "arre",
    "arte",
    "entera",
    "enterar",
    "entrar",
    "era",
    "errante",
-   "rene",
    "renta",
    "rentar",
    "ten",
@@ -27382,14 +25335,12 @@
   "words": [
    "area",
    "arte",
-   "atar",
    "atraer",
    "era",
    "rareza",
    "rata",
    "raza",
    "rezar",
-   "tara",
    "tarea",
    "taza",
    "traer",
@@ -27401,7 +25352,6 @@
   "words": [
    "entero",
    "eterno",
-   "rene",
    "reto",
    "ron",
    "ten",
@@ -27417,11 +25367,9 @@
    "bruno",
    "oir",
    "ron",
-   "rubio",
    "tio",
    "tiro",
    "tribu",
-   "trio",
    "tubo",
    "turbio",
    "turno",
@@ -27436,7 +25384,6 @@
    "radio",
    "raro",
    "rato",
-   "rodar",
    "tio",
    "tirado",
    "tirar",
@@ -27482,8 +25429,6 @@
    "actor",
    "arco",
    "caro",
-   "codo",
-   "coro",
    "cortado",
    "corto",
    "doctor",
@@ -27491,12 +25436,10 @@
    "rato",
    "roca",
    "roto",
-   "taco",
    "tardo",
    "toca",
    "tocado",
-   "tocar",
-   "toro"
+   "tocar"
   ]
  },
  {
@@ -27508,14 +25451,12 @@
    "leo",
    "letra",
    "ola",
-   "oler",
    "raro",
    "rato",
    "relato",
    "reto",
    "rol",
    "tarro",
-   "tela",
    "traer"
   ]
  },
@@ -27530,13 +25471,10 @@
    "ante",
    "atado",
    "dan",
-   "delta",
    "dental",
    "lado",
    "lento",
    "leo",
-   "nota",
-   "ola",
    "ten"
   ]
  },
@@ -27545,7 +25483,6 @@
   "words": [
    "aire",
    "era",
-   "nitrato",
    "teatro",
    "tenia",
    "teoria",
@@ -27558,11 +25495,8 @@
  {
   "base": "torcido",
   "words": [
-   "codo",
    "coito",
-   "coro",
    "corto",
-   "crio",
    "doctor",
    "ido",
    "odio",
@@ -27587,7 +25521,6 @@
    "montar",
    "teatro",
    "ten",
-   "toma",
    "tomar",
    "trato"
   ]
@@ -27596,12 +25529,10 @@
   "base": "tormento",
   "words": [
    "menor",
-   "mentor",
    "metro",
    "mono",
    "moreno",
    "moreton",
-   "moto",
    "motor",
    "oro",
    "remoto",
@@ -27611,21 +25542,18 @@
    "tomo",
    "tonto",
    "torneo",
-   "tren",
-   "trono"
+   "tren"
   ]
  },
  {
   "base": "tornillo",
   "words": [
    "lio",
-   "litro",
    "lloro",
    "lloron",
    "oir",
    "olor",
    "oro",
-   "rol",
    "rollo",
    "ron",
    "roto",
@@ -27633,14 +25561,12 @@
    "tiro",
    "tono",
    "torno",
-   "toro",
    "trono"
   ]
  },
  {
   "base": "torpedo",
   "words": [
-   "dote",
    "oro",
    "peor",
    "pero",
@@ -27653,7 +25579,6 @@
    "rodeo",
    "roto",
    "top",
-   "tope",
    "topo",
    "toro",
    "torpe"
@@ -27667,7 +25592,6 @@
    "gato",
    "gota",
    "grua",
-   "oruga",
    "rato",
    "ruta",
    "torta",
@@ -27686,7 +25610,6 @@
    "rato",
    "rotura",
    "ruta",
-   "tarro",
    "torta",
    "trato",
    "tutor"
@@ -27739,13 +25662,11 @@
   "base": "traccion",
   "words": [
    "accion",
-   "actor",
    "cinco",
    "cinta",
    "cita",
    "cocina",
    "cocinar",
-   "contar",
    "contra",
    "cortina",
    "cronica",
@@ -27753,8 +25674,6 @@
    "nota",
    "oir",
    "rato",
-   "rico",
-   "ron",
    "tio",
    "tocar"
   ]
@@ -27764,7 +25683,6 @@
   "words": [
    "acto",
    "actor",
-   "arco",
    "caro",
    "carro",
    "corra",
@@ -27772,8 +25690,6 @@
    "raro",
    "rato",
    "roca",
-   "taco",
-   "tacto",
    "toca",
    "tocar",
    "torta",
@@ -27785,8 +25701,6 @@
   "words": [
    "acudir",
    "cita",
-   "criar",
-   "cruda",
    "cuida",
    "cuidar",
    "cura",
@@ -27797,7 +25711,6 @@
    "durar",
    "ida",
    "ira",
-   "rica",
    "ruta",
    "tira",
    "tirar"
@@ -27810,7 +25723,6 @@
    "artico",
    "cita",
    "factor",
-   "frio",
    "ira",
    "oir",
    "rato",
@@ -27826,7 +25738,6 @@
    "dia",
    "era",
    "grieta",
-   "grita",
    "idea",
    "ira",
    "tarde",
@@ -27837,7 +25748,6 @@
  {
   "base": "tragico",
   "words": [
-   "actor",
    "artico",
    "cargo",
    "cita",
@@ -27847,7 +25757,6 @@
    "rato",
    "rico",
    "tio",
-   "toca",
    "tocar",
    "trago"
   ]
@@ -27860,7 +25769,6 @@
    "contar",
    "contra",
    "cortina",
-   "ira",
    "noticia",
    "oir",
    "rato",
@@ -27880,7 +25788,6 @@
    "tirado",
    "tirador",
    "tirar",
-   "tiro",
    "traido"
   ]
  },
@@ -27897,17 +25804,14 @@
    "paso",
    "pastor",
    "postor",
-   "ropa",
    "toma",
    "tomar",
-   "trompa",
-   "tropa"
+   "trompa"
   ]
  },
  {
   "base": "transito",
   "words": [
-   "ira",
    "nitrato",
    "nota",
    "oir",
@@ -27919,7 +25823,6 @@
    "tio",
    "tirano",
    "tiro",
-   "trasto",
    "trato"
   ]
  },
@@ -27950,7 +25853,6 @@
    "raro",
    "rastro",
    "resto",
-   "retraso",
    "ser",
    "sera",
    "traer"
@@ -27961,10 +25863,8 @@
   "words": [
    "ala",
    "alto",
-   "dolar",
    "lado",
    "sal",
-   "sala",
    "saltado",
    "saltador",
    "saltar",
@@ -27985,7 +25885,6 @@
    "rato",
    "tara",
    "tarta",
-   "torta",
    "trata",
    "trato"
   ]
@@ -27994,7 +25893,6 @@
   "base": "travieso",
   "words": [
    "aire",
-   "arte",
    "era",
    "evitar",
    "rato",
@@ -28004,10 +25902,8 @@
    "sera",
    "serio",
    "teoria",
-   "tio",
    "traves",
    "ver",
-   "vista",
    "visto"
   ]
  },
@@ -28019,13 +25915,10 @@
    "arte",
    "ayer",
    "caer",
-   "cero",
    "corte",
    "eco",
    "era",
    "rato",
-   "recta",
-   "recto",
    "teatro",
    "toca",
    "tocar",
@@ -28055,7 +25948,6 @@
    "entero",
    "mente",
    "red",
-   "rene",
    "reto",
    "ron",
    "ten",
@@ -28107,8 +25999,6 @@
    "resta",
    "ser",
    "sera",
-   "set",
-   "tira",
    "treta",
    "triste"
   ]
@@ -28116,12 +26006,9 @@
  {
   "base": "triunfar",
   "words": [
-   "atun",
    "fan",
    "fin",
-   "fina",
    "fria",
-   "frita",
    "fruta",
    "furia",
    "ira",
@@ -28147,8 +26034,6 @@
    "ron",
    "tio",
    "tiro",
-   "tiron",
-   "trio",
    "turno",
    "unir"
   ]
@@ -28172,12 +26057,9 @@
    "amo",
    "amor",
    "era",
-   "metro",
    "par",
    "parte",
-   "peor",
    "pero",
-   "ropa",
    "teatro",
    "toma",
    "tomar",
@@ -28193,15 +26075,12 @@
    "alto",
    "artico",
    "calor",
-   "cita",
    "claro",
    "copiar",
-   "cripta",
    "ira",
    "oir",
    "par",
    "pilotar",
-   "plato",
    "portal",
    "ropa",
    "tio",
@@ -28217,7 +26096,6 @@
    "bar",
    "bate",
    "batir",
-   "beta",
    "bruta",
    "buitre",
    "era",
@@ -28225,8 +26103,7 @@
    "rubia",
    "ruta",
    "tira",
-   "tribu",
-   "turba"
+   "tribu"
   ]
  },
  {
@@ -28267,7 +26144,6 @@
  {
   "base": "uniforme",
   "words": [
-   "feo",
    "fin",
    "frio",
    "informe",
@@ -28307,7 +26183,6 @@
    "era",
    "ira",
    "nacer",
-   "negar",
    "negra"
   ]
  },
@@ -28338,7 +26213,6 @@
    "cante",
    "cava",
    "cena",
-   "nata",
    "nave",
    "ten",
    "vaca",
@@ -28386,12 +26260,10 @@
    "nivel",
    "ten",
    "tenia",
-   "tina",
    "vale",
    "venia",
    "venta",
-   "via",
-   "vital"
+   "via"
   ]
  },
  {
@@ -28420,9 +26292,7 @@
    "sol",
    "solo",
    "vals",
-   "vaso",
-   "via",
-   "viola"
+   "vaso"
   ]
  },
  {
@@ -28434,7 +26304,6 @@
    "mira",
    "oir",
    "par",
-   "pavo",
    "prima",
    "primo",
    "ropa",
@@ -28460,7 +26329,6 @@
   "words": [
    "aire",
    "area",
-   "averia",
    "deriva",
    "dia",
    "edad",
@@ -28468,17 +26336,14 @@
    "idea",
    "idear",
    "ira",
-   "red",
    "redada",
    "ver",
-   "vera",
    "verdad"
   ]
  },
  {
   "base": "vehiculo",
   "words": [
-   "celo",
    "cielo",
    "echo",
    "eco",
@@ -28493,19 +26358,15 @@
  {
   "base": "vencedor",
   "words": [
-   "ceder",
    "cerdo",
    "cero",
    "conde",
-   "credo",
    "doce",
    "eco",
-   "eden",
    "enredo",
    "once",
    "red",
    "rene",
-   "reno",
    "ron",
    "vencer",
    "vender",
@@ -28518,9 +26379,7 @@
   "base": "vencida",
   "words": [
    "ave",
-   "can",
    "cena",
-   "cien",
    "cine",
    "dan",
    "dia",
@@ -28537,7 +26396,6 @@
  {
   "base": "vendedor",
   "words": [
-   "dron",
    "eden",
    "enredo",
    "red",
@@ -28583,7 +26441,6 @@
    "antena",
    "ave",
    "nana",
-   "nata",
    "nave",
    "ten",
    "vena",
@@ -28608,7 +26465,6 @@
   "words": [
    "nervio",
    "reno",
-   "seno",
    "ser",
    "serio",
    "siervo",
@@ -28622,8 +26478,6 @@
   "base": "vertical",
   "words": [
    "aire",
-   "arte",
-   "ave",
    "cartel",
    "cita",
    "clave",
@@ -28633,7 +26487,6 @@
    "letra",
    "litera",
    "recital",
-   "rival",
    "vale",
    "ver",
    "via",
@@ -28668,7 +26521,6 @@
    "ido",
    "sed",
    "tio",
-   "tose",
    "veto",
    "video",
    "visto"
@@ -28677,13 +26529,11 @@
  {
   "base": "veterano",
   "words": [
-   "ante",
    "entera",
    "entero",
    "era",
    "nave",
    "rato",
-   "raton",
    "ron",
    "ten",
    "tener",
@@ -28698,8 +26548,6 @@
   "base": "viajero",
   "words": [
    "aire",
-   "ajo",
-   "ave",
    "averio",
    "era",
    "ira",
@@ -28764,12 +26612,10 @@
    "avion",
    "lila",
    "lio",
-   "llano",
    "lona",
    "navio",
    "ola",
    "olla",
-   "ovni",
    "vano",
    "via",
    "villa",
@@ -28781,7 +26627,6 @@
   "base": "vinagre",
   "words": [
    "aire",
-   "ave",
    "enviar",
    "era",
    "gira",
@@ -28789,9 +26634,7 @@
    "ira",
    "nave",
    "negra",
-   "vega",
    "vengar",
-   "venia",
    "venir",
    "ver",
    "vera",
@@ -28816,8 +26659,6 @@
   "base": "violado",
   "words": [
    "dia",
-   "diva",
-   "ida",
    "ido",
    "idolo",
    "lado",
@@ -28825,7 +26666,6 @@
    "lodo",
    "odio",
    "oido",
-   "ola",
    "olvido",
    "valido",
    "via",
@@ -28837,7 +26677,6 @@
   "words": [
    "envio",
    "leo",
-   "lio",
    "nivel",
    "novio",
    "ten",
@@ -28862,7 +26701,6 @@
    "vale",
    "vela",
    "velo",
-   "veto",
    "via",
    "viola",
    "vital"
@@ -28912,11 +26750,8 @@
    "par",
    "pase",
    "pesar",
-   "pie",
-   "pisar",
    "presa",
    "prisa",
-   "risa",
    "ser",
    "sera",
    "ver",
@@ -28948,14 +26783,11 @@
    "dan",
    "dean",
    "dia",
-   "diva",
    "envidia",
-   "ida",
    "idea",
    "nadie",
    "nave",
    "vena",
-   "venda",
    "vendi",
    "venia",
    "venida",
@@ -28972,9 +26804,6 @@
    "coca",
    "cocina",
    "coco",
-   "cono",
-   "icono",
-   "navio",
    "novio",
    "ovni",
    "vacio",
@@ -29004,7 +26833,6 @@
   "base": "volante",
   "words": [
    "alto",
-   "ante",
    "ave",
    "lento",
    "leo",
@@ -29039,7 +26867,6 @@
    "ira",
    "mira",
    "oir",
-   "rato",
    "ritmo",
    "tio",
    "toma",
@@ -29059,7 +26886,6 @@
    "novato",
    "novio",
    "tio",
-   "tocino",
    "via",
    "vino"
   ]
