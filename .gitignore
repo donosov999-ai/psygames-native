@@ -98,6 +98,9 @@ wordlist-build/es_apellidos-*.txt
 wordlist-build/es_nombres-propios-*.txt
 wordlist-build/ldnoobw_*
 wordlist-build/ko_50k.txt
+wordlist-build/ru_full.txt
+wordlist-build/ar_50k.txt
+wordlist-build/ja_full.txt
 
 # Рабочая папка чата «Слова»: замеры, черновики, листы генерации картинок (20 МБ).
 # В репозиторий не идёт НИЧЕГО из неё: PROJECT_REF.md закрыт правилом выше, а
