@@ -10,7 +10,8 @@
  * Функции настоящие, из экрана: `goalPlan`, `goalMet`, `goalProgress`,
  * `levelCfg`. Гейт, который повторяет правило своей копией, зелен вслепую.
  */
-import { goalPlan, goalMet, goalProgress, levelCfg, clampGoalToLevel } from '@/app/games/goods-sort';
+import { goalPlan, goalMet, goalProgress, levelCfg, clampGoalToLevel,
+  scoreForClears, CLEAR_SCORE, pairHintVisible, PAIR_HINT_UNTIL } from '@/app/games/goods-sort';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -189,9 +190,23 @@ describe('находки ресёрча закрыты', () => {
    * Звук `sndCombo` играл, справка обещала «×2, ×3», а каждая тройка давала
    * ровно 50 — сколько бы их ни ссыпалось разом.
    */
-  it('комбо оплачивается множителем, а не плоской ставкой', () => {
-    expect(code).toMatch(/gained \+= 50 \* clearedNow/);
-    expect(code).not.toMatch(/scoreRef\.current \+= 50;/);
+  /**
+   * 🔴 ИСПОЛНЕНИЕМ, А НЕ СОВПАДЕНИЕМ СТРОКИ. Прежняя редакция сверяла текст
+   * `gained += 50 * clearedNow`: такая проверка краснеет на верном коде, если
+   * переставить слагаемые, и остаётся зелёной, если поменять 50 на 5 — имя-то
+   * в строке осталось. Цена цепочки вынесена в чистую функцию и вызывается.
+   */
+  it('🔴 комбо оплачивается множителем, а не плоской ставкой', () => {
+    // Одна тройка — базовая ставка; дальше цепочка дороже суммы тех же троек врозь.
+    expect(scoreForClears(1)).toBe(CLEAR_SCORE);
+    expect(scoreForClears(2)).toBe(CLEAR_SCORE * 3);
+    expect(scoreForClears(3)).toBe(CLEAR_SCORE * 6);
+    // Главное свойство: цепочка из n дороже, чем n одиночных.
+    for (let n = 2; n <= 6; n += 1) {
+      expect(scoreForClears(n)).toBeGreaterThan(scoreForClears(1) * n * 0.999 - 1);
+      expect(scoreForClears(n)).toBeGreaterThan(scoreForClears(n - 1));
+    }
+    expect(scoreForClears(0)).toBe(0);
   });
 
   /**
@@ -218,7 +233,13 @@ describe('находки ресёрча закрыты', () => {
    * уровнях это ровно то, что надо объяснить; дальше она снимает половину
    * зрительного поиска — как раз ту работу, ради которой сюда приходят.
    */
-  it('подсветка пары обучающая, а не постоянная', () => {
-    expect(code).toMatch(/hasPair\(cell\) && level <= \d/);
+  it('🔴 подсветка пары обучающая, а не постоянная', () => {
+    expect(pairHintVisible(1)).toBe(true);
+    expect(pairHintVisible(PAIR_HINT_UNTIL)).toBe(true);
+    expect(pairHintVisible(PAIR_HINT_UNTIL + 1)).toBe(false);
+    expect(pairHintVisible(60)).toBe(false);
+    // Обе стороны непусты: порог внутри лестницы, а не за её краем.
+    expect(PAIR_HINT_UNTIL).toBeGreaterThan(1);
+    expect(PAIR_HINT_UNTIL).toBeLessThan(15);
   });
 });
