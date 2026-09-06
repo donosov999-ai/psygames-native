@@ -25,7 +25,7 @@ import { levelParams as quickCount, QUICK_COUNT_LEVELS } from '@/app/games/quick
 import { levelParams as visualSearch } from '@/app/games/visual-search';
 import { levelParams as proofreading } from '@/app/games/proofreading';
 import { levelParams as findDifferences } from '@/app/games/find-differences';
-import { levelParams as schulte } from '@/app/games/schulte';
+import { levelParams as schulte, SCHULTE_LEVELS } from '@/app/games/schulte';
 import { LEVELS as TRACKER_LEVELS } from '@/src/games/object-tracker/core/types';
 
 // Те же две строки, что в `mahjong-stuck-exit`: jest-окружение даёт их в рантайме,
@@ -60,7 +60,7 @@ const ИГРЫ: { имя: string; лестница: (L: number) => unknown; об
   { имя: 'зрительный поиск', лестница: (L) => visualSearch(L, 1), объявлено: undefined },
   { имя: 'корректура', лестница: proofreading, объявлено: undefined },
   { имя: 'найди отличия', лестница: findDifferences, объявлено: undefined },
-  { имя: 'Шульте', лестница: schulte, объявлено: undefined },
+  { имя: 'Шульте', лестница: schulte, объявлено: SCHULTE_LEVELS },
 ];
 
 describe('🔴 подпись «Уровень N/M» не занижает лестницу', () => {
@@ -97,13 +97,22 @@ describe('🔴 подпись «Уровень N/M» не занижает ле�
     expect(TRACKER_LEVELS).toBeGreaterThan(LADDER_MIN);
   });
 
-  it('четыре игры на 15 совпадают с умолчанием НЕ случайно — а потому что там правда 15', () => {
-    // Иначе «совпало» читалось бы как «работает», и рост любой из четырёх
-    // лестниц прошёл бы мимо подписи молча.
-    for (const имя of ['зрительный поиск', 'корректура', 'найди отличия', 'Шульте']) {
-      const g = ИГРЫ.find((x) => x.имя === имя) as (typeof ИГРЫ)[number];
-      expect(`${имя}: ${вершина(g.лестница)}`).toBe(`${имя}: ${LADDER_MIN}`);
-    }
+  it('игра, ничего НЕ объявляющая, обязана и правда кончаться на умолчании', () => {
+    /**
+     * ⚠️ СПИСОК ЗДЕСЬ ВЫВОДИТСЯ, А НЕ ВПИСАН — и это не педантизм. Сначала он был
+     * вписан именами четырёх игр («зрительный поиск, корректура, отличия,
+     * Шульте»). Через час ось 9 подняла лестницу Шульте с 15 до 18, и строка
+     * покраснела не потому, что нашла дефект, а потому что устарела сама.
+     * Теперь проверяется правило, а не перечень: кто молчит про свой потолок —
+     * тот обязан кончаться ровно на умолчании.
+     */
+    const молчуны = ИГРЫ.filter((g) => g.объявлено === undefined && g.имя !== 'слежение за объектами');
+    expect(молчуны.length).toBeGreaterThan(0);
+    const врут = молчуны
+      .map((g) => ({ имя: g.имя, верх: вершина(g.лестница) }))
+      .filter((x) => x.верх !== LADDER_MIN)
+      .map((x) => `${x.имя}: лестница до ${x.верх}, а объявлено ${LADDER_MIN}`);
+    expect(врут).toEqual([]);
   });
 });
 

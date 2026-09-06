@@ -119,6 +119,42 @@ export function maxGridFor(mode: ContentMode, alphabetSize: number): number {
  *  Для mixed (Шульте-Горбов) backward/center-out не применяются (нелогично). */
 type Direction = 'forward' | 'backward' | 'center-out';
 
+/**
+ * Сколько таблица висит БЕЗ объявленного правила (ось 9). Полторы секунды —
+ * столько, чтобы взгляд успел пробежать поле и не успел построить план: план
+ * строится от известной первой цели, а она ещё неизвестна.
+ */
+const ЗАДЕРЖКА_ОБЪЯВЛЕНИЯ_МС = 1500;
+
+/**
+ * Жребий оси 9 вынесен ЗА тело компонента намеренно.
+ *
+ * ⚠️ React-компилятор считает `Math.random()` внутри компонента вызовом во время
+ * отрисовки и краснеет («Cannot call impure function during render») — даже когда
+ * он стоит в обработчике старта, а не в разметке. Замер: одна лишняя ошибка линта
+ * ровно на этой строке. Снаружи компонента правило не нарушается, а поведение то
+ * же самое.
+ */
+function тянутьЖребий(): boolean {
+  return Math.random() < 0.5;
+}
+
+/**
+ * Докуда лестница РЕАЛЬНО растёт — считается из `levelParams`, а не вписано
+ * числом. Ровно как у маджонга и быстрого счёта: вписанное число разошлось бы с
+ * лестницей при первой её правке молча. Проверено делом — когда ось 9 подняла
+ * верх с 15 до 18, гейт `search-ladder-label` покраснел на этой самой игре.
+ */
+export const SCHULTE_LEVELS: number = (() => {
+  let последний = 1;
+  let прежняя = JSON.stringify(levelParams(1));
+  for (let L = 2; L <= 200; L += 1) {
+    const текущая = JSON.stringify(levelParams(L));
+    if (текущая !== прежняя) { последний = L; прежняя = текущая; }
+  }
+  return последний;
+})();
+
 // От центра наружу: h, h+1, h-1, h+2, h-2... (паттерн drafterleo/schulte «divergent»).
 function centerOutOrder(n: number): number[] {
   const mid = Math.floor((n + 1) / 2);
@@ -134,23 +170,55 @@ function centerOutOrder(n: number): number[] {
 // Персональная лесенка 15 ступеней: размер → обратный → буквы → цвет → Горбов → Горбов+цвет.
 // Буквы держим 5×5 (рус/латиница ограничены алфавитом). Сложность растёт ТРУДНОСТЬЮ.
 /** Экспортирована для гейта `search-ladder-label`: объявленный потолок сверяется ИСПОЛНЕНИЕМ этой функции. */
-export function levelParams(level: number): { gridSize: number; contentMode: ContentMode; direction: Direction; colorMode: boolean } {
+/**
+ * 🔴 ОСЬ «НЕПРЕДСКАЗУЕМОСТЬ»: ПРАВИЛО ОБЪЯВЛЯЕТСЯ ПОСЛЕ ПОКАЗА ТАБЛИЦЫ.
+ *
+ * ЗАЧЕМ. Разметка по десяти осям (`search-chat/PROJECT_REF.md` §R) дала у Шульте
+ * ЧЕТЫРЕ занятые: объём (5×5→7×7), строгость порядка (обратный ход), сходство
+ * (буквы, смешанное) и двойная задача (цвет, Горбов). Лестница кончалась на
+ * 15-м — дальше 385 уровней подряд отдавали одно и то же. Я сам написал тогда
+ * «растить нечем, ступени выписаны руками»; это был отказ без замера, снятый
+ * правилом Дениса «потолков нет нигде».
+ *
+ * 🔴 ПОЧЕМУ ПОЗДНО ОБЪЯВЛЯЕТСЯ НЕ НАПРАВЛЕНИЕ. План говорил «направление
+ * объявляется после показа» — оказалось невозможно. С 12-го уровня содержимое
+ * «смешанное» (Шульте-Горбов), а для него обратный ход и «от центра» не
+ * применяются по построению (см. `Direction` и ветку `mixed` в `generateGrid`):
+ * варьировать там нечего. Поэтому поздно объявляется другое правило ИЗ ТОЙ ЖЕ
+ * ОСИ: с чего начинается чередование — с ЦИФРЫ (1-А-2-Б) или с БУКВЫ (А-1-Б-2).
+ * Двоичная неизвестность, работающая именно со смешанным содержимым.
+ *
+ * ⚠️ СЕТКУ ВЫШЕ ШЕСТИ ПОДНЯТЬ НЕЛЬЗЯ, И ЭТО ЗАМЕР, А НЕ ОСТОРОЖНОСТЬ.
+ * `maxGridFor('mixed', n)`: латиница (26 знаков) → 7, кириллица (29) → 8,
+ * а ГРЕЧЕСКИЙ (24) → ровно 6. Уровни общие для всех письменностей, и 7×7
+ * подвесил бы греческую партию — тот самый дефект, ради которого `maxGridFor`
+ * и написан («экран висел, пока человек не уйдёт сам»). Ось растёт не размером.
+ *
+ * ⚠️ ВКЛЮЧАЕТСЯ С 16-го: уровни 1..15 остаются побайтно прежними, чтобы не
+ * переписывать задним числом трудность уже пройденного.
+ */
+export function levelParams(level: number): { gridSize: number; contentMode: ContentMode; direction: Direction; colorMode: boolean; surpriseStart: boolean; moving: boolean } {
   const L = level;
-  if (L <= 1) return { gridSize: 5, contentMode: 'numbers', direction: 'forward', colorMode: false };
-  if (L === 2) return { gridSize: 6, contentMode: 'numbers', direction: 'forward', colorMode: false };
-  if (L === 3) return { gridSize: 7, contentMode: 'numbers', direction: 'forward', colorMode: false };
-  if (L === 4) return { gridSize: 5, contentMode: 'numbers', direction: 'backward', colorMode: false };
-  if (L === 5) return { gridSize: 6, contentMode: 'numbers', direction: 'backward', colorMode: false };
-  if (L === 6) return { gridSize: 5, contentMode: 'letters', direction: 'forward', colorMode: false };
-  if (L === 7) return { gridSize: 5, contentMode: 'letters', direction: 'backward', colorMode: false };
-  if (L === 8) return { gridSize: 5, contentMode: 'numbers', direction: 'forward', colorMode: true };
-  if (L === 9) return { gridSize: 6, contentMode: 'numbers', direction: 'forward', colorMode: true };
-  if (L === 10) return { gridSize: 5, contentMode: 'letters', direction: 'forward', colorMode: true };
-  if (L === 11) return { gridSize: 5, contentMode: 'letters', direction: 'backward', colorMode: true };
-  if (L === 12) return { gridSize: 5, contentMode: 'mixed', direction: 'forward', colorMode: false };
-  if (L === 13) return { gridSize: 6, contentMode: 'mixed', direction: 'forward', colorMode: false };
-  if (L === 14) return { gridSize: 5, contentMode: 'mixed', direction: 'forward', colorMode: true };
-  return { gridSize: 6, contentMode: 'mixed', direction: 'forward', colorMode: true };   // L15+
+  if (L <= 1) return { gridSize: 5, contentMode: 'numbers', direction: 'forward', colorMode: false, surpriseStart: false, moving: false };
+  if (L === 2) return { gridSize: 6, contentMode: 'numbers', direction: 'forward', colorMode: false, surpriseStart: false, moving: false };
+  if (L === 3) return { gridSize: 7, contentMode: 'numbers', direction: 'forward', colorMode: false, surpriseStart: false, moving: false };
+  if (L === 4) return { gridSize: 5, contentMode: 'numbers', direction: 'backward', colorMode: false, surpriseStart: false, moving: false };
+  if (L === 5) return { gridSize: 6, contentMode: 'numbers', direction: 'backward', colorMode: false, surpriseStart: false, moving: false };
+  if (L === 6) return { gridSize: 5, contentMode: 'letters', direction: 'forward', colorMode: false, surpriseStart: false, moving: false };
+  if (L === 7) return { gridSize: 5, contentMode: 'letters', direction: 'backward', colorMode: false, surpriseStart: false, moving: false };
+  if (L === 8) return { gridSize: 5, contentMode: 'numbers', direction: 'forward', colorMode: true, surpriseStart: false, moving: false };
+  if (L === 9) return { gridSize: 6, contentMode: 'numbers', direction: 'forward', colorMode: true, surpriseStart: false, moving: false };
+  if (L === 10) return { gridSize: 5, contentMode: 'letters', direction: 'forward', colorMode: true, surpriseStart: false, moving: false };
+  if (L === 11) return { gridSize: 5, contentMode: 'letters', direction: 'backward', colorMode: true, surpriseStart: false, moving: false };
+  if (L === 12) return { gridSize: 5, contentMode: 'mixed', direction: 'forward', colorMode: false, surpriseStart: false, moving: false };
+  if (L === 13) return { gridSize: 6, contentMode: 'mixed', direction: 'forward', colorMode: false, surpriseStart: false, moving: false };
+  if (L === 14) return { gridSize: 5, contentMode: 'mixed', direction: 'forward', colorMode: true, surpriseStart: false, moving: false };
+  if (L === 15) return { gridSize: 6, contentMode: 'mixed', direction: 'forward', colorMode: true, surpriseStart: false, moving: false };
+  // Ось 9 включается здесь. Растёт не размером (нельзя, см. греческий выше), а
+  // неизвестностью правила и подвижностью клеток.
+  if (L === 16) return { gridSize: 6, contentMode: 'mixed', direction: 'forward', colorMode: false, surpriseStart: true, moving: false };
+  if (L === 17) return { gridSize: 6, contentMode: 'mixed', direction: 'forward', colorMode: true, surpriseStart: true, moving: false };
+  return { gridSize: 6, contentMode: 'mixed', direction: 'forward', colorMode: true, surpriseStart: true, moving: true };   // L18+
 }
 
 export default function SchulteGame() {
@@ -206,6 +274,15 @@ export default function SchulteGame() {
   // v1.116.0: «убегающая цель» — после каждого верного клика сетка перемешивается заново
   // (не только найденная клетка), заставляет пересканировать поле, а не помнить позиции.
   const [reshuffleOnClick, setReshuffleOnClick] = useState(false);
+  /**
+   * Ось 9. `lettersFirst` — с чего начинается чередование в смешанном режиме;
+   * `ruleRevealed` — объявлено ли это игроку. Пока не объявлено, строка «Найти»
+   * показывает «?», а нажатия не считаются: сюрприз обязан стоить ВРЕМЕНИ, а не
+   * ложных ошибок — иначе он не трудность, а ловушка.
+   */
+  const [lettersFirst, setLettersFirst] = useState(false);
+  const [ruleRevealed, setRuleRevealed] = useState(true);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // v1.27.0 (Полиглот): письменность для letters/mixed — латиница/кириллица/греческий/деванагари/кана/иероглифы
   const [script, setScript] = useState<ScriptId>(language === 'ru' ? 'cyrillic' : 'latin');
 
@@ -312,7 +389,7 @@ export default function SchulteGame() {
     };
   }, []);
 
-  const generateGrid = useCallback((gsArg?: number, cmArg?: ContentMode, dirArg?: Direction) => {
+  const generateGrid = useCallback((gsArg?: number, cmArg?: ContentMode, dirArg?: Direction, lfArg?: boolean) => {
     // явные параметры (из уровня) приоритетнее state — иначе stale при setState+generateGrid в одном тике
     const gs = gsArg ?? gridSize;
     const cm = cmArg ?? contentMode;
@@ -360,9 +437,16 @@ export default function SchulteGame() {
       const alphabet = SCRIPTS[script].chars;
       const letters = alphabet.slice(0, totalCells - half).split('');
       orderedSequence = [];
+      // Ось 9: чередование может начинаться с буквы (А-1-Б-2), а не с цифры.
+      const сБуквы = lfArg ?? lettersFirst;
       for (let i = 0; i < half; i++) {
-        orderedSequence.push(numbers[i]);
-        if (i < letters.length) orderedSequence.push(letters[i]);
+        if (сБуквы) {
+          if (i < letters.length) orderedSequence.push(letters[i]);
+          orderedSequence.push(numbers[i]);
+        } else {
+          orderedSequence.push(numbers[i]);
+          if (i < letters.length) orderedSequence.push(letters[i]);
+        }
       }
       orderedSequence = orderedSequence.slice(0, totalCells);
       items = [...orderedSequence];
@@ -382,7 +466,7 @@ export default function SchulteGame() {
     setGrid(items);
     setCellColors(colors);
     setSequence(orderedSequence);
-  }, [gridSize, contentMode, script, direction]);
+  }, [gridSize, contentMode, script, direction, lettersFirst]);
 
   const startGame = (useLevel = false) => {
     if (useLevel && !isPreset) {
@@ -390,8 +474,32 @@ export default function SchulteGame() {
       const p = levelParams(lvl.level);
       levelRef.current = lvl.level;
       useLevelRef.current = true;
-      setGridSize(p.gridSize); setContentMode(p.contentMode); setDirection(p.direction); setColorMode(p.colorMode);
-      generateGrid(p.gridSize, p.contentMode, p.direction);
+      /**
+       * 🔴 СЕТКА УРОВНЯ ОБРЕЗАЕТСЯ ПО АЛФАВИТУ — БЕЗ ЭТОГО ПАРТИЯ НЕ ЗАВЕРШАЛАСЬ.
+       *
+       * Ручная настройка ограничивалась `maxSizeFor` всегда, а путь ПО УРОВНЮ
+       * ставил `p.gridSize` напрямую. Замер 07.09.2026: уровни 6, 7, 10 и 11 —
+       * это 5×5 буквами, то есть 25 клеток, а греческий алфавит даёт 24. Не
+       * хватало ровно одной буквы: `alphabet.slice(0, 25)` возвращал 24 знака,
+       * последовательность выходила короче поля, `currentIndex === totalCells-1`
+       * не наступал никогда. Таймера у Шульте нет — экран висел, пока человек не
+       * уйдёт сам. Тот самый дефект, ради которого `maxGridFor` и написан;
+       * закрыт он был только для ручного режима.
+       *
+       * Нашлось гейтом оси 9, а не жалобой: проверка «сетка не превышает того,
+       * что тянет самый бедный алфавит» покраснела на уровнях, которых я не
+       * трогал.
+       */
+      const влезает = Math.min(p.gridSize, maxSizeFor(p.contentMode));
+      setGridSize(влезает); setContentMode(p.contentMode); setDirection(p.direction); setColorMode(p.colorMode);
+      setReshuffleOnClick(p.moving);
+      // Правило тянем жребием и объявляем ПОСЛЕ того, как таблица уже на экране.
+      const жребий = p.surpriseStart ? тянутьЖребий() : false;
+      setLettersFirst(жребий);
+      setRuleRevealed(!p.surpriseStart);
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+      if (p.surpriseStart) revealTimerRef.current = setTimeout(() => setRuleRevealed(true), ЗАДЕРЖКА_ОБЪЯВЛЕНИЯ_МС);
+      generateGrid(влезает, p.contentMode, p.direction, жребий);
     } else {
       useLevelRef.current = false;
       if (isPreset) {
@@ -716,6 +824,8 @@ export default function SchulteGame() {
   };
 
   const handleCellPress = async (value: number | string, index: number) => {
+    // Правило ещё не объявлено — нажатие не считается ни верным, ни ошибочным.
+    if (!ruleRevealed) return;
     if (groupCount > 1 && cellGroup.length > 0) { await handleGroupCellPress(value, index); return; }
     const expectedValue = sequence[currentIndex];
 
@@ -786,7 +896,7 @@ export default function SchulteGame() {
       {/* Подсказка «или настрой таблицу ниже и нажми Free play» убрана намеренно:
           с явным переключателем она объясняла бы уже несуществующий обходной путь. */}
       {(isPreset || playMode === 'levels') && (<>
-        <LevelProgressMap bestLevel={lvl.best} gameId="schulte_table" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="schulte_table" currentLevel={lvl.level} maxLevel={SCHULTE_LEVELS} onPickLevel={lvl.pick} colors={colors} language={language} />
         {!isPreset && (
           <TouchableOpacity
             accessibilityRole="button"
@@ -1204,7 +1314,7 @@ export default function SchulteGame() {
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('find')}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 {isGroupMode && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS[activeGroup % COLORS.length] }} />}
-                <Text style={[styles.statValue, { color: colors.text }]}>{currentTarget}</Text>
+                <Text style={[styles.statValue, { color: colors.text }]}>{ruleRevealed ? currentTarget : '?'}</Text>
               </View>
             </View>
             <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
