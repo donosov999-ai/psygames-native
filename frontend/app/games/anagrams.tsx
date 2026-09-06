@@ -682,9 +682,10 @@ export default function AnagramGame() {
               (условие в компоненте — «показ отличается от слова»). Так не нужно
               сравнивать `wordLang.lang` с языком, которого в его типе пока нет.
             */
+            locale={wordLang.lang}
             подписьНайденного={показатьКорейское}
             theme={{ surface: colors.surface, text: colors.text, textSecondary: colors.textSecondary, border: colors.border, primary: GRADIENT[0], success: '#12a594', danger: '#e24b4a' }}
-            labels={{ найдено: t('label_found'), подсказки: t('btn_hint'), банк: t('anagramSquareBank'), сдать: t('check'), сброс: t('clear'), подсказка: t('btn_hint') }}
+            labels={{ найдено: t('label_found'), подсказки: t('btn_hint'), банк: t('anagramSquareBank'), сдать: t('check'), сброс: t('clear'), подсказка: t('btn_hint'), перемешать: t('anagramShuffle'), копилка: t('anagramBonus') }}
             now={gameNow}
             onProgress={setArmedSquare}
             onComplete={(подсказок, мс) => {
