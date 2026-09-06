@@ -41,6 +41,7 @@ export {
   FILLWORDS_TINTS,
   applyTrace,
   createFillwordsSession,
+  порядокДляПартии,
   isCleared,
   lettersLeft,
   resolveTrace,

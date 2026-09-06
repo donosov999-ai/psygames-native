@@ -12,7 +12,7 @@
  * (98,1%) одинаковы.
  * ЗАМЕР ПОСЛЕ: 49 настроек, последняя новая на 202-м.
  */
-import { FILLWORDS_LOCALES, fillwordsLevel, generateFillwords, полДлиныЯзыка } from '@/src/games/fillwords/core';
+import { FILLWORDS_LOCALES, applyTrace, createFillwordsSession, fillwordsLevel, generateFillwords, полДлиныЯзыка, порядокДляПартии } from '@/src/games/fillwords/core';
 
 function ключ(L: number): string {
   const c = fillwordsLevel(L);
@@ -120,4 +120,79 @@ it('fr и it поддержаны и собирают поле на всей л�
 
 it('у языков с трёхбуквенными словами пол остался прежним', () => {
   for (const l of ['ru', 'en', 'de', 'es', 'pt']) expect(полДлиныЯзыка(l)).toBe(3);
+});
+
+/**
+ * ОСЬ 6 «СТРОГОСТЬ ПОРЯДКА» — И ЕЁ ЧЕСТНОСТЬ.
+ *
+ * Свободно → по списку → обратный. Обратный труднее прямого не «на глаз»: список
+ * читается сверху вниз, и держать хвост, отсчитывая от конца, — это уже
+ * удержание, а не только поиск.
+ *
+ * 🔴 ГЛАВНОЕ ЗДЕСЬ — НЕ САМА ОСЬ, А ЕЁ ГРАНИЦА. Требовать «следующее по списку»
+ * у человека, который списка НЕ ВИДИТ, — угадайка, а не трудность: он не может
+ * знать, какое слово следующее. Поэтому уровень порядок ПРЕДЛАГАЕТ, а экран
+ * передаёт его в партию только при показанном списке.
+ */
+it('порядок включается по очереди, после подсказок', () => {
+  expect(fillwordsLevel(202).порядок).toBe('свободно');
+  expect(fillwordsLevel(203).порядок).toBe('поСписку');
+  expect(fillwordsLevel(243).порядок).toBe('обратный');
+  // Ось не ходит вспять: строгость только нарастает.
+  const ранг = { 'свободно': 0, 'поСписку': 1, 'обратный': 2 } as const;
+  for (let L = 2; L <= 1000; L++) {
+    expect(ранг[fillwordsLevel(L).порядок]).toBeGreaterThanOrEqual(ранг[fillwordsLevel(L - 1).порядок]);
+  }
+});
+
+it('при строгом порядке принимается только своё слово, промах считается', () => {
+  const c = fillwordsLevel(203);
+  const puzzle = generateFillwords({ rows: c.rows, cols: c.cols, locale: 'ru', seed: 4242,
+    maxWordLen: c.maxWordLen, minWordLen: c.minWordLen });
+  expect(puzzle.words.length).toBeGreaterThanOrEqual(3);
+
+  const строгая = createFillwordsSession(puzzle, 'поСписку');
+  // Второе слово «не в свой черёд» — тот же исход, что и линия в никуда.
+  const второе = applyTrace(строгая, puzzle.words[1].path);
+  expect(второе.trace.ok).toBe(false);
+  expect(второе.session.mistakes).toBe(1);
+  // Первое — принимается.
+  const первое = applyTrace(строгая, puzzle.words[0].path);
+  expect(первое.trace.ok).toBe(true);
+
+  // А при свободном порядке то же самое второе слово годится сразу.
+  const свободная = createFillwordsSession(puzzle, 'свободно');
+  expect(applyTrace(свободная, puzzle.words[1].path).trace.ok).toBe(true);
+});
+
+it('обратный порядок принимает последнее ненайденное, а не первое', () => {
+  const c = fillwordsLevel(243);
+  const puzzle = generateFillwords({ rows: c.rows, cols: c.cols, locale: 'ru', seed: 777,
+    maxWordLen: c.maxWordLen, minWordLen: c.minWordLen });
+  const s = createFillwordsSession(puzzle, 'обратный');
+  expect(applyTrace(s, puzzle.words[0].path).trace.ok).toBe(false);
+  expect(applyTrace(s, puzzle.words[puzzle.words.length - 1].path).trace.ok).toBe(true);
+});
+
+/**
+ * 🔴 ЧЕСТНОСТЬ ОСИ 6: БЕЗ СПИСКА СТРОГИЙ ПОРЯДОК НЕ ВКЛЮЧАЕТСЯ.
+ *
+ * Уровень предлагает строгость, но применять её к человеку, который списка не
+ * видит, нельзя: он не может знать, какое слово следующее, и «трудность»
+ * превращается в угадайку.
+ *
+ * ⚠️ Решение живёт в ядре (`порядокДляПартии`), а не в разметке, именно затем,
+ * чтобы это можно было ПРОГНАТЬ. Пока условие стояло на экране, проверить его
+ * исполнением было нечем: до 203-го уровня в рендер-пробе пришлось бы вести
+ * линию через распознаватель жеста.
+ */
+it('без показанного списка порядок остаётся свободным на любом уровне', () => {
+  for (const L of [1, 100, 203, 243, 1000]) {
+    const у = fillwordsLevel(L).порядок;
+    expect(порядокДляПартии(у, false)).toBe('свободно');
+    expect(порядокДляПартии(у, true)).toBe(у);
+  }
+  // На высоком уровне уровень действительно ПРЕДЛАГАЕТ строгость — иначе проба
+  // выше была бы зелёной вхолостую.
+  expect(fillwordsLevel(243).порядок).toBe('обратный');
 });

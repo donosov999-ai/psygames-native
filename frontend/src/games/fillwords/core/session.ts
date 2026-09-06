@@ -31,6 +31,7 @@ import type {
   FillwordsPuzzle,
   FillwordsSession,
   FillwordsTrace,
+  ПорядокСдачи,
 } from './types';
 
 /**
@@ -57,14 +58,52 @@ export function tintForFoundOrder(order: number): string {
   return FILLWORDS_TINTS[((order % size) + size) % size];
 }
 
-export function createFillwordsSession(puzzle: FillwordsPuzzle): FillwordsSession {
+export function createFillwordsSession(
+  puzzle: FillwordsPuzzle,
+  порядок: ПорядокСдачи = 'свободно',
+): FillwordsSession {
   return {
     puzzle,
     owner: new Array<number>(puzzle.rows * puzzle.cols).fill(-1),
     found: [],
     hints: 0,
     mistakes: 0,
+    порядок,
   };
+}
+
+/**
+ * 🔴 КАКОЙ ПОРЯДОК ОТДАТЬ ПАРТИИ — РЕШЕНИЕ, А НЕ ПЕРЕСКАЗ УРОВНЯ.
+ *
+ * Уровень ПРЕДЛАГАЕТ строгость (шестая ось лестницы), но применять её можно не
+ * всегда: требовать «следующее по списку» у человека, который списка НЕ ВИДИТ, —
+ * угадайка, а не трудность, он попросту не может знать, какое слово следующее.
+ *
+ * ⚠️ ЖИВЁТ ЗДЕСЬ, А НЕ В ЭКРАНЕ, ЧТОБЫ ЭТО МОЖНО БЫЛО ПРОВЕРИТЬ. Пока условие
+ * стояло в разметке, проверить его исполнением было нечем: чтобы дойти до
+ * уровня 203 в рендер-пробе, пришлось бы провести линию через распознаватель
+ * жеста. Отдельная функция снимает вопрос — у неё исход виден сразу.
+ */
+export function порядокДляПартии(
+  порядокУровня: ПорядокСдачи,
+  списокВиден: boolean,
+): ПорядокСдачи {
+  return списокВиден ? порядокУровня : 'свободно';
+}
+
+/**
+ * КАКИЕ СЛОВА СЕЙЧАС МОЖНО СДАВАТЬ.
+ *
+ * При свободном порядке — все ненайденные. При строгом — ровно одно: следующее
+ * по списку либо последнее из ненайденных. Слово, сданное «не в свой черёд»,
+ * получает тот же исход, что и линия в никуда: `no-match` и счёт промаха.
+ */
+export function допустимыеСлова(session: FillwordsSession): number[] {
+  const ненайденные = unfoundWordIndexes(session);
+  if (!ненайденные.length) return [];
+  if (session.порядок === 'поСписку') return [ненайденные[0]];
+  if (session.порядок === 'обратный') return [ненайденные[ненайденные.length - 1]];
+  return ненайденные;
 }
 
 /** Сколько букв ещё на поле. Именно это число решает, закрыт ли уровень. */
@@ -123,7 +162,7 @@ export function resolveTrace(session: FillwordsSession, path: readonly CellIndex
   for (const cell of path) if (session.owner[cell] !== -1) return { ok: false, reason: 'taken' };
 
   const reversed = [...path].reverse();
-  for (const index of unfoundWordIndexes(session)) {
+  for (const index of допустимыеСлова(session)) {
     const planted = puzzle.words[index].path;
     if (samePath(path, planted) || samePath(reversed, planted)) return { ok: true, wordIndex: index };
   }

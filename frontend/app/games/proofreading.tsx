@@ -434,7 +434,20 @@ export default function ProofreadingGame() {
       setRows(r); setCols(c);
       timeLimitRef.current = cfg.timeLimitSec;
       minFoundPctRef.current = 1;              // поле разбирается целиком, порога «≥N%» тут нет
-      const session = createFillwordsSession(puzzle);
+      /*
+        🔴 СТРОГИЙ ПОРЯДОК ПЕРЕДАЁТСЯ ТОЛЬКО ПРИ ПОКАЗАННОМ СПИСКЕ.
+
+        Уровень ПРЕДЛАГАЕТ порядок сдачи (шестая ось лестницы), но требовать
+        «следующее по списку» у человека, который списка не видит, — это
+        угадайка, а не трудность: он не может знать, какое слово следующее.
+        Поэтому без списка остаётся `свободно`, и уровень для него растёт
+        предыдущими осями. Это та же развилка, что и у самого списка: со списком
+        это ДРУГОЕ упражнение, а не то же с поблажкой.
+      */
+      const session = createFillwordsSession(
+        puzzle,
+        порядокДляПартии(fillwordsLevel(lvl.level).порядок, показыватьСлова),
+      );
       fwSessionRef.current = session;
       setFwSession(session);
       fwTraceRef.current = [];
