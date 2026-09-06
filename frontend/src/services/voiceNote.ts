@@ -660,6 +660,15 @@ function startNativeRecording(
   };
 }
 
+/**
+ * Защищённый ли контекст. `undefined` в старых движках считаем защищённым: там
+ * решает `staleWebViewMajor`, и второй раз подменять путь незачем.
+ */
+export function защищённыйКонтекст(): boolean {
+  const v = (globalThis as { isSecureContext?: boolean }).isSecureContext;
+  return typeof v === 'boolean' ? v : true;
+}
+
 export async function startRecording(
   onTick?: (sec: number, level: number) => void,
   onAutoStop?: () => void,
@@ -667,12 +676,28 @@ export async function startRecording(
   const micGate = await ensureMicPermission();
 
   /**
-   * Старый WebView + мост с записью → нативный путь. Порог тот же, что у
-   * подсказки staleWebViewMajor: на живых стеках (Chrome 100+) WebView пишет
-   * сам и даёт уровень-индикатор — нативный обход там только отнял бы замер.
+   * 🔴 НАТИВНЫЙ ПУТЬ — НЕ ТОЛЬКО НА СТАРОМ WEBVIEW, НО И В НЕЗАЩИЩЁННОМ КОНТЕКСТЕ.
+   *
+   * Здесь стояло одно условие — «WebView старее Chrome 100» — с рассуждением
+   * «на живых стеках WebView пишет сам». Рассуждение звучит разумно и оказалось
+   * неверным.
+   *
+   * 📍 ЗАМЕР 06.09.2026 по 105 голосовым заметкам: 86 из них (82 %) — цифровая
+   * тишина на −91 дБ. Делится это не по версии приложения, а по УСТРОЙСТВУ: у
+   * устройств со старым идентификатором тишины 0 из 15, у устройств с
+   * идентификатором вида `d-…` — 86 из 90, то есть 96 %.
+   *
+   * `d-` берётся тогда, когда нет `crypto.randomUUID` (`getDeviceId`), а он
+   * недоступен ровно в НЕЗАЩИЩЁННОМ контексте. Там же браузер калечит
+   * `getUserMedia`: разрешение выдаёт, поток отдаёт, а в потоке нули. Значит
+   * немой микрофон и странный идентификатор — один дефект, а не два.
+   *
+   * ⚠️ Условие правильное не «старый WebView», а «веб здесь писать не может».
+   * Незащищённый контекст — ровно этот случай, и он бывает на СВЕЖЕМ WebView.
    */
   const nb = bridge();
-  if (staleWebViewMajor() !== null
+  const вебНеПишет = staleWebViewMajor() !== null || !защищённыйКонтекст();
+  if (вебНеПишет
       && typeof nb?.startRec === 'function' && typeof nb?.stopRec === 'function'
       && micGate === 'granted') {
     const nat = startNativeRecording(nb as any, onTick, onAutoStop);

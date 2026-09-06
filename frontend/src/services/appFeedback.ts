@@ -411,6 +411,26 @@ export async function sendFeedback(args: SendArgs): Promise<SendResult> {
         console_errors: readConsoleErrors(),
         viewport: detectViewport(),
         /**
+         * 🔴 ЗАЩИЩЁННЫЙ ЛИ КОНТЕКСТ. Без этого поля целый класс дефектов
+         * неразличим в базе.
+         *
+         * 📍 ЗАМЕР 06.09.2026 по 105 голосовым заметкам: 86 из них (82 %) —
+         * цифровая тишина, и делится это не по версии, а по УСТРОЙСТВУ.
+         * У устройств со старым идентификатором тишины 0 из 15, у устройств с
+         * идентификатором вида `d-…` — 86 из 90 (96 %).
+         *
+         * `d-` — это ЗАПАСНОЙ идентификатор, который берётся, когда нет
+         * `crypto.randomUUID` (см. `getDeviceId`). А `randomUUID` недоступен
+         * ровно там, где страница не является защищённым контекстом — и там же
+         * браузер калечит `getUserMedia`. То есть немой микрофон и странный
+         * идентификатор — не два дефекта, а ОДИН: контекст незащищён.
+         *
+         * Идентификатор оказался случайным индикатором. Теперь мерим прямо.
+         */
+        secure_ctx: typeof globalThis.isSecureContext === 'boolean' ? globalThis.isSecureContext : null,
+        has_random_uuid: typeof (globalThis as { crypto?: { randomUUID?: unknown } }).crypto?.randomUUID === 'function',
+        has_media_devices: typeof (globalThis as { navigator?: { mediaDevices?: unknown } }).navigator?.mediaDevices === 'object',
+        /**
          * 🔴 СЕТЕВОЙ СЛЕД. Жалоба «работает только с впн» пришла ТРИ РАЗА —
          * 01.08 (v1.165), 05.08 (v1.183), 18.08 (v1.203). После первой сделан
          * релей sb.asibots.pro, и он не помог, но понять почему было нечем: ни
