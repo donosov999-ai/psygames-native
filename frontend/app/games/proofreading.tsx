@@ -261,7 +261,7 @@ export default function ProofreadingGame() {
    */
   const fwPuzzle = useMemo<FillwordsPuzzle | null>(() => {
     if (!fwAvailable) return null;
-    const cfg = fillwordsLevel(lvl.level);
+    const cfg = fillwordsLevel(lvl.level, показыватьСлова);
     return generateFillwords({
       rows: cfg.rows,
       cols: cfg.cols,
@@ -271,7 +271,7 @@ export default function ProofreadingGame() {
       minWordLen: cfg.minWordLen,
       диагонали,
     });
-  }, [fwAvailable, language, lvl.level, fwSeed, диагонали]);
+  }, [fwAvailable, language, lvl.level, fwSeed, диагонали, показыватьСлова]);
 
   /** Языки, на которых словарь есть — их имена, а не коды: человеку читать. */
   const fwLangNames = FILLWORDS_LOCALES
@@ -358,7 +358,7 @@ export default function ProofreadingGame() {
     let r: number, c: number;
     if (fillwordsRound) {
       const puzzle = fwPuzzle as FillwordsPuzzle;
-      const cfg = fillwordsLevel(lvl.level);
+      const cfg = fillwordsLevel(lvl.level, показыватьСлова);
       r = cfg.rows; c = cfg.cols;
       setRows(r); setCols(c);
       timeLimitRef.current = cfg.timeLimitSec;
