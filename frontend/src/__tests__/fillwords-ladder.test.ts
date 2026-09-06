@@ -14,8 +14,7 @@
  * расти можно ровно до тех пор, пока клетка не упёрлась в нижний зажим 22
  * точки, после которого сетка вылезает за край экрана.
  */
-import { fillwordsLevel } from '@/src/games/fillwords/core/generator';
-import { generateFillwords } from '@/src/games/fillwords/core/generator';
+import { fillwordsLevel, generateFillwords } from '@/src/games/fillwords/core/generator';
 
 /** Формула клетки — та же, что в `app/games/proofreading.tsx:505-515`. */
 function клетка(rows: number, cols: number, width: number, height: number): number {
