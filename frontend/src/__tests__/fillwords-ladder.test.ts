@@ -14,7 +14,8 @@
  * расти можно ровно до тех пор, пока клетка не упёрлась в нижний зажим 22
  * точки, после которого сетка вылезает за край экрана.
  */
-import { fillwordsLevel, generateFillwords } from '@/src/games/fillwords/core/generator';
+import { fillwordsLevel, generateFillwords, assertFullCoverage } from '@/src/games/fillwords/core/generator';
+import { FILLWORDS_LOCALES } from '@/src/games/fillwords/core/words';
 
 /** Формула клетки — та же, что в `app/games/proofreading.tsx:505-515`. */
 function клетка(rows: number, cols: number, width: number, height: number): number {
@@ -93,6 +94,116 @@ describe('лестница филвордов', () => {
       if (клеток !== c.rows * c.cols) плохо.push(`L${L}: покрыто ${клеток} из ${c.rows * c.cols}`);
     }
     expect(плохо).toEqual([]);
+  });
+
+  /**
+   * 🔴 ЛЕСТНИЦА ОБЯЗАНА ЖИТЬ ДАЛЬШЕ ДВАДЦАТЬ ВТОРОГО УРОВНЯ.
+   *
+   * 📍 Замер 06.09.2026: на 5000 уровнях лестница давала 22 РАЗНЫХ настройки, и
+   * с 22-го уровня всё замирало — 4979 уровней (99,6%) были одинаковы: 12×9,
+   * слово ≤8, время 194. Проверки выше этого не видели: они смотрят первые 200
+   * уровней и разнообразие форм за первые 60, а замирание начиналось ровно там,
+   * куда они не заглядывали.
+   */
+  it('🔴 настройки уровня не замирают на 22-м — лестница живёт дальше', () => {
+    const виды = new Set<string>();
+    for (let L = 1; L <= 5000; L += 1) {
+      const c = fillwordsLevel(L);
+      виды.add(`${c.rows}x${c.cols}|${c.minWordLen}|${c.maxWordLen}|${c.timeLimitSec}`);
+    }
+    const посл = fillwordsLevel(5000);
+    let замерло = 5000;
+    for (let L = 5000; L >= 1; L -= 1) {
+      const c = fillwordsLevel(L);
+      if (c.rows !== посл.rows || c.cols !== посл.cols || c.minWordLen !== посл.minWordLen
+        || c.maxWordLen !== посл.maxWordLen || c.timeLimitSec !== посл.timeLimitSec) break;
+      замерло = L;
+    }
+    expect(`настроек ${виды.size >= 28} · замирает после ${замерло >= 80}`)
+      .toBe('настроек true · замирает после true');
+  });
+
+  /**
+   * 🔴 ПОЛ ДЛИНЫ СЛОВА РАСТЁТ И НИ РАЗУ НЕ ОТКАТЫВАЕТСЯ — И НЕ ПЕРЕГОНЯЕТ ПОТОЛОК.
+   * Это третья ось лестницы; она выбрана замером, а не на глаз: на поле 12×9
+   * форма даёт ×1,3 к пространству поиска, а пол длины ×3,3, потому что растёт
+   * длина пути, а не их число (путей длины 3 из середины поля 56, длины 8 —
+   * 444 876). Разбор в шапке `fillwordsLevel`.
+   */
+  it('🔴 пол длины слова растёт по уровням и не перегоняет потолок', () => {
+    const беды: string[] = [];
+    let предПол = 0;
+    for (let L = 1; L <= 300; L += 1) {
+      const c = fillwordsLevel(L);
+      if (c.minWordLen < предПол) беды.push(`L${L}: пол откатился ${предПол}→${c.minWordLen}`);
+      if (c.minWordLen > c.maxWordLen) беды.push(`L${L}: пол ${c.minWordLen} выше потолка ${c.maxWordLen}`);
+      предПол = c.minWordLen;
+    }
+    if (fillwordsLevel(300).minWordLen <= fillwordsLevel(1).minWordLen) {
+      беды.push('пол вообще не вырос за 300 уровней — оси нет');
+    }
+    expect(беды.slice(0, 5)).toEqual([]);
+  });
+
+  /**
+   * 🔴 КРАЙ ЛЕСТНИЦЫ СОБИРАЕТСЯ НА КАЖДОМ ЯЗЫКЕ, А НЕ ТОЛЬКО НА БОГАТОМ.
+   *
+   * 📍 Замер 06.09.2026: с полом 7 на большом поле немецкий и португальский не
+   * собирались ВОВСЕ — 40 попыток из 70 падали с «не набирает N клеток словами»,
+   * то есть верхние уровни были для этих языков сломаны. Длинных слов в них
+   * меньше, а слова в одном поле не повторяются. Лечится отступлением пола вниз
+   * (см. `generateFillwords`), и проверять надо именно ЯЗЫКИ, а не средний случай.
+   */
+  it('🔴 верхние уровни собираются на ВСЕХ языках со словарём', () => {
+    const беды: string[] = [];
+    for (const loc of [...FILLWORDS_LOCALES]) {
+      for (const L of [40, 60, 80, 94, 300]) {
+        const cfg = fillwordsLevel(L);
+        for (let seed = 1; seed <= 4; seed += 1) {
+          try {
+            const p = generateFillwords({
+              rows: cfg.rows, cols: cfg.cols, locale: loc, seed,
+              maxWordLen: cfg.maxWordLen, minWordLen: cfg.minWordLen,
+            });
+            assertFullCoverage(p);
+          } catch (e) {
+            беды.push(`${loc} L${L} seed${seed}: ${String((e as Error).message).slice(0, 50)}`);
+          }
+        }
+      }
+    }
+    expect(беды.slice(0, 5)).toEqual([]);
+  });
+
+  /**
+   * 🔴 ОТСТУПЛЕНИЕ ПОЛА — СТРАХОВКА, И ПРОВЕРЯТЬ ЕЁ НАДО ТАМ, ГДЕ ОНА СРАБАТЫВАЕТ.
+   *
+   * 📍 Проба выше («верхние уровни на всех языках») зелёная и без отступления:
+   * мутация это показала. Причина не в том, что страховка лишняя, а в том, что
+   * нынешняя лестница до неё не доходит — потолок опустился с 20 строк до 16,
+   * поле стало 144 клетки вместо 180, и словаря снова хватает.
+   *
+   * Поэтому здесь поле запрашивается НАПРЯМУЮ, мимо лестницы, и берётся такое,
+   * которого словарь заведомо не тянет: без отступления `18×9` с полом 7 не
+   * собирается у немецкого ни разу из шести, `20×9` — ни у немецкого, ни у
+   * португальского. С отступлением обязаны собираться оба.
+   */
+  it('🔴 поле, которого словарь не тянет, отдаётся полегче, а не падает', () => {
+    const беды: string[] = [];
+    for (const [loc, rows] of [['de', 18], ['de', 20], ['pt', 20]] as const) {
+      for (let seed = 1; seed <= 6; seed += 1) {
+        try {
+          const p = generateFillwords({ rows, cols: 9, locale: loc, seed, minWordLen: 7, maxWordLen: 8 });
+          assertFullCoverage(p);
+          // отступило — значит какое-то слово короче запрошенных семи; это и есть смысл
+          const мин = Math.min(...p.words.map((w) => w.word.length));
+          if (мин > 8) беды.push(`${loc} ${rows}x9 seed${seed}: слово длиннее потолка`);
+        } catch (e) {
+          беды.push(`${loc} ${rows}x9 seed${seed}: упало — ${String((e as Error).message).slice(0, 45)}`);
+        }
+      }
+    }
+    expect(беды.slice(0, 5)).toEqual([]);
   });
 
   it('🔴 время считается от площади, а не от квадрата стороны', () => {
