@@ -30,7 +30,7 @@ declare function require(m: string): any;
 
 import { levelRuleKey, levelRuleText, activeLevelRule, LevelRule } from '@/src/components/LevelRules';
 
-const { readFileSync, readdirSync } = require('fs');
+const { readFileSync, readdirSync, existsSync } = require('fs');
 const { join } = require('path');
 
 const DIR = join(__dirname, '../../app/games');
@@ -56,7 +56,11 @@ const SCRIPTS: Record<string, RegExp> = {
  */
 const INLINE_DEBT: Record<string, string> = {
   'mahjong.tsx': 'занят другой правкой (уровни/слои) — инлайн снять вместе с ней',
-  'goods-sort.tsx': 'занят другой правкой (полки/цели) — инлайн снять вместе с ней',
+  // ⚠️ ПРАВИЛА ЭТОЙ ИГРЫ ЖИВУТ В `src/games/goods-sort/core/level.ts` (GS_RULES),
+  // а не в экране: игра разъехалась на модули 06.09.2026. Ключ здесь остаётся
+  // по имени ЭКРАНА, потому что гейт отчитывается по нему. Долг настоящий —
+  // часть правил всё ещё несёт тексты инлайном; снимать вместе с переносом.
+  'goods-sort.tsx': 'правила уехали в core/level.ts, тексты части из них ещё инлайном — снять вместе с переносом в словарь',
   'picture-pairs.tsx': 'занят другой правкой (экран настройки) — инлайн снять вместе с ней',
   'set-game.tsx': 'занят другой правкой (разбор примера SET) — инлайн снять вместе с ней',
 };
@@ -75,10 +79,28 @@ function rulesArrayText(src: string): string | null {
  * объявлении появится не-литерал; если не сработала и она, правило попадёт в отчёт
  * как непрочитанное, а не пропадёт молча (молча — это гейт, который перестал быть гейтом).
  */
+/**
+ * 🔴 ПРАВИЛА МОГУТ ЖИТЬ НЕ В ЭКРАНЕ (правка 06.09.2026). «Сортировка товаров»
+ * разъехалась на модули, и `GS_RULES` уехали в `src/games/goods-sort/core/
+ * level.ts`. Гейт читал только `app/games/*.tsx` — и объявил, что правил у
+ * игры нет ВООБЩЕ, то есть перестал сторожить самую большую их коллекцию
+ * ровно в тот момент, когда она стала сложнее. Ищем объявление и рядом с
+ * экраном: сначала в нём самом, потом в ядре игры того же имени.
+ */
+function rulesSourceFor(f: string): string | null {
+  const свой = readFileSync(join(DIR, f), 'utf8') as string;
+  if (rulesArrayText(свой)) return свой;
+  const ядро = join(DIR, '..', '..', 'src', 'games', f.replace(/\.tsx$/, ''), 'core', 'level.ts');
+  if (!existsSync(ядро)) return null;
+  const текст = readFileSync(ядро, 'utf8') as string;
+  return rulesArrayText(текст) ? `${свой}\n${текст}` : null;
+}
+
 function collectRules(): FoundRule[] {
   const out: FoundRule[] = [];
   for (const f of FILES) {
-    const src = readFileSync(join(DIR, f), 'utf8') as string;
+    const src = rulesSourceFor(f);
+    if (!src) continue;
     const gm = src.match(/useLevelRules\(\s*'([a-z_]+)'/);
     const arr = rulesArrayText(src);
     if (!gm || !arr) continue;

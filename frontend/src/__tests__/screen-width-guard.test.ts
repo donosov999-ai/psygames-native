@@ -109,7 +109,18 @@ describe('ширина экрана', () => {
       if (RAW_OK[name]) continue;
       const rel = f.replace(ROOT + '/', '');
       if (DEBT.includes(rel)) continue;                 // старый долг, перечислен выше
-      const src = readFileSync(f, 'utf8') as string;
+      /**
+       * 🔴 ИЩЕМ В КОДЕ, А НЕ В КОММЕНТАРИЯХ (правка 06.09.2026).
+       *
+       * `src/games/goods-sort/core/level.ts` покраснел на пустом месте: там
+       * `useWindowDimensions()` встречается ТОЛЬКО внутри пояснения, ПОЧЕМУ его
+       * не используют («первая версия считала ширину отсюда, живая сборка
+       * ответила React #418»). То есть гейт обвинил файл ровно за то, что автор
+       * записал урок этого же гейта. Комментарий обязан вырезаться до поиска —
+       * иначе честное объяснение дороже молчания.
+       */
+      const raw = readFileSync(f, 'utf8') as string;
+      const src = raw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
       if (!/useWindowDimensions\(\)/.test(src)) continue;
       const guarded = /width\s*>\s*0/.test(src) || /useScreenWidth/.test(src);
       if (!guarded) bad.push(`${rel}: useWindowDimensions() без защиты от нуля`);
