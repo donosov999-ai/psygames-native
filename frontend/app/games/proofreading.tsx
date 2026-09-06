@@ -1314,7 +1314,16 @@ export default function ProofreadingGame() {
       }
     >
       {fwPlaying ? (
-        <View style={[styles.fwField, списокСбоку ? { flexDirection: 'row', alignItems: 'flex-start' } : null]}>
+        <View style={[styles.fwField, списокСбоку
+          /*
+            ⚠️ ГРУППА «СПИСОК + ПОЛЕ» ЦЕНТРИРУЕТСЯ ЦЕЛИКОМ, А НЕ ПООТДЕЛЬНОСТИ.
+            Сначала список прижимался к левому краю, а поле центрировалось в
+            оставшемся месте — на экране 1280 между ними зияло 425 точек пустоты
+            (замер живьём: список кончался на 122, поле начиналось с 547). На
+            телефоне этого не видно, потому что остатка там нет, — потому и
+            заметно только на широком.
+          */
+          ? { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center' } : null]}>
           {/*
             Боковой список: колонка слева от поля. Слова идут сверху вниз и
             вычёркиваются по мере находки — как в жанре «найди слова».
@@ -1339,7 +1348,7 @@ export default function ProofreadingGame() {
               })}
             </View>
           ) : null}
-          <View style={списокСбоку ? { flex: 1, alignItems: 'center' } : { width: '100%', alignItems: 'center' }}>
+          <View style={списокСбоку ? { flexShrink: 1, alignItems: 'center' } : { width: '100%', alignItems: 'center' }}>
           {/* Строка «что делать» — над полем, как у лабораторных модулей. */}
           <Text style={[styles.fwTask, { color: colors.textSecondary }]}>{fwStrings.task}</Text>
           {/*
