@@ -49,7 +49,8 @@ import {
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-const NB_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const NB_RULES: LevelRule[] = [
   { key: 'dual', fromLevel: 9 },   // lr_n_back_dual_*
 ];
 
@@ -105,7 +106,8 @@ type RoundReadout = { dual: boolean; visual: ChannelReadout; audio: ChannelReado
 const speakLetter = (letter: string) => { void speakLetterName(letter); };
 
 // Уровень (1..15+): L1-5 single N=1→5 · L6-8 single N=5 быстрее (ISI↓) · L9-15 DUAL (визуал+звук, классика Jaeggi) N растёт.
-function levelParams(level: number): { N: number; modality: Modality; showMs: number; gapMs: number } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { N: number; modality: Modality; showMs: number; gapMs: number } {
   if (level <= 5) return { N: level, modality: 'single', showMs: 700, gapMs: 1100 };
   if (level <= 8) { const f = level - 5; return { N: 5, modality: 'single', showMs: Math.max(450, 700 - f * 80), gapMs: Math.max(700, 1100 - f * 130) }; }
   const dl = level - 8; return { N: Math.min(6, 1 + dl), modality: 'dual', showMs: 700, gapMs: 1100 };   // L9=2-back dual → растёт до 6

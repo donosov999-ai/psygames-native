@@ -32,7 +32,8 @@ import { getAbilityCount, useAbility } from '@/src/services/abilities';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-const SS_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const SS_RULES: LevelRule[] = [
   { key: 'grid5', fromLevel: 11 },   // lr_spatial_span_grid5_*
 ];
 
@@ -55,7 +56,8 @@ const SS_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'cleared' | 'result';
 
 // Уровень (1..15+): L1-6 span 2→7 · L7-10 показ быстрее · L11+ сетка 5×5 (span дальше). Реверс — всегда (CANTAB backward).
-function levelParams(level: number): { startSpan: number; gridSize: number; tickMs: number; flashMs: number } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { startSpan: number; gridSize: number; tickMs: number; flashMs: number } {
   const startSpan = Math.min(7, 1 + level);
   const fast = Math.max(0, level - 6);
   const gridSize = level >= 11 ? 5 : 4;

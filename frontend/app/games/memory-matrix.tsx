@@ -50,9 +50,10 @@ const MATRIX_BENEFITS = [
  * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
-const MEMORYMATRIX_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const MEMORYMATRIX_RULES: LevelRule[] = [
   { key: 'grid6', fromLevel: 4 },   // lr_memory_matrix_grid6_*
-  { key: 'fast', fromLevel: 9 },   // lr_memory_matrix_fast_*
+  { key: 'fast', fromLevel: 8 },   // lr_memory_matrix_fast_* · = первый L, где flashMs < 1000 (L8: 940)
 ];
 
 type GamePhase = 'intro' | 'config' | 'showing' | 'input' | 'feedback' | 'cleared' | 'result';
@@ -60,7 +61,8 @@ type MatrixMode = 'static' | 'sequential';   // static = pattern flashes once; s
 
 // Уровень (1..15+): L1-4 сетка 3×3→6×6 · дальше на 6×6 растёт число вспышек + скорость показа.
 // L11+ (static-режим): ДВЕ серии разного цвета, раздельное воспроизведение (память на 2 группы + интерференция).
-function levelParams(level: number): { gridSize: number; baseFlashes: number; flashMs: number; seriesCount: number } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { gridSize: number; baseFlashes: number; flashMs: number; seriesCount: number } {
   const gridSize = Math.min(6, 2 + level);              // L1=3 → L4=6
   const baseFlashes = 3 + Math.floor(level / 1.5);       // клеток запомнить: L1=3 → L15≈13
   const flashMs = Math.max(500, 1500 - level * 70);      // показ быстрее с уровнем

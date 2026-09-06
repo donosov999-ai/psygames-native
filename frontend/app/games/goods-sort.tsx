@@ -81,7 +81,7 @@ export const GS_RULES: LevelRule[] = [
     en: { title: 'Covered good', rule: 'A dark silhouette is a good you cannot see yet. It is never the front one: take the item in front of it and you will find out what it is.', example: 'Example: a black shape behind the cola. Move the cola and kefir appears.' },
   },
   {
-    key: 'movelimit', fromLevel: 18,
+    key: 'movelimit', fromLevel: 16,
     ru: { title: 'Лимит ходов', rule: 'Теперь на уровень даётся ограниченное число перестановок — трать ходы с умом. Превысил лимит — уровень заново. Счётчик ходов в шапке: сделано/лимит.', example: 'Пример: ⇄ 12/18 — сделано 12 ходов из 18. С каждым уровнем лимит жмёт сильнее.' },
     en: { title: 'Move limit', rule: 'Each level now allows a limited number of moves — spend them wisely. Exceed the limit and the level restarts. The header counter shows used/limit.', example: 'Example: ⇄ 12/18 — 12 of 18 moves used. The limit tightens every level.' },
   },
@@ -814,11 +814,11 @@ interface ObstaclePlan {
 const OBSTACLE_PLANS: ObstaclePlan[] = [
   { blocked: 1, locked: 0, covered: 0, frozenRow: false },   // знакомство: одна закрытая ниша
   { blocked: 0, locked: 0, covered: 0, frozenRow: false },   // передышка
-  { blocked: 0, locked: 0, covered: 2, frozenRow: false },   // знакомство: накрытые товары
+  { blocked: 0, locked: 0, covered: 0, frozenRow: true },    // знакомство: примёрзший ряд
   { blocked: 2, locked: 0, covered: 0, frozenRow: false },
   { blocked: 0, locked: 1, covered: 0, frozenRow: false },   // знакомство: замок по ходам
   { blocked: 1, locked: 0, covered: 2, frozenRow: false },   // два вместе
-  { blocked: 0, locked: 0, covered: 0, frozenRow: true },    // знакомство: примёрзший ряд
+  { blocked: 0, locked: 0, covered: 2, frozenRow: false },   // знакомство: накрытые товары
   { blocked: 2, locked: 1, covered: 0, frozenRow: false },
   { blocked: 0, locked: 0, covered: 3, frozenRow: true },
   { blocked: 1, locked: 1, covered: 2, frozenRow: false },   // всё сразу
@@ -1515,18 +1515,18 @@ export type Goal =
  * жёсткую пару «цель+препятствие» и вдвое меньше разных уровней.
  */
 const GOAL_PLANS: GoalPlan[] = [
-  { kind: 'pick', count: 2 },    // знакомство: собери названные
-  { kind: 'all', count: 0 },     // передышка
-  { kind: 'free', count: 1 },    // знакомство: освободи нишу
-  { kind: 'all', count: 0 },
-  { kind: 'moves', count: 0 },   // знакомство: лимит ходов
-  { kind: 'pick', count: 3 },
-  { kind: 'all', count: 0 },
-  { kind: 'free', count: 2 },
-  { kind: 'moves', count: 0 },
-  { kind: 'pick', count: 2 },
-  { kind: 'all', count: 0 },
-  { kind: 'free', count: 2 },
+  { kind: 'pick', count: 2 },    // L5  знакомство: собери названные — порог `goalpick`
+  { kind: 'all', count: 0 },     // L6  передышка
+  { kind: 'pick', count: 3 },    // L7  та же цель шире; до второго вида ещё рано
+  { kind: 'all', count: 0 },     // L8  передышка — здесь приходит запертая ниша
+  { kind: 'moves', count: 0 },   // L9  ниже порога → база; работает с L21
+  { kind: 'pick', count: 2 },    // L10
+  { kind: 'all', count: 0 },     // L11
+  { kind: 'free', count: 1 },    // L12 знакомство: освободи нишу — порог `goalfree`
+  { kind: 'all', count: 0 },     // L13
+  { kind: 'free', count: 2 },    // L14
+  { kind: 'pick', count: 3 },    // L15
+  { kind: 'moves', count: 0 },   // L16 знакомство: лимит ходов — порог `movelimit`
 ];
 
 /**

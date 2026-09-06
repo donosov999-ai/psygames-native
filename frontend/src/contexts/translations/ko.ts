@@ -2224,6 +2224,8 @@ const t: Record<string, string> = {
   "sortingGroupDesc": "자리가 떨어지는 통에 채워 넣기",
   "sortingGroupFootnote": "Both are about one scarcity: not what order to place things in, but WHERE — there are fewer free slots than items.",
   "sortingGroupIntroDesc": "Both are about one scarcity: not what ORDER to place things in, but WHERE. In Goods Sorting a niche holds one to four items and three alike vanish; in Water Sort a layer pours only onto its own colour and only while the tube has room.\n\nThat is what separates them from Towers, where the name suggests they belong. There a move is limited by ORDER — a larger disc never sits on a smaller one — and room never runs out. Here it is the reverse: the rule is simple, but free slots are fewer than items, and almost every legal move narrows the future. The winner is not whoever finds a slot fastest, but whoever holds in mind what will be left after the move.",
+  "anagramCrossword": "크로스워드",
+  "anagramCrosswordHint": "Words from these letters go into a grid and cross: a found letter opens the word beside it",
   "towersGroup": "탑",
   "inhibitionGroup": "억제",
   "inhibitionGroupDesc": "이미 나간 손을 멈추기",

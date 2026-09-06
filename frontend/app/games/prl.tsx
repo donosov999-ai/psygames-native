@@ -103,7 +103,8 @@ const DIFF_CFG: Record<Difficulty, Cfg> = {
  * Игра, смысл которой не назван, читается как издевательство. Поэтому первое
  * правило показывается СРАЗУ, с первого уровня, а не с какого-то порога.
  */
-const PRL_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const PRL_RULES: LevelRule[] = [
   { key: 'reversal', fromLevel: 1 },   // lr_prl_reversal_*
   { key: 'noisy', fromLevel: 5 },   // lr_prl_noisy_*
 ];

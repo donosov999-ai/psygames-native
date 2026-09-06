@@ -39,7 +39,8 @@ import { frameStewart, hanoiScore, hanoiStars } from '@/src/games/hanoi/optimal'
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-const HN_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const HN_RULES: LevelRule[] = [
   { key: 'pegs4', fromLevel: 5, toLevel: 9 },   // lr_hanoi_pegs4_*
   { key: 'pegs5', fromLevel: 10 },   // lr_hanoi_pegs5_*
 ];
@@ -113,7 +114,8 @@ interface HanoiResume {
 
 // Уровень (1..15+): L1-4 3 стержня диски 3→6 · L5-9 4 стержня диски 5→9 · L10-15 5 стержней диски 9→12.
 // Больше стержней = новый вызов (короче решение), затем растут диски.
-function levelParams(level: number): { discs: number; pegs: number } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { discs: number; pegs: number } {
   if (level <= 4) return { discs: 2 + level, pegs: 3 };
   if (level <= 9) return { discs: Math.min(9, level), pegs: 4 };
   return { discs: Math.min(12, level - 1), pegs: 5 };

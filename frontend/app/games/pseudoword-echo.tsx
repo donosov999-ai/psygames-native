@@ -50,7 +50,8 @@ const TL_KEY = `psygames_${GAME_ID}_targetlang`;
  * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
-const PSEUDOWORDECHO_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const PSEUDOWORDECHO_RULES: LevelRule[] = [
   { key: 'longer6', fromLevel: 5 },   // lr_pseudoword_echo_longer6_*
   { key: 'longer8', fromLevel: 9 },   // lr_pseudoword_echo_longer8_*
 ];
@@ -86,7 +87,8 @@ const CONSONANTS: Record<string, string> = {
 };
 
 // Лесенка: длина псевдослова L1-4: 4-5 букв → L5-8: 6-7 → L9+: 8-9; раундов 8→10→12.
-function levelParams(level: number): { lenMin: number; lenMax: number; trials: number } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { lenMin: number; lenMax: number; trials: number } {
   if (level <= 4) return { lenMin: 4, lenMax: 5, trials: 8 };
   if (level <= 8) return { lenMin: 6, lenMax: 7, trials: 10 };
   return { lenMin: 8, lenMax: 9, trials: 12 };

@@ -54,7 +54,8 @@ const MNEMONICS_BENEFITS = [
  * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
-const MNEMONICS_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const MNEMONICS_RULES: LevelRule[] = [
   { key: 'method', fromLevel: 7 },   // lr_mnemonics_method_*
 ];
 

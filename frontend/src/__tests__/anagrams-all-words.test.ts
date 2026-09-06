@@ -55,14 +55,17 @@ describe('наборы «найди все слова»', () => {
     expect(плохо.slice(0, 5)).toEqual([]);
   });
 
-  it('база длиной 7–8, целей 6…14, дублей нет, цель ≠ база', () => {
+  it('база длиной 7–8, целей 6…22, дублей нет, цель ≠ база', () => {
     const плохо: string[] = [];
     for (const loc of allWordsLocales()) {
       for (let i = 1; i <= allWordsCount(loc); i++) {
         const p = allWordsPack(loc, i)!;
         const n = [...p.base].length;
         if (n < 7 || n > 8) плохо.push(`${loc} «${p.base}»: база ${n} букв`);
-        if (p.words.length < 6 || p.words.length > 14) плохо.push(`${loc} «${p.base}»: целей ${p.words.length}`);
+        // ⚠️ ВЕРХ 22, А НЕ 14. С 06.09.2026 число слов — это ось сложности: сборщик
+        // ведёт его от начала набора к концу (en 8→22, ru 10→18), потому что список
+        // слов теперь прокручивается и «не влезает на экран» перестало ограничивать.
+        if (p.words.length < 6 || p.words.length > 22) плохо.push(`${loc} «${p.base}»: целей ${p.words.length}`);
         if (new Set(p.words).size !== p.words.length) плохо.push(`${loc} «${p.base}»: дубль в целях`);
         if (p.words.indexOf(p.base) >= 0) плохо.push(`${loc} «${p.base}»: база среди целей`);
       }

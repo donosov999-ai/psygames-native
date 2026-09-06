@@ -31,6 +31,7 @@ import { WORD_LANGS, WORD_LANG_LABEL } from '@/src/services/wordLanguage';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
 import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
+import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
 import { allWordsCount, allWordsPack } from '@/src/games/anagrams/core/allWords';
 import { собратьКольца, ключКольца } from '@/src/games/anagrams/core/ring';
 import { wordPool, wordsOfLength } from '@/src/games/fillwords/core/words';
@@ -132,7 +133,13 @@ export default function AnagramGame() {
    * собрать слово из данных букв. Отдельными играми они завели бы три уровня,
    * три статистики и три входа в хабе на одну механику.
    */
-  const [режимИгры, setРежимИгры] = useState<'classic' | 'square' | 'all'>('classic');
+    /**
+   * 🔴 РЕЖИМ «КРОССВОРД» (06.09.2026, просьба Дениса по «Магии Слов»). Слова из
+   * того же набора букв не вычёркиваются из списка, а ВСТАЮТ В СЕТКУ и
+   * пересекаются: найденная буква работает на соседнее слово. Устройство и
+   * замеры — `games/anagrams/core/crossword.ts`.
+   */
+  const [режимИгры, setРежимИгры] = useState<'classic' | 'square' | 'all' | 'cross'>('classic');
   const квадрат = режимИгры === 'square';
   const [armedSquare, setArmedSquare] = useState(false);   // «есть что терять» для подтверждения выхода
   const кольца = React.useMemo(() => собратьКольца(wordsOfLength(wordPool(wordLang.lang), 5)), [wordLang.lang]);
@@ -447,14 +454,15 @@ export default function AnagramGame() {
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
           <View style={styles.optionButtons}>
-            {(['classic', 'square', 'all'] as const).map((р) => (
+            {(['classic', 'square', 'all', 'cross'] as const).map((р) => (
               <TouchableOpacity
                 accessibilityRole="button" key={р} style={[styles.modeButton, режимИгры === р
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setРежимИгры(р)}>
                 <Text style={[styles.modeButtonText, { color: режимИгры === р ? '#3f2b96' : colors.text }]}>
-                  {р === 'classic' ? t('classicLabel') : р === 'square' ? t('anagramSquare') : t('anagramAllWords')}
+                  {р === 'classic' ? t('classicLabel') : р === 'square' ? t('anagramSquare')
+                    : р === 'all' ? t('anagramAllWords') : t('anagramCrossword')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -462,7 +470,8 @@ export default function AnagramGame() {
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
             {режимИгры === 'square' ? t('anagramSquareHint')
               : режимИгры === 'all' ? t('anagramAllWordsHint')
-                : t('anagramClassicHint')}
+                : режимИгры === 'cross' ? t('anagramCrosswordHint')
+                  : t('anagramClassicHint')}
           </Text>
           {режимИгры !== 'classic' && (
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>
@@ -565,6 +574,38 @@ export default function AnagramGame() {
 
   // playing-фаза — на едином каркасе GameShell: подсказка — служебное действие,
   // значит в шапке; «Отменить/Сброс» правят черновик ответа и остаются внизу
+  if (phase === 'playing' && режимИгры === 'cross') {
+    const пак = allWordsPack(wordLang.lang, lvl.level);
+    return (
+      <GameShell title={t('anagrams')} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+        {пак ? (
+          <CrosswordGame
+            key={`cross-${wordLang.lang}-${пак.base}-${lvl.level}`}
+            pack={пак}
+            level={lvl.level}
+            seed={lvl.level}
+            size={Math.min(width - 32, 380)}
+            theme={{ surface: colors.surface, text: colors.text, textSecondary: colors.textSecondary, border: colors.border, primary: GRADIENT[0], success: '#12a594', danger: '#e24b4a' }}
+            labels={{ найдено: t('label_found'), подсказки: t('btn_hint'), банк: t('anagramSquareBank'), сдать: t('check'), сброс: t('clear'), подсказка: t('btn_hint') }}
+            now={gameNow}
+            onProgress={setArmedSquare}
+            onComplete={(подсказок, мс) => {
+              // Подсказки — цена уровня: в звёздах они стоят столько же, сколько промах.
+              setErrors(подсказок);
+              setElapsedTime(Math.round(мс / 100) / 10);
+              const out = levelOutcomeAnagram({ isPreset, cleared: true });
+              if (out.raiseLevel) lvl.reach(lvl.level + 1);
+              setClearedPassed(true);
+              setPhase(out.phase);
+            }}
+          />
+        ) : (
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('anagramSquareEmpty')}</Text>
+        )}
+      </GameShell>
+    );
+  }
+
   if (phase === 'playing' && режимИгры === 'all') {
     const пак = allWordsPack(wordLang.lang, lvl.level);
     /**

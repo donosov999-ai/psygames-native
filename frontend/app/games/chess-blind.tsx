@@ -129,7 +129,8 @@ const CHESS_BENEFITS = [
  * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
-const CHESSBLIND_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const CHESSBLIND_RULES: LevelRule[] = [
   { key: 'moves', fromLevel: 6 },   // lr_chess_blind_moves_*
   { key: 'locate', fromLevel: 11 },   // lr_chess_blind_locate_*
 ];
