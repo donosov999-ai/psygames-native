@@ -39,6 +39,7 @@ import {
   type MemoryPalaceSession,
   type PalaceItem,
   type PalaceLocus,
+  memoryPalaceRouteIsShuffled,
 } from './core/index';
 import {
   PLACE_LAYOUT,
@@ -299,6 +300,7 @@ function LocusTile({
   concealItem = false,
   variant = 'full',
   compactBasis,
+  showOrder = true,
 }: {
   locus: PalaceLocus;
   item: PalaceItem | null;
@@ -327,6 +329,17 @@ function LocusTile({
   variant?: 'full' | PalacePhaseLayout;
   /** Доля ширины под плитку: считается от числа мест, см. `palaceLocusBasis`. */
   compactBasis?: string;
+  /**
+   * 🔴 ПОКАЗЫВАТЬ ЛИ НОМЕР МЕСТА. С шестого уровня маршрут перемешан, и номер
+   * остаётся только в самой фазе маршрута — там его и запоминают. Дальше ромб
+   * пустой: иначе порядок читался бы с экрана в момент вопроса, и перемешивание
+   * не добавляло бы ни единицы нагрузки (см. `memoryPalaceRouteIsShuffled`).
+   *
+   * ⚠️ ВМЕСТЕ С ЦИФРОЙ УХОДИТ И НОМЕР ИЗ ПОДПИСИ ДЛЯ СКРИНРИДЕРА. Оставить его
+   * там значило бы раздать незрячему подсказку, которой нет у зрячего, — и
+   * сделать это молча, потому что глазами такую утечку не увидишь.
+   */
+  showOrder?: boolean;
 }) {
   const strings = getMemoryPalaceStrings(locale);
   /** Все виды, кроме `full`, — компактные: общая рамка, свои внутренности. */
@@ -335,9 +348,13 @@ function LocusTile({
   const itemName = item ? getItemLabel(item, locale) : strings.emptyLocus;
   const label = onPress
     ? (selectedItem
-      ? interpolateMemoryPalace(strings.placeAt, { order: locus.order, name: locusName })
+      ? (showOrder
+        ? interpolateMemoryPalace(strings.placeAt, { order: locus.order, name: locusName })
+        : locusName)
       : strings.chooseItem) + '. ' + interpolateMemoryPalace(strings.placedItem, { locus: locusName, item: itemName })
-    : interpolateMemoryPalace(strings.locusA11y, { order: locus.order, name: locusName })
+    : (showOrder
+      ? interpolateMemoryPalace(strings.locusA11y, { order: locus.order, name: locusName })
+      : locusName)
       + (item ? '. ' + itemName : concealItem ? '' : '. ' + strings.emptyLocus);
   const [focused, setFocused] = React.useState(false);
   const webFocusProps = Platform.OS === 'web' ? ({
@@ -368,7 +385,9 @@ function LocusTile({
     >
       <View style={compact ? styles.diamondWrapCompact : styles.diamondWrap}>
         <View style={[compact ? styles.diamondCompact : styles.diamond, { backgroundColor: locus.color, borderColor: gameGradient[1] }]} />
-        <Text style={[compact ? styles.diamondOrderCompact : styles.diamondOrder, { color: gameGradientText }]}>{locus.order}</Text>
+        {showOrder ? (
+          <Text style={[compact ? styles.diamondOrderCompact : styles.diamondOrder, { color: gameGradientText }]}>{locus.order}</Text>
+        ) : null}
       </View>
       <Text
         numberOfLines={compact ? 2 : undefined}
@@ -446,6 +465,12 @@ function PalaceScene({
   variant?: 'full' | PalacePhaseLayout;
 }) {
   const selectedItem = findPalaceItem(session, session.selectedPlacementItemId);
+  /**
+   * Номер держится ровно там, где он ещё осмыслен: до шестого уровня — всегда
+   * (маршрут постоянный, номер часть опоры), с шестого — только в фазе
+   * маршрута, где порядок и заучивают.
+   */
+  const showOrder = variant === 'route' || !memoryPalaceRouteIsShuffled(session.round.level);
   const compact = variant !== 'full';
   const basis = palaceLocusBasis(
     session.round.lociCount,
@@ -474,6 +499,7 @@ function PalaceScene({
             highlighted={highlightedLocusId === locus.id || session.selectedPlacementLocusIndex === index}
             variant={variant}
             compactBasis={basis}
+            showOrder={showOrder}
             onPress={onLocusPress ? () => onLocusPress(index) : undefined}
           />
         ))}
@@ -675,6 +701,7 @@ function MemoryPalaceSessionView({
             gameGradientText={gameGradientText}
             highlighted
             concealItem
+            showOrder={!memoryPalaceRouteIsShuffled(session.round.level)}
           />
           <Text style={[styles.recallPrompt, { color: theme.text }]}>
             {interpolateMemoryPalace(strings.recallPrompt, { locus: getLocusLabel(locus, locale) })}
@@ -769,7 +796,9 @@ function MemoryPalaceSessionView({
           по-разному, хотя читается он один раз и до первого действия.
         */
         <Text style={[styles.bodyCompact, { color: theme.textSecondary }]}>
-          {session.phase === 'route' ? strings.routeBody : strings.studyBody}
+          {session.phase === 'route'
+            ? (memoryPalaceRouteIsShuffled(session.round.level) ? strings.routeBodyShuffled : strings.routeBody)
+            : strings.studyBody}
         </Text>
       )}
 
