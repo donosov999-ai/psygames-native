@@ -36,7 +36,6 @@ import { allWordsCount, allWordsPack } from '@/src/games/anagrams/core/allWords'
 import { ключКольца, кольцаЯзыка, языкиКолец } from '@/src/games/anagrams/core/ring';
 import { показатьКорейское } from '@/src/games/anagrams/core/chamo';
 import { превьюРежима } from '@/src/games/anagrams/core/modeThumbs';
-import { wordPool, wordsOfLength } from '@/src/games/fillwords/core/words';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import { sndPlace } from '@/src/services/feedback';
@@ -196,7 +195,7 @@ export default function AnagramGame() {
    */
   React.useEffect(() => {
     if (wordLang.ready && !языкиРежима.includes(wordLang.lang)) wordLang.pick('en');
-  }, [языкиРежима, wordLang.ready, wordLang.lang, wordLang.pick]);
+  }, [языкиРежима, wordLang]);
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
