@@ -17,6 +17,7 @@
  */
 import { gradePuzzle, лучшеПодПолосу } from '@/src/services/sudoku-grade';
 import { Cell, dimsForSize, generatePuzzle, TowersMap, UnequalMap } from '@/src/services/sudoku-core';
+import { TOWERS_LADDER } from '@/src/services/sudoku-modes';
 
 const { N, BR, BC } = dimsForSize(6);
 
@@ -50,12 +51,20 @@ describe('ступень — величина, а не отметка о сра�
   });
 
   it('🔴 длина и цена вывода считаются у КАЖДОЙ доски, включая нерешённую', () => {
-    // Величина, которой не хватало: `tier` — ярлык, `steps`/`cost` — числа.
-    const g = generatePuzzle(18, N, BR, BC, 'towers');
+    /**
+     * Величина, которой не хватало: `tier` — ярлык, `steps`/`cost` — числа.
+     * ⚠️ ГЛУБИНА ЗДЕСЬ МЕЛКАЯ НАРОЧНО. Первая редакция брала 18 выколотых — а при
+     * такой копке доска не берётся логикой почти в половине случаев (замер: 22 из 40),
+     * и на нерешаемой `steps` законно остаётся нулём. Проба мигнула ровно так на
+     * первом же прогоне. Мигающая проба приучает не смотреть на красное, поэтому
+     * условие сделано детерминированным: на восьми дырках решатель работает всегда.
+     */
+    const g = generatePuzzle(8, N, BR, BC, 'towers');
     const towers = (g as unknown as { towers?: TowersMap }).towers;
     const r = gradePuzzle(g.puzzle, { N, BR, BC, variant: 'towers', towers });
     expect(typeof r.steps).toBe('number');
     expect(typeof r.cost).toBe('number');
+    expect(`доска на 8 дырок решена: ${r.solved}`).toBe('доска на 8 дырок решена: true');
     expect(r.steps).toBeGreaterThan(0);
     // цена не ниже длины: каждый шаг стоит минимум ступень 1
     expect(r.cost).toBeGreaterThanOrEqual(r.steps);
@@ -113,5 +122,49 @@ describe('цена вывода — второй ключ отбора', () => {
 
   it('первый кандидат берётся всегда — сравнивать не с чем', () => {
     expect(лучшеПодПолосу(доска(1, 1), null, dist, вПролёте)).toBe(true);
+  });
+});
+
+describe('небоскрёбы: вариант обязан заслуживать своё имя на ВСЕЙ лестнице', () => {
+  /**
+   * 🔴 ГЕЙТ РОДИЛСЯ ИЗ ДЫРЫ В ДРУГОМ ГЕЙТЕ. `sudoku-towers` проверяет нужность края
+   * при одной глубине (BLANKS = 18) и в своей же шапке пишет, что на мелкой копке
+   * подсказки декоративны. А лестница гоняла 12…20 — пять ступеней НИЖЕ рабочей точки,
+   * то есть половина режима не проверялась ничем. Замер 07.09.2026, 40 досок на
+   * ступень: без края решалось 39/40 на первой ступени против 7/40 на последней.
+   *
+   * Сторожим ось целиком: доля досок, решаемых БЕЗ края, обязана заметно падать от
+   * первой ступени к последней. Это и значит «вариант заслуживает своё имя».
+   */
+  const d6 = dimsForSize(6);
+  const безКрая = (blanks: number, tries = 30) => {
+    let n = 0;
+    for (let i = 0; i < tries; i++) {
+      const g = generatePuzzle(blanks, d6.N, d6.BR, d6.BC, 'towers');
+      if (gradePuzzle(g.puzzle, { N: d6.N, BR: d6.BR, BC: d6.BC, variant: 'none' }).solved) n++;
+    }
+    return n / tries;
+  };
+
+  it('🔴 на верхней ступени край нужен ВДВОЕ чаще, чем на нижней', () => {
+    const ladder = TOWERS_LADDER;
+    const низ = безКрая(ladder[0].blanks);
+    const верх = безКрая(ladder[ladder.length - 1].blanks);
+    // Порог мягкий (замер даёт разницу в пять-шесть раз), чтобы проба не мигала на шуме.
+    expect(`верх ${верх.toFixed(2)} против низа ${низ.toFixed(2)}: край стал нужнее вдвое — ${верх <= низ / 2}`)
+      .toBe(`верх ${верх.toFixed(2)} против низа ${низ.toFixed(2)}: край стал нужнее вдвое — true`);
+  });
+
+  it('🔴 верхняя ступень остаётся РЕШАЕМОЙ — глубина не может расти бесконечно', () => {
+    // Доска, которую логикой не взять, — не трудный уровень, а сломанная задача.
+    const blanks = TOWERS_LADDER[TOWERS_LADDER.length - 1].blanks;
+    let решено = 0;
+    for (let i = 0; i < 30; i++) {
+      const g = generatePuzzle(blanks, d6.N, d6.BR, d6.BC, 'towers');
+      const towers = (g as unknown as { towers?: TowersMap }).towers;
+      if (gradePuzzle(g.puzzle, { N: d6.N, BR: d6.BR, BC: d6.BC, variant: 'towers', towers }).solved) решено++;
+    }
+    expect(`решаемых на верхней ступени ${решено}/30 — не меньше пятой части: ${решено >= 6}`)
+      .toBe(`решаемых на верхней ступени ${решено}/30 — не меньше пятой части: true`);
   });
 });
