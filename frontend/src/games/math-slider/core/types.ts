@@ -1,5 +1,5 @@
 /* psygames-math-slider-types · VER 1 · 17.08.2026 */
-export const MATH_SLIDER_GENERATOR_VERSION = 'math-slider-generator-v1';
+export const MATH_SLIDER_GENERATOR_VERSION = 'math-slider-generator-v2';
 
 export type MathSliderLocale = 'ru' | 'en';
 
@@ -13,6 +13,9 @@ export type MathExpression =
       left: MathExpression;
       right: MathExpression;
     }
+  | { type: 'power'; base: MathExpression; exponent: number }
+  | { type: 'linear-equation'; a: number; b: number; c: number }
+  | { type: 'root-estimation'; value: number }
   | { type: 'percent-of'; percent: number; base: number }
   | { type: 'discount'; price: number; percent: number }
   | {
@@ -26,10 +29,15 @@ export type ExpressionKind =
   | 'integer-addition'
   | 'signed-subtraction'
   | 'mixed-small-multiplication'
+  | 'integer-division'
   | 'decimal-arithmetic'
+  | 'square-power'
   | 'percentage'
   | 'discount'
-  | 'proportion';
+  | 'proportion'
+  | 'cube-nested-power'
+  | 'linear-equation'
+  | 'root-estimation';
 
 export interface MathSliderScale {
   min: number;
