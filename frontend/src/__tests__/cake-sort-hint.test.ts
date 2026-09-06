@@ -8,7 +8,7 @@
  * исполнением: ход применяется, и с него стол по-прежнему разбирается.
  */
 import { makeBoard, moveTop, canPlace, collapse, isCleared, completeIn, CIRCLE } from '@/src/games/cake-sort/core/plate';
-import { hintMove, solvePath, solve } from '@/src/games/cake-sort/core/solver';
+import { hintMove, solvePath } from '@/src/games/cake-sort/core/solver';
 import { deal } from '@/src/games/cake-sort/core/level';
 
 jest.setTimeout(300000);

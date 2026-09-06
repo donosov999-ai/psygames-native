@@ -16,29 +16,33 @@
  * размер разный. Геометрия считается в `core/layout.ts` ДО отрисовки — там же
  * лежит замер, при какой ширине сколько столбцов ещё читаемо.
  */
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image } from 'react-native';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Svg, { Path, Circle as SvgCircle } from 'react-native-svg';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { goBackOrHome } from '@/src/utils/nav';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { saveSession } from '@/src/services/api';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useMoveHistory } from '@/src/hooks/useMoveHistory';
 import { hapticSuccess, hapticTap, useScorePopups, ScorePopupLayer } from '@/src/components/juice';
 import { sndPlace, sndMatch, sndCombo, sndWrong } from '@/src/services/feedback';
 import { saveResume, clearResume } from '@/src/services/resume';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
-import { CIRCLE, Board, canPlace, moveTop, isCleared, hasAnyMove, completeIn } from '@/src/games/cake-sort/core/plate';
+import { CIRCLE, Board, canPlace, moveTop, isCleared, hasAnyMove } from '@/src/games/cake-sort/core/plate';
 import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
 import { tableLayout, maxCols, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
-import { cakeThemeForProfile, CAKE_FLAVORS } from '@/src/constants/cakeThemes';
+import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
 
 export const CS_GAME_ID = 'cake_sort';
 
@@ -73,8 +77,15 @@ export default function CakeSortGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const { profile } = useProfile();
-  const router = useRouter();
-  const { width } = useWindowDimensions();
+  /**
+    * ⚠️ ШИРИНА МОЖЕТ ПРИЙТИ НУЛЁМ. На первом кадре и при повороте экрана
+    * `useWindowDimensions` отдаёт 0, и вся геометрия стола схлопывается в точку —
+    * тарелки рисуются нулевого диаметра, а деление на них даёт NaN.
+    */
+  const width = useScreenWidth();
+  /** Вечерний и ночной шаг зарядки — без писка. Признак берётся из пресета, как у всех. */
+  const { isCalm } = useGamePreset();
+  useCalmHush(isCalm);
   const lvl = usePersistentLevel(CS_GAME_ID);
   const level = lvl.level;
 
@@ -85,7 +96,6 @@ export default function CakeSortGame() {
   const [sel, setSel] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);
   const [done, setDone] = useState(false);
-  const movesRef = useRef(0);
   /**
    * 🔴 ОТМЕНА — СНИМОК ЦЕЛИКОМ, А НЕ «ОТКУДА-КУДА». Ход запускает каскад:
    * круг замыкается, тарелка уходит, на её место приезжает очередь. Обратный
@@ -96,7 +106,7 @@ export default function CakeSortGame() {
    * посмотрел — откатил» ничего не разведаешь. Платит она только ходами: снятый
    * ход возвращается в счётчик, иначе звёзды давались бы за перебор.
    */
-  const [история, setИстория] = useState<{ b: Board; moves: number }[]>([]);
+  const история = useMoveHistory<{ b: Board; moves: number }>();
   const [hints, setHints] = useState(HINTS_PER_LEVEL);
   const [hint, setHint] = useState<{ from: number; to: number } | null>(null);
   /**
@@ -108,7 +118,7 @@ export default function CakeSortGame() {
    * ломается именно их последовательность. Помним путь и идём по нему, пока
    * игрок ходит как советовали; свернул — путь сбрасывается и ищется заново.
    */
-  const путьRef = useRef<{ from: number; to: number }[] | null>(null);
+  const [путь, setПуть] = useState<{ from: number; to: number }[] | null>(null);
   /** Точный минимум, если фоновый расчёт успел. Иначе звёзды идут от калибровки. */
   const [точныйМин, setТочныйМин] = useState<number | null>(null);
   const { popups, spawn } = useScorePopups();
@@ -116,16 +126,34 @@ export default function CakeSortGame() {
   const rulesHere = CS_RULES;
   const levelRules = useLevelRules(CS_GAME_ID, level, rulesHere, !done);
 
+  /**
+   * ⚠️ СБРОС ИСТОРИИ ЗДЕСЬ НЕ ЗОВЁТСЯ. Хук отмены отдаёт новый объект на каждом
+   * рендере, и держать его в зависимостях значит пересоздавать раздачу каждый
+   * кадр. Историю чистит тот, кто меняет уровень, — ниже, в правке состояния.
+   */
   const раздать = useCallback(() => {
     const d = deal(level);
     setBoard(d.board);
     setSel(null); setDone(false); setHint(null);
-    setИстория([]); setHints(HINTS_PER_LEVEL); setТочныйМин(null);
-    путьRef.current = null;
-    movesRef.current = 0; setMoves(0);
+    setHints(HINTS_PER_LEVEL); setТочныйМин(null);
+    setПуть(null);
+    setMoves(0);
   }, [level]);
 
-  useEffect(() => { раздать(); }, [раздать]);
+  /**
+   * ⚠️ РАЗДАЧА — ПРАВКА СОСТОЯНИЯ ПРИ СМЕНЕ УРОВНЯ, А НЕ ЭФФЕКТ.
+   *
+   * Прямой `setState` в теле эффекта даёт каскад перерисовок, и линт на это
+   * ругается по делу. React для этого случая предлагает свой приём — поправить
+   * состояние ПРЯМО В РЕНДЕРЕ, когда изменилось то, от чего оно зависит: React
+   * перезапускает рендер до отрисовки, лишнего кадра не будет.
+   */
+  const [роздан, setРоздан] = useState<number | null>(null);
+  if (роздан !== level) {
+    setРоздан(level);
+    раздать();
+    история.reset();
+  }
 
   /**
    * 🔴 ТОЧНЫЙ МИНИМУМ СЧИТАЕТСЯ ФОНОМ, А НЕ НА ГЛАЗАХ У ЧЕЛОВЕКА.
@@ -143,11 +171,11 @@ export default function CakeSortGame() {
       if (живо && r.moves !== null) setТочныйМин(r.moves);
     }, 60);
     return () => { живо = false; clearTimeout(t); };
-  }, [level]);
+  }, [level, board]);
 
   /** Снимок партии: стол, ходы, подсказки. Уровень персистится сам. */
   useEffect(() => {
-    if (!board || done || movesRef.current === 0) return;
+    if (!board || done || moves === 0) return;
     saveResume(CS_GAME_ID, profile?.id ?? 'free', CS_RESUME_VERSION, { board, moves, hints, level }).catch(() => {});
   }, [board, moves, hints, done, level, profile?.id]);
 
@@ -155,8 +183,8 @@ export default function CakeSortGame() {
     CS_GAME_ID, CS_RESUME_VERSION,
     (saved) => {
       if (!saved || saved.level !== level) return;
-      setBoard(saved.board); setMoves(saved.moves); movesRef.current = saved.moves;
-      setHints(saved.hints); setИстория([]);
+      setBoard(saved.board); setMoves(saved.moves);
+      setHints(saved.hints); история.reset();
     },
     false,
   );
@@ -185,12 +213,11 @@ export default function CakeSortGame() {
     if (!canPlace(board, i, тип)) { setSel(null); hapticTap(); sndWrong(); return; }
     const после = moveTop(board, sel, i);
     if (!после) { setSel(null); return; }
-    setИстория((h) => [...h, { b: board, moves: movesRef.current }]);
+    история.push({ b: board, moves });
     // Пошёл как советовали — снимаем шаг с пути; свернул — путь больше не наш.
-    const шаг = путьRef.current?.[0];
-    if (шаг && шаг.from === sel && шаг.to === i) путьRef.current = путьRef.current!.slice(1);
-    else путьRef.current = null;
-    movesRef.current += 1; setMoves(movesRef.current);
+    const шаг = путь?.[0];
+    setПуть(шаг && шаг.from === sel && шаг.to === i ? путь!.slice(1) : null);
+    setMoves(moves + 1);
     setSel(null); setHint(null);
     /**
      * Сколько кругов замкнулось этим ходом. Считаем по ПУСТЫМ тарелкам, а не по
@@ -206,19 +233,27 @@ export default function CakeSortGame() {
       spawn(width / 2 - 24, 140, (собрано > 1 ? `×${собрано}  ` : '') + '+' + собрано * 100, '#fde047');
     } else { hapticTap(); sndPlace(); }
     setBoard(после);
-    if (isCleared(после)) { setDone(true); hapticSuccess(); clearResume(CS_GAME_ID, profile?.id ?? 'free').catch(() => {}); }
+    if (isCleared(после)) {
+      setDone(true); hapticSuccess();
+      clearResume(CS_GAME_ID, profile?.id ?? 'free').catch(() => {});
+      /**
+       * Запись партии — та же форма, что у всех: `passed` пишется всегда, иначе
+       * «пройдено» нельзя отличить от «бросил на середине» ни в одном отчёте.
+       */
+      saveSession({
+        game_type: CS_GAME_ID, score: moves, time_seconds: 0, passed: true,
+        details: { level, moves, types: cfg.types, stars: starsFor(moves, cfg.types, точныйМин) },
+      }).catch(() => {});
+    }
   };
 
   /** Отмена: возвращаем снимок и СНИМАЕМ ход со счётчика — иначе перебор бесплатен. */
   const отменить = () => {
-    setИстория((h) => {
-      const last = h[h.length - 1];
-      if (!last) { hapticTap(); return h; }
-      setBoard(last.b); movesRef.current = last.moves; setMoves(last.moves);
-      путьRef.current = null;   // откат меняет стол — прежний путь к нему не относится
-      setSel(null); setHint(null); hapticTap(); sndPlace();
-      return h.slice(0, -1);
-    });
+    const last = история.undo();
+    if (!last) { hapticTap(); return; }
+    setBoard(last.b); setMoves(last.moves);
+    setПуть(null);   // откат меняет стол — прежний путь к нему не относится
+    setSel(null); setHint(null); hapticTap(); sndPlace();
   };
 
   /**
@@ -227,8 +262,9 @@ export default function CakeSortGame() {
    */
   const подсказать = () => {
     if (!board || hints <= 0 || done) { hapticTap(); return; }
-    if (!путьRef.current || путьRef.current.length === 0) путьRef.current = solvePath(board, 20000);
-    const h = путьRef.current?.[0] ?? null;
+    const текущий = путь && путь.length ? путь : solvePath(board, 20000);
+    if (текущий !== путь) setПуть(текущий);
+    const h = текущий?.[0] ?? null;
     if (!h) { hapticTap(); sndWrong(); return; }
     setHints((n) => n - 1); setHint(h); setSel(null); hapticTap(); sndPlace();
   };
@@ -284,6 +320,17 @@ export default function CakeSortGame() {
     <GameShell
       title={t('cakeSort')}
       onBack={() => goBackOrHome()}
+      /**
+       * 🔴 ИГРА, КОТОРАЯ СОХРАНЯЕТ ПАРТИЮ, ОБЯЗАНА СПРОСИТЬ ПЕРЕД ВЫХОДОМ.
+       * Гейт `exit-guard` поймал это первым же полным прогоном: снимок в
+       * хранилище был, а уход — молча. Человек выходит, думая, что бросил
+       * партию, а она ждёт его — и наоборот, уходит случайно и теряет ход.
+       * Спрашиваем только когда есть что терять: до первого хода тревожить незачем.
+       */
+      confirmExit={moves > 0 && !done}
+      resumable
+      onSaveBeforeExit={() => saveResume(CS_GAME_ID, profile?.id ?? 'free', CS_RESUME_VERSION,
+        { board, moves, hints, level }).catch(() => {})}
       hud={[
         { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: level },
         { key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'), value: `${moves}/${эталон}`, tone: moves > эталон ? 'warn' as const : 'good' as const, pop: true },
@@ -297,9 +344,9 @@ export default function CakeSortGame() {
         {Array.from({ length: cfg.plates }).map((_, i) => тарелка(i))}
       </View>
       <View style={styles.tools}>
-        <TouchableOpacity onPress={отменить} disabled={!история.length} style={[styles.tool, !история.length && styles.toolOff]}
+        <TouchableOpacity onPress={отменить} disabled={!история.canUndo} style={[styles.tool, !история.canUndo && styles.toolOff]}
           accessibilityRole="button" accessibilityLabel={t('btn_undo')}>
-          <Ionicons name="arrow-undo" size={20} color={история.length ? '#fff' : '#ffffff66'} />
+          <Ionicons name="arrow-undo" size={20} color={история.canUndo ? '#fff' : '#ffffff66'} />
         </TouchableOpacity>
         <TouchableOpacity onPress={подсказать} disabled={hints <= 0} style={[styles.tool, hints <= 0 && styles.toolOff]}
           accessibilityRole="button" accessibilityLabel={t('btn_hint')}>
@@ -311,7 +358,7 @@ export default function CakeSortGame() {
         <View style={styles.stuck}>
           <Ionicons name="alert-circle" size={18} color="#fb923c" />
           <Text style={{ color: '#fb923c', marginLeft: 6 }}>{t('cakeStuck')}</Text>
-          <TouchableOpacity onPress={раздать} style={styles.again}>
+          <TouchableOpacity onPress={() => { lvl.fail(); раздать(); }} style={styles.again}>
             <Text style={{ color: '#fff' }}>{t('restart')}</Text>
           </TouchableOpacity>
         </View>
@@ -325,6 +372,7 @@ export default function CakeSortGame() {
           colors={colors}
           gameId={CS_GAME_ID}
           onContinue={() => { lvl.reach(level + 1); }}
+          stopKind="exit"
           onStop={() => goBackOrHome()}
         />
       )}
