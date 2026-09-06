@@ -30,6 +30,8 @@ import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
 import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches } from '@/app/games/goods-sort';
 import { HN_RULES, levelParams as hanoi } from '@/app/games/hanoi';
+import { WATER_SORT_RULES } from '@/app/games/water-sort';
+import { скрытоНаУровне } from '@/src/games/water-sort/core/hidden';
 import { LISTENINGSPAN_RULES, levelParams as listening } from '@/app/games/listening-span';
 import { MAHJONG_RULES } from '@/app/games/mahjong';
 import { MS_RULES, opsFor } from '@/app/games/math-sprint';
@@ -58,6 +60,7 @@ const LEVELS = Array.from({ length: 60 }, (_, i) => i + 1);
 const RULES: Record<string, LevelRule[]> = {
   'chess-blind': CHESSBLIND_RULES, corsi: CORSI_RULES, cpt: CPT_RULES, 'digit-span': DS_RULES,
   'goods-sort': GS_RULES, hanoi: HN_RULES, 'listening-span': LISTENINGSPAN_RULES,
+  'water-sort': WATER_SORT_RULES,
   mahjong: MAHJONG_RULES, 'math-sprint': MS_RULES, 'memory-matrix': MEMORYMATRIX_RULES,
   'mental-rotation': MR_RULES, mnemonics: MNEMONICS_RULES, 'n-back': NB_RULES, ospan: OSPAN_RULES,
   'picture-pairs': PAIRS_RULES, prl: PRL_RULES, 'pseudoword-echo': PSEUDOWORDECHO_RULES,
@@ -128,6 +131,14 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'goods-sort', ключ: 'strict', вид: 'порог', есть: (L) => strictPlacement(L) },
   { игра: 'goods-sort', ключ: 'hidden', вид: 'порог', есть: (L) => hiddenInfo(L) },
   { игра: 'goods-sort', ключ: 'joker', вид: 'порог', есть: (L) => jokerNiches(L, 14).length > 0 },
+  /**
+   * ⚠️ ПЕРЕЛИВАЛКА ЗАРЕГИСТРИРОВАНА ЗДЕСЬ 06.09.2026, В ТОТ ЖЕ ЗАХОД, ЧТО И
+   * МЕХАНИКА. Первым делом её правило было НЕ ВИДНО этому гейту: массив не был
+   * экспортирован, и новое правило стояло вне той самой проверки, ради которой
+   * гейт написан. Ровно так дыра и заводится — не злым умыслом, а тем, что
+   * регистрацию откладывают «на потом».
+   */
+  { игра: 'water-sort', ключ: 'hidden', вид: 'порог', есть: (L) => скрытоНаУровне(L) },
 ];
 
 /**
