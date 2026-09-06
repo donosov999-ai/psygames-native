@@ -51,7 +51,11 @@ const BOSS_EVERY = 3;
 // (прямая черта): её повороты |/— не совпадают ни с углом (L), ни с 3-лучевым (T), ни с крестом (plus).
 type Shape = 'T' | 'L' | 'I' | 'plus';
 
-interface Item { x: number; y: number; rot: number; isTarget: boolean; found: boolean; shape: Shape; color: string; }
+interface Item {
+  x: number; y: number; rot: number; isTarget: boolean; found: boolean; shape: Shape; color: string;
+  /** Ось 5: выглядит РОВНО как цель, но помечена точкой — трогать нельзя. */
+  decoy: boolean;
+}
 
 function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
@@ -114,17 +118,59 @@ const FIND_TXT: Record<string, string> = {
 // Уровень (1..15+) задаёт базовую сложность; раунды внутри сессии добавляют объекты.
 // Дистракторов больше с уровнем; целей 1→2→3→4 по мере роста уровня. (Конъюнктивный поиск цвет+форма — фаза 2.)
 /** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
-export function levelParams(level: number, round: number): { count: number; targetCount: number; conjunction: boolean } {
+/**
+ * 🔴 ОСЬ «ОТВЛЕЧЕНИЕ»: ПРИМАНКИ, КОТОРЫЕ НАДО НЕ ТРОГАТЬ.
+ *
+ * ЗАЧЕМ. Разметка по десяти осям (`search-chat/PROJECT_REF.md` §R): у зрительного
+ * поиска были заняты ДВЕ — объём (18→72 объекта, целей 1→4) и сходство
+ * (конъюнкция с 8-го). Всё это упирается в потолок к 15-му уровню: дальше растёт
+ * лишь скорость добора объектов ВНУТРИ партии, то есть L60 и L20 начинаются
+ * одинаково.
+ *
+ * ⚠️ ПОЧЕМУ ОБЫЧНЫЙ ОТВЛЕКАЮЩИЙ — ЭТО НЕ ОСЬ 5. Промах по отвлекающему и так
+ * штрафуется, а сами они и есть предмет игры: их число — это ось 1, объём.
+ * Ось 5 — это ПОДАВЛЕНИЕ: предмет, который выглядит РОВНО как цель (та же форма,
+ * тот же цвет) и отличается только меткой. Его нельзя брать «на автомате», по
+ * которому и идёт весь поиск, — приходится тормозить и проверять каждую находку.
+ * Тот же приём, что у соседей в CPT («буквы-ловушки») и в босс-раунде счёта.
+ *
+ * ⚠️ ВКЛЮЧАЕТСЯ ПОСЛЕ 15-го: уровни 1..15 остаются побайтно прежними.
+ */
+const БЕЗ_ПРИМАНОК_ДО = 15;
+
+export function levelParams(level: number, round: number): { count: number; targetCount: number; conjunction: boolean; decoys: number } {
   const base = Math.min(72, 14 + level * 4);                            // L1≈18 → L14≈70 объектов
   const growth = 3 + Math.floor(level / 4);                              // прирост/раунд растёт с уровнем
   const count = Math.min(96, base + (round - 1) * growth);
   const maxT = level <= 3 ? 1 : level <= 7 ? 2 : level <= 11 ? 3 : 4;    // целей: 1→2→3→4 с уровнем
   const targetCount = Math.min(maxT, 1 + Math.floor((round - 1) / 2));
   const conjunction = level >= CONJ_FROM_LEVEL;                          // фаза-2: цель по 2 признакам (цвет+форма)
-  return { count, targetCount, conjunction };
+  // Приманок больше каждые три уровня; шесть — предел ОСИ, а не лестницы:
+  // дальше поле превращается в «не трогай ничего», и это уже другая игра.
+  const decoys = Math.min(6, Math.max(0, Math.ceil((level - БЕЗ_ПРИМАНОК_ДО) / 3)));
+  return { count, targetCount, conjunction, decoys };
 }
 
-function makeBoard(count: number, targetShape: Shape, targetColor: string, targetCount: number, conjunction: boolean, w: number, h: number, palette: string[] = COLORS_ALL): Item[] {
+/**
+ * Докуда лестница РЕАЛЬНО растёт — по ПЕРВОМУ раунду уровня, то есть по тому,
+ * что игрок видит, открыв уровень. Считается из `levelParams`, а не вписано.
+ *
+ * ⚠️ Полная подпись со всеми раундами меняется до 84-го, но там растёт лишь
+ * скорость добора объектов ВНУТРИ партии; чем L60 отличается от L20 на старте —
+ * ничем. Объявлять игроку 84 значило бы обещать рост, которого он не увидит.
+ */
+export const VISUAL_SEARCH_LEVELS: number = (() => {
+  let последний = 1;
+  let прежняя = JSON.stringify(levelParams(1, 1));
+  for (let L = 2; L <= 200; L += 1) {
+    const текущая = JSON.stringify(levelParams(L, 1));
+    if (текущая !== прежняя) { последний = L; прежняя = текущая; }
+  }
+  return последний;
+})();
+
+/** Экспортирована для гейта `visual-search-decoy-axis`: приманки проверяются ИСПОЛНЕНИЕМ сборки, а не чтением исходника. */
+export function makeBoard(count: number, targetShape: Shape, targetColor: string, targetCount: number, conjunction: boolean, w: number, h: number, palette: string[] = COLORS_ALL, decoyCount = 0): Item[] {
   const cols = Math.ceil(Math.sqrt(count * (w / h)));
   const rows = Math.ceil(count / cols);
   const cellW = w / cols;
@@ -136,6 +182,10 @@ function makeBoard(count: number, targetShape: Shape, targetColor: string, targe
   const picked = shuffle(slots).slice(0, count);
   // targetCount РАЗНЫХ ячеек назначаем целями
   const targetSet = new Set(shuffle(picked.map((_, i) => i)).slice(0, targetCount));
+  // Приманки берутся из НЕцелевых мест: цель приманкой стать не может, иначе
+  // уровень стал бы непроходимым.
+  const свободные = picked.map((_, i) => i).filter((i) => !targetSet.has(i));
+  const decoySet = new Set(shuffle(свободные).slice(0, Math.min(decoyCount, свободные.length)));
   const otherShapes = SHAPES_ALL.filter((s) => s !== targetShape);
   const otherColors = palette.filter((c) => c !== targetColor);
   const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
@@ -151,11 +201,13 @@ function makeBoard(count: number, targetShape: Shape, targetColor: string, targe
     } else {
       shape = pick(otherShapes); color = NEUTRAL_STROKE;                                  // feature-поиск: только форма
     }
+    const приманка = decoySet.has(i);
+    if (приманка) { shape = targetShape; color = conjunction ? targetColor : NEUTRAL_STROKE; }
     return {
       x: s.cx + (Math.random() - 0.5) * cellW * 0.3,
       y: s.cy + (Math.random() - 0.5) * cellH * 0.3,
       rot: [0, 90, 180, 270][Math.floor(Math.random() * 4)],
-      isTarget: isT, found: false, shape, color,
+      isTarget: isT, found: false, shape, color, decoy: приманка,
     };
   });
 }
@@ -219,7 +271,7 @@ export default function VisualSearchGame() {
   const boardH = Math.round(boardW * 1.0);
 
   const newRound = (r: number) => {
-    const { count, targetCount: tc, conjunction } = levelParams(levelRef.current, r);
+    const { count, targetCount: tc, conjunction, decoys } = levelParams(levelRef.current, r);
     const shape = SHAPES_ALL[Math.floor(Math.random() * SHAPES_ALL.length)];
     const color = conjunction ? PALETTE[Math.floor(Math.random() * PALETTE.length)] : NEUTRAL_STROKE;
     roundRef.current = r;
@@ -231,7 +283,7 @@ export default function VisualSearchGame() {
     setTargetColor(color);
     setTargetCount(tc);
     setFoundCount(0);
-    setItems(makeBoard(count, shape, color, tc, conjunction, boardW, boardH, PALETTE));
+    setItems(makeBoard(count, shape, color, tc, conjunction, boardW, boardH, PALETTE, decoys));
     setFeedback(null);
     setStimAt(gameNow());
   };
@@ -326,7 +378,7 @@ export default function VisualSearchGame() {
         <Text style={styles.configDesc}>{t('visualSearchDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="visualSearchIntroDesc" benefits={VS_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap bestLevel={lvl.best} gameId="visual_search" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="visual_search" currentLevel={lvl.level} maxLevel={VISUAL_SEARCH_LEVELS} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
         <Text style={[styles.modeButtonText, { color: colors.textSecondary }]}>
@@ -366,8 +418,16 @@ export default function VisualSearchGame() {
   const COLOR_LABEL: Record<string, string> = {
     '#60a5fa': 'color_blue', '#fbbf24': 'color_yellow', '#f472b6': 'color_red',
   };
+  /**
+   * ⚠️ ПРИМАНКА ОБЯЗАНА БЫТЬ СЛЫШНА, А НЕ ТОЛЬКО ВИДНА. Она отличается от цели
+   * ОДНОЙ точкой — для человека с озвучкой это ноль различий, и уровень стал бы
+   * непроходимым. Берётся готовый ключ `skip` («Пропустить»), переведённый на
+   * все двенадцать языков: своего ключа под это не завожу, чтобы не лезть в
+   * общие словари, которые сейчас правят соседние чаты.
+   */
   const itemLabel = (it: Item) =>
     `${SHAPE_LABEL[it.shape]}${COLOR_LABEL[it.color] ? ', ' + t(COLOR_LABEL[it.color]).toLowerCase() : ''}` +
+    (it.decoy ? `, ${t('skip')}` : '') +
     (it.found ? `, ${t('a11yFound')}` : '');
 
   const renderLetter = (item: Item) => {
@@ -438,6 +498,17 @@ export default function VisualSearchGame() {
                   }}
                 >
                   {renderLetter(it)}
+                  {it.decoy && (
+                    /* Точка в центре — единственное отличие приманки от цели.
+                       Своя, а не цветом: цвет с 8-го уровня уже несёт смысл. */
+                    <View
+                      pointerEvents="none"
+                      style={{
+                        position: 'absolute', width: 8, height: 8, borderRadius: 4,
+                        backgroundColor: it.color || NEUTRAL_STROKE,
+                      }}
+                    />
+                  )}
                 </TouchableOpacity>
               ))}
             </View>
