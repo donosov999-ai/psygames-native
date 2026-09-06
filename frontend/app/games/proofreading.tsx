@@ -124,6 +124,26 @@ const INTERLUDE_MS = 2500;
  * там одно поле и один результат, здесь три блока и две разности — сложенные в
  * одну кучу, они дали бы среднее по несравнимым величинам.
  */
+/**
+ * Случайное — ВНЕ компонента.
+ *
+ * ⚠️ `Math.random()` стоял прямо в теле компонента (выбор целевых букв, досев
+ * целей, зерно раскладки), и линтер правил React звал это «impure function
+ * during render»: он не может доказать, что тело не вызовется при отрисовке, а
+ * непредсказуемый результат в рендере даёт разное дерево на одних и тех же
+ * пропах. Сюда рендер не заглядывает, поэтому вопрос снимается на корню.
+ *
+ * ⚠️ Это НЕ генератор поля: тот детерминирован зерном (`fwSeed`) и живёт в ядре.
+ * Здесь только выбор самого зерна и целевых букв корректуры.
+ */
+function случайноеЦелое(предел: number): number {
+  return Math.floor(Math.random() * предел);
+}
+/** `ArrayLike`, а не массив: алфавит корректуры — СТРОКА, и индексируется так же. */
+function случайныйИз<T>(список: ArrayLike<T>): T {
+  return список[случайноеЦелое(список.length)];
+}
+
 const SERIES_GAME_TYPE = 'proofreading_series';
 
 /**
@@ -239,10 +259,6 @@ export default function ProofreadingGame() {
   // Пояснение живёт комментарием, а глушить здесь нечего.
   // ⚠️ Серия ждёт ЕЩЁ И своего прогресса: он приезжает из хранилища асинхронно, а
   // стартовый размер поля выводится из него. Стартовать раньше — сесть не на своё поле.
-  useAutostartWhenReady(
-    () => autostart && lvl.loaded && (!seriesPreset || seriesLoaded),
-    () => (seriesPreset ? beginSeries() : startGame()),
-  );
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   // rows/cols из пресета зарядки; в личной игре перезаписываются параметрами уровня
   const [rows, setRows] = useState(() => num('rows', 14));
@@ -363,11 +379,11 @@ export default function ProofreadingGame() {
 
     // Select 2 target letters
     const targets = [
-      alphabet[Math.floor(Math.random() * alphabet.length)],
-      alphabet[Math.floor(Math.random() * alphabet.length)],
+      случайныйИз(alphabet),
+      случайныйИз(alphabet),
     ];
     while (targets[1] === targets[0]) {
-      targets[1] = alphabet[Math.floor(Math.random() * alphabet.length)];
+      targets[1] = случайныйИз(alphabet);
     }
 
     // Гарантия минимума целей: на больших алфавитах (иероглифы/кана) цели могли
@@ -376,9 +392,9 @@ export default function ProofreadingGame() {
     const minTargets = Math.max(4, Math.round(totalCells / 16));
     let present = letters.filter((l) => targets.includes(l)).length;
     while (present < minTargets) {
-      const idx = Math.floor(Math.random() * totalCells);
+      const idx = случайноеЦелое(totalCells);
       if (!targets.includes(letters[idx])) {
-        letters[idx] = targets[Math.floor(Math.random() * 2)];
+        letters[idx] = targets[случайноеЦелое(2)];
         present++;
       }
     }
@@ -497,7 +513,7 @@ export default function ProofreadingGame() {
     const mistakes = missed + errs + hintsTaken;
     // Следующее поле — с новым зерном. Без этого повтор того же уровня выдавал бы
     // ту же раскладку, а вторая попытка превращалась бы в проверку памяти.
-    if (fwRoundRef.current) setFwSeed(Math.floor(Math.random() * 1e9) + 1);
+    if (fwRoundRef.current) setFwSeed(случайноеЦелое(1e9) + 1);
     setLastStars(mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1);
     // Пресет зарядки — статистика в GameResult (уровень не трогаем).
     // Уровневый проход — всегда общий баннер LevelCleared: passed=true → следующий,
@@ -838,6 +854,25 @@ export default function ProofreadingGame() {
     beginBlockClock();
     setPhase('series');
   };
+
+  /*
+    ⚠️ ВЫЗОВ СТОИТ ЗДЕСЬ, А НЕ ВВЕРХУ ФАЙЛА. Раньше он шёл до объявления
+    `startGame` и `beginSeries`, и линтер звал это «Cannot access variable before
+    it is declared»: замыкание, созданное раньше объявления, не обновляется, когда
+    значение меняется со временем. Работало это только потому, что хук зовёт
+    start() внутри эффекта — то есть уже после объявления; держалось на порядке
+    выполнения, а не на устройстве.
+
+    Порядок хуков от переноса не плывёт: вызов безусловный и там, и тут.
+
+    Смысл прежний: ждём загрузки уровня И серии. Без этого автостарт играл первый
+    уровень человеку с двенадцатым — уровень приезжает асинхронно, а эффект
+    монтирования всегда раньше промиса.
+  */
+  useAutostartWhenReady(
+    () => autostart && lvl.loaded && (!seriesPreset || seriesLoaded),
+    () => (seriesPreset ? beginSeries() : startGame()),
+  );
 
   /** Конец серии: ОДНА сессия с массивом блоков внутри, разности — только у полной. */
   const finishSeries = async (run: SeriesRun, show: boolean) => {
