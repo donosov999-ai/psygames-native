@@ -155,4 +155,35 @@ describe('экран «найди все слова» — список огра�
     expect(после.join('')).not.toBe(до.join(''));
     expect([...после].sort().join('')).toBe([...до].sort().join(''));
   });
+
+  /**
+   * 🔴 ПИСЬМО СПРАВА НАЛЕВО: ПОРЯДОК КЛЕТОК — ЭТО ПОРЯДОК БУКВ.
+   * Оставь строку слова в обычном направлении — арабское слово прочтётся задом
+   * наперёд, и подсказка будет открывать «не ту» букву. Плюс найденное слово
+   * обязано дублироваться подписью: в клетках стоят изолированные формы, а в
+   * письме буква меняет начертание по позиции и соединяется с соседями.
+   */
+  it('🔴 при rtl строка слова разворачивается, а без него — нет', () => {
+    const найти = (дерево: any) => дерево.root.findAll(
+      (n: any) => {
+        const s = n.props?.style;
+        const части = Array.isArray(s) ? s : [s];
+        return части.some((x: any) => x && x.flexDirection === 'row-reverse');
+      }, { deep: true },
+    ).length;
+
+    let сRtl: any; let безRtl: any;
+    TestRenderer.act(() => {
+      сRtl = TestRenderer.create(React.createElement(AllWordsGame, {
+        pack: пак(8), seed: 1, size: 328, theme: ТЕМА, now: () => 0,
+        onComplete: () => {}, labels: ПОДПИСИ, rtl: true,
+      }));
+      безRtl = TestRenderer.create(React.createElement(AllWordsGame, {
+        pack: пак(8), seed: 1, size: 328, theme: ТЕМА, now: () => 0,
+        onComplete: () => {}, labels: ПОДПИСИ,
+      }));
+    });
+    expect(найти(сRtl)).toBeGreaterThan(0);
+    expect(найти(безRtl)).toBe(0);
+  });
 });

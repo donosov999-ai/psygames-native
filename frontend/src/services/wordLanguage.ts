@@ -41,7 +41,7 @@ export type WordLang = string;
 const ЯЗЫКИ_ИГРЫ: Record<string, readonly string[]> = {
   // Восемь наборов «Найди все слова». Классика и «Квадрат слов» знают из них
   // только ru и en — сужает экран, см. шапку файла.
-  anagrams: ['ru', 'en', 'de', 'es', 'fr', 'it', 'ko', 'pt'],
+  anagrams: ['ru', 'en', 'de', 'es', 'fr', 'it', 'ko', 'pt', 'ar'],
 };
 
 /** Какие языки предлагать в этой игре. */
@@ -55,7 +55,7 @@ export function wordLangsFor(gameId: string): readonly string[] {
  */
 export const WORD_LANG_LABEL: Record<string, string> = {
   ru: 'Русский', en: 'English', de: 'Deutsch', es: 'Español',
-  fr: 'Français', it: 'Italiano', pt: 'Português', ko: '한국어',
+  fr: 'Français', it: 'Italiano', pt: 'Português', ko: '한국어', ar: 'العربية',
 };
 
 /**

@@ -34,6 +34,17 @@ export interface AllWordsProps {
   /** Язык слов: нужен, чтобы отличить настоящее слово от набора букв. */
   locale?: string;
   /**
+   * 🔴 ПИСЬМО СПРАВА НАЛЕВО. Клетки показывают длину слова, и порядок клеток —
+   * это порядок букв: у арабского он обратный. Оставь как есть — человек прочтёт
+   * слово задом наперёд и не поймёт, почему подсказка открывает «не ту» букву.
+   *
+   * ⚠️ Флаг влияет и на ПОДПИСЬ. В клетках стоят изолированные формы букв (игрок
+   * нажимает именно их), а в письме буква меняет начертание по позиции в слове и
+   * соединяется с соседями. Поэтому найденное слово дублируется подписью целой
+   * строкой — там система рисует его связно и правильно.
+   */
+  rtl?: boolean;
+  /**
    * Как показать НАЙДЕННОЕ слово человеку, если клетки читаются не так, как
    * пишется слово. Нужен ровно одному языку: корейские плитки — чамо (ㅅㅏㄹㅏㅇ),
    * а слово пишется слоговыми блоками (사랑). Для латиницы и кириллицы не
@@ -43,7 +54,7 @@ export interface AllWordsProps {
   labels: { найдено: string; подсказки: string; банк: string; сдать: string; сброс: string; подсказка: string; перемешать: string; копилка: string };
 }
 
-export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, maxListHeight, locale, подписьНайденного, labels }: AllWordsProps) {
+export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, maxListHeight, locale, rtl, подписьНайденного, labels }: AllWordsProps) {
   const [найдены, setНайдены] = React.useState<string[]>([]);
   const [линия, setЛиния] = React.useState<number[]>([]);
   /**
@@ -168,7 +179,8 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
              * было нельзя — а длина слова здесь и есть условие задачи.
              */
             <View key={слово} style={стили.гнездоСлова}>
-            <View style={[стили.строкаСлова, { backgroundColor: theme.surface }]}
+            <View style={[стили.строкаСлова, rtl ? { flexDirection: 'row-reverse' } : null,
+              { backgroundColor: theme.surface }]}
               accessible accessibilityLabel={открыто ? (подписьНайденного?.(слово) ?? слово) : `${слово.length}`}>
               {[...слово].map((ch, i) => (
                 <View key={i} style={[стили.клетка, {
@@ -191,9 +203,9 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
               длину), а подпись говорит, ЧТО именно человек собрал: цепочку
               ㅅㅏㄹㅏㅇ по-корейски читают как 사랑.
             */}
-            {открыто && подписьНайденного && подписьНайденного(слово) !== слово ? (
+            {открыто && (rtl || (подписьНайденного && подписьНайденного(слово) !== слово)) ? (
               <Text style={[стили.подпись, { color: theme.textSecondary, fontSize: Math.max(11, клетка * 0.5) }]}>
-                {подписьНайденного(слово)}
+                {подписьНайденного ? подписьНайденного(слово) : слово}
               </Text>
             ) : null}
             </View>

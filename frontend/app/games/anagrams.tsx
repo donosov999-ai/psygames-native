@@ -169,8 +169,18 @@ export default function AnagramGame() {
    */
   const языкиРежима = React.useMemo(() => {
     const всеИгры = wordLangsFor('anagrams');
-    if (режимИгры === 'all' || режимИгры === 'cross') {
-      return всеИгры.filter((l) => allWordsCount(l) > 0);
+    if (режимИгры === 'all') return всеИгры.filter((l) => allWordsCount(l) > 0);
+    /**
+     * 🔴 КРОССВОРД БЕРЁТ ТЕ ЖЕ НАБОРЫ, НО НЕ ВСЕ ЯЗЫКИ ЕМУ ДАЮТСЯ.
+     * Замер по 400 уровням: в телефонную коробку 12×12 арабский влезает лишь в
+     * 69,4% случаев при пороге 85%. Причина не в настройке, а в языке — средняя
+     * длина слова на уровне 5,3 против 4,5 у корейского, коротких слов почти нет,
+     * и сетка выходит стороной 10,7 вместо 9,1. Понижение потолка длины не
+     * помогает: при потолке 5 годными остаются 4 уровня из ста.
+     * Показать режим значило бы отдать человеку сетку, не влезающую в экран.
+     */
+    if (режимИгры === 'cross') {
+      return всеИгры.filter((l) => allWordsCount(l) > 0 && l !== 'ar');
     }
     // «Квадрат слов» с 06.09.2026 тоже на восьми: кольца приходят паками.
     if (режимИгры === 'square') return всеИгры.filter((l) => языкиКолец().indexOf(l) >= 0);
@@ -687,6 +697,7 @@ export default function AnagramGame() {
               сравнивать `wordLang.lang` с языком, которого в его типе пока нет.
             */
             locale={wordLang.lang}
+            rtl={wordLang.lang === 'ar'}
             подписьНайденного={показатьКорейское}
             theme={{ surface: colors.surface, text: colors.text, textSecondary: colors.textSecondary, border: colors.border, primary: GRADIENT[0], success: '#12a594', danger: '#e24b4a' }}
             labels={{ найдено: t('label_found'), подсказки: t('btn_hint'), банк: t('anagramSquareBank'), сдать: t('check'), сброс: t('clear'), подсказка: t('btn_hint'), перемешать: t('shuffleBtn'), копилка: t('anagramBonus') }}
