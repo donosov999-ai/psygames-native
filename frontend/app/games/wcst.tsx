@@ -57,7 +57,7 @@ const GRADIENT = ['#834d9b', '#d04ed6'];
 // кладёт поверх вуаль #341f3e @0.16 цветом самого градиента. Подробности — в шапке сервиса.
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
-const MAX_LEVEL = 12;
+export const MAX_LEVEL = 12;
 const CLASSIC_STREAK = 10;   // классический WCST: смена правила после 10 подряд
 
 const WCST_BENEFITS = [
@@ -108,7 +108,7 @@ function matchByRule(target: Card, ref: Card, rule: Rule): boolean {
 
 // Уровень 1..12: окно смены правила сокращается (правило меняется чаще),
 // число проб растёт ступенями. Механика сортировки НЕ меняется — только частота/размах.
-function levelParams(level: number): { trials: number; ruleChangeStreak: number; persevCap: number } {
+export function levelParams(level: number): { trials: number; ruleChangeStreak: number; persevCap: number } {
   const trials = level <= 4 ? 24 : level <= 8 ? 32 : 40;
   // 9 → 3 подряд по мере роста уровня (плавно, через 12 уровней)
   const ruleChangeStreak = Math.max(3, 9 - Math.floor((level - 1) * 6 / (MAX_LEVEL - 1)));
