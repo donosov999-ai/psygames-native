@@ -107,6 +107,7 @@ const ADDED: Record<string, string> = {
  * переписывать девять живых экранов ради красоты гейта.
  */
 const ALREADY: Record<string, string> = {
+  'cake-sort.tsx': "t('cakeStuck')",
   'anagrams.tsx': "t('anagramHint')",
   'bart.tsx': "t('bartHint')",
   'breathing.tsx': 'phaseLabel(curPhase.type)',
