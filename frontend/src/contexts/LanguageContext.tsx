@@ -2446,7 +2446,7 @@ const translations: Translations = {
   anagramSquareSolved: { ru: 'Собрано', en: 'Solved' },
   anagramSquareBank: { ru: 'Банк букв', en: 'Letter bank' },
   fwShowWords: { ru: 'Список слов', en: 'Word list' },
-  fwShowWordsHint: { ru: 'Показывать слова над полем — их надо найти, а не придумать', en: 'Show the words above the grid — find them instead of guessing them' },
+  fwShowWordsHint: { ru: 'Показывать слова рядом с полем — их надо найти, а не придумать', en: 'Show the words beside the grid — find them instead of guessing them' },
   anagramAllWords: { ru: 'Все слова', en: 'All words' },
   anagramAllWordsHint: { ru: 'Из одного набора букв найди все слова. Пустые клетки показывают, сколько букв в каждом', en: 'Find every word hidden in one set of letters. The empty cells show how long each one is' },
   anagramAllWordsLvlParams: { ru: 'Один набор букв · 8–22 слова · без лимита времени', en: 'One set of letters · 8–22 words · no time limit' },
