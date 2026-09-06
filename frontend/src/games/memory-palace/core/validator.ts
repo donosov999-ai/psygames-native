@@ -1,6 +1,6 @@
 /* psygames-memory-palace-validator · VER 1 · 19.08.2026 */
 import { FIXED_PALACE_ROUTE } from './content';
-import { LEVELS, type MemoryPalaceRound } from './types';
+import { LEVELS, memoryPalaceRouteIsShuffled, type MemoryPalaceRound } from './types';
 
 function duplicates(values: readonly string[]): boolean {
   return new Set(values).size !== values.length;
@@ -23,7 +23,21 @@ export function validateMemoryPalaceRound(round: MemoryPalaceRound): string[] {
   const locusIds = round.loci.map((locus) => locus.id);
   const expectedLocusIds = FIXED_PALACE_ROUTE.slice(0, round.lociCount).map((locus) => locus.id);
   if (duplicates(locusIds)) issues.push('duplicate locus');
-  if (JSON.stringify(locusIds) !== JSON.stringify(expectedLocusIds)) issues.push('fixed route changed');
+  /**
+   * 🔴 ЧТО ИМЕННО ПРОВЕРЯЕТСЯ ПОСЛЕ ПЯТОГО УРОВНЯ. До него маршрут обязан
+   * совпадать с постоянным ПОБУКВЕННО — это опора приёма. После него порядок
+   * свой у каждой партии, и требовать прежнюю последовательность нельзя: именно
+   * эта строка («fixed route changed») отбивала бы перемешивание и роняла
+   * генерацию исключением. Проверять остаётся СОСТАВ: каждое место взято из
+   * библиотеки дворца, повторов нет, нумерация подряд.
+   */
+  if (locusIds.some((id) => !FIXED_PALACE_ROUTE.some((locus) => locus.id === id))) {
+    issues.push('locus outside library');
+  }
+  if (!memoryPalaceRouteIsShuffled(round.level)
+    && JSON.stringify(locusIds) !== JSON.stringify(expectedLocusIds)) {
+    issues.push('fixed route changed');
+  }
   if (round.loci.some((locus, index) => locus.order !== index + 1)) issues.push('locus order mismatch');
 
   const targetIds = round.targetItems.map((item) => item.id);

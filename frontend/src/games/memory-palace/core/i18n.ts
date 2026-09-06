@@ -50,6 +50,12 @@ export interface MemoryPalaceStrings {
    */
   purpose: string;
   routeBody: string;
+  /**
+   * Подсказка фазы маршрута, когда порядок мест перемешан (уровни 6+). Старая
+   * строка обещала «порядок постоянный» — с шестого уровня это неправда, а
+   * заодно она не предупреждала, что дальше номера скрыты.
+   */
+  routeBodyShuffled: string;
   routeCount: string;
   locusA11y: string;
   continueToPlace: string;
@@ -110,6 +116,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: 'Маршрут',
     purpose: 'Приём «дворец памяти»: разложите предметы по местам, а потом вспомните их ПО МЕСТАМ — так запоминается длинный список.',
     routeBody: 'Пройдите места по номерам. Порядок постоянный, обход работает и с Tab/Enter.',
+    routeBodyShuffled: 'Порядок мест в этой партии свой — запомните его: дальше номера скрыты.',
     routeCount: '{count} мест',
     locusA11y: 'Место {order}: {name}',
     continueToPlace: 'Перейти к размещению',
@@ -167,6 +174,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: 'Route',
     purpose: 'The memory palace technique: place the items along a route, then recall them BY PLACE — that is how a long list sticks.',
     routeBody: 'Follow the numbered loci. The order is fixed and available with Tab and Enter.',
+    routeBodyShuffled: 'This run has its own order of loci — memorise it: from here on the numbers are hidden.',
     routeCount: '{count} loci',
     locusA11y: 'Locus {order}: {name}',
     continueToPlace: 'Continue to placement',
@@ -224,6 +232,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: 'Recorrido',
     purpose: 'La técnica del palacio de la memoria: coloca los objetos a lo largo de un recorrido y luego recuérdalos POR LUGAR — así se fija una lista larga.',
     routeBody: 'Recorre los lugares por su número. El orden es fijo y también funciona con Tab y Enter.',
+    routeBodyShuffled: 'En esta partida el orden de los lugares es propio: memorízalo, después los números se ocultan.',
     routeCount: '{count} lugares',
     locusA11y: 'Lugar {order}: {name}',
     continueToPlace: 'Pasar a la colocación',
@@ -281,6 +290,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: 'Route',
     purpose: 'Die Gedächtnispalast-Technik: Lege die Gegenstände entlang einer Route ab und rufe sie dann NACH ORT ab — so bleibt eine lange Liste haften.',
     routeBody: 'Geh die Orte der Reihe nach ab. Die Reihenfolge ist fest und läuft auch mit Tab und Enter.',
+    routeBodyShuffled: 'In dieser Runde ist die Reihenfolge der Orte eigen — präge sie dir ein: danach sind die Nummern verborgen.',
     routeCount: '{count} Orte',
     locusA11y: 'Ort {order}: {name}',
     continueToPlace: 'Weiter zum Verteilen',
@@ -338,6 +348,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: '路线',
     purpose: '记忆宫殿法：把物品沿路线摆放，之后按位置回忆——长清单就是这样记住的。',
     routeBody: '按编号把各处走一遍。次序是固定的，用 Tab 和回车也能走。',
+    routeBodyShuffled: '本局的地点顺序是本局独有的——请记住它，之后数字将被隐藏。',
     routeCount: '{count} 处地方',
     locusA11y: '第 {order} 处：{name}',
     continueToPlace: '去摆放物品',
@@ -395,6 +406,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: 'रास्ता',
     purpose: 'स्मृति महल तकनीक: वस्तुओं को रास्ते पर रखें, फिर उन्हें स्थान से याद करें — लंबी सूची ऐसे ही टिकती है।',
     routeBody: 'जगहों को उनके नंबरों से घूम लें। क्रम तय है, Tab और Enter से भी चलता है।',
+    routeBodyShuffled: 'इस दौर में स्थानों का क्रम अपना है — इसे याद रखें: आगे संख्याएँ छिपी रहेंगी।',
     routeCount: '{count} जगहें',
     locusA11y: 'जगह {order}: {name}',
     continueToPlace: 'रखने की ओर बढ़ें',
@@ -452,6 +464,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: 'Trajeto',
     purpose: 'A técnica do palácio da memória: coloque os objetos ao longo de um percurso e depois lembre-os POR LUGAR — é assim que uma lista longa fica.',
     routeBody: 'Percorra os lugares pelos números. A ordem é fixa e também funciona com Tab e Enter.',
+    routeBodyShuffled: 'Nesta partida a ordem dos lugares é própria — memorize-a: depois os números ficam ocultos.',
     routeCount: '{count} lugares',
     locusA11y: 'Lugar {order}: {name}',
     continueToPlace: 'Ir para a distribuição',
@@ -509,6 +522,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: 'Parcours',
     purpose: 'La technique du palais de mémoire : placez les objets le long d’un parcours, puis rappelez-les PAR LIEU — c’est ainsi qu’une longue liste tient.',
     routeBody: 'Parcourez les lieux dans l’ordre des numéros. L’ordre est fixe et fonctionne aussi avec Tab et Entrée.',
+    routeBodyShuffled: 'Dans cette partie, l’ordre des lieux lui est propre — mémorisez-le : ensuite les numéros sont masqués.',
     routeCount: '{count} lieux',
     locusA11y: 'Lieu {order} : {name}',
     continueToPlace: 'Passer au placement',
@@ -566,6 +580,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: 'Percorso',
     purpose: 'La tecnica del palazzo della memoria: disponi gli oggetti lungo un percorso e poi richiamali PER LUOGO — così una lista lunga resta.',
     routeBody: 'Passa i luoghi seguendo i numeri. L’ordine è fisso e funziona anche con Tab e Invio.',
+    routeBodyShuffled: 'In questa partita l’ordine dei luoghi è suo — memorizzalo: dopo i numeri sono nascosti.',
     routeCount: '{count} luoghi',
     locusA11y: 'Luogo {order}: {name}',
     continueToPlace: 'Passa alla disposizione',
@@ -623,6 +638,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: '道すじ',
     purpose: '記憶の宮殿：道順に沿って物を置き、あとは場所から思い出す——長いリストはこうして残ります。',
     routeBody: '番号どおりに場所をたどります。順番は決まっていて、TabとEnterでもたどれます。',
+    routeBodyShuffled: 'この回の場所の順番はこの回だけのものです。覚えてください。この先、番号は隠れます。',
     routeCount: '場所 {count} か所',
     locusA11y: '{order} 番目の場所：{name}',
     continueToPlace: '配置へ進む',
@@ -680,6 +696,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: '길',
     purpose: '기억의 궁전 기법: 경로를 따라 물건을 놓고, 나중에 장소로 떠올리세요 — 긴 목록은 이렇게 남습니다.',
     routeBody: '번호를 따라 자리를 돌아보세요. 순서는 고정이고 Tab과 Enter로도 됩니다.',
+    routeBodyShuffled: '이번 판의 장소 순서는 이번 판만의 것입니다. 기억해 두세요. 이후에는 번호가 숨겨집니다.',
     routeCount: '자리 {count}곳',
     locusA11y: '{order}번째 자리: {name}',
     continueToPlace: '놓기로 넘어가기',
@@ -737,6 +754,7 @@ const STRINGS: Record<MemoryPalaceLocale, MemoryPalaceStrings> = {
     routeTitle: 'المسار',
     purpose: 'أسلوب قصر الذاكرة: ضع الأشياء على طول مسار، ثم استرجعها حسب المكان — هكذا تثبت قائمة طويلة.',
     routeBody: 'مُرّ على المواضع حسب أرقامها. الترتيب ثابت ويعمل أيضاً بـ Tab وEnter.',
+    routeBodyShuffled: 'ترتيب الأماكن في هذه الجولة خاص بها — احفظه: بعد ذلك تُخفى الأرقام.',
     routeCount: '{count} مواضع',
     locusA11y: 'الموضع {order}: {name}',
     continueToPlace: 'انتقل إلى التوزيع',
