@@ -26,19 +26,37 @@
 /** Сколько одинаковых товаров складываются в тройку и исчезают. Это правило игры. */
 export const TRIPLE = 3;
 
-/** Ниша: что в ней лежит и сколько влезает. */
+/** Ниша: что в ней лежит, сколько влезает и снято ли с неё правило укладки. */
 export interface Board {
   /** Содержимое каждой ниши, снизу вверх. */
   readonly cells: readonly (readonly number[])[];
   /** Вместимость каждой ниши. Длина совпадает с `cells`. */
   readonly caps: readonly number[];
+  /**
+   * Ниши-джокеры: принимают ЛЮБОЙ тип, пока есть место, даже при строгой
+   * укладке. Пусто или короче доски — джокеров нет; читается через `isJoker`,
+   * поэтому старые вызовы `makeBoard` из двух аргументов остаются верными.
+   */
+  readonly jokers?: readonly boolean[];
 }
 
-export function makeBoard(cells: readonly (readonly number[])[], caps: readonly number[]): Board {
+export function makeBoard(
+  cells: readonly (readonly number[])[],
+  caps: readonly number[],
+  jokers?: readonly boolean[],
+): Board {
   if (cells.length !== caps.length) {
     throw new Error(`доска собрана неверно: ниш ${cells.length}, ёмкостей ${caps.length}`);
   }
-  return { cells, caps };
+  if (jokers && jokers.length !== cells.length) {
+    throw new Error(`доска собрана неверно: ниш ${cells.length}, джокеров ${jokers.length}`);
+  }
+  return jokers ? { cells, caps, jokers } : { cells, caps };
+}
+
+/** Снято ли с ниши правило укладки. Единственное место, где это читается. */
+export function isJoker(board: Board, index: number): boolean {
+  return board.jokers?.[index] === true;
 }
 
 /** Вместимость ниши. Единственное место, где это число берётся. */
@@ -96,8 +114,11 @@ export function removeTriple(cell: readonly number[], type: number): number[] {
  * Без неё ниша принимает что угодно, пока есть место.
  */
 export function canPlace(board: Board, index: number, type: number, strict: boolean): boolean {
+  // 🔴 МЕСТО ПРОВЕРЯЕТСЯ ПЕРВЫМ И ДЛЯ ДЖОКЕРА ТОЖЕ. Джокер снимает ПРАВИЛО
+  // УКЛАДКИ, а не ёмкость: он даёт место, куда положить, но не лишний товар.
+  // Инвариант «сумма ёмкостей = ниш × 3» держится только пока это так.
   if (roomIn(board, index) <= 0) return false;
-  if (!strict) return true;
+  if (!strict || isJoker(board, index)) return true;
   const cell = board.cells[index] ?? [];
   return cell.length === 0 || cell[cell.length - 1] === type;
 }
@@ -118,7 +139,7 @@ export function collapseTriples(board: Board): Board {
       if (t !== null) { cells[i] = removeTriple(cells[i] as number[], t); again = true; }
     }
   }
-  return { cells, caps: board.caps };
+  return { cells, caps: board.caps, jokers: board.jokers };
 }
 
 /** Переложить верхний товар из одной ниши в другую. `null` — ход невозможен. */
@@ -131,7 +152,7 @@ export function moveTop(board: Board, from: number, to: number, strict: boolean)
   const cells = board.cells.map((c) => [...c]);
   (cells[from] as number[]).pop();
   (cells[to] as number[]).push(type);
-  return collapseTriples({ cells, caps: board.caps });
+  return collapseTriples({ cells, caps: board.caps, jokers: board.jokers });
 }
 
 /** Свободные ниши: пустые и не занятые препятствием. */
