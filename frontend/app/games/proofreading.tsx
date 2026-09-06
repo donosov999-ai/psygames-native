@@ -258,6 +258,7 @@ export default function ProofreadingGame() {
       locale: language,
       seed: fwSeed,
       maxWordLen: cfg.maxWordLen,
+      minWordLen: cfg.minWordLen,
     });
   }, [fwAvailable, language, lvl.level, fwSeed]);
 
