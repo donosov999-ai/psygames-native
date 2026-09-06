@@ -7,27 +7,64 @@
  * брали язык слов из языка интерфейса: русское меню — только русские слова.
  * Тренировать английские слова при русском интерфейсе было нельзя вовсе.
  *
- * ⚠️ Языков ровно ДВА, и это не упрощение, а замер: у «Беглости» вся
- * письменность сводится к `PhonemicScript = 'ru' | 'en'`, у анаграмм банк
- * выбирается как `isRu ? RU_WORDS_* : EN_WORDS_*`, а словарь `ANAGRAM_DICT`
- * имеет ключи `ru` и `en`. Остальные языки интерфейса и сейчас играют
- * английскими словами — просто молча. Третий язык здесь появится тогда же,
- * когда появятся его слова, а не раньше.
+ * ⚠️ БЫЛО «ЯЗЫКОВ РОВНО ДВА» — И ЭТО ПЕРЕСТАЛО БЫТЬ ПРАВДОЙ 06.09.2026.
+ * Здесь стояло: «третий язык появится тогда же, когда появятся его слова, а не
+ * раньше». Слова появились: у режима «Найди все слова» наборов ВОСЕМЬ (ru, en,
+ * de, es, fr, it, ko, pt) — все лежат в `constants/allWords*.json`, подключены и
+ * проходят гейты. Полдня они были собраны и невидимы, потому что список языков
+ * был один на все игры.
+ *
+ * 🔴 СПИСОК ЗАВИСИТ ОТ ИГРЫ, А НЕ ОДИН НА ВСЕХ. У «Беглости речи» два языка —
+ * это по-прежнему замер, а не упрощение: вся письменность там сводится к
+ * `PhonemicScript = 'ru' | 'en'`. У анаграмм столько, сколько наборов.
+ *
+ * ⚠️ А ВНУТРИ АНАГРАММ — ЕЩЁ И ОТ РЕЖИМА. Классика и «Квадрат слов» кормятся из
+ * `ANAGRAM_DICT`, у которого ключи `ru` и `en`; восемь языков знает только «Найди
+ * все слова». Поэтому сервис отдаёт МАКСИМУМ игры, а сузить до режима — дело
+ * экрана: он один знает, что сейчас выбрано. Отдавать корейский классике значило
+ * бы показать человеку пустой банк.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const WORD_LANGS = ['ru', 'en'] as const;
-export type WordLang = (typeof WORD_LANGS)[number];
-
-/** Подпись варианта — на своём языке, а не переводом: «Русский» и «English». */
-export const WORD_LANG_LABEL: Record<WordLang, string> = { ru: 'Русский', en: 'English' };
+/**
+ * Локаль слов. Тип широкий намеренно: набор зависит от игры, и жёсткое
+ * объединение пришлось бы править при каждом новом словнике. Что именно
+ * допустимо, решает `wordLangsFor` и проверяет `isWordLang`.
+ */
+export type WordLang = string;
 
 /**
- * Язык слов по умолчанию — язык интерфейса, если слова на нём есть.
- * Для остальных двенадцати языков это английский: так игра и работала.
+ * Языки СЛОВ по играм. Ключ — `gameId`, тот же, что в `useWordLanguage`.
+ * Игры, которых здесь нет, получают `WORD_LANGS` — два языка, как было.
  */
-export function defaultWordLang(uiLanguage: string): WordLang {
-  return (WORD_LANGS as readonly string[]).includes(uiLanguage) ? (uiLanguage as WordLang) : 'en';
+const ЯЗЫКИ_ИГРЫ: Record<string, readonly string[]> = {
+  // Восемь наборов «Найди все слова». Классика и «Квадрат слов» знают из них
+  // только ru и en — сужает экран, см. шапку файла.
+  anagrams: ['ru', 'en', 'de', 'es', 'fr', 'it', 'ko', 'pt'],
+};
+
+/** Какие языки предлагать в этой игре. */
+export function wordLangsFor(gameId: string): readonly string[] {
+  return ЯЗЫКИ_ИГРЫ[gameId] ?? WORD_LANGS;
+}
+
+/**
+ * Подпись варианта — на СВОЁМ языке, а не переводом: так человек находит свой
+ * язык, даже когда интерфейс на чужом.
+ */
+export const WORD_LANG_LABEL: Record<string, string> = {
+  ru: 'Русский', en: 'English', de: 'Deutsch', es: 'Español',
+  fr: 'Français', it: 'Italiano', pt: 'Português', ko: '한국어',
+};
+
+/**
+ * Язык слов по умолчанию — язык интерфейса, если слова на нём есть в ЭТОЙ игре.
+ * Иначе английский: так игра и работала.
+ */
+export function defaultWordLang(uiLanguage: string, gameId?: string): WordLang {
+  const можно = gameId ? wordLangsFor(gameId) : WORD_LANGS;
+  return (можно as readonly string[]).includes(uiLanguage) ? uiLanguage : 'en';
 }
 
 /** Ключ хранения — по игре И по профилю: у Вали и у Дениса выбор свой. */
@@ -35,16 +72,24 @@ export function wordLangKey(gameId: string, profileId: string): string {
   return `psygames_${gameId}_wordlang_${profileId}`;
 }
 
-export function isWordLang(v: unknown): v is WordLang {
-  return typeof v === 'string' && (WORD_LANGS as readonly string[]).includes(v);
+/**
+ * Годится ли сохранённое значение для этой игры.
+ *
+ * ⚠️ ПРОВЕРЯТЬ НАДО ПО ИГРЕ, А НЕ ПО ОБЩЕМУ СПИСКУ. Без `gameId` корейский,
+ * сохранённый в анаграммах, не прошёл бы проверку и молча сбросился в английский
+ * при следующем заходе — а человек решил бы, что выбор не сохраняется.
+ */
+export function isWordLang(v: unknown, gameId?: string): v is WordLang {
+  const можно = gameId ? wordLangsFor(gameId) : WORD_LANGS;
+  return typeof v === 'string' && (можно as readonly string[]).includes(v);
 }
 
 export async function readWordLang(gameId: string, profileId: string, uiLanguage: string): Promise<WordLang> {
   try {
     const v = await AsyncStorage.getItem(wordLangKey(gameId, profileId));
-    return isWordLang(v) ? v : defaultWordLang(uiLanguage);
+    return isWordLang(v, gameId) ? v : defaultWordLang(uiLanguage, gameId);
   } catch {
-    return defaultWordLang(uiLanguage);
+    return defaultWordLang(uiLanguage, gameId);
   }
 }
 
