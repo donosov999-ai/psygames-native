@@ -12,15 +12,15 @@
  * задумано, и может стать непроходимым. Это единственный способ сломать игру
  * препятствиями, и он проверяется здесь.
  */
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { liveRowsForFreeze, levelCfg, GS_RULES, OBSTACLE_PLANS, SHAPES, gridFor,
+  obstaclePlan } from '@/src/games/goods-sort/core/level';
+
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync } = require('fs');
 const { join } = require('path');
 const src = readFileSync(join(__dirname, '../../app/games/goods-sort.tsx'), 'utf8') as string;
-
-// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
-import { liveRowsForFreeze, levelCfg, GS_RULES, OBSTACLE_PLANS, SHAPES, gridFor,
-  obstaclePlan } from '@/src/games/goods-sort/core/level';
 
 /** Какие виды препятствий реально действуют на доске — после фильтра порогами. */
 function viduOn(o: { blocked: number; locked: number; covered: number; frozenRow: boolean }): string[] {

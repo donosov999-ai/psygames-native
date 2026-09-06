@@ -13,6 +13,8 @@
  * названия из самого экрана. Иначе он застрянет на сегодняшнем наборе и
  * пропустит следующее расхождение.
  */
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { levelCfg, goalPlan } from '@/src/games/goods-sort/core/level';
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync, readdirSync } = require('fs');
@@ -20,8 +22,6 @@ const { join } = require('path');
 
 const ROOT = join(__dirname, '../..');
 const GAME = readFileSync(join(ROOT, 'app/games/goods-sort.tsx'), 'utf8') as string;
-// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
-import { levelCfg, goalPlan } from '@/src/games/goods-sort/core/level';
 const BASE = readFileSync(join(ROOT, 'src/contexts/LanguageContext.tsx'), 'utf8') as string;
 
 /** Текст ключа из базового словаря. */
