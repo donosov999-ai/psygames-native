@@ -168,7 +168,7 @@ describe('🔴 рекомендуется только разрешённое п
       'span_group', 'attention_conflict', 'sudoku_group',
       'counting_group', 'words_group', 'hearing_group', 'search_group',
       'risk_group', 'visual_memory_group', 'mnemonics_group',
-      'languages_group', 'towers_group', 'routes_group', 'flexibility_group',
+      'languages_group', 'routes_group', 'flexibility_group',
       'sorting_group',
       'inhibition_group', 'chess_group',
     ];

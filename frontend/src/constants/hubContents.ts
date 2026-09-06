@@ -173,11 +173,6 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/sudoku?mode=unequal', icon: 'swap-vertical', nameKey: 'sudokuUnequalTitle', descKey: 'sudokuUnequalHubDesc', typeKey: 'sudokuTypeUnequal' },
   ],
 
-  '/games/towers-hub': [
-    { route: '/games/hanoi', icon: 'layers', nameKey: 'hanoi', descKey: 'hanoiDesc' },
-    { route: '/games/tower-london', icon: 'git-network', nameKey: 'towerLondon', descKey: 'towerLondonDesc' },
-    { route: '/games/water-sort', icon: 'flask', nameKey: 'waterSort', descKey: 'waterSortDesc' },
-  ],
 
   /**
    * ⚠️ ПЕРЕЛИВАЛКА НАМЕРЕННО СТОИТ И В «БАШНЯХ», И ЗДЕСЬ. Это законно (см. шапку):
@@ -191,6 +186,18 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/ball-sort', icon: 'ellipse', nameKey: 'ballSort', descKey: 'ballSortDesc' },
     { route: '/games/nut-sort', icon: 'settings', nameKey: 'nutSort', descKey: 'nutSortDesc' },
     { route: '/games/cake-sort', icon: 'cafe', nameKey: 'cakeSort', descKey: 'cakeSortDesc' },
+    /**
+     * 🔴 БАШНИ ВЛИТЫ СЮДА ЦЕЛИКОМ (решение Дениса 06.09.2026: «всё, что в хабе
+     * башни, переносим в сортировку, ханой и лондонская тоже»).
+     *
+     * Прежде развилки различались тем, ЧТО ограничивает ход: в башнях —
+     * ПОРЯДОК (диск на диск меньше нельзя), в сортировке — ВМЕСТИМОСТЬ. Различие
+     * настоящее, но для человека обе про «переложить стопку так, чтобы вышло
+     * ровно», и две карточки рядом путались по названию. Переливалка и так
+     * стояла в обеих — она и была швом, по которому развилки склеились.
+     */
+    { route: '/games/hanoi', icon: 'layers', nameKey: 'hanoi', descKey: 'hanoiDesc' },
+    { route: '/games/tower-london', icon: 'git-branch', nameKey: 'towerLondon', descKey: 'towerLondonDesc' },
   ],
 
   '/games/routes-hub': [

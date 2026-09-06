@@ -13,6 +13,8 @@
  * Появится gap — между досками возникнет щель с фоном экрана, и шкаф снова
  * станет таблицей.
  */
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { SHELF_BY_PROFILE, SHELF_STYLES, shelfForProfile } from '@/src/games/goods-sort/core/level';
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync, existsSync } = require('fs');
@@ -20,8 +22,6 @@ const { join } = require('path');
 const ROOT = join(__dirname, '../..');
 const game = readFileSync(join(ROOT, 'app/games/goods-sort.tsx'), 'utf8') as string;
 const profiles = readFileSync(join(ROOT, 'src/constants/profiles.ts'), 'utf8') as string;
-// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
-import { SHELF_BY_PROFILE, SHELF_STYLES, shelfForProfile } from '@/src/games/goods-sort/core/level';
 
 const styles = [...game.matchAll(/^  (\w+):\s+require\('\.\.\/\.\.\/assets\/images\/shelves\/niche-([a-z]+)\.webp'\)/gm)]
   .map((m) => ({ key: m[1], file: m[2] }));

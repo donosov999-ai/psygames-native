@@ -462,11 +462,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillPlanningWM",
     "introKey": "sortingGroupIntroDesc"
   },
-  "/games/towers-hub": {
-    "nameKey": "towersGroup",
-    "skillKey": "skillPlanning",
-    "introKey": "towersGroupIntroDesc"
-  },
   "/games/routes-hub": {
     "nameKey": "routesGroup",
     "skillKey": "skillPlanning",

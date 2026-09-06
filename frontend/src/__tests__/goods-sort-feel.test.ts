@@ -13,13 +13,13 @@
  *   · отмена возвращает ВСЁ состояние, но НЕ возвращает потраченное
  *     перемешивание — иначе выходит бесконечная перетасовка в обход лимита.
  */
+import { soundOn, setCalmHush, calmHushNow, setSoundEnabled, getSoundEnabled } from '@/src/services/feedback';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { normHistoryStep } from '@/src/games/goods-sort/core/level';
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync } = require('fs');
 const { join } = require('path');
-import { soundOn, setCalmHush, calmHushNow, setSoundEnabled, getSoundEnabled } from '@/src/services/feedback';
-// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
-import { normHistoryStep } from '@/src/games/goods-sort/core/level';
 
 const SRC = readFileSync(join(__dirname, '../../app/games/goods-sort.tsx'), 'utf8') as string;
 /** Комментарии режем: гейт не должен ловить собственные объяснения. */

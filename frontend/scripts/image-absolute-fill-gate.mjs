@@ -20,6 +20,7 @@ const файлы = globSync('{app,src}/**/*.{tsx,ts}', { cwd: process.cwd() })
 const безКомментариев = (т) => т.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' ')).replace(/\/\/[^\n]*/g, '');
 
 const беды = [];
+const подложки = [];
 let сКартинками = 0;
 for (const файл of файлы) {
   const сырой = readFileSync(файл, 'utf8');
@@ -36,7 +37,36 @@ for (const файл of файлы) {
       if (/\/>\s*$|<\/Image>/.test(строки[j].trimEnd())) break;
     }
     if (/absoluteFill/.test(окно)) беды.push(`${файл}:${i + 1}`);
+
+    /**
+     * 🔴 ВТОРАЯ БЕДА ТОЙ ЖЕ ПРИРОДЫ: КАРТИНКА-ПОДЛОЖКА КРАСИТСЯ ПОВЕРХ SVG.
+     *
+     * Отчёт NZT-48 06.09.2026 «А где тортики ?»: на тарелках не было ни одного
+     * куска. В DOM клинья были — по шесть путей с верной геометрией и цветами,
+     * — но `<Image>` подложки красился поверх `<Svg>`. В родном RN порядок
+     * отрисовки задаёт порядок в разметке, и картинка, объявленная ПЕРВОЙ,
+     * уходит вниз; на вебе (Tauri iOS — вебвью) позиционированный элемент
+     * красится выше статичного НЕЗАВИСИМО от порядка. `Image` у
+     * react-native-web позиционирован, `svg` — нет.
+     *
+     * Лечится явным `zIndex` у `Svg`. Здесь ловим сам узор: абсолютная
+     * картинка, а следом в том же блоке `<Svg` без `zIndex`.
+     */
+    if (/position:\s*'absolute'/.test(окно)) {
+      const хвост = строки.slice(i, Math.min(строки.length, i + 40)).join('\n');
+      const svg = /<Svg\b[^>]*>/.exec(хвост);
+      if (svg && !/zIndex/.test(svg[0])) {
+        подложки.push(`${файл}:${i + 1} — <Image> с position:absolute, ниже <Svg> без zIndex`);
+      }
+    }
   }
+}
+
+if (подложки.length) {
+  console.error('🔴 картинка-подложка закрасит <Svg>: на вебе позиционированное красится выше статичного');
+  for (const б of подложки) console.error('   ' + б);
+  console.error("\nПоднять рисунок явно: <Svg style={{ position:'relative', zIndex: 1 }}>");
+  process.exit(1);
 }
 
 if (беды.length) {
@@ -45,4 +75,4 @@ if (беды.length) {
   console.error("\nЗадать размер явно: { position:'absolute', left:0, top:0, width:'100%', height:'100%' }");
   process.exit(1);
 }
-console.log(`✓ absoluteFill на <Image> нет (файлов с картинками: ${сКартинками} из ${файлы.length})`);
+console.log(`✓ absoluteFill на <Image> нет и подложка не закрывает <Svg> (файлов с картинками: ${сКартинками} из ${файлы.length})`);
