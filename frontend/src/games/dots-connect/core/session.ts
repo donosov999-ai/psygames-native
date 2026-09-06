@@ -237,6 +237,23 @@ export function extendPath(session: DotsSession, cell: Cell, now: number): DotsS
     && pair.endpoints.some((endpoint) => sameCell(endpoint, tail));
   if (oppositeEndpointReached) return invalidMove(session);
 
+  /**
+   * 🔴 ЛИНИЯ НЕ ПРИЖИМАЕТСЯ К СЕБЕ — ЭТО ПРАВИЛО ИГРЫ С 06.09.2026.
+   *
+   * 📍 ЗАЧЕМ. Только на нём держится единственность решения: замер независимым
+   * перебором показал, что без него с седьмого уровня доска решалась
+   * НЕСКОЛЬКИМИ способами, то есть не выводилась, а угадывалась. Правило стоит
+   * в четырёх местах — генератор, проверка, решатель и здесь; здесь оно нужно,
+   * чтобы человек узнал о запрете ХОДОМ, а не отказом в конце партии.
+   *
+   * ⚠️ ХОД ОТКЛОНЯЕТСЯ ТАК ЖЕ, КАК ПЕРЕСЕЧЕНИЕ ЧУЖОЙ ЛИНИИ, — тем же
+   * `invalidMove`. Отдельного наказания нет: палец на телефоне промахивается по
+   * соседней клетке постоянно, и штрафовать за это значило бы наказывать за
+   * толщину пальца.
+   */
+  const прижимается = path.some((c, i) => i !== path.length - 1 && isAdjacent(c, cell));
+  if (прижимается) return invalidMove(session);
+
   const occupiedBy = pathOwnerAt(session.paths, cell);
   if (occupiedBy && occupiedBy !== pairId) return invalidMove(session);
   const endpointOwner = endpointPairAt(puzzle, cell)?.id;

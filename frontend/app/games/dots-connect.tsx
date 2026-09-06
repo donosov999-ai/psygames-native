@@ -405,6 +405,12 @@ export default function DotsConnectScreen() {
             {/* Вторая строка — не украшение. «Занять ВСЮ сетку» по доске не угадывается,
                 а именно из-за этого условия игра про планирование, а не про «соедини и всё». */}
             <Text style={[styles.hint, { color: colors.textSecondary }]}>{strings.rulesCoverage}</Text>
+            {/* 🔴 ТРЕТЬЯ СТРОКА — ПРАВИЛО, БЕЗ КОТОРОГО ДОСКА УГАДЫВАЕТСЯ.
+                Замер 06.09.2026: без запрета на самокасание с седьмого уровня у
+                доски НЕСКОЛЬКО решений, и игра засчитывала победу на разных
+                ответах. Правило работает молча в `extendPath`, но человек обязан
+                узнать о нём здесь, а не по отклонённому ходу посреди партии. */}
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>{strings.rulesNoTouch}</Text>
           </View>
 
           <TouchableOpacity onPress={() => start(attempt === 0)} accessibilityRole="button">

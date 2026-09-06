@@ -109,20 +109,35 @@ describe('«Соедини точки» — лесенка доросла до �
       .toBe(`самая длинная череща одного размера: 3 (к уровню ${at})`);
   });
 
-  /** Обратная сторона: раз размер наверху колеблется, расти обязано другое. */
-  it('🔴 число пар и нижняя длина пути только растут', () => {
+  /**
+   * Обратная сторона: раз размер наверху колеблется, расти обязано другое.
+   *
+   * 🔴 ДЛИНА ПУТИ ПЕРЕСТАЛА БЫТЬ ОСЬЮ 06.09.2026, И ЭТО РЕШЕНИЕ, А НЕ РЕГРЕСС.
+   * С этого дня путь пары не касается сам себя — только на этом держится
+   * единственность решения. А самонепересекающийся кусок пути, заполняющего
+   * поле, длиннее шести клеток практически не встречается: путь складывается
+   * примерно каждые шесть шагов. Замер после включения правила: «за 4000
+   * попыток не собралось ни одной доски 10×10 на 14 пар при мин. пути 5».
+   *
+   * Поэтому нижняя граница пути теперь постоянна (3), а трудность растит
+   * ПЛОТНОСТЬ: пар больше, пути короче. Проверка требует ровно этого — длина не
+   * убывает и не растёт, а пары растут по-настоящему.
+   */
+  it('🔴 число пар растёт, а нижняя длина пути постоянна по замыслу', () => {
     const backslides: string[] = [];
     for (let index = 1; index < LADDER.length; index += 1) {
       const prev = LADDER[index - 1] as DotsPuzzle;
       const next = LADDER[index] as DotsPuzzle;
       if (next.pairCount < prev.pairCount) backslides.push(`пары L${index}→L${index + 1}`);
-      if (next.minPathLength < prev.minPathLength) backslides.push(`длина L${index}→L${index + 1}`);
+      if (next.minPathLength !== prev.minPathLength) {
+        backslides.push(`длина L${index}→L${index + 1}: ${prev.minPathLength}→${next.minPathLength}`);
+      }
       if (next.difficulty < prev.difficulty) backslides.push(`сложность L${index}→L${index + 1}`);
     }
     expect(backslides).toEqual([]);
-    expect((LADDER[LEVELS - 1] as DotsPuzzle).minPathLength).toBeGreaterThan(
-      (LADDER[0] as DotsPuzzle).minPathLength - 1,
-    );
+    // И пары ДОХОДЯТ до края, а не стоят на месте: иначе «не убывает» ничего не значит.
+    expect((LADDER[LEVELS - 1] as DotsPuzzle).pairCount)
+      .toBeGreaterThan((LADDER[0] as DotsPuzzle).pairCount * 2);
     expect((LADDER[LEVELS - 1] as DotsPuzzle).difficulty).toBe(1);
   });
 
@@ -187,37 +202,42 @@ describe('«Соедини точки» — полное покрытие обя
    * такую партию через НАСТОЯЩУЮ сессию (те же beginPath/extendPath, что и от
    * пальца) и требуем, чтобы уровень НЕ закрылся.
    */
+  /**
+   * 🔴 ПОКРЫТИЕ ОБЯЗАТЕЛЬНО: СОЕДИНИТЬ ВСЕ ПАРЫ — ЕЩЁ НЕ ПОБЕДА.
+   *
+   * 📍 ПОЧЕМУ ДОСКА ТЕПЕРЬ РУЧНАЯ, А НЕ ИЗ ГЕНЕРАТОРА. Прежняя редакция брала
+   * настоящий уровень и искала на нём путь КОРОЧЕ полного. Уровень протухал
+   * дважды (ехал с 3 на 4), а 06.09.2026 перестал годиться вовсе: после
+   * правила «путь не касается сам себя» доски стали плотнее, и короткого обхода
+   * нет НИ НА ОДНОМ из сорока уровней — проверено перебором. То есть свойство
+   * на живой доске больше не показать, хотя само свойство никуда не делось.
+   *
+   * Здесь оно показывается на доске, собранной руками: 3×3, две пары, обе
+   * соединены кратчайшими путями, четыре клетки остались пустыми. Правило игры
+   * обязано такое отвергнуть — и назвать причиной именно покрытие.
+   */
   it('🔴 короткие пути соединяют все пары, но уровень не засчитывается', () => {
-    /**
-     * ⚠️ ОБРАЗЕЦ ПЕРЕЕХАЛ С УРОВНЯ 3 НА 4 (23.08.2026, генератор v3). Проверка
-     * требует доски, на которой хоть одну пару можно соединить КОРОЧЕ, чем в
-     * полном решении, — иначе состояние «все пары соединены, а поле не занято»
-     * на ней просто не собирается. У доски `coverage-check` уровня 3 в v3
-     * каждая пара и так идёт кратчайшим путём между своими точками, короткого
-     * хода нет ни у одной. Свойство, которое стережёт гейт, от этого не
-     * меняется; меняется только доска, на которой его показывают.
-     */
-    const level = 4;
-    const puzzle = generateDotsPuzzle('coverage-check', level);
-    const full = solveDotsPuzzle(puzzle) as DotsSolution;
-    const short = shortcutSolution(puzzle, full);
-    expect(short).not.toBeNull();
-
-    let session = startRound(createDotsSession({ seed: 'coverage-check', level }), 1_000);
-    session = drawSolution(session, short as DotsSolution);
-
-    // Все пары действительно соединены концами — придраться не к чему, кроме дырок.
-    for (const pair of puzzle.pairs) {
-      const path = session.paths[pair.id] as Cell[];
-      expect(path.length).toBeGreaterThanOrEqual(2);
-      const ends = new Set([key(path[0] as Cell), key(path[path.length - 1] as Cell)]);
-      expect(ends).toEqual(new Set(pair.endpoints.map(key)));
-    }
-    const check = validateDotsSolution(puzzle, session.paths);
-    expect(check.coveredCells).toBeLessThan(check.totalCells);
-    expect(check.complete).toBe(false);
-    expect(session.phase).toBe('playing');   // партия НЕ закрыта
-    expect(session.result).toBeNull();       // и в бухгалтерию ничего не ушло
+    const доска = {
+      id: 'ручная', seed: 'ручная', level: 1, size: 3,
+      pairCount: 2, minPathLength: 3, difficulty: 0, tier: 'forced' as const,
+      construction: 'ручная', generatorVersion: 0,
+      pairs: [
+        { id: 'a', color: '#d81b3c', symbol: '●', endpoints: [{ row: 0, col: 0 }, { row: 0, col: 2 }] },
+        { id: 'b', color: '#1a3ae0', symbol: '■', endpoints: [{ row: 2, col: 0 }, { row: 2, col: 2 }] },
+      ],
+    } as unknown as DotsPuzzle;
+    // Обе пары соединены по верхнему и нижнему ряду; средний ряд пуст.
+    const короткое = {
+      a: [{ row: 0, col: 0 }, { row: 0, col: 1 }, { row: 0, col: 2 }],
+      b: [{ row: 2, col: 0 }, { row: 2, col: 1 }, { row: 2, col: 2 }],
+    } as unknown as DotsSolution;
+    const итог = validateDotsSolution(доска, короткое as never);
+    expect(`валидно: ${итог.valid}`).toBe('валидно: false');
+    expect(`покрыто: ${итог.coveredCells}/${итог.totalCells}`).toBe('покрыто: 6/9');
+    expect(итог.issues.some((i: string) => i.includes('coverage'))).toBe(true);
+    // ⚠️ И придирка ровно одна — покрытие. Иначе проба зеленела бы, отвергая
+    // доску за что-то постороннее, и про покрытие не говорила бы ничего.
+    expect(итог.issues.length).toBe(1);
   });
 
   /**
@@ -228,6 +248,7 @@ describe('«Соедини точки» — полное покрытие обя
     const level = 4;   // та же доска, что и в проверке выше — см. пояснение там
     const puzzle = generateDotsPuzzle('coverage-check', level);
     const full = solveDotsPuzzle(puzzle) as DotsSolution;
+    const доска = puzzle as ReturnType<typeof generateDotsPuzzle>;
     let session = startRound(createDotsSession({ seed: 'coverage-check', level }), 1_000);
     session = drawSolution(session, full);
     expect(session.phase).toBe('result');

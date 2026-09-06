@@ -1,7 +1,7 @@
 /* psygames-dots-connect-generator · VER 4 · 23.08.2026 */
 import { isAdjacent } from './grid';
 import { randomHamiltonianPath } from './orders';
-import { createRng, normalizeSeed, randomInt, shuffle, type Rng } from './rng';
+import { createRng, normalizeSeed, shuffle } from './rng';
 import { DOTS_TIERS, dotsTierRank, solveDotsPuzzleAt, type DotsTier } from './solver';
 import {
   DOTS_CONNECT_GENERATOR_VERSION,
@@ -105,21 +105,45 @@ export interface DotsLevelPlan {
  * 10×10 — 34 px, это ещё палец. 12×12 дало бы 28 px, и промахи начались бы не
  * от планирования, а от попадания.
  */
+/**
+ * 🔴 ТАБЛИЦА ПЕРЕПИСАНА 06.09.2026: БОЛЬШЕ ПАР, КОРОЧЕ ПУТИ. Решение Дениса из
+ * трёх названных развилок (разбор — `REF_DOTS.md` §10).
+ *
+ * ПРИЧИНА. С этого дня путь каждой пары обязан не касаться сам себя — только на
+ * этом держится единственность решения (замер: без правила L7, L8, L9 решались
+ * НЕСКОЛЬКИМИ способами, с правилом — ровно одним на восьми уровнях из девяти).
+ * А самонепересекающийся кусок пути, заполняющего поле, длиннее шести клеток
+ * практически не встречается: путь складывается примерно каждые шесть шагов.
+ *
+ * Отсюда арифметика: нижняя граница пути 5 делала верхние уровни НЕСОБИРАЕМЫМИ
+ * (замер после включения правила: «за 4000 попыток не собралось ни одной доски
+ * 10×10 на 14 пар при мин. пути 5»). Значит либо короче пути, либо меньше поле.
+ * Выбрано первое: путей больше, каждый короче, поле остаётся большим.
+ *
+ * 📍 ДОЛЯ ГОДНЫХ РАЗДАЧ, ЗАМЕР ПО 300 ПУТЯМ НА СОЧЕТАНИЕ (мин. путь 3):
+ *   5×5 при 6 парах — 62% · 6×6 при 8 — 55% · 7×7 при 10 — 56%
+ *   8×8 при 12 — 48% · 9×9 при 14 — 45% · 10×10 при 14 — 12%
+ * Двенадцать процентов — это не редкость: `buildForTier` перебирает до 4000
+ * раздач, то есть восемь заходов в среднем, по 1–27 мс каждый.
+ *
+ * ⚠️ ПОТОЛОК В 14 ПАР — ЭТО ПАЛИТРА, а не вкус: столько различимых цветов в
+ * `DOTS_PAIR_STYLES`, и гейт `dots-palette` держит между ними ΔE ≥ 28.
+ */
 const LEVEL_PLAN: readonly (readonly [size: number, pairs: number, minLen: number])[] = [
-  [5, 4, 3], [5, 4, 3], [5, 5, 3],        // 1–3    знакомство: доска уже плотная
-  [6, 6, 3], [6, 6, 3], [6, 6, 3],        // 4–6    ⚠️ шесть пар, а не пять — см. ниже
-  [7, 6, 3], [7, 7, 3], [7, 7, 3],        // 7–9
-  [8, 7, 3], [8, 8, 3], [8, 8, 3],        // 10–12
-  [9, 9, 3], [9, 9, 3], [9, 10, 3],       // 13–15  потолок «ступеньками» достигнут
-  [8, 10, 3], [9, 10, 4], [8, 11, 4],     // 16–18  дальше растёт плотность
-  [9, 11, 4], [10, 12, 4], [9, 12, 4],    // 19–21  10×10 — только от 12 пар
-  [8, 12, 4], [10, 12, 4], [9, 12, 4],    // 22–24
-  [8, 13, 4], [10, 13, 4], [9, 13, 5],    // 25–27
-  [10, 13, 5], [9, 13, 5], [10, 14, 5],   // 28–30
-  [9, 14, 5], [10, 14, 5], [9, 14, 5],    // 31–33
-  [10, 14, 5], [9, 14, 5], [10, 14, 5],   // 34–36
-  [9, 14, 5], [10, 14, 5], [9, 14, 5],    // 37–39
-  [10, 14, 5],                            // 40
+  [5, 4, 3], [5, 5, 3], [5, 6, 3],        // 1–3    знакомство: доска уже плотная
+  [6, 6, 3], [6, 7, 3], [6, 8, 3],        // 4–6
+  [7, 8, 3], [7, 9, 3], [7, 10, 3],       // 7–9
+  [8, 10, 3], [8, 11, 3], [8, 11, 3],     // 10–12
+  [9, 12, 3], [9, 12, 3], [9, 13, 3],     // 13–15
+  [8, 13, 3], [9, 13, 3], [8, 14, 3],     // 16–18  поле колеблется, плотность растёт
+  [9, 14, 3], [10, 14, 3], [9, 14, 3],    // 19–21  10×10 — только при четырнадцати парах
+  [8, 14, 3], [10, 14, 3], [9, 14, 3],    // 22–24
+  [8, 14, 3], [10, 14, 3], [9, 14, 3],    // 25–27
+  [10, 14, 3], [9, 14, 3], [10, 14, 3],   // 28–30
+  [9, 14, 3], [10, 14, 3], [9, 14, 3],    // 31–33
+  [10, 14, 3], [9, 14, 3], [10, 14, 3],   // 34–36
+  [9, 14, 3], [10, 14, 3], [9, 14, 3],    // 37–39
+  [10, 14, 3],                            // 40
 ];
 
 /**
@@ -213,43 +237,80 @@ export function dotsLevelTier(level: number): DotsTier {
  * фактическая ступень конкретной доски лежит отдельно, в `puzzle.tier`.
  */
 function difficultyOf(level: number, plan: DotsLevelPlan): number {
+  /**
+   * ⚠️ СЛАГАЕМОЕ ОТ ДЛИНЫ ПУТИ УБРАНО 06.09.2026 — вместе с самой осью. Нижняя
+   * граница пути теперь постоянна (3), потому что путь обязан не касаться сам
+   * себя, а длинных самонепересекающихся кусков на заполненном поле не бывает.
+   * Оставить слагаемое значило бы вечно недобирать десятую долю: сложность
+   * сорокового уровня выходила 0,9 и никогда не доходила до единицы. Его вес
+   * отдан числу пар — оси, которая теперь и растит трудность.
+   */
   const levelPart = clamp((level - 1) / (LEVELS - 1), 0, 1);
   const pairPart = clamp((plan.pairCount - 4) / (DOTS_MAX_PAIRS - 4), 0, 1);
-  const lengthPart = clamp((plan.minPathLength - 3) / 2, 0, 1);
   const tierPart = clamp(dotsTierRank(dotsLevelTier(level)) / (DOTS_TIERS.length - 1), 0, 1);
-  return round(levelPart * 0.45 + pairPart * 0.3 + lengthPart * 0.1 + tierPart * 0.15);
+  return round(levelPart * 0.45 + pairPart * 0.4 + tierPart * 0.15);
 }
 
+
 /**
- * ДЛИНЫ КУСКОВ, НА КОТОРЫЕ РЕЖЕТСЯ ПУТЬ.
+ * 🔴 РАЗРЕЗ ПУТИ НА САМОНЕПЕРЕСЕКАЮЩИЕСЯ КУСКИ — ЭТО И ЕСТЬ ЕДИНСТВЕННОСТЬ РЕШЕНИЯ.
  *
- * 🔴 БЫЛО: каждому куску две клетки, остаток раздавался случайным индексам без
- * всякого потолка. Результат на 4×4 — куски вида 2/2/12: две пары соединялись
- * одним движением, а третья змея накрывала три четверти доски. Игрок видел
- * «почти пустое поле с одной длинной кишкой».
+ * 📍 ЗАМЕР, ИЗ-ЗА КОТОРОГО ЭТО ЗАВЕДЕНО (06.09.2026). Независимый перебор всех
+ * решений по правилам `validateDotsSolution`: L1, L3, L5 решались единственным
+ * способом, а **с L7 — нет**. Игра засчитывала победу на разных ответах, то есть
+ * верхние уровни не выводились, а угадывались.
  *
- * СТАЛО: нижняя граница приходит из уровня (3→5 клеток), сверху стоит потолок
- * ≈1.7 от средней длины — одна пара не может съесть доску. Потолок поднимается
- * сам, если раздать остаток иначе некуда: раскладка обязана собраться ВСЕГДА.
+ * ⚠️ ПОЧЕМУ ИМЕННО «ПУТЬ НЕ КАСАЕТСЯ САМ СЕБЯ». Это правило классического
+ * нумберлинка, и держится на нём именно единственность: пока путь может
+ * прижаться к себе боком, между теми же концами почти всегда есть второй
+ * маршрут. Замер: со включённым правилом наши прежние доски давали НОЛЬ решений
+ * — то есть они его нарушали поголовно, и проверкой это не лечится, только
+ * построением.
+ *
+ * ⚠️ РЕЖЕМ ЖАДНО, А ПОТОМ ДОРЕЗАЕМ. Кусок можно только РАЗДЕЛИТЬ (часть
+ * самонепересекающегося куска тоже самонепересекающаяся), склеить нельзя — она
+ * сразу коснётся себя. Поэтому сначала берём максимальные годные куски, а если
+ * их меньше, чем пар, делим самые длинные пополам.
+ *
+ * 📍 ЦЕНА, ЗАМЕРЕНА: доля путей, из которых разрез собирается, — 62% на 5×5 при
+ * шести парах, 56% на 7×7 при десяти, 45% на 9×9 при четырнадцати, 12% на 10×10
+ * при четырнадцати. Это не редкость: `buildForTier` и так перебирает до 4000
+ * раздач, то есть даже 12% — восемь заходов в среднем.
  */
-function segmentLengths(totalCells: number, pairCount: number, minLength: number, rng: Rng): number[] {
-  if (totalCells < pairCount * minLength) {
-    throw new RangeError(`Нельзя нарезать ${totalCells} клеток на ${pairCount} путей по ${minLength}`);
+function самокасается(кусок: readonly Cell[], добавляемая: Cell): boolean {
+  // Соседство с ПРЕДЫДУЩЕЙ клеткой законно — она соседняя по пути.
+  for (let i = 0; i < кусок.length - 1; i += 1) {
+    const c = кусок[i] as Cell;
+    if (Math.abs(c.row - добавляемая.row) + Math.abs(c.col - добавляемая.col) === 1) return true;
   }
-  const lengths = Array.from({ length: pairCount }, () => minLength);
-  let remaining = totalCells - pairCount * minLength;
-  let cap = Math.max(minLength + 2, Math.ceil((totalCells / pairCount) * 1.7));
-  while (remaining > 0) {
-    const open: number[] = [];
-    for (let index = 0; index < pairCount; index += 1) {
-      if ((lengths[index] as number) < cap) open.push(index);
+  return false;
+}
+
+export function самонепересекающийсяРазрез(
+  order: readonly Cell[], pairCount: number, minLength: number,
+): Cell[][] | null {
+  const куски: Cell[][] = [];
+  let текущий: Cell[] = [];
+  for (const c of order) {
+    if (текущий.length > 0 && самокасается(текущий, c)) { куски.push(текущий); текущий = [c]; }
+    else текущий.push(c);
+  }
+  if (текущий.length > 0) куски.push(текущий);
+  // Кусков больше, чем пар, — склеить нельзя, значит этот путь не годится.
+  if (куски.length > pairCount) return null;
+  while (куски.length < pairCount) {
+    let индекс = -1; let длина = 0;
+    for (let i = 0; i < куски.length; i += 1) {
+      const n = (куски[i] as Cell[]).length;
+      if (n > длина) { длина = n; индекс = i; }
     }
-    if (open.length === 0) { cap += 1; continue; }
-    const target = open[randomInt(rng, 0, open.length - 1)] as number;
-    lengths[target] = (lengths[target] as number) + 1;
-    remaining -= 1;
+    // Резать нечего, не нарушив нижнюю границу длины пути.
+    if (длина < minLength * 2) return null;
+    const k = куски[индекс] as Cell[];
+    const п = Math.floor(k.length / 2);
+    куски.splice(индекс, 1, k.slice(0, п), k.slice(п));
   }
-  return shuffle(rng, lengths);
+  return куски.every((k) => k.length >= minLength) ? куски : null;
 }
 
 function assertTraversal(order: readonly Cell[], size: number): void {
@@ -282,19 +343,23 @@ function buildPuzzle(
   difficulty: number,
   id: string,
   seed: string,
-): GeneratedDotsPuzzle {
+): GeneratedDotsPuzzle | null {
   const rng = createRng(seedKey);
   const order = randomHamiltonianPath(plan.size, rng);
   assertTraversal(order, plan.size);
-  const lengths = segmentLengths(order.length, plan.pairCount, plan.minPathLength, rng);
+  /**
+   * ⚠️ РАЗРЕЗ МОЖЕТ НЕ СОБРАТЬСЯ, И ЭТО НОРМАЛЬНЫЙ ИСХОД, А НЕ ОШИБКА. Путь,
+   * заполняющий поле, складывается сам к себе; годится не всякий. Отказ
+   * возвращается наверх, `buildForTier` берёт следующую раздачу.
+   */
+  const куски = самонепересекающийсяРазрез(order, plan.pairCount, plan.minPathLength);
+  if (!куски) return null;
   const styles = shuffle(rng, DOTS_PAIR_STYLES).slice(0, plan.pairCount);
   const pairs: DotsPair[] = [];
   const solution: GeneratedDotsPuzzle['solution'] = {};
-  let cursor = 0;
 
   for (let index = 0; index < plan.pairCount; index += 1) {
-    const length = lengths[index] as number;
-    const path = order.slice(cursor, cursor + length).map((cell) => ({ ...cell }));
+    const path = (куски[index] as Cell[]).map((cell) => ({ ...cell }));
     const first = path[0] as Cell;
     const last = path[path.length - 1] as Cell;
     const style = styles[index] as (typeof DOTS_PAIR_STYLES)[number];
@@ -306,7 +371,6 @@ function buildPuzzle(
       endpoints: [{ ...first }, { ...last }],
     });
     solution[pairId] = path;
-    cursor += length;
   }
 
   return {
@@ -374,11 +438,24 @@ function buildForTier(
   let fallback: GeneratedDotsPuzzle | null = null;
   for (let attempt = 0; attempt < DOTS_TIER_ATTEMPTS; attempt += 1) {
     const puzzle = buildPuzzle(`${seedKey}|try${attempt}`, level, plan, difficulty, id, seed);
+    if (!puzzle) continue;   // путь не разрезался на самонепересекающиеся куски
     const tier = tierOfPuzzle(puzzle);
     if (tier === wanted) return { ...puzzle, tier };
     if (!fallback) fallback = { ...puzzle, tier };
   }
-  return fallback as GeneratedDotsPuzzle;
+  /**
+   * 🔴 НИ ОДНА РАЗДАЧА НЕ СОБРАЛАСЬ — ЭТО ОБЯЗАНО ПАДАТЬ, А НЕ ВОЗВРАЩАТЬ ПУСТОТУ.
+   * Разрез отбраковывает пути, и если план уровня задан так, что годных нет
+   * вовсе, человек получил бы пустой экран без объяснения. Пусть лучше
+   * покраснеет проба: `dots-flow` прогоняет все сорок уровней.
+   */
+  if (!fallback) {
+    throw new Error(
+      `точки: за ${DOTS_TIER_ATTEMPTS} попыток не собралось ни одной доски `
+      + `${plan.size}×${plan.size} на ${plan.pairCount} пар (мин. путь ${plan.minPathLength})`,
+    );
+  }
+  return fallback;
 }
 
 export function generateDotsPuzzle(seed: string, level: number): GeneratedDotsPuzzle {
