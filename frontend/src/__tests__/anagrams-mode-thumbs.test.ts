@@ -1,0 +1,96 @@
+/**
+ * КАРТИНКИ РЕЖИМОВ АНАГРАММ: ЕСТЬ НА ДИСКЕ, РАЗНЫЕ ПО ПРОФИЛЯМ, НЕ РАЗДУВАЮТ БАНДЛ.
+ *
+ * 🔴 ЗАЧЕМ. Просьба Дениса 06.09.2026: где есть картинки — делать их красивыми и
+ * разными под разные профили. Проверка «в коде есть require» ничего не стоит:
+ * файла может не быть, он может весить полмегабайта, а все семь «разных» стилей
+ * могут оказаться одной и той же картинкой, скопированной семь раз. Поэтому
+ * здесь смотрят на ФАЙЛЫ: размер с диска и содержимое побайтно.
+ */
+declare const __dirname: string;
+declare function require(id: string): any;
+const { readFileSync, readdirSync, statSync, existsSync } = require('fs');
+const { join } = require('path');
+
+import {
+  ВСЕ_РЕЖИМЫ, ВСЕ_СТИЛИ, ПРОФИЛИ_СО_СТИЛЕМ, стильПрофиля, превьюРежима, СТИЛЬ_ПО_УМОЛЧАНИЮ,
+} from '@/src/games/anagrams/core/modeThumbs';
+
+const ПАПКА = join(__dirname, '../../assets/images/anagram-modes');
+
+describe('превью режимов анаграмм', () => {
+  it('есть что проверять: четыре режима и семь стилей', () => {
+    expect(ВСЕ_РЕЖИМЫ.length).toBe(4);
+    expect(ВСЕ_СТИЛИ.length).toBe(7);
+  });
+
+  it('🔴 каждый файл существует и не пустой', () => {
+    const нет: string[] = [];
+    for (const р of ВСЕ_РЕЖИМЫ) {
+      for (const с of ВСЕ_СТИЛИ) {
+        const п = join(ПАПКА, `${р}__${с}.webp`);
+        if (!existsSync(п) || statSync(п).size < 300) нет.push(`${р}__${с}.webp`);
+      }
+    }
+    expect(нет.slice(0, 5)).toEqual([]);
+  });
+
+  it('🔴 вес в разумном ряду: пиктограмма не тяжелее 8 КБ', () => {
+    const тяжёлые: string[] = [];
+    let сумма = 0;
+    for (const р of ВСЕ_РЕЖИМЫ) {
+      for (const с of ВСЕ_СТИЛИ) {
+        const b = statSync(join(ПАПКА, `${р}__${с}.webp`)).size;
+        сумма += b;
+        if (b > 8192) тяжёлые.push(`${р}__${с}: ${b} Б`);
+      }
+    }
+    expect(тяжёлые).toEqual([]);
+    // весь набор не должен незаметно вырасти в мегабайты
+    expect(`набор ${сумма < 200 * 1024}`).toBe('набор true');
+  });
+
+  it('🔴 семь стилей — СЕМЬ РАЗНЫХ картинок, а не одна скопированная', () => {
+    const беды: string[] = [];
+    for (const р of ВСЕ_РЕЖИМЫ) {
+      const хеши = new Set<string>();
+      for (const с of ВСЕ_СТИЛИ) {
+        хеши.add(readFileSync(join(ПАПКА, `${р}__${с}.webp`)).toString('base64'));
+      }
+      if (хеши.size !== ВСЕ_СТИЛИ.length) беды.push(`${р}: разных картинок ${хеши.size} из ${ВСЕ_СТИЛИ.length}`);
+    }
+    expect(беды).toEqual([]);
+  });
+
+  it('🔴 четыре режима — четыре РАЗНЫХ сюжета внутри одного стиля', () => {
+    const беды: string[] = [];
+    for (const с of ВСЕ_СТИЛИ) {
+      const хеши = new Set<string>();
+      for (const р of ВСЕ_РЕЖИМЫ) {
+        хеши.add(readFileSync(join(ПАПКА, `${р}__${с}.webp`)).toString('base64'));
+      }
+      if (хеши.size !== ВСЕ_РЕЖИМЫ.length) беды.push(`${с}: разных сюжетов ${хеши.size} из ${ВСЕ_РЕЖИМЫ.length}`);
+    }
+    expect(беды).toEqual([]);
+  });
+
+  it('🔴 неизвестный профиль получает картинку, а не пустоту', () => {
+    expect(стильПрофиля(undefined)).toBe(СТИЛЬ_ПО_УМОЛЧАНИЮ);
+    expect(стильПрофиля('такого-профиля-нет')).toBe(СТИЛЬ_ПО_УМОЛЧАНИЮ);
+    for (const р of ВСЕ_РЕЖИМЫ) expect(превьюРежима(р, 'такого-профиля-нет')).toBeTruthy();
+  });
+
+  it('🔴 каждый профиль приложения назван в карте — молчаливых пропусков нет', () => {
+    const исходник = readFileSync(join(__dirname, '../constants/profiles.ts'), 'utf8') as string;
+    const профили = [...исходник.matchAll(/^  id: '([a-z0-9_]+)'/gm)].map((m) => m[1]);
+    expect(профили.length).toBeGreaterThan(5);
+    const пропущены = профили.filter((p) => !(p in ПРОФИЛИ_СО_СТИЛЕМ));
+    expect(пропущены).toEqual([]);
+  });
+
+  it('на диске нет картинок мимо карты — мёртвого веса в бандле', () => {
+    const ждём = new Set(ВСЕ_РЕЖИМЫ.flatMap((р) => ВСЕ_СТИЛИ.map((с) => `${р}__${с}.webp`)));
+    const лишние = (readdirSync(ПАПКА) as string[]).filter((f) => !ждём.has(f));
+    expect(лишние).toEqual([]);
+  });
+});

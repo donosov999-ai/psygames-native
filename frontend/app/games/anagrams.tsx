@@ -15,7 +15,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView
+  ScrollView, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -35,6 +35,7 @@ import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
 import { allWordsCount, allWordsPack } from '@/src/games/anagrams/core/allWords';
 import { собратьКольца, ключКольца, лестницаКолец } from '@/src/games/anagrams/core/ring';
 import { показатьКорейское } from '@/src/games/anagrams/core/chamo';
+import { превьюРежима } from '@/src/games/anagrams/core/modeThumbs';
 import { wordPool, wordsOfLength } from '@/src/games/fillwords/core/words';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -470,6 +471,19 @@ export default function AnagramGame() {
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 onPress={() => setРежимИгры(р)}>
+                {/*
+                  Картинка режима — чтобы выбор читался глазом, а не только словом:
+                  «Квадрат слов» это рамка из букв, «Кроссворд» — их пересечение.
+                  Под профиль она РАЗНАЯ по материалу (см. `core/modeThumbs.ts`):
+                  детям пластик, шахматисту орех и мрамор, 50+ крафт и терракота.
+                */}
+                <Image
+                  source={превьюРежима(р, profile?.id)}
+                  style={styles.modeThumb}
+                  resizeMode="cover"
+                  accessible={false}
+                  importantForAccessibility="no"
+                />
                 <Text style={[styles.modeButtonText, { color: режимИгры === р ? '#3f2b96' : colors.text }]}>
                   {р === 'classic' ? t('classicLabel') : р === 'square' ? t('anagramSquare')
                     : р === 'all' ? t('anagramAllWords') : t('anagramCrossword')}
@@ -854,7 +868,9 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
-  modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
+  modeButton: { minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
+  // Картинка режима над подписью: 44 — та же цель нажатия, что у кнопки, увеличивать нечего.
+  modeThumb: { width: 44, height: 44, borderRadius: 10, marginBottom: 6 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
