@@ -48,10 +48,12 @@ import {
   takeHint,
   unfoundWordIndexes,
   wordPool,
+  wordsOfLength,
   type CellIndex,
   type FillwordsPuzzle,
   type FillwordsSession,
 } from '@/src/games/fillwords/core';
+import { словаПоДлине } from '@/src/games/anagrams/core/allWords';
 import { contrastRatio } from '@/src/services/onGradientText';
 
 const ROOT = join(__dirname, '../..');
@@ -423,12 +425,47 @@ describe('филворды: где нет слов — там нет режим�
     expect(bad).toEqual([]);
   });
 
+  /**
+   * 🔴 ПРИГОДНОСТЬ СЧИТАЕТСЯ, А НЕ ОБЪЯВЛЯЕТСЯ — И У КАЖДОГО ОТКАЗА ЕСТЬ ИМЯ.
+   *
+   * ⚠️ ЗДЕСЬ СТОЯЛО «пул поддержанного больше пула любого отвергнутого». Пока
+   * причина отказа была одна — мало слов, — это работало. 06.09.2026 филворды
+   * подключили третьим источником наборы «Найди все слова», и появился ВТОРОЙ
+   * повод отказать: письменность. У арабского пул стал 12 466 слов, у корейского
+   * 10 350 — больше, чем у любого поддержанного, — но в клетки легли бы голые
+   * чамо «ㄴㅏㅁㅈㅏ» и арабские буквы, которым нужны контекстные формы и RTL.
+   * Прежняя проверка требовала бы включить их из-за размера пула, то есть
+   * защищала УЖЕ НЕВЕРНОЕ утверждение.
+   *
+   * Поэтому теперь спрашивается не порядок чисел, а ПРИЧИНА: у каждого
+   * отвергнутого языка обязана выполняться хотя бы одна названная, и у каждого
+   * поддержанного — ни одной. Список, написанный руками, ломает это сразу.
+   */
   it('🔴 пригодность языка считается по словарю, а не объявлена списком', () => {
-    // Пул поддержанного языка обязан быть заметно больше пула отвергнутого:
-    // если бы список был написан руками, эта связь не держалась бы.
-    const supported = FILLWORDS_LOCALES.map((l) => wordPool(l).all.length);
-    const rejected = APP_LOCALES.filter((l) => !FILLWORDS_LOCALES.includes(l)).map((l) => wordPool(l).all.length);
-    expect(Math.min(...supported)).toBeGreaterThan(Math.max(0, ...rejected));
+    const латиницаИлиКириллица = (l: string) => {
+      const проба = словаПоДлине(l, 5).slice(0, 50);
+      if (!проба.length) return true;   // набора нет — судит порог по корпусу
+      return проба.every((w) => [...w].every((ch) => /[\p{Script=Latin}\p{Script=Cyrillic}]/u.test(ch)));
+    };
+    const причины = (l: string): string[] => {
+      const pool = wordPool(l);
+      const out: string[] = [];
+      if (!латиницаИлиКириллица(l)) out.push('письменность');
+      if (pool.all.length < 60) out.push('пул меньше 60');
+      for (const len of [3, 4, 5]) {
+        if (wordsOfLength(pool, len).length < 8) out.push(`длины ${len} меньше восьми`);
+      }
+      return out;
+    };
+    const плохо: string[] = [];
+    for (const l of FILLWORDS_LOCALES) {
+      const c = причины(l);
+      if (c.length) плохо.push(`${l} поддержан, хотя: ${c.join(', ')}`);
+    }
+    for (const l of APP_LOCALES.filter((x) => !FILLWORDS_LOCALES.includes(x))) {
+      if (!причины(l).length) плохо.push(`${l} отвергнут без единой причины — значит список написан руками`);
+    }
+    expect(плохо).toEqual([]);
   });
 });
 
