@@ -90,7 +90,11 @@ describe('сортировка товаров: подсказка', () => {
     const body = src.slice(src.indexOf('const showHint'), src.indexOf('const reshuffle'));
     // 30.08.2026: ёмкости берутся через `capsForBoard(level, cells)` — длина ответа
     // равна длине доски по построению (боевой краш «ниш 9, ёмкостей 7»).
-    expect(body).toMatch(/hintMove\(makeBoard\(cells, capsForBoard\(level, cells\)\)\)/);
+    // ⚠️ Хвост аргументов открыт намеренно. Смысл проверки — «решатель зовётся с
+    // НАСТОЯЩИМИ ёмкостями живой доски», а не «строка выглядит вот так». Замкнутый
+    // на скобку образец краснел 06.09.2026 на верном коде, когда к доске добавился
+    // третий аргумент (ниши-джокеры): проверка ловила форму записи, а не смысл.
+    expect(body).toMatch(/hintMove\(makeBoard\(cells, capsForBoard\(level, cells\)/);
     expect(body).toMatch(/canPlaceInto\(found\.fromCell, found\.toCell\)/);
     // и найденный ход берётся ИМЕННО у решателя, а старая формула — только запасной путь
     expect(body).toMatch(/const found = fromSolver \?\? findHint\(/);

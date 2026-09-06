@@ -28,7 +28,7 @@ import { CHESSBLIND_RULES } from '@/app/games/chess-blind';
 import { CORSI_RULES, levelParams as corsi } from '@/app/games/corsi';
 import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
-import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo } from '@/app/games/goods-sort';
+import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches } from '@/app/games/goods-sort';
 import { HN_RULES, levelParams as hanoi } from '@/app/games/hanoi';
 import { LISTENINGSPAN_RULES, levelParams as listening } from '@/app/games/listening-span';
 import { MAHJONG_RULES } from '@/app/games/mahjong';
@@ -127,6 +127,7 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'goods-sort', ключ: 'frozen', вид: 'порог', есть: (L) => gsCfg(L, 8, false).obst.frozenRow },
   { игра: 'goods-sort', ключ: 'strict', вид: 'порог', есть: (L) => strictPlacement(L) },
   { игра: 'goods-sort', ключ: 'hidden', вид: 'порог', есть: (L) => hiddenInfo(L) },
+  { игра: 'goods-sort', ключ: 'joker', вид: 'порог', есть: (L) => jokerNiches(L, 14).length > 0 },
 ];
 
 /**

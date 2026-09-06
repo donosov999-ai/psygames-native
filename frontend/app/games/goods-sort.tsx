@@ -114,6 +114,15 @@ export const GS_RULES: LevelRule[] = [
    * освободится словарь.
    */
   { key: 'hidden', fromLevel: 34 },   // = HIDDEN_FROM; равенство сторожит гейт goods-sort-hidden-rule
+  /**
+   * Ниша-джокер (L36+, только на строгих уровнях). Тексты — в словаре на
+   * двенадцати языках (`lr_goods_sort_joker_*`); инлайн ru/en здесь помечен
+   * устаревшим и знает два языка из двенадцати.
+   *
+   * `fromLevel` равен `JOKER_FROM` и сторожится гейтом `goods-sort-joker`:
+   * порог правила и порог механики обязаны совпадать, а не «стоять рядом».
+   */
+  { key: 'joker', fromLevel: 36 },    // = JOKER_FROM
 ];
 
 /**
@@ -983,6 +992,55 @@ export function strictPlacement(L: number): boolean {
   return L >= 30 && (L - 30) % 3 === 0;
 }
 
+/* ───────────────── НИША-ДЖОКЕР — клапан против строгой укладки ─────────────────
+ *
+ * Источник: «временный контейнер» у конкурента. У него это покупка в магазине и
+ * часть воронки к рекламе; у нас рекламы нет, поэтому берётся не бизнес-модель,
+ * а сам ход — и переносится НА ДОСКУ: одна ниша уровня принимает любой товар.
+ *
+ * 🔴 ПОЧЕМУ ТОЛЬКО НА СТРОГИХ УРОВНЯХ. Джокер снимает ПРАВИЛО УКЛАДКИ. На
+ * обычном уровне такого правила нет — `canPlace` отвечает `true` всем, у кого
+ * есть место (`if (!strict) return true`). Поставь джокер туда, и он будет
+ * ничем: значок на экране, за которым не стоит разницы. Гейт `goods-sort-joker`
+ * это и сторожит замером «стало ли ходов больше».
+ *
+ * 🔴 ОН НЕ ДОБАВЛЯЕТ ТОВАРОВ И НЕ МЕНЯЕТ ЁМКОСТЬ. Сумма ёмкостей равна
+ * «ниш × 3» — из неё посчитаны запас пустых ниш, потолок типов и вся
+ * арифметика решаемости. Джокер даёт МЕСТО (куда можно положить), а не
+ * ВМЕСТИМОСТЬ (сколько влезет): полная ниша-джокер остаётся полной.
+ *
+ * Порог L36, а не L30: два строгих уровня подряд человек проходит по чистому
+ * правилу и успевает почувствовать, чем оно жмёт. Клапан, выданный вместе с
+ * правилом, отменил бы само знакомство с ним.
+ */
+export const JOKER_FROM = 36;
+
+/**
+ * Какие ниши на уровне — джокеры. Детерминированно от уровня: расклад
+ * случайный, а форма уровня обязана повторяться.
+ *
+ * Берётся ПОСЛЕДНЯЯ ниша обхода `порядокНиш`, а ёмкости раздаются с его начала —
+ * так джокер и группы ёмкостей не спорят за одно место, пока групп меньше, чем
+ * ниш. Совпадение не запрещено и не страшно: ёмкость и правило укладки — разные
+ * свойства, ниша на один товар вполне может быть джокером.
+ */
+export function jokerNiches(L: number, slots: number): number[] {
+  if (slots <= 0) return [];
+  if (L < JOKER_FROM || !strictPlacement(L)) return [];
+  const порядок = порядокНиш(L, slots);
+  return [порядок[slots - 1] as number];
+}
+
+/**
+ * Джокеры живой доски — по её настоящей длине, а не по числу из соседнего ref.
+ * Тот же приём, что у `capsForBoard`: боевой краш 30.08.2026 случился ровно на
+ * расхождении «ниш на доске» и «ниш по расчёту».
+ */
+export function jokersForBoard(L: number, cells: readonly unknown[][]): boolean[] {
+  const j = new Set(jokerNiches(L, cells.length));
+  return cells.map((_, i) => j.has(i));
+}
+
 /* ───────────────── СКРЫТАЯ ИНФОРМАЦИЯ — шестая механика (§20 плана слияния) ─────────────────
  *
  * Источник: разбор конкурента «Ханойская башня Сорта» (mobirix), §20
@@ -1357,9 +1415,11 @@ export function sessionDetails(
  * Можно ли класть товар типа `type` в нишу `dst` при данном правиле укладки.
  * Единственное место, где живёт разница между обычным уровнем и строгим.
  */
-export function placementOk(dst: number[], type: number, strict: boolean, cap: number = CAP): boolean {
+export function placementOk(
+  dst: number[], type: number, strict: boolean, cap: number = CAP, joker = false,
+): boolean {
   // Одна ниша — частный случай доски: правило укладки живёт в ядре целиком.
-  return canPlace(makeBoard([dst], [cap]), 0, type, strict);
+  return canPlace(makeBoard([dst], [cap], [joker]), 0, type, strict);
 }
 
 /**
@@ -1413,8 +1473,8 @@ export const removeTriple = coreRemoveTriple;
  *
  * `caps` не передали — считаем все по три, как было: старые вызовы не ломаем.
  */
-export function solvableStrict(start: number[][], caps?: number[], budget = 20000): boolean {
-  const board = makeBoard(start, caps ?? start.map(() => CAP));
+export function solvableStrict(start: number[][], caps?: number[], budget = 20000, jokers?: boolean[]): boolean {
+  const board = makeBoard(start, caps ?? start.map(() => CAP), jokers);
   return coreSolvable(board, budget);
 }
 
@@ -1435,8 +1495,8 @@ export function solvableStrict(start: number[][], caps?: number[], budget = 2000
  * (6 из 6 на L21…L37). То есть они хорошие, просто дорогие для доказательства.
  * Поэтому бракуем ТОЛЬКО доказанную нерешаемость, а исчерпание пропускаем.
  */
-export function provenUnsolvable(start: number[][], caps?: number[], budget = 20000): boolean {
-  const board = makeBoard(start, caps ?? start.map(() => CAP));
+export function provenUnsolvable(start: number[][], caps?: number[], budget = 20000, jokers?: boolean[]): boolean {
+  const board = makeBoard(start, caps ?? start.map(() => CAP), jokers);
   const r = coreSolve(board, budget);
   return !r.solvable && !r.exhausted;
 }
@@ -3093,6 +3153,12 @@ export default function GoodsSortGame() {
   // при неизменной сетке, и зависимость от cols/rows этого не видит.
   const caps = useMemo(() => capsForBoard(level, cells), [level, cells.length]);
   const capOf = (i: number) => caps[i] ?? CAP;
+  /**
+   * Ниши-джокеры этого уровня. Считаются от ЖИВОЙ доски по той же причине, что и
+   * ёмкости: число ниш задаёт маска формы, а не размер сетки.
+   */
+  const jokers = useMemo(() => jokersForBoard(level, cells), [level, cells.length]);
+  const isJokerNiche = (i: number) => jokers[i] === true;
 
   /**
    * 🔴 ДОСКА ВСТАЛА — И ОБ ЭТОМ НАДО СКАЗАТЬ. Проверки тупика в игре не было
@@ -3105,9 +3171,9 @@ export default function GoodsSortGame() {
    */
   const deadEnd = useMemo(() => {
     if (cells.length === 0) return false;
-    const board = makeBoard(cells, caps);
+    const board = makeBoard(cells, caps, jokers);
     return isDeadEnd(board, cells.map((_, i) => cellUsable(i)), strict);
-  }, [cells, caps, obstacles, strict, frozen]);
+  }, [cells, caps, jokers, obstacles, strict, frozen]);
   /** Есть ли на этом уровне разные ёмкости — от этого зависит показ насечек. */
   const mixedCaps = new Set(caps).size > 1;
 
@@ -3116,7 +3182,7 @@ export default function GoodsSortGame() {
     if (!cellUsable(fromCell) || !cellUsable(toCell)) return false;
     const src = cells[fromCell];
     if (!src?.length) return false;
-    return placementOk(cells[toCell] ?? [], src[src.length - 1], strict, capOf(toCell));
+    return placementOk(cells[toCell] ?? [], src[src.length - 1], strict, capOf(toCell), isJokerNiche(toCell));
   };
 
   const moveItem = (fromCell: number, fromIdx: number, toCell: number) => {
@@ -3510,7 +3576,7 @@ export default function GoodsSortGame() {
      * функцию, которая решает, случится ли перекладывание. Так «подсказка, которую
      * игра отвергает» невозможна по построению, а не по надежде.
      */
-    const solved = hintMove(makeBoard(cells, capsForBoard(level, cells)));
+    const solved = hintMove(makeBoard(cells, capsForBoard(level, cells), jokersForBoard(level, cells)));
     const fromSolver: HintMove | null = solved && cellUsable(solved.from) && cellUsable(solved.to)
       && canPlaceInto(solved.from, solved.to)
       ? { fromCell: solved.from, fromIdx: (cells[solved.from]?.length ?? 1) - 1, toCell: solved.to }
@@ -3942,6 +4008,18 @@ export default function GoodsSortGame() {
             {Array.from({ length: capOf(i) }).map((_, k) => (
               <View key={k} style={[styles.slotMark, k < cell.length && styles.slotTaken]} />
             ))}
+          </View>
+        )}
+        {/*
+          🔴 ДЖОКЕР ОБЯЗАН БЫТЬ ВИДЕН ДО ХОДА, А НЕ ПОСЛЕ.
+          Он снимает правило укладки, и без метки об этом можно узнать
+          единственным способом — попробовать положить чужой товар и увидеть,
+          что вышло. Это ровно та угадайка, из-за которой рядом рисуются насечки
+          ёмкости. Звезда стоит в углу ниши и повторяется в тексте правила.
+        */}
+        {isJokerNiche(i) && (
+          <View pointerEvents="none" style={styles.jokerMark}>
+            <Text style={styles.jokerStar}>★</Text>
           </View>
         )}
         {/* Свечение на сборе тройки: тёплая золотая волна, которая гаснет. Рисуется
@@ -4686,6 +4764,9 @@ const styles = StyleSheet.create({
   undoBtn: { minWidth: 56, minHeight: 48, borderRadius: 999, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, flexDirection: 'row', gap: 4 },
   /** Насечки вместимости: сколько мест в нише и сколько занято. */
   slots: { position: 'absolute', left: 0, right: 0, bottom: 3, flexDirection: 'row', justifyContent: 'center', gap: 3, zIndex: 3 },
+  /** Метка ниши-джокера: угол ниши, поверх фона, но под товарами. */
+  jokerMark: { position: 'absolute', top: 2, right: 4, zIndex: 2 },
+  jokerStar: { fontSize: 11, lineHeight: 12, color: '#fbbf24', opacity: 0.9 },
   slotMark: { width: 7, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.30)' },
   slotTaken: { backgroundColor: 'rgba(255,236,190,0.85)' },
   goalLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap', paddingHorizontal: 12, marginBottom: 2, maxWidth: '100%' },
