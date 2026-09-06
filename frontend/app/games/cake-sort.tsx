@@ -40,6 +40,7 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { CIRCLE, Board, canPlace, moveTop, isCleared, hasAnyMove } from '@/src/games/cake-sort/core/plate';
 import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
+import { prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
 import { tableLayout, maxCols, plateAtPoint, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
 import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
@@ -165,6 +166,13 @@ export default function CakeSortGame() {
    */
   useEffect(() => {
     if (!board) return;
+    /**
+     * 🔴 СНАЧАЛА СМОТРИМ ВШИТОЕ, И ТОЛЬКО ПОТОМ СЧИТАЕМ. Минимум посчитан
+     * офлайн с бюджетом в тринадцать раз больше здешнего — если он есть, считать
+     * заново незачем и нечем: на устройстве тот же поиск до дна не дойдёт.
+     */
+    const готовый = prebuiltMin(level);
+    if (готовый !== null) { setТочныйМин(готовый); return; }
     let живо = true;
     const t = setTimeout(() => {
       const r = minMoves(board, 30000);
