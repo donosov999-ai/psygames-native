@@ -51,6 +51,7 @@ import {
   stepTrace,
   takeHint,
   tintForFoundOrder,
+  порядокДляПартии,
   type FillwordsHint,
   type FillwordsPuzzle,
   type FillwordsSession,
