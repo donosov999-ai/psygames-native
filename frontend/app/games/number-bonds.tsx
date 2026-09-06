@@ -336,8 +336,9 @@ export default function NumberBondsGame() {
             {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {/* Детские уровни без таймера: окно «∞» читается на всех 12 языках без правки словаря */}
-            {t('numberBondsLvlParams').replace('{n}', String(p.trials)).replace('{m}', String(p.maxV)).replace('{c}', String(p.pool)).replace('{a}', String(solMin)).replace('{b}', String(solMax)).replace('{w}', p.windowMs > 0 ? String(Math.round(p.windowMs / 1000)) : '∞')}
+            {/* Детские уровни без таймера: окно «∞» читается на всех 12 языках без правки словаря.
+                «2–2» схлопывается в «2» ПОСЛЕ подстановки — сам ключ словаря не трогаем. */}
+            {t('numberBondsLvlParams').replace('{n}', String(p.trials)).replace('{m}', String(p.maxV)).replace('{c}', String(p.pool)).replace('{a}', String(solMin)).replace('{b}', String(solMax)).replace('{w}', p.windowMs > 0 ? String(Math.round(p.windowMs / 1000)) : '∞').replace(/(\d+)[–-]\1/, '$1')}
           </Text>
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
