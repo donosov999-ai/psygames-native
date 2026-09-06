@@ -30,7 +30,7 @@ import { CORSI_RULES, levelParams as corsi } from '@/app/games/corsi';
 import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
 // Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
-import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches, monochromeLevel } from '@/src/games/goods-sort/core/level';
+import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches, monochromeLevel, gridFor, gsLayout, ITEM_FLOOR } from '@/src/games/goods-sort/core/level';
 import { HN_RULES, levelParams as hanoi } from '@/app/games/hanoi';
 import { WATER_SORT_RULES } from '@/app/games/water-sort';
 import { скрытоНаУровне } from '@/src/games/water-sort/core/hidden';
@@ -138,6 +138,14 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'goods-sort', ключ: 'hidden', вид: 'порог', есть: (L) => hiddenInfo(L) },
   { игра: 'goods-sort', ключ: 'joker', вид: 'порог', есть: (L) => jokerNiches(L, 14).length > 0 },
   { игра: 'goods-sort', ключ: 'moving', вид: 'порог', есть: (L) => movingNiches(L) },
+  /*
+   * Витрина: «шкаф выше экрана». Спрашиваем ровно тем вызовом, что делает игра —
+   * с полом читаемости, потому что без него `gsLayout` считает по-старому и
+   * витрина не поедет. Экран телефона 390×844, поле 484: те же числа, что в
+   * `goods-sort-scroll`.
+   */
+  { игра: 'goods-sort', ключ: 'showcase', вид: 'порог',
+    есть: (L) => { const g = gridFor(L, true); return gsLayout(390, 484, g.cols, g.rows, 4, undefined, ITEM_FLOOR).scrolls; } },
   { игра: 'goods-sort', ключ: 'mono', вид: 'порог', есть: (L) => monochromeLevel(L) },
   /**
    * ⚠️ ПЕРЕЛИВАЛКА ЗАРЕГИСТРИРОВАНА ЗДЕСЬ 06.09.2026, В ТОТ ЖЕ ЗАХОД, ЧТО И
