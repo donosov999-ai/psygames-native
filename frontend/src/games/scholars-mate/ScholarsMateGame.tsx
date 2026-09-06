@@ -19,7 +19,7 @@ import { Chess } from 'chess.js';
 
 import { CHESS_PIECE_SVG } from '@/src/games/chess-blind/core/pieces';
 import { a11yDecor } from '@/src/services/a11y';
-import { buildDeck, buildNamedDeck, levelParams } from './core/deck';
+import { buildDeck, buildFlowDeck, buildNamedDeck, levelParams } from './core/deck';
 import { check, movesFrom, shownFen, sideToMove, threatAnswer, дополнитьХод } from './core/check';
 import { scholarsArmed, медианаМс, размерКлетки, ширинаДоски } from './core/run';
 import type { ScholarsAttempt, ScholarsResult } from './core/types';
@@ -88,18 +88,12 @@ export default function ScholarsMateGame({
       return buildNamedDeck(namedMotif, level, seed, flowMs ? 200 : undefined);
     }
     if (!flowMs) return buildDeck(level, seed, onlyKind);
-    const наборов = Math.max(4, Math.ceil(flowMs / 1000 / 3 / levelParams(level).count));
-    const всё: ScholarsAttempt['puzzle'][] = [];
-    const видели = new Set<string>();
-    for (let n = 0; n < наборов; n++) {
-      for (const p of buildDeck(level, seed + n * 101, onlyKind)) {
-        const ключ = `${p.fen}|${p.pre ?? ''}`;
-        if (видели.has(ключ)) continue;
-        видели.add(ключ);
-        всё.push(p);
-      }
-    }
-    return всё;
+    /**
+     * Сборка колоды потока — в ЯДРЕ (`buildFlowDeck`), а не здесь: пробам нужно
+     * знать, какие позиции придут, и вторая копия сборки уже разъезжалась с
+     * первой молча. Однородность по цвету и добор наборов — там же.
+     */
+    return buildFlowDeck(level, seed, flowMs, onlyKind);
   }, [level, seed, flowMs, onlyKind, namedMotif]);
   const началоПотока = React.useRef(0);
 

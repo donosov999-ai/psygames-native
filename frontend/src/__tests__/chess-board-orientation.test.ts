@@ -20,9 +20,8 @@
 import React from 'react';
 
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
-import { buildDeck, levelParams } from '@/src/games/scholars-mate/core/deck';
+import { buildDeck, buildFlowDeck, levelParams } from '@/src/games/scholars-mate/core/deck';
 import { sideToMove } from '@/src/games/scholars-mate/core/check';
-import type { ScholarsAttempt } from '@/src/games/scholars-mate/core/types';
 
 declare function require(m: string): any;
 const TestRenderer = require('react-test-renderer');
@@ -38,20 +37,12 @@ const LABELS = {
 
 const FLOW_MS = 10 * 60 * 1000;
 
-/** Колода потока — ровно так её собирает экран `app/games/scholars-mate.tsx`. */
-function колодаПотока(level: number, seed: number): ScholarsAttempt['puzzle'][] {
-  const наборов = Math.max(4, Math.ceil(FLOW_MS / 1000 / 3 / levelParams(level).count));
-  const всё: ScholarsAttempt['puzzle'][] = [];
-  const видели = new Set<string>();
-  for (let n = 0; n < наборов; n++) {
-    for (const p of buildDeck(level, seed + n * 101)) {
-      const к = `${p.fen}|${p.pre ?? ''}`;
-      if (видели.has(к)) continue;
-      видели.add(к); всё.push(p);
-    }
-  }
-  return всё;
-}
+/**
+ * Колода потока берётся ИЗ ЯДРА той же функцией, что зовёт модуль. Своя копия
+ * сборки здесь стояла и молча разъехалась, когда колода стала однородной по
+ * цвету: три проверки покраснели не на дефекте, а на устаревшей модели.
+ */
+const колодаПотока = (level: number, seed: number) => buildFlowDeck(level, seed, FLOW_MS);
 
 let mounted: any[] = [];
 afterEach(() => {
@@ -100,25 +91,39 @@ function смонтировать(level: number, seed: number, flow: boolean) {
 
 describe('ориентация доски', () => {
   /**
-   * 🔴 ГЛАВНАЯ ПРОБА. Идём по позициям потока и на КАЖДОЙ сверяем нарисованную
-   * доску со стороной хода. Нужны позиции обоих цветов — иначе проба зелена
-   * вслепую, поэтому набор проверяется на смешанность отдельным утверждением.
+   * 🔴 КОЛОДА ПОТОКА ОДНОРОДНА ПО ЦВЕТУ. Решение Дениса 06.09.2026: доска не должна
+   * поворачиваться и в потоке тоже.
+   *
+   * 📍 ЗДЕСЬ СТОЯЛО ОБРАТНОЕ УТВЕРЖДЕНИЕ — «смена цвета в потоке найдена». Оно
+   * описывало прежнее устройство, где поток склеивался из наборов с разными
+   * семенами. Когда сборка стала однородной, проба покраснела не на дефекте, а на
+   * собственной устаревшей модели. Оставляю запись: проба, описывающая ушедшее
+   * поведение, выглядит как найденный дефект.
+   */
+  it('🔴 в колоде потока цвет не меняется ни разу', () => {
+    const промахи: string[] = [];
+    for (const L of [1, 8, 15, 25, 40]) {
+      for (const s of [1, 2, 3]) {
+        const d = колодаПотока(L, s);
+        const цвета = new Set(d.map((p) => sideToMove(p)));
+        if (цвета.size !== 1) промахи.push(`ур.${L} сид ${s}: цветов ${цвета.size}`);
+        // И позиций хватает на десять минут: фильтр не должен обрезать партию.
+        if (d.length < 150) промахи.push(`ур.${L} сид ${s}: всего ${d.length} позиций`);
+      }
+    }
+    expect(`колод со сменой цвета или коротких: ${промахи.length} → ${промахи.slice(0, 3).join(' | ')}`)
+      .toBe('колод со сменой цвета или коротких: 0 → ');
+  });
+
+  /**
+   * 🔴 И ДОСКА В ПОТОКЕ ПОКАЗАНА СО СТОРОНЫ ХОДА. Однородность колоды снимает
+   * повороты, но не отвечает на вопрос, с какой стороны смотрит человек: набор
+   * может целиком оказаться чёрным.
    */
   it('🔴 в потоке каждая позиция показана со стороны того, кто ходит', () => {
     const УРОВЕНЬ = 8;
     const колода = колодаПотока(УРОВЕНЬ, 1);
-    /**
-     * ⚠️ ДЛИНА ОКНА СЧИТАЕТСЯ ИЗ ДАННЫХ, А НЕ БЕРЁТСЯ НА ГЛАЗ. Подколоды потока
-     * однородны по цвету и длиной с уровень (здесь 10), поэтому первый смена
-     * цвета — на стыке. Возьми окно короче стыка — и проба зеленела бы, ничего
-     * не проверив: первые двенадцать позиций одного цвета я так и получил.
-     */
-    const смена = колода.findIndex((p) => sideToMove(p) !== sideToMove(колода[0]!));
-    expect(`смена цвета в потоке найдена: ${смена > 0}`).toBe('смена цвета в потоке найдена: true');
-    const ПОЗИЦИЙ = смена + 2;
-    const цвета = new Set(колода.slice(0, ПОЗИЦИЙ).map((p) => sideToMove(p)));
-    expect(`цветов в окне ${ПОЗИЦИЙ}: ${цвета.size}`).toBe(`цветов в окне ${ПОЗИЦИЙ}: 2`);
-
+    const ПОЗИЦИЙ = 6;
     const с = смонтировать(УРОВЕНЬ, 1, true);
     const п = levelParams(УРОВЕНЬ);
     const промахи: string[] = [];
