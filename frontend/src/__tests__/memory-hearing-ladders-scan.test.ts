@@ -15,7 +15,7 @@ import { levelParams as wordPairsLevel } from '@/app/games/word-pairs';
 import { levelParams as echoLevel, maxConsonantCluster, buildRounds as echoRounds } from '@/app/games/pseudoword-echo';
 import { dictationLevelParams } from '@/src/games/dictation/core/phrases';
 import { generateMemoryPalaceRound, memoryPalaceLociCountForLevel } from '@/src/games/memory-palace/core';
-import { levelParams as mnemonicsLevel } from '@/app/games/mnemonics';
+import { levelParams as mnemonicsLevel, новыйПример } from '@/app/games/mnemonics';
 import { levelParams as phonemeLevel } from '@/app/games/phoneme-pairs';
 import { levelParams as tonesLevel } from '@/app/games/chinese-tones';
 import { noiseGainFor } from '@/src/services/noise';
@@ -202,10 +202,46 @@ describe('Память и слух · где кончается рост тру�
       .toEqual({ игра: 'memory-palace', плато_с_уровня: 15, из: УРОВНИ });
   });
 
-  it('📍 «Мнемоника»: прогон 15 уровней', () => {
+  /**
+   * 📍 «Мнемоника» ДО правки 07.09.2026: плато с 11-го — `itemCount` упирался в
+   * 15, и дальше не менялось НИЧЕГО. ПОСЛЕ: добавлены окно удержания (пауза
+   * между показом и проверкой) и помеха в нём (примеры, как в OSPAN).
+   */
+  it('📍 «Мнемоника»: прогон 15 уровней (список + задержка + помеха)', () => {
     const плато = уровеньПлато((l) => JSON.stringify(mnemonicsLevel(l)));
     expect({ игра: 'mnemonics', плато_с_уровня: плато, из: УРОВНИ })
-      .toEqual({ игра: 'mnemonics', плато_с_уровня: 11, из: УРОВНИ });
+      .toEqual({ игра: 'mnemonics', плато_с_уровня: 15, из: УРОВНИ });
+  });
+
+  /** 🔴 Каждая ось отдельно: список упирается в 15, дальше растут пауза и помеха. */
+  it('🔴 «Мнемоника»: пауза с 5-го, помеха с 9-го, список упёрся в 15', () => {
+    const по = (f: (l: number) => number) => Array.from({ length: УРОВНИ }, (_, i) => f(i + 1));
+    const списки = по((l) => mnemonicsLevel(l).itemCount);
+    const паузы = по((l) => mnemonicsLevel(l).gapMs);
+    const помехи = по((l) => mnemonicsLevel(l).mathTrials);
+    expect(Math.max(...списки)).toBe(15);
+    expect({ пауза_с: паузы.findIndex((v) => v > 0) + 1, помеха_с: помехи.findIndex((v) => v > 0) + 1 })
+      .toEqual({ пауза_с: 5, помеха_с: 9 });
+    // Пауза растёт и не даёт лестнице встать там, где список уже упёрся.
+    expect(паузы.slice(10).every((v, i, a) => i === 0 || v > a[i - 1])).toBe(true);
+    expect(помехи[УРОВНИ - 1]).toBe(3);
+  });
+
+  /**
+   * 🔴 ПОМЕХА ДОЛЖНА БЫТЬ РЕШАЕМОЙ И НЕ УГАДЫВАЕМОЙ — проверка ПОВЕДЕНИЯ
+   * генератора, а не объявления. Варианты стоят рядом с ответом, значит наугад
+   * не берётся; ответ ровно один, значит задача честная.
+   */
+  it('🔴 «Мнемоника»: пример-помеха честный — один ответ, близкие варианты', () => {
+    for (let i = 0; i < 200; i++) {
+      const п = новыйПример();
+      expect(п.a + п.b).toBe(п.ответ);
+      expect(п.варианты).toHaveLength(4);
+      expect(п.варианты.filter((v) => v === п.ответ)).toHaveLength(1);
+      expect(new Set(п.варианты).size).toBe(4);
+      expect(Math.max(...п.варианты.map((v) => Math.abs(v - п.ответ)))).toBeLessThanOrEqual(2);
+      expect(Math.min(...п.варианты)).toBeGreaterThan(0);
+    }
   });
 
   it('📍 «Близкие звуки»: прогон 15 уровней', () => {
