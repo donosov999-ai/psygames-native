@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   ScrollView,
   PanResponder,
-  useWindowDimensions,
   Image,
 } from 'react-native';
 import { превьюРежимаКорректуры } from '@/src/games/fillwords/core/modeThumbs';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { ширинаПодПоле } from '@/src/games/fillwords/core/generator';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -186,7 +186,21 @@ export default function ProofreadingGame() {
   const { t, language } = useLanguage();
   const { profile } = useProfile();
   const router = useRouter();
-  const { width, height } = useWindowDimensions();
+  /*
+    🔴 РАЗМЕР ЭКРАНА — ЧЕРЕЗ ХУК, А НЕ НАПРЯМУЮ.
+
+    Голый `useWindowDimensions()` в веб-сборке (а Android и iOS у нас WebView,
+    то есть это и телефон) на ПЕРВОМ кадре отдаёт 0 и обновляется только по
+    событию `resize`, которого при обычной загрузке экрана не бывает. Ноль
+    уезжает в расчёт клетки и запекается там. Здесь его до сих пор гасил только
+    нижний ограничитель `Math.max(22, ...)` — то есть случайно, а не по замыслу:
+    ровно так эта ловушка описана в шапке самого хука, где за один день 19.08.2026
+    она сработала дважды на других экранах.
+
+    `useScreenSize()` спрашивает настоящий размер у окна, когда система его ещё
+    не сообщила, и отдаёт константы телефона лишь там, где `window` нет вовсе.
+  */
+  const { w: width, h: height } = useScreenSize();
 
   const { isPreset, autostart, str, num, bool, isCalm } = useGamePreset();
   /**

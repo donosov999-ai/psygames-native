@@ -18,7 +18,6 @@ import {
   ScrollView, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,7 +31,7 @@ import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
 import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
 import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
-import { allWordsCount, allWordsPack } from '@/src/games/anagrams/core/allWords';
+import { allWordsCount, allWordsPack, банкКлассики, словаПоДлине } from '@/src/games/anagrams/core/allWords';
 import { ключКольца, кольцаЯзыка, языкиКолец } from '@/src/games/anagrams/core/ring';
 import { показатьКорейское } from '@/src/games/anagrams/core/chamo';
 import { превьюРежима } from '@/src/games/anagrams/core/modeThumbs';
@@ -112,7 +111,6 @@ export default function AnagramGame() {
    */
   const { profile } = useProfile();
   const wordLang = useWordLanguage('anagrams', profile?.id, language);
-  const router = useRouter();
 
   const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечер и ночь: ни писка на букву, ни победного звука
@@ -183,8 +181,15 @@ export default function AnagramGame() {
     }
     // «Квадрат слов» с 06.09.2026 тоже на восьми: кольца приходят паками.
     if (режимИгры === 'square') return всеИгры.filter((l) => языкиКолец().indexOf(l) >= 0);
-    // Классика по-прежнему на двух: её банк — ANAGRAM_DICT с ключами ru и en.
-    return всеИгры.filter((l) => l === 'ru' || l === 'en');
+    /*
+      Классика с 06.09.2026 — на латинских наборах тоже. Курированный банк с
+      подсказками есть у ru и en, остальным слова приходят из наборов «Найди все
+      слова» (см. `wordsBank`). Три письменности пока не берём: у ko плитка —
+      чамо, у ja — катакана, у ar нужен RTL, и классике это отдельная работа на
+      экране, а не строчка в списке.
+    */
+    return всеИгры.filter((l) => l !== 'ko' && l !== 'ja' && l !== 'ar'
+      && (l === 'ru' || l === 'en' || словаПоДлине(l, 5).length > 0));
   }, [режимИгры]);
 
   /**
@@ -274,6 +279,38 @@ export default function AnagramGame() {
   useEffect(() => () => clearAllTimers(), []);
 
   const wordsBank = (len: WordLen, th: string): WordEntry[] => {
+    /*
+      🔴 ЯЗЫК БЕЗ СВОЕГО БАНКА БЕРЁТ СЛОВА ИЗ НАБОРОВ, А НЕ ЧУЖИЕ.
+
+      Здесь стояло `const cl = isRu ? 'ru' : 'en'`, то есть любой не-русский язык
+      получал АНГЛИЙСКИЙ банк. Пока классика была заперта на двух языках, это
+      было незаметно; открыть список, не тронув источник, значило бы показать
+      немцу английские слова под немецкой подписью.
+
+      Курированные банки с осмысленными подсказками есть только у ru и en —
+      549 и 489 слов. Остальным словá берутся из наборов «Найди все слова»,
+      которые уже лежат в бандле и уже прошли гейт на брань: de 5353 · es 3824 ·
+      fr 3868 · it 4707 · pt 5261 уникальных слов длиной 4–8. Подсказки у них
+      нет — см. `словаПоДлине`, там разобрано, почему это честнее пустой строки.
+    */
+    const свойБанк = wordLang.lang === 'ru' || wordLang.lang === 'en';
+    if (!свойБанк) {
+      /*
+        🔴 ДЛИНА 9 У ЭТИХ ЯЗЫКОВ ПУСТА, И ЭТО НЕ КРАЙНИЙ СЛУЧАЙ, А КАЖДАЯ ИГРА
+        С 11-го УРОВНЯ. `LEVEL_LENGTHS` отдаёт девятку на уровнях 11–15, а базы
+        наборов «Найди все слова» не длиннее восьми — значит и подслов длиной 9
+        нет ни у одного языка (замер 06.09.2026: ровно 0 у всех десяти). Без
+        отката банк приходил бы пустым, и режим ломался бы ровно там, куда
+        доходит игрок, а не на экзотике.
+
+        Спускаемся к самой длинной доступной длине. Порог 4 слова — тот же, что
+        у отката по теме строкой ниже: меньше четырёх нечего тасовать.
+      */
+      // Тема размечена только в курированных банках, поэтому язык без разметки
+      // тем отдаёт всё, что есть на длине. Спуск по длине — в ядре, одним
+      // экземпляром на экран и пробу.
+      return банкКлассики(wordLang.lang, len).map((w) => ({ w, h: '' }));
+    }
     const isRu = wordLang.lang === 'ru';
     const cl = isRu ? 'ru' : 'en';       // язык слова
     // курированные банки (с осмысленными подсказками-определениями); не-ru/en → английский набор
