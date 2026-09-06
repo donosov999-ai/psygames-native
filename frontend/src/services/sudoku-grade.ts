@@ -1453,11 +1453,21 @@ export function logicalBuilder(
     steps: BUILD_STEPS,
     step: () => {
       const r = generateLogical(level, blanksCap, N, BR, BC, variant, { budgetMs: perStep, tier: { min, max } });
-      const over = !r.grade.solved || r.grade.tier > max;
-      const bestOver = best ? (!best.grade.solved || best.grade.tier > max) : true;
-      // Доска выше потолка проигрывает любой доске в полосе — даже более далёкой от пола.
-      if (!best || (bestOver && !over) || (bestOver === over && dist(r.grade.tier) < dist(best.grade.tier))) best = r;
-      return best;
+      /**
+       * 🔴 ПРИ РАВНОЙ СТУПЕНИ БЕРЁМ ДОСКУ ДОРОЖЕ — ось для тех уровней, где ярлык упёрся.
+       *
+       * Замер 07.09.2026: на комбо-поясе 81–92 ступень стоит на 4 (потолок варианта 5,
+       * шестёрка по замеру 29.08 выпадает 0–1 раз из 15), и по `tier` двенадцать уровней
+       * неразличимы. А цена вывода на тех же досках гуляет широко — L89 дал 92…122 при
+       * L85 56…65, то есть РАЗЛИЧАТЬ ИХ ЕСТЬ ЧЕМ, просто это не спрашивали.
+       * `cost` (сумма ступеней применённых техник) добавлен в Grade сегодня же; здесь он
+       * становится вторым ключом отбора: сначала попадание в полосу, потом цена.
+       * Ровно тот приём, которым фрактальная судоку держит 30 различимых настроек на
+       * 30 уровнях — вложенная ось вместо одной (services/fractalLevels).
+       */
+      if (лучшеПодПолосу(r, best, dist, (g) => !g.solved || g.tier > max)) best = r;
+      // best заведомо не null: первый же кандидат проходит компаратор (текущего нет).
+      return best as { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean };
     },
     /**
      * ⚠️ ПОТОЛОК — УСЛОВИЕ ОСТАНОВКИ, ПОЛ — НЕТ. Доска выше потолка логикой не
@@ -1542,6 +1552,33 @@ export function effectiveBand(variant: Variant, band: { min: number; max: number
   return { min: Math.min(band.min, Math.max(1, max - 1)), max };
 }
 
+/**
+ * Кто из двух досок лучше под полосу: сначала попадание, потом ЦЕНА ВЫВОДА.
+ *
+ * 🔴 ЗАЧЕМ ВТОРОЙ КЛЮЧ. Там, где ступень упёрлась в потолок варианта, доски по ней
+ * неразличимы: замер 07.09.2026 на комбо-поясе 81–92 дал ступень 4 у всех, при том что
+ * цена вывода на тех же досках гуляла 56…122. Различать было чем — просто не спрашивали.
+ * Взято у своей же фрактальной судоку: она держит 30 различимых настроек на 30 уровнях
+ * вложенной осью, а не одной (services/fractalLevels).
+ *
+ * ⚠️ Цена НЕ ПЕРЕБИВАЕТ полосу: доска выше потолка проигрывает любой доске в полосе,
+ * и доска ближе к полосе — любой более далёкой. Цена решает только РАВНЫХ.
+ */
+export function лучшеПодПолосу(
+  кандидат: { grade: Grade }, текущий: { grade: Grade } | null,
+  dist: (t: number) => number, вПролёте: (g: Grade) => boolean,
+): boolean {
+  if (!текущий) return true;
+  const кандВыше = вПролёте(кандидат.grade);
+  const текВыше = вПролёте(текущий.grade);
+  if (текВыше && !кандВыше) return true;
+  if (кандВыше !== текВыше) return false;
+  const dк = dist(кандидат.grade.tier);
+  const dт = dist(текущий.grade.tier);
+  if (dк !== dт) return dк < dт;
+  return кандидат.grade.cost > текущий.grade.cost;
+}
+
 export function generateLogical(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
   opts: { budgetMs?: number; tier?: { min: number; max: number } } = {},
@@ -1564,7 +1601,9 @@ export function generateLogical(
     let best: { gen: GeneratedPuzzle; grade: Grade; dug: number } | null = null;
     for (let attempt = 0; attempt < 5; attempt++) {
       const r = digByLogic(level, blanksCap, N, BR, BC, variant, until, max);
-      if (r && (!best || dist(r.grade.tier) < dist(best.grade.tier))) best = r;
+      // Второй ключ — цена вывода, как и в сборщике выше: при равной ступени доска дороже.
+      if (r && (!best || dist(r.grade.tier) < dist(best.grade.tier)
+        || (dist(r.grade.tier) === dist(best.grade.tier) && r.grade.cost > best.grade.cost))) best = r;
       if (best && dist(best.grade.tier) === 0) break;
       if (Date.now() > until) break;
     }
