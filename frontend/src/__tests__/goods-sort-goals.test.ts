@@ -10,8 +10,9 @@
  * Функции настоящие, из экрана: `goalPlan`, `goalMet`, `goalProgress`,
  * `levelCfg`. Гейт, который повторяет правило своей копией, зелен вслепую.
  */
-import { goalPlan, goalMet, goalProgress, levelCfg, clampGoalToLevel,
-  scoreForClears, CLEAR_SCORE, pairHintVisible, PAIR_HINT_UNTIL } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { goalPlan, goalMet, goalProgress, levelCfg, clampGoalToLevel, SHUFFLES_PER_LEVEL,
+  scoreForClears, CLEAR_SCORE, pairHintVisible, PAIR_HINT_UNTIL } from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -280,9 +281,10 @@ describe('находки ресёрча закрыты', () => {
   it('перемешать стоит ход и выдаётся счётным числом раз', () => {
     // ⚠️ Проверяем ЧИСЛО, а не то, что оно есть: `[1-9]` пропускало 999 —
     // то есть «почти бесконечно», ровно ту дыру, которую и чиним (19.08).
-    const n = Number((code.match(/const SHUFFLES_PER_LEVEL = (\d+)/) || [])[1]);
-    expect(n).toBeGreaterThanOrEqual(1);
-    expect(n).toBeLessThanOrEqual(5);
+    // 🔴 Число берётся из игры. Регулярка по исходнику при промахе давала `NaN`,
+    // а сравнения с `NaN` ложны — то есть проверка умела молча не сработать.
+    expect(SHUFFLES_PER_LEVEL).toBeGreaterThanOrEqual(1);
+    expect(SHUFFLES_PER_LEVEL).toBeLessThanOrEqual(5);
     expect(code).toMatch(/if \(shuffles <= 0\) \{[^}]*return;/);      // кончились — не работает
     expect(code).toMatch(/setShuffles\(\(n\) => n - 1\)/);            // расходуется
     expect(code).toMatch(/movesRef\.current \+= 1; setMoves\(movesRef\.current\);/);  // стоит ход

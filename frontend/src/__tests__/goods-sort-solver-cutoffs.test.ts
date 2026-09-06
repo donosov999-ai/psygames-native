@@ -18,7 +18,8 @@
  */
 import { makeBoard, type Board } from '@/src/games/goods-sort/core/board';
 import { solveStrict, solvableStrict } from '@/src/games/goods-sort/core/solver';
-import { dealBoard, capsForBoard } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { dealBoard, capsForBoard } from '@/src/games/goods-sort/core/level';
 
 const B = (cells: number[][], caps: number[]): Board => makeBoard(cells, caps);
 

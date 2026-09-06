@@ -16,7 +16,8 @@
  *
  * Проверяется исполнением: реальные раздачи всех уровней в обеих раскладках.
  */
-import { levelCfg, dealBoard, capsFor, capsForBoard } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { levelCfg, dealBoard, capsFor, capsForBoard } from '@/src/games/goods-sort/core/level';
 import { makeBoard } from '@/src/games/goods-sort/core/board';
 
 declare const __dirname: string;

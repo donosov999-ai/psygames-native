@@ -20,13 +20,23 @@ const { join } = require('path');
 const ROOT = join(__dirname, '../..');
 const game = readFileSync(join(ROOT, 'app/games/goods-sort.tsx'), 'utf8') as string;
 const profiles = readFileSync(join(ROOT, 'src/constants/profiles.ts'), 'utf8') as string;
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { SHELF_BY_PROFILE, SHELF_STYLES, shelfForProfile } from '@/src/games/goods-sort/core/level';
 
 const styles = [...game.matchAll(/^  (\w+):\s+require\('\.\.\/\.\.\/assets\/images\/shelves\/niche-([a-z]+)\.webp'\)/gm)]
   .map((m) => ({ key: m[1], file: m[2] }));
-const mapping = Object.fromEntries(
-  [...(game.slice(game.indexOf('SHELF_BY_PROFILE'), game.indexOf('const CAP')).matchAll(/(\w+): '(\w+)'/g))]
-    .map((m) => [m[1], m[2]]),
-);
+/*
+ * 🔴 ПРИВЯЗКА «ПРОФИЛЬ → СТИЛЬ» БЕРЁТСЯ ИЗ ИГРЫ, А НЕ ВЫРЕЗАЕТСЯ ИЗ ЕЁ ТЕКСТА.
+ *
+ * Здесь стоял срез исходника «от `SHELF_BY_PROFILE` до `const CAP`» с разбором
+ * пар `слово: 'слово'`. 06.09.2026 `CAP` уехал в лист `core/level`, конец среза
+ * не нашёлся, `indexOf` вернул −1 — и срез растянулся ДО КОНЦА ФАЙЛА. Гейт стал
+ * считать назначениями стиля `kind: 'locked'`, `icon: 'flag'`, `tone: 'warn'` и
+ * `game_type: 'goods_sort'`: восемнадцать выдуманных строк вместо тринадцати
+ * настоящих. Показательно, ЧЕМ это кончилось — не молчанием, а уверенным
+ * обвинением игры в том, чего в ней нет.
+ */
+const mapping: Record<string, string> = SHELF_BY_PROFILE;
 const profileIds = [...profiles.matchAll(/^  id: '([a-z0-9_]+)'/gm)].map((m) => m[1]);
 
 describe('шкаф картинкой', () => {
@@ -44,8 +54,36 @@ describe('шкаф картинкой', () => {
 
   it('назначенные стили существуют среди объявленных', () => {
     const known = new Set(styles.map((s) => s.key));
+    // Есть что проверять: назначений столько же, сколько записей в таблице игры.
+    expect(Object.keys(mapping).length).toBeGreaterThanOrEqual(10);
     const bad = Object.entries(mapping).filter(([, v]) => !known.has(v)).map(([k, v]) => `${k} → ${v}`);
     expect(bad).toEqual([]);
+  });
+
+  /**
+   * 🔴 СПИСОК СТИЛЕЙ И НАБОР КАРТИНОК — ОДНО И ТО ЖЕ, И ЭТО ПРОВЕРЯЕТСЯ ОБЕИМИ
+   * СТОРОНАМИ. Список живёт в листе (данные), плитки — в экране (`require`
+   * ассетов). Разъедутся — у стиля не окажется картинки либо картинка повиснет
+   * мёртвым весом, и ни то ни другое не видно на глаз.
+   */
+  it('список стилей и набор плиток совпадают в обе стороны', () => {
+    const плитки = new Set(styles.map((s) => s.key));
+    const список = new Set<string>(SHELF_STYLES);
+    expect([...список].filter((k) => !плитки.has(k))).toEqual([]);
+    expect([...плитки].filter((k) => !список.has(k))).toEqual([]);
+  });
+
+  /**
+   * Дверь одна: и экран, и гейт спрашивают `shelfForProfile`. Проверяется
+   * ответом — в том числе на профиль, которого в таблице нет.
+   */
+  it('незнакомый профиль получает берёзу, а не пустоту', () => {
+    expect(shelfForProfile('такого-профиля-нет')).toBe('birch');
+    expect(shelfForProfile(undefined)).toBe('birch');
+    expect(shelfForProfile('kids')).toBe('mint');
+    // И ответ всегда из списка — на КАЖДОМ живом профиле.
+    const чужие = profileIds.filter((id) => !SHELF_STYLES.includes(shelfForProfile(id)));
+    expect(чужие).toEqual([]);
   });
 
   /**

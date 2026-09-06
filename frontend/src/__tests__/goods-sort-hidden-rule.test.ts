@@ -16,7 +16,8 @@
  *  3) тексты есть во всех двенадцати словарях, а не в двух: инлайн ru/en в
  *     `LevelRule` помечен устаревшим, и новое правило обязано жить в словаре.
  */
-import { GS_RULES, gsRulesForLevel, hiddenInfo, strictPlacement, HIDDEN_FROM } from '../../app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { GS_RULES, gsRulesForLevel, hiddenInfo, strictPlacement, HIDDEN_FROM } from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(id: string): any;

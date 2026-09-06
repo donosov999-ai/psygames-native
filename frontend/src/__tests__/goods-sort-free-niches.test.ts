@@ -17,7 +17,8 @@
  * ошибка была именно в том, что две правильные формулы стояли рядом и вычитали
  * из одного и того же. Поэтому ниже настоящие раздачи и настоящий подсчёт.
  */
-import { levelCfg, generate, capsFor, dealBoard } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { levelCfg, generate, capsFor, dealBoard } from '@/src/games/goods-sort/core/level';
 
 /** Товары в наборах и их число — как в игре. */
 const POOL = Array.from({ length: 32 }, (_, i) => i);

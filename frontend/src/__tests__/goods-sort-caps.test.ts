@@ -13,7 +13,8 @@
 declare const __dirname: string;
 declare function require(m: string): any;
 
-import { capsFor, CAP_ONE, CAP_MIN, CAP_MAX, MIXED_CAP_FROM, placementOk, tripleIn, removeTriple } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { capsFor, CAP_ONE, CAP_MIN, CAP_MAX, MIXED_CAP_FROM, placementOk, tripleIn, removeTriple, GOOD_SETS } from '@/src/games/goods-sort/core/level';
 
 const SLOTS = [9, 12, 15, 16, 18];
 
@@ -171,11 +172,15 @@ describe('набор похожих товаров', () => {
   const ROOT = path.join(__dirname, '../..');
   const GAME = fs.readFileSync(path.join(ROOT, 'app/games/goods-sort.tsx'), 'utf8') as string;
 
-  /** Пул набора читаем ИЗ ЭКРАНА — не из своей копии. */
-  const pool: number[] = (() => {
-    const m = GAME.match(/key: 'dairy'[^\]]*pool: \[([^\]]+)\]/);
-    return m ? m[1].split(',').map((x) => Number(x.trim())) : [];
-  })();
+  /**
+   * Пул набора берётся ИЗ ИГРЫ — не из своей копии и не разбором её текста.
+   *
+   * 🔴 Здесь стояла регулярка по исходнику экрана. 06.09.2026 `GOOD_SETS` уехал
+   * в лист `core/level`, регулярка перестала находить что-либо — и вернула
+   * ПУСТОЙ массив. Не ошибку: пустой пул тихо зеленил бы все проверки ниже,
+   * если бы не отдельный пункт «есть что проверять».
+   */
+  const pool: number[] = GOOD_SETS.find((s) => s.key === 'dairy')?.pool ?? [];
 
   it('есть что проверять — иначе тест зелен вслепую', () => {
     expect(pool.length).toBeGreaterThanOrEqual(6);
@@ -216,8 +221,16 @@ describe('набор похожих товаров', () => {
 
   /** Смысл набора — в его чистоте: подмешай туда разноцветное, и различать станет нечего. */
   it('набор не пересекается с прочими — иначе он перестаёт быть трудным', () => {
-    const others = [...GAME.matchAll(/key: '(drinks|food|toys)'[^\]]*pool: \[([^\]]+)\]/g)]
-      .flatMap((m) => m[2].split(',').map((x) => Number(x.trim())));
+    /*
+     * 🔴 Пулы берутся из игры. Тут стояла вторая регулярка по исходнику экрана,
+     * и после переезда `GOOD_SETS` в лист она находила НОЛЬ наборов: пересечение
+     * с пустым списком пусто всегда, и пункт зеленел, ничего не проверяя.
+     * Отдельная беда разбора текста: он врёт тише, чем ломается.
+     */
+    const others = GOOD_SETS
+      .filter((s) => ['drinks', 'food', 'toys'].includes(s.key))
+      .flatMap((s) => s.pool);
+    expect(others.length).toBeGreaterThanOrEqual(3);   // есть с чем пересекаться
     expect(pool.filter((i) => others.includes(i))).toEqual([]);
   });
 });

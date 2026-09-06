@@ -11,7 +11,8 @@
  * суть набора (`alike: true`). Гейт обязан это учитывать, иначе он потребует
  * сломать единственную игру, ради которой набор существует.
  */
-import { GOOD_SETS } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { GOOD_SETS } from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(m: string): any;

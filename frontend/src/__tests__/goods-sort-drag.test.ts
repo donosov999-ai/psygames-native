@@ -27,7 +27,8 @@
  * опознаётся как ниша i» обязан держаться при ЛЮБЫХ cellW/nicheH — иначе он
  * сломается на первом же экране другой ширины. Поэтому перебираем диапазон.
  */
-import { nicheAtPoint, nicheRect, itemAtX, levelCfg, rowOfNiche, BoardGeom } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { nicheAtPoint, nicheRect, itemAtX, levelCfg, rowOfNiche, BoardGeom } from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(m: string): any;

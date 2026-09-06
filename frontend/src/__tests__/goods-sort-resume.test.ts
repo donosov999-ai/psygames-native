@@ -22,6 +22,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveResume, loadResume, clearResume } from '@/src/services/resume';
 import { GAMES } from '@/src/constants/games';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
 import {
   GS_GAME_ID,
   GS_RESUME_V,
@@ -33,7 +34,7 @@ import {
   type Obstacle,
   type Goal,
   type Snapshot,
-} from '@/app/games/goods-sort';
+} from '@/src/games/goods-sort/core/level';
 
 /* ── доска для замера ───────────────────────────────────────────────────
  * Форма с ДЫРКОЙ (3×4, одна ниша вырезана маской) — ровно то, что выдаёт

@@ -26,10 +26,13 @@
  * Коробка не меньше игровой по ОБЕИМ сторонам ⇒ min(w, h·r) тоже не меньше при
  * любой пропорции. Этого достаточно, разбирать webp-заголовки не нужно.
  */
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
 import {
   GOOD_ONBOARD_W, GOOD_ONBOARD_H, SET_COLS, THUMBS_PER_CARD,
-  setThumbBox, setRows, levelCfg,
-} from '@/app/games/goods-sort';
+  setThumbBox, setRows,
+} from '@/src/games/goods-sort/core/level';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { GOOD_SETS, levelCfg } from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(id: string): any;
@@ -46,16 +49,17 @@ const SRC: string = (() => {
 /** Ширины, на которых игру реально смотрят: iPhone 390 и самый узкий Android 360. */
 const WIDTHS = [390, 360];
 
-/** Витрины наборов, вынутые из исходника — числа обязаны совпадать с игрой. */
+/**
+ * Витрины наборов — БЕРУТСЯ ИЗ ИГРЫ, а не выковыриваются из её исходника.
+ *
+ * 🔴 Здесь стоял разбор текста регулярным выражением по `key: '…' … pool: […]`.
+ * 06.09.2026 объявление переехало из экрана в лист `core/level` — поведение не
+ * изменилось ничем, а гейт молча стал разбирать ПУСТОТУ: `previews()` вернул
+ * ноль наборов, и половина проверок «прошла» на пустом списке, вместо того
+ * чтобы упасть. Разбор чужого текста ломается тише, чем врёт.
+ */
 function previews(): { key: string; pool: number[]; preview: number[]; alike: boolean }[] {
-  const out: { key: string; pool: number[]; preview: number[]; alike: boolean }[] = [];
-  const re = /key: '(\w+)',[^\]]*pool: \[([^\]]+)\],\s*preview: \[([^\]]+)\](,\s*alike: true)?/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(SRC))) {
-    const nums = (s: string) => s.split(',').map((x) => Number(x.trim()));
-    out.push({ key: m[1], pool: nums(m[2]), preview: nums(m[3]), alike: !!m[4] });
-  }
-  return out;
+  return GOOD_SETS.map((s) => ({ key: s.key, pool: s.pool, preview: s.preview, alike: !!s.alike }));
 }
 
 describe('выбор набора: витрина не мельче товара на доске', () => {
@@ -99,8 +103,18 @@ describe('выбор набора: витрина не вылезает за к�
     expect(render).toContain('styles.setThumb');
     expect(render).not.toMatch(/width=\{[^}]*(width|thumb)/);
     expect(SRC).toMatch(/setThumb: \{[^}]*flex: 1[^}]*aspectRatio/);
-    // модель раскладки живёт для гейта и НЕ зовётся из разметки
-    expect(SRC.match(/setThumbBox\(/g) ?? []).toHaveLength(1);
+    /*
+     * Модель раскладки НЕ зовётся из разметки — иначе размер снова поедет от
+     * окна. Это свойство самой разметки, поэтому меряется по экрану, и только
+     * оно: раньше та же строчка считала вызовы вместе с ОБЪЯВЛЕНИЕМ и ждала
+     * ровно одного. 06.09.2026 объявление уехало в лист — гейт покраснел, хотя
+     * разметка не изменилась ни на символ. Считаем вызовы, а не объявление.
+     */
+    expect(SRC.match(/setThumbBox\(/g) ?? []).toHaveLength(0);
+    // А сама модель жива и отвечает числами — это уже исполнением.
+    const box = setThumbBox(360);
+    expect(box.w).toBeGreaterThan(0);
+    expect(box.h).toBeGreaterThan(0);
   });
 });
 

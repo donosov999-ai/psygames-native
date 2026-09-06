@@ -13,7 +13,8 @@
  * ничего не стоит: оба числа из одного места и согласуются по определению.
  * Вопрос был в том, согласуются ли они с ИГРОЙ, — а это отвечает только решатель.
  */
-import { dealBoard, capsForBoard, levelCfg, moveReference, REF_PER_TYPE, starsForMoves } from '../../app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { dealBoard, capsForBoard, levelCfg, moveReference, REF_PER_TYPE, starsForMoves } from '@/src/games/goods-sort/core/level';
 import { minMoves } from '../services/goodsSortMinMoves';
 
 describe('звёзды достижимы', () => {

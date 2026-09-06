@@ -16,7 +16,8 @@
  *    ниш против 4×4=16), разные `types`, разный лимит: игрок видел в шапке
  *    один предел, а проваливался по другому.
  */
-import { moveReference, REF_PER_TYPE } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { moveReference, REF_PER_TYPE } from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(m: string): any;

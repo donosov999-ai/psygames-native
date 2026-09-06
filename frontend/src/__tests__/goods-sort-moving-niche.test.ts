@@ -18,10 +18,11 @@
  * ЗАМЕР ДО ПРАВКИ: подвижных ниш в игре нет — прогон L1…L60 даёт 0 уровней,
  * на которых порядок ниш меняется хоть раз.
  */
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
 import {
   GS_RULES, MOVING_FROM, MOVE_SHIFT_EVERY, movingNiches, nicheShift, permuteCells,
   strictPlacement, hiddenInfo, capsFor, dealBoard, capsForBoard, levelCfg, goalPlan,
-} from '@/app/games/goods-sort';
+} from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(id: string): any;
