@@ -22,7 +22,7 @@ import { минимальныйРазмерКруга } from '@/src/components/l
 import { allWordsLetters, type AllWordsPack } from './core/allWords';
 import {
   собратьКроссворд, словаУровня, кроссвордСобран, кроссвордНачат,
-  подсказкаКроссворда, ГОРИЗ, type Кроссворд,
+  подсказкаКроссворда, подсказокНаУровне, ГОРИЗ, type Кроссворд,
 } from './core/crossword';
 
 export interface CrosswordProps {
@@ -107,12 +107,18 @@ export function CrosswordGame({ pack, level, seed, size, theme, now, onComplete,
    * кроссворде она честнее, чем в списке: буква встаёт на поле и работает на
    * пересекающее слово тоже. Поэтому одной хватает, чтобы сдвинуться.
    */
+  /** Сколько подсказок положено на этом уровне — вторая ось лестницы. */
+  const подсказокДано = подсказокНаУровне(level);
+  const подсказокОсталось = Math.max(0, подсказокДано - подсказок);
   const взятьПодсказку = React.useCallback(() => {
+    // Лимит проверяем ДО поиска буквы: иначе на исчерпанном уровне кнопка молча
+    // ничего не делала бы, и человек решил бы, что сломалось.
+    if (подсказок >= подсказокДано) return;
     const h = подсказкаКроссворда(кр, найдены, открыто);
     if (!h) return;   // открывать нечего — подсказку не списываем
     setОткрыто((было) => ({ ...было, [h.слово]: h.открыто }));
     setПодсказок((n) => n + 1);
-  }, [кр, найдены, открыто]);
+  }, [кр, найдены, открыто, подсказок, подсказокДано]);
 
   const видно = открытыеКлетки(кр, найдены, открыто);
   const набрано = линия.map((i) => (буквы[i] ?? '').toUpperCase()).join('');
@@ -190,7 +196,7 @@ export function CrosswordGame({ pack, level, seed, size, theme, now, onComplete,
         <Pressable
           accessibilityRole="button" accessibilityLabel={labels.подсказка}
           accessibilityState={{ disabled: готово }}
-          disabled={готово} onPress={взятьПодсказку}
+          disabled={готово || подсказокОсталось === 0} onPress={взятьПодсказку}
           style={[стили.кнопка, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: готово ? 0.4 : 1 }]}
         >
           <Text style={[стили.кнопкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>

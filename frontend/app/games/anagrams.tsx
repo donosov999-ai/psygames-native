@@ -32,6 +32,7 @@ import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
 import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
 import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
 import { allWordsCount, allWordsPack, банкКлассики, словаПоДлине } from '@/src/games/anagrams/core/allWords';
+import { classicLevel as levelParams } from '@/src/games/anagrams/core/classicLevel';
 import { ключКольца, кольцаЯзыка, языкиКолец } from '@/src/games/anagrams/core/ring';
 import { показатьКорейское } from '@/src/games/anagrams/core/chamo';
 import { превьюРежима } from '@/src/games/anagrams/core/modeThumbs';
@@ -82,15 +83,10 @@ type WordLen = 4 | 5 | 6 | 7 | 8 | 9;
 
 // Уровень 1..15: длина слова растёт 4→9 (по 2-3 уровня на длину),
 // с L7 включается лимит времени на слово и сжимается 90с → 30с.
-const LEVEL_LENGTHS: WordLen[] = [4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 9, 9, 9];
-function levelParams(level: number): { length: WordLen; trials: number; wordSec: number } {
-  const L = Math.max(1, level);
-  const length = LEVEL_LENGTHS[Math.min(L, 15) - 1];
-  const trials = 10;
-  const wordSec = L <= 6 ? 0 : Math.max(30, 98 - (L - 6) * 8);   // L7: 90с → L15: 30с
-  return { length, trials, wordSec };
-}
-
+/*
+  Лестница классики переехала в `anagrams/core/classicLevel.ts`: проба повторяла
+  расчёт своей копией, а копия сверяет себя с собой. Здесь остаётся только вызов.
+*/
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
