@@ -127,6 +127,21 @@ const INTERLUDE_MS = 2500;
 const SERIES_GAME_TYPE = 'proofreading_series';
 
 /**
+ * Ключ настройки «показывать слова рядом с полем».
+ *
+ * ⚠️ ЭТО ВЫБОР ВИДА УПРАЖНЕНИЯ, А НЕ ТУМБЛЕР УДОБСТВА, и потому он обязан
+ * переживать выход с экрана. Классические филворды меряют ПОРОЖДЕНИЕ («какие
+ * слова тут вообще могут быть»), со списком — УЗНАВАНИЕ («где именно лежит вот
+ * это»). Человек, выбравший второе, выбрал другую игру; заставлять его отмечать
+ * это заново при каждом заходе — то же самое, что каждый раз сбрасывать язык.
+ *
+ * Раньше жил в useState(false) и слетал при каждом входе в настройки: замер
+ * 06.09.2026 — тумблер стоял на своём месте, а после выхода из партии
+ * возвращался в «выкл» без единого касания.
+ */
+const СПИСОК_КЛЮЧ = 'psygames_fillwords_wordlist';
+
+/**
  * ДВА ЗАДАНИЯ НА ОДНОМ ЭКРАНЕ: КОРРЕКТУРА И ФИЛВОРДЫ.
  *
  * ПОЧЕМУ ФИЛВОРДЫ ЖИВУТ ЗДЕСЬ, А НЕ ОТДЕЛЬНОЙ ИГРОЙ. Задача у них одна и та же:
@@ -241,6 +256,15 @@ export default function ProofreadingGame() {
    * почему это другой вид упражнения, а не поблажка, — у самой разметки списка.
    */
   const [показыватьСлова, setПоказыватьСлова] = useState(false);
+  useEffect(() => {
+    AsyncStorage.getItem(СПИСОК_КЛЮЧ)
+      .then((v) => { if (v === '1') setПоказыватьСлова(true); })
+      .catch(() => {});
+  }, []);
+  const переключитьСписок = (v: boolean) => {
+    setПоказыватьСлова(v);
+    AsyncStorage.setItem(СПИСОК_КЛЮЧ, v ? '1' : '0').catch(() => {});
+  };
   const [fwHint, setFwHint] = useState<FillwordsHint | null>(null);
   const [serHint, setSerHint] = useState<FillwordsHint | null>(null);
   // Рефы: обработчик жеста и колбэк таймера живут вне ре-рендеров — state в них устарел бы.
@@ -1139,7 +1163,7 @@ export default function ProofreadingGame() {
             accessibilityRole="switch"
             accessibilityState={{ checked: показыватьСлова }}
             accessibilityLabel={t('fwShowWords')}
-            onPress={() => setПоказыватьСлова((v) => !v)}
+            onPress={() => переключитьСписок(!показыватьСлова)}
             style={стилиСписка.строка}
           >
             <Ionicons name={показыватьСлова ? 'checkbox' : 'square-outline'} size={20} color={GRADIENT[0]} />
