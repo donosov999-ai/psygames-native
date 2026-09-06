@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.46.0',
+    date: '2026-09-06',
+    ru: [
+      'Голосовые заметки в отзывах: на части телефонов запись приходила пустой — микрофон отдавал тишину. Теперь на таких устройствах пишем в обход, звук доезжает',
+    ],
+    en: [
+      'Voice notes in feedback: on some phones the recording arrived empty — the microphone returned silence. Those devices now record through a native path and the sound gets through',
+    ],
+  },
+  {
     version: '2.45.0',
     date: '2026-09-06',
     ru: [

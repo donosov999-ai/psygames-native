@@ -567,8 +567,16 @@ export default function AnagramGame() {
   // значит в шапке; «Отменить/Сброс» правят черновик ответа и остаются внизу
   if (phase === 'playing' && режимИгры === 'all') {
     const пак = allWordsPack(wordLang.lang, lvl.level);
+    /**
+     * 🔴 «НАЗАД» ВОЗВРАЩАЕТ НА ЭКРАН НАСТРОЙКИ, А НЕ ВЫКИДЫВАЕТ ИЗ ИГРЫ.
+     *
+     * 📍 ОТЧЁТ ДЕНИСА 06.09.2026: «из анаграммы слова нет выхода». Кнопка звала
+     * `goBackOrHome`, то есть уводила из игры целиком — и чтобы сменить режим
+     * или уровень, надо было заходить заново. Ровно это чинилось в «Детском
+     * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
+     */
     return (
-      <GameShell title={t('anagrams')} onBack={() => { clearAllTimers(); goBackOrHome(); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <AllWordsGame
             key={`${wordLang.lang}-${пак.base}`}
@@ -576,11 +584,12 @@ export default function AnagramGame() {
             seed={lvl.level}
             size={Math.min(width - 32, 380)}
             theme={{ surface: colors.surface, text: colors.text, textSecondary: colors.textSecondary, border: colors.border, primary: GRADIENT[0], success: '#12a594', danger: '#e24b4a' }}
-            labels={{ найдено: t('label_found'), промахи: t('hud_errors'), банк: t('anagramSquareBank'), сдать: t('check'), сброс: t('clear') }}
+            labels={{ найдено: t('label_found'), подсказки: t('btn_hint'), банк: t('anagramSquareBank'), сдать: t('check'), сброс: t('clear'), подсказка: t('btn_hint') }}
             now={gameNow}
             onProgress={setArmedSquare}
-            onComplete={(промахов, мс) => {
-              setErrors(промахов);
+            onComplete={(подсказок, мс) => {
+              // Подсказки — цена уровня: в звёздах они стоят столько же, сколько промах.
+              setErrors(подсказок);
               setElapsedTime(Math.round(мс / 100) / 10);
               const out = levelOutcomeAnagram({ isPreset, cleared: true });
               if (out.raiseLevel) lvl.reach(lvl.level + 1);
@@ -602,15 +611,23 @@ export default function AnagramGame() {
      * всегда даёт одно и то же кольцо, а набор проходится по кругу.
      */
     const к = кольца.length ? кольца[(Math.max(1, lvl.level) - 1) % кольца.length]! : null;
+    /**
+     * 🔴 «НАЗАД» ВОЗВРАЩАЕТ НА ЭКРАН НАСТРОЙКИ, А НЕ ВЫКИДЫВАЕТ ИЗ ИГРЫ.
+     *
+     * 📍 ОТЧЁТ ДЕНИСА 06.09.2026: «из анаграммы слова нет выхода». Кнопка звала
+     * `goBackOrHome`, то есть уводила из игры целиком — и чтобы сменить режим
+     * или уровень, надо было заходить заново. Ровно это чинилось в «Детском
+     * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
+     */
     return (
-      <GameShell title={t('anagrams')} onBack={() => { clearAllTimers(); goBackOrHome(); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {к ? (
           <WordSquareGame
             key={ключКольца(к.верх, к.право, к.низ, к.лево)}
             кольцо={к}
             size={Math.min(width - 32, 380)}
             theme={{ surface: colors.surface, text: colors.text, textSecondary: colors.textSecondary, border: colors.border, primary: GRADIENT[0], success: '#12a594', danger: '#e24b4a' }}
-            labels={{ собрано: t('anagramSquareSolved'), промахи: t('hud_errors'), банк: t('anagramSquareBank') }}
+            labels={{ собрано: t('anagramSquareSolved'), промахи: t('hud_errors'), банк: t('anagramSquareBank'), подсказка: t('btn_hint') }}
             now={gameNow}
             onProgress={setArmedSquare}
             onComplete={(промахов, мс) => {
