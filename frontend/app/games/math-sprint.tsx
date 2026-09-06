@@ -31,7 +31,8 @@ import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-const MS_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const MS_RULES: LevelRule[] = [
   { key: 'mult', fromLevel: 3, toLevel: 4 },   // lr_math_sprint_mult_*
   { key: 'div', fromLevel: 5 },   // lr_math_sprint_div_*
 ];
@@ -61,11 +62,20 @@ interface Problem {
 
 // Уровень (1..15+) задаёт набор операций И величину чисел. Сложность растёт ТРУДНОСТЬЮ задачи, не временем.
 // L1-2: + −  · L3-4: + − ×  · L5+: + − × ÷  · разрядность чисел плавно растёт. (Степени/скобки — фаза 2.)
+/**
+ * Набор действий на уровне. Вынесен из `generateProblem` затем, что тот тянет
+ * случайность: гейт `level-rule-threshold` сверяет пороги правил ИСПОЛНЕНИЕМ, а
+ * функцию с `Math.random` исполнить для проверки порога нельзя — она отвечает
+ * разное на один и тот же уровень.
+ */
+export function opsFor(level: number): Op[] {
+  if (level <= 2) return ['+', '-'];
+  if (level <= 4) return ['+', '-', '*'];
+  return ['+', '-', '*', '/'];
+}
+
 function generateProblem(level: number): Problem {
-  const ops: Op[] =
-    level <= 2 ? ['+', '-'] :
-    level <= 4 ? ['+', '-', '*'] :
-    ['+', '-', '*', '/'];
+  const ops = opsFor(level);
   const op = ops[Math.floor(Math.random() * ops.length)];
   const rng = (n: number) => Math.floor(Math.random() * Math.max(1, Math.round(n)));
   let a: number, b: number, answer: number;

@@ -37,7 +37,8 @@ import { getDigitSpanStrings } from '@/src/games/digit-span/core/i18n';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-const DS_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const DS_RULES: LevelRule[] = [
   { key: 'reverse', fromLevel: 11 },   // lr_digit_span_reverse_*
 ];
 
@@ -91,7 +92,8 @@ export const PACE_STEPS: Pace[] = ['slow', 'normal', 'fast'];
 
 // Уровень (1..15+): L1-6 длина 4→9 · L7-10 длина 9 + показ быстрее · L11+ обязательный обратный ввод.
 // Сложность растёт ТРУДНОСТЬЮ (скорость, реверс), а не просто длиной за пределом памяти.
-function levelParams(level: number): { startLen: number; showMs: number; gapMs: number; reverse: boolean } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { startLen: number; showMs: number; gapMs: number; reverse: boolean } {
   const startLen = Math.min(9, 3 + level);              // L1=4 → L6=9, дальше держим 9
   const fast = Math.max(0, level - 6);                   // за потолком длины (L7+) ускоряем показ
   const showMs = Math.max(350, 700 - fast * 45);

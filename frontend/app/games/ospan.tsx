@@ -29,7 +29,8 @@ import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-const OSPAN_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const OSPAN_RULES: LevelRule[] = [
   { key: 'hardmath', fromLevel: 6 },   // lr_ospan_hardmath_*
 ];
 
@@ -59,7 +60,8 @@ interface Equation { left: string; right: number; isCorrect: boolean; }
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
 // Уровень (1..15+): L1-7 setSize 3→9 (длиннее набор) · L6+ сложнее арифметика (×, бо́льшие числа) · L6+ показ буквы быстрее.
-function levelParams(level: number): { setSize: number; letterMs: number; hardMath: boolean } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { setSize: number; letterMs: number; hardMath: boolean } {
   const setSize = Math.min(9, 2 + level);               // L1=3 → L7=9
   const fast = Math.max(0, level - 5);
   const letterMs = Math.max(600, 1100 - fast * 70);

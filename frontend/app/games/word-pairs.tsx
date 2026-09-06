@@ -54,9 +54,10 @@ const WORD_PAIRS_BENEFITS = [
  * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
-const WORDPAIRS_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const WORDPAIRS_RULES: LevelRule[] = [
   { key: 'faster', fromLevel: 4 },   // lr_word_pairs_faster_*
-  { key: 'fifteen', fromLevel: 12 },   // lr_word_pairs_fifteen_*
+  { key: 'fifteen', fromLevel: 15 },   // lr_word_pairs_fifteen_* · = первый L, где pairCount = 15
 ];
 
 type GamePhase = 'intro' | 'config' | 'memorize' | 'check' | 'cleared' | 'result';
@@ -72,7 +73,8 @@ interface WordPair {
 // соединение пар, как и раньше, по времени не ограничено (ошибки штрафуются).
 // Потолок 15 пар безопасен для всех языков: словники RU/EN = 50 слов (25 пар max),
 // TRANSLATION_VOCAB ~189 записей с fallback на en.
-function levelParams(level: number): { pairCount: number; perPairMs: number } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { pairCount: number; perPairMs: number } {
   const pairCount = Math.min(15, 4 + Math.floor((level - 1) * 0.8));   // 4 → 15 пар
   const perPairMs = Math.max(2500, 7000 - (level - 1) * 320);          // 7.0с → 2.5с на пару
   return { pairCount, perPairMs };

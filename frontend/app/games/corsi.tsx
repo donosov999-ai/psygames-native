@@ -40,7 +40,8 @@ import { getAbilityCount, useAbility } from '@/src/services/abilities';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-const CORSI_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const CORSI_RULES: LevelRule[] = [
   { key: 'reverse', fromLevel: 10 },   // lr_corsi_reverse_*
 ];
 
@@ -62,7 +63,8 @@ const BOSS_EVERY = 3;   // веха-босс каждые 3 уровня (рез
 type Mode = 'forward' | 'backward';
 
 // Уровень (1..15+): L1-6 span 3→8 · L7-9 показ быстрее · L10+ обязательный обратный порядок.
-function levelParams(level: number): { startSpan: number; tickMs: number; flashMs: number; reverse: boolean } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { startSpan: number; tickMs: number; flashMs: number; reverse: boolean } {
   const startSpan = Math.min(8, 2 + level);             // L1=3 → L6=8
   const fast = Math.max(0, level - 6);
   const tickMs = Math.max(480, 800 - fast * 45);

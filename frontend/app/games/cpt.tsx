@@ -54,7 +54,8 @@ import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-const CPT_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const CPT_RULES: LevelRule[] = [
   { key: 'lookalike', fromLevel: 11 },   // lr_cpt_lookalike_*
 ];
 

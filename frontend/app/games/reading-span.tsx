@@ -118,7 +118,8 @@ const SENTENCES: SentenceItem[] = [
  * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
-const READINGSPAN_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const READINGSPAN_RULES: LevelRule[] = [
   { key: 'load', fromLevel: 5 },   // lr_reading_span_load_*
 ];
 

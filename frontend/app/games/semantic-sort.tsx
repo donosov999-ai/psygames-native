@@ -44,7 +44,8 @@ const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 // раундов. Близость дистракторов по эмбеддингам (V3) реализована: предрасчитанная
 // таблица SEMANTIC_DISTRACTORS (bge-m3, scripts/gen-semantic-distractors.mjs) даёт
 // «коварные» категории; каркас уровней от неё не зависит.
-function levelParams(level: number): { catsPerRound: number; roundsCount: number } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { catsPerRound: number; roundsCount: number } {
   const catsPerRound = level <= 3 ? 2 : level <= 8 ? 3 : 4;
   const roundsCount = level <= 5 ? 10 : level <= 10 ? 12 : 15;
   return { catsPerRound, roundsCount };
@@ -62,7 +63,8 @@ const SORT_BENEFITS = [
  * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
-const SEMANTICSORT_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const SEMANTICSORT_RULES: LevelRule[] = [
   { key: 'three', fromLevel: 4 },   // lr_semantic_sort_three_*
   { key: 'four', fromLevel: 9 },   // lr_semantic_sort_four_*
 ];

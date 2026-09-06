@@ -31,7 +31,8 @@ import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-const SG_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const SG_RULES: LevelRule[] = [
   {
     key: 'timelimit', fromLevel: 11,
     ru: { title: 'Лимит времени', rule: 'Теперь на поиск SET даётся ограниченное время. Не успел — штраф ✗ и новая раскладка. С каждым уровнем лимит жмёт сильнее.', example: 'Пример: L11 — 26 с на SET, дальше −4 с за уровень (минимум 8 с).' },
@@ -147,7 +148,8 @@ export type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'r
 const BOSS_EVERY = 3;
 
 // Уровень (1..15+): L1-10 trials 6→15 (выносливость) · L11-15 лимит времени на SET (давление, убывает).
-function levelParams(level: number): { trials: number; timeLimit: number } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { trials: number; timeLimit: number } {
   const trials = Math.min(15, 5 + level);                       // L1=6 → L10=15
   const over = Math.max(0, level - 10);
   const timeLimit = over > 0 ? Math.max(8, 30 - over * 4) : 0;   // 0 = без лимита; L11≈26с → L15≈10с

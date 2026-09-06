@@ -20,7 +20,8 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-const VS_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const VS_RULES: LevelRule[] = [
   { key: 'multi', fromLevel: 4, toLevel: 7 },   // lr_visual_search_multi_*
   { key: 'conj', fromLevel: 8 },   // lr_visual_search_conj_*
 ];
@@ -112,7 +113,8 @@ const FIND_TXT: Record<string, string> = {
 
 // Уровень (1..15+) задаёт базовую сложность; раунды внутри сессии добавляют объекты.
 // Дистракторов больше с уровнем; целей 1→2→3→4 по мере роста уровня. (Конъюнктивный поиск цвет+форма — фаза 2.)
-function levelParams(level: number, round: number): { count: number; targetCount: number; conjunction: boolean } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number, round: number): { count: number; targetCount: number; conjunction: boolean } {
   const base = Math.min(72, 14 + level * 4);                            // L1≈18 → L14≈70 объектов
   const growth = 3 + Math.floor(level / 4);                              // прирост/раунд растёт с уровнем
   const count = Math.min(96, base + (round - 1) * growth);

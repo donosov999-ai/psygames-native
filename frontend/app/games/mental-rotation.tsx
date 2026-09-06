@@ -124,7 +124,8 @@ const MR_BENEFITS = [
 ];
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-const MR_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const MR_RULES: LevelRule[] = [
   { key: 'axes2', fromLevel: 6, toLevel: 10 },   // lr_mental_rotation_axes2_*
   { key: 'axes3', fromLevel: 11 },   // lr_mental_rotation_axes3_*
 ];

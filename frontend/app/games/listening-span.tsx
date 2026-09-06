@@ -50,14 +50,16 @@ const ROUNDS = 2;
  * ЗАЧЕМ. Из 61 игры смену правил объясняли 14; остальные растили сложность
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
-const LISTENINGSPAN_RULES: LevelRule[] = [
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+export const LISTENINGSPAN_RULES: LevelRule[] = [
   { key: 'span8', fromLevel: 6 },   // lr_listening_span_span8_*
 ];
 
 type GamePhase = 'config' | 'listen' | 'recall' | 'cleared' | 'result';
 
 // Лесенка: L1 = 3 слова → потолок 8; пауза между словами 700мс → 500мс с ростом уровня.
-function levelParams(level: number): { span: number; gapMs: number } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { span: number; gapMs: number } {
   const span = Math.min(8, 2 + level);
   const gapMs = Math.max(500, 700 - (level - 1) * 25);
   return { span, gapMs };
