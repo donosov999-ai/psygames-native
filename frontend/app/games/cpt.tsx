@@ -15,7 +15,8 @@
  *   - commission_errors  — реакции на X (impulse control failure)
  *   - mean_rt            — средняя RT на correct hits
  *   - rt_variability     — CV-RT = std/mean (один из самых валидных ADHD-маркеров)
- *   - vigilance_decrement — slope RT по квартилям сессии (мс/quartile, чем выше = внимание падает)
+ *   - vigilance_decrement — slope RT по квартилям (мс/quartile) = ЗАМЕДЛЕНИЕ, не точность
+ *   - vigilance_accuracy_slope — slope доли пойманных целей по квартилям = ПАДЕНИЕ ТОЧНОСТИ
  *
  * Длительность 4/8/12 мин — достаточно чтобы поймать decrement.
  */
@@ -34,6 +35,7 @@ import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientTe
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { vigilanceAccuracySlope } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -439,6 +441,23 @@ export default function CPTGame() {
       vigilanceSlope = den > 0 ? num / den : 0;
     }
 
+    /**
+     * ПАДЕНИЕ ТОЧНОСТИ К КОНЦУ ПАРТИИ — ОТДЕЛЬНАЯ ВЕЛИЧИНА, А НЕ ТА, ЧТО ВЫШЕ.
+     *
+     * `vigilanceSlope` считает наклон ВРЕМЕНИ РЕАКЦИИ (мс/квартиль) — это
+     * замедление. Классический vigilance decrement — падение ДОЛИ ОБНАРУЖЕНИЙ со
+     * временем на задаче, и это не одно и то же: человек может отвечать так же
+     * быстро и при этом пропускать всё больше целей. Обе величины нужны, поэтому
+     * старая остаётся как есть (её имя зафиксировано схемой api.ts и трогать его
+     * не мне), а точность считается рядом своим полем.
+     *
+     * Делим ЦЕЛИ по порядку предъявления на четыре четверти и берём долю пойманных
+     * в каждой; наклон по МНК. Отрицательный = внимание падает к концу.
+     * Порог 8 целей — тот же, что у RT-версии: по одной-двум целям на четверть
+     * доля не считается, вышел бы шум под видом биомаркера.
+     */
+    const { slope: accuracySlope, byQuartile: hitRateByQuartile } = vigilanceAccuracySlope(targets);
+
     const totalTime = (gameNow() - startTimeRef.current) / 1000;
     // прохождение уровня: высокая доля hits + мало commission → следующий уровень
     const accuracy = targets.length ? totalHits / targets.length : 0;
@@ -518,7 +537,14 @@ export default function CPTGame() {
           mean_rt: Math.round(meanRt),
           rt_std: Math.round(rtStd),
           rt_variability: Number(cvRt.toFixed(3)),    // CV-RT
-          vigilance_decrement: Math.round(vigilanceSlope),  // ms per quartile
+          vigilance_decrement: Math.round(vigilanceSlope),  // ЗАМЕДЛЕНИЕ: мс на квартиль
+          /**
+           * Падение ТОЧНОСТИ: доля пойманных целей на квартиль (отрицательный
+           * наклон = внимание падает) и сами четыре доли, чтобы наклон можно было
+           * проверить, а не принять на веру. null при <8 целях за партию.
+           */
+          vigilance_accuracy_slope: accuracySlope,
+          hit_rate_by_quartile: hitRateByQuartile,
         },
       });
     } catch (e) { console.error(e); }

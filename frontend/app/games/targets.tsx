@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { commissionRate } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -218,6 +219,19 @@ export default function TargetsGame() {
    * себя с собой было нечем, а любой отчёт по этой игре врал.
    */
   const errorsRef = useRef(0);
+  /**
+   * ЧЕТЫРЕ ИСХОДА go/no-go — ПО ОТДЕЛЬНОСТИ. `errorsRef` слепляет два разных
+   * промаха в одно число, а они про разное: пропуск мишени (omission) — падение
+   * внимания, нажатие на НЕ-мишень (commission) — провал торможения. Главный
+   * показатель этой пробы — второй, и до сих пор он не писался вовсе.
+   * Заодно копим, сколько мишеней и не-мишеней РЕАЛЬНО показано: доля задана
+   * как TARGET_RATE, но фактическая по короткой партии от неё отличается, а
+   * делить ошибки надо на фактическое число.
+   */
+  const commissionRef = useRef(0);
+  const omissionRef = useRef(0);
+  const shownTargetRef = useRef(0);
+  const shownNonTargetRef = useRef(0);
   const isTargetRef = useRef(false);
   const prevColorRef = useRef<string | null>(null);
   const showTimeRef = useRef(0);                 // момент показа стимула — нужен только для RT, не для рендера
@@ -283,6 +297,7 @@ export default function TargetsGame() {
 
     prevColorRef.current = circleColor;
     isTargetRef.current = target;
+    if (target) shownTargetRef.current += 1; else shownNonTargetRef.current += 1;
     showTimeRef.current = gameNow();
     roundLiveRef.current = true;        // с этого момента тап засчитывается (см. handleClick)
     // Один синхронный блок = один ре-рендер поля (React 18+ батчит), фигуры не «моргают»
@@ -311,6 +326,8 @@ export default function TargetsGame() {
     setScore(0);
     livesRef.current = 3 + getLifeBonus(startLvl);
     errorsRef.current = 0;
+    commissionRef.current = 0; omissionRef.current = 0;
+    shownTargetRef.current = 0; shownNonTargetRef.current = 0;
     setLives(livesRef.current);
     roundRef.current = 0;
     levelRef.current = startLvl;        // стартовый уровень (сохранённый или из конфига)
@@ -359,10 +376,11 @@ export default function TargetsGame() {
       scoreRef.current += points;
       setScore(scoreRef.current);
     } else {
-      // Wrong click
+      // Wrong click = commission: не затормозил на не-мишени
       setFeedback('wrong');
       livesRef.current -= 1;
       errorsRef.current += 1;
+      commissionRef.current += 1;
       setLives(livesRef.current);
 
       if (livesRef.current <= 0) { onOutOfLives(); return; }
@@ -379,10 +397,11 @@ export default function TargetsGame() {
     roundLiveRef.current = false;                      // окно ответа закрыто
 
     if (wasTarget) {
-      // Missed a target
+      // Missed a target = omission: внимание упало
       setFeedback('miss');
       livesRef.current -= 1;
       errorsRef.current += 1;
+      omissionRef.current += 1;
       setLives(livesRef.current);
 
       if (livesRef.current <= 0) { onOutOfLives(); return; }
@@ -460,6 +479,20 @@ export default function TargetsGame() {
           mean_rt: Math.round(avgReaction),
           std_rt: Math.round(rtStd),
           n_targets: rts.length,
+          /**
+           * Главный показатель go/no-go — ошибки ТОРМОЖЕНИЯ, и до сих пор их
+           * не было в партии вовсе. Доля считается от ФАКТИЧЕСКИ показанных
+           * не-мишеней, а не от TARGET_RATE: в короткой партии они расходятся.
+           * `target_rate_actual` рядом, чтобы долю ошибок было с чем сравнивать.
+           */
+          commission_errors: commissionRef.current,
+          omission_errors: omissionRef.current,
+          n_nontargets: shownNonTargetRef.current,
+          n_targets_shown: shownTargetRef.current,
+          commission_rate: commissionRate(commissionRef.current, shownNonTargetRef.current),
+          target_rate_actual: (shownTargetRef.current + shownNonTargetRef.current)
+            ? Number((shownTargetRef.current / (shownTargetRef.current + shownNonTargetRef.current)).toFixed(3)) : null,
+          target_rate_nominal: TARGET_RATE,
           /**
            * ⚠️ КУПЛЕННАЯ ЖИЗНЬ ПОМЕЧАЕТСЯ В ПАРТИИ. «Мишени» — замерная игра:
            * отсюда берутся среднее время реакции и разброс, и по ним открывается
