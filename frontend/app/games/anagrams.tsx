@@ -33,7 +33,7 @@ import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
 import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
 import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
 import { allWordsCount, allWordsPack } from '@/src/games/anagrams/core/allWords';
-import { собратьКольца, ключКольца, лестницаКолец } from '@/src/games/anagrams/core/ring';
+import { ключКольца, кольцаЯзыка, языкиКолец } from '@/src/games/anagrams/core/ring';
 import { показатьКорейское } from '@/src/games/anagrams/core/chamo';
 import { превьюРежима } from '@/src/games/anagrams/core/modeThumbs';
 import { wordPool, wordsOfLength } from '@/src/games/fillwords/core/words';
@@ -150,10 +150,11 @@ export default function AnagramGame() {
    * `лестницаКолец`. Считается один раз на язык (73 мс на весь набор), поэтому
    * живёт в useMemo, а не в рендере.
    */
-  const кольца = React.useMemo(() => {
-    const словарь = wordsOfLength(wordPool(wordLang.lang), 5);
-    return лестницаКолец(собратьКольца(словарь), словарь);
-  }, [wordLang.lang]);
+  /**
+   * Кольца приходят готовым паком, уже отсортированным по трудности: их сборка
+   * комбинаторная и на живом экране занимает минуты (разбор — в `ring.ts`).
+   */
+  const кольца = React.useMemo(() => кольцаЯзыка(wordLang.lang), [wordLang.lang]);
   const раскладокВсеСлова = allWordsCount(wordLang.lang);
   /**
    * 🔴 ЯЗЫКИ СУЖАЮТСЯ РЕЖИМОМ, А НЕ ТОЛЬКО ИГРОЙ.
@@ -171,6 +172,9 @@ export default function AnagramGame() {
     if (режимИгры === 'all' || режимИгры === 'cross') {
       return всеИгры.filter((l) => allWordsCount(l) > 0);
     }
+    // «Квадрат слов» с 06.09.2026 тоже на восьми: кольца приходят паками.
+    if (режимИгры === 'square') return всеИгры.filter((l) => языкиКолец().indexOf(l) >= 0);
+    // Классика по-прежнему на двух: её банк — ANAGRAM_DICT с ключами ru и en.
     return всеИгры.filter((l) => l === 'ru' || l === 'en');
   }, [режимИгры]);
 
@@ -685,7 +689,7 @@ export default function AnagramGame() {
             locale={wordLang.lang}
             подписьНайденного={показатьКорейское}
             theme={{ surface: colors.surface, text: colors.text, textSecondary: colors.textSecondary, border: colors.border, primary: GRADIENT[0], success: '#12a594', danger: '#e24b4a' }}
-            labels={{ найдено: t('label_found'), подсказки: t('btn_hint'), банк: t('anagramSquareBank'), сдать: t('check'), сброс: t('clear'), подсказка: t('btn_hint'), перемешать: t('anagramShuffle'), копилка: t('anagramBonus') }}
+            labels={{ найдено: t('label_found'), подсказки: t('btn_hint'), банк: t('anagramSquareBank'), сдать: t('check'), сброс: t('clear'), подсказка: t('btn_hint'), перемешать: t('shuffleBtn'), копилка: t('anagramBonus') }}
             now={gameNow}
             onProgress={setArmedSquare}
             onComplete={(подсказок, мс) => {

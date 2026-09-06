@@ -197,6 +197,63 @@ export function лестницаКолец(кольца: readonly Кольцо[]
       .localeCompare(ключКольца(b.верх, b.право, b.низ, b.лево)));
 }
 
+/**
+ * 🔴 КОЛЬЦА БЕРУТСЯ ГОТОВЫМИ ПАКАМИ, А НЕ СОБИРАЮТСЯ ПРИ ОТКРЫТИИ ЭКРАНА.
+ *
+ * 📍 Режим жил на двух языках, потому что кольца собирались в рантайме из
+ * фил-вордового пула: он есть у пяти языков и мал — 136 пятибуквенных слов у
+ * русского. Наборы «Найди все слова» дают их от 684 до 2898, и на все восемь.
+ *
+ * ⚠️ ПРОСТО ПОДМЕНИТЬ ИСТОЧНИК НЕЛЬЗЯ, И ЭТО ЗАМЕР. Из 400 русских слов
+ * собирается 90 283 кольца за 6 секунд; из 600 — 451 993 за 32 секунды; у
+ * немецкого из 800 слов 4 107 056 колец за шесть минут. Считать это в `useMemo`
+ * при открытии экрана — значит подвесить приложение на минуты. Сборка вынесена в
+ * `wordlist-build/build_rings.py`, сюда приходит готовый отсортированный список.
+ *
+ * `x` в записи — число ЛИШНИХ слов языка, собирающихся из банка кольца. Это ось
+ * трудности (см. `лестницаКолец`), по ней пак и отсортирован.
+ */
+import RINGS_RU from '@/src/constants/ringsRu.json';
+import RINGS_EN from '@/src/constants/ringsEn.json';
+import RINGS_DE from '@/src/constants/ringsDe.json';
+import RINGS_ES from '@/src/constants/ringsEs.json';
+import RINGS_FR from '@/src/constants/ringsFr.json';
+import RINGS_IT from '@/src/constants/ringsIt.json';
+import RINGS_PT from '@/src/constants/ringsPt.json';
+import RINGS_KO from '@/src/constants/ringsKo.json';
+
+interface ЗаписьКольца { t: string; r: string; b: string; l: string; x: number }
+
+const ПАКИ: Record<string, ЗаписьКольца[]> = {
+  ru: RINGS_RU as ЗаписьКольца[], en: RINGS_EN as ЗаписьКольца[],
+  de: RINGS_DE as ЗаписьКольца[], es: RINGS_ES as ЗаписьКольца[],
+  fr: RINGS_FR as ЗаписьКольца[], it: RINGS_IT as ЗаписьКольца[],
+  pt: RINGS_PT as ЗаписьКольца[], ko: RINGS_KO as ЗаписьКольца[],
+};
+
+const РАЗОБРАННЫЕ = new Map<string, Кольцо[]>();
+
+/** Кольца языка в порядке возрастания трудности. Неизвестный язык — английский. */
+export function кольцаЯзыка(locale: string): Кольцо[] {
+  const готовые = РАЗОБРАННЫЕ.get(locale);
+  if (готовые) return готовые;
+  const пак = ПАКИ[locale] ?? ПАКИ.en ?? [];
+  // Банк считается здесь же: в паке его нет намеренно — он однозначно выводится
+  // из четырёх слов, и хранить его значило бы удвоить вес файла ради того, что
+  // считается за один проход.
+  const из = пак.map((з) => ({
+    верх: з.t, право: з.r, низ: з.b, лево: з.l,
+    банк: буквыКольца(з.t, з.r, з.b, з.l),
+  }));
+  РАЗОБРАННЫЕ.set(locale, из);
+  return из;
+}
+
+/** Языки, на которых режим есть. */
+export function языкиКолец(): string[] {
+  return Object.keys(ПАКИ).sort();
+}
+
 /** Слова кольца в порядке сторон. */
 export function словаКольца(к: Кольцо): string[] {
   return [к.верх, к.право, к.низ, к.лево];
