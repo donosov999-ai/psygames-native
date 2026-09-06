@@ -25,7 +25,7 @@
  */
 import {
   GOOD_SETS_KEYS, GOOD_SET_POOL_SIZE, WIDEST_POOL,
-  typeBudget, poolBitesAt, setUnlockLevel, setAvailable, levelCfg,
+  typeBudget, poolBitesAt, setUnlockLevel, setAvailable, levelCfg, goodSetForProfile,
   snapshotGoodsParty, restoreGoodsParty,
   type GoodsLiveParty, type GoodsResume,
 } from '@/app/games/goods-sort';
@@ -286,10 +286,35 @@ describe('прогресс берётся из существующего мех
     expect(SRC).not.toMatch(/AsyncStorage\.setItem\(\s*['"`]psygames_goods/);
   });
 
-  it('набор по умолчанию — первый в списке, и он открыт с первого уровня', () => {
-    expect(SRC).toContain('useState(GOOD_SETS[0].key)');
-    expect(setUnlockLevel(GOOD_SETS_KEYS[0])).toBe(1);
-    expect(setAvailable(GOOD_SETS_KEYS[0], 1)).toBe(true);
+  /**
+   * 🔴 ИСПОЛНЕНИЕМ, А НЕ СОВПАДЕНИЕМ СТРОКИ. Прежняя редакция сверяла текст
+   * `useState(GOOD_SETS[0].key)` и покраснела 06.09.2026, когда стартовый набор
+   * стал зависеть от профиля, — на верном коде. Но она же и УКАЗАЛА на
+   * настоящий дефект: пять наборов из шести открываются не с первого уровня,
+   * и предпочтение профиля, выданное безусловно, сделало бы стартовым ЗАКРЫТЫЙ.
+   * Проверяем то, что важно: чем бы игра ни открылась, этот набор ОТКРЫТ.
+   */
+  it('🔴 стартовый набор открыт на своём уровне — у любого профиля', () => {
+    const профили = ['odv999', 'chess', 'kids', 'vasilyeva', 'nzt48', 'free',
+      'drivers', 'seniors', 'execs', 'students', 'women', 'polyglot', undefined];
+    const плохо: string[] = [];
+    for (const п of профили) {
+      for (const достигнут of [1, 2, 5, 6, 9, 10, 11, 12, 17, 18, 30, 60]) {
+        const k = goodSetForProfile(п, достигнут);
+        if (!setAvailable(k, достигнут, '')) плохо.push(`${п ?? 'без профиля'} на L${достигнут}: стартовый набор ${k} закрыт`);
+      }
+    }
+    expect(плохо).toEqual([]);
+  });
+
+  /** И предпочтение всё-таки СРАБАТЫВАЕТ, когда набор открылся, — иначе оно фикция. */
+  it('🔴 когда набор профиля открылся, игра открывается именно им', () => {
+    expect(goodSetForProfile('kids', 1)).not.toBe('toys');
+    expect(goodSetForProfile('kids', 10)).toBe('toys');
+    expect(goodSetForProfile('students', 5)).not.toBe('food');
+    expect(goodSetForProfile('students', 6)).toBe('food');
+    expect(goodSetForProfile('women', 17)).not.toBe('pets');
+    expect(goodSetForProfile('women', 18)).toBe('pets');
   });
 
   it('порог не записан в сам набор числом — иначе он разъедется с пулом', () => {
