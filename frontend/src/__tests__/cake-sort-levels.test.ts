@@ -6,7 +6,7 @@
  * переливалки одиннадцатый оказался на 15 % легче десятого. Ломается на СТЫКЕ,
  * а стык виден только при обходе всех уровней подряд.
  */
-import { levelCfg, deal, dealRejected, PLATES_MAX, SPARES_MIN, QUEUE_FROM, solvable } from '@/src/games/cake-sort/core/level';
+import { levelCfg, deal, dealRejected, provenSolvable, PLATES_MAX, SPARES_MIN, QUEUE_FROM, solvable } from '@/src/games/cake-sort/core/level';
 import { CIRCLE, allSectors, completeIn, makeBoard } from '@/src/games/cake-sort/core/plate';
 import { provenUnsolvable, solve } from '@/src/games/cake-sort/core/solver';
 import { maxCols, tableLayout, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
@@ -137,6 +137,59 @@ describe('лестница уровней', () => {
     expect(LEVELS.filter((L) => levelCfg(L).queue > 0).length).toBeGreaterThan(5);
     expect(LEVELS.filter((L) => levelCfg(L).queue === 0).length).toBeGreaterThan(3);
     expect(levelCfg(QUEUE_FROM).queue).toBeGreaterThan(0);
+  });
+
+  /**
+   * 🔴 ЗНАЧОК «ПРОВЕРЕН» — ОБЕЩАНИЕ, ЗА КОТОРОЕ НАДО ОТВЕЧАТЬ.
+   *
+   * Экран ставит его по флагу `proven`. Флаг обязан означать «решатель НАШЁЛ
+   * решение этой самой доски», а не «не доказано, что нельзя»: второе при
+   * исчерпании бюджета молчит, и значок оказался бы враньём ровно там, где у
+   * разобранного конкурента 454 отзыва про непроходимые уровни.
+   */
+  it('🔴 флаг «проверен» стоит ровно там, где решение НАЙДЕНО', () => {
+    const врут: string[] = [];
+    let доказано = 0;
+    for (const L of LEVELS) {
+      const d = deal(L);
+      const живой = solve(d.board, 20000).solvable;
+      if (d.proven !== живой) врут.push(`L${L}: флаг ${d.proven}, решатель ${живой}`);
+      if (d.proven) доказано += 1;
+    }
+    expect(врут).toEqual([]);
+    // Обе стороны непусты быть не могут — здесь доказаны ВСЕ, и это замер.
+    expect(доказано).toBe(LEVELS.length);
+    /**
+     * ⚠️ ЧЕСТНО О ГРАНИЦЕ ЭТОЙ ПРОВЕРКИ. Раз доказаны ВСЕ шестьдесят, мутация
+     * «поставить `proven: true` не глядя» здесь неотличима от правды: обе
+     * стороны равенства становятся `true`. Различающего входа в лестнице нет и
+     * взяться неоткуда — уровень, который не доказывается, мы просто не выпускаем.
+     * Поэтому стережётся не проводок, а САМА функция `provenSolvable` — проверкой
+     * ниже, с бюджетом в один узел. Подменить её «не опровергнуто» уже нельзя.
+     */
+  });
+
+  /**
+   * 🔴 РАЗНИЦА МЕЖДУ «НАЙДЕНО» И «НЕ ОПРОВЕРГНУТО» ВИДНА ТОЛЬКО НА МАЛОМ
+   * БЮДЖЕТЕ — и без такого входа мутация «подменить одно другим» проходит.
+   *
+   * На живых уровнях обе формулировки отвечают одинаково: решение находится
+   * всегда. Дадим решателю бюджет в один узел — и они расходятся:
+   * `provenSolvable` честно говорит «не знаю → нет», а `!provenUnsolvable`
+   * отвечает «да», хотя про стол не выяснено ничего. Значок «проверен» по
+   * второму ответу был бы враньём.
+   */
+  it('🔴 «проверен» означает НАЙДЕНО, а не «не опровергнуто»', () => {
+    const b = deal(20).board;
+    // Большой бюджет: обе формулировки согласны, разницы не видно.
+    expect(provenSolvable(b, 20000)).toBe(true);
+    expect(provenUnsolvable(b, 20000)).toBe(false);
+    // Бюджет в один узел: решение НЕ найдено, но и нерешаемость не доказана.
+    expect(provenSolvable(b, 1)).toBe(false);
+    expect(provenUnsolvable(b, 1)).toBe(false);
+    // Вот она, разница: «не опровергнуто» сказало бы «проверено» на пустом месте.
+    expect(!provenUnsolvable(b, 1)).toBe(true);
+    expect(provenSolvable(b, 1)).not.toBe(!provenUnsolvable(b, 1));
   });
 
   it('🔴 уровень повторяется при повторном заходе — раздача детерминирована', () => {

@@ -29,6 +29,8 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { saveSession } from '@/src/services/api';
 import GameShell from '@/src/components/GameShell';
+import GameSetupBar from '@/src/components/GameSetupBar';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
@@ -88,6 +90,7 @@ export default function CakeSortGame() {
   const { isCalm } = useGamePreset();
   useCalmHush(isCalm);
   const lvl = usePersistentLevel(CS_GAME_ID);
+  const [начали, setНачали] = useState(false);
   const level = lvl.level;
 
   const тема = useMemo(() => cakeThemeForProfile(profile?.id), [profile?.id]);
@@ -122,6 +125,13 @@ export default function CakeSortGame() {
   const [путь, setПуть] = useState<{ from: number; to: number }[] | null>(null);
   /** Точный минимум, если фоновый расчёт успел. Иначе звёзды идут от калибровки. */
   const [точныйМин, setТочныйМин] = useState<number | null>(null);
+  /**
+   * 🔴 «УРОВЕНЬ ПРОВЕРЕН» — ОБЕЩАНИЕ, А НЕ УКРАШЕНИЕ. Значок ставится ТОЛЬКО
+   * когда решатель нашёл решение этой самой доски. «Не доказано, что нельзя» —
+   * не то же самое, и показывать его как проверку значит врать ровно там, где
+   * у конкурента 454 отзыва про непроходимые уровни.
+   */
+  const [доказан, setДоказан] = useState(false);
   const { popups, spawn } = useScorePopups();
 
   const rulesHere = CS_RULES;
@@ -134,7 +144,7 @@ export default function CakeSortGame() {
    */
   const раздать = useCallback(() => {
     const d = deal(level);
-    setBoard(d.board);
+    setBoard(d.board); setДоказан(d.proven);
     setSel(null); setDone(false); setHint(null);
     setHints(HINTS_PER_LEVEL); setТочныйМин(null);
     setПуть(null);
@@ -395,6 +405,36 @@ export default function CakeSortGame() {
     );
   };
 
+  /**
+   * 🔴 ЭКРАН НАСТРОЕК С ТРОПИНКОЙ — СТАНДАРТ, А НЕ УКРАШЕНИЕ. Игра стартовала
+   * сразу с раздачи, и вернуться на пройденный уровень было НЕЛЬЗЯ: тропинка
+   * (`LevelProgressMap`) — единственная дверь к уже взятым ступеням во всём
+   * приложении. Заведено 06.09.2026 при сборке выпуска 2.47.0; гейт
+   * `game-standard` поймал это первым полным прогоном.
+   */
+  if (!начали) {
+    return (
+      <GameShell title={t('cakeSort')} onBack={() => goBackOrHome()}>
+        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 96 }}>
+          <View style={[styles.setupCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.setupLabel, { color: colors.text }]}>{t('level')} {level}</Text>
+            <Text style={[styles.setupHint, { color: colors.textSecondary }]}>{t('cakeSortDesc')}</Text>
+          </View>
+          <LevelProgressMap
+            bestLevel={lvl.best}
+            gameId={CS_GAME_ID}
+            currentLevel={level}
+            onPickLevel={lvl.pick}
+            maxLevel={Math.max(15, level)}
+            colors={colors}
+            language={language}
+          />
+        </ScrollView>
+        <GameSetupBar label={t('start')} onStart={() => { setНачали(true); раздать(); }} colors={GRADIENT as [string, string]} />
+      </GameShell>
+    );
+  }
+
   return (
     <GameShell
       title={t('cakeSort')}
@@ -414,6 +454,7 @@ export default function CakeSortGame() {
         { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: level },
         { key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'), value: `${moves}/${эталон}`, tone: moves > эталон ? 'warn' as const : 'good' as const, pop: true },
         { key: 'left', icon: 'albums', label: t('cakeQueue'), value: board?.queue.length ?? 0 },
+        ...(доказан ? [{ key: 'proven', icon: 'shield-checkmark' as const, label: t('cakeProven'), value: '✓', tone: 'good' as const }] : []),
       ]}
       headerActions={<LevelRuleBadge lr={levelRules} color={colors.text} />}
     >

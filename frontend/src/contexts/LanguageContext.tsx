@@ -477,6 +477,10 @@ const translations: Translations = {
    * Скрытые слои в плане есть; когда появятся, текст дополним — но не
    * раньше, чем они заработают.
    */
+  cakeSortIntroDesc: {
+    ru: "Перетащи кусок торта с одной тарелки на другую — или тапни кусок, потом тарелку. Класть можно только на свой вкус или на пустое место. Собрал полный круг из шести одинаковых кусков — тарелка уходит, и место освобождается. Часть тарелок ждёт в очереди и выходит на стол сама, как только место появится: очередь конечна и видна в шапке. Отсюда и вся задача — освобождать место вовремя, а не копить смесь по всем тарелкам.",
+    en: "Drag a cake slice from one plate to another — or tap the slice, then the plate. A slice only goes onto its own flavour or onto an empty spot. Complete a full circle of six matching slices and the plate leaves, freeing the spot. Some plates wait in a queue and come out by themselves as soon as a spot opens: the queue is finite and shown in the header. That is the whole task — free up space in good time instead of piling a mix onto every plate.",
+  },
   goodsSortIntroDesc: {
     ru: "Перетащи товар в нишу — или тапни его, потом нишу. Три одинаковых в одной нише исчезают. Цель у каждого уровня своя и написана над шкафом: убрать всё, собрать названные товары, уложиться в ходы или освободить помеченные ниши. Дальше появляются препятствия — запертые ниши, замки по ходам, накрытые товары, примёрзший ряд. В нише помещается три, поэтому пара занимает место, пока не найдётся третий: думай, куда класть, а не только что.",
     en: "Drag a good into a niche — or tap it, then the niche. Three identical goods in one niche vanish. Each level states its own goal above the cabinet: clear everything, gather the named goods, stay within the move limit, or free the flagged niches. Later come obstacles — locked niches, timed locks, covered goods, a frozen row. A niche holds three, so a pair blocks it until the third turns up: think about where you put things, not just what.",
@@ -2447,7 +2451,6 @@ const translations: Translations = {
   anagramAllWordsHint: { ru: 'Из одного набора букв найди все слова. Пустые клетки показывают, сколько букв в каждом', en: 'Find every word hidden in one set of letters. The empty cells show how long each one is' },
   anagramAllWordsLvlParams: { ru: 'Один набор букв · 8–22 слова · без лимита времени', en: 'One set of letters · 8–22 words · no time limit' },
   anagramAllWordsPass: { ru: 'Проход уровня: найдены все слова', en: 'Level passed: every word found' },
-  anagramShuffle: { ru: 'Перемешать', en: 'Shuffle' },
   fwDiagonals: { ru: 'Змейка', en: 'Snake' },
   fwStraight: { ru: 'Только прямые', en: 'Straight only' },
   fwLineLabel: { ru: 'Как ведётся линия', en: 'How the line runs' },
@@ -2995,8 +2998,10 @@ const translations: Translations = {
   lr_goods_sort_moving_rule: { ru: 'Каждые пять ходов ниши переезжают: содержимое остаётся, а место — нет. Меняются только ниши одинаковой вместимости, поэтому ничего не переполнится. Что где лежит — видно по-прежнему; заранее не построишь только МАРШРУТ. Делай ход по тому, что на доске сейчас, а не по плану, составленному пять ходов назад.', en: 'Every five moves the niches move house: the contents stay, the place does not. Only niches of equal size swap, so nothing overflows. You can still see what is where; what you cannot plan ahead is the ROUTE. Play from the board in front of you, not from a plan made five moves ago.' },
   lr_goods_sort_moving_example: { ru: 'Пример: наметил отнести колу во вторую нишу — после сдвига она стоит пятой. Кола и место никуда не делись, поменялся адрес.', en: 'Example: you lined up a cola for the second niche — after the shift that niche is the fifth. The cola and the room are still there; the address changed.' },
   cakeSort: { ru: 'Торты', en: 'Cake sort' },
+  cakeSortDesc: { ru: 'Собирайте круг из шести одинаковых кусков', en: 'Gather a circle of six matching slices' },
   cakePlate: { ru: 'Тарелка', en: 'Plate' },
   cakeQueue: { ru: 'В очереди', en: 'In queue' },
+  cakeProven: { ru: 'Проверен', en: 'Verified' },
   cakeStuck: { ru: 'Ходов больше нет — стол встал', en: 'No moves left — the table is stuck' },
   lr_cake_sort_queue_title: { ru: 'Очередь входящих', en: 'The incoming queue' },
   lr_cake_sort_queue_rule: { ru: 'Часть тарелок ждёт своей очереди и выходит на стол сама — как только освободится место, то есть когда ты замкнёшь круг. Очередь конечна и видна в шапке: это не бесконечный поток, а отложенная часть того же уровня. Значит место надо освобождать вовремя, а не копить смесь по всем тарелкам.', en: 'Some plates wait their turn and come out by themselves — as soon as a spot frees up, that is, when you complete a circle. The queue is finite and shown in the header: it is not an endless stream but a delayed part of this very level. So free up space in good time instead of piling a mix onto every plate.' },
