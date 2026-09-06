@@ -23,6 +23,7 @@ export {
   normalizeWord,
   wordPool,
   wordsOfLength,
+  полДлиныЯзыка,
   type FillwordsPool,
 } from './words';
 
