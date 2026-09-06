@@ -123,6 +123,11 @@ export const GS_RULES: LevelRule[] = [
    * порог правила и порог механики обязаны совпадать, а не «стоять рядом».
    */
   { key: 'joker', fromLevel: 36 },    // = JOKER_FROM
+  /**
+   * Подвижные ниши (L41+, фаза «раз в три»). Тексты — в словаре на двенадцати
+   * языках (`lr_goods_sort_moving_*`). `fromLevel` равен `MOVING_FROM`.
+   */
+  { key: 'moving', fromLevel: 41 },   // = MOVING_FROM
 ];
 
 /**
@@ -1039,6 +1044,88 @@ export function jokerNiches(L: number, slots: number): number[] {
 export function jokersForBoard(L: number, cells: readonly unknown[][]): boolean[] {
   const j = new Set(jokerNiches(L, cells.length));
   return cells.map((_, i) => j.has(i));
+}
+
+/* ───────────────── ПОДВИЖНАЯ НИША — восьмая механика ─────────────────
+ *
+ * Ось из `PSYGAMES_MERGE_PLAN.md:469`, помеченная там ★★ и не сделанная:
+ * «`goods-sort` · порядок ниш · нельзя планировать серию ходов».
+ *
+ * 🔴 ЧТО ИМЕННО ОНА ЗАБИРАЕТ. Сортировка — игра с ПОЛНОЙ информацией, и весь
+ * файл выше на это опирается: «все товары на виду, исход хода считается
+ * заранее». План поэтому строится вперёд на три-четыре хода. Подвижные ниши не
+ * прячут ничего — знание «что где лежит» остаётся целым, — но отменяют знание
+ * «куда нести»: после сдвига серию ходов приходится пересобирать. Это другая
+ * нагрузка, чем у скрытой информации (там пересматривают ГИПОТЕЗУ, здесь —
+ * МАРШРУТ), и потому режимы разведены по разным уровням.
+ *
+ * 🔴 ПЕРЕСТАВЛЯЮТСЯ ТОЛЬКО РАВНЫЕ ПО ЁМКОСТИ. §8 разбора требует «везти `caps`
+ * вместе с содержимым». Здесь это выполнено сильнее: ёмкость вообще не
+ * разлучается с МЕСТОМ. Стопка из четырёх, приехавшая в нишу на два, — молча
+ * испорченное состояние: сумма ёмкостей сойдётся, а доска станет невозможной.
+ * Заодно `capsForBoard` остаётся верным — он считает ёмкости от уровня, и знать
+ * про историю ходов ему не нужно.
+ *
+ * ⚠️ НЕ СОВПАДАЕТ С ПРИМЁРЗШИМ РЯДОМ. Ряд примерзает ПОЗИЦИЕЙ, а не
+ * содержимым (`liveRowsForFreeze` выбирает ряд доски). Возить ниши сквозь него
+ * значит менять посреди партии, что именно заморожено, — и уровень может стать
+ * нерешаемым, причём молча.
+ */
+export const MOVING_FROM = 41;
+
+/** Через сколько ходов ниши меняются местами. Чаще — шум, реже — незаметно. */
+export const MOVE_SHIFT_EVERY = 5;
+
+/**
+ * Уровень с подвижными нишами. Фаза «раз в три, остаток 2» — строгая укладка
+ * занимает остаток 0, скрытая информация 1, и три режима не пересекаются ни на
+ * одном уровне. Проверяется исполнением в `goods-sort-moving-niche`, а не
+ * арифметикой в уме: именно так этот файл уже ошибался с порогами.
+ */
+export function movingNiches(L: number): boolean {
+  if (L < MOVING_FROM || (L - MOVING_FROM) % 3 !== 0) return false;
+  if (obstaclePlan(L).frozenRow) return false;
+  /**
+   * ⚠️ И НЕ НА ЦЕЛИ «ОСВОБОДИТЬ НИШИ». Она помечает КОНКРЕТНЫЕ ниши номерами
+   * (`Goal.niches`), а сдвиг возит содержимое между номерами — цель поехала бы
+   * вместе с доской, и «опустошить помеченные» перестало бы что-либо значить.
+   * Тот же приём, которым `hiddenInfo` отводит цель «уложиться в ходы».
+   */
+  return goalPlan(L).kind !== 'free';
+}
+
+/**
+ * Перестановка ниш на шаге `step`: `perm[i]` — куда переезжает содержимое ниши
+ * `i`. Внутри каждой группы одинаковой ёмкости — поворот, поэтому неподвижных
+ * точек в группе нет вовсе, а группа из одной ниши остаётся на месте (менять её
+ * не с кем).
+ *
+ * Шаг поворота зависит от `step`, иначе второй сдвиг вернул бы доску в прежний
+ * вид при группе из двух — и механика гасила бы сама себя через ход.
+ */
+export function nicheShift(caps: readonly number[], step: number): number[] {
+  const perm = caps.map((_, i) => i);
+  const группы = new Map<number, number[]>();
+  caps.forEach((c, i) => {
+    const g = группы.get(c);
+    if (g) g.push(i); else группы.set(c, [i]);
+  });
+  for (const места of группы.values()) {
+    const n = места.length;
+    if (n < 2) continue;
+    const сдвиг = 1 + (step % (n - 1));
+    for (let k = 0; k < n; k += 1) {
+      perm[места[k] as number] = места[(k + сдвиг) % n] as number;
+    }
+  }
+  return perm;
+}
+
+/** Разложить содержимое по перестановке. Ёмкости не трогаются — они при местах. */
+export function permuteCells<T>(cells: readonly T[], perm: readonly number[]): T[] {
+  const out = cells.slice() as T[];
+  cells.forEach((c, i) => { out[perm[i] as number] = c; });
+  return out;
 }
 
 /* ───────────────── СКРЫТАЯ ИНФОРМАЦИЯ — шестая механика (§20 плана слияния) ─────────────────
@@ -3148,6 +3235,8 @@ export default function GoodsSortGame() {
   const strict = strictPlacement(level);
   /** Идёт ли режим скрытой информации (§20). Тоже одно место — по образцу strict. */
   const hiddenHere = hiddenInfo(level);
+  /** Уровень с подвижными нишами: раз в `MOVE_SHIFT_EVERY` ходов ниши меняются местами. */
+  const movingHere = movingNiches(level);
   /** Ёмкости ниш этого уровня. Одинаковые до 18-го, дальше вперемешку. */
   // Ёмкости — от живой доски (см. capsForBoard): маска формы меняет число ниш
   // при неизменной сетке, и зависимость от cols/rows этого не видит.
@@ -3276,6 +3365,13 @@ export default function GoodsSortGame() {
       if (changed) setObstacles(next);
     }
     if (frozen && clearedTypes.includes(frozen.type)) setFrozen(null);
+    /**
+     * ⚠️ КЛЮЧИ СКРЫТОСТИ ПИШУТСЯ ОДИН РАЗ, В КОНЦЕ. Раньше `setCovered` стоял
+     * прямо здесь; когда ниже появился сдвиг ниш, второй `setCovered` затирал бы
+     * первый — React берёт последний вызов, и вскрытие, посчитанное выше, молча
+     * пропадало бы каждый пятый ход.
+     */
+    let nextCov: string[] | null = null;
     if (covered.size) {
       /**
        * Ключи скрытости едут вслед за товарами: сдвиг позиций после изъятия,
@@ -3284,19 +3380,46 @@ export default function GoodsSortGame() {
        * силуэт на товаре, давно вставшем спереди, — расходясь со справкой
        * накрытого товара; вскрытие по фронту чинит и её, и «?» режима §20.
        */
-      const nextCov = revealUncovered(shiftCoveredAfterTake(covered, fromCell, fromIdx), ns);
+      nextCov = revealUncovered(shiftCoveredAfterTake(covered, fromCell, fromIdx), ns);
       // Первое вскрытие: ключи в этом переходе только умирают, поэтому
       // «стало меньше» = «что-то вскрылось». Вскрывший ход входит в счёт.
       if (hiddenHere && hiddenStatsRef.current.movesBeforeFirstReveal === null && nextCov.length < covered.size) {
         hiddenStatsRef.current.movesBeforeFirstReveal = movesRef.current;
       }
-      // Сдвиг может переименовать ключи, не меняя их числа, — сравниваем состав, а не размер.
-      if (nextCov.length !== covered.size || nextCov.some((k) => !covered.has(k))) {
-        setCovered(new Set(nextCov));
-      }
     }
 
-    setCells(ns); setSel(null); setScore(scoreRef.current);
+    /**
+     * 🔴 ПОДВИЖНЫЕ НИШИ. Сдвиг делается ПОСЛЕ каскада и снятия препятствий: он
+     * меняет адреса, а не содержимое, и не должен мешать тройке собраться на
+     * том месте, где её собрали.
+     *
+     * Едут ВМЕСТЕ: содержимое, препятствия и ключи скрытости. Разъедься хоть
+     * одно — и замок остался бы висеть на пустом месте, а силуэт «?» показывал
+     * бы товар из другой ниши. Ёмкости не едут намеренно: переставляются только
+     * равные по ёмкости, поэтому ёмкость остаётся при МЕСТЕ и `capsForBoard`
+     * не врёт.
+     */
+    let итог = ns;
+    if (movingHere && movesRef.current % MOVE_SHIFT_EVERY === 0) {
+      const perm = nicheShift(caps, Math.floor(movesRef.current / MOVE_SHIFT_EVERY));
+      итог = permuteCells(ns, perm);
+      if (obstacles.length) setObstacles(permuteCells(obstacles, perm));
+      const ключи = nextCov ?? [...covered];
+      if (ключи.length) {
+        nextCov = ключи.map((k) => {
+          const [c, i] = k.split(':');
+          return `${perm[Number(c)]}:${i}`;
+        });
+      }
+      setHint(null);
+      hapticTap();
+    }
+    if (nextCov !== null) {
+      // Сравниваем состав, а не размер: сдвиг переименовывает ключи, не меняя их числа.
+      const н = nextCov;
+      if (н.length !== covered.size || н.some((k) => !covered.has(k))) setCovered(new Set(н));
+    }
+    setCells(итог); setSel(null); setScore(scoreRef.current);
     scoreRef.current += gained;
     if (clearedNow > 0) {
       setCleared((c) => c + clearedNow); hapticSuccess();
@@ -3312,8 +3435,8 @@ export default function GoodsSortGame() {
      * полках ещё лежит товар, и это НЕ незаконченный уровень — это и есть
      * смысл цели: играть адресно, а не выметать всё подряд.
      */
-    if (goalMet(ns, goalRef.current)) setTimeout(advanceLevel, 350);
-    else outOfMoves(ns);
+    if (goalMet(итог, goalRef.current)) setTimeout(advanceLevel, 350);
+    else outOfMoves(итог);
   };
 
   const handleItemTap = (cellI: number, idx: number) => {
