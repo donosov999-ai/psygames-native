@@ -1,4 +1,4 @@
-/* psygames-attention-load · VER 1 · 06.09.2026 · [Claude·MAC] */
+/* psygames-attention-load · VER 1 · 06.09.2026 */
 /**
  * СВОЯ МЕРА КАЖДОЙ ПРОБЕ. ПЯТЬ ФОРМУЛ, А НЕ ОДНА.
  *
