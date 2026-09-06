@@ -104,6 +104,18 @@ export interface Deal {
   cfg: CakeLevel;
   /** Сколько раз пришлось пересобирать. Для замера стоимости раздачи. */
   tries: number;
+  /**
+   * 🔴 РЕШАЕМОСТЬ ДОКАЗАНА, А НЕ «НЕ ОПРОВЕРГНУТА».
+   *
+   * Игроку показывается значок «уровень проверен» — и это обещание, за которое
+   * надо отвечать. `provenUnsolvable` отвечает лишь «не доказано, что нельзя»,
+   * а это НЕ то же самое: при исчерпании бюджета он молчит. Поэтому здесь
+   * отдельный флаг, и он ставится только когда решатель НАШЁЛ решение.
+   *
+   * Ровно на этой разнице стоит вся наша отстройка: у разобранного конкурента
+   * 454 отзыва про непроходимые уровни.
+   */
+  proven: boolean;
 }
 
 /**
@@ -144,16 +156,29 @@ export function deal(L: number, attempts = 12): Deal {
     const plates = разложено.slice(0, cfg.plates - cfg.queue);
     const board = makeBoard(plates, queue);
     if (dealRejected(board)) continue;
-    return { board, cfg, tries };
+    return { board, cfg, tries, proven: provenSolvable(board) };
   }
   // Не нашли за отведённые попытки — отдаём последнюю честно, как есть.
   const rand = rng(L * 1000 + attempts);
   const разложено = layOut(shuffle(все, rand), cfg.plates);
-  return {
-    board: makeBoard(разложено.slice(0, cfg.plates - cfg.queue), разложено.slice(cfg.plates - cfg.queue).filter((p) => p.length > 0)),
-    cfg,
-    tries: attempts,
-  };
+  const запасной = makeBoard(разложено.slice(0, cfg.plates - cfg.queue), разложено.slice(cfg.plates - cfg.queue).filter((p) => p.length > 0));
+  return { board: запасной, cfg, tries: attempts, proven: provenSolvable(запасной) };
+}
+
+/**
+ * 🔴 РЕШЕНИЕ НАЙДЕНО — НЕ ТО ЖЕ, ЧТО «НЕ ДОКАЗАНО, ЧТО НЕЛЬЗЯ».
+ *
+ * Значок «уровень проверен» ставится по этому ответу, и разница между двумя
+ * формулировками — это и есть цена обещания:
+ *   `provenSolvable`      — решатель НАШЁЛ решение. При исчерпании бюджета: нет.
+ *   `!provenUnsolvable`   — не доказано обратное. При исчерпании бюджета: ДА.
+ * Вторая при нехватке бюджета молча says «проверено» о столе, про который ничего
+ * не известно. Отдельной функцией — чтобы гейт мог подать ей заведомо малый
+ * бюджет и увидеть разницу: на живых уровнях обе отвечают одинаково, и мутация
+ * «подменить одну другой» без такого входа проходит незамеченной.
+ */
+export function provenSolvable(b: Board, budget = 20000): boolean {
+  return solve(b, budget).solvable;
 }
 
 /** Разбирается ли стол вообще. Обёртка с говорящим именем для экрана и гейтов. */
