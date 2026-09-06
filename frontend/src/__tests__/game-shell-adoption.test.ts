@@ -24,6 +24,7 @@
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync, readdirSync } = require('fs');
+import { исходникЭкрана } from './helpers/screenSource';
 const { join } = require('path');
 
 const APP_GAMES = join(__dirname, '../../app/games');
@@ -61,7 +62,12 @@ describe('партия идёт в общем каркасе', () => {
     const hubs = hubsByRoute();
     const без: string[] = [];
     for (const name of screens()) {
-      const src = code(readFileSync(join(APP_GAMES, `${name}.tsx`), 'utf8') as string);
+      // ⚠️ ЧЕРЕЗ `исходникЭкрана`: часть игр — тонкие маршруты в три строки к
+      // общему экрану («шарики» и «гайки» делят экран с переливалкой). Читать
+      // сам файл маршрута значило бы краснеть на верном коде и толкать к
+      // копированию шестисотстрочного экрана — ровно к тому, что этот гейт и
+      // сторожит.
+      const src = code(исходникЭкрана(name));
       if (/<GameShell[\s>]/.test(src)) continue;
       const hub = hubs.get(`/games/${name}`);
       if (hub === true) continue;                       // развилка — каркас не нужен

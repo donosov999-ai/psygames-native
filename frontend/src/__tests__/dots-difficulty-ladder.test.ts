@@ -48,8 +48,9 @@ import {
   dotsLevelTier,
   generateDotsPuzzle,
   generateDotsTrainingPuzzle,
+  требуемаяЦепь,
 } from '@/src/games/dots-connect/core/generator';
-import { DOTS_TIERS, type DotsTier } from '@/src/games/dots-connect/core/solver';
+import { DOTS_TIERS, ЦЕПОЧКА_С, type DotsTier } from '@/src/games/dots-connect/core/solver';
 import { validateDotsSolution } from '@/src/games/dots-connect/core/validator';
 import { LEVELS, type Cell, type DotsPuzzle } from '@/src/games/dots-connect/core/types';
 
@@ -106,16 +107,30 @@ function readBoard(puzzle: DotsPuzzle): Reading {
     (around[a] as number[]).push(at);
     (around[b] as number[]).push(at);
   };
+  /**
+   * 🔴 СТЕНЫ — КЛЕТКИ, КОТОРЫХ НА ДОСКЕ НЕТ (правка 06.09.2026). Рёбра к ним не
+   * заводятся вовсе, и требование «через клетку проходит линия» к ним не
+   * применяется.
+   *
+   * ⚠️ БЕЗ ЭТОГО РАЗБОР ГЕЙТА ВРАЛ В ЛЁГКУЮ СТОРОНУ. Он требовал у стены
+   * ДВУХ линий, как у обычной пустой клетки; у стены их взять неоткуда, и
+   * вывод «вынужденно» шёл каскадом по всей доске. Гейт объявлял «forced»
+   * доски, которые игра честно считает переборными, — и краснел на верном коде.
+   */
+  const стена = new Array<boolean>(count).fill(false);
+  for (const w of puzzle.walls ?? []) стена[w.row * size + w.col] = true;
   for (let row = 0; row < size; row += 1) {
     for (let col = 0; col < size; col += 1) {
       const at = row * size + col;
-      if (col + 1 < size) link(at, at + 1);
-      if (row + 1 < size) link(at, at + size);
+      if (стена[at]) continue;
+      if (col + 1 < size && !стена[at + 1]) link(at, at + 1);
+      if (row + 1 < size && !стена[at + size]) link(at, at + size);
     }
   }
   return {
     size,
-    need: dot.map((owner) => (owner >= 0 ? 1 : 2)),
+    // Стене линий не нужно вовсе: её нет на доске.
+    need: dot.map((owner, at) => (стена[at] ? 0 : owner >= 0 ? 1 : 2)),
     dot,
     edgeA,
     edgeB,
@@ -223,20 +238,26 @@ function isReadable(reading: Reading): boolean {
   return true;
 }
 
-/** Один проход проб «а если». Возвращает, удалось ли что-то ДОКАЗАТЬ. */
-function proveByContradiction(reading: Reading): boolean | 'broken' {
+/**
+ * Один проход проб «а если». Возвращает, удалось ли что-то ДОКАЗАТЬ, и
+ * приписывает в `учёт` число доказанных рёбер — это длина цепи вывода, по
+ * которой теперь и различается верх лесенки.
+ */
+function proveByContradiction(reading: Reading, учёт: { доказано: number }): boolean | 'broken' {
   let proved = false;
   for (let edge = 0; edge < reading.state.length; edge += 1) {
     if (reading.state[edge] !== UNDECIDED) continue;
     const asDrawn = copyReading(reading);
     if (!drawIt(asDrawn, edge) || !settle(asDrawn)) {
       if (!banIt(reading, edge) || !settle(reading)) return 'broken';
+      учёт.доказано += 1;
       proved = true;
       continue;
     }
     const asBanned = copyReading(reading);
     if (!banIt(asBanned, edge) || !settle(asBanned)) {
       if (!drawIt(reading, edge) || !settle(reading)) return 'broken';
+      учёт.доказано += 1;
       proved = true;
     }
   }
@@ -281,30 +302,41 @@ type Verdict = 'вывелась' | 'застряла' | 'сломана';
  * РАЗБИРАЕТ ДОСКУ СВОИМИ СИЛАМИ. `deep = false` — только прямые правила
  * («вынужденный»), `deep = true` — плюс доказательство от противного.
  */
-function readOut(puzzle: DotsPuzzle, deep: boolean): { verdict: Verdict; paths: Record<string, Cell[]> | null } {
+function readOut(
+  puzzle: DotsPuzzle, deep: boolean,
+): { verdict: Verdict; paths: Record<string, Cell[]> | null; доказано: number } {
   const reading = readBoard(puzzle);
-  if (!settle(reading)) return { verdict: 'сломана', paths: null };
+  const учёт = { доказано: 0 };
+  if (!settle(reading)) return { verdict: 'сломана', paths: null, ...учёт };
   if (deep) {
     while (!isReadable(reading)) {
-      const step = proveByContradiction(reading);
-      if (step === 'broken') return { verdict: 'сломана', paths: null };
+      const step = proveByContradiction(reading, учёт);
+      if (step === 'broken') return { verdict: 'сломана', paths: null, ...учёт };
       if (!step) break;
     }
   }
-  if (!isReadable(reading)) return { verdict: 'застряла', paths: null };
-  return { verdict: 'вывелась', paths: pathsOf(reading, puzzle) };
+  if (!isReadable(reading)) return { verdict: 'застряла', paths: null, ...учёт };
+  return { verdict: 'вывелась', paths: pathsOf(reading, puzzle), ...учёт };
 }
 
-/** Ступень доски ПО СВОЕМУ разбору. Верхняя — «сюда прямые правила не дошли». */
-function tierByOwnReading(puzzle: DotsPuzzle): DotsTier {
+/**
+ * Ступень доски ПО СВОЕМУ разбору. Верхняя — не «не вывелась», а «выводится
+ * длинной цепью»: доказанных от противного рёбер не меньше `ЦЕПОЧКА_С`.
+ * `null` означает, что доску не берёт ни одно рассуждение, — с перевёрнутой
+ * осью это брак раздачи, а не вершина лесенки.
+ */
+function tierByOwnReading(puzzle: DotsPuzzle): DotsTier | null {
   if (readOut(puzzle, false).verdict === 'вывелась') return 'forced';
-  if (readOut(puzzle, true).verdict === 'вывелась') return 'contradiction';
-  return 'search';
+  const deep = readOut(puzzle, true);
+  if (deep.verdict !== 'вывелась') return null;
+  return deep.доказано >= ЦЕПОЧКА_С ? 'chain' : 'contradiction';
 }
 
 const SEEDS = ['ladder-a', 'ladder-b', 'ladder-c'] as const;
 const LADDER = Array.from({ length: LEVELS }, (_, index) => generateDotsPuzzle(SEEDS[0], index + 1));
 const OWN_TIERS = LADDER.map(tierByOwnReading);
+/** Длина цепи вывода ПО СВОЕМУ разбору — независимо от того, что записал генератор. */
+const OWN_CHAINS = LADDER.map((puzzle) => readOut(puzzle, true).доказано);
 
 // ═════════════════════════════════════════════════════════════════════════════
 describe('«Соедини точки» — ось сложности по требуемому рассуждению', () => {
@@ -316,7 +348,7 @@ describe('«Соедини точки» — ось сложности по тр�
     // то же, доказывает ровно ничего.
     expect(new Set(OWN_TIERS).size).toBeGreaterThanOrEqual(2);
     expect(OWN_TIERS).toContain('forced');
-    expect(OWN_TIERS).toContain('search');
+    expect(OWN_TIERS).toContain('chain');
   });
 
   /**
@@ -365,23 +397,71 @@ describe('«Соедини точки» — ось сложности по тр�
   });
 
   /**
-   * 🔴 ВЕРХ ЛЕСЕНКИ НЕ ЗАКРЫВАЕТСЯ ВСЛЕПУЮ. Ни прямые правила, ни
-   * доказательство от противного доску не дорешивают — без плана и перебора
-   * вариантов её не пройти. Это и есть «ступень выше», доказанная своим
-   * разбором, а не обещанная таблицей.
+   * 🔴 ВЕРХ ЛЕСЕНКИ — САМАЯ ДЛИННАЯ ЧЕСТНАЯ ЦЕПЬ, А НЕ НЕВОЗМОЖНОСТЬ ВЫВОДА.
+   *
+   * До 06.09.2026 здесь стояло обратное требование: доска верхней полосы НЕ
+   * должна была выводиться ни прямыми правилами, ни от противного. Ось держалась
+   * ровно до появления стен — вырезанное поле сужает выбор, вывод доходит до
+   * конца, и «трудная» доска бралась доказательством. Хуже того, ярлык верхней
+   * ступени не требовал замера: доска получала его за то, что её НЕ вывели, и
+   * тридцать четыре уровня выглядели растущими, ничем не отличаясь. Замер это и
+   * показал: на 25-м уровне медиана длины цепи равнялась нулю.
+   *
+   * Теперь требование прямое и проверяемое: доска верхней полосы обязана
+   * выводиться ЦЕЛИКОМ и требовать цепи не короче назначенной уровню. Длину
+   * гейт считает СВОИМ разбором — генератор в свидетели своей же работы не
+   * годится.
    */
-  it('🔴 уровни 7 и выше не берутся ни прямыми правилами, ни от противного', () => {
+  it('🔴 верхняя полоса выводится целиком и требует назначенной длины цепи', () => {
     const soft: string[] = [];
     for (const level of [7, 10, 20, 30, 40]) {
       for (const seed of SEEDS) {
         const puzzle = generateDotsPuzzle(seed, level);
-        const plain = readOut(puzzle, false).verdict;
-        if (plain === 'вывелась') { soft.push(`L${level}/${seed}: взялась прямыми правилами`); continue; }
-        const deep = readOut(puzzle, true).verdict;
-        if (deep === 'вывелась') soft.push(`L${level}/${seed}: взялась от противного`);
+        if (readOut(puzzle, false).verdict === 'вывелась') {
+          soft.push(`L${level}/${seed}: взялась прямыми правилами — ступень ниже назначенной`);
+          continue;
+        }
+        const deep = readOut(puzzle, true);
+        if (deep.verdict !== 'вывелась' || !deep.paths) {
+          soft.push(`L${level}/${seed}: не выводится вовсе (${deep.verdict}) — это угадайка, а не верх лесенки`);
+          continue;
+        }
+        const надо = требуемаяЦепь(level);
+        if (deep.доказано < надо) soft.push(`L${level}/${seed}: цепь ${deep.доказано} короче назначенной ${надо}`);
+        const check = validateDotsSolution(puzzle, deep.paths);
+        if (!check.complete) soft.push(`L${level}/${seed}: вывелось не решение — ${check.issues.join('; ')}`);
       }
     }
     expect(soft).toEqual([]);
+  });
+
+  /**
+   * 🔴 РАСТУЩАЯ ОСЬ ДЕЙСТВИТЕЛЬНО РАСТЁТ. Ступень упирается в потолок на седьмом
+   * уровне, и дальше лесенку держит только длина цепи. Если требование по
+   * уровням где-то откатится назад, тридцать четыре верхних уровня снова станут
+   * одинаковыми — на этот раз молча.
+   */
+  it('🔴 требуемая длина цепи по уровням назад не откатывается', () => {
+    const откаты: string[] = [];
+    for (let level = 2; level <= LEVELS; level += 1) {
+      const было = требуемаяЦепь(level - 1);
+      const стало = требуемаяЦепь(level);
+      if (стало < было) откаты.push(`L${level - 1}→L${level}: ${было}→${стало}`);
+    }
+    expect(откаты).toEqual([]);
+    expect(требуемаяЦепь(LEVELS)).toBeGreaterThan(требуемаяЦепь(7));
+  });
+
+  /** 🔴 И померенная цепь на каждом уровне не короче требуемой — по СВОЕМУ разбору. */
+  it('🔴 померенная длина цепи по всей лесенке добирает назначенную', () => {
+    const коротко: string[] = [];
+    for (let index = 0; index < LADDER.length; index += 1) {
+      const level = index + 1;
+      const надо = требуемаяЦепь(level);
+      const есть = OWN_CHAINS[index] as number;
+      if (есть < надо) коротко.push(`L${level}: цепь ${есть} < ${надо}`);
+    }
+    expect(коротко).toEqual([]);
   });
 
   /** 🔴 Лесенка по СВОЕМУ разбору идёт вверх и назад не откатывается. */
@@ -389,12 +469,16 @@ describe('«Соедини точки» — ось сложности по тр�
     const rank = (tier: DotsTier) => DOTS_TIERS.indexOf(tier);
     const backslides: string[] = [];
     for (let index = 1; index < OWN_TIERS.length; index += 1) {
-      const before = OWN_TIERS[index - 1] as DotsTier;
-      const after = OWN_TIERS[index] as DotsTier;
+      const before = OWN_TIERS[index - 1];
+      const after = OWN_TIERS[index];
+      // `null` — доска не выводится ни одним рассуждением. С перевёрнутой осью
+      // это не вершина, а брак: играть в неё можно только угадыванием.
+      if (before === null) { backslides.push(`L${index}: доска не выводится вовсе`); continue; }
+      if (after === null) { backslides.push(`L${index + 1}: доска не выводится вовсе`); continue; }
       if (rank(after) < rank(before)) backslides.push(`L${index}→L${index + 1}: ${before}→${after}`);
     }
     expect(backslides).toEqual([]);
-    expect(`низ ${OWN_TIERS[0]} · верх ${OWN_TIERS[LEVELS - 1]}`).toBe('низ forced · верх search');
+    expect(`низ ${OWN_TIERS[0]} · верх ${OWN_TIERS[LEVELS - 1]}`).toBe('низ forced · верх chain');
   });
 
   /**
@@ -426,8 +510,11 @@ describe('«Соедини точки» — ось сложности по тр�
     for (const puzzle of LADDER) {
       const check = validateDotsSolution(puzzle, puzzle.solution);
       if (!check.complete) broken.push(`L${puzzle.level}: ${check.issues.join('; ')}`);
-      if (check.coveredCells !== puzzle.size * puzzle.size) {
-        broken.push(`L${puzzle.level}: покрыто ${check.coveredCells}/${puzzle.size * puzzle.size}`);
+      // ⚠️ СТЕНЫ ИЗ СЧЁТА ВЫЧИТАЮТСЯ. Путь обязан занять всё СВОБОДНОЕ поле, а
+      // не всю сетку: клетка под стеной не занимается по определению.
+      const свободных = puzzle.size * puzzle.size - (puzzle.walls?.length ?? 0);
+      if (check.coveredCells !== свободных) {
+        broken.push(`L${puzzle.level}: покрыто ${check.coveredCells}/${свободных}`);
       }
     }
     expect(broken).toEqual([]);

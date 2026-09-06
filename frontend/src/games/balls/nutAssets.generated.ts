@@ -1,9 +1,9 @@
-/* psygames-nut-assets · VER 1 · 06.09.2026 */
+/* psygames-balls-nut-assets · VER 1 · 06.09.2026 */
 /**
  * СОБРАНО СКРИПТОМ — руками не править: node scripts/build-nut-styles.mjs
  *
- * Десять гаек нарисованы листом 5×2 (Nano Banana, ровный серый фон) и вырезаны
- * скиллом `bg-cutout` методом заливки от края.
+ * 10 гаек нарисованы листом 5×2 (Nano Banana, ровный серый фон) и
+ * вырезаны скиллом `bg-cutout` методом заливки от края.
  *
  * ⚠️ ЛИСТ ПЕРЕРИСОВАН ВТОРОЙ РАЗ, И ВОТ ПОЧЕМУ. Первый нёс мягкую падающую
  * тень: заливка от края её не берёт (тень темнее фона), а снятие тени
@@ -16,10 +16,11 @@
  * остальных). Скилл с тем же методом справился — у него допуск считается от
  * самого изображения, а не задан числом.
  *
- * Цвета совпадают с `BALL_COLORS` намеренно: обе игры берут ближайший цвет через
- * `nearestPieceColor`, и разные наборы цветов дали бы разное сопоставление.
+ * Цвета совпадают с `BALL_COLORS` намеренно и проверяются при сборке: обе игры
+ * берут ближайший цвет через `nearestPieceColor`, и разные наборы дали бы
+ * разное сопоставление.
  */
-export const NUT_COLORS = ['blue', 'cyan', 'green', 'mint', 'orange', 'pink', 'purple', 'red', 'white', 'yellow'] as const;
+export const NUT_COLORS = ["blue","cyan","green","mint","orange","pink","purple","red","white","yellow"] as const;
 export type NutColor = (typeof NUT_COLORS)[number];
 
 export const NUT_IMG: Record<NutColor, any> = {

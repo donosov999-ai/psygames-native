@@ -163,8 +163,14 @@ describe('«Соедини точки» — полное покрытие обя
     for (const puzzle of LADDER) {
       const check = validateDotsSolution(puzzle, puzzle.solution);
       if (!check.complete) broken.push(`L${puzzle.level}: ${check.issues.join('; ')}`);
-      if (check.coveredCells !== puzzle.size * puzzle.size) {
-        broken.push(`L${puzzle.level}: покрыто ${check.coveredCells}/${puzzle.size * puzzle.size}`);
+      /**
+       * ⚠️ ПОКРЫТИЕ СЧИТАЕТСЯ БЕЗ СТЕН. С 06.09.2026 поле не обязательно
+       * квадратное: часть клеток вырезана, и «вся сетка» — это всё, ЧЕГО НЕ
+       * СТЕНА. Проба, считавшая от `size × size`, краснела на верных досках.
+       */
+      const наДоске = puzzle.size * puzzle.size - (puzzle.walls?.length ?? 0);
+      if (check.coveredCells !== наДоске) {
+        broken.push(`L${puzzle.level}: покрыто ${check.coveredCells}/${наДоске}`);
       }
       for (const pair of puzzle.pairs) {
         const path = puzzle.solution[pair.id] as Cell[];
@@ -403,3 +409,42 @@ function touch(x: number, y: number) {
     persist() {}, preventDefault() {}, stopPropagation() {},
   };
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+/**
+ * 🔴 СТЕНЫ ДОЛЖНЫ ДЕЙСТВОВАТЬ ВЕЗДЕ, А НЕ ТОЛЬКО В ГЕНЕРАТОРЕ.
+ *
+ * Проба поведенческая: она не читает исходник, а ХОДИТ в стену и смотрит, что
+ * ответила игра. Гейт, который ищет слово «walls» в файле, зеленеет от
+ * комментария; этот — только от отказа принять ход.
+ */
+describe('«Соедини точки» — стены действуют в партии', () => {
+  it('🔴 ход в стену игра не принимает, а поле без стен остаётся проходимым', () => {
+    const беды: string[] = [];
+    for (const level of [20, 30, 40]) {
+      const seed = `wall-${level}`;
+      const puzzle = generateDotsPuzzle(seed, level);
+      const стены = puzzle.walls ?? [];
+      if (стены.length === 0) { беды.push(`L${level}: стен нет — проверять нечего`); continue; }
+      // Ищем стену, СОСЕДНЮЮ с началом какой-нибудь пары: только туда и можно
+      // попытаться шагнуть первым ходом.
+      let попробовали = false;
+      for (const pair of puzzle.pairs) {
+        const [from] = pair.endpoints;
+        const рядом = стены.find((w) => Math.abs(w.row - from.row) + Math.abs(w.col - from.col) === 1);
+        if (!рядом) continue;
+        const начало = startRound(createDotsSession({ seed, level }), 0);
+        const session = beginPath(начало, from);
+        const после = extendPath(session, рядом, 2);
+        попробовали = true;
+        const путь = после.paths[pair.id] ?? [];
+        if (путь.some((c) => c.row === рядом.row && c.col === рядом.col)) {
+          беды.push(`L${level}/${pair.id}: путь зашёл в стену ${рядом.row},${рядом.col}`);
+        }
+        break;
+      }
+      if (!попробовали) беды.push(`L${level}: ни одна стена не примыкает к началу пары — проба слепа`);
+    }
+    expect(беды).toEqual([]);
+  });
+});

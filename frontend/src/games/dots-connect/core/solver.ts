@@ -44,7 +44,9 @@ interface SolverBoard {
   head: Int32Array;       // где сейчас голова каждой пары
   target: Int32Array;     // куда она обязана прийти
   done: Uint8Array;
-  neighbours: Int32Array; // 4 соседа на клетку, -1 если стена
+  /** 1 — клетки нет на доске (стена). Такие не занимают и не покрывают. */
+  wall: Uint8Array;
+  neighbours: Int32Array; // 4 соседа на клетку, -1 если край поля
   paths: number[][];
   /**
    * ⚠️ ЧЕРНОВИКИ ВЫДЕЛЕНЫ ОДИН РАЗ, А НЕ НА КАЖДУЮ ПРОВЕРКУ. Первая версия
@@ -84,6 +86,18 @@ function prepare(puzzle: DotsPuzzle): SolverBoard | null {
   const pairs = puzzle.pairs;
   if (pairs.length === 0 || pairs.length * 2 > cells) return null;
   const owner = new Int16Array(cells).fill(-1);
+  /**
+   * ⚠️ СТЕНА — ОТДЕЛЬНЫЙ ПРИЗНАК, А НЕ «ЧУЖОЙ ВЛАДЕЛЕЦ С ОТРИЦАТЕЛЬНЫМ НОМЕРОМ».
+   * Соблазн был пометить её как `owner = -2`: проверки «свободна ли клетка»
+   * (`owner === -1`) тогда сработали бы сами. Но `connectable` и `forcedMove`
+   * индексируют по владельцу МАССИВЫ (`done[pair]`, `head[pair]`), и −2 полез бы
+   * туда молча — код бы работал по совпадению, а не по замыслу.
+   */
+  const wall = new Uint8Array(cells);
+  for (const w of puzzle.walls ?? []) {
+    if (!isInBounds(w, size)) return null;
+    wall[w.row * size + w.col] = 1;
+  }
   const head = new Int32Array(pairs.length);
   const target = new Int32Array(pairs.length);
   const paths: number[][] = [];
@@ -94,6 +108,8 @@ function prepare(puzzle: DotsPuzzle): SolverBoard | null {
     const toAt = to.row * size + to.col;
     if (fromAt === toAt) return null;
     if (owner[fromAt] !== -1 || owner[toAt] !== -1) return null;
+    // Точка пары на стене — доска собрана неверно, и это надо увидеть сразу.
+    if (wall[fromAt] || wall[toAt]) return null;
     owner[fromAt] = index;
     owner[toAt] = index;
     head[index] = fromAt;
@@ -107,6 +123,7 @@ function prepare(puzzle: DotsPuzzle): SolverBoard | null {
     head,
     target,
     done: new Uint8Array(pairs.length),
+    wall,
     neighbours: buildNeighbours(size),
     paths,
     region: new Int32Array(cells),
@@ -119,8 +136,23 @@ function prepare(puzzle: DotsPuzzle): SolverBoard | null {
   };
 }
 
+/**
+ * 🔴 «СВОБОДНА» — ОДИН ПРЕДИКАТ НА ВЕСЬ РЕШАТЕЛЬ, А НЕ ТРИ ПОХОЖИЕ ПРОВЕРКИ.
+ *
+ * 📍 06.09.2026, когда появились стены: `feasible` проверял свободу как
+ * `owner[at] === -1` и считал стену свободной клеткой — а дальше требовал у
+ * каждой свободной клетки двух свободных соседей. Стена этого требования не
+ * выполняла, отсечение объявляло ветку мёртвой, и решатель НЕ НАХОДИЛ ответа на
+ * досках со стенами, хотя ответ был. Три места сравнивали одно и то же
+ * по-разному — классика: величина стала данными, а читатели остались старые.
+ */
+function свободна(board: SolverBoard, at: number): boolean {
+  return !board.wall[at] && board.owner[at] === -1;
+}
+
 /** Может ли путь ВОЙТИ в эту клетку: она свободна либо это открытый конец пары. */
 function connectable(board: SolverBoard, at: number): boolean {
+  if (board.wall[at]) return false;          // стены в путь не входят
   if (board.owner[at] === -1) return true;
   const pair = board.owner[at] as number;
   if (board.done[pair]) return false;
@@ -128,12 +160,14 @@ function connectable(board: SolverBoard, at: number): boolean {
 }
 
 function feasible(board: SolverBoard): boolean {
-  const { cells, owner, neighbours, region, stack, regionTouched } = board;
+  // ⚠️ `owner` больше не разбирается здесь: свободу клетки решает `свободна`,
+  // который смотрит и на стену, и на владельца. Одно место вместо двух.
+  const { cells, neighbours, region, stack, regionTouched } = board;
   const pairs = board.done.length;
 
-  // Отсечение 1 — степень свободной клетки.
+  // Отсечение 1 — степень свободной клетки. Стены сюда не входят: их закрывать не надо.
   for (let at = 0; at < cells; at += 1) {
-    if (owner[at] !== -1) continue;
+    if (!свободна(board, at)) continue;
     let open = 0;
     for (let dir = 0; dir < 4; dir += 1) {
       const near = neighbours[at * 4 + dir] as number;
@@ -150,7 +184,7 @@ function feasible(board: SolverBoard): boolean {
   const stamp = board.regionStamp;
   let regions = 0;
   for (let at = 0; at < cells; at += 1) {
-    if (owner[at] !== -1 || stamp[at] === generation) continue;
+    if (!свободна(board, at) || stamp[at] === generation) continue;
     const mark = regions;
     regions += 1;
     stamp[at] = generation;
@@ -163,7 +197,7 @@ function feasible(board: SolverBoard): boolean {
       const current = stack[top] as number;
       for (let dir = 0; dir < 4; dir += 1) {
         const near = neighbours[current * 4 + dir] as number;
-        if (near < 0 || owner[near] !== -1 || stamp[near] === generation) continue;
+        if (near < 0 || !свободна(board, near) || stamp[near] === generation) continue;
         stamp[near] = generation;
         region[near] = mark;
         stack[top] = near;
@@ -179,7 +213,7 @@ function feasible(board: SolverBoard): boolean {
       const table = side === 0 ? board.headTouches : board.targetTouches;
       for (let dir = 0; dir < 4; dir += 1) {
         const near = neighbours[at * 4 + dir] as number;
-        if (near < 0 || owner[near] !== -1) continue;
+        if (near < 0 || !свободна(board, near)) continue;
         const mark = region[near] as number;
         table[pair * cells + mark] = generation;
         regionTouched[mark] = generation;
@@ -216,13 +250,16 @@ function freeDegree(board: SolverBoard, at: number): number {
   let count = 0;
   for (let dir = 0; dir < 4; dir += 1) {
     const near = board.neighbours[at * 4 + dir] as number;
-    if (near >= 0 && board.owner[near] === -1) count += 1;
+    if (near >= 0 && свободна(board, near)) count += 1;
   }
   return count;
 }
 
 function allCovered(board: SolverBoard): boolean {
-  for (let at = 0; at < board.cells; at += 1) if (board.owner[at] === -1) return false;
+  // Покрыть надо всё, ЧЕГО НЕ СТЕНА: у вырезанного поля «вся сетка» — не квадрат.
+  for (let at = 0; at < board.cells; at += 1) {
+    if (свободна(board, at)) return false;
+  }
   return true;
 }
 
@@ -266,7 +303,7 @@ function movesFor(board: SolverBoard, pair: number): number[] {
     const near = board.neighbours[from * 4 + dir] as number;
     if (near < 0) continue;
     if (near === target) { if (!коснётсяСвоего(board, pair, near, from)) closing = near; continue; }
-    if (board.owner[near] === -1 && !коснётсяСвоего(board, pair, near, from)) moves.push(near);
+    if (свободна(board, near) && !коснётсяСвоего(board, pair, near, from)) moves.push(near);
   }
   moves.sort((left, right) => freeDegree(board, left) - freeDegree(board, right));
   // Замкнуть пару пробуем последним: пока на доске есть свободные клетки, их
@@ -295,7 +332,17 @@ function movesFor(board: SolverBoard, pair: number): number[] {
  */
 function forcedMove(board: SolverBoard): { pair: number; cell: number } | null | 'dead' {
   for (let at = 0; at < board.cells; at += 1) {
-    if (board.owner[at] !== -1) continue;
+    /**
+     * ⚠️ СТЕНУ ЗАКРЫВАТЬ НЕ НАДО, И БЕЗ ЭТОЙ СТРОКИ ОНА ЛОМАЛА ВЕСЬ ПЕРЕБОР.
+     * Рассуждение вынужденного хода стоит на «каждая свободная клетка станет
+     * серединой чьего-то пути». Стена — не свободная клетка, её никто не
+     * закрывает; но `owner` у неё тоже −1, и проверка `owner !== -1` пропускала
+     * её внутрь. Дальше у стены находилось два соседа-кандидата, один из них
+     * оказывался головой пары — и решатель либо звал шагнуть В СТЕНУ, либо
+     * объявлял ветку мёртвой. Замер: на 10×10 со стенами ответ не находился
+     * вовсе, за 0 мс, при том что решение существует и валидно.
+     */
+    if (!свободна(board, at)) continue;
     let first = -1;
     let second = -1;
     let count = 0;
@@ -435,7 +482,26 @@ export function solveDotsPuzzle(puzzle: DotsPuzzle, maxSteps = 4_000_000): DotsS
  * («коридоры», «парность», проба глубиной в два хода) вписывается сюда одной
  * строкой: и генератор, и гейт работают со СПИСКОМ, а не с зашитыми именами.
  */
-export const DOTS_TIERS = ['forced', 'contradiction', 'search'] as const;
+export const DOTS_TIERS = ['forced', 'contradiction', 'chain'] as const;
+
+/**
+ * 🔴 ПОРОГ ВЕРХНЕЙ СТУПЕНИ — ДЛИНА ЧЕСТНОЙ ЦЕПИ, А НЕ НЕВОЗМОЖНОСТЬ ВЫВОДА.
+ *
+ * До 06.09.2026 верхом лесенки была ступень «перебор»: доска считалась трудной
+ * ровно тем, что её НЕЛЬЗЯ вывести — ни рёберными правилами, ни от противного.
+ * Ось держалась, пока поле было пустым прямоугольником. Стены её сломали:
+ * стена сужает выбор, вывод доходит до конца — и «трудная» доска бралась
+ * доказательством от противного, то есть верх лесенки исчезал именно там, где
+ * поле становилось интереснее.
+ *
+ * Ось перевёрнута. Трудность наверху — не «вывести нельзя», а «выводить долго»:
+ * сколько рёбер пришлось доказать от противного, потому что прямое
+ * распространение до них не дотянулось. Считаются ДОКАЗАННЫЕ рёбра, а не
+ * попытки: попытки зависят от порядка обхода, доказательства — нет.
+ *
+ * Порог назван здесь один раз; ступень и гейт читают его отсюда.
+ */
+export const ЦЕПОЧКА_С = 6;
 export type DotsTier = (typeof DOTS_TIERS)[number];
 
 /** Номер ступени в списке: чем больше, тем труднее требуемая техника. */
@@ -509,9 +575,27 @@ function buildEdgeBoard(puzzle: DotsPuzzle): EdgeBoard | null {
       dotOf[at] = index;
     }
   }
+  /**
+   * 🔴 СТЕНЫ ПРОРЕЗАЮТСЯ ЗДЕСЬ, А НЕ ТОЛЬКО В ПУТЕВОМ РЕШАТЕЛЕ. Замер 06.09.2026:
+   * решателя научили обходить стены в `forcedMove` (через `свободна`), а
+   * рёберная доска — та, на которой работает вывод от противного, — осталась
+   * слепой. Каждой клетке без точки она назначала степень 2, включая стену;
+   * стена степени 2 быть не может, распространение сразу упиралось в
+   * противоречие, и доска объявлялась НЕВЫВОДИМОЙ. Наружу это выглядело как
+   * свойство игры: «со стенами верхние уровни не выводятся» — 0 годных досок из
+   * 4000 попыток ровно с 11-го уровня, где стены и включаются. Заслон, стоящий
+   * у одного потребителя, второго не прикрывает.
+   */
+  const wall = new Uint8Array(cells);
+  for (const w of puzzle.walls ?? []) {
+    if (!isInBounds(w, size)) return null;
+    const at = w.row * size + w.col;
+    if (dotOf[at] !== -1) return null;         // точка на стене — доска сломана
+    wall[at] = 1;
+  }
   const need = new Int8Array(cells);
   const open = new Int8Array(cells);
-  for (let at = 0; at < cells; at += 1) need[at] = dotOf[at] >= 0 ? 1 : 2;
+  for (let at = 0; at < cells; at += 1) need[at] = wall[at] ? 0 : (dotOf[at] >= 0 ? 1 : 2);
 
   const edge = new Int8Array(cells * 2).fill(2);
   const edgeFrom = new Int32Array(cells * 2).fill(-1);
@@ -521,13 +605,16 @@ function buildEdgeBoard(puzzle: DotsPuzzle): EdgeBoard | null {
   for (let row = 0; row < size; row += 1) {
     for (let col = 0; col < size; col += 1) {
       const at = row * size + col;
-      if (col < size - 1) {
+      // Ребро, упирающееся в стену, не заводится вовсе: оно остаётся в
+      // состоянии 2 («запрещено»), не попадает в `edgeIds` и потому не тратит
+      // проб на доказательство того, что и так известно.
+      if (col < size - 1 && !wall[at] && !wall[at + 1]) {
         const id = at * 2;
         edge[id] = 0; edgeFrom[id] = at; edgeTo[id] = at + 1;
         edgeIds[edgeCount] = id; edgeCount += 1;
         open[at] += 1; open[at + 1] += 1;
       }
-      if (row < size - 1) {
+      if (row < size - 1 && !wall[at] && !wall[at + size]) {
         const id = at * 2 + 1;
         edge[id] = 0; edgeFrom[id] = at; edgeTo[id] = at + size;
         edgeIds[edgeCount] = id; edgeCount += 1;
@@ -725,7 +812,10 @@ function solveForced(puzzle: DotsPuzzle): DotsSolution | null {
  * меняется только тогда, когда противоречие ДОКАЗАНО. Ни одной догадки в
  * итоговом решении не остаётся.
  */
-function solveByContradiction(puzzle: DotsPuzzle): DotsSolution | null {
+function solveByContradiction(
+  puzzle: DotsPuzzle,
+  учёт?: { доказано: number },
+): DotsSolution | null {
   const board = buildEdgeBoard(puzzle);
   if (!board) return null;
   if (!propagate(board)) return null;
@@ -749,12 +839,14 @@ function solveByContradiction(puzzle: DotsPuzzle): DotsSolution | null {
       const asDrawn = cloneEdgeBoard(board);
       if (!drawEdge(asDrawn, id) || !propagate(asDrawn)) {
         if (!banEdge(board, id) || !propagate(board)) return null;
+        if (учёт) учёт.доказано += 1;
         progress = true;
         continue;
       }
       const asBanned = cloneEdgeBoard(board);
       if (!banEdge(asBanned, id) || !propagate(asBanned)) {
         if (!drawEdge(board, id) || !propagate(board)) return null;
+        if (учёт) учёт.доказано += 1;
         progress = true;
       }
     }
@@ -773,12 +865,22 @@ export function solveDotsPuzzleAt(
   tier: DotsTier,
   maxSteps = 4_000_000,
 ): DotsSolution | null {
-  if (tier === 'search') return solveDotsPuzzle(puzzle, maxSteps);
-  const solution = tier === 'forced'
-    ? solveForced(puzzle)
-    : solveByContradiction(puzzle);
-  if (!solution) return null;
-  return validateDotsSolution(puzzle, solution).complete ? solution : null;
+  if (tier === 'forced') {
+    const solution = solveForced(puzzle);
+    return solution && validateDotsSolution(puzzle, solution).complete ? solution : null;
+  }
+  /**
+   * Обе верхние ступени выводят доску одним и тем же рассуждением; отличает их
+   * ДЛИНА цепи. Поэтому «от противного» отказывается от доски, которой не
+   * хватило порога, — иначе `dotsPuzzleTier` объявил бы ступенью «от
+   * противного» и ту доску, что требует девяти доказательств подряд.
+   */
+  const учёт = { доказано: 0 };
+  const solution = solveByContradiction(puzzle, учёт);
+  if (!solution || !validateDotsSolution(puzzle, solution).complete) return null;
+  const длинная = учёт.доказано >= ЦЕПОЧКА_С;
+  if (tier === 'chain') return длинная ? solution : null;
+  return длинная ? null : solution;
 }
 
 /**
@@ -786,6 +888,13 @@ export function solveDotsPuzzleAt(
  * требуемому рассуждению. `null` — не поддалась ни одной; для наших досок это
  * означало бы поломку: решение у них есть по построению.
  */
+export function длинаЦепиВывода(puzzle: DotsPuzzle): number | null {
+  const учёт = { доказано: 0 };
+  const solution = solveByContradiction(puzzle, учёт);
+  if (!solution || !validateDotsSolution(puzzle, solution).complete) return null;
+  return учёт.доказано;
+}
+
 export function dotsPuzzleTier(puzzle: DotsPuzzle, maxSteps = 4_000_000): DotsTier | null {
   for (const tier of DOTS_TIERS) {
     if (solveDotsPuzzleAt(puzzle, tier, maxSteps)) return tier;

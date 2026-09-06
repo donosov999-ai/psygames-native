@@ -118,11 +118,14 @@ function complaints(puzzle: DotsPuzzle, shown: DotsPaths): string[] {
     }
   }
 
-  const total = puzzle.size * puzzle.size;
+  // ⚠️ Стены не покрываются — их нет на доске (правка 06.09.2026).
+  const стены = new Set((puzzle.walls ?? []).map((w) => `${w.row},${w.col}`));
+  const total = puzzle.size * puzzle.size - стены.size;
   if (owner.size !== total) {
     const empty: string[] = [];
     for (let row = 0; row < puzzle.size; row += 1) {
       for (let col = 0; col < puzzle.size; col += 1) {
+        if (стены.has(`${row},${col}`)) continue;
         if (!owner.has(`${row},${col}`)) empty.push(`${row},${col}`);
       }
     }
