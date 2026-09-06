@@ -132,12 +132,32 @@ const speakLetter = (letter: string) => { void speakLetterName(letter); };
  */
 export const NB_VOLUME_TOP = 13;   // на этом уровне N упирается в 6 — дальше держит растущий интервал
 
-export function levelParams(level: number): { N: number; modality: Modality; showMs: number; gapMs: number } {
+export function levelParams(level: number): { N: number; modality: Modality; showMs: number; gapMs: number; lureRate?: number } {
   if (level <= 5) return { N: level, modality: 'single', showMs: 700, gapMs: 1100 };
   if (level <= 8) { const f = level - 5; return { N: 5, modality: 'single', showMs: Math.max(450, 700 - f * 80), gapMs: Math.max(700, 1100 - f * 130) }; }
   const dl = level - 8;
   const hold = Math.max(0, level - NB_VOLUME_TOP) * 200;   // ось 3: дольше держать цепочку
-  return { N: Math.min(6, 1 + dl), modality: 'dual', showMs: 700, gapMs: 1100 + hold };   // L9=2-back dual → растёт до 6
+  /**
+   * 🔴 ОСЬ 5 — ПРИМАНКИ. Стимул, совпадающий с позицией N±1 назад: рука тянется
+   * нажать, а совпадения нет. Бьёт по d′ напрямую, не трогая глубину.
+   * ⚠️ Генератор умеет их сам (`lureRateFor(n)`), но привязан к ГЛУБИНЕ и упирается
+   * в 0.2 уже при n=4 — а глубина в игре упирается в 6. То есть штатные приманки
+   * застывают раньше, чем кончается лестница. Поэтому долю задаём от УРОВНЯ.
+   */
+/**
+   * ⚠️ ПОТОЛОК 0.45 — ЭТО ФИЗИКА ЭТОЙ ОСИ, А НЕ ПОТОЛОК СЛОЖНОСТИ. Позиции делятся
+   * между целями и приманками: доля выше половины оставила бы блок без чистых
+   * позиций, и проба перестала бы измерять. Мой же гейт это и поймал — «L27: false»,
+   * то есть выше L26 приманки переставали расти.
+   * ⚠️ И ПЛАТО ИЗ ЭТОГО НЕ ВЫХОДИТ: выше L26 лестницу продолжает ось 3 — интервал
+   * между стимулами растёт без потолка (+200 мс за уровень), уровни остаются
+   * различимыми. Ось 9 (глубина меняется ВНУТРИ партии) ещё не построена; когда
+   * будет — заберёт нагрузку у интервала. Задача 103cd98d.
+   * ⚠️ Здесь сознательно НЕ объявлен параметр под неё: объявить сложность, которая
+   * не исполняется, — это ровно тот дефект, что найден сегодня трижды.
+   */
+  const lureRate = Math.min(0.45, 0.2 + Math.max(0, level - NB_VOLUME_TOP) * 0.02);
+  return { N: Math.min(6, 1 + dl), modality: 'dual', showMs: 700, gapMs: 1100 + hold, lureRate };   // L9=2-back dual → растёт до 6
 }
 
 /**
@@ -240,6 +260,8 @@ export default function NBackGame() {
   const levelRef = useRef(1);
   const showMsRef = useRef(700);
   const gapMsRef = useRef(1100);
+  /** Доля приманок текущего уровня — ось 5, см. levelParams. */
+  const lureRateRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     return () => {
@@ -254,6 +276,7 @@ export default function NBackGame() {
       levelRef.current = lvl.level;
       showMsRef.current = p.showMs;
       gapMsRef.current = p.gapMs;
+      lureRateRef.current = p.lureRate;   // ось 5: доля приманок от УРОВНЯ, а не от глубины
       setNLevel(p.N);
       /**
        * 🔴 БЕЗ РЕЧИ ДВОЙНОЙ РЕЖИМ — ЭТО ОБМАН СЧЁТА. Итог берётся по ХУДШЕМУ из
@@ -293,8 +316,8 @@ export default function NBackGame() {
     const nForBlock = isPreset
       ? capPresetByLevel({ want: nLevel, atLevel: levelParams(lvl.level).N, atTop: lvl.level >= 14 })
       : levelParams(lvl.level).N;
-    seqRef.current = buildNbackSequence(trials, nForBlock, 9, Math.random);
-    audioSeqRef.current = buildNbackSequence(trials, nForBlock, AUDIO_LETTERS.length, Math.random);
+    seqRef.current = buildNbackSequence(trials, nForBlock, 9, Math.random, lureRateRef.current);
+    audioSeqRef.current = buildNbackSequence(trials, nForBlock, AUDIO_LETTERS.length, Math.random, lureRateRef.current);
     setTimeout(() => runTrial([], [], -1), 600);
   };
 

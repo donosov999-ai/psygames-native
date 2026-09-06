@@ -73,8 +73,19 @@ function shuffle<T>(rng: Rng, list: T[]): T[] {
  * @param n        глубина n-back
  * @param alphabet сколько разных стимулов бывает (9 клеток, либо число букв)
  */
+/**
+ * 🔴 ДОЛЯ ПРИМАНОК МОЖЕТ ЗАДАВАТЬСЯ СНАРУЖИ. Добавлено 07.09.2026.
+ *
+ * ЗАЧЕМ. `lureRateFor(n)` растёт по глубине и упирается в 0.2 уже при n=4.
+ * А сама глубина в игре упирается в 6 (семибэк не берёт никто). Значит выше этого
+ * приманки застывают вместе с ней, и уровни снова перестают различаться.
+ * Ось 5 работает, только если её долей можно править отдельно от глубины —
+ * поэтому необязательный `lureRate` перекрывает расчёт по n.
+ * ⚠️ Не передали — поведение прежнее, до последней цифры: все существующие вызовы
+ * и пробы квоты этого не заметят.
+ */
 export function buildNbackSequence(
-  trials: number, n: number, alphabet: number, rng: Rng,
+  trials: number, n: number, alphabet: number, rng: Rng, lureRate?: number,
 ): NbackSequence {
   /**
    * 🔴 СОБИРАЕМ ДО ТОЧНОГО ПОПАДАНИЯ, А НЕ «ПОЧТИ».
@@ -95,7 +106,7 @@ export function buildNbackSequence(
    */
   let last: NbackSequence | null = null;
   for (let attempt = 0; attempt < 40; attempt++) {
-    const built = buildOnce(trials, n, alphabet, rng);
+    const built = buildOnce(trials, n, alphabet, rng, lureRate);
     last = built;
     if (countMatches(built.items, n) === built.matchAt.length
       && countLures(built.items, n) === built.lureAt.length) return built;
@@ -104,7 +115,7 @@ export function buildNbackSequence(
 }
 
 function buildOnce(
-  trials: number, n: number, alphabet: number, rng: Rng,
+  trials: number, n: number, alphabet: number, rng: Rng, lureRate?: number,
 ): NbackSequence {
   const items: number[] = new Array(trials).fill(-1);
 
@@ -117,7 +128,7 @@ function buildOnce(
   for (let i = n; i < trials; i++) eligible.push(i);
 
   const matchCount = Math.round(eligible.length * MATCH_RATE);
-  const lureCount = Math.round(eligible.length * lureRateFor(n));
+  const lureCount = Math.round(eligible.length * (lureRate ?? lureRateFor(n)));
 
   const shuffled = shuffle(rng, eligible);
   const matchAt = shuffled.slice(0, matchCount).sort((a, b) => a - b);
