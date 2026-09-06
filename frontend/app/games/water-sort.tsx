@@ -29,6 +29,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, type LevelRule } from '@/src/components/LevelRules';
 import GameSetupBar from '@/src/components/GameSetupBar';
 import GameAbout from '@/src/components/GameAbout';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -44,6 +45,9 @@ import {
   Field, isDone, isSolved, canPour, pour, legalMoves,
 } from '@/src/games/water-sort/core/tubes';
 import { generateLevel, levelParams, solve } from '@/src/games/water-sort/core/generate';
+import {
+  СКРЫТО_С, скрытоНаУровне, скрытыеСлои, слойВиден, звёздыПоХодам,
+} from '@/src/games/water-sort/core/hidden';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GAME_ID = 'water-sort';
@@ -86,13 +90,37 @@ const ЦВЕТА: { fill: string; mark: string }[] = [
  * нет и не будет — расхождение двух формул уже стоило ханойской башне трёх звёзд
  * на каждом уровне выше пятого.
  */
-function звёзды(ходов: number, минимум: number): number {
+function звёзды(ходов: number, минимум: number, уровень: number): number {
+  /**
+   * 🔴 УСЛОВИЕ 4 СКРЫТОГО СЛОЯ. Под неполной информацией минимума НЕ
+   * СУЩЕСТВУЕТ: разведка стоит ходов, которых в минимуме нет, и человек,
+   * честно разведавший доску, получил бы одну звезду за то, чего не мог знать.
+   * Ровно это и звучит в отзывах на чужие игры как «повезёт — не повезёт».
+   * На таких уровнях мера другая: дошёл до конца — три звезды.
+   */
+  if (!звёздыПоХодам(уровень)) return 3;
   if (!минимум) return 3;
   const доля = ходов / минимум;
   if (доля <= 1.2) return 3;
   if (доля <= 1.8) return 2;
   return 1;
 }
+
+/**
+ * 🔴 ПРАВИЛО ОБЪЯВЛЯЕТСЯ ДО УРОВНЯ — УСЛОВИЕ 6 СКРЫТОГО СЛОЯ.
+ *
+ * 📍 ЗАЧЕМ ОТДЕЛЬНАЯ СТРОКА В КОДЕ, А НЕ «И так понятно». В соседней игре ровно
+ * эта механика шла МОЛЧА шесть дней: сделана 27.08.2026, правило заведено
+ * 02.09.2026 — и всё это время человек натыкался на «?» без объяснения. Долг был
+ * записан, повторять его не надо.
+ *
+ * ⚠️ `fromLevel` равен `СКРЫТО_С` не случайно: разъедутся — правило начнёт
+ * показываться не на том уровне, где механика включается. Равенство стережёт
+ * гейт.
+ */
+export const WATER_SORT_RULES: LevelRule[] = [
+  { key: 'hidden', fromLevel: СКРЫТО_С },
+];
 
 const БОНУСЫ = [
   { icon: 'map-outline', textKey: 'waterSortBenefitPlan' },
@@ -264,6 +292,26 @@ export default function WaterSortGame() {
    */
   const копия = (f: Field): Field => ({ cap: f.cap, tubes: f.tubes.map((t) => [...t]) });
 
+  /**
+   * 🔴 СКРЫТЫЕ СЛОИ ХРАНЯТСЯ НАБОРОМ ОТ РАЗДАЧИ, А ВИДИМОСТЬ СЧИТАЕТСЯ ОТ ЖИВОГО
+   * ПОЛЯ. Это и делает условие 5 бесплатным: отмена возвращает столбик, слой
+   * снова оказывается не верхним — и снова закрывается сам, без отдельной
+   * истории скрытости. Хранить «что уже открыто» значило бы завести вторую
+   * правду о доске, а они расходятся (на этом уже обжигались в сортировке).
+   */
+  const [скрытые, setСкрытые] = useState<ReadonlySet<number>>(new Set());
+
+  /** Зерно от номера уровня: тот же уровень — то же спрятанное, при любом заходе. */
+  const зерноУровня = (L: number) => {
+    let a = (L * 7919) >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  };
+
   const пуск = (свежая = true) => {
     if (тупикБылRef.current) { lvl.fail(); тупикБылRef.current = false; }
     const сохранена = начальнаяRef.current;
@@ -276,6 +324,8 @@ export default function WaterSortGame() {
     const { field: доска, solutionMoves } = взять;
     setPlayedLevel(lvl.level);
     setField(доска);
+    // Зерно от уровня: «Заново» обязано вернуть ту же доску и то же спрятанное.
+    setСкрытые(скрытоНаУровне(lvl.level) ? скрытыеСлои(доска, зерноУровня(lvl.level)) : new Set());
     setМинимум(solutionMoves);
     setВыбрана(null);
     setПодсказка(null);
@@ -369,6 +419,7 @@ export default function WaterSortGame() {
   };
 
   const тупик = !!field && phase === 'playing' && legalMoves(field).length === 0 && !isSolved(field);
+  const правилаУровня = useLevelRules('water_sort', lvl.level, WATER_SORT_RULES, phase === 'playing');
   /**
    * ⚠️ ОТМЕТКА ТУПИКА — В ЭФФЕКТЕ, А НЕ В ТЕЛЕ ОТРИСОВКИ. Запись в ref во время
    * рендера ломает React в строгом режиме (двойной проход) и ловится линтом
@@ -394,7 +445,8 @@ export default function WaterSortGame() {
         key={i}
         accessibilityRole="button"
         accessibilityLabel={трубка.length
-          ? трубка.map((c) => ЦВЕТА[c % ЦВЕТА.length]!.mark).join(' ')
+          ? трубка.map((c, глуб) => (слойВиден(field!, скрытые, i, глуб)
+            ? ЦВЕТА[c % ЦВЕТА.length]!.mark : '?')).join(' ')
           : t('waterSortEmptyTube')}
         accessibilityState={{ selected: выбор }}
         onPress={() => нажать(i)}
@@ -406,6 +458,13 @@ export default function WaterSortGame() {
           {[...трубка].reverse().map((c, k) => {
             const снизу = трубка.length - 1 - k;                 // индекс порции от дна
             const дно = снизу === 0;
+            /**
+             * ⚠️ СКРЫТЫЙ СЛОЙ РИСУЕТСЯ СЕРЫМ СО ЗНАКОМ ВОПРОСА, А НЕ ЧЁРНЫМ.
+             * Чёрная порция читается как «пустое место» или как поломка; знак
+             * вопроса говорит «здесь есть цвет, и он неизвестен» — а это разные
+             * сообщения. Верхний слой сюда не попадает никогда (условие 1).
+             */
+            const видно = слойВиден(field!, скрытые, i, снизу);
             return (
               <View
                 key={k}
@@ -413,13 +472,13 @@ export default function WaterSortGame() {
                   styles.порция,
                   {
                     height: высотаПорции,
-                    backgroundColor: ЦВЕТА[c % ЦВЕТА.length]!.fill,
+                    backgroundColor: видно ? ЦВЕТА[c % ЦВЕТА.length]!.fill : '#6b7280',
                     borderBottomLeftRadius: дно ? ширинаЖ / 2 : 0,
                     borderBottomRightRadius: дно ? ширинаЖ / 2 : 0,
                   },
                 ]}
               >
-                <Text style={styles.знак}>{ЦВЕТА[c % ЦВЕТА.length]!.mark}</Text>
+                <Text style={styles.знак}>{видно ? ЦВЕТА[c % ЦВЕТА.length]!.mark : '?'}</Text>
               </View>
             );
           })}
@@ -489,7 +548,9 @@ export default function WaterSortGame() {
           { key: 'time', icon: 'time', label: t('time'), value: hudTime(времени, t('secShort')) },
           { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: `${закрыто}/${levelParams(playedLevel).colors}` },
         ]}
+        headerRight={<LevelRuleBadge lr={правилаУровня} color="#0072ff" ru={language === 'ru'} />}
       >
+        <LevelRuleModal lr={правилаУровня} colors={colors} ru={language === 'ru'} />
         {/**
           * ⚠️ ПОЛЕ ЦЕНТРИРУЕТСЯ ПО ВЫСОТЕ. Кадр 05.09.2026: пробирки жались к
           * верхней кромке, под ними оставалось пол-экрана пустоты, а строка
@@ -558,7 +619,7 @@ export default function WaterSortGame() {
         <LevelCleared
           gameId={GAME_ID}
           level={playedLevel}
-          stars={звёзды(ходов, минимум)}
+          stars={звёзды(ходов, минимум, lvl.level)}
           gradient={GRADIENT}
           language={language}
           colors={colors}
