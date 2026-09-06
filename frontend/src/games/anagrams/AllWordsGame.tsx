@@ -31,10 +31,17 @@ export interface AllWordsProps {
    * стороны круга, которая уже считается от ширины экрана.
    */
   maxListHeight?: number;
+  /**
+   * Как показать НАЙДЕННОЕ слово человеку, если клетки читаются не так, как
+   * пишется слово. Нужен ровно одному языку: корейские плитки — чамо (ㅅㅏㄹㅏㅇ),
+   * а слово пишется слоговыми блоками (사랑). Для латиницы и кириллицы не
+   * задаётся: там плитка и есть буква.
+   */
+  подписьНайденного?: (слово: string) => string;
   labels: { найдено: string; подсказки: string; банк: string; сдать: string; сброс: string; подсказка: string };
 }
 
-export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, maxListHeight, labels }: AllWordsProps) {
+export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, maxListHeight, подписьНайденного, labels }: AllWordsProps) {
   const [найдены, setНайдены] = React.useState<string[]>([]);
   const [линия, setЛиния] = React.useState<number[]>([]);
   /**
@@ -147,8 +154,9 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
              * клеток, и понять, где кончается одно слово и начинается другое,
              * было нельзя — а длина слова здесь и есть условие задачи.
              */
-            <View key={слово} style={[стили.строкаСлова, { backgroundColor: theme.surface }]}
-              accessible accessibilityLabel={открыто ? слово : `${слово.length}`}>
+            <View key={слово} style={стили.гнездоСлова}>
+            <View style={[стили.строкаСлова, { backgroundColor: theme.surface }]}
+              accessible accessibilityLabel={открыто ? (подписьНайденного?.(слово) ?? слово) : `${слово.length}`}>
               {[...слово].map((ch, i) => (
                 <View key={i} style={[стили.клетка, {
                   width: клетка, height: клетка + 4,
@@ -163,6 +171,18 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
                   </Text>
                 </View>
               ))}
+            </View>
+            {/*
+              Подпись под клетками — только у найденного и только там, где плитка
+              не равна букве. Клетки остаются условием задачи (они показывают
+              длину), а подпись говорит, ЧТО именно человек собрал: цепочку
+              ㅅㅏㄹㅏㅇ по-корейски читают как 사랑.
+            */}
+            {открыто && подписьНайденного && подписьНайденного(слово) !== слово ? (
+              <Text style={[стили.подпись, { color: theme.textSecondary, fontSize: Math.max(11, клетка * 0.5) }]}>
+                {подписьНайденного(слово)}
+              </Text>
+            ) : null}
             </View>
           );
         })}
@@ -235,7 +255,9 @@ const стили = StyleSheet.create({
   // ⚠️ Ширина задаётся на месте (`width: size`): flexWrap без границы ширины
   // не переносит вовсе — на это уже наступали в других играх проекта.
   список: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, paddingBottom: 2 },
+  гнездоСлова: { alignItems: 'center' },
   строкаСлова: { flexDirection: 'row', gap: 2, padding: 3, borderRadius: 7 },
+  подпись: { marginTop: 1, fontWeight: '700' },
   клетка: { alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderRadius: 4 },
   букваСлова: { fontWeight: '800' },
   набор: { fontSize: 22, fontWeight: '800', letterSpacing: 3, minHeight: 28 },

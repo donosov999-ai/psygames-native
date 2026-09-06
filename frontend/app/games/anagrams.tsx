@@ -34,6 +34,7 @@ import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
 import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
 import { allWordsCount, allWordsPack } from '@/src/games/anagrams/core/allWords';
 import { собратьКольца, ключКольца, лестницаКолец } from '@/src/games/anagrams/core/ring';
+import { показатьКорейское } from '@/src/games/anagrams/core/chamo';
 import { wordPool, wordsOfLength } from '@/src/games/fillwords/core/words';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -633,6 +634,13 @@ export default function AnagramGame() {
             pack={пак}
             seed={lvl.level}
             size={Math.min(width - 32, 380)}
+            /*
+              Подпись даётся ВСЕГДА, без проверки языка: для латиницы и кириллицы
+              `показатьКорейское` возвращает слово как есть, и подпись не рисуется
+              (условие в компоненте — «показ отличается от слова»). Так не нужно
+              сравнивать `wordLang.lang` с языком, которого в его типе пока нет.
+            */
+            подписьНайденного={показатьКорейское}
             theme={{ surface: colors.surface, text: colors.text, textSecondary: colors.textSecondary, border: colors.border, primary: GRADIENT[0], success: '#12a594', danger: '#e24b4a' }}
             labels={{ найдено: t('label_found'), подсказки: t('btn_hint'), банк: t('anagramSquareBank'), сдать: t('check'), сброс: t('clear'), подсказка: t('btn_hint') }}
             now={gameNow}
