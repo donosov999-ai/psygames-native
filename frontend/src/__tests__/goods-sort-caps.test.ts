@@ -13,7 +13,7 @@
 declare const __dirname: string;
 declare function require(m: string): any;
 
-import { capsFor, CAP_MIN, CAP_MAX, MIXED_CAP_FROM, placementOk, tripleIn, removeTriple } from '@/app/games/goods-sort';
+import { capsFor, CAP_ONE, CAP_MIN, CAP_MAX, MIXED_CAP_FROM, placementOk, tripleIn, removeTriple } from '@/app/games/goods-sort';
 
 const SLOTS = [9, 12, 15, 16, 18];
 
@@ -50,14 +50,57 @@ describe('ёмкости ниш', () => {
   });
 
   it('ёмкость каждой ниши в разумных пределах', () => {
+    /**
+     * 🔴 НИЖНЯЯ ГРАНИЦА ОПУЩЕНА ДО ЕДИНИЦЫ 06.09.2026 — по просьбе Дениса
+     * («у них есть полки на 4 товара и на 1 товар, у нас только на 3»).
+     * Проверка осталась настоящей: границы стерегутся, просто нижняя другая.
+     */
     for (let L = 1; L <= 60; L++) {
       for (const slots of SLOTS) {
         for (const c of capsFor(L, slots)) {
-          expect(c).toBeGreaterThanOrEqual(CAP_MIN);
+          expect(c).toBeGreaterThanOrEqual(CAP_ONE);
           expect(c).toBeLessThanOrEqual(CAP_MAX);
         }
       }
     }
+  });
+
+  /**
+   * 🔴 ЛЕСТНИЦА НЕ ОТКАТЫВАЕТСЯ. Проба написана потому, что первая версия
+   * `capsFor` откатывалась: общий потолок нетиповых ниш урезал пары, когда
+   * появлялась группа с единицей, и доска на стыке становилась ПРОЩЕ
+   * предыдущей. Замер до правки — 202 отката на 400 уровнях × 35 размеров
+   * доски; чтение формулы глазами этого не показывало.
+   *
+   * ⚠️ Поэтому здесь именно ПРОГОН всех уровней подряд, а не сравнение первого
+   * с последним: ломается такое на границе между участками.
+   */
+  it('🔴 доля ниш не на три растёт по уровням и не откатывается', () => {
+    const откаты: string[] = [];
+    for (const slots of SLOTS) {
+      let пред = 0;
+      for (let L = 1; L <= 200; L++) {
+        const н = capsFor(L, slots).filter((c) => c !== 3).length;
+        if (н < пред) откаты.push(`ниш ${slots}, L${L}: было ${пред}, стало ${н}`);
+        пред = н;
+      }
+    }
+    expect(откаты).toEqual([]);
+  });
+
+  /**
+   * ⚠️ И НИША НА ОДИН ТОВАР ДЕЙСТВИТЕЛЬНО ПОЯВЛЯЕТСЯ. Без этой строки проба
+   * выше зеленеет и на схеме, где единиц нет вовсе: «ноль не меньше нуля».
+   */
+  it('🔴 ниша на один товар выдаётся на всех размерах доски', () => {
+    const без: string[] = [];
+    for (const slots of SLOTS) {
+      if (slots < 7) continue;
+      const есть = Array.from({ length: 200 }, (_, i) => i + 1)
+        .some((L) => capsFor(L, slots).includes(CAP_ONE));
+      if (!есть) без.push(`ниш ${slots}: ни на одном уровне до 200`);
+    }
+    expect(без).toEqual([]);
   });
 
   /** Повтор уровня обязан давать ту же форму доски: расклад случаен, форма нет. */
