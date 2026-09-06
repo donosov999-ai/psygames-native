@@ -13,7 +13,7 @@
  */
 import {
   собратьКроссворд, словаУровня, словНаУровне, СЛОВ_МИН, СЛОВ_МАКС,
-  подсказкаКроссворда, кроссвордСобран, кроссвордНачат, ГОРИЗ, ВЕРТ,
+  подсказкаКроссворда, кроссвордСобран, кроссвордНачат, ГОРИЗ,
 } from '@/src/games/anagrams/core/crossword';
 import { allWordsPack, allWordsCount, allWordsLocales } from '@/src/games/anagrams/core/allWords';
 

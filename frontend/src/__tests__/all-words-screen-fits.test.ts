@@ -13,12 +13,19 @@
  */
 import React from 'react';
 
+/**
+ * ⚠️ `require`, А НЕ `import`, И ЭТО ВЫНУЖДЕННО. `jest.mock` поднимается наверх
+ * файла, а `import` вычисляется ещё раньше — экран успел бы взять НАСТОЯЩЕЕ
+ * кольцо букв вместо заглушки, и проба мерила бы не то, что заявлено.
+ */
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- см. комментарий выше
 const TestRenderer = require('react-test-renderer');
 
 jest.mock('@/src/components/letterWheel/LetterWheel', () => ({
   LetterWheel: () => null,
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- загрузка ПОСЛЕ jest.mock, см. выше
 const { AllWordsGame } = require('@/src/games/anagrams/AllWordsGame');
 
 const ТЕМА = {
