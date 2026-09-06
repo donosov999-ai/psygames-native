@@ -248,7 +248,6 @@ describe('«Соедини точки» — полное покрытие обя
     const level = 4;   // та же доска, что и в проверке выше — см. пояснение там
     const puzzle = generateDotsPuzzle('coverage-check', level);
     const full = solveDotsPuzzle(puzzle) as DotsSolution;
-    const доска = puzzle as ReturnType<typeof generateDotsPuzzle>;
     let session = startRound(createDotsSession({ seed: 'coverage-check', level }), 1_000);
     session = drawSolution(session, full);
     expect(session.phase).toBe('result');
@@ -381,52 +380,6 @@ function drawSolution(start: DotsSession, solution: DotsSolution): DotsSession {
   return session;
 }
 
-/**
- * Раскладка, где ВСЕ пары соединены, но доска не заполнена: одному пути ищем
- * более короткий обход по клеткам, не занятым остальными. Ровно тот соблазн,
- * которому поддаётся живой игрок, — «соединил и ладно».
- */
-function shortcutSolution(puzzle: DotsPuzzle, full: DotsSolution): DotsSolution | null {
-  for (const pair of puzzle.pairs) {
-    const own = full[pair.id] as Cell[];
-    const blocked = new Set<string>();
-    for (const other of puzzle.pairs) {
-      if (other.id === pair.id) continue;
-      for (const cell of full[other.id] as Cell[]) blocked.add(key(cell));
-    }
-    const shorter = shortestPath(puzzle.size, pair.endpoints[0], pair.endpoints[1], blocked);
-    if (!shorter || shorter.length >= own.length) continue;
-    return { ...full, [pair.id]: shorter };
-  }
-  return null;
-}
-
-function shortestPath(size: number, from: Cell, to: Cell, blocked: Set<string>): Cell[] | null {
-  const queue: Cell[] = [from];
-  const parents = new Map<string, string | null>([[key(from), null]]);
-  while (queue.length > 0) {
-    const current = queue.shift() as Cell;
-    if (current.row === to.row && current.col === to.col) break;
-    for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]] as const) {
-      const next = { row: current.row + dr, col: current.col + dc };
-      if (next.row < 0 || next.col < 0 || next.row >= size || next.col >= size) continue;
-      const at = key(next);
-      if (parents.has(at)) continue;
-      if (blocked.has(at) && at !== key(to)) continue;
-      parents.set(at, key(current));
-      queue.push(next);
-    }
-  }
-  if (!parents.has(key(to))) return null;
-  const path: Cell[] = [];
-  let cursor: string | null = key(to);
-  while (cursor) {
-    const [row, col] = cursor.split(',').map(Number);
-    path.unshift({ row: row as number, col: col as number });
-    cursor = parents.get(cursor) ?? null;
-  }
-  return path;
-}
 
 /** Синтетическое касание: PanResponder читает не только координаты, но и историю. */
 let stamp = 0;

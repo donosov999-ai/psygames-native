@@ -712,6 +712,41 @@ export const GAMES: GameConfig[] = [
    * ханойской и лондонской башен. Ограничивает ход цвет верхнего слоя, а не
    * размер диска, но планирование то же.
    */
+  /**
+   * 🔴 ШАРИКИ И ГАЙКИ — ОТДЕЛЬНЫЕ ИГРЫ, РЕШЕНИЕ ДЕНИСА 06.09.2026, дословно:
+   * «шарики и гайки отдельными играми рядом… значит лепим, в хаб сортировка».
+   *
+   * ⚠️ Я ПРЕДЛАГАЛ СКИНОМ И БЫЛ ПЕРЕУБЕЖДЁН. Замер был: «Color Ball Sort» и
+   * «Сортировка Цветов Гаек» совпадают с переливалкой до правила — сосуд, слой,
+   * класть можно на свой цвет, пока есть место. Решение принято; цена названа в
+   * шапке `SortGameScreen` — три лестницы и три статистики вместо одной.
+   *
+   * Экран у всех троих ОДИН, различаются ключ лестницы, форма слоя и заголовок.
+   */
+  {
+    id: 'ball_sort',
+    nameKey: 'ballSort',
+    descKey: 'ballSortDesc',
+    skillKey: 'skillPlanning',
+    gradient: ['#f59e0b', '#ef4444'],
+    icon: 'ellipse',
+    route: '/games/ball-sort',
+    category: 'logic',
+    hideFromMenu: true,
+    mergedInto: 'sorting_group',
+  },
+  {
+    id: 'nut_sort',
+    nameKey: 'nutSort',
+    descKey: 'nutSortDesc',
+    skillKey: 'skillPlanning',
+    gradient: ['#64748b', '#0ea5e9'],
+    icon: 'settings',
+    route: '/games/nut-sort',
+    category: 'logic',
+    hideFromMenu: true,
+    mergedInto: 'sorting_group',
+  },
   {
     id: 'water_sort',
     nameKey: 'waterSort',

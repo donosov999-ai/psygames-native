@@ -188,6 +188,8 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
   '/games/sorting-hub': [
     { route: '/games/goods-sort', icon: 'basket', nameKey: 'goodsSort', descKey: 'goodsSortDesc' },
     { route: '/games/water-sort', icon: 'flask', nameKey: 'waterSort', descKey: 'waterSortDesc' },
+    { route: '/games/ball-sort', icon: 'ellipse', nameKey: 'ballSort', descKey: 'ballSortDesc' },
+    { route: '/games/nut-sort', icon: 'settings', nameKey: 'nutSort', descKey: 'nutSortDesc' },
   ],
 
   '/games/routes-hub': [

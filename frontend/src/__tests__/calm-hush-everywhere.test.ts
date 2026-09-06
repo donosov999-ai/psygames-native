@@ -30,7 +30,31 @@ import { setCalmHush, calmHushNow, soundOn, setSoundEnabled, getSoundEnabled } f
 
 const ROOT = path.join(__dirname, '../..');
 const GAMES = path.join(ROOT, 'app/games');
-const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+/**
+ * 🔴 ЧТЕНИЕ ИДЁТ ЗА ДЕЛЕГИРОВАНИЕМ. С 06.09.2026 три игры сидят на одном экране —
+ * «Переливалка», «Сортировка шариков», «Сортировка гаек»: различаются ключ
+ * лестницы, форма слоя и заголовок, всё остальное общее. Файл маршрута тогда
+ * занимает три строки, и `useCalmHush` в нём нет.
+ *
+ * ⚠️ ТРЕБОВАТЬ СТРОКУ В КАЖДОМ ФАЙЛЕ ЗНАЧИЛО БЫ ТРЕБОВАТЬ ТРИ КОПИИ ЭКРАНА —
+ * они разъезжаются за неделю, в проекте это уже случалось с двумя экранами
+ * судоку. Гейт проверяет ИГРУ: звучит ли она вечером тише. В каком файле
+ * написана строка — дело устройства, а не правила.
+ */
+const читатьФайл = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+
+const read = (rel: string): string => {
+  const src = читатьФайл(rel);
+  const дел = /import\s*\{\s*(\w+)\s*\}\s*from\s*'@\/app\/games\/([\w-]+)'/.exec(src);
+  if (!дел) return src;
+  const [, имя, файл] = дел;
+  if (!new RegExp(`<${имя}\\b`).test(src)) return src;
+  try {
+    return src + '\n' + читатьФайл(`app/games/${файл}.tsx`);
+  } catch {
+    return src;
+  }
+};
 const files: string[] = fs.readdirSync(GAMES).filter((f: string) => f.endsWith('.tsx')).sort();
 
 /** Экран не играет — глушить нечего: это меню, отсюда уходят в саму игру. */
