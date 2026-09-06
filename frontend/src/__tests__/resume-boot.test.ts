@@ -18,11 +18,13 @@
  */
 import React from 'react';
 
+import { useResumeBoot } from '@/src/hooks/useResumeBoot';
+
 declare function require(m: string): any;
 const TestRenderer = require('react-test-renderer');
 
 /** Кто и с каким профилем ходил в хранилище за партией. */
-const mockCalls: Array<{ gameId: string; pid: string; v: number }> = [];
+const mockCalls: { gameId: string; pid: string; v: number }[] = [];
 let mockStored: unknown = { board: 'партия' };
 
 jest.mock('@/src/services/resume', () => ({
@@ -42,8 +44,6 @@ declare const __dirname: string;
 const { readFileSync, readdirSync } = require('fs');
 const { join } = require('path');
 
-import { useResumeBoot } from '@/src/hooks/useResumeBoot';
-
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
 /**
@@ -51,7 +51,7 @@ const flush = () => new Promise((r) => setTimeout(r, 0));
  * точно как это делает React, когда профиль догрузился.
  */
 function mount(skip = false) {
-  const seen: Array<unknown> = [];
+  const seen: unknown[] = [];
   const Probe = () => {
     useResumeBoot('goods_sort', 3, (saved) => { seen.push(saved); }, skip);
     return null;

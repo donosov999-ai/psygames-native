@@ -20,6 +20,31 @@
  * хоть одному неразобранному слову, она на месте.
  */
 
+/**
+ * 🔴 КОЛЬЦА БЕРУТСЯ ГОТОВЫМИ ПАКАМИ, А НЕ СОБИРАЮТСЯ ПРИ ОТКРЫТИИ ЭКРАНА.
+ *
+ * 📍 Режим жил на двух языках, потому что кольца собирались в рантайме из
+ * фил-вордового пула: он есть у пяти языков и мал — 136 пятибуквенных слов у
+ * русского. Наборы «Найди все слова» дают их от 684 до 2898, и на все восемь.
+ *
+ * ⚠️ ПРОСТО ПОДМЕНИТЬ ИСТОЧНИК НЕЛЬЗЯ, И ЭТО ЗАМЕР. Из 400 русских слов
+ * собирается 90 283 кольца за 6 секунд; из 600 — 451 993 за 32 секунды; у
+ * немецкого из 800 слов 4 107 056 колец за шесть минут. Считать это в `useMemo`
+ * при открытии экрана — значит подвесить приложение на минуты. Сборка вынесена в
+ * `wordlist-build/build_rings.py`, сюда приходит готовый отсортированный список.
+ *
+ * `x` в записи — число ЛИШНИХ слов языка, собирающихся из банка кольца. Это ось
+ * трудности (см. `лестницаКолец`), по ней пак и отсортирован.
+ */
+import RINGS_RU from '@/src/constants/ringsRu.json';
+import RINGS_EN from '@/src/constants/ringsEn.json';
+import RINGS_DE from '@/src/constants/ringsDe.json';
+import RINGS_ES from '@/src/constants/ringsEs.json';
+import RINGS_FR from '@/src/constants/ringsFr.json';
+import RINGS_IT from '@/src/constants/ringsIt.json';
+import RINGS_PT from '@/src/constants/ringsPt.json';
+import RINGS_KO from '@/src/constants/ringsKo.json';
+
 export interface Кольцо {
   /** Слева направо по верхнему ряду. */
   верх: string;
@@ -196,31 +221,6 @@ export function лестницаКолец(кольца: readonly Кольцо[]
     || ключКольца(a.верх, a.право, a.низ, a.лево)
       .localeCompare(ключКольца(b.верх, b.право, b.низ, b.лево)));
 }
-
-/**
- * 🔴 КОЛЬЦА БЕРУТСЯ ГОТОВЫМИ ПАКАМИ, А НЕ СОБИРАЮТСЯ ПРИ ОТКРЫТИИ ЭКРАНА.
- *
- * 📍 Режим жил на двух языках, потому что кольца собирались в рантайме из
- * фил-вордового пула: он есть у пяти языков и мал — 136 пятибуквенных слов у
- * русского. Наборы «Найди все слова» дают их от 684 до 2898, и на все восемь.
- *
- * ⚠️ ПРОСТО ПОДМЕНИТЬ ИСТОЧНИК НЕЛЬЗЯ, И ЭТО ЗАМЕР. Из 400 русских слов
- * собирается 90 283 кольца за 6 секунд; из 600 — 451 993 за 32 секунды; у
- * немецкого из 800 слов 4 107 056 колец за шесть минут. Считать это в `useMemo`
- * при открытии экрана — значит подвесить приложение на минуты. Сборка вынесена в
- * `wordlist-build/build_rings.py`, сюда приходит готовый отсортированный список.
- *
- * `x` в записи — число ЛИШНИХ слов языка, собирающихся из банка кольца. Это ось
- * трудности (см. `лестницаКолец`), по ней пак и отсортирован.
- */
-import RINGS_RU from '@/src/constants/ringsRu.json';
-import RINGS_EN from '@/src/constants/ringsEn.json';
-import RINGS_DE from '@/src/constants/ringsDe.json';
-import RINGS_ES from '@/src/constants/ringsEs.json';
-import RINGS_FR from '@/src/constants/ringsFr.json';
-import RINGS_IT from '@/src/constants/ringsIt.json';
-import RINGS_PT from '@/src/constants/ringsPt.json';
-import RINGS_KO from '@/src/constants/ringsKo.json';
 
 interface ЗаписьКольца { t: string; r: string; b: string; l: string; x: number }
 

@@ -46,7 +46,9 @@ import { hudTime } from '@/src/services/hudTime';
 import {
   Field, isDone, isSolved, canPour, pour, legalMoves, capOf, stonesIn, isOpen,
 } from '@/src/games/water-sort/core/tubes';
-import { generateLevel, levelParams, solve } from '@/src/games/water-sort/core/generate';
+import {
+  generateLevel, levelParams, solve, КОРОТКИЕ_С, КАМНИ_С, ОТЛОЖЕННЫЙ_С,
+} from '@/src/games/water-sort/core/generate';
 import {
   СКРЫТО_С, скрытоНаУровне, скрытыеСлои, слойВиден, звёздыПоХодам,
 } from '@/src/games/water-sort/core/hidden';
@@ -122,6 +124,14 @@ function звёзды(ходов: number, минимум: number, уровень
  */
 export const WATER_SORT_RULES: LevelRule[] = [
   { key: 'hidden', fromLevel: СКРЫТО_С },
+  /**
+   * ⚠️ УРОВНИ БЕРУТСЯ ИЗ ГЕНЕРАТОРА, А НЕ ПИШУТСЯ ЧИСЛАМИ. Правило обязано
+   * появиться ровно там, где механика включается: разъедутся — человек прочтёт
+   * про камни за четыре уровня до первого камня либо увидит камни без объяснения.
+   */
+  { key: 'short', fromLevel: КОРОТКИЕ_С },
+  { key: 'stones', fromLevel: КАМНИ_С },
+  { key: 'sealed', fromLevel: ОТЛОЖЕННЫЙ_С },
 ];
 
 const БОНУСЫ = [

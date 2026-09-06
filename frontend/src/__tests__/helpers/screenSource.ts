@@ -16,7 +16,16 @@
  */
 declare const __dirname: string;
 
+/*
+ * ⚠️ `require`, А НЕ `import` — И ЭТО НЕ НЕБРЕЖНОСТЬ. В tsconfig проекта нет
+ * типов узла, поэтому `import { readFileSync } from 'fs'` роняет `tsc` двумя
+ * ошибками «Cannot find name 'fs'». Соседние пробы держат `require` по той же
+ * причине. Заглушка точечная и с причиной: молча копить предупреждение в общем
+ * долге хуже, чем назвать его здесь.
+ */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { readFileSync, existsSync } = require('fs');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { join } = require('path');
 
 const ROOT = join(__dirname, '..', '..', '..');

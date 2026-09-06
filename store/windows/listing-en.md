@@ -42,7 +42,7 @@ Sit down to work — and two hours later you still haven't reached for the phone
 
 That's not a gift you're born with. It's trained — and here you can see by how much.
 
-Brain Tools is cognitive training with 70 exercises for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
+Brain Tools is cognitive training with 71 exercises for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
 
 WHY THE DESKTOP VERSION IS THE ONE THAT STICKS
 
@@ -75,7 +75,7 @@ Most brain apps are the same drill at the same difficulty, and progress you have
 
 WHAT'S INSIDE
 
-• 70 exercises for memory, attention, logic, speed and control
+• 71 exercises for memory, attention, logic, speed and control
 • Warm-up in one button: morning, daytime, evening and night — ready sets launch with the right settings
 • 12 profiles for different goals: languages, kids, 50+, focus, reaction, founders and more
 • Assessment with a radar of strengths and weak spots
@@ -115,7 +115,7 @@ Install and play. Progress is stored on your device. Optional anonymous cloud sy
 Лимит 20 пунктов, по одной строке. Первые три видны в плитке — там самое сильное.
 
 ```
-70 exercises for memory, attention, logic and speed
+71 exercises for memory, attention, logic and speed
 Full-screen Schulte tables, matrices and Sudoku
 Levels that adapt: rise when you nail it, wait when you miss
 Sudoku with 15 rule variants
@@ -156,7 +156,7 @@ mental math trainer
 Shown at the top of the Store listing. Recommended ≤270 characters.
 
 ```
-Brain training that survives past week one. 70 exercises for memory, attention, logic and speed — every one a validated paradigm, not invented mechanics. Levels adapt to you, a streak keeps you honest, progress is measurable. Offline. No ads, no sign-up.
+Brain training that survives past week one. 71 exercises for memory, attention, logic and speed — every one a validated paradigm, not invented mechanics. Levels adapt to you, a streak keeps you honest, progress is measurable. Offline. No ads, no sign-up.
 ```
 
 ---

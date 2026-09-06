@@ -723,6 +723,24 @@ export const GAMES: GameConfig[] = [
    *
    * Экран у всех троих ОДИН, различаются ключ лестницы, форма слоя и заголовок.
    */
+  /**
+   * ⚠️ ТОРТЫ — ОТДЕЛЬНАЯ ИГРА СО СВОИМ ЯДРОМ, а не шкурка переливалки: круг из
+   * шести, очередь входящих, своя мера звёзд. Запись в каталоге заведена
+   * 06.09.2026 при сборке выпуска 2.47.0 — без неё экран существовал, а
+   * добраться до него было нельзя (гейт `game-routes`).
+   */
+  {
+    id: 'cake_sort',
+    nameKey: 'cakeSort',
+    descKey: 'cakeSortDesc',
+    skillKey: 'skillPlanning',
+    gradient: ['#f472b6', '#f59e0b'],
+    icon: 'cafe',
+    route: '/games/cake-sort',
+    category: 'logic',
+    hideFromMenu: true,
+    mergedInto: 'sorting_group',
+  },
   {
     id: 'ball_sort',
     nameKey: 'ballSort',
