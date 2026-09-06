@@ -222,6 +222,14 @@ export default function ProofreadingGame() {
    */
   const fwAvailable = isFillwordsLocale(language);
   const [taskMode, setTaskMode] = useState<TaskMode>('letters');
+  /**
+   * 🔴 ЛИНИЯ ГНЁТСЯ ИЛИ ИДЁТ ПРЯМО — ЭТО ОСЬ СЛОЖНОСТИ, А НЕ УКРАШЕНИЕ.
+   * Замер: пространство поиска (число самонепересекающихся путей длины L из
+   * середины поля 12×9) при запрете диагоналей падает с 444 876 до 1978 на слове
+   * из восьми букв — в 225 раз. Прямые линии превращают филворд в «Поиск слов»:
+   * сканирование лучами вместо прослеживания змейки.
+   */
+  const [диагонали, setДиагонали] = useState(true);
   /** Зерно поля. Меняется на каждый новый раунд — иначе повтор уровня даст ту же раскладку. */
   const [fwSeed, setFwSeed] = useState(() => Math.floor(Math.random() * 1e9) + 1);
   const [fwSession, setFwSession] = useState<FillwordsSession | null>(null);
@@ -261,8 +269,9 @@ export default function ProofreadingGame() {
       seed: fwSeed,
       maxWordLen: cfg.maxWordLen,
       minWordLen: cfg.minWordLen,
+      диагонали,
     });
-  }, [fwAvailable, language, lvl.level, fwSeed]);
+  }, [fwAvailable, language, lvl.level, fwSeed, диагонали]);
 
   /** Языки, на которых словарь есть — их имена, а не коды: человеку читать. */
   const fwLangNames = FILLWORDS_LOCALES
@@ -1053,6 +1062,35 @@ export default function ProofreadingGame() {
                 </TouchableOpacity>
               ))}
             </View>
+            {/*
+              Тумблер виден только у филвордов: у корректурной пробы линии нет
+              вовсе, и показывать ей выбор «как ведётся линия» значило бы
+              предложить настройку, которая ни на что не влияет.
+            */}
+            {taskMode === 'fillwords' ? (
+              <View style={{ marginTop: 12 }}>
+                <Text style={[styles.optionLabel, { color: colors.text }]}>{t('fwLineLabel')}</Text>
+                <View style={styles.optionButtons}>
+                  {([true, false] as const).map((д) => (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: диагонали === д }}
+                      key={String(д)}
+                      style={[
+                        styles.sizeButton,
+                        диагонали === д && { backgroundColor: GRADIENT[0] },
+                        диагонали !== д && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                      ]}
+                      onPress={() => setДиагонали(д)}
+                    >
+                      <Text style={[styles.sizeButtonText, { color: диагонали === д ? '#333' : colors.text }]}>
+                        {д ? t('fwDiagonals') : t('fwStraight')}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            ) : null}
           </View>
         ) : (
           /* 🔴 ЧЕСТНЫЙ ОТКАЗ ВМЕСТО ПУСТОГО ЭКРАНА. Филворды живут на словах, а

@@ -118,7 +118,7 @@ export function resolveTrace(session: FillwordsSession, path: readonly CellIndex
     if (!Number.isInteger(cell) || cell < 0 || cell >= total) return { ok: false, reason: 'no-match' };
     if (seen.has(cell)) return { ok: false, reason: 'repeat' };
     seen.add(cell);
-    if (i > 0 && !areAdjacent(path[i - 1], cell, puzzle.cols)) return { ok: false, reason: 'not-adjacent' };
+    if (i > 0 && !areAdjacent(path[i - 1], cell, puzzle.cols, puzzle.диагонали)) return { ok: false, reason: 'not-adjacent' };
   }
   for (const cell of path) if (session.owner[cell] !== -1) return { ok: false, reason: 'taken' };
 
@@ -235,7 +235,7 @@ export function traceIsWalkable(session: FillwordsSession, path: readonly CellIn
     const cell = path[i];
     if (session.owner[cell] !== -1 || seen.has(cell)) return false;
     seen.add(cell);
-    if (i > 0 && !areAdjacent(path[i - 1], cell, session.puzzle.cols)) return false;
+    if (i > 0 && !areAdjacent(path[i - 1], cell, session.puzzle.cols, session.puzzle.диагонали)) return false;
   }
   return true;
 }

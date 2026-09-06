@@ -42,16 +42,26 @@ import {
   wordsOfLength,
 } from './words';
 
-/** Соседство — восемь сторон: линия слова гнётся и по диагонали. */
-export function areAdjacent(a: CellIndex, b: CellIndex, cols: number): boolean {
+/**
+ * Соседство. По умолчанию восемь сторон — линия гнётся и по диагонали.
+ *
+ * 🔴 ЗАПРЕТ ДИАГОНАЛЕЙ — ЭТО НЕ КОСМЕТИКА, А ОСЬ СЛОЖНОСТИ, И ЗАМЕР ЭТО ПОКАЗАЛ.
+ * Пространство поиска (число самонепересекающихся путей длины L из середины поля
+ * 12×9) падает на порядки: длина 3 — 56 против 12 (×4,7), длина 5 — 2336 против
+ * 100 (×23), длина 7 — 80 953 против 753 (×108), длина 8 — 444 876 против 1978
+ * (×225). Так устроен жанр «Поиска слов»: слово читается по прямой, и это ДРУГОЕ
+ * упражнение — сканирование лучами вместо прослеживания змейки.
+ */
+export function areAdjacent(a: CellIndex, b: CellIndex, cols: number, диагонали = true): boolean {
   if (a === b) return false;
   const dr = Math.abs(Math.floor(a / cols) - Math.floor(b / cols));
   const dc = Math.abs((a % cols) - (b % cols));
-  return dr <= 1 && dc <= 1;
+  if (dr > 1 || dc > 1) return false;
+  return диагонали || dr === 0 || dc === 0;
 }
 
 /** Таблица соседей на всё поле — считается один раз на раскладку, а не в цикле поиска. */
-function neighbourTable(rows: number, cols: number): CellIndex[][] {
+function neighbourTable(rows: number, cols: number, диагонали = true): CellIndex[][] {
   const table: CellIndex[][] = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -59,6 +69,7 @@ function neighbourTable(rows: number, cols: number): CellIndex[][] {
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
           if (dr === 0 && dc === 0) continue;
+          if (!диагонали && dr !== 0 && dc !== 0) continue;
           const nr = r + dr;
           const nc = c + dc;
           if (nr < 0 || nc < 0 || nr >= rows || nc >= cols) continue;
@@ -115,9 +126,9 @@ function serpentinePath(rows: number, cols: number, rng: FillwordsRng): CellInde
  * Кончился бюджет — молча уходим на змейку: человек получит поле чуть более
  * регулярной формы, но получит его СРАЗУ, а не через зависший экран.
  */
-function hamiltonianPath(rows: number, cols: number, rng: FillwordsRng): CellIndex[] {
+function hamiltonianPath(rows: number, cols: number, rng: FillwordsRng, диагонали = true): CellIndex[] {
   const total = rows * cols;
-  const table = neighbourTable(rows, cols);
+  const table = neighbourTable(rows, cols, диагонали);
   const visited = new Array<boolean>(total).fill(false);
   const seen = new Int32Array(total);
   const path: CellIndex[] = [];
@@ -351,6 +362,8 @@ export interface FillwordsRequest {
   maxWordLen?: number;
   /** Пол длины слова; по умолчанию — общий пол словаря. */
   minWordLen?: number;
+  /** Разрешить диагонали. По умолчанию да — так режим и работал. */
+  диагонали?: boolean;
 }
 
 /**
@@ -428,7 +441,8 @@ export function generateFillwords(request: FillwordsRequest): FillwordsPuzzle {
   }
   if (!lengths) throw new Error(`fillwords: язык ${locale} не набирает ${total} клеток словами`);
 
-  const path = hamiltonianPath(rows, cols, rng);
+  const диагонали = request.диагонали ?? true;
+  const path = hamiltonianPath(rows, cols, rng, диагонали);
   const letters = new Array<string>(total).fill('');
   const words: PlantedWord[] = [];
   const used = new Set<string>();
@@ -445,7 +459,7 @@ export function generateFillwords(request: FillwordsRequest): FillwordsPuzzle {
     words.push({ word, path: cells });
   }
 
-  const puzzle: FillwordsPuzzle = { rows, cols, locale, seed, letters, words };
+  const puzzle: FillwordsPuzzle = { rows, cols, locale, seed, letters, words, диагонали };
   assertFullCoverage(puzzle);
   return puzzle;
 }

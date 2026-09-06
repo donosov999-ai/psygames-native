@@ -183,9 +183,17 @@ describe('филворды: режим пришит к экрану коррек
   it('🔴 без словаря языка кнопка режима не рисуется, а объяснение — рисуется', () => {
     const src = screen();
     expect(src).toContain('isFillwordsLocale(language)');
-    const branch = src.slice(src.indexOf('fwAvailable ? ('), src.indexOf('fwAvailable ? (') + 2000);
+    // ⚠️ ГРАНИЦА ВЕТКИ ИЩЕТСЯ, А НЕ ОТМЕРЯЕТСЯ ОКНОМ. Здесь стояло «первые 2000
+    // символов от `fwAvailable ? (`», и проба сломалась, как только в ветку
+    // добавили тумблер «как ведётся линия»: начало else уехало за окно, и поиск
+    // `') : ('` не нашёл ничего. Длина ветки — не то, на чём должна держаться
+    // проверка; ищем разделитель от начала ветки и режем по нему.
+    const начало = src.indexOf('fwAvailable ? (');
+    const разделитель = src.indexOf(') : (', начало);
+    expect(разделитель).toBeGreaterThan(начало);
+    const branch = src.slice(начало, разделитель);
     expect(branch).toContain('setTaskMode(');            // кнопка — в ветке «словарь есть»
-    const elseBranch = branch.slice(branch.indexOf(') : ('));
+    const elseBranch = src.slice(разделитель, разделитель + 1200);
     expect(elseBranch).toContain('fwStrings.noDictionary');
     expect(elseBranch).not.toContain('setTaskMode(');
     // Список языков — именами из общего каталога, а не кодами руками.
