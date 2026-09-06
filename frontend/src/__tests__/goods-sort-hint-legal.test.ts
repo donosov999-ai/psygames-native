@@ -16,7 +16,8 @@
  * ⚠️ ПРОВЕРЯЕМ ТЕМ ЖЕ, ЧЕМ ИГРА ПРИНИМАЕТ ХОД (`placementOk` с настоящей ёмкостью
  * и настоящим признаком строгой укладки), а не своей копией правила.
  */
-import { capsFor, dealBoard, findHint, placementOk, strictPlacement } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { capsFor, dealBoard, findHint, placementOk, strictPlacement } from '@/src/games/goods-sort/core/level';
 import { makeBoard, tripleIn } from '@/src/games/goods-sort/core/board';
 import { hintMove } from '@/src/games/goods-sort/core/solver';
 
@@ -102,13 +103,36 @@ describe('сортировка товаров: подсказка', () => {
     expect(body.indexOf('canPlaceInto(found.fromCell')).toBeLessThan(body.indexOf('setHints'));
   });
 
-  it('🔴 раздача сверяется с готовой тройкой, а не только с решаемостью', () => {
-    const fs = require('fs');
-    const path = require('path');
-    const src: string = fs.readFileSync(path.resolve(__dirname, '../../app/games/goods-sort.tsx'), 'utf8');
-    const deal = src.slice(src.indexOf('export function dealBoard'), src.indexOf('export function levelCfg'));
-    expect(deal).toMatch(/tripleIn\(cell\) !== null/);
-    expect(deal).toMatch(/dealtWrong\(cells\)/);
+  /**
+   * 🔴 ПРОВЕРЯЕТСЯ РАЗДАННЫМИ ДОСКАМИ, А НЕ ТЕКСТОМ `dealBoard`.
+   *
+   * Прежняя редакция вырезала тело функции «от `export function dealBoard` до
+   * `export function levelCfg`» и искала в нём `tripleIn(cell) !== null`.
+   * 06.09.2026 обе функции уехали в лист `core/level` — раздача не изменилась,
+   * а срез стал пустым и гейт покраснел. Переименуй кто-нибудь переменную `cell`
+   * — покраснел бы так же, на верном коде.
+   *
+   * Смысл правила простой и проверяемый: НИ ОДНА розданная доска не приходит с
+   * уже сложенной тройкой. Тройка на старте — даровое очко и сбитый счёт ходов:
+   * игрок ничего не сделал, а уровень уже сдвинулся.
+   */
+  it('🔴 раздача не выдаёт доску с готовой тройкой — на 60 уровнях', () => {
+    const пул = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    const плохо: string[] = [];
+    let досок = 0;
+    for (let L = 1; L <= 60; L += 1) {
+      for (const narrow of [false, true]) {
+        const { cells } = dealBoard(L, пул, narrow);
+        досок += 1;
+        const готовые = cells
+          .map((c, i) => (tripleIn(c) !== null ? i : -1))
+          .filter((i) => i >= 0);
+        if (готовые.length) плохо.push(`L${L}${narrow ? ' (телефон)' : ''}: ниши ${готовые.join(', ')}`);
+      }
+    }
+    // Есть что проверять: досок роздано столько, сколько уровней на обе сетки.
+    expect(досок).toBe(120);
+    expect(плохо).toEqual([]);
   });
 });
 

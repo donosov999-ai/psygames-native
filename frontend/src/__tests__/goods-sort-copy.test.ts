@@ -20,6 +20,8 @@ const { join } = require('path');
 
 const ROOT = join(__dirname, '../..');
 const GAME = readFileSync(join(ROOT, 'app/games/goods-sort.tsx'), 'utf8') as string;
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { levelCfg, goalPlan } from '@/src/games/goods-sort/core/level';
 const BASE = readFileSync(join(ROOT, 'src/contexts/LanguageContext.tsx'), 'utf8') as string;
 
 /** Текст ключа из базового словаря. */
@@ -44,29 +46,53 @@ describe('описание сортировки', () => {
    * 🔴 Механики берём ИЗ КОДА. Появится пятая — гейт спросит про неё сам,
    * а не промолчит, потому что в его списке было четыре.
    */
+  /**
+   * 🔴 МЕХАНИКИ БЕРУТСЯ ИЗ ПРОГОНА ИГРЫ, А НЕ ИЗ ЕЁ ИСХОДНИКА.
+   *
+   * Замысел «появится пятая — гейт спросит про неё сам» был верен, а исполнение
+   * — нет: список вычитывался из текста экрана между `type Obstacle =` и
+   * `interface ObstaclePlan`. 06.09.2026 объявления уехали в лист `core/level`,
+   * срез стал пустым, и `/'blocked'/.test('')` дало false — пункт покраснел от
+   * переноса кода. Хуже другое: сдвинься граница среза чуть иначе — и он бы
+   * зеленел, проверяя чужой кусок файла.
+   *
+   * Теперь виды собираются ПРОГОНОМ шестидесяти уровней: что игрок реально
+   * встретит, то и обязано быть в описании. Заведут пятый вид — он появится в
+   * прогоне, слова для него в словаре не найдётся, и гейт назовёт его по имени.
+   */
+  const СЛОВА_ПРЕПЯТСТВИЙ: Record<string, { ru: string; en: string }> = {
+    blocked: { ru: 'заперт', en: 'locked' },
+    locked: { ru: 'замк', en: 'timed' },
+    covered: { ru: 'накрыт', en: 'covered' },
+    frozen: { ru: 'примёрз', en: 'frozen' },
+  };
+
   it('обещанное в тексте есть в игре: препятствия', () => {
-    const kinds = GAME.slice(GAME.indexOf('type Obstacle ='), GAME.indexOf('interface ObstaclePlan'));
-    const has = {
-      blocked: /'blocked'/.test(kinds),
-      locked: /'locked'/.test(kinds),
-      covered: /covered: number/.test(GAME),
-      frozen: /frozenRow: boolean/.test(GAME),
-    };
-    expect(Object.values(has).every(Boolean)).toBe(true);
-    // Каждый вид упомянут в описании — своими словами, не именем поля.
-    for (const word of ['заперт', 'замк', 'накрыт', 'примёрз']) {
-      expect(INTRO_RU.toLowerCase()).toContain(word);
+    const встречены = new Set<string>();
+    for (let L = 1; L <= 60; L += 1) {
+      const o = levelCfg(L, 8, false).obst;
+      if (o.blocked > 0) встречены.add('blocked');
+      if (o.locked > 0) встречены.add('locked');
+      if (o.covered > 0) встречены.add('covered');
+      if (o.frozenRow) встречены.add('frozen');
     }
-    for (const word of ['locked', 'timed', 'covered', 'frozen']) {
-      expect(INTRO_EN.toLowerCase()).toContain(word);
+    // Есть что проверять: за 60 уровней игрок встречает все четыре вида.
+    expect([...встречены].sort()).toEqual(['blocked', 'covered', 'frozen', 'locked']);
+    const немые: string[] = [];
+    for (const вид of встречены) {
+      const с = СЛОВА_ПРЕПЯТСТВИЙ[вид];
+      if (!с) { немые.push(`${вид}: новый вид, для него нет слова в описании — заведи`); continue; }
+      if (!INTRO_RU.toLowerCase().includes(с.ru)) немые.push(`${вид}: в русском описании нет «${с.ru}»`);
+      if (!INTRO_EN.toLowerCase().includes(с.en)) немые.push(`${вид}: в английском описании нет «${с.en}»`);
     }
+    expect(немые).toEqual([]);
   });
 
   it('обещанное в тексте есть в игре: цели уровня', () => {
-    const plans = GAME.slice(GAME.indexOf('const GOAL_PLANS'), GAME.indexOf('export function goalPlan'));
-    for (const kind of ['pick', 'free', 'moves', 'all']) {
-      expect(plans).toContain(`'${kind}'`);
-    }
+    // Виды целей — тоже прогоном: что `goalPlan` реально выдаёт за 60 уровней.
+    const виды = new Set<string>();
+    for (let L = 1; L <= 60; L += 1) виды.add(goalPlan(L).kind);
+    expect([...виды].sort()).toEqual(['all', 'free', 'moves', 'pick']);
     for (const word of ['цель', 'убрать всё', 'ход', 'помеченные']) {
       expect(INTRO_RU.toLowerCase()).toContain(word);
     }

@@ -12,7 +12,8 @@
  * (`outOfMoves` — четыре строки поверх неё). Своей копии условия здесь нет:
  * копия зеленела бы, даже если игру снова отвяжут от проверки.
  */
-import { movesExhausted, goalMet, levelCfg, type Goal } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { movesExhausted, goalMet, levelCfg, type Goal } from '@/src/games/goods-sort/core/level';
 
 const MOVES: Goal = { kind: 'moves', limit: 23 };
 const ALL: Goal = { kind: 'all' };

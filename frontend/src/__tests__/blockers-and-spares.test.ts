@@ -23,7 +23,8 @@
  * Поэтому проверяется то, что имеет смысл: сколько уровень ОБЪЯВИЛ, столько и
  * выдано, одинаково в каждой раздаче.
  */
-import { dealBoard } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { dealBoard } from '@/src/games/goods-sort/core/level';
 import { blockersOf, isFree } from '@/src/games/mahjong/board';
 import { generateDeal } from '@/app/games/mahjong';
 import { mahjongLevel } from '@/src/services/mahjongLevels';

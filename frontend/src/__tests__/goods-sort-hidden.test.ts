@@ -23,6 +23,7 @@
  * shiftCoveredAfterTake, revealUncovered, sessionDetails) — своя копия правила
  * в гейте уже подводила эту игру (см. шапку dealBoard).
  */
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
 import {
   HIDDEN_FROM,
   hiddenInfo,
@@ -39,7 +40,7 @@ import {
   restoreGoodsParty,
   type GoodsLiveParty,
   type GoodsResume,
-  type HiddenRunStats, REF_PER_TYPE } from '@/app/games/goods-sort';
+  type HiddenRunStats, REF_PER_TYPE } from '@/src/games/goods-sort/core/level';
 
 /**
  * Ход, как его делает moveItem: изъять (from, idx) → положить в to спереди →

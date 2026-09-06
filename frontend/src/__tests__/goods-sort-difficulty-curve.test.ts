@@ -24,7 +24,8 @@
  * подтверждает их решаемость (6/6 на L21…L37). Поэтому проверяем ОТНОСИТЕЛЬНУЮ
  * меру: связь номера уровня с числом ходов, а не «проходит ли симулятор».
  */
-import { dealBoard, levelCfg, targetSlots, typeBudget, TYPES_ON_BOARD_MAX, strictPlacement } from '../../app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { dealBoard, levelCfg, targetSlots, typeBudget, TYPES_ON_BOARD_MAX, strictPlacement } from '@/src/games/goods-sort/core/level';
 
 /** Игрок средней силы: выбирает лучший ход из видимых, на один шаг вперёд. */
 function playGreedy(cells0: number[][], caps: number[], rnd: () => number, maxMoves = 400): number | null {

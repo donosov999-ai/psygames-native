@@ -18,6 +18,8 @@ declare function require(m: string): any;
 const { readFileSync } = require('fs');
 const { join } = require('path');
 import { soundOn, setCalmHush, calmHushNow, setSoundEnabled, getSoundEnabled } from '@/src/services/feedback';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { normHistoryStep } from '@/src/games/goods-sort/core/level';
 
 const SRC = readFileSync(join(__dirname, '../../app/games/goods-sort.tsx'), 'utf8') as string;
 /** Комментарии режем: гейт не должен ловить собственные объяснения. */
@@ -95,13 +97,40 @@ describe('ответ на действие', () => {
 });
 
 describe('отмена хода', () => {
-  /** Снимок — это и есть договор о том, что откатывается. */
-  const snap = SRC.slice(SRC.indexOf('interface Snapshot {'), SRC.indexOf('/** Живая цель уровня'));
+  /**
+   * 🔴 СНИМОК ПРОВЕРЯЕТСЯ ИСПОЛНЕНИЕМ, А НЕ ЧТЕНИЕМ ОБЪЯВЛЕНИЯ ТИПА.
+   *
+   * Прежняя редакция вырезала из экрана текст `interface Snapshot { … }` и
+   * искала в нём имена полей. 06.09.2026 объявление уехало в лист `core/level`
+   * — откат не изменился ничем, а гейт покраснел; вырежи кто-нибудь границу
+   * среза иначе, и он бы вместо этого молча позеленел на пустой строке.
+   *
+   * Меряем через `normHistoryStep` — ту самую функцию, которой лента отмены
+   * читает свой шаг. Что она вернула, то отмена и восстановит.
+   */
+  const шагЛенты = (доп: Record<string, unknown> = {}) => normHistoryStep({
+    cells: [[1, 1], [2], [], []],
+    obstacles: [{ kind: 'locked', turns: 2 }, null, null, null],
+    covered: ['0:0'],
+    frozen: { row: 1, type: 2 },
+    moves: 7, score: 250, cleared: 3,
+    ...доп,
+  }, 4, 2);
 
   it('снимок возвращает и доску, и препятствия, и числа', () => {
-    for (const field of ['cells', 'obstacles', 'covered', 'frozen', 'moves', 'score', 'cleared']) {
-      expect(snap).toMatch(new RegExp(`\\b${field}:`));
-    }
+    const s = шагЛенты();
+    expect(s).not.toBeNull();
+    const потеряно = ['cells', 'obstacles', 'covered', 'frozen', 'moves', 'score', 'cleared']
+      .filter((f) => (s as unknown as Record<string, unknown>)[f] === undefined);
+    expect(потеряно).toEqual([]);
+    // И это НЕ пустые заглушки: числа и состояние вернулись теми же.
+    expect(s!.moves).toBe(7);
+    expect(s!.score).toBe(250);
+    expect(s!.cleared).toBe(3);
+    expect(s!.covered).toEqual(['0:0']);
+    expect(s!.frozen).toEqual({ row: 1, type: 2 });
+    expect(s!.obstacles[0]).toMatchObject({ kind: 'locked' });
+    expect(s!.cells).toEqual([[1, 1], [2], [], []]);
   });
 
   /**
@@ -111,7 +140,11 @@ describe('отмена хода', () => {
    * возвращает ровно то, что было, и нечестна там, где даёт НОВЫЙ расклад.
    */
   it('потраченное перемешивание отмена не возвращает', () => {
-    expect(snap).not.toMatch(/\bshuffles\b/);
+    // Подаём `shuffles` в шаг ленты НАРОЧНО: если поле переживёт разбор, значит
+    // отмена вернёт потраченную перетасовку и три попытки за уровень обойдутся.
+    const s = шагЛенты({ shuffles: 3 }) as unknown as Record<string, unknown> | null;
+    expect(s).not.toBeNull();
+    expect(s!.shuffles).toBeUndefined();
   });
 
   it('снимок кладётся до хода и до перемешивания', () => {

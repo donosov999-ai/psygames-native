@@ -12,10 +12,11 @@
  *
  * ЗАМЕР ДО ПРАВКИ: одноцветных уровней в игре не было — прогон L1…L60 давал 0.
  */
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
 import {
   MONO_FROM, WARM_FAMILY, monochromeLevel, poolForLevel, GS_RULES,
   strictPlacement, hiddenInfo, movingNiches, TYPES_ON_BOARD_MAX, GOOD_SETS, dealBoard, levelCfg,
-} from '@/app/games/goods-sort';
+} from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(id: string): any;

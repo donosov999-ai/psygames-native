@@ -15,7 +15,8 @@
  * запас должен быть под него, а не под переборщик. Если жадная игра укладывается
  * — уложится и человек.
  */
-import { levelCfg, generate, findHint, goalMet } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { levelCfg, generate, findHint, goalMet } from '@/src/games/goods-sort/core/level';
 
 const POOL = [0, 1, 2, 3, 4, 5, 6, 7];
 const CAP = 3;

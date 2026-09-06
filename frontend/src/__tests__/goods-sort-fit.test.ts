@@ -21,7 +21,8 @@
  * Теперь раскладка вынесена в `gsLayout` (см. `app/games/goods-sort.tsx`), и
  * проверяется ровно то, что рисуется. Разойтись стало нечему.
  */
-import { gridFor, gsLayout } from '../../app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { gridFor, gsLayout, isNarrow, NARROW_WIDTH } from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -94,11 +95,37 @@ describe('сортировка товаров: раскладка', () => {
     expect(l.rowWidth).toBeLessThanOrEqual(l.cellW);
   });
 
-  it('на телефоне колонок не больше трёх', () => {
-    const src = require('fs').readFileSync(
-      require('path').join(__dirname, '../../app/games/goods-sort.tsx'), 'utf8') as string;
-    expect(src).toMatch(/function gridFor\(L: number, narrow = false\)/);
-    expect(src).toMatch(/narrowRef\.current = width < 560/);
+  /**
+   * 🔴 ПРОВЕРЯЕТСЯ ВЫЗОВОМ, А НЕ ПОИСКОМ СТРОКИ В ЭКРАНЕ.
+   *
+   * Прежняя редакция искала в исходнике подпись `function gridFor(L, narrow =
+   * false)` и строку `narrowRef.current = width < 560`. 06.09.2026 обе уехали в
+   * лист `core/level` — поведение не изменилось НИ НА ЙОТУ, а гейт покраснел.
+   * Проба, краснеющая от переезда кода, стережёт расположение букв, а не игру.
+   */
+  it('на телефоне колонок не больше трёх — на КАЖДОМ уровне до 60-го', () => {
+    const широкие = [];
+    for (let L = 1; L <= 60; L += 1) {
+      const g = gridFor(L, true);
+      if (g.cols > 3) широкие.push(`L${L}: колонок ${g.cols}`);
+    }
+    expect(широкие).toEqual([]);
+    // И на широком экране их БОЛЬШЕ трёх — иначе «ограничение» ничего не ограничивает.
+    expect(gridFor(60, false).cols).toBeGreaterThan(3);
+  });
+
+  /**
+   * Граница узкого экрана — правило игры: она задаёт форму доски, а через неё
+   * ёмкость уровня. Проверяется по ответу, а не по числу в строке.
+   */
+  it('граница узкого экрана разводит телефон и планшет', () => {
+    expect(isNarrow(NARROW_WIDTH - 1)).toBe(true);
+    expect(isNarrow(NARROW_WIDTH)).toBe(false);
+    // 386 px — телефон из отчёта тестировщицы, 768 — планшет.
+    expect(isNarrow(386)).toBe(true);
+    expect(isNarrow(768)).toBe(false);
+    // И решение о ширине меняет сетку, а не только флаг.
+    expect(gridFor(30, isNarrow(386)).cols).toBeLessThan(gridFor(30, isNarrow(768)).cols);
   });
 
   /** Размер считается от ниши, а не от зашитого пола. Проверяем поведением. */

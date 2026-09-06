@@ -21,7 +21,8 @@
  * та же пара, что стоит в `useLevelRules` на строке 2569. Гейт, повторивший
  * формулу своей копией, зелен вслепую.
  */
-import { goalPlan, gsRulesForLevel, GS_RULES, clampGoalToRule } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { goalPlan, gsRulesForLevel, GS_RULES, clampGoalToRule } from '@/src/games/goods-sort/core/level';
 import { activeLevelRule } from '@/src/components/LevelRules';
 
 const LEVELS = Array.from({ length: 60 }, (_, i) => i + 1);

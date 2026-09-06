@@ -12,7 +12,8 @@
  * набору из `GOOD_SETS` — ключ в базовом словаре и во всех десяти локалях.
  * Седьмой набор без перевода теперь красит сборку, а не экран игрока.
  */
-import { GOOD_SETS } from '../../app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { GOOD_SETS } from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(id: string): any;

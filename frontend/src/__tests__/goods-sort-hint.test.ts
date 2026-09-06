@@ -10,7 +10,8 @@
  * Функция настоящая, из экрана. Гейт, который читает исходник вместо того,
  * чтобы гонять код, здесь бесполезен: проверять надо ВЫБОР хода.
  */
-import { findHint } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { findHint, HINTS_PER_LEVEL, SHUFFLES_PER_LEVEL } from '@/src/games/goods-sort/core/level';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -85,10 +86,14 @@ describe('цена подсказки', () => {
 
   /** Дай их вдоволь — и на вопрос «что делать» отвечает игра, а не человек. */
   it('подсказок счётное число за уровень, и меньше, чем перемешиваний', () => {
-    const hints = Number((code.match(/const HINTS_PER_LEVEL = (\d+)/) || [])[1]);
-    const shuf = Number((code.match(/const SHUFFLES_PER_LEVEL = (\d+)/) || [])[1]);
-    expect(hints).toBeGreaterThanOrEqual(1);
-    expect(hints).toBeLessThanOrEqual(shuf);
+    /*
+     * 🔴 ЧИСЛА БЕРУТСЯ ИЗ ИГРЫ, А НЕ ВЫКОВЫРИВАЮТСЯ ИЗ ЕЁ ИСХОДНИКА РЕГУЛЯРКОЙ.
+     * Разбор текста ломается от переноса объявления (06.09.2026 обе константы
+     * уехали в лист `core/level`) и — что хуже — при промахе даёт `NaN`, а не
+     * ошибку: сравнение с `NaN` ложно, и проверка могла бы тихо «пройти».
+     */
+    expect(HINTS_PER_LEVEL).toBeGreaterThanOrEqual(1);
+    expect(HINTS_PER_LEVEL).toBeLessThanOrEqual(SHUFFLES_PER_LEVEL);
   });
 
   it('счётчик расходуется и обновляется на новом уровне', () => {

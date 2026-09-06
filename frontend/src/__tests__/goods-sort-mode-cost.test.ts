@@ -17,11 +17,12 @@
  * Поэтому здесь у каждого режима СВОЯ проверка, а у того, чья цена вообще не
  * измеряется кодом, — названная причина, почему.
  */
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
 import {
   levelCfg, dealBoard, capsForBoard, placementOk, jokersForBoard, jokerNiches,
   strictPlacement, hiddenInfo, movingNiches, monochromeLevel, poolForLevel,
   nicheShift, permuteCells, WARM_FAMILY, GOOD_SETS, hideDeepSpots,
-} from '@/app/games/goods-sort';
+} from '@/src/games/goods-sort/core/level';
 
 jest.setTimeout(300000);
 const LEVELS = Array.from({ length: 80 }, (_, i) => i + 1);

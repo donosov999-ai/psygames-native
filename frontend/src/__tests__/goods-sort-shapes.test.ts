@@ -17,7 +17,8 @@
  * Здесь это проверяется прямо: все формы должны быть достижимы.
  */
 declare const __dirname: string;
-import { SHAPES, shapeFor, levelCfg } from '../../app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { SHAPES, shapeFor, levelCfg } from '@/src/games/goods-sort/core/level';
 
 declare function require(m: string): any;
 const { readFileSync } = require('fs');

@@ -13,7 +13,8 @@
  * ⚠️ Список игр СЧИТАЕТСЯ, а не пишется руками: новая игра с картинками попадёт
  * под проверку сама. Исключения — поимённо и с причиной; молча выпасть нельзя.
  */
-import { goodSetForProfile, GOOD_SETS_KEYS } from '@/app/games/goods-sort';
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { goodSetForProfile, GOOD_SETS_KEYS } from '@/src/games/goods-sort/core/level';
 import { cakeThemeNameForProfile } from '@/src/constants/cakeThemes';
 
 declare const __dirname: string;

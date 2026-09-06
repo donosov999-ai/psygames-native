@@ -18,32 +18,16 @@ const { readFileSync } = require('fs');
 const { join } = require('path');
 const src = readFileSync(join(__dirname, '../../app/games/goods-sort.tsx'), 'utf8') as string;
 
-import { liveRowsForFreeze, levelCfg, GS_RULES } from '@/app/games/goods-sort';
-
-/** Таблицу препятствий и формы читаем ИЗ ЭКРАНА, чтобы тест не проверял свою копию. */
-function plans(): { blocked: number; locked: number; covered: number; frozenRow: boolean }[] {
-  const body = src.slice(src.indexOf('const OBSTACLE_PLANS'), src.indexOf('const NO_OBSTACLES'));
-  return [...body.matchAll(/\{ blocked: (\d+), locked: (\d+), covered: (\d+), frozenRow: (true|false) \}/g)]
-    .map((m) => ({ blocked: +m[1], locked: +m[2], covered: +m[3], frozenRow: m[4] === 'true' }));
-}
-function shapes(): Record<string, string[][]> {
-  const body = src.slice(src.indexOf('const SHAPES'), src.indexOf('function shapeFor'));
-  const out: Record<string, string[][]> = {};
-  for (const m of body.matchAll(/'(\d+x\d+)': \[([\s\S]*?)\n  \],/g)) {
-    out[m[1]] = [...m[2].matchAll(/\[([^\]]+)\]/g)]
-      .map((g) => [...g[1].matchAll(/'([#.]+)'/g)].map((q) => q[1]));
-  }
-  return out;
-}
-
-const PLANS = plans();
+// Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
+import { liveRowsForFreeze, levelCfg, GS_RULES, OBSTACLE_PLANS, SHAPES, gridFor,
+  obstaclePlan } from '@/src/games/goods-sort/core/level';
 
 /** Какие виды препятствий реально действуют на доске — после фильтра порогами. */
 function viduOn(o: { blocked: number; locked: number; covered: number; frozenRow: boolean }): string[] {
   return [o.blocked > 0 && 'blocked', o.locked > 0 && 'locked', o.covered > 0 && 'covered', o.frozenRow && 'frozen']
     .filter(Boolean) as string[];
 }
-const SH = shapes();
+
 
 /**
  * ⚠️ КОНФИГ БЕРЁТСЯ У ИГРЫ, А НЕ СЧИТАЕТСЯ ЗАНОВО.
@@ -54,12 +38,17 @@ const SH = shapes();
  * графику ввода механик; копия отстала мгновенно и начала падать на пустом
  * месте (`list[NaN]` → undefined). Это третий такой гейт за день.
  */
-const gridFor = (L: number): [number, number] => (L <= 7 ? [3, 4] : L <= 11 ? [3, 5] : [3, 6]);
+/*
+ * ⚠️ ЗДЕСЬ ЖИЛА КОПИЯ `gridFor` — та самая беда, о которой предупреждает абзац
+ * выше. Копия была застывшей: `L <= 7 ? [3,4] : L <= 11 ? [3,5] : [3,6]`, то
+ * есть телефонная ветка, вписанная числами. Разойдись она с игрой — гейт мерил
+ * бы свою сетку и молчал. 06.09.2026 копия убрана, сетка спрашивается у игры.
+ */
 const ПЕРВЫЙ_С_ПРЕПЯТСТВИЕМ = GS_RULES.find((r) => r.key === 'blocked')!.fromLevel;
 
 function level(L: number) {
   const cfg = levelCfg(L, 24, true);          // narrow: телефонная сетка, как и было
-  const [cols, rows] = gridFor(L);
+  const { cols, rows } = gridFor(L, true);   // narrow: телефонная сетка, как и было
   const slots = cfg.mask.filter(Boolean).length;
   const o = cfg.obst;
   return {
@@ -71,9 +60,24 @@ function level(L: number) {
 const planFor = (L: number) => level(L).o;
 
 describe('препятствия', () => {
-  it('таблица прочитана из экрана', () => {
-    expect(PLANS.length).toBeGreaterThanOrEqual(8);
-    expect(Object.keys(SH).length).toBeGreaterThanOrEqual(4);
+  /**
+   * 🔴 ТАБЛИЦЫ БЕРУТСЯ У ИГРЫ, А НЕ ВЫЧИТЫВАЮТСЯ ИЗ ЕЁ ТЕКСТА.
+   *
+   * Тут стояли два разборщика исходника: один искал строки
+   * `{ blocked: n, locked: n, … }`, другой — кавычки `'#..#'` внутри `SHAPES`.
+   * 06.09.2026 оба объявления уехали в лист `core/level`, разбор нашёл ноль
+   * записей — и пункт покраснел. Это ещё повезло: тот же разбор мог найти
+   * ПОЧТИ всё (одна строка записана иначе — и её нет), и тогда он бы зеленел,
+   * проверяя неполную копию таблицы.
+   */
+  it('есть что проверять: таблица препятствий и набор форм непусты', () => {
+    expect(OBSTACLE_PLANS.length).toBeGreaterThanOrEqual(8);
+    expect(Object.keys(SHAPES).length).toBeGreaterThanOrEqual(4);
+    // И это не пустышки: каждая запись таблицы — настоящий план с полями.
+    for (const p of OBSTACLE_PLANS) {
+      expect(typeof p.blocked).toBe('number');
+      expect(typeof p.frozenRow).toBe('boolean');
+    }
   });
 
   /** До шестого уровня человек учит само правило игры — второе поверх него это каша. */
@@ -128,10 +132,29 @@ describe('препятствия', () => {
     expect(bad).toEqual([]);
   });
 
-  it('запертые ниши вычтены из ёмкости в самом экране, а не только в тесте', () => {
-    expect(src).toMatch(/const shut = obst\.blocked \+ obst\.locked;/);
-    expect(src).toMatch(/const usable = slots - shut;/);
-    expect(src).toMatch(/slots - 2 - obstaclePlan\(L\)\.blocked - obstaclePlan\(L\)\.locked/);
+  /**
+   * 🔴 ВЫЧЕТ ПРОВЕРЯЕТСЯ ОТВЕТОМ `levelCfg`, А НЕ ТРЕМЯ СТРОЧКАМИ ИЗ ЭКРАНА.
+   *
+   * Прежняя редакция закрепляла дословно `const shut = obst.blocked +
+   * obst.locked;` и ещё две строки. Переименуй кто-нибудь `shut` — гейт
+   * покраснел бы на верной правке; посчитай игра ёмкость правильно в другом
+   * месте — не заметил бы вовсе. Меряем то, ради чего вычет и нужен: заперты
+   * ниши — доступных на столько же меньше.
+   */
+  it('🔴 запертые ниши вычтены из ёмкости самой игрой', () => {
+    const плохо: string[] = [];
+    let было = 0;
+    for (let L = 1; L <= 60; L += 1) {
+      const v = level(L);
+      const шло = v.o.blocked + v.o.locked;
+      if (шло > 0) было += 1;
+      if (v.usable !== v.slots - шло) {
+        плохо.push(`L${L}: доступных ${v.usable} при ${v.slots} нишах и ${шло} запертых`);
+      }
+    }
+    expect(плохо).toEqual([]);
+    // ⚠️ И заслон не вхолостую: уровни с запертыми нишами вообще есть.
+    expect(было).toBeGreaterThanOrEqual(10);
   });
 
   /**
