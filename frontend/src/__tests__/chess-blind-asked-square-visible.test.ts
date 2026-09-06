@@ -26,6 +26,7 @@
  */
 import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { puzzleLevelParams } from '@/src/games/chess-blind/core/puzzle';
 
 const TestRenderer = require('react-test-renderer');
 
@@ -291,4 +292,28 @@ describe('«Доска в уме»: спрашиваемая клетка и ф�
       .toBe(`после ВЕРНОГО ответа «${имя}» зелёная: true (цвета ${цвета.join(',') || '—'})`);
     await TestRenderer.act(async () => { r.unmount(); });
   });
+
+  /**
+   * 🔴 ЧИСЛО КНОПОК ВЫБОРА БЕРЁТСЯ ИЗ ЛЕСТНИЦЫ, А НЕ ЗАШИТО.
+   *
+   * Ось «отвлечение» заведена 06.09.2026 (правило «потолков нет нигде»):
+   * `optionCount` 6 → 8 → 10. Проба на одни лишь числа лестницы этого не
+   * доказывает — она проверяет данные, а не то, что экран их читает. Здесь
+   * считаются НАРИСОВАННЫЕ кнопки.
+   */
+  it('🔴 кнопок выбора столько, сколько велит уровень', async () => {
+    const r = await монтировать();
+    expect(await доОпроса(r)).toBe(true);
+    const кнопки = r.root.findAll((n: any) =>
+      typeof n.props?.onPress === 'function'
+      && !/^[a-h][1-8]$/.test(String(n.props?.accessibilityLabel ?? ''))
+      && n.findAll((x: any) => typeof x.props?.xml === 'string').length > 0);
+    const уник = new Set(кнопки.map((n: any) => n.props.onPress));
+    // Экран стартует с первого уровня, если прогресс пуст.
+    const ждём = puzzleLevelParams(1).optionCount;
+    expect(`кнопок выбора: ${уник.size}, лестница велит ${ждём}`)
+      .toBe(`кнопок выбора: ${ждём}, лестница велит ${ждём}`);
+    await TestRenderer.act(async () => { r.unmount(); });
+  });
+
 });
