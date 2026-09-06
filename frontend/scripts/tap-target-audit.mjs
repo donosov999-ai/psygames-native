@@ -212,8 +212,18 @@ function selfTestStartMatcher() {
 }
 
 /** Меряем то, что реально нарисовано. Порог передаём — он разный у проходов. */
+/**
+ * 🔴 ВОЗВРАЩАЕТ И СКОЛЬКО ПОМЕРИЛ, А НЕ ТОЛЬКО ЧТО НАШЁЛ (правка 06.09.2026).
+ *
+ * Замечание чата «Объём памяти», и оно точное: «0 мелких» было НЕОТЛИЧИМО от
+ * слепоты. Зашли на экран, доска не отрисовалась, померили НОЛЬ элементов —
+ * отчёт говорит «мелких нет», и это читается как «проверено». Ровно тот класс,
+ * который у нас записан отдельно: гейт, которому нечего проверять, зелен
+ * всегда.
+ */
 const MEASURE = (min) => {
   const out = [];
+  let всего = 0;
   for (const el of document.querySelectorAll('[role="button"], button, [tabindex]')) {
     const r = el.getBoundingClientRect();
     if (r.width < 1 || r.height < 1) continue;                    // невидимое не меряем
@@ -224,6 +234,7 @@ const MEASURE = (min) => {
     // Вложенные кнопки считаем один раз — по внешней: палец попадает в неё.
     if (el.parentElement?.closest('[role="button"], button')) continue;
 
+    всего += 1;
     if (r.width < min || r.height < min) {
       out.push({
         label: (el.getAttribute('aria-label') || el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 40) || '(без подписи)',
@@ -232,7 +243,7 @@ const MEASURE = (min) => {
       });
     }
   }
-  return out;
+  return { всего, мелкие: out };
 };
 
 const countButtons = () => document.querySelectorAll('[role="button"], button').length;
@@ -382,7 +393,8 @@ async function auditRoutes(page, routes) {
   let measured = 0;
   for (const route of routes) {
     await open(page, route, { needButtons: false });
-    const small = await page.evaluate(MEASURE, MIN);
+    const замер = await page.evaluate(MEASURE, MIN);
+    const small = замер.мелкие;
     measured += await page.evaluate(countButtons);
     if (small.length) findings.push({ route, small });
   }
@@ -451,8 +463,8 @@ async function auditEmbeddedField(page, route, spec) {
   ).then(() => true).catch(() => false);
   if (!вошли) return { route, failed: 'кадр не вошёл в партию (is-practice-running не поднялся)' };
   await page.waitForTimeout(800);
-  const small = await frame.evaluate(MEASURE, MIN_FIELD);
-  return { route, label: 'start-practice (в кадре)', small };
+  const замер = await frame.evaluate(MEASURE, MIN_FIELD);
+  return { route, label: 'start-practice (в кадре)', small: замер.мелкие, всего: замер.всего };
 }
 
 /**
@@ -726,6 +738,12 @@ async function auditHeader(page, routes) {
   const blind = results.filter((r) => r.failed);
   const entered = results.filter((r) => r.small);
   const withSmall = entered.filter((r) => r.small.length);
+  /**
+   * 🔴 ЗАШЛИ, НО ПОМЕРИЛИ НОЛЬ — ЭТО СЛЕПОТА, А НЕ ЧИСТОЕ ПОЛЕ. Доска не
+   * отрисовалась, интерактивных элементов нет вовсе, и «мелких нет» читается
+   * как «проверено».
+   */
+  const пусто = entered.filter((r) => (r.всего ?? 0) === 0);
   console.log(`\n── Проход 3: шапка на узком экране (${NARROW_W} px). Зашли в ${entered.length} игр из ${routes.length}.`);
   for (const п of пропущены) console.log(`    пропущено — ${п}`);
 
@@ -771,17 +789,34 @@ async function auditField(page, routes) {
     const start = await pressStart(page);
     if (!start) { results.push({ route, failed: 'кнопка входа не найдена' }); continue; }
     if (!start.entered) { results.push({ route, failed: `нажал «${start.label}», но экран не сменился` }); continue; }
-    const small = await page.evaluate(MEASURE, MIN_FIELD);
-    results.push({ route, label: start.label, small });
+    const замер = await page.evaluate(MEASURE, MIN_FIELD);
+    results.push({ route, label: start.label, small: замер.мелкие, всего: замер.всего });
   }
 
   const blind = results.filter((r) => r.failed);
   const entered = results.filter((r) => r.small);
   const withSmall = entered.filter((r) => r.small.length);
+  /**
+   * 🔴 ЗАШЛИ, НО ПОМЕРИЛИ НОЛЬ — ЭТО СЛЕПОТА, А НЕ ЧИСТОЕ ПОЛЕ. Доска не
+   * отрисовалась, интерактивных элементов нет вовсе, и «мелких нет» читается
+   * как «проверено».
+   */
+  const пусто = entered.filter((r) => (r.всего ?? 0) === 0);
 
-  console.log(`\n── Проход 2: на поле. Зашли в ${entered.length} игр из ${routes.length - Object.keys(HUB_ROUTES).filter((h) => routes.includes(h)).length}, порог ${MIN_FIELD}×${MIN_FIELD}.`);
+  const померено = entered.reduce((n, r) => n + (r.всего ?? 0), 0);
+  console.log(`\n── Проход 2: на поле. Зашли в ${entered.length} игр из ${routes.length - Object.keys(HUB_ROUTES).filter((h) => routes.includes(h)).length}, ПОМЕРЕНО ${померено} элементов, порог ${MIN_FIELD}×${MIN_FIELD}.`);
 
   let bad = 0;
+
+  // ⚠️ ЭТОТ БЛОК СТОИТ ПОСЛЕ `let bad`, И ЭТО НЕ ОФОРМЛЕНИЕ. Первая редакция
+  // поставила его выше объявления: `node --check` прошёл (разбор верен), а
+  // выполнение упало бы на временной мёртвой зоне. Проверка синтаксисом не
+  // заменяет прогона.
+  if (пусто.length) {
+    console.log(`\n🔴 Зашли, но померили НОЛЬ элементов — поле не проверено (это слепота, а не «мелких нет»):`);
+    for (const p of пусто) console.log(`    ${p.route} (вошли через «${p.label}»)`);
+    bad = 1;
+  }
 
   // Не зашли = не проверили. Молчать об этом нельзя: это и есть «зелёный вслепую».
   if (blind.length) {
