@@ -47,9 +47,26 @@ const GRADIENT = ['#7f7fd5', '#86a8e7'];
 // Было зашито '#FFF' — контраст 2.39 (норма AA 4.5), стало 4.81.
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
-const CELL_COLORS = ['#8B5CF6', '#0EA5E9', '#22C55E', '#F59E0B', '#EC4899'] as const;
+/**
+ * 🔴 ДЕВЯТЬ ЦВЕТОВ, ПО ОДНОМУ НА ЦИФРУ — отчёт «Релакс» 06.09.2026 (app_feedback
+ * 83584e50): «хотелось бы девять цветов, чтобы каждая цифра имела свой цвет, и была
+ * возможность логичного выделения, а пока так невозможно». Пяти не хватало ровно
+ * потому, что цифр девять: раскрасить кандидатов по цифрам было нечем.
+ *
+ * ⚠️ ПАЛИТРА ДАЛЬТОНИКА — ЭТО НЕ ТЕ ЖЕ ЦВЕТА ПОБЛЕДНЕЕ. Здесь полный набор
+ * Okabe–Ito (восемь различимых при всех трёх типах дальтонизма) плюс серый девятым:
+ * девять НЕЗАВИСИМО различимых оттенков не существует, и серый — честный способ
+ * добрать девятый, не притворяясь, что он такой же контрастный.
+ */
+const CELL_COLORS = [
+  '#8B5CF6', '#0EA5E9', '#22C55E', '#F59E0B', '#EC4899',
+  '#EF4444', '#14B8A6', '#6366F1', '#84CC16',
+] as const;
 // Okabe–Ito: отдельная палитра для режима дальтонизма, а не перестановка тех же цветов.
-const CELL_COLORS_CB = ['#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7'] as const;
+const CELL_COLORS_CB = [
+  '#0072B2', '#E69F00', '#009E73', '#D55E00', '#CC79A7',
+  '#56B4E9', '#F0E442', '#000000', '#999999',
+] as const;
 // blendHex, краски групп и геометрия термометра — в src/services/sudoku-overlay.ts:
 // один рисунок на классику и на Бездну (см. шапку модуля, §7е п.71).
 // Рисованные цифры — набор под активный профиль (см. src/constants/digitThemes.ts).
@@ -2498,7 +2515,14 @@ const styles = StyleSheet.create({
   // попадает надёжно (44 у Apple, 48 у Material). Промах по «Отменить» в судоку стоит
   // дорого: рядом «Подсказка», а она тратит лимит и режет счёт.
   hintRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 0, width: '100%' },
-  paintPalette: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
+  /**
+   * ⚠️ `flexWrap` БЕЗ ГРАНИЦЫ ШИРИНЫ НЕ ПЕРЕНОСИТ — на это уже наступали в другом
+   * разделе. Считано: кружок 30 + зазор 9, девять штук в строку это 9×30 + 8×9 = 342,
+   * а на экране 320 под палитру остаётся около 288. Поэтому явный потолок ширины и
+   * перенос: пять сверху, четыре снизу. Кружки НЕ уменьшаю — они и так меньше порога
+   * нажатия, и сжимать цель ради одной строки значило бы чинить вёрстку за счёт руки.
+   */
+  paintPalette: { flexDirection: 'row', flexWrap: 'wrap', maxWidth: 5 * 30 + 4 * 9, alignItems: 'center', justifyContent: 'center', gap: 9, alignSelf: 'center' },
   paintSwatch: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   paintHint: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
   overWrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.55)', padding: 24, zIndex: 100 },
