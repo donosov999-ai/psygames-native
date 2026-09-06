@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.48.0',
+    date: '2026-09-06',
+    ru: [
+      'Сортировка тортов чинена: на тарелках не было видно ни одного куска — играть было нечем. Спасибо тому, кто написал «а где тортики?»',
+      'Шахматы в режиме потока: доска смотрела не с той стороны, когда вы играли за чёрных — в половине позиций',
+      'Башни переехали в «Сортировку»: ханой и лондонская теперь рядом с переливалкой и товарами, одной развилкой меньше',
+      'Разделы «Слова», «Слух», «Маршруты» и «Шахматы» открываются целиком, а не одним упражнением: раньше вы заходили в раздел и видели там одну игру из семи',
+      'Сортировка товаров: витрина на два-три экрана — шкаф едет, а товары не мельчают',
+    ],
+    en: [
+      'Cake Sort is fixed: not a single slice was visible on the plates, so there was nothing to play. Thanks to whoever wrote “where are the cakes?”',
+      'Chess flow mode: the board faced the wrong way when you played Black — in half the positions',
+      'Towers moved into Sorting: Hanoi and Tower of London now sit next to Water Sort and Goods Sorting, one hub fewer',
+      'The Words, Hearing, Routes and Chess sections now open in full instead of with a single exercise: before, you entered a section and found one game out of seven',
+      'Goods Sorting: a two-to-three screen shelf — the cabinet scrolls and the goods stay large',
+    ],
+  },
+  {
     version: '2.47.1',
     date: '2026-09-06',
     ru: [
