@@ -38,20 +38,78 @@ export interface Board {
    * поэтому старые вызовы `makeBoard` из двух аргументов остаются верными.
    */
   readonly jokers?: readonly boolean[];
+  /**
+   * 🔴 СТОЛБЕЦ КАЖДОЙ НИШИ. Нужен ровно для одного: знать, кто «сверху».
+   *
+   * Без него доска — плоский список, и «полка закрылась, верхние осели» задать
+   * нельзя. Номер столбца, а не ширина сетки, потому что доска бывает с дырами
+   * (`SHAPES`): в столбце может стоять три ниши, а в соседнем одна.
+   *
+   * ⚠️ Пусто — прежнее поведение: тройка убирается, ниша ОСТАЁТСЯ пустой. Так
+   * играют сорок пять уровней и все прежние пробы, и трогать их незачем.
+   */
+  readonly col?: readonly number[];
+  /**
+   * 🔴 УСТОЙЧИВЫЙ НОМЕР НИШИ. Переезжает вместе с содержимым.
+   *
+   * Место в массиве после схлопывания меняется, а всё, что помнит про нишу —
+   * цель «освободи нишу», ключи скрытости, примёрзший ряд — помнило её ИМЕННО
+   * по месту. Решение Дениса 06.09.2026: перевести на устойчивый id, иначе
+   * переномерация ломает четыре механики молча.
+   */
+  readonly ids?: readonly number[];
+  /**
+   * 🔴 ОЧЕРЕДЬ ВХОДЯЩИХ ПОЛОК — КОНЕЧНАЯ И ИЗВЕСТНАЯ ЗАРАНЕЕ.
+   *
+   * Приходит сверху на место закрывшейся, как в «Тортах». Замкнутость
+   * мультимножества держит всю гарантию решаемости: бесконечный поток доказать
+   * нельзя вообще никак, а «каждая раздача доказано решаема» — единственное,
+   * чем мы отличаемся от конкурента с 454 жалобами на непроходимые уровни.
+   */
+  readonly queue?: readonly Shelf[];
+}
+
+/** Полка из очереди: что на ней лежит и сколько влезает. */
+export interface Shelf {
+  readonly cell: readonly number[];
+  readonly cap: number;
+  readonly joker?: boolean;
+}
+
+export interface BoardExtras {
+  jokers?: readonly boolean[];
+  col?: readonly number[];
+  ids?: readonly number[];
+  queue?: readonly Shelf[];
 }
 
 export function makeBoard(
   cells: readonly (readonly number[])[],
   caps: readonly number[],
-  jokers?: readonly boolean[],
+  jokersOrExtras?: readonly boolean[] | BoardExtras,
 ): Board {
+  /*
+   * ⚠️ Третий аргумент принимает и старую форму (массив джокеров), и новую
+   * (объект с полями). Иначе пришлось бы одним коммитом переписать все вызовы
+   * из сорока с лишним проб — а они проверяют игру, а не форму вызова.
+   */
+  const extras: BoardExtras = Array.isArray(jokersOrExtras)
+    ? { jokers: jokersOrExtras as readonly boolean[] }
+    : ((jokersOrExtras as BoardExtras) ?? {});
   if (cells.length !== caps.length) {
     throw new Error(`доска собрана неверно: ниш ${cells.length}, ёмкостей ${caps.length}`);
   }
-  if (jokers && jokers.length !== cells.length) {
-    throw new Error(`доска собрана неверно: ниш ${cells.length}, джокеров ${jokers.length}`);
+  for (const [имя, ряд] of [['джокеров', extras.jokers], ['столбцов', extras.col], ['номеров', extras.ids]] as const) {
+    if (ряд && ряд.length !== cells.length) {
+      throw new Error(`доска собрана неверно: ниш ${cells.length}, ${имя} ${ряд.length}`);
+    }
   }
-  return jokers ? { cells, caps, jokers } : { cells, caps };
+  const out: Board = { cells, caps };
+  return Object.assign({}, out,
+    extras.jokers ? { jokers: extras.jokers } : {},
+    extras.col ? { col: extras.col } : {},
+    extras.ids ? { ids: extras.ids } : {},
+    extras.queue ? { queue: extras.queue } : {});
 }
 
 /** Снято ли с ниши правило укладки. Единственное место, где это читается. */
@@ -125,21 +183,120 @@ export function canPlace(board: Board, index: number, type: number, strict: bool
 
 /** Доска разобрана: во всех нишах пусто. */
 export function isCleared(board: Board): boolean {
-  return board.cells.every((c) => c.length === 0);
+  /*
+   * ⚠️ ОЧЕРЕДЬ ТОЖЕ СЧИТАЕТСЯ. Пустая доска при непустой очереди — не победа, а
+   * промежуточное состояние: полки ещё придут. Забудь это условие — и решатель
+   * объявит решённой партию, которая на деле только началась.
+   */
+  return board.cells.every((c) => c.length === 0) && (board.queue?.length ?? 0) === 0;
 }
 
-/** Убрать все тройки, какие сложились, — повторяя, пока складываются. */
+/**
+ * Убрать все тройки, какие сложились, — повторяя, пока складываются.
+ *
+ * 🔴 ДВА ПОВЕДЕНИЯ В ОДНОЙ ФУНКЦИИ, И ЭТО НАМЕРЕННО.
+ *
+ * Без `col` ниша остаётся пустой — так живут сорок пять уровней и все прежние
+ * пробы. С `col` полка ЗАКРЫВАЕТСЯ: уходит с доски, столбец оседает, сверху
+ * приходит следующая из очереди (решение Дениса 06.09.2026).
+ *
+ * ⚠️ ПОЧЕМУ ИМЕННО ЗДЕСЬ, А НЕ ОТДЕЛЬНОЙ ФУНКЦИЕЙ В ЭКРАНЕ. Эту функцию зовёт
+ * `moveTop`, а через него — РЕШАТЕЛЬ. Положи закрытие полки в экран, и решатель
+ * стал бы доказывать решаемость доски, которой в игре нет: обещание «уровень
+ * проверен» превратилось бы в ложь, а именно им мы и отличаемся. В «Тортах»
+ * ровно та же причина записана у `collapse`: освобождение места и приход новой
+ * тарелки — ОДНО событие.
+ */
 export function collapseTriples(board: Board): Board {
   const cells = board.cells.map((c) => [...c]);
+  if (!board.col) {
+    let again = true;
+    while (again) {
+      again = false;
+      for (let i = 0; i < cells.length; i += 1) {
+        const t = tripleIn(cells[i] as number[]);
+        if (t !== null) { cells[i] = removeTriple(cells[i] as number[], t); again = true; }
+      }
+    }
+    return { ...board, cells };
+  }
+
+  /*
+   * Столбцовая модель: собираем ниши по столбцам В ПОРЯДКЕ МАССИВА (он идёт по
+   * рядам сверху вниз, значит внутри столбца это порядок сверху вниз), закрываем
+   * что сложилось, подаём из очереди СВЕРХУ — и раскладываем обратно.
+   */
+  const caps = [...board.caps];
+  const jokers = board.jokers ? [...board.jokers] : null;
+  const ids = board.ids ? [...board.ids] : null;
+  const col = [...board.col];
+  const queue = board.queue ? [...board.queue] : [];
+
+  interface Ниша { cell: number[]; cap: number; joker: boolean; id: number }
+  const столбцы = new Map<number, Ниша[]>();
+  const порядокСтолбцов: number[] = [];
+  cells.forEach((cell, i) => {
+    const c = col[i] as number;
+    if (!столбцы.has(c)) { столбцы.set(c, []); порядокСтолбцов.push(c); }
+    (столбцы.get(c) as Ниша[]).push({
+      cell, cap: caps[i] as number, joker: jokers?.[i] === true, id: ids ? (ids[i] as number) : i,
+    });
+  });
+
   let again = true;
   while (again) {
     again = false;
-    for (let i = 0; i < cells.length; i += 1) {
-      const t = tripleIn(cells[i] as number[]);
-      if (t !== null) { cells[i] = removeTriple(cells[i] as number[], t); again = true; }
+    for (const c of порядокСтолбцов) {
+      const ниши = столбцы.get(c) as Ниша[];
+      for (let k = 0; k < ниши.length; k += 1) {
+        const t = tripleIn((ниши[k] as Ниша).cell);
+        if (t === null) continue;
+        /*
+         * ⚠️ ЗАКРЫВАЕТСЯ ТОЛЬКО ПОЛНАЯ ТРОЙКА В НИШЕ НА ТРИ. В нише на четыре
+         * тройка складывается РЯДОМ с четвёртым товаром, и закрыть её значило бы
+         * выбросить его с доски — мультимножество перестало бы быть замкнутым, а
+         * на замкнутости стоит вся доказуемость.
+         */
+        const полная = (ниши[k] as Ниша).cell.length === TRIPLE;
+        if (!полная) { (ниши[k] as Ниша).cell = removeTriple((ниши[k] as Ниша).cell, t); again = true; continue; }
+        ниши.splice(k, 1);
+        const пришла = queue.shift();
+        if (пришла) {
+          ниши.unshift({ cell: [...пришла.cell], cap: пришла.cap, joker: пришла.joker === true, id: -1 });
+        }
+        again = true;
+        break;
+      }
     }
   }
-  return { cells, caps: board.caps, jokers: board.jokers };
+
+  /* Новым полкам номера выдаём ПОСЛЕ всех переездов — от наибольшего занятого. */
+  let следующий = Math.max(0, ...[...столбцы.values()].flat().map((н) => н.id)) + 1;
+  const плоско: Ниша[] = [];
+  for (const c of порядокСтолбцов) {
+    for (const н of столбцы.get(c) as Ниша[]) {
+      if (н.id === -1) н.id = следующий++;
+      плоско.push(н);
+    }
+  }
+  /*
+   * ⚠️ Обратно раскладываем В ТОМ ЖЕ ПОРЯДКЕ, что и разбирали: сначала все ниши
+   * первого столбца, потом второго. Это НЕ порядок по рядам, но он согласован
+   * сам с собой, а экран читает место ниши из `col`, а не из номера в массиве.
+   */
+  const новСтолбцы: number[] = [];
+  for (const c of порядокСтолбцов) (столбцы.get(c) as Ниша[]).forEach(() => новСтолбцы.push(c));
+
+  return makeBoard(
+    плоско.map((н) => н.cell),
+    плоско.map((н) => н.cap),
+    {
+      jokers: jokers ? плоско.map((н) => н.joker) : undefined,
+      col: новСтолбцы,
+      ids: плоско.map((н) => н.id),
+      queue,
+    },
+  );
 }
 
 /** Переложить верхний товар из одной ниши в другую. `null` — ход невозможен. */
@@ -152,7 +309,14 @@ export function moveTop(board: Board, from: number, to: number, strict: boolean)
   const cells = board.cells.map((c) => [...c]);
   (cells[from] as number[]).pop();
   (cells[to] as number[]).push(type);
-  return collapseTriples({ cells, caps: board.caps, jokers: board.jokers });
+  /*
+   * ⚠️ ПОЛЯ ДОСКИ ПЕРЕНОСЯТСЯ ЦЕЛИКОМ. Здесь стояло `{ cells, caps, jokers }` —
+   * то есть ход молча ронял `col`, `ids` и очередь. Последствие было тихим и
+   * полным: после ПЕРВОГО же хода доска теряла столбцы, схлопывание сваливалось
+   * на старое поведение, а товары из очереди исчезали из партии вместе с полем.
+   * Замер до починки: 0 доказуемо решаемых уровней из 56, часть — за один узел.
+   */
+  return collapseTriples({ ...board, cells });
 }
 
 /** Свободные ниши: пустые и не занятые препятствием. */

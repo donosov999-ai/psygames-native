@@ -97,13 +97,22 @@ function stateKey(board: Board, types: TypeMap): string {
     codes[i] = (capOf(board, i) << 16) | packed;
   }
   codes.sort((a, b) => a - b);
+  /*
+   * 🔴 ОЧЕРЕДЬ — ЧАСТЬ СОСТОЯНИЯ, И БЕЗ НЕЁ КЛЮЧ ВРЁТ. Две доски с одинаковым
+   * содержимым ниш, но разными остатками очереди — РАЗНЫЕ: у одной впереди ещё
+   * пять полок, у другой ни одной. Склей их — и перебор объявит решаемой партию,
+   * которую не досмотрел. Достаточно ДЛИНЫ: очередь разложена заранее и
+   * расходуется только с головы, значит длина её однозначно определяет.
+   */
+  const хвост = board.queue?.length ?? 0;
   // Одна склейка вместо конкатенации в цикле: каждое `+=` порождало новую строку.
-  const chars: number[] = new Array(n * 2);
+  const chars: number[] = new Array(n * 2 + 1);
   for (let i = 0; i < n; i += 1) {
     const c = codes[i]!;
     chars[i * 2] = c & 0xFFFF;
     chars[i * 2 + 1] = c >>> 16;
   }
+  chars[n * 2] = хвост & 0xFFFF;
   return String.fromCharCode.apply(null, chars);
 }
 
