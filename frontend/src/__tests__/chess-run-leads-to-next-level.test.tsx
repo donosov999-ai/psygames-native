@@ -13,7 +13,7 @@
  */
 import React from 'react';
 
-import { buildDeck, levelParams } from '@/src/games/scholars-mate/core/deck';
+import { buildDeck, buildFlowDeck, levelParams } from '@/src/games/scholars-mate/core/deck';
 import { starsFor, ступеньПоМедиане } from '@/src/games/scholars-mate/core/run';
 /**
  * ⚠️ Импорт экрана стоит ЗДЕСЬ, вместе с остальными, хотя ниже идут `jest.mock`.
@@ -192,9 +192,9 @@ describe('«Детский мат»: конец подхода ведёт дал
     нажать(tree, 'scholarsFlow');     // переключатель «поток»
     нажать(tree, 'НАЧАТЬ');
 
-    const колода = buildDeck(1, 2);   // первый набор потока — тот же, что и обычный
-    // Первую позицию решаем честно: подход без единого касания не засчитывается вовсе.
-    const uci = колода[0]!.solutions[0]!;
+    // ⚠️ Позиция берётся из КОЛОДЫ ПОТОКА, а не из обычной: с 06.09.2026 поток
+    // собирается однородным по цвету и его первая позиция другая.
+    const uci = buildFlowDeck(1, 2, 10 * 60 * 1000)[0]!.solutions[0]!;
     нажать(tree, uci.slice(0, 2));
     нажать(tree, uci.slice(2, 4));
 
@@ -228,7 +228,7 @@ describe('«Детский мат»: конец подхода ведёт дал
     нажать(tree, 'scholarsFlow');
     нажать(tree, 'НАЧАТЬ');
 
-    const uci = buildDeck(1, 2)[0]!.solutions[0]!;
+    const uci = buildFlowDeck(1, 2, 10 * 60 * 1000)[0]!.solutions[0]!;
     // Узнал быстро: 300 мс до первого касания при пороге трёх звёзд 1400 мс на ур.1.
     mockЧасы.t += 300;
     нажать(tree, uci.slice(0, 2));
@@ -271,7 +271,7 @@ describe('«Детский мат»: конец подхода ведёт дал
     });
     нажать(tree, 'scholarsFlow');
     нажать(tree, 'НАЧАТЬ');
-    const uci = buildDeck(1, 2)[0]!.solutions[0]!;
+    const uci = buildFlowDeck(1, 2, 10 * 60 * 1000)[0]!.solutions[0]!;
     mockЧасы.t += 300;
     нажать(tree, uci.slice(0, 2));
     нажать(tree, uci.slice(2, 4));
@@ -291,7 +291,7 @@ describe('«Детский мат»: конец подхода ведёт дал
     нажать(tree, 'scholarsFlow');
     нажать(tree, 'НАЧАТЬ');
 
-    const uci = buildDeck(1, 2)[0]!.solutions[0]!;
+    const uci = buildFlowDeck(1, 2, 10 * 60 * 1000)[0]!.solutions[0]!;
     // Узнал медленно: 5 с при пороге двух звёзд 2400 мс — это одна звезда.
     mockЧасы.t += 5000;
     нажать(tree, uci.slice(0, 2));
