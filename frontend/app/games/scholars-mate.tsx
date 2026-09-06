@@ -50,7 +50,7 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
 import { LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, namedMotifCount } from '@/src/games/scholars-mate/core/deck';
-import { starsFor } from '@/src/games/scholars-mate/core/run';
+import { starsFor, ступеньПоМедиане } from '@/src/games/scholars-mate/core/run';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
 
@@ -170,8 +170,36 @@ export default function ScholarsMateScreen() {
      */
     if (!поток && out.raiseLevel && shouldChainNextLevel(mode)) lvl.reach(level + 1);
     if (!поток && out.lowerLevel) lvl.fail();
-    const фаза: 'cleared' | 'result' = поток ? 'result' : out.phase;
-    if (фаза === 'cleared') setClearedPassed(passed);
+    /**
+     * 🔴 ПОТОК ТОЖЕ ДВИГАЕТ СТУПЕНЬ — ПО МЕДИАНЕ. Решение Дениса 06.09.2026.
+     *
+     * 📍 Раньше поток был единственным режимом без лестницы: в нём нет границы
+     * подхода, доля верных ничего не решает, и «дальше» честно не появлялось.
+     * Но жалоба `67eade4e` «партию прошёл, всё висит, где следующий уровень»
+     * пришла именно после подхода, и ответ «в потоке ступеней не бывает»
+     * человека не устраивает.
+     *
+     * Правило и порог — в `ступеньПоМедиане`: та же откалиброванная шкала, что
+     * рисует звёзды, чтобы «быстро» в звёздах и «быстро» в лестнице не
+     * разъехались. Медиана потока — самый надёжный замер в игре: сотни позиций
+     * за десять минут против восьми в обычном подходе.
+     *
+     * ⚠️ `isPreset` СТОИТ ЗДЕСЬ БУКВАЛЬНО, а не спрятан за помощника: гейт
+     * `warmup-level-drift` подставляет его значением `true` и проверяет, что
+     * понижение отсюда недостижимо. Спрячь признак за вызов — и он покрасит
+     * экран красным при полностью верном поведении.
+     */
+    const ступеньПотока = поток && !isPreset && shouldChainNextLevel(mode)
+      ? ступеньПоМедиане(r.medianMs, level)
+      : 'стоит';
+    if (ступеньПотока === 'вверх') lvl.reach(level + 1);
+    if (ступеньПотока === 'вниз') lvl.fail();
+    /**
+     * Поднялись в потоке — показываем карточку ступени, а не сухой итог: именно
+     * её отсутствия и не хватало человеку. Не поднялись — итог подхода как был.
+     */
+    const фаза: 'cleared' | 'result' = поток ? (ступеньПотока === 'вверх' ? 'cleared' : 'result') : out.phase;
+    if (фаза === 'cleared') setClearedPassed(поток ? true : passed);
     setPhase(фаза);
 
     try {
