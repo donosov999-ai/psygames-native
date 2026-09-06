@@ -30,6 +30,8 @@ import {
   startRound,
   startTraining,
   toggleDotsSolution,
+  revealDotsPair,
+  nextDotsHintPair,
   undoPath,
   type Cell,
   type DotsLocale,
@@ -119,6 +121,12 @@ export interface DotsAuxControls {
   disabled: boolean;
   /** Показать или скрыть решение. Первый показ снимает партию с зачёта. */
   toggleSolution: () => void;
+  /**
+   * ДЕШЁВАЯ ПОДСКАЗКА: открыть путь ОДНОЙ пары — той, где человек застрял.
+   * `null`, когда открывать нечего (доска уже показана целиком, все пары
+   * решены, не игровая фаза): кнопка тогда гаснет, а не пропадает.
+   */
+  hintPair: (() => void) | null;
 }
 
 /**
@@ -546,11 +554,15 @@ function DotsConnectSession({
    * неизменна: `setSession` от `useState` за жизнь компонента не меняется.
    */
   const toggleSolution = React.useCallback(() => { setSession(toggleDotsSolution); }, [setSession]);
+  const hintPairAction = React.useCallback(() => { setSession(revealDotsPair); }, [setSession]);
+  // Кнопка живая ровно тогда, когда есть КОГО открыть: правило выбора пары
+  // лежит в ядре, экран его не повторяет — иначе кнопка и действие разошлись бы.
+  const hintPair = nextDotsHintPair(session) ? hintPairAction : null;
   const canReveal = canRevealDotsSolution(session);
   const solutionVisible = session.solutionVisible;
   React.useEffect(() => {
-    onAux?.({ solutionVisible, disabled: !canReveal, toggleSolution });
-  }, [canReveal, onAux, solutionVisible, toggleSolution]);
+    onAux?.({ solutionVisible, disabled: !canReveal, toggleSolution, hintPair });
+  }, [canReveal, hintPair, onAux, solutionVisible, toggleSolution]);
 
   React.useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {

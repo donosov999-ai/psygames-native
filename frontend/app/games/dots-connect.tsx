@@ -295,6 +295,20 @@ export default function DotsConnectScreen() {
          */
         headerActions={
           <GameAuxBar>
+            {/*
+              Две подсказки рядом, дешёвая первой. «Открыть одну пару» отвечает
+              на вопрос «где я ошибся» и оставляет остальную доску задачей;
+              «Показать решение» открывает всё и разгадывать после него нечего.
+              Порядок не косметический: рядом стоящая дорогая кнопка забирает
+              нажатия у дешёвой, если стоит первой.
+            */}
+            <GameAuxAction
+              icon="bulb-outline"
+              tint={GRADIENT[0]}
+              label={strings.hintPair}
+              disabled={!aux || aux.disabled || !aux.hintPair}
+              onPress={() => aux?.hintPair?.()}
+            />
             <GameAuxAction
               icon={aux?.solutionVisible ? 'eye-off' : 'eye'}
               tint={GRADIENT[0]}

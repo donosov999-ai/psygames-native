@@ -70,6 +70,8 @@ export interface DotsStrings {
    * англичанину САМО ИМЯ КЛЮЧА на кнопке.
    */
   showSolution: string;
+  /** Дешёвая подсказка: открыть путь одной пары — той, где человек застрял. */
+  hintPair: string;
   /** Та же кнопка, когда подложка решения уже на доске. */
   hideSolution: string;
   /** Цена показа, названная вслух прямо на доске: партия больше не в зачёт. */
@@ -114,6 +116,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: 'Покрытие',
     hudGoal: 'Уровень засчитан только при покрытии 100%.',
     showSolution: 'Показать решение',
+    hintPair: 'Открыть одну пару',
     hideSolution: 'Скрыть решение',
     solutionNote: 'Решение показано — этот уровень не засчитается.',
   },
@@ -154,6 +157,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: 'Coverage',
     hudGoal: 'A level counts only at 100% coverage.',
     showSolution: 'Show solution',
+    hintPair: 'Reveal one pair',
     hideSolution: 'Hide solution',
     solutionNote: 'Solution shown — this level will not count.',
   },
@@ -194,6 +198,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: 'Cobertura',
     hudGoal: 'El nivel cuenta solo con una cobertura del 100%.',
     showSolution: 'Mostrar solución',
+    hintPair: 'Revelar un par',
     hideSolution: 'Ocultar solución',
     solutionNote: 'Solución mostrada: este nivel no contará.',
   },
@@ -234,6 +239,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: 'Cobertura',
     hudGoal: 'O nível só conta com 100% de cobertura.',
     showSolution: 'Mostrar solução',
+    hintPair: 'Revelar um par',
     hideSolution: 'Ocultar solução',
     solutionNote: 'Solução mostrada — este nível não vai contar.',
   },
@@ -274,6 +280,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: 'Abdeckung',
     hudGoal: 'Ein Level zählt erst bei 100% Abdeckung.',
     showSolution: 'Lösung zeigen',
+    hintPair: 'Ein Paar aufdecken',
     hideSolution: 'Lösung ausblenden',
     solutionNote: 'Lösung gezeigt — dieses Level zählt nicht.',
   },
@@ -314,6 +321,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: 'Couverture',
     hudGoal: 'Un niveau ne compte qu’à 100% de couverture.',
     showSolution: 'Montrer la solution',
+    hintPair: 'Révéler une paire',
     hideSolution: 'Masquer la solution',
     solutionNote: 'Solution affichée — ce niveau ne comptera pas.',
   },
@@ -354,6 +362,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: 'Copertura',
     hudGoal: 'Il livello vale solo con copertura al 100%.',
     showSolution: 'Mostra la soluzione',
+    hintPair: 'Rivela una coppia',
     hideSolution: 'Nascondi la soluzione',
     solutionNote: 'Soluzione mostrata: questo livello non conterà.',
   },
@@ -394,6 +403,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: '覆盖率',
     hudGoal: '覆盖率达到 100% 才算通关。',
     showSolution: '显示答案',
+    hintPair: '显示一对',
     hideSolution: '隐藏答案',
     solutionNote: '已看答案 — 本关不计入成绩。',
   },
@@ -434,6 +444,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: '埋まり具合',
     hudGoal: '埋まり具合 100% でのみクリアになります。',
     showSolution: '答えを見る',
+    hintPair: '1組だけ見る',
     hideSolution: '答えを隠す',
     solutionNote: '答えを見たので、このレベルはクリア扱いになりません。',
   },
@@ -474,6 +485,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: '채움',
     hudGoal: '채움 100%일 때만 레벨이 인정됩니다.',
     showSolution: '정답 보기',
+    hintPair: '한 쌍만 보기',
     hideSolution: '정답 숨기기',
     solutionNote: '정답을 봤으므로 이 레벨은 인정되지 않습니다.',
   },
@@ -514,6 +526,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: 'भराव',
     hudGoal: 'स्तर तभी गिना जाता है जब भराव 100% हो।',
     showSolution: 'हल दिखाएँ',
+    hintPair: 'एक जोड़ी दिखाएँ',
     hideSolution: 'हल छिपाएँ',
     solutionNote: 'हल देख लिया — यह स्तर नहीं गिना जाएगा।',
   },
@@ -554,6 +567,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     hudCoverage: 'التغطية',
     hudGoal: 'لا يُحتسب المستوى إلا بتغطية 100%.',
     showSolution: 'إظهار الحل',
+    hintPair: 'كشف زوج واحد',
     hideSolution: 'إخفاء الحل',
     solutionNote: 'ظهر الحل — لن يُحتسب هذا المستوى.',
   },
