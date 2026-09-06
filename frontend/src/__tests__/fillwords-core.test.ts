@@ -36,6 +36,7 @@ import {
   FILLWORDS_MIN_WORD,
   FILLWORDS_TINTS,
   applyTrace,
+  assertFullCoverage,
   areAdjacent,
   createFillwordsSession,
   fillwordsLevel,
@@ -472,5 +473,61 @@ describe('филворды: разобранное слово видно и ра
       }
     }
     expect(clashes).toEqual([]);
+  });
+
+  /**
+   * 🔴 ЗАПРЕТ ДИАГОНАЛЕЙ ОБЯЗАН ДЕЙСТВОВАТЬ В ОБЕ СТОРОНЫ.
+   *
+   * 📍 Урок соседней игры («Точки», 06.09.2026): правило пути занесли только в
+   * генератор, и замер дал те же лишние решения — потому что игроку по-прежнему
+   * можно было вести линию как угодно. Здесь проверяется и то, и другое:
+   * генератор не кладёт диагональных шагов, а сессия отвергает диагональный жест.
+   *
+   * Ось выбрана замером: пространство поиска (самонепересекающиеся пути длины L
+   * из середины поля 12×9) при запрете падает с 444 876 до 1978 на восьми буквах,
+   * то есть в 225 раз. Это «Поиск слов» — сканирование лучами вместо змейки.
+   */
+  describe('линия только по прямой', () => {
+    it('🔴 генератор не кладёт ни одного диагонального шага', () => {
+      const беды: string[] = [];
+      for (let seed = 1; seed <= 8; seed += 1) {
+        const p = generateFillwords({ rows: 8, cols: 7, locale: 'ru', seed, диагонали: false });
+        assertFullCoverage(p);
+        for (const w of p.words) {
+          for (let i = 1; i < w.path.length; i += 1) {
+            const a = w.path[i - 1] as number; const b = w.path[i] as number;
+            const dr = Math.abs(Math.floor(a / p.cols) - Math.floor(b / p.cols));
+            const dc = Math.abs((a % p.cols) - (b % p.cols));
+            if (dr !== 0 && dc !== 0) беды.push(`seed${seed} «${w.word}»: шаг наискосок`);
+          }
+        }
+      }
+      expect(беды.slice(0, 3)).toEqual([]);
+    });
+
+    it('🔴 и палец тоже не может пойти наискосок — правило живёт в раскладке', () => {
+      const p = generateFillwords({ rows: 8, cols: 7, locale: 'ru', seed: 3, диагонали: false });
+      expect(p.диагонали).toBe(false);
+      // соседи по диагонали: клетка 0 и клетка cols+1
+      expect(areAdjacent(0, p.cols + 1, p.cols, p.диагонали)).toBe(false);
+      expect(areAdjacent(0, 1, p.cols, p.диагонали)).toBe(true);
+      expect(areAdjacent(0, p.cols, p.cols, p.диагонали)).toBe(true);
+    });
+
+    it('со змейкой всё как было: диагональ разрешена', () => {
+      const p = generateFillwords({ rows: 8, cols: 7, locale: 'ru', seed: 3 });
+      expect(p.диагонали).toBe(true);
+      expect(areAdjacent(0, p.cols + 1, p.cols, p.диагонали)).toBe(true);
+    });
+
+    it('🔴 поле без диагоналей собирается на каждом языке со словарём', () => {
+      const беды: string[] = [];
+      for (const loc of [...FILLWORDS_LOCALES]) {
+        try {
+          assertFullCoverage(generateFillwords({ rows: 9, cols: 7, locale: loc, seed: 2, диагонали: false }));
+        } catch (e) { беды.push(`${loc}: ${String((e as Error).message).slice(0, 40)}`); }
+      }
+      expect(беды).toEqual([]);
+    });
   });
 });
