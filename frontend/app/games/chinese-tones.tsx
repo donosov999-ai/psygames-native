@@ -66,7 +66,8 @@ interface Trial {
  * Лесенка. Слепой режим отделён от режима пиньиня нарочно: сперва ухо учится
  * различать контур, и только потом к нему добавляется написание.
  */
-function levelParams(level: number): { trials: number; showAfter: boolean; pinyinMode: boolean } {
+/** Экспортируется для замера лестницы: `memory-hearing-ladders-scan`. */
+export function levelParams(level: number): { trials: number; showAfter: boolean; pinyinMode: boolean } {
   if (level <= 5) return { trials: 8, showAfter: true, pinyinMode: false };
   if (level <= 10) return { trials: 10, showAfter: false, pinyinMode: false };
   return { trials: 12, showAfter: false, pinyinMode: true };

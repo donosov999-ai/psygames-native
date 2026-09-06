@@ -62,7 +62,8 @@ export const MNEMONICS_RULES: LevelRule[] = [
 type GamePhase = 'intro' | 'config' | 'memorize' | 'check' | 'cleared' | 'result';
 type GameMode = 'words' | 'numbers';
 // Лесенка: старт 5 элементов (минимум для запоминания списка) → растёт при ЧИСТОМ воспроизведении.
-function levelParams(level: number): { itemCount: number } {
+/** Экспортируется для замера лестницы: `memory-hearing-ladders-scan`. */
+export function levelParams(level: number): { itemCount: number } {
   return { itemCount: Math.min(15, 4 + Math.max(1, level)) };   // L1=5, L2=6 … L11=15
 }
 

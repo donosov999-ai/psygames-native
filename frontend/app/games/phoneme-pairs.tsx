@@ -183,7 +183,8 @@ interface Trial {
 
 // Лесенка: L1-5 — 8 проб, лёгкая половина пар, после ответа показываем слово;
 // L6-10 — 10 проб, весь список; L11+ — 12 проб, слепой режим (только звук).
-function levelParams(level: number): { trials: number; easyOnly: boolean; showWord: boolean; blind: boolean } {
+/** Экспортируется для замера лестницы: `memory-hearing-ladders-scan`. */
+export function levelParams(level: number): { trials: number; easyOnly: boolean; showWord: boolean; blind: boolean } {
   if (level <= 5) return { trials: 8, easyOnly: true, showWord: true, blind: false };
   if (level <= 10) return { trials: 10, easyOnly: false, showWord: false, blind: false };
   return { trials: 12, easyOnly: false, showWord: false, blind: true };
