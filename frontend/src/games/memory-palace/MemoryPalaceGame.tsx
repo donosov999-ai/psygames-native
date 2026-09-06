@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Image,
 } from 'react-native';
 import {
   confirmMemoryPalacePlacements,
@@ -48,6 +49,7 @@ import {
   type PalacePhaseLayout,
   palaceShowsItemNames,
 } from './placeLayout';
+import { palaceItemImage } from './palaceItems.generated';
 
 export interface MemoryPalaceTheme {
   background: string;
@@ -156,6 +158,37 @@ const SHAPE_RADIUS: Record<ItemShape, number> = {
 };
 
 function ItemAsset({ item, size = 42 }: { item: PalaceItem; size?: number }) {
+  /**
+   * 🔴 КАРТИНКА ВМЕСТО ЦВЕТНОЙ ФИГУРЫ (07.09.2026, решение Дениса).
+   *
+   * Приём «дворец памяти» держится на ЯРКОМ ОБРАЗЕ: связать с фонтаном лампу
+   * можно, «оранжевый ромб» — нет, его нечем представить большим, движущимся и
+   * звучащим, как просит сама игра на экране «Оживите ассоциации». Пятьдесят
+   * шесть предметов нарисованы одним листом 7×8 (kie) и вырезаны скиллом
+   * bg-cutout; карта собрана scripts/build-palace-items.mjs.
+   *
+   * Фигура осталась запасным видом: если предмета нет в карте, игра рисует
+   * прежний цветной силуэт и работает как раньше — без картинок она не
+   * ломается.
+   */
+  const картинка = palaceItemImage(item.id);
+  if (картинка) {
+    return (
+      <Image
+        accessible={false}
+        source={картинка}
+        /*
+         * Габарит РОВНО как у запасной фигуры. Первая редакция ставила 1,15 —
+         * «чтобы картинка смотрелась крупнее», — и проба высоты фазы изучения
+         * тут же покраснела: плитка считается из этих чисел, картинка распирала
+         * её, и сцена поехала бы за экран. Ровно та беготня, которую лечили
+         * 05.09. Крупнее — только вместе с пересчётом placeLayout.
+         */
+        style={{ width: size, height: size }}
+        resizeMode="contain"
+      />
+    );
+  }
   const isCapsule = item.shape === 'capsule';
   const isDiamond = item.shape === 'diamond';
   const isTriangle = item.shape === 'triangle';
