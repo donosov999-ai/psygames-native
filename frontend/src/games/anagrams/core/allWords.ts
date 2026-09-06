@@ -29,6 +29,13 @@ import PT from '@/src/constants/allWordsPt.json';
  * плиткой взято чамо, а не блок, — там же и в `WORDLIST_NONLATIN.md`.
  */
 import KO from '@/src/constants/allWordsKo.json';
+/**
+ * ⚠️ АРАБСКИЙ ХРАНИТСЯ ОБЫЧНЫМИ БУКВАМИ, но плиток тридцать шесть, а не двадцать
+ * восемь: варианты أ إ آ ة ى ؤ ئ ء в письме РАЗНЫЕ и набираются отдельно, сводить
+ * их к базовой букве нельзя. Огласовки в набор не попадают вовсе — это надстрочные
+ * пометки чтения, а не буквы.
+ */
+import AR from '@/src/constants/allWordsAr.json';
 
 export interface AllWordsPack {
   /** База: 7–8 букв, из них складываются все цели. */
@@ -66,6 +73,7 @@ const НАБОРЫ: Record<string, AllWordsPack[]> = {
   it: IT as AllWordsPack[],
   pt: PT as AllWordsPack[],
   ko: KO as AllWordsPack[],
+  ar: AR as AllWordsPack[],
 };
 
 export function allWordsLocales(): string[] {
