@@ -29,6 +29,28 @@ export function normalizeSudokuCellColors(value: unknown, N: number): SudokuCell
   });
 }
 
+/**
+ * Поставить клетке ГОТОВЫЙ цвет — движение отмены, а не игрока.
+ *
+ * Парная к `setPencilCell`: отмена возвращает «как было», а `toggle` этого не умеет —
+ * повтор снимает метку, и вернуть ею замену одного цвета другим нельзя. `NO_SUDOKU_COLOR`
+ * (-1) — законное значение «цвета не было».
+ */
+export function setSudokuCellColor(
+  current: SudokuCellColors,
+  N: number,
+  r: number,
+  c: number,
+  color: number,
+): SudokuCellColors {
+  const next = normalizeSudokuCellColors(current, N);
+  if (r < 0 || r >= N || c < 0 || c >= N) return next;
+  next[r][c] = Number.isInteger(color) && color >= NO_SUDOKU_COLOR && color < SUDOKU_COLOR_COUNT
+    ? color
+    : NO_SUDOKU_COLOR;
+  return next;
+}
+
 /** Повтор выбранного цвета снимает метку; другой цвет заменяет её. */
 export function toggleSudokuCellColor(
   current: SudokuCellColors,

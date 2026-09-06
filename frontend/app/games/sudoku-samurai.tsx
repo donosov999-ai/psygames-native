@@ -30,7 +30,7 @@ import { TECHNIQUE_TIER, type Technique } from '@/src/services/sudoku-grade';
 import { buildSolution, GRID_ORIGINS, isSolved as samuraiSolved } from '@/src/services/samurai';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import {
-  emptyPencilMarks, normalizePencilMarks, pencilInput, routeDigitPress,
+  emptyPencilMarks, normalizePencilMarks, pencilInput, routeDigitPress, setPencilCell,
   visiblePencilDigits, countPencilMarks, type PencilMarks,
 } from '@/src/services/pencilMarks';
 
@@ -1059,7 +1059,16 @@ const RESUME_V = 2;
 export const SAMURAI_RESUME_V = RESUME_V;
 
 /** Ход: что стояло в клетке ДО него. Назад отыгрывает экран, лента только помнит. */
-interface SamuraiMove { r: number; c: number; from: number; to: number }
+/**
+ * 🔴 ВИДОВ ХОДА ДВА — та же починка, что в обычной судоку (жалоба тестировщиков
+ * 06.09.2026 «кнопка отменить не работает»): пометка не ложилась в ленту вовсе, и после
+ * любого их числа кнопка оставалась серой. Пометка по-прежнему НЕ тратит ошибку и НЕ
+ * проверяет доску на победу — чинится только отменяемость. Ход без `kind` — цифра: так
+ * лежат ленты в сохранённых партиях прежних версий.
+ */
+type SamuraiMove =
+  | { kind?: 'digit'; r: number; c: number; from: number; to: number }
+  | { kind: 'pencil'; r: number; c: number; from: number; to: number };
 
 /**
  * Снимок незаконченной партии. Кладём и решение тоже: без него доска поднимется, а
@@ -1361,6 +1370,11 @@ export default function SamuraiSudokuGame() {
     if (over) return;
     const m = hist.undo();
     if (!m) return;
+    if (m.kind === 'pencil') {
+      setMarks((current) => setPencilCell(current, SIZE, m.r, m.c, m.from));
+      setSelected({ r: m.r, c: m.c });
+      return;
+    }
     const ng = grid.map((row) => [...row]);
     ng[m.r][m.c] = m.from;
     setGrid(ng);
@@ -1483,7 +1497,11 @@ export default function SamuraiSudokuGame() {
     if (route === 'pencil') {
       // Клетка на стыке сеток — ОДНА клетка поля 21×21, поэтому и набор кандидатов у
       // неё один: пометка, поставленная «из левой верхней сетки», видна и из центральной.
-      setMarks((current) => pencilInput(current, SIZE, sel.r, sel.c, n));
+      // В ленту отмены пометка ложится, ошибку и проверку победы по-прежнему не трогает.
+      const была = marks[sel.r]?.[sel.c] ?? 0;
+      const стало = pencilInput(marks, SIZE, sel.r, sel.c, n);
+      setMarks(стало);
+      hist.push({ kind: 'pencil', r: sel.r, c: sel.c, from: была, to: стало[sel.r][sel.c] });
       return;
     }
     const { r, c } = sel;

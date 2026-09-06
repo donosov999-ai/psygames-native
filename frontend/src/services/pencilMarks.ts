@@ -78,6 +78,23 @@ export function clearPencilMarks(marks: PencilMarks, N: number, r: number, c: nu
   return next;
 }
 
+/**
+ * Поставить клетке ГОТОВУЮ маску — движение отмены, а не игрока.
+ *
+ * 🔴 ЗАЧЕМ ОТДЕЛЬНО ОТ toggle/clear. Отмена возвращает клетку в состояние «как было», а
+ * это состояние — целая маска, а не цифра: сняли ластиком девять пометок одним нажатием,
+ * и вернуть их переключением по одной нельзя. Прежде такой функции не было, и лента
+ * отмены пометок оказалась невозможной технически — отсюда жалоба тестировщиков
+ * 06.09.2026 «кнопка отменить не работает» (замер: после любого числа пометок кнопка
+ * оставалась серой).
+ */
+export function setPencilCell(marks: PencilMarks, N: number, r: number, c: number, mask: number): PencilMarks {
+  const next = normalizePencilMarks(marks, N);
+  if (r < 0 || r >= N || c < 0 || c >= N) return next;
+  next[r][c] = mask & FULL_MASK;
+  return next;
+}
+
 /** Сколько пометок стоит на всей сетке. Нужно экранам: пустой слой не показывают. */
 export function countPencilMarks(marks: PencilMarks): number {
   let n = 0;

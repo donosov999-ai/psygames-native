@@ -26,8 +26,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveResume, loadResume } from '@/src/services/resume';
 import {
   emptyPencilMarks, normalizePencilMarks, pencilInput, routeDigitPress, visiblePencilDigits,
-  pencilDigits, countPencilMarks, hasPencilMark, PENCIL_MAX_DIGIT,
+  pencilDigits, countPencilMarks, hasPencilMark, setPencilCell, PENCIL_MAX_DIGIT,
 } from '@/src/services/pencilMarks';
+import {
+  emptySudokuCellColors, toggleSudokuCellColor, setSudokuCellColor, NO_SUDOKU_COLOR,
+} from '@/src/services/sudoku-coloring';
 import { MIN_TAP } from '@/src/components/GlassButton';
 import { SUDOKU_GAME_ID, SUDOKU_RESUME_V, sudokuVisibleMarks } from '@/app/games/sudoku';
 import {
@@ -307,24 +310,37 @@ describe('обе игры дотягиваются до карандаша, а �
       const body = fnBody(src, 'handleNumPress');
       expect(`${name}: обработчик цифры найден`).toBe(`${name}: обработчик цифры ${body ? 'найден' : 'НЕ НАЙДЕН'}`);
       expect(`${name}: ${/routeDigitPress\(/.test(body)}`).toBe(`${name}: true`);
-      expect(`${name}: ${/setMarks\(\(current\) => pencilInput\(/.test(body)}`).toBe(`${name}: true`);
+      // ⚠️ Форму записи не сторожим: было `/setMarks\(\(current\) => pencilInput\(/`, и
+      // проверка покраснела 06.09.2026 от смены функционального сеттера на прямой — при
+      // том же поведении. Сторожим ФАКТ: нажатие уходит в карандашный слой.
+      expect(`${name}: ${/setMarks\(/.test(body) && /pencilInput\(/.test(body)}`).toBe(`${name}: true`);
     }
   });
 
-  it('🔴 карандашная ветка выходит ДО ленты отмены и до счёта ошибок', () => {
-    // Забыть здесь `return` — значит превратить каждую пометку в ход: минус жизнь,
-    // плюс запись в ленту отмены, проверка доски на победу. Проверяем порядком строк.
+  it('🔴 карандашная ветка выходит ДО СЧЁТА ОШИБОК и до проверки победы', () => {
+    /**
+     * Забыть здесь `return` — значит превратить каждую пометку в ход: минус жизнь и
+     * проверка доски на победу.
+     *
+     * 🔴 ИЗ ЭТОГО СПИСКА УБРАНА «лента отмены» (06.09.2026). Прежняя редакция требовала
+     * выхода ДО `hist.push(` — то есть запрещала пометке попадать в ленту, и ровно это
+     * оказалось жалобой тестировщиков: кнопка «Отменить» не видела пометок и оставалась
+     * серой. Теперь у пометки СВОЙ `hist.push({ kind: 'pencil' … })` внутри ветки, а
+     * ошибка и победа остаются за её пределами.
+     */
     for (const [name, src] of [['sudoku', SUDOKU], ['samurai', SAMURAI]] as const) {
       const body = fnBody(src, 'handleNumPress');
       const pencilAt = body.indexOf('pencilInput(');
       const returnAt = body.indexOf('return;', pencilAt);
-      const histAt = body.indexOf('hist.push(');
       const errAt = body.indexOf('setErrors(');
-      expect(`${name}: карандаш и лента отмены оба на месте`).toBe(
-        `${name}: карандаш и лента отмены ${pencilAt >= 0 && histAt >= 0 && errAt >= 0 ? 'оба на месте' : 'НЕ на месте'}`,
+      expect(`${name}: карандаш и счёт ошибок оба на месте`).toBe(
+        `${name}: карандаш и счёт ошибок ${pencilAt >= 0 && errAt >= 0 ? 'оба на месте' : 'НЕ на месте'}`,
       );
-      expect(`${name}: выход из карандаша до ленты: ${returnAt > pencilAt && returnAt < histAt && returnAt < errAt}`)
-        .toBe(`${name}: выход из карандаша до ленты: true`);
+      expect(`${name}: выход из карандаша до счёта ошибок: ${returnAt > pencilAt && returnAt < errAt}`)
+        .toBe(`${name}: выход из карандаша до счёта ошибок: true`);
+      // и пометка ЛОЖИТСЯ в ленту — своим видом хода
+      expect(`${name}: пометка в ленте: ${/hist\.push\(\{ kind: 'pencil'/.test(body)}`)
+        .toBe(`${name}: пометка в ленте: true`);
     }
   });
 
@@ -346,7 +362,10 @@ describe('обе игры дотягиваются до карандаша, а �
     // клетка на стыке одна и набор кандидатов у неё один. Слой размером 9×9 означал бы
     // пять отдельных слоёв и два разных набора в общем блоке.
     expect(/emptyPencilMarks\(SIZE\)/.test(SAMURAI)).toBe(true);
-    expect(/pencilInput\(current, SIZE, sel\.r, sel\.c, n\)/.test(SAMURAI)).toBe(true);
+    // ⚠️ Сторожим АРГУМЕНТ SIZE, а не имя переменной: прежняя запись требовала
+    // `pencilInput(current, SIZE, …)` и покраснела 06.09.2026 от переименования источника
+    // маски при неизменном размере слоя. Проверка про размер — пусть про размер и будет.
+    expect(/pencilInput\([A-Za-zА-Яа-я]+, SIZE, sel\.r, sel\.c, n\)/.test(SAMURAI)).toBe(true);
     expect(/normalizePencilMarks\(sv\.marks, SIZE\)/.test(SAMURAI)).toBe(true);
     // а в обычной судоку — по размеру ЭТОЙ доски: она бывает и 6×6, и 9×9
     expect(/emptyPencilMarks\(d\.N\)/.test(SUDOKU)).toBe(true);
@@ -423,20 +442,64 @@ describe('обе игры дотягиваются до карандаша, а �
     expect(/\{pencil && !landscape && \(/.test(SUDOKU)).toBe(true);
   });
 
-  it('🔴 отмена хода пометки не трогает — и не должна', () => {
-    // Решение то же, что во фрактальной судоку: цифра — ХОД (тратит ошибку, проверяет
-    // победу), пометка — бухгалтерия игрока, и своя отмена у неё короче ленты (повторный
-    // тап). Держится это тем, что ход не меняет карандашный слой ВООБЩЕ.
+  it('🔴 отмена ОБЯЗАНА возвращать пометки — перевёрнуто по жалобе 06.09.2026', () => {
+    /**
+     * 🔴 ЗДЕСЬ СТОЯЛО ОБРАТНОЕ ТРЕБОВАНИЕ, И ОНО БЫЛО НЕВЕРНЫМ.
+     * Проверка называлась «отмена хода пометки не трогает — и не должна» и держалась
+     * доводом «у пометки своя отмена короче — повторный тап». Замер живьём 06.09.2026
+     * (дев-сервер, экран sudoku, режим Killer): цифра откатывается на всех трёх экранах,
+     * а после ЛЮБОГО числа пометок кнопка «Отменить» оставалась СЕРОЙ — пометки не
+     * ложились в ленту вовсе. В судоку пометки и есть основная работа, поэтому кнопка
+     * читалась как сломанная; тестировщики так и сказали.
+     *
+     * ⚠️ Отменяемость была слита с двумя ДРУГИМИ свойствами пометки («не тратит ошибку»,
+     * «не проверяет победу») — те верны и проверяются ниже отдельно. Разделено.
+     */
     for (const [name, src] of [['sudoku', SUDOKU], ['samurai', SAMURAI]] as const) {
       const undo = fnBody(src, 'handleUndo');
-      expect(`${name}: отмена не лезет в пометки: ${!/setMarks\(/.test(undo)}`)
-        .toBe(`${name}: отмена не лезет в пометки: true`);
-      // и ход не стирает пометки: в обработчике цифры нет чистки карандашного слоя
+      expect(`${name}: отмена возвращает пометки: ${/setPencilCell\(/.test(undo)}`)
+        .toBe(`${name}: отмена возвращает пометки: true`);
+      // и ход цифрой по-прежнему НЕ стирает пометки: в цифровой части нет правки слоя
       const num = fnBody(src, 'handleNumPress');
-      const digitPart = num.slice(num.indexOf('hist.push('));
+      const digitPart = num.slice(num.lastIndexOf('hist.push('));
       expect(`${name}: ход не стирает пометки: ${!/setMarks\(/.test(digitPart)}`)
         .toBe(`${name}: ход не стирает пометки: true`);
     }
+  });
+
+  it('🔴 ПОВЕДЕНИЕ отката: прежняя маска возвращается целиком, а не по одной цифре', () => {
+    /**
+     * Гейт выше читает исходник и потому слаб (CHATS_RULES §4: проверять поведение).
+     * Здесь то же требование меряется НА ДЕЛЕ — чистой функцией, которой откат и живёт.
+     * Ключевой случай — ластик: он снимает все девять пометок ОДНИМ нажатием, и вернуть
+     * их переключением по одной невозможно в принципе. Отсюда setPencilCell.
+     */
+    const N = 9;
+    let marks = emptyPencilMarks(N);
+    for (const d of [1, 3, 5, 7, 9]) marks = pencilInput(marks, N, 2, 2, d);
+    const было = marks[2][2];
+    expect(pencilDigits(было)).toEqual([1, 3, 5, 7, 9]);
+
+    const послеЛастика = pencilInput(marks, N, 2, 2, 0);   // стёрли клетку целиком
+    expect(послеЛастика[2][2]).toBe(0);
+
+    const послеОтмены = setPencilCell(послеЛастика, N, 2, 2, было);
+    expect(pencilDigits(послеОтмены[2][2])).toEqual([1, 3, 5, 7, 9]);
+    // соседей откат не задел
+    expect(послеОтмены[2][3]).toBe(0);
+    expect(послеОтмены[3][2]).toBe(0);
+  });
+
+  it('🔴 ПОВЕДЕНИЕ отката цвета: возвращается прежний цвет, включая «цвета не было»', () => {
+    const N = 9;
+    const пусто = emptySudokuCellColors(N);
+    const зелёный = toggleSudokuCellColor(пусто, N, 4, 4, 2);
+    expect(зелёный[4][4]).toBe(2);
+    // замена цвета другим — повторным тапом не отменяется, только прямой установкой
+    const синий = toggleSudokuCellColor(зелёный, N, 4, 4, 3);
+    expect(синий[4][4]).toBe(3);
+    expect(setSudokuCellColor(синий, N, 4, 4, 2)[4][4]).toBe(2);
+    expect(setSudokuCellColor(зелёный, N, 4, 4, NO_SUDOKU_COLOR)[4][4]).toBe(NO_SUDOKU_COLOR);
   });
 
   it('🔴 уход с расставленными кандидатами спрашивает, а не молчит', () => {
