@@ -133,7 +133,8 @@ function centerOutOrder(n: number): number[] {
 
 // Персональная лесенка 15 ступеней: размер → обратный → буквы → цвет → Горбов → Горбов+цвет.
 // Буквы держим 5×5 (рус/латиница ограничены алфавитом). Сложность растёт ТРУДНОСТЬЮ.
-function levelParams(level: number): { gridSize: number; contentMode: ContentMode; direction: Direction; colorMode: boolean } {
+/** Экспортирована для гейта `search-ladder-label`: объявленный потолок сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { gridSize: number; contentMode: ContentMode; direction: Direction; colorMode: boolean } {
   const L = level;
   if (L <= 1) return { gridSize: 5, contentMode: 'numbers', direction: 'forward', colorMode: false };
   if (L === 2) return { gridSize: 6, contentMode: 'numbers', direction: 'forward', colorMode: false };

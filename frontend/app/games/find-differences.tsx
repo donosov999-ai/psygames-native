@@ -64,7 +64,8 @@ type Shape = { sprite: number; x: number; y: number; size: number; rot: number }
 const ROUNDS_PER_LEVEL = 3;
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
-function levelParams(level: number): { diffCount: number; objectCount: number; roundTimeSec: number; rounds: number } {
+/** Экспортирована для гейта `search-ladder-label`: объявленный потолок сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { diffCount: number; objectCount: number; roundTimeSec: number; rounds: number } {
   const diffCount = Math.min(6, 2 + Math.floor((level - 1) / 3));       // 2,2,2,3,3,3 ... 6
   const objectCount = Math.min(19, 12 + Math.floor((level - 1) / 2));   // 12 → 19
   const roundTimeSec = Math.max(15, 40 - (level - 1) * 2);              // 40с → 15с на раунд

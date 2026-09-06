@@ -187,7 +187,8 @@ function подсказокНаУровне(level: number): number {
 //   - объём «текста» растёт: 8×8 (64 клетки) → 16×12 (192 клетки)
 //   - скорость сканирования: бюджет времени на клетку 1.0с → 0.45с (лимит раунда ~60-90с)
 //   - допуск пропущенных целей снижается: найти ≥80% → ≥90% → 100% целей до конца времени
-function levelParams(level: number): { rows: number; cols: number; timeLimitSec: number; minFoundPct: number } {
+/** Экспортирована для гейта `search-ladder-label`: объявленный потолок сверяется ИСПОЛНЕНИЕМ этой функции. */
+export function levelParams(level: number): { rows: number; cols: number; timeLimitSec: number; minFoundPct: number } {
   const rows = level <= 5 ? 7 + level : level <= 10 ? 4 + level : Math.min(16, 1 + level);  // 8→12, 10→14, 12→16
   const cols = level <= 5 ? 8 : level <= 10 ? 10 : 12;
   const perCellSec = Math.max(0.45, 1.0 - (level - 1) * 0.04);   // темп сканирования растёт
