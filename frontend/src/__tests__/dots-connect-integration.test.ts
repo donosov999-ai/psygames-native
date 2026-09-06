@@ -25,11 +25,6 @@
  *    партия играется до конца, часы подставляются, метрики читаются. Ядро
  *    чистое (ни React, ни таймеров, ни хранилища), гонять его дёшево.
  */
-declare const __dirname: string;
-declare function require(m: string): any;
-const { readFileSync, existsSync } = require('fs');
-const { join } = require('path');
-
 import {
   LEVELS,
   beginPath,
@@ -48,6 +43,26 @@ import {
   type DotsMetrics,
   type DotsSession,
 } from '@/src/games/dots-connect/core';
+
+// ═════════════════════════════════════════════════════════════════════════════
+// НАСТОЯЩИЙ РЕНДЕР МОДУЛЯ. Пальцем по доске, а не чтением исходника.
+//
+// 🔴 ЗАЧЕМ ЭТОТ БЛОК ПОЯВИЛСЯ. Он дописан ПОСЛЕ мутационной проверки, и это не
+// украшение: мутация «модуль перестал уважать skipIntro» оставила гейт зелёным.
+// То есть проп передавался, состояние жило, ядро умело открывать партию — а
+// доказательства, что модуль всё это СЛУШАЕТ, не было ни одного. Ровно тот
+// класс дыры, ради которого мутации и гоняют: сломай и посмотри, кто заметил.
+//
+// Здесь модуль монтируется по-настоящему и проходится пальцем по решению
+// солвера через PanResponder — тот же путь, что у живого касания.
+// ═════════════════════════════════════════════════════════════════════════════
+import React from 'react';
+import DotsConnectGame from '@/src/games/dots-connect/DotsConnectGame';
+
+declare const __dirname: string;
+declare function require(m: string): any;
+const { readFileSync, existsSync } = require('fs');
+const { join } = require('path');
 
 const ROOT = join(__dirname, '../..');
 const SCREEN = join(ROOT, 'app/games/dots-connect.tsx');
@@ -107,7 +122,7 @@ function gradient(src: string): string[] {
  */
 function evaluate(expr: string, src: string): unknown {
   const colors = new Proxy({}, { get: (_t, k) => `ПРОФИЛЬ:${String(k)}` });
-  // eslint-disable-next-line no-new-func
+   
   return new Function('GRADIENT', 'colors', 'LEVELS', `return (${expr});`)(gradient(src), colors, LEVELS);
 }
 
@@ -539,21 +554,6 @@ describe('«Соедини точки» — что делать, написан�
     expect(screen()).toContain('getDotsStrings');
   });
 });
-
-// ═════════════════════════════════════════════════════════════════════════════
-// НАСТОЯЩИЙ РЕНДЕР МОДУЛЯ. Пальцем по доске, а не чтением исходника.
-//
-// 🔴 ЗАЧЕМ ЭТОТ БЛОК ПОЯВИЛСЯ. Он дописан ПОСЛЕ мутационной проверки, и это не
-// украшение: мутация «модуль перестал уважать skipIntro» оставила гейт зелёным.
-// То есть проп передавался, состояние жило, ядро умело открывать партию — а
-// доказательства, что модуль всё это СЛУШАЕТ, не было ни одного. Ровно тот
-// класс дыры, ради которого мутации и гоняют: сломай и посмотри, кто заметил.
-//
-// Здесь модуль монтируется по-настоящему и проходится пальцем по решению
-// солвера через PanResponder — тот же путь, что у живого касания.
-// ═════════════════════════════════════════════════════════════════════════════
-import React from 'react';
-import DotsConnectGame from '@/src/games/dots-connect/DotsConnectGame';
 
 const TestRenderer = require('react-test-renderer');
 

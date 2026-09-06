@@ -26,13 +26,6 @@
  * вместе с «выигрышная раскладка существует и находится»: гейт, который умеет
  * только запрещать, зелен и на игре, которую пройти невозможно вовсе.
  */
-declare const __dirname: string;
-declare function require(id: string): any;
-
-const { readFileSync } = require('fs');
-const { join } = require('path');
-const ROOT = join(__dirname, '../..');
-
 import React from 'react';
 import {
   DOTS_MAX_PAIRS,
@@ -61,6 +54,13 @@ import {
   type DotsSolution,
 } from '@/src/games/dots-connect/core';
 import DotsConnectGame from '@/src/games/dots-connect/DotsConnectGame';
+
+declare const __dirname: string;
+declare function require(id: string): any;
+
+const { readFileSync } = require('fs');
+const { join } = require('path');
+const ROOT = join(__dirname, '../..');
 
 const TestRenderer = require('react-test-renderer');
 

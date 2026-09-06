@@ -37,6 +37,10 @@ const THUMBS: Record<string, any> = {
   find_differences: require('../../assets/images/gamethumbs/find_differences.webp'),
   flanker: require('../../assets/images/gamethumbs/flanker.webp'),
   go_no_go: require('../../assets/images/gamethumbs/go_no_go.webp'),
+  // Превью собрано ИЗ ТАРЕЛОК САМОЙ ИГРЫ (assets/images/cake_plates), а не
+  // нарисовано заново: рисовать то, что уже лежит на диске, значит завести
+  // второй источник правды о том, как игра выглядит.
+  cake_sort: require('../../assets/images/gamethumbs/cake_sort.webp'),
   goods_sort: require('../../assets/images/gamethumbs/goods_sort.webp'),
   hanoi: require('../../assets/images/gamethumbs/hanoi.webp'),
   inhibition: require('../../assets/images/gamethumbs/inhibition.webp'),

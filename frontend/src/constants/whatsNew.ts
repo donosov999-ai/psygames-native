@@ -16,6 +16,32 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.47.0',
+    date: '2026-09-06',
+    ru: [
+      'Три новые игры в развилке «Сортировка»: «Сортировка шариков», «Сортировка гаек» и «Сортировка тортов» — торты со своим кругом из шести и очередью входящих',
+      'Переливалка выросла выше потолка: низкий сосуд, камни на дне и запечатанный сосуд, который открывается, когда соберёшь нужное число цветов. Раньше с четырнадцатого уровня и до сорокового расклад был один и тот же',
+      '«Соедини точки»: стены и вырезанные поля, а верхние уровни перестали быть угадайкой — их можно вывести до конца, но цепочка рассуждений длиннее',
+      '«Соедини точки»: новая подсказка «Открыть одну пару» — показывает путь там, где вы застряли, и оставляет остальную доску задачей',
+      'Сортировка товаров: подвижные ниши, одноцветные уровни и ниша-джокер',
+      '«Найди все слова»: копилка бонусных слов, перемешивание круга и корейский — плитками из чамо, а показом слоговыми блоками',
+      '«Квадрат слов»: лестницы сложности не было вовсе, теперь трудность растёт числом лишних букв в банке',
+      'Анаграммы: у каждого режима своя картинка, и она разная под профиль',
+      'Корейская брань не фильтровалась в детских профилях — вылечено',
+    ],
+    en: [
+      'Three new games in the Sorting hub: Ball Sort, Nut Sort and Cake Sort — cakes with their own six-slice wheel and a queue of arrivals',
+      'Water Sort now grows past its old ceiling: a short vessel, stones at the bottom and a sealed vessel that unlocks once you finish enough colours. Before, levels fourteen through forty dealt the very same board',
+      'Dots Connect: walls and cut-out boards, and the top levels stopped being guesswork — they can be reasoned out to the end, only the chain of deductions is longer',
+      'Dots Connect: a new hint, Reveal one pair — it shows the path where you are stuck and leaves the rest of the board as a puzzle',
+      'Goods Sorting: moving slots, single-colour levels and a joker slot',
+      'Find All Words: a bonus-word jar, a shuffle for the letter wheel, and Korean — jamo on the tiles, syllable blocks in the readout',
+      'Word Square had no difficulty ladder at all; difficulty now grows with the number of spare letters in the bank',
+      'Anagrams: every mode has its own picture, and it differs by profile',
+      'Korean profanity was not filtered in children profiles — fixed',
+    ],
+  },
+  {
     version: '2.46.0',
     date: '2026-09-06',
     ru: [

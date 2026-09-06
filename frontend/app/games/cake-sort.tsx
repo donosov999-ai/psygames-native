@@ -17,7 +17,7 @@
  * лежит замер, при какой ширине сколько столбцов ещё читаемо.
  */
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import Svg, { Path, Circle as SvgCircle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -511,6 +511,9 @@ export default function CakeSortGame() {
 }
 
 const styles = StyleSheet.create({
+  setupCard: { borderRadius: 16, padding: 16, marginBottom: 16 },
+  setupLabel: { fontSize: 18, fontWeight: '700', marginBottom: 6 },
+  setupHint: { fontSize: 14, lineHeight: 20 },
   table: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignSelf: 'center', paddingVertical: 8 },
   plateBox: { alignItems: 'center', justifyContent: 'center' },
   tools: { flexDirection: 'row', justifyContent: 'center', gap: 14, paddingTop: 4 },
