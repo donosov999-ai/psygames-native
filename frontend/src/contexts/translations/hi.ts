@@ -1652,6 +1652,7 @@ const t: Record<string, string> = {
   "benefitGoods3": "ध्यान और व्यवस्थित सोच",
   "goalLabel": "लक्ष्य",
   "goalAll": "सभी खाने खाली करें",
+  "goodsSortMapLabel": "शेल्फ़ का नक्शा: हल्के बिंदु खाली जगह हैं",
   "goalPick": "तीन-तीन इकट्ठा करें:",
   "goalMoves": "सब हटाएँ। अधिकतम चालें:",
   "goalFree": "चिह्नित खाने खाली करें",

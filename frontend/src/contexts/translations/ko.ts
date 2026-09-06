@@ -291,6 +291,7 @@ const t: Record<string, string> = {
   "benefitGoods3": "집중과 체계적 사고",
   "goalLabel": "목표",
   "goalAll": "선반을 모두 비우기",
+  "goodsSortMapLabel": "진열대 지도: 밝은 점은 빈 칸입니다",
   "goalPick": "세 개씩 모을 품목:",
   "goalMoves": "모두 비우기. 최대 이동 수:",
   "goalFree": "표시된 칸 비우기",

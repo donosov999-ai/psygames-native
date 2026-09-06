@@ -1649,6 +1649,7 @@ const t: Record<string, string> = {
   "benefitGoods3": "专注力与系统性思维",
   "goalLabel": "目标",
   "goalAll": "清空所有货架",
+  "goodsSortMapLabel": "货架地图：浅色圆点表示空位",
   "goalPick": "集齐三个一组：",
   "goalMoves": "全部清空。最多步数：",
   "goalFree": "腾空标记的格子",

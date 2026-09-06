@@ -103,7 +103,7 @@ import {
  * пробам брать из `@/src/games/goods-sort/core/level` — там нет экрана.
  */
 import {
-  CAP, CAP_MAX, CAP_MIN, CAP_ONE, CLEAR_SCORE, EMPTY_HIDDEN_STATS, GOODS_BENEFITS, GOOD_ONBOARD_H, GOOD_ONBOARD_W, GOOD_SETS, GOOD_SETS_KEYS, GOOD_SET_POOL_SIZE, GRADIENT, GS_GAME_ID, GS_RESUME_DEBOUNCE_MS, GS_RESUME_V, GS_RULES, HIDDEN_FROM, HINTS_PER_LEVEL, JOKER_FROM, MIXED_CAP_FROM, MONO_FROM, MOVE_SHIFT_EVERY, MOVING_FROM, PAIR_HINT_UNTIL, REF_PER_TYPE, SET_COLS, SHAPES, SHUFFLES_PER_LEVEL, SINGLE_CAP_FROM, THUMBS_PER_CARD, TYPES_ON_BOARD_MAX, WARM_FAMILY, WIDEST_POOL, capsFor, capsForBoard, clampGoalToLevel, clampGoalToRule, findHint, goalMet, goalPlan, goalProgress, goodName, goodSetForProfile, goodsHasSomethingToLose, gridFor, gsLayout, gsRulesForLevel, hasPair, hiddenInfo, isNarrow, hideDeepSpots, itemAtX, jokerNiches, jokersForBoard, levelCfg, liveRowsForFreeze, monochromeLevel, moveReference, movesExhausted, movingNiches, nicheAtPoint, nicheRect, nicheShift, pairHintVisible, placementOk, poolBitesAt, poolForLevel, provenUnsolvable, removeTriple, revealUncovered, rowOfNiche, scoreForClears, sessionDetails, setAvailable, setThumbBox, shelfForProfile, setUnlockLevel, shapeFor, shiftCoveredAfterTake, solvableStrict, starsForMoves, strictPlacement, targetSlots, tripleIn, typeBudget, dealBoard, generate, permuteCells, restoreGoodsParty, setRows, shuffle, snapshotGoodsParty,
+  CAP, CAP_MAX, CAP_MIN, CAP_ONE, CLEAR_SCORE, EMPTY_HIDDEN_STATS, GOODS_BENEFITS, GOOD_ONBOARD_H, GOOD_ONBOARD_W, GOOD_SETS, GOOD_SETS_KEYS, GOOD_SET_POOL_SIZE, GRADIENT, GS_GAME_ID, GS_RESUME_DEBOUNCE_MS, GS_RESUME_V, GS_RULES, HIDDEN_FROM, HINTS_PER_LEVEL, JOKER_FROM, MIXED_CAP_FROM, MONO_FROM, MOVE_SHIFT_EVERY, MOVING_FROM, PAIR_HINT_UNTIL, REF_PER_TYPE, SET_COLS, SHAPES, SHUFFLES_PER_LEVEL, SINGLE_CAP_FROM, THUMBS_PER_CARD, TYPES_ON_BOARD_MAX, WARM_FAMILY, WIDEST_POOL, capsFor, capsForBoard, clampGoalToLevel, clampGoalToRule, findHint, goalMet, goalPlan, goalProgress, goodName, goodSetForProfile, goodsHasSomethingToLose, gridFor, gsLayout, gsRulesForLevel, hasPair, hiddenInfo, isNarrow, miniMap, SCROLL_FROM, ITEM_FLOOR, hideDeepSpots, itemAtX, jokerNiches, jokersForBoard, levelCfg, liveRowsForFreeze, monochromeLevel, moveReference, movesExhausted, movingNiches, nicheAtPoint, nicheRect, nicheShift, pairHintVisible, placementOk, poolBitesAt, poolForLevel, provenUnsolvable, removeTriple, revealUncovered, rowOfNiche, scoreForClears, sessionDetails, setAvailable, setThumbBox, shelfForProfile, setUnlockLevel, shapeFor, shiftCoveredAfterTake, solvableStrict, starsForMoves, strictPlacement, targetSlots, tripleIn, typeBudget, dealBoard, generate, permuteCells, restoreGoodsParty, setRows, shuffle, snapshotGoodsParty,
 } from '@/src/games/goods-sort/core/level';
 import type {
   GoodsLiveParty, GoodsRestored, GoodsResume, ShelfStyle, BoardGeom, GamePhase, Goal, GsLayout, HiddenRunStats, HintMove, Obstacle, Sel, Snapshot,
@@ -1410,7 +1410,30 @@ export default function GoodsSortGame() {
    */
   const DRAG_SLOP = 8;
   const boardRef = useRef<View>(null);
+  /**
+   * 🔴 ПРОКРУТКА ВИТРИНЫ — ОБЫЧНЫМ `overflow`, А НЕ `ScrollView`. И это не вкус.
+   *
+   * 📍 ЗАМЕР 06.09.2026 в живом Chrome, уровень 52: с `ScrollView` вокруг доски
+   * перетаскивание ПЕРЕСТАЁТ РАБОТАТЬ ВОВСЕ — тап-тап по нишам ход засчитывает
+   * (счётчик 0 → 1, товар переехал), а тот же ход перетаскиванием не проходит
+   * ни разу. `ScrollView` забирает жест у `PanResponder` раньше, чем тот успеет
+   * пройти свой слоп, и `scrollEnabled={!drag}` не спасает: к моменту, когда
+   * `drag` появится, жеста уже нет.
+   *
+   * ⚠️ Об этом ПРЯМО предупреждал комментарий к выбору `PanResponder` в этом же
+   * файле: «выигрыш gesture-handler — арбитраж с ScrollView; поле здесь НЕ
+   * скроллится, спорить не с кем». Витрина сделала поле скроллящимся, и довод
+   * развернулся против себя. Читать комментарии соседей стоит ДО правки.
+   *
+   * Обычный `overflow: 'scroll'` прокручивает средствами браузера, мимо системы
+   * жестов, — и `PanResponder` остаётся единственным её участником. Сборка
+   * веб и Android-WebView, попадание считается через `getBoundingClientRect`,
+   * то есть путь тот же самый.
+   */
+  const scrollRef = useRef<View>(null);
   const boardBox = useRef({ x: 0, y: 0 });
+  /** Где палец коснулся доски. Пишется в Capture, читается при признании жеста. */
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
   const dragPos = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const [drag, setDrag] = useState<{ cell: number; idx: number; type: number } | null>(null);
   const [hover, setHover] = useState<number | null>(null);
@@ -1463,6 +1486,38 @@ export default function GoodsSortGame() {
       // Касание НЕ перехватываем: короткий тап обязан достаться кнопке ниши или
       // товара — это же путь, которым игру ведёт скринридер. Иначе один тап
       // обработался бы дважды и ход посчитался бы за два.
+      /**
+       * ЗАПОМИНАЕМ ТОЧКУ КАСАНИЯ, ХОТЯ ЖЕСТ НЕ ЗАБИРАЕМ.
+       *
+       * Жест признаётся не на касании, а на первом движении дальше слопа, и
+       * прежде `onPanResponderGrant` брал товар по координатам ТОГО МОМЕНТА.
+       * Правильнее брать оттуда, где палец ЛЁГ: разница мала при плавном
+       * ведении и растёт с резкостью движения.
+       *
+       * ⚠️ ЧЕСТНО О ЗАМЕРЕ: живого случая, где это ломает игру, я НЕ ПОЛУЧИЛ.
+       * Искал так: инструмент отладчика ведёт палец одним прыжком (по событиям
+       * `pointerdown@315,360`, сразу `pointermove@75,444`), и ни одно
+       * перетаскивание им не срабатывало. Но проба с печатью показала, что при
+       * таком прыжке `onPanResponderGrant` НЕ ВЫЗЫВАЕТСЯ ВОВСЕ — касание
+       * записывается, признания нет. То есть ломается не выбор ниши, а сама
+       * передача жеста, и причина в способе отправки событий: `pointerdown`
+       * уходит одному узлу, `pointermove` — уже другому. Плавное ведение теми же
+       * синтетическими событиями (40 шагов) работает и до правки, и после.
+       *
+       * Правка оставлена как более верная по смыслу, а не как починка дефекта:
+       * стоит она одной строки и заодно чинит настоящий случай — касание
+       * началось ВНЕ доски и переехало на неё; раньше оттуда можно было начать
+       * перетаскивание, теперь нельзя.
+       *
+       * Capture-вариант вызывается ДО детей и на КАЖДОМ касании, возвращает
+       * false — жест по-прежнему достаётся кнопке товара, а мы лишь записываем,
+       * где палец лёг.
+       */
+      onStartShouldSetPanResponderCapture: (e) => {
+        const { pageX, pageY } = e.nativeEvent;
+        touchStart.current = { x: pageX, y: pageY };
+        return false;
+      },
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > DRAG_SLOP || Math.abs(g.dy) > DRAG_SLOP,
       // ⚠️ Без Capture перетаскивания не будет вовсе: TouchableOpacity товара забирает
@@ -1474,7 +1529,15 @@ export default function GoodsSortGame() {
         const L = liveRef.current;
         if (!L.live) return;
         syncBoardBox();
-        const { pageX, pageY } = e.nativeEvent;
+        /*
+         * Берём товар ОТТУДА, ГДЕ ПАЛЕЦ ЛЁГ, а не оттуда, где он оказался к
+         * моменту признания жеста. `touchStart` пишется в Capture на касании;
+         * если его почему-то нет (жест начался не с нашего дерева), падаем на
+         * координаты события — прежнее поведение, но уже как запасное.
+         */
+        const старт = touchStart.current;
+        const pageX = старт ? старт.x : e.nativeEvent.pageX;
+        const pageY = старт ? старт.y : e.nativeEvent.pageY;
         const cell = nicheAt(pageX, pageY);
         if (cell === null) return;
         const stack = L.cells[cell] || [];
@@ -1784,12 +1847,42 @@ export default function GoodsSortGame() {
    */
   // Замер поля вместо зашитого запаса: сколько контейнер реально дал (см. ниже).
   const [fieldH, setFieldH] = useState(0);
+  /* Где сейчас окно витрины (0…1) и какую долю она занимает — только для карты. */
+  const [scrollAt, setScrollAt] = useState(0);
+  const [seenShare, setSeenShare] = useState(1);
+  /**
+   * Слушатель прокрутки витрины: подтягивает прямоугольник доски и питает окно
+   * мини-карты. Вешается НА УЗЕЛ, а не пропом, потому что прокручивает браузер,
+   * а не `ScrollView` (см. `scrollRef`). Проверка `typeof addEventListener` —
+   * тот же приём, что и у `syncBoardBox` с `getBoundingClientRect` ниже: в вебе
+   * View отдаёт DOM-узел, на других платформах его просто нет.
+   */
+  useEffect(() => {
+    const node: any = scrollRef.current;
+    if (!node || typeof node.addEventListener !== 'function') return;
+    const onScroll = () => {
+      syncBoardBox();
+      const ход = Math.max(1, node.scrollHeight - node.clientHeight);
+      setScrollAt(Math.min(1, Math.max(0, node.scrollTop / ход)));
+      setSeenShare(Math.min(1, node.clientHeight / Math.max(1, node.scrollHeight)));
+    };
+    node.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => node.removeEventListener('scroll', onScroll);
+  });
+
   /** Высота строки цели/подсказки — меряется, потому что она не постоянна (см. gsLayout). */
   const [hintH, setHintH] = useState(0);
   // Числа раскладки — из `gsLayout`: одна формула на игру и на гейт (см. её комментарий).
   const capWideHere = Math.max(...caps, CAP);
   const availH = Math.max(180, fieldH || height - 360);
-  const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hintH || undefined);
+  /*
+   * Пол товара включается только на витрине (`SCROLL_FROM`): там доска и
+   * задумана едущей. Ниже порога — прежнее поведение, чтобы правка витрины не
+   * перевернула сорок пять уже сыгранных уровней. См. `gsLayout`.
+   */
+const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hintH || undefined,
+    level >= SCROLL_FROM ? ITEM_FLOOR : 0);
   const boardW = LAY.boardW;
   const cellW = LAY.cellW;
   // Размер товара ограничен И шириной (cols в ряд), И доступной высотой (rows полок) — тянемся по высоте экрана.
@@ -2487,6 +2580,27 @@ export default function GoodsSortGame() {
               такой гарантии нет. Обёртка ужимается по шкафу (fieldCol центрирует),
               так что её прямоугольник и есть прямоугольник доски.
             */}
+            {/*
+              🔴 ВИТРИНА НА ДВА-ТРИ ЭКРАНА (§4.4 ТЗ): ШКАФ ЕДЕТ, А НЕ МЕЛЬЧАЕТ.
+
+              Прокрутка включается ТОЛЬКО когда `gsLayout` сам сказал `scrolls` —
+              то есть шкаф действительно выше поля. На доске в один экран лишняя
+              обёртка означала бы лишний перехватчик жеста под пальцем.
+
+              ⚠️ `scrollEnabled` привязан к тому, тянут ли сейчас товар: палец
+              один, и пока он ведёт товар, доска ехать не должна — иначе
+              перетаскивание превращается в прокрутку на первом же движении вниз.
+
+              ⚠️ `onScroll` пересчитывает прямоугольник доски. Он меряется
+              `getBoundingClientRect` в момент захвата, то есть уже с учётом
+              прокрутки; но если человек прокрутил ПОСЛЕ захвата, замер устареет,
+              и товар ляжет не в ту нишу. Ре-синк дешевле любой хитрости.
+            */}
+            <View
+              ref={scrollRef}
+              style={LAY.scrolls
+                ? { alignSelf: 'stretch', alignItems: 'center', maxHeight: availH, overflow: 'scroll' }
+                : undefined}>
             <View ref={boardRef} {...pan.panHandlers}>
             <LinearGradient colors={['#f6e3c6', '#e0b98a']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
               style={[styles.cabinet, { width: boardW }]}>
@@ -2547,6 +2661,51 @@ export default function GoodsSortGame() {
               ))}
             </LinearGradient>
             </View>
+            </View>
+            {/*
+              МИНИ-КАРТА. Появляется вместе с прокруткой и только с ней: на доске
+              в один экран структура видна даром, и постоянная полоска была бы
+              лишним элементом на четырёх пятых уровней.
+
+              Возражение §4а звучало так: «структура должна быть видна даром, а
+              содержание вспоминаться». Поэтому в карте не товары (на полоске в
+              несколько пикселей их не различить), а состояние ряда: сколько ниш
+              пусто — это и есть то, что ищут на большой доске.
+            */}
+            {LAY.scrolls && (
+              <View style={styles.miniMap} pointerEvents="none"
+                accessibilityLabel={t('goodsSortMapLabel')}>
+                {(() => {
+                  const ряды = miniMap(cells, capsForBoard(level, cells), mask, gridDim.cols, obstacles, frozen);
+                  /*
+                   * ОКНО — прямоугольник поверх карты: где сейчас смотрит глаз.
+                   * Без него карта отвечает «что есть», но не отвечает «где я»,
+                   * а возражение §4а было именно про потерю места на длинной доске.
+                   */
+                  const высотаОкна = Math.max(0.12, seenShare);
+                  return (
+                    <>
+                      <View style={[styles.miniWindow, {
+                        top: `${scrollAt * (1 - высотаОкна) * 100}%`,
+                        height: `${высотаОкна * 100}%`,
+                      }]} />
+                      {ряды.map((r) => (
+                        <View key={r.row} style={styles.miniRow}>
+                          {Array.from({ length: r.niches }).map((_, k) => (
+                            <View key={k} style={[styles.miniDot, {
+                              backgroundColor: r.frozen ? '#7dd3fc'
+                                : k < r.empty ? 'rgba(255,255,255,0.9)'
+                                : k < r.empty + r.blocked ? '#f59e0b'
+                                : 'rgba(255,255,255,0.32)',
+                            }]} />
+                          ))}
+                        </View>
+                      ))}
+                    </>
+                  );
+                })()}
+              </View>
+            )}
             <ScorePopupLayer popups={popups} />
             {/* Итог — общей карточкой поверх полок. Своя плашка не сохраняла звёзды,
                 не считала серию и не тикала глаз-разрядку; всё это живёт в общей.
@@ -2710,6 +2869,26 @@ const styles = StyleSheet.create({
    */
   setThumbLocked: { opacity: 0.45 },
   fieldCol: { flex: 1, alignSelf: 'stretch', justifyContent: 'center', gap: 8, alignItems: 'center' },
+  /* Едущий шкаф центрируется по горизонтали и прижимается к верху по вертикали:
+     иначе на первом кадре видна середина витрины, а не её начало. */
+  boardScroll: { alignItems: 'center', paddingBottom: 8 },
+  /* Полоска карты стоит справа от шкафа и не ловит нажатий (pointerEvents=none):
+     это указатель, а не орган управления. Прокрутку она не дублирует. */
+  /* Карта — накладка у правого края поля. Своей подложкой, иначе точки читаются
+     мусором на полках (проверено в браузере на уровне 52). Нажатий не ловит. */
+  miniMap: {
+    position: 'absolute', right: 0, top: '50%', transform: [{ translateY: -70 }],
+    paddingVertical: 6, paddingHorizontal: 5, gap: 3,
+    backgroundColor: 'rgba(60,36,16,0.55)', borderRadius: 8,
+  },
+  miniRow: { flexDirection: 'row', gap: 2 },
+  miniDot: { width: 4, height: 4, borderRadius: 2 },
+  /* Окно — где сейчас смотрит глаз. Рамкой, а не заливкой: заливка спорила бы
+     с точками, а именно они несут сведения. */
+  miniWindow: {
+    position: 'absolute', left: 1, right: 1, borderRadius: 6,
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.9)',
+  },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   hintText: { fontSize: 12, textAlign: 'center' },
   // ⚠️ Осиротело после разводки слотов: все три служебные кнопки уехали в шапку (GameAuxAction).
