@@ -34,7 +34,7 @@
  * Авто-показ: при первом входе на уровень ≥ fromLevel правила (AsyncStorage-флаг
  * psygames_rulehint_<gameId>_<key>), дальше — тап по бейджу «ⓘ».
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
@@ -104,10 +104,34 @@ export function useLevelRules(gameId: string, level: number, rules: LevelRule[],
   const [open, setOpen] = useState(false);
   const active = activeLevelRule(rules, level);
 
+  /**
+   * 🔴 ЗАСЛОН ПЕРЕПРОВЕРЯЕТСЯ ПОСЛЕ ЧТЕНИЯ ХРАНИЛИЩА, А НЕ ТОЛЬКО ДО НЕГО.
+   *
+   * Разбор чата «Объём памяти» (задача 1db3d4eb), и он точный: `enabled`
+   * проверялся ДО `AsyncStorage.getItem`, а `setOpen(true)` вызывался ПОСЛЕ —
+   * между этими строками человек успевает нажать «Начать». Фаза уходит из
+   * настройки в показ, сетка уже горит, и карточка правил ложится ПОВЕРХ того,
+   * что человек держит в рабочей памяти. Ровно жалоба тестировщика 05.09 по
+   * матрице: «вылезла сетка с квадратами, и пока я их запоминала, вместо них
+   * появилось объяснение правил».
+   *
+   * ⚠️ ПОЧИНКА v2.44.0 ЭТОГО НЕ ЗАКРЫЛА. Коммит f1eb95b3 переписал АРГУМЕНТ
+   * `enabled` в девяти играх с `phase==='recall'` на `phase==='config'` —
+   * надёжный путь закрыт, а сам хук не тронут (`git show f1eb95b3 --
+   * src/components/LevelRules.tsx` пуст). Щель осталась у остальных
+   * шестнадцати игр из двадцати пяти, держащих этот хук.
+   *
+   * Ref, а не состояние: значение нужно ВНУТРИ уже запущенного промиса, и
+   * пересоздавать эффект ради него нельзя — это вернуло бы ту же гонку.
+   */
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
+
   useEffect(() => {
     if (!enabled || !active) return;
     const flag = `psygames_rulehint_${gameId}_${active.key}`;
     AsyncStorage.getItem(flag).then((seen) => {
+      if (!enabledRef.current) return;   // ← фаза сменилась, пока читали хранилище
       if (!seen) { setOpen(true); AsyncStorage.setItem(flag, '1').catch(() => {}); }
     }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
