@@ -22,7 +22,6 @@ import {
   ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -79,7 +78,6 @@ const DIFF_CFG: Record<Difficulty, Omit<BondsCfg, 'trials' | 'windowMs'>> = {
 export default function NumberBondsGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  const router = useRouter();
 
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
@@ -151,7 +149,7 @@ export default function NumberBondsGame() {
     [deadlineTimerRef, fbTimerRef].forEach(r => { if (r.current) clearTimeout(r.current); });
   };
 
-  useEffect(() => () => clearAllTimers(), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => clearAllTimers(), []);
 
   const newRound = () => {
     setPuzzle(makePuzzle(cfgRef.current));
@@ -281,7 +279,6 @@ export default function NumberBondsGame() {
   React.useEffect(() => {
     if (phase !== 'playing' || feedback !== null || solvedRef.current) return;
     if (picked.length >= 2 && sumPicked === puzzle.target) validateRef.current();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [picked, sumPicked, puzzle.target, phase, feedback]);
 
   const validate = () => {
