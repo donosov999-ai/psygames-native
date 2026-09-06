@@ -11,7 +11,7 @@
  * проверка «файл не пуст» зеленела бы на любом мусоре.
  */
 import { prebuilt, prebuiltMin, PREBUILT_COUNT } from '@/src/games/cake-sort/core/prebuilt';
-import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
+import { deal } from '@/src/games/cake-sort/core/level';
 import { makeBoard, allSectors, CIRCLE } from '@/src/games/cake-sort/core/plate';
 import { solve, minMoves } from '@/src/games/cake-sort/core/solver';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
