@@ -22,6 +22,13 @@ import ES from '@/src/constants/allWordsEs.json';
 import FR from '@/src/constants/allWordsFr.json';
 import IT from '@/src/constants/allWordsIt.json';
 import PT from '@/src/constants/allWordsPt.json';
+/**
+ * ⚠️ КОРЕЙСКИЙ ХРАНИТСЯ В ЧАМО, А НЕ В СЛОГОВЫХ БЛОКАХ. Символ строки здесь —
+ * ровно одна плитка банка, как в латинских наборах символ есть одна буква.
+ * Обратно в привычное написание слово собирает `core/chamo.ts`; разбор, почему
+ * плиткой взято чамо, а не блок, — там же и в `WORDLIST_NONLATIN.md`.
+ */
+import KO from '@/src/constants/allWordsKo.json';
 
 export interface AllWordsPack {
   /** База: 7–8 букв, из них складываются все цели. */
@@ -58,6 +65,7 @@ const НАБОРЫ: Record<string, AllWordsPack[]> = {
   fr: FR as AllWordsPack[],
   it: IT as AllWordsPack[],
   pt: PT as AllWordsPack[],
+  ko: KO as AllWordsPack[],
 };
 
 export function allWordsLocales(): string[] {
