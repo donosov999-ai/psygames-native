@@ -83,6 +83,17 @@ voice-wiktionary/
 # Сборка словника: скачанные исходники и окружение — в репозиторий не идут.
 # Идёт только собранный набор (frontend/src/constants/allWordsRu.json) и скрипт.
 wordlist-build/.venv/
-wordlist-build/ru_RU.dic
-wordlist-build/ru_50k.txt
-wordlist-build/en_50k.txt
+wordlist-build/__pycache__/
+# Скачанные исходники словников — ШАБЛОНАМИ, а не поимённо.
+# 06.09.2026 сюда приехали пять новых языков, и каждый принёс по 2-5 файлов
+# (до 6 МБ): перечислять их руками — значит забыть на шестом. В репозитории
+# живут СКРИПТЫ сборки и готовые JSON, исходники качаются заново.
+wordlist-build/*_50k.txt
+wordlist-build/*.dic
+wordlist-build/*.aff
+wordlist-build/*_lexemes.csv
+wordlist-build/words_alpha.txt
+wordlist-build/first_names.txt
+wordlist-build/es_apellidos-*.txt
+wordlist-build/es_nombres-propios-*.txt
+wordlist-build/ldnoobw_*

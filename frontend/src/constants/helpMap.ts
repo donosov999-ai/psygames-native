@@ -442,6 +442,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillVisualMemory",
     "introKey": "chessGroupIntroDesc"
   },
+  "/games/sorting-hub": {
+    "nameKey": "sortingGroup",
+    "skillKey": "skillPlanningWM",
+    "introKey": "sortingGroupIntroDesc"
+  },
   "/games/towers-hub": {
     "nameKey": "towersGroup",
     "skillKey": "skillPlanning",

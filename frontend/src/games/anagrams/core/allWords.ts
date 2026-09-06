@@ -17,6 +17,11 @@
  */
 import RU from '@/src/constants/allWordsRu.json';
 import EN from '@/src/constants/allWordsEn.json';
+import DE from '@/src/constants/allWordsDe.json';
+import ES from '@/src/constants/allWordsEs.json';
+import FR from '@/src/constants/allWordsFr.json';
+import IT from '@/src/constants/allWordsIt.json';
+import PT from '@/src/constants/allWordsPt.json';
 
 export interface AllWordsPack {
   /** База: 7–8 букв, из них складываются все цели. */
@@ -25,9 +30,30 @@ export interface AllWordsPack {
   words: string[];
 }
 
+/**
+ * 🔴 СЕМЬ ЯЗЫКОВ С 06.09.2026 (просьба Дениса: «запусти агентов, чтобы собрали
+ * под все языки приложения»). Каждый набор собран своим скриптом в
+ * `wordlist-build/`, лицензия источника прочитана ФАЙЛОМ, а не по бейджу —
+ * замеры и родословные в `WORDLIST_RESEARCH.md`.
+ *
+ * ⚠️ ЯЗЫКОВ В ПРИЛОЖЕНИИ ОДИННАДЦАТЬ, А НАБОРОВ СЕМЬ — и это разобрано, а не
+ * забыто. Механика «собрать слово из плиток-букв» требует, чтобы слово резалось
+ * на переставляемые буквы. Замер по каждой письменности — `WORDLIST_NONLATIN.md`:
+ * китайскому она не подходит по числу (лучший банк из 7 иероглифов собирает 23
+ * «слова», и все — грамматические связки), у корейского, арабского, японского и
+ * хинди подходит, но каждому нужна своя плитка (чамо, изолированная форма,
+ * кана, акшара) и свой источник — это отдельная работа, а не импорт файла.
+ *
+ * Кто не назван здесь — получает английский набор (см. `?? НАБОРЫ.en` ниже).
+ */
 const НАБОРЫ: Record<string, AllWordsPack[]> = {
   ru: RU as AllWordsPack[],
   en: EN as AllWordsPack[],
+  de: DE as AllWordsPack[],
+  es: ES as AllWordsPack[],
+  fr: FR as AllWordsPack[],
+  it: IT as AllWordsPack[],
+  pt: PT as AllWordsPack[],
 };
 
 export function allWordsLocales(): string[] {

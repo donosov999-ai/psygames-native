@@ -1,4 +1,4 @@
-/* psygames-chess-warmup · VER 1 · 06.09.2026 */
+/* psygames-theme-warmup · VER 2 · 06.09.2026 */
 /**
  * 🔴 ШАХМАТНАЯ ЗАРЯДКА: ОБА УПРАЖНЕНИЯ ПОДРЯД, ПО СВОИМ УРОВНЯМ, НА ЗАДАННОЕ ВРЕМЯ.
  *
@@ -28,6 +28,75 @@ import type { PlaylistMeta, PlaylistStep, Difficulty } from './warmup';
 
 /** Сколько минут длится зарядка. Те же три числа, что у общей зарядки. */
 export type ChessWarmupMinutes = 5 | 10 | 15;
+/** Те же три числа для любой тематической зарядки — общий выбор длительности. */
+export type WarmupMinutes = ChessWarmupMinutes;
+export const ДЛИТЕЛЬНОСТИ: readonly WarmupMinutes[] = [5, 10, 15];
+
+/**
+ * 🔴 ТЕМАТИЧЕСКАЯ ЗАРЯДКА — ОДНО УСТРОЙСТВО НА ЛЮБУЮ РАЗВИЛКУ.
+ *
+ * 📍 ПРОСЬБА ДЕНИСА 06.09.2026: «надо зарядку по словам собрать на 5–10 минут;
+ * надо по идее выбор сделать в зарядках по времени, чтобы понять, какую серию
+ * запускают». Шахматная зарядка уже так устроена; выносим общее, чтобы вторая и
+ * третья не были её копиями — копия расходится с оригиналом молча.
+ *
+ * Три правила те же и они не случайны:
+ *   · упражнения ЧЕРЕДУЮТСЯ (подряд идущие блоки одного вида — два коротких
+ *     занятия, а не зарядка);
+ *   · уровень каждого шага берётся из ЕГО СОБСТВЕННОЙ лестницы;
+ *   · набор набирается до выбранного времени, а последний шаг берётся только
+ *     если влезает хотя бы наполовину.
+ */
+export interface ТемаЗарядки {
+  game_id: string;
+  game_route: string;
+  /** Оценка длительности круга в секундах — из самого упражнения, не на глаз. */
+  секунд: number;
+  /** Уровень из собственной лестницы этой игры. */
+  уровень: number;
+  /** Что передать игре сверх уровня (режим, язык слов и прочее). */
+  настройки?: Record<string, string | number>;
+}
+
+export function темаШаги(темы: readonly ТемаЗарядки[], minutes: WarmupMinutes): PlaylistStep[] {
+  if (темы.length === 0) return [];
+  const бюджет = minutes * 60;
+  const шаги: PlaylistStep[] = [];
+  let занято = 0;
+  for (let i = 0; занято < бюджет; i++) {
+    const т = темы[i % темы.length]!;
+    if (занято > 0 && занято + т.секунд / 2 > бюджет) break;
+    const уровень = Math.max(1, Math.floor(т.уровень));
+    шаги.push({
+      game_id: т.game_id,
+      game_route: т.game_route,
+      difficulty: сложность(уровень),
+      est_duration_sec: т.секунд,
+      settings: { level: уровень, ...(т.настройки ?? {}) },
+    });
+    занято += т.секунд;
+  }
+  return шаги;
+}
+
+export function собратьТемуЗарядки(
+  темы: readonly ТемаЗарядки[],
+  minutes: WarmupMinutes,
+  ярлык: string,
+): PlaylistMeta {
+  const steps = темаШаги(темы, minutes);
+  const total = steps.reduce((s, x) => s + x.est_duration_sec, 0);
+  return {
+    duration_min: Math.max(1, Math.round(total / 60)),
+    weekday: 0,
+    weekday_name: '',
+    track: 'training',
+    track_label: ярлык,
+    steps,
+    est_total_sec: total,
+    slot: 'day',
+  };
+}
 
 /**
  * Оценка длительности шага, в секундах. Взята из самих упражнений, а не на глаз:
@@ -58,29 +127,16 @@ function сложность(level: number): Difficulty {
  * он короче и раскачивает, а «Доска в уме» требует уже собранного внимания.
  */
 export function chessWarmupSteps(o: ChessWarmupOpts): PlaylistStep[] {
-  const бюджет = o.minutes * 60;
-  const шаги: PlaylistStep[] = [];
-  let занято = 0;
-  for (let i = 0; занято < бюджет; i++) {
-    const мат = i % 2 === 0;
-    const длит = мат ? ШАГ_МАТ_СЕК : ШАГ_ДОСКА_СЕК;
-    /**
-     * ⚠️ ПОСЛЕДНИЙ ШАГ БЕРЁТСЯ, ТОЛЬКО ЕСЛИ ВЛЕЗАЕТ ХОТЯ БЫ НАПОЛОВИНУ.
-     * Иначе пятиминутная зарядка молча становилась бы семиминутной, и заданное
-     * время перестало бы что-либо значить.
-     */
-    if (занято > 0 && занято + длит / 2 > бюджет) break;
-    const уровень = Math.max(1, Math.floor(мат ? o.mateLevel : o.blindLevel));
-    шаги.push({
-      game_id: мат ? 'scholars_mate' : 'chess_blind',
-      game_route: мат ? '/games/scholars-mate' : '/games/chess-blind',
-      difficulty: o.difficulty ?? сложность(уровень),
-      est_duration_sec: длит,
-      settings: { level: уровень },
-    });
-    занято += длит;
-  }
-  return шаги;
+  /**
+   * ⚠️ ЧЕРЕЗ ОБЩЕЕ УСТРОЙСТВО, А НЕ СВОЕЙ КОПИЕЙ. Правила чередования, уровней
+   * и времени одни на все тематические зарядки; своя копия разошлась бы с
+   * оригиналом при первой же правке — в этом проекте так уже случалось
+   * с высотой полки и с правилом уровня.
+   */
+  return темаШаги([
+    { game_id: 'scholars_mate', game_route: '/games/scholars-mate', секунд: ШАГ_МАТ_СЕК, уровень: o.mateLevel },
+    { game_id: 'chess_blind', game_route: '/games/chess-blind', секунд: ШАГ_ДОСКА_СЕК, уровень: o.blindLevel },
+  ], o.minutes);
 }
 
 export function buildChessWarmup(o: ChessWarmupOpts): PlaylistMeta {
@@ -92,6 +148,49 @@ export function buildChessWarmup(o: ChessWarmupOpts): PlaylistMeta {
     weekday_name: '',
     track: 'training',
     track_label: 'шахматы',
+    steps,
+    est_total_sec: total,
+    slot: 'day',
+  };
+}
+
+/**
+ * 🔴 СЛОВЕСНАЯ ЗАРЯДКА. Просьба Дениса 06.09.2026: «надо зарядку по словам
+ * собрать на 5–10 минут». Собирается тем же устройством, что и шахматная.
+ *
+ * Три упражнения, и они РАЗНЫЕ по нагрузке, а не три вида одного:
+ *   · анаграммы — собрать слово из данных букв (порождение из набора);
+ *   · филворды в «Корректуре» — найти слова в поле букв (поиск в шуме);
+ *   · беглость речи — назвать слова на букву (извлечение из памяти).
+ */
+export const ШАГ_АНАГРАММЫ_СЕК = 90;
+export const ШАГ_ФИЛВОРДЫ_СЕК = 120;
+export const ШАГ_БЕГЛОСТЬ_СЕК = 60;
+
+export interface WordWarmupOpts {
+  minutes: WarmupMinutes;
+  anagramsLevel: number;
+  proofreadingLevel: number;
+}
+
+export function wordWarmupSteps(o: WordWarmupOpts): PlaylistStep[] {
+  return темаШаги([
+    { game_id: 'anagrams', game_route: '/games/anagrams', секунд: ШАГ_АНАГРАММЫ_СЕК, уровень: o.anagramsLevel },
+    { game_id: 'proofreading', game_route: '/games/proofreading', секунд: ШАГ_ФИЛВОРДЫ_СЕК, уровень: o.proofreadingLevel, настройки: { mode: 'fillwords' } },
+    // «Беглость речи» без лестницы — там уровень задаёт длительность круга.
+    { game_id: 'phonemic_fluency', game_route: '/games/phonemic-fluency', секунд: ШАГ_БЕГЛОСТЬ_СЕК, уровень: 1 },
+  ], o.minutes);
+}
+
+export function buildWordWarmup(o: WordWarmupOpts): PlaylistMeta {
+  const steps = wordWarmupSteps(o);
+  const total = steps.reduce((s, x) => s + x.est_duration_sec, 0);
+  return {
+    duration_min: Math.max(1, Math.round(total / 60)),
+    weekday: 0,
+    weekday_name: '',
+    track: 'training',
+    track_label: 'слова',
     steps,
     est_total_sec: total,
     slot: 'day',

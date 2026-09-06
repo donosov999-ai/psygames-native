@@ -81,6 +81,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'semantic-sort': { ver: 1, date: '19.08.2026' },
   'set-game': { ver: 1, date: '19.08.2026' },
   'simon': { ver: 2, date: '23.08.2026' },
+  'sorting-hub': { ver: 1, date: '06.09.2026' },
   'span': { ver: 1, date: '19.08.2026' },
   'spatial-span': { ver: 1, date: '19.08.2026' },
   'stop-signal': { ver: 2, date: '23.08.2026' },
@@ -103,7 +104,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'water-sort': { ver: 1, date: '05.09.2026' },
   'wcst': { ver: 1, date: '19.08.2026' },
   'word-pairs': { ver: 2, date: '23.08.2026' },
-  'words-hub': { ver: 1, date: '04.09.2026' },
+  'words-hub': { ver: 2, date: '06.09.2026' },
 };
 
 /** Редакция экрана по его id. `null`, если экран не проштампован. */

@@ -179,6 +179,17 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/water-sort', icon: 'flask', nameKey: 'waterSort', descKey: 'waterSortDesc' },
   ],
 
+  /**
+   * ⚠️ ПЕРЕЛИВАЛКА НАМЕРЕННО СТОИТ И В «БАШНЯХ», И ЗДЕСЬ. Это законно (см. шапку):
+   * родитель у игры один, показываться она вправе в нескольких развилках.
+   * В «Башнях» она за то, что ход ограничен правилом и считать надо наперёд;
+   * здесь — за то, что ограничивает ВМЕСТИМОСТЬ ёмкости.
+   */
+  '/games/sorting-hub': [
+    { route: '/games/goods-sort', icon: 'basket', nameKey: 'goodsSort', descKey: 'goodsSortDesc' },
+    { route: '/games/water-sort', icon: 'flask', nameKey: 'waterSort', descKey: 'waterSortDesc' },
+  ],
+
   '/games/routes-hub': [
     { route: '/games/dots-connect', icon: 'ellipse', nameKey: 'dotsConnect', descKey: 'dotsConnectDesc' },
     { route: '/games/one-line', icon: 'analytics', nameKey: 'oneLine', descKey: 'oneLineDesc' },
