@@ -1,4 +1,4 @@
-/* psygames-game-math-slider · VER 2 · 17.08.2026 */
+/* psygames-game-math-slider · VER 3 · 07.09.2026 */
 /**
  * Math Slider — прикидка результата на числовой прямой.
  *
@@ -29,7 +29,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import GameShell from '@/src/components/GameShell';
 import { gameNow } from '@/src/services/gamePause';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -44,7 +43,9 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import MathSliderGame from '@/src/games/math-slider/MathSliderGame';
-import type { MathSliderMetrics } from '@/src/games/math-slider/core';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import { migrateSliderLevelV1toV2, SLIDER_MAX_LEVEL, type MathSliderMetrics } from '@/src/games/math-slider/core';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#5b4ee8', '#12a594'];
@@ -74,6 +75,29 @@ export default function MathSliderScreen() {
   const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const mode = useGameMode();
+  const { profile } = useProfile();
+  /**
+   * МИГРАЦИЯ ЛЕСТНИЦЫ v1→v2 (07.09.2026, школьная ось): сохранённый уровень
+   * старой шкалы встаёт на полосу ТОГО ЖЕ семейства (migrateSliderLevelV1toV2) —
+   * прогресс не сгорает, знакомая тема остаётся. Флаг per-profile, как в number-bonds.
+   */
+  const [migrated, setMigrated] = React.useState(false);
+  React.useEffect(() => {
+    if (!lvl.loaded) return;
+    let cancelled = false;
+    const pid = (profile as any)?.id ?? 'default';
+    const flagKey = `psygames_math_slider_ladderv2_${pid}`;
+    AsyncStorage.getItem(flagKey).then((v) => {
+      if (cancelled) return;
+      if (v !== '2') {
+        if (lvl.best > 1) lvl.setLevel(migrateSliderLevelV1toV2(lvl.best));
+        AsyncStorage.setItem(flagKey, '2').catch(() => {});
+      }
+      setMigrated(true);
+    }).catch(() => { if (!cancelled) setMigrated(true); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- одноразовый пересчёт на профиль
+  }, [lvl.loaded, (profile as any)?.id]);
 
   const [phase, setPhase] = React.useState<Phase>('config');
   const [last, setLast] = React.useState<MathSliderMetrics | null>(null);
@@ -110,7 +134,7 @@ export default function MathSliderScreen() {
   // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => setPhase('playing'));
+  useAutostartWhenReady(() => autostart && lvl.loaded && migrated, () => setPhase('playing'));
 
   const onComplete = React.useCallback(async (m: MathSliderMetrics) => {
     const passed = m.accuracy >= PASS_ACCURACY;
@@ -241,6 +265,7 @@ export default function MathSliderScreen() {
       {phase === 'config' && (
         <ScrollView contentContainerStyle={styles.body}>
           <LevelProgressMap bestLevel={lvl.best} gameId="math_slider" currentLevel={lvl.level}
+            maxLevel={SLIDER_MAX_LEVEL}
             onPickLevel={lvl.pick} colors={colors} language={language} />
 
           <View style={[styles.card, { backgroundColor: colors.surface }]}>

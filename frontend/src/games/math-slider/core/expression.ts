@@ -25,6 +25,14 @@ export function evaluateExpression(expression: MathExpression): number {
           return roundNumber(left / right);
       }
     }
+    case 'power': {
+      const base = evaluateExpression(expression.base);
+      return roundNumber(base ** expression.exponent);
+    }
+    case 'linear-equation':
+      return roundNumber((expression.c - expression.b) / expression.a);
+    case 'root-estimation':
+      return roundNumber(Math.sqrt(expression.value));
     case 'percent-of':
       return roundNumber(expression.base * expression.percent / 100);
     case 'discount':
@@ -57,6 +65,19 @@ function formatNode(expression: MathExpression, locale: MathSliderLocale): strin
       const operator = expression.operator === '*' ? '×' : expression.operator === '/' ? '÷' : expression.operator;
       return `(${formatNode(expression.left, locale)} ${operator} ${formatNode(expression.right, locale)})`;
     }
+    case 'power': {
+      const inner = expression.base.type === 'literal'
+        ? formatNumber(expression.base.value, locale)
+        : `(${formatNode(expression.base, locale)})`;
+      return `${inner}${SUPERSCRIPT[expression.exponent] ?? `^${expression.exponent}`}`;
+    }
+    case 'linear-equation': {
+      const b = expression.b;
+      const sign = b >= 0 ? '+' : '\u2212';
+      return `${formatNumber(expression.a, locale)}x ${sign} ${formatNumber(Math.abs(b), locale)} = ${formatNumber(expression.c, locale)},  x = ?`;
+    }
+    case 'root-estimation':
+      return `\u221a${formatNumber(expression.value, locale)}`;
     case 'percent-of':
       return `${formatNumber(expression.percent, locale)}% × ${formatNumber(expression.base, locale)}`;
     case 'discount':
@@ -65,6 +86,8 @@ function formatNode(expression: MathExpression, locale: MathSliderLocale): strin
       return `${formatNumber(expression.leftNumerator, locale)} : ${formatNumber(expression.leftDenominator, locale)} = x : ${formatNumber(expression.rightDenominator, locale)}`;
   }
 }
+
+const SUPERSCRIPT: Record<number, string> = { 2: '\u00b2', 3: '\u00b3', 4: '\u2074' };
 
 /** Every mixed operation is parenthesized; no precedence guess is required. */
 export function formatExpression(expression: MathExpression, locale: MathSliderLocale): string {
