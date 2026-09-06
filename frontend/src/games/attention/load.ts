@@ -52,9 +52,9 @@ export const LADDER_RANGE: Record<AttentionMode, number> = {
 export const SESSION_MEASURE: Record<AttentionMode, { field: string; norm: string }> = {
   stroop:  { field: 'interference_ms',     norm: 'интерференция ~70–200 мс у взрослых; при SOA 0 классические 72 мс' },
   flanker: { field: 'flanker_effect_ms',   norm: 'эффект фланкера 70–100 мс у здоровых взрослых; норма батареи 70±30 (assessment.ts:57)' },
-  cpt:     { field: 'vigilance_decrement', norm: 'наклон RT по квартилям; падение ТОЧНОСТИ к концу пока не пишется' },
-  targets: { field: 'mean_rt/std_rt',      norm: 'go/no-go: доля no-go 25 % либо 50 %; у нас TARGET_RATE = 0.5' },
-  wcst:    { field: 'perseverative',       norm: 'канон: смена правила после 10 подряд верных (Heaton 1993)' },
+  cpt:     { field: 'vigilance_accuracy_slope', norm: 'падение доли обнаружений по квартилям; рядом vigilance_decrement — это ЗАМЕДЛЕНИЕ, другая величина' },
+  targets: { field: 'commission_errors',   norm: 'go/no-go: главный показатель — ошибки торможения; доля no-go 25 % либо 50 %, у нас TARGET_RATE = 0.5' },
+  wcst:    { field: 'rule_catch_mean',     norm: 'ходов до перехвата нового правила; канон — смена после 10 подряд верных (Heaton 1993)' },
 };
 
 /**

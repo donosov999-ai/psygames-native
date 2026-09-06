@@ -35,6 +35,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { ruleCatchStats } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -161,6 +162,28 @@ export default function WcstGame() {
   const hitsRef = useRef(0);
   const errorsRef = useRef(0);
   const persevRef = useRef(0);
+  /**
+   * ХОДОВ ДО ПЕРЕХВАТА НОВОГО ПРАВИЛА — главная величина этой пробы.
+   *
+   * Правило меняется МОЛЧА, и человек узнаёт об этом только по «неверно». Клинически
+   * важно не сколько он ошибся, а сколько ходов ему понадобилось, чтобы поймать новое
+   * правило (trials-to-criterion после сдвига). `perseverative` отвечает на другой
+   * вопрос — упорствовал ли он в СТАРОМ правиле; человек может не упорствовать и всё
+   * равно искать новое десять ходов, и наоборот. Поэтому величина отдельная.
+   *
+   * Считается по живой партии: `justChangedRef` уже поднимается при смене правила и
+   * гаснет на первом верном ответе — это и есть момент перехвата. Счётчик идёт между
+   * этими двумя точками, первое правило партии сдвигом не считается.
+   */
+  const sinceShiftRef = useRef(0);
+  const catchRef = useRef<number[]>([]);
+  /**
+   * Сколько сдвигов ВООБЩЕ случилось за партию — отдельно от пойманных.
+   * 🔴 Без этого «не поймал ни разу» неотличимо от «сдвигов не было»: в обоих
+   * случаях список пойманных пуст. А это противоположные исходы — второй про
+   * короткую партию, первый про человека, который так и не перестроился.
+   */
+  const shiftsTotalRef = useRef(0);
   const streakRef = useRef(0);
   const categoriesRef = useRef(0);       // закрытых серий-под-правилом
   const targetRef = useRef<Card>(makeTarget());
@@ -210,6 +233,7 @@ export default function WcstGame() {
     setTotalTrials(total);
 
     hitsRef.current = 0; errorsRef.current = 0; persevRef.current = 0;
+    sinceShiftRef.current = 0; catchRef.current = []; shiftsTotalRef.current = 0;
     streakRef.current = 0; categoriesRef.current = 0; roundRef.current = 1;
     setHits(0); setErrors(0); setPerseverative(0); setStreak(0); setRound(1);
 
@@ -235,6 +259,7 @@ export default function WcstGame() {
 
     const classic = classicRef.current;
     const h = hitsRef.current, e = errorsRef.current, pv = persevRef.current;
+    const ruleCatch = ruleCatchStats(catchRef.current);
     const cats = categoriesRef.current, total = trialsRef.current;
 
     let passed = false;
@@ -261,6 +286,17 @@ export default function WcstGame() {
       details: {
         perseverative: pv,             // ← клиническая метрика (обязательна по схеме)
         categories_completed: cats,
+        /**
+         * Ходы до перехвата нового правила — по одному числу на каждый сдвиг.
+         * Пишем и среднее, и сколько сдвигов вообще случилось: среднее по одному
+         * сдвигу и по пяти — разные по надёжности числа, и различить их можно
+         * только имея второе. Пусто (сдвигов не было) → null, а не 0: ноль ходов
+         * означал бы мгновенный перехват, чего не было.
+         */
+        rule_catch_trials: ruleCatch.trials,
+        rule_catch_mean: ruleCatch.mean,
+        rule_shifts_caught: ruleCatch.shifts,
+        rule_shifts_total: shiftsTotalRef.current,
         hits: h,
         n_trials: total,
         ...(classic ? {} : { level: levelRef.current }),   // level только в уровневом режиме
@@ -271,9 +307,13 @@ export default function WcstGame() {
   const handlePick = (refIdx: number) => {
     if (feedback !== null) return;
     const ok = matchByRule(targetRef.current, REF_CARDS[refIdx], ruleRef.current);
+    // ход после смены правила считается независимо от исхода: ищем, пока не поймал
+    if (justChangedRef.current) sinceShiftRef.current += 1;
     if (ok) {
       hitsRef.current += 1;
       streakRef.current += 1;
+      // поймал новое правило — записываем, за сколько ходов
+      if (justChangedRef.current) { catchRef.current.push(sinceShiftRef.current); sinceShiftRef.current = 0; }
       justChangedRef.current = false;
     } else {
       errorsRef.current += 1;
@@ -296,6 +336,8 @@ export default function WcstGame() {
         const nextRule = pickNewRule(ruleRef.current);
         lastRuleRef.current = ruleRef.current;
         justChangedRef.current = true;
+        sinceShiftRef.current = 0;
+        shiftsTotalRef.current += 1;
         ruleRef.current = nextRule;
         setRule(nextRule);
         streakRef.current = 0;
