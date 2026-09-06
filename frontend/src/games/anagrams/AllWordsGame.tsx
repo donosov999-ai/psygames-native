@@ -14,7 +14,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { минимальныйРазмерКруга } from '@/src/components/letterWheel/geometry';
 import {
-  allWordsLetters, сдатьСлово, всёНайдено, allWordsНачат, type AllWordsPack,
+  allWordsLetters, сдатьСлово, всёНайдено, allWordsНачат, подсказкаAllWords, type AllWordsPack,
 } from './core/allWords';
 
 export interface AllWordsProps {
@@ -23,16 +23,29 @@ export interface AllWordsProps {
   size: number;
   theme: { surface: string; text: string; textSecondary: string; border: string; primary: string; success: string; danger: string };
   now: () => number;
-  /** Все слова найдены: промахи и время. */
-  onComplete: (промахов: number, мс: number) => void;
+  /** Все слова найдены: сколько взято подсказок и сколько ушло времени. */
+  onComplete: (подсказок: number, мс: number) => void;
   onProgress?: (начат: boolean) => void;
-  labels: { найдено: string; промахи: string; банк: string; сдать: string; сброс: string };
+  labels: { найдено: string; подсказки: string; банк: string; сдать: string; сброс: string; подсказка: string };
 }
 
 export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, labels }: AllWordsProps) {
   const [найдены, setНайдены] = React.useState<string[]>([]);
   const [линия, setЛиния] = React.useState<number[]>([]);
-  const [промахов, setПромахов] = React.useState(0);
+  /**
+   * 🔴 СЧЁТЧИКА ОШИБОК ЗДЕСЬ НЕТ, И ЭТО НЕ УПУЩЕНИЕ.
+   *
+   * 📍 ОТЧЁТ ДЕНИСА 06.09.2026: «я ввожу любое слово, что можно составить, оно
+   * не фиксируется, то есть ждёт определённых — а как догадаться?». Он прав по
+   * устройству: с круга физически НЕЛЬЗЯ набрать слово, которое не собирается
+   * из этих букв. Значит каждая попытка честная, и наказывать за неё нечем —
+   * список целей человеку не показан и показан быть не может.
+   *
+   * Считаем найденное, а не ошибки. Так же устроены образцы жанра: в Zen Word
+   * нет ни таймера, ни штрафа — только сколько слов открыто.
+   */
+  const [подсказок, setПодсказок] = React.useState(0);
+  const [открытые, setОткрытые] = React.useState<Record<string, number>>({});
   const [мигание, setМигание] = React.useState<'нет' | 'верно' | 'повтор' | 'мимо'>('нет');
 
   const буквы = React.useMemo(() => allWordsLetters(pack, seed), [pack, seed]);
@@ -40,8 +53,8 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
   const готово = всёНайдено(pack, найдены);
 
   const начало = React.useRef(0);
-  const промаховRef = React.useRef(0);
-  React.useEffect(() => { промаховRef.current = промахов; }, [промахов]);
+  const подсказокRef = React.useRef(0);
+  React.useEffect(() => { подсказокRef.current = подсказок; }, [подсказок]);
   const готовоRef = React.useRef(false);
   React.useEffect(() => { готовоRef.current = готово; }, [готово]);
 
@@ -58,18 +71,33 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
       const исход = сдатьСлово(pack, слово, текущие);
       setМигание(исход === 'цель' ? 'верно' : исход === 'повтор' ? 'повтор' : 'мимо');
       setTimeout(() => setМигание('нет'), 340);
-      if (исход !== 'цель') {
-        if (исход === 'мимо') setПромахов((n) => n + 1);
-        return текущие;
-      }
+      if (исход !== 'цель') return текущие;
       const дальше = [...текущие, слово.toLowerCase()];
       if (всёНайдено(pack, дальше)) {
         const мс = начало.current ? now() - начало.current : 0;
-        setTimeout(() => onComplete(промаховRef.current, мс), 420);
+        setTimeout(() => onComplete(подсказокRef.current, мс), 420);
       }
       return дальше;
     });
   }, [pack, onComplete, now]);
+
+  /**
+   * 🔴 ПОДСКАЗКА ОТКРЫВАЕТ ОЧЕРЕДНУЮ БУКВУ САМОГО КОРОТКОГО НЕНАЙДЕННОГО СЛОВА.
+   *
+   * 📍 ОТЧЁТ ДЕНИСА 06.09.2026: «подсказки в новых анаграммах нет, ни первых
+   * букв, ни смысла». Без неё режим упирается в тупик: список целей закрыт, и
+   * если слово не приходит в голову, делать нечего.
+   *
+   * Короткое, а не длинное: подсказка обязана СДВИНУТЬ с мёртвой точки, а не
+   * решить уровень. Урок филвордов того же дня — подсказка, не окупающая цену,
+   * читается как «не работает», но и подсказка, решающая всё, убивает игру.
+   */
+  const взятьПодсказку = React.useCallback(() => {
+    const h = подсказкаAllWords(pack, найдены, открытые);
+    if (!h) return;   // открывать больше нечего — подсказку не списываем
+    setОткрытые((было) => ({ ...было, [h.слово]: h.открыто }));
+    setПодсказок((n) => n + 1);
+  }, [pack, найдены, открытые]);
 
   const набрано = линия.map((i) => (буквы[i] ?? '').toUpperCase()).join('');
   const цветНабора = мигание === 'мимо' ? theme.danger
@@ -85,6 +113,7 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
       <View style={стили.список}>
         {pack.words.map((слово) => {
           const открыто = найдены.indexOf(слово) >= 0;
+          const подсказано = открыто ? слово.length : (открытые[слово] ?? 0);
           return (
             /**
              * ⚠️ КАЖДОЕ СЛОВО — СВОЯ ГРУППА С ЗАМЕТНЫМ ЗАЗОРОМ. Найдено игрой:
@@ -97,10 +126,13 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
               {[...слово].map((ch, i) => (
                 <View key={i} style={[стили.клетка, {
                   width: клетка, height: клетка + 4,
-                  backgroundColor: открыто ? theme.primary : theme.surface,
+                  backgroundColor: открыто ? theme.primary : i < подсказано ? theme.border : theme.surface,
                   borderColor: открыто ? theme.primary : theme.border,
                 }]}>
-                  <Text style={[стили.букваСлова, { fontSize: клетка * 0.6, color: открыто ? '#fff' : 'transparent' }]}>
+                  <Text style={[стили.букваСлова, {
+                    fontSize: клетка * 0.6,
+                    color: открыто ? '#fff' : i < подсказано ? theme.text : 'transparent',
+                  }]}>
                     {ch.toUpperCase()}
                   </Text>
                 </View>
@@ -145,6 +177,16 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
         </Pressable>
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={labels.подсказка}
+          accessibilityState={{ disabled: готово }}
+          disabled={готово}
+          onPress={взятьПодсказку}
+          style={[стили.кнопка, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: готово ? 0.4 : 1 }]}
+        >
+          <Text style={[стили.кнопкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
           accessibilityLabel={labels.сдать}
           accessibilityState={{ disabled: линия.length < 3 }}
           disabled={линия.length < 3}
@@ -156,7 +198,7 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
       </View>
 
       <Text style={[стили.счёт, { color: theme.textSecondary }]}>
-        {labels.найдено} {найдены.length}/{pack.words.length} · {labels.промахи} {промахов}
+        {labels.найдено} {найдены.length}/{pack.words.length}{подсказок ? ` · ${labels.подсказки} ${подсказок}` : ''}
       </Text>
     </View>
   );

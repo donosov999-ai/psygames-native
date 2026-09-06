@@ -11,11 +11,11 @@
  * разойтись.
  */
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { минимальныйРазмерКруга } from '@/src/components/letterWheel/geometry';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import {
-  СТОРОНА, клеткиСтороны, периметр, сторонаСлова, квадратНачат,
+  СТОРОНА, клеткиСтороны, периметр, сторонаСлова, квадратНачат, подсказкаКвадрата,
   type Кольцо, type Сторона,
 } from './core/ring';
 
@@ -33,7 +33,7 @@ export interface WordSquareProps {
   onComplete: (промахов: number, мс: number) => void;
   /** Первое касание — «есть что терять» для подтверждения выхода. */
   onProgress?: (тронули: boolean) => void;
-  labels: { собрано: string; промахи: string; банк: string };
+  labels: { собрано: string; промахи: string; банк: string; подсказка: string };
 }
 
 /** Рамка сетки; клетка выводится из неё, а не наоборот — иначе пятая клетка уезжает на новую строку. */
@@ -47,6 +47,8 @@ export function WordSquareGame({ кольцо, size, theme, now, onComplete, onP
   const [линия, setЛиния] = React.useState<number[]>([]);
   const [промахов, setПромахов] = React.useState(0);
   const [мигание, setМигание] = React.useState<'нет' | 'верно' | 'мимо'>('нет');
+  /** Сколько букв стороны уже открыто подсказкой. */
+  const [открыто, setОткрыто] = React.useState<Record<string, number>>({});
   /** Время сборки: пошло с первой плитки, а не с открытия экрана. */
   const начало = React.useRef(0);
   /** Промахи читает отложенный вызов итога — состояние к тому мигу уже уедет. */
@@ -100,6 +102,13 @@ export function WordSquareGame({ кольцо, size, theme, now, onComplete, onP
     });
   }, [кольцо, onComplete, now]);
 
+  const взятьПодсказку = React.useCallback(() => {
+    const h = подсказкаКвадрата(кольцо, закрыты, открыто);
+    if (!h) return;
+    setОткрыто((было) => ({ ...было, [h.сторона]: (было[h.сторона] ?? 0) + 1 }));
+    setПромахов((n) => n + 1);   // подсказка стоит столько же, сколько промах
+  }, [кольцо, закрыты, открыто]);
+
   const набрано = линия.map((i) => кольцо.банк[i] ?? '').join('');
   const сторонаКлетки = (и: number): Сторона | null => {
     for (const с of ['верх', 'право', 'низ', 'лево'] as const) if (клеткиСтороны(с).indexOf(и) >= 0) return с;
@@ -119,6 +128,14 @@ export function WordSquareGame({ кольцо, size, theme, now, onComplete, onP
           const r = Math.floor(и / СТОРОНА), c = и % СТОРОНА;
           const сторона = сторонаКлетки(и);
           const закрыта = !!сторона && закрыты.indexOf(сторона) >= 0;
+          // Буква, открытая подсказкой: индекс клетки внутри своей стороны.
+          const местоВСтороне = сторона ? клеткиСтороны(сторона).indexOf(и) : -1;
+          const подсказана = !закрыта && !!сторона && местоВСтороне >= 0
+            && местоВСтороне < (открыто[сторона] ?? 0);
+          const букваПодсказки = подсказана && сторона
+            ? (сторона === 'верх' ? кольцо.верх : сторона === 'право' ? кольцо.право
+              : сторона === 'низ' ? кольцо.низ : кольцо.лево)[местоВСтороне] ?? ''
+            : '';
           const общая = { position: 'absolute' as const, left: РАМКА + c * клетка, top: РАМКА + r * клетка, width: клетка, height: клетка };
           if (!сторона) {
             /* Центр 3×3 пуст: банк не влезает в девять клеток (замер — в `core/ring`). */
@@ -127,10 +144,13 @@ export function WordSquareGame({ кольцо, size, theme, now, onComplete, onP
           return (
             <View key={и} accessible accessibilityLabel={поле[и] || undefined}
               style={[стили.клетка, общая, {
-                backgroundColor: закрыта ? theme.primary : theme.surface,
+                backgroundColor: закрыта ? theme.primary : подсказана ? theme.border : theme.surface,
                 borderColor: закрыта ? theme.primary : theme.border,
               }]}>
-              <Text style={[стили.буква, { fontSize: клетка * 0.42, color: закрыта ? '#fff' : theme.textSecondary }]}>{поле[и]}</Text>
+              <Text style={[стили.буква, {
+                fontSize: клетка * 0.42,
+                color: закрыта ? '#fff' : подсказана ? theme.text : theme.textSecondary,
+              }]}>{поле[и] || букваПодсказки}</Text>
             </View>
           );
         })}
@@ -163,6 +183,17 @@ export function WordSquareGame({ кольцо, size, theme, now, onComplete, onP
         disabled={завершено}
       />
 
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={labels.подсказка}
+        accessibilityState={{ disabled: завершено }}
+        disabled={завершено}
+        onPress={взятьПодсказку}
+        style={[стили.подсказка, { borderColor: theme.primary, opacity: завершено ? 0.4 : 1 }]}
+      >
+        <Text style={[стили.подсказкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
+      </Pressable>
+
       <Text style={[стили.счёт, { color: theme.textSecondary }]}>
         {labels.собрано} {закрыты.length}/4 · {labels.промахи} {промахов}
       </Text>
@@ -177,6 +208,9 @@ const стили = StyleSheet.create({
   строка: { alignItems: 'center', justifyContent: 'center' },
   набор: { fontSize: 22, fontWeight: '800', letterSpacing: 3 },
   счёт: { fontSize: 13 },
+  // 44 — норма цели нажатия.
+  подсказка: { minHeight: 44, minWidth: 140, paddingHorizontal: 18, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  подсказкаТекст: { fontSize: 15, fontWeight: '700' },
 });
 
 export default WordSquareGame;
