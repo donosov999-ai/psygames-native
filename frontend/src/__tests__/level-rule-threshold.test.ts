@@ -29,10 +29,11 @@ import { CHESSBLIND_RULES } from '@/app/games/chess-blind';
 import { CORSI_RULES, levelParams as corsi } from '@/app/games/corsi';
 import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
-import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches } from '@/app/games/goods-sort';
+import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches, monochromeLevel } from '@/app/games/goods-sort';
 import { HN_RULES, levelParams as hanoi } from '@/app/games/hanoi';
 import { WATER_SORT_RULES } from '@/app/games/water-sort';
 import { скрытоНаУровне } from '@/src/games/water-sort/core/hidden';
+import { levelParams } from '@/src/games/water-sort/core/generate';
 import { LISTENINGSPAN_RULES, levelParams as listening } from '@/app/games/listening-span';
 import { MAHJONG_RULES } from '@/app/games/mahjong';
 import { MS_RULES, opsFor } from '@/app/games/math-sprint';
@@ -136,6 +137,7 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'goods-sort', ключ: 'hidden', вид: 'порог', есть: (L) => hiddenInfo(L) },
   { игра: 'goods-sort', ключ: 'joker', вид: 'порог', есть: (L) => jokerNiches(L, 14).length > 0 },
   { игра: 'goods-sort', ключ: 'moving', вид: 'порог', есть: (L) => movingNiches(L) },
+  { игра: 'goods-sort', ключ: 'mono', вид: 'порог', есть: (L) => monochromeLevel(L) },
   /**
    * ⚠️ ПЕРЕЛИВАЛКА ЗАРЕГИСТРИРОВАНА ЗДЕСЬ 06.09.2026, В ТОТ ЖЕ ЗАХОД, ЧТО И
    * МЕХАНИКА. Первым делом её правило было НЕ ВИДНО этому гейту: массив не был
@@ -144,6 +146,14 @@ const МЕХАНИКИ: Механика[] = [
    * регистрацию откладывают «на потом».
    */
   { игра: 'water-sort', ключ: 'hidden', вид: 'порог', есть: (L) => скрытоНаУровне(L) },
+  /**
+   * Три оси верхней полосы, заведённые 06.09.2026. Проверяются НЕ по числам из
+   * таблицы правил, а по тому, что реально выдаёт `levelParams`: разъедутся —
+   * человек прочтёт про камни за четыре уровня до первого камня.
+   */
+  { игра: 'water-sort', ключ: 'short', вид: 'порог', есть: (L) => levelParams(L).shortBy > 0 },
+  { игра: 'water-sort', ключ: 'stones', вид: 'порог', есть: (L) => levelParams(L).stones > 0 },
+  { игра: 'water-sort', ключ: 'sealed', вид: 'порог', есть: (L) => levelParams(L).deferred > 0 },
 ];
 
 /**
@@ -179,8 +189,8 @@ describe('правило уровня не врёт про свой номер',
   it('есть что проверять — иначе тест зелен вслепую', () => {
     expect(Object.keys(RULES).length).toBeGreaterThanOrEqual(24);
     const всего = Object.values(RULES).reduce((n, r) => n + r.length, 0);
-    expect(всего).toBeGreaterThanOrEqual(48);
-    expect(МЕХАНИКИ.length).toBeGreaterThanOrEqual(43);
+    expect(всего).toBeGreaterThanOrEqual(49);
+    expect(МЕХАНИКИ.length).toBeGreaterThanOrEqual(45);
     expect(Object.keys(РЕДАКЦИОННЫЕ).length).toBeGreaterThan(0);
   });
 
