@@ -204,7 +204,7 @@ export default function AnagramGame() {
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame());
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // прошёл/не прошёл — для баннера LevelCleared (passed)
   // length — только для пресетов из зарядки (num('length')); в уровневом режиме перекрывается levelParams
