@@ -13,8 +13,10 @@
  */
 import React from 'react';
 
-import { buildDeck, buildFlowDeck, levelParams } from '@/src/games/scholars-mate/core/deck';
-import { starsFor, ступеньПоМедиане } from '@/src/games/scholars-mate/core/run';
+import { buildDeck, buildFlowDeck } from '@/src/games/scholars-mate/core/deck';
+import { starsFor, ступеньПоМедиане, порогУровня } from '@/src/games/scholars-mate/core/run';
+import { threatAnswer, shownFen } from '@/src/games/scholars-mate/core/check';
+import { Chess } from 'chess.js';
 /**
  * ⚠️ Импорт экрана стоит ЗДЕСЬ, вместе с остальными, хотя ниже идут `jest.mock`.
  * Babel поднимает вызовы `jest.mock` выше импортов сам, поэтому моки успевают
@@ -34,9 +36,11 @@ const TestRenderer = require('react-test-renderer');
 const mockПоднято: number[] = [];
 const mockПровалов: number[] = [];
 
+/** Уровень экрана — переключаемый: без него проба всегда играет первый. */
+const mockУровень = { n: 1 };
 jest.mock('@/src/hooks/usePersistentLevel', () => ({
   usePersistentLevel: () => ({
-    level: 1, best: 1, loaded: true,
+    level: mockУровень.n, best: mockУровень.n, loaded: true,
     reach: (n: number) => { mockПоднято.push(n); },
     fail: () => { mockПровалов.push(1); },
     pick: () => {},
@@ -114,7 +118,7 @@ let mounted: any[] = [];
 afterEach(() => {
   TestRenderer.act(() => { mounted.forEach((t) => { try { t.unmount(); } catch { /* снят */ } }); });
   mounted = [];
-  mockПоднято.length = 0; mockПровалов.length = 0; mockПресет.on = false;
+  mockПоднято.length = 0; mockПровалов.length = 0; mockПресет.on = false; mockУровень.n = 1;
 });
 beforeEach(() => { jest.useFakeTimers(); });
 afterEach(() => { jest.useRealTimers(); });
@@ -302,6 +306,62 @@ describe('«Детский мат»: конец подхода ведёт дал
 
     expect(`подъёмов: ${mockПоднято.join(',') || '—'}`).toBe('подъёмов: —');
     expect(`понижений: ${mockПровалов.length}`).toBe('понижений: 1');
+  });
+
+  /**
+   * 🔴 ЭКРАН ЧИТАЕТ ПОРОГ УРОВНЯ, А НЕ ЗАШИТУЮ ЧЕТВЕРТЬ.
+   *
+   * ⚠️ На первом уровне порог и так 0,75 — там зашитая константа неотличима от
+   * лестницы, и мутация «экран не читает порог» проходила пробу насквозь. Нужен
+   * уровень ВЫШЕ рубежа: на девятнадцатом допуск падает до одного промаха, порог
+   * становится 0,9, и подход с двумя промахами из десяти (доля 0,8) обязан НЕ
+   * засчитаться, хотя прежнюю четверть он брал.
+   */
+  it('🔴 на 19-м уровне два промаха из десяти НЕ берут уровень', () => {
+    mockУровень.n = 19;
+    let tree: any;
+    TestRenderer.act(() => {
+      tree = TestRenderer.create(React.createElement(ScholarsMateScreen as any));
+      mounted.push(tree);
+    });
+    нажать(tree, 'НАЧАТЬ');
+
+    const колода = buildDeck(19, 2);
+    expect(`позиций в подходе: ${колода.length}`).toBe('позиций в подходе: 10');
+    expect(`порог на ур.19: ${порогУровня(19, колода.length)}`).toBe('порог на ур.19: 0.9');
+
+    колода.forEach((задача: any, i: number) => {
+      const мимо = i >= колода.length - 2;            // последние две — промахи
+      if (задача.kind === 'threat') {
+        const верно = threatAnswer(задача);
+        const дать = мимо ? !верно : верно;
+        нажать(tree, дать ? 'scholarsYes' : 'scholarsNo');
+      } else {
+        /**
+         * ⚠️ ПРОМАХ ДЕЛАЕТСЯ ЗАКОННЫМ ХОДОМ, А НЕ НЕВОЗМОЖНЫМ КАСАНИЕМ.
+         * Первая редакция «промахивалась», нажимая пустую клетку: ход не
+         * складывался, попытка не записывалась, подход не заканчивался — и проба
+         * зеленела оттого, что НИЧЕГО не произошло. Мутация «экран не читает
+         * порог» проходила её насквозь.
+         */
+        const верный: string = задача.solutions[0]!;
+        const g = new Chess(shownFen(задача));
+        const плохой = (g.moves({ verbose: true }) as any[])
+          .map((m) => `${m.from}${m.to}${m.promotion ?? ''}`)
+          .find((u) => !(задача.solutions as string[]).includes(u));
+        const uci: string = мимо ? (плохой ?? верный) : верный;
+        нажать(tree, uci.slice(0, 2));
+        нажать(tree, uci.slice(2, 4));
+      }
+      TestRenderer.act(() => { jest.advanceTimersByTime(1600); });
+    });
+
+    // 🔴 Сначала — что подход ВООБЩЕ закончился: без этого «ступень не поднята»
+    // верно и тогда, когда партия просто зависла на первой позиции.
+    const клеток = tree.root.findAll(
+      (n: any) => /^[a-h][1-8](,|$)/.test(String(n.props?.accessibilityLabel ?? '')), { deep: true }).length;
+    expect(`подход закончился, доска убрана: ${клеток === 0}`).toBe('подход закончился, доска убрана: true');
+    expect(`ступень поднята: ${mockПоднято.join(',') || '—'}`).toBe('ступень поднята: —');
   });
 });
 
