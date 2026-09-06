@@ -92,15 +92,59 @@ type MatrixMode = 'static' | 'sequential';   // static = pattern flashes once; s
  * раньше, и в замере «где кончается рост» они не видны: там сравнивались вектора
  * ЧЕРЕЗ ОДИН уровень, а не подряд.
  */
-export const MM_VOLUME_TOP = 15;   // с этого уровня скорость на дне и появляются клоны — дальше держит задержка
+/**
+ * 🔴 СКОЛЬКО КЛЕТОК ОТДАНО ПОД ЛОЖНЫЕ. Замер 07.09.2026, и он остановил меня.
+ *
+ * Сначала я просто добавил ложные «сколько попросят». Прогон занятости поля показал
+ * откат сложности, а не рост: свободных клеток при двух сериях L16 → 10, L19 → 6,
+ * L20 → 4, L21 и выше → 2. То есть ложных становилось СЕМЬ на L22 по объявлению и
+ * ДВЕ на деле, и с L20 их число падало — 4, потом 2. Ось работала бы шесть уровней,
+ * а дальше сама себя съедала: нужные клетки вытесняют ложные с поля.
+ *
+ * Поэтому место резервируется. Нужных клеток в серии становится на `DECOY_ROOM/2`
+ * меньше, и ровно столько же уходит под ложные.
+ * ⚠️ ЭТО СОЗНАТЕЛЬНЫЙ РАЗМЕН ОБЪЁМА НА ИНТЕРФЕРЕНЦИЮ, и он в нужную сторону: 17
+ * клеток в серии — это втрое выше нормы зрительной рабочей памяти (5±2), то есть
+ * объём там давно перестал различать людей. Две отданные клетки не теряются: они
+ * возвращаются нагрузкой «отдели нужное от ненужного».
+ */
+export const DECOY_ROOM = 6;
 
-export function levelParams(level: number): { gridSize: number; baseFlashes: number; flashMs: number; seriesCount: number; holdMs: number } {
+export const MM_VOLUME_TOP = 15;
+
+/**
+ * 🔴 СКОЛЬКО КЛЕТОК ПОКАЗЫВАЕТ ПОЛЕ. ЭКСПОРТИРОВАНО НАРОЧНО.
+ *
+ * ⚠️ Это ЧЕТВЁРТЫЙ за день случай одного класса, и он мой. Проба на ложные вспышки
+ * содержала КОПИЮ этого расчёта внутри теста — мутация экрана (убрать резерв места)
+ * её не покрасила: копия осталась прежней, гейт мерил сам себя. Тот же дефект, что
+ * и в самой игре: сложность объявлена в одном месте, исполняется в другом.
+ * Теперь правило живёт здесь, `newRound` зовёт его, проба импортирует его же.
+ */
+export function cellsNeeded(level: number, round: number, mode: 'static' | 'sequential', preset = false): { need: number; decoys: number; free: number } {
+  const p = levelParams(level);
+  const total = p.gridSize * p.gridSize;
+  const two = p.seriesCount === 2 && mode === 'static';
+  const decoys = preset ? 0 : p.decoys;
+  const подНужные = total - (decoys > 0 ? DECOY_ROOM : 0);
+  const base = preset ? 3 : p.baseFlashes;
+  const need = Math.min(two ? Math.floor((подНужные - 1) / 2) : подНужные - 1, base + Math.floor((round - 1) / 3));
+  return { need, decoys, free: total - (two ? need * 2 : need) };
+}   // с этого уровня скорость на дне и появляются клоны — дальше держит задержка
+
+export function levelParams(level: number): { gridSize: number; baseFlashes: number; flashMs: number; seriesCount: number; holdMs: number; decoys: number } {
   const gridSize = Math.min(6, 2 + level);              // L1=3 → L4=6
   const baseFlashes = 3 + Math.floor(level / 1.5);       // клеток запомнить: L1=3 → L15≈13
   const flashMs = Math.max(500, 1500 - level * 70);      // показ быстрее с уровнем
   const seriesCount = level >= 11 ? 2 : 1;               // L11+ две серии разного цвета
   const holdMs = Math.max(0, level - MM_VOLUME_TOP) * 700;
-  return { gridSize, baseFlashes, flashMs, seriesCount, holdMs };
+  /**
+   * 🔴 ОСЬ 5 — ЛОЖНЫЕ ВСПЫШКИ. Клетки, которые загораются и которые НЕ надо
+   * запоминать. Растят нагрузку не объёмом, а необходимостью отделять нужное от
+   * ненужного: держать в уме приходится столько же, но входящего потока больше.
+   */
+  const decoys = Math.min(DECOY_ROOM, Math.max(0, level - MM_VOLUME_TOP));
+  return { gridSize, baseFlashes, flashMs, seriesCount, holdMs, decoys };
 }
 
 const SERIES1_COLOR = '#8e2de2';   // фиолетовая серия (как GRADIENT[0])
@@ -154,6 +198,16 @@ export default function MemoryMatrixGame() {
   const [pickedCells, setPickedCells] = useState<Set<number>>(new Set());
   const [pickedSequence, setPickedSequence] = useState<number[]>([]);// user's tap order for sequential mode
   const [series2, setSeries2] = useState<Set<number>>(new Set());    // 2-я серия (другой цвет), static L11+
+  /**
+   * Ложные вспышки — ось 5. Загораются вместе с серией, но в ответ не входят.
+   * ⚠️ ПОКАЗЫВАЕМ СОСТОЯНИЕМ `wrong`, А НЕ НОВЫМ. `FlashCell` — общий компонент
+   * ПЯТИ игр, заводить в нём состояние `decoy` мне нельзя (ТЗ §1). У `wrong` уже
+   * есть своя ФОРМА (косой крест), поэтому ложная вспышка читается как «эту не
+   * запоминай» и остаётся различимой при дальтонизме — это условие §11.18.
+   * Долг: предложить координатору отдельное состояние, чтобы смысл не двоился.
+   */
+  const [decoyCells, setDecoyCells] = useState<Set<number>>(new Set());
+  const decoysRef = useRef(0);
   const [inputSeries, setInputSeries] = useState(0);                 // какую серию воспроизводим (0=первая, 1=вторая)
   const [showingSeries, setShowingSeries] = useState(0);             // показываемая серия в фазе showing (1/2; 0=нет)
   const seriesCountRef = useRef(1);
@@ -217,20 +271,26 @@ export default function MemoryMatrixGame() {
     const total = gs * gs;
     const two = seriesCountRef.current === 2 && matrixMode === 'static';   // 2 серии — только static
     // число клеток в каждой серии (для two меньше, чтобы 2 непересекающихся набора влезли)
-    const need = Math.min(
-      two ? Math.floor((total - 1) / 2) : total - 1,
-      baseFlashesRef.current + Math.floor((r - 1) / 3),
-    );
+    // Расчёт один на экран и на пробу — см. шапку cellsNeeded.
+    const need = cellsNeeded(levelRef.current, r, matrixMode, isPreset).need;
     // непересекающиеся наборы из перетасованного пула
     const pool = Array.from({ length: total }, (_, i) => i);
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
     const set1 = new Set(pool.slice(0, need));
     const seq = pool.slice(0, need);                       // порядок для sequential
     const set2 = two ? new Set(pool.slice(need, need * 2)) : new Set<number>();
+    /**
+     * ⚠️ ЛОЖНЫЕ БЕРУТСЯ ИЗ ОСТАТКА ПУЛА, а не из всей сетки: клетка не может быть
+     * одновременно нужной и ложной — иначе ответ становится неоднозначным, и проба
+     * перестаёт измерять. Столько, сколько осталось свободных.
+     */
+    const занято = two ? need * 2 : need;
+    const set3 = new Set(pool.slice(занято, занято + Math.min(decoysRef.current, total - занято)));
 
     setLitCells(set1);
     setLitSequence(seq);
     setSeries2(set2);
+    setDecoyCells(set3);
     setPickedCells(new Set());
     setPickedSequence([]);
     setInputSeries(0);
@@ -272,6 +332,7 @@ export default function MemoryMatrixGame() {
     levelRef.current = lvl.level;
     baseFlashesRef.current = isPreset ? 3 : p.baseFlashes;
     holdRef.current = isPreset ? 0 : p.holdMs;   // пресет идёт мимо лестницы
+    decoysRef.current = isPreset ? 0 : p.decoys;
     flashMsRef.current = isPreset ? 1500 : p.flashMs;
     seriesCountRef.current = isPreset ? 1 : p.seriesCount;
     if (!isPreset) setGridSize(g);
@@ -617,6 +678,7 @@ export default function MemoryMatrixGame() {
               const showLit = matrixMode === 'static'
                 ? ((showingSeries === 1 && inSeries1) || (showingSeries === 2 && inSeries2))
                 : (activeIdx === i);
+              const isDecoy = decoyCells.has(i);
               const targetHas = two ? (inputSeries === 1 ? inSeries2 : inSeries1) : inSeries1;   // целевая серия ввода
               const isPicked = pickedCells.has(i);
               /**
@@ -626,6 +688,7 @@ export default function MemoryMatrixGame() {
                */
               let st: FlashState = 'idle';
               if (phase === 'showing' && showLit) st = showingSeries === 2 ? 'lit2' : 'lit';
+              else if (phase === 'showing' && showingSeries > 0 && isDecoy) st = 'wrong';   // ложная: не запоминать
               else if (phase === 'input' && isPicked) st = targetHas ? 'correct' : 'wrong';
               else if (phase === 'feedback') {
                 const inAny = inSeries1 || inSeries2;
