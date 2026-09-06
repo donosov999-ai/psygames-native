@@ -63,6 +63,23 @@ export interface Grade {
   solved: boolean;
   tier: number;
   hardest: Technique;
+  /**
+   * 🔴 ДЛИНА И ЦЕНА ВЫВОДА — величины, которых не хватало (задача «мера трудности
+   * вариантной судоку», 06.09.2026).
+   *
+   * `tier` — ординальный ЯРЛЫК: «самая дорогая понадобившаяся техника». Он не различает
+   * доску, где дорогая техника понадобилась ОДИН раз, и доску, где она понадобилась
+   * тридцать. Замер, ради которого это и заведено: на боевом пути двух вариантных
+   * режимов `tier` оказался одинаков у 11 ступеней из 16 — лестница обещала рост, а
+   * измеритель показывал одно число.
+   *
+   * `steps` — сколько раз вообще применилась хоть какая-то техника.
+   * `cost` — сумма ступеней применённых техник: тридцать одиночек дешевле трёх X-wing.
+   * Обе меряются у КАЖДОЙ доски, в том числе у нерешённой (тогда это «докуда дошли»),
+   * и потому годятся туда, где ярлык вырождается в плато.
+   */
+  steps: number;
+  cost: number;
   /** Доска, к которой решатель пришёл. Гейт сверяет её с эталоном: если пруннинг где-то
    *  неверен, решатель «решит» ЧУЖУЮ сетку и объявит единственность там, где её нет. */
   grid?: Cell[][];
@@ -125,7 +142,36 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
 
   let maxTier = 0;
   let hardest: Technique = 'naked_single';
-  const bump = (t: Technique) => { const tr = TECHNIQUE_TIER[t]; if (tr > maxTier) { maxTier = tr; hardest = t; } };
+  /**
+   * Каждое применение техники считается ДВАЖДЫ: в длину вывода (`steps`) и в его цену
+   * (`cost`, сумма ступеней). Максимум по-прежнему уезжает в `tier` — но теперь рядом с
+   * ним есть две величины, которые не вырождаются в плато. Разбор — в шапке Grade.
+   */
+  let stepsUsed = 0;
+  let costUsed = 0;
+  const bump = (t: Technique) => {
+    const tr = TECHNIQUE_TIER[t];
+    stepsUsed += 1;
+    costUsed += tr;
+    if (tr > maxTier) { maxTier = tr; hardest = t; }
+  };
+
+  /**
+   * 🔴 ВАРИАНТНЫЕ ВЫВОДЫ ТЕПЕРЬ ОТСЕКАЮТСЯ `tierCap` — почин измерителя (06.09.2026).
+   *
+   * Цепочка неравенств, сумма сэндвича и граница видимости небоскрёбов — это ТЕХНИКИ
+   * (ступень 4), а стояли они внутри `refilter` и работали ВСЕГДА, при любом `tierCap`.
+   * Отсюда две беды разом: комментарий у списка шагов обещал «можно спросить, решается
+   * ли БЕЗ техник выше k», и для вариантов это было неправдой; а `tier = 4` означал
+   * «фильтр варианта что-то отсёк», а не «без этой техники не обойтись».
+   * Замер, поймавший это: все 64 доски небоскрёбов «ступени 4» решались при `tierCap=1`,
+   * то есть голыми одиночками, — цена подсказками выходила ровно 0 у 64 из 64.
+   *
+   * ⚠️ Отсекается именно ВЫВОД, а не ПРАВИЛО. Проверка «цифра не спорит с показанным
+   * знаком/подсказкой у уже известного соседа» (`unequalOk`, `towersOk` ниже) остаётся
+   * всегда: это условие задачи, оно даётся игроку даром и техникой не является.
+   */
+  const выводВарианта = tierCap >= TECHNIQUE_TIER.unequal_chain;
 
   /** Не нарушает ли цифра показанные знаки — по УЖЕ известным соседям. */
   const unequalOk = (g: Cell[][], r: number, c: number, v: number, n: number, uq: UnequalMap): boolean => {
@@ -246,7 +292,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
      * срез по заполненному — тот же старый фильтр, игроку он даётся даром, и
      * bump по нему завысил бы ступень ровно так, как её раньше занижали.
      */
-    if (unequal) {
+    if (unequal && выводВарианта) {
       let usedChain = false;
       for (let pass = 0; pass < N; pass++) {
         let changed = false;
@@ -358,7 +404,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     // допустимые пары позиций (1,9) и оставляем единице и девятке только те клетки,
     // где хоть одна пара сходится по границам суммы. Правило раньше решателю не было
     // известно вовсе — оттого сэндвич и оценивался пессимистично.
-    if ((variant === 'sandwich' || variant === 'sandparity') && sandwich && N === 9) {
+    if ((variant === 'sandwich' || variant === 'sandparity') && sandwich && N === 9 && выводВарианта) {
       let usedSandwich = false;
       const line = (idx: number, byRow: boolean) => Array.from({ length: N }, (_, k) => (byRow ? [idx, k] : [k, idx]) as [number, number]);
       for (const byRow of [true, false]) {
@@ -416,7 +462,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
      * `k = N` → ряд строго возрастает, на позиции `i` стоит `i + 1`.
      */
     let usedTowers = false;
-    if (towers) {
+    if (towers && выводВарианта) {
       const lines: [number[], number, [number, number][]][] = [];
       for (let r = 0; r < N; r++) {
         const cells: [number, number][] = Array.from({ length: N }, (_, c) => [r, c] as [number, number]);
@@ -613,13 +659,13 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
   ];
   const steps = all.filter(([t]) => TECHNIQUE_TIER[t] <= tierCap).map(([, f]) => f);
   for (let guard = 0; guard < N * N * 25; guard++) {
-    if (refilter()) return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess' };
+    if (refilter()) return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: stepsUsed, cost: costUsed };
     let empty = 0;
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (grid[r][c] === 0) empty++;
-    if (empty === 0) return { solved: true, tier: Math.max(1, maxTier), hardest, grid: grid.map((row) => [...row]) };
+    if (empty === 0) return { solved: true, tier: Math.max(1, maxTier), hardest, steps: stepsUsed, cost: costUsed, grid: grid.map((row) => [...row]) };
     if (!steps.some((f) => f())) break;
   }
-  return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess' };
+  return { solved: false, tier: TECHNIQUE_TIER.guess, hardest: 'guess', steps: stepsUsed, cost: costUsed };
 }
 
 function combos(arr: number[], k: number): number[][] {
