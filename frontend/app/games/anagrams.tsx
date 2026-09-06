@@ -33,7 +33,7 @@ import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
 import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
 import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
 import { allWordsCount, allWordsPack } from '@/src/games/anagrams/core/allWords';
-import { собратьКольца, ключКольца } from '@/src/games/anagrams/core/ring';
+import { собратьКольца, ключКольца, лестницаКолец } from '@/src/games/anagrams/core/ring';
 import { wordPool, wordsOfLength } from '@/src/games/fillwords/core/words';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -142,7 +142,16 @@ export default function AnagramGame() {
   const [режимИгры, setРежимИгры] = useState<'classic' | 'square' | 'all' | 'cross'>('classic');
   const квадрат = режимИгры === 'square';
   const [armedSquare, setArmedSquare] = useState(false);   // «есть что терять» для подтверждения выхода
-  const кольца = React.useMemo(() => собратьКольца(wordsOfLength(wordPool(wordLang.lang), 5)), [wordLang.lang]);
+  /**
+   * Кольца в порядке ЛЕСТНИЦЫ: от колец, из банка которых ничего лишнего не
+   * собирается, к тем, где лишних слов больше десятка. Разбор оси — в
+   * `лестницаКолец`. Считается один раз на язык (73 мс на весь набор), поэтому
+   * живёт в useMemo, а не в рендере.
+   */
+  const кольца = React.useMemo(() => {
+    const словарь = wordsOfLength(wordPool(wordLang.lang), 5);
+    return лестницаКолец(собратьКольца(словарь), словарь);
+  }, [wordLang.lang]);
   const раскладокВсеСлова = allWordsCount(wordLang.lang);
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
