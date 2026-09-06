@@ -33,6 +33,7 @@ import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
+import { startNoise, stopNoise } from '@/src/services/noise';
 import { speak, ttsCancel } from '@/src/services/tts';
 import { useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
@@ -67,10 +68,28 @@ interface Trial {
  * различать контур, и только потом к нему добавляется написание.
  */
 /** Экспортируется для замера лестницы: `memory-hearing-ladders-scan`. */
-export function levelParams(level: number): { trials: number; showAfter: boolean; pinyinMode: boolean } {
-  if (level <= 5) return { trials: 8, showAfter: true, pinyinMode: false };
-  if (level <= 10) return { trials: 10, showAfter: false, pinyinMode: false };
-  return { trials: 12, showAfter: false, pinyinMode: true };
+export function levelParams(level: number): {
+  trials: number; showAfter: boolean; pinyinMode: boolean;
+  /** Ось 2: множитель темпа речи. */
+  rate: number;
+  /** Ось 5: отношение сигнал/шум в дБ; null — тишина. */
+  snrDb: number | null;
+  /** Ось 10: сколько ошибок ещё считается прохождением. */
+  maxErrors: number;
+} {
+  const l = Math.min(15, Math.max(1, Math.floor(level)));
+  const ступень = l <= 5
+    ? { trials: 8, showAfter: true, pinyinMode: false }
+    : l <= 10
+      ? { trials: 10, showAfter: false, pinyinMode: false }
+      : { trials: 12, showAfter: false, pinyinMode: true };
+  return {
+    ...ступень,
+    // Тоны различаются мелодией, поэтому темп трогаем осторожнее: 0,9 → 0,76.
+    rate: Math.round((0.9 - (l - 1) * 0.01) * 1000) / 1000,
+    snrDb: l < 6 ? null : Math.round(Math.max(0, 18 - (l - 6) * 2) * 10) / 10,
+    maxErrors: l <= 5 ? 2 : l <= 10 ? 1 : 0,
+  };
 }
 
 function перемешать<T>(arr: T[]): T[] {
@@ -128,6 +147,8 @@ export default function ChineseTonesGame() {
   const trialsRef = useRef<Trial[]>([]);
   const hitsRef = useRef(0);
   const errorsRef = useRef(0);
+  /** Оси уровня: темп, помеха и допуск ошибок. */
+  const парамRef = useRef(levelParams(1));
   const replaysRef = useRef(0);
   const levelRef = useRef(1);
   const paramsRef = useRef(levelParams(1));
@@ -142,6 +163,7 @@ export default function ChineseTonesGame() {
     if (timerRef.current) clearInterval(timerRef.current);
     if (advanceRef.current) clearTimeout(advanceRef.current);
     ttsCancel();
+    stopNoise();   // помеха не переживает выход с экрана
   }, []);
 
 
@@ -159,6 +181,7 @@ export default function ChineseTonesGame() {
     setParams(p);
     hitsRef.current = 0;
     errorsRef.current = 0;
+    парамRef.current = levelParams(lvl.level);
     replaysRef.current = 0;
     setHits(0);
     setErrors(0);
@@ -186,7 +209,10 @@ export default function ChineseTonesGame() {
     if (phase !== 'playing') return;
     const tr = trialsRef.current[idx];
     if (!tr) return;
-    const to = setTimeout(() => { speak(tr.syll.zh, 'zh', 0.8); }, 400);
+    const to = setTimeout(() => {
+      startNoise(парамRef.current.snrDb);
+      speak(tr.syll.zh, 'zh', парамRef.current.rate).then(() => stopNoise());
+    }, 400);
     return () => clearTimeout(to);
   }, [phase, idx]);
 
@@ -194,7 +220,8 @@ export default function ChineseTonesGame() {
     const tr = trialsRef.current[idx];
     if (!tr || phase !== 'playing') return;
     replaysRef.current += 1;
-    speak(tr.syll.zh, 'zh', 0.8);
+    startNoise(парамRef.current.snrDb);
+    speak(tr.syll.zh, 'zh', парамRef.current.rate).then(() => stopNoise());
   };
 
   const finishRound = async () => {
@@ -203,7 +230,8 @@ export default function ChineseTonesGame() {
     setElapsedTime(finalTime);
     const h = hitsRef.current;
     const e = errorsRef.current;
-    const passed = e <= 1;
+    // Ось 10, цена ошибки: две прощаются, потом одна, с одиннадцатого — ни одной.
+    const passed = e <= парамRef.current.maxErrors;
     if (isPreset) {
       setPhase(passed ? 'cleared' : 'result');
     } else {
