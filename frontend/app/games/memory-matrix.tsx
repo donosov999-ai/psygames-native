@@ -62,12 +62,45 @@ type MatrixMode = 'static' | 'sequential';   // static = pattern flashes once; s
 // Уровень (1..15+): L1-4 сетка 3×3→6×6 · дальше на 6×6 растёт число вспышек + скорость показа.
 // L11+ (static-режим): ДВЕ серии разного цвета, раздельное воспроизведение (память на 2 группы + интерференция).
 /** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
-export function levelParams(level: number): { gridSize: number; baseFlashes: number; flashMs: number; seriesCount: number } {
+/**
+ * 🔴 ОСЬ 3 — ЗАДЕРЖКА. Введена 07.09.2026, потому что объём упёрся в ФИЗИКУ поля.
+ *
+ * ЗАМЕР ДО. `baseFlashes` растёт без потолка (L21→17, L30→23, L60→43), но число
+ * клеток кладёт `newRound()` с зажимом `Math.floor((total-1)/2)` = 17 при двух
+ * сериях на 6×6. Прогон L1…L60: с L21 по L60 поле показывает 17 клеток на КАЖДОМ
+ * уровне — 39 уровней-клонов. Подтверждено ИГРОЙ: на живом билде L21, L22 и L24
+ * давали один и тот же экран (`span-chat/probe/shots/memory-matrix-L*.png`).
+ *
+ * ПОЧЕМУ НЕ БОЛЬШЕ СЕТКА. Считал: 7×7 двигает плато на L32, 8×8 — на L42, то есть
+ * сетка ПЕРЕНОСИТ плато, а не убирает. И уводит дальше от человека: уже на L11
+ * просят 10 клеток в двух сериях = 20 объектов при норме зрительной рабочей
+ * памяти 5±2. Решение Дениса 06.09.2026 — растить задержкой и отвлечением, сетку
+ * не трогать. Заодно вёрстка поля не меняется, а она видна в ДВУХ развилках.
+ *
+ * ⚠️ ПОТОЛКА У ЗАДЕРЖКИ НЕТ сознательно (правило раздела: потолков нет нигде).
+ * Полосу можно будет закончить, когда начнётся ось 5 — ложные вспышки, которые
+ * надо НЕ запоминать, задача 1787a034.
+ */
+/**
+ * ⚠️ 15, А НЕ 21 — И ЭТО НАШЁЛ ГЕЙТ, А НЕ Я.
+ *
+ * Я поставил порог на 21: с него поле упирается в зажим 17 клеток. Проба на
+ * клонов покраснела сразу: «клонов: 2 — L16=L15, L19=L18». Разгадка ниже плато:
+ * `flashMs` доходит до дна (500) уже на L15, а `baseFlashes` растёт через уровень
+ * (`floor(level/1.5)`), поэтому каждый второй уровень с L15 — точная копия
+ * предыдущего. Плато поля начинается на L21, а первые клоны — на шесть уровней
+ * раньше, и в замере «где кончается рост» они не видны: там сравнивались вектора
+ * ЧЕРЕЗ ОДИН уровень, а не подряд.
+ */
+export const MM_VOLUME_TOP = 15;   // с этого уровня скорость на дне и появляются клоны — дальше держит задержка
+
+export function levelParams(level: number): { gridSize: number; baseFlashes: number; flashMs: number; seriesCount: number; holdMs: number } {
   const gridSize = Math.min(6, 2 + level);              // L1=3 → L4=6
   const baseFlashes = 3 + Math.floor(level / 1.5);       // клеток запомнить: L1=3 → L15≈13
   const flashMs = Math.max(500, 1500 - level * 70);      // показ быстрее с уровнем
   const seriesCount = level >= 11 ? 2 : 1;               // L11+ две серии разного цвета
-  return { gridSize, baseFlashes, flashMs, seriesCount };
+  const holdMs = Math.max(0, level - MM_VOLUME_TOP) * 700;
+  return { gridSize, baseFlashes, flashMs, seriesCount, holdMs };
 }
 
 const SERIES1_COLOR = '#8e2de2';   // фиолетовая серия (как GRADIENT[0])
@@ -114,6 +147,8 @@ export default function MemoryMatrixGame() {
   const [gridSize, setGridSize] = useState(() => num('size', 3));
   const [matrixMode, setMatrixMode] = useState<MatrixMode>(() => (str('mode', 'static') as MatrixMode));
   const [litCells, setLitCells] = useState<Set<number>>(new Set());
+  /** Идёт удержание: вспышки кончились, ввод ещё закрыт. Ось 3, см. levelParams. */
+  const [holding, setHolding] = useState(false);
   const [litSequence, setLitSequence] = useState<number[]>([]);     // order for sequential mode
   const [activeIdx, setActiveIdx] = useState<number>(-1);            // current flashing cell in sequential
   const [pickedCells, setPickedCells] = useState<Set<number>>(new Set());
@@ -150,6 +185,7 @@ export default function MemoryMatrixGame() {
   const totalRounds = 10;
   const levelRef = useRef(1);
   const baseFlashesRef = useRef(3);
+  const holdRef = useRef(0);
   const flashMsRef = useRef(1500);
 
   // ── Свайп-выбор клеток (паттерн trail-making: PanResponder + onLayout-геометрия) ──
@@ -159,6 +195,23 @@ export default function MemoryMatrixGame() {
   const gridRef = useRef<View>(null);
   const gridOffsetRef = useRef({ x: 0, y: 0 });          // позиция сетки в окне: pageX/Y → локальные координаты
   const swipedCellsRef = useRef<Set<number>>(new Set()); // клетки, уже обработанные ТЕКУЩИМ жестом (1 toggle на жест)
+
+  /**
+   * 🔴 ВВОД ОТКРЫВАЕТСЯ В ОДНОМ МЕСТЕ НА ВСЕ ТРИ ВЕТКИ ПОКАЗА.
+   *
+   * ⚠️ `setPhase('input')` стоял трижды — две серии, одна серия, последовательный
+   * режим. Задержка, добавленная к переходу, разъехалась бы ровно посередине:
+   * в одной ветке была бы, в другой нет. Тем же кончилось у соседней игры,
+   * и повторять урок не стал.
+   */
+  const openInput = () => {
+    if (holdRef.current > 0) {
+      setHolding(true);
+      setTimeout(() => { setHolding(false); setPhase('input'); }, holdRef.current);
+      return;
+    }
+    setPhase('input');
+  };
 
   const newRound = (gs: number, r: number) => {
     const total = gs * gs;
@@ -181,6 +234,7 @@ export default function MemoryMatrixGame() {
     setPickedCells(new Set());
     setPickedSequence([]);
     setInputSeries(0);
+    setHolding(false);
     swipedCellsRef.current = new Set();   // палец могли не отрывать через feedback → новый раунд = чистый жест
     setPhase('showing');
 
@@ -189,10 +243,10 @@ export default function MemoryMatrixGame() {
         // показать серию1 (цвет1) → серию2 (цвет2) → ввод
         setShowingSeries(1);
         setTimeout(() => setShowingSeries(2), flashMsRef.current);
-        setTimeout(() => { setShowingSeries(0); setPhase('input'); }, flashMsRef.current * 2);
+        setTimeout(() => { setShowingSeries(0); openInput(); }, flashMsRef.current * 2);
       } else {
         setShowingSeries(1);
-        setTimeout(() => { setShowingSeries(0); setPhase('input'); }, Math.max(500, flashMsRef.current - r * 60));
+        setTimeout(() => { setShowingSeries(0); openInput(); }, Math.max(500, flashMsRef.current - r * 60));
       }
     } else {
       // Sequential: flash cells one by one, then await ordered reproduction (1 серия)
@@ -203,7 +257,7 @@ export default function MemoryMatrixGame() {
         setTimeout(() => setActiveIdx(cellIdx), i * (flashMs + gapMs));
         setTimeout(() => setActiveIdx(-1), i * (flashMs + gapMs) + flashMs);
       });
-      setTimeout(() => setPhase('input'), seq.length * (flashMs + gapMs) + 300);
+      setTimeout(() => openInput(), seq.length * (flashMs + gapMs) + 300);
     }
   };
 
@@ -217,6 +271,7 @@ export default function MemoryMatrixGame() {
       : p.gridSize;
     levelRef.current = lvl.level;
     baseFlashesRef.current = isPreset ? 3 : p.baseFlashes;
+    holdRef.current = isPreset ? 0 : p.holdMs;   // пресет идёт мимо лестницы
     flashMsRef.current = isPreset ? 1500 : p.flashMs;
     seriesCountRef.current = isPreset ? 1 : p.seriesCount;
     if (!isPreset) setGridSize(g);
@@ -537,7 +592,9 @@ export default function MemoryMatrixGame() {
           }}
         >
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-            {phase === 'showing'
+            {holding
+              ? t('memorize')
+              : phase === 'showing'
               ? (seriesCountRef.current === 2 && matrixMode === 'static'
                   ? (showingSeries === 2 ? t('mmMemorizeRed') : t('mmMemorizePurple'))
                   : t('matrixMemorize'))
