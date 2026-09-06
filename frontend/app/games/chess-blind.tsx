@@ -29,6 +29,7 @@ import { nextUnanswered } from '@/src/games/chess-blind/core/blocks';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { SvgXml } from 'react-native-svg';
 import { CHESS_PIECE_SVG } from '@/src/games/chess-blind/core/pieces';
+import { buildOptions } from '@/src/games/chess-blind/core/options';
 import { readChessAssist, writeChessAssist, CHESS_ASSIST_DEFAULT, type ChessAssist } from '@/src/games/chess-blind/core/assist';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -341,29 +342,14 @@ function generateMoves(pos: Piece[], n: number): { moves: Move[]; final: Piece[]
 const comboKey = (c: Combo) => `${c.type}${c.white ? 'w' : 'b'}`;
 
 // 6 вариантов для 'pick': правильный + дистракторы из реально стоящих на доске, добор случайными
-function buildOptions(final: Piece[], answer: Combo): Combo[] {
-  const onBoard = new Map<string, Combo>();
-  final.forEach((p) => onBoard.set(comboKey(p), { type: p.type, white: p.white }));
-  onBoard.delete(comboKey(answer));
-  const opts: Combo[] = [answer, ...shuffle([...onBoard.values()]).slice(0, 5)];
-  if (opts.length < 6) {
-    const all: Combo[] = shuffle((['K', 'Q', 'R', 'B', 'N', 'P'] as PieceType[])
-      .flatMap((t) => [{ type: t, white: true }, { type: t, white: false }]));
-    for (const c of all) {
-      if (opts.length >= 6) break;
-      if (!opts.some((o) => o.type === c.type && o.white === c.white)) opts.push(c);
-    }
-  }
-  return shuffle(opts);
-}
-
-// 3 вопроса по АКТУАЛЬНОЙ (после всех ходов) позиции
-function buildQuestions(final: Piece[], quizType: QuizType, questions: number): Question[] {
+// Вопросы по АКТУАЛЬНОЙ (после всех ходов) позиции. Число вопросов и вид
+// вариантов задаёт лестница уровня — см. `puzzleLevelParams`.
+function buildQuestions(final: Piece[], quizType: QuizType, questions: number, level: number): Question[] {
   if (quizType === 'pick') {
     return shuffle([...final]).slice(0, Math.min(questions, final.length)).map((p) => ({
       sq: p.sq,
       answer: { type: p.type, white: p.white },
-      options: buildOptions(final, { type: p.type, white: p.white }),
+      options: buildOptions(final, { type: p.type, white: p.white }, level),
     }));
   }
   // locate: только фигуры в ЕДИНСТВЕННОМ экземпляре типа+цвета (K/Q гарантированы, R/N/B если один)
@@ -765,7 +751,7 @@ export default function ChessBlindGame() {
     piecesOnBoardRef.current = picked.pieces;
     const pos = toScreenPieces(picked.position);
     const { moves, final } = generateMoves(pos, p.moves);
-    questionsRef.current = buildQuestions(final, p.quizType, p.questions);
+    questionsRef.current = buildQuestions(final, p.quizType, p.questions, levelRef.current);
 
     setDispPieces(pos.map((x) => ({ ...x })));
     hitsRef.current = 0; errorsRef.current = 0;
