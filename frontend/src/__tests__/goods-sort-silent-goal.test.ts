@@ -88,12 +88,21 @@ describe('механика цели объяснена прежде, чем сп
    * подаётся руками.
    */
   it('заслон подменяет цель базовой ниже порога правила и пропускает с порога', () => {
-    expect(clampGoalToRule({ kind: 'free', count: 1 }, 11).kind).toBe('all');
-    expect(clampGoalToRule({ kind: 'free', count: 1 }, 12).kind).toBe('free');
-    expect(clampGoalToRule({ kind: 'moves', count: 0 }, 17).kind).toBe('all');
-    expect(clampGoalToRule({ kind: 'moves', count: 0 }, 18).kind).toBe('moves');
-    expect(clampGoalToRule({ kind: 'pick', count: 2 }, 4).kind).toBe('all');
-    expect(clampGoalToRule({ kind: 'pick', count: 2 }, 5).kind).toBe('pick');
+    /**
+     * 🔴 ПОРОГИ БЕРУТСЯ ИЗ `GS_RULES`, А НЕ ЗАШИТЫ ЧИСЛАМИ. Так и было обещано в
+     * шапке — и 06.09.2026 обещание не выполнилось: числа 17/18 остались в коде,
+     * `movelimit` уехал 18 → 16, и проба покраснела на верной правке. Пороги
+     * двигают по замыслу продукта; проверять надо ОТНОШЕНИЕ «до порога базовая,
+     * с порога своя», а не конкретный уровень.
+     */
+    const порог = (key: string): number => GS_RULES.find((r) => r.key === key)!.fromLevel;
+    for (const [цель, ключ] of [['free', 'goalfree'], ['moves', 'movelimit'], ['pick', 'goalpick']] as const) {
+      const L = порог(ключ);
+      expect(`${цель} на ${L - 1}: ${clampGoalToRule({ kind: цель, count: 1 }, L - 1).kind}`)
+        .toBe(`${цель} на ${L - 1}: all`);
+      expect(`${цель} на ${L}: ${clampGoalToRule({ kind: цель, count: 1 }, L).kind}`)
+        .toBe(`${цель} на ${L}: ${цель}`);
+    }
   });
 
   it('заслон не трогает базовую цель — иначе играть было бы нечем', () => {
