@@ -27,6 +27,8 @@ export interface DotsStrings {
   rulesTitle: string;
   rulesBody: string;
   rulesCoverage: string;
+  /** Правило самокасания: на нём держится единственность решения. */
+  rulesNoTouch: string;
   rulesCorrection: string;
   keyboardHelp: string;
   startTraining: string;
@@ -81,6 +83,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: 'Как играть',
     rulesBody: 'Соедините одинаковые символы непрерывными путями. Пути не пересекаются и не делят клетки.',
     rulesCoverage: 'Победа — когда соединены все пары и занята вся сетка.',
+    rulesNoTouch: 'Линия не прижимается к себе: две её клетки могут стоять рядом, только если они соседние по пути.',
     rulesCorrection: 'Проведите назад по своему пути, чтобы стереть хвост, или коснитесь его для исправления.',
     keyboardHelp: 'Клавиши: стрелки — курсор/путь, Enter — начать или отпустить, U — отмена, R — заново, P — пауза.',
     startTraining: 'Попробовать тренировку',
@@ -120,6 +123,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: 'How to play',
     rulesBody: 'Join matching symbols with continuous paths. Paths cannot cross or share a cell.',
     rulesCoverage: 'You win when every pair is joined and the entire grid is filled.',
+    rulesNoTouch: 'A line never hugs itself: two of its cells may sit side by side only if they follow one another along the path.',
     rulesCorrection: 'Move backward along your path to erase its tail, or touch it to correct it.',
     keyboardHelp: 'Keys: arrows move the cursor/path, Enter starts or releases, U undoes, R restarts, P pauses.',
     startTraining: 'Try the training board',
@@ -159,6 +163,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: 'Cómo jugar',
     rulesBody: 'Une los símbolos iguales con trazos continuos. Los trazos no se cruzan ni comparten casillas.',
     rulesCoverage: 'Ganas cuando todos los pares están unidos y toda la cuadrícula está ocupada.',
+    rulesNoTouch: 'La línea no se pega a sí misma: dos de sus casillas pueden estar juntas solo si se siguen en el camino.',
     rulesCorrection: 'Retrocede sobre tu trazo para borrar la cola, o tócalo para corregirlo.',
     keyboardHelp: 'Teclas: flechas mueven el cursor o el trazo, Enter inicia o suelta, U deshace, R reinicia, P pausa.',
     startTraining: 'Probar el tablero de práctica',
@@ -198,6 +203,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: 'Como jogar',
     rulesBody: 'Ligue os símbolos iguais com traços contínuos. Os traços não se cruzam nem partilham casas.',
     rulesCoverage: 'A vitória chega quando todos os pares estão ligados e toda a grelha está ocupada.',
+    rulesNoTouch: 'A linha não encosta em si mesma: duas casas dela só podem ficar lado a lado se forem seguidas no caminho.',
     rulesCorrection: 'Volte para trás pelo seu traço para apagar a ponta, ou toque nele para corrigir.',
     keyboardHelp: 'Teclas: setas movem o cursor ou o traço, Enter começa ou solta, U desfaz, R recomeça, P pausa.',
     startTraining: 'Experimentar o tabuleiro de treino',
@@ -237,6 +243,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: 'So wird gespielt',
     rulesBody: 'Verbinde gleiche Symbole mit durchgehenden Wegen. Wege kreuzen sich nicht und teilen kein Feld.',
     rulesCoverage: 'Gewonnen ist erst, wenn alle Paare verbunden sind und das ganze Gitter belegt ist.',
+    rulesNoTouch: 'Eine Linie schmiegt sich nie an sich selbst: Zwei ihrer Felder dürfen nur nebeneinanderliegen, wenn sie im Weg aufeinanderfolgen.',
     rulesCorrection: 'Fahre auf deinem Weg zurück, um das Ende zu löschen, oder tippe ihn zum Korrigieren an.',
     keyboardHelp: 'Tasten: Pfeile bewegen Cursor bzw. Weg, Enter startet oder löst, U macht rückgängig, R startet neu, P pausiert.',
     startTraining: 'Übungsfeld ausprobieren',
@@ -276,6 +283,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: 'Comment jouer',
     rulesBody: 'Relie les symboles identiques par des tracés continus. Les tracés ne se croisent pas et ne partagent pas de case.',
     rulesCoverage: 'La victoire vient quand toutes les paires sont reliées et que toute la grille est occupée.',
+    rulesNoTouch: 'Une ligne ne se colle pas à elle-même : deux de ses cases ne peuvent être voisines que si elles se suivent sur le chemin.',
     rulesCorrection: 'Reviens en arrière sur ton tracé pour en effacer la fin, ou touche-le pour le corriger.',
     keyboardHelp: 'Touches : flèches pour le curseur ou le tracé, Entrée pour commencer ou lâcher, U annule, R recommence, P met en pause.',
     startTraining: 'Essayer la grille d’entraînement',
@@ -315,6 +323,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: 'Come si gioca',
     rulesBody: 'Unisci i simboli uguali con percorsi continui. I percorsi non si incrociano e non condividono caselle.',
     rulesCoverage: 'Si vince quando tutte le coppie sono unite e l’intera griglia è occupata.',
+    rulesNoTouch: 'La linea non si stringe a sé stessa: due sue caselle possono stare accanto solo se si susseguono nel percorso.',
     rulesCorrection: 'Torna indietro sul tuo percorso per cancellarne la coda, oppure toccalo per correggerlo.',
     keyboardHelp: 'Tasti: frecce per cursore o percorso, Invio avvia o rilascia, U annulla, R ricomincia, P mette in pausa.',
     startTraining: 'Provare la griglia di allenamento',
@@ -354,6 +363,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: '玩法',
     rulesBody: '用连续的线把相同的符号连起来。线不能交叉，也不能共用格子。',
     rulesCoverage: '所有点对都连上、整个棋盘都被占满，才算获胜。',
+    rulesNoTouch: '线条不能贴住自己：只有在路径上前后相邻的两格，才可以并排。',
     rulesCorrection: '沿着自己的线往回走可以擦掉末端，或者点一下线来修改。',
     keyboardHelp: '按键：方向键移动光标或延伸线条，Enter 开始或松开，U 撤销，R 重来，P 暂停。',
     startTraining: '试试练习棋盘',
@@ -393,6 +403,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: '遊び方',
     rulesBody: '同じ記号どうしを途切れない線でつなぎます。線は交差できず、マスを共有もできません。',
     rulesCoverage: 'すべての組がつながり、盤面のマスがすべて埋まったら勝ちです。',
+    rulesNoTouch: '線は自分自身に寄り添えません。隣り合ってよいのは、経路の上で連続する二つのマスだけです。',
     rulesCorrection: '自分の線を戻ると末尾を消せます。線に触れて引き直すこともできます。',
     keyboardHelp: 'キー：矢印でカーソル移動と線の延長、Enter で開始・解放、U で取り消し、R でやり直し、P で一時停止。',
     startTraining: '練習盤を試す',
@@ -432,6 +443,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: '게임 방법',
     rulesBody: '같은 기호끼리 끊기지 않는 선으로 이으세요. 선은 서로 교차할 수 없고 칸을 함께 쓸 수도 없습니다.',
     rulesCoverage: '모든 짝이 이어지고 판의 모든 칸이 채워져야 승리입니다.',
+    rulesNoTouch: '선은 자기 자신에게 붙지 않습니다. 나란히 놓일 수 있는 것은 경로에서 연이어 오는 두 칸뿐입니다.',
     rulesCorrection: '자기 선을 따라 되돌아가면 끝부분이 지워지고, 선을 눌러 고칠 수도 있습니다.',
     keyboardHelp: '키: 화살표는 커서와 선, Enter는 시작과 놓기, U는 취소, R은 다시 시작, P는 일시정지.',
     startTraining: '연습판 해보기',
@@ -471,6 +483,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: 'कैसे खेलें',
     rulesBody: 'एक जैसे चिह्नों को बिना टूटी रेखा से जोड़ें। रेखाएँ न एक-दूसरे को काटती हैं, न एक खाना साझा करती हैं।',
     rulesCoverage: 'जीत तभी है जब सभी जोड़े जुड़ जाएँ और पूरा ग्रिड भर जाए।',
+    rulesNoTouch: 'रेखा खुद से सटती नहीं: उसकी दो खानें तभी अगल-बगल हो सकती हैं जब वे रास्ते में एक के बाद एक आती हों।',
     rulesCorrection: 'अपनी रेखा पर पीछे जाकर उसका सिरा मिटाएँ, या उसे छूकर सुधारें।',
     keyboardHelp: 'कुंजियाँ: तीर कर्सर और रेखा चलाते हैं, Enter शुरू या छोड़ता है, U पूर्ववत, R दोबारा, P विराम।',
     startTraining: 'अभ्यास बोर्ड आज़माएँ',
@@ -510,6 +523,7 @@ const STRINGS: Record<DotsLocale, DotsStrings> = {
     rulesTitle: 'طريقة اللعب',
     rulesBody: 'صِل الرموز المتماثلة بمسارات متصلة. المسارات لا تتقاطع ولا تتشارك خانة واحدة.',
     rulesCoverage: 'الفوز يتحقق حين تتصل كل الأزواج وتمتلئ الشبكة كلها.',
+    rulesNoTouch: 'الخط لا يلتصق بنفسه: لا يجوز أن تتجاور خانتان منه إلا إذا تتابعتا على المسار.',
     rulesCorrection: 'ارجع على مسارك لمحو طرفه، أو المسه لتصحيحه.',
     keyboardHelp: 'المفاتيح: الأسهم تحرك المؤشر أو المسار، Enter يبدأ أو يترك، U للتراجع، R للإعادة، P للإيقاف المؤقت.',
     startTraining: 'جرّب لوح التدريب',

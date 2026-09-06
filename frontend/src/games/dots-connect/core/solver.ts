@@ -227,6 +227,36 @@ function allCovered(board: SolverBoard): boolean {
 }
 
 /** Куда может шагнуть голова пары. Порядок — часть отсечения, см. шапку файла. */
+/**
+ * 🔴 ХОД, ПОСЛЕ КОТОРОГО ПУТЬ КОСНЁТСЯ САМ СЕБЯ, НЕЗАКОНЕН.
+ *
+ * 📍 ЗАЧЕМ. С 06.09.2026 это правило игры (см. `validator.ts`): только на нём
+ * держится единственность решения — без него L7, L8, L9 решались несколькими
+ * способами. Решатель обязан знать те же правила, что и проверка, иначе он
+ * находит ответы, которые игре не подходят, и гейт «решение находится по одним
+ * точкам» краснеет на 21 замечании.
+ *
+ * ⚠️ ЦЕЛЬ ПАРЫ — ОСОБЫЙ СЛУЧАЙ, И НАИВНАЯ ПРОВЕРКА ЕЁ ЛОМАЕТ. Обе точки пары
+ * помечены владельцем ЗАРАНЕЕ, до того как путь до них дошёл. Поэтому «сосед
+ * принадлежит моей паре» на подходе к цели — законно: туда и идём. Цель
+ * исключается при ходьбе и проверяется отдельно В МОМЕНТ ЗАМЫКАНИЯ — тогда все
+ * клетки пути уже известны, и соседство с целью читается верно.
+ */
+function коснётсяСвоего(board: SolverBoard, pair: number, cell: number, from: number): boolean {
+  const цель = board.target[pair] as number;
+  const замыкаем = cell === цель;
+  for (let dir = 0; dir < 4; dir += 1) {
+    const n = board.neighbours[cell * 4 + dir] as number;
+    if (n < 0 || n === from) continue;
+    if (board.owner[n] !== pair) continue;
+    // При ходьбе цель ещё впереди — соседство с ней законно. При замыкании
+    // законных соседей своей пары нет вовсе, кроме предыдущей клетки.
+    if (!замыкаем && n === цель) continue;
+    return true;
+  }
+  return false;
+}
+
 function movesFor(board: SolverBoard, pair: number): number[] {
   const from = board.head[pair] as number;
   const target = board.target[pair] as number;
@@ -235,8 +265,8 @@ function movesFor(board: SolverBoard, pair: number): number[] {
   for (let dir = 0; dir < 4; dir += 1) {
     const near = board.neighbours[from * 4 + dir] as number;
     if (near < 0) continue;
-    if (near === target) { closing = near; continue; }
-    if (board.owner[near] === -1) moves.push(near);
+    if (near === target) { if (!коснётсяСвоего(board, pair, near, from)) closing = near; continue; }
+    if (board.owner[near] === -1 && !коснётсяСвоего(board, pair, near, from)) moves.push(near);
   }
   moves.sort((left, right) => freeDegree(board, left) - freeDegree(board, right));
   // Замкнуть пару пробуем последним: пока на доске есть свободные клетки, их
@@ -285,8 +315,19 @@ function forcedMove(board: SolverBoard): { pair: number; cell: number } | null |
     const left = headOf(first);
     const right = headOf(second);
     if (left >= 0 && right >= 0 && left !== right) return 'dead';
-    if (left >= 0) return { pair: left, cell: at };
-    if (right >= 0) return { pair: right, cell: at };
+    /**
+     * ⚠️ ВЫНУЖДЕННЫЙ ХОД ТОЖЕ ОБЯЗАН БЫТЬ ЗАКОННЫМ. Он делается без ветвления,
+     * то есть мимо `movesFor` — и если не спросить правило здесь, решатель
+     * «вынужденно» построит путь, который касается сам себя, а проверка потом
+     * его отвергнет. Такой ход не вынужденный, а мёртвый: раз клетку обязан
+     * закрыть кто-то, а единственный кандидат не вправе — ветка кончилась.
+     */
+    if (left >= 0) {
+      return коснётсяСвоего(board, left, at, first) ? 'dead' : { pair: left, cell: at };
+    }
+    if (right >= 0) {
+      return коснётсяСвоего(board, right, at, second) ? 'dead' : { pair: right, cell: at };
+    }
   }
   return null;
 }
