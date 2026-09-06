@@ -18,7 +18,7 @@
  */
 import { CIRCLE, makeBoard } from '@/src/games/cake-sort/core/plate';
 import { minMoves } from '@/src/games/cake-sort/core/solver';
-import { REF_PER_TYPE, moveReference, starsForMoves } from '@/src/games/cake-sort/core/stars';
+import { REF_PER_TYPE, moveReference, starsForMoves, referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 
 jest.setTimeout(300000);
 
@@ -113,6 +113,33 @@ describe('эталон ходов для круга из шести', () => {
     const наПеренос = REF_PER_TYPE / (CIRCLE - 1);
     expect(наПеренос).toBeGreaterThan(1.0);
     expect(наПеренос).toBeLessThan(1.3);
+  });
+
+  /**
+   * 🔴 ИГРА ПО МИНИМУМУ ОБЯЗАНА ДАВАТЬ ТРИ ЗВЕЗДЫ. Это и есть смысл всей
+   * калибровки: сыграл идеально — получил высшую оценку. В сортировке товаров
+   * этого не было на 95 % досок, и увидеть это можно было только перебором.
+   */
+  it('🔴 идеальная игра даёт три звезды на каждом замеренном столе', () => {
+    const мимо = замеры
+      .filter(({ types, min }) => starsFor(min, types, min) !== 3)
+      .map(({ types, min }) => `виды ${types}: минимум ${min} не даёт трёх звёзд`);
+    expect(мимо).toEqual([]);
+  });
+
+  /**
+   * 🔴 ТОЧНЫЙ МИНИМУМ ВСЕГДА ПОБЕЖДАЕТ ОЦЕНКУ. Если фон успел посчитать, звёзды
+   * идут по нему; не успел — по калибровке. Проверяется исполнением, а не
+   * разбором строчки в экране.
+   */
+  it('🔴 эталон берёт точный минимум, когда он есть, и калибровку, когда нет', () => {
+    expect(referenceFor(5, null)).toBe(moveReference(5));
+    expect(referenceFor(5, 21)).toBe(21);
+    // Нулевой и отрицательный «минимум» — не ответ, а сбой: берём калибровку.
+    expect(referenceFor(5, 0)).toBe(moveReference(5));
+    // И это меняет оценку: по оценке 28 ходов — три звезды, по минимуму 21 — уже нет.
+    expect(starsFor(28, 5, null)).toBe(3);
+    expect(starsFor(28, 5, 21)).not.toBe(3);
   });
 
   it('звёзды считаются от эталона и различают игру', () => {
