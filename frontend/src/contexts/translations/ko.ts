@@ -1395,6 +1395,8 @@ const t: Record<string, string> = {
   "anagramSquareCount": "세트의 퍼즐: {n}",
   "anagramSquareSolved": "완성",
   "anagramSquareBank": "글자 묶음",
+  "fwShowWords": "낱말 목록",
+  "fwShowWordsHint": "판 위에 낱말을 표시 — 떠올리는 대신 찾기",
   "anagramAllWords": "모든 낱말",
   "anagramAllWordsHint": "하나의 글자 묶음에서 모든 낱말을 찾으세요. 빈 칸이 길이를 알려줍니다",
   "anagramAllWordsLvlParams": "글자 묶음 하나 · 6~14 낱말 · 시간 제한 없음",

@@ -1275,6 +1275,8 @@ const t: Record<string, string> = {
   "anagramSquareCount": "सेट में पहेलियाँ: {n}",
   "anagramSquareSolved": "हल हुआ",
   "anagramSquareBank": "अक्षर-भंडार",
+  "fwShowWords": "शब्द-सूची",
+  "fwShowWordsHint": "शब्दों को ग्रिड के ऊपर दिखाएँ — अनुमान नहीं, खोजें",
   "anagramAllWords": "सभी शब्द",
   "anagramAllWordsHint": "एक ही अक्षर-समूह से सभी शब्द खोजें। खाली खाने लंबाई बताते हैं",
   "anagramAllWordsLvlParams": "एक अक्षर-समूह · 6–14 शब्द · समय की सीमा नहीं",

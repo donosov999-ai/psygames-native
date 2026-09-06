@@ -1396,6 +1396,8 @@ const t: Record<string, string> = {
   "anagramSquareCount": "عدد الألغاز: {n}",
   "anagramSquareSolved": "تم الحل",
   "anagramSquareBank": "بنك الحروف",
+  "fwShowWords": "قائمة الكلمات",
+  "fwShowWordsHint": "أظهر الكلمات فوق الشبكة — ابحث عنها بدل تخمينها",
   "anagramAllWords": "كل الكلمات",
   "anagramAllWordsHint": "من مجموعة حروف واحدة، جد كل الكلمات. المربعات الفارغة تبيّن طول كل كلمة",
   "anagramAllWordsLvlParams": "مجموعة حروف واحدة · 6–14 كلمة · بلا حد زمني",
