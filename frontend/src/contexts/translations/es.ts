@@ -1272,6 +1272,8 @@ const t: Record<string, string> = {
   "anagramSquareCount": "Puzles en el conjunto: {n}",
   "anagramSquareSolved": "Resuelto",
   "anagramSquareBank": "Banco de letras",
+  "fwShowWords": "Lista de palabras",
+  "fwShowWordsHint": "Muestra las palabras sobre el tablero: búscalas en vez de adivinarlas",
   "anagramAllWords": "Todas las palabras",
   "anagramAllWordsHint": "Encuentra todas las palabras de un solo conjunto de letras. Las casillas vacías indican la longitud",
   "anagramAllWordsLvlParams": "Un conjunto de letras · 6–14 palabras · sin límite de tiempo",

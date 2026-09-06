@@ -1272,6 +1272,8 @@ const t: Record<string, string> = {
   "anagramSquareCount": "Rätsel im Satz: {n}",
   "anagramSquareSolved": "Gelöst",
   "anagramSquareBank": "Buchstabenvorrat",
+  "fwShowWords": "Wortliste",
+  "fwShowWordsHint": "Wörter über dem Feld anzeigen — suchen statt raten",
   "anagramAllWords": "Alle Wörter",
   "anagramAllWordsHint": "Finde alle Wörter aus einem Buchstabensatz. Die leeren Felder zeigen die Länge",
   "anagramAllWordsLvlParams": "Ein Buchstabensatz · 6–14 Wörter · ohne Zeitlimit",

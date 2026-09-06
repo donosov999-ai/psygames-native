@@ -1395,6 +1395,8 @@ const t: Record<string, string> = {
   "anagramSquareCount": "Grilles dans le jeu : {n}",
   "anagramSquareSolved": "Résolu",
   "anagramSquareBank": "Réserve de lettres",
+  "fwShowWords": "Liste de mots",
+  "fwShowWordsHint": "Afficher les mots au-dessus de la grille — les trouver au lieu de les deviner",
   "anagramAllWords": "Tous les mots",
   "anagramAllWordsHint": "Trouvez tous les mots cachés dans un seul jeu de lettres. Les cases vides indiquent la longueur",
   "anagramAllWordsLvlParams": "Un jeu de lettres · 6–14 mots · sans limite de temps",

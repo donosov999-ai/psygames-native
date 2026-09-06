@@ -653,6 +653,8 @@ const t: Record<string, string> = {
   "anagramSquareCount": "問題数: {n}",
   "anagramSquareSolved": "完成",
   "anagramSquareBank": "文字バンク",
+  "fwShowWords": "単語リスト",
+  "fwShowWordsHint": "盤の上に単語を表示 — 考えるのではなく探す",
   "anagramAllWords": "すべての単語",
   "anagramAllWordsHint": "ひとつの文字セットから全単語を見つける。空きマスが長さを示します",
   "anagramAllWordsLvlParams": "文字セット一つ · 6〜14語 · 制限時間なし",

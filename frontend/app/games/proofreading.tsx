@@ -225,6 +225,11 @@ export default function ProofreadingGame() {
   const [fwSession, setFwSession] = useState<FillwordsSession | null>(null);
   /** Клетки, по которым сейчас ведут палец (черновик ответа, ещё не сдан). */
   const [fwTrace, setFwTrace] = useState<number[]>([]);
+  /**
+   * Показывать ли список слов над полем — просьба Дениса 06.09.2026. Пояснение,
+   * почему это другой вид упражнения, а не поблажка, — у самой разметки списка.
+   */
+  const [показыватьСлова, setПоказыватьСлова] = useState(false);
   const [fwHint, setFwHint] = useState<FillwordsHint | null>(null);
   const [serHint, setSerHint] = useState<FillwordsHint | null>(null);
   // Рефы: обработчик жеста и колбэк таймера живут вне ре-рендеров — state в них устарел бы.
@@ -1047,6 +1052,32 @@ export default function ProofreadingGame() {
           </View>
         )}
 
+        {/*
+          🔴 ПЕРЕКЛЮЧАТЕЛЬ «ПОКАЗЫВАТЬ СЛОВА» — виден только у филвордов.
+          
+          📍 ПРОСЬБА ДЕНИСА 06.09.2026: «они просто дают слова, и ты находишь их
+          в корректорке — так проще и интереснее». Это не поблажка, а другой вид
+          упражнения: классические филворды меряют ПОРОЖДЕНИЕ («какие слова тут
+          вообще могут быть»), со списком — УЗНАВАНИЕ («где именно лежит вот
+          это»). Второе легче по памяти и потому годится там, где первое
+          отпугивает.
+        */}
+        {taskMode === 'fillwords' && (
+        <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('fwShowWords')}</Text>
+          <TouchableOpacity
+            accessibilityRole="switch"
+            accessibilityState={{ checked: показыватьСлова }}
+            accessibilityLabel={t('fwShowWords')}
+            onPress={() => setПоказыватьСлова((v) => !v)}
+            style={стилиСписка.строка}
+          >
+            <Ionicons name={показыватьСлова ? 'checkbox' : 'square-outline'} size={20} color={GRADIENT[0]} />
+            <Text style={[стилиСписка.подпись, { color: colors.text }]}>{t('fwShowWordsHint')}</Text>
+          </TouchableOpacity>
+        </View>
+        )}
+
         {/* Скрипт-режимы (Полиглот v1.27.0): 6 письменностей + цифры.
             У филвордов письменность задаёт язык слов, а не выбор человека, — ряд прячем. */}
         {taskMode === 'letters' && (
@@ -1216,6 +1247,39 @@ export default function ProofreadingGame() {
         <View style={styles.fwField}>
           {/* Строка «что делать» — над полем, как у лабораторных модулей. */}
           <Text style={[styles.fwTask, { color: colors.textSecondary }]}>{fwStrings.task}</Text>
+          {/*
+            🔴 СПИСОК СЛОВ НАД ПОЛЕМ — ОТДЕЛЬНЫЙ ВИД ИГРЫ, А НЕ ПОБЛАЖКА.
+            
+            📍 ПРОСЬБА ДЕНИСА 06.09.2026, дословно: «они вот просто дают слова, и
+            ты находишь их в корректорке — так проще и интереснее, типа режим
+            подсказки». Он описывает жанр «найди слова»: список показан, найденное
+            вычёркивается.
+            
+            ⚠️ Это ДРУГОЕ упражнение, а не облегчённое то же. Классические
+            филворды меряют ПОРОЖДЕНИЕ («какие слова тут вообще могут быть»), а
+            со списком — УЗНАВАНИЕ («где именно лежит вот это»). Второе легче по
+            нагрузке на память и потому годится туда, где первое отпугивает.
+          */}
+          {показыватьСлова && (
+            <View style={стилиСписка.список}>
+              {(fwSession as FillwordsSession).puzzle.words.map((w, i) => {
+                const найдено = (fwSession as FillwordsSession).found.indexOf(i) >= 0;
+                return (
+                  <Text
+                    key={`${w.word}-${i}`}
+                    accessibilityLabel={найдено ? `${w.word}, найдено` : w.word}
+                    style={[стилиСписка.слово, {
+                      color: найдено ? colors.textSecondary : colors.text,
+                      textDecorationLine: найдено ? 'line-through' : 'none',
+                      opacity: найдено ? 0.55 : 1,
+                    }]}
+                  >
+                    {w.word.toUpperCase()}
+                  </Text>
+                );
+              })}
+            </View>
+          )}
           <View style={[styles.gridContainer, { width: gridWidth }]} {...fwPan.panHandlers}>
             {(fwSession as FillwordsSession).puzzle.letters.map((letter, index) => {
               const session = fwSession as FillwordsSession;
@@ -1573,6 +1637,14 @@ export default function ProofreadingGame() {
     </SafeAreaView>
   );
 }
+
+const стилиСписка = StyleSheet.create({
+  список: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, paddingHorizontal: 12, marginBottom: 6 },
+  слово: { fontSize: 15, fontWeight: '700', letterSpacing: 0.5 },
+  // 44 — норма цели нажатия: переключатель жмут пальцем.
+  строка: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44 },
+  подпись: { fontSize: 14, flexShrink: 1 },
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1 },

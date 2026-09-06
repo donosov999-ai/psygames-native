@@ -1395,6 +1395,8 @@ const t: Record<string, string> = {
   "anagramSquareCount": "Schemi nel set: {n}",
   "anagramSquareSolved": "Risolto",
   "anagramSquareBank": "Banco di lettere",
+  "fwShowWords": "Elenco di parole",
+  "fwShowWordsHint": "Mostra le parole sopra la griglia: trovarle invece di indovinarle",
   "anagramAllWords": "Tutte le parole",
   "anagramAllWordsHint": "Trova tutte le parole da un unico set di lettere. Le caselle vuote indicano la lunghezza",
   "anagramAllWordsLvlParams": "Un set di lettere · 6–14 parole · senza limite di tempo",

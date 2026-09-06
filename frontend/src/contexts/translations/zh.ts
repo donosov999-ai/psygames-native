@@ -1272,6 +1272,8 @@ const t: Record<string, string> = {
   "anagramSquareCount": "题库数量：{n}",
   "anagramSquareSolved": "已完成",
   "anagramSquareBank": "字母库",
+  "fwShowWords": "单词列表",
+  "fwShowWordsHint": "在盘面上方显示单词 — 去找，而不是去猜",
   "anagramAllWords": "所有单词",
   "anagramAllWordsHint": "从同一组字母中找出所有单词。空格显示每个单词的长度",
   "anagramAllWordsLvlParams": "一组字母 · 6–14 个单词 · 不限时",
