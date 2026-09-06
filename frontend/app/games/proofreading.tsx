@@ -8,7 +8,9 @@ import {
   ScrollView,
   PanResponder,
   useWindowDimensions,
+  Image,
 } from 'react-native';
+import { превьюРежимаКорректуры } from '@/src/games/fillwords/core/modeThumbs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -1032,6 +1034,19 @@ export default function ProofreadingGame() {
                   ]}
                   onPress={() => setTaskMode(m)}
                 >
+                  {/*
+                    Картинка режима — чтобы выбор читался глазом: филворды это
+                    змейка по полю букв, корректура — поиск значка в плотном
+                    наборе. Под профиль она разная по материалу, карта общая с
+                    анаграммами (см. `fillwords/core/modeThumbs.ts`).
+                  */}
+                  <Image
+                    source={превьюРежимаКорректуры(m, profile?.id)}
+                    style={styles.modeThumb}
+                    resizeMode="cover"
+                    accessible={false}
+                    importantForAccessibility="no"
+                  />
                   <Text style={[styles.sizeButtonText, { color: taskMode === m ? '#333' : colors.text }]}>
                     {m === 'fillwords' ? fwStrings.modeName : t('proofreading')}
                   </Text>
@@ -1693,6 +1708,8 @@ const styles = StyleSheet.create({
     minWidth: 60,
     alignItems: 'center',
   },
+  // Картинка режима над подписью — как в анаграммах, тот же размер цели нажатия.
+  modeThumb: { width: 44, height: 44, borderRadius: 10, marginBottom: 6 },
   sizeButtonText: { fontSize: 16, fontWeight: '600' },
   startButton: { marginTop: 10 },
   startButtonGradient: {

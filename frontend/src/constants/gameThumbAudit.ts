@@ -12,7 +12,7 @@
 export interface ThumbAudit { about: boolean; yellow: number; sha: string }
 
 export const THUMB_AUDIT: Record<string, ThumbAudit> = {
-  "anagrams": { about: false, yellow: 0.0, sha: '5fee444ebfe8' },
+  "anagrams": { about: false, yellow: 0.0, sha: '14dc2203d20c' },
   "ant": { about: false, yellow: 0.0, sha: 'f90cd03324e7' },
   "attention_conflict": { about: false, yellow: 0.0, sha: '1d20453b7f3d' },
   "bart": { about: false, yellow: 0.0, sha: 'ad0e43a688bd' },
@@ -56,7 +56,7 @@ export const THUMB_AUDIT: Record<string, ThumbAudit> = {
   "picture_pairs": { about: false, yellow: 0.0, sha: '8bf468e26a4b' },
   "posner": { about: false, yellow: 0.0, sha: '038ab46c4d09' },
   "prl": { about: false, yellow: 0.0, sha: 'f75a6cde61dc' },
-  "proofreading": { about: false, yellow: 0.0, sha: '3c1220d18da6' },
+  "proofreading": { about: false, yellow: 0.0, sha: '58922fe90b10' },
   "pseudoword_echo": { about: false, yellow: 0.0, sha: 'de5ded55eb85' },
   "quick_count": { about: false, yellow: 0.0, sha: '8789558576df' },
   "reading_span": { about: false, yellow: 0.0, sha: '74d24b9647a4' },
