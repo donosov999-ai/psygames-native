@@ -16,7 +16,14 @@
  *     иначе запись «это меню» переживёт замену и будет глушить хорошую картинку;
  *   · обложку удалили или добавили → запись обязана появиться/исчезнуть.
  *
- * Пересобрать замер: python3 scripts/gen_thumb_audit.py
+ * Пересобрать замер: python3 ../scripts/gen_thumb_audit.py   ← из frontend/
+ *                    (скрипт лежит в КОРНЕ репозитория, не во frontend/scripts)
+ *
+ * ⚠️ ПУТЬ ИСПРАВЛЕН 06.09.2026. Здесь стояло `scripts/gen_thumb_audit.py` — а
+ * пробы запускаются из `frontend/`, где такого файла нет. Двое подряд прочитали
+ * это как «скрипт отсутствует, подсказка ведёт в никуда» и пошли искать
+ * несуществующую беду. Подсказка обязана быть копипастимой ОТТУДА, где стоит
+ * человек, читающий ошибку.
  */
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -51,8 +58,8 @@ describe('обложки карточек', () => {
     const stale = files
       .filter((f: string) => THUMB_AUDIT[f.slice(0, -5)]?.sha !== sha(f))
       .map((f: string) => f.slice(0, -5));
-    expect(`перемеряй: python3 scripts/gen_thumb_audit.py → ${stale.join(', ')}`)
-      .toBe('перемеряй: python3 scripts/gen_thumb_audit.py → ');
+    expect(`перемеряй: python3 ../scripts/gen_thumb_audit.py → ${stale.join(', ')}`)
+      .toBe('перемеряй: python3 ../scripts/gen_thumb_audit.py → ');
   });
 
   it('🔴 обложка-меню обязана быть приглушена', () => {
