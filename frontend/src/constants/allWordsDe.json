@@ -3,19 +3,13 @@
   "base": "abbiegen",
   "words": [
    "abgeben",
-   "babe",
-   "bang",
    "bange",
    "beben",
    "beige",
    "biege",
    "biegen",
    "biene",
-   "eigen",
-   "eingabe",
-   "geben",
-   "genie",
-   "neige"
+   "eingabe"
   ]
  },
  {
@@ -28,9 +22,7 @@
    "blase",
    "blasen",
    "nase",
-   "saal",
-   "salbe",
-   "seal"
+   "salbe"
   ]
  },
  {
@@ -43,7 +35,6 @@
    "brauch",
    "bruch",
    "buch",
-   "raub",
    "rauch"
   ]
  },
@@ -51,19 +42,13 @@
   "base": "abdecken",
   "words": [
    "abend",
-   "back",
    "backe",
    "backen",
    "baden",
-   "band",
-   "bank",
    "becken",
-   "bene",
    "decke",
    "decken",
-   "dekan",
-   "denke",
-   "knabe"
+   "dekan"
   ]
  },
  {
@@ -75,20 +60,13 @@
    "brand",
    "breen",
    "daher",
-   "drehe",
    "drehen",
-   "ehren",
-   "erben",
-   "erden",
-   "erhaben",
-   "haben",
-   "heben"
+   "erhaben"
   ]
  },
  {
   "base": "abfahren",
   "words": [
-   "aber",
    "arena",
    "bahre",
    "fahne",
@@ -96,12 +74,7 @@
    "farbe",
    "haaren",
    "haben",
-   "hafen",
-   "hafer",
-   "harfe",
-   "herab",
-   "heran",
-   "narbe"
+   "hafen"
   ]
  },
  {
@@ -123,14 +96,8 @@
    "abruf",
    "anruf",
    "bauen",
-   "bauer",
-   "beruf",
    "berufen",
    "brauen",
-   "braun",
-   "breen",
-   "erben",
-   "farbe",
    "feuern",
    "freuen",
    "rauben"
@@ -141,15 +108,9 @@
   "words": [
    "abend",
    "baden",
-   "band",
-   "bann",
-   "bein",
-   "bien",
    "binde",
    "binden",
    "dabei",
-   "dann",
-   "denn",
    "faden",
    "feind",
    "finden"
@@ -165,11 +126,7 @@
    "fass",
    "faul",
    "fluss",
-   "fuss",
-   "lass",
-   "laub",
-   "lauf",
-   "laus"
+   "fuss"
   ]
  },
  {
@@ -182,13 +139,7 @@
    "fahren",
    "farbe",
    "frühe",
-   "führen",
-   "haben",
-   "hafen",
-   "hafer",
-   "harfe",
-   "herab",
-   "heran"
+   "führen"
   ]
  },
  {
@@ -201,8 +152,6 @@
    "bene",
    "ebbe",
    "eben",
-   "enge",
-   "gabe",
    "geben"
   ]
  },
@@ -211,15 +160,9 @@
   "words": [
    "ahne",
    "bahn",
-   "bang",
    "bange",
-   "bene",
-   "eben",
-   "enge",
-   "gabe",
    "geben",
    "gehen",
-   "habe",
    "haben",
    "heben",
    "hegen"
@@ -235,13 +178,7 @@
    "best",
    "gabe",
    "gaga",
-   "gage",
-   "gast",
-   "gate",
-   "saat",
-   "saga",
-   "sage",
-   "stab"
+   "gage"
   ]
  },
  {
@@ -251,13 +188,7 @@
    "bang",
    "brand",
    "braun",
-   "bund",
-   "burg",
-   "dran",
    "drang",
-   "garn",
-   "grab",
-   "grad",
    "grand",
    "grund",
    "urban"
@@ -267,14 +198,8 @@
   "base": "abhacken",
   "words": [
    "abhaken",
-   "ahne",
-   "bach",
-   "back",
    "backe",
    "backen",
-   "bahn",
-   "bank",
-   "habe",
    "haben",
    "hacke",
    "hacken",
@@ -286,17 +211,11 @@
   "base": "abhalten",
   "words": [
    "ahne",
-   "alte",
    "alten",
-   "bahn",
    "banal",
-   "beat",
    "behalt",
    "ethan",
-   "habe",
    "haben",
-   "halb",
-   "halt",
    "halte",
    "halten"
   ]
@@ -310,11 +229,8 @@
    "beben",
    "bene",
    "ebbe",
-   "eben",
-   "habe",
    "haben",
-   "heben",
-   "nahe"
+   "heben"
   ]
  },
  {
@@ -325,30 +241,18 @@
    "bohne",
    "habe",
    "haben",
-   "halb",
-   "hole",
    "holen",
-   "lehn",
    "loben",
-   "lohn",
-   "nahe",
-   "nobel",
-   "oben"
+   "nobel"
   ]
  },
  {
   "base": "abhängen",
   "words": [
-   "ahne",
    "ahnen",
-   "bahn",
    "bahnen",
-   "bang",
    "bange",
-   "bann",
-   "gabe",
    "gähnen",
-   "habe",
    "haben",
    "hängen",
    "nahen",
@@ -360,18 +264,12 @@
   "words": [
    "aber",
    "ahne",
-   "bahn",
    "bahre",
-   "habe",
    "haben",
    "herab",
    "heran",
-   "herb",
    "hören",
-   "nahe",
-   "narbe",
-   "rabe",
-   "reha"
+   "narbe"
   ]
  },
  {
@@ -381,12 +279,8 @@
    "bank",
    "bauen",
    "beau",
-   "fake",
-   "funk",
    "funke",
-   "kanu",
    "kauen",
-   "kauf",
    "kaufen",
    "knabe"
   ]
@@ -398,35 +292,23 @@
    "amme",
    "amok",
    "bank",
-   "kamm",
    "knabe",
-   "koma",
    "komma",
    "kommen",
-   "mambo",
-   "memo",
-   "name",
-   "oben",
-   "omen"
+   "mambo"
   ]
  },
  {
   "base": "abkühlen",
   "words": [
-   "ahne",
-   "bahn",
    "balken",
-   "bank",
    "blank",
    "blühen",
    "bühne",
    "haben",
    "haken",
    "kabel",
-   "knabe",
-   "kühle",
-   "kühlen",
-   "laken"
+   "kühlen"
   ]
  },
  {
@@ -437,12 +319,8 @@
    "baden",
    "bald",
    "banal",
-   "band",
    "blade",
-   "deal",
-   "lade",
    "laden",
-   "land",
    "nadel"
   ]
  },
@@ -452,16 +330,10 @@
    "anlass",
    "banal",
    "base",
-   "bass",
-   "blas",
    "blase",
    "blasen",
    "blass",
-   "lass",
    "lassen",
-   "nase",
-   "nass",
-   "saal",
    "salbe"
   ]
  },
@@ -473,15 +345,9 @@
    "anlauf",
    "banal",
    "bauen",
-   "beau",
-   "blau",
    "blauen",
-   "faul",
    "faulen",
-   "laub",
-   "lauf",
-   "laufen",
-   "laune"
+   "laufen"
   ]
  },
  {
@@ -494,19 +360,12 @@
    "beleg",
    "bengel",
    "eagle",
-   "engel",
-   "gabel",
-   "gabeln",
-   "geben",
-   "gelbe",
-   "lange",
-   "leben"
+   "gabeln"
   ]
  },
  {
   "base": "ablehnen",
   "words": [
-   "ahne",
    "ahnen",
    "anheben",
    "bahnen",
@@ -514,31 +373,20 @@
    "hebel",
    "heben",
    "henne",
-   "leben",
-   "lehne",
-   "lehnen",
-   "nahen",
-   "nebel",
-   "neben"
+   "lehnen"
   ]
  },
  {
   "base": "ablenken",
   "words": [
    "balken",
-   "bank",
    "blank",
    "enkel",
    "kabel",
    "kanne",
    "kleben",
-   "knabe",
    "knebel",
-   "laken",
-   "leben",
-   "lenken",
-   "nebel",
-   "neben"
+   "lenken"
   ]
  },
  {
@@ -551,8 +399,7 @@
    "böse",
    "lösen",
    "nase",
-   "salbe",
-   "seal"
+   "salbe"
   ]
  },
  {
@@ -565,49 +412,32 @@
    "blau",
    "gans",
    "gaul",
-   "glas",
-   "lang",
-   "laub",
-   "laus",
-   "lösung",
-   "sang"
+   "lösung"
   ]
  },
  {
   "base": "abmarsch",
   "words": [
-   "bach",
    "barsch",
    "basar",
    "brach",
-   "cash",
    "crash",
-   "haar",
-   "mach",
    "machbar",
-   "mara",
    "marsch",
    "rasch",
-   "scham",
-   "schar"
+   "scham"
   ]
  },
  {
   "base": "abnehmen",
   "words": [
-   "ahne",
    "ahnen",
-   "amen",
    "anheben",
-   "bahn",
    "bahnen",
    "beamen",
    "ehemann",
    "haben",
    "heben",
-   "henne",
-   "nahen",
-   "neben",
    "nehmen"
   ]
  },
@@ -617,14 +447,8 @@
    "aber",
    "arie",
    "base",
-   "bier",
-   "brei",
-   "brie",
    "brise",
-   "erbe",
    "erbse",
-   "rabe",
-   "reis",
    "reise",
    "riese",
    "serie"
@@ -636,12 +460,6 @@
    "abreise",
    "arsen",
    "basieren",
-   "besen",
-   "biene",
-   "birne",
-   "breen",
-   "brise",
-   "eiern",
    "reiben",
    "reisen",
    "serben",
@@ -652,39 +470,27 @@
  {
   "base": "abreißen",
   "words": [
-   "aber",
    "beißen",
    "biene",
    "birne",
    "breen",
    "eiern",
    "einer",
-   "erben",
-   "erbin",
-   "narbe",
-   "niere",
    "reiben",
-   "reine",
    "reißen"
   ]
  },
  {
   "base": "abräumen",
   "words": [
-   "aber",
    "amber",
    "bauen",
    "bauer",
    "brauen",
-   "braun",
    "bäumen",
-   "mauer",
    "mauern",
-   "narbe",
    "rauben",
-   "rauen",
-   "räumen",
-   "urban"
+   "räumen"
   ]
  },
  {
@@ -697,11 +503,7 @@
    "base",
    "gabe",
    "gans",
-   "nase",
-   "saga",
-   "sage",
-   "sagen",
-   "sang"
+   "sagen"
   ]
  },
  {
@@ -711,31 +513,19 @@
    "absagen",
    "anbau",
    "ansage",
-   "anus",
-   "auge",
    "ausgabe",
-   "bang",
    "bange",
    "bauen",
-   "genau",
-   "sagen",
-   "saugen",
-   "sauna"
+   "saugen"
   ]
  },
  {
   "base": "abschaum",
   "words": [
    "auch",
-   "bach",
    "bauch",
-   "baum",
-   "buch",
    "buchs",
    "busch",
-   "cash",
-   "haus",
-   "mach",
    "scham",
    "schau",
    "schaum",
@@ -752,28 +542,16 @@
    "buche",
    "buchs",
    "busch",
-   "chase",
-   "haube",
-   "sache",
-   "sauce",
-   "schau",
-   "scheu",
-   "schub"
+   "chase"
   ]
  },
  {
   "base": "abschied",
   "words": [
    "achse",
-   "aids",
    "asche",
-   "bach",
-   "base",
-   "cash",
-   "chai",
    "chase",
    "dabei",
-   "dach",
    "dachs",
    "hades",
    "sache",
@@ -783,15 +561,9 @@
  {
   "base": "abschuss",
   "words": [
-   "auch",
-   "bach",
-   "bass",
    "bauch",
-   "buch",
    "buchs",
    "busch",
-   "cash",
-   "hass",
    "sachs",
    "schau",
    "schub",
@@ -807,11 +579,7 @@
    "basis",
    "bass",
    "beat",
-   "best",
    "biest",
-   "biss",
-   "sieb",
-   "stab",
    "stasi",
    "tasse"
   ]
@@ -824,12 +592,6 @@
    "anders",
    "arsen",
    "baden",
-   "besen",
-   "brand",
-   "breen",
-   "erben",
-   "erbse",
-   "erden",
    "rasend",
    "sender",
    "serben"
@@ -840,15 +602,9 @@
   "words": [
    "base",
    "beat",
-   "bene",
    "besen",
-   "best",
    "beste",
-   "bete",
    "beten",
-   "eben",
-   "ente",
-   "este",
    "senat",
    "setzen",
    "szene"
@@ -861,10 +617,7 @@
    "bach",
    "cash",
    "chai",
-   "chat",
-   "hast",
    "sicht",
-   "stab",
    "stich",
    "tisch"
   ]
@@ -873,19 +626,13 @@
   "base": "absitzen",
   "words": [
    "abtei",
-   "base",
-   "beat",
-   "bein",
    "besitz",
-   "best",
-   "bien",
    "biest",
    "einsatz",
    "einst",
    "inzest",
    "senat",
-   "sitzen",
-   "stein"
+   "sitzen"
   ]
  },
  {
@@ -896,13 +643,7 @@
    "blas",
    "blau",
    "blut",
-   "last",
-   "laub",
-   "laus",
-   "laut",
-   "lost",
    "lotus",
-   "lust",
    "salut",
    "staub"
   ]
@@ -916,13 +657,7 @@
    "besagt",
    "beste",
    "bestie",
-   "biege",
-   "biest",
-   "etage",
-   "gebet",
    "gebiet",
-   "geist",
-   "geste",
    "steige"
   ]
  },
@@ -933,14 +668,8 @@
    "base",
    "beat",
    "besagt",
-   "best",
    "biest",
-   "gabe",
-   "gast",
-   "gate",
    "geist",
-   "sage",
-   "sieb",
    "steig",
    "stieg"
   ]
@@ -954,12 +683,6 @@
    "brust",
    "brut",
    "rast",
-   "raub",
-   "raus",
-   "satz",
-   "stab",
-   "star",
-   "stau",
    "staub",
    "sturz"
   ]
@@ -970,14 +693,8 @@
    "abscheu",
    "achse",
    "asche",
-   "bauch",
-   "bauen",
    "besuch",
-   "buche",
    "buchen",
-   "buchs",
-   "busch",
-   "chase",
    "hausen",
    "schauen",
    "suchen"
@@ -992,12 +709,6 @@
    "betten",
    "braten",
    "breen",
-   "brett",
-   "erben",
-   "ernte",
-   "narbe",
-   "raten",
-   "ratte",
    "retten",
    "treten"
   ]
@@ -1005,17 +716,11 @@
  {
   "base": "abwarten",
   "words": [
-   "aber",
    "abraten",
    "arena",
    "arten",
-   "bart",
-   "beat",
    "braten",
-   "etwa",
    "narbe",
-   "rabe",
-   "rate",
    "raten",
    "warte",
    "warten"
@@ -1028,13 +733,7 @@
    "bahre",
    "bewahren",
    "breen",
-   "ehren",
-   "erben",
    "erhaben",
-   "haben",
-   "heben",
-   "herab",
-   "heran",
    "wahren",
    "wehren",
    "werben"
@@ -1043,20 +742,14 @@
  {
   "base": "abweisen",
   "words": [
-   "base",
-   "bein",
-   "bene",
    "besen",
    "beweis",
-   "bien",
    "biene",
    "eisen",
    "sieben",
    "waise",
    "weise",
-   "weisen",
-   "wesen",
-   "wiese"
+   "weisen"
   ]
  },
  {
@@ -1064,13 +757,7 @@
   "words": [
    "abend",
    "baden",
-   "band",
-   "bann",
-   "bene",
    "daneben",
-   "dann",
-   "denn",
-   "eben",
    "enden",
    "neben",
    "wanne",
@@ -1081,15 +768,9 @@
  {
   "base": "abwerfen",
   "words": [
-   "aber",
-   "beef",
-   "bene",
    "breen",
-   "eben",
-   "erbe",
    "erben",
    "farbe",
-   "fern",
    "ferne",
    "narbe",
    "weber",
@@ -1105,13 +786,7 @@
    "baden",
    "band",
    "base",
-   "bene",
    "besen",
-   "eben",
-   "eden",
-   "ende",
-   "nase",
-   "need",
    "wende",
    "wesen"
   ]
@@ -1119,19 +794,13 @@
  {
   "base": "abziehen",
   "words": [
-   "ahne",
    "anhieb",
-   "bahn",
-   "bein",
    "beinah",
    "beinahe",
-   "bene",
    "biene",
    "haben",
    "heben",
    "heizen",
-   "hinab",
-   "ziehe",
    "ziehen"
   ]
  },
@@ -1145,11 +814,7 @@
    "hang",
    "haut",
    "hunt",
-   "nach",
-   "nacht",
-   "naht",
-   "tang",
-   "tuch"
+   "nacht"
   ]
  },
  {
@@ -1162,9 +827,7 @@
    "lama",
    "lira",
    "maid",
-   "mail",
-   "mara",
-   "mild"
+   "mail"
   ]
  },
  {
@@ -1177,8 +840,7 @@
    "nein",
    "tagein",
    "tagen",
-   "tang",
-   "teig"
+   "tang"
   ]
  },
  {
@@ -1188,13 +850,7 @@
    "arten",
    "garten",
    "gauner",
-   "genau",
    "grauen",
-   "natur",
-   "range",
-   "raten",
-   "rauen",
-   "tagen",
    "taugen",
    "tragen",
    "trauen"
@@ -1203,7 +859,6 @@
  {
   "base": "agieren",
   "words": [
-   "arie",
    "eiern",
    "eigen",
    "einer",
@@ -1211,12 +866,7 @@
    "genie",
    "gerne",
    "green",
-   "neige",
-   "niere",
-   "range",
-   "regen",
-   "regie",
-   "reine"
+   "neige"
   ]
  },
  {
@@ -1255,13 +905,7 @@
    "antike",
    "kante",
    "kate",
-   "knie",
-   "naiv",
-   "navi",
-   "take",
-   "tank",
-   "vati",
-   "vita"
+   "knie"
   ]
  },
  {
@@ -1275,10 +919,7 @@
    "klaue",
    "kult",
    "lake",
-   "laut",
-   "laute",
-   "luke",
-   "take"
+   "laute"
   ]
  },
  {
@@ -1288,11 +929,6 @@
    "album",
    "altar",
    "armut",
-   "aura",
-   "bart",
-   "baum",
-   "blau",
-   "blut",
    "braut",
    "brutal",
    "traum",
@@ -1311,11 +947,6 @@
    "grille",
    "lager",
    "legal",
-   "leier",
-   "liege",
-   "regal",
-   "regel",
-   "regie",
    "riegel"
   ]
  },
@@ -1343,13 +974,8 @@
    "malen",
    "mesa",
    "name",
-   "nase",
-   "oase",
-   "omen",
    "salon",
-   "same",
-   "samen",
-   "seal"
+   "samen"
   ]
  },
  {
@@ -1363,8 +989,7 @@
    "halb",
    "halt",
    "halte",
-   "pate",
-   "tape"
+   "pate"
   ]
  },
  {
@@ -1375,11 +1000,6 @@
    "armut",
    "aura",
    "lama",
-   "laut",
-   "lump",
-   "mara",
-   "maul",
-   "paar",
    "parat",
    "traum",
    "trauma",
@@ -1396,11 +1016,6 @@
    "mara",
    "mauer",
    "rate",
-   "raue",
-   "raum",
-   "rute",
-   "tara",
-   "team",
    "traum",
    "trauma"
   ]
@@ -1416,8 +1031,6 @@
    "lama",
    "laub",
    "maul",
-   "zaum",
-   "zaun",
    "zumal"
   ]
  },
@@ -1430,13 +1043,8 @@
    "einsam",
    "eisen",
    "mais",
-   "mesa",
    "miene",
-   "mies",
    "miese",
-   "mine",
-   "name",
-   "nase",
    "samen"
   ]
  },
@@ -1451,8 +1059,7 @@
    "mall",
    "maul",
    "palm",
-   "palme",
-   "puma"
+   "palme"
   ]
  },
  {
@@ -1461,13 +1068,8 @@
    "atem",
    "item",
    "mais",
-   "mast",
-   "matt",
    "matte",
    "meist",
-   "mesa",
-   "mies",
-   "miez",
    "mitte",
    "sitte",
    "taste",
@@ -1485,8 +1087,7 @@
    "matt",
    "matte",
    "maul",
-   "metal",
-   "team"
+   "metal"
   ]
  },
  {
@@ -1495,13 +1096,8 @@
    "ahne",
    "arche",
    "arena",
-   "arie",
-   "chai",
-   "haar",
    "haaren",
    "heran",
-   "hier",
-   "hirn",
    "rache",
    "rachen",
    "ranch",
@@ -1519,9 +1115,7 @@
    "mine",
    "monat",
    "name",
-   "note",
-   "omen",
-   "team"
+   "note"
   ]
  },
  {
@@ -1535,8 +1129,7 @@
    "bien",
    "gabe",
    "inne",
-   "innen",
-   "nein"
+   "innen"
   ]
  },
  {
@@ -1550,9 +1143,7 @@
    "biene",
    "eben",
    "einen",
-   "inne",
-   "neben",
-   "nein"
+   "neben"
   ]
  },
  {
@@ -1574,11 +1165,6 @@
   "words": [
    "abtei",
    "anbeten",
-   "bann",
-   "beat",
-   "bein",
-   "bene",
-   "bete",
    "beten",
    "biene",
    "bieten",
@@ -1599,22 +1185,16 @@
    "kalb",
    "kali",
    "klan",
-   "lack",
-   "link"
+   "lack"
   ]
  },
  {
   "base": "andauern",
   "words": [
-   "ader",
    "arena",
-   "aura",
-   "dann",
    "daran",
    "dauer",
    "dauern",
-   "denn",
-   "dran",
    "rande",
    "rauen",
    "raunen",
@@ -1631,51 +1211,37 @@
    "dekan",
    "denke",
    "denken",
-   "denn",
-   "eden",
-   "ende",
    "enden",
    "kanne",
-   "kennen",
-   "need"
+   "kennen"
   ]
  },
  {
   "base": "andermal",
   "words": [
-   "adel",
-   "ader",
    "adler",
    "alarm",
-   "amen",
    "areal",
    "arena",
    "daran",
    "drama",
    "laden",
    "malen",
-   "maler",
-   "nadel",
-   "rande"
+   "maler"
   ]
  },
  {
   "base": "anderswo",
   "words": [
-   "ader",
    "anders",
    "arsen",
-   "dorn",
-   "dose",
-   "down",
    "orden",
    "radon",
    "rande",
    "rasen",
    "rasend",
    "sonde",
-   "woanders",
-   "woran"
+   "woanders"
   ]
  },
  {
@@ -1688,32 +1254,22 @@
    "denn",
    "deuten",
    "eden",
-   "ende",
    "enden",
-   "ente",
-   "need",
-   "neue",
-   "neun",
    "unten"
   ]
  },
  {
   "base": "anflehen",
   "words": [
-   "ahne",
    "ahnen",
-   "elfe",
    "fahne",
-   "fehl",
    "fehlen",
    "flehen",
    "hafen",
-   "half",
    "helfen",
    "henne",
    "lehne",
-   "lehnen",
-   "nahen"
+   "lehnen"
   ]
  },
  {
@@ -1727,8 +1283,6 @@
    "garn",
    "gern",
    "graf",
-   "rage",
-   "rang",
    "range"
   ]
  },
@@ -1743,11 +1297,6 @@
    "fern",
    "frage",
    "fragen",
-   "garn",
-   "gern",
-   "graf",
-   "rage",
-   "rang",
    "range"
   ]
  },
@@ -1762,9 +1311,6 @@
    "fänger",
    "garn",
    "gern",
-   "graf",
-   "rage",
-   "rang",
    "range"
   ]
  },
@@ -1779,45 +1325,34 @@
    "hafen",
    "half",
    "lehn",
-   "nahe",
    "nahen"
   ]
  },
  {
   "base": "anführen",
   "words": [
-   "ahne",
    "ahnen",
    "fahne",
    "fahren",
-   "fern",
-   "früh",
    "frühe",
    "führen",
    "hafen",
    "hafer",
    "harfe",
-   "heran",
-   "nahe",
-   "nahen"
+   "heran"
   ]
  },
  {
   "base": "anführer",
   "words": [
-   "ahne",
    "fahne",
    "fahren",
    "fahrer",
-   "fern",
    "frühe",
    "früher",
    "führen",
    "führer",
    "hafen",
-   "hafer",
-   "harfe",
-   "heran",
    "rühren"
   ]
  },
@@ -1831,7 +1366,6 @@
    "eben",
    "enge",
    "engen",
-   "gabe",
    "geben",
    "neben"
   ]
@@ -1839,8 +1373,6 @@
  {
   "base": "angeber",
   "words": [
-   "aber",
-   "bang",
    "bange",
    "bergen",
    "breen",
@@ -1849,10 +1381,7 @@
    "geber",
    "gerne",
    "graben",
-   "green",
-   "narbe",
-   "range",
-   "regen"
+   "green"
   ]
  },
  {
@@ -1860,14 +1389,9 @@
   "words": [
    "agent",
    "anbot",
-   "bang",
    "bange",
-   "beat",
    "beton",
    "bogen",
-   "bong",
-   "bote",
-   "gabe",
    "gebot",
    "tagen",
    "tango",
@@ -1883,10 +1407,8 @@
    "engen",
    "gehen",
    "hang",
-   "hege",
    "hegen",
    "henne",
-   "nahe",
    "nahen"
   ]
  },
@@ -1901,22 +1423,13 @@
    "engel",
    "etage",
    "galgen",
-   "gegen",
-   "gelten",
-   "lange",
-   "legen",
-   "nagel",
-   "tagen"
+   "gelten"
   ]
  },
  {
   "base": "angelus",
   "words": [
    "angel",
-   "anus",
-   "auge",
-   "egal",
-   "gans",
    "genau",
    "lagune",
    "lange",
@@ -1924,26 +1437,20 @@
    "lesung",
    "lunge",
    "nagel",
-   "sagen",
    "saugen"
   ]
  },
  {
   "base": "angenehm",
   "words": [
-   "ahne",
    "ahnen",
-   "amen",
    "angehen",
    "ehemann",
    "engen",
    "gehen",
    "hegen",
    "henne",
-   "magen",
-   "menge",
    "mengen",
-   "nahen",
    "nehmen"
   ]
  },
@@ -1953,11 +1460,6 @@
    "agent",
    "angst",
    "ansage",
-   "gaga",
-   "gage",
-   "gang",
-   "gans",
-   "gant",
    "gesang",
    "sagen",
    "satan",
@@ -2004,7 +1506,6 @@
    "bann",
    "habe",
    "haben",
-   "nahe",
    "nahen"
   ]
  },
@@ -2019,10 +1520,7 @@
    "halt",
    "halte",
    "halten",
-   "lehn",
-   "nahe",
-   "nahen",
-   "naht"
+   "nahen"
   ]
  },
  {
@@ -2034,14 +1532,9 @@
    "altern",
    "areal",
    "arena",
-   "arten",
    "erhalt",
-   "ethan",
    "haaren",
-   "halte",
-   "halten",
-   "heran",
-   "raten"
+   "halten"
   ]
  },
  {
@@ -2051,14 +1544,9 @@
    "ahnen",
    "bahn",
    "bahnen",
-   "bann",
-   "bene",
-   "eben",
-   "habe",
    "haben",
    "heben",
    "henne",
-   "nahe",
    "nahen",
    "neben"
   ]
@@ -2066,39 +1554,29 @@
  {
   "base": "anheuern",
   "words": [
-   "ahne",
    "ahnen",
-   "eher",
-   "ehre",
    "ehren",
    "erahnen",
-   "haue",
    "hauen",
    "henne",
    "heran",
    "nahen",
    "rauen",
-   "raunen",
-   "ruhen"
+   "raunen"
   ]
  },
  {
   "base": "anhänger",
   "words": [
-   "ahne",
    "ahnen",
-   "garn",
-   "gern",
    "gähnen",
-   "hang",
    "heran",
    "hängen",
    "nahen",
    "nähen",
    "näher",
    "nähern",
-   "nähren",
-   "range"
+   "nähren"
   ]
  },
  {
@@ -2106,15 +1584,10 @@
   "words": [
    "angel",
    "anlage",
-   "egal",
-   "gala",
    "kanal",
    "klage",
    "klagen",
-   "klan",
    "klang",
-   "lage",
-   "lake",
    "laken",
    "lange",
    "nagel"
@@ -2129,12 +1602,7 @@
    "anlage",
    "kanal",
    "kanna",
-   "kanne",
-   "klage",
    "klagen",
-   "klang",
-   "laken",
-   "lange",
    "langen",
    "nageln"
   ]
@@ -2147,15 +1615,10 @@
    "anker",
    "klage",
    "klagen",
-   "klang",
    "kläger",
    "klären",
    "kragen",
-   "lager",
-   "lagern",
-   "laken",
-   "lange",
-   "länge"
+   "lagern"
   ]
  },
  {
@@ -2169,11 +1632,7 @@
    "kanone",
    "koma",
    "komma",
-   "kommen",
-   "mann",
-   "memo",
-   "name",
-   "omen"
+   "kommen"
   ]
  },
  {
@@ -2182,30 +1641,20 @@
    "angel",
    "angeln",
    "eagle",
-   "egal",
-   "enge",
    "engel",
    "engen",
-   "glee",
-   "lage",
    "lange",
    "langen",
    "legen",
-   "nagel",
    "nageln"
   ]
  },
  {
   "base": "anliegen",
   "words": [
-   "alien",
-   "angel",
    "angeln",
    "anlegen",
-   "eagle",
-   "eigen",
    "eignen",
-   "eilen",
    "genial",
    "langen",
    "leinen",
@@ -2217,15 +1666,10 @@
  {
   "base": "anlocken",
   "words": [
-   "clan",
    "clean",
-   "cola",
    "kanne",
    "kanone",
-   "klan",
-   "klon",
    "klonen",
-   "lack",
    "laken",
    "locke",
    "locken",
@@ -2240,10 +1684,8 @@
    "angeln",
    "egal",
    "lage",
-   "lang",
    "lange",
    "langen",
-   "lüge",
    "lügen",
    "nagel",
    "nageln"
@@ -2270,15 +1712,10 @@
    "amen",
    "anmache",
    "annahme",
-   "mach",
    "mache",
    "machen",
-   "mann",
-   "nach",
    "nachname",
-   "nahe",
-   "nahen",
-   "name"
+   "nahen"
   ]
  },
  {
@@ -2288,14 +1725,9 @@
    "crash",
    "haar",
    "mach",
-   "mara",
-   "marc",
-   "mars",
    "marsch",
-   "nach",
    "ranch",
    "rasch",
-   "scan",
    "scham",
    "schar"
   ]
@@ -2316,9 +1748,6 @@
  {
   "base": "anmelden",
   "words": [
-   "adel",
-   "amen",
-   "dame",
    "dealen",
    "edelmann",
    "elend",
@@ -2326,9 +1755,7 @@
    "laden",
    "landen",
    "malen",
-   "melde",
    "melden",
-   "nadel",
    "nadeln"
   ]
  },
@@ -2341,11 +1768,6 @@
    "armee",
    "kanne",
    "kenner",
-   "kern",
-   "kram",
-   "kran",
-   "mann",
-   "mark",
    "marke",
    "marken",
    "merken"
@@ -2362,7 +1784,6 @@
    "mann",
    "nahe",
    "nahen",
-   "name",
    "nehmen"
   ]
  },
@@ -2375,27 +1796,17 @@
    "email",
    "lama",
    "leim",
-   "limo",
-   "mail",
    "mailen",
    "malen",
-   "milan",
-   "mine",
-   "name",
-   "omen"
+   "milan"
   ]
  },
  {
   "base": "anordnen",
   "words": [
    "ader",
-   "dann",
-   "denn",
    "donner",
    "donnern",
-   "dorn",
-   "dran",
-   "nerd",
    "nonne",
    "norden",
    "orden",
@@ -2414,12 +1825,7 @@
    "arten",
    "ethan",
    "heran",
-   "nacht",
-   "rache",
    "rachen",
-   "ranch",
-   "raten",
-   "recht",
    "trance"
   ]
  },
@@ -2434,11 +1840,7 @@
    "rauen",
    "rauf",
    "raunen",
-   "rufen",
-   "rune",
-   "ufer",
-   "uran",
-   "urne"
+   "rufen"
   ]
  },
  {
@@ -2452,10 +1854,7 @@
    "rauen",
    "rauf",
    "rufen",
-   "rune",
-   "ufer",
-   "uran",
-   "urne"
+   "rune"
   ]
  },
  {
@@ -2469,7 +1868,6 @@
    "nahen",
    "narr",
    "narren",
-   "reha",
    "rühren"
   ]
  },
@@ -2482,13 +1880,8 @@
    "gans",
    "garn",
    "gern",
-   "gras",
-   "nase",
-   "rage",
-   "rang",
    "range",
    "rasen",
-   "saga",
    "sagen"
   ]
  },
@@ -2496,18 +1889,13 @@
   "base": "anschein",
   "words": [
    "achse",
-   "ahne",
    "ahnen",
    "asche",
-   "cash",
-   "chai",
    "chase",
-   "eins",
    "nahen",
    "naschen",
    "nische",
    "sache",
-   "sahne",
    "schein"
   ]
  },
@@ -2520,12 +1908,7 @@
    "gans",
    "glas",
    "hals",
-   "hang",
    "lachs",
-   "lang",
-   "nach",
-   "saal",
-   "saga",
    "schal",
    "schlag"
   ]
@@ -2537,11 +1920,8 @@
    "ahnen",
    "hase",
    "henne",
-   "nahe",
    "nahen",
-   "nase",
    "sahne",
-   "sehe",
    "sehen",
    "sehne",
    "sehnen"
@@ -2555,13 +1935,10 @@
    "nase",
    "nest",
    "netz",
-   "satz",
    "senat",
    "setzen",
    "szene",
-   "tanz",
-   "tanzen",
-   "teen"
+   "tanzen"
   ]
  },
  {
@@ -2569,13 +1946,8 @@
   "words": [
    "acht",
    "cash",
-   "chai",
-   "chat",
-   "hast",
-   "nach",
    "nacht",
    "nachts",
-   "naht",
    "nicht",
    "nichts",
    "sicht",
@@ -2586,18 +1958,13 @@
  {
   "base": "anspruch",
   "words": [
-   "anus",
-   "auch",
-   "cash",
    "crash",
-   "haus",
    "punsch",
    "ranch",
    "rasch",
    "rauch",
    "rausch",
    "schar",
-   "schau",
    "schnur",
    "spruch"
   ]
@@ -2619,12 +1986,7 @@
   "base": "anstelle",
   "words": [
    "alle",
-   "alte",
    "alten",
-   "elle",
-   "ente",
-   "esel",
-   "este",
    "lasten",
    "lesen",
    "selten",
@@ -2639,18 +2001,13 @@
   "words": [
    "agent",
    "angst",
-   "eins",
    "einst",
-   "gans",
    "geist",
    "sagen",
    "senat",
    "stange",
    "steig",
-   "stein",
-   "stieg",
-   "tagein",
-   "tagen"
+   "tagein"
   ]
  },
  {
@@ -2660,12 +2017,9 @@
    "nase",
    "nest",
    "note",
-   "oase",
    "osten",
    "senat",
    "sonne",
-   "soße",
-   "stoß",
    "stoßen",
    "tonne"
   ]
@@ -2674,17 +2028,12 @@
   "base": "antreten",
   "words": [
    "arten",
-   "ente",
    "entern",
    "ernte",
    "ernten",
-   "nett",
-   "rate",
    "raten",
    "ratte",
-   "rente",
    "retten",
-   "tante",
    "tarnen",
    "treten"
   ]
@@ -2692,20 +2041,15 @@
  {
   "base": "antrieb",
   "words": [
-   "aber",
    "abtei",
    "arbeit",
-   "arie",
    "arten",
    "birne",
    "braten",
    "breit",
    "brite",
    "erbin",
-   "narbe",
-   "raten",
-   "train",
-   "trieb"
+   "narbe"
   ]
  },
  {
@@ -2717,9 +2061,6 @@
    "ende",
    "enden",
    "need",
-   "wade",
-   "wand",
-   "wann",
    "wanne",
    "wende",
    "wenden"
@@ -2731,12 +2072,7 @@
    "anwesen",
    "dann",
    "denn",
-   "eden",
-   "ende",
    "enden",
-   "nase",
-   "need",
-   "news",
    "senden",
    "wanne",
    "wende",
@@ -2747,20 +2083,15 @@
  {
   "base": "anwohner",
   "words": [
-   "ahne",
    "ahnen",
    "heran",
-   "horn",
-   "nahe",
    "nahen",
-   "reha",
    "wahren",
    "wanne",
    "warnen",
    "woher",
    "wohnen",
-   "wonne",
-   "woran"
+   "wonne"
   ]
  },
  {
@@ -2769,16 +2100,11 @@
    "arten",
    "etwa",
    "narr",
-   "rate",
    "raten",
    "träne",
-   "want",
-   "ware",
    "warner",
-   "wart",
    "warte",
    "warten",
-   "wert",
    "wärter"
   ]
  },
@@ -2803,16 +2129,11 @@
    "eigen",
    "eignen",
    "einen",
-   "enge",
    "engen",
-   "ganz",
    "ganze",
    "genie",
-   "neige",
    "neigen",
-   "zange",
-   "zeigen",
-   "ziege"
+   "zeigen"
   ]
  },
  {
@@ -2824,11 +2145,7 @@
    "heizen",
    "henne",
    "inne",
-   "nahe",
    "nahen",
-   "nein",
-   "zahn",
-   "zehn",
    "ziehe",
    "ziehen"
   ]
@@ -2840,15 +2157,10 @@
    "arie",
    "fair",
    "frei",
-   "part",
    "partei",
    "partie",
-   "pate",
    "pater",
-   "pier",
    "pirat",
-   "rate",
-   "reif",
    "tapfer"
   ]
  },
@@ -2861,11 +2173,6 @@
    "lose",
    "lost",
    "oase",
-   "paso",
-   "pate",
-   "pest",
-   "poet",
-   "pole",
    "spalt",
    "spalte",
    "stapel"
@@ -2895,7 +2202,6 @@
    "cash",
    "chai",
    "crash",
-   "haar",
    "rasch",
    "schar"
   ]
@@ -2903,47 +2209,35 @@
  {
   "base": "arbeiten",
   "words": [
-   "abtei",
    "antrieb",
    "arbeit",
-   "arten",
    "beraten",
    "bereit",
-   "beten",
    "bieten",
    "braten",
    "breite",
    "breiten",
-   "reiben",
-   "reiten",
    "treiben"
   ]
  },
  {
   "base": "arbeiter",
   "words": [
-   "aber",
    "abtei",
    "arbeit",
-   "arie",
    "arterie",
-   "bart",
-   "beat",
    "berater",
    "bereit",
    "breit",
    "breite",
    "brite",
-   "reiter",
-   "trieb"
+   "reiter"
   ]
  },
  {
   "base": "argument",
   "words": [
-   "agent",
    "agentur",
-   "anmut",
    "atmung",
    "garten",
    "gaumen",
@@ -2951,10 +2245,7 @@
    "grauen",
    "magnet",
    "mauern",
-   "munter",
-   "taugen",
-   "tragen",
-   "trauen"
+   "munter"
   ]
  },
  {
@@ -2974,13 +2265,8 @@
   "base": "armbrust",
   "words": [
    "armut",
-   "bart",
-   "baum",
    "braut",
    "brust",
-   "brut",
-   "mars",
-   "mast",
    "rasur",
    "smart",
    "starr",
@@ -2999,12 +2285,7 @@
    "islam",
    "lager",
    "laser",
-   "mager",
-   "magie",
    "magier",
-   "maler",
-   "marge",
-   "marie",
    "relais"
   ]
  },
@@ -3019,10 +2300,7 @@
    "narr",
    "notar",
    "organ",
-   "rang",
-   "tang",
-   "tango",
-   "tara"
+   "tango"
   ]
  },
  {
@@ -3044,31 +2322,21 @@
   "words": [
    "after",
    "akte",
-   "fake",
-   "fakt",
-   "fett",
    "freak",
    "karat",
    "karate",
    "karte",
-   "kate",
    "kater",
    "kraft",
-   "rate",
    "ratte"
   ]
  },
  {
   "base": "artikel",
   "words": [
-   "akte",
    "aktie",
-   "alte",
    "alter",
-   "arie",
    "erika",
-   "kali",
-   "kalt",
    "kalter",
    "karte",
    "kater",
@@ -3082,17 +2350,12 @@
   "words": [
    "alte",
    "alter",
-   "arie",
-   "eile",
    "eitel",
    "elite",
-   "leer",
    "leier",
    "leite",
    "leiter",
-   "lira",
    "liter",
-   "rate",
    "taler"
   ]
  },
@@ -3121,8 +2384,7 @@
    "pater",
    "rate",
    "ratte",
-   "tape",
-   "tara"
+   "tape"
   ]
  },
  {
@@ -3136,12 +2398,7 @@
    "brach",
    "brauch",
    "bruch",
-   "buch",
-   "fach",
-   "frau",
-   "raub",
-   "rauch",
-   "rauf"
+   "rauch"
   ]
  },
  {
@@ -3153,11 +2410,6 @@
    "fass",
    "fassen",
    "fuss",
-   "nase",
-   "nass",
-   "neue",
-   "nuss",
-   "safe",
    "saufen",
    "sausen",
    "sense"
@@ -3174,23 +2426,17 @@
    "hart",
    "haut",
    "rauf",
-   "taff",
-   "tara"
+   "taff"
   ]
  },
  {
   "base": "aufgeben",
   "words": [
    "auge",
-   "bang",
    "bange",
    "bauen",
-   "beau",
-   "beef",
-   "bene",
    "beuge",
    "beugen",
-   "eben",
    "fegen",
    "fugen",
    "geben",
@@ -3200,17 +2446,12 @@
  {
   "base": "aufgehen",
   "words": [
-   "ahne",
-   "auge",
-   "enge",
    "fahne",
-   "fang",
    "fegen",
    "fugen",
    "gehen",
    "genau",
    "hafen",
-   "hang",
    "hauen",
    "haufen",
    "hegen"
@@ -3225,12 +2466,7 @@
    "drauf",
    "fang",
    "frau",
-   "fund",
-   "garn",
-   "grad",
-   "graf",
    "grand",
-   "grau",
    "grund",
    "unfug"
   ]
@@ -3239,12 +2475,7 @@
   "base": "aufheben",
   "words": [
    "ahne",
-   "bahn",
    "bauen",
-   "beau",
-   "beef",
-   "bene",
-   "eben",
    "fahne",
    "haben",
    "hafen",
@@ -3257,14 +2488,9 @@
  {
   "base": "aufholen",
   "words": [
-   "ahne",
    "fahne",
-   "faul",
    "faulen",
-   "fehl",
-   "floh",
    "fohlen",
-   "foul",
    "hafen",
    "hauen",
    "haufen",
@@ -3284,25 +2510,15 @@
    "harfe",
    "hauen",
    "haufen",
-   "heran",
-   "herauf",
-   "hören",
-   "rauen",
-   "rufen",
-   "ruhen"
+   "herauf"
   ]
  },
  {
   "base": "aufladen",
   "words": [
-   "adel",
    "anlauf",
-   "deal",
-   "fade",
    "faden",
-   "faul",
    "faulen",
-   "feld",
    "laden",
    "laufen",
    "laufend",
@@ -3334,13 +2550,8 @@
    "faulen",
    "fegen",
    "fugen",
-   "genau",
    "lagune",
-   "lange",
-   "laufen",
-   "laune",
-   "legen",
-   "lunge"
+   "laufen"
   ]
  },
  {
@@ -3351,15 +2562,10 @@
    "faulen",
    "fels",
    "fusel",
-   "lauf",
    "laufen",
    "laune",
-   "laus",
    "lösen",
-   "nase",
-   "safe",
-   "saufen",
-   "seal"
+   "saufen"
   ]
  },
  {
@@ -3372,11 +2578,8 @@
    "haue",
    "hauen",
    "haufen",
-   "hufe",
    "human",
-   "muhen",
-   "nahe",
-   "name"
+   "muhen"
   ]
  },
  {
@@ -3390,9 +2593,7 @@
    "lala",
    "lauf",
    "paar",
-   "pfau",
-   "plural",
-   "rauf"
+   "plural"
   ]
  },
  {
@@ -3401,16 +2602,11 @@
    "achte",
    "after",
    "arche",
-   "fahrt",
    "feucht",
    "fracht",
-   "frech",
    "frucht",
    "furcht",
-   "hafer",
-   "harfe",
    "herauf",
-   "rache",
    "taucher"
   ]
  },
@@ -3420,15 +2616,10 @@
    "anruf",
    "fegen",
    "feger",
-   "ferne",
-   "feuer",
    "feuern",
-   "frage",
    "fragen",
    "freuen",
-   "fugen",
    "gauner",
-   "genau",
    "genfer",
    "grauen"
   ]
@@ -3444,11 +2635,7 @@
    "raue",
    "rauen",
    "rauf",
-   "rufen",
-   "rune",
-   "ufer",
-   "uran",
-   "urne"
+   "rufen"
   ]
  },
  {
@@ -3456,14 +2643,9 @@
   "words": [
    "ansage",
    "anus",
-   "auge",
-   "fang",
    "fasan",
    "fugen",
-   "gans",
    "genau",
-   "nase",
-   "safe",
    "sagen",
    "saufen",
    "saugen",
@@ -3476,13 +2658,9 @@
    "auch",
    "bach",
    "bauch",
-   "buch",
    "buchs",
    "busch",
-   "cash",
-   "fach",
    "fuchs",
-   "haus",
    "schaf",
    "schau",
    "schub"
@@ -3491,15 +2669,10 @@
  {
   "base": "aufsehen",
   "words": [
-   "ahne",
-   "anus",
    "fahne",
    "hafen",
-   "hase",
-   "haue",
    "hauen",
    "haufen",
-   "haus",
    "hausen",
    "sahne",
    "saufen",
@@ -3511,25 +2684,19 @@
   "base": "aufseher",
   "words": [
    "ehefrau",
-   "eher",
-   "ehre",
    "faser",
    "feuer",
-   "frau",
    "hafer",
    "harfe",
-   "hase",
    "hauser",
    "herauf",
    "heraus",
-   "sauer",
-   "seher"
+   "sauer"
   ]
  },
  {
   "base": "aufsicht",
   "words": [
-   "acht",
    "faust",
    "fisch",
    "fuchs",
@@ -3538,11 +2705,7 @@
    "schau",
    "schuft",
    "sicht",
-   "stich",
-   "sucht",
-   "tausch",
-   "tisch",
-   "tusch"
+   "tausch"
   ]
  },
  {
@@ -3552,12 +2715,7 @@
    "duft",
    "dunst",
    "fasan",
-   "fast",
    "faust",
-   "fund",
-   "saat",
-   "saft",
-   "sand",
    "sanft",
    "satan",
    "sauna",
@@ -3567,12 +2725,7 @@
  {
   "base": "aufstieg",
   "words": [
-   "auge",
-   "fast",
    "faust",
-   "fest",
-   "fies",
-   "fist",
    "geist",
    "saftig",
    "steif",
@@ -3594,8 +2747,7 @@
    "gruft",
    "gurt",
    "rauf",
-   "tara",
-   "trug"
+   "tara"
   ]
  },
  {
@@ -3621,7 +2773,6 @@
    "haus",
    "schaf",
    "schau",
-   "wach",
    "wachs",
    "wuchs"
   ]
@@ -3637,11 +2788,6 @@
    "rauf",
    "raus",
    "saft",
-   "star",
-   "stau",
-   "stur",
-   "wart",
-   "wurf",
    "wurst"
   ]
  },
@@ -3653,11 +2799,6 @@
    "anus",
    "atem",
    "atmen",
-   "mast",
-   "maus",
-   "mesa",
-   "muse",
-   "name",
    "samen",
    "satan",
    "sauna",
@@ -3675,12 +2816,7 @@
    "club",
    "kalb",
    "kali",
-   "klub",
-   "kuli",
-   "lack",
-   "laub",
-   "laus",
-   "sack"
+   "klub"
   ]
  },
  {
@@ -3694,12 +2830,7 @@
    "buchs",
    "busch",
    "crash",
-   "rasch",
-   "rauch",
-   "rausch",
-   "schar",
-   "schau",
-   "schub"
+   "rausch"
   ]
  },
  {
@@ -3740,20 +2871,12 @@
    "frust",
    "haar",
    "haft",
-   "hart",
-   "hast",
-   "haus",
-   "haut",
-   "rast",
    "rathaus"
   ]
  },
  {
   "base": "ausgeben",
   "words": [
-   "anus",
-   "auge",
-   "bang",
    "bange",
    "bauen",
    "besagen",
@@ -3762,17 +2885,12 @@
    "beugen",
    "geben",
    "genau",
-   "sagen",
-   "saugen",
-   "segen"
+   "saugen"
   ]
  },
  {
   "base": "ausgehen",
   "words": [
-   "ahne",
-   "anus",
-   "auge",
    "gehen",
    "genau",
    "hauen",
@@ -3781,9 +2899,7 @@
    "sagen",
    "sahne",
    "saugen",
-   "segen",
-   "sehen",
-   "sehne"
+   "segen"
   ]
  },
  {
@@ -3797,11 +2913,6 @@
    "flush",
    "fusel",
    "half",
-   "hals",
-   "hase",
-   "haue",
-   "haus",
-   "heil",
    "hilfe"
   ]
  },
@@ -3814,13 +2925,9 @@
    "faust",
    "funk",
    "kanu",
-   "kauf",
    "kunst",
-   "saft",
    "sanft",
-   "stank",
-   "stau",
-   "tank"
+   "stank"
   ]
  },
  {
@@ -3835,8 +2942,7 @@
    "nase",
    "nass",
    "nuss",
-   "sausen",
-   "seal"
+   "sausen"
   ]
  },
  {
@@ -3850,11 +2956,8 @@
    "rasse",
    "raue",
    "raus",
-   "real",
    "russe",
-   "sauer",
-   "seal",
-   "sure"
+   "sauer"
   ]
  },
  {
@@ -3863,13 +2966,9 @@
    "ahne",
    "amen",
    "anus",
-   "hase",
-   "haue",
    "hauen",
-   "haus",
    "hausen",
    "human",
-   "maus",
    "muhen",
    "sahne",
    "samen",
@@ -3902,11 +3001,7 @@
    "draus",
    "erden",
    "rande",
-   "rasen",
    "rasend",
-   "rauen",
-   "reden",
-   "runde",
    "sender"
   ]
  },
@@ -3914,13 +3009,9 @@
   "base": "ausrufen",
   "words": [
    "anruf",
-   "anus",
    "arsen",
    "faser",
    "fasern",
-   "fern",
-   "frau",
-   "nase",
    "rasen",
    "rauen",
    "rufen",
@@ -3932,8 +3023,6 @@
  {
   "base": "ausruhen",
   "words": [
-   "ahne",
-   "anus",
    "arsen",
    "hauen",
    "hausen",
@@ -3943,8 +3032,6 @@
    "rasen",
    "rauen",
    "ruhen",
-   "sahne",
-   "sauer",
    "unruhe"
   ]
  },
@@ -3953,14 +3040,10 @@
   "words": [
    "ansage",
    "anus",
-   "auge",
    "aussage",
-   "gans",
    "gasse",
    "genau",
    "genuss",
-   "nase",
-   "nass",
    "sagen",
    "saugen",
    "sauna",
@@ -3971,11 +3054,7 @@
   "base": "aussehen",
   "words": [
    "ahne",
-   "anus",
-   "esse",
    "essen",
-   "hase",
-   "hass",
    "hassen",
    "hauen",
    "hausen",
@@ -3989,9 +3068,6 @@
  {
   "base": "aussicht",
   "words": [
-   "acht",
-   "auch",
-   "cash",
    "sachs",
    "schau",
    "sicht",
@@ -4001,8 +3077,7 @@
    "sushi",
    "tausch",
    "tisch",
-   "tusch",
-   "tussi"
+   "tusch"
   ]
  },
  {
@@ -4017,8 +3092,7 @@
    "hunt",
    "naht",
    "obhut",
-   "tabu",
-   "taub"
+   "tabu"
   ]
  },
  {
@@ -4046,12 +3120,8 @@
    "pest",
    "piste",
    "poet",
-   "post",
    "puste",
-   "spot",
-   "stau",
-   "suite",
-   "tape"
+   "suite"
   ]
  },
  {
@@ -4066,10 +3136,7 @@
    "ruin",
    "tour",
    "train",
-   "trio",
-   "turn",
-   "uran",
-   "urin"
+   "trio"
   ]
  },
  {
@@ -4084,11 +3151,7 @@
    "dauer",
    "drum",
    "erde",
-   "made",
-   "mauer",
-   "maße",
-   "meer",
-   "raue"
+   "mauer"
   ]
  },
  {
@@ -4103,9 +3166,7 @@
    "dark",
    "dock",
    "karo",
-   "kobra",
-   "korb",
-   "rock"
+   "kobra"
   ]
  },
  {
@@ -4120,8 +3181,7 @@
    "head",
    "hose",
    "oase",
-   "sehe",
-   "soda"
+   "sehe"
   ]
  },
  {
@@ -4156,12 +3216,8 @@
  {
   "base": "bankier",
   "words": [
-   "aber",
    "anker",
-   "arie",
-   "bank",
    "banker",
-   "bein",
    "biker",
    "birne",
    "break",
@@ -4194,13 +3250,9 @@
    "baron",
    "bart",
    "bora",
-   "born",
-   "brot",
-   "karo",
    "karton",
    "kobra",
    "koran",
-   "korb",
    "notar",
    "trank"
   ]
@@ -4217,8 +3269,7 @@
    "erbe",
    "rabe",
    "raub",
-   "raue",
-   "reue"
+   "raue"
   ]
  },
  {
@@ -4233,9 +3284,7 @@
    "bier",
    "brei",
    "brie",
-   "irre",
-   "rabbi",
-   "rabe"
+   "rabbi"
   ]
  },
  {
@@ -4243,12 +3292,8 @@
   "words": [
    "aber",
    "adel",
-   "ader",
    "adler",
    "bagel",
-   "bald",
-   "balg",
-   "berg",
    "blade",
    "gabel",
    "garde",
@@ -4282,8 +3327,7 @@
    "label",
    "lala",
    "saal",
-   "salbe",
-   "seal"
+   "salbe"
   ]
  },
  {
@@ -4294,10 +3338,6 @@
    "arsen",
    "besen",
    "biene",
-   "birne",
-   "breen",
-   "brise",
-   "eiern",
    "reiben",
    "reisen",
    "serben",
@@ -4308,12 +3348,8 @@
  {
   "base": "basiert",
   "words": [
-   "aber",
    "abtei",
    "arbeit",
-   "arie",
-   "bart",
-   "base",
    "biest",
    "breit",
    "brise",
@@ -4346,13 +3382,9 @@
    "base",
    "beat",
    "best",
-   "blas",
    "blase",
    "blasen",
-   "last",
    "lasten",
-   "nase",
-   "nest",
    "salbe",
    "senat"
   ]
@@ -4360,10 +3392,8 @@
  {
   "base": "batterie",
   "words": [
-   "aber",
    "abtei",
    "arbeit",
-   "arie",
    "bereit",
    "bitte",
    "bitter",
@@ -4371,9 +3401,7 @@
    "breit",
    "breite",
    "brett",
-   "brite",
-   "ratte",
-   "trieb"
+   "brite"
   ]
  },
  {
@@ -4381,13 +3409,9 @@
   "words": [
    "armut",
    "aura",
-   "bart",
-   "baum",
    "braut",
-   "brut",
    "karat",
    "karma",
-   "kaum",
    "kraut",
    "markt",
    "tabak",
@@ -4403,15 +3427,11 @@
    "bauen",
    "baum",
    "beau",
-   "blau",
    "blauen",
    "blume",
-   "laub",
    "laune",
    "lumen",
-   "malen",
-   "maul",
-   "name"
+   "malen"
   ]
  },
  {
@@ -4422,10 +3442,6 @@
    "achten",
    "ahne",
    "bach",
-   "bahn",
-   "beat",
-   "bene",
-   "bete",
    "beten",
    "ethan",
    "haben",
@@ -4459,11 +3475,7 @@
    "beamte",
    "beat",
    "bete",
-   "erbe",
-   "meer",
-   "meter",
-   "rabe",
-   "rate"
+   "meter"
   ]
  },
  {
@@ -4486,9 +3498,6 @@
   "words": [
    "abend",
    "baden",
-   "band",
-   "bank",
-   "bann",
    "daneben",
    "danken",
    "dekan",
@@ -4496,8 +3505,7 @@
    "denken",
    "enden",
    "kanne",
-   "knabe",
-   "neben"
+   "knabe"
   ]
  },
  {
@@ -4511,11 +3519,7 @@
    "brauen",
    "braun",
    "breen",
-   "dauer",
    "dauern",
-   "erben",
-   "erden",
-   "narbe",
    "rauben"
   ]
  },
@@ -4531,9 +3535,7 @@
    "eben",
    "ebene",
    "ecke",
-   "eden",
-   "ende",
-   "need"
+   "eden"
   ]
  },
  {
@@ -4547,10 +3549,8 @@
    "eben",
    "ebene",
    "eden",
-   "ende",
    "enden",
-   "neben",
-   "need"
+   "neben"
   ]
  },
  {
@@ -4565,21 +3565,14 @@
    "deuten",
    "eben",
    "ebene",
-   "eden",
-   "ende",
-   "ente",
-   "need",
-   "neue"
+   "eden"
   ]
  },
  {
   "base": "bedienen",
   "words": [
    "beenden",
-   "bein",
-   "bene",
    "beneiden",
-   "bien",
    "biene",
    "binde",
    "binden",
@@ -4587,8 +3580,7 @@
    "dienen",
    "ebene",
    "einen",
-   "enden",
-   "neben"
+   "enden"
   ]
  },
  {
@@ -4603,11 +3595,7 @@
    "drohen",
    "drohne",
    "ehren",
-   "erben",
-   "erden",
-   "heben",
-   "herde",
-   "obere"
+   "erben"
   ]
  },
  {
@@ -4622,8 +3610,7 @@
    "herd",
    "hort",
    "ober",
-   "robe",
-   "rote"
+   "robe"
   ]
  },
  {
@@ -4636,13 +3623,9 @@
    "eher",
    "ehre",
    "ehren",
-   "erbe",
    "erben",
    "erheben",
-   "heben",
-   "heer",
-   "herb",
-   "rehe"
+   "heben"
   ]
  },
  {
@@ -4650,11 +3633,7 @@
   "words": [
    "beil",
    "bein",
-   "bene",
-   "bien",
    "biene",
-   "blei",
-   "eben",
    "ebene",
    "eilen",
    "leben",
@@ -4674,11 +3653,7 @@
    "beugen",
    "beule",
    "beulen",
-   "biege",
    "biegen",
-   "biene",
-   "eigen",
-   "eilen",
    "lieben",
    "liegen"
   ]
@@ -4705,10 +3680,6 @@
    "beef",
    "belle",
    "bellen",
-   "bene",
-   "eben",
-   "elfe",
-   "elle",
    "falle",
    "fallen",
    "label",
@@ -4727,23 +3698,15 @@
    "eben",
    "esse",
    "essen",
-   "fass",
    "fassen",
-   "nase",
-   "nass",
-   "safe",
    "sense"
   ]
  },
  {
   "base": "befehlen",
   "words": [
-   "beef",
    "befehl",
-   "bene",
-   "eben",
    "ebene",
-   "elfe",
    "fehlen",
    "flehen",
    "hebel",
@@ -4757,9 +3720,6 @@
  {
   "base": "befinden",
   "words": [
-   "beef",
-   "bein",
-   "bene",
    "biene",
    "binde",
    "binden",
@@ -4769,8 +3729,7 @@
    "enden",
    "feind",
    "feinen",
-   "finden",
-   "neben"
+   "finden"
   ]
  },
  {
@@ -4785,11 +3744,7 @@
    "folgen",
    "geben",
    "gelbe",
-   "leben",
-   "legen",
-   "loben",
-   "nebel",
-   "nobel"
+   "leben"
   ]
  },
  {
@@ -4802,11 +3757,7 @@
    "erben",
    "farbe",
    "fegen",
-   "feger",
-   "ferne",
-   "frage",
    "fragen",
-   "geben",
    "genfer",
    "graben"
   ]
@@ -4816,11 +3767,7 @@
   "words": [
    "biene",
    "birne",
-   "breen",
-   "brief",
    "briefen",
-   "ebene",
-   "eiern",
    "feiern",
    "ferien",
    "fieber",
@@ -4833,9 +3780,7 @@
  {
   "base": "befreit",
   "words": [
-   "beef",
    "bereit",
-   "bete",
    "breit",
    "breite",
    "brief",
@@ -4844,9 +3789,7 @@
    "feier",
    "fieber",
    "freie",
-   "reife",
-   "tiefe",
-   "trieb"
+   "reife"
   ]
  },
  {
@@ -4876,8 +3819,6 @@
    "bube",
    "buben",
    "gabe",
-   "gage",
-   "gang",
    "genau"
   ]
  },
@@ -4890,11 +3831,7 @@
    "bann",
    "bene",
    "eben",
-   "enge",
    "engen",
-   "gabe",
-   "gage",
-   "gang",
    "geben",
    "gegen",
    "neben"
@@ -4937,13 +3874,9 @@
    "breen",
    "ebene",
    "ehren",
-   "erben",
    "ergeben",
    "ergehen",
    "erheben",
-   "geben",
-   "geber",
-   "gehen",
    "hergeben"
   ]
  },
@@ -4956,10 +3889,6 @@
    "bier",
    "brei",
    "bridge",
-   "brie",
-   "dieb",
-   "drei",
-   "erbe",
    "geber",
    "geier",
    "gerede",
@@ -4973,15 +3902,11 @@
    "berg",
    "biege",
    "bier",
-   "brei",
-   "brie",
-   "erbe",
    "geber",
    "gebirge",
    "geier",
    "geige",
    "geiger",
-   "gier",
    "regie"
   ]
  },
@@ -4997,10 +3922,6 @@
    "eignen",
    "einen",
    "engen",
-   "geben",
-   "genie",
-   "innen",
-   "neben",
    "neigen"
   ]
  },
@@ -5031,11 +3952,7 @@
    "breen",
    "erben",
    "geben",
-   "geber",
-   "gerne",
-   "graben",
-   "green",
-   "narbe"
+   "graben"
   ]
  },
  {
@@ -5049,12 +3966,8 @@
    "geben",
    "geber",
    "gebet",
-   "gerne",
-   "green",
    "grenze",
-   "regen",
-   "regent",
-   "rente"
+   "regent"
   ]
  },
  {
@@ -5069,14 +3982,12 @@
    "gier",
    "greif",
    "griff",
-   "reif",
-   "riff"
+   "reif"
   ]
  },
  {
   "base": "begrüßen",
   "words": [
-   "bene",
    "bergen",
    "breen",
    "bürge",
@@ -5086,17 +3997,12 @@
    "geben",
    "geber",
    "gerne",
-   "green",
-   "grüne",
-   "grüßen",
-   "regen"
+   "grüßen"
   ]
  },
  {
   "base": "behalten",
   "words": [
-   "ahne",
-   "alte",
    "alten",
    "behalt",
    "beten",
@@ -5106,9 +4012,7 @@
    "halten",
    "hebel",
    "heben",
-   "leben",
-   "lehne",
-   "nebel"
+   "leben"
   ]
  },
  {
@@ -5118,10 +4022,6 @@
    "base",
    "baum",
    "baute",
-   "beat",
-   "beau",
-   "best",
-   "habe",
    "haube",
    "mathe",
    "staub",
@@ -5138,13 +4038,9 @@
    "ehre",
    "erbe",
    "hebel",
-   "heer",
-   "herb",
    "härte",
    "leber",
-   "leer",
    "lehre",
-   "rehe",
    "ältere",
    "äther"
   ]
@@ -5161,18 +4057,13 @@
    "heer",
    "herb",
    "herd",
-   "herde",
-   "rede",
-   "rehe"
+   "herde"
   ]
  },
  {
   "base": "beichten",
   "words": [
    "beichte",
-   "bein",
-   "bene",
-   "bete",
    "beten",
    "biene",
    "bieten",
@@ -5180,8 +4071,7 @@
    "heben",
    "nicht",
    "nichte",
-   "niete",
-   "teich"
+   "niete"
   ]
  },
  {
@@ -5196,9 +4086,7 @@
    "fell",
    "label",
    "labil",
-   "leib",
-   "lieb",
-   "lila"
+   "leib"
   ]
  },
  {
@@ -5210,11 +4098,7 @@
    "blei",
    "eile",
    "elfe",
-   "fehl",
    "hebel",
-   "heil",
-   "heli",
-   "hieb",
    "hilfe",
    "leihe",
    "liebe"
@@ -5232,10 +4116,7 @@
    "eile",
    "idee",
    "leib",
-   "leid",
-   "lieb",
-   "liebe",
-   "lied"
+   "liebe"
   ]
  },
  {
@@ -5247,13 +4128,9 @@
    "bein",
    "beinah",
    "bene",
-   "bien",
    "biene",
-   "eben",
-   "habe",
    "haben",
    "heben",
-   "hieb",
    "hinab"
   ]
  },
@@ -5281,11 +4158,7 @@
    "leib",
    "leise",
    "lesbe",
-   "lese",
-   "lieb",
    "liebe",
-   "seil",
-   "sieb",
    "silbe",
    "spiel"
   ]
@@ -5301,12 +4174,8 @@
    "bestand",
    "biest",
    "binde",
-   "dabei",
    "dasein",
-   "datei",
-   "daten",
-   "dienst",
-   "einst"
+   "dienst"
   ]
  },
  {
@@ -5315,11 +4184,7 @@
    "aber",
    "abtei",
    "arbeit",
-   "arie",
    "artig",
-   "bart",
-   "beat",
-   "berg",
    "betrag",
    "breit",
    "brite",
@@ -5340,19 +4205,13 @@
    "kanten",
    "kate",
    "knabe",
-   "take",
-   "tank",
    "tanken"
   ]
  },
  {
   "base": "bekannte",
   "words": [
-   "akte",
    "anbeten",
-   "bank",
-   "bann",
-   "beat",
    "bekannt",
    "beten",
    "kanne",
@@ -5371,12 +4230,8 @@
    "angel",
    "bagel",
    "balken",
-   "bange",
    "belang",
-   "beleg",
    "bengel",
-   "blank",
-   "eagle",
    "gabeln",
    "klagen",
    "kleben",
@@ -5394,11 +4249,7 @@
    "egal",
    "gabe",
    "gabel",
-   "galt",
-   "gate",
-   "gelb",
    "kabel",
-   "kalb",
    "klage"
   ]
  },
@@ -5412,10 +4263,6 @@
    "blank",
    "blauen",
    "enkel",
-   "kabel",
-   "kauen",
-   "keule",
-   "klaue",
    "klauen",
    "kleben",
    "knebel"
@@ -5429,12 +4276,8 @@
    "angel",
    "angeln",
    "anlegen",
-   "bagel",
-   "bange",
    "belang",
-   "beleg",
    "bengel",
-   "eagle",
    "gabeln",
    "langen",
    "nageln"
@@ -5444,7 +4287,6 @@
   "base": "belassen",
   "words": [
    "ablesen",
-   "base",
    "besen",
    "blase",
    "blasen",
@@ -5453,10 +4295,7 @@
    "lassen",
    "leben",
    "lesbe",
-   "lesen",
-   "nebel",
-   "salbe",
-   "sense"
+   "lesen"
   ]
  },
  {
@@ -5471,10 +4310,6 @@
    "blase",
    "blasen",
    "lasten",
-   "leben",
-   "lesbe",
-   "lesen",
-   "nebel",
    "selten"
   ]
  },
@@ -5482,11 +4317,7 @@
   "base": "belastet",
   "words": [
    "alte",
-   "base",
-   "beat",
-   "best",
    "beste",
-   "bete",
    "blase",
    "blatt",
    "latte",
@@ -5501,14 +4332,10 @@
   "base": "belegen",
   "words": [
    "beleg",
-   "bene",
    "bengel",
-   "eben",
    "ebene",
-   "enge",
    "engel",
    "geben",
-   "gelb",
    "gelbe",
    "gelee",
    "leben",
@@ -5527,10 +4354,6 @@
    "erheben",
    "erleben",
    "hebel",
-   "heben",
-   "leben",
-   "leber",
-   "leere",
    "leeren",
    "lehren"
   ]
@@ -5546,11 +4369,7 @@
    "gelbe",
    "leber",
    "leier",
-   "liebe",
    "lieber",
-   "liege",
-   "regel",
-   "regie",
    "riegel"
   ]
  },
@@ -5566,11 +4385,7 @@
    "bleiben",
    "ebene",
    "eilen",
-   "leben",
-   "leine",
-   "liebe",
-   "lieben",
-   "nebel"
+   "lieben"
   ]
  },
  {
@@ -5582,20 +4397,15 @@
    "bibel",
    "blei",
    "bleibe",
-   "ebbe",
-   "eile",
    "eitel",
    "elite",
-   "leib",
    "leite",
-   "lieb",
    "liebe"
   ]
  },
  {
   "base": "belohnen",
   "words": [
-   "bene",
    "bohne",
    "hebel",
    "heben",
@@ -5605,24 +4415,17 @@
    "lehne",
    "lehnen",
    "loben",
-   "lohnen",
-   "nebel",
-   "neben",
-   "nobel"
+   "lohnen"
   ]
  },
  {
   "base": "belügen",
   "words": [
    "beleg",
-   "bene",
    "bengel",
    "bügeln",
-   "eben",
-   "enge",
    "engel",
    "geben",
-   "gelb",
    "gelbe",
    "leben",
    "legen",
@@ -5668,12 +4471,9 @@
    "bete",
    "beten",
    "ebbe",
-   "eben",
    "ebene",
-   "ente",
    "leben",
-   "nebel",
-   "teen"
+   "nebel"
   ]
  },
  {
@@ -5681,9 +4481,6 @@
   "words": [
    "bedienen",
    "beenden",
-   "bein",
-   "bene",
-   "bien",
    "biene",
    "binde",
    "binden",
@@ -5691,8 +4488,7 @@
    "dienen",
    "ebene",
    "einen",
-   "enden",
-   "neben"
+   "enden"
   ]
  },
  {
@@ -5706,11 +4502,7 @@
    "ente",
    "neben",
    "netz",
-   "neue",
-   "neun",
-   "nutz",
    "nutzen",
-   "teen",
    "unten"
   ]
  },
@@ -5719,10 +4511,6 @@
   "words": [
    "aber",
    "arten",
-   "bart",
-   "beat",
-   "bene",
-   "bete",
    "beten",
    "braten",
    "breen",
@@ -5759,18 +4547,12 @@
    "gauner",
    "geburt",
    "graben",
-   "grauen",
-   "rauben",
-   "taugen",
-   "tragen",
-   "trauen"
+   "grauen"
   ]
  },
  {
   "base": "berauben",
   "words": [
-   "aber",
-   "babe",
    "bauen",
    "bauer",
    "beben",
@@ -5780,9 +4562,7 @@
    "buben",
    "erben",
    "narbe",
-   "rauben",
-   "rauen",
-   "urban"
+   "rauben"
   ]
  },
  {
@@ -5796,11 +4576,7 @@
    "ende",
    "erbe",
    "erben",
-   "erde",
    "erden",
-   "need",
-   "nerd",
-   "rede",
    "reden"
   ]
  },
@@ -5812,11 +4588,7 @@
    "breche",
    "brei",
    "brie",
-   "eher",
-   "ehre",
    "eiche",
-   "erbe",
-   "heer",
    "herbei",
    "reich",
    "reiche",
@@ -5831,12 +4603,8 @@
    "biene",
    "bieten",
    "birne",
-   "breen",
-   "breit",
    "breite",
    "breiten",
-   "brite",
-   "ebene",
    "reiben",
    "reiten",
    "treiben"
@@ -5854,10 +4622,6 @@
    "brise",
    "brite",
    "erbse",
-   "erste",
-   "reise",
-   "riese",
-   "seite",
    "sterbe"
   ]
  },
@@ -5886,12 +4650,8 @@
    "beau",
    "berg",
    "beruf",
-   "burg",
    "farbe",
    "frage",
-   "frau",
-   "gabe",
-   "grab",
    "grube"
   ]
  },
@@ -5912,12 +4672,8 @@
   "base": "bericht",
   "words": [
    "bier",
-   "brei",
    "breit",
-   "brie",
    "brite",
-   "echt",
-   "herb",
    "hirte",
    "recht",
    "reich",
@@ -5936,10 +4692,6 @@
    "eilen",
    "einer",
    "erben",
-   "erbin",
-   "irren",
-   "leben",
-   "leber",
    "lieben",
    "lieber",
    "reiben"
@@ -5967,15 +4719,11 @@
    "bene",
    "beruf",
    "breen",
-   "eben",
-   "erbe",
    "erben",
-   "fern",
    "ferne",
    "feuer",
    "feuern",
    "freuen",
-   "neue",
    "rufen"
   ]
  },
@@ -5991,10 +4739,7 @@
    "grube",
    "guru",
    "rufen",
-   "rune",
-   "ufer",
-   "unfug",
-   "urne"
+   "unfug"
   ]
  },
  {
@@ -6009,20 +4754,13 @@
    "erbe",
    "erben",
    "heben",
-   "heer",
-   "herb",
-   "neue",
-   "rehe",
    "ruhen"
   ]
  },
  {
   "base": "beruhigt",
   "words": [
-   "berg",
    "betrug",
-   "bier",
-   "brei",
    "breit",
    "brite",
    "geburt",
@@ -6031,8 +4769,7 @@
    "hurtig",
    "ruhig",
    "tiger",
-   "trieb",
-   "truhe"
+   "trieb"
   ]
  },
  {
@@ -6057,11 +4794,7 @@
    "breen",
    "brühe",
    "bühne",
-   "eben",
-   "eher",
-   "ehre",
    "ehren",
-   "erbe",
    "erben",
    "heben",
    "herüber",
@@ -6079,11 +4812,7 @@
    "besen",
    "eben",
    "enge",
-   "gabe",
-   "gans",
    "geben",
-   "nase",
-   "sage",
    "sagen",
    "segen"
   ]
@@ -6100,10 +4829,7 @@
    "besen",
    "eben",
    "nase",
-   "neue",
-   "safe",
-   "saufen",
-   "senf"
+   "saufen"
   ]
  },
  {
@@ -6118,16 +4844,13 @@
    "idee",
    "scheibe",
    "scheide",
-   "sehe",
-   "seide",
-   "sieb"
+   "seide"
   ]
  },
  {
   "base": "beschuss",
   "words": [
    "besuch",
-   "buch",
    "buche",
    "buchs",
    "busch",
@@ -6150,10 +4873,6 @@
    "beten",
    "eben",
    "ebene",
-   "ente",
-   "este",
-   "nest",
-   "netz",
    "setzen",
    "szene"
   ]
@@ -6169,10 +4888,6 @@
    "ebene",
    "eigen",
    "eisen",
-   "geben",
-   "genie",
-   "neige",
-   "segen",
    "sieben",
    "siegen"
   ]
@@ -6189,11 +4904,7 @@
    "gebet",
    "gebiet",
    "geist",
-   "geste",
-   "seite",
-   "steig",
-   "steige",
-   "stieg"
+   "steige"
   ]
  },
  {
@@ -6204,11 +4915,7 @@
    "beste",
    "bestie",
    "beten",
-   "biene",
-   "biest",
    "bieten",
-   "einst",
-   "eisen",
    "inzest",
    "setzen",
    "sieben",
@@ -6227,10 +4934,6 @@
    "breit",
    "breite",
    "brise",
-   "brite",
-   "erbse",
-   "erste",
-   "reise",
    "sterbe"
   ]
  },
@@ -6246,8 +4949,6 @@
    "oben",
    "ofen",
    "offen",
-   "senf",
-   "snob",
    "soeben"
   ]
  },
@@ -6260,10 +4961,6 @@
    "borgen",
    "breen",
    "ebenso",
-   "erben",
-   "erbse",
-   "geben",
-   "geber",
    "geboren",
    "serben",
    "soeben",
@@ -6279,12 +4976,8 @@
    "bote",
    "brot",
    "ergo",
-   "erst",
    "gebot",
-   "ober",
    "oberst",
-   "obst",
-   "oger",
    "sorge",
    "sorte"
   ]
@@ -6297,10 +4990,8 @@
    "besser",
    "breen",
    "eben",
-   "erbe",
    "erben",
    "erbse",
-   "esse",
    "essen",
    "sense",
    "serben"
@@ -6316,11 +5007,7 @@
    "base",
    "beat",
    "best",
-   "date",
    "daten",
-   "nase",
-   "nest",
-   "sand",
    "senat",
    "stand"
   ]
@@ -6330,13 +5017,9 @@
   "words": [
    "bene",
    "besen",
-   "best",
    "beste",
-   "bete",
    "beten",
-   "eben",
    "ebene",
-   "ente",
    "heben",
    "sehen",
    "sehne",
@@ -6356,9 +5039,7 @@
    "esel",
    "este",
    "lesbe",
-   "lese",
-   "stelle",
-   "test"
+   "stelle"
   ]
  },
  {
@@ -6372,12 +5053,8 @@
    "beten",
    "eben",
    "ente",
-   "esse",
    "essen",
-   "este",
-   "nest",
-   "sense",
-   "teen"
+   "sense"
   ]
  },
  {
@@ -6390,22 +5067,15 @@
    "item",
    "meist",
    "mies",
-   "mist",
    "mitte",
-   "sieb",
    "sitte",
-   "stimme",
-   "test"
+   "stimme"
   ]
  },
  {
   "base": "bestraft",
   "words": [
-   "aber",
    "after",
-   "bart",
-   "base",
-   "beat",
    "brett",
    "farbe",
    "faser",
@@ -6429,11 +5099,7 @@
    "rübe",
    "stürze",
    "stütze",
-   "test",
-   "trübe",
-   "türe",
-   "tüte",
-   "über"
+   "trübe"
   ]
  },
  {
@@ -6444,10 +5110,6 @@
    "buche",
    "buchen",
    "buchs",
-   "busch",
-   "echse",
-   "heben",
-   "scheu",
    "scheuen",
    "scheune",
    "schnee",
@@ -6465,10 +5127,6 @@
    "buche",
    "buchs",
    "bursche",
-   "busch",
-   "echse",
-   "erbse",
-   "scher",
    "schere",
    "seuche",
    "sucher"
@@ -6477,7 +5135,6 @@
  {
   "base": "besucht",
   "words": [
-   "best",
    "besuch",
    "buche",
    "buchs",
@@ -6487,10 +5144,7 @@
    "butch",
    "scheu",
    "schub",
-   "stube",
-   "suche",
-   "sucht",
-   "tusch"
+   "stube"
   ]
  },
  {
@@ -6504,9 +5158,6 @@
    "eben",
    "ente",
    "neben",
-   "note",
-   "oben",
-   "teen",
    "toben",
    "tonne"
   ]
@@ -6522,22 +5173,16 @@
    "gebot",
    "gute",
    "neun",
-   "note",
-   "oben",
    "toben",
    "tonne",
-   "tube",
    "unten"
   ]
  },
  {
   "base": "betracht",
   "words": [
-   "aber",
-   "acht",
    "achte",
    "arche",
-   "bach",
    "bahre",
    "brach",
    "brett",
@@ -6554,11 +5199,8 @@
   "words": [
    "agent",
    "angeber",
-   "arten",
-   "bange",
    "beraten",
    "bergen",
-   "beten",
    "betrag",
    "braten",
    "garten",
@@ -6572,13 +5214,10 @@
   "base": "betreten",
   "words": [
    "bene",
-   "bete",
    "beten",
-   "bett",
    "betten",
    "breen",
    "brett",
-   "eben",
    "ebene",
    "erben",
    "ernte",
@@ -6590,12 +5229,9 @@
  {
   "base": "betreuen",
   "words": [
-   "bene",
    "bereuen",
-   "bete",
    "beten",
    "breen",
-   "brut",
    "ebene",
    "erben",
    "erneut",
@@ -6634,9 +5270,6 @@
    "brie",
    "brite",
    "ebbe",
-   "erbe",
-   "teer",
-   "tier",
    "trieb"
   ]
  },
@@ -6653,9 +5286,6 @@
    "brie",
    "brief",
    "brite",
-   "fett",
-   "frei",
-   "reif",
    "trieb"
   ]
  },
@@ -6671,9 +5301,6 @@
    "ernte",
    "geben",
    "geber",
-   "gebet",
-   "gerne",
-   "geübt",
    "regent",
    "trüben"
   ]
@@ -6690,9 +5317,6 @@
    "gebet",
    "gerber",
    "geübt",
-   "güte",
-   "rege",
-   "rübe",
    "rüber",
    "trübe"
   ]
@@ -6710,8 +5334,7 @@
    "echt",
    "ente",
    "heben",
-   "nett",
-   "teen"
+   "nett"
   ]
  },
  {
@@ -6743,9 +5366,7 @@
    "ebbe",
    "eben",
    "ente",
-   "neue",
-   "teen",
-   "tube"
+   "neue"
   ]
  },
  {
@@ -6759,9 +5380,6 @@
    "habe",
    "haben",
    "heben",
-   "nach",
-   "nahe",
-   "wach",
    "wache",
    "wachen",
    "wehen"
@@ -6778,9 +5396,6 @@
    "erben",
    "erhaben",
    "haben",
-   "heben",
-   "herab",
-   "heran",
    "wahren",
    "wehren",
    "werben"
@@ -6803,12 +5418,9 @@
   "base": "beweisen",
   "words": [
    "bein",
-   "bene",
    "besen",
    "beweis",
-   "bien",
    "biene",
-   "eben",
    "ebene",
    "eisen",
    "sieben",
@@ -6843,7 +5455,6 @@
    "ebene",
    "erbe",
    "erben",
-   "fern",
    "ferne",
    "weber",
    "werben",
@@ -6857,10 +5468,7 @@
    "bete",
    "beten",
    "breen",
-   "eben",
    "ebene",
-   "ente",
-   "erbe",
    "erben",
    "ernte",
    "rente",
@@ -6878,9 +5486,6 @@
    "breen",
    "eiern",
    "einer",
-   "erben",
-   "erbin",
-   "kerbe",
    "reiben",
    "werben",
    "werken",
@@ -6891,10 +5496,8 @@
  {
   "base": "bewohner",
   "words": [
-   "bene",
    "bohne",
    "bohren",
-   "born",
    "breen",
    "ehren",
    "erben",
@@ -6903,8 +5506,7 @@
    "weber",
    "wehen",
    "wehren",
-   "werben",
-   "woher"
+   "werben"
   ]
  },
  {
@@ -6913,10 +5515,7 @@
    "ahne",
    "bahn",
    "bene",
-   "eben",
-   "habe",
    "haben",
-   "halb",
    "hebel",
    "heben",
    "lanze",
@@ -6951,8 +5550,6 @@
    "ebene",
    "enge",
    "geben",
-   "neue",
-   "zeug",
    "zeuge",
    "zugeben",
    "zunge"
@@ -6970,7 +5567,6 @@
    "heben",
    "heizen",
    "hieb",
-   "zehn",
    "ziehe",
    "ziehen"
   ]
@@ -6993,11 +5589,8 @@
   "words": [
    "becher",
    "bereich",
-   "biene",
-   "birne",
    "breche",
    "brechen",
-   "breen",
    "herbei",
    "herein",
    "reiben",
@@ -7018,9 +5611,6 @@
    "eilig",
    "einig",
    "gelb",
-   "igel",
-   "leib",
-   "lieb",
    "liebling",
    "lilie",
    "linie"
@@ -7081,12 +5671,9 @@
    "eins",
    "hieb",
    "hissen",
-   "nice",
    "nische",
    "schein",
-   "sechs",
-   "sein",
-   "sieb"
+   "sechs"
   ]
  },
  {
@@ -7098,13 +5685,10 @@
    "bier",
    "bitte",
    "bitter",
-   "brei",
    "breit",
    "breite",
    "brett",
-   "brie",
    "brite",
-   "erbe",
    "trieb"
   ]
  },
@@ -7121,10 +5705,7 @@
    "cola",
    "colt",
    "kalb",
-   "kalt",
-   "klub",
-   "kult",
-   "lack"
+   "kalt"
   ]
  },
  {
@@ -7132,10 +5713,7 @@
   "words": [
    "beben",
    "beil",
-   "bein",
-   "bene",
    "bibel",
-   "bien",
    "biene",
    "bleibe",
    "eilen",
@@ -7157,9 +5735,6 @@
    "eile",
    "elch",
    "hebel",
-   "heil",
-   "heli",
-   "hieb",
    "leiche",
    "leihe",
    "liebe"
@@ -7175,12 +5750,10 @@
    "eden",
    "edle",
    "elend",
-   "ende",
    "enden",
    "leben",
    "nebel",
-   "neben",
-   "need"
+   "neben"
   ]
  },
  {
@@ -7192,14 +5765,11 @@
    "eben",
    "edel",
    "eden",
-   "edle",
    "elend",
-   "ende",
    "enden",
    "leben",
    "nebel",
-   "neben",
-   "need"
+   "neben"
   ]
  },
  {
@@ -7215,9 +5785,6 @@
    "keil",
    "klein",
    "knie",
-   "leck",
-   "leib",
-   "lieb",
    "nickel"
   ]
  },
@@ -7232,10 +5799,7 @@
    "biker",
    "birne",
    "blei",
-   "brei",
-   "brie",
    "erbin",
-   "keil",
    "klein",
    "linker"
   ]
@@ -7253,8 +5817,7 @@
    "lenz",
    "lieb",
    "nein",
-   "nell",
-   "ziel"
+   "nell"
   ]
  },
  {
@@ -7270,9 +5833,7 @@
    "lieb",
    "netz",
    "teil",
-   "zeit",
-   "zelt",
-   "ziel"
+   "zeit"
   ]
  },
  {
@@ -7287,9 +5848,6 @@
    "bock",
    "code",
    "cola",
-   "deal",
-   "deck",
-   "deko",
    "kabel",
    "locke"
   ]
@@ -7297,9 +5855,6 @@
  {
   "base": "blondine",
   "words": [
-   "beil",
-   "bein",
-   "bien",
    "bilden",
    "binde",
    "binden",
@@ -7341,9 +5896,7 @@
    "menü",
    "mühe",
    "mühen",
-   "mühle",
-   "übel",
-   "üben"
+   "mühle"
   ]
  },
  {
@@ -7362,10 +5915,7 @@
  {
   "base": "branche",
   "words": [
-   "aber",
-   "ahne",
    "arche",
-   "bach",
    "bahre",
    "brach",
    "branch",
@@ -7386,10 +5936,7 @@
    "banner",
    "bauen",
    "bauer",
-   "brand",
    "brauen",
-   "braun",
-   "dauer",
    "dauern",
    "narben",
    "rauben",
@@ -7402,9 +5949,6 @@
   "words": [
    "arche",
    "bahre",
-   "bauch",
-   "bauen",
-   "bauer",
    "branch",
    "branche",
    "brauch",
@@ -7429,10 +5973,7 @@
    "ehren",
    "erbe",
    "erben",
-   "heben",
-   "heer",
-   "herb",
-   "rehe"
+   "heben"
   ]
  },
  {
@@ -7446,9 +5987,6 @@
    "breen",
    "breit",
    "breite",
-   "brite",
-   "eiern",
-   "einer",
    "reiben",
    "reiten",
    "treiben"
@@ -7495,10 +6033,7 @@
    "brei",
    "brie",
    "erbin",
-   "gelb",
-   "gern",
-   "gier",
-   "girl"
+   "gelb"
   ]
  },
  {
@@ -7508,9 +6043,6 @@
    "birne",
    "breen",
    "brief",
-   "eiern",
-   "eifer",
-   "einer",
    "feiern",
    "ferien",
    "fieber",
@@ -7528,13 +6060,10 @@
    "bien",
    "bier",
    "birne",
-   "brei",
-   "brie",
    "brief",
    "eifrig",
    "einig",
    "erbin",
-   "fein",
    "finger",
    "greif"
   ]
@@ -7551,9 +6080,6 @@
    "bridge",
    "brie",
    "dabei",
-   "dieb",
-   "drei",
-   "gabe",
    "garde",
    "grade"
   ]
@@ -7585,9 +6111,6 @@
    "brie",
    "erbin",
    "gern",
-   "gier",
-   "inne",
-   "nein",
    "ringen"
   ]
  },
@@ -7625,8 +6148,6 @@
  {
   "base": "brünette",
   "words": [
-   "bene",
-   "bete",
    "beten",
    "betten",
    "breen",
@@ -7637,7 +6158,6 @@
    "rente",
    "retten",
    "treten",
-   "trübe",
    "trüben"
   ]
  },
@@ -7654,10 +6174,7 @@
    "rübe",
    "stern",
    "trübe",
-   "trüben",
-   "türe",
-   "üben",
-   "über"
+   "trüben"
   ]
  },
  {
@@ -7669,9 +6186,6 @@
    "buche",
    "buchs",
    "busch",
-   "herb",
-   "ruhe",
-   "rush",
    "scher",
    "scheu",
    "schub",
@@ -7737,10 +6251,7 @@
    "rast",
    "rita",
    "sarg",
-   "stab",
-   "star",
-   "stör",
-   "tags"
+   "stab"
   ]
  },
  {
@@ -7750,11 +6261,8 @@
    "bereich",
    "bier",
    "breche",
-   "brei",
-   "brie",
    "brüche",
    "brühe",
-   "eher",
    "eiche",
    "herbei",
    "reich",
@@ -7818,11 +6326,8 @@
    "mara",
    "marc",
    "match",
-   "nach",
    "nacht",
-   "naht",
-   "ranch",
-   "tara"
+   "ranch"
   ]
  },
  {
@@ -7838,21 +6343,15 @@
    "marc",
    "marin",
    "nach",
-   "rain",
-   "ranch",
-   "rang",
-   "ring"
+   "ranch"
   ]
  },
  {
   "base": "chefarzt",
   "words": [
-   "acht",
    "achte",
    "after",
    "arche",
-   "arzt",
-   "chat",
    "fahrt",
    "fracht",
    "frech",
@@ -7869,9 +6368,6 @@
    "chemie",
    "creek",
    "creme",
-   "ecke",
-   "eher",
-   "ehre",
    "eiche",
    "eimer",
    "hecke",
@@ -7894,10 +6390,8 @@
    "schein",
    "schiene",
    "schnee",
-   "sehe",
    "sehen",
-   "sehne",
-   "sein"
+   "sehne"
   ]
  },
  {
@@ -7928,10 +6422,7 @@
    "lache",
    "lacher",
    "loch",
-   "lore",
-   "rache",
-   "real",
-   "reha"
+   "rache"
   ]
  },
  {
@@ -7939,7 +6430,6 @@
   "words": [
    "christ",
    "hirn",
-   "iris",
    "nicht",
    "nichts",
    "schiri",
@@ -7955,14 +6445,11 @@
   "base": "christus",
   "words": [
    "christ",
-   "riss",
-   "rush",
    "rutsch",
    "shirt",
    "sicht",
    "stich",
    "strich",
-   "stur",
    "sucht",
    "sushi",
    "tisch",
@@ -7996,8 +6483,7 @@
    "mode",
    "mond",
    "name",
-   "need",
-   "omen"
+   "need"
   ]
  },
  {
@@ -8024,11 +6510,8 @@
    "oper",
    "poet",
    "port",
-   "rote",
    "route",
-   "rute",
    "tempo",
-   "tour",
    "tumor"
   ]
  },
@@ -8071,10 +6554,7 @@
    "daten",
    "denn",
    "ethan",
-   "hand",
-   "head",
    "hinten",
-   "inne",
    "nahen"
   ]
  },
@@ -8089,10 +6569,7 @@
    "daten",
    "diner",
    "dirne",
-   "draht",
-   "ethan",
    "heirat",
-   "heran",
    "hinter",
    "triade"
   ]
@@ -8123,7 +6600,6 @@
    "farm",
    "fremd",
    "made",
-   "pfad",
    "pferd",
    "rampe"
   ]
@@ -8140,10 +6616,8 @@
    "denn",
    "eben",
    "eden",
-   "ende",
    "enden",
-   "neben",
-   "need"
+   "neben"
   ]
  },
  {
@@ -8171,10 +6645,7 @@
    "drehen",
    "ehren",
    "elend",
-   "erden",
    "handel",
-   "heran",
-   "herde",
    "leader",
    "lehren"
   ]
@@ -8192,10 +6663,7 @@
    "grad",
    "gral",
    "grand",
-   "land",
-   "lang",
-   "liga",
-   "lira"
+   "land"
   ]
  },
  {
@@ -8203,12 +6671,9 @@
   "words": [
    "arten",
    "darren",
-   "daten",
-   "dauer",
    "dauern",
    "derart",
    "drunter",
-   "natur",
    "rudern",
    "runter",
    "trauen",
@@ -8233,9 +6698,7 @@
  {
   "base": "dasitzen",
   "words": [
-   "aids",
    "dasein",
-   "date",
    "datei",
    "daten",
    "dienst",
@@ -8245,15 +6708,12 @@
    "inzest",
    "senat",
    "sitzen",
-   "stand",
-   "stein"
+   "stand"
   ]
  },
  {
   "base": "dastehen",
   "words": [
-   "ahne",
-   "dash",
    "daten",
    "ethan",
    "hades",
@@ -8264,8 +6724,7 @@
    "senat",
    "stand",
    "stehen",
-   "stehend",
-   "these"
+   "stehend"
   ]
  },
  {
@@ -8281,10 +6740,7 @@
    "rande",
    "raue",
    "rauen",
-   "rund",
-   "runde",
-   "rune",
-   "uran"
+   "runde"
   ]
  },
  {
@@ -8292,10 +6748,7 @@
   "words": [
    "adel",
    "alien",
-   "deal",
    "dealen",
-   "edel",
-   "eden",
    "eilen",
    "elend",
    "ideal",
@@ -8319,10 +6772,7 @@
    "denke",
    "ecke",
    "eden",
-   "ende",
-   "macke",
-   "made",
-   "name"
+   "macke"
   ]
  },
  {
@@ -8338,10 +6788,7 @@
    "mach",
    "mache",
    "machen",
-   "made",
-   "nach",
-   "nahe",
-   "name"
+   "made"
   ]
  },
  {
@@ -8349,11 +6796,8 @@
   "words": [
    "abend",
    "aber",
-   "ader",
    "anker",
    "baden",
-   "band",
-   "bank",
    "banker",
    "brand",
    "break",
@@ -8370,11 +6814,8 @@
    "amen",
    "dame",
    "dank",
-   "deal",
    "dekan",
    "kamel",
-   "klan",
-   "lade",
    "laden",
    "laken",
    "makel",
@@ -8393,10 +6834,7 @@
    "darm",
    "dran",
    "eden",
-   "ende",
-   "erde",
    "erden",
-   "made",
    "rande",
    "reden"
   ]
@@ -8408,10 +6846,7 @@
    "edel",
    "edle",
    "eile",
-   "erde",
-   "idee",
    "leder",
-   "leer",
    "leider",
    "leier",
    "weide",
@@ -8427,10 +6862,7 @@
    "dies",
    "dreh",
    "drei",
-   "herd",
-   "hier",
    "reich",
-   "reis",
    "scher",
    "schrei",
    "schwer",
@@ -8463,10 +6895,7 @@
    "date",
    "dessert",
    "erde",
-   "erst",
    "erste",
-   "esse",
-   "este",
    "rasse",
    "raste",
    "taser",
@@ -8486,9 +6915,6 @@
    "deal",
    "habe",
    "hades",
-   "halb",
-   "hals",
-   "hase",
    "salbe"
   ]
  },
@@ -8498,9 +6924,6 @@
    "design",
    "diener",
    "diner",
-   "dings",
-   "dirne",
-   "eiern",
    "irgend",
    "nieder",
    "reisen",
@@ -8550,11 +6973,8 @@
    "heli",
    "heut",
    "leicht",
-   "leid",
    "licht",
-   "lied",
-   "teich",
-   "teil"
+   "teich"
   ]
  },
  {
@@ -8577,11 +6997,8 @@
    "dusche",
    "echse",
    "echt",
-   "este",
-   "heut",
    "heute",
    "scheu",
-   "sehe",
    "seuche",
    "suche",
    "sucht",
@@ -8596,13 +7013,10 @@
    "aids",
    "base",
    "beat",
-   "best",
    "beste",
    "bestie",
-   "bete",
    "biest",
    "dabei",
-   "date",
    "datei",
    "seide",
    "seite"
@@ -8619,9 +7033,6 @@
    "dings",
    "dino",
    "dong",
-   "dose",
-   "eins",
-   "gans",
    "gnade",
    "sagen",
    "sonde"
@@ -8640,9 +7051,6 @@
    "delta",
    "detail",
    "ideal",
-   "kali",
-   "kalt",
-   "kate",
    "kleid"
   ]
  },
@@ -8659,9 +7067,7 @@
    "lade",
    "lady",
    "leid",
-   "lied",
-   "seal",
-   "seil"
+   "lied"
   ]
  },
  {
@@ -8673,13 +7079,11 @@
    "drei",
    "echt",
    "herd",
-   "hier",
    "hirte",
    "recht",
    "reich",
    "richte",
-   "teich",
-   "tier"
+   "teich"
   ]
  },
  {
@@ -8694,9 +7098,6 @@
    "eiern",
    "einen",
    "einer",
-   "enden",
-   "erden",
-   "inder",
    "innere",
    "nieder"
   ]
@@ -8713,9 +7114,6 @@
    "design",
    "dienst",
    "dings",
-   "einst",
-   "geist",
-   "gnade",
    "stange",
    "tagein"
   ]
@@ -8732,9 +7130,6 @@
    "ideal",
    "islam",
    "lade",
-   "leid",
-   "leim",
-   "lied",
    "media",
    "milde"
   ]
@@ -8748,14 +7143,11 @@
    "dreh",
    "drei",
    "echt",
-   "herd",
-   "hier",
    "hirte",
    "recht",
    "reich",
    "richte",
-   "teich",
-   "tier"
+   "teich"
   ]
  },
  {
@@ -8799,9 +7191,6 @@
    "ideal",
    "imam",
    "lade",
-   "lamm",
-   "leid",
-   "leim",
    "media",
    "milde"
   ]
@@ -8835,10 +7224,7 @@
    "order",
    "rekord",
    "rektor",
-   "retro",
-   "rote",
-   "tier",
-   "trio"
+   "retro"
   ]
  },
  {
@@ -8847,10 +7233,7 @@
    "diner",
    "ding",
    "dirne",
-   "drei",
-   "drin",
    "einig",
-   "gern",
    "inder",
    "intrige",
    "irgend",
@@ -8872,10 +7255,8 @@
    "kitt",
    "seide",
    "seite",
-   "sekt",
    "sekte",
-   "sitte",
-   "test"
+   "sitte"
   ]
  },
  {
@@ -8886,13 +7267,10 @@
    "drei",
    "dreist",
    "erst",
-   "kies",
    "kiste",
    "kredit",
    "kreis",
-   "kris",
    "krise",
-   "reis",
    "stier",
    "streik"
   ]
@@ -8910,9 +7288,7 @@
    "kunde",
    "mode",
    "mond",
-   "mund",
-   "note",
-   "omen"
+   "mund"
   ]
  },
  {
@@ -8955,8 +7331,6 @@
    "dach",
    "daher",
    "drache",
-   "dran",
-   "dreh",
    "heran",
    "rache",
    "rachen",
@@ -8978,9 +7352,7 @@
    "raue",
    "rauen",
    "rund",
-   "runde",
-   "rune",
-   "uran"
+   "runde"
   ]
  },
  {
@@ -9008,9 +7380,7 @@
    "draus",
    "dreck",
    "druck",
-   "duke",
    "krause",
-   "kurs",
    "sauce",
    "sauer"
   ]
@@ -9043,8 +7413,7 @@
    "ruhen",
    "rund",
    "runde",
-   "rune",
-   "urne"
+   "rune"
   ]
  },
  {
@@ -9061,8 +7430,7 @@
    "erde",
    "idee",
    "kreide",
-   "rede",
-   "rick"
+   "rede"
   ]
  },
  {
@@ -9073,8 +7441,6 @@
    "arie",
    "card",
    "chai",
-   "chef",
-   "dach",
    "daher",
    "drache",
    "frech",
@@ -9093,8 +7459,6 @@
    "arie",
    "arme",
    "dame",
-   "darm",
-   "deal",
    "email",
    "ideal",
    "maler",
@@ -9108,8 +7472,6 @@
   "words": [
    "diener",
    "diner",
-   "dirne",
-   "drehe",
    "drehen",
    "heizen",
    "herein",
@@ -9133,9 +7495,7 @@
    "drei",
    "drin",
    "gern",
-   "gier",
    "inder",
-   "inne",
    "irgend",
    "rinde",
    "ringen"
@@ -9152,8 +7512,6 @@
    "drei",
    "drin",
    "dringen",
-   "gern",
-   "gier",
    "inder",
    "irgend",
    "rinde",
@@ -9174,8 +7532,6 @@
    "innen",
    "neid",
    "nein",
-   "nerd",
-   "rein",
    "rinde"
   ]
  },
@@ -9207,8 +7563,6 @@
    "rinde",
    "ritten",
    "sitte",
-   "stein",
-   "stern",
    "streit"
   ]
  },
@@ -9226,8 +7580,7 @@
    "ruck",
    "rund",
    "runde",
-   "rune",
-   "urne"
+   "rune"
   ]
  },
  {
@@ -9243,10 +7596,8 @@
    "rute",
    "trend",
    "treu",
-   "turn",
    "turner",
-   "unter",
-   "urne"
+   "unter"
   ]
  },
  {
@@ -9276,8 +7627,7 @@
    "kate",
    "kauen",
    "kunde",
-   "take",
-   "tank"
+   "take"
   ]
  },
  {
@@ -9314,9 +7664,7 @@
    "card",
    "cash",
    "crash",
-   "dach",
    "dachs",
-   "dash",
    "draus",
    "durch",
    "rasch",
@@ -9337,9 +7685,7 @@
    "dienst",
    "dies",
    "easy",
-   "eins",
    "einst",
-   "nase",
    "senat",
    "stand",
    "stein"
@@ -9355,10 +7701,8 @@
    "binde",
    "bleibe",
    "bleiben",
-   "blind",
    "blinde",
    "dieben",
-   "eilen",
    "leiden",
    "lieben",
    "liebend"
@@ -9368,9 +7712,7 @@
   "base": "edelmann",
   "words": [
    "adel",
-   "amen",
    "anmelden",
-   "dame",
    "dealen",
    "elend",
    "enden",
@@ -9411,8 +7753,7 @@
    "heer",
    "herb",
    "rehe",
-   "reue",
-   "ruhe"
+   "reue"
   ]
  },
  {
@@ -9429,9 +7770,7 @@
    "herauf",
    "hufe",
    "raue",
-   "rauf",
-   "reha",
-   "rehe"
+   "rauf"
   ]
  },
  {
@@ -9448,8 +7787,7 @@
    "mesa",
    "same",
    "seal",
-   "sehe",
-   "slam"
+   "sehe"
   ]
  },
  {
@@ -9478,8 +7816,6 @@
    "geier",
    "genie",
    "gerne",
-   "green",
-   "hegen",
    "herein",
    "hering",
    "reihen"
@@ -9495,8 +7831,6 @@
    "heer",
    "hege",
    "herz",
-   "hier",
-   "rege",
    "regie",
    "reihe",
    "zeiger",
@@ -9531,9 +7865,7 @@
    "miete",
    "mieten",
    "minute",
-   "mutig",
-   "neige",
-   "niete"
+   "mutig"
   ]
  },
  {
@@ -9545,8 +7877,6 @@
    "einen",
    "ente",
    "inne",
-   "item",
-   "mann",
    "meinen",
    "miene",
    "miete",
@@ -9569,9 +7899,7 @@
    "einen",
    "inne",
    "neben",
-   "nein",
-   "neue",
-   "neun"
+   "nein"
   ]
  },
  {
@@ -9585,9 +7913,7 @@
    "blick",
    "blicke",
    "blicken",
-   "keil",
    "klein",
-   "knie",
    "linie",
    "nickel",
    "nicki"
@@ -9598,9 +7924,7 @@
   "words": [
    "bein",
    "bien",
-   "bier",
    "birne",
-   "brei",
    "bruch",
    "brunch",
    "buche",
@@ -9626,9 +7950,7 @@
    "ducken",
    "inder",
    "kunde",
-   "rinde",
-   "ruine",
-   "runde"
+   "rinde"
   ]
  },
  {
@@ -9661,9 +7983,7 @@
    "haften",
    "harfe",
    "heirat",
-   "heran",
-   "hinter",
-   "hirte"
+   "hinter"
   ]
  },
  {
@@ -9696,8 +8016,6 @@
    "linse",
    "nuss",
    "seil",
-   "sein",
-   "senf",
    "senil"
   ]
  },
@@ -9715,8 +8033,6 @@
    "einen",
    "engen",
    "geben",
-   "genie",
-   "neben",
    "neigen"
   ]
  },
@@ -9733,10 +8049,8 @@
    "hege",
    "hegen",
    "henne",
-   "inne",
    "neige",
-   "neigen",
-   "nein"
+   "neigen"
   ]
  },
  {
@@ -9753,15 +8067,12 @@
    "greif",
    "griff",
    "reif",
-   "rein",
-   "riff",
-   "ring"
+   "rein"
   ]
  },
  {
   "base": "einholen",
   "words": [
-   "eile",
    "eilen",
    "einen",
    "heilen",
@@ -9771,7 +8082,6 @@
    "lehnen",
    "leihe",
    "leihen",
-   "leine",
    "leinen",
    "lohnen",
    "online"
@@ -9801,7 +8111,6 @@
    "eigen",
    "einer",
    "einig",
-   "enge",
    "geier",
    "genie",
    "gerne",
@@ -9809,8 +8118,7 @@
    "neige",
    "niere",
    "regen",
-   "regie",
-   "reine"
+   "regie"
   ]
  },
  {
@@ -9854,9 +8162,7 @@
    "eklig",
    "genial",
    "kanne",
-   "klage",
    "klagen",
-   "klang",
    "klinge",
    "klingen",
    "langen",
@@ -9873,8 +8179,6 @@
    "eilen",
    "einen",
    "elend",
-   "enden",
-   "ideal",
    "landei",
    "landen",
    "leiden",
@@ -9895,9 +8199,7 @@
    "gelee",
    "genie",
    "legen",
-   "leine",
    "leinen",
-   "liege",
    "liegen",
    "neigen"
   ]
@@ -9915,10 +8217,8 @@
    "lesen",
    "linse",
    "linsen",
-   "lösen",
    "niesen",
-   "seilen",
-   "senil"
+   "seilen"
   ]
  },
  {
@@ -9934,8 +8234,6 @@
    "image",
    "lange",
    "linie",
-   "magen",
-   "magie",
    "mailen",
    "mangel"
   ]
@@ -9953,8 +8251,6 @@
    "einen",
    "einer",
    "enden",
-   "erden",
-   "inder",
    "innere",
    "nieder"
   ]
@@ -9971,10 +8267,8 @@
    "satz",
    "sein",
    "senat",
-   "sitz",
    "sitzen",
-   "stein",
-   "tanz"
+   "stein"
   ]
  },
  {
@@ -9991,14 +8285,12 @@
    "sehen",
    "sehne",
    "sehnen",
-   "sein",
-   "sinn"
+   "sein"
   ]
  },
  {
   "base": "einsicht",
   "words": [
-   "cent",
    "einst",
    "heini",
    "nicht",
@@ -10010,7 +8302,6 @@
    "stein",
    "stich",
    "teich",
-   "tisch",
    "tischen"
   ]
  },
@@ -10026,8 +8317,6 @@
    "genie",
    "geste",
    "gestein",
-   "neige",
-   "niete",
    "siegen",
    "steige",
    "steigen"
@@ -10045,8 +8334,6 @@
    "sitzen",
    "stein",
    "stern",
-   "stier",
-   "stirn",
    "untier",
    "zensur",
    "zuerst"
@@ -10072,7 +8359,6 @@
   "base": "eintrag",
   "words": [
    "agent",
-   "arie",
    "arten",
    "artig",
    "garten",
@@ -10083,8 +8369,7 @@
    "tagen",
    "tiger",
    "trage",
-   "tragen",
-   "train"
+   "tragen"
   ]
  },
  {
@@ -10113,8 +8398,6 @@
    "wand",
    "wann",
    "wanne",
-   "wein",
-   "wind",
    "winde",
    "winden"
   ]
@@ -10139,7 +8422,6 @@
   "base": "eisberg",
   "words": [
    "beige",
-   "berg",
    "biege",
    "brise",
    "erbse",
@@ -10150,7 +8432,6 @@
    "reise",
    "riese",
    "serge",
-   "serie",
    "sieger"
   ]
  },
@@ -10180,8 +8461,6 @@
    "kali",
    "kalt",
    "kate",
-   "keil",
-   "kies",
    "kiste",
    "liste",
    "steak",
@@ -10201,8 +8480,6 @@
    "fakt",
    "falke",
    "falte",
-   "fehl",
-   "fete",
    "halte",
    "kehle",
    "tafel",
@@ -10248,8 +8525,6 @@
    "alten",
    "angel",
    "eagle",
-   "egal",
-   "enge",
    "engel",
    "etage",
    "gelten",
@@ -10267,10 +8542,8 @@
    "egal",
    "enge",
    "engel",
-   "ganz",
    "ganze",
    "glanz",
-   "glee",
    "lange",
    "lanze",
    "legen",
@@ -10318,8 +8591,6 @@
    "insel",
    "leiden",
    "leine",
-   "leise",
-   "lesen",
    "pinsel",
    "seilen",
    "spende",
@@ -10332,10 +8603,8 @@
    "eiern",
    "eigen",
    "einer",
-   "enge",
    "geier",
    "genie",
-   "gern",
    "gerne",
    "green",
    "neige",
@@ -10352,8 +8621,6 @@
    "elch",
    "gleich",
    "gleis",
-   "heil",
-   "heli",
    "insel",
    "linse",
    "nische",
@@ -10373,8 +8640,6 @@
    "ekel",
    "enkel",
    "inne",
-   "keil",
-   "kinn",
    "klein",
    "knien",
    "leine",
@@ -10410,9 +8675,7 @@
    "ferne",
    "fernen",
    "fete",
-   "fett",
    "fetten",
-   "nett",
    "rente",
    "retten",
    "treten"
@@ -10437,8 +8700,6 @@
    "adel",
    "alte",
    "alten",
-   "dann",
-   "date",
    "daten",
    "dealen",
    "delta",
@@ -10460,8 +8721,6 @@
    "angeln",
    "egal",
    "galt",
-   "gant",
-   "gate",
    "lange",
    "langen",
    "nagel",
@@ -10515,7 +8774,6 @@
    "weizen",
    "witz",
    "zeit",
-   "zwei",
    "zweite"
   ]
  },
@@ -10533,8 +8791,6 @@
    "eben",
    "erbe",
    "erben",
-   "meer",
-   "name",
    "narbe"
   ]
  },
@@ -10552,9 +8808,7 @@
    "reiben",
    "reiten",
    "retten",
-   "ritten",
-   "treiben",
-   "treten"
+   "treiben"
   ]
  },
  {
@@ -10569,9 +8823,7 @@
    "ebene",
    "eden",
    "ende",
-   "erbe",
    "erben",
-   "erde",
    "erden",
    "reden"
   ]
@@ -10586,8 +8838,6 @@
    "born",
    "breen",
    "dorn",
-   "eben",
-   "eden",
    "erben",
    "erden",
    "obere",
@@ -10602,9 +8852,7 @@
    "dulden",
    "edel",
    "eden",
-   "edle",
    "elend",
-   "ende",
    "erden",
    "leder",
    "luder",
@@ -10623,8 +8871,6 @@
    "einig",
    "einiger",
    "eisen",
-   "eisig",
-   "geier",
    "reisen",
    "riesig",
    "siegen",
@@ -10638,7 +8884,6 @@
   "words": [
    "eiern",
    "einer",
-   "ente",
    "ernte",
    "ikone",
    "knete",
@@ -10648,8 +8893,7 @@
    "orient",
    "orten",
    "reine",
-   "reiten",
-   "rente"
+   "reiten"
   ]
  },
  {
@@ -10657,12 +8901,10 @@
   "words": [
    "ahne",
    "eher",
-   "ehre",
    "ehren",
    "fahne",
    "fahren",
    "fahrer",
-   "fern",
    "ferne",
    "ferner",
    "hafen",
@@ -10679,9 +8921,7 @@
    "essen",
    "faser",
    "fasern",
-   "fass",
    "fassen",
-   "fern",
    "ferne",
    "fresse",
    "fressen",
@@ -10704,9 +8944,7 @@
    "fernen",
    "finden",
    "freien",
-   "frieden",
-   "innere",
-   "nieder"
+   "frieden"
   ]
  },
  {
@@ -10723,9 +8961,7 @@
    "frieden",
    "frieren",
    "nieder",
-   "redner",
-   "reifen",
-   "riefen"
+   "redner"
   ]
  },
  {
@@ -10742,8 +8978,6 @@
    "gerne",
    "green",
    "legen",
-   "orgel",
-   "regel",
    "regeln"
   ]
  },
@@ -10788,8 +9022,6 @@
    "breen",
    "eben",
    "ebene",
-   "enge",
-   "erbe",
    "erben",
    "geben",
    "geber",
@@ -10803,8 +9035,6 @@
   "words": [
    "beige",
    "bergen",
-   "besen",
-   "biege",
    "biegen",
    "eisberg",
    "reiben",
@@ -10831,9 +9061,7 @@
    "heer",
    "hege",
    "hegen",
-   "rege",
-   "regen",
-   "rehe"
+   "regen"
   ]
  },
  {
@@ -10843,9 +9071,7 @@
    "ahne",
    "bahn",
    "bahre",
-   "bene",
    "breen",
-   "eben",
    "ehren",
    "erben",
    "haben",
@@ -10867,9 +9093,7 @@
    "erhalt",
    "ernte",
    "ethan",
-   "halte",
    "halten",
-   "heran",
    "laterne",
    "lehren"
   ]
@@ -10888,9 +9112,7 @@
    "erbe",
    "erben",
    "heben",
-   "heer",
-   "herb",
-   "rehe"
+   "heer"
   ]
  },
  {
@@ -10907,8 +9129,7 @@
    "horn",
    "neffe",
    "ofen",
-   "offen",
-   "rehe"
+   "offen"
   ]
  },
  {
@@ -10925,9 +9146,7 @@
    "lehn",
    "lehne",
    "lehre",
-   "lehren",
-   "lohn",
-   "lore"
+   "lehren"
   ]
  },
  {
@@ -10940,8 +9159,6 @@
    "holen",
    "horn",
    "hunger",
-   "lehn",
-   "loge",
    "lounge",
    "lunge",
    "orgel",
@@ -10961,8 +9178,6 @@
    "hegen",
    "henne",
    "hängen",
-   "nähen",
-   "näher",
    "nähern",
    "nähren",
    "regnen"
@@ -11007,9 +9222,7 @@
    "inne",
    "innen",
    "innere",
-   "irre",
    "irren",
-   "nein",
    "nenner",
    "niere",
    "reine",
@@ -11022,7 +9235,6 @@
   "words": [
    "anker",
    "anruf",
-   "fake",
    "ferne",
    "feuer",
    "feuern",
@@ -11032,8 +9244,7 @@
    "funker",
    "kauen",
    "kaufen",
-   "rauen",
-   "rufen"
+   "rauen"
   ]
  },
  {
@@ -11044,8 +9255,6 @@
    "denker",
    "denn",
    "duke",
-   "eden",
-   "ende",
    "enden",
    "erden",
    "kenner",
@@ -11063,8 +9272,6 @@
    "enkel",
    "ente",
    "ernte",
-   "kerl",
-   "kern",
    "klären",
    "knete",
    "kälte",
@@ -11082,8 +9289,6 @@
    "angler",
    "anlegen",
    "eagle",
-   "engel",
-   "engen",
    "general",
    "lagern",
    "langen",
@@ -11099,10 +9304,8 @@
    "arsen",
    "erlass",
    "esel",
-   "esse",
    "essen",
    "laser",
-   "lass",
    "lassen",
    "lesen",
    "leser",
@@ -11124,9 +9327,7 @@
    "brauen",
    "braun",
    "breen",
-   "erben",
    "labern",
-   "lauer",
    "lauern",
    "rauben"
   ]
@@ -11153,8 +9354,6 @@
   "words": [
    "besen",
    "biene",
-   "birne",
-   "breen",
    "lieben",
    "lieber",
    "reiben",
@@ -11181,8 +9380,6 @@
    "leier",
    "leite",
    "leiter",
-   "liege",
-   "liter",
    "riegel"
   ]
  },
@@ -11194,9 +9391,7 @@
    "gelee",
    "gern",
    "gerne",
-   "glee",
    "green",
-   "leer",
    "leere",
    "leeren",
    "legen",
@@ -11216,8 +9411,6 @@
    "einer",
    "elend",
    "erden",
-   "inder",
-   "leder",
    "leeren",
    "leiden",
    "leider",
@@ -11244,9 +9437,7 @@
    "demo",
    "dorn",
    "eden",
-   "ende",
    "enorm",
-   "erde",
    "erden",
    "moderne",
    "morden",
@@ -11271,7 +9462,6 @@
    "näher",
    "nähern",
    "nähren",
-   "rehe",
    "renner"
   ]
  },
@@ -11299,9 +9489,7 @@
    "ochse",
    "recht",
    "rechts",
-   "reich",
    "richte",
-   "scher",
    "schrei",
    "sicher",
    "storch",
@@ -11333,10 +9521,8 @@
    "erden",
    "erregen",
    "gerede",
-   "gern",
    "gerne",
    "green",
-   "need",
    "reden",
    "redner",
    "regen"
@@ -11369,9 +9555,7 @@
    "erste",
    "este",
    "nest",
-   "netz",
    "rente",
-   "rest",
    "setzen",
    "stern",
    "szene",
@@ -11404,9 +9588,7 @@
    "esse",
    "essen",
    "este",
-   "nest",
    "rente",
-   "rest",
    "sense",
    "stern",
    "tresen"
@@ -11419,9 +9601,7 @@
    "alter",
    "arme",
    "atem",
-   "erst",
    "laser",
-   "last",
    "maler",
    "master",
    "metal",
@@ -11445,9 +9625,7 @@
    "metal",
    "rasse",
    "raste",
-   "seltsam",
-   "smart",
-   "taler"
+   "seltsam"
   ]
  },
  {
@@ -11456,10 +9634,8 @@
    "echse",
    "ehren",
    "ruhen",
-   "scher",
    "schere",
    "scheren",
-   "scheu",
    "scheuen",
    "scheune",
    "schnee",
@@ -11479,9 +9655,7 @@
    "elite",
    "eltern",
    "ernte",
-   "leere",
    "leeren",
-   "leier",
    "leiten",
    "leiter",
    "reiten",
@@ -11500,8 +9674,6 @@
    "garten",
    "geraten",
    "gerne",
-   "green",
-   "range",
    "ranger",
    "regent",
    "tragen"
@@ -11525,8 +9697,6 @@
   "words": [
    "ahne",
    "arche",
-   "crew",
-   "eher",
    "ehren",
    "heran",
    "rache",
@@ -11548,10 +9718,8 @@
    "erraten",
    "etwa",
    "narr",
-   "rate",
    "raten",
    "rente",
-   "teen",
    "warner",
    "warte",
    "warten",
@@ -11586,7 +9754,6 @@
    "riese",
    "serie",
    "sirene",
-   "weise",
    "weisen",
    "weiser",
    "wiener"
@@ -11615,7 +9782,6 @@
    "eiern",
    "einer",
    "erden",
-   "inder",
    "nieder",
    "redner",
    "weiden",
@@ -11638,7 +9804,6 @@
    "nähern",
    "nähren",
    "rehe",
-   "wehe",
    "wehen",
    "wehren"
   ]
@@ -11671,7 +9836,6 @@
    "reue",
    "rune",
    "urne",
-   "zeug",
    "zeuge",
    "zunge"
   ]
@@ -11691,7 +9855,6 @@
    "reine",
    "reizen",
    "zehner",
-   "ziehe",
    "ziehen"
   ]
  },
@@ -11702,7 +9865,6 @@
    "eile",
    "eilen",
    "einer",
-   "leer",
    "leere",
    "leeren",
    "leier",
@@ -11723,7 +9885,6 @@
    "heer",
    "herz",
    "herzen",
-   "leer",
    "lehne",
    "lehre",
    "lehren",
@@ -11779,7 +9940,6 @@
    "maler",
    "meer",
    "merle",
-   "palm",
    "palme",
    "perle",
    "rampe"
@@ -11789,7 +9949,6 @@
   "base": "exfreund",
   "words": [
    "eden",
-   "ende",
    "erden",
    "feder",
    "federn",
@@ -11814,7 +9973,6 @@
    "este",
    "inzest",
    "nest",
-   "netz",
    "niete",
    "seite",
    "setzen",
@@ -11866,8 +10024,7 @@
    "rein",
    "reine",
    "reiten",
-   "rente",
-   "teen"
+   "rente"
   ]
  },
  {
@@ -11901,8 +10058,7 @@
    "herauf",
    "herz",
    "hufe",
-   "rage",
-   "raue"
+   "rage"
   ]
  },
  {
@@ -11919,7 +10075,6 @@
    "fein",
    "fern",
    "fies",
-   "frei",
    "rasen",
    "rasse"
   ]
@@ -11953,7 +10108,6 @@
    "fein",
    "fest",
    "fies",
-   "fist",
    "sanft",
    "satan",
    "senat",
@@ -11976,7 +10130,6 @@
    "frage",
    "frei",
    "gabe",
-   "gier",
    "greif"
   ]
  },
@@ -11989,7 +10142,6 @@
    "chat",
    "fach",
    "fass",
-   "fast",
    "fisch",
    "sachs",
    "schaf",
@@ -12067,7 +10219,6 @@
   "base": "feeling",
   "words": [
    "eigen",
-   "eile",
    "eilen",
    "engel",
    "fegen",
@@ -12097,8 +10248,7 @@
    "freie",
    "freitag",
    "geier",
-   "greif",
-   "regie"
+   "greif"
   ]
  },
  {
@@ -12127,7 +10277,6 @@
    "este",
    "fern",
    "ferne",
-   "fest",
    "feste",
    "festen",
    "rente",
@@ -12143,7 +10292,6 @@
    "eigen",
    "einer",
    "fegen",
-   "feger",
    "feiern",
    "ferien",
    "finger",
@@ -12169,15 +10317,13 @@
    "lange",
    "laser",
    "nagel",
-   "range",
-   "rasen"
+   "range"
   ]
  },
  {
   "base": "fertigen",
   "words": [
    "eiern",
-   "eifer",
    "feiern",
    "ferengi",
    "ferien",
@@ -12215,7 +10361,6 @@
    "fast",
    "fels",
    "fest",
-   "fies",
    "filet",
    "liste",
    "salve",
@@ -12241,7 +10386,6 @@
    "nadel",
    "sanft",
    "senat",
-   "stand",
    "tafeln"
   ]
  },
@@ -12254,7 +10398,6 @@
    "fast",
    "fehl",
    "fels",
-   "fest",
    "flash",
    "halte",
    "mathe",
@@ -12277,7 +10420,6 @@
    "fetten",
    "fetzen",
    "nest",
-   "nett",
    "setzen",
    "szene",
    "testen"
@@ -12311,7 +10453,6 @@
    "safe",
    "saft",
    "sake",
-   "satt",
    "steak",
    "taste"
   ]
@@ -12345,7 +10486,6 @@
    "heut",
    "heute",
    "hufe",
-   "hunt",
    "unecht"
   ]
  },
@@ -12364,7 +10504,6 @@
    "islam",
    "last",
    "lift",
-   "lira",
    "smart"
   ]
  },
@@ -12395,7 +10534,6 @@
    "erst",
    "fein",
    "fern",
-   "fest",
    "first",
    "frist",
    "steif",
@@ -12420,7 +10558,6 @@
    "real",
    "reif",
    "wall",
-   "ware",
    "wille"
   ]
  },
@@ -12453,7 +10590,6 @@
    "frische",
    "hier",
    "reich",
-   "reif",
    "scher",
    "schief",
    "schrei",
@@ -12498,7 +10634,6 @@
   "words": [
    "achse",
    "asche",
-   "cash",
    "chase",
    "falsch",
    "flach",
@@ -12527,8 +10662,7 @@
    "ratte",
    "tafel",
    "tafeln",
-   "talent",
-   "taler"
+   "talent"
   ]
  },
  {
@@ -12585,7 +10719,6 @@
   "base": "fliegen",
   "words": [
    "eigen",
-   "eile",
    "eilen",
    "engel",
    "feeling",
@@ -12615,7 +10748,6 @@
    "liege",
    "regel",
    "regie",
-   "reife",
    "riegel"
   ]
  },
@@ -12627,7 +10759,6 @@
    "elfe",
    "fehl",
    "fehlen",
-   "fein",
    "flehen",
    "heilen",
    "helfen",
@@ -12643,7 +10774,6 @@
   "words": [
    "eile",
    "eilen",
-   "eins",
    "eisen",
    "felsen",
    "insel",
@@ -12667,7 +10797,6 @@
    "eile",
    "eilen",
    "elend",
-   "elfe",
    "feind",
    "fidel",
    "fleiß",
@@ -12704,8 +10833,7 @@
    "liter",
    "reif",
    "rein",
-   "teil",
-   "tief"
+   "teil"
   ]
  },
  {
@@ -12723,8 +10851,7 @@
    "gaul",
    "halb",
    "half",
-   "hang",
-   "lang"
+   "hang"
   ]
  },
  {
@@ -12814,7 +10941,6 @@
    "frei",
    "ikone",
    "info",
-   "kern",
    "kerosin",
    "kreis",
    "krise",
@@ -12852,7 +10978,6 @@
    "froh",
    "frosch",
    "horn",
-   "hose",
    "ochse",
    "ochsen",
    "scher",
@@ -12874,8 +10999,7 @@
    "ochse",
    "rohr",
    "rose",
-   "scher",
-   "sehr"
+   "scher"
   ]
  },
  {
@@ -12893,8 +11017,7 @@
    "notruf",
    "rauf",
    "tofu",
-   "tour",
-   "turn"
+   "tour"
   ]
  },
  {
@@ -12904,7 +11027,6 @@
    "achte",
    "after",
    "arche",
-   "chat",
    "fahrer",
    "fahrt",
    "fracht",
@@ -12931,8 +11053,7 @@
    "rosa",
    "rose",
    "safe",
-   "senf",
-   "sofa"
+   "senf"
   ]
  },
  {
@@ -12946,7 +11067,6 @@
    "franc",
    "frech",
    "hafen",
-   "hafer",
    "haufen",
    "herauf",
    "nachruf",
@@ -12969,8 +11089,7 @@
    "fieber",
    "frage",
    "freie",
-   "geber",
-   "geier"
+   "geber"
   ]
  },
  {
@@ -12984,7 +11103,6 @@
    "frei",
    "freie",
    "heer",
-   "heft",
    "heiter",
    "hirte",
    "reife",
@@ -13024,8 +11142,7 @@
    "irre",
    "marie",
    "mauer",
-   "maurer",
-   "raue"
+   "maurer"
   ]
  },
  {
@@ -13041,7 +11158,6 @@
    "gate",
    "gier",
    "gift",
-   "graf",
    "greif",
    "tiger",
    "trage"
@@ -13061,7 +11177,6 @@
    "geist",
    "gratis",
    "greif",
-   "greis",
    "saftig",
    "strafe"
   ]
@@ -13081,7 +11196,6 @@
    "reiz",
    "ritz",
    "teer",
-   "tief",
    "tiefe"
   ]
  },
@@ -13100,7 +11214,6 @@
    "meer",
    "need",
    "nerd",
-   "rede",
    "reden"
   ]
  },
@@ -13119,8 +11232,7 @@
    "reue",
    "rufen",
    "rune",
-   "ufer",
-   "urne"
+   "ufer"
   ]
  },
  {
@@ -13136,7 +11248,6 @@
    "rinde",
    "rufen",
    "ruine",
-   "runde",
    "runden",
    "unreif",
    "unrein"
@@ -13151,7 +11262,6 @@
    "eiern",
    "eifer",
    "einer",
-   "erden",
    "federn",
    "feiern",
    "ferien",
@@ -13189,7 +11299,6 @@
    "freie",
    "freien",
    "freier",
-   "irren",
    "reifen",
    "riefen"
   ]
@@ -13198,7 +11307,6 @@
   "base": "frisbee",
   "words": [
    "beef",
-   "bier",
    "brief",
    "brise",
    "eifer",
@@ -13225,7 +11333,6 @@
    "frisch",
    "hier",
    "reich",
-   "reif",
    "scher",
    "schief",
    "schrei",
@@ -13239,7 +11346,6 @@
    "fisch",
    "fischen",
    "fischer",
-   "frech",
    "frisch",
    "frische",
    "nische",
@@ -13280,8 +11386,7 @@
    "ruine",
    "rune",
    "ufer",
-   "unreif",
-   "urin"
+   "unreif"
   ]
  },
  {
@@ -13347,8 +11452,7 @@
    "hüfte",
    "hüten",
    "hüter",
-   "recht",
-   "türe"
+   "recht"
   ]
  },
  {
@@ -13390,7 +11494,6 @@
    "eile",
    "geier",
    "gier",
-   "girl",
    "lager",
    "leier",
    "liege",
@@ -13415,7 +11518,6 @@
    "lage",
    "lager",
    "legal",
-   "liga",
    "regal"
   ]
  },
@@ -13430,7 +11532,6 @@
    "garten",
    "gesang",
    "range",
-   "rasen",
    "rasten",
    "stange",
    "strang",
@@ -13453,7 +11554,6 @@
    "range",
    "raten",
    "tagein",
-   "tagen",
    "tragen"
   ]
  },
@@ -13470,7 +11570,6 @@
    "rings",
    "rosa",
    "rosig",
-   "sang",
    "signor",
    "sogar",
    "sonnig"
@@ -13544,7 +11643,6 @@
    "eben",
    "ecke",
    "enge",
-   "gabe",
    "geben",
    "knabe"
   ]
@@ -13564,8 +11662,7 @@
    "gebet",
    "gebiet",
    "genie",
-   "neige",
-   "niete"
+   "neige"
   ]
  },
  {
@@ -13583,8 +11680,7 @@
    "geier",
    "getriebe",
    "regie",
-   "tiger",
-   "trieb"
+   "tiger"
   ]
  },
  {
@@ -13602,8 +11698,7 @@
    "gelebt",
    "geleit",
    "geliebt",
-   "glied",
-   "ledig"
+   "glied"
   ]
  },
  {
@@ -13621,7 +11716,6 @@
    "geige",
    "geiger",
    "gier",
-   "rege",
    "regie"
   ]
  },
@@ -13646,7 +11740,6 @@
    "berg",
    "bergen",
    "bogen",
-   "bong",
    "borgen",
    "breen",
    "erben",
@@ -13673,8 +11766,7 @@
    "gegner",
    "gerne",
    "green",
-   "obere",
-   "regen"
+   "obere"
   ]
  },
  {
@@ -13692,8 +11784,7 @@
    "grube",
    "haube",
    "herab",
-   "rache",
-   "rauch"
+   "rache"
   ]
  },
  {
@@ -13709,7 +11800,6 @@
    "eden",
    "ende",
    "enden",
-   "enge",
    "engen",
    "geben",
    "neben"
@@ -13728,7 +11818,6 @@
    "erben",
    "geben",
    "geber",
-   "gern",
    "gerne",
    "green",
    "regen"
@@ -13749,8 +11838,7 @@
    "geber",
    "gebühr",
    "gehen",
-   "gerne",
-   "green"
+   "gerne"
   ]
  },
  {
@@ -13794,7 +11882,6 @@
    "heide",
    "idee",
    "need",
-   "neid",
    "neige"
   ]
  },
@@ -13827,8 +11914,7 @@
    "neid",
    "neige",
    "niete",
-   "teen",
-   "teig"
+   "teen"
   ]
  },
  {
@@ -13841,7 +11927,6 @@
    "edle",
    "elend",
    "ende",
-   "enge",
    "engel",
    "geduld",
    "gulden",
@@ -13888,7 +11973,6 @@
    "eagle",
    "egal",
    "elfe",
-   "elle",
    "engel",
    "falle",
    "fallen",
@@ -13958,7 +12042,6 @@
    "rute",
    "teer",
    "teuer",
-   "treu",
    "treue"
   ]
  },
@@ -13976,7 +12059,6 @@
    "gern",
    "gerne",
    "green",
-   "ofen",
    "regen",
    "roger"
   ]
@@ -13996,7 +12078,6 @@
    "gehen",
    "gelten",
    "hagel",
-   "halte",
    "halten"
   ]
  },
@@ -14030,7 +12111,6 @@
    "hose",
    "mager",
    "marge",
-   "mars",
    "omega",
    "sogar",
    "sorge"
@@ -14049,7 +12129,6 @@
    "gerne",
    "green",
    "göre",
-   "heer",
    "hegen",
    "hören",
    "regen"
@@ -14068,7 +12147,6 @@
    "sieger",
    "singer",
    "sirene",
-   "steige",
    "steigen",
    "steigern",
    "strenge"
@@ -14088,7 +12166,6 @@
    "heli",
    "igel",
    "lage",
-   "liga",
    "salzig",
    "selig"
   ]
@@ -14120,7 +12197,6 @@
    "beleg",
    "berg",
    "eagle",
-   "egal",
    "gabel",
    "geber",
    "gelbe",
@@ -16707,7 +14783,8 @@
    "raue",
    "rauf",
    "reha",
-   "reif"
+   "reif",
+   "ruhe"
   ]
  },
  {
@@ -16798,6 +14875,7 @@
    "heer",
    "herb",
    "herbei",
+   "herr",
    "herüber",
    "reihe",
    "rüber",
@@ -16837,6 +14915,7 @@
    "inder",
    "inne",
    "neid",
+   "nein",
    "rinde"
   ]
  },
@@ -16870,7 +14949,8 @@
    "haben",
    "hang",
    "hieb",
-   "hinab"
+   "hinab",
+   "nahe"
   ]
  },
  {
@@ -16889,6 +14969,7 @@
    "gehen",
    "genie",
    "heben",
+   "hegen",
    "neigen"
   ]
  },
@@ -16905,6 +14986,7 @@
    "geige",
    "geigen",
    "genie",
+   "hege",
    "hegen",
    "henne",
    "neige",
@@ -16927,7 +15009,8 @@
    "high",
    "inne",
    "neige",
-   "neigen"
+   "neigen",
+   "nein"
   ]
  },
  {
@@ -16941,6 +15024,7 @@
    "engen",
    "gehen",
    "genie",
+   "hegen",
    "heilen",
    "lehnen",
    "leihen",
@@ -16998,6 +15082,7 @@
    "turnen",
    "unrein",
    "unten",
+   "unter",
    "untier"
   ]
  },
@@ -17017,7 +15102,8 @@
    "hieb",
    "hier",
    "hirn",
-   "rein"
+   "rein",
+   "rübe"
   ]
  },
  {
@@ -17048,6 +15134,7 @@
    "echo",
    "elch",
    "heck",
+   "held",
    "hocke",
    "kelch",
    "kohle",
@@ -17064,6 +15151,7 @@
    "deal",
    "demo",
    "dolan",
+   "hand",
    "handel",
    "holen",
    "laden",
@@ -17100,6 +15188,7 @@
    "paso",
    "pilot",
    "post",
+   "shop",
    "sophia",
    "spalt",
    "spital",
@@ -17137,6 +15226,7 @@
    "ruhen",
    "rund",
    "runde",
+   "rune",
    "trend",
    "truhe",
    "unter"
@@ -17173,6 +15263,7 @@
  {
   "base": "hysterie",
   "words": [
+   "eher",
    "erste",
    "heiser",
    "heiter",
@@ -17218,6 +15309,7 @@
    "rang",
    "ring",
    "rita",
+   "tang",
    "tango",
    "train"
   ]
@@ -17294,6 +15386,7 @@
    "motte",
    "motten",
    "nett",
+   "note",
    "petit",
    "point",
    "pointe",
@@ -17319,7 +15412,8 @@
    "meist",
    "samen",
    "senat",
-   "stand"
+   "stand",
+   "stein"
   ]
  },
  {
@@ -17337,6 +15431,7 @@
    "drei",
    "drin",
    "inder",
+   "inne",
    "rande",
    "rinde"
   ]
@@ -17356,6 +15451,7 @@
    "knie",
    "kredit",
    "neid",
+   "nerd",
    "rinde",
    "trend"
   ]
@@ -17399,6 +15495,7 @@
    "arie",
    "bahn",
    "bahre",
+   "bein",
    "beinah",
    "birne",
    "erbin",
@@ -17441,7 +15538,8 @@
    "rein",
    "reis",
    "rind",
-   "rinde"
+   "rinde",
+   "sein"
   ]
  },
  {
@@ -17480,6 +15578,7 @@
    "inne",
    "intern",
    "nein",
+   "nett",
    "raten",
    "ratte",
    "ritten",
@@ -17503,6 +15602,7 @@
    "innere",
    "intern",
    "niere",
+   "niete",
    "nieten",
    "reiten",
    "retten",
@@ -17524,6 +15624,7 @@
    "rain",
    "rate",
    "raten",
+   "rein",
    "tarnen",
    "train",
    "vater"
@@ -17541,6 +15642,7 @@
    "reintun",
    "ruin",
    "ruine",
+   "rune",
    "turnen",
    "unrein",
    "unten",
@@ -17564,6 +15666,7 @@
    "stein",
    "stern",
    "stier",
+   "stirn",
    "version"
   ]
  },
@@ -17571,6 +15674,7 @@
   "base": "irgendwo",
   "words": [
    "diner",
+   "ding",
    "dirne",
    "inder",
    "ingwer",
@@ -17737,6 +15841,7 @@
   "base": "kabinett",
   "words": [
    "abtei",
+   "akte",
    "aktie",
    "antik",
    "antike",
@@ -17767,6 +15872,7 @@
    "knie",
    "kran",
    "kreis",
+   "kris",
    "krise",
    "rasen"
   ]
@@ -17787,6 +15893,7 @@
    "laden",
    "laken",
    "leader",
+   "leder",
    "lenkrad"
   ]
  },
@@ -17806,7 +15913,8 @@
    "erika",
    "kabel",
    "kalb",
-   "kali"
+   "kali",
+   "keil"
   ]
  },
  {
@@ -17853,6 +15961,7 @@
    "aida",
    "anker",
    "arena",
+   "arie",
    "daran",
    "darin",
    "dekan",
@@ -17870,6 +15979,7 @@
   "words": [
    "aktie",
    "anker",
+   "antik",
    "antike",
    "arktis",
    "insekt",
@@ -17900,6 +16010,7 @@
    "knie",
    "knien",
    "nein",
+   "take",
    "tanken"
   ]
  },
@@ -17953,6 +16064,7 @@
    "kran",
    "niere",
    "panik",
+   "park",
    "parken",
    "reine"
   ]
@@ -17973,7 +16085,8 @@
    "pakt",
    "pate",
    "pike",
-   "take"
+   "take",
+   "tape"
   ]
  },
  {
@@ -17991,6 +16104,7 @@
    "kanal",
    "kind",
    "klan",
+   "klar",
    "lakai",
    "radikal"
   ]
@@ -18049,6 +16163,7 @@
    "klar",
    "kralle",
    "lake",
+   "rate",
    "taler"
   ]
  },
@@ -18064,6 +16179,7 @@
    "kette",
    "sake",
    "satt",
+   "sekt",
    "sekte",
    "steak",
    "stets",
@@ -18086,6 +16202,7 @@
    "lakai",
    "lake",
    "lava",
+   "like",
    "rivale",
    "vikar"
   ]
@@ -18114,6 +16231,7 @@
    "kies",
    "kinn",
    "kiste",
+   "knie",
    "knien",
    "sinken",
    "sinnen",
@@ -18138,6 +16256,7 @@
    "kelch",
    "lecken",
    "lecker",
+   "lehne",
    "lehren"
   ]
  },
@@ -18185,6 +16304,7 @@
    "knie",
    "knien",
    "neid",
+   "nein",
    "nicken"
   ]
  },
@@ -18216,6 +16336,7 @@
    "heck",
    "kitt",
    "knecht",
+   "knie",
    "nicht",
    "nichte",
    "technik",
@@ -18256,6 +16377,7 @@
    "kram",
    "kreml",
    "lake",
+   "lamm",
    "makel",
    "makler",
    "maler",
@@ -18266,6 +16388,7 @@
   "base": "klammern",
   "words": [
    "amen",
+   "amme",
    "anker",
    "kamel",
    "kammer",
@@ -18314,6 +16437,7 @@
    "lappen",
    "lepra",
    "parken",
+   "plane",
    "rappen"
   ]
  },
@@ -18333,6 +16457,7 @@
    "kalter",
    "karte",
    "kater",
+   "liter",
    "relikt"
   ]
  },
@@ -18350,6 +16475,7 @@
    "karte",
    "kate",
    "kater",
+   "kerl",
    "latte",
    "ratte",
    "taler"
@@ -18370,6 +16496,7 @@
    "lachs",
    "lack",
    "last",
+   "sack",
    "schal",
    "stahl"
   ]
@@ -18390,6 +16517,7 @@
    "real",
    "rivale",
    "viel",
+   "vier",
    "vikar"
   ]
  },
@@ -18409,6 +16537,7 @@
    "gier",
    "girl",
    "igel",
+   "keil",
    "krieg"
   ]
  },
@@ -18425,6 +16554,7 @@
    "elend",
    "ende",
    "enkel",
+   "idee",
    "kleid",
    "klein",
    "leiden",
@@ -18447,7 +16577,8 @@
    "kugeln",
    "kunde",
    "ledig",
-   "lunge"
+   "lunge",
+   "nudel"
   ]
  },
  {
@@ -18482,6 +16613,7 @@
    "ketten",
    "knete",
    "leer",
+   "nett",
    "rente",
    "retten",
    "treten"
@@ -18536,6 +16668,7 @@
    "like",
    "link",
    "linker",
+   "mine",
    "pinkel",
    "prime"
   ]
@@ -18572,6 +16705,7 @@
    "klingen",
    "knie",
    "knien",
+   "like",
    "linken"
   ]
  },
@@ -18600,6 +16734,7 @@
    "eklig",
    "igel",
    "ikone",
+   "inne",
    "klein",
    "kling",
    "klinge",
@@ -18639,6 +16774,7 @@
    "ekel",
    "elch",
    "esel",
+   "heck",
    "hecke",
    "heikel",
    "kehle",
@@ -18695,6 +16831,7 @@
    "keil",
    "klug",
    "kugel",
+   "kuli",
    "light",
    "ulkig"
   ]
@@ -18711,6 +16848,7 @@
    "banner",
    "break",
    "kanne",
+   "kern",
    "knabe",
    "krabbe",
    "krabben",
@@ -18777,6 +16915,7 @@
    "kreis",
    "krise",
    "sinken",
+   "stein",
    "stinken",
    "stinker",
    "streik",
@@ -18800,7 +16939,8 @@
    "ruin",
    "sirup",
    "sprung",
-   "spuk"
+   "spuk",
+   "spur"
   ]
  },
  {
@@ -18831,6 +16971,7 @@
    "kling",
    "klinge",
    "klingel",
+   "klon",
    "legion",
    "logik",
    "onkel"
@@ -18884,6 +17025,7 @@
    "kopie",
    "mika",
    "mine",
+   "name",
    "panik",
    "piano"
   ]
@@ -18964,6 +17106,7 @@
    "kalt",
    "kanu",
    "klan",
+   "klon",
    "konsul",
    "kunst",
    "lotus",
@@ -19049,6 +17192,7 @@
    "korn",
    "krone",
    "niere",
+   "oper",
    "poker",
    "pokern",
    "reine"
@@ -19085,6 +17229,7 @@
    "sorte",
    "test",
    "torte",
+   "tote",
    "toter",
    "trost"
   ]
@@ -19124,7 +17269,8 @@
    "rost",
    "stab",
    "star",
-   "stark"
+   "stark",
+   "trab"
   ]
  },
  {
@@ -19156,6 +17302,7 @@
    "hacken",
    "hacker",
    "haken",
+   "heck",
    "heran",
    "krach",
    "rache",
@@ -19198,7 +17345,8 @@
    "kratze",
    "nektar",
    "raten",
-   "tanker"
+   "tanker",
+   "trank"
   ]
  },
  {
@@ -19235,6 +17383,7 @@
    "take",
    "takt",
    "tara",
+   "ware",
    "warte",
    "watte"
   ]
@@ -19255,6 +17404,8 @@
    "take",
    "tier",
    "vater",
+   "vati",
+   "vier",
    "vikar"
   ]
  },
@@ -19272,6 +17423,8 @@
    "kater",
    "kreativ",
    "rakete",
+   "rate",
+   "rita",
    "vater",
    "vierte",
    "vikar"
@@ -19318,6 +17471,8 @@
    "eins",
    "eisen",
    "kern",
+   "kies",
+   "knie",
    "kreis",
    "krise",
    "niere",
@@ -19373,6 +17528,8 @@
    "birne",
    "blei",
    "blinker",
+   "brei",
+   "brie",
    "erbin",
    "klein",
    "linker"
@@ -19385,6 +17542,8 @@
    "ehren",
    "eiche",
    "eiern",
+   "einer",
+   "hecke",
    "hecken",
    "henker",
    "herein",
@@ -19406,7 +17565,9 @@
    "enge",
    "geier",
    "genie",
+   "gern",
    "gerne",
+   "gier",
    "green",
    "krieg",
    "neige",
@@ -19431,7 +17592,9 @@
    "rast",
    "rita",
    "stall",
+   "star",
    "stark",
+   "stil",
    "still"
   ]
  },
@@ -19472,7 +17635,9 @@
  {
   "base": "kubaner",
   "words": [
+   "aber",
    "anker",
+   "bank",
    "banker",
    "bauen",
    "bauer",
@@ -19539,7 +17704,9 @@
    "suche",
    "sucher",
    "sucht",
-   "truck"
+   "truck",
+   "truhe",
+   "tusch"
   ]
  },
  {
@@ -19665,6 +17832,8 @@
    "nagel",
    "nase",
    "saal",
+   "saga",
+   "sage",
    "sagen"
   ]
  },
@@ -19684,7 +17853,9 @@
    "raten",
    "real",
    "rente",
-   "taler"
+   "taler",
+   "teen",
+   "teer"
   ]
  },
  {
@@ -19716,6 +17887,8 @@
    "fund",
    "lade",
    "laden",
+   "land",
+   "lauf",
    "laufen",
    "laune",
    "nadel",
@@ -19734,8 +17907,10 @@
    "haus",
    "hinaus",
    "lachs",
+   "laus",
    "luchs",
    "lunch",
+   "nach",
    "schal",
    "schau",
    "schlau"
@@ -19752,6 +17927,8 @@
    "hausen",
    "lache",
    "lachen",
+   "lachs",
+   "laune",
    "schale",
    "schalen",
    "schauen",
@@ -19793,7 +17970,9 @@
    "elend",
    "elle",
    "ende",
+   "lade",
    "laden",
+   "land",
    "level",
    "nadel"
   ]
@@ -19827,6 +18006,8 @@
    "biegen",
    "biene",
    "bilden",
+   "binde",
+   "blind",
    "blinde",
    "dieben",
    "gelinde",
@@ -19890,6 +18071,7 @@
  {
   "base": "legendär",
   "words": [
+   "edel",
    "elend",
    "engel",
    "erden",
@@ -19903,7 +18085,8 @@
    "länge",
    "reden",
    "regel",
-   "regeln"
+   "regeln",
+   "regen"
   ]
  },
  {
@@ -19933,8 +18116,10 @@
    "herrin",
    "irren",
    "lehne",
+   "lehre",
    "lehren",
    "lehrer",
+   "leier",
    "leihen",
    "reihen"
   ]
@@ -19955,7 +18140,9 @@
    "hering",
    "hier",
    "hirn",
-   "igel"
+   "igel",
+   "lehn",
+   "nell"
   ]
  },
  {
@@ -19963,6 +18150,8 @@
   "words": [
    "ahne",
    "alien",
+   "amen",
+   "chai",
    "clean",
    "einmal",
    "email",
@@ -19990,6 +18179,8 @@
    "leiche",
    "leicht",
    "leier",
+   "leihe",
+   "leite",
    "leiter",
    "lichter",
    "reiche",
@@ -20007,9 +18198,11 @@
    "landen",
    "lawine",
    "linden",
+   "nadel",
    "nadeln",
    "wandel",
    "wandeln",
+   "wanne",
    "windel",
    "windeln",
    "winden"
@@ -20027,7 +18220,9 @@
    "leine",
    "leise",
    "leiste",
+   "leite",
    "leiten",
+   "lesen",
    "listen",
    "seilen",
    "selten",
@@ -20048,6 +18243,8 @@
    "linse",
    "liste",
    "listen",
+   "lunge",
+   "lunte",
    "lustig",
    "single",
    "tilgen"
@@ -20068,6 +18265,8 @@
    "leite",
    "leiten",
    "leiter",
+   "linie",
+   "liter",
    "reiten",
    "teilen"
   ]
@@ -20116,6 +18315,8 @@
    "dekan",
    "dran",
    "kerl",
+   "kern",
+   "klan",
    "laden",
    "laken",
    "nadel",
@@ -20157,6 +18358,7 @@
    "lieb",
    "sechs",
    "seil",
+   "sieb",
    "silbe"
   ]
  },
@@ -20166,6 +18368,8 @@
    "ente",
    "esel",
    "este",
+   "lenz",
+   "lese",
    "lesen",
    "letzen",
    "letzt",
@@ -20190,6 +18394,8 @@
    "heulen",
    "heut",
    "heute",
+   "hunt",
+   "lehn",
    "lehne",
    "leuchte",
    "leute",
@@ -20240,6 +18446,8 @@
    "laute",
    "lauten",
    "lunte",
+   "nett",
+   "neun",
    "talent",
    "tante",
    "tunnel",
@@ -20279,7 +18487,8 @@
    "reich",
    "richte",
    "teich",
-   "teil"
+   "teil",
+   "tier"
   ]
  },
  {
@@ -20310,13 +18519,17 @@
    "leben",
    "lehne",
    "leiche",
+   "leihe",
    "leihen",
+   "leine",
    "lieben"
   ]
  },
  {
   "base": "liebend",
   "words": [
+   "beil",
+   "bein",
    "biene",
    "bilden",
    "binde",
@@ -20348,6 +18561,8 @@
    "elend",
    "leben",
    "leiden",
+   "leine",
+   "liebe",
    "lieben",
    "liebend"
   ]
@@ -20386,7 +18601,8 @@
    "leib",
    "lieb",
    "lilie",
-   "linie"
+   "linie",
+   "nell"
   ]
  },
  {
@@ -20405,7 +18621,9 @@
    "liste",
    "seite",
    "silbe",
-   "steil"
+   "steil",
+   "stiel",
+   "teils"
   ]
  },
  {
@@ -20423,6 +18641,8 @@
    "freien",
    "leier",
    "leine",
+   "niere",
+   "reife",
    "reifen",
    "riefen"
   ]
@@ -20443,7 +18663,9 @@
    "malen",
    "media",
    "milan",
-   "milde"
+   "milde",
+   "model",
+   "nadel"
   ]
  },
  {
@@ -20462,6 +18684,8 @@
    "linden",
    "neid",
    "nein",
+   "nerd",
+   "rein",
    "rinde"
   ]
  },
@@ -20516,7 +18740,9 @@
  {
   "base": "losgehen",
   "words": [
+   "enge",
    "engel",
+   "esel",
    "gehen",
    "hegen",
    "holen",
@@ -20544,7 +18770,9 @@
    "lese",
    "lesen",
    "loge",
+   "lose",
    "losen",
+   "nell",
    "segel",
    "segeln",
    "segen",
@@ -20565,6 +18793,8 @@
    "lore",
    "otter",
    "ritt",
+   "rote",
+   "teer",
    "titel",
    "torte",
    "toter"
@@ -20584,6 +18814,8 @@
    "laut",
    "luft",
    "maul",
+   "rauf",
+   "raum",
    "traum",
    "umlauf",
    "uralt"
@@ -20593,6 +18825,8 @@
   "base": "lutschen",
   "words": [
    "cent",
+   "echt",
+   "elch",
    "husten",
    "luchs",
    "lunch",
@@ -20611,6 +18845,7 @@
  {
   "base": "lutscher",
   "words": [
+   "echt",
    "luchs",
    "recht",
    "rechts",
@@ -20624,7 +18859,8 @@
    "suche",
    "sucher",
    "sucht",
-   "truhe"
+   "truhe",
+   "tusch"
   ]
  },
  {
@@ -20657,6 +18893,7 @@
    "lügner",
    "nein",
    "rein",
+   "ring",
    "ringen"
   ]
  },
@@ -20685,6 +18922,8 @@
    "atom",
    "cash",
    "chaos",
+   "chat",
+   "cola",
    "lachs",
    "macho",
    "macht",
@@ -20720,7 +18959,9 @@
    "mast",
    "master",
    "matrose",
+   "mesa",
    "metro",
+   "most",
    "raste",
    "smart",
    "sorte",
@@ -20742,6 +18983,8 @@
    "heli",
    "hitze",
    "item",
+   "lahm",
+   "lehm",
    "mathe",
    "metal",
    "thema"
@@ -20779,6 +19022,8 @@
    "maske",
    "mesa",
    "oase",
+   "olle",
+   "sake",
    "small"
   ]
  },
@@ -20794,6 +19039,8 @@
    "kamin",
    "klein",
    "klima",
+   "kreml",
+   "laken",
    "linker",
    "mailen",
    "makler",
@@ -20814,6 +19061,8 @@
    "leer",
    "leier",
    "leim",
+   "lira",
+   "mail",
    "maler",
    "marie",
    "meile",
@@ -20836,6 +19085,8 @@
    "marge",
    "mega",
    "name",
+   "rage",
+   "rang",
    "range"
   ]
  },
@@ -20868,12 +19119,15 @@
    "mann",
    "mara",
    "marin",
-   "rain"
+   "rain",
+   "rand",
+   "rind"
   ]
  },
  {
   "base": "manieren",
   "words": [
+   "amen",
    "armee",
    "eiern",
    "eimer",
@@ -20887,6 +19141,7 @@
    "miene",
    "niere",
    "reimen",
+   "reine",
    "riemen"
   ]
  },
@@ -20901,6 +19156,8 @@
    "einst",
    "fast",
    "fasten",
+   "fein",
+   "fest",
    "meist",
    "samen",
    "sanft",
@@ -20921,6 +19178,8 @@
    "kamin",
    "keim",
    "kern",
+   "knie",
+   "kram",
    "marie",
    "marin",
    "marine",
@@ -20959,6 +19218,7 @@
    "norm",
    "notar",
    "roman",
+   "tara",
    "thron"
   ]
  },
@@ -20976,6 +19236,8 @@
    "mauer",
    "maus",
    "mesa",
+   "mies",
+   "muse",
    "quasi",
    "sauer",
    "serum"
@@ -20996,6 +19258,8 @@
    "nische",
    "sache",
    "sahne",
+   "samen",
+   "scham",
    "schein",
    "schema"
   ]
@@ -21030,7 +19294,9 @@
    "maske",
    "mass",
    "masse",
-   "rasse"
+   "mesa",
+   "rasse",
+   "sake"
   ]
  },
  {
@@ -21046,7 +19312,9 @@
    "master",
    "mesa",
    "rasse",
+   "rast",
    "raste",
+   "rate",
    "smart",
    "taser",
    "tasse"
@@ -21062,7 +19330,9 @@
    "areal",
    "arie",
    "arme",
+   "atem",
    "email",
+   "emir",
    "liter",
    "maler",
    "marie",
@@ -21087,6 +19357,8 @@
    "metier",
    "miete",
    "mieter",
+   "rate",
+   "reim",
    "timer"
   ]
  },
@@ -21117,7 +19389,9 @@
    "mars",
    "mast",
    "master",
+   "mesa",
    "metro",
+   "most",
    "raste",
    "smart",
    "sorte",
@@ -21141,6 +19415,8 @@
    "ritual",
    "taler",
    "timer",
+   "traum",
+   "uralt",
    "urteil"
   ]
  },
@@ -21172,6 +19448,8 @@
    "matt",
    "matte",
    "maus",
+   "mesa",
+   "most",
    "motte",
    "statue",
    "stute",
@@ -21191,6 +19469,8 @@
    "deal",
    "delle",
    "edel",
+   "edle",
+   "eile",
    "email",
    "ideal",
    "media",
@@ -21216,7 +19496,8 @@
    "mine",
    "neige",
    "niete",
-   "teen"
+   "teen",
+   "teig"
   ]
  },
  {
@@ -21235,6 +19516,8 @@
    "mach",
    "mache",
    "macher",
+   "marc",
+   "mehr",
    "rache"
   ]
  },
@@ -21248,7 +19531,9 @@
    "heer",
    "heim",
    "heiter",
+   "hier",
    "hirte",
+   "item",
    "meter",
    "metier",
    "miete",
@@ -21273,6 +19558,8 @@
    "lehm",
    "mahl",
    "maler",
+   "mars",
+   "mehl",
    "sammler"
   ]
  },
@@ -21294,6 +19581,7 @@
  {
   "base": "meistens",
   "words": [
+   "eins",
    "einst",
    "eisen",
    "essen",
@@ -21307,13 +19595,15 @@
    "niete",
    "seite",
    "sense",
-   "simsen"
+   "simsen",
+   "stein"
   ]
  },
  {
   "base": "meister",
   "words": [
    "eimer",
+   "emir",
    "erste",
    "meist",
    "meter",
@@ -21326,13 +19616,16 @@
    "riese",
    "seite",
    "serie",
-   "stier"
+   "stier",
+   "timer"
   ]
  },
  {
   "base": "meistern",
   "words": [
    "eiern",
+   "eimer",
+   "einer",
    "meister",
    "metier",
    "mieten",
@@ -21363,7 +19656,9 @@
    "limo",
    "meile",
    "melde",
+   "mild",
    "milde",
+   "mode",
    "model"
   ]
  },
@@ -21379,8 +19674,10 @@
    "meer",
    "memo",
    "miene",
+   "mine",
    "niere",
    "nimmer",
+   "norm",
    "reimen",
    "reine",
    "riemen"
@@ -21412,7 +19709,9 @@
    "heer",
    "mathe",
    "meer",
+   "mehr",
    "meter",
+   "part",
    "pater",
    "rampe",
    "thema"
@@ -21432,6 +19731,8 @@
    "mieter",
    "reim",
    "reue",
+   "rute",
+   "teer",
    "teuer",
    "timer",
    "treue"
@@ -21447,7 +19748,9 @@
    "erst",
    "intim",
    "iris",
+   "item",
    "meist",
+   "mies",
    "stein",
    "stern",
    "stier",
@@ -21473,6 +19776,7 @@
  {
   "base": "mistkerl",
   "words": [
+   "emir",
    "kiste",
    "kreis",
    "kreml",
@@ -21486,13 +19790,16 @@
    "stiel",
    "stier",
    "streik",
-   "teils"
+   "teils",
+   "timer"
   ]
  },
  {
   "base": "mitgehen",
   "words": [
    "eigen",
+   "enge",
+   "ente",
    "geheim",
    "gehen",
    "gemein",
@@ -21524,7 +19831,9 @@
    "limit",
    "mild",
    "milde",
-   "mitleid"
+   "mitleid",
+   "teig",
+   "teil"
   ]
  },
  {
@@ -21543,7 +19852,9 @@
    "lehm",
    "leim",
    "lift",
-   "limit"
+   "limit",
+   "mehl",
+   "teil"
   ]
  },
  {
@@ -21562,6 +19873,7 @@
    "reim",
    "rein",
    "termin",
+   "tier",
    "timer"
   ]
  },
@@ -21623,6 +19935,8 @@
    "mond",
    "mord",
    "morden",
+   "need",
+   "nerd",
    "orden",
    "reden"
   ]
@@ -21655,7 +19969,9 @@
    "mentor",
    "metro",
    "most",
+   "nest",
    "nestor",
+   "norm",
    "orten",
    "osten",
    "ostern",
@@ -21675,8 +19991,10 @@
    "atom",
    "game",
    "gant",
+   "gate",
    "magen",
    "magnet",
+   "mega",
    "monat",
    "montag",
    "omega",
@@ -21700,6 +20018,7 @@
    "sang",
    "song",
    "tags",
+   "tang",
    "tango"
   ]
  },
@@ -21752,7 +20071,8 @@
    "werk",
    "wund",
    "wunde",
-   "wunder"
+   "wunder",
+   "wurm"
   ]
  },
  {
@@ -21784,6 +20104,7 @@
    "reim",
    "reis",
    "serum",
+   "sure",
    "umkreis"
   ]
  },
@@ -21803,7 +20124,8 @@
    "samt",
    "sang",
    "stau",
-   "tags"
+   "tags",
+   "tang"
   ]
  },
  {
@@ -21865,6 +20187,9 @@
    "mörder",
    "neid",
    "nerd",
+   "reim",
+   "rein",
+   "rind",
    "rinde"
   ]
  },
@@ -21946,9 +20271,12 @@
    "halte",
    "halten",
    "inhalt",
+   "lache",
    "lachen",
    "latein",
    "leicht",
+   "licht",
+   "nacht",
    "nichte"
   ]
  },
@@ -21968,7 +20296,10 @@
    "nach",
    "nacht",
    "naht",
-   "ranch"
+   "ranch",
+   "rang",
+   "tang",
+   "tara"
   ]
  },
  {
@@ -22068,9 +20399,12 @@
    "enge",
    "geier",
    "genie",
+   "gern",
    "gerne",
+   "gier",
    "green",
    "neige",
+   "neue",
    "niere",
    "regen",
    "regie",
@@ -22107,6 +20441,9 @@
    "rasen",
    "raste",
    "rasten",
+   "raten",
+   "ratte",
+   "rauen",
    "starten",
    "statue",
    "statur",
@@ -22132,7 +20469,10 @@
    "natur",
    "raten",
    "rauen",
-   "trauen"
+   "taler",
+   "trauen",
+   "unter",
+   "uralt"
   ]
  },
  {
@@ -22149,7 +20489,10 @@
    "lauer",
    "lauern",
    "laune",
+   "laute",
    "lauten",
+   "leute",
+   "lunte",
    "neutral",
    "trauen"
   ]
@@ -22170,7 +20513,8 @@
    "leid",
    "lied",
    "linie",
-   "neid"
+   "neid",
+   "nice"
   ]
  },
  {
@@ -22189,7 +20533,9 @@
    "neid",
    "nerd",
    "rein",
-   "rinde"
+   "rind",
+   "rinde",
+   "ring"
   ]
  },
  {
@@ -22203,8 +20549,11 @@
    "email",
    "insel",
    "islam",
+   "leim",
    "linse",
+   "mail",
    "mailen",
+   "mais",
    "malen",
    "milan",
    "samen",
@@ -22214,7 +20563,9 @@
  {
   "base": "nirgends",
   "words": [
+   "denn",
    "design",
+   "dies",
    "diner",
    "dings",
    "dinner",
@@ -22226,6 +20577,7 @@
    "irgend",
    "rinde",
    "ringen",
+   "rings",
    "singen",
    "singer"
   ]
@@ -22241,6 +20593,9 @@
    "hals",
    "lachs",
    "lahm",
+   "loch",
+   "lohn",
+   "mach",
    "macho",
    "salon",
    "schal",
@@ -22282,8 +20637,10 @@
    "salon",
    "sanft",
    "sofa",
+   "soll",
    "stall",
    "talon",
+   "toll",
    "tonfall"
   ]
  },
@@ -22303,7 +20660,10 @@
    "nieten",
    "orient",
    "orten",
-   "reiten"
+   "reine",
+   "reiten",
+   "rente",
+   "tonne"
   ]
  },
  {
@@ -22318,8 +20678,11 @@
    "gant",
    "gate",
    "lage",
+   "lang",
    "lange",
+   "loge",
    "nagel",
+   "note",
    "tagen",
    "talon",
    "tango"
@@ -22357,7 +20720,10 @@
    "move",
    "nerv",
    "norm",
+   "oben",
+   "ober",
    "obere",
+   "omen",
    "vorne"
   ]
  },
@@ -22392,6 +20758,9 @@
    "retro",
    "robe",
    "rote",
+   "rotz",
+   "trab",
+   "zart",
    "zebra"
   ]
  },
@@ -22411,7 +20780,10 @@
    "labor",
    "lore",
    "ober",
-   "rabe"
+   "rabe",
+   "real",
+   "reha",
+   "robe"
   ]
  },
  {
@@ -22430,7 +20802,10 @@
    "drohen",
    "drohne",
    "haben",
-   "herab"
+   "herab",
+   "heran",
+   "narbe",
+   "orden"
   ]
  },
  {
@@ -22449,7 +20824,10 @@
    "leiter",
    "liebe",
    "lieber",
-   "liter"
+   "liter",
+   "obere",
+   "orbit",
+   "trieb"
   ]
  },
  {
@@ -22504,7 +20882,9 @@
    "monat",
    "nach",
    "nacht",
-   "naht"
+   "naht",
+   "noch",
+   "taco"
   ]
  },
  {
@@ -22517,8 +20897,11 @@
    "feger",
    "feier",
    "feige",
+   "frei",
    "freie",
+   "froh",
    "geier",
+   "gier",
    "greif",
    "orgie",
    "regie",
@@ -22604,6 +20987,7 @@
    "pier",
    "rain",
    "rappen",
+   "rein",
    "reine",
    "rippe"
   ]
@@ -22639,11 +21023,14 @@
    "drin",
    "drop",
    "nord",
+   "paar",
    "panda",
    "pardon",
    "piano",
+   "pond",
    "radio",
-   "radon"
+   "radon",
+   "rain"
   ]
  },
  {
@@ -22679,7 +21066,8 @@
    "rate",
    "ratte",
    "take",
-   "takt"
+   "takt",
+   "tape"
   ]
  },
  {
@@ -22726,7 +21114,9 @@
    "rost",
    "sport",
    "spot",
-   "star"
+   "star",
+   "wart",
+   "wort"
   ]
  },
  {
@@ -22800,6 +21190,9 @@
    "cash",
    "chase",
    "chat",
+   "echt",
+   "hase",
+   "hast",
    "pacht",
    "patch",
    "phase",
@@ -22849,6 +21242,7 @@
    "pest",
    "piste",
    "pitch",
+   "sehe",
    "seite",
    "sicht",
    "stich",
@@ -22910,8 +21304,11 @@
    "arsen",
    "laser",
    "lepra",
+   "lore",
+   "lose",
    "losen",
    "loser",
+   "nase",
    "parole",
    "person",
    "plane",
@@ -22980,7 +21377,10 @@
    "spalte",
    "stapel",
    "strafe",
-   "tapfer"
+   "tafel",
+   "taler",
+   "tapfer",
+   "taser"
   ]
  },
  {
@@ -23004,11 +21404,14 @@
   "base": "pflaumen",
   "words": [
    "alpen",
+   "amen",
    "ampel",
    "apfel",
+   "faul",
    "faulen",
    "lampe",
    "lampen",
+   "lauf",
    "laufen",
    "laune",
    "lumen",
@@ -23129,7 +21532,10 @@
    "poet",
    "pole",
    "post",
+   "seil",
+   "slip",
    "spiel",
+   "spot",
    "steil",
    "stiel",
    "teils"
@@ -23144,7 +21550,10 @@
    "alten",
    "angel",
    "anlage",
+   "egal",
+   "gala",
    "galant",
+   "galt",
    "lange",
    "nagel",
    "plage",
@@ -23186,7 +21595,8 @@
    "platt",
    "platte",
    "talent",
-   "tante"
+   "tante",
+   "tape"
   ]
  },
  {
@@ -23204,7 +21614,10 @@
    "luder",
    "nadel",
    "nudel",
+   "plane",
    "plunder",
+   "pudel",
+   "puder",
    "pudern"
   ]
  },
@@ -23238,7 +21651,10 @@
    "pitch",
    "poet",
    "post",
+   "shop",
+   "shot",
    "sicht",
+   "spot",
    "stich",
    "teich",
    "tisch"
@@ -23256,8 +21672,11 @@
    "leine",
    "lore",
    "niere",
+   "oper",
+   "pein",
    "perle",
    "perlen",
+   "pier",
    "polen",
    "polier",
    "reine"
@@ -23396,7 +21815,10 @@
    "patch",
    "post",
    "saft",
-   "schaf"
+   "schaf",
+   "shop",
+   "shot",
+   "sofa"
   ]
  },
  {
@@ -23430,7 +21852,10 @@
    "green",
    "inder",
    "irgend",
-   "nieder"
+   "neige",
+   "nieder",
+   "niere",
+   "reden"
   ]
  },
  {
@@ -23454,9 +21879,12 @@
   "words": [
    "eiern",
    "einer",
+   "eins",
    "eisen",
    "espen",
    "niere",
+   "pein",
+   "pier",
    "preis",
    "prise",
    "reine",
@@ -23511,7 +21939,10 @@
  {
   "base": "priester",
   "words": [
+   "erst",
    "erste",
+   "este",
+   "irre",
    "perser",
    "piste",
    "preis",
@@ -23572,7 +22003,8 @@
    "rein",
    "rote",
    "tier",
-   "trio"
+   "trio",
+   "trip"
   ]
  },
  {
@@ -23584,8 +22016,11 @@
    "pest",
    "poet",
    "port",
+   "post",
    "poster",
+   "pott",
    "prost",
+   "rest",
    "sorte",
    "sport",
    "spott",
@@ -23610,6 +22045,9 @@
    "rain",
    "rita",
    "train",
+   "trio",
+   "trip",
+   "vati",
    "voran"
   ]
  },
@@ -23653,9 +22091,12 @@
    "girl",
    "glee",
    "igel",
+   "leer",
    "leier",
    "liege",
+   "lüge",
    "perle",
+   "pier",
    "pilger",
    "regel",
    "regie",
@@ -23702,9 +22143,12 @@
    "darm",
    "drei",
    "emir",
+   "made",
+   "maid",
    "marie",
    "mayer",
    "media",
+   "pier",
    "prima",
    "prime",
    "rampe",
@@ -23759,6 +22203,9 @@
    "drei",
    "erika",
    "ideal",
+   "kali",
+   "keil",
+   "kerl",
    "kleid",
    "lakai",
    "radikal"
@@ -23767,8 +22214,10 @@
  {
   "base": "rangehen",
   "words": [
+   "ahne",
    "ahnen",
    "angehen",
+   "eher",
    "ehren",
    "engen",
    "erahnen",
@@ -23780,6 +22229,7 @@
    "heran",
    "nahen",
    "range",
+   "regen",
    "regnen"
   ]
  },
@@ -23794,8 +22244,11 @@
    "clean",
    "crash",
    "heran",
+   "lache",
    "lachen",
    "lacher",
+   "lachs",
+   "laser",
    "rachen",
    "schale",
    "schalen",
@@ -23805,11 +22258,14 @@
  {
   "base": "rasieren",
   "words": [
+   "arie",
    "arsen",
    "eiern",
    "einer",
+   "eins",
    "eisen",
    "iraner",
+   "irre",
    "irren",
    "niere",
    "rasen",
@@ -23834,10 +22290,13 @@
    "rate",
    "reis",
    "rest",
+   "rita",
+   "star",
    "starr",
    "starre",
    "stier",
-   "taser"
+   "taser",
+   "tier"
   ]
  },
  {
@@ -23853,9 +22312,12 @@
    "erbe",
    "ertrag",
    "etage",
+   "gabe",
+   "gate",
    "geber",
    "gebet",
    "gerber",
+   "grab",
    "trage"
   ]
  },
@@ -23904,6 +22366,9 @@
    "bart",
    "bauer",
    "baute",
+   "beat",
+   "beau",
+   "bier",
    "braut",
    "breit",
    "brite",
@@ -23927,7 +22392,10 @@
    "rachen",
    "ranch",
    "rauch",
+   "raue",
    "rauen",
+   "reha",
+   "ruhe",
    "ruhen"
   ]
  },
@@ -23951,6 +22419,9 @@
   "words": [
    "achse",
    "arche",
+   "arsen",
+   "asche",
+   "chase",
    "hausen",
    "hauser",
    "heraus",
@@ -23976,8 +22447,11 @@
    "arten",
    "erika",
    "ikone",
+   "kante",
+   "karte",
    "karten",
    "karton",
+   "kater",
    "kreation",
    "nektar",
    "orient",
@@ -24016,6 +22490,8 @@
    "rita",
    "ritt",
    "taler",
+   "teil",
+   "tier",
    "titel",
    "täter"
   ]
@@ -24078,6 +22554,7 @@
    "eigen",
    "einer",
    "energie",
+   "enge",
    "erregen",
    "geier",
    "genie",
@@ -24087,6 +22564,8 @@
    "neige",
    "niere",
    "regen",
+   "regie",
+   "reine",
    "ringer"
   ]
  },
@@ -24096,6 +22575,9 @@
    "eiern",
    "eigen",
    "eimer",
+   "einer",
+   "ernte",
+   "geier",
    "gemein",
    "meeting",
    "metier",
@@ -24125,7 +22607,10 @@
    "serge",
    "serie",
    "sieger",
-   "steige"
+   "steig",
+   "steige",
+   "stieg",
+   "stier"
   ]
  },
  {
@@ -24137,7 +22622,10 @@
    "eiche",
    "eiern",
    "einer",
+   "heer",
    "herein",
+   "hier",
+   "hirn",
    "niere",
    "reich",
    "reiche",
@@ -24157,8 +22645,11 @@
    "heut",
    "hier",
    "hirte",
+   "item",
+   "mehr",
    "recht",
    "reich",
+   "reim",
    "richte",
    "teich",
    "timer",
@@ -24182,7 +22673,10 @@
    "fell",
    "fern",
    "finale",
-   "frei"
+   "frei",
+   "lila",
+   "lira",
+   "nell"
   ]
  },
  {
@@ -24200,8 +22694,11 @@
    "hirte",
    "niere",
    "niete",
+   "reihe",
    "reihen",
-   "reiten"
+   "reine",
+   "reiten",
+   "rente"
   ]
  },
  {
@@ -24217,6 +22714,9 @@
    "einiger",
    "engen",
    "geier",
+   "genie",
+   "gerne",
+   "green",
    "innere",
    "neigen",
    "regnen",
@@ -24237,7 +22737,10 @@
    "nieder",
    "niere",
    "reden",
+   "reine",
+   "reise",
    "reisen",
+   "riese",
    "sender",
    "sirene"
   ]
@@ -24255,8 +22758,12 @@
    "niere",
    "niete",
    "reine",
+   "reise",
    "reisen",
    "reiten",
+   "rente",
+   "riese",
+   "seite",
    "sirene",
    "tresen"
   ]
@@ -24284,8 +22791,12 @@
    "diner",
    "dirne",
    "drei",
+   "drin",
+   "eden",
    "eiern",
    "einer",
+   "ende",
+   "erde",
    "erden",
    "inder",
    "nieder",
@@ -24312,7 +22823,9 @@
    "vier",
    "vize",
    "voll",
-   "ziel"
+   "ziel",
+   "zier",
+   "zoll"
   ]
  },
  {
@@ -24326,11 +22839,15 @@
    "klar",
    "kram",
    "kreml",
+   "lake",
+   "leer",
    "makel",
    "makler",
    "makrele",
    "maler",
+   "mark",
    "marke",
+   "meer",
    "merle"
   ]
  },
@@ -24350,20 +22867,28 @@
    "taler",
    "teil",
    "tier",
-   "vater"
+   "vater",
+   "vati",
+   "viel",
+   "vier",
+   "vita"
   ]
  },
  {
   "base": "relevant",
   "words": [
+   "alte",
    "alten",
    "alter",
    "altern",
    "arten",
    "eltern",
+   "ente",
    "ernte",
    "event",
+   "ever",
    "laterne",
+   "leer",
    "raten",
    "rente",
    "taler",
@@ -24386,9 +22911,13 @@
    "legion",
    "linie",
    "loge",
+   "lore",
+   "oger",
    "orgel",
    "orgie",
-   "region"
+   "region",
+   "rein",
+   "ring"
   ]
  },
  {
@@ -24421,12 +22950,16 @@
    "bahre",
    "bann",
    "banner",
+   "habe",
    "haben",
    "herab",
    "heran",
+   "herb",
+   "nahe",
    "nahen",
    "narbe",
-   "narben"
+   "narben",
+   "rabe"
   ]
  },
  {
@@ -24445,7 +22978,9 @@
    "reiten",
    "reiter",
    "rente",
-   "teen"
+   "teen",
+   "teer",
+   "tier"
   ]
  },
  {
@@ -24490,6 +23025,10 @@
    "klub",
    "kuli",
    "leib",
+   "lieb",
+   "like",
+   "luke",
+   "lupe",
    "publik",
    "rubel"
   ]
@@ -24502,9 +23041,13 @@
    "erste",
    "este",
    "ever",
+   "rast",
    "raste",
    "raster",
+   "rate",
+   "rest",
    "server",
+   "star",
    "starr",
    "starre",
    "taser",
@@ -24525,6 +23068,10 @@
    "erden",
    "inder",
    "nieder",
+   "niere",
+   "reden",
+   "reine",
+   "reise",
    "reisen",
    "reizen",
    "reizend",
@@ -24559,9 +23106,13 @@
    "salut",
    "sattel",
    "sauer",
+   "start",
    "statue",
    "statur",
+   "stute",
    "sutter",
+   "taler",
+   "taser",
    "traute"
   ]
  },
@@ -24598,7 +23149,10 @@
    "nerv",
    "rache",
    "rachen",
-   "ranch"
+   "ranch",
+   "reha",
+   "rehe",
+   "vene"
   ]
  },
  {
@@ -24630,7 +23184,8 @@
    "reich",
    "rein",
    "richte",
-   "teich"
+   "teich",
+   "tier"
   ]
  },
  {
@@ -24675,7 +23230,11 @@
    "eiche",
    "eiern",
    "einer",
+   "heer",
    "herein",
+   "hier",
+   "hirn",
+   "nice",
    "niere",
    "reich",
    "reiche",
@@ -24714,6 +23273,7 @@
    "star",
    "stark",
    "stirn",
+   "tank",
    "train",
    "trank",
    "trans"
@@ -24732,9 +23292,11 @@
    "rosa",
    "rost",
    "sack",
+   "star",
    "stark",
    "starr",
    "stock",
+   "taco",
    "track"
   ]
  },
@@ -24744,8 +23306,12 @@
    "aktion",
    "amok",
    "antik",
+   "atom",
    "kamin",
+   "karo",
    "karton",
+   "kino",
+   "koma",
    "koran",
    "marin",
    "markt",
@@ -24789,7 +23355,8 @@
    "relais",
    "rosa",
    "rose",
-   "seal"
+   "seal",
+   "seil"
   ]
  },
  {
@@ -24807,7 +23374,9 @@
    "weit",
    "wert",
    "winter",
+   "wirt",
    "worin",
+   "wort",
    "worten"
   ]
  },
@@ -24824,9 +23393,13 @@
    "rote",
    "route",
    "rute",
+   "teer",
    "teuer",
    "torte",
+   "tote",
    "toter",
+   "tour",
+   "treu",
    "treue"
   ]
  },
@@ -24844,7 +23417,11 @@
    "ruin",
    "ruine",
    "rune",
+   "rute",
+   "tier",
+   "tour",
    "touren",
+   "treu",
    "unter",
    "untier"
   ]
@@ -24876,9 +23453,13 @@
    "recht",
    "rechts",
    "rest",
+   "ruhe",
+   "rush",
+   "rute",
    "rutsch",
    "scher",
    "scheu",
+   "sehr",
    "suche",
    "sucher",
    "sucht",
@@ -24897,7 +23478,11 @@
    "ruhen",
    "rutsch",
    "rutsche",
+   "scher",
+   "scheu",
    "schnur",
+   "stern",
+   "suche",
    "suchen",
    "sucher",
    "suchten",
@@ -24921,6 +23506,8 @@
    "stur",
    "sucht",
    "tisch",
+   "trug",
+   "tuch",
    "tusch"
   ]
  },
@@ -24982,7 +23569,11 @@
    "oase",
    "obst",
    "saat",
-   "saga"
+   "saga",
+   "sage",
+   "stab",
+   "steg",
+   "tags"
   ]
  },
  {
@@ -25060,8 +23651,12 @@
    "hands",
    "iwan",
    "nach",
+   "sand",
+   "scan",
    "schwan",
+   "wach",
    "wachs",
+   "wahn",
    "wisch"
   ]
  },
@@ -25069,7 +23664,11 @@
   "base": "satellit",
   "words": [
    "alle",
+   "alte",
+   "last",
    "latte",
+   "lila",
+   "list",
    "liste",
    "sattel",
    "sitte",
@@ -25129,7 +23728,11 @@
    "dachs",
    "dash",
    "hades",
+   "hand",
    "hands",
+   "hase",
+   "head",
+   "nach",
    "sache",
    "sahne",
    "schade",
@@ -25163,8 +23766,12 @@
    "cash",
    "chase",
    "chef",
+   "fach",
    "fahne",
    "hafen",
+   "hase",
+   "nach",
+   "nahe",
    "sache",
    "sahne",
    "schaf",
@@ -25182,9 +23789,13 @@
    "chase",
    "clan",
    "clean",
+   "elch",
+   "hals",
+   "hase",
    "lache",
    "lachen",
    "lachs",
+   "lehn",
    "sache",
    "sahne",
    "schal",
@@ -25195,9 +23806,13 @@
   "base": "schalte",
   "words": [
    "achse",
+   "acht",
    "achte",
+   "alte",
    "asche",
+   "cash",
    "chase",
+   "chat",
    "halte",
    "lache",
    "lachs",
@@ -25214,7 +23829,11 @@
   "base": "schalten",
   "words": [
    "achse",
+   "achte",
    "achten",
+   "alten",
+   "asche",
+   "chase",
    "halten",
    "lachen",
    "lasten",
@@ -25237,7 +23856,11 @@
    "alter",
    "arche",
    "asche",
+   "chase",
+   "crash",
    "erhalt",
+   "halte",
+   "lache",
    "lacher",
    "rechts",
    "sachte",
@@ -25259,8 +23882,12 @@
    "hass",
    "lachs",
    "lahm",
+   "lass",
    "lasso",
+   "loch",
+   "mach",
    "macho",
+   "mahl",
    "sachs",
    "schal",
    "scham",
@@ -25279,7 +23906,11 @@
    "dachs",
    "dash",
    "hades",
+   "hand",
    "hands",
+   "hase",
+   "head",
+   "nach",
    "sache",
    "sahne",
    "schade",
@@ -25290,8 +23921,11 @@
   "base": "scharade",
   "words": [
    "achse",
+   "ader",
    "arche",
    "asche",
+   "card",
+   "cash",
    "chase",
    "crash",
    "dachs",
@@ -25302,15 +23936,18 @@
    "rasch",
    "sache",
    "schade",
-   "schar"
+   "schar",
+   "scher"
   ]
  },
  {
   "base": "schatten",
   "words": [
    "achse",
+   "acht",
    "achte",
    "achten",
+   "ahne",
    "asche",
    "chase",
    "ethan",
@@ -25320,7 +23957,9 @@
    "sachte",
    "sahne",
    "senat",
+   "tante",
    "tasche",
+   "taste",
    "tasten"
   ]
  },
@@ -25331,7 +23970,11 @@
    "ahne",
    "anus",
    "asche",
+   "auch",
+   "cash",
    "chase",
+   "hase",
+   "haue",
    "hauen",
    "hausen",
    "sache",
@@ -25356,6 +23999,10 @@
    "fluch",
    "flush",
    "fuchs",
+   "fusel",
+   "lache",
+   "lachs",
+   "luchs",
    "schale",
    "schlaf",
    "schlau",
@@ -25376,14 +24023,19 @@
    "luchs",
    "sache",
    "sauce",
+   "schal",
    "schale",
+   "schau",
+   "scheu",
    "schlau",
-   "schule"
+   "schule",
+   "suche"
   ]
  },
  {
   "base": "scheiben",
   "words": [
+   "bein",
    "besen",
    "biene",
    "bischen",
@@ -25391,12 +24043,15 @@
    "echse",
    "eiche",
    "eisen",
+   "heben",
    "nische",
    "scheibe",
    "schein",
    "schieben",
    "schiene",
    "schnee",
+   "sehen",
+   "sehne",
    "sieben"
   ]
  },
@@ -25404,8 +24059,11 @@
   "base": "scheiden",
   "words": [
    "chinese",
+   "dies",
    "echse",
+   "eden",
    "eiche",
+   "eins",
    "eisen",
    "heide",
    "nische",
@@ -25416,7 +24074,8 @@
    "schneid",
    "schneide",
    "sehen",
-   "sehne"
+   "sehne",
+   "seide"
   ]
  },
  {
@@ -25426,8 +24085,10 @@
    "echse",
    "eiche",
    "einen",
+   "eins",
    "eisen",
    "henne",
+   "inne",
    "niesen",
    "nische",
    "schein",
@@ -25435,6 +24096,8 @@
    "schienen",
    "schnee",
    "schneien",
+   "sehen",
+   "sehne",
    "sehnen"
   ]
  },
@@ -25456,7 +24119,11 @@
   "base": "schenkel",
   "words": [
    "echse",
+   "ecke",
+   "ekel",
+   "elch",
    "enkel",
+   "esel",
    "hecke",
    "hecken",
    "kehle",
@@ -25502,9 +24169,13 @@
    "erben",
    "erbse",
    "heben",
+   "scher",
    "schere",
    "scheren",
    "schnee",
+   "sehen",
+   "seher",
+   "sehne",
    "serben"
   ]
  },
@@ -25531,7 +24202,11 @@
   "base": "scherzen",
   "words": [
    "echse",
+   "eher",
+   "ehre",
    "ehren",
+   "heer",
+   "herz",
    "herzen",
    "scher",
    "schere",
@@ -25567,6 +24242,7 @@
   "words": [
    "achse",
    "asche",
+   "auch",
    "chase",
    "lache",
    "lachs",
@@ -25577,8 +24253,11 @@
    "schal",
    "schale",
    "schau",
+   "scheu",
    "schlau",
-   "schule"
+   "schule",
+   "sechs",
+   "suche"
   ]
  },
  {
@@ -25604,11 +24283,15 @@
    "check",
    "chic",
    "heck",
+   "hier",
+   "kies",
    "kirche",
    "kirsche",
    "kreis",
+   "kris",
    "krise",
    "reich",
+   "reis",
    "scheck",
    "scher",
    "schick",
@@ -25620,6 +24303,7 @@
  {
   "base": "schieben",
   "words": [
+   "bein",
    "besen",
    "biene",
    "bischen",
@@ -25627,12 +24311,15 @@
    "echse",
    "eiche",
    "eisen",
+   "heben",
    "nische",
    "scheibe",
    "scheiben",
    "schein",
    "schiene",
    "schnee",
+   "sehen",
+   "sehne",
    "sieben"
   ]
  },
@@ -25661,8 +24348,10 @@
    "echse",
    "eiche",
    "einen",
+   "eins",
    "eisen",
    "henne",
+   "inne",
    "niesen",
    "nische",
    "schein",
@@ -25670,6 +24359,8 @@
    "schiene",
    "schnee",
    "schneien",
+   "sehen",
+   "sehne",
    "sehnen"
   ]
  },
@@ -25688,8 +24379,10 @@
    "schein",
    "schiene",
    "schnee",
+   "sehe",
    "sehen",
-   "sehne"
+   "sehne",
+   "sein"
   ]
  },
  {
@@ -25799,7 +24492,9 @@
    "nicken",
    "nische",
    "schein",
-   "sinken"
+   "sein",
+   "sinken",
+   "sinn"
   ]
  },
  {
@@ -25833,7 +24528,11 @@
    "flasche",
    "flash",
    "hafen",
+   "lache",
    "lachen",
+   "lachs",
+   "sache",
+   "sahne",
    "schale",
    "schalen",
    "schlaf"
@@ -25869,6 +24568,10 @@
    "lachen",
    "lachs",
    "lange",
+   "nagel",
+   "sache",
+   "sagen",
+   "sahne",
    "schale",
    "schalen",
    "schlag",
@@ -25904,6 +24607,10 @@
    "lachen",
    "lachs",
    "lange",
+   "nagel",
+   "sache",
+   "sagen",
+   "sahne",
    "schale",
    "schalen",
    "schlag",
@@ -25940,6 +24647,7 @@
    "haus",
    "husch",
    "lachs",
+   "laus",
    "luchs",
    "schach",
    "schal",
@@ -25961,7 +24669,11 @@
    "leihe",
    "leise",
    "leser",
+   "reich",
    "reiche",
+   "reihe",
+   "reise",
+   "riese",
    "schere",
    "schrei",
    "sicher"
@@ -25974,6 +24686,10 @@
    "echse",
    "eiche",
    "eile",
+   "elch",
+   "elfe",
+   "esel",
+   "fehl",
    "fisch",
    "fleisch",
    "hilfe",
@@ -26079,10 +24795,14 @@
    "gleis",
    "heil",
    "heli",
+   "igel",
    "insel",
+   "lehn",
    "linse",
+   "nice",
    "nische",
    "schein",
+   "seil",
    "selig",
    "senil",
    "single"
@@ -26178,16 +24898,21 @@
    "mehr",
    "mensch",
    "noch",
+   "norm",
    "ochse",
    "ochsen",
+   "omen",
+   "rose",
    "scher",
-   "schon"
+   "schon",
+   "sehr"
   ]
  },
  {
   "base": "schnabel",
   "words": [
    "achse",
+   "ahne",
    "asche",
    "blase",
    "blasen",
@@ -26199,6 +24924,9 @@
    "lachen",
    "lachs",
    "sache",
+   "sahne",
+   "salbe",
+   "schal",
    "schale",
    "schalen"
   ]
@@ -26207,6 +24935,8 @@
   "base": "schnalle",
   "words": [
    "achse",
+   "ahne",
+   "alle",
    "asche",
    "chase",
    "clean",
@@ -26216,6 +24946,8 @@
    "lachen",
    "lachs",
    "sache",
+   "sahne",
+   "schal",
    "schale",
    "schalen",
    "schall",
@@ -26226,7 +24958,11 @@
   "base": "schnauze",
   "words": [
    "achse",
+   "ahne",
+   "anus",
    "asche",
+   "auch",
+   "cash",
    "chase",
    "hauen",
    "hausen",
@@ -26263,8 +24999,11 @@
   "base": "schneide",
   "words": [
    "chinese",
+   "dies",
    "echse",
+   "eden",
    "eiche",
+   "eins",
    "eisen",
    "heide",
    "nische",
@@ -26275,7 +25014,8 @@
    "schnee",
    "schneid",
    "sehen",
-   "sehne"
+   "sehne",
+   "seide"
   ]
  },
  {
@@ -26285,8 +25025,10 @@
    "echse",
    "eiche",
    "einen",
+   "eins",
    "eisen",
    "henne",
+   "inne",
    "niesen",
    "nische",
    "schein",
@@ -26294,6 +25036,8 @@
    "schiene",
    "schienen",
    "schnee",
+   "sehen",
+   "sehne",
    "sehnen"
   ]
  },
@@ -26309,9 +25053,12 @@
    "hellen",
    "lehn",
    "lehne",
+   "lese",
    "lesen",
+   "nell",
    "schnee",
    "schnell",
+   "sehe",
    "sehen",
    "sehne"
   ]
@@ -26319,6 +25066,8 @@
  {
   "base": "schnitte",
   "words": [
+   "cent",
+   "echt",
    "einst",
    "nicht",
    "nichte",
@@ -26332,6 +25081,8 @@
    "stich",
    "teich",
    "teint",
+   "tinte",
+   "tisch",
    "tischen"
   ]
  },
@@ -26387,8 +25138,12 @@
    "achse",
    "arche",
    "asche",
+   "bahre",
    "barsch",
+   "bauch",
+   "bauer",
    "besuch",
+   "brach",
    "brauch",
    "bursche",
    "hauser",
@@ -26408,9 +25163,13 @@
    "breche",
    "brise",
    "echse",
+   "eiche",
+   "erbse",
    "heiser",
    "herbei",
+   "reich",
    "reiche",
+   "reihe",
    "scheibe",
    "schere",
    "schrei",
@@ -26431,9 +25190,13 @@
    "reisen",
    "riechen",
    "schein",
+   "schere",
    "scheren",
    "schiene",
+   "schnee",
+   "schrei",
    "schrein",
+   "sicher",
    "sichern"
   ]
  },
@@ -26452,6 +25215,7 @@
    "scher",
    "schrei",
    "sehr",
+   "sein",
    "sicher",
    "sichern"
   ]
@@ -26472,7 +25236,8 @@
    "scher",
    "schrei",
    "sehr",
-   "sicher"
+   "sicher",
+   "sieb"
   ]
  },
  {
@@ -26526,6 +25291,10 @@
  {
   "base": "schuften",
   "words": [
+   "cent",
+   "chef",
+   "echt",
+   "fest",
    "feucht",
    "fuchs",
    "futsch",
@@ -26582,6 +25351,10 @@
   "base": "schultag",
   "words": [
    "acht",
+   "auch",
+   "cash",
+   "chat",
+   "galt",
    "gulasch",
    "lachs",
    "luchs",
@@ -26600,6 +25373,9 @@
  {
   "base": "schulter",
   "words": [
+   "echt",
+   "elch",
+   "erst",
    "luchs",
    "lutscher",
    "recht",
@@ -26613,7 +25389,8 @@
    "suche",
    "sucher",
    "sucht",
-   "truhe"
+   "truhe",
+   "tusch"
   ]
  },
  {
@@ -26648,8 +25425,12 @@
  {
   "base": "schuster",
   "words": [
+   "echt",
+   "erst",
+   "heut",
    "recht",
    "rechts",
+   "rest",
    "russe",
    "rutsch",
    "rutsche",
@@ -26673,7 +25454,11 @@
    "cash",
    "chase",
    "crash",
+   "crew",
+   "gras",
+   "hase",
    "rache",
+   "rage",
    "rasch",
    "sache",
    "schar",
@@ -26851,7 +25636,8 @@
    "wicht",
    "wisch",
    "witz",
-   "zeit"
+   "zeit",
+   "zwei"
   ]
  },
  {
@@ -26973,9 +25759,14 @@
   "base": "seither",
   "words": [
    "eher",
+   "ehre",
+   "erst",
    "erste",
+   "este",
+   "heer",
    "heiser",
    "heiter",
+   "hier",
    "hirte",
    "reihe",
    "reise",
@@ -26995,14 +25786,19 @@
    "echt",
    "elch",
    "heil",
+   "heli",
    "leicht",
    "licht",
+   "list",
    "liste",
+   "seil",
    "sicht",
    "steil",
    "stich",
    "stiel",
+   "stil",
    "teich",
+   "teil",
    "teils",
    "tisch"
   ]
@@ -27037,6 +25833,8 @@
    "nest",
    "note",
    "osten",
+   "sein",
+   "sekt",
    "stein"
   ]
  },
@@ -27056,7 +25854,8 @@
    "samt",
    "seal",
    "slam",
-   "tasse"
+   "tasse",
+   "team"
   ]
  },
  {
@@ -27088,7 +25887,12 @@
    "marie",
    "marin",
    "marine",
+   "mars",
    "masern",
+   "mesa",
+   "mies",
+   "mine",
+   "name",
    "rasen",
    "samen"
   ]
@@ -27099,6 +25903,7 @@
    "arsen",
    "arten",
    "ernst",
+   "erst",
    "nestor",
    "notar",
    "orten",
@@ -27109,7 +25914,11 @@
    "rasten",
    "raten",
    "senat",
-   "sorten"
+   "sorte",
+   "sorten",
+   "stern",
+   "taser",
+   "trans"
   ]
  },
  {
@@ -27126,8 +25935,13 @@
    "leine",
    "leise",
    "lesbe",
+   "lesen",
+   "liebe",
    "lieben",
+   "linse",
+   "nebel",
    "seilen",
+   "senil",
    "sieben"
   ]
  },
@@ -27137,6 +25951,11 @@
    "agent",
    "angst",
    "arsen",
+   "arten",
+   "ernst",
+   "ernte",
+   "erste",
+   "etage",
    "garten",
    "geraten",
    "gestern",
@@ -27220,6 +26039,7 @@
    "schrei",
    "schrein",
    "sehr",
+   "sein",
    "sicher"
   ]
  },
@@ -27228,8 +26048,13 @@
   "words": [
    "absicht",
    "abstrich",
+   "acht",
+   "bach",
    "barsch",
+   "bart",
    "brach",
+   "cash",
+   "chai",
    "christ",
    "crash",
    "rasch",
@@ -27249,7 +26074,12 @@
    "drei",
    "edel",
    "edle",
+   "eile",
+   "erde",
+   "esel",
+   "idee",
    "leder",
+   "leer",
    "leider",
    "leier",
    "leise",
@@ -27264,7 +26094,11 @@
   "base": "siedlung",
   "words": [
    "design",
+   "dies",
+   "ding",
    "dings",
+   "eins",
+   "geld",
    "gesund",
    "gleis",
    "glied",
@@ -27276,6 +26110,7 @@
    "lunge",
    "nudel",
    "selig",
+   "senil",
    "single"
   ]
  },
@@ -27283,7 +26118,12 @@
   "base": "signatur",
   "words": [
    "angst",
+   "anus",
    "artig",
+   "gans",
+   "gant",
+   "garn",
+   "gast",
    "granit",
    "gratis",
    "gunst",
@@ -27306,9 +26146,14 @@
    "gern",
    "gier",
    "greis",
+   "oger",
    "orgie",
    "region",
+   "rein",
+   "reis",
+   "ring",
    "rings",
+   "rose",
    "rosig",
    "senior",
    "signor",
@@ -27355,8 +26200,10 @@
    "piep",
    "pieps",
    "pier",
+   "pike",
    "preis",
    "prise",
+   "reis",
    "rippe",
    "sippe",
    "spike"
@@ -27416,8 +26263,13 @@
    "etwas",
    "faser",
    "fast",
+   "fest",
+   "fort",
    "frost",
+   "oase",
+   "rast",
    "raste",
+   "rate",
    "sorte",
    "strafe",
    "taser",
@@ -27439,9 +26291,13 @@
    "hose",
    "igel",
    "loch",
+   "loge",
    "logisch",
+   "lose",
    "ochse",
+   "seil",
    "selig",
+   "sieg",
    "sohle"
   ]
  },
@@ -27456,8 +26312,13 @@
    "lage",
    "lang",
    "lange",
+   "loge",
+   "lose",
    "losen",
    "nagel",
+   "nase",
+   "oase",
+   "sage",
    "sagen",
    "salon",
    "slogan",
@@ -27509,7 +26370,12 @@
    "golf",
    "graf",
    "gral",
+   "gras",
+   "grat",
    "largo",
+   "last",
+   "loft",
+   "lost",
    "ratlos",
    "sogar"
   ]
@@ -27521,8 +26387,13 @@
    "irre",
    "otter",
    "reis",
+   "rest",
    "retro",
+   "ritt",
    "ritter",
+   "rose",
+   "rost",
+   "rote",
    "sitte",
    "sorte",
    "stier",
@@ -27545,8 +26416,13 @@
    "ruin",
    "ruine",
    "rune",
+   "sein",
    "senior",
+   "sure",
+   "urin",
+   "urne",
    "venus",
+   "vers",
    "version",
    "virus",
    "vorne"
@@ -27561,8 +26437,13 @@
    "last",
    "lasten",
    "nase",
+   "nest",
+   "pate",
+   "pest",
+   "plan",
    "plane",
    "planet",
+   "seal",
    "senat",
    "spalt",
    "spalte",
@@ -27622,7 +26503,10 @@
    "plage",
    "rage",
    "real",
-   "regal"
+   "regal",
+   "sage",
+   "sarg",
+   "seal"
   ]
  },
  {
@@ -27657,6 +26541,8 @@
    "leise",
    "lese",
    "sehe",
+   "seil",
+   "slip",
    "spiel"
   ]
  },
@@ -27671,8 +26557,13 @@
    "prise",
    "reich",
    "reiche",
+   "reihe",
+   "reise",
+   "riese",
+   "scher",
    "schere",
    "schrei",
+   "seher",
    "sicher",
    "sprech",
    "spreche",
@@ -27755,7 +26646,8 @@
    "slip",
    "spiel",
    "zeile",
-   "zelle"
+   "zelle",
+   "ziel"
   ]
  },
  {
@@ -27772,8 +26664,11 @@
    "lese",
    "liege",
    "segel",
+   "seil",
    "selig",
+   "sieg",
    "siegel",
+   "slip",
    "spiel"
   ]
  },
@@ -27784,7 +26679,12 @@
    "eilen",
    "eisen",
    "engel",
+   "espen",
    "geisel",
+   "genie",
+   "gleis",
+   "insel",
+   "legen",
    "liegen",
    "pinsel",
    "segeln",
@@ -27803,14 +26703,19 @@
    "eilen",
    "eins",
    "eisen",
+   "esel",
    "espen",
    "insel",
    "leine",
    "leise",
+   "lese",
    "lesen",
    "linse",
+   "pein",
    "pinsel",
+   "seil",
    "seilen",
+   "sein",
    "senil",
    "spiel"
   ]
@@ -27823,13 +26728,18 @@
    "leer",
    "leier",
    "leise",
+   "lese",
    "leser",
    "perle",
+   "pier",
    "preis",
    "prise",
+   "reis",
    "reise",
    "riese",
+   "seil",
    "serie",
+   "slip",
    "speer",
    "spiel"
   ]
@@ -27847,6 +26757,11 @@
    "preis",
    "prise",
    "puls",
+   "reis",
+   "ruhe",
+   "rush",
+   "sehr",
+   "seil",
    "sirup",
    "spiel",
    "spule",
@@ -27913,6 +26828,9 @@
    "sage",
    "sagen",
    "sang",
+   "sein",
+   "sieg",
+   "song",
    "spange",
    "spion"
   ]
@@ -27933,6 +26851,8 @@
    "reis",
    "relais",
    "seal",
+   "seil",
+   "slip",
    "spiel"
   ]
  },
@@ -27961,12 +26881,17 @@
    "piste",
    "seil",
    "sitz",
+   "slip",
    "spiel",
    "spitz",
    "spitze",
    "steil",
    "stiel",
-   "teils"
+   "stil",
+   "teil",
+   "teils",
+   "zeit",
+   "zelt"
   ]
  },
  {
@@ -27985,14 +26910,18 @@
    "sitzen",
    "spitz",
    "spitze",
-   "stein"
+   "stein",
+   "zeit"
   ]
  },
  {
   "base": "splitter",
   "words": [
+   "erst",
+   "list",
    "liste",
    "liter",
+   "pest",
    "petit",
    "piste",
    "preis",
@@ -28004,7 +26933,9 @@
    "steril",
    "stiel",
    "stier",
-   "streit"
+   "streit",
+   "teils",
+   "titel"
   ]
  },
  {
@@ -28015,7 +26946,12 @@
    "lose",
    "loser",
    "lost",
+   "oper",
+   "pest",
+   "poet",
+   "pole",
    "polster",
+   "port",
    "porter",
    "poster",
    "prost",
@@ -28033,15 +26969,19 @@
    "arche",
    "asche",
    "cape",
+   "cash",
    "chase",
    "crash",
+   "hase",
    "phase",
    "phaser",
    "rache",
    "rasch",
+   "reha",
    "sache",
    "schar",
    "scher",
+   "sehr",
    "sprech"
   ]
  },
@@ -28067,13 +27007,18 @@
   "base": "sprechen",
   "words": [
    "echse",
+   "eher",
+   "ehre",
    "ehren",
    "espen",
+   "heer",
    "herpes",
+   "rehe",
    "scher",
    "schere",
    "scheren",
    "schnee",
+   "sehe",
    "sehen",
    "seher",
    "sehne",
@@ -28092,9 +27037,12 @@
    "herpes",
    "herr",
    "perser",
+   "rehe",
    "scher",
    "schere",
+   "sehe",
    "seher",
+   "sehr",
    "speer",
    "sperre",
    "sprech",
@@ -28107,9 +27055,14 @@
    "eins",
    "gern",
    "gier",
+   "gips",
    "greis",
    "grinsen",
    "grips",
+   "inne",
+   "nein",
+   "pein",
+   "pier",
    "preis",
    "prise",
    "ringen",
@@ -28132,10 +27085,15 @@
    "irre",
    "irren",
    "pein",
+   "pier",
    "preis",
    "prise",
+   "rein",
+   "reis",
+   "ring",
    "ringer",
    "rings",
+   "sein",
    "singer"
   ]
  },
@@ -28152,10 +27110,15 @@
    "reiz",
    "rest",
    "ritz",
+   "sitz",
    "spitz",
    "spitze",
    "sprit",
-   "stier"
+   "stier",
+   "tier",
+   "trip",
+   "zeit",
+   "zier"
   ]
  },
  {
@@ -28173,7 +27136,12 @@
    "spitz",
    "spitze",
    "spitzen",
+   "sprit",
    "spritze",
+   "stein",
+   "stern",
+   "stier",
+   "stirn",
    "zirpen"
   ]
  },
@@ -28189,20 +27157,30 @@
    "prise",
    "reis",
    "reiz",
+   "rest",
+   "ritz",
+   "sitz",
    "spitz",
    "spitze",
    "sprit",
    "spritze",
-   "stier"
+   "stier",
+   "tier",
+   "trip"
   ]
  },
  {
   "base": "stachel",
   "words": [
    "achse",
+   "acht",
    "achte",
+   "alte",
    "asche",
+   "cash",
    "chase",
+   "chat",
+   "echt",
    "halte",
    "lache",
    "lachs",
@@ -28272,8 +27250,13 @@
    "kalt",
    "kalter",
    "karte",
+   "kate",
    "kater",
+   "kerl",
+   "klar",
+   "lake",
    "laser",
+   "last",
    "raste",
    "stark",
    "steak",
@@ -28297,7 +27280,8 @@
    "samen",
    "samt",
    "senat",
-   "stamm"
+   "stamm",
+   "team"
   ]
  },
  {
@@ -28328,6 +27312,11 @@
    "nord",
    "notar",
    "radon",
+   "rand",
+   "rast",
+   "rosa",
+   "rost",
+   "sand",
    "stadt",
    "stand",
    "start",
@@ -28346,8 +27335,13 @@
    "last",
    "lasten",
    "nase",
+   "nest",
+   "pate",
+   "pest",
+   "plan",
    "plane",
    "planet",
+   "seal",
    "senat",
    "spalt",
    "spalte",
@@ -28363,6 +27357,10 @@
    "arsen",
    "arten",
    "ernst",
+   "erst",
+   "narr",
+   "nase",
+   "nest",
    "rasen",
    "raste",
    "rasten",
@@ -28372,7 +27370,8 @@
    "starr",
    "starre",
    "stern",
-   "taser"
+   "taser",
+   "trans"
   ]
  },
  {
@@ -28381,6 +27380,9 @@
    "arsen",
    "arten",
    "ernst",
+   "erst",
+   "nase",
+   "nest",
    "rasen",
    "raste",
    "rasten",
@@ -28391,7 +27393,9 @@
    "stern",
    "tante",
    "taser",
-   "tasten"
+   "taste",
+   "tasten",
+   "trans"
   ]
  },
  {
@@ -28487,6 +27491,7 @@
    "sehne",
    "selten",
    "stehen",
+   "teen",
    "these"
   ]
  },
@@ -28499,8 +27504,13 @@
    "ente",
    "este",
    "fein",
+   "fest",
    "feste",
    "festen",
+   "fete",
+   "fies",
+   "fist",
+   "nest",
    "niete",
    "seife",
    "seite",
@@ -28513,8 +27523,11 @@
   "base": "steigen",
   "words": [
    "eigen",
+   "eins",
    "einst",
    "eisen",
+   "enge",
+   "ente",
    "geist",
    "genie",
    "geste",
@@ -28525,12 +27538,16 @@
    "seite",
    "siegen",
    "steig",
-   "steige"
+   "steige",
+   "stein",
+   "stieg"
   ]
  },
  {
   "base": "steigern",
   "words": [
+   "eiern",
+   "eigen",
    "geistern",
    "gestein",
    "gestern",
@@ -28544,7 +27561,10 @@
    "sirene",
    "steige",
    "steigen",
-   "strenge"
+   "streng",
+   "strenge",
+   "string",
+   "tresen"
   ]
  },
  {
@@ -28582,10 +27602,14 @@
  {
   "base": "sterben",
   "words": [
+   "bene",
    "besen",
+   "best",
    "beste",
+   "bete",
    "beten",
    "breen",
+   "eben",
    "erben",
    "erbse",
    "ernst",
@@ -28594,6 +27618,7 @@
    "rente",
    "serben",
    "sterbe",
+   "stern",
    "streben",
    "tresen"
   ]
@@ -28607,7 +27632,12 @@
    "drei",
    "dreist",
    "erde",
+   "erst",
    "erste",
+   "este",
+   "idee",
+   "rede",
+   "reis",
    "reise",
    "riese",
    "seide",
@@ -28626,7 +27656,12 @@
    "ernte",
    "erst",
    "erste",
+   "este",
+   "nest",
+   "neue",
    "rente",
+   "rest",
+   "reue",
    "stern",
    "steuer",
    "streuen",
@@ -28652,14 +27687,21 @@
    "star",
    "taser",
    "wade",
-   "warte"
+   "ware",
+   "wart",
+   "warte",
+   "wert",
+   "west"
   ]
  },
  {
   "base": "stiefel",
   "words": [
+   "eile",
    "eitel",
+   "elfe",
    "elite",
+   "esel",
    "feste",
    "filet",
    "leise",
@@ -28671,12 +27713,19 @@
    "selfie",
    "steif",
    "steil",
-   "stiel"
+   "stiel",
+   "teils",
+   "tiefe"
   ]
  },
  {
   "base": "stiefeln",
   "words": [
+   "eilen",
+   "einst",
+   "eisen",
+   "eitel",
+   "elite",
    "felsen",
    "festen",
    "fliesen",
@@ -28704,11 +27753,16 @@
    "fies",
    "fist",
    "nest",
+   "nett",
+   "sein",
+   "senf",
    "sitte",
    "steif",
    "stein",
    "stift",
    "teint",
+   "test",
+   "tief",
    "tinte"
   ]
  },
@@ -28722,10 +27776,15 @@
    "list",
    "liste",
    "listen",
+   "nell",
+   "nest",
+   "seil",
+   "sein",
    "senil",
    "steil",
    "stein",
    "stiel",
+   "stil",
    "still",
    "stille",
    "teils"
@@ -28787,7 +27846,10 @@
    "knien",
    "nein",
    "nest",
+   "sein",
+   "sekt",
    "sinken",
+   "sinn",
    "stein",
    "tennis"
   ]
@@ -28801,9 +27863,14 @@
    "erst",
    "insekt",
    "kern",
+   "kies",
    "kiste",
+   "knie",
    "kreis",
+   "kris",
    "krise",
+   "nest",
+   "rein",
    "stein",
    "stern",
    "stier",
@@ -28815,6 +27882,7 @@
   "base": "stolpern",
   "words": [
    "ernst",
+   "erst",
    "losen",
    "loser",
    "nestor",
@@ -28827,7 +27895,11 @@
    "poltern",
    "posten",
    "poster",
-   "sorten"
+   "prost",
+   "sorte",
+   "sorten",
+   "sport",
+   "stern"
   ]
  },
  {
@@ -28887,8 +27959,10 @@
    "arsen",
    "arten",
    "ernst",
+   "erst",
    "faser",
    "fasern",
+   "fast",
    "fasten",
    "rasen",
    "raste",
@@ -28896,7 +27970,10 @@
    "raten",
    "sanft",
    "senat",
-   "strafe"
+   "stern",
+   "strafe",
+   "taser",
+   "trans"
   ]
  },
  {
@@ -28929,8 +28006,13 @@
    "halte",
    "halten",
    "heran",
+   "laser",
    "lasten",
+   "rasen",
+   "raste",
    "rasten",
+   "raten",
+   "sahne",
    "strahl"
   ]
  },
@@ -28949,8 +28031,11 @@
    "rita",
    "ritt",
    "sarg",
+   "satt",
    "shirt",
-   "start"
+   "star",
+   "start",
+   "tags"
   ]
  },
  {
@@ -28971,10 +28056,14 @@
  {
   "base": "streben",
   "words": [
+   "bene",
    "besen",
+   "best",
    "beste",
+   "bete",
    "beten",
    "breen",
+   "eben",
    "erben",
    "erbse",
    "ernst",
@@ -28984,6 +28073,7 @@
    "serben",
    "sterbe",
    "sterben",
+   "stern",
    "tresen"
   ]
  },
@@ -29024,9 +28114,14 @@
    "cent",
    "center",
    "creek",
+   "ecke",
+   "ente",
    "ernst",
    "ernte",
+   "erst",
    "erste",
+   "este",
+   "kern",
    "knete",
    "rente",
    "sekte",
@@ -29041,6 +28136,9 @@
   "base": "streich",
   "words": [
    "christ",
+   "echt",
+   "erst",
+   "hier",
    "hirte",
    "recht",
    "rechts",
@@ -29053,15 +28151,20 @@
    "sicht",
    "stich",
    "stier",
-   "strich"
+   "strich",
+   "teich",
+   "tisch"
   ]
  },
  {
   "base": "streife",
   "words": [
    "eifer",
+   "erst",
    "erste",
+   "este",
    "feier",
+   "fest",
    "feste",
    "first",
    "freie",
@@ -29072,12 +28175,18 @@
    "seife",
    "seite",
    "serie",
-   "steif"
+   "steif",
+   "stier",
+   "tiefe"
   ]
  },
  {
   "base": "streifen",
   "words": [
+   "eiern",
+   "eifer",
+   "einer",
+   "einst",
    "feiern",
    "fenster",
    "ferien",
@@ -29091,7 +28200,8 @@
    "riefen",
    "sirene",
    "steifen",
-   "streife"
+   "streife",
+   "tresen"
   ]
  },
  {
@@ -29102,7 +28212,12 @@
    "einst",
    "eisen",
    "ernst",
+   "ernte",
+   "erste",
    "insekt",
+   "kiste",
+   "knete",
+   "kreis",
    "kreisen",
    "reisen",
    "reisten",
@@ -29120,6 +28235,11 @@
    "einer",
    "einst",
    "eisen",
+   "ernst",
+   "ernte",
+   "erste",
+   "niere",
+   "niete",
    "reisen",
    "reisten",
    "reiten",
@@ -29135,9 +28255,13 @@
  {
   "base": "strenge",
   "words": [
+   "enge",
+   "ente",
    "ernst",
    "ernte",
+   "erst",
    "erste",
+   "este",
    "gerne",
    "geste",
    "gestern",
@@ -29147,6 +28271,7 @@
    "rente",
    "segen",
    "serge",
+   "stern",
    "streng",
    "tresen"
   ]
@@ -29163,10 +28288,13 @@
    "rest",
    "riss",
    "sieg",
+   "steg",
    "steig",
    "stieg",
    "stier",
    "stress",
+   "teig",
+   "tier",
    "tiger"
   ]
  },
@@ -29179,7 +28307,12 @@
    "ernte",
    "erst",
    "erste",
+   "este",
+   "nest",
+   "neue",
    "rente",
+   "rest",
+   "reue",
    "stern",
    "steuer",
    "steuern",
@@ -29192,10 +28325,13 @@
  {
   "base": "streuner",
   "words": [
+   "ente",
    "erneut",
    "ernst",
    "ernte",
+   "erst",
    "erste",
+   "este",
    "rente",
    "runter",
    "stern",
@@ -29205,14 +28341,19 @@
    "surren",
    "teuer",
    "tresen",
-   "turner"
+   "treue",
+   "turner",
+   "unter"
   ]
  },
  {
   "base": "stricken",
   "words": [
+   "cent",
+   "eins",
    "einst",
    "ernst",
+   "erst",
    "insekt",
    "kiste",
    "kreis",
@@ -29222,16 +28363,20 @@
    "stick",
    "stier",
    "stinker",
+   "stirn",
    "streik",
    "strick",
-   "ticken"
+   "ticken",
+   "trick"
   ]
  },
  {
   "base": "stringer",
   "words": [
+   "eins",
    "einst",
    "ernst",
+   "erst",
    "geist",
    "greis",
    "irren",
@@ -29242,8 +28387,11 @@
    "stein",
    "stern",
    "stieg",
+   "stier",
+   "stirn",
    "streng",
-   "string"
+   "string",
+   "tiger"
   ]
  },
  {
@@ -29326,6 +28474,11 @@
    "dritte",
    "duett",
    "durst",
+   "erst",
+   "reis",
+   "rest",
+   "ritt",
+   "rute",
    "sitte",
    "stier",
    "streit",
@@ -29494,8 +28647,14 @@
    "rain",
    "rasen",
    "rein",
+   "reis",
+   "reiz",
+   "rosa",
+   "rose",
+   "sein",
    "senior",
-   "zarin"
+   "zarin",
+   "zier"
   ]
  },
  {
@@ -29509,10 +28668,16 @@
    "inne",
    "nein",
    "rein",
+   "reis",
+   "ring",
    "ringen",
    "rings",
+   "sein",
+   "sieg",
    "singen",
    "singer",
+   "sinn",
+   "säen",
    "sägen",
    "sänger"
   ]
@@ -29531,7 +28696,9 @@
    "neid",
    "nein",
    "sein",
+   "sieg",
    "singen",
+   "sinn",
    "süden",
    "sünde"
   ]
@@ -29563,6 +28730,12 @@
    "dose",
    "lade",
    "last",
+   "lose",
+   "lost",
+   "oase",
+   "olle",
+   "seal",
+   "soda",
    "soldat",
    "stall",
    "tolle"
@@ -29578,10 +28751,16 @@
    "bach",
    "bauch",
    "baute",
+   "beat",
+   "beau",
+   "buch",
    "buche",
    "bucht",
    "buchte",
    "butch",
+   "chat",
+   "echt",
+   "gabe",
    "gehabt",
    "haube",
    "taube"
@@ -29601,6 +28780,12 @@
    "gala",
    "galant",
    "galgen",
+   "galt",
+   "gang",
+   "gant",
+   "gate",
+   "lage",
+   "lang",
    "lange",
    "nagel",
    "tagen"
@@ -29613,10 +28798,16 @@
    "bart",
    "base",
    "beat",
+   "berg",
    "besagt",
+   "best",
    "betrag",
    "bürge",
    "bürste",
+   "erst",
+   "gabe",
+   "gast",
+   "gate",
    "gerüst",
    "geübt",
    "raste",
@@ -29639,9 +28830,14 @@
    "mast",
    "milan",
    "mist",
+   "saal",
+   "saat",
    "salami",
    "salat",
-   "satan"
+   "samt",
+   "satan",
+   "slam",
+   "stil"
   ]
  },
  {
@@ -29676,6 +28872,7 @@
    "statur",
    "stau",
    "stur",
+   "tara",
    "traut",
    "trust"
   ]
@@ -29683,9 +28880,13 @@
  {
   "base": "tatenlos",
   "words": [
+   "also",
+   "alte",
    "alten",
+   "last",
    "lasten",
    "latte",
+   "lose",
    "losen",
    "osten",
    "salon",
@@ -29696,6 +28897,8 @@
    "tante",
    "taste",
    "tasten",
+   "toast",
+   "total",
    "totale"
   ]
  },
@@ -29711,11 +28914,15 @@
    "chat",
    "echt",
    "hase",
+   "hast",
+   "saat",
    "sache",
    "sachte",
+   "satt",
    "staat",
    "tasche",
-   "taste"
+   "taste",
+   "test"
   ]
  },
  {
@@ -29747,7 +28954,13 @@
    "haue",
    "hauen",
    "haut",
+   "heut",
+   "hunt",
+   "nach",
    "nacht",
+   "nahe",
+   "naht",
+   "tuch",
    "unecht"
   ]
  },
@@ -29763,9 +28976,15 @@
    "hart",
    "haue",
    "haut",
+   "heut",
    "rache",
+   "rate",
    "rauch",
+   "raue",
    "recht",
+   "reha",
+   "ruhe",
+   "rute",
    "trace",
    "truhe"
   ]
@@ -29776,9 +28995,15 @@
    "achse",
    "achte",
    "achten",
+   "asche",
+   "chase",
+   "ethan",
+   "hauen",
    "hausen",
    "husten",
+   "nacht",
    "nachts",
+   "sache",
    "sachte",
    "schauen",
    "suchen",
@@ -29846,8 +29071,12 @@
   "words": [
    "agent",
    "arten",
+   "enge",
+   "ente",
    "ernte",
    "etage",
+   "gant",
+   "garn",
    "garten",
    "geraten",
    "gerne",
@@ -29857,12 +29086,15 @@
    "regen",
    "regent",
    "rente",
+   "tagen",
+   "trage",
    "tragen"
   ]
  },
  {
   "base": "teilchen",
   "words": [
+   "cent",
    "eiche",
    "eilen",
    "eitel",
@@ -29874,8 +29106,13 @@
    "leihe",
    "leihen",
    "leine",
+   "leite",
    "leiten",
+   "licht",
+   "nicht",
    "nichte",
+   "niete",
+   "teich",
    "teilen"
   ]
  },
@@ -29922,9 +29159,15 @@
    "arten",
    "atmen",
    "einmal",
+   "email",
    "latein",
+   "liter",
    "mailen",
+   "malen",
+   "maler",
    "mantel",
+   "marie",
+   "marin",
    "marine",
    "mental",
    "termin"
@@ -29962,10 +29205,13 @@
    "raste",
    "raster",
    "rate",
+   "rest",
+   "star",
    "starr",
    "starre",
    "taser",
-   "tasse"
+   "tasse",
+   "teer"
   ]
  },
  {
@@ -30013,10 +29259,16 @@
    "heiter",
    "hier",
    "hirte",
+   "part",
    "partei",
    "partie",
+   "pate",
    "pater",
+   "pier",
    "pirat",
+   "rate",
+   "reha",
+   "rehe",
    "reihe"
   ]
  },
@@ -30036,6 +29288,7 @@
    "tier",
    "zart",
    "zeit",
+   "zier",
    "zitat"
   ]
  },
@@ -30044,9 +29297,15 @@
   "words": [
    "center",
    "ehren",
+   "eiche",
+   "eiern",
+   "einer",
+   "ernte",
    "heiter",
    "herein",
    "hinter",
+   "hirte",
+   "nicht",
    "nichte",
    "rechten",
    "reiche",
@@ -30066,13 +29325,19 @@
    "eimer",
    "emir",
    "heer",
+   "heim",
    "heiter",
+   "hier",
    "hiermit",
    "hirte",
+   "item",
+   "meer",
+   "mehr",
    "meter",
    "metier",
    "miete",
    "mieter",
+   "rehe",
    "reihe",
    "timer"
   ]
@@ -30081,6 +29346,7 @@
   "base": "tierisch",
   "words": [
    "christ",
+   "echt",
    "hirte",
    "irische",
    "recht",
@@ -30092,8 +29358,13 @@
    "schrei",
    "shirt",
    "sicher",
+   "sicht",
+   "stich",
+   "stier",
    "streich",
-   "strich"
+   "strich",
+   "teich",
+   "tisch"
   ]
  },
  {
@@ -30103,11 +29374,14 @@
    "echt",
    "eins",
    "einst",
+   "nest",
+   "nice",
    "nicht",
    "nichte",
    "nichts",
    "nische",
    "schein",
+   "sein",
    "sicht",
    "stein",
    "stich",
@@ -30123,7 +29397,13 @@
    "otter",
    "rast",
    "raste",
+   "rate",
    "ratte",
+   "rest",
+   "rosa",
+   "rose",
+   "rost",
+   "rote",
    "sorte",
    "start",
    "taser",
@@ -30164,8 +29444,11 @@
    "soda",
    "stadt",
    "steg",
+   "tags",
    "taste",
-   "toast"
+   "test",
+   "toast",
+   "tote"
   ]
  },
  {
@@ -30181,9 +29464,14 @@
    "karo",
    "karton",
    "koran",
+   "korn",
+   "kran",
    "krank",
+   "nord",
    "notar",
    "radon",
+   "rand",
+   "tank",
    "trank"
   ]
  },
@@ -30198,10 +29486,16 @@
    "arzt",
    "lanze",
    "lenz",
+   "lore",
+   "netz",
    "notar",
+   "note",
    "orten",
    "ozean",
+   "rate",
    "raten",
+   "real",
+   "rote",
    "taler",
    "talon"
   ]
@@ -30243,8 +29537,14 @@
    "note",
    "orten",
    "rente",
+   "reue",
+   "rote",
    "route",
    "routen",
+   "rune",
+   "rute",
+   "teen",
+   "teer",
    "teuer",
    "touren",
    "treue",
@@ -30257,9 +29557,15 @@
    "acht",
    "artig",
    "cash",
+   "chai",
+   "chat",
    "christ",
    "crash",
+   "gast",
+   "gras",
+   "grat",
    "gratis",
+   "hart",
    "hastig",
    "rasch",
    "schar",
@@ -30283,7 +29589,13 @@
    "garde",
    "gate",
    "gier",
+   "grad",
    "grade",
+   "grat",
+   "göre",
+   "rage",
+   "rate",
+   "rita",
    "tiger",
    "trage",
    "triade"
@@ -30353,8 +29665,14 @@
    "faser",
    "fasern",
    "fasten",
+   "rasen",
+   "raste",
    "rasten",
    "raster",
+   "raten",
+   "sanft",
+   "senat",
+   "starr",
    "starre",
    "starren",
    "strafe",
@@ -30394,8 +29712,12 @@
    "rute",
    "trauen",
    "trauer",
+   "treu",
+   "turn",
    "turner",
-   "unter"
+   "unter",
+   "uran",
+   "urne"
   ]
  },
  {
@@ -30432,7 +29754,8 @@
    "taser",
    "vase",
    "vater",
-   "verrat"
+   "verrat",
+   "vers"
   ]
  },
  {
@@ -30464,7 +29787,13 @@
    "brite",
    "eiern",
    "einer",
+   "erben",
+   "erbin",
+   "ernte",
+   "niere",
+   "niete",
    "reiben",
+   "reine",
    "reiten"
   ]
  },
@@ -30515,9 +29844,13 @@
    "erbin",
    "rein",
    "rübe",
+   "tier",
    "trieb",
    "trübe",
-   "trüben"
+   "trüben",
+   "türe",
+   "üben",
+   "über"
   ]
  },
  {
@@ -30628,8 +29961,13 @@
    "oper",
    "otter",
    "poet",
+   "port",
+   "pott",
+   "rote",
+   "teer",
    "tempo",
    "torte",
+   "tote",
    "totem",
    "toter"
   ]
@@ -30650,7 +29988,8 @@
    "pfote",
    "poet",
    "port",
-   "rote"
+   "rote",
+   "topf"
   ]
  },
  {
@@ -30766,7 +30105,9 @@
    "turn",
    "turner",
    "unter",
-   "untier"
+   "untier",
+   "urin",
+   "urne"
   ]
  },
  {
@@ -30804,6 +30145,7 @@
    "tränen",
    "tänzer",
    "zeit",
+   "zier",
    "ärztin"
   ]
  },
@@ -30823,6 +30165,8 @@
    "hunt",
    "häuten",
    "nähe",
+   "tube",
+   "tuch",
    "unecht"
   ]
  },
@@ -30835,12 +30179,16 @@
    "hunt",
    "husten",
    "häuten",
+   "nest",
    "nächste",
+   "nähe",
    "scheu",
    "suche",
    "suchen",
    "sucht",
    "suchten",
+   "säen",
+   "tuch",
    "tusch",
    "unecht"
   ]
@@ -30879,7 +30227,8 @@
    "tier",
    "treu",
    "truhe",
-   "zeit"
+   "zeit",
+   "zier"
   ]
  },
  {
@@ -30922,8 +30271,14 @@
    "drehen",
    "drum",
    "eden",
+   "eher",
+   "ehre",
    "ehren",
+   "ende",
+   "erde",
    "erden",
+   "heer",
+   "hemd",
    "herde",
    "herum",
    "muhen",
@@ -30944,11 +30299,17 @@
    "faul",
    "faulen",
    "fell",
+   "lauf",
    "laufen",
    "laune",
    "lumen",
    "malen",
+   "mall",
    "manuell",
+   "maul",
+   "name",
+   "nell",
+   "null",
    "unfall"
   ]
  },
@@ -30968,13 +30329,19 @@
    "marge",
    "mauer",
    "mega",
-   "rage"
+   "rage",
+   "raue",
+   "rauf",
+   "raum",
+   "ufer"
   ]
  },
  {
   "base": "umfragen",
   "words": [
+   "amen",
    "anruf",
+   "arme",
    "frage",
    "fragen",
    "fugen",
@@ -30985,7 +30352,11 @@
    "magen",
    "mager",
    "marge",
+   "mauer",
    "mauern",
+   "range",
+   "rauen",
+   "rufen",
    "umfang",
    "umfrage"
   ]
@@ -31048,9 +30419,15 @@
    "kehren",
    "kern",
    "meer",
+   "mehr",
    "merken",
    "muhen",
+   "neue",
+   "rehe",
+   "reue",
+   "ruhe",
    "ruhen",
+   "ruhm",
    "umher"
   ]
  },
@@ -31068,6 +30445,12 @@
    "keim",
    "keule",
    "kleid",
+   "kuli",
+   "leid",
+   "leim",
+   "lied",
+   "like",
+   "luke",
    "meile",
    "melde",
    "milde"
@@ -31089,7 +30472,8 @@
    "musiker",
    "reim",
    "reis",
-   "serum"
+   "serum",
+   "sure"
   ]
  },
  {
@@ -31109,9 +30493,12 @@
  {
   "base": "umleiten",
   "words": [
+   "eile",
    "eilen",
    "eitel",
    "elite",
+   "ente",
+   "eule",
    "leine",
    "leite",
    "leiten",
@@ -31120,8 +30507,11 @@
    "lunte",
    "meile",
    "meute",
+   "miene",
+   "miete",
    "mieten",
    "minute",
+   "niete",
    "teilen"
   ]
  },
@@ -31133,8 +30523,14 @@
    "gaul",
    "glas",
    "gulasch",
+   "hals",
+   "haus",
    "lachs",
+   "lahm",
+   "laus",
    "luchs",
+   "mach",
+   "mahl",
    "schal",
    "scham",
    "schau",
@@ -31212,7 +30608,12 @@
    "ring",
    "rita",
    "ruin",
-   "train"
+   "tang",
+   "train",
+   "trug",
+   "turn",
+   "uran",
+   "urin"
   ]
  },
  {
@@ -31225,13 +30626,19 @@
    "hunter",
    "hören",
    "hörer",
+   "ruhe",
    "ruhen",
+   "rune",
    "runter",
+   "rute",
    "röhre",
    "röhren",
+   "treu",
    "truhe",
+   "turn",
    "turner",
-   "unter"
+   "unter",
+   "urne"
   ]
  },
  {
@@ -31250,7 +30657,8 @@
    "ruhe",
    "ruhen",
    "rune",
-   "ufer"
+   "ufer",
+   "urne"
   ]
  },
  {
@@ -31263,13 +30671,18 @@
    "engen",
    "gemein",
    "genie",
+   "inne",
    "meinen",
    "meinung",
    "menge",
    "mengen",
    "miene",
+   "mine",
    "neige",
-   "neigen"
+   "neigen",
+   "nein",
+   "neue",
+   "neun"
   ]
  },
  {
@@ -31288,7 +30701,13 @@
    "grade",
    "grand",
    "grande",
-   "grauen"
+   "grauen",
+   "green",
+   "grund",
+   "rande",
+   "range",
+   "rauen",
+   "reden"
   ]
  },
  {
@@ -31354,17 +30773,26 @@
    "rute",
    "treu",
    "truhe",
+   "tuch",
+   "turn",
    "unecht",
-   "unter"
+   "unter",
+   "urne"
   ]
  },
  {
   "base": "unscharf",
   "words": [
    "anruf",
+   "anus",
+   "auch",
+   "cash",
    "crash",
+   "fach",
    "franc",
+   "frau",
    "fuchs",
+   "haus",
    "nachruf",
    "ranch",
    "rasch",
@@ -31380,8 +30808,13 @@
  {
   "base": "unsicher",
   "words": [
+   "eins",
+   "hier",
+   "hirn",
+   "nice",
    "nische",
    "reich",
+   "rein",
    "ruhen",
    "ruine",
    "schein",
@@ -31392,6 +30825,7 @@
    "schrein",
    "sicher",
    "sichern",
+   "suche",
    "suchen",
    "sucher"
   ]
@@ -31402,8 +30836,12 @@
    "antun",
    "arten",
    "natur",
+   "nett",
+   "neun",
+   "rate",
    "raten",
    "ratte",
+   "raue",
    "rauen",
    "raunen",
    "tante",
@@ -31412,7 +30850,9 @@
    "traut",
    "traute",
    "tunte",
-   "turnen"
+   "turnen",
+   "unten",
+   "unter"
   ]
  },
  {
@@ -31429,9 +30869,12 @@
    "teen",
    "teer",
    "teuer",
+   "treu",
    "treue",
+   "turn",
    "unter",
-   "untreu"
+   "untreu",
+   "urne"
   ]
  },
  {
@@ -31440,8 +30883,14 @@
    "ente",
    "erneut",
    "ernte",
+   "nett",
+   "neue",
    "rente",
    "retten",
+   "reue",
+   "rune",
+   "rute",
+   "teen",
    "teuer",
    "treten",
    "treue",
@@ -31499,6 +30948,12 @@
    "rausch",
    "sache",
    "sauce",
+   "sauer",
+   "schar",
+   "schau",
+   "scher",
+   "scheu",
+   "suche",
    "sucher"
   ]
  },
@@ -31513,8 +30968,14 @@
    "eltern",
    "erneut",
    "ernte",
+   "leier",
+   "leine",
+   "leite",
    "leiten",
    "leiter",
+   "leute",
+   "liter",
+   "lunte",
    "reiten",
    "teilen",
    "untier",
@@ -31551,8 +31012,12 @@
    "rein",
    "rita",
    "tara",
+   "tier",
    "train",
-   "vater"
+   "vater",
+   "vati",
+   "vier",
+   "vita"
   ]
  },
  {
@@ -31571,7 +31036,11 @@
    "leihe",
    "leihen",
    "leine",
-   "live"
+   "live",
+   "nice",
+   "vene",
+   "vieh",
+   "viel"
   ]
  },
  {
@@ -31636,10 +31105,16 @@
    "brie",
    "ebbe",
    "eile",
+   "erbe",
+   "ever",
    "leber",
+   "leer",
+   "leib",
    "leier",
+   "lieb",
    "liebe",
-   "lieber"
+   "lieber",
+   "live"
   ]
  },
  {
@@ -31664,7 +31139,13 @@
    "bete",
    "beten",
    "beton",
+   "born",
+   "bote",
    "breen",
+   "brot",
+   "eben",
+   "ente",
+   "erbe",
    "erben",
    "ernte",
    "event",
@@ -31687,8 +31168,14 @@
    "chat",
    "dach",
    "daher",
+   "dart",
+   "date",
    "drache",
    "draht",
+   "dreh",
+   "echt",
+   "hart",
+   "head",
    "rache",
    "recht",
    "trace",
@@ -31725,7 +31212,13 @@
    "erde",
    "erden",
    "ever",
+   "need",
+   "nerd",
+   "nerv",
+   "neue",
+   "rand",
    "rande",
+   "raue",
    "rauen",
    "reden",
    "revue",
@@ -31760,7 +31253,13 @@
    "event",
    "inder",
    "nieder",
+   "niere",
+   "niete",
+   "reden",
+   "reine",
    "reiten",
+   "rente",
+   "rinde",
    "verein",
    "vereint",
    "vierte"
@@ -31814,7 +31313,8 @@
    "rein",
    "reine",
    "vene",
-   "verein"
+   "verein",
+   "vier"
   ]
  },
  {
@@ -31829,10 +31329,16 @@
    "nerv",
    "niere",
    "niete",
+   "rein",
    "reine",
    "reiten",
    "rente",
+   "teen",
+   "teer",
+   "tier",
+   "vene",
    "verein",
+   "vier",
    "vierte"
   ]
  },
@@ -31849,10 +31355,16 @@
    "rast",
    "raste",
    "rate",
+   "rest",
+   "safe",
+   "saft",
+   "star",
    "strafe",
    "taser",
    "tasse",
-   "vater"
+   "vase",
+   "vater",
+   "vers"
   ]
  },
  {
@@ -31909,7 +31421,10 @@
    "green",
    "grün",
    "grüne",
-   "regen"
+   "nerv",
+   "rege",
+   "regen",
+   "vene"
   ]
  },
  {
@@ -31940,13 +31455,19 @@
    "eben",
    "ebene",
    "enge",
+   "erbe",
    "erben",
    "ergeben",
+   "ever",
    "geben",
    "geber",
+   "gern",
    "gerne",
    "green",
-   "regen"
+   "nerv",
+   "rege",
+   "regen",
+   "vene"
   ]
  },
  {
@@ -31965,7 +31486,11 @@
    "heer",
    "hege",
    "hegen",
-   "regen"
+   "nerv",
+   "rege",
+   "regen",
+   "rehe",
+   "vene"
   ]
  },
  {
@@ -31982,8 +31507,14 @@
    "heran",
    "nahe",
    "nerv",
+   "neue",
+   "raue",
    "rauen",
+   "reha",
+   "rehe",
+   "reue",
    "revue",
+   "ruhe",
    "ruhen"
   ]
  },
@@ -32040,7 +31571,9 @@
    "range",
    "rege",
    "regen",
-   "vage"
+   "vage",
+   "vega",
+   "vene"
   ]
  },
  {
@@ -32080,7 +31613,13 @@
    "deal",
    "dealen",
    "dealer",
+   "dran",
+   "edel",
+   "eden",
+   "edle",
    "elend",
+   "ende",
+   "erde",
    "erden",
    "laden",
    "leader",
@@ -32145,13 +31684,18 @@
    "gelee",
    "gern",
    "gerne",
+   "glee",
    "green",
+   "leer",
    "leere",
    "leeren",
    "legen",
+   "nerv",
+   "rege",
    "regel",
    "regeln",
-   "regen"
+   "regen",
+   "vene"
   ]
  },
  {
@@ -32171,7 +31715,11 @@
  {
   "base": "verliebt",
   "words": [
+   "beil",
    "bereit",
+   "bete",
+   "bier",
+   "blei",
    "breit",
    "breite",
    "brite",
@@ -32183,6 +31731,8 @@
    "leiter",
    "liebe",
    "lieber",
+   "liter",
+   "trieb",
    "vierte",
    "viertel"
   ]
@@ -32203,7 +31753,10 @@
    "reise",
    "riese",
    "seil",
-   "serie"
+   "serie",
+   "vers",
+   "viel",
+   "vier"
   ]
  },
  {
@@ -32215,12 +31768,18 @@
    "eben",
    "erbe",
    "erben",
+   "ever",
    "leben",
    "leber",
+   "leer",
    "loben",
+   "lore",
+   "love",
    "lover",
    "nebel",
+   "nerv",
    "nobel",
+   "oben",
    "obere",
    "vorne"
   ]
@@ -32241,7 +31800,11 @@
    "ober",
    "obere",
    "revolte",
-   "verbot"
+   "robe",
+   "rote",
+   "teer",
+   "verbot",
+   "volt"
   ]
  },
  {
@@ -32287,7 +31850,10 @@
    "riss",
    "sims",
    "stier",
-   "timer"
+   "tier",
+   "timer",
+   "vers",
+   "vier"
   ]
  },
  {
@@ -32302,8 +31868,14 @@
    "meter",
    "meute",
    "munter",
+   "nerv",
+   "neue",
    "rente",
+   "reue",
    "revue",
+   "rune",
+   "rute",
+   "teen",
    "teuer",
    "treue",
    "unter"
@@ -32358,7 +31930,11 @@
    "pakt",
    "park",
    "part",
+   "pate",
    "pater",
+   "rate",
+   "take",
+   "tape",
    "trace",
    "track",
    "vater"
@@ -32375,10 +31951,14 @@
    "ever",
    "narr",
    "nerv",
+   "rate",
    "raten",
    "rente",
    "taverne",
+   "teen",
+   "teer",
    "vater",
+   "vene",
    "verrat",
    "veteran"
   ]
@@ -32393,9 +31973,15 @@
    "garn",
    "gern",
    "gerne",
+   "gras",
    "green",
+   "nase",
+   "nerv",
+   "rage",
+   "rang",
    "range",
    "rasen",
+   "rege",
    "regen",
    "sagen",
    "segen",
@@ -32435,7 +32021,13 @@
    "raus",
    "reue",
    "revue",
+   "rune",
    "sauer",
+   "sure",
+   "uran",
+   "urne",
+   "vase",
+   "vene",
    "venus"
   ]
  },
@@ -32454,8 +32046,12 @@
    "star",
    "stau",
    "stur",
+   "sure",
    "taser",
-   "vater"
+   "treu",
+   "vase",
+   "vater",
+   "vers"
   ]
  },
  {
@@ -32509,12 +32105,14 @@
    "sorte",
    "steg",
    "tresor",
+   "vers",
    "vorerst"
   ]
  },
  {
   "base": "verstand",
   "words": [
+   "ader",
    "anders",
    "arsen",
    "arten",
@@ -32528,7 +32126,12 @@
    "raten",
    "senat",
    "stand",
-   "strand"
+   "stern",
+   "strand",
+   "taser",
+   "trans",
+   "trend",
+   "vater"
   ]
  },
  {
@@ -32590,8 +32193,14 @@
    "geraten",
    "gerne",
    "green",
+   "range",
+   "raten",
+   "regen",
    "regent",
+   "rente",
+   "tagen",
    "taverne",
+   "trage",
    "tragen",
    "veteran"
   ]
@@ -32639,9 +32248,13 @@
    "brite",
    "erbe",
    "ever",
+   "irre",
    "reiter",
    "revier",
+   "teer",
+   "tier",
    "trieb",
+   "vier",
    "vierte"
   ]
  },
@@ -32656,10 +32269,16 @@
    "dran",
    "etwa",
    "nerd",
+   "nerv",
+   "rand",
    "rande",
+   "rate",
    "raten",
    "trend",
    "vater",
+   "wade",
+   "wand",
+   "want",
    "warte",
    "warten"
   ]
@@ -32680,7 +32299,10 @@
    "nerv",
    "rübe",
    "vene",
-   "verüben"
+   "verüben",
+   "übel",
+   "üben",
+   "über"
   ]
  },
  {
@@ -32718,7 +32340,11 @@
    "tafel",
    "taille",
    "teil",
-   "villa"
+   "tief",
+   "vati",
+   "viel",
+   "villa",
+   "vita"
   ]
  },
  {
@@ -32734,9 +32360,15 @@
    "mais",
    "mall",
    "mesa",
+   "mies",
    "mille",
    "salve",
+   "same",
+   "seal",
+   "seil",
+   "slam",
    "small",
+   "vase",
    "villa"
   ]
  },
@@ -32750,7 +32382,13 @@
    "emir",
    "ever",
    "heer",
+   "heil",
    "heiler",
+   "heim",
+   "heli",
+   "hier",
+   "leer",
+   "lehm",
    "lehre",
    "leier",
    "leihe",
@@ -32794,7 +32432,8 @@
    "real",
    "reim",
    "rivale",
-   "viel"
+   "viel",
+   "vier"
   ]
  },
  {
@@ -32813,6 +32452,8 @@
    "teer",
    "teil",
    "tier",
+   "viel",
+   "vier",
    "vierte"
   ]
  },
@@ -32832,13 +32473,16 @@
    "volt",
    "zeit",
    "zelt",
-   "ziel"
+   "ziel",
+   "zoll"
   ]
  },
  {
   "base": "vorabend",
   "words": [
    "abend",
+   "aber",
+   "ader",
    "baden",
    "baron",
    "board",
@@ -32851,7 +32495,11 @@
    "narbe",
    "orden",
    "radon",
-   "verband"
+   "rande",
+   "verband",
+   "vorab",
+   "voran",
+   "vorne"
   ]
  },
  {
@@ -32865,11 +32513,17 @@
    "erden",
    "ever",
    "need",
+   "nerd",
+   "nerv",
+   "nord",
    "orden",
    "order",
    "ordner",
+   "rede",
    "reden",
    "redner",
+   "vene",
+   "vorn",
    "vorne"
   ]
  },
@@ -32883,11 +32537,16 @@
    "igel",
    "live",
    "loge",
+   "lore",
+   "love",
    "lover",
+   "oger",
    "olive",
    "oliver",
    "orgel",
    "orgie",
+   "viel",
+   "vier",
    "vogel",
    "vogler"
   ]
@@ -32923,10 +32582,16 @@
   "base": "vorgeben",
   "words": [
    "bene",
+   "berg",
    "bergen",
    "bogen",
+   "bong",
+   "borg",
    "borgen",
+   "born",
    "breen",
+   "eben",
+   "enge",
    "erben",
    "geben",
    "geber",
@@ -32952,8 +32617,14 @@
    "gerne",
    "green",
    "heer",
+   "hege",
    "hegen",
+   "horn",
+   "nerv",
+   "oger",
+   "rege",
    "regen",
+   "rehe",
    "vorne"
   ]
  },
@@ -32962,14 +32633,20 @@
   "words": [
    "aber",
    "ahne",
+   "bahn",
    "bahre",
    "baron",
    "bohne",
    "bohren",
+   "bora",
+   "born",
+   "brav",
    "bravo",
+   "habe",
    "haben",
    "herab",
    "heran",
+   "herb",
    "narbe",
    "vorab",
    "voran",
@@ -33000,9 +32677,15 @@
    "largo",
    "loge",
    "lore",
+   "love",
    "lover",
+   "oger",
    "orgel",
+   "oval",
+   "rage",
+   "real",
    "regal",
+   "vage",
    "verlag",
    "vogel",
    "vogler"
@@ -33013,9 +32696,15 @@
   "words": [
    "enge",
    "engel",
+   "ergo",
+   "ever",
+   "gern",
    "gerne",
+   "glee",
    "green",
+   "leer",
    "legen",
+   "loge",
    "lover",
    "orgel",
    "regel",
@@ -33043,6 +32732,10 @@
    "love",
    "lover",
    "nerv",
+   "rose",
+   "vene",
+   "vers",
+   "vorn",
    "vorne"
   ]
  },
@@ -33054,7 +32747,13 @@
    "blei",
    "boiler",
    "brei",
+   "brie",
+   "eile",
+   "erbe",
+   "ever",
    "leber",
+   "leer",
+   "leib",
    "leier",
    "liebe",
    "lieber",
@@ -33139,6 +32838,8 @@
    "rauch",
    "raus",
    "rausch",
+   "rosa",
+   "rush",
    "schar",
    "schau",
    "voraus"
@@ -33175,9 +32876,15 @@
    "olive",
    "oliver",
    "oper",
+   "pier",
+   "pole",
    "polier",
    "preis",
    "prise",
+   "reis",
+   "rose",
+   "seil",
+   "slip",
    "spiel",
    "viper"
   ]
@@ -33213,6 +32920,12 @@
    "notar",
    "nova",
    "radon",
+   "rand",
+   "rast",
+   "rosa",
+   "rost",
+   "sand",
+   "soda",
    "stand",
    "strand",
    "trans",
@@ -33283,12 +32996,18 @@
    "chase",
    "hase",
    "nach",
+   "nahe",
+   "nase",
+   "news",
    "sache",
    "sahne",
+   "scan",
    "schwan",
+   "wach",
    "wache",
    "wachen",
    "wachs",
+   "wahn",
    "waschen"
   ]
  },
@@ -33296,6 +33015,12 @@
   "base": "wachstum",
   "words": [
    "acht",
+   "auch",
+   "cash",
+   "chat",
+   "hast",
+   "haus",
+   "haut",
    "macht",
    "match",
    "matsch",
@@ -33355,7 +33080,11 @@
    "wahr",
    "ware",
    "wart",
-   "warte"
+   "warte",
+   "wehr",
+   "weit",
+   "wert",
+   "wirt"
   ]
  },
  {
@@ -33388,8 +33117,11 @@
    "nadeln",
    "wade",
    "wald",
+   "wand",
    "wandel",
-   "wanne"
+   "wann",
+   "wanne",
+   "wlan"
   ]
  },
  {
@@ -33403,9 +33135,15 @@
    "erde",
    "erden",
    "narr",
+   "need",
+   "nerd",
+   "rand",
    "rande",
+   "rede",
    "reden",
    "redner",
+   "wade",
+   "wand",
    "warner",
    "wende",
    "werden"
@@ -33472,13 +33210,19 @@
    "chase",
    "hase",
    "nach",
+   "nahe",
+   "nase",
+   "news",
    "sache",
    "sahne",
+   "scan",
    "schwan",
+   "wach",
    "wache",
    "wachen",
    "wachs",
-   "wachsen"
+   "wachsen",
+   "wahn"
   ]
  },
  {
@@ -33493,9 +33237,13 @@
    "eistee",
    "este",
    "seite",
+   "sieb",
    "website",
+   "weib",
    "weise",
+   "weit",
    "weite",
+   "west",
    "weste",
    "wiese"
   ]
@@ -33514,7 +33262,9 @@
    "sieb",
    "weib",
    "weise",
+   "weit",
    "weite",
+   "west",
    "weste",
    "wiese"
   ]
@@ -33531,9 +33281,11 @@
    "lesen",
    "news",
    "schnee",
+   "sehe",
    "sehen",
    "sehne",
    "wechsel",
+   "wehe",
    "wehen",
    "wesen"
   ]
@@ -33597,9 +33349,11 @@
    "nice",
    "wehe",
    "wehen",
+   "weib",
    "weich",
    "weiche",
-   "weihen"
+   "weihen",
+   "wein"
   ]
  },
  {
@@ -33626,6 +33380,8 @@
    "eiern",
    "eigen",
    "einer",
+   "enge",
+   "ewig",
    "geier",
    "genie",
    "gerne",
@@ -33634,7 +33390,11 @@
    "neige",
    "niere",
    "regen",
+   "regie",
+   "reine",
+   "wenig",
    "weniger",
+   "wiege",
    "wiegen",
    "wiener"
   ]
@@ -33645,12 +33405,18 @@
    "eiche",
    "eile",
    "eilen",
+   "elch",
+   "heil",
    "heilen",
+   "heli",
+   "lehn",
    "lehne",
    "leiche",
    "leihe",
    "leihen",
    "leine",
+   "nice",
+   "wehe",
    "wehen",
    "weich",
    "weiche",
@@ -33668,6 +33434,12 @@
    "biene",
    "birne",
    "breen",
+   "eiern",
+   "eigen",
+   "einer",
+   "erben",
+   "erbin",
+   "geben",
    "ingwer",
    "reiben",
    "weigern",
@@ -33707,8 +33479,14 @@
    "orbit",
    "robe",
    "rote",
+   "tier",
    "tower",
    "trieb",
+   "trio",
+   "weib",
+   "weit",
+   "weiß",
+   "wert",
    "wobei"
   ]
  },
@@ -33717,12 +33495,18 @@
   "words": [
    "alte",
    "alter",
+   "arme",
    "armut",
+   "atem",
+   "etwa",
    "lauer",
+   "laut",
    "laute",
    "maler",
    "mauer",
+   "maul",
    "metal",
+   "rate",
    "taler",
    "traum",
    "umwelt",
@@ -33755,6 +33539,8 @@
    "eiern",
    "eigen",
    "einer",
+   "enge",
+   "ewig",
    "geier",
    "genie",
    "gerne",
@@ -33763,7 +33549,11 @@
    "neige",
    "niere",
    "regen",
+   "regie",
+   "reine",
    "weigern",
+   "wenig",
+   "wiege",
    "wiegen",
    "wiener"
   ]
@@ -33800,7 +33590,8 @@
    "tower",
    "welt",
    "wert",
-   "west"
+   "west",
+   "wort"
   ]
  },
  {
@@ -33819,7 +33610,9 @@
    "voll",
    "volt",
    "welt",
-   "wolle"
+   "wert",
+   "wolle",
+   "wort"
   ]
  },
  {
@@ -33847,11 +33640,17 @@
    "erste",
    "este",
    "nest",
+   "news",
    "rente",
+   "rest",
    "stern",
+   "teen",
+   "teer",
    "tresen",
+   "wert",
    "werten",
    "wesen",
+   "west",
    "weste",
    "westen"
   ]
@@ -33900,11 +33699,17 @@
    "ehren",
    "eiern",
    "einer",
+   "heer",
    "herein",
+   "hier",
+   "hirn",
    "niere",
+   "rehe",
    "reihe",
    "reihen",
+   "rein",
    "reine",
+   "wehe",
    "wehen",
    "wehren",
    "weihen",
@@ -33927,6 +33732,7 @@
    "wein",
    "wenig",
    "werk",
+   "wink",
    "wirken"
   ]
  },
@@ -33940,9 +33746,15 @@
    "edle",
    "eile",
    "erde",
+   "idee",
+   "irre",
    "leder",
+   "leer",
+   "leid",
    "leider",
    "leier",
+   "lied",
+   "rede",
    "weide",
    "weile",
    "wieder",
@@ -34012,10 +33824,16 @@
    "rein",
    "reis",
    "rest",
+   "sein",
    "stein",
    "stern",
    "stier",
    "stirn",
+   "tier",
+   "wein",
+   "weit",
+   "wert",
+   "west",
    "winter"
   ]
  },
@@ -34044,6 +33862,12 @@
    "dorn",
    "dose",
    "down",
+   "dran",
+   "nase",
+   "nerd",
+   "news",
+   "nord",
+   "oase",
    "orden",
    "radon",
    "rande",
@@ -34129,7 +33953,13 @@
    "diner",
    "ding",
    "dirne",
+   "drei",
+   "drin",
    "dünger",
+   "ewig",
+   "gern",
+   "gier",
+   "grün",
    "grüne",
    "inder",
    "ingwer",
@@ -34185,8 +34015,10 @@
    "raub",
    "raue",
    "reiz",
+   "reue",
    "zauber",
-   "zebra"
+   "zebra",
+   "zier"
   ]
  },
  {
@@ -34207,7 +34039,9 @@
  {
   "base": "zauberin",
   "words": [
+   "aber",
    "anreiz",
+   "arie",
    "arznei",
    "bauen",
    "bauer",
@@ -34219,8 +34053,12 @@
    "rauben",
    "rauen",
    "rubin",
+   "ruine",
+   "urban",
+   "zarin",
    "zauber",
-   "zaubern"
+   "zaubern",
+   "zebra"
   ]
  },
  {
@@ -34236,9 +34074,14 @@
    "rabe",
    "raub",
    "rauben",
+   "raue",
    "rauen",
+   "rune",
+   "uran",
    "urban",
+   "urne",
    "zauber",
+   "zaun",
    "zebra"
   ]
  },
@@ -34258,7 +34101,11 @@
    "mehl",
    "nahe",
    "name",
-   "zahlen"
+   "zahl",
+   "zahlen",
+   "zahm",
+   "zahn",
+   "zehn"
   ]
  },
  {
@@ -34301,9 +34148,12 @@
   "words": [
    "agent",
    "alien",
+   "alte",
    "alten",
    "angel",
    "anteil",
+   "egal",
+   "galt",
    "ganze",
    "genial",
    "glanz",
@@ -34311,8 +34161,11 @@
    "lange",
    "lanze",
    "latein",
+   "nagel",
    "tagein",
-   "tilgen"
+   "tagen",
+   "tilgen",
+   "zange"
   ]
  },
  {
@@ -34347,9 +34200,15 @@
    "petze",
    "pilz",
    "pleite",
+   "pult",
+   "putz",
    "putze",
+   "teil",
    "zeile",
-   "zelte"
+   "zeit",
+   "zelt",
+   "zelte",
+   "ziel"
   ]
  },
  {
@@ -34363,6 +34222,12 @@
    "lanze",
    "latein",
    "lenz",
+   "netz",
+   "pate",
+   "pein",
+   "pelz",
+   "pilz",
+   "plan",
    "plane",
    "planet",
    "platin",
@@ -34385,6 +34250,12 @@
    "miez",
    "rate",
    "raue",
+   "raum",
+   "reim",
+   "reiz",
+   "rita",
+   "ritz",
+   "rute",
    "timer",
    "traum"
   ]
@@ -34407,15 +34278,21 @@
  {
   "base": "zentrale",
   "words": [
+   "alte",
    "alten",
    "alter",
    "altern",
    "arten",
+   "arzt",
    "eltern",
+   "ente",
    "ernte",
    "lanze",
    "laterne",
+   "leer",
+   "lenz",
    "letzen",
+   "netz",
    "raten",
    "rente",
    "taler",
@@ -34446,12 +34323,17 @@
    "erlegen",
    "erzengel",
    "gelee",
+   "gern",
    "gerne",
+   "glee",
    "green",
    "grenze",
+   "leer",
    "leere",
    "leeren",
    "legen",
+   "lenz",
+   "rege",
    "regel",
    "regeln",
    "regen"
@@ -34500,8 +34382,14 @@
    "gerne",
    "green",
    "grenze",
+   "neige",
    "neugier",
+   "niere",
+   "regen",
+   "regie",
+   "reine",
    "reizen",
+   "ruine",
    "zeigen",
    "zeiger",
    "zeugin"
@@ -34539,7 +34427,13 @@
    "reiz",
    "reizen",
    "rente",
-   "ritzen"
+   "ritz",
+   "ritzen",
+   "teen",
+   "teer",
+   "tier",
+   "zeit",
+   "zier"
   ]
  },
  {
@@ -34558,7 +34452,10 @@
    "rotz",
    "tier",
    "trio",
-   "zeit"
+   "zeit",
+   "zier",
+   "zone",
+   "zorn"
   ]
  },
  {
@@ -34622,9 +34519,15 @@
    "gate",
    "genau",
    "gute",
+   "netz",
+   "nutz",
    "tagen",
+   "tang",
+   "tanz",
    "taugen",
    "zange",
+   "zaun",
+   "zeug",
    "zunge"
   ]
  },
@@ -34724,7 +34627,13 @@
    "nach",
    "nahe",
    "nahezu",
-   "name"
+   "name",
+   "zach",
+   "zahm",
+   "zahn",
+   "zaum",
+   "zaun",
+   "zehn"
   ]
  },
  {
@@ -34742,7 +34651,10 @@
    "nichte",
    "nutz",
    "teich",
+   "tuch",
    "unecht",
+   "zehn",
+   "zeit",
    "zucht"
   ]
  },
@@ -34762,7 +34674,11 @@
    "ordnen",
    "rund",
    "runde",
-   "runden"
+   "runden",
+   "rune",
+   "urne",
+   "zone",
+   "zorn"
   ]
  },
  {
@@ -34776,9 +34692,13 @@
    "ganze",
    "genau",
    "nase",
+   "sage",
    "sagen",
+   "sang",
    "saugen",
    "zange",
+   "zaun",
+   "zeug",
    "zeugs",
    "zunge",
    "zusage"
@@ -34830,10 +34750,16 @@
    "nase",
    "nest",
    "netz",
+   "nutz",
+   "sand",
+   "satz",
    "senat",
    "stand",
+   "stau",
    "stunde",
+   "tanz",
    "tausend",
+   "zaun",
    "zustand"
   ]
  },
@@ -34867,7 +34793,8 @@
    "stute",
    "suite",
    "test",
-   "tief"
+   "tief",
+   "zeit"
   ]
  },
  {
@@ -34883,9 +34810,15 @@
    "raue",
    "rauen",
    "rune",
+   "rute",
+   "tanz",
    "trauen",
+   "treu",
+   "turn",
    "unter",
    "untreu",
+   "uran",
+   "urne",
    "zutun"
   ]
  },
@@ -34937,10 +34870,16 @@
    "setzen",
    "sitzen",
    "stein",
+   "szene",
+   "weise",
    "weisen",
+   "weite",
    "weiten",
    "weizen",
+   "wesen",
+   "weste",
    "westen",
+   "wiese",
    "zweite"
   ]
  },
@@ -34965,9 +34904,15 @@
   "words": [
    "beil",
    "bein",
+   "bene",
+   "bien",
    "biene",
+   "blei",
+   "eben",
+   "eile",
    "eilen",
    "leben",
+   "leib",
    "leine",
    "liebe",
    "lieben",
@@ -35005,8 +34950,10 @@
    "nein",
    "wein",
    "wenig",
+   "wind",
    "winde",
    "winden",
+   "zwei",
    "zweig",
    "zwinge",
    "zwingen"
@@ -35028,6 +34975,8 @@
    "wink",
    "winken",
    "wirken",
+   "zier",
+   "zwei",
    "zwirn"
   ]
  },
@@ -35066,7 +35015,9 @@
    "rein",
    "reiz",
    "rind",
-   "rinde"
+   "rinde",
+   "ziel",
+   "zier"
   ]
  },
  {
@@ -35103,7 +35054,10 @@
    "leib",
    "leite",
    "lieb",
-   "liebe"
+   "liebe",
+   "like",
+   "teil",
+   "übel"
   ]
  },
  {
@@ -35148,13 +35102,19 @@
    "bier",
    "birne",
    "breen",
+   "brei",
+   "brie",
+   "eben",
    "eiern",
    "einer",
+   "erbe",
    "erben",
    "erbin",
    "niere",
    "reiben",
-   "reine"
+   "rein",
+   "reine",
+   "rübe"
   ]
  },
  {
@@ -35173,6 +35133,8 @@
    "rabe",
    "real",
    "rübe",
+   "übel",
+   "über",
    "überall"
   ]
  },
@@ -35192,7 +35154,8 @@
    "rabe",
    "rage",
    "rege",
-   "rübe"
+   "rübe",
+   "über"
   ]
  },
  {
@@ -35208,9 +35171,15 @@
    "gabe",
    "gage",
    "gang",
+   "garn",
+   "gern",
+   "grab",
    "graben",
+   "grün",
    "grüne",
    "narbe",
+   "rabe",
+   "rage",
    "range"
   ]
  },
@@ -35230,7 +35199,12 @@
    "lore",
    "ober",
    "robe",
-   "trübe"
+   "rote",
+   "rübe",
+   "trübe",
+   "türe",
+   "übel",
+   "über"
   ]
  },
  {
@@ -35262,7 +35236,11 @@
    "rabe",
    "real",
    "reha",
-   "zebra"
+   "rübe",
+   "zahl",
+   "zebra",
+   "übel",
+   "über"
   ]
  },
  {
@@ -35273,11 +35251,17 @@
    "bien",
    "bier",
    "birne",
+   "brei",
+   "brie",
    "brise",
    "bürge",
    "bürgen",
+   "eins",
    "erbin",
+   "gern",
+   "gier",
    "greis",
+   "grün",
    "grüne",
    "rings",
    "singer",
