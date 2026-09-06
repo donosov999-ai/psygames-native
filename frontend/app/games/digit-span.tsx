@@ -93,13 +93,31 @@ export const PACE_STEPS: Pace[] = ['slow', 'normal', 'fast'];
 // Уровень (1..15+): L1-6 длина 4→9 · L7-10 длина 9 + показ быстрее · L11+ обязательный обратный ввод.
 // Сложность растёт ТРУДНОСТЬЮ (скорость, реверс), а не просто длиной за пределом памяти.
 /** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
-export function levelParams(level: number): { startLen: number; showMs: number; gapMs: number; reverse: boolean } {
+/**
+ * 🔴 ОСЬ 3 — ЗАДЕРЖКА. Введена 07.09.2026: объём и скорость кончились одновременно.
+ *
+ * ЗАМЕР ДО. Прогон этой функции на L1…L60: с L14 застывало ВСЁ — девять цифр
+ * (потолок объёма цифр), показ 350 мс и пауза 550 мс (дно скорости). Сорок семь
+ * уровней L14…L60 были неотличимы, но каждый требовал прохождения. Подтверждено
+ * ИГРОЙ: на живом билде L14, L15 и L17 давали один и тот же экран партии.
+ *
+ * ПОЧЕМУ НЕ БОЛЬШЕ ЦИФР. Десятая цифра не делает пробу труднее — она делает её
+ * невозможной для всех одинаково, и уровни снова перестают различать людей.
+ *
+ * ⚠️ ПОТОЛКА У ЗАДЕРЖКИ НЕТ сознательно (правило раздела: потолков нет нигде).
+ * Полосу можно будет закончить, когда начнётся ось 9 — направление ввода
+ * объявляется ПОСЛЕ показа, задача bc2ec3a4.
+ */
+export const DS_VOLUME_TOP = 14;   // с этого уровня длина и скорость больше не растут — дальше держит задержка
+
+export function levelParams(level: number): { startLen: number; showMs: number; gapMs: number; reverse: boolean; holdMs: number } {
   const startLen = Math.min(9, 3 + level);              // L1=4 → L6=9, дальше держим 9
   const fast = Math.max(0, level - 6);                   // за потолком длины (L7+) ускоряем показ
   const showMs = Math.max(350, 700 - fast * 45);
   const gapMs = Math.max(550, 1100 - fast * 70);
   const reverse = level >= 11;                            // L11+ — обязательный обратный ввод
-  return { startLen, showMs, gapMs, reverse };
+  const holdMs = Math.max(0, level - DS_VOLUME_TOP) * 700;
+  return { startLen, showMs, gapMs, reverse, holdMs };
 }
 
 /**
@@ -292,6 +310,9 @@ export default function DigitSpanGame() {
   const levelRef = useRef(1);
   const showMsRef = useRef(700);
   const gapMsRef = useRef(1100);
+  const holdRef = useRef(0);
+  /** Идёт удержание: ряд показан, ввод ещё закрыт. Ось 3, см. levelParams. */
+  const [holding, setHolding] = useState(false);
   const dirRef = useRef<Direction>('forward');
   const deliveryRef = useRef<Delivery>('screen');
   /** Номер живой озвучки: уход с экрана и новый раунд обрывают предыдущую. */
@@ -331,12 +352,14 @@ export default function DigitSpanGame() {
     const timing = showTiming({ isPreset, level: effLevel, pace });
     showMsRef.current = timing.showMs;
     gapMsRef.current = timing.gapMs;
+    holdRef.current = isPreset ? 0 : p.holdMs;   // пресет идёт мимо лестницы
     dirRef.current = isPreset ? direction : (p.reverse ? 'backward' : 'forward');
     if (!isPreset) setDirection(dirRef.current);
     // Голос — только если говорить есть чем. Иначе партия идёт экраном, а причина
     // молчания уже написана на экране настроек (ds.voiceNoVoice / ds.voiceSoundOff).
     deliveryRef.current = effectiveDelivery(delivery, ttsBlock);
     setVoiceRound(deliveryRef.current === 'voice');
+    setHolding(false);
     /**
      * Идёт ли ЭТА партия в рекорд — решается здесь, теми же правилами, какими она
      * будет записываться на финише (`countsForRecord` + подача экраном + не пробный
@@ -365,6 +388,19 @@ export default function DigitSpanGame() {
     submittingRef.current = false;
     setPhase('showing');
     const myRun = ++runIdRef.current;
+    /**
+     * 🔴 ВВОД ОТКРЫВАЕТСЯ В ОДНОМ МЕСТЕ НА ВСЕ ТРИ СПОСОБА ПОДАЧИ.
+     *
+     * ⚠️ Раньше `setPhase('input')` стоял трижды — по разу на режим. Любая
+     * добавка к переходу (а задержка именно такая) разъехалась бы ровно
+     * посередине: в одном режиме была бы, в другом нет. Тем же и кончилось
+     * когда-то правило разбора ответа, о чём написано ниже у expectedDigits.
+     */
+    const openInput = (myRun: number) => {
+      const go = () => { if (runIdRef.current === myRun) { setHolding(false); setPhase('input'); } };
+      if (holdRef.current > 0) { setHolding(true); setTimeout(go, holdRef.current); return; }
+      go();
+    };
     if (deliveryRef.current === 'voice') {
       /**
        * ГОЛОСОМ. Цифры произносятся по одной голосом системы; на экране в это
@@ -378,7 +414,7 @@ export default function DigitSpanGame() {
           await speakSequence([String(seq[i])], language, gapMsRef.current);
         }
         if (runIdRef.current !== myRun) return;
-        setPhase('input');
+        openInput(myRun);
       })();
       return;
     }
@@ -389,7 +425,7 @@ export default function DigitSpanGame() {
       setTimeout(() => {
         if (runIdRef.current !== myRun) return;
         setShowIdx(-2);
-        setTimeout(() => setPhase('input'), 300);
+        setTimeout(() => openInput(myRun), 300);
       }, allAtOnceMs(seq.length, gapMsRef.current));
       return;
     }
@@ -398,7 +434,7 @@ export default function DigitSpanGame() {
       if (i >= seq.length) {
         if (showTimerRef.current) clearInterval(showTimerRef.current);
         setShowIdx(-2); // hidden between digits
-        setTimeout(() => setPhase('input'), 300);
+        setTimeout(() => openInput(myRun), 300);
         return;
       }
       setShowIdx(i);
@@ -733,7 +769,12 @@ export default function DigitSpanGame() {
             </View>
           }
         >
-          {phase === 'showing' ? (
+          {phase === 'showing' && holding ? (
+            <View style={styles.digitArea}>
+              <Text style={[styles.bigDigit, { color: colors.text }]}>🧠</Text>
+              <Text testID="ds-holding" style={[styles.statText, { color: colors.text }]}>{t('memorize')}</Text>
+            </View>
+          ) : phase === 'showing' ? (
             voiceRound ? (
               <View style={styles.digitArea}>
                 <Ionicons name="volume-high" size={64} color={GRADIENT[0]} />
