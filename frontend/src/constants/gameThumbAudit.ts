@@ -17,6 +17,7 @@ export const THUMB_AUDIT: Record<string, ThumbAudit> = {
   "attention_conflict": { about: false, yellow: 0.0, sha: '1d20453b7f3d' },
   "bart": { about: false, yellow: 0.0, sha: 'ad0e43a688bd' },
   "breathing": { about: false, yellow: 0.0, sha: 'c6a800345256' },
+  "cake_sort": { about: false, yellow: 0.0, sha: '7cdcf477dd91' },
   "chess_blind": { about: false, yellow: 0.0, sha: '4f6b59c70209' },
   "chinese_tones": { about: false, yellow: 0.0, sha: '9caa9bf7c2b7' },
   "choice_rt": { about: false, yellow: 0.0048, sha: 'b6306a32fcc7' },
