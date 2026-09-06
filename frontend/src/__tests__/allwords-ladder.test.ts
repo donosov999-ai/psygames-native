@@ -65,6 +65,50 @@ describe('лестница «найди все слова»', () => {
     }
   });
 
+  /**
+   * 🔴 ВНУТРИ СТУПЕНИ ПОРЯДОК ОБЯЗАН БЫТЬ ЧАСТОТНЫМ, А НЕ АЛФАВИТНЫМ.
+   *
+   * 📍 Замер 06.09.2026: все проверки выше были ЗЕЛЁНЫМИ, а первым уровнем
+   * английского вставало `ability`, дальше `activate`, `against`, `already` —
+   * азбука. Рост числа слов от ступени к ступени они видят, а порядок ВНУТРИ
+   * ступени — нет, и туда вернулся ровно тот дефект, ради которого сборщики
+   * переводили на частотный ранг. В первой ступени 130 раскладок, места их баз
+   * по частоте шли от 1-го до 1998-го.
+   *
+   * Строки в JSON лежат по частоте — так пишет сборщик. Значит проверять надо,
+   * что при равном числе слов раньше идёт та база, что раньше в файле.
+   */
+  it('🔴 при равном числе слов раньше идёт более частая база', () => {
+    const ФАЙЛЫ: Record<string, any[]> = {
+      ru: require('@/src/constants/allWordsRu.json'),
+      en: require('@/src/constants/allWordsEn.json'),
+      de: require('@/src/constants/allWordsDe.json'),
+      es: require('@/src/constants/allWordsEs.json'),
+      fr: require('@/src/constants/allWordsFr.json'),
+      it: require('@/src/constants/allWordsIt.json'),
+      pt: require('@/src/constants/allWordsPt.json'),
+    };
+    const сбои: string[] = [];
+    for (const loc of allWordsLocales()) {
+      const файл = ФАЙЛЫ[loc];
+      if (!файл) continue;
+      const место = new Map<string, number>(файл.map((p: any, i: number) => [p.base, i]));
+      let предДлина = -1;
+      let предМесто = -1;
+      for (let L = 1; L <= allWordsCount(loc); L += 1) {
+        const p = allWordsPack(loc, L)!;
+        const м = место.get(p.base)!;
+        if (p.words.length === предДлина && м < предМесто) {
+          сбои.push(`${loc} уровень ${L} «${p.base}» (${м + 1}-й по частоте) идёт после ${предМесто + 1}-го`);
+          break;
+        }
+        предДлина = p.words.length;
+        предМесто = м;
+      }
+    }
+    expect(сбои).toEqual([]);
+  });
+
   it('⚠️ первый уровень — самая короткая раскладка, а не случайная', () => {
     for (const loc of allWordsLocales()) {
       const первый = allWordsPack(loc, 1)!;
