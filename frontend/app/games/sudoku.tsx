@@ -84,6 +84,8 @@ import { gameNow } from '@/src/services/gamePause';
 import {
   emptySudokuCellColors,
   normalizeSudokuCellColors,
+  NO_SUDOKU_COLOR,
+  setSudokuCellColor,
   SudokuCellColors,
   toggleSudokuCellColor,
 } from '@/src/services/sudoku-coloring';
@@ -91,7 +93,7 @@ import {
   sudokuBoardHint, sudokuClueText, type SudokuHintFocus,
 } from '@/src/services/sudoku-board-hint';
 import {
-  emptyPencilMarks, normalizePencilMarks, pencilInput, routeDigitPress,
+  emptyPencilMarks, normalizePencilMarks, pencilInput, routeDigitPress, setPencilCell,
   visiblePencilDigits, countPencilMarks, type PencilMarks,
 } from '@/src/services/pencilMarks';
 
@@ -331,8 +333,26 @@ const RESUME_V = 4;
 /** Та же версия наружу — гейт поднимает партию ровно под ней (см. SUDOKU_GAME_ID). */
 export const SUDOKU_RESUME_V = RESUME_V;
 
-/** Ход: что стояло в клетке до него и что стало. Назад отыгрывает экран, лента только помнит. */
-interface SudokuMove { r: number; c: number; from: Cell; to: Cell }
+/**
+ * Ход: что стояло в клетке до него и что стало. Назад отыгрывает экран, лента только помнит.
+ *
+ * 🔴 ВИДОВ ХОДА ТРИ, А НЕ ОДИН — починка жалобы тестировщиков 06.09.2026 «кнопка отменить
+ * не работает». Замер живьём по трём экранам: цифра откатывается везде (классика, фрактал
+ * 4/38 → 3/38, самурай два хода — две отмены), а ПОМЕТКА и ЦВЕТ не ложились в ленту вовсе,
+ * и кнопка оставалась СЕРОЙ после любого их числа. В судоку пометки — основная работа
+ * игрока, поэтому «Отменить», которая их не видит, читается как сломанная.
+ *
+ * ⚠️ ОСТАЛЬНАЯ ЧАСТЬ ПРЕЖНЕГО РЕШЕНИЯ ЦЕЛА. `routeDigitPress` объявлял три вещи разом:
+ * пометка не тратит ошибку · не проверяет доску на победу · не ложится в ленту. Первые две
+ * верны и не тронуты; третья была слита с ними без своей причины, и чинится именно она.
+ *
+ * Ход БЕЗ `kind` — цифра: так лежат ленты в партиях прежних версий (RESUME_V 4), и они
+ * обязаны подниматься дальше.
+ */
+type SudokuMove =
+  | { kind?: 'digit'; r: number; c: number; from: Cell; to: Cell }
+  | { kind: 'pencil'; r: number; c: number; from: number; to: number }
+  | { kind: 'color'; r: number; c: number; from: number; to: number };
 
 /**
  * Снимок незаконченной партии. Кладём ВСЁ, что нужно, чтобы доска ожила ровно такой,
@@ -1027,6 +1047,19 @@ export default function SudokuGame() {
   const handleUndo = () => {
     const m = hist.undo();
     if (!m) return;
+    // Пометка и цвет откатываются в свой слой; ошибка при этом не возвращается — она
+    // потрачена ходом, а пометка ходом и не была (см. шапку SudokuMove).
+    if (m.kind === 'pencil') {
+      setMarks((current) => setPencilCell(current, N, m.r, m.c, m.from));
+      setSelected({ r: m.r, c: m.c });
+      setBoardFocus({ kind: 'undo' });
+      return;
+    }
+    if (m.kind === 'color') {
+      setCellColors((current) => setSudokuCellColor(current, N, m.r, m.c, m.from));
+      setBoardFocus({ kind: 'undo' });
+      return;
+    }
     const ng = grid.map((row) => [...row]);
     ng[m.r][m.c] = m.from;
     setGrid(ng);
@@ -1051,7 +1084,12 @@ export default function SudokuGame() {
     // Ткнули в доску — объяснение числа у края больше не про то, на что смотрят.
     setBoardFocus(null);
     if (paintColor !== null) {
-      setCellColors((current) => toggleSudokuCellColor(current, N, r, c, paintColor));
+      // Цвет ложится в ленту отмены наравне с цифрой: «Отменить» обязана видеть всё, что
+      // человек сделал руками (жалоба 06.09.2026), а не только ходы.
+      const был = cellColors[r]?.[c] ?? NO_SUDOKU_COLOR;
+      const стало = toggleSudokuCellColor(cellColors, N, r, c, paintColor);
+      setCellColors(стало);
+      hist.push({ kind: 'color', r, c, from: был, to: стало[r][c] });
       return;
     }
     if (given[r][c]) return;
@@ -1068,7 +1106,12 @@ export default function SudokuGame() {
     if (route === 'ignore') return;
     const sel = selected!;
     if (route === 'pencil') {
-      setMarks((current) => pencilInput(current, N, sel.r, sel.c, n));
+      // Пометка по-прежнему НЕ тратит ошибку и НЕ проверяет доску на победу — выходим до
+      // того и другого. Но в ленту отмены она теперь ложится: см. шапку SudokuMove.
+      const была = marks[sel.r]?.[sel.c] ?? 0;
+      const стало = pencilInput(marks, N, sel.r, sel.c, n);
+      setMarks(стало);
+      hist.push({ kind: 'pencil', r: sel.r, c: sel.c, from: была, to: стало[sel.r][sel.c] });
       return;
     }
     const { r, c } = sel;
