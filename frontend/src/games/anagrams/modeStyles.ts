@@ -1,4 +1,4 @@
-/* psygames-anagram-mode-styles · VER 1 · 07.09.2026 */
+/* psygames-anagrams-mode-styles · VER 1 · 07.09.2026 */
 /**
  * ОДНА ГЕОМЕТРИЯ КНОПОК НА ВСЕ РЕЖИМЫ АНАГРАММ.
  *
