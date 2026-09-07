@@ -27,6 +27,11 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Шахматы: доска смотрела не с той стороны, когда вы играли за чёрных — в половине позиций',
       'Судоку: «Отменить» теперь снимает и пометки, и цвет клетки',
       'Филворды растут до двухсотого уровня, у анаграмм лестницы стали вдвое длиннее',
+      '«Дворец памяти»: предметы стали настоящими вещами — 56 картинок вместо цветных фигур. Лампа выглядит лампой',
+      'Судоку: раскраска девятью цветами, по цвету на цифру',
+      'Слуховые игры росли только до девятого-одиннадцатого уровня из пятнадцати — «Эхо псевдослов», «Мнемоника», «Близкие звуки». Теперь до пятнадцатого',
+      '«Объём цифр»: режим «весь ряд разом» не выпадал ни разу — теперь он есть, а направление ответа объявляется уже после показа',
+      'Внимание и счёт растут дальше: отвлекающие объекты в поиске, непредсказуемость в таблицах Шульте, переключение правила в Струпе, квадратные уравнения в слайдере',
     ],
     en: [
       'Levels stopped repeating: Digit Span had 47 identical levels, Listening Span had 51, and Dictation only grew to level seven of fifteen. Now a pause follows the display — you hold it in mind longer',
@@ -37,6 +42,11 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Chess: the board faced the wrong way when you played Black — in half the positions',
       'Sudoku: Undo now clears pencil marks and cell colour too',
       'Fillwords grow to level two hundred, and the Anagram ladders are twice as long',
+      'Memory Palace: items are real objects now — 56 pictures instead of coloured shapes. A lamp looks like a lamp',
+      'Sudoku: colouring with nine colours, one per digit',
+      'Hearing games only grew to level nine or eleven out of fifteen — Pseudoword Echo, Mnemonics, Similar Sounds. Now they run to fifteen',
+      'Digit Span: the “whole row at once” mode never came up at all — it exists now, and the recall direction is announced only after the display',
+      'Attention and Counting keep growing: distractors in visual search, unpredictability in Schulte tables, rule switching in Stroop, quadratic equations in the slider',
     ],
   },
   {
