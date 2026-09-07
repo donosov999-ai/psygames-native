@@ -1,4 +1,4 @@
-/* psygames-math-slider-expression · VER 3 · 07.09.2026 */
+/* psygames-math-slider-expression · VER 4 · 07.09.2026 */
 import type { MathExpression, MathSliderLocale } from './types';
 
 const EPSILON = 1e-9;
@@ -159,7 +159,10 @@ export function sampleAreaHeights(e: Extract<MathExpression, { type: 'integral-a
     const c3 = -0.5 * p0 + 1.5 * p1 - 1.5 * p2 + 0.5 * p3;
     const c2 = p0 - 2.5 * p1 + 2 * p2 - 0.5 * p3;
     const c1 = -0.5 * p0 + 0.5 * p2;
-    return Math.max(0, ((c3 * t + c2) * t + c1) * t + p1);
+    const v = ((c3 * t + c2) * t + c1) * t + p1;
+    // Кламп нуля — только для ИЗОЗНАКОВЫХ фигур (гасит overshoot Катмулла);
+    // у знаковых (есть узлы <0) отрицательные срезы — суть вопроса
+    return heights.every((h) => h >= 0) ? Math.max(0, v) : v;
   });
 }
 

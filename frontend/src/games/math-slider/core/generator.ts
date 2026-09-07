@@ -1,4 +1,4 @@
-/* psygames-math-slider-generator · VER 4 · 07.09.2026 */
+/* psygames-math-slider-generator · VER 5 · 07.09.2026 */
 /**
  * Лестница v2 — ШКОЛЬНАЯ ОСЬ (задана Денисом 07.09.2026, дословно в counting-chat/PROJECT_REF §R):
  * усложняем МЕТОД ПОДСЧЁТА, как проходят в школе, до высшей математики:
@@ -304,8 +304,18 @@ function integralArea(rng: Rng, g: number): Fam {
   // Частота волн растёт с g: у кривой на верхах негладкость (и мысленные куски
   // усреднения) — её собственная ось роста; при фикс-частоте rough не рос с n
   const freq = 0.9 + rng() * 1.1 + Math.max(0, g - 0.8) * 0.9;
+  // ЗНАКОВЫЙ интеграл (выбор Дениса 07.09, «два цвета»): с ~L61 часть фигур
+  // ныряет ниже нуля — ответ = разность площадей. Доля плавная; ровно там,
+  // где одноцветный хвост выходил на плоскость модели (замер: L61+ ×0,99–1,03)
+  const signed = rng() < clamp((g - 1) * 0.5, 0, 0.6);
+  // Центр знаковой волны у нуля, но РАЗМАХ крупнее (×1,5): иначе |высоты|
+  // мельчают и знаковый вопрос выходит ДЕШЕВЛЕ беззнакового (замер 07.09 —
+  // ямы ×0,94–0,99 на L61–69 при вводе знаковости без масштаба)
+  const shift = signed ? base * (0.8 + rng() * 0.4) : 0;
+  const scale = signed ? 1.5 : 1;
+  const floor = signed ? -Infinity : 1;
   const heights = Array.from({ length: nodes }, (_, i) => (
-    Math.max(1, Math.round(base + amp * Math.sin(phase + (i * freq * Math.PI) / Math.max(1, nodes - 1)) + (rng() - 0.5) * amp * 0.5))
+    Math.max(floor, Math.round(scale * (base - shift + amp * Math.sin(phase + (i * freq * Math.PI) / Math.max(1, nodes - 1)) + (rng() - 0.5) * amp * 0.5)))
   ));
   return { kind: 'integral-area', expression: { type: 'integral-area', form, dx, heights } };
 }
