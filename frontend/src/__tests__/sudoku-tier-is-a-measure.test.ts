@@ -15,7 +15,7 @@
  *
  * ⚠️ Гейт меряет ПОВЕДЕНИЕ на собранной доске, а не ищет слова в исходнике.
  */
-import { gradePuzzle, лучшеПодПолосу } from '@/src/services/sudoku-grade';
+import { gradePuzzle, liftByClueRemoval, лучшеПодПолосу } from '@/src/services/sudoku-grade';
 import { Cell, dimsForSize, generatePuzzle, TowersMap, UnequalMap } from '@/src/services/sudoku-core';
 import { TOWERS_LADDER } from '@/src/services/sudoku-modes';
 
@@ -167,4 +167,50 @@ describe('небоскрёбы: вариант обязан заслуживат
     expect(`решаемых на верхней ступени ${решено}/30 — не меньше пятой части: ${решено >= 6}`)
       .toBe(`решаемых на верхней ступени ${решено}/30 — не меньше пятой части: true`);
   });
+});
+
+describe('карта клеток-сумм согласована сама с собой', () => {
+  /**
+   * 🔴 МИНА, КОТОРАЯ ЖДАЛА ПЕРВОГО ЧИТАТЕЛЯ (найдена и снята 07.09.2026).
+   * `liftByClueRemoval` снимает группу-сумму, чтобы поднять ступень доски. Прежняя
+   * редакция гасила `cageOf` и `cells`, но `sum`/`anchor` оставляла — на карте
+   * оставалась МЕТКА БЕЗ КЛЕТОК. Игрок этого не видел (вся отрисовка идёт через
+   * `cageOf[r][c] >= 0`), движок тоже переживал, а вот проба `sudoku-thermocage`
+   * падала примерно раз в три полных прогона: она отсеивала только `undefined`.
+   *
+   * Здесь сторожится САМА КАРТА, а не её потребитель: сколько бы групп ни сняли,
+   * у живой группы клетки и метка обязаны сходиться, а у снятой — не остаётся ни
+   * клеток, ни числа.
+   */
+  const d9 = dimsForSize(9);
+
+  it('🔴 после снятия групп не остаётся суммы без клеток', () => {
+    let проверено = 0;
+    for (let i = 0; i < 8; i++) {
+      const g = generatePuzzle(50, d9.N, d9.BR, d9.BC, 'thermocage');
+      const cages = (g as unknown as { cages?: { cells: [number, number][][]; sum: number[]; cageOf: number[][] } }).cages;
+      if (!cages) continue;
+      const поднято = liftByClueRemoval(
+        g as never, d9.N, d9.BR, d9.BC, 'thermocage', 6, 6, Date.now() + 1500,
+      );
+      const c = (поднято.gen as unknown as { cages?: { cells: [number, number][][]; sum: number[]; cageOf: number[][] } }).cages;
+      if (!c) continue;
+      проверено++;
+      const битые: string[] = [];
+      for (let id = 0; id < c.cells.length; id++) {
+        const клеток = c.cells[id]?.length ?? 0;
+        const метка = c.sum[id] ?? 0;
+        // снятая группа: ни клеток, ни числа
+        if (клеток === 0 && метка !== 0) битые.push(`группа ${id}: клеток нет, метка ${метка}`);
+        // живая группа: сумма клеток по решению совпадает с меткой
+        if (клеток > 0) {
+          const сумма = c.cells[id].reduce((a, [r, q]) => a + g.solution[r][q], 0);
+          if (сумма !== метка) битые.push(`группа ${id}: сумма ${сумма}, метка ${метка}`);
+        }
+      }
+      expect(битые).toEqual([]);
+    }
+    // Проверка живая: доски, на которых нечего было проверять, не считаются.
+    expect(`досок с картой сумм: ${проверено > 0}`).toBe('досок с картой сумм: true');
+  }, 120000);
 });
