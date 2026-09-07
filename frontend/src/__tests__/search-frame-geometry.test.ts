@@ -32,7 +32,6 @@ const МОИ = ['visual-search', 'find-differences', 'mahjong', 'schulte', 'quic
  */
 const ЕЩЁ_НА_STATS: Record<string, string> = {
   'visual-search': 'в stats лежит LevelRuleBadge — не счётчик; переедет в headerRight',
-  mahjong: 'семь пилюль своей вёрсткой; переводятся в hud из трёх + mods',
   schulte: 'свои gameHeader/statBox/statLabel/statValue; переводятся в hud + mods',
 };
 
