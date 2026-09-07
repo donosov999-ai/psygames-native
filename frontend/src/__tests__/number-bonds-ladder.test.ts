@@ -32,6 +32,18 @@ function levelWork(level: number, seed = 1): number {
   return sum / N;
 }
 
+describe('за таблицей потолка нет (§R, 07.09)', () => {
+  test('[G7] L21+ не клоны 20-й строки: пул значений растёт монотонно, прочее стоит', () => {
+    expect(levelParams(21).maxV).toBeGreaterThan(levelParams(20).maxV);
+    for (const L of [22, 25, 30, 45]) {
+      expect(levelParams(L).maxV).toBeGreaterThan(levelParams(L - 1).maxV);
+    }
+    const { maxV: _skip, ...rest21 } = levelParams(21);
+    const { maxV: _skip20, ...rest20 } = levelParams(20);
+    expect(rest21).toEqual(rest20);
+  });
+});
+
 describe('лестница number-bonds (VER 2, 20 уровней)', () => {
   const works: number[] = [];
   beforeAll(() => {
