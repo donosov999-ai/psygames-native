@@ -1,4 +1,4 @@
-/* __tests__/math-slider-bands · VER 4 · 07.09.2026 */
+/* __tests__/math-slider-bands · VER 5 · 07.09.2026 */
 /**
  * СЛЕПОК ПОЛОС лестницы v2 «Математической шкалы» — страж от МОЛЧАЛИВОГО сдвига.
  *
@@ -72,7 +72,8 @@ describe('полосы math-slider v2 (школьная ось, слепок 07.
   test('[B14] за квадратными — интеграл (выбор Дениса 07.09, прогрессия): слепок и честность', () => {
     expect([...kindsAt(53)]).toEqual(['integral-area']);
     expect([...kindsAt(60)]).toEqual(['integral-area']);
-    for (const level of [53, 57, 62, 70]) {
+    let sawSigned = 0;
+    for (const level of [53, 57, 62, 70, 72]) {
       for (const q of generateMathSliderQuestions('int-check', level, 10)) {
         if (q.expression.type !== 'integral-area') continue;
         const { form, dx, heights } = q.expression;
@@ -91,8 +92,11 @@ describe('полосы math-slider v2 (школьная ось, слепок 07.
         }
         expect(q.answer).toBeGreaterThanOrEqual(q.scale.min);
         expect(q.answer).toBeLessThanOrEqual(q.scale.max);
+        if (heights.some((h) => h < 0)) sawSigned++;
       }
     }
+    // Страховка от слепоты: знаковые фигуры обязаны попасть в выборку честности
+    expect(sawSigned).toBeGreaterThan(3);
   });
 
   test('[B14-прогрессия] форма растёт внутри полосы: L53–54 только ступени; к L60 есть ломаная; к L70 есть кривая', () => {
@@ -109,6 +113,43 @@ describe('полосы math-slider v2 (школьная ось, слепок 07.
     expect(formsAt(60).has('polyline')).toBe(true);
     expect(formsAt(70).has('curve')).toBe(true);
     expect(formsAt(70).has('polyline')).toBe(true);   // кривая ВХОДИТ, не вытесняет (иначе хвост падал)
+  });
+
+  test('[B14-знак] знаковый интеграл (выбор Дениса, «два цвета»): входит долей с ~L62, раньше нет', () => {
+    const signedShare = (level: number): number => {
+      let neg = 0;
+      let tot = 0;
+      for (let s2 = 0; s2 < 12; s2++) {
+        for (const q of generateMathSliderQuestions(`sgn-${s2}`, level, 10)) {
+          tot++;
+          if (q.expression.type === 'integral-area' && q.expression.heights.some((h) => h < 0)) neg++;
+        }
+      }
+      return neg / tot;
+    };
+    expect(signedShare(57)).toBe(0);
+    expect(signedShare(65)).toBeGreaterThan(0.1);
+    expect(signedShare(70)).toBeGreaterThan(0.3);
+  });
+
+  test('[B14-хвост] за кривой хвост НЕ падает и растёт (§R: до знаковости L61—69 сползал ×0,85—0,99)', () => {
+    const workAt = (level: number): number => {
+      let sum = 0;
+      let n = 0;
+      for (let s2 = 0; s2 < 12; s2++) {
+        for (const q of generateMathSliderQuestions(`tail-${s2}`, level, 12)) { sum += questionWork(q); n++; }
+      }
+      return sum / n;
+    };
+    let prev = workAt(60);
+    const w60 = prev;
+    for (let level = 61; level <= 80; level++) {
+      const cur = workAt(level);
+      expect({ level, drop: Number((cur / prev).toFixed(3)) }).toEqual({ level, drop: expect.any(Number) });
+      expect(cur).toBeGreaterThan(prev * 0.95);
+      prev = cur;
+    }
+    expect(prev).toBeGreaterThan(w60 * 1.25);
   });
 
   test('[G-tail] стыки хвоста живые: работа растёт на каждом переходе L44…52, без обрывов', () => {

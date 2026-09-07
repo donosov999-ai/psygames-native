@@ -482,9 +482,9 @@ function MathSliderSession({
       </View>
       {isTraining ? <Text style={[styles.trainingHint, { color: theme.textSecondary }]}>{strings.trainingHint}</Text> : null}
       <View style={[styles.expressionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.prompt, { color: theme.textSecondary }]}>{question.expression.type === 'integral-area' ? strings.areaPrompt : strings.prompt}</Text>
+        <Text style={[styles.prompt, { color: theme.textSecondary }]}>{question.expression.type === 'integral-area' ? (question.expression.heights.some((h) => h < 0) ? strings.areaSignedPrompt : strings.areaPrompt) : strings.prompt}</Text>
         {question.expression.type === 'integral-area'
-          ? <IntegralAreaFigure expr={question.expression} accent={theme.primary} axisColor={theme.border} textColor={theme.textSecondary} />
+          ? <IntegralAreaFigure expr={question.expression} accent={theme.primary} axisColor={theme.border} textColor={theme.textSecondary} negColor={theme.danger} />
           : <Text accessibilityRole="header" style={[styles.expression, { color: theme.text }]}>{formatExpression(question.expression, locale)}</Text>}
         {/*
           🔴 ВЫБРАННОЕ ЧИСЛО — НАД ШКАЛОЙ, А НЕ НАД РУЧКОЙ.
