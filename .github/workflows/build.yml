@@ -580,6 +580,19 @@ jobs:
     # с пустыми изменениями. Теперь её можно запустить руками (workflow_dispatch) и
     # увидеть, собирается ли .ipa; шаг выгрузки при этом пропускается — публикует
     # по-прежнему только тег.
+    # 🔴 needs ДОБАВЛЕН 07.09.2026. До этого джоба не зависела НИ ОТ ОДНОЙ пробы:
+    # запушил метку — подписанный .ipa уехал в TestFlight, пока прогон ещё шёл.
+    # Это и есть механика 2.47.0: общий прогон был красный, я счёл, что наружу
+    # ничего не ушло, переставил метку — и Apple ответил «The bundle version must
+    # be higher than the previously uploaded version: 2.47.0». Номер в магазине
+    # не освобождается никогда.
+    # Утром 07.09 я закрыл google-play, play-deploy и release, а эту пропустил:
+    # смотрел на три джобы по именам, а не на весь граф. Сторож на граф теперь
+    # стоит в `ci-web-deploy-is-gated` — искать такое руками в третий раз нельзя.
+    # ⚠️ lint СОЗНАТЕЛЬНО не добавлен, как и у google-play: долг стиля до человека
+    # не доходит, а девять чатов двигают потолок непрерывно — выкладка вставала бы
+    # на чужой правке. Решение обратимое, одна строка.
+    needs: [typecheck, smoke, web-gates]
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
     timeout-minutes: 60
@@ -1787,7 +1800,11 @@ jobs:
     # ЗАВИСЕЛА НИ ОТ ЧЕГО: тег запушен — сайт обновился, пока пробы ещё идут.
     # `continue-on-error` при этом гасил её провал, так что молчание не
     # означало успех ни в одну сторону.
-    needs: [typecheck, web-gates]
+    # smoke добавлен 07.09.2026 — нашёл новый сторож графа на первом же прогоне.
+    # Джоба выкладывает ВЕБ-СБОРКУ в прод, а `smoke` — единственная проверка,
+    # которая реально ОТКРЫВАЕТ каждую игру (со START=1). Выкладывать веб, ни
+    # разу не нажав «Начать», — ровно тот случай, ради которого smoke и завели.
+    needs: [typecheck, web-gates, smoke]
     if: startsWith(github.ref, 'refs/tags/v')
     continue-on-error: true
     steps:
@@ -1908,18 +1925,25 @@ jobs:
     # стоит `if: github.ref == 'refs/heads/main'`, то есть на теге он не бежит
     # никогда и его результат ВСЕГДА `skipped`. Включи его — и эта джоба краснела
     # бы на КАЖДОМ выпуске, то есть стала бы шумом на второй же день.
-    needs: [release, google-play, play-deploy]
+    needs: [release, google-play, play-deploy, ios-release]
     if: always() && startsWith(github.ref, 'refs/tags/v')
     steps:
-      - name: Свести три пути доставки в один ответ
+      # 🔴 APPLE ДОБАВЛЕН 07.09.2026. Сводка называлась «дошло ли до людей», а
+      # проверяла ТРИ пути и TestFlight не видела вовсе. На v2.48.0 она написала
+      # «✅ дошёл всеми тремя путями» — и это была правда про три, но про Apple
+      # она не говорила ничего, хотя сборка туда уехала. Отчёт, который молчит
+      # про целую платформу, хуже отсутствия отчёта: ему верят.
+      - name: Свести все пути доставки в один ответ
         env:
           R_RELEASE: ${{ needs.release.result }}
           R_PLAY: ${{ needs.google-play.result }}
           R_DEMO: ${{ needs.play-deploy.result }}
+          R_IOS: ${{ needs.ios-release.result }}
         run: |
           echo "тег: $GITHUB_REF_NAME"
           echo "  GitHub Release     : $R_RELEASE"
           echo "  Google Play        : $R_PLAY"
+          echo "  Apple TestFlight   : $R_IOS"
           echo "  веб-демо /play     : $R_DEMO"
           echo ""
           MISSED=""
@@ -1927,13 +1951,19 @@ jobs:
           # недоставка, и именно он трижды прошёл незамеченным.
           [ "$R_RELEASE" = "success" ] || MISSED="$MISSED GitHub-Release($R_RELEASE)"
           [ "$R_PLAY"    = "success" ] || MISSED="$MISSED Google-Play($R_PLAY)"
+          [ "$R_IOS"     = "success" ] || MISSED="$MISSED Apple-TestFlight($R_IOS)"
           [ "$R_DEMO"    = "success" ] || MISSED="$MISSED веб-демо($R_DEMO)"
           if [ -n "$MISSED" ]; then
             echo "::error title=ВЫПУСК НЕ ДОШЁЛ ДО ЛЮДЕЙ::$GITHUB_REF_NAME —$MISSED"
             echo "🔴 НЕ ДОСТАВЛЕНО:$MISSED"
             echo ""
-            echo "   ⚠️ Тег перезапускать НЕЛЬЗЯ: Play принимает каждый versionCode один раз."
+            echo "   ⚠️ Тег перезапускать НЕЛЬЗЯ: Play принимает каждый versionCode"
+            echo "   один раз, Apple — каждый bundle version один раз."
             echo "   Чинить причину и поднимать patch-версию — см. PROJECT_REF.md §5."
             exit 1
           fi
-          echo "✅ выпуск $GITHUB_REF_NAME дошёл всеми тремя путями"
+          echo "✅ выпуск $GITHUB_REF_NAME дошёл всеми четырьмя путями"
+          echo ""
+          echo "   ⚠️ «Дошёл до Apple» = сборка принята и подана на бета-ревью."
+          echo "   ВНУТРЕННЯЯ группа TestFlight ставит сразу; ВНЕШНЯЯ (и публичная"
+          echo "   ссылка) ждёт одобрения Apple — обычно сутки-двое, отдельным шагом."
