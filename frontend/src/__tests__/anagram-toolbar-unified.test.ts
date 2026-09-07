@@ -25,9 +25,10 @@ import { StyleSheet } from 'react-native';
 import { стилиРежима, ВЫСОТА_КНОПКИ } from '@/src/games/anagrams/modeStyles';
 
 declare const __dirname: string;
-declare function require(id: string): { readFileSync: (p: string, e: string) => string };
+// 07.09.2026: было `{ readFileSync: … }` — тогда `require('path')` получал
+// тот же тип, и `join` не находился. Объявление одно на все модули.
+declare function require(id: string): any;
 const { readFileSync } = require('fs');
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- путь к исходникам режимов
 const { join } = require('path');
 const ROOT = join(__dirname, '../..');
 const читать = (p: string) => readFileSync(join(ROOT, p), 'utf8');
@@ -39,19 +40,19 @@ const РЕЖИМЫ = [
 ] as const;
 
 it('кнопка режимов ростом не ниже порога полевого аудита', () => {
-  const к = StyleSheet.flatten(стилиРежима.кнопка) as Record<string, number>;
+  const к = StyleSheet.flatten(стилиРежима.кнопка) as Record<string, string | number>;
   expect(ВЫСОТА_КНОПКИ).toBe(48);
-  expect(к.minHeight).toBe(ВЫСОТА_КНОПКИ);
+  expect(Number(к.minHeight)).toBe(ВЫСОТА_КНОПКИ);
 });
 
 it('ряд действий переносится и знает свою ширину', () => {
   const д = StyleSheet.flatten(стилиРежима.действия) as Record<string, string | number>;
   expect(д.flexWrap).toBe('wrap');
   expect(д.maxWidth).toBe('100%');
-  const к = StyleSheet.flatten(стилиРежима.кнопка) as Record<string, number>;
+  const к = StyleSheet.flatten(стилиРежима.кнопка) as Record<string, string | number>;
   // Две кнопки в ряду обязаны влезать в самый узкий телефон, четыре — нет.
-  expect(к.minWidth * 2 + Number(д.gap)) .toBeLessThanOrEqual(320);
-  expect(к.minWidth * 4 + Number(д.gap) * 3).toBeGreaterThan(320);
+  expect(Number(к.minWidth) * 2 + Number(д.gap)).toBeLessThanOrEqual(320);
+  expect(Number(к.minWidth) * 4 + Number(д.gap) * 3).toBeGreaterThan(320);
 });
 
 /**
