@@ -10,6 +10,7 @@
  * понимает, сколько букв искать. Прятать её значило бы поменять игру.
  */
 import React from 'react';
+import { стилиРежима } from './modeStyles';
 import type { ОтчётРежима } from './core/hudReport';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
@@ -248,16 +249,16 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
         закрылось длиной (все слова там пятибуквенные), здесь длины разные — от
         трёх до восьми, — и по длине не сдать. Значит нужна кнопка.
       */}
-      <View style={стили.действия}>
+      <View style={стилиРежима.действия}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={labels.сброс}
           accessibilityState={{ disabled: линия.length === 0 }}
           disabled={линия.length === 0}
           onPress={() => setЛиния([])}
-          style={[стили.кнопка, { backgroundColor: theme.surface, borderColor: theme.border, opacity: линия.length ? 1 : 0.4 }]}
+          style={[стилиРежима.кнопка, { backgroundColor: theme.surface, borderColor: theme.border, opacity: линия.length ? 1 : 0.4 }]}
         >
-          <Text style={[стили.кнопкаТекст, { color: theme.text }]}>{labels.сброс}</Text>
+          <Text style={[стилиРежима.кнопкаТекст, { color: theme.text }]}>{labels.сброс}</Text>
         </Pressable>
         {/*
           🔴 ПЕРЕМЕШАТЬ — НЕ ПОДСКАЗКА И НЕ ПОБЛАЖКА. Состав банка не меняется,
@@ -270,9 +271,9 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
           accessibilityRole="button"
           accessibilityLabel={labels.перемешать}
           onPress={() => { setЛиния([]); setПоворотов((n) => n + 1); }}
-          style={[стили.кнопка, { backgroundColor: theme.surface, borderColor: theme.border }]}
+          style={[стилиРежима.кнопка, { backgroundColor: theme.surface, borderColor: theme.border }]}
         >
-          <Text style={[стили.кнопкаТекст, { color: theme.text }]}>{labels.перемешать}</Text>
+          <Text style={[стилиРежима.кнопкаТекст, { color: theme.text }]}>{labels.перемешать}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -280,9 +281,9 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
           accessibilityState={{ disabled: готово }}
           disabled={готово}
           onPress={взятьПодсказку}
-          style={[стили.кнопка, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: готово ? 0.4 : 1 }]}
+          style={[стилиРежима.кнопка, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: готово ? 0.4 : 1 }]}
         >
-          <Text style={[стили.кнопкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
+          <Text style={[стилиРежима.кнопкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -290,9 +291,9 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
           accessibilityState={{ disabled: линия.length < 3 }}
           disabled={линия.length < 3}
           onPress={() => сдать(набрано)}
-          style={[стили.кнопка, { backgroundColor: theme.primary, borderColor: theme.primary, opacity: линия.length >= 3 ? 1 : 0.4 }]}
+          style={[стилиРежима.кнопка, { backgroundColor: theme.primary, borderColor: theme.primary, opacity: линия.length >= 3 ? 1 : 0.4 }]}
         >
-          <Text style={[стили.кнопкаТекст, { color: '#fff' }]}>{labels.сдать}</Text>
+          <Text style={[стилиРежима.кнопкаТекст, { color: '#fff' }]}>{labels.сдать}</Text>
         </Pressable>
       </View>
 
@@ -337,8 +338,8 @@ const стили = StyleSheet.create({
   */
   действия: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, maxWidth: '100%' },
   // 44 — норма цели нажатия: сдачу и сброс жмут пальцем.
-  кнопка: { minHeight: 44, minWidth: 110, paddingHorizontal: 18, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  кнопкаТекст: { fontSize: 15, fontWeight: '700' },
+  // Геометрия кнопок — общая на все режимы: `anagrams/modeStyles.ts`.
+
 });
 
 export default AllWordsGame;

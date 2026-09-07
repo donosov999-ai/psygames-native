@@ -11,6 +11,7 @@
  * разойтись.
  */
 import React from 'react';
+import { стилиРежима } from './modeStyles';
 import type { ОтчётРежима } from './core/hudReport';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { минимальныйРазмерКруга } from '@/src/components/letterWheel/geometry';
@@ -195,9 +196,9 @@ export function WordSquareGame({ кольцо, size, theme, now, onComplete, onP
         accessibilityState={{ disabled: завершено }}
         disabled={завершено}
         onPress={взятьПодсказку}
-        style={[стили.подсказка, { borderColor: theme.primary, opacity: завершено ? 0.4 : 1 }]}
+        style={[стилиРежима.кнопка, { borderColor: theme.primary, opacity: завершено ? 0.4 : 1 }]}
       >
-        <Text style={[стили.подсказкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
+        <Text style={[стилиРежима.кнопкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
       </Pressable>
 
       {/*
@@ -218,8 +219,8 @@ const стили = StyleSheet.create({
   набор: { fontSize: 22, fontWeight: '800', letterSpacing: 3 },
   счёт: { fontSize: 13 },
   // 44 — норма цели нажатия.
-  подсказка: { minHeight: 44, minWidth: 140, paddingHorizontal: 18, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  подсказкаТекст: { fontSize: 15, fontWeight: '700' },
+  // Геометрия кнопок — общая на все режимы: `anagrams/modeStyles.ts`.
+
 });
 
 export default WordSquareGame;

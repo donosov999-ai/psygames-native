@@ -16,6 +16,7 @@
  * находки.
  */
 import React from 'react';
+import { стилиРежима } from './modeStyles';
 import type { ОтчётРежима } from './core/hudReport';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
@@ -189,30 +190,30 @@ export function CrosswordGame({ pack, level, seed, size, theme, now, onComplete,
       />
 
       {/* Кнопка сдачи нужна тем, кто играет тапом: ведение пальцем сдаёт по отпусканию. */}
-      <View style={стили.действия}>
+      <View style={стилиРежима.действия}>
         <Pressable
           accessibilityRole="button" accessibilityLabel={labels.сброс}
           accessibilityState={{ disabled: линия.length === 0 }}
           disabled={линия.length === 0} onPress={() => setЛиния([])}
-          style={[стили.кнопка, { backgroundColor: theme.surface, borderColor: theme.border, opacity: линия.length ? 1 : 0.4 }]}
+          style={[стилиРежима.кнопка, { backgroundColor: theme.surface, borderColor: theme.border, opacity: линия.length ? 1 : 0.4 }]}
         >
-          <Text style={[стили.кнопкаТекст, { color: theme.text }]}>{labels.сброс}</Text>
+          <Text style={[стилиРежима.кнопкаТекст, { color: theme.text }]}>{labels.сброс}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button" accessibilityLabel={labels.подсказка}
           accessibilityState={{ disabled: готово }}
           disabled={готово || подсказокОсталось === 0} onPress={взятьПодсказку}
-          style={[стили.кнопка, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: готово ? 0.4 : 1 }]}
+          style={[стилиРежима.кнопка, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: готово ? 0.4 : 1 }]}
         >
-          <Text style={[стили.кнопкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
+          <Text style={[стилиРежима.кнопкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button" accessibilityLabel={labels.сдать}
           accessibilityState={{ disabled: линия.length < 3 }}
           disabled={линия.length < 3} onPress={() => сдать(набрано)}
-          style={[стили.кнопка, { backgroundColor: theme.primary, borderColor: theme.primary, opacity: линия.length >= 3 ? 1 : 0.4 }]}
+          style={[стилиРежима.кнопка, { backgroundColor: theme.primary, borderColor: theme.primary, opacity: линия.length >= 3 ? 1 : 0.4 }]}
         >
-          <Text style={[стили.кнопкаТекст, { color: '#fff' }]}>{labels.сдать}</Text>
+          <Text style={[стилиРежима.кнопкаТекст, { color: '#fff' }]}>{labels.сдать}</Text>
         </Pressable>
       </View>
 
@@ -230,9 +231,9 @@ const стили = StyleSheet.create({
   буква: { fontWeight: '800' },
   набор: { fontSize: 22, fontWeight: '800', letterSpacing: 3, minHeight: 28 },
   счёт: { fontSize: 13 },
-  действия: { flexDirection: 'row', gap: 10 },
+
   // 44 — норма цели нажатия.
-  кнопка: { minHeight: 44, minWidth: 110, paddingHorizontal: 18, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  // Геометрия кнопок — общая на все режимы: `anagrams/modeStyles.ts`.
   кнопкаТекст: { fontSize: 15, fontWeight: '700' },
 });
 

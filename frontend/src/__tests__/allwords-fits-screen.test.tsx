@@ -21,25 +21,14 @@ import { StyleSheet } from 'react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- стили нужны как объект, а не как модуль экрана
 const { стилиДляПробы } = require('@/src/games/anagrams/AllWordsGame');
 
-/** Самый узкий телефон, на который мы верстаем, — тот же, что у потолка филвордов. */
-const УЗКИЙ_ЭКРАН = 320;
-const КНОПОК_В_РЯДУ = 4;
 
-it('ряд кнопок помещается в узкий экран хотя бы в два ряда', () => {
-  const с = StyleSheet.flatten(стилиДляПробы.действия) as Record<string, number | string>;
-  expect(с.flexWrap).toBe('wrap');
-  // Без границы ширины перенос не срабатывает — ряду не от чего отсчитывать край.
-  expect(с.maxWidth).toBe('100%');
-
-  const кнопка = StyleSheet.flatten(стилиДляПробы.кнопка) as Record<string, number>;
-  const зазор = Number(с.gap) || 0;
-  const минШирина = Number(кнопка.minWidth) || 0;
-  // Две кнопки в ряду обязаны влезать: иначе перенос не спасёт.
-  expect(минШирина * 2 + зазор).toBeLessThanOrEqual(УЗКИЙ_ЭКРАН);
-  // А четыре в один ряд — заведомо нет, потому и нужен перенос.
-  expect(минШирина * КНОПОК_В_РЯДУ + зазор * (КНОПОК_В_РЯДУ - 1)).toBeGreaterThan(УЗКИЙ_ЭКРАН);
-});
-
+/*
+  ⚠️ ПРОВЕРКА РЯДА КНОПОК ПЕРЕЕХАЛА В `anagram-toolbar-unified`. Стиль кнопок
+  07.09.2026 стал ОБЩИМ на три режима (`anagrams/modeStyles.ts`) — просьба Дениса
+  свести тулбары к одной геометрии. Держать здесь копию проверки значило бы
+  сторожить исчезнувший стиль: она и покраснела на `undefined`, когда стиль
+  переехал. Здесь остаётся то, что общим не стало, — сетка слов этого режима.
+*/
 it('сетка слов имеет и перенос, и границу ширины', () => {
   const с = StyleSheet.flatten(стилиДляПробы.список) as Record<string, number | string>;
   expect(с.flexWrap).toBe('wrap');
