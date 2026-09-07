@@ -1,4 +1,4 @@
-/* psygames-game-math-sprint · VER 1 · 19.08.2026 */
+/* psygames-game-math-sprint · VER 2 · 07.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
@@ -29,12 +29,22 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useProfile } from '@/src/contexts/ProfileContext';
+import {
+  generateSprintProblem, migrateSprintLevelV1toV2, SPRINT_MAX_LEVEL,
+  type SprintProblem,
+} from '@/src/games/counting/mathSprintCore';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением (sprintBandFor), а не разбором исходника. */
 export const MS_RULES: LevelRule[] = [
-  { key: 'mult', fromLevel: 3, toLevel: 4 },   // lr_math_sprint_mult_*
-  { key: 'div', fromLevel: 5 },   // lr_math_sprint_div_*
+  { key: 'mult', fromLevel: 5, toLevel: 8 },      // lr_math_sprint_mult_*
+  { key: 'div', fromLevel: 9, toLevel: 12 },      // lr_math_sprint_div_*
+  { key: 'chain', fromLevel: 13, toLevel: 16 },   // lr_math_sprint_chain_*
+  { key: 'square', fromLevel: 17, toLevel: 20 },  // lr_math_sprint_square_*
+  { key: 'root', fromLevel: 21, toLevel: 24 },    // lr_math_sprint_root_*
+  { key: 'equation', fromLevel: 25 },             // lr_math_sprint_equation_*
 ];
 
 const GRADIENT = ['#fc4a1a', '#f7b733'];
@@ -51,51 +61,12 @@ const MATH_BENEFITS = [
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 const BOSS_EVERY = 3;   // веха-босс каждые 3 уровня (резкая смена: счёт → «дополни ряд 1-9»)
 type Difficulty = 'easy' | 'medium' | 'hard';
-type Op = '+' | '-' | '*' | '/';
 
-interface Problem {
-  a: number;
-  b: number;
-  op: Op;
-  answer: number;
-}
-
-// Уровень (1..15+) задаёт набор операций И величину чисел. Сложность растёт ТРУДНОСТЬЮ задачи, не временем.
-// L1-2: + −  · L3-4: + − ×  · L5+: + − × ÷  · разрядность чисел плавно растёт. (Степени/скобки — фаза 2.)
-/**
- * Набор действий на уровне. Вынесен из `generateProblem` затем, что тот тянет
- * случайность: гейт `level-rule-threshold` сверяет пороги правил ИСПОЛНЕНИЕМ, а
- * функцию с `Math.random` исполнить для проверки порога нельзя — она отвечает
- * разное на один и тот же уровень.
- */
-export function opsFor(level: number): Op[] {
-  if (level <= 2) return ['+', '-'];
-  if (level <= 4) return ['+', '-', '*'];
-  return ['+', '-', '*', '/'];
-}
-
-function generateProblem(level: number): Problem {
-  const ops = opsFor(level);
-  const op = ops[Math.floor(Math.random() * ops.length)];
-  const rng = (n: number) => Math.floor(Math.random() * Math.max(1, Math.round(n)));
-  let a: number, b: number, answer: number;
-  if (op === '*') {
-    a = 2 + rng(6 + level * 1.6);
-    b = 2 + rng(5 + level);
-    answer = a * b;
-  } else if (op === '/') {
-    b = 2 + rng(4 + level);
-    const q = 2 + rng(5 + level);
-    a = b * q; answer = q;                              // деление всегда нацело
-  } else {
-    const range = Math.round(15 * (1 + level * 0.6));    // разрядность растёт с уровнем
-    a = 5 + rng(range);
-    b = 1 + rng(range);
-    if (op === '-' && b > a) { [a, b] = [b, a]; }
-    answer = op === '+' ? a + b : a - b;
-  }
-  return { a, b, op, answer };
-}
+// Лестница v2 — ШКОЛЬНАЯ ОСЬ (Денис 07.09.2026): ядро вынесено в
+// src/games/counting/mathSprintCore.ts — его же читает замер counting-chat/sim-sprint.mjs
+// (один источник правды). 8 полос по 4 уровня: +− → × → ÷ → цепочки → n² → √ →
+// уравнения → микс; внутри полосы числа растут. Ответ всегда целый.
+type Problem = SprintProblem;
 
 export default function MathSprintGame() {
   const { colors } = useTheme();
@@ -106,10 +77,32 @@ export default function MathSprintGame() {
 
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
-    // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
-  // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
-  // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
+  const { profile } = useProfile();
+  /**
+   * МИГРАЦИЯ ЛЕСТНИЦЫ v1→v2 (07.09.2026, школьная ось): старый уровень встаёт на
+   * полосу своего семейства (migrateSprintLevelV1toV2), флаг per-profile — как в
+   * number-bonds и слайдере. Новичок получает флаг сразу.
+   */
+  const [migrated, setMigrated] = useState(false);
+  useEffect(() => {
+    if (!lvl.loaded) return;
+    let cancelled = false;
+    const pid = (profile as any)?.id ?? 'default';
+    const flagKey = `psygames_math_sprint_ladderv2_${pid}`;
+    AsyncStorage.getItem(flagKey).then((v) => {
+      if (cancelled) return;
+      if (v !== '2') {
+        if (lvl.best > 1) lvl.setLevel(migrateSprintLevelV1toV2(lvl.best));
+        AsyncStorage.setItem(flagKey, '2').catch(() => {});
+      }
+      setMigrated(true);
+    }).catch(() => { if (!cancelled) setMigrated(true); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- одноразовый пересчёт на профиль
+  }, [lvl.loaded, (profile as any)?.id]);
+  // ⚠️ Ждём загрузки уровня И миграции: автостарт без первого играл чужой уровень,
+  // без второй — старый номер в новой шкале.
+  useAutostartWhenReady(() => autostart && lvl.loaded && migrated, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [clearedPassed, setClearedPassed] = useState(true);   // память итога: true=прошёл (звёзды), false=«почти, ещё раз»
   const [bossWon, setBossWon] = useState<boolean | null>(null);   // итог босса-вехи (null = босса не было)
@@ -141,10 +134,10 @@ export default function MathSprintGame() {
     setUserAnswer('');
     setFeedback(null);
     // личная игра → уровень рулит; пресет (зарядка) → выбранный тир маппится в уровень
-    const effLevel = isPreset ? ({ easy: 2, medium: 6, hard: 11 } as Record<Difficulty, number>)[difficulty] ?? 6 : lvl.level;
+    const effLevel = isPreset ? ({ easy: 2, medium: 6, hard: 14 } as Record<Difficulty, number>)[difficulty] ?? 6 : lvl.level;   // зарядка: сложение → умножение → цепочки
     levelRef.current = effLevel;
     setTimeLeft(duration);
-    setProblem(generateProblem(effLevel));
+    setProblem(generateSprintProblem(effLevel));
     setPhase('playing');
     const start = gameNow();
     setStartTime(start);
@@ -172,7 +165,7 @@ export default function MathSprintGame() {
         game_type: 'math_sprint',
         score,
         time_seconds: duration,
-        difficulty: levelRef.current <= 4 ? 'easy' : levelRef.current <= 9 ? 'medium' : 'hard',
+        difficulty: levelRef.current <= 8 ? 'easy' : levelRef.current <= 20 ? 'medium' : 'hard',
         mode: `${duration}s`,
         errors,
         details: { level: levelRef.current, correct, bestStreak },
@@ -202,7 +195,6 @@ export default function MathSprintGame() {
   useEffect(() => {
     if (!problem || userAnswer === '' || feedback !== null) return;
     if (parseInt(userAnswer, 10) === problem.answer) submitRef.current();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userAnswer, problem, feedback]);
 
   const submit = () => {
@@ -228,7 +220,7 @@ export default function MathSprintGame() {
     }
     setUserAnswer('');
     setTimeout(() => {
-      setProblem(generateProblem(levelRef.current));
+      setProblem(generateSprintProblem(levelRef.current));
       setFeedback(null);
       inputRef.current?.focus();   // десктоп: вернуть фокус в поле, чтобы печатать дальше без клика мышью
     }, 250);
@@ -246,7 +238,7 @@ export default function MathSprintGame() {
         <Text style={styles.configDesc}>{t('mathSprintDesc')}</Text>
       </LinearGradient>
       <GameAbout descriptionKey="mathSprintIntroDesc" benefits={MATH_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap bestLevel={lvl.best} gameId="math_sprint" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap bestLevel={lvl.best} gameId="math_sprint" currentLevel={lvl.level} maxLevel={SPRINT_MAX_LEVEL} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
         <View style={styles.optionButtons}>
@@ -336,8 +328,9 @@ export default function MathSprintGame() {
               backgroundColor: feedback === 'correct' ? 'rgba(34,197,94,0.15)' : feedback === 'wrong' ? 'rgba(244,63,94,0.15)' : 'transparent',
             }]}>
               {problem && (
-                <Text style={[styles.problemText, { color: colors.text }]}>
-                  {problem.a} {problem.op === '*' ? '×' : problem.op === '/' ? '÷' : problem.op} {problem.b} = ?
+                /* Уравнения («3x − 7 = 25,  x = ?») длиннее арифметики — кегль ужимается, чтобы влезть в 360 */
+                <Text style={[styles.problemText, { color: colors.text }, problem.display.length > 12 && styles.problemTextLong]}>
+                  {problem.display}
                 </Text>
               )}
             </View>
@@ -422,7 +415,8 @@ const styles = StyleSheet.create({
   statText: { fontSize: 16, fontWeight: '700' },
   problemArea: { paddingVertical: 32, paddingHorizontal: 28, borderRadius: 14, minWidth: 240, alignItems: 'center' },
   // RTL-пин: «a − b = ?» в RTL-bidi перестраивается в «? = b − a» — математика всегда LTR
-  problemText: { fontSize: 48, fontWeight: '900', writingDirection: 'ltr' },
+  problemText: { fontSize: 48, fontWeight: '900', writingDirection: 'ltr', textAlign: 'center' },
+  problemTextLong: { fontSize: 30 },
   /**
    * 🔴 ПОТОЛОК ШИРИНЫ У ПОЛЯ ВВОДА. Замер 03.09.2026 на 360 px: поле выходило 448
    * и обрезалось слева на 44 — цифры уезжали за край, хотя вводить их надо именно

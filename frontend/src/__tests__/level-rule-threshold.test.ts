@@ -30,14 +30,15 @@ import { CORSI_RULES, levelParams as corsi } from '@/app/games/corsi';
 import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
 // Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
-import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches, monochromeLevel, gridFor, gsLayout, ITEM_FLOOR, collapseLevel } from '@/src/games/goods-sort/core/level';
+import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches, monochromeLevel, gridFor, gsLayout, ITEM_FLOOR, collapseLevel, backRowLevel } from '@/src/games/goods-sort/core/level';
 import { HN_RULES, levelParams as hanoi } from '@/app/games/hanoi';
 import { WATER_SORT_RULES } from '@/app/games/water-sort';
 import { скрытоНаУровне } from '@/src/games/water-sort/core/hidden';
 import { levelParams, moveLimitFor } from '@/src/games/water-sort/core/generate';
 import { LISTENINGSPAN_RULES, levelParams as listening } from '@/app/games/listening-span';
 import { MAHJONG_RULES } from '@/app/games/mahjong';
-import { MS_RULES, opsFor } from '@/app/games/math-sprint';
+import { MS_RULES } from '@/app/games/math-sprint';
+import { sprintBandFor } from '@/src/games/counting/mathSprintCore';
 import { MEMORYMATRIX_RULES, levelParams as matrix } from '@/app/games/memory-matrix';
 import { MR_RULES } from '@/app/games/mental-rotation';
 import { MNEMONICS_RULES } from '@/app/games/mnemonics';
@@ -103,8 +104,14 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'mahjong', ключ: 'layers4', вид: 'состояние', есть: (L) => mahjongLevel(L).layers === 4 },
   { игра: 'mahjong', ключ: 'layers5', вид: 'порог', есть: (L) => mahjongLevel(L).layers === 5 },
   { игра: 'mahjong', ключ: 'hidden', вид: 'порог', есть: (L) => mahjongHidden(L) },
-  { игра: 'math-sprint', ключ: 'mult', вид: 'порог', есть: (L) => opsFor(L).includes('*') },
-  { игра: 'math-sprint', ключ: 'div', вид: 'порог', есть: (L) => opsFor(L).includes('/') },
+  /* Спринт v2 (школьные полосы, 07.09.2026): тема уровня детерминирована sprintBandFor.
+     Полосные темы возвращаются в миксе L29+, поэтому вид «порог» — первое появление. */
+  { игра: 'math-sprint', ключ: 'mult', вид: 'порог', есть: (L) => sprintBandFor(L) === 'mult' },
+  { игра: 'math-sprint', ключ: 'div', вид: 'порог', есть: (L) => sprintBandFor(L) === 'div' },
+  { игра: 'math-sprint', ключ: 'chain', вид: 'порог', есть: (L) => sprintBandFor(L) === 'chain' },
+  { игра: 'math-sprint', ключ: 'square', вид: 'порог', есть: (L) => sprintBandFor(L) === 'square' },
+  { игра: 'math-sprint', ключ: 'root', вид: 'порог', есть: (L) => sprintBandFor(L) === 'root' },
+  { игра: 'math-sprint', ключ: 'equation', вид: 'порог', есть: (L) => sprintBandFor(L) === 'equation' },
   { игра: 'memory-matrix', ключ: 'grid6', вид: 'порог', есть: (L) => matrix(L).gridSize >= 6 },
   // Правило обещает буквально «вспышка длится меньше секунды» — это и проверяем.
   { игра: 'memory-matrix', ключ: 'fast', вид: 'порог', есть: (L) => matrix(L).flashMs < 1000 },
@@ -149,6 +156,8 @@ const МЕХАНИКИ: Механика[] = [
    * построению (у них короткая доска), поэтому механика идёт с пропусками.
    */
   { игра: 'goods-sort', ключ: 'collapse', вид: 'порог', есть: (L) => collapseLevel(L) },
+  /* Задние ряды. Строгие пропускаются так же, как у схлопывания. */
+  { игра: 'goods-sort', ключ: 'backrow', вид: 'порог', есть: (L) => backRowLevel(L) },
   { игра: 'goods-sort', ключ: 'showcase', вид: 'порог',
     есть: (L) => { const g = gridFor(L, true); return gsLayout(390, 484, g.cols, g.rows, 4, undefined, ITEM_FLOOR).scrolls; } },
   { игра: 'goods-sort', ключ: 'mono', вид: 'порог', есть: (L) => monochromeLevel(L) },
