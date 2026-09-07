@@ -1,14 +1,12 @@
-/* psygames-game-ospan · VER 2 · 07.09.2026 */
+/* psygames-game-ospan · VER 3 · 07.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
   ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -59,33 +57,57 @@ interface Equation { left: string; right: number; isCorrect: boolean; }
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
-// Уровень (1..16+), v2 07.09.2026 (замер counting-chat: рубильник hardMath давал обрыв ×1,59
-// на L5→L6, а с L13 обе формулы замирали — уровни-клоны):
+// Уровень (1..16 и дальше БЕЗ потолка), v3 07.09.2026 (правило §R: способов считать
+// бесконечно — счётная ось не замирает никогда; поручение Дениса 07.09):
 //   · setSize 3→9 (охват, ось методики — cap НЕ трогаем, это вопрос развилки R7);
-//   · letterMs 1100→500 плавно (замирает на L16, было 600/L13);
-//   · счётная нагрузка mathLoad растёт ПЛАВНО (числа крупнее, доля × выше) и продолжает
-//     расти до L16+ — рубильника нет, умножение ПОЯВЛЯЕТСЯ ровно с L6 (порог правила).
+//   · letterMs 1100→500 плавно (500 мс — пол восприятия буквы, дальше ось несёт счёт);
+//   · счётная нагрузка mathLoad растёт ПЛАВНО и БЕЗ КЛАМПА: за L16 равенства идут по
+//     школьной оси — квадраты n² (≈L16+) → корни √N (≈L20+) → цепочки a×b±c (≈L24+),
+//     числа растут с load всегда. Кнопки те же (верно/неверно) — span-механика цела.
 /** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
 export function levelParams(level: number): { setSize: number; letterMs: number; hardMath: boolean; mathLoad: number } {
   const setSize = Math.min(9, 2 + level);               // L1=3 → L7=9
   const fast = Math.max(0, level - 5);
   const letterMs = Math.max(500, 1100 - fast * 55);
   const hardMath = level >= 6;                          // порог карточки: с L6 «×, числа крупнее»
-  const mathLoad = Math.min(1.5, Math.max(0, (level - 4) / 8));   // 0 → 1,5 (L16+), плавно
+  const mathLoad = Math.max(0, (level - 4) / 8);        // 0 → 1,5 (L16) → дальше без потолка
   return { setSize, letterMs, hardMath, mathLoad };
 }
 
-function makeEquation(load: number, allowMult: boolean): Equation {
-  // a OP b = R, then offer R or R±k. Нагрузка растёт плавно: числа крупнее с load,
-  // умножение — только с порога hardMath (карточка правила) и долей, а не третью пула.
-  const top = 9 + Math.round(load * 10);                // 9 → 24
+/** Экспортирована для гейта ospan-ladder: формы за L16 проверяются ПОВЕДЕНИЕМ, не чтением исходника. */
+export function makeEquation(load: number, allowMult: boolean): Equation {
+  // Верно/неверно про равенство; нагрузка растёт плавно: числа крупнее с load,
+  // умножение — с порога hardMath (карточка правила) и долей, а не третью пула.
+  // За load 1,4/2,0/2,6 в пул ПЛАВНО входят школьные формы (§R: потолков нет).
+  const isCorrect = Math.random() < 0.5;
+  const wobble = () => (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 3));
+  if (load >= 2.6 && Math.random() < Math.min(0.35, (load - 2.6) * 0.25)) {
+    const a = 3 + Math.floor(Math.random() * 10);
+    const b = 2 + Math.floor(Math.random() * 8);
+    const c = 5 + Math.floor(Math.random() * Math.round(10 + load * 12));
+    const real = a * b - c;
+    const shown = isCorrect ? real : real + wobble();
+    return { left: `${a} × ${b} − ${c}`, right: shown, isCorrect: shown === real };
+  }
+  if (load >= 2.0 && Math.random() < Math.min(0.3, (load - 2.0) * 0.22)) {
+    const k = 6 + Math.floor(Math.random() * Math.round(4 + load * 3));
+    const shown = isCorrect ? k : k + (Math.random() < 0.5 ? -1 : 1);
+    return { left: `√${k * k}`, right: shown, isCorrect: shown === k };
+  }
+  if (load >= 1.4 && Math.random() < Math.min(0.35, (load - 1.4) * 0.25)) {
+    const n = 7 + Math.floor(Math.random() * Math.round(3 + load * 4));
+    const real = n * n;
+    // Дистрактор квадрата — сосед (n±1)² или сдвиг: маленькое ±1 палится последней цифрой
+    const shown = isCorrect ? real : (Math.random() < 0.5 ? (n + (Math.random() < 0.5 ? 1 : -1)) ** 2 : real + wobble() * n);
+    return { left: `${n}²`, right: shown, isCorrect: shown === real };
+  }
+  const top = 9 + Math.round(load * 10);                // 9 → 24 (L16) → дальше растёт
   const a = 1 + Math.floor(Math.random() * top);
   const b = 1 + Math.floor(Math.random() * Math.min(top, 12));   // второй множитель — в пределах таблицы
   const useMult = allowMult && Math.random() < Math.min(0.45, 0.15 + load * 0.3);
   const op = useMult ? '*' : (Math.random() < 0.5 ? '+' : '-');
   const real = op === '+' ? a + b : op === '-' ? a - b : a * b;
-  const isCorrect = Math.random() < 0.5;
-  const shown = isCorrect ? real : real + (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 3));
+  const shown = isCorrect ? real : real + wobble();
   return { left: `${a} ${op === '*' ? '×' : op} ${b}`, right: shown, isCorrect: shown === real };
 }
 
@@ -95,7 +117,6 @@ export default function OSpanGame() {
   const { isPreset, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('ospan');   // персист-уровень = setSize − 2
-  const router = useRouter();
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [setSize, setSetSize] = useState(4);

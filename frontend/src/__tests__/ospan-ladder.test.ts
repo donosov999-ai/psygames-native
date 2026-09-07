@@ -1,4 +1,4 @@
-/* __tests__/ospan-ladder · VER 1 · 07.09.2026 */
+/* __tests__/ospan-ladder · VER 2 · 07.09.2026 */
 /**
  * ГЕЙТ лестницы OSPAN v2 (07.09.2026). Замер ДО (counting-chat, прямой расчёт
  * формул v1): обрыв ×1,59 на L5→L6 (рубильник hardMath: треть пула — умножение
@@ -6,12 +6,16 @@
  * на L13, setSize cap ещё раньше). v2: нагрузка mathLoad растёт плавно до L16+,
  * letterMs до L16; умножение ПОЯВЛЯЕТСЯ ровно с L6 (порог карточки правила).
  *
+ * v3 (07.09, поручение Дениса «потолков нет — считать можно бесконечно»): кламп
+ * mathLoad 1,5 СНЯТ, за L16 равенства идут школьной осью (n² → √N → a×b−c),
+ * гейты G5–G7. Полы letterMs 500 и setSize 9 стоят (восприятие/охват, не счёт).
+ *
  * Индекс трудности (модель, та же что в замере ДО, дополнена нагрузкой):
  *   work(L) = setSize × (1100 / letterMs) × (1 + 0,45·mathLoad + (hardMath ? 0,1 : 0))
  * Гейты: [G1] скачок соседних ≤ ×1,5 · [G2] рост монотонный до L16 (клонов
  * |Δ|<2% нет — формулы детерминированы, шума нет) · [G3] умножение с L6.
  */
-import { levelParams } from '@/app/games/ospan';
+import { levelParams, makeEquation } from '@/app/games/ospan';
 
 const work = (L: number) => {
   const p = levelParams(L);
@@ -44,5 +48,53 @@ describe('лестница ospan v2 (счётная ось, 07.09.2026)', () => 
     expect(levelParams(7)).toEqual({ setSize: 9, letterMs: 990, hardMath: true, mathLoad: 0.375 });
     expect(levelParams(13)).toEqual({ setSize: 9, letterMs: 660, hardMath: true, mathLoad: 1.125 });
     expect(levelParams(16)).toEqual({ setSize: 9, letterMs: 500, hardMath: true, mathLoad: 1.5 });
+  });
+
+  test('[G5] потолка НЕТ (§R, Денис 07.09): нагрузка и работа растут и за L16', () => {
+    for (const L of [17, 20, 24, 32, 48]) {
+      expect(levelParams(L).mathLoad).toBeGreaterThan(levelParams(L - 1).mathLoad);
+      expect(work(L)).toBeGreaterThan(work(L - 1) * 1.005);
+    }
+    expect(levelParams(20).mathLoad).toBe(2);
+  });
+
+  test('[G6] школьные формы за L16 — поведением: n² с ~L16, √N с ~L20, a×b−c с ~L24; раньше их нет', () => {
+    const forms = (load: number) => {
+      const seen = { sq: 0, rt: 0, ch: 0 };
+      for (let i = 0; i < 600; i++) {
+        const eq = makeEquation(load, true);
+        if (eq.left.includes('²')) seen.sq++;
+        else if (eq.left.includes('√')) seen.rt++;
+        else if (eq.left.includes('×') && eq.left.includes('−')) seen.ch++;
+      }
+      return seen;
+    };
+    const early = forms(1.0);
+    expect(early).toEqual({ sq: 0, rt: 0, ch: 0 });
+    const mid = forms(2.2);
+    expect(mid.sq).toBeGreaterThan(0);
+    expect(mid.rt).toBeGreaterThan(0);
+    expect(mid.ch).toBe(0);
+    const late = forms(3.4);
+    expect(late.sq).toBeGreaterThan(0);
+    expect(late.rt).toBeGreaterThan(0);
+    expect(late.ch).toBeGreaterThan(0);
+  });
+
+  test('[G7] каждое равенство честное: isCorrect совпадает с арифметикой строки left', () => {
+    for (const load of [0.5, 1.6, 2.3, 3.2]) {
+      for (let i = 0; i < 400; i++) {
+        const eq = makeEquation(load, true);
+        let real: number;
+        let m: RegExpMatchArray | null;
+        if ((m = eq.left.match(/^(\d+) × (\d+) − (\d+)$/))) real = +m[1] * +m[2] - +m[3];
+        else if ((m = eq.left.match(/^√(\d+)$/))) real = Math.sqrt(+m[1]);
+        else if ((m = eq.left.match(/^(\d+)²$/))) real = +m[1] * +m[1];
+        else if ((m = eq.left.match(/^(\d+) × (\d+)$/))) real = +m[1] * +m[2];
+        else if ((m = eq.left.match(/^(\d+) ([+-]) (\d+)$/))) real = m[2] === '+' ? +m[1] + +m[3] : +m[1] - +m[3];
+        else throw new Error('нераспознанное равенство: ' + eq.left);
+        expect({ left: eq.left, ok: eq.isCorrect }).toEqual({ left: eq.left, ok: eq.right === real });
+      }
+    }
   });
 });
