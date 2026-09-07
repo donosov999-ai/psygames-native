@@ -69,7 +69,7 @@ import GameShell from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
-import { MemoryPalaceGame } from '@/src/games/memory-palace/MemoryPalaceGame';
+import { MemoryPalaceGame, type PalacePhaseAction } from '@/src/games/memory-palace/MemoryPalaceGame';
 import {
   getMemoryPalaceStrings,
   interpolateMemoryPalace,
@@ -134,6 +134,19 @@ export default function MemoryPalaceScreen() {
   const [last, setLast] = React.useState<MemoryPalaceMetrics | null>(null);
   const [review, setReview] = React.useState<MemoryPalaceReviewRow[]>([]);
   const [clearedPassed, setClearedPassed] = React.useState(false);
+  /**
+   * 🔴 ДЕЙСТВИЕ ФАЗЫ ЖИВЁТ В КАРКАСЕ, А НЕ В ПОЛЕ (правка 07.09.2026).
+   *
+   * Замер всех 94 игр по якорям каркаса: у игр, кладущих ответ в слот
+   * `toolbar`, низ панели равен 812 у ВСЕХ; «Дворец» рисовал кнопку последним
+   * элементом потока и давал 505 — кнопка висела посреди экрана, а при переходе
+   * между играми в «Зарядке» прыгала. Модуль знает, ЧТО за действие у фазы, и
+   * отдаёт его сюда; каркас знает, ГДЕ его рисовать.
+   *
+   * `setPhaseAction` передаётся в модуль напрямую: ссылка на сеттер состояния
+   * стабильна, а инлайн-функция дала бы бесконечный круг перерисовок.
+   */
+  const [phaseAction, setPhaseAction] = React.useState<PalacePhaseAction | null>(null);
 
   /**
    * 🔴 ЯЗЫК ОТДАЁМ МОДУЛЮ ЦЕЛИКОМ, А НЕ СХЛОПЫВАЕМ ДО ПАРЫ RU/EN (19.08.2026).
@@ -326,6 +339,22 @@ export default function MemoryPalaceScreen() {
          */
         title={strings.title}
         onBack={() => goBackOrHome()}
+        toolbar={phaseAction ? (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityState={{ disabled: phaseAction.disabled }}
+            disabled={phaseAction.disabled}
+            onPress={phaseAction.run}
+            style={[
+              styles.phaseAction,
+              { backgroundColor: phaseAction.disabled ? colors.surface : GRADIENT[0], borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.phaseActionText, { color: phaseAction.disabled ? colors.textSecondary : ON_GRAD.color }]}>
+              {phaseAction.label}
+            </Text>
+          </TouchableOpacity>
+        ) : undefined}
         /**
          * Спрашиваем только когда терять действительно есть что: маршрут
          * постоянный, и на его изучении партия ещё ничего личного не накопила.
@@ -353,6 +382,7 @@ export default function MemoryPalaceScreen() {
         {phase === 'playing' && party ? (
           <MemoryPalaceGame
             key={`${party.seed}|${party.level}`}
+            onPhaseAction={setPhaseAction}
             seed={party.seed}
             level={party.level}
             locale={locale}
@@ -488,6 +518,9 @@ export default function MemoryPalaceScreen() {
 }
 
 const styles = StyleSheet.create({
+  /** Кнопка действия фазы в слоте каркаса: высота ≥ 52 по канону раздела. */
+  phaseAction: { minHeight: 52, flex: 1, maxWidth: 420, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
+  phaseActionText: { fontSize: 16, fontWeight: '700', textAlign: 'center' },
   root: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10 },
   // 48×48 — минимальная зона попадания пальцем; иконка 24 внутри.

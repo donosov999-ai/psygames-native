@@ -64,6 +64,28 @@ export interface MemoryPalaceTheme {
   warning: string;
 }
 
+/**
+ * ДЕЙСТВИЕ ТЕКУЩЕЙ ФАЗЫ, ПОДНЯТОЕ В КАРКАС.
+ *
+ * 🔴 ЗАЧЕМ. Замер геометрии 07.09.2026 (все 94 игры, 375×812, по якорям
+ * `data-testid`): у игр, кладущих ответ в слот `toolbar` каркаса, низ панели
+ * равен 812 у ВСЕХ без исключения; у остальных панель встаёт там, где кончился
+ * контент, — 461…1530. «Дворец» рисовал кнопку фазы последним элементом потока
+ * и давал 505, то есть кнопка висела в середине экрана. При переходе между
+ * играми в «Зарядке» это и есть та пляска, на которую жаловался Денис.
+ *
+ * Модуль знает, ЧТО за действие у фазы, а каркас знает, ГДЕ его рисовать.
+ * Поэтому модуль отдаёт действие наружу, а рисует его экран — в `toolbar`.
+ */
+export interface PalacePhaseAction {
+  /** Подпись кнопки на языке партии. */
+  label: string;
+  /** Нельзя нажать — например размещены не все предметы. */
+  disabled: boolean;
+  /** Выполнить переход фазы. */
+  run: () => void;
+}
+
 export interface MemoryPalaceGameProps {
   seed: string;
   level: number;
@@ -100,6 +122,14 @@ export interface MemoryPalaceGameProps {
    * сохранять было бы нечего: всё состояние живёт внутри модуля.
    */
   onSessionChange?: (session: MemoryPalaceSession) => void;
+  /**
+   * Принять действие текущей фазы и нарисовать его самому (в слоте `toolbar`).
+   *
+   * ⚠️ Проп НЕОБЯЗАТЕЛЬНЫЙ намеренно: если его не передали, модуль рисует
+   * кнопку сам, как раньше. Так пробы, рендерящие модуль в одиночку, остаются
+   * зелёными, и перенос не требует править их одним махом.
+   */
+  onPhaseAction?: (действие: PalacePhaseAction | null) => void;
 }
 
 function ActionButton({
@@ -558,6 +588,7 @@ function MemoryPalaceSessionView({
   onExit,
   initialSession = null,
   onSessionChange,
+  onPhaseAction,
 }: MemoryPalaceGameProps) {
   const strings = getMemoryPalaceStrings(locale);
   const [session, setSession] = React.useState(
@@ -757,6 +788,34 @@ function MemoryPalaceSessionView({
     );
   }
 
+  /*
+   * Действие текущей игровой фазы. Считается здесь, потому что модуль знает
+   * состояние партии; рисуется — там, куда его заберут (см. `onPhaseAction`).
+   */
+  const действиеФазы: PalacePhaseAction | null = React.useMemo(() => {
+    if (session.phase === 'route') {
+      return { label: strings.continueToPlace, disabled: false, run: () => applySession(continueToPlacement) };
+    }
+    if (session.phase === 'place') {
+      return {
+        label: strings.studyPlacements,
+        disabled: !memoryPalacePlacementComplete(session),
+        run: () => applySession(confirmMemoryPalacePlacements),
+      };
+    }
+    if (session.phase === 'study') {
+      return { label: strings.startRecall, disabled: false, run: () => applySession(startMemoryPalaceRecall) };
+    }
+    return null;
+  }, [session, strings, applySession]);
+
+  React.useEffect(() => {
+    onPhaseAction?.(действиеФазы);
+  }, [onPhaseAction, действиеФазы]);
+
+  /** Забрал ли кто-то действие себе: тогда кнопку внизу поля не рисуем. */
+  const действиеСнаружи = typeof onPhaseAction === 'function';
+
   const phaseTitle = session.phase === 'route'
     ? strings.routeTitle
     : session.phase === 'place'
@@ -912,18 +971,18 @@ function MemoryPalaceSessionView({
           : undefined}
       />
 
-      {session.phase === 'route' ? (
-        <ActionButton label={strings.continueToPlace} theme={theme} onPress={() => applySession(continueToPlacement)} />
-      ) : session.phase === 'place' ? (
-        /* Счётчик уехал в шапку, подсказка — к инструкции: под сценой только кнопка. */
+      {/*
+        Кнопка фазы рисуется здесь ТОЛЬКО когда её никто не забрал. Экран
+        приложения забирает её через `onPhaseAction` и кладёт в слот `toolbar`
+        каркаса — тогда низ панели равен низу экрана, как у остальных игр.
+      */}
+      {действиеСнаружи || !действиеФазы ? null : (
         <ActionButton
-          label={strings.studyPlacements}
+          label={действиеФазы.label}
           theme={theme}
-          disabled={!memoryPalacePlacementComplete(session)}
-          onPress={() => applySession(confirmMemoryPalacePlacements)}
+          disabled={действиеФазы.disabled}
+          onPress={действиеФазы.run}
         />
-      ) : (
-        <ActionButton label={strings.startRecall} theme={theme} onPress={() => applySession(startMemoryPalaceRecall)} />
       )}
       <Text style={[styles.keyboardHelp, { color: theme.textSecondary }]}>{strings.keyboardHelp}</Text>
     </ScrollView>
