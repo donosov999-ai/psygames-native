@@ -14,6 +14,8 @@
 declare const __dirname: string;
 declare function require(m: string): any;
 
+import { levelParams as mnemoParams } from '@/app/games/mnemonics';
+
 const fs = require('fs');
 const path = require('path');
 const src = (rel: string) => fs.readFileSync(path.join(__dirname, '..', '..', rel), 'utf8');
@@ -34,12 +36,38 @@ describe('шаг программы по силам игроку', () => {
     expect(/Math\.min\(ic, cap\)/.test(s)).toBe(true);
   });
 
+  /**
+   * ⚠️ ПОЧЕМУ ЭТА ПРОБА БОЛЬШЕ НЕ ЧИТАЕТ ИСХОДНИК. 07.09.2026 она покраснела на
+   * ПЕРЕИМЕНОВАНИИ: искала `Math.max(1, level)`, а раздел «Память и слух» ввёл
+   * промежуточную `const l = …` и стало `Math.max(1, l)`. Числа не менялись,
+   * лестница осталась той же — гейт обвинил исправный код и остановил выпуск.
+   * Теперь величины берутся ВЫЗОВОМ `levelParams`, а не разбором текста.
+   */
   it('лесенка уровней осталась пологой: L1 не даёт больше шести слов', () => {
-    const s = src('app/games/mnemonics.tsx');
-    const m = /itemCount: Math\.min\((\d+), (\d+) \+ Math\.max\(1, level\)\)/.exec(s);
-    expect(m).not.toBeNull();
-    const [, ceil, base] = m!.map(Number) as unknown as number[];
-    expect(Number(base) + 1).toBeLessThanOrEqual(6);   // L1
-    expect(Number(ceil)).toBeLessThanOrEqual(15);      // потолок лесенки
+    // L1 — стена или упражнение. Пять-шесть слов новичок берёт, двадцать — нет.
+    expect(mnemoParams(1).itemCount).toBeLessThanOrEqual(6);
+    // Объём НЕ растёт бесконечно намеренно: список из двадцати слов не труднее,
+    // а дольше — человек дробит его на куски, и меряется усидчивость.
+    const counts = Array.from({ length: 30 }, (_, i) => mnemoParams(i + 1).itemCount);
+    expect(Math.max(...counts)).toBeLessThanOrEqual(15);
+    // …но монотонность не должна нарушаться: короче предыдущего быть не может.
+    counts.forEach((c, i) => { if (i) expect(c).toBeGreaterThanOrEqual(counts[i - 1]); });
+  });
+
+  /**
+   * 🔴 ПОТОЛОК ОБЪЁМА ОБЯЗАН БЫТЬ ОПЛАЧЕН ДРУГОЙ ОСЬЮ. Правило Дениса
+   * 06.09.2026: «потолков нет нигде». Ограничение `itemCount` законно ровно
+   * потому, что после него трудность растёт задержкой и помехой; убери их — и
+   * потолок превратится в плато, а проба этого не заметит.
+   */
+  it('🔴 там, где объём встал, растёт другая ось — плато не образуется', () => {
+    const rows = Array.from({ length: 15 }, (_, i) => mnemoParams(i + 1));
+    const plateauFrom = rows.findIndex((r, i) => i > 0 && r.itemCount === rows[i - 1].itemCount);
+    expect(plateauFrom).toBeGreaterThan(0);            // плато объёма и правда наступает
+    const after = rows.slice(plateauFrom);
+    const grows = (pick: (r: typeof rows[0]) => number) =>
+      after.some((r, i) => i > 0 && pick(r) > pick(after[i - 1]));
+    // Хоть одна из оставшихся осей обязана расти на этом участке.
+    expect(grows((r) => r.gapMs) || grows((r) => r.mathTrials)).toBe(true);
   });
 });
