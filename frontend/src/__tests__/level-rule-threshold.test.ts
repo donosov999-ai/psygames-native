@@ -30,11 +30,11 @@ import { CORSI_RULES, levelParams as corsi } from '@/app/games/corsi';
 import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
 // Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
-import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches, monochromeLevel, gridFor, gsLayout, ITEM_FLOOR, collapseLevel, backRowLevel } from '@/src/games/goods-sort/core/level';
+import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches, monochromeLevel, gridFor, gsLayout, ITEM_FLOOR, collapseLevel, backRowLevel, capsFor } from '@/src/games/goods-sort/core/level';
 import { HN_RULES, levelParams as hanoi } from '@/app/games/hanoi';
 import { WATER_SORT_RULES } from '@/app/games/water-sort';
 import { скрытоНаУровне } from '@/src/games/water-sort/core/hidden';
-import { levelParams, moveLimitFor } from '@/src/games/water-sort/core/generate';
+import { levelParams, moveLimitFor, строгийНалив } from '@/src/games/water-sort/core/generate';
 import { LISTENINGSPAN_RULES, levelParams as listening } from '@/app/games/listening-span';
 import { MAHJONG_RULES } from '@/app/games/mahjong';
 import { MS_RULES } from '@/app/games/math-sprint';
@@ -99,6 +99,7 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'hanoi', ключ: 'pegs4', вид: 'состояние', есть: (L) => hanoi(L).pegs === 4 },
   { игра: 'hanoi', ключ: 'pegs5', вид: 'порог', есть: (L) => hanoi(L).pegs === 5 },
   { игра: 'listening-span', ключ: 'span8', вид: 'порог', есть: (L) => listening(L).span >= 8 },
+  { игра: 'listening-span', ключ: 'similar', вид: 'порог', есть: (L) => listening(L).similarShare > 0 },
   { игра: 'mahjong', ключ: 'layers2', вид: 'состояние', есть: (L) => mahjongLevel(L).layers === 2 },
   { игра: 'mahjong', ключ: 'layers3', вид: 'состояние', есть: (L) => mahjongLevel(L).layers === 3 },
   { игра: 'mahjong', ключ: 'layers4', вид: 'состояние', есть: (L) => mahjongLevel(L).layers === 4 },
@@ -152,6 +153,14 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'goods-sort', ключ: 'joker', вид: 'порог', есть: (L) => jokerNiches(L, 14).length > 0 },
   { игра: 'goods-sort', ключ: 'moving', вид: 'порог', есть: (L) => movingNiches(L) },
   /*
+   * ⚠️ ДОСКА ЗАДАНА ЧИСЛОМ, А НЕ ВЗЯТА У УРОВНЯ, и это не упрощение. Смешанная
+   * ёмкость включается при `slots >= 6`; спроси мы у самого уровня, ответ полз
+   * бы вместе с ростом доски, и «первое появление» отвечало бы на два вопроса
+   * сразу — про порог механики и про размер шкафа. Девять ниш — телефонная
+   * доска, на которой замер и снимался.
+   */
+  { игра: 'goods-sort', ключ: 'mixedcap', вид: 'порог', есть: (L) => new Set(capsFor(L, 9)).size > 1 },
+  /*
    * Витрина: «шкаф выше экрана». Спрашиваем ровно тем вызовом, что делает игра —
    * с полом читаемости, потому что без него `gsLayout` считает по-старому и
    * витрина не поедет. Экран телефона 390×844, поле 484: те же числа, что в
@@ -181,6 +190,7 @@ const МЕХАНИКИ: Механика[] = [
    * человек прочтёт про камни за четыре уровня до первого камня.
    */
   { игра: 'water-sort', ключ: 'short', вид: 'порог', есть: (L) => levelParams(L).shortBy > 0 },
+  { игра: 'water-sort', ключ: 'strict', вид: 'порог', есть: (L) => строгийНалив(L) },
   { игра: 'water-sort', ключ: 'stones', вид: 'порог', есть: (L) => levelParams(L).stones > 0 },
   { игра: 'water-sort', ключ: 'sealed', вид: 'порог', есть: (L) => levelParams(L).deferred > 0 },
   /*

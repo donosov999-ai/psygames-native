@@ -192,16 +192,29 @@ describe('цифра доходит до экрана, а ноль — гово�
     expect(screen).toMatch(/const openPairs = React\.useMemo\(\s*\(\) => availablePairs\(tiles, aliveMaskRef\.current\)/);
   });
 
+  /**
+   * ⚠️ НОСИТЕЛЬ СМЕНИЛСЯ 07.09.2026, УТВЕРЖДЕНИЕ — НЕТ. Маджонг перестал рисовать
+   * семь счётчиков собственной вёрсткой и отдаёт три ДАННЫМИ в шапку каркаса
+   * (`hud=[...]`, GameShell). Гейт искал `<HudBadge …/>` внутри `stats=` — то
+   * есть прежнее место, — и падал не потому, что бейдж пропал, а потому что
+   * описывал, как он был СВЁРСТАН. Требуется по-прежнему одно: число открытых
+   * пар стоит в шапке и подписано словом из словаря.
+   */
   it('бейдж с числом стоит в шапке рядом с остальными счётчиками', () => {
-    const stats = screen.slice(screen.indexOf('stats={'), screen.indexOf('headerActions='));
-    expect(stats).toMatch(/HudBadge[\s\S]*value=\{openPairs\}/);
-    expect(stats).toMatch(/label=\{t\('mahjongPairsOpen'\)\}/);
+    const hud = screen.slice(screen.indexOf('hud={['), screen.indexOf('headerRight='));
+    expect(hud).toMatch(/value:\s*openPairs/);
+    expect(hud).toMatch(/label:\s*t\('mahjongPairsOpen'\)/);
   });
 
   it('ноль читается как «доска встала», а не молчит', () => {
     expect(screen).toMatch(/const boardStuck = openPairs === 0/);
-    // Красная пилюля — заметить, строка под доской — понять, что делать.
-    expect(screen).toMatch(/boardStuck \? \['#fb7185', '#e11d48'\]/);
+    /*
+     * ⚠️ Цвет тоже уехал в данные: каркас красит пилюлю по `tone`, а не по паре
+     * hex-ов в экране. Проверяем то же самое — что ноль ОКРАШЕН как беда, — но
+     * на новом носителе. Пять канонических тонов каркаса перечислены в
+     * GameShell:80-86; «bad» из них и есть красный.
+     */
+    expect(screen).toMatch(/tone:\s*boardStuck \? \('bad' as const\)/);
     /**
      * ⚠️ ЗДЕСЬ СТОЯЛ ЛИТЕРАЛ `boardStuck ? t('mahjongNoPairs') : t('mahjongHint')`,
      * и 05.09.2026 он покраснел на ПОЧИНКЕ. Текст на вставшей доске стал одним из

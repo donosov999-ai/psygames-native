@@ -22,7 +22,20 @@ export interface CakeLevel {
   types: number;
   /** Тарелок на столе. */
   plates: number;
-  /** Сколько тарелок приходит из очереди, а не стоит на столе с начала. */
+  /**
+   * Сколько кругов приходит из очереди СВЕРХ тех, что лежат на столе.
+   *
+   * 🔴 ИМЕННО «СВЕРХ», А НЕ «ВМЕСТО», И ЭТО ПОЧИНЕННЫЙ ДЕФЕКТ. Первая редакция
+   * понимала очередь как часть тех же тарелок — отложенный хвост раскладки. На
+   * деле раскладка плотная: сектора ложатся в ПЕРВЫЕ тарелки подряд, а очередь
+   * бралась из ПОСЛЕДНИХ, то есть всегда из пустых. Замер 07.09.2026: на всех
+   * уровнях L7…L60 `cfg.queue` обещал от 1 до 7, а на доске очередь была РОВНО
+   * НОЛЬ — счётчик очереди в шапке показывал 0 всю жизнь игры.
+   *
+   * Теперь очередь — ДОПОЛНИТЕЛЬНЫЙ материал: ещё столько кругов тех же видов,
+   * которые приезжают на освободившееся место. Стол при этом остаётся ровно тем,
+   * что доказан решателем, а очередь добавляет к нему продолжение.
+   */
   queue: number;
 }
 
@@ -38,7 +51,7 @@ export function levelCfg(L: number): CakeLevel {
   const n = Math.max(1, Math.floor(L) || 1);
   const types = Math.min(11, 2 + Math.floor((n + 1) / 2));
   const plates = Math.min(PLATES_MAX, types + Math.max(SPARES_MIN, 2 + Math.floor(n / 6)));
-  const queue = n < QUEUE_FROM ? 0 : Math.min(plates - types - SPARES_MIN + 1, 1 + Math.floor((n - QUEUE_FROM) / 8));
+  const queue = n < QUEUE_FROM ? 0 : 1 + Math.floor((n - QUEUE_FROM) / 8);
   return { types, plates, queue: Math.max(0, queue) };
 }
 
@@ -78,9 +91,10 @@ function shuffle<T>(arr: T[], rand: () => number): T[] {
 /**
  * 🔴 СЕКТОРОВ ВСЕГДА КРАТНО ШЕСТИ, И ЭТО ИНВАРИАНТ, А НЕ СЛЕДСТВИЕ.
  *
- * Каждый вид даёт ровно один круг. Нарушь кратность — и на столе останется
- * хвост, который нельзя замкнуть никогда: уровень станет непроходимым, причём
- * молча, потому что ходы у игрока ещё будут.
+ * Материал СТОЛА: каждый вид даёт ровно один круг. Очередь добавляет к нему ещё
+ * целые круги (`extraSectors`), поэтому кратность держится и на сумме. Нарушь
+ * её — и на столе останется хвост, который нельзя замкнуть никогда: уровень
+ * станет непроходимым, причём молча, потому что ходы у игрока ещё будут.
  */
 function sectors(types: number): number[] {
   const out: number[] = [];
@@ -95,6 +109,29 @@ function layOut(all: number[], plates: number): Plate[] {
   for (const s of all) {
     while ((out[i] as number[]).length >= CIRCLE) i += 1;
     (out[i] as number[]).push(s);
+  }
+  return out;
+}
+
+/**
+ * 🔴 МАТЕРИАЛ ОЧЕРЕДИ: ЕЩЁ `extra` КРУГОВ ТЕХ ЖЕ ВИДОВ.
+ *
+ * ⚠️ ВИДЫ ПОВТОРЯЮТСЯ НАМЕРЕННО, и это ровно то, что снимает потолок лестницы.
+ * Видов не может стать больше одиннадцати — столько цветов в палитре, — но
+ * КРУГОВ одного вида может быть сколько угодно: круг замыкается шестью, и
+ * двенадцать секторов одного вида это просто два круга. Пока очередь считалась
+ * долей от числа тарелок, лестница замирала на L63 навсегда; теперь растёт
+ * материал, а не пестрота.
+ *
+ * ⚠️ Кратность шести сохраняется по построению: каждый круг — ровно шесть
+ * секторов ОДНОГО вида. Замкнутость мультимножества — то, на чём держится вся
+ * доказуемость, и ломать её ради разнообразия нельзя.
+ */
+function extraSectors(types: number, extra: number): number[] {
+  const out: number[] = [];
+  for (let k = 0; k < extra; k += 1) {
+    const t = k % Math.max(1, types);
+    for (let j = 0; j < CIRCLE; j += 1) out.push(t);
   }
   return out;
 }
@@ -145,23 +182,49 @@ export function dealRejected(board: Board): false | 'готовый круг' | 
   return false;
 }
 
+/**
+ * Стол и очередь одной раздачей.
+ *
+ * ⚠️ СТОЛ ЗАНИМАЕТ ВСЕ ТАРЕЛКИ УРОВНЯ, а очередь стоит отдельно. Прежде очередь
+ * отрезалась от ХВОСТА раскладки — и оказывалась пустой всегда, потому что
+ * раскладка плотная: занятыми выходят первые `types` тарелок, а хвост пуст по
+ * построению. Отрезать от пустого места можно только пустоту.
+ */
+function собрать(L: number, tries: number, cfg: CakeLevel): Board {
+  const rand = rng(L * 1000 + tries);
+  /**
+   * 🔴 СТОЛ И ОЧЕРЕДЬ МЕШАЮТСЯ ОДНОЙ КОЛОДОЙ, А НЕ ДВУМЯ.
+   *
+   * 📍 Замер отверг раздельный вариант. Материал очереди сам по себе — целые
+   * круги, и на L7…L12 (одна лишняя круглая порция) стопка выходила ОДНОРОДНОЙ
+   * по построению: шесть секторов одного вида. Заслон `dealRejected` честно
+   * браковал её как готовый круг — все двенадцать попыток подряд, — и раздача
+   * уходила в запасную ветку, отдавая ровно то, что забраковала.
+   *
+   * Общая колода лечит причину: каждая стопка, и на столе и в очереди, набрана
+   * из перемешанного целого, поэтому однородной может оказаться только случайно.
+   */
+  const все = [...sectors(cfg.types), ...extraSectors(cfg.types, cfg.queue)];
+  const плотно = layOut(shuffle(все, rand), cfg.types + cfg.queue);
+  /*
+   * ⚠️ Очередь берётся ИЗ НАЧАЛА плотной раскладки, а не из хвоста стола. Хвост
+   * раскладки пуст по построению — именно на этом прежняя очередь и умирала.
+   */
+  const пустых = Math.max(0, cfg.plates - cfg.types);
+  const plates: Plate[] = [...плотно.slice(0, cfg.types), ...Array.from({ length: пустых }, () => [] as number[])];
+  return makeBoard(plates, плотно.slice(cfg.types));
+}
+
 /** Раздача уровня с ДОКАЗАННОЙ решаемостью. */
 export function deal(L: number, attempts = 12): Deal {
   const cfg = levelCfg(L);
-  const все = sectors(cfg.types);
   for (let tries = 0; tries < attempts; tries += 1) {
-    const rand = rng(L * 1000 + tries);
-    const разложено = layOut(shuffle(все, rand), cfg.plates);
-    const queue = разложено.slice(cfg.plates - cfg.queue).filter((p) => p.length > 0);
-    const plates = разложено.slice(0, cfg.plates - cfg.queue);
-    const board = makeBoard(plates, queue);
+    const board = собрать(L, tries, cfg);
     if (dealRejected(board)) continue;
     return { board, cfg, tries, proven: provenSolvable(board) };
   }
   // Не нашли за отведённые попытки — отдаём последнюю честно, как есть.
-  const rand = rng(L * 1000 + attempts);
-  const разложено = layOut(shuffle(все, rand), cfg.plates);
-  const запасной = makeBoard(разложено.slice(0, cfg.plates - cfg.queue), разложено.slice(cfg.plates - cfg.queue).filter((p) => p.length > 0));
+  const запасной = собрать(L, attempts, cfg);
   return { board: запасной, cfg, tries: attempts, proven: provenSolvable(запасной) };
 }
 

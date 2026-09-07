@@ -108,6 +108,8 @@ const ADDED: Record<string, string> = {
  */
 const ALREADY: Record<string, string> = {
   'cake-sort.tsx': "t('cakeStuck')",
+  // Тот же экран `CakeSortScreen`, что у тортов, — значит и строка та же.
+  'pizza-sort.tsx': "t('cakeStuck')",
   'anagrams.tsx': "t('anagramHint')",
   'bart.tsx': "t('bartHint')",
   'breathing.tsx': 'phaseLabel(curPhase.type)',

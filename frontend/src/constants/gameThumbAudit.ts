@@ -55,6 +55,7 @@ export const THUMB_AUDIT: Record<string, ThumbAudit> = {
   "phoneme_pairs": { about: false, yellow: 0.0, sha: 'fc249b244df8' },
   "phonemic_fluency": { about: false, yellow: 0.0, sha: '41dad40ca604' },
   "picture_pairs": { about: false, yellow: 0.0, sha: '8bf468e26a4b' },
+  "pizza_sort": { about: false, yellow: 0.0, sha: 'ccc0e1a37620' },
   "posner": { about: false, yellow: 0.0, sha: '038ab46c4d09' },
   "prl": { about: false, yellow: 0.0, sha: 'f75a6cde61dc' },
   "proofreading": { about: false, yellow: 0.0, sha: '58922fe90b10' },

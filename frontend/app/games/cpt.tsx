@@ -24,7 +24,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, useWindowDimensions
+  ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -36,6 +36,7 @@ import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { stimBox, answerButton } from '@/src/games/attention/layout';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { AnswerBar } from '@/src/games/attention/AnswerBar';
 import { vigilanceAccuracySlope } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
@@ -230,7 +231,9 @@ export default function CPTGame() {
   const router = useRouter();
   // Стимул-окно во весь экран: привязка к размеру вьюпорта — на телефоне буква
   // занимает бо́льшую площадь (раньше был жёсткий квадрат 240px, мелко на 6"+).
-  const { width: winW, height: winH } = useWindowDimensions();
+  // 07.09.2026: размер берём защищённым хуком — голый useWindowDimensions()
+  // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
+  const { w: winW, h: winH } = useScreenSize();
   // Размер окна — общий для раздела (src/games/attention/layout.ts), а не своя формула:
   // раньше здесь стояло min(ширина−32, высота·0.5, 460) и давало 358×358, тогда как у
   // соседних проб окно было 120…320. Из-за разных правил коробка дышала между пробами.
@@ -774,7 +777,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
-  stimBox: { borderRadius: 28, justifyContent: 'center', alignItems: 'center' },  // размеры задаются инлайном от useWindowDimensions
+  stimBox: { borderRadius: 28, justifyContent: 'center', alignItems: 'center' },  // размеры задаются инлайном от защищённого useScreenSize()
   stimText: { fontWeight: '900' },                                                // fontSize задаётся инлайном (масштаб окна)
   fixCross: { fontSize: 48, opacity: 0.4 },
   // ⚠️ Осиротело после разводки слотов: СТОП уехал в шапку (GameAuxAction).

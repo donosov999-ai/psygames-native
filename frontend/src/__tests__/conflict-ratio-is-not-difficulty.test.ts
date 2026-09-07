@@ -38,6 +38,11 @@ import { levelParams as simonParams, makeTrial as simonTrial, INCONGRUENT_PROB }
 import { levelParams as posnerParams, makeTrial as posnerTrial, VALID_RATIO } from '@/app/games/posner';
 import { levelParams as goParams, pickStim, NOGO_PROB } from '@/app/games/go-no-go';
 import { levelParams as cptParams, makeTrial as cptTrial, TARGET_RATE } from '@/app/games/cpt';
+import { levelParams as antParams, makeTrial as antTrial } from '@/app/games/ant';
+import { levelParams as emoParams, makeTrial as emoTrial } from '@/app/games/stroop-emotional';
+// ⚠️ `levelParams` отсюда не берётся: проба смотрит на долю конфликтных в
+// самих испытаниях, а не на заявленные параметры уровня.
+import { makeTrial as switchTrial } from '@/app/games/switching-task';
 
 const LEVELS = Array.from({ length: 15 }, (_, i) => i + 1);
 const N = 40000;              // проб на замер: ошибка выборки ≈ 0.2 п.п.
@@ -79,6 +84,27 @@ const posnerValid = (level: number) => share(() => posnerTrial(level).validity =
 const posnerInvalid = (level: number) => share(() => posnerTrial(level).validity === 'invalid');
 // Go/No-Go: тормозить можно только преобладающую реакцию — считаем долю GO.
 const goPrepotent = (level: number) => share(() => pickStim(level) === 'go');
+// ANT: executive_ms = RT(конфликтные) − RT(согласованные), то есть САМ эффект
+// конфликта. Знаменатель смысла — доля СОГЛАСОВАННЫХ.
+const antCongruent = (level: number) => share(() => antTrial(level).cong === 'congruent');
+const antIncongruent = (level: number) => share(() => antTrial(level).cong === 'incongruent');
+// Эмоциональный Струп: обе интерференции (threat и positive) — разности
+// относительно НЕЙТРАЛЬНЫХ проб. Нейтральные и есть база смысла.
+const emoNeutral = (level: number) => share(() => emoTrial('ru', level).valence === 'neutral');
+// Переключение задач: switch_cost_ms = RT(смена) − RT(повтор). Считаем ПОВТОРЫ.
+// Поток связный — следующая задача зависит от предыдущей, как у CPT.
+function switchRepeats(level: number): number {
+  Math.random = seeded(SEED);
+  let last: number | null = null;
+  let repeats = 0;
+  for (let i = 0; i < N; i++) {
+    const t = switchTrial('mix', level, last);
+    if (last !== null && !t.isSwitch) repeats++;
+    last = t.taskIdx;
+  }
+  Math.random = realRandom;
+  return repeats / N;
+}
 // CPT: проба бдительности требует РЕДКОЙ цели. Поток связный (AX смотрит назад).
 function cptTargets(level: number): number {
   Math.random = seeded(SEED);
@@ -119,6 +145,43 @@ describe('🔴 доля проб задаёт величину эффекта �
       .toBe(`совпадающих L1 ${pct(first)} → L15 ${pct(last)}, падение 0.0%`);
     expect(Math.min(...byLevel)).toBeGreaterThanOrEqual(first - TOL);
     expect(Math.abs(last - (1 - INCONGRUENT_PROB))).toBeLessThan(TOL);
+  });
+
+  /**
+   * 🔴 ANT ДОБАВЛЕН 07.09.2026 — и добавлен ПОТОМУ, что его тут не было.
+   *
+   * Гейт заведён 23.08 на пять игр, и та же беда всё это время спокойно жила в
+   * шестой: `ant.tsx` растил `incongruentProb` с 0,30 до 0,55 по уровням, а
+   * `executive_ms` — одна из трёх сетей внимания, ради которых проба и
+   * существует, — есть разность RT между конфликтными и согласованными. То
+   * есть ручка уровня уменьшала измеряемое, ровно как у Струпа и Саймона до
+   * заморозки.
+   *
+   * ⚠️ Урок не про ANT, а про гейты: непокрытая игра — это не «пока не дошли
+   * руки», это место, где known-дефект живёт дальше. Пять игр в списке
+   * создавали ощущение, что тема закрыта.
+   *
+   * Канон Fan et al. 2002: центральная стрелка идёт одна на ТРЕТИ проб,
+   * остальные две трети делятся поровну между согласованными и конфликтными,
+   * то есть 1/3 : 1/3 : 1/3 и одинаково на всех уровнях.
+   */
+  it('ANT: согласованных проб на пятнадцатом уровне не меньше, чем на первом', () => {
+    const byLevel = LEVELS.map(antCongruent);
+    const [first, last] = [byLevel[0], byLevel[14]];
+    expect(`согласованных L1 ${pct(first)} → L15 ${pct(last)}, падение ${pct(Math.max(0, first - last))}`)
+      .toBe(`согласованных L1 ${pct(first)} → L15 ${pct(last)}, падение 0.0%`);
+    expect(Math.min(...byLevel)).toBeGreaterThanOrEqual(first - TOL);
+  });
+
+  it('ANT: доли равны по трети на каждом уровне — канон Fan 2002', () => {
+    const плохие = LEVELS.map((L) => {
+      const с = antCongruent(L);
+      const к = antIncongruent(L);
+      const н = 1 - с - к;
+      const ровно = Math.abs(с - 1 / 3) < TOL && Math.abs(к - 1 / 3) < TOL && Math.abs(н - 1 / 3) < TOL;
+      return ровно ? null : `L${L}: согл ${pct(с)} / нейтр ${pct(н)} / конфл ${pct(к)}`;
+    }).filter(Boolean);
+    expect(плохие).toEqual([]);
   });
 
   it('Познер: подсказка остаётся информативной на всех уровнях', () => {
@@ -215,6 +278,21 @@ describe('лестница осталась лестницей — вес сло
       const p = goParams(L);
       return { windowMs: p.windowMs, tempoMs: p.itiMinMs + p.itiJitterMs / 2, trials: p.trials };
     },
+    /**
+     * ⚠️ У ANT `tempoMs` намеренно null, и это НЕ забытая ось.
+     *
+     * Здесь «меньше темп — труднее»: пауза короче, значит времени на подготовку
+     * меньше. У ANT третья ось устроена наоборот — растёт РАЗБРОС пред-паузы
+     * (400 → 1520 мс), и средняя пауза при этом УДЛИНЯЕТСЯ (600 → 1160 мс).
+     * Труднее становится не от короткой паузы, а от невозможности предугадать
+     * момент. Подставить этот разброс сюда значило бы получить красное по
+     * ложной причине — величина поехала бы «в лёгкую сторону» по метрике,
+     * которая к ней неприменима. Ось проверяется отдельной пробой ниже.
+     */
+    ant: (L) => {
+      const p = antParams(L);
+      return { windowMs: p.windowMs, tempoMs: null, trials: p.trials };
+    },
   };
 
   it('пятнадцатый уровень строго труднее первого', () => {
@@ -237,6 +315,72 @@ describe('лестница осталась лестницей — вес сло
         if (cur.tempoMs !== null && prev.tempoMs !== null) expect(cur.tempoMs).toBeLessThanOrEqual(prev.tempoMs);
       }
     }
+  });
+
+  /**
+   * 🔴 ДВА ПОСЛЕДНИХ РЕЖИМА РАЗДЕЛА, 07.09.2026. Найдены НЕ поиском дефектов:
+   * я читал их `levelParams`, чтобы написать формулы нагрузки для совсем другой
+   * задачи, и увидел знакомую форму. Это шестой и седьмой случай одной беды.
+   *
+   * ⚠️ Отсюда вывод не «поискать ещё», а «список непокрытых игр И ЕСТЬ список
+   * мест, где известный дефект живёт дальше». Обход раздела шёл по гейтам, а
+   * гейт покрывал пять игр из десяти — четыре года можно было не находить.
+   */
+  it('Эмоциональный Струп: нейтральных проб на пятнадцатом уровне не меньше, чем на первом', () => {
+    const byLevel = LEVELS.map(emoNeutral);
+    const [first, last] = [byLevel[0], byLevel[14]];
+    expect(`нейтральных L1 ${pct(first)} → L15 ${pct(last)}, падение ${pct(Math.max(0, first - last))}`)
+      .toBe(`нейтральных L1 ${pct(first)} → L15 ${pct(last)}, падение 0.0%`);
+    expect(Math.min(...byLevel)).toBeGreaterThanOrEqual(first - TOL);
+  });
+
+  /**
+   * 🔴 У эмоционального Струпа есть ВТОРАЯ половина беды, которой нет у
+   * остальных: `trials` зашито константой и с уровнем не растёт. Значит доля
+   * пересчитывается в ШТУКИ, и штук остаётся мало. Замер до починки: 18 проб,
+   * доля эмоциональных 0,85 на L15 → 2,7 нейтральных пробы, и эти же 2,7
+   * служат базой сразу ДВУМ разностям (threat и positive).
+   * Разностная оценка от трёх проб — это не «менее точно», это шум.
+   */
+  it('Эмоциональный Струп: нейтральных проб хватает на базу ДВУХ разностей', () => {
+    const мало: string[] = [];
+    for (const L of LEVELS) {
+      const штук = emoNeutral(L) * emoParams(L).trials;
+      if (штук < 5) мало.push(`L${L}: ${штук.toFixed(1)} нейтральных проб`);
+    }
+    expect(мало).toEqual([]);
+  });
+
+  it('Переключение задач: повторных проб на пятнадцатом уровне не меньше, чем на первом', () => {
+    const byLevel = LEVELS.map(switchRepeats);
+    const [first, last] = [byLevel[0], byLevel[14]];
+    expect(`повторов L1 ${pct(first)} → L15 ${pct(last)}, падение ${pct(Math.max(0, first - last))}`)
+      .toBe(`повторов L1 ${pct(first)} → L15 ${pct(last)}, падение 0.0%`);
+    expect(Math.min(...byLevel)).toBeGreaterThanOrEqual(first - TOL);
+  });
+
+  /**
+   * 🔴 ЗАВЕДЕНО 07.09.2026 ВМЕСТЕ С ЗАМОРОЗКОЙ ДОЛЕЙ ANT.
+   *
+   * Убрав долю конфликтных из лестницы, я снял с неё одну из четырёх осей. Три
+   * оставшиеся держат сложность, но НИЧТО не мешало бы следующей правке снять
+   * ещё одну — и лестница тихо выродилась бы в пятнадцать одинаковых уровней.
+   * Поэтому ось непредсказуемости, на которую вес и перенесён, гейтится явно.
+   *
+   * Обе величины — канонные для ANT: разброс пред-паузы (когда появится
+   * подсказка) и разброс CTOA, промежутка между подсказкой и целью.
+   */
+  it('ANT: непредсказуемость момента растёт монотонно — на неё перенесён вес доли', () => {
+    const поехавшие: string[] = [];
+    for (let L = 2; L <= 15; L++) {
+      const a = antParams(L - 1), b = antParams(L);
+      if (b.preJitterMs < a.preJitterMs) поехавшие.push(`L${L}: пред-пауза ${a.preJitterMs}→${b.preJitterMs}`);
+      if (b.ctoaVarMs < a.ctoaVarMs) поехавшие.push(`L${L}: CTOA ${a.ctoaVarMs}→${b.ctoaVarMs}`);
+    }
+    expect(поехавшие).toEqual([]);
+    const first = antParams(1), last = antParams(15);
+    expect(`пред-пауза ${first.preJitterMs}→${last.preJitterMs}мс, CTOA ${first.ctoaVarMs}→${last.ctoaVarMs}мс`)
+      .toBe('пред-пауза 400→1520мс, CTOA 100→660мс');
   });
 
   it('CPT: темп, режим и перцептивная нагрузка растут — длительность и доля целей неизменны', () => {

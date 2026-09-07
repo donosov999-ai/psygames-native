@@ -379,7 +379,18 @@ function tapCell(r: any, value: number) {
 
 /** Что просит шапка: подпись из словаря приложения и число рядом с ней. */
 function hudTarget(r: any): number {
-  const boxes = r.root.findAll((n: any) => /^(Find|FIND SUM)\s*\d+$/.test(joined(n).trim()), OUTER);
+  /*
+   * 🔴 ИЩЕМ ПО ПОДПИСИ ДЛЯ ЧТЕЦА, А НЕ ПО ТЕКСТУ НА ЭКРАНЕ. С 07.09.2026
+   * счётчики рисует каркас (`HudBadge`), и подпись выводится ТЕКСТОМ только у
+   * бейджа БЕЗ значка; Шульте даёт значок `locate`, поэтому на экране остаётся
+   * одна цифра, а слово «Найдите» живёт в `accessibilityLabel` («Find: 12»).
+   * Прежний поиск по склеенному тексту находил ноль узлов — и падал не потому,
+   * что серия сломалась, а потому что описывал прежнее место подписи.
+   */
+  const boxes = r.root.findAll(
+    (n: any) => /^(Find|FIND SUM|Find sum)\s*:\s*\d+$/i.test(String(n.props?.accessibilityLabel ?? '').trim()),
+    OUTER,
+  );
   if (boxes.length !== 1) throw new Error(`искомое в шапке не опознать: найдено ${boxes.length}`);
   return Number(joined(boxes[0]).replace(/\D+/g, ''));
 }
