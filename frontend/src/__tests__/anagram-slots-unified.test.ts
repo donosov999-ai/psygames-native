@@ -19,7 +19,7 @@
  * ОТДАЮТ управление наверх и не рисуют свой ряд.
  */
 declare const __dirname: string;
-declare function require(id: string): { readFileSync: (p: string, e: string) => string; join: (...p: string[]) => string };
+declare function require(id: string): any;
 const { readFileSync } = require('fs');
 const { join } = require('path');
 const ROOT = join(__dirname, '../..');
