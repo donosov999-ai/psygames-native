@@ -30,6 +30,9 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { SvgXml } from 'react-native-svg';
 import { CHESS_PIECE_SVG } from '@/src/games/chess-blind/core/pieces';
 import { buildOptions } from '@/src/games/chess-blind/core/options';
+import {
+  примеровНаПодход, сделатьПример, type Пример,
+} from '@/src/games/chess-blind/core/interference';
 import { readChessAssist, writeChessAssist, CHESS_ASSIST_DEFAULT, type ChessAssist } from '@/src/games/chess-blind/core/assist';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -141,7 +144,7 @@ export const CHESSBLIND_RULES: LevelRule[] = [
  * `seriesResult` — разбор с разностями. Обычная партия ('expose'/'mask'/'quiz')
  * их не касается: серия это РЕЖИМ этого же экрана, а не вторая игра рядом.
  */
-type GamePhase = 'intro' | 'config' | 'expose' | 'mask' | 'quiz' | 'cleared' | 'result'
+type GamePhase = 'intro' | 'config' | 'expose' | 'mask' | 'interf' | 'quiz' | 'cleared' | 'result'
   | 'series' | 'interlude' | 'seriesResult';
 
 /**
@@ -395,6 +398,14 @@ export default function ChessBlindGame() {
   // зависимостей намеренно неполон — эффект обязан сработать один раз на
   // готовности, а не пересобираться на каждое изменение замыканий.
 
+  /**
+   * 🔴 ПОМЕХА МЕЖДУ ПОКАЗОМ И ОПРОСОМ (ось «интерференция», с 11-го уровня).
+   * Устройство и рубеж — в `core/interference.ts`. Ответы на примеры в счёт
+   * партии НЕ входят: это помеха, а не задание.
+   */
+  const [примеры, setПримеры] = useState<Пример[]>([]);
+  const [примерIdx, setПримерIdx] = useState(0);
+  const примерВерных = useRef(0);
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   // Правила уровня: показать при первом входе и дать перечитать по бейджу.
   const levelRules = useLevelRules('chess_blind', lvl.level, CHESSBLIND_RULES, phase === 'quiz');
@@ -758,6 +769,7 @@ export default function ChessBlindGame() {
     setHits(0); setErrors(0);
     qIndexRef.current = 0; qLockRef.current = false; answeredRef.current = new Set(); setAnsweredTick(0);
     setQIndex(0); setRevealOpt(null); setRevealSq(null); setWrongSq(null);
+    setПримеры([]); setПримерIdx(0); примерВерных.current = 0;
     setMoveHl(null); setMoveNum(0);
     startTimeRef.current = gameNow();
     setPhase('expose');
@@ -794,8 +806,32 @@ export default function ChessBlindGame() {
     later(() => beginQuiz(), 600 + moves.length * 1400 + 400);
   };
 
+  /**
+   * Между показом и опросом — счёт, если уровень его требует. Иначе как было.
+   *
+   * ⚠️ ПОМЕХА ИДЁТ ПОСЛЕ ХОДОВ, А НЕ ДО НИХ. Ходы вслепую — это САМО задание
+   * (позицию надо обновлять в голове), и разрывать их счётом значило бы мерить
+   * не то. Помеха стоит там, где человек уже всё знает и только держит.
+   */
   const beginQuiz = () => {
     setMoveHl(null);
+    const n = примеровНаПодход(levelRef.current);
+    if (n > 0) {
+      const трудный = levelRef.current >= 14;
+      setПримеры(Array.from({ length: n }, () => сделатьПример(трудный)));
+      setПримерIdx(0);
+      setPhase('interf');
+      return;
+    }
+    setPhase('quiz');
+  };
+
+  /** Ответ на пример-помеху. Верность копится для отчёта, но не для счёта партии. */
+  const ответПример = (сказал: boolean) => {
+    const п = примеры[примерIdx];
+    if (!п) { setPhase('quiz'); return; }
+    if (сказал === п.верно) примерВерных.current += 1;
+    if (примерIdx + 1 < примеры.length) { setПримерIdx(примерIdx + 1); return; }
     setPhase('quiz');
   };
 
@@ -1452,6 +1488,51 @@ export default function ChessBlindGame() {
       </>
     );
   };
+
+  /**
+   * 🔴 ПОМЕХА — ОТДЕЛЬНЫЙ ЭКРАН, А НЕ НАКЛАДКА НА ДОСКУ. Смысл оси в том, что
+   * доски перед глазами НЕТ: пока считаешь, позицию держишь в голове. Оставь
+   * доску на экране — и помеха превращается в паузу.
+   *
+   * ⚠️ ОТВЕТЫ ЗНАКАМИ «✓ / ✗», без новых ключей словаря: десять локалей помечены
+   * «AUTO-GENERATED, не править руками», это работа переводческого канала.
+   * Знаки читаются одинаково везде, а само выражение — математика, и она в RTL
+   * тоже пишется слева направо.
+   */
+  if (phase === 'interf') {
+    const п = примеры[примерIdx];
+    return (
+      <GameShell title={t('chessBlind')} onBack={() => goBackOrHome()}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 22, padding: 24 }}>
+          <Text style={{ fontSize: 15, color: colors.textSecondary, textAlign: 'center' }}>
+            {примерIdx + 1}/{примеры.length}
+          </Text>
+          <Text
+            accessibilityRole="header"
+            style={{ fontSize: 44, fontWeight: '800', color: colors.text, writingDirection: 'ltr' }}
+          >
+            {п ? `${п.слева} = ${п.показан}` : ''}
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 16 }}>
+            {([[true, '✓', '#166534'], [false, '✗', '#7f1d1d']] as const).map(([да, знак, фон]) => (
+              <TouchableOpacity
+                key={знак}
+                accessibilityRole="button"
+                accessibilityLabel={да ? 'interf-yes' : 'interf-no'}
+                onPress={() => ответПример(да)}
+                style={{
+                  minWidth: 96, minHeight: 56, borderRadius: 16, backgroundColor: фон,
+                  alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 26, fontWeight: '800', color: '#fff' }}>{знак}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </GameShell>
+    );
+  }
 
   // Игровые фазы — на едином каркасе GameShell (без самодельной шапки).
   if (phase === 'expose' || phase === 'mask' || phase === 'quiz') {
