@@ -1,0 +1,113 @@
+/* psygames-goal-suggest · VER 1 · 07.09.2026 */
+/**
+ * КАКУЮ ЦЕЛЬ ПРЕДЛОЖИТЬ — ИЗ ЕГО СОБСТВЕННЫХ ЦИФР.
+ *
+ * 🔴 ЗАЧЕМ. У Duolingo варианты 7/14/30/50 одинаковы для всех, а над ними
+ * написано «ваши шансы вырастут в 2 раза» — обещание, которого мы дать не
+ * можем: такого замера у нас нет. Денис 07.09.2026 попросил обратное: чтобы
+ * цель выводилась ИЗ МЕТРИК приложения. Тогда вместо обещания стоит факт о
+ * человеке — «твоя лучшая серия 4 дня, возьми 7», — и это сильнее выдумки.
+ *
+ * 🔴 ОСНОВАНИЕ ПОКАЗЫВАЕТСЯ, ТОЛЬКО ЕСЛИ ОНО НАСТОЯЩЕЕ. Подпись «твоя лучшая
+ * серия — N дней» при неизвестном N была бы выдуманной цифрой на первом экране,
+ * то есть ровно тем, чего мы избегали, отказавшись от «в 2 раза». Поэтому
+ * `basis` равен `null`, когда мерить нечего, и подпись тогда не рисуется вовсе —
+ * вариант просто выбран по умолчанию, молча.
+ *
+ * ⚠️ «ЛУЧШАЯ СЕРИЯ» — ЭТО ЛУЧШАЯ ЗА 60 ДНЕЙ, и иначе быть не может: метки дней
+ * в журнале живут `DAYS_KEPT = 60` (earn.ts:80). Сорокадневная серия трёхлетней
+ * давности сюда не попадёт. Это ограничение данных, а не ошибка: подпись
+ * говорит о том, что мы ДЕЙСТВИТЕЛЬНО видим.
+ */
+import { GOAL_DAYS, type GoalDays } from '@/src/services/streakGoal';
+import { dayKey } from '@/src/services/earn';
+
+export type SuggestReason =
+  /** Есть прошлая серия — предлагаем следующую ступень вверх. */
+  | 'best_streak'
+  /** Серий не было, но человек играл — начинаем с недели. */
+  | 'start_week'
+  /** Уже брал верхнюю ступень — выше в наборе нет. */
+  | 'at_top'
+  /** Первый заход: цифр о нём ещё нет, и придумывать их нельзя. */
+  | 'no_data';
+
+export interface Suggestion {
+  days: GoalDays;
+  reason: SuggestReason;
+  /**
+   * Число, на котором стоит предложение. `null` — основания нет, подпись НЕ
+   * рисуется. Это поле и отличает факт о человеке от красивой выдумки.
+   */
+  basis: number | null;
+}
+
+/**
+ * Самая длинная непрерывная цепочка дней в журнале.
+ *
+ * ⚠️ Живёт здесь, а не рядом со `streakFromDays` в earn.ts: та считает ТЕКУЩУЮ
+ * серию и нужна двум экранам, эта — только подбору цели. Общего кода у них нет,
+ * кроме разбора ключа дня, поэтому копии не заводится.
+ */
+export function bestStreakFromDays(days: string[]): number {
+  if (!days.length) return 0;
+  const have = new Set(days);
+  let best = 0;
+  for (const d of have) {
+    const [y, m, dd] = d.split('-').map(Number);
+    const prev = new Date(y, m - 1, dd - 1);
+    /*
+     * Стартуем только с НАЧАЛА цепочки. ⚠️ Это УСКОРЕНИЕ, а не корректность:
+     * без этой строки ответ тот же (максимум по всем стартам равен максимуму по
+     * началам), просто цепочка из N дней обходится N раз вместо одного.
+     * Проверено контрпробой 07.09.2026 — снятие строки не изменило ни одного
+     * ожидания, и это записано здесь, чтобы следующий не искал в ней смысла,
+     * которого нет. При 60 днях журнала цена и так копеечная.
+     */
+    if (have.has(dayKey(prev))) continue;
+    let n = 0;
+    const cur = new Date(y, m - 1, dd);
+    while (have.has(dayKey(cur))) { n += 1; cur.setDate(cur.getDate() + 1); }
+    if (n > best) best = n;
+  }
+  return best;
+}
+
+/** Ближайшая ступень СТРОГО выше достигнутого. Выше верхней — верхняя. */
+function nextRung(after: number): GoalDays {
+  const up = GOAL_DAYS.find((d) => d > after);
+  return up ?? GOAL_DAYS[GOAL_DAYS.length - 1];
+}
+
+export interface SuggestInput {
+  /** Метки дней из журнала (`ProfileLog.days`). */
+  days: string[];
+  /** Играл ли вообще — отличает новичка от того, кто играл, но без серий. */
+  hasSessions: boolean;
+}
+
+/**
+ * 🔴 ОДИН ДЕНЬ — НЕ СЕРИЯ, А ЗАХОД. Подпись «твоя лучшая серия — 1 день»
+ * формально правдива и при этом звучит как насмешка: человеку, который ни разу
+ * не сыграл два дня подряд, честнее сказать «начнём с недели».
+ * Поймано пробой: три отдельных дня в журнале давали основание из единицы.
+ */
+export const STREAK_COUNTS_FROM = 2;
+
+export function suggestGoal(i: SuggestInput): Suggestion {
+  const best = bestStreakFromDays(i.days);
+  if (best >= GOAL_DAYS[GOAL_DAYS.length - 1]) {
+    return { days: GOAL_DAYS[GOAL_DAYS.length - 1], reason: 'at_top', basis: best };
+  }
+  if (best >= STREAK_COUNTS_FROM) return { days: nextRung(best), reason: 'best_streak', basis: best };
+  if (i.hasSessions) return { days: GOAL_DAYS[0], reason: 'start_week', basis: null };
+  return { days: GOAL_DAYS[0], reason: 'no_data', basis: null };
+}
+
+/**
+ * Ключ подписи под предложением. Текст живёт в словаре, здесь только выбор.
+ * `null` — подписи нет: основания не было, и выдумывать его нельзя.
+ */
+export function suggestLabelKey(s: Suggestion): string | null {
+  return s.basis === null ? null : `goalSuggest_${s.reason}`;
+}
