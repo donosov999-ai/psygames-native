@@ -105,24 +105,8 @@ function текстВнутри(n: any): string {
 }
 
 
-/** Плоский стиль: он бывает массивом. */
-function плоско(style: any): any {
-  if (!style) return {};
-  if (Array.isArray(style)) return Object.assign({}, ...style.filter(Boolean).map(плоско));
-  return style;
-}
 
 
-/**
- * Сколько ниш помечено вторым рядом.
- *
- * 🔴 ИЩЕМ ПО ЦВЕТУ КРАЯ, А НЕ ПО ИМЕНИ СТИЛЯ. Имя стиля — внутреннее дело
- * экрана и переживёт переименование молча; цвет — то, что человек видит.
- */
-function помечено(r: any): number {
-  return r.root.findAll((n: any) => typeof n.type !== 'string'
-    && плоско(n.props?.style).backgroundColor === 'rgba(200,170,130,0.55)').length;
-}
 
 
 /**
@@ -178,6 +162,20 @@ function ниш(r: any): number {
   return подписи(r).length;   // по одной на полку, без вложенных дублей
 }
 
+/*
+ * 🔴 ПОТОЛКИ ВРЕМЕНИ ПОДНЯТЫ ПОД ПОЛНЫЙ ПРОГОН, А НЕ ПОД ОДИНОЧНЫЙ.
+ *
+ * 📍 Замер 07.09.2026: соло этот набор идёт секунды, а в полном прогоне (496
+ * наборов, 5434 пробы, воркеры делят машину) — сотни. Первый полный прогон
+ * уронил три набора, поднимающих настоящий экран игры, ИСКЛЮЧИТЕЛЬНО по
+ * таймауту: `cake-sort-uses-prebuilt` 286 с, `goods-sort-settle-reduced` 300 с,
+ * `goods-sort-backrow-visible` 420 с. Логика в них не менялась.
+ *
+ * ⚠️ Это не «щедрый лимит на всякий случай»: набор, зелёный соло и красный в
+ * общем прогоне, ничем не отличается от сломанного — приёмка идёт по полному
+ * прогону. Поднимать цену пробы это не разрешает: она и так режется (выбор
+ * источника один раз на пару, а не два рендера на кандидата).
+ */
 describe('оседание столбца слушает щадящий режим', () => {
   it('🔴 при включённом щадящем режиме сдвига нет ни на одном ходу', async () => {
     let закрылась = false;
@@ -200,13 +198,20 @@ describe('оседание столбца слушает щадящий режи
           && new RegExp(`, (Полка|Shelf) ${номер}$`).test(String(n.props?.accessibilityLabel ?? '')));
         return все[все.length - 1];
       };
-      const ход = async (a: number, b: number) => {
+      /*
+       * ⚠️ Выбор — один раз на источник, дальше только цели: негодная цель стоит
+       * один рендер экрана вместо двух. Без этого набор шёл 300 с в общем
+       * прогоне и облагал налогом все чаты.
+       */
+      const выбрать = async (a: number) => {
         await TestRenderer.act(async () => { верхнийТовар(a)?.props.onPress?.(); });
+      };
+      const положить = async (b: number) => {
         await TestRenderer.act(async () => { полка(r, b)?.props.onPress?.(); });
         сдвигов += r.root.findAll((n: any) => typeof n.type !== 'string'
           && n.props?.testID === 'niche-settle').length;
-        await TestRenderer.act(async () => { for (let k = 0; k < 5; k += 1) await Promise.resolve(); });
       };
+      const ход = async (a: number, b: number) => { await выбрать(a); await положить(b); };
 
       for (let шаг = 0; шаг < 120 && !закрылась; шаг += 1) {
         const сп = подписи(r);
@@ -216,10 +221,12 @@ describe('оседание столбца слушает щадящий режи
         for (let a = 0; a < сп.length && !сделал; a += 1) {
           const t = верх(сп[a] as string);
           if (!t) continue;
-          for (let b = 0; b < сп.length && !сделал; b += 1) {
-            if (a === b || верх(сп[b] as string) !== t) continue;
-            await ход(ном[a] as number, ном[b] as number);
-            сделал = подписи(r).join('|') !== было;
+          const цели = сп.map((s, i) => (i !== a && верх(s) === t ? i : -1)).filter((i) => i >= 0);
+          if (!цели.length) continue;
+          await выбрать(ном[a] as number);
+          for (const b of цели) {
+            await положить(ном[b] as number);
+            if (подписи(r).join('|') !== было) { сделал = true; break; }
           }
         }
         if (!сделал) {
@@ -242,5 +249,5 @@ describe('оседание столбца слушает щадящий режи
      */
     expect(закрылась).toBe(true);
     expect(сдвигов).toBe(0);
-  }, 300_000);
+  }, 900_000);
 });

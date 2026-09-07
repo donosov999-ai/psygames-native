@@ -13,7 +13,7 @@
  * спрятана: при высоте 5 и десяти цветах поиск не доходит и за 300 000 узлов,
  * а в игре высота 5 идёт с L11 — там эталон работает формулой, и это записано.
  */
-import { moveReference, levelMoveReference, levelParams, generateLevel, moveLimitFor, ХОДЫ_С } from '@/src/games/water-sort/core/generate';
+import { moveReference, levelMoveReference, levelParams, generateLevel, moveLimitFor, ХОДЫ_С, СТРОГО_С } from '@/src/games/water-sort/core/generate';
 import { скрытоНаУровне } from '@/src/games/water-sort/core/hidden';
 import { legalMoves, pour, isSolved, fieldKey, makeField, type Field } from '@/src/games/water-sort/core/tubes';
 
@@ -155,11 +155,21 @@ describe('лимит ходов переливалки', () => {
   });
 
   it('🔴 порог совпадает с концом роста объёма — иначе ось поставлена наугад', () => {
+    /*
+     * ⚠️ СРАВНИВАЕМ С КОНЦОМ ОБЪЁМНОЙ ГЛАВЫ, А НЕ С «ПОРОГ + 20».
+     *
+     * 📍 Проба брала `ХОДЫ_С + 20` как «заведомо дальше порога» — и это ровно
+     * L34, где 07.09.2026 началась ДРУГАЯ глава: со строгим наливом доска
+     * намеренно ужимается с двенадцати цветов до восьми, потому что ось
+     * обменивается на часть объёма. Проба честно покраснела, но говорила она не
+     * о том: утверждение здесь про порог ЛИМИТА ХОДОВ (L14), а не про то, что
+     * доска не меняется никогда.
+     */
     const до = levelParams(ХОДЫ_С - 1);
-    const после = levelParams(ХОДЫ_С + 20);
-    // Объём на пороге уже упёрся: дальше ни цветов, ни высоты не прибавляется.
-    expect(после.colors).toBe(до.colors);
-    expect(после.cap).toBe(до.cap);
+    const конецГлавы = levelParams(СТРОГО_С - 1);
+    // Объём на пороге уже упёрся: до самого конца главы ни цветов, ни высоты.
+    expect(конецГлавы.colors).toBe(до.colors);
+    expect(конецГлавы.cap).toBe(до.cap);
   });
 
   /**

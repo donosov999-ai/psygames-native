@@ -73,6 +73,18 @@ export const GS_RULES: LevelRule[] = [
     ru: { title: 'Лимит ходов', rule: 'Теперь на уровень даётся ограниченное число перестановок — трать ходы с умом. Превысил лимит — уровень заново. Счётчик ходов в шапке: сделано/лимит.', example: 'Пример: ⇄ 12/18 — сделано 12 ходов из 18. С каждым уровнем лимит жмёт сильнее.' },
     en: { title: 'Move limit', rule: 'Each level now allows a limited number of moves — spend them wisely. Exceed the limit and the level restarts. The header counter shows used/limit.', example: 'Example: ⇄ 12/18 — 12 of 18 moves used. The limit tightens every level.' },
   },
+  /**
+   * 🔴 БЕЗ ИНЛАЙН-ТЕКСТОВ, В ОТЛИЧИЕ ОТ СОСЕДЕЙ. Поля `ru`/`en` у `LevelRule`
+   * помечены устаревшими: они знают два языка из двенадцати, и десять человек
+   * читали бы объяснение НОВОЙ механики по-английски. Тексты этого правила
+   * лежат в словаре (`lr_goods_sort_mixedcap_*`) на всех двенадцати; список
+   * экранов с инлайном может только сокращаться, и добавлять в него нечего.
+   *
+   * ⚠️ ПОРОГ РАВЕН `MIXED_CAP_FROM`, А НЕ ПОХОЖ НА НЕГО. Сдвинь один из двух —
+   * и механика придёт молча либо правило объяснит то, чего ещё нет; равенство
+   * сторожит гейт `goods-sort-rule-for-every-threshold` ЗНАЧЕНИЕМ константы.
+   */
+  { key: 'mixedcap', fromLevel: 18 },
   {
     key: 'locked', fromLevel: 22,
     ru: { title: 'Замок по ходам', rule: 'Ниша с часами откроется сама через столько ходов, сколько показывает счётчик. Ждать не обязательно — просто считай её занятой, пока идёт отсчёт.', example: 'Пример: ⏱ 5 — откроется через пять твоих ходов. Каждый ход счётчик убывает.' },
@@ -1355,7 +1367,7 @@ export function nicheShift(caps: readonly number[], step: number): number[] {
  * названа в гейте `goods-sort-rule-for-every-threshold`.
  */
 export const THRESHOLD_RULES: Record<string, string | null> = {
-  MIXED_CAP_FROM: null,     // ниши разной вместимости с L18 — долг
+  MIXED_CAP_FROM: 'mixedcap',   // ниши разной вместимости с L18 — правило заведено 07.09.2026
   SINGLE_CAP_FROM: null,    // ниша ровно на один товар с L26 — долг, уровень занят «примёрзшим рядом»
   HIDDEN_FROM: 'hidden',
   JOKER_FROM: 'joker',

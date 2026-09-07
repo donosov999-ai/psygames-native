@@ -34,15 +34,27 @@
  * это замер по видам 3…6, а не по всей лестнице. Дальше он ЭКСТРАПОЛИРУЕТСЯ, и
  * это записано здесь прямо, чтобы следующий не принял его за измеренное.
  */
-/** Ходов на один вид начинки. Замер, а не прикидка — см. шапку файла. */
+/** Ходов на один КРУГ. Замер, а не прикидка — см. шапку файла. */
 export const REF_PER_TYPE = 5.6;
 
 /**
  * Эталон ходов уровня. Одно место на игру и на гейт: два своих эталона однажды
  * разъедутся, и оценка на экране заспорит с оценкой в данных.
+ *
+ * 🔴 СЧИТАЕТСЯ ПО ЧИСЛУ КРУГОВ, А НЕ ПО ЧИСЛУ ВИДОВ, И ЭТО ДВА РАЗНЫХ ЧИСЛА.
+ *
+ * Пока каждый вид давал ровно один круг, они совпадали, и разницы не было
+ * видно. С очередью входящих кругов становится больше видов: на L60 видов
+ * одиннадцать, а кругов восемнадцать. Считай эталон по видам — он занизится в
+ * полтора раза, и три звезды («ходов ≤ 1,15 × эталон») станут недостижимы на
+ * КАЖДОМ столе, сколь угодно хорошо ни играй.
+ *
+ * ⚠️ Это ровно тот дефект, о котором предупреждает шапка этого же файла на
+ * примере унаследованной калибровки 2,2. Разница в том, что там занижался
+ * множитель, а здесь — то, на что он множится.
  */
-export function moveReference(types: number): number {
-  return Math.round(types * REF_PER_TYPE);
+export function moveReference(circles: number): number {
+  return Math.round(circles * REF_PER_TYPE);
 }
 
 /**
@@ -69,14 +81,14 @@ export function starsForMoves(moves: number, reference: number): 1 | 2 | 3 {
  * ⚠️ Точный минимум ВСЕГДА лучше оценки: на просторном столе он заметно меньше
  * калибровки, и звёзды по оценке выдавались бы за небрежную игру.
  */
-export function referenceFor(types: number, exactMin: number | null): number {
-  return exactMin !== null && exactMin > 0 ? exactMin : moveReference(types);
+export function referenceFor(circles: number, exactMin: number | null): number {
+  return exactMin !== null && exactMin > 0 ? exactMin : moveReference(circles);
 }
 
 /**
  * Звёзды партии. Отдельно от `starsForMoves`, потому что здесь принимается ещё
  * и решение «по чему меряем» — а оно и есть та часть, которая ломается молча.
  */
-export function starsFor(moves: number, types: number, exactMin: number | null): 1 | 2 | 3 {
-  return starsForMoves(moves, referenceFor(types, exactMin));
+export function starsFor(moves: number, circles: number, exactMin: number | null): 1 | 2 | 3 {
+  return starsForMoves(moves, referenceFor(circles, exactMin));
 }

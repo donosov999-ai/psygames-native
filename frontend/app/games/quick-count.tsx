@@ -298,11 +298,6 @@ export default function QuickCountGame() {
           { key: 'round', icon: 'repeat', label: t('round'), value: `${trial + 1}/${TRIALS_PER_ROUND}` },
           { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correct, tone: 'good' as const },
         ]}
-        stats={
-          phase === 'answer' ? (
-            <View style={styles.statsRow} />
-          ) : undefined
-        }
         toolbar={
           phase === 'answer' ? (
             <View style={styles.choiceGrid}>
@@ -392,7 +387,6 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 16 },
-  statsRow: { flexDirection: 'row', gap: 24, justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center' },
   field: { borderRadius: 16, position: 'relative', overflow: 'hidden' },

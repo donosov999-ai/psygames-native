@@ -457,6 +457,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillPlanning",
     "introKey": "cakeSortIntroDesc"
   },
+  "/games/pizza-sort": {
+    "nameKey": "pizzaSort",
+    "skillKey": "skillPlanning",
+    "introKey": "pizzaSortIntroDesc"
+  },
   "/games/sorting-hub": {
     "nameKey": "sortingGroup",
     "skillKey": "skillPlanningWM",

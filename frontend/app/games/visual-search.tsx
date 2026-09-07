@@ -472,11 +472,16 @@ export default function VisualSearchGame() {
             ...(targetCount > 1 ? [{ key: 'found', icon: 'search' as const, label: t('label_found'), value: `${foundCount}/${targetCount}`, tone: 'accent' as const }] : []),
             ...(!isPreset ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: lvl.level }] : []),
           ]}
-          stats={
-            <View style={styles.statsRow}>
-              {!isPreset && <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />}
-            </View>
-          }
+          /**
+           * Значок правила уровня — в ПРАВЫЙ УГОЛ ШАПКИ, а не в `stats`.
+           *
+           * `GameShell` рисует `hud` и `stats` ОДИН ПОД ДРУГИМ (`statsFlex` —
+           * колонка, :1113): пока значок лежал в `stats`, экран показывал ДВЕ
+           * полосы вместо одной, и поле теряло высоту ряда. Значок не счётчик —
+           * в `hud` ему не место, а `headerRight` был свободен и геометрически
+           * бесплатен: строка шапки и так 58 (кнопка 48 + PAD_V 5×2).
+           */
+          headerRight={!isPreset ? <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} /> : undefined}
         >
           <View style={styles.fieldCol}>
             <View style={styles.hintRow}>
@@ -591,7 +596,6 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 12 },
-  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 280 },
   hintRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 2, maxWidth: '100%' },

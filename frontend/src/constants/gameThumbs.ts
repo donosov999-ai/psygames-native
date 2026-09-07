@@ -41,6 +41,7 @@ const THUMBS: Record<string, any> = {
   // нарисовано заново: рисовать то, что уже лежит на диске, значит завести
   // второй источник правды о том, как игра выглядит.
   cake_sort: require('../../assets/images/gamethumbs/cake_sort.webp'),
+  pizza_sort: require('../../assets/images/gamethumbs/pizza_sort.webp'),
   goods_sort: require('../../assets/images/gamethumbs/goods_sort.webp'),
   hanoi: require('../../assets/images/gamethumbs/hanoi.webp'),
   inhibition: require('../../assets/images/gamethumbs/inhibition.webp'),

@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -27,6 +27,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { ANSWER_BAR_H, stimBox } from '@/src/games/attention/layout';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -75,9 +76,37 @@ const MODES: { key: StimMode; ru: string; en: string }[] = [
 // Уровень 1..15: частота переключений правил растёт, окно ответа сокращается,
 // число проб растёт ступенями (12 → 16 → 20). Экспорт — гейт assessment-metrics
 // считает параметры пресета той же функцией, которой играет экран.
+/**
+ * 🔴 ДОЛЯ ПЕРЕКЛЮЧЕНИЙ ЗАМОРОЖЕНА НА КАНОНЕ И ОСЬЮ СЛОЖНОСТИ НЕ ЯВЛЯЕТСЯ.
+ *
+ * Канон парадигмы — случайная последовательность, то есть примерно половина
+ * смен и половина повторов; ровно 50 % считаются идеалом, потому что не вносят
+ * смещённых зависимостей между вероятностями подсказок. Число 50 % в этом файле
+ * УЖЕ было записано — в пояснении к `PRESET_LEVEL_BY_DIFF` ниже, как «канонические
+ * 50% переключений». Канон знали, а лестница от него уезжала в обе стороны.
+ *
+ * Что было до 07.09.2026: `switchProb` рос 0,30 → 0,75. При этом `switch_cost_ms`
+ * = RT(смена) − RT(повтор), а доля смен — известный модулятор этой самой
+ * стоимости (list-wide proportion switch): больше смен → гибче установка →
+ * МЕНЬШЕ стоимость. Плюс усыхала база разности: повторных проб 8,4 → 5,0.
+ * Шестой случай одной беды в разделе. Стережёт
+ * `src/__tests__/conflict-ratio-is-not-difficulty.test.ts`.
+ *
+ * 🚫 ЧТО РАССМОТРЕЛ И НЕ ВЗЯЛ: интервал подготовки (cue-stimulus interval). Он
+ * канонная ось этой парадигмы — стоимость переключения падает примерно вдвое при
+ * удлинении подготовки до ~650 мс, дальше остаётся «остаточная». У нас он зашит
+ * на 500 мс в `newTrial` и с уровнем не меняется. Взять его осью значило бы
+ * ВЕРНУТЬ ту же беду с другого конца: ручка уровня снова двигала бы измеряемое,
+ * только вверх. Поэтому фиксированные 500 мс здесь — не пробел, а условие
+ * сравнимости партий между собой и с нормой (switch_cost 150±80, assessment.ts).
+ * Лестница остаётся на двух осях, ни одна не входит в формулу разности:
+ * объём 12 → 20 проб и окно ответа 3400 → 1400 мс.
+ */
+export const SWITCH_PROB = 0.5;
+
 export function levelParams(level: number): { trials: number; switchProb: number; windowMs: number } {
   const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
-  const switchProb = Math.min(0.75, 0.30 + (level - 1) * 0.032);   // 30% → 75%
+  const switchProb = SWITCH_PROB;
   const windowMs = Math.max(1400, 3400 - (level - 1) * 145);       // 3400мс → 1400мс
   return { trials, switchProb, windowMs };
 }
@@ -112,9 +141,18 @@ export function switchCostMs(switchRts: number[], repeatRts: number[]): number {
  * 30% переключений и окне 3400мс, игрок 15-го — при 75% и 1400мс, а z-скор обеих
  * партий считался против ОДНОЙ нормы (switch_cost 150±80, assessment.ts).
  * Паттерн — flanker.tsx:144 (тир зарядки → середина полосы уровней своей же
- * difficulty-раскладки: ≤5 easy · ≤10 medium · ≥11 hard). medium=8 даёт
- * switchProb 0.524 ≈ канонические 50% переключений, окно 2385мс, и партия
- * запишется с difficulty 'medium' — как предписывает шаг батареи (sessionFitsStep).
+ * difficulty-раскладки: ≤5 easy · ≤10 medium · ≥11 hard). medium=8 даёт окно
+ * 2385мс, и партия запишется с difficulty 'medium' — как предписывает шаг
+ * батареи (sessionFitsStep).
+ *
+ * ⚠️ 07.09.2026: У ПРЕСЕТА БЫЛО ДВЕ ПРИЧИНЫ, ОСТАЛАСЬ ОДНА.
+ * Здесь стояло «medium=8 даёт switchProb 0.524 ≈ канонические 50% переключений»
+ * — то есть пресет попутно вытягивал долю смен к канону. После заморозки
+ * `SWITCH_PROB = 0.5` доля равна канону НА ЛЮБОМ уровне, и эта причина отпала;
+ * упоминание 0.524 убрано, чтобы не объяснять живой код снятым доводом.
+ * Вторая причина в силе и держит пресет: окно ответа по-прежнему разъезжается
+ * 3400 → 1400 мс, а норма одна. Убрать пресет заодно с заморозкой было бы
+ * ошибкой — он закрывает не только долю.
  */
 export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
 
@@ -161,10 +199,32 @@ function judgeLeft(mode: StimMode, idx: number, num: number, letter: string): bo
   return idx === 0 ? VOWELS.has(letter) : letter <= 'M';
 }
 
+/**
+ * Генератор пробы — НА УРОВНЕ МОДУЛЯ, а не внутри компонента.
+ *
+ * 🔴 Вынесен 07.09.2026, чтобы гейт `conflict-ratio-is-not-difficulty` мог
+ * промоделировать настоящий поток проб, а не пересказывать формулу регуляркой.
+ * Регулярка ловит одну знакомую запись и пропускает любую новую — беда же не в
+ * форме текста, а в поведении. Подпись такая же, как у `cpt`: поток связный
+ * (следующая задача зависит от предыдущей), поэтому предыдущая передаётся явно.
+ */
+export function makeTrial(mode: StimMode, level: number, last: number | null): Trial {
+  const { switchProb } = levelParams(level);
+  let taskIdx: number;
+  if (last === null) taskIdx = Math.random() < 0.5 ? 0 : 1;
+  else if (Math.random() < switchProb) taskIdx = last === 0 ? 1 : 0;
+  else taskIdx = last;
+  const isSwitch = last !== null && last !== taskIdx;
+  const { num: n, letter, full } = genStim(mode);
+  return { taskIdx, num: n, letter, full, correctLeft: judgeLeft(mode, taskIdx, n, letter), isSwitch };
+}
+
 export default function SwitchingTaskGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  const { width, height } = useWindowDimensions();
+  // 07.09.2026: размер берём защищённым хуком — голый useWindowDimensions()
+  // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
+  const { w: width, h: height } = useScreenSize();
   // Общая коробка раздела вместо своей формулы min(ширина−36, 320).
   const ОКНО = stimBox(width, height);
   const stStim = ОКНО.side;
@@ -195,7 +255,6 @@ export default function SwitchingTaskGame() {
   // Рефы — таймерная цепочка (стимул → дедлайн окна → следующая проба) живёт вне
   // ре-рендеров, state в её колбэках был бы устаревшим (паттерн cpt/simon).
   const levelRef = useRef(1);
-  const switchProbRef = useRef(0.30);
   const windowMsRef = useRef(3400);
   const totalTrialsRef = useRef(12);
   const roundRef = useRef(0);
@@ -223,23 +282,12 @@ export default function SwitchingTaskGame() {
 
   useEffect(() => () => clearAllTimers(), []);
 
-  const makeTrial = (): Trial => {
-    const m = modeRef.current;
-    const last = lastTaskRef.current;
-    let taskIdx: number;
-    if (last === null) taskIdx = Math.random() < 0.5 ? 0 : 1;
-    else if (Math.random() < switchProbRef.current) taskIdx = last === 0 ? 1 : 0;
-    else taskIdx = last;
-    const isSwitch = last !== null && last !== taskIdx;
-    lastTaskRef.current = taskIdx;
-    const { num: n, letter, full } = genStim(m);
-    return { taskIdx, num: n, letter, full, correctLeft: judgeLeft(m, taskIdx, n, letter), isSwitch };
-  };
 
   const newTrial = () => {
     setShowStim(false);
     setFeedback(null);
-    const tr = makeTrial();
+    const tr = makeTrial(modeRef.current, levelRef.current, lastTaskRef.current);
+    lastTaskRef.current = tr.taskIdx;
     trialRef.current = tr;
     setTrial(tr);
     stimTimerRef.current = setTimeout(() => {
@@ -271,7 +319,6 @@ export default function SwitchingTaskGame() {
     const effLevel = isPreset ? (PRESET_LEVEL_BY_DIFF[str('diff', 'medium')] ?? 8) : lvl.level;
     const p = levelParams(effLevel);
     levelRef.current = effLevel;
-    switchProbRef.current = p.switchProb;
     windowMsRef.current = p.windowMs;
     totalTrialsRef.current = isPreset ? num('trials', p.trials) : p.trials;
     setTotalTrials(totalTrialsRef.current);

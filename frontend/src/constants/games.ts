@@ -742,6 +742,31 @@ export const GAMES: GameConfig[] = [
     mergedInto: 'sorting_group',
   },
   {
+    /*
+     * «Пицца» — тот же движок, что у «Тортов», другая еда и своя лестница.
+     * Карточка заведена по `src/games/cake-sort/INTEGRATION.md`, который раздел
+     * сортировок оставил нарочно: общий массив правит ОДИН заход, иначе
+     * параллельные правки затирают друг друга молча.
+     *
+     * 🔴 `id` ровно `pizza_sort`: этим ключом экран УЖЕ пишет уровень, звёзды,
+     * недоигранную партию и `game_type` в историю. Другой id — потерянный
+     * прогресс у тех, кто уже играл, и красный гейт `cake-wedge-is-a-cake`.
+     *
+     * ⚠️ Градиент красный → янтарный, а не розовый как у тортов: две одинаковые
+     * плашки в одном хабе не различить.
+     */
+    id: 'pizza_sort',
+    nameKey: 'pizzaSort',
+    descKey: 'pizzaSortDesc',
+    skillKey: 'skillPlanning',
+    gradient: ['#ef4444', '#f59e0b'],
+    icon: 'pizza',
+    route: '/games/pizza-sort',
+    category: 'logic',
+    hideFromMenu: true,
+    mergedInto: 'sorting_group',
+  },
+  {
     id: 'ball_sort',
     nameKey: 'ballSort',
     descKey: 'ballSortDesc',

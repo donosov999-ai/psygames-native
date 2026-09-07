@@ -477,6 +477,19 @@ const translations: Translations = {
    * Скрытые слои в плане есть; когда появятся, текст дополним — но не
    * раньше, чем они заработают.
    */
+  /**
+   * ⚠️ КОРОТКАЯ РЕДАКЦИЯ, И ЭТО ЗАПИСАНО НАРОЧНО. У тортов справка — абзац на
+   * двенадцати языках, написанный каналом переводов. Пицца пришла из ветки
+   * раздела сортировки 07.09.2026 без своего текста, а гейт `help-map` не даёт
+   * завести игру в каталог без справки («менять ТОЛЬКО в меньшую сторону»).
+   * Машинный подстрочник целого абзаца на десять языков — ровно то, чего делать
+   * нельзя, поэтому здесь три коротких предложения: правило игры целиком, без
+   * подробностей очереди и порогов. Полная редакция — за каналом переводов.
+   */
+  pizzaSortIntroDesc: {
+    ru: 'Собери круг из шести одинаковых кусков пиццы. Кусок кладётся только на такой же или на пустую доску. Круг собрался — доска уезжает, место освобождается.',
+    en: 'Gather a circle of six matching pizza slices. A slice only goes onto a matching one or onto an empty board. Complete the circle and the board leaves, freeing the spot.',
+  },
   cakeSortIntroDesc: {
     ru: "Перетащи кусок торта с одной тарелки на другую — или тапни кусок, потом тарелку. Класть можно только на свой вкус или на пустое место. Собрал полный круг из шести одинаковых кусков — тарелка уходит, и место освобождается. Часть тарелок ждёт в очереди и выходит на стол сама, как только место появится: очередь конечна и видна в шапке. Отсюда и вся задача — освобождать место вовремя, а не копить смесь по всем тарелкам.",
     en: "Drag a cake slice from one plate to another — or tap the slice, then the plate. A slice only goes onto its own flavour or onto an empty spot. Complete a full circle of six matching slices and the plate leaves, freeing the spot. Some plates wait in a queue and come out by themselves as soon as a spot opens: the queue is finite and shown in the header. That is the whole task — free up space in good time instead of piling a mix onto every plate.",
@@ -3003,6 +3016,9 @@ const translations: Translations = {
   lr_goods_sort_movelimit_title: { ru: 'Лимит ходов', en: 'Move limit' },
   lr_goods_sort_movelimit_rule: { ru: 'Теперь на уровень даётся ограниченное число перестановок — трать ходы с умом. Превысил лимит — уровень заново. Счётчик ходов в шапке: сделано/лимит.', en: 'Each level now allows a limited number of moves — spend them wisely. Exceed the limit and the level restarts. The header counter shows used/limit.' },
   lr_goods_sort_movelimit_example: { ru: 'Пример: ⇄ 12/18 — сделано 12 ходов из 18. С каждым уровнем лимит жмёт сильнее.', en: 'Example: ⇄ 12/18 — 12 of 18 moves used. The limit tightens every level.' },
+  lr_goods_sort_mixedcap_title: { ru: 'Ниши разной вместимости', en: 'Niches of different sizes' },
+  lr_goods_sort_mixedcap_rule: { ru: 'Теперь ниши вмещают по-разному: в одну влезет два товара, в другую — четыре, в остальные по три. Насечки под нишей показывают, сколько в неё поместится и сколько уже занято. Смотри на них ДО хода: узкая ниша кончится раньше, чем кажется.', en: 'Niches no longer hold the same amount: one takes two goods, another four, the rest three. The notches under a niche show how many fit and how many are taken. Check them BEFORE you move — a narrow niche fills up sooner than it looks.' },
+  lr_goods_sort_mixedcap_example: { ru: 'Пример: под нишей две насечки — места всего на два товара. Третий туда не встанет, даже если он такой же.', en: 'Example: two notches under a niche means room for two goods only. A third will not go in, even if it matches.' },
   lr_goods_sort_locked_title: { ru: 'Замок по ходам', en: 'Timed lock' },
   lr_goods_sort_locked_rule: { ru: 'Ниша с часами откроется сама через столько ходов, сколько показывает счётчик. Ждать не обязательно — просто считай её занятой, пока идёт отсчёт.', en: 'A niche with a clock opens by itself after as many moves as the counter shows. No need to wait for it — just treat it as taken while it counts down.' },
   lr_goods_sort_locked_example: { ru: 'Пример: ⏱ 5 — откроется через пять твоих ходов. Каждый ход счётчик убывает.', en: 'Example: ⏱ 5 — opens in five of your moves. Every move takes one off.' },
@@ -3023,6 +3039,9 @@ const translations: Translations = {
   lr_water_sort_stones_title: { ru: 'Камни на дне', en: 'Stones at the bottom' },
   lr_water_sort_stones_rule: { ru: 'В одном сосуде дно занято камнями — сдвинуть их нельзя. Наливать в него можно, и в этом весь его смысл: это временное хранилище. Но домом цвета он не станет никогда, и партия сходится только тогда, когда он снова пуст.', en: 'One vessel has stones on its floor — they cannot be moved. You may pour into it, and that is exactly its purpose: temporary storage. But it will never become a colour’s home, and the level only comes together once it is empty again.' },
   lr_water_sort_stones_example: { ru: 'Пример: слил туда синий, чтобы добраться до жёлтого. Прежде чем закончить, синий придётся забрать обратно.', en: 'Example: you park blue there to reach the yellow underneath. Before you finish, that blue has to come back out.' },
+  lr_water_sort_strict_title: { ru: "Строгий налив", en: "One pour at a time" },
+  lr_water_sort_strict_rule: { ru: "Теперь за ход переливается ОДНА порция, а не весь верхний столбик сразу. Три синие уйдут тремя ходами — и каждую можно отправить в свой сосуд. Планировать приходится дальше вперёд: разделить столбик стало можно, а значит иногда и нужно.", en: "A move now pours ONE portion, not the whole top run at once. Three blues take three moves — and each can go to a different vessel. You have to plan further ahead: splitting a run is now possible, so sometimes it is necessary." },
+  lr_water_sort_strict_example: { ru: "Пример: сверху три красные. Раньше они уезжали вместе; теперь две можно долить к красным, а третью отложить в буфер.", en: "Example: three reds on top. They used to leave together; now two can top up the reds and the third can wait in the buffer." },
   lr_water_sort_sealed_title: { ru: 'Запечатанный сосуд', en: 'Sealed vessel' },
   lr_water_sort_sealed_rule: { ru: 'Один сосуд закрыт замком: он не берёт и не отдаёт, пока не соберёшь нужное число цветов. Замок снимается сам — считаются собранные ЦВЕТА, а не ходы. До этого придётся обходиться остальными сосудами.', en: 'One vessel is locked: it neither takes nor gives until you have completed enough colours. The lock lifts by itself — it counts finished COLOURS, not moves. Until then you have to manage with the rest.' },
   lr_water_sort_sealed_example: { ru: 'Пример: замок снимется, когда будет собран первый цвет. Значит первый цвет надо дожать без этого сосуда.', en: 'Example: the lock lifts once the first colour is done. So the first colour must be finished without this vessel.' },
@@ -3047,8 +3066,12 @@ const translations: Translations = {
   lr_goods_sort_backrow_title: { ru: 'За полкой стоит второй ряд', en: 'A second row stands behind' },
   lr_goods_sort_backrow_rule: { ru: 'У некоторых ниш есть задний ряд: товары, которых на доске ещё нет. Ниша выглядит короче, чем она есть, и второй ряд не занимает места, пока не выйдет вперёд. Разобрал передний ряд до конца — задний сам встаёт на его место. Всё, что там стоит, посчитано в задаче с самого начала: лишнего не появится.', en: 'Some niches have a back row: goods that are not on the board yet. The niche looks shorter than it is, and the back row takes no space until it comes forward. Clear the front row completely and the back one steps into its place. Everything there was counted into the task from the start — nothing extra appears.' },
   lr_goods_sort_backrow_example: { ru: 'Пример: ниша выглядела пустой после последнего товара — а из-за спины вышли ещё три. Они были там всё время, просто их не было видно.', en: 'Example: the niche looked empty after the last item — and three more stepped out from behind. They were there all along, just out of sight.' },
+  /** Название игры «Пицца» — та же механика, другая шкурка. */
+  pizzaSort: { ru: "Пицца", en: "Pizza" },
   cakeSort: { ru: 'Торты', en: 'Cake sort' },
   cakeSortDesc: { ru: 'Собирайте круг из шести одинаковых кусков', en: 'Gather a circle of six matching slices' },
+  // Текст дословно тот же, что у тортов: правило игры одно, разная только еда.
+  pizzaSortDesc: { ru: 'Собирайте круг из шести одинаковых кусков', en: 'Gather a circle of six matching slices' },
   cakePlate: { ru: 'Тарелка', en: 'Plate' },
   cakeQueue: { ru: 'В очереди', en: 'In queue' },
   cakeProven: { ru: 'Проверен', en: 'Verified' },
@@ -3113,6 +3136,9 @@ const translations: Translations = {
   lr_digit_span_surprise_dir_title: { ru: 'Направление скажут потом', en: 'Direction comes after' },
   lr_digit_span_surprise_dir_rule: { ru: 'С этого уровня вы узнаёте, КАК отдавать ряд, только после показа: прямо, задом наперёд или по возрастанию. Держите ряд как увидели — пока не спросят.', en: 'From this level you learn HOW to give the row back only after it is shown: forward, backward or in ascending order. Hold it as you saw it until you are asked.' },
   lr_digit_span_surprise_dir_example: { ru: 'Показали 5-2-8-1, и только теперь написано «по возрастанию» — ответ 1-2-5-8.', en: 'You saw 5-2-8-1, and only now it says "ascending" — the answer is 1-2-5-8.' },
+  lr_listening_span_similar_title: { ru: 'Слова станут похожими', en: 'The words start to rhyme' },
+  lr_listening_span_similar_rule: { ru: 'С этого уровня лишние слова в сетке подбираются ПОХОЖИМИ на те, что вы слышали. Спутать их легко, поэтому держите не только сами слова, но и их порядок.', en: 'From this level the extra words in the grid are picked to SOUND LIKE the ones you heard. They are easy to confuse, so hold not just the words but their order.' },
+  lr_listening_span_similar_example: { ru: 'Слышали «casa» — в сетке рядом окажется «cama». Выбирать надо услышанное, а не похожее.', en: 'You heard "casa" — and "cama" will sit right next to it in the grid. Pick what you heard, not what looks close.' },
   lr_memory_matrix_two_series_title: { ru: 'Два набора подряд', en: 'Two sets in a row' },
   lr_memory_matrix_two_series_rule: { ru: 'Теперь загораются два набора клеток разного цвета, один за другим. Повторять их надо по очереди: сначала фиолетовый набор, потом красный.', en: 'Two sets of cells now light up in different colours, one after the other. Repeat them in turn: the purple set first, then the red one.' },
   lr_memory_matrix_two_series_example: { ru: 'Сперва мигнули три фиолетовых клетки, потом три красных — начинайте с фиолетовых.', en: 'First three purple cells flashed, then three red ones — start with the purple.' },

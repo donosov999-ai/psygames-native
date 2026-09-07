@@ -186,6 +186,7 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/ball-sort', icon: 'ellipse', nameKey: 'ballSort', descKey: 'ballSortDesc' },
     { route: '/games/nut-sort', icon: 'settings', nameKey: 'nutSort', descKey: 'nutSortDesc' },
     { route: '/games/cake-sort', icon: 'cafe', nameKey: 'cakeSort', descKey: 'cakeSortDesc' },
+    { route: '/games/pizza-sort', icon: 'pizza', nameKey: 'pizzaSort', descKey: 'pizzaSortDesc' },
     /**
      * 🔴 БАШНИ ВЛИТЫ СЮДА ЦЕЛИКОМ (решение Дениса 06.09.2026: «всё, что в хабе
      * башни, переносим в сортировку, ханой и лондонская тоже»).
