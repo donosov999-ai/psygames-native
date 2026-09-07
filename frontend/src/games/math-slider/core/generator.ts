@@ -1,4 +1,4 @@
-/* psygames-math-slider-generator · VER 2 · 07.09.2026 */
+/* psygames-math-slider-generator · VER 3 · 07.09.2026 */
 /**
  * Лестница v2 — ШКОЛЬНАЯ ОСЬ (задана Денисом 07.09.2026, дословно в counting-chat/PROJECT_REF §R):
  * усложняем МЕТОД ПОДСЧЁТА, как проходят в школе, до высшей математики:
@@ -11,12 +11,16 @@
  * не использовался вовсе), и лестница не была монотонной (десятичные легче
  * умножения, микс L37+ легче скидок L29).
  *
- * УСТРОЙСТВО v2: 13 полос по 4 уровня (B13 — открытый хвост). Внутри полосы
- * позиция t = 0…1 МАСШТАБИРУЕТ числа (ось «объём») — соседние уровни различимы.
- * Приёмка симом: клонов (|Δработы|<5%) нет, обрывов >×1,5 нет.
+ * УСТРОЙСТВО v2: 12 полос по 4 уровня + B13 (L49+) — квадратные уравнения
+ * ax²+b=c, открытый хвост без клампа t. Внутри полосы позиция t МАСШТАБИРУЕТ
+ * числа (ось «объём») — соседние уровни различимы. Приёмка симом 07.09.2026
+ * (25 сидов × 20 вопросов/уровень): в зоне обещания L1–52 клонов (|Δ|<5%) 0,
+ * обрывов (>×1,5) 0. За L53 рост работы замедляется (модель насыщается по
+ * разрядам) — следующая ось хвоста: интеграл-оценка (формат согласуется, T5).
  * Слепок полос охраняет src/__tests__/math-slider-bands.test.ts — при правке
  * полос слепок обновляется В ТОМ ЖЕ коммите.
  */
+import { expressionWork, questionWorkParts, WORK_NORM } from './work';
 import { binary, evaluateExpression, literal, roundNumber } from './expression';
 import { createRng, normalizeSeed, pick, randomInt, type Rng } from './rng';
 import {
@@ -124,7 +128,9 @@ function addition(rng: Rng, t: number): Fam {
   const answer = randomInt(rng, Math.round(5 + t * 55), top);
   // С ростом t слагаемые тянутся к середине — переносы через десяток чаще
   // ⚠️ floor + запас: при t=1 округление вверх давало lo > answer−lo (краш RangeError)
-  const lo = Math.min(Math.floor(answer * 0.5 * Math.min(0.96, t * 1.1)), Math.floor((answer - 1) / 2));
+  // ≥1: при t=0 нижняя граница давала слагаемое 0 — вырожденный вопрос «0 + b»
+  // (всплыло живьём 07.09 в тренировке, она всегда зовёт L1)
+  const lo = Math.max(1, Math.min(Math.floor(answer * 0.5 * Math.min(0.96, t * 1.1)), Math.floor((answer - 1) / 2)));
   const left = randomInt(rng, lo, answer - lo);
   const pair = binary('+', literal(left), literal(answer - left));
   // С ростом t — три слагаемых (a + b + c): тот же класс, вторая ступень школы
@@ -202,9 +208,9 @@ function discount(rng: Rng, t: number): Fam {
 
 /** B9: пропорции; множитель растёт с t. */
 function proportion(rng: Rng, t: number): Fam {
-  const leftNumerator = randomInt(rng, 2, Math.round(9 + t * 5));
+  const leftNumerator = randomInt(rng, 2, Math.round(9 + t * 6));
   const leftDenominator = randomInt(rng, 2, 12);
-  const multiplier = randomInt(rng, 3, Math.round(8 + t * 12));
+  const multiplier = randomInt(rng, 3, Math.round(8 + t * 15));
   return {
     kind: 'proportion',
     expression: {
@@ -239,12 +245,38 @@ function linearEquation(rng: Rng, t: number): Fam {
 
 /** B12: оценка корня √N — ответ почти всегда нецелый, чистая прикидка. */
 function rootEstimation(rng: Rng, t: number): Fam {
-  const value = randomInt(rng, Math.round(20 + t * 120), Math.round(150 + t * 750));
+  // Старт полосы двузначным корнем (√100+) — вход L45 не проваливается ниже
+  // конца уравнений L44 (замер 07.09: старая база 20..150 давала откат ×0,71)
+  const value = randomInt(rng, Math.round(160 + t * 340), Math.round(400 + t * 1100));
   const root: MathExpression = { type: 'root-estimation', value };
-  if (rng() >= t * 0.8) return { kind: 'root-estimation', expression: root };
-  // Вторая ступень полосы: √N ± k — оценка корня плюс сдвиг
-  const k = literal(randomInt(rng, 5, 40));
-  return { kind: 'root-estimation', expression: binary(rng() < 0.5 ? '+' : '-', root, k) };
+  if (rng() >= 0.65 + t * 0.28) return { kind: 'root-estimation', expression: root };
+  // Вторая ступень: √N ± k (с первого уровня ~четверть; k растёт с t)
+  const k = literal(randomInt(rng, 5, Math.round(40 + t * 120)));
+  const shifted = binary(rng() < 0.5 ? '+' : '-', root, k);
+  if (rng() >= (t - 0.25) * 0.9) return { kind: 'root-estimation', expression: shifted };
+  // Третья ступень (конец полосы): √N ± k ± m — разряды корня стоят на месте
+  // всю полосу (digits=2), рост несут добавочные члены, иначе клоны L47–48
+  return { kind: 'root-estimation', expression: binary(rng() < 0.5 ? '+' : '-', shifted, literal(randomInt(rng, 10, 60))) };
+}
+
+/**
+ * B13+ (хвост): квадратные уравнения ax² + b = c — следующая ступень школьной
+ * оси после линейных уравнений (B11) и корней (B12): посчитал (c−b)/a в голове,
+ * оценил корень, тянешь к x. Замер 07.09: микс пройденных семейств НЕ может
+ * стоять выше конца B12 (даже 100% самого тяжёлого — root 6,50 < 6,77),
+ * поэтому хвост растёт МЕТОДОМ, а не пересдачей пройденного.
+ * t сюда приходит ≥1 и растёт без клампа — ось чисел открыта.
+ */
+function quadEquation(rng: Rng, t: number): Fam {
+  const g = Math.max(0, t - 1);
+  // Калибровка стыка 07.09: старт s двузначным в основном (доля трёхзначных
+  // ~0,4 на L49 → ~0,75 на L52) — вход ~×1,07 от конца B12, не скачок ×1,39
+  const s = randomInt(rng, Math.round(35 + g * 150), Math.round(160 + g * 400));
+  // Вторая растущая компонента: двузначный делитель a к концу зоны обещания
+  // (разряды s насыщаются к L51 — один s рост не держит, клоны L51–52)
+  const a = randomInt(rng, 2, Math.round(3 + g * 25));
+  const b = randomInt(rng, Math.round(-(20 + g * 80)), Math.round(20 + g * 80));
+  return { kind: 'quad-equation', expression: { type: 'quad-equation', a, b, c: a * s + b } };
 }
 
 const BANDS: readonly ((rng: Rng, t: number) => Fam)[] = [
@@ -272,10 +304,11 @@ function bandT(level: number): number {
 function expressionForLevel(level: number, rng: Rng): Fam {
   const bandIndex = Math.floor((level - 1) / BAND_SIZE);
   if (bandIndex < BANDS.length) return BANDS[bandIndex](rng, bandT(level));
-  // B13+ — открытый хвост: микс высших с продолжающимся ростом чисел.
-  const t = Math.min(1, 0.5 + (level - BANDS.length * BAND_SIZE) / (4 * BAND_SIZE));
-  const fam = pick(rng, [square, cubeNested, linearEquation, rootEstimation, discount] as const);
-  return fam(rng, t);
+  // B13+ — открытый хвост: квадратные уравнения (см. quadEquation) с ростом
+  // чисел БЕЗ верхнего клампа (правило «потолков нет»; старый микс с min(1,…)
+  // давал откат ×0,67 на входе и три клона L50–52 — замер 07.09).
+  const t = 1 + (level - BANDS.length * BAND_SIZE) / 10;
+  return quadEquation(rng, t);
 }
 
 export function generateMathSliderQuestions(
@@ -293,8 +326,12 @@ export function generateMathSliderQuestions(
     const answer = evaluateExpression(expression);
     const scale = makeScale(answer, safeLevel, rng);
     const scaleDifficulty = (scale.tickCount - 4) / 6;
-    const expressionDifficulty = clamp((safeLevel - 1) / (SLIDER_MAX_LEVEL - 1), 0, 1);
-    const difficulty = clamp(expressionDifficulty * 0.85 + scaleDifficulty * 0.15, 0, 1);
+    // difficulty — от РАБОТЫ вопроса (core/work.ts), не от номера уровня:
+    // замер 07.09.2026 (counting-chat/probe-difficulty.mjs) — номерное d было
+    // слепо к содержимому внутри уровня (спирмен d↔работа = −0,015), а от d
+    // живёт окно времени в scoring.ts. Норма калибрует верх к d≈0,85–1.
+    const expressionDifficulty = clamp(expressionWork(expression) / WORK_NORM, 0, 1);
+    const difficulty = clamp(questionWorkParts(expression, answer, scale) / WORK_NORM, 0, 1);
     return {
       id: `${normalizedSeed}:${safeLevel}:${index}`,
       index,

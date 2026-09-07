@@ -1,4 +1,4 @@
-/* psygames-math-slider-types · VER 1 · 17.08.2026 */
+/* psygames-math-slider-types · VER 2 · 07.09.2026 */
 export const MATH_SLIDER_GENERATOR_VERSION = 'math-slider-generator-v2';
 
 export type MathSliderLocale = 'ru' | 'en';
@@ -15,6 +15,7 @@ export type MathExpression =
     }
   | { type: 'power'; base: MathExpression; exponent: number }
   | { type: 'linear-equation'; a: number; b: number; c: number }
+  | { type: 'quad-equation'; a: number; b: number; c: number }
   | { type: 'root-estimation'; value: number }
   | { type: 'percent-of'; percent: number; base: number }
   | { type: 'discount'; price: number; percent: number }
@@ -37,6 +38,7 @@ export type ExpressionKind =
   | 'proportion'
   | 'cube-nested-power'
   | 'linear-equation'
+  | 'quad-equation'
   | 'root-estimation';
 
 export interface MathSliderScale {
