@@ -28,6 +28,7 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
 const GRADIENT = ['#16222a', '#3a6073'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -137,7 +138,10 @@ function makeTrial(pCong: number, pIncong: number): Trial {
 export default function FlankerGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  const { width: screenW, height: screenH } = useWindowDimensions();
+  // 07.09.2026: ширину берём защищённым хуком — голый useWindowDimensions()
+  // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
+  const screenW = useScreenWidth();
+  const { height: screenH } = useWindowDimensions();
   const ОКНО = stimBox(screenW, screenH);
   const router = useRouter();
 

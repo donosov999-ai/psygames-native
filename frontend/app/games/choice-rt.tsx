@@ -47,6 +47,7 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
 const GRADIENT = ['#fdc830', '#f37335'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -84,7 +85,10 @@ function levelParams(level: number): { trials: number; dirs: Direction[]; window
 export default function ChoiceRtGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  const { width: screenW, height: screenH } = useWindowDimensions();
+  // 07.09.2026: ширину берём защищённым хуком — голый useWindowDimensions()
+  // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
+  const screenW = useScreenWidth();
+  const { height: screenH } = useWindowDimensions();
   const ОКНО = stimBox(screenW, screenH);
   /**
    * 🔴 ЧИСЛО КНОПОК ЗДЕСЬ — ОСЬ СЛОЖНОСТИ, А НЕ ОФОРМЛЕНИЕ. L1-5 две стороны,

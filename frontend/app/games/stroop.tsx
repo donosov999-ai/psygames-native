@@ -15,7 +15,7 @@
  * Биомаркеры: mean RT congruent/incongruent, interference_ms (Stroop effect).
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, useWindowDimensions, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -42,6 +42,7 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
 const GRADIENT = ['#fc466b', '#3f5efb'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -193,7 +194,9 @@ export default function StroopGame() {
   const { colors, colorblind } = useTheme();
   const PALETTE = colorblind ? COLORS_CB : COLORS_DEF;
   const { t, language } = useLanguage();
-  const { width: screenW } = useWindowDimensions();
+  // 07.09.2026: ширину берём защищённым хуком — голый useWindowDimensions()
+  // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
+  const screenW = useScreenWidth();
   const БТН = answerButton('choice', screenW);   // общий макет раздела
   const router = useRouter();
 

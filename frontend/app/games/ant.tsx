@@ -48,6 +48,7 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
 const GRADIENT = ['#005C97', '#363795'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -105,7 +106,10 @@ function makeTrial(incongruentProb: number): Trial {
 export default function ANTGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  const { width: screenW, height: screenH } = useWindowDimensions();
+  // 07.09.2026: ширину берём защищённым хуком — голый useWindowDimensions()
+  // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
+  const screenW = useScreenWidth();
+  const { height: screenH } = useWindowDimensions();
   const ОКНО = stimBox(screenW, screenH);
   const БТН = answerButton('side', screenW);   // общий макет раздела
   const router = useRouter();
