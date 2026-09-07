@@ -69,7 +69,16 @@ export function levelParams(level: number): BondsCfg {
   if (L > NB_MAX_LEVEL) {
     const base = levelParams(NB_MAX_LEVEL);
     const k = 1 + (L - NB_MAX_LEVEL) * 0.15;
-    return { ...base, maxV: Math.round(base.maxV * k) };
+    // Две оси (замер 07.09, sim-ladder до L30: одна величина давала клоны через
+    // один — поиск доминируется СОСТАВОМ): величины растут по k, и доля пятёрок
+    // плавно вытесняет тройки/четвёрки (пятёрка ≈ ×3 к четвёрке по puzzleWork)
+    const w5 = Math.min(0.85, 0.35 + (L - NB_MAX_LEVEL) * 0.05);
+    const w3 = Math.max(0, 0.20 - (L - NB_MAX_LEVEL) * 0.04);
+    return {
+      ...base,
+      maxV: Math.round(base.maxV * k),
+      sizeWeights: { 3: w3, 4: Math.max(0.15, 1 - w5 - w3), 5: w5 },
+    };
   }
   const row = LEVELS[L - 1];
   const { winS, ...rest } = row;
