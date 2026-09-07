@@ -74,8 +74,7 @@ import {
 import type { OneLineSession } from '@/src/games/one-line/core/index';
 import { hasSomethingToLose as oneLineArmed } from '@/src/games/one-line/OneLineGame';
 
-import { квадратНачат, собратьКольца as собратьКольцаДляГейта } from '@/src/games/anagrams/core/ring';
-import { wordPool as wordPoolДляГейта, wordsOfLength as wordsOfLengthДляГейта } from '@/src/games/fillwords/core/words';
+import { квадратНачат, кольцаЯзыка as кольцаЯзыкаДляГейта } from '@/src/games/anagrams/core/ring';
 import {
   createFacesNamesSession,
   startFacesNamesRound,
@@ -238,8 +237,21 @@ const LIVE_PREDICATES: Record<string, { fresh: () => boolean; busy: () => boolea
     why: 'первая взятая плитка: набранное слово уходит вместе с экраном, а закрытые стороны тем более',
     fresh: () => квадратНачат([], []),
     busy: () => {
-      // Кольцо берётся НАСТОЯЩЕЕ — из словаря, тем же сборщиком, что и в игре.
-      const к = собратьКольцаДляГейта(wordsOfLengthДляГейта(wordPoolДляГейта('en'), 5))[0]!;
+      /*
+       * 🔴 КОЛЬЦО БЕРЁТСЯ ТЕМ ЖЕ ПУТЁМ, ЧТО И НА ЭКРАНЕ — `кольцаЯзыка`.
+       *
+       * ⚠️ Здесь стояло `собратьКольца(wordsOfLength(wordPool('en'), 5))`, и
+       * комментарий уверял, что это «тем же сборщиком, что и в игре». Замер
+       * 07.09.2026 говорит обратное: `собратьКольца` в боевом коде не зовётся
+       * НИГДЕ. Экран читает готовые паки (`ring.ts:237`), а перебор — сборка
+       * этих паков, четверная и по всему словарю.
+       *
+       * Цена ошибки: набор жрал 4 ГБ кучи и падал «Set maximum size exceeded»
+       * (предел Set ≈ 16,7 млн), а с восемью гигабайтами шёл 8,6 минуты —
+       * две трети всего прогона проб. И падал он по-разному: то нехваткой
+       * памяти, то убитым рабочим процессом, то тайм-аутом под нагрузкой.
+       */
+      const к = кольцаЯзыкаДляГейта('en')[0]!;
       const первая = к.банк.length > 0 ? [0] : [];
       return квадратНачат(первая, []);
     },
