@@ -16,6 +16,36 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.50.0',
+    date: '2026-09-07',
+    ru: [
+      'Питомец встречает при заходе и говорит, как идут дела: «Серия 4 дня, до цели 26». Один раз в день, а не каждые полминуты',
+      'Появилась цель — сколько дней подряд заходить. Выбор одним нажатием: 7, 14 или 30. Вписывать ничего не нужно',
+      'Цель предлагается из ваших же цифр: держали четыре дня — предложим неделю. Цифр ещё нет — ничего не выдумываем',
+      'Серия оборвалась — предложим цель поменьше и не упрекнём ни словом',
+      'Питомец хвалит между уровнями, но только за настоящее: личный рекорд, возвращение после перерыва, шаг к цели. За рядовой уровень молчит',
+      '«Дворец памяти» падал на первом же переходе между этапами — починено',
+      '«Доска в уме»: лестница выросла с 15 уровней до 25',
+      'Переливалка мерила сложность не по тому решению — уровни были легче, чем обещал номер',
+      'Кнопки ответа встали на одно место в «Лицах и именах», «Эхе псевдослов» и анаграммах — больше не прыгают по экрану',
+      'Судоку-киллер: три кнопки сложности заменены лестницей уровней',
+      'Карточка «Цель дня» теперь называется «Зачем сегодня» — чтобы не путалась с целью по дням',
+    ],
+    en: [
+      'Your pet greets you when you open the app and says how things stand: “Streak 4, 26 to go”. Once a day, not every half minute',
+      'A goal arrived — how many days in a row to show up. One tap: 7, 14 or 30. Nothing to type',
+      'The goal is suggested from your own numbers: held four days — we propose a week. No numbers yet — we invent none',
+      'Streak broke — we propose a smaller goal and say nothing reproachful',
+      'The pet praises you between levels, but only for something real: a personal best, a comeback after a break, a step towards the goal. For an ordinary level it stays quiet',
+      'Memory Palace crashed on the very first step between phases — fixed',
+      'Blindfold Board: the ladder grew from 15 levels to 25',
+      'Water Sort measured difficulty against the wrong solution — levels were easier than the number promised',
+      'Answer buttons now sit in one place in Faces and Names, Pseudoword Echo and the Anagrams — no more jumping around the screen',
+      'Killer Sudoku: three difficulty buttons replaced by a ladder of levels',
+      'The “Goal for today” card is now “Why today” — so it does not clash with the day-streak goal',
+    ],
+  },
+  {
     version: '2.49.0',
     date: '2026-09-07',
     ru: [
