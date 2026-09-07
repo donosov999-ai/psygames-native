@@ -2433,6 +2433,10 @@ const t: Record<string, string> = {
   "mahjongStuckRestart": "Plus aucune paire, rien à mélanger ni à annuler. Ce niveau doit être recommencé.",
   "mahjongRestartLevel": "Recommencer le niveau",
   "anagramBonusJar": "Bonus",
+  "goalSheetDays": "{n} jours",
+  "goalSheetToday": "Aujourd'hui : {g} parties · {p} ⭐ · série {s}",
+  "goalSuggest_best_streak": "Ton record : {n} j.",
+  "goalSuggest_at_top": "Tu as déjà tenu {n} j.",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "Le sens vient après",
   "lr_digit_span_surprise_dir_rule": "À partir de ce niveau, tu apprends COMMENT rendre la suite seulement APRÈS l’avoir vue : à l’endroit, à l’envers ou en ordre croissant. Garde-la telle quelle jusqu’à ce qu’on te le demande.",

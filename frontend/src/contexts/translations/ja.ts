@@ -2432,6 +2432,10 @@ const t: Record<string, string> = {
   "mahjongStuckRestart": "取れる組がなく、シャッフルも一手戻すも残っていません。このレベルは最初からやり直しです。",
   "mahjongRestartLevel": "レベルをやり直す",
   "anagramBonusJar": "ボーナス",
+  "goalSheetDays": "{n} 日",
+  "goalSheetToday": "今日：{g} 回 · {p} ⭐ · 連続 {s}",
+  "goalSuggest_best_streak": "自己ベース：{n} 日",
+  "goalSuggest_at_top": "すでに {n} 日達成",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "向きは後から伝えます",
   "lr_digit_span_surprise_dir_rule": "このレベルからは、並びをどう答えるか（そのまま・逆順・小さい順）が表示の“後”に伝えられます。聞かれるまでは、見たままの並びで覚えておいてください。",
