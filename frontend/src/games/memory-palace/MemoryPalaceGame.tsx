@@ -657,6 +657,42 @@ function MemoryPalaceSessionView({
     },
   } as const) : {};
 
+  /*
+   * Действие текущей игровой фазы. Считается здесь, потому что модуль знает
+   * состояние партии; рисуется — там, куда его заберут (см. `onPhaseAction`).
+   *
+   * 🔴 МЕСТО ОБЯЗАТЕЛЬНО ДО РАННИХ ВЫХОДОВ НИЖЕ. 07.09.2026 этот блок стоял
+   * ПОСЛЕ них, и партия падала на первом же переходе: на фазе `rules` функция
+   * выходила раньше и хуков было пять, на фазе `route` доходила сюда и их
+   * становилось семь — React #310 «отрендерено больше хуков, чем в прошлый
+   * раз», белый экран «Что-то сломалось». Тихо это пережили и `tsc`, и 92
+   * зелёные пробы: ни одна не проходила переход между фазами живьём. Ловит
+   * теперь `memory-palace-phases-dont-crash`.
+   */
+  const действиеФазы: PalacePhaseAction | null = React.useMemo(() => {
+    if (session.phase === 'route') {
+      return { label: strings.continueToPlace, disabled: false, run: () => applySession(continueToPlacement) };
+    }
+    if (session.phase === 'place') {
+      return {
+        label: strings.studyPlacements,
+        disabled: !memoryPalacePlacementComplete(session),
+        run: () => applySession(confirmMemoryPalacePlacements),
+      };
+    }
+    if (session.phase === 'study') {
+      return { label: strings.startRecall, disabled: false, run: () => applySession(startMemoryPalaceRecall) };
+    }
+    return null;
+  }, [session, strings, applySession]);
+
+  React.useEffect(() => {
+    onPhaseAction?.(действиеФазы);
+  }, [onPhaseAction, действиеФазы]);
+
+  /** Забрал ли кто-то действие себе: тогда кнопку внизу поля не рисуем. */
+  const действиеСнаружи = typeof onPhaseAction === 'function';
+
   if (session.phase === 'disposed') return null;
 
   if (session.phase === 'rules') {
@@ -787,34 +823,6 @@ function MemoryPalaceSessionView({
       </ScrollView>
     );
   }
-
-  /*
-   * Действие текущей игровой фазы. Считается здесь, потому что модуль знает
-   * состояние партии; рисуется — там, куда его заберут (см. `onPhaseAction`).
-   */
-  const действиеФазы: PalacePhaseAction | null = React.useMemo(() => {
-    if (session.phase === 'route') {
-      return { label: strings.continueToPlace, disabled: false, run: () => applySession(continueToPlacement) };
-    }
-    if (session.phase === 'place') {
-      return {
-        label: strings.studyPlacements,
-        disabled: !memoryPalacePlacementComplete(session),
-        run: () => applySession(confirmMemoryPalacePlacements),
-      };
-    }
-    if (session.phase === 'study') {
-      return { label: strings.startRecall, disabled: false, run: () => applySession(startMemoryPalaceRecall) };
-    }
-    return null;
-  }, [session, strings, applySession]);
-
-  React.useEffect(() => {
-    onPhaseAction?.(действиеФазы);
-  }, [onPhaseAction, действиеФазы]);
-
-  /** Забрал ли кто-то действие себе: тогда кнопку внизу поля не рисуем. */
-  const действиеСнаружи = typeof onPhaseAction === 'function';
 
   const phaseTitle = session.phase === 'route'
     ? strings.routeTitle
