@@ -99,6 +99,7 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'hanoi', ключ: 'pegs4', вид: 'состояние', есть: (L) => hanoi(L).pegs === 4 },
   { игра: 'hanoi', ключ: 'pegs5', вид: 'порог', есть: (L) => hanoi(L).pegs === 5 },
   { игра: 'listening-span', ключ: 'span8', вид: 'порог', есть: (L) => listening(L).span >= 8 },
+  { игра: 'listening-span', ключ: 'similar', вид: 'порог', есть: (L) => listening(L).similarShare > 0 },
   { игра: 'mahjong', ключ: 'layers2', вид: 'состояние', есть: (L) => mahjongLevel(L).layers === 2 },
   { игра: 'mahjong', ключ: 'layers3', вид: 'состояние', есть: (L) => mahjongLevel(L).layers === 3 },
   { игра: 'mahjong', ключ: 'layers4', вид: 'состояние', есть: (L) => mahjongLevel(L).layers === 4 },

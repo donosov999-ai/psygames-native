@@ -2447,5 +2447,8 @@ const t: Record<string, string> = {
   "lr_memory_matrix_decoys_rule": "Certaines cases s’allument avec une croix : ce sont des leurres. Il ne faut pas les retenir ni les toucher : cela compte comme une erreur.",
   "lr_memory_matrix_decoys_example": "Quatre cases ont clignoté, dont une barrée — retiens-en trois.",
   "mmIgnoreCrossed": "Ignore les barrées",
+  "lr_listening_span_similar_title": "Les mots vont se ressembler",
+  "lr_listening_span_similar_rule": "À partir de ce niveau, les mots en trop dans la grille sont choisis pour RESSEMBLER à ceux que tu as entendus. On les confond facilement : retiens non seulement les mots, mais aussi leur ordre.",
+  "lr_listening_span_similar_example": "Tu as entendu « casa » — et « cama » se trouvera juste à côté. Choisis ce que tu as entendu, pas ce qui y ressemble.",
 };
 export default t;

@@ -2452,5 +2452,8 @@ const t: Record<string, string> = {
   "lr_memory_matrix_decoys_rule": "Algunas celdas se encienden con una cruz: son distractores. No hay que memorizarlas y no se pueden pulsar: cuenta como error.",
   "lr_memory_matrix_decoys_example": "Parpadearon cuatro celdas, una con cruz: memoriza tres.",
   "mmIgnoreCrossed": "Omite las tachadas",
+  "lr_listening_span_similar_title": "Las palabras se parecerán",
+  "lr_listening_span_similar_rule": "A partir de este nivel, las palabras sobrantes de la cuadrícula se eligen para que SUENEN PARECIDAS a las que oíste. Es fácil confundirlas: retén no solo las palabras, sino también su orden.",
+  "lr_listening_span_similar_example": "Oíste «casa» y al lado aparecerá «cama». Elige lo que oíste, no lo que se parece.",
 };
 export default t;

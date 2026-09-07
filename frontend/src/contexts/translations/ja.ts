@@ -2446,5 +2446,8 @@ const t: Record<string, string> = {
   "lr_memory_matrix_decoys_rule": "一部のマスはバツ印つきで光ります。これは妨害です。覚える必要はなく、押してもいけません。押すと誤答になります。",
   "lr_memory_matrix_decoys_example": "四つ光ってそのうち一つがバツ印なら、覚えるのは三つです。",
   "mmIgnoreCrossed": "バツ印は飛ばす",
+  "lr_listening_span_similar_title": "似た言葉が混ざります",
+  "lr_listening_span_similar_rule": "このレベルからは、盤面の余分な言葉が、聞いた言葉に“似た響き”のものから選ばれます。取り違えやすいので、言葉だけでなく順番も保ってください。",
+  "lr_listening_span_similar_example": "「casa」を聞いたなら、隣に「cama」が並びます。似ているものではなく、聞いたものを選んでください。",
 };
 export default t;
