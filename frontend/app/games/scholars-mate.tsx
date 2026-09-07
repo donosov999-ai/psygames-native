@@ -49,7 +49,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
-import { LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, namedMotifCount } from '@/src/games/scholars-mate/core/deck';
+import { LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, mixedMotifCount, namedMotifCount } from '@/src/games/scholars-mate/core/deck';
 import { starsFor, ступеньПоМедиане, порогУровня, допускПромахов } from '@/src/games/scholars-mate/core/run';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
@@ -108,6 +108,8 @@ export default function ScholarsMateScreen() {
   const [режим, setРежим] = React.useState<'sacrifice' | null>(null);
   /** Выбранный именованный узор и открыт ли список. */
   const [узор, setУзор] = React.useState<string | null>(null);
+  /** Микс узоров: подаются вперемешку, имя до ответа скрыто. */
+  const [микс, setМикс] = React.useState(false);
   const [списокОткрыт, setСписокОткрыт] = React.useState(false);
 
   const level = num('level', lvl.level);
@@ -308,10 +310,14 @@ export default function ScholarsMateScreen() {
     return имя === ключ ? '' : имя;
   }, [t]);
 
-  const start = (режимПотока = false, только: 'sacrifice' | null = null, имяУзораДляОтработки: string | null = null) => {
+  const start = (
+    режимПотока = false, только: 'sacrifice' | null = null,
+    имяУзораДляОтработки: string | null = null, вперемешку = false,
+  ) => {
     setПоток(режимПотока);
     setРежим(только);
     setУзор(имяУзораДляОтработки);
+    setМикс(вперемешку);
     setСписокОткрыт(false);
     setPlayedLevel(null);
     setArmed(false);
@@ -330,6 +336,7 @@ export default function ScholarsMateScreen() {
           flowMs={поток ? FLOW_MS : undefined}
           onlyKind={режим ?? undefined}
           namedMotif={узор ?? undefined}
+          mixedMotifs={микс}
           size={сторона}
           now={gameNow}
           theme={{
@@ -467,7 +474,33 @@ export default function ScholarsMateScreen() {
             <Text style={[стили.подсказка, { color: colors.textSecondary }]}>{t('scholarsPickMotifHint')}</Text>
           </Pressable>
 
-          {/* Жертва — первой строкой того же списка: это такой же узор. */}
+          {/*
+            🔴 МИКС — ПЕРВОЙ СТРОКОЙ СПИСКА. Просьба Дениса 07.09.2026: «чтобы в
+            режиме поток было не один режим, а случайно разные подавались, любой
+            из тех приёмов что есть — типа тренировка на реакцию, увидеть какой
+            мат доступен».
+
+            Стоит выше отработки одного узора нарочно: отработка меряет скорость
+            ЗНАКОМОГО, а микс — узнавание среди девятнадцати, и это более общий
+            навык. Имя узора в нём до ответа скрыто, иначе подпись выдаёт ответ.
+          */}
+          {списокОткрыт && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('mixedMode')}
+              onPress={() => start(поток, null, null, true)}
+              style={[стили.узорСтрока, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}
+            >
+              <Ionicons name="shuffle-outline" size={18} color={GRADIENT[0]} />
+              <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]} numberOfLines={1}>
+                {t('mixedMode')}
+              </Text>
+              <Text style={[стили.мелко, { color: colors.textSecondary }]}>{mixedMotifCount()}</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+            </Pressable>
+          )}
+
+          {/* Жертва — следующей строкой того же списка: это такой же узор. */}
           {списокОткрыт && (
             <Pressable
               accessibilityRole="button"
@@ -523,12 +556,12 @@ export default function ScholarsMateScreen() {
            * узор и жертву в ноль — отработка оборвалась бы на первой ступени и
            * молча подменилась смешанной лестницей.
            */
-          onContinue={() => start(поток, режим, узор)} onStop={() => setPhase('config')} />
+          onContinue={() => start(поток, режим, узор, микс)} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && last && (
         <GameResult score={last.solved} time={Math.round(last.medianMs) / 1000}
           errors={last.total - last.solved}
-          onPlayAgain={() => start(поток, режим, узор)} onGoHome={() => goBackOrHome()}
+          onPlayAgain={() => start(поток, режим, узор, микс)} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>

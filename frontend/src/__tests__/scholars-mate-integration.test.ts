@@ -23,7 +23,7 @@
 import React from 'react';
 
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
-import { buildDeck, levelParams } from '@/src/games/scholars-mate/core/deck';
+import { buildDeck, buildMixedMotifDeck, levelParams } from '@/src/games/scholars-mate/core/deck';
 import { check, shownFen } from '@/src/games/scholars-mate/core/check';
 import { РАМКА_ДОСКИ, размерКлетки, ширинаДоски } from '@/src/games/scholars-mate/core/run';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
@@ -71,7 +71,7 @@ interface Стол {
 }
 
 /** Смонтировать модуль с управляемыми часами. */
-function стол(level: number, seed = 1): Стол {
+function стол(level: number, seed = 1, доп: Record<string, unknown> = {}): Стол {
   const итоги: ScholarsResult[] = [];
   const вехи: boolean[] = [];
   let часы = 1_000_000;
@@ -80,6 +80,7 @@ function стол(level: number, seed = 1): Стол {
   TestRenderer.act(() => {
     tree = TestRenderer.create(React.createElement(ScholarsMateGame as any, {
       level, seed, size: 320, theme: THEME, labels: LABELS,
+      ...доп,
       now: () => часы,
       onProgress: (armed: boolean) => вехи.push(armed),
       onComplete: (r: ScholarsResult) => итоги.push(r),
@@ -627,5 +628,42 @@ describe('«Детский мат»: открытый экран — это не
     }
     const r = с.итоги[0]!;
     expect(`решено ${r.solved}, касались ${r.touched}`).toBe('решено 0, касались true');
+  });
+
+  /**
+   * 🔴 МИКС УЗОРОВ: ИМЯ СКРЫТО ДО ОТВЕТА И НАЗВАНО ПОСЛЕ.
+   *
+   * Просьба Дениса 07.09.2026: в потоке подавать не один приём, а любой из
+   * имеющихся — «тренировка на реакцию, увидеть какой мат доступен». Подпись
+   * «Арабский мат» над доской выдавала бы ответ, и от «увидеть, какой» не
+   * осталось бы ничего.
+   *
+   * ⚠️ И названо ПОСЛЕ — обязательно: скрытый узор это задача, а не загадка без
+   * разгадки. Не сказать постфактум значит лишить человека того, ради чего он
+   * упражнение и делает.
+   */
+  it('🔴 в миксе имя узора скрыто до ответа и названо после', () => {
+    const колода = buildMixedMotifDeck(15, 1);
+    const первая = колода[0]!;
+    expect(`у позиции есть узор: ${!!первая.motif}`).toBe('у позиции есть узор: true');
+
+    const имя = `УЗОР-${первая.motif}`;
+    const с = стол(15, 1, { mixedMotifs: true, motifName: (m: string) => `УЗОР-${m}` });
+    expect(`до ответа имя показано: ${с.текст().includes(имя)}`).toBe('до ответа имя показано: false');
+
+    const uci = первая.solutions[0]!;
+    с.тап(uci.slice(0, 2));
+    с.тап(uci.slice(2, 4));
+    expect(`после ответа имя названо: ${с.текст().includes(имя)}`).toBe('после ответа имя названо: true');
+  });
+
+  /** А в обычной отработке узора имя видно сразу — там человек знает, что ищет. */
+  it('🔴 вне микса имя узора показано сразу', () => {
+    const колода = buildMixedMotifDeck(15, 1);
+    const первая = колода[0]!;
+    const с = стол(15, 1, { mixedMotifs: false, motifName: (m: string) => `УЗОР-${m}` });
+    const естьУзор = /УЗОР-/.test(с.текст());
+    expect(`имя узора видно до ответа: ${естьУзор}`).toBe('имя узора видно до ответа: true');
+    expect(`(позиция с узором вообще есть: ${!!первая.motif})`).toBe('(позиция с узором вообще есть: true)');
   });
 });
