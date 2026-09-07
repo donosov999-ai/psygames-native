@@ -11,6 +11,7 @@
  * разойтись.
  */
 import React from 'react';
+import type { ОтчётРежима } from './core/hudReport';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { минимальныйРазмерКруга } from '@/src/components/letterWheel/geometry';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
@@ -33,6 +34,8 @@ export interface WordSquareProps {
   onComplete: (промахов: number, мс: number) => void;
   /** Первое касание — «есть что терять» для подтверждения выхода. */
   onProgress?: (тронули: boolean) => void;
+  /** Отчёт в шапку каркаса: числа отдаём наверх, вид решает каркас. */
+  onСчёт?: (с: ОтчётРежима) => void;
   labels: { собрано: string; промахи: string; банк: string; подсказка: string };
 }
 
@@ -42,7 +45,7 @@ export function размерКлетки(size: number): number {
   return Math.max(1, Math.floor((size - РАМКА * 2) / СТОРОНА));
 }
 
-export function WordSquareGame({ кольцо, size, theme, now, onComplete, onProgress, labels }: WordSquareProps) {
+export function WordSquareGame({ кольцо, size, theme, now, onComplete, onProgress, onСчёт, labels }: WordSquareProps) {
   const [закрыты, setЗакрыты] = React.useState<Сторона[]>([]);
   const [линия, setЛиния] = React.useState<number[]>([]);
   const [промахов, setПромахов] = React.useState(0);
@@ -81,6 +84,9 @@ export function WordSquareGame({ кольцо, size, theme, now, onComplete, onP
     if (начат && начало.current === 0) начало.current = now();
     onProgress?.(начат);
   }, [линия, закрыты, onProgress, now]);
+  React.useEffect(() => {
+    onСчёт?.({ найдено: закрыты.length, всего: 4, подсказок: 0, промахов: промахов });
+  }, [закрыты.length, промахов, onСчёт]);
 
   const сдать = React.useCallback((слово: string) => {
     if (завершеноRef.current) return;
@@ -194,9 +200,12 @@ export function WordSquareGame({ кольцо, size, theme, now, onComplete, onP
         <Text style={[стили.подсказкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
       </Pressable>
 
-      <Text style={[стили.счёт, { color: theme.textSecondary }]}>
-        {labels.собрано} {закрыты.length}/4 · {labels.промахи} {промахов}
-      </Text>
+      {/*
+        ⚠️ СЧЁТЧИКИ УЕХАЛИ В ШАПКУ КАРКАСА. Здесь они стояли ПОСЛЕДНЕЙ строкой
+        колонки и на телефоне 375×812 оказывались на y=809 — за краем экрана,
+        то есть их не было видно вовсе. Теперь режим отдаёт числа через
+        `onСчёт`, а показывает их каркас — там же, где у классики и филвордов.
+      */}
     </View>
   );
 }

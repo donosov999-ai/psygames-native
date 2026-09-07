@@ -59,20 +59,23 @@ const ПРОГРЕСС = () => {};
 function собрать(locale: string) {
   return (
     <AllWordsGame pack={ПАК} seed={1} size={320} theme={ТЕМА} now={СЕЙЧАС}
-      onComplete={ГОТОВО} onProgress={ПРОГРЕСС} locale={locale} labels={ПОДПИСИ} />
+      onComplete={ГОТОВО} onProgress={ПРОГРЕСС} onСчёт={(с: { бонусов?: number }) => { mockОтчёт = с; }}
+      locale={locale} labels={ПОДПИСИ} />
   );
 }
 
-/** Сколько слов в копилке — считаем по подписи, которую экран показывает. */
-function копилкаВидна(root: any): boolean {
-  const тексты: string[] = [];
-  root.root.findAll((n: any) => typeof n.type === 'string', { deep: true }).forEach((n: any) => {
-    const c = n.props && n.props.children;
-    if (typeof c === 'string') тексты.push(c);
-    if (Array.isArray(c)) c.forEach((x: any) => { if (typeof x === 'string') тексты.push(x); });
-  });
-  return тексты.some((t) => t.includes('копилка'));
-}
+/*
+  ⚠️ КОПИЛКУ СЧИТАЕМ ПО ОТЧЁТУ РЕЖИМА, А НЕ ПО ПОДПИСИ НА ЭКРАНЕ.
+
+  Первая версия искала слово «копилка» в дереве. 07.09.2026 счётчики уехали в
+  шапку каркаса (просьба Дениса привести окно вывода к одной геометрии), и в
+  ЭТОЙ пробе каркаса нет — компонент поднимается отдельно. Проба покраснела не от
+  дефекта, а от того, что смотрела на исчезнувшую строку.
+
+  Теперь наблюдаем ровно то, что режим ОТДАЁТ наружу: число бонусов в `onСчёт`.
+  Это и надёжнее — подпись переводится, а число нет.
+*/
+let mockОтчёт: { бонусов?: number } | null = null;
 
 it('после смены языка бонус считается по НОВОМУ словарю', async () => {
   let root: any;
@@ -81,10 +84,10 @@ it('после смены языка бонус считается по НОВО
 
   // На русском латинское слово бонусом быть не может ни при каком составе букв.
   await TestRenderer.act(async () => { mockПодача!(БОНУС); });
-  expect(копилкаВидна(root)).toBe(false);
+  expect(mockОтчёт?.бонусов ?? 0).toBe(0);
 
   // Меняем язык прямо в сессии — как человек в настройках.
   await TestRenderer.act(async () => { root.update(собрать('en')); });
   await TestRenderer.act(async () => { mockПодача!(БОНУС); });
-  expect(копилкаВидна(root)).toBe(true);
+  expect(mockОтчёт?.бонусов ?? 0).toBe(1);
 });
