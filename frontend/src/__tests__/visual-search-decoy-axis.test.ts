@@ -120,6 +120,14 @@ describe('проводка: приманку видно и СЛЫШНО', () => 
     expect(текст).toMatch(/pointerEvents="none"/);
   });
 
+  it('🔴 образец цели НЕ подделывает Item — иначе новое поле снова его сломает', () => {
+    // Замер 07.09.2026: добавление обязательного поля `decoy` уронило tsc ровно на
+    // литерале образца, к рисованию которого поле отношения не имеет. Узкий тип
+    // убирает весь класс: любое поле, добавленное в Item завтра, сюда не дойдёт.
+    expect(текст).toMatch(/const renderLetter = \(item: Pick<Item, 'shape' \| 'color'>\) =>/);
+    expect(текст).toMatch(/renderLetter\(\{ shape: targetShape, color: targetColor \|\| NEUTRAL_STROKE \}\)/);
+  });
+
   it('🔴 приманка названа в озвучке', () => {
     expect(текст).toMatch(/\(it\.decoy \? `, \$\{t\('skip'\)\}` : ''\)/);
   });
