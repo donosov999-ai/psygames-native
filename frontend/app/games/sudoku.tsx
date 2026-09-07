@@ -41,6 +41,7 @@ import { failurePolicy, formatErrorCount, isOver as isFailOver } from '@/src/ser
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Line, Rect } from 'react-native-svg';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import { buildLevelHelp, type HelpMode } from '@/src/services/sudoku-level-help';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -666,29 +667,40 @@ export default function SudokuGame() {
   const chainNext = shouldChainNextLevel(useGameMode());
   const paintPalette = colorblind ? CELL_COLORS_CB : CELL_COLORS;
 
-  // Большая глобальная кнопка «Правила» раньше показывала только общую статью,
-  // поэтому на доске Кропки/диагонали человек не видел правило текущей партии.
-  // Публикуем его в общий оверлей; локальный бейдж у таймера остаётся как был.
+  // Большая глобальная кнопка «Правила» раньше показывала правило ВАРИАНТА и на
+  // этом останавливалась: на 54-м уровне — «блоки кривые, а не квадраты». Игрок
+  // это и так видит нарисованным, а встаёт он на приёме. Теперь справка собирается
+  // под текущий уровень целиком — см. шапку services/sudoku-level-help.
+  //
+  // ⚠️ `boardTier` в зависимостях обязателен: приём берётся у ВЫДАННОЙ доски, а не
+  // выводится из номера уровня, и до конца сборки он ещё null.
   useEffect(() => {
     if (phase !== 'playing') {
       clearGameContextHelp(GAME_ID);
       return;
     }
-    const base = translateFor(language, 'sudokuBaseRule').replace('{n}', String(N));
-    const specific = mode === 'killer'
-      ? translateFor(language, 'sudokuKillerRule')
-      : variantRule(variant, language);
-    publishGameContextHelp({
-      gameId: GAME_ID,
-      title: mode === 'killer'
-        ? 'Killer'
-        : variant !== 'none'
-          ? variantLabel(variant, language)
-          : translateFor(language, 'btn_rules'),
-      body: specific ? `${base}\n\n${specific}` : base,
-    });
+    const steps = mode === 'killer'
+      ? killerStepCount()
+      : mode === 'towers' || mode === 'unequal'
+        ? sideStepCount(mode)
+        : undefined;
+    const { title, body } = buildLevelHelp(
+      {
+        mode: mode as HelpMode,
+        level,
+        N,
+        variant,
+        tier: boardTier,
+        hintMax,
+        errorMax: failure.lives,
+        steps,
+      },
+      (key) => translateFor(language, key as never),
+      language,
+    );
+    publishGameContextHelp({ gameId: GAME_ID, title, body });
     return () => clearGameContextHelp(GAME_ID);
-  }, [phase, mode, variant, N, language]);
+  }, [phase, mode, variant, N, language, level, boardTier, hintMax, failure.lives]);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
