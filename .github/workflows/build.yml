@@ -1783,6 +1783,11 @@ jobs:
     name: Web → Contabo /play
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # 🔴 needs добавлен 07.09.2026. Джоба выкладывает веб-сборку в прод и НЕ
+    # ЗАВИСЕЛА НИ ОТ ЧЕГО: тег запушен — сайт обновился, пока пробы ещё идут.
+    # `continue-on-error` при этом гасил её провал, так что молчание не
+    # означало успех ни в одну сторону.
+    needs: [typecheck, web-gates]
     if: startsWith(github.ref, 'refs/tags/v')
     continue-on-error: true
     steps:
@@ -1846,7 +1851,16 @@ jobs:
     # названная «закрытым тестом», публикует в магазин на всех.
     name: Android → Google Play (production, 100%)
     runs-on: ubuntu-latest
-    needs: [android, typecheck, smoke]
+    # 🔴 web-gates добавлен 07.09.2026. Было [android, typecheck, smoke] — и
+    # выходило, что в магазин на 100% пользователей уезжает по НАБОРУ СЛАБЕЕ,
+    # чем в GitHub-релиз: пять экранных аудитов (первая отрисовка, цели
+    # нажатия, панорамирование, тень HUD, слоты) блокировали `release`, но не
+    # выкладку. Именно этот класс дефекта и доходит до глаз — жалоба «а где
+    # тортики?» была про невидимые куски на тарелках.
+    # ⚠️ lint СОЗНАТЕЛЬНО не добавлен: долг стиля до человека не доходит, а
+    # девять чатов правят дерево непрерывно — потолок линта колеблется, и
+    # выкладка вставала бы на чужой правке. Решение обратимое, одна строка.
+    needs: [android, typecheck, smoke, web-gates]
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
