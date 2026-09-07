@@ -3323,7 +3323,7 @@ const translations: Translations = {
   // ⚠️ dayGoalTodayLine намеренно БЕЗ прошедшего времени («сегодня ты хотел»):
   // по-русски оно склоняется по роду, а приложение семейное — Валя прочитала бы
   // мужской род о себе. Именительный оборот работает у всех.
-  dayGoalTitle: { ru: 'Цель дня', en: 'Goal for today' },
+  dayGoalTitle: { ru: 'Зачем сегодня', en: 'Why today' },
   dayGoalAsk: { ru: 'Ради чего сегодня?', en: 'What is today for?' },
   dayGoalAskHint: { ru: 'Одна строка своими словами — зачем тебе сегодняшняя тренировка. Её видишь только ты.', en: 'One line in your own words: what today’s training is for. Only you see it.' },
   dayGoalPlaceholder: { ru: 'Своими словами', en: 'In your own words' },

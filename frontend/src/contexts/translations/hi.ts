@@ -2346,7 +2346,7 @@ const t: Record<string, string> = {
   "recoWhyFresh": "ऐप में नया",
   "recoWhyCalm": "शाम के लिए — बिना जल्दबाजी",
   "recoWhyStart": "शुरुआत के लिए अच्छा",
-  "dayGoalTitle": "आज का लक्ष्य",
+  "dayGoalTitle": "आज किसलिए",
   "dayGoalAsk": "आज किस लिए?",
   "dayGoalAskHint": "अपने शब्दों में एक पंक्ति: आज आप क्यों अभ्यास कर रहे हैं। इसे सिर्फ़ आप देखते हैं।",
   "dayGoalPlaceholder": "अपने शब्दों में",

@@ -2337,7 +2337,7 @@ const t: Record<string, string> = {
   "recoWhyFresh": "アプリの新着",
   "recoWhyCalm": "夜向け — 急がずに",
   "recoWhyStart": "はじめの一歩に",
-  "dayGoalTitle": "今日の目標",
+  "dayGoalTitle": "今日は何のために",
   "dayGoalAsk": "今日は何のために？",
   "dayGoalAskHint": "自分の言葉で一行：今日はなぜ取り組むのか。見えるのはあなただけです。",
   "dayGoalPlaceholder": "自分の言葉で",

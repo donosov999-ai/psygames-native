@@ -2339,7 +2339,7 @@ const t: Record<string, string> = {
   "recoWhyFresh": "جديد في التطبيق",
   "recoWhyCalm": "للمساء — دون عجلة",
   "recoWhyStart": "بداية جيدة",
-  "dayGoalTitle": "هدف اليوم",
+  "dayGoalTitle": "لماذا اليوم",
   "dayGoalAsk": "لأجل ماذا اليوم؟",
   "dayGoalAskHint": "سطر واحد بكلماتك: لماذا تتدرّب اليوم. لا يراه غيرك.",
   "dayGoalPlaceholder": "بكلماتك",

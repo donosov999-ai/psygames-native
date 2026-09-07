@@ -2338,7 +2338,7 @@ const t: Record<string, string> = {
   "recoWhyFresh": "앱의 새 기능",
   "recoWhyCalm": "저녁용 — 서두르지 않기",
   "recoWhyStart": "시작하기 좋아요",
-  "dayGoalTitle": "오늘의 목표",
+  "dayGoalTitle": "오늘은 무엇을 위해",
   "dayGoalAsk": "오늘은 무엇을 위한 날인가요?",
   "dayGoalAskHint": "당신의 말로 한 줄: 오늘 왜 훈련하는지. 당신만 볼 수 있습니다.",
   "dayGoalPlaceholder": "당신의 말로",
