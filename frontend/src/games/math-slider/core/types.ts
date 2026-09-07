@@ -1,4 +1,4 @@
-/* psygames-math-slider-types · VER 2 · 07.09.2026 */
+/* psygames-math-slider-types · VER 3 · 07.09.2026 */
 export const MATH_SLIDER_GENERATOR_VERSION = 'math-slider-generator-v2';
 
 export type MathSliderLocale = 'ru' | 'en';
@@ -17,6 +17,7 @@ export type MathExpression =
   | { type: 'linear-equation'; a: number; b: number; c: number }
   | { type: 'quad-equation'; a: number; b: number; c: number }
   | { type: 'root-estimation'; value: number }
+  | { type: 'integral-area'; form: 'steps' | 'polyline' | 'curve'; dx: number; heights: number[] }
   | { type: 'percent-of'; percent: number; base: number }
   | { type: 'discount'; price: number; percent: number }
   | {
@@ -39,7 +40,8 @@ export type ExpressionKind =
   | 'cube-nested-power'
   | 'linear-equation'
   | 'quad-equation'
-  | 'root-estimation';
+  | 'root-estimation'
+  | 'integral-area';
 
 export interface MathSliderScale {
   min: number;

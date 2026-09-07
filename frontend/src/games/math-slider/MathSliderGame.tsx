@@ -1,4 +1,5 @@
 /* psygames-math-slider-game · VER 3 · 21.08.2026 */
+import IntegralAreaFigure from './IntegralAreaFigure';
 import React from 'react';
 import {
   AppState,
@@ -481,8 +482,10 @@ function MathSliderSession({
       </View>
       {isTraining ? <Text style={[styles.trainingHint, { color: theme.textSecondary }]}>{strings.trainingHint}</Text> : null}
       <View style={[styles.expressionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Text style={[styles.prompt, { color: theme.textSecondary }]}>{strings.prompt}</Text>
-        <Text accessibilityRole="header" style={[styles.expression, { color: theme.text }]}>{formatExpression(question.expression, locale)}</Text>
+        <Text style={[styles.prompt, { color: theme.textSecondary }]}>{question.expression.type === 'integral-area' ? strings.areaPrompt : strings.prompt}</Text>
+        {question.expression.type === 'integral-area'
+          ? <IntegralAreaFigure expr={question.expression} accent={theme.primary} axisColor={theme.border} textColor={theme.textSecondary} />
+          : <Text accessibilityRole="header" style={[styles.expression, { color: theme.text }]}>{formatExpression(question.expression, locale)}</Text>}
         {/*
           🔴 ВЫБРАННОЕ ЧИСЛО — НАД ШКАЛОЙ, А НЕ НАД РУЧКОЙ.
           Отчёт 736c5831 (04.09.2026, повторный): «уже говорил, надо переместить

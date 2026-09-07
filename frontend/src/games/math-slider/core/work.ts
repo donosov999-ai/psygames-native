@@ -1,4 +1,4 @@
-/* psygames-math-slider-work · VER 1 · 07.09.2026 */
+/* psygames-math-slider-work · VER 2 · 07.09.2026 */
 /**
  * МОДЕЛЬ РАБОТЫ вопроса шкалы — сколько умственного труда стоит ОЦЕНИТЬ ответ.
  * Единый источник: её читают генератор (поле difficulty → окно времени в
@@ -15,6 +15,7 @@
  *     чем шире допуск относительно ответа, тем грубее можно прикидывать.
  *  3) Шкала: интерполяция между делениями (ответ не на риске — дороже).
  */
+import { integralAreaValue as integralAreaValueForWork } from './expression';
 import type { MathExpression, MathSliderQuestion } from './types';
 
 const digits = (v: number): number => Math.max(1, String(Math.abs(Math.round(v))).length);
@@ -88,6 +89,35 @@ function exprCost(e: MathExpression): CostVal {
     case 'root-estimation': {
       const r = Math.sqrt(e.value);
       return { cost: 2 + 1.5 * digits(Math.round(r)), val: r };
+    }
+    case 'integral-area': {
+      // steps: n умножений h×dx + (n−1) сложений; polyline: + усреднение пар на
+      // интервал; curve: перцептивная резка на куски + умножение средней на ширину,
+      // negладкость дорожает. Калибровка симом 07.09 (стык с концом quad-полосы).
+      const { form, dx, heights } = e;
+      const mul = (h: number) => (h <= 12 && dx <= 12 ? 0.8 + 0.05 * (h + dx) : digits(h) * digits(dx));
+      const val = integralAreaValueForWork(e);
+      if (form === 'steps') {
+        const cost = heights.reduce((s, h) => s + mul(h), 0) + (heights.length - 1) * 1.2;
+        return { cost, val };
+      }
+      if (form === 'polyline') {
+        let cost = (heights.length - 1) * 0.6;
+        for (let i = 0; i + 1 < heights.length; i++) cost += mul(Math.round((heights[i] + heights[i + 1]) / 2));
+        cost += (heights.length - 2) * 1.2;
+        return { cost, val };
+      }
+      const n = heights.length - 1;
+      const maxH = Math.max(...heights, 1);
+      let rough = 0;
+      for (let i = 0; i + 1 < heights.length; i++) rough += Math.abs(heights[i + 1] - heights[i]);
+      // Мысленные куски = 2 + суммарная негладкость в высотах кривой: извилистее
+      // и длиннее кривая — больше кусков усреднения (НЕ нормировать на n, иначе
+      // кривая дешевеет с ростом узлов и хвост падает — замер 07.09, L62–64)
+      const pieces = 2 + rough / maxH;
+      const avg = Math.round(val / (n * dx));
+      const cost = 1.2 * pieces + digits(avg) * digits(n * dx);
+      return { cost, val };
     }
     case 'percent-of':
       return { cost: PCT[String(e.percent)] ?? 3, val: (e.base * e.percent) / 100 };
