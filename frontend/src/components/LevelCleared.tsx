@@ -8,8 +8,10 @@ import { sndWin } from '@/src/services/feedback';
 import { tickLevelStreak, resetLevelStreak } from '@/src/services/eyeRestTracker';
 import { saveLevelStars } from '@/src/services/levelStars';
 import { getCleanRun } from '@/src/services/cleanRun';
-import { freshEarn, onEarn, earnReasonKey, EarnEntry } from '@/src/services/earn';
+import { freshEarn, onEarn, earnReasonKey, EarnEntry, loadDayMarks, streakFromDays, dayKey } from '@/src/services/earn';
 import { useProfile } from '@/src/contexts/ProfileContext';
+import { pickPraise } from '@/src/services/praiseLines';
+import { goalProgress, loadStreakGoal } from '@/src/services/streakGoal';
 import { getTokens, addTokens } from '@/src/services/tokens';
 import { addEarned } from '@/src/services/collection';
 import { spinWheel, applyWheel } from '@/src/services/multiplierWheel';
@@ -193,6 +195,43 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
   /** Итог копилки после начисления: связь партии с метой, см. блок начисления ниже. */
   const [баланс, setБаланс] = useState<number | null>(null);
   useEffect(() => onEarn(setEarn), []);
+
+  /*
+   * 🔴 ЧТО СКАЖЕТ ПИТОМЕЦ В ЗАСТАВКЕ. Просьба Дениса 07.09.2026: «чтобы питомец
+   * хвалил между уровнями». Считается ЗДЕСЬ, а не в игре: заставку зовёт только
+   * этот компонент, и знание о цели с журналом нужно в одном месте, а не в 73.
+   *
+   * ⚠️ `null` — обычное состояние. За рядовой уровень питомец молчит: правило и
+   * приоритет поводов живут в `praiseLines.ts`, здесь только сбор данных.
+   *
+   * ⚠️ ЧЕГО ЗДЕСЬ ПОКА НЕТ: рекорда и «быстрее прошлого раза». Их знает игра, а
+   * не общая обвязка итога, и подавать их придётся пропсом. Пустое поле повода
+   * не создаёт — молчание вместо выдуманной похвалы.
+   */
+  const [praise, setPraise] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      // ⚠️ Сброс внутри асинхронного шага, а не строкой выше: синхронный
+      // setState прямо в эффекте вызывает каскад отрисовок, и линт это ловит.
+      if (!passed) { if (alive) setPraise(null); return; }   // не прошёл — хвалить не за что
+      const [goal, marks] = await Promise.all([loadStreakGoal(profile.id), loadDayMarks(profile.id)]);
+      if (!alive) return;
+      const streak = streakFromDays(marks);
+      const прогресс = goalProgress(goal, streak);
+      // Дней тишины: сегодня в журнале есть — значит перерыв кончился, ноль.
+      const сегодня = marks.includes(dayKey());
+      const пауза = сегодня ? 0 : null;
+      const line = pickPraise(language, {
+        stars,
+        daysAway: пауза,
+        goalDone: прогресс?.done ?? null,
+        goalTotal: goal?.days ?? null,
+      });
+      if (alive) setPraise(line?.text ?? null);
+    })().catch(() => { if (alive) setPraise(null); });
+    return () => { alive = false; };
+  }, [passed, stars, language, profile.id, level]);
   /**
    * ⚠️ РЕЖИМ ЧИТАЕМ ЗДЕСЬ, А НЕ В КАЖДОЙ ИГРЕ. Этот экран показывают 49 игр; если
    * бы каждая передавала признак пропсом, 49 мест могли бы забыть — и забывали бы,
@@ -360,6 +399,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
           doneLine={t('levelDone').replace('{n}', String(level))}
           nextLine={t('levelStarting').replace('{n}', String(level + 1))}
           colors={colors}
+          praise={praise}
         />
       </TouchableOpacity>
     );
