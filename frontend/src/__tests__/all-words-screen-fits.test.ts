@@ -47,15 +47,44 @@ function пак(n: number) {
   return { base: 'abcdefgh', words: слова };
 }
 
+/**
+ * 🔴 ПОДНЯЛ ДЕРЕВО — ПОГАСИ. Иначе падает ВЕСЬ прогон, а не эта проба.
+ *
+ * 📍 Замер 07.09.2026 (`--detectOpenHandles`): не размонтированное дерево держит
+ * живые таймеры (у полного экрана — вечная петля кадров питомца,
+ * `PetSprite.tsx:558`, такт 140–420 мс). Они срабатывают уже ПОСЛЕ сноса
+ * окружения jest, дерево идёт на перерисовку, `react-native` отдаёт вместо
+ * `useWindowDimensions` пустоту — и процесс умирает целиком, ДО вывода итога.
+ * Со стороны выглядит как «jest сломался»: наборы идут PASS, потом exit 1 без
+ * единой строки FAIL. По проекту таких наборов 21.
+ */
+const поднятые: any[] = [];
+
+afterEach(() => {
+  while (поднятые.length) {
+    const r = поднятые.pop();
+    try { TestRenderer.act(() => { r.unmount(); }); } catch { /* уже погашено */ }
+  }
+});
+
+/**
+ * Мешок действий, который режим публикует наверх (`onУправление`). С 07.09.2026
+ * кнопки рисует не режим, а экран, поэтому «перемешать» проверяется отсюда.
+ */
+let управление: { перемешать: (() => void) | null } | null = null;
+
 function отрисовать(n: number, size = 328, maxListHeight?: number) {
   let дерево: any;
+  управление = null;
   TestRenderer.act(() => {
     дерево = TestRenderer.create(
       React.createElement(AllWordsGame, {
         pack: пак(n), seed: 1, size, theme: ТЕМА, now: () => 0,
         onComplete: () => {}, labels: ПОДПИСИ, maxListHeight,
+        onУправление: (у: any) => { управление = у; },
       }),
     );
+    поднятые.push(дерево);
   });
   return дерево;
 }
@@ -140,16 +169,21 @@ describe('экран «найди все слова» — список огра�
     const до = колесо();
     expect(до.length).toBeGreaterThan(0);
 
-    const кнопка = дерево.root.findAll(
-      (n: any) => n.props?.accessibilityLabel === 'перемешать' && typeof n.props?.onPress === 'function',
-      { deep: true },
-    )[0];
-    expect(кнопка).toBeTruthy();
+    /*
+     * 📍 07.09.2026 премиса пробы изменилась: кнопки уехали из режима в шапку
+     * каркаса, и `accessibilityLabel === 'перемешать'` внутри компонента больше
+     * не находится. Само требование осталось прежним — «перемешали, порядок
+     * другой, состав тот же», — поэтому дёргаем действие там, где оно теперь
+     * живёт: в мешке, который режим публикует экрану.
+     */
+    expect(управление).toBeTruthy();
+    const перемешать = (управление as any).перемешать as (() => void) | null;
+    expect(typeof перемешать).toBe('function');
 
     let после = до;
     // Порядок случайный: одно нажатие может совпасть с прежним. Несколько — нет.
     for (let i = 0; i < 6 && после.join('') === до.join(''); i += 1) {
-      TestRenderer.act(() => { кнопка.props.onPress(); });
+      TestRenderer.act(() => { перемешать!(); });
       после = колесо();
     }
     expect(после.join('')).not.toBe(до.join(''));
@@ -182,6 +216,7 @@ describe('экран «найди все слова» — список огра�
         pack: пак(8), seed: 1, size: 328, theme: ТЕМА, now: () => 0,
         onComplete: () => {}, labels: ПОДПИСИ,
       }));
+      поднятые.push(сRtl, безRtl);
     });
     expect(найти(сRtl)).toBeGreaterThan(0);
     expect(найти(безRtl)).toBe(0);
