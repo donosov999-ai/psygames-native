@@ -406,3 +406,72 @@ describe('сортировка — партия и хранилище', () => {
     expect(GAMES.some((g) => g.id === GS_GAME_ID)).toBe(true);
   });
 });
+
+
+describe('партия со схлопыванием переживает выход', () => {
+  /**
+   * 🔴 ЧАСТЬ ПАРТИИ ЛЕЖИТ НЕ НА ДОСКЕ, И ВОЗВРАТ ОБЯЗАН ЕЁ ПОДНЯТЬ.
+   *
+   * С L52 полки ждут в очереди, вторые ряды стоят за спиной у ниш, ёмкость едет
+   * вместе с полкой, а номер полки — адрес, к которому привязаны ключи
+   * скрытости. Сохрани один `cells` — и человек вернётся на доску с НЕПОЛНЫМ
+   * мультимножеством: закрыть тройки нечем, уровень не пройти, а значок
+   * «уровень проверен» ему уже показали.
+   *
+   * ⚠️ Замер 07.09.2026 при подключении механики к экрану: `snapshotGoodsParty`
+   * этих полей не знал вовсе — ни одного из пяти.
+   */
+  const СХЛОП = {
+    ids: CELLS.map((_, i) => 100 + i),
+    caps: CELLS.map(() => 3),
+    col: CELLS.map((_, i) => i % COLS),
+    queue: [{ cell: [5, 5], cap: 3 }, { cell: [6], cap: 4 }],
+    back: CELLS.map((_, i) => (i === 0 ? [7, 8] : [])),
+  };
+
+  it('🔴 очередь, задние ряды, номера и ёмкости возвращаются как были', () => {
+    const { restored } = roundTrip(СХЛОП);
+    expect(restored).not.toBeNull();
+    expect(restored!.ids).toEqual(СХЛОП.ids);
+    expect(restored!.caps).toEqual(СХЛОП.caps);
+    expect(restored!.col).toEqual(СХЛОП.col);
+    /*
+     * ⚠️ Полка возвращается В КАНОНИЧЕСКОМ ВИДЕ: нормализатор проставляет
+     * `joker`, даже если в снимке его не было. Это приведение формы, а не
+     * потеря — доска обязана быть одной и той же формы, откуда бы ни пришла.
+     */
+    expect(restored!.queue).toEqual(СХЛОП.queue.map((ш) => ({ ...ш, joker: false })));
+    expect(restored!.back).toEqual(СХЛОП.back);
+  });
+
+  it('товаров после возврата ровно столько же, сколько было', () => {
+    const { restored } = roundTrip(СХЛОП);
+    const счёт = (r: any) => r.cells.reduce((n: number, c: number[]) => n + c.length, 0)
+      + (r.queue ?? []).reduce((n: number, s: any) => n + s.cell.length, 0)
+      + (r.back ?? []).reduce((n: number, b: number[]) => n + b.length, 0);
+    const было = CELLS.reduce((n, c) => n + c.length, 0)
+      + СХЛОП.queue.reduce((n, s) => n + s.cell.length, 0)
+      + СХЛОП.back.reduce((n, b) => n + b.length, 0);
+    expect(счёт(restored)).toBe(было);
+  });
+
+  /** На уровне без механики полей нет — и это законное состояние, а не потеря. */
+  it('обычная партия поднимается без полей схлопывания', () => {
+    const { restored } = roundTrip();
+    expect(restored!.queue).toBeUndefined();
+    expect(restored!.back).toBeUndefined();
+    expect(restored!.ids).toBeUndefined();
+  });
+
+  /**
+   * ⚠️ КРИВЫЕ ДАННЫЕ ОТБРАСЫВАЮТСЯ ЦЕЛИКОМ. Очередь без номеров или задние ряды
+   * не той длины дают доску, которой не бывает; чинить её по частям — значит
+   * догадываться за игрока. Партия поднимется как обычная — это честнее.
+   */
+  it('порченые поля отбрасываются, а не чинятся', () => {
+    const { restored } = roundTrip({ ...СХЛОП, back: [[1, 2]] as number[][] });
+    expect(restored).not.toBeNull();
+    expect(restored!.back).toBeUndefined();
+    expect(restored!.queue).toEqual(СХЛОП.queue.map((ш) => ({ ...ш, joker: false })));   // остальное не пострадало
+  });
+});

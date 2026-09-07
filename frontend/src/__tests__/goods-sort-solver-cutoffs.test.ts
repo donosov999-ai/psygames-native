@@ -91,7 +91,7 @@ describe('ратчет стоимости: перебор не дорожает 
          * а потому, что проба давала ему не ту доску.
          */
         const caps = d.caps ?? capsForBoard(L, d.cells);
-        const доска = d.col
+        const доска = d.ids
           ? makeBoard(d.cells, caps, { col: d.col, ids: d.ids, queue: d.queue, back: d.back })
           : makeBoard(d.cells, caps);
         const t0 = Date.now();

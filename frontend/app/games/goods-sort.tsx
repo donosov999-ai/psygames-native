@@ -316,7 +316,7 @@ const SHELF_TILES = {
  */
 
 import {
-  makeBoard,
+  makeBoard, collapseTriples, makeReport, type CollapseReport, type Shelf,
 } from '@/src/games/goods-sort/core/board';
 import {
   isDeadEnd, hintMove,
@@ -533,6 +533,22 @@ export default function GoodsSortGame() {
    */
   useEffect(() => { if (lvl.loaded && !resumedRef.current) setLevel(lvl.level); }, [lvl.loaded, lvl.level]);
   const [cells, setCells] = useState<number[][]>([]);
+  /*
+   * 🔴 СХЛОПЫВАНИЕ ПОЛОК (с L52): часть партии живёт НЕ в `cells`.
+   *   `столбецНиши` — в каком столбце стоит место. ГЕОМЕТРИЯ, не меняется.
+   *   `номера`      — какой полке принадлежит место сейчас. Меняется: столбец
+   *                   оседает, сверху приходит новая полка.
+   *   `очередь`     — полки, которые ещё придут. Конечна и известна заранее.
+   *   `задние`      — вторые ряды за спиной у ниш.
+   *   `ёмкостиПолок`— ёмкость едет ВМЕСТЕ с полкой, а не остаётся при месте.
+   *
+   * ⚠️ Пусты на уровнях без механики — по ним же и определяется, идёт ли она.
+   */
+  const [столбецНиши, setСтолбецНиши] = useState<number[]>([]);
+  const [номера, setНомера] = useState<number[]>([]);
+  const [очередь, setОчередь] = useState<Shelf[]>([]);
+  const [задние, setЗадние] = useState<number[][]>([]);
+  const [ёмкостиПолок, setЁмкостиПолок] = useState<number[] | null>(null);
   const [sel, setSel] = useState<Sel>(null);
   const [cleared, setCleared] = useState(0);
   const [moves, setMoves] = useState(0);
@@ -779,6 +795,15 @@ export default function GoodsSortGame() {
     const deal = dealBoard(L, пул, narrowRef.current);
     const built = deal.cells;
     setCells(built);
+    /*
+     * Поля схлопывания приходят из ТОЙ ЖЕ раздачи. Пусто — уровень обычный, и
+     * все проверки ниже сами это увидят по пустому `столбецНиши`.
+     */
+    setСтолбецНиши(deal.col ?? []);
+    setНомера(deal.ids ?? []);
+    setОчередь(deal.queue ?? []);
+    setЗадние(deal.back ?? []);
+    setЁмкостиПолок(deal.caps ?? null);
     /**
      * Фоновый расчёт точного минимума для ЭТОЙ доски (см. `exactMinRef`).
      * ⚠️ `setTimeout(0)` обязателен: без него поиск съел бы первый кадр партии.
@@ -904,6 +929,17 @@ export default function GoodsSortGame() {
     setGridDim({ cols: r.cols, rows: r.rows });
     setMask(r.mask);
     setCells(r.cells);
+    /*
+     * Поля схлопывания поднимаются вместе с доской. Их отсутствие — законное
+     * состояние (уровень без механики), и тогда всё обнуляется явно: иначе
+     * очередь от прошлой партии дожила бы до новой и подала бы полку туда, где
+     * её никто не ждёт.
+     */
+    setНомера(r.ids ?? []);
+    setЁмкостиПолок(r.caps ?? null);
+    setСтолбецНиши(r.col ?? []);
+    setОчередь(r.queue ?? []);
+    setЗадние(r.back ?? []);
     setObstacles(r.obstacles);
     setCovered(new Set(r.covered));
     setFrozen(r.frozen);
@@ -943,6 +979,18 @@ export default function GoodsSortGame() {
       cols: gridDim.cols, rows: gridDim.rows,
       mask, cells, obstacles,
       covered: Array.from(covered),
+      /*
+       * ⚠️ Очередь, задние ряды, номера и ёмкости полок — часть партии, лежащая
+       * НЕ на доске. Без них возврат на уровень с L52 отдал бы доску с неполным
+       * мультимножеством: закрыть тройки нечем, а «уровень проверен» уже
+       * обещано. Пусто на уровнях без механики — так и записывается.
+       */
+      ...(расширеннаяДоска ? {
+        ids: [...номера], caps: [...caps],
+        queue: очередь.map((ш) => ({ ...ш, cell: [...ш.cell] })),
+        back: задние.map((b) => [...b]),
+        ...(схлопываниеЗдесь ? { col: [...столбецНиши] } : {}),
+      } : {}),
       frozen, goal,
       moves, moveLimit: moveLimitRef.current,
       score, cleared, shuffles, hints,
@@ -1167,8 +1215,56 @@ export default function GoodsSortGame() {
   /** Ёмкости ниш этого уровня. Одинаковые до 18-го, дальше вперемешку. */
   // Ёмкости — от живой доски (см. capsForBoard): маска формы меняет число ниш
   // при неизменной сетке, и зависимость от cols/rows этого не видит.
-  const caps = useMemo(() => capsForBoard(level, cells), [level, cells.length]);
+  /*
+   * ⚠️ НА УРОВНЯХ СХЛОПЫВАНИЯ ЁМКОСТЬ ЕДЕТ С ПОЛКОЙ. `capsForBoard` выводит её
+   * из НОМЕРА МЕСТА — верно, пока места не меняют содержимое. Стоит столбцу
+   * осесть, и полка на четыре окажется на месте, которому положено три:
+   * четвёртый товар либо не влезет, либо влезет туда, где его не нарисуют.
+   */
+  const caps = useMemo(
+    () => (ёмкостиПолок && ёмкостиПолок.length === cells.length ? ёмкостиПолок : capsForBoard(level, cells)),
+    [level, cells.length, ёмкостиПолок],
+  );
   const capOf = (i: number) => caps[i] ?? CAP;
+  /*
+   * 🔴 ДВА РАЗНЫХ ПРИЗНАКА, И ПУТАТЬ ИХ НЕЛЬЗЯ.
+   *
+   *   `расширеннаяДоска` — у полок есть НОМЕРА, а значит могут быть очередь и
+   *                        задние ряды. Идёт с L52.
+   *   `схлопываниеЗдесь` — есть ещё и СТОЛБЦЫ, то есть полка закрывается и
+   *                        столбец оседает. Идёт с L56.
+   *
+   * ⚠️ Сначала я оставил один признак — «есть столбцы» — и на L52…L55 экран
+   * собирал бы доску БЕЗ задних рядов: товары за спиной просто не существовали
+   * бы для игры, хотя раздача их выдала и решатель их считает.
+   *
+   * Спрашиваем У ДОСКИ, а не у номера уровня: доска приходит из раздачи, и
+   * только она знает, что в ней есть.
+   */
+  const расширеннаяДоска = номера.length === cells.length && cells.length > 0;
+  const схлопываниеЗдесь = расширеннаяДоска && столбецНиши.length === cells.length;
+  /**
+   * 🔴 ЧТО КЛАДЁТСЯ В СНИМОК ДЛЯ ОТМЕНЫ. Часть партии лежит НЕ на доске: полки
+   * ждут в очереди, вторые ряды — за спиной, а закрытые полки ушли совсем.
+   * Верни один `cells` — и отмена подарила бы игроку товары закрытой полки при
+   * укороченной очереди: мультимножество перестало бы быть замкнутым.
+   */
+  const снимокСхлопывания = () => (расширеннаяДоска ? {
+    queue: очередь.map((ш) => ({ ...ш, cell: [...ш.cell] })),
+    back: задние.map((b) => [...b]),
+    ids: [...номера],
+    caps: [...caps],
+  } : {});
+  /** Собрать доску ядра целиком — со столбцами, очередью и задними рядами. */
+  const доскаЯдра = (c: number[][]) => (расширеннаяДоска
+    ? makeBoard(c, caps, {
+      jokers,
+      col: схлопываниеЗдесь ? столбецНиши : undefined,
+      ids: номера,
+      queue: очередь,
+      back: задние,
+    })
+    : makeBoard(c, caps, jokers));
   /**
    * Ниши-джокеры этого уровня. Считаются от ЖИВОЙ доски по той же причине, что и
    * ёмкости: число ниш задаёт маска формы, а не размер сетки.
@@ -1225,8 +1321,9 @@ export default function GoodsSortGame() {
       moves: movesRef.current,
       score: scoreRef.current,
       cleared,
+      ...снимокСхлопывания(),
     });
-    const ns = cells.map((c) => [...c]);
+    let ns = cells.map((c) => [...c]);
     const [item] = ns[fromCell].splice(fromIdx, 1);
     ns[toCell].push(item);
     // Копия летит из ниши в нишу. Запускаем ДО смены доски: геометрия та же,
@@ -1248,28 +1345,43 @@ export default function GoodsSortGame() {
       }
       st.lastMove = { from: fromCell, to: toCell, type: item };
     }
-    // каскад: любая ячейка с 3 одинаковыми → собрать (+50). Спокойно, без таймед-комбо.
-    let clearedNow = 0; let gained = 0; let again = true;
-    const clearedTypes: number[] = [];
-    const clearedCells: number[] = [];   // какие ниши вспыхнут
-    while (again) {
-      again = false;
-      for (let i = 0; i < gridRef.current.slots; i++) {
-        const tri = tripleIn(ns[i]);
-        if (tri !== null) {
-          clearedTypes.push(tri); clearedCells.push(i); ns[i] = removeTriple(ns[i], tri); clearedNow += 1; again = true;
-          /**
-           * 🔴 КОМБО-МНОЖИТЕЛЬ. Раньше каждая тройка давала ровно 50, сколько бы
-           * их ни ссыпалось разом, — при том что звук `sndCombo` играл, а справка
-           * обещала «×2, ×3». То есть игра поощряла звуком то, за что не платила.
-           * Вторая тройка в одном ходу даёт ×2, третья ×3 и дальше: цепочка
-           * стоит дороже той же работы вразбивку, и её есть смысл выстраивать.
-           */
-          // Цена цепочки считается ОДНОЙ функцией (`scoreForClears`) — она же
-          // проверяется гейтом исполнением, а не совпадением строки.
-          gained = scoreForClears(clearedNow);
-        }
-      }
+    /**
+     * 🔴 КАСКАД СЧИТАЕТ ЯДРО, А НЕ ЭКРАН — И ЭТО НЕ ПЕРЕЕЗД РАДИ ПОРЯДКА.
+     *
+     * Здесь стоял свой цикл разбора троек: точная копия того, что делает
+     * `collapseTriples`. Пока правило было одно («три одинаковых исчезают»),
+     * копия сходилась с оригиналом. С L52 правил стало четыре — задний ряд
+     * выходит вперёд, полная полка закрывается, столбец оседает, сверху
+     * приходит из очереди, — и вторая копия начала бы врать. А доказательство
+     * решаемости, значок «уровень проверен» и подсказка считаются ПО ЯДРУ:
+     * разойдись экран с ним, и человек увидел бы одно, а обещано было другое.
+     *
+     * Отчёт возвращает НОМЕРА полок, а не места: место под ногами меняется.
+     */
+    const отчёт: CollapseReport = makeReport();
+    const послеХода = collapseTriples(доскаЯдра(ns), отчёт);
+    const номераДо = номера;
+    const номераПосле = (послеХода.ids ?? []) as number[];
+    ns = (послеХода.cells as number[][]).map((c) => [...c]);
+    /** Место полки на НОВОЙ доске. Без схлопывания номер и есть место. */
+    const местоПолки = (id: number) => (расширеннаяДоска ? номераПосле.indexOf(id) : id);
+    const clearedTypes = отчёт.clearedTypes;
+    const clearedNow = clearedTypes.length;
+    const clearedCells = отчёт.clearedIds.map(местоПолки).filter((i) => i >= 0);
+    /**
+     * 🔴 КОМБО-МНОЖИТЕЛЬ. Раньше каждая тройка давала ровно 50, сколько бы их ни
+     * ссыпалось разом, — при том что звук `sndCombo` играл, а справка обещала
+     * «×2, ×3». То есть игра поощряла звуком то, за что не платила. Вторая
+     * тройка в одном ходу даёт ×2, третья ×3 и дальше.
+     * Цена цепочки считается ОДНОЙ функцией (`scoreForClears`) — она же
+     * проверяется гейтом исполнением, а не совпадением строки.
+     */
+    const gained = clearedNow > 0 ? scoreForClears(clearedNow) : 0;
+    if (расширеннаяДоска) {
+      setНомера(номераПосле);
+      setОчередь((послеХода.queue ?? []) as Shelf[]);
+      setЗадние(((послеХода.back ?? []) as number[][]).map((b) => [...b]));
+      setЁмкостиПолок([...послеХода.caps]);
     }
     /**
      * СНЯТИЕ ПРЕПЯТСТВИЙ — после каскада, потому что снимает именно СБОР тройки.
@@ -1288,7 +1400,14 @@ export default function GoodsSortGame() {
           next[i] = left <= 0 ? null : { kind: 'locked', movesLeft: left };
           changed = true;
         } else if (o.kind === 'blocked' && clearedTypes.length) {
-          if (neighboursOf(i).some((n) => ns[n].length === 0 && cells[n].length > 0)) { next[i] = null; changed = true; }
+          /*
+           * ⚠️ УСЛОВИЕ — «ТРОЙКА СОБРАЛАСЬ ПО СОСЕДСТВУ», А НЕ «СОСЕД ОПУСТЕЛ».
+           * Формулировки совпадали, пока ниша после тройки оставалась пустой.
+           * Со схлопыванием опустевшее место тут же занимает полка из очереди —
+           * сосед снова полон, и закрытая ниша не открылась бы никогда, хотя
+           * тройку игрок собрал именно рядом с ней.
+           */
+          if (neighboursOf(i).some((n) => clearedCells.includes(n))) { next[i] = null; changed = true; }
         }
       });
       if (changed) setObstacles(next);
@@ -1309,7 +1428,28 @@ export default function GoodsSortGame() {
        * силуэт на товаре, давно вставшем спереди, — расходясь со справкой
        * накрытого товара; вскрытие по фронту чинит и её, и «?» режима §20.
        */
-      nextCov = revealUncovered(shiftCoveredAfterTake(covered, fromCell, fromIdx), ns);
+      /*
+       * 🔴 КЛЮЧИ СКРЫТОСТИ ЕДУТ ВСЛЕД ЗА ПОЛКОЙ, А НЕ ОСТАЮТСЯ ПРИ МЕСТЕ.
+       * Ключ выглядит как «место:номер товара», а со схлопыванием место под
+       * полкой меняется: столбец осел — и силуэт «?» показывал бы товар из
+       * чужой ниши. Переносим по НОМЕРУ полки; ключи закрывшихся полок
+       * выбрасываем — прятать больше нечего.
+       */
+      const сдвинутые = shiftCoveredAfterTake(covered, fromCell, fromIdx);
+      let наМестах: Iterable<string> = сдвинутые;
+      if (расширеннаяДоска) {
+        const местоПоНомеру = new Map<number, number>();
+        номераПосле.forEach((id, i) => местоПоНомеру.set(id, i));
+        const переехали = new Set<string>();
+        сдвинутые.forEach((k) => {
+          const [место, вНише] = k.split(':');
+          const id = номераДо[Number(место)];
+          const новое = id === undefined ? undefined : местоПоНомеру.get(id);
+          if (новое !== undefined) переехали.add(`${новое}:${вНише}`);
+        });
+        наМестах = Array.from(переехали);
+      }
+      nextCov = revealUncovered(наМестах, ns);
       // Первое вскрытие: ключи в этом переходе только умирают, поэтому
       // «стало меньше» = «что-то вскрылось». Вскрывший ход входит в счёт.
       if (hiddenHere && hiddenStatsRef.current.movesBeforeFirstReveal === null && nextCov.length < covered.size) {
@@ -1647,6 +1787,10 @@ export default function GoodsSortGame() {
     const snap = history.undo();
     if (!snap) return;
     setCells(snap.cells.map((c) => [...c]));
+    if (snap.ids) setНомера([...snap.ids]);
+    if (snap.caps) setЁмкостиПолок([...snap.caps]);
+    if (snap.queue) setОчередь(snap.queue.map((ш) => ({ ...ш, cell: [...ш.cell] })));
+    if (snap.back) setЗадние(snap.back.map((b) => [...b]));
     setObstacles(snap.obstacles.slice());
     setCovered(new Set(snap.covered));
     setFrozen(snap.frozen);
@@ -1738,6 +1882,7 @@ export default function GoodsSortGame() {
     history.push({
       cells: cells.map((c) => [...c]), obstacles: obstacles.slice(), covered: Array.from(covered),
       frozen, moves: movesRef.current, score: scoreRef.current, cleared,
+      ...снимокСхлопывания(),
     });
     setShuffles((n) => n - 1);
     movesRef.current += 1; setMoves(movesRef.current);

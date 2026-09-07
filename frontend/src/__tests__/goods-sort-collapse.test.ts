@@ -204,7 +204,14 @@ describe('раздача со схлопыванием', () => {
       expect((наДоске + вОчереди + заСпиной) % 3).toBe(0);
       expect(d.caps.length).toBe(d.cells.length);
       expect(d.ids.length).toBe(d.cells.length);
-      expect(d.col.length).toBe(d.cells.length);
+      /*
+       * ⚠️ Столбцы есть ТОЛЬКО там, где заказано схлопывание: их наличие и
+       * включает механику в ядре. На уровнях одних задних рядов (L52…L55) их
+       * быть не должно — иначе полки закрывались бы за четыре уровня до того,
+       * как окно правил об этом скажет.
+       */
+      if (collapseLevel(L)) expect((d.col as number[]).length).toBe(d.cells.length);
+      else expect(d.col).toBeUndefined();
     }
   });
 
@@ -478,9 +485,32 @@ describe('номера ниш — устойчивые адреса', () => {
    * четырёх заданных руками нишах — а дефект живёт на настоящей доске, где
    * столбцов четыре и мест два десятка. Мерить надо там, где он бывает.
    */
+
+  /**
+   * 🔴 МЕХАНИКА НЕ ПОЯВЛЯЕТСЯ РАНЬШЕ СВОЕГО ОКНА ПРАВИЛ.
+   *
+   * Задние ряды идут с L52, схлопывание — с L56. Между ними четыре уровня, где
+   * полка НЕ должна закрываться: собрал тройку — ниша просто опустела.
+   */
+  it('🔴 до порога схлопывания полная тройка оставляет ПУСТУЮ нишу, а не закрывает полку', () => {
+    let проверено = 0;
+    for (let L = BACK_FROM; L < COLLAPSE_FROM; L += 1) {
+      if (!backRowLevel(L)) continue;
+      проверено += 1;
+      const d = dealCollapse(L, pool, false);
+      expect(d.col).toBeUndefined();
+      const b = makeBoard(d.cells, d.caps, { ids: d.ids, queue: d.queue, back: d.back });
+      const было = b.cells.length;
+      const после = collapseTriples(b);
+      expect(после.cells.length).toBe(было);       // мест столько же
+      expect(после.col).toBeUndefined();           // и столбцов не завелось
+    }
+    expect(проверено).toBeGreaterThan(0);
+  });
+
   it('🔴 `col` не меняется НИ РАЗУ за партию на настоящей доске', () => {
     const d = dealCollapse(58, pool, false);
-    const геометрия = [...d.col];
+    const геометрия = [...(d.col as number[])];
     expect(new Set(геометрия).size).toBeGreaterThan(1);   // столбцов правда несколько
     let b = makeBoard(d.cells, d.caps, { col: d.col, ids: d.ids, queue: d.queue, back: d.back });
     let схлопываний = 0;

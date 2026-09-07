@@ -1922,6 +1922,20 @@ export interface Snapshot {
   moves: number;
   score: number;
   cleared: number;
+  /*
+   * 🔴 ЧАСТЬ ПАРТИИ ЛЕЖИТ НЕ НА ДОСКЕ — И ОТМЕНА ОБЯЗАНА ЭТО ПОМНИТЬ.
+   *
+   * С L52 товары ждут в очереди и за спиной у ниш, а полки уходят с доски
+   * совсем. Верни один только `cells` — и отмена подарит игроку товары из
+   * закрытой полки, а очередь останется укороченной: мультимножество перестанет
+   * быть замкнутым, то есть сломается ровно то, на чём стоит доказуемость.
+   *
+   * Поля необязательные: на уровнях без схлопывания их просто нет.
+   */
+  queue?: Shelf[];
+  back?: number[][];
+  ids?: number[];
+  caps?: number[];
 }
 
 /** Живая цель уровня: план, разложенный на КОНКРЕТНУЮ доску. */
@@ -2343,7 +2357,14 @@ export function hasPair(cell: number[]): boolean {
 export const GS_GAME_ID = 'goods_sort';
 
 /** Версия формата снимка. Поменяли набор полей — подняли номер, старые записи просто не поднимутся. */
-export const GS_RESUME_V = 1;
+/*
+ * ⚠️ ВЕРСИЯ ПОДНЯТА 07.09.2026 — в сохранение партии добавлены очередь, задние
+ * ряды, номера и ёмкости полок. Старая запись (v1) на уровне с L52 вернула бы
+ * доску с неполным мультимножеством: тройки нечем закрыть, уровень не пройти.
+ * Поднятая версия отбрасывает такие записи — лучше начать уровень заново, чем
+ * посадить человека за нерешаемую доску.
+ */
+export const GS_RESUME_V = 2;
 
 /** Задержка отложенной записи: каскад из нескольких троек не бьёт по хранилищу каждым шагом. */
 export const GS_RESUME_DEBOUNCE_MS = 400;
@@ -2436,7 +2457,34 @@ export const normHistoryStep = (s: any, slots: number, rows: number): Snapshot |
     moves: Math.max(0, Math.floor(Number(s.moves) || 0)),
     score: Math.max(0, Math.floor(Number(s.score) || 0)),
     cleared: Math.max(0, Math.floor(Number(s.cleared) || 0)),
+    ...normCollapseFields(s, slots),
   };
+};
+
+/**
+ * Поля схлопывания из хранилища. Возвращает пустой объект, если их нет или они
+ * непригодны, — тогда партия просто восстановится как обычная.
+ *
+ * ⚠️ Кривые данные ЛУЧШЕ ОТБРОСИТЬ ЦЕЛИКОМ, чем чинить по частям: очередь без
+ * номеров ниш или задние ряды не той длины дадут доску, которой не бывает.
+ */
+export const normCollapseFields = (s: any, slots: number): Partial<Snapshot> => {
+  const out: Partial<Snapshot> = {};
+  const числа = (a: any, n: number): number[] | null =>
+    Array.isArray(a) && a.length === n && a.every((x) => Number.isInteger(x)) ? a.map(Number) : null;
+  const ids = числа(s?.ids, slots);
+  const caps = числа(s?.caps, slots);
+  const back = Array.isArray(s?.back) && s.back.length === slots && s.back.every(isCellShape)
+    ? (s.back as number[][]).map((b) => [...b]) : null;
+  const queue = Array.isArray(s?.queue)
+    && (s.queue as any[]).every((x) => x && isCellShape(x.cell) && Number.isInteger(x.cap))
+    ? (s.queue as Shelf[]).map((x) => ({ cell: [...x.cell], cap: x.cap, joker: x.joker === true }))
+    : null;
+  if (ids) out.ids = ids;
+  if (caps) out.caps = caps;
+  if (back) out.back = back;
+  if (queue) out.queue = queue;
+  return out;
 };
 
 /** Счётчик-остаток из хранилища: не отрицательный и не больше выданного на уровень. */
@@ -2617,7 +2665,8 @@ export function dealCollapse(L: number, pool: number[], narrow = false, attempts
   cfg: ReturnType<typeof levelCfg>;
   cells: number[][];
   caps: number[];
-  col: number[];
+  /** Есть только там, где заказано схлопывание: наличие столбцов и включает механику. */
+  col: number[] | undefined;
   ids: number[];
   queue: Shelf[];
   back: number[][];
@@ -2673,7 +2722,7 @@ export function dealCollapse(L: number, pool: number[], narrow = false, attempts
   const запасCells = generate(pool, cfg.types, cfg.spares + cfg.obst.blocked + cfg.obst.locked, cfg.slots, всеCaps);
   return {
     cfg, cells: запасCells, caps: всеCaps,
-    col: запасCells.map((_, i) => i % cols),
+    col: collapseLevel(L) ? запасCells.map((_, i) => i % cols) : undefined,
     ids: запасCells.map((_, i) => i),
     queue: [], back: запасCells.map(() => []),
     proven: coreSolvable(makeBoard(запасCells, всеCaps), 20000), tries: всегоПопыток,
@@ -2750,7 +2799,19 @@ export function dealCollapse(L: number, pool: number[], narrow = false, attempts
     const caps = всеCaps;
     const задниеРяды = back.map((b, i) => (вОчередь.has(i) ? [] : b));
     const queue: Shelf[] = [...вОчередь].map((i) => ({ cell: все[i] as number[], cap: всеCaps[i] as number }));
-    const col = cells.map((_, i) => i % cols);
+    /*
+     * 🔴 СТОЛБЦЫ ОТДАЮТСЯ ТОЛЬКО ТАМ, ГДЕ ЗАКАЗАНО СХЛОПЫВАНИЕ.
+     *
+     * ⚠️ Наличие `col` — это и есть выключатель механики в ядре: увидев столбцы,
+     * `collapseTriples` начинает ЗАКРЫВАТЬ полные полки и осаживать столбец.
+     * Раздача ставила их всегда, а задние ряды идут с L52 — то есть на L52…L55
+     * полки закрывались бы за четыре уровня до того, как окно правил об этом
+     * скажет (порог схлопывания L56). Замер 07.09.2026: L52, L53, L55 приходили
+     * со столбцами при нулевой очереди.
+     *
+     * Задним рядам столбцы не нужны: их выход вперёд живёт в обеих ветках.
+     */
+    const col = collapseLevel(L) ? cells.map((_, i) => i % cols) : undefined;
     const ids = cells.map((_, i) => i);
     const естьЗадние = задниеРяды.some((b) => b.length > 0);
     const доска = makeBoard(cells, caps, естьЗадние ? { col, ids, queue, back: задниеРяды } : { col, ids, queue });
@@ -2829,6 +2890,20 @@ export interface GoodsResume {
   cleared: number;
   shuffles: number;
   hints: number;
+  /*
+   * 🔴 ЧАСТЬ ПАРТИИ ЛЕЖИТ НЕ НА ДОСКЕ (с L52). Полки ждут в очереди, вторые ряды
+   * стоят за спиной у ниш, ёмкость едет вместе с полкой, а номер полки — это
+   * адрес, к которому привязаны ключи скрытости.
+   *
+   * ⚠️ Без них возврат на уровень отдаёт доску с неполным мультимножеством:
+   * тройки нечем закрыть, а значок «уровень проверен» уже показан. Поля
+   * необязательные — на уровнях без механики их просто нет.
+   */
+  ids?: number[];
+  caps?: number[];
+  col?: number[];
+  queue?: Shelf[];
+  back?: number[][];
   /** Лента отмены целиком: каждый её шаг — полный снимок доски. */
   history: MoveStackData<Snapshot>;
   /** Накопленное ИГРОВОЕ время партии, мс. */
@@ -2863,6 +2938,20 @@ export interface GoodsLiveParty {
   cleared: number;
   shuffles: number;
   hints: number;
+  /*
+   * 🔴 ЧАСТЬ ПАРТИИ ЛЕЖИТ НЕ НА ДОСКЕ (с L52). Полки ждут в очереди, вторые ряды
+   * стоят за спиной у ниш, ёмкость едет вместе с полкой, а номер полки — это
+   * адрес, к которому привязаны ключи скрытости.
+   *
+   * ⚠️ Без них возврат на уровень отдаёт доску с неполным мультимножеством:
+   * тройки нечем закрыть, а значок «уровень проверен» уже показан. Поля
+   * необязательные — на уровнях без механики их просто нет.
+   */
+  ids?: number[];
+  caps?: number[];
+  col?: number[];
+  queue?: Shelf[];
+  back?: number[][];
   /** Сделан хотя бы один неотменённый ход. */
   canUndo: boolean;
   history: MoveStackData<Snapshot>;
@@ -2877,6 +2966,12 @@ export interface GoodsLiveParty {
 
 /** Поднятая партия: экран раскладывает это по своим состояниям. */
 export interface GoodsRestored {
+  /** Поля схлопывания — см. `GoodsResume`. Есть только на уровнях с механикой. */
+  ids?: number[];
+  caps?: number[];
+  col?: number[];
+  queue?: Shelf[];
+  back?: number[][];
   level: number;
   setKey: string;
   cols: number;
@@ -2925,6 +3020,11 @@ export function snapshotGoodsParty(live: GoodsLiveParty, now: number): GoodsResu
     obstacles: live.obstacles.map((o) => (o ? { ...o } : null)),
     covered: [...live.covered],
     frozen: live.frozen ? { ...live.frozen } : null,
+    ...(live.ids ? { ids: [...live.ids] } : {}),
+    ...(live.caps ? { caps: [...live.caps] } : {}),
+    ...(live.col ? { col: [...live.col] } : {}),
+    ...(live.queue ? { queue: live.queue.map((ш) => ({ ...ш, cell: [...ш.cell] })) } : {}),
+    ...(live.back ? { back: live.back.map((b) => [...b]) } : {}),
     goal: live.goal,
     moves: live.moves,
     moveLimit: live.moveLimit,
@@ -3004,6 +3104,15 @@ export function restoreGoodsParty(saved: GoodsResume | null | undefined, now: nu
     obstacles: Array.from({ length: slots }, (_, i) => normObstacle((Array.isArray(saved.obstacles) ? saved.obstacles : [])[i])),
     covered: normCovered(saved.covered, cells),
     frozen: normFrozen(saved.frozen, rows),
+    /*
+     * Поля схлопывания поднимаются тем же нормализатором, что и в ленте отмены.
+     * ⚠️ Кривые отбрасываются ЦЕЛИКОМ, а не чинятся по частям: очередь без
+     * номеров или задние ряды не той длины дадут доску, которой не бывает.
+     * Тогда партия просто поднимется как обычная — это честнее, чем догадка.
+     */
+    ...normCollapseFields(saved, slots),
+    ...((saved as any).col && Array.isArray((saved as any).col) && (saved as any).col.length === slots
+      ? { col: ((saved as any).col as number[]).map(Number) } : {}),
     goal,
     moves,
     moveLimit,
