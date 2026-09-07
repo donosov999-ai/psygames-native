@@ -2442,5 +2442,15 @@ const t: Record<string, string> = {
   "mahjongRestartLevel": "स्तर फिर से शुरू करें",
   "anagramBonusJar": "बोनस",
   // >>> SCREEN_STRINGS
+  "lr_digit_span_surprise_dir_title": "दिशा बाद में बताई जाएगी",
+  "lr_digit_span_surprise_dir_rule": "इस स्तर से आपको यह दिखाने के बाद बताया जाएगा कि क्रम कैसे लौटाना है — सीधा, उल्टा या बढ़ते क्रम में। जब तक पूछा न जाए, उसे वैसे ही याद रखें जैसा देखा था।",
+  "lr_digit_span_surprise_dir_example": "आपने 5-2-8-1 देखा, और अब जाकर लिखा है «बढ़ते क्रम में» — उत्तर है 1-2-5-8।",
+  "lr_memory_matrix_two_series_title": "लगातार दो समूह",
+  "lr_memory_matrix_two_series_rule": "अब अलग-अलग रंगों के दो समूह एक के बाद एक जलते हैं। उन्हें बारी-बारी दोहराएँ: पहले बैंगनी समूह, फिर लाल।",
+  "lr_memory_matrix_two_series_example": "पहले तीन बैंगनी खाने चमके, फिर तीन लाल — बैंगनी से शुरू करें।",
+  "lr_memory_matrix_decoys_title": "क्रॉस वाले याद न करें",
+  "lr_memory_matrix_decoys_rule": "कुछ खाने क्रॉस के साथ जलते हैं — ये बाधाएँ हैं। इन्हें याद करने की ज़रूरत नहीं और दबाना मना है: यह गलती मानी जाएगी।",
+  "lr_memory_matrix_decoys_example": "चार खाने चमके, उनमें एक पर क्रॉस था — तीन याद रखें।",
+  "mmIgnoreCrossed": "क्रॉस वाले छोड़ें",
 };
 export default t;

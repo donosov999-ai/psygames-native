@@ -2434,5 +2434,15 @@ const t: Record<string, string> = {
   "mahjongRestartLevel": "Ricomincia il livello",
   "anagramBonusJar": "Bonus",
   // >>> SCREEN_STRINGS
+  "lr_digit_span_surprise_dir_title": "La direzione arriva dopo",
+  "lr_digit_span_surprise_dir_rule": "Da questo livello scopri COME restituire la serie solo DOPO averla vista: in avanti, all’indietro o in ordine crescente. Tienila com’era finché non te lo chiedono.",
+  "lr_digit_span_surprise_dir_example": "Hai visto 5-2-8-1 e solo ora compare «crescente»: la risposta è 1-2-5-8.",
+  "lr_memory_matrix_two_series_title": "Due gruppi di seguito",
+  "lr_memory_matrix_two_series_rule": "Ora si accendono due gruppi di celle di colori diversi, uno dopo l’altro. Ripetili a turno: prima il gruppo viola, poi quello rosso.",
+  "lr_memory_matrix_two_series_example": "Prima hanno lampeggiato tre celle viola, poi tre rosse: inizia dalle viola.",
+  "lr_memory_matrix_decoys_title": "Non memorizzare le barrate",
+  "lr_memory_matrix_decoys_rule": "Alcune celle si accendono con una croce: sono distrattori. Non vanno memorizzate e non si possono toccare: conta come errore.",
+  "lr_memory_matrix_decoys_example": "Hanno lampeggiato quattro celle, una con la croce: memorizzane tre.",
+  "mmIgnoreCrossed": "Salta le barrate",
 };
 export default t;

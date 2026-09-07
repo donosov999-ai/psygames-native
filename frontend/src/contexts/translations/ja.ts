@@ -2433,5 +2433,15 @@ const t: Record<string, string> = {
   "mahjongRestartLevel": "レベルをやり直す",
   "anagramBonusJar": "ボーナス",
   // >>> SCREEN_STRINGS
+  "lr_digit_span_surprise_dir_title": "向きは後から伝えます",
+  "lr_digit_span_surprise_dir_rule": "このレベルからは、並びをどう答えるか（そのまま・逆順・小さい順）が表示の“後”に伝えられます。聞かれるまでは、見たままの並びで覚えておいてください。",
+  "lr_digit_span_surprise_dir_example": "5-2-8-1 を見たあとで「小さい順」と表示されたら、答えは 1-2-5-8 です。",
+  "lr_memory_matrix_two_series_title": "二組続けて",
+  "lr_memory_matrix_two_series_rule": "色の違うマスの組が二つ、続けて光ります。順番に再現してください。先に紫の組、次に赤の組です。",
+  "lr_memory_matrix_two_series_example": "紫のマスが三つ光り、次に赤が三つ光ったら、紫から選びます。",
+  "lr_memory_matrix_decoys_title": "バツ印は覚えない",
+  "lr_memory_matrix_decoys_rule": "一部のマスはバツ印つきで光ります。これは妨害です。覚える必要はなく、押してもいけません。押すと誤答になります。",
+  "lr_memory_matrix_decoys_example": "四つ光ってそのうち一つがバツ印なら、覚えるのは三つです。",
+  "mmIgnoreCrossed": "バツ印は飛ばす",
 };
 export default t;

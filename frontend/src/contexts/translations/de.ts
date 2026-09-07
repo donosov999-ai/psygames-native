@@ -2439,5 +2439,15 @@ const t: Record<string, string> = {
   "mahjongRestartLevel": "Level neu starten",
   "anagramBonusJar": "Bonus",
   // >>> SCREEN_STRINGS
+  "lr_digit_span_surprise_dir_title": "Die Richtung kommt danach",
+  "lr_digit_span_surprise_dir_rule": "Ab diesem Level erfährst du erst NACH der Anzeige, WIE du die Reihe zurückgeben sollst: vorwärts, rückwärts oder aufsteigend. Halte sie so, wie du sie gesehen hast, bis gefragt wird.",
+  "lr_digit_span_surprise_dir_example": "Du hast 5-2-8-1 gesehen, und erst jetzt steht da «aufsteigend» — die Antwort ist 1-2-5-8.",
+  "lr_memory_matrix_two_series_title": "Zwei Sätze nacheinander",
+  "lr_memory_matrix_two_series_rule": "Jetzt leuchten zwei Zellensätze in verschiedenen Farben auf, einer nach dem anderen. Gib sie der Reihe nach wieder: zuerst den violetten Satz, dann den roten.",
+  "lr_memory_matrix_two_series_example": "Zuerst blinkten drei violette Zellen, dann drei rote — beginne mit den violetten.",
+  "lr_memory_matrix_decoys_title": "Durchgestrichene nicht merken",
+  "lr_memory_matrix_decoys_rule": "Manche Zellen leuchten mit einem Kreuz auf — das sind Störer. Sie musst du dir nicht merken, und antippen darfst du sie nicht: das zählt als Fehler.",
+  "lr_memory_matrix_decoys_example": "Vier Zellen blinkten, eine davon mit Kreuz — merke dir drei.",
+  "mmIgnoreCrossed": "Durchgestrichene überspringen",
 };
 export default t;

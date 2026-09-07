@@ -2434,5 +2434,15 @@ const t: Record<string, string> = {
   "mahjongRestartLevel": "Recommencer le niveau",
   "anagramBonusJar": "Bonus",
   // >>> SCREEN_STRINGS
+  "lr_digit_span_surprise_dir_title": "Le sens vient après",
+  "lr_digit_span_surprise_dir_rule": "À partir de ce niveau, tu apprends COMMENT rendre la suite seulement APRÈS l’avoir vue : à l’endroit, à l’envers ou en ordre croissant. Garde-la telle quelle jusqu’à ce qu’on te le demande.",
+  "lr_digit_span_surprise_dir_example": "Tu as vu 5-2-8-1, et ce n’est que maintenant qu’il est écrit « ordre croissant » : la réponse est 1-2-5-8.",
+  "lr_memory_matrix_two_series_title": "Deux séries de suite",
+  "lr_memory_matrix_two_series_rule": "Deux ensembles de cases s’allument maintenant dans des couleurs différentes, l’un après l’autre. Reproduis-les tour à tour : d’abord l’ensemble violet, puis le rouge.",
+  "lr_memory_matrix_two_series_example": "D’abord trois cases violettes ont clignoté, puis trois rouges — commence par les violettes.",
+  "lr_memory_matrix_decoys_title": "Ne retiens pas les barrées",
+  "lr_memory_matrix_decoys_rule": "Certaines cases s’allument avec une croix : ce sont des leurres. Il ne faut pas les retenir ni les toucher : cela compte comme une erreur.",
+  "lr_memory_matrix_decoys_example": "Quatre cases ont clignoté, dont une barrée — retiens-en trois.",
+  "mmIgnoreCrossed": "Ignore les barrées",
 };
 export default t;

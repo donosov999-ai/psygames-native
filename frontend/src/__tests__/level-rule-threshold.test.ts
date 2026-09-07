@@ -115,8 +115,14 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'memory-matrix', ключ: 'grid6', вид: 'порог', есть: (L) => matrix(L).gridSize >= 6 },
   // Правило обещает буквально «вспышка длится меньше секунды» — это и проверяем.
   { игра: 'memory-matrix', ключ: 'fast', вид: 'порог', есть: (L) => matrix(L).flashMs < 1000 },
+  /* Раздел «Объём памяти», 07.09.2026: правила заведены по долгу level-step-explained.
+     Порог берётся ИСПОЛНЕНИЕМ levelParams, а не числом из правила — иначе гейт
+     проверял бы сам себя. */
+  { игра: 'memory-matrix', ключ: 'two_series', вид: 'порог', есть: (L) => matrix(L).seriesCount === 2 },
+  { игра: 'memory-matrix', ключ: 'decoys', вид: 'порог', есть: (L) => matrix(L).decoys > 0 },
   { игра: 'mental-rotation', ключ: 'axes2', вид: 'состояние', есть: (L) => rotation(L).axes.length === 2 },
   { игра: 'mental-rotation', ключ: 'axes3', вид: 'порог', есть: (L) => rotation(L).axes.length === 3 },
+  { игра: 'digit-span', ключ: 'surprise_dir', вид: 'порог', есть: (L) => digitSpan(L).surpriseDir },
   { игра: 'n-back', ключ: 'dual', вид: 'порог', есть: (L) => nback(L).modality === 'dual' },
   { игра: 'ospan', ключ: 'hardmath', вид: 'порог', есть: (L) => ospan(L).hardMath },
   { игра: 'picture-pairs', ключ: 'triple', вид: 'состояние', есть: (L) => pairs(L).groupSize === 3 },

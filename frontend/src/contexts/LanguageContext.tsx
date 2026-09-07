@@ -3083,6 +3083,20 @@ const translations: Translations = {
   lr_memory_matrix_grid6_title: { ru: 'Сетка дошла до предела', en: 'The grid has hit its limit' },
   lr_memory_matrix_grid6_rule: { ru: 'Поле выросло до 6×6 и больше расти не будет. Дальше добавляются клетки, которые надо запомнить, и укорачивается показ.', en: 'The board has grown to 6×6 and stops there. What grows from now on is the number of cells to remember, and the display gets shorter.' },
   lr_memory_matrix_grid6_example: { ru: 'На большом поле клетки удобнее запоминать не поштучно, а фигурой: «уголок слева», «диагональ».', en: 'On a big board it is easier to remember cells as a shape — "corner on the left", "diagonal" — than one by one.' },
+  // ── Раздел «Объём памяти»: механики, объявленные 07.09.2026 по долгу гейта
+  // level-step-explained. Заводились ПОСЛЕ того, как молчаливая ось уронила main
+  // на выпуске 2.49.0 — поэтому здесь же правило для оси 5, вышедшей одновременно.
+  lr_digit_span_surprise_dir_title: { ru: 'Направление скажут потом', en: 'Direction comes after' },
+  lr_digit_span_surprise_dir_rule: { ru: 'С этого уровня вы узнаёте, КАК отдавать ряд, только после показа: прямо, задом наперёд или по возрастанию. Держите ряд как увидели — пока не спросят.', en: 'From this level you learn HOW to give the row back only after it is shown: forward, backward or in ascending order. Hold it as you saw it until you are asked.' },
+  lr_digit_span_surprise_dir_example: { ru: 'Показали 5-2-8-1, и только теперь написано «по возрастанию» — ответ 1-2-5-8.', en: 'You saw 5-2-8-1, and only now it says "ascending" — the answer is 1-2-5-8.' },
+  lr_memory_matrix_two_series_title: { ru: 'Два набора подряд', en: 'Two sets in a row' },
+  lr_memory_matrix_two_series_rule: { ru: 'Теперь загораются два набора клеток разного цвета, один за другим. Повторять их надо по очереди: сначала фиолетовый набор, потом красный.', en: 'Two sets of cells now light up in different colours, one after the other. Repeat them in turn: the purple set first, then the red one.' },
+  lr_memory_matrix_two_series_example: { ru: 'Сперва мигнули три фиолетовых клетки, потом три красных — начинайте с фиолетовых.', en: 'First three purple cells flashed, then three red ones — start with the purple.' },
+  lr_memory_matrix_decoys_title: { ru: 'Перечёркнутые не запоминать', en: 'Ignore the crossed ones' },
+  lr_memory_matrix_decoys_rule: { ru: 'Часть клеток загорается с косым крестом — это помехи. Их не надо запоминать, и нажимать их нельзя: это ошибка.', en: 'Some cells light up with a cross — these are distractors. Do not memorise them, and do not tap them: that counts as a mistake.' },
+  lr_memory_matrix_decoys_example: { ru: 'Мигнули четыре клетки, одна из них с крестом — запоминайте три.', en: 'Four cells flashed, one of them crossed — memorise three.' },
+  // Подсказка прямо на поле: карточку правил читают один раз, а крест виден каждый показ.
+  mmIgnoreCrossed: { ru: 'Перечёркнутые — мимо', en: 'Skip the crossed' },
   lr_memory_matrix_fast_title: { ru: 'Показ короче секунды', en: 'The flash is under a second' },
   lr_memory_matrix_fast_rule: { ru: 'Времени на разглядывание почти не осталось: вспышка длится меньше секунды. Успевает не тот, кто смотрит внимательнее, а тот, кто смотрит в центр и берёт поле целиком.', en: 'There is almost no time to look: the flash lasts less than a second. It is not the closer look that works but the wider one — centre your gaze and take the board in at once.' },
   lr_memory_matrix_fast_example: { ru: 'Не води взглядом по клеткам — не успеешь. Смотри в середину и лови рисунок боковым зрением.', en: 'Do not scan cell by cell, you will not make it. Look at the middle and catch the pattern with peripheral vision.' },

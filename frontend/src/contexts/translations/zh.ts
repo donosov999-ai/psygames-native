@@ -2439,5 +2439,15 @@ const t: Record<string, string> = {
   "mahjongRestartLevel": "重新开始本关",
   "anagramBonusJar": "奖励",
   // >>> SCREEN_STRINGS
+  "lr_digit_span_surprise_dir_title": "方向稍后才告诉你",
+  "lr_digit_span_surprise_dir_rule": "从本关起，要怎么复述这串数字——正序、倒序还是从小到大——要等展示结束后才会告诉你。在被问到之前，请按看到的样子记住它。",
+  "lr_digit_span_surprise_dir_example": "你看到的是 5-2-8-1，此刻才显示「从小到大」——答案是 1-2-5-8。",
+  "lr_memory_matrix_two_series_title": "连续两组",
+  "lr_memory_matrix_two_series_rule": "现在会先后亮起两组不同颜色的方格。请分两次复现：先点紫色那组，再点红色那组。",
+  "lr_memory_matrix_two_series_example": "先闪了三个紫格，再闪三个红格——先点紫的。",
+  "lr_memory_matrix_decoys_title": "打叉的不用记",
+  "lr_memory_matrix_decoys_rule": "有些方格亮起时带着一个叉——那是干扰项。不用记住它们，也不能点它们：点了算错。",
+  "lr_memory_matrix_decoys_example": "闪了四个方格，其中一个带叉——记住三个就好。",
+  "mmIgnoreCrossed": "跳过打叉的",
 };
 export default t;

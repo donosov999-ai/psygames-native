@@ -2435,5 +2435,15 @@ const t: Record<string, string> = {
   "mahjongRestartLevel": "إعادة بدء المستوى",
   "anagramBonusJar": "مكافأة",
   // >>> SCREEN_STRINGS
+  "lr_digit_span_surprise_dir_title": "الاتجاه يُقال لاحقًا",
+  "lr_digit_span_surprise_dir_rule": "من هذا المستوى ستعرف كيف تُعيد السلسلة — كما هي أو بالعكس أو تصاعديًا — بعد انتهاء العرض فقط. احتفظ بها كما رأيتها إلى أن يُطلب منك.",
+  "lr_digit_span_surprise_dir_example": "رأيت 5-2-8-1، والآن فقط ظهر «تصاعديًا» — الإجابة 1-2-5-8.",
+  "lr_memory_matrix_two_series_title": "مجموعتان تباعًا",
+  "lr_memory_matrix_two_series_rule": "تضيء الآن مجموعتان من المربعات بلونين مختلفين، واحدة تلو الأخرى. أعِدهما بالترتيب: المجموعة البنفسجية أولًا ثم الحمراء.",
+  "lr_memory_matrix_two_series_example": "أضاءت ثلاثة مربعات بنفسجية ثم ثلاثة حمراء — ابدأ بالبنفسجية.",
+  "lr_memory_matrix_decoys_title": "لا تحفظ المشطوبة",
+  "lr_memory_matrix_decoys_rule": "بعض المربعات تضيء وعليها علامة ×، وهي مشتِّتات. لا داعي لحفظها ولا يجوز الضغط عليها: يُحتسب ذلك خطأً.",
+  "lr_memory_matrix_decoys_example": "أضاءت أربعة مربعات، أحدها مشطوب — احفظ ثلاثة.",
+  "mmIgnoreCrossed": "تجاوز المشطوبة",
 };
 export default t;

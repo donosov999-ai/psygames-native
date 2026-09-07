@@ -2434,5 +2434,15 @@ const t: Record<string, string> = {
   "mahjongRestartLevel": "레벨 다시 시작",
   "anagramBonusJar": "보너스",
   // >>> SCREEN_STRINGS
+  "lr_digit_span_surprise_dir_title": "방향은 나중에 알려줍니다",
+  "lr_digit_span_surprise_dir_rule": "이 레벨부터는 숫자열을 어떻게 답할지—그대로, 거꾸로, 오름차순—를 다 보여준 뒤에 알려줍니다. 물어볼 때까지는 본 그대로 기억하세요.",
+  "lr_digit_span_surprise_dir_example": "5-2-8-1을 본 뒤에야 「오름차순」이 뜨면, 답은 1-2-5-8입니다.",
+  "lr_memory_matrix_two_series_title": "두 묶음 연속",
+  "lr_memory_matrix_two_series_rule": "이제 색이 다른 칸 묶음이 두 개, 차례로 켜집니다. 순서대로 재현하세요. 보라색 묶음 먼저, 그다음 빨간색입니다.",
+  "lr_memory_matrix_two_series_example": "보라 칸 세 개가 먼저 깜빡이고 빨간 칸 세 개가 이어지면, 보라부터 누르세요.",
+  "lr_memory_matrix_decoys_title": "가위표는 외우지 않기",
+  "lr_memory_matrix_decoys_rule": "일부 칸은 가위표와 함께 켜집니다. 방해 요소입니다. 외울 필요가 없고 눌러서도 안 됩니다. 누르면 오답입니다.",
+  "lr_memory_matrix_decoys_example": "네 칸이 깜빡였고 그중 하나가 가위표라면, 세 개만 외우세요.",
+  "mmIgnoreCrossed": "가위표는 건너뛰기",
 };
 export default t;
