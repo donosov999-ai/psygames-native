@@ -36,6 +36,7 @@ import { useProfileOptional } from '@/src/contexts/ProfileContext';
 import { dayKey, loadDayMarks, streakFromDays } from '@/src/services/earn';
 import { askReason, goalProgress, loadGoalAskedAt, loadStreakGoal, noticeReached } from '@/src/services/streakGoal';
 import { greetedToday, loadGreetedDay, markGreeted, pickGreeting } from '@/src/services/petGreeting';
+import { TAB_BAR_H, tabBarVisible } from '@/src/services/tabBar';
 import { GAMES } from '@/src/constants/games';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
@@ -87,8 +88,22 @@ const GREET_SHOW = 6000;
  * Экраны с тулбаром: игры (GameShell) и выбор зарядки. Там поднимаем питомца выше него.
  */
 const TOOLBAR_H = 74;
+
+/**
+ * 🔴 С 07.09.2026 ВНИЗУ ЕЩЁ И ТУЛБАР ВКЛАДОК, и питомец обязан ходить НАД ним.
+ *
+ * Решение Дениса в том же чек-листе: «поднять питомца над тулбаром на всех
+ * экранах». Высота берётся из `services/tabBar`, а не пишется здесь числом:
+ * её спрашивают трое (полоса, кнопка отзыва, питомец), и разъехавшись они дают
+ * ровно ту беду, что уже была на скрине Валентины 07.08 — питомец СИДЕЛ на
+ * кнопке «Начать», и нажать её было нечем.
+ *
+ * Слагаемые складываются, а не заменяют друг друга: на экране выбора зарядки
+ * есть И свой тулбар с главной кнопкой, И полоса вкладок.
+ */
 const BOTTOM_BAR_LIFT = (pathname: string): number =>
-  (pathname.startsWith('/games/') || pathname.startsWith('/warmup-picker') ? TOOLBAR_H : 0);
+  (pathname.startsWith('/games/') || pathname.startsWith('/warmup-picker') ? TOOLBAR_H : 0)
+  + (tabBarVisible(pathname) ? TAB_BAR_H : 0);
 
 export default function WalkingPet() {
   const insets = useSafeAreaInsets();

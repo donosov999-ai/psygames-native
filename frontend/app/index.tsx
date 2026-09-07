@@ -8,8 +8,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  useWindowDimensions,
-  Platform,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,7 +18,9 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
-import GameCard from '@/src/components/GameCard';
+import CategorySections from '@/src/components/CategorySections';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
+import { favouriteCategories } from '@/src/services/favouriteCategories';
 import { FEATURE_ICONS } from '@/src/constants/featureIcons';
 import { profileBadge } from '@/src/constants/profileBadges';
 import { profileBackground } from '@/src/constants/profileBackgrounds';
@@ -35,10 +35,9 @@ import { playerLevel, nextLock, levelsToNextLock } from '@/src/services/featureL
 import { chestState, earnedTotal, FIGURES } from '@/src/services/collection';
 import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic, getMusicEnabled } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
-import { GAMES, CATEGORY_ORDER, CATEGORY_META, visibleInCatalog, GameCategory, GameConfig } from '@/src/constants/games';
+import { GAMES, visibleInCatalog, GameConfig } from '@/src/constants/games';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import { loadWeakSkill, gameForWeakSkill } from '@/src/services/weakSkill';
-import { hubBadgeCount } from '@/src/constants/hubContents';
 import {
   buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildFixedPlaylist, getCurrentWeekday, loadWarmupHistory, computeStreak, WarmupHistoryEntry,
   currentSlot, WarmupSlot,
@@ -131,7 +130,6 @@ function FullHome() {
    */
   const logoPlateBg = logoPlateFor(profile?.id) === 'dark' ? '#12151AC7' : '#FFFFFFD1';
   const eveningMeta = buildEveningWarmupPlaylist({ weekday: getCurrentWeekday(), profileEvening: profile.evening_playlist });   // вечер: ротация по дню (или профильный фикс)
-  const { width: winWidth } = useWindowDimensions();
   const [duration, setDuration] = useState<5 | 10 | 15>(5);
   // З1: длительность выбирается в пикере и запоминается — превью на главной
   // обязано считаться той же цифрой, иначе карточка обещает не тот набор.
@@ -459,33 +457,12 @@ function FullHome() {
     return () => { active = false; };
   }, [profile.id, profileReady, router]);
 
-  // v1.6.1 — Container/card width strategy:
-  //
-  // WEB: используем CSS Grid через style-passthrough (RN Web поддерживает с 0.18+).
-  //      grid-template-columns: repeat(auto-fill, minmax(MIN_CARD_W, 1fr)) — браузер
-  //      сам рассчитает сколько карточек влезет, ширина гарантированно одинаковая
-  //      между секциями (это была главная проблема flex+wrap'а).
-  //      GameCard в web-режиме = width 100%, заполняет grid-ячейку.
-  //
-  // NATIVE (iOS/Android RN): grid не поддерживается, fallback на flex+wrap с
-  //      явной cardWidth в пикселях (как было). На native flex стабильно работает.
-  // Минимальная ширина карточки в сетке. ⚠️ ЗАВИСИТ ОТ ЭКРАНА, и это не украшение.
-  // При жёстких 170 на ширинах 360 и 375 — самых ходовых у телефонов — две колонки
-  // НЕ помещаются (170×2 + зазор > доступного), остаётся одна, карточка растягивается
-  // на всю ширину, а высота считается от неё: 364 точки при содержимом на 150.
-  // Замер на живом: между описанием и бейджем «Тренируем» пустовало 218 точек — шесть
-  // десятых карточки. Репорт тестировщика: «в карточке сделать меньше промежуток по
-  // высоте между заголовком и training memory».
-  // 150 возвращает две колонки на 360–375; на 320 колонка всё равно одна — там она
-  // и уместна. На широких экранах порог прежний, раскладка десктопа не меняется.
-  const MIN_CARD_WIDTH = winWidth < 480 ? 150 : 170;
-  const containerWidth = Math.min(winWidth, MAX_CONTAINER_WIDTH) - CONTAINER_PADDING * 2;
-  // Native-fallback расчёт (web игнорирует, использует grid auto-fill)
-  const cols = containerWidth >= 880 ? 5 : containerWidth >= 700 ? 4 : containerWidth >= 520 ? 3 : 2;
-  const CARD_MARGIN = 10;
-  const cardWidth = Math.floor((containerWidth - CARD_MARGIN * cols) / cols);
-  const cardHeight = Math.round(cardWidth * 1.2);
-  const isWeb = Platform.OS === 'web';
+  /*
+   * ⚠️ РАСЧЁТ ШИРИНЫ КАРТОЧЕК УЕХАЛ В `components/CategorySections`, вместе с
+   * разделами каталога. Здесь он остался бы вторым экземпляром одного знания:
+   * главная показывает три любимых раздела ТЕМ ЖЕ компонентом, что и вкладка
+   * «Игры» — все девять. Разбор переезда — в шапке того файла.
+   */
 
   // E1: filter games by active profile + hide games merged into group cards
   const visibleGames = useMemo(
@@ -493,56 +470,21 @@ function FullHome() {
     [profile],
   );
 
-  /**
-   * 🔴 В КАЖДОЙ КАТЕГОРИИ СНАЧАЛА РАЗВИЛКИ, ПОТОМ ОДИНОЧНЫЕ УПРАЖНЕНИЯ.
-   *
-   * Просьба Дениса 04.09.2026. Смысл не в красоте: развилка ведёт к нескольким
-   * играм, и когда она стоит вперемешку с одиночными, человек сперва открывает
-   * три карточки подряд, а потом узнаёт, что четвёртая содержала ещё шесть.
-   * Порядок внутри групп сохраняем прежним — он задан каталогом осознанно.
-   */
-  const grouped = useMemo(() => {
-    const map: Record<GameCategory, GameConfig[]> = {
-      memory: [], attention: [], logic: [], intuition: [], action: [], recovery: [],
-    };
-    for (const g of visibleGames) map[g.category].push(g);
-    for (const к of Object.keys(map) as GameCategory[]) {
-      // Стабильная сортировка: внутри «развилок» и внутри «одиночных» порядок каталога.
-      map[к] = [...map[к].filter((g) => g.hub), ...map[к].filter((g) => !g.hub)];
-    }
-    return map;
-  }, [visibleGames]);
 
-  /**
-   * 🔴 ЧИСЛО НА ЗНАЧКЕ РАЗВИЛКИ = ДЛИНА ТОГО САМОГО СПИСКА, ЧТО ЧЕЛОВЕК УВИДИТ.
-   *
-   * 📍 Отзыв тестировщицы 05.09.2026 (запись `291c2cff`), дословно: «написано
-   * например один а по факту там два стоит и так абсолютно во всех профилях».
-   * Замер в тот же день: расходились 6 развилок из 16, 24 пары профиль×развилка;
-   * «Зрительная память» — на значке 2, внутри 3, судоку — 1 против 5.
-   *
-   * ⚠️ ПОЧЕМУ ЭТО НЕ ЧИНИЛОСЬ ЦИФРОЙ. Здесь стоял свой подсчёт по полю
-   * `mergedInto`, а экран развилки рисовал свой рукописный список. Два источника
-   * правды, и оба по-своему верные: у игры ОДИН родитель, а стоять она вправе в
-   * НЕСКОЛЬКИХ развилках («матрица памяти» принадлежит охвату, но законно есть и
-   * в «Зрительной памяти»). Значок считал не то множество, а не ошибался в счёте.
-   *
-   * Теперь состав развилок живёт одним списком (`src/constants/hubContents.ts`),
-   * и `hubBadgeCount` — это буквально длина того, что рисует экран: не «столько
-   * же», а то же самое, одной функцией. `mergedInto` остался на своей работе —
-   * какая развилка ОТКРЫВАЕТ игру профилю (`filterAllowedGames`).
-   *
-   * ⚠️ И СЧИТАЕМ ПО ПРОФИЛЮ, А НЕ ПО ВСЕМУ КАТАЛОГУ: экран с 04.09.2026 фильтрует
-   * список, значит и обещание на значке обязано быть после фильтра.
-   */
-  const составРазвилки = useMemo(() => {
-    const можно = new Set(filterAllowedGames(profile).map((g) => g.route));
-    const из: Record<string, number> = {};
-    for (const g of GAMES) if (g.hub) из[g.id] = hubBadgeCount(g.route, можно);
-    return из;
-  }, [profile]);
 
   // «⭐ X/15» на карточках — сводка пройденных уровней (пишет LevelCleared), multiGet на фокусе
+  /**
+   * ТРИ ЛЮБИМЫХ РАЗДЕЛА — по числу сыгранных партий, из его же журнала.
+   * Разбор, почему считается по `game_type`, а не по `id` каталога, и почему при
+   * пустой истории список пуст, — в шапке `services/favouriteCategories`.
+   */
+  const партийПоИгре = useMemo(() => {
+    const из: Record<string, number> = {};
+    for (const s of sessions) if (s.game_type) из[s.game_type] = (из[s.game_type] ?? 0) + 1;
+    return из;
+  }, [sessions]);
+  const любимыеРазделы = useMemo(() => favouriteCategories(sessions, GAMES), [sessions]);
+
   const visibleGameIds = useMemo(() => visibleGames.map((g) => g.id), [visibleGames]);
   const levelStarsSummary = useAllLevelStars(profile?.id, visibleGameIds);
 
@@ -1343,56 +1285,28 @@ function FullHome() {
             Теперь «Вызов дня» стоит третьим в ряду выше — там, где Денис его и
             просил 26.08.2026: «третьей кнопкой можно поставить Вызов дня». */}
 
-        {/* === Manual category sections === */}
-        {CATEGORY_ORDER.map((cat) => {
-          const games = grouped[cat];
-          if (!games.length) return null;
-          const meta = CATEGORY_META[cat];
-          return (
-            <View key={cat} style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <View style={[styles.sectionDot, { backgroundColor: meta.color }]} />
-                <Ionicons name={meta.icon as any} size={20} color={meta.color} />
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  {t(meta.titleKey)}
-                </Text>
-                <Text style={[styles.sectionCount, { color: colors.textSecondary }]}>
-                  {games.length}
-                </Text>
-              </View>
-              {/* v1.6.1 — Web: CSS Grid (одинаковая ширина между секциями).
-                  Native: старая flex-wrap + per-card margin. */}
-              <View
-                style={isWeb ? ({
-                  // @ts-ignore — RN Web style passthrough для CSS Grid (тип ViewStyle не знает grid)
-                  display: 'grid',
-                  gridTemplateColumns: `repeat(auto-fill, minmax(${MIN_CARD_WIDTH}px, 1fr))`,
-                  gap: 10,
-                  width: '100%',
-                } as any) : styles.gamesGrid}
-              >
-                {games.map((game) => (
-                  <GameCard
-                    key={game.id}
-                    id={game.id}
-                    nameKey={game.nameKey}
-                    descKey={game.descKey}
-                    skillKey={game.skillKey}
-                    gradient={game.gradient}
-                    icon={game.icon}
-                    // На web ширина = '100%' (заполнит ячейку grid).
-                    // На native — фикс. cardWidth в px.
-                    width={isWeb ? '100%' as any : cardWidth}
-                    height={isWeb ? undefined : cardHeight}
-                    starsInfo={levelStarsSummary[game.id]}
-                    hubCount={game.hub ? составРазвилки[game.id] : undefined}
-                    onPress={() => router.push(game.route as any)}
-                  />
-                ))}
-              </View>
+        {/*
+          🔴 ТРИ ЛЮБИМЫХ РАЗДЕЛА, А НЕ ВЕСЬ КАТАЛОГ. Решение Дениса 07.09.2026:
+          каталог целиком уехал во вкладку «Игры», здесь остаются три раздела,
+          в которые он РЕАЛЬНО играл (`favouriteCategories` считает по журналу
+          партий). Замер до правки: главная занимала пять экранов прокрутки, из
+          них четыре — каталог.
+
+          ⚠️ Партий нет — блока нет вовсе, и это не пустота: выше стоит
+          «Рекомендуем сегодня» с тремя упражнениями и причиной под каждым, а
+          весь каталог лежит во вкладке в одном нажатии.
+        */}
+        {любимыеРазделы.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('favouriteSections')}</Text>
+              <TouchableOpacity accessibilityRole="button" onPress={() => router.replace('/games' as any)}>
+                <Text style={[styles.sectionCount, { color: colors.primary }]}>{`${t('allGames')} ›`}</Text>
+              </TouchableOpacity>
             </View>
-          );
-        })}
+            <CategorySections categories={любимыеРазделы} rows={1} playsByGame={партийПоИгре} />
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -1442,7 +1356,14 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   gamesContainer: {
     paddingHorizontal: CONTAINER_PADDING,
-    paddingBottom: 32,
+    /*
+     * 🔴 ОБЩИЙ ОТСТУП, А НЕ СВОЁ ЧИСЛО. Было 32 — и это работало ровно до
+     * 07.09.2026, пока внизу не появилась полоса вкладок: последняя карточка
+     * ушла ПОД неё. `FAB_CLEARANCE` — единственное место, где сложены все
+     * жильцы низа (кнопка отзыва, ходячий питомец, теперь полоса), и десять
+     * экранов уже отступают им. Одиннадцатый перестал быть исключением.
+     */
+    paddingBottom: FAB_CLEARANCE,
     maxWidth: MAX_CONTAINER_WIDTH,
     alignSelf: 'center',
     width: '100%',

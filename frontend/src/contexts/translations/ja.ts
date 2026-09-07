@@ -2437,6 +2437,10 @@ const t: Record<string, string> = {
   "goalSuggest_best_streak": "自己ベース：{n} 日",
   "goalSuggest_at_top": "すでに {n} 日達成",
   "goalSuggest_smaller": "前回は {n} — 少なめから始めよう",
+  "tabGames": "ゲーム",
+  "tabPet": "相棒",
+  "favouriteSections": "よく遊んでいるもの",
+  "andMore": "ほか {n} 件 ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "向きは後から伝えます",
   "lr_digit_span_surprise_dir_rule": "このレベルからは、並びをどう答えるか（そのまま・逆順・小さい順）が表示の“後”に伝えられます。聞かれるまでは、見たままの並びで覚えておいてください。",

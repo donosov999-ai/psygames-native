@@ -9,6 +9,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { useFocusEffect, Redirect, router } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -411,7 +412,13 @@ const styles = StyleSheet.create({
   feedText: { fontSize: 13.5, fontWeight: '800' },
   feedHint: { fontSize: 11.5, marginTop: 3 },
   autoBadge: { position: 'absolute', top: 6, right: 8 },
-  scroll: { padding: 16, alignItems: 'center', maxWidth: 520, alignSelf: 'center', width: '100%', gap: 6 },
+  // ⚠️ paddingBottom общим числом: с 07.09.2026 внизу стоит полоса вкладок, и
+  // без него последняя карточка ухода уезжала бы под неё. `FAB_CLEARANCE` уже
+  // складывает всех жильцов низа — десять экранов отступают им же.
+  scroll: {
+    padding: 16, paddingBottom: FAB_CLEARANCE, alignItems: 'center',
+    maxWidth: 520, alignSelf: 'center', width: '100%', gap: 6,
+  },
   bubble: {
     maxWidth: 260, paddingVertical: 9, paddingHorizontal: 14, borderWidth: 1,
     borderRadius: 15, borderBottomLeftRadius: 4, marginBottom: 6,

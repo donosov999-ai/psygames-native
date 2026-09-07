@@ -27,6 +27,7 @@ import GameHelpOverlay from '@/src/components/GameHelpOverlay';
 import OrientationGuard from '@/src/components/OrientationGuard';
 import FeedbackWidget from '@/src/components/FeedbackWidget';
 import WalkingPet from '@/src/components/pet/WalkingPet';
+import BottomTabBar from '@/src/components/BottomTabBar';
 import { repairWarmupHistoryOnce, loadWarmupHistory } from '@/src/services/warmup';
 import { grantWarmupCompensationOnce } from '@/src/services/tokens';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -155,6 +156,9 @@ function RootLayoutNav() {
       {/* Питомец «Синапс» гуляет по низу экрана (сам прячется в играх и на /pet;
           тумблер в настройках). Тап по нему — экран /pet */}
       <WalkingPet />
+      {/* Нижний тулбар: пять вкладок (решение Дениса 07.09.2026). Прячется сам
+          в играх, онбординге и на служебных экранах комплекса — `tabBarVisible` */}
+      <BottomTabBar />
     </>
   );
 }

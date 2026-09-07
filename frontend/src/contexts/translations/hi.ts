@@ -2446,6 +2446,10 @@ const t: Record<string, string> = {
   "goalSuggest_best_streak": "तुम्हारा रिकॉर्ड: {n} दिन",
   "goalSuggest_at_top": "तुम {n} दिन टिक चुके हो",
   "goalSuggest_smaller": "पिछली बार {n} — इस बार कम से शुरू",
+  "tabGames": "खेल",
+  "tabPet": "साथी",
+  "favouriteSections": "जो सबसे ज़्यादा खेलते हो",
+  "andMore": "{n} और ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "दिशा बाद में बताई जाएगी",
   "lr_digit_span_surprise_dir_rule": "इस स्तर से आपको यह दिखाने के बाद बताया जाएगा कि क्रम कैसे लौटाना है — सीधा, उल्टा या बढ़ते क्रम में। जब तक पूछा न जाए, उसे वैसे ही याद रखें जैसा देखा था।",

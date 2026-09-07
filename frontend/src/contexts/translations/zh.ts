@@ -2443,6 +2443,10 @@ const t: Record<string, string> = {
   "goalSuggest_best_streak": "你的纪录：{n} 天",
   "goalSuggest_at_top": "你已坚持 {n} 天",
   "goalSuggest_smaller": "上次是 {n} — 这次先少一点",
+  "tabGames": "游戏",
+  "tabPet": "伙伴",
+  "favouriteSections": "你玩得最多的",
+  "andMore": "还有 {n} 个 ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "方向稍后才告诉你",
   "lr_digit_span_surprise_dir_rule": "从本关起，要怎么复述这串数字——正序、倒序还是从小到大——要等展示结束后才会告诉你。在被问到之前，请按看到的样子记住它。",

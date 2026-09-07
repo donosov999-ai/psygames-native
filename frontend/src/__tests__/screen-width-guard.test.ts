@@ -77,7 +77,6 @@ const DEBT: string[] = [
   'app/games/trail-making.tsx',
   'app/games/visual-search.tsx',
   'app/games/word-pairs.tsx',
-  'app/index.tsx',
   'app/onboarding.tsx',
   'app/settings.tsx',
   'app/warmup-picker.tsx',

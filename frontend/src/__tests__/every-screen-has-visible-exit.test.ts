@@ -2,6 +2,7 @@
  * eslint-disable @typescript-eslint/no-require-imports — типов node в проекте нет,
  * остальные гейты читают файлы так же.
  */
+import { TABS, tabBarVisible } from '@/src/services/tabBar';
 /* eslint-disable @typescript-eslint/no-require-imports */
 declare const __dirname: string;
 const fs = require('fs');
@@ -49,12 +50,35 @@ function естьВыход(код: string): boolean {
   return /arrow-back|router\.back|goBackOrHome|goHome|router\.replace\('\/'|t\('skip'\)|name="close"|'close-'/i.test(код);
 }
 
+/**
+ * ЭКРАНЫ-ВКЛАДКИ: ВЫХОД У НИХ — НИЖНЯЯ ПОЛОСА, И ЭТО НЕ ПОБЛАЖКА.
+ *
+ * С 07.09.2026 внизу стоит тулбар из пяти вкладок, и он виден на каждом
+ * из этих экранов ВСЕГДА, без прокрутки — то есть ровно то, чего гейт и
+ * требует. Список берётся из `TABS`, а не пишется руками: заведут шестую
+ * вкладку — она попадёт сюда сама, уберут — исключение исчезнет вместе с ней.
+ *
+ * ⚠️ И ПОБЛАЖКА ЗАРАБОТАНА, А НЕ ОБЪЯВЛЕНА: ниже проверяется, что полоса на
+ * этих маршрутах действительно показывается (`tabBarVisible`). Что она при
+ * этом доходит до экрана и рисует пять целей нажатия — отдельный набор
+ * `tab-bar-reaches-screen`.
+ */
+const файлВкладки = (route: string): string =>
+  (route === '/' ? 'app/index.tsx' : `app${route}.tsx`);
+
 describe('выход виден с любого экрана', () => {
+  it('🔴 у экранов-вкладок выход — сама полоса, и она там показывается', () => {
+    for (const t of TABS) {
+      expect(`${t.route}: полоса ${tabBarVisible(t.route)}`).toBe(`${t.route}: полоса true`);
+      const f = path.join(КОРЕНЬ, файлВкладки(t.route));
+      expect(`${t.route}: экран есть ${fs.existsSync(f)}`).toBe(`${t.route}: экран есть true`);
+    }
+  });
+
   it('🔴 у каждого экрана верхнего уровня выход вообще существует', () => {
-    // Главная — исключение по смыслу: из неё выходить некуда, она и есть дом.
-    const дом = ['app/index.tsx'];
+    const вкладки = TABS.map((t) => файлВкладки(t.route));
     const безВыхода = экраны()
-      .filter((rel) => !дом.includes(rel))
+      .filter((rel) => !вкладки.includes(rel))
       .filter((rel) => !естьВыход(fs.readFileSync(path.join(КОРЕНЬ, rel), 'utf8') as string));
     expect(безВыхода).toEqual([]);
   });
