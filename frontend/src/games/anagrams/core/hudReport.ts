@@ -1,4 +1,4 @@
-/* psygames-anagram-hud-report · VER 1 · 07.09.2026 */
+/* psygames-anagrams-hud-report · VER 1 · 07.09.2026 */
 /**
  * ОТЧЁТ РЕЖИМА В ШАПКУ — ОДИН ТИП НА ЧЕТЫРЕ РЕЖИМА.
  *
