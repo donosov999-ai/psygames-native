@@ -12,9 +12,9 @@
  * полка закрывается. Проверяются ОБА, иначе «новое работает» ничего не говорит
  * о том, не сломалось ли старое.
  */
-import { makeBoard, collapseTriples, moveTop, isCleared, canPlace, TRIPLE, type Shelf } from '@/src/games/goods-sort/core/board';
+import { makeBoard, collapseTriples, moveTop, isCleared, canPlace, makeReport, TRIPLE, type Shelf } from '@/src/games/goods-sort/core/board';
 import { solveStrict, hintMove } from '@/src/games/goods-sort/core/solver';
-import { dealCollapse, collapseLevel, COLLAPSE_FROM, strictPlacement, backRowLevel, BACK_FROM, queueSize, WIDEST_POOL } from '@/src/games/goods-sort/core/level';
+import { dealCollapse, collapseLevel, COLLAPSE_FROM, strictPlacement, backRowLevel, BACK_FROM, queueSize, queueLadder, WIDEST_POOL } from '@/src/games/goods-sort/core/level';
 
 /** Доска на два столбца по две ниши. Ниша 0 ждёт третью единицу из ниши 2. */
 function стол(queue: Shelf[] = []) {
@@ -369,6 +369,17 @@ describe('очередь укорачивается, а не пропадает'
    */
   const УЗКИЙ = 6;
   const pool = Array.from({ length: УЗКИЙ }, (_, i) => i);
+  /*
+   * ⚠️ РАЗДАЧА КЭШИРУЕТСЯ. На узком наборе она стоит дорого (p95 девять попыток,
+   * каждая с прогоном решателя), а пробам ниже нужен ОДИН И ТОТ ЖЕ расклад —
+   * они смотрят на него с разных сторон. Без кэша набор шёл 55 с и облагал этим
+   * налогом каждый прогон всех соседних чатов.
+   */
+  const кэш = new Map<number, ReturnType<typeof dealCollapse>>();
+  const раздача = (L: number) => {
+    if (!кэш.has(L)) кэш.set(L, dealCollapse(L, pool, false));
+    return кэш.get(L) as ReturnType<typeof dealCollapse>;
+  };
   const ШИРОКИЙ = Array.from({ length: WIDEST_POOL }, (_, i) => i);
 
   /**
@@ -388,7 +399,7 @@ describe('очередь укорачивается, а не пропадает'
     for (const L of ПРОБЛЕМНЫЕ) {
       const заказано = queueSize(L);
       if (заказано === 0) continue;
-      const d = dealCollapse(L, pool, false);
+      const d = раздача(L);
       if (d.queue.length === 0) пусто.push(`L${L}: заказано ${заказано}, пришло 0`);
       expect(d.proven).toBe(true);
     }
@@ -401,40 +412,45 @@ describe('очередь укорачивается, а не пропадает'
    */
   it('укороченная очередь остаётся не длиннее заказанной', () => {
     for (const L of ПРОБЛЕМНЫЕ) {
-      const d = dealCollapse(L, pool, false);
+      const d = раздача(L);
       expect(d.queue.length).toBeLessThanOrEqual(queueSize(L));
     }
   });
 
   /**
-   * ⚠️ Ступени идут ВНИЗ. Проба ловит подмену лестницы на «одну ступень»:
-   * при единственной ступени раздача снова обрывается в ноль, и первая проба
-   * краснеет. Здесь же — что при заказанной очереди 6 хотя бы один уровень из
-   * трудного хвоста реально доезжает до укорочения, а не проходит все на 6:
-   * иначе лестница есть в коде и не работает ни разу.
+   * 🔴 ЛЕСТНИЦА ПРОВЕРЯЕТСЯ ПРЯМО, А НЕ ЧЕРЕЗ СЛУЧАЙНУЮ РАЗДАЧУ.
+   *
+   * 📍 Здесь стояла проба «хотя бы на одном трудном уровне очередь укоротилась».
+   * Она опиралась на случайность: `generate` перемешивает пул без семени, и
+   * укорочение случается примерно в четырёх раздачах из десяти. Пока каждая
+   * проба раздавала заново, она почти всегда зеленела; стоило раздачам
+   * закэшироваться — покраснела. Это была не находка, а монетка.
+   *
+   * Утверждение о лестнице точное, и проверять его надо точно.
    */
-  /**
-   * 🔴 ПРОБА НА САМУ ПРОБУ: узкий набор обязан быть ТРУДНЕЕ широкого. Без этого
-   * блок вырождается — на широком пуле всё зелено потому, что дефекта там нет,
-   * а не потому, что он починен.
-   */
-  it('узкий набор действительно нагружает раздачу сильнее широкого', () => {
-    let узко = 0, широко = 0;
-    for (const L of ПРОБЛЕМНЫЕ) {
-      узко += dealCollapse(L, pool, false).tries;
-      широко += dealCollapse(L, ШИРОКИЙ, false).tries;
+  it('🔴 ступени очереди: от заказанной длины вниз, строго убывая, не ниже единицы', () => {
+    let проверено = 0;
+    for (let L = 1; L <= 200; L += 1) {
+      const л = queueLadder(L);
+      expect(л.length).toBeGreaterThan(0);
+      if (queueSize(L) === 0) { expect(л).toEqual([0]); continue; }
+      проверено += 1;
+      expect(л[0]).toBe(queueSize(L));
+      for (let k = 1; k < л.length; k += 1) expect(л[k] as number).toBeLessThan(л[k - 1] as number);
+      expect(л[л.length - 1] as number).toBeGreaterThanOrEqual(1);
     }
-    expect(узко).toBeGreaterThan(широко);
+    // Иначе проба хвалит пустоту: уровней с очередью не нашлось вовсе.
+    expect(проверено).toBeGreaterThan(0);
   });
 
-  it('лестница действительно СРАБАТЫВАЕТ хотя бы на одном трудном уровне', () => {
-    let укорочено = 0;
-    for (const L of ПРОБЛЕМНЫЕ) {
-      const d = dealCollapse(L, pool, false);
-      if (d.queue.length > 0 && d.queue.length < queueSize(L)) укорочено += 1;
-    }
-    expect(укорочено).toBeGreaterThan(0);
+  /** И вторая половина: на заказанной длине 6 ступеней ДЕЙСТВИТЕЛЬНО несколько. */
+  it('на длинной очереди ступеней больше одной', () => {
+    const длинные = [];
+    for (let L = 1; L <= 200; L += 1) if (queueSize(L) >= 4) длинные.push(queueLadder(L).length);
+    expect(длинные.length).toBeGreaterThan(0);
+    expect(Math.min(...длинные)).toBeGreaterThan(1);
   });
+
 });
 
 describe('номера ниш — устойчивые адреса', () => {
@@ -509,5 +525,99 @@ describe('номера ниш — устойчивые адреса', () => {
     expect(приходов).toBeGreaterThan(0);
     const финал = b.ids as number[];
     expect(new Set(финал).size).toBe(финал.length);
+  });
+});
+
+describe('отчёт о ходе — экран узнаёт, ЧТО случилось', () => {
+  /**
+   * 🔴 ОТЧЁТ НАЗЫВАЕТ НОМЕРА НИШ, А НЕ МЕСТА.
+   *
+   * Место под ногами меняется: столбец оседает, полка приходит сверху. Отдай
+   * экрану место — и вспышка зажжётся не там, где собралась тройка, а очки
+   * прилетят соседней нише. Проба берёт доску, где тройка собирается в НИЖНЕЙ
+   * нише столбца, и требует именно её номер.
+   */
+  it('🔴 называет номер ниши, где собралась тройка, а не её место', () => {
+    const b = makeBoard([[9], [1, 1, 1]], [3, 3], { col: [0, 0], ids: [70, 71] });
+    const о = makeReport();
+    collapseTriples(b, о);
+    expect(о.clearedTypes).toEqual([1]);
+    expect(о.clearedIds).toEqual([71]);
+    expect(о.closedIds).toEqual([71]);
+  });
+
+  it('считает приход полок из очереди', () => {
+    const b = makeBoard([[1, 1, 1], [2]], [3, 3], {
+      col: [0, 0], ids: [80, 81], queue: [{ cell: [5, 5], cap: 3 }],
+    });
+    const о = makeReport();
+    const после = collapseTriples(b, о);
+    expect(о.arrived).toBe(1);
+    expect(о.closedIds).toEqual([80]);
+    expect(после.cells[0]).toEqual([5, 5]);
+  });
+
+  it('называет ниши, у которых вышел задний ряд', () => {
+    const b = makeBoard([[1, 1, 1], [2]], [3, 3], { ids: [90, 91], back: [[4, 5], []] });
+    const о = makeReport();
+    collapseTriples(b, о);
+    expect(о.clearedIds).toEqual([90]);
+    expect(о.revealedIds).toEqual([90]);
+  });
+
+  /**
+   * 🔴 ТО ЖЕ САМОЕ В СТОЛБЦОВОЙ ВЕТКЕ. Веток две, и отчёт заполняется в каждой
+   * своим кодом.
+   *
+   * 📍 Второй раз за день пункт заведён ВЫЖИВШЕЙ МУТАЦИЕЙ по одному и тому же
+   * адресу: «не называть вышедший задний ряд» осталась зелёной, потому что
+   * проба выше идёт по доске БЕЗ столбцов. Классическая ветка была покрыта,
+   * столбцовая — нет. Правило для себя: покрыл ветку — сразу спроси, где её
+   * близнец.
+   */
+  it('🔴 и в столбцовой ветке называет ниши, у которых вышел задний ряд', () => {
+    /*
+     * ⚠️ ЗАДНИЙ РЯД ДОЛЖЕН ВЫЙТИ ИМЕННО ВНУТРИ СТОЛБЦОВОГО ЦИКЛА. Первая
+     * редакция пробы клала пустую нишу с задним рядом — и раскрытие срабатывало
+     * в общем помощнике ДО ветки, то есть проба снова мерила классический путь,
+     * а мутация оставалась зелёной.
+     *
+     * Здесь ниша 90 полна тройкой, но за спиной у неё товар: закрыться она не
+     * может (увезла бы задний ряд), поэтому тройка просто снимается, ниша
+     * пустеет ВНУТРИ цикла — и там же её задний ряд выходит вперёд.
+     */
+    const b = makeBoard([[1, 1, 1], [2]], [3, 3], {
+      col: [0, 0], ids: [90, 91], back: [[4, 5], []],
+    });
+    const о = makeReport();
+    const после = collapseTriples(b, о);
+    expect(о.clearedIds).toEqual([90]);
+    expect(о.revealedIds).toEqual([90]);
+    expect(о.closedIds).toEqual([]);      // ниша с задним рядом не закрывается
+    expect(после.cells[0]).toEqual([4, 5]);
+  });
+
+  /**
+   * 🔴 БЕЗ ОТЧЁТА ПОВЕДЕНИЕ ДОСКИ ТО ЖЕ. Иначе отчёт был бы не наблюдателем, а
+   * участником, и решатель (он отчёта не передаёт) считал бы ДРУГУЮ игру.
+   */
+  it('🔴 отчёт ничего не меняет: доска с ним и без него совпадает', () => {
+    const сделать = () => makeBoard([[1, 1, 1], [2], [3], [3, 3]], [3, 3, 3, 3], {
+      col: [0, 1, 0, 1], ids: [1, 2, 3, 4], queue: [{ cell: [6, 6], cap: 3 }], back: [[], [7], [], []],
+    });
+    const без = collapseTriples(сделать());
+    const с = collapseTriples(сделать(), makeReport());
+    expect(с.cells).toEqual(без.cells);
+    expect(с.ids).toEqual(без.ids);
+    expect(с.queue?.length ?? 0).toBe(без.queue?.length ?? 0);
+    expect(с.back).toEqual(без.back);
+  });
+
+  it('ход через moveTop доносит отчёт до вызвавшего', () => {
+    const b = makeBoard([[1, 1], [1], [8], [8, 8]], [3, 3, 3, 3], { col: [0, 1, 0, 1], ids: [1, 2, 3, 4] });
+    const о = makeReport();
+    const после = moveTop(b, 1, 0, false, о);   // третья единица едет к двум
+    expect(после).not.toBeNull();
+    expect(о.clearedTypes.length + о.closedIds.length).toBeGreaterThan(0);
   });
 });
