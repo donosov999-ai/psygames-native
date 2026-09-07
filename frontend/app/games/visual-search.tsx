@@ -477,7 +477,11 @@ export default function VisualSearchGame() {
                   фигура на белой плашке = образца не видно, и человек ищет вслепую.
                   Берём ту же константу, что и поле: разъехаться им больше нечем. */}
               <View style={[styles.targetRef, { backgroundColor: FIELD_BG }]}>
-                {renderLetter({ shape: targetShape, color: targetColor || NEUTRAL_STROKE, rot: 0, x: 0, y: 0, isTarget: true, found: false })}
+                {/* ⚠️ Образец — не приманка НИКОГДА: он показывает, что искать.
+                    Поле `decoy` обязательное, и забыть его здесь — ровно то, что
+                    я и сделал в B4: `tsc` покраснел на этой строке, а я его
+                    после правки не гонял. */}
+                {renderLetter({ shape: targetShape, color: targetColor || NEUTRAL_STROKE, rot: 0, x: 0, y: 0, isTarget: true, found: false, decoy: false })}
               </View>
             </View>
             <View style={[styles.boardArea, { width: boardW, height: boardH, backgroundColor: FIELD_BG, borderColor: feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
