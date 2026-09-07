@@ -1308,25 +1308,38 @@ export default function SchulteGame() {
             <Ionicons name="refresh" size={24} color={colors.text} />
           </TouchableOpacity>
         }
-        stats={
-          <View style={styles.gameHeader}>
-            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('find')}</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                {isGroupMode && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS[activeGroup % COLORS.length] }} />}
-                <Text style={[styles.statValue, { color: colors.text }]}>{ruleRevealed ? currentTarget : '?'}</Text>
-              </View>
-            </View>
-            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
-              <Text style={[styles.statValue, { color: colors.text }]}>{formatTime(elapsedTime)}</Text>
-            </View>
-            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
-              <Text style={[styles.statValue, { color: errors > 0 ? colors.error : colors.text }]}>{errors}</Text>
-            </View>
-          </View>
-        }
+        /**
+         * Счётчики ДАННЫМИ, а не своей вёрсткой (`HudItem`, GameShell:67).
+         * Раньше здесь стояли три коробки `statBox` — свой шрифт, свой фон, своя
+         * высота; в соседней игре такие же три выглядели иначе, и в «Зарядке»
+         * шапка прыгала на каждом переходе. Слова те же самые, из словаря.
+         * Тон не передаём: канон каркаса (`TONE_BY_KEY`) сам красит `time`
+         * нейтральным, а `errors` красным во всех играх разом.
+         */
+        hud={[
+          { key: 'find', icon: 'locate' as const, label: t('find'), value: ruleRevealed ? currentTarget : '?', pop: true },
+          { key: 'time', icon: 'time' as const, label: t('time'), value: formatTime(elapsedTime) },
+          { key: 'errors', icon: 'close-circle' as const, label: t('errors'), value: errors, pop: true },
+        ]}
+        /**
+         * 🔴 ЕДИНСТВЕННОЕ, ЧТО ОСТАЛОСЬ В `stats`, И ТОЛЬКО В РЕЖИМЕ ГРУПП.
+         *
+         * Кружок называет АКТИВНУЮ группу её собственным цветом — тем же, каким
+         * покрашены её клетки (`cellColors`, :417). Это не украшение: без него
+         * «Найдите 4» не говорит, в какой из двух-трёх раскрасок искать четвёрку.
+         *
+         * ⚠️ В `mods` он не переезжает: `ModItem` умеет только пять канонических
+         * тонов (`GameShell:80-86`), а здесь цвет — это ИДЕНТИФИКАТОР группы, и
+         * десять цветов в пять тонов не ложатся. Нужен `ModItem.color`; попрошу
+         * у координатора вместе с остальным списком по каркасу.
+         *
+         * В классическом режиме `stats` не передаётся вовсе, поэтому вторая
+         * полоса не рисуется — а «Зарядка» ходит только классикой
+         * (`warmup.ts:249,304,377` — режимы 5x5/6x6/easy, групп там нет).
+         */
+        stats={isGroupMode ? (
+          <View style={[styles.groupDot, { backgroundColor: COLORS[activeGroup % COLORS.length] }]} />
+        ) : undefined}
       >
         <View style={[
           styles.grid,
@@ -1409,22 +1422,12 @@ export default function SchulteGame() {
             <Ionicons name="refresh" size={24} color={colors.text} />
           </TouchableOpacity>
         }
-        stats={
-          <View style={styles.gameHeader}>
-            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t(targetLabelKey)}</Text>
-              <Text style={[styles.statValue, { color: colors.text }]}>{blockTarget(seriesState)}</Text>
-            </View>
-            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
-              <Text style={[styles.statValue, { color: colors.text }]}>{formatTime(elapsedTime)}</Text>
-            </View>
-            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
-              <Text style={[styles.statValue, { color: seriesState.errors > 0 ? colors.error : colors.text }]}>{seriesState.errors}</Text>
-            </View>
-          </View>
-        }
+        /** Те же три счётчика данными — блочная серия обязана выглядеть как обычная партия. */
+        hud={[
+          { key: 'find', icon: 'locate' as const, label: t(targetLabelKey), value: blockTarget(seriesState), pop: true },
+          { key: 'time', icon: 'time' as const, label: t('time'), value: formatTime(elapsedTime) },
+          { key: 'errors', icon: 'close-circle' as const, label: t('errors'), value: seriesState.errors, pop: true },
+        ]}
       >
         <Text style={[styles.seriesBlockLine, { color: colors.textSecondary }]}>
           {`${interpolate(seriesStrings.blockOf, { n: seriesState.blockIndex + 1, total: SCHULTE_SERIES_PLAN.length })} · ${blockLabel(key)}`}
@@ -1751,25 +1754,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: ON_GRAD.color,
   },
-  gameHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  statBox: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  statLabel: {
-    fontSize: 12,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 4,
-  },
+  /**
+   * Кружок активной группы. Единственное, что осталось от собственной шапки:
+   * `gameHeader`/`statBox`/`statLabel`/`statValue` удалены вместе с ней
+   * 07.09.2026 — счётчики рисует каркас из `hud`.
+   */
+  groupDot: { width: 12, height: 12, borderRadius: 6, marginTop: 6 },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
