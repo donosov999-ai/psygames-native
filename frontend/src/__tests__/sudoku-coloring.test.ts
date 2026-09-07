@@ -1,5 +1,14 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
+/*
+ * ⚠️ `require`, А НЕ `import` — И ЭТО НЕ НЕБРЕЖНОСТЬ. В tsconfig проекта нет
+ * типов узла, поэтому `import { readFileSync } from 'fs'` роняет `tsc` двумя
+ * ошибками «Cannot find name 'fs'». Соседние пробы держат `require` по той же
+ * причине; проверено 06.09.2026 на `helpers/screenSource.ts`.
+ */
+declare const __dirname: string;
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { readFileSync } = require('fs');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { join } = require('path');
 import {
   emptySudokuCellColors,
   NO_SUDOKU_COLOR,
