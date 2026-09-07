@@ -1,4 +1,4 @@
-/* psygames-math-slider-expression · VER 2 · 07.09.2026 */
+/* psygames-math-slider-expression · VER 3 · 07.09.2026 */
 import type { MathExpression, MathSliderLocale } from './types';
 
 const EPSILON = 1e-9;
@@ -35,6 +35,8 @@ export function evaluateExpression(expression: MathExpression): number {
       return roundNumber(Math.sqrt((expression.c - expression.b) / expression.a));
     case 'root-estimation':
       return roundNumber(Math.sqrt(expression.value));
+    case 'integral-area':
+      return roundNumber(integralAreaValue(expression));
     case 'percent-of':
       return roundNumber(expression.base * expression.percent / 100);
     case 'discount':
@@ -85,6 +87,8 @@ function formatNode(expression: MathExpression, locale: MathSliderLocale): strin
     }
     case 'root-estimation':
       return `\u221a${formatNumber(expression.value, locale)}`;
+    case 'integral-area':
+      return locale === 'ru' ? 'S \u2248 ?' : 'S \u2248 ?';
     case 'percent-of':
       return `${formatNumber(expression.percent, locale)}% × ${formatNumber(expression.base, locale)}`;
     case 'discount':
@@ -101,6 +105,62 @@ export function formatExpression(expression: MathExpression, locale: MathSliderL
   const formatted = formatNode(expression, locale);
   if (expression.type !== 'binary') return formatted;
   return formatted.slice(1, -1);
+}
+
+
+/**
+ * Площадь фигуры «интеграл-оценка». Единый источник с рендером: экран рисует
+ * срезы через sampleAreaHeights, а площадь считается той же кривой —
+ * «что видишь, то и считается».
+ *  steps    — сумма прямоугольников h_i × dx;
+ *  polyline — трапеции по узлам;
+ *  curve    — Catmull-Rom через узлы, интеграл сегмента АНАЛИТИЧЕСКИ
+ *             (кубический полином: ∫₀¹ = a/4 + b/3 + c/2 + d, домноженный на dx).
+ */
+export function integralAreaValue(e: Extract<MathExpression, { type: 'integral-area' }>): number {
+  const { form, dx, heights } = e;
+  if (form === 'steps') return heights.reduce((s, h) => s + h * dx, 0);
+  if (form === 'polyline') {
+    let s = 0;
+    for (let i = 0; i + 1 < heights.length; i++) s += ((heights[i] + heights[i + 1]) / 2) * dx;
+    return s;
+  }
+  let s = 0;
+  for (let i = 0; i + 1 < heights.length; i++) {
+    const p0 = heights[Math.max(0, i - 1)];
+    const p1 = heights[i];
+    const p2 = heights[i + 1];
+    const p3 = heights[Math.min(heights.length - 1, i + 2)];
+    const c3 = -0.5 * p0 + 1.5 * p1 - 1.5 * p2 + 0.5 * p3;
+    const c2 = p0 - 2.5 * p1 + 2 * p2 - 0.5 * p3;
+    const c1 = -0.5 * p0 + 0.5 * p2;
+    const c0 = p1;
+    s += (c3 / 4 + c2 / 3 + c1 / 2 + c0) * dx;
+  }
+  return s;
+}
+
+/** Высоты k срезов для отрисовки — та же кривая, что в integralAreaValue. */
+export function sampleAreaHeights(e: Extract<MathExpression, { type: 'integral-area' }>, k: number): number[] {
+  const { form, heights } = e;
+  if (form === 'steps') {
+    return Array.from({ length: k }, (_, j) => heights[Math.min(heights.length - 1, Math.floor((j * heights.length) / k))]);
+  }
+  const segs = heights.length - 1;
+  return Array.from({ length: k }, (_, j) => {
+    const x = (j + 0.5) / k * segs;
+    const i = Math.min(segs - 1, Math.floor(x));
+    const t = x - i;
+    if (form === 'polyline') return heights[i] + (heights[i + 1] - heights[i]) * t;
+    const p0 = heights[Math.max(0, i - 1)];
+    const p1 = heights[i];
+    const p2 = heights[i + 1];
+    const p3 = heights[Math.min(heights.length - 1, i + 2)];
+    const c3 = -0.5 * p0 + 1.5 * p1 - 1.5 * p2 + 0.5 * p3;
+    const c2 = p0 - 2.5 * p1 + 2 * p2 - 0.5 * p3;
+    const c1 = -0.5 * p0 + 0.5 * p2;
+    return Math.max(0, ((c3 * t + c2) * t + c1) * t + p1);
+  });
 }
 
 export function literal(value: number): MathExpression {

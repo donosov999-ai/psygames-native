@@ -14,6 +14,7 @@ export interface MathSliderStrings {
   roundLabel: string;
   levelLabel: string;
   prompt: string;
+  areaPrompt: string;
   sliderLabel: string;
   sliderHint: string;
   autoConfirmHint: string;
@@ -54,6 +55,7 @@ export const MATH_SLIDER_STRINGS: Record<MathSliderLocale, MathSliderStrings> = 
     roundLabel: 'Задание {current} из {total}',
     levelLabel: 'Уровень {level}',
     prompt: 'Где примерно находится результат?',
+    areaPrompt: 'Какова площадь под графиком?',
     sliderLabel: 'Оценка результата на числовой шкале',
     sliderHint: 'Стрелки двигают маркер, Enter подтверждает.',
     autoConfirmHint: 'Отпусти — засчитаю через 3 секунды',
@@ -92,6 +94,7 @@ export const MATH_SLIDER_STRINGS: Record<MathSliderLocale, MathSliderStrings> = 
     roundLabel: 'Question {current} of {total}',
     levelLabel: 'Level {level}',
     prompt: 'Where is the result approximately?',
+    areaPrompt: 'What is the area under the graph?',
     sliderLabel: 'Estimated result on the number line',
     sliderHint: 'Arrow keys move the marker; Enter confirms.',
     autoConfirmHint: 'Let go — locked in after 3 seconds',

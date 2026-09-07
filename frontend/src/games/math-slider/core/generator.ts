@@ -1,4 +1,4 @@
-/* psygames-math-slider-generator · VER 3 · 07.09.2026 */
+/* psygames-math-slider-generator · VER 4 · 07.09.2026 */
 /**
  * Лестница v2 — ШКОЛЬНАЯ ОСЬ (задана Денисом 07.09.2026, дословно в counting-chat/PROJECT_REF §R):
  * усложняем МЕТОД ПОДСЧЁТА, как проходят в школе, до высшей математики:
@@ -279,6 +279,37 @@ function quadEquation(rng: Rng, t: number): Fam {
   return { kind: 'quad-equation', expression: { type: 'quad-equation', a, b, c: a * s + b } };
 }
 
+
+/**
+ * B14+ (хвост за квадратными уравнениями, ВЫБОР ДЕНИСА 07.09: «прогрессия»):
+ * интеграл-оценка — площадь под графиком, полоса растит ФОРМУ внутри:
+ * ступени (сумма прямоугольников) → ломаная (трапеции) → кривая (средняя
+ * на глаз × ширина). Доли форм ПЛАВНЫЕ по g (рубильник = обрыв), числа
+ * растут с g без потолка (§R). Площадь и рендер — одна кривая (expression.ts).
+ */
+function integralArea(rng: Rng, g: number): Fam {
+  const pPoly = clamp((g - 0.3) * 1.4, 0, 1);
+  // Кривая ВХОДИТ, но не вытесняет ломаную: перцептивная оценка дешевле счёта
+  // трапеций, и при её доминировании хвост падал (замер 07.09: L61—67 ×0,85—0,99).
+  // Медленный вход + кламп 0,55 — обе формы растут числами, микс растёт всегда.
+  const pCurve = clamp((g - 0.9) * 0.5, 0, 0.55);
+  const r = rng();
+  const form: 'steps' | 'polyline' | 'curve' = r < pCurve ? 'curve' : r < pCurve + pPoly * (1 - pCurve) ? 'polyline' : 'steps';
+  const n = 5 + Math.floor(g * 1.5 + rng() * 2);              // без клампа: ось «число интервалов» открыта (§R)
+  const dx = 1 + Math.floor(g * 0.9 + rng() * 1.4);           // без клампа: ширина интервала растёт всегда
+  const base = 6 + g * 8 + rng() * 6;
+  const amp = base * (0.45 + 0.25 * rng()) * (form === 'curve' ? 1.25 : 1);
+  const nodes = form === 'steps' ? n : n + 1;
+  const phase = rng() * Math.PI * 2;
+  // Частота волн растёт с g: у кривой на верхах негладкость (и мысленные куски
+  // усреднения) — её собственная ось роста; при фикс-частоте rough не рос с n
+  const freq = 0.9 + rng() * 1.1 + Math.max(0, g - 0.8) * 0.9;
+  const heights = Array.from({ length: nodes }, (_, i) => (
+    Math.max(1, Math.round(base + amp * Math.sin(phase + (i * freq * Math.PI) / Math.max(1, nodes - 1)) + (rng() - 0.5) * amp * 0.5))
+  ));
+  return { kind: 'integral-area', expression: { type: 'integral-area', form, dx, heights } };
+}
+
 const BANDS: readonly ((rng: Rng, t: number) => Fam)[] = [
   addition,        // B1  L1–4
   subtraction,     // B2  L5–8
@@ -304,11 +335,12 @@ function bandT(level: number): number {
 function expressionForLevel(level: number, rng: Rng): Fam {
   const bandIndex = Math.floor((level - 1) / BAND_SIZE);
   if (bandIndex < BANDS.length) return BANDS[bandIndex](rng, bandT(level));
-  // B13+ — открытый хвост: квадратные уравнения (см. quadEquation) с ростом
-  // чисел БЕЗ верхнего клампа (правило «потолков нет»; старый микс с min(1,…)
-  // давал откат ×0,67 на входе и три клона L50–52 — замер 07.09).
-  const t = 1 + (level - BANDS.length * BAND_SIZE) / 10;
-  return quadEquation(rng, t);
+  // B13 (L49–52): квадратные уравнения — с ростом чисел без клампа (замер
+  // 07.09: старый микс давал откат ×0,67 и клоны L50–52).
+  if (level <= SLIDER_MAX_LEVEL) return quadEquation(rng, 1 + (level - BANDS.length * BAND_SIZE) / 10);
+  // B14+ (L53+): интеграл-оценка, открытый хвост — прогрессия форм по g,
+  // числа растут всегда (§R). quad для 49–52 НЕ сдвинут ни на бит.
+  return integralArea(rng, (level - 53) / 8);
 }
 
 export function generateMathSliderQuestions(

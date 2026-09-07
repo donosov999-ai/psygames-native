@@ -1,4 +1,4 @@
-/* __tests__/math-slider-bands · VER 3 · 07.09.2026 */
+/* __tests__/math-slider-bands · VER 4 · 07.09.2026 */
 /**
  * СЛЕПОК ПОЛОС лестницы v2 «Математической шкалы» — страж от МОЛЧАЛИВОГО сдвига.
  *
@@ -20,6 +20,7 @@ import {
   generateMathSliderQuestions,
   migrateSliderLevelV1toV2,
   questionWork,
+  sampleAreaHeights,
   SLIDER_MAX_LEVEL,
   WORK_NORM,
 } from '@/src/games/math-slider/core';
@@ -68,6 +69,48 @@ describe('полосы math-slider v2 (школьная ось, слепок 07.
     }
   });
 
+  test('[B14] за квадратными — интеграл (выбор Дениса 07.09, прогрессия): слепок и честность', () => {
+    expect([...kindsAt(53)]).toEqual(['integral-area']);
+    expect([...kindsAt(60)]).toEqual(['integral-area']);
+    for (const level of [53, 57, 62, 70]) {
+      for (const q of generateMathSliderQuestions('int-check', level, 10)) {
+        if (q.expression.type !== 'integral-area') continue;
+        const { form, dx, heights } = q.expression;
+        if (form === 'steps') {
+          expect(q.answer).toBeCloseTo(heights.reduce((acc, h) => acc + h * dx, 0), 4);
+        } else if (form === 'polyline') {
+          let acc = 0;
+          for (let i = 0; i + 1 < heights.length; i++) acc += ((heights[i] + heights[i + 1]) / 2) * dx;
+          expect(q.answer).toBeCloseTo(acc, 4);
+        } else {
+          // Кривая: площадь согласована с тем, что видит игрок, — сумма тех же
+          // срезов, которыми рисует экран (единый источник sampleAreaHeights)
+          const k = 480;
+          const acc = sampleAreaHeights(q.expression, k).reduce((a2, h) => a2 + h, 0) * ((heights.length - 1) * dx) / k;
+          expect(Math.abs(q.answer - acc) / Math.max(1, q.answer)).toBeLessThan(0.02);
+        }
+        expect(q.answer).toBeGreaterThanOrEqual(q.scale.min);
+        expect(q.answer).toBeLessThanOrEqual(q.scale.max);
+      }
+    }
+  });
+
+  test('[B14-прогрессия] форма растёт внутри полосы: L53–54 только ступени; к L60 есть ломаная; к L70 есть кривая', () => {
+    const formsAt = (level: number): Set<string> => {
+      const out = new Set<string>();
+      for (let s2 = 0; s2 < 12; s2++) {
+        for (const q of generateMathSliderQuestions(`forms-${s2}`, level, 10)) {
+          if (q.expression.type === 'integral-area') out.add(q.expression.form);
+        }
+      }
+      return out;
+    };
+    expect([...formsAt(53)]).toEqual(['steps']);
+    expect(formsAt(60).has('polyline')).toBe(true);
+    expect(formsAt(70).has('curve')).toBe(true);
+    expect(formsAt(70).has('polyline')).toBe(true);   // кривая ВХОДИТ, не вытесняет (иначе хвост падал)
+  });
+
   test('[G-tail] стыки хвоста живые: работа растёт на каждом переходе L44…52, без обрывов', () => {
     // Та же модель и генератор, что у сима (core/work.ts), фикс-сиды — байт-в-байт
     const workAt = (level: number): number => {
@@ -82,7 +125,7 @@ describe('полосы math-slider v2 (школьная ось, слепок 07.
       return sum / n;
     };
     let prev = workAt(44);
-    for (let level = 45; level <= 52; level++) {
+    for (let level = 45; level <= 56; level++) {
       const cur = workAt(level);
       const jump = cur / prev;
       // >×1,02: клоны (сим-порог 5%) ловятся симом; здесь — «не встал и не упал»
