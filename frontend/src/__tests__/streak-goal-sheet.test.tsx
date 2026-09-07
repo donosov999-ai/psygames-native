@@ -27,6 +27,7 @@ const СЛОВАРЬ: Record<string, string> = {
   notNow: 'Не сейчас',
   goalSuggest_best_streak: 'Твой рекорд — {n} дн.',
   goalSuggest_at_top: 'Ты уже держал {n} дн.',
+  goalSuggest_smaller: 'В прошлый раз было {n} — начнём с меньшего',
 };
 const t = (k: string) => СЛОВАРЬ[k] ?? k;
 const подряд = (n: number) => Array.from({ length: n }, (_, k) => `2026-9-${k + 1}`);
@@ -173,5 +174,29 @@ describe('окно цели', () => {
     // Связка с ядром: startGoal помечает день, и askReason это учитывает.
     const g = startGoal(7, new Date(2026, 8, 7));
     expect(g.askedAt).toBe('2026-9-7');
+  });
+
+  /**
+   * 🔴 СРЫВ: ОКНО ПОКАЗЫВАЕТ МЕНЬШУЮ ЦЕЛЬ И ОБЪЯСНЯЕТ, ПОЧЕМУ ОНА МЕНЬШЕ.
+   * Решение Дениса 07.09.2026. Проверяется рендером: подбор мог сработать
+   * правильно, а окно всё равно подсветить не тот вариант.
+   */
+  describe('после срыва', () => {
+    const срыв = { days: 14 as const, reason: 'smaller' as const, basis: 30 };
+
+    it('подсвечен вариант поменьше, а не тот, что не вышел', () => {
+      const r = окно({ reason: 'broken', suggestion: срыв });
+      // Подпись-основание рисуется ТОЛЬКО под выбранным вариантом.
+      const подписи = поId(r, 'goal-option-why');
+      expect(подписи.length).toBe(1);
+      expect(текст(r)).toContain('В прошлый раз было 30');
+    });
+
+    it('🔴 в окне срыва нет ни одного упрёка', () => {
+      const t = текст(окно({ reason: 'broken', suggestion: срыв })).toLowerCase();
+      const упрёки = ['подвёл', 'провалил', 'не смог', 'опять', 'жаль', 'увы'];
+      expect(`${упрёки.filter((u) => t.includes(u)).join(', ') || 'упрёков нет'}`)
+        .toBe('упрёков нет');
+    });
   });
 });
