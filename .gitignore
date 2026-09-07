@@ -121,3 +121,7 @@ span-chat/
 counting-chat/
 attention-chat/
 memory-hearing-chat/
+# Раздел «Языки» заведён 07.09.2026, хозяин fydao-claude-mac. Строка добавлена
+# ВМЕСТЕ с папкой, а не после: у соседей уже был случай, когда чужой `git add -A`
+# увёл работу трёх сессий, и защищать от этого должен .gitignore, а не память.
+languages-chat/
