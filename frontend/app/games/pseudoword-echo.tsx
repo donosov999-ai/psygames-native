@@ -472,8 +472,19 @@ export default function PseudowordEchoGame() {
     </>
   );
 
-  // игровая фаза — на едином каркасе GameShell: счётчики в статс-строке; динамик-стимул
-  // и варианты написания — в центрируемом поле (нижних кнопок у игры нет)
+  /*
+   * Игровая фаза на каркасе GameShell: счётчики в статс-строке, динамик-стимул
+   * в центрируемом поле, ВАРИАНТЫ НАПИСАНИЯ — в слоте `toolbar`.
+   *
+   * 🔴 ПОЧЕМУ ВАРИАНТЫ ВНИЗУ, А НЕ В ПОЛЕ (правка 07.09.2026). Раньше здесь
+   * стояло «нижних кнопок у игры нет», и варианты жили в поле вместе со
+   * стимулом. Замер геометрии по якорям каркаса (94 игры, 375×812) показал, чем
+   * это выходит: у игр, кладущих ответ в `toolbar`, низ панели равен 812 у всех
+   * без исключения, а у остальных ответ оказывается там, где кончился контент, —
+   * и при переходе между играми в «Зарядке» кнопка прыгает по экрану.
+   * Соседняя `phoneme-pairs` того же раздела давно держит варианты в `toolbar`;
+   * приводим к ней, чтобы внутри раздела не было двух разных решений.
+   */
   const playingRound = phase === 'playing' ? rounds[idx] : undefined;
   if (phase === 'playing' && playingRound) {
     const round = playingRound;
@@ -493,6 +504,29 @@ export default function PseudowordEchoGame() {
             <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
           </View>
         }
+        toolbar={<View style={styles.optionsCol}>
+              {round.options.map((opt) => {
+                const revealed = answered !== null;
+                const isTarget = opt === round.word;
+                const isPicked = opt === answered;
+                const bg = revealed && isTarget ? '#22c55e'
+                  : revealed && isPicked ? '#f43f5e'
+                  : colors.surface;
+                const fg = revealed && (isTarget || isPicked) ? '#FFF' : colors.text;
+                return (
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    key={opt}
+                    style={[styles.optionBtn, { backgroundColor: bg, borderColor: revealed && isTarget ? '#22c55e' : colors.border }]}
+                    onPress={() => handlePick(opt)}
+                    disabled={revealed}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.optionText, { color: fg }]}>{opt}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>}
       >
         <View style={styles.fieldCol}>
           <TouchableOpacity
@@ -514,29 +548,6 @@ export default function PseudowordEchoGame() {
             {t('pwEchoPickSpelling')}
           </Text>
 
-          <View style={styles.optionsCol}>
-            {round.options.map((opt) => {
-              const revealed = answered !== null;
-              const isTarget = opt === round.word;
-              const isPicked = opt === answered;
-              const bg = revealed && isTarget ? '#22c55e'
-                : revealed && isPicked ? '#f43f5e'
-                : colors.surface;
-              const fg = revealed && (isTarget || isPicked) ? '#FFF' : colors.text;
-              return (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  key={opt}
-                  style={[styles.optionBtn, { backgroundColor: bg, borderColor: revealed && isTarget ? '#22c55e' : colors.border }]}
-                  onPress={() => handlePick(opt)}
-                  disabled={revealed}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.optionText, { color: fg }]}>{opt}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
         </View>
         <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </GameShell>
