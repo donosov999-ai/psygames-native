@@ -74,26 +74,60 @@ interface RtRec { cue: CueType; cong: Congruence; rt: number; }
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
+/**
+ * 🔴 ДОЛИ ПРОБ ЗАМОРОЖЕНЫ НА КАНОНЕ И ОСЬЮ СЛОЖНОСТИ НЕ ЯВЛЯЮТСЯ.
+ *
+ * Канон Fan et al. 2002 «Testing the Efficiency and Independence of Attentional
+ * Networks»: центральная стрелка идёт ОДНА на трети проб, остальные две трети
+ * делятся поровну между согласованными и конфликтными. То есть 1/3 : 1/3 : 1/3,
+ * и одинаково на всех уровнях.
+ *
+ * Что было до 07.09.2026: `incongruentProb` рос с 0,30 до 0,55 по уровням, доля
+ * нейтральных стояла на 0,20. Замер генератором (40 000 проб на уровень):
+ *     L1  согл 50,1% / нейтр 20,0% / конфл 29,9%
+ *     L15 согл 25,3% / нейтр 19,9% / конфл 54,8%
+ * Отклонение от канона на ОБОИХ концах, и оно росло с уровнем.
+ *
+ * ⚠️ ПОЧЕМУ ЭТО ДЕФЕКТ, А НЕ ПРОСТО ОТСТУПЛЕНИЕ. `executive_ms` — одна из трёх
+ * сетей внимания, ради которых проба существует, — есть РАЗНОСТЬ времён между
+ * конфликтными и согласованными пробами. Доля конфликтных известна как её
+ * модулятор (proportion-congruent): чем их больше, тем уже фокус и тем МЕНЬШЕ
+ * разность. Значит ручка, которой рос уровень, уменьшала ровно ту величину,
+ * ради которой проба и заведена. Тот же дефект уже заморожен у Струпа и
+ * Саймона и починен у фланкера. Стережёт
+ * `src/__tests__/conflict-ratio-is-not-difficulty.test.ts`.
+ *
+ * Сложность осталась на трёх осях, и ни одна не входит в формулу разности:
+ * окно ответа, разброс пред-паузы и разброс CTOA.
+ */
+export const ANT_INCONGRUENT_PROB = 1 / 3;
+export const ANT_NEUTRAL_PROB = 1 / 3;
+
 // Уровень 1..15: интервалы всё менее предсказуемы, окно ответа сокращается,
-// число проб растёт ступенями, доля конфликтных проб растёт умеренно.
-function levelParams(level: number): {
-  trials: number; incongruentProb: number; windowMs: number; preJitterMs: number; ctoaVarMs: number;
+// число проб растёт ступенями. Доли проб — постоянные, см. выше.
+export function levelParams(level: number): {
+  trials: number; windowMs: number; preJitterMs: number; ctoaVarMs: number;
 } {
   const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
-  const incongruentProb = Math.min(0.55, 0.30 + (level - 1) * 0.018);   // 30% → 55%
   const windowMs = Math.max(1000, 3000 - (level - 1) * 140);            // 3000мс → 1040мс
   const preJitterMs = 400 + (level - 1) * 80;                           // разброс пред-паузы 400 → 1520мс
   const ctoaVarMs = 100 + (level - 1) * 40;                             // разброс CTOA 100 → 660мс
-  return { trials, incongruentProb, windowMs, preJitterMs, ctoaVarMs };
+  return { trials, windowMs, preJitterMs, ctoaVarMs };
 }
 
-// Доля neutral фиксирована (~20%), остальное делят congruent/incongruent по уровню
-function makeTrial(incongruentProb: number): Trial {
+/**
+ * Доли постоянны и равны трети каждая (Fan 2002). Аргумент `level` оставлен для
+ * единообразия с остальными играми раздела: гейт долей моделирует поток проб
+ * вызовом `makeTrial(level)` и обязан видеть ту же подпись, что у Струпа,
+ * Саймона, Познера и go/no-go.
+ */
+export function makeTrial(_level: number): Trial {
   const cue = rndItem<CueType>(['none','center','double','spatial']);
   const pos = rndItem<Position>(['top','bottom']);
   const dir = rndItem<Direction>(['left','right']);
   const r = Math.random();
-  const cong: Congruence = r < incongruentProb ? 'incongruent' : r < incongruentProb + 0.2 ? 'neutral' : 'congruent';
+  const cong: Congruence = r < ANT_INCONGRUENT_PROB ? 'incongruent'
+    : r < ANT_INCONGRUENT_PROB + ANT_NEUTRAL_PROB ? 'neutral' : 'congruent';
   let flankers: Direction[] | null;
   if (cong === 'congruent') flankers = [dir, dir, dir, dir];
   else if (cong === 'incongruent') {
@@ -139,7 +173,6 @@ export default function ANTGame() {
   // Рефы — таймерная цепочка (пред-пауза → cue → blank → target → дедлайн → next)
   // живёт вне ре-рендеров, state в её колбэках был бы устаревшим (паттерн cpt/simon).
   const levelRef = useRef(1);
-  const incongruentProbRef = useRef(0.3);
   const windowMsRef = useRef(3000);
   const preJitterRef = useRef(400);
   const ctoaVarRef = useRef(100);
@@ -183,7 +216,7 @@ export default function ANTGame() {
 
   const newTrial = () => {
     setShowCue(false); setShowTarget(false); setFeedback(null);
-    const tr = makeTrial(incongruentProbRef.current);
+    const tr = makeTrial(levelRef.current);
     trialRef.current = tr;
     setTrial(tr);
     // Пред-пауза: разброс растёт с уровнем — момент cue нельзя предугадать
@@ -212,7 +245,6 @@ export default function ANTGame() {
   const startGame = () => {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
-    incongruentProbRef.current = p.incongruentProb;
     windowMsRef.current = p.windowMs;
     preJitterRef.current = p.preJitterMs;
     ctoaVarRef.current = p.ctoaVarMs;
@@ -276,6 +308,13 @@ export default function ANTGame() {
           accuracy: Math.round(accuracy * 100),
           n_trials: totalTrialsRef.current,
           mean_rt: m.meanRt, alerting_ms: m.alerting, orienting_ms: m.orienting, executive_ms: m.executive,
+          // Без долей executive_ms из двух партий несравним: разностная оценка
+          // зависит от них, и по записи иначе не восстановить, при какой доле
+          // она получена. Пишем, хотя они постоянны, — чтобы будущая смена
+          // канона не обесценила молча накопленные партии.
+          p_incongruent: ANT_INCONGRUENT_PROB, p_neutral: ANT_NEUTRAL_PROB,
+          p_congruent: 1 - ANT_INCONGRUENT_PROB - ANT_NEUTRAL_PROB,
+          response_window_ms: levelParams(levelRef.current).windowMs,
         },
       });
     } catch (err) { console.error(err); }
@@ -322,8 +361,13 @@ export default function ANTGame() {
             {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {t('antLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(p.incongruentProb * 100))).replace('{w}', (p.windowMs / 1000).toFixed(1))}
+            {t('antLvlParams').replace('{n}', String(p.trials)).replace('{p}', String(Math.round(ANT_INCONGRUENT_PROB * 100))).replace('{w}', (p.windowMs / 1000).toFixed(1))}
           </Text>
+          {/* 07.09.2026: доля конфликтных теперь ОДНА И ТА ЖЕ на всех уровнях
+              (канон Fan 2002, треть). Строка `antLvlParams` живёт в общем
+              LanguageContext на 12 языках и всё ещё подаёт её как «~{p}%», будто
+              она меняется — заявка координатору отправлена. С уровнем растут
+              окно ответа и непредсказуемость пауз, они в строке уже есть. */}
           {/* Критерий прохождения уровня виден игроку (паттерн cpt v1.112.0) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
             {t('passCorrect80Window')}
