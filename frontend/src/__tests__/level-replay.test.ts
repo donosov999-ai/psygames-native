@@ -13,13 +13,13 @@
  * картинки — через lvl.setLevel(next). Поэтому здесь два разных гейта: правило
  * выбора и запрет прямой записи.
  */
+import { pickTarget } from '../services/levelPick';
+import { reachRoadLevel } from '../services/sudoku-roads';
+
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync, readdirSync } = require('fs');
 const { join } = require('path');
-
-import { pickTarget } from '../services/levelPick';
-import { reachRoadLevel } from '../services/sudoku-roads';
 
 const GAMES_DIR = join(__dirname, '../../app/games');
 const read = (p: string): string => readFileSync(p, 'utf8');
@@ -96,6 +96,11 @@ describe('переигровка не портит прогресс', () => {
    */
   const МИГРАЦИИ: Record<string, string> = {
     'number-bonds.tsx': 'разовый перевод на лестницу v2 под флагом psygames_number_bonds_ladderv2_<pid>',
+    // Те же разовые переводы 07.09.2026 (школьная ось раздела «Счёт») — паттерн
+    // number-bonds один в один: флаг в хранилище, перевод равной работой.
+    // Гонка правок: экраны закоммичены до появления этого словаря (d9fa2d99).
+    'math-slider.tsx': 'разовый перевод на лестницу v2 под флагом psygames_math_slider_ladderv2_<pid>',
+    'math-sprint.tsx': 'разовый перевод на лестницу v2 под флагом psygames_math_sprint_ladderv2_<pid>',
   };
 
   it('ни одна игра не срезает потолок прямой записью уровня', () => {

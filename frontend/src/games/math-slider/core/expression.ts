@@ -1,4 +1,4 @@
-/* psygames-math-slider-expression · VER 1 · 17.08.2026 */
+/* psygames-math-slider-expression · VER 2 · 07.09.2026 */
 import type { MathExpression, MathSliderLocale } from './types';
 
 const EPSILON = 1e-9;
@@ -31,6 +31,8 @@ export function evaluateExpression(expression: MathExpression): number {
     }
     case 'linear-equation':
       return roundNumber((expression.c - expression.b) / expression.a);
+    case 'quad-equation':
+      return roundNumber(Math.sqrt((expression.c - expression.b) / expression.a));
     case 'root-estimation':
       return roundNumber(Math.sqrt(expression.value));
     case 'percent-of':
@@ -75,6 +77,11 @@ function formatNode(expression: MathExpression, locale: MathSliderLocale): strin
       const b = expression.b;
       const sign = b >= 0 ? '+' : '\u2212';
       return `${formatNumber(expression.a, locale)}x ${sign} ${formatNumber(Math.abs(b), locale)} = ${formatNumber(expression.c, locale)},  x = ?`;
+    }
+    case 'quad-equation': {
+      const b = expression.b;
+      const sign = b >= 0 ? '+' : '\u2212';
+      return `${formatNumber(expression.a, locale)}x\u00b2 ${sign} ${formatNumber(Math.abs(b), locale)} = ${formatNumber(expression.c, locale)},  x = ?`;
     }
     case 'root-estimation':
       return `\u221a${formatNumber(expression.value, locale)}`;

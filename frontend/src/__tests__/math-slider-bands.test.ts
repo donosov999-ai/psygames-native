@@ -1,13 +1,16 @@
-/* __tests__/math-slider-bands · VER 2 · 07.09.2026 */
+/* __tests__/math-slider-bands · VER 3 · 07.09.2026 */
 /**
  * СЛЕПОК ПОЛОС лестницы v2 «Математической шкалы» — страж от МОЛЧАЛИВОГО сдвига.
  *
  * v2 = ШКОЛЬНАЯ ОСЬ (задана Денисом 07.09.2026): 13 полос по 4 уровня —
  * сложение → вычитание → умножение → деление → десятичные → квадраты → проценты →
  * скидки → пропорции → кубы/вложенные → уравнения ax+b=c → корни √N → микс высших.
- * Приёмка симом (counting-chat/sim-slider.mjs, 07.09.2026): в зоне L1–48
- * клонов (|Δработы|<5%) — 0, обрывов (>×1,5) — 0; вход в новую тему — с
- *«передышки» на простых числах (школьная педагогика, осознанный дизайн).
+ * Приёмка симом (counting-chat/sim-slider.mjs, 07.09.2026, 25 сидов ×
+ * 20 вопросов): в зоне обещания L1–52 клонов (|Δработы|<5%) — 0, обрывов
+ * (>×1,5) — 0; вход в новую тему — с «передышки» на простых числах (школьная
+ * педагогика, осознанный дизайн). B13 (L49+) — квадратные уравнения ax²+b=c
+ * (микс пройденного не может стоять выше конца B12 — замерено). difficulty
+ * вопроса = работа/норма (core/work.ts), от него окно времени в scoring.
  *
  * При сознательной переделке полос слепок обновляется В ТОМ ЖЕ коммите.
  * Проверяется ПОВЕДЕНИЕМ (генерация вопросов), не чтением исходника.
@@ -16,7 +19,9 @@ import {
   evaluateExpression,
   generateMathSliderQuestions,
   migrateSliderLevelV1toV2,
+  questionWork,
   SLIDER_MAX_LEVEL,
+  WORK_NORM,
 } from '@/src/games/math-slider/core';
 
 /** Какие семейства выражений отдаёт уровень (по 6 сидам × 12 вопросов). */
@@ -41,6 +46,7 @@ const BAND_SNAPSHOT: readonly [level: number, kind: string][] = [
   [37, 'cube-nested-power'], [40, 'cube-nested-power'],
   [41, 'linear-equation'], [44, 'linear-equation'],
   [45, 'root-estimation'], [48, 'root-estimation'],
+  [49, 'quad-equation'], [52, 'quad-equation'],
 ];
 
 describe('полосы math-slider v2 (школьная ось, слепок 07.09.2026)', () => {
@@ -51,12 +57,51 @@ describe('полосы math-slider v2 (школьная ось, слепок 07.
     }
   });
 
-  test('хвост L49+ — микс ВЫСШИХ тем; арифметика младших полос не возвращается', () => {
-    const k = kindsAt(50);
-    expect(k.size).toBeGreaterThanOrEqual(3);
-    for (const early of ['integer-addition', 'signed-subtraction', 'mixed-small-multiplication', 'integer-division', 'decimal-arithmetic']) {
-      expect(k.has(early)).toBe(false);
+  test('хвост L49+ — квадратные уравнения; ответ = √((c−b)/a), в пределах шкалы', () => {
+    expect([...kindsAt(50)]).toEqual(['quad-equation']);
+    for (const q of generateMathSliderQuestions('quad-check', 51, 12)) {
+      if (q.expression.type !== 'quad-equation') continue;
+      const { a, b, c } = q.expression;
+      expect(q.answer).toBeCloseTo(Math.sqrt((c - b) / a), 6);
+      expect(q.answer).toBeGreaterThanOrEqual(q.scale.min);
+      expect(q.answer).toBeLessThanOrEqual(q.scale.max);
     }
+  });
+
+  test('[G-tail] стыки хвоста живые: работа растёт на каждом переходе L44…52, без обрывов', () => {
+    // Та же модель и генератор, что у сима (core/work.ts), фикс-сиды — байт-в-байт
+    const workAt = (level: number): number => {
+      let sum = 0;
+      let n = 0;
+      for (let s = 0; s < 25; s++) {
+        for (const q of generateMathSliderQuestions(`sim-${s}`, level, 20)) {
+          sum += questionWork(q);
+          n++;
+        }
+      }
+      return sum / n;
+    };
+    let prev = workAt(44);
+    for (let level = 45; level <= 52; level++) {
+      const cur = workAt(level);
+      const jump = cur / prev;
+      // >×1,02: клоны (сим-порог 5%) ловятся симом; здесь — «не встал и не упал»
+      expect({ level, jump: Number(jump.toFixed(3)) }).toEqual({ level, jump: expect.any(Number) });
+      expect(jump).toBeGreaterThan(1.02);
+      expect(jump).toBeLessThan(1.5);
+      prev = cur;
+    }
+  });
+
+  test('[G-d] difficulty = работа/норма (не номер уровня): тождество на трёх полосах', () => {
+    for (const level of [3, 30, 51]) {
+      for (const q of generateMathSliderQuestions('d-check', level, 12)) {
+        expect(q.difficulty).toBeCloseTo(Math.min(1, questionWork(q) / WORK_NORM), 6);
+      }
+    }
+    // Контроль слепоты: внутри ОДНОГО уровня d различает вопросы (у номерного d — нет)
+    const ds = new Set(generateMathSliderQuestions('spread-check', 30, 12).map((q) => q.difficulty));
+    expect(ds.size).toBeGreaterThan(3);
   });
 
   test('уравнение ax+b=c честно решается: ответ вопроса = x', () => {
@@ -72,6 +117,15 @@ describe('полосы math-slider v2 (школьная ось, слепок 07.
     for (const q of generateMathSliderQuestions('root-check', 46, 12)) {
       expect(q.answer).toBeGreaterThanOrEqual(q.scale.min);
       expect(q.answer).toBeLessThanOrEqual(q.scale.max);
+    }
+  });
+
+  test('L1 без вырожденных слагаемых: «0 + b» не выпадает (тренировка зовёт L1)', () => {
+    for (let s = 0; s < 40; s++) {
+      for (const q of generateMathSliderQuestions(`zero-${s}`, 1, 12)) {
+        const flat = JSON.stringify(q.expression);
+        expect(flat.includes('"value":0')).toBe(false);
+      }
     }
   });
 
