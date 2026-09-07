@@ -25,7 +25,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -120,9 +120,49 @@ export function levelParams(level: number): { trials: number; ruleChangeStreak: 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Mode = 'level' | 'classic';
 
+/**
+ * ШИРИНА ЭТАЛОНА СЧИТАЕТСЯ ОТ ЭКРАНА, А НЕ ЗАШИТА ЧИСЛОМ.
+ *
+ * 🔴 ЧТО БЫЛО. `refCard` имел `width: 80`. Четыре эталона просят 4·80 + 3·8 = 344 px,
+ * а слот тулбара в `GameShell` держит симметричный отступ `FAB_GUTTER = 66` с обеих
+ * сторон под плавающую кнопку отзыва — на телефоне 390 остаётся 258. Ряд не влезал,
+ * `flexWrap` переносил четвёртую карточку вниз, и раскладка выходила 3 + 1.
+ * Для методики это плохо не эстетикой: четыре эталона РАВНОПРАВНЫ и должны читаться
+ * одним взглядом, а перенесённый вниз выглядит как «другой», хотя он такой же.
+ *
+ * Отступ в `GameShell` менять не мне (общий слой), да и не нужно: там же, в
+ * комментарии к `FAB_GUTTER`, прямо сказано — «игры, считающие размеры от неё,
+ * обязаны считать от ширины экрана, а не от зашитых чисел». Зашитая 80 и была моей
+ * ошибкой. Считаем.
+ *
+ * Пол 48 px — норма попадания пальцем (Material), её же держит живой аудит
+ * `scripts/tap-target-audit.mjs --mode=field`. Если даже при поле четыре в строку не
+ * помещаются (очень узкий экран), ряд намеренно ломается на 2 + 2: две пары
+ * симметричны, а 3 + 1 выделяет одну карточку из четырёх равных.
+ */
+const REF_GAP = 8;
+const FAB_GUTTER_BOTH = 132;   // GameShell: FAB_GUTTER 66 слева и справа
+const REF_W_MAX = 80;
+const REF_W_MIN = 48;          // норма попадания пальцем
+const REF_ASPECT = 102 / 80;
+
+export function refCardWidth(screenW: number): { w: number; h: number; ряд: 4 | 2 } {
+  const avail = Math.max(0, screenW - FAB_GUTTER_BOTH);
+  const forFour = Math.floor((avail - 3 * REF_GAP) / 4);
+  if (forFour >= REF_W_MIN) {
+    const w = Math.min(REF_W_MAX, forFour);
+    return { w, h: Math.round(w * REF_ASPECT), ряд: 4 };
+  }
+  const forTwo = Math.floor((avail - REF_GAP) / 2);
+  const w = Math.max(REF_W_MIN, Math.min(REF_W_MAX, forTwo));
+  return { w, h: Math.round(w * REF_ASPECT), ряд: 2 };
+}
+
 export default function WcstGame() {
   const { colors, colorblind } = useTheme();
   const HEX = colorblind ? COLOR_HEX_CB : COLOR_HEX;
+  const { width: screenW } = useWindowDimensions();
+  const refSize = refCardWidth(screenW);
   const { t, language } = useLanguage();
   const router = useRouter();
 
@@ -403,6 +443,7 @@ export default function WcstGame() {
           accessibilityRole="button" accessibilityLabel={cardLabel(card)}
           accessibilityState={{ disabled: feedback !== null }}
           style={[styles.refCard, {
+            width: refSize.w, height: refSize.h,
             backgroundColor: colors.surface,
             borderColor: fbColor || colors.border,
             borderWidth: fbColor ? 3 : 1,
@@ -536,7 +577,7 @@ export default function WcstGame() {
           </View>
         }
         toolbar={
-          <View style={styles.refRow}>
+          <View style={[styles.refRow, refSize.ряд === 2 ? { maxWidth: refSize.w * 2 + REF_GAP } : null]}>
             {REF_CARDS.map((c, i) =>
               renderCard(c, true, i, feedback?.idx === i ? (feedback.ok ? 'right' : 'wrong') : null)
             )}
@@ -612,7 +653,8 @@ const styles = StyleSheet.create({
   statText: { fontSize: 13, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
   refRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
-  refCard: { width: 80, height: 102, borderRadius: 16, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
+  // Ширина и высота приходят из refCardWidth() — считаются от ширины экрана, не зашиты.
+  refCard: { borderRadius: 16, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
   targetWrap: { marginTop: 8 },
   targetCard: { width: 138, height: 128, borderRadius: 22, borderWidth: 3, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 6 },
   shapeRow: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '90%' },
