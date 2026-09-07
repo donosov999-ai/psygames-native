@@ -1,3 +1,4 @@
+/* psygames-memory-palace-palace-items · VER 1 · 07.09.2026 */
 /* СОБРАНО СКРИПТОМ scripts/build-palace-items.mjs — РУКАМИ НЕ ПРАВИТЬ. */
 /**
  * Картинки предметов «Дворца памяти»: ключ — id предмета из core/content.ts
