@@ -2508,7 +2508,42 @@ export function dealBoard(L: number, pool: number[], narrow = false): {
   cells: number[][];
   obstacles: Obstacle[];
   freeNiches: number;
+  /** Ниже — только на уровнях схлопывания и задних рядов; иначе `undefined`. */
+  caps?: number[];
+  col?: number[];
+  ids?: number[];
+  queue?: Shelf[];
+  back?: number[][];
+  proven?: boolean;
 } {
+  /*
+   * 🔴 ВХОД В РАЗДАЧУ ОДИН — И ЭТО НЕ УДОБСТВО, А УСЛОВИЕ.
+   *
+   * На уровнях схлопывания заказаны ЕЩЁ И препятствия: L56 — примёрзший ряд,
+   * L58 — закрытая ниша и скрытая информация, L64 — три накрытых товара и
+   * мороз, L65 — две закрытых, замок и подвижные ниши. Позови экран
+   * `dealCollapse` напрямую — все они молча исчезли бы, а окно правил
+   * продолжало бы их обещать.
+   *
+   * Поэтому расклад для схлопывания делает `dealCollapse` (там доказуемость), а
+   * препятствия расставляются здесь же, тем же кодом, что и на обычных уровнях.
+   * Гарантия «свободных ниш минимум две» тоже считается в одном месте — она уже
+   * ломалась ровно от разнесения по двум (57 уровней из 200 оставались без
+   * единой свободной ниши).
+   */
+  if (collapseLevel(L) || backRowLevel(L)) {
+    const d = dealCollapse(L, pool, narrow);
+    const obstacles: Obstacle[] = Array(d.cells.length).fill(null);
+    const пустые = d.cells.map((c, i) => (c.length === 0 ? i : -1)).filter((i) => i >= 0);
+    const выбор = shuffle(пустые);
+    let at = 0;
+    for (let k = 0; k < d.cfg.obst.blocked && at < выбор.length; k += 1, at += 1) obstacles[выбор[at] as number] = { kind: 'blocked' };
+    for (let k = 0; k < d.cfg.obst.locked && at < выбор.length; k += 1, at += 1) obstacles[выбор[at] as number] = { kind: 'locked', movesLeft: 5 + k * 3 };
+    return {
+      cfg: d.cfg, cells: d.cells, obstacles, freeNiches: выбор.length - at,
+      caps: d.caps, col: d.col, ids: d.ids, queue: d.queue, back: d.back, proven: d.proven,
+    };
+  }
   const cfg = levelCfg(L, pool.length, narrow);
   const shut = cfg.obst.blocked + cfg.obst.locked;
   const caps = capsFor(L, cfg.slots);
@@ -2635,7 +2670,7 @@ export function dealCollapse(L: number, pool: number[], narrow = false, attempts
    * раздача уже проверена своим путём. Молча отдать недоказанный расклад
    * нельзя — на этом стоит вся наша отстройка.
    */
-  const запасCells = generate(pool, cfg.types, cfg.spares, cfg.slots, всеCaps);
+  const запасCells = generate(pool, cfg.types, cfg.spares + cfg.obst.blocked + cfg.obst.locked, cfg.slots, всеCaps);
   return {
     cfg, cells: запасCells, caps: всеCaps,
     col: запасCells.map((_, i) => i % cols),
@@ -2645,7 +2680,19 @@ export function dealCollapse(L: number, pool: number[], narrow = false, attempts
   };
 
   function собрать(seed: number, сколькоВОчередь: number) {
-    const все = generate(pool, cfg.types, cfg.spares, cfg.slots, всеCaps);
+    /*
+     * 🔴 МЕСТО ПОД ПРЕПЯТСТВИЯ РЕЗЕРВИРУЕТСЯ ЗДЕСЬ, КАК И В ОБЫЧНОЙ РАЗДАЧЕ.
+     *
+     * `spares` — это то, что должно остаться свободным ПОСЛЕ препятствий, а не
+     * до них. Обычная раздача давно просит `spares + закрытые + замки`; здесь
+     * этого не было, и на уровнях схлопывания препятствия съедали запас:
+     * замер 07.09.2026 после подключения — «L55: свободных 1» при правиле
+     * «минимум две». Ровно та же поломка, от которой когда-то 57 уровней из 200
+     * остались вовсе без свободной ниши, — и по той же причине: запас и
+     * препятствия считались в разных местах.
+     */
+    const подПрепятствия = cfg.obst.blocked + cfg.obst.locked;
+    const все = generate(pool, cfg.types, cfg.spares + подПрепятствия, cfg.slots, всеCaps);
     /*
      * 🔴 ЗАДНИЕ РЯДЫ СОБИРАЮТСЯ ПЕРЕСТАНОВКОЙ, А НЕ ДОБАВЛЕНИЕМ ТОВАРОВ.
      *
@@ -2685,9 +2732,23 @@ export function dealCollapse(L: number, pool: number[], narrow = false, attempts
     for (let k = 0; k < сколькоВОчередь && k < кандидаты.length; k += 1) {
       вОчередь.add(кандидаты[(начало + k) % кандидаты.length] as number);
     }
-    const cells = все.filter((_, i) => !вОчередь.has(i));
-    const caps = всеCaps.filter((_, i) => !вОчередь.has(i));
-    const задниеРяды = back.filter((_, i) => !вОчередь.has(i));
+    /*
+     * 🔴 ПОЛКА УХОДИТ В ОЧЕРЕДЬ, А МЕСТО ОСТАЁТСЯ НА ДОСКЕ ПУСТЫМ.
+     *
+     * ⚠️ Первая редакция ВЫРЕЗАЛА эти места: доска становилась короче сетки —
+     * 24 ниши там, где уровень заказал 26. Экран же рисует поле по сетке
+     * `cols × rows`, ёмкости берёт по номеру места, а мини-карта строится по
+     * тому же счёту. Замер 07.09.2026 после подключения раздачи к экрану:
+     * «L56: в карте 26 ниш, на доске 24», «L59: 26 против 23», и заодно
+     * свободных ниш оставалось 0–1 там, где правило требует минимум две.
+     *
+     * Теперь место живёт на доске с самого начала — просто пустое, — а полка
+     * приезжает в него, когда столбец осядет. Мультимножество от этого не
+     * меняется: товары те же, просто часть лежит не на полке, а в очереди.
+     */
+    const cells = все.map((c, i) => (вОчередь.has(i) ? [] : c));
+    const caps = всеCaps;
+    const задниеРяды = back.map((b, i) => (вОчередь.has(i) ? [] : b));
     const queue: Shelf[] = [...вОчередь].map((i) => ({ cell: все[i] as number[], cap: всеCaps[i] as number }));
     const col = cells.map((_, i) => i % cols);
     const ids = cells.map((_, i) => i);

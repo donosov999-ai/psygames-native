@@ -82,8 +82,20 @@ describe('ратчет стоимости: перебор не дорожает 
         Math.random = seeded(L * 1000 + i);
         const d = dealBoard(L, POOL, false);
         Math.random = real;
+        /*
+         * 🔴 ЭТАЛОННАЯ ДОСКА СОБИРАЕТСЯ ЦЕЛИКОМ. На L56 уровень несёт очередь и
+         * задние ряды; собери его из одних `cells` — и решатель получит задачу
+         * с недостающими товарами, то есть НЕРЕШАЕМУЮ, и честно переберёт всё.
+         * Замер 07.09.2026: ровно от этого счётчик подскочил с 458 тыс. до
+         * 580 936 узлов, и потолок покраснел — не потому, что решатель подорожал,
+         * а потому, что проба давала ему не ту доску.
+         */
+        const caps = d.caps ?? capsForBoard(L, d.cells);
+        const доска = d.col
+          ? makeBoard(d.cells, caps, { col: d.col, ids: d.ids, queue: d.queue, back: d.back })
+          : makeBoard(d.cells, caps);
         const t0 = Date.now();
-        const r = solveStrict(makeBoard(d.cells, capsForBoard(L, d.cells)), 20000);
+        const r = solveStrict(доска, 20000);
         худшаяМс = Math.max(худшаяМс, Date.now() - t0);
         nodes += r.nodes;
         if (r.exhausted) unknown += 1;
