@@ -498,10 +498,6 @@ export default function FindDifferencesGame() {
           { key: 'found', icon: 'search', label: t('label_found'), value: `${foundIdx.size}/${diffIdx.length}`, tone: 'good' as const, pop: true },
           ...(!isCalm ? [{ key: 'left', icon: 'time' as const, label: t('timeLeftLabel'), value: `${Math.ceil(timeLeft)}${t('secShort')}`, tone: timeLeft <= 5 ? 'warn' as const : 'neutral' as const }] : []),
         ]}
-        stats={
-          <View style={styles.statsRow}>
-          </View>
-        }
       >
         <View style={styles.fieldCol}>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('findHint')}</Text>
@@ -581,7 +577,6 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 12 },
-  statsRow: { flexDirection: 'row', gap: 16, justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 12, textAlign: 'center' },
   scenesArea: { gap: 18 },
