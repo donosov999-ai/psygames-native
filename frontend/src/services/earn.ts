@@ -237,6 +237,23 @@ export async function roundsToday(profileId: string, now: Date = new Date()): Pr
  * ⚠️ Считается от СЕГОДНЯ, а если сегодня партий ещё не было — от вчера: иначе утром,
  * до первой партии, честная серия показывалась бы нулём и обрывалась на глазах.
  */
+/**
+ * Метки тренировочных дней профиля — те же, из которых считается серия.
+ *
+ * ⚠️ ЗАЧЕМ ОТДЕЛЬНЫЙ ЧИТАТЕЛЬ. Подбору цели (`goalSuggest.ts`) нужна ЛУЧШАЯ
+ * серия, а не текущая, и считать её можно только по всему списку. Без этого
+ * экспорта второму файлу пришлось бы знать ключ хранилища журнала — то есть
+ * завести вторую копию знания о том, где журнал лежит.
+ *
+ * ⚠️ Глубина не бесконечна: метки живут `DAYS_KEPT` дней (см. выше), поэтому
+ * «лучшая серия» всегда означает «лучшая за этот срок».
+ */
+export async function loadDayMarks(profileId: string): Promise<string[]> {
+  const store = await readStore();
+  const log = store[profileId];
+  return Array.isArray(log?.days) ? log.days : [];
+}
+
 export function streakFromDays(days: string[], now: Date = new Date()): number {
   const have = new Set(days);
   const cur = new Date(now.getFullYear(), now.getMonth(), now.getDate());

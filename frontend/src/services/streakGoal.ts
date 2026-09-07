@@ -25,6 +25,7 @@
  * та самая копия, которая расходится молча. Мягкость даёт щит: он прощает
  * пропуск, и это дешевле новой сущности.
  */
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DAY_GOAL_REWARD, dayKey } from '@/src/services/earn';
 
 /** Три варианта обязательства. Ровно те, что видит человек. */
@@ -154,4 +155,32 @@ export function startGoal(days: GoalDays, now: Date = new Date()): StreakGoal {
  */
 export function markAsked(goal: StreakGoal, now: Date = new Date()): StreakGoal {
   return { ...goal, askedAt: dayKey(now) };
+}
+
+// ── хранение ─────────────────────────────────────────────────────────────────
+
+/**
+ * ⚠️ КЛЮЧ С ПРОФИЛЕМ, как у дневной цели. Профили в приложении переключаются, и
+ * общий ключ показал бы цель одного человека другому — на этом уже обжигались
+ * (`dayGoalKey` в dailyGoal.ts заведён по той же причине).
+ */
+const GOAL_PREFIX = 'psygames_streak_goal_';
+
+export function streakGoalKey(profileId: string): string { return GOAL_PREFIX + profileId; }
+
+/** Цель профиля или null. Битую запись отдаём как «цели нет», а не роняем экран. */
+export async function loadStreakGoal(profileId: string): Promise<StreakGoal | null> {
+  try {
+    const raw = await AsyncStorage.getItem(streakGoalKey(profileId));
+    if (!raw) return null;
+    const rec = JSON.parse(raw) as StreakGoal;
+    if (!rec || typeof rec.days !== 'number' || typeof rec.startedAt !== 'string') return null;
+    // `reachedAt` появилось позже первой редакции: у ранних записей его нет, и
+    // без этой строки они читались бы как «поле потеряно», а не «ещё не дошёл».
+    return { ...rec, reachedAt: rec.reachedAt ?? null };
+  } catch { return null; }
+}
+
+export async function saveStreakGoal(profileId: string, goal: StreakGoal): Promise<void> {
+  try { await AsyncStorage.setItem(streakGoalKey(profileId), JSON.stringify(goal)); } catch {}
 }

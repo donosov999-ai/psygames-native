@@ -27,7 +27,7 @@ import { profileBackground } from '@/src/constants/profileBackgrounds';
 import { logoForProfile, logoPlateFor } from '@/src/constants/profileLogos';
 import { getEquippedValue, getEquippedFrameColor, getEquippedTitle, getEquippedAvatarKey } from '@/src/services/cosmetics';
 import { avatarImage } from '@/src/constants/avatars';
-import { getTokens, levelInfo, dailyCheckIn } from '@/src/services/tokens';
+import { getTokens, levelInfo, dailyCheckIn, addTokens } from '@/src/services/tokens';
 import { wagerTick } from '@/src/services/wager';
 import { getTodayChallenge, challengeToParams, loadChallengeStreak, setPendingChallenge, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
 import { useAllLevelStars } from '@/src/hooks/useAllLevelStars';
@@ -58,8 +58,14 @@ import { shouldOpenOnboardingPicker } from '@/src/services/onboarding';
 import { recoCards, recoParams } from '@/src/services/recommend';
 import { weakestDomainGame } from '@/src/services/assessment';
 import { getSessions, GameSession } from '@/src/services/api';
-import { todayEarnings, TodaySummary, DAY_STREAK_FOR_MULT } from '@/src/services/earn';
+import { todayEarnings, TodaySummary, DAY_STREAK_FOR_MULT, loadDayMarks } from '@/src/services/earn';
 import DailyGoalCard from '@/src/components/DailyGoalCard';
+import StreakGoalSheet from '@/src/components/StreakGoalSheet';
+import {
+  askReason, goalReward, loadStreakGoal, markAsked, noticeReached, saveStreakGoal,
+  startGoal, type AskReason, type GoalDays, type StreakGoal,
+} from '@/src/services/streakGoal';
+import { suggestGoal, type Suggestion } from '@/src/services/goalSuggest';
 import {
   loadGoalCard, saveDailyGoal, dismissGoalCard, markGoalOutcome, GoalCardData, GoalOutcome,
 } from '@/src/services/dailyGoal';
@@ -210,6 +216,55 @@ function FullHome() {
       .catch(() => {});
     return () => { active = false; };
   }, [profile.id]));
+
+  /*
+   * 🎯 ЦЕЛЬ — СКОЛЬКО ДНЕЙ ПОДРЯД. Окно приходит при заходе, когда для него есть
+   * повод: цели нет · серия оборвалась · срок взят · прошла неделя с прошлого
+   * показа (`askReason` в streakGoal.ts). Один тап, ввода текста нет.
+   *
+   * ⚠️ ДОСТИЖЕНИЕ ОТМЕЧАЕТСЯ ДО ВОПРОСА. `noticeReached` ставит день, когда срок
+   * взят; иначе человек, дошедший до конца и не открывший приложение в тот день,
+   * назавтра получил бы «ты сорвался» вместо «ты дошёл» — серия к тому моменту
+   * уже ноль. Разбор — у поля `reachedAt`.
+   */
+  const [goal, setGoal] = useState<StreakGoal | null>(null);
+  const [goalAsk, setGoalAsk] = useState<AskReason | null>(null);
+  const [goalSuggestion, setGoalSuggestion] = useState<Suggestion | null>(null);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    (async () => {
+      const [saved, marks] = await Promise.all([loadStreakGoal(profile.id), loadDayMarks(profile.id)]);
+      if (!active) return;
+      const streak = today.dayStreak;
+      const noticed = saved ? noticeReached(saved, streak) : null;
+      if (noticed && saved && noticed !== saved) await saveStreakGoal(profile.id, noticed);
+      if (!active) return;
+      setGoal(noticed);
+      setGoalAsk(askReason({ goal: noticed, streak }));
+      setGoalSuggestion(suggestGoal({ days: marks, hasSessions: marks.length > 0 }));
+    })().catch(() => {});
+    return () => { active = false; };
+  }, [profile.id, today.dayStreak]));
+
+  const onGoalPick = useCallback(async (days: GoalDays) => {
+    // Награда — только за ДОШЕДШУЮ цель, и ровно один раз: `reachedAt` уже
+    // стоит, а новая цель заводится с чистым полем.
+    if (goal?.reachedAt) {
+      const r = goalReward(goal.days);
+      await addTokens(profile.id, r.tokens).catch(() => {});
+    }
+    const next = startGoal(days);
+    await saveStreakGoal(profile.id, next);
+    setGoal(next);
+    setGoalAsk(null);
+  }, [goal, profile.id]);
+
+  const onGoalSkip = useCallback(async () => {
+    // Закрыл, не выбрав — цель НЕ перезапускается, только отметка показа.
+    if (goal) { const next = markAsked(goal); await saveStreakGoal(profile.id, next); setGoal(next); }
+    setGoalAsk(null);
+  }, [goal, profile.id]);
+
   /**
    * 🎯 ЦЕЛЬ ДНЯ — причина открыть приложение, названная самим человеком.
    *
@@ -991,6 +1046,20 @@ function FullHome() {
             журнала, что и «Сегодня», — второго счёта в приложении быть не должно.
             Закрытая на сегодня карточка не рисуется вовсе (state='hidden' → null),
             места под собой не оставляет и вернётся только завтра. */}
+        {/* Окно цели поверх экрана — только когда для него есть повод. */}
+        {goalAsk !== null && goalSuggestion !== null && (
+          <StreakGoalSheet
+            reason={goalAsk}
+            suggestion={goalSuggestion}
+            today={{ games: today.rounds, tokens: today.total, streak: today.dayStreak }}
+            language={language}
+            petSkin={petSkin}
+            colors={colors}
+            t={t}
+            onPick={onGoalPick}
+            onSkip={onGoalSkip}
+          />
+        )}
         <DailyGoalCard
           state={goalCard.state}
           goalText={goalCard.goal?.text ?? null}
