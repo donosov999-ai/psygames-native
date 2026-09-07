@@ -2432,6 +2432,7 @@ const t: Record<string, string> = {
   "mahjongStuckUndo": "Aucune paire disponible — le plateau est bloqué. Annulez un coup.",
   "mahjongStuckRestart": "Plus aucune paire, rien à mélanger ni à annuler. Ce niveau doit être recommencé.",
   "mahjongRestartLevel": "Recommencer le niveau",
+  "anagramBonusJar": "Bonus",
   // >>> SCREEN_STRINGS
 };
 export default t;

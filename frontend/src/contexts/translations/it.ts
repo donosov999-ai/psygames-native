@@ -2432,6 +2432,7 @@ const t: Record<string, string> = {
   "mahjongStuckUndo": "Nessuna coppia disponibile — il tavolo è bloccato. Annulla una mossa.",
   "mahjongStuckRestart": "Non restano coppie e non c’è nulla da mescolare o annullare. Questo livello va ricominciato.",
   "mahjongRestartLevel": "Ricomincia il livello",
+  "anagramBonusJar": "Bonus",
   // >>> SCREEN_STRINGS
 };
 export default t;

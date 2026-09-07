@@ -2440,6 +2440,7 @@ const t: Record<string, string> = {
   "mahjongStuckUndo": "कोई जोड़ी उपलब्ध नहीं — बोर्ड अटक गया है। चाल वापस लें।",
   "mahjongStuckRestart": "कोई जोड़ी नहीं बची, न फेंटने को कुछ है न वापस लेने को। यह स्तर फिर से शुरू करना होगा।",
   "mahjongRestartLevel": "स्तर फिर से शुरू करें",
+  "anagramBonusJar": "बोनस",
   // >>> SCREEN_STRINGS
 };
 export default t;

@@ -2437,6 +2437,7 @@ const t: Record<string, string> = {
   "mahjongStuckUndo": "Keine Paare verfügbar — das Brett steckt fest. Mach einen Zug rückgängig.",
   "mahjongStuckRestart": "Keine Paare übrig, nichts zu mischen und nichts rückgängig zu machen. Dieses Level muss neu gestartet werden.",
   "mahjongRestartLevel": "Level neu starten",
+  "anagramBonusJar": "Bonus",
   // >>> SCREEN_STRINGS
 };
 export default t;
