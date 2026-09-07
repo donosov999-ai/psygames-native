@@ -221,7 +221,7 @@ export function levelParams(level: number): { rows: number; cols: number; timeLi
 
 export default function ProofreadingGame() {
   const { colors } = useTheme();
-  const { t, language } = useLanguage();
+  const { t, language, ready: языкГотов } = useLanguage();
   const { profile } = useProfile();
   const router = useRouter();
   /*
@@ -266,6 +266,21 @@ export default function ProofreadingGame() {
   const [rows, setRows] = useState(() => num('rows', 14));
   const [cols, setCols] = useState(() => num('cols', 12));
   const [mode, setMode] = useState<ScriptId | 'digits'>(() => (str('mode', language === 'ru' ? 'cyrillic' : 'latin') as ScriptId | 'digits'));
+  /**
+   * 🔴 ПИСЬМЕННОСТЬ ПО УМОЛЧАНИЮ — КОГДА ЯЗЫК УЖЕ ИЗВЕСТЕН.
+   *
+   * Инициализатор `useState` считается РОВНО ОДИН РАЗ, на первом кадре, а язык
+   * интерфейса в этот момент ещё `'en'` — значит русскому человеку по умолчанию
+   * вставала латиница, и заметить это можно было только по экрану настройки.
+   * Пересчитываем один раз, когда язык доехал, и только если человек не выбрал
+   * сам и письменность не задана параметром (зарядка присылает `mode=cyrillic`).
+   */
+  const письменностьВыбранаРукой = useRef(str('mode', '') !== '');
+  useEffect(() => {
+    if (!языкГотов || письменностьВыбранаРукой.current) return;
+    письменностьВыбранаРукой.current = true;
+    setMode(language === 'ru' ? 'cyrillic' : 'latin');
+  }, [языкГотов, language]);
   const [wrongFlash, setWrongFlash] = useState<number | null>(null);
   const [grid, setGrid] = useState<string[]>([]);
   const [targetLetters, setTargetLetters] = useState<string[]>([]);
@@ -884,8 +899,14 @@ export default function ProofreadingGame() {
     уровень человеку с двенадцатым — уровень приезжает асинхронно, а эффект
     монтирования всегда раньше промиса.
   */
+  /*
+   * `языкГотов` — см. разбор в anagrams.tsx: интерфейс стартует с 'en' и доезжает
+   * промисом, а поле здесь строится ПО ЯЗЫКУ (`buildProofField(language, …)`,
+   * `isFillwordsLocale(language)`). Автостарт раньше языка давал русскому
+   * человеку английское задание. Репорт Дениса 07.09.2026 про «Зарядку».
+   */
   useAutostartWhenReady(
-    () => autostart && lvl.loaded && (!seriesPreset || seriesLoaded),
+    () => autostart && lvl.loaded && языкГотов && (!seriesPreset || seriesLoaded),
     () => (seriesPreset ? beginSeries() : startGame()),
   );
 
@@ -1269,7 +1290,7 @@ export default function ProofreadingGame() {
                   mode === m && { backgroundColor: GRADIENT[0] },
                   mode !== m && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
                 ]}
-                onPress={() => setMode(m)}
+                onPress={() => { письменностьВыбранаРукой.current = true; setMode(m); }}
               >
                 <Text style={[styles.sizeButtonText, { color: mode === m ? '#333' : colors.text }]}>
                   {t(m === 'digits' ? 'scriptDigits' : SCRIPTS[m].labelKey)}

@@ -40,6 +40,26 @@ jest.mock('@/src/components/letterWheel/LetterWheel', () => ({
 const TestRenderer = require('react-test-renderer');
 const МЕТРИКИ = { frame: { x: 0, y: 0, width: 360, height: 740 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } };
 
+/**
+ * 🔴 ПОДНЯЛ ДЕРЕВО — ПОГАСИ. Иначе падает ВЕСЬ прогон, а не эта проба.
+ *
+ * 📍 Замер 07.09.2026 (`--detectOpenHandles`): не размонтированное дерево держит
+ * живые таймеры — у полного экрана это вечная петля кадров питомца
+ * (`PetSprite.tsx:558`, такт 140–420 мс). Она срабатывает уже ПОСЛЕ сноса
+ * окружения jest, дерево идёт на перерисовку, `react-native` отдаёт вместо
+ * `useWindowDimensions` пустоту — и процесс умирает целиком, ДО вывода итога.
+ * Со стороны выглядит как «jest сломался»: наборы идут PASS, потом exit 1 без
+ * единой строки FAIL. По проекту таких наборов было 21.
+ */
+const поднятые: any[] = [];
+
+afterEach(() => {
+  while (поднятые.length) {
+    const r = поднятые.pop();
+    try { TestRenderer.act(() => { r.unmount(); }); } catch { /* уже погашено */ }
+  }
+});
+
 it('собранное слово гасит круг букв (свойство, а не различие реф/состояние)', async () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- см. выше
   const Экран = require('@/app/games/anagrams').default;
@@ -52,6 +72,7 @@ it('собранное слово гасит круг букв (свойство
         </LanguageProvider></ThemeProvider></ProfileProvider>
       </SafeAreaProvider>);
   });
+  поднятые.push(root);
   const кнопки = () => root.root.findAll((n: any) => n.props
     && n.props.accessibilityRole === 'button' && typeof n.props.onPress === 'function', { deep: true });
   const старт = кнопки().find((x: any) => String(x.props.accessibilityLabel) === 'Start');
