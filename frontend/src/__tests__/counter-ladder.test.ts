@@ -1,4 +1,4 @@
-/* __tests__/counter-ladder · VER 2 · 07.09.2026 */
+/* __tests__/counter-ladder · VER 3 · 07.09.2026 */
 /**
  * ГЕЙТ продления лестницы «Счётчика» (07.09.2026). Замер ДО: единственная
  * ЗДОРОВАЯ лестница раздела (рост ×1,09–1,38 на всех L1–15 без клонов), дефект
@@ -31,10 +31,20 @@ describe('лестница counter v2 (продление за таблицей,
   });
 
   test('[G3] слепок: таблица L1-15 не тронута, сетка за таблицей не растёт (вёрстка-предел)', () => {
-    expect(levelParams(1)).toEqual({ gridSize: 3, roundLimitMs: 15000, rounds: 10, cellMax: 9 });
-    expect(levelParams(15)).toEqual({ gridSize: 9, roundLimitMs: 6000, rounds: 10, cellMax: 9 });
-    expect(levelParams(16)).toEqual({ gridSize: 9, roundLimitMs: 5600, rounds: 10, cellMax: 9 });
+    expect(levelParams(1)).toEqual({ gridSize: 3, roundLimitMs: 15000, rounds: 10, cellMax: 9, tripleShare: 0 });
+    expect(levelParams(15)).toEqual({ gridSize: 9, roundLimitMs: 6000, rounds: 10, cellMax: 9, tripleShare: 0 });
+    expect(levelParams(16)).toEqual({ gridSize: 9, roundLimitMs: 5600, rounds: 10, cellMax: 9, tripleShare: 0 });
     for (let L = 16; L <= 30; L++) expect(levelParams(L).gridSize).toBe(9);
+  });
+
+  test('[G5] ось «объём решения»: тройки входят долей с L26 (план §2), рубильника нет', () => {
+    expect(levelParams(25).tripleShare).toBe(0);
+    expect(levelParams(26).tripleShare).toBeCloseTo(0.2, 6);
+    expect(levelParams(28).tripleShare).toBeCloseTo(0.6, 6);
+    expect(levelParams(31).tripleShare).toBe(1);
+    for (const L of [27, 28, 29, 30]) {
+      expect(levelParams(L).tripleShare).toBeGreaterThan(levelParams(L - 1).tripleShare);
+    }
   });
 
   test('[G4] потолка НЕТ (§R, 07.09): за полом скорости рост несут ЧИСЛА клеток', () => {

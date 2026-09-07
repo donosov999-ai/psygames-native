@@ -1,4 +1,4 @@
-/* psygames-game-counter · VER 3 · 07.09.2026 */
+/* psygames-game-counter · VER 4 · 07.09.2026 */
 /**
  * Counter — «Собери сумму» (устный счёт): сетка чисел, кликами собери заданную сумму.
  *
@@ -39,6 +39,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
@@ -106,15 +107,24 @@ export const COUNTER_MAX_LEVEL = 20;
  *    выбрать 3 клетки с суммой, поиск дорожает на порядок (ось «объём решения»,
  *    как solMax в number-bonds).
  */
-export function levelParams(level: number): { gridSize: number; roundLimitMs: number; rounds: number; cellMax: number } {
+/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется исполнением levelParams. */
+export const COUNTER_RULES: LevelRule[] = [
+  { key: 'triples', fromLevel: 26 },   // lr_counter_triples_*
+];
+
+export function levelParams(level: number): { gridSize: number; roundLimitMs: number; rounds: number; cellMax: number; tripleShare: number } {
   const L = Math.max(level, 1);
   if (L <= LEVEL_TABLE.length) {
     const row = LEVEL_TABLE[L - 1];
-    return { gridSize: row.size, roundLimitMs: row.limitSec * 1000, rounds: TOTAL_ROUNDS, cellMax: 9 };
+    return { gridSize: row.size, roundLimitMs: row.limitSec * 1000, rounds: TOTAL_ROUNDS, cellMax: 9, tripleShare: 0 };
   }
   const limitSec = Math.max(4, 6 - (L - 15) * 0.4);   // скорость до пола 4,0 с (L20)
   const cellMax = L <= 20 ? 9 : 9 + (L - 20) * 2;     // дальше рост несут числа
-  return { gridSize: 9, roundLimitMs: Math.round(limitSec * 1000), rounds: TOTAL_ROUNDS, cellMax };
+  // Ось «объём решения» (план §2, 07.09): с L26 цель может собираться из ТРЁХ
+  // клеток — доля растёт плавно 0,2 → 1 (рубильник дал бы обрыв). Порог L26 —
+  // карточка правила lr_counter_triples (гейт level-rule-threshold сверяет).
+  const tripleShare = L <= 25 ? 0 : Math.min(1, (L - 25) * 0.2);
+  return { gridSize: 9, roundLimitMs: Math.round(limitSec * 1000), rounds: TOTAL_ROUNDS, cellMax, tripleShare };
 }
 
 export default function CounterGame() {
@@ -131,6 +141,7 @@ export default function CounterGame() {
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
+  const levelRules = useLevelRules('counter', lvl.level, COUNTER_RULES, true);
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const record = useRecordBenchmark('counter');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -153,6 +164,7 @@ export default function CounterGame() {
   const levelRef = useRef(1);
   const gridSizeRef = useRef(3);
   const cellMaxRef = useRef(9);
+  const tripleShareRef = useRef(0);
   const roundLimitRef = useRef(15000);
   const totalRoundsRef = useRef(TOTAL_ROUNDS);
   const roundRef = useRef(0);
@@ -174,20 +186,19 @@ export default function CounterGame() {
 
   useEffect(() => () => clearAllTimers(), []);
 
-  const generateGrid = (gs: number, cellMax: number): Cell[] => {
+  const generateGrid = (gs: number, cellMax: number, tripleShare: number): Cell[] => {
     const totalCells = gs * gs;
     const numbers = Array.from({ length: totalCells }, () =>
       Math.floor(Math.random() * cellMax) + 1
     );
 
-    // Целевая сумма всегда достижима: сумма 2 случайных клеток
-    const idx1 = Math.floor(Math.random() * totalCells);
-    let idx2 = Math.floor(Math.random() * totalCells);
-    while (idx2 === idx1) {
-      idx2 = Math.floor(Math.random() * totalCells);
-    }
+    // Целевая сумма всегда достижима: сумма 2 (или, с долей tripleShare, 3)
+    // случайных клеток; выбор клеток и зачёт по сумме не меняются
+    const picks = new Set<number>();
+    const need = Math.random() < tripleShare ? 3 : 2;
+    while (picks.size < need) picks.add(Math.floor(Math.random() * totalCells));
 
-    const target = numbers[idx1] + numbers[idx2];
+    const target = [...picks].reduce((acc, i) => acc + numbers[i], 0);
     setTargetSum(target);
     setSelectedSum(0);
     setShowSuccess(false);
@@ -198,7 +209,7 @@ export default function CounterGame() {
 
   // Новый раунд: свежая сетка + дедлайн уровня (не успел = ошибка-пропуск)
   const beginRound = () => {
-    setGrid(generateGrid(gridSizeRef.current, cellMaxRef.current));
+    setGrid(generateGrid(gridSizeRef.current, cellMaxRef.current, tripleShareRef.current));
     roundDeadlineRef.current = gameNow() + roundLimitRef.current;
     setRoundLeft(roundLimitRef.current / 1000);
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
@@ -227,6 +238,7 @@ export default function CounterGame() {
     levelRef.current = lvl.level;
     gridSizeRef.current = p.gridSize;
     cellMaxRef.current = p.cellMax;
+    tripleShareRef.current = p.tripleShare;
     roundLimitRef.current = p.roundLimitMs;
     totalRoundsRef.current = p.rounds;
     setGridSize(p.gridSize);
@@ -372,6 +384,7 @@ export default function CounterGame() {
           </View>
 
           <LevelProgressMap bestLevel={lvl.best} gameId="counter" currentLevel={lvl.level} maxLevel={COUNTER_MAX_LEVEL} onPickLevel={lvl.pick} colors={colors} language={language} />
+          <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
 
           {/* Карточка уровня: параметры + видимый критерий прохода + сброс ↺1 */}
           <TouchableOpacity
@@ -538,6 +551,7 @@ export default function CounterGame() {
       </View>
 
       {phase === 'config' && renderConfig()}
+      <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       <LeaderboardModal
         visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}
         gameId="counter" language={language} colors={colors} gradient={GRADIENT}
