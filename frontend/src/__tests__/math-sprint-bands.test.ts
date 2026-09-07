@@ -67,6 +67,20 @@ describe('полосы math-sprint v2 (школьная ось, слепок 07.
     expect(a).toEqual(b);
   });
 
+  test('потолка НЕТ (§R, 07.09): за L36 числа микса продолжают расти (кламп bandT снят)', () => {
+    const meanAnswer = (L: number): number => {
+      const rnd = seededRnd(99 + L);
+      let sum = 0;
+      for (let i = 0; i < 500; i++) sum += Math.abs(generateSprintProblem(L, rnd).answer);
+      return sum / 500;
+    };
+    const a36 = meanAnswer(36);
+    const a44 = meanAnswer(44);
+    const a56 = meanAnswer(56);
+    expect(a44).toBeGreaterThan(a36 * 1.15);
+    expect(a56).toBeGreaterThan(a44 * 1.15);
+  });
+
   test('миграция v1→v2: по семейству, прогресс не сгорает, в границах', () => {
     expect(migrateSprintLevelV1toV2(1)).toBe(1);
     expect(migrateSprintLevelV1toV2(2)).toBe(2);

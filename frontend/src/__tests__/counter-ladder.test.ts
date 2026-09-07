@@ -1,4 +1,4 @@
-/* __tests__/counter-ladder · VER 1 · 07.09.2026 */
+/* __tests__/counter-ladder · VER 2 · 07.09.2026 */
 /**
  * ГЕЙТ продления лестницы «Счётчика» (07.09.2026). Замер ДО: единственная
  * ЗДОРОВАЯ лестница раздела (рост ×1,09–1,38 на всех L1–15 без клонов), дефект
@@ -31,9 +31,17 @@ describe('лестница counter v2 (продление за таблицей,
   });
 
   test('[G3] слепок: таблица L1-15 не тронута, сетка за таблицей не растёт (вёрстка-предел)', () => {
-    expect(levelParams(1)).toEqual({ gridSize: 3, roundLimitMs: 15000, rounds: 10 });
-    expect(levelParams(15)).toEqual({ gridSize: 9, roundLimitMs: 6000, rounds: 10 });
-    expect(levelParams(16)).toEqual({ gridSize: 9, roundLimitMs: 5600, rounds: 10 });
+    expect(levelParams(1)).toEqual({ gridSize: 3, roundLimitMs: 15000, rounds: 10, cellMax: 9 });
+    expect(levelParams(15)).toEqual({ gridSize: 9, roundLimitMs: 6000, rounds: 10, cellMax: 9 });
+    expect(levelParams(16)).toEqual({ gridSize: 9, roundLimitMs: 5600, rounds: 10, cellMax: 9 });
     for (let L = 16; L <= 30; L++) expect(levelParams(L).gridSize).toBe(9);
+  });
+
+  test('[G4] потолка НЕТ (§R, 07.09): за полом скорости рост несут ЧИСЛА клеток', () => {
+    expect(levelParams(20).cellMax).toBe(9);
+    expect(levelParams(21).cellMax).toBe(11);
+    for (const L of [22, 25, 30, 40, 60]) {
+      expect(levelParams(L).cellMax).toBeGreaterThan(levelParams(L - 1).cellMax);
+    }
   });
 });

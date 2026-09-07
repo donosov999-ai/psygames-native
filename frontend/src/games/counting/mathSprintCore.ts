@@ -1,4 +1,4 @@
-/* counting/mathSprintCore · VER 1 · 07.09.2026 */
+/* psygames-counting-math-sprint-core · VER 1 · 07.09.2026 */
 /**
  * Ядро «Спринта» — лестница v2 по ШКОЛЬНОЙ ОСИ (задана Денисом 07.09.2026,
  * counting-chat/PROJECT_REF §R; образец — слайдер v2). Вынесено из экрана
@@ -50,10 +50,12 @@ export function sprintBandFor(level: number): SprintKind {
   return (['plus-minus', 'mult', 'div', 'chain', 'square', 'root', 'equation'] as const)[band] ?? 'mix';
 }
 
-/** Позиция уровня в полосе 0…1; в хвосте B8 продолжает расти до +2 полос. */
+/** Позиция уровня в полосе 0…1; в хвосте B8 t растёт БЕЗ КЛАМПА (§R, 07.09:
+ * min(1,…) делал все уровни за L36 клонами — числа бесконечны, семейства
+ * линейны по t, ось открыта). */
 function bandT(level: number): number {
   const L = Math.max(1, Math.floor(level));
-  if (L > 7 * BAND_SIZE) return Math.min(1, (L - 7 * BAND_SIZE) / (2 * BAND_SIZE));
+  if (L > 7 * BAND_SIZE) return (L - 7 * BAND_SIZE) / (2 * BAND_SIZE);
   return ((L - 1) % BAND_SIZE) / (BAND_SIZE - 1);
 }
 
@@ -119,7 +121,7 @@ function equation(rnd: Rnd, t: number): SprintProblem {
   return { display: `${a}x ${plus ? '+' : '−'} ${b} = ${c},  x = ?`, answer: x, kind: 'equation' };
 }
 
-const MIX: ReadonlyArray<(rnd: Rnd, t: number) => SprintProblem> = [chain, square, root, equation];
+const MIX: readonly ((rnd: Rnd, t: number) => SprintProblem)[] = [chain, square, root, equation];
 
 /**
  * Задача уровня. rnd — инъекция для детерминированных замеров/проб

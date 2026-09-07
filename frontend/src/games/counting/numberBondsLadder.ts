@@ -1,4 +1,4 @@
-/* psygames-counting-number-bonds-ladder · VER 1 · 06.09.2026 */
+/* psygames-counting-number-bonds-ladder · VER 2 · 07.09.2026 */
 /**
  * Лестница «Состав числа» — ЕДИНСТВЕННЫЙ источник правды об уровнях.
  * Читают двое: экран app/games/number-bonds.tsx и замер counting-chat/sim-ladder.mjs
@@ -62,7 +62,16 @@ const LEVELS: readonly (Omit<BondsCfg, 'windowMs'> & { winS: number })[] = [
 ];
 
 export function levelParams(level: number): BondsCfg {
-  const row = LEVELS[Math.min(Math.max(1, Math.round(level)), NB_MAX_LEVEL) - 1];
+  const L = Math.max(1, Math.round(level));
+  // За таблицей лестница НЕ замирает (§R, 07.09: раньше L21+ были клонами
+  // 20-й строки): ось величины целей открыта — target и пул растут с уровнем,
+  // переносы и поиск дорожают; состав (веса троек) уже на максимуме таблицы.
+  if (L > NB_MAX_LEVEL) {
+    const base = levelParams(NB_MAX_LEVEL);
+    const k = 1 + (L - NB_MAX_LEVEL) * 0.15;
+    return { ...base, maxV: Math.round(base.maxV * k) };
+  }
+  const row = LEVELS[L - 1];
   const { winS, ...rest } = row;
   return { ...rest, windowMs: winS * 1000 };
 }

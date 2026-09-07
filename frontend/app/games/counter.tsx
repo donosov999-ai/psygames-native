@@ -99,18 +99,22 @@ export const COUNTER_MAX_LEVEL = 20;
  *  · размер сетки — ПРЕДЕЛ ВЁРСТКИ числом: 9 колонок на 360 px дают клетку
  *    ~34 px при пороге нажатия 48 px — расти некуда;
  *  · скорость — живая ось: лимит раунда убывает 6 → 4 с (пол на L20);
+ *  · ВЕЛИЧИНА ЧИСЕЛ в клетках (§R, 07.09: «считать можно бесконечно») — за
+ *    L20 клетки растут 9 → 11 → 13… без потолка: суммы двузначные, переносы,
+ *    поиск пары среди крупных дорожает. Раньше 1..9 были зашиты — L21+ клоны;
  *  · дальше (отдельный заход, правка валидации): ТРОЙКИ слагаемых —
  *    выбрать 3 клетки с суммой, поиск дорожает на порядок (ось «объём решения»,
  *    как solMax в number-bonds).
  */
-export function levelParams(level: number): { gridSize: number; roundLimitMs: number; rounds: number } {
+export function levelParams(level: number): { gridSize: number; roundLimitMs: number; rounds: number; cellMax: number } {
   const L = Math.max(level, 1);
   if (L <= LEVEL_TABLE.length) {
     const row = LEVEL_TABLE[L - 1];
-    return { gridSize: row.size, roundLimitMs: row.limitSec * 1000, rounds: TOTAL_ROUNDS };
+    return { gridSize: row.size, roundLimitMs: row.limitSec * 1000, rounds: TOTAL_ROUNDS, cellMax: 9 };
   }
-  const limitSec = Math.max(4, 6 - (L - 15) * 0.4);   // L16 5,6с → L20 4,0с (пол)
-  return { gridSize: 9, roundLimitMs: Math.round(limitSec * 1000), rounds: TOTAL_ROUNDS };
+  const limitSec = Math.max(4, 6 - (L - 15) * 0.4);   // скорость до пола 4,0 с (L20)
+  const cellMax = L <= 20 ? 9 : 9 + (L - 20) * 2;     // дальше рост несут числа
+  return { gridSize: 9, roundLimitMs: Math.round(limitSec * 1000), rounds: TOTAL_ROUNDS, cellMax };
 }
 
 export default function CounterGame() {
@@ -148,6 +152,7 @@ export default function CounterGame() {
   // ре-рендеров, state в колбэках таймеров был бы устаревшим (паттерн cpt/simon).
   const levelRef = useRef(1);
   const gridSizeRef = useRef(3);
+  const cellMaxRef = useRef(9);
   const roundLimitRef = useRef(15000);
   const totalRoundsRef = useRef(TOTAL_ROUNDS);
   const roundRef = useRef(0);
@@ -169,10 +174,10 @@ export default function CounterGame() {
 
   useEffect(() => () => clearAllTimers(), []);
 
-  const generateGrid = (gs: number): Cell[] => {
+  const generateGrid = (gs: number, cellMax: number): Cell[] => {
     const totalCells = gs * gs;
     const numbers = Array.from({ length: totalCells }, () =>
-      Math.floor(Math.random() * 9) + 1
+      Math.floor(Math.random() * cellMax) + 1
     );
 
     // Целевая сумма всегда достижима: сумма 2 случайных клеток
@@ -193,7 +198,7 @@ export default function CounterGame() {
 
   // Новый раунд: свежая сетка + дедлайн уровня (не успел = ошибка-пропуск)
   const beginRound = () => {
-    setGrid(generateGrid(gridSizeRef.current));
+    setGrid(generateGrid(gridSizeRef.current, cellMaxRef.current));
     roundDeadlineRef.current = gameNow() + roundLimitRef.current;
     setRoundLeft(roundLimitRef.current / 1000);
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
@@ -221,6 +226,7 @@ export default function CounterGame() {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
     gridSizeRef.current = p.gridSize;
+    cellMaxRef.current = p.cellMax;
     roundLimitRef.current = p.roundLimitMs;
     totalRoundsRef.current = p.rounds;
     setGridSize(p.gridSize);
