@@ -114,7 +114,8 @@ describe('партия вслепую: материал заготовлен о�
   it('смотреть есть на что: корпус полон, лесенка на месте', () => {
     expect(corpusEntries().length).toBeGreaterThanOrEqual(2000);
     expect(CORPUS_BOARDS.size).toBeGreaterThanOrEqual(2000);   // повторов в корпусе нет
-    expect(LEVELS).toHaveLength(15);
+    // 🔴 15 → 25 (07.09.2026): лестница продлена, разбор в шапке `PUZZLE_MAX_LEVEL`.
+    expect(LEVELS).toHaveLength(25);
     // Ручки уровня и правда РАЗНЫЕ по лесенке — иначе проверять «трудность растёт» не на чем.
     expect(new Set(LEVELS.map((l) => puzzleLevelParams(l).pieces)).size).toBeGreaterThan(1);
     expect(new Set(LEVELS.map((l) => puzzleLevelParams(l).moves)).size).toBeGreaterThan(1);
