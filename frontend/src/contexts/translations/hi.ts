@@ -2490,6 +2490,8 @@ const t: Record<string, string> = {
   "tabGames": "खेल",
   "tabPet": "साथी",
   "favouriteSections": "जो सबसे ज़्यादा खेलते हो",
+  "languagesWarmupTitle": "भाषा वॉर्म-अप",
+  "languagesWarmupDesc": "अंग्रेज़ी और स्पेनिश मिलाकर। एक भाषा से ज़्यादा गलतियाँ होंगी — यही मक़सद है",
   "andMore": "{n} और ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "दिशा बाद में बताई जाएगी",

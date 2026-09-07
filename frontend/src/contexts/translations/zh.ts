@@ -2487,6 +2487,8 @@ const t: Record<string, string> = {
   "tabGames": "游戏",
   "tabPet": "伙伴",
   "favouriteSections": "你玩得最多的",
+  "languagesWarmupTitle": "语言热身",
+  "languagesWarmupDesc": "英语和西班牙语混着来。错得会比单一语言多——这正是目的",
   "andMore": "还有 {n} 个 ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "方向稍后才告诉你",

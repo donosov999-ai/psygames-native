@@ -14,6 +14,7 @@
  */
 import React from 'react';
 import HubScreen from '@/src/components/HubScreen';
+import { LanguagesWarmup } from '@/src/components/warmups/LanguagesWarmup';
 
 export default function LanguagesHub() {
   return (
@@ -23,6 +24,7 @@ export default function LanguagesHub() {
       descKey="languagesGroupDesc"
       pickKey="hubPickExercise"
       footnoteKey="languagesGroupFootnote"
+      headerSlot={<LanguagesWarmup />}
       icon="language"
       gradient={['#0891b2', '#a855f7']}
     />

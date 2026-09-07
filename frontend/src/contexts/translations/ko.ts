@@ -2482,6 +2482,8 @@ const t: Record<string, string> = {
   "tabGames": "게임",
   "tabPet": "친구",
   "favouriteSections": "가장 많이 하는 것",
+  "languagesWarmupTitle": "언어 워밍업",
+  "languagesWarmupDesc": "영어와 스페인어를 섞어서. 한 언어일 때보다 더 틀립니다 — 그게 목적입니다",
   "andMore": "{n}개 더 ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "방향은 나중에 알려줍니다",
