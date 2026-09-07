@@ -28,6 +28,8 @@
 import React from 'react';
 import { MemoryPalaceGame } from '@/src/games/memory-palace/MemoryPalaceGame';
 import { getMemoryPalaceStrings } from '@/src/games/memory-palace/core';
+import FacesNamesGame from '@/src/games/faces-names/FacesNamesGame';
+import { getFacesNamesStrings } from '@/src/games/faces-names/core';
 
 const TestRenderer = require('react-test-renderer'); // eslint-disable-line @typescript-eslint/no-require-imports
 
@@ -113,4 +115,26 @@ describe('Память и слух · смена фазы не роняет иг
     r.unmount();
   });
 
+  it('🔴 «Лица и имена»: правила → изучение проходят без падения', () => {
+    const ответы: unknown[] = [];
+    const лица = getFacesNamesStrings('ru');
+    let r: any;
+    TestRenderer.act(() => {
+      r = TestRenderer.create(
+        <FacesNamesGame
+          seed="проба-перехода" level={1} locale="ru" theme={тема}
+          gameGradient={['#7c3aed', '#2dd4bf'] as const} gameGradientText="#fff"
+          now={() => 1_000}
+          onAnswer={(о) => ответы.push(о)}
+        />,
+      );
+    });
+    expect(текстом(r)).toContain(лица.start);
+
+    expect(нажать(r, лица.start)).toBe(true);
+
+    expect(текстом(r)).not.toContain(лица.rulesTitle);
+    expect(ответы.filter(Boolean).length).toBeGreaterThan(0);
+    r.unmount();
+  });
 });
