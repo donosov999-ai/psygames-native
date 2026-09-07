@@ -23,9 +23,10 @@
  * jsdom их нет.
  */
 declare const __dirname: string;
-declare function require(id: string): { readFileSync: (p: string, e: string) => string };
+// 07.09.2026: было `{ readFileSync: … }` — тогда `require('path')` получал
+// тот же тип, и `join` не находился. Объявление одно на все модули.
+declare function require(id: string): any;
 const { readFileSync } = require('fs');
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- путь к исходникам экранов
 const { join } = require('path');
 
 const ROOT = join(__dirname, '../..');

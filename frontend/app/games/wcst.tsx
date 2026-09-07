@@ -25,7 +25,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -51,6 +51,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
 const GRADIENT = ['#834d9b', '#d04ed6'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -162,7 +163,9 @@ export function refCardWidth(screenW: number): { w: number; h: number; ряд: 4
 export default function WcstGame() {
   const { colors, colorblind } = useTheme();
   const HEX = colorblind ? COLOR_HEX_CB : COLOR_HEX;
-  const { width: screenW } = useWindowDimensions();
+  // 07.09.2026: ширину берём защищённым хуком — голый useWindowDimensions()
+  // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
+  const screenW = useScreenWidth();
   const refSize = refCardWidth(screenW);
   const { t, language } = useLanguage();
   const router = useRouter();
