@@ -2438,6 +2438,10 @@ const t: Record<string, string> = {
   "goalSuggest_best_streak": "Il tuo record: {n} gg.",
   "goalSuggest_at_top": "Hai già retto {n} gg.",
   "goalSuggest_smaller": "L'ultimo era {n} — partiamo da meno",
+  "tabGames": "Giochi",
+  "tabPet": "Compagno",
+  "favouriteSections": "Cosa giochi di più",
+  "andMore": "altri {n} ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "La direzione arriva dopo",
   "lr_digit_span_surprise_dir_rule": "Da questo livello scopri COME restituire la serie solo DOPO averla vista: in avanti, all’indietro o in ordine crescente. Tienila com’era finché non te lo chiedono.",

@@ -2443,6 +2443,10 @@ const t: Record<string, string> = {
   "goalSuggest_best_streak": "Dein Rekord: {n} T.",
   "goalSuggest_at_top": "Du hieltest schon {n} T.",
   "goalSuggest_smaller": "Letztes Ziel {n} — nimm kleiner",
+  "tabGames": "Spiele",
+  "tabPet": "Gefährte",
+  "favouriteSections": "Was du am meisten spielst",
+  "andMore": "{n} weitere ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "Die Richtung kommt danach",
   "lr_digit_span_surprise_dir_rule": "Ab diesem Level erfährst du erst NACH der Anzeige, WIE du die Reihe zurückgeben sollst: vorwärts, rückwärts oder aufsteigend. Halte sie so, wie du sie gesehen hast, bis gefragt wird.",

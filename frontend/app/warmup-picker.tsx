@@ -22,6 +22,9 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/src/contexts/ThemeContext';
+// 🔴 Свой тулбар с главной кнопкой обязан стоять НАД полосой вкладок: полоса —
+// наложение поверх всего, и без этого отступа она легла бы на «Начать».
+import { TAB_BAR_H } from '@/src/services/tabBar';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { isGameAllowed } from '@/src/constants/profiles';
@@ -358,7 +361,7 @@ export default function WarmupPicker() {
       </ScrollView>
 
       {/* Нижний тулбар — как на экране «Об игре»: слева справка, справа запуск. */}
-      <View style={[styles.bar, { borderTopColor: colors.border, paddingBottom: insets.bottom + 10 }]}>
+      <View style={[styles.bar, { borderTopColor: colors.border, paddingBottom: insets.bottom + 10 + TAB_BAR_H }]}>
         {/* Справка — модалкой, а НЕ отдельным маршрутом. Новый экран пришлось бы
             заводить в роутере, и промах в адресе даёт «Unmatched Route» вместо
             справки — этим уже обожглись на совете Синапса (v1.174). */}
