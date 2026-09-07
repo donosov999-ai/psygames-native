@@ -47,7 +47,7 @@ import {
   Field, isDone, isSolved, canPour, pour, legalMoves, capOf, stonesIn, isOpen,
 } from '@/src/games/water-sort/core/tubes';
 import {
-  generateLevel, levelParams, solve, КОРОТКИЕ_С, КАМНИ_С, ОТЛОЖЕННЫЙ_С, ХОДЫ_С, levelMoveReference, moveLimitFor } from '@/src/games/water-sort/core/generate';
+  generateLevel, levelParams, solve, КОРОТКИЕ_С, КАМНИ_С, ОТЛОЖЕННЫЙ_С, ХОДЫ_С, СТРОГО_С, levelMoveReference, moveLimitFor } from '@/src/games/water-sort/core/generate';
 import {
   СКРЫТО_С, скрытоНаУровне, скрытыеСлои, слойВиден, звёздыПоХодам,
 } from '@/src/games/water-sort/core/hidden';
@@ -155,6 +155,11 @@ export const WATER_SORT_RULES: LevelRule[] = [
   { key: 'sealed', fromLevel: ОТЛОЖЕННЫЙ_С },
   /* Лимит ходов (L14+). fromLevel равен ХОДЫ_С — сторожит гейт. */
   { key: 'movelimit', fromLevel: ХОДЫ_С },
+  /*
+   * Строгий налив (L34+). Порог равен `СТРОГО_С` — там же, где лестница прежде
+   * кончалась и где доска ужимается в обмен на ось.
+   */
+  { key: 'strict', fromLevel: СТРОГО_С },
 ];
 
 const БОНУСЫ = [
