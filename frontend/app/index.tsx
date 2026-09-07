@@ -62,8 +62,8 @@ import { todayEarnings, TodaySummary, DAY_STREAK_FOR_MULT, loadDayMarks } from '
 import DailyGoalCard from '@/src/components/DailyGoalCard';
 import StreakGoalSheet from '@/src/components/StreakGoalSheet';
 import {
-  askReason, goalReward, loadStreakGoal, markAsked, noticeReached, saveStreakGoal,
-  startGoal, type AskReason, type GoalDays, type StreakGoal,
+  askReason, goalReward, loadGoalAskedAt, loadStreakGoal, noticeReached, rememberAsked,
+  saveStreakGoal, startGoal, type AskReason, type GoalDays, type StreakGoal,
 } from '@/src/services/streakGoal';
 import { suggestGoal, type Suggestion } from '@/src/services/goalSuggest';
 import {
@@ -233,14 +233,16 @@ function FullHome() {
   useFocusEffect(useCallback(() => {
     let active = true;
     (async () => {
-      const [saved, marks] = await Promise.all([loadStreakGoal(profile.id), loadDayMarks(profile.id)]);
+      const [saved, marks, lastAskedAt] = await Promise.all([
+        loadStreakGoal(profile.id), loadDayMarks(profile.id), loadGoalAskedAt(profile.id),
+      ]);
       if (!active) return;
       const streak = today.dayStreak;
       const noticed = saved ? noticeReached(saved, streak) : null;
       if (noticed && saved && noticed !== saved) await saveStreakGoal(profile.id, noticed);
       if (!active) return;
       setGoal(noticed);
-      setGoalAsk(askReason({ goal: noticed, streak }));
+      setGoalAsk(askReason({ goal: noticed, streak, lastAskedAt }));
       setGoalSuggestion(suggestGoal({ days: marks, hasSessions: marks.length > 0 }));
     })().catch(() => {});
     return () => { active = false; };
@@ -255,13 +257,20 @@ function FullHome() {
     }
     const next = startGoal(days);
     await saveStreakGoal(profile.id, next);
+    // Показ отмечается обеими отметками сразу (`rememberAsked`) — иначе
+    // `useFocusEffect` при первом же возврате на главную посчитал бы повод
+    // заново и открыл окно снова.
+    await rememberAsked(profile.id, next);
     setGoal(next);
     setGoalAsk(null);
   }, [goal, profile.id]);
 
   const onGoalSkip = useCallback(async () => {
     // Закрыл, не выбрав — цель НЕ перезапускается, только отметка показа.
-    if (goal) { const next = markAsked(goal); await saveStreakGoal(profile.id, next); setGoal(next); }
+    // 🔴 Отметка ставится И БЕЗ ЦЕЛИ: цели может не быть вовсе, и именно в этом
+    // случае окно возвращалось на каждый заход на главную.
+    const next = await rememberAsked(profile.id, goal);
+    if (next) setGoal(next);
     setGoalAsk(null);
   }, [goal, profile.id]);
 
