@@ -430,7 +430,19 @@ export default function VisualSearchGame() {
     (it.decoy ? `, ${t('skip')}` : '') +
     (it.found ? `, ${t('a11yFound')}` : '');
 
-  const renderLetter = (item: Item) => {
+  /**
+   * 🔴 БЕРЁТ ТОЛЬКО ТО, ЧТО РИСУЕТ — форму и цвет, а не весь `Item`.
+   *
+   * Так было не всегда, и цена узналась 07.09.2026. Образец цели рядом с
+   * подсказкой не существует на поле: он собирался ЛИТЕРАЛОМ `Item` с
+   * выдуманными `x`, `y`, `rot`, `isTarget`, `found`. Стоило добавить в `Item`
+   * обязательное поле `decoy` (ось 5) — и литерал развалился по типам, хотя к
+   * рисованию образца новое поле не имеет никакого отношения.
+   *
+   * С узким типом такой поломки больше не бывает: любое поле, добавленное в
+   * `Item` завтра, этот вызов не заденет.
+   */
+  const renderLetter = (item: Pick<Item, 'shape' | 'color'>) => {
     const stroke = item.color || NEUTRAL_STROKE, sw = 3;
     const s = item.shape;
     const centerStem = s === 'T' || s === 'plus' || s === 'I';   // T, + и I — стебель по центру; L — слева
@@ -477,11 +489,7 @@ export default function VisualSearchGame() {
                   фигура на белой плашке = образца не видно, и человек ищет вслепую.
                   Берём ту же константу, что и поле: разъехаться им больше нечем. */}
               <View style={[styles.targetRef, { backgroundColor: FIELD_BG }]}>
-                {/* ⚠️ Образец — не приманка НИКОГДА: он показывает, что искать.
-                    Поле `decoy` обязательное, и забыть его здесь — ровно то, что
-                    я и сделал в B4: `tsc` покраснел на этой строке, а я его
-                    после правки не гонял. */}
-                {renderLetter({ shape: targetShape, color: targetColor || NEUTRAL_STROKE, rot: 0, x: 0, y: 0, isTarget: true, found: false, decoy: false })}
+                {renderLetter({ shape: targetShape, color: targetColor || NEUTRAL_STROKE })}
               </View>
             </View>
             <View style={[styles.boardArea, { width: boardW, height: boardH, backgroundColor: FIELD_BG, borderColor: feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
