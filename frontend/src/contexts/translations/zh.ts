@@ -2438,6 +2438,10 @@ const t: Record<string, string> = {
   "mahjongStuckRestart": "没有可配对的牌，也没有可洗牌或可撤销的操作。本关需要重新开始。",
   "mahjongRestartLevel": "重新开始本关",
   "anagramBonusJar": "奖励",
+  "goalSheetDays": "{n} 天",
+  "goalSheetToday": "今天：{g} 局 · {p} ⭐ · 连续 {s}",
+  "goalSuggest_best_streak": "你的纪录：{n} 天",
+  "goalSuggest_at_top": "你已坚持 {n} 天",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "方向稍后才告诉你",
   "lr_digit_span_surprise_dir_rule": "从本关起，要怎么复述这串数字——正序、倒序还是从小到大——要等展示结束后才会告诉你。在被问到之前，请按看到的样子记住它。",

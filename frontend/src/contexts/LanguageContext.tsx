@@ -1560,6 +1560,15 @@ const translations: Translations = {
   label_pairs_count: { ru: 'Количество пар', en: 'Number of pairs' },
   label_memorize_word_pairs: { ru: 'Запомните пары слов', en: 'Memorize word pairs' },
   label_found: { ru: 'Найдено', en: 'Found' },
+  // ── Окно цели «сколько дней подряд» (07.09.2026) ────────────────────────────
+  // ⚠️ ЧИСЛО В ПОДПИСИ — ПРОИЗВОЛЬНОЕ, поэтому после него НЕТ склоняемого слова.
+  // Варианты 7/14/30 все берут «дней», а основание бывает любым: 2 → «2 дня»,
+  // 21 → «21 день». Сокращение «дн.» снимает склонение целиком; помощник
+  // склонения ради двух строк — лишняя сущность. Проба сторожит.
+  goalSheetDays: { ru: '{n} дней', en: '{n} days' },
+  goalSheetToday: { ru: 'Сегодня: {g} партий · {p} ⭐ · серия {s}', en: 'Today: {g} games · {p} ⭐ · streak {s}' },
+  goalSuggest_best_streak: { ru: 'Твой рекорд — {n} дн.', en: 'Your best is {n} days' },
+  goalSuggest_at_top: { ru: 'Ты уже держал {n} дн.', en: 'You already held {n} days' },
   // 07.09.2026: ключ звался из anagrams.tsx:319, а в словаре его не было —
   // игрок видел бы в панели сырое «anagramBonusJar». Копилка — настоящие
   // слова из букв базы, не попавшие в цели уровня (AllWordsGame.tsx:79).

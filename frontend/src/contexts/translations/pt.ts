@@ -2438,6 +2438,10 @@ const t: Record<string, string> = {
   "mahjongStuckRestart": "Não restam pares e não há o que embaralhar nem desfazer. É preciso reiniciar o nível.",
   "mahjongRestartLevel": "Reiniciar o nível",
   "anagramBonusJar": "Bônus",
+  "goalSheetDays": "{n} dias",
+  "goalSheetToday": "Hoje: {g} partidas · {p} ⭐ · sequência {s}",
+  "goalSuggest_best_streak": "Seu recorde: {n} d.",
+  "goalSuggest_at_top": "Você já aguentou {n} d.",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "A direção vem depois",
   "lr_digit_span_surprise_dir_rule": "A partir deste nível você descobre COMO devolver a sequência só DEPOIS de vê-la: na ordem, de trás para a frente ou em ordem crescente. Segure-a como viu até perguntarem.",

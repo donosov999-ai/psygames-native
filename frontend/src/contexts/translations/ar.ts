@@ -2434,6 +2434,10 @@ const t: Record<string, string> = {
   "mahjongStuckRestart": "لم تبق أزواج ولا خلط ولا تراجع. يجب إعادة بدء هذا المستوى.",
   "mahjongRestartLevel": "إعادة بدء المستوى",
   "anagramBonusJar": "مكافأة",
+  "goalSheetDays": "{n} يوم",
+  "goalSheetToday": "اليوم: {g} جولات · {p} ⭐ · سلسلة {s}",
+  "goalSuggest_best_streak": "رقمك القياسي: {n} يوم",
+  "goalSuggest_at_top": "صمدت بالفعل {n} يوم",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "الاتجاه يُقال لاحقًا",
   "lr_digit_span_surprise_dir_rule": "من هذا المستوى ستعرف كيف تُعيد السلسلة — كما هي أو بالعكس أو تصاعديًا — بعد انتهاء العرض فقط. احتفظ بها كما رأيتها إلى أن يُطلب منك.",

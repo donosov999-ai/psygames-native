@@ -2441,6 +2441,10 @@ const t: Record<string, string> = {
   "mahjongStuckRestart": "कोई जोड़ी नहीं बची, न फेंटने को कुछ है न वापस लेने को। यह स्तर फिर से शुरू करना होगा।",
   "mahjongRestartLevel": "स्तर फिर से शुरू करें",
   "anagramBonusJar": "बोनस",
+  "goalSheetDays": "{n} दिन",
+  "goalSheetToday": "आज: {g} खेल · {p} ⭐ · लगातार {s}",
+  "goalSuggest_best_streak": "तुम्हारा रिकॉर्ड: {n} दिन",
+  "goalSuggest_at_top": "तुम {n} दिन टिक चुके हो",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "दिशा बाद में बताई जाएगी",
   "lr_digit_span_surprise_dir_rule": "इस स्तर से आपको यह दिखाने के बाद बताया जाएगा कि क्रम कैसे लौटाना है — सीधा, उल्टा या बढ़ते क्रम में। जब तक पूछा न जाए, उसे वैसे ही याद रखें जैसा देखा था।",
