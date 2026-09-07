@@ -1,6 +1,6 @@
 /* psygames-game-stroop-emotional · VER 1 · 19.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, useWindowDimensions, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -9,6 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { answerButton, BTN_GAP } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -138,6 +139,8 @@ export default function StroopEmotionalGame() {
   const { colors, colorblind } = useTheme();
   const HEX = colorblind ? COLOR_HEX_CB : COLOR_HEX;
   const { t, language } = useLanguage() as any;
+  const { width: screenW } = useWindowDimensions();
+  const БТН = answerButton('choice', screenW);   // общий макет раздела
   const router = useRouter();
 
   const { isPreset, autostart, num, isCalm } = useGamePreset();
@@ -382,7 +385,7 @@ export default function StroopEmotionalGame() {
           <View style={styles.choiceGrid}>
             {COLORS_RGB.map((c) => (
               <TouchableOpacity
-                accessibilityRole="button" key={c} style={[styles.colorBtn, { backgroundColor: HEX[c] }]} onPress={() => handleAnswer(c)}>
+                accessibilityRole="button" key={c} style={[styles.colorBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius, backgroundColor: HEX[c] }]} onPress={() => handleAnswer(c)}>
                 <Text style={styles.colorBtnText}>{t('color_'+c)}</Text>
               </TouchableOpacity>
             ))}
@@ -463,7 +466,9 @@ const styles = StyleSheet.create({
   statText: { fontSize: 13, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
   stimBox: { width: 320, height: 130, borderRadius: 16, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
-  choiceGrid: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 360, width: '100%' },
-  colorBtn: { minHeight: 48, paddingVertical: 14, paddingHorizontal: 18, borderRadius: 10, minWidth: 80, alignItems: 'center' , justifyContent: 'center'},
+  // Тот же ряд, что у обычного Струпа: ширину задаёт слот каркаса, а не своё число.
+  choiceGrid: { flexDirection: 'row', gap: BTN_GAP, flexWrap: 'wrap', justifyContent: 'center', width: '100%' },
+  // Размеры приходят из answerButton('choice') — тот же макет, что у обычного Струпа.
+  colorBtn: { alignItems: 'center', justifyContent: 'center' },
   colorBtnText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
 });

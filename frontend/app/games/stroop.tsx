@@ -15,7 +15,7 @@
  * Биомаркеры: mean RT congruent/incongruent, interference_ms (Stroop effect).
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, useWindowDimensions, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -25,6 +25,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { answerButton, BTN_GAP } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -191,6 +192,8 @@ export default function StroopGame() {
   const { colors, colorblind } = useTheme();
   const PALETTE = colorblind ? COLORS_CB : COLORS_DEF;
   const { t, language } = useLanguage();
+  const { width: screenW } = useWindowDimensions();
+  const БТН = answerButton('choice', screenW);   // общий макет раздела
   const router = useRouter();
 
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
@@ -504,7 +507,7 @@ export default function StroopGame() {
                 accessibilityRole="button"
                 accessibilityLabel={language === 'ru' ? c.ru : c.en}
                 key={c.name}
-                style={[styles.answerBtn, { backgroundColor: c.hex }]}
+                style={[styles.answerBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius, backgroundColor: c.hex }]}
                 onPress={() => handleAnswer(c)}
               >
                 {colorblind && (
@@ -591,7 +594,10 @@ const styles = StyleSheet.create({
   fieldCol: { alignItems: 'center', gap: 20 },
   bigWord: { fontSize: 56, fontWeight: '900', letterSpacing: 4 },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320 },
-  answersGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center', maxWidth: 360, width: '100%' },
+  // Ширина ряда НЕ ограничивается своим числом: её задаёт слот каркаса
+  // (390 − FAB_GUTTER·2 = 258 на телефоне). Прежний maxWidth 360 обещал место,
+  // которого нет, и кнопки 140 ложились по одной — четыре ряда вместо двух.
+  answersGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: BTN_GAP, justifyContent: 'center', width: '100%' },
   /**
    * ⚠️ РАЗМЕР ДЕРЖИТСЯ САМ, А НЕ ТЕКСТОМ. Высоту плашке давала подпись (16 + два
    * отступа по 16 ≈ 51pt); без неё осталось бы 32pt — меньше нормы попадания
@@ -599,6 +605,7 @@ const styles = StyleSheet.create({
    * покраснел бы на игровом поле. Отсюда явный `minHeight`: он же держит плашку
    * одинаковой в обоих режимах, с подписью и без.
    */
-  answerBtn: { paddingVertical: 16, paddingHorizontal: 24, borderRadius: 16, minWidth: 140, minHeight: 56, alignItems: 'center', justifyContent: 'center' },
+  // Размеры приходят из answerButton('choice') — общий макет раздела.
+  answerBtn: { alignItems: 'center', justifyContent: 'center' },
   answerText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });
