@@ -296,6 +296,7 @@ const t: Record<string, string> = {
   "goalMoves": "Svuota tutto. Mosse al massimo:",
   "goalFree": "Libera le nicchie contrassegnate",
   "goodsSortHint": "Trascina un prodotto in una cella — o toccalo, poi la cella. Riunisci 3 UGUALI in una cella e spariscono. Svuota tutto.",
+  "goodsQueueLeft": "Scaffali ancora in arrivo: {n}. Tutto ciò che contengono è già conteggiato nel compito.",
   "goodsSortDeadEnd": "Non ci sono più mosse: non c’è dove mettere nulla. Annulla qualche mossa o mescola.",
   "goodsLevel": "Livello",
   "eyeInstrWarmup": "Segui il punto in ogni direzione",
