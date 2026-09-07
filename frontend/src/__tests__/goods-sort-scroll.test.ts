@@ -163,11 +163,27 @@ describe('витрина на два-три экрана', () => {
        * доску именно поэтому. Меряем то, про что возражение: БОЛЬШИЕ доски.
        */
       if (strictPlacement(L)) continue;
-      const { cells } = dealBoard(L, ПУЛ, true);
-      const caps = capsFor(L, cells.length);
+      const d = dealBoard(L, ПУЛ, true);
+      const cells = d.cells;
+      const caps = d.caps ?? capsFor(L, cells.length);
       if (cells.length >= 18) больших += 1;
+      /*
+       * 🔴 ДОСКА СОБИРАЕТСЯ ЦЕЛИКОМ — С ОЧЕРЕДЬЮ И ЗАДНИМИ РЯДАМИ.
+       *
+       * ⚠️ Проба брала только `cells` и объявляла уровень нерешаемым. С L52
+       * часть товаров лежит НЕ на доске: полки ждут в очереди, вторые ряды —
+       * за спиной у ниш. Без них мультимножество неполно, и решателю нечем
+       * закрыть тройки — он честно отвечает «нет». Замер 07.09.2026: шесть
+       * уровней подряд «не доказана» на исправном генераторе.
+       *
+       * Проба обязана собирать ТУ доску, которую видит игрок; иначе она мерит
+       * свою собственную выдумку.
+       */
+      const доска = d.col
+        ? makeBoard(cells, caps, { col: d.col, ids: d.ids, queue: d.queue, back: d.back })
+        : makeBoard(cells, caps);
       const t = Date.now();
-      const r = solveStrict(makeBoard(cells, caps), 20000);
+      const r = solveStrict(доска, 20000);
       самыйДолгий = Math.max(самыйДолгий, Date.now() - t);
       if (!r.solvable) плохо.push(`L${L}: решаемость не доказана при ${cells.length} нишах`);
     }
