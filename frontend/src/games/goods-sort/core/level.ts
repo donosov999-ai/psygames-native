@@ -146,6 +146,11 @@ export const GS_RULES: LevelRule[] = [
    * Схлопывание полок (L56+, кроме строгих). Тексты — в словаре на двенадцати
    * языках (`lr_goods_sort_collapse_*`). `fromLevel` равен `COLLAPSE_FROM`.
    */
+  /**
+   * Задние ряды (L52+, кроме строгих). Тексты — в словаре на двенадцати языках
+   * (`lr_goods_sort_backrow_*`). `fromLevel` равен `BACK_FROM`.
+   */
+  { key: 'backrow', fromLevel: 52 },   // = BACK_FROM
   { key: 'collapse', fromLevel: 56 },  // = COLLAPSE_FROM
 ];
 
@@ -517,6 +522,40 @@ export const SCROLL_FROM = 46;
  * Десять уровней между витриной и схлопыванием — не пауза, а знакомство: доска
  * сначала учится ездить, и только потом начинает под игроком меняться.
  */
+
+/**
+ * 🔴 ЗАДНИЕ РЯДЫ — С L52, В ПРОМЕЖУТКЕ МЕЖДУ ВИТРИНОЙ (46) И СХЛОПЫВАНИЕМ (56).
+ *
+ * 📍 Сначала стояло 51 — и это был бы МОЛЧАЛИВЫЙ СДВИГ: строгие уровни идут
+ * каждый третий (51, 54, 57, 60…), задние ряды на них не появляются, и правило
+ * обещало бы механику на уровень раньше, чем она приходит. Замер по
+ * `backRowLevel` показал первое настоящее появление — L52; порог поставлен туда.
+ * Ровно такое расхождение сторожит гейт «механика включается на том уровне, что
+ * обещан правилом», и он бы это поймал.
+ *
+ * Порядок не случаен: сначала доска учится ЕЗДИТЬ (витрина), потом у неё
+ * появляется ГЛУБИНА (задние ряды), и лишь потом она начинает МЕНЯТЬСЯ под
+ * игроком (схлопывание). Каждая механика прибавляет по одному новому вопросу, а
+ * не по два сразу.
+ *
+ * ⚠️ ЭТО НЕ «НАКРЫТЫЙ ТОВАР» (L14) И НЕ «СКРЫТАЯ ИНФОРМАЦИЯ» (L34). Там скрыт
+ * ТИП: товар виден, стоит на месте, занимает высоту. Здесь скрыто САМО НАЛИЧИЕ —
+ * ниша выглядит короче, чем есть.
+ */
+export const BACK_FROM = 52;
+
+/** Идёт ли на уровне задний ряд. Строгие пропускаются, как и у схлопывания. */
+export function backRowLevel(L: number): boolean {
+  const n = Math.max(1, Math.floor(L) || 1);
+  return n >= BACK_FROM && !strictPlacement(n);
+}
+
+/** Сколько ниш получает задний ряд. Растёт медленно: глубина дороже ширины. */
+export function backRowCount(L: number): number {
+  if (!backRowLevel(L)) return 0;
+  return Math.min(4, 1 + Math.floor((L - BACK_FROM) / 6));
+}
+
 export const COLLAPSE_FROM = 56;
 
 /**
@@ -1324,6 +1363,7 @@ export const THRESHOLD_RULES: Record<string, string | null> = {
   MOVING_FROM: 'moving',
   SCROLL_FROM: 'showcase',
   COLLAPSE_FROM: 'collapse',
+  BACK_FROM: 'backrow',
 };
 
 export const HIDDEN_FROM = 34;
@@ -2525,6 +2565,7 @@ export function dealCollapse(L: number, pool: number[], narrow = false, attempts
   col: number[];
   ids: number[];
   queue: Shelf[];
+  back: number[][];
   proven: boolean;
   tries: number;
 } {
@@ -2548,11 +2589,38 @@ export function dealCollapse(L: number, pool: number[], narrow = false, attempts
     cfg, cells: запасCells, caps: всеCaps,
     col: запасCells.map((_, i) => i % cols),
     ids: запасCells.map((_, i) => i),
-    queue: [], proven: coreSolvable(makeBoard(запасCells, всеCaps), 20000), tries: attempts,
+    queue: [], back: запасCells.map(() => []),
+    proven: coreSolvable(makeBoard(запасCells, всеCaps), 20000), tries: attempts,
   };
 
   function собрать(seed: number) {
     const все = generate(pool, cfg.types, cfg.spares, cfg.slots, всеCaps);
+    /*
+     * 🔴 ЗАДНИЕ РЯДЫ СОБИРАЮТСЯ ПЕРЕСТАНОВКОЙ, А НЕ ДОБАВЛЕНИЕМ ТОВАРОВ.
+     *
+     * Соблазн был раздать «побольше и часть спрятать» — тогда мультимножество
+     * перестало бы совпадать с тем, что считает раздача, и решаемость пришлось
+     * бы доказывать заново для другого набора. Вместо этого содержимое
+     * НЕСКОЛЬКИХ ниш переезжает ЗА СПИНУ других, а сами они остаются пустыми:
+     * товаров ровно столько же, геометрия та же, а глубина появилась.
+     *
+     * ⚠️ Пустые ниши, оставшиеся от переезда, — это запас манёвра, и он гасит
+     * часть добавленной трудности. Так и задумано: глубина без места для манёвра
+     * делает уровень не сложнее, а неразрешимее.
+     */
+    const задних = backRowCount(L);
+    const back: number[][] = все.map(() => []);
+    if (задних > 0) {
+      const полные = все.map((c, i) => ({ i, n: c.length })).filter((x) => x.n > 0).map((x) => x.i);
+      const принимающие = [...полные].reverse();
+      for (let k = 0; k < задних && k < Math.floor(полные.length / 2); k += 1) {
+        const откуда = полные[(seed + k) % полные.length] as number;
+        const куда = принимающие[(seed + k) % принимающие.length] as number;
+        if (откуда === куда || back[куда]!.length > 0 || все[откуда]!.length === 0) continue;
+        back[куда] = [...(все[откуда] as number[])];
+        все[откуда] = [];
+      }
+    }
     /*
      * 🔴 В ОЧЕРЕДЬ УХОДЯТ ПОЛКИ, КОТОРЫЕ НЕ ЛИШАЮТ ДОСКУ СПОСОБНОСТИ ЗАКРЫВАТЬСЯ.
      * Отбираем по номеру, но начиная с РАЗНЫХ мест — так перебор попыток даёт
@@ -2568,11 +2636,14 @@ export function dealCollapse(L: number, pool: number[], narrow = false, attempts
     }
     const cells = все.filter((_, i) => !вОчередь.has(i));
     const caps = всеCaps.filter((_, i) => !вОчередь.has(i));
+    const задниеРяды = back.filter((_, i) => !вОчередь.has(i));
     const queue: Shelf[] = [...вОчередь].map((i) => ({ cell: все[i] as number[], cap: всеCaps[i] as number }));
     const col = cells.map((_, i) => i % cols);
     const ids = cells.map((_, i) => i);
-    const proven = coreSolvable(makeBoard(cells, caps, { col, ids, queue }), 20000);
-    return { cells, caps, col, ids, queue, proven };
+    const естьЗадние = задниеРяды.some((b) => b.length > 0);
+    const доска = makeBoard(cells, caps, естьЗадние ? { col, ids, queue, back: задниеРяды } : { col, ids, queue });
+    const proven = coreSolvable(доска, 20000);
+    return { cells, caps, col, ids, queue, back: задниеРяды, proven };
   }
 }
 
