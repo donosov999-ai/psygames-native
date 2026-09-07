@@ -32,14 +32,19 @@ jest.mock('expo-router', () => ({
 
 const МЕТРИК = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } };
 
-async function открыть() {
+async function открыть(путь = '@/app/games/cake-sort', уровни: Record<string, string> = {}, начинать = true) {
   const AsyncStorage = require('@react-native-async-storage/async-storage');  // eslint-disable-line @typescript-eslint/no-require-imports
   await AsyncStorage.clear();
+  await AsyncStorage.setItem('psygames_active_profile', 'free');
+  for (const [игра, номер] of Object.entries(уровни)) {
+    // Ключ ровно тот, что строит usePersistentLevel: `psygames_<игра>_level_<профиль>`.
+    await AsyncStorage.setItem(`psygames_${игра}_level_free`, номер);
+  }
   const { ThemeProvider } = require('@/src/contexts/ThemeContext');  // eslint-disable-line @typescript-eslint/no-require-imports
   const { LanguageProvider } = require('@/src/contexts/LanguageContext');  // eslint-disable-line @typescript-eslint/no-require-imports
   const { ProfileProvider } = require('@/src/contexts/ProfileContext');  // eslint-disable-line @typescript-eslint/no-require-imports
   const { SafeAreaProvider } = require('react-native-safe-area-context');  // eslint-disable-line @typescript-eslint/no-require-imports
-  const Screen = require('@/app/games/cake-sort').default;  // eslint-disable-line @typescript-eslint/no-require-imports
+  const Screen = require(путь).default;  // eslint-disable-line
   let r: any;
   await TestRenderer.act(async () => {
     r = TestRenderer.create(
@@ -51,9 +56,9 @@ async function открыть() {
     );
   });
   await TestRenderer.act(async () => { for (let i = 0; i < 40; i += 1) await Promise.resolve(); });
-  const кнопка = r.root.findAll((n: any) => typeof n.type !== 'string'
+  const кнопка = начинать ? r.root.findAll((n: any) => typeof n.type !== 'string'
     && typeof n.props?.onPress === 'function'
-    && /Начать|Start/i.test(текстВнутри(n)))[0];
+    && /Начать|Start/i.test(текстВнутри(n)))[0] : null;
   if (кнопка) {
     await TestRenderer.act(async () => { кнопка.props.onPress?.(); });
     await TestRenderer.act(async () => { for (let i = 0; i < 40; i += 1) await Promise.resolve(); });
@@ -133,4 +138,57 @@ describe('кусок торта — картинка, а не доля диаг�
     const тарелки = new Set(маски.map((s: string) => s.split('-')[1]));
     expect(тарелки.size).toBeGreaterThan(1);
   }, 120_000);
+});
+
+describe('пицца — та же механика, другие картинки', () => {
+  /**
+   * 🔴 РЕЖИМ ПИЦЦЫ ОТЛИЧАЕТСЯ ИМЕННО КАРТИНКАМИ, А НЕ ПРАВИЛАМИ.
+   *
+   * Денис 07.09.2026: «ещё сделать режим пиццы, смысл тот же, картинки разные».
+   * Значит проверять надо две вещи сразу: что круг собирается ТЕМ ЖЕ способом
+   * (маски секторов на месте) и что рисунки ДРУГИЕ — иначе «режим» существует
+   * только в названии.
+   */
+  it('🔴 у пиццы свои картинки, а не тортовые', async () => {
+    const торты = await открыть('@/app/games/cake-sort');
+    const пицца = await открыть('@/app/games/pizza-sort');
+    const источники = (r: any) => new Set(картинкиКусков(r).map((n: any) => JSON.stringify(n.props.href)));
+    const т = источники(торты); const п = источники(пицца);
+    expect(т.size).toBeGreaterThan(0);
+    expect(п.size).toBeGreaterThan(0);
+    // Ни одного общего источника: наборы разные целиком.
+    expect([...п].some((x) => т.has(x))).toBe(false);
+  }, 180_000);
+
+  it('🔴 круг у пиццы собирается тем же способом — маски секторов на месте', async () => {
+    const r = await открыть('@/app/games/pizza-sort');
+    expect(картинкиКусков(r).length).toBeGreaterThan(3);
+    expect(заливкиКусков(r).length).toBeGreaterThanOrEqual(картинкиКусков(r).length);
+  }, 120_000);
+});
+
+describe('у пиццы своя лестница', () => {
+  /**
+   * 🔴 РЕЖИМ — ЭТО НЕ ТОЛЬКО ДРУГИЕ КАРТИНКИ, НО И СВОЙ ПРОГРЕСС.
+   *
+   * 📍 Пункт заведён по ВЫЖИВШЕЙ МУТАЦИИ: подмена `gameId="pizza_sort"` на
+   * `"cake_sort"` не покраснила ни одной пробы. А цена подмены прямая — пройденное
+   * в тортах открывало бы пиццу, недоигранная партия одной игры поднималась бы в
+   * другой, и два «режима» оказались бы одной игрой с двумя обложками.
+   *
+   * Проверяем наблюдаемым: кладём РАЗНЫЕ сохранённые уровни двум играм и смотрим,
+   * какой номер каждая показывает у себя на экране.
+   */
+  it('🔴 сохранённый уровень пиццы не берётся у тортов', async () => {
+    const уровни = { cake_sort: '3', pizza_sort: '7' };
+    const торты = await открыть('@/app/games/cake-sort', уровни, false);
+    const пицца = await открыть('@/app/games/pizza-sort', уровни, false);
+    const номер = (r: any) => {
+      const весь = текстВнутри(r.root);
+      const м = весь.match(/(?:Уровень|Level)\s+(\d+)/);
+      return м ? Number(м[1]) : -1;
+    };
+    expect(номер(торты)).toBe(3);
+    expect(номер(пицца)).toBe(7);
+  }, 180_000);
 });

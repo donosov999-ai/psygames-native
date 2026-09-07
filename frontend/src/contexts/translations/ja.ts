@@ -1920,6 +1920,7 @@ const t: Record<string, string> = {
   "lr_goods_sort_backrow_title": "棚の奥にもう一列あります",
   "lr_goods_sort_backrow_rule": "いくつかのニッチには奥の列があります。まだ盤上に出ていない商品です。ニッチは実際より浅く見え、奥の列は前に出るまで場所を取りません。手前の列を空にすると、奥の列がその場所へ出てきます。そこにある品は最初から課題に数えられており、余分に増えることはありません。",
   "lr_goods_sort_backrow_example": "例：最後の一つを取ってニッチが空に見えた——そこへ奥から三つ出てきました。ずっとそこにあり、見えていなかっただけです。",
+  "pizzaSort": "ピザ",
   "cakeSort": "ケーキ分け",
   "cakePlate": "お皿",
   "cakeQueue": "待機中",

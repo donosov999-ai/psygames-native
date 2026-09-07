@@ -48,7 +48,41 @@ export const CAKE_TOPS: ImageSourcePropType[] = [
   require('../../assets/images/cake_tops/vanilla.webp'),
 ];
 
+/**
+ * ПИЦЦЫ — вторая шкурка того же экрана (решение Дениса 07.09.2026).
+ *
+ * ⚠️ ЦВЕТА НАЧИНОК РАЗВЕДЕНЫ НАМЕРЕННО, И ЭТО ВАЖНЕЕ КУЛИНАРНОЙ ДОСТОВЕРНОСТИ.
+ * У тортов вид различается цветом глазури, и палитра это гарантировала. Здесь
+ * картинка кроет заливку целиком, значит различать виды приходится САМОМУ
+ * рисунку: пепперони красная, песто зелёная, чернила каракатицы чёрная,
+ * свекольная фиолетовая, кукурузная жёлтая и так далее — двенадцать далеко
+ * разнесённых тонов, а не двенадцать оттенков томата.
+ */
+export const PIZZA_TOPS: ImageSourcePropType[] = [
+  require('../../assets/images/pizza_tops/pepperoni.webp'),
+  require('../../assets/images/pizza_tops/margherita.webp'),
+  require('../../assets/images/pizza_tops/fourcheese.webp'),
+  require('../../assets/images/pizza_tops/pesto.webp'),
+  require('../../assets/images/pizza_tops/spinach.webp'),
+  require('../../assets/images/pizza_tops/seafood.webp'),
+  require('../../assets/images/pizza_tops/squidink.webp'),
+  require('../../assets/images/pizza_tops/beetroot.webp'),
+  require('../../assets/images/pizza_tops/ham.webp'),
+  require('../../assets/images/pizza_tops/corn.webp'),
+  require('../../assets/images/pizza_tops/mushroom.webp'),
+  require('../../assets/images/pizza_tops/bianca.webp'),
+];
+
+/** Какую еду рисуем на куске. */
+export type КруглаяШкурка = 'cake' | 'pizza';
+
 /** Картинка вида начинки. Виды нумеруются с нуля и не выходят за длину списка. */
+export function topFor(skin: КруглаяШкурка, type: number): ImageSourcePropType {
+  const список = skin === 'pizza' ? PIZZA_TOPS : CAKE_TOPS;
+  return список[((type % список.length) + список.length) % список.length] as ImageSourcePropType;
+}
+
+/** Прежнее имя — торты. Оставлено, чтобы старые вызовы не переписывать разом. */
 export function cakeTop(type: number): ImageSourcePropType {
-  return CAKE_TOPS[((type % CAKE_TOPS.length) + CAKE_TOPS.length) % CAKE_TOPS.length] as ImageSourcePropType;
+  return topFor('cake', type);
 }

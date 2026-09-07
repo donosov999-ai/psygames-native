@@ -1926,6 +1926,7 @@ const t: Record<string, string> = {
   "lr_goods_sort_backrow_title": "Atrás do vão há uma segunda fila",
   "lr_goods_sort_backrow_rule": "Alguns vãos têm fila de trás: produtos que ainda não estão no tabuleiro. O vão parece mais curto do que é, e a fila de trás não ocupa espaço até vir para a frente. Esvazie a fila da frente por completo e a de trás toma o lugar dela. Tudo o que está ali já estava contado na tarefa: nada extra aparece.",
   "lr_goods_sort_backrow_example": "Exemplo: o vão parecia vazio depois do último item — e de trás saíram mais três. Estavam ali o tempo todo, apenas fora de vista.",
+  "pizzaSort": "Pizza",
   "cakeSort": "Bolos",
   "cakePlate": "Prato",
   "cakeQueue": "Na fila",

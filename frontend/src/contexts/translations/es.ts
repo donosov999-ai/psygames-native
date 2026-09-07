@@ -1926,6 +1926,7 @@ const t: Record<string, string> = {
   "lr_goods_sort_backrow_title": "Detrás del hueco hay una segunda fila",
   "lr_goods_sort_backrow_rule": "Algunos huecos tienen fila trasera: productos que aún no están en el tablero. El hueco parece más corto de lo que es, y la fila trasera no ocupa sitio hasta que pasa al frente. Vacía la fila delantera del todo y la trasera ocupa su lugar. Todo lo que hay allí estaba contado en la tarea desde el principio: no aparece nada de más.",
   "lr_goods_sort_backrow_example": "Ejemplo: el hueco parecía vacío tras el último artículo — y de detrás salieron tres más. Estaban allí todo el tiempo, sólo que no se veían.",
+  "pizzaSort": "Pizza",
   "cakeSort": "Tartas",
   "cakePlate": "Plato",
   "cakeQueue": "En la cola",

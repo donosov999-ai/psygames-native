@@ -3026,6 +3026,8 @@ const translations: Translations = {
   lr_goods_sort_backrow_title: { ru: 'За полкой стоит второй ряд', en: 'A second row stands behind' },
   lr_goods_sort_backrow_rule: { ru: 'У некоторых ниш есть задний ряд: товары, которых на доске ещё нет. Ниша выглядит короче, чем она есть, и второй ряд не занимает места, пока не выйдет вперёд. Разобрал передний ряд до конца — задний сам встаёт на его место. Всё, что там стоит, посчитано в задаче с самого начала: лишнего не появится.', en: 'Some niches have a back row: goods that are not on the board yet. The niche looks shorter than it is, and the back row takes no space until it comes forward. Clear the front row completely and the back one steps into its place. Everything there was counted into the task from the start — nothing extra appears.' },
   lr_goods_sort_backrow_example: { ru: 'Пример: ниша выглядела пустой после последнего товара — а из-за спины вышли ещё три. Они были там всё время, просто их не было видно.', en: 'Example: the niche looked empty after the last item — and three more stepped out from behind. They were there all along, just out of sight.' },
+  /** Название игры «Пицца» — та же механика, другая шкурка. */
+  pizzaSort: { ru: "Пицца", en: "Pizza" },
   cakeSort: { ru: 'Торты', en: 'Cake sort' },
   cakeSortDesc: { ru: 'Собирайте круг из шести одинаковых кусков', en: 'Gather a circle of six matching slices' },
   cakePlate: { ru: 'Тарелка', en: 'Plate' },

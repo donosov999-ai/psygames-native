@@ -1926,6 +1926,7 @@ const t: Record<string, string> = {
   "lr_goods_sort_backrow_title": "层板后面还有一排",
   "lr_goods_sort_backrow_rule": "有些格子有后排：还没上架的商品。格子看起来比实际短，后排在没走到前面之前不占位置。把前排清空，后排就自己顶上来。后排的东西从一开始就算进了这一关，不会凭空多出来。",
   "lr_goods_sort_backrow_example": "例如：拿走最后一件后格子看着空了——结果从后面又出来三件。它们一直都在，只是看不见。",
+  "pizzaSort": "披萨",
   "cakeSort": "蛋糕分类",
   "cakePlate": "盘子",
   "cakeQueue": "排队中",
