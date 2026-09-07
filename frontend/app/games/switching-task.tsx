@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -27,6 +27,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { ANSWER_BAR_H, stimBox } from '@/src/games/attention/layout';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -164,7 +165,9 @@ function judgeLeft(mode: StimMode, idx: number, num: number, letter: string): bo
 export default function SwitchingTaskGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  const { width, height } = useWindowDimensions();
+  // 07.09.2026: размер берём защищённым хуком — голый useWindowDimensions()
+  // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
+  const { w: width, h: height } = useScreenSize();
   // Общая коробка раздела вместо своей формулы min(ширина−36, 320).
   const ОКНО = stimBox(width, height);
   const stStim = ОКНО.side;

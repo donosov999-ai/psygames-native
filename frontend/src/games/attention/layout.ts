@@ -78,9 +78,34 @@ export const STIM_RADIUS = 20;
  * съела бы поле вместе с подсказкой. `side` — меньшая сторона, от неё игры
  * масштабируют сам стимул (буква, стрелки, карточка), как делали от своей.
  */
+/**
+ * Самый узкий телефон, который мы считаем настоящим. Ноль и отрицательное от
+ * системы приводятся к нему — тогда первый кадр выглядит как маленький телефон,
+ * а не как сломанная вёрстка.
+ *
+ * 🔴 07.09.2026. В веб-сборке (Android у нас WebView — значит и телефон)
+ * `useWindowDimensions()` на первом кадре отдаёт 0. Раньше это гасили
+ * ограничители `Math.max(14, ...)`, стоявшие инлайном у каждого экрана;
+ * сведение геометрии их убрало, и ноль пошёл прямо в формулы:
+ * `stimBox(0,0)` давал ширину −30, `answerButton('single',0)` — 0.
+ * Стережёт `src/__tests__/attention-layout-zero-frame.test.ts`.
+ *
+ * ⚠️ Это ВТОРОЙ рубеж, а не замена первому: экран обязан брать размер
+ * защищённым `useScreenSize()` (`src/hooks/useScreenWidth.ts`). Здесь — на
+ * случай, если в формулу прилетит мусор откуда-то ещё.
+ */
+const MIN_SCREEN_W = 320;
+const MIN_SCREEN_H = 480;
+
+/** Ноль, NaN и отрицательное — не размеры экрана. */
+const экран = (v: number, пол: number): number =>
+  Number.isFinite(v) && v >= пол ? v : пол;
+
 export function stimBox(screenW: number, screenH: number): { w: number; h: number; side: number } {
-  const w = Math.min(STIM_W, screenW - 30);
-  const h = Math.min(STIM_H, Math.round(screenH * 0.38));
+  const ш = экран(screenW, MIN_SCREEN_W);
+  const в = экран(screenH, MIN_SCREEN_H);
+  const w = Math.min(STIM_W, ш - 30);
+  const h = Math.min(STIM_H, Math.round(в * 0.38));
   return { w, h, side: Math.min(w, h) };
 }
 
@@ -98,7 +123,7 @@ export type AnswerKind = 'side' | 'choice' | 'single';
  * Ширина считается от экрана: доступно `screenW - GUTTER_BOTH`.
  */
 export function answerButton(kind: AnswerKind, screenW: number): { w: number; h: number; radius: number } {
-  const avail = Math.max(0, screenW - GUTTER_BOTH);
+  const avail = экран(screenW, MIN_SCREEN_W) - GUTTER_BOTH;
   if (kind === 'side') {
     // круг не растягиваем: 88 — привычный размер у фланкера и Саймона, и он
     // определяет высоту полосы. На очень узком экране ужимаем до нормы пальца.
@@ -109,7 +134,7 @@ export function answerButton(kind: AnswerKind, screenW: number): { w: number; h:
     const w = Math.max(MIN_TAP, Math.min(170, Math.floor((avail - BTN_GAP) / 2)));
     return { w, h: MIN_TAP, radius: 14 };
   }
-  return { w: avail, h: 56, radius: 16 };
+  return { w: Math.max(MIN_TAP, avail), h: 56, radius: 16 };
 }
 
 /** Сколько рядов занимает ответ данного типа — для проверки, что полоса не переполнена. */
