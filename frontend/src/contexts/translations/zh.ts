@@ -2343,7 +2343,7 @@ const t: Record<string, string> = {
   "recoWhyFresh": "应用新增",
   "recoWhyCalm": "适合晚上 — 不用赶",
   "recoWhyStart": "从这里开始",
-  "dayGoalTitle": "今天的目标",
+  "dayGoalTitle": "今天为了什么",
   "dayGoalAsk": "今天是为了什么？",
   "dayGoalAskHint": "用你自己的话写一行：今天为什么训练。只有你能看到。",
   "dayGoalPlaceholder": "用你自己的话",
