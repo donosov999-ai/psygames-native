@@ -35,7 +35,8 @@ import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientTe
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { stimBox } from '@/src/games/attention/layout';
+import { stimBox, answerButton } from '@/src/games/attention/layout';
+import { AnswerBar } from '@/src/games/attention/AnswerBar';
 import { vigilanceAccuracySlope } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -234,6 +235,7 @@ export default function CPTGame() {
   // раньше здесь стояло min(ширина−32, высота·0.5, 460) и давало 358×358, тогда как у
   // соседних проб окно было 120…320. Из-за разных правил коробка дышала между пробами.
   const ОКНО = stimBox(winW, winH);
+  const КНОПКА = answerButton('single', winW);
   const stimSide = ОКНО.side;
   const stimFont = stimSide * 0.6;                          // символ ~60% окна (было 120px в боксе 240px)
 
@@ -256,6 +258,19 @@ export default function CPTGame() {
 
   // refs to avoid closure staleness in long-running timers
   const trialsRef = useRef<TrialRecord[]>([]);
+  /**
+   * ЧЕМ ОТВЕТИЛИ: по коробке или по кнопке внизу.
+   *
+   * 🔴 ЗАЧЕМ СЧИТАТЬ. Полоса ответа добавлена ради единой геометрии раздела (в
+   * «Зарядке» пробы идут вперемешку, и у CPT её не было вовсе). Но перенос ответа
+   * вниз удлиняет движение: палец идёт от коробки, где уже стоит взгляд, к полосе.
+   * Это ложится во ВРЕМЯ РЕАКЦИИ, а `rt_variability` — маркер с нормой 0.20±0.08
+   * (assessment.ts). Поэтому коробка ОСТАЁТСЯ нажимаемой, а сюда пишем, чем
+   * пользовались: если в данных окажется, что кнопкой отвечают часто и RT растёт,
+   * это будет видно числом, а не догадкой.
+   */
+  const viaBoxRef = useRef(0);
+  const viaBarRef = useRef(0);
   const currentTrialRef = useRef<TrialRecord | null>(null);
   const startTimeRef = useRef(0);
   const stimOnsetRef = useRef(0);
@@ -353,7 +368,8 @@ export default function CPTGame() {
     fbTimerRef.current = setTimeout(() => setFeedback(null), 200);
   };
 
-  const handleTap = () => {
+  const handleTap = (источник: 'box' | 'bar' = 'box') => {
+    if (источник === 'bar') viaBarRef.current += 1; else viaBoxRef.current += 1;
     const t = currentTrialRef.current;
     if (!t || respondedRef.current) return;
     respondedRef.current = true;
@@ -385,6 +401,7 @@ export default function CPTGame() {
     durationSecRef.current = isPreset ? presetDurationSec(presetModeRef.current, p.durationSec) : p.durationSec;
     prevLetterRef.current = '';
     stoppedRef.current = false;
+    viaBoxRef.current = 0; viaBarRef.current = 0;
     trialsRef.current = [];
     currentTrialRef.current = null;
     setHits(0); setOmissions(0); setCommissions(0); setTrialIdx(0);
@@ -548,6 +565,9 @@ export default function CPTGame() {
            * наклон = внимание падает) и сами четыре доли, чтобы наклон можно было
            * проверить, а не принять на веру. null при <8 целях за партию.
            */
+          /** Чем отвечали: по коробке (палец уже там) или по полосе внизу. */
+          answers_via_box: viaBoxRef.current,
+          answers_via_bar: viaBarRef.current,
           vigilance_accuracy_slope: accuracySlope,
           hit_rate_by_quartile: hitRateByQuartile,
         },
@@ -639,15 +659,34 @@ export default function CPTGame() {
               <GameAuxAction icon="stop-circle" label={t('btn_stop')} danger onPress={stop} />
             </GameAuxBar>
           }
+          toolbar={
+            /**
+             * Полоса ответа появилась ради единой геометрии раздела: без неё поле CPT
+             * тянулось до низа экрана, коробка центрировалась в более высоком поле и
+             * стояла на 354 против 237…261 у соседей (замер 07.09).
+             * ⚠️ Коробка при этом ОСТАЛАСЬ нажимаемой — см. viaBoxRef/viaBarRef.
+             */
+            <AnswerBar>
+              <TouchableOpacity accessibilityRole="button" activeOpacity={0.8}
+                onPress={() => handleTap('bar')}
+                style={{ width: КНОПКА.w, height: КНОПКА.h, borderRadius: КНОПКА.radius,
+                         backgroundColor: GRADIENT[0], justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '800' }}>
+                  {t(modeRef.current === 'AX' ? 'cptTapAX' : 'cptTapX')}
+                </Text>
+              </TouchableOpacity>
+            </AnswerBar>
+          }
         >
           <View style={styles.fieldCol}>
-            <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            {/* Подсказка вне потока — иначе сдвигает коробку вниз при центрировании. */}
+            <Text style={[styles.hintText, { position: 'absolute', top: 0, color: colors.textSecondary }]}>
               {t(modeRef.current === 'AX' ? 'cptTapAX' : 'cptTapX')}
             </Text>
             <TouchableOpacity
               accessibilityRole="button"
               activeOpacity={0.7}
-              onPress={handleTap}
+              onPress={() => handleTap('box')}
               style={[styles.stimBox, {
                 width: ОКНО.w, height: ОКНО.h,   // общая коробка раздела
                 backgroundColor: fbColor ? fbColor + '33' : colors.surface,
@@ -729,7 +768,9 @@ const styles = StyleSheet.create({
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
-  fieldCol: { alignItems: 'center', gap: 22 },
+  // flex+center: коробка встаёт по центру ПОЛЯ, а подписи над ней
+  // и под ней больше не сдвигают её вниз (замер 07.09: центр гулял 387…504).
+  fieldCol: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 22 },
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },

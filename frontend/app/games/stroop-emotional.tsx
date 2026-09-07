@@ -394,7 +394,10 @@ export default function StroopEmotionalGame() {
         }
       >
         <View style={styles.fieldCol}>
-          <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('stroop2Hint')}</Text>
+          {/* Подсказка ВНЕ ПОТОКА: иначе она участвует в центрировании колонки и
+              сдвигает коробку вниз на половину своей высоты. Замер 07.09: у этой
+              пробы коробка стояла на 277 против 237…249 у соседей. */}
+          <Text style={[styles.hintText, { position: 'absolute', top: 0, color: colors.textSecondary }]}>{t('stroop2Hint')}</Text>
           <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
             {showStim ? (
               <Text style={{ color: HEX[trial.color], fontSize: 44, fontWeight: '900', letterSpacing: 2 }}>
@@ -462,7 +465,9 @@ const styles = StyleSheet.create({
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
-  fieldCol: { alignItems: 'center', gap: 16 },
+  // flex+center: коробка встаёт по центру ПОЛЯ, а подписи над ней
+  // и под ней больше не сдвигают её вниз (замер 07.09: центр гулял 387…504).
+  fieldCol: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 },
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 13, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },

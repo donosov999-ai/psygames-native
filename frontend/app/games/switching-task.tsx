@@ -470,7 +470,9 @@ export default function SwitchingTaskGame() {
       >
         <View style={styles.fieldCol}>
           {/* Крупная заметная плашка: ЧТО оценивать сейчас (+ ↻ если задание сменилось) */}
-          <View style={[styles.cueBadge, { backgroundColor: meta.color }]}>
+          {/* Ярлык правила ВНЕ ПОТОКА — по той же причине, что подсказка у эмоционального
+              Струпа: участвуя в центрировании, он сдвигал коробку вниз (293 против 237…249). */}
+          <View style={[styles.cueBadge, { position: 'absolute', top: 0, backgroundColor: meta.color }]}>
             <Ionicons name={meta.icon} size={20} color="#FFF" />
             <Text style={styles.cueText}>{t('judgeCue')}: {meta.cue}</Text>
             {trial.isSwitch && showStim && <Text style={styles.cueSwitch}>↻</Text>}
@@ -550,7 +552,9 @@ const styles = StyleSheet.create({
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
-  fieldCol: { alignItems: 'center', gap: 18 },
+  // flex+center: коробка встаёт по центру ПОЛЯ, а подписи над ней
+  // и под ней больше не сдвигают её вниз (замер 07.09: центр гулял 387…504).
+  fieldCol: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 18 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   cueBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 11, borderRadius: 22 },
