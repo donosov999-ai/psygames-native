@@ -663,7 +663,10 @@ export default function MnemonicsGame() {
     </SafeAreaView>
   );
 
-  if (phase === 'gap') return renderGap();
+  // ⚠️ ОКНО ПРАВИЛ НЕСЁТ КАЖДЫЙ РАННИЙ ВЫХОД. Фаза «пауза» выходила без него,
+  // и правило, выпавшее на этой фазе, не показывалось вовсе — соседние две
+  // строки его несут, эта не несла.
+  if (phase === 'gap') return <>{renderGap()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
   if (phase === 'memorize') return <>{renderMemorize()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
   if (phase === 'check') return <>{renderCheck()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
 
