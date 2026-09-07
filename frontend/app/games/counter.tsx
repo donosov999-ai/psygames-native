@@ -89,9 +89,28 @@ const LEVEL_TABLE: { size: number; limitSec: number }[] = [
 const TOTAL_ROUNDS = 10;
 const PASS_ACCURACY = 0.8;   // решено ≥80% раундов = проход уровня
 
-function levelParams(level: number): { gridSize: number; roundLimitMs: number; rounds: number } {
-  const row = LEVEL_TABLE[Math.min(Math.max(level, 1), LEVEL_TABLE.length) - 1];
-  return { gridSize: row.size, roundLimitMs: row.limitSec * 1000, rounds: TOTAL_ROUNDS };
+/** Обещанный потолок карты; выше — продолжение оси скорости до пола. */
+export const COUNTER_MAX_LEVEL = 20;
+
+/**
+ * v2 (07.09.2026): за L15 таблица ПРОДОЛЖАЕТСЯ формулой (раньше L16+ были
+ * клонами L15 — конец таблицы, единственный дефект здоровой лестницы по замеру
+ * counting-chat). Перебор осей по правилу «потолков нет» (§R рефа):
+ *  · размер сетки — ПРЕДЕЛ ВЁРСТКИ числом: 9 колонок на 360 px дают клетку
+ *    ~34 px при пороге нажатия 48 px — расти некуда;
+ *  · скорость — живая ось: лимит раунда убывает 6 → 4 с (пол на L20);
+ *  · дальше (отдельный заход, правка валидации): ТРОЙКИ слагаемых —
+ *    выбрать 3 клетки с суммой, поиск дорожает на порядок (ось «объём решения»,
+ *    как solMax в number-bonds).
+ */
+export function levelParams(level: number): { gridSize: number; roundLimitMs: number; rounds: number } {
+  const L = Math.max(level, 1);
+  if (L <= LEVEL_TABLE.length) {
+    const row = LEVEL_TABLE[L - 1];
+    return { gridSize: row.size, roundLimitMs: row.limitSec * 1000, rounds: TOTAL_ROUNDS };
+  }
+  const limitSec = Math.max(4, 6 - (L - 15) * 0.4);   // L16 5,6с → L20 4,0с (пол)
+  return { gridSize: 9, roundLimitMs: Math.round(limitSec * 1000), rounds: TOTAL_ROUNDS };
 }
 
 export default function CounterGame() {
@@ -346,7 +365,7 @@ export default function CounterGame() {
             </Text>
           </View>
 
-          <LevelProgressMap bestLevel={lvl.best} gameId="counter" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+          <LevelProgressMap bestLevel={lvl.best} gameId="counter" currentLevel={lvl.level} maxLevel={COUNTER_MAX_LEVEL} onPickLevel={lvl.pick} colors={colors} language={language} />
 
           {/* Карточка уровня: параметры + видимый критерий прохода + сброс ↺1 */}
           <TouchableOpacity
