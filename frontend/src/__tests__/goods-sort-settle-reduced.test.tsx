@@ -105,24 +105,8 @@ function текстВнутри(n: any): string {
 }
 
 
-/** Плоский стиль: он бывает массивом. */
-function плоско(style: any): any {
-  if (!style) return {};
-  if (Array.isArray(style)) return Object.assign({}, ...style.filter(Boolean).map(плоско));
-  return style;
-}
 
 
-/**
- * Сколько ниш помечено вторым рядом.
- *
- * 🔴 ИЩЕМ ПО ЦВЕТУ КРАЯ, А НЕ ПО ИМЕНИ СТИЛЯ. Имя стиля — внутреннее дело
- * экрана и переживёт переименование молча; цвет — то, что человек видит.
- */
-function помечено(r: any): number {
-  return r.root.findAll((n: any) => typeof n.type !== 'string'
-    && плоско(n.props?.style).backgroundColor === 'rgba(200,170,130,0.55)').length;
-}
 
 
 /**
