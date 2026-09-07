@@ -1,4 +1,4 @@
-/* psygames-game-ospan · VER 1 · 19.08.2026 */
+/* psygames-game-ospan · VER 2 · 07.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
@@ -59,22 +59,30 @@ interface Equation { left: string; right: number; isCorrect: boolean; }
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
-// Уровень (1..15+): L1-7 setSize 3→9 (длиннее набор) · L6+ сложнее арифметика (×, бо́льшие числа) · L6+ показ буквы быстрее.
+// Уровень (1..16+), v2 07.09.2026 (замер counting-chat: рубильник hardMath давал обрыв ×1,59
+// на L5→L6, а с L13 обе формулы замирали — уровни-клоны):
+//   · setSize 3→9 (охват, ось методики — cap НЕ трогаем, это вопрос развилки R7);
+//   · letterMs 1100→500 плавно (замирает на L16, было 600/L13);
+//   · счётная нагрузка mathLoad растёт ПЛАВНО (числа крупнее, доля × выше) и продолжает
+//     расти до L16+ — рубильника нет, умножение ПОЯВЛЯЕТСЯ ровно с L6 (порог правила).
 /** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
-export function levelParams(level: number): { setSize: number; letterMs: number; hardMath: boolean } {
+export function levelParams(level: number): { setSize: number; letterMs: number; hardMath: boolean; mathLoad: number } {
   const setSize = Math.min(9, 2 + level);               // L1=3 → L7=9
   const fast = Math.max(0, level - 5);
-  const letterMs = Math.max(600, 1100 - fast * 70);
-  const hardMath = level >= 6;
-  return { setSize, letterMs, hardMath };
+  const letterMs = Math.max(500, 1100 - fast * 55);
+  const hardMath = level >= 6;                          // порог карточки: с L6 «×, числа крупнее»
+  const mathLoad = Math.min(1.5, Math.max(0, (level - 4) / 8));   // 0 → 1,5 (L16+), плавно
+  return { setSize, letterMs, hardMath, mathLoad };
 }
 
-function makeEquation(hard: boolean): Equation {
-  // a OP b = R, then offer R or R±k. hard → добавляется ×, числа крупнее.
-  const a = 1 + Math.floor(Math.random() * (hard ? 12 : 9));
-  const b = 1 + Math.floor(Math.random() * (hard ? 12 : 9));
-  const ops = hard ? ['+', '-', '*'] : ['+', '-'];
-  const op = ops[Math.floor(Math.random() * ops.length)];
+function makeEquation(load: number, allowMult: boolean): Equation {
+  // a OP b = R, then offer R or R±k. Нагрузка растёт плавно: числа крупнее с load,
+  // умножение — только с порога hardMath (карточка правила) и долей, а не третью пула.
+  const top = 9 + Math.round(load * 10);                // 9 → 24
+  const a = 1 + Math.floor(Math.random() * top);
+  const b = 1 + Math.floor(Math.random() * Math.min(top, 12));   // второй множитель — в пределах таблицы
+  const useMult = allowMult && Math.random() < Math.min(0.45, 0.15 + load * 0.3);
+  const op = useMult ? '*' : (Math.random() < 0.5 ? '+' : '-');
   const real = op === '+' ? a + b : op === '-' ? a - b : a * b;
   const isCorrect = Math.random() < 0.5;
   const shown = isCorrect ? real : real + (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 3));
@@ -129,7 +137,8 @@ export default function OSpanGame() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const levelRef = useRef(1);
   const letterMsRef = useRef(1100);
-  const hardMathRef = useRef(false);
+  const mathLoadRef = useRef(0);
+  const allowMultRef = useRef(false);
 
   useEffect(() => () => {
     if (fbTimerRef.current) clearTimeout(fbTimerRef.current);
@@ -143,7 +152,8 @@ export default function OSpanGame() {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
     letterMsRef.current = p.letterMs;
-    hardMathRef.current = p.hardMath;
+    mathLoadRef.current = p.mathLoad;
+    allowMultRef.current = p.hardMath;
     setSetSize(p.setSize);
     setStepIdx(0);
     setLetters([]);
@@ -151,7 +161,7 @@ export default function OSpanGame() {
     setRecallHits(0); setRecallErrors(0);
     setRecallInput('');
     setFeedback(null);
-    setEq(makeEquation(p.hardMath));
+    setEq(makeEquation(p.mathLoad, p.hardMath));
     setPhase('eq');
     const start = gameNow();
     setStartTime(start);
@@ -174,7 +184,7 @@ export default function OSpanGame() {
         if (stepIdx + 1 >= setSize) setPhase('recall');
         else {
           setStepIdx(stepIdx + 1);
-          setEq(makeEquation(hardMathRef.current));
+          setEq(makeEquation(mathLoadRef.current, allowMultRef.current));
           setPhase('eq');
         }
       }, letterMsRef.current);

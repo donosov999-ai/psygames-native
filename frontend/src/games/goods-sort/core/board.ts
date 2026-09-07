@@ -67,6 +67,21 @@ export interface Board {
    * чем мы отличаемся от конкурента с 454 жалобами на непроходимые уровни.
    */
   readonly queue?: readonly Shelf[];
+  /**
+   * 🔴 ЗАДНИЙ РЯД НИШИ: товары, которых на доске ЕЩЁ НЕТ. Появляются, когда
+   * передний ряд разобран (решение Дениса 06.09.2026, второй приём из ресёрча —
+   * так делают в китайских «сортировках по полкам»).
+   *
+   * ⚠️ ЭТО НЕ «НАКРЫТЫЙ ТОВАР». Там скрыт ТИП: товар виден, стоит на месте,
+   * занимает высоту, но нарисован знаком вопроса. Здесь скрыто САМО НАЛИЧИЕ:
+   * ниша выглядит короче, чем есть, и её задний ряд не участвует ни в укладке,
+   * ни в подсчёте места, пока не выйдет вперёд. Две разные механики, и путать
+   * их нельзя — иначе «скрытость» станет одним приёмом под двумя именами.
+   *
+   * ⚠️ Задний ряд ВХОДИТ В ЗАМКНУТОЕ МУЛЬТИМНОЖЕСТВО: он роздан заранее и
+   * посчитан в задаче, как и очередь. Иначе решаемость перестала бы доказываться.
+   */
+  readonly back?: readonly (readonly number[])[];
 }
 
 /** Полка из очереди: что на ней лежит и сколько влезает. */
@@ -81,6 +96,7 @@ export interface BoardExtras {
   col?: readonly number[];
   ids?: readonly number[];
   queue?: readonly Shelf[];
+  back?: readonly (readonly number[])[];
 }
 
 export function makeBoard(
@@ -99,7 +115,7 @@ export function makeBoard(
   if (cells.length !== caps.length) {
     throw new Error(`доска собрана неверно: ниш ${cells.length}, ёмкостей ${caps.length}`);
   }
-  for (const [имя, ряд] of [['джокеров', extras.jokers], ['столбцов', extras.col], ['номеров', extras.ids]] as const) {
+  for (const [имя, ряд] of [['джокеров', extras.jokers], ['столбцов', extras.col], ['номеров', extras.ids], ['задних рядов', extras.back]] as const) {
     if (ряд && ряд.length !== cells.length) {
       throw new Error(`доска собрана неверно: ниш ${cells.length}, ${имя} ${ряд.length}`);
     }
@@ -109,7 +125,8 @@ export function makeBoard(
     extras.jokers ? { jokers: extras.jokers } : {},
     extras.col ? { col: extras.col } : {},
     extras.ids ? { ids: extras.ids } : {},
-    extras.queue ? { queue: extras.queue } : {});
+    extras.queue ? { queue: extras.queue } : {},
+    extras.back ? { back: extras.back } : {});
 }
 
 /** Снято ли с ниши правило укладки. Единственное место, где это читается. */
@@ -188,7 +205,9 @@ export function isCleared(board: Board): boolean {
    * промежуточное состояние: полки ещё придут. Забудь это условие — и решатель
    * объявит решённой партию, которая на деле только началась.
    */
-  return board.cells.every((c) => c.length === 0) && (board.queue?.length ?? 0) === 0;
+  return board.cells.every((c) => c.length === 0)
+    && (board.queue?.length ?? 0) === 0
+    && (board.back ?? []).every((b) => b.length === 0);
 }
 
 /**
@@ -209,6 +228,38 @@ export function isCleared(board: Board): boolean {
  */
 export function collapseTriples(board: Board): Board {
   const cells = board.cells.map((c) => [...c]);
+  /*
+   * 🔴 ЗАДНИЙ РЯД ВЫХОДИТ ВПЕРЁД ЗДЕСЬ ЖЕ, а не в экране. Причина та же, что у
+   * схлопывания: `moveTop` зовёт эту функцию, а через неё её зовёт РЕШАТЕЛЬ.
+   * Оставь раскрытие экрану — и решатель доказывал бы решаемость доски, у
+   * которой задних рядов нет, то есть заведомо более лёгкой.
+   *
+   * ⚠️ Ниша с непустым задним рядом НЕ ЗАКРЫВАЕТСЯ (см. ниже): закрылась бы —
+   * увезла бы задний ряд с собой, и мультимножество перестало бы быть замкнутым.
+   */
+  const back = board.back ? board.back.map((b) => [...b]) : null;
+  /**
+   * ⚠️ РАСКРЫТИЕ ЗОВЁТСЯ ВНУТРИ ЦИКЛА, А НЕ ОДИН РАЗ ДО НЕГО.
+   *
+   * 📍 Первая редакция раскрывала задние ряды однократно, перед разбором троек —
+   * и ниша, опустевшая ИМЕННО ТРОЙКОЙ, свой задний ряд в этот ход не открывала:
+   * он ждал следующего касания. Поймано пробой «ниша с задним рядом не
+   * закрывается»: тройка ушла, а за спиной по-прежнему лежало два товара.
+   * Разбор троек и выход заднего ряда — одно событие, как и всё остальное здесь.
+   */
+  const раскрыть = (): boolean => {
+    if (!back) return false;
+    let было = false;
+    for (let i = 0; i < cells.length; i += 1) {
+      if ((cells[i] as number[]).length === 0 && (back[i] as number[]).length > 0) {
+        cells[i] = back[i] as number[];
+        back[i] = [];
+        было = true;
+      }
+    }
+    return было;
+  };
+  раскрыть();
   if (!board.col) {
     let again = true;
     while (again) {
@@ -217,8 +268,9 @@ export function collapseTriples(board: Board): Board {
         const t = tripleIn(cells[i] as number[]);
         if (t !== null) { cells[i] = removeTriple(cells[i] as number[], t); again = true; }
       }
+      if (раскрыть()) again = true;
     }
-    return { ...board, cells };
+    return back ? { ...board, cells, back } : { ...board, cells };
   }
 
   /*
@@ -232,7 +284,7 @@ export function collapseTriples(board: Board): Board {
   const col = [...board.col];
   const queue = board.queue ? [...board.queue] : [];
 
-  interface Ниша { cell: number[]; cap: number; joker: boolean; id: number }
+  interface Ниша { cell: number[]; cap: number; joker: boolean; id: number; back: number[] }
   const столбцы = new Map<number, Ниша[]>();
   const порядокСтолбцов: number[] = [];
   cells.forEach((cell, i) => {
@@ -240,12 +292,24 @@ export function collapseTriples(board: Board): Board {
     if (!столбцы.has(c)) { столбцы.set(c, []); порядокСтолбцов.push(c); }
     (столбцы.get(c) as Ниша[]).push({
       cell, cap: caps[i] as number, joker: jokers?.[i] === true, id: ids ? (ids[i] as number) : i,
+      back: back ? (back[i] as number[]) : [],
     });
   });
 
   let again = true;
   while (again) {
     again = false;
+    /*
+     * ⚠️ В СТОЛБЦОВОЙ ВЕТКЕ РАСКРЫВАЕМ ПРЯМО НА НИШАХ, а не через плоские массивы.
+     * Плоский `cells` идёт ПО РЯДАМ, а ниши здесь сгруппированы ПО СТОЛБЦАМ —
+     * синхронизация по номеру перепутала бы содержимое. Каждая ниша несёт свой
+     * задний ряд с собой, и раскрывать надо её же.
+     */
+    for (const c of порядокСтолбцов) {
+      for (const н of столбцы.get(c) as Ниша[]) {
+        if (н.cell.length === 0 && н.back.length > 0) { н.cell = н.back; н.back = []; again = true; }
+      }
+    }
     for (const c of порядокСтолбцов) {
       const ниши = столбцы.get(c) as Ниша[];
       for (let k = 0; k < ниши.length; k += 1) {
@@ -257,12 +321,12 @@ export function collapseTriples(board: Board): Board {
          * выбросить его с доски — мультимножество перестало бы быть замкнутым, а
          * на замкнутости стоит вся доказуемость.
          */
-        const полная = (ниши[k] as Ниша).cell.length === TRIPLE;
+        const полная = (ниши[k] as Ниша).cell.length === TRIPLE && (ниши[k] as Ниша).back.length === 0;
         if (!полная) { (ниши[k] as Ниша).cell = removeTriple((ниши[k] as Ниша).cell, t); again = true; continue; }
         ниши.splice(k, 1);
         const пришла = queue.shift();
         if (пришла) {
-          ниши.unshift({ cell: [...пришла.cell], cap: пришла.cap, joker: пришла.joker === true, id: -1 });
+          ниши.unshift({ cell: [...пришла.cell], cap: пришла.cap, joker: пришла.joker === true, id: -1, back: [] });
         }
         again = true;
         break;
@@ -295,6 +359,7 @@ export function collapseTriples(board: Board): Board {
       col: новСтолбцы,
       ids: плоско.map((н) => н.id),
       queue,
+      back: back ? плоско.map((н) => н.back) : undefined,
     },
   );
 }

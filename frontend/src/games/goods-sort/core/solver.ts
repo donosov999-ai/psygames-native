@@ -105,6 +105,13 @@ function stateKey(board: Board, types: TypeMap): string {
    * расходуется только с головы, значит длина её однозначно определяет.
    */
   const хвост = board.queue?.length ?? 0;
+  /*
+   * 🔴 ЗАДНИЕ РЯДЫ — ТОЖЕ ЧАСТЬ СОСТОЯНИЯ. Две доски с одинаковыми нишами, но
+   * разным остатком в задних рядах, — разные: у одной за спиной ещё товары, у
+   * другой ничего. Складываем длины: задний ряд расходуется только целиком и
+   * только вперёд, значит сумма длин его однозначно описывает.
+   */
+  const спины = (board.back ?? []).reduce((n, b) => n + b.length, 0);
   // Одна склейка вместо конкатенации в цикле: каждое `+=` порождало новую строку.
   const chars: number[] = new Array(n * 2 + 1);
   for (let i = 0; i < n; i += 1) {
@@ -112,7 +119,7 @@ function stateKey(board: Board, types: TypeMap): string {
     chars[i * 2] = c & 0xFFFF;
     chars[i * 2 + 1] = c >>> 16;
   }
-  chars[n * 2] = хвост & 0xFFFF;
+  chars[n * 2] = (хвост * 251 + спины) & 0xFFFF;
   return String.fromCharCode.apply(null, chars);
 }
 

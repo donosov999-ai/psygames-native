@@ -12,9 +12,9 @@
  * полка закрывается. Проверяются ОБА, иначе «новое работает» ничего не говорит
  * о том, не сломалось ли старое.
  */
-import { makeBoard, collapseTriples, moveTop, isCleared, TRIPLE, type Shelf } from '@/src/games/goods-sort/core/board';
+import { makeBoard, collapseTriples, moveTop, isCleared, canPlace, TRIPLE, type Shelf } from '@/src/games/goods-sort/core/board';
 import { solveStrict } from '@/src/games/goods-sort/core/solver';
-import { dealCollapse, collapseLevel, COLLAPSE_FROM, strictPlacement } from '@/src/games/goods-sort/core/level';
+import { dealCollapse, collapseLevel, COLLAPSE_FROM, strictPlacement, backRowLevel, BACK_FROM } from '@/src/games/goods-sort/core/level';
 
 /** Доска на два столбца по две ниши. Ниша 0 ждёт третью единицу из ниши 2. */
 function стол(queue: Shelf[] = []) {
@@ -176,8 +176,13 @@ describe('раздача со схлопыванием', () => {
       const d = dealCollapse(L, ПУЛ, true);
       const наДоске = d.cells.reduce((n, c) => n + c.length, 0);
       const вОчереди = d.queue.reduce((n, s) => n + s.cell.length, 0);
-      // Товаров ровно столько, сколько троек, умноженное на три — ни одного лишнего.
-      expect((наДоске + вОчереди) % 3).toBe(0);
+      const заСпиной = d.back.reduce((n, b) => n + b.length, 0);
+      /*
+       * ⚠️ ЗАДНИЕ РЯДЫ СЧИТАЮТСЯ ТОЖЕ. Первая редакция про них забыла и упала:
+       * остаток 2 вместо 0. Забыть слагаемое в проверке замкнутости — то же
+       * самое, что объявить мультимножество замкнутым, не посчитав его целиком.
+       */
+      expect((наДоске + вОчереди + заСпиной) % 3).toBe(0);
       expect(d.caps.length).toBe(d.cells.length);
       expect(d.ids.length).toBe(d.cells.length);
       expect(d.col.length).toBe(d.cells.length);
@@ -202,4 +207,116 @@ describe('раздача со схлопыванием', () => {
    * недоказанный расклад, пункт «каждый уровень доказан» краснеет. Мутация
    * снимает только повтор, но не проверку.
    */
+});
+
+/**
+ * 🔴 ЗАДНИЙ РЯД: СКРЫТО САМО НАЛИЧИЕ, А НЕ ТИП.
+ *
+ * Второй приём из ресёрча 06.09.2026 (так делают в китайских «сортировках по
+ * полкам»), взят решением Дениса вместе со схлопыванием.
+ *
+ * ⚠️ ЭТО НЕ «НАКРЫТЫЙ ТОВАР» (L14) И НЕ «СКРЫТАЯ ИНФОРМАЦИЯ» (L34). Там товар
+ * ВИДЕН, стоит на месте и занимает высоту, а скрыт его ТИП. Здесь ниша выглядит
+ * короче, чем есть: заднего ряда на доске ещё нет вовсе. Пункт ниже проверяет
+ * именно эту разницу — иначе через полгода приёмы сольются в один под двумя
+ * именами.
+ */
+describe('задний ряд ниши', () => {
+  const ПУЛ = Array.from({ length: 34 }, (_, i) => i);
+
+  it('🔴 задний ряд выходит вперёд, когда передний разобран', () => {
+    /* ⚠️ Задний ряд НЕ делаем готовой тройкой: она схлопнулась бы в тот же миг,
+       и проба мерила бы схлопывание вместо раскрытия. */
+    const b = makeBoard([[5], [1, 1]], [3, 3], { back: [[7, 7, 8], []] });
+    // Пока в передней нише товар — задний ряд не виден и места не занимает.
+    expect(b.cells[0]).toEqual([5]);
+    expect(b.back?.[0]).toEqual([7, 7, 8]);
+    // Убираем последний товар из передней — задний встаёт на его место.
+    const после = moveTop(b, 0, 1, false);
+    expect(после).not.toBeNull();
+    expect(после!.cells[0]).toEqual([7, 7, 8]);
+    expect(после!.back?.[0]).toEqual([]);
+  });
+
+  it('🔴 победа НЕ засчитывается, пока за спиной кто-то есть', () => {
+    const сЗадним = makeBoard([[]], [3], { back: [[9]] });
+    expect(isCleared(сЗадним)).toBe(false);
+    const без = makeBoard([[]], [3], { back: [[]] });
+    expect(isCleared(без)).toBe(true);
+  });
+
+  /**
+   * 🔴 НИША С ЗАДНИМ РЯДОМ НЕ ЗАКРЫВАЕТСЯ. Закрылась бы — увезла бы задний ряд
+   * с собой, и мультимножество перестало бы быть замкнутым, а на замкнутости
+   * стоит вся доказуемость.
+   */
+  it('🔴 ниша с задним рядом не закрывается, даже собрав тройку', () => {
+    const b = makeBoard([[1, 1, 1], [2]], [3, 3], { col: [0, 0], ids: [1, 2], back: [[8, 8], []] });
+    const после = collapseTriples(b);
+    expect(после.cells.length).toBe(2);          // ниша осталась
+    expect(после.cells[0]).toEqual([8, 8]);      // тройка ушла, задний вышел вперёд
+    expect(после.back?.[0]).toEqual([]);
+  });
+
+  /**
+   * 🔴 ТО ЖЕ САМОЕ, НО НА ДОСКЕ БЕЗ СТОЛБЦОВ — то есть на сорока пяти уровнях,
+   * где схлопывания нет. Ветки в `collapseTriples` две, и проверять надо обе.
+   *
+   * 📍 Пункт заведён по ВЫЖИВШЕЙ МУТАЦИИ: «убрать раскрытие изнутри цикла»
+   * оставалась зелёной, потому что все прежние пробы задних рядов шли по
+   * столбцовой ветке. Дефект при этом настоящий: ниша, опустевшая тройкой, свой
+   * задний ряд открыла бы только следующим касанием.
+   */
+  it('🔴 без столбцов задний ряд тоже выходит В ТОТ ЖЕ ход, что ушла тройка', () => {
+    const b = makeBoard([[1, 1, 1], [2]], [3, 3], { back: [[8, 9], []] });
+    const после = collapseTriples(b);
+    expect(после.cells[0]).toEqual([8, 9]);
+    expect(после.back?.[0]).toEqual([]);
+  });
+
+  it('🔴 решатель ВИДИТ задний ряд: без него доска решаема, с ним — нет', () => {
+    const без = makeBoard([[1, 1, 1]], [3], { col: [0], ids: [1] });
+    expect(solveStrict(без, 5000).solvable).toBe(true);
+    const с = makeBoard([[1, 1, 1]], [3], { col: [0], ids: [1], back: [[8, 9]] });
+    const r = solveStrict(с, 5000);
+    expect(r.solvable).toBe(false);
+    expect(r.exhausted).toBe(false);             // доказанное «нет», а не «не знаю»
+  });
+
+  it('🔴 до порога задних рядов нет, с порога есть — кроме строгих', () => {
+    for (let L = 1; L < BACK_FROM; L += 1) expect(backRowLevel(L)).toBe(false);
+    const идут: number[] = [];
+    for (let L = BACK_FROM; L <= 90; L += 1) if (backRowLevel(L)) идут.push(L);
+    expect(идут.length).toBeGreaterThan(10);
+    expect(идут.filter((L) => strictPlacement(L)).length).toBe(0);
+    // Порог совпадает с ПЕРВЫМ появлением: 51 был бы обещанием на уровень раньше.
+    expect(идут[0]).toBe(BACK_FROM);
+  });
+
+  it('🔴 раздача с задними рядами доказана решаемой на каждом уровне', () => {
+    const плохо: string[] = [];
+    let сЗадними = 0;
+    for (let L = BACK_FROM; L <= 90; L += 1) {
+      if (!backRowLevel(L)) continue;
+      const d = dealCollapse(L, ПУЛ, true);
+      if (d.back.some((b) => b.length > 0)) сЗадними += 1;
+      if (!d.proven) плохо.push(`L${L}: задних ${d.back.filter((b) => b.length > 0).length}, попыток ${d.tries}`);
+    }
+    expect(плохо).toEqual([]);
+    expect(сЗадними).toBeGreaterThan(10);        // задние ряды действительно есть
+  });
+
+  /**
+   * 🔴 РАЗНИЦА С «НАКРЫТЫМ ТОВАРОМ» — ОТДЕЛЬНЫМ ПУНКТОМ, ЧТОБЫ ПРИЁМЫ НЕ СЛИЛИСЬ.
+   * Накрытый товар СТОИТ в нише и занимает высоту; задний ряд — нет.
+   */
+  it('🔴 задний ряд не занимает места в нише, а накрытый товар занимает', () => {
+    const b = makeBoard([[1]], [3], { back: [[2, 2]] });
+    // В нише один товар, значит место ещё есть — задние два его не отняли.
+    expect(b.cells[0]!.length).toBe(1);
+    expect(canPlace(b, 0, 1, false)).toBe(true);
+    // А будь эти двое накрытыми товарами, ниша была бы полна.
+    const полная = makeBoard([[1, 2, 2]], [3]);
+    expect(canPlace(полная, 0, 1, false)).toBe(false);
+  });
 });
