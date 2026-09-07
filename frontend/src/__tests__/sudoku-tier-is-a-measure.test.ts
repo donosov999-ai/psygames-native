@@ -16,7 +16,7 @@
  * ⚠️ Гейт меряет ПОВЕДЕНИЕ на собранной доске, а не ищет слова в исходнике.
  */
 import { gradePuzzle, liftByClueRemoval, лучшеПодПолосу } from '@/src/services/sudoku-grade';
-import { Cell, dimsForSize, generatePuzzle, TowersMap, UnequalMap } from '@/src/services/sudoku-core';
+import { Cell, dimsForSize, generateCages, generatePuzzle, KILLER_LADDER, TowersMap, UnequalMap } from '@/src/services/sudoku-core';
 import { TOWERS_LADDER } from '@/src/services/sudoku-modes';
 
 const { N, BR, BC } = dimsForSize(6);
@@ -213,4 +213,53 @@ describe('карта клеток-сумм согласована сама с с
     // Проверка живая: доски, на которых нечего было проверять, не считаются.
     expect(`досок с картой сумм: ${проверено > 0}`).toBe('досок с картой сумм: true');
   }, 120000);
+});
+
+describe('киллер: лестница растит нужность сумм, а не только число дырок', () => {
+  /**
+   * 🔴 ЗАЧЕМ ЭТОТ ГЕЙТ. Режим жил на трёх кнопках, и замер 07.09.2026 показал, что
+   * на «Легко» клетки-суммы декоративны: 12 досок из 12 решались БЕЗ них вообще —
+   * то есть киллер там не киллер. Ровно та же болезнь, что была у небоскрёбов, и
+   * ровно так же её не видел ни один гейт: проб по киллеру не было ни одной.
+   *
+   * Сторожим то же, что у башен: снизу вверх суммы должны становиться НУЖНЕЕ.
+   */
+  const d9 = dimsForSize(9);
+  const безСумм = (blanks: number, tries = 14) => {
+    let n = 0;
+    for (let i = 0; i < tries; i++) {
+      const g = generatePuzzle(blanks, d9.N, d9.BR, d9.BC, 'none');
+      if (gradePuzzle(g.puzzle, { N: d9.N, BR: d9.BR, BC: d9.BC, variant: 'none' }).solved) n++;
+    }
+    return n / tries;
+  };
+
+  it('🔴 на верхней ступени суммы нужнее, чем на нижней', () => {
+    const низ = безСумм(KILLER_LADDER[0]);
+    const верх = безСумм(KILLER_LADDER[KILLER_LADDER.length - 1]);
+    // Порог мягкий: замер даёт 16/16 внизу против 11–12/16 наверху, шум выборки велик.
+    expect(`верх ${верх.toFixed(2)} не выше низа ${низ.toFixed(2)}: ${верх < низ}`)
+      .toBe(`верх ${верх.toFixed(2)} не выше низа ${низ.toFixed(2)}: true`);
+  });
+
+  it('🔴 лестница растёт и не топчется: каждая ступень глубже предыдущей', () => {
+    const шаги = [...KILLER_LADDER];
+    const плоские: string[] = [];
+    for (let i = 1; i < шаги.length; i++) if (шаги[i] <= шаги[i - 1]) плоские.push(`ст.${i + 1}: ${шаги[i]} не глубже ${шаги[i - 1]}`);
+    expect(плоские).toEqual([]);
+    // и вход не пустой: первая ступень мельче последней заметно
+    expect(`размах ${шаги[шаги.length - 1] - шаги[0]} клеток`).toBe('размах 16 клеток');
+  });
+
+  it('🔴 доска верхней ступени всё ещё берётся логикой — с суммами', () => {
+    const blanks = KILLER_LADDER[KILLER_LADDER.length - 1];
+    let решено = 0;
+    for (let i = 0; i < 12; i++) {
+      const g = generatePuzzle(blanks, d9.N, d9.BR, d9.BC, 'none');
+      const cages = generateCages(g.solution, d9.N);
+      if (gradePuzzle(g.puzzle, { N: d9.N, BR: d9.BR, BC: d9.BC, variant: 'none', cages }).solved) решено++;
+    }
+    expect(`решаемых на верхней ступени ${решено}/12: ${решено >= 9}`)
+      .toBe(`решаемых на верхней ступени ${решено}/12: true`);
+  });
 });
