@@ -16,7 +16,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity,
+  View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
   ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,6 +27,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { answerButton, stimBox } from '@/src/games/attention/layout';
+import { AnswerBar } from '@/src/games/attention/AnswerBar';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -82,6 +84,20 @@ function levelParams(level: number): { trials: number; dirs: Direction[]; window
 export default function ChoiceRtGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const { width: screenW, height: screenH } = useWindowDimensions();
+  const ОКНО = stimBox(screenW, screenH);
+  /**
+   * 🔴 ЧИСЛО КНОПОК ЗДЕСЬ — ОСЬ СЛОЖНОСТИ, А НЕ ОФОРМЛЕНИЕ. L1-5 две стороны,
+   * L6-10 три, L11-15 четыре крестовиной (закон Хика: время выбора растёт с числом
+   * альтернатив). Поэтому единая полоса ответа 120 px применяется ТОЛЬКО к варианту
+   * с двумя кнопками — там проба совпадает с фланкером и Саймоном, и именно эта
+   * четвёрка чаще всего идёт подряд в зарядке.
+   * Крестовина остаётся выше полосы, и это осознанное исключение: разложить её в
+   * один ряд значит потерять пространственное соответствие «вверх — это вверх»,
+   * а в направленной пробе оно и меряется. Ужать до 120 нельзя — три ряда по 64
+   * с зазорами дают 208.
+   */
+  const ДВЕ_СТОРОНЫ = answerButton('side', screenW);
   const router = useRouter();
 
   const { isPreset, autostart, isCalm } = useGamePreset();
@@ -304,7 +320,10 @@ export default function ChoiceRtGame() {
   const padBtn = (d: Direction) => (
     <TouchableOpacity key={d} accessibilityRole="button"
       accessibilityLabel={t(`a11y${d.charAt(0).toUpperCase()}${d.slice(1)}`)}
-      style={[styles.padBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handlePress(d)}>
+      style={[styles.padBtn,
+        // две стороны — общий размер раздела; крестовина остаётся своей (см. выше)
+        activeDirs.length === 2 ? { width: ДВЕ_СТОРОНЫ.w, height: ДВЕ_СТОРОНЫ.h, borderRadius: ДВЕ_СТОРОНЫ.radius } : null,
+        { backgroundColor: GRADIENT[0] }]} onPress={() => handlePress(d)}>
       <Ionicons name={ARROW_ICON[d] as any} size={32} color={textOn(GRADIENT[0])} />
     </TouchableOpacity>
   );
@@ -363,9 +382,9 @@ export default function ChoiceRtGame() {
           { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
           { key: 'rt', icon: 'flash', label: t('reaction'), value: `${meanRt}${t('msShort')}`, tone: 'accent' as const },
         ]}
-        toolbar={renderPad()}
+        toolbar={<AnswerBar>{renderPad()}</AnswerBar>}
       >
-        <View style={[styles.stimulusBox, {
+        <View style={[styles.stimulusBox, { width: ОКНО.w, height: ОКНО.h }, {
           borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border,
           backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
         }]}>
@@ -446,7 +465,8 @@ const styles = StyleSheet.create({
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 15, fontWeight: '700' },
-  stimulusBox: { width: 200, height: 200, borderRadius: 24, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
+  // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
+  stimulusBox: { borderRadius: 24, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   waitText: { fontSize: 60, opacity: 0.5 },
   padGrid: { gap: 8, alignItems: 'center' },
   // RTL-пин: пад-кнопки ←/→ должны стоять на своих физических сторонах (глифы стрелок не зеркалятся)
