@@ -34,13 +34,29 @@ export type Technique =
   | 'naked_subset'    // голая пара/тройка
   | 'hidden_subset'   // скрытая пара
   | 'sandwich_sum'    // вывод из суммы между позициями 1 и 9
+  | 'cage_sum'        // вывод из суммы клеток-группы (киллер, ThermoCage)
   | 'towers_clue'     // вывод из подсказки «сколько зданий видно с края»
   | 'unequal_chain'   // цепочка неравенств: границы протянуты через ПУСТЫХ соседей
   | 'x_wing'          // X-wing
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
-  naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, sandwich_sum: 4, towers_clue: 4, unequal_chain: 4, hidden_subset: 5, x_wing: 6, guess: 9,
+  naked_single: 1, hidden_single: 2, locked: 3, naked_subset: 4, sandwich_sum: 4, towers_clue: 4, unequal_chain: 4,
+  /**
+   * 🔴 СТУПЕНЬ СУММ НАЗНАЧЕНА ЗАМЕРОМ, А НЕ НА ГЛАЗ (07.09.2026). До этого дня вывод
+   * из клеток-сумм не помечался ВООБЩЕ — блок в `refilter` работал, но `bump` не звал,
+   * и вклад киллера в трудность был невидим и для `tier`, и для `cost`. Замер по 16
+   * досок на сложность, вопрос «а если сумм нет»:
+   *   легко (44 пустых)  — суммы НЕОБХОДИМЫ на 0/16, без них ступень 1 ×14, 2 ×2
+   *   средне (52)        — необходимы на 7/16, остальные берутся ступенями 1–2
+   *   сложно (60)        — необходимы на 9/16, остальные ступенями 2, 3 и 5
+   * То есть там, где суммы нужны, они заменяют работу техник со второй по пятую.
+   * Четвёрка выбрана по двум основаниям сразу: она в середине этого разброса и она
+   * же стоит у ТРЁХ других вариантных выводов (сэндвич, край, цепочка) — шкала
+   * обязана оставаться сравнимой между вариантами.
+   */
+  cage_sum: 4,
+  hidden_subset: 5, x_wing: 6, guess: 9,
 };
 
 export interface GradeCtx {
@@ -326,9 +342,19 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     // isValid знает то же правило, но только про уже заполненных соседей — по маскам
     // кандидатов оно работает раньше и сильнее (на этом и стоит связка с термометром:
     // границы термометра сужают маску, сужение маски двигает границу суммы, и наоборот).
-    if (cages) {
+    /**
+     * 🔴 ВЫВОД ИЗ СУММ ТЕПЕРЬ ПОМЕЧАЕТСЯ И ОТСЕКАЕТСЯ ПОТОЛКОМ (07.09.2026).
+     * До этого дня блок работал молча: `bump` не звался ни разу, поэтому вклад
+     * клеток-сумм в трудность не видели ни `tier`, ни `cost`. Замер это и показал —
+     * у всех 36 досок киллера ступень выходила ровно 1, «голая одиночка», хотя без
+     * сумм добрая половина досок не решается вовсе.
+     * ⚠️ Отсекается ВЫВОД, а не ПРАВИЛО: проверка «цифра не ломает сумму группы»
+     * живёт в `isValid` и работает всегда — она дана игроку даром.
+     */
+    if (cages && выводВарианта) {
       const lowAt = (k: number) => atLeast(Math.min(N + 1, Math.max(1, k)));
       const highAt = (k: number) => atMost(Math.max(0, Math.min(N, k)));
+      let usedCage = false;
       for (let pass = 0; pass < 4; pass++) {
         let changed = false;
         for (let id = 0; id < cages.cells.length; id++) {
@@ -343,7 +369,7 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
           }
           for (const [r, c] of open) {
             const next = cand[r][c] & ~placed;
-            if (next !== cand[r][c]) { cand[r][c] = next; changed = true; }
+            if (next !== cand[r][c]) { cand[r][c] = next; changed = true; usedCage = true; }
             if (next === 0) return true;
           }
           for (const [r, c] of open) {
@@ -355,12 +381,13 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
               mn += loVal(m); mx += hiVal(m);
             }
             const next = cand[r][c] & lowAt(rest - mx) & highAt(rest - mn);
-            if (next !== cand[r][c]) { cand[r][c] = next; changed = true; }
+            if (next !== cand[r][c]) { cand[r][c] = next; changed = true; usedCage = true; }
             if (next === 0) return true;
           }
         }
         if (!changed) break;
       }
+      if (usedCage) bump('cage_sum');
     }
 
     // ── Стрелка: кружок равен сумме клеток вдоль стрелки. Считаем границы суммы по
@@ -1378,8 +1405,20 @@ export function liftByClueRemoval(
     /**
      * Клетки-суммы — вторая фигура thermocage, и по замеру именно её избыток
      * держал тройки: со снятием одних термометров попадание было 7/20, суммы
-     * никто не трогал. Снятие клетки = убрать её группу из карты: cageOf → −1,
-     * запись в sum/anchor/cells остаётся, но помечается пустой группой.
+     * никто не трогал. Снятие группы = убрать её из карты ЦЕЛИКОМ.
+     *
+     * 🔴 РАНЬШЕ УБИРАЛОСЬ НЕ ЦЕЛИКОМ, И ЭТО БЫЛА МИНА (починка 07.09.2026).
+     * Прежняя редакция гасила `cageOf` и `cells`, а `sum`/`anchor` оставляла как
+     * есть — на карте появлялась МЕТКА БЕЗ КЛЕТОК. Игрок этого не видел: все три
+     * пути отрисовки (заливка, рамка, число суммы) идут через `cageAt`, который
+     * требует `cageOf[r][c] >= 0` (`app/games/sudoku.tsx:1723`, `:2001`), а у снятой
+     * группы там −1. Движок тоже переживал: и градатор (`if (!cells || !cells.length)`),
+     * и `isValid` пропускают пустую группу. Но проба `sudoku-thermocage` падала
+     * примерно раз в три полных прогона — она отсеивала только `undefined`, а пустой
+     * массив истинный, и выходило «группа 2: сумма 0, на метке 10».
+     *
+     * Мина не в пробе, а в данных: несогласованная карта ждала первого потребителя,
+     * который прочтёт `sum[id]` напрямую. Поэтому снимаем все четыре поля разом.
      */
     const карта = gen.cages;
     const живыхКлеток = () => карта.cells.filter((группа) => группа.length > 0).length;
@@ -1392,7 +1431,12 @@ export function liftByClueRemoval(
           const cageOf = c.cageOf.map((row) => [...row]);
           for (const [r, q] of c.cells[id]) cageOf[r][q] = -1;
           const cells = c.cells.map((гр, j) => (j === id ? [] : гр)) as CageMap['cells'];
-          return { ...g, cages: { ...c, cageOf, cells } };
+          // Метка и якорь уходят вместе с клетками: группы больше нет, и числа от неё
+          // остаться не должно. NaN/undefined тут хуже нуля — ноль это законная сумма
+          // разве что у пустой группы, а её мы как раз и стираем.
+          const sum = c.sum.map((v, j) => (j === id ? 0 : v));
+          const anchor = c.anchor.map((v, j) => (j === id ? -1 : v));
+          return { ...g, cages: { ...c, cageOf, cells, sum, anchor } };
         },
       });
     });

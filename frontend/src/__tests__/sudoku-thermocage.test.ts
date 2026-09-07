@@ -157,7 +157,11 @@ function cageBreaks(sol: Cell[][], cages: CageMap): string[] {
   const bad: string[] = [];
   for (let id = 0; id < cages.cells.length; id++) {
     const cells = cages.cells[id];
-    if (!cells) continue;
+    // ⚠️ ПУСТОЙ МАССИВ ИСТИННЫЙ, и на этом проба падала раз в три полных прогона.
+    // `liftByClueRemoval` снимает группу-сумму целиком, оставляя в `cells[id]` пустой
+    // массив; `if (!cells)` его пропускал, дальше digits=[] давало «сумма 0, на метке
+    // 10». Снятая группа — законное состояние карты, проверять в ней нечего.
+    if (!cells || cells.length === 0) continue;
     const digits = cells.map(([r, c]) => sol[r][c]);
     const total = digits.reduce((a, b) => a + b, 0);
     if (total !== cages.sum[id]) bad.push(`группа ${id}: сумма ${total}, на метке ${cages.sum[id]}`);
@@ -179,7 +183,8 @@ describe('ThermoCage: доска несёт оба правила сразу', (
       if (g) inCage++;
       if (t && g) both++;
     }
-    for (let id = 0; id < cages.cells.length; id++) if (cages.cells[id]) groups++;
+    // Считаем ЖИВЫЕ группы: снятая (пустая) — не разметка, см. cageBreaks выше.
+    for (let id = 0; id < cages.cells.length; id++) if (cages.cells[id]?.length) groups++;
     // Не «есть хоть что-то», а обе разметки заметной величины: одна цепочка на всю
     // доску или одна группа из двух клеток — это украшение, а не второе правило.
     expect(`цепочки ${onThermo >= 12} · группы ${groups >= 5} · в группах ${inCage >= 16} · пересечение ${both >= 1}`)
@@ -261,8 +266,18 @@ describe('замороженная доска: единственность да
   });
 
   it('и она берётся логикой — техника выше голых одиночек', () => {
+    /**
+     * ⚠️ ПОДПИСЬ СМЕНИЛАСЬ 07.09.2026, И ЭТО НЕ РЕГРЕСС, А ТОЧНОСТЬ.
+     * Раньше здесь стояло `naked_subset`. Вывод из клеток-сумм работал и тогда — но
+     * `bump` его не помечал ВООБЩЕ, поэтому сложнейшей называлась следующая по списку
+     * техника. Теперь у сумм есть своя ступень (`cage_sum`), и доска честно говорит,
+     * чем её берут. Обе техники — ступень 4, то есть ТРУДНОСТЬ доски не изменилась,
+     * изменилось только имя, которое она про себя сообщает.
+     * Поэтому проверяем и имя, и ступень: подмена ступени мимо четвёрки должна краснеть.
+     */
     const g = gradePuzzle(FIX_PUZZLE, { N, BR, BC, variant: 'thermocage', thermo, cages });
-    expect(`решается ${g.solved}, техника ${g.hardest}`).toBe('решается true, техника naked_subset');
+    expect(`решается ${g.solved}, техника ${g.hardest}, ступень ${g.tier}`)
+      .toBe('решается true, техника cage_sum, ступень 4');
   });
 });
 
