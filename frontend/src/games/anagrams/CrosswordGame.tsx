@@ -16,6 +16,7 @@
  * находки.
  */
 import React from 'react';
+import type { ОтчётРежима } from './core/hudReport';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { минимальныйРазмерКруга } from '@/src/components/letterWheel/geometry';
@@ -35,6 +36,8 @@ export interface CrosswordProps {
   now: () => number;
   onComplete: (подсказок: number, мс: number) => void;
   onProgress?: (начат: boolean) => void;
+  /** Отчёт в шапку каркаса: числа отдаём наверх, вид решает каркас. */
+  onСчёт?: (с: ОтчётРежима) => void;
   labels: { найдено: string; подсказки: string; банк: string; сдать: string; сброс: string; подсказка: string };
 }
 
@@ -52,7 +55,7 @@ function открытыеКлетки(к: Кроссворд, найдены: re
   return из;
 }
 
-export function CrosswordGame({ pack, level, seed, size, theme, now, onComplete, onProgress, labels }: CrosswordProps) {
+export function CrosswordGame({ pack, level, seed, size, theme, now, onComplete, onProgress, onСчёт, labels }: CrosswordProps) {
   const [найдены, setНайдены] = React.useState<string[]>([]);
   const [линия, setЛиния] = React.useState<number[]>([]);
   const [подсказок, setПодсказок] = React.useState(0);
@@ -80,7 +83,9 @@ export function CrosswordGame({ pack, level, seed, size, theme, now, onComplete,
     if (начат && начало.current === 0) начало.current = now();
     onProgress?.(начат);
   }, [найдены, onProgress, now]);
-
+  React.useEffect(() => {
+    onСчёт?.({ найдено: найдены.length, всего: кр.слова.length, подсказок });
+  }, [найдены.length, кр.слова.length, подсказок, onСчёт]);
   const цели = React.useMemo(() => new Set(кр.слова.map((w) => w.слово)), [кр]);
 
   const сдать = React.useCallback((слово: string) => {
@@ -211,9 +216,10 @@ export function CrosswordGame({ pack, level, seed, size, theme, now, onComplete,
         </Pressable>
       </View>
 
-      <Text style={[стили.счёт, { color: theme.textSecondary }]}>
-        {labels.найдено} {найдены.length}/{кр.слова.length}{подсказок ? ` · ${labels.подсказки} ${подсказок}` : ''}
-      </Text>
+      {/*
+        ⚠️ СЧЁТЧИКИ УЕХАЛИ В ШАПКУ КАРКАСА — числа отдаются через `onСчёт`,
+        показывает их каркас, там же, где у классики и филвордов.
+      */}
     </View>
   );
 }

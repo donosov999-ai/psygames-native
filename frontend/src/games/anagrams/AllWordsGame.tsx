@@ -10,6 +10,7 @@
  * понимает, сколько букв искать. Прятать её значило бы поменять игру.
  */
 import React from 'react';
+import type { ОтчётРежима } from './core/hudReport';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { минимальныйРазмерКруга } from '@/src/components/letterWheel/geometry';
@@ -26,6 +27,8 @@ export interface AllWordsProps {
   /** Все слова найдены: сколько взято подсказок и сколько ушло времени. */
   onComplete: (подсказок: number, мс: number) => void;
   onProgress?: (начат: boolean) => void;
+  /** Отчёт в шапку каркаса: числа отдаём наверх, вид решает каркас. */
+  onСчёт?: (с: ОтчётРежима) => void;
   /**
    * Сколько по высоте отдано списку слов. Необязателен: по умолчанию берётся от
    * стороны круга, которая уже считается от ширины экрана.
@@ -54,7 +57,7 @@ export interface AllWordsProps {
   labels: { найдено: string; подсказки: string; банк: string; сдать: string; сброс: string; подсказка: string; перемешать: string; копилка: string };
 }
 
-export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, maxListHeight, locale, rtl, подписьНайденного, labels }: AllWordsProps) {
+export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, onСчёт, maxListHeight, locale, rtl, подписьНайденного, labels }: AllWordsProps) {
   const [найдены, setНайдены] = React.useState<string[]>([]);
   const [линия, setЛиния] = React.useState<number[]>([]);
   /**
@@ -92,7 +95,9 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
     if (начат && начало.current === 0) начало.current = now();
     onProgress?.(начат);
   }, [найдены, onProgress, now]);
-
+  React.useEffect(() => {
+    onСчёт?.({ найдено: найдены.length, всего: pack.words.length, подсказок, бонусов: бонусы.length });
+  }, [найдены.length, pack.words.length, подсказок, бонусы.length, onСчёт]);
   const сдать = React.useCallback((слово: string) => {
     if (готовоRef.current || слово.length < 3) { setЛиния([]); return; }
     setЛиния([]);
@@ -291,11 +296,10 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
         </Pressable>
       </View>
 
-      <Text style={[стили.счёт, { color: theme.textSecondary }]}>
-        {labels.найдено} {найдены.length}/{pack.words.length}
-        {бонусы.length ? ` · ${labels.копилка} ${бонусы.length}` : ''}
-        {подсказок ? ` · ${labels.подсказки} ${подсказок}` : ''}
-      </Text>
+      {/*
+        ⚠️ СЧЁТЧИКИ УЕХАЛИ В ШАПКУ КАРКАСА — числа отдаются через `onСчёт`,
+        показывает их каркас, там же, где у классики и филвордов.
+      */}
     </View>
   );
 }

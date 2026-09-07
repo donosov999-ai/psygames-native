@@ -27,6 +27,8 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useWordLanguage } from '@/src/hooks/useWordLanguage';
 import { wordLangsFor, WORD_LANG_LABEL } from '@/src/services/wordLanguage';
+import type { ОтчётРежима } from '@/src/games/anagrams/core/hudReport';
+import type { HudItem } from '@/src/components/GameShell';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
 import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
@@ -281,6 +283,44 @@ export default function AnagramGame() {
   const [словоЗакрыто, setСловоЗакрыто] = useState(false);
   const закрытьСлово = (v: boolean) => { wordDoneRef.current = v; setСловоЗакрыто(v); };
   const [показанныйУровень, setПоказанныйУровень] = useState(1);
+
+  /*
+    🔴 ШАПКА ТРЁХ РЕЖИМОВ — ИЗ ДАННЫХ, А НЕ ИЗ ИХ СОБСТВЕННОЙ ВЁРСТКИ.
+
+    📍 Просьба Дениса 07.09.2026: «подогнать окно вывода информации и нижние
+    тулбары примерно к одной геометрии и виду, пляшет всё». Повод — «Зарядка»,
+    которая мешает разные игры подряд: скачущий интерфейс между ними раздражает
+    сильнее, чем неидеальный в каждой по отдельности.
+
+    Замер 375×812: у классики и филвордов панель сверху (y 58, высота 61 и 72), а
+    у «Слово-квадрата», «Все слова» и кроссворда её НЕ БЫЛО вовсе — они рисовали
+    счётчики последней строкой своей колонки, и на телефоне те оказывались на
+    y=809 при экране 812, то есть за краем. Теперь режим отдаёт ЧИСЛА, а показывает
+    их каркас — там же и так же, как у двух остальных.
+  */
+  const [счётРежима, setСчётРежима] = useState<ОтчётРежима | null>(null);
+  const шапкаРежима = React.useMemo(() => {
+    if (!счётРежима) return undefined;
+    // Тип объявлен явно: без него массив выводится по ПЕРВОМУ элементу, и
+    // следующий значок «close-circle» уже не подходит под выведенный тип.
+    const items: HudItem[] = [
+      { key: 'found', icon: 'checkmark-circle', label: t('label_found'),
+        value: `${счётРежима.найдено}/${счётРежима.всего}`, tone: 'good', pop: true },
+    ];
+    if (счётРежима.промахов !== undefined) {
+      items.push({ key: 'miss', icon: 'close-circle', label: t('hud_errors'),
+        value: `${счётРежима.промахов}`, tone: счётРежима.промахов ? 'warn' : 'neutral' });
+    }
+    if (счётРежима.подсказок) {
+      items.push({ key: 'hint', icon: 'bulb', label: t('btn_hint'),
+        value: `${счётРежима.подсказок}`, tone: 'warn' });
+    }
+    if (счётРежима.бонусов) {
+      items.push({ key: 'bonus', icon: 'star', label: t('anagramBonusJar'),
+        value: `${счётРежима.бонусов}`, tone: 'accent', pop: true });
+    }
+    return items;
+  }, [счётРежима, t]);
   const wordDeadlineAtRef = useRef(0);          // gameNow() дедлайна текущего слова (0 = нет лимита)
   const startTimeRef = useRef(0);
 
@@ -722,7 +762,7 @@ export default function AnagramGame() {
   if (phase === 'playing' && режимИгры === 'cross') {
     const пак = allWordsPack(wordLang.lang, lvl.level);
     return (
-      <GameShell title={t('anagrams')} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <CrosswordGame
             key={`cross-${wordLang.lang}-${пак.base}-${lvl.level}`}
@@ -734,6 +774,7 @@ export default function AnagramGame() {
             labels={{ найдено: t('label_found'), подсказки: t('btn_hint'), банк: t('anagramSquareBank'), сдать: t('check'), сброс: t('clear'), подсказка: t('btn_hint') }}
             now={gameNow}
             onProgress={setArmedSquare}
+            onСчёт={setСчётРежима}
             onComplete={(подсказок, мс) => {
               // Подсказки — цена уровня: в звёздах они стоят столько же, сколько промах.
               setErrors(подсказок);
@@ -762,7 +803,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <AllWordsGame
             key={`${wordLang.lang}-${пак.base}`}
@@ -782,6 +823,7 @@ export default function AnagramGame() {
             labels={{ найдено: t('label_found'), подсказки: t('btn_hint'), банк: t('anagramSquareBank'), сдать: t('check'), сброс: t('clear'), подсказка: t('btn_hint'), перемешать: t('shuffleBtn'), копилка: t('anagramBonus') }}
             now={gameNow}
             onProgress={setArmedSquare}
+            onСчёт={setСчётРежима}
             onComplete={(подсказок, мс) => {
               // Подсказки — цена уровня: в звёздах они стоят столько же, сколько промах.
               setErrors(подсказок);
@@ -815,7 +857,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {к ? (
           <WordSquareGame
             key={ключКольца(к.верх, к.право, к.низ, к.лево)}
@@ -825,6 +867,7 @@ export default function AnagramGame() {
             labels={{ собрано: t('anagramSquareSolved'), промахи: t('hud_errors'), банк: t('anagramSquareBank'), подсказка: t('btn_hint') }}
             now={gameNow}
             onProgress={setArmedSquare}
+            onСчёт={setСчётРежима}
             onComplete={(промахов, мс) => {
               setErrors(промахов);
               setElapsedTime(Math.round(мс / 100) / 10);
