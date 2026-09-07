@@ -286,23 +286,52 @@ async function main() {
     return вошли ? 'start-practice (в кадре)' : null;
   }
 
+  /**
+   * 🔴 ИГРА С РЕЖИМАМИ — ЭТО НЕСКОЛЬКО ЭКРАНОВ, А НЕ ОДИН.
+   *
+   * 📍 07.09.2026: у анаграмм четыре режима, аудит заходил в один (тот, что
+   * открыт по умолчанию) и молчал про остальные три. Так под зелёным гейтом
+   * прожил вылет нижней полосы на 72 точки в режиме «Все слова»: проверялся
+   * не он. Реестр при этом описывает ВСЮ игру — числа заведомо не сходились.
+   *
+   * Переключатель ищется по якорю `game-mode-*`, а не по подписи: подпись
+   * переводится, идентификатор — нет. Игра подключается к обходу одной
+   * строкой `testID={`game-mode-${ключ}`}` на кнопке своего переключателя.
+   */
+  const modeTabs = async () => page.$$eval('[data-testid^="game-mode-"]',
+    (els) => els.map((e) => e.getAttribute('data-testid')));
+
+  const заход = async (route, mode) => {
+    if (!(await open(page, route))) return { route, mode, failed: 'экран не отрисовался за два захода' };
+    await dismissCoach(page);
+    if (mode) {
+      const ok = await page.click(`[data-testid="${mode}"]`, { timeout: 4000 }).then(() => true).catch(() => false);
+      if (!ok) return { route, mode, failed: `переключатель ${mode} не нажался` };
+    }
+    const start = EMBEDDED_FIELD[route]
+      ? await enterEmbedded(route, EMBEDDED_FIELD[route])
+      : await pressStart(page);
+    if (!start) return { route, mode, failed: EMBEDDED_FIELD[route] ? 'кадр не вошёл в партию' : 'кнопка входа не найдена' };
+    return { route, mode, label: start, ...(await page.evaluate(READ_SLOTS)) };
+  };
+
   const results = [];
   for (const route of routes) {
     if (!(await open(page, route))) { results.push({ route, failed: 'экран не отрисовался за два захода' }); continue; }
     await dismissCoach(page);
-    const start = EMBEDDED_FIELD[route]
-      ? await enterEmbedded(route, EMBEDDED_FIELD[route])
-      : await pressStart(page);
-    if (!start) { results.push({ route, failed: EMBEDDED_FIELD[route] ? 'кадр не вошёл в партию' : 'кнопка входа не найдена' }); continue; }
-    const slots = await page.evaluate(READ_SLOTS);
-    results.push({ route, label: start, ...slots });
+    const tabs = await modeTabs();
+    if (!tabs.length) { results.push(await заход(route, null)); continue; }
+    for (const tab of tabs) results.push(await заход(route, tab));
   }
   await browser.close();
 
   const entered = results.filter((r) => !r.failed);
   const blind = results.filter((r) => r.failed);
 
-  console.log(`\n── Живой аудит слотов. Зашли в ${entered.length} игр из ${routes.length}, экран 390×844.`);
+  // Строк больше, чем маршрутов: у игры с режимами каждый режим — свой заход.
+  const сРежимами = new Set(entered.filter((r) => r.mode).map((r) => r.route)).size;
+  console.log(`\n── Живой аудит слотов. Зашли в ${entered.length} экранов (маршрутов ${routes.length}`
+    + `${сРежимами ? `, из них с режимами ${сРежимами}` : ''}), экран 390×844.`);
 
   // Самопроверка: якоря обязаны находиться хоть где-то. Ноль везде — это не
   // «нарушений нет», это «аудит смотрит в пустоту», и молчать об этом нельзя.
@@ -320,7 +349,7 @@ async function main() {
 
   if (blind.length) {
     console.log(`\n🔴 НЕ ЗАШЛИ в ${blind.length} игр — слоты у них НЕ проверены:`);
-    for (const b of blind) console.log(`    ${b.route}: ${b.failed}`);
+    for (const b of blind) console.log(`    ${b.route}${b.mode ? ' · ' + b.mode.replace('game-mode-', '') : ''}: ${b.failed}`);
     bad = 1;
   }
 
@@ -368,17 +397,31 @@ async function main() {
 
   // 2) Перенос вышел мёртвым: в реестре кнопки есть, на экране их нет.
   const dead = [];
+  /*
+   * Считаем РАЗНЫЕ действия, доступные игроку на маршруте, а не вхождения
+   * компонента в исходнике. У игры с режимами одна и та же «Подсказка» может
+   * быть объявлена в нескольких ветках — для игрока это одно действие; зато
+   * «Перемешать» есть только в одном режиме, и без обхода его не видно.
+   */
+  const действияМаршрута = (route) => {
+    const набор = new Set();
+    for (const r of entered.filter((x) => x.route === route))
+      for (const a of r.aux) if (a.inHeader && a.visible) набор.add(a.label);
+    return набор;
+  };
   for (const [route, want] of Object.entries(AUX_EXPECTED)) {
-    const r = entered.find((x) => x.route === route);
-    if (!r) continue;                                  // не зашли — об этом уже сказано выше
-    const drawn = r.aux.filter((a) => a.inHeader && a.visible).length;
-    if (drawn < want) dead.push(`${route}: в шапке нарисовано ${drawn} служебных кнопок, реестр обещает ${want}`);
+    if (!entered.some((x) => x.route === route)) continue;   // не зашли — сказано выше
+    const набор = действияМаршрута(route);
+    if (набор.size < want) {
+      dead.push(`${route}: в шапке доступно ${набор.size} разных служебных действий [${[...набор].join(', ')}], реестр обещает ${want}`);
+    }
   }
   // 2б) То же для игр, объявивших `bottom="actions"`: кнопки ждём ВНИЗУ.
   for (const [route, want] of Object.entries(AUX_EXPECTED_BOTTOM)) {
     const r = entered.find((x) => x.route === route);
     if (!r) continue;
-    const drawn = r.aux.filter((a) => a.visible && !a.inHeader).length;
+    const drawn = new Set(entered.filter((x) => x.route === route)
+      .flatMap((x) => x.aux.filter((a) => a.visible && !a.inHeader).map((a) => a.label))).size;
     if (drawn < want) dead.push(`${route}: внизу нарисовано ${drawn} служебных кнопок, реестр обещает ${want}`);
   }
   if (dead.length) {
@@ -401,7 +444,7 @@ async function main() {
   console.log(`\nСлужебные действия по играм (зона / размер):`);
   for (const r of entered.filter((x) => x.aux.length)) {
     const where = r.aux.map((a) => `${a.inHeader ? 'шапка' : a.inToolbar ? '🔴НИЗ' : '?'} «${a.label}» ${a.w}×${a.h}`).join(' · ');
-    console.log(`    ${r.route.padEnd(26)} ${where}`);
+    console.log(`    ${(r.route + (r.mode ? ' · ' + r.mode.replace('game-mode-', '') : '')).padEnd(34)} ${where}`);
   }
   const noStrip = entered.filter((x) => !x.hasToolbar).map((x) => x.route);
   console.log(`\nБез нижней полосы (${noStrip.length}): ${noStrip.join(', ') || '—'}`);

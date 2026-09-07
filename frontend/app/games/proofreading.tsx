@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
+import { hudTime } from '@/src/services/hudTime';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -1375,18 +1376,32 @@ export default function ProofreadingGame() {
           />
         </GameAuxBar>
       ) : undefined}
-      stats={
+      /*
+        🔴 СЧЁТЧИКИ — ДАННЫМИ, ПЛИТКИ ИСКОМЫХ БУКВ — ВЁРСТКОЙ.
+        `hud` умеет подпись со значением, но не цветную плитку буквы, а плитка
+        здесь не украшение: она и ЕСТЬ задание («ищи «а» и «о»»). Каркас рисует
+        `stats` РЯДОМ с `hud`, а не вместо, — потому делится ровно так.
+        Обратный отсчёт краснеет на последних 10 секундах, как в math-sprint и
+        sdmt: ключ канонный, тон — по остатку.
+      */
+      hud={[
+        ...(fwPlaying
+          ? [
+              { key: 'found', label: t('label_words'), value: `${fwFound}/${fwTotalWords}` },
+              { key: 'len', label: t('label_letters'), value: fwLettersLeft },
+            ]
+          : [
+              { key: 'found', label: t('label_found'), value: `${foundIndices.size}/${targetIndices.size}` },
+            ]),
+        timeLimitRef.current > 0
+          ? { key: 'left', icon: 'time' as const, label: t('timeLeftLabel'),
+              value: `${Math.max(0, Math.ceil(timeLimitRef.current - elapsedTime))}${t('secShort')}`,
+              tone: timeLimitRef.current - elapsedTime <= 10 ? 'warn' as const : 'neutral' as const }
+          : { key: 'time', icon: 'time' as const, label: t('time'), value: hudTime(elapsedTime, t('secShort')) },
+        ...(errors > 0 ? [{ key: 'errors', label: t('hud_errors'), value: errors }] : []),
+      ]}
+      stats={fwPlaying ? undefined : (
         <View style={styles.gameHeader}>
-          {fwPlaying ? (
-            /* Числа шапки подписаны словами из общего словаря: «Слова 3/7»,
-               «Буквы 18». Своих ключей на это не заводим — эти уже переведены. */
-            <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.targetLabel, { color: colors.text }]}>{t('label_words')}</Text>
-              <Text style={[styles.fwCount, { color: colors.text }]}>{fwFound}/{fwTotalWords}</Text>
-              <Text style={[styles.targetLabel, { color: colors.text }]}>{t('label_letters')}</Text>
-              <Text style={[styles.fwCount, { color: colors.text }]}>{fwLettersLeft}</Text>
-            </View>
-          ) : (
           <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.targetLabel, { color: colors.text }]}>{t('find')}:</Text>
             {targetLetters.map((tl, i) => (
@@ -1394,27 +1409,9 @@ export default function ProofreadingGame() {
                 <Text style={styles.targetChipText}>{tl}</Text>
               </View>
             ))}
-            <Text style={[styles.targetCount, { color: colors.textSecondary }]}>
-              {t('label_found')} {foundIndices.size}/{targetIndices.size}
-            </Text>
-          </View>
-          )}
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Ionicons name="time-outline" size={18} color={colors.text} />
-            {/* На уровне — обратный отсчёт лимита (красный на последних 10с); в пресете — секундомер */}
-            <Text style={[styles.timerText, {
-              color: timeLimitRef.current > 0 && timeLimitRef.current - elapsedTime <= 10 ? '#f43f5e' : colors.text,
-            }]}>
-              {timeLimitRef.current > 0
-                ? `${t('timeLeftLabel')} ${Math.max(0, Math.ceil(timeLimitRef.current - elapsedTime))}${t('secShort')}`
-                : `${t('time')} ${Math.floor(elapsedTime)}${t('secShort')}`}
-            </Text>
-            {errors > 0 && (
-              <Text style={[styles.timerText, { color: '#f43f5e' }]}>{t('hud_errors')} {errors}</Text>
-            )}
           </View>
         </View>
-      }
+      )}
     >
       {fwPlaying ? (
         <View style={[styles.fwField, списокСбоку
@@ -1617,6 +1614,14 @@ export default function ProofreadingGame() {
             />
           </GameAuxBar>
         )}
+        hud={[
+          { key: 'found', label: t('label_found'), value: `${done}/${total}` },
+          { key: 'time', icon: 'time' as const, label: t('time'), value: hudTime(elapsedTime, t('secShort')) },
+          ...(seriesState.errors > 0
+            ? [{ key: 'errors', label: t('hud_errors'), value: seriesState.errors }]
+            : []),
+        ]}
+        /* Плитки знаков — задание, а не счётчик: остаются вёрсткой рядом с `hud`. */
         stats={
           <View style={styles.gameHeader}>
             <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
@@ -1626,25 +1631,6 @@ export default function ProofreadingGame() {
                   <Text style={styles.targetChipText}>{sign}</Text>
                 </View>
               ))}
-              {/* 🔴 ПОДПИСЬ И ЧИСЛО — ОДНОЙ ГРУППОЙ. Комментарий тут стоял верный
-                  («3/6» без подписи читается как что угодно), а стиль `targetCount`
-                  нёс `marginLeft: 'auto'` и уносил число к другому краю: получалось
-                  «Поиск слов  Найдено» слева и «0/7» справа, и пара не читалась как
-                  пара. Репорт Дениса 23.08.2026: «непонятно, сколько слов ждёт
-                  система». Теперь к краю уезжает ГРУППА, а подпись держится числа. */}
-              <View style={styles.foundPair}>
-                <Text style={[styles.targetLabel, { color: colors.textSecondary }]}>{t('label_found')}</Text>
-                <Text style={[styles.targetCount, { color: colors.textSecondary, marginLeft: 0 }]}>{done}/{total}</Text>
-              </View>
-            </View>
-            <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-              <Ionicons name="time-outline" size={18} color={colors.text} />
-              <Text style={[styles.timerText, { color: colors.text }]}>
-                {`${t('time')} ${Math.floor(elapsedTime)}${t('secShort')}`}
-              </Text>
-              {seriesState.errors > 0 && (
-                <Text style={[styles.timerText, { color: '#f43f5e' }]}>{t('hud_errors')} {seriesState.errors}</Text>
-              )}
             </View>
           </View>
         }
