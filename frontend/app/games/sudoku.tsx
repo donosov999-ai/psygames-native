@@ -80,7 +80,7 @@ const SUDOKU_BENEFITS = [
 // v1.111.0: чистое ядро судоку (типы, варианты, генерация с unique-check) вынесено в сервис.
 import {
   Cell, Variant, ThermoPN, ArrowMap, SudokuDifficultyTier, UnequalMap, TowersMap,
-  dimsForSize, blanksFor, killerBlanks, generateCages,
+  dimsForSize, blanksFor, killerBlanksForStep, killerStepCount, generateCages,
   sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
   rejectionReason,
 } from '@/src/services/sudoku-core';
@@ -524,6 +524,14 @@ export default function SudokuGame() {
    * несёт текущую ступень; здесь — достигнутые потолки для возврата и записи.
    */
   const [sideSteps, setSideSteps] = useState<Record<SideMode, number>>({ towers: 1, unequal: 1 });
+  /**
+   * 🔴 У КИЛЛЕРА ТЕПЕРЬ ЛЕСТНИЦА, А НЕ ТРИ КНОПКИ (07.09.2026). Замер показал, чего
+   * стоили кнопки: на «Легко» (44 пустых) клетки-суммы решались 12 досками из 12
+   * БЕЗ НИХ ВООБЩЕ — то есть киллер там не был киллером. Ступень живёт в `level`, как
+   * у башен и неравенств, и весь их механизм (снимок партии, счёт очков, HUD)
+   * переиспользуется без второго экземпляра.
+   */
+  const [killerStep, setKillerStep] = useState(1);
   const [sideStepsLoaded, setSideStepsLoaded] = useState(false);   // ?mode= из хаба ждёт загрузки счётчиков
   /**
    * 🔴 ПРОЙДЕННАЯ ступень мини-лестницы — ДЛЯ ЭКРАНА ИТОГА. К моменту рендера итога
@@ -714,7 +722,7 @@ export default function SudokuGame() {
       if (modeRef.current === 'levels' && !resumedRef.current) setLevel(reached);
     }).catch(() => {});
     // Ступени мини-лестниц режимов — свои счётчики, дороги их не касаются.
-    AsyncStorage.multiGet([`psygames_sudoku_towers_step_${pid}`, `psygames_sudoku_unequal_step_${pid}`]).then((pairs) => {
+    AsyncStorage.multiGet([`psygames_sudoku_towers_step_${pid}`, `psygames_sudoku_unequal_step_${pid}`, `psygames_sudoku_killer_step_${pid}`]).then((pairs) => {
       if (cancelled) return;
       const read = (v: string | null, cap: number) => {
         const n = parseInt(v || '1', 10);
@@ -724,6 +732,7 @@ export default function SudokuGame() {
         towers: read(pairs[0]?.[1] ?? null, sideStepCount('towers')),
         unequal: read(pairs[1]?.[1] ?? null, sideStepCount('unequal')),
       });
+      setKillerStep(read(pairs[2]?.[1] ?? null, killerStepCount()));
       setSideStepsLoaded(true);
     }).catch(() => { if (!cancelled) setSideStepsLoaded(true); });
     return () => { cancelled = true; };
@@ -782,7 +791,8 @@ export default function SudokuGame() {
       blanks = cfg.blanks; vr = cfg.variant; hMax = cfg.hintMax;
     } else if (mode === 'killer') {
       d = dimsForSize(9);
-      blanks = killerBlanks(difficulty);
+      // Глубина — от ступени лестницы (KILLER_LADDER), а не от трёх кнопок.
+      blanks = killerBlanksForStep(lvlOverride ?? level);
     } else if (mode === 'towers' || mode === 'unequal') {
       // Мини-лестницы режимов: башни живут на 6×6 (на 9×9 вариант не решается —
       // замер в шапке sudoku-modes), неравенства — на 9×9. Глубину и полосу техник
@@ -1227,6 +1237,14 @@ export default function SudokuGame() {
         setLevel(nextStep);
         AsyncStorage.setItem(`psygames_sudoku_${mode}_step_${pidDone}`, String(nextStep)).catch(() => {});
       }
+      // Киллер — та же мини-лестница: свой счётчик, максимум, переигровка не срезает.
+      if (mode === 'killer') setSideDoneLevel(level);
+      if (mode === 'killer' && pidDone) {
+        const nextStep = Math.min(killerStepCount(), Math.max(killerStep, level + 1));
+        setKillerStep(nextStep);
+        setLevel(nextStep);
+        AsyncStorage.setItem(`psygames_sudoku_killer_step_${pidDone}`, String(nextStep)).catch(() => {});
+      }
       if (pidDone) clearResume(GAME_ID, pidDone).catch(() => {});   // доиграна — продолжать нечего
       // Ступени мини-лестниц оцениваются той же формулой, что уровни: рост награды со ступенью.
       const baseScore = (mode === 'levels' || mode === 'towers' || mode === 'unequal') ? 1500 + level * 150 : 2000;
@@ -1531,7 +1549,11 @@ export default function SudokuGame() {
           </View>
         </View>
       )}
-      {(mode === 'free' || mode === 'killer') && (
+      {/* ⚠️ У КИЛЛЕРА КНОПОК СЛОЖНОСТИ БОЛЬШЕ НЕТ — у него лестница (KILLER_LADDER).
+          Три кнопки давали «Легко», на котором клетки-суммы решались 12 досками из 12
+          БЕЗ НИХ ВООБЩЕ (замер 07.09.2026), то есть киллер там не был киллером.
+          У свободной партии кнопки остаются: там лестницы нет и не должно быть. */}
+      {mode === 'free' && (
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
           <View style={styles.optionButtons}>
@@ -1629,6 +1651,7 @@ export default function SudokuGame() {
             setMode(m);
             // У мини-лестниц режимов свой счётчик ступени; у уровней — дорога.
             if (m === 'towers' || m === 'unequal') setLevel(sideSteps[m]);
+            else if (m === 'killer') setLevel(killerStep);
             else if (m === 'levels') setLevel(effectiveRoadLevel(roadLevels, road));
           }}
           colors={colors}
@@ -1656,7 +1679,7 @@ export default function SudokuGame() {
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={() => startGame()}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{(mode === 'levels' || mode === 'towers' || mode === 'unequal') ? t('playLevelN').replace('{n}', String(level)) : t('start')}</Text>
+          <Text style={styles.startBtnText}>{(mode === 'levels' || mode === 'towers' || mode === 'unequal' || mode === 'killer') ? t('playLevelN').replace('{n}', String(level)) : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>
@@ -1675,6 +1698,11 @@ export default function SudokuGame() {
         {(mode === 'towers' || mode === 'unequal') && (
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>
             {variantLabel(mode, language)} · {t('label_level_short')}{level}/{sideStepCount(mode)}
+          </Text>
+        )}
+        {mode === 'killer' && (
+          <Text style={[styles.statText, { color: GRADIENT[0] }]}>
+            Killer · {t('label_level_short')}{level}/{killerStepCount()}
           </Text>
         )}
         {/* Приём ЭТОЙ доски — посчитанный градатором, а не выведенный из номера уровня. */}
@@ -2251,6 +2279,7 @@ export default function SudokuGame() {
         hud={[
           ...(mode === 'levels' ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: level }] : []),
           ...((mode === 'towers' || mode === 'unequal') ? [{ key: 'lvl', icon: 'flag' as const, label: variantLabel(mode, language), value: `${level}/${sideStepCount(mode)}`, tone: 'accent' as const }] : []),
+          ...(mode === 'killer' ? [{ key: 'lvl', icon: 'flag' as const, label: 'Killer', value: `${level}/${killerStepCount()}`, tone: 'accent' as const }] : []),
           { key: 'err', icon: 'close-circle', label: t('errors'), value: formatErrorCount(failure, errors), tone: 'bad' as const },
           ...(!isCalm ? [{ key: 'time', icon: 'time' as const, label: t('time'), value: hudTime(elapsedTime, t('secShort')) }] : []),
         ]}
