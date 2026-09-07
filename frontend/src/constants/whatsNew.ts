@@ -16,6 +16,34 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.51.0',
+    date: '2026-09-07',
+    ru: [
+      'Внизу появились вкладки: Главная · Игры · Зарядка · Прогресс · Питомец. Главная стала короче почти вдвое — на ней остался сегодняшний день и три раздела, в которые вы чаще всего играете',
+      'Новая игра «Пицца»: тот же круг из шести кусков, что в «Тортах», но собирается по начинке — от пепперони до чёрной с чернилами каракатицы',
+      'Зарядка выдавала английские слова тем, у кого приложение по-русски. Починено',
+      'Переливалка запирала уровень сама: сосуд, полный до своей высоты, считался собранным и уезжал, а последняя порция цвета оставалась без дома. Игрок не делал ничего запрещённого — просто уровень становился непроходимым',
+      'Торты: очередь входящих тарелок была пуста на всех уровнях. Теперь она работает, и лестница пошла дальше',
+      'Счёт: у «Интеграла» появился знак — верх плюс, низ минус. В «Счётчике» тройки слагаемых с 26-го уровня, в «Охвате операций» — равенства с иксом и степени двойки',
+      'Маджонг, Шульте и зрительный поиск больше не рисуют свою полосу счётчиков поверх общей — счётчики стоят на одном месте во всех играх',
+      'Сортировка товаров: порог «ниши разной вместимости» объяснён словами на всех языках, а перетаскивание перестало подтормаживать',
+      'Переливалка растёт дальше: с 34-го уровня наливать можно только по одной порции',
+      '«Слуховой охват»: лишние слова в сетке стали созвучными услышанным — угадать по звучанию больше нельзя',
+    ],
+    en: [
+      'Tabs arrived at the bottom: Home · Games · Warm-up · Progress · Pet. The home screen is nearly half as long — it keeps today plus the three sections you play most',
+      'New game “Pizza”: the same circle of six slices as in “Cakes”, but matched by topping — from pepperoni to squid-ink black',
+      'The warm-up served English words to people using the app in another language. Fixed',
+      'Water Sort could lock a level by itself: a tube filled to its own height counted as done and left the board, while the last portion of that colour was left homeless. The player did nothing wrong — the level simply became unsolvable',
+      'Cakes: the queue of incoming plates was empty on every level. It works now, and the ladder goes further',
+      'Counting: the Integral got a sign — plus on top, minus below. Counter adds three-term sums from level 26, and Operation Span adds x-equations and powers of two',
+      'Mahjong, Schulte and Visual Search no longer draw their own counter bar over the shared one — counters sit in one place across all games',
+      'Goods Sort: the “niches of different capacity” threshold is now explained in words in every language, and dragging stopped stuttering',
+      'Water Sort grows further: from level 34 you may pour only one portion at a time',
+      'Listening Span: the extra words in the grid now sound like the ones you heard — guessing by sound no longer works',
+    ],
+  },
+  {
     version: '2.50.0',
     date: '2026-09-07',
     ru: [
