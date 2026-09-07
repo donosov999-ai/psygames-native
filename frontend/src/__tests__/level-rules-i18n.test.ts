@@ -107,11 +107,45 @@ function collectRules(): FoundRule[] {
     let decls: LevelRule[] | null = null;
     try { decls = eval('(' + arr + ')') as LevelRule[]; } catch { decls = null; }
     if (!decls) {
-      decls = [...arr.matchAll(/\bkey:\s*'([\w-]+)'[\s\S]{0,120}?fromLevel:\s*(\d+)(?:\s*,\s*toLevel:\s*(\d+))?/g)]
-        .map((m) => ({ key: m[1], fromLevel: Number(m[2]), toLevel: m[3] ? Number(m[3]) : undefined }));
+      /*
+       * 🔴 ПОРОГ БЫВАЕТ НЕ ЧИСЛОМ, А КОНСТАНТОЙ — И ЭТО ПРАВИЛЬНЕЕ ЧИСЛА.
+       *
+       * 07.09.2026 разборщик уронил выпуск 2.49.0 на двух правилах:
+       *   { key: 'surprise_dir', fromLevel: DS_VOLUME_TOP + 1 }
+       *   { key: 'decoys',       fromLevel: MM_VOLUME_TOP + 1 }
+       * `eval` спотыкается об имя, которого в его области нет, а запасная
+       * регулярка требовала цифр — правило не читалось, и проба записывала
+       * «НЕ РАЗОБРАЛСЯ» на исправный код.
+       *
+       * ⚠️ Разделы сделали ЛУЧШЕ, чем просил гейт: порог взят от той же
+       * константы, что и сама механика, поэтому правило и код не могут
+       * разъехаться (за этим же следит `level-rule-threshold`). Гейт наказывал
+       * за верное решение — чинится гейт, а не игры.
+       */
+      const числоКонстанты = (имя: string): number | null => {
+        const m = src.match(new RegExp(`\\b(?:const|let)\\s+${имя}\\s*(?::[^=]+)?=\\s*(\\d+)`));
+        return m ? Number(m[1]) : null;
+      };
+      const разобрать = (выражение: string): number | null => {
+        const e = выражение.trim();
+        if (/^\d+$/.test(e)) return Number(e);
+        const m = e.match(/^([A-Za-z_$][\w$]*)\s*(?:([+-])\s*(\d+))?$/);
+        if (!m) return null;
+        const база = числоКонстанты(m[1]);
+        if (база === null) return null;
+        return m[2] ? (m[2] === '+' ? база + Number(m[3]) : база - Number(m[3])) : база;
+      };
+      const собранные: LevelRule[] = [];
+      for (const m of arr.matchAll(/\bkey:\s*'([\w-]+)'[\s\S]{0,160}?fromLevel:\s*([^,}]+?)\s*(?:,\s*toLevel:\s*([^,}]+?)\s*)?[,}]/g)) {
+        const from = разобрать(m[2]);
+        if (from === null) continue;                 // порог не читается — пусть сойдётся счёт и проба скажет об этом
+        const to = m[3] ? разобрать(m[3]) : null;
+        собранные.push(to === null ? { key: m[1], fromLevel: from } : { key: m[1], fromLevel: from, toLevel: to });
+      }
+      decls = собранные;
     }
     const declared = (arr.match(/\bkey:\s*'/g) ?? []).length;
-    if (decls.length !== declared) {
+    if (!decls || decls.length !== declared) {
       out.push({ file: f, gameId: gm[1], key: 'НЕ РАЗОБРАЛСЯ', decl: { key: 'НЕ РАЗОБРАЛСЯ', fromLevel: 1 }, inline: 'НЕ РАЗОБРАЛСЯ' });
       continue;
     }
