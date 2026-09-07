@@ -44,6 +44,28 @@ const TestRenderer = require('react-test-renderer');
 const КЛЮЧ = 'psygames_fillwords_wordlist';
 const МЕТРИКИ = { frame: { x: 0, y: 0, width: 360, height: 740 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } };
 
+/**
+ * 🔴 КАЖДЫЙ ПОДНЯТЫЙ ЭКРАН ОБЯЗАН БЫТЬ ПОГАШЕН.
+ *
+ * 📍 Замер 07.09.2026 (`--detectOpenHandles`): пробы поднимали экран и не
+ * размонтировали его. В шапке живёт питомец, а у него ВЕЧНАЯ петля кадров
+ * (`PetSprite.tsx:558`, такт 140–420 мс). Она срабатывала уже ПОСЛЕ сноса
+ * окружения jest, дерево шло на перерисовку, `react-native` к тому моменту
+ * отдавал вместо `useWindowDimensions` пустоту — и процесс падал ЦЕЛИКОМ,
+ * унося весь прогон после этого набора. Со стороны выглядело как «jest упал»
+ * без единого имени пробы: итог не успевал напечататься.
+ *
+ * ⚠️ Сам компонент питомца исправен — он гасит свой интервал на размонтаже.
+ * Утечка была ровно в том, что размонтажа не происходило.
+ */
+let поднятый: any = null;
+
+afterEach(() => {
+  if (!поднятый) return;
+  const r = поднятый; поднятый = null;
+  TestRenderer.act(() => { r.unmount(); });
+});
+
 async function поднять() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- см. комментарий про jest.mock
   const Экран = require('@/app/games/proofreading').default;
@@ -57,6 +79,7 @@ async function поднять() {
       </SafeAreaProvider>,
     );
   });
+  поднятый = root;
   return root;
 }
 
@@ -136,4 +159,65 @@ it('пустое хранилище оставляет прежний вид и�
   const root = await поднять();
   expect(await войтиВФилворды(root)).toBe(true);
   expect(тумблер(root)!.props.accessibilityState.checked).toBe(false);
+});
+
+/**
+ * 🔴 ПАРТИЯ ФИЛВОРДОВ ДОЛЖНА ЗАПУСКАТЬСЯ — ПРОБА, КОТОРОЙ НЕ ХВАТИЛО.
+ *
+ * 07.09.2026 коммит 54235f1a оставил main красным: экран звал `порядокДляПартии`,
+ * не добавив её в импорт. Babel типы не проверяет и оставил свободную переменную,
+ * поэтому нажатие «Начать» упало бы с ReferenceError.
+ *
+ * ⚠️ НИ ОДНА МОЯ ПРОБА ЭТОГО НЕ ЛОВИЛА. Экранная доходила только до тумблера,
+ * пробы осей звали ядро напрямую. Поломку нашёл соседний чат по tsc — то есть
+ * набор был зелёным на сломанном экране. Здесь закрывается ровно эта дыра:
+ * кнопка «Начать» нажимается по-настоящему, и на поле появляются буквы.
+ */
+it('нажатие «Начать» поднимает поле, а не падает', async () => {
+  /*
+   * 🔴 ЧАСЫ ПОДДЕЛЬНЫЕ — ИНАЧЕ ПАДАЕТ ВЕСЬ ПРОГОН, А НЕ ЭТА ПРОБА.
+   *
+   * 📍 07.09.2026: партия заводит отсчёт. С настоящими часами таймер срабатывал
+   * уже ПОСЛЕ сноса окружения jest: экран шёл на перерисовку, `react-native`
+   * отдавал вместо `useWindowDimensions` пустоту, и процесс падал целиком — до
+   * вывода итога. Со стороны это выглядело как «набор упал на 423 наборах»,
+   * хотя сама проверка проходила. Поддельные часы не заводят ничего реального.
+   */
+  jest.useFakeTimers();
+  const root = await поднять();
+  expect(await войтиВФилворды(root)).toBe(true);
+
+  const кнопки = () => root.root.findAll((n: any) => n.props
+    && n.props.accessibilityRole === 'button' && typeof n.props.onPress === 'function', { deep: true });
+  const чисто = (t: string) => [...(t || '')].filter((c) => {
+    const k = c.charCodeAt(0); return !(k >= 0xE000 && k <= 0xF8FF);
+  }).join('').trim();
+  const текст = (b: any): string => {
+    const o: string[] = [];
+    const идти = (x: any) => { if (typeof x === 'string') o.push(x);
+      else if (Array.isArray(x)) x.forEach(идти);
+      else if (x && x.props) идти(x.props.children); };
+    идти(b.props.children); return чисто(o.join(''));
+  };
+  const старт = кнопки().find((b: any) => текст(b).length > 0 && текст(b).length < 10
+    && String(b.props.accessibilityLabel ?? '') === 'Start');
+  expect(старт).toBeTruthy();
+  await TestRenderer.act(async () => { старт.props.onPress(); });
+
+  // Клетки поля — одиночные буквы. Если экран упал, их не будет ни одной.
+  const буквы: string[] = [];
+  root.root.findAll((n: any) => typeof n.type === 'string', { deep: true }).forEach((n: any) => {
+    const c = n.props && n.props.children;
+    if (typeof c === 'string' && [...c].length === 1 && /\p{L}/u.test(c)) буквы.push(c);
+  });
+  expect(буквы.length).toBeGreaterThanOrEqual(9);
+
+  /*
+   * 🔴 ПАРТИЮ ОБЯЗАТЕЛЬНО ГАСИТЬ. Нажатие «Начать» заводит таймеры отсчёта; без
+   * размонтирования они срабатывают уже ПОСЛЕ сноса окружения jest, экран идёт
+   * на перерисовку, а `react-native` к тому моменту отдаёт вместо
+   * `useWindowDimensions` пустоту — процесс падает целиком, до вывода итога, и
+   * весь прогон выглядит как «набор упал», хотя проверка прошла.
+   */
+  jest.useRealTimers();
 });

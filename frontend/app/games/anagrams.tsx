@@ -73,6 +73,15 @@ const GRADIENT = ['#ee9ca7', '#ffdde1'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
 // Было зашито '#FFF' — контраст 1.26 (норма AA 4.5), стало 7.31.
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
+/**
+ * 🔴 ТЕКСТ НА СПЛОШНОЙ ЗАЛИВКЕ СЧИТАЕТСЯ ОТДЕЛЬНО ОТ ГРАДИЕНТА.
+ *
+ * 📍 07.09.2026: кнопка «Проверить» залита ОДНИМ концом градиента (#ee9ca7), и
+ * белая подпись на нём давала 2.11 при норме AA 4.5 — поймал гейт
+ * `solid-fill-contrast`. `ON_GRAD` тут не годится: он считает цвет, который
+ * держится на ОБОИХ концах градиента, а под кнопкой только один.
+ */
+const ТЕКСТ_НА_ЗАЛИВКЕ = textOn(GRADIENT[0]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 const ANAGRAM_BENEFITS = [
   { icon: 'language-outline', textKey: 'benefitAnagram1' },
@@ -339,7 +348,7 @@ export default function AnagramGame() {
             onPress={управление.сдать}
             style={[стилиРежима.кнопка, { backgroundColor: GRADIENT[0], borderColor: GRADIENT[0], opacity: управление.сдатьДоступно ? 1 : 0.4 }]}
           >
-            <Text style={[стилиРежима.кнопкаТекст, { color: '#fff' }]}>{t('check')}</Text>
+            <Text style={[стилиРежима.кнопкаТекст, { color: ТЕКСТ_НА_ЗАЛИВКЕ }]}>{t('check')}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -695,6 +704,10 @@ export default function AnagramGame() {
           <View style={styles.optionButtons}>
             {(['classic', 'square', 'all', 'cross'] as const).map((р) => (
               <TouchableOpacity
+                /* Якорь для живого аудита: по нему `scripts/slot-audit.mjs`
+                   обходит ВСЕ режимы, а не только тот, что открыт по умолчанию.
+                   Имя не зависит от языка — подпись переводится, идентификатор нет. */
+                testID={`game-mode-${р}`}
                 accessibilityRole="button" key={р} style={[styles.modeButton, режимИгры === р
                 ? { backgroundColor: GRADIENT[0] }
                 : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}

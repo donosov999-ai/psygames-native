@@ -209,6 +209,34 @@ const BUSY: Record<string, { max: number; why: string }> = {
   'picture-pairs.tsx': { max: 4, why: 'весь ряд бейджей без label + счётчик над полем' },
 };
 
+/**
+ * 🔴 СЛОВО ИЗ СЛОВАРЯ МОДУЛЯ — ТОЖЕ СЛОВО.
+ *
+ * Правило гейта звучит «человек должен видеть слово рядом с числом», а проверка
+ * ищет его по вызову `t(...)`. У раздела «Слова» часть экранов носит СВОЙ полный
+ * словарь: `getProofSeriesStrings(language)` отдаёт названия блоков на двенадцати
+ * языках (`src/games/proofreading/core/i18n.ts`). Игрок слово видит и видит его
+ * переведённым — просто путь до словаря другой.
+ *
+ * 📍 Поймано 07.09.2026, когда счётчики корректуры уехали в `hud`, а в `stats`
+ * осталась коробка задания: подпись блока и плитки искомых знаков. Прежде рядом
+ * стояла пара «Найдено 3/6» со словом из `t()`, и она закрывала собой соседей;
+ * после переезда закрывать стало нечем, и гейт назвал исправный экран нарушением.
+ *
+ * ⚠️ Исключение НЕ снимает правило с файла: перечислены конкретные узлы, и рядом
+ * стоит проверка на протухание — файл обязан по-прежнему брать слова из того
+ * самого словаря, а словарь обязан их содержать. Захардкодят строку — гейт снова
+ * покраснеет, и это правильно.
+ */
+const MODULE_DICT: Record<string, { leaves: string[]; getter: string; dict: string; keys: string[] }> = {
+  'proofreading.tsx': {
+    leaves: ['blockLabel(', 'targetChipText'],
+    getter: 'getProofSeriesStrings(',
+    dict: 'src/games/proofreading/core/i18n.ts',
+    keys: ['blockSign', 'blockWord', 'blockSense'],
+  },
+};
+
 describe('подписи чисел в шапке игры', () => {
   it('есть что проверять — иначе тест зелен вслепую', () => {
     expect(FILES.length).toBeGreaterThan(50);
@@ -216,6 +244,20 @@ describe('подписи чисел в шапке игры', () => {
     // хотя бы у половины экранов шапка вообще разбирается — защита от поломки парсера
     const parsed = FILES.filter((f) => leaves(statsBlocks(readFileSync(join(GAMES, f), 'utf8')).join('\n')).length > 0);
     expect(parsed.length).toBeGreaterThan(30);
+  });
+
+  it('исключение «словарь модуля» не протухло', () => {
+    const stale: string[] = [];
+    for (const [f, о] of Object.entries(MODULE_DICT)) {
+      const src = readFileSync(join(GAMES, f), 'utf8') as string;
+      if (!src.includes(о.getter)) stale.push(`${f}: больше не берёт слова через ${о.getter} — исключение недействительно`);
+      for (const кусок of о.leaves) {
+        if (!src.includes(кусок)) stale.push(`${f}: узла «${кусок}» в шапке больше нет — убери из MODULE_DICT`);
+      }
+      const словарь = readFileSync(join(ROOT, о.dict), 'utf8') as string;
+      for (const k of о.keys) if (!словарь.includes(k)) stale.push(`${о.dict}: ключа «${k}» больше нет`);
+    }
+    expect(stale).toEqual([]);
   });
 
   it('🔴 у каждого числа в шапке есть слово рядом', () => {
@@ -227,6 +269,8 @@ describe('подписи чисел в шапке игры', () => {
       for (const leaf of all) {
         if (!hasValue(leaf.text)) continue;
         if (wordSource(leaf.text)) continue;
+        // Слово пришло из словаря модуля, а не из `t()` — см. MODULE_DICT.
+        if (MODULE_DICT[f]?.leaves.some((кусок) => leaf.text.includes(кусок))) continue;
         // паттерн statBox: подпись отдельным элементом в той же коробке
         const sibling = all.some((o) => o !== leaf && sameBox(o.path, leaf.path)
           && !hasValue(o.text) && wordSource(o.text) === 'dict');
