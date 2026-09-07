@@ -1,4 +1,4 @@
-/* __tests__/ospan-ladder · VER 2 · 07.09.2026 */
+/* __tests__/ospan-ladder · VER 3 · 07.09.2026 */
 /**
  * ГЕЙТ лестницы OSPAN v2 (07.09.2026). Замер ДО (counting-chat, прямой расчёт
  * формул v1): обрыв ×1,59 на L5→L6 (рубильник hardMath: треть пула — умножение
@@ -58,36 +58,44 @@ describe('лестница ospan v2 (счётная ось, 07.09.2026)', () => 
     expect(levelParams(20).mathLoad).toBe(2);
   });
 
-  test('[G6] школьные формы за L16 — поведением: n² с ~L16, √N с ~L20, a×b−c с ~L24; раньше их нет', () => {
+  test('[G6] ось форм открыта (§3 плана): n²(~16) → √N(~20) → a×b−c(~24) → x-равенства(~28) → 2^k(~31)', () => {
     const forms = (load: number) => {
-      const seen = { sq: 0, rt: 0, ch: 0 };
-      for (let i = 0; i < 600; i++) {
+      const seen = { sq: 0, rt: 0, ch: 0, xq: 0, pw: 0 };
+      for (let i = 0; i < 700; i++) {
         const eq = makeEquation(load, true);
-        if (eq.left.includes('²')) seen.sq++;
+        if (eq.left.startsWith('x=')) seen.xq++;
+        else if (eq.left.startsWith('2') && /[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(eq.left) && !eq.left.includes('²')) seen.pw++;
+        else if (eq.left.length === 2 && eq.left.includes('²')) seen.sq++;
+        else if (/^\d+²$/.test(eq.left)) seen.sq++;
         else if (eq.left.includes('√')) seen.rt++;
         else if (eq.left.includes('×') && eq.left.includes('−')) seen.ch++;
       }
       return seen;
     };
     const early = forms(1.0);
-    expect(early).toEqual({ sq: 0, rt: 0, ch: 0 });
+    expect(early).toEqual({ sq: 0, rt: 0, ch: 0, xq: 0, pw: 0 });
     const mid = forms(2.2);
     expect(mid.sq).toBeGreaterThan(0);
     expect(mid.rt).toBeGreaterThan(0);
-    expect(mid.ch).toBe(0);
-    const late = forms(3.4);
-    expect(late.sq).toBeGreaterThan(0);
-    expect(late.rt).toBeGreaterThan(0);
+    expect(mid.ch + mid.xq + mid.pw).toBe(0);
+    const late = forms(3.2);
     expect(late.ch).toBeGreaterThan(0);
+    expect(late.xq).toBeGreaterThan(0);
+    expect(late.pw).toBe(0);
+    const top = forms(4.2);
+    expect(top.xq).toBeGreaterThan(0);
+    expect(top.pw).toBeGreaterThan(0);
   });
 
   test('[G7] каждое равенство честное: isCorrect совпадает с арифметикой строки left', () => {
-    for (const load of [0.5, 1.6, 2.3, 3.2]) {
+    for (const load of [0.5, 1.6, 2.3, 3.2, 4.2]) {
       for (let i = 0; i < 400; i++) {
         const eq = makeEquation(load, true);
         let real: number;
         let m: RegExpMatchArray | null;
-        if ((m = eq.left.match(/^(\d+) × (\d+) − (\d+)$/))) real = +m[1] * +m[2] - +m[3];
+        if ((m = eq.left.match(/^x=(\d+): (\d+)x ([+−]) (\d+)$/))) real = m[3] === '+' ? +m[2] * +m[1] + +m[4] : +m[2] * +m[1] - +m[4];
+        else if ((m = eq.left.match(/^2([⁰¹²³⁴⁵⁶⁷⁸⁹])$/))) real = 2 ** '⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(m[1]);
+        else if ((m = eq.left.match(/^(\d+) × (\d+) − (\d+)$/))) real = +m[1] * +m[2] - +m[3];
         else if ((m = eq.left.match(/^√(\d+)$/))) real = Math.sqrt(+m[1]);
         else if ((m = eq.left.match(/^(\d+)²$/))) real = +m[1] * +m[1];
         else if ((m = eq.left.match(/^(\d+) × (\d+)$/))) real = +m[1] * +m[2];

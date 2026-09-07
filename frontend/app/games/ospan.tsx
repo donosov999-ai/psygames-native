@@ -1,4 +1,4 @@
-/* psygames-game-ospan · VER 3 · 07.09.2026 */
+/* psygames-game-ospan · VER 4 · 07.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
@@ -81,6 +81,24 @@ export function makeEquation(load: number, allowMult: boolean): Equation {
   // За load 1,4/2,0/2,6 в пул ПЛАВНО входят школьные формы (§R: потолков нет).
   const isCorrect = Math.random() < 0.5;
   const wobble = () => (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 3));
+  // §3 плана (07.09): за цепочками ось форм продолжается — степени 2^k (~L31)
+  // и x-равенства «при x=… : a·x±b» (~L28); доли плавные, потолка нет
+  if (load >= 3.4 && Math.random() < Math.min(0.25, (load - 3.4) * 0.2)) {
+    const k = 3 + Math.floor(Math.random() * Math.min(5, 1 + Math.round(load - 2)));
+    const real = 2 ** k;
+    const sup = '⁰¹²³⁴⁵⁶⁷⁸⁹'[k];
+    const shown = isCorrect ? real : real + (Math.random() < 0.5 ? -1 : 1) * (2 + Math.floor(Math.random() * Math.max(3, real / 8)));
+    return { left: `2${sup}`, right: shown, isCorrect: shown === real };
+  }
+  if (load >= 3.0 && Math.random() < Math.min(0.3, (load - 3.0) * 0.22)) {
+    const x = 2 + Math.floor(Math.random() * 7);
+    const a = 2 + Math.floor(Math.random() * Math.round(2 + load));
+    const b = 1 + Math.floor(Math.random() * Math.round(4 + load * 3));
+    const plus = Math.random() < 0.5;
+    const real = plus ? a * x + b : a * x - b;
+    const shown = isCorrect ? real : real + wobble();
+    return { left: `x=${x}: ${a}x ${plus ? '+' : '−'} ${b}`, right: shown, isCorrect: shown === real };
+  }
   if (load >= 2.6 && Math.random() < Math.min(0.35, (load - 2.6) * 0.25)) {
     const a = 3 + Math.floor(Math.random() * 10);
     const b = 2 + Math.floor(Math.random() * 8);
