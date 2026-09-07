@@ -215,7 +215,24 @@ export default function NBackGame() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [resultBenchmark, setResultBenchmark] = useState<{ own: number; best: number; source: 'players' | 'personal' } | null>(null);
   // Справка правил уровня (в зарядке-пресете не показываем — там свой поток)
-  const levelRules = useLevelRules('n_back', lvl.level, NB_RULES, phase === 'playing' && !isPreset);
+  /**
+   * 🔴 ПРАВИЛА ПОКАЗЫВАЮТСЯ ДО ПАРТИИ, А НЕ ПОВЕРХ НЕЁ.
+   *
+   * Было `phase === 'playing'` — карточка открывалась поверх ИДУЩЕГО потока
+   * стимулов. Найдено 07.09.2026 снимком витрины раздела: на кадре n-back HUD уже
+   * показывает «1/20», а поверх поля висит модалка «Two streams».
+   *
+   * Это ровно жалоба Вали от 05.09 про матрицу: «пока я их запоминала, вместо
+   * квадратов появилось объяснение правил». Починка v2.44.0 (f1eb95b3) перевела
+   * девять игр с `recall` на `config`, но n-back объявлял фазу СВОИМ словом
+   * (`playing`), под перечисление не попал и остался с тем же дефектом.
+   * ⚠️ Здесь он дороже, чем в матрице: n-back меряет d′, а модалка съедает часть
+   * потока — испорчена не одна попытка, а весь замер блока.
+   *
+   * ⚠️ И `!isPreset` тут был лишним: в пресете фаза `config` вообще не наступает,
+   * условие и так ложно. Убрано, чтобы не выглядело, будто заслон держится на нём.
+   */
+  const levelRules = useLevelRules('n_back', lvl.level, NB_RULES, phase === 'config');
   const [nLevel, setNLevel] = useState(() => nFromModeParam(str('mode', '')) ?? num('nLevel', 1));
   const [trials, setTrials] = useState(() => num('trials', 20));
   /** Заготовленные блоки: зрительный и слуховой. Строятся в `startGame`. */
