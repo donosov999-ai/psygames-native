@@ -8,8 +8,9 @@
  * подряд (переименование, дописанный аргумент, константа вместо литерала).
  */
 import {
-  ASK_EVERY_DAYS, GOAL_DAYS, askReason, daysBetween, goalProgress, goalReward,
-  markAsked, noticeReached, startGoal, type StreakGoal,
+  ASK_EVERY_DAYS, GOAL_DAYS, askReason, daysBetween, goalAskedKey, goalProgress, goalReward,
+  loadGoalAskedAt, markAsked, noticeReached, rememberAsked, saveGoalAskedAt, startGoal,
+  type StreakGoal,
 } from '@/src/services/streakGoal';
 import { DAY_GOAL_REWARD } from '@/src/services/earn';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -99,6 +100,47 @@ describe('цель — сколько дней подряд', () => {
     });
   });
 
+  /**
+   * 🔴 ПОТОЛОК ЧАСТОТЫ. Дефект был не в чистой функции, а в том, КАК её звали:
+   * `useFocusEffect` на главной считает повод при каждом возврате — из игры, из
+   * настроек, из магазина, — и человек, закрывший окно, видел его снова через
+   * десять секунд. Все четыре повода проверяются поимённо: пропусти один — и
+   * назойливость вернётся ровно через него.
+   */
+  describe('не чаще раза в сутки', () => {
+    const сегодня = '2026-9-7';
+    const в = день(2026, 9, 7);
+
+    it('окно уже показывали сегодня — второй раз за день не приходит НИ ПО ОДНОМУ поводу', () => {
+      // цели нет
+      expect(askReason({ goal: null, streak: 0, lastAskedAt: сегодня, now: в })).toBeNull();
+      // серия оборвалась
+      expect(askReason({ goal: цель(), streak: 0, lastAskedAt: сегодня, now: в })).toBeNull();
+      // дошёл до срока
+      expect(askReason({ goal: цель({ days: 7 }), streak: 7, lastAskedAt: сегодня, now: в })).toBeNull();
+      // прошла неделя с прошлого показа
+      expect(askReason({ goal: цель({ days: 30, askedAt: '2026-8-25' }), streak: 4, lastAskedAt: сегодня, now: в })).toBeNull();
+    });
+
+    it('назавтра спрашивает снова — это потолок, а не выключатель', () => {
+      expect(askReason({ goal: null, streak: 0, lastAskedAt: '2026-9-6', now: в })).toBe('first');
+      expect(askReason({ goal: цель(), streak: 0, lastAskedAt: '2026-9-6', now: в })).toBe('broken');
+      expect(askReason({ goal: цель({ days: 7 }), streak: 7, lastAskedAt: '2026-9-6', now: в })).toBe('reached');
+    });
+
+    it('ни разу не показывали — поле пустое и ничего не запрещает', () => {
+      expect(askReason({ goal: null, streak: 0, now: в })).toBe('first');
+      expect(askReason({ goal: null, streak: 0, lastAskedAt: null, now: в })).toBe('first');
+    });
+
+    it('🔴 потолок и пол — разные границы, и та, что про неделю, никуда не делась', () => {
+      // Вчера показывали (потолок пройден), но с прошлого показа ЦЕЛИ прошло
+      // всего три дня — недельный пол ещё держит окно закрытым.
+      const g = цель({ days: 30, askedAt: '2026-9-4' });
+      expect(askReason({ goal: g, streak: 3, lastAskedAt: '2026-9-6', now: в })).toBeNull();
+    });
+  });
+
   describe('прогресс', () => {
     it('без цели прогресса нет — показывать нечего', () => {
       expect(goalProgress(null, 5)).toBeNull();
@@ -185,6 +227,53 @@ describe('цель — сколько дней подряд', () => {
     it('🔴 чужой профиль чужую цель не видит', async () => {
       await saveStreakGoal('p1', startGoal(30, день(2026, 9, 7)));
       expect(await loadStreakGoal('p2')).toBeNull();
+    });
+
+    it('день показа хранится отдельно от цели — он нужен и когда цели ещё нет', async () => {
+      expect(await loadGoalAskedAt('p1')).toBeNull();
+      await saveGoalAskedAt('p1', день(2026, 9, 7));
+      expect(await loadGoalAskedAt('p1')).toBe('2026-9-7');
+      // Цели при этом так и не появилось — ради этого случая ключ и заведён.
+      expect(await loadStreakGoal('p1')).toBeNull();
+    });
+
+    it('🔴 день показа у каждого профиля свой', async () => {
+      await saveGoalAskedAt('p1', день(2026, 9, 7));
+      expect(await loadGoalAskedAt('p2')).toBeNull();
+      expect(goalAskedKey('p1')).not.toBe(goalAskedKey('p2'));
+    });
+
+    /**
+     * 🔴 ЗДЕСЬ ПРОВЕРЯЕТСЯ ИМЕННО ТО МЕСТО, ГДЕ БЫЛ ДЕФЕКТ. Чистая `askReason`
+     * была верна и до правки: ломался ВЫЗОВ — экран не отмечал показ, когда цели
+     * ещё нет. Поэтому проба гоняет не функцию на выдуманных датах, а полный
+     * оборот через хранилище: показали → отметили → повод исчез → назавтра вернулся.
+     */
+    it('🔴 показали БЕЗ ЦЕЛИ → в тот же день окно не возвращается, назавтра возвращается', async () => {
+      await rememberAsked('p1', null, день(2026, 9, 7));
+      const отмечено = await loadGoalAskedAt('p1');
+      expect(отмечено).toBe('2026-9-7');
+      expect(askReason({ goal: null, streak: 0, lastAskedAt: отмечено, now: день(2026, 9, 7) })).toBeNull();
+      expect(askReason({ goal: null, streak: 0, lastAskedAt: отмечено, now: день(2026, 9, 8) })).toBe('first');
+    });
+
+    it('🔴 обе отметки ставятся ПАРОЙ — недельный ритм не отстаёт от суточного', async () => {
+      const g = startGoal(30, день(2026, 9, 1));
+      await saveStreakGoal('p1', g);
+      const после = await rememberAsked('p1', g, день(2026, 9, 8));
+      expect(после?.askedAt).toBe('2026-9-8');
+      expect((await loadStreakGoal('p1'))?.askedAt).toBe('2026-9-8');
+      expect(await loadGoalAskedAt('p1')).toBe('2026-9-8');
+      // Цель при этом не перезапущена — человек ничего не выбирал.
+      expect((await loadStreakGoal('p1'))?.startedAt).toBe('2026-9-1');
+    });
+
+    it('🔴 ключ показа НЕ совпадает с ключом цели — иначе одна запись затрёт другую', async () => {
+      expect(goalAskedKey('p1')).not.toBe(streakGoalKey('p1'));
+      await saveStreakGoal('p1', startGoal(7, день(2026, 9, 7)));
+      await saveGoalAskedAt('p1', день(2026, 9, 7));
+      expect(await loadStreakGoal('p1')).not.toBeNull();
+      expect(await loadGoalAskedAt('p1')).toBe('2026-9-7');
     });
 
     it('битая запись — это «цели нет», а не падение экрана', async () => {

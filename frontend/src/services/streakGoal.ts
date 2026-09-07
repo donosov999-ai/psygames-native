@@ -75,6 +75,22 @@ export interface AskInput {
   goal: StreakGoal | null;
   /** Текущая серия из `streakFromDays`. */
   streak: number;
+  /**
+   * 🔴 ДЕНЬ ПОСЛЕДНЕГО ПОКАЗА ОКНА — ОТДЕЛЬНО ОТ `goal.askedAt`, и это не дубль.
+   *
+   * `goal.askedAt` живёт ВНУТРИ цели и отвечает за недельный ритм. Но два самых
+   * частых повода — «цели ещё нет» и «серия оборвалась» — наступают, когда цели
+   * либо нет вовсе, либо её `askedAt` до повода не касается. Их ничто не
+   * ограничивало, а `useFocusEffect` на главной перечитывает повод при КАЖДОМ
+   * возврате — из игры, из настроек, из магазина. Человек, закрывший окно,
+   * получал его снова через десять секунд, и так весь день.
+   *
+   * Поймано разбором вызова, а не пробой: пробы гоняли чистую функцию, где
+   * «каждый возврат на главную» не воспроизводится в принципе. Отсюда и правило:
+   * потолок частоты живёт В ЯДРЕ, а не в экране, иначе следующий экран заведёт
+   * его заново или забудет.
+   */
+  lastAskedAt?: string | null;
   now?: Date;
 }
 
@@ -91,6 +107,21 @@ export interface AskInput {
 export function askReason(i: AskInput): AskReason | null {
   const now = i.now ?? new Date();
   const today = dayKey(now);
+  /*
+   * 🔴 ПОТОЛОК: ОДИН ПОКАЗ В СУТКИ, БЕЗ ИСКЛЮЧЕНИЙ ДЛЯ ХОРОШИХ ПОВОДОВ.
+   *
+   * Соблазн был пропустить сюда `reached` — момент радостный, чего его копить.
+   * Но человек может закрыть и радостное окно, а `reachedAt` остаётся стоять, и
+   * тогда «Дошёл! Ставим следующую?» возвращалось бы при каждом заходе на
+   * главную до тех пор, пока он не выберет. Исключение из правила про
+   * назойливость само становится назойливостью — поэтому правило одно на все
+   * четыре повода.
+   *
+   * ⚠️ Это ПОТОЛОК, а не замена `ASK_EVERY_DAYS`. Тот — ПОЛ: «не реже раза в
+   * неделю» (требование Дениса). Здесь — «не чаще раза в сутки». Границы разные
+   * и обе нужны: без пола цель забывается, без потолка приложение выпрашивает.
+   */
+  if (i.lastAskedAt === today) return null;
   if (!i.goal) return 'first';
   if (i.goal.reachedAt) return 'reached';
   if (i.streak >= i.goal.days) return 'reached';
@@ -167,6 +198,46 @@ export function markAsked(goal: StreakGoal, now: Date = new Date()): StreakGoal 
 const GOAL_PREFIX = 'psygames_streak_goal_';
 
 export function streakGoalKey(profileId: string): string { return GOAL_PREFIX + profileId; }
+
+/**
+ * Отдельный ключ «когда окно показывали» — он нужен и тогда, когда цели ещё нет,
+ * то есть ровно в том случае, где хранить эту дату внутри цели негде.
+ */
+const ASKED_PREFIX = 'psygames_streak_goal_asked_';
+
+export function goalAskedKey(profileId: string): string { return ASKED_PREFIX + profileId; }
+
+/** День последнего показа окна (`dayKey`) или null, если ни разу не показывали. */
+export async function loadGoalAskedAt(profileId: string): Promise<string | null> {
+  try { return await AsyncStorage.getItem(goalAskedKey(profileId)); } catch { return null; }
+}
+
+/** Отметить показ. Зовётся и при выборе, и при «Не сейчас» — окно всё равно было. */
+export async function saveGoalAskedAt(profileId: string, now: Date = new Date()): Promise<void> {
+  try { await AsyncStorage.setItem(goalAskedKey(profileId), dayKey(now)); } catch {}
+}
+
+/**
+ * 🔴 ОДНА ФУНКЦИЯ НА ОБА ИСХОДА ОКНА — И «ВЫБРАЛ», И «НЕ СЕЙЧАС».
+ *
+ * Отметок две: недельный ритм внутри цели (`askedAt`) и суточный потолок
+ * снаружи (отдельный ключ). Держать их в паре обязано ядро, а не экран: пока
+ * это были два вызова в двух обработчиках, забыть один было делом одной правки —
+ * и именно так дефект и выглядел до 07.09.2026, когда снаружи не отмечалось
+ * ничего и окно возвращалось при каждом заходе на главную.
+ *
+ * Возвращает обновлённую цель (или null, если цели ещё нет) — экрану остаётся
+ * положить её в состояние.
+ */
+export async function rememberAsked(
+  profileId: string, goal: StreakGoal | null, now: Date = new Date(),
+): Promise<StreakGoal | null> {
+  await saveGoalAskedAt(profileId, now);
+  if (!goal) return null;
+  const next = markAsked(goal, now);
+  await saveStreakGoal(profileId, next);
+  return next;
+}
 
 /** Цель профиля или null. Битую запись отдаём как «цели нет», а не роняем экран. */
 export async function loadStreakGoal(profileId: string): Promise<StreakGoal | null> {
