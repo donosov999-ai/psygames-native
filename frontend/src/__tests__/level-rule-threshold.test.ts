@@ -26,6 +26,7 @@
  */
 import { CS_RULES } from '@/app/games/cake-sort';
 import { CHESSBLIND_RULES } from '@/app/games/chess-blind';
+import { COUNTER_RULES, levelParams as counterLp } from '@/app/games/counter';
 import { CORSI_RULES, levelParams as corsi } from '@/app/games/corsi';
 import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
@@ -63,7 +64,7 @@ const LEVELS = Array.from({ length: 60 }, (_, i) => i + 1);
 
 /** Все игры с правилами уровня. Ключ — имя игры, значение — её настоящий массив правил. */
 const RULES: Record<string, LevelRule[]> = {
-  'cake-sort': CS_RULES,
+  'cake-sort': CS_RULES, counter: COUNTER_RULES,
   'chess-blind': CHESSBLIND_RULES, corsi: CORSI_RULES, cpt: CPT_RULES, 'digit-span': DS_RULES,
   'goods-sort': GS_RULES, hanoi: HN_RULES, 'listening-span': LISTENINGSPAN_RULES,
   'water-sort': WATER_SORT_RULES,
@@ -125,6 +126,7 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'mental-rotation', ключ: 'axes3', вид: 'порог', есть: (L) => rotation(L).axes.length === 3 },
   { игра: 'digit-span', ключ: 'surprise_dir', вид: 'порог', есть: (L) => digitSpan(L).surpriseDir },
   { игра: 'n-back', ключ: 'dual', вид: 'порог', есть: (L) => nback(L).modality === 'dual' },
+  { игра: 'counter', ключ: 'triples', вид: 'порог', есть: (L) => counterLp(L).tripleShare > 0 },
   { игра: 'ospan', ключ: 'hardmath', вид: 'порог', есть: (L) => ospan(L).hardMath },
   { игра: 'picture-pairs', ключ: 'triple', вид: 'состояние', есть: (L) => pairs(L).groupSize === 3 },
   { игра: 'picture-pairs', ключ: 'quad', вид: 'порог', есть: (L) => pairs(L).groupSize === 4 },

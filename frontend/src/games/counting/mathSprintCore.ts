@@ -55,7 +55,9 @@ export function sprintBandFor(level: number): SprintKind {
  * линейны по t, ось открыта). */
 function bandT(level: number): number {
   const L = Math.max(1, Math.floor(level));
-  if (L > 7 * BAND_SIZE) return (L - 7 * BAND_SIZE) / (2 * BAND_SIZE);
+  // Хвост B8: /5 вместо /8 — рост внутри ОБЕЩАННОЙ зоны 29–32 был ×1,03–1,05
+  // на грани клона (замер 07.09, sim VER 3 с приёмкой до 32)
+  if (L > 7 * BAND_SIZE) return (L - 7 * BAND_SIZE) / 5;
   return ((L - 1) % BAND_SIZE) / (BAND_SIZE - 1);
 }
 
