@@ -854,6 +854,17 @@ async function main() {
   let games = await gameRoutes();
   if (ONLY) games = games.filter((r) => ONLY.some((o) => r.endsWith('/' + o) || r === o));
   const routes = [...(ONLY ? [] : APP_ROUTES), ...games].slice(0, LIMIT);
+  /*
+   * 🔴 --limit ОБЯЗАН ОГРАНИЧИВАТЬ ОБА ПРОХОДА. Замер 07.09.2026: с `--limit=12`
+   * первый проход честно взял 12 экранов, а второй всё равно зашёл в 78 игр из
+   * 78 — то есть ручка не ограничивала как раз ДОРОГОЙ проход (он открывает
+   * игру, жмёт «Начать» и меряет поле). Прогон «на двенадцати маршрутах» не
+   * уложился в десять минут, и я решил, что аудит просто медленный.
+   * Ручка, которая не ограничивает главное, хуже отсутствия ручки: ей верят.
+   * ⚠️ В CI LIMIT = Infinity, поэтому там ничего не меняется — это отладочный
+   * ключ, и он должен быть честным именно при отладке.
+   */
+  const gamesLimited = Number.isFinite(LIMIT) ? games.slice(0, LIMIT) : games;
 
   const browser = await chromium.launch();
   // Размер телефона: на нём кнопки самые тесные, и именно там промахиваются.
@@ -879,8 +890,8 @@ async function main() {
   let bad = 0;
   bad |= await selfTestClipPredicate(page);
   if (MODE === 'all' || MODE === 'routes') bad |= await auditRoutes(page, routes);
-  if (MODE === 'all' || MODE === 'field') bad |= await auditField(page, games);
-  if (MODE === 'all' || MODE === 'header') bad |= await auditHeader(page, games);
+  if (MODE === 'all' || MODE === 'field') bad |= await auditField(page, gamesLimited);
+  if (MODE === 'all' || MODE === 'header') bad |= await auditHeader(page, gamesLimited);
 
   await browser.close();
   if (bad) process.exitCode = 1;
