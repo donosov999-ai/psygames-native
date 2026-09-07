@@ -228,6 +228,41 @@ describe('пицца — та же механика, другие картинк
   }, 180_000);
 });
 
+describe('эталон ходов доезжает до шапки', () => {
+  /**
+   * 🔴 ПРОВОДОК, А НЕ ФОРМУЛА. Гейт `cake-sort-reference` доказывает, что эталон
+   * ОБЯЗАН считаться по кругам: счёт по видам делает три звезды доказуемо
+   * недостижимыми на верхней половине лестницы. Но он зовёт `referenceFor`
+   * напрямую и потому ничего не знает о том, ЧТО в неё передаёт экран.
+   *
+   * 📍 Подмена `referenceFor(кругов, …)` на `referenceFor(cfg.types, …)` в
+   * экране не красит там ни одной пробы. Здесь красит: число читается из шапки,
+   * той самой, где игрок видит «ходы / эталон».
+   *
+   * ⚠️ Уровень взят такой, где очередь ЕСТЬ и точного минимума НЕТ: на L1…L6
+   * минимум посчитан заранее и побеждает калибровку, а без очереди круги и виды
+   * это одно число — в обоих случаях подмена была бы неразличима.
+   */
+  it('🔴 в шапке стоит эталон по КРУГАМ, а не по видам', async () => {
+    const { levelCfg } = require('@/src/games/cake-sort/core/level');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const { moveReference } = require('@/src/games/cake-sort/core/stars');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const { prebuiltMin } = require('@/src/games/cake-sort/core/prebuilt');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const УРОВЕНЬ = 20;
+    const c = levelCfg(УРОВЕНЬ);
+    // Условия различимости — проверяем их, а не полагаемся на них.
+    expect(c.queue).toBeGreaterThan(0);
+    expect(prebuiltMin(УРОВЕНЬ)).toBeNull();
+    const поКругам = moveReference(c.types + c.queue);
+    const поВидам = moveReference(c.types);
+    expect(поКругам).not.toBe(поВидам);
+
+    const r = await открыть('@/app/games/cake-sort', { cake_sort: String(УРОВЕНЬ) });
+    const текст = текстВнутри(r.root);
+    expect(текст).toContain(`0/${поКругам}`);
+    expect(текст).not.toContain(`0/${поВидам}`);
+  }, 180_000);
+});
+
 describe('у пиццы своя лестница', () => {
   /**
    * 🔴 РЕЖИМ — ЭТО НЕ ТОЛЬКО ДРУГИЕ КАРТИНКИ, НО И СВОЙ ПРОГРЕСС.

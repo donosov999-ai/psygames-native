@@ -122,6 +122,15 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    */
   const посуда = useMemo(() => boardsFor(skin, тема.plates), [skin, тема]);
   const cfg = useMemo(() => levelCfg(level), [level]);
+  /**
+   * Кругов на уровне: те, что лежат на столе, плюс те, что придут из очереди.
+   *
+   * ⚠️ Именно по этому числу считается эталон ходов, а не по числу ВИДОВ. С
+   * очередью кругов больше видов (на L60 — восемнадцать против одиннадцати), и
+   * эталон по видам занизился бы в полтора раза: три звезды стали бы
+   * недостижимы на каждом столе.
+   */
+  const кругов = cfg.types + cfg.queue;
 
   const [board, setBoard] = useState<Board | null>(null);
   const [sel, setSel] = useState<number | null>(null);
@@ -293,7 +302,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
        */
       saveSession({
         game_type: gameId, score: moves, time_seconds: 0, passed: true,
-        details: { level, moves, types: cfg.types, stars: starsFor(moves, cfg.types, точныйМин) },
+        details: { level, moves, types: cfg.types, stars: starsFor(moves, кругов, точныйМин) },
       }).catch(() => {});
     }
   };
@@ -388,8 +397,8 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
     onResponderTerminate: () => { setТащим(null); setЦель(null); },
   };
 
-  const эталон = referenceFor(cfg.types, точныйМин);
-  const звёзды = starsFor(moves, cfg.types, точныйМин);
+  const эталон = referenceFor(кругов, точныйМин);
+  const звёзды = starsFor(moves, кругов, точныйМин);
   const встал = board ? !isCleared(board) && !hasAnyMove(board) : false;
 
   const тарелка = (i: number) => {
