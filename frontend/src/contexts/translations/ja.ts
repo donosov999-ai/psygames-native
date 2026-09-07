@@ -2431,6 +2431,7 @@ const t: Record<string, string> = {
   "mahjongStuckUndo": "取れる組がありません — 盤面が詰まりました。一手戻してください。",
   "mahjongStuckRestart": "取れる組がなく、シャッフルも一手戻すも残っていません。このレベルは最初からやり直しです。",
   "mahjongRestartLevel": "レベルをやり直す",
+  "anagramBonusJar": "ボーナス",
   // >>> SCREEN_STRINGS
 };
 export default t;

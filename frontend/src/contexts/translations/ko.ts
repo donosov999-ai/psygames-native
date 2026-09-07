@@ -2432,6 +2432,7 @@ const t: Record<string, string> = {
   "mahjongStuckUndo": "맞출 수 있는 짝이 없습니다 — 판이 막혔습니다. 되돌리기를 사용하세요.",
   "mahjongStuckRestart": "맞출 짝이 없고 섞기도 되돌리기도 남지 않았습니다. 이 레벨은 처음부터 다시 해야 합니다.",
   "mahjongRestartLevel": "레벨 다시 시작",
+  "anagramBonusJar": "보너스",
   // >>> SCREEN_STRINGS
 };
 export default t;

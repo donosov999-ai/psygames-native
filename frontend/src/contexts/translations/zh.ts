@@ -2437,6 +2437,7 @@ const t: Record<string, string> = {
   "mahjongStuckUndo": "没有可以配对的牌 — 棋盘卡住了。请撤销一步。",
   "mahjongStuckRestart": "没有可配对的牌，也没有可洗牌或可撤销的操作。本关需要重新开始。",
   "mahjongRestartLevel": "重新开始本关",
+  "anagramBonusJar": "奖励",
   // >>> SCREEN_STRINGS
 };
 export default t;

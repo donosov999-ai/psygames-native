@@ -2433,6 +2433,7 @@ const t: Record<string, string> = {
   "mahjongStuckUndo": "لا توجد أزواج متاحة — اللوحة متوقفة. تراجع عن حركة.",
   "mahjongStuckRestart": "لم تبق أزواج ولا خلط ولا تراجع. يجب إعادة بدء هذا المستوى.",
   "mahjongRestartLevel": "إعادة بدء المستوى",
+  "anagramBonusJar": "مكافأة",
   // >>> SCREEN_STRINGS
 };
 export default t;

@@ -2437,6 +2437,7 @@ const t: Record<string, string> = {
   "mahjongStuckUndo": "Não há pares disponíveis — o tabuleiro travou. Desfaça uma jogada.",
   "mahjongStuckRestart": "Não restam pares e não há o que embaralhar nem desfazer. É preciso reiniciar o nível.",
   "mahjongRestartLevel": "Reiniciar o nível",
+  "anagramBonusJar": "Bônus",
   // >>> SCREEN_STRINGS
 };
 export default t;
