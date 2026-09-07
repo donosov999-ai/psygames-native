@@ -1558,6 +1558,12 @@ const translations: Translations = {
   label_pairs_count: { ru: 'Количество пар', en: 'Number of pairs' },
   label_memorize_word_pairs: { ru: 'Запомните пары слов', en: 'Memorize word pairs' },
   label_found: { ru: 'Найдено', en: 'Found' },
+  // 07.09.2026: ключ звался из anagrams.tsx:319, а в словаре его не было —
+  // игрок видел бы в панели сырое «anagramBonusJar». Копилка — настоящие
+  // слова из букв базы, не попавшие в цели уровня (AllWordsGame.tsx:79).
+  // ⚠️ Пока только ru/en: остальные языки падают на en по цепочке фолбэков.
+  //    Транскреация — за каналом «Тексты и переводы».
+  anagramBonusJar: { ru: 'Копилка', en: 'Bonus' },
   label_restore_pairs: { ru: 'Восстановите пары', en: 'Restore pairs' },
   title_about_game: { ru: 'Об игре', en: 'About Game' },
   title_how_it_works: { ru: 'Как это работает', en: 'How it works' },
