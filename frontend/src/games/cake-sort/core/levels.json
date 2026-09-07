@@ -34,7 +34,8 @@
    ],
    "queue": [],
    "min": 14,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 2,
@@ -69,7 +70,8 @@
    ],
    "queue": [],
    "min": 17,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 3,
@@ -112,7 +114,8 @@
    ],
    "queue": [],
    "min": 24,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 4,
@@ -155,7 +158,8 @@
    ],
    "queue": [],
    "min": 24,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 5,
@@ -206,7 +210,8 @@
    ],
    "queue": [],
    "min": 30,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 6,
@@ -258,7 +263,8 @@
    ],
    "queue": [],
    "min": 27,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 7,
@@ -327,7 +333,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 8,
@@ -396,7 +403,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 9,
@@ -473,7 +481,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 10,
@@ -550,7 +559,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 11,
@@ -635,7 +645,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 12,
@@ -721,7 +732,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 13,
@@ -815,7 +827,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 14,
@@ -909,7 +922,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 15,
@@ -1019,7 +1033,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 16,
@@ -1129,7 +1144,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 17,
@@ -1247,7 +1263,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 18,
@@ -1366,7 +1383,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 19,
@@ -1485,7 +1503,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 20,
@@ -1604,7 +1623,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 21,
@@ -1723,7 +1743,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 22,
@@ -1842,7 +1863,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 23,
@@ -1969,7 +1991,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 24,
@@ -2097,7 +2120,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 25,
@@ -2225,7 +2249,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 26,
@@ -2353,7 +2378,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 27,
@@ -2481,7 +2507,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 28,
@@ -2609,7 +2636,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 29,
@@ -2737,7 +2765,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 30,
@@ -2866,7 +2895,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 31,
@@ -3003,7 +3033,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 32,
@@ -3140,7 +3171,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 33,
@@ -3277,7 +3309,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 34,
@@ -3414,7 +3447,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 35,
@@ -3551,7 +3585,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 36,
@@ -3689,7 +3724,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 37,
@@ -3827,7 +3863,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 38,
@@ -3965,7 +4002,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 39,
@@ -4111,7 +4149,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 40,
@@ -4257,7 +4296,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 41,
@@ -4403,7 +4443,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 42,
@@ -4550,7 +4591,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 43,
@@ -4697,7 +4739,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 44,
@@ -4844,7 +4887,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 45,
@@ -4991,7 +5035,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 46,
@@ -5138,7 +5183,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 47,
@@ -5293,7 +5339,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 48,
@@ -5448,7 +5495,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 49,
@@ -5603,7 +5651,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 50,
@@ -5758,7 +5807,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 51,
@@ -5913,7 +5963,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 52,
@@ -6068,7 +6119,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 53,
@@ -6223,7 +6275,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 54,
@@ -6378,7 +6431,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 55,
@@ -6541,7 +6595,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 56,
@@ -6704,7 +6759,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 57,
@@ -6867,7 +6923,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 58,
@@ -7030,7 +7087,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 59,
@@ -7193,7 +7251,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 60,
@@ -7356,7 +7415,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 61,
@@ -7519,7 +7579,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 62,
@@ -7682,7 +7743,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 63,
@@ -7853,7 +7915,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 64,
@@ -8024,7 +8087,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 65,
@@ -8195,7 +8259,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 66,
@@ -8366,7 +8431,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 67,
@@ -8537,7 +8603,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 68,
@@ -8708,7 +8775,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 69,
@@ -8879,7 +8947,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 70,
@@ -9050,7 +9119,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 71,
@@ -9229,7 +9299,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 72,
@@ -9408,7 +9479,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 73,
@@ -9587,7 +9659,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 74,
@@ -9766,7 +9839,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 75,
@@ -9945,7 +10019,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 76,
@@ -10124,7 +10199,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 77,
@@ -10303,7 +10379,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 78,
@@ -10482,7 +10559,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 79,
@@ -10669,7 +10747,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 80,
@@ -10856,7 +10935,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 81,
@@ -11043,7 +11123,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 82,
@@ -11230,7 +11311,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 83,
@@ -11417,7 +11499,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 84,
@@ -11604,7 +11687,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 85,
@@ -11791,7 +11875,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 86,
@@ -11978,7 +12063,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 87,
@@ -12173,7 +12259,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 88,
@@ -12368,7 +12455,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 89,
@@ -12563,7 +12651,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 90,
@@ -12758,7 +12847,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 91,
@@ -12953,7 +13043,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 92,
@@ -13148,7 +13239,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 93,
@@ -13343,7 +13435,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 94,
@@ -13538,7 +13631,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 95,
@@ -13741,7 +13835,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 96,
@@ -13944,7 +14039,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 97,
@@ -14147,7 +14243,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 98,
@@ -14350,7 +14447,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 99,
@@ -14553,7 +14651,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 100,
@@ -14756,7 +14855,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 101,
@@ -14959,7 +15059,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 102,
@@ -15162,7 +15263,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 103,
@@ -15373,7 +15475,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 104,
@@ -15584,7 +15687,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 105,
@@ -15795,7 +15899,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 106,
@@ -16006,7 +16111,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 107,
@@ -16217,7 +16323,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 108,
@@ -16428,7 +16535,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 109,
@@ -16639,7 +16747,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 110,
@@ -16850,7 +16959,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 111,
@@ -17069,7 +17179,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 112,
@@ -17288,7 +17399,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 113,
@@ -17507,7 +17619,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 114,
@@ -17726,7 +17839,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 115,
@@ -17945,7 +18059,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 116,
@@ -18164,7 +18279,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 117,
@@ -18383,7 +18499,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 118,
@@ -18602,7 +18719,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 119,
@@ -18829,7 +18947,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   },
   {
    "level": 120,
@@ -19056,7 +19175,8 @@
     ]
    ],
    "min": null,
-   "tries": 0
+   "tries": 0,
+   "proven": true
   }
  ]
 }
