@@ -1348,11 +1348,10 @@ export default function GoodsSortGame() {
     if (!src || fromIdx < 0 || fromIdx >= src.length) { setSel(null); return; }
     if (!canPlaceInto(fromCell, toCell)) {
       setSel(null);
-      // Отказ ПО ПРЕПЯТСТВИЮ отзывается тычком: «нельзя» должно ощущаться.
-      // Полная ниша и та же самая ниша молчат — там и так видно, почему не вышло.
       // Отказ ПО ПРЕПЯТСТВИЮ отзывается тычком, звуком и дрожанием ниши: «нельзя»
       // должно ощущаться, иначе оно неотличимо от «не нажалось».
-      // Полная ниша и та же самая ниша молчат — там и так видно, почему не вышло.
+      // Полная ниша, чужой товар наверху и та же самая ниша молчат — там и так
+      // видно, почему не вышло. Обе стороны стережёт `goods-sort-feel-sounds`.
       if (fromCell !== toCell && (!cellUsable(fromCell) || !cellUsable(toCell))) {
         hapticTap(); sndWrong(); shakeNiche(toCell);
       }
