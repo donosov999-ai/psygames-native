@@ -1921,6 +1921,7 @@ const t: Record<string, string> = {
   "lr_goods_sort_backrow_title": "Dietro il vano c’è una seconda fila",
   "lr_goods_sort_backrow_rule": "Alcuni vani hanno una fila posteriore: prodotti che non sono ancora sul tavolo. Il vano sembra più corto di quanto sia, e la fila dietro non occupa spazio finché non viene avanti. Svuota del tutto la fila davanti e quella dietro prende il suo posto. Tutto ciò che c’è era conteggiato nel compito fin dall’inizio: non compare nulla in più.",
   "lr_goods_sort_backrow_example": "Esempio: il vano sembrava vuoto dopo l’ultimo prodotto — e da dietro sono usciti altri tre. Erano lì da sempre, solo non si vedevano.",
+  "pizzaSort": "Pizza",
   "cakeSort": "Torte",
   "cakePlate": "Piatto",
   "cakeQueue": "In coda",

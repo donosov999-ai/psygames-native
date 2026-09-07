@@ -44,7 +44,7 @@ import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
-import { cakeTop } from '@/src/constants/cakeTops';
+import { topFor, type КруглаяШкурка } from '@/src/constants/cakeTops';
 import { tableLayout, maxCols, plateAtPoint, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
 import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
 
@@ -77,7 +77,28 @@ function wedgePath(cx: number, cy: number, r: number, index: number): string {
   return `M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z`;
 }
 
-export default function CakeSortGame() {
+/**
+ * 🔴 ОДИН ЭКРАН — ДВЕ ИГРЫ, КАК У ПЕРЕЛИВАЛКИ С ШАРИКАМИ И ГАЙКАМИ.
+ *
+ * Денис 07.09.2026: «ещё сделать режим пиццы, смысл тот же, картинки разные».
+ * Правило хода, круг из шести, очередь входящих и доказуемость — общие; своя у
+ * шкурки только КАРТИНКА куска и своя лестница уровней (у каждой игры свой
+ * `gameId`, а значит свой сохранённый уровень и своя недоигранная партия).
+ *
+ * ⚠️ Разводить их двумя экранами было бы дороже вдвое и разъехалось бы на первой
+ * же правке правил: у соседней семьи (переливалка/шарики/гайки) это уже решено
+ * ровно так, и повторять чужое решение дешевле, чем изобретать своё.
+ */
+export interface CakeScreenProps {
+  /** Своя лестница и свой сохранённый уровень: `cake_sort` либо `pizza_sort`. */
+  gameId: string;
+  /** Что рисуется на куске: торт или пицца. */
+  skin: КруглаяШкурка;
+  /** Ключ заголовка в словаре. */
+  titleKey: string;
+}
+
+export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const { profile } = useProfile();
@@ -90,7 +111,7 @@ export default function CakeSortGame() {
   /** Вечерний и ночной шаг зарядки — без писка. Признак берётся из пресета, как у всех. */
   const { isCalm } = useGamePreset();
   useCalmHush(isCalm);
-  const lvl = usePersistentLevel(CS_GAME_ID);
+  const lvl = usePersistentLevel(gameId);
   const [начали, setНачали] = useState(false);
   const level = lvl.level;
 
@@ -136,7 +157,7 @@ export default function CakeSortGame() {
   const { popups, spawn } = useScorePopups();
 
   const rulesHere = CS_RULES;
-  const levelRules = useLevelRules(CS_GAME_ID, level, rulesHere, !done);
+  const levelRules = useLevelRules(gameId, level, rulesHere, !done);
 
   /**
    * ⚠️ СБРОС ИСТОРИИ ЗДЕСЬ НЕ ЗОВЁТСЯ. Хук отмены отдаёт новый объект на каждом
@@ -201,11 +222,11 @@ export default function CakeSortGame() {
   /** Снимок партии: стол, ходы, подсказки. Уровень персистится сам. */
   useEffect(() => {
     if (!board || done || moves === 0) return;
-    saveResume(CS_GAME_ID, profile?.id ?? 'free', CS_RESUME_VERSION, { board, moves, hints, level }).catch(() => {});
+    saveResume(gameId, profile?.id ?? 'free', CS_RESUME_VERSION, { board, moves, hints, level }).catch(() => {});
   }, [board, moves, hints, done, level, profile?.id]);
 
   useResumeBoot<{ board: Board; moves: number; hints: number; level: number }>(
-    CS_GAME_ID, CS_RESUME_VERSION,
+    gameId, CS_RESUME_VERSION,
     (saved) => {
       if (!saved || saved.level !== level) return;
       setBoard(saved.board); setMoves(saved.moves);
@@ -260,13 +281,13 @@ export default function CakeSortGame() {
     setBoard(после);
     if (isCleared(после)) {
       setDone(true); hapticSuccess();
-      clearResume(CS_GAME_ID, profile?.id ?? 'free').catch(() => {});
+      clearResume(gameId, profile?.id ?? 'free').catch(() => {});
       /**
        * Запись партии — та же форма, что у всех: `passed` пишется всегда, иначе
        * «пройдено» нельзя отличить от «бросил на середине» ни в одном отчёте.
        */
       saveSession({
-        game_type: CS_GAME_ID, score: moves, time_seconds: 0, passed: true,
+        game_type: gameId, score: moves, time_seconds: 0, passed: true,
         details: { level, moves, types: cfg.types, stars: starsFor(moves, cfg.types, точныйМин) },
       }).catch(() => {});
     }
@@ -432,7 +453,7 @@ export default function CakeSortGame() {
               <React.Fragment key={k}>
                 <Path d={wedgePath(r, r, рад, k)} fill={тема.colors[тип % тема.colors.length]} stroke="#00000022" strokeWidth={1} />
                 <SvgImage
-                  href={cakeTop(тип)}
+                  href={topFor(skin, тип)}
                   x={r - рад} y={r - рад} width={рад * 2} height={рад * 2}
                   preserveAspectRatio="xMidYMid slice"
                   clipPath={`url(#cake-${i}-${k})`}
@@ -460,7 +481,7 @@ export default function CakeSortGame() {
    */
   if (!начали) {
     return (
-      <GameShell title={t('cakeSort')} onBack={() => goBackOrHome()}>
+      <GameShell title={t(titleKey)} onBack={() => goBackOrHome()}>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 96 }}>
           <View style={[styles.setupCard, { backgroundColor: colors.surface }]}>
             <Text style={[styles.setupLabel, { color: colors.text }]}>{t('level')} {level}</Text>
@@ -483,7 +504,7 @@ export default function CakeSortGame() {
 
   return (
     <GameShell
-      title={t('cakeSort')}
+      title={t(titleKey)}
       onBack={() => goBackOrHome()}
       /**
        * 🔴 ИГРА, КОТОРАЯ СОХРАНЯЕТ ПАРТИЮ, ОБЯЗАНА СПРОСИТЬ ПЕРЕД ВЫХОДОМ.
@@ -589,3 +610,8 @@ const styles = StyleSheet.create({
 
 /** Пол читаемости сектора — вынесен, чтобы гейт мерил ту же величину, что экран. */
 export { SECTOR_MIN };
+
+/** «Торты» — шкурка по умолчанию. Отдельным маршрутом, как и «Пицца». */
+export default function CakeSortGame() {
+  return <CakeSortScreen gameId={CS_GAME_ID} skin="cake" titleKey="cakeSort" />;
+}

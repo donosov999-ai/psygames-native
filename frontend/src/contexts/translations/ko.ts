@@ -1921,6 +1921,7 @@ const t: Record<string, string> = {
   "lr_goods_sort_backrow_title": "칸 뒤에 두 번째 줄이 있습니다",
   "lr_goods_sort_backrow_rule": "일부 칸에는 뒷줄이 있습니다. 아직 판에 나오지 않은 상품들입니다. 칸은 실제보다 얕아 보이고, 뒷줄은 앞으로 나오기 전까지 자리를 차지하지 않습니다. 앞줄을 모두 비우면 뒷줄이 그 자리로 나옵니다. 거기 있는 것들은 처음부터 과제에 포함되어 있어 여분이 생기지 않습니다.",
   "lr_goods_sort_backrow_example": "예: 마지막 상품을 꺼내 칸이 비어 보였는데 — 뒤에서 세 개가 더 나왔습니다. 내내 거기 있었고 보이지 않았을 뿐입니다.",
+  "pizzaSort": "피자",
   "cakeSort": "케이크 정리",
   "cakePlate": "접시",
   "cakeQueue": "대기 중",

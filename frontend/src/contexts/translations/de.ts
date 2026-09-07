@@ -1926,6 +1926,7 @@ const t: Record<string, string> = {
   "lr_goods_sort_backrow_title": "Hinter dem Fach steht eine zweite Reihe",
   "lr_goods_sort_backrow_rule": "Manche Nischen haben eine hintere Reihe: Waren, die noch nicht auf dem Brett sind. Die Nische wirkt kürzer als sie ist, und die hintere Reihe braucht keinen Platz, bis sie nach vorn rückt. Räumst du die vordere Reihe ganz ab, tritt die hintere an ihre Stelle. Alles dort war von Anfang an eingerechnet — nichts kommt zusätzlich dazu.",
   "lr_goods_sort_backrow_example": "Beispiel: Die Nische sah nach dem letzten Artikel leer aus — und von hinten traten noch drei hervor. Sie waren die ganze Zeit da, nur unsichtbar.",
+  "pizzaSort": "Pizza",
   "cakeSort": "Torten",
   "cakePlate": "Teller",
   "cakeQueue": "In der Schlange",

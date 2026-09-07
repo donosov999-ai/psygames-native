@@ -1921,6 +1921,7 @@ const t: Record<string, string> = {
   "lr_goods_sort_backrow_title": "Derrière la case, une deuxième rangée",
   "lr_goods_sort_backrow_rule": "Certaines cases ont une rangée arrière : des articles qui ne sont pas encore sur le plateau. La case paraît plus courte qu'elle n'est, et la rangée arrière ne prend pas de place tant qu'elle n'avance pas. Vide entièrement la rangée avant et l'arrière prend sa place. Tout ce qui s'y trouve était compté dans la tâche dès le départ : rien ne s'ajoute.",
   "lr_goods_sort_backrow_example": "Exemple : la case semblait vide après le dernier article — et trois autres sont sortis de derrière. Ils étaient là depuis le début, simplement invisibles.",
+  "pizzaSort": "Pizza",
   "cakeSort": "Gâteaux",
   "cakePlate": "Assiette",
   "cakeQueue": "En file",
