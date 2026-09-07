@@ -31,7 +31,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -40,7 +40,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_H } from '@/src/games/attention/layout';
+import { ANSWER_BAR_H, stimBox } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -135,6 +135,8 @@ export function makeTrial(level: number): Trial {
 export default function SimonGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const { width: screenW, height: screenH } = useWindowDimensions();
+  const ОКНО = stimBox(screenW, screenH);
   const router = useRouter();
 
   const { isPreset, autostart, isCalm } = useGamePreset();
@@ -402,7 +404,7 @@ export default function SimonGame() {
       >
         <View style={styles.fieldCol}>
           {/* Stim area — широкая, квадрат появляется слева или справа от центра */}
-          <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
+          <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
             {/* Центральный фиксационный крестик */}
             <Text style={{ position: 'absolute', fontSize: 24, color: colors.textSecondary, opacity: 0.4 }}>+</Text>
             {showStim && (
@@ -481,11 +483,14 @@ const styles = StyleSheet.create({
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
-  fieldCol: { alignItems: 'center', gap: 18 },
+  // flex+center: коробка встаёт по центру ПОЛЯ, а подписи над ней
+  // и под ней больше не сдвигают её вниз (замер 07.09: центр гулял 387…504).
+  fieldCol: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 18 },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
+  // Размеры приходят из stimBox() — общая коробка раздела.
   stimBox: {
-    width: 360, maxWidth: '100%', height: 140, borderRadius: 16,
+    borderRadius: 16,
     justifyContent: 'center', alignItems: 'center',
     position: 'relative',
   },
