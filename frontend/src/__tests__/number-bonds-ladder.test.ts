@@ -33,14 +33,17 @@ function levelWork(level: number, seed = 1): number {
 }
 
 describe('за таблицей потолка нет (§R, 07.09)', () => {
-  test('[G7] L21+ не клоны 20-й строки: пул значений растёт монотонно, прочее стоит', () => {
+  test('[G7] L21+ не клоны 20-й строки: ДВЕ оси — величины и состав (sim 07.09: одной величины мало, клоны через один)', () => {
     expect(levelParams(21).maxV).toBeGreaterThan(levelParams(20).maxV);
     for (const L of [22, 25, 30, 45]) {
       expect(levelParams(L).maxV).toBeGreaterThan(levelParams(L - 1).maxV);
+      expect(levelParams(L).sizeWeights[5]).toBeGreaterThanOrEqual(levelParams(L - 1).sizeWeights[5]);
     }
-    const { maxV: _skip, ...rest21 } = levelParams(21);
-    const { maxV: _skip20, ...rest20 } = levelParams(20);
-    expect(rest21).toEqual(rest20);
+    expect(levelParams(25).sizeWeights[3]).toBe(0);          // тройки ушли
+    expect(levelParams(30).sizeWeights[5]).toBeCloseTo(0.85, 6);   // пятёрки почти всё (кап)
+    const { maxV: _skip, sizeWeights: _sw, ...rest21 } = levelParams(21);
+    const { maxV: _skip20, sizeWeights: _sw20, ...rest20 } = levelParams(20);
+    expect(rest21).toEqual(rest20);                          // пул/trials/окно стоят
   });
 });
 
