@@ -579,6 +579,24 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
             <Ionicons name="lock-closed" size={Math.max(14, ш * 0.34)} color="#3F444B" />
           </View>
         ) : null}
+        {/*
+          🔴 У ШАРИКОВ СОСУД РИСУЕТСЯ ПОД НИМИ, А НЕ ПОВЕРХ.
+          Денис 06.09.2026: «эти сосуды закрывают часть шариков, надо рисовать,
+          чтобы не перекрывали». Замер по альфа-каналу самого файла стекла
+          (192×577, внутренняя область между стенками 0,182…0,818): закрыто
+          43,1% площади, средняя альфа 38%, и 31% пикселей идут почти
+          непрозрачными (альфа ≥224). Для воды это блик на стекле — читается как
+          отражение. Для шарика это закрашенный предмет: цвет и знак-дублёр для
+          дальтоника оказываются под мутным пятном.
+          Поэтому у шаров стекло уходит В ФОН, а спереди остаётся только ободок.
+        */}
+        {skin === 'balls' ? (
+          <Image
+            source={СТЕКЛО}
+            style={{ position: 'absolute', width: ш, height: в }}
+            resizeMode="stretch"
+          />
+        ) : null}
         {/* Жидкость: снизу вверх, дно скруглено по форме пробирки. */}
         <View style={[styles.столб, { left: левo, width: ширинаЖ, top: верхСвоего, height: высотаСвоего }]}>
           {/* Камни на дне: сосуд-буфер, домом цвета он не станет никогда. */}
@@ -672,7 +690,24 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
             backgroundColor: 'rgba(120,124,131,0.55)',
           }} />
         ) : (
-          <Image source={СТЕКЛО} style={{ position: 'absolute', width: ш, height: в }} resizeMode="stretch" />
+          skin === 'balls' ? (
+            /*
+              ОБОДОК СПЕРЕДИ — чтобы сосуд остался сосудом. Берём ту же картинку,
+              но показываем только её верх: окно высотой с горловину, картинка
+              внутри стоит на своём месте. Шары ниже горловины ничем не закрыты.
+            */
+            <View
+              pointerEvents="none"
+              style={{
+                position: 'absolute', top: 0, left: 0,
+                width: ш, height: Math.round(в * ВНУТРИ_СВЕРХУ), overflow: 'hidden',
+              }}
+            >
+              <Image source={СТЕКЛО} style={{ width: ш, height: в }} resizeMode="stretch" />
+            </View>
+          ) : (
+            <Image source={СТЕКЛО} style={{ position: 'absolute', width: ш, height: в }} resizeMode="stretch" />
+          )
         )}
 
         {/* Обводка выбора и подсказки — вокруг стекла, не поверх него. */}
