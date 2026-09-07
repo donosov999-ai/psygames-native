@@ -73,6 +73,20 @@ const seeded = (seed: number) => {
 };
 
 async function открыть(уровень: number, семя: number) {
+  /*
+   * 🔴 ПРЕДЫДУЩИЙ ЭКРАН ГАСИМ ПЕРЕД ОТКРЫТИЕМ СЛЕДУЮЩЕГО, А НЕ В КОНЦЕ ПРОБЫ.
+   *
+   * 📍 Проба перебирает семена в одном тесте, и первая редакция копила все
+   * экраны живыми. А `открыть` начинается с `AsyncStorage.clear()` — то есть
+   * вытирает хранилище ПОД НОГАМИ у уже смонтированных экранов: они замечают
+   * пропажу уровня, перераздаются и по дороге съедают поток засеянного
+   * `Math.random`. Соло это проходило, в общем прогоне давало «сбор тройки так и
+   * не случился» — и выглядело как шумная машина.
+   */
+  while (открытые.length) {
+    const прежний = открытые.pop();
+    await TestRenderer.act(async () => { прежний.unmount(); });
+  }
   const AsyncStorage = require('@react-native-async-storage/async-storage');  // eslint-disable-line @typescript-eslint/no-require-imports
   await AsyncStorage.clear();
   await AsyncStorage.setItem('psygames_active_profile', 'free');

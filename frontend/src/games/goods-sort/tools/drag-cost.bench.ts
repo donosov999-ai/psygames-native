@@ -159,7 +159,24 @@ it('цена перерисовки доски на смену состояни�
       TestRenderer.act(() => { цель?.props.onPress?.(); });
       мс.push(Number(process.hrtime.bigint() - t) / 1e6);
     }
-    строки.push(`L${L} (кнопок товара ${кнопки.length}): ${итог(мс)} на смену состояния`);
+    /*
+     * 🔴 СКОЛЬКО УЗЛОВ ПЕРЕСТРАИВАЕТСЯ — ЧТОБЫ ЗНАТЬ ЦЕНУ ПРАВКИ ДО ПРАВКИ.
+     *
+     * `React.memo` на нишу окупится ровно в той мере, в какой время тратится НА
+     * НИШИ, а не на остальной экран. Считаем узлы всего дерева и узлы ниш: их
+     * доля и есть верхняя граница отдачи. Меньше доля — меньше смысла в правке,
+     * и лучше узнать это здесь, чем после трёхсот строк диффа.
+     */
+    const всего = (function счёт(u: any): number {
+      if (!u || typeof u === 'string') return 1;
+      const дети = Array.isArray(u.children) ? u.children : [];
+      return 1 + дети.reduce((n: number, d: any) => n + счёт(d), 0);
+    })(r.toJSON());
+    const нишиУзлы = r.root.findAll((n: any) => typeof n.type !== 'string'
+      && typeof n.props?.onPress === 'function'
+      && /^(Полка|Shelf) \d+[,:]/.test(String(n.props?.accessibilityLabel ?? '')))
+      .reduce((n: number, ниша: any) => n + ниша.findAll(() => true).length, 0);
+    строки.push(`L${L} (кнопок товара ${кнопки.length}, узлов в дереве ${всего}, из них под нишами ${нишиУзлы} — ${Math.round(100 * нишиУзлы / Math.max(1, всего))}%): ${итог(мс)} на смену состояния`);
     TestRenderer.act(() => { r.unmount(); });
   }
 
