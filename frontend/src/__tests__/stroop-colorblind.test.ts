@@ -23,6 +23,7 @@ const { readFileSync } = require('fs');
 const { join } = require('path');
 
 import { STROOP_PALETTES, stroopLabelColor } from '@/app/games/stroop';
+import { makeBoard } from '@/app/games/visual-search';
 
 const rgb = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 const lin = (c: number) => (c / 255 <= 0.04045 ? c / 255 / 12.92 : (((c / 255) + 0.055) / 1.055) ** 2.4);
@@ -149,8 +150,37 @@ describe('Поиск при дальтонизме', () => {
   it('🔴 экран читает флаг и берёт вторую палитру', () => {
     expect(/colorblind\s*\}\s*=\s*useTheme\(\)/.test(src)).toBe(true);
     expect(src).toContain('colorblind ? COLORS_CB : COLORS_ALL');
-    // и доска строится ВЫБРАННОЙ палитрой, а не глобальной
-    expect(src).toContain('boardH, PALETTE)');
+    /*
+     * ⚠️ РАНЬШЕ ЗДЕСЬ СТОЯЛО `expect(src).toContain('boardH, PALETTE)')` — и
+     * 07.09.2026 оно покраснело на ИСПРАВНОМ коде: раздел «Поиск» дописал в
+     * `makeBoard` девятым аргументом `decoys` (ось отвлечения), закрывающая
+     * скобка уехала, подстрока не нашлась. Дальтонизм при этом работал.
+     * Проверяем ПРИНАДЛЕЖНОСТЬ аргумента вызову, а не соседство со скобкой.
+     */
+    // ⚠️ Первое вхождение `makeBoard(` в файле — ОБЪЯВЛЕНИЕ функции; на нём я
+    // и споткнулся сразу же. Берём вызовы: у них в аргументах нет `:`-типов.
+    const вызовы = [...src.matchAll(/makeBoard\(([^)]*)\)/g)]
+      .map((m) => m[1].split(',').map((a) => a.trim()))
+      .filter((args) => !args.some((a) => a.includes(':')));
+    expect(вызовы.length).toBeGreaterThan(0);
+    expect(вызовы.some((args) => args.includes('PALETTE'))).toBe(true);
+  });
+
+  /**
+   * 🔴 А ЭТО — ЗАМЕР ВМЕСТО ЧТЕНИЯ. Строка выше говорит лишь, что палитру
+   * ПЕРЕДАЛИ; она не заметит, если `makeBoard` начнёт её игнорировать. Здесь
+   * доска строится по-настоящему и проверяется, какими цветами она вышла.
+   */
+  it('🔴 makeBoard красит ПЕРЕДАННОЙ палитрой, а не своей', () => {
+    const CB = palette('COLORS_CB');
+    const ALL = palette('COLORS_ALL');
+    expect(CB.length).toBe(3);
+    // Конъюнкция: нейтральный контур не используется, все цвета — из палитры.
+    const доска = makeBoard(30, 'T', CB[0], 3, true, 320, 320, CB, 0);
+    const цвета = [...new Set(доска.map((i: { color: string }) => i.color))];
+    expect(цвета.length).toBeGreaterThan(1);           // доска не одноцветная
+    цвета.forEach((c) => expect(CB).toContain(c));      // всё из переданной
+    цвета.forEach((c) => expect(ALL).not.toContain(c)); // и ничего из обычной
   });
 
   it('🔴 палитра дальтонизма различима при каждом из трёх видов', () => {
