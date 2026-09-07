@@ -35,6 +35,7 @@ import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientTe
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { stimBox } from '@/src/games/attention/layout';
 import { vigilanceAccuracySlope } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -229,7 +230,11 @@ export default function CPTGame() {
   // Стимул-окно во весь экран: привязка к размеру вьюпорта — на телефоне буква
   // занимает бо́льшую площадь (раньше был жёсткий квадрат 240px, мелко на 6"+).
   const { width: winW, height: winH } = useWindowDimensions();
-  const stimSide = Math.min(winW - 32, winH * 0.5, 460);   // квадрат по меньшей стороне, с потолком для планшета
+  // Размер окна — общий для раздела (src/games/attention/layout.ts), а не своя формула:
+  // раньше здесь стояло min(ширина−32, высота·0.5, 460) и давало 358×358, тогда как у
+  // соседних проб окно было 120…320. Из-за разных правил коробка дышала между пробами.
+  const ОКНО = stimBox(winW, winH);
+  const stimSide = ОКНО.side;
   const stimFont = stimSide * 0.6;                          // символ ~60% окна (было 120px в боксе 240px)
 
   const lvl = usePersistentLevel('cpt');
@@ -644,7 +649,7 @@ export default function CPTGame() {
               activeOpacity={0.7}
               onPress={handleTap}
               style={[styles.stimBox, {
-                width: stimSide, height: stimSide,   // окно масштабируется под экран (useWindowDimensions)
+                width: ОКНО.w, height: ОКНО.h,   // общая коробка раздела
                 backgroundColor: fbColor ? fbColor + '33' : colors.surface,
                 borderColor: fbColor || (letterVisible && currentLetter === 'X' ? '#fbbf24' : colors.border),
                 borderWidth: letterVisible ? 3 : 1,

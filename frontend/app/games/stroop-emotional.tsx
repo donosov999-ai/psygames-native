@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { answerButton, BTN_GAP } from '@/src/games/attention/layout';
+import { ANSWER_BAR_H, BTN_GAP, answerButton, stimBox } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -139,7 +139,8 @@ export default function StroopEmotionalGame() {
   const { colors, colorblind } = useTheme();
   const HEX = colorblind ? COLOR_HEX_CB : COLOR_HEX;
   const { t, language } = useLanguage() as any;
-  const { width: screenW } = useWindowDimensions();
+  const { width: screenW, height: screenH } = useWindowDimensions();
+  const ОКНО = stimBox(screenW, screenH);
   const БТН = answerButton('choice', screenW);   // общий макет раздела
   const router = useRouter();
 
@@ -394,7 +395,7 @@ export default function StroopEmotionalGame() {
       >
         <View style={styles.fieldCol}>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('stroop2Hint')}</Text>
-          <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
+          <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
             {showStim ? (
               <Text style={{ color: HEX[trial.color], fontSize: 44, fontWeight: '900', letterSpacing: 2 }}>
                 {trial.word}
@@ -465,9 +466,10 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 13, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
-  stimBox: { width: 320, height: 130, borderRadius: 16, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
+  // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
+  stimBox: { borderRadius: 16, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   // Тот же ряд, что у обычного Струпа: ширину задаёт слот каркаса, а не своё число.
-  choiceGrid: { flexDirection: 'row', gap: BTN_GAP, flexWrap: 'wrap', justifyContent: 'center', width: '100%' },
+  choiceGrid: { height: ANSWER_BAR_H, flexDirection: 'row', gap: BTN_GAP, flexWrap: 'wrap', justifyContent: 'center', width: '100%' },
   // Размеры приходят из answerButton('choice') — тот же макет, что у обычного Струпа.
   colorBtn: { alignItems: 'center', justifyContent: 'center' },
   colorBtnText: { color: '#FFF', fontSize: 14, fontWeight: '800' },

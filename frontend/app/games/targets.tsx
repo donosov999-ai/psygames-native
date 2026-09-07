@@ -16,6 +16,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { AnswerBar } from '@/src/games/attention/AnswerBar';
+import { answerButton } from '@/src/games/attention/layout';
 import { commissionRate } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -146,6 +148,7 @@ export default function TargetsGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
   const { width } = useWindowDimensions();
+  const КНОПКА = answerButton('single', width);
 
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
@@ -572,7 +575,7 @@ export default function TargetsGame() {
   const clickButton = useMemo(() => (
     <TouchableOpacity
       accessibilityRole="button"
-      style={styles.clickButton}
+      style={[styles.clickButton, { width: КНОПКА.w }]}
       onPress={onTargetPress}
       activeOpacity={0.8}
     >
@@ -755,7 +758,7 @@ export default function TargetsGame() {
           </View>
         </View>
       }
-      toolbar={clickButton}
+      toolbar={<AnswerBar>{clickButton}</AnswerBar>}
     >
       <View style={styles.fieldCol}>
         {/* Shapes Display */}
@@ -1034,8 +1037,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   // В тулбаре каркаса: тянется на всю ширину ряда (нижний отступ даёт сам тулбар)
+  // 🔴 БЫЛО flex: 1 — внутри полосы постоянной высоты кнопка растягивалась на всю
+  // её высоту (замер: 120×120 вместо 258×72). Размер берём из общего макета.
   clickButton: {
-    flex: 1,
+    alignSelf: 'center',
   },
   clickButtonGradient: {
     paddingVertical: 22,

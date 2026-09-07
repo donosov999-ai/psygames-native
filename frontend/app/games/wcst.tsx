@@ -35,6 +35,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { ANSWER_BAR_H } from '@/src/games/attention/layout';
 import { ruleCatchStats } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -652,7 +653,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 13, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
-  refRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
+  refRow: { height: ANSWER_BAR_H, flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   // Ширина и высота приходят из refCardWidth() — считаются от ширины экрана, не зашиты.
   refCard: { borderRadius: 16, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
   targetWrap: { marginTop: 8 },

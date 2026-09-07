@@ -1,7 +1,7 @@
 /* psygames-game-flanker · VER 1 · 19.08.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity,
+  View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
   ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { ANSWER_BAR_H, stimBox } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -136,6 +137,8 @@ function makeTrial(pCong: number, pIncong: number): Trial {
 export default function FlankerGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const { width: screenW, height: screenH } = useWindowDimensions();
+  const ОКНО = stimBox(screenW, screenH);
   const router = useRouter();
 
   const lvl = usePersistentLevel('flanker');
@@ -386,7 +389,7 @@ export default function FlankerGame() {
           </View>
         }
       >
-        <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
+        <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback ? fbColor : colors.border, borderWidth: feedback ? 3 : 1 }]}>
           {showStim ? (
             <View style={[styles.arrowRow, { gap: gapPx }]}>
               {trial.flankers
@@ -471,10 +474,11 @@ const styles = StyleSheet.create({
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
-  stimBox: { width: 360, maxWidth: '100%', height: 120, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
+  stimBox: { borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
   // RTL-пин (writingDirection → CSS direction на web, на нативе no-op): направленный
   // стимул и раскладка кнопок лево/право не зеркалятся в ar
   arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 4, writingDirection: 'ltr' },
-  toolbarLtr: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', writingDirection: 'ltr', maxWidth: '100%' },
+  toolbarLtr: { height: ANSWER_BAR_H, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', writingDirection: 'ltr', maxWidth: '100%' },
   choiceBtn: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
 });

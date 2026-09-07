@@ -21,7 +21,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity,
+  View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
   ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,6 +32,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
+import { ANSWER_BAR_H, answerButton, stimBox } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -104,6 +105,9 @@ function makeTrial(incongruentProb: number): Trial {
 export default function ANTGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
+  const { width: screenW, height: screenH } = useWindowDimensions();
+  const ОКНО = stimBox(screenW, screenH);
+  const БТН = answerButton('side', screenW);   // общий макет раздела
   const router = useRouter();
 
   const { isPreset, autostart, isCalm } = useGamePreset();
@@ -370,16 +374,16 @@ export default function ANTGame() {
         }
         toolbar={
           <View style={styles.choiceRow}>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius }, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
               <Ionicons name="arrow-back" size={28} color="#FFF" />
             </TouchableOpacity>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius }, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
               <Ionicons name="arrow-forward" size={28} color="#FFF" />
             </TouchableOpacity>
           </View>
         }
       >
-        <View style={[styles.stimBox, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
+        <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
           {/* top cue / target slot */}
           <View style={styles.row}>
             {showCue && (trial.cue === 'double' || (trial.cue === 'spatial' && trial.pos === 'top')) && <Text style={styles.cueDot}>*</Text>}
@@ -486,11 +490,13 @@ const styles = StyleSheet.create({
    * `width: '100%'` с потолком 380 значит «как раньше на широком, по месту на
    * узком»: разметка внутри и так центрируется, ужиматься ей есть куда.
    */
-  stimBox: { width: '100%', maxWidth: 380, height: 220, borderRadius: 14, borderWidth: 2, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
+  // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
+  stimBox: { borderRadius: 14, borderWidth: 2, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
   row: { height: 50, justifyContent: 'center', alignItems: 'center' },
   cueDot: { color: '#fbbf24', fontSize: 36, fontWeight: '900' },
   // RTL-пин: стрелочный стимул и кнопки лево/право не зеркалятся в ar (web: writingDirection → CSS direction)
   arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 2, writingDirection: 'ltr' },
-  choiceRow: { flexDirection: 'row', gap: 24, writingDirection: 'ltr' },
-  choiceBtn: { width: 64, height: 64, borderRadius: 32, justifyContent: 'center', alignItems: 'center' },
+  choiceRow: { height: ANSWER_BAR_H, justifyContent: 'center', flexDirection: 'row', gap: 24, writingDirection: 'ltr' },
+  // Размер приходит из answerButton('side') — как у фланкера и Саймона.
+  choiceBtn: { justifyContent: 'center', alignItems: 'center' },
 });
