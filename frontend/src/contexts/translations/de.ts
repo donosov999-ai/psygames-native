@@ -1654,6 +1654,7 @@ const t: Record<string, string> = {
   "goalMoves": "Alles leeren. Höchstens Züge:",
   "goalFree": "Markierte Fächer frei räumen",
   "goodsSortHint": "Zieh eine Ware in ein Fach — oder tippe sie an und dann das Fach. Sammle 3 GLEICHE in einem Fach, sie verschwinden. Räume alles ab.",
+  "goodsQueueLeft": "Noch kommende Regale: {n}. Alles darin ist in der Aufgabe schon mitgezählt.",
   "goodsSortDeadEnd": "Keine Züge mehr: Es ist kein Platz mehr. Mach einige Züge rückgängig oder mische.",
   "goodsLevel": "Level",
   "eyeInstrWarmup": "Folge dem Punkt in jede Richtung",

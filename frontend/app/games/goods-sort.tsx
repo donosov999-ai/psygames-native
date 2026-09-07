@@ -2706,6 +2706,33 @@ const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hin
                     <GoodIcon type={tp} width={16} height={26} />
                   </View>
                 ))}
+                {/*
+                  🔴 СКОЛЬКО ПОЛОК ЕЩЁ ПРИДЁТ — И ЧТО В БЛИЖАЙШЕЙ.
+                  Правило уровня обещает: «очередь конечная: сколько полок в ней,
+                  столько и придёт». Обещание без счётчика непроверяемо: игрок не
+                  может ни посчитать, ни спланировать. Здесь и стоит число.
+
+                  ⚠️ ВСТРОЕНО В СУЩЕСТВУЮЩИЙ РЯД, А НЕ НОВОЙ СТРОКОЙ. Строку
+                  сверху отсюда однажды уже убирали — она отнимала у поля целый
+                  ряд ниш, и товары мельчали (репорт Вали 01.09.2026). Ряд цели
+                  переносится сам (`flexWrap`), места под ним не занимая.
+                */}
+                {очередь.length > 0 && (
+                  <View
+                    style={styles.queueChip}
+                    accessibilityRole="text"
+                    accessibilityLabel={t('goodsQueueLeft').replace('{n}', String(очередь.length))}
+                  >
+                    <Ionicons name="albums" size={12} color="#7c3aed" />
+                    <Text style={styles.queueCount}>{очередь.length}</Text>
+                    {/* Товары ближайшей полки: «что придёт» важнее, чем «сколько», но занимает место. */}
+                    {(очередь[0]?.cell ?? []).slice(0, 3).map((tp, k) => (
+                      <View key={`q${k}`} style={styles.queueGood}>
+                        <GoodIcon type={tp} width={11} height={18} />
+                      </View>
+                    ))}
+                  </View>
+                )}
               </View>
             )}
             </View>
@@ -3146,6 +3173,14 @@ const styles = StyleSheet.create({
   jokerStar: { fontSize: 11, lineHeight: 12, color: '#fbbf24', opacity: 0.9 },
   slotMark: { width: 7, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.30)' },
   slotTaken: { backgroundColor: 'rgba(255,236,190,0.85)' },
+  /* Полки в очереди: та же высота, что у значков цели, чтобы ряд не подрос. */
+  queueChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999,
+    backgroundColor: 'rgba(124,58,237,0.10)', borderWidth: 1, borderColor: 'rgba(124,58,237,0.30)',
+  },
+  queueCount: { fontSize: 12, fontWeight: '800', color: '#7c3aed' },
+  queueGood: { width: 11, height: 18, alignItems: 'center', justifyContent: 'center' },
   goalLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap', paddingHorizontal: 12, marginBottom: 2, maxWidth: '100%' },
   goalText: { fontSize: 13, fontWeight: '700' },
   goalGood: { backgroundColor: 'rgba(217,119,6,0.14)', borderRadius: 6, paddingHorizontal: 3, paddingVertical: 1 },

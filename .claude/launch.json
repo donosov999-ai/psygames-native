@@ -18,6 +18,26 @@
         "cd frontend/dist && python3 -m http.server 8099"
       ],
       "port": 8099
+    },
+    {
+      "name": "psygames-counting",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd frontend && npx expo start --web --port ${PORT:-8085}"
+      ],
+      "port": 8085,
+      "autoPort": true
+    },
+    {
+      "name": "psygames-sorting",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd frontend && npx expo start --web --port ${PORT:-8087}"
+      ],
+      "port": 8087,
+      "autoPort": true
     }
   ]
 }

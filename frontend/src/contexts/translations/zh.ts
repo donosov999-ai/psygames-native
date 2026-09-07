@@ -1654,6 +1654,7 @@ const t: Record<string, string> = {
   "goalMoves": "全部清空。最多步数：",
   "goalFree": "腾空标记的格子",
   "goodsSortHint": "把货物拖进格子，或先点货物再点格子。在同一格子凑齐 3个相同 即可消除。清空所有货架。",
+  "goodsQueueLeft": "还会来的货架：{n} 个。里面的东西一开始就算在任务里。",
   "goodsSortDeadEnd": "没有可走的步了：没有地方可放。请撤销几步或洗牌。",
   "goodsLevel": "关卡",
   "eyeInstrWarmup": "双眼顺应各个方向追随圆点",
