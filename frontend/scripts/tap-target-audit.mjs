@@ -275,13 +275,41 @@ async function waitStable(page, { step = 500, tries = 16 } = {}) {
   return prev;
 }
 
+/**
+ * Ждать, пока число кнопок перестанет меняться, но не дольше `cap` мс.
+ * Возвращает управление сразу, как только два замера подряд совпали.
+ */
+async function settleButtons(page, cap) {
+  const шаг = 120;
+  let prev = -1;
+  for (let ждали = 0; ждали < cap; ждали += шаг) {
+    const n = await page.evaluate(countButtons);
+    if (n === prev && n > 0) return;
+    prev = n;
+    await page.waitForTimeout(шаг);
+  }
+}
+
 /** Открыть маршрут и дождаться отрисовки. Пустой экран = повтор, а не тихий ноль. */
 async function open(page, route, { needButtons = true } = {}) {
   for (let attempt = 0; attempt < 2; attempt++) {
     await page.goto(BASE + route, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
-    if (!needButtons) { await page.waitForTimeout(1200); return true; }
+    /*
+     * ⚠️ ЖДЁМ УСЛОВИЕ, А НЕ ЧАСЫ. Здесь стоял голый `waitForTimeout(1200)` —
+     * на 94 маршрутах это 113 секунд чистого сна, а экран обычно готов за
+     * 300-400 мс. Таймаут оставлен ТОТ ЖЕ (1200): маршрут без кнопок вообще
+     * ждёт ровно столько же, сколько ждал раньше, — хуже не станет нигде.
+     * Добор 150 мс — на раскладку после появления первой кнопки.
+     */
+    if (!needButtons) {
+      await page.waitForFunction(countButtons, null, { timeout: 1200 }).catch(() => {});
+      await page.waitForTimeout(150);
+      return true;
+    }
     await page.waitForFunction(countButtons, null, { timeout: 20000 }).catch(() => {});
-    await page.waitForTimeout(1200);
+    // Тот же приём: дожидаемся, когда число кнопок ПЕРЕСТАНЕТ меняться, вместо
+    // слепой секунды с четвертью. Потолок 1200 — как было.
+    await settleButtons(page, 1200);
     if (await page.evaluate(countButtons)) return true;
   }
   return false;
