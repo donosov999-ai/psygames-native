@@ -30,7 +30,7 @@ import { CORSI_RULES, levelParams as corsi } from '@/app/games/corsi';
 import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
 // Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
-import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches, monochromeLevel, gridFor, gsLayout, ITEM_FLOOR, collapseLevel, backRowLevel } from '@/src/games/goods-sort/core/level';
+import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jokerNiches, movingNiches, monochromeLevel, gridFor, gsLayout, ITEM_FLOOR, collapseLevel, backRowLevel, capsFor } from '@/src/games/goods-sort/core/level';
 import { HN_RULES, levelParams as hanoi } from '@/app/games/hanoi';
 import { WATER_SORT_RULES } from '@/app/games/water-sort';
 import { скрытоНаУровне } from '@/src/games/water-sort/core/hidden';
@@ -152,6 +152,14 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'goods-sort', ключ: 'hidden', вид: 'порог', есть: (L) => hiddenInfo(L) },
   { игра: 'goods-sort', ключ: 'joker', вид: 'порог', есть: (L) => jokerNiches(L, 14).length > 0 },
   { игра: 'goods-sort', ключ: 'moving', вид: 'порог', есть: (L) => movingNiches(L) },
+  /*
+   * ⚠️ ДОСКА ЗАДАНА ЧИСЛОМ, А НЕ ВЗЯТА У УРОВНЯ, и это не упрощение. Смешанная
+   * ёмкость включается при `slots >= 6`; спроси мы у самого уровня, ответ полз
+   * бы вместе с ростом доски, и «первое появление» отвечало бы на два вопроса
+   * сразу — про порог механики и про размер шкафа. Девять ниш — телефонная
+   * доска, на которой замер и снимался.
+   */
+  { игра: 'goods-sort', ключ: 'mixedcap', вид: 'порог', есть: (L) => new Set(capsFor(L, 9)).size > 1 },
   /*
    * Витрина: «шкаф выше экрана». Спрашиваем ровно тем вызовом, что делает игра —
    * с полом читаемости, потому что без него `gsLayout` считает по-старому и
