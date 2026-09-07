@@ -15,6 +15,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { GAMES } from '@/src/constants/games';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { ДЛИТЕЛЬНОСТИ, собратьТемуЗарядки, темаШаги, type ТемаЗарядки, type WarmupMinutes } from '@/src/services/chessWarmup';
@@ -31,6 +32,26 @@ export interface WarmupCardProps {
   loading?: boolean;
 }
 
+/**
+ * 🔴 ИМЯ ИГРЫ БЕРЁТСЯ ИЗ КАТАЛОГА, А НЕ ИЗ ЕЁ ИДЕНТИФИКАТОРА.
+ *
+ * 📍 Здесь стояло `t(game_id)`, и это работало ровно у тех игр, где `id`
+ * случайно совпал с ключом словаря. Замер 08.09.2026 — у пяти из девяти игр,
+ * названных в трёх зарядках, они РАЗНЫЕ: `vocab_srs`→`vocabSrs`,
+ * `semantic_sort`→`semanticSort`, `lexical_decision`→`lexicalDecision`,
+ * `chess_blind`→`chessBlind`, `scholars_mate`→`scholarsMate`,
+ * `phonemic_fluency`→`phonemic`. Строка состава показывала человеку сырые
+ * идентификаторы с подчёркиваниями — в шахматной и словесной карточках это
+ * висело с 06.09.2026 и заметили только сейчас, на третьей.
+ *
+ * ⚠️ Фолбэк на сам `id` оставлен: игра могла уехать из каталога, и пустая
+ * строка состава хуже некрасивой.
+ */
+export function имяИгры(gameId: string, t: (k: string) => string): string {
+  const g = GAMES.find((x) => x.id === gameId);
+  return g ? (t(g.nameKey) || gameId) : gameId;
+}
+
 export function WarmupCard({ темы, titleKey, descKey, ярлык, accent, loading }: WarmupCardProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
@@ -45,7 +66,7 @@ export function WarmupCard({ темы, titleKey, descKey, ярлык, accent, lo
    * понять, какую серию запускают»: не только сколько минут, но и из чего.
    */
   const состав = шаги.reduce<string[]>((acc, ш) => {
-    const имя = t(`${ш.game_id}` as never) || ш.game_id;
+    const имя = имяИгры(ш.game_id, t);
     if (acc.indexOf(имя) < 0) acc.push(имя);
     return acc;
   }, []);

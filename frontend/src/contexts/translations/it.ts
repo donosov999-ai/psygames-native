@@ -2482,6 +2482,8 @@ const t: Record<string, string> = {
   "tabGames": "Giochi",
   "tabPet": "Compagno",
   "favouriteSections": "Cosa giochi di più",
+  "languagesWarmupTitle": "Riscaldamento lingue",
+  "languagesWarmupDesc": "Inglese e spagnolo mescolati. Sbaglierai più che con una sola lingua: è proprio l’obiettivo",
   "andMore": "altri {n} ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "La direzione arriva dopo",

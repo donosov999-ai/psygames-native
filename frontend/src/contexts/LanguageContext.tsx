@@ -1596,6 +1596,11 @@ const translations: Translations = {
   // ⚠️ Ключа «все игры» здесь НЕТ нарочно: он уже есть ниже (`allGames`), и
   // второй с тем же смыслом — ровно тот дубль, что ловит гейт dictionary-duplicates.
   favouriteSections: { ru: 'Чаще всего играешь', en: 'What you play most' },
+  // Языковая зарядка. ⚠️ В подписи НЕТ обещаний про мозг и деменцию — решение
+  // Дениса (метод §10): «защищает от деменции» и «мозг стареет медленнее»
+  // запрещены, отсрочка симптомов ≠ профилактика болезни.
+  languagesWarmupTitle: { ru: 'Языковая зарядка', en: 'Language warm-up' },
+  languagesWarmupDesc: { ru: 'Английский и испанский вперемешку. Ошибок будет больше, чем на одном языке, — так и задумано', en: 'English and Spanish mixed together. You will make more mistakes than on one language — that is the point' },
   andMore: { ru: 'ещё {n} ›', en: '{n} more ›' },
   // 07.09.2026: ключ звался из anagrams.tsx:319, а в словаре его не было —
   // игрок видел бы в панели сырое «anagramBonusJar». Копилка — настоящие
