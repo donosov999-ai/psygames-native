@@ -226,8 +226,41 @@ export function isCleared(board: Board): boolean {
  * ровно та же причина записана у `collapse`: освобождение места и приход новой
  * тарелки — ОДНО событие.
  */
-export function collapseTriples(board: Board): Board {
+/**
+ * ЧТО СЛУЧИЛОСЬ ЗА ОДИН РАЗБОР ДОСКИ. Нужен ЭКРАНУ: очки, вспышки, звук комбо,
+ * подсказка «пришла новая полка».
+ *
+ * 🔴 ОТЧЁТ НЕОБЯЗАТЕЛЕН, И ЭТО НЕ ЭКОНОМИЯ РАДИ ЭКОНОМИИ. Ту же функцию зовёт
+ * РЕШАТЕЛЬ — десятки тысяч раз на один уровень (замер: медиана 78 544 узла на
+ * трудных раскладах). Собирать ему пять массивов, которые он выбросит, значит
+ * платить за отчёт на самом горячем пути в игре. Экран передаёт объект и
+ * читает его после; решатель не передаёт ничего, и код отчёта не выполняется.
+ *
+ * ⚠️ Ниши называются НОМЕРАМИ (`id`), а не местами. Место меняется под ногами:
+ * столбец оседает, полка приходит сверху. Отдай экрану место — и вспышка
+ * зажжётся не там, где собралась тройка.
+ */
+export interface CollapseReport {
+  /** Типы собранных троек, по порядку сборки. Длина = число троек за ход. */
+  clearedTypes: number[];
+  /** Номера ниш, где собралась тройка. */
+  clearedIds: number[];
+  /** Номера полок, которые закрылись целиком и ушли с доски. */
+  closedIds: number[];
+  /** Сколько полок пришло из очереди на освободившиеся места. */
+  arrived: number;
+  /** Номера ниш, у которых вышел вперёд задний ряд. */
+  revealedIds: number[];
+}
+
+export function makeReport(): CollapseReport {
+  return { clearedTypes: [], clearedIds: [], closedIds: [], arrived: 0, revealedIds: [] };
+}
+
+export function collapseTriples(board: Board, отчёт?: CollapseReport): Board {
   const cells = board.cells.map((c) => [...c]);
+  /** Номер ниши по месту. Без `ids` номер и есть место — так и в столбцовой ветке. */
+  const номер = (i: number): number => (board.ids ? (board.ids[i] as number) : i);
   /*
    * 🔴 ЗАДНИЙ РЯД ВЫХОДИТ ВПЕРЁД ЗДЕСЬ ЖЕ, а не в экране. Причина та же, что у
    * схлопывания: `moveTop` зовёт эту функцию, а через неё её зовёт РЕШАТЕЛЬ.
@@ -255,6 +288,7 @@ export function collapseTriples(board: Board): Board {
         cells[i] = back[i] as number[];
         back[i] = [];
         было = true;
+        if (отчёт) отчёт.revealedIds.push(номер(i));
       }
     }
     return было;
@@ -266,7 +300,10 @@ export function collapseTriples(board: Board): Board {
       again = false;
       for (let i = 0; i < cells.length; i += 1) {
         const t = tripleIn(cells[i] as number[]);
-        if (t !== null) { cells[i] = removeTriple(cells[i] as number[], t); again = true; }
+        if (t !== null) {
+          cells[i] = removeTriple(cells[i] as number[], t); again = true;
+          if (отчёт) { отчёт.clearedTypes.push(t); отчёт.clearedIds.push(номер(i)); }
+        }
       }
       if (раскрыть()) again = true;
     }
@@ -307,7 +344,10 @@ export function collapseTriples(board: Board): Board {
      */
     for (const c of порядокСтолбцов) {
       for (const н of столбцы.get(c) as Ниша[]) {
-        if (н.cell.length === 0 && н.back.length > 0) { н.cell = н.back; н.back = []; again = true; }
+        if (н.cell.length === 0 && н.back.length > 0) {
+          н.cell = н.back; н.back = []; again = true;
+          if (отчёт) отчёт.revealedIds.push(н.id);
+        }
       }
     }
     for (const c of порядокСтолбцов) {
@@ -322,6 +362,7 @@ export function collapseTriples(board: Board): Board {
          * на замкнутости стоит вся доказуемость.
          */
         const полная = (ниши[k] as Ниша).cell.length === TRIPLE && (ниши[k] as Ниша).back.length === 0;
+        if (отчёт) { отчёт.clearedTypes.push(t); отчёт.clearedIds.push((ниши[k] as Ниша).id); }
         if (!полная) { (ниши[k] as Ниша).cell = removeTriple((ниши[k] as Ниша).cell, t); again = true; continue; }
         /*
          * 🔴 ДЛИНА СТОЛБЦА ПОСТОЯННА: закрытая полка уходит, а СВЕРХУ встаёт
@@ -335,8 +376,10 @@ export function collapseTriples(board: Board): Board {
          * тем, чем является, — столбец осел, а сверху появилось место.
          */
         const закрытая = ниши[k] as Ниша;
+        if (отчёт) отчёт.closedIds.push(закрытая.id);
         ниши.splice(k, 1);
         const пришла = queue.shift();
+        if (отчёт && пришла) отчёт.arrived += 1;
         ниши.unshift(пришла
           ? { cell: [...пришла.cell], cap: пришла.cap, joker: пришла.joker === true, id: -1, back: [] }
           : { cell: [], cap: закрытая.cap, joker: закрытая.joker, id: -1, back: [] });
@@ -398,7 +441,7 @@ export function collapseTriples(board: Board): Board {
 }
 
 /** Переложить верхний товар из одной ниши в другую. `null` — ход невозможен. */
-export function moveTop(board: Board, from: number, to: number, strict: boolean): Board | null {
+export function moveTop(board: Board, from: number, to: number, strict: boolean, отчёт?: CollapseReport): Board | null {
   if (from === to) return null;
   const src = board.cells[from] ?? [];
   if (src.length === 0) return null;
@@ -414,7 +457,7 @@ export function moveTop(board: Board, from: number, to: number, strict: boolean)
    * на старое поведение, а товары из очереди исчезали из партии вместе с полем.
    * Замер до починки: 0 доказуемо решаемых уровней из 56, часть — за один узел.
    */
-  return collapseTriples({ ...board, cells });
+  return collapseTriples({ ...board, cells }, отчёт);
 }
 
 /** Свободные ниши: пустые и не занятые препятствием. */
