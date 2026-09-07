@@ -32,6 +32,26 @@ jest.mock('expo-router', () => ({
 
 const МЕТРИК = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } };
 
+/**
+ * 🔴 ЭКРАНЫ ГАСИМ ПОСЛЕ КАЖДОЙ ПРОБЫ, И ЭТО НЕ ОПРЯТНОСТЬ, А УСЛОВИЕ ПРОГОНА.
+ *
+ * 📍 Замер 07.09.2026: без гашения прогон печатал `PASS`, а следом ронял процесс
+ * узла — `TypeError: window.dispatchEvent is not a function` из `reportGlobalError`,
+ * без единой строки FAIL. Причина: питомец в шапке каркаса (`PetSprite`) держит
+ * `setTimeout` смены кадра; шесть незакрытых экранов продолжают тикать после
+ * `afterAll`, и первый же кадр после сноса окружения падает на `import` уже
+ * разобранного модуля.
+ *
+ * ⚠️ Верить коду выхода при этом нельзя: смерть наступает ПОСЛЕ вердикта.
+ */
+const открытые: any[] = [];
+afterEach(async () => {
+  while (открытые.length) {
+    const r = открытые.pop();
+    await TestRenderer.act(async () => { r.unmount(); });
+  }
+});
+
 async function открыть(путь = '@/app/games/cake-sort', уровни: Record<string, string> = {}, начинать = true) {
   const AsyncStorage = require('@react-native-async-storage/async-storage');  // eslint-disable-line @typescript-eslint/no-require-imports
   await AsyncStorage.clear();
@@ -56,6 +76,7 @@ async function открыть(путь = '@/app/games/cake-sort', уровни: 
     );
   });
   await TestRenderer.act(async () => { for (let i = 0; i < 40; i += 1) await Promise.resolve(); });
+  открытые.push(r);
   const кнопка = начинать ? r.root.findAll((n: any) => typeof n.type !== 'string'
     && typeof n.props?.onPress === 'function'
     && /Начать|Start/i.test(текстВнутри(n)))[0] : null;
@@ -84,6 +105,24 @@ function картинкиКусков(r: any): any[] {
     && n.props?.href !== undefined
     && typeof n.props?.clipPath === 'string'
     && n.props.clipPath.includes('cake-'));
+}
+
+/**
+ * Источники картинок ПОСУДЫ: по одной на тарелку, берутся изнутри её кнопки.
+ *
+ * ⚠️ Ищем не «картинку на экране», а картинку ВНУТРИ кнопки тарелки: значков и
+ * оформления на экране хватает, и проба, считающая их все, зазеленеет от шапки.
+ */
+function посудаНаСтоле(r: any): Set<string> {
+  const тарелки = r.root.findAll((n: any) => typeof n.type !== 'string'
+    && n.props?.accessibilityRole === 'button'
+    && typeof n.props?.accessibilityLabel === 'string'
+    && /: \d+\/\d+$/.test(n.props.accessibilityLabel));
+  const источники = new Set<string>();
+  тарелки.forEach((т: any) => т.findAll((n: any) => n.props?.source !== undefined
+    && n.props?.resizeMode === 'contain')
+    .forEach((n: any) => источники.add(JSON.stringify(n.props.source))));
+  return источники;
 }
 
 /** Заливки секторов: пути с цветом и с командой дуги (то есть именно клинья). */
@@ -165,6 +204,28 @@ describe('пицца — та же механика, другие картинк
     expect(картинкиКусков(r).length).toBeGreaterThan(3);
     expect(заливкиКусков(r).length).toBeGreaterThanOrEqual(картинкиКусков(r).length);
   }, 120_000);
+
+  /**
+   * 🔴 И ПОСУДА У ПИЦЦЫ СВОЯ, А НЕ КОНДИТЕРСКИЕ ТАРЕЛКИ ТЕМЫ ПРОФИЛЯ.
+   *
+   * 📍 Пункт заведён по ВЫЖИВШЕЙ МУТАЦИИ: `boardsFor` с телом `return тарелкиТемы;`
+   * не красит ни одной пробы. Видно это было на живом экране — пицца стояла на
+   * фарфоре с золотой каймой из «сладкой» темы: нарядно и не по делу. Тарелки
+   * несут ТЕМУ ПРОФИЛЯ (сладкая, шахматная, биохак), а пицце нужен МАТЕРИАЛ —
+   * дерево, металл, керамика.
+   *
+   * ⚠️ Сверяем ИСТОЧНИКИ картинок, а не их наличие: картинка под кругом есть у
+   * обеих игр всегда, и проба «посуда нарисована» зелена при любой подмене.
+   */
+  it('🔴 у пиццы своя посуда, ни одной тарелки из тем тортов', async () => {
+    const торты = await открыть('@/app/games/cake-sort');
+    const пицца = await открыть('@/app/games/pizza-sort');
+    const т = посудаНаСтоле(торты); const п = посудаНаСтоле(пицца);
+    // Больше одной: иначе проба хвалит стол, который не доехал до тарелок.
+    expect(т.size).toBeGreaterThan(1);
+    expect(п.size).toBeGreaterThan(1);
+    expect([...п].some((x) => т.has(x))).toBe(false);
+  }, 180_000);
 });
 
 describe('у пиццы своя лестница', () => {

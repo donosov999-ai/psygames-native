@@ -73,8 +73,42 @@ export const PIZZA_TOPS: ImageSourcePropType[] = [
   require('../../assets/images/pizza_tops/bianca.webp'),
 ];
 
+/**
+ * ПОСУДА ПОД ПИЦЦУ — своя, а не кондитерские тарелки тем.
+ *
+ * ⚠️ ПОЧЕМУ ОТДЕЛЬНО, А НЕ ТЕМАМИ. Тарелок у тортов 72 (девять тем по восемь), и
+ * они несут ТЕМУ профиля: сладкая, шахматная, биохак. Пицца к теме профиля
+ * отношения не имеет — ей нужен материал: дерево, металл, керамика, солома.
+ * Восьми хватает ровно затем же, зачем восемь у тортов: чтобы стол из двадцати
+ * не выглядел обоями.
+ *
+ * КАК СДЕЛАНЫ. Лист 4×2 у kie (2K, 12 кредитов), восемь пустых круглых подставок
+ * строго сверху на магенте. Резка по провалам фона; кадр сжат на 8 px, чтобы
+ * убрать линии-разделители исходника, и взята САМАЯ БОЛЬШАЯ связная область —
+ * обрывки линий в неё не входят. Фон снят цветовым ключом с ДЕСПИЛЛОМ: у
+ * перфорированного противня магента видна сквозь отверстия, и семантическая
+ * модель залила бы их металлом, а ключ вычистил насквозь. Первая редакция без
+ * деспилла оставляла магентовую кайму по краю — видно на листе проверки.
+ * 8 файлов 256×256, 97 КБ.
+ */
+export const PIZZA_BOARDS: ImageSourcePropType[] = [
+  require('../../assets/images/pizza_boards/oak.webp'),
+  require('../../assets/images/pizza_boards/walnut.webp'),
+  require('../../assets/images/pizza_boards/alupan.webp'),
+  require('../../assets/images/pizza_boards/castiron.webp'),
+  require('../../assets/images/pizza_boards/terracotta.webp'),
+  require('../../assets/images/pizza_boards/porcelain.webp'),
+  require('../../assets/images/pizza_boards/wicker.webp'),
+  require('../../assets/images/pizza_boards/copper.webp'),
+];
+
 /** Какую еду рисуем на куске. */
 export type КруглаяШкурка = 'cake' | 'pizza';
+
+/** Посуда под шкурку: у пиццы своя, у тортов — тарелки темы профиля. */
+export function boardsFor(skin: КруглаяШкурка, тарелкиТемы: ImageSourcePropType[]): ImageSourcePropType[] {
+  return skin === 'pizza' ? PIZZA_BOARDS : тарелкиТемы;
+}
 
 /** Картинка вида начинки. Виды нумеруются с нуля и не выходят за длину списка. */
 export function topFor(skin: КруглаяШкурка, type: number): ImageSourcePropType {
