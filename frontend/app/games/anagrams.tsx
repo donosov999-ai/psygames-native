@@ -15,8 +15,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, Image
-} from 'react-native';
+  ScrollView, Image, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,7 +26,7 @@ import { useProfile } from '@/src/contexts/ProfileContext';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useWordLanguage } from '@/src/hooks/useWordLanguage';
 import { wordLangsFor, WORD_LANG_LABEL } from '@/src/services/wordLanguage';
-import type { ОтчётРежима } from '@/src/games/anagrams/core/hudReport';
+import type { ОтчётРежима, УправлениеРежима } from '@/src/games/anagrams/core/hudReport';
 import type { HudItem } from '@/src/components/GameShell';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
@@ -35,6 +34,7 @@ import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
 import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
 import { allWordsCount, allWordsPack, банкКлассики, словаПоДлине } from '@/src/games/anagrams/core/allWords';
 import { classicLevel as levelParams } from '@/src/games/anagrams/core/classicLevel';
+import { стилиРежима } from '@/src/games/anagrams/modeStyles';
 import { ключКольца, кольцаЯзыка, языкиКолец } from '@/src/games/anagrams/core/ring';
 import { показатьКорейское } from '@/src/games/anagrams/core/chamo';
 import { превьюРежима } from '@/src/games/anagrams/core/modeThumbs';
@@ -299,6 +299,73 @@ export default function AnagramGame() {
     их каркас — там же и так же, как у двух остальных.
   */
   const [счётРежима, setСчётРежима] = useState<ОтчётРежима | null>(null);
+  /*
+    🔴 УПРАВЛЕНИЕ РЕЖИМА — В СЛОТЫ КАРКАСА, ПО СМЫСЛУ.
+
+    📍 Решение Дениса 07.09.2026: прибить нижние полосы всех режимов к каркасу,
+    как у классики. Раскладку задаёт канон каркаса (`GameShell.tsx:215-278`), а
+    не свободное место: низ — ОТВЕТ игрока, шапка — служебное. Поэтому четыре
+    кнопки «Найди все слова» делятся сами: «Сброс» и «Проверить» вниз,
+    «Подсказка» и «Перемешать» наверх, и потолок в три соблюдается без удаления
+    чего-либо.
+
+    ⚠️ Раньше три режима рисовали кнопки ВНУТРИ себя, под полем. Оттого полоса
+    висела там, где кончалось содержимое (замер 375×812: 72 точки от низа против
+    10 у классики), а плавающая кнопка чата накрывала «Сброс» на 16×11.
+  */
+  const [управление, setУправление] = useState<УправлениеРежима | null>(null);
+  const низРежима = React.useMemo(() => {
+    if (!управление || (!управление.сброс && !управление.сдать)) return undefined;
+    return (
+      <View style={стилиРежима.действия}>
+        {управление.сброс ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('clear')}
+            accessibilityState={{ disabled: !управление.сбросДоступен }}
+            disabled={!управление.сбросДоступен}
+            onPress={управление.сброс}
+            style={[стилиРежима.кнопка, { backgroundColor: colors.surface, borderColor: colors.border, opacity: управление.сбросДоступен ? 1 : 0.4 }]}
+          >
+            <Text style={[стилиРежима.кнопкаТекст, { color: colors.text }]}>{t('clear')}</Text>
+          </Pressable>
+        ) : null}
+        {управление.сдать ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('check')}
+            accessibilityState={{ disabled: !управление.сдатьДоступно }}
+            disabled={!управление.сдатьДоступно}
+            onPress={управление.сдать}
+            style={[стилиРежима.кнопка, { backgroundColor: GRADIENT[0], borderColor: GRADIENT[0], opacity: управление.сдатьДоступно ? 1 : 0.4 }]}
+          >
+            <Text style={[стилиРежима.кнопкаТекст, { color: '#fff' }]}>{t('check')}</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    );
+  }, [управление, colors, t]);
+  const шапкаДействий = React.useMemo(() => {
+    if (!управление || (!управление.подсказка && !управление.перемешать)) return undefined;
+    return (
+      <GameAuxBar>
+        {управление.подсказка ? (
+          <GameAuxAction
+            icon="bulb" tint="#d97706" ladder="hint" label={t('btn_hint')}
+            count={управление.подсказокОсталось}
+            disabled={!управление.подсказкаДоступна}
+            onPress={управление.подсказка}
+          />
+        ) : null}
+        {управление.перемешать ? (
+          <GameAuxAction
+            icon="shuffle" tint={GRADIENT[0]} label={t('shuffleBtn')}
+            onPress={управление.перемешать}
+          />
+        ) : null}
+      </GameAuxBar>
+    );
+  }, [управление, t]);
   const шапкаРежима = React.useMemo(() => {
     if (!счётРежима) return undefined;
     // Тип объявлен явно: без него массив выводится по ПЕРВОМУ элементу, и
@@ -762,7 +829,7 @@ export default function AnagramGame() {
   if (phase === 'playing' && режимИгры === 'cross') {
     const пак = allWordsPack(wordLang.lang, lvl.level);
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <CrosswordGame
             key={`cross-${wordLang.lang}-${пак.base}-${lvl.level}`}
@@ -775,6 +842,7 @@ export default function AnagramGame() {
             now={gameNow}
             onProgress={setArmedSquare}
             onСчёт={setСчётРежима}
+            onУправление={setУправление}
             onComplete={(подсказок, мс) => {
               // Подсказки — цена уровня: в звёздах они стоят столько же, сколько промах.
               setErrors(подсказок);
@@ -803,7 +871,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <AllWordsGame
             key={`${wordLang.lang}-${пак.base}`}
@@ -824,6 +892,7 @@ export default function AnagramGame() {
             now={gameNow}
             onProgress={setArmedSquare}
             onСчёт={setСчётРежима}
+            onУправление={setУправление}
             onComplete={(подсказок, мс) => {
               // Подсказки — цена уровня: в звёздах они стоят столько же, сколько промах.
               setErrors(подсказок);
@@ -857,7 +926,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {к ? (
           <WordSquareGame
             key={ключКольца(к.верх, к.право, к.низ, к.лево)}
@@ -868,6 +937,7 @@ export default function AnagramGame() {
             now={gameNow}
             onProgress={setArmedSquare}
             onСчёт={setСчётРежима}
+            onУправление={setУправление}
             onComplete={(промахов, мс) => {
               setErrors(промахов);
               setElapsedTime(Math.round(мс / 100) / 10);

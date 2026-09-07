@@ -10,9 +10,8 @@
  * понимает, сколько букв искать. Прятать её значило бы поменять игру.
  */
 import React from 'react';
-import { стилиРежима } from './modeStyles';
-import type { ОтчётРежима } from './core/hudReport';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import type { ОтчётРежима, УправлениеРежима } from './core/hudReport';
+import { View, Text, StyleSheet,  ScrollView } from 'react-native';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { минимальныйРазмерКруга } from '@/src/components/letterWheel/geometry';
 import {
@@ -30,6 +29,8 @@ export interface AllWordsProps {
   onProgress?: (начат: boolean) => void;
   /** Отчёт в шапку каркаса: числа отдаём наверх, вид решает каркас. */
   onСчёт?: (с: ОтчётРежима) => void;
+  /** Управление партией — наверх, чтобы кнопки встали в слоты каркаса. */
+  onУправление?: (у: УправлениеРежима) => void;
   /**
    * Сколько по высоте отдано списку слов. Необязателен: по умолчанию берётся от
    * стороны круга, которая уже считается от ширины экрана.
@@ -58,7 +59,7 @@ export interface AllWordsProps {
   labels: { найдено: string; подсказки: string; банк: string; сдать: string; сброс: string; подсказка: string; перемешать: string; копилка: string };
 }
 
-export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, onСчёт, maxListHeight, locale, rtl, подписьНайденного, labels }: AllWordsProps) {
+export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgress, onСчёт, onУправление, maxListHeight, locale, rtl, подписьНайденного, labels }: AllWordsProps) {
   const [найдены, setНайдены] = React.useState<string[]>([]);
   const [линия, setЛиния] = React.useState<number[]>([]);
   /**
@@ -99,6 +100,7 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
   React.useEffect(() => {
     onСчёт?.({ найдено: найдены.length, всего: pack.words.length, подсказок, бонусов: бонусы.length });
   }, [найдены.length, pack.words.length, подсказок, бонусы.length, onСчёт]);
+
   const сдать = React.useCallback((слово: string) => {
     if (готовоRef.current || слово.length < 3) { setЛиния([]); return; }
     setЛиния([]);
@@ -149,6 +151,56 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
   }, [pack, найдены, открытые]);
 
   const набрано = линия.map((i) => (буквы[i] ?? '').toUpperCase()).join('');
+
+  /*
+    🔴 УПРАВЛЕНИЕ УЕЗЖАЕТ В СЛОТЫ КАРКАСА, А КНОПКИ ПОД ПОЛЕМ УБРАНЫ.
+
+    Раскладку задаёт канон каркаса (`GameShell.tsx:215-278`), а не свободное
+    место: низ — ОТВЕТ игрока («Сброс» правит черновик, «Проверить» сдаёт),
+    шапка — служебное («Подсказка», «Перемешать»). До этого все четыре кнопки
+    стояли внизу одним рядом и не влезали: замер 07.09.2026 на 375×812 — ряд
+    занимал 519 точек, две кнопки были обрезаны краем.
+
+    ⚠️ ССЫЛКИ ОБЯЗАНЫ БЫТЬ СТАБИЛЬНЫМИ. Инлайновая стрелка в пропе означала бы
+    новый объект на каждой отрисовке, экран писал бы его в состояние, а то
+    вызывало бы следующую отрисовку — петля на каждом касании поля. Приём взят
+    из `dots-connect/DotsConnectGame.tsx` (`onAux`, 560-578), где она разобрана.
+  */
+  /*
+    🔴 ССЫЛКИ ОБЯЗАНЫ БЫТЬ НЕИЗМЕННЫМИ ЗА ВСЮ ЖИЗНЬ КОМПОНЕНТА, А НЕ ПРОСТО
+    ЗАВЁРНУТЫМИ В `useCallback`. Первая версия так и сделала — и экран лёг с
+    «Maximum update depth exceeded» на первом же кадре.
+
+    Разбор: `сдать` зависит от `onComplete`, а тот приходит из экрана ИНЛАЙНОВОЙ
+    стрелкой, то есть новый на каждой отрисовке. Значит `сдать` новый, значит
+    `сдатьНабранное` новый, значит эффект публикует новый мешок, экран пишет его
+    в состояние, состояние вызывает отрисовку — и круг замкнулся.
+    То же и с подсказкой: её зависимости меняются на каждой находке.
+
+    Лечится «свежим рефом»: наружу отдаём обёртки с ПУСТЫМ списком зависимостей,
+    а внутри они читают текущие значения из рефов, которые обновляются эффектом
+    после каждой отрисовки. Так публикуемый мешок меняется только когда меняются
+    ФЛАГИ (доступность), а не ссылки.
+  */
+  const свежееRef = React.useRef({ сдать, набрано, взятьПодсказку });
+  React.useEffect(() => { свежееRef.current = { сдать, набрано, взятьПодсказку }; });
+
+  const сбросить = React.useCallback(() => { setЛиния([]); }, []);
+  const перемешать = React.useCallback(() => { setЛиния([]); setПоворотов((n) => n + 1); }, []);
+  const сдатьНабранное = React.useCallback(() => {
+    свежееRef.current.сдать(свежееRef.current.набрано);
+  }, []);
+  const подсказкаДействие = React.useCallback(() => { свежееRef.current.взятьПодсказку(); }, []);
+  const сбросДоступен = линия.length > 0;
+  const сдатьДоступно = линия.length >= 3;
+  React.useEffect(() => {
+    onУправление?.({
+      сброс: сбросить, сбросДоступен,
+      сдать: сдатьНабранное, сдатьДоступно,
+      подсказка: подсказкаДействие, подсказкаДоступна: !готово,
+      перемешать,
+    });
+  }, [onУправление, сбросить, сбросДоступен, сдатьНабранное, сдатьДоступно, подсказкаДействие, готово, перемешать]);
   const цветНабора = мигание === 'мимо' ? theme.danger
     : мигание === 'верно' ? theme.success
       : мигание === 'бонус' ? theme.primary
@@ -249,53 +301,11 @@ export function AllWordsGame({ pack, seed, size, theme, now, onComplete, onProgr
         закрылось длиной (все слова там пятибуквенные), здесь длины разные — от
         трёх до восьми, — и по длине не сдать. Значит нужна кнопка.
       */}
-      <View style={стилиРежима.действия}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={labels.сброс}
-          accessibilityState={{ disabled: линия.length === 0 }}
-          disabled={линия.length === 0}
-          onPress={() => setЛиния([])}
-          style={[стилиРежима.кнопка, { backgroundColor: theme.surface, borderColor: theme.border, opacity: линия.length ? 1 : 0.4 }]}
-        >
-          <Text style={[стилиРежима.кнопкаТекст, { color: theme.text }]}>{labels.сброс}</Text>
-        </Pressable>
-        {/*
-          🔴 ПЕРЕМЕШАТЬ — НЕ ПОДСКАЗКА И НЕ ПОБЛАЖКА. Состав банка не меняется,
-          меняется только порядок плиток: когда взгляд залип на одной раскладке,
-          помогает именно перестановка. Так у Zen Word и «Моря слов». Счётчик
-          нажатий уходит в зерно, поэтому при повторном заходе на уровень с нуля
-          порядок снова тот же — уровень остаётся воспроизводимым.
-        */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={labels.перемешать}
-          onPress={() => { setЛиния([]); setПоворотов((n) => n + 1); }}
-          style={[стилиРежима.кнопка, { backgroundColor: theme.surface, borderColor: theme.border }]}
-        >
-          <Text style={[стилиРежима.кнопкаТекст, { color: theme.text }]}>{labels.перемешать}</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={labels.подсказка}
-          accessibilityState={{ disabled: готово }}
-          disabled={готово}
-          onPress={взятьПодсказку}
-          style={[стилиРежима.кнопка, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: готово ? 0.4 : 1 }]}
-        >
-          <Text style={[стилиРежима.кнопкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={labels.сдать}
-          accessibilityState={{ disabled: линия.length < 3 }}
-          disabled={линия.length < 3}
-          onPress={() => сдать(набрано)}
-          style={[стилиРежима.кнопка, { backgroundColor: theme.primary, borderColor: theme.primary, opacity: линия.length >= 3 ? 1 : 0.4 }]}
-        >
-          <Text style={[стилиРежима.кнопкаТекст, { color: '#fff' }]}>{labels.сдать}</Text>
-        </Pressable>
-      </View>
+      {/*
+        ⚠️ РЯД КНОПОК ОТСЮДА УБРАН — управление уехало в слоты каркаса через
+        `onУправление`. Здесь он стоял под полем и на телефоне 375 не влезал:
+        четыре кнопки занимали 519 точек, «Сброс» и «Проверить» обрезались краем.
+      */}
 
       {/*
         ⚠️ СЧЁТЧИКИ УЕХАЛИ В ШАПКУ КАРКАСА — числа отдаются через `onСчёт`,

@@ -11,9 +11,8 @@
  * разойтись.
  */
 import React from 'react';
-import { стилиРежима } from './modeStyles';
-import type { ОтчётРежима } from './core/hudReport';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import type { ОтчётРежима, УправлениеРежима } from './core/hudReport';
+import { View, Text, StyleSheet } from 'react-native';
 import { минимальныйРазмерКруга } from '@/src/components/letterWheel/geometry';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import {
@@ -37,6 +36,8 @@ export interface WordSquareProps {
   onProgress?: (тронули: boolean) => void;
   /** Отчёт в шапку каркаса: числа отдаём наверх, вид решает каркас. */
   onСчёт?: (с: ОтчётРежима) => void;
+  /** Управление партией — наверх, чтобы подсказка встала в шапку каркаса. */
+  onУправление?: (у: УправлениеРежима) => void;
   labels: { собрано: string; промахи: string; банк: string; подсказка: string };
 }
 
@@ -46,7 +47,7 @@ export function размерКлетки(size: number): number {
   return Math.max(1, Math.floor((size - РАМКА * 2) / СТОРОНА));
 }
 
-export function WordSquareGame({ кольцо, size, theme, now, onComplete, onProgress, onСчёт, labels }: WordSquareProps) {
+export function WordSquareGame({ кольцо, size, theme, now, onComplete, onProgress, onСчёт, onУправление, labels }: WordSquareProps) {
   const [закрыты, setЗакрыты] = React.useState<Сторона[]>([]);
   const [линия, setЛиния] = React.useState<number[]>([]);
   const [промахов, setПромахов] = React.useState(0);
@@ -89,6 +90,7 @@ export function WordSquareGame({ кольцо, size, theme, now, onComplete, onP
     onСчёт?.({ найдено: закрыты.length, всего: 4, подсказок: 0, промахов: промахов });
   }, [закрыты.length, промахов, onСчёт]);
 
+
   const сдать = React.useCallback((слово: string) => {
     if (завершеноRef.current) return;
     setЛиния([]);
@@ -115,6 +117,32 @@ export function WordSquareGame({ кольцо, size, theme, now, onComplete, onP
     setОткрыто((было) => ({ ...было, [h.сторона]: (было[h.сторона] ?? 0) + 1 }));
     setПромахов((n) => n + 1);   // подсказка стоит столько же, сколько промах
   }, [кольцо, закрыты, открыто]);
+
+  /*
+    🔴 ПОДСКАЗКА УЕЗЖАЕТ В ШАПКУ КАРКАСА — она служебная, а низ по канону
+    (`GameShell.tsx:215-278`) принадлежит ОТВЕТУ игрока.
+
+    ⚠️ У ЭТОГО РЕЖИМА НИЖНЕЙ ПОЛОСЫ НЕ БУДЕТ ВОВСЕ, и это правильно: слово здесь
+    сдаётся само на пятой букве (`onTrace`) либо по отпусканию пальца — кнопки
+    ответа нет и быть не должно. Так же устроены маджонг, ханой и сортировка.
+  */
+  /*
+    🔴 «СВЕЖИЙ РЕФ»: наружу отдаём обёртку с пустым списком зависимостей, внутри
+    она читает текущую подсказку из рефа. Иначе мешок публикуется заново на каждой
+    находке, экран пишет его в состояние и вызывает следующую отрисовку.
+  */
+  const свежееRef = React.useRef({ взятьПодсказку });
+  React.useEffect(() => { свежееRef.current = { взятьПодсказку }; });
+  const подсказкаДействие = React.useCallback(() => { свежееRef.current.взятьПодсказку(); }, []);
+  const подсказкаДоступна = !завершено;
+  React.useEffect(() => {
+    onУправление?.({
+      сброс: null, сбросДоступен: false,
+      сдать: null, сдатьДоступно: false,
+      подсказка: подсказкаДействие, подсказкаДоступна,
+      перемешать: null,
+    });
+  }, [onУправление, подсказкаДействие, подсказкаДоступна]);
 
   const набрано = линия.map((i) => кольцо.банк[i] ?? '').join('');
   const сторонаКлетки = (и: number): Сторона | null => {
@@ -190,16 +218,11 @@ export function WordSquareGame({ кольцо, size, theme, now, onComplete, onP
         disabled={завершено}
       />
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={labels.подсказка}
-        accessibilityState={{ disabled: завершено }}
-        disabled={завершено}
-        onPress={взятьПодсказку}
-        style={[стилиРежима.кнопка, { borderColor: theme.primary, opacity: завершено ? 0.4 : 1 }]}
-      >
-        <Text style={[стилиРежима.кнопкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
-      </Pressable>
+      {/*
+        ⚠️ КНОПКА ПОДСКАЗКИ ОТСЮДА УБРАНА — она служебная и уехала в шапку
+        каркаса через `onУправление`. Здесь она стояла последней в колонке, и на
+        телефоне 375×812 из-за неё счётчики уходили на y=809 при экране 812.
+      */}
 
       {/*
         ⚠️ СЧЁТЧИКИ УЕХАЛИ В ШАПКУ КАРКАСА. Здесь они стояли ПОСЛЕДНЕЙ строкой
