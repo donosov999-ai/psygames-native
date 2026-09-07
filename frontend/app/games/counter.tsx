@@ -534,7 +534,8 @@ export default function CounterGame() {
   );
 
 
-  if (phase === 'playing') return renderGame();
+  // Ранний выход фазы несёт окно правил с собой (гейт level-rules-reachable)
+  if (phase === 'playing') return <>{renderGame()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
