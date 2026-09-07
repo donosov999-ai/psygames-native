@@ -1,4 +1,4 @@
-/* psygames-math-slider-work · VER 2 · 07.09.2026 */
+/* psygames-math-slider-work · VER 3 · 07.09.2026 */
 /**
  * МОДЕЛЬ РАБОТЫ вопроса шкалы — сколько умственного труда стоит ОЦЕНИТЬ ответ.
  * Единый источник: её читают генератор (поле difficulty → окно времени в
@@ -95,28 +95,41 @@ function exprCost(e: MathExpression): CostVal {
       // интервал; curve: перцептивная резка на куски + умножение средней на ширину,
       // negладкость дорожает. Калибровка симом 07.09 (стык с концом quad-полосы).
       const { form, dx, heights } = e;
-      const mul = (h: number) => (h <= 12 && dx <= 12 ? 0.8 + 0.05 * (h + dx) : digits(h) * digits(dx));
+      // Знаковая фигура: две области считаются порознь и вычитаются — по смене
+      // знака на переходах узлов (+0,5 за каждую) и +1,3 за само вычитание
+      let signFlips = 0;
+      for (let i = 0; i + 1 < heights.length; i++) if (heights[i] * heights[i + 1] < 0) signFlips++;
+      const signedExtra = heights.some((h) => h < 0) ? 2.0 + 0.6 * signFlips : 0;
+      const mul = (h: number) => { const a2 = Math.abs(h); return a2 <= 12 && dx <= 12 ? 0.8 + 0.05 * (a2 + dx) : digits(a2) * digits(dx); };
       const val = integralAreaValueForWork(e);
       if (form === 'steps') {
-        const cost = heights.reduce((s, h) => s + mul(h), 0) + (heights.length - 1) * 1.2;
+        const cost = heights.reduce((s, h) => s + mul(h), 0) + (heights.length - 1) * 1.2 + signedExtra;
         return { cost, val };
       }
       if (form === 'polyline') {
         let cost = (heights.length - 1) * 0.6;
         for (let i = 0; i + 1 < heights.length; i++) cost += mul(Math.round((heights[i] + heights[i + 1]) / 2));
-        cost += (heights.length - 2) * 1.2;
+        cost += (heights.length - 2) * 1.2 + signedExtra;
         return { cost, val };
       }
       const n = heights.length - 1;
-      const maxH = Math.max(...heights, 1);
+      const maxH = Math.max(...heights.map(Math.abs), 1);
       let rough = 0;
       for (let i = 0; i + 1 < heights.length; i++) rough += Math.abs(heights[i + 1] - heights[i]);
       // Мысленные куски = 2 + суммарная негладкость в высотах кривой: извилистее
       // и длиннее кривая — больше кусков усреднения (НЕ нормировать на n, иначе
       // кривая дешевеет с ростом узлов и хвост падает — замер 07.09, L62–64)
-      const pieces = 2 + rough / maxH;
-      const avg = Math.round(val / (n * dx));
-      const cost = 1.2 * pieces + digits(avg) * digits(n * dx);
+      // ×2,2: кривая при ±10%-допуске требует кусочного интегрирования, близкого
+      // к счёту по узлам — старый вес делал её в 3 раза дешевле ломаной, и рост
+      // доли кривой с g съедал рост чисел (плоскость L61+, замер 07.09)
+      const pieces = 2 + (rough / maxH) * 3.2;
+      // Средняя высота — БРУТТО (по |узлам|), не по |разности|: у знаковой
+      // фигуры разность мала, но считать надо ОБЕ области — иначе модель
+      // делала знаковую кривую дешевле беззнаковой (замер 07.09)
+      let gross = 0;
+      for (let i = 0; i + 1 < heights.length; i++) gross += Math.abs((heights[i] + heights[i + 1]) / 2) * dx;
+      const avg = Math.round(gross / (n * dx));
+      const cost = 1.2 * pieces + digits(avg) * digits(n * dx) + signedExtra;
       return { cost, val };
     }
     case 'percent-of':
