@@ -18,7 +18,7 @@
  */
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
-import Svg, { Path, Circle as SvgCircle } from 'react-native-svg';
+import Svg, { Path, Circle as SvgCircle, ClipPath, Defs, Image as SvgImage } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { goBackOrHome } from '@/src/utils/nav';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -44,6 +44,7 @@ import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
+import { cakeTop } from '@/src/constants/cakeTops';
 import { tableLayout, maxCols, plateAtPoint, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
 import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
 
@@ -405,9 +406,41 @@ export default function CakeSortGame() {
           и поднял svg — куски остались. Это и есть починка.
         */}
         <Svg width={стол.plate} height={стол.plate} style={{ position: 'relative', zIndex: 1 }}>
-          {cells.map((тип, k) => (
-            <Path key={k} d={wedgePath(r, r, (r - 3) * 0.72, k)} fill={тема.colors[тип % тема.colors.length]} stroke="#00000022" strokeWidth={1} />
-          ))}
+          {/*
+            🔴 КЛИН — ЭТО КАРТИНКА ТОРТА, ОБРЕЗАННАЯ ТЕМ ЖЕ ПУТЁМ, ЧТО РИСОВАЛ
+            ЗАЛИВКУ. Целый круглый торт лежит под маской сектора, поэтому шесть
+            кусков сходятся без щели по построению, а не по удаче генератора.
+
+            ⚠️ ЗАЛИВКА ПОД КАРТИНКОЙ ОСТАЁТСЯ. Цвет вида — единственный канал, по
+            которому игрок различает начинки; рисунок добавляет второй, но не
+            заменяет первый. Не доехал ассет — стол по-прежнему играбелен.
+
+            ⚠️ Имя маски несёт номер тарелки И номер сектора: `id` в SVG живёт в
+            одном пространстве на весь документ, а тарелок на столе до двадцати.
+            Совпади имена — все куски обрезались бы одной маской.
+          */}
+          <Defs>
+            {cells.map((_, k) => (
+              <ClipPath key={`c${k}`} id={`cake-${i}-${k}`}>
+                <Path d={wedgePath(r, r, (r - 3) * 0.72, k)} />
+              </ClipPath>
+            ))}
+          </Defs>
+          {cells.map((тип, k) => {
+            const рад = (r - 3) * 0.72;
+            return (
+              <React.Fragment key={k}>
+                <Path d={wedgePath(r, r, рад, k)} fill={тема.colors[тип % тема.colors.length]} stroke="#00000022" strokeWidth={1} />
+                <SvgImage
+                  href={cakeTop(тип)}
+                  x={r - рад} y={r - рад} width={рад * 2} height={рад * 2}
+                  preserveAspectRatio="xMidYMid slice"
+                  clipPath={`url(#cake-${i}-${k})`}
+                />
+                <Path d={wedgePath(r, r, рад, k)} fill="none" stroke="#00000033" strokeWidth={1} />
+              </React.Fragment>
+            );
+          })}
           {выбрана && <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke="#f59e0b" strokeWidth={3} />}
           {подЦелью && <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke="#38bdf8" strokeWidth={3} />}
           {(hint?.from === i || hint?.to === i) && (
