@@ -110,12 +110,42 @@ function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.len
 //   - окно ответа сокращается 3500→1400мс (не успел выбрать цвет = ошибка)
 //   - доля эмоционально заряженных слов (threat/positive) растёт 40%→85% — интерференции больше
 //   - межстимульная пауза сокращается (темп растёт)
-const TRIALS_PER_ROUND = 18;
-export function levelParams(level: number): { trials: number; answerWindowMs: number; emotionalRatio: number; isiBaseMs: number; isiJitterMs: number } {
+/**
+ * 🔴 ДОЛИ ВАЛЕНТНОСТЕЙ ЗАМОРОЖЕНЫ РАВНЫМИ И ОСЬЮ СЛОЖНОСТИ НЕ ЯВЛЯЮТСЯ.
+ *
+ * Канон эмоционального Струпа — равные списки слов по валентностям (в типовой
+ * постановке три списка по 30 односложных слов: угроза, позитив, нейтральные).
+ * И там же прямо сказано, что интерференция УМЕНЬШАЕТСЯ с ростом доли
+ * заряженных проб — то есть доля и есть модулятор измеряемого.
+ *
+ * Что было до 07.09.2026: `emotionalRatio` рос 0,40 → 0,85, а число проб стояло
+ * константой 18. Обе меры прохода — `interference_threat_ms` и
+ * `interference_positive_ms` — суть разности относительно НЕЙТРАЛЬНЫХ проб.
+ * Замер генератором (40 000 проб на уровень):
+ *     нейтральных L1 59,8 %  →  L15 15,2 %   (падение 44,5 п.п.)
+ *     в штуках:   L1 10,8    →  L14 3,3  →  L15 2,7
+ * 🔴 То есть на верхнем уровне ОБЕ разности считались от менее чем трёх проб, и
+ * эти же 2,7 служили базой сразу двум. Это не «менее точно» — это шум.
+ *
+ * Стало: треть на валентность, одинаково на всех уровнях. Сложность осталась на
+ * трёх осях, ни одна не входит в формулу разности: окно ответа 3500 → 1400 мс,
+ * межстимульная пауза 500 → 250 и её дрожание 400 → 200 мс.
+ * Стережёт `src/__tests__/conflict-ratio-is-not-difficulty.test.ts`.
+ */
+export const EMOTIONAL_RATIO = 2 / 3;      // заряженных всего: угроза + позитив
+export const THREAT_WITHIN_EMOTIONAL = 0.5; // внутри заряженных — поровну
+
+/**
+ * ⚠️ Объём РАСТЁТ, и это не «заодно». При равных долях в 18 пробах на каждую
+ * валентность приходится по 6 — впритык для разностной оценки. Рост объёма
+ * поднимает и трудность (дольше держать установку), и точность обеих мер сразу:
+ * единственная ось раздела, которая улучшает измерение, а не тратит его.
+ */
+const TRIALS_BY_BAND = (level: number) => (level <= 5 ? 18 : level <= 10 ? 24 : 30);
+export function levelParams(level: number): { trials: number; answerWindowMs: number; isiBaseMs: number; isiJitterMs: number } {
   return {
-    trials: TRIALS_PER_ROUND,
+    trials: TRIALS_BY_BAND(level),
     answerWindowMs: Math.max(1400, 3500 - (level - 1) * 150),
-    emotionalRatio: Math.min(0.85, 0.40 + (level - 1) * 0.032),
     isiBaseMs: Math.max(250, 500 - (level - 1) * 18),
     isiJitterMs: Math.max(200, 400 - (level - 1) * 15),
   };
@@ -125,11 +155,12 @@ export function levelParams(level: number): { trials: number; answerWindowMs: nu
  * Одна проба. Экспортируется ради гейта: проверять помощников по отдельности
  * мало — можно починить их и всё равно обойти в самой пробе.
  */
-export function makeTrial(lang: string, emotionalRatio: number): Trial {
-  // Доля эмоционально заряженных слов растёт с уровнем; нейтральные остаются базой интерференции.
-  // Внутри эмоциональной доли перевес к threat (главный источник конфликта в Emotional Stroop).
-  const valence: Valence = Math.random() < emotionalRatio
-    ? (Math.random() < 0.6 ? 'threat' : 'positive')
+export function makeTrial(lang: string, _level: number): Trial {
+  // Доли постоянны и равны трети каждая (см. EMOTIONAL_RATIO выше). Аргумент
+  // `level` оставлен для единообразия с остальными играми раздела: гейт долей
+  // моделирует поток вызовом makeTrial(level) и ждёт ту же подпись.
+  const valence: Valence = Math.random() < EMOTIONAL_RATIO
+    ? (Math.random() < THREAT_WITHIN_EMOTIONAL ? 'threat' : 'positive')
     : 'neutral';
   const word = rndItem(emoWordsFor(valence, lang));
   const color = rndItem(COLORS_RGB);
@@ -171,9 +202,8 @@ export default function StroopEmotionalGame() {
 
   // refs — счётчики и параметры уровня живут вне ре-рендера (таймеры/дедлайн, паттерн cpt)
   const levelRef = useRef(1);
-  const trialsRef = useRef(TRIALS_PER_ROUND);
+  const trialsRef = useRef(TRIALS_BY_BAND(1));
   const windowRef = useRef(3500);
-  const emoRatioRef = useRef(0.4);
   const isiBaseRef = useRef(500);
   const isiJitterRef = useRef(400);
   const roundRef = useRef(1);
@@ -211,7 +241,7 @@ export default function StroopEmotionalGame() {
   const newTrial = () => {
     setShowStim(false); setFeedback(null);
     answeredRef.current = false;
-    const tr = makeTrial(language, emoRatioRef.current);
+    const tr = makeTrial(language, levelRef.current);
     setTrial(tr);
     stimTimer.current = setTimeout(() => {
       setStimAt(gameNow());
@@ -225,7 +255,6 @@ export default function StroopEmotionalGame() {
     levelRef.current = lvl.level;
     trialsRef.current = isPreset ? num('trials', p.trials) : p.trials;
     windowRef.current = p.answerWindowMs;
-    emoRatioRef.current = p.emotionalRatio;
     isiBaseRef.current = p.isiBaseMs;
     isiJitterRef.current = p.isiJitterMs;
     hitsRef.current = 0; errorsRef.current = 0;
@@ -346,7 +375,7 @@ export default function StroopEmotionalGame() {
             {t('level')} {lvl.level}
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-            {t('stroopEmoLvlParams').replace('{n}', String(p.trials)).replace('{w}', (p.answerWindowMs / 1000).toFixed(1)).replace('{p}', String(Math.round(p.emotionalRatio * 100)))}
+            {t('stroopEmoLvlParams').replace('{n}', String(p.trials)).replace('{w}', (p.answerWindowMs / 1000).toFixed(1)).replace('{p}', String(Math.round(EMOTIONAL_RATIO * 100)))}
           </Text>
           {/* критерий прохождения уровня виден игроку (паттерн cpt) */}
           <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
