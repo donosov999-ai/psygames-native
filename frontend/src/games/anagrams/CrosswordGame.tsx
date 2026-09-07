@@ -16,9 +16,8 @@
  * находки.
  */
 import React from 'react';
-import { стилиРежима } from './modeStyles';
-import type { ОтчётРежима } from './core/hudReport';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import type { ОтчётРежима, УправлениеРежима } from './core/hudReport';
+import { View, Text, StyleSheet,  ScrollView } from 'react-native';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { минимальныйРазмерКруга } from '@/src/components/letterWheel/geometry';
 import { allWordsLetters, type AllWordsPack } from './core/allWords';
@@ -39,6 +38,8 @@ export interface CrosswordProps {
   onProgress?: (начат: boolean) => void;
   /** Отчёт в шапку каркаса: числа отдаём наверх, вид решает каркас. */
   onСчёт?: (с: ОтчётРежима) => void;
+  /** Управление партией — наверх, чтобы кнопки встали в слоты каркаса. */
+  onУправление?: (у: УправлениеРежима) => void;
   labels: { найдено: string; подсказки: string; банк: string; сдать: string; сброс: string; подсказка: string };
 }
 
@@ -56,7 +57,7 @@ function открытыеКлетки(к: Кроссворд, найдены: re
   return из;
 }
 
-export function CrosswordGame({ pack, level, seed, size, theme, now, onComplete, onProgress, onСчёт, labels }: CrosswordProps) {
+export function CrosswordGame({ pack, level, seed, size, theme, now, onComplete, onProgress, onСчёт, onУправление, labels }: CrosswordProps) {
   const [найдены, setНайдены] = React.useState<string[]>([]);
   const [линия, setЛиния] = React.useState<number[]>([]);
   const [подсказок, setПодсказок] = React.useState(0);
@@ -128,6 +129,47 @@ export function CrosswordGame({ pack, level, seed, size, theme, now, onComplete,
 
   const видно = открытыеКлетки(кр, найдены, открыто);
   const набрано = линия.map((i) => (буквы[i] ?? '').toUpperCase()).join('');
+
+  /*
+    🔴 УПРАВЛЕНИЕ УЕЗЖАЕТ В СЛОТЫ КАРКАСА, А КНОПКИ ПОД ПОЛЕМ УБРАНЫ.
+
+    Низ — ОТВЕТ игрока («Сброс» правит черновик, «Проверить» сдаёт), шапка —
+    служебное («Подсказка»). Так велит канон каркаса (`GameShell.tsx:215-278`),
+    и так уже устроена классика анаграмм.
+
+    ⚠️ ССЫЛКИ СТАБИЛЬНЫЕ: инлайновая стрелка означала бы новый объект на каждой
+    отрисовке, экран писал бы его в состояние, а то вызывало бы следующую
+    отрисовку — петля на каждом касании поля.
+
+    ⚠️ ПОДСКАЗКА ГАСНЕТ И ПО ЛИМИТУ, А НЕ ТОЛЬКО ПО «УРОВЕНЬ СОБРАН». В прежней
+    разметке `disabled` учитывал остаток, а `accessibilityState` и прозрачность —
+    нет: при исчерпанном лимите кнопка была мертва, но выглядела и объявлялась
+    скринридеру живой. Здесь условие одно на всё.
+  */
+  /*
+    🔴 «СВЕЖИЙ РЕФ»: ссылки наружу неизменны за всю жизнь компонента. `сдать`
+    зависит от `onComplete`, а тот приходит из экрана инлайновой стрелкой — новый
+    на каждой отрисовке. Без этого приёма мешок публикуется заново каждый кадр,
+    экран пишет его в состояние и вызывает следующий кадр: «Maximum update depth
+    exceeded» на первом же запуске (проверено 07.09.2026).
+  */
+  const свежееRef = React.useRef({ сдать, набрано, взятьПодсказку });
+  React.useEffect(() => { свежееRef.current = { сдать, набрано, взятьПодсказку }; });
+
+  const сбросить = React.useCallback(() => { setЛиния([]); }, []);
+  const сдатьНабранное = React.useCallback(() => {
+    свежееRef.current.сдать(свежееRef.current.набрано);
+  }, []);
+  const подсказкаДействие = React.useCallback(() => { свежееRef.current.взятьПодсказку(); }, []);
+  const подсказкаДоступна = !готово && подсказокОсталось > 0;
+  React.useEffect(() => {
+    onУправление?.({
+      сброс: сбросить, сбросДоступен: линия.length > 0,
+      сдать: сдатьНабранное, сдатьДоступно: линия.length >= 3,
+      подсказка: подсказкаДействие, подсказкаДоступна, подсказокОсталось,
+      перемешать: null,
+    });
+  }, [onУправление, сбросить, линия.length, сдатьНабранное, подсказкаДействие, подсказкаДоступна, подсказокОсталось]);
   const цветНабора = мигание === 'мимо' ? theme.danger
     : мигание === 'верно' ? theme.success
       : мигание === 'повтор' ? theme.textSecondary : theme.text;
@@ -190,32 +232,11 @@ export function CrosswordGame({ pack, level, seed, size, theme, now, onComplete,
       />
 
       {/* Кнопка сдачи нужна тем, кто играет тапом: ведение пальцем сдаёт по отпусканию. */}
-      <View style={стилиРежима.действия}>
-        <Pressable
-          accessibilityRole="button" accessibilityLabel={labels.сброс}
-          accessibilityState={{ disabled: линия.length === 0 }}
-          disabled={линия.length === 0} onPress={() => setЛиния([])}
-          style={[стилиРежима.кнопка, { backgroundColor: theme.surface, borderColor: theme.border, opacity: линия.length ? 1 : 0.4 }]}
-        >
-          <Text style={[стилиРежима.кнопкаТекст, { color: theme.text }]}>{labels.сброс}</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button" accessibilityLabel={labels.подсказка}
-          accessibilityState={{ disabled: готово }}
-          disabled={готово || подсказокОсталось === 0} onPress={взятьПодсказку}
-          style={[стилиРежима.кнопка, { backgroundColor: theme.surface, borderColor: theme.primary, opacity: готово ? 0.4 : 1 }]}
-        >
-          <Text style={[стилиРежима.кнопкаТекст, { color: theme.primary }]}>{labels.подсказка}</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button" accessibilityLabel={labels.сдать}
-          accessibilityState={{ disabled: линия.length < 3 }}
-          disabled={линия.length < 3} onPress={() => сдать(набрано)}
-          style={[стилиРежима.кнопка, { backgroundColor: theme.primary, borderColor: theme.primary, opacity: линия.length >= 3 ? 1 : 0.4 }]}
-        >
-          <Text style={[стилиРежима.кнопкаТекст, { color: '#fff' }]}>{labels.сдать}</Text>
-        </Pressable>
-      </View>
+      {/*
+        ⚠️ РЯД КНОПОК ОТСЮДА УБРАН — управление уехало в слоты каркаса через
+        `onУправление`. Раскладку задаёт канон каркаса: низ — ответ игрока
+        («Сброс», «Проверить»), шапка — служебное («Подсказка»).
+      */}
 
       {/*
         ⚠️ СЧЁТЧИКИ УЕХАЛИ В ШАПКУ КАРКАСА — числа отдаются через `onСчёт`,

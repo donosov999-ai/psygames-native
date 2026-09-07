@@ -95,10 +95,89 @@ function propSpan(src: string, name: string): string | null {
   return null;
 }
 
+/**
+ * 🔴 У ЭКРАНА С РЕЖИМАМИ КАРКАС ВЫЗЫВАЕТСЯ НЕСКОЛЬКО РАЗ — ЧИТАЕМ ВСЕ.
+ *
+ * 📍 Найдено 07.09.2026 вместе с историей ниже. `propSpan` возвращает ПЕРВОЕ
+ * вхождение пропа: у анаграмм четыре вызова `GameShell`, и проверка видела
+ * только классику. Три режима из четырёх были для неё невидимы — она уверенно
+ * называла число «1» там, где кнопок три.
+ *
+ * ⚠️ Два слепых пятна складывались: первое вхождение + ссылка вместо разметки.
+ * Каждое по отдельности всего лишь занижало счёт; вместе они позволяли режиму
+ * вообще не иметь шапки, а гейту — оставаться зелёным на соседнем вызове.
+ */
+function propSpans(src: string, name: string): string[] {
+  const out: string[] = [];
+  const re = new RegExp(`(?<![\\w$.])${name}=\\{`, 'g');
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) {
+    const open = src.indexOf('{', m.index);
+    let depth = 0;
+    for (let i = open; i < src.length; i++) {
+      if (src[i] === '{') depth++;
+      else if (src[i] === '}' && --depth === 0) { out.push(src.slice(open, i + 1)); break; }
+    }
+  }
+  return out;
+}
+
+/**
+ * 🔴 ЗНАЧЕНИЕ ПРОПА МОЖЕТ БЫТЬ ССЫЛКОЙ НА ПЕРЕМЕННУЮ — ИДЁМ ЗА НЕЙ.
+ *
+ * 📍 Найдено 07.09.2026, когда анаграммы вынесли служебные кнопки в памятку и
+ * передали её как `headerActions={шапкаДействий}`. Гейт увидел в проме один
+ * идентификатор, насчитал НОЛЬ кнопок и обвинил экран в том, что перенос вышел
+ * мёртвым, — хотя кнопки рисуются.
+ *
+ * ⚠️ Это слепое пятно, а не частный случай: ЛЮБОЙ экран, вынесший `headerActions`
+ * или `toolbar` в переменную (а так делают, когда содержимое зависит от режима),
+ * исчезал для проверки целиком — и «перенёс, но не нарисовалось» прошло бы
+ * незамеченным ровно так, как этот гейт и создан ловить.
+ *
+ * Разворачиваем на один шаг: если в проме стоит голое имя, ищем его объявление
+ * `const <имя> = ...` и читаем ЕГО. Глубже не идём намеренно — цепочка ссылок
+ * означала бы, что кнопки собираются слишком далеко от места применения, и это
+ * стоит заметить глазами, а не прятать за умным разбором.
+ */
+function развернуть(src: string, span: string | null): string | null {
+  if (!span) return null;
+  const имя = span.replace(/[{}\s]/g, '');
+  if (!/^[A-Za-zА-Яа-яЁё_$][\w$А-Яа-яЁё]*$/.test(имя)) return span;   // это выражение, а не ссылка
+  const at = src.search(new RegExp(`const\\s+${имя}\\s*=`));
+  if (at < 0) return span;
+  // Читаем до конца объявления: от `=` до строки, закрывающей его на нулевой глубине.
+  const from = src.indexOf('=', at);
+  let depth = 0;
+  for (let i = from; i < src.length; i++) {
+    const c = src[i];
+    if (c === '(' || c === '{' || c === '[') depth++;
+    else if (c === ')' || c === '}' || c === ']') { depth--; if (depth === 0) return src.slice(from, i + 1); }
+  }
+  return span;
+}
+
+/**
+ * ВСЕ нижние полосы экрана одной строкой — ссылки развёрнуты, дубли схлопнуты.
+ *
+ * 📍 07.09.2026: полос у экрана столько же, сколько вызовов каркаса. Проверки
+ * читали ПЕРВУЮ и молчали про остальные: реестр описывал четыре режима анаграмм,
+ * а сверялся один. Мутация показала цену — `t('btn_hint')`, подложенный в нижнюю
+ * полосу режима, прошёл при зелёном гейте.
+ *
+ * ⚠️ Запись в реестре, которую никто не сверяет, хуже отсутствия записи: она
+ * создаёт уверенность, ничего не проверив.
+ */
+function низыЭкрана(f: string): string {
+  const src = game(f);
+  const уник = new Set(propSpans(src, 'toolbar').map((sp) => развернуть(src, sp) || sp));
+  return [...уник].join('\n');
+}
+
 /** Есть ли у игры нижняя полоса. `toolbar={undefined}` — это её отсутствие. */
 function hasBottomStrip(f: string): boolean {
-  const span = propSpan(game(f), 'toolbar');
-  return span !== null && span.replace(/\s/g, '') !== '{undefined}';
+  const полосы = propSpans(game(f), 'toolbar');
+  return полосы.length > 0 && полосы.some((sp) => sp.replace(/\s/g, '') !== '{undefined}');
 }
 
 /**
@@ -129,7 +208,14 @@ const BOTTOM_IS_ANSWER: Record<string, string> = {
   // «чтобы поставить цифру, каждый раз листать вниз» закрыто. Низ = ввод цифры.
   'sudoku-fractal.tsx': 'цифровая панель (инструменты — в шапке с 28.08) — ответ на текущую клетку',
   'sudoku-fractal-deep.tsx': 'цифровая клавиатура — ответ на клетку текущего узла дерева',
-  'anagrams.tsx': '«Отменить» и «Сброс» — правка ЧЕРНОВИКА набранного слова: снимают буквы, пока слово не сдано; игры не трогают',
+  'anagrams.tsx':
+    'ЧЕТЫРЕ РЕЖИМА, и низ у всех — ответ. Классика: «Отменить» и «Сброс» правят ЧЕРНОВИК ' +
+    'набранного слова — снимают буквы, пока слово не сдано, игры не трогают. «Найди все слова» ' +
+    'и кроссворд: «Сброс» (тот же черновик) и «Проверить» (сдача ответа). «Слово-квадрат»: низа ' +
+    'НЕТ вовсе — слово сдаётся само на пятой букве, кнопки ответа не нужно. ' +
+    '07.09.2026 три режима перестали рисовать кнопки под полем и отдают управление каркасу ' +
+    '(`onУправление` → `toolbar` и `headerActions`): до этого ряд из четырёх занимал 519 точек ' +
+    'при экране 375 и две кнопки обрезались краем.',
   'ant.tsx': 'стрелки ← → — сам ответ на пробу сети внимания',
   'bart.tsx': '«Накачать» и «Забрать» — два единственных решения игрока в BART',
   'chess-blind.tsx': 'варианты фигуры — ответ на вопрос о клетке доски',
@@ -242,7 +328,9 @@ const AUX_IN_BOTTOM: Record<string, number> = {
 };
 
 const AUX_IN_HEADER: Record<string, number> = {
-  'anagrams.tsx': 1,        // подсказка (только при включённом тумблере)
+  'anagrams.tsx': 3,   // классика рисует свою кнопку сама, ещё две — в общей памятке трёх режимов        // подсказка (в классике — при включённом тумблере) + перемешивание
+                            // «Найди все слова». Оба служебные: подсказка растит счётчик, а
+                            // перемешивание меняет порядок плиток — черновика ответа не трогают.
   'breathing.tsx': 1,       // СТОП
   'cpt.tsx': 1,             // СТОП
   'dots-connect.tsx': 2,    // открыть одну пару (дешёвая) + показать решение (дорогая)
@@ -376,7 +464,7 @@ describe('смысл слотов каркаса', () => {
    */
   it('🔴 общая кнопка служебного действия не стоит в нижней полосе', () => {
     const bad = SHELL_GAMES
-      .filter((f) => (propSpan(game(f), 'toolbar') || '').includes('GameAuxAction'))
+      .filter((f) => низыЭкрана(f).includes('GameAuxAction'))
       .map((f) => `${f}: GameAuxAction внутри toolbar — служебное действие снова внизу`);
     expect(bad).toEqual([]);
   });
@@ -399,7 +487,7 @@ describe('смысл слотов каркаса', () => {
     for (const f of SHELL_GAMES) {
       const src = game(f);
       if (!/bottom="actions"/.test(src)) continue;
-      if (propSpan(src, 'toolbar')) {
+      if (propSpans(src, 'toolbar').length > 0) {
         bad.push(`${f}: объявлен bottom="actions", но у игры есть toolbar — ответ и служебное окажутся в одной полосе`);
       }
       if (!BOTTOM_IS_ANSWER[f] && !BOTTOM_IS_EMPTY[f]) {
@@ -418,7 +506,7 @@ describe('смысл слотов каркаса', () => {
     const bad: string[] = [];
     for (const f of SHELL_GAMES) {
       if (DEBT[f]) continue;                       // известное нарушение, отдельная проверка ниже
-      const span = propSpan(game(f), 'toolbar');
+      const span = низыЭкрана(f);
       if (!span) continue;
       for (const key of Object.keys(AUX_KEYS)) {
         if (!span.includes(`t('${key}')`)) continue;
@@ -432,7 +520,7 @@ describe('смысл слотов каркаса', () => {
   it('🔴 долг не протух: записанное нарушение всё ещё существует', () => {
     const stale: string[] = [];
     for (const f of Object.keys(DEBT)) {
-      const span = propSpan(game(f), 'toolbar') || '';
+      const span = низыЭкрана(f);
       const has = Object.keys(AUX_KEYS).some((k) => span.includes(`t('${k}')`));
       if (!has) stale.push(`${f}: служебного внизу больше нет — убери строку из DEBT`);
     }
@@ -442,7 +530,7 @@ describe('смысл слотов каркаса', () => {
   it('исключение «правка черновика» не протухло', () => {
     const stale: string[] = [];
     for (const [f, keys] of Object.entries(DRAFT_EDIT_OK)) {
-      const span = propSpan(game(f), 'toolbar') || '';
+      const span = низыЭкрана(f);
       for (const k of Object.keys(keys)) {
         if (!span.includes(`t('${k}')`)) stale.push(`${f}: «${k}» внизу больше нет — убери из DRAFT_EDIT_OK`);
       }
@@ -457,9 +545,14 @@ describe('смысл слотов каркаса', () => {
   it('🔴 перенесённое служебное действительно оказалось в headerActions', () => {
     const bad: string[] = [];
     for (const [f, count] of Object.entries(AUX_IN_HEADER)) {
-      const span = propSpan(game(f), 'headerActions');
-      if (!span) { bad.push(`${f}: заявлены служебные действия, а headerActions каркасу не передан`); continue; }
-      const drawn = (span.match(/<GameAuxAction\b/g) || []).length;
+      const src = game(f);
+      const прямые = propSpans(src, 'headerActions');
+      if (прямые.length === 0) { bad.push(`${f}: заявлены служебные действия, а headerActions каркасу не передан`); continue; }
+      // Проп может быть ссылкой на памятку — идём за ней, иначе экран «исчезает».
+      // Одну памятку переиспользуют несколько режимов: считаем её РАЗ, по тексту.
+      const уникальные = new Set(прямые.map((sp) => развернуть(src, sp) || sp));
+      let drawn = 0;
+      for (const span of уникальные) drawn += (span.match(/<GameAuxAction\b/g) || []).length;
       if (drawn !== count) bad.push(`${f}: в шапке ${drawn} служебных кнопок, в реестре ${count}`);
     }
     expect(bad).toEqual([]);
