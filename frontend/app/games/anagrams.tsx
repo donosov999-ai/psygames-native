@@ -122,7 +122,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 export default function AnagramGame() {
   const { colors } = useTheme();
-  const { t, language } = useLanguage();
+  const { t, language, ready: языкГотов } = useLanguage();
   const width = useScreenWidth();   // сторона круга букв считается от ширины экрана
   /**
    * 🔴 ЯЗЫК СЛОВ ОТДЕЛЬНО ОТ ЯЗЫКА МЕНЮ. Отчёт Дениса 05.09.2026: «надо
@@ -586,7 +586,28 @@ export default function AnagramGame() {
     онбординг) играл ПЕРВЫЙ уровень человеку с двенадцатым — уровень приезжает
     асинхронно, а эффект монтирования всегда раньше промиса.
   */
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame());
+/**
+   * 🔴 АВТОСТАРТ ЖДЁТ И ЯЗЫК, А НЕ ТОЛЬКО УРОВЕНЬ.
+   *
+   * 📍 Репорт Дениса 07.09.2026: «зарядка, после первого упражнения ошибка по
+   * словам». Воспроизведено на /games/anagrams?wu=1&diff=medium&length=5 —
+   * интерфейс русский, а слово английское: TRUCK с подсказкой «big goods
+   * vehicle». Вручную тот же экран даёт русские слова.
+   *
+   * ПРИЧИНА — ДВЕ АСИНХРОННЫЕ ЦЕПОЧКИ, а ждали одну. `LanguageContext` стартует
+   * с `'en'` (LanguageContext.tsx:3395) и доезжает до настоящего языка промисом;
+   * `useWordLanguage` берёт язык слов от него же. Автостарт ждал только
+   * `lvl.loaded` и успевал сработать раньше — банк собирался английским, а
+   * когда язык доезжал, партия УЖЕ ШЛА и не пересобиралась.
+   *
+   * ⚠️ Ждать `wordLang.ready` в одиночку мало: он поднимается и на английском
+   * значении по умолчанию, если язык интерфейса к тому моменту не доехал. Нужны
+   * ОБА признака — иначе гонка та же, только уже.
+   */
+  useAutostartWhenReady(
+    () => autostart && lvl.loaded && языкГотов && wordLang.ready,
+    () => startGame(),
+  );
 
   const finish = async () => {
     clearAllTimers();
