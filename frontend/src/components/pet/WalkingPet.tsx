@@ -32,6 +32,10 @@ import {
 import { petLook, type PetLook } from '@/src/services/petLook';
 import type { PetLine, PetSkill } from '@/src/services/petLines';
 import { getSessions } from '@/src/services/api';
+import { useProfileOptional } from '@/src/contexts/ProfileContext';
+import { dayKey, loadDayMarks, streakFromDays } from '@/src/services/earn';
+import { askReason, goalProgress, loadGoalAskedAt, loadStreakGoal, noticeReached } from '@/src/services/streakGoal';
+import { greetedToday, loadGreetedDay, markGreeted, pickGreeting } from '@/src/services/petGreeting';
 import { GAMES } from '@/src/constants/games';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 
@@ -50,6 +54,23 @@ const SPEECH_SHOW = 4000;
 let lastSpokeAt = 0;
 const FIRST_SPEECH_MIN = 4000;   // самая первая фраза за сессию — быстро, не через 20-40 с
 const FIRST_SPEECH_SPAN = 4000;
+
+/**
+ * ВСТРЕЧА ПРИ ЗАХОДЕ (блок 3 плана вовлечённости, 07.09.2026).
+ *
+ * 🔴 ПОЧЕМУ ОНА ВООБЩЕ НУЖНА. Болтовня выше приходит через 20-40 с — то есть в
+ * момент прихода питомец МОЛЧИТ, а заговаривает, когда человек уже листает.
+ * Момент открытия — единственный, когда он смотрит на экран и ничего ещё не
+ * делает. Что сказать и когда промолчать — решает `petGreeting`, здесь только
+ * повод и показ.
+ *
+ * ⚠️ ДВА ЗАСЛОНА, И ОБА НУЖНЫ. Отметка в хранилище держит «не чаще раза в
+ * сутки» между запусками приложения; этот флаг — внутри одного запуска, потому
+ * что эффект ниже перезапускается на КАЖДОЙ навигации, а запись отметки
+ * асинхронна: без флага две быстрые навигации успели бы поздороваться дважды.
+ */
+let greetedThisRun = false;
+const GREET_SHOW = 6000;
 
 /**
  * Подъём над нижним тулбаром.
@@ -75,6 +96,25 @@ export default function WalkingPet() {
   const { language, t } = useLanguage();
   const { width } = useWindowDimensions();
   const pathname = usePathname() || '';
+
+  /**
+   * 🔴 МЯГКАЯ ФОРМА, А НЕ `useProfile`. Правило записано в самом
+   * `ProfileContext`: то, что рисует, а не решает, обязано переживать отсутствие
+   * провайдера. Питомец — украшение поверх всех экранов; уронить приложение
+   * из-за того, что ему не с кем поздороваться, значит поменять беду на беду.
+   */
+  const профиль = useProfileOptional();
+  const profileIdRef = React.useRef<string | null>(профиль?.profile.id ?? null);
+  React.useEffect(() => { profileIdRef.current = профиль?.profile.id ?? null; }, [профиль]);
+  /**
+   * До какого момента пузырь ЗАНЯТ важной репликой (встреча, праздник рекорда).
+   *
+   * ⚠️ Чинит и старую беду: праздник рекорда держит пузырь 5 с с отметки 1,3 с,
+   * а первая болтовня приходит на 4-8 с — то есть поздравление с личным
+   * рекордом молча затиралось обычной фразой примерно в половине случаев.
+   * Заметил, когда ставил встречу в тот же пузырь.
+   */
+  const busyUntilRef = React.useRef(0);
 
   const [petOn, setPetOn] = React.useState(true);
   const [skin, setSkin] = React.useState<PetSkin>('cat');
@@ -161,24 +201,63 @@ export default function WalkingPet() {
       .catch(() => {});
   }, [pathname]);
 
-  // Праздник рекорда: api.saveSession оставил маркер → на первой же навигации
-  // после игры питомец прыгает и хвалит, не дожидаясь таймера болтовни.
+  /**
+   * Первое слово после прихода: сначала праздник рекорда, потом встреча.
+   *
+   * 🔴 ОДИН ТАЙМЕР НА ДВА ПОВОДА, А НЕ ДВА ПАРАЛЛЕЛЬНЫХ. Пузырь один, и два
+   * независимых эффекта дрались бы за него: кто позже поставил, тот и виден.
+   * Порядок задан явно — рекорд сильнее: человек только что вышел из игры и
+   * ждёт именно поздравления, а встреча подождёт до следующего захода.
+   */
   React.useEffect(() => {
     if (!active) return;
     let alive = true;
     const id = setTimeout(async () => {
-      if (!alive || !(await consumeRecentRecord())) return;
       if (!alive) return;
-      /**
-       * ПРАЗДНИК РЕКОРДА — состояние `celebrate` (задача 00218752). Своих кадров у
-       * него пока нет ни в одном паке, и `PetSprite` сам подставляет `jump`. Но
-       * НАЗЫВАЕТСЯ событие теперь правильно: появятся кадры — праздник заиграет
-       * сам, без правки этого файла. Раньше «подключить за час» означало найти три
-       * таких места и не забыть ни одного.
-       */
-      setSprite('celebrate');
-      setBubble({ text: pickRecordLine(langRef.current).text });
-      setTimeout(() => { if (alive) { setSprite('idle'); setBubble(null); } }, 5000);
+      if (await consumeRecentRecord()) {
+        if (!alive) return;
+        /**
+         * ПРАЗДНИК РЕКОРДА — состояние `celebrate` (задача 00218752). Своих кадров у
+         * него пока нет ни в одном паке, и `PetSprite` сам подставляет `jump`. Но
+         * НАЗЫВАЕТСЯ событие теперь правильно: появятся кадры — праздник заиграет
+         * сам, без правки этого файла. Раньше «подключить за час» означало найти три
+         * таких места и не забыть ни одного.
+         */
+        setSprite('celebrate');
+        setBubble({ text: pickRecordLine(langRef.current).text });
+        busyUntilRef.current = Date.now() + 5000;
+        setTimeout(() => { if (alive) { setSprite('idle'); setBubble(null); } }, 5000);
+        return;
+      }
+      if (!alive || greetedThisRun) return;
+      const pid = profileIdRef.current;
+      if (!pid) return;
+      // Сначала самая дешёвая проверка: сегодня уже здоровались?
+      const было = await loadGreetedDay(pid);
+      const сейчас = new Date();
+      if (!alive) return;
+      if (greetedToday(было, сейчас)) { greetedThisRun = true; return; }
+      const [цель, метки, спрошено] = await Promise.all([
+        loadStreakGoal(pid), loadDayMarks(pid), loadGoalAskedAt(pid),
+      ]);
+      if (!alive) return;
+      const серия = streakFromDays(метки, сейчас);
+      const g = цель ? noticeReached(цель, серия, сейчас) : null;
+      const реплика = pickGreeting(langRef.current, {
+        // 🔴 Окно цели говорит на том же экране. Повод у него сильнее — питомец
+        // молчит, чтобы не выходило два голоса разом (разбор в petGreeting.ts).
+        ask: askReason({ goal: g, streak: серия, lastAskedAt: спрошено, now: сейчас }),
+        progress: goalProgress(g, серия),
+        playedToday: метки.includes(dayKey(сейчас)),
+      });
+      if (!реплика) return;
+      greetedThisRun = true;
+      await markGreeted(pid, сейчас);
+      if (!alive) return;
+      setSprite(реплика.state);
+      setBubble({ text: реплика.text });
+      busyUntilRef.current = Date.now() + GREET_SHOW;
+      setTimeout(() => { if (alive) { setSprite('idle'); setBubble(null); } }, GREET_SHOW);
     }, 1300);
     return () => { alive = false; clearTimeout(id); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -299,6 +378,13 @@ export default function WalkingPet() {
     };
 
     const speak = () => {
+      /*
+       * Важная реплика ещё на экране — болтовня ЖДЁТ, а не перебивает. Без этой
+       * строки поздравление с личным рекордом (5 с с отметки 1,3 с) и встреча
+       * при заходе затирались обычной фразой, которая приходит на 4-8 с.
+       */
+      const занято = busyUntilRef.current - Date.now();
+      if (занято > 0) { later(speak, занято + 500); return; }
       const last = lastSessionAtRef.current;
       const line: PetLine = pickPetLine(langRef.current, {
         hour: new Date().getHours(),
