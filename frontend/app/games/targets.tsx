@@ -5,7 +5,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  useWindowDimensions,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +17,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { AnswerBar } from '@/src/games/attention/AnswerBar';
 import { answerButton } from '@/src/games/attention/layout';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { commissionRate } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -147,7 +147,9 @@ export default function TargetsGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  // 07.09.2026: размер берём защищённым хуком — голый useWindowDimensions()
+  // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
+  const width = useScreenWidth();
   const КНОПКА = answerButton('single', width);
 
   const { isPreset, autostart, str, num, isCalm } = useGamePreset();
