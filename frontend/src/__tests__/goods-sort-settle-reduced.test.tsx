@@ -200,13 +200,20 @@ describe('оседание столбца слушает щадящий режи
           && new RegExp(`, (Полка|Shelf) ${номер}$`).test(String(n.props?.accessibilityLabel ?? '')));
         return все[все.length - 1];
       };
-      const ход = async (a: number, b: number) => {
+      /*
+       * ⚠️ Выбор — один раз на источник, дальше только цели: негодная цель стоит
+       * один рендер экрана вместо двух. Без этого набор шёл 300 с в общем
+       * прогоне и облагал налогом все чаты.
+       */
+      const выбрать = async (a: number) => {
         await TestRenderer.act(async () => { верхнийТовар(a)?.props.onPress?.(); });
+      };
+      const положить = async (b: number) => {
         await TestRenderer.act(async () => { полка(r, b)?.props.onPress?.(); });
         сдвигов += r.root.findAll((n: any) => typeof n.type !== 'string'
           && n.props?.testID === 'niche-settle').length;
-        await TestRenderer.act(async () => { for (let k = 0; k < 5; k += 1) await Promise.resolve(); });
       };
+      const ход = async (a: number, b: number) => { await выбрать(a); await положить(b); };
 
       for (let шаг = 0; шаг < 120 && !закрылась; шаг += 1) {
         const сп = подписи(r);
@@ -216,10 +223,12 @@ describe('оседание столбца слушает щадящий режи
         for (let a = 0; a < сп.length && !сделал; a += 1) {
           const t = верх(сп[a] as string);
           if (!t) continue;
-          for (let b = 0; b < сп.length && !сделал; b += 1) {
-            if (a === b || верх(сп[b] as string) !== t) continue;
-            await ход(ном[a] as number, ном[b] as number);
-            сделал = подписи(r).join('|') !== было;
+          const цели = сп.map((s, i) => (i !== a && верх(s) === t ? i : -1)).filter((i) => i >= 0);
+          if (!цели.length) continue;
+          await выбрать(ном[a] as number);
+          for (const b of цели) {
+            await положить(ном[b] as number);
+            if (подписи(r).join('|') !== было) { сделал = true; break; }
           }
         }
         if (!сделал) {
