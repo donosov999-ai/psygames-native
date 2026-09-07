@@ -19,7 +19,7 @@ import { Chess } from 'chess.js';
 
 import { CHESS_PIECE_SVG } from '@/src/games/chess-blind/core/pieces';
 import { a11yDecor } from '@/src/services/a11y';
-import { buildDeck, buildFlowDeck, buildNamedDeck, levelParams } from './core/deck';
+import { buildDeck, buildFlowDeck, buildMixedMotifDeck, buildNamedDeck, levelParams } from './core/deck';
 import { check, movesFrom, shownFen, sideToMove, threatAnswer, дополнитьХод } from './core/check';
 import { scholarsArmed, медианаМс, прятатьВид, размерКлетки, ширинаДоски } from './core/run';
 import type { ScholarsAttempt, ScholarsResult } from './core/types';
@@ -67,6 +67,16 @@ export interface ScholarsMateGameProps {
   onlyKind?: 'mate' | 'defend' | 'threat' | 'fromGames' | 'sacrifice';
   /** Отрабатывать один именованный узор (выпадающий список на экране настройки). */
   namedMotif?: string;
+  /**
+   * 🔴 МИКС УЗОРОВ — «какой тут вообще мат?». Просьба Дениса 07.09.2026: в потоке
+   * подавать не один приём, а случайно любой из имеющихся, «тренировка на
+   * реакцию — увидеть, какой мат доступен».
+   *
+   * Отличие от `namedMotif` не в пуле, а в ЗАДАЧЕ: там человек знает, что ищет, и
+   * меряется скорость исполнения; здесь он не знает, и первым делом должен узнать
+   * картинку среди девятнадцати. Поэтому имя узора до ответа скрыто.
+   */
+  mixedMotifs?: boolean;
   labels: {
     mate: string; defend: string; threat: string; sacrifice: string;
     yes: string; no: string; best: string; timeUp: string; sec: string;
@@ -76,6 +86,7 @@ export interface ScholarsMateGameProps {
 
 export default function ScholarsMateGame({
   level, seed = 1, size, theme, now, onComplete, onProgress, labels, flowMs, motifName, onlyKind, namedMotif,
+  mixedMotifs,
 }: ScholarsMateGameProps) {
   const п = React.useMemo(() => levelParams(level), [level]);
   /**
@@ -83,6 +94,10 @@ export default function ScholarsMateGame({
    * между ними. Десять минут при секунде-двух на позицию — это сотни позиций.
    */
   const колода = React.useMemo(() => {
+    if (mixedMotifs) {
+      // Микс: узоры вперемешку. В потоке набор длинный, иначе обычный подход.
+      return buildMixedMotifDeck(level, seed, flowMs ? 200 : undefined);
+    }
     if (namedMotif) {
       // Отработка одного узора: в потоке — длинный набор, иначе обычный подход.
       return buildNamedDeck(namedMotif, level, seed, flowMs ? 200 : undefined);
@@ -94,7 +109,7 @@ export default function ScholarsMateGame({
      * первой молча. Однородность по цвету и добор наборов — там же.
      */
     return buildFlowDeck(level, seed, flowMs, onlyKind);
-  }, [level, seed, flowMs, onlyKind, namedMotif]);
+  }, [level, seed, flowMs, onlyKind, namedMotif, mixedMotifs]);
   const началоПотока = React.useRef(0);
 
   const [шаг, setШаг] = React.useState(0);
@@ -369,8 +384,15 @@ export default function ScholarsMateGame({
         что узоры и правда были одни; вторая — в том, что человек не видел их
         имени и не мог заметить, когда пришёл новый.
       */}
+      {/*
+        🔴 В МИКСЕ ИМЯ УЗОРА ДО ОТВЕТА СКРЫТО. Иначе подпись «Арабский мат» выдаёт
+        ответ, и от «увидеть, какой мат доступен» не остаётся ничего. Место при
+        этом занято всегда — иначе доска прыгала бы вверх-вниз на каждой позиции.
+      */}
       {задача.motif && motifName ? (
-        <Text style={[стили.узор, { color: theme.textSecondary }]}>{motifName(задача.motif)}</Text>
+        <Text style={[стили.узор, { color: theme.textSecondary }]}>
+          {mixedMotifs && !вердикт ? ' ' : motifName(задача.motif)}
+        </Text>
       ) : null}
 
       {/* Полоса времени — она и есть предмет упражнения, поэтому крупная. */}
