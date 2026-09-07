@@ -54,7 +54,7 @@ import GameShell, { PAD_H } from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
-import FacesNamesGame from '@/src/games/faces-names/FacesNamesGame';
+import FacesNamesGame, { FacesNamesAnswerBar, type FacesNamesAnswer } from '@/src/games/faces-names/FacesNamesGame';
 import {
   getFacesNamesStrings,
   isPassed,
@@ -202,6 +202,46 @@ export default function FacesNamesScreen() {
   /** Уйти в экран настройки — сюда ведёт и «назад» каркаса, и конец партии. */
   const leaveToConfig = React.useCallback(() => { setArmed(false); setPhase('config'); }, []);
 
+  /**
+   * 🔴 ОТВЕТ ИГРОКА ЖИВЁТ В КАРКАСЕ. Модуль отдаёт описание ответа текущей фазы,
+   * а рисуем мы его в слоте `toolbar` — там низ панели прижат каркасом
+   * (`paddingBottom: Math.max(insets.bottom, 10)`), и при переходе между играми
+   * «Зарядки» кнопка не уезжает. Замер 07.09.2026: внутри каркаса низ 812 у всех
+   * 39 игр, вне каркаса — 461…1530. Подробности — в шапке `FacesNamesGame.tsx`.
+   *
+   * `setAnswer` отдаём модулю НАПРЯМУЮ: сеттер состояния стабилен по ссылке, а
+   * стрелка на его месте меняла бы зависимость эффекта каждый рендер.
+   */
+  /**
+   * Тему отдаём ЦЕЛИКОМ, а не три цвета: у модуля палитра по умолчанию светлая,
+   * а у нас есть тёмные профили — недокрашенная игра была бы белым пятном
+   * посреди тёмного приложения. Один объект на партию и на полосу ответа: два
+   * литерала рядом рано или поздно разъедутся, и кнопка в каркасе оказалась бы
+   * другого цвета, чем такая же кнопка внутри партии.
+   */
+  const gameTheme = React.useMemo(() => ({
+    background: colors.background,
+    surface: colors.surface,
+    card: colors.surface,
+    text: colors.text,
+    textSecondary: colors.textSecondary,
+    border: colors.border,
+    /**
+     * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им главные
+     * кнопки партии. Отдай сюда `colors.primary` — внутри игры кнопки станут
+     * акцентом профиля (оранжевым, синим — каким угодно), а снаружи, на экране
+     * настроек, останется градиент игры: один экран, две разные схемы.
+     */
+    primary: GRADIENT[0],
+    /** Текст на этой кнопке — тот же, что и на плашке: посчитан, а не «белый». */
+    onPrimary: ON_GRAD.color,
+    success: colors.success,
+    error: colors.error,
+    warning: colors.warning,
+  }), [colors]);
+
+  const [answer, setAnswer] = React.useState<FacesNamesAnswer | null>(null);
+
   if (phase === 'playing') {
     return (
       /**
@@ -220,6 +260,13 @@ export default function FacesNamesScreen() {
          * набор выпадет тот же, а вот минута запоминания не вернётся.
          */
         confirmExit={armed}
+        toolbar={answer ? (
+          <FacesNamesAnswerBar
+            answer={answer}
+            locale={asLocale(language)}
+            theme={gameTheme}
+          />
+        ) : undefined}
       >
         <View style={styles.stage}>
           <FacesNamesGame
@@ -233,36 +280,12 @@ export default function FacesNamesScreen() {
              * по умолчанию — забыть эту строку нельзя, тип не даст.
              */
             now={gameNow}
-            /**
-             * Тему отдаём ЦЕЛИКОМ, а не три цвета: у модуля палитра по умолчанию
-             * светлая, а у нас есть тёмные профили — недокрашенная игра была бы
-             * белым пятном посреди тёмного приложения.
-             */
-            theme={{
-              background: colors.background,
-              surface: colors.surface,
-              card: colors.surface,
-              text: colors.text,
-              textSecondary: colors.textSecondary,
-              border: colors.border,
-              /**
-               * 🔴 primary = ЦВЕТ ИГРЫ, а не акцент профиля. Модуль красит им
-               * главные кнопки партии. Отдай сюда `colors.primary` — внутри игры
-               * кнопки станут акцентом профиля (оранжевым, синим — каким угодно),
-               * а снаружи, на экране настроек, останется градиент игры: один
-               * экран, две разные схемы.
-               */
-              primary: GRADIENT[0],
-              /** Текст на этой кнопке — тот же, что и на плашке: посчитан, а не «белый». */
-              onPrimary: ON_GRAD.color,
-              success: colors.success,
-              error: colors.error,
-              warning: colors.warning,
-            }}
+            theme={gameTheme}
             gameGradient={GRADIENT as [string, string]}
             gameGradientText={ON_GRAD.color}
             onComplete={onComplete}
             onProgress={setArmed}
+            onAnswer={setAnswer}
             /**
              * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Его кнопки
              * «Выход» (на правилах и на своей паузе) уводили бы МИМО вопроса при
