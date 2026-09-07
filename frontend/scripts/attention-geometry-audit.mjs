@@ -1,0 +1,270 @@
+/* psygames-attention-geometry-audit · VER 1 · 07.09.2026 */
+/**
+ * ГЕОМЕТРИЯ РАЗДЕЛА «КОНФЛИКТ ВНИМАНИЯ» ОДНА НА ВСЕ ДЕСЯТЬ ПРОБ.
+ *
+ * 🔴 ЗАЧЕМ. В «Зарядке» пробы идут вперемешку: то один Струп, то другой, то
+ * фланкер, то Саймон. Если у каждой свои размеры, интерфейс дёргается между
+ * пробами, и это раздражает сильнее самой задачи. Замер 07.09.2026 до сведения
+ * (390×844, каждая проба в партии):
+ *
+ *   высота полосы ответа   85…281 px   разброс 196
+ *   центр окна стимула     403…504     разброс 101
+ *   высота окна стимула    120…358     разброс 238
+ *
+ * Самый наглядный случай — два Струпа подряд: обычный давал полосу 281 px и
+ * ЧЕТЫРЕ ряда кнопок, эмоциональный 127 px и два. Экран прыгал на 154 px между
+ * пробами ОДНОЙ методики. После сведения: полоса 141 у всех, центр 387…414.
+ *
+ * ⚠️ ПОЧЕМУ ГЕЙТ, А НЕ «БУДУ АККУРАТЕН». Разброс копился незаметно и всплыл
+ * только когда человек посмотрел скриншоты. Любая следующая правка любого из
+ * десяти экранов вернёт его тем же способом — и заметит это снова человек.
+ *
+ * Устройство взято у `scripts/pan-audit.mjs`: там каждый приём появился после
+ * конкретного провала, и переизобретать их заново значило бы наступить на те же
+ * грабли. Взяты: самопроверка инструмента, «не проверено» как ПРОВАЛ, замеры с
+ * повтором, маршруты с диска, вход в партию по положительному признаку.
+ *
+ * 🔴 ГЕЙТ ПОКА НЕ ВСТРОЕН В СБОРКУ, И ЭТО ЕГО ГЛАВНАЯ СЛАБОСТЬ. В этом же
+ * репозитории так уже было: два аудита лежали в scripts/ и не были включены ни в
+ * одну джобу — проверяли руками, следующая правка тихо возвращала беду (см.
+ * `src/__tests__/leaderboard-server-rules.test.ts`, шапка). Шаг для джобы
+ * `web-gates` в `.github/workflows/build.yml`, после `pan-audit`:
+ *
+ *     - name: Геометрия раздела «Конфликт внимания» едина
+ *       working-directory: frontend
+ *       run: node scripts/attention-geometry-audit.mjs --base=http://127.0.0.1:8127
+ *
+ * `build.yml` — общий слой выпуска, правка не моя: заявка координатору от
+ * 07.09.2026. Следом за встраиванием сюда встаёт тест-спутник по образцу
+ * `leaderboard-server-rules.test.ts` — тот проверяет, что шаг реально стоит в
+ * сборке, «иначе он просто лежит в репозитории».
+ */
+import { chromium } from 'playwright';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+const args = Object.fromEntries(
+  process.argv.slice(2).map((a) => a.replace(/^--/, '').split('=')).map(([k, v]) => [k, v ?? '1']),
+);
+const BASE = args.base ?? 'http://127.0.0.1:8127';
+const ONLY = args.only ? args.only.split(',').map((s) => s.trim()) : null;
+
+/**
+ * Телефон замера. 390×844 — тот же, на котором снимались все числа выше.
+ * ⚠️ Размер задаётся ЯВНО и печатается в отчёт: 07.09 замер в свёрнутой панели
+ * браузера дал clientWidth = 0, вся раскладка схлопнулась, и вышел ложный
+ * «дефект» с квадратами за левым краем. Замер без объявленного окна — не замер.
+ */
+const W = 390;
+const H = 844;
+
+/** Десять проб раздела: пять карточек развилки + пять режимов внутри наборов. */
+const РАЗДЕЛ = [
+  'stroop', 'flanker', 'cpt', 'targets', 'wcst',
+  'stroop-emotional', 'simon', 'choice-rt', 'ant', 'switching-task',
+];
+
+/**
+ * ДОПУСКИ. Не «красивые» числа, а то, что уже достигнуто, плюс запас на
+ * округление браузера. Ужимать их ниже достигнутого нельзя — гейт начнёт
+ * мигать; ослаблять тоже нельзя, иначе он перестанет ловить возврат разнобоя.
+ */
+const ДОПУСК_ПОЛОСЫ = 4;    // сейчас разброс 0 (141 у всех)
+const ДОПУСК_ЦЕНТРА = 40;   // сейчас разброс 27
+
+/**
+ * ИЗВЕСТНЫЙ ДОЛГ. Формат `{ max, why }`, обоснование не короче 25 символов —
+ * приём из `tap-target-audit.mjs`, где исключение без объяснения валит аудит.
+ * Пусто и должно оставаться пустым: геометрия сведена целиком, и первая же
+ * запись здесь будет означать, что раздел снова разъехался.
+ */
+const ДОЛГ = {};
+
+const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+
+async function маршруты() {
+  // С ДИСКА, а не из списка в коде: список в скрипте молча устаревает, когда
+  // в разделе появляется новая проба (у меня зона выросла с 5 до 10 за день).
+  const файлы = await fs.readdir(path.join(ROOT, 'app/games'));
+  const есть = new Set(файлы.filter((f) => f.endsWith('.tsx')).map((f) => f.replace(/\.tsx$/, '')));
+  const пропали = РАЗДЕЛ.filter((g) => !есть.has(g));
+  if (пропали.length) {
+    console.log(`🔴 экранов раздела нет на диске: ${пропали.join(', ')} — список устарел`);
+    process.exit(1);
+  }
+  const выбор = ONLY ? РАЗДЕЛ.filter((g) => ONLY.includes(g)) : РАЗДЕЛ;
+  if (!выбор.length) { console.log('🔴 пустой выбор маршрутов'); process.exit(1); }
+  return выбор;
+}
+
+const ВХОД = /(?:^|[^\p{L}])(начать|start|старт|играть|play)(?![\p{L}])/iu;
+
+/** Признаки того, что партия ИДЁТ — положительные, а не «настроек не видно». */
+const В_ПАРТИИ = () => !!document.querySelector('[data-testid="game-toolbar"], [data-testid="game-aux"]')
+  && !/Об игре|About Game|Готовы\?/.test(document.body.innerText);
+
+async function войти(page) {
+  for (let попытка = 0; попытка < 3; попытка++) {
+    if (await page.evaluate(В_ПАРТИИ)) return true;
+    await page.evaluate((re) => {
+      const rx = new RegExp(re, 'iu');
+      const все = [...document.querySelectorAll('*')].filter((e) => e.children.length === 0 && rx.test(e.textContent || ''));
+      let n = все[все.length - 1];
+      for (let i = 0; i < 6 && n; i++) {
+        if (n.onclick || n.getAttribute('role') === 'button' || n.tagName === 'BUTTON') { n.click(); return; }
+        n = n.parentElement;
+      }
+    }, ВХОД.source).catch(() => {});
+    await page.waitForTimeout(1300);
+  }
+  return page.evaluate(В_ПАРТИИ);
+}
+
+/** Снимок геометрии одной пробы. Возвращает null, если мерить нечего. */
+const снять = () => {
+  const bar = document.querySelector('[data-testid="game-toolbar"]');
+  const br = bar ? bar.getBoundingClientRect() : null;
+  const низПоля = br ? br.top : window.innerHeight;
+  const кандидаты = [...document.querySelectorAll('*')]
+    .map((el) => ({ r: el.getBoundingClientRect(), s: getComputedStyle(el) }))
+    .filter((o) => o.r.top > 200 && o.r.bottom <= низПоля + 2 && o.r.width > 150 && o.r.height > 60
+      && o.s.backgroundColor && o.s.backgroundColor !== 'rgba(0, 0, 0, 0)');
+  кандидаты.sort((a, b) => b.r.width * b.r.height - a.r.width * a.r.height);
+  const box = кандидаты[0] ? кандидаты[0].r : null;
+  return {
+    полоса: br ? Math.round(br.height) : null,
+    центр: box ? Math.round(box.y + box.height / 2) : null,
+    окно: [document.documentElement.clientWidth, document.documentElement.clientHeight],
+    упал: /Что-то сломалось|is not defined|Something went wrong/.test(document.body.innerText),
+  };
+};
+
+/**
+ * ЗАМЕР С ПОВТОРОМ. Разметка на первых кадрах переходная: коробка успевает
+ * появиться раньше, чем полоса, и одиночный снимок ловит промежуточное
+ * состояние. Берём совпавшие подряд значения — приём из `pan-audit`
+ * (`устойчивоеПереполнение`), где гейт ловил маджонг на переходных 142 px.
+ */
+async function устойчиво(page) {
+  let прошлый = null;
+  for (let i = 0; i < 5; i++) {
+    const т = await page.evaluate(снять);
+    if (прошлый && т.полоса === прошлый.полоса && т.центр === прошлый.центр) return т;
+    прошлый = т;
+    await page.waitForTimeout(400);
+  }
+  return прошлый;
+}
+
+/**
+ * 🔴 САМОПРОВЕРКА ИНСТРУМЕНТА. Сломанная мерилка не падает — она отчитывается
+ * «всё ровно» по всем десяти сразу, и это выглядит как успех, а не как своя
+ * поломка. Кормим страницу с ЗАРАНЕЕ ИЗВЕСТНОЙ геометрией и требуем, чтобы
+ * мерилка вернула ровно её. Не вернула — разбираться с инструментом, а не с играми.
+ */
+async function самопроверка(ctx) {
+  const page = await ctx.newPage();
+  await page.setContent(`<body style="margin:0;height:${H}px">
+    <div style="position:absolute;top:250px;left:15px;width:360px;height:300px;background:#eee"></div>
+    <div data-testid="game-toolbar" style="position:absolute;top:${H - 141}px;left:0;width:${W}px;height:141px;background:#ddd"></div>
+  </body>`);
+  await page.waitForTimeout(300);
+  const т = await page.evaluate(снять);
+  await page.close();
+  const ждём = { полоса: 141, центр: 400 };
+  if (т.полоса !== ждём.полоса || т.центр !== ждём.центр) {
+    console.log('\n🔴 ИНСТРУМЕНТ СЛОМАН: на странице с известной геометрией мерилка вернула не то.');
+    console.log(`   ждали полосу ${ждём.полоса} и центр ${ждём.центр}, получили ${т.полоса} и ${т.центр}.`);
+    console.log('   Проверка «геометрия одна» была бы зелена вслепую на любой пробе.');
+    process.exit(1);
+  }
+  console.log(`Самопроверка мерилки: на известной странице прочла полосу ${т.полоса} и центр ${т.центр} — инструмент работает.`);
+}
+
+async function main() {
+  const игры = await маршруты();
+  const browser = await chromium.launch();
+  const ctx = await browser.newContext({
+    viewport: { width: W, height: H },
+    hasTouch: true, isMobile: true, deviceScaleFactor: 2,
+    // Локаль — часть замера, а не удобство: русские подписи длиннее английских,
+    // и часть переносов существует только на русском (урок pan-audit).
+    locale: 'ru-RU',
+  });
+  await самопроверка(ctx);
+
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/games/stroop`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+  await page.evaluate(() => { try { localStorage.setItem('language', 'ru'); } catch (e) {} });
+
+  const итог = [];
+  for (const игра of игры) {
+    await page.goto(`${BASE}/games/${игра}`, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
+    await page.waitForTimeout(1500);
+    const вошли = await войти(page);
+    const т = вошли ? await устойчиво(page) : await page.evaluate(снять);
+    итог.push({ игра, вошли, ...т });
+  }
+  await browser.close();
+
+  console.log(`\n── Геометрия раздела «Конфликт внимания» на ${W}×${H}. Проб: ${итог.length}.\n`);
+  console.log('проба              состояние      полоса   центр');
+  for (const r of итог) {
+    const сост = r.упал ? '🔴 УПАЛ' : r.вошли ? 'в партии' : '⚠️ не вошли';
+    console.log(`${r.игра.padEnd(18)} ${сост.padEnd(14)} ${String(r.полоса ?? '—').padStart(6)} ${String(r.центр ?? '—').padStart(7)}`);
+  }
+
+  // «Не проверено» — это ПРОВАЛ, а не пропуск: молчаливая дыра выглядит как успех.
+  const слепые = итог.filter((r) => r.упал || !r.вошли || r.полоса === null);
+  const мерили = итог.filter((r) => !слепые.includes(r));
+
+  /**
+   * ⚠️ У ТРЁХ ПРОБ КОРОБКИ НЕТ ПО УСТРОЙСТВУ, И ГЕЙТ ОБЯЗАН ЭТО СКАЗАТЬ ВСЛУХ.
+   * Струп рисует слово прямо в поле, мишени раскладывают фигуры по площади,
+   * WCST показывает карточку — контейнера с фоном там нет, и центру взяться
+   * неоткуда. Молчаливое «—» в такой строке неотличимо от «мерил и не нашёл»,
+   * а это разные вещи: второе означало бы сломанную мерилку.
+   */
+  const безКоробки = мерили.filter((r) => r.центр === null).map((r) => r.игра);
+  if (безКоробки.length) {
+    console.log(`\nбез коробки стимула (в сверку центра не входят): ${безКоробки.join(', ')}`);
+    if (безКоробки.length > 3) {
+      console.log('🔴 таких проб стало больше трёх — либо коробку потеряли, либо мерилка её не видит');
+      process.exit(1);
+    }
+  }
+
+  const плохо = [];
+  if (мерили.length >= 2) {
+    const полосы = мерили.map((r) => r.полоса);
+    const центры = мерили.filter((r) => r.центр !== null).map((r) => r.центр);
+    const разброс = (a) => Math.max(...a) - Math.min(...a);
+    const рп = разброс(полосы);
+    const рц = центры.length >= 2 ? разброс(центры) : 0;
+    console.log(`\nразброс полосы  ${рп} px  (допуск ${ДОПУСК_ПОЛОСЫ})`);
+    console.log(`разброс центра  ${рц} px  (допуск ${ДОПУСК_ЦЕНТРА})`);
+    if (рп > ДОПУСК_ПОЛОСЫ) плохо.push(`полоса ответа разъехалась на ${рп} px при допуске ${ДОПУСК_ПОЛОСЫ}`);
+    if (рц > ДОПУСК_ЦЕНТРА) плохо.push(`центр окна стимула разъехался на ${рц} px при допуске ${ДОПУСК_ЦЕНТРА}`);
+  }
+
+  const должники = Object.keys(ДОЛГ).filter((k) => (ДОЛГ[k].why || '').length < 25);
+  if (должники.length) {
+    console.log(`\n🔴 Исключение без обоснования: ${должники.join(', ')} — впиши, ПОЧЕМУ, не короче 25 знаков.`);
+    process.exit(1);
+  }
+
+  if (слепые.length) {
+    console.log(`\n🔴 Не проверено ${слепые.length} — это и есть «зелёный вслепую»:`);
+    слепые.forEach((r) => console.log(`    ${r.игра}: ${r.упал ? 'экран упал' : 'не вошли в партию'}`));
+  }
+  if (плохо.length) {
+    console.log('\n🔴 Геометрия раздела разъехалась:');
+    плохо.forEach((p) => console.log(`    ${p}`));
+  }
+  if (!слепые.length && !плохо.length) {
+    console.log('\n✅ Полоса ответа и центр окна стимула держатся в допуске у всех проб раздела.');
+  }
+  process.exit(плохо.length || слепые.length ? 1 : 0);
+}
+
+main();
