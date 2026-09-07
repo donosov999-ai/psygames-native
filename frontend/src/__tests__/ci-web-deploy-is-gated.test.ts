@@ -45,6 +45,59 @@ function jobs(): Record<string, Job> {
 
 const src = () => fs.readFileSync(YML, 'utf8') as string;
 
+/**
+ * Тело каждой джобы БЕЗ КОММЕНТАРИЕВ. Комментарии срезаются до поиска: у
+ * `ios-release` в шапке тридцать строк рассказа про TestFlight и altool, и
+ * детектор по сырому тексту считал бы рассказ доставкой. Та же грабля за один
+ * день сработала дважды в других гейтах — `screen-width-guard` и
+ * `mahjong-stuck-exit` оба обвинили комментарий.
+ */
+function bodies(): Record<string, string> {
+  const out: Record<string, string> = {};
+  let cur: string | null = null;
+  for (const line of src().split('\n')) {
+    const head = line.match(/^ {2}([a-z0-9_-]+):\s*$/);
+    if (head) { cur = head[1]; out[cur] = ''; continue; }
+    if (!cur) continue;
+    if (/^ {2}\S/.test(line)) { cur = null; continue; }
+    if (/^\s*#/.test(line)) continue;
+    out[cur] += line + '\n';
+  }
+  return out;
+}
+
+/** Всё, на чём джоба стоит, включая зависимости зависимостей. */
+function closure(name: string, all = jobs(), seen = new Set<string>()): Set<string> {
+  for (const n of all[name]?.needs ?? []) {
+    if (!seen.has(n)) { seen.add(n); closure(n, all, seen); }
+  }
+  return seen;
+}
+
+/**
+ * Джобы, которые отгружают НАРУЖУ. Признак берётся из шагов, а не списком имён:
+ * новая джоба доставки попадёт под проверку без правки этого файла.
+ * ⚠️ `actions/upload-artifact` исключён нарочно — это артефакт ВНУТРИ прогона,
+ * его видят только следующие джобы, а не люди.
+ */
+function delivering(): string[] {
+  // Транспорты, которыми проект РЕАЛЬНО отгружает (проверено по build.yml
+  // 07.09.2026, а не выдумано): Apple — altool/notarytool, GitHub —
+  // action-gh-release, Google Play — deploy_play.js через googleapis, сервер —
+  // lftp по sftp. Список живой: появится новый транспорт — добавить сюда, а
+  // соседняя проба «детектор не ослеп» не даст ему проехать молча.
+  const знаки = new RegExp([
+    'altool', 'notarytool',                                  // Apple
+    'action-gh-release', 'gh release create',                // GitHub
+    'deploy_play', 'googleapis', 'androidpublisher',
+    'upload-google-play', 'fastlane', 'supply\\b',            // Google Play
+    'lftp', 'sftp:', 'rsync', 'scp ',                        // свой сервер
+  ].join('|'), 'i');
+  return Object.entries(bodies())
+    .filter(([, b]) => знаки.test(b.replace(/actions\/upload-artifact/g, '')))
+    .map(([n]) => n);
+}
+
 describe('выкладка веба', () => {
   it('разбор графа вообще работает — иначе весь файл самообман', () => {
     const j = jobs();
@@ -97,5 +150,40 @@ describe('выкладка веба', () => {
 
   it('линт зовут храповиком, а не голым eslint', () => {
     expect(src()).toContain('scripts/lint-ratchet.mjs');
+  });
+
+  /**
+   * 🔴 У ТОГО, КТО ПУБЛИКУЕТ, НАБОР ПРОВЕРОК НЕ УЖЕ, ЧЕМ У ТОГО, КТО СОБИРАЕТ.
+   *
+   * Замер 07.09.2026, дважды за день одна и та же дыра:
+   *  · утром — `google-play` уходил в прод на 100% пользователей по набору
+   *    СЛАБЕЕ, чем GitHub-релиз, а `play-deploy` не зависел ни от чего вовсе;
+   *  · вечером — `ios-release` подавал подписанный .ipa в TestFlight с ПУСТЫМ
+   *    `needs`: запушил метку — сборка уехала, пока прогон ещё шёл.
+   * Это и есть механика 2.47.0: прогон красный, наружу ушло, номер сгорел
+   * навсегда («The bundle version must be higher than the previously uploaded
+   * version: 2.47.0»).
+   *
+   * Оба раза я нашёл это глазами. Третьего раза не будет.
+   */
+  it('🔴 каждый, кто отгружает наружу, стоит на пробах — включая экранные', () => {
+    const обязаны = ['typecheck', 'smoke', 'web-gates'];
+    const плохо: string[] = [];
+    for (const j of delivering()) {
+      const стоит = closure(j);
+      const нет = обязаны.filter((n) => !стоит.has(n));
+      if (нет.length) плохо.push(`${j} не стоит на: ${нет.join(', ')}`);
+    }
+    expect(плохо).toEqual([]);
+  });
+
+  it('детектор доставки не ослеп — иначе проба выше зелена вслепую', () => {
+    const d = delivering();
+    // Четыре пути наружу известны поимённо; их обязано найти ЛЮБОЕ исправное
+    // определение. Больше — можно (появился новый), меньше — детектор сломан.
+    const ждём = ['release', 'google-play', 'play-deploy', 'ios-release'];
+    const нет = ждём.filter((n) => !d.includes(n));
+    expect(`детектор нашёл ${d.length} путей наружу, не увидел: ${нет.join(', ') || 'ничего'}`)
+      .toBe(`детектор нашёл ${d.length} путей наружу, не увидел: ничего`);
   });
 });
