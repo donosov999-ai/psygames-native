@@ -2452,5 +2452,8 @@ const t: Record<string, string> = {
   "lr_memory_matrix_decoys_rule": "Manche Zellen leuchten mit einem Kreuz auf — das sind Störer. Sie musst du dir nicht merken, und antippen darfst du sie nicht: das zählt als Fehler.",
   "lr_memory_matrix_decoys_example": "Vier Zellen blinkten, eine davon mit Kreuz — merke dir drei.",
   "mmIgnoreCrossed": "Durchgestrichene überspringen",
+  "lr_listening_span_similar_title": "Die Wörter werden ähnlich",
+  "lr_listening_span_similar_rule": "Ab diesem Level werden die überzähligen Wörter im Raster so gewählt, dass sie den gehörten ÄHNLICH KLINGEN. Man verwechselt sie leicht — halte deshalb nicht nur die Wörter, sondern auch ihre Reihenfolge.",
+  "lr_listening_span_similar_example": "Du hast «casa» gehört — daneben steht dann «cama». Wähle das Gehörte, nicht das Ähnliche.",
 };
 export default t;

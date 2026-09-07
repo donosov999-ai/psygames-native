@@ -2448,5 +2448,8 @@ const t: Record<string, string> = {
   "lr_memory_matrix_decoys_rule": "بعض المربعات تضيء وعليها علامة ×، وهي مشتِّتات. لا داعي لحفظها ولا يجوز الضغط عليها: يُحتسب ذلك خطأً.",
   "lr_memory_matrix_decoys_example": "أضاءت أربعة مربعات، أحدها مشطوب — احفظ ثلاثة.",
   "mmIgnoreCrossed": "تجاوز المشطوبة",
+  "lr_listening_span_similar_title": "ستصبح الكلمات متشابهة",
+  "lr_listening_span_similar_rule": "من هذا المستوى تُختار الكلمات الزائدة في الشبكة لتبدو مشابهة في وقعها لما سمعته. الخلط بينها سهل، لذا احتفظ لا بالكلمات وحدها بل بترتيبها أيضًا.",
+  "lr_listening_span_similar_example": "سمعت «casa» — وسيظهر «cama» بجوارها. اختر ما سمعته لا ما يشبهه.",
 };
 export default t;

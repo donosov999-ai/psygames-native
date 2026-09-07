@@ -2452,5 +2452,8 @@ const t: Record<string, string> = {
   "lr_memory_matrix_decoys_rule": "有些方格亮起时带着一个叉——那是干扰项。不用记住它们，也不能点它们：点了算错。",
   "lr_memory_matrix_decoys_example": "闪了四个方格，其中一个带叉——记住三个就好。",
   "mmIgnoreCrossed": "跳过打叉的",
+  "lr_listening_span_similar_title": "干扰词会越来越像",
+  "lr_listening_span_similar_rule": "从本关起，网格里多出来的词会挑选得跟你听到的很像。它们极易混淆，所以不仅要记住词，还要记住顺序。",
+  "lr_listening_span_similar_example": "你听到的是「casa」，旁边就会出现「cama」。要选听到的那个，不是长得像的那个。",
 };
 export default t;

@@ -2447,5 +2447,8 @@ const t: Record<string, string> = {
   "lr_memory_matrix_decoys_rule": "Alcune celle si accendono con una croce: sono distrattori. Non vanno memorizzate e non si possono toccare: conta come errore.",
   "lr_memory_matrix_decoys_example": "Hanno lampeggiato quattro celle, una con la croce: memorizzane tre.",
   "mmIgnoreCrossed": "Salta le barrate",
+  "lr_listening_span_similar_title": "Le parole si somiglieranno",
+  "lr_listening_span_similar_rule": "Da questo livello le parole in più nella griglia sono scelte per SOMIGLIARE a quelle che hai sentito. È facile confonderle: tieni a mente non solo le parole, ma anche il loro ordine.",
+  "lr_listening_span_similar_example": "Hai sentito «casa» e accanto comparirà «cama». Scegli quella che hai sentito, non quella simile.",
 };
 export default t;

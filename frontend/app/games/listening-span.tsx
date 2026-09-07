@@ -51,9 +51,21 @@ const ROUNDS = 2;
  * незаметно, и человек упирался, не понимая во что. Приоритет Дениса 16.08.2026.
  */
 /** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+/** Уровень, с которого объём и скорость перестают расти — дальше держат задержка и сходство. */
+export const LSPAN_VOLUME_TOP = 9;
+
 export const LISTENINGSPAN_RULES: LevelRule[] = [
   { key: 'span8', fromLevel: 6 },   // lr_listening_span_span8_*
+  /**
+   * 🔴 ОСЬ 7 ОБЪЯВЛЯЕТСЯ ВМЕСТЕ С ОСЬЮ, А НЕ ПОСЛЕ ПАДЕНИЯ ВЫПУСКА.
+   * 07.09.2026 раздел уже получил поимённый долг за молчаливую ось 9 «Объёма
+   * цифр»: механика вышла, правила не было, main встал красным на 2.49.0.
+   * Здесь правило заводится тем же коммитом, что и сама механика.
+   * ⚠️ Порог — от константы, а не числом: числом он разъедется на первой правке.
+   */
+  { key: 'similar', fromLevel: LSPAN_VOLUME_TOP + 1 },   // lr_listening_span_similar_*
 ];
+
 
 type GamePhase = 'config' | 'listen' | 'recall' | 'cleared' | 'result';
 
@@ -81,13 +93,75 @@ type GamePhase = 'config' | 'listen' | 'recall' | 'cleared' | 'result';
  * словами, задача 103cd98d), полосу задержки можно будет закончить и передать
  * нагрузку ей — но закончить одну ось МОЖНО только тогда, когда началась следующая.
  */
-export const LSPAN_VOLUME_TOP = 9;   // с этого уровня span и gapMs больше не растут — дальше держит задержка
-
-export function levelParams(level: number): { span: number; gapMs: number; holdMs: number } {
+export function levelParams(level: number): { span: number; gapMs: number; holdMs: number; similarShare: number } {
   const span = Math.min(8, 2 + level);
   const gapMs = Math.max(500, 700 - (level - 1) * 25);
   const holdMs = Math.max(0, level - LSPAN_VOLUME_TOP) * 700;
-  return { span, gapMs, holdMs };
+  /** Ось 7: доля отвлекающих, подобранных ПОХОЖИМИ на озвученные. 0 → 1 за десять уровней. */
+  const similarShare = Math.min(1, Math.max(0, level - LSPAN_VOLUME_TOP) * 0.1);
+  return { span, gapMs, holdMs, similarShare };
+}
+
+/**
+ * 🔴 ОСЬ 7 — СХОДСТВО. Введена 07.09.2026, когда объём и скорость уже кончились.
+ *
+ * ЗАЧЕМ. Похожие слова труднее удержать раздельно — это фонологический эффект
+ * сходства, классика памяти на слух. Растёт не число слов (их потолок 8, выше
+ * нормы человека), а то, насколько легко их спутать при ВЫБОРЕ из сетки.
+ *
+ * ЧТО ИМЕННО МЕНЯЕТСЯ. Отвлекающие слова в сетке подбираются ПОХОЖИМИ на
+ * озвученные, а не случайными. Доля таких растёт с уровнем.
+ * ⚠️ Озвученные слова не трогаем: подменять их — значит менять саму пробу, а не
+ * её трудность. Меняется только то, среди чего человек ищет ответ.
+ *
+ * ПОЧЕМУ БУКВЫ, А НЕ ФОНЕМЫ. Целевых языков много, транскрипции у нас нет.
+ * Правка расстоянием по буквам — честный заменитель: у «casa/cama», «rot/rat»,
+ * «kalt/kalb» она даёт ровно те пары, которые путаются и на слух. Где заменитель
+ * промахнётся, ось просто сработает слабее — но не наоборот.
+ */
+export function похожесть(a: string, b: string): number {
+  const x = a.toLowerCase(), y = b.toLowerCase();
+  if (x === y) return 1;
+  const n = x.length, m = y.length;
+  if (!n || !m) return 0;
+  // Расстояние Левенштейна на одной строке — словам до 20 букв этого хватает.
+  let prev = Array.from({ length: m + 1 }, (_, j) => j);
+  for (let i = 1; i <= n; i++) {
+    const cur = [i];
+    for (let j = 1; j <= m; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (x[i - 1] === y[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return 1 - prev[m] / Math.max(n, m);
+}
+
+/**
+ * Отвлекающие: сначала самые похожие на озвученные (сколько просит доля), затем
+ * обычные. ⚠️ Слово не может быть и озвученным, и отвлекающим — иначе у задачи
+ * нет однозначного ответа, и проба перестаёт мерить.
+ */
+export function подобратьОтвлекающие(
+  pool: readonly string[], озвученные: readonly string[], нужно: number, доля: number,
+): string[] {
+  const занято = new Set(озвученные);
+  const свободные = pool.filter((w) => !занято.has(w));
+  const похожих = Math.min(нужно, Math.round(нужно * Math.max(0, Math.min(1, доля))));
+  const счёт = близостьКОзвученным(свободные, озвученные);
+  const порядок = [...свободные].sort((a, b) => (счёт.get(b) ?? 0) - (счёт.get(a) ?? 0));
+  const взятые = порядок.slice(0, похожих);
+  const остаток = shuffle(порядок.slice(похожих));
+  return [...взятые, ...остаток].slice(0, нужно);
+}
+
+function близостьКОзвученным(свободные: readonly string[], озвученные: readonly string[]): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const w of свободные) {
+    let best = 0;
+    for (const t of озвученные) { const v = похожесть(w, t); if (v > best) best = v; }
+    m.set(w, best);
+  }
+  return m;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -160,6 +234,7 @@ export default function ListeningSpanGame() {
   const spanRef = useRef(3);
   const gapRef = useRef(700);
   const holdRef = useRef(0);
+  const similarRef = useRef(0);
   /** Идёт удержание: слова кончились, ввод ещё закрыт. Ось 3, см. levelParams. */
   const [holding, setHolding] = useState(false);
   const tlRef = useRef(defaultTarget);
@@ -207,6 +282,7 @@ export default function ListeningSpanGame() {
     spanRef.current = p.span;
     gapRef.current = p.gapMs;
     holdRef.current = p.holdMs;
+    similarRef.current = isPreset ? 0 : p.similarShare;
     tlRef.current = tl;
     roundRef.current = 1;
     errorsRef.current = 0;
@@ -230,9 +306,11 @@ export default function ListeningSpanGame() {
      */
     const pool = wordPool(tlRef.current);
     const seen = await readSeen('listening_span', profile?.id);
-    const res = pickFreshFrom(pool, span * 2, seen, (w) => w);
+    const res = pickFreshFrom(pool, span, seen, (w) => w);
     await writeSeen('listening_span', profile?.id, res.seen);
-    const words = res.picked;   // span услышанных + span дистракторов
+    const spokenPick = res.picked;
+    // Ось 7: отвлекающие тем похожее, чем выше уровень. Доля из lvlParams, не из воздуха.
+    const words = [...spokenPick, ...подобратьОтвлекающие(pool, spokenPick, span, similarRef.current)];
     const spokenWords = words.slice(0, span);
     setSpoken(spokenWords);
     setGrid(shuffle(words));

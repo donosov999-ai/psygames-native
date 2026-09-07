@@ -2447,5 +2447,8 @@ const t: Record<string, string> = {
   "lr_memory_matrix_decoys_rule": "일부 칸은 가위표와 함께 켜집니다. 방해 요소입니다. 외울 필요가 없고 눌러서도 안 됩니다. 누르면 오답입니다.",
   "lr_memory_matrix_decoys_example": "네 칸이 깜빡였고 그중 하나가 가위표라면, 세 개만 외우세요.",
   "mmIgnoreCrossed": "가위표는 건너뛰기",
+  "lr_listening_span_similar_title": "비슷한 단어가 섞입니다",
+  "lr_listening_span_similar_rule": "이 레벨부터는 격자에 남는 단어들이 들은 단어와 “비슷하게 들리도록” 골라집니다. 혼동하기 쉬우니 단어뿐 아니라 순서까지 기억하세요.",
+  "lr_listening_span_similar_example": "「casa」를 들었다면 옆에 「cama」가 놓입니다. 비슷한 것이 아니라 들은 것을 고르세요.",
 };
 export default t;
