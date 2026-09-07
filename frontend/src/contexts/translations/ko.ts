@@ -2437,6 +2437,7 @@ const t: Record<string, string> = {
   "goalSheetToday": "오늘: {g}판 · {p} ⭐ · 연속 {s}",
   "goalSuggest_best_streak": "최고 기록: {n}일",
   "goalSuggest_at_top": "이미 {n}일 달성",
+  "goalSuggest_smaller": "지난번은 {n} — 더 적게 시작하자",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "방향은 나중에 알려줍니다",
   "lr_digit_span_surprise_dir_rule": "이 레벨부터는 숫자열을 어떻게 답할지—그대로, 거꾸로, 오름차순—를 다 보여준 뒤에 알려줍니다. 물어볼 때까지는 본 그대로 기억하세요.",

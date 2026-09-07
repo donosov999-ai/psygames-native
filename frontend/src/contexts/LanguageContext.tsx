@@ -1569,6 +1569,8 @@ const translations: Translations = {
   goalSheetToday: { ru: 'Сегодня: {g} партий · {p} ⭐ · серия {s}', en: 'Today: {g} games · {p} ⭐ · streak {s}' },
   goalSuggest_best_streak: { ru: 'Твой рекорд — {n} дн.', en: 'Your best is {n} days' },
   goalSuggest_at_top: { ru: 'Ты уже держал {n} дн.', en: 'You already held {n} days' },
+  // ⚠️ Факт, а не упрёк: «в прошлый раз было 30» — это число, «ты не смог» — оценка.
+  goalSuggest_smaller: { ru: 'В прошлый раз было {n} — начнём с меньшего', en: 'Last goal was {n} — start smaller' },
   // 07.09.2026: ключ звался из anagrams.tsx:319, а в словаре его не было —
   // игрок видел бы в панели сырое «anagramBonusJar». Копилка — настоящие
   // слова из букв базы, не попавшие в цели уровня (AllWordsGame.tsx:79).

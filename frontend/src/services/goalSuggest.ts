@@ -23,6 +23,18 @@ import { GOAL_DAYS, type GoalDays } from '@/src/services/streakGoal';
 import { dayKey } from '@/src/services/earn';
 
 export type SuggestReason =
+  /**
+   * 🔴 ЦЕЛЬ НЕ ВЫШЛА — БЕРЁМ МЕНЬШЕ. Ступень ВНИЗ от той, что оборвалась.
+   * Решение Дениса 07.09.2026 и его же числа: 30 → 14, 14 → 7, 7 → 7.
+   *
+   * ⚠️ Заметьте, чего здесь НЕТ: пересчёта по лучшей серии. Человек с рекордом
+   * 25 дней, сорвавший тридцатку, по «ступени вверх от рекорда» получил бы
+   * снова 30 — ту самую цель, которая только что не вышла. После срыва
+   * предложение решает не задачу точности, а задачу барьера: согласиться на
+   * меньшее легче, чем на то же самое. Поэтому повод стоит ПЕРВЫМ и перебивает
+   * остальные.
+   */
+  | 'smaller'
   /** Есть прошлая серия — предлагаем следующую ступень вверх. */
   | 'best_streak'
   /** Серий не было, но человек играл — начинаем с недели. */
@@ -79,11 +91,27 @@ function nextRung(after: number): GoalDays {
   return up ?? GOAL_DAYS[GOAL_DAYS.length - 1];
 }
 
+/**
+ * Ступень ВНИЗ от невышедшей цели. Ниже нижней — нижняя: семь дней это уже
+ * минимум, и опускать не к чему. Тогда предложение то же, но подпись объясняет,
+ * почему оно то же, — молчаливое повторение читалось бы как «ну попробуй ещё».
+ */
+function prevRung(from: GoalDays): GoalDays {
+  const i = GOAL_DAYS.indexOf(from);
+  return GOAL_DAYS[Math.max(0, i - 1)];
+}
+
 export interface SuggestInput {
   /** Метки дней из журнала (`ProfileLog.days`). */
   days: string[];
   /** Играл ли вообще — отличает новичка от того, кто играл, но без серий. */
   hasSessions: boolean;
+  /**
+   * Длина цели, которая ТОЛЬКО ЧТО оборвалась (повод окна `broken`). `null` —
+   * ничего не рвалось. Экран обязан передать это поле именно на срыве: без него
+   * человеку после обрыва предложат ту же цель, которую он не удержал.
+   */
+  brokenFrom?: GoalDays | null;
 }
 
 /**
@@ -95,6 +123,9 @@ export interface SuggestInput {
 export const STREAK_COUNTS_FROM = 2;
 
 export function suggestGoal(i: SuggestInput): Suggestion {
+  if (i.brokenFrom != null) {
+    return { days: prevRung(i.brokenFrom), reason: 'smaller', basis: i.brokenFrom };
+  }
   const best = bestStreakFromDays(i.days);
   if (best >= GOAL_DAYS[GOAL_DAYS.length - 1]) {
     return { days: GOAL_DAYS[GOAL_DAYS.length - 1], reason: 'at_top', basis: best };

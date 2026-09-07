@@ -242,8 +242,19 @@ function FullHome() {
       if (noticed && saved && noticed !== saved) await saveStreakGoal(profile.id, noticed);
       if (!active) return;
       setGoal(noticed);
-      setGoalAsk(askReason({ goal: noticed, streak, lastAskedAt }));
-      setGoalSuggestion(suggestGoal({ days: marks, hasSessions: marks.length > 0 }));
+      const повод = askReason({ goal: noticed, streak, lastAskedAt });
+      setGoalAsk(повод);
+      /*
+       * 🔴 НА СРЫВЕ ПРЕДЛАГАЕТСЯ МЕНЬШАЯ ЦЕЛЬ — решение Дениса 07.09.2026.
+       * Без `brokenFrom` человеку после обрыва предложили бы ровно ту цель,
+       * которую он только что не удержал; согласиться на меньшее легче, а
+       * подпись говорит почему, без единого слова упрёка.
+       */
+      setGoalSuggestion(suggestGoal({
+        days: marks,
+        hasSessions: marks.length > 0,
+        brokenFrom: повод === 'broken' ? noticed?.days ?? null : null,
+      }));
     })().catch(() => {});
     return () => { active = false; };
   }, [profile.id, today.dayStreak]));

@@ -2442,6 +2442,7 @@ const t: Record<string, string> = {
   "goalSheetToday": "Hoje: {g} partidas · {p} ⭐ · sequência {s}",
   "goalSuggest_best_streak": "Seu recorde: {n} d.",
   "goalSuggest_at_top": "Você já aguentou {n} d.",
+  "goalSuggest_smaller": "A última foi {n} — vamos com menos",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "A direção vem depois",
   "lr_digit_span_surprise_dir_rule": "A partir deste nível você descobre COMO devolver a sequência só DEPOIS de vê-la: na ordem, de trás para a frente ou em ordem crescente. Segure-a como viu até perguntarem.",
