@@ -1,6 +1,5 @@
 /* psygames-game-mahjong · VER 3 · 27.08.2026 */
 import GradientSurface from '@/src/components/GradientSurface';
-import { hudTime } from '@/src/services/hudTime';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -24,7 +23,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
-import {HudBadge, ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
+import { ScorePopupLayer, useScorePopups, hapticTap, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
@@ -1100,50 +1099,39 @@ export default function MahjongGame() {
       confirmExit={liveGame && touched}
       resumable
       onSaveBeforeExit={saveBeforeExit}
-      stats={
-        <View style={styles.statsRow}>
-          {/**
-            * 🔴 ПОКА КАРТОЧКА ИТОГА НА ЭКРАНЕ, В ШАПКЕ СТОИТ ПРОЙДЕННЫЙ УРОВЕНЬ.
-            *
-            * Отчёт Дениса 04.09.2026: «скачут уровни после взятия пар, ни с того ни
-            * с сего открывается карточка». Скачок настоящий и виден в КАЖДОМ
-            * завершении: при сборе доски `setLevel(next)` переключает счётчик на
-            * следующий уровень СРАЗУ, а карточка поверх доски говорит про
-            * пройденный. За спиной у карточки номер уже другой — и выглядит это
-            * так, будто игра перескочила сама.
-            *
-            * Проверял и вторую догадку — что доска отдаёт меньше пар, чем обещает
-            * счётчик «12/20»: замер по девяти уровням (L1…L20) показал совпадение
-            * до пары везде. Дело было не в этом.
-            */}
-          <HudBadge icon="flag" value={`${t('unitLevelShort')} ${levelBanner ?? level}`} colors={['#fbbf24', '#d97706']} tint="#3f2b00" pop />
-          <HudBadge icon="star" value={score} colors={['#34d399', '#059669']} pop />
-          <HudBadge icon="checkmark-done" value={`${matched}/${pairsTotal}`} colors={['#5eead4', '#0d9488']} pop />
-          {/*
-            Счётчик доступных пар. Ноль обязан ЧИТАТЬСЯ как «доска встала», а не
-            молчать: поэтому на нуле пилюля краснеет, а под доской встаёт прямая
-            строка о том, что делать (см. `boardStuck` ниже).
-          */}
-          <HudBadge
-            icon="git-compare" label={t('mahjongPairsOpen')} value={openPairs}
-            colors={boardStuck ? ['#fb7185', '#e11d48'] : ['#c4b5fd', '#7c3aed']}
-            pop
-          />
-          <HudBadge icon="close" value={errors} colors={['#fb7185', '#e11d48']} />
-          {/*
-            🔴 В вечернем шаге секундомер ПРЯЧЕМ. Репорт 18.08.2026: «даже на
-            маджонг теперь таймер. Нельзя таймер, но в этом и был смысл вечерней
-            зарядки». Предела времени в маджонге нет и не было — но бегущая
-            цифра на экране торопит ничуть не хуже обратного отсчёта, а вечерний
-            набор задуман ровно наоборот. Время всё равно считается и уезжает
-            в сессию, просто не давит на глаза.
-          */}
-          {!isCalm && (
-            <HudBadge icon="time" value={hudTime(elapsed, t('secShort'))} colors={['#60a5fa', '#2563eb']} />
-          )}
-          {!isPreset && <LevelRuleBadge lr={levelRules} color="#0d9488" ru={language === 'ru'} />}
-        </View>
-      }
+      /**
+       * 🔴 ТРИ СЧЁТЧИКА, А НЕ СЕМЬ — И ЭТО РЕШЕНИЕ ДЕНИСА 07.09.2026, НЕ МОЁ.
+       *
+       * Было семь пилюль своей вёрсткой: уровень, очки, пар собрано, пар
+       * доступно, ошибки, время и значок правила. Замер: пилюля занимает
+       * padH 9×2 + рамка 2 + значок 14 + отступ 4 + минимум под число 30 = 68;
+       * доступная ширина плашки = экран − 36. На 320 три встают в ряд
+       * (3·68 + 2·6 = 216 < 284), четыре уже нет (290 > 284) — и переносятся во
+       * ВТОРОЙ ряд, то есть полоса скачет на 48 + 10. Потолок каркаса HUD_MAX = 4
+       * защищает от седьмого счётчика, но одного ряда не гарантирует.
+       *
+       * Очки и ошибки видны в карточке итога, время в вечернем шаге и так
+       * пряталось. «Доступно» осталось обязательно: ноль на нём означает «доска
+       * встала» и связан со строкой подсказки и кнопкой пересдачи ниже.
+       *
+       * ⚠️ Подписи — словами из словаря, иначе краснеет `hud-labels`. Тон у
+       * `lvl` и `found` НЕ передаём: канон каркаса сильнее (`TONE_BY_KEY`), а
+       * спорный тон ловит `hud-tone-canon`.
+       */
+      hud={[
+        { key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: levelBanner ?? level, pop: true },
+        { key: 'found', icon: 'checkmark-done' as const, label: t('label_found'), value: `${matched}/${pairsTotal}`, pop: true },
+        {
+          key: 'mahjongPairsOpen',
+          icon: 'git-compare' as const,
+          label: t('mahjongPairsOpen'),
+          value: openPairs,
+          // Ноль обязан ЧИТАТЬСЯ как «доска встала», а не молчать.
+          tone: boardStuck ? ('bad' as const) : ('neutral' as const),
+          pop: true,
+        },
+      ]}
+      headerRight={!isPreset ? <LevelRuleBadge lr={levelRules} color="#0d9488" ru={language === 'ru'} /> : undefined}
       /*
         🔴 ОБЕ КНОПКИ УЕХАЛИ ВНИЗ→ВВЕРХ. Раньше здесь стояло обоснование
         «низ не занят вводом — плитки жмут прямо на доске, значит служебному
@@ -1283,7 +1271,6 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   fieldCol: { alignItems: 'center', gap: 8 },   // hint + контейнер слоёв плиток внутри поля каркаса
-  statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap', maxWidth: '100%' },
   hintText: { fontSize: 12, textAlign: 'center' },
   hintStuck: { fontSize: 13, fontWeight: '700' },   // доска встала — строка обязана быть заметнее обычной подсказки
   // Пересдача уровня. minHeight 44 — палец, а не мышь: кнопка появляется в
