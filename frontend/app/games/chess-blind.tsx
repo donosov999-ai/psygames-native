@@ -29,7 +29,7 @@ import { nextUnanswered } from '@/src/games/chess-blind/core/blocks';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { SvgXml } from 'react-native-svg';
 import { CHESS_PIECE_SVG } from '@/src/games/chess-blind/core/pieces';
-import { buildOptions } from '@/src/games/chess-blind/core/options';
+import { buildQuestions } from '@/src/games/chess-blind/core/questions';
 import {
   примеровНаПодход, сделатьПример, type Пример,
 } from '@/src/games/chess-blind/core/interference';
@@ -80,7 +80,6 @@ import {
   type ChessSeriesState,
   type PuzzlePiece,
   type PuzzlePieceType,
-  type PuzzleQuizType,
   type RecallQuestion,
 } from '@/src/games/chess-blind/core';
 
@@ -175,10 +174,6 @@ type RecallStage = 'ready' | 'memorize' | 'ask';
 // Виды фигур и сама фигура — типы ЯДРА, не вторая их запись: там же лежит сборка
 // `toScreenPieces`, применяющая переворот координат, и расходиться им нельзя.
 type PieceType = PuzzlePieceType;
-// Тот же тип, что у ядра, — не вторая его запись: два независимых списка видов
-// квиза разъезжаются молча (tsc их структурное совпадение принимает и молчит).
-type QuizType = PuzzleQuizType;
-
 type Piece = PuzzlePiece;   // sq: 0..63, row0 = 8-я горизонталь (верх)
 interface Combo { type: PieceType; white: boolean }
 interface Move { pieceId: number; from: number; to: number }
@@ -342,30 +337,8 @@ function generateMoves(pos: Piece[], n: number): { moves: Move[]; final: Piece[]
   return { moves, final: ps };
 }
 
-const comboKey = (c: Combo) => `${c.type}${c.white ? 'w' : 'b'}`;
 
 // 6 вариантов для 'pick': правильный + дистракторы из реально стоящих на доске, добор случайными
-// Вопросы по АКТУАЛЬНОЙ (после всех ходов) позиции. Число вопросов и вид
-// вариантов задаёт лестница уровня — см. `puzzleLevelParams`.
-function buildQuestions(final: Piece[], quizType: QuizType, questions: number, level: number): Question[] {
-  if (quizType === 'pick') {
-    return shuffle([...final]).slice(0, Math.min(questions, final.length)).map((p) => ({
-      sq: p.sq,
-      answer: { type: p.type, white: p.white },
-      options: buildOptions(final, { type: p.type, white: p.white }, level),
-    }));
-  }
-  // locate: только фигуры в ЕДИНСТВЕННОМ экземпляре типа+цвета (K/Q гарантированы, R/N/B если один)
-  const cnt = new Map<string, number>();
-  final.forEach((p) => cnt.set(comboKey(p), (cnt.get(comboKey(p)) || 0) + 1));
-  const uniques = final.filter((p) => cnt.get(comboKey(p)) === 1);
-  return shuffle([...uniques]).slice(0, Math.min(questions, uniques.length)).map((p) => ({
-    sq: p.sq,
-    answer: { type: p.type, white: p.white },
-    options: [],
-  }));
-}
-
 export default function ChessBlindGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -758,7 +731,7 @@ export default function ChessBlindGame() {
     // пешками, ладья на линии. Ровно тот же вывод второй раз пришёл со стороны:
     // конкурент Dawikk держит свои 5000 задач заготовленными, а не считает их на
     // телефоне (разбор — `PSYGAMES_MERGE_PLAN.md` §21).
-    const picked = puzzlePosition(p.pieces, puzzleMinUnique(p.quizType));
+    const picked = puzzlePosition(p.pieces, puzzleMinUnique(p.quizType, p.questions));
     piecesOnBoardRef.current = picked.pieces;
     const pos = toScreenPieces(picked.position);
     const { moves, final } = generateMoves(pos, p.moves);
