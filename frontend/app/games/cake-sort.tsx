@@ -39,10 +39,10 @@ import { sndPlace, sndMatch, sndCombo, sndWrong } from '@/src/services/feedback'
 import { saveResume, clearResume } from '@/src/services/resume';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
-import { CIRCLE, Board, canPlace, moveTop, isCleared, hasAnyMove } from '@/src/games/cake-sort/core/plate';
+import { CIRCLE, Board, canPlace, moveTop, isCleared, hasAnyMove, makeBoard } from '@/src/games/cake-sort/core/plate';
 import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
-import { prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
+import { prebuilt, prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
 import { topFor, boardsFor, type КруглаяШкурка } from '@/src/constants/cakeTops';
 import { tableLayout, maxCols, plateAtPoint, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
@@ -179,7 +179,27 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    * кадр. Историю чистит тот, кто меняет уровень, — ниже, в правке состояния.
    */
   const раздать = useCallback(() => {
-    const d = deal(level);
+    /**
+     * 🔴 ВШИТУЮ ДОСКУ БЕРЁМ ГОТОВОЙ, А НЕ ПЕРЕСЧИТЫВАЕМ. Это требование ТЗ
+     * раздела дословно: «на 30–40 нишах перестаёт доказываться решаемость —
+     * значит уровни генерировать офлайн и ВШИВАТЬ, а не считать на устройстве».
+     * Файл с досками лежал с 06.09.2026, а экран всё это время звал раздачу
+     * живьём и читал оттуда только минимум ходов.
+     *
+     * ⚠️ ЦЕНА БЫЛА НЕ ТЕОРЕТИЧЕСКОЙ. `deal` — это ДВА полных прогона решателя
+     * (заслон `dealRejected` и подтверждение `provenSolvable`), и они шли
+     * СИНХРОННО В РЕНДЕРЕ. Замер 07.09.2026 на маке: 36 мс на L20, 117 мс на
+     * L60, 188 мс на L120; на телефоне вчетверо. Столько экран стоял на месте
+     * при каждой смене уровня.
+     *
+     * ⚠️ Значок «проверен» берётся из ПОЛЯ файла, а не из «раз лежит, значит
+     * доказан»: обещание игроку должно опираться на факт, записанный тем, кто
+     * доказывал. За пределами вшитого (L121 и дальше) раздаём как раньше.
+     */
+    const в = prebuilt(level);
+    const d = в
+      ? { board: makeBoard(в.plates, в.queue), proven: в.proven === true }
+      : deal(level);
     setBoard(d.board); setДоказан(d.proven);
     setSel(null); setDone(false); setHint(null);
     setHints(HINTS_PER_LEVEL); setТочныйМин(null);
