@@ -116,6 +116,12 @@ export interface FacesNamesGameProps {
    * Вторая кнопка рядом уводила бы МИМО вопроса.
    */
   onExit?: () => void;
+  /**
+   * Отдать ответ текущей фазы НАРУЖУ, чтобы экран положил его в слот `toolbar`
+   * каркаса. Необязателен намеренно: без него модуль рисует ответ у себя, как
+   * раньше, и пробы, поднимающие модуль в одиночку, остаются зелёными.
+   */
+  onAnswer?: (answer: FacesNamesAnswer | null) => void;
 }
 
 /**
@@ -261,6 +267,65 @@ function FaceChoice({
   );
 }
 
+/**
+ * 🔴 ОТВЕТ ФАЗЫ ОТДАЁТСЯ ОПИСАНИЕМ, А НЕ ГОТОВОЙ РАЗМЕТКОЙ.
+ *
+ * ЗАЧЕМ. Ответ игрока обязан жить в слоте `toolbar` каркаса: замер 07.09.2026
+ * по якорям `data-testid` (94 игры, 375×812) дал у 39 игр внутри каркаса низ
+ * панели 812 с разбросом 0, а у 40 игр вне каркаса — 461…1530, потому что
+ * панель садится там, где кончился контент. В «Зарядке» игры идут подряд, и
+ * этот разброс превращается в прыгающую под пальцем кнопку.
+ *
+ * ПОЧЕМУ ДАННЫЕ, А НЕ УЗЕЛ. Соблазн отдать наружу готовый JSX и положить его в
+ * `toolbar` как есть. Так делать нельзя: экран собирает объект `theme` литералом
+ * на каждый рендер, узел с темой в зависимостях пересчитывался бы каждый раз, и
+ * связка «эффект → setState экрана → новый рендер → новая тема» закрутилась бы
+ * в бесконечный цикл. Описание от темы не зависит — цикла нет, а рисует его
+ * `FacesNamesAnswerBar` теми же `ActionButton`/`TextChoice`/`FaceChoice`, так
+ * что вид не раздваивается.
+ */
+export interface FacesNamesAnswerOption {
+  key: string;
+  label: string;
+  /** Вторая строка: запись имени своими знаками для нелатинских локалей. */
+  sub?: string | null;
+  run: () => void;
+}
+
+export interface FacesNamesAnswer {
+  /** Как рисовать: одно действие или ряд надписей. */
+  kind: 'action' | 'text';
+  options: FacesNamesAnswerOption[];
+}
+
+/** Рисует описание ответа. Место жительства — слот `toolbar` каркаса. */
+export function FacesNamesAnswerBar({
+  answer,
+  theme,
+  locale,
+}: {
+  answer: FacesNamesAnswer;
+  theme: FacesNamesTheme;
+  locale: FacesNamesLocale;
+}) {
+  if (answer.kind === 'action') {
+    return (
+      <View style={styles.answerBar}>
+        {answer.options.map((option) => (
+          <ActionButton key={option.key} label={option.label} theme={theme} onPress={option.run} />
+        ))}
+      </View>
+    );
+  }
+  return (
+    <View style={[styles.answerBar, styles.textChoices]}>
+      {answer.options.map((option) => (
+        <TextChoice key={option.key} label={option.label} sub={option.sub} theme={theme} onPress={option.run} />
+      ))}
+    </View>
+  );
+}
+
 function activeTitle(session: FacesNamesSession, locale: FacesNamesLocale): string {
   const strings = getFacesNamesStrings(locale);
   if (session.phase === 'study') return strings.study;
@@ -282,6 +347,7 @@ function FacesNamesSessionView({
   onComplete,
   onProgress,
   onExit,
+  onAnswer,
 }: FacesNamesGameProps) {
   const strings = getFacesNamesStrings(locale);
   const [session, setSession] = React.useState(() => createFacesNamesSession({ seed, level }));
@@ -338,6 +404,88 @@ function FacesNamesSessionView({
       }
     },
   } as const) : {};
+
+  /**
+   * Описание ответа текущей фазы. Считается ДО ранних выходов ниже: хуки после
+   * `return` React запрещает, а фазы `rules`/`paused`/`result` выходят раньше.
+   * Производные партии (испытание, цель, изучаемый) берём здесь же — они чистые
+   * функции от `session`.
+   */
+  const ответФазы = React.useMemo<FacesNamesAnswer | null>(() => {
+    const испытание = currentFacesNamesTrial(session);
+    const цель = испытание ? personById(session.puzzle, испытание.targetPersonId) : null;
+    if (session.phase === 'study') {
+      if (!currentStudiedPerson(session)) return null;
+      const последний = session.studyIndex + 1 >= session.puzzle.studiedPersonIds.length;
+      return {
+        kind: 'action',
+        options: [{
+          key: 'next',
+          label: последний ? strings.startPause : strings.nextPerson,
+          run: () => setSession(advanceFacesNamesStudy),
+        }],
+      };
+    }
+    if (session.phase === 'interference') {
+      const пример = currentInterferencePrompt(session);
+      if (!пример) return null;
+      return {
+        kind: 'text',
+        options: пример.options.map((вариант) => ({
+          key: String(вариант),
+          label: String(вариант),
+          run: () => setSession((current) => answerFacesNamesInterference(current, вариант)),
+        })),
+      };
+    }
+    /*
+     * 🔴 УЗНАВАНИЕ ЛИЦ НАРУЖУ НЕ УЕЗЖАЕТ — И ЭТО ЗАМЕР, А НЕ ЛЕНЬ.
+     * Решётка портретов — это СЦЕНА, а не полоса ответа. Живой замер 07.09.2026
+     * (375×812, статическая сборка): у слота `toolbar` каркаса `padding:
+     * 10px 66px` — поля под плавающие кнопки съедают 132 пикселя из 375, и на
+     * ответ остаётся 243. Двум плиткам лица нужно 152+10+152 = 314, поэтому в
+     * каркасе они встают столбиком и занимают 354 пикселя по высоте, оставляя
+     * сцену пустой. Ужать лицо до 96 пикселей — значит подкрутить сложность
+     * ухудшением картинки: похожесть портретов у этой игры и есть ось роста,
+     * и рассматривать их надо во весь размер. Поэтому фаза `recognition`
+     * рисует лица у себя, а в каркас уезжают только компактные ответы.
+     * Поле 66 — общее (`GameShell.tsx`, `FAB_GUTTER`), вынесено координатору.
+     */
+    if (session.phase === 'name-recall' && испытание && цель) {
+      return {
+        kind: 'text',
+        options: испытание.namePersonIds.flatMap((id) => {
+          const человек = personById(session.puzzle, id);
+          return человек
+            ? [{
+                key: id,
+                label: человек.name,
+                sub: nameScript(locale, человек.name),
+                run: () => setSession((current) => selectRecalledName(current, id, now())),
+              }]
+            : [];
+        }),
+      };
+    }
+    if (session.phase === 'fact-recall' && испытание && цель) {
+      return {
+        kind: 'text',
+        options: испытание.factIds.map((factId) => ({
+          key: factId,
+          label: getFactText(locale, factId),
+          run: () => setSession((current) => selectRecalledFact(current, factId, now())),
+        })),
+      };
+    }
+    return null;
+  }, [session, strings, locale, now]);
+
+  React.useEffect(() => {
+    onAnswer?.(ответФазы);
+  }, [onAnswer, ответФазы]);
+
+  /** Экран забрал ответ в каркас — внутри партии его больше не рисуем. */
+  const ответСнаружи = typeof onAnswer === 'function';
 
   if (session.phase === 'disposed') return null;
 
@@ -427,11 +575,13 @@ function FacesNamesSessionView({
             <Text style={[styles.memoryLabel, { color: theme.textSecondary }]}>{strings.rememberFact}</Text>
             <Text style={[styles.personFact, { color: theme.text }]}>{getFactText(locale, studiedPerson.factId)}</Text>
           </View>
-          <ActionButton
-            label={session.studyIndex + 1 < session.puzzle.studiedPersonIds.length ? strings.nextPerson : strings.startPause}
-            theme={theme}
-            onPress={() => setSession(advanceFacesNamesStudy)}
-          />
+          {ответСнаружи ? null : (
+            <ActionButton
+              label={session.studyIndex + 1 < session.puzzle.studiedPersonIds.length ? strings.nextPerson : strings.startPause}
+              theme={theme}
+              onPress={() => setSession(advanceFacesNamesStudy)}
+            />
+          )}
         </View>
       ) : null}
 
@@ -440,9 +590,11 @@ function FacesNamesSessionView({
           <Text style={[styles.progress, { color: theme.textSecondary }]}>{interpolateFacesNames(strings.interferenceProgress, { current: session.interferenceIndex + 1, total: session.puzzle.interferencePrompts.length })}</Text>
           <Text style={[styles.body, styles.centerText, { color: theme.textSecondary }]}>{strings.interferenceBody}</Text>
           <Text accessibilityRole="header" accessibilityLabel={`${interference.left} + ${interference.right}`} style={[styles.sum, { color: theme.text }]}>{interference.left} + {interference.right} = ?</Text>
-          <View style={styles.textChoices}>
-            {interference.options.map((option) => <TextChoice key={option} label={String(option)} theme={theme} onPress={() => setSession((current) => answerFacesNamesInterference(current, option))} />)}
-          </View>
+          {ответСнаружи ? null : (
+            <View style={styles.textChoices}>
+              {interference.options.map((option) => <TextChoice key={option} label={String(option)} theme={theme} onPress={() => setSession((current) => answerFacesNamesInterference(current, option))} />)}
+            </View>
+          )}
         </View>
       ) : null}
 
@@ -450,6 +602,7 @@ function FacesNamesSessionView({
         <View style={[styles.card, styles.recallCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <Text style={[styles.progress, { color: theme.textSecondary }]}>{interpolateFacesNames(strings.recognitionProgress, { current: session.trialIndex + 1, total: session.puzzle.trials.length })}</Text>
           <Text accessibilityRole="header" style={[styles.prompt, { color: theme.text }]}>{strings.recognitionPrompt}</Text>
+          {/* Лица рисуем всегда: они сцена, а не полоса ответа — см. разбор выше. */}
           <View style={styles.faceChoices}>
             {trial.recognitionPersonIds.map((id, index) => {
               const person = personById(session.puzzle, id);
@@ -464,20 +617,22 @@ function FacesNamesSessionView({
           <Text style={[styles.progress, { color: theme.textSecondary }]}>{interpolateFacesNames(strings.recognitionProgress, { current: session.trialIndex + 1, total: session.puzzle.trials.length })}</Text>
           <SyntheticFace face={target.face} locale={locale} size={170} />
           <Text accessibilityRole="header" style={[styles.prompt, { color: theme.text }]}>{strings.namePrompt}</Text>
-          <View style={styles.textChoices}>
-            {trial.namePersonIds.map((id) => {
-              const person = personById(session.puzzle, id);
-              return person ? (
-                <TextChoice
-                  key={id}
-                  label={person.name}
-                  sub={nameScript(locale, person.name)}
-                  theme={theme}
-                  onPress={() => setSession((current) => selectRecalledName(current, id, now()))}
-                />
-              ) : null;
-            })}
-          </View>
+          {ответСнаружи ? null : (
+            <View style={styles.textChoices}>
+              {trial.namePersonIds.map((id) => {
+                const person = personById(session.puzzle, id);
+                return person ? (
+                  <TextChoice
+                    key={id}
+                    label={person.name}
+                    sub={nameScript(locale, person.name)}
+                    theme={theme}
+                    onPress={() => setSession((current) => selectRecalledName(current, id, now()))}
+                  />
+                ) : null;
+              })}
+            </View>
+          )}
         </View>
       ) : null}
 
@@ -486,9 +641,11 @@ function FacesNamesSessionView({
           <Text style={[styles.progress, { color: theme.textSecondary }]}>{interpolateFacesNames(strings.recognitionProgress, { current: session.trialIndex + 1, total: session.puzzle.trials.length })}</Text>
           <SyntheticFace face={target.face} locale={locale} size={170} />
           <Text accessibilityRole="header" style={[styles.prompt, { color: theme.text }]}>{strings.factPrompt}</Text>
-          <View style={styles.textChoices}>
-            {trial.factIds.map((factId) => <TextChoice key={factId} label={getFactText(locale, factId)} theme={theme} onPress={() => setSession((current) => selectRecalledFact(current, factId, now()))} />)}
-          </View>
+          {ответСнаружи ? null : (
+            <View style={styles.textChoices}>
+              {trial.factIds.map((factId) => <TextChoice key={factId} label={getFactText(locale, factId)} theme={theme} onPress={() => setSession((current) => selectRecalledFact(current, factId, now()))} />)}
+            </View>
+          )}
         </View>
       ) : null}
 
@@ -539,6 +696,7 @@ const styles = StyleSheet.create({
   personFact: { fontSize: 18, lineHeight: 25, fontWeight: '700', textAlign: 'center' },
   sum: { fontSize: 38, fontWeight: '900', textAlign: 'center' },
   prompt: { fontSize: 21, lineHeight: 27, fontWeight: '900', textAlign: 'center' },
+  answerBar: { width: '100%', maxWidth: 560, alignSelf: 'center', gap: 10 },
   faceChoices: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10 },
   faceChoice: { minWidth: 152, minHeight: 172, borderRadius: 18, borderWidth: 1, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 4 },
   faceNumber: { fontSize: 12, fontWeight: '800' },
