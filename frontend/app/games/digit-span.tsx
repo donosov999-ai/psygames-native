@@ -36,10 +36,21 @@ import { useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { getDigitSpanStrings } from '@/src/games/digit-span/core/i18n';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
+/** Уровень, с которого объём и скорость перестают расти — дальше держат задержка и розыгрыш направления. */
+export const DS_VOLUME_TOP = 14;
+
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 /** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
 export const DS_RULES: LevelRule[] = [
   { key: 'reverse', fromLevel: 11 },   // lr_digit_span_reverse_*
+  /**
+   * 🔴 ОСЬ 9 ОБЯЗАНА БЫТЬ ОБЪЯВЛЕНА. Заведена 07.09.2026 по долгу от координатора:
+   * гейт `level-step-explained` уронил main на выпуске 2.49.0 — механика появилась,
+   * а сказать о ней забыли, и игрок узнавал о ней, наткнувшись.
+   * ⚠️ Порог считается ОТ той же константы, что и сама механика, а не числом: иначе
+   * правило и код разъедутся на первой же правке, и это ловит level-rule-threshold.
+   */
+  { key: 'surprise_dir', fromLevel: DS_VOLUME_TOP + 1 },   // lr_digit_span_surprise_dir_*
 ];
 
 const GRADIENT = ['#11998e', '#38ef7d'];
@@ -108,7 +119,6 @@ export const PACE_STEPS: Pace[] = ['slow', 'normal', 'fast'];
  * Полосу можно будет закончить, когда начнётся ось 9 — направление ввода
  * объявляется ПОСЛЕ показа, задача bc2ec3a4.
  */
-export const DS_VOLUME_TOP = 14;   // с этого уровня длина и скорость больше не растут — дальше держит задержка
 
 export function levelParams(level: number): { startLen: number; showMs: number; gapMs: number; reverse: boolean; holdMs: number; surpriseDir: boolean } {
   const startLen = Math.min(9, 3 + level);              // L1=4 → L6=9, дальше держим 9

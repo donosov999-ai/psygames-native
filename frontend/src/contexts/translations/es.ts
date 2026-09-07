@@ -2439,5 +2439,15 @@ const t: Record<string, string> = {
   "mahjongRestartLevel": "Reiniciar el nivel",
   "anagramBonusJar": "Extra",
   // >>> SCREEN_STRINGS
+  "lr_digit_span_surprise_dir_title": "La dirección se dice después",
+  "lr_digit_span_surprise_dir_rule": "A partir de este nivel sabrás CÓMO devolver la serie solo DESPUÉS de verla: al derecho, al revés o en orden ascendente. Sostenla tal como la viste hasta que te lo pidan.",
+  "lr_digit_span_surprise_dir_example": "Viste 5-2-8-1 y solo ahora aparece «ascendente»: la respuesta es 1-2-5-8.",
+  "lr_memory_matrix_two_series_title": "Dos grupos seguidos",
+  "lr_memory_matrix_two_series_rule": "Ahora se encienden dos grupos de celdas de colores distintos, uno tras otro. Repítelos por turnos: primero el grupo violeta, luego el rojo.",
+  "lr_memory_matrix_two_series_example": "Primero parpadearon tres celdas violetas y luego tres rojas: empieza por las violetas.",
+  "lr_memory_matrix_decoys_title": "No memorices las tachadas",
+  "lr_memory_matrix_decoys_rule": "Algunas celdas se encienden con una cruz: son distractores. No hay que memorizarlas y no se pueden pulsar: cuenta como error.",
+  "lr_memory_matrix_decoys_example": "Parpadearon cuatro celdas, una con cruz: memoriza tres.",
+  "mmIgnoreCrossed": "Omite las tachadas",
 };
 export default t;
