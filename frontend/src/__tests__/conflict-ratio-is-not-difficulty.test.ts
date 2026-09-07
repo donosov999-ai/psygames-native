@@ -39,6 +39,8 @@ import { levelParams as posnerParams, makeTrial as posnerTrial, VALID_RATIO } fr
 import { levelParams as goParams, pickStim, NOGO_PROB } from '@/app/games/go-no-go';
 import { levelParams as cptParams, makeTrial as cptTrial, TARGET_RATE } from '@/app/games/cpt';
 import { levelParams as antParams, makeTrial as antTrial } from '@/app/games/ant';
+import { levelParams as emoParams, makeTrial as emoTrial } from '@/app/games/stroop-emotional';
+import { levelParams as switchParams, makeTrial as switchTrial } from '@/app/games/switching-task';
 
 const LEVELS = Array.from({ length: 15 }, (_, i) => i + 1);
 const N = 40000;              // проб на замер: ошибка выборки ≈ 0.2 п.п.
@@ -84,6 +86,23 @@ const goPrepotent = (level: number) => share(() => pickStim(level) === 'go');
 // конфликта. Знаменатель смысла — доля СОГЛАСОВАННЫХ.
 const antCongruent = (level: number) => share(() => antTrial(level).cong === 'congruent');
 const antIncongruent = (level: number) => share(() => antTrial(level).cong === 'incongruent');
+// Эмоциональный Струп: обе интерференции (threat и positive) — разности
+// относительно НЕЙТРАЛЬНЫХ проб. Нейтральные и есть база смысла.
+const emoNeutral = (level: number) => share(() => emoTrial('ru', level).valence === 'neutral');
+// Переключение задач: switch_cost_ms = RT(смена) − RT(повтор). Считаем ПОВТОРЫ.
+// Поток связный — следующая задача зависит от предыдущей, как у CPT.
+function switchRepeats(level: number): number {
+  Math.random = seeded(SEED);
+  let last: number | null = null;
+  let repeats = 0;
+  for (let i = 0; i < N; i++) {
+    const t = switchTrial('mix', level, last);
+    if (last !== null && !t.isSwitch) repeats++;
+    last = t.taskIdx;
+  }
+  Math.random = realRandom;
+  return repeats / N;
+}
 // CPT: проба бдительности требует РЕДКОЙ цели. Поток связный (AX смотрит назад).
 function cptTargets(level: number): number {
   Math.random = seeded(SEED);
@@ -294,6 +313,48 @@ describe('лестница осталась лестницей — вес сло
         if (cur.tempoMs !== null && prev.tempoMs !== null) expect(cur.tempoMs).toBeLessThanOrEqual(prev.tempoMs);
       }
     }
+  });
+
+  /**
+   * 🔴 ДВА ПОСЛЕДНИХ РЕЖИМА РАЗДЕЛА, 07.09.2026. Найдены НЕ поиском дефектов:
+   * я читал их `levelParams`, чтобы написать формулы нагрузки для совсем другой
+   * задачи, и увидел знакомую форму. Это шестой и седьмой случай одной беды.
+   *
+   * ⚠️ Отсюда вывод не «поискать ещё», а «список непокрытых игр И ЕСТЬ список
+   * мест, где известный дефект живёт дальше». Обход раздела шёл по гейтам, а
+   * гейт покрывал пять игр из десяти — четыре года можно было не находить.
+   */
+  it('Эмоциональный Струп: нейтральных проб на пятнадцатом уровне не меньше, чем на первом', () => {
+    const byLevel = LEVELS.map(emoNeutral);
+    const [first, last] = [byLevel[0], byLevel[14]];
+    expect(`нейтральных L1 ${pct(first)} → L15 ${pct(last)}, падение ${pct(Math.max(0, first - last))}`)
+      .toBe(`нейтральных L1 ${pct(first)} → L15 ${pct(last)}, падение 0.0%`);
+    expect(Math.min(...byLevel)).toBeGreaterThanOrEqual(first - TOL);
+  });
+
+  /**
+   * 🔴 У эмоционального Струпа есть ВТОРАЯ половина беды, которой нет у
+   * остальных: `trials` зашито константой и с уровнем не растёт. Значит доля
+   * пересчитывается в ШТУКИ, и штук остаётся мало. Замер до починки: 18 проб,
+   * доля эмоциональных 0,85 на L15 → 2,7 нейтральных пробы, и эти же 2,7
+   * служат базой сразу ДВУМ разностям (threat и positive).
+   * Разностная оценка от трёх проб — это не «менее точно», это шум.
+   */
+  it('Эмоциональный Струп: нейтральных проб хватает на базу ДВУХ разностей', () => {
+    const мало: string[] = [];
+    for (const L of LEVELS) {
+      const штук = emoNeutral(L) * emoParams(L).trials;
+      if (штук < 5) мало.push(`L${L}: ${штук.toFixed(1)} нейтральных проб`);
+    }
+    expect(мало).toEqual([]);
+  });
+
+  it('Переключение задач: повторных проб на пятнадцатом уровне не меньше, чем на первом', () => {
+    const byLevel = LEVELS.map(switchRepeats);
+    const [first, last] = [byLevel[0], byLevel[14]];
+    expect(`повторов L1 ${pct(first)} → L15 ${pct(last)}, падение ${pct(Math.max(0, first - last))}`)
+      .toBe(`повторов L1 ${pct(first)} → L15 ${pct(last)}, падение 0.0%`);
+    expect(Math.min(...byLevel)).toBeGreaterThanOrEqual(first - TOL);
   });
 
   /**
