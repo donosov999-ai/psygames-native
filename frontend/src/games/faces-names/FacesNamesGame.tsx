@@ -289,14 +289,12 @@ export interface FacesNamesAnswerOption {
   label: string;
   /** Вторая строка: запись имени своими знаками для нелатинских локалей. */
   sub?: string | null;
-  /** Только для `kind: 'faces'` — чьё лицо рисовать. */
-  person?: SyntheticPerson;
   run: () => void;
 }
 
 export interface FacesNamesAnswer {
-  /** Как рисовать: одно действие / ряд надписей / решётка лиц. */
-  kind: 'action' | 'text' | 'faces';
+  /** Как рисовать: одно действие или ряд надписей. */
+  kind: 'action' | 'text';
   options: FacesNamesAnswerOption[];
 }
 
@@ -316,15 +314,6 @@ export function FacesNamesAnswerBar({
         {answer.options.map((option) => (
           <ActionButton key={option.key} label={option.label} theme={theme} onPress={option.run} />
         ))}
-      </View>
-    );
-  }
-  if (answer.kind === 'faces') {
-    return (
-      <View style={[styles.answerBar, styles.faceChoices]}>
-        {answer.options.map((option, index) => (option.person
-          ? <FaceChoice key={option.key} person={option.person} index={index} locale={locale} theme={theme} onPress={option.run} />
-          : null))}
       </View>
     );
   }
@@ -449,17 +438,19 @@ function FacesNamesSessionView({
         })),
       };
     }
-    if (session.phase === 'recognition' && испытание) {
-      return {
-        kind: 'faces',
-        options: испытание.recognitionPersonIds.flatMap((id) => {
-          const человек = personById(session.puzzle, id);
-          return человек
-            ? [{ key: id, label: человек.name, person: человек, run: () => setSession((current) => selectRecognizedFace(current, id)) }]
-            : [];
-        }),
-      };
-    }
+    /*
+     * 🔴 УЗНАВАНИЕ ЛИЦ НАРУЖУ НЕ УЕЗЖАЕТ — И ЭТО ЗАМЕР, А НЕ ЛЕНЬ.
+     * Решётка портретов — это СЦЕНА, а не полоса ответа. Живой замер 07.09.2026
+     * (375×812, статическая сборка): у слота `toolbar` каркаса `padding:
+     * 10px 66px` — поля под плавающие кнопки съедают 132 пикселя из 375, и на
+     * ответ остаётся 243. Двум плиткам лица нужно 152+10+152 = 314, поэтому в
+     * каркасе они встают столбиком и занимают 354 пикселя по высоте, оставляя
+     * сцену пустой. Ужать лицо до 96 пикселей — значит подкрутить сложность
+     * ухудшением картинки: похожесть портретов у этой игры и есть ось роста,
+     * и рассматривать их надо во весь размер. Поэтому фаза `recognition`
+     * рисует лица у себя, а в каркас уезжают только компактные ответы.
+     * Поле 66 — общее (`GameShell.tsx`, `FAB_GUTTER`), вынесено координатору.
+     */
     if (session.phase === 'name-recall' && испытание && цель) {
       return {
         kind: 'text',
@@ -611,14 +602,13 @@ function FacesNamesSessionView({
         <View style={[styles.card, styles.recallCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <Text style={[styles.progress, { color: theme.textSecondary }]}>{interpolateFacesNames(strings.recognitionProgress, { current: session.trialIndex + 1, total: session.puzzle.trials.length })}</Text>
           <Text accessibilityRole="header" style={[styles.prompt, { color: theme.text }]}>{strings.recognitionPrompt}</Text>
-          {ответСнаружи ? null : (
-            <View style={styles.faceChoices}>
-              {trial.recognitionPersonIds.map((id, index) => {
-                const person = personById(session.puzzle, id);
-                return person ? <FaceChoice key={id} person={person} index={index} locale={locale} theme={theme} onPress={() => setSession((current) => selectRecognizedFace(current, id))} /> : null;
-              })}
-            </View>
-          )}
+          {/* Лица рисуем всегда: они сцена, а не полоса ответа — см. разбор выше. */}
+          <View style={styles.faceChoices}>
+            {trial.recognitionPersonIds.map((id, index) => {
+              const person = personById(session.puzzle, id);
+              return person ? <FaceChoice key={id} person={person} index={index} locale={locale} theme={theme} onPress={() => setSession((current) => selectRecognizedFace(current, id))} /> : null;
+            })}
+          </View>
         </View>
       ) : null}
 
