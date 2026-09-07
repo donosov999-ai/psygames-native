@@ -14,7 +14,7 @@
  */
 import { makeBoard, collapseTriples, moveTop, isCleared, canPlace, TRIPLE, type Shelf } from '@/src/games/goods-sort/core/board';
 import { solveStrict } from '@/src/games/goods-sort/core/solver';
-import { dealCollapse, collapseLevel, COLLAPSE_FROM, strictPlacement, backRowLevel, BACK_FROM } from '@/src/games/goods-sort/core/level';
+import { dealCollapse, collapseLevel, COLLAPSE_FROM, strictPlacement, backRowLevel, BACK_FROM, queueSize, GOOD_SETS } from '@/src/games/goods-sort/core/level';
 
 /** Доска на два столбца по две ниши. Ниша 0 ждёт третью единицу из ниши 2. */
 function стол(queue: Shelf[] = []) {
@@ -318,5 +318,60 @@ describe('задний ряд ниши', () => {
     // А будь эти двое накрытыми товарами, ниша была бы полна.
     const полная = makeBoard([[1, 2, 2]], [3]);
     expect(canPlace(полная, 0, 1, false)).toBe(false);
+  });
+});
+
+describe('очередь укорачивается, а не пропадает', () => {
+  const pool = GOOD_SETS.flatMap((s) => s.items).map((_, i) => i);
+
+  /**
+   * 🔴 УРОВЕНЬ НЕ СМЕЕТ ПРИЙТИ БЕЗ МЕХАНИКИ, КОТОРУЮ ЕМУ ТОЛЬКО ЧТО ОБЕЩАЛИ.
+   *
+   * Окно правил на этих уровнях говорит: «полка закрылась — сверху приходит
+   * новая». Замер 07.09.2026 показал, что на 9 уровнях из 100 приходило БЕЗ
+   * очереди: раздача не доказывала расклад за 24 попытки и обрывалась в ноль.
+   *
+   * ⚠️ Проба ГОНЯЕТ раздачу, а не читает исходник: обещание держит не строчка
+   * с лестницей, а то, что возвращает `dealCollapse` на живом уровне.
+   */
+  const ПРОБЛЕМНЫЕ = [68, 88, 89, 115, 130, 139, 154, 170];
+
+  it('🔴 на уровнях, где очередь заказана, она ЕСТЬ — и раздача доказана', () => {
+    const пусто: string[] = [];
+    for (const L of ПРОБЛЕМНЫЕ) {
+      const заказано = queueSize(L);
+      if (заказано === 0) continue;
+      const d = dealCollapse(L, pool, false);
+      if (d.queue.length === 0) пусто.push(`L${L}: заказано ${заказано}, пришло 0`);
+      expect(d.proven).toBe(true);
+    }
+    expect(пусто).toEqual([]);
+  });
+
+  /**
+   * Вторая половина того же правила: укорачивать МОЖНО, выдумывать — нельзя.
+   * Очередь длиннее заказанной означала бы, что лестница ступила не туда.
+   */
+  it('укороченная очередь остаётся не длиннее заказанной', () => {
+    for (const L of ПРОБЛЕМНЫЕ) {
+      const d = dealCollapse(L, pool, false);
+      expect(d.queue.length).toBeLessThanOrEqual(queueSize(L));
+    }
+  });
+
+  /**
+   * ⚠️ Ступени идут ВНИЗ. Проба ловит подмену лестницы на «одну ступень»:
+   * при единственной ступени раздача снова обрывается в ноль, и первая проба
+   * краснеет. Здесь же — что при заказанной очереди 6 хотя бы один уровень из
+   * трудного хвоста реально доезжает до укорочения, а не проходит все на 6:
+   * иначе лестница есть в коде и не работает ни разу.
+   */
+  it('лестница действительно СРАБАТЫВАЕТ хотя бы на одном трудном уровне', () => {
+    let укорочено = 0;
+    for (const L of ПРОБЛЕМНЫЕ) {
+      const d = dealCollapse(L, pool, false);
+      if (d.queue.length > 0 && d.queue.length < queueSize(L)) укорочено += 1;
+    }
+    expect(укорочено).toBeGreaterThan(0);
   });
 });
