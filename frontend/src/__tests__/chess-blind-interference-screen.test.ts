@@ -15,6 +15,7 @@
 import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { примеровНаПодход } from '@/src/games/chess-blind/core/interference';
+import { puzzleLevelParams } from '@/src/games/chess-blind/core/puzzle';
 
 const TestRenderer = require('react-test-renderer');
 
@@ -138,5 +139,45 @@ describe('помеха на экране', () => {
       expect(`кнопок помехи на первом уровне: ${кнопкаПримера(r, 'interf-yes').length}`)
         .toBe('кнопок помехи на первом уровне: 0');
     }
+  });
+
+  /**
+   * 🔴 ЧИСЛО КНОПОК ВЫБОРА БЕРЁТСЯ ИЗ ЛЕСТНИЦЫ — ПРОВЕРКА НА ТОМ УРОВНЕ, ГДЕ
+   * ЧИСЛА РАСХОДЯТСЯ.
+   *
+   * 📍 Рядом, в `chess-blind-asked-square-visible`, кнопки уже считаются — но на
+   * ПЕРВОМ уровне, где лестница велит те же шесть, что стояли зашитой
+   * константой. Мутация «сборка игнорирует лестницу, всегда шесть» проходила ту
+   * пробу насквозь. Нужен шестой уровень: там велено восемь.
+   *
+   * ⚠️ Уровень подменяется моком `usePersistentLevel`, а не кладётся в хранилище:
+   * экран читает его по ключу профиля (`psygames_chess_blind_level_<id>`), а id
+   * создаётся провайдером на монтировании и заранее неизвестен. Попытка положить
+   * значение «наугад» уже дала пробу, зеленевшую на первом уровне вместо шестого.
+   */
+  it('🔴 на 6-м уровне кнопок выбора восемь, а не шесть', async () => {
+    const УРОВЕНЬ = 6;
+    const ждём = puzzleLevelParams(УРОВЕНЬ).optionCount;
+    expect(`лестница велит на ур.${УРОВЕНЬ}: ${ждём}, на ур.1: ${puzzleLevelParams(1).optionCount}`)
+      .toBe(`лестница велит на ур.${УРОВЕНЬ}: 8, на ур.1: 6`);
+
+    mockУровень.n = УРОВЕНЬ;
+    const r = await монтировать(); mounted.push(r);
+    await начать(r);
+
+    // Дожидаемся опроса: кнопки выбора появляются вместе с ним.
+    let кнопки: any[] = [];
+    for (let i = 0; i < 60 && !кнопки.length; i++) {
+      await осесть(1, 400);
+      const все = r.root.findAll((n: any) =>
+        typeof n.props?.onPress === 'function'
+        && !/^[a-h][1-8]$/.test(String(n.props?.accessibilityLabel ?? ''))
+        && n.findAll((x: any) => typeof x.props?.xml === 'string').length > 0);
+      const уник = new Set(все.map((n: any) => n.props.onPress));
+      if (уник.size > 0) кнопки = [...уник];
+    }
+    expect(`кнопки выбора появились: ${кнопки.length > 0}`).toBe('кнопки выбора появились: true');
+    expect(`ур.${УРОВЕНЬ}: нарисовано ${кнопки.length}, лестница велит ${ждём}`)
+      .toBe(`ур.${УРОВЕНЬ}: нарисовано ${ждём}, лестница велит ${ждём}`);
   });
 });
