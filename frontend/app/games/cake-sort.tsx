@@ -44,7 +44,7 @@ import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
-import { topFor, type КруглаяШкурка } from '@/src/constants/cakeTops';
+import { topFor, boardsFor, type КруглаяШкурка } from '@/src/constants/cakeTops';
 import { tableLayout, maxCols, plateAtPoint, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
 import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
 
@@ -116,6 +116,11 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
   const level = lvl.level;
 
   const тема = useMemo(() => cakeThemeForProfile(profile?.id), [profile?.id]);
+  /*
+   * Посуда: у тортов — тарелки темы профиля, у пиццы своя (дерево, металл,
+   * керамика). Тема профиля к пицце отношения не имеет, ей нужен материал.
+   */
+  const посуда = useMemo(() => boardsFor(skin, тема.plates), [skin, тема]);
   const cfg = useMemo(() => levelCfg(level), [level]);
 
   const [board, setBoard] = useState<Board | null>(null);
@@ -223,7 +228,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
   useEffect(() => {
     if (!board || done || moves === 0) return;
     saveResume(gameId, profile?.id ?? 'free', CS_RESUME_VERSION, { board, moves, hints, level }).catch(() => {});
-  }, [board, moves, hints, done, level, profile?.id]);
+  }, [gameId, board, moves, hints, done, level, profile?.id]);
 
   useResumeBoot<{ board: Board; moves: number; hints: number; level: number }>(
     gameId, CS_RESUME_VERSION,
@@ -409,7 +414,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
           из двадцати не выглядел обоями.
         */}
         <Image
-          source={тема.plates[i % тема.plates.length]}
+          source={посуда[i % посуда.length]}
           style={{ position: 'absolute', width: стол.plate, height: стол.plate }}
           resizeMode="contain"
         />
