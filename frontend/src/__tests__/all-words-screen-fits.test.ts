@@ -47,13 +47,23 @@ function пак(n: number) {
   return { base: 'abcdefgh', words: слова };
 }
 
+/**
+ * ⚠️ УПРАВЛЕНИЕ ЛОВИТСЯ ЗДЕСЬ, А НЕ ИЩЕТСЯ В ДЕРЕВЕ. Кнопки режима переехали в
+ * каркас (`onУправление`, 07.09.2026) — в самом экране их больше нет, и проба,
+ * искавшая узел с подписью «перемешать», падала не потому, что перемешивание
+ * сломалось, а потому что описывала прежнее место кнопки.
+ */
+const управление: { текущее: any } = { текущее: null };
+
 function отрисовать(n: number, size = 328, maxListHeight?: number) {
   let дерево: any;
+  управление.текущее = null;
   TestRenderer.act(() => {
     дерево = TestRenderer.create(
       React.createElement(AllWordsGame, {
         pack: пак(n), seed: 1, size, theme: ТЕМА, now: () => 0,
         onComplete: () => {}, labels: ПОДПИСИ, maxListHeight,
+        onУправление: (у: any) => { управление.текущее = у; },
       }),
     );
   });
@@ -140,16 +150,13 @@ describe('экран «найди все слова» — список огра�
     const до = колесо();
     expect(до.length).toBeGreaterThan(0);
 
-    const кнопка = дерево.root.findAll(
-      (n: any) => n.props?.accessibilityLabel === 'перемешать' && typeof n.props?.onPress === 'function',
-      { deep: true },
-    )[0];
-    expect(кнопка).toBeTruthy();
+    // Каркас получает действие через `onУправление` — жмём ровно то, что он жмёт.
+    expect(typeof управление.текущее?.перемешать).toBe('function');
 
     let после = до;
     // Порядок случайный: одно нажатие может совпасть с прежним. Несколько — нет.
     for (let i = 0; i < 6 && после.join('') === до.join(''); i += 1) {
-      TestRenderer.act(() => { кнопка.props.onPress(); });
+      TestRenderer.act(() => { управление.текущее.перемешать(); });
       после = колесо();
     }
     expect(после.join('')).not.toBe(до.join(''));
