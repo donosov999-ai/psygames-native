@@ -68,6 +68,21 @@ interface Props {
   nextLine: string;        // «Запускаю уровень N» — готовая строка от вызывающего
   doneLine: string;        // «Уровень N пройден»
   colors: any;
+  /**
+   * 🔴 ПОХВАЛА ПИТОМЦА — ГОТОВАЯ СТРОКА ОТ ВЫЗЫВАЮЩЕГО, ИЛИ `null`.
+   *
+   * Просьба Дениса 07.09.2026: «питомец должен хвалить между уровнями». До сих
+   * пор он здесь МОЛЧАЛ — ходил на следующую ступень и не говорил ни слова.
+   *
+   * ⚠️ `null` — обычное состояние, а не сбой. Хвалить за каждый пройденный
+   * уровень нельзя: похвала обесценивается за вечер, и человек перестаёт её
+   * читать раньше, чем доберётся до настоящего достижения. За что говорить, а
+   * когда молчать, решает `praiseLines.ts`; заставка только показывает.
+   *
+   * ⚠️ Строка приходит ГОТОВОЙ, а не собирается здесь: компонент не знает ни
+   * рекордов, ни цели, ни перерыва — это знание игры, а не заставки.
+   */
+  praise?: string | null;
 }
 
 /**
@@ -92,7 +107,7 @@ const PET = 46;
 /** Ступень — круг: вертикальная лестница из овалов читается как список, а не как путь. */
 const NODE = 36;
 
-export default function LevelInterlude({ level, stars, ms, nextLine, doneLine, colors }: Props) {
+export default function LevelInterlude({ level, stars, ms, nextLine, doneLine, colors, praise = null }: Props) {
   // ⚠️ НЕ `useWindowDimensions()` НАПРЯМУЮ: на первом кадре он отдаёт 0, и
   // `Math.min(0 - 80, 280)` даёт −80 — дорожка схлопывается со 280 px до 105.
   // Проверено здесь же 19.08.2026, через час после той же беды в тропинке.
@@ -281,6 +296,13 @@ export default function LevelInterlude({ level, stars, ms, nextLine, doneLine, c
             style={[styles.pet, { bottom: startFromBottom, transform: [{ translateY: shift }] }]}
             pointerEvents="none"
           >
+            {/* Пузырь НАД питомцем и едет вместе с ним: реплика, оторванная от
+                говорящего, читается как подпись экрана, а не как его слова. */}
+            {praise !== null && (
+              <View style={styles.praiseBubble} testID="interlude-praise">
+                <Text style={styles.praiseText} numberOfLines={2}>{praise}</Text>
+              </View>
+            )}
             <PetSprite state={reduced ? 'idle' : 'walk'} size={PET} skin={skin} accessory={accessory} />
           </Animated.View>
         </View>
@@ -336,6 +358,19 @@ const styles = StyleSheet.create({
   // Питомец едет поверх дорожки: он один и обязан двигаться, остальное стоит.
   // Питомец идёт поверх лестницы: он один и обязан двигаться, ступени стоят.
   pet: { position: 'absolute', left: NODE + 12 },
+  /*
+   * Пузырь похвалы. ⚠️ Тёмная подложка, а не полупрозрачная белая: заставка —
+   * ФОТОГРАФИЯ, и светлый пузырь на снежном или песчаном кадре пропадает вместе
+   * с текстом. Шторки сверху и снизу гасят фон именно ради читаемости, а этот
+   * пузырь висит В СЕРЕДИНЕ, где их нет.
+   */
+  praiseBubble: {
+    position: 'absolute', bottom: PET + 6, left: -18,
+    maxWidth: 190, paddingVertical: 6, paddingHorizontal: 11,
+    backgroundColor: 'rgba(0,0,0,0.62)',
+    borderRadius: 13, borderBottomLeftRadius: 4,
+  },
+  praiseText: { color: '#fff', fontSize: 13, lineHeight: 17, fontWeight: '700' },
   next: {
     color: 'rgba(255,255,255,0.95)', fontSize: 14, fontWeight: '700', textAlign: 'center', paddingHorizontal: 24,
     textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6,
