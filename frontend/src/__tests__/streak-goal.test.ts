@@ -12,6 +12,8 @@ import {
   markAsked, noticeReached, startGoal, type StreakGoal,
 } from '@/src/services/streakGoal';
 import { DAY_GOAL_REWARD } from '@/src/services/earn';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { loadStreakGoal, saveStreakGoal, streakGoalKey } from '@/src/services/streakGoal';
 
 declare const __dirname: string;
 declare function require(id: string): any;
@@ -170,5 +172,35 @@ describe('цель — сколько дней подряд', () => {
 
   it('неделя — это семь дней, а не «примерно неделя»', () => {
     expect(ASK_EVERY_DAYS).toBe(7);
+  });
+  describe('хранение', () => {
+    beforeEach(async () => { await AsyncStorage.clear(); });
+
+    it('что записали, то и читается', async () => {
+      const g = startGoal(14, день(2026, 9, 7));
+      await saveStreakGoal('p1', g);
+      expect(await loadStreakGoal('p1')).toEqual(g);
+    });
+
+    it('🔴 чужой профиль чужую цель не видит', async () => {
+      await saveStreakGoal('p1', startGoal(30, день(2026, 9, 7)));
+      expect(await loadStreakGoal('p2')).toBeNull();
+    });
+
+    it('битая запись — это «цели нет», а не падение экрана', async () => {
+      await AsyncStorage.setItem(streakGoalKey('p1'), '{не json');
+      expect(await loadStreakGoal('p1')).toBeNull();
+      await AsyncStorage.setItem(streakGoalKey('p1'), JSON.stringify({ days: 'семь' }));
+      expect(await loadStreakGoal('p1')).toBeNull();
+    });
+
+    it('🔴 запись БЕЗ reachedAt читается как «ещё не дошёл», а не как потеря поля', async () => {
+      // Поле появилось позже первой редакции: у ранних записей его нет.
+      await AsyncStorage.setItem(streakGoalKey('p1'),
+        JSON.stringify({ days: 7, startedAt: '2026-9-1', askedAt: '2026-9-1' }));
+      const g = await loadStreakGoal('p1');
+      expect(g?.reachedAt).toBeNull();
+      expect(askReason({ goal: g!, streak: 3, now: день(2026, 9, 3) })).toBeNull();
+    });
   });
 });
