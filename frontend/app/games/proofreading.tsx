@@ -1421,18 +1421,6 @@ export default function ProofreadingGame() {
           : { key: 'time', icon: 'time' as const, label: t('time'), value: hudTime(elapsedTime, t('secShort')) },
         ...(errors > 0 ? [{ key: 'errors', label: t('hud_errors'), value: errors }] : []),
       ]}
-      stats={fwPlaying ? undefined : (
-        <View style={styles.gameHeader}>
-          <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.targetLabel, { color: colors.text }]}>{t('find')}:</Text>
-            {targetLetters.map((tl, i) => (
-              <View key={i} style={[styles.targetChip, { backgroundColor: i === 0 ? '#34d399' : '#fbbf24' }]}>
-                <Text style={styles.targetChipText}>{tl}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
     >
       {fwPlaying ? (
         <View style={[styles.fwField, списокСбоку
@@ -1553,7 +1541,25 @@ export default function ProofreadingGame() {
           </View>
         </View>
       ) : (
-      <View style={[styles.gridContainer, { width: gridWidth }]}>
+      <>
+      {/*
+        🔴 ЦЕЛЬ СТОИТ НАД САМИМ ПОЛЕМ, А НЕ В ШАПКЕ (отчёт `a269f970`).
+        Плитки «А Б» жили в слоте `stats` — то есть в общей плашке счётчиков наверху
+        экрана, — а искать их надо в сетке ниже. Глаз ходил через весь экран между
+        тем, ЧТО искать, и тем, ГДЕ искать, и делал это на каждой клетке.
+        Задание — не счётчик; счётчики (найдено, время, ошибки) остались в шапке.
+      */}
+      <View testID="proof-target" style={styles.gameHeader}>
+        <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.targetLabel, { color: colors.text }]}>{t('find')}:</Text>
+          {targetLetters.map((tl, i) => (
+            <View key={i} style={[styles.targetChip, { backgroundColor: i === 0 ? '#34d399' : '#fbbf24' }]}>
+              <Text style={styles.targetChipText}>{tl}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+      <View testID="proof-grid" style={[styles.gridContainer, { width: gridWidth }]}>
         {grid.map((letter, index) => {
           // Цель до нажатия НЕ подсвечивается — в этом вся проба: её надо
           // увидеть самому. Поэтому здесь только «уже найдено».
@@ -1590,6 +1596,7 @@ export default function ProofreadingGame() {
           );
         })}
       </View>
+      </>
       )}
     </GameShell>
   );
@@ -1613,7 +1620,20 @@ export default function ProofreadingGame() {
     const total = blockStepsTotal(field, key);
     return (
       <GameShell
-        title={seriesStrings.entry}
+        /**
+         * 🔴 ЗАГОЛОВОК СЕРИИ — НАЗВАНИЕ ИГРЫ, А НЕ ПОДПИСЬ ВХОДА (08.09.2026).
+         *
+         * В шапке стояла `entry` — длинная фраза с кнопки входа («Серия: три правила
+         * на одном поле букв», 52 знака в самом длинном переводе). Заголовок в шапке
+         * ужимается до одной строки между кнопкой «назад» слева и питомцем со
+         * справкой справа, и на телефоне от неё оставалось «Серия: три прав…».
+         * Видно на ДВУХ скриншотах тестировщиков из четырёх (`a269f970`, `18be48ff`) —
+         * то есть беда общая для серий, а не про конкретную игру.
+         *
+         * Что это серия и какой блок идёт, экран говорит строкой под шапкой
+         * («Блок 1 из 3 · Поиск знака») — там место есть, и там оно к месту.
+         */
+        title={t('proofreading')}
         onBack={() => { leaveSeries(false); goBackOrHome(); }}
         headerRight={
           <TouchableOpacity
@@ -1642,24 +1662,23 @@ export default function ProofreadingGame() {
             ? [{ key: 'errors', label: t('hud_errors'), value: seriesState.errors }]
             : []),
         ]}
-        /* Плитки знаков — задание, а не счётчик: остаются вёрсткой рядом с `hud`. */
-        stats={
-          <View style={styles.gameHeader}>
-            <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
-              <Text style={[styles.targetLabel, { color: colors.text }]}>{blockLabel(key)}</Text>
-              {isSign && field.signs.map((sign, i) => (
-                <View key={sign} style={[styles.targetChip, { backgroundColor: i === 0 ? '#34d399' : '#fbbf24' }]}>
-                  <Text style={styles.targetChipText}>{sign}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        }
       >
         <Text style={[styles.seriesBlockLine, { color: colors.textSecondary }]}>
           {`${interpolate(seriesStrings.blockOf, { n: seriesState.blockIndex + 1, total: PROOF_SERIES_PLAN.length })} · ${blockLabel(key)}`}
         </Text>
+        {/* Задание — над полем, по той же причине, что и в обычной партии. */}
+        <View testID="proof-target" style={styles.gameHeader}>
+          <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.targetLabel, { color: colors.text }]}>{blockLabel(key)}</Text>
+            {isSign && field.signs.map((sign, i) => (
+              <View key={sign} style={[styles.targetChip, { backgroundColor: i === 0 ? '#34d399' : '#fbbf24' }]}>
+                <Text style={styles.targetChipText}>{sign}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
         <View
+          testID="proof-grid"
           style={[styles.gridContainer, { width: seriesCell * seriesSide }]}
           {...(isSign ? {} : fwPan.panHandlers)}
         >
