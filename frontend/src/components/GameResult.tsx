@@ -308,12 +308,12 @@ export default function GameResult({
       <ResultActions
         colors={colors}
         actions={[
-          { key: 'retry', label: t('retry'), icon: 'refresh' as const, tone: 'primary' as const, onPress: onPlayAgain },
+          { id: 'retry', label: t('retry'), icon: 'refresh' as const, tone: 'primary' as const, onPress: onPlayAgain },
           ...(shareText
-            ? [{ key: 'share', label: shareNote ?? t('shareResult'),
+            ? [{ id: 'share', label: shareNote ?? t('shareResult'),
                  icon: 'share-social-outline' as const, onPress: handleShare }]
             : []),
-          { key: 'home', label: t('goHome'), icon: 'home' as const, onPress: onGoHome },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, onPress: onGoHome },
         ]}
       />
       </Act>

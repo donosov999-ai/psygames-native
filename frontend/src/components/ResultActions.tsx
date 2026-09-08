@@ -24,7 +24,15 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export type ResultAction = {
-  key: string;
+  /**
+   * ⚠️ ПОЛЕ НАЗЫВАЕТСЯ `id`, А НЕ `key`, И ЭТО НЕ ПРИДИРКА. Гейт `hud-tone-canon`
+   * собирает по исходникам игр все записи вида `{ key: '…' }` — так он находит
+   * счётчики шапки и следит, чтобы одинаковые ключи красились одинаково во всех
+   * играх. Кнопки итога счётчиками не являются, но под ту же форму записи
+   * подпадали, и CI на этом покраснел 08.09.2026: «retry (в 2 играх), back (в 2
+   * играх) не названы в каноне». Роль действия — это `id`.
+   */
+  id: string;
   label: string;
   /** Иконка слева от подписи. Без неё кнопка читается как строка текста. */
   icon: React.ComponentProps<typeof Ionicons>['name'];
@@ -44,9 +52,9 @@ export function ResultActions({ actions, colors }: {
         const primary = (a.tone ?? 'secondary') === 'primary';
         return (
           <TouchableOpacity
-            key={a.key}
+            key={a.id}
             accessibilityRole="button"
-            testID={`result-action:${a.key}`}
+            testID={`result-action:${a.id}`}
             style={[
               styles.button,
               primary

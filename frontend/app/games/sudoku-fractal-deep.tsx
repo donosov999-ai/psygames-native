@@ -494,8 +494,8 @@ export default function FractalDeepScreen() {
           <ResultActions
             colors={colors}
             actions={[
-              { key: 'retry', label: t('retry'), icon: 'refresh', tone: 'primary', onPress: () => setPhase('config') },
-              { key: 'back', label: t('back'), icon: 'arrow-back', onPress: () => goBackOrHome() },
+              { id: 'retry', label: t('retry'), icon: 'refresh', tone: 'primary', onPress: () => setPhase('config') },
+              { id: 'back', label: t('back'), icon: 'arrow-back', onPress: () => goBackOrHome() },
             ]}
           />
         </View>
