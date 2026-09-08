@@ -1,3 +1,4 @@
+import { ResultActions } from '@/src/components/ResultActions';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -582,19 +583,16 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
           </TouchableOpacity>
         </View>
       ) : compact ? null : (
-      <View style={styles.btns}>
-        <TouchableOpacity
-          accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.primary }]} onPress={go} activeOpacity={0.85}>
-          <Ionicons name={passed ? 'play' : 'refresh'} size={20} color="#FFFFFF" />
-          <Text style={styles.btnText} numberOfLines={1}>{passed ? t('nextNow') : t('retry')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          accessibilityRole="button" style={[styles.btn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
-          onPress={stop} activeOpacity={0.85}>
-          <Ionicons name="stop" size={20} color={colors.text} />
-          <Text style={[styles.btnText, { color: colors.text }]} numberOfLines={1}>{t(stopKind === 'exit' ? 'goHome' : 'stop')}</Text>
-        </TouchableOpacity>
-      </View>
+      /* Вид кнопок итога — общий (`ResultActions`), см. `d35840f8`. */
+      <ResultActions
+        colors={colors}
+        actions={[
+          { key: 'go', label: passed ? t('nextNow') : t('retry'),
+            icon: passed ? ('play' as const) : ('refresh' as const), tone: 'primary' as const, onPress: go },
+          { key: 'stop', label: t(stopKind === 'exit' ? 'goHome' : 'stop'),
+            icon: 'stop' as const, onPress: stop },
+        ]}
+      />
       )}
     </View>
   );

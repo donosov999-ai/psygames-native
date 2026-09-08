@@ -40,6 +40,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
 import GameShell from '@/src/components/GameShell';
+import { ResultActions } from '@/src/components/ResultActions';
 import { PencilMarksLayer } from '@/src/components/PencilMarksLayer';
 import { pencilDigits } from '@/src/services/pencilMarks';
 import GlassButton from '@/src/components/GlassButton';
@@ -488,7 +489,15 @@ export default function FractalDeepScreen() {
           <Text style={[styles.resultSub, { color: colors.textSecondary }]}>
             {t('timeErrorsLine').replace('{t}', elapsed.toFixed(0)).replace('{n}', String(errors))}
           </Text>
-          <GlassButton label={t('retry')} tone="accent" onPress={() => setPhase('config')} />
+          {/* Кнопки итога — общим компонентом. Была одна `GlassButton` и НИ ОДНОЙ
+              кнопки выхода: из итога уходили только системной стрелкой. */}
+          <ResultActions
+            colors={colors}
+            actions={[
+              { key: 'retry', label: t('retry'), icon: 'refresh', tone: 'primary', onPress: () => setPhase('config') },
+              { key: 'back', label: t('back'), icon: 'arrow-back', onPress: () => goBackOrHome() },
+            ]}
+          />
         </View>
       </GameShell>
     );
