@@ -103,7 +103,7 @@ import {
  * пробам брать из `@/src/games/goods-sort/core/level` — там нет экрана.
  */
 import {
-  CAP, CAP_MAX, CAP_MIN, CAP_ONE, CLEAR_SCORE, EMPTY_HIDDEN_STATS, GOODS_BENEFITS, GOOD_ONBOARD_H, GOOD_ONBOARD_W, GOOD_SETS, GOOD_SETS_KEYS, GOOD_SET_POOL_SIZE, GRADIENT, GS_GAME_ID, GS_RESUME_DEBOUNCE_MS, GS_RESUME_V, GS_RULES, HIDDEN_FROM, HINTS_PER_LEVEL, JOKER_FROM, MIXED_CAP_FROM, MONO_FROM, MOVE_SHIFT_EVERY, MOVING_FROM, PAIR_HINT_UNTIL, REF_PER_TYPE, SET_COLS, SHAPES, SHUFFLES_PER_LEVEL, SINGLE_CAP_FROM, THUMBS_PER_CARD, TYPES_ON_BOARD_MAX, WARM_FAMILY, WIDEST_POOL, capsFor, capsForBoard, clampGoalToLevel, clampGoalToRule, findHint, goalMet, goalPlan, goalProgress, goodName, goodSetForProfile, goodsHasSomethingToLose, gridFor, gsLayout, gsRulesForLevel, hasPair, hiddenInfo, isNarrow, miniMap, SCROLL_FROM, ITEM_FLOOR, hideDeepSpots, itemAtX, jokerNiches, jokersForBoard, levelCfg, liveRowsForFreeze, monochromeLevel, moveReference, movesExhausted, movingNiches, nicheAtPoint, nicheRect, nicheShift, pairHintVisible, placementOk, poolBitesAt, poolForLevel, provenUnsolvable, removeTriple, revealUncovered, rowOfNiche, scoreForClears, sessionDetails, setAvailable, setThumbBox, shelfForProfile, setUnlockLevel, shapeFor, shiftCoveredAfterTake, solvableStrict, starsForMoves, strictPlacement, targetSlots, tripleIn, typeBudget, dealBoard, generate, permuteCells, restoreGoodsParty, setRows, shuffle, snapshotGoodsParty,
+  CAP, CAP_MAX, CAP_MIN, CAP_ONE, CLEAR_SCORE, EMPTY_HIDDEN_STATS, GOODS_BENEFITS, GOOD_ONBOARD_H, GOOD_ONBOARD_W, GOOD_SETS, GOOD_SETS_KEYS, GOOD_SET_POOL_SIZE, GRADIENT, GS_GAME_ID, GS_RESUME_DEBOUNCE_MS, GS_RESUME_V, GS_RULES, HIDDEN_FROM, HINTS_PER_LEVEL, JOKER_FROM, MIXED_CAP_FROM, MONO_FROM, MOVE_SHIFT_EVERY, MOVING_FROM, PAIR_HINT_UNTIL, REF_PER_TYPE, SET_COLS, SHAPES, SHUFFLES_PER_LEVEL, SINGLE_CAP_FROM, THUMBS_PER_CARD, TYPES_ON_BOARD_MAX, WARM_FAMILY, WIDEST_POOL, capsFor, capsForBoard, clampGoalToLevel, clampGoalToRule, findHint, goalMet, levelWon, goalPlan, goalProgress, goodName, goodSetForProfile, goodsHasSomethingToLose, gridFor, gsLayout, gsRulesForLevel, hasPair, hiddenInfo, isNarrow, miniMap, SCROLL_FROM, ITEM_FLOOR, hideDeepSpots, itemAtX, jokerNiches, jokersForBoard, levelCfg, liveRowsForFreeze, monochromeLevel, moveReference, movesExhausted, movingNiches, nicheAtPoint, nicheRect, nicheShift, pairHintVisible, placementOk, poolBitesAt, poolForLevel, provenUnsolvable, removeTriple, revealUncovered, rowOfNiche, scoreForClears, sessionDetails, setAvailable, setThumbBox, shelfForProfile, setUnlockLevel, shapeFor, shiftCoveredAfterTake, solvableStrict, starsForMoves, strictPlacement, targetSlots, tripleIn, typeBudget, dealBoard, generate, permuteCells, restoreGoodsParty, setRows, shuffle, snapshotGoodsParty,
 } from '@/src/games/goods-sort/core/level';
 import type {
   GoodsLiveParty, GoodsRestored, GoodsResume, ShelfStyle, BoardGeom, GamePhase, Goal, GsLayout, HiddenRunStats, HintMove, Obstacle, Sel, Snapshot,
@@ -115,7 +115,7 @@ export {
   HIDDEN_FROM, JOKER_FROM, MIXED_CAP_FROM, MONO_FROM, MOVE_SHIFT_EVERY, MOVING_FROM,
   PAIR_HINT_UNTIL, REF_PER_TYPE, SET_COLS, SHAPES, SINGLE_CAP_FROM, THUMBS_PER_CARD,
   TYPES_ON_BOARD_MAX, WARM_FAMILY, WIDEST_POOL, capsFor, capsForBoard, clampGoalToLevel,
-  clampGoalToRule, findHint, goalMet, goalPlan, goalProgress, goodSetForProfile,
+  clampGoalToRule, findHint, goalMet, goalPlan, goalProgress, goodSetForProfile, levelWon,
   goodsHasSomethingToLose, gridFor, gsLayout, gsRulesForLevel, hiddenInfo, hideDeepSpots,
   itemAtX, jokerNiches, jokersForBoard, levelCfg, liveRowsForFreeze, monochromeLevel,
   moveReference, movesExhausted, movingNiches, nicheAtPoint, nicheRect, nicheShift,
@@ -1665,8 +1665,14 @@ export default function GoodsSortGame() {
      * полках ещё лежит товар, и это НЕ незаконченный уровень — это и есть
      * смысл цели: играть адресно, а не выметать всё подряд.
      */
-    if (goalMet(итог, goalRef.current)) setTimeout(advanceLevel, 350);
-    else outOfMoves(итог);
+    /**
+     * ⚠️ ПОБЕДА СЧИТАЕТСЯ ПО СВЕЖЕМУ РЕЗУЛЬТАТУ ХОДА, а не по состоянию React:
+     * `setОчередь` в этом же обработчике ещё не применился, и по нему уровень
+     * засчитался бы на ход раньше — ровно тот дефект, который здесь чинится.
+     */
+    if (levelWon({ cells: итог, queue: послеХода.queue, back: послеХода.back }, goalRef.current)) {
+      setTimeout(advanceLevel, 350);
+    } else outOfMoves(итог);
   };
 
   const handleItemTap = (cellI: number, idx: number) => {
