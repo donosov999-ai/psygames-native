@@ -64,7 +64,7 @@ import {
   positionForLevel,
   puzzlePiecesBand,
   puzzlePosition,
-  questionText,
+  questionParts,
   puzzleLevelParams,
   puzzleMinUnique,
   toScreenPieces,
@@ -75,6 +75,7 @@ import {
   squareName,
   truthLabel,
   type ChessPosition,
+  type ChessPiece as CorePiece,
   type ChessSeriesOutcome,
   type ChessSeriesProgress,
   type ChessSeriesState,
@@ -226,6 +227,17 @@ function PieceImage({ combo, size, glyph }: { combo: Combo; size: number; glyph?
       <SvgXml xml={xml} width={size} height={size} />
     </View>
   );
+}
+
+/**
+ * Фигура ЯДРА (`{ color: 'w'|'b', type: 'n' }`) в фигуру ЭКРАНА (`{ white, type: 'N' }`).
+ *
+ * ⚠️ Два представления существуют не по недосмотру: корпус задач зовёт типы
+ * прописными, ядро доски — строчными. Перевод один и здесь, чтобы не расползался
+ * по местам вызова — ровно тот довод, что записан выше у `PieceImage`.
+ */
+function comboOf(piece: CorePiece): Combo {
+  return { white: piece.color === 'w', type: String(piece.type).toUpperCase() as PieceType };
 }
 
 // Название фигуры — ОДНИМ ключом на цвет+фигуру, а не сборкой «цвет» + «фигура».
@@ -1189,9 +1201,22 @@ export default function ChessBlindGame() {
           </Text>
           {asking && question ? (
             <>
-              <Text style={[styles.seriesQuestion, { color: colors.text }]}>
-                {questionText(chessStrings, question)}
-              </Text>
+              {/* 🔴 ФИГУРА В ВОПРОСЕ — КАРТИНКОЙ, ТОЙ ЖЕ, ЧТО НА ДОСКЕ (18be48ff, d35840f8).
+                  Шрифтовой глиф здесь был нечитаем ровно по той причине, что уже
+                  записана у `PieceImage`: тонкая линия контурных белых фигур не
+                  спасается ни кеглем, ни весом. И учиться человеку не на чем, если
+                  вопрос спрашивает одним начертанием, а доска показывала другое. */}
+              <View testID="chess-question" style={styles.questionRow}>
+                {questionParts(chessStrings, question).map((part, i) => (
+                  'piece' in part ? (
+                    <PieceImage key={`p${i}`} combo={comboOf(part.piece)} size={34} />
+                  ) : (
+                    <Text key={`t${i}`} style={[styles.seriesQuestion, { color: colors.text }]}>
+                      {part.text}
+                    </Text>
+                  )
+                ))}
+              </View>
               <Text style={[styles.hintText, { color: colors.textSecondary }]}>{header.rule}</Text>
               {/* Подсказка: ПУСТАЯ доска. Позиции на ней нет — иначе блок памяти
                   превратился бы в чтение с картинки. */}
@@ -1581,9 +1606,20 @@ export default function ChessBlindGame() {
                   <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
                     <Text style={[styles.optionLabel, { color: colors.text }]}>{t('errors')}</Text>
                     {recallMisses.map((q) => (
-                      <Text key={q.square} style={[styles.seriesRow, { color: colors.textSecondary }]}>
-                        {`${squareName(q.square)} — ${truthLabel(chessStrings, q)}`}
-                      </Text>
+                      <View key={q.square} style={styles.missRow}>
+                        <Text style={[styles.seriesRow, { color: colors.textSecondary }]}>
+                          {`${squareName(q.square)} — `}
+                        </Text>
+                        {/* То же начертание, что в вопросе: разбор учит только тогда,
+                            когда «что было» показано так же, как спрашивали. */}
+                        {q.truth ? (
+                          <PieceImage combo={comboOf(q.truth)} size={24} />
+                        ) : (
+                          <Text style={[styles.seriesRow, { color: colors.textSecondary }]}>
+                            {truthLabel(chessStrings, q)}
+                          </Text>
+                        )}
+                      </View>
                     ))}
                   </View>
                 )}
@@ -1652,6 +1688,10 @@ const styles = StyleSheet.create({
   seriesGlyph: { textAlign: 'center', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 3 },
   seriesBlockLine: { fontSize: 13, fontWeight: '600', textAlign: 'center' },
   seriesQuestion: { fontSize: 22, fontWeight: '700', textAlign: 'center', lineHeight: 30 },
+  // Вопрос идёт строкой из кусков: текст и фигура-картинка рядом, по базовой линии.
+  questionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 4 },
+  // Разбор ошибки: клетка текстом, фигура — той же картинкой, что в вопросе.
+  missRow: { flexDirection: 'row', alignItems: 'center' },
   seriesRow: { fontSize: 15 },
   seriesNote: { fontSize: 13, lineHeight: 18, paddingHorizontal: 4 },
   answerRow: { flexDirection: 'row', gap: 12, justifyContent: 'center' },

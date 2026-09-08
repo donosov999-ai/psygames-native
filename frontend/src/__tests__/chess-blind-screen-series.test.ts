@@ -165,7 +165,30 @@ const filled = (l: Record<string, string>): string[] => Object.keys(l).filter((k
 
 /** Все строки дерева — чтобы искать вопрос по шаблону словаря, а не по стилю. */
 function allTexts(r: any): string[] {
-  return r.root.findAll(() => true, { deep: true }).map((n: any) => joined(n).trim());
+  const out = r.root.findAll(() => true, { deep: true }).map((n: any) => joined(n).trim());
+  const line = questionLine(r);
+  return line ? [...out, line] : out;
+}
+
+/**
+ * ⚠️ 08.09.2026 ФИГУРУ В ВОПРОСЕ ТОЖЕ ОПОЗНАЁМ ПО `testID`. Ровно та же правка, что
+ * 03.09 сделали для клеток доски, и по той же причине: шрифтовой глиф `♙` в строке
+ * вопроса был нечитаем (отчёты `18be48ff`, `d35840f8`), и вопрос теперь рисует ту же
+ * картинку, что доска. Текста у картинки нет, опознавательный знак задан явно —
+ * `piece:♙`. Проверяемое свойство не изменилось: вопрос спрашивает про ту же фигуру.
+ */
+function questionLine(r: any): string | null {
+  const rows = r.root.findAll((n: any) => n.props?.testID === 'chess-question', OUTER);
+  if (!rows.length) return null;
+  const parts: string[] = [];
+  const walk = (node: any) => {
+    if (typeof node === 'string') { parts.push(node); return; }
+    const id = String(node?.props?.testID ?? '');
+    if (id.startsWith('piece:')) { parts.push(id.slice('piece:'.length)); return; }
+    (node?.children ?? []).forEach(walk);
+  };
+  rows[0].children.forEach(walk);
+  return parts.join('').trim();
 }
 
 /** Регулярка из шаблона словаря: «Are {a} and {b} the same colour?» → тот же вопрос с дырами. */
@@ -459,6 +482,46 @@ describe('экран серии: три блока по одной позици�
       expect(filled(shown)).toContain(
         Object.keys(shown).find((k) => shown[k] === glyphIn(asked as string)) as string,
       );
+    } finally { TestRenderer.act(() => { try { r.unmount(); } catch { /* уже ушёл */ } }); }
+  });
+
+  it('🔴 фигура в вопросе нарисована КАРТИНКОЙ, а не шрифтовым знаком', async () => {
+    /**
+     * Отчёты `18be48ff` и `d35840f8`: «фигуру в вопросе не видно». Доску перевели на
+     * картинки ещё 03.09 и записали, почему: у шрифтового глифа не поправить ни
+     * толщину линии, ни пропорции, и контурные белые `♔♕♖♗♘♙` на светлом фоне
+     * теряются. Вопрос при этом остался текстом — тем самым знаком, который уже
+     * признали нечитаемым, да ещё и в кегле обычной строки.
+     *
+     * ⚠️ Проверяем ВЫЗОВОМ: в строке вопроса стоит узел фигуры (`piece:♙`), а самого
+     * шрифтового знака среди её ТЕКСТА нет.
+     */
+    const r = await mountScreen();
+    try {
+      pressText(r, EN.entry);
+      playBlock(r, null);
+      await advance(INTERLUDE);
+      playBlock(r, null);
+      await advance(INTERLUDE);
+      pressText(r, START);
+      await advance(EXPOSE);
+
+      const rows = r.root.findAll((n: any) => n.props?.testID === 'chess-question', OUTER);
+      expect(`строка вопроса на экране: ${rows.length > 0}`).toBe('строка вопроса на экране: true');
+
+      // фигура — узлом-картинкой
+      const pieces = rows[0].findAll(
+        (n: any) => String(n.props?.testID ?? '').startsWith('piece:'), OUTER,
+      );
+      expect(`фигур-картинок в вопросе: ${pieces.length}`).toBe('фигур-картинок в вопросе: 1');
+
+      // …и её шрифтового знака в тексте строки НЕТ
+      const текст = joined(rows[0]);
+      expect(`шрифтовой знак в тексте вопроса: ${/[♔-♟]/.test(текст)}`)
+        .toBe('шрифтовой знак в тексте вопроса: false');
+
+      // а спрашивает вопрос по-прежнему про фигуру показанной доски
+      expect(glyphIn(questionLine(r) as string)).not.toBe('');
     } finally { TestRenderer.act(() => { try { r.unmount(); } catch { /* уже ушёл */ } }); }
   });
 
