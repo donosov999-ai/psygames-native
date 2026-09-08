@@ -19,6 +19,7 @@ import {
 import GlassButton from '@/src/components/GlassButton';
 import { useLadderLock } from '@/src/contexts/PlayerLevelContext';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
+import { PencilMarksLayer } from '@/src/components/PencilMarksLayer';
 import BossRound, { BossType } from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -1403,24 +1404,13 @@ export default function SudokuGame() {
    * Касаний слой не перехватывает (pointerEvents none): палец обязан попадать в клетку,
    * а не в цифру поверх неё.
    */
-  const renderMarks = (r: number, c: number, value: Cell) => {
+  const renderMarks = (r: number, c: number, value: Cell, bg: string) => {
     const digits = sudokuVisibleMarks(marks[r]?.[c] ?? 0, value, N);
-    if (!digits.length) return null;
     return (
-      <View style={styles.markGrid} pointerEvents="none">
-        {Array.from({ length: N }, (_, k) => k + 1).map((d) => (
-          <Text
-            key={d}
-            style={{
-              width: cellSize / 3, height: cellSize / 3, lineHeight: cellSize / 3,
-              fontSize: Math.max(6, cellSize * 0.235), textAlign: 'center',
-              color: digits.includes(d) ? colors.textSecondary : 'transparent',
-            }}
-          >
-            {d}
-          </Text>
-        ))}
-      </View>
+      <PencilMarksLayer
+        digits={digits} cellSize={cellSize} slots={N}
+        color={colors.textSecondary} on={bg}
+      />
     );
   };
 
@@ -2035,7 +2025,7 @@ export default function SudokuGame() {
               )}
               {/* Карандаш — ПОД суммой клетки killer и под цифрой: сумма и цифра важнее
                   кандидатов, и перекрывать их слой бухгалтерии не имеет права. */}
-              {renderMarks(r, c, v)}
+              {renderMarks(r, c, v, bg)}
               {/* Сумма — в углу клетки, колба термометра — по центру: на одной клетке
                   обе разметки не спорят за место. */}
               {cageAt(r, c) >= 0 && cageAnchors[cageAt(r, c)] === r * N + c && (
@@ -2545,12 +2535,6 @@ const styles = StyleSheet.create({
   // alignItems:'stretch' — иначе ряд кнопок сжимается по содержимому и вылезает
   // за экран: на 375px первая капсула уезжала за левый край и обрезалась.
   hintBlock: { alignSelf: 'stretch', alignItems: 'stretch', gap: 5 },
-  // Карандашные пометки: три в ряд поверх клетки и БЕЗ перехвата касаний —
-  // палец должен попадать в саму клетку, а не в слой с цифрами.
-  markGrid: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
-  },
   // Кнопки тянутся по ширине панели поровну (flex: 1) и держат минимум 48 точек по
   // высоте. Было paddingVertical: 8 — около 36 точек, ниже минимума, при котором палец
   // попадает надёжно (44 у Apple, 48 у Material). Промах по «Отменить» в судоку стоит

@@ -54,6 +54,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
 import GameShell, { type HudItem } from '@/src/components/GameShell';
+import { PencilMarksLayer } from '@/src/components/PencilMarksLayer';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -721,27 +722,11 @@ export default function FractalSudokuScreen() {
   };
 
   /** Пометки клетки — три ряда по три, как в углу бумажной клетки. */
-  const renderMarks = (which: 'root' | number, r: number, c: number, size: number, value: number) => {
+  const renderMarks = (which: 'root' | number, r: number, c: number, size: number, value: number, bg?: string) => {
     if (value !== 0) return null;   // цифра перекрывает пометки, но НЕ стирает их
     const layer = which === 'root' ? marks.root : marks.children[which as number];
     const digits = pencilDigits(layer?.[r]?.[c] ?? 0);
-    if (!digits.length) return null;
-    return (
-      <View style={styles.markGrid} pointerEvents="none">
-        {Array.from({ length: 9 }, (_, k) => k + 1).map((d) => (
-          <Text
-            key={d}
-            style={{
-              width: size / 3, height: size / 3, lineHeight: size / 3,
-              fontSize: Math.max(6, size * 0.235), textAlign: 'center',
-              color: digits.includes(d) ? colors.textSecondary : 'transparent',
-            }}
-          >
-            {d}
-          </Text>
-        ))}
-      </View>
-    );
+    return <PencilMarksLayer digits={digits} cellSize={size} color={colors.textSecondary} on={bg} />;
   };
 
   /**
@@ -1022,7 +1007,7 @@ export default function FractalSudokuScreen() {
                           {v === 0 && ghost(fedChild, cell)}
                         </>
                       )}
-                      {renderMarks('root', r, c, cell, v)}
+                      {renderMarks('root', r, c, cell, v, isSel ? GRADIENT[1] : undefined)}
                       <Text style={{
                         fontSize: cell * 0.5,
                         fontWeight: given ? '800' : '600',
@@ -1267,7 +1252,7 @@ export default function FractalSudokuScreen() {
                         </Text>
                       </>
                     )}
-                    {renderMarks(openChild, r, c, cell, v)}
+                    {renderMarks(openChild, r, c, cell, v, isSel ? GRADIENT[1] : undefined)}
                     <Text style={{
                       fontSize: cell * 0.5,
                       fontWeight: given ? '800' : '600',
@@ -1358,10 +1343,6 @@ const styles = StyleSheet.create({
   playCol: { alignItems: 'center', gap: 10, marginBottom: 150 },
   // Пометки: три ряда по три, поверх клетки и БЕЗ перехвата касаний —
   // палец должен попадать в саму клетку, а не в слой с цифрами.
-  markGrid: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
-  },
   paintRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginBottom: 6 },
   // Иконка-инструмент в шапке: тот же порог 48 (frontend/scripts/tap-target-audit.mjs).
   toolIconBtn: { width: 48, height: 48, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },

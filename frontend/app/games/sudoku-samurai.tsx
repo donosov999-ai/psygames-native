@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
 import LevelCleared from '@/src/components/LevelCleared';
+import { PencilMarksLayer } from '@/src/components/PencilMarksLayer';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -1656,26 +1657,15 @@ export default function SamuraiSudokuGame() {
           borderTopWidth: topThick ? 2 : 0,
         }}
       >
-        {/* Карандашные пометки — три в ряд, как в углу бумажной клетки. Слоты стоят на
-            местах всегда (отсутствующая цифра прозрачна): по неподвижной сетке кандидаты
-            читаются взглядом, а по съезжающему списку — чтением. Касаний слой не
-            перехватывает: палец обязан попадать в клетку, а не в цифру поверх неё. */}
-        {penciled.length > 0 && (
-          <View style={styles.markGrid} pointerEvents="none">
-            {Array.from({ length: 9 }, (_, k) => k + 1).map((d) => (
-              <Text
-                key={d}
-                style={{
-                  width: cellSize / 3, height: cellSize / 3, lineHeight: cellSize / 3,
-                  fontSize: Math.max(6, Math.round(cellSize * 0.235)), textAlign: 'center',
-                  color: penciled.includes(d) ? (isSel ? '#FFF' : colors.textSecondary) : 'transparent',
-                }}
-              >
-                {d}
-              </Text>
-            ))}
-          </View>
-        )}
+        {/* Карандашные пометки — общий слой на все судоку (`PencilMarksLayer`): три в
+            ряд, слоты на местах всегда, касаний не перехватывает. Геометрия там же —
+            слот считается от ВНУТРЕННЕГО бокса клетки, а не от её стороны. */}
+        <PencilMarksLayer
+          digits={penciled}
+          cellSize={cellSize}
+          color={colors.textSecondary}
+          on={bg}
+        />
         {v !== 0 && (
           <Text style={{
             color: isSel ? '#FFF' : conflict ? '#b91c1c' : isGiven ? colors.text : GRADIENT[0],
@@ -1939,12 +1929,6 @@ const styles = StyleSheet.create({
   hintBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16 },
   hintBtnText: { color: '#000', fontSize: 13, fontWeight: '700' },
   pencilHint: { fontSize: 11, fontWeight: '600', textAlign: 'center', paddingHorizontal: 12 },
-  // Карандашные пометки: три в ряд поверх клетки и БЕЗ перехвата касаний —
-  // палец должен попадать в саму клетку, а не в цифру поверх неё.
-  markGrid: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
-  },
   overWrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.55)', padding: 24, zIndex: 100 },
   overCard: { width: '100%', maxWidth: 340, borderRadius: 20, padding: 24, alignItems: 'center', gap: 6 },
   overEmoji: { fontSize: 46 },

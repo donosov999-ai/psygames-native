@@ -40,6 +40,8 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
 import GameShell from '@/src/components/GameShell';
+import { PencilMarksLayer } from '@/src/components/PencilMarksLayer';
+import { pencilDigits } from '@/src/services/pencilMarks';
 import GlassButton from '@/src/components/GlassButton';
 import { useGameKeyboard, digitKeys } from '@/src/hooks/useGameKeyboard';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
@@ -691,16 +693,14 @@ export default function FractalDeepScreen() {
                       }]} />
                     )}
                     {v === 0 && !isFeed && (marks[path]?.[r]?.[c] ?? 0) !== 0 ? (
-                      <View pointerEvents="none" style={styles.marksWrap}>
-                        {Array.from({ length: DEEP_N }, (_, i) => i + 1).map((d) => (
-                          <Text key={d} style={[styles.markDigit, {
-                            fontSize: Math.max(7, cell * 0.24),
-                            width: cell / 3.2,
-                            color: isSel ? '#FFF' : colors.textSecondary,
-                            opacity: ((marks[path]![r]![c]! >> (d - 1)) & 1) ? 1 : 0,
-                          }]}>{d}</Text>
-                        ))}
-                      </View>
+                      <PencilMarksLayer
+                        absolute={false}
+                        digits={pencilDigits(marks[path]![r]![c]!)}
+                        cellSize={cell}
+                        slots={DEEP_N}
+                        color={colors.textSecondary}
+                        on={isSel ? GRADIENT[1] : undefined}
+                      />
                     ) : (
                       <Text style={{
                         fontSize: cell * 0.5,
@@ -762,8 +762,6 @@ const styles = StyleSheet.create({
   fedRing: { position: 'absolute', top: 1.5, left: 1.5, right: 1.5, bottom: 1.5, borderRadius: 3, borderWidth: 1 },
   ghostWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   hint: { fontSize: 12, textAlign: 'center', paddingHorizontal: 24 },
-  marksWrap: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 1, maxWidth: '100%' },
-  markDigit: { textAlign: 'center', fontWeight: '700', lineHeight: 11 },
 
   pad: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, justifyContent: 'center', maxWidth: 280 },
   key: { width: 48, height: 48, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
