@@ -409,6 +409,49 @@ export function truthLabel(strings: ChessBlindStrings, question: RecallQuestion)
   return claimLabel(strings, question.truth);
 }
 
+/**
+ * Кусок вопроса: либо текст, либо ФИГУРА, которую экран нарисует картинкой.
+ *
+ * 🔴 ЗАЧЕМ РАЗБИВАТЬ СТРОКУ. Отчёты `18be48ff` и `d35840f8`: «фигуру в вопросе не
+ * видно». Доску давно перевели на картинки (`PieceImage`), и там же записано,
+ * почему: «шрифтовой глиф мельче своей строки, на доске выглядит игрушкой; ни
+ * толщину линии, ни пропорции у него не поправить». Вопрос и разбор ошибок при
+ * этом остались текстовым глифом — то есть ровно тем, что уже признали
+ * нечитаемым, только ещё и в кегле обычной строки.
+ *
+ * Крупнее и жирнее его делать незачем: у контурных белых `♔♕♖♗♘♙` тонкая линия,
+ * и на светлом фоне она не спасается кеглем. Правильный ответ — тот же рисунок,
+ * что на доске: человек учится сопоставлять вопрос с тем, что видел.
+ *
+ * ⚠️ РЕЖЕМ ПО ПЛЕЙСХОЛДЕРУ, А НЕ ПО МЕСТУ. `{piece}` стоит в разных местах фразы
+ * на двенадцати языках — в начале («Steht ♙ auf b3?»), в середине, в конце
+ * («{square} 上是 {piece} 吗？»), и в арабском справа налево. Порядок кусков
+ * задаёт сама строка перевода.
+ */
+export type QuestionPart = { text: string } | { piece: ChessPiece };
+
+/**
+ * Вопрос кусками: текст и фигура отдельно. Для вопросов без фигуры — один кусок,
+ * тот же самый текст, что отдаёт `questionText`.
+ */
+export function questionParts(strings: ChessBlindStrings, question: ChessQuestion): QuestionPart[] {
+  if (question.kind !== 'recall' || !question.claim) {
+    return [{ text: questionText(strings, question) }];
+  }
+  // Метка вместо фигуры: символ, которого нет ни в одном переводе.
+  const МЕТКА = '\u0001';
+  const шаблон = interpolate(strings.askRecall, {
+    square: squareName(question.square),
+    piece: МЕТКА,
+  });
+  const [до, после = ''] = шаблон.split(МЕТКА);
+  const out: QuestionPart[] = [];
+  if (до) out.push({ text: до });
+  out.push({ piece: question.claim });
+  if (после) out.push({ text: после });
+  return out;
+}
+
 /** Сам вопрос — одной строкой, из значений самого вопроса. */
 export function questionText(strings: ChessBlindStrings, question: ChessQuestion): string {
   if (question.kind === 'square') {
