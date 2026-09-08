@@ -45,7 +45,7 @@ import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { prebuilt, prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
 import { topFor, boardsFor, type КруглаяШкурка } from '@/src/constants/cakeTops';
-import { tableLayout, maxCols, plateAtPoint, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
+import { tableLayout, maxCols, plateAtPoint, plateForGrab, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
 import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
 
 export const CS_GAME_ID = 'cake_sort';
@@ -389,6 +389,13 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
   const тарелкаПод = (pageX: number, pageY: number) =>
     (стол.plate ? plateAtPoint(pageX - бокс.x, pageY - бокс.y, стол.cols, стол.plate, cfg.plates) : null);
 
+  /**
+   * Тарелка, С КОТОРОЙ берут: по всей клетке, а не по кругу (`54748daf`).
+   * Разбор, почему у хвата и сброса разная строгость, — в `plateForGrab`.
+   */
+  const тарелкаДляХвата = (pageX: number, pageY: number) =>
+    (стол.plate ? plateForGrab(pageX - бокс.x, pageY - бокс.y, стол.cols, стол.plate, cfg.plates) : null);
+
   const жест = {
     onStartShouldSetResponder: () => false,
     onMoveShouldSetResponder: (e: any) => {
@@ -398,7 +405,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
     onResponderGrant: (e: any) => {
       if (!board || done) return;
       снятьБокс();
-      const i = тарелкаПод(e.nativeEvent.pageX, e.nativeEvent.pageY);
+      const i = тарелкаДляХвата(e.nativeEvent.pageX, e.nativeEvent.pageY);
       // С пустой тарелки брать нечего: начать жест, который заведомо ничем не
       // кончится, хуже, чем не начать — сектор «поднимется» и упадёт назад.
       if (i === null || !(board.plates[i]?.length)) return;
