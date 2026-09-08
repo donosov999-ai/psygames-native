@@ -96,7 +96,15 @@ describe('состав набора считается с профилем', () 
     const meta = warmup.buildDayPlaylist(1, (g: string) => free.has(g));
     const ids = meta.steps.map((s) => s.game_id);
     expect(ids).toEqual(['schulte_table']);
-    expect(meta.est_total_sec).toBe(60);
+    /**
+     * 🔴 БЫЛО 60, СТАЛО 46 — И ЭТО ПОЧИНКА, А НЕ РЕГРЕССИЯ (08.09.2026, `c810938d`).
+     *
+     * `est_total_sec` считался объявленными числами `est_duration_sec`, которые
+     * проставлены на глаз и завышены примерно вдвое: обещание «пять минут» давало
+     * 0,39 обещанного по живому замеру. Теперь оценка = медиана живых партий этой
+     * игры плюс измеренная стоимость перехода: Шульте 34 с + 12 с = 46.
+     */
+    expect(meta.est_total_sec).toBe(46);
     expect(meta.duration_min).toBe(1);
   });
 

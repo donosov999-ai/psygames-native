@@ -8,7 +8,7 @@
  * «ядро всегда ОДНО И ТО ЖЕ»: сборка двух разных дней даёт байт-в-байт
  * одинаковую голову плейлиста.
  */
-import { SNAPSHOT_CORE, CORE_DAYS, buildMorningWarmupPlaylist, trainingSetFor, type Weekday } from '@/src/services/warmup';
+import { SNAPSHOT_CORE, CORE_DAYS, COOLDOWN_POOL, buildMorningWarmupPlaylist, trainingSetFor, type Weekday } from '@/src/services/warmup';
 
 describe('ядро-снимок зарядки', () => {
   it('пять доменов, каждый шаг полностью определён и помечен замерным', () => {
@@ -56,9 +56,22 @@ describe('ядро-снимок зарядки', () => {
       const ids = meta.steps.map((s) => s.game_id);
       // Ядра нет…
       expect(`день ${wd}: baseline=${meta.steps.some((s) => s.is_fixed_baseline)}`).toBe(`день ${wd}: baseline=false`);
-      // …а шаги — из сетки ЭТОГО дня (духа недели: ВТ фокус, СР память, …).
+      /**
+       * …а шаги — из сетки ЭТОГО дня (духа недели: ВТ фокус, СР память, …).
+       *
+       * 🔴 ПЛЮС ПУЛ ОСТЫВАНИЯ — ДОПОЛНЕНО 08.09.2026 (`c810938d`). У среды в наборе
+       * три игры после отсева песочных, у пятницы четыре: пятиминутка выходила на
+       * 0,71 и 0,64 обещанного — ровно жалоба «просишь пять минут, получаешь 2:45».
+       * Недобор закрывается пулом остывания — тем же, что этим дням УЖЕ разрешён на
+       * десяти и пятнадцати минутах. Смысл пробы цел: игры со стороны в пятиминутку
+       * не попадают, попадают только «на выдох», и только когда своего не хватило.
+       */
       const daySet = new Set(trainingSetFor(wd).map((s) => s.game_id));
-      for (const id of ids) expect(`день ${wd}: ${id} из сетки ${daySet.has(id)}`).toBe(`день ${wd}: ${id} из сетки true`);
+      const cooldown = new Set(COOLDOWN_POOL.map((s) => s.game_id));
+      for (const id of ids) {
+        expect(`день ${wd}: ${id} из сетки или пула ${daySet.has(id) || cooldown.has(id)}`)
+          .toBe(`день ${wd}: ${id} из сетки или пула true`);
+      }
       expect(ids.length).toBeGreaterThan(0);
     }
   });

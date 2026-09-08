@@ -13,6 +13,7 @@
 import { isSandboxGame } from '@/src/constants/games';
 import { GameSession } from '@/src/services/api';
 import { translateFor } from '@/src/contexts/LanguageContext';
+import { estimateStepSec } from '@/src/services/gameDuration';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Sunday, 1 = Monday, ...
@@ -114,7 +115,7 @@ export function buildFixedPlaylist(
   allow?: AllowFn,
 ): PlaylistMeta {
   steps = keepAllowed(steps, allow);
-  const total = steps.reduce((s, x) => s + x.est_duration_sec, 0);
+  const total = steps.reduce((s, x) => s + estimateStepSec(x), 0);
   return {
     duration_min: Math.max(1, Math.round(total / 60)),
     weekday,
@@ -549,7 +550,20 @@ export function buildMorningWarmupPlaylist(opts: {
     // Хвост не повторяет игры ядра: вторник нёс flanker/sdmt/rotation — с ядром
     // человек играл бы их дважды за утро. Домен ядром уже тренирован.
     const rawSteps = (profilePlaylists && profilePlaylists[weekday]) || trainingSetFor(weekday);
-    const allSteps = coreOk ? rawSteps.filter((a) => !SNAPSHOT_CORE.some((c) => c.game_id === a.game_id)) : rawSteps;
+    /**
+     * 🔴 ОТСЕВ — ДО НАБОРА, А НЕ ТОЛЬКО ПОСЛЕ (08.09.2026).
+     *
+     * Отбор по бюджету шёл по полному списку дня, а `keepAllowed` на выходе
+     * выбрасывал песочные игры — то есть бюджет успевал потратиться на шаги,
+     * которых человек не увидит. В среду из пяти набранных шагов оставалось три:
+     * 213 секунд вместо трёхсот, 0,71 обещанного, и никакой ошибки в логах.
+     * Отсев на выходе (строка ниже по тексту) остаётся страховкой для веток,
+     * где своего отбора нет.
+     */
+    const allSteps = keepAllowed(
+      coreOk ? rawSteps.filter((a) => !SNAPSHOT_CORE.some((c) => c.game_id === a.game_id)) : rawSteps,
+      allow,
+    );
     const targetSec = duration * 60;
     if (duration === 5) {
       steps = coreOk ? core : pickSteps(allSteps, targetSec);
@@ -571,6 +585,45 @@ export function buildMorningWarmupPlaylist(opts: {
       }
       steps.push(...pickCooldown(weekday, remainingFor(steps)));
     }
+  }
+
+  /**
+   * 🔴 НЕДОБОР ЗАКРЫВАЕТСЯ ОДНИМ МЕСТОМ НА ВСЕ ВЕТКИ (08.09.2026).
+   *
+   * Добор жил в двух ветках из пяти, и ровно там, где его не было, обещание и
+   * расходилось с делом: вторник на десяти минутах давал 0,60 обещанного,
+   * четверг на пятнадцати — 0,70. Причина та же, что у отсева ниже: правило,
+   * размазанное по веткам, в новой ветке забудут.
+   *
+   * Порог в четверть бюджета — не косметика: добирать ради тридцати секунд
+   * значит ставить лишнюю игру, а лишнее переключение стоит человеку дороже
+   * недостающей полуминуты (замер перехода — 12 секунд).
+   *
+   * ⚠️ ЯДРО-СНИМОК ЦЕЛИКОМ НЕ ДОБИРАЕТСЯ НИКОГДА. Пятиминутка замерного дня —
+   * это ровно пять игр ядра в неизменной постановке; добавь к ним шестую, и
+   * человек получит не снимок, а снимок с довеском. Ряд сравнения важнее
+   * недостающих секунд.
+   */
+  const ядроЦеликом = steps.length === SNAPSHOT_CORE.length
+    && steps.every((s, i) => s.game_id === SNAPSHOT_CORE[i].game_id);
+  /**
+   * ⚠️ ПЯТИМИНУТКА ДОБИРАЕТСЯ ТОЖЕ — но только когда своего набора не хватает.
+   *
+   * Сначала я её исключил: у дня свой смысл (вторник фокус, среда память), и
+   * шаг из общего пула этот смысл разбавляет. Но замер показал цену чистоты: у
+   * среды в наборе три игры после отсева, у пятницы четыре — 0,71 и 0,64
+   * обещанного, то есть ровно та жалоба, ради которой всё и правится («просишь
+   * пять минут — получаешь 2:45»).
+   *
+   * Довод в пользу добора: тем же самым дням пул остывания УЖЕ разрешён на
+   * десяти и пятнадцати минутах. Пятиминутка не «чище» десятиминутки — она
+   * короче; разной меры для них быть не должно. Порог в четверть бюджета держит
+   * добор редким: дни с полным набором его не видят вовсе.
+   */
+  if (track !== 'rest' && steps.length > 0 && !ядроЦеликом) {
+    const budget = duration * 60;
+    const remaining = budget - sumDuration(steps);
+    if (remaining > budget * 0.25) steps = [...steps, ...pickCooldown(weekday, remaining)];
   }
 
   // Отсев по профилю — ОДНОЙ строкой на выходе, а не в каждой ветке:
@@ -607,27 +660,80 @@ export function buildMorningWarmupPlaylist(opts: {
   };
 }
 
+/**
+ * 🔴 ПЛАН МЕРЯЕТСЯ ЗАМЕРОМ, А НЕ ОБЪЯВЛЕНИЕМ (`c810938d`, 08.09.2026).
+ *
+ * `est_duration_sec` — числа, проставленные на глаз при заведении игры, и завышены
+ * они примерно вдвое. Набор шагов идёт, пока сумма не упрётся в бюджет, — значит
+ * завышенная единица обрывает набор вдвое раньше срока: живой замер по базе дал
+ * 0,39 обещанного (35 зарядок «на пять минут» → медиана 116 секунд с переходами).
+ *
+ * Числа самих шагов НЕ ТРОГАЕМ: `est_duration_sec` объявлен в двух файлах и в
+ * профилях, и переписывать двести чисел вручную — способ развести их между собой.
+ * Меняется ЕДИНИЦА ИЗМЕРЕНИЯ: `estimateStepSec` берёт медиану живых партий этой
+ * игры плюс измеренную стоимость перехода, а объявленное число остаётся запасным
+ * для игр, о которых замера пока нет.
+ */
 function sumDuration(steps: PlaylistStep[]): number {
-  return steps.reduce((s, x) => s + x.est_duration_sec, 0);
+  return steps.reduce((s, x) => s + estimateStepSec(x), 0);
 }
 
+/**
+ * Набор шагов под бюджет.
+ *
+ * 🔴 ДВЕ ПРАВКИ 08.09.2026, обе из замера планов по дням недели.
+ *
+ * · ПОСЛЕДНИЙ ШАГ БОЛЬШЕ НЕ БЕРЁТСЯ ВНАХЛЁСТ. Прежнее правило проверяло только
+ *   «набрано ли 85 % бюджета» ДО шага, а сам шаг мог быть какой угодно длины:
+ *   в среду анаграммы (200 секунд) выводили пятиминутку на 413 — 1,38 обещанного.
+ *   Теперь шаг, выводящий сумму за 115 % бюджета, пропускается, а набор идёт
+ *   дальше: следующий может оказаться коротким и уложиться.
+ *
+ * · НЕДОБОР ТОЖЕ ДЕФЕКТ. У пятницы в наборе дня всего четыре игры на 193 секунды —
+ *   0,64 обещанного, и человек просил пять минут, а получал три. Добор из
+ *   `COOLDOWN_POOL` делает то же, что уже делала десятиминутка.
+ *
+ * ⚠️ Хотя бы один шаг возвращаем всегда: пустая зарядка хуже короткой.
+ */
 function pickSteps(steps: PlaylistStep[], targetSec: number): PlaylistStep[] {
-  // Greedy: take steps in order until target reached
   const out: PlaylistStep[] = [];
   let acc = 0;
   for (const s of steps) {
-    if (acc >= targetSec * 0.85) break;
+    if (acc >= targetSec * 0.9) break;
+    const cost = estimateStepSec(s);
+    if (out.length > 0 && acc + cost > targetSec * 1.15) continue;   // внахлёст не берём
     out.push(s);
-    acc += s.est_duration_sec;
+    acc += cost;
   }
   return out.length > 0 ? out : steps.slice(0, 1); // at least 1 step
 }
 
-const COOLDOWN_POOL: PlaylistStep[] = [
+/**
+ * Игры «на выдох»: лёгкие, короткие, без смысла дня недели — потому и годятся в
+ * конец любого набора.
+ *
+ * 🔴 РАСШИРИТЬ ЕГО 08.09.2026 НЕ ВЫШЛО — и это записано, чтобы следующий не
+ * повторил. Пул мал (четыре игры, да ещё за вычетом игр текущего дня), и я
+ * добавил пять самых коротких игр каталога по замеру. Покраснели два гейта, оба
+ * по делу: `playlist-autostart` — «Сортировка воды» не умеет авто-стартовать по
+ * `?wu=1`, то есть в зарядке встала бы мёртвым экраном; `warmup-level-drift` —
+ * три из пяти роняют личный уровень, когда их запускают из зарядки.
+ *
+ * Значит игра годится в пул не по длине партии, а по двум условиям: авто-старт
+ * по `?wu=1` и невмешательство в личный уровень. Пул расширяется ПОСЛЕ починки
+ * этих двух вещей у конкретной игры, а не вместо неё.
+ */
+export const COOLDOWN_POOL: PlaylistStep[] = [
   { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy', mode: '6 pairs', est_duration_sec: 90 },
   { game_id: 'math_sprint',   game_route: '/games/math-sprint',   difficulty: 'easy', mode: '30s',     est_duration_sec: 35 },
   { game_id: 'memory_matrix', game_route: '/games/memory-matrix', difficulty: 'easy', mode: '4x4',     est_duration_sec: 100 },
   { game_id: 'find_differences', game_route: '/games/find-differences', difficulty: 'easy', mode: '4 diffs', est_duration_sec: 120 },
+  // Пополнение 08.09.2026: пятнадцатиминутка пятницы упиралась в исчерпанный пул
+  // и давала 0,72 обещанного. Обе игры прошли те же два условия, на которых
+  // отсеялись пять предыдущих кандидатов: авто-старт по `?wu=1` и невмешательство
+  // в личный уровень (гейты `playlist-autostart` и `warmup-level-drift`).
+  { game_id: 'quick_count',  game_route: '/games/quick-count',  difficulty: 'easy', est_duration_sec: 60 },
+  { game_id: 'mnemonics',    game_route: '/games/mnemonics',    difficulty: 'easy', mode: '5 words', est_duration_sec: 60 },
 ];
 
 // CPT — sustained attention test. Берём только для длинных пресетов (10/15 мин)
@@ -648,13 +754,25 @@ const CPT_DAYS: Set<Weekday> = new Set([2, 6]); // ВТ, СБ — attention/logi
 
 function pickCooldown(weekday: Weekday, secAvailable: number): PlaylistStep[] {
   const used = new Set(TRAINING_BY_WEEKDAY[weekday].map((s) => s.game_id));
+  /**
+   * ⚠️ ДОБИРАЕМ ТОЛЬКО ИЗ ПУЛА ОСТЫВАНИЯ, НЕ ИЗ НАБОРОВ ДРУГИХ ДНЕЙ.
+   *
+   * 08.09.2026 я сделал именно так — и гейт `warmup-snapshot-core` покраснел по
+   * делу: у каждого дня свой смысл (вторник — фокус, среда — память), и шаг,
+   * взятый из чужого дня, этот смысл ломает молча. Пул остывания смысла дня не
+   * несёт по определению: это лёгкие игры «на выдох», их место в конце любого дня.
+   * Поэтому недобор лечится РАСШИРЕНИЕМ ПУЛА, а не заимствованием из соседей.
+   */
   const available = COOLDOWN_POOL.filter((s) => !used.has(s.game_id));
   const out: PlaylistStep[] = [];
   let acc = 0;
+  // Той же мерой, что и весь план: по замеру партии, а не по объявленному числу
+  // (иначе добор отказывался брать шаг, который на деле вдвое короче объявления).
   for (const s of available) {
-    if (acc + s.est_duration_sec > secAvailable + 30) break;
+    const cost = estimateStepSec(s);
+    if (acc + cost > secAvailable + 30) continue;
     out.push(s);
-    acc += s.est_duration_sec;
+    acc += cost;
   }
   return out;
 }
