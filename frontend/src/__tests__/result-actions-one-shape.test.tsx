@@ -36,8 +36,8 @@ function mount(actions: any[]) {
 }
 
 const ПАРА = [
-  { key: 'retry', label: 'Ещё раз', icon: 'refresh', tone: 'primary', onPress: () => {} },
-  { key: 'back', label: 'Назад', icon: 'arrow-back', onPress: () => {} },
+  { id: 'retry', label: 'Ещё раз', icon: 'refresh', tone: 'primary', onPress: () => {} },
+  { id: 'back', label: 'Назад', icon: 'arrow-back', onPress: () => {} },
 ];
 
 describe('🔴 одна форма кнопок итога', () => {
@@ -122,6 +122,20 @@ describe('🔴 общие экраны итога зовут ОДИН компо
 
   it('🔴 и «Глубокий фрактал» получил кнопку выхода — раньше её не было вовсе', () => {
     const src = read('app/games/sudoku-fractal-deep.tsx');
-    expect(`выход в итоге есть: ${/key: 'back'/.test(src)}`).toBe('выход в итоге есть: true');
+    expect(`выход в итоге есть: ${/id: 'back'/.test(src)}`).toBe('выход в итоге есть: true');
+  });
+
+  it('🔴 роль действия названа `id`, а не `key` — иначе гейт канона тонов путает её со счётчиком', () => {
+    /**
+     * CI покраснел 08.09.2026: `hud-tone-canon` собирает по исходникам игр все
+     * записи `{ key: '…' }` как счётчики шапки и требует, чтобы одинаковые ключи
+     * красились одинаково. Кнопки итога счётчиками не являются, но под ту же
+     * форму записи подпадали — «retry (в 2 играх), back (в 2 играх)».
+     */
+    for (const f of ['app/games/chess-blind.tsx', 'app/games/sudoku-fractal-deep.tsx']) {
+      const src = read(f);
+      const кнопкиСKey = src.match(/\{ key: '(retry|back|share|home|go|stop)'/g) ?? [];
+      expect(`${f}: кнопок с полем key: ${кнопкиСKey.length}`).toBe(`${f}: кнопок с полем key: 0`);
+    }
   });
 });

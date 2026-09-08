@@ -587,9 +587,9 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
       <ResultActions
         colors={colors}
         actions={[
-          { key: 'go', label: passed ? t('nextNow') : t('retry'),
+          { id: 'go', label: passed ? t('nextNow') : t('retry'),
             icon: passed ? ('play' as const) : ('refresh' as const), tone: 'primary' as const, onPress: go },
-          { key: 'stop', label: t(stopKind === 'exit' ? 'goHome' : 'stop'),
+          { id: 'stop', label: t(stopKind === 'exit' ? 'goHome' : 'stop'),
             icon: 'stop' as const, onPress: stop },
         ]}
       />

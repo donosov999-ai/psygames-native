@@ -1656,8 +1656,8 @@ export default function ChessBlindGame() {
           <ResultActions
             colors={colors}
             actions={[
-              { key: 'retry', label: t('retry'), icon: 'refresh', tone: 'primary', onPress: () => beginSeries() },
-              { key: 'back', label: t('back'), icon: 'arrow-back', onPress: () => setPhase('config') },
+              { id: 'retry', label: t('retry'), icon: 'refresh', tone: 'primary', onPress: () => beginSeries() },
+              { id: 'back', label: t('back'), icon: 'arrow-back', onPress: () => setPhase('config') },
             ]}
           />
         </ScrollView>
