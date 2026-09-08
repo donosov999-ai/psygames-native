@@ -16,6 +16,7 @@ import { saveSession } from '@/src/services/api';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import { ResultActions } from '@/src/components/ResultActions';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GameAbout from '@/src/components/GameAbout';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -1649,18 +1650,16 @@ export default function ChessBlindGame() {
               })}
             </Text>
           )}
-          <TouchableOpacity accessibilityRole="button" style={styles.startBtn} onPress={() => beginSeries()}>
-            <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-              <Text style={styles.startBtnText}>{t('retry')}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}
-            onPress={() => setPhase('config')}
-          >
-            <Text style={[styles.optionLabel, { color: colors.text }]}>{t('back')}</Text>
-          </TouchableOpacity>
+          {/* Кнопки итога — общим компонентом (`d35840f8`: «выход разный у всех»).
+              Здесь стояла своя пара: градиентная кнопка без иконки и карточка
+              «Назад» — третий вид на 95 экранов. */}
+          <ResultActions
+            colors={colors}
+            actions={[
+              { key: 'retry', label: t('retry'), icon: 'refresh', tone: 'primary', onPress: () => beginSeries() },
+              { key: 'back', label: t('back'), icon: 'arrow-back', onPress: () => setPhase('config') },
+            ]}
+          />
         </ScrollView>
       )}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />

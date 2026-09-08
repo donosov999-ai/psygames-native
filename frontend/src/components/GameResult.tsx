@@ -1,3 +1,4 @@
+import { ResultActions } from '@/src/components/ResultActions';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import GradientSurface from '@/src/components/GradientSurface';
@@ -297,36 +298,24 @@ export default function GameResult({
       // Кнопки — последний акт, но задержка мала: уходящий немедленно не должен
       // ловить уезжающую цель.
       <Act at={400}>
-      <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          style={[styles.button, { backgroundColor: colors.primary }]}
-          onPress={onPlayAgain}
-        >
-          <Ionicons name="refresh" size={20} color="#FFFFFF" />
-          <Text style={styles.buttonText} numberOfLines={1}>{t('retry')}</Text>
-        </TouchableOpacity>
-
-        {shareText && (
-          <TouchableOpacity
-            accessibilityRole="button"
-            style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
-            onPress={handleShare}
-          >
-            <Ionicons name="share-social-outline" size={20} color={colors.text} />
-            <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{shareNote ?? t('shareResult')}</Text>
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          accessibilityRole="button"
-          style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
-          onPress={onGoHome}
-        >
-          <Ionicons name="home" size={20} color={colors.text} />
-          <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('goHome')}</Text>
-        </TouchableOpacity>
-      </View>
+      {/*
+        🔴 ВИД КНОПОК ИТОГА ЗАДАН В `ResultActions`, А НЕ ЗДЕСЬ (08.09.2026,
+        отчёт `d35840f8` «выход разный у всех, где кнопки внизу»). Эта разметка
+        была скопирована в «Доску в уме» и «Глубокий фрактал», каждая по-своему:
+        там кнопка на градиенте без иконки и `GlassButton` без выхода вовсе.
+        Один носитель вида — правка доезжает до всех трёх.
+      */}
+      <ResultActions
+        colors={colors}
+        actions={[
+          { key: 'retry', label: t('retry'), icon: 'refresh' as const, tone: 'primary' as const, onPress: onPlayAgain },
+          ...(shareText
+            ? [{ key: 'share', label: shareNote ?? t('shareResult'),
+                 icon: 'share-social-outline' as const, onPress: handleShare }]
+            : []),
+          { key: 'home', label: t('goHome'), icon: 'home' as const, onPress: onGoHome },
+        ]}
+      />
       </Act>
       )}
     </View>
