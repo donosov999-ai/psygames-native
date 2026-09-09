@@ -35,7 +35,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_H, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
+import { ANSWER_BAR_ROW } from '@/src/games/attention/layout';
 import { ruleCatchStats } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
