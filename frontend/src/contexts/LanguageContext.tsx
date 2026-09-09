@@ -1962,6 +1962,10 @@ const translations: Translations = {
 
   brDimHint: { ru: '💡 Перед сном убавьте яркость экрана — так проще заснуть', en: '💡 Before sleep, dim your screen — it helps you fall asleep' },
   warmupStepOf: { ru: 'Игра {n} из {m}', en: 'Game {n} of {m}' },
+  // Вопрос на мосту, когда обещанное время вышло, а подходы остались (09.09.2026).
+  // Длина зарядки задана ПОДХОДАМИ, минуты — оценка; у медленного темпа они
+  // расходятся. Не обрываем и не молчим — спрашиваем один раз за комплекс.
+  warmupOvertime: { ru: 'Обещанные {m} мин вышли. Осталось подходов: {n}', en: 'The {m} min are up. Rounds left: {n}' },
   warmupNextGame: { ru: 'Следующая игра', en: 'Next game' },
   warmupFinish: { ru: 'Завершить комплекс', en: 'Finish the set' },
   setGotIt: { ru: 'Понятно', en: 'Got it' },

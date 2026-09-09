@@ -2522,5 +2522,6 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_title": "ستصبح الكلمات متشابهة",
   "lr_listening_span_similar_rule": "من هذا المستوى تُختار الكلمات الزائدة في الشبكة لتبدو مشابهة في وقعها لما سمعته. الخلط بينها سهل، لذا احتفظ لا بالكلمات وحدها بل بترتيبها أيضًا.",
   "lr_listening_span_similar_example": "سمعت «casa» — وسيظهر «cama» بجوارها. اختر ما سمعته لا ما يشبهه.",
+  "warmupOvertime": "انتهت {m} دقيقة. الجولات المتبقية: {n}",
 };
 export default t;

@@ -2529,5 +2529,6 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_title": "शब्द मिलते-जुलते हो जाएँगे",
   "lr_listening_span_similar_rule": "इस स्तर से जाल में बचे हुए शब्द उन्हीं से मिलती-जुलती ध्वनि वाले चुने जाते हैं जो आपने सुने। इन्हें गड्डमड्ड करना आसान है — इसलिए शब्द ही नहीं, उनका क्रम भी याद रखें।",
   "lr_listening_span_similar_example": "आपने «casa» सुना — और बगल में «cama» आ जाएगा। जो सुना वही चुनें, जो मिलता-जुलता है वह नहीं।",
+  "warmupOvertime": "{m} मिनट पूरे हुए। शेष राउंड: {n}",
 };
 export default t;

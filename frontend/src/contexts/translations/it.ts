@@ -2521,5 +2521,6 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_title": "Le parole si somiglieranno",
   "lr_listening_span_similar_rule": "Da questo livello le parole in più nella griglia sono scelte per SOMIGLIARE a quelle che hai sentito. È facile confonderle: tieni a mente non solo le parole, ma anche il loro ordine.",
   "lr_listening_span_similar_example": "Hai sentito «casa» e accanto comparirà «cama». Scegli quella che hai sentito, non quella simile.",
+  "warmupOvertime": "I {m} min sono finiti. Round rimasti: {n}",
 };
 export default t;

@@ -49,8 +49,18 @@ export default function WarmupBridge() {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /**
+   * 🔴 ПОКА ВИСИТ ВОПРОС О ПЕРЕБОРЕ — ОТСЧЁТ СТОИТ. Иначе он уйдёт на следующую
+   * игру ПОД вопросом, и человек нажмёт «Закончить» уже в чужом экране.
+   */
   useEffect(() => {
-    if (countdown !== 0 || navFiredRef.current || !next) return;
+    if (!warmup.overtime || !intervalRef.current) return;
+    clearInterval(intervalRef.current);
+    intervalRef.current = null;
+  }, [warmup.overtime]);
+
+  useEffect(() => {
+    if (warmup.overtime || countdown !== 0 || navFiredRef.current || !next) return;
     navFiredRef.current = true;
     if (intervalRef.current) clearInterval(intervalRef.current);
     router.replace({ pathname: next.game_route, params: stepToParams(next, meta?.slot) } as any);
@@ -146,16 +156,40 @@ export default function WarmupBridge() {
           </LinearGradient>
         )}
 
-        {/* Countdown */}
-        <Text style={[styles.countdown, { color: accent }]}>
-          {t('startingInN').replace('{n}', String(countdown))}
-        </Text>
+        {/*
+          🔴 ВРЕМЯ ВЫШЛО, А ПОДХОДЫ ОСТАЛИСЬ — СПРАШИВАЕМ ОДИН РАЗ ЗА КОМПЛЕКС.
+
+          📍 РЕШЕНИЕ ДЕНИСА 09.09.2026: «мы не можем контролировать у каждого
+          скорость ответов, нам главное чтобы по шагам». Длина зарядки задана
+          подходами, минуты на кнопке — оценка по медиане живых партий. У того,
+          кто отвечает медленнее, десять минут кончаются на седьмом подходе из
+          двенадцати. Обрывать нельзя — он не доиграл обещанное; молчать тоже —
+          он планировал десять минут, а идёт двадцать.
+
+          ⚠️ Ни слова упрёка: «время вышло», а не «вы затянули». И кнопка
+          «доиграть» стоит ПЕРВОЙ и залитой — безопасный ответ по умолчанию тот,
+          что продолжает начатое.
+        */}
+        {warmup.overtime ? (
+          <Text style={[styles.countdown, { color: accent }]}>
+            {t('warmupOvertime')
+              .replace('{m}', String(meta?.duration_min ?? 0))
+              .replace('{n}', String(warmup.stepsLeft))}
+          </Text>
+        ) : (
+          <Text style={[styles.countdown, { color: accent }]}>
+            {t('startingInN').replace('{n}', String(countdown))}
+          </Text>
+        )}
 
         <View style={styles.actions}>
           <TouchableOpacity
-            accessibilityRole="button" style={styles.actionPrimary} onPress={startNow}>
+            accessibilityRole="button"
+            accessibilityLabel={warmup.overtime ? t('exitConfirmStay') : t('ctaStartNow')}
+            style={styles.actionPrimary}
+            onPress={() => { if (warmup.overtime) warmup.dismissOvertime(); startNow(); }}>
             <LinearGradient colors={GRADIENT as [string, string]} style={styles.actionPrimaryGrad}>
-              <Text style={styles.actionPrimaryText}>{t('ctaStartNow')}</Text>
+              <Text style={styles.actionPrimaryText}>{warmup.overtime ? t('exitConfirmStay') : t('ctaStartNow')}</Text>
             </LinearGradient>
           </TouchableOpacity>
           <View style={styles.actionsRow}>
