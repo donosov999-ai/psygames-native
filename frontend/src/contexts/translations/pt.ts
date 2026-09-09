@@ -2526,6 +2526,8 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_title": "As palavras vão se parecer",
   "lr_listening_span_similar_rule": "A partir deste nível, as palavras extras da grade são escolhidas para SOAREM PARECIDAS com as que você ouviu. É fácil confundi-las: guarde não só as palavras, mas também a ordem.",
   "lr_listening_span_similar_example": "Você ouviu «casa» — e «cama» aparecerá ao lado. Escolha o que ouviu, não o que se parece.",
+  "bilingualMode": "Dois idiomas de uma vez",
+  "bilingualModeDesc": "{a} e {b} misturados, a sua língua continua a ser o apoio. Haverá mais erros: é de propósito",
   "warmupOvertime": "Os {m} min acabaram. Rodadas restantes: {n}",
   // Добавлено вручную 09.09.2026 (пустая развилка). Регенерация воркфлоу их подхватит.
   "hubEmptyTitle": "Ainda não há nada aqui neste perfil",
