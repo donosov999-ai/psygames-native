@@ -1,3 +1,4 @@
+/* psygames-spatial-core-dev-warmup-stand · VER 1 · 09.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 import React,{useSyncExternalStore} from 'react';
 import {View,Text,Pressable} from 'react-native';
