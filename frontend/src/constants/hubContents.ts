@@ -180,6 +180,16 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
    * В «Башнях» она за то, что ход ограничен правилом и считать надо наперёд;
    * здесь — за то, что ограничивает ВМЕСТИМОСТЬ ёмкости.
    */
+  /**
+   * «Ментальная ротация» (решение Дениса 09.09.2026): три пробы на вращение в уме.
+   * Два упражнения лаборатории живут на одном экране и различаются `?mode=` — как режимы
+   * судоку; карточка каталога у них одна (`spatial_lab`), развилка показывает две.
+   */
+  '/games/spatial-hub': [
+    { route: '/games/mental-rotation', icon: 'cube', nameKey: 'mentalRotation', descKey: 'mentalRotationDesc' },
+    { route: '/games/spatial-lab?mode=twiddle', icon: 'sync-circle', nameKey: 'spatialTwiddle', descKey: 'spatialTwiddleDesc' },
+    { route: '/games/spatial-lab?mode=net', icon: 'git-network', nameKey: 'spatialNet', descKey: 'spatialNetDesc' },
+  ],
   '/games/sorting-hub': [
     { route: '/games/goods-sort', icon: 'basket', nameKey: 'goodsSort', descKey: 'goodsSortDesc' },
     { route: '/games/water-sort', icon: 'flask', nameKey: 'waterSort', descKey: 'waterSortDesc' },

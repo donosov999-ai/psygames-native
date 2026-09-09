@@ -467,6 +467,16 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillPlanningWM",
     "introKey": "sortingGroupIntroDesc"
   },
+  "/games/spatial-hub": {
+    "nameKey": "spatialGroup",
+    "skillKey": "skillSpatial",
+    "introKey": "spatialGroupIntroDesc"
+  },
+  "/games/spatial-lab": {
+    "nameKey": "spatialLab",
+    "skillKey": "skillSpatial",
+    "introKey": "spatialLabIntroDesc"
+  },
   "/games/routes-hub": {
     "nameKey": "routesGroup",
     "skillKey": "skillPlanning",

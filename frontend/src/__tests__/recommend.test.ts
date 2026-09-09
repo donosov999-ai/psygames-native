@@ -170,6 +170,7 @@ describe('🔴 рекомендуется только разрешённое п
       'risk_group', 'visual_memory_group', 'mnemonics_group',
       'languages_group', 'routes_group', 'flexibility_group',
       'sorting_group',
+      'spatial_group',
       'inhibition_group', 'chess_group',
     ];
     expect([...RECO_GROUP_HUBS].sort()).toEqual([...HUBS].sort());

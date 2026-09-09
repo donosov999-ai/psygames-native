@@ -193,6 +193,7 @@ const CHESS: ProfileDef = {
     'choice_rt',         // action — скорость выбора между альтернативами
     // +5 темовых (bias на reasoning/spatial)
     'mental_rotation',   // spatial представление позиций
+    'spatial_lab',       // там же, где ротация: одна развилка «Ментальная ротация»
     'pattern',           // тактические паттерны
     'set_game',          // многомерные признаки
     'sudoku',            // логическая дедукция

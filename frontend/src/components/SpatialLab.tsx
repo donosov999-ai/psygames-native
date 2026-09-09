@@ -56,7 +56,13 @@ export function SpatialPipe({cell,active,source}:{cell:Cell;active:boolean;sourc
   </Svg>;
 }
 
-export default function SpatialLab({onBack,preset,onComplete}:{onBack:()=>void;preset?:{mode:Mode;level:number;seed:number};onComplete?:(result:{mode:Mode;level:number;moves:number})=>void}) {
+/**
+ * `header`, `overlay` и `onReady` — слоты для маршрута app/games/spatial-lab.tsx (09.09.2026): тропинка
+ * уровней каркаса рисуется над вкладками, а маршрут получает `request(level)` и зовёт его сам —
+ * с тропинки и с экрана итога («дальше»). Механика поля не тронута: это тот же `request()`,
+ * что у кнопок «Проще/Сложнее».
+ */
+export default function SpatialLab({onBack,preset,initialMode,onComplete,header,overlay,onReady}:{onBack:()=>void;preset?:{mode:Mode;level:number;seed:number};initialMode?:Mode;onComplete?:(result:{mode:Mode;level:number;moves:number})=>void;header?:React.ReactNode;overlay?:React.ReactNode;onReady?:(api:{request:(level:number)=>void})=>void}) {
   const {t}=useLanguage();   // названия упражнений — из общего словаря (12 языков), не литералами
   const {colors}=useTheme();
   const {h:viewportHeight}=useScreenSize();
@@ -110,17 +116,22 @@ export default function SpatialLab({onBack,preset,onComplete}:{onBack:()=>void;p
         setSaveAllowed(false);setReadyFor(hydrationKey);return;
       }
       const restored=decodeSnapshot(raw);
-      if(restored){
+      if(restored&&initialMode&&restored.mode!==initialMode){
+        // Карточка развилки открыла ДРУГОЕ упражнение, чем лежит в сохранении (09.09.2026):
+        // намерение человека важнее слота — пройденные уровни оставляем, поле начинаем в нужном режиме.
+        angle.stopAnimation();turnLock.current=false;setTurning(null);setReplayIndex(null);setPending(null);
+        setCompleted(restored.completed);start(initialMode,42);
+      }else if(restored){
         angle.stopAnimation();turnLock.current=false;setTurning(null);setReplayIndex(null);setPending(null);
         setMode(restored.mode);setSeed(restored.seed);setTask(restored.task);setState(restored.state);setSelection(restored.selection);setCompleted(restored.completed);
       }else{
-        start('twiddle',42);setCompleted({net:[],twiddle:[]});
+        start(initialMode??'twiddle',42);setCompleted({net:[],twiddle:[]});
         if(raw!==null)setSaveError('Старое сохранение не прочитано и не перезаписано. Эта партия без сохранения.');
       }
       setSaveAllowed(raw===null||restored!==null);setReadyFor(hydrationKey);
-    }).catch(()=>{if(!cancelled){start('twiddle',42);setCompleted({net:[],twiddle:[]});setSaveError('Хранилище недоступно. Эта партия без сохранения.');setReadyFor(hydrationKey);}});
+    }).catch(()=>{if(!cancelled){start(initialMode??'twiddle',42);setCompleted({net:[],twiddle:[]});setSaveError('Хранилище недоступно. Эта партия без сохранения.');setReadyFor(hydrationKey);}});
     return()=>{cancelled=true;};
-  },[profileReady,hydrationKey,presetMode,presetSeed,presetLevel,saveKey,angle,start]);
+  },[profileReady,hydrationKey,presetMode,presetSeed,presetLevel,saveKey,angle,start,initialMode]);
   useEffect(()=>{
     if(preset||!saveAllowed||readyFor!==hydrationKey||!profileReady)return;
     const raw=encodeSnapshot({mode,seed,level:task?.level??0,selection,state,completed});
@@ -175,13 +186,18 @@ export default function SpatialLab({onBack,preset,onComplete}:{onBack:()=>void;p
     const command=mode==='net'?{kind:'tile' as const,index:selection,amount}:{kind:'block' as const,row:Math.floor(selection/n),col:selection%n,size:2,amount};
     animateTurn(amount,()=>setState(s=>commit(s,command)));
   }
+  useEffect(()=>{
+    if(!onReady)return;
+    onReady({request:(level:number)=>{if(preset||readyFor!==hydrationKey||busy)return;request(Math.max(1,Math.min(50,level)));}});
+  });   // без списка зависимостей нарочно: наружу уходит ссылка на ТЕКУЩИЙ request, маршрут держит её в ref
   const ink={color:colors.text};
   if(!profileReady||readyFor!==hydrationKey)return <View style={styles.field}><Text style={ink}>Восстанавливаю локальную партию…</Text></View>;
-  return <GameShell title={mode==='net'?t('spatialNet'):t('spatialTwiddle')} onBack={onBack}
+  return <GameShell title={mode==='net'?t('spatialNet'):t('spatialTwiddle')} onBack={onBack} overlay={overlay}
     frame={preset?spatialFrame(viewportHeight):undefined}
     confirmExit={state.past.length>0&&!won} scrollableField
     stats={<View style={styles.stats}><Text style={ink}>Ходов: {state.past.length}</Text><Text style={ink}>{info?`Связано: ${info.connected.size}/${n*n}`:`Поле ${n}×${n}`}</Text><Text style={ink}>№ {seed}</Text></View>}
     headerActions={<View style={styles.top}>
+      {header}
       {!preset&&<View style={styles.tabs}>{(['twiddle','net'] as const).map(m=><Pressable key={m} accessibilityRole="button" accessibilityState={{selected:mode===m}} onPress={()=>{if(m!==mode)request(m);}} style={[styles.tab,{borderColor:mode===m?colors.primary:colors.border,backgroundColor:colors.surface}]}><Text style={ink}>{m==='twiddle'?'Числа':'Трубы'}</Text></Pressable>)}</View>}
       {/*
         ⚠️ ПАНЕЛЬ СЛУЖЕБНЫХ КНОПОК ОБЁРНУТА В РЯД (перенос 09.09.2026).
