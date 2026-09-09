@@ -693,6 +693,29 @@ export const GAMES: GameConfig[] = [
     icon: 'cube',
     route: '/games/mental-rotation',
     category: 'logic',
+    // 09.09.2026, решение Дениса: три пробы на вращение в уме живут за одной развилкой
+    // «Ментальная ротация» (spatial_group) — как сортировки за «Сортировкой».
+    hideFromMenu: true,
+    mergedInto: 'spatial_group',
+  },
+  {
+    /**
+     * Пространственная лаборатория (перенос из psygames-game-lab 09.09.2026): «Поворот чисел»
+     * и «Сеть труб» на ОДНОМ экране, переключатель внутри. Одна карточка на маршрут: реестр
+     * GAMES_REFERENCE держит id = имя файла экрана (`spatial_lab`). В развилке карточки две —
+     * `/games/spatial-lab?mode=twiddle|net` (hubContents), как режимы судоку.
+     * Стандарт каркаса (лестница, тропинка, итог, сессия) — в маршруте app/games/spatial-lab.tsx.
+     */
+    id: 'spatial_lab',
+    nameKey: 'spatialLab',
+    descKey: 'spatialLabDesc',
+    skillKey: 'skillSpatial',
+    gradient: ['#38bdf8', '#6366f1'],
+    icon: 'git-network',
+    route: '/games/spatial-lab',
+    category: 'logic',
+    hideFromMenu: true,
+    mergedInto: 'spatial_group',
   },
   {
     id: 'tower_london',
@@ -1388,6 +1411,18 @@ export const GAMES: GameConfig[] = [
     gradient: ['#f7971e', '#0ea5e9'],
     icon: 'funnel',
     route: '/games/sorting-hub',
+    category: 'logic',
+    hub: true,
+  },
+  {
+    /** Развилка «Ментальная ротация» (09.09.2026): ротация фигур, поворот чисел, сеть труб. */
+    id: 'spatial_group',
+    nameKey: 'spatialGroup',
+    descKey: 'spatialGroupDesc',
+    skillKey: 'skillSpatial',
+    gradient: ['#5614b0', '#dbd65c'],
+    icon: 'cube',
+    route: '/games/spatial-hub',
     category: 'logic',
     hub: true,
   },
