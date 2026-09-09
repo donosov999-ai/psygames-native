@@ -96,7 +96,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'sudoku-fractal': { ver: 4, date: '28.08.2026' },
   'sudoku-hub': { ver: 2, date: '27.08.2026' },
   'sudoku-samurai': { ver: 6, date: '28.08.2026' },
-  'sudoku': { ver: 13, date: '28.08.2026' },
+  'sudoku': { ver: 14, date: '09.09.2026' },
   'switching-task': { ver: 1, date: '19.08.2026' },
   'targets': { ver: 2, date: '27.08.2026' },
   'tower-london': { ver: 1, date: '19.08.2026' },

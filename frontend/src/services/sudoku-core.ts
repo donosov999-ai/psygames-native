@@ -1,3 +1,4 @@
+/* psygames-sudoku-core · VER 1 · 07.09.2026 */
 /**
  * sudoku-core — чистая логика судоку (генерация, варианты, солвер), вынесена из
  * app/games/sudoku.tsx (v1.111.0) для unit-тестов и unique-check.
