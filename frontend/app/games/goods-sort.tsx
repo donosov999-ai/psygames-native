@@ -1,4 +1,4 @@
-/* psygames-game-goods-sort · VER 2 · 27.08.2026 */
+/* psygames-game-goods-sort · VER 3 · 09.09.2026 */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, Easing, PanResponder, DimensionValue,
@@ -103,7 +103,7 @@ import {
  * пробам брать из `@/src/games/goods-sort/core/level` — там нет экрана.
  */
 import {
-  CAP, CAP_MAX, CAP_MIN, CAP_ONE, CLEAR_SCORE, EMPTY_HIDDEN_STATS, GOODS_BENEFITS, GOOD_ONBOARD_H, GOOD_ONBOARD_W, GOOD_SETS, GOOD_SETS_KEYS, GOOD_SET_POOL_SIZE, GRADIENT, GS_GAME_ID, GS_RESUME_DEBOUNCE_MS, GS_RESUME_V, GS_RULES, HIDDEN_FROM, HINTS_PER_LEVEL, JOKER_FROM, MIXED_CAP_FROM, MONO_FROM, MOVE_SHIFT_EVERY, MOVING_FROM, PAIR_HINT_UNTIL, REF_PER_TYPE, SET_COLS, SHAPES, SHUFFLES_PER_LEVEL, SINGLE_CAP_FROM, THUMBS_PER_CARD, TYPES_ON_BOARD_MAX, WARM_FAMILY, WIDEST_POOL, capsFor, capsForBoard, clampGoalToLevel, clampGoalToRule, findHint, goalMet, goalPlan, goalProgress, goodName, goodSetForProfile, goodsHasSomethingToLose, gridFor, gsLayout, gsRulesForLevel, hasPair, hiddenInfo, isNarrow, miniMap, SCROLL_FROM, ITEM_FLOOR, hideDeepSpots, itemAtX, jokerNiches, jokersForBoard, levelCfg, liveRowsForFreeze, monochromeLevel, moveReference, movesExhausted, movingNiches, nicheAtPoint, nicheRect, nicheShift, pairHintVisible, placementOk, poolBitesAt, poolForLevel, provenUnsolvable, removeTriple, revealUncovered, rowOfNiche, scoreForClears, sessionDetails, setAvailable, setThumbBox, shelfForProfile, setUnlockLevel, shapeFor, shiftCoveredAfterTake, solvableStrict, starsForMoves, strictPlacement, targetSlots, tripleIn, typeBudget, dealBoard, generate, permuteCells, restoreGoodsParty, setRows, shuffle, snapshotGoodsParty,
+  CAP, CAP_MAX, CAP_MIN, CAP_ONE, CLEAR_SCORE, EMPTY_HIDDEN_STATS, GOODS_BENEFITS, GOOD_ONBOARD_H, GOOD_ONBOARD_W, GOOD_SETS, GOOD_SETS_KEYS, GOOD_SET_POOL_SIZE, GRADIENT, GS_GAME_ID, GS_RESUME_DEBOUNCE_MS, GS_RESUME_V, GS_RULES, HIDDEN_FROM, HINTS_PER_LEVEL, JOKER_FROM, MIXED_CAP_FROM, MONO_FROM, MOVE_SHIFT_EVERY, MOVING_FROM, PAIR_HINT_UNTIL, REF_PER_TYPE, SET_COLS, SHAPES, SHUFFLES_PER_LEVEL, SINGLE_CAP_FROM, THUMBS_PER_CARD, TYPES_ON_BOARD_MAX, WARM_FAMILY, WIDEST_POOL, capsFor, capsForBoard, capsForParty, clampGoalToLevel, clampGoalToRule, findHint, goalMet, goalPlan, goalProgress, goodName, goodSetForProfile, goodsHasSomethingToLose, gridFor, gsLayout, gsRulesForLevel, hasPair, hiddenInfo, isNarrow, miniMap, SCROLL_FROM, ITEM_FLOOR, hideDeepSpots, itemAtX, jokerNiches, jokersForBoard, levelCfg, liveRowsForFreeze, monochromeLevel, moveReference, movesExhausted, movingNiches, nicheAtPoint, nicheRect, nicheShift, pairHintVisible, placementOk, poolBitesAt, poolForLevel, provenUnsolvable, removeTriple, revealUncovered, rowOfNiche, scoreForClears, sessionDetails, setAvailable, setThumbBox, shelfForProfile, setUnlockLevel, shapeFor, shiftCoveredAfterTake, solvableStrict, starsForMoves, strictPlacement, targetSlots, tripleIn, typeBudget, dealBoard, generate, permuteCells, restoreGoodsParty, setRows, shuffle, snapshotGoodsParty,
 } from '@/src/games/goods-sort/core/level';
 import type {
   GoodsLiveParty, GoodsRestored, GoodsResume, ShelfStyle, BoardGeom, GamePhase, Goal, GsLayout, HiddenRunStats, HintMove, Obstacle, Sel, Snapshot,
@@ -114,7 +114,7 @@ export {
   GOOD_SETS, GOOD_SETS_KEYS, GOOD_SET_POOL_SIZE, GS_GAME_ID, GS_RESUME_V, GS_RULES,
   HIDDEN_FROM, JOKER_FROM, MIXED_CAP_FROM, MONO_FROM, MOVE_SHIFT_EVERY, MOVING_FROM,
   PAIR_HINT_UNTIL, REF_PER_TYPE, SET_COLS, SHAPES, SINGLE_CAP_FROM, THUMBS_PER_CARD,
-  TYPES_ON_BOARD_MAX, WARM_FAMILY, WIDEST_POOL, capsFor, capsForBoard, clampGoalToLevel,
+  TYPES_ON_BOARD_MAX, WARM_FAMILY, WIDEST_POOL, capsFor, capsForBoard, capsForParty, clampGoalToLevel,
   clampGoalToRule, findHint, goalMet, goalPlan, goalProgress, goodSetForProfile,
   goodsHasSomethingToLose, gridFor, gsLayout, gsRulesForLevel, hiddenInfo, hideDeepSpots,
   itemAtX, jokerNiches, jokersForBoard, levelCfg, liveRowsForFreeze, monochromeLevel,
@@ -963,7 +963,25 @@ export default function GoodsSortGame() {
     setНомера(deal.ids ?? []);
     setОчередь(deal.queue ?? []);
     setЗадние(deal.back ?? []);
-    setЁмкостиПолок(deal.caps ?? null);
+    /**
+     * 🔴 ЁМКОСТИ ЗАПОМИНАЮТСЯ ВСЕГДА, А НЕ ТОЛЬКО НА УРОВНЯХ СХЛОПЫВАНИЯ.
+     *
+     * 📍 БОЕВОЙ СЛУЧАЙ ДЕНИСА 09.09.2026, 28-й уровень: «я оттуда вытащил один
+     * товар, их было два изначально» — и обратно второй уже не лез. Разбор:
+     * раздача обычного уровня ёмкостей НЕ отдавала (`deal.caps` там undefined),
+     * в записи партии их тоже не было, а на возврате экран считал их СЕГОДНЯШНЕЙ
+     * формулой. Партию роздали до того, как появилась ниша на один товар
+     * (`SINGLE_CAP_FROM`), полка честно получила два товара по прежним правилам —
+     * и наутро та же полка стала полкой на один. Доска мгновенно оказалась
+     * незаконной: товар из неё вынимался, а положить назад было нельзя.
+     *
+     * Это класс «правило поменяли, а сохранённое состояние осталось по старому»,
+     * и он повторится при ЛЮБОЙ правке `capsFor`. Лечение — не «не менять
+     * формулу», а хранить ёмкости вместе с доской: партия доигрывается по тем
+     * правилам, по которым была роздана. Вторая половина лечения — страховка в
+     * `caps` ниже, она чинит записи, сделанные ДО этой строки.
+     */
+    setЁмкостиПолок(deal.caps ?? capsForBoard(level, deal.cells));
     /**
      * Фоновый расчёт точного минимума для ЭТОЙ доски (см. `exactMinRef`).
      * ⚠️ `setTimeout(0)` обязателен: без него поиск съел бы первый кадр партии.
@@ -1381,10 +1399,25 @@ export default function GoodsSortGame() {
    * осесть, и полка на четыре окажется на месте, которому положено три:
    * четвёртый товар либо не влезет, либо влезет туда, где его не нарисуют.
    */
-  const caps = useMemo(
-    () => (ёмкостиПолок && ёмкостиПолок.length === cells.length ? ёмкостиПолок : capsForBoard(level, cells)),
-    [level, cells.length, ёмкостиПолок],
-  );
+  /**
+   * 🔴 ЁМКОСТЬ НИШИ НЕ БЫВАЕТ МЕНЬШЕ ТОГО, ЧТО В НЕЙ УЖЕ ЛЕЖИТ.
+   *
+   * Страховка для партий, записанных ДО того, как ёмкости стали сохраняться
+   * (см. разбор у `setЁмкостиПолок` в раздаче). Такая запись несёт доску, но не
+   * ёмкости, и формула пересчитает их по-новому — полка на три может стать
+   * полкой на один, уже держа два товара. Без этой строки доска встречает
+   * человека в состоянии, которого игра сама создать не может: вынуть можно,
+   * положить назад нельзя, и на вид ничем не объяснено.
+   *
+   * ⚠️ Поднимаем ёмкость до содержимого, а не выбрасываем лишний товар: доска
+   * человека — это его партия, и терять из неё товар игра права не имеет.
+   */
+  /**
+   * Ёмкости живой партии. Правило одно и живёт в ядре (`capsForParty`): сначала
+   * запомненные при раздаче, потом формула, и НИКОГДА меньше того, что в нише
+   * уже лежит. Разбор боевого случая 09.09.2026 — в шапке той функции.
+   */
+  const caps = useMemo(() => capsForParty(level, cells, ёмкостиПолок), [level, cells, ёмкостиПолок]);
   const capOf = (i: number) => caps[i] ?? CAP;
   /*
    * 🔴 ДВА РАЗНЫХ ПРИЗНАКА, И ПУТАТЬ ИХ НЕЛЬЗЯ.
@@ -2477,6 +2510,13 @@ const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hin
     /** Ниша прямо под пальцем и туда МОЖНО — самая яркая рамка: сюда и ляжет. */
     const aimed = !!drag && hover === i && canDrop;
     const сдвиг = осадкаСтиль(i);
+    /**
+     * 🔴 ШИРИНА НИШИ — ОТ ЕЁ ВМЕСТИМОСТИ (Денис 09.09.2026: «полка узкая должна
+     * быть под один товар, а не широкая»). Ячейка при этом остаётся прежней
+     * ширины, узкая ниша в ней ЦЕНТРИРУЕТСЯ — разбор в шапке `nicheW`.
+     */
+    const nw = LAY.nicheW(capOf(i));
+    const узкая = nw < cellW;
     const ниша = (
       <ImageBackground key={i}
         /**
@@ -2487,7 +2527,7 @@ const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hin
         source={SHELF_TILES[shelfStyle]}
         resizeMode="stretch"
         style={[styles.cell, {
-          width: cellW, height: nicheH,
+          width: nw, height: nicheH,
           borderColor: hint?.toCell === i ? '#38bdf8'
             : aimed ? '#f97316' : canDrop ? '#fbbf24' : close ? '#22c55e' : 'transparent',
           borderWidth: hint?.toCell === i ? 4 : aimed ? 4 : canDrop || close ? 3 : 0,
@@ -2628,7 +2668,7 @@ const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hin
                 <Ionicons name="time" size={Math.min(22, itemSize)} color="#f8e3c4" />
                 <Text style={styles.obstacleNum}>{осталось}</Text>
               </View>
-              <Cracks size={Math.min(cellW, nicheH)} progress={разрушено} cellKey={i} />
+              <Cracks size={Math.min(nw, nicheH)} progress={разрушено} cellKey={i} />
             </>
           );
         })()}
@@ -2648,9 +2688,18 @@ const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hin
      * («оседания нет», «сдвиг всегда ноль», «обёртки нет») её пережили. Метка
      * даёт спросить именно про оседание.
      */
-    return сдвиг
-      ? <Animated.View key={i} testID="niche-settle" style={сдвиг}>{ниша}</Animated.View>
+    /*
+     * Узкая ниша живёт в ячейке ПРЕЖНЕЙ ширины: колонки обязаны совпадать между
+     * рядами, а `nicheAtPoint` считает попадание по сетке из `cellW`. Обёртку
+     * заводим только там, где ниша и правда уже ячейки, — лишний узел на каждой
+     * нише каждого кадра стоит дороже, чем выглядит.
+     */
+    const вЯчейке = узкая
+      ? <View key={i} style={{ width: cellW, height: nicheH, alignItems: 'center' }}>{ниша}</View>
       : ниша;
+    return сдвиг
+      ? <Animated.View key={i} testID="niche-settle" style={сдвиг}>{вЯчейке}</Animated.View>
+      : вЯчейке;
   };
 
   /**
