@@ -114,9 +114,18 @@ const MR_BENEFITS = [
   { icon: 'eye-outline', textKey: 'benefitMr3' },
 ];
 
-// v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-export const MR_RULES: LevelRule[] = ROTATION_LEVELS.filter(s=>new Set(s.path).size===2)
-  .map(s=>({key:'axes2',fromLevel:s.level,toLevel:s.level}));
+/**
+ * Правила-по-уровням (аудит «молчаливых механик», v1.112.0), переписаны под лестницу
+ * пространственного пакета 09.09.2026. Замер `ROTATION_LEVELS`: узор поворота ходит по
+ * кругу каждые пять уровней (Z → Z·Z → X·Y → X·Y·Y с четырьмя вариантами → подделки
+ * «один кубик»), а число кубиков растёт монотонно: 4 на L1–5, 5 на L6–10 … 13 на L46–50.
+ * Правило «с уровня N» честно только для монотонной оси — поэтому одно правило, про кубики;
+ * узор каждого уровня объясняет его собственная строка `change` в `ROTATION_LEVELS`.
+ * Порог сторожит `level-rule-threshold` исполнением `levelParams(L).maxC`.
+ */
+export const MR_RULES: LevelRule[] = [
+  { key: 'cubes', fromLevel: 6 },
+];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 

@@ -93,15 +93,21 @@ function варианты(r: any): any[] {
  * сохранённому списку и падал, когда ответ случайно оказывался верным: экран уже
  * сменился, а узлы в руках остались от прошлой фигуры.
  */
+/**
+ * Кнопка выхода из разбора. 09.09.2026 пространственный пакет переименовал `mr-next` в
+ * `mental-review-next`; старое имя оставлено, чтобы проба не зависела от одного написания.
+ */
+const КНОПКА_ВЫХОДА = ['mr-next', 'mental-review-next'];
+
 async function промахнуться(r: any, попыток = 12): Promise<boolean> {
   for (let i = 0; i < попыток; i += 1) {
-    if (r.root.findAll((n: any) => n.props?.testID === 'mr-next').length > 0) return true;
+    if (r.root.findAll((n: any) => КНОПКА_ВЫХОДА.includes(n.props?.testID)).length > 0) return true;
     const живые = варианты(r).filter((n: any) => typeof n.props?.onPress === 'function' && !n.props?.disabled);
     if (живые.length === 0) return false;
     await TestRenderer.act(async () => { живые[i % живые.length].props.onPress(); });
     await осесть(r, 3);   // 1500 мс — заведомо больше паузы в 700 мс после верного
   }
-  return r.root.findAll((n: any) => n.props?.testID === 'mr-next').length > 0;
+  return r.root.findAll((n: any) => КНОПКА_ВЫХОДА.includes(n.props?.testID)).length > 0;
 }
 
 /** Войти в партию: нажать «Начать»/«Play», если экран показывает настройку. */

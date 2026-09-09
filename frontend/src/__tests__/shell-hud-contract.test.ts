@@ -60,7 +60,10 @@ describe('договор шапки каркаса', () => {
 
   it('🔴 нижняя полоса переключается объявлением, а не угадыванием', () => {
     expect(/bottom\?: 'answer' \| 'actions'/.test(shell)).toBe(true);
-    expect(/headerActions && bottom !== 'actions'/.test(shellCode)).toBe(true);
+    // 09.09.2026: пространственный пакет добавил проп `frame` (фиксированные высоты слотов
+    // для плейлиста) — ряд действий рисуется и без headerActions, когда задан frame.
+    // Условие переключения по `bottom` при этом то же: объявление, не угадывание.
+    expect(/\(?headerActions( \|\| frame)?\)? && bottom !== 'actions'/.test(shellCode)).toBe(true);
     expect(/headerActions && bottom === 'actions'/.test(shellCode)).toBe(true);
   });
 

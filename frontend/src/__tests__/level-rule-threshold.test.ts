@@ -122,8 +122,11 @@ const МЕХАНИКИ: Механика[] = [
      проверял бы сам себя. */
   { игра: 'memory-matrix', ключ: 'two_series', вид: 'порог', есть: (L) => matrix(L).seriesCount === 2 },
   { игра: 'memory-matrix', ключ: 'decoys', вид: 'порог', есть: (L) => matrix(L).decoys > 0 },
-  { игра: 'mental-rotation', ключ: 'axes2', вид: 'состояние', есть: (L) => rotation(L).axes.length === 2 },
-  { игра: 'mental-rotation', ключ: 'axes3', вид: 'порог', есть: (L) => rotation(L).axes.length === 3 },
+  /* Ротация, 09.09.2026: лестница пространственного пакета (`ROTATION_LEVELS`) — узор
+     поворота ходит по кругу каждые пять уровней, поэтому отрезков «две оси»/«три оси»
+     больше нет (замер: три оси не встречаются ни на одном уровне, две — на L3–5, 8–10, …).
+     Единственная монотонная ось — число кубиков: 4 → 5 на L6 → … → 13 на L46. */
+  { игра: 'mental-rotation', ключ: 'cubes', вид: 'порог', есть: (L) => rotation(L).maxC >= 5 },
   { игра: 'digit-span', ключ: 'surprise_dir', вид: 'порог', есть: (L) => digitSpan(L).surpriseDir },
   { игра: 'n-back', ключ: 'dual', вид: 'порог', есть: (L) => nback(L).modality === 'dual' },
   { игра: 'counter', ключ: 'triples', вид: 'порог', есть: (L) => counterLp(L).tripleShare > 0 },
