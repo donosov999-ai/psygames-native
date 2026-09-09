@@ -781,7 +781,11 @@ function FullHome() {
                  ложилась прямо на светлое дерево доски и сливалась (жалоба
                  Дениса 26.08: «сверху текст сливается с фоном, контраст нужен»).
                  Цвет берётся ЕГО ЖЕ — профильный, опознаваемость не теряется. */
-              backgroundColor: profileBg !== undefined ? profile.color + 'F2' : profile.color + '22',
+              /* 09.09.2026, отчёты d5ddded7 и 74508c8d («название профиля на фуксии выедает глаз,
+                 а важности не несёт»): на фоне профиля чип больше НЕ заливается профильным цветом.
+                 Контраст с доской (жалоба 26.08) держит плотная нейтральная подложка — поверхность
+                 темы с 95 % непрозрачности; профильный цвет остаётся в обводке и значке. */
+              backgroundColor: profileBg !== undefined ? colors.surface + 'F2' : profile.color + '22',
               borderWidth: frameColor ? 2.5 : 1.5,
               borderColor: frameColor ?? profile.color + '88',
               paddingVertical: 5,
@@ -800,10 +804,10 @@ function FullHome() {
             )}
             {/* Цвет подписи — автоподбором под заливку чипа, а не `colors.text`:
                 на профильной заливке светлого оттенка белым читать нечего. */}
-            <Text style={{ color: profileBg !== undefined ? textOn(profile.color) : colors.text, fontWeight: '700', fontSize: 13, flexShrink: 1 }} numberOfLines={1}>
+            <Text style={{ color: colors.text, fontWeight: '700', fontSize: 13, flexShrink: 1 }} numberOfLines={1}>
               {t('profileName_' + profile.id)}
             </Text>
-            <Ionicons name="chevron-down" size={14} color={profileBg !== undefined ? textOn(profile.color) : colors.text} />
+            <Ionicons name="chevron-down" size={14} color={colors.text} />
           </TouchableOpacity>
           {/* Титул из магазина — подпись под чипом (когда надет) */}
           {titleLabel && (
@@ -1205,7 +1209,7 @@ function FullHome() {
                   </View>
                 )}
               </View>
-              <Text style={[styles.heroTitle, { color: onSlot.color }]} numberOfLines={1}>
+              <Text style={[styles.heroTitle, { color: onSlot.color }]} numberOfLines={2}>
                 {t('warmupPickerTitle')}
               </Text>
               <Text style={[styles.heroSub, { color: onSlotSoft }]} numberOfLines={3}>
@@ -1472,7 +1476,10 @@ const styles = StyleSheet.create({
   // строки, соседнее «Дыхание» = 17 в одну — от этого подпись и кнопка на карточках
   // стояли на разной высоте, и пара выглядела кривой. Само слово не трогаем: сокращать
   // формулировку ради вёрстки нельзя, а вот держать высоту — можно.
-  heroTitle: { fontSize: 14, fontWeight: '900', letterSpacing: 1, lineHeight: 17, minHeight: 34 },
+  // 09.09.2026 (отчёт 316f0438, системный размер текста L): фиксированный lineHeight 17 при
+  // fontScale 1.3 меньше самого шрифта — строки резались («Eyes & breathin»). Межстрочник —
+  // автоматический, заголовкам две строки; minHeight держит карточки одной высоты.
+  heroTitle: { fontSize: 14, fontWeight: '900', letterSpacing: 1, minHeight: 34 },
   // v1.128.0: фикс. lineHeight:14 убран — при системном крупном шрифте (WebView textZoom)
   // fontSize растёт, а px-межстрочник нет → строки наезжали и резались (репорт fontScale 1.25)
   heroSub: { fontSize: 11, fontWeight: '600' },
