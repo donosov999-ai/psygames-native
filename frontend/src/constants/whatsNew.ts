@@ -19,10 +19,12 @@ export const WHATS_NEW: WhatsNewEntry[] = [
     version: '2.52.12',
     date: '2026-09-09',
     ru: [
+      'Исправлено падение «Что-то сломалось» при переходе между экранами — ломался переход в любую игру и развилку',
       'Судоку открыта во всех профилях: классическая доска, «Небоскрёбы» и «Неравенства» — раньше у семи профилей из тринадцати раздел открывался пустым',
       'Раздел, в котором профилю пока ничего не открыто, больше не встречает белым экраном: он объясняет, почему пусто, и выводит ко всем играм',
     ],
     en: [
+      'Fixed the “Something went wrong” crash when moving between screens — it broke entering any game or section',
       'Sudoku is now open in every profile: the classic board, “Skyscrapers” and “Inequalities” — seven profiles out of thirteen used to open the section empty',
       'A section with nothing open for your profile no longer greets you with a blank screen: it explains why it is empty and takes you to all games',
     ],

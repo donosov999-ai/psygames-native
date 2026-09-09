@@ -197,6 +197,31 @@ export default function GameHelpOverlay() {
     return () => clearTimeout(tm);
   }, [coach]);
 
+  /**
+   * 🔴 ЭТОТ ХУК ОБЯЗАН СТОЯТЬ ДО РАННЕГО ВЫХОДА. Он стоял ПОСЛЕ `if (!hasHelp)
+   * return null` — то есть при `hasHelp === false` не вызывался вовсе, а при
+   * `true` вызывался. Число хуков у одного и того же узла менялось между
+   * рендерами, и React отвечал ошибкой #310 «Rendered more hooks than during
+   * the previous render».
+   *
+   * ЦЕНА. Справка висит на КАЖДОМ игровом экране и на каждой развилке, поэтому
+   * падало не одно место, а переход куда угодно. Замер 09.09.2026 на симуляторе
+   * iPhone 17 Pro (iOS 18, сборка метки): нажатие карточки «Ментальная ротация»
+   * в каталоге → экран «Что-то сломалось», Minified React error #310. Отчёт
+   * тестировщика 6ec1941e того же часа — та же ошибка на `/achievements`,
+   * iPhone OS 18.7, профиль «Дети».
+   *
+   * ⚠️ ПОЧЕМУ ЭТОГО НЕ ВИДЕЛ НИ ОДИН ГЕЙТ. `tsc` про порядок хуков не знает,
+   * пробы монтируют экран один раз (при первом рендере число хуков постоянно, и
+   * ошибки нет), а eslint-правило `react-hooks/rules-of-hooks` считалось внутри
+   * общего долга линта — 53 нарушения жили под потолком и не выделялись.
+   * Поэтому рядом заведён отдельный гейт: нарушений правил хуков должно быть 0.
+   */
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(HELP_OPEN_EVENT, () => { setCoach(false); setOpen(true); });
+    return () => sub.remove();
+  }, []);
+
   if (!hasHelp) return null;                           // нет справки — нет кнопки
 
   const L = DEEP_LABELS[language] || DEEP_LABELS.en;
@@ -228,10 +253,6 @@ export default function GameHelpOverlay() {
   const accentFg = onAccent.color;
   const accentFgSoft = onGradientTextMuted(onAccent);
   const openHelp = () => { setCoach(false); setOpen(true); };
-  useEffect(() => {
-    const sub = DeviceEventEmitter.addListener(HELP_OPEN_EVENT, openHelp);
-    return () => sub.remove();
-  }, []);
 
   return (
     <>
