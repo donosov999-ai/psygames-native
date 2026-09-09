@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.52.1',
+    date: '2026-09-09',
+    ru: [
+      'Шарики: колбы перерисованы. У старого стекла полость была затянута белесой плёнкой, и сосуд читался одним ободком; теперь стекло по-настоящему пустое, шарики внутри видны целиком и стали крупнее',
+      'Гайки: вместо полосы поверх гаек — болт с резьбой по всей длине и шестигранной головкой. Гайки стоят вплотную и завинчиваются по кругу, когда надеваются',
+      'Всё из версии 2.52.0 — пометки в судоку, пятиминутная зарядка, «Доска в уме», корректура, сортировка, торты — приезжает этим обновлением: та сборка до магазинов не дошла',
+    ],
+    en: [
+      'Marbles: the flasks are redrawn. The old glass had its cavity veiled in a whitish film, so the vessel read as a single rim; the glass is truly empty now, the marbles inside are fully visible and got larger',
+      'Nuts: instead of a strip over the nuts — a bolt threaded along its whole length with a hex head. The nuts sit tight and screw on with a turn as they go on',
+      'Everything from 2.52.0 — sudoku pencil marks, the five-minute warm-up, “Board in Mind”, proofreading, goods sort, cakes — arrives with this update: that build never reached the stores',
+    ],
+  },
+  {
     version: '2.52.0',
     date: '2026-09-09',
     ru: [
