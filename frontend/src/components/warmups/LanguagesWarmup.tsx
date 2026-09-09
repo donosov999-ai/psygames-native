@@ -42,6 +42,8 @@ export function LanguagesWarmup() {
   const категории = usePersistentLevel('semantic_sort');
   const решение = usePersistentLevel('lexical_decision');
   const анаграммы = usePersistentLevel('anagrams');
+  const пары = usePersistentLevel('word_pairs');
+  const наСлух = usePersistentLevel('listening_span');
 
   const уровни = {
     vocab_srs: карточки.level,
@@ -49,6 +51,8 @@ export function LanguagesWarmup() {
     semantic_sort: категории.level,
     lexical_decision: решение.level,
     anagrams: анаграммы.level,
+    word_pairs: пары.level,
+    listening_span: наСлух.level,
   };
 
   /**
@@ -69,7 +73,8 @@ export function LanguagesWarmup() {
       descKey="languagesWarmupDesc"
       ярлык="языки"
       accent={АКЦЕНТ_ЯЗЫКИ}
-      loading={!карточки.loaded || !пропуск.loaded || !категории.loaded || !решение.loaded || !анаграммы.loaded}
+      loading={!карточки.loaded || !пропуск.loaded || !категории.loaded || !решение.loaded
+        || !анаграммы.loaded || !пары.loaded || !наСлух.loaded}
     />
   );
 }
