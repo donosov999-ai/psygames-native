@@ -16,16 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
-    version: '2.52.2',
+    version: '2.52.3',
     date: '2026-09-09',
     ru: [
+      'Ментальная ротация собрана заново: 50 уровней, фигуры от 4 до 13 кубиков, три вида заданий — поворот, проекция, развёртка. После промаха — разбор с плавным 3D-вращением фигуры и ручным поворотом по осям X, Y, Z',
       'Меню паузы: стрелка «назад» во время партии открывает меню — Продолжить, Заново, Правила, На главную. Поле скрыто, часы стоят. Первым подключено судоку: начать новую доску можно без проигрыша трёх жизней',
-      'Сортировка: в разделе теперь видны все семь упражнений — пробирки, шарики, гайки, торты и пицца раньше были открыты не во всех профилях',
+      'Торты: кусок стал крупнее (0,90 радиуса тарелки вместо 0,72), перетаскивание между тарелками заработало',
+      'Гайки: шестигранник во весь столбец, отверстие сквозное — болт виден внутри гайки; сортировка товаров: полка на один товар стала узкой',
+      'Сортировка: пробирки, шарики, гайки, торты и пицца открыты в подборке «Микро-релакс» — раньше их видели только полные профили',
       'Судоку с сохранённой партией: «Заново» больше не выбрасывает на экран настройки',
     ],
     en: [
+      'Mental Rotation rebuilt: 50 levels, shapes of 4 to 13 cubes, three task kinds — rotation, projection, cube net. After a miss — a review with a smooth 3D turn of the shape and manual rotation around X, Y and Z',
       'Pause menu: the back arrow during a game opens a menu — Resume, Restart, Rules, Home. The board is hidden and the clock stops. Sudoku is wired first: a new board no longer costs three lives',
-      'Sorting: all seven exercises are visible in the section now — tubes, marbles, nuts, cakes and pizza used to be open only in some profiles',
+      'Cakes: the slice grew (0.90 of the plate radius instead of 0.72) and dragging between plates works',
+      'Nuts: the hex fills the whole column and the hole goes through — the bolt is visible inside the nut; Goods Sort: a single-item shelf is now narrow',
+      'Sorting: tubes, marbles, nuts, cakes and pizza are open in the “Micro-relax” set — only full profiles saw them before',
       'Sudoku with a saved game: “Restart” no longer throws you to the setup screen',
     ],
   },
