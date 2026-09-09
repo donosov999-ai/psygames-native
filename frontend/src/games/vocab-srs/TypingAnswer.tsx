@@ -15,6 +15,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Platform, Pressable } from 'react-native';
 import { createState, pressChar, backspace, MARK, type TypingState } from '@/src/services/typing';
+import { слогДо, ОШИБОК_ДО_ПОДСКАЗКИ } from '@/src/games/dictation/core/phonoHint';
 
 export interface TypingAnswerProps {
   /** Слово, которое надо набрать. */
@@ -41,11 +42,22 @@ export default function TypingAnswer({ word, colors, onDone, hint, disabled, hid
   const состояние = useRef<TypingState>(createState([word]));
   const ошибкаНа = useRef<number | null>(null);
   const полеRef = useRef<TextInput>(null);
+  /**
+   * 🔴 R7: ЗАСТРЯЛ → ПОДСКАЗКА ФОНОЛОГИЧЕСКАЯ, А НЕ ПЕРЕВОД.
+   * Считаем ошибки на ОДНОМ знаке; после порога открываем начало текущего слова
+   * до конца первой гласной. Разбор правила — в `phonoHint.ts`.
+   * ⚠️ Только при скрытом образце: в словаре слово и так видно целиком, там
+   * застрять невозможно, и подсказка была бы шумом.
+   */
+  const подрядНа = useRef<{ поз: number; счёт: number }>({ поз: -1, счёт: 0 });
+  const открытоДо = useRef(0);
 
   // Новое слово — новое состояние. Иначе курсор остался бы от прошлой карточки.
   useEffect(() => {
     состояние.current = createState([word]);
     ошибкаНа.current = null;
+    подрядНа.current = { поз: -1, счёт: 0 };
+    открытоДо.current = 0;
     форсировать((n) => n + 1);
     const t = setTimeout(() => полеRef.current?.focus(), 60);
     return () => clearTimeout(t);
@@ -59,9 +71,21 @@ export default function TypingAnswer({ word, colors, onDone, hint, disabled, hid
     const до = ст.errors;
     const итог = pressChar(ст, ключ, true);              // true = блокировка на ошибке, метод Шестова
     ошибкаНа.current = ст.errors > до ? ст.pos : null;
+    if (hideUntyped) {
+      if (ст.errors > до) {
+        const п = подрядНа.current;
+        подрядНа.current = п.поз === ст.pos ? { поз: п.поз, счёт: п.счёт + 1 } : { поз: ст.pos, счёт: 1 };
+        if (подрядНа.current.счёт >= ОШИБОК_ДО_ПОДСКАЗКИ) {
+          // Подсказка только растёт вперёд: открытое назад не закрываем.
+          открытоДо.current = Math.max(открытоДо.current, слогДо(word, ст.pos));
+        }
+      } else {
+        подрядНа.current = { поз: -1, счёт: 0 };
+      }
+    }
     форсировать((n) => n + 1);
     if (итог.finished) onDone(ст.errors);
-  }, [disabled, onDone]);
+  }, [disabled, onDone, hideUntyped, word]);
 
   const буквы = useMemo(() => [...word], [word]);
   const ст = состояние.current;
@@ -90,7 +114,7 @@ export default function TypingAnswer({ word, colors, onDone, hint, disabled, hid
               {/* ⚠️ В режиме диктанта скрыта и ТЕКУЩАЯ буква. Иначе фразу можно
                     прочитать по одному знаку, вообще не слушая — курсор всякий раз
                     показывал бы следующую. Позицию курсора несёт подчёркивание. */}
-              {hideUntyped && !набрана ? (б === ' ' ? ' ' : '·') : (б === ' ' ? '␣' : б)}
+              {hideUntyped && !набрана && i >= открытоДо.current ? (б === ' ' ? ' ' : '·') : (б === ' ' ? '␣' : б)}
             </Text>
           );
         })}
