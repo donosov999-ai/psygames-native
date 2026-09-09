@@ -239,7 +239,9 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 11,
-    lineHeight: 14,
+    // Без фиксированного lineHeight (09.09.2026, отчёт a7318e1e, системный размер текста L):
+    // fontSize масштабируется системой, межстрочник в px — нет, и при fontScale 1,3 строки
+    // описания ложились друг на друга и на заголовок. Тот же урок, что у heroSub на главной.
   },
   badgeRow: {
     flexDirection: 'row',
