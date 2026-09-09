@@ -195,7 +195,18 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,header,
   return <GameShell title={mode==='net'?t('spatialNet'):t('spatialTwiddle')} onBack={onBack} overlay={overlay}
     frame={preset?spatialFrame(viewportHeight):undefined}
     confirmExit={state.past.length>0&&!won} scrollableField
-    stats={<View style={styles.stats}><Text style={ink}>Ходов: {state.past.length}</Text><Text style={ink}>{info?`Связано: ${info.connected.size}/${n*n}`:`Поле ${n}×${n}`}</Text><Text style={ink}>№ {seed}</Text></View>}
+    /*
+      🔴 СЧЁТЧИКИ — БЕЙДЖАМИ `hud`, А НЕ СТРОКОЙ `stats` (перенос 09.09.2026).
+      Строка из трёх подписей растягивалась на всю плашку, и третья («№ 42»)
+      ложилась под угловой ряд питомца и справки: pan-audit на 360 px дал наезд
+      37 px. Бейджи компактные (значок + число) и встают слева, где ряда нет.
+      «Поле n×n» убрано: доска и так на экране.
+    */
+    hud={[
+      { key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'), value: state.past.length, pop: true },
+      ...(info ? [{ key: 'found', icon: 'git-network-outline' as const, label: t('hud_linked'), value: `${info.connected.size}/${n*n}` }] : []),
+      { key: 'round', icon: 'pricetag-outline', label: t('hud_puzzle'), value: `#${seed}` },
+    ]}
     headerActions={<View style={styles.top}>
       {header}
       {!preset&&<View style={styles.tabs}>{(['twiddle','net'] as const).map(m=><Pressable key={m} accessibilityRole="button" accessibilityState={{selected:mode===m}} onPress={()=>{if(m!==mode)request(m);}} style={[styles.tab,{borderColor:mode===m?colors.primary:colors.border,backgroundColor:colors.surface}]}><Text style={ink}>{m==='twiddle'?'Числа':'Трубы'}</Text></Pressable>)}</View>}
@@ -249,6 +260,6 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,header,
 }
 const styles=StyleSheet.create({
   top:{gap:8},auxRow:{flexDirection:'row',alignSelf:'stretch'},tabs:{flexDirection:'row',gap:8,justifyContent:'center'},tab:{minHeight:48,minWidth:100,borderWidth:2,borderRadius:12,alignItems:'center',justifyContent:'center'},
-  stats:{flexDirection:'row',justifyContent:'center',gap:16,flexWrap:'wrap'},turns:{flexDirection:'row',gap:8,width:'100%',maxWidth:640,paddingLeft:32},turn:{flex:1,minHeight:52,borderRadius:12,alignItems:'center',justifyContent:'center',padding:8},turnText:{color:'#fff',fontSize:16,fontWeight:'700'},
+  turns:{flexDirection:'row',gap:8,width:'100%',maxWidth:640,paddingLeft:32},turn:{flex:1,minHeight:52,borderRadius:12,alignItems:'center',justifyContent:'center',padding:8},turnText:{color:'#fff',fontSize:16,fontWeight:'700'},
   field:{alignItems:'center',width:'100%',gap:12},instruction:{fontSize:16,textAlign:'center',maxWidth:420,lineHeight:22},row:{flexDirection:'row',gap:4},cell:{borderRadius:12,alignItems:'center',justifyContent:'center',overflow:'hidden'},number:{fontSize:27,fontWeight:'800',color:'#352654'},status:{fontSize:16,textAlign:'center'},note:{fontSize:12,textAlign:'center'},confirm:{padding:12,borderWidth:1,borderRadius:12,gap:12,width:'100%'},
 });

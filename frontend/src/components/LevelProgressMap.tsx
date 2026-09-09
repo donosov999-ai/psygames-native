@@ -527,7 +527,10 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel, bestL
                   ? `${t('level')} ${l}, ${t('bestTime')} ${formatBestTime(times[l])}`
                   : `${t('level')} ${l}`}
                 onPress={() => onPickLevel!(l)}
-                style={{ position: 'absolute', left: nodeX(i) - 22, top: nodeY(i) - 22, width: 44, height: 44 }}
+                // 48, а не 44: зона нажатия живёт и НА ПОЛЕ (spatial-lab держит карту в
+                // шапке партии), а там норма Material — 48. Узлы идут с шагом GAP=62,
+                // так что зоны 48 не наезжают друг на друга. Замер tap-target-audit 09.09.2026.
+                style={{ position: 'absolute', left: nodeX(i) - 24, top: nodeY(i) - 24, width: 48, height: 48 }}
               />
             );
           })}

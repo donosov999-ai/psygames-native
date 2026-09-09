@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.52.5',
+    date: '2026-09-09',
+    ru: [
+      'Раздел «Ментальная ротация»: три упражнения на вращение в уме — ротация фигур из кубиков, «Поворот чисел» (вращай блок 2×2, расставь числа) и «Сеть труб» (поверни трубы, чтобы вода дошла до каждого конца). У каждого своя лестница уровней и тропинка',
+      'Детский профиль: добавлен «Дворец памяти» — метод мест, правила объясняются картинкой',
+    ],
+    en: [
+      '“Mental Rotation” section: three exercises in turning things in your mind — cube-shape rotation, “Number Twist” (rotate a 2×2 block, order the numbers) and “Pipe Network” (turn the pipes so water reaches every end). Each has its own level ladder and path',
+      'Kids profile: “Memory Palace” added — the method of loci, rules explained with a picture',
+    ],
+  },
+  {
     version: '2.52.4',
     date: '2026-09-09',
     ru: [
