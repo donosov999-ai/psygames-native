@@ -949,6 +949,25 @@ export default function ProofreadingGame() {
    * `isFillwordsLocale(language)`). Автостарт раньше языка давал русскому
    * человеку английское задание. Репорт Дениса 07.09.2026 про «Зарядку».
    */
+  /**
+   * 🔴 МЕНЮ ПАУЗЫ — ЧТОБЫ «ЗАНОВО» НЕ ДОБИВАЛИСЬ ПРОИГРЫШЕМ.
+   *
+   * 📍 Отчёт `5be4998f` 09.09.2026, дословно: «Мне, для того чтобы начать новую
+   * партию, всё время приходится тыкать неправильные числа три раза, чтобы жизни
+   * закончились». «Заново» жило только в карточке поражения — до неё надо было
+   * доиграть. Слот каркаса под это есть с v2.52.2, но замер 09.09: его провела
+   * ОДНА игра из 95 (`sudoku`), у меня было ноль из двух.
+   *
+   * ⚠️ «Правила» в список не кладу: у этого экрана их нет внутри партии — они в
+   * сквозном слое справки, кнопка которого видна и так. Пункт, повторяющий уже
+   * видимую кнопку, только удлиняет меню.
+   */
+  const действияПаузы = [
+    { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+    { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => (seriesPreset ? beginSeries() : startGame()) },
+    { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+  ];
+
   useAutostartWhenReady(
     () => autostart && lvl.loaded && языкГотов && (!seriesPreset || seriesLoaded),
     () => (seriesPreset ? beginSeries() : startGame()),
@@ -1427,6 +1446,7 @@ export default function ProofreadingGame() {
   // playing-фаза — на едином каркасе GameShell (сетка букв в скролл-поле, кнопок действий нет)
   const renderGame = () => (
     <GameShell
+      pauseActions={действияПаузы}
       title={t('proofreading')}
       onBack={() => goBackOrHome()}
       scrollableField
@@ -1676,6 +1696,7 @@ export default function ProofreadingGame() {
     const total = blockStepsTotal(field, key);
     return (
       <GameShell
+      pauseActions={действияПаузы}
         /**
          * 🔴 ЗАГОЛОВОК СЕРИИ — НАЗВАНИЕ ИГРЫ, А НЕ ПОДПИСЬ ВХОДА (08.09.2026).
          *
