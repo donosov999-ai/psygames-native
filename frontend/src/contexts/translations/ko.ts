@@ -604,7 +604,7 @@ const t: Record<string, string> = {
   "spatialTwiddle": "숫자 돌리기",
   "spatialNetDesc": "물이 모든 끝에 닿도록 파이프를 돌리세요",
   "spatialTwiddleDesc": "2×2 블록을 돌려 숫자를 순서대로 맞추세요",
-  "spatialGroup": "심적 회전",
+  "spatialGroup": "심적 회전: 3가지 과제",
   "spatialGroupDesc": "도형, 파이프, 숫자 돌리기 — 머릿속에서 회전하는 세 가지 연습",
   "spatialGroupFootnote": "세 가지 모두 한 가지를 훈련합니다: 이미지를 붙잡고 손이 아닌 머릿속에서 돌리는 것.",
   "spatialGroupIntroDesc": "심적 회전 연습 세 가지. «심적 회전» — 정육면체 도형의 회전된 복사본을 찾으세요. «숫자 돌리기» — 2×2 블록을 돌려 숫자를 순서대로 맞추세요. «파이프 네트워크» — 물이 모든 끝에 닿도록 파이프를 돌리세요.",

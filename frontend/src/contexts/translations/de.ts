@@ -296,7 +296,7 @@ const t: Record<string, string> = {
   "spatialTwiddle": "Zahlendreher",
   "spatialNetDesc": "Drehe die Rohre so, dass das Wasser jedes Ende erreicht",
   "spatialTwiddleDesc": "Drehe einen 2×2-Block und bringe die Zahlen in Reihenfolge",
-  "spatialGroup": "Mentale Rotation",
+  "spatialGroup": "Mentale Rotation: 3 Übungen",
   "spatialGroupDesc": "Figuren, Rohre und Zahlendreher — drei Übungen im Drehen im Kopf",
   "spatialGroupFootnote": "Alle drei trainieren eins: das Bild halten und im Kopf drehen, nicht mit den Händen.",
   "spatialGroupIntroDesc": "Drei Übungen zur mentalen Rotation. „Mentale Rotation“ — finde die gedrehte Kopie einer Würfelfigur. „Zahlendreher“ — drehe einen 2×2-Block, um die Zahlen zu ordnen. „Rohrnetz“ — drehe die Rohre, damit das Wasser jedes Ende erreicht.",

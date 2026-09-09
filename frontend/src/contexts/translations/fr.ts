@@ -604,7 +604,7 @@ const t: Record<string, string> = {
   "spatialTwiddle": "Rotation de chiffres",
   "spatialNetDesc": "Tourne les tuyaux pour que l’eau atteigne chaque extrémité",
   "spatialTwiddleDesc": "Fais pivoter un bloc 2×2 et remets les chiffres en ordre",
-  "spatialGroup": "Rotation mentale",
+  "spatialGroup": "Rotation mentale : 3 épreuves",
   "spatialGroupDesc": "Figures, tuyaux et rotation de chiffres — trois exercices de rotation dans la tête",
   "spatialGroupFootnote": "Les trois entraînent une seule chose : garder l’image et la tourner dans sa tête, pas avec les mains.",
   "spatialGroupIntroDesc": "Trois exercices de rotation mentale. « Rotation mentale » : trouve la copie tournée d’une figure de cubes. « Rotation de chiffres » : fais pivoter un bloc 2×2 pour remettre les chiffres en ordre. « Réseau de tuyaux » : tourne les tuyaux pour que l’eau atteigne chaque extrémité.",

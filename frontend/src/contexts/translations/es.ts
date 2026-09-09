@@ -296,7 +296,7 @@ const t: Record<string, string> = {
   "spatialTwiddle": "Giro de números",
   "spatialNetDesc": "Gira las tuberías para que el agua llegue a cada extremo",
   "spatialTwiddleDesc": "Gira un bloque 2×2 y pon los números en orden",
-  "spatialGroup": "Rotación mental",
+  "spatialGroup": "Rotación mental: 3 pruebas",
   "spatialGroupDesc": "Figuras, tuberías y giro de números — tres ejercicios de girar en la mente",
   "spatialGroupFootnote": "Los tres entrenan lo mismo: retener la imagen y girarla en la cabeza, no con las manos.",
   "spatialGroupIntroDesc": "Tres ejercicios de rotación mental. «Rotación mental»: encuentra la copia girada de una figura de cubos. «Giro de números»: gira un bloque 2×2 para ordenar los números. «Red de tuberías»: gira las tuberías para que el agua llegue a cada extremo.",

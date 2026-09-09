@@ -1018,7 +1018,8 @@ const translations: Translations = {
   spatialTwiddle: { ru: 'Поворот чисел', en: 'Number Twist' },
   spatialNetDesc: { ru: 'Поверни трубы так, чтобы вода дошла до каждого конца', en: 'Rotate the pipes so water reaches every end' },
   spatialTwiddleDesc: { ru: 'Вращай блок 2×2 и расставь числа по порядку', en: 'Rotate a 2×2 block and put the numbers in order' },
-  spatialGroup: { ru: 'Ментальная ротация', en: 'Mental Rotation' },
+  // Развилка названа по флагману, но не слово в слово (гейт dictionary-duplicates: ru+en не должны совпадать с mentalRotation).
+  spatialGroup: { ru: 'Ментальная ротация: 3 пробы', en: 'Mental Rotation: 3 tasks' },
   spatialGroupDesc: { ru: 'Фигуры, трубы и поворот чисел — три упражнения на вращение в уме', en: 'Shapes, pipes and number twist — three exercises in turning things in your mind' },
   spatialGroupFootnote: { ru: 'Все три про одно: удержать образ и повернуть его в голове, а не руками.', en: 'All three train one thing: hold the image and turn it in your head, not with your hands.' },
   spatialGroupIntroDesc: { ru: 'Три упражнения на вращение в уме. «Ментальная ротация» — найди повёрнутую копию фигуры из кубиков. «Поворот чисел» — вращай блок 2×2, чтобы расставить числа по порядку. «Сеть труб» — поворачивай трубы, чтобы вода дошла до каждого конца.', en: 'Three exercises in mental rotation. “Mental Rotation” — find the rotated copy of a cube shape. “Number Twist” — rotate a 2×2 block to put the numbers in order. “Pipe Network” — turn the pipes so water reaches every end.' },

@@ -1666,7 +1666,7 @@ const t: Record<string, string> = {
   "spatialTwiddle": "数字回し",
   "spatialNetDesc": "水がすべての端に届くようにパイプを回そう",
   "spatialTwiddleDesc": "2×2ブロックを回して数字を順番に並べよう",
-  "spatialGroup": "メンタルローテーション",
+  "spatialGroup": "メンタルローテーション：3つの課題",
   "spatialGroupDesc": "図形・パイプ・数字回し — 頭の中で回す3つの練習",
   "spatialGroupFootnote": "3つとも鍛えるのは同じこと：イメージを保ち、手ではなく頭の中で回すこと。",
   "spatialGroupIntroDesc": "メンタルローテーションの3つの練習。「メンタルローテーション」— 立方体の図形の回転したコピーを見つける。「数字回し」— 2×2ブロックを回して数字を順番に並べる。「パイプ網」— 水がすべての端に届くようにパイプを回す。",
