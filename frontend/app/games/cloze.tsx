@@ -385,15 +385,15 @@ export default function ClozeGame() {
         title={t('cloze')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
         scrollableField
-        stats={
-          <View style={styles.hudRow}>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('round')} {idx + 1}/{rounds.length}</Text>
-            {timeLimitRef.current > 0 && (
-              <Text style={[styles.hudText, { color: lowTime ? '#f43f5e' : colors.textSecondary }]}>{t('timeLeftLabel')} {timeLeft}{t('secShort')}</Text>
-            )}
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('hud_correct')} {correctCount} · {t('hud_errors')} {errorsCount}</Text>
-          </View>
-        }
+        bottom="answer"
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${rounds.length}` },
+          ...(timeLimitRef.current > 0
+            ? [{ key: 'time', icon: 'time-outline' as const, label: t('timeLeftLabel'), value: `${timeLeft}${t('secShort')}`, tone: lowTime ? ('bad' as const) : ('neutral' as const) }]
+            : []),
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },
+          { key: 'hud_errors', icon: 'close-circle', label: t('hud_errors'), value: errorsCount, tone: 'bad' as const },
+        ]}
         toolbar={
           <View style={styles.toolbarOptions}>
             {round.options.map((o) => {

@@ -469,21 +469,13 @@ export default function VocabSrsGame() {
         title={t('vocabSrs')}
         onBack={() => goBackOrHome()}
         scrollableField
-        stats={
-          <View style={styles.hudRow}>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>
-              {t('round')} {idx + 1}/{queue.length}
-            </Text>
-            {card.isNew && (
-              <View style={[styles.newBadge, { backgroundColor: GRADIENT[0] }]}>
-                <Text style={[styles.newBadgeText, { color: textOn(GRADIENT[0]) }]}>{t('srsNew')}</Text>
-              </View>
-            )}
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>
-              {t('hud_correct')} {correctCount} · {t('hud_errors')} {wrongCount}
-            </Text>
-          </View>
-        }
+        bottom="answer"
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${queue.length}` },
+          ...(card.isNew ? [{ key: 'srsNew', icon: 'sparkles' as const, label: t('srsNew'), value: '', tone: 'accent' as const }] : []),
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },
+          { key: 'hud_errors', icon: 'close-circle', label: t('hud_errors'), value: wrongCount, tone: 'bad' as const },
+        ]}
         toolbar={
           печатаем ? (
             <TypingAnswer
