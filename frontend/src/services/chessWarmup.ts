@@ -27,11 +27,19 @@
 import type { PlaylistMeta, PlaylistStep, Difficulty } from './warmup';
 import { estimateStepSec } from '@/src/services/gameDuration';
 
-/** Сколько минут длится зарядка. Те же три числа, что у общей зарядки. */
-export type ChessWarmupMinutes = 5 | 10 | 15;
-/** Те же три числа для любой тематической зарядки — общий выбор длительности. */
+/**
+ * Сколько минут длится зарядка.
+ *
+ * ★ 09.09.2026 добавлены 20 минут — решение Дениса. ⚠️ ТОЛЬКО ДЛЯ ТЕМАТИЧЕСКИХ
+ * зарядок: у утренней (`warmup.ts:buildMorningWarmupPlaylist`) свой, НЕ связанный
+ * список `5 | 10 | 15`, и её ветвление сделано на литералах `5 / 10 / else` —
+ * двадцатка ушла бы там в ветку «15» молча. Пока в приложении живут два разных
+ * набора длительностей, и это осознанно: сначала смотрим тематические живьём.
+ */
+export type ChessWarmupMinutes = 5 | 10 | 15 | 20;
+/** Те же числа для любой тематической зарядки — общий выбор длительности. */
 export type WarmupMinutes = ChessWarmupMinutes;
-export const ДЛИТЕЛЬНОСТИ: readonly WarmupMinutes[] = [5, 10, 15];
+export const ДЛИТЕЛЬНОСТИ: readonly WarmupMinutes[] = [5, 10, 15, 20];
 
 /**
  * 🔴 ТЕМАТИЧЕСКАЯ ЗАРЯДКА — ОДНО УСТРОЙСТВО НА ЛЮБУЮ РАЗВИЛКУ.
@@ -95,13 +103,21 @@ export function темаШаги(темы: readonly ТемаЗарядки[], mi
   return шаги;
 }
 
+/**
+ * Сколько зарядка идёт на самом деле — по замеру, не по объявленному.
+ * Одно место вместо трёх одинаковых `reduce`: гейт длительности считает тем же.
+ */
+export function замерШагов(шаги: readonly PlaylistStep[]): number {
+  return шаги.reduce((s, x) => s + estimateStepSec(x), 0);
+}
+
 export function собратьТемуЗарядки(
   темы: readonly ТемаЗарядки[],
   minutes: WarmupMinutes,
   ярлык: string,
 ): PlaylistMeta {
   const steps = темаШаги(темы, minutes);
-  const total = steps.reduce((s, x) => s + estimateStepSec(x), 0);
+  const total = замерШагов(steps);
   return {
     duration_min: Math.max(1, Math.round(total / 60)),
     weekday: 0,
@@ -157,7 +173,7 @@ export function chessWarmupSteps(o: ChessWarmupOpts): PlaylistStep[] {
 
 export function buildChessWarmup(o: ChessWarmupOpts): PlaylistMeta {
   const steps = chessWarmupSteps(o);
-  const total = steps.reduce((s, x) => s + estimateStepSec(x), 0);
+  const total = замерШагов(steps);
   return {
     duration_min: Math.max(1, Math.round(total / 60)),
     weekday: 0,
@@ -200,7 +216,7 @@ export function wordWarmupSteps(o: WordWarmupOpts): PlaylistStep[] {
 
 export function buildWordWarmup(o: WordWarmupOpts): PlaylistMeta {
   const steps = wordWarmupSteps(o);
-  const total = steps.reduce((s, x) => s + estimateStepSec(x), 0);
+  const total = замерШагов(steps);
   return {
     duration_min: Math.max(1, Math.round(total / 60)),
     weekday: 0,
