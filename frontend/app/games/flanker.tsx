@@ -120,6 +120,28 @@ export function levelParams(level: number): { trials: number; windowMs: number; 
   return { trials, windowMs, pCong: FLANKER_P_CONG, pIncong: FLANKER_P_INCONG, gapPx };
 }
 
+/**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТ ПОКАЗАТЕЛЬ, — РЯДОМ С САМИМ ПОКАЗАТЕЛЕМ.
+ *
+ * 🔴 Заведено 09.09.2026, после того как решение Дениса («меряем прогресс
+ * человека») увело зарядку и оценку на ЛИЧНЫЙ уровень (коммит 8f0bfc47 снял
+ * фикс-ступень тира). Показатель этой пробы сверяется с ЖЁСТКОЙ нормой батареи,
+ * а условие теперь едет вместе с уровнем игрока — значит два одинаковых на вид
+ * числа могут быть сняты в разных задачах.
+ *
+ * Восстановить условие «через levelParams(level)» технически можно, но это
+ * привязывает разбор старых партий к сегодняшнему коду: поменяется формула — и
+ * накопленное молча станет нечитаемым.
+ *
+ * Стережёт `src/__tests__/attention-condition-recorded.test.ts`: он сам
+ * прогоняет levelParams по уровням и требует, чтобы КАЖДОЕ меняющееся поле сюда
+ * попало. Руками список не пишется — разойдётся.
+ */
+export function levelCondition(level: number): { windowMs: number; gapPx: number } {
+  const { windowMs, gapPx } = levelParams(level);
+  return { windowMs, gapPx };
+}
+
 function makeTrial(pCong: number, pIncong: number): Trial {
   const center: Direction = Math.random() < 0.5 ? 'left' : 'right';
   // distribution of trial types comes from levelParams (ex-difficulty table)
@@ -275,6 +297,8 @@ export default function FlankerGame() {
           p_congruent: pCongRef.current,
           p_incongruent: pIncongRef.current,
           flanker_gap_px: gapRef.current,
+          // Условие уровня — рядом с показателем (см. шапку levelCondition).
+          ...levelCondition(levelRef.current),
         },
       });
     } catch (err) { console.error(err); }

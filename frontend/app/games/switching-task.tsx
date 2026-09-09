@@ -111,6 +111,28 @@ export function levelParams(level: number): { trials: number; switchProb: number
   return { trials, switchProb, windowMs };
 }
 
+/**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТ ПОКАЗАТЕЛЬ, — РЯДОМ С САМИМ ПОКАЗАТЕЛЕМ.
+ *
+ * 🔴 Заведено 09.09.2026, после того как решение Дениса («меряем прогресс
+ * человека») увело зарядку и оценку на ЛИЧНЫЙ уровень (коммит 8f0bfc47 снял
+ * фикс-ступень тира). Показатель этой пробы сверяется с ЖЁСТКОЙ нормой батареи,
+ * а условие теперь едет вместе с уровнем игрока — значит два одинаковых на вид
+ * числа могут быть сняты в разных задачах.
+ *
+ * Восстановить условие «через levelParams(level)» технически можно, но это
+ * привязывает разбор старых партий к сегодняшнему коду: поменяется формула — и
+ * накопленное молча станет нечитаемым.
+ *
+ * Стережёт `src/__tests__/attention-condition-recorded.test.ts`: он сам
+ * прогоняет levelParams по уровням и требует, чтобы КАЖДОЕ меняющееся поле сюда
+ * попало. Руками список не пишется — разойдётся.
+ */
+export function levelCondition(level: number): { trials: number; windowMs: number } {
+  const { trials, windowMs } = levelParams(level);
+  return { trials, windowMs };
+}
+
 function midFor(mode: StimMode): number { return mode === 'num3' ? 500 : 50; }
 
 /**
@@ -373,6 +395,8 @@ export default function SwitchingTaskGame() {
           switch_cost_ms: switchCostMs(switchRtsRef.current, repeatRtsRef.current),
           accuracy: Math.round(accuracy * 100),
           n_trials: totalTrialsRef.current,
+          // Условие уровня — рядом с показателем (см. шапку levelCondition).
+          ...levelCondition(levelRef.current),
         },
       });
     } catch (err) { console.error(err); }
