@@ -1691,21 +1691,31 @@ export default function SudokuGame() {
   const renderPlaying = () => {
     const statsEl = (
       <View style={styles.statsRow}>
-        {mode === 'levels' && (
+        {/*
+          * 🔴 НОМЕР УРОВНЯ ОТСЮДА УБРАН — он уже стоит капсулой «⚑ 55» строкой выше.
+          * Замечание Дениса 09.09 по живому экрану: «зачем-то продублирован второй
+          * строкой уровень». Так и было: капсула отдаёт число, а эта строка писала
+          * его же словом. Причина дубля в общем компоненте — `HudBadge` показывает
+          * своё слово ТОЛЬКО когда у капсулы нет иконки (juice/HudBadge.tsx:62), а у
+          * уровня иконка есть, поэтому «Ур.» пропадало и его дописывали здесь.
+          *
+          * Дорога словом остаётся: её капсула не показывает вовсе, и без неё «полегче»
+          * и «пожёстче» неотличимы — а это разные лестницы прогресса.
+          */}
+        {mode === 'levels' && road !== DEFAULT_SUDOKU_ROAD && (
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>
-            {t('label_level_short')}{level}
-            {road !== DEFAULT_SUDOKU_ROAD ? ` · ${t(SUDOKU_ROAD_NAME_KEY[road])}` : ''}
+            {t(SUDOKU_ROAD_NAME_KEY[road])}
           </Text>
         )}
+        {/* Ступень «2/8» уже стоит капсулой; здесь остаётся только ИМЯ режима —
+            его капсула прячет, потому что у неё есть иконка. */}
         {(mode === 'towers' || mode === 'unequal') && (
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>
-            {variantLabel(mode, language)} · {t('label_level_short')}{level}/{sideStepCount(mode)}
+            {variantLabel(mode, language)}
           </Text>
         )}
         {mode === 'killer' && (
-          <Text style={[styles.statText, { color: GRADIENT[0] }]}>
-            Killer · {t('label_level_short')}{level}/{killerStepCount()}
-          </Text>
+          <Text style={[styles.statText, { color: GRADIENT[0] }]}>Killer</Text>
         )}
         {/* Приём ЭТОЙ доски — посчитанный градатором, а не выведенный из номера уровня. */}
         {boardTier !== null && (
@@ -1733,6 +1743,10 @@ export default function SudokuGame() {
         {null}
         {backtrackCount > 0 && (
           <Text style={[styles.statText, { color: colors.textSecondary }]}>↻ {backtrackCount}</Text>
+        )}
+        {/* Сколько пометок на доске — показатель, а не запас: см. блок у `pencilBtn`. */}
+        {countPencilMarks(marks) > 0 && (
+          <Text style={[styles.statText, { color: colors.textSecondary }]}>✎ {countPencilMarks(marks)}</Text>
         )}
         <TouchableOpacity
           accessibilityRole="button" onPress={() => setRulesOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
@@ -2198,11 +2212,24 @@ export default function SudokuGame() {
         disabled={!hist.canUndo}
       />
     );
+    /**
+     * 🔴 ЧИСЛО С ПЕРЕКЛЮЧАТЕЛЯ СНЯТО — отчёт 779c482d (08.09.2026): «почему стоит
+     * ограничение по количеству пометок, я не могу поставить больше того количества,
+     * которое сейчас стоит». Ограничения не было: число показывало, СКОЛЬКО пометок
+     * уже на доске. Но рядом стоит «Подсказка 0» — настоящий остаток, считающий вниз, —
+     * и одинаковая форма «слово + число» на соседних капсулах читается как одинаковый
+     * смысл. Человек построил на этом неверную теорию и написал о ней в отчёт.
+     *
+     * Правило в этом файле уже записано двумя блоками выше: счётчик переделок переехал
+     * из ряда действий в шапку, потому что он ПОКАЗАТЕЛЬ, А НЕ КНОПКА. Пометки нарушали
+     * ровно это правило: карандаш — режим письма, у него нет запаса, который тратится.
+     * Поэтому число не удалено, а переехало к «↻» — туда, где стоят показатели.
+     */
     const pencilBtn = (
       <GlassButton
         grow
         icon="pencil-outline"
-        label={countPencilMarks(marks) ? `${t('sudokuPencilMode')} ${countPencilMarks(marks)}` : t('sudokuPencilMode')}
+        label={t('sudokuPencilMode')}
         active={pencil}
         onPress={() => setPencilMode(!pencil)}
       />

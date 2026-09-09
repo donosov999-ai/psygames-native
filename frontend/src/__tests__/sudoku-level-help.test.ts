@@ -16,6 +16,10 @@ import {
  * её с константой — константа проверяла бы мой же текст моим же текстом.
  */
 
+/** Чтение исходника экрана: нужны только имена, React-контекст не поднимаем. */
+declare const __dirname: string;
+declare function require(id: string): any;
+
 const tr = (key: string) => translateFor('ru', key);
 
 function help(over: Partial<LevelHelpInput> = {}) {
@@ -115,4 +119,18 @@ test('🔴 безлимит по ошибкам печатается слово�
   const h = help({ errorMax: Infinity });
   expect(h.body).not.toContain('Infinity');
   expect(h.body).toContain(tr('sudokuLevelHasNoLimit'));
+});
+
+test('🔴 номер уровня в шапке ОДИН раз, а не двумя строками подряд', () => {
+  // Замечание Дениса 09.09 по живому экрану: капсула «⚑ 55» и строка «Ур.55» —
+  // одно и то же число. Капсула прячет своё слово, когда есть иконка
+  // (juice/HudBadge.tsx), и его дописывали второй строкой.
+  const SRC = require('fs').readFileSync(
+    require('path').join(__dirname, '../../app/games/sudoku.tsx'), 'utf8') as string;
+  // считаем только КОД: пояснения в комментариях к делу не относятся
+  const code = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  const капсула = /icon: 'flag' as const, label: t\('label_level_short'\), value: level/.test(code);
+  const строкой = /styles\.statText[^]{0,120}t\('label_level_short'\)\}\{level\}/.test(code);
+  expect(`уровень капсулой: ${капсула} · он же строкой: ${строкой}`)
+    .toBe('уровень капсулой: true · он же строкой: false');
 });
