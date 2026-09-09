@@ -32,6 +32,8 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { BilingualToggle } from '@/src/components/BilingualToggle';
+import { БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
@@ -127,6 +129,8 @@ export default function ClozeGame() {
   useEffect(() => () => clearAllTimers(), []);
 
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+  /** Режим билингво: два иностранных вперемешку в одной партии (см. bilingualMode). */
+  const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
 
   /** Показ новой фразы: сброс флага ответа + дедлайн уровня (0 = лимита нет). */
   const armDeadline = () => {
@@ -190,27 +194,42 @@ export default function ClozeGame() {
      * ⚠️ Ключ — ТЕКСТ фразы, а не номер: номер переезжает при любой правке корпуса,
      * и человек получил бы «уже виденным» то, чего не видел (урок freshPool).
      */
-    const все = [...(CLOZE_PHRASES[tgt] ?? [])];
-    const виденные = await readSeen('cloze_phrases_' + tgt, profile?.id);
-    const свежие = pickFreshFrom(все, roundsCount, виденные, (f) => f.text, Math.random);
-    await writeSeen('cloze_phrases_' + tgt, profile?.id, свежие.seen);
-    /* Добор хвостом: фраза с неизвестным answerEn ниже пропускается, и без запаса
-       раундов вышло бы меньше заказанного. */
-    const остальные = все.filter((f) => !свежие.picked.includes(f));
-    for (let i = остальные.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [остальные[i], остальные[j]] = [остальные[j], остальные[i]];
+    /**
+     * 🔴 В БИЛИНГВО РАУНД ЦЕЛИКОМ НА ОДНОМ ЯЗЫКЕ, А ЯЗЫК МЕНЯЕТСЯ ОТ РАУНДА К
+     * РАУНДУ. Фраза, ответ и дистракторы обязаны быть из одного языка: испанский
+     * вариант среди английских виден, не зная ни одного из них.
+     * Запас «невиданного» тоже свой у каждого языка — ключ хранилища с языком.
+     */
+    const языкиРаунда = билингво ? параЯзыков(language) : [tgt];
+    const поЯзыку: Record<string, { text: string; answerEn: string }[]> = {};
+    for (const л of языкиРаунда) {
+      const все = [...(CLOZE_PHRASES[л] ?? [])];
+      const виденные = await readSeen('cloze_phrases_' + л, profile?.id);
+      const свежие = pickFreshFrom(все, roundsCount, виденные, (f) => f.text, Math.random);
+      await writeSeen('cloze_phrases_' + л, profile?.id, свежие.seen);
+      /* Добор хвостом: фраза с неизвестным answerEn ниже пропускается, и без запаса
+         раундов вышло бы меньше заказанного. */
+      const остальные = все.filter((f) => !свежие.picked.includes(f));
+      for (let i = остальные.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [остальные[i], остальные[j]] = [остальные[j], остальные[i]];
+      }
+      поЯзыку[л] = [...свежие.picked, ...остальные];
     }
-    const phrases = [...свежие.picked, ...остальные];
+    const phrases: { text: string; answerEn: string; язык: string }[] = билингво
+      ? разложитьПоРяду(поЯзыку, roundsCount * 2, language).элементы
+          .map((x) => ({ ...x.элемент, язык: x.язык }))
+      : (поЯзыку[tgt] ?? []).map((f) => ({ ...f, язык: tgt }));
     const newRounds: Round[] = [];
     for (const p2 of phrases) {
       if (newRounds.length >= roundsCount) break;
+      const яз = p2.язык;
       const entry = TRANSLATION_VOCAB.find((w) => w.en === p2.answerEn);
-      if (!entry || !entry[tgt]) continue; // фраза с неизвестным answerEn — пропуск
-      const answer = entry[tgt];
+      if (!entry || !entry[яз]) continue; // фраза с неизвестным answerEn — пропуск
+      const answer = entry[яз];
       // дистракторы той же категории; добор из всего словаря, если категория мала
-      const sameCat = TRANSLATION_VOCAB.filter((w) => w.cat === entry.cat && w[tgt] && w[tgt] !== answer).map((w) => w[tgt]);
-      const anyOther = TRANSLATION_VOCAB.filter((w) => w[tgt] && w[tgt] !== answer).map((w) => w[tgt]);
+      const sameCat = TRANSLATION_VOCAB.filter((w) => w.cat === entry.cat && w[яз] && w[яз] !== answer).map((w) => w[яз]);
+      const anyOther = TRANSLATION_VOCAB.filter((w) => w[яз] && w[яз] !== answer).map((w) => w[яз]);
       const distractors = new Set<string>();
       const pickFrom = (arr: string[]) => {
         let guard = 0;
@@ -346,6 +365,7 @@ export default function ClozeGame() {
               ))}
             </View>
           </View>
+          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]} />
 
           <LevelProgressMap bestLevel={lvl.best} gameId="cloze" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12, alignItems: 'center', gap: 6 }]}>

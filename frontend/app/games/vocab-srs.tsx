@@ -31,7 +31,7 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
-import { WORD_LANG_LABEL } from '@/src/services/wordLanguage';
+import { BilingualToggle } from '@/src/components/BilingualToggle';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -432,36 +432,7 @@ export default function VocabSrsGame() {
           </View>
         </View>
 
-        {/*
-          🔴 ПЕРЕКЛЮЧАТЕЛЬ БИЛИНГВО. Стоит СРАЗУ ПОД выбором языка, потому что
-          отменяет его: включённый режим берёт пару языков от интерфейса, а не
-          один выбранный. Показывать их рядом и не связать значило бы оставить
-          человека гадать, что победило.
-        */}
-        <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
-          <TouchableOpacity
-            accessibilityRole="switch"
-            accessibilityState={{ checked: билингво }}
-            accessibilityLabel={t('bilingualMode')}
-            onPress={() => setБилингво((v) => !v)}
-            style={[
-              styles.sizeButton,
-              { alignSelf: 'flex-start', paddingHorizontal: 14 },
-              билингво
-                ? { backgroundColor: GRADIENT[0] }
-                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-            ]}
-          >
-            <Text style={[styles.sizeButtonText, { color: билингво ? textOn(GRADIENT[0]) : colors.text }]}>
-              {билингво ? '✓ ' : ''}{t('bilingualMode')}
-            </Text>
-          </TouchableOpacity>
-          <Text style={[styles.optionLabel, { color: colors.textSecondary, marginTop: 8, fontWeight: '400' }]}>
-            {t('bilingualModeDesc')
-              .replace('{a}', WORD_LANG_LABEL[параЯзыков(language)[0]] ?? параЯзыков(language)[0])
-              .replace('{b}', WORD_LANG_LABEL[параЯзыков(language)[1]] ?? параЯзыков(language)[1])}
-          </Text>
-        </View>
+        <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]} />
 
         {/* Новых за сессию */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>

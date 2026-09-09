@@ -33,6 +33,8 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { BilingualToggle } from '@/src/components/BilingualToggle';
+import { БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { generatePseudowords, sampleRealWords } from '@/src/services/pseudowords';
@@ -117,6 +119,8 @@ export default function LexicalDecisionGame() {
   useEffect(() => () => clearAllTimers(), []);
 
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+  /** Режим билингво: два иностранных вперемешку в одной партии (см. bilingualMode). */
+  const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
 
   // Показ текущей пробы: фиксируем момент показа + взводим дедлайн уровня.
   const presentTrial = () => {
@@ -154,13 +158,36 @@ export default function LexicalDecisionGame() {
     windowMsRef.current = isPreset ? 0 : p.windowMs;   // пресет = прежний self-paced режим
     const count = isPreset ? presetTrials : p.trials;
     tgtRef.current = tgt;
-    const half = Math.floor(count / 2);
-    const real = sampleRealWords(tgt, count - half).map((w) => ({ text: w, isWord: true }));
-    const pseudo = generatePseudowords(tgt, half).map((w) => ({ text: w, isWord: false }));
-    const all = [...real, ...pseudo];
-    for (let i = all.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [all[i], all[j]] = [all[j], all[i]];
+    /**
+     * 🔴 В БИЛИНГВО ПРОБЫ ДВУХ ЯЗЫКОВ ИДУТ ПО РЯДУ ЧЕРЕДОВАНИЯ.
+     *
+     * ⚠️ Псевдослова генерируются ПО ЯЗЫКУ: испанское псевдослово среди
+     * английских настоящих узнаётся по одному виду букв, и проба превращается
+     * в «угадай, на каком это языке». Поэтому и настоящие, и псевдо берутся у
+     * каждого языка отдельно и только потом раскладываются вперемешку.
+     *
+     * ⚠️ Порядок здесь НЕ перемешивается случайно, как в одноязычной партии:
+     * узор чередования и есть измеряемая величина.
+     */
+    const языки = билингво ? параЯзыков(language) : [tgt];
+    const наЯзык = Math.max(1, Math.round(count / языки.length));
+    const поЯзыку: Record<string, { text: string; isWord: boolean }[]> = {};
+    for (const л of языки) {
+      const пол = Math.floor(наЯзык / 2);
+      const r = sampleRealWords(л, наЯзык - пол).map((w) => ({ text: w, isWord: true }));
+      const ps = generatePseudowords(л, пол).map((w) => ({ text: w, isWord: false }));
+      const смесь = [...r, ...ps];
+      for (let i = смесь.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [смесь[i], смесь[j]] = [смесь[j], смесь[i]];
+      }
+      поЯзыку[л] = смесь;
+    }
+    let all: { text: string; isWord: boolean }[];
+    if (билингво) {
+      all = разложитьПоРяду(поЯзыку, count, language).элементы.map((x) => x.элемент);
+    } else {
+      all = поЯзыку[tgt] ?? [];
     }
     trialsRef.current = all;
     setTrials(all);
@@ -289,6 +316,7 @@ export default function LexicalDecisionGame() {
               ))}
             </View>
           </View>
+          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]} />
 
           <LevelProgressMap bestLevel={lvl.best} gameId="lexical_decision" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
 
