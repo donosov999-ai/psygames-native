@@ -2504,7 +2504,7 @@ const t: Record<string, string> = {
   "tabPet": "相棒",
   "favouriteSections": "よく遊んでいるもの",
   "languagesWarmupTitle": "ことばのウォームアップ",
-  "languagesWarmupDesc": "英語とスペイン語を混ぜて。一つの言語より間違いが増えます——それが狙いです",
+  "languagesWarmupDesc": "外国語を二つ混ぜ、母語は支えとして残ります。一つの言語より間違いが増えます——それが狙いです",
   "andMore": "ほか {n} 件 ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "向きは後から伝えます",

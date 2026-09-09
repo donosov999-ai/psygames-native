@@ -16,6 +16,9 @@ import { GAMES } from '@/src/constants/games';
 declare const __dirname: string;
 declare function require(id: string): any;
 
+const читать = (rel: string): string =>
+  require('fs').readFileSync(require('path').join(__dirname, rel), 'utf8') as string;
+
 const уровни = { vocab_srs: 4, cloze: 7, semantic_sort: 2, lexical_decision: 9, anagrams: 5 };
 
 describe('языковой поток', () => {
@@ -205,5 +208,32 @@ describe('языки потока зависят от языка интерфе�
       expect(`${ui}: переключений ${д.переключений} · повторов ${д.повторов}`)
         .toBe(`${ui}: переключений 4 · повторов 2`);
     }
+  });
+
+  /**
+   * 🔴 ПОДПИСЬ КАРТОЧКИ НЕ НАЗЫВАЕТ ЯЗЫКИ — ИНАЧЕ ОНА ВРЁТ НА ДВУХ ЛОКАЛЯХ.
+   *
+   * 📍 До 09.09.2026 текст говорил «английский и испанский» во ВСЕХ двенадцати
+   * переводах. На английском интерфейсе это была ложь: свой язык целью не
+   * бывает, англоговорящий получает испанский и запасной; на испанском —
+   * зеркально. Теперь пара берётся из `языкиДляИнтерфейса` и показывается
+   * отдельной строкой, а из словаря названия языков убраны.
+   */
+  it('🔴 в подписи карточки нет названий языков ни на одном из 12 языков', () => {
+    const запрет = /англ|испан|english|spanish|inglés|español|englisch|spanisch|anglais|espagnol|inglese|spagnolo|英語|スペイン|영어|스페인|英语|西班牙|अंग्रे|स्पेनि|إنجليز|إسبان/i;
+    const файлы: [string, string][] = [['база', '../contexts/LanguageContext.tsx']];
+    for (const c of ['es', 'pt', 'de', 'fr', 'it', 'zh', 'ja', 'ko', 'hi', 'ar']) файлы.push([c, `../contexts/translations/${c}.ts`]);
+    const плохо: string[] = [];
+    for (const [имя, путь] of файлы) {
+      const m = читать(путь).match(/languagesWarmupDesc[^\n]*/);
+      if (m && запрет.test(m[0])) плохо.push(имя);
+    }
+    expect(`называют язык: ${плохо.join(', ') || '—'}`).toBe('называют язык: —');
+  });
+
+  it('🔴 карточка берёт пару из ТОЙ ЖЕ функции, что собирает шаги', () => {
+    const src = читать('../components/warmups/LanguagesWarmup.tsx');
+    expect(src).toMatch(/языкиДляИнтерфейса\(language\)/);
+    expect(src).toMatch(/подЗаголовком=\{пара\}/);
   });
 });

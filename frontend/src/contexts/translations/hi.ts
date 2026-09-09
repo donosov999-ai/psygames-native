@@ -2513,7 +2513,7 @@ const t: Record<string, string> = {
   "tabPet": "साथी",
   "favouriteSections": "जो सबसे ज़्यादा खेलते हो",
   "languagesWarmupTitle": "भाषा वॉर्म-अप",
-  "languagesWarmupDesc": "अंग्रेज़ी और स्पेनिश मिलाकर। एक भाषा से ज़्यादा गलतियाँ होंगी — यही मक़सद है",
+  "languagesWarmupDesc": "दो विदेशी भाषाएँ मिलाकर, अपनी भाषा सहारा बनी रहती है। एक भाषा की तुलना में गलतियाँ ज़्यादा होंगी — यही मकसद है",
   "andMore": "{n} और ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "दिशा बाद में बताई जाएगी",
