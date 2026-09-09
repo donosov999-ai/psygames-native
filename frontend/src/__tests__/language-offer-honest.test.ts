@@ -1,4 +1,4 @@
-/* psygames-language-offer-honest · VER 1 · 22.08.2026 */
+/* psygames-language-offer-honest · VER 2 · 09.09.2026 */
 /**
  * ПРЕДЛАГАЕМ ТОЛЬКО ТЕ ЯЗЫКИ, НА КОТОРЫХ ИГРА ПРАВДА РАБОТАЕТ.
  *
@@ -14,11 +14,21 @@
  *
  * ⚠️ СПИСКИ ВЫЧИСЛЯЮТСЯ ИЗ САМИХ ДАННЫХ, а не вписаны руками. Вписанный
  * разъедется с первым же добавленным языком, и заметит это опять игрок.
+ *
+ * ★ 09.09.2026 · VER 2. НЕХВАТКА ЗАКРЫТА: словарь дорос до всех двенадцати
+ * языков, `fr it ja ko ar` больше не пустые. Две проверки этого набора
+ * закрепляли ТОГДАШНЕЕ СОСТОЯНИЕ как правило — «языков со словарём меньше
+ * двенадцати» и «fr отвечает false» — и после починки требовали вернуть дефект.
+ * Переписаны так, чтобы проверять МЕХАНИЗМ на подставных данных: предикат
+ * обязан отвечать «нет» языку, которого в словаре нет, независимо от того,
+ * сколько языков в словаре сегодня. Полноту покрытия сторожит отдельный набор
+ * `vocab-covers-every-interface`.
  */
 import { VOCAB_LANGS, hasVocab, vocabLangsOf, TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import {
   PSEUDOWORD_LANGS, hasPseudowords, generatePseudowords, producesPseudowords,
 } from '@/src/services/pseudowords';
+import { LANGUAGES } from '@/src/contexts/LanguageContext';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -61,15 +71,25 @@ describe('список языков выведен из данных', () => {
     expect(vocabLangsOf([{ en: 'a', ru: '' }])).toEqual(['en']);
   });
 
-  it('языков со словарём меньше, чем языков приложения — это и была причина', () => {
+  it('словарных языков не больше, чем языков приложения, и все они настоящие', () => {
+    const коды = (LANGUAGES as { code: string }[]).map((l) => l.code);
     expect(VOCAB_LANGS.length).toBeGreaterThanOrEqual(5);
-    expect(VOCAB_LANGS.length).toBeLessThan(12);
+    expect(VOCAB_LANGS.length).toBeLessThanOrEqual(коды.length);
+    expect(VOCAB_LANGS.filter((l) => !коды.includes(l))).toEqual([]);
   });
 
-  it('🔴 языки БЕЗ словаря честно отвечают «нет»', () => {
-    for (const lang of ['fr', 'it', 'ja', 'ko', 'ar']) {
-      expect(`${lang}: ${hasVocab(lang)}`).toBe(`${lang}: false`);
-    }
+  /**
+   * 🔴 ПРОВЕРЯЕТСЯ ПРЕДИКАТ, А НЕ СЕГОДНЯШНИЕ ДАННЫЕ. До 09.09.2026 здесь стояли
+   * `fr it ja ko ar` — те, у кого словаря тогда не было. Как только словарь
+   * дорос, проверка стала требовать вернуть нехватку. Теперь берётся язык,
+   * которого в словаре нет ЗАВЕДОМО и не будет: он обязан получить «нет».
+   */
+  it('🔴 язык, которого в словаре нет, честно отвечает «нет»', () => {
+    expect(`выдуманный: ${hasVocab('xx-нет-такого')}`).toBe('выдуманный: false');
+    expect(`пустой код: ${hasVocab('')}`).toBe('пустой код: false');
+    const урезанный = TRANSLATION_VOCAB.map(({ en, ru }) => ({ en, ru }));
+    expect(vocabLangsOf(урезанный).includes('fr')).toBe(false);
+    expect(vocabLangsOf(урезанный).sort()).toEqual(['en', 'ru']);
   });
 
   it('русский и английский на месте', () => {
