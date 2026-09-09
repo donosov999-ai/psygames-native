@@ -1617,7 +1617,11 @@ jobs:
     # между правкой в main и живым вебом. Теперь выкладку держат ещё и smoke
     # (заход В КАЖДУЮ игру) и веб-гейты (первый кадр + размер кнопок на поле).
     needs: [typecheck, smoke, web-gates]
-    if: github.ref == 'refs/heads/main'  # only main branch deploys
+    # 🔴 РЕШЕНИЕ ДЕНИСА 09.09.2026: ПОЛНОЙ ВЕБ-ВЕРСИИ ПРИЛОЖЕНИЯ НА САЙТЕ БЫТЬ НЕ МОЖЕТ —
+    # только семплы (демо-шорты). Джоба выкладывала ВСЁ приложение и работала без
+    # согласования. Выключена целиком (`if: false`), /play с psy-games.pro снят
+    # 09.09.2026. Включать обратно — только по прямому решению Дениса.
+    if: false
     steps:
       - uses: actions/checkout@v6
 
@@ -1814,8 +1818,12 @@ jobs:
     # которая реально ОТКРЫВАЕТ каждую игру (со START=1). Выкладывать веб, ни
     # разу не нажав «Начать», — ровно тот случай, ради которого smoke и завели.
     needs: [typecheck, web-gates, smoke]
-    if: startsWith(github.ref, 'refs/tags/v')
     continue-on-error: true
+    # 🔴 РЕШЕНИЕ ДЕНИСА 09.09.2026: ПОЛНОЙ ВЕБ-ВЕРСИИ ПРИЛОЖЕНИЯ НА САЙТЕ БЫТЬ НЕ МОЖЕТ —
+    # только семплы (демо-шорты). Джоба выкладывала ВСЁ приложение и работала без
+    # согласования. Выключена целиком (`if: false`), /play с psy-games.pro снят
+    # 09.09.2026. Включать обратно — только по прямому решению Дениса.
+    if: false
     steps:
       - uses: actions/checkout@v6
       - name: Setup Node
@@ -1934,7 +1942,7 @@ jobs:
     # стоит `if: github.ref == 'refs/heads/main'`, то есть на теге он не бежит
     # никогда и его результат ВСЕГДА `skipped`. Включи его — и эта джоба краснела
     # бы на КАЖДОМ выпуске, то есть стала бы шумом на второй же день.
-    needs: [release, google-play, play-deploy, ios-release]
+    needs: [release, google-play, ios-release]
     if: always() && startsWith(github.ref, 'refs/tags/v')
     steps:
       # 🔴 APPLE ДОБАВЛЕН 07.09.2026. Сводка называлась «дошло ли до людей», а
@@ -1946,14 +1954,12 @@ jobs:
         env:
           R_RELEASE: ${{ needs.release.result }}
           R_PLAY: ${{ needs.google-play.result }}
-          R_DEMO: ${{ needs.play-deploy.result }}
           R_IOS: ${{ needs.ios-release.result }}
         run: |
           echo "тег: $GITHUB_REF_NAME"
           echo "  GitHub Release     : $R_RELEASE"
           echo "  Google Play        : $R_PLAY"
           echo "  Apple TestFlight   : $R_IOS"
-          echo "  веб-демо /play     : $R_DEMO"
           echo ""
           MISSED=""
           # ⚠️ Проверяем НЕ на 'failure', а на «не success»: пропуск это тоже
@@ -1961,7 +1967,6 @@ jobs:
           [ "$R_RELEASE" = "success" ] || MISSED="$MISSED GitHub-Release($R_RELEASE)"
           [ "$R_PLAY"    = "success" ] || MISSED="$MISSED Google-Play($R_PLAY)"
           [ "$R_IOS"     = "success" ] || MISSED="$MISSED Apple-TestFlight($R_IOS)"
-          [ "$R_DEMO"    = "success" ] || MISSED="$MISSED веб-демо($R_DEMO)"
           if [ -n "$MISSED" ]; then
             echo "::error title=ВЫПУСК НЕ ДОШЁЛ ДО ЛЮДЕЙ::$GITHUB_REF_NAME —$MISSED"
             echo "🔴 НЕ ДОСТАВЛЕНО:$MISSED"
