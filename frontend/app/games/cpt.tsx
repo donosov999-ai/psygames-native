@@ -134,6 +134,28 @@ export function levelParams(level: number): { durationSec: number; isiMs: number
 }
 
 /**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТ ПОКАЗАТЕЛЬ, — РЯДОМ С САМИМ ПОКАЗАТЕЛЕМ.
+ *
+ * 🔴 Заведено 09.09.2026, после того как решение Дениса («меряем прогресс
+ * человека») увело зарядку и оценку на ЛИЧНЫЙ уровень (коммит 8f0bfc47 снял
+ * фикс-ступень тира). Показатель этой пробы сверяется с ЖЁСТКОЙ нормой батареи,
+ * а условие теперь едет вместе с уровнем игрока — значит два одинаковых на вид
+ * числа могут быть сняты в разных задачах.
+ *
+ * Восстановить условие «через levelParams(level)» технически можно, но это
+ * привязывает разбор старых партий к сегодняшнему коду: поменяется формула — и
+ * накопленное молча станет нечитаемым.
+ *
+ * Стережёт `src/__tests__/attention-condition-recorded.test.ts`: он сам
+ * прогоняет levelParams по уровням и требует, чтобы КАЖДОЕ меняющееся поле сюда
+ * попало. Руками список не пишется — разойдётся.
+ */
+export function levelCondition(level: number): { isiMs: number; mode: 'X' | 'AX'; confusableRatio: number } {
+  const { isiMs, mode, confusableRatio } = levelParams(level);
+  return { isiMs, mode, confusableRatio };
+}
+
+/**
  * Сколько проб надо сыграть, чтобы партия считалась партией.
  *
  * 🔴 ЗДЕСЬ БЫЛА АРИФМЕТИЧЕСКАЯ ОШИБКА, ИЗ-ЗА КОТОРОЙ ТРИ УРОВНЯ НЕ БРАЛИСЬ
@@ -554,6 +576,8 @@ export default function CPTGame() {
         details: {
           level: levelRef.current,
           paradigm: modeRef.current,
+          // Условие уровня — рядом с показателем (см. шапку levelCondition).
+          ...levelCondition(levelRef.current),
           hits: totalHits,
           omission_errors: totalOmissions,
           commission_errors: totalCommissions,
