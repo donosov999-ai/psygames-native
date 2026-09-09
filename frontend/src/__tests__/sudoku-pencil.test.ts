@@ -434,12 +434,28 @@ describe('обе игры дотягиваются до карандаша, а �
     expect(/setPencil\(false\)/.test(SUDOKU)).toBe(true);
   });
 
+  it('🔴 на кнопке-РЕЖИМЕ не стоит число: его путают с остатком', () => {
+    // Отчёт 779c482d (08.09.2026): «почему стоит ограничение по количеству пометок».
+    // Ограничения нет — число показывало, сколько пометок на доске. Но соседняя капсула
+    // «Подсказка N» это НАСТОЯЩИЙ остаток, и одинаковая форма читается как один смысл.
+    // Показателям место в шапке, рядом с «↻», — правило записано в самом экране.
+    const btn = SUDOKU.slice(SUDOKU.indexOf('icon="pencil-outline"'), SUDOKU.indexOf('icon="pencil-outline"') + 300);
+    expect(`число на кнопке карандаша: ${/countPencilMarks/.test(btn)}`)
+      .toBe('число на кнопке карандаша: false');
+    // и при этом счётчик не потерян — он переехал к показателям
+    const hud = SUDOKU.slice(SUDOKU.indexOf('↻ {backtrackCount}'), SUDOKU.indexOf('↻ {backtrackCount}') + 400);
+    expect(`счётчик пометок в шапке: ${/countPencilMarks\(marks\) > 0/.test(hud)}`)
+      .toBe('счётчик пометок в шапке: true');
+  });
+
   it('🔴 в кнопку карандаша попадает палец: не мельче 48', () => {
     // Промах мимо неё — это не «не нажалось»: под ней в обеих играх стоит либо
     // «Подсказка» (тратит лимит), либо цифровая клавиатура (ставит ход не туда).
     // Обычная судоку: кнопка на общей капсуле, у которой порог зашит внутрь.
     expect(MIN_TAP).toBeGreaterThanOrEqual(48);
-    const glass = SUDOKU.slice(SUDOKU.indexOf("label={countPencilMarks(marks)"), SUDOKU.indexOf("label={countPencilMarks(marks)") + 400);
+    // ⚠️ Якорь — ИКОНКА кнопки, а не её подпись: подпись 09.09 лишилась числа
+    // (отчёт 779c482d), и якорь по тексту подписи увёл бы пробу в пустоту.
+    const glass = SUDOKU.slice(SUDOKU.indexOf('icon="pencil-outline"'), SUDOKU.indexOf('icon="pencil-outline"') + 400);
     expect(`судоку: кнопка на GlassButton: ${/onPress=\{\(\) => setPencilMode/.test(glass)}`)
       .toBe('судоку: кнопка на GlassButton: true');
     expect(SUDOKU).toMatch(/<GlassButton\s+grow\s+icon="pencil-outline"/);
