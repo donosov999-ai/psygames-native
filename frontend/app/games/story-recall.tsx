@@ -450,9 +450,15 @@ export default function StoryRecallGame() {
             { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: distractorScore, tone: 'good' as const, pop: true },
           ] : []
         }
+        bottom="answer"
         toolbar={
           isDistractor ? (
-            <>
+            /*
+             * ⚠️ КОНТЕЙНЕР, А НЕ ФРАГМЕНТ. Тот же случай, что увёл полосу
+             * «Слово или нет?» на 10 px ниже соседей (замер 09.09.2026): без
+             * общей обёртки отступы задаёт каждая кнопка сама.
+             */
+            <View style={styles.toolbarActions}>
               <TouchableOpacity
                 accessibilityRole="button" style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitDistractor}>
                 <Text style={styles.addBtnText}>OK</Text>
@@ -466,7 +472,7 @@ export default function StoryRecallGame() {
                 <Ionicons name="checkmark" size={20} color={textOn('#22c55e')} />
                 <Text style={[styles.addBtnText, { color: textOn('#22c55e') }]}>ГОТОВ К ПЕРЕСКАЗУ</Text>
               </TouchableOpacity>
-            </>
+            </View>
           ) : isRecall ? (
             <TouchableOpacity
               accessibilityRole="button" style={[styles.startBtn, styles.recallSubmit]} onPress={which === 1 ? submitRecall1 : submitRecall2}>
@@ -592,6 +598,7 @@ const styles = StyleSheet.create({
   // RTL-пин: «a − b = ?» в RTL-bidi перестраивается — математика всегда LTR
   mathText: { fontSize: 36, fontWeight: '900', writingDirection: 'ltr' },
   numInput: { width: 140, height: 56, paddingHorizontal: 14, fontSize: 24, borderRadius: 10, borderWidth: 1, fontWeight: '700', textAlign: 'center' },
+  toolbarActions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 10, maxWidth: '100%' },
   addBtn: { minHeight: 48, justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 32, borderRadius: 16 },
   addBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   recallTitle: { fontSize: 22, fontWeight: '800' },

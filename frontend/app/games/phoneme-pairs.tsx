@@ -497,6 +497,7 @@ export default function PhonemePairsGame() {
             />
           </GameAuxBar>
         }
+        bottom="answer"
         toolbar={
           <View style={styles.toolbarCol}>
             <View style={styles.pairCol}>
