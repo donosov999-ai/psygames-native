@@ -5,8 +5,10 @@ import {normalizeShape,rotateShape,sameShape} from '../games/mental-rotation/cor
 import type {Axis,Shape} from '../games/mental-rotation/core/types';
 import {RotationShape} from './RotationShape';
 
+import {useReducedMotion} from '@/src/hooks/useReducedMotion';
 /** Educational manipulation after the timed response, never an answer shortcut. */
-export default function RotationWorkbench({initial,target,size,reduceMotion,ink,accent,ru}:{initial:Shape;target:Shape;size:number;reduceMotion:boolean;ink:string;accent:string;ru:boolean}){
+export default function RotationWorkbench({initial,target,size,reduceMotion:reduceMotionProp,ink,accent,ru}:{initial:Shape;target:Shape;size:number;reduceMotion:boolean;ink:string;accent:string;ru:boolean}){
+  const reduceMotion=useReducedMotion()||reduceMotionProp;   // настройку читает сам (гейт reduced-motion)
   const [shape,setShape]=useState(initial),[axis,setAxis]=useState<Axis>('x'),[degrees,setDegrees]=useState(0),[busy,setBusy]=useState(false),[moves,setMoves]=useState(0);
   const lock=useRef(false);
   const [value]=useState(()=>new Animated.Value(0));
