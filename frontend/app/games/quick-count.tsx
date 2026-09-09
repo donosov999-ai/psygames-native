@@ -29,6 +29,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
+import { ANSWER_MAX, SEARCH_BAR_H, answerGrid } from '@/src/games/search/layout';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // Быстрый подсчёт (subitizing) — новая игра v1.117.0. Отдельный когнитивный навык:
@@ -140,6 +141,54 @@ export function answerChoices(p: { minN: number; maxN: number }): number[] {
   return Array.from({ length: hi - lo + 1 }, (_, i) => lo + i);
 }
 
+/**
+ * 🔴 ЧТО ИЗ ЭТОГО ДИАПАЗОНА ПОКАЗЫВАЕТСЯ — ОКНО ИЗ `ANSWER_MAX` ЧИСЕЛ ПОДРЯД.
+ *
+ * ЗАЧЕМ. Полный диапазон — это 7…11 кнопок в зависимости от уровня (замер по
+ * всей лестнице 09.09.2026: 7 на L1, одиннадцать на L20–L24, снова 7 к L31).
+ * Каркас держит по краям слота ответа 66 точек с обеих сторон, поэтому на
+ * экране 320 под кнопки остаётся 188, и в ряд при норме пальца влезает ТРИ.
+ * Итог: полоса ответа меняла высоту и от уровня, и от экрана — 133 точки на
+ * 390 против 193 на 360 при семи вариантах, и до 236 при одиннадцати.
+ * Разбор чисел целиком — в шапке `src/games/search/layout.ts`.
+ *
+ * ⚠️ ВЕРНЫЙ ОТВЕТ ВСЕГДА ВНУТРИ ОКНА — это его главное свойство, и его держит
+ * гейт. Окно упирается в края полного диапазона, поэтому у нижних и верхних `n`
+ * оно съезжает, но никогда не выпускает `n`.
+ *
+ * ⚠️ ПОЛОЖЕНИЕ ВЕРНОГО ОТВЕТА В ОКНЕ ЗАДАЁТСЯ СДВИГОМ, А НЕ ЦЕНТРОМ. Окно
+ * «n−3…n+3» выглядело бы аккуратно и раздавало бы ответ даром: верная кнопка
+ * всегда стояла бы посередине. Сдвиг тянется один раз на пробу — иначе кнопки
+ * перескакивали бы при каждой перерисовке, пока человек целится.
+ *
+ * ⚠️ Полный `answerChoices` НЕ тронут: на нём стоит чужой гейт
+ * `winnable-levels`, проверяющий, что любое возможное `n` вообще достижимо.
+ */
+export function answerWindow(p: { minN: number; maxN: number }, n: number, сдвиг: number): number[] {
+  const все = answerChoices(p);
+  if (все.length <= ANSWER_MAX) return все;
+  const первый = все[0];
+  const последний = все[все.length - 1];
+  const место = ((сдвиг % ANSWER_MAX) + ANSWER_MAX) % ANSWER_MAX;
+  let lo = n - место;
+  if (lo < первый) lo = первый;
+  if (lo + ANSWER_MAX - 1 > последний) lo = последний - ANSWER_MAX + 1;
+  return Array.from({ length: ANSWER_MAX }, (_, i) => lo + i);
+}
+
+/**
+ * Бросок для положения верного ответа в окне.
+ *
+ * ⚠️ ФУНКЦИЯ НА УРОВНЕ МОДУЛЯ, А НЕ `Math.random()` В ТЕЛЕ КОМПОНЕНТА.
+ * Компилятор React считает вызов случайного прямо в функции, объявленной при
+ * отрисовке, нечистым: «Cannot call impure function during render». Замер
+ * 09.09.2026: моя строка со сдвигом добавляла ровно одну такую ошибку линта.
+ * Тот же приём уже применён в Шульте (жребий сюрприза).
+ */
+export function бросокОкна(): number {
+  return Math.floor(Math.random() * ANSWER_MAX);
+}
+
 // Раскидать N точек без наложения (rejection sampling, лимит попыток — не зависать).
 function scatterDots(n: number, w: number, h: number, r: number): Dot[] {
   const dots: Dot[] = [];
@@ -161,6 +210,7 @@ export default function QuickCountGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const router = useRouter();
+  const [windowShift, setWindowShift] = useState(0);
   const { width, height } = useWindowDimensions();
 
   const { isPreset, autostart, num, isCalm } = useGamePreset();
@@ -208,6 +258,8 @@ export default function QuickCountGame() {
     const p = levelParams(levelRef.current);
     const n = p.minN + Math.floor(Math.random() * (p.maxN - p.minN + 1));
     setActualN(n);
+    // Где верный ответ встанет в окне — решается ОДИН раз на пробу, вместе с n.
+    setWindowShift(бросокОкна());
     setDots(scatterDots(n, fieldW, fieldH, dotR));
     setPhase('flash');
     // Точки гаснут, ответы ещё не пришли: с нулевой паузой шаг проскакивается и
@@ -281,7 +333,10 @@ export default function QuickCountGame() {
   // игровые фазы (вспышка и ответ) — на едином каркасе GameShell (кнопки-варианты прибиты к низу)
   if (phase === 'flash' || phase === 'hold' || phase === 'answer') {
     const p = levelParams(levelRef.current);
-    const choices = answerChoices(p);
+    const choices = answerWindow(p, actualN, windowShift);
+    // Раскладка — из модуля раздела: столбцы считаются от САМОГО УЗКОГО экрана,
+    // поэтому число рядов одинаково на 320, 360, 390 и 430.
+    const сетка = answerGrid(choices.length, width);
     return (
       <GameShell
         title={t('quickCount')}
@@ -317,10 +372,12 @@ export default function QuickCountGame() {
         ]}
         toolbar={
           phase === 'answer' ? (
-            <View style={styles.choiceGrid}>
+            <View style={[styles.choiceGrid, { maxWidth: сетка.cols * сетка.size + (сетка.cols - 1) * 8 }]}>
               {choices.map((n) => (
                 <TouchableOpacity
-                  accessibilityRole="button" key={n} style={[styles.choiceBtn, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => handleAnswer(n)}>
+                  accessibilityRole="button" key={n}
+                  style={[styles.choiceBtn, { width: сетка.size, height: сетка.size, backgroundColor: colors.card, borderColor: colors.border }]}
+                  onPress={() => handleAnswer(n)}>
                   <Text style={[styles.choiceText, { color: colors.text }]}>{n}</Text>
                 </TouchableOpacity>
               ))}
@@ -408,7 +465,18 @@ const styles = StyleSheet.create({
   hintText: { fontSize: 13, textAlign: 'center' },
   field: { borderRadius: 16, position: 'relative', overflow: 'hidden' },
   dot: { position: 'absolute' },
-  choiceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 380, width: '100%' },
-  choiceBtn: { width: 52, height: 52, borderRadius: 16, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
+  /**
+   * 🔴 ВЫСОТА ЗАДАНА, А НЕ «СКОЛЬКО ПОЛУЧИТСЯ». Раньше её определял перенос
+   * кнопок: на 390 их вставало по четыре в ряд и полоса была 133, на 360 — по
+   * три, и полоса становилась 193. Тот же экран, тот же уровень, разные
+   * телефоны — низ прыгал на 60 точек. Теперь высота из `SEARCH_BAR_H`, а
+   * размер кнопки подбирается под неё (`answerGrid`).
+   */
+  choiceGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 8,
+    justifyContent: 'center', alignItems: 'center', alignSelf: 'center',
+    height: SEARCH_BAR_H, width: '100%',
+  },
+  choiceBtn: { borderRadius: 16, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
   choiceText: { fontSize: 18, fontWeight: '700' },
 });

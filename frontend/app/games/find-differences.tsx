@@ -28,6 +28,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { reserveBottom } from '@/src/games/search/layout';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { capPresetByLevel } from '@/src/services/presetCap';
@@ -593,7 +594,17 @@ const styles = StyleSheet.create({
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
-  fieldCol: { alignItems: 'center', gap: 12 },
+  /**
+   * 🔴 РЕЗЕРВ ПОД НИЖНЮЮ ПОЛОСУ, КОТОРОЙ ЗДЕСЬ НЕТ. Отвечают тапом по полю, и
+   * рисовать полосу нельзя — `slot-meaning` справедливо потребовал бы объявить,
+   * чем игрок отвечает внизу. Но у быстрого счёта раздела полоса ЕСТЬ, и без
+   * резерва поле этой игры разрастается вниз на её высоту: замер 09.09.2026 дал
+   * расхождение центров полей 67 точек на экране 390 и 97 на 360. В «Зарядке»
+   * игры идут вперемешку, и человек видит именно этот скачок.
+   *
+   * Число одно на весь раздел — `reserveBottom` в `src/games/search/layout.ts`.
+   */
+  fieldCol: { alignItems: 'center', gap: 12, marginBottom: reserveBottom(0) },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 12, textAlign: 'center' },
   scenesArea: { gap: 18 },
