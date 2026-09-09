@@ -1382,7 +1382,7 @@ const t: Record<string, string> = {
   "a11yEyesPhoto": "目の写真",
   "petFedToday": "満腹でごきげん",
   "petLook_hungry": "やせた——しばらくえさをもらっていない",
-  "petLook_overfed": "食べすぎ——1日おきにあげよう",
+  "petLook_overfed": "食べすぎ",
   "petLook_dirty": "洗ってあげよう——1週間洗っていない",
   "petLook_lonely": "さみしい——1週間トレーニングなし",
   "petLook_neglected": "ほったらかし——2週間トレーニングなし",

@@ -934,7 +934,7 @@ const t: Record<string, string> = {
   "petFeed": "Dar petisco",
   "petFedToday": "Alimentado e feliz",
   "petLook_hungry": "Magro — há muito sem comer",
-  "petLook_overfed": "Superalimentado — alimente dia sim, dia não",
+  "petLook_overfed": "Superalimentado",
   "petLook_dirty": "Precisa de banho — uma semana sem lavar",
   "petLook_lonely": "Sozinho — uma semana sem treino",
   "petLook_neglected": "Abandonado — duas semanas sem treino",

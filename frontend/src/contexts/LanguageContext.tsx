@@ -1988,7 +1988,7 @@ const translations: Translations = {
   petFeed: { ru: 'Угостить', en: 'Feed' },
   petFedToday: { ru: 'Сыт и доволен', en: 'Fed and happy' },
   petLook_hungry: { ru: 'Отощал — давно не кормили', en: 'Thin — not fed for a while' },
-  petLook_overfed: { ru: 'Перекормлен — корми через день', en: 'Overfed — feed every other day' },
+  petLook_overfed: { ru: 'Перекормлен', en: 'Overfed' },
   petLook_dirty: { ru: 'Пора помыть — неделя без мытья', en: 'Needs a wash — a week unwashed' },
   petLook_lonely: { ru: 'Скучает — неделя без тренировки', en: 'Lonely — a week without training' },
   petLook_neglected: { ru: 'Заброшен — две недели без тренировок', en: 'Neglected — two weeks without training' },
