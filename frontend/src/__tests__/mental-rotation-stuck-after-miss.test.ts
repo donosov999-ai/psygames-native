@@ -51,6 +51,13 @@ async function монтировать() {
   const { ProfileProvider } = require('@/src/contexts/ProfileContext');
   const { PlayerLevelValue } = require('@/src/contexts/PlayerLevelContext');
   const { SafeAreaProvider } = require('react-native-safe-area-context');
+  /*
+   * ⚠️ ПРОВАЙДЕР ЗАРЯДКИ ДОБАВЛЕН 09.09.2026. Экран ротации теперь читает
+   * состояние зарядки (`useWarmup`) — пространственный пакет завёл шаги
+   * упражнений, идущие подряд. В приложении провайдер стоит в корне всегда,
+   * а проба монтировала экран без него и падала на входе, не дойдя до кнопки.
+   */
+  const { WarmupProvider } = require('@/src/contexts/WarmupContext');
   const Screen = require('@/app/games/mental-rotation').default;
   let r: any;
   await TestRenderer.act(async () => {
@@ -60,7 +67,8 @@ async function монтировать() {
           React.createElement(ThemeProvider, null,
             React.createElement(LanguageProvider, null,
               React.createElement(PlayerLevelValue, { level: 30 },
-                React.createElement(Screen)))))),
+                React.createElement(WarmupProvider, null,
+                  React.createElement(Screen))))))),
     );
   });
   await осесть(r);
@@ -132,14 +140,22 @@ describe('ротация: после промаха игра не встаёт',
     expect(опции.length).toBeGreaterThanOrEqual(2);   // проба вправду вошла в партию
 
     expect(await промахнуться(r)).toBe(true);          // разбор вправду открылся
-    const кнопка = r.root.findAll((n: any) => n.props?.testID === 'mr-next');
+    /*
+     * ⚠️ ИМЯ КНОПКИ СМЕНИЛОСЬ 09.09.2026 — пространственный пакет переименовал её в
+     * `mental-review-next` и дал говорящую подпись («Следующий раунд» / «Завершить
+     * уровень» вместо общего «дальше»). Проверяемое свойство прежнее и стоит на
+     * месте: выход существует и живёт в ЗАКРЕПЛЁННОМ ряду, а не в прокрутке.
+     * Принимаем оба имени: гейт стережёт смысл, а не строку.
+     */
+    const ВЫХОД = ['mr-next', 'mental-review-next'];
+    const кнопка = r.root.findAll((n: any) => ВЫХОД.includes(n.props?.testID));
     expect(кнопка.length).toBeGreaterThan(0);          // выход из разбора существует
 
     // 🔴 И он ВНУТРИ закреплённого ряда каркаса — того, что не уезжает за край.
     const ряды = r.root.findAll((n: any) =>
       n.props?.testID === 'game-toolbar' || n.props?.testID === 'game-bottom-actions');
     expect(ряды.length).toBeGreaterThan(0);
-    expect(ряды.some((ряд: any) => внутри(ряд, 'mr-next'))).toBe(true);
+    expect(ряды.some((ряд: any) => ВЫХОД.some((id) => внутри(ряд, id)))).toBe(true);
   });
 
   it('🔴 в прокручиваемом поле выхода больше НЕТ: там он и уезжал за экран', async () => {
@@ -147,6 +163,8 @@ describe('ротация: после промаха игра не встаёт',
     await начать(r);
     expect(await промахнуться(r)).toBe(true);
     const поле = r.root.findAll((n: any) => n.props?.testID === 'game-field');
-    if (поле.length > 0) expect(внутри(поле[0], 'mr-next')).toBe(false);
+    for (const id of ['mr-next', 'mental-review-next']) {
+      if (поле.length > 0) expect(внутри(поле[0], id)).toBe(false);
+    }
   });
 });

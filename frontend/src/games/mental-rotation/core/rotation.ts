@@ -1,4 +1,5 @@
-/* psygames-mental-rotation-rotation · VER 1 · 23.08.2026 */
+/* psygames-mental-rotation-rotation · VER 3 · 09.09.2026 */
+/* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /**
  * КЛАССИКА ШЕПАРДА-МЕТЦЛЕРА — И ЗАПИСАННЫЙ ПУТЬ ПОВОРОТА.
  *
@@ -26,7 +27,8 @@
 import { isValidRotation, mirrorShape, normalizeShape, rotateShape, shapeKey } from './geometry';
 import { pick, randomInt, shuffle } from './rng';
 import { shapesOfSize } from './shapes';
-import type { Axis, RotationOption, RotationStep, RotationTask, Rng, Shape } from './types';
+import {rotationLevelSpec} from './levels';
+import type { Axis, Cube, RotationOption, RotationStep, RotationTask, Rng, Shape } from './types';
 
 export interface LevelParams {
   minC: number;
@@ -42,15 +44,8 @@ export interface LevelParams {
  * иначе подпись «4–5 кубиков, ось Z» на настройке разъедется с тем, что выпало.
  */
 export function levelParams(level: number): LevelParams {
-  if (level <= 5) return { minC: 4, maxC: level <= 2 ? 4 : 5, axes: ['z'], optionCount: 3, compound: false };
-  if (level <= 10) return { minC: 5, maxC: level <= 7 ? 5 : 6, axes: ['x', 'y'], optionCount: 4, compound: false };
-  return {
-    minC: 6,
-    maxC: Math.min(8, 6 + Math.floor((level - 11) / 2)),
-    axes: ['x', 'y', 'z'],
-    optionCount: 4,
-    compound: level >= 13,
-  };
+  const s=rotationLevelSpec(level);
+  return {minC:s.cubes,maxC:s.cubes,axes:[...new Set(s.path)],optionCount:s.optionCount,compound:new Set(s.path).size>1};
 }
 
 /** Фигура кирального типа: зеркальная копия НЕ является её поворотом. */
@@ -76,55 +71,37 @@ function applySteps(shape: Shape, steps: RotationStep[]): Shape {
   return normalizeShape(out);
 }
 
-function drawSteps(p: LevelParams, rng: Rng): RotationStep[] {
-  const steps: RotationStep[] = [];
-  for (const axis of p.axes) {
-    const quarters = randomInt(rng, 1, 3);          // 90/180/270, без «не крутили вовсе»
-    for (let i = 0; i < quarters; i++) steps.push({ axis });
-  }
-  if (p.compound && rng() < 0.65) {
-    const extra = pick(rng, ['x', 'y', 'z'] as Axis[]);
-    const quarters = randomInt(rng, 1, 2);
-    for (let i = 0; i < quarters; i++) steps.push({ axis: extra });
-  }
-  return steps;
-}
-
 export function buildRotationTask(level: number, rng: Rng): RotationTask {
   const p = levelParams(level);
+  const spec=rotationLevelSpec(level);
   const candidates = rotationCandidates(p);
   if (candidates.length === 0) throw new Error(`нет фигур размера ${p.minC}–${p.maxC}`);
-  const base = pick(rng, candidates);
+  let base = pick(rng, candidates);
 
   // Поворот, который что-то меняет: вариант, совпавший с эталоном пиксель в
   // пиксель, отвечается без ротации в голове — и портит замер.
-  let steps = drawSteps(p, rng);
+  // Keep more than one angle in a session, otherwise the RT/angle regression
+  // degenerates to a constant-X sample. Every extra quarter is actually applied.
+  const steps = spec.path.map(axis=>({axis}));
+  if(rng()<.5)steps.push({axis:spec.path[spec.path.length-1]});
   let correctShape = applySteps(base, steps);
   for (let guard = 0; guard < 12 && shapeKey(correctShape) === shapeKey(normalizeShape(base)); guard++) {
-    steps = drawSteps(p, rng);
+    base = pick(rng, candidates);
     correctShape = applySteps(base, steps);
   }
 
   const options: RotationOption[] = [{ shape: correctShape, isMatch: true, flaw: 'none' }];
   const taken = new Set<string>([shapeKey(correctShape)]);
 
-  /**
-   * 🔴 У ОТВЛЕКАЮЩЕГО СТОЛЬКО ЖЕ КУБИКОВ, СКОЛЬКО У ЭТАЛОНА.
-   *
-   * 📍 ОТЧЁТ ДЕНИСА 05.09.2026 со скриншотом: «картинки на редкость уродские».
-   * Замер по 60 заданиям объяснил, что там на самом деле не так: в 54 из них у
-   * отвлекающего было ДРУГОЕ ЧИСЛО КУБИКОВ (пять против четырёх). Поворот число
-   * кубиков не меняет, значит такой вариант отбрасывается СЧЁТОМ, и упражнение
-   * на мысленное вращение решается не вращая. Оно и выглядело «не той фигурой»
-   * — потому что ею и было.
-   *
-   * Кандидаты берутся из полосы размеров уровня (`minC…maxC`), поэтому «другая
-   * фигура» запросто оказывалась другого размера. Отбираем ровно по числу
-   * кубиков; если таких нет — остаётся зеркало, у которого число кубиков совпадает
-   * по построению.
-   */
-  const others = candidates.filter((s) => shapeKey(s) !== shapeKey(base) && s.length === base.length);
+  const others = candidates.filter((s) => shapeKey(s) !== shapeKey(base));
   const spoil = (): { shape: Shape; flaw: 'mirror' | 'other' } | null => {
+    if(spec.foil==='one-cube'){
+      const changed=relocateCube(base,rng);
+      if(!changed)return null;
+      const cand=applySteps(changed,steps);
+      if(isValidRotation(base,cand)||taken.has(shapeKey(cand)))return null;
+      return {shape:cand,flaw:'other'};
+    }
     const wantMirror = rng() < 0.55;
     const source = wantMirror ? mirrorShape(base) : (others.length ? pick(rng, others) : mirrorShape(base));
     const flaw: 'mirror' | 'other' = wantMirror || others.length === 0 ? 'mirror' : 'other';
@@ -145,6 +122,8 @@ export function buildRotationTask(level: number, rng: Rng): RotationTask {
     options.push({ shape: spoiled.shape, isMatch: false, flaw: spoiled.flaw });
   }
 
+  if(options.length!==p.optionCount)throw new Error(`rotation ${level}: insufficient distinct options`);
+
   const mixed = shuffle(rng, options);
   return {
     kind: 'rotation',
@@ -154,4 +133,24 @@ export function buildRotationTask(level: number, rng: Rng): RotationTask {
     steps,
     angleSum: steps.length * 90,
   };
+}
+
+/** Move exactly one cube while preserving face-connectedness and cube count. */
+export function relocateCube(base:Shape,rng:Rng):Shape|null {
+  const removed=randomInt(rng,0,base.length-1),rest=base.filter((_,i)=>i!==removed);
+  const key=(c:Cube)=>c.join(','),occupied=new Set(rest.map(key));
+  const neighbors:Cube[]=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+  const seen=new Set([key(rest[0])]),queue=[rest[0]];
+  for(let i=0;i<queue.length;i++)for(const d of neighbors){
+    const c=queue[i].map((v,j)=>v+d[j]) as Cube,k=key(c);
+    if(occupied.has(k)&&!seen.has(k)){seen.add(k);queue.push(c);}
+  }
+  if(seen.size!==rest.length)return null;
+  const frontier=new Map<string,Cube>();
+  for(const c of rest)for(const d of neighbors){
+    const next=c.map((v,i)=>v+d[i]) as Cube,k=key(next);
+    if(!occupied.has(k)&&k!==key(base[removed]))frontier.set(k,next);
+  }
+  if(!frontier.size)return null;
+  return [...rest,pick(rng,[...frontier.values()])];
 }
