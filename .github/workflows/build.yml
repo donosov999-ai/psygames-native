@@ -45,7 +45,7 @@ jobs:
     name: Метка лежит на линии main
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           # 🔴 fetch-depth: 0 ОБЯЗАТЕЛЕН. Обычный checkout по метке тянет ОДНУ её
           # историю, ветки origin/main в дереве нет — и проверка превратилась бы в
