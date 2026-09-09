@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.52.10',
+    date: '2026-09-09',
+    ru: [
+      'Технический выпуск: доставка исправлений «Ментальной ротации» — экран во весь размер, вращение и меню паузы',
+    ],
+    en: [
+      'Technical release: delivers the Mental Rotation fixes — full-size board, rotation and the pause menu',
+    ],
+  },
+  {
     version: '2.52.9',
     date: '2026-09-09',
     ru: [
