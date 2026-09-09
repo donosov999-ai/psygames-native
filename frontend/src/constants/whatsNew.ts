@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.52.11',
+    date: '2026-09-09',
+    ru: [
+      'Раздел «Ментальная ротация» открыт во всех профилях полностью: вращение фигур, «Поворот чисел» и «Сеть труб» — раньше у большинства профилей раздел открывался пустым',
+    ],
+    en: [
+      'The “Mental Rotation” section is now open in every profile in full: shape rotation, “Number Twist” and “Pipe Network” — most profiles used to open it empty',
+    ],
+  },
+  {
     version: '2.52.10',
     date: '2026-09-09',
     ru: [
