@@ -778,13 +778,42 @@ export default function GameShell({
         >
           <Ionicons name={rtl ? 'arrow-forward' : 'arrow-back'} size={22} color={colors.text} />
         </TouchableOpacity>
-        <Text
-          accessibilityRole="header"
-          style={[styles.title, { color: colors.text }]}
-          numberOfLines={1}
-        >
-          {title}
-        </Text>
+        {/*
+          🔴 ВО ВРЕМЯ ЗАРЯДКИ ПОД НАЗВАНИЕМ СТОИТ «ИГРА N ИЗ M».
+          📍 Отчёт NZT-48 `5f4eac8e` 08.09.2026, дословно: «Сколько всего серия
+          зарядка длится? Сколько подряд? Нужен визуальный отображение где
+          находимся? Я таблиц 7 решил сколько еще?»
+
+          Замер 09.09: позицию показывала РОВНО ОДНА игра из 77 под каркасом —
+          дыхание (`breathing.tsx`), и её же комментарий объясняет причину:
+          «шаг N из M» рисует экран РЕЗУЛЬТАТА, то есть человек видит его только
+          МЕЖДУ упражнениями. Внутри упражнения нити не было ни у кого. Ключ
+          перевода `warmupStepOf` при этом заведён давно и переведён на все языки
+          — не хватало только места, где его показать.
+
+          Здесь, а не в играх: носитель один на 77 экранов, и заводить копию в
+          каждом значило бы разъехаться на первой же правке.
+        */}
+        <View style={styles.titleBox}>
+          <Text
+            accessibilityRole="header"
+            style={[styles.title, { color: colors.text }]}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+          {wuStep && wu?.meta ? (
+            <Text
+              testID="warmup-position"
+              style={[styles.wuPosition, { color: colors.textSecondary }]}
+              numberOfLines={1}
+            >
+              {t('warmupStepOf')
+                .replace('{n}', String(wu.currentIdx + 1))
+                .replace('{m}', String(wu.meta.steps.length))}
+            </Text>
+          ) : null}
+        </View>
         {/* Правый угол шапки — вынесен отдельным компонентом ниже: он ломался
             дважды подряд (пропал под справкой, встал не рядом с ней), и проверять
             его надо НАРИСОВАННЫМ, а для этого он должен быть отдельной единицей. */}
@@ -1215,7 +1244,15 @@ const styles = StyleSheet.create({
   },
   // flexShrink+minWidth: при системном крупном шрифте длинный заголовок
   // ужимается, а не выталкивает кнопку «назад» за край (репорт «кнопка уехала»).
-  title: { flex: 1, minWidth: 0, fontSize: 18, fontWeight: '800', textAlign: 'center' },
+  /**
+   * Коробка названия забирает то же место, что раньше сам заголовок (`flex: 1`,
+   * `minWidth: 0`): под ним встаёт позиция в зарядке, и она НЕ должна двигать
+   * угловые кнопки — их место уже посчитано под `HELP_CORNER_SPACE`.
+   */
+  titleBox: { flex: 1, minWidth: 0 },
+  title: { fontSize: 18, fontWeight: '800', textAlign: 'center' },
+  /** Позиция в зарядке — вторым ярусом, мельче и тише названия. */
+  wuPosition: { fontSize: 12, fontWeight: '600', textAlign: 'center', marginTop: 1 },
   headerBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', flexShrink: 0 },
   headerRight: { width: 44, alignItems: 'flex-end', flexShrink: 0 },
   /**
