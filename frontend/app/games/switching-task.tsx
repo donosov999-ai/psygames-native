@@ -26,7 +26,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_H, stimBox } from '@/src/games/attention/layout';
+import { ANSWER_BAR_H, stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
   // RTL-пин: подписи кнопок содержат ←/→ (глифы не зеркалятся) — раскладка не переворачивается в ar
   // alignItems обязателен: без него ряд постоянной высоты растягивает кнопки на всю
   // полосу (замер: 121×120 вместо 121×68).
-  choiceRow: { height: ANSWER_BAR_H, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 16, writingDirection: 'ltr' },
+  choiceRow: { ...ANSWER_BAR_ROW, gap: 16, writingDirection: 'ltr' },
   choiceBtn: { paddingVertical: 16, paddingHorizontal: 22, borderRadius: 16, alignItems: 'center' },
   choiceTextSmall: { color: '#FFF', fontSize: 15, fontWeight: '700' },
 });

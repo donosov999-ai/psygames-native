@@ -16,12 +16,14 @@
  */
 import React from 'react';
 import { View } from 'react-native';
-import { ANSWER_BAR_H } from './layout';
+import { ANSWER_BAR_ROW } from './layout';
 
+/**
+ * ⚠️ 09.09.2026: было `justifyContent: 'center'` — содержимое центрировалось по
+ * вертикали, и низ кнопки уезжал вслед за её высотой. Теперь обёртка и семь
+ * экранов, державших свою копию стиля, берут ОДИН `ANSWER_BAR_ROW` с якорем
+ * снизу. Разбор — в шапке этой константы.
+ */
 export function AnswerBar({ children }: { children: React.ReactNode }) {
-  return (
-    <View style={{ height: ANSWER_BAR_H, width: '100%', justifyContent: 'center', alignItems: 'center' }}>
-      {children}
-    </View>
-  );
+  return <View style={ANSWER_BAR_ROW}>{children}</View>;
 }

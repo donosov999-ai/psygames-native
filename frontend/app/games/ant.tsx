@@ -32,7 +32,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_H, answerButton, stimBox } from '@/src/games/attention/layout';
+import { ANSWER_BAR_H, answerButton, stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   cueDot: { color: '#fbbf24', fontSize: 36, fontWeight: '900' },
   // RTL-пин: стрелочный стимул и кнопки лево/право не зеркалятся в ar (web: writingDirection → CSS direction)
   arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 2, writingDirection: 'ltr' },
-  choiceRow: { height: ANSWER_BAR_H, justifyContent: 'center', flexDirection: 'row', gap: 24, writingDirection: 'ltr' },
+  choiceRow: { ...ANSWER_BAR_ROW, gap: 24, writingDirection: 'ltr' },
   // Размер приходит из answerButton('side') — как у фланкера и Саймона.
   choiceBtn: { justifyContent: 'center', alignItems: 'center' },
 });
