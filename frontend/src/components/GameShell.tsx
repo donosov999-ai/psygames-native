@@ -249,6 +249,17 @@ export interface GameShellProps {
    */
   pauseActions?: PauseAction[];
   /**
+   * Фиксированные высоты слотов для ПОСЛЕДОВАТЕЛЬНОСТИ упражнений (пространственный
+   * пакет). Обычная игра проп не передаёт и живёт как жила.
+   *
+   * 🔴 ЗАЧЕМ. В плейлисте подряд идут разные упражнения, и у каждого своя высота
+   * шапки: у одного два счётчика, у другого пять, у третьего ряд вкладок. Поле
+   * из-за этого прыгает между заданиями, и человек каждый раз заново ищет глазами
+   * доску. Заданные высоты держат верх и низ на месте весь плейлист; вне плейлиста
+   * они не нужны и не задаются.
+   */
+  frame?: { stats: number; actions: number; toolbar: number };
+  /**
    * 🔴 СЛУЖЕБНЫЕ действия — ВСЕГДА здесь, под счётчиками. Кладут `GameAuxBar`
    * с кнопками `GameAuxAction`: подсказка, отмена хода, перетасовка, повтор
    * задания, «СТОП».
@@ -406,7 +417,7 @@ export function HeaderRightSlot({ rtl, mood, headerRight, wuStep, wuSkip, skipLa
 }
 
 export default function GameShell({
-  title, onBack, stats, hud, mods, bottom, headerActions, toolbar, headerRight, scrollableField, overlay, pet, pauseActions,
+  title, onBack, stats, hud, mods, bottom, headerActions, toolbar, headerRight, scrollableField, overlay, pet, pauseActions, frame,
   confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
   const { colors } = useTheme();
@@ -829,12 +840,13 @@ export default function GameShell({
           * во всех играх, а перевод самих счётчиков на бейджи идёт своим ходом,
           * игра за игрой, ничего не ломая.
           */}
-        <View style={[
+        <View testID="game-stats" style={[
           styles.statsPlate,
           // Игре нечего показать в счётчиках (зарядка, дыхание) — плашка сжимается
           // по питомцу и не тянет пустую полосу во всю ширину, отбирая место у поля.
           stats ? null : styles.statsPlateBare,
           { backgroundColor: colors.surface, borderColor: colors.border },
+          frame ? { height: frame.stats, flexShrink: 0, justifyContent: 'center' } : null,
         ]}>
           {/*
             ⚠️ ПИТОМЦА ЗДЕСЬ БОЛЬШЕ НЕТ. Он переехал к кнопке справки
@@ -915,8 +927,17 @@ export default function GameShell({
         * тапом по полю (сортировка, судоку, маджонг, ханой), низ свободен и
         * достаётся служебному. Смешения в ОДНОЙ игре по-прежнему нет.
         */}
-      {headerActions && bottom !== 'actions' ? (
-        <View testID="game-header-actions" style={[styles.headerActions, { borderBottomColor: colors.border }]}>{headerActions}</View>
+      {(headerActions || frame) && bottom !== 'actions' ? (
+        <View
+          testID="game-header-actions"
+          style={[
+            styles.headerActions,
+            { borderBottomColor: colors.border },
+            frame ? { height: frame.actions, flexShrink: 0, justifyContent: 'center' } : null,
+          ]}
+        >
+          {headerActions}
+        </View>
       ) : null}
 
       {field}
@@ -944,6 +965,7 @@ export default function GameShell({
         <View
           testID="game-toolbar"
           style={[
+            frame ? { height: frame.toolbar + Math.max(0, insets.bottom - 10), flexShrink: 0 } : null,
             styles.toolbar,
             {
               borderTopColor: colors.border,
