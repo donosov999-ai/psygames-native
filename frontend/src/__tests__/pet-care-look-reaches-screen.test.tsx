@@ -27,7 +27,7 @@ function показал(props: Record<string, unknown>): string[] {
   return src;
 }
 
-const УХОЖЕННЫЙ: PetCare = { fedDays: 7, daysSinceWash: 1, daysSincePlay: 1, stage: 1, skillAvg: 20 };
+const УХОЖЕННЫЙ: PetCare = { fedDays: 14, daysSinceWash: 1, daysSincePlay: 1, stage: 1, skillAvg: 20 };
 
 describe('внешность заботы доходит до экрана', () => {
   it('есть что проверять: восемь шкал по семь ступеней лежат в сборке', () => {
@@ -57,7 +57,7 @@ describe('внешность заботы доходит до экрана', () 
   it('🔴 разная забота даёт РАЗНЫЕ картинки — иначе шкалы бессмысленны', () => {
     const виды = [
       petLook({ ...УХОЖЕННЫЙ, fedDays: 0 }),          // тощий
-      petLook({ ...УХОЖЕННЫЙ, fedDays: 14 }),         // толстый
+      petLook({ ...УХОЖЕННЫЙ, fedDays: 4 }),          // недокормлен — ступень 1 (норма 14/14 — не забота, а возраст)
       petLook({ ...УХОЖЕННЫЙ, daysSinceWash: 30 }),   // грязный
       petLook({ ...УХОЖЕННЫЙ, daysSincePlay: 30 }),   // заброшенный
       petLook(УХОЖЕННЫЙ),                             // ухоженный: возраст

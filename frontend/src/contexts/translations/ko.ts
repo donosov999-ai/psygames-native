@@ -1094,7 +1094,7 @@ const t: Record<string, string> = {
   "petFeed": "간식 주기",
   "petFedToday": "배부르고 행복해요",
   "petLook_hungry": "말랐어요 — 오랫동안 먹이를 못 먹었어요",
-  "petLook_overfed": "과식 — 이틀에 한 번 먹이세요",
+  "petLook_overfed": "과식",
   "petLook_dirty": "씻겨 주세요 — 일주일간 씻지 않았어요",
   "petLook_lonely": "외로워요 — 일주일간 훈련이 없었어요",
   "petLook_neglected": "방치됨 — 2주간 훈련이 없었어요",

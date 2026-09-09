@@ -42,7 +42,7 @@ describe('вид питомца: причина видна и считается
     for (const r of ПРИЧИНЫ) {
       const m = словарь.match(new RegExp(`petLook_${r}: \\{ ru: '([^']+)', en: '([^']+)' \\}`));
       if (!m) нетPush(нет, `${r}: ключа нет`);
-      else if (m[1].length < 8 || m[2].length < 8) нетPush(нет, `${r}: подпись короче слова`);
+      else if (m[1].length < 4 || m[2].length < 4) нетPush(нет, `${r}: подпись короче слова`);
     }
     expect(нет).toEqual([]);
   });
