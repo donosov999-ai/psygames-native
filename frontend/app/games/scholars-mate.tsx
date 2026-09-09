@@ -328,7 +328,27 @@ export default function ScholarsMateScreen() {
   if (phase === 'playing') {
     const сторона = Math.min(width - 32, 420);
     return (
-      <GameShell title={t('scholarsMate')} onBack={() => setPhase('config')} confirmExit={armed}>
+      <GameShell
+        title={t('scholarsMate')}
+        onBack={() => setPhase('config')}
+        confirmExit={armed}
+        /**
+         * 🔴 МЕНЮ ПАУЗЫ (выпуск 2.52.2). Стрелка больше не выкидывает из партии
+         * одним касанием: часы встают, дальше выбор.
+         *
+         * ⚠️ ЗДЕСЬ ДВА РАЗНЫХ УХОДА, И ПУТАТЬ ИХ НЕЛЬЗЯ. `leave` уводит тем же
+         * путём, что стрелка, а стрелка у этой игры ведёт НЕ домой, а в её
+         * собственное меню выбора узора («Назад»). Выход из приложения к списку
+         * игр — отдельным пунктом, иначе «На главную» врала бы дважды: и словом,
+         * и местом, куда приводит. Жалоба `dd2869c6` «Как выйти ???» ровно про это.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => start(поток, режим, узор, микс) },
+          { id: 'menu', label: t('back'), icon: 'list' as const, leave: true },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, onPress: () => goBackOrHome() },
+        ]}
+      >
         <ScholarsMateGame
           key={attempt}
           level={level}

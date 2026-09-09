@@ -1172,6 +1172,20 @@ export default function ChessBlindGame() {
          */
         title={t('chessBlind')}
         onBack={() => { leaveSeries(false); goBackOrHome(); }}
+        /**
+         * 🔴 МЕНЮ ПАУЗЫ (выпуск 2.52.2). Каркас берёт список — и стрелка перестаёт
+         * выкидывать из живой партии одним касанием: сначала часы встают, потом
+         * человек выбирает. Правило показываем только там, где для уровня оно
+         * вообще есть, иначе пункт открывал бы пустое окно.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => beginSeries() },
+          ...(levelRules.active
+            ? [{ id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline' as const, onPress: () => levelRules.setOpen(true) }]
+            : []),
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
         headerRight={
           <TouchableOpacity
             accessibilityRole="button" accessibilityLabel={t('exitConfirmLeave')}
@@ -1292,6 +1306,20 @@ export default function ChessBlindGame() {
     <GameShell
       title={t('chessBlind')}
       onBack={() => goBackOrHome()}
+        /**
+       * 🔴 МЕНЮ ПАУЗЫ (выпуск 2.52.2). Каркас берёт список — и стрелка перестаёт
+       * выкидывать из живой партии одним касанием: сначала часы встают, потом
+       * человек выбирает. Правило показываем только там, где для уровня оно
+       * вообще есть, иначе пункт открывал бы пустое окно.
+       */
+      pauseActions={[
+        { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+        { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame() },
+        ...(levelRules.active
+        ? [{ id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline' as const, onPress: () => levelRules.setOpen(true) }]
+        : []),
+        { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+      ]}
       /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
       hud={[
         { key: 'lvl', icon: 'flag', label: t('label_level_short'), value: levelRef.current },
@@ -1514,7 +1542,21 @@ export default function ChessBlindGame() {
   if (phase === 'interf') {
     const п = примеры[примерIdx];
     return (
-      <GameShell title={t('chessBlind')} onBack={() => goBackOrHome()}>
+      <GameShell
+        title={t('chessBlind')}
+        onBack={() => goBackOrHome()}
+        /**
+         * 🔴 МЕНЮ ПАУЗЫ (выпуск 2.52.2). Каркас берёт список — и стрелка перестаёт
+         * выкидывать из живой партии одним касанием: сначала часы встают, потом
+         * человек выбирает. Правило показываем только там, где для уровня оно
+         * вообще есть, иначе пункт открывал бы пустое окно.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame() },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
+      >
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 22, padding: 24 }}>
           <Text style={{ fontSize: 15, color: colors.textSecondary, textAlign: 'center' }}>
             {примерIdx + 1}/{примеры.length}
