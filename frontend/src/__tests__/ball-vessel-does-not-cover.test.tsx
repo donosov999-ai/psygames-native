@@ -40,6 +40,29 @@ jest.mock('expo-router', () => ({
 
 const МЕТРИК = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } };
 
+/**
+ * 🔴 ЭКРАНЫ ГАСИМ ПОСЛЕ КАЖДОЙ ПРОБЫ, И ЭТО НЕ ОПРЯТНОСТЬ, А УСЛОВИЕ ПРОГОНА.
+ *
+ * 📍 ЗАМЕР 09.09.2026: этот набор соло печатал `Tests: 4 passed` и ТУТ ЖЕ ронял
+ * процесс узла — `TypeError: window.dispatchEvent is not a function` из
+ * `reportGlobalError`, код выхода 1 без единой строки FAIL. Два прогона подряд,
+ * оба одинаково. Причина известна и записана: питомец в шапке каркаса держит
+ * `setTimeout`, незакрытые экраны продолжают тикать после `afterAll`, и первый
+ * же кадр после сноса окружения падает на `import` уже разобранного модуля.
+ *
+ * ⚠️ Это была МОЯ недоработка и одна из четырёх течей, из-за которых полный
+ * `npx jest` не доходит до конца. Верить коду выхода при таком раскладе нельзя:
+ * смерть наступает ПОСЛЕ вердикта, и в общем прогоне набор выглядит то зелёным,
+ * то красным в зависимости от соседей.
+ */
+const открытые: any[] = [];
+afterEach(async () => {
+  while (открытые.length) {
+    const r = открытые.pop();
+    await TestRenderer.act(async () => { r.unmount(); });
+  }
+});
+
 /** Смонтировать экран игры и войти в партию. */
 async function открыть(путь: string) {
   const AsyncStorage = require('@react-native-async-storage/async-storage');  // eslint-disable-line @typescript-eslint/no-require-imports
@@ -60,6 +83,7 @@ async function открыть(путь: string) {
     );
   });
   await TestRenderer.act(async () => { for (let i = 0; i < 30; i += 1) await Promise.resolve(); });
+  открытые.push(r);
   const кнопка = r.root.findAll((n: any) => typeof n.type !== 'string'
     && n.props?.accessibilityRole === 'button'
     && /Начать|Start/i.test(текстВнутри(n)))[0];
