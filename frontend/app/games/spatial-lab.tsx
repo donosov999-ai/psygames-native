@@ -7,7 +7,7 @@
  * ротация» вместе с ротацией фигур. Чтобы игра жила в каталоге, гейт `game-standard` требует
  * четырёх вещей — они здесь, а не внутри экрана Codex (его механика не тронута):
  *   · прогресс, переживающий сессию — `usePersistentLevel` на каждое из двух упражнений;
- *   · тропинка уровней — `LevelProgressMap` в шапке экрана (слот `header`);
+ *   · уровень и пройденное показывает сам экран Codex (строка «Уровень N/50», кнопки «Проще/Сложнее»);
  *   · общий экран итога — `LevelCleared`, «дальше» запрашивает следующий уровень у экрана;
  *   · уровень в сессии — `saveSession` с `details.level`.
  *
@@ -18,7 +18,6 @@ import React,{useRef,useState} from 'react';
 import {useRouter} from 'expo-router';
 import SpatialLab from '@/src/components/SpatialLab';
 import LevelCleared from '@/src/components/LevelCleared';
-import LevelProgressMap from '@/src/components/LevelProgressMap';
 import {useGamePreset} from '@/src/hooks/useGamePreset';
 import {useCalmHush} from '@/src/hooks/useCalmHush';
 import {usePersistentLevel} from '@/src/hooks/usePersistentLevel';
@@ -77,15 +76,12 @@ function useSpatialLabStandard(mode:Mode,isPreset:boolean){
     }catch{ /* офлайн — очередь api дошлёт */ }
     setCleared(result);
   };
-  const header = isPreset ? undefined :
-    <LevelProgressMap gameId={gameId(mode)} currentLevel={lvl.level} bestLevel={lvl.best} maxLevel={50}
-      onPickLevel={(l:number)=>{lvl.pick(l);askLevel(l);}} colors={colors} language={language} />;
   const overlay = cleared ?
     <LevelCleared variant="overlay" gameId={gameId(cleared.mode)} level={cleared.level} stars={3} passed
       gradient={GRADIENT} language={language} colors={colors}
       onContinue={()=>{const next=Math.min(50,cleared.level+1);setCleared(null);askLevel(next);}}
       onStop={()=>setCleared(null)} /> : undefined;
-  return { header, overlay, onDone, onReady:(a:{request:(level:number)=>void})=>{api.current=a;} };
+  return { overlay, onDone, onReady:(a:{request:(level:number)=>void})=>{api.current=a;} };
 }
 
 export default function SpatialLabRoute(){
@@ -98,5 +94,5 @@ export default function SpatialLabRoute(){
   const seed=Math.max(0,Math.min(0xffffffff,params.num('seed',42)));
   const std=useSpatialLabStandard(mode,params.isPreset);
   return <SpatialLab onBack={()=>router.back()} preset={params.isPreset?{mode,level,seed}:undefined} initialMode={mode}
-    onReady={std.onReady} onComplete={std.onDone} header={std.header} overlay={std.overlay} />;
+    onReady={std.onReady} onComplete={std.onDone} overlay={std.overlay} />;
 }

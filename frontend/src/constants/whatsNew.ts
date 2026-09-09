@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.52.7',
+    date: '2026-09-09',
+    ru: [
+      '«Поворот чисел» и «Сеть труб»: убрана лишняя полоса уровней над полем — поле снова во весь экран',
+      'Ментальная ротация: разбор ошибки снова показывает, как повернулась фигура',
+    ],
+    en: [
+      '“Number Twist” and “Pipe Network”: the extra level strip above the board is gone — the board is full-screen again',
+      'Mental Rotation: the mistake review shows how the shape turned again',
+    ],
+  },
+  {
     version: '2.52.6',
     date: '2026-09-09',
     ru: [
