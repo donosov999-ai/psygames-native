@@ -65,6 +65,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import {
   angleResponseSlope,
   buildTask,
@@ -731,8 +732,9 @@ export default function MentalRotationGame() {
           accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]} onPress={() => goBackOrHome()}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('mentalRotation')}</Text>
-        <View style={{ width: 40 }} />
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{t('mentalRotation')}</Text>
+        {/* Отступ под угловые кнопки (справка, питомец): на 360 px заголовок уходил под них на 45 px — веб-гейт pan-audit. */}
+        <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
@@ -757,7 +759,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: '700' },
+  title: { fontSize: 20, fontWeight: '700', flex: 1, minWidth: 0, textAlign: 'center' },
   configScroll: { flex: 1 },
   configContainer: { padding: 16, gap: 14 },
   // Прибитый низ настроек: кнопка «начать» всегда на экране, над системной навигацией.
