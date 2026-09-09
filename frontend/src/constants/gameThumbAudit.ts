@@ -71,6 +71,7 @@ export const THUMB_AUDIT: Record<string, ThumbAudit> = {
   "set_game": { about: false, yellow: 0.0, sha: '3d6ea867a88d' },
   "simon": { about: false, yellow: 0.0, sha: '9842b8b2ec73' },
   "span_group": { about: false, yellow: 0.0, sha: '376a6920961b' },
+  "spatial_lab": { about: false, yellow: 0.0, sha: '21e3940ba6eb' },
   "spatial_span": { about: false, yellow: 0.0, sha: '141c61558304' },
   "stop_signal": { about: false, yellow: 0.0002, sha: 'b5a0a24b54de' },
   "story_recall": { about: false, yellow: 0.0, sha: 'ae433e455330' },
