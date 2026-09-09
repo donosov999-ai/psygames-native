@@ -476,6 +476,23 @@ export default function MnemonicsGame() {
     <GameShell
       title={t('label_mnemonics')}
       onBack={() => goBackOrHome()}
+      /**
+       * 🔴 МЕНЮ ПАУЗЫ — ОДНО НА ВСЕ ИГРЫ. Стрелка «назад» открывает список
+       * Продолжить · Заново · Правила · На главную вместо немого выхода.
+       * Механизм в каркасе с v2.52.2, но до игрока он доехал у ТРЁХ игр из 96
+       * (замер `grep -l pauseActions app/games/*.tsx` на `main` 09.09.2026) —
+       * остальные подключают сами. «Заново» и выход разные: выход через
+       * `leave: true` идёт тем же путём, что стрелка, и сохраняет партию
+       * в «продолжить»; своё `router.back()` сохранение бы потеряло.
+       */
+      pauseActions={[
+        { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+        { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame(useLevelRef.current) },
+        ...(levelRules.active
+          ? [{ id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline' as const, onPress: () => levelRules.setOpen(true) }]
+          : []),
+        { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+      ]}
       scrollableField
       stats={
         <View style={styles.gameHeader}>
@@ -535,6 +552,23 @@ export default function MnemonicsGame() {
     <GameShell
       title={t('label_mnemonics')}
       onBack={() => goBackOrHome()}
+      /**
+       * 🔴 МЕНЮ ПАУЗЫ — ОДНО НА ВСЕ ИГРЫ. Стрелка «назад» открывает список
+       * Продолжить · Заново · Правила · На главную вместо немого выхода.
+       * Механизм в каркасе с v2.52.2, но до игрока он доехал у ТРЁХ игр из 96
+       * (замер `grep -l pauseActions app/games/*.tsx` на `main` 09.09.2026) —
+       * остальные подключают сами. «Заново» и выход разные: выход через
+       * `leave: true` идёт тем же путём, что стрелка, и сохраняет партию
+       * в «продолжить»; своё `router.back()` сохранение бы потеряло.
+       */
+      pauseActions={[
+        { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+        { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame(useLevelRef.current) },
+        ...(levelRules.active
+          ? [{ id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline' as const, onPress: () => levelRules.setOpen(true) }]
+          : []),
+        { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+      ]}
       scrollableField
       stats={
         <View style={styles.statsHeader}>
