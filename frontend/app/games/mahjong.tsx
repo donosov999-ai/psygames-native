@@ -1100,6 +1100,27 @@ export default function MahjongGame() {
       resumable
       onSaveBeforeExit={saveBeforeExit}
       /**
+       * Меню паузы (каркас 2.52.2). Стрелка «назад» перестала выкидывать из
+       * живой партии одним касанием: она ДЕРЖИТ партию (`holdGame`) и открывает
+       * меню. Часы при этом стоят — раньше они продолжали идти.
+       *
+       * ⚠️ «Правила» здесь УСЛОВНЫЙ пункт, и это не экономия. `LevelRuleModal`
+       * рисует что-то только при `levelRules.active` (LevelRules.tsx:168); на
+       * уровне без спец-правила пункт открыл бы пустоту. Кнопка, которая иногда
+       * ничего не делает, хуже отсутствующей: человек решит, что подвисло.
+       *
+       * «На главную» — через `leave`, а не своим `router.back()`: уход обязан
+       * пройти через `onSaveBeforeExit`, иначе партия не ляжет в «продолжить».
+       */
+      pauseActions={[
+        { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+        { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame() },
+        ...(levelRules.active
+          ? [{ id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline' as const, onPress: () => levelRules.setOpen(true) }]
+          : []),
+        { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+      ]}
+      /**
        * 🔴 ТРИ СЧЁТЧИКА, А НЕ СЕМЬ — И ЭТО РЕШЕНИЕ ДЕНИСА 07.09.2026, НЕ МОЁ.
        *
        * Было семь пилюль своей вёрсткой: уровень, очки, пар собрано, пар

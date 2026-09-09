@@ -262,6 +262,24 @@ export default function ObjectTrackerScreen() {
          * с началом движения — уже нет, слежение глазами повтором не вернуть.
          */
         confirmExit={armed}
+        /**
+         * Меню паузы (каркас 2.52.2). Слежению оно нужнее прочих: тут партия —
+         * это движение, которое нельзя «доглядеть потом», и случайное касание
+         * стрелки раньше обрывало пробу без вопроса.
+         *
+         * 🔴 ПОСЛЕДНИЙ ПУНКТ НАЗЫВАЕТСЯ «НАСТРОЙКА ИГРЫ», А НЕ «НА ГЛАВНУЮ», И
+         * ЭТО НЕ ВОЛЬНОСТЬ. Флаг `leave` уводит через `onBack`, а `onBack` здесь
+         * — `leaveToConfig` (:240), то есть экран НАСТРОЙКИ, а не главная.
+         * Подпись «На главную» на кнопке, ведущей в настройку, врала бы — и
+         * заметил бы это не я, а человек, который ткнул её, чтобы выйти.
+         *
+         * ⚠️ Пункта «Правила» нет: мид-партийной справки у экрана нет.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => start() },
+          { id: 'home', label: t('configureGame'), icon: 'options-outline' as const, leave: true },
+        ]}
       >
         <View style={styles.stage}>
           <ObjectTrackerGame
