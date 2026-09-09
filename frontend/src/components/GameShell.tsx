@@ -162,6 +162,16 @@ const FAB_GUTTER = 66;
  */
 const HELP_FAB_GUTTER = HELP_CORNER_SPACE;
 
+/** Пункт меню паузы. Подпись — уже переведённая строка, иконка — Ionicons. */
+export interface PauseAction {
+  id: string;
+  label: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  onPress: () => void;
+  /** Первая кнопка списка — акцентная («Продолжить»). */
+  primary?: boolean;
+}
+
 export interface GameShellProps {
   /** Заголовок игры (уже переведённый). */
   /**
@@ -214,6 +224,22 @@ export interface GameShellProps {
   onBack: () => void;
   /** Строка счётчиков под шапкой (раунд/время/ошибки). Опционально. */
   stats?: React.ReactNode;
+  /**
+   * 🔴 МЕНЮ ПАУЗЫ — СЛОТ КАРКАСА, А НЕ ИГРЫ (отчёт `5be4998f`, 09.09.2026).
+   *
+   * 📍 ПОВОД, дословно от тестировщика: «Когда появится кнопка начать заново? Мне,
+   * для того чтобы начать новую партию, всё время приходится тыкать неправильные
+   * числа три раза, чтобы жизни закончились». Человек НАМЕРЕННО проигрывает, потому
+   * что «Заново» есть только в карточке поражения — до неё надо доиграть до конца.
+   *
+   * ⚠️ ПОЧЕМУ ИЗ ЭКРАНА ЭТОГО НЕ СДЕЛАТЬ. Карточка паузы рисуется ПОСЛЕ слота
+   * `overlay` и перехватывает касания (`pointerEvents="auto"`), поэтому меню,
+   * поданное игрой через `overlay`, оказалось бы под ней и не нажалось.
+   *
+   * ⚠️ Игра, не передавшая проп, не меняется ничем: при пустом списке рисуется
+   * прежняя карточка «Пауза», и ни один из 61 экрана не трогается.
+   */
+  pauseActions?: PauseAction[];
   /**
    * 🔴 СЛУЖЕБНЫЕ действия — ВСЕГДА здесь, под счётчиками. Кладут `GameAuxBar`
    * с кнопками `GameAuxAction`: подсказка, отмена хода, перетасовка, повтор
@@ -372,7 +398,7 @@ export function HeaderRightSlot({ rtl, mood, headerRight, wuStep, wuSkip, skipLa
 }
 
 export default function GameShell({
-  title, onBack, stats, hud, mods, bottom, headerActions, toolbar, headerRight, scrollableField, overlay, pet,
+  title, onBack, stats, hud, mods, bottom, headerActions, toolbar, headerRight, scrollableField, overlay, pet, pauseActions,
   confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
   const { colors } = useTheme();
@@ -411,6 +437,13 @@ export default function GameShell({
   const wuSkip = () => { if (wu && wuStep) setAskSkip(true); };
   const wuSkipConfirm = () => { setAskSkip(false); wu?.skipCurrent(); };
 
+  /**
+   * Наша собственная задержка паузы. Пауза в проекте — счётчик (`holdGame`
+   * возвращает освобождение), и держать его обязан тот, кто взял: иначе кнопка
+   * «Продолжить» сняла бы чужую задержку — например, ту, что ставит подтверждение
+   * выхода, — и часы пошли бы под открытым вопросом.
+   */
+  const pauseHoldRef = React.useRef<null | (() => void)>(null);
   const [paused, setPaused] = React.useState(isGameHeld());
   React.useEffect(() => onGameHold((v) => {
     setPaused(v);
@@ -694,8 +727,25 @@ export default function GameShell({
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.root, { backgroundColor: colors.background }]}>
       {/* Шапка: назад — заголовок — правый слот. Заголовок ужимается, кнопки нет. */}
       <View style={styles.header}>
+        {/*
+          🔴 СТРЕЛКА ОТКРЫВАЕТ МЕНЮ ПАУЗЫ, А НЕ ВЫБРАСЫВАЕТ ИЗ ПАРТИИ (решение
+          Дениса 09.09.2026). Второй кнопки в шапке не появляется: намерение
+          «прервусь» и намерение «выйду» человек выражает одним и тем же жестом,
+          и разводить их по разным углам незачем — выход остаётся пунктом меню.
+          Заодно уходит давняя беда: одно касание стрелки выкидывало из живой
+          партии без вопроса, а часы при этом продолжали идти.
+          Игра, не давшая меню (61 экран), ведёт себя как прежде — стрелка сразу
+          спрашивает про выход.
+        */}
         <TouchableOpacity
-          onPress={exitGuard.requestExit}
+          testID="game-back"
+          onPress={() => {
+            if (pauseActions && pauseActions.length > 0) {
+              if (!pauseHoldRef.current) pauseHoldRef.current = holdGame();
+              return;
+            }
+            exitGuard.requestExit();
+          }}
           style={[styles.headerBtn, { backgroundColor: colors.surface }]}
           accessibilityRole="button"
           accessibilityLabel={t('a11yBack')}
@@ -991,11 +1041,61 @@ export default function GameShell({
       )}
 
       {paused && !exitGuard.asking && (
-        <View style={styles.pauseOverlay} pointerEvents="auto">
-          <View style={[styles.pauseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Ionicons name="pause-circle" size={44} color={colors.primary} />
-            <Text style={[styles.pauseText, { color: colors.text }]}>{t('gamePaused')}</Text>
-          </View>
+        /**
+         * 🔴 ПОЛЕ ПРЯЧЕТСЯ ЦЕЛИКОМ, А НЕ ЗАТЕМНЯЕТСЯ. Часы на паузе стоят, и
+         * видимая доска при остановленном секундомере превращает рекорд в фикцию:
+         * можно спокойно разглядывать расклад сколько угодно. Поэтому меню —
+         * непрозрачный слой, а не вуаль. Без меню (61 экран) остаётся прежняя
+         * карточка «Пауза» поверх затемнения: там останавливает не человек, а
+         * система — окно отзыва, подтверждение выхода, — и прятать нечего.
+         */
+        <View
+          testID="game-pause-menu"
+          style={[
+            styles.pauseOverlay,
+            pauseActions && pauseActions.length > 0
+              ? { backgroundColor: colors.background }
+              : null,
+          ]}
+          pointerEvents="auto"
+        >
+          {pauseActions && pauseActions.length > 0 ? (
+            <View style={styles.pauseMenu}>
+              {pauseActions.map((a) => (
+                <TouchableOpacity
+                  key={a.id}
+                  testID={`pause-action:${a.id}`}
+                  accessibilityRole="button"
+                  style={[
+                    styles.pauseBtn,
+                    a.primary
+                      ? { backgroundColor: colors.primary }
+                      : { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+                  ]}
+                  onPress={() => {
+                    // Снимаем СВОЮ задержку до действия: «Заново» и «На главную»
+                    // уводят с экрана, и повисшая пауза остановила бы часы навсегда.
+                    pauseHoldRef.current?.();
+                    pauseHoldRef.current = null;
+                    a.onPress();
+                  }}
+                >
+                  <Ionicons name={a.icon} size={20} color={a.primary ? '#FFFFFF' : colors.text} />
+                  <Text
+                    style={[styles.pauseBtnText, a.primary ? null : { color: colors.text }]}
+                    numberOfLines={1}
+                  >
+                    {a.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View style={[styles.pauseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Ionicons name="pause-circle" size={44} color={colors.primary} />
+              <Text style={[styles.pauseText, { color: colors.text }]}>{t('gamePaused')}</Text>
+            </View>
+          )}
         </View>
       )}
     </SafeAreaView>
@@ -1060,6 +1160,13 @@ const styles = StyleSheet.create({
   exitBtnText: { fontSize: 16, fontWeight: '700' },
   pauseOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'center', alignItems: 'center', zIndex: 90 },
   pauseCard: { paddingVertical: 22, paddingHorizontal: 30, borderRadius: 18, borderWidth: 1, alignItems: 'center', gap: 8 },
+  // Меню паузы: пилюли в столбик по центру, как в мобильных играх.
+  pauseMenu: { width: '100%', maxWidth: 360, paddingHorizontal: 24, gap: 12 },
+  pauseBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 10, minHeight: 56, borderRadius: 28, paddingHorizontal: 20,
+  },
+  pauseBtnText: { fontSize: 17, fontWeight: '700', color: '#FFFFFF', flexShrink: 1 },
   pauseText: { fontSize: 16, fontWeight: '800' },
   header: {
     flexDirection: 'row',
