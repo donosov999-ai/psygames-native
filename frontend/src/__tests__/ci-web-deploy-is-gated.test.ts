@@ -129,8 +129,17 @@ describe('выкладка веба', () => {
     expect(`START=1 в вызове: ${/\bSTART=1\b/.test(call)}`).toBe('START=1 в вызове: true');
   });
 
-  it('веб-деплой по-прежнему идёт только с main', () => {
-    expect(jobs()['web-deploy'].if).toContain("refs/heads/main");
+  /**
+   * 🔴 РЕШЕНИЕ ДЕНИСА 09.09.2026: полной веб-версии приложения на сайте быть не может — только
+   * семплы (демо-шорты в /mini). Обе джобы выкладки веба (web-deploy → GH Pages, play-deploy →
+   * psy-games.pro/play) выключены `if: false`, /play с сайта снят. Проба сторожит, чтобы их не
+   * включили обратно молча: включение — только прямым решением Дениса, и тогда эта проверка
+   * переписывается вместе с ним.
+   */
+  it('🔴 выкладка веба выключена решением Дениса 09.09.2026 — if: false у web-deploy и play-deploy', () => {
+    for (const job of ['web-deploy', 'play-deploy']) {
+      expect(`${job}: if ${jobs()[job]?.if ?? 'нет'}`).toBe(`${job}: if false`);
+    }
   });
 
   /**
