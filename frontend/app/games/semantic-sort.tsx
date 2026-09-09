@@ -87,7 +87,13 @@ export default function SemanticSortGame() {
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const [roundsCount, setRoundsCount] = useState(() => num('rounds', 15));
-  const [catsPerRound, setCatsPerRound] = useState(() => num('cats', 3));
+  /**
+   * ⚠️ НОЛЬ КАК ПРИЗНАК «НЕ ЗАДАНО». `num('cats', 3)` не различал «шаг попросил
+   * три категории» и «шаг не просил ничего», а различать надо: во втором случае
+   * сложность берётся с личного уровня (см. `startGame`).
+   */
+  const catsЗадано = num('cats', 0) > 0;
+  const [catsPerRound, setCatsPerRound] = useState(() => num('cats', 0) || 3);
 
   // Уровни (persist): ручные селекторы раундов/категорий заменены лесенкой 1..15.
   const lvl = usePersistentLevel('semantic_sort');
@@ -113,16 +119,34 @@ export default function SemanticSortGame() {
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
 
   const startGame = async () => {
-    // Уровневый режим: число раундов и категорий-дистракторов из levelParams.
-    // Пресет зарядки — ручные rounds/cats из URL-параметров.
+    /**
+     * 🔴 СЛОЖНОСТЬ ИДЁТ С ЛИЧНОГО УРОВНЯ И В ЗАРЯДКЕ ТОЖЕ (09.09.2026).
+     *
+     * 📍 РЕШЕНИЕ ДЕНИСА: «зарядка и оценка идут с ЛИЧНОГО уровня» — играет один
+     * человек, и меряем прогресс человека. Коммит `8f0bfc47` снял подмену
+     * уровня картой тира в семи экранах; здесь была другая форма той же беды.
+     *
+     * ЧТО БЫЛО. `useLevel = !isPreset`, и в зарядке уровень не участвовал ВОВСЕ:
+     * число категорий-дистракторов бралось из умолчания `cats = 3` — одинаково
+     * человеку с первым уровнем (ему полагается 2) и с двенадцатым (полагается
+     * 4). А это не косметика: категории-дистракторы и есть ось сложности этой
+     * игры, вторая после числа кругов.
+     *
+     * ЧТО СТАЛО. Число кругов по-прежнему за зарядкой — она набирает шаги под
+     * бюджет и вправе задать длину. А СЛОЖНОСТЬ — с личного уровня, если шаг не
+     * попросил своё явно.
+     */
     const useLevel = !isPreset;
     useLevelRef.current = useLevel;
+    const p = levelParams(lvl.level);
+    levelRef.current = lvl.level;
     let rc = roundsCount, cpr = catsPerRound;
     if (useLevel) {
-      const p = levelParams(lvl.level);
-      levelRef.current = lvl.level;
       rc = p.roundsCount; cpr = p.catsPerRound;
       setRoundsCount(rc); setCatsPerRound(cpr);
+    } else if (!catsЗадано) {
+      cpr = p.catsPerRound;
+      setCatsPerRound(cpr);
     }
     // слова целевого языка, сгруппированные по категориям (+ обратный маппинг слово → категория)
     const byCat = new Map<string, string[]>();
