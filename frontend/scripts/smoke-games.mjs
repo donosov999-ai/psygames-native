@@ -60,6 +60,31 @@ const warm = await ctx.newPage();
 try { await warm.goto(`${BASE}/games/${routes[0]}`, { waitUntil: 'domcontentloaded', timeout: 120000 }); } catch {}
 await warm.close();
 
+/**
+ * 🔴 ВХОД В ПАРТИЮ НАЗВАН ПО-РАЗНОМУ, И ТОЧНОЕ «^Start$» ЕГО НЕ НАХОДИЛО.
+ *
+ * Замер чата «Дворец памяти» 07.09.2026 на живой сборке: у 11 игр из 95 smoke делал один
+ * клик и вставал на экране правил — «Start route», «Start studying», «START», «Play level 1»,
+ * «Play — level 1», «Start round», «Start calibration», «Ready — start motion», «Free play».
+ * Краш «Дворца» (React #310 на переходе фаз) начинался СЛЕДУЮЩИМ нажатием — smoke был
+ * зелёным на падающей игре. Поэтому берём кнопку (role=button), чей текст НАЧИНАЕТСЯ с
+ * глагола входа, и не берём «Play again»/«Ещё раз»/«Заново» — это кнопки ПОСЛЕ партии.
+ */
+const ENTRY = /^(начать|start|играть|play|free play|ready\s*[—-]\s*start|уровень\s*\d+\s*[—-]\s*играть|level\s*\d+\s*[—-]\s*play)\b/i;
+const NOT_ENTRY = /(again|ещё|снова|заново|over|not sure|how to|как играть)/i;
+async function entryButton(page) {
+  const all = page.getByRole('button');
+  const n = await all.count().catch(() => 0);
+  for (let i = 0; i < Math.min(n, 60); i++) {
+    const el = all.nth(i);
+    const text = ((await el.innerText().catch(() => '')) || '').trim();
+    if (text && ENTRY.test(text) && !NOT_ENTRY.test(text)) return el;
+  }
+  // Запасной путь — прежний точный матчер по тексту (кнопка без role=button).
+  const exact = page.getByText(/^(Начать|Start|НАЧАТЬ)$/).first();
+  return (await exact.count().catch(() => 0)) ? exact : null;
+}
+const notEntered = [];
 const results = [];
 for (const route of routes) {
   const page = await ctx.newPage();
@@ -71,12 +96,16 @@ for (const route of routes) {
     await page.waitForTimeout(1600);
     if (DO_START) {
       for (let i = 0; i < CLICKS; i++) {
-        const btn = page.getByText(/^(Начать|Start|НАЧАТЬ)$/).first();
-        if (await btn.count().catch(() => 0)) {
+        const btn = await entryButton(page);
+        if (btn) {
           await btn.click({ timeout: 2000 }).catch(() => {});
           await page.waitForTimeout(1200);
         }
       }
+      // Диагностика, не вердикт: если кнопка входа всё ещё на экране — партия не открылась,
+      // и краш на переходе smoke не увидит. Печатается в итог, чтобы дыру было видно числом.
+      const left = await entryButton(page);
+      if (left) notEntered.push(`${route}: «${(await left.innerText().catch(() => '')).trim().slice(0, 40)}»`);
     }
   } catch (e) {
     errors.push('NAV: ' + e.message.split('\n')[0]);
@@ -89,6 +118,10 @@ await browser.close();
 
 const failed = results.filter((r) => r.errors.length);
 console.log(`\n=== SMOKE: ${results.length - failed.length}/${results.length} clean, ${failed.length} с ошибками ===`);
+if (DO_START) {
+  console.log(`=== ВХОД В ПАРТИЮ: не открылась у ${notEntered.length} из ${results.length} (кнопка входа осталась на экране) ===`);
+  for (const n of notEntered) console.log('   ' + n);
+}
 for (const f of failed) {
   console.log(`\n✗ ${f.route}`);
   [...new Set(f.errors)].slice(0, 4).forEach((e) => console.log('   ' + e.slice(0, 220)));
