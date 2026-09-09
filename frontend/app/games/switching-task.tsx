@@ -154,7 +154,6 @@ export function switchCostMs(switchRts: number[], repeatRts: number[]): number {
  * 3400 → 1400 мс, а норма одна. Убрать пресет заодно с заморозкой было бы
  * ошибкой — он закрывает не только долю.
  */
-export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
 
 // Метаданные задания (cue + подписи кнопок + что подсветить) по режиму и индексу задания (0/1).
 // v1.137: тексты в словаре (cue*/ans*), через translateFor — работают все 12 языков.
@@ -316,7 +315,8 @@ export default function SwitchingTaskGame() {
   const startGame = () => {
     // личная игра → уровень рулит; пресет (зарядка/оценка) → фикс-уровень тира,
     // число проб задаёт шаг (assessment: 15). Паттерн flanker.tsx:144.
-    const effLevel = isPreset ? (PRESET_LEVEL_BY_DIFF[str('diff', 'medium')] ?? 8) : lvl.level;
+    // Зарядка и оценка идут с ЛИЧНОГО уровня (решение Дениса 09.09.2026: «мы меряем прогресс человека», фикс-ступень тира снята во всей игре).
+    const effLevel = lvl.level;
     const p = levelParams(effLevel);
     levelRef.current = effLevel;
     windowMsRef.current = p.windowMs;

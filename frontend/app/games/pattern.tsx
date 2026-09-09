@@ -41,7 +41,6 @@ const PATTERN_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
-type Difficulty = 'easy' | 'medium' | 'hard';
 
 // Каждый ряд = ОДНОЗНАЧНО продолжаемая прогрессия (правило Дениса: фрактальные/неоднозначные нельзя).
 // Подсказка 2 ступени: classKey (класс) → ruleKey+ruleParams (формула/правило).
@@ -136,7 +135,6 @@ function makeSequence(level: number): Sequence {
  * партия запишется с difficulty шага (medium=8 → 'medium', класс — Фибоначчи),
  * и sessionFitsStep её опознает. Число проб задаёт шаг (assessment: 5).
  */
-export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
 
 function makeOptions(answer: number, count = 4): number[] {
   const opts = new Set<number>([answer]);
@@ -155,7 +153,7 @@ export default function PatternGame() {
   const router = useRouter();
 
   const lvl = usePersistentLevel('pattern');
-  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
@@ -190,7 +188,8 @@ export default function PatternGame() {
   const startGame = () => {
     // личная игра → уровень рулит; пресет (зарядка/оценка) → фикс-уровень тира.
     // Паттерн flanker.tsx:144; см. PRESET_LEVEL_BY_DIFF выше.
-    levelRef.current = isPreset ? (PRESET_LEVEL_BY_DIFF[str('diff', 'medium')] ?? 8) : lvl.level;
+    // Зарядка и оценка идут с ЛИЧНОГО уровня (решение Дениса 09.09.2026: «мы меряем прогресс человека», фикс-ступень тира снята во всей игре).
+    levelRef.current = lvl.level;
     hintUsedRef.current = false;
     setHits(0); setErrors(0); setRound(1);
     newRound();

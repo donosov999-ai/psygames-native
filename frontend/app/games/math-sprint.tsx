@@ -134,7 +134,8 @@ export default function MathSprintGame() {
     setUserAnswer('');
     setFeedback(null);
     // личная игра → уровень рулит; пресет (зарядка) → выбранный тир маппится в уровень
-    const effLevel = isPreset ? ({ easy: 2, medium: 6, hard: 14 } as Record<Difficulty, number>)[difficulty] ?? 6 : lvl.level;   // зарядка: сложение → умножение → цепочки
+    // Зарядка и оценка идут с ЛИЧНОГО уровня (решение Дениса 09.09.2026: «мы меряем прогресс человека», фикс-ступень тира снята во всей игре).
+    const effLevel = lvl.level;
     levelRef.current = effLevel;
     setTimeLeft(duration);
     setProblem(generateSprintProblem(effLevel));

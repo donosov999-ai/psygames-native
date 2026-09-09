@@ -37,7 +37,7 @@ export function useWarmupForGame(
       // small delay to let the game initialize its useState first
       setTimeout(() => {
         opts.onConfigured({
-          difficulty: warmup.currentStep!.difficulty,
+          difficulty: warmup.currentStep!.difficulty ?? 'medium',   // у уровневых игр шаг трудность не задаёт — уровень личный (09.09.2026)
           trials: warmup.currentStep!.trials,
           mode: warmup.currentStep!.mode,
         });

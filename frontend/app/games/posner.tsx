@@ -108,7 +108,6 @@ export function levelParams(level: number): { trials: number; windowMs: number; 
  * окно 1535мс, SOA 115-481мс — и партия запишется с difficulty 'medium', как
  * предписывает шаг батареи (sessionFitsStep в assessment.ts).
  */
-export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
 
 /**
  * Проба уровня. Уровень стоит в подписи НАМЕРЕННО, хотя доли типов подсказок от
@@ -134,7 +133,7 @@ export default function PosnerGame() {
   const { t, language } = useLanguage();
   const router = useRouter();
 
-  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('posner');
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
@@ -224,7 +223,8 @@ export default function PosnerGame() {
   const startGame = () => {
     // личная игра → уровень рулит; пресет (зарядка/оценка) → фикс-уровень тира,
     // число проб задаёт шаг (assessment: 15). Паттерн flanker.tsx:144.
-    const effLevel = isPreset ? (PRESET_LEVEL_BY_DIFF[str('diff', 'medium')] ?? 8) : lvl.level;
+    // Зарядка и оценка идут с ЛИЧНОГО уровня (решение Дениса 09.09.2026: «мы меряем прогресс человека», фикс-ступень тира снята во всей игре).
+    const effLevel = lvl.level;
     const p = levelParams(effLevel);
     levelRef.current = effLevel;
     windowMsRef.current = p.windowMs;

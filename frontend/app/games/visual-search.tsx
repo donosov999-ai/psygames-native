@@ -43,7 +43,6 @@ const VS_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
-type Difficulty = 'easy' | 'medium' | 'hard';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 // v1.112.1: 'Г' (corner top-left) была РОТО-ДВОЙНИКОМ 'L' (corner bottom-left) — L@90°≡Г,
@@ -220,7 +219,7 @@ export default function VisualSearchGame() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
-  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('visual_search');   // уровень → тир (1=easy, 2=medium, ≥3=hard)
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
@@ -290,8 +289,8 @@ export default function VisualSearchGame() {
 
   const startGame = () => {
     // личная игра → уровень рулит сложностью; пресет (зарядка) → тир маппится в уровень
-    const presetDiff = (str('diff', 'medium') as Difficulty);
-    const effLevel = isPreset ? ({ easy: 2, medium: 6, hard: 11 } as Record<Difficulty, number>)[presetDiff] ?? 6 : lvl.level;
+    // Зарядка и оценка идут с ЛИЧНОГО уровня (решение Дениса 09.09.2026: «мы меряем прогресс человека», фикс-ступень тира снята во всей игре).
+    const effLevel = lvl.level;
     levelRef.current = effLevel;
     hitsRef.current = 0; errorsRef.current = 0; rtsRef.current = [];
     setHits(0); setErrors(0); setRts([]);
