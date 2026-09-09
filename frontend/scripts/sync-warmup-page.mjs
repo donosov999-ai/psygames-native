@@ -38,6 +38,17 @@ const лаборатория = path.resolve(фронт, '../../psygames-game-lab
 const источник = path.join(лаборатория, 'web-dist');
 const цель = path.join(фронт, 'public', 'warmup');
 const своё = ['embed.js', 'embed.css'];
+const МОДУЛЬ = `    <script type="module" src="./app/app.mjs"></script>\n`;
+const ПОЛИФИЛ = `    <!-- psygames-embed-polyfill · VER 1 · 09.09.2026 · вставляет scripts/sync-warmup-page.mjs ПЕРЕД модулем приложения.
+         Телефон тестировщика — Android 11 с WebView Chrome 90 (три кадра пустого экрана «Eyes & breathing»,
+         отчёты fac0ff8f/54b549c9/a9e93754): страница будильника зовёт structuredClone (Chrome 98) и Array.prototype.at
+         (Chrome 92), первый же вызов падает — и поле остаётся пустым. Данные будильника JSON-совместимы (runtime
+         хранится через JSON.stringify), поэтому клон через JSON здесь честный. -->
+    <script>
+      if (typeof structuredClone !== 'function') { window.structuredClone = function (v) { return v === undefined ? v : JSON.parse(JSON.stringify(v)); }; }
+      if (!Array.prototype.at) { Object.defineProperty(Array.prototype, 'at', { configurable: true, writable: true, value: function (n) { n = Math.trunc(n) || 0; if (n < 0) n += this.length; return n < 0 || n >= this.length ? undefined : this[n]; } }); }
+    </script>
+`;
 
 /** Имена без расширения: и в PNG у будильника, и в webp у нас они одни. */
 const КАРТИНКИ = [
@@ -115,9 +126,18 @@ function вшитьВстраивание() {
   }
   if (!html.includes('embed.js')) {
     html = html.replace('</body>', '    <script src="./embed.js" defer></script>\n  </body>');
+  /**
+   * Полифилы для старого WebView — ПЕРЕД модулем приложения, иначе поздно: модуль и
+   * defer-скрипт исполняются в порядке документа, а embed.js стоит последним.
+   * Повод и перечень — в самом комментарии вставки; проба warmup-page-old-webview
+   * сканирует привозной код на API новее Chrome 90 и требует полифил на каждый.
+   */
+  if (!html.includes('psygames-embed-polyfill')) {
+    html = html.replace(МОДУЛЬ, ПОЛИФИЛ + МОДУЛЬ);
+  }
   }
   writeFileSync(п, html);
-  return html.includes('embed.css') && html.includes('embed.js');
+  return html.includes('embed.css') && html.includes('embed.js') && html.includes('psygames-embed-polyfill');
 }
 
 function вес(корень) {
