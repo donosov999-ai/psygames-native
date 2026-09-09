@@ -108,7 +108,7 @@ const ИГРЫ: readonly { id: string; route: string; секунд: number; кл
   { id: 'cloze',            route: '/games/cloze',            секунд: 100, ключУровня: 'cloze' },
   { id: 'semantic_sort',    route: '/games/semantic-sort',    секунд: 70,  ключУровня: 'semantic_sort' },
   { id: 'lexical_decision', route: '/games/lexical-decision', секунд: 45,  ключУровня: 'lexical_decision' },
-  { id: 'vocab_srs',        route: '/games/vocab-srs',        секунд: 60,  ключУровня: 'vocab_srs' },
+  { id: 'anagrams',         route: '/games/anagrams',         секунд: 90,  ключУровня: 'anagrams' },
   { id: 'semantic_sort',    route: '/games/semantic-sort',    секунд: 70,  ключУровня: 'semantic_sort' },
 ];
 

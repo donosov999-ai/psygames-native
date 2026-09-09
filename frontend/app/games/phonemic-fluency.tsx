@@ -75,7 +75,8 @@ export default function PhonemicFluencyGame() {
    * языка интерфейса: при русском меню английская беглость была недоступна.
    */
   const { profile } = useProfile();
-  const wordLang = useWordLanguage('phonemic_fluency', profile?.id, language);
+  const { isPreset, str, autostart, num, isCalm } = useGamePreset();
+  const wordLang = useWordLanguage('phonemic_fluency', profile?.id, language, str('targetLang', ''));
   /**
    * СЧЁТЧИК ПРОХОЖДЕНИЙ, не ступень сложности.
    *
@@ -88,7 +89,6 @@ export default function PhonemicFluencyGame() {
   const runs = usePersistentLevel('phonemic_fluency');
   const router = useRouter();
 
-  const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [duration, setDuration] = useState<60 | 90 | 120>(() => (num('duration', 60) as 60 | 90 | 120));

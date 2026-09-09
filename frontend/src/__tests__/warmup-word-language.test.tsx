@@ -157,3 +157,69 @@ it('🔴 ready ложен, пока сохранённый выбор не пр�
   await TestRenderer.act(async () => { root.update(<Проба ui="de" />); });
   expect(снимки[снимки.length - 1].ready).toBe(false);
 });
+
+/**
+ * 🔴 ЯЗЫК ИЗ ШАГА ЗАРЯДКИ СИЛЬНЕЕ ХРАНИЛИЩА (09.09.2026).
+ *
+ * 📍 ЗАЧЕМ. Языковой поток задаёт язык КАЖДОМУ шагу (`targetLang` в параметрах
+ * маршрута) — на этом стоит чередование и вместе с ним `switchCostMs`. Анаграммы
+ * и «Беглость речи» читали язык ТОЛЬКО из хранилища и в потоке молча остались бы
+ * на одном языке. Из-за этого обе игры не входили в состав потока: их отсутствие
+ * было следствием хука, а не решением о составе.
+ *
+ * ⚠️ И ОБРАТНОЕ ТОЖЕ ПРОВЕРЯЕТСЯ: зарядка — гость. Она говорит, на чём играть
+ * СЕЙЧАС, и не вправе переписать выбор, сделанный человеком в самой игре.
+ */
+it('🔴 язык из шага побеждает сохранённый и не ждёт хранилище', async () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- после jest.mock
+  const { useWordLanguage } = require('@/src/hooks/useWordLanguage');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- после jest.mock
+  const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+  // В хранилище лежит АНГЛИЙСКИЙ и приезжает не сразу.
+  AsyncStorage.getItem.mockImplementation((k: string) => (k.includes('wordlang')
+    ? new Promise((r) => setTimeout(() => r('en'), 40))
+    : Promise.resolve(null)));
+
+  const снимки: { lang: string; ready: boolean }[] = [];
+  const Probe = ({ шаг }: { шаг?: string }) => {
+    const w = useWordLanguage('anagrams', 'профиль-1', 'ru', шаг);
+    снимки.push({ lang: w.lang, ready: w.ready });
+    return null;
+  };
+
+  let root: any;
+  await TestRenderer.act(async () => { root = TestRenderer.create(<Probe шаг="es" />); });
+  поднятые.push(root);
+  // 🔴 СРАЗУ, В ПЕРВОМ ЖЕ КАДРЕ: ждать хранилище незачем, шаг уже всё сказал.
+  expect(снимки[снимки.length - 1]).toEqual({ lang: 'es', ready: true });
+
+  // Хранилище доехало со своим «en» — шаг всё равно сильнее.
+  await TestRenderer.act(async () => { await new Promise((r) => setTimeout(r, 120)); });
+  expect(снимки[снимки.length - 1].lang).toBe('es');
+
+  // Шага нет — работает прежний путь, из хранилища.
+  await TestRenderer.act(async () => { root.update(<Probe />); });
+  await TestRenderer.act(async () => { await new Promise((r) => setTimeout(r, 120)); });
+  expect(снимки[снимки.length - 1]).toEqual({ lang: 'en', ready: true });
+});
+
+it('🔴 негодный для ЭТОЙ игры язык шага игнорируется, а не роняет партию', async () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- после jest.mock
+  const { useWordLanguage } = require('@/src/hooks/useWordLanguage');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- после jest.mock
+  const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+  AsyncStorage.getItem.mockResolvedValue(null);
+
+  const снимки: string[] = [];
+  // У «Беглости речи» слова только на ru и en; шаг просит испанский.
+  const Probe = () => {
+    снимки.push(useWordLanguage('phonemic_fluency', 'профиль-1', 'ru', 'es').lang);
+    return null;
+  };
+  let root: any;
+  await TestRenderer.act(async () => { root = TestRenderer.create(<Probe />); });
+  поднятые.push(root);
+  await TestRenderer.act(async () => { await new Promise((r) => setTimeout(r, 60)); });
+  // Не «es» и не пусто: прежний путь — язык интерфейса.
+  expect(снимки[снимки.length - 1]).toBe('ru');
+});
