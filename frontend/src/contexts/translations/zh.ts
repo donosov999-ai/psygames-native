@@ -2526,6 +2526,8 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_title": "干扰词会越来越像",
   "lr_listening_span_similar_rule": "从本关起，网格里多出来的词会挑选得跟你听到的很像。它们极易混淆，所以不仅要记住词，还要记住顺序。",
   "lr_listening_span_similar_example": "你听到的是「casa」，旁边就会出现「cama」。要选听到的那个，不是长得像的那个。",
+  "bilingualMode": "两种语言一起",
+  "bilingualModeDesc": "{a} 和 {b} 交替出现，母语作为依托。错误会更多——这是有意为之",
   "warmupOvertime": "{m} 分钟已到。剩余回合：{n}",
   // Добавлено вручную 09.09.2026 (пустая развилка). Регенерация воркфлоу их подхватит.
   "hubEmptyTitle": "此档案中这里暂时没有内容",

@@ -30,6 +30,8 @@ import GameAbout from '@/src/components/GameAbout';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
+import { WORD_LANG_LABEL } from '@/src/services/wordLanguage';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -145,6 +147,15 @@ export default function VocabSrsGame() {
   // Сессия
   const [queue, setQueue] = useState<CardRef[]>([]);
   const [pool, setPool] = useState<{ base: string; target: string }[]>([]);
+  /**
+   * 🔴 РЕЖИМ БИЛИНГВО: два иностранных языка вперемешку В ОДНОЙ ПАРТИИ.
+   * Правка Дениса 09.09.2026 — зарядка это финал, а сам режим нужен в
+   * упражнении. Разбор правила и ряда чередования — в `bilingualMode.ts`.
+   */
+  const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
+  /** Пул дистракторов ПО ЯЗЫКАМ: в билингво их нельзя смешивать между языками. */
+  const [пулЯзыков, setПулЯзыков] = useState<Record<string, { base: string; target: string }[]>>({});
+  const [сменЯзыка, setСменЯзыка] = useState(0);
   const [idx, setIdx] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
   const [picked, setPicked] = useState<string | null>(null);
@@ -168,17 +179,57 @@ export default function VocabSrsGame() {
     }
   }, [phase, language, tgt]);
 
-  const makeOptions = (card: CardRef, poolArg: { base: string; target: string }[]) => {
+  const makeOptions = (
+    card: CardRef,
+    poolArg: { base: string; target: string }[],
+    поЯзыкам?: Record<string, { base: string; target: string }[]>,
+  ) => {
     const field = direction === 'recognize' ? 'base' : 'target';
-    const opts = buildOptions(card[field], poolArg.map((p) => p[field]));
+    /**
+     * ⚠️ ДИСТРАКТОРЫ — ИЗ ЯЗЫКА ЭТОЙ КАРТОЧКИ. Смешать языки в вариантах значит
+     * подсказать ответ: испанское слово среди английских видно, не зная ни
+     * одного из них.
+     */
+    const свой = (поЯзыкам ?? пулЯзыков)[card.lang ?? ''] ?? poolArg;
+    const opts = buildOptions(card[field], свой.map((p) => p[field]));
     setOptions(opts);
     setPicked(null);
     shownAtRef.current = gameNow();
   };
 
   const startSession = async () => {
-    const q = await buildQueue(language, tgt, newLimit);
-    const cards = [...q.due, ...q.fresh];
+    /**
+     * 🔴 В БИЛИНГВО СОБИРАЮТСЯ ДВЕ КОЛОДЫ И РАСКЛАДЫВАЮТСЯ ПО РЯДУ ЧЕРЕДОВАНИЯ.
+     *
+     * ⚠️ Колода SRS живёт на ПАРЕ языков (`buildQueue(base, target)`) — расписание
+     * повторов у английского и испанского своё, и объединять их в одну нельзя:
+     * карточка вернулась бы по чужому графику. Поэтому очереди строятся
+     * раздельно и только ПОКАЗЫВАЮТСЯ вперемешку, а оценка каждой уходит в свою
+     * колоду по `card.lang`.
+     */
+    const пара = параЯзыков(language);
+    const языки = билингво ? пара : [tgt];
+    const очереди = await Promise.all(языки.map((l) => buildQueue(language, l, newLimit)));
+
+    const пулПоЯзыкам: Record<string, { base: string; target: string }[]> = {};
+    const поЯзыку: Record<string, CardRef[]> = {};
+    языки.forEach((l, i) => {
+      const q = очереди[i]!;
+      пулПоЯзыкам[l] = q.pool;
+      поЯзыку[l] = [...q.due, ...q.fresh].map((c) => ({ ...c, lang: l }));
+    });
+
+    let cards: CardRef[];
+    let смен = 0;
+    if (билингво) {
+      const всего = Object.values(поЯзыку).reduce((n, v) => n + v.length, 0);
+      const р = разложитьПоРяду(поЯзыку, всего, language);
+      cards = р.элементы.map((x) => ({ ...x.элемент, lang: x.язык }));
+      смен = р.сколькоСмен;
+    } else {
+      cards = поЯзыку[tgt] ?? [];
+    }
+
     if (cards.length === 0) {
       const s = await getStats(language, tgt);
       setStats(s);
@@ -186,7 +237,9 @@ export default function VocabSrsGame() {
       return;
     }
     setQueue(cards);
-    setPool(q.pool);
+    setPool(пулПоЯзыкам[cards[0]!.lang ?? tgt] ?? []);
+    setПулЯзыков(пулПоЯзыкам);
+    setСменЯзыка(смен);
     setIdx(0);
     setCorrectCount(0);
     setWrongCount(0);
@@ -197,7 +250,7 @@ export default function VocabSrsGame() {
     answersRef.current = 0;
     setStartTime(gameNow());
     setPhase('playing');
-    makeOptions(cards[0], q.pool);
+    makeOptions(cards[0]!, пулПоЯзыкам[cards[0]!.lang ?? tgt] ?? [], пулПоЯзыкам);
   };
 
   const finishSession = async (finalQueueLen: number) => {
@@ -221,7 +274,14 @@ export default function VocabSrsGame() {
         details: {
           level: doneRun,   // по нему счётчик восстановится, если ключ прогресса потерян
           base_lang: language,
-          target_lang: tgt,
+          /**
+           * 🔴 В БИЛИНГВО ЯЗЫК ЦЕЛИ НЕ ОДИН — И ПИСАТЬ ОДИН ЗНАЧИЛО БЫ СОВРАТЬ
+           * СТАТИСТИКЕ. Пишем пару и ЧИСЛО НАСТОЯЩИХ ПЕРЕКЛЮЧЕНИЙ: если материал
+           * одного языка кончился на середине, партия к концу стала одноязычной,
+           * и по включённому флагу этого не видно, а по числу смен — видно.
+           */
+          target_lang: билингво ? параЯзыков(language).join('+') : tgt,
+          ...(билингво ? { lang_switches: сменЯзыка } : {}),
           cards_total: finalQueueLen,
           new_learned: newLearnedRef.current.size,
           reviews_done: reviewsDoneRef.current,
@@ -257,11 +317,11 @@ export default function VocabSrsGame() {
     setCorrectCount((c) => c + 1);
     if (card.isNew) newLearnedRef.current.add(card.id);
     else reviewsDoneRef.current += 1;
-    await gradeCard(language, tgt, card.id, typos === 0 && rt < EASY_RT_MS * 3 ? 'easy' : 'good');
+    await gradeCard(language, card.lang ?? tgt, card.id, typos === 0 && rt < EASY_RT_MS * 3 ? 'easy' : 'good');
     setTimeout(() => {
       const next = idx + 1;
       if (next >= queue.length) finishSession(queue.length);
-      else { setIdx(next); makeOptions(queue[next], pool); }
+      else { setIdx(next); makeOptions(queue[next]!, пулЯзыков[queue[next]!.lang ?? tgt] ?? pool); }
     }, 450);
   };
 
@@ -281,10 +341,10 @@ export default function VocabSrsGame() {
       setCorrectCount((c) => c + 1);
       if (card.isNew) newLearnedRef.current.add(card.id);
       else reviewsDoneRef.current += 1;
-      await gradeCard(language, tgt, card.id, rt < EASY_RT_MS ? 'easy' : 'good');
+      await gradeCard(language, card.lang ?? tgt, card.id, rt < EASY_RT_MS ? 'easy' : 'good');
     } else {
       setWrongCount((c) => c + 1);
-      await gradeCard(language, tgt, card.id, 'again');
+      await gradeCard(language, card.lang ?? tgt, card.id, 'again');
       // again → вернуть карточку через 3 позиции (один повторный заход в рамках сессии)
       nextQueue = [...queue];
       nextQueue.splice(Math.min(idx + 3, nextQueue.length), 0, { ...card });
@@ -297,7 +357,7 @@ export default function VocabSrsGame() {
         finishSession(nextQueue.length);
       } else {
         setIdx(next);
-        makeOptions(nextQueue[next], pool);
+        makeOptions(nextQueue[next]!, пулЯзыков[nextQueue[next]!.lang ?? tgt] ?? pool);
       }
     }, isRight ? 450 : 1100); // на ошибке дольше показываем правильный ответ
   };
@@ -370,6 +430,37 @@ export default function VocabSrsGame() {
               </TouchableOpacity>
             ))}
           </View>
+        </View>
+
+        {/*
+          🔴 ПЕРЕКЛЮЧАТЕЛЬ БИЛИНГВО. Стоит СРАЗУ ПОД выбором языка, потому что
+          отменяет его: включённый режим берёт пару языков от интерфейса, а не
+          один выбранный. Показывать их рядом и не связать значило бы оставить
+          человека гадать, что победило.
+        */}
+        <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
+          <TouchableOpacity
+            accessibilityRole="switch"
+            accessibilityState={{ checked: билингво }}
+            accessibilityLabel={t('bilingualMode')}
+            onPress={() => setБилингво((v) => !v)}
+            style={[
+              styles.sizeButton,
+              { alignSelf: 'flex-start', paddingHorizontal: 14 },
+              билингво
+                ? { backgroundColor: GRADIENT[0] }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[styles.sizeButtonText, { color: билингво ? textOn(GRADIENT[0]) : colors.text }]}>
+              {билингво ? '✓ ' : ''}{t('bilingualMode')}
+            </Text>
+          </TouchableOpacity>
+          <Text style={[styles.optionLabel, { color: colors.textSecondary, marginTop: 8, fontWeight: '400' }]}>
+            {t('bilingualModeDesc')
+              .replace('{a}', WORD_LANG_LABEL[параЯзыков(language)[0]] ?? параЯзыков(language)[0])
+              .replace('{b}', WORD_LANG_LABEL[параЯзыков(language)[1]] ?? параЯзыков(language)[1])}
+          </Text>
         </View>
 
         {/* Новых за сессию */}

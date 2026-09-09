@@ -2521,6 +2521,8 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_title": "비슷한 단어가 섞입니다",
   "lr_listening_span_similar_rule": "이 레벨부터는 격자에 남는 단어들이 들은 단어와 “비슷하게 들리도록” 골라집니다. 혼동하기 쉬우니 단어뿐 아니라 순서까지 기억하세요.",
   "lr_listening_span_similar_example": "「casa」를 들었다면 옆에 「cama」가 놓입니다. 비슷한 것이 아니라 들은 것을 고르세요.",
+  "bilingualMode": "두 언어를 함께",
+  "bilingualModeDesc": "{a}와 {b}를 섞습니다. 모국어는 기준으로 남습니다. 실수가 늘어나는 것이 의도입니다",
   "warmupOvertime": "{m}분이 지났습니다. 남은 라운드: {n}",
   // Добавлено вручную 09.09.2026 (пустая развилка). Регенерация воркфлоу их подхватит.
   "hubEmptyTitle": "이 프로필에는 아직 아무것도 없습니다",
