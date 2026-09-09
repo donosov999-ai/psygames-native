@@ -39,6 +39,7 @@ export type Technique =
   | 'towers_clue'     // вывод из подсказки «сколько зданий видно с края»
   | 'unequal_chain'   // цепочка неравенств: границы протянуты через ПУСТЫХ соседей
   | 'x_wing'          // X-wing
+  | 'xy_wing'         // XY-wing: ось {a,b} и два клюва {a,c} и {b,c} — c уходит там, где видно оба
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
@@ -57,7 +58,7 @@ export const TECHNIQUE_TIER: Record<Technique, number> = {
    * обязана оставаться сравнимой между вариантами.
    */
   cage_sum: 4,
-  hidden_subset: 5, x_wing: 6, guess: 9,
+  hidden_subset: 5, x_wing: 6, xy_wing: 7, guess: 9,
 };
 
 export interface GradeCtx {
@@ -679,11 +680,69 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     return false;
   };
 
+  /**
+   * XY-WING. Ось — клетка ровно с двумя кандидатами {a,b}. Два клюва видят ось и имеют
+   * {a,c} и {b,c}. Тогда c стоит в одном из клювов при любом раскладе, и c уходит из
+   * всех клеток, которые видят ОБА клюва.
+   *
+   * 🔴 ЗАЧЕМ ЗАВЕДЕНА. Замер 09.09.2026: между X-Wing (ступень 6) и догадкой (9) не было
+   * НИ ОДНОЙ техники, а банк отдаёт на уровнях 58–80 доски с рейтингом SE 6.3…7.8 —
+   * ровно эту полосу. Оценщик на них не молчал: он делал 19–26 настоящих шагов и
+   * упирался, помечая доску `tier: 9` («нужна догадка»), а экран показывал пояс вместо
+   * приёма. Мера не считалась на 92 банковских досках из 92.
+   *
+   * ⚠️ «Видят друг друга» берётся из `unitsOfCell`, а не из строки/столбца/квадрата.
+   * Это обязательное условие для вариантов: у кривых блоков и гипер-судоку области
+   * другие, и техника обязана работать по НАСТОЯЩИМ областям доски, иначе она даст
+   * неверное исключение там, где блок не квадратный.
+   */
+  const xyWing = (): boolean => {
+    const пары: [number, number][] = [];
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) if (grid[r][c] === 0 && popcount(cand[r][c]) === 2) пары.push([r, c]);
+    }
+    const видит = (a: [number, number], b: [number, number]): boolean =>
+      (a[0] !== b[0] || a[1] !== b[1])
+      && unitsOfCell[a[0]][a[1]].some((u) => unitsOfCell[b[0]][b[1]].includes(u));
+
+    for (const ось of пары) {
+      const mo = cand[ось[0]][ось[1]];
+      for (const клюв1 of пары) {
+        if (!видит(ось, клюв1)) continue;
+        const m1 = cand[клюв1[0]][клюв1[1]];
+        if (popcount(mo & m1) !== 1) continue;               // с осью ровно одна общая цифра
+        for (const клюв2 of пары) {
+          if (клюв2 === клюв1 || !видит(ось, клюв2)) continue;
+          const m2 = cand[клюв2[0]][клюв2[1]];
+          if (popcount(mo & m2) !== 1) continue;
+          if ((mo & m2) === (mo & m1)) continue;             // клювы держат РАЗНЫЕ цифры оси
+          const c = m1 & m2;                                  // общая цифра клювов — её и убираем
+          if (popcount(c) !== 1 || (c & mo)) continue;        // в оси её быть не должно
+          let hit = false;
+          for (let r = 0; r < N; r++) {
+            for (let cc = 0; cc < N; cc++) {
+              if (grid[r][cc] !== 0 || !(cand[r][cc] & c)) continue;
+              if ((r === ось[0] && cc === ось[1]) || (r === клюв1[0] && cc === клюв1[1])
+                || (r === клюв2[0] && cc === клюв2[1])) continue;
+              const цель: [number, number] = [r, cc];
+              if (видит(цель, клюв1) && видит(цель, клюв2)) {
+                cand[r][cc] &= ~c; hit = true;
+                if (cand[r][cc] === 0) return false;
+              }
+            }
+          }
+          if (hit) { bump('xy_wing'); return true; }
+        }
+      }
+    }
+    return false;
+  };
+
   // tierCap отсекает техники сверху: так можно спросить «решается ли это БЕЗ техник выше k».
   // На этом стоит ПОЛ сложности: пазл требует технику k, если без неё он не добирается.
   const all: [Technique, () => boolean][] = [
     ['naked_single', nakedSingle], ['hidden_single', hiddenSingle], ['locked', locked],
-    ['naked_subset', nakedSubset], ['hidden_subset', hiddenSubset], ['x_wing', xWing],
+    ['naked_subset', nakedSubset], ['hidden_subset', hiddenSubset], ['x_wing', xWing], ['xy_wing', xyWing],
   ];
   const steps = all.filter(([t]) => TECHNIQUE_TIER[t] <= tierCap).map(([, f]) => f);
   for (let guard = 0; guard < N * N * 25; guard++) {
