@@ -1,4 +1,4 @@
-/* psygames-game-goods-sort · VER 3 · 09.09.2026 */
+/* psygames-game-goods-sort · VER 4 · 09.09.2026 */
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, Image, ImageBackground, Animated, Easing, PanResponder, DimensionValue,
@@ -881,10 +881,25 @@ export default function GoodsSortGame() {
    * 🔴 ЗАЧЕМ. Раньше отказ был виден только по тому, что НИЧЕГО НЕ ПРОИЗОШЛО, —
    * а это неотличимо от «не нажалось». Человек жмёт второй раз, и всё повторяется.
    * В щадящем режиме дрожания нет: тряска — худший вид движения для
-   * вестибулярной чувствительности. Там остаётся звук и тычок.
+   * вестибулярной чувствительности.
+   *
+   * 🔴 НО «ОСТАЁТСЯ ЗВУК И ТЫЧОК» БЫЛО НЕВЕРНО, И ЭТО МОЯ ОШИБКА (09.09.2026).
+   * Так здесь и было написано — а в веб-сборке (Tauri это вебвью) вибрации нет
+   * вовсе, звук человек выключает первым делом. То есть при включённом
+   * «меньше движения» отказ не имел НИ ОДНОГО канала: игра молчала ровно так,
+   * как молчала до появления дрожания. Щадящий режим убирает ДВИЖЕНИЕ, а не
+   * сообщение.
+   *
+   * Поэтому в щадящем ниша не дрожит, а на треть секунды обводится алым: канал
+   * тот же, движения ноль.
    */
+  const ОТКАЗ_ТИХО_МС = 380;
   const shakeNiche = (cell: number) => {
-    if (reduced) return;
+    if (reduced) {
+      setShakeCell(cell);
+      setTimeout(() => setShakeCell((c) => (c === cell ? null : c)), ОТКАЗ_ТИХО_МС);
+      return;
+    }
     setShakeCell(cell);
     shake.setValue(0);
     Animated.sequence([
@@ -2481,10 +2496,19 @@ const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hin
    * Смещение дрожащей ниши. Отдельной функцией, чтобы `renderCell` не оброс
    * ещё одним тернарником: дрожит всегда максимум одна ниша.
    */
-  const shakeStyle = (i: number) =>
-    shakeCell === i
-      ? { transform: [{ translateX: shake.interpolate({ inputRange: [-1, 1], outputRange: [-7, 7] }) }] }
-      : null;
+  /**
+   * Как выглядит отказ на этой нише. В обычном режиме — дрожание, в щадящем —
+   * неподвижная алая обводка (разбор в шапке `shakeNiche`).
+   *
+   * ⚠️ Стиль применяется ПОСЛЕДНИМ в списке, поэтому его рамка перебивает
+   * подсветки «сюда можно» и «подсказка» — так и надо: отказ важнее подсказки.
+   */
+  const shakeStyle = (i: number) => {
+    if (shakeCell !== i) return null;
+    return reduced
+      ? { borderColor: '#f43f5e', borderWidth: 3 }
+      : { transform: [{ translateX: shake.interpolate({ inputRange: [-1, 1], outputRange: [-7, 7] }) }] };
+  };
 
   /**
    * Сдвиг ниши на время оседания: стартует ВЫШЕ на столько рядов, сколько
@@ -2547,6 +2571,14 @@ const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hin
          */
         source={SHELF_TILES[shelfStyle]}
         resizeMode="stretch"
+        /*
+         * ⚠️ МЕТКА ОТКАЗА — НЕ УКРАШЕНИЕ, А УСЛОВИЕ ПРОВЕРЯЕМОСТИ. Проба, искавшая
+         * «есть ли на экране сдвиг вбок», оказалась ЛОЖНО ЗЕЛЁНОЙ: `translateX`
+         * на этом экране есть и без всякого отказа. Та же беда уже случалась с
+         * оседанием — там её вылечила метка `niche-settle`. Метка даёт спросить
+         * ИМЕННО про отказ и про ту нишу, которая отказала.
+         */
+        testID={shakeCell === i ? 'niche-refused' : undefined}
         style={[styles.cell, {
           width: nw, height: nicheH,
           borderColor: hint?.toCell === i ? '#38bdf8'
