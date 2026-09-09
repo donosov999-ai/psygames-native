@@ -5,6 +5,7 @@
  * штук и чтобы они типа потекли по уровням и желательно чтобы можно было
  * задавать время типа как в режиме потока». Каждое из трёх — отдельная проба.
  */
+import { estimateStepSec } from '@/src/services/gameDuration';
 import {
   chessWarmupSteps, buildChessWarmup, wordWarmupSteps, buildWordWarmup,
   ДЛИТЕЛЬНОСТИ, ШАГ_МАТ_СЕК, ШАГ_ДОСКА_СЕК, ШАГ_ФИЛВОРДЫ_СЕК,
@@ -46,14 +47,31 @@ describe('шахматная зарядка', () => {
   it('🔴 «задавать время»: набор укладывается в выбранную длительность', () => {
     const плохо: string[] = [];
     for (const m of ДЛИТЕЛЬНОСТИ) {
-      const total = chessWarmupSteps({ minutes: m, blindLevel: 3, mateLevel: 7 })
-        .reduce((a, x) => a + x.est_duration_sec, 0);
+      const шаги = chessWarmupSteps({ minutes: m, blindLevel: 3, mateLevel: 7 });
+      // Считаем ПО ЗАМЕРУ (медиана живых партий + переход), как и сам набор с 09.09.2026:
+      // объявленные числа здесь больше не длительность, а запасной вариант без снимка.
+      const total = шаги.reduce((a, x) => a + estimateStepSec(x), 0);
+      const самыйДлинный = Math.max(...шаги.map((x) => estimateStepSec(x)));
       // Ровно в секунду не попасть — шаги неделимы. Но перебор больше чем на
       // половину самого длинного шага означал бы, что заданное время не значит ничего.
-      if (total > m * 60 + ШАГ_ДОСКА_СЕК / 2) плохо.push(`${m} мин: набралось ${total} с`);
+      if (total > m * 60 + самыйДлинный / 2) плохо.push(`${m} мин: набралось ${total} с`);
       if (total < m * 60 * 0.5) плохо.push(`${m} мин: набралось всего ${total} с`);
     }
     expect(плохо).toEqual([]);
+  });
+
+  it('🔴 время набирается по ЗАМЕРУ живых партий, а не по объявленному числу (задача 2f8f4444)', () => {
+    // Слова: анаграммы объявлены как 90 с, а медиана живых партий 188 (+12 переход).
+    // Набор по объявлению уложил бы в десять минут вдвое больше анаграмм, чем человек
+    // успеет, и «десять минут» стали бы четырнадцатью. Проверяем сумму ПО ЗАМЕРУ.
+    const шаги = wordWarmupSteps({ minutes: 10, anagramsLevel: 3, proofreadingLevel: 3 });
+    // Проба осмысленна, только если замер и объявление расходятся хотя бы у одного шага.
+    expect(шаги.some((x) => estimateStepSec(x) !== x.est_duration_sec)).toBe(true);
+    const поЗамеру = шаги.reduce((a, x) => a + estimateStepSec(x), 0);
+    const самыйДлинный = Math.max(...шаги.map((x) => estimateStepSec(x)));
+    expect(`10 мин по замеру: ${поЗамеру} с ≤ ${600 + самыйДлинный / 2}`)
+      .toBe(`10 мин по замеру: ${поЗамеру} с ≤ ${600 + самыйДлинный / 2}`.replace(/^(.*): (\d+) с ≤ (\d+)$/, (_, a, b, c) => `${a}: ${Number(b) <= Number(c) ? b : 'ПЕРЕБОР ' + b} с ≤ ${c}`));
+    expect(поЗамеру).toBeGreaterThanOrEqual(300);
   });
 
   it('🔴 длиннее время — БОЛЬШЕ шагов, иначе выбор ничего не меняет', () => {
@@ -75,7 +93,8 @@ describe('шахматная зарядка', () => {
   it('сборка отдаёт готовый набор с подсчитанным временем', () => {
     const meta = buildChessWarmup({ minutes: 10, blindLevel: 5, mateLevel: 12 });
     expect(meta.steps.length).toBeGreaterThan(0);
-    expect(meta.est_total_sec).toBe(meta.steps.reduce((a, x) => a + x.est_duration_sec, 0));
+    // Итог считается по замеру (медиана + переход), как и сам набор с 09.09.2026.
+    expect(meta.est_total_sec).toBe(meta.steps.reduce((a, x) => a + estimateStepSec(x), 0));
     expect(meta.duration_min).toBeGreaterThanOrEqual(5);
     // Оценки длительности берутся из самих упражнений, а не с потолка.
     expect(ШАГ_МАТ_СЕК).toBeLessThan(ШАГ_ДОСКА_СЕК);
@@ -141,6 +160,7 @@ describe('словесная зарядка', () => {
   it('сборка отдаёт готовый набор', () => {
     const meta = buildWordWarmup({ ...о, minutes: 10 });
     expect(meta.steps.length).toBeGreaterThan(0);
-    expect(meta.est_total_sec).toBe(meta.steps.reduce((a, x) => a + x.est_duration_sec, 0));
+    // Итог считается по замеру (медиана + переход), как и сам набор с 09.09.2026.
+    expect(meta.est_total_sec).toBe(meta.steps.reduce((a, x) => a + estimateStepSec(x), 0));
   });
 });
