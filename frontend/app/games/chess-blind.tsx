@@ -1620,7 +1620,7 @@ export default function ChessBlindGame() {
                   <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
                     <Text style={[styles.optionLabel, { color: colors.text }]}>{t('errors')}</Text>
                     {recallMisses.map((q) => (
-                      <View key={q.square} style={styles.missRow}>
+                      <View key={q.square} testID="chess-miss" style={styles.missRow}>
                         <Text style={[styles.seriesRow, { color: colors.textSecondary }]}>
                           {`${squareName(q.square)} — `}
                         </Text>
