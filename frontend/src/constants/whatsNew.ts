@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.52.6',
+    date: '2026-09-09',
+    ru: [
+      'Питомец: новый цикл ходьбы, колпак держится на голове, норма — ежедневное кормление, кот объясняет свой вид словами под кнопкой кормления',
+      'Главная и коллекция: карточки не режут текст при крупном шрифте, чип профиля без яркой заливки, закрытая фигурка отвечает на тап — на сколько ⭐ откроется',
+      'Зарядка «Eyes & breathing» открывается на старых Android (WebView Chrome 90); карточки зарядки считают время по живым партиям',
+    ],
+    en: [
+      'Pet: new walk cycle, the party hat stays on the head, daily feeding is the norm, the cat explains its look in words under the feed button',
+      'Home and collection: cards no longer clip text at large font sizes, the profile chip lost its loud fill, a locked figure answers a tap — at how many ⭐ it opens',
+      '“Eyes & breathing” opens on older Android (WebView Chrome 90); warm-up cards estimate time from real rounds',
+    ],
+  },
+  {
     version: '2.52.5',
     date: '2026-09-09',
     ru: [
