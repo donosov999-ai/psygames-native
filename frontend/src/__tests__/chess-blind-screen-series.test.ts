@@ -537,6 +537,36 @@ describe('экран серии: три блока по одной позици�
     } finally { TestRenderer.act(() => { try { r.unmount(); } catch { /* уже ушёл */ } }); }
   });
 
+  /**
+   * 🔴 МЕНЮ ПАУЗЫ НА ЭКРАНЕ СЕРИИ — ТРЕТИЙ КАРКАС ИГРЫ, И САМЫЙ ДОРОГОЙ.
+   *
+   * Серия меряет разности T₂−T₁ и T₃−T₁; вылет из неё одним касанием стрелки
+   * стоит не «партии», а всего замера — прогон уходит в никуда. Каркасная проба
+   * `game-shell-pause-menu` сторожит сам каркас, проводку игры — не видит.
+   * Замер 09.09 до правки: `grep -c pauseActions app/games/chess-blind.tsx` → 0.
+   */
+  it('🔴 стрелка в серии открывает меню паузы, а не обрывает замер', async () => {
+    const r = await mountScreen();
+    try {
+      pressText(r, EN.entry);
+      const метка = (id: string) => r.root.findAll((n: any) => n.props?.testID === id, OUTER);
+      expect(`меню до стрелки: ${метка('game-pause-menu').length > 0}`).toBe('меню до стрелки: false');
+
+      await TestRenderer.act(async () => { метка('game-back')[0].props.onPress(); });
+      await settle();
+      expect(`меню после стрелки: ${метка('game-pause-menu').length > 0}`).toBe('меню после стрелки: true');
+      const пункты = ['resume', 'restart', 'home']
+        .map((id) => `${id}:${метка(`pause-action:${id}`).length > 0}`).join(' ');
+      expect(пункты).toBe('resume:true restart:true home:true');
+
+      // Отпускаем общий счётчик пауз — иначе он утечёт в следующую пробу файла.
+      await TestRenderer.act(async () => { метка('pause-action:resume')[0].props.onPress(); });
+      await settle();
+      expect(`меню после «Продолжить»: ${метка('game-pause-menu').length > 0}`)
+        .toBe('меню после «Продолжить»: false');
+    } finally { TestRenderer.act(() => { try { r.unmount(); } catch { /* уже ушёл */ } }); }
+  });
+
   it('🔴 разбор ошибки показывает фигуру КАРТИНКОЙ, а не шрифтовым знаком', async () => {
     /**
      * Продолжение отчётов `18be48ff` и `d35840f8`. Коммит `bf9e3237` перевёл на

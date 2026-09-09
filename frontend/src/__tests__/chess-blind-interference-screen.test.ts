@@ -129,6 +129,41 @@ describe('помеха на экране', () => {
     expect(`доска вернулась после ответа: ${клеток(r) === 64}`).toBe('доска вернулась после ответа: true');
   });
 
+  /**
+   * 🔴 МЕНЮ ПАУЗЫ ЕСТЬ И НА ЭКРАНЕ ПОМЕХИ — ЭТО ТРЕТИЙ КАРКАС ИГРЫ.
+   *
+   * Помеха рисуется своим `<GameShell>`: доски нет, на экране арифметика. Проведи
+   * меню в два каркаса из трёх — и человек, нажавший стрелку во время примера,
+   * по-прежнему вылетал бы из подхода одним касанием. Замер 09.09 до правки:
+   * `grep -c pauseActions app/games/chess-blind.tsx` → 0 при трёх `<GameShell>`.
+   */
+  it('🔴 стрелка во время помехи открывает меню паузы, а не выкидывает', async () => {
+    mockУровень.n = 11;
+    const r = await монтировать(); mounted.push(r);
+    await начать(r);
+
+    let дошли = false;
+    for (let i = 0; i < 60 && !дошли; i++) {
+      await осесть(1, 400);
+      дошли = кнопкаПримера(r, 'interf-yes').length > 0;
+    }
+    expect(`фаза помехи наступила: ${дошли}`).toBe('фаза помехи наступила: true');
+
+    const метка = (id: string) => r.root.findAll((n: any) => n.props?.testID === id, { deep: false });
+    expect(`меню до стрелки: ${метка('game-pause-menu').length > 0}`).toBe('меню до стрелки: false');
+    await TestRenderer.act(async () => { метка('game-back')[0].props.onPress(); });
+    await осесть(1, 100);
+    expect(`меню после стрелки: ${метка('game-pause-menu').length > 0}`).toBe('меню после стрелки: true');
+    const пункты = ['resume', 'restart', 'home'].map((id) => `${id}:${метка(`pause-action:${id}`).length > 0}`).join(' ');
+    expect(пункты).toBe('resume:true restart:true home:true');
+
+    // Отпускаем общий счётчик пауз: иначе он утечёт в следующую пробу файла.
+    await TestRenderer.act(async () => { метка('pause-action:resume')[0].props.onPress(); });
+    await осесть(1, 100);
+    expect(`меню после «Продолжить»: ${метка('game-pause-menu').length > 0}`)
+      .toBe('меню после «Продолжить»: false');
+  });
+
   it('🔴 на первом уровне помехи нет — подход идёт как прежде', async () => {
     mockУровень.n = 1;
     expect(`лестница велит примеров: ${примеровНаПодход(1)}`).toBe('лестница велит примеров: 0');
