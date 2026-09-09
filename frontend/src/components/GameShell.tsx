@@ -167,9 +167,17 @@ export interface PauseAction {
   id: string;
   label: string;
   icon: React.ComponentProps<typeof Ionicons>['name'];
-  onPress: () => void;
+  /** Действие. Для `leave` не нужно: уход делает сам каркас. */
+  onPress?: () => void;
   /** Первая кнопка списка — акцентная («Продолжить»). */
   primary?: boolean;
+  /**
+   * Уход с экрана ТЕМ ЖЕ путём, что и стрелка без меню: сначала `onSaveBeforeExit`
+   * (партия ляжет в «продолжить»), потом `onBack`. Без этого флага игра, написав
+   * `onPress: () => router.back()`, теряла бы сохранение — а человек, нажавший
+   * «На главную» в меню паузы, уже ответил на вопрос «выйти?», второй раз не спрашиваем.
+   */
+  leave?: boolean;
 }
 
 export interface GameShellProps {
@@ -444,6 +452,13 @@ export default function GameShell({
    * выхода, — и часы пошли бы под открытым вопросом.
    */
   const pauseHoldRef = React.useRef<null | (() => void)>(null);
+  /**
+   * Экран ушёл с открытым меню (жест «назад» с края, смена маршрута, окно системы) —
+   * задержку снимаем сами. `holdGame` — общий счётчик на всё приложение: повисшая
+   * единица остановила бы часы каждой следующей партии, и ни одна проба экрана этого
+   * не увидела бы (замер 09.09.2026: пять проб подряд «держится true» из одной утечки).
+   */
+  React.useEffect(() => () => { pauseHoldRef.current?.(); pauseHoldRef.current = null; }, []);
   const [paused, setPaused] = React.useState(isGameHeld());
   React.useEffect(() => onGameHold((v) => {
     setPaused(v);
@@ -1077,7 +1092,8 @@ export default function GameShell({
                     // уводят с экрана, и повисшая пауза остановила бы часы навсегда.
                     pauseHoldRef.current?.();
                     pauseHoldRef.current = null;
-                    a.onPress();
+                    if (a.leave) { exitGuard.confirmExit(); return; }
+                    a.onPress?.();
                   }}
                 >
                   <Ionicons name={a.icon} size={20} color={a.primary ? '#FFFFFF' : colors.text} />

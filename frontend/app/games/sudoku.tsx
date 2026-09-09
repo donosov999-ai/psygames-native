@@ -2296,6 +2296,19 @@ export default function SudokuGame() {
         resumable
         onSaveBeforeExit={saveBeforeExit}
         /**
+         * Меню паузы (ТЗ чата судоку 475ece36, решение Дениса 09.09.2026): отдельной
+         * кнопки ⏸ нет — стрелка «назад» открывает меню на весь экран, поле скрыто,
+         * часы стоят (holdGame). Подписи — существующие ключи словаря, новых нет.
+         * «Заново» — новая доска той же ступени (`startGame()`, как на экране 💔);
+         * «На главную» — через `leave`: сохранение в «продолжить», потом выход.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play', primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh', onPress: () => startGame() },
+          { id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline', onPress: () => setRulesOpen(true) },
+          { id: 'home', label: t('goHome'), icon: 'home', leave: true },
+        ]}
+        /**
          * Счётчики данными (см. `HudItem`): вид одинаков со всеми играми.
          *
          * ⚠️ ОШИБКИ ЗДЕСЬ ОСТАЮТСЯ, и это не противоречит §12.4. В судоку ошибка —
