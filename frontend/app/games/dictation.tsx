@@ -278,6 +278,20 @@ export default function DictationGame() {
       <GameShell
         title={t('dictation')}
         onBack={() => goBackOrHome()}
+        /**
+         * 🔴 МЕНЮ ПАУЗЫ — ОДНО НА ВСЕ ИГРЫ. Стрелка «назад» открывает список
+         * Продолжить · Заново · На главную вместо немого выхода.
+         * Механизм в каркасе с v2.52.2, но до игрока он доехал у ТРЁХ игр из 96
+         * (замер `grep -l pauseActions app/games/*.tsx` на `main` 09.09.2026) —
+         * остальные подключают сами. «Заново» и выход разные: выход через
+         * `leave: true` идёт тем же путём, что стрелка, и сохраняет партию
+         * в «продолжить»; своё `router.back()` сохранение бы потеряло.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame() },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
         hud={[
           { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${фразы.length} · ${t('label_level_short')}${level}` },
           { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: готово, tone: 'good' as const },
