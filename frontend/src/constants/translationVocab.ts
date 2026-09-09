@@ -76,6 +76,8 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'woman',  ru: 'женщина',    es: 'mujer',    pt: 'mulher',   de: 'Frau',    zh: '女人',  hi: 'औरत', fr: 'femme', it: 'donna', ja: '女', ko: '여자', ar: 'امرأة', cat: 'people' },
   { en: 'child',  ru: 'ребёнок',    es: 'niño',     pt: 'criança',  de: 'Kind',    zh: '孩子',  hi: 'बच्चा', fr: 'enfant', it: 'bambino', ja: '子供', ko: '아이', ar: 'طفل', cat: 'people' },
   { en: 'family', ru: 'семья',      es: 'familia',  pt: 'família',  de: 'Familie', zh: '家庭',  hi: 'परिवार', fr: 'famille', it: 'famiglia', ja: '家族', ko: '가족', ar: 'عائلة', cat: 'people' },
+  { en: 'uncle', ru: 'дядя', es: 'tío', pt: 'tio', de: 'Onkel', zh: '叔叔', hi: 'चाचा', fr: 'oncle', it: 'zio', ja: 'おじ', ko: '삼촌', ar: 'عم', cat: 'people' },
+  { en: 'aunt', ru: 'тётя', es: 'tía', pt: 'tia', de: 'Tante', zh: '阿姨', hi: 'चाची', fr: 'tante', it: 'zia', ja: 'おば', ko: '이모', ar: 'عمة', cat: 'people' },
 
   // ── Тело ──
   { en: 'head',   ru: 'голова',     es: 'cabeza',   pt: 'cabeça',   de: 'Kopf',    zh: '头',    hi: 'सिर', fr: 'tête', it: 'testa', ja: '頭', ko: '머리', ar: 'رأس', cat: 'body' },
@@ -111,6 +113,7 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'tea',    ru: 'чай',        es: 'té',       pt: 'chá',      de: 'Tee',     zh: '茶',    hi: 'चाय', fr: 'thé', it: 'tè', ja: 'お茶', ko: '차', ar: 'شاي', cat: 'food' },
   { en: 'coffee', ru: 'кофе',       es: 'café',     pt: 'café',     de: 'Kaffee',  zh: '咖啡',  hi: 'कॉफ़ी', fr: 'café', it: 'caffè', ja: 'コーヒー', ko: '커피', ar: 'قهوة', cat: 'food' },
   { en: 'wine',   ru: 'вино',       es: 'vino',     pt: 'vinho',    de: 'Wein',    zh: '葡萄酒',hi: 'शराब', fr: 'vin', it: 'vino', ja: 'ワイン', ko: '와인', ar: 'نبيذ', cat: 'food' },
+  { en: 'grape', ru: 'виноград', es: 'uva', pt: 'uva', de: 'Traube', zh: '葡萄', hi: 'अंगूर', fr: 'raisin', it: 'uva', ja: 'ぶどう', ko: '포도', ar: 'عنب', cat: 'food' },
 
   // ── Животные ──
   { en: 'dog',    ru: 'собака',     es: 'perro',    pt: 'cachorro', de: 'Hund',    zh: '狗',    hi: 'कुत्ता', fr: 'chien', it: 'cane', ja: '犬', ko: '개', ar: 'كلب', cat: 'animals' },
@@ -127,6 +130,7 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'elephant',ru:'слон',       es: 'elefante', pt: 'elefante', de: 'Elefant', zh: '大象',  hi: 'हाथी', fr: 'éléphant', it: 'elefante', ja: '象', ko: '코끼리', ar: 'فيل', cat: 'animals' },
   { en: 'lion',   ru: 'лев',        es: 'león',     pt: 'leão',     de: 'Löwe',    zh: '狮子',  hi: 'शेर', fr: 'lion', it: 'leone', ja: 'ライオン', ko: '사자', ar: 'أسد', cat: 'animals' },
   { en: 'snake',  ru: 'змея',       es: 'serpiente',pt: 'cobra',    de: 'Schlange',zh: '蛇',    hi: 'साँप', fr: 'serpent', it: 'serpente', ja: '蛇', ko: '뱀', ar: 'ثعبان', cat: 'animals' },
+  { en: 'bee', ru: 'пчела', es: 'abeja', pt: 'abelha', de: 'Biene', zh: '蜜蜂', hi: 'मधुमक्खी', fr: 'abeille', it: 'ape', ja: 'ハチ', ko: '벌', ar: 'نحلة', cat: 'animals' },
 
   // ── Природа ──
   { en: 'sun',    ru: 'солнце',     es: 'sol',      pt: 'sol',      de: 'Sonne',   zh: '太阳',  hi: 'सूरज', fr: 'soleil', it: 'sole', ja: '太陽', ko: '태양', ar: 'شمس', cat: 'nature' },
@@ -145,6 +149,8 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'river',  ru: 'река',       es: 'río',      pt: 'rio',      de: 'Fluss',   zh: '河',    hi: 'नदी', fr: 'rivière', it: 'fiume', ja: '川', ko: '강', ar: 'نهر', cat: 'nature' },
   { en: 'sea',    ru: 'море',       es: 'mar',      pt: 'mar',      de: 'Meer',    zh: '海',    hi: 'समुद्र', fr: 'mer', it: 'mare', ja: '海', ko: '바다', ar: 'بحر', cat: 'nature' },
   { en: 'stone',  ru: 'камень',     es: 'piedra',   pt: 'pedra',    de: 'Stein',   zh: '石头',  hi: 'पत्थर', fr: 'pierre', it: 'pietra', ja: '石', ko: '돌', ar: 'حجر', cat: 'nature' },
+  { en: 'south', ru: 'юг', es: 'sur', pt: 'sul', de: 'Süden', zh: '南', hi: 'दक्षिण', fr: 'sud', it: 'sud', ja: '南', ko: '남쪽', ar: 'جنوب', cat: 'nature' },
+  { en: 'east', ru: 'восток', es: 'este', pt: 'leste', de: 'Osten', zh: '东', hi: 'पूर्व', fr: 'est', it: 'est', ja: '東', ko: '동쪽', ar: 'شرق', cat: 'nature' },
 
   // ── Цвета ──
   { en: 'red',    ru: 'красный',    es: 'rojo',     pt: 'vermelho', de: 'rot',     zh: '红色',  hi: 'लाल', fr: 'rouge', it: 'rosso', ja: '赤', ko: '빨강', ar: 'أحمر', cat: 'colors' },
@@ -169,6 +175,7 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'knife',  ru: 'нож',        es: 'cuchillo', pt: 'faca',     de: 'Messer',  zh: '刀',    hi: 'चाकू', fr: 'couteau', it: 'coltello', ja: 'ナイフ', ko: '칼', ar: 'سكين', cat: 'home' },
   { en: 'bag',    ru: 'сумка',      es: 'bolsa',    pt: 'bolsa',    de: 'Tasche',  zh: '包',    hi: 'थैला', fr: 'sac', it: 'borsa', ja: 'かばん', ko: '가방', ar: 'حقيبة', cat: 'home' },
   { en: 'car',    ru: 'машина',     es: 'coche',    pt: 'carro',    de: 'Auto',    zh: '汽车',  hi: 'गाड़ी', fr: 'voiture', it: 'macchina', ja: '車', ko: '자동차', ar: 'سيارة', cat: 'home' },
+  { en: 'bus', ru: 'автобус', es: 'autobús', pt: 'ônibus', de: 'Bus', zh: '公交车', hi: 'बस', fr: 'bus', it: 'bus', ja: 'バス', ko: '버스', ar: 'حافلة', cat: 'home' },
 
   // ── Места ──
   { en: 'city',   ru: 'город',      es: 'ciudad',   pt: 'cidade',   de: 'Stadt',   zh: '城市',  hi: 'शहर', fr: 'ville', it: 'città', ja: '都市', ko: '도시', ar: 'مدينة', cat: 'places' },
