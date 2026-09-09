@@ -52,7 +52,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'math-sprint': { ver: 2, date: '07.09.2026' },
   'memory-matrix': { ver: 1, date: '19.08.2026' },
   'memory-palace': { ver: 1, date: '19.08.2026' },
-  'mental-rotation': { ver: 2, date: '23.08.2026' },
+  'mental-rotation': { ver: 4, date: '09.09.2026' },
   'mnemonics-hub': { ver: 1, date: '04.09.2026' },
   'mnemonics': { ver: 1, date: '19.08.2026' },
   'n-back': { ver: 1, date: '19.08.2026' },
