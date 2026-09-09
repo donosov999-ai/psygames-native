@@ -604,6 +604,25 @@ export default function AnagramGame() {
    * значении по умолчанию, если язык интерфейса к тому моменту не доехал. Нужны
    * ОБА признака — иначе гонка та же, только уже.
    */
+  /**
+   * 🔴 МЕНЮ ПАУЗЫ — ЧТОБЫ «ЗАНОВО» НЕ ДОБИВАЛИСЬ ПРОИГРЫШЕМ.
+   *
+   * 📍 Отчёт `5be4998f` 09.09.2026, дословно: «Мне, для того чтобы начать новую
+   * партию, всё время приходится тыкать неправильные числа три раза, чтобы жизни
+   * закончились». «Заново» жило только в карточке поражения — до неё надо было
+   * доиграть. Слот каркаса под это есть с v2.52.2, но замер 09.09: его провела
+   * ОДНА игра из 95 (`sudoku`), у меня было ноль из двух.
+   *
+   * ⚠️ «Правила» в список не кладу: у этого экрана их нет внутри партии — они в
+   * сквозном слое справки, кнопка которого видна и так. Пункт, повторяющий уже
+   * видимую кнопку, только удлиняет меню.
+   */
+  const действияПаузы = [
+    { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+    { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame() },
+    { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+  ];
+
   useAutostartWhenReady(
     () => autostart && lvl.loaded && языкГотов && wordLang.ready,
     () => startGame(),
@@ -863,7 +882,7 @@ export default function AnagramGame() {
   if (phase === 'playing' && режимИгры === 'cross') {
     const пак = allWordsPack(wordLang.lang, lvl.level);
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell pauseActions={действияПаузы} title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <CrosswordGame
             key={`cross-${wordLang.lang}-${пак.base}-${lvl.level}`}
@@ -905,7 +924,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell pauseActions={действияПаузы} title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <AllWordsGame
             key={`${wordLang.lang}-${пак.base}`}
@@ -960,7 +979,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell pauseActions={действияПаузы} title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {к ? (
           <WordSquareGame
             key={ключКольца(к.верх, к.право, к.низ, к.лево)}
@@ -992,6 +1011,7 @@ export default function AnagramGame() {
   if (phase === 'playing') {
     return (
       <GameShell
+      pauseActions={действияПаузы}
         title={t('anagrams')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
         /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
