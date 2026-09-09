@@ -103,7 +103,22 @@ export function долиПовторов(ряд: readonly string[] = ПОСЛЕ�
  * подряд: два одинаковых захода к слову рядом — это не зарядка, а два круга
  * одной игры.
  */
-const ИГРЫ: readonly { id: string; route: string; секунд: number; ключУровня: string }[] = [
+const ИГРЫ: readonly {
+  id: string; route: string; секунд: number; ключУровня: string;
+  /**
+   * 🔴 ЧТО ЕЩЁ ОБЯЗАТЕЛЬНО ПЕРЕДАТЬ ЭКРАНУ, ЧТОБЫ ЯЗЫК ВООБЩЕ УЧАСТВОВАЛ.
+   *
+   * ⚠️ ЗАМЕР ЖИВЬЁМ 09.09.2026, И ОН ПОЙМАЛ МОЮ ЖЕ ОШИБКУ ТОГО ЖЕ ДНЯ. Я взял
+   * `word-pairs` в поток на том основании, что экран ПРИНИМАЕТ `targetLang` —
+   * и это правда. Но режим по умолчанию у него `random`: пары «апельсин →
+   * метро» на РОДНОМ языке, тренировка памяти, а `targetLang` там не читается
+   * вовсе (`word-pairs.tsx:165` — язык участвует только при `translation`).
+   * Открыл шаг в собранной сборке и увидел русские пары там, где обещан
+   * английский. Чтения исходника не хватило: «принимает параметр» и
+   * «пользуется параметром» — разные утверждения.
+   */
+  ещё?: Record<string, string>;
+}[] = [
   // Числа кругов выведены из `levelParams` самих игр, а не назначены:
   // cloze — 6…16 раундов по 14…4,5 с; semantic-sort — 10/12/15 раундов без лимита;
   // lexical-decision — 14/18/22 пробы; vocab-srs — 10 карточек.
@@ -113,7 +128,7 @@ const ИГРЫ: readonly { id: string; route: string; секунд: number; кл
   { id: 'semantic_sort',    route: '/games/semantic-sort',    секунд: 70,  ключУровня: 'semantic_sort' },
   { id: 'lexical_decision', route: '/games/lexical-decision', секунд: 45,  ключУровня: 'lexical_decision' },
   // ★ 09.09.2026: два захода, которых потоку не хватало — см. блок ниже.
-  { id: 'word_pairs',       route: '/games/word-pairs',       секунд: 38,  ключУровня: 'word_pairs' },
+  { id: 'word_pairs',       route: '/games/word-pairs',       секунд: 38,  ключУровня: 'word_pairs', ещё: { mode: 'translation' } },
   { id: 'anagrams',         route: '/games/anagrams',         секунд: 90,  ключУровня: 'anagrams' },
   { id: 'semantic_sort',    route: '/games/semantic-sort',    секунд: 70,  ключУровня: 'semantic_sort' },
   { id: 'listening_span',   route: '/games/listening-span',   секунд: 60,  ключУровня: 'listening_span' },
@@ -247,7 +262,7 @@ export function языковыеТемы(
       секунд: и.секунд,
       уровень: Math.max(1, уровни[и.ключУровня] ?? 1),
       // Ряд задаёт УЗОР чередования, а какие именно языки — решает интерфейс.
-      настройки: { targetLang: шаг === ЯЗЫКИ_ПОТОКА[0] ? первый : второй },
+      настройки: { targetLang: шаг === ЯЗЫКИ_ПОТОКА[0] ? первый : второй, ...(и.ещё ?? {}) },
     });
   }
   return темы;
