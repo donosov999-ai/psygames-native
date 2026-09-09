@@ -464,6 +464,22 @@ export default function VisualSearchGame() {
         <GameShell
           title={t('visualSearch')}
           onBack={() => goBackOrHome()}
+          /**
+           * Меню паузы (каркас 2.52.2). Стрелка «назад» больше не выбрасывает из
+           * живой партии одним касанием: она ДЕРЖИТ партию и открывает меню.
+           *
+           * ⚠️ «Правила» — УСЛОВНЫЙ пункт: `LevelRuleModal` рисует что-то только
+           * при `levelRules.active` (LevelRules.tsx:168), и на уровне без
+           * спец-правила пункт открыл бы пустоту.
+           */
+          pauseActions={[
+            { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+            { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame() },
+            ...(levelRules.active
+              ? [{ id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline' as const, onPress: () => levelRules.setOpen(true) }]
+              : []),
+            { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+          ]}
           /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
           hud={[
             { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}`, pop: true },
