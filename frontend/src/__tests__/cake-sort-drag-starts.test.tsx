@@ -172,4 +172,51 @@ describe('перетаскивание в тортах начинается', ()
     expect(поднятых(r)).toBe(0);
     expect(подписи().length).toBe(было.length);
   });
+  /**
+   * 🔴 ЖЕСТ ОБЯЗАН СДЕЛАТЬ ХОД, А НЕ ПРОСТО ПОГАСНУТЬ.
+   *
+   * 📍 Заведено 09.09.2026 по двум находкам живого разбора, и без него обе
+   * прошли бы мимо:
+   *
+   * 1. Обработчики движения и отпускания читали СОСТОЯНИЕ того рендера, где
+   *    рука ещё пуста: система ответчика запоминает их в момент захвата.
+   *    Движение выходило первой строкой, отпускание видело пустую руку — ход не
+   *    делался ни разу. Лечится ссылками (`тащимRef` / `цельRef`).
+   * 2. Отпускание делало `setSel(f)` и тут же звало тап: тап в том же такте
+   *    видел `sel === null` и ВЫБИРАЛ цель вместо хода. В браузере беда
+   *    пряталась — если выбор уже был сделан раньше, ход проходил, и жест
+   *    выглядел рабочим через раз.
+   *
+   * ⚠️ Поэтому проба начинает с ЧИСТОГО состояния и требует, чтобы содержимое
+   * тарелок ИЗМЕНИЛОСЬ. «Подсветка погасла» этого не ловит: она гаснет и когда
+   * ничего не произошло.
+   */
+  it('🔴 жест ПЕРЕКЛАДЫВАЕТ кусок, а не только гасит подсветку', async () => {
+    const r = await открыть('1');
+    const с = стол(r);
+    const d = диаметр(r);
+    const подписи = () => тарелки(r).map((n: any) => n.props.accessibilityLabel);
+    const было = подписи();
+    // Пустая тарелка есть всегда: тарелок на уровне больше, чем видов.
+    const пустая = было.findIndex((л: string) => /:\s*0\//.test(л));
+    const полная = было.findIndex((л: string) => /:\s*[1-9]\d*\//.test(л));
+    expect(пустая).toBeGreaterThanOrEqual(0);
+    expect(полная).toBeGreaterThanOrEqual(0);
+    const центр = (i: number) => {
+      const кол = Math.max(1, Math.min(3, было.length));
+      const шаг = d + PLATE_GAP;
+      return { x: PLATE_GAP / 2 + (i % кол) * шаг + d / 2, y: PLATE_GAP / 2 + Math.floor(i / кол) * шаг + d / 2 };
+    };
+    const a = центр(полная); const b = центр(пустая);
+    await TestRenderer.act(async () => {
+      с.props.onStartShouldSetResponderCapture({ nativeEvent: { pageX: a.x, pageY: a.y } });
+      с.props.onMoveShouldSetResponderCapture({ nativeEvent: { pageX: a.x + 40, pageY: a.y } });
+      с.props.onResponderGrant({ nativeEvent: { pageX: a.x + 40, pageY: a.y } });
+      с.props.onResponderMove({ nativeEvent: { pageX: b.x, pageY: b.y } });
+      с.props.onResponderRelease();
+    });
+    await TestRenderer.act(async () => { for (let i = 0; i < 20; i += 1) await Promise.resolve(); });
+    expect(подписи()).not.toEqual(было);
+    expect(поднятых(r)).toBe(0);
+  }, 120_000);
 });
