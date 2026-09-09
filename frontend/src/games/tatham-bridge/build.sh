@@ -1,0 +1,32 @@
+#!/bin/bash
+set -u
+# Где лежит канон Тэтхэма. По умолчанию — рядом с репозиторием; переопределяется PUZZLES_SRC.
+# Клонировать: git clone https://git.tartarus.org/simon/puzzles.git
+HERE="$(cd "$(dirname "$0")" && pwd)"
+SRC="${PUZZLES_SRC:-$HOME/dev/puzzles}"
+[ -d "$SRC" ] || { echo "нет канона Тэтхэма: $SRC (задай PUZZLES_SRC)"; exit 2; }
+command -v emcc >/dev/null || { echo "нет emcc — source ~/dev/emsdk/emsdk_env.sh"; exit 2; }
+cd "$SRC" || exit 1
+G="unruly keen towers unequal singles tents magnets pearl slant map signpost filling dominosa tracks pattern galaxies solo fifteen lightup loopy"
+mkdir -p /tmp/gen
+: > /tmp/gen/generated-games.h
+for g in $G; do echo "GAME($g)" >> /tmp/gen/generated-games.h; done
+{
+  echo '#include "puzzles.h"'
+  printf 'const game *gamelist[] = { '
+  for g in $G; do printf '&%s, ' "$g"; done
+  echo '};'
+  printf 'const int gamecount = %d;\n' "$(echo $G | wc -w)"
+} > /tmp/combined-list.c
+SRCS=""
+for g in $G; do SRCS="$SRCS $g.c"; done
+CORE="combi.c divvy.c dsf.c findloop.c grid.c latin.c laydomino.c loopgen.c malloc.c matching.c midend.c misc.c random.c sort.c tdq.c tree234.c version.c penrose.c penrose-legacy.c hat.c spectre.c"
+emcc -Os -DCOMBINED -I. -I/tmp/gen \
+  nullfe.c /tmp/combined-list.c "$HERE/psy_bridge.c" $SRCS $CORE \
+  -s WASM=1 -s ENVIRONMENT=web,node -s MODULARIZE=1 -s ALLOW_MEMORY_GROWTH=1 \
+  -s FILESYSTEM=0 -s EXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString \
+  -o "$HERE/tatham.js" 2> "$HERE/build.err"
+rc=$?
+[ $rc -ne 0 ] && { grep -E "error:" "$HERE/build.err" | head -5; exit $rc; }
+w=$(stat -f%z "$HERE/tatham.wasm"); gz=$(gzip -c "$HERE/tatham.wasm"|wc -c|tr -d ' '); j=$(stat -f%z "$HERE/tatham.js")
+printf "🟢 ВЕСЬ МОСТ, %d головоломок ОДНИМ модулем: wasm %d КБ · gzip %d КБ · обвязка %d КБ\n" "$(echo $G|wc -w)" $((w/1024)) $((gz/1024)) $((j/1024))
