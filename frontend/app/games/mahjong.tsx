@@ -16,6 +16,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import { reserveBottom } from '@/src/games/search/layout';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import GameAbout from '@/src/components/GameAbout';
@@ -1291,7 +1292,17 @@ const styles = StyleSheet.create({
   configDesc: { fontSize: 13, textAlign: 'center' },
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
-  fieldCol: { alignItems: 'center', gap: 8 },   // hint + контейнер слоёв плиток внутри поля каркаса
+  /**
+   * 🔴 РЕЗЕРВ ПОД НИЖНЮЮ ПОЛОСУ, КОТОРОЙ ЗДЕСЬ НЕТ. Отвечают тапом по полю, и
+   * рисовать полосу нельзя — `slot-meaning` справедливо потребовал бы объявить,
+   * чем игрок отвечает внизу. Но у быстрого счёта раздела полоса ЕСТЬ, и без
+   * резерва поле этой игры разрастается вниз на её высоту: замер 09.09.2026 дал
+   * расхождение центров полей 67 точек на экране 390 и 97 на 360. В «Зарядке»
+   * игры идут вперемешку, и человек видит именно этот скачок.
+   *
+   * Число одно на весь раздел — `reserveBottom` в `src/games/search/layout.ts`.
+   */
+  fieldCol: { alignItems: 'center', gap: 8, marginBottom: reserveBottom(0) },   // hint + контейнер слоёв плиток внутри поля каркаса
   hintText: { fontSize: 12, textAlign: 'center' },
   hintStuck: { fontSize: 13, fontWeight: '700' },   // доска встала — строка обязана быть заметнее обычной подсказки
   // Пересдача уровня. minHeight 44 — палец, а не мышь: кнопка появляется в

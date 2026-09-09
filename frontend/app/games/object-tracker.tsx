@@ -62,6 +62,7 @@ import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import GameShell, { PAD_H } from '@/src/components/GameShell';
+import { reserveBottom } from '@/src/games/search/layout';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
@@ -439,7 +440,14 @@ const styles = StyleSheet.create({
    * всю ширину, и начинается с `16 + (−16) = 0`.
    */
   // Поле во всю ширину: гасим боковой отступ каркаса ЕГО ЖЕ числом (см. PAD_H).
-  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -PAD_H },
+  /**
+   * 🔴 РЕЗЕРВ ПОД НИЖНЮЮ ПОЛОСУ, КОТОРОЙ ЗДЕСЬ НЕТ — см. `reserveBottom`.
+   *
+   * ⚠️ Слежению этого МАЛО, и я это знаю: у него ещё и верх поля 71 вместо 119,
+   * потому что счётчиков у каркаса нет вовсе и плашка стоит пустой. Низ свожу
+   * сейчас, верх — шагом «слежение в слоты каркаса», отдельной правкой.
+   */
+  stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -PAD_H, marginBottom: reserveBottom(0) },
   header: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 10 },
   back: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   title: { color: ON_GRAD.color, fontSize: 20, fontWeight: '800', flexShrink: 1 },
