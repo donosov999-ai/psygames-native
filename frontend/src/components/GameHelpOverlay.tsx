@@ -115,6 +115,13 @@ export function HelpCornerRow({ rtl, mood, top, label, helpLabel, accent, accent
   );
 }
 
+/**
+ * Открыть справку снаружи (меню паузы): экран игры не держит её состояние — она живёт
+ * в общем угловом слое. Событие, а не проп, потому что слой рисуется каркасом, а зовёт
+ * его экран (09.09.2026, меню паузы пространственных упражнений).
+ */
+export const HELP_OPEN_EVENT = 'psygames:help-open';
+
 export default function GameHelpOverlay() {
   const mood = useGameMood();
   const router = useRouter();
@@ -221,6 +228,10 @@ export default function GameHelpOverlay() {
   const accentFg = onAccent.color;
   const accentFgSoft = onGradientTextMuted(onAccent);
   const openHelp = () => { setCoach(false); setOpen(true); };
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(HELP_OPEN_EVENT, openHelp);
+    return () => sub.remove();
+  }, []);
 
   return (
     <>
