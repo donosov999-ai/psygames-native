@@ -39,10 +39,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, useWindowDimensions
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import Svg, { Polygon, G, Rect, Defs, LinearGradient as SvgGradient, Stop, Line } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -76,7 +73,6 @@ import {
   interpolateMentalRotation,
   levelParams,
   rotationLevelSpec,
-  ROTATION_LEVELS,
   meanSlopeRt,
   netCellKey,
   netSize,
@@ -646,7 +642,7 @@ export default function MentalRotationGame() {
                 style={[styles.nextBtn, { width: '100%', maxWidth: 480, minHeight: 48, alignItems: 'center', backgroundColor: GRADIENT[0], borderColor: GRADIENT[0] }]}
               >
                 <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 16 }}>
-                  {language === 'ru' ? (round < trials ? 'Следующий раунд' : 'Завершить уровень') : strings.reviewNext}
+                  {round < trials ? strings.reviewNextRound : strings.reviewFinishLevel}
                 </Text>
               </TouchableOpacity>
             )}
@@ -661,7 +657,7 @@ export default function MentalRotationGame() {
             </Text>}
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>
               {task.kind === 'rotation'
-                ? (compactScreen&&language==='ru'?'Найди повёрнутую копию':t('mentalRotationHint'))
+                ? (compactScreen ? strings.hintCompact : t('mentalRotationHint'))
                 : task.kind === 'projection'
                   ? interpolateMentalRotation(strings.projectionPrompt, {
                       view: task.view === 'top' ? strings.viewTop : task.view === 'front' ? strings.viewFront : strings.viewSide,
@@ -683,7 +679,7 @@ export default function MentalRotationGame() {
                 {task.kind === 'net' ? strings.taskNet : t('label_reference')}
               </Text>
             </View>
-            {reviewing&&task.kind==='rotation'&&!manualReview?<TouchableOpacity testID="rotation-manual-start" accessibilityRole="button" onPress={()=>setManualReview(true)} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.primary,fontWeight:'700'}}>{language==='ru'?'Вращать самому':'Rotate manually'}</Text></TouchableOpacity>:null}
+            {reviewing&&task.kind==='rotation'&&!manualReview?<TouchableOpacity testID="rotation-manual-start" accessibilityRole="button" onPress={()=>setManualReview(true)} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.primary,fontWeight:'700'}}>{strings.rotateManually}</Text></TouchableOpacity>:null}
             {reviewing && (
               <View style={[styles.reviewBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <Text style={[styles.reviewTitle, { color: colors.text }]}>{strings.reviewTitle}</Text>
