@@ -269,7 +269,6 @@ export const CAT_FRAMES: Record<string, any[]> = {
     require('@/assets/images/pet/cat/walk3.webp'),
     require('@/assets/images/pet/cat/walk4.webp'),
     require('@/assets/images/pet/cat/walk5.webp'),
-    require('@/assets/images/pet/cat/walk6.webp'),
   ],
   wave: [
     require('@/assets/images/pet/cat/wave0.webp'),
