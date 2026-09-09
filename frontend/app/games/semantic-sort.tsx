@@ -24,6 +24,7 @@ import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { BilingualToggle } from '@/src/components/BilingualToggle';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
@@ -32,6 +33,7 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
+import { БИЛИНГВО, параЯзыков, рядЯзыков } from '@/src/services/bilingualMode';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#10b981', '#6366f1'];
@@ -117,6 +119,8 @@ export default function SemanticSortGame() {
   const [elapsedTime, setElapsedTime] = useState(0);
 
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+  /** Режим билингво: два иностранных вперемешку в одной партии (см. bilingualMode). */
+  const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
 
   const startGame = async () => {
     /**
@@ -177,7 +181,15 @@ export default function SemanticSortGame() {
      * Порядок обращён: сначала отбираем слова, потом у каждого берём его
      * категорию. Логика «коварных» дистракторов ниже не тронута.
      */
-    const wordsPool = TRANSLATION_VOCAB.filter((w) => w[tgt] && w.cat && cats.includes(w.cat));
+    /**
+     * 🔴 В БИЛИНГВО СЛОВО БЕРЁТСЯ ИЗ ЗАПИСИ, ЗАПОЛНЕННОЙ НА ОБОИХ ЯЗЫКАХ.
+     * Иначе на половине раундов пришлось бы подставлять пустую строку — запись
+     * есть, а перевода на нужный язык нет. Пул от этого короче, и это честная
+     * цена режима: показываем только то, что можем показать на любом из двух.
+     */
+    const языкиРаунда = билингво ? рядЯзыков(rc, language) : [];
+    const wordsPool = TRANSLATION_VOCAB.filter((w) => w.cat && cats.includes(w.cat)
+      && (билингво ? параЯзыков(language).every((l) => w[l]) : !!w[tgt]));
     const seenWords = await readSeen('semantic_sort_words', profile?.id);
     const freshRes = pickFreshFrom(wordsPool, rc, seenWords, (w) => String(w.en), Math.random);
     await writeSeen('semantic_sort_words', profile?.id, freshRes.seen);
@@ -187,7 +199,8 @@ export default function SemanticSortGame() {
       const entry = freshRes.picked[r];
       if (!entry) break;
       const correctCat = String(entry.cat);
-      const word = String(entry[tgt]);
+      const языкСлова = билингво ? (языкиРаунда[r] ?? tgt) : tgt;
+      const word = String(entry[языкСлова]);
       const others = cats.filter((c) => c !== correctCat);
       for (let i = others.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -338,6 +351,7 @@ export default function SemanticSortGame() {
             ))}
           </View>
         </View>
+        <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]} />
 
       </View>
     </ScrollView>
