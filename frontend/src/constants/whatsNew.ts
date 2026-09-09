@@ -16,6 +16,50 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.52.10',
+    date: '2026-09-09',
+    ru: [
+      'Технический выпуск: доставка исправлений «Ментальной ротации» — экран во весь размер, вращение и меню паузы',
+    ],
+    en: [
+      'Technical release: delivers the Mental Rotation fixes — full-size board, rotation and the pause menu',
+    ],
+  },
+  {
+    version: '2.52.9',
+    date: '2026-09-09',
+    ru: [
+      '«Поворот чисел» и «Сеть труб» вернулись к своему экрану: поле во весь экран, уровни — своими кнопками',
+    ],
+    en: [
+      '“Number Twist” and “Pipe Network” are back to their own screen: full-size board, levels via their own buttons',
+    ],
+  },
+  {
+    version: '2.52.8',
+    date: '2026-09-09',
+    ru: [
+      'Вращение вернулось во все три упражнения «Ментальной ротации»: фигура крутится, разбор ошибки показывает поворот, блок и труба поворачиваются с анимацией',
+      '«Поворот чисел» и «Сеть труб»: стрелка «назад» открывает меню паузы — продолжить, заново, отменить ход, правила, на главную',
+    ],
+    en: [
+      'Rotation is back in all three “Mental Rotation” exercises: the shape turns, the mistake review shows the turn, the block and the pipe rotate with animation',
+      '“Number Twist” and “Pipe Network”: the back arrow opens a pause menu — resume, restart, undo, rules, home',
+    ],
+  },
+  {
+    version: '2.52.7',
+    date: '2026-09-09',
+    ru: [
+      '«Поворот чисел» и «Сеть труб»: убрана лишняя полоса уровней над полем — поле снова во весь экран',
+      'Ментальная ротация: разбор ошибки снова показывает, как повернулась фигура',
+    ],
+    en: [
+      '“Number Twist” and “Pipe Network”: the extra level strip above the board is gone — the board is full-screen again',
+      'Mental Rotation: the mistake review shows how the shape turned again',
+    ],
+  },
+  {
     version: '2.52.6',
     date: '2026-09-09',
     ru: [
