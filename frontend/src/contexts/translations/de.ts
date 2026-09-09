@@ -2527,5 +2527,10 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_rule": "Ab diesem Level werden die überzähligen Wörter im Raster so gewählt, dass sie den gehörten ÄHNLICH KLINGEN. Man verwechselt sie leicht — halte deshalb nicht nur die Wörter, sondern auch ihre Reihenfolge.",
   "lr_listening_span_similar_example": "Du hast «casa» gehört — daneben steht dann «cama». Wähle das Gehörte, nicht das Ähnliche.",
   "warmupOvertime": "Die {m} Min sind um. Verbleibende Durchgänge: {n}",
+  // Добавлено вручную 09.09.2026 (пустая развилка). Регенерация воркфлоу их подхватит.
+  "hubEmptyTitle": "Hier ist in diesem Profil noch nichts",
+  "hubEmptyDesc": "Die Übungen hinter diesem Eingang gehören nicht zum gewählten Profil. Wechsle das Profil in den Einstellungen, um sie zu öffnen.",
+  "hubEmptyAction": "Alle Spiele",
+  "hubLoading": "Wird geladen…",
 };
 export default t;

@@ -2521,5 +2521,10 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_rule": "このレベルからは、盤面の余分な言葉が、聞いた言葉に“似た響き”のものから選ばれます。取り違えやすいので、言葉だけでなく順番も保ってください。",
   "lr_listening_span_similar_example": "「casa」を聞いたなら、隣に「cama」が並びます。似ているものではなく、聞いたものを選んでください。",
   "warmupOvertime": "{m} 分が経過しました。残りのラウンド：{n}",
+  // Добавлено вручную 09.09.2026 (пустая развилка). Регенерация воркфлоу их подхватит.
+  "hubEmptyTitle": "このプロフィールではまだ何もありません",
+  "hubEmptyDesc": "この入口の練習は選択中のプロフィールに含まれていません。設定でプロフィールを切り替えると開きます。",
+  "hubEmptyAction": "すべてのゲーム",
+  "hubLoading": "読み込み中…",
 };
 export default t;

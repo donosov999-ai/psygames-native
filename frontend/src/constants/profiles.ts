@@ -1144,6 +1144,21 @@ export function formatPrice(rub: number): string {
 const ALWAYS_ALLOWED = new Set<string>([
   'picture_pairs', 'breathing',
   'mental_rotation', 'spatial_lab',
+  /**
+   * 🔴 КЛАССИЧЕСКАЯ СУДОКУ — ВО ВСЕХ ПРОФИЛЯХ. Решение Дениса 09.09.2026:
+   * «судоку тоже ошибка, как и ментальная ротация».
+   *
+   * ЗАМЕР ЖИВЬЁМ 09.09.2026 (собранный веб, обход всех 17 развилок по профилям):
+   * `/games/sudoku-hub` открывался с заголовком «Судоку: три доски», подписью
+   * «ВЫБЕРИ ДОСКУ» — и НУЛЁМ карточек под ней у 7 профилей из 13 (free, seniors,
+   * drivers, execs, students, vasilyeva, polyglot). Ровно то же было у
+   * `/games/spatial-hub` до 7165f239.
+   *
+   * ⚠️ Самурай и фрактал СОЗНАТЕЛЬНО не добавлены: это доски на часы, они и
+   * должны открываться профилем. Всегда открыта одна — классическая, чтобы за
+   * входом никогда не было пусто.
+   */
+  'sudoku',
 ]);
 
 export function isGameAllowed(profile: ProfileDef, gameId: string): boolean {

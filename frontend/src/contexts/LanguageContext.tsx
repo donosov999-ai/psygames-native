@@ -907,6 +907,20 @@ const translations: Translations = {
   yourTime: { ru: 'Ваше время', en: 'Your Time' },
   yourScore: { ru: 'Ваш счёт', en: 'Your Score' },
   goHome: { ru: 'На главную', en: 'Go Home' },
+  /**
+   * ПУСТАЯ РАЗВИЛКА. Экран развилки — меню; когда за ним профилю не открыто ни
+   * одного упражнения, он рисовал заголовок, подпись «Выбери упражнение» и НИЧЕГО
+   * под ней. Замер 09.09.2026 на собранном вебе: так вели себя 6 развилок из 17 у
+   * профиля «Бесплатный» и 4 из 17 у «Детей». Снаружи это «не запускается, ошибка».
+   */
+  hubEmptyTitle: { ru: 'В этом профиле здесь пока пусто', en: 'Nothing here in this profile yet' },
+  hubEmptyDesc: {
+    ru: 'Упражнения этой развилки не входят в выбранный профиль. Их можно открыть, сменив профиль в настройках.',
+    en: 'The exercises behind this entry are not part of the selected profile. Switch profiles in settings to open them.',
+  },
+  hubEmptyAction: { ru: 'Ко всем играм', en: 'All games' },
+  /** Профиль ещё читается — список пуст не потому, что закрыт. */
+  hubLoading: { ru: 'Загружаем…', en: 'Loading…' },
   shareResult: { ru: 'Поделиться', en: 'Share' },
   shareCopied: { ru: 'Результат скопирован ✓', en: 'Result copied ✓' },
   configureGame: { ru: 'Настройка игры', en: 'Configure Game' },
