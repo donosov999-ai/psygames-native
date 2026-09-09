@@ -34,6 +34,8 @@ import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
 import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
 import { allWordsCount, allWordsPack, банкКлассики, словаПоДлине } from '@/src/games/anagrams/core/allWords';
 import { classicLevel as levelParams } from '@/src/games/anagrams/core/classicLevel';
+import { БИЛИНГВО, тройки } from '@/src/services/bilingualMode';
+import { BilingualToggle } from '@/src/components/BilingualToggle';
 import { стилиРежима } from '@/src/games/anagrams/modeStyles';
 import { ключКольца, кольцаЯзыка, языкиКолец } from '@/src/games/anagrams/core/ring';
 import { показатьКорейское } from '@/src/games/anagrams/core/chamo';
@@ -132,6 +134,15 @@ export default function AnagramGame() {
   const { profile } = useProfile();
   const { isPreset, str, autostart, num, isCalm } = useGamePreset();
   const wordLang = useWordLanguage('anagrams', profile?.id, language, str('targetLang', ''));
+  /**
+   * 🔴 РЕЖИМ БИЛИНГВО В АНАГРАММАХ — ТРОЙКАМИ, А НЕ ЧЕРЕДОВАНИЕМ.
+   * Решение Дениса 10.09.2026: одно слово три раза — родной, потом два
+   * иностранных. Первый заход решается как анаграмма, второй и третий —
+   * припоминание перевода. Разбор в `bilingualMode.тройки`.
+   */
+  const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
+  const очередьТроек = useRef<{ язык: string; слово: string; родное: string | null }[]>([]);
+  const тройкаIdx = useRef(0);
 
   useCalmHush(isCalm);   // вечер и ночь: ни писка на букву, ни победного звука
   const lvl = usePersistentLevel('anagrams');
@@ -476,6 +487,32 @@ export default function AnagramGame() {
   };
 
   const newRound = () => {
+    if (билингво) {
+      const шаг = очередьТроек.current[тройкаIdx.current];
+      тройкаIdx.current += 1;
+      if (шаг) {
+        const w = шаг.слово.toUpperCase();
+        setTarget(w);
+        /**
+         * Подсказка второму и третьему заходу — САМО РОДНОЕ СЛОВО. Это и есть
+         * задача режима: значение уже поднято, достань перевод. У первого
+         * захода подсказки нет — он решается как обычная анаграмма.
+         */
+        setHint(шаг.родное ?? '');
+        let arr2 = w.split('');
+        let n = 0;
+        do { arr2 = shuffle(arr2); n++; } while (arr2.join('') === w && n < 5);
+        setLetters(arr2);
+        setPicked([]);
+        hist.reset();
+        закрытьСлово(false);
+        /* Лимита времени на слово в этом режиме нет: припоминание перевода
+           медленнее решения анаграммы, и общий секундомер это уже учитывает. */
+        if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+        wordDeadlineAtRef.current = 0;
+        return;
+      }
+    }
     const len = lengthRef.current;
     let bank = wordsBank(len, theme);
     if (bank.length < 4) bank = wordsBank(len, 'all');   // мало слов этой темы на этой длине → вся длина
@@ -551,6 +588,30 @@ export default function AnagramGame() {
       setLength(p.length);
       setTotalTrials(p.trials);
       setWordSec(p.wordSec);
+    }
+    /**
+     * ⚠️ ДЛИНА СЛОВА В ТРОЙКАХ НЕ ПОДЧИНЯЕТСЯ ЛЕСТНИЦЕ, И ЭТО ЦЕНА РЕЖИМА.
+     * Слово берётся из словаря значений, а перевод той же длины не бывает:
+     * «арбуз» пять букв, `watermelon` десять. Держать длину значило бы выкинуть
+     * почти все тройки. Поэтому в этом режиме растёт не длина, а число троек.
+     */
+    if (билингво) {
+      const годится = (w: string) => /^[\p{L}]{3,12}$/u.test(w);
+      /* Своим `shuffle` проекта, а не Math.random здесь: `startGame` зовётся и
+         автостартом, и правило React-компилятора справедливо считает вызов
+         случайности на этом пути вызовом во время рендера. */
+      const перемешано = shuffle([...TRANSLATION_VOCAB] as unknown[]);
+      const т = тройки(перемешано as Record<string, unknown>[], language,
+        Math.max(1, Math.ceil(trialsRef.current / 3)), годится);
+      очередьТроек.current = т.flatMap((x) => x.шаги.map((ш, i) => ({
+        язык: ш.язык,
+        слово: ш.слово,
+        // Родное слово — подсказка второму и третьему заходу: вспомни перевод.
+        родное: i === 0 ? null : x.шаги[0]!.слово,
+      })));
+      тройкаIdx.current = 0;
+      trialsRef.current = очередьТроек.current.length;
+      setTotalTrials(очередьТроек.current.length);
     }
     hitsRef.current = 0; errorsRef.current = 0; hintUsesRef.current = 0;
     roundRef.current = 1;
@@ -666,7 +727,12 @@ export default function AnagramGame() {
       if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
       const guess = newPicked.map((i) => letters[i]).join('');
       // Любая валидная анаграмма из этих букв = зачёт (буквы те же — игрок собрал их все)
-      const correct = guess === target || validWordsRef.current.has(guess);
+      /**
+       * ⚠️ В ТРОЙКАХ ЗАСЧИТЫВАЕТСЯ ТОЛЬКО ТОЧНОЕ СЛОВО. Обычная анаграмма
+       * принимает любое настоящее слово из тех же букв — здесь это сломало бы
+       * смысл: спрашивается КОНКРЕТНЫЙ перевод, а не любое слово.
+       */
+      const correct = билингво ? guess === target : (guess === target || validWordsRef.current.has(guess));
       if (correct) { hitsRef.current += 1; setHits(hitsRef.current); hapticSuccess(); }
       else { errorsRef.current += 1; setErrors(errorsRef.current); hapticError(); }
       nextTimerRef.current = setTimeout(advance, 700);
@@ -720,6 +786,15 @@ export default function AnagramGame() {
           мата» той же недели: три параллельных входа в одну игру человек читает
           как три разные игры и спрашивает, чем они отличаются.
         */}
+        {/*
+          ⚠️ ПЕРЕКЛЮЧАТЕЛЬ СТОИТ ДО ВЫБОРА РЕЖИМА, ПОТОМУ ЧТО ОТМЕНЯЕТ ЧАСТЬ
+          НАСТРОЕК: в тройках длина слова идёт от словаря, а не от лестницы, и
+          лимита времени на слово нет. Показать его после и не связать значило бы
+          оставить человека гадать, почему выбранная длина ни на что не влияет.
+        */}
+        {режимИгры === 'classic' && (
+          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]} />
+        )}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
           <View style={styles.optionButtons}>
