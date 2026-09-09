@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.52.9',
+    date: '2026-09-09',
+    ru: [
+      '«Поворот чисел» и «Сеть труб» вернулись к своему экрану: поле во весь экран, уровни — своими кнопками',
+    ],
+    en: [
+      '“Number Twist” and “Pipe Network” are back to their own screen: full-size board, levels via their own buttons',
+    ],
+  },
+  {
     version: '2.52.8',
     date: '2026-09-09',
     ru: [

@@ -94,7 +94,17 @@ describe('экраны', () => {
       const canDemote = src.includes(`${lvl}.fail()`);
       const canPick = /\bonPickLevel\b/.test(src);
       const countsRuns = src.includes('countsRuns');
-      if (!canDemote && !canPick && !countsRuns) stuck.push(f);
+      // Четвёртая дорога назад — СВОИ кнопки уровня на экране игры («Проще», «Свободная»):
+      // так устроены «Поворот чисел» и «Сеть труб», и тропинка каркаса им не нужна
+      // (09.09.2026: тропинка поверх их экрана обрезала поле на iPhone — отчёт cc1a7535).
+      // Экран тонкого маршрута лежит этажом ниже (src/components/<Экран>.tsx) — там и кнопки.
+      const делегат = (() => {
+        const m = /from '@\/src\/components\/(\w+)'/.exec(src);
+        if (!m) return '';
+        try { return strip(fs.readFileSync(path.join(__dirname, '..', 'components', `${m[1]}.tsx`), 'utf8')); } catch { return ''; }
+      })();
+      const ownLadder = /Проще/.test(делегат) && /Свободная/.test(делегат);
+      if (!canDemote && !canPick && !countsRuns && !ownLadder) stuck.push(f);
     }
     expect(stuck).toEqual([]);
   });
