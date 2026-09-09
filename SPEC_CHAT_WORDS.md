@@ -24,7 +24,7 @@ frontend/src/games/anagrams/**
 frontend/src/games/fillwords/**
 frontend/src/components/letterWheel/**
 frontend/app/games/anagrams.tsx
-frontend/app/games/proofreading.tsx
+frontend/app/games/proofreading.tsx      # ← твой ЦЕЛИКОМ с 07.09.2026
 frontend/src/constants/allWords*.json
 wordlist-build/**
 frontend/src/__tests__/  — только anagram*, allwords*, fillwords*, proofread*, wordlist*
@@ -97,6 +97,17 @@ frontend/src/__tests__/  — только anagram*, allwords*, fillwords*, proof
 
 ## 4. Очередь — сверху вниз
 
+> ⚠️ **СВЕРЕНО С КОДОМ 09.09.2026.** Пункты 4.2, 4.3 и 4.4 ниже ЗАКРЫТЫ, текст
+> оставлен как история задачи. Живая очередь — в `words-chat/PROJECT_REF.md` §5.
+> · 4.2 лестница «Квадрата слов» — есть, 0,74 → 6,30 по четвертям.
+> · 4.3 кроссворд — 9 языков игроку (`anagrams.tsx:199`); ⚠️ но гейт
+>   `anagrams-crossword` проверяет укладку только на `ru`/`en` — семь языков
+>   раздаются непроверенными, это и есть остаток пункта.
+> · 4.4 нелатинские — `ko`, `ar`, `ja` в игре, всего 10 (`wordLanguage.ts:44`).
+> · 4.1 филворды — лестница до 94-го уровня; дальше растить нечем без новой
+>   разметки словаря по темам (отрицательный ответ в `PROJECT_REF.md` §5.1).
+
+
 ### 4.1. Филворды до пяти тысяч уровней
 У образца жанра их 5000, у нас лестница упирается в 12×9 на 24-м уровне и
 дальше уровни отличаются только раскладом. Замерь, чем растить дальше: третья
@@ -118,6 +129,27 @@ frontend/src/__tests__/  — только anagram*, allwords*, fillwords*, proof
 собираются обратно из чамо), арабский с налогом на начертание, японский на
 кане, хинди вдвое тоньше, китайскому механика не подходит по числу. Возьми
 корейский первым — он самый чистый.
+
+---
+
+## 4.5. Отчёты тестировщиков — смотреть КАЖДЫЙ заход
+
+Раздела с этим запросом здесь не было до 09.09.2026, хотя `CHATS_RULES.md` §7
+требует проверки каждый заход — и два отчёта по корректуре из-за этого пролежали
+незамеченными. Запрос (Supabase `personal-nzt`):
+
+```sql
+select id, created_at::date, person, game_id, message
+from app_feedback
+where game_id in ('anagrams','proofreading','fillwords')
+  and status = 'new'
+order by created_at desc;
+```
+
+🔴 Закрывая отчёт, обязателен `fix_note` на языке автора — гейт выпуска его
+проверяет. ⚠️ Замер 09.09: `26af9227` («подсказка не работает») был закрыт
+версией 2.43.0 БЕЗ `fix_note`, и через три дня тот же человек написал то же
+самое (`19eaaa3a`). Закрытие без следа = отчёт вернётся.
 
 ---
 

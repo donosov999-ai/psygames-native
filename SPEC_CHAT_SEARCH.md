@@ -21,7 +21,6 @@
 
 ```
 frontend/app/games/visual-search.tsx
-frontend/app/games/proofreading.tsx
 frontend/app/games/find-differences.tsx
 frontend/app/games/mahjong.tsx
 frontend/app/games/schulte.tsx
@@ -31,8 +30,15 @@ frontend/app/games/search-hub.tsx
 frontend/src/games/mahjong/**
 frontend/src/__tests__/mahjong-*
 frontend/src/__tests__/visual-search-*
-frontend/src/__tests__/proofreading-*
 ```
+
+> 🔴 **КОРРЕКТУРА (`proofreading.tsx` и её пробы) ОТДАНА ЧАТУ «СЛОВА» 07.09.2026** —
+> решение Дениса дословно: «`proofreading.tsx` — мой целиком, включая корректуру
+> и змейку». До этого экран числился в ТЗ ОБОИХ чатов сразу, и 08.09 это уже
+> сработало: коммит `51cdb9db` правил его отсюда. Правка была верной по сути
+> (задание переехало к полю по отчёту `a269f970`), но владелец у файла один —
+> `psygames-words-claude-mac`. Нашёл дефект — пиши ему в канал `psygames`, не правь.
+
 
 **За их пределы не выходишь.** Не трогаешь `src/games/anagrams/`,
 `src/games/goods-sort/`, `src/games/sudoku/`, `src/games/water-sort/`,
@@ -109,10 +115,13 @@ frontend/src/__tests__/proofreading-*
 при потолке 20 с. Перенесено в `beforeAll` координатором 06.09.2026. Если
 будешь добавлять партии — держи потолок файла (`jest.setTimeout(90_000)`).
 
-### 4.3. Отчёт тестировщика, который ждёт
+### 4.3. Отчёт тестировщика — передан вместе с экраном
 
-«Подсказка ни фига не работает» — `proofreading`, 05.09.2026, NZT-48.
-Померь, прежде чем чинить: что именно она делает сейчас.
+«Подсказка ни фига не работает» (`proofreading`, 05.09.2026, NZT-48) ушёл к чату
+«Слова» вместе с файлом 07.09.2026. ⚠️ Замер 09.09: тот отчёт был закрыт версией
+2.43.0 БЕЗ `fix_note`, и 08.09 тестировщик написал то же самое снова
+(`19eaaa3a`). Здесь ничего делать не надо — оставлено как след, чтобы отчёт не
+считали потерянным.
 
 ---
 
@@ -121,7 +130,7 @@ frontend/src/__tests__/proofreading-*
 ```sql
 select id, created_at::date, person, game_id, message
 from app_feedback
-where game_id in ('visual-search','proofreading','find-differences','mahjong',
+where game_id in ('visual-search','find-differences','mahjong',
                   'schulte','quick-count','object-tracker')
   and status = 'new'
 order by created_at desc;
