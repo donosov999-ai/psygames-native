@@ -130,9 +130,9 @@ export default function AnagramGame() {
    * русском интерфейсе английские анаграммы были недоступны вовсе.
    */
   const { profile } = useProfile();
-  const wordLang = useWordLanguage('anagrams', profile?.id, language);
+  const { isPreset, str, autostart, num, isCalm } = useGamePreset();
+  const wordLang = useWordLanguage('anagrams', profile?.id, language, str('targetLang', ''));
 
-  const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечер и ночь: ни писка на букву, ни победного звука
   const lvl = usePersistentLevel('anagrams');
   /**

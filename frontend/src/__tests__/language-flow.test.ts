@@ -16,7 +16,7 @@ import { GAMES } from '@/src/constants/games';
 declare const __dirname: string;
 declare function require(id: string): any;
 
-const уровни = { vocab_srs: 4, cloze: 7, semantic_sort: 2, lexical_decision: 9 };
+const уровни = { vocab_srs: 4, cloze: 7, semantic_sort: 2, lexical_decision: 9, anagrams: 5 };
 
 describe('языковой поток', () => {
   it('языков ровно два — английский и испанский (решение Дениса 08.09.2026)', () => {
@@ -72,7 +72,7 @@ describe('языковой поток', () => {
     const пары = т.map((x) => `${x.game_id}=${x.уровень}`);
     expect(пары).toEqual([
       'vocab_srs=4', 'cloze=7', 'semantic_sort=2', 'lexical_decision=9',
-      'vocab_srs=4', 'semantic_sort=2',
+      'anagrams=5', 'semantic_sort=2',
     ]);
   });
 
@@ -83,7 +83,7 @@ describe('языковой поток', () => {
 
   it('ключи уровней перечислены и без дублей', () => {
     expect([...КЛЮЧИ_УРОВНЕЙ].sort())
-      .toEqual(['cloze', 'lexical_decision', 'semantic_sort', 'vocab_srs']);
+      .toEqual(['anagrams', 'cloze', 'lexical_decision', 'semantic_sort', 'vocab_srs']);
   });
 
   /**

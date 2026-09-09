@@ -9,7 +9,7 @@
  * языке, и человек списал бы это на то, что выбор не сохраняется.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { readWordLang, saveWordLang, defaultWordLang, type WordLang } from '@/src/services/wordLanguage';
+import { readWordLang, saveWordLang, defaultWordLang, isWordLang, type WordLang } from '@/src/services/wordLanguage';
 
 /**
  * 🔴 ХРАНИМ «ДЛЯ КАКОГО ЯЗЫКА ИНТЕРФЕЙСА ПОСЧИТАНО», А НЕ ФЛАГ «ГОТОВО».
@@ -32,8 +32,34 @@ import { readWordLang, saveWordLang, defaultWordLang, type WordLang } from '@/sr
  * посчитано», а `ready` и сам язык слов ВЫЧИСЛЯЮТСЯ В РЕНДЕРЕ — такое равенство
  * отстать не может, оно пересчитывается вместе с языком интерфейса.
  */
-export function useWordLanguage(gameId: string, profileId: string | undefined, uiLanguage: string) {
+/**
+ * 🔴 ЧЕТВЁРТЫЙ ДОВОД — ЯЗЫК ИЗ ШАГА ЗАРЯДКИ, И ОН СИЛЬНЕЕ ХРАНИЛИЩА.
+ *
+ * 📍 ЗАЧЕМ. Языковой поток задаёт язык КАЖДОМУ шагу (`targetLang` в параметрах
+ * маршрута) — на этом стоит всё чередование и вместе с ним `switchCostMs`. Но
+ * анаграммы и «Беглость речи» читали язык ТОЛЬКО из хранилища и в потоке
+ * молча остались бы на одном языке: ряд en→es→de для них не существовал.
+ * Поэтому обе игры в состав потока не входили — их отсутствие было следствием
+ * этого хука, а не решением о составе.
+ *
+ * ⚠️ ЯЗЫК ИЗ ШАГА НЕ СОХРАНЯЕТСЯ. Зарядка — гость: она говорит, на чём играть
+ * СЕЙЧАС, и не вправе переписывать выбор, сделанный человеком в самой игре.
+ * Поэтому здесь только чтение; `pick` по-прежнему пишет в хранилище и означает
+ * ручной выбор.
+ *
+ * ⚠️ И ПРОВЕРЯЕТСЯ ПО ИГРЕ. Шаг может попросить язык, которого у ЭТОЙ игры нет
+ * (у анаграмм свой список, у беглости свой). Негодный — молча игнорируется, и
+ * работает прежний путь: хранилище, затем язык интерфейса. Иначе поток отдал бы
+ * пустую партию, а человек решил бы, что игра сломана.
+ */
+export function useWordLanguage(
+  gameId: string,
+  profileId: string | undefined,
+  uiLanguage: string,
+  изШага?: string,
+) {
   const [выбор, setВыбор] = useState<{ lang: WordLang; forLang: string } | null>(null);
+  const шаговый = isWordLang(изШага, gameId) ? изШага : null;
 
   useEffect(() => {
     if (!profileId) return undefined;          // без профиля читать нечего — значение считается ниже
@@ -45,9 +71,10 @@ export function useWordLanguage(gameId: string, profileId: string | undefined, u
 
   // Годится только выбор, посчитанный для ТЕКУЩЕГО языка интерфейса.
   const свежий = выбор && выбор.forLang === uiLanguage ? выбор : null;
-  const lang = свежий ? свежий.lang : defaultWordLang(uiLanguage, gameId);
+  const lang = шаговый ?? (свежий ? свежий.lang : defaultWordLang(uiLanguage, gameId));
+  // Язык из шага известен сразу — ждать хранилище незачем.
   // Без профиля хранилище не спрашиваем, значит значение верно уже сейчас.
-  const ready = свежий !== null || !profileId;
+  const ready = шаговый !== null || свежий !== null || !profileId;
 
   const pick = useCallback((v: WordLang) => {
     setВыбор({ lang: v, forLang: uiLanguage });

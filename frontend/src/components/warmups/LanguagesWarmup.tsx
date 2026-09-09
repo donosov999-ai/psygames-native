@@ -14,9 +14,15 @@
  * (пропущенное), отнести к категории (сортировка), отличить слово от не-слова
  * (лексическое решение). Пятое того же вида дало бы длину без нового навыка.
  *
- * ⚠️ АНАГРАММ И БЕГЛОСТИ ЗДЕСЬ НЕТ НАРОЧНО: они читают язык из ХРАНИЛИЩА
- * (`useWordLanguage`), а не из параметра шага, и в потоке остались бы на одном
- * языке молча. Вернутся, когда хук научится смотреть параметр первым.
+ * ★ 09.09.2026 АНАГРАММЫ ВОШЛИ В СОСТАВ. `useWordLanguage` научился смотреть
+ * `targetLang` шага прежде хранилища, и у анаграмм есть слова на ДЕСЯТИ языках
+ * (ru en de es fr it ko pt ar ja) — ряд потока им подходит целиком.
+ *
+ * ⚠️ БЕГЛОСТИ РЕЧИ В СОСТАВЕ НЕТ, И ЭТО ЗАМЕР, А НЕ ЗАБЫВЧИВОСТЬ. У неё слова
+ * только на ДВУХ языках — `ru` и `en` (`wordLangsFor('phonemic_fluency')`), и
+ * один из них у русскоговорящего занят якорем. Чередовать ей нечем: любой шаг
+ * ряда, кроме английского, свалился бы к запасному пути и молча дал тот же
+ * язык. Войдёт, когда у неё появятся буквенные наборы ещё хотя бы на одном.
  */
 import React from 'react';
 import { WarmupCard } from '@/src/components/WarmupCard';
@@ -34,12 +40,14 @@ export function LanguagesWarmup() {
   const пропуск = usePersistentLevel('cloze');
   const категории = usePersistentLevel('semantic_sort');
   const решение = usePersistentLevel('lexical_decision');
+  const анаграммы = usePersistentLevel('anagrams');
 
   const уровни = {
     vocab_srs: карточки.level,
     cloze: пропуск.level,
     semantic_sort: категории.level,
     lexical_decision: решение.level,
+    anagrams: анаграммы.level,
   };
 
   return (
@@ -49,7 +57,7 @@ export function LanguagesWarmup() {
       descKey="languagesWarmupDesc"
       ярлык="языки"
       accent={АКЦЕНТ_ЯЗЫКИ}
-      loading={!карточки.loaded || !пропуск.loaded || !категории.loaded || !решение.loaded}
+      loading={!карточки.loaded || !пропуск.loaded || !категории.loaded || !решение.loaded || !анаграммы.loaded}
     />
   );
 }
