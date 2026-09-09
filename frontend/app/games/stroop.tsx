@@ -25,7 +25,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_H } from '@/src/games/attention/layout';
+import { ANSWER_BAR_H, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
 import { answerButton, BTN_GAP } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
   // Ширина ряда НЕ ограничивается своим числом: её задаёт слот каркаса
   // (390 − FAB_GUTTER·2 = 258 на телефоне). Прежний maxWidth 360 обещал место,
   // которого нет, и кнопки 140 ложились по одной — четыре ряда вместо двух.
-  answersGrid: { height: ANSWER_BAR_H, flexDirection: 'row', flexWrap: 'wrap', gap: BTN_GAP, justifyContent: 'center', width: '100%' },
+  answersGrid: { ...ANSWER_BAR_ROW },
   /**
    * ⚠️ РАЗМЕР ДЕРЖИТСЯ САМ, А НЕ ТЕКСТОМ. Высоту плашке давала подпись (16 + два
    * отступа по 16 ≈ 51pt); без неё осталось бы 32pt — меньше нормы попадания

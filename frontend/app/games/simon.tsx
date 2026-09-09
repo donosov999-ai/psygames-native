@@ -40,7 +40,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_H, stimBox } from '@/src/games/attention/layout';
+import { ANSWER_BAR_H, stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -500,5 +500,5 @@ const styles = StyleSheet.create({
   },
   choiceBtn: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
   // RTL-пин: раскладка кнопок лево/право не зеркалится в ar (web: writingDirection → CSS direction)
-  toolbarLtr: { height: ANSWER_BAR_H, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', writingDirection: 'ltr', maxWidth: '100%' },
+  toolbarLtr: { ...ANSWER_BAR_ROW, gap: 10, writingDirection: 'ltr', maxWidth: '100%' },
 });

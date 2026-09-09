@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_H, BTN_GAP, answerButton, stimBox } from '@/src/games/attention/layout';
+import { ANSWER_BAR_H, BTN_GAP, answerButton, stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
   // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
   stimBox: { borderRadius: 16, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   // Тот же ряд, что у обычного Струпа: ширину задаёт слот каркаса, а не своё число.
-  choiceGrid: { height: ANSWER_BAR_H, flexDirection: 'row', gap: BTN_GAP, flexWrap: 'wrap', justifyContent: 'center', width: '100%' },
+  choiceGrid: { ...ANSWER_BAR_ROW },
   // Размеры приходят из answerButton('choice') — тот же макет, что у обычного Струпа.
   colorBtn: { alignItems: 'center', justifyContent: 'center' },
   colorBtnText: { color: '#FFF', fontSize: 14, fontWeight: '800' },
