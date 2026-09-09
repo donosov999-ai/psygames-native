@@ -595,6 +595,7 @@ const translations: Translations = {
   collectionTitle:  { ru: 'Коллекция', en: 'Collection' },
   collectionSub:    { ru: 'Собрано {have} из {all} · ⭐{earned} за всё время', en: '{have} of {all} collected · ⭐{earned} all time' },
   collectionLocked: { ru: 'Откроется на ⭐{n}', en: 'Opens at ⭐{n}' },
+  collectionHowToOpen: { ru: '{name}: откроется на ⭐{at}, не хватает {n} ⭐ — звёзды приходят за партии', en: '{name}: opens at ⭐{at}, {n} ⭐ to go — stars come from rounds' },
   collectionOpen:   { ru: 'Открыть коллекцию', en: 'Open collection' },
   figAcorn:        { ru: 'Жёлудь', en: 'Acorn' },
   figPebble:    { ru: 'Камешек',     en: 'Pebble' },

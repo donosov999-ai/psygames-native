@@ -343,6 +343,7 @@ const t: Record<string, string> = {
   "collectionTitle": "컬렉션",
   "collectionSub": "{all}개 중 {have}개 · 누적 ⭐{earned}",
   "collectionLocked": "⭐{n}에 열림",
+  "collectionHowToOpen": "{name}: ⭐{at}에 열림, {n}⭐ 남음 — 별은 게임으로 모아요",
   "collectionOpen": "컬렉션 열기",
   "figAcorn": "도토리",
   "figPebble": "조약돌",

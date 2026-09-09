@@ -1257,6 +1257,7 @@ const t: Record<string, string> = {
   "collectionTitle": "收藏",
   "collectionSub": "已收集 {have}/{all} · 累计 ⭐{earned}",
   "collectionLocked": "⭐{n} 解锁",
+  "collectionHowToOpen": "{name}：⭐{at} 时解锁，还差 {n} ⭐——星星来自对局",
   "collectionOpen": "打开收藏",
   "figAcorn": "橡果",
   "figPebble": "石子",
