@@ -16,6 +16,34 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.52.0',
+    date: '2026-09-09',
+    ru: [
+      'Судоку, карандашные пометки: цифры не влезали в клетку — в ряд помещались две вместо трёх, и 7, 8, 9 оказывались за её пределами. Отсюда и «больше одной не поставить», и пляшущие мимо квадратиков цифры. Теперь в клетку встают все девять, и на выделенной клетке их видно',
+      'Судоку: кнопка «Правила» рассказывает про ТЕКУЩИЙ уровень — каким приёмом берётся именно эта доска, а не игра вообще. Шапка перестала дублировать номер уровня',
+      'Зарядка на пять минут длилась две с половиной. План считал себя по числам, проставленным на глаз при заведении игры, а они завышены вдвое. Теперь считает по замеру настоящих партий — пять минут стали пятью минутами',
+      '«Доска в уме»: фигуру в вопросе и в разборе ошибок теперь видно — она рисуется той же картинкой, что на доске, а не бледным шрифтовым значком',
+      'Корректура: буквы, которые надо искать, переехали к самому полю. Раньше они стояли в шапке, и глаз ходил через весь экран на каждой клетке',
+      'Кнопки после партии стали одинаковыми во всех играх. У «Глубокого фрактала» появился выход, которого не было вовсе',
+      'Сортировка товаров больше не засчитывает уровень досрочно: с 56-го уровня полки уходят в очередь и возвращаются, и пустая доска там ещё не конец',
+      'Торты и Пицца: кусок берётся со всей тарелки. Раньше засчитывалась только середина, и больше трети касаний уходило в никуда',
+      'Языковая зарядка даёт английский и испанский вперемешку, а русский остаётся якорем',
+      'Нижние вкладки стали стеклянными — под ними видно поле',
+    ],
+    en: [
+      'Sudoku pencil marks: the digits did not fit the cell — two per row instead of three, so 7, 8 and 9 ended up outside it. Hence both “you can only place one” and the digits dancing past the squares. All nine fit now, and they are visible on the selected cell',
+      'Sudoku: the “Rules” button now explains the CURRENT level — which technique cracks this very board, not the game in general. The header no longer repeats the level number',
+      'A five-minute warm-up lasted two and a half. The plan measured itself with numbers set by eye when each game was added, and those were twice too large. It now measures by real play — five minutes are five minutes',
+      '“Board in Mind”: the piece in the question and in the error review is visible now — drawn with the same image as on the board, not a pale glyph',
+      'Proofreading: the letters to look for moved next to the grid. They used to sit in the header, and the eye travelled across the whole screen on every cell',
+      'Post-game buttons are the same shape in every game. “Deep Fractal” gained an exit it never had',
+      'Goods Sort no longer credits a level early: from level 56 shelves leave into a queue and come back, so an empty board is not the end there',
+      'Cakes and Pizza: a slice is picked from the whole plate. Only the middle counted before, and over a third of taps went nowhere',
+      'The language warm-up mixes English and Spanish, with Russian as the anchor',
+      'The bottom tabs went glass — the field shows through',
+    ],
+  },
+  {
     version: '2.51.0',
     date: '2026-09-07',
     ru: [
