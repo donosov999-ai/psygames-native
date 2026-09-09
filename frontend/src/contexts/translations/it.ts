@@ -604,7 +604,7 @@ const t: Record<string, string> = {
   "spatialTwiddle": "Rotazione dei numeri",
   "spatialNetDesc": "Ruota i tubi perché l’acqua raggiunga ogni estremità",
   "spatialTwiddleDesc": "Ruota un blocco 2×2 e metti i numeri in ordine",
-  "spatialGroup": "Rotazione mentale",
+  "spatialGroup": "Rotazione mentale: 3 prove",
   "spatialGroupDesc": "Figure, tubi e rotazione dei numeri — tre esercizi di rotazione nella mente",
   "spatialGroupFootnote": "Tutti e tre allenano una cosa: tenere l’immagine e ruotarla nella testa, non con le mani.",
   "spatialGroupIntroDesc": "Tre esercizi di rotazione mentale. «Rotazione mentale»: trova la copia ruotata di una figura di cubi. «Rotazione dei numeri»: ruota un blocco 2×2 per mettere i numeri in ordine. «Rete di tubi»: ruota i tubi perché l’acqua raggiunga ogni estremità.",

@@ -296,7 +296,7 @@ const t: Record<string, string> = {
   "spatialTwiddle": "数字旋转",
   "spatialNetDesc": "旋转管道，让水流到每个端口",
   "spatialTwiddleDesc": "转动2×2方块，把数字排好顺序",
-  "spatialGroup": "心理旋转",
+  "spatialGroup": "心理旋转：3 项练习",
   "spatialGroupDesc": "图形、管道与数字旋转——三项在脑中旋转的练习",
   "spatialGroupFootnote": "三项练的是同一件事：记住图像，在脑中而不是用手把它转过来。",
   "spatialGroupIntroDesc": "三项心理旋转练习。«心理旋转»——找出方块图形旋转后的副本。«数字旋转»——转动2×2方块把数字排好顺序。«管道网络»——旋转管道让水流到每个端口。",
