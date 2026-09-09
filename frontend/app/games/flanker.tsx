@@ -44,7 +44,6 @@ const FL_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
-type Difficulty = 'easy' | 'medium' | 'hard';
 type TrialKind = 'congruent' | 'incongruent' | 'neutral';
 type Direction = 'left' | 'right';
 
@@ -146,7 +145,7 @@ export default function FlankerGame() {
   const router = useRouter();
 
   const lvl = usePersistentLevel('flanker');
-  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
@@ -154,7 +153,6 @@ export default function FlankerGame() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   // пресет (зарядка) передаёт diff/trials; личная игра рулится уровнем
-  const [difficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
   const [trials, setTrials] = useState(() => num('trials', 20));
   /** Разнос «цель ↔ фланги» текущего уровня, px. Ось Эриксена — см. levelParams. */
   const [gapPx, setGapPx] = useState(FLANKER_GAP_MAX);
@@ -213,7 +211,8 @@ export default function FlankerGame() {
 
   const startGame = () => {
     // личная игра → уровень рулит; пресет (зарядка) → выбранный тир маппится в уровень
-    const effLevel = isPreset ? ({ easy: 3, medium: 8, hard: 13 } as Record<Difficulty, number>)[difficulty] ?? 8 : lvl.level;
+    // Зарядка и оценка идут с ЛИЧНОГО уровня (решение Дениса 09.09.2026: «мы меряем прогресс человека», фикс-ступень тира снята во всей игре).
+    const effLevel = lvl.level;
     const p = levelParams(effLevel);
     levelRef.current = effLevel;
     windowRef.current = p.windowMs;

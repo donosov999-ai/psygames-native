@@ -24,14 +24,16 @@
  */
 import { ASSESSMENT_PLAYLIST, DOMAINS, scoreSessions, sessionFitsStep } from '@/src/services/assessment';
 import type { GameSession } from '@/src/services/api';
-import { switchCostMs, PRESET_LEVEL_BY_DIFF as SW_PRESET, levelParams as swParams } from '@/app/games/switching-task';
-import { PRESET_LEVEL_BY_DIFF as POSNER_PRESET, levelParams as posnerParams } from '@/app/games/posner';
-import { PRESET_LEVEL_BY_DIFF as CPT_PRESET, levelParams as cptParams, presetDurationSec, MIN_TRIALS_FOR_LEVEL } from '@/app/games/cpt';
-import { PRESET_LEVEL_BY_DIFF as PATTERN_PRESET } from '@/app/games/pattern';
+import { switchCostMs, levelParams as swParams } from '@/app/games/switching-task';
+import { levelParams as posnerParams } from '@/app/games/posner';
+import { levelParams as cptParams, presetDurationSec, MIN_TRIALS_FOR_LEVEL } from '@/app/games/cpt';
 import { nFromModeParam } from '@/app/games/n-back';
 import { MAX_BURST_BY_DIFF } from '@/app/games/bart';
 import { buildKeymap } from '@/app/games/sdmt';
 
+
+declare const __dirname: string;
+declare function require(id: string): any;
 // ─── 1. Шапка не врёт про длительность ────────────────────────────────────
 
 describe('длительность батареи', () => {
@@ -168,44 +170,47 @@ describe('легенда SDMT', () => {
 
 // ─── 7. Пресет — фиксированная конфигурация, а не личный уровень ──────────
 
-describe('фиксированные конфигурации пресета (оценка/зарядка)', () => {
+describe('зарядка и оценка идут с ЛИЧНОГО уровня (решение Дениса 09.09.2026)', () => {
   /**
-   * Экран стартует пресет через PRESET_LEVEL_BY_DIFF[diff] (паттерн flanker.tsx:144).
-   * Достаточно двух свойств: (1) карта одна и та же у всех пяти уровневых игр
-   * батареи, (2) каждый тир падает ВНУТРЬ соответствующей полосы difficulty-
-   * раскладки этих игр (≤5 easy · ≤10 medium · ≥11 hard) — тогда партия
-   * запишется с той difficulty, которую предписал шаг, и sessionFitsStep её
-   * опознает. Личный уровень в карту не входит по построению — мутация
-   * «вернуть lvl.level» ломает типовой контракт стартов, а не этот тест,
-   * поэтому рядом стоит проверка шага батареи через sessionFitsStep.
+   * До 09.09.2026 семь уровневых экранов в пресете подменяли уровень фикс-ступенью тира
+   * (`PRESET_LEVEL_BY_DIFF[diff]`, паттерн flanker: easy 3 · medium 8 · hard 13). Решение
+   * Дениса: «играет один человек — мы меряем прогресс человека», зарядка и оценка идут с
+   * его личного уровня во ВСЕЙ игре. Следствие для батареи: шаг уровневой игры не может
+   * предписывать difficulty — метка партии выводится из личного уровня, и с `medium` в шаге
+   * партия человека на 3-м или 12-м уровне не опознавалась бы (`sessionFitsStep`).
+   *
+   * Мутации, на которых проба краснеет: вернуть карту тира в любой экран app/games (п. 1);
+   * вернуть `difficulty: 'medium'` в шаг уровневой игры (п. 2, 3).
    */
-  const MAPS: Record<string, Record<string, number>> = {
-    switching_task: SW_PRESET,
-    posner: POSNER_PRESET,
-    cpt: CPT_PRESET,
-    /*
-     * 🔴 «МЫСЛЕННОЕ ВРАЩЕНИЕ» УБРАНО ИЗ КАРТЫ 09.09.2026 — решение Дениса:
-     * зарядка идёт с ЛИЧНОГО уровня игрока, а не с фиксированной ступени тира.
-     * Пространственный пакет так и собран: `selectedLevel = min(50, lvl.level)`.
-     * Остальные четыре игры карту сохраняют, и их сверка между собой цела.
-     */
-    pattern: PATTERN_PRESET,
-  };
+  const fs = require('fs'); const path = require('path');
+  const ЭКРАНЫ_DIR = path.join(__dirname, '..', '..', 'app', 'games');
+  const УРОВНЕВЫЕ_ШАГИ = ['posner', 'cpt', 'flanker', 'switching_task', 'pattern', 'mental_rotation'];
 
-  it('карта тир→уровень одна на все пять игр и попадает в свои полосы', () => {
-    for (const [game, map] of Object.entries(MAPS)) {
-      expect({ game, ...map }).toEqual({ game, easy: 3, medium: 8, hard: 13 });
-      expect(map.easy).toBeLessThanOrEqual(5);
-      expect(map.medium).toBeGreaterThanOrEqual(6);
-      expect(map.medium).toBeLessThanOrEqual(10);
-      expect(map.hard).toBeGreaterThanOrEqual(11);
+  it('🔴 ни один экран не подменяет уровень фикс-ступенью тира в пресете', () => {
+    const bad: string[] = [];
+    for (const f of fs.readdirSync(ЭКРАНЫ_DIR).filter((x: string) => x.endsWith('.tsx'))) {
+      const src: string = fs.readFileSync(path.join(ЭКРАНЫ_DIR, f), 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+      if (/PRESET_LEVEL_BY_DIFF/.test(src) || /isPreset\s*\?\s*\(?\{\s*easy:/.test(src)) bad.push(f);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('🔴 шаги батареи уровневых игр не предписывают difficulty', () => {
+    for (const game of УРОВНЕВЫЕ_ШАГИ) {
+      const step = ASSESSMENT_PLAYLIST.find((s) => s.game_id === game)!;
+      expect(`${game}: ${step.difficulty ?? 'нет'}`).toBe(`${game}: нет`);
     }
   });
 
-  it('все шаги батареи по этим играм просят medium → пресет играет уровень 8', () => {
-    for (const game of Object.keys(MAPS)) {
+  it('🔴 партия уровневой игры опознаётся шагом при ЛЮБОЙ метке difficulty (личный уровень 3 и 12)', () => {
+    const примеры: [string, string][] = [['posner', 'lvl3'], ['posner', 'lvl12'], ['switching_task', 'mix·lvl12'], ['pattern', 'lvl3'], ['flanker', '15t']];
+    for (const [game, mode] of примеры) {
       const step = ASSESSMENT_PLAYLIST.find((s) => s.game_id === game)!;
-      expect(`${game}: ${step.difficulty}`).toBe(`${game}: medium`);
+      for (const difficulty of ['easy', 'medium', 'hard']) {
+        const session: GameSession = { game_type: game, score: 0, time_seconds: 60, difficulty, mode };
+        expect(`${game} ${mode} ${difficulty}: ${sessionFitsStep(session, step)}`).toBe(`${game} ${mode} ${difficulty}: true`);
+      }
     }
   });
 
@@ -241,7 +246,7 @@ describe('фиксированные конфигурации пресета (о
      * ту же константу, что и код, не меряет ничего — она сравнивает константу
      * саму с собой и зеленеет на любом её значении.
      */
-    const p = swParams(SW_PRESET.medium);
+    const p = swParams(8 /* канонический пример: уровень 8 */);
     expect(p.switchProb).toBeCloseTo(0.5, 3);
     expect(p.windowMs).toBe(2385);
     expect(p.switchProb).toBeGreaterThanOrEqual(0.4);
@@ -249,7 +254,7 @@ describe('фиксированные конфигурации пресета (о
   });
 
   it('posner: medium-пресет — окно 1535 мс, SOA 115..481 мс (из levelParams экрана)', () => {
-    const p = posnerParams(POSNER_PRESET.medium);
+    const p = posnerParams(8 /* канонический пример: уровень 8 */);
     expect(p).toEqual({ trials: 30, windowMs: 1535, soaMinMs: 115, soaMaxMs: 481 });
   });
 
@@ -260,7 +265,7 @@ describe('фиксированные конфигурации пресета (о
   });
 
   it('cpt: в 4 минуты medium-пресета (AX, ISI 980) проб влезает с запасом от порога зачёта', () => {
-    const p = cptParams(CPT_PRESET.medium);
+    const p = cptParams(8 /* канонический пример: уровень 8 */);
     expect(p.mode).toBe('AX');
     const fits = Math.floor((presetDurationSec('4min', p.durationSec) * 1000) / (p.isiMs * 2));
     expect(fits).toBeGreaterThanOrEqual(MIN_TRIALS_FOR_LEVEL * 2);   // ~122 против 24

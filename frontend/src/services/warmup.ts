@@ -21,7 +21,8 @@ export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Sunday, 1 = Monday, ...
 export interface PlaylistStep {
   game_id: string;        // matches GAMES[].id
   game_route: string;     // /games/<slug>
-  difficulty: Difficulty;
+  /** Только где трудность — настройка, а не лестница; у уровневых игр уровень личный (решение 09.09.2026). */
+  difficulty?: Difficulty;
   trials?: number;        // override default trials count
   mode?: string;          // override default mode (game-specific)
   settings?: Record<string, string | number>;  // arbitrary preset для игры (напр. {targetLang:'en', pairCount:10, modality:'single'}) — передаётся в URL-params, игра применяет через useGamePreset
@@ -93,7 +94,8 @@ export interface PlaylistMeta {
  * каждого профиля свой, и перечислять игры поимённо значит забыть новую.
  */
 export function stepToParams(step: PlaylistStep, slot?: WarmupSlot): Record<string, string> {
-  const p: Record<string, string> = { wu: '1', diff: step.difficulty };
+  const p: Record<string, string> = { wu: '1' };
+  if (step.difficulty) p.diff = step.difficulty;   // у уровневых игр шаг трудность не задаёт — уровень личный
   // Вечер И НОЧЬ: в полночь торопить человека тем более незачем.
   if (slot === 'evening' || slot === 'night') p.calm = '1';
   if (step.trials != null) p.trials = String(step.trials);

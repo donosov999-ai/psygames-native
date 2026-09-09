@@ -180,7 +180,6 @@ export function trialsThatFit(level: number): number {
  * уровня, а НЕ тихий NaN. При ISI 980мс в 4 минуты влезает ~122 пробы против
  * ~45 за 90с — CV-RT по сотне откликов, а не по горстке.
  */
-export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
 export function presetDurationSec(modeParam: string, fallbackSec: number): number {
   const m = /^(\d+)min$/.exec(modeParam);
   return m ? parseInt(m[1], 10) * 60 : fallbackSec;
@@ -395,7 +394,8 @@ export default function CPTGame() {
   const startGame = () => {
     // личная игра → уровень рулит; пресет (зарядка/оценка) → фикс-уровень тира +
     // длительность из mode-параметра шага ('4min' → 240с). Паттерн flanker.tsx:144.
-    const effLevel = isPreset ? (PRESET_LEVEL_BY_DIFF[str('diff', 'medium')] ?? 8) : lvl.level;
+    // Зарядка и оценка идут с ЛИЧНОГО уровня (решение Дениса 09.09.2026: «мы меряем прогресс человека», фикс-ступень тира снята во всей игре).
+    const effLevel = lvl.level;
     const p = levelParams(effLevel);
     levelRef.current = effLevel;
     presetModeRef.current = isPreset ? str('mode', '') : '';
