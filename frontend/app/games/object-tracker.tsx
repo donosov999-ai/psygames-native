@@ -66,7 +66,7 @@ import { reserveBottom } from '@/src/games/search/layout';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
-import ObjectTrackerGame from '@/src/games/object-tracker/ObjectTrackerGame';
+import ObjectTrackerGame, { type ObjectTrackerHud } from '@/src/games/object-tracker/ObjectTrackerGame';
 import {
   LEVELS,
   getObjectTrackerStrings,
@@ -144,6 +144,12 @@ export default function ObjectTrackerScreen() {
    * должен, а «вы уверены?» на показе целей был бы вопросом ни о чём.
    */
   const [armed, setArmed] = React.useState(false);
+  /**
+   * Показания слежения для шапки каркаса. Модуль отдаёт ЧИСЛА (`ObjectTrackerHud`),
+   * а какими словами и в каком порядке их показать — решаем здесь, общим каноном
+   * счётчиков, как в остальных пяти играх раздела.
+   */
+  const [hud, setHud] = React.useState<ObjectTrackerHud | null>(null);
 
   // Уровень из адреса (шаг зарядки, вызов дня) важнее сохранённого.
   // Потолок 41 — дальше генератор не растёт, и обещать несуществующее нельзя.
@@ -264,6 +270,28 @@ export default function ObjectTrackerScreen() {
          */
         confirmExit={armed}
         /**
+         * 🔴 СЧЁТЧИКИ В ШАПКЕ КАРКАСА, А НЕ ВНУТРИ ПОЛЯ.
+         *
+         * Замер 09.09.2026: слежение было ЕДИНСТВЕННОЙ игрой раздела с пустой
+         * плашкой — высота 8 против 56 у остальных пяти, верх поля 71 против
+         * 119. Уровень и прогресс рисовал модуль у себя, и в «Зарядке» экран
+         * прыгал на 48 точек при каждом переходе к слежению и обратно.
+         *
+         * Второй счётчик зависит от фазы, и это не украшение: на слежении
+         * человеку важны СЕКУНДЫ (сколько ещё смотреть), на ответе — сколько
+         * целей уже отмечено. Показывать оба сразу незачем, а пустая позиция
+         * снова разъехалась бы по ширине.
+         *
+         * ⚠️ Подписи — словами из словаря, тон не передаём: канон каркаса
+         * (`TONE_BY_KEY`) красит `time` и `found` одинаково во всех играх.
+         */
+        hud={[
+          { key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: hud?.level ?? level },
+          hud?.phase === 'moving'
+            ? { key: 'time', icon: 'time' as const, label: t('time'), value: `${hud.current}/${hud.total}`, pop: true }
+            : { key: 'found', icon: 'checkmark-done' as const, label: t('label_found'), value: `${hud?.current ?? 0}/${hud?.total ?? 0}`, pop: true },
+        ]}
+        /**
          * Меню паузы (каркас 2.52.2). Слежению оно нужнее прочих: тут партия —
          * это движение, которое нельзя «доглядеть потом», и случайное касание
          * стрелки раньше обрывало пробу без вопроса.
@@ -298,6 +326,7 @@ export default function ObjectTrackerScreen() {
             ballStyle={стильШаров}
             screenWidth={screenWidth}
             now={gameNow}
+            onHud={setHud}
             /**
              * Тему отдаём ЦЕЛИКОМ, а не три цвета: у нас есть тёмные профили, и
              * недокрашенная игра была бы светлым пятном посреди тёмного приложения.
