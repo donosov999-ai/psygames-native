@@ -53,6 +53,8 @@ const THUMBS: Record<string, any> = {
   memory_matrix: require('../../assets/images/gamethumbs/memory_matrix.webp'),
   memory_palace: require('../../assets/images/gamethumbs/memory_palace.webp'),
   mental_rotation: require('../../assets/images/gamethumbs/mental_rotation.webp'),
+  // Пиктограмма 160×160 нарисована кодом (сетка, блок 2×2 с числами, уголок трубы) — как 28 других пиктограмм.
+  spatial_lab: require('../../assets/images/gamethumbs/spatial_lab.webp'),
   mnemonics: require('../../assets/images/gamethumbs/mnemonics.webp'),
   n_back: require('../../assets/images/gamethumbs/n_back.webp'),
   navigator: require('../../assets/images/gamethumbs/navigator.webp'),

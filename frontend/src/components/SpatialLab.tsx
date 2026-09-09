@@ -21,6 +21,7 @@ import {createDeal,decodeSnapshot,encodeSnapshot} from '../games/spatial-core/sn
 import {spatialFrame} from '../games/spatial-core/frame';
 
 import {useReducedMotion} from '@/src/hooks/useReducedMotion';
+import {useLanguage} from '@/src/contexts/LanguageContext';
 type Mode = 'twiddle' | 'net';
 type LevelTask = NetLevelTask | (TwiddleLevelTask & {locked:number[];highlighted:number[]});
 const deal = (mode:Mode,seed:number) => session((mode==='net'?netPuzzle(seed):scramble(seed)).initial);
@@ -56,6 +57,7 @@ export function SpatialPipe({cell,active,source}:{cell:Cell;active:boolean;sourc
 }
 
 export default function SpatialLab({onBack,preset,onComplete}:{onBack:()=>void;preset?:{mode:Mode;level:number;seed:number};onComplete?:(result:{mode:Mode;level:number;moves:number})=>void}) {
+  const {t}=useLanguage();   // названия упражнений — из общего словаря (12 языков), не литералами
   const {colors}=useTheme();
   const {h:viewportHeight}=useScreenSize();
   const {profile,ready:profileReady}=useProfile();
@@ -175,7 +177,7 @@ export default function SpatialLab({onBack,preset,onComplete}:{onBack:()=>void;p
   }
   const ink={color:colors.text};
   if(!profileReady||readyFor!==hydrationKey)return <View style={styles.field}><Text style={ink}>Восстанавливаю локальную партию…</Text></View>;
-  return <GameShell title={mode==='net'?'Сеть труб':'Поворот чисел'} onBack={onBack}
+  return <GameShell title={mode==='net'?t('spatialNet'):t('spatialTwiddle')} onBack={onBack}
     frame={preset?spatialFrame(viewportHeight):undefined}
     confirmExit={state.past.length>0&&!won} scrollableField
     stats={<View style={styles.stats}><Text style={ink}>Ходов: {state.past.length}</Text><Text style={ink}>{info?`Связано: ${info.connected.size}/${n*n}`:`Поле ${n}×${n}`}</Text><Text style={ink}>№ {seed}</Text></View>}

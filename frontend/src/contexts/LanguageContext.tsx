@@ -1011,6 +1011,11 @@ const translations: Translations = {
 
   // Round-4 — descriptions
   mentalRotationDesc: { ru: 'Найдите повёрнутую копию фигуры',     en: 'Find the rotated copy of a shape' },
+  spatialLab: { ru: 'Пространственная лаборатория', en: 'Spatial Lab' },
+  spatialLabDesc: { ru: 'Трубы и поворот чисел — два упражнения на мысленное вращение', en: 'Pipes and number twist — two exercises in mental rotation' },
+  spatialLabIntroDesc: { ru: 'Две головоломки на одном экране: поверни трубы, чтобы вода дошла до каждого конца, и вращай блок 2×2, чтобы расставить числа по порядку. Уровень личный, партия сохраняется на устройстве.', en: 'Two puzzles on one screen: rotate the pipes so water reaches every end, and turn a 2×2 block to put the numbers in order. Your own level; the game is saved on the device.' },
+  spatialNet: { ru: 'Сеть труб', en: 'Pipe Network' },
+  spatialTwiddle: { ru: 'Поворот чисел', en: 'Number Twist' },
   readingSpanDesc:    { ru: 'Оцените смысл и запомните слова',     en: 'Judge sense, recall last words' },
   switchingTaskDesc:  { ru: 'Чередуйте правила числа/буквы',        en: 'Alternate number/letter rules' },
   visualSearchDesc:   { ru: 'Найди все заданные фигуры среди похожих', en: 'Find all the target shapes among similar ones' },

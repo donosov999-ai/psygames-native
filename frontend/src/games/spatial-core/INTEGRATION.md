@@ -80,3 +80,35 @@
 (стенд приёмки зарядки на loopback) перенесены в `src/games/spatial-core/dev/` — код сохранён,
 маршрутов у них больше нет: гейт `onboarding-exit-visible` требует выход у каждого экрана
 верхнего уровня, а стендам он не нужен. Вернуть стенд — скопировать файл обратно в `app/`.
+
+## 09.09.2026 · каталог подготовлен, карточка ждёт стандарта
+
+Внесено: словарь `spatialLab`, `spatialLabDesc`, `spatialLabIntroDesc`, `spatialNet`,
+`spatialTwiddle` (ru/en + десять оверлеев), заголовок экрана из словаря, пиктограмма 160×160
+(`gameThumbs`, `gameThumbAudit`). Карточка в `games.ts`, справка `helpMap` и профиль НЕ
+внесены: гейт `game-standard` требует от игры каталога прогресс через `usePersistentLevel`,
+тропинку `LevelProgressMap` на экране настроек, общий экран итога (`GameResult`/`LevelCleared`)
+и уровень в `saveSession` — у `SpatialLab.tsx` свои сохранение и лестница (`localSpatial`,
+«Пройдено n/50»), звёзды и серия при этом не пишутся. Исключение `NO_LADDER` не подходит: оно
+для экранов, где измерять нечего, а здесь лестница есть.
+
+Что вносит раздел «Пространство», когда подключит стандарт: карточка `spatial_lab` (одна, см.
+ниже), `helpMap["/games/spatial-lab"]` = { nameKey spatialLab, skillKey skillSpatial, introKey
+spatialLabIntroDesc }, `'spatial_lab'` в профиле рядом с `mental_rotation`, строку
+`spatial-lab` убрать из `AWAITING_CATALOG` в `game-routes.test.ts`.
+
+```ts
+  {
+    id: 'spatial_lab',
+    nameKey: 'spatialLab',
+    descKey: 'spatialLabDesc',
+    skillKey: 'skillSpatial',
+    gradient: ['#38bdf8', '#6366f1'],
+    icon: 'git-network',
+    route: '/games/spatial-lab',
+    category: 'logic',
+  },
+```
+
+⚠️ Хвост раздела: остальной текст `SpatialLab.tsx` (кнопки, подсказки, подписи уровней) —
+русские литералы; в 12-язычном приложении экран пока говорит по-русски.
