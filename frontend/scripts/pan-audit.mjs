@@ -42,8 +42,8 @@ const ONLY = args.only ? args.only.split(',').map((s) => s.trim()) : null;
 const LIMIT = args.limit ? Number(args.limit) : Infinity;
 
 /** Узкий телефон из живых отчётов. */
-const W = 360;
-const H = 780;
+const W = args.w ? Number(args.w) : 360;
+const H = args.h ? Number(args.h) : 780;
 /**
  * Допуск переполнения. НЕ ноль: у прокручиваемых экранов полоса прокрутки в
  * headless-хроме занимает пиксель, и требовать ровного равенства значило бы
@@ -59,6 +59,24 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
  * ломает любой жест по полю.
  */
 const ДОЛГ = {};
+
+/**
+ * ВЫСОТА ДЛЯ ЗАМЕРА НИЖНЕГО КРАЯ. Основной проход идёт на 780 — там низ влезает у
+ * всех. Дефект живёт на КОРОТКИХ экранах: телефон тестировщика отдаёт 436×677,
+ * классический бюджетный Android — 360×640. Меряем на 640: это пол, ниже него
+ * телефонов в отчётах нет.
+ */
+const H_НИЗ = 640;
+/** Ниже этого — не дефект, а полоса прокрутки/округление. У counter — 22. */
+const ЗАПАС_НИЗ = 8;
+/**
+ * ДОЛГ ПО НИЖНЕМУ КРАЮ: маршрут → сколько кнопок и почему. Замер 09.09.2026 по
+ * всем 97 экранам на 360×640 и 436×677: единственный экран — счёт. Запись
+ * снимает counting-chat вместе с самим дефектом (см. его COORDINATOR_INBOX).
+ */
+const ДОЛГ_НИЗ = {
+  '/games/counter': { max: 3, why: 'нижний ряд цифровой клавиатуры («7 8 9») уходит ниже окна на 22 px при высоте 640/677; при 780 влезает' },
+};
 
 /**
  * Маршруты берём с ДИСКА — по файлам `app/games/*.tsx`, а не по каталогу.
@@ -311,6 +329,39 @@ const наездНаЗаголовок = () => {
  *
  * ⚠️ Мышью проверять бесполезно по той же причине: она страницу не таскает.
  */
+/**
+ * КНОПКИ НИЖЕ НИЖНЕГО КРАЯ ЭКРАНА (замер, пока не гейт).
+ *
+ * Кадры тестировщика 09.09.2026: в n-back кнопка MATCH на пяти снимках подряд
+ * (v1.198…v2.37.46, вьюпорт 436×677) прижата к нижнему краю и обрезана — видна
+ * полоска. Ни один гейт этого не видел: pan-audit меряет ширину, tap-audit —
+ * размер, а «кнопка есть, но ниже экрана» не мерил никто.
+ *
+ * Считаем кнопки, чей низ ниже окна и которые НЕ лежат внутри прокручиваемого
+ * контейнера (там ниже сгиба — нормально, палец дотянется). Прокручиваемость —
+ * по computed overflow-y auto|scroll у предка, кроме html/body.
+ */
+const кнопкиНижеЭкрана = () => {
+  const vh = window.innerHeight;
+  const прокручиваем = (el) => {
+    for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      const o = getComputedStyle(p).overflowY;
+      if (o === 'auto' || o === 'scroll') return true;
+    }
+    return false;
+  };
+  const итог = [];
+  for (const el of document.querySelectorAll('[role="button"], button')) {
+    const b = el.getBoundingClientRect();
+    if (b.width < 8 || b.height < 8) continue;
+    if (b.bottom <= vh + 2) continue;
+    if (прокручиваем(el)) continue;
+    const текст = (el.getAttribute('aria-label') || el.innerText || '').trim().slice(0, 28);
+    итог.push({ текст, ниже: Math.round(b.bottom - vh), top: Math.round(b.top) });
+  }
+  return итог;
+};
+
 async function протащить(page) {
   const до = await page.evaluate(() => window.scrollX + document.documentElement.scrollLeft);
   const y = Math.round(H * 0.55);
@@ -358,6 +409,43 @@ async function самопроверкаПальца(ctx) {
   console.log(`Самопроверка пальца: на едущей странице сдвинул ${сдвиг} px — инструмент работает.`);
 }
 
+/**
+ * 🔴 САМОПРОВЕРКА ЗАМЕРА НИЖНЕГО КРАЯ — по той же причине, что и у пальца.
+ *
+ * «Кнопок ниже окна нет» тоже отвечается «нет» двумя способами: их правда нет —
+ * или измеритель их не видит (не тот селектор, не то окно, прокрутка посчитана
+ * не так). Заведомо устроенная страница различает эти случаи: кнопка ниже
+ * короткого окна вне прокрутки ОБЯЗАНА найтись, кнопка ниже сгиба ВНУТРИ
+ * прокручиваемого блока и кнопка в окне — обязаны НЕ найтись. Иначе гейт либо
+ * слеп, либо кричит на законную прокрутку — и в обоих случаях ему нельзя верить.
+ */
+async function самопроверкаНиза(ctx) {
+  const page = await ctx.newPage();
+  await page.setViewportSize({ width: W, height: H_НИЗ });
+  // ⚠️ meta viewport ОБЯЗАТЕЛЕН: контекст мобильный (isMobile), и без него страница
+  // раскладывается в 980 px с масштабом — innerHeight становится ~1700, и кнопка на
+  // 620 px оказывается «в окне». Первая редакция самопроверки на этом и упала.
+  await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+  <body style="margin:0;height:${H_НИЗ}px;overflow:hidden">
+    <button id="ok" style="position:fixed;top:10px;left:10px;width:100px;height:48px">в окне</button>
+    <div style="position:fixed;top:100px;left:0;width:300px;height:200px;overflow-y:auto">
+      <div style="height:900px"></div><button style="width:100px;height:48px">в прокрутке</button>
+    </div>
+    <button id="low" style="position:fixed;top:${H_НИЗ - 20}px;left:10px;width:100px;height:48px">ниже окна</button>
+  </body></html>`);
+  await page.waitForTimeout(200);
+  const найдено = (await page.evaluate(кнопкиНижеЭкрана)).filter((k) => k.ниже > ЗАПАС_НИЗ);
+  await page.close();
+  const тексты = найдено.map((k) => k.текст).sort().join(', ');
+  if (тексты !== 'ниже окна') {
+    console.log('\n🔴 ИНСТРУМЕНТ СЛОМАН: замер нижнего края на заведомо устроенной странице дал');
+    console.log(`   «${тексты || 'ничего'}», а ждали ровно «ниже окна» (кнопка в окне и кнопка в прокрутке не в счёт).`);
+    console.log('   Гейт был бы либо слеп, либо кричал на законную прокрутку. Разбираться с ним, а не с играми.');
+    process.exit(1);
+  }
+  console.log(`Самопроверка нижнего края: нашла ровно «ниже окна» (${найдено[0].ниже} px) — инструмент работает.`);
+}
+
 async function main() {
   const routes = await маршруты();
   if (!routes.length) { console.log('🔴 маршруты не найдены — аудит был бы зелён вслепую'); process.exit(1); }
@@ -387,6 +475,7 @@ async function main() {
     locale: 'ru-RU',
   });
   await самопроверкаПальца(ctx);
+  await самопроверкаНиза(ctx);
 
   const page = await ctx.newPage();
   const итог = [];
@@ -427,7 +516,12 @@ async function main() {
     }
     const наПоле = await устойчивоеПереполнение(page);
     const уехало = await протащить(page);
-    итог.push({ route, подпись, наЭкране, наПоле, наезд, уехало });
+    // Низ меряем на КОРОТКОМ окне: на 780 он влезает у всех, дефект живёт на 640/677.
+    await page.setViewportSize({ width: W, height: H_НИЗ });
+    await page.waitForTimeout(300);
+    const ниже = (await page.evaluate(кнопкиНижеЭкрана)).filter((k) => k.ниже > ЗАПАС_НИЗ);
+    await page.setViewportSize({ width: W, height: H });
+    итог.push({ route, подпись, наЭкране, наПоле, наезд, уехало, ниже });
   }
   await browser.close();
 
@@ -461,9 +555,26 @@ async function main() {
     for (const r of накрыты) console.log(`    ${r.route}: «${r.наезд.текст}» накрыт на ${r.наезд.наезд} px`);
   }
 
-  const плохо = [...new Set([...шире, ...ездит, ...накрыты].map((r) => r.route))].filter((r) => !ДОЛГ[r]);
+  const нижние = итог.filter((r) => r.ниже && r.ниже.length);
+  const нижниеНовые = нижние.filter((r) => !ДОЛГ_НИЗ[r.route] || r.ниже.length > ДОЛГ_НИЗ[r.route].max);
+  const нижниеДолг = нижние.filter((r) => ДОЛГ_НИЗ[r.route] && r.ниже.length <= ДОЛГ_НИЗ[r.route].max);
+  if (нижниеНовые.length) {
+    console.log(`\n🔴 Кнопки НИЖЕ нижнего края окна ${W}×${H_НИЗ} (палец до них не дотянется) — ${нижниеНовые.length}:`);
+    for (const r of нижниеНовые) for (const k of r.ниже) console.log(`    ${r.route}: «${k.текст}» ниже на ${k.ниже} px (top ${k.top})`);
+  }
+  if (нижниеДолг.length) {
+    console.log(`\nИзвестный долг по нижнему краю (${W}×${H_НИЗ}): ${нижниеДолг.length} экран(ов)`);
+    for (const r of нижниеДолг) console.log(`    ${r.route}: ${r.ниже.length} кнопок — ${ДОЛГ_НИЗ[r.route].why}`);
+  }
+  // Долг, который больше не нужен, — тоже сигнал: запись снимают вместе с дефектом.
+  for (const route of Object.keys(ДОЛГ_НИЗ)) {
+    const r = итог.find((x) => x.route === route);
+    if (r && !r.провал && !(r.ниже && r.ниже.length)) console.log(`\n✅ Долг по нижнему краю закрыт — снять запись ДОЛГ_НИЗ['${route}']`);
+  }
+
+  const плохо = [...new Set([...шире, ...ездит, ...накрыты, ...нижниеНовые].map((r) => r.route))].filter((r) => !ДОЛГ[r]);
   if (!плохо.length && !слепые.length) {
-    console.log('\n✅ Ни один экран не ездит вбок и не прячет заголовок под кнопками.');
+    console.log('\n✅ Ни один экран не ездит вбок, не прячет заголовок под кнопками и не роняет кнопки ниже окна.');
   }
   process.exit(плохо.length || слепые.length ? 1 : 0);
 }
