@@ -25,6 +25,7 @@
  * «прошёл» на своей тропинке.
  */
 import type { PlaylistMeta, PlaylistStep, Difficulty } from './warmup';
+import { estimateStepSec } from '@/src/services/gameDuration';
 
 /** Сколько минут длится зарядка. Те же три числа, что у общей зарядки. */
 export type ChessWarmupMinutes = 5 | 10 | 15;
@@ -50,7 +51,11 @@ export const ДЛИТЕЛЬНОСТИ: readonly WarmupMinutes[] = [5, 10, 15];
 export interface ТемаЗарядки {
   game_id: string;
   game_route: string;
-  /** Оценка длительности круга в секундах — из самого упражнения, не на глаз. */
+  /**
+   * Объявленная длительность круга, секунды — ЗАПАСНОЕ число для игр без снимка
+   * медиан (cloze, lexical_decision). Где снимок живых партий есть, набор идёт по
+   * нему через `estimateStepSec`, а это поле не участвует (см. `темаШаги`).
+   */
   секунд: number;
   /** Уровень из собственной лестницы этой игры. */
   уровень: number;
@@ -65,16 +70,27 @@ export function темаШаги(темы: readonly ТемаЗарядки[], mi
   let занято = 0;
   for (let i = 0; занято < бюджет; i++) {
     const т = темы[i % темы.length]!;
-    if (занято > 0 && занято + т.секунд / 2 > бюджет) break;
     const уровень = Math.max(1, Math.floor(т.уровень));
-    шаги.push({
+    const шаг: PlaylistStep = {
       game_id: т.game_id,
       game_route: т.game_route,
       difficulty: сложность(уровень),
       est_duration_sec: т.секунд,
       settings: { level: уровень, ...(т.настройки ?? {}) },
-    });
-    занято += т.секунд;
+    };
+    /**
+     * 🔴 ЦЕНА ШАГА — ПО ЗАМЕРУ, А НЕ ПО ОБЪЯВЛЕНИЮ (09.09.2026, задача 2f8f4444).
+     * Здесь стояло `т.секунд`: набор шёл по числам из кода, а живые партии короче
+     * их в 2–2,5 раза (vocab_srs 60 → 24, semantic_sort 70 → 32) или длиннее
+     * (анаграммы 90 → 188). Итог — «просишь десять минут, получаешь семь» или
+     * наоборот. `warmup.ts` перевели на снимок медиан 08.09 (7ec6202d), а три
+     * карточки зарядки стоят на этой функции — и остались на объявлении.
+     * `estimateStepSec` берёт медиану партии + переход, без снимка — объявленное.
+     */
+    const цена = estimateStepSec(шаг);
+    if (занято > 0 && занято + цена / 2 > бюджет) break;
+    шаги.push(шаг);
+    занято += цена;
   }
   return шаги;
 }
@@ -85,7 +101,7 @@ export function собратьТемуЗарядки(
   ярлык: string,
 ): PlaylistMeta {
   const steps = темаШаги(темы, minutes);
-  const total = steps.reduce((s, x) => s + x.est_duration_sec, 0);
+  const total = steps.reduce((s, x) => s + estimateStepSec(x), 0);
   return {
     duration_min: Math.max(1, Math.round(total / 60)),
     weekday: 0,
@@ -141,7 +157,7 @@ export function chessWarmupSteps(o: ChessWarmupOpts): PlaylistStep[] {
 
 export function buildChessWarmup(o: ChessWarmupOpts): PlaylistMeta {
   const steps = chessWarmupSteps(o);
-  const total = steps.reduce((s, x) => s + x.est_duration_sec, 0);
+  const total = steps.reduce((s, x) => s + estimateStepSec(x), 0);
   return {
     duration_min: Math.max(1, Math.round(total / 60)),
     weekday: 0,
@@ -184,7 +200,7 @@ export function wordWarmupSteps(o: WordWarmupOpts): PlaylistStep[] {
 
 export function buildWordWarmup(o: WordWarmupOpts): PlaylistMeta {
   const steps = wordWarmupSteps(o);
-  const total = steps.reduce((s, x) => s + x.est_duration_sec, 0);
+  const total = steps.reduce((s, x) => s + estimateStepSec(x), 0);
   return {
     duration_min: Math.max(1, Math.round(total / 60)),
     weekday: 0,
