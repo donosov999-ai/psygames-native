@@ -31,14 +31,42 @@ const { join } = require('path');
 const ROOT = join(__dirname, '..', '..', '..');
 const APP_GAMES = join(ROOT, 'app', 'games');
 
-/** Куда делегирует тонкий маршрут: `<Экран ... />` из соседнего файла игр. */
-function делегатОдногоШага(src: string): string | null {
-  // Экран по умолчанию отдаёт ровно один элемент, импортированный из app/games.
-  const тело = /export default function \w+\([^)]*\)\s*{\s*return\s*<(\w+)[\s\S]*?;\s*}/.exec(src);
+/**
+ * Куда делегирует тонкий маршрут: `<Экран ... />` из соседнего файла игр ИЛИ из
+ * `src/components`.
+ *
+ * 🔴 ВТОРОЙ АДРЕС ДОБАВЛЕН 09.09.2026. Пространственные упражнения («Сеть труб»
+ * и «Поворот чисел») живут в `src/components/SpatialLab.tsx`, а маршрут — это
+ * двадцать строк разбора параметров. Помощник знал только соседей по `app/games`
+ * (шарики и гайки делят экран переливалки), и на новой игре ЧЕТЫРЕ гейта
+ * покраснели разом на верном коде: отмена, строка задания, панель режимов и
+ * общий каркас — всё это было, но этажом ниже.
+ *
+ * ⚠️ Шаг по-прежнему РОВНО ОДИН: цепочка переадресаций остаётся запутанностью,
+ * о которой гейт обязан сказать вслух.
+ */
+function делегатОдногоШага(src: string): { имя: string; путь: string } | null {
+  /*
+   * Экран по умолчанию отдаёт ровно один элемент, импортированный из проекта.
+   *
+   * ⚠️ Между `{` и `return` разрешён код: тонкий маршрут обычно разбирает
+   * параметры (`useGamePreset`, номер уровня, seed) и только потом отдаёт экран.
+   * Прежняя запись требовала `return` сразу за скобкой и потому не видела
+   * ничего сложнее трёхстрочной обёртки. Окно ограничено, чтобы не поймать
+   * `return` из вложенной функции.
+   */
+  const тело = /export default function \w+\([^)]*\)\s*{[\s\S]{0,1500}?return\s*<(\w+)[\s\S]*?;?\s*}/.exec(src);
   if (!тело) return null;
   const имя = тело[1] as string;
-  const импорт = new RegExp(`import\\s*{[^}]*\\b${имя}\\b[^}]*}\\s*from\\s*'@/app/games/([\\w-]+)'`).exec(src);
-  return импорт ? (импорт[1] as string) : null;
+  // Именованный импорт из соседней игры: `import { Экран } from '@/app/games/…'`
+  const изИгр = new RegExp(`import\\s*{[^}]*\\b${имя}\\b[^}]*}\\s*from\\s*'@/app/games/([\\w-]+)'`).exec(src);
+  if (изИгр) return { имя, путь: join(APP_GAMES, `${изИгр[1] as string}.tsx`) };
+  // Импорт по умолчанию из компонента: `import Экран from '@/src/components/…'`
+  const изКомпонентов = new RegExp(
+    `import\\s+${имя}\\s*(?:,[^;]*?)?from\\s*'@/src/components/([\\w-]+)'`,
+  ).exec(src);
+  if (изКомпонентов) return { имя, путь: join(ROOT, 'src', 'components', `${изКомпонентов[1] as string}.tsx`) };
+  return null;
 }
 
 /**
@@ -50,13 +78,14 @@ function делегатОдногоШага(src: string): string | null {
 export function исходникЭкрана(route: string): string {
   const свой = readFileSync(join(APP_GAMES, `${route}.tsx`), 'utf8') as string;
   const куда = делегатОдногоШага(свой);
-  if (!куда) return свой;
-  const путь = join(APP_GAMES, `${куда}.tsx`);
-  if (!existsSync(путь)) return свой;
-  return `${свой}\n${readFileSync(путь, 'utf8') as string}`;
+  if (!куда || !existsSync(куда.путь)) return свой;
+  return `${свой}\n${readFileSync(куда.путь, 'utf8') as string}`;
 }
 
 /** Делегирует ли маршрут чужому экрану — и кому именно. */
 export function делегируетК(route: string): string | null {
-  return делегатОдногоШага(readFileSync(join(APP_GAMES, `${route}.tsx`), 'utf8') as string);
+  const куда = делегатОдногоШага(readFileSync(join(APP_GAMES, `${route}.tsx`), 'utf8') as string);
+  if (!куда) return null;
+  // Имя экрана-делегата — как и раньше, без расширения и каталога.
+  return куда.путь.replace(/^.*\//, '').replace(/\.tsx$/, '');
 }

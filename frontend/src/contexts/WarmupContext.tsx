@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { BackHandler, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
@@ -10,11 +10,14 @@ import {
   shouldAdvance,
 } from '@/src/services/warmup';
 import { setSessionListener, GameSession } from '@/src/services/api';
+import { localSpatialHost, spatialWarmupPlaylist } from '@/src/games/spatial-core/warmup';
 import { isGameAllowed } from '@/src/constants/profiles';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { fbCorrect, fbComplete } from '@/src/services/feedback';
 
 export interface StepResult {
+  /** Локальный прогон приёмки: без сессий, наград и истории. */
+  localSpatial?: boolean;
   game_type: string;
   score: number;
   time_seconds: number;
@@ -23,6 +26,8 @@ export interface StepResult {
 }
 
 interface WarmupState {
+  /** Локальный прогон приёмки: без сессий, наград и истории. */
+  localSpatial?: boolean;
   active: boolean;
   meta: PlaylistMeta | null;
   currentIdx: number;
@@ -39,6 +44,8 @@ interface WarmupCtx extends WarmupState {
   startDay: () => void;                  // v1.179 — дневной перерыв
   startNight: () => void;                // v1.179 — «Не спится»: НЕ тренировка, вне стрика
   startFinancialBattery: () => void;     // D1 — Iowa+BART+PRL session
+  /** Локальная приёмка пространственных упражнений: только loopback, без записи. */
+  startSpatialLab: () => void;
   startAssessment: () => void;            // G1 — 12-domain skill assessment
   /**
    * Запустить ГОТОВЫЙ набор. Нужен развилкам, которые собирают свою зарядку из
@@ -163,6 +170,25 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     startSlotPlaylist(buildNightPlaylist(getCurrentWeekday()));
   }, [startSlotPlaylist]);
 
+  /**
+   * Локальный плейлист пространственных упражнений (пакет из лаборатории).
+   *
+   * ⚠️ ТОЛЬКО ДЛЯ ПРИЁМКИ. Работает лишь на loopback (`localSpatialHost`), не
+   * пишет сессии, награды и историю — это стенд, на котором проверяют настоящие
+   * переходы между упражнениями, а не режим приложения.
+   */
+  const startSpatialLab = useCallback(() => {
+    if (!localSpatialHost() || stateRef.current.active) return;
+    const meta = spatialWarmupPlaylist(getCurrentWeekday());
+    if (advanceTimerRef.current) { clearTimeout(advanceTimerRef.current); advanceTimerRef.current = null; }
+    lastAdvanceRef.current = 0;
+    setState({
+      active: true, localSpatial: true, meta, currentIdx: 0,
+      startTime: Date.now(), results: [], warmupId: null, sessionTag: null,
+    });
+    router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0]) } as any);
+  }, [router]);
+
   const startFinancialBattery = useCallback(() => {
     const meta = buildFinancialBatteryPlaylist();
     const warmupId = genUUID();
@@ -216,7 +242,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     if (next >= s.meta.steps.length) {
       // all done — chime + go to appropriate complete screen based on track
       fbComplete();
-      const completePath = s.meta.track === 'assessment'
+      const completePath = s.localSpatial ? '/spatial-warmup' : s.meta.track === 'assessment'
         ? '/assessment-result'
         : '/warmup-complete';
       setTimeout(() => router.replace(completePath as any), 0);
@@ -232,7 +258,8 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   }, [advanceToNext]);
 
   const stopWarmup = useCallback(async (completed = false) => {
-    if (state.meta) {
+    if (advanceTimerRef.current) { clearTimeout(advanceTimerRef.current); advanceTimerRef.current = null; }
+    if (state.meta && !state.localSpatial) {
       const totalScore = state.results.reduce((a, b) => a + (b.score || 0), 0);
       /**
        * З3: очки ядра — только когда ядро сыграно ЦЕЛИКОМ и по порядку.
@@ -276,15 +303,22 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   // Subscribe to ALL session saves — when warmup is active and the saved
   // session matches the current expected game, record + advance automatically.
   // This avoids per-game patching across 39 game files.
+  /**
+   * ⚠️ ОБНОВЛЯЕМ ПОСЛЕ КОММИТА, А НЕ В РЕНДЕРЕ (правка из пространственного пакета).
+   * Присваивание `stateRef.current = state` прямо в теле компонента — запись во
+   * время рендера: линтер `react-hooks/refs` ловит это как ошибку, а при
+   * конкурентном рендере значение уезжает раньше, чем React решит, каким кадром
+   * всё закончится.
+   */
   const stateRef = useRef(state);
-  stateRef.current = state;
+  useLayoutEffect(() => { stateRef.current = state; }, [state]);
   // Глобал для saveSession: во время зарядки серия-бонус (cleanRun) не начисляется —
   // у зарядки свой comboBonus ×1.5 в warmup-complete, не задваиваем награду.
   useEffect(() => { (globalThis as any).__psygames_warmup_active = state.active; }, [state.active]);
   useEffect(() => {
     const listener = async (s: GameSession) => {
       const cur = stateRef.current;
-      if (!cur.active || !cur.meta) return;
+      if (!cur.active || !cur.meta || cur.localSpatial) return;
       const step = cur.meta.steps[cur.currentIdx];
       if (!step) return;
       if (s.game_type !== step.game_id) return;  // not the expected game
@@ -337,7 +371,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   }, [stopWarmup, router]);
 
   return (
-    <Ctx.Provider value={{ ...state, currentStep, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startAssessment, startPlaylist: startSlotPlaylist, recordResult, advanceToNext, skipCurrent, stopWarmup }}>
+    <Ctx.Provider value={{ ...state, currentStep, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startSpatialLab, startAssessment, startPlaylist: startSlotPlaylist, recordResult, advanceToNext, skipCurrent, stopWarmup }}>
       {children}
     </Ctx.Provider>
   );

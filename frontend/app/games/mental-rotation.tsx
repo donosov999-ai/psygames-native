@@ -1,4 +1,5 @@
-/* psygames-game-mental-rotation · VER 2 · 23.08.2026 */
+/* psygames-game-mental-rotation · VER 4 · 09.09.2026 */
+/* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /**
  * Mental Rotation — три вида пространственных заданий на одной геометрии
  *
@@ -40,21 +41,18 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView
+  ScrollView, useWindowDimensions
 } from 'react-native';
-import Svg, { Polygon, G, Rect } from 'react-native-svg';
+import Svg, { Polygon, G, Rect, Defs, LinearGradient as SvgGradient, Stop, Line } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
-import { useScreenWidth } from '@/src/hooks/useScreenWidth';
-import { hudTime } from '@/src/services/hudTime';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
+import {useWarmup} from '@/src/contexts/WarmupContext';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -62,12 +60,13 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
-import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
+import {RotationShape,RotationTransition} from '@/src/components/RotationShape';
+import RotationWorkbench from '@/src/components/RotationWorkbench';
+import {spatialFrame} from '@/src/games/spatial-core/frame';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
-import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import {
   angleResponseSlope,
   buildTask,
@@ -75,6 +74,8 @@ import {
   gridSize,
   interpolateMentalRotation,
   levelParams,
+  rotationLevelSpec,
+  ROTATION_LEVELS,
   meanSlopeRt,
   netCellKey,
   netSize,
@@ -103,17 +104,6 @@ const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
 // Цвет 3D-фигур: тёмно-фиолетовый GRADIENT[0] сливался с тёмной темой (образец не виден).
 // Светлый насыщенный фиолет читается и на светлой, и на тёмной теме.
-/**
- * 🔴 ОДИН ЦВЕТ У ЭТАЛОНА И У ВАРИАНТОВ.
- *
- * 📍 ОТЧЁТ ДЕНИСА 05.09.2026 со скриншотом: «картинки на редкость уродские».
- * На снимке эталон фиолетовый (`SHAPE_BASE`), а варианты оливковые
- * (`GRADIENT[1]`) — одна и та же фигура была покрашена в два разных цвета.
- * В задаче на мысленное вращение это прямая помеха: разный цвет читается как
- * «разные предметы», и сравнивать приходится вопреки картинке, а не благодаря.
- *
- * Цвет тут не украшение, а часть условия: «это ТА ЖЕ фигура, просто повёрнутая».
- */
 const SHAPE_BASE = '#9B6BFF';
 const OK_COLOR = '#22c55e';
 const BAD_COLOR = '#f43f5e';
@@ -124,11 +114,8 @@ const MR_BENEFITS = [
 ];
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
-/** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
-export const MR_RULES: LevelRule[] = [
-  { key: 'axes2', fromLevel: 6, toLevel: 10 },   // lr_mental_rotation_axes2_*
-  { key: 'axes3', fromLevel: 11 },   // lr_mental_rotation_axes3_*
-];
+export const MR_RULES: LevelRule[] = ROTATION_LEVELS.filter(s=>new Set(s.path).size===2)
+  .map(s=>({key:'axes2',fromLevel:s.level,toLevel:s.level}));
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 
@@ -213,54 +200,8 @@ function markPolygon(mark: FaceMark, a: Pt, b: Pt, d: Pt): string {
     .join(' ');
 }
 
-function renderShape(shape: Shape, size: number, baseColor: string) {
-  if (shape.length === 0) return null;
-  const xs = shape.map(c => c[0]), ys = shape.map(c => c[1]), zs = shape.map(c => c[2]);
-  const w = (Math.max(...xs) - Math.min(...xs) + 1);
-  const h = (Math.max(...ys) - Math.min(...ys) + 1);
-  const d = (Math.max(...zs) - Math.min(...zs) + 1);
-  const span = Math.max(w + d, h + (w + d) * 0.3);
-  const scale = size / (span * 1.4);
-  const ox = size / 2 + d * scale * ISO_X_DX * 0.3;
-  const oy = size / 2 + h * scale * 0.3;
-
-  // sort cubes back-to-front (painter's algorithm).
-  // Viewer near-corner is (max-x, max-y, max-z) → cube with HIGHER (x+y+z)
-  // is closer and must be drawn LATER (on top). Sort ascending = far first.
-  const sorted = [...shape].sort((a, b) => {
-    const da = a[0] + a[1] + a[2];
-    const db = b[0] + b[1] + b[2];
-    return da - db;
-  });
-
-  // Color shading
-  const colorTop = baseColor;
-  const colorFront = shadeColor(baseColor, -0.24);
-  const colorRight = shadeColor(baseColor, -0.44);
-  const stroke = shadeColor(baseColor, -0.62);
-
-  return (
-    <Svg width={size} height={size}>
-      <G>
-        {sorted.map((cube, i) => {
-          const p = cubeCorners(cube).map(c => project(c, scale, ox, oy));
-          // Три видимые грани сходятся в ближнем углу (1,1,1) = corners[6]:
-          // верх (y=max), перед (z=max — та, что СМОТРИТ на зрителя, не z=min),
-          // право (x=max).
-          const topPts   = FACE_FRAME.up.fill.map(k => `${p[k].sx},${p[k].sy}`).join(' ');
-          const frontPts = FACE_FRAME.front.fill.map(k => `${p[k].sx},${p[k].sy}`).join(' ');
-          const rightPts = FACE_FRAME.right.fill.map(k => `${p[k].sx},${p[k].sy}`).join(' ');
-          return (
-            <G key={i}>
-              <Polygon points={frontPts} fill={colorFront} stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" />
-              <Polygon points={rightPts} fill={colorRight} stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" />
-              <Polygon points={topPts}   fill={colorTop}   stroke={stroke} strokeWidth={1.5} strokeLinejoin="round" />
-            </G>
-          );
-        })}
-      </G>
-    </Svg>
-  );
+function renderShape(shape: Shape, size: number, _baseColor: string) {
+  return <RotationShape shape={shape} size={size}/>;
 }
 
 /**
@@ -268,17 +209,13 @@ function renderShape(shape: Shape, size: number, baseColor: string) {
  * развёртку. Заливка граней светлее, чем у фигур: по ней читаются значки, а
  * объём держит обводка.
  */
-function renderMarkedCube(faces: FaceMap, size: number, baseColor: string) {
+function renderMarkedCube(faces: FaceMap, size: number, _baseColor: string) {
+  const artId=`marked-${size}-${faces.up}-${faces.front}-${faces.right}`;
   const scale = size / 2.5;
   const p = cubeCorners([0, 0, 0]).map(c => project(c, scale, size / 2, size / 2));
-  const stroke = shadeColor(baseColor, -0.62);
-  const shades: Record<keyof typeof FACE_FRAME, string> = {
-    up: baseColor,
-    front: shadeColor(baseColor, -0.12),
-    right: shadeColor(baseColor, -0.24),
-  };
   return (
     <Svg width={size} height={size}>
+      <Defs>{(Object.keys(FACE_FRAME) as (keyof typeof FACE_FRAME)[]).map(face=><SvgGradient key={face} id={`${artId}-${face}`} x1="0%" y1="0%" x2="80%" y2="100%"><Stop offset="0%" stopColor="#fffaff"/><Stop offset="100%" stopColor={face==='up'?'#e5daf5':face==='front'?'#d2bfe9':'#bca2d8'}/></SvgGradient>)}</Defs>
       <G>
         {(Object.keys(FACE_FRAME) as (keyof typeof FACE_FRAME)[]).map((face) => {
           const frame = FACE_FRAME[face];
@@ -287,7 +224,7 @@ function renderMarkedCube(faces: FaceMap, size: number, baseColor: string) {
             <G key={face}>
               <Polygon
                 points={frame.fill.map(k => `${p[k].sx},${p[k].sy}`).join(' ')}
-                fill={shades[face]} stroke={stroke} strokeWidth={1.5} strokeLinejoin="round"
+                fill={`url(#${artId}-${face})`} stroke="#6d5587" strokeWidth={1.2} strokeLinejoin="round"
               />
               <Polygon
                 points={markPolygon(mark, p[frame.a], p[frame.b], p[frame.d])}
@@ -336,12 +273,15 @@ function renderGrid(cells: Cell2D[], size: number, fill: string, edge: string) {
 
 /** Выкройка: шесть помеченных квадратов на листе. */
 function renderNet(net: CubeNet, markOfCell: Record<string, FaceMark>, size: number, faceFill: string, edge: string) {
+  const paperId=`net-paper-${net.id}-${size}`;
+  const occupied=new Set(net.cells.map(netCellKey));
   const { cols, rows } = netSize(net);
   const cell = (size * 0.9) / Math.max(cols, rows);
   const ox = (size - cols * cell) / 2;
   const oy = (size - rows * cell) / 2;
   return (
-    <Svg width={size} height={size}>
+    <Svg testID="mental-cube-net" width={size} height={size}>
+      <Defs><SvgGradient id={paperId} x1="0%" y1="0%" x2="65%" y2="100%"><Stop offset="0%" stopColor="#ffffff"/><Stop offset="55%" stopColor={faceFill}/><Stop offset="100%" stopColor="#ded0ee"/></SvgGradient></Defs>
       <G>
         {net.cells.map((c) => {
           const key = netCellKey(c);
@@ -353,7 +293,8 @@ function renderNet(net: CubeNet, markOfCell: Record<string, FaceMark>, size: num
           const d: Pt = { sx: x, sy: y + cell };
           return (
             <G key={key}>
-              <Rect x={x} y={y} width={cell} height={cell} fill={faceFill} stroke={edge} strokeWidth={1.4} />
+              <Rect x={x} y={y+1.5} width={cell} height={cell} fill="#665077" opacity={.14}/>
+              <Rect x={x} y={y} width={cell} height={cell} fill={`url(#${paperId})`} stroke={edge} strokeWidth={1.2} />
               <Polygon
                 points={markPolygon(mark, a, b, d)}
                 fill={MARK_SHAPES[mark].hollow ? 'none' : MARK_COLORS[mark]}
@@ -364,43 +305,24 @@ function renderNet(net: CubeNet, markOfCell: Record<string, FaceMark>, size: num
             </G>
           );
         })}
+        {net.cells.flatMap(c=>{
+          const x=ox+c.col*cell,y=oy+c.row*cell;
+          return [occupied.has(`${c.col+1},${c.row}`)?<Line key={`${c.col},${c.row}-r`} x1={x+cell} y1={y} x2={x+cell} y2={y+cell} stroke="#795b96" strokeWidth={1.4} strokeDasharray="3 3"/>:null,
+            occupied.has(`${c.col},${c.row+1}`)?<Line key={`${c.col},${c.row}-d`} x1={x} y1={y+cell} x2={x+cell} y2={y+cell} stroke="#795b96" strokeWidth={1.4} strokeDasharray="3 3"/>:null];
+        })}
       </G>
     </Svg>
   );
 }
 
-function shadeColor(hex: string, percent: number): string {
-  const num = parseInt(hex.replace('#', ''), 16);
-  const amt = Math.round(2.55 * percent * 100);
-  let R = (num >> 16) + amt;
-  let G = ((num >> 8) & 0x00FF) + amt;
-  let B = (num & 0x0000FF) + amt;
-  R = Math.max(0, Math.min(255, R));
-  G = Math.max(0, Math.min(255, G));
-  B = Math.max(0, Math.min(255, B));
-  return '#' + ((R << 16) | (G << 8) | B).toString(16).padStart(6, '0');
-}
 
 // ─── component ────────────────────────────────────────────────────────────
 
-/**
- * 🔴 ШАГ ЗАРЯДКИ/ОЦЕНКИ ИГРАЕТ ФИКСИРОВАННЫЙ ПРЕСЕТ, А НЕ ЛИЧНЫЙ УРОВЕНЬ.
- * Было `lvl.level` и в пресете: у игрока 1-го уровня оценка состояла из одних
- * поворотов малых углов, у прокачанного — из проекций/развёрток и хиральных
- * ловушек (planTaskKinds/buildTask растут уровнем), а наклон RT-по-углу обеих
- * партий сравнивался с ОДНОЙ нормой (angle_response_slope 8±4, assessment.ts).
- * Паттерн — flanker.tsx:144: тир шага → середина полосы своей difficulty-раскладки
- * (≤5 easy · ≤10 medium · ≥11 hard); партия запишется с difficulty шага
- * (medium=8 → 'medium'), и sessionFitsStep её опознает. Число проб задаёт шаг
- * (assessment: 5).
- */
-export const PRESET_LEVEL_BY_DIFF: Record<string, number> = { easy: 3, medium: 8, hard: 13 };
-
 export default function MentalRotationGame() {
-  const winW = useScreenWidth();
   const { colors } = useTheme();
+  const {height:viewportHeight}=useWindowDimensions();
+  const [answerWidth,setAnswerWidth]=useState(208);
   const { t, language } = useLanguage();
-  const router = useRouter();
   const strings = getMentalRotationStrings(language as MentalRotationLocale);
   // Разбор поворота — это движение. Человеку, попросившему систему «меньше
   // движения», кадры показываются все сразу и без проезда: смысл сохранён,
@@ -408,12 +330,13 @@ export default function MentalRotationGame() {
   const reduceMotion = useReducedMotion();
 
   const lvl = usePersistentLevel('mental_rotation');
-  const { isPreset, autostart, str, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  const selectedLevel = Math.min(50, lvl.level);
+  const warmup = useWarmup();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [trials, setTrials] = useState(() => num('trials', 10));
 
@@ -424,12 +347,14 @@ export default function MentalRotationGame() {
   const planRef = useRef<TaskKind[]>([]);
   const [task, setTask] = useState<MentalRotationTask>(() => buildTask('rotation', 1, Math.random));
   const levelRef = useRef(1);
+  const [playedLevel,setPlayedLevel]=useState(1);
   // Единственный журнал партии: вид задания, угол, время, верно/нет. Из него
   // считаются и счётчики на экране, и наклон RT по углу — двух источников правды
   // тут быть не должно.
   const [records, setRecords] = useState<TrialRecord[]>([]);
   const [feedback, setFeedback] = useState<{ idx: number; ok: boolean } | null>(null);
-  const [reviewStep, setReviewStep] = useState(0);
+  const [animatedStep, setReviewStep] = useState(0);
+  const [manualReview,setManualReview] = useState(false);
   const [clearedPassed, setClearedPassed] = useState(true);
   const [startTime, setStartTime] = useState(0);
   const [trialStartTime, setTrialStartTime] = useState(0);
@@ -443,9 +368,10 @@ export default function MentalRotationGame() {
   // задержка на верном ответе ломает темп партии и портит замер времени.
   const reviewing = feedback !== null && !feedback.ok;
   const frames = useMemo(() => (task.kind === 'rotation' ? rotationReplay(task) : []), [task]);
+  const reviewStep=reduceMotion&&reviewing?Math.max(0,frames.length-1):animatedStep;
 
   // Справка правил уровня (в пресете не всплываем — там свой поток)
-  const levelRules = useLevelRules('mental_rotation', lvl.level, MR_RULES, phase === 'playing' && !isPreset);
+  const levelRules = useLevelRules('mental_rotation', selectedLevel, MR_RULES, phase === 'playing' && !isPreset);
 
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -455,22 +381,20 @@ export default function MentalRotationGame() {
   // Прокрутка кадров разбора. Шаг крупный (850 мс): поворот надо успеть увидеть,
   // а не проводить глазами смазанное движение.
   useEffect(() => {
-    if (!reviewing || frames.length < 2) return;
-    if (reduceMotion) { setReviewStep(frames.length - 1); return; }
+    if (!reviewing || manualReview || frames.length < 2) return;
+    if (reduceMotion) return;
     const id = setInterval(() => {
       setReviewStep((s) => (s + 1 < frames.length ? s + 1 : s));
     }, 850);
     return () => clearInterval(id);
-  }, [reviewing, frames, reduceMotion]);
+  }, [reviewing, frames, reduceMotion,manualReview]);
 
   const startGame = () => {
-    // личная игра → уровень рулит; пресет (зарядка/оценка) → фикс-уровень тира.
-    // Паттерн flanker.tsx:144; см. PRESET_LEVEL_BY_DIFF выше.
-    const effLevel = isPreset ? (PRESET_LEVEL_BY_DIFF[str('diff', 'medium')] ?? 8) : lvl.level;
-    levelRef.current = effLevel;
+    levelRef.current = selectedLevel;
+    setPlayedLevel(selectedLevel);setManualReview(false);
     setRecords([]); setRound(1);
-    planRef.current = planTaskKinds(effLevel, trials, Math.random);
-    setTask(buildTask(planRef.current[0] ?? 'rotation', effLevel, Math.random));
+    planRef.current = planTaskKinds(selectedLevel, trials, Math.random);
+    setTask(buildTask(planRef.current[0] ?? 'rotation', selectedLevel, Math.random));
     setFeedback(null);
     setReviewStep(0);
     setPhase('playing');
@@ -479,6 +403,7 @@ export default function MentalRotationGame() {
     setTrialStartTime(start);
     timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
   };
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame());
 
   const finishGame = async (log: TrialRecord[]) => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -493,12 +418,19 @@ export default function MentalRotationGame() {
     if (isPreset) {
       setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
     } else {
-      if (passed) lvl.reach(levelRef.current + 1);   // прошёл уровень → следующий
-      else lvl.fail();                              // не прошёл: три раза подряд → −1 уровень
+      if (passed) lvl.reach(Math.min(50,levelRef.current + 1));
       setClearedPassed(passed);
       setPhase('cleared');   // непрерывный поток: провал → тот же уровень ещё раз, без тупика
     }
     try {
+      if (isPreset && warmup.active && warmup.localSpatial) {
+        if (warmup.currentStep?.game_id === 'mental_rotation') {
+          await warmup.recordResult({game_type:'mental_rotation',score:0,time_seconds:finalTime,errors:newErrors,
+            details:{level:levelRef.current,hits:newHits,trials,localSpatialLab:true}});
+          warmup.advanceToNext(warmup.currentIdx);
+        }
+        return;
+      }
       await saveSession({
         passed,
         game_type: 'mental_rotation',
@@ -529,6 +461,7 @@ export default function MentalRotationGame() {
     if (advanceRef.current) { clearTimeout(advanceRef.current); advanceRef.current = null; }
     if (log.length >= trials) { void finishGame(log); return; }
     setRound(log.length + 1);
+    setManualReview(false);
     setTask(buildTask(planRef.current[log.length] ?? 'rotation', levelRef.current, Math.random));
     setFeedback(null);
     setReviewStep(0);
@@ -581,7 +514,6 @@ export default function MentalRotationGame() {
 
   const renderConfig = () => (
     <View style={{ flex: 1 }}>
-      <>
       <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
       <GradientSurface colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
         <Ionicons name="cube" size={48} color={ON_GRAD.color} />
@@ -592,12 +524,13 @@ export default function MentalRotationGame() {
         </View>
       </GradientSurface>
       <GameAbout descriptionKey="mentalRotationIntroDesc" benefits={MR_BENEFITS} accent={GRADIENT[0]} />
-      <LevelProgressMap bestLevel={lvl.best} gameId="mental_rotation" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+      <LevelProgressMap maxLevel={50} bestLevel={Math.min(50,lvl.best)} gameId="mental_rotation" currentLevel={selectedLevel} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
-        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('level')} {lvl.level}</Text>
+        <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('level')} {selectedLevel}/50</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
           {(() => {
-            const p = levelParams(lvl.level);
+            if(language==='ru')return rotationLevelSpec(selectedLevel).change;
+            const p = levelParams(selectedLevel);
             const axesTxt = t(p.axes.length === 1 ? 'mrAxisZ' : p.axes.length === 2 ? 'mrAxisXY' : 'mrAxisXYZ');
             return `${p.minC}–${p.maxC} ${t('mrCubes')} · ${axesTxt}${p.compound ? ` · ${t('mrOblique')}` : ''}`;
           })()}
@@ -625,96 +558,48 @@ export default function MentalRotationGame() {
         </View>
       </View>
     </ScrollView>
-      {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
-      <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
-      </>
+      <View style={[styles.configSticky, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
+      <TouchableOpacity
+        accessibilityRole="button" style={styles.startBtn} onPress={startGame}>
+        <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+          <Text style={styles.startBtnText}>{t('start')}</Text>
+        </GradientSurface>
+      </TouchableOpacity>
+      </View>
     </View>
   );
 
   // игровая фаза — на едином каркасе GameShell: варианты-ответы прибиты к низу,
   // эталон в центре поля; модалка правил поверх каркаса (паттерн digit-span)
   if (phase === 'playing') {
-    /**
-     * 🔴 РАЗМЕРЫ СЧИТАЮТСЯ ОТ ЭКРАНА, А НЕ ЗАШИТЫ ЧИСЛОМ.
-     *
-     * Отчёт 02.09.2026: «картинка съехала вправо». Замер браузером на 360 px: три
-     * варианта по 110 плюс два зазора по 10 и отступы коробок дают 350 при
-     * доступных 344 — ряд не помещается, и его сносит вправо на 25 px относительно
-     * эталона. На 390 всё влезало, поэтому глазами это не ловилось.
-     *
-     * Считаем от доступной ширины: три варианта в ряд с зазорами и внутренними
-     * отступами коробки (8+8 на каждую). Потолок оставляем прежним — на широком
-     * экране ничего не меняется.
-     */
-    const доступно = winW - 32;                       // поле каркаса за вычетом отступов
-    const optSize = Math.max(64, Math.min(110, Math.floor((доступно - 2 * 10) / 3) - 16));
-    const baseSize = Math.max(80, Math.min(130, Math.floor(доступно * 0.36)));
+    const compactScreen=viewportHeight<560;
+    const compactReview=reviewing&&(isPreset||viewportHeight<720);
+    const baseSize = compactScreen?(isPreset?80:104):130;
+    // Measure the actual answer slot: split panels/zoom can make it much
+    // narrower than the window. Never let minWidth force a one-column tower.
+    const optSize = compactReview
+      ? Math.max(24,(answerWidth-(task.options.length-1)*6)/task.options.length-18)
+      : Math.min(compactScreen?48:viewportHeight<720?78:110,Math.max(48,(answerWidth-10)/2-18));
     return (
       <View style={{ flex: 1 }}>
         <GameShell
+          frame={isPreset?spatialFrame(viewportHeight):undefined}
+          headerActions={isPreset?<Text numberOfLines={2} style={{fontSize:12,textAlign:'center',color:colors.text}}>{strings.taskLabel}: {kindWord(task.kind)}</Text>:undefined}
           title={t('mentalRotation')}
           onBack={() => goBackOrHome()}
-          /**
-           * 🔴 ПОЛЕ ПРОКРУЧИВАЕТСЯ. Отчёт 02.09.2026: «после ошибки какое-то
-           * подвисание, непонятно как пройти дальше».
-           *
-           * Подвисания нет — есть недостижимая кнопка. Промах разворачивает разбор
-           * (подсказка, лента кадров поворота, подпись шага) и кнопку «дальше» под
-           * ним; на телефоне это уезжает ниже экрана. Закрыть разбор нечем, игра
-           * стоит — и со стороны это ровно «подвисло».
-           *
-           * ⚠️ С 2.34.0 стало хуже, и по моей же правке: поле каркаса перестало
-           * отдавать касание прокрутке (лечили «экран ездит под пальцем»), то есть
-           * дотянуть содержимое пальцем тоже нельзя. Правка была верной, но здесь
-           * она сняла последний способ добраться до кнопки.
-           */
           scrollableField
-          /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
-          hud={[
-            { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}`, pop: true },
-            { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
-            { key: 'time', icon: 'time', label: t('time'), value: hudTime(elapsedTime, t('secShort')) },
-          ]}
           stats={
-            <View style={styles.statsRow}>
-              {!isPreset && <LevelRuleBadge lr={levelRules} color={colors.primary} ru={language === 'ru'} />}
+            <View style={[styles.statsRow,compactScreen?{gap:6}:null]}>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('round')} {round}/{trials}</Text>
+              <Text style={[styles.statText, { color: OK_COLOR }]}>{t('hud_correct')} {hits}</Text>
+              <Text style={[styles.statText, { color: BAD_COLOR }]}>{t('hud_errors')} {errors}</Text>
+              <Text style={[styles.statText, { color: colors.text }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
+              {!isPreset && !compactScreen && <LevelRuleBadge lr={levelRules} color={colors.primary} ru={language === 'ru'} />}
             </View>
           }
-          /**
-           * 🔴 ПОСЛЕ ПРОМАХА НИЖНИЙ РЯД ОТДАЁТ МЕСТО КНОПКЕ «ДАЛЬШЕ».
-           *
-           * Отчёты 02.09 и 03.09.2026: «ошибка — и дальше играть невозможно», «должно
-           * переходить к следующей фигуре, а не переходит». Игра действительно вставала.
-           *
-           * ПРИЧИНА, а не симптом: кнопка «дальше» лежала ВНУТРИ поля, под развёрнутым
-           * разбором (подсказка + лента кадров поворота + подпись шага). На телефоне
-           * она уезжала ниже экрана, а поле каркаса с 2.34.0 не отдаёт касание
-           * прокрутке — дотянуться пальцем стало нечем. Единственный выход из разбора
-           * оказался за краем экрана, и со стороны это ровно «подвисло».
-           *
-           * ⚠️ ПОЧЕМУ НЕ АВТОПЕРЕХОД ПО ТАЙМЕРУ, как просили. Разбор существует, чтобы
-           * его ЧИТАЛИ: лента показывает, как эталон поворачивается по шагам. Таймер
-           * либо торопит того, кто читает, либо задерживает того, кто уже понял. Кнопка
-           * в закреплённом ряду решает обе беды: она физически не может уехать за край,
-           * и нажимают её тогда, когда готовы.
-           *
-           * Варианты в разборе всё равно отключены (`disabled={feedback !== null}`),
-           * так что место под ними ничем не занято.
-           */
           toolbar={
-            reviewing ? (
-              <View style={styles.optionsRow}>
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  testID="mr-next"
-                  onPress={() => advance(records)}
-                  style={[styles.nextBtnWide, { borderColor: colors.primary, backgroundColor: colors.card }]}
-                >
-                  <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>{strings.reviewNext}</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-            <View style={styles.optionsRow}>
+            <View style={{ width: '100%', alignItems: 'center', gap: 10 }}>
+            <View style={[styles.optionsRow,compactReview?{flexWrap:'nowrap',gap:6}:null]} onLayout={e=>setAnswerWidth(e.nativeEvent.layout.width)}>
               {task.options.map((opt, i) => (
                 <TouchableOpacity
                   accessibilityRole="button" key={i}
@@ -722,51 +607,67 @@ export default function MentalRotationGame() {
                   disabled={feedback !== null}
                   onPress={() => handlePick(i)}
                   style={[styles.optionBox, {
+                    ...(compactReview?{width:(answerWidth-(task.options.length-1)*6)/task.options.length}:{}),
                     backgroundColor: colors.surface,
                     borderColor: optionBorder(i),
                     borderWidth: feedback ? 3 : 1,
                   }]}
                 >
-                  {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, SHAPE_BASE)}
+                  {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1])}
                   {task.kind === 'projection' && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
                   {task.kind === 'net' && renderMarkedCube((opt as { faces: FaceMap }).faces, optSize, GRADIENT[1])}
-                  <Text style={[styles.optionLabel2, { color: colors.textSecondary }]}>
+                  {feedback&&<Text numberOfLines={1} style={[styles.optionLabel2, { color: colors.textSecondary }]}>
                     {optionNote(opt)}
-                  </Text>
+                  </Text>}
                 </TouchableOpacity>
               ))}
             </View>
-            )
+            {reviewing && (
+              <TouchableOpacity
+                testID="mental-review-next"
+                accessibilityRole="button"
+                onPress={() => advance(records)}
+                style={[styles.nextBtn, { width: '100%', maxWidth: 480, minHeight: 48, alignItems: 'center', backgroundColor: GRADIENT[0], borderColor: GRADIENT[0] }]}
+              >
+                <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 16 }}>
+                  {language === 'ru' ? (round < trials ? 'Следующий раунд' : 'Завершить уровень') : strings.reviewNext}
+                </Text>
+              </TouchableOpacity>
+            )}
+            </View>
           }
         >
-          <View style={styles.fieldCol}>
+          <View style={[styles.fieldCol,compactScreen?{gap:6}:null]}>
             {/* Вид задания подписан в поле, а не в шапке: шапка — про счётчики,
                 а смена задания посреди партии должна быть видна рядом с вопросом. */}
-            <Text style={[styles.taskBadge, { color: colors.text, borderColor: colors.border }]}>
+            {!compactScreen&&!isPreset&&<Text style={[styles.taskBadge, { color: colors.text, borderColor: colors.border }]}>
               {strings.taskLabel}: {kindWord(task.kind)}
-            </Text>
+            </Text>}
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>
               {task.kind === 'rotation'
-                ? t('mentalRotationHint')
+                ? (compactScreen&&language==='ru'?'Найди повёрнутую копию':t('mentalRotationHint'))
                 : task.kind === 'projection'
                   ? interpolateMentalRotation(strings.projectionPrompt, {
                       view: task.view === 'top' ? strings.viewTop : task.view === 'front' ? strings.viewFront : strings.viewSide,
                     })
                   : strings.netPrompt}
             </Text>
-            <View style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }]}>
+            <View testID="mental-reference" style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }]}>
               {task.kind === 'net'
                 ? renderNet(task.net, task.markOfCell, baseSize, '#F3F0FF', SHAPE_BASE)
-                : renderShape(
+                : task.kind==='rotation'&&reviewing&&manualReview
+                  ? <RotationWorkbench key={round} initial={frames[reviewStep]?.shape??task.base} target={task.options[task.correctIdx].shape} size={baseSize} reduceMotion={reduceMotion} ink={colors.text} accent={colors.primary} ru={language==='ru'}/>
+                  : task.kind==='rotation'&&reviewing&&reviewStep>0
+                  ? <RotationTransition key={`${round}-${reviewStep}`} from={frames[reviewStep-1].shape} to={frames[reviewStep].shape} axis={frames[reviewStep].axis!} size={baseSize} reduceMotion={reduceMotion}/>
+                  : <RotationShape shape={
                     task.kind === 'rotation'
                       ? (frames[reviewStep]?.shape ?? task.base)   // в разборе эталон сам поворачивается
-                      : task.shape,
-                    baseSize, SHAPE_BASE,
-                  )}
+                      : task.shape} size={baseSize}/>}
               <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>
                 {task.kind === 'net' ? strings.taskNet : t('label_reference')}
               </Text>
             </View>
+            {reviewing&&task.kind==='rotation'&&!manualReview?<TouchableOpacity testID="rotation-manual-start" accessibilityRole="button" onPress={()=>setManualReview(true)} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.primary,fontWeight:'700'}}>{language==='ru'?'Вращать самому':'Rotate manually'}</Text></TouchableOpacity>:null}
             {reviewing && (
               <View style={[styles.reviewBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <Text style={[styles.reviewTitle, { color: colors.text }]}>{strings.reviewTitle}</Text>
@@ -818,12 +719,12 @@ export default function MentalRotationGame() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('mentalRotation')}</Text>
-        <View style={{ width: HELP_CORNER_SPACE }} />
+        <View style={{ width: 40 }} />
       </View>
       {phase === 'config' && renderConfig()}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       {phase === 'cleared' && (
-        <LevelCleared gameId="mental_rotation" level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
+        <LevelCleared gameId="mental_rotation" level={playedLevel} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}
           passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
           onContinue={() => startGame()} onStop={() => setPhase('config')} />
@@ -845,7 +746,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 20, fontWeight: '700' },
   configScroll: { flex: 1 },
-  configContainer: { padding: 16, gap: 14 , paddingBottom: SETUP_BAR_SPACE },
+  configContainer: { padding: 16, gap: 14 },
   // Прибитый низ настроек: кнопка «начать» всегда на экране, над системной навигацией.
   // Раньше она была последней в прокрутке — на невысоком экране до неё приходилось
   // доскроллить, а решение «во что играю» оказывалось в двух разных местах.
@@ -865,25 +766,23 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 12 },
-  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
+  statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '700' },
-  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
+  hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360 },
   taskBadge: { fontSize: 12, fontWeight: '800', borderWidth: 1, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 3, overflow: 'hidden' },
   baseBox: { padding: 12, borderRadius: 16, borderWidth: 2, alignItems: 'center' },
   baseLabel: { fontSize: 11, fontWeight: '700', marginTop: 4 },
-  optionsRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center', maxWidth: 480, width: '100%' },
-  optionBox: { padding: 8, borderRadius: 12, alignItems: 'center', gap: 4, minWidth: 120 },
+  optionsRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center', width:'100%', maxWidth: 480 },
+  optionBox: { padding: 6, borderRadius: 12, alignItems: 'center', gap: 4, width:'47%', minWidth:0 },
   optionLabel2: { fontSize: 11, fontWeight: '600', minHeight: 14, textAlign: 'center' },
   // Разбор ответа: живёт в поле, а не в нижней полосе — низ в этой игре занят
   // ответом игрока, и служебному действию там не место (см. slot-meaning).
-  reviewBox: { padding: 10, borderRadius: 14, borderWidth: 1, alignItems: 'center', gap: 6, maxWidth: 360, width: '100%' },
+  reviewBox: { padding: 10, borderRadius: 14, borderWidth: 1, alignItems: 'center', gap: 6, maxWidth: 360 },
   reviewTitle: { fontSize: 13, fontWeight: '800' },
   reviewHint: { fontSize: 12, textAlign: 'center' },
   frameScroll: { maxHeight: 62 },
   frameRow: { flexDirection: 'row', gap: 6, alignItems: 'center', paddingHorizontal: 2 },
   frameBox: { borderWidth: 2, borderRadius: 8, padding: 2 },
   reviewStepText: { fontSize: 12, fontWeight: '700' },
-  /** Кнопка выхода из разбора в закреплённом ряду: во всю ширину, палец не мимо. */
-  nextBtnWide: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 12, borderWidth: 2 },
   nextBtn: { minHeight: 40, justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
 });

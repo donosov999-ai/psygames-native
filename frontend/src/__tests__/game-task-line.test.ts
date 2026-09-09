@@ -107,6 +107,10 @@ const ADDED: Record<string, string> = {
  * переписывать девять живых экранов ради красоты гейта.
  */
 const ALREADY: Record<string, string> = {
+  // Пространственные упражнения держат задание строкой прямо в экране: «Соедини
+  // все трубы с источником» и «Выбери блок 2×2. Расставь числа по строкам».
+  // Ключи словаря им ещё не заведены — игра не в каталоге, см. `spatial-lab`.
+  'spatial-lab.tsx': 'styles.instruction',
   'cake-sort.tsx': "t('cakeStuck')",
   // Тот же экран `CakeSortScreen`, что у тортов, — значит и строка та же.
   'pizza-sort.tsx': "t('cakeStuck')",
