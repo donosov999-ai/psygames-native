@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.52.2',
+    date: '2026-09-09',
+    ru: [
+      'Меню паузы: стрелка «назад» во время партии открывает меню — Продолжить, Заново, Правила, На главную. Поле скрыто, часы стоят. Первым подключено судоку: начать новую доску можно без проигрыша трёх жизней',
+      'Сортировка: в разделе теперь видны все семь упражнений — пробирки, шарики, гайки, торты и пицца раньше были открыты не во всех профилях',
+      'Судоку с сохранённой партией: «Заново» больше не выбрасывает на экран настройки',
+    ],
+    en: [
+      'Pause menu: the back arrow during a game opens a menu — Resume, Restart, Rules, Home. The board is hidden and the clock stops. Sudoku is wired first: a new board no longer costs three lives',
+      'Sorting: all seven exercises are visible in the section now — tubes, marbles, nuts, cakes and pizza used to be open only in some profiles',
+      'Sudoku with a saved game: “Restart” no longer throws you to the setup screen',
+    ],
+  },
+  {
     version: '2.52.1',
     date: '2026-09-09',
     ru: [
