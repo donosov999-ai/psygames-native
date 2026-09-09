@@ -18,7 +18,7 @@
  * Правило: и min, и max эффективной полосы НЕ УБЫВАЮТ с ростом уровня.
  * Равенство разрешено (плато — законно), убывание — нет.
  */
-import { effectiveBand, monotonicBandForLevel, targetTier } from '../services/sudoku-grade';
+import { effectiveBand, targetTier } from '../services/sudoku-grade';
 import { levelConfig } from '../services/sudoku-core';
 import { roadTier, SUDOKU_ROADS, type SudokuRoad } from '../services/sudoku-roads';
 
