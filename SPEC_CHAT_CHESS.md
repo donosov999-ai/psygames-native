@@ -23,7 +23,7 @@
 frontend/app/games/scholars-mate.tsx
 frontend/app/games/chess-blind.tsx
 frontend/app/games/chess-hub.tsx
-frontend/src/games/chess/**
+frontend/src/games/scholars-mate/**
 frontend/src/games/chess-blind/**
 frontend/src/__tests__/chess-*
 frontend/src/__tests__/scholars-mate-*
