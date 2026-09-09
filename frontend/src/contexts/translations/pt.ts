@@ -2526,5 +2526,6 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_title": "As palavras vão se parecer",
   "lr_listening_span_similar_rule": "A partir deste nível, as palavras extras da grade são escolhidas para SOAREM PARECIDAS com as que você ouviu. É fácil confundi-las: guarde não só as palavras, mas também a ordem.",
   "lr_listening_span_similar_example": "Você ouviu «casa» — e «cama» aparecerá ao lado. Escolha o que ouviu, não o que se parece.",
+  "warmupOvertime": "Os {m} min acabaram. Rodadas restantes: {n}",
 };
 export default t;

@@ -56,6 +56,23 @@ interface WarmupCtx extends WarmupState {
   advanceToNext: (fromIdx?: number) => void;   // переход к следующей игре или на /warmup-complete
   skipCurrent: () => void;
   stopWarmup: (completed?: boolean) => Promise<void>;
+  /**
+   * 🔴 ОБЕЩАННОЕ ВРЕМЯ ВЫШЛО, А ШАГИ ОСТАЛИСЬ.
+   *
+   * 📍 РЕШЕНИЕ ДЕНИСА 09.09.2026: «мы не можем контролировать у каждого скорость
+   * ответов, нам главное чтобы по шагам». Длина зарядки задана числом подходов,
+   * минуты на кнопке — оценка. У того, кто отвечает медленнее медианы, десять
+   * минут выходят на седьмом подходе из двенадцати.
+   *
+   * Обрывать нельзя (человек не доиграл то, что ему обещали), молчать тоже
+   * нельзя (он планировал десять минут, а идёт двадцать). Поэтому один раз за
+   * комплекс спрашиваем.
+   */
+  overtime: boolean;
+  /** Сколько подходов осталось — для вопроса. */
+  stepsLeft: number;
+  /** Человек ответил «доиграю»: больше не спрашивать до конца комплекса. */
+  dismissOvertime: () => void;
 }
 
 const Ctx = createContext<WarmupCtx | null>(null);
@@ -67,6 +84,39 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     active: false, meta: null, currentIdx: 0, startTime: 0, results: [],
     warmupId: null, sessionTag: null,
   });
+
+  /**
+   * У КАКОГО комплекса уже спросили — идентификатор, а не «да/нет».
+   *
+   * ⚠️ Булев флаг здесь был бы дефектом: его пришлось бы сбрасывать в семи
+   * функциях запуска, и забытый сброс означал бы, что после первого «доиграю»
+   * вопрос не появится НИКОГДА. С идентификатором сброса не нужно вовсе: новый
+   * комплекс — новый `warmupId` — вопрос снова возможен.
+   */
+  const [спрошеноУ, setСпрошеноУ] = useState<string | null>(null);
+
+  /**
+   * 🔴 ЧАСЫ ТИКАЮТ СОСТОЯНИЕМ, А НЕ `Date.now()` В РЕНДЕРЕ.
+   *
+   * Первая редакция читала `Date.now()` прямо в вычислении `overtime`, и линтер
+   * это поймал как нечистый вызов — справедливо: такой признак обновляется не
+   * когда истекло время, а когда компонент СЛУЧАЙНО перерисовался по другой
+   * причине. На мосту отсчёт тикает раз в секунду, и вопрос бы появился; на
+   * экране без своего таймера — никогда.
+   *
+   * Раз в 10 секунд достаточно: речь о минутах, а лишние перерисовки провайдера
+   * стоят дороже точности. Таймер живёт только пока комплекс идёт.
+   */
+  const [сейчас, setСейчас] = useState(0);
+  useEffect(() => {
+    if (!state.active) return undefined;
+    // ⚠️ БЕЗ синхронного setState в эффекте — линтер зовёт это каскадом
+    // перерисовок, и он прав. Первый тик приходит через 10 секунд; до него
+    // `сейчас` равен нулю, разность отрицательна, вопрос не всплывает. Речь о
+    // минутах, так что десять секунд задержки на старте ничего не решают.
+    const id = setInterval(() => setСейчас(Date.now()), 10_000);
+    return () => clearInterval(id);
+  }, [state.active]);
 
   // Generate a UUID for the warmup series — shared across all games in this run.
   // Cross-platform: crypto.randomUUID() works in modern web; falls back to manual generator.
@@ -370,8 +420,19 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     return () => sub.remove();
   }, [stopWarmup, router]);
 
+  const stepsLeft = state.meta ? Math.max(0, state.meta.steps.length - state.currentIdx) : 0;
+  /**
+   * ⚠️ Считается ОТ ОБЕЩАНИЯ (`duration_min`), а не от суммы оценок шагов: человек
+   * планировал время по кнопке, и сверять надо с тем, что он на ней прочитал.
+   */
+  const overtime = state.active && !!state.meta && stepsLeft > 0
+    && спрошеноУ !== state.warmupId
+    && сейчас - state.startTime > state.meta.duration_min * 60_000;
+
+  const dismissOvertime = useCallback(() => setСпрошеноУ(state.warmupId), [state.warmupId]);
+
   return (
-    <Ctx.Provider value={{ ...state, currentStep, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startSpatialLab, startAssessment, startPlaylist: startSlotPlaylist, recordResult, advanceToNext, skipCurrent, stopWarmup }}>
+    <Ctx.Provider value={{ ...state, currentStep, overtime, stepsLeft, dismissOvertime, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startSpatialLab, startAssessment, startPlaylist: startSlotPlaylist, recordResult, advanceToNext, skipCurrent, stopWarmup }}>
       {children}
     </Ctx.Provider>
   );

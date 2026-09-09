@@ -2520,5 +2520,6 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_title": "似た言葉が混ざります",
   "lr_listening_span_similar_rule": "このレベルからは、盤面の余分な言葉が、聞いた言葉に“似た響き”のものから選ばれます。取り違えやすいので、言葉だけでなく順番も保ってください。",
   "lr_listening_span_similar_example": "「casa」を聞いたなら、隣に「cama」が並びます。似ているものではなく、聞いたものを選んでください。",
+  "warmupOvertime": "{m} 分が経過しました。残りのラウンド：{n}",
 };
 export default t;

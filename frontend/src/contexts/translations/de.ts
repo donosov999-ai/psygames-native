@@ -2526,5 +2526,6 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_title": "Die Wörter werden ähnlich",
   "lr_listening_span_similar_rule": "Ab diesem Level werden die überzähligen Wörter im Raster so gewählt, dass sie den gehörten ÄHNLICH KLINGEN. Man verwechselt sie leicht — halte deshalb nicht nur die Wörter, sondern auch ihre Reihenfolge.",
   "lr_listening_span_similar_example": "Du hast «casa» gehört — daneben steht dann «cama». Wähle das Gehörte, nicht das Ähnliche.",
+  "warmupOvertime": "Die {m} Min sind um. Verbleibende Durchgänge: {n}",
 };
 export default t;
