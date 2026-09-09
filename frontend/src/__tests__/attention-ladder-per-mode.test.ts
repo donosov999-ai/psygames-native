@@ -27,6 +27,11 @@ import { levelParams as flankerParams, flankerRowWidthPx } from '@/app/games/fla
 import { levelParams as cptParams } from '@/app/games/cpt';
 import { levelParams as targetsParams } from '@/app/games/targets';
 import { levelParams as wcstParams } from '@/app/games/wcst';
+import { levelParams as emoParams } from '@/app/games/stroop-emotional';
+import { levelParams as simonParams } from '@/app/games/simon';
+import { levelParams as choiceParams } from '@/app/games/choice-rt';
+import { levelParams as antParams } from '@/app/games/ant';
+import { levelParams as switchParams } from '@/app/games/switching-task';
 
 const levels = (m: AttentionMode) => Array.from({ length: LADDER_RANGE[m] }, (_, i) => i + 1);
 
@@ -37,6 +42,11 @@ const fingerprint: Record<AttentionMode, (l: number) => string> = {
   cpt:     (l) => JSON.stringify(cptParams(l)),
   targets: (l) => JSON.stringify(targetsParams(l)),
   wcst:    (l) => JSON.stringify(wcstParams(l)),
+  'stroop-emotional': (l) => JSON.stringify(emoParams(l)),
+  simon:              (l) => JSON.stringify(simonParams(l)),
+  'choice-rt':        (l) => JSON.stringify(choiceParams(l)),
+  ant:                (l) => JSON.stringify(antParams(l)),
+  'switching-task':   (l) => JSON.stringify(switchParams(l)),
 };
 
 /**
@@ -54,6 +64,13 @@ const fingerprint: Record<AttentionMode, (l: number) => string> = {
  */
 const MAX_FLAT_RUN: Record<AttentionMode, number> = {
   stroop: 1, flanker: 1, cpt: 1, targets: 1, wcst: 2,
+  /**
+   * ⚠️ Пяти новым поставлена 1 — то есть дублей не допускается вовсе, БЕЗ
+   * поблажки. Если какой-то из них дубли имеет, проба обязана покраснеть и
+   * чинить надо лестницу игры, а не это число: послабление здесь означало бы
+   * «ступень без нового условия разрешена», а именно её проба и ищет.
+   */
+  'stroop-emotional': 1, simon: 1, 'choice-rt': 1, ant: 1, 'switching-task': 1,
 };
 
 /**
@@ -73,6 +90,11 @@ const BAND_EDGES: Record<AttentionMode, number[]> = {
   cpt: [5, 10],       // cpt.tsx:126     — 1-5 / 6-10 / 11-15
   targets: [4, 8, 12],// targets.tsx     — numSquares шагает каждые 4 уровня
   wcst: [4, 8],       // wcst.tsx:112    — trials 24 / 32 / 40
+  'stroop-emotional': [5, 10],  // TRIALS_BY_BAND — 18 / 24 / 30
+  simon: [5, 10],               // simon.tsx       — trials 16 / 20 / 24
+  'choice-rt': [5, 10],         // choice-rt.tsx   — и trials, и число альтернатив 2 / 3 / 4
+  ant: [5, 10],                 // ant.tsx         — trials 12 / 16 / 20
+  'switching-task': [5, 10],    // switching-task  — trials 12 / 16 / 20
 };
 
 describe('конфликт внимания: у каждой пробы своя лестница и она не откатывается', () => {
@@ -141,13 +163,13 @@ describe('конфликт внимания: у каждой пробы своя
   });
 
   /** Валюты у пяти проб разные — складывать нельзя, и это фиксируется явно. */
-  it('у каждой из пяти названа своя мера прохода', () => {
+  it('у каждой из десяти названа своя мера прохода', () => {
     for (const m of ATTENTION_MODES) {
       expect(SESSION_MEASURE[m].field.length).toBeGreaterThan(0);
       expect(SESSION_MEASURE[m].norm.length).toBeGreaterThan(0);
     }
     const fields = ATTENTION_MODES.map((m) => SESSION_MEASURE[m].field);
-    expect(new Set(fields).size).toBe(ATTENTION_MODES.length);   // пять разных, не одна общая
+    expect(new Set(fields).size).toBe(ATTENTION_MODES.length);   // десять разных, не одна общая
   });
 });
 
