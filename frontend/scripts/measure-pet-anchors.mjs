@@ -205,9 +205,17 @@ export function skullRow(p) {
  * верхней полоски черепа гуляет (у кота на idle0 он уходит на 40% кадра, потому
  * что макушка там срезана наискось), а ось головы стоит на месте.
  */
-function headAxis(p, H) {
+function headAxis(p, H, eyes) {
   let wmax = 0, wrow = H;
-  const lim = Math.min(p.h - 1, H + Math.round(p.h * 0.35));
+  /**
+   * 🔴 ОКНО — ТОЛЬКО СВОД ЧЕРЕПА: от макушки до строки глаз (09.09.2026). Окно «35 %
+   * высоты кадра вниз от макушки» на кадрах В ПРОФИЛЬ (cat/walk) захватывало спину:
+   * самая широкая полоса там — от поднятого хвоста через спину до морды, и ось
+   * головы уезжала в середину тела (51 % при глазах на 67 %). Колпак садился на
+   * затылок — жалоба Вали 09.09 («шапка съезжает, когда ходит»). Выше глаз в любой
+   * позе только голова с ушами; хвост и антенны — отдельные узкие полоски.
+   */
+  const lim = Math.min(p.h - 1, H + Math.round(p.h * 0.35), eyes);
   for (let y = H; y <= lim; y++) { const v = runW(p, y); if (v > wmax) { wmax = v; wrow = y; } }
   return { width: wmax, x: runC(p, wrow) };
 }
@@ -269,11 +277,10 @@ async function measureSkin(dec, skin) {
       const img = await dec.read(file);
       const p = profile(img);
       const H = skullRow(p);
-      const axis = headAxis(p, H);
       const e = eyesRow(p, H);
       frames.push({
         state, f, file, p,
-        H, axis, eyesRaw: e.row, chin: e.chin,
+        H, eyesRaw: e.row, chin: e.chin,
         sha: createHash('sha256').update(readFileSync(file)).digest('hex').slice(0, 16),
       });
     }
@@ -303,8 +310,10 @@ async function measureSkin(dec, skin) {
     const eyesY = (fr.H / h) * 100 + depth.median;
     const neckY = eyesY + NECK_K * depth.median;
     const rowAt = (yPct) => Math.max(0, Math.min(h - 1, Math.round((yPct / 100) * h)));
+    // Ось головы — по своду черепа до строки глаз (той же, что в таблице: медианная глубина).
+    const axis = headAxis(fr.p, fr.H, rowAt(eyesY));
     const точки = {
-      head_top: { x: (fr.axis.x / w) * 100, y: headTopY },
+      head_top: { x: (axis.x / w) * 100, y: headTopY },
       eyes:     { x: (runC(fr.p, rowAt(eyesY)) / w) * 100, y: eyesY },
       neck:     { x: (runC(fr.p, rowAt(neckY)) / w) * 100, y: neckY },
     };

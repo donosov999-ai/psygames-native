@@ -113,9 +113,11 @@ function skullRow(p: Prof): number {
   for (let y = 0; y < p.h; y++) if (p.run(y) > SKULL_RUN * M) return y;
   return 0;
 }
-function headAxisX(p: Prof, H: number): number {
+function headAxisX(p: Prof, H: number, eyes: number): number {
   let wmax = 0, wrow = H;
-  const lim = Math.min(p.h - 1, H + Math.round(p.h * 0.35));
+  // Окно — свод черепа до строки глаз, как в скрипте (09.09.2026): на кадрах в профиль
+  // окно до 35 % высоты захватывало спину, и ось уезжала в середину тела.
+  const lim = Math.min(p.h - 1, H + Math.round(p.h * 0.35), eyes);
   for (let y = H; y <= lim; y++) { const v = p.run(y); if (v > wmax) { wmax = v; wrow = y; } }
   return p.mid(wrow);
 }
@@ -186,7 +188,7 @@ function recompute(skin: Skin, state: State, frame: number) {
   const neckY = eyesY + NECK_K * d;
   const row = (yPct: number) => Math.max(0, Math.min(p.h - 1, Math.round((yPct / 100) * p.h)));
   return {
-    head_top: { x: (headAxisX(p, H) / p.w) * 100, y: headTopY },
+    head_top: { x: (headAxisX(p, H, row(eyesY)) / p.w) * 100, y: headTopY },
     eyes: { x: (p.mid(row(eyesY)) / p.w) * 100, y: eyesY },
     neck: { x: (p.mid(row(neckY)) / p.w) * 100, y: neckY },
   };
