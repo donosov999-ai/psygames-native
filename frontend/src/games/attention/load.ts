@@ -28,8 +28,18 @@ import { levelParams as flankerParams } from '@/app/games/flanker';
 import { levelParams as cptParams } from '@/app/games/cpt';
 import { levelParams as targetsParams } from '@/app/games/targets';
 import { levelParams as wcstParams, MAX_LEVEL as WCST_MAX_LEVEL } from '@/app/games/wcst';
+import { levelParams as emoParams } from '@/app/games/stroop-emotional';
+import { levelParams as simonParams } from '@/app/games/simon';
+import { levelParams as choiceParams } from '@/app/games/choice-rt';
+import { levelParams as antParams } from '@/app/games/ant';
+import { levelParams as switchParams } from '@/app/games/switching-task';
 
-export type AttentionMode = 'stroop' | 'flanker' | 'cpt' | 'targets' | 'wcst';
+export type AttentionMode =
+  | 'stroop' | 'flanker' | 'cpt' | 'targets' | 'wcst'
+  /** ⚠️ Пять режимов внутри наборов — зона расширена решением Дениса 07.09.2026
+   * («всё, что входит в хаб конфликт внимания, твоя зона»). Хаб отдаёт пять
+   * карточек, но играются десять экранов. */
+  | 'stroop-emotional' | 'simon' | 'choice-rt' | 'ant' | 'switching-task';
 
 /**
  * Полоса уровней, на которой лестница обязана РАСТИ. Не «сколько уровней бывает»,
@@ -46,6 +56,11 @@ export const LADDER_RANGE: Record<AttentionMode, number> = {
   cpt: 15,      // ISI упирается в пол 500 мс, доля похожих — в 0,5, оба на L15
   targets: 15,  // потолок игры: targets.tsx:393 `if (levelRef.current < 15)`
   wcst: WCST_MAX_LEVEL,
+  'stroop-emotional': 15,  // окно 3500→1400, пауза 500→250, объём 18→30 — всё на L15
+  simon: 15,               // окно 2600→920 на L15
+  'choice-rt': 15,         // окно 2000→1000 (пол объявлен константой), альтернатив 2→4
+  ant: 15,                 // окно 3000→1040, разбросы 400→1520 и 100→660
+  'switching-task': 15,    // окно 3400→1400, объём 12→20
 };
 
 /** Что пишется в партию у этой пробы, и чем это меряется в методике. */
@@ -55,6 +70,18 @@ export const SESSION_MEASURE: Record<AttentionMode, { field: string; norm: strin
   cpt:     { field: 'vigilance_accuracy_slope', norm: 'падение доли обнаружений по квартилям; рядом vigilance_decrement — это ЗАМЕДЛЕНИЕ, другая величина' },
   targets: { field: 'commission_errors',   norm: 'go/no-go: главный показатель — ошибки торможения; доля no-go 25 % либо 50 %, у нас TARGET_RATE = 0.5' },
   wcst:    { field: 'rule_catch_mean',     norm: 'ходов до перехвата нового правила; канон — смена после 10 подряд верных (Heaton 1993)' },
+
+  /**
+   * 🔴 У ТРЁХ ИЗ ПЯТИ НОВЫХ ПОКАЗАТЕЛЬ ЕСТЬ, А НОРМЫ В БАТАРЕЕ НЕТ, У ЧЕТВЁРТОГО
+   * НЕТ И ПОКАЗАТЕЛЯ. Пишу это здесь, чтобы поле `norm` не выглядело
+   * заполненным там, где сравнивать не с чем: в `DOMAINS` (`assessment.ts`) из
+   * десяти проб раздела нормы заведены только фланкеру и переключению задач.
+   */
+  'stroop-emotional': { field: 'interference_threat_ms', norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Разность RT относительно нейтральных слов; вторая мера — interference_positive_ms. Доли валентностей заморожены равными (Fan-подобный канон равных списков), объём растёт 18→30, поэтому база разности крепнет с уровнем' },
+  simon:              { field: 'simon_effect_ms',        norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ, и схемы в DETAILS_SCHEMAS тоже (заявка координатору от 07.09). Разность RT между несовпадающими и совпадающими; доля заморожена INCONGRUENT_PROB = 0.5' },
+  'choice-rt':        { field: 'mean_rt',                norm: '🔴 КЛИНИЧЕСКОГО ПОКАЗАТЕЛЯ НЕТ — единственная из десяти. Наклон Хика посчитать нельзя: число альтернатив постоянно ВНУТРИ партии, а между уровнями различается ещё и окно. Открытый вопрос Денису, см. PROJECT_REF §10' },
+  ant:                { field: 'executive_ms',           norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Разность RT конфликтные−согласованные, одна из трёх сетей внимания (рядом alerting_ms и orienting_ms). Доли заморожены на каноне Fan 2002 — треть/треть/треть' },
+  'switching-task':   { field: 'switch_cost_ms',         norm: '✅ норма батареи 150±80 (assessment.ts). Разность RT смена−повтор; доля смен заморожена на каноне парадигмы SWITCH_PROB = 0.5' },
 };
 
 /**
@@ -150,6 +177,88 @@ export function wcstLoad(level: number): number {
 }
 
 /** Мера уровня для любой из пяти. Складывать между пробами НЕЛЬЗЯ — валюты разные. */
+/**
+ * ЭМОЦИОНАЛЬНЫЙ СТРУП — «теснота окна × теснота паузы».
+ *
+ * Мера прохода — разность RT относительно нейтральных слов. Доли валентностей
+ * заморожены равными и ручкой быть не могут (тот же довод, что у обычного
+ * Струпа). Остаются две оси, и обе НЕ входят в формулу разности: сколько времени
+ * дано на ответ и сколько на восстановление между пробами.
+ * Валюта: во сколько раз тесней первого уровня по обоим путям сразу.
+ */
+export function emotionalStroopLoad(level: number): number {
+  const p = emoParams(level);
+  const base = emoParams(1);
+  return (base.answerWindowMs / p.answerWindowMs) * (base.isiBaseMs / p.isiBaseMs);
+}
+
+/**
+ * САЙМОН — «теснота окна × нехватка подготовки».
+ *
+ * Мера прохода — разность RT между несовпадающими и совпадающими пробами; доля
+ * заморожена. Трудность растёт окном ответа и сокращением паузы ДО стимула:
+ * меньше паузы — меньше времени собраться, но сам конфликт положения и значения
+ * от этого не слабеет.
+ * ⚠️ Дрожание паузы (`preJitterMs`) здесь СОКРАЩАЕТСЯ 600 → 200, то есть момент
+ * становится предсказуемее. В валюту не берём: это ось в лёгкую сторону, и
+ * складывать её с двумя тесными значило бы прятать облегчение внутри роста.
+ */
+export function simonLoad(level: number): number {
+  const p = simonParams(level);
+  const base = simonParams(1);
+  return (base.windowMs / p.windowMs) * (base.preMinMs / p.preMinMs);
+}
+
+/**
+ * ВЫБОР РЕАКЦИИ — «битов выбора на единицу времени».
+ *
+ * Единственная проба раздела, у которой валюта берётся прямо из закона: Хик
+ * говорит RT = a + b·log₂(n), то есть трудность выбора меряется БИТАМИ, а не
+ * числом кнопок. Две альтернативы — один бит, четыре — два.
+ * Валюта: во сколько раз больше битов надо разрешить и во сколько раз меньше на
+ * это дано времени.
+ * 🔴 У пробы нет клинического показателя, и наклон Хика по ней посчитать нельзя
+ * (число альтернатив постоянно внутри партии) — открытый вопрос, PROJECT_REF §10.
+ */
+export function choiceRtLoad(level: number): number {
+  const p = choiceParams(level);
+  const base = choiceParams(1);
+  return (Math.log2(p.dirs.length) / Math.log2(base.dirs.length))
+       * (base.windowMs / p.windowMs);
+}
+
+/**
+ * ANT — «теснота окна × непредсказуемость момента».
+ *
+ * ⚠️ ЗДЕСЬ ОТНОШЕНИЕ ПЕРЕВЁРНУТО ОТНОСИТЕЛЬНО ОСТАЛЬНЫХ, и это не описка.
+ * У всех прочих проб величина СОКРАЩАЕТСЯ с уровнем (окно, пауза), поэтому в
+ * числителе стоит база. У ANT разбросы РАСТУТ: пред-пауза 400 → 1520, CTOA
+ * 100 → 660 — чем они больше, тем труднее предугадать момент появления цели.
+ * Поэтому здесь числитель и знаменатель меняются местами.
+ * Доли заморожены на каноне Fan 2002, ручкой быть не могут.
+ */
+export function antLoad(level: number): number {
+  const p = antParams(level);
+  const base = antParams(1);
+  return (base.windowMs / p.windowMs)
+       * ((p.preJitterMs + p.ctoaVarMs) / (base.preJitterMs + base.ctoaVarMs));
+}
+
+/**
+ * ПЕРЕКЛЮЧЕНИЕ ЗАДАЧ — «теснота окна × объём удержания».
+ *
+ * Мера прохода — стоимость переключения (разность RT смена−повтор). Доля смен
+ * заморожена на каноне 0,5 и ручкой быть не может. Остаются окно ответа и объём:
+ * чем длиннее партия, тем дольше держать в голове два правила сразу.
+ * 🚫 Интервал подготовки (cue-stimulus interval) сюда НЕ входит намеренно — он
+ * прямо модулирует саму стоимость переключения; разбор в шапке switching-task.
+ */
+export function switchingLoad(level: number): number {
+  const p = switchParams(level);
+  const base = switchParams(1);
+  return (base.windowMs / p.windowMs) * (p.trials / base.trials);
+}
+
 export function attentionLoad(mode: AttentionMode, level: number): number {
   switch (mode) {
     case 'stroop':  return stroopLoad(level);
@@ -157,7 +266,15 @@ export function attentionLoad(mode: AttentionMode, level: number): number {
     case 'cpt':     return cptLoad(level);
     case 'targets': return targetsLoad(level);
     case 'wcst':    return wcstLoad(level);
+    case 'stroop-emotional': return emotionalStroopLoad(level);
+    case 'simon':            return simonLoad(level);
+    case 'choice-rt':        return choiceRtLoad(level);
+    case 'ant':              return antLoad(level);
+    case 'switching-task':   return switchingLoad(level);
   }
 }
 
-export const ATTENTION_MODES: AttentionMode[] = ['stroop', 'flanker', 'cpt', 'targets', 'wcst'];
+export const ATTENTION_MODES: AttentionMode[] = [
+  'stroop', 'flanker', 'cpt', 'targets', 'wcst',
+  'stroop-emotional', 'simon', 'choice-rt', 'ant', 'switching-task',
+];
