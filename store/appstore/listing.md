@@ -14,8 +14,8 @@
 - **Price:** Free (модель подписки/IAP — отдельно, если будет)
 
 ## 2. Promotional Text (≤170, можно менять без ревью)
-- **EN:** `73 cognitive games built on real neuropsychology — train memory, attention, logic and speed, and watch your progress. 12 languages, offline, no ads.`
-- **RU:** `73 когнитивных игр на реальных нейропсих-парадигмах — тренируй память, внимание, логику и скорость, отслеживай прогресс. 12 языков, офлайн, без рекламы.`
+- **EN:** `New: a language warm-up that mixes two foreign languages round by round. 73 cognitive games on real neuropsychology. 12 languages, offline, no ads.`
+- **RU:** `Новое: языковая зарядка — два иностранных вперемешку, раунд за раундом. 73 когнитивные игры на реальных парадигмах. 12 языков, офлайн, без рекламы.`
 
 ## 3. Description (EN — primary)
 ```
@@ -52,8 +52,8 @@ PsyGames — это 73 когнитивных тренажёров на осно
 ```
 
 ## 5. Keywords (≤100 символов, без пробелов после запятых)
-- **EN:** `brain,memory,attention,focus,cognitive,logic,reaction,n-back,stroop,puzzle,concentration,mind,iq`
-- **RU:** `мозг,память,внимание,фокус,логика,реакция,концентрация,тренировка,когнитивный,нейро,шульте,судоку`
+- **EN:** `brain,memory,attention,focus,cognitive,logic,reaction,n-back,stroop,puzzle,concentration,vocabulary`
+- **RU:** `мозг,память,внимание,фокус,логика,реакция,концентрация,тренировка,слова,язык,шульте,судоку,счёт`
 
 ## 6. URLs
 - **Support URL:** `https://psy-games.pro/`
