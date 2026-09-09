@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.52.8',
+    date: '2026-09-09',
+    ru: [
+      'Вращение вернулось во все три упражнения «Ментальной ротации»: фигура крутится, разбор ошибки показывает поворот, блок и труба поворачиваются с анимацией',
+      '«Поворот чисел» и «Сеть труб»: стрелка «назад» открывает меню паузы — продолжить, заново, отменить ход, правила, на главную',
+    ],
+    en: [
+      'Rotation is back in all three “Mental Rotation” exercises: the shape turns, the mistake review shows the turn, the block and the pipe rotate with animation',
+      '“Number Twist” and “Pipe Network”: the back arrow opens a pause menu — resume, restart, undo, rules, home',
+    ],
+  },
+  {
     version: '2.52.7',
     date: '2026-09-09',
     ru: [
