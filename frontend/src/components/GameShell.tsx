@@ -385,12 +385,15 @@ export interface GameShellProps {
  *
  * ⚠️ Отступ безусловный: слот пустым не бывает — питомец в нём есть всегда.
  */
-export function HeaderRightSlot({ rtl, mood, headerRight, wuStep, wuSkip, skipLabel, iconColor }: {
+export function HeaderRightSlot({ rtl, mood, headerRight, wuStep, wuSkip, skipLabel, iconColor, wuПозиция, wuПодпись }: {
   rtl: boolean;
   mood: PetMood;
   headerRight?: React.ReactNode;
   wuStep?: boolean;
   wuSkip?: () => void;
+  /** «3/12» — какой это шаг серии. null, когда зарядка не идёт. */
+  wuПозиция?: string | null;
+  wuПодпись?: string;
   skipLabel: string;
   iconColor: string;
 }) {
@@ -400,6 +403,26 @@ export function HeaderRightSlot({ rtl, mood, headerRight, wuStep, wuSkip, skipLa
       style={[styles.headerRightWide, rtl ? { marginLeft: HELP_FAB_GUTTER } : { marginRight: HELP_FAB_GUTTER }]}
     >
       {headerRight}
+      {/*
+        🔴 ГДЕ Я В СЕРИИ — ВИДНО ВНУТРИ ПАРТИИ, А НЕ ТОЛЬКО НА МОСТУ.
+        Отчёт 5f4eac8e: «индикатор, где мы в серии зарядки — сколько блоков,
+        какой сейчас». Замер 09.09.2026: счётчик и полоса прогресса ЕСТЬ на
+        мосту между играми (`warmup-bridge.tsx:115`), но внутри самой партии
+        места в серии не видно нигде — а партия и есть то, где человек проводит
+        время. Значит механизм был, до игрока он не доехал.
+        Стоит рядом с «пропустить»: это одна и та же мысль — «я в серии, и вот
+        где именно», и обе появляются ровно тогда, когда зарядка идёт.
+      */}
+      {wuПозиция ? (
+        <View
+          accessible
+          accessibilityLabel={wuПодпись}
+          testID="warmup-position"
+          style={styles.wuPos}
+        >
+          <Text style={[styles.wuPosText, { color: iconColor }]}>{wuПозиция}</Text>
+        </View>
+      ) : null}
       {wuStep ? (
         <TouchableOpacity
           accessibilityRole="button"
@@ -458,6 +481,14 @@ export default function GameShell({
    * рисуется в дереве и работает на всех трёх платформах.
    */
   const [askSkip, setAskSkip] = React.useState(false);
+  /**
+   * Место в серии: показываем только когда шагов больше одного — «1/1» это не
+   * серия, а одиночная игра, и подпись там была бы шумом.
+   */
+  const wuВсего = wu?.active && wu.meta ? wu.meta.steps.length : 0;
+  const wuПозиция = wuВсего > 1 ? `${Math.min(wu!.currentIdx + 1, wuВсего)}/${wuВсего}` : null;
+  const wuПодпись = wuПозиция ? `${t('unitGames')}: ${wuПозиция}` : undefined;
+
   const wuSkip = () => { if (wu && wuStep) setAskSkip(true); };
   const wuSkipConfirm = () => { setAskSkip(false); wu?.skipCurrent(); };
 
@@ -799,6 +830,8 @@ export default function GameShell({
           headerRight={headerRight}
           wuStep={!!wuStep}
           wuSkip={wuSkip}
+          wuПозиция={wuПозиция}
+          wuПодпись={wuПодпись}
           skipLabel={t('skipStep')}
           iconColor={colors.textSecondary}
         />
@@ -1177,6 +1210,8 @@ export const PAD_H = 10;
 const PAD_V = 5;    // вертикальный зазор между полосами (было 6…10)
 
 const styles = StyleSheet.create({
+  wuPos: { minHeight: 32, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
+  wuPosText: { fontSize: 13, fontWeight: '700' },
   wuSkipBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   root: { flex: 1 },
   // Слой итога. Своего фона нет: затемнение рисует сама карточка — так она решает,
