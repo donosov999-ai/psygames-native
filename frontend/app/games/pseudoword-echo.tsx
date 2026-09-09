@@ -504,6 +504,7 @@ export default function PseudowordEchoGame() {
             <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
           </View>
         }
+        bottom="answer"
         toolbar={<View style={styles.optionsCol}>
               {round.options.map((opt) => {
                 const revealed = answered !== null;

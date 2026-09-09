@@ -863,7 +863,7 @@ export default function AnagramGame() {
   if (phase === 'playing' && режимИгры === 'cross') {
     const пак = allWordsPack(wordLang.lang, lvl.level);
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <CrosswordGame
             key={`cross-${wordLang.lang}-${пак.base}-${lvl.level}`}
@@ -905,7 +905,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <AllWordsGame
             key={`${wordLang.lang}-${пак.base}`}
@@ -960,7 +960,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {к ? (
           <WordSquareGame
             key={ключКольца(к.верх, к.право, к.низ, к.лево)}
@@ -1000,10 +1000,6 @@ export default function AnagramGame() {
           { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
           ...(wordSec > 0 ? [{ key: 'left', icon: 'time' as const, label: t('timeLeftLabel'), value: `${Math.ceil(wordLeft)}${t('secShort')}`, tone: wordLeft <= 10 ? 'warn' as const : 'neutral' as const }] : []),
         ]}
-        stats={
-          <View style={styles.statsRow}>
-          </View>
-        }
         /* 💡 Подсказка ушла НАВЕРХ, к остальному служебному: она открывает
            следующую верную букву и растит счётчик `hintUses`, который режет
            результат — то есть трогает игру, а не черновик ответа.
