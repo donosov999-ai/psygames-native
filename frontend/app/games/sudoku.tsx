@@ -86,7 +86,7 @@ import {
   sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
   rejectionReason,
 } from '@/src/services/sudoku-core';
-import { gradePuzzle, logicalBuilder } from '@/src/services/sudoku-grade';
+import { gradePuzzle, logicalBuilder, selectionLookForLevel } from '@/src/services/sudoku-grade';
 // Небоскрёбы и неравенства — режимы со своими мини-лестницами (решение 70b58bbe:
 // в 57-ступенчатую лестницу оба не помещаются по замеренным причинам — разбор в шапке сервиса).
 import { SideMode, sideModeBuilder, sideStepCount, type SideBoard } from '@/src/services/sudoku-modes';
@@ -900,6 +900,9 @@ export default function SudokuGame() {
       // в sudoku-grade). Без сдвига полосы «полегче» было бы обещанием без вещества.
       const builder = logicalBuilder(lv, blanks, d.N, d.BR, d.BC, vr, {
         budgetMs: 2200, tier: roadTier(lv, road),
+        // Место уровня в серии одинаковых: чем дальше, тем из большего числа досок
+        // выбираем (см. selectionLookForLevel). На банковских уровнях всегда 1.
+        look: selectionLookForLevel(lv),
       });
       setBuild({ step: 1, steps: builder.steps, slow: false });
       setPhase('building');
