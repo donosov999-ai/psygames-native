@@ -15,7 +15,7 @@ import { saveSession } from '@/src/services/api';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
-import { ensureVoiceIndex } from '@/src/services/voiceSamples';
+import { ensureVoiceIndex, voiceUrl } from '@/src/services/voiceSamples';
 import { speakSequence, ttsAvailable, ttsCancel } from '@/src/services/tts';
 import { useTtsBlock } from '@/src/hooks/useTtsAvailable';
 import { sndCorrect, sndWrong } from '@/src/services/feedback';
@@ -173,12 +173,40 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/** Все уникальные слова целевого языка из общего словаря — мешок, из которого берём. */
+/**
+ * Слова целевого языка из общего словаря — мешок, из которого берём.
+ *
+ * 🔴 СНАЧАЛА ОЗВУЧЕННЫЕ, И ЭТО ПОЧИНКА МОЕЙ ЖЕ ПОЛОМКИ (09.09.2026).
+ *
+ * 📍 ЗАМЕР. Коммит `30d63aa2` вырастил общий словарь 196 → 283 слова ради
+ * языковой зарядки. Записи стимулов снимались под прежние 196, и доля
+ * озвученных упала: en 96 % → 67 %, es 95 % → 66 %, de 96 % → 67 %. То есть
+ * каждое третье слово здесь стало уходить на СИСТЕМНЫЙ голос устройства —
+ * а его на части телефонов для нужного языка нет вовсе (разбор в шапке
+ * `voiceSamples`). Для игры, где межсловный интервал сам является измеряемым
+ * параметром, это порча пробы, а не косметика.
+ *
+ * ⚠️ ПОЧЕМУ НЕ ЖЁСТКИЙ ФИЛЬТР. Корпус записей есть у СЕМИ языков
+ * (ru pt zh hi de es en). У остальных пяти озвученных слов ноль, и жёсткий
+ * фильтр оставил бы игру совсем без материала. Поэтому: берём озвученные, а
+ * если их не хватает на партию — возвращаемся к полному мешку и играем на
+ * системном голосе, как было до записей.
+ *
+ * ⚠️ ПОРОГ — НЕ КРУГЛОЕ ЧИСЛО. Партия просит `span` слов дважды (`ROUNDS`),
+ * потолок span 8 → 16 слов. Втрое больше даёт запасу «невиданного» из чего
+ * выбирать хотя бы на три партии подряд; ниже этого мешок сам стал бы
+ * источником повторов.
+ */
+const МИН_ОЗВУЧЕННЫХ = 8 * ROUNDS * 3;
+
 function wordPool(targetLang: string): string[] {
-  const pool = TRANSLATION_VOCAB
-    .map((e) => e[targetLang])
-    .filter((w): w is string => typeof w === 'string' && w.length > 0);
-  return Array.from(new Set(pool));
+  const все = Array.from(new Set(
+    TRANSLATION_VOCAB
+      .map((e) => e[targetLang])
+      .filter((w): w is string => typeof w === 'string' && w.length > 0),
+  ));
+  const озвученные = все.filter((w) => voiceUrl(w, targetLang) !== null);
+  return озвученные.length >= МИН_ОЗВУЧЕННЫХ ? озвученные : все;
 }
 
 export default function ListeningSpanGame() {
