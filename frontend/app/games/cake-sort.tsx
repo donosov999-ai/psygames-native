@@ -46,7 +46,7 @@ import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { prebuilt, prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
 import { topFor, boardsFor, type КруглаяШкурка } from '@/src/constants/cakeTops';
-import { tableLayout, maxCols, plateAtPoint, plateForGrab, PLATE_GAP, SECTOR_MIN, tableFit, cakeRadius } from '@/src/games/cake-sort/core/layout';
+import { plateAtPoint, plateForGrab, PLATE_GAP, SECTOR_MIN, tableFit, cakeRadius } from '@/src/games/cake-sort/core/layout';
 import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
 
 export const CS_GAME_ID = 'cake_sort';
