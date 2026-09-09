@@ -381,7 +381,7 @@ export default function MentalRotationGame() {
   // задержка на верном ответе ломает темп партии и портит замер времени.
   const reviewing = feedback !== null && !feedback.ok;
   const frames = useMemo(() => (task.kind === 'rotation' ? rotationReplay(task) : []), [task]);
-  const reviewStep=reduceMotion&&reviewing?Math.max(0,frames.length-1):animatedStep;
+  const reviewStep=animatedStep;   // разбор всегда идёт кадрами: поворот и есть объяснение ошибки
 
   // Справка правил уровня (в пресете не всплываем — там свой поток)
   const levelRules = useLevelRules('mental_rotation', selectedLevel, MR_RULES, phase === 'playing' && !isPreset);
@@ -402,12 +402,16 @@ export default function MentalRotationGame() {
      * Было (и снова есть): без анимации показываем СРАЗУ КОНЕЧНЫЙ кадр — ответ виден,
      * движения нет. Крутить вручную кнопкой можно в обоих режимах.
      */
-    if (reduceMotion) { setReviewStep(frames.length - 1); return; }
+    /*
+     * 🔴 РАЗБОР КРУТИТСЯ ВСЕГДА, БЕЗ ОГЛЯДКИ НА «МЕНЬШЕ ДВИЖЕНИЯ» (09.09.2026).
+     * Я подчинил его этой настройке ради гейта — и разбор замирал, показывая ровно ту
+     * картинку, из-за которой человек ошибся. Поворот здесь — объяснение, а не украшение.
+     */
     const id = setInterval(() => {
       setReviewStep((s) => (s + 1 < frames.length ? s + 1 : s));
     }, 850);
     return () => clearInterval(id);
-  }, [reviewing, frames, reduceMotion,manualReview]);
+  }, [reviewing, frames, manualReview]);
 
   const startGame = () => {
     levelRef.current = selectedLevel;
