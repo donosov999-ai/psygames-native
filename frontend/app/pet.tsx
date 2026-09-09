@@ -29,7 +29,8 @@ import { pickPettedLine } from '@/src/services/petLines';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getTokens, spendTokens } from '@/src/services/tokens';
 import { sndToken, sndWrong } from '@/src/services/feedback';
-import { CATEGORY_TO_SKILL } from '@/src/services/pet';
+import { CATEGORY_TO_SKILL, currentPetLook } from '@/src/services/pet';
+import type { PetLook } from '@/src/services/petLook';
 import { GAMES } from '@/src/constants/games';
 import { isGameAllowed } from '@/src/constants/profiles';
 
@@ -92,6 +93,9 @@ export default function PetScreen() {
   const [editingName, setEditingName] = React.useState(false);
   // Кормление: раз в день за токены активного профиля
   const [fed, setFed] = React.useState(false);
+  /** Вид питомца с причиной — та же шкала, что рисует ходящего кота (см. currentPetLook). */
+  const [look, setLook] = React.useState<PetLook | null>(null);
+  React.useEffect(() => { currentPetLook().then(setLook).catch(() => {}); }, [fed]);
   const [balance, setBalance] = React.useState(0);
   const [feastAnim, setFeastAnim] = React.useState(false);
 
@@ -272,6 +276,12 @@ export default function PetScreen() {
         </TouchableOpacity>
         {!fed && balance < PET_FEED_COST && (
           <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{t('needMoreTokens')}</Text>
+        )}
+        {/* Почему кот выглядит так: «Сыт и доволен» по одному флагу кормления обманывало —
+            грусть приходила с другой шкалы (мытьё, тренировки, перекорм), и человек этого не
+            видел (отчёты 622e217d, d1264bfd). Причина — та же, по которой рисуется кадр. */}
+        {look && look.reason !== 'growing' && (
+          <Text testID="pet-look-reason" style={[styles.feedHint, { color: colors.textSecondary }]}>{t(`petLook_${look.reason}`)}</Text>
         )}
 
         {/* Подпись над рядом. Без неё это четыре карточки с чужими именами

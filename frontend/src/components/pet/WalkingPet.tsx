@@ -25,11 +25,11 @@ import PetSprite, {
   PetAccessory, PetSkin, PetState, PET_FIDGETS, PET_SLEEP_POSES, petCycleMs, petHasState,
 } from '@/src/components/pet/PetSprite';
 import {
-  consumeRecentRecord, getDaysSinceWash, getFedDays, getPetAccessory, getPetScale,
+  consumeRecentRecord, currentPetLook, getPetAccessory, getPetScale,
   getPetSkinChoice, getPetStats, getPetVisible, PET_SCALE_DEFAULT, PET_SCALE_EVENT,
   PET_VISIBLE_EVENT, pickPetLine, pickPettedLine, pickRecordLine, resolvePetSkin, PetStage,
 } from '@/src/services/pet';
-import { petLook, type PetLook } from '@/src/services/petLook';
+import { type PetLook } from '@/src/services/petLook';
 import type { PetLine, PetSkill } from '@/src/services/petLines';
 import { getSessions } from '@/src/services/api';
 import { useProfileOptional } from '@/src/contexts/ProfileContext';
@@ -199,21 +199,7 @@ export default function WalkingPet() {
      * Считается на КАЖДОЙ навигации, а не по таймеру: вид меняется на суточном
      * масштабе, и чаще его пересчитывать незачем.
      */
-    Promise.all([getFedDays(), getDaysSinceWash(), getPetStats(), getSessions()])
-      .then(([fedDays, daysSinceWash, stats, ss]) => {
-        const last = ss.length ? ss[ss.length - 1]?.timestamp : null;
-        const t = last ? Date.parse(last) : NaN;
-        const daysSincePlay = Number.isFinite(t) ? (Date.now() - t) / 86400000 : 999;
-        const шкалы = Object.values(stats.skills);
-        setLook(petLook({
-          fedDays,
-          daysSinceWash,
-          daysSincePlay,
-          stage: stats.stage,
-          skillAvg: шкалы.reduce((a, b) => a + b, 0) / Math.max(1, шкалы.length),
-        }));
-      })
-      .catch(() => {});
+    currentPetLook().then(setLook).catch(() => {});
   }, [pathname]);
 
   /**
