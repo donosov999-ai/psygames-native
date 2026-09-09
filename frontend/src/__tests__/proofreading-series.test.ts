@@ -56,7 +56,7 @@ import {
   type ProofField,
   type ProofSeriesState,
 } from '@/src/games/proofreading/core';
-import { FILLWORDS_LOCALES, createFillwordsSession, isCleared, lettersLeft, takeHint, wordPool } from '@/src/games/fillwords/core';
+import { FILLWORDS_LOCALES, createFillwordsSession, isCleared, isFillwordsLocale, lettersLeft, takeHint, wordPool } from '@/src/games/fillwords/core';
 import { STABLE_RUNS, recordBlock, seriesDiffs, seriesSession, startSeries } from '@/src/services/series';
 
 declare const __dirname: string;
@@ -403,7 +403,17 @@ describe('язык годится для «Смысла» тогда и толь
     const rejected = APP_LOCALES.filter((l) => !PROOF_SENSE_LOCALES.includes(l)).map(rich);
     expect(Math.min(...supported)).toBeGreaterThanOrEqual(MIN_SENSE_CATEGORIES);
     // Связь держится сама: будь список написан руками, она бы не держалась.
-    expect(Math.min(...supported)).toBeGreaterThan(Math.max(0, ...rejected));
+    // У КАЖДОГО отвергнутого — причина В ДАННЫХ: либо нет поля филвордов, либо
+    // категорий меньше порога. Раньше здесь стояло «у любого отвергнутого категорий
+    // меньше, чем у любого поддержанного» — и 09.09.2026 это перестало быть правдой:
+    // словарь переводов (78990ebe, раздел языков) дал арабскому те же 13 категорий,
+    // что у английского, а отвергнут он за отсутствие поля филвордов, не за категории.
+    for (const locale of APP_LOCALES.filter((l) => !PROOF_SENSE_LOCALES.includes(l))) {
+      const почему = !isFillwordsLocale(locale) ? 'нет поля филвордов'
+        : rich(locale) < MIN_SENSE_CATEGORIES ? 'мало категорий' : 'ПРИЧИНЫ НЕТ';
+      expect(`${locale}: ${почему}`).not.toBe(`${locale}: ПРИЧИНЫ НЕТ`);
+    }
+    expect(rejected.length).toBeGreaterThan(0);
     for (const locale of APP_LOCALES) {
       expect(`${locale}: ${isSenseLocale(locale)}`).toBe(`${locale}: ${PROOF_SENSE_LOCALES.includes(locale)}`);
     }
