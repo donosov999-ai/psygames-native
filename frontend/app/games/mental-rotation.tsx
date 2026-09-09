@@ -395,7 +395,14 @@ export default function MentalRotationGame() {
   // а не проводить глазами смазанное движение.
   useEffect(() => {
     if (!reviewing || manualReview || frames.length < 2) return;
-    if (reduceMotion) return;
+    /*
+     * 🔴 ВРАЩЕНИЕ В РАЗБОРЕ — ЭТО ОБЪЯСНЕНИЕ, А НЕ УКРАШЕНИЕ (возврат 09.09.2026).
+     * При «меньше движения» я поставил `return` — и разбор замирал на ПЕРВОМ кадре:
+     * человек, ошибившийся с поворотом, видел ту же картинку, из-за которой ошибся.
+     * Было (и снова есть): без анимации показываем СРАЗУ КОНЕЧНЫЙ кадр — ответ виден,
+     * движения нет. Крутить вручную кнопкой можно в обоих режимах.
+     */
+    if (reduceMotion) { setReviewStep(frames.length - 1); return; }
     const id = setInterval(() => {
       setReviewStep((s) => (s + 1 < frames.length ? s + 1 : s));
     }, 850);

@@ -57,12 +57,11 @@ export function SpatialPipe({cell,active,source}:{cell:Cell;active:boolean;sourc
 }
 
 /**
- * `header`, `overlay` и `onReady` — слоты для маршрута app/games/spatial-lab.tsx (09.09.2026): тропинка
- * уровней каркаса рисуется над вкладками, а маршрут получает `request(level)` и зовёт его сам —
- * с тропинки и с экрана итога («дальше»). Механика поля не тронута: это тот же `request()`,
- * что у кнопок «Проще/Сложнее».
+ * `overlay` и `onReady` — слоты для маршрута app/games/spatial-lab.tsx (09.09.2026): окно «уровень собран»
+ * рисуется поверх поля, а маршрут получает `request(level)` и зовёт его сам — с экрана итога («дальше»).
+ * Механика поля Codex не тронута: это тот же `request()`, что у кнопок «Проще/Сложнее».
  */
-export default function SpatialLab({onBack,preset,initialMode,onComplete,header,overlay,onReady}:{onBack:()=>void;preset?:{mode:Mode;level:number;seed:number};initialMode?:Mode;onComplete?:(result:{mode:Mode;level:number;moves:number})=>void;header?:React.ReactNode;overlay?:React.ReactNode;onReady?:(api:{request:(level:number)=>void})=>void}) {
+export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay,onReady}:{onBack:()=>void;preset?:{mode:Mode;level:number;seed:number};initialMode?:Mode;onComplete?:(result:{mode:Mode;level:number;moves:number})=>void;overlay?:React.ReactNode;onReady?:(api:{request:(level:number)=>void})=>void}) {
   const {t}=useLanguage();   // названия упражнений — из общего словаря (12 языков), не литералами
   const {colors}=useTheme();
   const {h:viewportHeight}=useScreenSize();
@@ -208,7 +207,13 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,header,
       { key: 'round', icon: 'pricetag-outline', label: t('hud_puzzle'), value: `#${seed}` },
     ]}
     headerActions={<View style={styles.top}>
-      {header}
+      {/*
+        🔴 ТРОПИНКИ УРОВНЕЙ ЗДЕСЬ НЕТ — И ЭТО ВОЗВРАТ, А НЕ ПРОПУСК (09.09.2026).
+        Я поставил её над вкладками, и на iPhone 403×873 (отчёты cc1a7535, 652e6eee)
+        настройка заняла верхнюю половину экрана, а поле уехало под сгиб и обрезалось.
+        Экран Codex уже показывает уровень строкой «Уровень N/50», «Пройдено N/50» и
+        кнопками «Проще / Сложнее / Свободная» — второй навигации ему не нужно.
+      */}
       {!preset&&<View style={styles.tabs}>{(['twiddle','net'] as const).map(m=><Pressable key={m} accessibilityRole="button" accessibilityState={{selected:mode===m}} onPress={()=>{if(m!==mode)request(m);}} style={[styles.tab,{borderColor:mode===m?colors.primary:colors.border,backgroundColor:colors.surface}]}><Text style={ink}>{m==='twiddle'?'Числа':'Трубы'}</Text></Pressable>)}</View>}
       {/*
         ⚠️ ПАНЕЛЬ СЛУЖЕБНЫХ КНОПОК ОБЁРНУТА В РЯД (перенос 09.09.2026).
