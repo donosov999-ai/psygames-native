@@ -24,7 +24,6 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
-import { useWarmup } from '@/src/contexts/WarmupContext';
 import { hapticMedium } from '@/src/components/juice/haptics';
 import { sndTap, sndBreathIn, sndBreathHold, sndBreathOut } from '@/src/services/feedback';
 import { gameNow } from '@/src/services/gamePause';
@@ -125,7 +124,6 @@ export default function BreathingGame() {
   // не берётся вовсе (белый 2.99, чёрный 1.91) — GradientSurface кладёт вуаль.
   const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
   const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
-  const warmup = useWarmup();
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
@@ -503,17 +501,17 @@ export default function BreathingGame() {
         onBack={() => goBackOrHome()}
         stats={
           <View style={styles.statsRow}>
-            {/* Шаг комплекса. Дыхание — единственная игра без итогового экрана
-                GameResult, а именно он показывает «шаг N из M». Внутри комплекса
-                экран выглядел как отдельно запущенная игра, и человек терял нить:
-                «всё в разнобой, ничего не понятно» (репорт Вали, v1.173). */}
-            {warmup.active && warmup.meta && (
-              <Text style={[styles.exStep, { color: colors.primary, fontWeight: '900' }]}>
-                {t('warmupStepOf')
-                  .replace('{n}', String(warmup.currentIdx + 1))
-                  .replace('{m}', String(warmup.meta.steps.length))}
-              </Text>
-            )}
+            {/* Шаг комплекса. Дыхание было ЕДИНСТВЕННОЙ игрой, показывавшей
+                «шаг N из M» внутри упражнения: остальным 76 его рисовал только
+                экран результата, то есть позицию человек видел МЕЖДУ играми.
+                Повод завести её здесь был тот же, что и сейчас: «всё в разнобой,
+                ничего не понятно» (репорт Вали, v1.173).
+
+                🔴 09.09.2026 позиция переехала в КАРКАС и показывается во всех
+                77 играх под ним (отчёт NZT-48 `5f4eac8e`: «я 7 таблиц решил,
+                сколько ещё?»). Здешнюю копию сняли — иначе на этом экране число
+                стояло бы дважды. Правка раздела «Слова»; сам механизм дыхания не
+                тронут, снята только копия. */}
             {isWim ? (
               <Text style={[styles.exStep, { color: colors.textSecondary }]}>{t('round')} {wimRound}/{WIM_ROUNDS}</Text>
             ) : (
