@@ -330,14 +330,22 @@ export default function LexicalDecisionGame() {
         title={t('lexicalDecision')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
         scrollableField
-        stats={
-          <View style={styles.hudRow}>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('round')} {idx + 1}/{trials.length}</Text>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('hud_correct')} {correctCount} · {t('hud_errors')} {errorsCount}</Text>
-          </View>
-        }
+        bottom="answer"
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${trials.length}` },
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },
+          { key: 'hud_errors', icon: 'close-circle', label: t('hud_errors'), value: errorsCount, tone: 'bad' as const },
+        ]}
         toolbar={
-          <>
+          /*
+           * ⚠️ КОНТЕЙНЕР, А НЕ ФРАГМЕНТ. Замер геометрии 09.09.2026 на 390×844:
+           * у трёх соседних экранов раздела полоса ответа заканчивалась на 834,
+           * а здесь — на 844, впритык к нижнему краю. Причина в том, что кнопки
+           * лежали голым фрагментом `<>`, без общей обёртки: отступы и промежуток
+           * задавала каждая сама. Тот же `toolbarOptions`, что у «Cloze» и
+           * «Сортировки слов», ставит полосу на общую высоту.
+           */
+          <View style={styles.toolbarOptions}>
             <TouchableOpacity
               accessibilityRole="button"
               style={[styles.bigButton, { backgroundColor: '#34d399' }]}
@@ -356,7 +364,7 @@ export default function LexicalDecisionGame() {
               <Ionicons name="close" size={28} color="#fff" />
               <Text style={styles.bigButtonText}>{t('ldNonwordBtn')}</Text>
             </TouchableOpacity>
-          </>
+          </View>
         }
       >
         <View
@@ -463,6 +471,7 @@ const styles = StyleSheet.create({
   },
   promptWord: { fontSize: 36, fontWeight: '800', textAlign: 'center' },
   hint: { fontSize: 13, textAlign: 'center', marginBottom: 16 },
+  toolbarOptions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 10, maxWidth: '100%' },
   bigButton: {
     flex: 1,
     borderRadius: 16,

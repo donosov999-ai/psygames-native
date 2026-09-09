@@ -354,12 +354,12 @@ export default function SemanticSortGame() {
         title={t('semanticSort')}
         onBack={() => goBackOrHome()}
         scrollableField
-        stats={
-          <View style={styles.hudRow}>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('round')} {idx + 1}/{rounds.length}</Text>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('hud_correct')} {correctCount} · {t('hud_errors')} {errorsCount}</Text>
-          </View>
-        }
+        bottom="answer"
+        hud={[
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${rounds.length}` },
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },
+          { key: 'hud_errors', icon: 'close-circle', label: t('hud_errors'), value: errorsCount, tone: 'bad' as const },
+        ]}
         toolbar={
           <View style={styles.toolbarOptions}>
             {round.cats.map((cat) => {
