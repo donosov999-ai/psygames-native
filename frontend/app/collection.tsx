@@ -92,7 +92,9 @@ export default function CollectionScreen() {
                     должен быть УЗНАВАЕМ, иначе обещание не читается. */}
                 <Text style={[styles.face, собрана ? null : styles.faceLocked]}>{f.face}</Text>
                 <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{имя}</Text>
-                <Text style={[styles.price, { color: colors.textSecondary }]} numberOfLines={1}>
+                {/* Закрытой фигурке — две строки: «Откроется на ⭐2059» в слот 104 px одной строкой
+                    не входит, и число обрезалось многоточием (отчёт f18bebeb, 08.09.2026). */}
+                <Text style={[styles.price, { color: colors.textSecondary }]} numberOfLines={собрана ? 1 : 2}>
                   {собрана ? `⭐${f.at}` : t('collectionLocked').replace('{n}', String(f.at))}
                 </Text>
               </View>
