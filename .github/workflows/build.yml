@@ -72,29 +72,7 @@ jobs:
         working-directory: frontend
         run: npx tsc --noEmit
 
-      # v1.110.0: unit-тесты чистых функций (tokens/comboBonus/SRS/daily-challenge).
-      # Падение теста блокирует web-deploy и release так же, как tsc.
-      #
-      # v1.205.0: сюда же попадают гейты дисциплины по исходникам — они читают
-      # app/games/*.tsx текстом и потому идут в общем прогоне, отдельного шага не
-      # просят. Что именно стерегут (жать искать по имени упавшего теста):
-      #   game-clock-discipline   — Date.now() в замере длительности партии:
-      #                             при паузе часы тикали дальше, «пока я писала
-      #                             отзыв, игра закончилась»;
-      #   ci-i18n-hardcode-guard  — language === 'ru' ? 'текст' : 'text' в экранах
-      #                             игр: языков 12, а такой тернарник знает два,
-      #                             остальным десяти достаётся английский, и
-      #                             сличение словарей этого не видит в принципе.
-      # SAMURAI_FULL=1 добирает уровни 8 и 12 — единственные, где самурай строится
-      # на голых парах. Без флага набор берёт 1/3/5, и верхняя ступень сложности не
-      # проверялась НИ РАЗУ ни на одной сборке. Довод «дорого» относился к прогону
-      # всех двенадцати уровней (197 с); замер 19.08.2026 на этом файле: 9.3 с без
-      # флага, 15.6 с с флагом. Шесть секунд.
-      - name: Unit tests (gate)
-        working-directory: frontend
-        env:
-          SAMURAI_FULL: '1'
-        run: npm test -- --ci
+      # Юнит-пробы вынесены в джобу `unit-tests` (jest, 4 осколка) — см. ниже.
 
       # v1.187.0: гейт судоку по требованию Дениса 07.08 — «чтобы он при каждой сборке
       # проверял все уровни». Для КАЖДОГО уровня 1..52 генерируется доска и проверяется:
@@ -182,10 +160,101 @@ jobs:
   # Идёт на main и на тегах, блокирует release (см. needs у release). На main —
   # потому что регрессии вёрстки приезжают с обычными правками UI, а не с релизом.
   # Сборка нужна одна на обе проверки, поэтому они в одной джобе.
-  web-gates:
-    name: Веб-гейты (первый кадр + размер кнопок на поле)
+  unit-tests:
+    name: Юнит-пробы (jest, осколок ${{ matrix.shard }} из 4)
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 30
+    # 🔴 ЧЕТЫРЕ ОСКОЛКА ВМЕСТО ОДНОГО ПРОГОНА (09.09.2026). Шаг «Unit tests» шёл
+    # 25 минут из 29 у джобы typecheck — и iOS с Play ждали его целиком (замер прогона
+    # v2.52.4, run 34322055677). `jest --shard` делит 526 файлов на четыре равные части
+    # (132/132/131/131), каждая ≈ 7 мин. Гейт дисциплины (`test-discipline-gate.mjs`)
+    # считает набор ПО ИСХОДНИКАМ, а не по отчёту прогона, поэтому от деления не
+    # зависит и остаётся в typecheck.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+      # v1.110.0: unit-тесты чистых функций (tokens/comboBonus/SRS/daily-challenge).
+      # Падение теста блокирует web-deploy и release так же, как tsc.
+      #
+      # v1.205.0: сюда же попадают гейты дисциплины по исходникам — они читают
+      # app/games/*.tsx текстом и потому идут в общем прогоне, отдельного шага не
+      # просят. Что именно стерегут (жать искать по имени упавшего теста):
+      #   game-clock-discipline   — Date.now() в замере длительности партии:
+      #                             при паузе часы тикали дальше, «пока я писала
+      #                             отзыв, игра закончилась»;
+      #   ci-i18n-hardcode-guard  — language === 'ru' ? 'текст' : 'text' в экранах
+      #                             игр: языков 12, а такой тернарник знает два,
+      #                             остальным десяти достаётся английский, и
+      #                             сличение словарей этого не видит в принципе.
+      # SAMURAI_FULL=1 добирает уровни 8 и 12 — единственные, где самурай строится
+      # на голых парах. Без флага набор берёт 1/3/5, и верхняя ступень сложности не
+      # проверялась НИ РАЗУ ни на одной сборке. Довод «дорого» относился к прогону
+      # всех двенадцати уровней (197 с); замер 19.08.2026 на этом файле: 9.3 с без
+      # флага, 15.6 с с флагом. Шесть секунд.
+      - name: Unit tests (gate) — осколок ${{ matrix.shard }}/4
+        working-directory: frontend
+        env:
+          SAMURAI_FULL: '1'
+        run: npm test -- --ci --shard=${{ matrix.shard }}/4
+
+  web-gates:
+    name: Веб-гейты (${{ matrix.audit }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    # 🔴 ПЯТЬ АУДИТОВ — ПЯТЬ ПАРАЛЛЕЛЬНЫХ ДЖОБ, А НЕ ОДНА ЦЕПОЧКА (09.09.2026).
+    # Замер прогона v2.52.4: сборка 2 мин + аудиты 5.8 + 9.5 + 6 + ~1 + 7.3 = 32 мин
+    # подряд, и iOS с Play ждали весь хвост. Каждая джоба собирает веб сама (2 мин) и
+    # гонит ОДИН аудит: критический путь = сборка + самый долгий аудит ≈ 15 мин.
+    # Смысл каждого аудита — у записи матрицы ниже и в шапке самого скрипта.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Ловит вёрстку, схлопнувшуюся на первом кадре: useWindowDimensions отдаёт 0,
+          # обновляется только по resize, которого при обычной загрузке не бывает —
+          # ноль запекается в maxWidth, подпись встаёт по букве в столбик.
+          - audit: first-paint
+            cmd: node scripts/first-paint-audit.mjs http://127.0.0.1:8127
+          # Заходит В ИГРУ (жмёт «Начать»/«Start»/«Уровень N — играть») и меряет то,
+          # по чему стучат всю партию. Известные нарушители перечислены поимённо в
+          # самом скрипте (ROUTE_DEBT/FIELD_DEBT) с обоснованием; долг может только
+          # уменьшаться, новое — красное. Три прохода: по маршрутам (44), на поле (48)
+          # и ШАПКА НА УЗКОМ ЭКРАНЕ (360 px) — третий добавлен 02.09.2026 по двум
+          # отчётам об одном дефекте: размер элементов был правильный, не хватало МЕСТА.
+          - audit: tap-target
+            cmd: node scripts/tap-target-audit.mjs --base=http://127.0.0.1:8127
+          # 🔴 Экран не должен ездить вбок — ни сам, ни от пальца по полю (два отчёта
+          # Дениса 02.09 и 05.09.2026, dots-connect). У уезда ДВЕ причины: страница шире
+          # окна и жест по полю, истолкованный как прокрутка; проверяются обе на 360 px,
+          # с самопроверкой инструмента на заведомо едущей странице. Здесь же — заголовок
+          # под угловыми кнопками и кнопки ниже нижнего края короткого окна.
+          - audit: pan
+            cmd: node scripts/pan-audit.mjs --base=http://127.0.0.1:8127
+          # Тень счётчика обязана повторять ВИДИМУЮ пилюлю, а не область касания
+          # (отчёт Дениса 03.09: «верхний тулбар выглядит будто две кнопки»). В jest не
+          # видно, поэтому гейт браузерный.
+          - audit: hud-shadow
+            cmd: node scripts/hud-shadow-audit.mjs --base=http://127.0.0.1:8127
+          # Живой аудит слотов каркаса: низ экрана означает ОТВЕТ игрока, служебные
+          # действия — в шапке. ⚠️ ТОЛЬКО НА ТЕГАХ: заход по всем играм со входом в партию
+          # идёт ~22 минуты. Долг (eye-gym и PRL со «СТОП» внизу) записан в скрипте.
+          # ⚠️ Сборка ниже собрана с baseUrl="" — с боевым `/psygames-web` шрифты и ассеты
+          # дают 404, кнопка «Играть» не срабатывает (проверено 19.08.2026 своей ошибкой).
+          - audit: slot
+            cmd: node scripts/slot-audit.mjs --base=http://127.0.0.1:8127
+            tags_only: true
     steps:
       - uses: actions/checkout@v6
 
@@ -241,63 +310,12 @@ jobs:
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8127 >/dev/null 2>&1 && break; sleep 2; done
           curl -sf -o /dev/null http://127.0.0.1:8127 || { echo "сборка не поднялась"; cat /tmp/serve.log; exit 1; }
 
-      # Ловит вёрстку, схлопнувшуюся на первом кадре: useWindowDimensions отдаёт 0,
-      # обновляется только по resize, которого при обычной загрузке не бывает —
-      # ноль запекается в maxWidth, подпись встаёт по букве в столбик.
-      - name: Первый кадр — ничего не схлопнулось
+      - name: Аудит ${{ matrix.audit }}
+        # Без tags_only поле пусто → !'' = true; у slot джоба на push в main поднимает
+        # сборку и пропускает сам аудит — это плата за единый список шагов.
+        if: ${{ !matrix.tags_only || startsWith(github.ref, 'refs/tags/v') }}
         working-directory: frontend
-        run: node scripts/first-paint-audit.mjs http://127.0.0.1:8127
-
-      # Заходит В ИГРУ (жмёт «Начать»/«Start»/«Уровень N — играть») и меряет то,
-      # по чему стучат всю партию. Известные нарушители перечислены поимённо в
-      # самом скрипте (ROUTE_DEBT/FIELD_DEBT) с обоснованием; долг может только
-      # уменьшаться, новое — красное.
-      # Три прохода: по маршрутам (44), на поле (48) и ШАПКА НА УЗКОМ ЭКРАНЕ (360 px).
-      # Третий добавлен 02.09.2026 по двум отчётам об одном дефекте — «поехали
-      # кнопки верх тулбара» и «с меню пиздец сверху»: размер элементов был
-      # правильный, не хватало МЕСТА, и оба прежних прохода этого не видели.
-      - name: Размер кнопок — на экранах и НА ПОЛЕ, шапка на узком экране
-        working-directory: frontend
-        run: node scripts/tap-target-audit.mjs --base=http://127.0.0.1:8127
-
-      # 🔴 Экран не должен ездить вбок — ни сам, ни от пальца по полю.
-      # Два отчёта Дениса об одном и том же, второй со словом «ВСЁ ЕЩЁ»
-      # (02.09 и 05.09.2026, dots-connect: «окно ездит, когда соединяешь точки»).
-      # Между ними была правка `touch-action: none` на контейнер поля — её не
-      # хватило, потому что у уезда ДВЕ причины: страница шире окна (тогда палец
-      # таскает документ, и touch-action на поле бессилен) и жест по полю,
-      # истолкованный как прокрутка. Проверяются обе, браузером, на 360 px.
-      # Аудит начинается с самопроверки инструмента на заведомо едущей странице:
-      # без неё проверка «палец прокрутил» была бы зелена вслепую.
-      - name: Экран не ездит вбок (360 px)
-        working-directory: frontend
-        run: node scripts/pan-audit.mjs --base=http://127.0.0.1:8127
-
-      # Тень счётчика обязана повторять ВИДИМУЮ пилюлю, а не область касания.
-      # Отчёт Дениса 03.09: «верхний тулбар выглядит будто две кнопки» — под каждым
-      # числом стояла белая коробка с тенью. Причина в раскладке: ряд без
-      # alignItems тянет пилюли до самой высокой, а высокая — это цель нажатия 48
-      # при пилюле 29. В jest не видно, поэтому гейт браузерный.
-      - name: Счётчики — тень по фигуре, а не вокруг пустоты
-        working-directory: frontend
-        run: node scripts/hud-shadow-audit.mjs --base=http://127.0.0.1:8127
-
-      # Живой аудит слотов каркаса: низ экрана означает ОТВЕТ игрока, служебные
-      # действия (отмена/подсказка/перемешать) — в шапке. Проверяет НАРИСОВАННОЕ
-      # положение кнопок, а не исходник: в jest этого не увидеть.
-      #
-      # ⚠️ ТОЛЬКО НА ТЕГАХ. Заход по 69 играм со входом в партию идёт ~22 минуты;
-      # вешать это на каждый push в main значит утроить время сборки. Долг
-      # (eye-gym и PRL со «СТОП» внизу) записан в самом скрипте и печатается
-      # отдельно, новое нарушение — красное.
-      #
-      # ⚠️ Сборка выше собрана с baseUrl="" — с боевым `/psygames-web` шрифты и
-      # ассеты дают 404, кнопка «Играть» не срабатывает, и аудит честно скажет
-      # «якорей нет», хотя код цел. Проверено 19.08.2026 своей же ошибкой.
-      - name: Слоты каркаса — низ означает ответ игрока
-        if: startsWith(github.ref, 'refs/tags/v')
-        working-directory: frontend
-        run: node scripts/slot-audit.mjs --base=http://127.0.0.1:8127
+        run: ${{ matrix.cmd }}
 
   # ─── Линт — храповиком, а не «всё или ничего» ────────────────────────
   # 🔴 23.08.2026: скрипт `lint` лежал в package.json с самого начала, и НИ ОДИН
@@ -423,7 +441,15 @@ jobs:
             src-tauri/target/
           key: ${{ runner.os }}-arm-cargo-${{ hashFiles('src-tauri/Cargo.toml') }}
 
+      # tauri-cli компилировался 5–10 мин на каждой сборке (замер v2.52.4) — бинарь в кеш.
+      - name: Cache Tauri CLI
+        id: tauri-cli-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-tauri*
+          key: tauri-cli-2-${{ runner.os }}-${{ runner.arch }}-v1
       - name: Install Tauri CLI
+        if: steps.tauri-cli-cache.outputs.cache-hit != 'true'
         run: cargo install tauri-cli --version "^2.0" --locked --force
 
       - name: Install frontend deps
@@ -515,7 +541,15 @@ jobs:
         with:
           targets: aarch64-apple-ios-sim,aarch64-apple-ios
 
+      # tauri-cli компилировался 5–10 мин на каждой сборке (замер v2.52.4) — бинарь в кеш.
+      - name: Cache Tauri CLI
+        id: tauri-cli-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-tauri*
+          key: tauri-cli-2-${{ runner.os }}-${{ runner.arch }}-v1
       - name: Install Tauri CLI
+        if: steps.tauri-cli-cache.outputs.cache-hit != 'true'
         run: cargo install tauri-cli --version "^2.0" --locked --force
 
       - name: Install frontend deps
@@ -601,7 +635,10 @@ jobs:
     # ⚠️ lint СОЗНАТЕЛЬНО не добавлен, как и у google-play: долг стиля до человека
     # не доходит, а девять чатов двигают потолок непрерывно — выкладка вставала бы
     # на чужой правке. Решение обратимое, одна строка.
-    needs: [typecheck, smoke, web-gates]
+    # ⚠️ БЕЗ needs — НАМЕРЕННО (09.09.2026). Сборка и подпись идут ПАРАЛЛЕЛЬНО гейтам
+    # (раньше ждали их ~35 мин, потом 25 мин строились: тег→TestFlight 55–70 мин).
+    # В магазин отсюда ничего не уходит: .ipa кладётся артефактом, а выгрузка —
+    # отдельная джоба `ios-testflight`, которая стоит на гейтах.
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
     timeout-minutes: 60
@@ -632,11 +669,21 @@ jobs:
         with:
           targets: aarch64-apple-ios
 
-      - name: Install Tauri CLI + CocoaPods
+      # tauri-cli компилировался 10.7 мин на каждой сборке (замер v2.52.4) — бинарь в кеш.
+      # Ключ с веткой версии: поднять руками при переходе на новую мажорную tauri-cli.
+      - name: Cache Tauri CLI
         if: steps.keys.outputs.ready == 'yes'
-        run: |
-          cargo install tauri-cli --version "^2.0" --locked --force
-          brew install cocoapods
+        id: tauri-cli-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-tauri*
+          key: tauri-cli-2-${{ runner.os }}-${{ runner.arch }}-v1
+      - name: Install Tauri CLI
+        if: steps.keys.outputs.ready == 'yes' && steps.tauri-cli-cache.outputs.cache-hit != 'true'
+        run: cargo install tauri-cli --version "^2.0" --locked --force
+      - name: Install CocoaPods
+        if: steps.keys.outputs.ready == 'yes'
+        run: brew install cocoapods
 
       - name: Install frontend deps
         if: steps.keys.outputs.ready == 'yes'
@@ -760,6 +807,60 @@ jobs:
             -exportPath "$RUNNER_TEMP/ipa" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
 
+      - name: Стереть ключ
+        if: always() && steps.keys.outputs.ready == 'yes'
+        run: rm -rf ~/private_keys
+
+      # Артефакт теперь ОБЯЗАТЕЛЕН: его забирает `ios-testflight`. Нет .ipa — красная сборка.
+      - name: Upload artifact
+        if: steps.keys.outputs.ready == 'yes'
+        uses: actions/upload-artifact@v7
+        with:
+          name: PsyGames-ios-ipa
+          path: ${{ runner.temp }}/ipa/*.ipa
+          retention-days: 14
+          if-no-files-found: error
+
+  # ─── Linux x86_64 ──────────────────────────────────────────────────────
+  # Решение Дениса 02.09.2026: «с этого момента делать на все платформы сразу —
+  # андроид, айфон, мак, вин, линукс». Linux добавлен первым из двух: он не
+  # требует ни сертификатов, ни платного аккаунта — только системных библиотек
+  # WebKit, которые ставятся в самом job.
+  ios-testflight:
+    name: iOS → TestFlight (выгрузка после гейтов)
+    # Стоит на ВСЕХ гейтах и на сборке: в TestFlight уходит только то, что прошло
+    # typecheck, юнит-пробы, smoke и веб-гейты. Сама сборка (`ios-release`) к этому
+    # моменту уже готова — шла параллельно.
+    needs: [typecheck, unit-tests, smoke, web-gates, ios-release]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: Есть ли ключ Apple
+        id: keys
+        run: |
+          if [ -n "${{ secrets.APPLE_API_KEY }}" ] && [ -n "${{ secrets.APPLE_TEAM_ID }}" ]; then
+            echo "ready=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=no" >> "$GITHUB_OUTPUT"
+            echo "::notice title=iOS::Ключа Apple нет — выгрузка в TestFlight пропущена."
+          fi
+      - name: Скачать .ipa из сборочной джобы
+        if: steps.keys.outputs.ready == 'yes'
+        uses: actions/download-artifact@v8
+        with:
+          name: PsyGames-ios-ipa
+          path: ${{ runner.temp }}/ipa
+      - name: Разложить ключ API
+        if: steps.keys.outputs.ready == 'yes'
+        env:
+          KEY: ${{ secrets.APPLE_API_KEY }}
+          KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+        run: |
+          mkdir -p ~/private_keys
+          printf '%s' "$KEY" > ~/private_keys/AuthKey_${KEY_ID}.p8
+          chmod 600 ~/private_keys/AuthKey_${KEY_ID}.p8
       - name: Upload to TestFlight
         if: steps.keys.outputs.ready == 'yes' && startsWith(github.ref, 'refs/tags/v')
         env:
@@ -768,7 +869,7 @@ jobs:
         run: |
           # tauri кладёт .ipa под src-tauri/gen/apple/build/<арх>/; ищем по всему
           # дереву сборки, чтобы не зависеть от имени архитектуры.
-          IPA=$(find "$RUNNER_TEMP/ipa" src-tauri/gen/apple/build -name '*.ipa' 2>/dev/null | head -1)
+          IPA=$(find "$RUNNER_TEMP/ipa" -name '*.ipa' 2>/dev/null | head -1)
           if [ -z "$IPA" ]; then echo "::error title=iOS::.ipa не найден"; exit 1; fi
           # ⚠️ Сначала ВАЛИДАЦИЯ. Она ловит структурные ошибки бандла (код 90171 —
           # «Invalid bundle structure», на нём мы стояли трижды 02.09.2026) до того,
@@ -797,20 +898,6 @@ jobs:
         if: always() && steps.keys.outputs.ready == 'yes'
         run: rm -rf ~/private_keys
 
-      - name: Upload artifact
-        if: steps.keys.outputs.ready == 'yes'
-        uses: actions/upload-artifact@v7
-        with:
-          name: PsyGames-ios-ipa
-          path: ${{ runner.temp }}/ipa/*.ipa
-          retention-days: 14
-        continue-on-error: true
-
-  # ─── Linux x86_64 ──────────────────────────────────────────────────────
-  # Решение Дениса 02.09.2026: «с этого момента делать на все платформы сразу —
-  # андроид, айфон, мак, вин, линукс». Linux добавлен первым из двух: он не
-  # требует ни сертификатов, ни платного аккаунта — только системных библиотек
-  # WebKit, которые ставятся в самом job.
   linux-x64:
     name: Linux x86_64 (.AppImage + .deb)
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
@@ -848,7 +935,15 @@ jobs:
             src-tauri/target/
           key: linux-cargo-${{ hashFiles('src-tauri/Cargo.toml') }}
 
+      # tauri-cli компилировался 5–10 мин на каждой сборке (замер v2.52.4) — бинарь в кеш.
+      - name: Cache Tauri CLI
+        id: tauri-cli-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-tauri*
+          key: tauri-cli-2-${{ runner.os }}-${{ runner.arch }}-v1
       - name: Install Tauri CLI
+        if: steps.tauri-cli-cache.outputs.cache-hit != 'true'
         run: cargo install tauri-cli --version "^2.0" --locked --force
 
       - name: Install frontend deps
@@ -916,7 +1011,15 @@ jobs:
             src-tauri/target/
           key: ${{ runner.os }}-win-cargo-${{ hashFiles('src-tauri/Cargo.toml') }}
 
+      # tauri-cli компилировался 5–10 мин на каждой сборке (замер v2.52.4) — бинарь в кеш.
+      - name: Cache Tauri CLI
+        id: tauri-cli-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-tauri*
+          key: tauri-cli-2-${{ runner.os }}-${{ runner.arch }}-v1
       - name: Install Tauri CLI
+        if: steps.tauri-cli-cache.outputs.cache-hit != 'true'
         run: cargo install tauri-cli --version "^2.0" --locked --force
 
       - name: Install frontend deps
@@ -1020,7 +1123,15 @@ jobs:
             src-tauri/target/
           key: ${{ runner.os }}-android-cargo-${{ hashFiles('src-tauri/Cargo.toml') }}
 
+      # tauri-cli компилировался 5–10 мин на каждой сборке (замер v2.52.4) — бинарь в кеш.
+      - name: Cache Tauri CLI
+        id: tauri-cli-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-tauri*
+          key: tauri-cli-2-${{ runner.os }}-${{ runner.arch }}-v1
       - name: Install Tauri CLI
+        if: steps.tauri-cli-cache.outputs.cache-hit != 'true'
         run: cargo install tauri-cli --version "^2.0" --locked --force
 
       - name: Install frontend deps
@@ -1616,7 +1727,7 @@ jobs:
     # 23.08.2026: было `needs: [typecheck]` — и это единственное, что стояло
     # между правкой в main и живым вебом. Теперь выкладку держат ещё и smoke
     # (заход В КАЖДУЮ игру) и веб-гейты (первый кадр + размер кнопок на поле).
-    needs: [typecheck, smoke, web-gates]
+    needs: [typecheck, unit-tests, smoke, web-gates]
     # 🔴 РЕШЕНИЕ ДЕНИСА 09.09.2026: ПОЛНОЙ ВЕБ-ВЕРСИИ ПРИЛОЖЕНИЯ НА САЙТЕ БЫТЬ НЕ МОЖЕТ —
     # только семплы (демо-шорты). Джоба выкладывала ВСЁ приложение и работала без
     # согласования. Выключена целиком (`if: false`), /play с psy-games.pro снят
@@ -1685,7 +1796,7 @@ jobs:
   release:
     # v1.205.0: + web-gates — релиз не выходит, если вёрстка схлопнулась на первом
     # кадре или на поле появились кнопки, в которые не попасть пальцем.
-    needs: [macos-arm, windows-x64, android, typecheck, smoke, web-gates, lint]
+    needs: [macos-arm, windows-x64, android, typecheck, unit-tests, smoke, web-gates, lint]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -1817,7 +1928,7 @@ jobs:
     # Джоба выкладывает ВЕБ-СБОРКУ в прод, а `smoke` — единственная проверка,
     # которая реально ОТКРЫВАЕТ каждую игру (со START=1). Выкладывать веб, ни
     # разу не нажав «Начать», — ровно тот случай, ради которого smoke и завели.
-    needs: [typecheck, web-gates, smoke]
+    needs: [typecheck, unit-tests, web-gates, smoke]
     continue-on-error: true
     # 🔴 РЕШЕНИЕ ДЕНИСА 09.09.2026: ПОЛНОЙ ВЕБ-ВЕРСИИ ПРИЛОЖЕНИЯ НА САЙТЕ БЫТЬ НЕ МОЖЕТ —
     # только семплы (демо-шорты). Джоба выкладывала ВСЁ приложение и работала без
@@ -1894,7 +2005,7 @@ jobs:
     # ⚠️ lint СОЗНАТЕЛЬНО не добавлен: долг стиля до человека не доходит, а
     # девять чатов правят дерево непрерывно — потолок линта колеблется, и
     # выкладка вставала бы на чужой правке. Решение обратимое, одна строка.
-    needs: [android, typecheck, smoke, web-gates]
+    needs: [android, typecheck, unit-tests, smoke, web-gates]
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
@@ -1942,7 +2053,7 @@ jobs:
     # стоит `if: github.ref == 'refs/heads/main'`, то есть на теге он не бежит
     # никогда и его результат ВСЕГДА `skipped`. Включи его — и эта джоба краснела
     # бы на КАЖДОМ выпуске, то есть стала бы шумом на второй же день.
-    needs: [release, google-play, ios-release]
+    needs: [release, google-play, ios-testflight]
     if: always() && startsWith(github.ref, 'refs/tags/v')
     steps:
       # 🔴 APPLE ДОБАВЛЕН 07.09.2026. Сводка называлась «дошло ли до людей», а
@@ -1954,7 +2065,7 @@ jobs:
         env:
           R_RELEASE: ${{ needs.release.result }}
           R_PLAY: ${{ needs.google-play.result }}
-          R_IOS: ${{ needs.ios-release.result }}
+          R_IOS: ${{ needs.ios-testflight.result }}
         run: |
           echo "тег: $GITHUB_REF_NAME"
           echo "  GitHub Release     : $R_RELEASE"
