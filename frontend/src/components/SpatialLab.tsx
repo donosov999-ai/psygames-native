@@ -20,6 +20,7 @@ import type {Cell} from '../games/spatial-core/core.mjs';
 import {createDeal,decodeSnapshot,encodeSnapshot} from '../games/spatial-core/snapshot.mjs';
 import {spatialFrame} from '../games/spatial-core/frame';
 
+import {useReducedMotion} from '@/src/hooks/useReducedMotion';
 type Mode = 'twiddle' | 'net';
 type LevelTask = NetLevelTask | (TwiddleLevelTask & {locked:number[];highlighted:number[]});
 const deal = (mode:Mode,seed:number) => session((mode==='net'?netPuzzle(seed):scramble(seed)).initial);
@@ -77,6 +78,7 @@ export default function SpatialLab({onBack,preset,onComplete}:{onBack:()=>void;p
   const [turning,setTurning]=useState<number|null>(null);
   const [angle]=useState(()=>new Animated.Value(0));
   const turnLock=useRef(false);
+  const reduceMotion=useReducedMotion();   // «меньше движения»: поворот блока без анимации
   const completionSent=useRef(false);
   const presetMode=preset?.mode,presetSeed=preset?.seed,presetLevel=preset?.level;
   const start=useCallback((target:Mode,nextSeed:number,level=0)=>{
@@ -88,11 +90,12 @@ export default function SpatialLab({onBack,preset,onComplete}:{onBack:()=>void;p
   },[angle]);
   const animateTurn=useCallback((amount:number,onComplete:()=>void)=>{
     turnLock.current=true;angle.setValue(0);setTurning(amount);
+    if(reduceMotion){onComplete();turnLock.current=false;setTurning(null);return;}
     Animated.timing(angle,{toValue:amount*90,duration:320,easing:Easing.inOut(Easing.cubic),useNativeDriver:false}).start(({finished})=>{
       if(finished)onComplete();
       turnLock.current=false;setTurning(null);
     });
-  },[angle]);
+  },[angle,reduceMotion]);
   useEffect(()=>{
     if(!profileReady)return;
     let cancelled=false;
