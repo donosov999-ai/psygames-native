@@ -30,6 +30,8 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useLadderLock } from '@/src/contexts/PlayerLevelContext';
 
 export interface GameAuxActionProps {
+  /** Иконка без подписи. Подпись остаётся в accessibilityLabel кнопки. */
+  compact?: boolean;
   /** Иконка Ionicons. Без неё кнопка остаётся текстовой — так у «СТОП». */
   icon?: React.ComponentProps<typeof Ionicons>['name'];
   /** Подпись — УЖЕ переведённая (`t('btn_undo')`), не ключ. */
@@ -68,7 +70,7 @@ export interface GameAuxActionProps {
 /** Красный «СТОП» — один и тот же во всех упражнениях с сеансом. */
 const DANGER = '#f43f5e';
 
-export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladder, onPress }: GameAuxActionProps) {
+export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladder, onPress, compact }: GameAuxActionProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const { заперт, порог } = useLadderLock(ladder);
@@ -104,9 +106,14 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
       {заперт
         ? <Ionicons name="lock-closed" size={18} color={colors.textSecondary} />
         : (icon ? <Ionicons name={icon} size={18} color={tint ?? fg} /> : null)}
-      <Text style={[styles.label, { color: fg }]} numberOfLines={1}>
+{/* Компактный вид: остаётся иконка, подпись уходит — но НЕ из дерева
+          доступности, `accessibilityLabel` кнопки её сохраняет. Нужен там, где
+          служебные кнопки стоят в фиксированной по высоте полосе плейлиста. */}
+      {(!compact || !icon) && (
+            <Text style={[styles.label, { color: fg }]} numberOfLines={1}>
         {заперт || count === undefined ? label : `${label} · ${count}`}
       </Text>
+      )}
       {/* Ответ на нажатие по замку: чем именно он откроется. */}
       {сказали && порог !== null ? (
         <View style={[styles.tip, { backgroundColor: colors.text }]}>

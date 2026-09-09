@@ -1,4 +1,5 @@
-/* psygames-mental-rotation-shapes · VER 1 · 23.08.2026 */
+/* psygames-mental-rotation-shapes · VER 2 · 09.09.2026 */
+/* LOCAL REV spatial-lab/2026-09-09.1 · psygames-codex-mac · not an app release */
 /**
  * БИБЛИОТЕКА ФИГУР ИЗ КУБИКОВ — общая для всех трёх видов заданий.
  *
@@ -18,7 +19,9 @@
  * фигуры, оказавшиеся поворотами друг друга, сделали бы «другую фигуру» верным
  * ответом.
  */
-import type { Shape } from './types';
+import type { Shape, Cube } from './types';
+import {createRng,pick} from './rng';
+import {allOrientations,normalizeShape,shapeKey} from './geometry';
 
 export const SHAPE_LIBRARY: readonly Shape[] = [
   // L (4)
@@ -53,9 +56,38 @@ export const SHAPE_LIBRARY: readonly Shape[] = [
 
 /** Фигуры нужного размера. Пустым набор не бывает — проба в тестах это стережёт. */
 export function shapesOfSize(minCubes: number, maxCubes: number): Shape[] {
-  return SHAPE_LIBRARY
+  const extra:Shape[]=[];
+  for(let n=Math.max(9,minCubes);n<=Math.min(13,maxCubes);n++)extra.push(...extendedShapes(n));
+  return [...SHAPE_LIBRARY,...extra]
     .filter((s) => s.length >= minCubes && s.length <= maxCubes)
     .map((s) => s.map((c) => [...c] as [number, number, number]));
+}
+
+const extendedCache=new Map<number,Shape[]>();
+const ADJACENT:Cube[]=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+/** Grow by face adjacency, keep compact extents and reject rotational duplicates.
+ * Original 4..8 library remains unchanged for existing exercises/art assets. */
+function extendedShapes(count:number):Shape[] {
+  const cached=extendedCache.get(count);if(cached)return cached;
+  const random=createRng(`rotation-shapes-${count}`),out:Shape[]=[],seen=new Set<string>();
+  for(let attempt=0;attempt<300&&out.length<12;attempt++){
+    let shape=SHAPE_LIBRARY[2].map(c=>[...c] as Cube);
+    while(shape.length<count){
+      const occupied=new Set(shape.map(c=>c.join(','))),frontier=new Map<string,Cube>();
+      for(const c of shape)for(const d of ADJACENT){
+        const candidate=c.map((v,i)=>v+d[i]) as Cube;
+        if(occupied.has(candidate.join(',')))continue;
+        if(boundingBox([...shape,candidate]).some(span=>span>4))continue;
+        frontier.set(candidate.join(','),candidate);
+      }
+      shape.push(pick(random,[...frontier.values()]));
+    }
+    shape=normalizeShape(shape);
+    const canonical=allOrientations(shape).map(shapeKey).sort()[0];
+    if(!seen.has(canonical)){seen.add(canonical);out.push(shape);}
+  }
+  if(out.length<3)throw new Error(`insufficient distinct ${count}-cube shapes`);
+  extendedCache.set(count,out);return out;
 }
 
 /** Габарит фигуры по осям — по нему видно, плоская она или объёмная. */

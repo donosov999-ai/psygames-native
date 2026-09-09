@@ -27,7 +27,6 @@ import type { GameSession } from '@/src/services/api';
 import { switchCostMs, PRESET_LEVEL_BY_DIFF as SW_PRESET, levelParams as swParams } from '@/app/games/switching-task';
 import { PRESET_LEVEL_BY_DIFF as POSNER_PRESET, levelParams as posnerParams } from '@/app/games/posner';
 import { PRESET_LEVEL_BY_DIFF as CPT_PRESET, levelParams as cptParams, presetDurationSec, MIN_TRIALS_FOR_LEVEL } from '@/app/games/cpt';
-import { PRESET_LEVEL_BY_DIFF as MR_PRESET } from '@/app/games/mental-rotation';
 import { PRESET_LEVEL_BY_DIFF as PATTERN_PRESET } from '@/app/games/pattern';
 import { nFromModeParam } from '@/app/games/n-back';
 import { MAX_BURST_BY_DIFF } from '@/app/games/bart';
@@ -184,7 +183,12 @@ describe('фиксированные конфигурации пресета (о
     switching_task: SW_PRESET,
     posner: POSNER_PRESET,
     cpt: CPT_PRESET,
-    mental_rotation: MR_PRESET,
+    /*
+     * 🔴 «МЫСЛЕННОЕ ВРАЩЕНИЕ» УБРАНО ИЗ КАРТЫ 09.09.2026 — решение Дениса:
+     * зарядка идёт с ЛИЧНОГО уровня игрока, а не с фиксированной ступени тира.
+     * Пространственный пакет так и собран: `selectedLevel = min(50, lvl.level)`.
+     * Остальные четыре игры карту сохраняют, и их сверка между собой цела.
+     */
     pattern: PATTERN_PRESET,
   };
 
