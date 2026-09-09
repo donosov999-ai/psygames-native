@@ -1593,7 +1593,9 @@ const translations: Translations = {
   // склонения ради двух строк — лишняя сущность. Проба сторожит.
   goalSheetDays: { ru: '{n} дней', en: '{n} days' },
   goalSheetToday: { ru: 'Сегодня: {g} партий · {p} ⭐ · серия {s}', en: 'Today: {g} games · {p} ⭐ · streak {s}' },
-  goalSuggest_best_streak: { ru: 'Твой рекорд — {n} дн.', en: 'Your best is {n} days' },
+  // 09.09.2026, отчёт 622e217d: «предложили какой-то рекорд поставить» — слово «рекорд» читалось
+  // как требование. Подпись объясняет ОСНОВАНИЕ предложения: сколько дней подряд уже получалось.
+  goalSuggest_best_streak: { ru: 'Твоя лучшая серия — {n} дн. подряд', en: 'Your longest streak so far: {n} days in a row' },
   goalSuggest_at_top: { ru: 'Ты уже держал {n} дн.', en: 'You already held {n} days' },
   // ⚠️ Факт, а не упрёк: «в прошлый раз было 30» — это число, «ты не смог» — оценка.
   goalSuggest_smaller: { ru: 'В прошлый раз было {n} — начнём с меньшего', en: 'Last goal was {n} — start smaller' },

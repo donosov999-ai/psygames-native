@@ -2499,7 +2499,7 @@ const t: Record<string, string> = {
   "anagramBonusJar": "مكافأة",
   "goalSheetDays": "{n} يوم",
   "goalSheetToday": "اليوم: {g} جولات · {p} ⭐ · سلسلة {s}",
-  "goalSuggest_best_streak": "رقمك القياسي: {n} يوم",
+  "goalSuggest_best_streak": "أطول سلسلة لك: {n} يومًا متتاليًا",
   "goalSuggest_at_top": "صمدت بالفعل {n} يوم",
   "goalSuggest_smaller": "المرة الماضية {n} — لنبدأ بأقل",
   "tabGames": "الألعاب",

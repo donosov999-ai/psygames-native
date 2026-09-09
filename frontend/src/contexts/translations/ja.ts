@@ -2497,7 +2497,7 @@ const t: Record<string, string> = {
   "anagramBonusJar": "ボーナス",
   "goalSheetDays": "{n} 日",
   "goalSheetToday": "今日：{g} 回 · {p} ⭐ · 連続 {s}",
-  "goalSuggest_best_streak": "自己ベース：{n} 日",
+  "goalSuggest_best_streak": "これまでの最長連続：{n}日",
   "goalSuggest_at_top": "すでに {n} 日達成",
   "goalSuggest_smaller": "前回は {n} — 少なめから始めよう",
   "tabGames": "ゲーム",

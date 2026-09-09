@@ -2498,7 +2498,7 @@ const t: Record<string, string> = {
   "anagramBonusJar": "보너스",
   "goalSheetDays": "{n}일",
   "goalSheetToday": "오늘: {g}판 · {p} ⭐ · 연속 {s}",
-  "goalSuggest_best_streak": "최고 기록: {n}일",
+  "goalSuggest_best_streak": "지금까지 최장 연속: {n}일",
   "goalSuggest_at_top": "이미 {n}일 달성",
   "goalSuggest_smaller": "지난번은 {n} — 더 적게 시작하자",
   "tabGames": "게임",
