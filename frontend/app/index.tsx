@@ -875,7 +875,7 @@ function FullHome() {
           style={[styles.subtitle, profileBg !== undefined
             ? { color: '#151A21', textShadowColor: 'rgba(255,255,255,0.9)', textShadowRadius: 6, textShadowOffset: { width: 0, height: 0 } }
             : { color: colors.textSecondary }]}
-          numberOfLines={3}
+          numberOfLines={2}
         >
           {t('trainYourBrain')} · {t('homeSwitchHint')}
         </Text>
@@ -1342,7 +1342,10 @@ const styles = StyleSheet.create({
     rowGap: 6,
   },
   title: { fontSize: 32, fontWeight: '800' },
-  subtitle: { fontSize: 14 },
+  // Межстрочник задан явно: без него при системном крупном шрифте вторая строка
+  // подписи срезалась по глифам, а под ней оставалась пустая полоса до карточек
+  // (отчёт 8a569eb4, 09.09.2026 — «большое пустое поле снизу под иконками»).
+  subtitle: { fontSize: 14, lineHeight: 19 },
   updBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'stretch',
     borderWidth: 1.5, borderRadius: 11, paddingVertical: 8, paddingHorizontal: 12, marginTop: 8,
