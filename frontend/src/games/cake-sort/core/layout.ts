@@ -1,4 +1,4 @@
-/* psygames-cake-sort-layout · VER 2 · 09.09.2026 */
+/* psygames-cake-sort-layout · VER 3 · 09.09.2026 */
 /**
  * ГЕОМЕТРИЯ СТОЛА — считается ДО отрисовки, потому что она решает, сколько
  * тарелок вообще можно показать.
@@ -180,18 +180,47 @@ export function maxCols(width: number, limit = 8): number {
  * сетки. Дальше расширять нельзя: следующая точка принадлежит уже соседке.
  * Углы между четырьмя тарелками остаются промахом, и это честно: там палец
  * действительно не на тарелке, а между ними.
+ *
+ * 🔴 И ГЛАВНОЕ, НАЙДЕННОЕ ЖИВЫМ ЗАМЕРОМ 09.09.2026: КАЖДЫЙ РЯД ЦЕНТРИРУЕТСЯ
+ * ОТДЕЛЬНО, а сетка искала тарелки от левого края.
+ *
+ * Денис: «не работает ни драг-энд-дроп, ни по клику, ни прицеливание». Стол —
+ * `flexWrap` с `justifyContent: 'center'`, значит НЕПОЛНЫЙ ряд встаёт по центру.
+ * Снято прямо в браузере, пять тарелок, поле 375, тарелка 109, шаг 117:
+ *
+ *   ряд 1 (3 тарелки) — начинается на x = 8,  сетка искала на x = 4
+ *   ряд 2 (2 тарелки) — начинается на x = 67, сетка искала на x = 4
+ *
+ * Во втором ряду промах 63 точки — больше половины тарелки: палец по нижней
+ * тарелке попадал в соседнюю или мимо стола, и жест не начинался вовсе.
+ * ⚠️ Формула при этом выглядела правильной — такое ловится только замером
+ * координат в живой игре, не чтением кода.
  */
+
+/** Левый край РЯДА: ряд центрируется в ширине стола по числу тарелок в нём. */
+export function rowLeft(boardW: number, plate: number, вРяду: number): number {
+  return Math.max(0, (boardW - вРяду * (plate + PLATE_GAP)) / 2);
+}
+
+/** Сколько тарелок стоит в ряду `r`. Последний ряд бывает неполным — он и центрируется. */
+export function inRow(r: number, cols: number, count: number): number {
+  return Math.max(0, Math.min(cols, count - r * cols));
+}
+
 export function plateAtPoint(
-  x: number, y: number, cols: number, plate: number, count: number,
+  x: number, y: number, cols: number, plate: number, count: number, boardW?: number,
 ): number | null {
   const шаг = plate + PLATE_GAP;
-  const c = Math.floor((x - PLATE_GAP / 2) / шаг);
   const r = Math.floor((y - PLATE_GAP / 2) / шаг);
-  if (c < 0 || c >= cols || r < 0) return null;
+  if (r < 0 || r * cols >= count) return null;
+  const вРяду = inRow(r, cols, count);
+  const слева = boardW === undefined ? PLATE_GAP / 2 : rowLeft(boardW, plate, вРяду) + PLATE_GAP / 2;
+  const c = Math.floor((x - слева) / шаг);
+  if (c < 0 || c >= вРяду) return null;
   const i = r * cols + c;
   if (i < 0 || i >= count) return null;
   // Центр этой тарелки и проверка, что палец внутри круга, а не в углу клетки.
-  const cx = PLATE_GAP / 2 + c * шаг + plate / 2;
+  const cx = слева + c * шаг + plate / 2;
   const cy = PLATE_GAP / 2 + r * шаг + plate / 2;
   const dx = x - cx; const dy = y - cy;
   const радиус = plate / 2 + PLATE_GAP / 2;      // половина шага сетки, см. разбор выше
@@ -217,12 +246,16 @@ export function plateAtPoint(
  * 100 %. Предел круга — π/4 ≈ 78,5 %, выше него кругом не подняться.
  */
 export function plateForGrab(
-  x: number, y: number, cols: number, plate: number, count: number,
+  x: number, y: number, cols: number, plate: number, count: number, boardW?: number,
 ): number | null {
   const шаг = plate + PLATE_GAP;
-  const c = Math.floor((x - PLATE_GAP / 2) / шаг);
   const r = Math.floor((y - PLATE_GAP / 2) / шаг);
-  if (c < 0 || c >= cols || r < 0) return null;
+  if (r < 0 || r * cols >= count) return null;
+  // Ряд центрируется по числу тарелок В НЁМ — разбор у `rowLeft`.
+  const вРяду = inRow(r, cols, count);
+  const слева = boardW === undefined ? PLATE_GAP / 2 : rowLeft(boardW, plate, вРяду) + PLATE_GAP / 2;
+  const c = Math.floor((x - слева) / шаг);
+  if (c < 0 || c >= вРяду) return null;
   const i = r * cols + c;
   return i >= 0 && i < count ? i : null;
 }
