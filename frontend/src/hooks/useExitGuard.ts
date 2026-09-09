@@ -163,6 +163,16 @@ export function useExitGuard({ armed, onExit, onSave }: UseExitGuardOptions): Us
 
   /** Наш popstate, а не человеческий: снимаем сторож сами и вопрос не задаём. */
   const selfPop = useRef(false);
+  /**
+   * 🔴 МЕТКА В history.state — НЕ ДОКАЗАТЕЛЬСТВО, ЧТО ЗАПИСЬ НАША. Замер 09.09.2026:
+   * страница перезагружена (F5, повторный заход по адресу) с нашей меткой наверху —
+   * браузер СОХРАНЯЕТ state при перезагрузке, и новый экран видел «сторож уже стоит»:
+   * pushGuard молчал, а размонтирование делало history.back() на НАСТОЯЩУЮ предыдущую
+   * страницу. Expo Router отвечал перемонтированием экрана: «Заново» в судоку с
+   * возобновлённой партией выбрасывало на экран настройки (UNMOUNT→MOUNT в консоли).
+   * Поэтому «наша ли запись» помнит сам хук, а чужая метка при взводе снимается.
+   */
+  const pushed = useRef(false);
 
   /**
    * Снять сторож из истории и только ПОТОМ уйти. Порядок принципиален: если
@@ -170,7 +180,8 @@ export function useExitGuard({ armed, onExit, onSave }: UseExitGuardOptions): Us
    * экрана, и человек останется на той же игре.
    */
   const leaveWeb = useCallback((go: () => void) => {
-    if (!isWebHistory() || !(window.history.state as any)?.[GUARD_MARK]) { go(); return; }
+    if (!isWebHistory() || !pushed.current || !(window.history.state as any)?.[GUARD_MARK]) { go(); return; }
+    pushed.current = false;
     selfPop.current = true;
     let done = false;
     const finish = () => {
@@ -226,9 +237,16 @@ export function useExitGuard({ armed, onExit, onSave }: UseExitGuardOptions): Us
     if (!isWebHistory() || !armed) return;
 
     const pushGuard = () => {
-      const st = (window.history.state ?? {}) as Record<string, unknown>;
-      if (st[GUARD_MARK]) return;
+      const st = { ...((window.history.state ?? {}) as Record<string, unknown>) };
+      if (st[GUARD_MARK]) {
+        if (pushed.current) return;            // наша запись уже наверху
+        // Чужая (устаревшая после перезагрузки) метка: снять с текущей записи, чтобы
+        // ни leaveWeb, ни размонтирование не приняли её за нашу.
+        delete st[GUARD_MARK];
+        window.history.replaceState(st, '');
+      }
       window.history.pushState({ ...st, [GUARD_MARK]: true }, '');
+      pushed.current = true;
     };
 
     const onPop = () => {
@@ -250,7 +268,11 @@ export function useExitGuard({ armed, onExit, onSave }: UseExitGuardOptions): Us
       // «домой» на карточке итога съест его вместо выхода.
       // Флаг здесь НЕ ставим: обработчик уже снят строкой выше, глотать этот
       // popstate некому, а поставленный флаг дожил бы до следующей партии.
-      if ((window.history.state as any)?.[GUARD_MARK]) window.history.back();
+      // Снимаем ТОЛЬКО свою запись: чужую метку не трогаем — иначе back() уводит со страницы.
+      if (pushed.current && (window.history.state as any)?.[GUARD_MARK]) {
+        pushed.current = false;
+        window.history.back();
+      }
     };
   }, [armed, core]);
 
