@@ -1,4 +1,4 @@
-/* psygames-game-cake-sort · VER 2 · 09.09.2026 */
+/* psygames-game-cake-sort · VER 3 · 09.09.2026 */
 /**
  * ТОРТЫ — собрать круг из ШЕСТИ секторов.
  *
@@ -413,14 +413,35 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
   /** Тарелка под точкой экрана. Вся арифметика — в `plateAtPoint`. */
   const тарелкаПод = (pageX: number, pageY: number) =>
     (стол.plate
-      ? plateAtPoint(pageX - боксRef.current.x, pageY - боксRef.current.y, стол.cols, стол.plate, cfg.plates)
+      ? plateAtPoint(pageX - боксRef.current.x, pageY - боксRef.current.y, стол.cols, стол.plate, cfg.plates, стол.boardW)
       : null);
+
+  /**
+   * 🔴 ЖЕСТ ЗАБИРАЕТСЯ ТОЛЬКО ЕСЛИ ЕСТЬ ЧТО НЕСТИ.
+   *
+   * 📍 Денис 09.09.2026: «не работает ни драг-энд-дроп, ни ПО КЛИКУ». Второе —
+   * следствие первого. Стол забирал ответчика у тарелки на любом сдвиге дальше
+   * порога, а мышью и тачпадом «клик» почти всегда едет на несколько точек.
+   * Ответчик уходил к столу, `onPress` тарелки отменялся — и тап пропадал. При
+   * этом сам жест ничем не кончался: тарелка под точкой касания вычислялась по
+   * сбитой сетке (см. `rowLeft`), `тащим` оставался пустым.
+   *
+   * Теперь стол спрашивает СЕБЯ, есть ли под точкой касания непустая тарелка.
+   * Нечего нести — жест не забираем, и тап достаётся тарелке, как и задумано.
+   */
+  const естьЧтоНести = () => {
+    const с = стартRef.current;
+    if (!с || !board || done) return false;
+    const i = тарелкаДляХвата(с.x, с.y);
+    return i !== null && !!(board.plates[i]?.length);
+  };
 
   const далеко = (e: any) => {
     const с = стартRef.current;
     if (!с) return false;
     const { pageX, pageY } = e.nativeEvent;
-    return Math.abs(pageX - с.x) + Math.abs(pageY - с.y) > СДВИГ;
+    if (Math.abs(pageX - с.x) + Math.abs(pageY - с.y) <= СДВИГ) return false;
+    return естьЧтоНести();
   };
 
   /**
@@ -428,7 +449,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    * Разбор, почему у хвата и сброса разная строгость, — в `plateForGrab`.
    */
   const тарелкаДляХвата = (pageX: number, pageY: number) =>
-    (стол.plate ? plateForGrab(pageX - боксRef.current.x, pageY - боксRef.current.y, стол.cols, стол.plate, cfg.plates) : null);
+    (стол.plate ? plateForGrab(pageX - боксRef.current.x, pageY - боксRef.current.y, стол.cols, стол.plate, cfg.plates, стол.boardW) : null);
 
   const жест = {
     /**
