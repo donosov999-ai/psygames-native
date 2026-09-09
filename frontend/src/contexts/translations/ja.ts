@@ -1863,6 +1863,8 @@ const t: Record<string, string> = {
   "hud_badDecks": "不利",
   "hud_card": "カード",
   "hud_moves": "手数",
+  "hud_linked": "接続",
+  "hud_puzzle": "パズル",
   "hud_streak": "連続",
   "hud_repeats": "反復",
   "hud_words": "語数",

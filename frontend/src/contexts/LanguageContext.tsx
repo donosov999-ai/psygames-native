@@ -3003,6 +3003,8 @@ const translations: Translations = {
   hud_badDecks: { ru: 'Рисковых', en: 'Risky decks' },
   hud_card: { ru: 'Карта', en: 'Card' },
   hud_moves: { ru: 'Ходов', en: 'Moves' },
+  hud_linked: { ru: 'Связано', en: 'Linked' },
+  hud_puzzle: { ru: 'Задача', en: 'Puzzle' },
   hud_streak: { ru: 'Серия', en: 'Streak' },
   /**
    * Слово похвалы у места действия. Три ступени по длине серии: короткая —

@@ -1864,6 +1864,8 @@ const t: Record<string, string> = {
   "hud_badDecks": "불리",
   "hud_card": "카드",
   "hud_moves": "이동",
+  "hud_linked": "연결",
+  "hud_puzzle": "퍼즐",
   "hud_streak": "연속",
   "hud_repeats": "반복",
   "hud_words": "단어",

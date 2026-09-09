@@ -1872,6 +1872,8 @@ const t: Record<string, string> = {
   "hud_badDecks": "जोखिमी",
   "hud_card": "कार्ड",
   "hud_moves": "चालें",
+  "hud_linked": "जुड़े",
+  "hud_puzzle": "पहेली",
   "hud_streak": "लगातार",
   "hud_repeats": "दोहराव",
   "hud_words": "शब्द",

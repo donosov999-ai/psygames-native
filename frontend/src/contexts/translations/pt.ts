@@ -1869,6 +1869,8 @@ const t: Record<string, string> = {
   "hud_badDecks": "Arriscados",
   "hud_card": "Carta",
   "hud_moves": "Jogadas",
+  "hud_linked": "Ligados",
+  "hud_puzzle": "Quebra-cabeça",
   "hud_streak": "Sequência",
   "hud_repeats": "Repetições",
   "hud_words": "Palavras",
