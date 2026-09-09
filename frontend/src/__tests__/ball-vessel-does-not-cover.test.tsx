@@ -27,6 +27,8 @@
  */
 import React from 'react';
 
+declare const __dirname: string;
+
 const TestRenderer = require('react-test-renderer');  // eslint-disable-line @typescript-eslint/no-require-imports
 
 jest.mock('expo-router', () => ({
@@ -95,43 +97,7 @@ function слои(сосуд: any): string[] {
   return из;
 }
 
-/** Плоская высота из стиля (стиль может быть массивом). */
-function высотаСтиля(style: any): number {
-  if (!style) return 0;
-  if (Array.isArray(style)) return style.reduce((m: number, s: any) => Math.max(m, высотаСтиля(s)), 0);
-  return typeof style.height === 'number' ? style.height : 0;
-}
 
-/**
- * СКОЛЬКО ВЫСОТЫ СОСУДА ЗАКРЫТО СТЕКЛОМ, СТОЯЩИМ ПОВЕРХ ШАРОВ.
- *
- * 🔴 Проверять «первая картинка — стекло» НЕДОСТАТОЧНО, и это назвала выжившая
- * мутация: положи стекло и в фон, и спереди — первая картинка по-прежнему под
- * шарами, а шары снова закрыты целиком. Значит мерить надо не порядок, а долю.
- *
- * Считаем по ОКНУ, в котором картинка живёт: ободок нарисован как контейнер с
- * `overflow: 'hidden'` высотой в горловину, и наружу стекло из него не выходит.
- * Нет такого окна — считаем всю высоту картинки.
- */
-function закрытоСпереди(сосуд: any): number {
-  const все = сосуд.findAll((n: any) => typeof n.type !== 'string' && n.props?.resizeMode !== undefined);
-  const первыйШар = все.findIndex((n: any) => n.props.resizeMode !== 'stretch');
-  if (первыйШар < 0) return 0;
-  let закрыто = 0;
-  все.slice(первыйШар + 1).forEach((n: any) => {
-    if (n.props.resizeMode !== 'stretch') return;
-    let окно = высотаСтиля(n.props.style);
-    let p = n.parent;
-    for (let i = 0; i < 4 && p; i += 1) {
-      const s = p.props?.style;
-      const плоско = Array.isArray(s) ? Object.assign({}, ...s.filter(Boolean)) : s;
-      if (плоско?.overflow === 'hidden' && typeof плоско.height === 'number') { окно = Math.min(окно, плоско.height); break; }
-      p = p.parent;
-    }
-    закрыто += окно;
-  });
-  return закрыто;
-}
 
 /** Сосуды на поле: кнопки с подписью из знаков-дублёров либо «пусто». */
 function сосуды(r: any): any[] {
@@ -142,44 +108,90 @@ function сосуды(r: any): any[] {
 }
 
 describe('сосуд не закрывает шары', () => {
-  it('🔴 у шариков стекло стоит в дереве РАНЬШЕ шаров', async () => {
-    const r = await открыть('@/app/games/ball-sort');
-    const все = сосуды(r);
-    // Иначе проба хвалит пустоту: экран не дошёл до поля, и сравнивать нечего.
-    expect(все.length).toBeGreaterThan(2);
+  /**
+   * 🔴 ЗДЕСЬ МЕРИЛСЯ ПОРЯДОК СЛОЁВ, А ТЕПЕРЬ — САМА КАРТИНКА, И ЭТО СИЛЬНЕЕ.
+   *
+   * 📍 Порядок был ОБХОДНЫМ ПУТЁМ: старое стекло закрывало полость на 49%, и
+   * единственный способ не спрятать шары был убрать стекло за них, оставив
+   * спереди ободок. Тестировщик увидел ровно это и написал «нужны другие колбы»
+   * (`578d0560`): сосуда не было, был ободок.
+   *
+   * 09.09.2026 «Шарикам» нарисовано СВОЁ стекло с пустой полостью (1,5% против
+   * 49,1%), и оно снова рисуется целиком поверх шаров — как настоящее стекло.
+   * Порядок слоёв перестал быть признаком: теперь важна не очерёдность, а то,
+   * СКОЛЬКО закрывает картинка. Это и проверяется — прямо по альфа-каналу файла,
+   * а не по косвенному признаку в дереве.
+   */
+  const { PNG } = require('pngjs');  // eslint-disable-line @typescript-eslint/no-require-imports
+  const { readFileSync } = require('fs');  // eslint-disable-line @typescript-eslint/no-require-imports
+  const { join } = require('path');  // eslint-disable-line @typescript-eslint/no-require-imports
 
-    let сНачинкой = 0;
-    for (const c of все) {
-      const п = слои(c);
-      const шар = п.indexOf('шар');
-      if (шар < 0) continue;                       // пустой сосуд — сравнивать нечего
-      сНачинкой += 1;
-      const стекло = п.indexOf('стекло');
-      expect(стекло).toBeGreaterThanOrEqual(0);    // сосуд остался сосудом
-      expect(стекло).toBeLessThan(шар);            // и он ПОД шарами
-
-      /*
-       * И спереди закрыта только горловина. Порог 20% высоты сосуда: ободок по
-       * замеру занимает 10% (`ВНУТРИ_СВЕРХУ`), запас вдвое — чтобы проба не
-       * краснела от правки ободка на пару пикселей, но краснела от возврата
-       * полного стекла (100%).
-       */
-      const высотаСосуда = высотаСтиля(c.props.style);
-      expect(высотаСосуда).toBeGreaterThan(0);
-      expect(закрытоСпереди(c) / высотаСосуда).toBeLessThan(0.2);
+  /**
+   * Доля закрытого внутри сосуда и средняя альфа там же.
+   *
+   * ⚠️ Полоса берётся МЕЖДУ СТЕНКАМИ и ниже горловины — там, где лежат шары.
+   * Мерить весь кадр бессмысленно: стенки и ободок непрозрачны по определению,
+   * и любое стекло дало бы высокий процент.
+   */
+  function внутриСосуда(файл: string): { закрыто: number; альфа: number } {
+    const png = PNG.sync.read(readFileSync(join(__dirname, '..', '..', 'assets', 'images', 'games', 'water-sort', файл)));
+    const { width: w, height: h, data } = png;
+    const альфаВ = (x: number, y: number) => data[(y * w + x) * 4 + 3] as number;
+    // Внутренние грани стенок — по строке на 55% высоты.
+    const y0 = Math.floor(h * 0.55);
+    let слева = 0; let справа = w - 1;
+    while (слева < w && альфаВ(слева, y0) <= 70) слева += 1;
+    while (справа > 0 && альфаВ(справа, y0) <= 70) справа -= 1;
+    let внутрЛ = слева;
+    while (внутрЛ < справа && альфаВ(внутрЛ, y0) > 40) внутрЛ += 1;
+    let внутрП = справа;
+    while (внутрП > внутрЛ && альфаВ(внутрП, y0) > 40) внутрП -= 1;
+    let сумма = 0; let закрытых = 0; let всего = 0;
+    for (let y = Math.floor(h * 0.18); y < Math.floor(h * 0.93); y += 1) {
+      for (let x = внутрЛ + 3; x < внутрП - 2; x += 1) {
+        const a = альфаВ(x, y);
+        сумма += a; всего += 1;
+        if (a > 40) закрытых += 1;
+      }
     }
-    expect(сНачинкой).toBeGreaterThan(0);
+    expect(всего).toBeGreaterThan(1000);   // иначе полоса выродилась и проба слепа
+    return { закрыто: (закрытых / всего) * 100, альфа: сумма / всего };
+  }
+
+  it('🔴 у стекла для шариков полость ПУСТАЯ — шар под ним ничем не закрыт', () => {
+    const н = внутриСосуда('tube-glass-balls.png');
+    expect(н.закрыто).toBeLessThan(5);
+    expect(н.альфа).toBeLessThan(25);
   });
 
-  it('🔴 у воды стекло, наоборот, стоит ПОВЕРХ — жидкость видна сквозь него', async () => {
+  /**
+   * 🔴 ОБРАТНАЯ СТОРОНА, БЕЗ КОТОРОЙ ПЕРВАЯ ПРОВЕРКА НИЧЕГО НЕ ЗНАЧИТ: у
+   * ВОДЯНОГО стекла полость как раз ЗАКРЫТА, и это не дефект. Для воды плёнка
+   * внутри — блик на стекле, жидкость сама заливает объём. Числа разные в разы,
+   * и подмена одного файла другим краснит пробу с обеих сторон.
+   */
+  it('🔴 у водяного стекла полость, наоборот, закрыта — потому шарикам и нужно своё', () => {
+    const в = внутриСосуда('tube-glass.png');
+    expect(в.закрыто).toBeGreaterThan(25);
+    expect(в.альфа).toBeGreaterThan(60);
+  });
+
+  it('🔴 шарики и вода берут РАЗНЫЕ файлы стекла', async () => {
+    const шары = await открыть('@/app/games/ball-sort');
+    const вода = await открыть('@/app/games/water-sort');
+    const стёкла = (r: any) => new Set(r.root.findAll((n: any) => typeof n.type !== 'string'
+      && n.props?.resizeMode === 'stretch' && n.props?.source !== undefined)
+      .map((n: any) => JSON.stringify(n.props.source)));
+    const ш = стёкла(шары); const в = стёкла(вода);
+    expect(ш.size).toBeGreaterThan(0);
+    expect(в.size).toBeGreaterThan(0);
+    expect([...ш].some((x) => в.has(x))).toBe(false);
+  });
+
+  it('🔴 у воды стекло по-прежнему одно на сосуд, ветка шариков в неё не подтекла', async () => {
     const r = await открыть('@/app/games/water-sort');
     const все = сосуды(r);
     expect(все.length).toBeGreaterThan(2);
-    /*
-     * У воды порций-картинок нет вовсе: жидкость рисуется цветными View. Значит
-     * единственный слой с `resizeMode` — само стекло, и оно обязано быть ровно
-     * одно: две картинки означали бы, что ветка шариков подтекла в воду.
-     */
     const счёт = все.map((c: any) => слои(c));
     expect(счёт.every((п: string[]) => п.every((x) => x === 'стекло'))).toBe(true);
     expect(счёт.filter((п: string[]) => п.length === 1).length).toBeGreaterThan(2);
