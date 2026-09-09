@@ -54,6 +54,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import {useWarmup} from '@/src/contexts/WarmupContext';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -320,7 +321,13 @@ function renderNet(net: CubeNet, markOfCell: Record<string, FaceMark>, size: num
 
 export default function MentalRotationGame() {
   const { colors } = useTheme();
-  const {height:viewportHeight}=useWindowDimensions();
+  /*
+   * ⚠️ НЕ `useWindowDimensions` (правка при переносе 09.09.2026). На первом кадре
+   * он отдаёт 0, а по высоте здесь считается компактность вёрстки: `0 < 560`
+   * истинно, и экран рисуется компактным ещё до того, как узнал свой размер.
+   * `useScreenSize` — общая защита проекта, её же требует гейт `screen-width-guard`.
+   */
+  const { h: viewportHeight } = useScreenSize();
   const [answerWidth,setAnswerWidth]=useState(208);
   const { t, language } = useLanguage();
   const strings = getMentalRotationStrings(language as MentalRotationLocale);
