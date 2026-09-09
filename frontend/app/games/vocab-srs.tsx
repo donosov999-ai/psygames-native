@@ -405,14 +405,14 @@ export default function VocabSrsGame() {
             {LANGUAGES.find((l) => l.code === language)?.name} →
           </Text>
           <View style={styles.optionButtons}>
-            /*
+            {/*
                 🔴 ПРЕДЛАГАЕМ ТОЛЬКО ТЕ ЯЗЫКИ, НА КОТОРЫХ ЕСТЬ СЛОВАРЬ.
                 Раньше выбор строился из всех двенадцати языков приложения, а
                 словарь покрывает семь: на французском игра запускалась и
                 оказывалась пустой — «выбери 1-е из 0», а в зарядке экран
                 оставался мёртвым навсегда, без шапки и без «назад».
                 Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
-              */
+              */}
               {LANGUAGES.filter((l) => l.code !== language && hasVocab(l.code)).map((l) => (
               <TouchableOpacity
                 accessibilityRole="button"
