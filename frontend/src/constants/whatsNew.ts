@@ -16,9 +16,10 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
-    version: '2.52.3',
+    version: '2.52.4',
     date: '2026-09-09',
     ru: [
+      'Зарядка и оценка идут с вашего личного уровня во всех играх — фиксированных «средних» ступеней больше нет: мы меряем ваш прогресс, а не сравниваем зарядки между собой',
       'Ментальная ротация собрана заново: 50 уровней, фигуры от 4 до 13 кубиков, три вида заданий — поворот, проекция, развёртка. После промаха — разбор с плавным 3D-вращением фигуры и ручным поворотом по осям X, Y, Z',
       'Меню паузы: стрелка «назад» во время партии открывает меню — Продолжить, Заново, Правила, На главную. Поле скрыто, часы стоят. Первым подключено судоку: начать новую доску можно без проигрыша трёх жизней',
       'Торты: кусок стал крупнее (0,90 радиуса тарелки вместо 0,72), перетаскивание между тарелками заработало',
@@ -27,6 +28,7 @@ export const WHATS_NEW: WhatsNewEntry[] = [
       'Судоку с сохранённой партией: «Заново» больше не выбрасывает на экран настройки',
     ],
     en: [
+      'Warm-up and assessment now run at your own level in every game — no more fixed “medium” tiers: we measure your progress, not warm-ups against each other',
       'Mental Rotation rebuilt: 50 levels, shapes of 4 to 13 cubes, three task kinds — rotation, projection, cube net. After a miss — a review with a smooth 3D turn of the shape and manual rotation around X, Y and Z',
       'Pause menu: the back arrow during a game opens a menu — Resume, Restart, Rules, Home. The board is hidden and the clock stops. Sudoku is wired first: a new board no longer costs three lives',
       'Cakes: the slice grew (0.90 of the plate radius instead of 0.72) and dragging between plates works',
