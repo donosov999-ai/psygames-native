@@ -23,7 +23,7 @@ const СТРАНИЦА = path.join(__dirname, '..', '..', 'public', 'warmup');
 const html = (): string => fs.readFileSync(path.join(СТРАНИЦА, 'index.html'), 'utf8');
 
 /** API новее Chrome 90 → имя полифила, который обязан стоять в index.html. */
-const НОВЕЕ_CHROME_90: Array<[RegExp, string]> = [
+const НОВЕЕ_CHROME_90: [RegExp, string][] = [
   [/\bstructuredClone\s*\(/, 'structuredClone'],
   [/\.at\(\s*-?\d/, 'Array.prototype.at'],
   [/\bObject\.hasOwn\s*\(/, 'Object.hasOwn'],

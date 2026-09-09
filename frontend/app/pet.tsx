@@ -56,7 +56,9 @@ function ruTrainings(n: number): string {
 
 export default function PetScreen() {
   // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
-  if (isWebDemo()) return <Redirect href="/" />;
+  // ⚠️ Сам return — НИЖЕ всех хуков (см. перед `return (`): ранний return перед хуками делал каждый
+  // хук экрана «условным» (rules-of-hooks, 20 ошибок линта) и был бы React #310 при смене флага.
+  const webDemo = isWebDemo();
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const ru = language === 'ru';   // остался только для русской плюрализации (ruTrainings)
@@ -166,6 +168,8 @@ export default function PetScreen() {
   const total = stats?.total ?? 0;
   const skin: PetSkin = resolvePetSkin(skinChoice, stage);
   const shownName = petName || t('petName');
+
+  if (webDemo) return <Redirect href="/" />;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
