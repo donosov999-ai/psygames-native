@@ -2503,7 +2503,7 @@ const t: Record<string, string> = {
   "anagramBonusJar": "Bônus",
   "goalSheetDays": "{n} dias",
   "goalSheetToday": "Hoje: {g} partidas · {p} ⭐ · sequência {s}",
-  "goalSuggest_best_streak": "Seu recorde: {n} d.",
+  "goalSuggest_best_streak": "Sua maior sequência: {n} dias seguidos",
   "goalSuggest_at_top": "Você já aguentou {n} d.",
   "goalSuggest_smaller": "A última foi {n} — vamos com menos",
   "tabGames": "Jogos",
