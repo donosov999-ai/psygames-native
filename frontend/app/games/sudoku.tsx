@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 13 · 28.08.2026 */
+/* psygames-game-sudoku · VER 14 · 09.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';

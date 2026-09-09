@@ -1,3 +1,4 @@
+/* psygames-gate-sudoku-level-help · VER 2 · 09.09.2026 */
 import { translateFor } from '@/src/contexts/LanguageContext';
 import { levelConfig } from '@/src/services/sudoku-core';
 import {

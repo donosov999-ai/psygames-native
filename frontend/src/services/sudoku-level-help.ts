@@ -1,3 +1,4 @@
+/* psygames-sudoku-level-help · VER 1 · 07.09.2026 */
 import type { Variant } from './sudoku-core';
 import { variantLabel, variantRule } from './sudoku-core';
 
