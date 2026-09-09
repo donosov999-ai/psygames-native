@@ -2527,5 +2527,10 @@ const t: Record<string, string> = {
   "lr_listening_span_similar_rule": "A partir de este nivel, las palabras sobrantes de la cuadrícula se eligen para que SUENEN PARECIDAS a las que oíste. Es fácil confundirlas: retén no solo las palabras, sino también su orden.",
   "lr_listening_span_similar_example": "Oíste «casa» y al lado aparecerá «cama». Elige lo que oíste, no lo que se parece.",
   "warmupOvertime": "Los {m} min han pasado. Rondas restantes: {n}",
+  // Добавлено вручную 09.09.2026 (пустая развилка). Регенерация воркфлоу их подхватит.
+  "hubEmptyTitle": "Aquí todavía no hay nada en este perfil",
+  "hubEmptyDesc": "Los ejercicios de esta sección no forman parte del perfil elegido. Cambia de perfil en los ajustes para abrirlos.",
+  "hubEmptyAction": "Todos los juegos",
+  "hubLoading": "Cargando…",
 };
 export default t;

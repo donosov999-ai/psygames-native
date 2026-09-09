@@ -40,6 +40,7 @@ import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import { visibleHubCards } from '@/src/constants/hubContents';
+import HubEmpty from '@/src/components/HubEmpty';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // Тёмная пара семейства судоку. Цвет текста поверх плашки считает onGradientText по
@@ -115,9 +116,21 @@ export default function SudokuHub() {
           <Text style={styles.heroTitle}>{t('sudokuGroup')}</Text>
           <Text style={styles.heroDesc}>{t('sudokuGroupDesc')}</Text>
         </LinearGradient>
-        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-          {t('sudokuPickBoard')}
-        </Text>
+        {карточки.length > 0 ? (
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+            {t('sudokuPickBoard')}
+          </Text>
+        ) : null}
+        {/**
+          * 🔴 РАЗВИЛКА НЕ ИМЕЕТ ПРАВА БЫТЬ ТУПИКОМ — то же, что в `HubScreen`.
+          * Замер 09.09.2026 на собранном вебе: у 7 профилей из 13 этот экран
+          * открывался с заголовком «Судоку: три доски», подписью «ВЫБЕРИ ДОСКУ»
+          * и НУЛЁМ карточек. Снаружи это «не запускается, ошибка».
+          * Классическая доска с того же дня открыта всем (ALWAYS_ALLOWED), так что
+          * пустым экран уже не бывает — но заслон остаётся: список считает профиль,
+          * а профили правятся.
+          */}
+        {карточки.length === 0 ? <HubEmpty accent={GRADIENT[0]} /> : null}
         {карточки.map(({ card: g, route: маршрут, tag: тип }) => (
           <TouchableOpacity
             accessibilityRole="button"

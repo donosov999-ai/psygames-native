@@ -27,6 +27,7 @@ import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import { visibleHubCards } from '@/src/constants/hubContents';
+import HubEmpty from '@/src/components/HubEmpty';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#0ea5e9', '#10b981'];
@@ -94,9 +95,11 @@ export default function SpanGame() {
           <Text style={styles.heroTitle}>{t('spanGroup')}</Text>
           <Text style={styles.heroDesc}>{t('spanGroupDesc')}</Text>
         </LinearGradient>
-        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-          {t('spanPickModality')}
-        </Text>
+        {карточки.length > 0 ? (
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+            {t('spanPickModality')}
+          </Text>
+        ) : null}
         {карточки.map(({ card: g, route: маршрут, tag: тип }) => (
           <TouchableOpacity
             accessibilityRole="button"
@@ -116,6 +119,12 @@ export default function SpanGame() {
             <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
           </TouchableOpacity>
         ))}
+        {/**
+          * 🔴 Развилка не имеет права быть тупиком — разбор в шапке `HubEmpty`.
+          * Замер 09.09.2026 на собранной сборке: пустыми открывались 6 развилок
+          * из 17 у профиля «Бесплатный» и 4 из 17 у «Детей».
+          */}
+        {карточки.length === 0 ? <HubEmpty accent={GRADIENT[0]} /> : null}
         <Text style={[styles.footnote, { color: colors.textSecondary }]}>
           {t('spanFootnote')}
         </Text>

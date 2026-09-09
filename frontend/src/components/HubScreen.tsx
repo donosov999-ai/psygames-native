@@ -28,6 +28,7 @@ import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientTe
 import GradientSurface from '@/src/components/GradientSurface';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 import { visibleHubCards } from '@/src/constants/hubContents';
+import HubEmpty from '@/src/components/HubEmpty';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 export type { HubSubGame } from '@/src/constants/hubContents';
@@ -88,6 +89,19 @@ export default function HubScreen({ hubRoute, titleKey, descKey, pickKey, footno
     const можно = new Set(filterAllowedGames(profile).map((g) => g.route));
     return visibleHubCards(hubRoute, можно, t);
   }, [hubRoute, profile, профильГотов, t]);
+  /**
+   * 🔴 РАЗВИЛКА НЕ ИМЕЕТ ПРАВА БЫТЬ ТУПИКОМ. До 09.09.2026 при пустом списке экран
+   * рисовал заголовок, подпись «Выбери упражнение» — и ничего под ней. Замер того
+   * дня на собранной сборке: так открывались 6 развилок из 17 у профиля
+   * «Бесплатный» и 4 из 17 у «Детей»; Денис назвал это «не запускается, ошибка»
+   * по «Ментальной ротации» и по «Судоку».
+   *
+   * ⚠️ ДВА РАЗНЫХ ПУСТЫХ, И ИХ НЕЛЬЗЯ ПУТАТЬ: пока профиль не прочитан, список
+   * тоже пуст — но это полсекунды ожидания, а не закрытая развилка. Раньше оба
+   * состояния выглядели одинаково: белый экран под заголовком.
+   */
+  const ждём = !профильГотов;
+  const пусто = профильГотов && список.length === 0;
   const onGrad = onGradientText(gradient[0], gradient[1]);
   const onGradSoft = onGradientTextMuted(onGrad);
 
@@ -113,7 +127,13 @@ export default function HubScreen({ hubRoute, titleKey, descKey, pickKey, footno
           <Text style={[styles.heroDesc, { color: onGradSoft }]}>{t(descKey)}</Text>
         </GradientSurface>
         {headerSlot}
-        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t(pickKey)}</Text>
+        {список.length > 0 ? (
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t(pickKey)}</Text>
+        ) : null}
+        {ждём ? (
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('hubLoading')}</Text>
+        ) : null}
+        {пусто ? <HubEmpty accent={gradient[0]} /> : null}
         {список.map(({ card: g, route: маршрут, tag: тип }) => (
           <TouchableOpacity
             accessibilityRole="button"
