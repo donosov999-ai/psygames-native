@@ -1,4 +1,4 @@
-/* psygames-game-cake-sort · VER 1 · 06.09.2026 */
+/* psygames-game-cake-sort · VER 2 · 09.09.2026 */
 /**
  * ТОРТЫ — собрать круг из ШЕСТИ секторов.
  *
@@ -17,7 +17,7 @@
  * лежит замер, при какой ширине сколько столбцов ещё читаемо.
  */
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, useWindowDimensions } from 'react-native';
 import Svg, { Path, Circle as SvgCircle, ClipPath, Defs, Image as SvgImage } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -29,6 +29,7 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { saveSession } from '@/src/services/api';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import GameSetupBar from '@/src/components/GameSetupBar';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -45,7 +46,7 @@ import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { prebuilt, prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
 import { topFor, boardsFor, type КруглаяШкурка } from '@/src/constants/cakeTops';
-import { tableLayout, maxCols, plateAtPoint, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
+import { tableLayout, tableFit, maxCols, plateAtPoint, cakeRadius, PLATE_GAP, SECTOR_MIN } from '@/src/games/cake-sort/core/layout';
 import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
 
 export const CS_GAME_ID = 'cake_sort';
@@ -108,6 +109,8 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
     * тарелки рисуются нулевого диаметра, а деление на них даёт NaN.
     */
   const width = useScreenWidth();
+  /** Высота окна — только как оценка поля на первый кадр, до `onLayout`. */
+  const { height: окноH } = useWindowDimensions();
   /** Вечерний и ночной шаг зарядки — без писка. Признак берётся из пресета, как у всех. */
   const { isCalm } = useGamePreset();
   useCalmHush(isCalm);
@@ -273,12 +276,23 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    * Геометрия стола. Столбцов — не больше, чем читаемо влезает: число берётся
    * из `maxCols`, а не назначается вёрсткой. Строк — сколько нужно под тарелки.
    */
+  /**
+   * Высота поля под стол. Меряется, а не назначается: над столом шапка с HUD и
+   * строкой правила, под ним — кнопки, и всё это разной высоты на разных языках.
+   * До первого `onLayout` берём оценку от окна — она нужна ровно на один кадр.
+   */
+  const [полеH, setПолеH] = useState(0);
+
+  /**
+   * Геометрия стола. Столбцы подбираются под ШИРИНУ И ВЫСОТУ поля: разбор и
+   * правило выбора — в шапке `tableFit`. Прежняя редакция брала только ширину и
+   * при честном замере клина оставляла нижний ряд тарелок под обрезом.
+   */
   const стол = useMemo(() => {
     const доступно = Math.min(width, 520) - 16;
-    const cols = Math.min(maxCols(доступно), Math.max(3, Math.ceil(Math.sqrt(cfg.plates))));
-    const l = tableLayout(доступно, cols);
-    return { ...l, rows: Math.ceil(cfg.plates / cols), boardW: доступно };
-  }, [width, cfg.plates]);
+    const поле = полеH > 0 ? полеH : Math.max(240, Math.round((окноH || 640) * 0.62));
+    return { ...tableFit(доступно, поле, cfg.plates), boardW: доступно };
+  }, [width, окноH, полеH, cfg.plates]);
 
   const тронуть = (i: number) => {
     if (!board || done) return;
@@ -371,34 +385,85 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
   const СДВИГ = 6;
   const [тащим, setТащим] = useState<number | null>(null);
   const [цель, setЦель] = useState<number | null>(null);
-  const [бокс, setБокс] = useState({ x: 0, y: 0 });
   const столRef = useRef<View | null>(null);
+  /**
+   * 🔴 УГОЛ СТОЛА И ТОЧКА КАСАНИЯ ЖИВУТ В ССЫЛКАХ, А НЕ В СОСТОЯНИИ.
+   *
+   * Обе величины нужны В ТОМ ЖЕ обработчике, где снимаются. `useState` отдаёт
+   * новое значение только СЛЕДУЮЩЕМУ рендеру, поэтому прежний код мерил угол
+   * стола и тут же считал попадание по ещё нулевому `бокс` — первое касание
+   * всегда попадало не в ту тарелку (а при столе у левого края экрана — «мимо
+   * стола»). Запись идёт из обработчика события, не из рендера, так что запрет
+   * React на ссылки во время рендера здесь ни при чём.
+   */
+  const боксRef = useRef({ x: 0, y: 0 });
+  const стартRef = useRef<{ x: number; y: number } | null>(null);
 
   const снятьБокс = () => {
     const n: any = столRef.current;
     if (!n) return;
     if (typeof n.getBoundingClientRect === 'function') {
       const r = n.getBoundingClientRect();
-      setБокс({ x: r.left, y: r.top });
+      боксRef.current = { x: r.left, y: r.top };
       return;
     }
-    n.measureInWindow?.((x: number, y: number) => setБокс({ x, y }));
+    n.measureInWindow?.((x: number, y: number) => { боксRef.current = { x, y }; });
   };
 
   /** Тарелка под точкой экрана. Вся арифметика — в `plateAtPoint`. */
   const тарелкаПод = (pageX: number, pageY: number) =>
-    (стол.plate ? plateAtPoint(pageX - бокс.x, pageY - бокс.y, стол.cols, стол.plate, cfg.plates) : null);
+    (стол.plate
+      ? plateAtPoint(pageX - боксRef.current.x, pageY - боксRef.current.y, стол.cols, стол.plate, cfg.plates)
+      : null);
+
+  const далеко = (e: any) => {
+    const с = стартRef.current;
+    if (!с) return false;
+    const { pageX, pageY } = e.nativeEvent;
+    return Math.abs(pageX - с.x) + Math.abs(pageY - с.y) > СДВИГ;
+  };
 
   const жест = {
-    onStartShouldSetResponder: () => false,
-    onMoveShouldSetResponder: (e: any) => {
-      const { dx, dy } = { dx: e.nativeEvent.locationX ?? 0, dy: e.nativeEvent.locationY ?? 0 };
-      return Math.abs(dx) + Math.abs(dy) > СДВИГ;
-    },
-    onResponderGrant: (e: any) => {
-      if (!board || done) return;
+    /**
+     * 🔴 БЕЗ CAPTURE ПЕРЕТАСКИВАНИЯ НЕТ ВОВСЕ — И ЭТО БЫЛ ЖИВОЙ ДЕФЕКТ.
+     *
+     * 📍 Денис 09.09.2026: «режим драг и дроп не работает, перетаскивание».
+     * Разбор: каждая тарелка — `TouchableOpacity`, он забирает ответчика НА
+     * КАСАНИИ и держит его до отпускания. Система спрашивает родителя только
+     * пока ответчика ни у кого нет, поэтому `onMoveShouldSetResponder` на столе
+     * не вызывался НИ РАЗУ, `onResponderGrant` не срабатывал, и жест выглядел
+     * как «тащу, а ничего не происходит». Тот же разбор дословно записан в
+     * сортировке товаров — там Capture стоит с самого начала.
+     *
+     * ⚠️ ВТОРАЯ ПОЛОВИНА ДЕФЕКТА БЫЛА В САМОМ ПОРОГЕ. Условие читало
+     * `locationX/locationY` как будто это СМЕЩЕНИЕ, а это координата пальца
+     * ВНУТРИ элемента: у любой тарелки крупнее шести точек сумма превышала порог
+     * всегда. То есть даже получи стол вопрос — он отвечал бы «да» на первое же
+     * касание и съедал бы тап. Смещение считается от запомненной точки касания.
+     *
+     * Capture-вариант старта вызывается ДО детей и на КАЖДОМ касании, отвечает
+     * `false` — тап по-прежнему достаётся тарелке, а мы лишь запоминаем, где
+     * палец лёг, и меряем угол стола, пока он заведомо на месте.
+     */
+    onStartShouldSetResponderCapture: (e: any) => {
+      const { pageX, pageY } = e.nativeEvent;
+      стартRef.current = { x: pageX, y: pageY };
       снятьБокс();
-      const i = тарелкаПод(e.nativeEvent.pageX, e.nativeEvent.pageY);
+      return false;
+    },
+    onStartShouldSetResponder: () => false,
+    onMoveShouldSetResponder: (e: any) => далеко(e),
+    onMoveShouldSetResponderCapture: (e: any) => далеко(e),
+    onResponderGrant: () => {
+      if (!board || done) return;
+      /*
+       * Тарелку берём ОТТУДА, ГДЕ ПАЛЕЦ ЛЁГ, а не оттуда, где он оказался к
+       * моменту признания жеста: между касанием и порогом сдвига палец уже ушёл
+       * с тарелки, и на резком движении жест начинался бы с соседней.
+       */
+      const с = стартRef.current;
+      if (!с) return;
+      const i = тарелкаПод(с.x, с.y);
       // С пустой тарелки брать нечего: начать жест, который заведомо ничем не
       // кончится, хуже, чем не начать — сектор «поднимется» и упадёт назад.
       if (i === null || !(board.plates[i]?.length)) return;
@@ -424,6 +489,14 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
   const тарелка = (i: number) => {
     const cells = board?.plates[i] ?? [];
     const r = стол.plate / 2;
+    /**
+     * 🔴 РАДИУС ТОРТА СЧИТАЕТ ГЕОМЕТРИЯ, А НЕ РАЗМЕТКА. Здесь стояло `(r−3)·0,72`
+     * прямо в двух местах — и ровно эта доля НЕ УЧАСТВОВАЛА в замере читаемости:
+     * `sectorWidth` мерила тарелку целиком и завышала клин в 1,23 раза. Пока
+     * число живёт в разметке, замер и отрисовка расходятся молча. Разбор и
+     * происхождение 0,90 — в шапке `CAKE_FILL`.
+     */
+    const рад = cakeRadius(стол.plate);
     const выбрана = sel === i || тащим === i;
     const подЦелью = тащим !== null && цель === i && цель !== тащим;
     return (
@@ -477,12 +550,11 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
           <Defs>
             {cells.map((_, k) => (
               <ClipPath key={`c${k}`} id={`cake-${i}-${k}`}>
-                <Path d={wedgePath(r, r, (r - 3) * 0.72, k)} />
+                <Path d={wedgePath(r, r, рад, k)} />
               </ClipPath>
             ))}
           </Defs>
           {cells.map((тип, k) => {
-            const рад = (r - 3) * 0.72;
             return (
               <React.Fragment key={k}>
                 <Path d={wedgePath(r, r, рад, k)} fill={тема.colors[тип % тема.colors.length]} stroke="#00000022" strokeWidth={1} />
@@ -557,10 +629,37 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
         { key: 'left', icon: 'albums', label: t('cakeQueue'), value: board?.queue.length ?? 0 },
         ...(доказан ? [{ key: 'proven', icon: 'shield-checkmark' as const, label: t('cakeProven'), value: '✓', tone: 'good' as const }] : []),
       ]}
-      headerActions={<LevelRuleBadge lr={levelRules} color={colors.text} />}
+      /*
+        🔴 СЛУЖЕБНЫЕ ДЕЙСТВИЯ — ОДНИМ РЯДОМ В ШАПКЕ, КАК В СОРТИРОВКЕ ТОВАРОВ.
+        Денис 09.09.2026: «интерфейс выровняй по всем приложениям сортировки —
+        верхний и нижний тулбары». До правки отмена и подсказка стояли внизу
+        экрана СВОИМИ круглыми кнопками, нарисованными здесь же: другой размер,
+        другой цвет, без подписи и без остатка подсказок на кнопке. Три
+        сортировки выглядели тремя разными приложениями.
+        Теперь ряд один и тот же тип на все игры (`GameAuxBar`/`GameAuxAction`):
+        и вид, и цель нажатия 48×48, и лестница замков приходят оттуда.
+      */
+      headerActions={
+        <GameAuxBar>
+          <GameAuxAction
+            icon="arrow-undo" tint="#d97706" ladder="undo" label={t('btn_undo')}
+            disabled={!история.canUndo} onPress={отменить}
+          />
+          {/* Остаток подсказок прямо на кнопке: цена видна ДО нажатия, а не после. */}
+          <GameAuxAction
+            icon="bulb" tint="#0284c7" ladder="hint" label={t('btn_hint')} count={hints}
+            disabled={hints <= 0} onPress={подсказать}
+          />
+          <LevelRuleBadge lr={levelRules} color={colors.text} />
+        </GameAuxBar>
+      }
     >
       <LevelRuleModal lr={levelRules} colors={colors} />
       <ScorePopupLayer popups={popups} />
+      <View style={styles.field} onLayout={(e) => {
+        const h = Math.round(e.nativeEvent.layout.height);
+        setПолеH((п) => (Math.abs(п - h) > 2 ? h : п));
+      }}>
       <View
         ref={столRef}
         {...жест}
@@ -574,16 +673,6 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
       >
         {Array.from({ length: cfg.plates }).map((_, i) => тарелка(i))}
       </View>
-      <View style={styles.tools}>
-        <TouchableOpacity onPress={отменить} disabled={!история.canUndo} style={[styles.tool, !история.canUndo && styles.toolOff]}
-          accessibilityRole="button" accessibilityLabel={t('btn_undo')}>
-          <Ionicons name="arrow-undo" size={20} color={история.canUndo ? '#fff' : '#ffffff66'} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={подсказать} disabled={hints <= 0} style={[styles.tool, hints <= 0 && styles.toolOff]}
-          accessibilityRole="button" accessibilityLabel={t('btn_hint')}>
-          <Ionicons name="bulb" size={20} color={hints > 0 ? '#fff' : '#ffffff66'} />
-          <Text style={styles.toolNum}>{hints}</Text>
-        </TouchableOpacity>
       </View>
       {встал && (
         <View style={styles.stuck}>
@@ -615,6 +704,7 @@ const styles = StyleSheet.create({
   setupCard: { borderRadius: 16, padding: 16, marginBottom: 16 },
   setupLabel: { fontSize: 18, fontWeight: '700', marginBottom: 6 },
   setupHint: { fontSize: 14, lineHeight: 20 },
+  field: { flex: 1, justifyContent: 'center' },
   table: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignSelf: 'center', paddingVertical: 8 },
   plateBox: { alignItems: 'center', justifyContent: 'center' },
   tools: { flexDirection: 'row', justifyContent: 'center', gap: 14, paddingTop: 4 },
