@@ -22,10 +22,13 @@ import React from 'react';
 import { WarmupCard } from '@/src/components/WarmupCard';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { языковыеТемы } from '@/src/services/languageFlow';
+import { useLanguage } from '@/src/contexts/LanguageContext';
 
 export const АКЦЕНТ_ЯЗЫКИ = '#0891b2';
 
 export function LanguagesWarmup() {
+  // Языки потока зависят от интерфейса: свой язык целью не бывает (см. languageFlow).
+  const { language } = useLanguage();
   /** Уровни — из СОБСТВЕННЫХ лестниц: человек продолжает с того места, где стоит. */
   const карточки = usePersistentLevel('vocab_srs');
   const пропуск = usePersistentLevel('cloze');
@@ -41,7 +44,7 @@ export function LanguagesWarmup() {
 
   return (
     <WarmupCard
-      темы={языковыеТемы(уровни)}
+      темы={языковыеТемы(уровни, language)}
       titleKey="languagesWarmupTitle"
       descKey="languagesWarmupDesc"
       ярлык="языки"
