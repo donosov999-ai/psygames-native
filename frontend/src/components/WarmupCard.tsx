@@ -30,6 +30,13 @@ export interface WarmupCardProps {
   accent: string;
   /** Уровни ещё читаются из хранилища — кнопка ждёт. */
   loading?: boolean;
+  /**
+   * Строка под подписью — то, что зависит от состояния и не может жить в
+   * словаре. У языковой зарядки это ПАРА ЯЗЫКОВ: она считается от интерфейса
+   * (`языкиДляИнтерфейса`), и написать её в переводе значило бы соврать на тех
+   * локалях, где пара другая.
+   */
+  подЗаголовком?: string;
 }
 
 /**
@@ -52,7 +59,7 @@ export function имяИгры(gameId: string, t: (k: string) => string): string
   return g ? (t(g.nameKey) || gameId) : gameId;
 }
 
-export function WarmupCard({ темы, titleKey, descKey, ярлык, accent, loading }: WarmupCardProps) {
+export function WarmupCard({ темы, titleKey, descKey, ярлык, accent, loading, подЗаголовком }: WarmupCardProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const { startPlaylist } = useWarmup();
@@ -78,6 +85,9 @@ export function WarmupCard({ темы, titleKey, descKey, ярлык, accent, lo
         <Text style={[стили.заголовок, { color: colors.text }]}>{t(titleKey)}</Text>
       </View>
       <Text style={[стили.подпись, { color: colors.textSecondary }]}>{t(descKey)}</Text>
+      {!!подЗаголовком && (
+        <Text style={[стили.подпись, { color: accent, fontWeight: '700' }]}>{подЗаголовком}</Text>
+      )}
 
       <View style={стили.кнопки}>
         {ДЛИТЕЛЬНОСТИ.map((м) => {

@@ -2506,7 +2506,7 @@ const t: Record<string, string> = {
   "tabPet": "الرفيق",
   "favouriteSections": "ما تلعبه أكثر",
   "languagesWarmupTitle": "إحماء اللغات",
-  "languagesWarmupDesc": "الإنجليزية والإسبانية معًا. ستخطئ أكثر من لغة واحدة — وهذا هو المقصود",
+  "languagesWarmupDesc": "لغتان أجنبيتان متداخلتان، ولغتك تبقى المرجع. ستخطئ أكثر مما لو كانت لغة واحدة — وهذا هو المقصود",
   "andMore": "{n} أخرى ›",
   // >>> SCREEN_STRINGS
   "lr_digit_span_surprise_dir_title": "الاتجاه يُقال لاحقًا",

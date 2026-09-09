@@ -27,7 +27,8 @@
 import React from 'react';
 import { WarmupCard } from '@/src/components/WarmupCard';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { языковыеТемы } from '@/src/services/languageFlow';
+import { языковыеТемы, языкиДляИнтерфейса } from '@/src/services/languageFlow';
+import { WORD_LANG_LABEL } from '@/src/services/wordLanguage';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 
 export const АКЦЕНТ_ЯЗЫКИ = '#0891b2';
@@ -50,8 +51,19 @@ export function LanguagesWarmup() {
     anagrams: анаграммы.level,
   };
 
+  /**
+   * 🔴 ПАРА ЯЗЫКОВ ПОКАЗЫВАЕТСЯ, А НЕ ОБЕЩАЕТСЯ ТЕКСТОМ. До 09.09.2026 подпись
+   * говорила «английский и испанский» во всех локалях, и на английском это была
+   * ложь: свой язык целью не бывает, англоговорящий получает испанский и
+   * запасной. Здесь берётся ТА ЖЕ функция, что собирает шаги, — разойтись
+   * подписи и партии больше нечем.
+   */
+  const [первый, второй] = языкиДляИнтерфейса(language);
+  const пара = `${WORD_LANG_LABEL[первый] ?? первый} · ${WORD_LANG_LABEL[второй] ?? второй}`;
+
   return (
     <WarmupCard
+      подЗаголовком={пара}
       темы={языковыеТемы(уровни, language)}
       titleKey="languagesWarmupTitle"
       descKey="languagesWarmupDesc"
