@@ -48,6 +48,16 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'number', ru: 'число',      es: 'número',   pt: 'número',   de: 'Zahl',    zh: '数字',  hi: 'संख्या', fr: 'nombre', it: 'numero', ja: '数', ko: '숫자', ar: 'رقم', cat: 'concepts' },
   { en: 'world',  ru: 'мир',        es: 'mundo',    pt: 'mundo',    de: 'Welt',    zh: '世界',  hi: 'दुनिया', fr: 'monde', it: 'mondo', ja: '世界', ko: '세계', ar: 'عالم', cat: 'concepts' },
   { en: 'country',ru: 'страна',     es: 'país',     pt: 'país',     de: 'Land',    zh: '国家',  hi: 'देश', fr: 'pays', it: 'paese', ja: '国', ko: '나라', ar: 'بلد', cat: 'concepts' },
+  { en: 'joy', ru: 'радость', es: 'alegría', pt: 'alegria', de: 'Freude', zh: '喜悦', hi: 'ख़ुशी', fr: 'joie', it: 'gioia', ja: '喜び', ko: '기쁨', ar: 'فرح', cat: 'concepts' },
+  { en: 'fear', ru: 'страх', es: 'miedo', pt: 'medo', de: 'Angst', zh: '害怕', hi: 'डर', fr: 'peur', it: 'paura', ja: '恐れ', ko: '두려움', ar: 'خوف', cat: 'concepts' },
+  { en: 'hope', ru: 'надежда', es: 'esperanza', pt: 'esperança', de: 'Hoffnung', zh: '希望', hi: 'आशा', fr: 'espoir', it: 'speranza', ja: '望み', ko: '희망', ar: 'أمل', cat: 'concepts' },
+  { en: 'truth', ru: 'правда', es: 'verdad', pt: 'verdade', de: 'Wahrheit', zh: '真相', hi: 'सच', fr: 'vérité', it: 'verità', ja: '真実', ko: '진실', ar: 'حقيقة', cat: 'concepts' },
+  { en: 'question', ru: 'вопрос', es: 'pregunta', pt: 'pergunta', de: 'Frage', zh: '问题', hi: 'सवाल', fr: 'question', it: 'domanda', ja: '質問', ko: '질문', ar: 'سؤال', cat: 'concepts' },
+  { en: 'answer', ru: 'ответ', es: 'respuesta', pt: 'resposta', de: 'Antwort', zh: '回答', hi: 'जवाब', fr: 'réponse', it: 'risposta', ja: '答え', ko: '대답', ar: 'جواب', cat: 'concepts' },
+  { en: 'story', ru: 'история', es: 'historia', pt: 'história', de: 'Geschichte', zh: '故事', hi: 'कहानी', fr: 'histoire', it: 'storia', ja: '物語', ko: '이야기', ar: 'قصة', cat: 'concepts' },
+  { en: 'picture', ru: 'картина', es: 'cuadro', pt: 'quadro', de: 'Bild', zh: '图画', hi: 'चित्र', fr: 'tableau', it: 'quadro', ja: '絵', ko: '그림', ar: 'صورة', cat: 'concepts' },
+  { en: 'letter', ru: 'письмо', es: 'carta', pt: 'carta', de: 'Brief', zh: '信', hi: 'चिट्ठी', fr: 'lettre', it: 'lettera', ja: '手紙', ko: '편지', ar: 'رسالة', cat: 'concepts' },
+  { en: 'price', ru: 'цена', es: 'precio', pt: 'preço', de: 'Preis', zh: '价格', hi: 'दाम', fr: 'prix', it: 'prezzo', ja: '値段', ko: '가격', ar: 'سعر', cat: 'concepts' },
 
   // ── Числа ──
   { en: 'one',    ru: 'один',       es: 'uno',      pt: 'um',       de: 'eins',    zh: '一',    hi: 'एक', fr: 'un', it: 'uno', ja: '一', ko: '하나', ar: 'واحد', cat: 'numbers' },
@@ -78,6 +88,12 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'family', ru: 'семья',      es: 'familia',  pt: 'família',  de: 'Familie', zh: '家庭',  hi: 'परिवार', fr: 'famille', it: 'famiglia', ja: '家族', ko: '가족', ar: 'عائلة', cat: 'people' },
   { en: 'uncle', ru: 'дядя', es: 'tío', pt: 'tio', de: 'Onkel', zh: '叔叔', hi: 'चाचा', fr: 'oncle', it: 'zio', ja: 'おじ', ko: '삼촌', ar: 'عم', cat: 'people' },
   { en: 'aunt', ru: 'тётя', es: 'tía', pt: 'tia', de: 'Tante', zh: '阿姨', hi: 'चाची', fr: 'tante', it: 'zia', ja: 'おば', ko: '이모', ar: 'عمة', cat: 'people' },
+  { en: 'doctor', ru: 'врач', es: 'médico', pt: 'médico', de: 'Arzt', zh: '医生', hi: 'डॉक्टर', fr: 'médecin', it: 'medico', ja: '医者', ko: '의사', ar: 'طبيب', cat: 'people' },
+  { en: 'teacher', ru: 'учитель', es: 'maestro', pt: 'professor', de: 'Lehrer', zh: '老师', hi: 'शिक्षक', fr: 'professeur', it: 'insegnante', ja: '先生', ko: '선생님', ar: 'معلم', cat: 'people' },
+  { en: 'driver', ru: 'водитель', es: 'conductor', pt: 'motorista', de: 'Fahrer', zh: '司机', hi: 'चालक', fr: 'chauffeur', it: 'autista', ja: '運転手', ko: '운전사', ar: 'سائق', cat: 'people' },
+  { en: 'cook', ru: 'повар', es: 'cocinero', pt: 'cozinheiro', de: 'Koch', zh: '厨师', hi: 'रसोइया', fr: 'cuisinier', it: 'cuoco', ja: '料理人', ko: '요리사', ar: 'طباخ', cat: 'people' },
+  { en: 'farmer', ru: 'фермер', es: 'granjero', pt: 'agricultor', de: 'Bauer', zh: '农民', hi: 'किसान', fr: 'fermier', it: 'contadino', ja: '農家', ko: '농부', ar: 'مزارع', cat: 'people' },
+  { en: 'neighbour', ru: 'сосед', es: 'vecino', pt: 'vizinho', de: 'Nachbar', zh: '邻居', hi: 'पड़ोसी', fr: 'voisin', it: 'vicino di casa', ja: '隣人', ko: '이웃', ar: 'جار', cat: 'people' },
 
   // ── Тело ──
   { en: 'head',   ru: 'голова',     es: 'cabeza',   pt: 'cabeça',   de: 'Kopf',    zh: '头',    hi: 'सिर', fr: 'tête', it: 'testa', ja: '頭', ko: '머리', ar: 'رأس', cat: 'body' },
@@ -94,6 +110,12 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'foot',   ru: 'ступня',     es: 'pie',      pt: 'pé',       de: 'Fuß',     zh: '脚',    hi: 'पैर', fr: 'pied', it: 'piede', ja: '足', ko: '발', ar: 'قدم', cat: 'body' },
   { en: 'heart',  ru: 'сердце',     es: 'corazón',  pt: 'coração',  de: 'Herz',    zh: '心',    hi: 'दिल', fr: 'cœur', it: 'cuore', ja: '心臓', ko: '심장', ar: 'قلب', cat: 'body' },
   { en: 'blood',  ru: 'кровь',      es: 'sangre',   pt: 'sangue',   de: 'Blut',    zh: '血',    hi: 'खून', fr: 'sang', it: 'sangue', ja: '血', ko: '피', ar: 'دم', cat: 'body' },
+  { en: 'back', ru: 'спина', es: 'espalda', pt: 'costas', de: 'Rücken', zh: '背', hi: 'पीठ', fr: 'dos', it: 'schiena', ja: '背中', ko: '등', ar: 'ظهر', cat: 'body' },
+  { en: 'neck', ru: 'шея', es: 'cuello', pt: 'pescoço', de: 'Hals', zh: '脖子', hi: 'गर्दन', fr: 'cou', it: 'collo', ja: '首', ko: '목', ar: 'رقبة', cat: 'body' },
+  { en: 'knee', ru: 'колено', es: 'rodilla', pt: 'joelho', de: 'Knie', zh: '膝盖', hi: 'घुटना', fr: 'genou', it: 'ginocchio', ja: '膝', ko: '무릎', ar: 'ركبة', cat: 'body' },
+  { en: 'skin', ru: 'кожа', es: 'piel', pt: 'pele', de: 'Haut', zh: '皮肤', hi: 'त्वचा', fr: 'peau', it: 'pelle', ja: '皮膚', ko: '피부', ar: 'جلد', cat: 'body' },
+  { en: 'bone', ru: 'кость', es: 'hueso', pt: 'osso', de: 'Knochen', zh: '骨头', hi: 'हड्डी', fr: 'os', it: 'osso', ja: '骨', ko: '뼈', ar: 'عظم', cat: 'body' },
+  { en: 'shoulder', ru: 'плечо', es: 'hombro', pt: 'ombro', de: 'Schulter', zh: '肩', hi: 'कंधा', fr: 'épaule', it: 'spalla', ja: '肩', ko: '어깨', ar: 'كتف', cat: 'body' },
 
   // ── Еда / напитки ──
   { en: 'food',   ru: 'еда',        es: 'comida',   pt: 'comida',   de: 'Essen',   zh: '食物',  hi: 'भोजन', fr: 'nourriture', it: 'cibo', ja: '食べ物', ko: '음식', ar: 'طعام', cat: 'food' },
@@ -114,6 +136,12 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'coffee', ru: 'кофе',       es: 'café',     pt: 'café',     de: 'Kaffee',  zh: '咖啡',  hi: 'कॉफ़ी', fr: 'café', it: 'caffè', ja: 'コーヒー', ko: '커피', ar: 'قهوة', cat: 'food' },
   { en: 'wine',   ru: 'вино',       es: 'vino',     pt: 'vinho',    de: 'Wein',    zh: '葡萄酒',hi: 'शराब', fr: 'vin', it: 'vino', ja: 'ワイン', ko: '와인', ar: 'نبيذ', cat: 'food' },
   { en: 'grape', ru: 'виноград', es: 'uva', pt: 'uva', de: 'Traube', zh: '葡萄', hi: 'अंगूर', fr: 'raisin', it: 'uva', ja: 'ぶどう', ko: '포도', ar: 'عنب', cat: 'food' },
+  { en: 'butter', ru: 'сливочное масло', es: 'mantequilla', pt: 'manteiga', de: 'Butter', zh: '黄油', hi: 'मक्खन', fr: 'beurre', it: 'burro', ja: 'バター', ko: '버터', ar: 'زبدة', cat: 'food' },
+  { en: 'honey', ru: 'мёд', es: 'miel', pt: 'mel', de: 'Honig', zh: '蜂蜜', hi: 'शहद', fr: 'miel', it: 'miele', ja: '蜂蜜', ko: '꿀', ar: 'عسل', cat: 'food' },
+  { en: 'potato', ru: 'картофель', es: 'patata', pt: 'batata', de: 'Kartoffel', zh: '土豆', hi: 'आलू', fr: 'pomme de terre', it: 'patata', ja: 'じゃがいも', ko: '감자', ar: 'بطاطس', cat: 'food' },
+  { en: 'onion', ru: 'лук', es: 'cebolla', pt: 'cebola', de: 'Zwiebel', zh: '洋葱', hi: 'प्याज़', fr: 'oignon', it: 'cipolla', ja: '玉ねぎ', ko: '양파', ar: 'بصل', cat: 'food' },
+  { en: 'cake', ru: 'торт', es: 'pastel', pt: 'bolo', de: 'Kuchen', zh: '蛋糕', hi: 'केक', fr: 'gâteau', it: 'torta', ja: 'ケーキ', ko: '케이크', ar: 'كعكة', cat: 'food' },
+  { en: 'juice', ru: 'сок', es: 'zumo', pt: 'suco', de: 'Saft', zh: '果汁', hi: 'रस', fr: 'jus', it: 'succo', ja: 'ジュース', ko: '주스', ar: 'عصير', cat: 'food' },
 
   // ── Животные ──
   { en: 'dog',    ru: 'собака',     es: 'perro',    pt: 'cachorro', de: 'Hund',    zh: '狗',    hi: 'कुत्ता', fr: 'chien', it: 'cane', ja: '犬', ko: '개', ar: 'كلب', cat: 'animals' },
@@ -131,6 +159,10 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'lion',   ru: 'лев',        es: 'león',     pt: 'leão',     de: 'Löwe',    zh: '狮子',  hi: 'शेर', fr: 'lion', it: 'leone', ja: 'ライオン', ko: '사자', ar: 'أسد', cat: 'animals' },
   { en: 'snake',  ru: 'змея',       es: 'serpiente',pt: 'cobra',    de: 'Schlange',zh: '蛇',    hi: 'साँप', fr: 'serpent', it: 'serpente', ja: '蛇', ko: '뱀', ar: 'ثعبان', cat: 'animals' },
   { en: 'bee', ru: 'пчела', es: 'abeja', pt: 'abelha', de: 'Biene', zh: '蜜蜂', hi: 'मधुमक्खी', fr: 'abeille', it: 'ape', ja: 'ハチ', ko: '벌', ar: 'نحلة', cat: 'animals' },
+  { en: 'duck', ru: 'утка', es: 'pato', pt: 'pato', de: 'Ente', zh: '鸭子', hi: 'बत्तख', fr: 'canard', it: 'anatra', ja: 'アヒル', ko: '오리', ar: 'بطة', cat: 'animals' },
+  { en: 'goat', ru: 'коза', es: 'cabra', pt: 'cabra', de: 'Ziege', zh: '山羊', hi: 'बकरी', fr: 'chèvre', it: 'capra', ja: 'ヤギ', ko: '염소', ar: 'ماعز', cat: 'animals' },
+  { en: 'wolf', ru: 'волк', es: 'lobo', pt: 'lobo', de: 'Wolf', zh: '狼', hi: 'भेड़िया', fr: 'loup', it: 'lupo', ja: 'オオカミ', ko: '늑대', ar: 'ذئب', cat: 'animals' },
+  { en: 'frog', ru: 'лягушка', es: 'rana', pt: 'sapo', de: 'Frosch', zh: '青蛙', hi: 'मेंढक', fr: 'grenouille', it: 'rana', ja: 'カエル', ko: '개구리', ar: 'ضفدع', cat: 'animals' },
 
   // ── Природа ──
   { en: 'sun',    ru: 'солнце',     es: 'sol',      pt: 'sol',      de: 'Sonne',   zh: '太阳',  hi: 'सूरज', fr: 'soleil', it: 'sole', ja: '太陽', ko: '태양', ar: 'شمس', cat: 'nature' },
@@ -151,6 +183,14 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'stone',  ru: 'камень',     es: 'piedra',   pt: 'pedra',    de: 'Stein',   zh: '石头',  hi: 'पत्थर', fr: 'pierre', it: 'pietra', ja: '石', ko: '돌', ar: 'حجر', cat: 'nature' },
   { en: 'south', ru: 'юг', es: 'sur', pt: 'sul', de: 'Süden', zh: '南', hi: 'दक्षिण', fr: 'sud', it: 'sud', ja: '南', ko: '남쪽', ar: 'جنوب', cat: 'nature' },
   { en: 'east', ru: 'восток', es: 'este', pt: 'leste', de: 'Osten', zh: '东', hi: 'पूर्व', fr: 'est', it: 'est', ja: '東', ko: '동쪽', ar: 'شرق', cat: 'nature' },
+  { en: 'island', ru: 'остров', es: 'isla', pt: 'ilha', de: 'Insel', zh: '岛', hi: 'द्वीप', fr: 'île', it: 'isola', ja: '島', ko: '섬', ar: 'جزيرة', cat: 'nature' },
+  { en: 'lake', ru: 'озеро', es: 'lago', pt: 'lago', de: 'See', zh: '湖', hi: 'झील', fr: 'lac', it: 'lago', ja: '湖', ko: '호수', ar: 'بحيرة', cat: 'nature' },
+  { en: 'sand', ru: 'песок', es: 'arena', pt: 'areia', de: 'Sand', zh: '沙子', hi: 'रेत', fr: 'sable', it: 'sabbia', ja: '砂', ko: '모래', ar: 'رمل', cat: 'nature' },
+  { en: 'leaf', ru: 'лист', es: 'hoja', pt: 'folha', de: 'Blatt', zh: '叶子', hi: 'पत्ता', fr: 'feuille', it: 'foglia', ja: '葉', ko: '잎', ar: 'ورقة', cat: 'nature' },
+  { en: 'root', ru: 'корень', es: 'raíz', pt: 'raiz', de: 'Wurzel', zh: '根', hi: 'जड़', fr: 'racine', it: 'radice', ja: '根', ko: '뿌리', ar: 'جذر', cat: 'nature' },
+  { en: 'ice', ru: 'лёд', es: 'hielo', pt: 'gelo', de: 'Eis', zh: '冰', hi: 'हिम', fr: 'glace', it: 'ghiaccio', ja: '氷', ko: '얼음', ar: 'جليد', cat: 'nature' },
+  { en: 'fog', ru: 'туман', es: 'niebla', pt: 'nevoeiro', de: 'Nebel', zh: '雾', hi: 'कोहरा', fr: 'brouillard', it: 'nebbia', ja: '霧', ko: '안개', ar: 'ضباب', cat: 'nature' },
+  { en: 'storm', ru: 'буря', es: 'tormenta', pt: 'tempestade', de: 'Sturm', zh: '风暴', hi: 'तूफ़ान', fr: 'tempête', it: 'tempesta', ja: '嵐', ko: '폭풍', ar: 'عاصفة', cat: 'nature' },
 
   // ── Цвета ──
   { en: 'red',    ru: 'красный',    es: 'rojo',     pt: 'vermelho', de: 'rot',     zh: '红色',  hi: 'लाल', fr: 'rouge', it: 'rosso', ja: '赤', ko: '빨강', ar: 'أحمر', cat: 'colors' },
@@ -176,6 +216,15 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'bag',    ru: 'сумка',      es: 'bolsa',    pt: 'bolsa',    de: 'Tasche',  zh: '包',    hi: 'थैला', fr: 'sac', it: 'borsa', ja: 'かばん', ko: '가방', ar: 'حقيبة', cat: 'home' },
   { en: 'car',    ru: 'машина',     es: 'coche',    pt: 'carro',    de: 'Auto',    zh: '汽车',  hi: 'गाड़ी', fr: 'voiture', it: 'macchina', ja: '車', ko: '자동차', ar: 'سيارة', cat: 'home' },
   { en: 'bus', ru: 'автобус', es: 'autobús', pt: 'ônibus', de: 'Bus', zh: '公交车', hi: 'बस', fr: 'bus', it: 'bus', ja: 'バス', ko: '버스', ar: 'حافلة', cat: 'home' },
+  { en: 'floor', ru: 'пол', es: 'suelo', pt: 'chão', de: 'Boden', zh: '地板', hi: 'फ़र्श', fr: 'sol', it: 'pavimento', ja: '床', ko: '바닥', ar: 'أرضية', cat: 'home' },
+  { en: 'roof', ru: 'крыша', es: 'techo', pt: 'telhado', de: 'Dach', zh: '屋顶', hi: 'छत', fr: 'toit', it: 'tetto', ja: '屋根', ko: '지붕', ar: 'سقف', cat: 'home' },
+  { en: 'stairs', ru: 'лестница', es: 'escalera', pt: 'escada', de: 'Treppe', zh: '楼梯', hi: 'सीढ़ी', fr: 'escalier', it: 'scala', ja: '階段', ko: '계단', ar: 'درج', cat: 'home' },
+  { en: 'garden', ru: 'сад', es: 'jardín', pt: 'jardim', de: 'Garten', zh: '花园', hi: 'बग़ीचा', fr: 'jardin', it: 'giardino', ja: '庭', ko: '정원', ar: 'بستان', cat: 'home' },
+  { en: 'kitchen', ru: 'кухня', es: 'cocina', pt: 'cozinha', de: 'Küche', zh: '厨房', hi: 'रसोई', fr: 'cuisine', it: 'cucina', ja: '台所', ko: '부엌', ar: 'مطبخ', cat: 'home' },
+  { en: 'mirror', ru: 'зеркало', es: 'espejo', pt: 'espelho', de: 'Spiegel', zh: '镜子', hi: 'आईना', fr: 'miroir', it: 'specchio', ja: '鏡', ko: '거울', ar: 'مرآة', cat: 'home' },
+  { en: 'lamp', ru: 'лампа', es: 'lámpara', pt: 'lâmpada', de: 'Lampe', zh: '灯', hi: 'दीपक', fr: 'lampe', it: 'lampada', ja: 'ランプ', ko: '램프', ar: 'مصباح', cat: 'home' },
+  { en: 'towel', ru: 'полотенце', es: 'toalla', pt: 'toalha', de: 'Handtuch', zh: '毛巾', hi: 'तौलिया', fr: 'serviette', it: 'asciugamano', ja: 'タオル', ko: '수건', ar: 'منشفة', cat: 'home' },
+  { en: 'soap', ru: 'мыло', es: 'jabón', pt: 'sabão', de: 'Seife', zh: '肥皂', hi: 'साबुन', fr: 'savon', it: 'sapone', ja: '石鹸', ko: '비누', ar: 'صابون', cat: 'home' },
 
   // ── Места ──
   { en: 'city',   ru: 'город',      es: 'ciudad',   pt: 'cidade',   de: 'Stadt',   zh: '城市',  hi: 'शहर', fr: 'ville', it: 'città', ja: '都市', ko: '도시', ar: 'مدينة', cat: 'places' },
@@ -191,6 +240,11 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'station',ru: 'вокзал',     es: 'estación', pt: 'estação',  de: 'Bahnhof', zh: '车站',  hi: 'स्टेशन', fr: 'gare', it: 'stazione', ja: '駅', ko: '역', ar: 'محطة', cat: 'places' },
   { en: 'airport',ru: 'аэропорт',   es: 'aeropuerto',pt:'aeroporto',de: 'Flughafen',zh:'机场',  hi: 'हवाई अड्डा', fr: 'aéroport', it: 'aeroporto', ja: '空港', ko: '공항', ar: 'مطار', cat: 'places' },
   { en: 'office', ru: 'офис',       es: 'oficina',  pt: 'escritório',de:'Büro',    zh: '办公室',hi: 'दफ़्तर', fr: 'bureau', it: 'ufficio', ja: '事務所', ko: '사무실', ar: 'مكتب', cat: 'places' },
+  { en: 'library', ru: 'библиотека', es: 'biblioteca', pt: 'biblioteca', de: 'Bibliothek', zh: '图书馆', hi: 'पुस्तकालय', fr: 'bibliothèque', it: 'biblioteca', ja: '図書館', ko: '도서관', ar: 'مكتبة', cat: 'places' },
+  { en: 'museum', ru: 'музей', es: 'museo', pt: 'museu', de: 'Museum', zh: '博物馆', hi: 'संग्रहालय', fr: 'musée', it: 'museo', ja: '博物館', ko: '박물관', ar: 'متحف', cat: 'places' },
+  { en: 'beach', ru: 'пляж', es: 'playa', pt: 'praia', de: 'Strand', zh: '海滩', hi: 'समुद्रतट', fr: 'plage', it: 'spiaggia', ja: '浜', ko: '해변', ar: 'شاطئ', cat: 'places' },
+  { en: 'bridge', ru: 'мост', es: 'puente', pt: 'ponte', de: 'Brücke', zh: '桥', hi: 'पुल', fr: 'pont', it: 'ponte', ja: '橋', ko: '교량', ar: 'جسر', cat: 'places' },
+  { en: 'farm', ru: 'ферма', es: 'granja', pt: 'fazenda', de: 'Bauernhof', zh: '农场', hi: 'खेत', fr: 'ferme', it: 'fattoria', ja: '農場', ko: '농장', ar: 'مزرعة', cat: 'places' },
 
   // ── Время ──
   { en: 'day',    ru: 'день',       es: 'día',      pt: 'dia',      de: 'Tag',     zh: '天',    hi: 'दिन', fr: 'jour', it: 'giorno', ja: '日', ko: '날', ar: 'يوم', cat: 'time' },
@@ -202,6 +256,11 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'year',   ru: 'год',        es: 'año',      pt: 'ano',      de: 'Jahr',    zh: '年',    hi: 'साल', fr: 'année', it: 'anno', ja: '年', ko: '년', ar: 'سنة', cat: 'time' },
   { en: 'hour',   ru: 'час',        es: 'hora',     pt: 'hora',     de: 'Stunde',  zh: '小时',  hi: 'घंटा', fr: 'heure', it: 'ora', ja: '一時間', ko: '한 시간', ar: 'ساعة', cat: 'time' },
   { en: 'minute', ru: 'минута',     es: 'minuto',   pt: 'minuto',   de: 'Minute',  zh: '分钟',  hi: 'मिनट', fr: 'minute', it: 'minuto', ja: '分', ko: '분', ar: 'دقيقة', cat: 'time' },
+  { en: 'second', ru: 'секунда', es: 'segundo', pt: 'segundo', de: 'Sekunde', zh: '秒', hi: 'सेकंड', fr: 'seconde', it: 'secondo', ja: '秒', ko: '초', ar: 'ثانية', cat: 'time' },
+  { en: 'spring', ru: 'весна', es: 'primavera', pt: 'primavera', de: 'Frühling', zh: '春天', hi: 'वसंत', fr: 'printemps', it: 'primavera', ja: '春', ko: '봄', ar: 'ربيع', cat: 'time' },
+  { en: 'summer', ru: 'лето', es: 'verano', pt: 'verão', de: 'Sommer', zh: '夏天', hi: 'गर्मी', fr: 'été', it: 'estate', ja: '夏', ko: '여름', ar: 'صيف', cat: 'time' },
+  { en: 'autumn', ru: 'осень', es: 'otoño', pt: 'outono', de: 'Herbst', zh: '秋天', hi: 'शरद', fr: 'automne', it: 'autunno', ja: '秋', ko: '가을', ar: 'خريف', cat: 'time' },
+  { en: 'winter', ru: 'зима', es: 'invierno', pt: 'inverno', de: 'Winter', zh: '冬天', hi: 'सर्दी', fr: 'hiver', it: 'inverno', ja: '冬', ko: '겨울', ar: 'شتاء', cat: 'time' },
 
   // ── Глаголы (словарная форма) ──
   { en: 'to go',  ru: 'идти',       es: 'ir',       pt: 'ir',       de: 'gehen',   zh: '去',    hi: 'जाना', fr: 'aller', it: 'andare', ja: '行く', ko: '가다', ar: 'ذهب', cat: 'verbs' },
@@ -221,6 +280,20 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'to live',ru: 'жить',       es: 'vivir',    pt: 'viver',    de: 'leben',   zh: '住',    hi: 'रहना', fr: 'vivre', it: 'vivere', ja: '住む', ko: '살다', ar: 'عاش', cat: 'verbs' },
   { en: 'to buy', ru: 'покупать',   es: 'comprar',  pt: 'comprar',  de: 'kaufen',  zh: '买',    hi: 'खरीदना', fr: 'acheter', it: 'comprare', ja: '買う', ko: '사다', ar: 'اشترى', cat: 'verbs' },
   { en: 'to open',ru: 'открывать',  es: 'abrir',    pt: 'abrir',    de: 'öffnen',  zh: '开',    hi: 'खोलना', fr: 'ouvrir', it: 'aprire', ja: '開ける', ko: '열다', ar: 'فتح', cat: 'verbs' },
+  { en: 'to run', ru: 'бежать', es: 'correr', pt: 'correr', de: 'laufen', zh: '跑', hi: 'दौड़ना', fr: 'courir', it: 'correre', ja: '走る', ko: '달리다', ar: 'ركض', cat: 'verbs' },
+  { en: 'to sit', ru: 'сидеть', es: 'sentarse', pt: 'sentar', de: 'sitzen', zh: '坐', hi: 'बैठना', fr: 'asseoir', it: 'sedere', ja: '座る', ko: '앉다', ar: 'جلس', cat: 'verbs' },
+  { en: 'to stand', ru: 'стоять', es: 'estar de pie', pt: 'ficar de pé', de: 'stehen', zh: '站', hi: 'खड़ा होना', fr: 'se tenir', it: 'stare in piedi', ja: '立つ', ko: '서다', ar: 'وقف', cat: 'verbs' },
+  { en: 'to play', ru: 'играть', es: 'jugar', pt: 'jogar', de: 'spielen', zh: '玩儿', hi: 'खेलना', fr: 'jouer', it: 'giocare', ja: '遊ぶ', ko: '놀다', ar: 'لعب', cat: 'verbs' },
+  { en: 'to sing', ru: 'петь', es: 'cantar', pt: 'cantar', de: 'singen', zh: '唱', hi: 'गाना', fr: 'chanter', it: 'cantare', ja: '歌う', ko: '노래하다', ar: 'غنى', cat: 'verbs' },
+  { en: 'to wash', ru: 'мыть', es: 'lavar', pt: 'lavar', de: 'waschen', zh: '洗', hi: 'धोना', fr: 'laver', it: 'lavare', ja: '洗う', ko: '씻다', ar: 'غسل', cat: 'verbs' },
+  { en: 'to help', ru: 'помогать', es: 'ayudar', pt: 'ajudar', de: 'helfen', zh: '帮助', hi: 'मदद करना', fr: 'aider', it: 'aiutare', ja: '助ける', ko: '돕다', ar: 'ساعد', cat: 'verbs' },
+  { en: 'to wait', ru: 'ждать', es: 'esperar', pt: 'esperar', de: 'warten', zh: '等', hi: 'इंतज़ार करना', fr: 'attendre', it: 'aspettare', ja: '待つ', ko: '기다리다', ar: 'انتظر', cat: 'verbs' },
+  { en: 'to find', ru: 'находить', es: 'encontrar', pt: 'encontrar', de: 'finden', zh: '找到', hi: 'ढूँढ़ना', fr: 'trouver', it: 'trovare', ja: '見つける', ko: '찾다', ar: 'وجد', cat: 'verbs' },
+  { en: 'to close', ru: 'закрывать', es: 'cerrar', pt: 'fechar', de: 'schließen', zh: '关', hi: 'बंद करना', fr: 'fermer', it: 'chiudere', ja: '閉める', ko: '닫다', ar: 'أغلق', cat: 'verbs' },
+  { en: 'to ask', ru: 'спрашивать', es: 'preguntar', pt: 'perguntar', de: 'fragen', zh: '问', hi: 'पूछना', fr: 'demander', it: 'chiedere', ja: '聞く', ko: '묻다', ar: 'سأل', cat: 'verbs' },
+  { en: 'to learn', ru: 'учиться', es: 'aprender', pt: 'aprender', de: 'lernen', zh: '学', hi: 'सीखना', fr: 'apprendre', it: 'imparare', ja: '学ぶ', ko: '배우다', ar: 'تعلم', cat: 'verbs' },
+  { en: 'to remember', ru: 'помнить', es: 'recordar', pt: 'lembrar', de: 'erinnern', zh: '记得', hi: 'याद रखना', fr: 'se souvenir', it: 'ricordare', ja: '覚える', ko: '기억하다', ar: 'تذكر', cat: 'verbs' },
+  { en: 'to forget', ru: 'забывать', es: 'olvidar', pt: 'esquecer', de: 'vergessen', zh: '忘记', hi: 'भूलना', fr: 'oublier', it: 'dimenticare', ja: '忘れる', ko: '잊다', ar: 'نسي', cat: 'verbs' },
 
   // ── Прилагательные (цвета — выше) ──
   { en: 'big',    ru: 'большой',    es: 'grande',   pt: 'grande',   de: 'groß',    zh: '大',    hi: 'बड़ा', fr: 'grand', it: 'grande', ja: '大きい', ko: '크다', ar: 'كبير', cat: 'adjectives' },
@@ -240,9 +313,23 @@ export const TRANSLATION_VOCAB: Record<string, string>[] = [
   { en: 'beautiful',ru:'красивый',  es: 'hermoso',  pt: 'bonito',   de: 'schön',   zh: '美丽',  hi: 'सुंदर', fr: 'beau', it: 'bello', ja: '美しい', ko: '아름답다', ar: 'جميل', cat: 'adjectives' },
   { en: 'happy',  ru: 'счастливый', es: 'feliz',    pt: 'feliz',    de: 'glücklich',zh: '快乐', hi: 'खुश', fr: 'heureux', it: 'felice', ja: '幸せ', ko: '행복하다', ar: 'سعيد', cat: 'adjectives' },
   { en: 'easy',   ru: 'лёгкий',     es: 'fácil',    pt: 'fácil',    de: 'leicht',  zh: '容易',  hi: 'आसान', fr: 'facile', it: 'facile', ja: '簡単', ko: '쉽다', ar: 'سهل', cat: 'adjectives' },
-  { en: 'difficult',ru:'трудный',   es: 'difícil',  pt: 'difícil',  de: 'schwer',  zh: '难',    hi: 'मुश्किल', fr: 'difficile', it: 'difficile', ja: '難しい', ko: '어렵다', ar: 'صعب', cat: 'adjectives' },
+  { en: 'difficult',ru:'трудный',   es: 'difícil',  pt: 'difícil',  de: 'schwierig',  zh: '难',    hi: 'मुश्किल', fr: 'difficile', it: 'difficile', ja: '難しい', ko: '어렵다', ar: 'صعب', cat: 'adjectives' },
   { en: 'clean',  ru: 'чистый',     es: 'limpio',   pt: 'limpo',    de: 'sauber',  zh: '干净',  hi: 'साफ़', fr: 'propre', it: 'pulito', ja: 'きれい', ko: '깨끗하다', ar: 'نظيف', cat: 'adjectives' },
   { en: 'expensive',ru:'дорогой',   es: 'caro',     pt: 'caro',     de: 'teuer',   zh: '贵',    hi: 'महँगा', fr: 'cher', it: 'caro', ja: '高価', ko: '비싸다', ar: 'غالي', cat: 'adjectives' },
+  { en: 'heavy', ru: 'тяжёлый', es: 'pesado', pt: 'pesado', de: 'schwer', zh: '重', hi: 'भारी', fr: 'lourd', it: 'pesante', ja: '重い', ko: '무겁다', ar: 'ثقيل', cat: 'adjectives' },
+  { en: 'wide', ru: 'широкий', es: 'ancho', pt: 'largo', de: 'breit', zh: '宽', hi: 'चौड़ा', fr: 'large', it: 'largo', ja: '広い', ko: '넓다', ar: 'عريض', cat: 'adjectives' },
+  { en: 'narrow', ru: 'узкий', es: 'estrecho', pt: 'estreito', de: 'schmal', zh: '窄', hi: 'सँकरा', fr: 'étroit', it: 'stretto', ja: '狭い', ko: '좁다', ar: 'ضيق', cat: 'adjectives' },
+  { en: 'deep', ru: 'глубокий', es: 'profundo', pt: 'profundo', de: 'tief', zh: '深', hi: 'गहरा', fr: 'profond', it: 'profondo', ja: '深い', ko: '깊다', ar: 'عميق', cat: 'adjectives' },
+  { en: 'soft', ru: 'мягкий', es: 'blando', pt: 'macio', de: 'weich', zh: '软', hi: 'मुलायम', fr: 'doux', it: 'morbido', ja: '柔らかい', ko: '부드럽다', ar: 'ناعم', cat: 'adjectives' },
+  { en: 'sweet', ru: 'сладкий', es: 'dulce', pt: 'doce', de: 'süß', zh: '甜', hi: 'मीठा', fr: 'sucré', it: 'dolce', ja: '甘い', ko: '달다', ar: 'حلو', cat: 'adjectives' },
+  { en: 'dry', ru: 'сухой', es: 'seco', pt: 'seco', de: 'trocken', zh: '干', hi: 'सूखा', fr: 'sec', it: 'asciutto', ja: '乾いた', ko: '마르다', ar: 'جاف', cat: 'adjectives' },
+  { en: 'wet', ru: 'мокрый', es: 'mojado', pt: 'molhado', de: 'nass', zh: '湿', hi: 'गीला', fr: 'mouillé', it: 'bagnato', ja: '濡れた', ko: '젖다', ar: 'مبلل', cat: 'adjectives' },
+  { en: 'full', ru: 'полный', es: 'lleno', pt: 'cheio', de: 'voll', zh: '满', hi: 'भरा', fr: 'plein', it: 'pieno', ja: 'いっぱい', ko: '가득하다', ar: 'ممتلئ', cat: 'adjectives' },
+  { en: 'empty', ru: 'пустой', es: 'vacío', pt: 'vazio', de: 'leer', zh: '空', hi: 'खाली', fr: 'vide', it: 'vuoto', ja: '空っぽ', ko: '비다', ar: 'فارغ', cat: 'adjectives' },
+  { en: 'quiet', ru: 'тихий', es: 'silencioso', pt: 'silencioso', de: 'leise', zh: '安静', hi: 'शांत', fr: 'calme', it: 'silenzioso', ja: '静か', ko: '조용하다', ar: 'هادئ', cat: 'adjectives' },
+  { en: 'loud', ru: 'громкий', es: 'ruidoso', pt: 'barulhento', de: 'laut', zh: '吵', hi: 'ज़ोरदार', fr: 'bruyant', it: 'rumoroso', ja: 'うるさい', ko: '시끄럽다', ar: 'صاخب', cat: 'adjectives' },
+  { en: 'near', ru: 'близкий', es: 'cercano', pt: 'perto', de: 'nah', zh: '近', hi: 'पास', fr: 'proche', it: 'vicino', ja: '近い', ko: '가깝다', ar: 'قريب', cat: 'adjectives' },
+  { en: 'far', ru: 'далёкий', es: 'lejano', pt: 'longe', de: 'fern', zh: '远', hi: 'दूर', fr: 'loin', it: 'lontano', ja: '遠い', ko: '멀다', ar: 'بعيد', cat: 'adjectives' },
 
   // ── Базовые слова / вежливость ──
   { en: 'yes',    ru: 'да',         es: 'sí',       pt: 'sim',      de: 'ja',      zh: '是',    hi: 'हाँ', fr: 'oui', it: 'sì', ja: 'はい', ko: '네', ar: 'نعم', cat: 'basics' },
