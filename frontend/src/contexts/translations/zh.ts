@@ -2503,7 +2503,7 @@ const t: Record<string, string> = {
   "anagramBonusJar": "奖励",
   "goalSheetDays": "{n} 天",
   "goalSheetToday": "今天：{g} 局 · {p} ⭐ · 连续 {s}",
-  "goalSuggest_best_streak": "你的纪录：{n} 天",
+  "goalSuggest_best_streak": "你最长的连续记录：{n} 天",
   "goalSuggest_at_top": "你已坚持 {n} 天",
   "goalSuggest_smaller": "上次是 {n} — 这次先少一点",
   "tabGames": "游戏",
