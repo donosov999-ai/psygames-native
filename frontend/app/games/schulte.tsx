@@ -468,6 +468,17 @@ export default function SchulteGame() {
     setSequence(orderedSequence);
   }, [gridSize, contentMode, script, direction, lettersFirst]);
 
+  /**
+   * Повтор партии в ТОМ ЖЕ режиме, в котором человек играет.
+   *
+   * ⚠️ Отдельной функцией, а не `() => startGame(useLevelRef.current)` прямо в
+   * разметке: компилятор React считает чтение `ref` в пропсах обращением ВО
+   * ВРЕМЯ ОТРИСОВКИ и даёт «Cannot access refs during render» — замер 09.09.2026
+   * показал +4 ошибки линта ровно на этой строке. Здесь ref читается при
+   * нажатии, когда режим уже известен.
+   */
+  const повторитьТемЖе = () => startGame(useLevelRef.current);
+
   const startGame = (useLevel = false) => {
     if (useLevel && !isPreset) {
       // запуск ПО УРОВНЮ: параметры из лесенки (поверх ручного config, gating не трогаем)
@@ -1299,6 +1310,24 @@ export default function SchulteGame() {
       <GameShell
         title={t('schulteTable')}
         onBack={() => goBackOrHome()}
+        /**
+         * Меню паузы (каркас 2.52.2). Стрелка «назад» держит партию и открывает
+         * меню вместо мгновенного выхода — у Шульте это особенно заметно, потому
+         * что здесь идёт секундомер и он теперь останавливается.
+         *
+         * «Заново» повторяет ТОТ ЖЕ режим, в котором человек играет:
+         * `useLevelRef` помнит, пришли по лестнице или свободной партией. Иначе
+         * «Заново» на уровне 12 молча сбрасывало бы на ручные настройки.
+         *
+         * ⚠️ Пункта «Правила» нет: мид-партийной справки у экрана нет —
+         * `GameAbout` живёт на экране настройки, `LevelRuleModal` не подключён.
+         * Мёртвая кнопка хуже отсутствующей.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => повторитьТемЖе() },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
         headerRight={
           <TouchableOpacity
             accessibilityRole="button" accessibilityLabel={t('a11yNewTable')}
@@ -1426,6 +1455,19 @@ export default function SchulteGame() {
          */
         title={t('schulteTable')}
         onBack={() => { leaveSeries(false); goBackOrHome(); }}
+        /**
+         * Меню паузы серии. «Заново» = НОВАЯ СЕРИЯ с первого блока
+         * (`beginSeries`), а не перезапуск текущего: серия — это одна проба из
+         * трёх правил подряд, и половина её сама по себе не результат.
+         *
+         * ⚠️ Перед новой серией текущая закрывается `leaveSeries(false)`, иначе
+         * прежний прогон остался бы открытым и попал в статистику дважды.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => { leaveSeries(false); beginSeries(); } },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
         headerRight={
           <TouchableOpacity
             accessibilityRole="button" accessibilityLabel={t('a11yNewTable')}

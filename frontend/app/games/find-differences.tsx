@@ -492,6 +492,23 @@ export default function FindDifferencesGame() {
       <GameShell
         title={t('findDiff')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        /**
+         * Меню паузы (каркас 2.52.2). Стрелка «назад» больше не выбрасывает из
+         * живой партии одним касанием: она ДЕРЖИТ партию и открывает меню, часы
+         * при этом стоят.
+         *
+         * ⚠️ ПУНКТА «ПРАВИЛА» ЗДЕСЬ НЕТ, И ЭТО ЗАМЕР, А НЕ ЛЕНЬ. Мид-партийной
+         * справки у экрана не существует: `GameAbout` — раскрывающийся блок на
+         * экране НАСТРОЙКИ, из меню паузы его не показать, а `LevelRuleModal`
+         * этот экран не подключает. Пункт, который ничего не открывает, хуже
+         * отсутствующего: человек решит, что подвисло. Появится справка —
+         * добавится и пункт.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame() },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
         /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
         hud={[
           { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalRounds}` },
