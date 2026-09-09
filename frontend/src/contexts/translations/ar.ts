@@ -343,6 +343,7 @@ const t: Record<string, string> = {
   "collectionTitle": "المجموعة",
   "collectionSub": "{have} من {all} · ⭐{earned} إجمالاً",
   "collectionLocked": "يُفتح عند ⭐{n}",
+  "collectionHowToOpen": "{name}: يُفتح عند ⭐{at}، يتبقى {n} ⭐ — النجوم تأتي من الجولات",
   "collectionOpen": "افتح المجموعة",
   "figAcorn": "بلوطة",
   "figPebble": "حصاة",

@@ -343,6 +343,7 @@ const t: Record<string, string> = {
   "collectionTitle": "Collezione",
   "collectionSub": "{have} su {all} · ⭐{earned} in totale",
   "collectionLocked": "Si apre a ⭐{n}",
+  "collectionHowToOpen": "{name}: si apre a ⭐{at}, mancano {n} ⭐ — le stelle arrivano dalle partite",
   "collectionOpen": "Apri la collezione",
   "figAcorn": "Ghianda",
   "figPebble": "Ciottolo",

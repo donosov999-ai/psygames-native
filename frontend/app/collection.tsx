@@ -1,6 +1,6 @@
 /* psygames-collection-screen · VER 1 · 03.09.2026 */
 import React, { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,6 +30,7 @@ export default function CollectionScreen() {
   const { t } = useLanguage();
   const { profile } = useProfile();
   const [заработано, setЗаработано] = useState(0);
+  const [подсказка, setПодсказка] = useState<string | null>(null);
 
   useFocusEffect(useCallback(() => {
     let жив = true;
@@ -72,14 +73,23 @@ export default function CollectionScreen() {
             .replace('{all}', String(FIGURES.length))
             .replace('{earned}', String(заработано))}
         </Text>
+        {/* Тап по закрытой фигурке отвечает словами — «непонятно, что делать дальше,
+            ничего не тапается» (отчёт ccf549e6, 09.09.2026). */}
+        {подсказка ? (
+          <Text testID="collection-hint" style={[styles.sub, { color: colors.primary }]}>{подсказка}</Text>
+        ) : null}
 
         <View style={styles.shelf}>
           {FIGURES.map((f, i) => {
             const собрана = i < сундук.have;
             const имя = t(`fig${f.key}`);
             return (
-              <View
+              <Pressable
                 key={f.key}
+                accessibilityRole="button"
+                onPress={() => setПодсказка(собрана ? null : t('collectionHowToOpen')
+                  .replace('{name}', имя).replace('{at}', String(f.at))
+                  .replace('{n}', String(Math.max(0, f.at - заработано))))}
                 testID={собрана ? 'figure-owned' : 'figure-locked'}
                 accessibilityLabel={собрана ? имя : `${имя} — ${t('collectionLocked').replace('{n}', String(f.at))}`}
                 style={[styles.slot, {
@@ -97,7 +107,7 @@ export default function CollectionScreen() {
                 <Text style={[styles.price, { color: colors.textSecondary }]} numberOfLines={собрана ? 1 : 2}>
                   {собрана ? `⭐${f.at}` : t('collectionLocked').replace('{n}', String(f.at))}
                 </Text>
-              </View>
+              </Pressable>
             );
           })}
         </View>

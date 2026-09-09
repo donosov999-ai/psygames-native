@@ -343,6 +343,7 @@ const t: Record<string, string> = {
   "collectionTitle": "コレクション",
   "collectionSub": "{all} 中 {have} · 累計 ⭐{earned}",
   "collectionLocked": "⭐{n} で解放",
+  "collectionHowToOpen": "{name}：⭐{at}で開く、あと{n}⭐——星はプレイで集まる",
   "collectionOpen": "コレクションを開く",
   "figAcorn": "どんぐり",
   "figPebble": "小石",
