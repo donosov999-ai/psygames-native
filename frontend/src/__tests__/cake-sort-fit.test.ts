@@ -10,7 +10,7 @@
  * больше ширины на среднем радиусе. Мерить по внешней — значит завысить оценку
  * вдвое и нарисовать нечитаемое.
  */
-import { tableLayout, maxCols, sectorWidth, SECTOR_MIN, PLATE_GAP } from '@/src/games/cake-sort/core/layout';
+import { tableLayout, tableFit, maxCols, sectorWidth, cakeRadius, CAKE_FILL, SECTOR_MIN, PLATE_GAP } from '@/src/games/cake-sort/core/layout';
 import { levelCfg, PLATES_MAX } from '@/src/games/cake-sort/core/level';
 import { CIRCLE } from '@/src/games/cake-sort/core/plate';
 
@@ -23,10 +23,65 @@ describe('стол влезает читаемо', () => {
   });
 
   /** Замер из шапки `layout.ts`, проверенный исполнением, а не переписанный. */
-  it('🔴 на 360 точках читаемы ровно пять столбцов, шестой под полом', () => {
-    expect(maxCols(360)).toBe(5);
-    expect(tableLayout(360, 5).sector).toBeGreaterThanOrEqual(SECTOR_MIN);
-    expect(tableLayout(360, 6).sector).toBeLessThan(SECTOR_MIN);
+  it('🔴 на 360 точках читаемы ровно четыре столбца, пятый под полом', () => {
+    expect(maxCols(360)).toBe(4);
+    expect(tableLayout(360, 4).sector).toBeGreaterThanOrEqual(SECTOR_MIN);
+    expect(tableLayout(360, 5).sector).toBeLessThan(SECTOR_MIN);
+  });
+
+  /**
+   * 🔴 МЕРИМ ТОРТ, А НЕ ТАРЕЛКУ — И ЭТО БЫЛ ЖИВОЙ ДЕФЕКТ, А НЕ ПРИДИРКА.
+   *
+   * До 09.09.2026 `sectorWidth` считала по кругу ТАРЕЛКИ, а клин рисовался долей
+   * 0,72 от него: замер завышал нарисованное в 1/0,72 = 1,39 раза, и «пять
+   * читаемых столбцов» на 360 точках означали настоящий клин 10,6 при поле 15.
+   * Проба ловит возврат к тому же: сектор обязан быть посчитан по РАДИУСУ ТОРТА.
+   */
+  it('🔴 ширина сектора считается по кругу торта, а не тарелки', () => {
+    for (const p of [60, 80, 104, 160]) {
+      const r = cakeRadius(p);
+      expect(r).toBeLessThan(p / 2);
+      expect(sectorWidth(p)).toBeCloseTo((Math.PI * (r / 2)) / 3, 5);
+    }
+    // Доля торта не «почти вся тарелка» и не «серединка»: обе крайности — дефекты.
+    expect(CAKE_FILL).toBeGreaterThanOrEqual(0.85);
+    expect(CAKE_FILL).toBeLessThanOrEqual(0.95);
+  });
+
+  /**
+   * 🔴 СТОЛ ОБЯЗАН ВЛЕЗАТЬ В ПОЛЕ, А НЕ ТОЛЬКО В ШИРИНУ.
+   *
+   * Переполнение по высоте не «некрасиво»: нижний ряд тарелок просто не виден, а
+   * поле не прокручивается (см. `touchAction: 'none'` в экране). Гоняем те же
+   * поля, что даёт GameShell на телефоне и на планшете.
+   */
+  it('🔴 подбор стола влезает в поле по высоте на всех уровнях', () => {
+    const поля: [number, number][] = [[344, 380], [344, 440], [374, 520], [398, 560], [504, 700]];
+    const беда: string[] = [];
+    for (const [w, h] of поля) {
+      for (const L of LEVELS) {
+        const п = levelCfg(L).plates;
+        const f = tableFit(w, h, п);
+        const нужно = f.rows * (f.plate + PLATE_GAP) + PLATE_GAP;
+        if (f.cols * f.rows < п) беда.push(`${w}×${h} L${L}: мест ${f.cols * f.rows} на ${п} тарелок`);
+        if (нужно > h + 0.5) беда.push(`${w}×${h} L${L}: стол ${нужно.toFixed(0)} при поле ${h}`);
+      }
+    }
+    expect(беда).toEqual([]);
+  });
+
+  /**
+   * 🔴 ТОРТ ПОСЛЕ ПРАВКИ НЕ МЕЛЬЧЕ, ЧЕМ ДО НЕЁ. Денис 09.09.2026: «тортики должны
+   * быть больше». Проба держит именно это: при той же ширине поля торт обязан
+   * быть КРУПНЕЕ прежнего (доля 0,72 при пяти столбцах на 360) — иначе правка
+   * съедена следующей.
+   */
+  it('🔴 торт крупнее прежнего на всех проверяемых полях', () => {
+    const прежний = 2 * 0.72 * (tableLayout(360, 5).plate / 2 - 3);   // 40,6 точки
+    for (const [w, h, п] of [[344, 440, 20], [360, 480, 12], [398, 560, 5]] as [number, number, number][]) {
+      const f = tableFit(w, h, п);
+      expect(2 * cakeRadius(f.plate)).toBeGreaterThan(прежний);
+    }
   });
 
   it('узкий экран не молчит, а даёт меньше столбцов', () => {
@@ -44,11 +99,17 @@ describe('стол влезает читаемо', () => {
     expect(l.sectorOuter / l.sector).toBeCloseTo(2, 1);
     expect(sectorWidth(l.plate)).toBeCloseTo(l.sector, 5);
     // Клин — шестая часть круга: внешняя дуга равна длине окружности, делённой на круг.
-    expect(l.sectorOuter).toBeCloseTo((2 * Math.PI * l.radius) / CIRCLE, 5);
+    // Круг здесь — ТОРТ, а не тарелка: обе меры клина обязаны быть про один круг.
+    expect(l.sectorOuter).toBeCloseTo((2 * Math.PI * cakeRadius(l.plate)) / CIRCLE, 5);
   });
 
   it('🔴 ни на одном уровне тарелок не больше, чем помещается читаемо', () => {
-    const строк = 4;
+    /*
+     * Рядов пять, а не четыре: столбцов после честного замера клина стало
+     * четыре, и двадцать тарелок ложатся 4×5. Что такой стол ВЛЕЗАЕТ по высоте,
+     * проверяет отдельная проба выше — здесь речь только о числе мест.
+     */
+    const строк = 5;
     const влезает = maxCols(360) * строк;
     expect(PLATES_MAX).toBeLessThanOrEqual(влезает);
     const перебор = LEVELS

@@ -72,12 +72,18 @@ describe('лестница уровней', () => {
   });
 
   it('🔴 тарелок не больше, чем читаемо влезает на экран', () => {
+    /*
+     * Четыре, а не пять: с 09.09.2026 `sectorWidth` меряет круг ТОРТА, а не
+     * тарелки, и пятый столбец на 360 точках честно ушёл под пол читаемости.
+     * Разбор — в шапке `CAKE_FILL`; что стол при этом влезает по высоте,
+     * проверяет `cake-sort-fit`.
+     */
     const колонок = maxCols(360);
-    expect(колонок).toBe(5);
+    expect(колонок).toBe(4);
     expect(tableLayout(360, колонок).sector).toBeGreaterThanOrEqual(SECTOR_MIN);
     const перебор = LEVELS.filter((L) => levelCfg(L).plates > PLATES_MAX).map((L) => `L${L}`);
     expect(перебор).toEqual([]);
-    expect(PLATES_MAX).toBeLessThanOrEqual(колонок * 4);
+    expect(PLATES_MAX).toBeLessThanOrEqual(колонок * 5);
   });
 
   it('🔴 секторов всегда кратно кругу — иначе останется хвост, который не замкнуть', () => {
