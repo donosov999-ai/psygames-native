@@ -127,7 +127,12 @@ const TONE_BY_KEY: Record<string, NonNullable<HudItem['tone']>> = {
   // Достижения — зелёные.
   correct: 'good', hud_correct: 'good',
   // Ошибки — красные, всегда и везде.
-  err: 'bad', errors: 'bad', mistakes: 'bad',
+  // ⚠️ `hud_errors` — та же ошибка под ключом словаря, парная к `hud_correct`
+  // выше. Асимметрия была не решением, а недосмотром: пока такой счётчик стоял
+  // в одной игре, гейт про него не спрашивал. С 09.09.2026 он в четырёх
+  // (языковой раздел), и main покраснел на `hud-tone-canon`. Тон тот же, что у
+  // соседей по строке, — вид на экране не меняется.
+  err: 'bad', errors: 'bad', mistakes: 'bad', hud_errors: 'bad',
   // Награда и рекорд — тёплые: очки, серия, лучший результат.
   score: 'accent', span: 'accent', streak: 'warn', best: 'warn',
 };
