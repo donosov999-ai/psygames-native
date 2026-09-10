@@ -99,6 +99,42 @@ describe('меню паузы есть у каждой игры', () => {
     expect(`кнопок в меню ${n}, не меньше двух: ${n >= 2}`).toBe(`кнопок в меню ${n}, не меньше двух: true`);
   });
 
+  it('🔴 служебные кнопки игры видны в паузе — даже завёрнутые в чужой View', async () => {
+    const { View } = require('react-native');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const GameAuxAction = require('@/src/components/GameAuxAction').default;  // eslint-disable-line @typescript-eslint/no-require-imports
+    // Обёртка нарочно: игры кладут кнопки не прямыми детьми (у судоку — колонка).
+    const пункты = пунктыМеню(await пауза({
+      headerActions: React.createElement(View, null,
+        React.createElement(View, null,
+          React.createElement(GameAuxAction, { icon: 'arrow-undo', label: 'Отменить', onPress: () => {} }),
+          React.createElement(GameAuxAction, { icon: 'bulb', label: 'Подсказка', onPress: () => {} }))),
+    }));
+    expect(пункты).toContain('aux:Отменить');
+    expect(пункты).toContain('aux:Подсказка');
+    // Выход остаётся последним: служебное встаёт ПЕРЕД ним, а не после.
+    expect(пункты[пункты.length - 1]).toBe('home');
+  });
+
+  it('🔴 выключенная кнопка показана серой, а не спрятана', async () => {
+    const GameAuxAction = require('@/src/components/GameAuxAction').default;  // eslint-disable-line @typescript-eslint/no-require-imports
+    // Так «Отменить» выглядит в начале партии: отменять ещё нечего.
+    const r = await пауза({
+      headerActions: React.createElement(GameAuxAction,
+        { icon: 'arrow-undo', label: 'Отменить', disabled: true, onPress: () => {} }),
+    });
+    expect(пунктыМеню(r)).toContain('aux:Отменить');
+    const кнопка = r.root.findAll((n: any) => n.props?.testID === 'pause-action:aux:Отменить')[0];
+    expect(кнопка.props.accessibilityState?.disabled).toBe(true);
+  });
+
+  it('🔴 «СТОП» в паузу не берётся: там это дубль выхода, и опасный', async () => {
+    const GameAuxAction = require('@/src/components/GameAuxAction').default;  // eslint-disable-line @typescript-eslint/no-require-imports
+    const пункты = пунктыМеню(await пауза({
+      headerActions: React.createElement(GameAuxAction, { label: 'СТОП', danger: true, onPress: () => {} }),
+    }));
+    expect(пункты).not.toContain('aux:СТОП');
+  });
+
   it('🔴 кнопка в шапке читается как ПАУЗА, а не как «выйти»', async () => {
     const r = await пауза({});
     const шапка = r.root.findAll((n: any) => n.props?.testID === 'game-back')[0];
