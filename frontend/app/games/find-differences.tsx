@@ -28,6 +28,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { reserveBottom } from '@/src/games/search/layout';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { capPresetByLevel } from '@/src/services/presetCap';
@@ -65,12 +66,57 @@ const ROUNDS_PER_LEVEL = 3;
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 /** Экспортирована для гейта `search-ladder-label`: объявленный потолок сверяется ИСПОЛНЕНИЕМ этой функции. */
-export function levelParams(level: number): { diffCount: number; objectCount: number; roundTimeSec: number; rounds: number } {
+/**
+ * 🔴 ЧЕТВЁРТАЯ ОСЬ: СХОДСТВО СОСЕДЕЙ. Правило Дениса «потолков нет нигде».
+ *
+ * ЗАМЕР 09.09.2026: лестница кончалась на 15 — раньше всех в разделе (зрительный
+ * поиск 31, быстрый счёт 41, слежение 41, маджонг 28, Шульте 18). Три прежние
+ * оси упираются в потолок ещё раньше: отличий 6 с L13, объектов 19 с L15,
+ * время 15 с с L13. Дальше L15 уровень не отличался от L14 НИЧЕМ.
+ *
+ * ЧТО РАСТЁТ ТЕПЕРЬ. Алфавит спрайтов: из скольких разных зверей набирается
+ * сцена. На нижних уровнях их двенадцать, и каждый объект уникален — глаз
+ * находит отличие «по зверю». Выше алфавит СУЖАЕТСЯ, и в сцене появляются
+ * двойники: тот же зверь стоит в двух-трёх местах.
+ *
+ * ⚠️ ЭТО И ЕСТЬ ПРИМАНКА, А НЕ ПРОСТО «ПОМЕЛЬЧЕ». Ошибка здесь рождается не от
+ * того, что отличие мелкое, а от того, что человек сравнивает ЛЕВОГО зверя с
+ * ЕГО ЖЕ двойником справа, а не с самим собой. Ложное «нашёл» приходит на
+ * настоящем, хорошо видном объекте — просто не на том. Дистрактор при этом не
+ * врёт: любое отличие остаётся честно отличимым, если сравнить нужную пару.
+ *
+ * ⚠️ ВРЕМЯ НЕ ТРОГАЮ НАМЕРЕННО. Вечерний слот (`isCalm`) запрещает наказание
+ * временем, и `evening-calm` держит это дословно. Ось сходства работает
+ * одинаково и в спокойном режиме, где таймера нет вовсе.
+ */
+export function levelParams(level: number): { diffCount: number; objectCount: number; roundTimeSec: number; rounds: number; spriteAlphabet: number } {
   const diffCount = Math.min(6, 2 + Math.floor((level - 1) / 3));       // 2,2,2,3,3,3 ... 6
   const objectCount = Math.min(19, 12 + Math.floor((level - 1) / 2));   // 12 → 19
   const roundTimeSec = Math.max(15, 40 - (level - 1) * 2);              // 40с → 15с на раунд
-  return { diffCount, objectCount, roundTimeSec, rounds: ROUNDS_PER_LEVEL };
+  /**
+   * Двенадцать зверей до L15 — там растут прежние оси, и мешать им незачем.
+   * Дальше алфавит сужается по одному через уровень: 12 → 11 → … → 3.
+   * Ниже трёх не опускаемся: при двух сцена превращается в шахматную доску, и
+   * задача перестаёт быть «найди отличие», становясь «пересчитай два вида».
+   */
+  const spriteAlphabet = Math.max(3, Math.min(SPRITE_COUNT, SPRITE_COUNT - Math.floor(Math.max(0, level - 15) / 2)));
+  return { diffCount, objectCount, roundTimeSec, rounds: ROUNDS_PER_LEVEL, spriteAlphabet };
 }
+
+/**
+ * Верх лестницы — СЧИТАЕТСЯ исполнением, а не вписан числом: вписанное разошлось
+ * бы с лестницей при первой же правке молча. Тот же приём, что у соседей по
+ * разделу; его же сверяет гейт `search-ladder-label`.
+ */
+export const FIND_DIFFERENCES_LEVELS: number = (() => {
+  let последний = 1;
+  let прежняя = JSON.stringify(levelParams(1));
+  for (let L = 2; L <= 200; L += 1) {
+    const текущая = JSON.stringify(levelParams(L));
+    if (текущая !== прежняя) { последний = L; прежняя = текущая; }
+  }
+  return последний;
+})();
 
 // Объекты сцены — те же тематические спрайты, что и в «Парных картинках»,
 // набор зависит от активного профиля (см. src/constants/pairThemes.ts).
@@ -112,7 +158,13 @@ function tooClose(a: Shape, b: Shape, padding = 12): boolean {
   return (dx * dx + dy * dy) < (minDist * minDist);
 }
 
-function generateScene(width: number, height: number, count: number): Shape[] {
+/**
+ * @param alphabet сколько РАЗНЫХ зверей участвует. Меньше алфавит → больше
+ *   двойников в сцене → сравнивать приходится нужную пару, а не любую похожую.
+ *   Экспортирована ради гейта: приманки проверяются ИСПОЛНЕНИЕМ сборки сцены,
+ *   а не чтением исходника.
+ */
+export function generateScene(width: number, height: number, count: number, alphabet: number = SPRITE_COUNT): Shape[] {
   // Сеточная раскладка: каждый объект — в своей ячейке сетки + лёгкий джиттер внутри неё.
   // Объект гарантированно остаётся внутри ячейки с зазором ≥6px → НАЛОЖЕНИЯ НЕВОЗМОЖНЫ.
   const cols = Math.max(1, Math.round(Math.sqrt(count * width / Math.max(1, height))));
@@ -131,7 +183,7 @@ function generateScene(width: number, height: number, count: number): Shape[] {
     const ci = cellIdx[n];
     const gr = Math.floor(ci / cols), gc = ci % cols;
     shapes.push({
-      sprite: Math.floor(Math.random() * SPRITE_COUNT),
+      sprite: Math.floor(Math.random() * Math.max(1, Math.min(alphabet, SPRITE_COUNT))),
       x: gc * cw + cw / 2 + rand(-jitter, jitter),
       y: gr * ch + ch / 2 + rand(-jitter, jitter),
       size,
@@ -141,7 +193,15 @@ function generateScene(width: number, height: number, count: number): Shape[] {
   return shapes;
 }
 
-function withDifference(scene: Shape[], diffCount: number): { altered: Shape[]; diffIdx: number[] } {
+/**
+ * @param alphabet тот же алфавит, что у сцены.
+ *
+ * 🔴 ПОДМЕНА ЗВЕРЯ ОБЯЗАНА ОСТАВАТЬСЯ ВНУТРИ АЛФАВИТА. Иначе на верхних уровнях
+ * отличие выдавало бы себя само: в сцене из трёх видов вдруг появляется
+ * четвёртый, и его видно, не сравнивая картинки вовсе. Ось сходства при этом
+ * работала бы наоборот — чем выше уровень, тем ЛЕГЧЕ.
+ */
+export function withDifference(scene: Shape[], diffCount: number, alphabet: number = SPRITE_COUNT): { altered: Shape[]; diffIdx: number[] } {
   const altered = scene.map((s) => ({ ...s }));
   const indices = Array.from({ length: scene.length }, (_, i) => i);
   for (let i = indices.length - 1; i > 0; i--) {
@@ -158,10 +218,14 @@ function withDifference(scene: Shape[], diffCount: number): { altered: Shape[]; 
       if (applied) break;
       if (change === 0) {
         // подмена объекта на ДРУГОГО зверя — самое заметное отличие
-        let sp = altered[i].sprite;
-        do { sp = Math.floor(Math.random() * SPRITE_COUNT); } while (sp === altered[i].sprite);
-        altered[i].sprite = sp;
-        applied = true;
+        const алф = Math.max(1, Math.min(alphabet, SPRITE_COUNT));
+        // При алфавите в один вид менять не на что — тогда пробуем другие способы.
+        if (алф > 1) {
+          let sp = altered[i].sprite;
+          do { sp = Math.floor(Math.random() * алф); } while (sp === altered[i].sprite);
+          altered[i].sprite = sp;
+          applied = true;
+        }
       } else if (change === 1) {
         // изменить размер (если увеличенный не наедет на соседей)
         const candidate = { ...altered[i] };
@@ -224,6 +288,8 @@ export default function FindDifferencesGame() {
   const levelRef = useRef(1);
   const diffCountRef = useRef(3);
   const objectCountRef = useRef(14);
+  /** Сколько РАЗНЫХ зверей в сцене — четвёртая ось (см. `levelParams`). */
+  const alphabetRef = useRef(SPRITE_COUNT);
   const roundTimeRef = useRef(40);
   const roundsRef = useRef(ROUNDS_PER_LEVEL);
   /**
@@ -254,8 +320,8 @@ export default function FindDifferencesGame() {
   useEffect(() => () => clearAllTimers(), []);
 
   const newRound = () => {
-    const sc = generateScene(sceneW, sceneH, objectCountRef.current);
-    const { altered: alt, diffIdx: idx } = withDifference(sc, diffCountRef.current);
+    const sc = generateScene(sceneW, sceneH, objectCountRef.current, alphabetRef.current);
+    const { altered: alt, diffIdx: idx } = withDifference(sc, diffCountRef.current, alphabetRef.current);
     setScene(sc);
     setAltered(alt);
     setDiffIdx(idx);
@@ -316,6 +382,7 @@ export default function FindDifferencesGame() {
       ? capPresetByLevel({ want: num('diffCount', p.diffCount), atLevel: p.diffCount, atTop: false })
       : p.diffCount;
     objectCountRef.current = p.objectCount;
+    alphabetRef.current = p.spriteAlphabet;
     roundTimeRef.current = p.roundTimeSec;
     roundsRef.current = p.rounds;
     setTotalRounds(p.rounds);
@@ -460,7 +527,7 @@ export default function FindDifferencesGame() {
           <Text style={styles.configDesc}>{t('findDiffDesc')}</Text>
         </GradientSurface>
         <GameAbout descriptionKey="findDiffIntroDesc" benefits={FIND_BENEFITS} accent={GRADIENT[0]} />
-        <LevelProgressMap bestLevel={lvl.best} gameId="find_differences" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
+        <LevelProgressMap bestLevel={lvl.best} gameId="find_differences" currentLevel={lvl.level} maxLevel={FIND_DIFFERENCES_LEVELS} onPickLevel={lvl.pick} colors={colors} language={language} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
           <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
             {t('level')} {lvl.level}
@@ -492,6 +559,23 @@ export default function FindDifferencesGame() {
       <GameShell
         title={t('findDiff')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
+        /**
+         * Меню паузы (каркас 2.52.2). Стрелка «назад» больше не выбрасывает из
+         * живой партии одним касанием: она ДЕРЖИТ партию и открывает меню, часы
+         * при этом стоят.
+         *
+         * ⚠️ ПУНКТА «ПРАВИЛА» ЗДЕСЬ НЕТ, И ЭТО ЗАМЕР, А НЕ ЛЕНЬ. Мид-партийной
+         * справки у экрана не существует: `GameAbout` — раскрывающийся блок на
+         * экране НАСТРОЙКИ, из меню паузы его не показать, а `LevelRuleModal`
+         * этот экран не подключает. Пункт, который ничего не открывает, хуже
+         * отсутствующего: человек решит, что подвисло. Появится справка —
+         * добавится и пункт.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame() },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
         /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
         hud={[
           { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalRounds}` },
@@ -576,7 +660,17 @@ const styles = StyleSheet.create({
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
-  fieldCol: { alignItems: 'center', gap: 12 },
+  /**
+   * 🔴 РЕЗЕРВ ПОД НИЖНЮЮ ПОЛОСУ, КОТОРОЙ ЗДЕСЬ НЕТ. Отвечают тапом по полю, и
+   * рисовать полосу нельзя — `slot-meaning` справедливо потребовал бы объявить,
+   * чем игрок отвечает внизу. Но у быстрого счёта раздела полоса ЕСТЬ, и без
+   * резерва поле этой игры разрастается вниз на её высоту: замер 09.09.2026 дал
+   * расхождение центров полей 67 точек на экране 390 и 97 на 360. В «Зарядке»
+   * игры идут вперемешку, и человек видит именно этот скачок.
+   *
+   * Число одно на весь раздел — `reserveBottom` в `src/games/search/layout.ts`.
+   */
+  fieldCol: { alignItems: 'center', gap: 12, marginBottom: reserveBottom(0) },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 12, textAlign: 'center' },
   scenesArea: { gap: 18 },

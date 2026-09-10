@@ -21,7 +21,6 @@
 
 ```
 frontend/app/games/visual-search.tsx
-frontend/app/games/proofreading.tsx
 frontend/app/games/find-differences.tsx
 frontend/app/games/mahjong.tsx
 frontend/app/games/schulte.tsx
@@ -31,8 +30,14 @@ frontend/app/games/search-hub.tsx
 frontend/src/games/mahjong/**
 frontend/src/__tests__/mahjong-*
 frontend/src/__tests__/visual-search-*
-frontend/src/__tests__/proofreading-*
+frontend/src/games/object-tracker/**
 ```
+
+🔴 **`proofreading.tsx` БОЛЬШЕ НЕ ТВОЙ — решение Дениса 07.09.2026: «отдал
+"Словам" целиком», вместе со змейкой-филвордами.** Раздел стал ШЕСТЬЮ играми, а
+не семью. Файл физически держал два режима (`taskMode: 'letters'` — корректура,
+`'fillwords'` — филворды) и числился за двумя чатами сразу; развилку закрыли в
+пользу «Слов». Отчёт «подсказка ни фига не работает» (§4.3) уехал туда же.
 
 **За их пределы не выходишь.** Не трогаешь `src/games/anagrams/`,
 `src/games/goods-sort/`, `src/games/sudoku/`, `src/games/water-sort/`,
@@ -68,7 +73,6 @@ frontend/src/__tests__/proofreading-*
 | экран | что это |
 |---|---|
 | `visual-search` | поиск цели среди отвлекающих |
-| `proofreading` | корректура: найти ошибку в тексте |
 | `find-differences` | найди отличия на двух картинках |
 | `mahjong` | 84 рисованные раскладки, раздача решаемая по построению, лимит перетасовок |
 | `schulte` | таблица Шульте |
@@ -109,10 +113,11 @@ frontend/src/__tests__/proofreading-*
 при потолке 20 с. Перенесено в `beforeAll` координатором 06.09.2026. Если
 будешь добавлять партии — держи потолок файла (`jest.setTimeout(90_000)`).
 
-### 4.3. Отчёт тестировщика, который ждёт
+### 4.3. Отчёт тестировщика — ПЕРЕДАН, не твой
 
 «Подсказка ни фига не работает» — `proofreading`, 05.09.2026, NZT-48.
-Померь, прежде чем чинить: что именно она делает сейчас.
+Уехал в раздел «Слова» вместе с файлом 07.09.2026. Здесь оставлен строкой, чтобы
+следующий заход не пошёл искать его снова.
 
 ---
 
@@ -121,7 +126,7 @@ frontend/src/__tests__/proofreading-*
 ```sql
 select id, created_at::date, person, game_id, message
 from app_feedback
-where game_id in ('visual-search','proofreading','find-differences','mahjong',
+where game_id in ('visual-search','find-differences','mahjong',
                   'schulte','quick-count','object-tracker')
   and status = 'new'
 order by created_at desc;
