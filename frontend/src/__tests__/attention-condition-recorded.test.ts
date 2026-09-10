@@ -46,6 +46,7 @@ import { levelParams as swParams, levelCondition as swCond } from '@/app/games/s
 import { levelParams as wcstParams, levelCondition as wcstCond } from '@/app/games/wcst';
 import { levelParams as choiceParams, levelCondition as choiceCond } from '@/app/games/choice-rt';
 import { levelParams as stroopParams, levelCondition as stroopCond } from '@/app/games/stroop';
+import { levelParams as tgParams, levelCondition as tgCond } from '@/app/games/targets';
 
 const УРОВНИ = Array.from({ length: 15 }, (_, i) => i + 1);
 
@@ -64,6 +65,7 @@ const БАТАРЕЙНЫЕ = [
   { имя: 'wcst',           показатель: 'rule_catch_mean',   норма: 'нет в батарее', параметры: wcstParams, условие: wcstCond },
   { имя: 'choice_rt',      показатель: 'mean_rt',          норма: 'нет в батарее', параметры: choiceParams, условие: choiceCond },
   { имя: 'stroop',         показатель: 'interference_ms',  норма: 'нет в батарее', параметры: stroopParams, условие: stroopCond },
+  { имя: 'targets',        показатель: 'commission_errors', норма: 'нет в батарее', параметры: tgParams,     условие: tgCond },
 ];
 
 /** Поля `levelParams`, которые ДЕЙСТВИТЕЛЬНО меняются по лестнице. Снимается прогоном. */
@@ -80,7 +82,7 @@ function меняющиеся(параметры: (l: number) => Record<string, 
 
 describe('условие, при котором снят показатель батареи, записывается в партию', () => {
   it('есть что проверять — иначе набор зелен вслепую', () => {
-    expect(БАТАРЕЙНЫЕ.length).toBe(6);
+    expect(БАТАРЕЙНЫЕ.length).toBe(7);
     for (const б of БАТАРЕЙНЫЕ) {
       expect(`${б.имя}: меняющихся полей ${меняющиеся(б.параметры).length > 0}`).toBe(`${б.имя}: меняющихся полей true`);
     }

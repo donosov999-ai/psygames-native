@@ -106,8 +106,27 @@ export const FLANKER_GAP_MIN = 4;
 export const flankerRowWidthPx = (gapPx: number) => 4 * 36 + 56 + 4 * gapPx;
 
 export function levelParams(level: number): { trials: number; windowMs: number; pCong: number; pIncong: number; gapPx: number } {
-  const trials = 20;
   const L = Math.max(1, Math.min(15, level));
+  /**
+   * 🔴 ТРЕТЬЯ ОСЬ, 10.09.2026: ОБЪЁМ. Здесь стояло зашитое `trials = 20` — фланкер
+   * был ЕДИНСТВЕННОЙ пробой раздела, у которой объём не рос вовсе.
+   *
+   * ⚠️ И это не «тупое количество ради числа», а починка самой меры. Показатель
+   * `flanker_effect_ms` — РАЗНОСТЬ средних, и половина её (`mean_rt_congruent`)
+   * считается по согласованным пробам, которых при 20 пробах и pCong 0,40 всего
+   * ВОСЕМЬ. Среднее по восьми числам сравнивается с ЖЁСТКОЙ нормой батареи
+   * 70±30 (assessment.ts) — то есть норма проверяется по горстке.
+   * 20 → 26 → 32 даёт 8 → 10,4 → 12,8 согласованных проб.
+   *
+   * 🚫 ПОЧЕМУ НЕ СИЛЬНЕЕ ОСЬ. Всё, что напрашивается у этой парадигмы, попадает
+   * прямо в измеряемую разность:
+   *   · больше фланкеров — эффект РАСТЁТ (набор помех прямо его модулирует);
+   *   · перцептивная нагрузка (посторонние знаки) — по теории нагрузки Лави
+   *     эффект, наоборот, СЖИМАЕТСЯ: помеха обрабатывается хуже;
+   *   · неопределённость позиции цели — рассеивает внимание и тоже двигает эффект.
+   * У пробы с жёсткой нормой цена такой ошибки выше, чем польза от оси.
+   */
+  const trials = L <= 5 ? 20 : L <= 10 ? 26 : 32;
   // Окно оставлено прежним: его монотонность сторожит attention-conflict-ladders.
   const windowMs =
     L <= 5 ? 3000 - (L - 1) * 200 :
@@ -137,9 +156,12 @@ export function levelParams(level: number): { trials: number; windowMs: number; 
  * прогоняет levelParams по уровням и требует, чтобы КАЖДОЕ меняющееся поле сюда
  * попало. Руками список не пишется — разойдётся.
  */
-export function levelCondition(level: number): { windowMs: number; gapPx: number } {
-  const { windowMs, gapPx } = levelParams(level);
-  return { windowMs, gapPx };
+export function levelCondition(level: number): { windowMs: number; gapPx: number; trials: number } {
+  // 10.09.2026 добавлен `trials`: объём стал третьей осью, а показатель этой
+  // пробы сверяется с ЖЁСТКОЙ нормой батареи — по скольким пробам он снят,
+  // обязано ехать вместе с ним.
+  const { windowMs, gapPx, trials } = levelParams(level);
+  return { windowMs, gapPx, trials };
 }
 
 function makeTrial(pCong: number, pIncong: number): Trial {

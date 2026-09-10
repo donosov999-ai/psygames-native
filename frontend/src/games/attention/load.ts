@@ -123,7 +123,9 @@ export function stroopLoad(level: number): number {
 export function flankerLoad(level: number): number {
   const p = flankerParams(level);
   const base = flankerParams(1);
-  return (base.gapPx / p.gapPx) * (base.windowMs / p.windowMs);
+  // 🔴 10.09.2026 третий множитель — объём. Разбор, почему именно он и почему
+  // не более сильная ось, — в шапке levelParams в flanker.tsx.
+  return ((base.gapPx / p.gapPx) * (base.windowMs / p.windowMs)) * (p.trials / base.trials);
 }
 
 /**
@@ -174,7 +176,10 @@ export function cptLoad(level: number): number {
 export function targetsLoad(level: number): number {
   const p = targetsParams(level);
   const base = targetsParams(1).delay;
-  return p.numSquares * (base / p.delay);
+  // 🔴 10.09.2026 третий множитель — разброс фигур. Ось сходства цветов
+  // отвергнута замером: вся задача это сравнение цветов, а запаса
+  // различимости для дальтоников нет. Разбор — в targets.tsx.
+  return (p.numSquares * (base / p.delay)) * (1 + p.jitterPx / 26);
 }
 
 /**
