@@ -2604,6 +2604,8 @@ const t: Record<string, string> = {
   "pauseEasier": "Livello più facile",
   "pauseHarder": "Livello più difficile",
   "pauseFinish": "Termina e salva",
+  "puzzleShowSolution": "Mostra soluzione",
+  "puzzleSecondAction": "Seconda azione",
   "pauseExitGame": "Esci dall’esercizio",
   "pauseSoundOff": "Modalità silenziosa",
   "pauseSoundOn": "Riattiva l’audio",
