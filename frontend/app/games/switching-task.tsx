@@ -104,11 +104,50 @@ const MODES: { key: StimMode; ru: string; en: string }[] = [
  */
 export const SWITCH_PROB = 0.5;
 
-export function levelParams(level: number): { trials: number; switchProb: number; windowMs: number } {
+/**
+ * 🔴 ТРЕТЬЯ ОСЬ, 10.09.2026: ПЛОТНОСТЬ ПОМЕХ ВОКРУГ СТИМУЛА.
+ *
+ * ПОВОД. Замер лестниц раздела: у переключения задач нагрузка росла ×4,0 при
+ * ДВУХ осях — самая бедная лестница из десяти. Расти дальше было нечем.
+ *
+ * ⚠️ ПОЧЕМУ ИМЕННО ЭТА ОСЬ, А НЕ ОЧЕВИДНЫЕ. У этой парадигмы почти всё
+ * модулирует саму измеряемую разность, и потому в оси не годится:
+ *   · интервал подготовки — разобран выше, отвергнут 07.09;
+ *   · предсказуемость чередования (фиксированный цикл AABB вместо случайного) —
+ *     канонная ось Роджерса–Монселла, но предсказуемость позволяет готовиться и
+ *     СНИЖАЕТ стоимость: та же беда с другого конца;
+ *   · третья задача вместо двух — размер набора меняет и общий RT, и асимметрию
+ *     стоимостей между задачами;
+ *   · разная трудность двух задач (близость числа к границе) — асимметричная
+ *     трудность даёт асимметричную стоимость переключения, это известный эффект.
+ *
+ * Помехи свободны от этого: они свойство САМОГО СТИМУЛА, а не перехода между
+ * задачами, и удлиняют пробу одинаково на сменах и повторах — то есть входят в
+ * оба уменьшаемых разности и из неё сокращаются.
+ *
+ * 📌 Валюта не выдумана: «плотность помех» уже ось у мишеней (`numSquares`) и у
+ * фланкера (`gapPx`) в этом же разделе.
+ *
+ * ⚠️ Знаки подобраны НЕ буквами и НЕ цифрами намеренно: буква или цифра рядом
+ * со стимулом «афишировала» бы одну из задач и добавила бы к пробе смысловой
+ * конфликт вместо чистого перцептивного.
+ */
+const DECOY_GLYPHS = ['#', '§', '%', '&', '@', '¤', '¶', '='];
+
+/** Сколько помех влезает по бокам: коробка 360 px, ядро ~120 px, знак ~40 px. */
+const DECOYS_MAX = 4;
+
+export function levelParams(level: number): { trials: number; switchProb: number; windowMs: number; decoys: number } {
   const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
   const switchProb = SWITCH_PROB;
   const windowMs = Math.max(1400, 3400 - (level - 1) * 145);       // 3400мс → 1400мс
-  return { trials, switchProb, windowMs };
+  /**
+   * Границы (4 и 9) намеренно НЕ совпадают с границами объёма (6 и 11): оси
+   * переключаются вразнобой и дают больше различимых ступеней.
+   * L1–L3 без помех: на первых ступенях человек учится самому правилу.
+   */
+  const decoys = level <= 3 ? 0 : level <= 8 ? 2 : DECOYS_MAX;
+  return { trials, switchProb, windowMs, decoys };
 }
 
 /**
@@ -128,9 +167,9 @@ export function levelParams(level: number): { trials: number; switchProb: number
  * прогоняет levelParams по уровням и требует, чтобы КАЖДОЕ меняющееся поле сюда
  * попало. Руками список не пишется — разойдётся.
  */
-export function levelCondition(level: number): { trials: number; windowMs: number } {
-  const { trials, windowMs } = levelParams(level);
-  return { trials, windowMs };
+export function levelCondition(level: number): { trials: number; windowMs: number; decoys: number } {
+  const { trials, windowMs, decoys } = levelParams(level);
+  return { trials, windowMs, decoys };
 }
 
 function midFor(mode: StimMode): number { return mode === 'num3' ? 500 : 50; }
@@ -203,7 +242,7 @@ function modeHint(mode: StimMode, lang: string): string {
   return `${a.cue} → ${a.left}/${a.right}  ·  ${b.cue} → ${b.left}/${b.right}`;
 }
 
-interface Trial { taskIdx: number; num: number; letter: string; full: string; correctLeft: boolean; isSwitch: boolean; }
+interface Trial { taskIdx: number; num: number; letter: string; full: string; correctLeft: boolean; isSwitch: boolean; decoys: string[]; }
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -230,14 +269,21 @@ function judgeLeft(mode: StimMode, idx: number, num: number, letter: string): bo
  * (следующая задача зависит от предыдущей), поэтому предыдущая передаётся явно.
  */
 export function makeTrial(mode: StimMode, level: number, last: number | null): Trial {
-  const { switchProb } = levelParams(level);
+  const { switchProb, decoys: сколькоПомех } = levelParams(level);
   let taskIdx: number;
   if (last === null) taskIdx = Math.random() < 0.5 ? 0 : 1;
   else if (Math.random() < switchProb) taskIdx = last === 0 ? 1 : 0;
   else taskIdx = last;
   const isSwitch = last !== null && last !== taskIdx;
   const { num: n, letter, full } = genStim(mode);
-  return { taskIdx, num: n, letter, full, correctLeft: judgeLeft(mode, taskIdx, n, letter), isSwitch };
+  /**
+   * Помехи рождаются ВМЕСТЕ с пробой, а не в отрисовке: иначе они менялись бы на
+   * каждом кадре, мельтешение читалось бы как движение и добавляло к пробе
+   * совсем другую нагрузку.
+   */
+  const помехи = Array.from({ length: сколькоПомех },
+    () => DECOY_GLYPHS[Math.floor(Math.random() * DECOY_GLYPHS.length)]);
+  return { taskIdx, num: n, letter, full, correctLeft: judgeLeft(mode, taskIdx, n, letter), isSwitch, decoys: помехи };
 }
 
 export default function SwitchingTaskGame() {
@@ -265,7 +311,7 @@ export default function SwitchingTaskGame() {
 
   const [round, setRound] = useState(0);
   const [totalTrials, setTotalTrials] = useState(12);
-  const [trial, setTrial] = useState<Trial>({ taskIdx: 0, num: 0, letter: '', full: '', correctLeft: true, isSwitch: false });
+  const [trial, setTrial] = useState<Trial>({ taskIdx: 0, num: 0, letter: '', full: '', correctLeft: true, isSwitch: false, decoys: [] });
   const [showStim, setShowStim] = useState(false);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
 
@@ -285,7 +331,7 @@ export default function SwitchingTaskGame() {
   const switchRtsRef = useRef<number[]>([]);
   // repeat-пробы отдельно: switch cost = swMean − repMean (см. switchCostMs выше)
   const repeatRtsRef = useRef<number[]>([]);
-  const trialRef = useRef<Trial>({ taskIdx: 0, num: 0, letter: '', full: '', correctLeft: true, isSwitch: false });
+  const trialRef = useRef<Trial>({ taskIdx: 0, num: 0, letter: '', full: '', correctLeft: true, isSwitch: false, decoys: [] });
   const stimAtRef = useRef(0);
   const answeredRef = useRef(false);
   const startTimeRef = useRef(0);
@@ -492,11 +538,31 @@ export default function SwitchingTaskGame() {
     );
   };
 
+  /**
+   * Помехи по бокам ядра. Ядро своего размера НЕ меняет: уменьшив его, мы
+   * добавили бы к пробе остроту зрения, а меряем не её.
+   */
+  const обрамить = (ядро: React.ReactNode) => {
+    const п = trial?.decoys ?? [];
+    if (!п.length) return ядро;
+    const бок = Math.ceil(п.length / 2);
+    const знак = (g: string, k: number) => (
+      <Text key={k} style={[styles.stimText, { fontSize: stStim * 0.20, color: colors.textSecondary }]}>{g}</Text>
+    );
+    return (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, writingDirection: 'ltr' } as any}>
+        {п.slice(0, бок).map(знак)}
+        {ядро}
+        {п.slice(бок).map((g, k) => знак(g, k + бок))}
+      </View>
+    );
+  };
+
   const renderStim = () => {
     if (!showStim) return <Text style={[styles.stimText, { fontSize: stStim * 0.4, color: colors.textSecondary }]}>•</Text>;
     if (mode === 'mix') {
       const numOn = meta.emph === 'num';
-      return (
+      return обрамить(
         // RTL-пин: составной стимул «цифра+буква» читается в одном порядке во всех локалях
         <View style={{ flexDirection: 'row', alignItems: 'center', writingDirection: 'ltr' } as any}>
           <Text style={[styles.stimText, { fontSize: stStim * 0.42, color: numOn ? meta.color : colors.textSecondary, opacity: numOn ? 1 : 0.3 }]}>{trial.num}</Text>
@@ -504,7 +570,9 @@ export default function SwitchingTaskGame() {
         </View>
       );
     }
-    return <Text style={[styles.stimText, { fontSize: stStim * (mode === 'num3' ? 0.3 : 0.36), color: meta.color }]}>{trial.full}</Text>;
+    return обрамить(
+      <Text style={[styles.stimText, { fontSize: stStim * (mode === 'num3' ? 0.3 : 0.36), color: meta.color }]}>{trial.full}</Text>
+    );
   };
 
   // playing-фаза — на едином каркасе GameShell (кнопки лево/право прибиты к низу)
