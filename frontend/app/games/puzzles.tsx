@@ -1,4 +1,4 @@
-/* psygames-game-puzzles · VER 3 · 10.09.2026 */
+/* psygames-game-puzzles · VER 4 · 10.09.2026 */
 /**
  * ГОЛОВОЛОМКИ ТЭТХЭМА — ВСЕ СОРОК движков на одном экране.
  *
@@ -41,7 +41,7 @@ import { saveSession } from '@/src/services/api';
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
 import { открыть, указатель, стрелка, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
-import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ } from '@/src/games/tatham-bridge/names';
+import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
 
@@ -75,11 +75,20 @@ export default function PuzzlesScreen() {
   const движок = список.find((д) => д.имя === имяРежима) ?? null;
   const ключИгры = `puzzles_${имяРежима.toLowerCase().replace(/\s+/g, '_')}`;
   const lvl = usePersistentLevel(ключИгры);
-  const ступеней = движок?.ступени.length ?? 1;
+  /**
+   * 🔴 «Уровень 1/0» — так это выглядело на симуляторе у «Сапёра». Два движка из сорока
+   * (Mines и Loopy) своей лестницы не отдают: `psy_presets` = 0. Для них лестница
+   * набрана размером поля в `СВОЯ_ЛЕСТНИЦА` — каждая ступень проверена открытием доски.
+   */
+  const ступени = движок
+    ? (движок.ступени.length ? движок.ступени : (СВОЯ_ЛЕСТНИЦА[имяРежима] ?? []))
+    : [];
+  const ступеней = Math.max(ступени.length, 1);
   const ступень = Math.min(Math.max(lvl.level - 1, 0), Math.max(ступеней - 1, 0));
 
   const раздать = useCallback(async (д: Движок, ст: number, з: number) => {
-    setПартия(await открыть(д.индекс, д.ступени[ст]?.параметры ?? '', з));
+    const лестница = д.ступени.length ? д.ступени : (СВОЯ_ЛЕСТНИЦА[д.имя] ?? []);
+    setПартия(await открыть(д.индекс, лестница[ст]?.параметры ?? '', з));
     setХодов(0);
     setСдался(false);
     начатоВ.current = gameNow();
@@ -92,7 +101,10 @@ export default function PuzzlesScreen() {
       if (!живо) return;
       setСписок(все);
       const д = все.find((x) => x.имя === имяРежима) ?? все[0];
-      if (д) await раздать(д, Math.min(Math.max(lvl.level - 1, 0), д.ступени.length - 1), зерно);
+      if (д) {
+        const длина = Math.max((д.ступени.length ? д.ступени : (СВОЯ_ЛЕСТНИЦА[д.имя] ?? [])).length, 1);
+        await раздать(д, Math.min(Math.max(lvl.level - 1, 0), длина - 1), зерно);
+      }
       // Плейлист зарядки заходит с `?wu=1`: настройку он не проходит, партия стартует сама.
       if (живо && autostart) setФаза('playing');
     })();
