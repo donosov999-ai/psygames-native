@@ -34,6 +34,7 @@
  *   npx expo export -p web  (с baseUrl="") && npx serve dist -l 8127
  *   node scripts/tap-target-audit.mjs --base=http://127.0.0.1:8127
  *   node scripts/tap-target-audit.mjs --mode=field --only=sudoku,schulte
+ *   node scripts/tap-target-audit.mjs --mode=field --modes   ← обойти ВСЕ режимы экрана
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
@@ -326,6 +327,60 @@ async function dismissCoach(page) {
 }
 
 /** Нажать вход в игру. Возвращает подпись нажатого или null. */
+/**
+ * 🔴 РЕЖИМЫ ЭКРАНА. Аудит заходит в игру ОДИН раз и меряет ОДИН режим — тот, что
+ * открыт по умолчанию. У экранов с переключателем (`GameModeSwitch`) остальные
+ * не проверяются вовсе.
+ *
+ * ЧЕМ ЭТО СТОИЛО, замер раздела «Слова» 07.09.2026: у «Найди все слова» нижняя
+ * полоса занимала 519 точек при экране 375 — вылет 72 слева и справа, кнопка
+ * «Проверить» недостижима пальцем, а гейт был ЗЕЛЁНЫЙ, потому что в этот режим
+ * он не заходит. Девять режимов покрывались двумя маршрутами.
+ *
+ * ⚠️ ПОД ФЛАГОМ `--modes`, И ЭТО НАРОЧНО. Реестр долга ниже сверяет находки по
+ * ключу маршрута; включение режимов по умолчанию добавило бы ключи вида
+ * `route#2` и уронило бы сборку «новыми» находками, которые на самом деле
+ * старые и просто впервые увидены. Владельцу скрипта нужно сперва прогнать с
+ * флагом, разобрать список и внести в долг — а потом уже решать про умолчание.
+ *
+ * 🔴 ИЩЕМ ПО ЯКОРЮ `game-mode-switch`, А НЕ ПО `aria-selected`. Первая моя
+ * попытка искала выбранный по `accessibilityState={{ selected }}` — и не нашла
+ * НИЧЕГО. Замер 09.09.2026 на собранном бандле, Шульте: из четырнадцати кнопок
+ * страницы ни одной с `aria-selected`/`aria-checked`/`aria-pressed`/`aria-current`.
+ * react-native-web этот признак теряет. Патч выглядел рабочим и не делал ничего:
+ * прогон с флагом и без давал одно и то же число «зашли в 1 игр».
+ * Поэтому якорь ставится в самом `GameModeSwitch` — соседний патч
+ * `audit-modes-1-anchor.patch`, применять ВМЕСТЕ с этим.
+ * По виду (цвет фона выбранного) искать нельзя — тема сменится молча.
+ */
+async function modeButtons(page) {
+  return page.evaluate(() => {
+    const ряд = document.querySelector('[data-testid="game-mode-switch"]');
+    if (!ряд) return [];
+    return [...ряд.querySelectorAll('[role="button"], button')]
+      .filter((el) => { const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1; })
+      .map((el) => (el.getAttribute('aria-label') || el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 32));
+  });
+}
+
+/** Нажать режим по номеру. Возвращает подпись или null, если такого нет. */
+async function pickMode(page, index) {
+  const подпись = await page.evaluate((i) => {
+    const ряд = document.querySelector('[data-testid="game-mode-switch"]');
+    if (!ряд) return null;
+    const кн = [...ряд.querySelectorAll('[role="button"], button')]
+      .filter((el) => { const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1; });
+    if (!кн[i]) return null;
+    document.querySelectorAll('[data-audit-mode]').forEach((el) => el.removeAttribute('data-audit-mode'));
+    кн[i].setAttribute('data-audit-mode', '1');
+    return (кн[i].getAttribute('aria-label') || кн[i].innerText || '').replace(/\s+/g, ' ').trim().slice(0, 32);
+  }, index);
+  if (подпись === null) return null;
+  await page.click('[data-audit-mode]', { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(600);
+  return подпись;
+}
+
 async function pressStart(page) {
   const picked = await page.evaluate((sources) => {
     const res = sources.map((s) => new RegExp(s, 'iu'));
@@ -815,6 +870,26 @@ async function auditField(page, routes) {
     const rendered = await open(page, route);
     if (!rendered) { results.push({ route, failed: 'экран не отрисовался за два захода' }); continue; }
     await dismissCoach(page);
+    /**
+     * Режимы экрана — только под `--modes` (см. `modeButtons`). Без флага всё
+     * как прежде: один заход, режим по умолчанию, ключи маршрутов не меняются
+     * и реестр долга ниже сверяется тем же способом.
+     */
+    const режимы = args.modes ? await modeButtons(page) : [];
+    if (режимы.length > 1) {
+      for (let i = 0; i < режимы.length; i += 1) {
+        // Каждый режим — со СВОЕГО открытия экрана: часть игр после партии
+        // возвращает не на настройку, и переключатель второго захода уже не виден.
+        if (i > 0) { await open(page, route); await dismissCoach(page); }
+        const подпись = await pickMode(page, i);
+        if (подпись === null) continue;
+        const s = await pressStart(page);
+        if (!s || !s.entered) { results.push({ route: `${route}#${подпись}`, failed: s ? 'экран не сменился' : 'кнопка входа не найдена' }); continue; }
+        const з = await page.evaluate(MEASURE, MIN_FIELD);
+        results.push({ route: `${route}#${подпись}`, label: s.label, small: з.мелкие, всего: з.всего });
+      }
+      continue;
+    }
     const start = await pressStart(page);
     if (!start) { results.push({ route, failed: 'кнопка входа не найдена' }); continue; }
     if (!start.entered) { results.push({ route, failed: `нажал «${start.label}», но экран не сменился` }); continue; }

@@ -260,6 +260,13 @@ const DETAILS_SCHEMAS: Record<string, Record<string, FieldType>> = {
   memory_matrix:     { finalRound: 'number' },
   math_sprint:       { correct: 'number', bestStreak: 'number' },
   choice_rt:         { hits: 'number', mean_rt: 'number' },
+  /**
+   * Заявка чата внимания от 07.09.2026, висела трое суток. Поля взяты из того,
+   * что игра РЕАЛЬНО пишет (`app/games/simon.tsx:277`), а не из головы:
+   * `mean_rt` и `simon_effect_ms` = RT(несовпадающие) − RT(совпадающие),
+   * доля несовпадений заморожена INCONGRUENT_PROB = 0.5.
+   */
+  simon:             { mean_rt: 'number', simon_effect_ms: 'number' },
 
   // Round 7 (pakeg A) — newly biomarker'd games
   stroop:            { hits: 'number', errors: 'number', mean_rt_congruent: 'number', mean_rt_incongruent: 'number', interference_ms: 'number' },
