@@ -141,8 +141,22 @@ export default function AnagramGame() {
    * припоминание перевода. Разбор в `bilingualMode.тройки`.
    */
   const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
-  const очередьТроек = useRef<{ язык: string; слово: string; родное: string | null }[]>([]);
+  const очередьТроек = useRef<{ ключ: string; шаги: { язык: string; слово: string }[] }[]>([]);
   const тройкаIdx = useRef(0);
+  const шагIdx = useRef(0);
+  /**
+   * 🔴 ТРИ СТРОКИ ПЕРЕД ГЛАЗАМИ, А НЕ ТРИ ЗАХОДА ПОДРЯД.
+   *
+   * 📍 РЕШЕНИЕ ДЕНИСА 10.09.2026: «сделать три строки и колесо под ними, чтобы
+   * меняло буквы после заполнения первой строки — так визуальная память будет
+   * держать 3 слова перед глазами, а последовательно будет рублена».
+   *
+   * Здесь лежит уже разгаданное этой тройки: строка выше остаётся заполненной и
+   * СЛУЖИТ ПОДСКАЗКОЙ следующей — отдельный баннер с родным словом поэтому не
+   * нужен, значение видно прямо в поле.
+   */
+  const [тройкаОтвет, setТройкаОтвет] = useState<string[]>([]);
+  const [тройкаСлова, setТройкаСлова] = useState<{ язык: string; слово: string }[]>([]);
 
   useCalmHush(isCalm);   // вечер и ночь: ни писка на букву, ни победного звука
   const lvl = usePersistentLevel('anagrams');
@@ -488,8 +502,14 @@ export default function AnagramGame() {
 
   const newRound = () => {
     if (билингво) {
-      const шаг = очередьТроек.current[тройкаIdx.current];
-      тройкаIdx.current += 1;
+      if (шагIdx.current >= 3) {                       // тройка кончилась — берём следующую
+        тройкаIdx.current += 1;
+        шагIdx.current = 0;
+        setТройкаОтвет([]);
+        setТройкаСлова(очередьТроек.current[тройкаIdx.current]?.шаги ?? []);
+      }
+      const шаг = очередьТроек.current[тройкаIdx.current]?.шаги[шагIdx.current];
+      шагIdx.current += 1;
       if (шаг) {
         const w = шаг.слово.toUpperCase();
         setTarget(w);
@@ -498,7 +518,9 @@ export default function AnagramGame() {
          * задача режима: значение уже поднято, достань перевод. У первого
          * захода подсказки нет — он решается как обычная анаграмма.
          */
-        setHint(шаг.родное ?? '');
+        /* Подсказки-баннера в тройках нет: разгаданные строки выше и есть
+           подсказка — значение видно прямо в поле. */
+        setHint('');
         let arr2 = w.split('');
         let n = 0;
         do { arr2 = shuffle(arr2); n++; } while (arr2.join('') === w && n < 5);
@@ -603,15 +625,13 @@ export default function AnagramGame() {
       const перемешано = shuffle([...TRANSLATION_VOCAB] as unknown[]);
       const т = тройки(перемешано as Record<string, unknown>[], language,
         Math.max(1, Math.ceil(trialsRef.current / 3)), годится);
-      очередьТроек.current = т.flatMap((x) => x.шаги.map((ш, i) => ({
-        язык: ш.язык,
-        слово: ш.слово,
-        // Родное слово — подсказка второму и третьему заходу: вспомни перевод.
-        родное: i === 0 ? null : x.шаги[0]!.слово,
-      })));
+      очередьТроек.current = т;
       тройкаIdx.current = 0;
-      trialsRef.current = очередьТроек.current.length;
-      setTotalTrials(очередьТроек.current.length);
+      шагIdx.current = 0;
+      setТройкаОтвет([]);
+      setТройкаСлова(т[0]?.шаги ?? []);
+      trialsRef.current = т.length * 3;
+      setTotalTrials(т.length * 3);
     }
     hitsRef.current = 0; errorsRef.current = 0; hintUsesRef.current = 0;
     roundRef.current = 1;
@@ -735,6 +755,13 @@ export default function AnagramGame() {
       const correct = билингво ? guess === target : (guess === target || validWordsRef.current.has(guess));
       if (correct) { hitsRef.current += 1; setHits(hitsRef.current); hapticSuccess(); }
       else { errorsRef.current += 1; setErrors(errorsRef.current); hapticError(); }
+      /**
+       * ⚠️ СТРОКА ОСТАЁТСЯ ЗАПОЛНЕННОЙ ПРАВИЛЬНЫМ СЛОВОМ ДАЖЕ ПРИ ОШИБКЕ.
+       * Смысл трёх строк в том, что значение держится перед глазами; оставить
+       * ошибочную строку пустой значило бы отнять опору у следующих двух и
+       * превратить тройку обратно в три отдельных захода.
+       */
+      if (билингво) setТройкаОтвет((v) => [...v, target]);
       nextTimerRef.current = setTimeout(advance, 700);
     }
   };
@@ -1123,15 +1150,63 @@ export default function AnagramGame() {
               <Text style={[styles.hintBannerText, { color: colors.text }]}>{hint}</Text>
             </View>
           ) : null}
-          <View style={styles.pickedRow}>
-            {Array.from({ length: target.length }).map((_, i) => (
-              <View key={i} style={[styles.pickedSlot, { borderColor: colors.textSecondary, backgroundColor: colors.surface }]}>
-                <Text style={[styles.pickedLetter, { color: colors.text }]}>
-                  {picked[i] !== undefined ? letters[picked[i]] : ''}
-                </Text>
-              </View>
-            ))}
-          </View>
+          {/*
+            🔴 ТРИ СТРОКИ ОДНОГО ЗНАЧЕНИЯ, А НЕ ТРИ ЗАХОДА ПОДРЯД.
+
+            📍 РЕШЕНИЕ ДЕНИСА 10.09.2026: «сделать три строки и колесо под ними,
+            чтобы меняло буквы после заполнения первой строки — так визуальная
+            память будет держать 3 слова перед глазами, а последовательно будет
+            рублена».
+
+            Разгаданные строки остаются на экране и служат подсказкой следующим:
+            значение уже поднято, достань перевод. Поэтому отдельного баннера с
+            родным словом в этом режиме нет — он дублировал бы первую строку.
+
+            ⚠️ ПУСТЫЕ КЛЕТКИ БУДУЩИХ СТРОК ПОКАЗЫВАЮТ ДЛИНУ, И ЭТО НЕ ПОДДАВКИ.
+            Три строки и заведены затем, чтобы форма всех трёх слов стояла перед
+            глазами; прятать длину значило бы вернуть то самое «рубленое»
+            последовательное устройство, от которого уходим.
+          */}
+          {билингво && тройкаСлова.length === 3 ? (
+            <View style={styles.тройкаКол}>
+              {тройкаСлова.map((сл, r) => {
+                const разгадана = r < тройкаОтвет.length;
+                const активна = r === тройкаОтвет.length;
+                const буквы = разгадана ? [...(тройкаОтвет[r] ?? '')] : null;
+                return (
+                  <View key={`${сл.язык}-${r}`} style={styles.pickedRow}>
+                    {Array.from({ length: сл.слово.length }).map((_, i) => (
+                      <View
+                        key={i}
+                        style={[
+                          styles.pickedSlot,
+                          {
+                            borderColor: активна ? GRADIENT[0] : colors.textSecondary,
+                            backgroundColor: colors.surface,
+                            opacity: разгадана ? 0.55 : 1,
+                          },
+                        ]}
+                      >
+                        <Text style={[styles.pickedLetter, { color: colors.text }]}>
+                          {буквы ? (буквы[i] ?? '') : активна && picked[i] !== undefined ? letters[picked[i]] : ''}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                );
+              })}
+            </View>
+          ) : (
+            <View style={styles.pickedRow}>
+              {Array.from({ length: target.length }).map((_, i) => (
+                <View key={i} style={[styles.pickedSlot, { borderColor: colors.textSecondary, backgroundColor: colors.surface }]}>
+                  <Text style={[styles.pickedLetter, { color: colors.text }]}>
+                    {picked[i] !== undefined ? letters[picked[i]] : ''}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
           {/*
             🔴 КРУГ БУКВ ВМЕСТО РЯДА ПЛИТОК.
 
@@ -1234,6 +1309,7 @@ const styles = StyleSheet.create({
   hintBannerEmoji: { fontSize: 20, flexShrink: 0 },  // иконка рядом с текстом не сжимается
   hintBannerText: { fontSize: 14, fontWeight: '600', flex: 1, minWidth: 0 },  // крупный шрифт: текст переносится внутри баннера, а не распирает его
   // RTL-пин: слоты собираемого слова (ru/en) заполняются слева направо — иначе слово читается задом наперёд
+  тройкаКол: { gap: 8, alignItems: 'center' },
   pickedRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap', writingDirection: 'ltr', maxWidth: '100%' },
   pickedSlot: { width: 44, height: 54, borderRadius: 8, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   pickedLetter: { fontSize: 22, fontWeight: '700' },
