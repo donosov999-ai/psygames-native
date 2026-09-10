@@ -2604,6 +2604,7 @@ const t: Record<string, string> = {
   "pauseEasier": "Niveau plus facile",
   "pauseHarder": "Niveau plus difficile",
   "pauseFinish": "Terminer et enregistrer",
+  "pauseExitGame": "Quitter l’exercice",
   "pauseSoundOff": "Mode silencieux",
   "pauseSoundOn": "Réactiver le son",
   "pauseReport": "Signaler un problème",

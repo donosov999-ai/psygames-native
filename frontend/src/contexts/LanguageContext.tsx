@@ -1789,6 +1789,7 @@ const translations: Translations = {
   pauseFinish: { ru: 'Закончить и записать', en: 'Finish and save' },
   pauseEasier: { ru: 'Уровень проще', en: 'Easier level' },
   pauseHarder: { ru: 'Уровень сложнее', en: 'Harder level' },
+  pauseExitGame: { ru: 'Выйти из упражнения', en: 'Leave exercise' },
   pauseSoundOff: { ru: 'Тихий режим', en: 'Quiet mode' },
   pauseSoundOn: { ru: 'Вернуть звук', en: 'Sound back on' },
   pauseReport: { ru: 'Сообщить о проблеме', en: 'Report a problem' },

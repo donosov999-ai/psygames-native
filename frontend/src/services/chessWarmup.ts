@@ -208,7 +208,21 @@ export interface WordWarmupOpts {
 export function wordWarmupSteps(o: WordWarmupOpts): PlaylistStep[] {
   return темаШаги([
     { game_id: 'anagrams', game_route: '/games/anagrams', секунд: ШАГ_АНАГРАММЫ_СЕК, уровень: o.anagramsLevel },
-    { game_id: 'proofreading', game_route: '/games/proofreading', секунд: ШАГ_ФИЛВОРДЫ_СЕК, уровень: o.proofreadingLevel, настройки: { mode: 'fillwords' } },
+    /**
+     * 🔴 `taskMode`, А НЕ `mode` — ИЗ-ЗА ЭТОГО ШАГ ПАДАЛ (отчёт Дениса 10.09.2026).
+     *
+     * У корректуры два разных параметра: `mode` — ПИСЬМЕННОСТЬ (латиница,
+     * кириллица, греческий…), `taskMode` — ВИД ЗАДАНИЯ (буквы или филворды).
+     * Здесь стояло `mode: 'fillwords'`, экран искал такую письменность в `SCRIPTS`,
+     * не находил и разбивался о `.chars` у `undefined`:
+     * «undefined is not an object (evaluating SCRIPTS[mode].chars)» — весь заход
+     * зарядки терялся на втором упражнении.
+     * ⚠️ Экран со своей стороны тоже укреплён: неизвестная письменность больше не
+     * роняет партию, а откатывается на язык интерфейса. Одной правки мало — имя
+     * параметра здесь было неверным само по себе, и филворды не включались бы даже
+     * без падения.
+     */
+    { game_id: 'proofreading', game_route: '/games/proofreading', секунд: ШАГ_ФИЛВОРДЫ_СЕК, уровень: o.proofreadingLevel, настройки: { taskMode: 'fillwords' } },
     // «Беглость речи» без лестницы — там уровень задаёт длительность круга.
     { game_id: 'phonemic_fluency', game_route: '/games/phonemic-fluency', секунд: ШАГ_БЕГЛОСТЬ_СЕК, уровень: 1 },
   ], o.minutes);
