@@ -907,6 +907,12 @@ const translations: Translations = {
   yourTime: { ru: 'Ваше время', en: 'Your Time' },
   yourScore: { ru: 'Ваш счёт', en: 'Your Score' },
   goHome: { ru: 'На главную', en: 'Go Home' },
+  /** «Чёт-нечет» — первая головоломка на движке Тэтхэма (Unruly). */
+  puzzlesUnruly: { ru: 'Чёт-нечет', en: 'Odd or Even' },
+  puzzlesUnrulyRule: {
+    ru: 'В каждой строке и каждом столбце поровну кружков и точек. Трёх одинаковых подряд не бывает. Нажимай клетку, чтобы перебрать: пусто → ○ → ●',
+    en: 'Every row and column holds as many circles as dots. Three of a kind in a row never happens. Tap a cell to cycle: empty → ○ → ●',
+  },
   /**
    * ПУСТАЯ РАЗВИЛКА. Экран развилки — меню; когда за ним профилю не открыто ни
    * одного упражнения, он рисовал заголовок, подпись «Выбери упражнение» и НИЧЕГО

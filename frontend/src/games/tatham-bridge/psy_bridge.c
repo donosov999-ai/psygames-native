@@ -127,4 +127,33 @@ EMSCRIPTEN_KEEPALIVE int psy_has_board(int i)
     return gamelist[i]->can_format_as_text_ever && gamelist[i]->text_format ? 1 : 0;
 }
 
+/*
+ * ПАРАМЕТРЫ ЕГО СТУПЕНИ СЛОЖНОСТИ строкой — это и есть ось нашей лестницы.
+ * Решение Дениса 10.09.2026: его ступень становится осью, длина лестницы набирается
+ * размером поля и плотностью подсказок. Чтобы ось работала, нужна сама строка параметров.
+ */
+EMSCRIPTEN_KEEPALIVE char *psy_preset_params(int i, int k)
+{
+    const game *g; char *name = NULL; game_params *p = NULL; char *out = NULL;
+    if (i < 0 || i >= gamecount) return NULL;
+    g = gamelist[i];
+    if (!g->fetch_preset) return NULL;
+    if (!g->fetch_preset(k, &name, &p)) return NULL;
+    out = g->encode_params(p, true);
+    sfree(name); g->free_params(p);
+    return out;
+}
+
+/** Имя ступени, как назвал её автор («Easy», «Normal», «6x6 Trivial»). */
+EMSCRIPTEN_KEEPALIVE char *psy_preset_name(int i, int k)
+{
+    const game *g; char *name = NULL; game_params *p = NULL;
+    if (i < 0 || i >= gamecount) return NULL;
+    g = gamelist[i];
+    if (!g->fetch_preset) return NULL;
+    if (!g->fetch_preset(k, &name, &p)) return NULL;
+    g->free_params(p);
+    return name;
+}
+
 EMSCRIPTEN_KEEPALIVE void psy_free(char *s) { if (s) sfree(s); }
