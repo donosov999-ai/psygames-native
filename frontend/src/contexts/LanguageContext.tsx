@@ -356,6 +356,10 @@ const translations: Translations = {
   skillInhibition: { ru: 'Тренируем: самоконтроль', en: 'Training: self-control' },
   skillShortTermMemory: { ru: 'Тренируем: кратковременную память', en: 'Training: short-term memory' },
   skillVisualMemory: { ru: 'Тренируем: зрительную память', en: 'Training: visual memory' },
+  // Заявка чата шахмат 10.09.2026: «Детский мат» считает варианты, а не помнит доску.
+  skillChessCalc: { ru: 'Тренируем: расчёт вариантов', en: 'Training: calculating lines' },
+  chessTypeTactics: { ru: 'Тактика · мат в 1–2 хода', en: 'Tactics · mate in 1–2' },
+  chessTypeBlind: { ru: 'Вслепую · доска в голове', en: 'Blindfold · board in your head' },
   skillSwitching: { ru: 'Тренируем: переключение внимания', en: 'Training: attention switching' },
 
   // ───── Round 2: 7 more games ─────

@@ -363,7 +363,11 @@ export const GAMES: GameConfig[] = [
     id: 'scholars_mate',
     nameKey: 'scholarsMate',
     descKey: 'scholarsMateDesc',
-    skillKey: 'skillVisualMemory',
+    // 🔴 НЕ зрительная память. Заявка чата шахмат 10.09.2026: «Детский мат» — это
+    // расчёт вариантов и узнавание матовых узоров; доску видно всё время, помнить
+    // нечего. Под одним ключом с «Доской в уме» две разные способности мерились
+    // одной подписью.
+    skillKey: 'skillChessCalc',
     gradient: ['#8e5b2f', '#2f2a24'],
     icon: 'flash',
     route: '/games/scholars-mate',
@@ -375,7 +379,9 @@ export const GAMES: GameConfig[] = [
     nameKey: 'chessBlind',
     descKey: 'chessBlindDesc',
     skillKey: 'skillVisualMemory',
-    gradient: ['#334155', '#0f172a'],
+    // Градиент раздела, а не свой: заявка чата шахмат 10.09.2026 — карточка ехала
+    // тёмно-синей внутри коричневой развилки.
+    gradient: ['#8e5b2f', '#2f2a24'],
     icon: 'grid',
     route: '/games/chess-blind',
     category: 'memory',
