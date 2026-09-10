@@ -1305,7 +1305,25 @@ const styles = StyleSheet.create({
   statsPlateBare: { alignSelf: 'flex-start' },
   // Разделитель снизу отделяет действия от игрового поля: без него ряд кнопок
   // читается как часть поля, и в судоку его принимали за первую строку доски.
-  headerActions: { paddingHorizontal: PAD_H, paddingBottom: PAD_V, borderBottomWidth: StyleSheet.hairlineWidth },
+  /**
+   * 🔴 `flexDirection: 'row'` ОБЯЗАТЕЛЕН, И ЭТО НЕ КОСМЕТИКА.
+   *
+   * Умолчание react-native-web — `column`. Ряд служебных кнопок (`GameAuxAction`)
+   * объявлен `flex: 1`, то есть `flex-basis: 0`, и в КОЛОНКЕ basis схлопывает
+   * ВЫСОТУ: ряд получает 0, кнопки 48 точек вылезают за слот и рисуются поверх
+   * игрового поля (`overflow: visible`).
+   *
+   * Замер 07.09.2026, маджонг, окно 390×844, собранный бандл:
+   *   слот  [data-testid="game-header-actions"]  высота  6  (padding 5 + волосок)
+   *   ряд   внутри слота                         высота  0  flex: 1 0 0px
+   *   «Отменить» / «Перемешать»                  высота 48  → перекрытие 42
+   *
+   * Касается 17 экранов из 18 — всех, кто отдаёт `headerActions` без
+   * `bottom="actions"`. У `styles.toolbar` (нижний слот) `row` стоит, и там всё
+   * работает: в шапке `GameAuxAction` написано «оба места строчные», но верное
+   * это только для одного из двух.
+   */
+  headerActions: { flexDirection: 'row', paddingHorizontal: PAD_H, paddingBottom: PAD_V, borderBottomWidth: StyleSheet.hairlineWidth },
   // Поле забирает всё свободное место и центрирует содержимое — единое
   // поведение для всех игр вместо разнобоя.
   field: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: PAD_H },
