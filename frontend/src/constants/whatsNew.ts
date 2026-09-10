@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.53.2',
+    date: '2026-09-10',
+    ru: [
+      'Питомец перестал дёргаться: спящий кот больше не вскакивал каждые четыре секунды, а движение стало вдвое плавнее',
+      'Гуляющий питомец больше не телепортируется при переходе между экранами',
+      'Робот-питомец не просвечивает щеками — на тёмной теме они были дырами',
+      'Анаграммы наконец входят в режим двух языков: раньше при английском интерфейсе режим молча не включался и счётчик показывал 1/0',
+    ],
+    en: [
+      'The pet no longer jerks: the sleeping cat used to jump upright every four seconds, and motion is now twice as smooth',
+      'The strolling pet no longer teleports when you move between screens',
+      'The robot pet’s cheeks are no longer see-through — on the dark theme they were holes',
+      'Anagrams finally enter bilingual mode: with an English interface the mode silently failed and the counter showed 1/0',
+    ],
+  },
+  {
     version: '2.53.1',
     date: '2026-09-10',
     ru: [
