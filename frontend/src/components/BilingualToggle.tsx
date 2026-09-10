@@ -15,23 +15,41 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '@/src/contexts/ThemeContext';
-import { useLanguage } from '@/src/contexts/LanguageContext';
-import { параЯзыков } from '@/src/services/bilingualMode';
+import { useLanguage, LANGUAGES } from '@/src/contexts/LanguageContext';
+import { hasVocab } from '@/src/constants/translationVocab';
 import { WORD_LANG_LABEL } from '@/src/services/wordLanguage';
 import { textOn } from '@/src/services/onGradientText';
 
-export function BilingualToggle({ включён, переключить, accent }: {
+export function BilingualToggle({ включён, переключить, accent, первый, второй, выбратьВторой }: {
   включён: boolean;
   переключить: () => void;
   /** Цвет упражнения — чтобы включённый режим читался тем же акцентом, что и остальной экран. */
   accent: string;
+  /** Первый язык — тот, что выбран в пикере экрана. */
+  первый: string;
+  /** Второй язык пары. */
+  второй: string;
+  выбратьВторой: (код: string) => void;
 }) {
   const { colors } = useTheme();
   const { t, language } = useLanguage() as { t: (k: string) => string; language: string };
-  const [первый, второй] = параЯзыков(language);
   const подпись = t('bilingualModeDesc')
     .replace('{a}', WORD_LANG_LABEL[первый] ?? первый)
     .replace('{b}', WORD_LANG_LABEL[второй] ?? второй);
+  /**
+   * 🔴 ВТОРОЙ ЯЗЫК ВЫБИРАЕТСЯ, А НЕ НАВЯЗЫВАЕТСЯ.
+   *
+   * 📍 ОТЧЁТ ТЕСТИРОВЩИКА `2aa5892c` на v2.53.0: «Как выбрать второй язык-то для
+   * двух языков сразу». Справедливо: первая редакция считала пару от ЯЗЫКА
+   * ИНТЕРФЕЙСА и молча отменяла выбор в пикере — человек ставил немецкий,
+   * включал режим и получал английский с испанским.
+   *
+   * ⚠️ Свой язык и первый язык из списка убраны: цель, совпавшая с ними, дала бы
+   * «переведи русский на русский», а пара из одного языка — не пара.
+   */
+  const выбор = LANGUAGES
+    .filter((l) => l.code !== language && l.code !== первый && hasVocab(l.code))
+    .slice(0, 6);
 
   return (
     <View style={[стили.карточка, { backgroundColor: colors.surface }]}>
@@ -53,6 +71,28 @@ export function BilingualToggle({ включён, переключить, accent
         </Text>
       </TouchableOpacity>
       <Text style={[стили.подпись, { color: colors.textSecondary }]}>{подпись}</Text>
+      {включён && (
+        <View style={стили.ряд}>
+          {выбор.map((l) => (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ selected: второй === l.code }}
+              key={l.code}
+              onPress={() => выбратьВторой(l.code)}
+              style={[
+                стили.язык,
+                второй === l.code
+                  ? { backgroundColor: accent }
+                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+              ]}
+            >
+              <Text style={[стили.языкТекст, { color: второй === l.code ? textOn(accent) : colors.text }]}>
+                {l.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -63,6 +103,10 @@ const стили = StyleSheet.create({
   кнопка: { minHeight: 44, alignSelf: 'flex-start', paddingHorizontal: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   кнопкаТекст: { fontSize: 15, fontWeight: '700' },
   подпись: { fontSize: 13, lineHeight: 18 },
+  ряд: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  // 44 — норма цели нажатия: выбор языка жмут пальцем.
+  язык: { minHeight: 44, paddingHorizontal: 12, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  языкТекст: { fontSize: 14, fontWeight: '600' },
 });
 
 export default BilingualToggle;
