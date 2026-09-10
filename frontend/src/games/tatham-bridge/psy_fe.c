@@ -1,4 +1,4 @@
-/* psygames-tatham-frontend · VER 1 · 10.09.2026
+/* psygames-tatham-bridge-frontend · VER 1 · 10.09.2026
  *
  * ЗАГЛУШКА ФРОНТЕНДА — только то, чего нет в его `drawing.c`.
  *

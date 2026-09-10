@@ -2,7 +2,7 @@ import { textOn, onSolidText, onGradientTextMuted } from '@/src/services/onGradi
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Platform, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { usePathname, useRouter } from 'expo-router';
+import { usePathname, useRouter, useGlobalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -175,10 +175,30 @@ export default function GameHelpOverlay() {
     if (open && !deep) import('@/src/constants/gamesDeep.json').then((m: any) => setDeep(m.default || m)).catch(() => {});
   }, [open, deep]);
 
-  // Одноразовая подсказка-указатель на «?». Флаг ставим сразу при показе —
-  // иначе выход/вход в игру покажет облачко второй раз.
+  /**
+   * Одноразовая подсказка-указатель на «?». Флаг ставим сразу при показе —
+   * иначе выход/вход в игру покажет облачко второй раз.
+   *
+   * 🔴 НО НЕ В ЗАРЯДКЕ. Два отчёта тестировщика 10.09.2026 (v2.52.12): «кубики Корси
+   * стартовали — пришлось пропустить» и «ни одно упражнение зарядки не стартует».
+   * Причина найдена замером: шаг зарядки открывается с `?wu=1` и НАЧИНАЕТСЯ САМ, а
+   * облачко висит над полем 12 секунд. Показ последовательности в Корси длится
+   * 3 × 800 мс = 2,4 с — то есть весь стимул проходит ПОД облачком, и человека
+   * спрашивают о том, чего ему не показали. У SDMT облачко закрывает таблицу
+   * символов, по которой только и можно отвечать.
+   * Флаг при этом НЕ тратим: в обычном заходе (человек сам жмёт «Начать», поле пустое)
+   * облачко покажется как задумано. Тот же отвод для `auto=1` — «Вызов дня».
+   *
+   * ⚠️ ИМЕННО `useGlobalSearchParams`, И ЭТО ЗАМЕР, А НЕ ВКУС. Оверлей висит один на всё
+   * приложение в `app/_layout.tsx`; `useLocalSearchParams` отдаёт параметры СВОЕГО
+   * сегмента, то есть корня, — там `wu` нет никогда, и первая моя правка прошла тихо
+   * мимо (контроль: облачко осталось на `?wu=1`). Глобальный вариант отдаёт параметры
+   * экрана, который сейчас открыт, — то, что и нужно.
+   */
+  const параметрыЭкрана = useGlobalSearchParams<{ wu?: string; auto?: string }>();
+  const самозапуск = параметрыЭкрана?.wu === '1' || параметрыЭкрана?.auto === '1';
   useEffect(() => {
-    if (!hasHelp) return;
+    if (!hasHelp || самозапуск) return;
     let alive = true;
     AsyncStorage.getItem(HELP_COACH_KEY)
       .then((seen) => {
@@ -188,7 +208,7 @@ export default function GameHelpOverlay() {
       })
       .catch(() => {});
     return () => { alive = false; };
-  }, [hasHelp]);
+  }, [hasHelp, самозапуск]);
 
   // Само-скрытие: облачко висит над игровым полем, вечно держать его нельзя.
   useEffect(() => {

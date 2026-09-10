@@ -1415,6 +1415,40 @@ export const GAMES: GameConfig[] = [
     hub: true,
   },
   {
+    /**
+     * Развилка «Головоломки» (10.09.2026, решение Дениса «берём все»). Семнадцать
+     * головоломок Саймона Тэтхэма на ОДНОМ экране: доски раздают его движки, правила
+     * знает его код, рисуем своим SVG. Разбор — `src/games/tatham-bridge/README.md`.
+     * ⚠️ Пока все в одной развилке НАРОЧНО: перенос карточки в тематическую — это
+     * переставить строку в `HUB_CONTENTS`, маршрут и прогресс при этом не трогаются.
+     */
+    id: 'puzzles_group',
+    nameKey: 'puzzlesGroup',
+    descKey: 'puzzlesGroupDesc',
+    skillKey: 'skillLogic',
+    gradient: ['#0f766e', '#f59e0b'],
+    icon: 'extension-puzzle',
+    route: '/games/puzzles-hub',
+    category: 'logic',
+    hub: true,
+  },
+  {
+    /**
+     * Экран всех сорока: режим приходит параметром `?mode=<движок>`. Карточки в
+     * каталоге у него нет — вход только через развилку, поэтому `hideFromMenu`.
+     */
+    id: 'puzzles',
+    nameKey: 'puzzlesUnruly',
+    descKey: 'puzzlesUnrulyRule',
+    skillKey: 'skillLogic',
+    gradient: ['#0f766e', '#f59e0b'],
+    icon: 'grid',
+    route: '/games/puzzles',
+    category: 'logic',
+    hideFromMenu: true,
+    mergedInto: 'puzzles_group',
+  },
+  {
     /** Развилка «Ментальная ротация» (09.09.2026): ротация фигур, поворот чисел, сеть труб. */
     id: 'spatial_group',
     nameKey: 'spatialGroup',

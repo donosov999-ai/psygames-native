@@ -185,6 +185,60 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
    * Два упражнения лаборатории живут на одном экране и различаются `?mode=` — как режимы
    * судоку; карточка каталога у них одна (`spatial_lab`), развилка показывает две.
    */
+  /*
+   * ГОЛОВОЛОМКИ ТЭТХЭМА — семнадцать на одном экране, режим в параметре `?mode=`.
+   * ⚠️ Строка `visibleHubCards` сама открывает `?mode=…`, когда профилю открыт голый
+   * путь `/games/puzzles`, — своей записи в каталоге режимам не нужно.
+   */
+  /**
+   * СОРОК ДВИЖКОВ ТЭТХЭМА — сорок карточек. Решение Дениса 10.09.2026: «берём все»,
+   * сперва в одну развилку, разнести по тематическим — потом (перенос карточки = одна
+   * переставленная строка, экран и словарь не трогаются).
+   * Порядок повторяет `names.ts` и держится проверкой при сборке этого файла.
+   */
+  '/games/puzzles-hub': [
+    { route: '/games/puzzles', icon: 'ellipse', nameKey: 'puzzlesUnruly', descKey: 'puzzlesUnrulyDesc' },
+    { route: '/games/puzzles?mode=Mines', icon: 'warning', nameKey: 'puzzlesMines', descKey: 'puzzlesMinesDesc' },
+    { route: '/games/puzzles?mode=Mosaic', icon: 'grid-outline', nameKey: 'puzzlesMosaic', descKey: 'puzzlesMosaicDesc' },
+    { route: '/games/puzzles?mode=Pattern', icon: 'grid', nameKey: 'puzzlesPattern', descKey: 'puzzlesPatternDesc' },
+    { route: '/games/puzzles?mode=Singles', icon: 'remove-circle', nameKey: 'puzzlesSingles', descKey: 'puzzlesSinglesDesc' },
+    { route: '/games/puzzles?mode=Range', icon: 'eye', nameKey: 'puzzlesRange', descKey: 'puzzlesRangeDesc' },
+    { route: '/games/puzzles?mode=Light%20Up', icon: 'bulb', nameKey: 'puzzlesLightUp', descKey: 'puzzlesLightUpDesc' },
+    { route: '/games/puzzles?mode=Tents', icon: 'triangle', nameKey: 'puzzlesTents', descKey: 'puzzlesTentsDesc' },
+    { route: '/games/puzzles?mode=Magnets', icon: 'magnet', nameKey: 'puzzlesMagnets', descKey: 'puzzlesMagnetsDesc' },
+    { route: '/games/puzzles?mode=Undead', icon: 'skull', nameKey: 'puzzlesUndead', descKey: 'puzzlesUndeadDesc' },
+    { route: '/games/puzzles?mode=Keen', icon: 'calculator', nameKey: 'puzzlesKeen', descKey: 'puzzlesKeenDesc' },
+    { route: '/games/puzzles?mode=Solo', icon: 'apps-outline', nameKey: 'puzzlesSolo', descKey: 'puzzlesSoloDesc' },
+    { route: '/games/puzzles?mode=Towers', icon: 'business', nameKey: 'puzzlesTowers', descKey: 'puzzlesTowersDesc' },
+    { route: '/games/puzzles?mode=Unequal', icon: 'swap-vertical', nameKey: 'puzzlesUnequal', descKey: 'puzzlesUnequalDesc' },
+    { route: '/games/puzzles?mode=Rectangles', icon: 'square-outline', nameKey: 'puzzlesRectangles', descKey: 'puzzlesRectanglesDesc' },
+    { route: '/games/puzzles?mode=Filling', icon: 'color-fill', nameKey: 'puzzlesFilling', descKey: 'puzzlesFillingDesc' },
+    { route: '/games/puzzles?mode=Palisade', icon: 'browsers', nameKey: 'puzzlesPalisade', descKey: 'puzzlesPalisadeDesc' },
+    { route: '/games/puzzles?mode=Galaxies', icon: 'planet', nameKey: 'puzzlesGalaxies', descKey: 'puzzlesGalaxiesDesc' },
+    { route: '/games/puzzles?mode=Map', icon: 'map', nameKey: 'puzzlesMap', descKey: 'puzzlesMapDesc' },
+    { route: '/games/puzzles?mode=Loopy', icon: 'git-network', nameKey: 'puzzlesLoopy', descKey: 'puzzlesLoopyDesc' },
+    { route: '/games/puzzles?mode=Pearl', icon: 'ellipse-outline', nameKey: 'puzzlesPearl', descKey: 'puzzlesPearlDesc' },
+    { route: '/games/puzzles?mode=Slant', icon: 'chevron-forward', nameKey: 'puzzlesSlant', descKey: 'puzzlesSlantDesc' },
+    { route: '/games/puzzles?mode=Bridges', icon: 'git-merge', nameKey: 'puzzlesBridges', descKey: 'puzzlesBridgesDesc' },
+    { route: '/games/puzzles?mode=Train%20Tracks', icon: 'train', nameKey: 'puzzlesTracks', descKey: 'puzzlesTracksDesc' },
+    { route: '/games/puzzles?mode=Signpost', icon: 'navigate', nameKey: 'puzzlesSignpost', descKey: 'puzzlesSignpostDesc' },
+    { route: '/games/puzzles?mode=Dominosa', icon: 'apps', nameKey: 'puzzlesDominosa', descKey: 'puzzlesDominosaDesc' },
+    { route: '/games/puzzles?mode=Untangle', icon: 'share-social', nameKey: 'puzzlesUntangle', descKey: 'puzzlesUntangleDesc' },
+    { route: '/games/puzzles?mode=Net', icon: 'git-network-outline', nameKey: 'puzzlesNet', descKey: 'puzzlesNetDesc' },
+    { route: '/games/puzzles?mode=Netslide', icon: 'shuffle', nameKey: 'puzzlesNetslide', descKey: 'puzzlesNetslideDesc' },
+    { route: '/games/puzzles?mode=Twiddle', icon: 'sync-circle', nameKey: 'puzzlesTwiddle', descKey: 'puzzlesTwiddleDesc' },
+    { route: '/games/puzzles?mode=Sixteen', icon: 'repeat', nameKey: 'puzzlesSixteen', descKey: 'puzzlesSixteenDesc' },
+    { route: '/games/puzzles?mode=Fifteen', icon: 'swap-horizontal', nameKey: 'puzzlesFifteen', descKey: 'puzzlesFifteenDesc' },
+    { route: '/games/puzzles?mode=Flip', icon: 'contrast', nameKey: 'puzzlesFlip', descKey: 'puzzlesFlipDesc' },
+    { route: '/games/puzzles?mode=Cube', icon: 'cube', nameKey: 'puzzlesCube', descKey: 'puzzlesCubeDesc' },
+    { route: '/games/puzzles?mode=Black%20Box', icon: 'cube-outline', nameKey: 'puzzlesBlackBox', descKey: 'puzzlesBlackBoxDesc' },
+    { route: '/games/puzzles?mode=Guess', icon: 'color-palette', nameKey: 'puzzlesGuess', descKey: 'puzzlesGuessDesc' },
+    { route: '/games/puzzles?mode=Flood', icon: 'water', nameKey: 'puzzlesFlood', descKey: 'puzzlesFloodDesc' },
+    { route: '/games/puzzles?mode=Same%20Game', icon: 'albums', nameKey: 'puzzlesSameGame', descKey: 'puzzlesSameGameDesc' },
+    { route: '/games/puzzles?mode=Pegs', icon: 'disc', nameKey: 'puzzlesPegs', descKey: 'puzzlesPegsDesc' },
+    { route: '/games/puzzles?mode=Inertia', icon: 'diamond', nameKey: 'puzzlesInertia', descKey: 'puzzlesInertiaDesc' },
+  ],
+
   '/games/spatial-hub': [
     { route: '/games/mental-rotation', icon: 'cube', nameKey: 'mentalRotation', descKey: 'mentalRotationDesc' },
     { route: '/games/spatial-lab?mode=twiddle', icon: 'sync-circle', nameKey: 'spatialTwiddle', descKey: 'spatialTwiddleDesc' },
