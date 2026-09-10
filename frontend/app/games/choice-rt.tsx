@@ -241,6 +241,8 @@ export default function ChoiceRtGame() {
   const [totalTrials, setTotalTrials] = useState(12);
   /** Нейтраль — полноправный стимул, а не отсутствие стимула: на неё жать нельзя. */
   const [stim, setStim] = useState<Direction | 'neutral'>('left');
+  /** Начертание уровня — состоянием: во время отрисовки реф читать нельзя. */
+  const [glyph, setGlyph] = useState<Glyph>('arrow');
   const [showStim, setShowStim] = useState(false);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [activeDirs, setActiveDirs] = useState<Direction[]>(['left', 'right']);
@@ -322,6 +324,7 @@ export default function ChoiceRtGame() {
     levelRef.current = lvl.level;
     dirsRef.current = p.dirs;
     glyphRef.current = p.glyph;
+    setGlyph(p.glyph);
     windowMsRef.current = p.windowMs;
     totalTrialsRef.current = p.trials;
     setActiveDirs(p.dirs);
@@ -545,7 +548,7 @@ export default function ChoiceRtGame() {
         }]}>
           {showStim ? (
             <Ionicons
-              name={(stim === 'neutral' ? NEUTRAL_ICON : GLYPH_ICON[glyphRef.current][stim]) as any}
+              name={(stim === 'neutral' ? NEUTRAL_ICON : GLYPH_ICON[glyph][stim]) as any}
               size={120}
               color={feedback === 'wrong' ? '#f43f5e' : GRADIENT[1]}
             />

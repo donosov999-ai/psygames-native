@@ -61,7 +61,17 @@ import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 /** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
 export const CPT_RULES: LevelRule[] = [
-  { key: 'lookalike', fromLevel: 11 },   // lr_cpt_lookalike_*
+  /**
+   * ⚠️ `toLevel: 8` — НЕ произвол. Текст этой карточки на всех двенадцати языках
+   * называет X поимённо («жди настоящую X», «мелькнула K — это не X»). С L9
+   * мишень уже не X, и та же карточка стала бы говорить прямо противоположное
+   * правилу партии. Ограничение уровнями, где мишень ещё X, оставляет её текст
+   * верным во всех локалях, не переписывая двенадцать переводов.
+   * `fromLevel: 3` — потому что двойники теперь включаются с L3, а не с L11.
+   */
+  { key: 'lookalike', fromLevel: 3, toLevel: 8 },   // lr_cpt_lookalike_*
+  { key: 'newtarget', fromLevel: 9, toLevel: 12 },  // мишень уже не X
+  { key: 'colorrule', fromLevel: 13 },              // засчитывается только КРАСНАЯ
 ];
 
 const GRADIENT = ['#0f4c75', '#3282b8'];
@@ -82,7 +92,70 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 const BOSS_EVERY = 3;
 
 const LETTERS_NON_X = ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','Y','Z'];  // без X
-const CONFUSABLE = ['K','Y','V','W','N','M'];   // угловатые буквы — похожи на X при беглом взгляде
+/** Алфавит потока. Буквы I нет намеренно: читается как единица. */
+const ALPHABET = [...LETTERS_NON_X, 'X'];
+
+/**
+ * 🔴 МИШЕНЬ НЕ ВСЕГДА X — ОСЬ, ЗАВЕДЕННАЯ 10.09.2026 ПО СЛОВУ ДЕНИСА.
+ *
+ * 📌 Дословно: «можно менять правила, чтобы искал не Х, а другую букву; или
+ * показывать похожее на Х; или задать, что Х должен быть определённого цвета —
+ * например, красный».
+ *
+ * ПОВОД. Я принёс развилку: чтобы растить трудность, надо двигать доли к канону
+ * AX-CPT 70/10/10/10 — но тогда цель перестаёт быть РЕДКОЙ, а на редкости
+ * держится вся логика «пропуск = падение внимания». Развилка была ложной: я
+ * перебрал ОДНУ ось и на ней объявил тупик. Три оси ниже растят трудность и
+ * доли целей не трогают вовсе.
+ *
+ * Что растит эта: нельзя играть на автомате, выученном за прошлые партии. Буква
+ * известна заранее (видна на карточке уровня и в подсказке) — трудность не в
+ * угадывании, а в удержании ПРАВИЛА ЭТОЙ партии поверх привычки жать на X.
+ */
+export const TARGETS = ['X', 'K', 'T', 'H'];
+
+/**
+ * ⚠️ ДВОЙНИКИ У КАЖДОЙ МИШЕНИ СВОИ — И ЭТО НЕ АККУРАТНОСТЬ, А НЕОБХОДИМОСТЬ.
+ *
+ * Прежний список был один: `['K','Y','V','W','N','M']` — угловатые, похожие на X
+ * при беглом взгляде. Смените мишень на K, оставив список общим, и K окажется
+ * в списке СОБСТВЕННЫХ двойников: генератор начнёт выдавать мишень под видом
+ * дистрактора. Ось «похожести», привязанная к конкретной букве, обязана
+ * пересчитываться вместе с ней.
+ */
+export const CONFUSABLES: Record<string, string[]> = {
+  X: ['K', 'Y', 'V', 'W', 'N', 'M'],
+  K: ['X', 'R', 'H', 'N', 'M'],
+  T: ['Y', 'L', 'F', 'J', 'V'],
+  H: ['N', 'M', 'K', 'U', 'B'],
+};
+
+/**
+ * 🔴 ТРЕТЬЯ ИДЕЯ ДЕНИСА: МИШЕНЬ ОПРЕДЕЛЁННОГО ЦВЕТА. Правило становится
+ * СОСТАВНЫМ — не «X», а «КРАСНАЯ X». В таблице десяти осей раздела такого не
+ * было; строка добавлена одиннадцатой (CHATS_RULES.md §4а).
+ *
+ * Что проверяет: нажатие на мишень НЕ того цвета — это не «не разглядел», а
+ * «не удержал конъюнкцию», то есть отдельный вид сбоя внимания.
+ */
+export type StimColor = 'red' | 'blue' | 'green' | 'ink';
+const COLOR_HEX: Record<StimColor, string> = {
+  red: '#e11d48', blue: '#2563eb', green: '#15803d', ink: '#1f2937',
+};
+const NON_RED: StimColor[] = ['blue', 'green', 'ink'];
+const ALL_COLORS: StimColor[] = ['red', ...NON_RED];
+
+/**
+ * 🔴 ДОЛЯ ЦВЕТОВЫХ ЛУРОВ ЗАМОРОЖЕНА, И БЕРЁТСЯ ОНА ИЗ БЮДЖЕТА ДИСТРАКТОРОВ.
+ *
+ * Лур — мишенная буква не того цвета. Подменяется только НЕ-цель, поэтому доля
+ * целей остаётся ровно TARGET_RATE: цвет не отнимает у мишени её редкость.
+ * Растить долю луров с уровнем нельзя по той же причине, по которой заморожены
+ * доли конфликтных проб во всём разделе: игрок станет осторожнее, ложных
+ * нажатий станет меньше, и ручка уровня начнёт двигать саму измеряемую величину.
+ * Растёт ПОХОЖЕСТЬ и СОСТАВНОСТЬ правила, доли стоят.
+ */
+export const COLOR_LURE_RATE = 0.10;
 const STIM_DURATION = 250;          // буква видна 250мс
 
 /**
@@ -126,11 +199,54 @@ const BX_LURE = 0.18;
 //   L1-5  — классический X-CPT (жми на X), ISI 1500→900 (темп растёт)
 //   L6-10 — AX-CPT (жми на X ТОЛЬКО если перед ней была A — нагрузка на рабочую память), ISI 1100→850
 //   L11-15— AX-CPT + ISI 800→500 + растущая доля похожих на X дистракторов (перцептивная нагрузка)
-export function levelParams(level: number): { durationSec: number; isiMs: number; mode: 'X' | 'AX'; confusableRatio: number } {
+export function levelParams(level: number): {
+  durationSec: number; isiMs: number; mode: 'X' | 'AX'; confusableRatio: number;
+  target: string; colorRule: boolean;
+} {
   const durationSec = 90;
-  if (level <= 5)  return { durationSec, isiMs: Math.max(900, 1500 - (level - 1) * 150), mode: 'X',  confusableRatio: 0 };
-  if (level <= 10) return { durationSec, isiMs: Math.max(850, 1100 - (level - 6) * 60),  mode: 'AX', confusableRatio: 0 };
-  return { durationSec, isiMs: Math.max(500, 800 - (level - 11) * 75), mode: 'AX', confusableRatio: Math.min(0.5, 0.15 + (level - 11) * 0.09) };
+  const mode: 'X' | 'AX' = level <= 5 ? 'X' : 'AX';
+  const isiMs =
+    level <= 5  ? Math.max(900, 1500 - (level - 1) * 150) :
+    level <= 10 ? Math.max(850, 1100 - (level - 6) * 60)  :
+                  Math.max(500,  800 - (level - 11) * 75);
+
+  /**
+   * 🔴 ДВОЙНИКИ ВКЛЮЧАЮТСЯ С L3, А НЕ С L11.
+   *
+   * Было: ноль на L1–L10 и рост только на верхней трети. То есть механизм был
+   * написан и до двух третей лестницы НЕ ДОЕЗЖАЛ — отдельный вид потолка,
+   * который выглядит как готовая ось. Замечено при разборе 10.09.2026, когда
+   * Денис назвал «показывать похожее на X» как новую идею, а она уже была в
+   * коде — просто выключенная почти везде.
+   * L1–L2 оставлены чистыми намеренно: на первых двух ступенях человек учится
+   * правилу, а не различению.
+   */
+  const confusableRatio = level <= 2 ? 0
+    : Math.min(0.5, Math.round((0.10 + (level - 3) * 0.035) * 1000) / 1000);
+
+  /**
+   * Мишень: до L8 канонная X, с L9 — уже НЕ X никогда. Привычка жать на X
+   * складывается за прошлые партии, и именно её здесь и приходится держать.
+   */
+  /**
+   * ⚠️ БЛОКАМИ ПО ТРИ УРОВНЯ, А НЕ КАЖДЫЙ УРОВЕНЬ. Первая редакция крутила букву
+   * на каждой ступени — игрок не успевал к ней привыкнуть, и «удержать правило
+   * поверх привычки» превращалось в «привычки нет вовсе», то есть ось меряла бы
+   * не то. Плюс это заметил гейт `level-step-explained`: величина скакала на
+   * тридцати двух уровнях подряд, а объяснить такое карточкой невозможно.
+   * Выше L15 лестницы нет (LADDER_RANGE.cpt = 15) — там мишень замирает, как
+   * замирают и полы ISI.
+   */
+  const блок = Math.min(2, Math.max(0, Math.floor((Math.min(level, 15) - 9) / 3)));
+  const target = level <= 8 ? 'X' : TARGETS[1 + блок];   // L9–11 K · L12–14 T · L15+ H
+
+  /**
+   * Составное правило (буква И цвет). L13, а не L12: на L12 уже меняется мишень,
+   * и два новых правила на одной ступени человек прочитает как одно.
+   */
+  const colorRule = level >= 13;
+
+  return { durationSec, isiMs, mode, confusableRatio, target, colorRule };
 }
 
 /**
@@ -150,9 +266,11 @@ export function levelParams(level: number): { durationSec: number; isiMs: number
  * прогоняет levelParams по уровням и требует, чтобы КАЖДОЕ меняющееся поле сюда
  * попало. Руками список не пишется — разойдётся.
  */
-export function levelCondition(level: number): { isiMs: number; mode: 'X' | 'AX'; confusableRatio: number } {
-  const { isiMs, mode, confusableRatio } = levelParams(level);
-  return { isiMs, mode, confusableRatio };
+export function levelCondition(level: number): {
+  isiMs: number; mode: 'X' | 'AX'; confusableRatio: number; target: string; colorRule: boolean;
+} {
+  const { isiMs, mode, confusableRatio, target, colorRule } = levelParams(level);
+  return { isiMs, mode, confusableRatio, target, colorRule };
 }
 
 /**
@@ -209,21 +327,27 @@ export function presetDurationSec(modeParam: string, fallbackSec: number): numbe
 
 // В AX-режиме A — это подсказка, а не наполнитель: случайная A из общего банка
 // заводила бы незапланированную пару и ломала долю целей, поэтому её исключаем.
-const LETTERS_FILLER = LETTERS_NON_X.filter((l) => l !== 'A');
+/** Банк наполнителя: всё, кроме самой мишени (и подсказки A в AX-режиме). */
+function bankFor(target: string, avoidA: boolean): string[] {
+  return ALPHABET.filter((l) => l !== target && !(avoidA && l === 'A'));
+}
 
-function pickDistractor(confusableRatio: number, avoidA = false): string {
-  if (confusableRatio > 0 && Math.random() < confusableRatio) return CONFUSABLE[Math.floor(Math.random() * CONFUSABLE.length)];
-  const bank = avoidA ? LETTERS_FILLER : LETTERS_NON_X;
+function pickDistractor(target: string, confusableRatio: number, avoidA = false): string {
+  const двойники = CONFUSABLES[target] ?? [];
+  if (confusableRatio > 0 && двойники.length && Math.random() < confusableRatio) {
+    return двойники[Math.floor(Math.random() * двойники.length)];
+  }
+  const bank = bankFor(target, avoidA);
   return bank[Math.floor(Math.random() * bank.length)];
 }
 // Continuous-AX: target X строится через предшествующую A; редкая X-без-A = ловушка (commission).
-function pickNextLetter(mode: 'X' | 'AX', confusableRatio: number, prev: string): string {
-  if (mode === 'X') return Math.random() < TARGET_RATE ? 'X' : pickDistractor(confusableRatio);
+function pickNextLetter(mode: 'X' | 'AX', target: string, confusableRatio: number, prev: string): string {
+  if (mode === 'X') return Math.random() < TARGET_RATE ? target : pickDistractor(target, confusableRatio);
   // подсказка и её замыкание разведены — только так доля целей равна TARGET_RATE
-  if (prev === 'A') return Math.random() < AX_COMPLETION ? 'X' : pickDistractor(confusableRatio, true);
-  if (Math.random() < A_CUE_RATE) return 'A';                        // ставим подсказку
-  if (Math.random() < BX_LURE) return 'X';                           // X без A = ловушка-commission
-  return pickDistractor(confusableRatio, true);
+  if (prev === 'A') return Math.random() < AX_COMPLETION ? target : pickDistractor(target, confusableRatio, true);
+  if (Math.random() < A_CUE_RATE) return 'A';                              // ставим подсказку
+  if (Math.random() < BX_LURE) return target;                              // мишень без A = ловушка-commission
+  return pickDistractor(target, confusableRatio, true);
 }
 
 /**
@@ -231,14 +355,37 @@ function pickNextLetter(mode: 'X' | 'AX', confusableRatio: number, prev: string)
  * спрашивает игру по уровням и считает РЕАЛЬНУЮ долю целей по сгенерированному
  * потоку, а не читает константу глазами.
  */
-export function makeTrial(level: number, prev: string): { letter: string; isTarget: boolean } {
-  const { mode, confusableRatio } = levelParams(level);
-  const letter = pickNextLetter(mode, confusableRatio, prev);
-  return { letter, isTarget: mode === 'X' ? letter === 'X' : letter === 'X' && prev === 'A' };
+export function makeTrial(level: number, prev: string): { letter: string; color: StimColor; isTarget: boolean } {
+  const { mode, confusableRatio, target, colorRule } = levelParams(level);
+  let letter = pickNextLetter(mode, target, confusableRatio, prev);
+  const isTarget = mode === 'X' ? letter === target : letter === target && prev === 'A';
+
+  if (!colorRule) return { letter, color: 'ink', isTarget };
+
+  // 🔴 Истинная мишень ВСЕГДА красная: цвет не отнимает у неё редкость.
+  if (isTarget) return { letter, color: 'red', isTarget: true };
+
+  /**
+   * Цветовой лур подменяет только НЕ-цель — поэтому TARGET_RATE не меняется.
+   * ⚠️ Подсказку A не трогаем: подменив её, мы уничтожили бы будущую пару A→мишень
+   * и тихо понизили долю целей. Ровно так ошибка и выглядела бы — «доля почти та».
+   */
+  if (letter !== 'A' && Math.random() < COLOR_LURE_RATE) {
+    letter = target;
+    return { letter, color: NON_RED[Math.floor(Math.random() * NON_RED.length)], isTarget: false };
+  }
+  /**
+   * Дистракторы тоже бывают КРАСНЫМИ — иначе цвет один решал бы задачу, и
+   * составное правило выродилось бы в «жми на красное», то есть в другую пробу.
+   */
+  return { letter, color: ALL_COLORS[Math.floor(Math.random() * ALL_COLORS.length)], isTarget: false };
 }
 
 interface TrialRecord {
   letter: string;
+  color: StimColor;
+  /** Мишенная буква НЕ того цвета: жать нельзя. Считается отдельно от прочих не-целей. */
+  isColorLure: boolean;
   isTarget: boolean;
   responded: boolean;
   rt: number | null;        // ms from stim onset to tap
@@ -270,6 +417,16 @@ export default function CPTGame() {
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера LevelCleared
 
   const [currentLetter, setCurrentLetter] = useState<string>('');
+  const [currentColor, setCurrentColor] = useState<StimColor>('ink');
+  /**
+   * ⚠️ Правило партии держим СОСТОЯНИЕМ, а не только рефом. Рефы нужны таймерам
+   * (там иначе застревает старое замыкание), но читать их во время отрисовки
+   * нельзя: экран не перерисуется, когда реф поменяется, и подсказка отстанет
+   * на кадр — назовёт прошлую мишень. Отдельный урок раздела: «флаг готовности
+   * отстаёт на кадр».
+   */
+  const [rule, setRule] = useState<{ target: string; colorRule: boolean; mode: 'X' | 'AX' }>(
+    { target: 'X', colorRule: false, mode: 'X' });
   const [letterVisible, setLetterVisible] = useState(false);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
 
@@ -293,6 +450,8 @@ export default function CPTGame() {
    * пользовались: если в данных окажется, что кнопкой отвечают часто и RT растёт,
    * это будет видно числом, а не догадкой.
    */
+  const targetRef = useRef<string>('X');
+  const colorRuleRef = useRef(false);
   const viaBoxRef = useRef(0);
   const viaBarRef = useRef(0);
   const currentTrialRef = useRef<TrialRecord | null>(null);
@@ -340,10 +499,12 @@ export default function CPTGame() {
       if (stoppedRef.current) return;
       // выбрать стимул по режиму уровня; isTarget = «нужно ли жать»
       const prev = prevLetterRef.current;
-      const { letter, isTarget: isTgt } = makeTrial(levelRef.current, prev);
+      const { letter, color, isTarget: isTgt } = makeTrial(levelRef.current, prev);
       prevLetterRef.current = letter;
       const trial: TrialRecord = {
         letter,
+        color,
+        isColorLure: colorRuleRef.current && !isTgt && letter === targetRef.current,
         isTarget: isTgt,
         responded: false,
         rt: null,
@@ -354,6 +515,7 @@ export default function CPTGame() {
       respondedRef.current = false;
       stimOnsetRef.current = gameNow();
       setCurrentLetter(letter);
+      setCurrentColor(color);
       setLetterVisible(true);
       // hide after STIM_DURATION
       offTimerRef.current = setTimeout(() => {
@@ -423,6 +585,9 @@ export default function CPTGame() {
     presetModeRef.current = isPreset ? str('mode', '') : '';
     isiRef.current = p.isiMs;
     modeRef.current = p.mode;
+    targetRef.current = p.target;
+    colorRuleRef.current = p.colorRule;
+    setRule({ target: p.target, colorRule: p.colorRule, mode: p.mode });
     durationSecRef.current = isPreset ? presetDurationSec(presetModeRef.current, p.durationSec) : p.durationSec;
     prevLetterRef.current = '';
     stoppedRef.current = false;
@@ -583,6 +748,14 @@ export default function CPTGame() {
           commission_errors: totalCommissions,
           n_targets: targets.length,
           n_nontargets: nonTargets.length,
+          /**
+           * Цветовые луры — мишенная буква не того цвета. Пишем и сколько их
+           * показали, и на скольких игрок сорвался: доля без знаменателя в
+           * короткой партии врёт, а нажатие на лур — не «не разглядел», а
+           * «не удержал составное правило», то есть отдельный вид сбоя.
+           */
+          color_lures_shown: trials.filter((t) => t.isColorLure).length,
+          color_lure_commissions: trials.filter((t) => t.isColorLure && t.responded).length,
           mean_rt: Math.round(meanRt),
           rt_std: Math.round(rtStd),
           rt_variability: Number(cvRt.toFixed(3)),    // CV-RT
@@ -624,7 +797,16 @@ export default function CPTGame() {
           {t('level')} {lvl.level}
         </Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-          {lvl.level <= 5 ? t('cptLvlParamsX') : lvl.level <= 10 ? t('cptLvlParamsAX') : t('cptLvlParamsAXHard')}
+          {(() => {
+            // Карточка называет ТЕКУЩЕЕ правило: с L9 мишень уже не X, с L12
+            // она ещё и красная. Человек обязан знать условие ДО партии —
+            // иначе первый провал будет не про внимание, а про незнание правил.
+            const p = levelParams(lvl.level);
+            if (p.colorRule) return t('cptLvlParamsColor').replace('{letter}', p.target);
+            if (p.target !== 'X') return t('cptLvlParamsLetter').replace('{letter}', p.target);
+            if (lvl.level <= 5) return t('cptLvlParamsX');
+            return lvl.level <= 10 ? t('cptLvlParamsAX') : t('cptLvlParamsAXHard');
+          })()}
         </Text>
         {/* v1.112.0: критерий прохождения уровня виден игроку (раньше был скрыт в коде finish()) */}
         <Text style={{ color: colors.textSecondary, fontSize: 12, textAlign: 'center' }}>
@@ -699,7 +881,10 @@ export default function CPTGame() {
                 style={{ width: КНОПКА.w, height: КНОПКА.h, borderRadius: КНОПКА.radius,
                          backgroundColor: GRADIENT[0], justifyContent: 'center', alignItems: 'center' }}>
                 <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '800' }}>
-                  {t(modeRef.current === 'AX' ? 'cptTapAX' : 'cptTapX')}
+                  {(rule.colorRule
+                    ? t('cptTapColor')
+                    : t(rule.mode === 'AX' ? 'cptTapAXLetter' : 'cptTapLetter')
+                  ).replace('{letter}', rule.target)}
                 </Text>
               </TouchableOpacity>
             </AnswerBar>
@@ -708,7 +893,10 @@ export default function CPTGame() {
           <View style={styles.fieldCol}>
             {/* Подсказка вне потока — иначе сдвигает коробку вниз при центрировании. */}
             <Text style={[styles.hintText, { position: 'absolute', top: 0, color: colors.textSecondary }]}>
-              {t(modeRef.current === 'AX' ? 'cptTapAX' : 'cptTapX')}
+              {(rule.colorRule
+                ? t('cptTapColor')
+                : t(rule.mode === 'AX' ? 'cptTapAXLetter' : 'cptTapLetter')
+              ).replace('{letter}', rule.target)}
             </Text>
             <TouchableOpacity
               accessibilityRole="button"
@@ -717,14 +905,27 @@ export default function CPTGame() {
               style={[styles.stimBox, {
                 width: ОКНО.w, height: ОКНО.h,   // общая коробка раздела
                 backgroundColor: fbColor ? fbColor + '33' : colors.surface,
-                borderColor: fbColor || (letterVisible && currentLetter === 'X' ? '#fbbf24' : colors.border),
+                /**
+                 * 🔴 10.09.2026 УБРАНА ПОДСВЕТКА МИШЕНИ. Здесь стояло
+                 * `currentLetter === 'X' ? '#fbbf24' : ...` — и рамка, и сама
+                 * буква становились янтарными на каждой X. То есть мишень была
+                 * ПОМЕЧЕНА цветом: пробу можно было проходить, не читая букв,
+                 * а `commission_errors` и `omissions` снимались с задачи, где
+                 * цель выскакивает сама. Нашлось при заведении цветового
+                 * правила — с подсветкой оно было бы бессмысленным вдвойне.
+                 */
+                borderColor: fbColor || colors.border,
                 borderWidth: letterVisible ? 3 : 1,
               }]}
             >
               {letterVisible && (
                 <Text style={[styles.stimText, {
                   fontSize: stimFont,   // символ ~60% окна вместо жёстких 120px
-                  color: currentLetter === 'X' ? '#fbbf24' : colors.text,
+                  // Цвет буквы — свойство ПРОБЫ, а не «это мишень». Без правила
+                  // цвета все буквы идут цветом темы, как и раньше на L1–L11.
+                  color: rule.colorRule
+                    ? (currentColor === 'ink' ? colors.text : COLOR_HEX[currentColor])
+                    : colors.text,
                 }]}>
                   {currentLetter}
                 </Text>

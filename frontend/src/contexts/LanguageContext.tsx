@@ -3194,6 +3194,12 @@ const translations: Translations = {
   lr_cpt_lookalike_title: { ru: 'Буквы-ловушки', en: 'Look-alike traps' },
   lr_cpt_lookalike_rule: { ru: 'Среди букв всё чаще попадаются похожие на X: K, Y, V, W, N, M. Не жми на них — жди настоящую X (после A).', en: 'Letters that resemble X now appear more often: K, Y, V, W, N, M. Don\'t tap them — wait for a real X (after A).' },
   lr_cpt_lookalike_example: { ru: 'Пример: мелькнула K — руки прочь, это не X.', en: 'Example: a K flashes by — hands off, it\'s not an X.' },
+  lr_cpt_newtarget_title: { ru: 'Мишень сменилась', en: 'The target changed' },
+  lr_cpt_newtarget_rule: { ru: 'С этого уровня ждать надо НЕ X. Нужная буква названа в подсказке над полем — и меняется от уровня к уровню.', en: 'From this level the target is no longer X. The letter you need is named in the hint above the field, and it changes from level to level.' },
+  lr_cpt_newtarget_example: { ru: 'Пример: сказано «жми на K» — значит X теперь обычная буква, мимо неё.', en: 'Example: if the hint says tap K, then X is just another letter — let it pass.' },
+  lr_cpt_colorrule_title: { ru: 'Цвет тоже правило', en: 'Colour is part of the rule' },
+  lr_cpt_colorrule_rule: { ru: 'Теперь мишень засчитывается только КРАСНАЯ. Та же буква другого цвета — ловушка, жать нельзя.', en: 'Now only a RED target counts. The same letter in another colour is a trap — don\'t tap it.' },
+  lr_cpt_colorrule_example: { ru: 'Пример: красная K после A — жми. Синяя K — мимо.', en: 'Example: a red K after an A — tap. A blue K — let it pass.' },
   lr_digit_span_reverse_title: { ru: 'Ввод с конца', en: 'Type backwards' },
   lr_digit_span_reverse_rule: { ru: 'С этого уровня вводи цифры В ОБРАТНОМ порядке — от последней к первой.', en: 'From this level on, enter the digits in REVERSE order — last digit first.' },
   lr_digit_span_reverse_example: { ru: 'Пример: показано 4 9 2 — вводи 294.', en: 'Example: shown 4 9 2 — type 294.' },
@@ -3426,6 +3432,14 @@ const translations: Translations = {
   sspanLvlAuto: { ru: 'Ур. {n} — растёт сам (span → скорость показа → сетка 5×5)', en: 'Lv {n} — grows with results (span → show speed → 5×5 grid)' },
   cptTapAX: { ru: 'Жми только на X, если ПЕРЕД ней была A', en: 'Tap X only if it followed A' },
   cptTapX: { ru: 'Жми на каждую X. Не пропускай!', en: 'Tap every X. Don\'t miss!' },
+  // 10.09.2026: мишень с L9 уже не X, а правило с L12 составное (буква И цвет).
+  // Подсказка обязана называть ТЕКУЩУЮ мишень — иначе механика неиграбельна.
+  // {letter} подставляет сама игра (пакет переводов подстановки не делает).
+  cptTapLetter: { ru: 'Жми на каждую {letter}. Не пропускай!', en: 'Tap every {letter}. Don\'t miss!' },
+  cptTapAXLetter: { ru: 'Жми только на {letter}, если ПЕРЕД ней была A', en: 'Tap {letter} only if it followed A' },
+  cptTapColor: { ru: 'Только КРАСНАЯ {letter} после A. Другой цвет — не трогай', en: 'Only a RED {letter} after A. Ignore other colours' },
+  cptLvlParamsColor: { ru: 'AX-CPT · только КРАСНАЯ {letter} после A · похожие буквы · 90 сек', en: 'AX-CPT · only a RED {letter} after A · look-alikes · 90 s' },
+  cptLvlParamsLetter: { ru: 'AX-CPT · жми на {letter} только после A · похожие буквы · 90 сек', en: 'AX-CPT · tap {letter} only after A · look-alikes · 90 s' },
   prlModeLevels: { ru: 'Уровни — прогрессия', en: 'Levels — progression' },
   prlModeClassic: { ru: 'Классический — диагностика', en: 'Classic — diagnostic' },
   modeLevels: { ru: 'Уровни', en: 'Levels' },
