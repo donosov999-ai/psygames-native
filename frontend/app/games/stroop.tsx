@@ -43,6 +43,7 @@ import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
+import { makeDecoys, DECOYS_MAX } from '@/src/games/attention/decoys';
 
 const GRADIENT = ['#fc466b', '#3f5efb'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -135,7 +136,7 @@ export type StroopColor = typeof COLORS_DEF[0];
  */
 export const INCONGRUENT_RATIO = 0.5;
 
-export interface StroopTrial { word: StroopColor; ink: StroopColor; congruent: boolean }
+export interface StroopTrial { word: StroopColor; ink: StroopColor; congruent: boolean; decoys: string[] }
 
 /**
  * Проба уровня. Уровень стоит в подписи НАМЕРЕННО, хотя доля конфликтных от него
@@ -145,10 +146,16 @@ export interface StroopTrial { word: StroopColor; ink: StroopColor; congruent: b
  */
 export function makeTrial(level: number, palette: StroopColor[] = COLORS_DEF): StroopTrial {
   const word = palette[Math.floor(Math.random() * palette.length)];
-  if (Math.random() >= INCONGRUENT_RATIO) return { word, ink: word, congruent: true };
+  /**
+   * ⚠️ Помехи раздаются ОДИНАКОВО конгруэнтным и неконгруэнтным пробам — иначе
+   * ось попала бы прямо в интерференцию, ради которой проба существует. Поэтому
+   * они считаются ДО ветвления по конгруэнтности, а не внутри веток.
+   */
+  const decoys = makeDecoys(levelParams(level).decoys);
+  if (Math.random() >= INCONGRUENT_RATIO) return { word, ink: word, congruent: true, decoys };
   let ink = word;
   while (ink.name === word.name) ink = palette[Math.floor(Math.random() * palette.length)];
-  return { word, ink, congruent: false };
+  return { word, ink, congruent: false, decoys };
 }
 
 // Маппинг уровня (1..15) в параметры сложности — темп и объём:
@@ -175,13 +182,46 @@ export function makeTrial(level: number, palette: StroopColor[] = COLORS_DEF): S
  * совпало с выбранным режимом): переключения дают трудность, а биомаркер снимается
  * с однородного набора. Сторожит `attention-ladder-per-mode`.
  */
-export function levelParams(level: number): { trials: number; windowMs: number; switchRate: number } {
+export function levelParams(level: number): { trials: number; windowMs: number; switchRate: number; decoys: number } {
   const L = Math.max(1, Math.min(15, level));
   const trials = L <= 5 ? 20 : L <= 10 ? 24 : Math.min(34, 24 + (L - 10) * 2);
   const windowMs = Math.max(1200, 3500 - (L - 1) * 165);
   // До L4 переключений нет вовсе: правило надо сперва освоить. Дальше 0 → 0,40.
   const switchRate = L <= 4 ? 0 : Number((((L - 4) * 0.40) / 11).toFixed(3));
-  return { trials, windowMs, switchRate };
+  /**
+   * 🔴 ЧЕТВЁРТАЯ ОСЬ, 10.09.2026: ПОМЕХИ ВОКРУГ СЛОВА.
+   *
+   * ПОВОД. Замер лестниц раздела: у Струпа нагрузка росла ×4,1 при трёх осях —
+   * вторая с конца. Доля неконгруэнтных заморожена правильно (она сжимает саму
+   * интерференцию), окно и объём у полов на верхних уровнях.
+   *
+   * ⚠️ ОСЬ СХОДСТВА ЦВЕТОВ, КОТОРАЯ НАПРАШИВАЕТСЯ ПЕРВОЙ, ОТВЕРГНУТА ЗАМЕРОМ.
+   * Замер 10.09 (ΔE в Lab, симуляция трёх видов дальтонизма): у палитры для
+   * дальтонизма худшая пара под ПРОТАНОПИЕЙ уже сейчас ΔE = 8,2 — то есть два
+   * цвета почти неразличимы ДО всякого сближения. Сближать их значило бы съесть
+   * запас, которого нет. Числа и разбор — в PROJECT_REF §22.
+   *
+   * Помехи свободны от этого: мера прохода Струпа — РАЗНОСТЬ (интерференция
+   * incongruent − congruent), а помехи удлиняют обе её половины одинаково и из
+   * разности сокращаются. Знаки берутся из общего модуля раздела, где записано,
+   * почему среди них не должно быть букв: буква рядом со словом читалась бы
+   * вместе с ним.
+   */
+  const decoys = L <= 3 ? 0 : L <= 8 ? 2 : DECOYS_MAX;
+  return { trials, windowMs, switchRate, decoys };
+}
+
+/**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТА МЕРА ПРОХОДА, — В САМУ ПАРТИЮ.
+ *
+ * Интерференция Струпа зависит и от окна ответа, и от доли смен правила, и
+ * теперь от помех. Два одинаковых на вид числа, снятые на разных уровнях,
+ * означают разное, а раздел с 09.09.2026 меряет прогресс ЧЕЛОВЕКА — то есть
+ * сравнивает два его прохода между собой.
+ */
+export function levelCondition(level: number): { trials: number; windowMs: number; switchRate: number; decoys: number } {
+  const { trials, windowMs, switchRate, decoys } = levelParams(level);
+  return { trials, windowMs, switchRate, decoys };
 }
 
 /** Правило текущей пробы: обычно базовое, с вероятностью `switchRate` — другое. */
@@ -212,6 +252,8 @@ export default function StroopGame() {
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'ink') === 'word' ? 'word' : 'ink'));
   const [word, setWord] = useState(PALETTE[0]);
   const [inkColor, setInkColor] = useState(PALETTE[1]);
+  /** Помехи текущей пробы — состоянием: во время отрисовки реф читать нельзя. */
+  const [decoys, setDecoys] = useState<string[]>([]);
   const [trialRule, setTrialRule] = useState<Mode>('ink');
   const [round, setRound] = useState(0);
   const [hits, setHits] = useState(0);
@@ -249,9 +291,10 @@ export default function StroopGame() {
 
   const nextRound = () => {
     if (stoppedRef.current) return;
-    const { word: w, ink: c } = makeTrial(levelRef.current, PALETTE);
+    const t = makeTrial(levelRef.current, PALETTE);
+    const { word: w, ink: c } = t;
     wordRef.current = w; inkRef.current = c;
-    setWord(w); setInkColor(c);
+    setWord(w); setInkColor(c); setDecoys(t.decoys);
     // правило пробы разыгрывается ДО показа: подсказка под стимулом покажет его человеку
     const r = ruleForTrial(modeRef.current, switchRateRef.current);
     trialRuleRef.current = r;
@@ -523,9 +566,19 @@ export default function StroopGame() {
         }
       >
         <View style={styles.fieldCol}>
-          <Text style={[styles.bigWord, { color: inkColor.hex }]}>
-            {language === 'ru' ? word.ru : word.en}
-          </Text>
+          {/* Помехи по бокам слова. Само слово размера НЕ меняет: уменьшив его,
+              мы добавили бы к пробе остроту зрения, а меряем не её. */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, writingDirection: 'ltr' } as any}>
+            {decoys.slice(0, Math.ceil(decoys.length / 2)).map((g, k) => (
+              <Text key={`л${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
+            ))}
+            <Text style={[styles.bigWord, { color: inkColor.hex }]}>
+              {language === 'ru' ? word.ru : word.en}
+            </Text>
+            {decoys.slice(Math.ceil(decoys.length / 2)).map((g, k) => (
+              <Text key={`п${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
+            ))}
+          </View>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
             {trialRule === 'ink' ? t('stroopHintInk') : t('stroopHintWord')}
           </Text>
@@ -597,6 +650,7 @@ const styles = StyleSheet.create({
   statText: { fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 20 },
   bigWord: { fontSize: 56, fontWeight: '900', letterSpacing: 4 },
+  decoy: { fontSize: 24, fontWeight: '900' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320 },
   // Ширина ряда НЕ ограничивается своим числом: её задаёт слот каркаса
   // (390 − FAB_GUTTER·2 = 258 на телефоне). Прежний maxWidth 360 обещал место,

@@ -26,6 +26,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
+import { makeDecoys, DECOYS_MAX } from '@/src/games/attention/decoys';
 import { stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { saveSession } from '@/src/services/api';
@@ -132,10 +133,8 @@ export const SWITCH_PROB = 0.5;
  * со стимулом «афишировала» бы одну из задач и добавила бы к пробе смысловой
  * конфликт вместо чистого перцептивного.
  */
-const DECOY_GLYPHS = ['#', '§', '%', '&', '@', '¤', '¶', '='];
-
-/** Сколько помех влезает по бокам: коробка 360 px, ядро ~120 px, знак ~40 px. */
-const DECOYS_MAX = 4;
+// Знаки и предел — в общем модуле раздела: разбор там же, в шапке decoys.ts.
+// Здесь их держать нельзя: копия разъедется, и помеха станет буквой.
 
 export function levelParams(level: number): { trials: number; switchProb: number; windowMs: number; decoys: number } {
   const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
@@ -281,8 +280,7 @@ export function makeTrial(mode: StimMode, level: number, last: number | null): T
    * каждом кадре, мельтешение читалось бы как движение и добавляло к пробе
    * совсем другую нагрузку.
    */
-  const помехи = Array.from({ length: сколькоПомех },
-    () => DECOY_GLYPHS[Math.floor(Math.random() * DECOY_GLYPHS.length)]);
+  const помехи = makeDecoys(сколькоПомех);
   return { taskIdx, num: n, letter, full, correctLeft: judgeLeft(mode, taskIdx, n, letter), isSwitch, decoys: помехи };
 }
 
