@@ -9,7 +9,7 @@
  * ⚠️ Цвета берём из ЕГО палитры, но фон подменяем нашим: у него он чисто белый, а у
  * нас тема бывает тёмной. Индекс 0 в его палитре — всегда фон (`frontend_default_colour`).
  */
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Svg, { Rect, Line, Circle, Polygon, Text as SvgText } from 'react-native-svg';
 import type { Партия, Примитив, Жест } from '@/src/games/tatham-bridge/play';
@@ -48,10 +48,70 @@ export default function PuzzleCanvas({ партия, ширина, onЖест, �
    * ⚠️ Во ВРЕМЯ протяжки `locationX` считается от того элемента, где жест начался, —
    * это ровно наш холст, поэтому пересчёт один и тот же на всех трёх событиях.
    */
-  const шаг = useCallback((e: any, жест: Жест) => {
+  /**
+   * 🔴 ДОЛГОЕ НАЖАТИЕ — ЭТО ПРАВАЯ КНОПКА. БЕЗ НЕЁ 15 ИГР ИЗ 40 НЕ РЕШАЮТСЯ.
+   *
+   * 📍 Отчёт Дениса 10.09.2026, «Магниты»: доска заполнена целиком, 103 хода,
+   * подсказки красные, «в конце ничего не происходит». Так и должно было быть:
+   * в «Магнитах» часть половинок домино обязана остаться ПУСТОЙ, а пустую ставят
+   * правой кнопкой. У нас `правой` было зашито `false` — второго действия не
+   * существовало, и головоломка была нерешаема в принципе.
+   *
+   * ЗАМЕР по мосту 10.09.2026: правая кнопка даёт СВОЙ результат у пятнадцати —
+   * Black Box, Dominosa, Keen, Light Up, Loopy, Magnets, Mosaic, Palisade,
+   * Signpost, Singles, Slant, Tents, Towers, Twiddle, Unruly.
+   *
+   * КАК УСТРОЕНО. Нажатие не отправляется сразу: ждём `ДОЛГОЕ_МС`.
+   *   · палец сдвинулся раньше — это протяжка, шлём левую с исходной точки;
+   *   · время вышло без движения — шлём ПРАВУЮ нажатие+отпускание;
+   *   · отпустил раньше — обычный левый тычок.
+   * Иначе кнопку пришлось бы выбирать до того, как ясно, что за жест.
+   */
+  const ДОЛГОЕ_МС = 420;
+  const ПОРОГ_СДВИГА = 8;                       // точек поля, дальше — это уже протяжка
+  const жестРеф = useRef<{
+    x: number; y: number; начат: boolean; правой: boolean; таймер: any;
+  } | null>(null);
+
+  const снятьТаймер = useCallback(() => {
+    const ж = жестРеф.current;
+    if (ж?.таймер) { clearTimeout(ж.таймер); ж.таймер = null; }
+  }, []);
+
+  const начать = useCallback((e: any) => {
     const [x, y] = точка(e);
-    onЖест(x, y, жест, false);
-  }, [точка, onЖест]);
+    снятьТаймер();
+    const ж = { x, y, начат: false, правой: false, таймер: null as any };
+    жестРеф.current = ж;
+    ж.таймер = setTimeout(() => {
+      if (!жестРеф.current || жестРеф.current !== ж || ж.начат) return;
+      ж.начат = true; ж.правой = true;
+      onЖест(ж.x, ж.y, 'нажал', true);
+    }, ДОЛГОЕ_МС);
+  }, [точка, onЖест, снятьТаймер]);
+
+  const вести = useCallback((e: any) => {
+    const ж = жестРеф.current; if (!ж) return;
+    const [x, y] = точка(e);
+    if (!ж.начат) {
+      if (Math.abs(x - ж.x) < ПОРОГ_СДВИГА && Math.abs(y - ж.y) < ПОРОГ_СДВИГА) return;
+      снятьТаймер();
+      ж.начат = true;                            // сдвинулся раньше срока — обычная протяжка
+      onЖест(ж.x, ж.y, 'нажал', false);
+    }
+    onЖест(x, y, 'ведёт', ж.правой);
+  }, [точка, onЖест, снятьТаймер]);
+
+  const отпустить = useCallback((e: any) => {
+    const ж = жестРеф.current; if (!ж) return;
+    const [x, y] = точка(e);
+    снятьТаймер();
+    if (!ж.начат) onЖест(ж.x, ж.y, 'нажал', false);   // короткий тычок
+    onЖест(x, y, 'отпустил', ж.правой);
+    жестРеф.current = null;
+  }, [точка, onЖест, снятьТаймер]);
+
+  useEffect(() => снятьТаймер, [снятьТаймер]);
 
   return (
     <View
@@ -78,10 +138,10 @@ export default function PuzzleCanvas({ партия, ширина, onЖест, �
         { userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'none' } as any]}
       onStartShouldSetResponder={() => true}
       onMoveShouldSetResponder={() => true}
-      onResponderGrant={(e) => шаг(e, 'нажал')}
-      onResponderMove={(e) => шаг(e, 'ведёт')}
-      onResponderRelease={(e) => шаг(e, 'отпустил')}
-      onResponderTerminate={(e) => шаг(e, 'отпустил')}
+      onResponderGrant={начать}
+      onResponderMove={вести}
+      onResponderRelease={отпустить}
+      onResponderTerminate={отпустить}
     >
       <Svg width={W * масштаб} height={H * масштаб} viewBox={`0 0 ${W} ${H}`}>
         <Rect x={0} y={0} width={W} height={H} fill={фон} />
