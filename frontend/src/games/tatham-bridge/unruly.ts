@@ -1,4 +1,4 @@
-/* psygames-unruly-rules · VER 1 · 10.09.2026 */
+/* psygames-tatham-bridge-unruly-rules · VER 1 · 10.09.2026 */
 /**
  * ПРАВИЛА «ЧЁТ-НЕЧЕТ» (Unruly) — на нашей стороне, потому что они в две строки.
  *

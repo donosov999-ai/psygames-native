@@ -1,139 +1,250 @@
-/* psygames-game-puzzles · VER 1 · 10.09.2026 */
+/* psygames-game-puzzles · VER 3 · 10.09.2026 */
 /**
- * «ЧЁТ-НЕЧЕТ» — первая головоломка на мосте к движкам Саймона Тэтхэма.
+ * ГОЛОВОЛОМКИ ТЭТХЭМА — ВСЕ СОРОК движков на одном экране.
  *
- * Правило: в каждой строке и каждом столбце поровну нулей и единиц, и трёх одинаковых
- * подряд не бывает. Клетка перебирается нажатием: пусто → 0 → 1 → пусто.
+ * Доску рисует ЕГО код, но не на своём холсте: мост записывает вызовы рисования
+ * примитивами, а мы рисуем их своим SVG (`PuzzleCanvas`) — каркас, цвета и шрифты наши.
+ * Нажатие пересчитывается в его координаты и уходит в движок: ПРАВИЛА ЗНАЕТ ОН, у нас
+ * их нет ни одних. Подсказка — его же решатель.
  *
- * 🔴 ЧТО ЗДЕСЬ ЧЬЁ. Доску генерирует ЕГО движок (`unruly.c`) — там гарантия единственного
- * решения и лестница из семи ступеней, от 8×8 Trivial до 14×14 Normal; это и есть дорогая
- * часть, ради которой мост строился. Правило проверки — наше (`tatham-bridge/unruly.ts`),
- * оно в две строки и ходить за ним в wasm на каждое нажатие было бы лишней ценой.
+ * 📌 Ступень автора — ОСЬ нашей лестницы (решение Дениса 10.09.2026). У каждой
+ * головоломки свой набор: у Solo шестнадцать ступеней, у Unruly семь, у Fifteen одна.
  *
- * 📌 Ступень автора — ОСЬ нашей лестницы (решение Дениса 10.09.2026): уровень 1..7 выбирает
- * его пресет, дальше лестница растёт размером поля и плотностью подсказок.
+ * 🔴 ЛЕСТНИЦА ДВУСТОРОННЯЯ, И СОБЫТИЕ ПРОВАЛА ПРИШЛОСЬ НАЙТИ. У головоломки нет ни
+ * таймера, ни проигрыша: партия длится, пока не решена. Единственный честный признак
+ * «не осилил» — ВЗЯЛ ВЕСЬ ОТВЕТ решателем. Поэтому доигранная решателем партия уровень
+ * не поднимает, а роняет через гистерезисный `lvl.fail()` (третий подряд → −1). Без
+ * этого человек, застрявший на ступени 12, оставался бы на ней вечно, нажимая подсказку.
+ *
+ * Режим выбирается параметром `?mode=<имя движка>`; без него — «Чёт-нечет».
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator, DeviceEventEmitter } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+// 🔴 НЕ `useWindowDimensions`: на первом кадре он отдаёт 0, и доска считается от нулевой
+// ширины. Защита живёт в общем `useScreenSize` — гейт `screen-width-guard` этого и требует.
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
 import GameShell from '@/src/components/GameShell';
+import PuzzleCanvas from '@/src/components/PuzzleCanvas';
+import LevelCleared from '@/src/components/LevelCleared';
+import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { HELP_OPEN_EVENT } from '@/src/components/GameHelpOverlay';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { движки, доска, type Движок } from '@/src/games/tatham-bridge';
-import { изТекста, нарушения, решено, type Клетка } from '@/src/games/tatham-bridge/unruly';
+import { saveSession } from '@/src/services/api';
+// 🔴 НЕ Date.now(): пауза посреди партии не должна попадать в её время — общая
+// дисциплина игровых часов, гейт `game-clock-discipline`.
+import { gameNow } from '@/src/services/gamePause';
+import { движки, type Движок } from '@/src/games/tatham-bridge';
+import { открыть, указатель, стрелка, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
+import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ } from '@/src/games/tatham-bridge/names';
 
-const ИМЯ_ДВИЖКА = 'Unruly';
+const GRADIENT = ['#6C5CE7', '#A78BFA'];
 
 export default function PuzzlesScreen() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
-  const lvl = usePersistentLevel('puzzles_unruly');
+  const { w: width } = useScreenSize();
+  // Тихий шаг: в вечернем режиме экран не звучит и не мигает — общий канон всех игр.
+  // `isPreset` — партия из плейлиста зарядки: она уровень НЕ двигает ни вверх, ни вниз.
+  const { isPreset, isCalm, autostart } = useGamePreset();
+  useCalmHush(isCalm);
+  const параметры = useLocalSearchParams<{ mode?: string }>();
+  const имяРежима = параметры.mode || ПО_УМОЛЧАНИЮ;
 
-  const [движок, setДвижок] = useState<Движок | null>(null);
-  const [поле, setПоле] = useState<Клетка[][]>([]);
-  const [начальное, setНачальное] = useState<Клетка[][]>([]);
-  const [зерно, setЗерно] = useState(() => Math.floor(Math.random() * 1e6));
+  const [список, setСписок] = useState<Движок[]>([]);
+  const [партия, setПартия] = useState<Партия | null>(null);
   const [ходов, setХодов] = useState(0);
+  /** Взят ли весь ответ решателем — этим и меряется провал ступени, см. шапку. */
+  const [сдался, setСдался] = useState(false);
+  /**
+   * 🔴 ЭКРАН НАСТРОЙКИ ОБЯЗАТЕЛЕН, И ЭТО НЕ УКРАШЕНИЕ. Партия у меня начиналась сразу,
+   * и `pan-audit` честно доложил «кнопка входа не найдена» — то есть проверка уезда
+   * вбок не могла войти в игру и молчала бы вслепую. Плюс канон `game-standard`:
+   * тропинка уровней живёт на экране настройки, а не в шапке партии.
+   */
+  const [фаза, setФаза] = useState<'config' | 'playing' | 'cleared'>('config');
+  const [зерно, setЗерно] = useState(() => Math.floor(Math.random() * 1e6));
+  const начатоВ = useRef(gameNow());
 
-  /** Ступень автора по нашему уровню: уровень 1 → ступень 0, дальше по порядку. */
-  const ступень = движок ? Math.min(Math.max(lvl.level - 1, 0), движок.ступени.length - 1) : 0;
+  const движок = список.find((д) => д.имя === имяРежима) ?? null;
+  const ключИгры = `puzzles_${имяРежима.toLowerCase().replace(/\s+/g, '_')}`;
+  const lvl = usePersistentLevel(ключИгры);
+  const ступеней = движок?.ступени.length ?? 1;
+  const ступень = Math.min(Math.max(lvl.level - 1, 0), Math.max(ступеней - 1, 0));
 
   const раздать = useCallback(async (д: Движок, ст: number, з: number) => {
-    const строки = await доска(д.индекс, д.ступени[ст]?.параметры ?? '', з);
-    const сетка = изТекста(строки);
-    setНачальное(сетка.map((r) => [...r]));
-    setПоле(сетка.map((r) => [...r]));
+    setПартия(await открыть(д.индекс, д.ступени[ст]?.параметры ?? '', з));
     setХодов(0);
+    setСдался(false);
+    начатоВ.current = gameNow();
   }, []);
 
   useEffect(() => {
     let живо = true;
     (async () => {
       const все = await движки();
-      const д = все.find((x) => x.имя === ИМЯ_ДВИЖКА);
-      if (!живо || !д) return;
-      setДвижок(д);
-      await раздать(д, Math.min(Math.max(lvl.level - 1, 0), д.ступени.length - 1), зерно);
+      if (!живо) return;
+      setСписок(все);
+      const д = все.find((x) => x.имя === имяРежима) ?? все[0];
+      if (д) await раздать(д, Math.min(Math.max(lvl.level - 1, 0), д.ступени.length - 1), зерно);
+      // Плейлист зарядки заходит с `?wu=1`: настройку он не проходит, партия стартует сама.
+      if (живо && autostart) setФаза('playing');
     })();
     return () => { живо = false; };
-    // раздаём один раз на монтирование; смену уровня и новую партию ведут кнопки
-  }, []);   // eslint-disable-line react-hooks/exhaustive-deps
+    // раздаём при смене режима; уровень и новую партию ведут кнопки
+  }, [имяРежима]);   // eslint-disable-line react-hooks/exhaustive-deps
 
-  const новая = useCallback(() => {
+  const новая = useCallback((ст?: number) => {
     if (!движок) return;
     const з = Math.floor(Math.random() * 1e6);
     setЗерно(з);
-    void раздать(движок, ступень, з);
+    setФаза('playing');
+    void раздать(движок, ст ?? ступень, з);
   }, [движок, ступень, раздать]);
 
-  const жать = useCallback((y: number, x: number) => {
-    // клетки-подсказки движка не трогаем: они часть условия
-    if (начальное[y]?.[x] !== null) return;
-    setПоле((п) => {
-      const н = п.map((r) => [...r]);
-      н[y][x] = н[y][x] === null ? 0 : н[y][x] === 0 ? 1 : null;
-      return н;
-    });
-    setХодов((n) => n + 1);
-  }, [начальное]);
+  const начать = useCallback(() => {
+    if (!движок) return;
+    setФаза('playing');
+    void раздать(движок, ступень, зерно);
+  }, [движок, ступень, зерно, раздать]);
 
-  const беды = поле.length ? нарушения(поле) : { строки: [], столбцы: [] };
-  const победа = поле.length > 0 && решено(поле);
-  const w = поле[0]?.length ?? 0;
-  const сторона = w ? Math.min(38, Math.floor(300 / w)) : 32;
+  const жать = useCallback(async (x: number, y: number, жест: Жест, правой: boolean) => {
+    setПартия(await указатель(x, y, жест, правой));
+    // Ход считаем на ОТПУСКАНИИ: протяжка узла — один ход, а не сорок кадров.
+    if (жест === 'отпустил') setХодов((n) => n + 1);
+  }, []);
+
+  const шагнуть = useCallback(async (куда: Сторона) => {
+    setПартия(await стрелка(куда));
+    setХодов((n) => n + 1);
+  }, []);
+
+  const подсказать = useCallback(() => {
+    setСдался(true);                       // весь ответ показан — ступень не засчитана
+    void решить().then(setПартия);
+  }, []);
+
+  const победа = партия?.статус === 1;
+  const прошёл = победа && !сдался;
+
+  /*
+   * 🔴 ПОТОЛОК ПОДНИМАЕТ `reach`, А НЕ ПРЯМАЯ ЗАПИСЬ. `setLevel` ставит ВЫБРАННЫЙ уровень
+   * и, если человек переигрывал пройденный, срезал бы достигнутое до него — ровно это
+   * ловит гейт `level-replay`. `reach` двигает только потолок вверх.
+   */
+  useEffect(() => {
+    if (!победа) return;
+    const секунд = (gameNow() - начатоВ.current) / 1000;
+    if (!isPreset) {
+      if (прошёл) lvl.reach(Math.min(lvl.level + 1, ступеней));
+      else lvl.fail();                     // гистерезис понижения (3 подряд → −1)
+    }
+    setФаза('cleared');
+    void saveSession({
+      passed: прошёл,
+      game_type: 'puzzles',
+      score: прошёл ? Math.max(0, 1000 - ходов * 5) : 0,
+      time_seconds: секунд,
+      difficulty: `${имяРежима}-${lvl.level}`,
+      mode: имяРежима,
+      details: { level: lvl.level, mode: имяРежима, moves: ходов, solver_used: сдался },
+    }).catch(() => { /* офлайн — партия всё равно доиграна */ });
+  }, [победа]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <GameShell
-      title={t('puzzlesUnruly')}
+      title={t(КЛЮЧ_ИМЕНИ[имяРежима] ?? КЛЮЧ_ИМЕНИ[ПО_УМОЛЧАНИЮ])}
       onBack={() => router.back()}
       confirmExit={ходов > 0 && !победа}
+      overlay={фаза === 'cleared' ? (
+        <LevelCleared
+          gameId="puzzles"
+          level={lvl.level}
+          passed={прошёл}
+          stars={сдался ? 1 : ходов <= ступеней * 12 ? 3 : 2}
+          gradient={GRADIENT}
+          language={language}
+          colors={colors}
+          onContinue={() => новая()}
+          onStop={() => setФаза('config')}
+        />
+      ) : null}
       pauseActions={[
         { id: 'resume', label: t('exitConfirmStay'), icon: 'play', primary: true },
-        { id: 'restart', label: t('restart'), icon: 'refresh', onPress: новая },
+        { id: 'restart', label: t('restart'), icon: 'refresh', onPress: () => новая() },
+        { id: 'undo', label: t('btn_undo'), icon: 'arrow-undo', onPress: () => { void отменить().then(setПартия); } },
+        // Подсказка живёт на ЕГО решателе: где решателя нет (Cube, Pegs, Same Game —
+        // замер по `game.can_solve`), кнопки тоже нет. Кнопка-пустышка хуже отсутствия.
+        ...(движок?.решаем ? [{ id: 'hint', label: t('btn_hint'), icon: 'bulb-outline' as const, onPress: подсказать }] : []),
         { id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline', onPress: () => DeviceEventEmitter.emit(HELP_OPEN_EVENT) },
         { id: 'home', label: t('goHome'), icon: 'home', leave: true },
       ]}
       hud={[
-        { key: 'level', icon: 'trending-up-outline', label: t('hud_step'), value: `${lvl.level}/${движок?.ступени.length ?? 7}` },
+        { key: 'level', icon: 'trending-up-outline', label: t('hud_step'), value: `${lvl.level}/${ступеней}` },
         { key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'), value: ходов, pop: true },
       ]}
     >
-      {!поле.length ? (
+      {фаза === 'config' ? (
+        <View style={styles.centre}>
+          <Text style={[styles.rule, { color: colors.textSecondary }]}>
+            {t(КЛЮЧ_ОПИСАНИЯ[имяРежима] ?? КЛЮЧ_ОПИСАНИЯ[ПО_УМОЛЧАНИЮ])}
+          </Text>
+          <LevelProgressMap
+            gameId={ключИгры}
+            currentLevel={lvl.level}
+            bestLevel={lvl.best}
+            maxLevel={ступеней}
+            colors={colors}
+            language={language}
+            onPickLevel={(n: number) => lvl.pick(n)}
+          />
+          <Pressable
+            accessibilityRole="button"
+            onPress={начать}
+            style={[styles.start, { backgroundColor: colors.primary }]}
+          >
+            <Text style={styles.startText}>{t('start')}</Text>
+          </Pressable>
+        </View>
+      ) : !партия ? (
         <View style={styles.centre}><ActivityIndicator color={colors.primary} /></View>
       ) : (
         <View style={styles.centre}>
-          <Text style={[styles.rule, { color: colors.textSecondary }]}>{t('puzzlesUnrulyRule')}</Text>
-          <View>
-            {поле.map((ряд, y) => (
-              <View key={y} style={styles.row}>
-                {ряд.map((c, x) => {
-                  const дано = начальное[y][x] !== null;
-                  const плохо = беды.строки.includes(y) || беды.столбцы.includes(x);
-                  return (
-                    <Pressable
-                      key={x}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${y + 1}·${x + 1}`}
-                      onPress={() => жать(y, x)}
-                      style={[styles.cell, {
-                        width: сторона, height: сторона,
-                        borderColor: плохо ? '#E24B4A' : colors.border,
-                        backgroundColor: c === null ? colors.surface : c === 0 ? colors.background : colors.primary,
-                      }]}
-                    >
-                      <Text style={[styles.mark, { color: c === 1 ? '#fff' : colors.text, opacity: дано ? 1 : 0.75 }]}>
-                        {c === null ? '' : c === 0 ? '○' : '●'}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ))}
-          </View>
-          {победа ? <Text style={[styles.won, { color: colors.primary }]}>{t('levelDone').replace('{n}', String(lvl.level))}</Text> : null}
+          {/*
+            🔴 ЗАДАНИЕ ВИСИТ НАД ДОСКОЙ ВСЮ ПАРТИЮ, а не только на настройке. Правила у
+            двадцати головоломок разные и ни одни не наши: без строки доска Тэтхэма —
+            набор клеток без смысла. Гейт `game-task-line` держит её именно в партии.
+          */}
+          <Text style={[styles.rule, { color: colors.textSecondary }]}>
+            {t(КЛЮЧ_ОПИСАНИЯ[имяРежима] ?? КЛЮЧ_ОПИСАНИЯ[ПО_УМОЛЧАНИЮ])}
+          </Text>
+          <PuzzleCanvas
+            партия={партия}
+            ширина={Math.min(width - 32, 420)}
+            фон={colors.background}
+            onЖест={(x, y, ж, п) => { void жать(x, y, ж, п); }}
+          />
+          {СТРЕЛОЧНЫЕ.has(имяРежима) ? (
+            <View style={styles.крестовина}>
+              {([['влево', 'chevron-back'], ['вверх', 'chevron-up'], ['вниз', 'chevron-down'], ['вправо', 'chevron-forward']] as const).map(([куда, знак]) => (
+                <Pressable
+                  key={куда}
+                  accessibilityRole="button"
+                  accessibilityLabel={куда}
+                  onPress={() => { void шагнуть(куда); }}
+                  style={[styles.стрелка, { borderColor: colors.border, backgroundColor: colors.card }]}
+                >
+                  <Ionicons name={знак} size={22} color={colors.text} />
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
         </View>
       )}
     </GameShell>
@@ -141,10 +252,10 @@ export default function PuzzlesScreen() {
 }
 
 const styles = StyleSheet.create({
-  centre: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 12 },
+  centre: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 10 },
   rule: { fontSize: 13, lineHeight: 18, textAlign: 'center', maxWidth: 320 },
-  row: { flexDirection: 'row' },
-  cell: { borderWidth: 1, alignItems: 'center', justifyContent: 'center', margin: 1, borderRadius: 6 },
-  mark: { fontSize: 15, fontWeight: '700' },
-  won: { fontSize: 17, fontWeight: '700' },
+  start: { minHeight: 52, paddingHorizontal: 34, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  startText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  крестовина: { flexDirection: 'row', gap: 10 },
+  стрелка: { width: 54, height: 46, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });

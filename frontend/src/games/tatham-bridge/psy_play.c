@@ -1,4 +1,4 @@
-/* psygames-tatham-play · VER 1 · 10.09.2026
+/* psygames-tatham-bridge-play · VER 2 · 10.09.2026
  *
  * ИГРАБЕЛЬНЫЙ СЛОЙ: одна реализация — все сорок головоломок.
  *
@@ -93,8 +93,21 @@ static void п_dot(drawing *dr, bool d) { (void)dr; пиши("D %d", d ? 1 : 0);
 
 /* Блиттеры (сохранение куска экрана) головоломкам нужны только для анимации перетаскивания.
  * Мы перерисовываем целиком на каждое нажатие, поэтому они заглушены. */
-static blitter *п_bl_new(drawing *dr, int w, int h) { (void)dr; (void)w; (void)h; return NULL; }
-static void п_bl_free(drawing *dr, blitter *b) { (void)dr; (void)b; }
+/*
+ * 🔴 БЛИТТЕР ОБЯЗАН БЫТЬ НЕ NULL, ХОТЯ И НЕ ХРАНИТ ПИКСЕЛЕЙ. Шесть головоломок канона
+ * (galaxies, guess, inertia, map, pegs, signpost) заводят блиттер под фон движущейся
+ * фигуры и ПРОВЕРЯЮТ его утверждением: `assert(ds->player_background)` в
+ * `inertia.c:2132` уронил всю сборку, когда `blitter_new` отдавал NULL.
+ * Пикселей мы не сохраняем и не обязаны: каждый снимок доски — полная перерисовка
+ * (`midend_force_redraw`), поэтому «вернуть кусок фона» нечего восстанавливать, а
+ * ложный NULL — единственное, чего движок не переживёт. Ручка настоящая, размеры
+ * хранятся: если появится частичная отрисовка, тут будет что расширять.
+ */
+struct blitter { int w, h; };
+static blitter *п_bl_new(drawing *dr, int w, int h) {
+    blitter *b = snew(blitter); (void)dr; b->w = w; b->h = h; return b;
+}
+static void п_bl_free(drawing *dr, blitter *b) { (void)dr; sfree(b); }
 static void п_bl_save(drawing *dr, blitter *b, int x, int y) { (void)dr; (void)b; (void)x; (void)y; }
 static void п_bl_load(drawing *dr, blitter *b, int x, int y) { (void)dr; (void)b; (void)x; (void)y; }
 
@@ -197,6 +210,41 @@ EMSCRIPTEN_KEEPALIVE int psy_click(int x, int y, int right)
 {
     if (!ПАРТИЯ) return 0;
     return midend_process_key(ПАРТИЯ, x, y, right ? RIGHT_BUTTON : LEFT_BUTTON);
+}
+
+/*
+ * 🔴 ПОЛНЫЙ ЖЕСТ, А НЕ ОДНО КАСАНИЕ. Замер 10.09.2026 по всем сорока: одиночного
+ * нажатия хватает большинству, но пятерым — нет, и они молча ничего не делают.
+ * Untangle тащит узел, Pegs переносит колышек, Rectangles растягивает прямоугольник,
+ * Loopy и Slant позволяют вести линию протяжкой. Всем им нужны ТРИ события подряд:
+ * нажал — ведёт — отпустил. Так устроены и все родные оболочки автора.
+ *
+ * `вид`: 0 нажал левой · 1 ведёт левой · 2 отпустил левой · 3..5 — то же правой.
+ * Значения кнопок идут в enum подряд (`puzzles.h:32`), поэтому шаг считается, а не
+ * перечисляется: LEFT_BUTTON+вид даёт ровно нужное событие. Порядок enum'а закреплён
+ * проверками ниже — если автор его переставит, сборка встанет здесь, а не в игре.
+ */
+EMSCRIPTEN_KEEPALIVE int psy_pointer(int x, int y, int вид)
+{
+    static const int КНОПКА[6] = {
+        LEFT_BUTTON, LEFT_DRAG, LEFT_RELEASE,
+        RIGHT_BUTTON, RIGHT_DRAG, RIGHT_RELEASE,
+    };
+    if (!ПАРТИЯ || вид < 0 || вид > 5) return 0;
+    return midend_process_key(ПАРТИЯ, x, y, КНОПКА[вид]);
+}
+
+/*
+ * СТРЕЛКА. Двум режимам из сорока (Cube и Inertia) нажимать по доске нечего: их
+ * `interpret_move` читает только CURSOR_*. Коды берутся ЗДЕСЬ, из его же enum, а не
+ * переписываются числами в TypeScript: переставит автор enum — поедет одно место.
+ * `сторона`: 0 вверх · 1 вниз · 2 влево · 3 вправо.
+ */
+EMSCRIPTEN_KEEPALIVE int psy_cursor(int сторона)
+{
+    static const int КОД[4] = { CURSOR_UP, CURSOR_DOWN, CURSOR_LEFT, CURSOR_RIGHT };
+    if (!ПАРТИЯ || сторона < 0 || сторона > 3) return 0;
+    return midend_process_key(ПАРТИЯ, -1, -1, КОД[сторона]);
 }
 
 /** Клавиша (цифры для судоку и кенкена, стрелки, пробел). */

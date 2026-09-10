@@ -1,4 +1,4 @@
-/* psygames-tatham-bridge · VER 1 · 10.09.2026
+/* psygames-tatham-bridge-bridge · VER 2 · 10.09.2026
  *
  * Мост к движкам Саймона Тэтхэма: наружу отдаются ТОЛЬКО генератор, решатель и
  * список ступеней сложности. Ни одной строки его интерфейса — рисуем своим.
@@ -121,6 +121,18 @@ EMSCRIPTEN_KEEPALIVE char *psy_board(int i, const char *params, int seed)
 }
 
 /** Умеет ли головоломка показать себя текстом — чтобы наша сторона не гадала. */
+/*
+ * ЕСТЬ ЛИ У ДВИЖКА РЕШАТЕЛЬ. На нём стоит наша подсказка, и у части коллекции его НЕТ
+ * по устройству игры: у аркад (Same Game, Flood, Inertia, Pegs) единственного решения не
+ * существует, у Mines и Guess ответ прячется от игрока намеренно. Флаг берётся у самого
+ * автора (`game.can_solve`), а не из моего списка — список устаревает молча, флаг нет.
+ */
+EMSCRIPTEN_KEEPALIVE int psy_can_solve(int i)
+{
+    if (i < 0 || i >= gamecount) return 0;
+    return gamelist[i]->can_solve ? 1 : 0;
+}
+
 EMSCRIPTEN_KEEPALIVE int psy_has_board(int i)
 {
     if (i < 0 || i >= gamecount) return 0;

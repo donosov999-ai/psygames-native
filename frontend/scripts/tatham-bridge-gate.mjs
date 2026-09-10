@@ -33,16 +33,44 @@ const МОСТ = path.join(ЗДЕСЬ, '../src/games/tatham-bridge/tatham.js');
  * Keen и Map себя текстом не показывают: им нужна своя отрисовка, и это записанный факт,
  * а не дефект.
  */
-const БЕЗ_ТЕКСТА = new Set(['Keen', 'Map']);
+const БЕЗ_ТЕКСТА = new Set(['Black Box', 'Cube', 'Guess', 'Keen', 'Map', 'Net', 'Netslide', 'Untangle']);
+
+/**
+ * 🔴 У КОГО НЕТ РЕШАТЕЛЯ — ФЛАГ САМОГО АВТОРА, НЕ МОЙ СПИСОК. `psy_can_solve` читает
+ * `game.can_solve`. Замер 10.09.2026 по всем сорока: его нет у трёх — Cube, Pegs,
+ * Same Game. Причина одна на всех: единственного решения у них не существует по
+ * устройству игры. Кнопка подсказки в таких режимах не показывается.
+ */
+const БЕЗ_РЕШАТЕЛЯ = new Set(['Cube', 'Pegs', 'Same Game']);
+
+/**
+ * 🔴 РЕШАТЕЛЬ ЕСТЬ, А ПАРТИЮ ОН НЕ ЗАКАНЧИВАЕТ — тринадцать движков, замер 10.09.2026
+ * (`psy_solve` → `psy_status`). Три разных исхода, и все три законные:
+ *   · Black Box и Guess отдают −1 (проигрыш): раскрыть спрятанное — и значит проиграть,
+ *     плата за подсказку у них встроена в правило;
+ *   · Cube, Netslide, Pegs, Same Game, Untangle отдают solve=0 — midend отказывает,
+ *     решателя нет вовсе либо ход-решение он построить не берётся;
+ *   · Flip, Flood, Inertia, Mines, Rectangles, Undead показывают ответ, но статус
+ *     остаётся 0 — доска раскрыта, а «победой» это по их правилам не считается.
+ * Поэтому наш экран считает ВЗЯТУЮ подсказку концом раздачи независимо от статуса:
+ * ступень не засчитана, партия закрыта, человек не заперт на раскрытой доске.
+ */
+const РЕШАТЕЛЬ_НЕ_ЗАКАНЧИВАЕТ = new Set([
+  'Black Box', 'Cube', 'Flip', 'Flood', 'Guess', 'Inertia', 'Mines',
+  'Netslide', 'Pegs', 'Rectangles', 'Same Game', 'Undead', 'Untangle',
+]);
 
 /** Замер 10.09.2026, канон на коммите 38e7ea3: сколько ступеней объявил САМ автор. */
 const СТУПЕНИ = {
-  Solo: 16, Unequal: 12, Dominosa: 12, 'Train Tracks': 12, Keen: 10, Singles: 10,
-  'Light Up': 9, Magnets: 8, Pearl: 8, Unruly: 7, Towers: 7, Tents: 6, Slant: 6,
-  Map: 6, Signpost: 6, Galaxies: 6, Pattern: 5, Filling: 3, Fifteen: 1,
-  // ⚠️ У Loopy меню пресетов устроено иначе — `fetch_preset` не отвечает. Ноль здесь не
-  // дефект, а записанный факт: лестницу ему считать отдельно.
-  Loopy: 0,
+  Solo: 16, Dominosa: 12, 'Train Tracks': 12, Unequal: 12, Keen: 10, Net: 10, Singles: 10,
+  Bridges: 9, 'Light Up': 9, Netslide: 9, Pegs: 9, Magnets: 8, Pearl: 8, Twiddle: 8,
+  Undead: 8, Flood: 7, Rectangles: 7, Towers: 7, Unruly: 7, Flip: 6, Galaxies: 6, Map: 6,
+  Mosaic: 6, Signpost: 6, Slant: 6, Tents: 6, 'Black Box': 5, Pattern: 5, 'Same Game': 5,
+  Sixteen: 5, Untangle: 5, Cube: 4, Palisade: 4, Range: 4, Filling: 3, Inertia: 3,
+  Guess: 2, Fifteen: 1,
+  // ⚠️ Ноль у двоих — не дефект, а записанный факт: меню пресетов у них устроено иначе
+  // и `fetch_preset` не отвечает. Лестницу этим двум считать отдельно, размером поля.
+  Loopy: 0, Mines: 0,
 };
 
 const беды = [];
@@ -116,9 +144,14 @@ for (let i = 0; i < n; i++) {
   if (примитивов < 4) беды.push(`${имя}: нарисовано ${примитивов} примитивов — доски нет`);
 
   // решатель автора обязан доводить партию до победы: на нём стоят подсказки
+  const решён = M.ccall('psy_can_solve', 'number', ['number'], [i]) === 1;
+  if (решён === БЕЗ_РЕШАТЕЛЯ.has(имя)) {
+    беды.push(`${имя}: can_solve=${решён}, а в замере записано обратное`);
+  }
   M.ccall('psy_solve', 'number', [], []);
-  if (M.ccall('psy_status', 'number', [], []) !== 1) {
-    беды.push(`${имя}: решатель не довёл партию до победы`);
+  const победил = M.ccall('psy_status', 'number', [], []) === 1;
+  if (победил === РЕШАТЕЛЬ_НЕ_ЗАКАНЧИВАЕТ.has(имя)) {
+    беды.push(`${имя}: решатель ${победил ? 'довёл' : 'не довёл'} до победы — обратное замеру`);
   }
 }
 

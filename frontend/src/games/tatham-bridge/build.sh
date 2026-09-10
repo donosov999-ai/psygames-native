@@ -7,7 +7,12 @@ SRC="${PUZZLES_SRC:-$HOME/dev/puzzles}"
 [ -d "$SRC" ] || { echo "нет канона Тэтхэма: $SRC (задай PUZZLES_SRC)"; exit 2; }
 command -v emcc >/dev/null || { echo "нет emcc — source ~/dev/emsdk/emsdk_env.sh"; exit 2; }
 cd "$SRC" || exit 1
-G="unruly keen towers unequal singles tents magnets pearl slant map signpost filling dominosa tracks pattern galaxies solo fifteen lightup loopy"
+# ВСЕ СОРОК головоломок канона (`grep ^puzzle\( CMakeLists.txt` = 41 строка, минус
+# `nullgame` — это заглушка сборки, а не игра). Список отсортирован как у автора.
+G="blackbox bridges cube dominosa fifteen filling flip flood galaxies guess inertia keen \
+lightup loopy magnets map mines mosaic net netslide palisade pattern pearl pegs range rect \
+samegame signpost singles sixteen slant solo tents towers tracks twiddle undead unequal \
+unruly untangle"
 mkdir -p /tmp/gen
 : > /tmp/gen/generated-games.h
 for g in $G; do echo "GAME($g)" >> /tmp/gen/generated-games.h; done
