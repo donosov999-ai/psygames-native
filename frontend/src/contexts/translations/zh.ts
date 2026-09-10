@@ -2602,6 +2602,7 @@ const t: Record<string, string> = {
   "skillChessCalc": "训练：变着计算",
   "chessTypeTactics": "战术 · 一到两步将杀",
   "chessTypeBlind": "盲棋 · 棋盘记在脑中",
+  "gamePauseOpen": "暂停与退出",
   "puzzlesGroup": "谜题",
   "puzzlesGroupDesc": "西蒙·塔萨姆的四十种逻辑谜题，引擎原封不动",
   "puzzlesGroupFootnote": "每种谜题都有自己的难度阶梯：有的三级，有的十六级",

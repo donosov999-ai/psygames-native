@@ -2602,6 +2602,7 @@ const t: Record<string, string> = {
   "skillChessCalc": "Treinamos: cálculo de variantes",
   "chessTypeTactics": "Tática · mate em 1–2 lances",
   "chessTypeBlind": "Às cegas · o tabuleiro na cabeça",
+  "gamePauseOpen": "Pausa e saída",
   "puzzlesGroup": "Quebra-cabeças",
   "puzzlesGroupDesc": "Quarenta quebra-cabeças lógicos de Simon Tatham: os motores dele por inteiro",
   "puzzlesGroupFootnote": "Cada quebra-cabeça tem a sua escala: nuns três níveis, noutros dezasseis",

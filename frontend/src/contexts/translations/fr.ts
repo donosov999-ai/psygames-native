@@ -2597,6 +2597,7 @@ const t: Record<string, string> = {
   "skillChessCalc": "On travaille : le calcul des variantes",
   "chessTypeTactics": "Tactique · mat en 1–2 coups",
   "chessTypeBlind": "À l’aveugle · l’échiquier en tête",
+  "gamePauseOpen": "Pause et sortie",
   "puzzlesGroup": "Casse-têtes",
   "puzzlesGroupDesc": "Quarante casse-têtes logiques de Simon Tatham : ses moteurs en entier",
   "puzzlesGroupFootnote": "Chaque casse-tête a son échelle : trois paliers ici, seize là",

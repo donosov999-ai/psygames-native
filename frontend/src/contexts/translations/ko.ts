@@ -2597,6 +2597,7 @@ const t: Record<string, string> = {
   "skillChessCalc": "훈련: 수읽기",
   "chessTypeTactics": "전술 · 1~2수 메이트",
   "chessTypeBlind": "블라인드 · 판은 머릿속에",
+  "gamePauseOpen": "일시정지 및 나가기",
   "puzzlesGroup": "퍼즐",
   "puzzlesGroupDesc": "사이먼 태섬의 논리 퍼즐 마흔 가지, 엔진을 통째로",
   "puzzlesGroupFootnote": "퍼즐마다 난이도 사다리가 다릅니다. 세 단계도 열여섯 단계도 있습니다",

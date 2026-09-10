@@ -2597,6 +2597,7 @@ const t: Record<string, string> = {
   "skillChessCalc": "Alleniamo: il calcolo delle varianti",
   "chessTypeTactics": "Tattica · matto in 1–2 mosse",
   "chessTypeBlind": "Alla cieca · la scacchiera in testa",
+  "gamePauseOpen": "Pausa e uscita",
   "puzzlesGroup": "Rompicapo",
   "puzzlesGroupDesc": "Quaranta rompicapo logici di Simon Tatham: i suoi motori per intero",
   "puzzlesGroupFootnote": "Ogni rompicapo ha la sua scala: tre gradini in alcuni, sedici in altri",

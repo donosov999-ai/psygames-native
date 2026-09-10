@@ -1786,6 +1786,7 @@ const translations: Translations = {
   exitConfirmTitle: { ru: 'Выйти из игры?', en: 'Leave the game?' },
   exitConfirmSaved: { ru: 'Партия сохранится — вернётесь и продолжите с этого места.', en: 'Your game will be saved — come back and pick up where you left off.' },
   exitConfirmLost: { ru: 'Партия не сохранится: доска и прогресс пропадут.', en: 'This game will not be saved: the board and your progress will be lost.' },
+  gamePauseOpen: { ru: 'Пауза и выход', en: 'Pause and exit' },
   exitConfirmStay: { ru: 'Продолжить игру', en: 'Keep playing' },
   exitConfirmLeave: { ru: 'Выйти', en: 'Leave' },
   // --- a11y: подписи для скринридеров (VoiceOver/TalkBack), v1.161 ---

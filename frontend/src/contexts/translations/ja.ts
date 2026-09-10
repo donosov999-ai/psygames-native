@@ -2596,6 +2596,7 @@ const t: Record<string, string> = {
   "skillChessCalc": "鍛える：手順の読み",
   "chessTypeTactics": "戦術 · 1〜2手詰め",
   "chessTypeBlind": "目隠し · 盤は頭の中に",
+  "gamePauseOpen": "一時停止と終了",
   "puzzlesGroup": "パズル",
   "puzzlesGroupDesc": "サイモン・タサムの論理パズル四十種。エンジンをまるごと",
   "puzzlesGroupFootnote": "パズルごとに難易度の段があります。三段のものも十六段のものも",

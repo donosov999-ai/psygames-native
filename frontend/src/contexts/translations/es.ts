@@ -2602,6 +2602,7 @@ const t: Record<string, string> = {
   "skillChessCalc": "Entrenamos: cálculo de variantes",
   "chessTypeTactics": "Táctica · mate en 1–2",
   "chessTypeBlind": "A ciegas · el tablero en la cabeza",
+  "gamePauseOpen": "Pausa y salida",
   "puzzlesGroup": "Rompecabezas",
   "puzzlesGroupDesc": "Cuarenta rompecabezas lógicos de Simon Tatham: sus motores enteros",
   "puzzlesGroupFootnote": "Cada rompecabezas tiene su escala: en unos tres niveles, en otros dieciséis",

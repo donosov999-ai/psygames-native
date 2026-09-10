@@ -2602,6 +2602,7 @@ const t: Record<string, string> = {
   "skillChessCalc": "Training: Varianten berechnen",
   "chessTypeTactics": "Taktik · Matt in 1–2 Zügen",
   "chessTypeBlind": "Blind · Brett im Kopf",
+  "gamePauseOpen": "Pause und Beenden",
   "puzzlesGroup": "Rätsel",
   "puzzlesGroupDesc": "Vierzig Logikrätsel von Simon Tatham — seine Engines, vollständig",
   "puzzlesGroupFootnote": "Jedes Rätsel hat seine eigene Schwierigkeitsleiter: mal drei Stufen, mal sechzehn",
