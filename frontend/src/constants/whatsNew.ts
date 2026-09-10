@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.53.5',
+    date: '2026-09-11',
+    ru: [
+      'В головоломках видно, как идёт партия: «отмечено 3 из 10», «соединено 6 из 25», «подсказок осталось 44». Эти счётчики движок вёл и раньше — просто не показывались',
+      'Справка режима головоломок теперь верна на всех языках: раньше на десяти из двенадцати она отправляла к стрелке «назад», которой там больше нет, и молчала про долгое нажатие',
+    ],
+    en: [
+      'Puzzles now show how the round is going: “marked 3 of 10”, “connected 6 of 25”, “44 clues left”. The engine counted all this before — it just was not shown',
+      'The puzzle help text is now correct in every language: in ten of twelve it still pointed at a back arrow that no longer exists and said nothing about the long press',
+    ],
+  },
+  {
     version: '2.53.4',
     date: '2026-09-10',
     ru: [
