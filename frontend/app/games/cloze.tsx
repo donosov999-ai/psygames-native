@@ -342,6 +342,20 @@ export default function ClozeGame() {
           </LinearGradient>
           <GameAbout descriptionKey="clozeIntroDesc" benefits={CLOZE_BENEFITS} accent={GRADIENT[0]} />
 
+          {/*
+            🔴 ПЕРЕКЛЮЧАТЕЛЬ СТОИТ ВЫШЕ ВЫБОРА ЯЗЫКА, А НЕ ПОД НИМ.
+          
+            📍 ЗАМЕР 10.09.2026 ПО КАДРУ, а не по DOM: список языков вырос до
+            одиннадцати и занял четыре ряда, утопив переключатель НИЖЕ СГИБА —
+            на первом экране его не видно вовсе. Денис: «я в твоих скринах не вижу
+            изменений», и он был прав: в дереве узлы были, на экране их не было.
+          
+            ⚠️ Порядок теперь читается сам: сперва «два языка сразу», под ним
+            выбор первого. Раньше человек доходил до конца списка и только там
+            узнавал, что выбор можно отменить режимом.
+          */}
+          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
+            первый={tgt} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
             <Text style={[styles.optionLabel, { color: colors.text }]}>
               {LANGUAGES.find((l) => l.code === language)?.name} →
@@ -371,8 +385,6 @@ export default function ClozeGame() {
               ))}
             </View>
           </View>
-          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
-            первый={tgt} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
 
           <LevelProgressMap bestLevel={lvl.best} gameId="cloze" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12, alignItems: 'center', gap: 6 }]}>
