@@ -2598,6 +2598,7 @@ const t: Record<string, string> = {
   "skillChessCalc": "نتدرّب على: حساب النقلات",
   "chessTypeTactics": "تكتيك · مات في نقلة أو نقلتين",
   "chessTypeBlind": "على العميان · الرقعة في الذهن",
+  "gamePauseOpen": "إيقاف مؤقت وخروج",
   "puzzlesGroup": "ألغاز",
   "puzzlesGroupDesc": "أربعون لغزًا منطقيًا من سيمون تاثام — محرّكاته كاملةً",
   "puzzlesGroupFootnote": "لكل لغز سلّم صعوبة خاص: ثلاث درجات هنا وست عشرة هناك",

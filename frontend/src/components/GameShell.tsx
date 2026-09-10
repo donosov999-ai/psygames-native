@@ -254,6 +254,13 @@ export interface GameShellProps {
    */
   pauseActions?: PauseAction[];
   /**
+   * 🔴 ЧТОБЫ «ЗАНОВО» ПОЯВИЛОСЬ В МЕНЮ ПО УМОЛЧАНИЮ. Каркас умеет сам «Продолжить»
+   * (снять свою задержку) и «На главную» (`exitGuard.confirmExit`), а перераздать
+   * партию может только сама игра. Дал обработчик — получил три кнопки вместо двух.
+   * Играм, у которых есть свой `pauseActions`, этот проп не нужен.
+   */
+  onRestart?: () => void;
+  /**
    * Фиксированные высоты слотов для ПОСЛЕДОВАТЕЛЬНОСТИ упражнений (пространственный
    * пакет). Обычная игра проп не передаёт и живёт как жила.
    *
@@ -445,7 +452,7 @@ export function HeaderRightSlot({ rtl, mood, headerRight, wuStep, wuSkip, skipLa
 }
 
 export default function GameShell({
-  title, onBack, stats, hud, mods, bottom, headerActions, toolbar, headerRight, scrollableField, overlay, pet, pauseActions, frame,
+  title, onBack, stats, hud, mods, bottom, headerActions, toolbar, headerRight, scrollableField, overlay, pet, pauseActions, onRestart, frame,
   confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
   const { colors } = useTheme();
@@ -781,6 +788,30 @@ export default function GameShell({
    * `[exitGuard]` в зависимостях эффект переподписывался на каждой перерисовке,
    * и жест, начатый до перерисовки, терял своё начало (см. `edgeBack`).
    */
+  /**
+   * 🔴 МЕНЮ ПАУЗЫ ЕСТЬ У КАЖДОЙ ИГРЫ, А НЕ У ВОСЕМНАДЦАТИ ИЗ ВОСЬМИДЕСЯТИ ОДНОЙ.
+   *
+   * Замер 10.09.2026 по всем 99 файлам `app/games`: развилок 18, игровых экранов 81,
+   * `pauseActions` объявлен у 18. У остальных 63 человек жал «назад» и получал
+   * карточку «Игра на паузе» БЕЗ ЕДИНОЙ КНОПКИ — ни продолжить, ни выйти. Денис
+   * заметил это словами «пауза походу опять не доехала до всех», и он прав буквально.
+   *
+   * Чинится ОДНОЙ правкой здесь, а не шестьюдесятью тремя в играх: две кнопки из трёх
+   * каркас умеет сам — «Продолжить» снимает нашу же задержку, «На главную» зовёт
+   * `exitGuard.confirmExit`. Третью, «Заново», может дать только игра — через `onRestart`.
+   *
+   * ⚠️ Игра, объявившая свой `pauseActions`, приоритетнее: её набор не трогаем.
+   * Порядок кнопок тот же, что у восемнадцати уже живущих, — resume, restart, home.
+   */
+  const действияПаузы = React.useMemo<PauseAction[]>(() => {
+    if (pauseActions && pauseActions.length > 0) return pauseActions;
+    return [
+      { id: 'resume', label: t('exitConfirmStay'), icon: 'play', primary: true },
+      ...(onRestart ? [{ id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: onRestart }] : []),
+      { id: 'home', label: t('goHome'), icon: 'home', leave: true },
+    ];
+  }, [pauseActions, onRestart, t]);
+
   const выходRef = React.useRef(exitGuard.requestExit);
   React.useEffect(() => { выходRef.current = exitGuard.requestExit; });
   React.useEffect(() => attachEdgeBack(() => выходRef.current()), []);
@@ -802,17 +833,27 @@ export default function GameShell({
         <TouchableOpacity
           testID="game-back"
           onPress={() => {
-            if (pauseActions && pauseActions.length > 0) {
-              if (!pauseHoldRef.current) pauseHoldRef.current = holdGame();
-              return;
-            }
-            exitGuard.requestExit();
+            // Меню теперь есть ВСЕГДА (см. `действияПаузы`), поэтому стрелка
+            // открывает его, а выход остаётся пунктом внутри — как решил Денис 09.09.
+            if (!pauseHoldRef.current) pauseHoldRef.current = holdGame();
           }}
-          style={[styles.headerBtn, { backgroundColor: colors.surface }]}
+          /**
+           * 🔴 ЗНАЧОК ЧИТАЕТСЯ КАК ПАУЗА, А НЕ КАК «ВЫЙТИ» (Денис 10.09.2026:
+           * «надо более заметной кнопку сделать, щас она плохо видна»).
+           *
+           * Второй кнопки в шапке НЕ появляется — это его же решение от 09.09.
+           * Меняется только вид одной и той же: она делает паузу, значит и выглядеть
+           * обязана паузой. Стрелка обещала выход и обещание не держала.
+           *
+           * Заметность даётся тремя вещами сразу, а не одной: значок `pause`, заливка
+           * акцентом вместо серой поверхности и значок на белом. Серая стрелка на
+           * сером фоне — ровно то, что не видно.
+           */
+          style={[styles.headerBtn, { backgroundColor: colors.primary }]}
           accessibilityRole="button"
-          accessibilityLabel={t('a11yBack')}
+          accessibilityLabel={t('gamePauseOpen')}
         >
-          <Ionicons name={rtl ? 'arrow-forward' : 'arrow-back'} size={22} color={colors.text} />
+          <Ionicons name="pause" size={22} color="#FFFFFF" />
         </TouchableOpacity>
         <Text
           accessibilityRole="header"
@@ -1128,15 +1169,13 @@ export default function GameShell({
           testID="game-pause-menu"
           style={[
             styles.pauseOverlay,
-            pauseActions && pauseActions.length > 0
-              ? { backgroundColor: colors.background }
-              : null,
+            действияПаузы.length > 0 ? { backgroundColor: colors.background } : null,
           ]}
           pointerEvents="auto"
         >
-          {pauseActions && pauseActions.length > 0 ? (
+          {действияПаузы.length > 0 ? (
             <View style={styles.pauseMenu}>
-              {pauseActions.map((a) => (
+              {действияПаузы.map((a) => (
                 <TouchableOpacity
                   key={a.id}
                   testID={`pause-action:${a.id}`}

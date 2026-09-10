@@ -2605,6 +2605,7 @@ const t: Record<string, string> = {
   "skillChessCalc": "अभ्यास: चालों की गणना",
   "chessTypeTactics": "रणनीति · 1–2 चाल में मात",
   "chessTypeBlind": "आँख मूँदकर · बिसात दिमाग़ में",
+  "gamePauseOpen": "रोकें और बाहर निकलें",
   "puzzlesGroup": "पहेलियाँ",
   "puzzlesGroupDesc": "साइमन टैथम की चालीस तर्क पहेलियाँ — उनके इंजन पूरे के पूरे",
   "puzzlesGroupFootnote": "हर पहेली की अपनी कठिनाई सीढ़ी है: कहीं तीन पायदान, कहीं सोलह",
