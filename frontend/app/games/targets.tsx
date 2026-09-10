@@ -68,7 +68,7 @@ const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'
  */
 const TARGET_RATE = 0.5;
 
-export function levelParams(level: number): { delay: number; numSquares: number } {
+export function levelParams(level: number): { delay: number; numSquares: number; jitterPx: number } {
   /**
    * 🔴 БЫЛО `- level * 120`, И ПОСЛЕДНИЕ ДВА УРОВНЯ СОВПАДАЛИ ПОБАЙТОВО.
    * Пол 450 мс достигался уже на L14 (2100−1680=420 → 450), а `numSquares` даёт 5
@@ -88,7 +88,39 @@ export function levelParams(level: number): { delay: number; numSquares: number 
   // невозможно построить в принципе.
   const wanted = 2 + Math.floor((level - 1) / 4);
   const numSquares = Math.min(wanted, COLORS.length - 1);
-  return { delay, numSquares };
+  /**
+   * 🔴 ТРЕТЬЯ ОСЬ, 10.09.2026: РАЗБРОС ФИГУР ПО ВЕРТИКАЛИ.
+   *
+   * ПОВОД. Осей было две — темп (delay) и число квадратов, причём второе упирается
+   * в палитру: «не мишень» требует, чтобы все цвета были разными, поэтому фигур не
+   * больше семи. Замер по уровням: numSquares идёт 2·2·2·2·3·3·3·3·4·4·4·4·5·5·5,
+   * то есть всего ЧЕТЫРЕ разных значения на пятнадцать ступеней.
+   *
+   * ⚠️ ПОЧЕМУ НЕ ОСЬ СХОДСТВА ЦВЕТОВ, КОТОРАЯ НАПРАШИВАЕТСЯ. Вся задача здесь —
+   * сравнение ЦВЕТОВ. Сблизив их, мы отняли бы решаемость у людей с
+   * дальтонизмом: замер 10.09 по палитре Струпа (ΔE в Lab + симуляция трёх
+   * видов) показал, что запаса нет уже сейчас. Разбор — PROJECT_REF §22.
+   *
+   * Разброс свободен от этого: цвета не трогает, долю мишеней (TARGET_RATE) не
+   * трогает, раздаётся одинаково мишеням и не-мишеням. Растёт время ОБХОДА поля:
+   * ровный ряд читается одним движением глаз, разбросанный — нет.
+   * ⚠️ Смещение делается трансформацией, а не отступом: отступ подвинул бы
+   * соседей и менял бы ещё и расстояние между фигурами — вторую ось разом.
+   */
+  const jitterPx = level <= 4 ? 0 : Math.min(26, 8 + (level - 5) * 2);
+  return { delay, numSquares, jitterPx };
+}
+
+/**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТА МЕРА ПРОХОДА, — В САМУ ПАРТИЮ.
+ *
+ * `commission_errors` (ошибки торможения) зависит и от темпа, и от числа фигур,
+ * и теперь от разброса. Два одинаковых на вид числа, снятые на разных уровнях,
+ * означают разное, а раздел с 09.09.2026 меряет прогресс ЧЕЛОВЕКА.
+ */
+export function levelCondition(level: number): { delay: number; numSquares: number; jitterPx: number } {
+  const { delay, numSquares, jitterPx } = levelParams(level);
+  return { delay, numSquares, jitterPx };
 }
 
 /**
@@ -168,7 +200,7 @@ export default function TargetsGame() {
   // round/isTarget/showTime/gameOver — в JSX они НЕ используются, но каждый setState
   // гонял лишний ре-рендер игрового поля (LinearGradient + фигуры) по 4 раза за раунд.
   // Их значения переехали в рефы ниже (см. levelRef/isTargetRef/showTimeRef/gameOverRef).
-  const [shapes, setShapes] = useState<{ type: 'circle' | 'square'; color: string }[]>([]);
+  const [shapes, setShapes] = useState<{ type: 'circle' | 'square'; color: string; dy: number }[]>([]);
   const [prevCircleColor, setPrevCircleColor] = useState<string | null>(null);
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   const [feedback, setFeedback] = useState<'hit' | 'miss' | 'wrong' | null>(null);
@@ -284,7 +316,7 @@ export default function TargetsGame() {
   const generateRound = () => {
     if (stoppedRef.current || gameOverRef.current) return;
 
-    const newShapes: { type: 'circle' | 'square'; color: string }[] = [];
+    const newShapes: { type: 'circle' | 'square'; color: string; dy: number }[] = [];
     
     // Generate circle
     const ns = levelParams(levelRef.current).numSquares;
@@ -296,8 +328,16 @@ export default function TargetsGame() {
     const wantTarget = Math.random() < TARGET_RATE;
     const round = buildRoundColors(ns, mode === 'field' ? 'field' : 'joker', wantTarget, prevColorRef.current);
     const circleColor = round.circle;
-    newShapes.push({ type: 'circle', color: circleColor });
-    round.squares.forEach((c) => newShapes.push({ type: 'square', color: c }));
+    /**
+     * Смещение рождается ВМЕСТЕ с раундом, а не в отрисовке: иначе фигуры
+     * дрожали бы на каждом кадре, дрожание читалось бы как движение и добавляло
+     * к пробе совсем другую нагрузку.
+     * ⚠️ Раздаётся ОДИНАКОВО мишеням и не-мишеням — оно не должно намекать на ответ.
+     */
+    const размах = levelParams(levelRef.current).jitterPx;
+    const сдвиг = () => (размах === 0 ? 0 : Math.round((Math.random() * 2 - 1) * размах));
+    newShapes.push({ type: 'circle', color: circleColor, dy: сдвиг() });
+    round.squares.forEach((c) => newShapes.push({ type: 'square', color: c, dy: сдвиг() }));
     const target = round.isTarget;
 
     prevColorRef.current = circleColor;
@@ -784,7 +824,8 @@ export default function TargetsGame() {
                 key={index}
                 style={[
                   shape.type === 'circle' ? styles.circle : styles.square,
-                  { backgroundColor: shape.color }
+                  // Трансформацией, а не отступом: раскладка ряда не меняется.
+                  { backgroundColor: shape.color, transform: [{ translateY: shape.dy }] }
                 ]}
               />
             ))}

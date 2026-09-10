@@ -570,13 +570,13 @@ export default function StroopGame() {
               мы добавили бы к пробе остроту зрения, а меряем не её. */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, writingDirection: 'ltr' } as any}>
             {decoys.slice(0, Math.ceil(decoys.length / 2)).map((g, k) => (
-              <Text key={`л${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
+              <Text key={`dl${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
             ))}
             <Text style={[styles.bigWord, { color: inkColor.hex }]}>
               {language === 'ru' ? word.ru : word.en}
             </Text>
             {decoys.slice(Math.ceil(decoys.length / 2)).map((g, k) => (
-              <Text key={`п${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
+              <Text key={`dr${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
             ))}
           </View>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
