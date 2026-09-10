@@ -1174,7 +1174,24 @@ export default function AnagramGame() {
                 const активна = r === тройкаОтвет.length;
                 const буквы = разгадана ? [...(тройкаОтвет[r] ?? '')] : null;
                 return (
-                  <View key={`${сл.язык}-${r}`} style={styles.pickedRow}>
+                  <View key={`${сл.язык}-${r}`} style={styles.тройкаРяд}>
+                    {/*
+                      🔴 МЕТКА ЯЗЫКА ПЕРЕД СТРОКОЙ. Просьба Дениса 10.09.2026:
+                      «подписи языка не хватает, значок перед словом». Без неё
+                      три ряда читаются как один длинный ребус: непонятно, на
+                      каком языке ждут ответ, пока не начнёшь набирать.
+                      Код языка, а не название: «Английский» в строку не
+                      помещается и отодвинул бы клетки за край на 360 px.
+                    */}
+                    <Text
+                      accessibilityLabel={WORD_LANG_LABEL[сл.язык] ?? сл.язык}
+                      style={[styles.тройкаЯзык, {
+                        color: активна ? GRADIENT[0] : colors.textSecondary,
+                        borderColor: активна ? GRADIENT[0] : colors.border,
+                      }]}
+                    >
+                      {сл.язык.toUpperCase()}
+                    </Text>
                     {Array.from({ length: сл.слово.length }).map((_, i) => (
                       <View
                         key={i}
@@ -1310,6 +1327,9 @@ const styles = StyleSheet.create({
   hintBannerText: { fontSize: 14, fontWeight: '600', flex: 1, minWidth: 0 },  // крупный шрифт: текст переносится внутри баннера, а не распирает его
   // RTL-пин: слоты собираемого слова (ru/en) заполняются слева направо — иначе слово читается задом наперёд
   тройкаКол: { gap: 8, alignItems: 'center' },
+  тройкаРяд: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'nowrap' },
+  /* Ширина фиксирована, чтобы клетки трёх рядов стояли строго друг под другом. */
+  тройкаЯзык: { width: 30, fontSize: 11, fontWeight: '700', textAlign: 'center', borderWidth: 1, borderRadius: 6, paddingVertical: 2 },
   pickedRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap', writingDirection: 'ltr', maxWidth: '100%' },
   pickedSlot: { width: 44, height: 54, borderRadius: 8, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   pickedLetter: { fontSize: 22, fontWeight: '700' },
