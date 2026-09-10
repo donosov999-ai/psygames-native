@@ -33,7 +33,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { BilingualToggle } from '@/src/components/BilingualToggle';
-import { БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
+import { паройЯзыков, БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
@@ -446,7 +446,8 @@ export default function ClozeGame() {
            */
           ...((билингво || isPreset) && rounds[idx]?.язык
             ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
-                value: String(rounds[idx]?.язык).toUpperCase(), tone: 'accent' as const }]
+                value: паройЯзыков(String(rounds[idx]?.язык), билингво ? [tgt, второйЯзык] : []),
+                tone: 'accent' as const }]
             : []),
           { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${rounds.length}` },
           ...(timeLimitRef.current > 0
