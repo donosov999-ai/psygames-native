@@ -2609,6 +2609,12 @@ const t: Record<string, string> = {
   "pauseEasier": "降低难度",
   "pauseHarder": "提高难度",
   "pauseFinish": "结束并保存",
+  "puzzleHudMarked": "已标记",
+  "puzzleHudActive": "已连接",
+  "puzzleHudMovesUsed": "已用",
+  "puzzleHudCluesLeft": "提示",
+  "puzzleHudGems": "宝石",
+  "puzzleHudRegion": "区域",
   "puzzleShowSolution": "显示答案",
   "puzzleSecondAction": "第二操作",
   "pauseExitGame": "退出练习",
@@ -2636,6 +2642,6 @@ const t: Record<string, string> = {
   "puzzlesLightUpDesc": "放置灯泡照亮整个棋盘",
   "puzzlesLoopyDesc": "按格中数字围出一个闭环",
   "puzzlesUnrulyDesc": "圆圈与圆点等量，绝无三连同",
-  "puzzlesUnrulyIntroDesc": "这里有四十种逻辑谜题。每种规则不同，但有一点相同：每个盘面只有唯一解，靠推理一定能走到，从不需要猜。模式在分区卡片里选择，难度沿各自的阶梯上升。点击棋盘落子；撤销、提示和重来都在返回箭头后的暂停菜单里。",
+  "puzzlesUnrulyIntroDesc": "这里有四十道逻辑谜题。每道题都有自己的规则，但有一点相同：每个棋盘恰好只有一个解，靠推理总能走到，从不需要猜。模式在卡片上选择，难度沿着每道谜题自己的阶梯上升。轻点走一步，长按是第二种操作：在《磁铁》里让多米诺的一半留空，在《扫雷》里标记地雷，在《奇偶》里反向切换。撤销、求提示和重新开始都在暂停菜单里——左上角的 ⏸ 按钮。",
 };
 export default t;

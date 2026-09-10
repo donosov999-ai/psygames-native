@@ -2603,6 +2603,12 @@ const t: Record<string, string> = {
   "pauseEasier": "やさしいレベル",
   "pauseHarder": "むずかしいレベル",
   "pauseFinish": "終了して記録",
+  "puzzleHudMarked": "マーク済み",
+  "puzzleHudActive": "接続済み",
+  "puzzleHudMovesUsed": "使用",
+  "puzzleHudCluesLeft": "ヒント",
+  "puzzleHudGems": "宝石",
+  "puzzleHudRegion": "領域",
   "puzzleShowSolution": "答えを見る",
   "puzzleSecondAction": "第2の操作",
   "pauseExitGame": "エクササイズを終了",
@@ -2630,6 +2636,6 @@ const t: Record<string, string> = {
   "puzzlesLightUpDesc": "盤全体が照らされるように明かりを置く",
   "puzzlesLoopyDesc": "数字に従って閉じた輪を一つ作る",
   "puzzlesUnrulyDesc": "丸と点は同数、三連続はなし",
-  "puzzlesUnrulyIntroDesc": "ここには四十種類の論理パズルがあります。ルールはそれぞれ違いますが、共通点が一つ。盤面の解は必ず一つで、推理すれば必ずたどり着けます。あてずっぽうは要りません。モードはカードで選び、難易度はパズルごとの段を上がります。盤をタップで一手、取り消し・ヒント・やり直しは戻る矢印の一時停止メニューにあります。",
+  "puzzlesUnrulyIntroDesc": "ここには四十の論理パズルがあります。それぞれ独自のルールを持ちますが、共通点がひとつ——どの盤面にも解はちょうど一つで、推理すれば必ずたどり着けます。当てずっぽうは要りません。モードはカードから選び、難易度はパズルごとの階段で上がります。短いタップで一手、長押しが第二の操作です。「磁石」では牌の半分を空白にし、「地雷」では地雷に印を付け、「偶奇」では逆向きに切り替えます。取り消し・ヒント・やり直しはポーズメニュー——左上の ⏸ ボタンから。",
 };
 export default t;

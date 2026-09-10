@@ -2609,6 +2609,12 @@ const t: Record<string, string> = {
   "pauseEasier": "Leichteres Level",
   "pauseHarder": "Schwereres Level",
   "pauseFinish": "Beenden und speichern",
+  "puzzleHudMarked": "Markiert",
+  "puzzleHudActive": "Verbunden",
+  "puzzleHudMovesUsed": "Verbraucht",
+  "puzzleHudCluesLeft": "Hinweise",
+  "puzzleHudGems": "Edelsteine",
+  "puzzleHudRegion": "Region",
   "puzzleShowSolution": "Lösung zeigen",
   "puzzleSecondAction": "Zweite Aktion",
   "pauseExitGame": "Übung verlassen",
@@ -2636,6 +2642,6 @@ const t: Record<string, string> = {
   "puzzlesLightUpDesc": "Lampen setzen, bis alles hell ist",
   "puzzlesLoopyDesc": "Eine geschlossene Schleife nach den Zahlen",
   "puzzlesUnrulyDesc": "Gleich viele Kreise und Punkte, nie drei gleiche",
-  "puzzlesUnrulyIntroDesc": "Hier warten vierzig Logikrätsel. Jedes hat seine eigene Regel, gemeinsam ist eins: Jedes Brett hat genau eine Lösung, und Nachdenken führt immer hin — Raten ist nie nötig. Den Modus wählst du auf der Karte; die Schwierigkeit wächst bei jedem Rätsel auf eigener Leiter. Tippen setzt einen Zug; Rückgängig, Tipp und Neustart liegen im Pausenmenü hinter dem Zurückpfeil.",
+  "puzzlesUnrulyIntroDesc": "Hier warten vierzig Logikrätsel. Jedes hat seine eigene Regel, gemeinsam ist eins: Jedes Brett hat genau eine Lösung, und Nachdenken führt immer hin — Raten ist nie nötig. Den Modus wählst du auf der Karte; die Schwierigkeit wächst bei jedem Rätsel auf eigener Leiter. Kurzes Tippen setzt einen Zug, LANGES Drücken ist die zweite Aktion: bei Magnete lässt sie eine Dominohälfte leer, bei Minen markiert sie eine Mine, bei Gerade-ungerade blättert sie rückwärts. Rückgängig, Tipp und Neustart liegen im Pausenmenü — die Taste ⏸ links oben.",
 };
 export default t;

@@ -2604,6 +2604,12 @@ const t: Record<string, string> = {
   "pauseEasier": "Livello più facile",
   "pauseHarder": "Livello più difficile",
   "pauseFinish": "Termina e salva",
+  "puzzleHudMarked": "Segnate",
+  "puzzleHudActive": "Collegate",
+  "puzzleHudMovesUsed": "Usate",
+  "puzzleHudCluesLeft": "Indizi",
+  "puzzleHudGems": "Gemme",
+  "puzzleHudRegion": "Regione",
   "puzzleShowSolution": "Mostra soluzione",
   "puzzleSecondAction": "Seconda azione",
   "pauseExitGame": "Esci dall’esercizio",
@@ -2631,6 +2637,6 @@ const t: Record<string, string> = {
   "puzzlesLightUpDesc": "Posiziona le lampade per illuminare tutto",
   "puzzlesLoopyDesc": "Forma un anello chiuso seguendo i numeri",
   "puzzlesUnrulyDesc": "Pari cerchi e punti, mai tre uguali",
-  "puzzlesUnrulyIntroDesc": "Qui ci sono quaranta rompicapo logici. Ognuno ha la sua regola, ma una cosa è comune: ogni schema ha una sola soluzione e il ragionamento ci arriva sempre, indovinare non serve mai. La modalità si sceglie dalla scheda; la difficoltà cresce su una scala propria. Tocca lo schema per muovere; annulla, suggerimento e ricomincia sono nel menu di pausa.",
+  "puzzlesUnrulyIntroDesc": "Qui vivono quaranta rompicapi logici. Ognuno ha la sua regola, ma una cosa è comune: ogni schema ha esattamente una soluzione e il ragionamento ci arriva sempre — indovinare non serve mai. Scegli la modalità dalla scheda; la difficoltà cresce su una scala propria per ogni rompicapo. Un tocco breve fa una mossa, una pressione LUNGA è la seconda azione: in Magneti lascia vuota una metà di domino, in Mine segna una mina, in Pari e dispari scorre all'indietro. Annulla, chiedi un aiuto o ricomincia dal menu pausa — il tasto ⏸ in alto a sinistra.",
 };
 export default t;

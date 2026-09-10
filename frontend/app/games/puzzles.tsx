@@ -224,6 +224,17 @@ export default function PuzzlesScreen() {
       hud={[
         { key: 'level', icon: 'trending-up-outline', label: t('hud_step'), value: `${lvl.level}/${ступеней}` },
         { key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'), value: ходов, pop: true },
+        /**
+         * 🔴 ТРЕТИЙ СЧЁТЧИК СЧИТАЕТ САМ ДВИЖОК, И МЫ ЕГО ВЫБРАСЫВАЛИ. Замер
+         * 10.09.2026: строку состояния ведут 14 движков из 40, у двенадцати она
+         * меняется по ходу партии — «отмечено 3 из 5», «соединено 6 из 25»,
+         * «подсказок осталось 44». Ровно та обратная связь, которой не хватало.
+         * Разбор и подписи — в `tatham-bridge/status.ts`: показываем НАШИ слова и
+         * числа движка, а не его английский текст.
+         */
+        ...(партия?.ход
+          ? [{ key: 'engine', icon: 'stats-chart-outline' as const, label: t(партия.ход.ключ), value: партия.ход.значение }]
+          : []),
       ]}
     >
       {фаза === 'config' ? (

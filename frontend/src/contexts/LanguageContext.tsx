@@ -914,6 +914,25 @@ const translations: Translations = {
   /** «Чёт-нечет» — первая головоломка на движке Тэтхэма (Unruly). */
   puzzlesUnruly: { ru: 'Чёт-нечет', en: 'Odd or Even' },
   puzzlesUnrulyIntroDesc: { ru: 'Здесь сорок логических головоломок. У каждой своё правило, но общее одно: у доски ровно одно решение, и до него можно дойти рассуждением — угадывать не нужно. Режим выбирается карточкой в развилке, сложность растёт по своей лестнице у каждой головоломки. Короткое нажатие по полю делает ход, ДОЛГОЕ — второе действие: в «Магнитах» им ставят пустую половинку, в «Минах» помечают мину, в «Чёт-нечете» перебирают в обратную сторону. Отменить ход, попросить подсказку или начать заново можно в меню паузы — кнопка ⏸ слева вверху.', en: 'Forty logic puzzles live here. Each has its own rule, but one thing is shared: every board has exactly one solution and reasoning always gets you there — guessing is never required. Pick a mode from the section card; difficulty grows along a ladder of its own for each puzzle. A short tap makes a move, a LONG press is the second action: in Magnets it leaves a domino half blank, in Mines it flags a mine, in Unruly it cycles the other way. Undo, ask for a hint or start over from the pause menu — the ⏸ button at the top left.' },
+  /**
+   * 🔴 ЧТО ДВИЖОК СЧИТАЕТ САМ — подписи для слота «ход партии» в шапке. Замер
+   * 10.09.2026: строку состояния дают 14 движков из 40, и у двенадцати она меняется
+   * по ходу игры. Показывать его текст как есть нельзя — он английский, — поэтому из
+   * строки достаются числа, а подпись берётся отсюда (`tatham-bridge/status.ts`).
+   */
+  puzzleHudMarked: { ru: 'Отмечено', en: 'Marked' },
+  puzzleHudActive: { ru: 'Соединено', en: 'Connected' },
+  /**
+   * ⚠️ НЕ «Лимит ходов»: этой парой уже зовётся счётчик «Сортировки товаров»
+   * (`lr_goods_sort_movelimit_title`), и гейт дублей словаря прав — одинаковый текст
+   * под двумя ключами расходится при первой же правке. У «Заливки» величина другая
+   * по смыслу: сколько ходов ПОТРАЧЕНО из отпущенных.
+   */
+  puzzleHudMovesUsed: { ru: 'Потрачено', en: 'Used' },
+  puzzleHudCluesLeft: { ru: 'Подсказки', en: 'Clues' },
+  puzzleHudGems: { ru: 'Кристаллы', en: 'Gems' },
+  // «Счёт» в словаре уже есть ключом `score` — разбор берёт его, своего не заводим.
+  puzzleHudRegion: { ru: 'Область', en: 'Region' },
   puzzlesMines: { ru: 'Сапёр', en: 'Minesweeper' },
   puzzlesMinesDesc: { ru: 'Числа говорят, сколько мин рядом; доска решается без угадывания', en: 'Numbers count the mines around them; the board never needs a guess' },
   puzzlesMosaic: { ru: 'Мозаика', en: 'Mosaic' },

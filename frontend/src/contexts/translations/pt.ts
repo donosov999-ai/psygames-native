@@ -2609,6 +2609,12 @@ const t: Record<string, string> = {
   "pauseEasier": "Nível mais fácil",
   "pauseHarder": "Nível mais difícil",
   "pauseFinish": "Terminar e guardar",
+  "puzzleHudMarked": "Marcadas",
+  "puzzleHudActive": "Conectadas",
+  "puzzleHudMovesUsed": "Usados",
+  "puzzleHudCluesLeft": "Pistas",
+  "puzzleHudGems": "Gemas",
+  "puzzleHudRegion": "Região",
   "puzzleShowSolution": "Mostrar solução",
   "puzzleSecondAction": "Segunda ação",
   "pauseExitGame": "Sair do exercício",
@@ -2636,6 +2642,6 @@ const t: Record<string, string> = {
   "puzzlesLightUpDesc": "Coloca lâmpadas até iluminar tudo",
   "puzzlesLoopyDesc": "Forma um laço fechado conforme os números",
   "puzzlesUnrulyDesc": "Igual de círculos e pontos, nunca três iguais",
-  "puzzlesUnrulyIntroDesc": "Aqui há quarenta quebra-cabeças lógicos. Cada um tem a sua regra, mas partilham uma coisa: o tabuleiro tem uma só solução e chega-se lá a raciocinar, nunca é preciso adivinhar. O modo escolhe-se no cartão; a dificuldade cresce numa escala própria. Toca no tabuleiro para jogar; anular, dica e recomeçar estão no menu de pausa.",
+  "puzzlesUnrulyIntroDesc": "Aqui vivem quarenta quebra-cabeças lógicos. Cada um tem sua regra, mas há algo em comum: cada tabuleiro tem exatamente uma solução e o raciocínio sempre chega lá — adivinhar nunca é preciso. Escolha o modo no cartão; a dificuldade cresce por uma escada própria em cada quebra-cabeça. Um toque curto faz uma jogada, um toque LONGO é a segunda ação: em Ímãs deixa metade do dominó vazia, em Minas marca uma mina, em Par e ímpar percorre ao contrário. Desfazer, pedir dica ou recomeçar estão no menu de pausa — o botão ⏸ no canto superior esquerdo.",
 };
 export default t;
