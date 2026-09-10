@@ -60,7 +60,7 @@ import { GAMES } from '@/src/constants/games';
 import { isRTLLang } from '@/src/services/rtl';
 import { GameAuxAction } from '@/src/components/GameAuxAction';
 import { FEEDBACK_OPEN_EVENT, FEEDBACK_ENABLED } from '@/src/services/appFeedback';
-import { текущаяЛестница } from '@/src/hooks/usePersistentLevel';
+import { текущаяЛестница } from '@/src/services/levelRegistry';
 import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
@@ -127,6 +127,21 @@ const TONE_BY_KEY: Record<string, NonNullable<HudItem['tone']>> = {
   round: 'neutral', time: 'neutral', left: 'neutral', moves: 'neutral', found: 'neutral',
   len: 'neutral', lvl: 'neutral', level: 'neutral', hud_bank: 'neutral', reaction: 'neutral',
   rt: 'neutral', entered: 'neutral',
+  /**
+   * Метка языка материала в режиме «билингво» (`0d4a6b78`, языковой раздел).
+   * Стоит в четырёх играх: cloze, lexical-decision, semantic-sort, vocab-srs.
+   *
+   * Тон `accent` — ВЫБОР АВТОРА РАЗДЕЛА, а не мой: все четыре экрана передают
+   * именно его. Метка языка должна выделяться, иначе смысл режима теряется —
+   * отчёт `475ac1e4` был ровно про то, что признак билингво не виден на экране.
+   * ⚠️ Первая моя редакция поставила сюда `neutral` «по смыслу», и гейт честно
+   * покраснел второй пробой: «четыре игры просят accent, канон neutral». Канон
+   * общего слоя не должен переспоривать замысел раздела молча.
+   *
+   * ⚠️ Ключ приехал в main (`0d4a6b78`) без записи в канон, и `hud-tone-canon`
+   * краснел на нём до этой строки. Вписан координатором; раздел уведомлён.
+   */
+  bilang: 'accent',
   // Достижения — зелёные.
   correct: 'good', hud_correct: 'good',
   // Ошибки — красные, всегда и везде.
