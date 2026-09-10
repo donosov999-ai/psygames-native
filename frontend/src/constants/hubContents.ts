@@ -116,8 +116,8 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
   ],
 
   '/games/chess-hub': [
-    { route: '/games/scholars-mate', icon: 'flash', nameKey: 'scholarsMate', descKey: 'scholarsMateDesc' },
-    { route: '/games/chess-blind', icon: 'apps', nameKey: 'chessBlind', descKey: 'chessBlindDesc' },
+    { route: '/games/scholars-mate', icon: 'flash', nameKey: 'scholarsMate', descKey: 'scholarsMateDesc', typeKey: 'chessTypeTactics' },
+    { route: '/games/chess-blind', icon: 'apps', nameKey: 'chessBlind', descKey: 'chessBlindDesc', typeKey: 'chessTypeBlind' },
   ],
 
   /* ——— Внимание ——— */
