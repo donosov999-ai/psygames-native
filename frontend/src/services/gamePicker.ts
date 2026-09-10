@@ -63,7 +63,7 @@ const GAME: Record<string, Record<string, number>>[] = [
   { // time
     0: { targets: 1, schulte_table: 1, picture_pairs: 1 },
     1: {},
-    2: { sudoku_group: 3, hanoi: 2, chess_blind: 2 },
+    2: { sudoku_group: 3, hanoi: 2, chess_blind: 2, scholars_mate: 2 },
   },
   { // taste
     0: { anagrams: 4, proofreading: 3, word_pairs: 3, phonemic_fluency: 2, mnemonics: 2 },
