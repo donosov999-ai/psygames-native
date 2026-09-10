@@ -58,6 +58,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmupSafe } from '@/src/contexts/WarmupContext';
 import { GAMES } from '@/src/constants/games';
 import { isRTLLang } from '@/src/services/rtl';
+import GameAuxAction from '@/src/components/GameAuxAction';
 import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
@@ -183,6 +184,16 @@ export interface PauseAction {
    * «На главную» в меню паузы, уже ответил на вопрос «выйти?», второй раз не спрашиваем.
    */
   leave?: boolean;
+  /**
+   * 🔴 ВЫКЛЮЧЕННОЕ ДЕЙСТВИЕ ПОКАЗЫВАЕТСЯ СЕРЫМ, А НЕ ПРЯЧЕТСЯ.
+   *
+   * Канон проекта, записанный в `GameAuxAction`: «пропавшая кнопка читается как
+   * „в этой игре такого нет“». Замер 10.09.2026 показал, во что обходится нарушение:
+   * первая редакция сбора отбрасывала выключенные, и «Отменить» не появлялось в
+   * паузе НИ РАЗУ — в начале партии отменять нечего, а к моменту, когда есть,
+   * человек уже решил, что отмены здесь нет.
+   */
+  disabled?: boolean;
 }
 
 export interface GameShellProps {
@@ -803,14 +814,65 @@ export default function GameShell({
    * ⚠️ Игра, объявившая свой `pauseActions`, приоритетнее: её набор не трогаем.
    * Порядок кнопок тот же, что у восемнадцати уже живущих, — resume, restart, home.
    */
+  /**
+   * 🔴 СЛУЖЕБНЫЕ КНОПКИ ИГРЫ ПОПАДАЮТ В ПАУЗУ САМИ — БЕЗ ПРАВОК В ПЯТНАДЦАТИ ИГРАХ.
+   *
+   * Замер 10.09.2026: `GameAuxAction` стоит в шапке у 15 экранов — «Отменить»,
+   * «Подсказка», «Перемешать», «Повторить звук». Одиннадцать из них своего меню
+   * паузы не имели вовсе, то есть остановившийся человек не видел НИ ОДНОГО из
+   * доступных ему действий.
+   *
+   * ⚠️ ИЗ ШАПКИ КНОПКИ НЕ УБИРАЮТСЯ, И ЭТО СОЗНАТЕЛЬНО. Перенос предлагался ради
+   * «поле освобождается», но поле освободил патч 96a8ee4f: ряд перестал лежать
+   * поверх доски. Причина отпала, а вред остался бы — «Отменить» в ханое, маджонге
+   * и сортировках жмут постоянно, и через паузу это два тапа вместо одного.
+   * Поэтому кнопки ДУБЛИРУЮТСЯ: остаются на месте и появляются в паузе.
+   *
+   * Как собираются: обходим дерево `headerActions` и берём элементы `GameAuxAction`.
+   * Обход рекурсивный, потому что игры заворачивают их в свои `View` (у судоку —
+   * колонка из двух рядов), и прямыми детьми они не лежат.
+   */
+  const служебныеИзШапки = React.useMemo<PauseAction[]>(() => {
+    const собрано: PauseAction[] = [];
+    const обойти = (узел: React.ReactNode) => {
+      React.Children.forEach(узел, (э) => {
+        if (!React.isValidElement(э)) return;
+        const п = э.props as Record<string, unknown>;
+        if (э.type === GameAuxAction) {
+          const подпись = typeof п.label === 'string' ? п.label : '';
+          // «СТОП» обрывает сеанс — в паузе это дубль «На главную», и опасный.
+          // Выключенные БЕРЁМ: серая кнопка честнее пропавшей (см. `disabled` в типе).
+          if (подпись && !п.danger) {
+            собрано.push({
+              id: `aux:${подпись}`,
+              label: подпись,
+              icon: (п.icon as PauseAction['icon']) ?? 'ellipse-outline',
+              onPress: п.onPress as () => void,
+              disabled: !!п.disabled,
+            });
+          }
+          return;
+        }
+        if (п.children) обойти(п.children as React.ReactNode);
+      });
+    };
+    обойти(headerActions);
+    return собрано;
+  }, [headerActions]);
+
   const действияПаузы = React.useMemo<PauseAction[]>(() => {
-    if (pauseActions && pauseActions.length > 0) return pauseActions;
+    const свои = pauseActions && pauseActions.length > 0 ? pauseActions : null;
+    // Подписи, уже занятые набором игры: «Отменить» не должно стоять дважды.
+    const занято = new Set((свои ?? []).map((a) => a.label));
+    const добавка = служебныеИзШапки.filter((a) => !занято.has(a.label));
+    if (свои) return [...свои, ...добавка];
     return [
       { id: 'resume', label: t('exitConfirmStay'), icon: 'play', primary: true },
       ...(onRestart ? [{ id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: onRestart }] : []),
+      ...добавка,
       { id: 'home', label: t('goHome'), icon: 'home', leave: true },
     ];
-  }, [pauseActions, onRestart, t]);
+  }, [pauseActions, onRestart, служебныеИзШапки, t]);
 
   const выходRef = React.useRef(exitGuard.requestExit);
   React.useEffect(() => { выходRef.current = exitGuard.requestExit; });
@@ -1180,11 +1242,14 @@ export default function GameShell({
                   key={a.id}
                   testID={`pause-action:${a.id}`}
                   accessibilityRole="button"
+                  accessibilityState={{ disabled: !!a.disabled }}
+                  disabled={!!a.disabled}
                   style={[
                     styles.pauseBtn,
                     a.primary
                       ? { backgroundColor: colors.primary }
                       : { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+                    a.disabled ? { opacity: 0.4 } : null,
                   ]}
                   onPress={() => {
                     // Снимаем СВОЮ задержку до действия: «Заново» и «На главную»
