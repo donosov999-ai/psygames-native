@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.53.3',
+    date: '2026-09-10',
+    ru: [
+      'Головоломки стало чем играть: цифры, второе действие и крест стрелок под доской. У шести из сорока нечем было сделать ход, «Магниты» без второго действия не решались вовсе',
+      'Кнопка «Показать решение» действительно показывает решение — раньше в двух играх она не делала ничего',
+      'Питомец обновился у всех: часть игроков видела старого кота. Четыре действия заботы — помыть, погладить, покормить, поиграть',
+      'Языковая зарядка больше не падает на втором упражнении',
+      'В паузе два разных выхода: из упражнения и сразу в главное меню',
+      'Медальон в шапке показывает голову целиком у робота и созвездия, а не только у кота',
+    ],
+    en: [
+      'The puzzles are now playable: digits, a second action and an arrow pad under the board. Six of the forty had no way to make a move; Magnets could not be solved at all',
+      '“Show solution” really shows the solution — in two games it used to do nothing',
+      'The pet is up to date for everyone — some players still saw the old cat. Four care actions: wash, stroke, feed, play',
+      'The language workout no longer crashes on the second exercise',
+      'Pause now has two separate exits: leave the exercise, or go straight to the main menu',
+      'The header medallion shows the whole head for the robot and the constellation, not just the cat',
+    ],
+  },
+  {
     version: '2.53.2',
     date: '2026-09-10',
     ru: [
