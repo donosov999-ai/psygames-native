@@ -120,13 +120,18 @@ static const drawing_api ЗАПИСЬ = {
     п_lw, п_dot, NULL, п_thick,
 };
 
-/** Описание доски по нашему зерну — отдельно, чтобы не дублировать в двух местах. */
-static char *g_new_desc(const game *g, game_params *p, random_state *rs, char **aux)
-{ return g->new_desc(p, rs, aux, false); }
-
 /* ── партия ────────────────────────────────────────────────────────────── */
 static midend *ПАРТИЯ = NULL;
 static int ШИР = 0, ВЫС = 0;
+/** Был ли ход с прошлой отрисовки — см. `доиграть()`: анимацию надо докрутить. */
+static int ХОД_БЫЛ = 0;
+
+/**
+ * Пометить ход и вернуть ответ движка как есть. `PKR_SOME_EFFECT` — единственный
+ * ответ, означающий «состояние изменилось» (`puzzles.h:324`); на `PKR_NO_EFFECT`
+ * и `PKR_UNUSED` анимации нет и крутить нечего.
+ */
+static int ход(int ответ) { if (ответ == PKR_SOME_EFFECT) ХОД_БЫЛ = 1; return ответ; }
 
 /*
  * 🔴 РАЗМЕР ЗАДАЁТСЯ ДО ПЕРВОЙ ОТРИСОВКИ, И В НЕГО НАДО ПЕРЕДАТЬ ДОСТУПНОЕ МЕСТО.
@@ -153,24 +158,38 @@ EMSCRIPTEN_KEEPALIVE int psy_open(int i, const char *params, int seed)
     midend_set_params(ПАРТИЯ, p);
 
     /*
-     * 🔴 ЗЕРНО ЗАДАЁТСЯ ОПИСАНИЕМ ДОСКИ, А НЕ НАСТРОЙКОЙ СЛУЧАЙНОСТИ.
+     * 🔴 ЗЕРНО ПОДАЁТСЯ ЧЕРЕЗ «параметры#зерно», А НЕ ГОТОВЫМ ОПИСАНИЕМ ДОСКИ.
      * `midend_set_random_seed` в его API НЕТ (проверено grep-ом по puzzles.h): зерно
      * midend берёт из `get_random_seed()` фронтенда, а у заглушки `nullfe.c` оно
-     * постоянное. Поэтому доску генерируем сами по нашему зерну и подаём готовой
-     * строкой «параметры:описание» через `midend_game_id` — тот самый формат, которым
-     * он делится партией по ссылке. Так партия воспроизводится по номеру у всех.
+     * постоянное. Зато `midend_game_id` понимает ДВА вида идентификатора
+     * (`midend.c:1795` — ищет `#` и `:`), и вид с решёткой заставляет midend
+     * сгенерировать доску САМОМУ по нашему зерну. Партия так же воспроизводится
+     * по номеру, как и с описанием.
+     *
+     * 🔴 ПОЧЕМУ НЕ ОПИСАНИЕМ, КАК БЫЛО. Вместе с доской автор рождает `aux` —
+     * подсказку решателю, и хранит её в `me->aux_info` (`midend.c:601`). Через
+     * «параметры:описание» aux не передаётся: `midend_game_id` обнуляет его
+     * (`midend.c:590`), потому что из описания доски его не восстановить. Мы
+     * генерировали доску сами, получали aux в руки — и тут же выбрасывали.
+     *
+     * ЧЕМ ЭТО МЕРИЛОСЬ. `psy_solve` → `psy_draw` по всем сорока 10.09.2026:
+     * у Untangle и Netslide рисунок после решения не менялся НИ НА ОДИН примитив,
+     * `midend_solve` возвращал ошибку. Их `solve_game` начинается с `if (!aux)`
+     * (`untangle.c:1001`, `netslide.c:894`) — без aux решения «не известно».
+     * Денис 10.09.2026 прислал ровно Untangle: запутанный граф и его же решение.
+     * Кнопка у нас показывалась и не делала ничего.
+     *
+     * ⚠️ Побочно меняется и флаг `interactive`: свой вызов передавал `false`,
+     * midend передаёт `me->drawing != NULL`, а рисование у нас задано — значит
+     * `true`. Это верное значение: доска именно интерактивная.
      */
     {
-        random_state *rs = random_new((const char *)&seed, sizeof(seed));
-        char *aux = NULL, *desc = g_new_desc(gamelist[i], p, rs, &aux);
         char *ps = gamelist[i]->encode_params(p, true);
-        size_t n = strlen(ps) + strlen(desc) + 2;
+        size_t n = strlen(ps) + 16;
         char *id = snewn(n, char);
-        snprintf(id, n, "%s:%s", ps, desc);
-        random_free(rs);
+        snprintf(id, n, "%s#%d", ps, seed);
         midend_game_id(ПАРТИЯ, id);
-        sfree(id); sfree(ps); sfree(desc);
-        if (aux) sfree(aux);
+        sfree(id); sfree(ps);
     }
     gamelist[i]->free_params(p);
     midend_new_game(ПАРТИЯ);
@@ -197,9 +216,38 @@ EMSCRIPTEN_KEEPALIVE char *psy_colours(void)
 }
 
 /** Нарисовать партию: вернуть список примитивов строками. */
+/*
+ * 🔴 ХОД С АНИМАЦИЕЙ РИСУЕТСЯ В СОСТОЯНИИ «ДО», ПОКА АНИМАЦИЮ НЕ ДОИГРАТЬ.
+ *
+ * `midend_redraw` рисует ПРОМЕЖУТОЧНЫЙ кадр: старое состояние, новое и доля
+ * `anim_pos / anim_time`. Пока время не сдвинули, доля равна нулю — то есть на
+ * экране ровно то, что было до хода. Двигает время только `midend_timer`, а
+ * таймеры у нас заглушены (`psy_fe.c`): перерисовываем целиком на каждое
+ * действие, промежуточные кадры не нужны. Нужен ПОСЛЕДНИЙ.
+ *
+ * ЗАМЕР 10.09.2026, `psy_solve` → `psy_draw` по всем сорока: у Untangle рисунок
+ * после решения не менялся ни на один примитив из 29, хотя статус становился
+ * «победа». Его `game_anim_length` на ход-решение возвращает не ноль — узлы
+ * должны переехать в правильные места за время анимации.
+ *
+ * Поэтому перед рисованием доигрываем: две секунды с запасом перекрывают любую
+ * анимацию коллекции (самая длинная у автора — полсекунды).
+ *
+ * ⚠️ ЦЕНА. `midend_timer` заодно двигает `me->elapsed` у игр с часами (Mines и
+ * прочие `is_timed`) — на те же две секунды за ход. Часы автора мы не читаем и
+ * не показываем: его строку состояния (`T -1 -1 …`) наша сторона отбрасывает.
+ * Если часы когда-нибудь понадобятся — здесь нужен будет точный остаток
+ * анимации, а его midend наружу не отдаёт.
+ */
+static void доиграть(void)
+{
+    if (ХОД_БЫЛ) { midend_timer(ПАРТИЯ, 2.0f); ХОД_БЫЛ = 0; }
+}
+
 EMSCRIPTEN_KEEPALIVE char *psy_draw(void)
 {
     if (!ПАРТИЯ) return NULL;
+    доиграть();
     длина = 0; if (БУФ) БУФ[0] = '\0';
     midend_force_redraw(ПАРТИЯ);
     return dupstr(БУФ ? БУФ : "");
@@ -209,7 +257,7 @@ EMSCRIPTEN_KEEPALIVE char *psy_draw(void)
 EMSCRIPTEN_KEEPALIVE int psy_click(int x, int y, int right)
 {
     if (!ПАРТИЯ) return 0;
-    return midend_process_key(ПАРТИЯ, x, y, right ? RIGHT_BUTTON : LEFT_BUTTON);
+    return ход(midend_process_key(ПАРТИЯ, x, y, right ? RIGHT_BUTTON : LEFT_BUTTON));
 }
 
 /*
@@ -231,7 +279,7 @@ EMSCRIPTEN_KEEPALIVE int psy_pointer(int x, int y, int вид)
         RIGHT_BUTTON, RIGHT_DRAG, RIGHT_RELEASE,
     };
     if (!ПАРТИЯ || вид < 0 || вид > 5) return 0;
-    return midend_process_key(ПАРТИЯ, x, y, КНОПКА[вид]);
+    return ход(midend_process_key(ПАРТИЯ, x, y, КНОПКА[вид]));
 }
 
 /*
@@ -244,17 +292,22 @@ EMSCRIPTEN_KEEPALIVE int psy_cursor(int сторона)
 {
     static const int КОД[4] = { CURSOR_UP, CURSOR_DOWN, CURSOR_LEFT, CURSOR_RIGHT };
     if (!ПАРТИЯ || сторона < 0 || сторона > 3) return 0;
-    return midend_process_key(ПАРТИЯ, -1, -1, КОД[сторона]);
+    return ход(midend_process_key(ПАРТИЯ, -1, -1, КОД[сторона]));
 }
 
 /** Клавиша (цифры для судоку и кенкена, стрелки, пробел). */
 EMSCRIPTEN_KEEPALIVE int psy_key(int code)
-{ return ПАРТИЯ ? midend_process_key(ПАРТИЯ, -1, -1, code) : 0; }
+{ return ПАРТИЯ ? ход(midend_process_key(ПАРТИЯ, -1, -1, code)) : 0; }
 
 /** +1 решено, -1 проиграно, 0 идёт. */
 EMSCRIPTEN_KEEPALIVE int psy_status(void) { return ПАРТИЯ ? midend_status(ПАРТИЯ) : 0; }
-EMSCRIPTEN_KEEPALIVE int psy_undo(void) { return ПАРТИЯ && midend_can_undo(ПАРТИЯ) ? midend_process_key(ПАРТИЯ, -1, -1, 'u') : 0; }
-EMSCRIPTEN_KEEPALIVE int psy_redo(void) { return ПАРТИЯ && midend_can_redo(ПАРТИЯ) ? midend_process_key(ПАРТИЯ, -1, -1, 'r') : 0; }
+EMSCRIPTEN_KEEPALIVE int psy_undo(void) { return ПАРТИЯ && midend_can_undo(ПАРТИЯ) ? ход(midend_process_key(ПАРТИЯ, -1, -1, 'u')) : 0; }
+EMSCRIPTEN_KEEPALIVE int psy_redo(void) { return ПАРТИЯ && midend_can_redo(ПАРТИЯ) ? ход(midend_process_key(ПАРТИЯ, -1, -1, 'r')) : 0; }
 
 /** Подсказка: его же решатель докладывает партию до конца. */
-EMSCRIPTEN_KEEPALIVE int psy_solve(void) { return ПАРТИЯ && midend_solve(ПАРТИЯ) == NULL ? 1 : 0; }
+EMSCRIPTEN_KEEPALIVE int psy_solve(void)
+{
+    if (!ПАРТИЯ || midend_solve(ПАРТИЯ) != NULL) return 0;
+    ХОД_БЫЛ = 1;                 /* решение почти везде приезжает с анимацией */
+    return 1;
+}
