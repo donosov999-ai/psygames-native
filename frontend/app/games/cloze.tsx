@@ -33,7 +33,8 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { BilingualToggle } from '@/src/components/BilingualToggle';
-import { паройЯзыков, БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
+import { LanguageBadge } from '@/src/components/LanguageBadge';
+import { паройЯзыков, вторымНеПервый, БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
@@ -136,7 +137,9 @@ export default function ClozeGame() {
    * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
    * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
    */
-  const [второйЯзык, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
+  const [желаемыйВторой, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
+  /** Пара не бывает из одного языка — разбор у `вторымНеПервый`. */
+  const второйЯзык = вторымНеПервый(language, tgt, желаемыйВторой);
 
   /** Показ новой фразы: сброс флага ответа + дедлайн уровня (0 = лимита нет). */
   const armDeadline = () => {
@@ -223,7 +226,7 @@ export default function ClozeGame() {
       поЯзыку[л] = [...свежие.picked, ...остальные];
     }
     const phrases: { text: string; answerEn: string; язык: string }[] = билингво
-      ? разложитьПоРяду(поЯзыку, roundsCount * 2, language).элементы
+      ? разложитьПоРяду(поЯзыку, roundsCount * 2, language, [tgt, второйЯзык]).элементы
           .map((x) => ({ ...x.элемент, язык: x.язык }))
       : (поЯзыку[tgt] ?? []).map((f) => ({ ...f, язык: tgt }));
     const newRounds: Round[] = [];
@@ -485,6 +488,19 @@ export default function ClozeGame() {
         <View style={[styles.promptCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.promptPhrase, { color: colors.text }]}>{round.text}</Text>
         </View>
+        {/*
+          🔴 ЯЗЫК — СЛОВОМ И У САМОГО СТИМУЛА, А НЕ ТОЛЬКО ДВУМЯ БУКВАМИ В ШАПКЕ.
+          Правка Дениса 10.09.2026: «подписи должны быть — раз переход в
+          мультиязычности, какой язык пишется; обозначение мелкое». Переход
+          отмечается стрелкой и заливкой, повтор языка — спокойным серым.
+        */}
+        {(билингво || isPreset) && (
+          <LanguageBadge
+            язык={round.язык}
+            сменился={idx > 0 && rounds[idx - 1]?.язык !== undefined && rounds[idx - 1]?.язык !== round.язык}
+            accent={GRADIENT[0]}
+          />
+        )}
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('clozeHint')}</Text>
       </GameShell>
