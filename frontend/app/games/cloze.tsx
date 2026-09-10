@@ -56,7 +56,7 @@ const CLOZE_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
-interface Round { text: string; answer: string; options: string[] }
+interface Round { text: string; answer: string; options: string[]; язык: string }
 
 /** Сентинел «время вышло»: picked не совпадает ни с одной опцией →
  *  подсветится только правильный ответ (зелёным), как reveal. */
@@ -131,6 +131,12 @@ export default function ClozeGame() {
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
   /** Режим билингво: два иностранных вперемешку в одной партии (см. bilingualMode). */
   const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
+  /**
+   * 🔴 ВТОРОЙ ЯЗЫК ПАРЫ — ВЫБОР ЧЕЛОВЕКА (отчёт `2aa5892c` на v2.53.0:
+   * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
+   * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
+   */
+  const [второйЯзык, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
 
   /** Показ новой фразы: сброс флага ответа + дедлайн уровня (0 = лимита нет). */
   const armDeadline = () => {
@@ -200,7 +206,7 @@ export default function ClozeGame() {
      * вариант среди английских виден, не зная ни одного из них.
      * Запас «невиданного» тоже свой у каждого языка — ключ хранилища с языком.
      */
-    const языкиРаунда = билингво ? параЯзыков(language) : [tgt];
+    const языкиРаунда = билингво ? [tgt, второйЯзык] : [tgt];
     const поЯзыку: Record<string, { text: string; answerEn: string }[]> = {};
     for (const л of языкиРаунда) {
       const все = [...(CLOZE_PHRASES[л] ?? [])];
@@ -245,7 +251,7 @@ export default function ClozeGame() {
         const j = Math.floor(Math.random() * (i + 1));
         [options[i], options[j]] = [options[j], options[i]];
       }
-      newRounds.push({ text: p2.text, answer, options });
+      newRounds.push({ text: p2.text, answer, options, язык: яз });
     }
     roundsRef.current = newRounds;
     idxRef.current = 0;
@@ -365,7 +371,8 @@ export default function ClozeGame() {
               ))}
             </View>
           </View>
-          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]} />
+          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
+            первый={tgt} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
 
           <LevelProgressMap bestLevel={lvl.best} gameId="cloze" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12, alignItems: 'center', gap: 6 }]}>
@@ -407,6 +414,28 @@ export default function ClozeGame() {
         scrollableField
         bottom="answer"
         hud={[
+          /**
+           * 🔴 КАКОЙ СЕЙЧАС ЯЗЫК — ВИДНО В ШАПКЕ.
+           *
+           * 📍 ОТЧЁТ ТЕСТИРОВЩИКА `475ac1e4` на v2.53.0: «Поставил режим два
+           * языка сразу, что-то не видно ни фига». Справедливо: слова
+           * чередовались, но НИ ОДНОГО признака режима на экране не было —
+           * `casa`, потом `house`, и если языков не знаешь, отличить нельзя.
+           * В анаграммах метка появилась только потому, что Денис попросил её
+           * отдельно; в остальных четырёх её не было вовсе.
+           *
+           * 🔴 И В ЗАРЯДКЕ ТОЖЕ — ОТДЕЛЬНОЕ ЗАМЕЧАНИЕ ДЕНИСА 10.09.2026:
+           * «в режиме зарядки я там тоже не обнаружил мультиязычности». Причина
+           * та же: поток честно меняет язык от шага к шагу, но на экране этого
+           * нечем увидеть. Условие поэтому шире флага режима — метка нужна
+           * везде, где язык материала выбран НЕ человеком на этом экране.
+           *
+           * ⚠️ Код языка, а не название: «Английский» распирает пилюлю шапки.
+           */
+          ...((билингво || isPreset) && rounds[idx]?.язык
+            ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
+                value: String(rounds[idx]?.язык).toUpperCase(), tone: 'accent' as const }]
+            : []),
           { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${rounds.length}` },
           ...(timeLimitRef.current > 0
             ? [{ key: 'time', icon: 'time-outline' as const, label: t('timeLeftLabel'), value: `${timeLeft}${t('secShort')}`, tone: lowTime ? ('bad' as const) : ('neutral' as const) }]

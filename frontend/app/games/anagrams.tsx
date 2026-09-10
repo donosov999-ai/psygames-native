@@ -34,7 +34,7 @@ import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
 import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
 import { allWordsCount, allWordsPack, банкКлассики, словаПоДлине } from '@/src/games/anagrams/core/allWords';
 import { classicLevel as levelParams } from '@/src/games/anagrams/core/classicLevel';
-import { БИЛИНГВО, тройки } from '@/src/services/bilingualMode';
+import { БИЛИНГВО, тройкиПары, параЯзыков } from '@/src/services/bilingualMode';
 import { BilingualToggle } from '@/src/components/BilingualToggle';
 import { стилиРежима } from '@/src/games/anagrams/modeStyles';
 import { ключКольца, кольцаЯзыка, языкиКолец } from '@/src/games/anagrams/core/ring';
@@ -141,6 +141,12 @@ export default function AnagramGame() {
    * припоминание перевода. Разбор в `bilingualMode.тройки`.
    */
   const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
+  /**
+   * 🔴 ВТОРОЙ ЯЗЫК ПАРЫ — ВЫБОР ЧЕЛОВЕКА (отчёт `2aa5892c` на v2.53.0:
+   * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
+   * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
+   */
+  const [второйЯзык, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
   const очередьТроек = useRef<{ ключ: string; шаги: { язык: string; слово: string }[] }[]>([]);
   const тройкаIdx = useRef(0);
   const шагIdx = useRef(0);
@@ -623,7 +629,7 @@ export default function AnagramGame() {
          автостартом, и правило React-компилятора справедливо считает вызов
          случайности на этом пути вызовом во время рендера. */
       const перемешано = shuffle([...TRANSLATION_VOCAB] as unknown[]);
-      const т = тройки(перемешано as Record<string, unknown>[], language,
+      const т = тройкиПары(перемешано as Record<string, unknown>[], language, wordLang.lang, второйЯзык,
         Math.max(1, Math.ceil(trialsRef.current / 3)), годится);
       очередьТроек.current = т;
       тройкаIdx.current = 0;
@@ -820,7 +826,8 @@ export default function AnagramGame() {
           оставить человека гадать, почему выбранная длина ни на что не влияет.
         */}
         {режимИгры === 'classic' && (
-          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]} />
+          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
+            первый={wordLang.lang} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
         )}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>

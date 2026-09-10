@@ -153,6 +153,12 @@ export default function VocabSrsGame() {
    * упражнении. Разбор правила и ряда чередования — в `bilingualMode.ts`.
    */
   const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
+  /**
+   * 🔴 ВТОРОЙ ЯЗЫК ПАРЫ — ВЫБОР ЧЕЛОВЕКА (отчёт `2aa5892c` на v2.53.0:
+   * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
+   * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
+   */
+  const [второйЯзык, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
   /** Пул дистракторов ПО ЯЗЫКАМ: в билингво их нельзя смешивать между языками. */
   const [пулЯзыков, setПулЯзыков] = useState<Record<string, { base: string; target: string }[]>>({});
   const [сменЯзыка, setСменЯзыка] = useState(0);
@@ -207,8 +213,7 @@ export default function VocabSrsGame() {
      * раздельно и только ПОКАЗЫВАЮТСЯ вперемешку, а оценка каждой уходит в свою
      * колоду по `card.lang`.
      */
-    const пара = параЯзыков(language);
-    const языки = билингво ? пара : [tgt];
+    const языки = билингво ? [tgt, второйЯзык] : [tgt];
     const очереди = await Promise.all(языки.map((l) => buildQueue(language, l, newLimit)));
 
     const пулПоЯзыкам: Record<string, { base: string; target: string }[]> = {};
@@ -280,7 +285,7 @@ export default function VocabSrsGame() {
            * одного языка кончился на середине, партия к концу стала одноязычной,
            * и по включённому флагу этого не видно, а по числу смен — видно.
            */
-          target_lang: билингво ? параЯзыков(language).join('+') : tgt,
+          target_lang: билингво ? [tgt, второйЯзык].join('+') : tgt,
           ...(билингво ? { lang_switches: сменЯзыка } : {}),
           cards_total: finalQueueLen,
           new_learned: newLearnedRef.current.size,
@@ -432,7 +437,8 @@ export default function VocabSrsGame() {
           </View>
         </View>
 
-        <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]} />
+        <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
+            первый={tgt} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
 
         {/* Новых за сессию */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
@@ -533,6 +539,28 @@ export default function VocabSrsGame() {
         scrollableField
         bottom="answer"
         hud={[
+          /**
+           * 🔴 КАКОЙ СЕЙЧАС ЯЗЫК — ВИДНО В ШАПКЕ.
+           *
+           * 📍 ОТЧЁТ ТЕСТИРОВЩИКА `475ac1e4` на v2.53.0: «Поставил режим два
+           * языка сразу, что-то не видно ни фига». Справедливо: слова
+           * чередовались, но НИ ОДНОГО признака режима на экране не было —
+           * `casa`, потом `house`, и если языков не знаешь, отличить нельзя.
+           * В анаграммах метка появилась только потому, что Денис попросил её
+           * отдельно; в остальных четырёх её не было вовсе.
+           *
+           * 🔴 И В ЗАРЯДКЕ ТОЖЕ — ОТДЕЛЬНОЕ ЗАМЕЧАНИЕ ДЕНИСА 10.09.2026:
+           * «в режиме зарядки я там тоже не обнаружил мультиязычности». Причина
+           * та же: поток честно меняет язык от шага к шагу, но на экране этого
+           * нечем увидеть. Условие поэтому шире флага режима — метка нужна
+           * везде, где язык материала выбран НЕ человеком на этом экране.
+           *
+           * ⚠️ Код языка, а не название: «Английский» распирает пилюлю шапки.
+           */
+          ...((билингво || isPreset) && card.lang
+            ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
+                value: String(card.lang).toUpperCase(), tone: 'accent' as const }]
+            : []),
           { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${queue.length}` },
           ...(card.isNew ? [{ key: 'srsNew', icon: 'sparkles' as const, label: t('srsNew'), value: '', tone: 'accent' as const }] : []),
           { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },

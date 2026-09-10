@@ -55,7 +55,7 @@ const LD_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
-interface Trial { text: string; isWord: boolean }
+interface Trial { text: string; isWord: boolean; язык: string }
 
 // Уровень 1..15: окно ответа сокращается 3.0с → 1.1с, число проб растёт ступенями.
 // Языковые параметры уровень НЕ трогает — словники всех языков работают как раньше.
@@ -121,6 +121,12 @@ export default function LexicalDecisionGame() {
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
   /** Режим билингво: два иностранных вперемешку в одной партии (см. bilingualMode). */
   const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
+  /**
+   * 🔴 ВТОРОЙ ЯЗЫК ПАРЫ — ВЫБОР ЧЕЛОВЕКА (отчёт `2aa5892c` на v2.53.0:
+   * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
+   * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
+   */
+  const [второйЯзык, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
 
   // Показ текущей пробы: фиксируем момент показа + взводим дедлайн уровня.
   const presentTrial = () => {
@@ -169,13 +175,13 @@ export default function LexicalDecisionGame() {
      * ⚠️ Порядок здесь НЕ перемешивается случайно, как в одноязычной партии:
      * узор чередования и есть измеряемая величина.
      */
-    const языки = билингво ? параЯзыков(language) : [tgt];
+    const языки = билингво ? [tgt, второйЯзык] : [tgt];
     const наЯзык = Math.max(1, Math.round(count / языки.length));
-    const поЯзыку: Record<string, { text: string; isWord: boolean }[]> = {};
+    const поЯзыку: Record<string, Trial[]> = {};
     for (const л of языки) {
       const пол = Math.floor(наЯзык / 2);
-      const r = sampleRealWords(л, наЯзык - пол).map((w) => ({ text: w, isWord: true }));
-      const ps = generatePseudowords(л, пол).map((w) => ({ text: w, isWord: false }));
+      const r = sampleRealWords(л, наЯзык - пол).map((w) => ({ text: w, isWord: true, язык: л }));
+      const ps = generatePseudowords(л, пол).map((w) => ({ text: w, isWord: false, язык: л }));
       const смесь = [...r, ...ps];
       for (let i = смесь.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -183,7 +189,7 @@ export default function LexicalDecisionGame() {
       }
       поЯзыку[л] = смесь;
     }
-    let all: { text: string; isWord: boolean }[];
+    let all: Trial[];
     if (билингво) {
       all = разложитьПоРяду(поЯзыку, count, language).элементы.map((x) => x.элемент);
     } else {
@@ -316,7 +322,8 @@ export default function LexicalDecisionGame() {
               ))}
             </View>
           </View>
-          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]} />
+          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
+            первый={tgt} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
 
           <LevelProgressMap bestLevel={lvl.best} gameId="lexical_decision" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
 
@@ -360,6 +367,28 @@ export default function LexicalDecisionGame() {
         scrollableField
         bottom="answer"
         hud={[
+          /**
+           * 🔴 КАКОЙ СЕЙЧАС ЯЗЫК — ВИДНО В ШАПКЕ.
+           *
+           * 📍 ОТЧЁТ ТЕСТИРОВЩИКА `475ac1e4` на v2.53.0: «Поставил режим два
+           * языка сразу, что-то не видно ни фига». Справедливо: слова
+           * чередовались, но НИ ОДНОГО признака режима на экране не было —
+           * `casa`, потом `house`, и если языков не знаешь, отличить нельзя.
+           * В анаграммах метка появилась только потому, что Денис попросил её
+           * отдельно; в остальных четырёх её не было вовсе.
+           *
+           * 🔴 И В ЗАРЯДКЕ ТОЖЕ — ОТДЕЛЬНОЕ ЗАМЕЧАНИЕ ДЕНИСА 10.09.2026:
+           * «в режиме зарядки я там тоже не обнаружил мультиязычности». Причина
+           * та же: поток честно меняет язык от шага к шагу, но на экране этого
+           * нечем увидеть. Условие поэтому шире флага режима — метка нужна
+           * везде, где язык материала выбран НЕ человеком на этом экране.
+           *
+           * ⚠️ Код языка, а не название: «Английский» распирает пилюлю шапки.
+           */
+          ...((билингво || isPreset) && trials[idx]?.язык
+            ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
+                value: String(trials[idx]?.язык).toUpperCase(), tone: 'accent' as const }]
+            : []),
           { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${trials.length}` },
           { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },
           { key: 'hud_errors', icon: 'close-circle', label: t('hud_errors'), value: errorsCount, tone: 'bad' as const },
