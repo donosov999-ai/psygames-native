@@ -33,7 +33,7 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
-import { БИЛИНГВО, параЯзыков, рядЯзыковПары } from '@/src/services/bilingualMode';
+import { паройЯзыков, БИЛИНГВО, параЯзыков, рядЯзыковПары } from '@/src/services/bilingualMode';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#10b981', '#6366f1'];
@@ -409,7 +409,8 @@ export default function SemanticSortGame() {
            */
           ...((билингво || isPreset) && rounds[idx]?.язык
             ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
-                value: String(rounds[idx]?.язык).toUpperCase(), tone: 'accent' as const }]
+                value: паройЯзыков(String(rounds[idx]?.язык), билингво ? [tgt, второйЯзык] : []),
+                tone: 'accent' as const }]
             : []),
           { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${rounds.length}` },
           { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },
