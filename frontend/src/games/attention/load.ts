@@ -304,7 +304,13 @@ export function antLoad(level: number): number {
 export function switchingLoad(level: number): number {
   const p = switchParams(level);
   const base = switchParams(1);
-  return (base.windowMs / p.windowMs) * (p.trials / base.trials);
+  // 🔴 10.09.2026 третий множитель — плотность помех вокруг стимула. Разбор,
+  // почему именно она (а не интервал подготовки, не предсказуемость и не третья
+  // задача), — в шапке DECOY_GLYPHS в switching-task.tsx.
+  // ⚠️ Шаг порядковый, как у начертания у choice-rt: что четыре помехи мешают
+  // сильнее двух — очевидно, НАСКОЛЬКО — не измерено. Заменяется отношением
+  // медиан RT по записанному условию, когда партии накопятся.
+  return (base.windowMs / p.windowMs) * (p.trials / base.trials) * (1 + p.decoys / 4);
 }
 
 export function attentionLoad(mode: AttentionMode, level: number): number {
