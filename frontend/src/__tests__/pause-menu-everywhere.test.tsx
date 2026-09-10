@@ -127,6 +127,20 @@ describe('меню паузы есть у каждой игры', () => {
     expect(кнопка.props.accessibilityState?.disabled).toBe(true);
   });
 
+  it('🔴 у игры со своим набором выход всё равно последний, а собранное — перед ним', async () => {
+    const GameAuxAction = require('@/src/components/GameAuxAction').default;  // eslint-disable-line @typescript-eslint/no-require-imports
+    // Так устроен маджонг: свой набор с «На главную» и служебные кнопки в шапке.
+    const пункты = пунктыМеню(await пауза({
+      pauseActions: [
+        { id: 'resume', label: 'Продолжить игру', icon: 'play', primary: true },
+        { id: 'home', label: 'На главную', icon: 'home', leave: true },
+      ],
+      headerActions: React.createElement(GameAuxAction,
+        { icon: 'shuffle', label: 'Перемешать', onPress: () => {} }),
+    }));
+    expect(пункты).toEqual(['resume', 'aux:Перемешать', 'home']);
+  });
+
   it('🔴 «СТОП» в паузу не берётся: там это дубль выхода, и опасный', async () => {
     const GameAuxAction = require('@/src/components/GameAuxAction').default;  // eslint-disable-line @typescript-eslint/no-require-imports
     const пункты = пунктыМеню(await пауза({
