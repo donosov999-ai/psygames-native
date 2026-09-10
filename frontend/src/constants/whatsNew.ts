@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.53.0',
+    date: '2026-09-10',
+    ru: [
+      'Новый раздел «Головоломки»: сорок логических головоломок Саймона Тэтхэма — судоку и его родня, закраска по подсказкам, петли и мосты, разрезание поля, аркады',
+      'Зарядка: подсказка «Не понимаешь, как играть?» больше не закрывает поле в первом упражнении — из-за неё вспышки Корси проходили незаметно, а таблица символов SDMT была не видна',
+      'SDMT: два значка из девяти выглядели одинаково («пламя» и «капля»), и ответ на них был угадыванием — заменили на непохожий',
+      'Ряд служебных кнопок в шапке больше не наезжает на игровое поле — это было на двадцати экранах',
+      'Торты и пицца: тап стал главным способом хода, перетаскивание наконец работает, ряды тарелок ровные',
+      'Раздел «Поиск»: шесть игр приведены к одной геометрии, у всех появилось меню паузы',
+    ],
+    en: [
+      'New “Puzzles” section: forty logic puzzles by Simon Tatham — sudoku and its relatives, shading by clues, loops and bridges, region cutting, arcade boards',
+      'Workout: the “Not sure how to play?” hint no longer covers the board in the first exercise — it used to hide the Corsi flashes and the SDMT symbol key',
+      'SDMT: two of the nine symbols looked identical (“flame” and “water”), so answering them was guesswork — replaced with a distinct one',
+      'The row of tool buttons in the header no longer overlaps the game field — this affected twenty screens',
+      'Cakes and pizza: tapping is now the main way to move, dragging finally works, plate rows are aligned',
+      '“Search” section: six games share one geometry, and every one of them now has a pause menu',
+    ],
+  },
+  {
     version: '2.52.12',
     date: '2026-09-09',
     ru: [
