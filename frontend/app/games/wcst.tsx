@@ -94,13 +94,105 @@ const REF_CARDS: Card[] = [
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
-function makeTarget(): Card {
-  // ensure target card matches at least one ref card on each dimension (always solvable)
-  return {
-    color: rndItem(COLORS),
-    shape: rndItem(SHAPES),
-    count: rndItem(COUNTS),
-  };
+/**
+ * 🔴 РАЗВОДЯЩАЯ КАРТА — ТА, ЧЕЙ ВЫБОР ВЫДАЁТ ПРАВИЛО.
+ *
+ * У каждого эталона свои цвет, форма и число, поэтому цвет карты указывает ровно
+ * на один эталон, форма — на один, число — на один. Дальше возможны три случая:
+ *
+ *   три РАЗНЫХ эталона — чтобы ответить, надо знать текущее правило (разводящая);
+ *   два эталона        — одно из правил неотличимо от другого;
+ *   ОДИН эталон        — любое правило даёт тот же ответ: ошибиться нельзя,
+ *                        и проба не сообщает, каким правилом играли.
+ *
+ * ⚠️ ЗАМЕР ГЕНЕРАТОРА ДО ПРАВКИ (200 000 карт, разыгрывались случайно):
+ *     разводящих 37,3 % · двух эталонов 56,4 % · ОДНОГО эталона 6,2 %
+ * На партии в 40 проб это 2,5 пробы, где ошибиться НЕЛЬЗЯ, и 25 проб, по которым
+ * не понять, каким правилом играли. А `rule_catch_mean` — мера прохода этой
+ * пробы — считает ходы до ПЕРЕХВАТА ПРАВИЛА именно по ним.
+ *
+ * 📌 Неоднозначность придумана не здесь: в самом WCST это ТРЕТЬЕ измерение
+ * оценки ответа, рядом с «верно/неверно» и «персеверация/нет» — карта, совпавшая
+ * с выбранным эталоном по двум признакам, не говорит, какое правило применили.
+ *
+ * Отсюда ось: доля разводящих карт растёт с уровнем. Она делает партию труднее И
+ * чище одновременно — редкий случай, когда ось не тратит измерение, а чинит его.
+ */
+function refIndexes(card: Card): number[] {
+  return [
+    REF_CARDS.findIndex((r) => r.color === card.color),
+    REF_CARDS.findIndex((r) => r.shape === card.shape),
+    REF_CARDS.findIndex((r) => r.count === card.count),
+  ];
+}
+
+/** Сколько РАЗНЫХ эталонов задевает карта: 3 — разводящая, 1 — пустая. */
+export function refSpread(card: Card): number {
+  return new Set(refIndexes(card)).size;
+}
+
+/** Карта, у которой цвет, форма и число указывают на три РАЗНЫХ эталона. */
+function makeDiscriminating(): Card {
+  const [a, b, c] = shuffled([0, 1, 2, 3]).slice(0, 3);
+  return { color: REF_CARDS[a].color, shape: REF_CARDS[b].shape, count: REF_CARDS[c].count };
+}
+
+function shuffled<T>(arr: T[]): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * ДОЛЯ РАЗВОДЯЩИХ КАРТ В РАВНОМЕРНОЙ РАЗДАЧЕ — СЧИТАЕТСЯ, А НЕ ЗАМЕРЯЕТСЯ.
+ *
+ * У четырёх эталонов все цвета, формы и числа различны, поэтому каждый признак
+ * карты указывает ровно на один эталон, а всего карт 4³ = 64. Разводящих (три
+ * РАЗНЫХ эталона) среди них 4·3·2 = 24, то есть ровно 24/64 = 0,375.
+ * Остальные: два эталона 36/64 = 0,5625 · ОДИН эталон 4/64 = 0,0625.
+ *
+ * ⚠️ Симуляция на 200 000 карт дала 37,3 / 56,4 / 6,2 — это те же числа в
+ * пределах шума, и именно поэтому в коде стоит дробь, а не замер: доля обязана
+ * быть точной, иначе классический режим «почти не изменится», а не «не изменится».
+ */
+export const CLASSIC_DISC_SHARE = 24 / 64;
+
+/**
+ * Карта, чьи признаки указывают НЕ БОЛЕЕ чем на два эталона.
+ *
+ * Отбором, а не построением: так у неоднозначных карт остаётся ровно то же
+ * соотношение «два эталона / один эталон», что и в классической раздаче
+ * (36 к 4). Построил бы напрямую — пришлось бы это соотношение задавать руками,
+ * и любая описка тихо переписала бы канон.
+ */
+function makeAmbiguous(): Card {
+  for (let i = 0; i < 64; i++) {
+    const c = { color: rndItem(COLORS), shape: rndItem(SHAPES), count: rndItem(COUNTS) };
+    if (refSpread(c) < 3) return c;
+  }
+  // Сюда попасть нельзя: 0,375^64 ≈ 10⁻²⁷. Ветка есть, чтобы цикл был конечным.
+  return { color: REF_CARDS[0].color, shape: REF_CARDS[0].shape, count: REF_CARDS[1].count };
+}
+
+/**
+ * 🔴 ПАРАМЕТР — ДОЛЯ В САМОЙ РАЗДАЧЕ, А НЕ ДОЛЯ ПРИНУДИТЕЛЬНЫХ КАРТ.
+ *
+ * ⚠️ Первая версия делала так: с вероятностью `share` — разводящая карта, иначе
+ * обычный случайный бросок. Но случайный бросок сам разводящий в 37,5 % случаев,
+ * поэтому при `share = 0,40` в раздачу приходило 0,40 + 0,60·0,375 = 0,625.
+ * Число в `levelParams` называлось «доля разводящих» и означало другое — то есть
+ * мера уровня врала бы ровно в том месте, ради которого заведена.
+ * Поймал это гейт `wcst-discriminating-cards`, прогонявший генератор.
+ *
+ * По умолчанию — доля классической раздачи, поэтому вызов без аргумента
+ * статистически неотличим от прежнего кода: разводящие берутся равномерно из тех
+ * же 24 сочетаний, неоднозначные — отбором из тех же 40.
+ */
+export function makeTarget(discriminatingShare = CLASSIC_DISC_SHARE): Card {
+  return Math.random() < discriminatingShare ? makeDiscriminating() : makeAmbiguous();
 }
 
 function matchByRule(target: Card, ref: Card, rule: Rule): boolean {
@@ -111,12 +203,65 @@ function matchByRule(target: Card, ref: Card, rule: Rule): boolean {
 
 // Уровень 1..12: окно смены правила сокращается (правило меняется чаще),
 // число проб растёт ступенями. Механика сортировки НЕ меняется — только частота/размах.
-export function levelParams(level: number): { trials: number; ruleChangeStreak: number; persevCap: number } {
+export function levelParams(level: number): { trials: number; ruleChangeStreak: number; persevCap: number; discriminatingShare: number } {
   const trials = level <= 4 ? 24 : level <= 8 ? 32 : 40;
   // 9 → 3 подряд по мере роста уровня (плавно, через 12 уровней)
   const ruleChangeStreak = Math.max(3, 9 - Math.floor((level - 1) * 6 / (MAX_LEVEL - 1)));
   const persevCap = Math.max(2, Math.round(trials * 0.12));
-  return { trials, ruleChangeStreak, persevCap };
+  /**
+   * 🔴 ТРЕТЬЯ ОСЬ, ЗАВЕДЕНА 10.09.2026 — И ЗАВЕДЕНА, ЧТОБЫ УБРАТЬ ДУБЛИ, А НЕ
+   * УКОРОТИТЬ ЛЕСТНИЦУ.
+   *
+   * Было две оси: объём (меняется на L5 и L9) и серия (через уровень). Из-за
+   * этого ПЯТЬ переходов из одиннадцати не меняли ничего: L2=L1, L4=L3, L6=L5,
+   * L8=L7, L10=L9 совпадали по всем параметрам. Игрок проходил ступень, за
+   * которой ничего не стояло.
+   * 📌 Решение Дениса 10.09.2026 дословно: «надо не мёртвые переходы убрать, а
+   * доработать». Убрать значило бы срезать лестницу с двенадцати до семи —
+   * ровно то, что запрещает правило «потолков нет нигде».
+   *
+   * Доля разводящих карт меняется на КАЖДОМ уровне, поэтому мёртвых переходов
+   * не остаётся, а верх лестницы становится и труднее, и чище: на L12 каждая
+   * проба требует знания правила.
+   * 0,40 на первом — вплотную к классической раздаче (там ровно 0,375), так что
+   * начало лестницы человек не почувствует изменившимся. Шаг взят делением, а не
+   * зашит: концы обязаны быть точными (L1 = 0,40 · L12 = 1,00). Ровно поэтому
+   * шаг НЕ зашит числом: при шаге 0,06 доля упиралась в потолок уже на L11, и
+   * две верхние ступени снова становились одинаковыми — то самое, ради чего ось
+   * и заводилась.
+   * ⚠️ Потолок при этом оставлен: за концом лестницы (гейты гоняют 15 уровней,
+   * а их двенадцать) формула дала бы 1,16, и такое «доля» уехало бы в партию
+   * числом, которого не бывает.
+   */
+  const discriminatingShare = Math.min(1, Math.round((0.40 + (level - 1) * 0.60 / (MAX_LEVEL - 1)) * 100) / 100);
+  return { trials, ruleChangeStreak, persevCap, discriminatingShare };
+}
+
+/**
+ * 🔴 УСЛОВИЕ, ПРИ КОТОРОМ СНЯТА МЕРА ПРОХОДА — В САМУ ПАРТИЮ.
+ *
+ * `rule_catch_mean` (ходы до перехвата правила) зависит от того, КАКУЮ колоду
+ * человеку раздали. Замер симуляцией 10.09.2026, партия 40 проб, серия 4:
+ *
+ *   доля разводящих   идеальный игрок      наивный игрок
+ *   0,375 (классика)  перехват 1,63 · 82,4 %   2,12 · 70,0 %
+ *   1,000 (L12)       перехват 1,99 · 79,2 %   2,89 · 66,6 %
+ *
+ * То есть одно и то же число «перехватил за 2 хода» на первом и на двенадцатом
+ * уровне означает РАЗНОЕ. Без записанного условия сравнить два прохода человека
+ * нельзя, а раздел с 09.09.2026 меряет именно прогресс человека.
+ *
+ * ⚠️ И отдельно: доля разводящих карт — НЕ тот дефект, что чинился в разделе семь
+ * раз (когда ручка уровня сжимает измеряемую величину). Здесь она величину
+ * РАСТИТ: карта одного эталона верна при любом правиле, и «перехват за 1 ход» на
+ * ней записывался, хотя игрок ничего не перехватывал. Ось убирает дармовые
+ * единицы — трудность вверх и мера чище одновременно.
+ */
+export function levelCondition(level: number): {
+  trials: number; ruleChangeStreak: number; persevCap: number; discriminatingShare: number;
+} {
+  const { trials, ruleChangeStreak, persevCap, discriminatingShare } = levelParams(level);
+  return { trials, ruleChangeStreak, persevCap, discriminatingShare };
 }
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
@@ -238,6 +383,12 @@ export default function WcstGame() {
   // Параметры текущей партии (в рефах — таймер живёт вне ре-рендера).
   const classicRef = useRef(false);
   const levelRef = useRef(1);
+  /**
+   * Доля разводящих карт — реф, а не state: раздача карты живёт в таймерной
+   * цепочке, и state в её колбэках был бы устаревшим (паттерн cpt/simon).
+   * ⚠️ В классическом режиме 0: там канон, и колода не подстраивается.
+   */
+  const discShareRef = useRef(CLASSIC_DISC_SHARE);
   const trialsRef = useRef(40);
   const ruleStreakRef = useRef(CLASSIC_STREAK);
   const persevCapRef = useRef(2);
@@ -265,12 +416,14 @@ export default function WcstGame() {
       streakThreshold = CLASSIC_STREAK;
       levelRef.current = lvl.level;   // не участвует в прогрессии, но хранится
       persevCapRef.current = 0;
+      discShareRef.current = CLASSIC_DISC_SHARE;   // канон: колода не подстраивается
     } else {
       const p = levelParams(lvl.level);
       levelRef.current = lvl.level;
       total = p.trials;
       streakThreshold = p.ruleChangeStreak;
       persevCapRef.current = p.persevCap;
+      discShareRef.current = p.discriminatingShare;
     }
     trialsRef.current = total;
     ruleStreakRef.current = streakThreshold;
@@ -286,7 +439,7 @@ export default function WcstGame() {
     lastRuleRef.current = null;
     justChangedRef.current = false;
 
-    const tg = makeTarget();
+    const tg = makeTarget(discShareRef.current);
     targetRef.current = tg; setTarget(tg);
     setFeedback(null);
     setPhase('playing');
@@ -343,7 +496,9 @@ export default function WcstGame() {
         rule_shifts_total: shiftsTotalRef.current,
         hits: h,
         n_trials: total,
-        ...(classic ? {} : { level: levelRef.current }),   // level только в уровневом режиме
+        // level и условие — только в уровневом режиме: в классике колода канонная
+        // и одна на всех, условию неоткуда взяться.
+        ...(classic ? {} : { level: levelRef.current, ...levelCondition(levelRef.current) }),
       },
     }).catch(err => console.error(err));
   };
@@ -393,7 +548,7 @@ export default function WcstGame() {
       } else {
         roundRef.current += 1;
         setRound(roundRef.current);
-        const tg = makeTarget();
+        const tg = makeTarget(discShareRef.current);
         targetRef.current = tg;
         setTarget(tg);
         setFeedback(null);

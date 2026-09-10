@@ -30,7 +30,7 @@ import GameAbout from '@/src/components/GameAbout';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
+import { паройЯзыков, БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
 import { BilingualToggle } from '@/src/components/BilingualToggle';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -571,7 +571,8 @@ export default function VocabSrsGame() {
            */
           ...((билингво || isPreset) && card.lang
             ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
-                value: String(card.lang).toUpperCase(), tone: 'accent' as const }]
+                value: паройЯзыков(String(card.lang), билингво ? [tgt, второйЯзык] : []),
+                tone: 'accent' as const }]
             : []),
           { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${queue.length}` },
           ...(card.isNew ? [{ key: 'srsNew', icon: 'sparkles' as const, label: t('srsNew'), value: '', tone: 'accent' as const }] : []),

@@ -34,7 +34,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { BilingualToggle } from '@/src/components/BilingualToggle';
-import { БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
+import { паройЯзыков, БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { generatePseudowords, sampleRealWords } from '@/src/services/pseudowords';
@@ -399,7 +399,8 @@ export default function LexicalDecisionGame() {
            */
           ...((билингво || isPreset) && trials[idx]?.язык
             ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
-                value: String(trials[idx]?.язык).toUpperCase(), tone: 'accent' as const }]
+                value: паройЯзыков(String(trials[idx]?.язык), билингво ? [tgt, второйЯзык] : []),
+                tone: 'accent' as const }]
             : []),
           { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${trials.length}` },
           { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },

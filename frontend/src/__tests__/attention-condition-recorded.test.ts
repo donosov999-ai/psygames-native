@@ -43,14 +43,23 @@
 import { levelParams as flankerParams, levelCondition as flankerCond } from '@/app/games/flanker';
 import { levelParams as cptParams, levelCondition as cptCond } from '@/app/games/cpt';
 import { levelParams as swParams, levelCondition as swCond } from '@/app/games/switching-task';
+import { levelParams as wcstParams, levelCondition as wcstCond } from '@/app/games/wcst';
 
 const УРОВНИ = Array.from({ length: 15 }, (_, i) => i + 1);
 
-/** Пробы раздела, чей показатель сверяется с ЖЁСТКОЙ нормой батареи. */
+/**
+ * Пробы, чья мера прохода зависит от уровня, — потому и требуют записанного условия.
+ *
+ * Три первые кормят батарею показателями с ЖЁСТКИМИ нормами. Четвёртая, WCST,
+ * нормы в батарее не имеет, и это НЕ повод её не стеречь: `rule_catch_mean`
+ * человек видит в итогах партии и сравнивает со своим прошлым проходом, а раздел
+ * с 09.09.2026 меряет прогресс человека. Число без условия сравнивать не с чем.
+ */
 const БАТАРЕЙНЫЕ = [
   { имя: 'flanker',        показатель: 'flanker_effect_ms', норма: '70±30',    параметры: flankerParams, условие: flankerCond },
   { имя: 'cpt',            показатель: 'rt_variability',    норма: '0,20±0,08', параметры: cptParams,     условие: cptCond },
   { имя: 'switching_task', показатель: 'switch_cost_ms',    норма: '150±80',   параметры: swParams,      условие: swCond },
+  { имя: 'wcst',           показатель: 'rule_catch_mean',   норма: 'нет в батарее', параметры: wcstParams, условие: wcstCond },
 ];
 
 /** Поля `levelParams`, которые ДЕЙСТВИТЕЛЬНО меняются по лестнице. Снимается прогоном. */
@@ -62,7 +71,7 @@ function меняющиеся(параметры: (l: number) => Record<string, 
 
 describe('условие, при котором снят показатель батареи, записывается в партию', () => {
   it('есть что проверять — иначе набор зелен вслепую', () => {
-    expect(БАТАРЕЙНЫЕ.length).toBe(3);
+    expect(БАТАРЕЙНЫЕ.length).toBe(4);
     for (const б of БАТАРЕЙНЫЕ) {
       expect(`${б.имя}: меняющихся полей ${меняющиеся(б.параметры).length > 0}`).toBe(`${б.имя}: меняющихся полей true`);
     }
