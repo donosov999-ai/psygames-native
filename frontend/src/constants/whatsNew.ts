@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.53.4',
+    date: '2026-09-10',
+    ru: [
+      'В паузе у каждой игры теперь два выхода: «Выйти из игры» — шаг назад, к выбору упражнения, и «На главную» — сразу на главный экран',
+      'У восемнадцати игр выход был один и подписан «На главную», хотя уводил на шаг назад — подпись теперь совпадает с тем, что кнопка делает',
+    ],
+    en: [
+      'Every game’s pause menu now has two exits: “Exit game” steps back to the exercise list, and “Go Home” goes straight to the main screen',
+      'In eighteen games there was a single exit labelled “Go Home” that actually stepped back — the label now matches what the button does',
+    ],
+  },
+  {
     version: '2.53.3',
     date: '2026-09-10',
     ru: [
