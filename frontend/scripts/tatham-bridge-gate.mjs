@@ -46,8 +46,14 @@ const СТУПЕНИ = {
 };
 
 const беды = [];
-if (!existsSync(МОСТ) || !existsSync(МОСТ.replace(/\.js$/, '.wasm'))) {
-  console.error('❌ мост не собран: нет tatham.js или tatham.wasm');
+/**
+ * ⚠️ Модуль собран ЕДИНЫМ файлом (`SINGLE_FILE=1`): wasm лежит внутри `tatham.js`
+ * в base64, отдельного `.wasm` НЕТ и быть не должно. Так Metro кладёт его в бандл
+ * как обычный модуль — без ассета и без загрузки по сети. Цена: 459 КБ бинаря
+ * превращаются в 530 КБ текста.
+ */
+if (!existsSync(МОСТ)) {
+  console.error('❌ мост не собран: нет tatham.js');
   console.error('   пересобрать: source ~/dev/emsdk/emsdk_env.sh && frontend/src/games/tatham-bridge/build.sh');
   process.exit(1);
 }

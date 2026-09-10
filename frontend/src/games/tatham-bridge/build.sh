@@ -24,9 +24,9 @@ CORE="combi.c divvy.c dsf.c findloop.c grid.c latin.c laydomino.c loopgen.c mall
 emcc -Os -DCOMBINED -I. -I/tmp/gen \
   nullfe.c /tmp/combined-list.c "$HERE/psy_bridge.c" $SRCS $CORE \
   -s WASM=1 -s ENVIRONMENT=web,node -s MODULARIZE=1 -s ALLOW_MEMORY_GROWTH=1 \
-  -s FILESYSTEM=0 -s EXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString \
+  -s FILESYSTEM=0 -s SINGLE_FILE=1 -s EXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString \
   -o "$HERE/tatham.js" 2> "$HERE/build.err"
 rc=$?
 [ $rc -ne 0 ] && { grep -E "error:" "$HERE/build.err" | head -5; exit $rc; }
-w=$(stat -f%z "$HERE/tatham.wasm"); gz=$(gzip -c "$HERE/tatham.wasm"|wc -c|tr -d ' '); j=$(stat -f%z "$HERE/tatham.js")
-printf "🟢 ВЕСЬ МОСТ, %d головоломок ОДНИМ модулем: wasm %d КБ · gzip %d КБ · обвязка %d КБ\n" "$(echo $G|wc -w)" $((w/1024)) $((gz/1024)) $((j/1024))
+j=$(stat -f%z "$HERE/tatham.js"); gz=$(gzip -c "$HERE/tatham.js"|wc -c|tr -d ' ')
+printf "🟢 ВЕСЬ МОСТ, %d головоломок ОДНИМ файлом: tatham.js %d КБ · gzip %d КБ (wasm внутри, SINGLE_FILE)\n" "$(echo $G|wc -w)" $((j/1024)) $((gz/1024))
