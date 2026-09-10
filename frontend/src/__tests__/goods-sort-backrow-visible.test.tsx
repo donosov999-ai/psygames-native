@@ -43,6 +43,25 @@ const НАСТОЯЩИЙ_RANDOM = Math.random;
 afterEach(() => { Math.random = НАСТОЯЩИЙ_RANDOM; });
 
 /**
+ * 🔴 ЭКРАНЫ ГАСИМ ПОСЛЕ КАЖДОЙ ПРОБЫ, И ЭТО НЕ ОПРЯТНОСТЬ, А УСЛОВИЕ ПРОГОНА.
+ *
+ * 📍 09.09.2026: этот набор — одна из четырёх течей, из-за которых полный
+ * `npx jest` не доходит до конца. Незакрытый каркас держит `setTimeout` питомца
+ * и всплывающих очков; после `afterAll` они продолжают тикать, и первый же кадр
+ * по снесённому окружению даёт «Cannot log after tests are done» и падение
+ * процесса. В общем прогоне набор от этого краснеет БЕЗ ЕДИНОЙ строки `✕` —
+ * вердикт зелёный, смерть после него.
+ */
+const открытыеЭкраны: any[] = [];
+afterEach(async () => {
+  while (открытыеЭкраны.length) {
+    const r = открытыеЭкраны.pop();
+    await TestRenderer.act(async () => { r.unmount(); });
+  }
+});
+
+
+/**
  * Псевдослучайность с семенем: та же, что в `goods-sort-solver-cutoffs`.
  *
  * 🔴 ЗАЧЕМ ЗДЕСЬ СЕМЯ. Раздача уровня случайна (`generate` мешает пул без
@@ -85,6 +104,7 @@ async function открыть(уровень: number, семя = 0) {
     );
   });
   await TestRenderer.act(async () => { for (let i = 0; i < 40; i += 1) await Promise.resolve(); });
+  открытыеЭкраны.push(r);
   const кнопка = r.root.findAll((n: any) => typeof n.type !== 'string'
     && n.props?.accessibilityRole === 'button'
     && /Начать|Start/i.test(текстВнутри(n)))[0];
