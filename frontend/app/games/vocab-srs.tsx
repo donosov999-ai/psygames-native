@@ -30,8 +30,9 @@ import GameAbout from '@/src/components/GameAbout';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
-import { паройЯзыков, БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
+import { паройЯзыков, вторымНеПервый, БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
 import { BilingualToggle } from '@/src/components/BilingualToggle';
+import { LanguageBadge } from '@/src/components/LanguageBadge';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -158,7 +159,6 @@ export default function VocabSrsGame() {
    * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
    * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
    */
-  const [второйЯзык, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
   /** Пул дистракторов ПО ЯЗЫКАМ: в билингво их нельзя смешивать между языками. */
   const [пулЯзыков, setПулЯзыков] = useState<Record<string, { base: string; target: string }[]>>({});
   const [сменЯзыка, setСменЯзыка] = useState(0);
@@ -178,6 +178,9 @@ export default function VocabSrsGame() {
 
   // Целевой язык не может совпадать с языком интерфейса
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+  const [желаемыйВторой, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
+  /** Пара не бывает из одного языка — разбор у `вторымНеПервый`. */
+  const второйЯзык = вторымНеПервый(language, tgt, желаемыйВторой);
 
   useEffect(() => {
     if (phase === 'config') {
@@ -228,7 +231,7 @@ export default function VocabSrsGame() {
     let смен = 0;
     if (билингво) {
       const всего = Object.values(поЯзыку).reduce((n, v) => n + v.length, 0);
-      const р = разложитьПоРяду(поЯзыку, всего, language);
+      const р = разложитьПоРяду(поЯзыку, всего, language, [tgt, второйЯзык]);
       cards = р.элементы.map((x) => ({ ...x.элемент, lang: x.язык }));
       смен = р.сколькоСмен;
     } else {
@@ -626,6 +629,19 @@ export default function VocabSrsGame() {
         <View style={[styles.promptCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.promptWord, { color: colors.text }]}>{prompt}</Text>
         </View>
+        {/*
+          🔴 ЯЗЫК — СЛОВОМ И У САМОГО СТИМУЛА, А НЕ ТОЛЬКО ДВУМЯ БУКВАМИ В ШАПКЕ.
+          Правка Дениса 10.09.2026: «подписи должны быть — раз переход в
+          мультиязычности, какой язык пишется; обозначение мелкое». Переход
+          отмечается стрелкой и заливкой, повтор языка — спокойным серым.
+        */}
+        {(билингво || isPreset) && (
+          <LanguageBadge
+            язык={card.lang}
+            сменился={idx > 0 && queue[idx - 1]?.lang !== undefined && queue[idx - 1]?.lang !== card.lang}
+            accent={GRADIENT[0]}
+          />
+        )}
         {/* Строка «что делать»: без неё правило видно только в справке, а
             в справку во время партии не ходят. */}
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{печатаем ? t('srsTypingTask') : t('vocabSrsHint')}</Text>
