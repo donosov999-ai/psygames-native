@@ -2604,6 +2604,12 @@ const t: Record<string, string> = {
   "pauseEasier": "Niveau plus facile",
   "pauseHarder": "Niveau plus difficile",
   "pauseFinish": "Terminer et enregistrer",
+  "puzzleHudMarked": "Marquées",
+  "puzzleHudActive": "Connectées",
+  "puzzleHudMovesUsed": "Utilisés",
+  "puzzleHudCluesLeft": "Indices",
+  "puzzleHudGems": "Gemmes",
+  "puzzleHudRegion": "Région",
   "puzzleShowSolution": "Voir la solution",
   "puzzleSecondAction": "Seconde action",
   "pauseExitGame": "Quitter l’exercice",
@@ -2631,6 +2637,6 @@ const t: Record<string, string> = {
   "puzzlesLightUpDesc": "Placez les lampes pour tout éclairer",
   "puzzlesLoopyDesc": "Formez une boucle fermée selon les nombres",
   "puzzlesUnrulyDesc": "Autant de cercles que de points, jamais trois",
-  "puzzlesUnrulyIntroDesc": "Voici quarante casse-têtes logiques. Chacun a sa règle, mais tous partagent ceci : la grille n’a qu’une solution et le raisonnement y mène toujours, deviner n’est jamais nécessaire. Le mode se choisit sur la carte ; la difficulté suit une échelle propre à chaque casse-tête. Touchez la grille pour jouer ; annuler, indice et recommencer sont dans le menu pause.",
+  "puzzlesUnrulyIntroDesc": "Quarante casse-tête logiques vivent ici. Chacun a sa règle, mais un point commun : chaque grille a exactement une solution et le raisonnement y mène toujours — deviner n'est jamais nécessaire. Choisis le mode sur la carte ; la difficulté monte selon une échelle propre à chaque casse-tête. Un appui court joue un coup, un appui LONG est la seconde action : dans Aimants elle laisse une moitié de domino vide, dans Mines elle marque une mine, dans Pair-impair elle parcourt en sens inverse. Annuler, demander un indice ou recommencer se trouvent dans le menu pause — le bouton ⏸ en haut à gauche.",
 };
 export default t;

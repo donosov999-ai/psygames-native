@@ -87,7 +87,26 @@ static void п_update(drawing *dr, int x, int y, int w, int h)
 { (void)dr; (void)x; (void)y; (void)w; (void)h; }
 static void п_start(drawing *dr) { (void)dr; }
 static void п_end(drawing *dr) { (void)dr; }
-static void п_status(drawing *dr, const char *t) { (void)dr; пишиТекст(-1, -1, 0, 0, -1, t); }
+/*
+ * 🔴 СТРОКА СОСТОЯНИЯ ХРАНИТСЯ, А НЕ ТОЛЬКО ЗАПИСЫВАЕТСЯ В РИСУНОК.
+ *
+ * Замер 10.09.2026: её дают 15 движков из 40 — «Balls marked: 0 / 5», «Clues left: 44»,
+ * «Active: 6/25», «Gems: 16», «Score: 0» и прочие. Это единственный счётчик хода партии,
+ * который умеет считать сам движок, и мы его выбрасывали.
+ *
+ * ⚠️ ПРИХОДИТ ОНА ТОЛЬКО КОГДА МЕНЯЕТСЯ. midend глушит повтор (сравнивает с
+ * `me->laststatus`), поэтому в первом замере строка ИСЧЕЗАЛА после ходов — не потому,
+ * что игра перестала её слать, а потому что текст тот же. Ждать её в каждом рисунке
+ * нельзя: наша сторона обязана помнить последнее значение сама.
+ */
+static char СОСТОЯНИЕ[256] = "";
+
+static void п_status(drawing *dr, const char *t)
+{
+    (void)dr;
+    snprintf(СОСТОЯНИЕ, sizeof СОСТОЯНИЕ, "%s", t ? t : "");
+    пишиТекст(-1, -1, 0, 0, -1, t);
+}
 static void п_lw(drawing *dr, float w) { (void)dr; пиши("N %d", (int)(w*100)); }
 static void п_dot(drawing *dr, bool d) { (void)dr; пиши("D %d", d ? 1 : 0); }
 
@@ -152,6 +171,7 @@ EMSCRIPTEN_KEEPALIVE int psy_open(int i, const char *params, int seed)
     game_params *p;
     if (i < 0 || i >= gamecount) return 0;
     if (ПАРТИЯ) { midend_free(ПАРТИЯ); ПАРТИЯ = NULL; }
+    СОСТОЯНИЕ[0] = '\0';        /* от прошлой партии строка не наследуется */
     ПАРТИЯ = midend_new(NULL, gamelist[i], &ЗАПИСЬ, NULL);
     p = gamelist[i]->default_params();
     if (params && *params) gamelist[i]->decode_params(p, params);
@@ -305,6 +325,9 @@ EMSCRIPTEN_KEEPALIVE int psy_undo(void) { return ПАРТИЯ && midend_can_undo
 EMSCRIPTEN_KEEPALIVE int psy_redo(void) { return ПАРТИЯ && midend_can_redo(ПАРТИЯ) ? ход(midend_process_key(ПАРТИЯ, -1, -1, 'r')) : 0; }
 
 /** Подсказка: его же решатель докладывает партию до конца. */
+/** Строка состояния движка как есть, на его английском. Разбор — на нашей стороне. */
+EMSCRIPTEN_KEEPALIVE const char *psy_status_text(void) { return СОСТОЯНИЕ; }
+
 EMSCRIPTEN_KEEPALIVE int psy_solve(void)
 {
     if (!ПАРТИЯ || midend_solve(ПАРТИЯ) != NULL) return 0;

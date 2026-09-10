@@ -2604,6 +2604,12 @@ const t: Record<string, string> = {
   "pauseEasier": "쉬운 레벨",
   "pauseHarder": "어려운 레벨",
   "pauseFinish": "종료하고 저장",
+  "puzzleHudMarked": "표시됨",
+  "puzzleHudActive": "연결됨",
+  "puzzleHudMovesUsed": "사용",
+  "puzzleHudCluesLeft": "힌트",
+  "puzzleHudGems": "보석",
+  "puzzleHudRegion": "영역",
   "puzzleShowSolution": "정답 보기",
   "puzzleSecondAction": "두 번째 동작",
   "pauseExitGame": "연습 나가기",
@@ -2631,6 +2637,6 @@ const t: Record<string, string> = {
   "puzzlesLightUpDesc": "판 전체가 밝아지도록 등을 놓기",
   "puzzlesLoopyDesc": "숫자에 따라 닫힌 고리 하나 만들기",
   "puzzlesUnrulyDesc": "동그라미와 점이 같은 수, 삼연속 금지",
-  "puzzlesUnrulyIntroDesc": "여기에는 논리 퍼즐 마흔 가지가 있습니다. 규칙은 저마다 다르지만 공통점이 하나 있습니다. 판의 해는 언제나 하나뿐이고 추리로 반드시 도달할 수 있습니다. 찍을 필요는 없습니다. 모드는 카드에서 고르고, 난이도는 퍼즐마다 제 사다리를 따라 올라갑니다. 판을 눌러 한 수 두고, 되돌리기와 힌트와 다시 시작은 일시정지 메뉴에 있습니다.",
+  "puzzlesUnrulyIntroDesc": "여기에는 마흔 개의 논리 퍼즐이 있습니다. 각각 규칙은 다르지만 공통점이 하나 있습니다. 어떤 판이든 해답은 정확히 하나이고, 추론하면 반드시 닿을 수 있습니다. 찍을 필요는 없습니다. 모드는 카드에서 고르고, 난이도는 퍼즐마다 고유한 사다리로 올라갑니다. 짧게 누르면 한 수, 길게 누르면 두 번째 동작입니다. 「자석」에서는 도미노 한쪽을 비우고, 「지뢰」에서는 지뢰를 표시하고, 「홀짝」에서는 반대 방향으로 넘깁니다. 되돌리기·힌트·다시 시작은 일시정지 메뉴에 있습니다 — 왼쪽 위 ⏸ 버튼.",
 };
 export default t;

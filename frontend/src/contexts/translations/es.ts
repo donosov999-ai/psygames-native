@@ -2609,6 +2609,12 @@ const t: Record<string, string> = {
   "pauseEasier": "Nivel más fácil",
   "pauseHarder": "Nivel más difícil",
   "pauseFinish": "Terminar y guardar",
+  "puzzleHudMarked": "Marcadas",
+  "puzzleHudActive": "Conectadas",
+  "puzzleHudMovesUsed": "Usados",
+  "puzzleHudCluesLeft": "Pistas",
+  "puzzleHudGems": "Gemas",
+  "puzzleHudRegion": "Región",
   "puzzleShowSolution": "Mostrar solución",
   "puzzleSecondAction": "Segunda acción",
   "pauseExitGame": "Salir del ejercicio",
@@ -2636,6 +2642,6 @@ const t: Record<string, string> = {
   "puzzlesLightUpDesc": "Coloca lámparas hasta iluminar todo",
   "puzzlesLoopyDesc": "Forma un bucle cerrado según los números",
   "puzzlesUnrulyDesc": "Igual de círculos y puntos, nunca tres iguales",
-  "puzzlesUnrulyIntroDesc": "Aquí hay cuarenta rompecabezas lógicos. Cada uno tiene su regla, pero comparten algo: el tablero tiene una sola solución y siempre se llega razonando, nunca hace falta adivinar. El modo se elige en la tarjeta; la dificultad crece por su propia escala. Toca el tablero para jugar; deshacer, pista y reiniciar están en el menú de pausa.",
+  "puzzlesUnrulyIntroDesc": "Aquí viven cuarenta rompecabezas lógicos. Cada uno tiene su regla, pero comparten algo: cada tablero tiene exactamente una solución y siempre se llega razonando; adivinar nunca hace falta. Elige el modo en la tarjeta; la dificultad crece por una escalera propia en cada rompecabezas. Un toque corto hace una jugada, una pulsación LARGA es la segunda acción: en Imanes deja media ficha vacía, en Minas marca una mina, en Par e impar recorre al revés. Deshacer, pedir pista o empezar de nuevo están en el menú de pausa: el botón ⏸ arriba a la izquierda.",
 };
 export default t;
