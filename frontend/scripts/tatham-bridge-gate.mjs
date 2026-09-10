@@ -95,6 +95,33 @@ for (let i = 0; i < n; i++) {
   else if (было !== стало) беды.push(`${имя}: ступеней автора было ${было}, стало ${стало}`);
 }
 
+/*
+ * 🔴 ИГРАБЕЛЬНЫЙ КРУГ — то, ради чего писался слой рисования.
+ * Замер 10.09.2026: `text_format` даёт РОВНУЮ сетку только у Unruly, остальные печатают
+ * дамп с рамками и разной шириной строк. Поэтому доска берётся не текстом, а вектором:
+ * его же `drawing_api` записывает примитивы, и рисуются ВСЕ 20, включая Keen и Map,
+ * которые текстом себя не показывают вовсе.
+ * Здесь проверяется весь круг: открылось — нарисовалось — решатель довёл до победы.
+ */
+for (let i = 0; i < n; i++) {
+  const имя = M.ccall('psy_name', 'string', ['number'], [i]);
+  if (!M.ccall('psy_open', 'number', ['number', 'string', 'number'], [i, '', 42])) {
+    беды.push(`${имя}: партия не открылась`); continue;
+  }
+  const ш = M.ccall('psy_width', 'number', [], []);
+  const в = M.ccall('psy_height', 'number', [], []);
+  if (ш < 32 || в < 32) беды.push(`${имя}: поле ${ш}×${в} — размер не задан`);
+
+  const примитивов = (M.UTF8ToString(M.ccall('psy_draw', 'number', [], [])) || '').split('\n').filter(Boolean).length;
+  if (примитивов < 4) беды.push(`${имя}: нарисовано ${примитивов} примитивов — доски нет`);
+
+  // решатель автора обязан доводить партию до победы: на нём стоят подсказки
+  M.ccall('psy_solve', 'number', [], []);
+  if (M.ccall('psy_status', 'number', [], []) !== 1) {
+    беды.push(`${имя}: решатель не довёл партию до победы`);
+  }
+}
+
 // 4. одно зерно — одна доска, иначе прогресс игрока не воспроизводится
 const a = (() => { const p = M.ccall('psy_generate', 'number', ['number', 'string', 'number'], [0, '', 777]); const s = M.UTF8ToString(p); M.ccall('psy_free', null, ['number'], [p]); return s; })();
 const b = (() => { const p = M.ccall('psy_generate', 'number', ['number', 'string', 'number'], [0, '', 777]); const s = M.UTF8ToString(p); M.ccall('psy_free', null, ['number'], [p]); return s; })();

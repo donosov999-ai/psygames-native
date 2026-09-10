@@ -22,7 +22,7 @@ SRCS=""
 for g in $G; do SRCS="$SRCS $g.c"; done
 CORE="combi.c divvy.c dsf.c findloop.c grid.c latin.c laydomino.c loopgen.c malloc.c matching.c midend.c misc.c random.c sort.c tdq.c tree234.c version.c penrose.c penrose-legacy.c hat.c spectre.c"
 emcc -Os -DCOMBINED -I. -I/tmp/gen \
-  nullfe.c /tmp/combined-list.c "$HERE/psy_bridge.c" $SRCS $CORE \
+  "$HERE/psy_fe.c" drawing.c /tmp/combined-list.c "$HERE/psy_bridge.c" "$HERE/psy_play.c" $SRCS $CORE \
   -s WASM=1 -s ENVIRONMENT=web,node -s MODULARIZE=1 -s ALLOW_MEMORY_GROWTH=1 \
   -s FILESYSTEM=0 -s SINGLE_FILE=1 -s EXPORTED_RUNTIME_METHODS=ccall,cwrap,UTF8ToString \
   -o "$HERE/tatham.js" 2> "$HERE/build.err"
