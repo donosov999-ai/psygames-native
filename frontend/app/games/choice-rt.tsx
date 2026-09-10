@@ -60,10 +60,73 @@ const CHOICE_BENEFITS = [
   { icon: 'hand-right-outline', textKey: 'benefitChoiceRt3' },
 ];
 
-type Direction = 'left' | 'right' | 'up' | 'down';
+export type Direction = 'left' | 'right' | 'up' | 'down';
 const ARROW_ICON: Record<Direction, string> = {
   left: 'arrow-back', right: 'arrow-forward', up: 'arrow-up', down: 'arrow-down',
 };
+
+/**
+ * 🔴 ОСЬ «ПОХОЖЕСТЬ ЗНАКА» — ЗАВЕДЕНА 10.09.2026 ПО СЛОВУ ДЕНИСА.
+ *
+ * ПОВОД. Трудность росла числом альтернатив (2 → 3 → 4) и упиралась в экран:
+ * больше кнопок в полосу ответа не влезает. Это выглядело как потолок.
+ * 📌 Слово Дениса дословно: «можно усложнить, рисуя не стрелки тогда, а иногда
+ * вообще нейтраль или что-то похожее на стрелку — скобку».
+ *
+ * Ось не трогает число кнопок вовсе. Направление по-прежнему читается, но
+ * УЗНАТЬ его с одного взгляда уже нельзя: стрелка имеет и древко, и остриё,
+ * шеврон — только остриё, скобка — тонкий контур без заливки. Растёт время на
+ * РАЗЛИЧЕНИЕ, а не на выбор кнопки, и мера прохода (RT) от этого растёт честно.
+ *
+ * ⚠️ Кнопки ответа остаются стрелками ВСЕГДА. Труднее должно становиться читать
+ * стимул, а не вспоминать, какая кнопка куда: иначе ось меряла бы уже другое.
+ */
+export type Glyph = 'arrow' | 'chevron' | 'bracket';
+
+const GLYPH_ICON: Record<Glyph, Record<Direction, string>> = {
+  arrow:   { left: 'arrow-back',          right: 'arrow-forward',          up: 'arrow-up',          down: 'arrow-down' },
+  chevron: { left: 'chevron-back',        right: 'chevron-forward',        up: 'chevron-up',        down: 'chevron-down' },
+  bracket: { left: 'caret-back-outline',  right: 'caret-forward-outline',  up: 'caret-up-outline',  down: 'caret-down-outline' },
+};
+
+/** Знак без направления: на него жать НЕЛЬЗЯ. Круг выбран как заведомо не-стрелка. */
+const NEUTRAL_ICON = 'ellipse-outline';
+
+/**
+ * 🔴 ДОЛЯ НЕЙТРАЛЕЙ ЗАМОРОЖЕНА — И ЭТО НЕ ЗАБЫТАЯ РУЧКА.
+ *
+ * Нейтраль здесь работает не только на трудность. Без неё быстрый RT может
+ * означать не скорость, а нажатие ДО появления стимула: жать всё равно надо,
+ * промахнуться некуда, и упреждение ничем не наказано. Нейтраль делает
+ * упреждение ошибкой — то есть ЗАЩИЩАЕТ меру прохода.
+ *
+ * ⚠️ Растить её долю с уровнем нельзя. Чем чаще нейтрали, тем осторожнее игрок,
+ * и RT растёт не от трудности различения, а от осторожности — ручка уровня
+ * начала бы двигать саму измеряемую величину. Ровно этот дефект в разделе
+ * «Конфликт внимания» чинился семь раз (доля конфликтных как ручка сложности).
+ * Растёт ПОХОЖЕСТЬ знака, доля нейтралей стоит на месте.
+ *
+ * 0,15 — канонная для проб со случайными «пустыми» пробами доля 10–20 %;
+ * на партии в 12 проб это 1,8 пробы, на партии в 20 — три.
+ */
+export const NEUTRAL_RATE = 0.15;
+
+/**
+ * РАЗДАЧА ОДНОЙ ПРОБЫ — ОТДЕЛЬНОЙ ФУНКЦИЕЙ, ЧТОБЫ ЕЁ МОЖНО БЫЛО ПРОГНАТЬ.
+ *
+ * 🔴 Уровень сюда НЕ передаётся, и это не упущение, а способ сделать заморозку
+ * доли нейтралей невозможной к нарушению: не имея уровня, функция физически не
+ * может раздавать их чаще на верхних ступенях. Проверять «не растёт ли доля»
+ * тогда не нужно — её нечем растить.
+ *
+ * Гейт `src/__tests__/choice-rt-neutral-and-glyph.test.ts` прогоняет эту
+ * функцию, а не сверяет константу: константа может стоять в коде и не доезжать
+ * до раздачи, и такое в разделе уже случалось.
+ */
+export function nextStim(dirs: Direction[]): Direction | 'neutral' {
+  if (Math.random() < NEUTRAL_RATE) return 'neutral';
+  return dirs[Math.floor(Math.random() * dirs.length)];
+}
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
@@ -106,7 +169,7 @@ const УРОВНЕЙ = 15;
 // Уровень 1..15: число вариантов выбора растёт (2 → 3 → 4 стрелки — по механике
 // парадигмы: больше альтернатив = закон Хика, RT растёт), окно ответа сокращается,
 // число проб растёт ступенями (12 → 16 → 20).
-export function levelParams(level: number): { trials: number; dirs: Direction[]; windowMs: number } {
+export function levelParams(level: number): { trials: number; dirs: Direction[]; windowMs: number; glyph: Glyph } {
   const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
   const dirs: Direction[] =
     level <= 5 ? ['left', 'right']
@@ -115,7 +178,28 @@ export function levelParams(level: number): { trials: number; dirs: Direction[];
   const шаг = (CHOICE_RT_WINDOW_START_MS - CHOICE_RT_WINDOW_FLOOR_MS) / (УРОВНЕЙ - 1);
   const windowMs = Math.max(CHOICE_RT_WINDOW_FLOOR_MS,
     Math.round(CHOICE_RT_WINDOW_START_MS - (level - 1) * шаг));   // 2000мс → 1000мс
-  return { trials, dirs, windowMs };
+  /**
+   * Границы начертания (4 и 9) намеренно НЕ совпадают с границами числа
+   * направлений (6 и 11): так две оси переключаются вразнобой и дают больше
+   * различимых ступеней, чем если бы менялись вместе.
+   */
+  const glyph: Glyph = level <= 3 ? 'arrow' : level <= 8 ? 'chevron' : 'bracket';
+  return { trials, dirs, windowMs, glyph };
+}
+
+/**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТА МЕРА ПРОХОДА, — В САМУ ПАРТИЮ.
+ *
+ * `mean_rt` зависит от всего сразу: сколько кнопок, сколько времени на ответ и
+ * каким знаком нарисовано направление. Одно и то же «420 мс» на третьем и на
+ * двенадцатом уровне означает разное, а раздел с 09.09.2026 меряет прогресс
+ * человека — то есть сравнивает два его прохода между собой.
+ * Стережёт `src/__tests__/attention-condition-recorded.test.ts`: список полей он
+ * выводит сам, прогоняя `levelParams` по лестнице.
+ */
+export function levelCondition(level: number): { trials: number; dirs: Direction[]; windowMs: number; glyph: Glyph } {
+  const { trials, dirs, windowMs, glyph } = levelParams(level);
+  return { trials, dirs, windowMs, glyph };
 }
 
 export default function ChoiceRtGame() {
@@ -155,7 +239,8 @@ export default function ChoiceRtGame() {
 
   const [round, setRound] = useState(0);
   const [totalTrials, setTotalTrials] = useState(12);
-  const [stim, setStim] = useState<Direction>('left');
+  /** Нейтраль — полноправный стимул, а не отсутствие стимула: на неё жать нельзя. */
+  const [stim, setStim] = useState<Direction | 'neutral'>('left');
   const [showStim, setShowStim] = useState(false);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [activeDirs, setActiveDirs] = useState<Direction[]>(['left', 'right']);
@@ -174,7 +259,11 @@ export default function ChoiceRtGame() {
   const hitsRef = useRef(0);
   const errorsRef = useRef(0);
   const rtsRef = useRef<number[]>([]);
-  const stimRef = useRef<Direction>('left');
+  const stimRef = useRef<Direction | 'neutral'>('left');
+  const glyphRef = useRef<Glyph>('arrow');
+  const falseAlarmsRef = useRef(0);        // нажал на нейтраль
+  const correctRejectsRef = useRef(0);     // удержался на нейтрали
+  const neutralsRef = useRef(0);           // сколько нейтралей реально показали
   const stimAtRef = useRef(0);
   const answeredRef = useRef(false);
   const startTimeRef = useRef(0);
@@ -192,7 +281,8 @@ export default function ChoiceRtGame() {
   const newTrial = () => {
     setShowStim(false); setFeedback(null);
     const dirs = dirsRef.current;
-    const next = dirs[Math.floor(Math.random() * dirs.length)];
+    const next = nextStim(dirs);
+    if (next === 'neutral') neutralsRef.current += 1;
     stimRef.current = next;
     stimTimerRef.current = setTimeout(() => {
       stimAtRef.current = gameNow();
@@ -203,9 +293,18 @@ export default function ChoiceRtGame() {
       deadlineTimerRef.current = setTimeout(() => {
         if (answeredRef.current) return;
         answeredRef.current = true;
-        errorsRef.current += 1;
-        setErrors(errorsRef.current);
-        setFeedback('wrong');
+        // 🔴 На НЕЙТРАЛИ молчание — это верный ответ, а не пропуск. Считать его
+        // ошибкой значило бы требовать нажатия там, где правило его запрещает.
+        if (stimRef.current === 'neutral') {
+          correctRejectsRef.current += 1;
+          hitsRef.current += 1;
+          setHits(hitsRef.current);
+          setFeedback('right');
+        } else {
+          errorsRef.current += 1;
+          setErrors(errorsRef.current);
+          setFeedback('wrong');
+        }
         fbTimerRef.current = setTimeout(advance, 350);
       }, windowMsRef.current);
     }, 600 + Math.random() * 1200);
@@ -222,11 +321,13 @@ export default function ChoiceRtGame() {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
     dirsRef.current = p.dirs;
+    glyphRef.current = p.glyph;
     windowMsRef.current = p.windowMs;
     totalTrialsRef.current = p.trials;
     setActiveDirs(p.dirs);
     setTotalTrials(p.trials);
     hitsRef.current = 0; errorsRef.current = 0; rtsRef.current = [];
+    falseAlarmsRef.current = 0; correctRejectsRef.current = 0; neutralsRef.current = 0;
     roundRef.current = 1;
     setHits(0); setErrors(0); setRts([]);
     setRound(1);
@@ -272,6 +373,16 @@ export default function ChoiceRtGame() {
           accuracy: Math.round(accuracy * 100),
           n_trials: totalTrialsRef.current,
           n_choices: dirsRef.current.length,
+          // Условие, при котором снят mean_rt: без него два прохода несравнимы.
+          ...levelCondition(levelRef.current),
+          /**
+           * Ложная тревога и удержание — по нейтралям. Пишем и знаменатель
+           * (сколько нейтралей реально показали): в короткой партии заданная
+           * доля и фактическое число расходятся, и делить на номинал нельзя.
+           */
+          neutral_trials: neutralsRef.current,
+          false_alarms: falseAlarmsRef.current,
+          correct_rejections: correctRejectsRef.current,
         },
       });
     } catch (err) { console.error(err); }
@@ -292,6 +403,10 @@ export default function ChoiceRtGame() {
     answeredRef.current = true;
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
     const rt = gameNow() - stimAtRef.current;
+    // Нажатие на нейтраль — ложная тревога: считаем отдельно от промаха по
+    // направлению, потому что это разные ошибки. Промах = не разглядел знак;
+    // ложная тревога = жал, не дожидаясь знака, либо не удержал правило.
+    if (stimRef.current === 'neutral') falseAlarmsRef.current += 1;
     const correct = chosen === stimRef.current;
     if (correct) {
       hapticSuccess();
@@ -429,7 +544,11 @@ export default function ChoiceRtGame() {
           backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
         }]}>
           {showStim ? (
-            <Ionicons name={ARROW_ICON[stim] as any} size={120} color={feedback === 'wrong' ? '#f43f5e' : GRADIENT[1]} />
+            <Ionicons
+              name={(stim === 'neutral' ? NEUTRAL_ICON : GLYPH_ICON[glyphRef.current][stim]) as any}
+              size={120}
+              color={feedback === 'wrong' ? '#f43f5e' : GRADIENT[1]}
+            />
           ) : (
             <Text style={[styles.waitText, { color: colors.textSecondary }]}>•</Text>
           )}

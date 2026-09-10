@@ -44,6 +44,7 @@ import { levelParams as flankerParams, levelCondition as flankerCond } from '@/a
 import { levelParams as cptParams, levelCondition as cptCond } from '@/app/games/cpt';
 import { levelParams as swParams, levelCondition as swCond } from '@/app/games/switching-task';
 import { levelParams as wcstParams, levelCondition as wcstCond } from '@/app/games/wcst';
+import { levelParams as choiceParams, levelCondition as choiceCond } from '@/app/games/choice-rt';
 
 const УРОВНИ = Array.from({ length: 15 }, (_, i) => i + 1);
 
@@ -60,18 +61,24 @@ const БАТАРЕЙНЫЕ = [
   { имя: 'cpt',            показатель: 'rt_variability',    норма: '0,20±0,08', параметры: cptParams,     условие: cptCond },
   { имя: 'switching_task', показатель: 'switch_cost_ms',    норма: '150±80',   параметры: swParams,      условие: swCond },
   { имя: 'wcst',           показатель: 'rule_catch_mean',   норма: 'нет в батарее', параметры: wcstParams, условие: wcstCond },
+  { имя: 'choice_rt',      показатель: 'mean_rt',          норма: 'нет в батарее', параметры: choiceParams, условие: choiceCond },
 ];
 
 /** Поля `levelParams`, которые ДЕЙСТВИТЕЛЬНО меняются по лестнице. Снимается прогоном. */
 function меняющиеся(параметры: (l: number) => Record<string, unknown>): string[] {
   const первый = параметры(1);
+  // ⚠️ Сравнение по СОДЕРЖИМОМУ, а не по ссылке. У choice-rt поле `dirs` —
+  // массив, и `!==` для него истинно ВСЕГДА: поле считалось бы «меняющимся»
+  // даже на неподвижной лестнице, а сверка значений краснела бы на исправном
+  // коде. Оба провала тихие, потому что оба выглядят как работа гейта.
+  const тот_же = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
   return Object.keys(первый).filter((k) =>
-    УРОВНИ.some((L) => параметры(L)[k] !== первый[k]));
+    УРОВНИ.some((L) => !тот_же(параметры(L)[k], первый[k])));
 }
 
 describe('условие, при котором снят показатель батареи, записывается в партию', () => {
   it('есть что проверять — иначе набор зелен вслепую', () => {
-    expect(БАТАРЕЙНЫЕ.length).toBe(4);
+    expect(БАТАРЕЙНЫЕ.length).toBe(5);
     for (const б of БАТАРЕЙНЫЕ) {
       expect(`${б.имя}: меняющихся полей ${меняющиеся(б.параметры).length > 0}`).toBe(`${б.имя}: меняющихся полей true`);
     }
@@ -90,7 +97,7 @@ describe('условие, при котором снят показатель б
       const п = б.параметры(L) as Record<string, unknown>;
       const у = б.условие(L) as Record<string, unknown>;
       for (const k of Object.keys(у)) {
-        if (k in п && п[k] !== у[k]) расхождения.push(`${б.имя} L${L}.${k}: уровень ${String(п[k])} ≠ условие ${String(у[k])}`);
+        if (k in п && JSON.stringify(п[k]) !== JSON.stringify(у[k])) расхождения.push(`${б.имя} L${L}.${k}: уровень ${String(п[k])} ≠ условие ${String(у[k])}`);
       }
     }
     expect(расхождения).toEqual([]);
