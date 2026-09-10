@@ -25,6 +25,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { BilingualToggle } from '@/src/components/BilingualToggle';
+import { LanguageBadge } from '@/src/components/LanguageBadge';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
@@ -33,7 +34,7 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
-import { паройЯзыков, БИЛИНГВО, параЯзыков, рядЯзыковПары } from '@/src/services/bilingualMode';
+import { паройЯзыков, вторымНеПервый, БИЛИНГВО, параЯзыков, рядЯзыковПары } from '@/src/services/bilingualMode';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#10b981', '#6366f1'];
@@ -126,7 +127,9 @@ export default function SemanticSortGame() {
    * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
    * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
    */
-  const [второйЯзык, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
+  const [желаемыйВторой, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
+  /** Пара не бывает из одного языка — разбор у `вторымНеПервый`. */
+  const второйЯзык = вторымНеПервый(language, tgt, желаемыйВторой);
 
   const startGame = async () => {
     /**
@@ -447,6 +450,19 @@ export default function SemanticSortGame() {
         <View style={[styles.promptCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.promptWord, { color: colors.text }]}>{round.word}</Text>
         </View>
+        {/*
+          🔴 ЯЗЫК — СЛОВОМ И У САМОГО СТИМУЛА, А НЕ ТОЛЬКО ДВУМЯ БУКВАМИ В ШАПКЕ.
+          Правка Дениса 10.09.2026: «подписи должны быть — раз переход в
+          мультиязычности, какой язык пишется; обозначение мелкое». Переход
+          отмечается стрелкой и заливкой, повтор языка — спокойным серым.
+        */}
+        {(билингво || isPreset) && (
+          <LanguageBadge
+            язык={round.язык}
+            сменился={idx > 0 && rounds[idx - 1]?.язык !== undefined && rounds[idx - 1]?.язык !== round.язык}
+            accent={GRADIENT[0]}
+          />
+        )}
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('sortHint')}</Text>
       </GameShell>
