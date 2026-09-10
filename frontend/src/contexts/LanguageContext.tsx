@@ -913,7 +913,7 @@ const translations: Translations = {
   goHome: { ru: 'На главную', en: 'Go Home' },
   /** «Чёт-нечет» — первая головоломка на движке Тэтхэма (Unruly). */
   puzzlesUnruly: { ru: 'Чёт-нечет', en: 'Odd or Even' },
-  puzzlesUnrulyIntroDesc: { ru: 'Здесь сорок логических головоломок. У каждой своё правило, но общее одно: у доски ровно одно решение, и до него можно дойти рассуждением — угадывать не нужно. Режим выбирается карточкой в развилке, сложность растёт по своей лестнице у каждой головоломки. Нажатие по полю делает ход; отменить, попросить подсказку или начать заново можно в меню паузы по стрелке «назад».', en: 'Forty logic puzzles live here. Each has its own rule, but one thing is shared: every board has exactly one solution and reasoning always gets you there — guessing is never required. Pick a mode from the section card; difficulty grows along a ladder of its own for each puzzle. Tap the board to move; undo, ask for a hint or start over from the pause menu behind the back arrow.' },
+  puzzlesUnrulyIntroDesc: { ru: 'Здесь сорок логических головоломок. У каждой своё правило, но общее одно: у доски ровно одно решение, и до него можно дойти рассуждением — угадывать не нужно. Режим выбирается карточкой в развилке, сложность растёт по своей лестнице у каждой головоломки. Короткое нажатие по полю делает ход, ДОЛГОЕ — второе действие: в «Магнитах» им ставят пустую половинку, в «Минах» помечают мину, в «Чёт-нечете» перебирают в обратную сторону. Отменить ход, попросить подсказку или начать заново можно в меню паузы — кнопка ⏸ слева вверху.', en: 'Forty logic puzzles live here. Each has its own rule, but one thing is shared: every board has exactly one solution and reasoning always gets you there — guessing is never required. Pick a mode from the section card; difficulty grows along a ladder of its own for each puzzle. A short tap makes a move, a LONG press is the second action: in Magnets it leaves a domino half blank, in Mines it flags a mine, in Unruly it cycles the other way. Undo, ask for a hint or start over from the pause menu — the ⏸ button at the top left.' },
   puzzlesMines: { ru: 'Сапёр', en: 'Minesweeper' },
   puzzlesMinesDesc: { ru: 'Числа говорят, сколько мин рядом; доска решается без угадывания', en: 'Numbers count the mines around them; the board never needs a guess' },
   puzzlesMosaic: { ru: 'Мозаика', en: 'Mosaic' },
@@ -1789,6 +1789,8 @@ const translations: Translations = {
   pauseFinish: { ru: 'Закончить и записать', en: 'Finish and save' },
   pauseEasier: { ru: 'Уровень проще', en: 'Easier level' },
   pauseHarder: { ru: 'Уровень сложнее', en: 'Harder level' },
+  puzzleShowSolution: { ru: 'Показать решение', en: 'Show solution' },
+  puzzleSecondAction: { ru: 'Второе действие', en: 'Second action' },
   pauseExitGame: { ru: 'Выйти из упражнения', en: 'Leave exercise' },
   pauseSoundOff: { ru: 'Тихий режим', en: 'Quiet mode' },
   pauseSoundOn: { ru: 'Вернуть звук', en: 'Sound back on' },

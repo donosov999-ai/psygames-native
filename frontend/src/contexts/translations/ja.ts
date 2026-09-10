@@ -2603,6 +2603,8 @@ const t: Record<string, string> = {
   "pauseEasier": "やさしいレベル",
   "pauseHarder": "むずかしいレベル",
   "pauseFinish": "終了して記録",
+  "puzzleShowSolution": "答えを見る",
+  "puzzleSecondAction": "第2の操作",
   "pauseExitGame": "エクササイズを終了",
   "pauseSoundOff": "サイレントモード",
   "pauseSoundOn": "音を戻す",

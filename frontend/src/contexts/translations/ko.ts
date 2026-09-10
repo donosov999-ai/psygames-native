@@ -2604,6 +2604,8 @@ const t: Record<string, string> = {
   "pauseEasier": "쉬운 레벨",
   "pauseHarder": "어려운 레벨",
   "pauseFinish": "종료하고 저장",
+  "puzzleShowSolution": "정답 보기",
+  "puzzleSecondAction": "두 번째 동작",
   "pauseExitGame": "연습 나가기",
   "pauseSoundOff": "무음 모드",
   "pauseSoundOn": "소리 켜기",

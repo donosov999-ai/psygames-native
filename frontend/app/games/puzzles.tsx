@@ -40,8 +40,8 @@ import { saveSession } from '@/src/services/api';
 // дисциплина игровых часов, гейт `game-clock-discipline`.
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
-import { открыть, указатель, стрелка, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
-import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА } from '@/src/games/tatham-bridge/names';
+import { открыть, указатель, стрелка, клавиша, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
+import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
 
@@ -69,6 +69,11 @@ export default function PuzzlesScreen() {
    * тропинка уровней живёт на экране настройки, а не в шапке партии.
    */
   const [фаза, setФаза] = useState<'config' | 'playing' | 'cleared'>('config');
+  /**
+   * Второе действие переключателем. Долгое нажатие тоже работает, но его не видно —
+   * Денис попросил явные кнопки снизу, и он прав: скрытый жест не находят.
+   */
+  const [второе, setВторое] = useState(false);
   const [зерно, setЗерно] = useState(() => Math.floor(Math.random() * 1e6));
   const начатоВ = useRef(gameNow());
 
@@ -193,7 +198,15 @@ export default function PuzzlesScreen() {
         { id: 'undo', label: t('btn_undo'), icon: 'arrow-undo', onPress: () => { void отменить().then(setПартия); } },
         // Подсказка живёт на ЕГО решателе: где решателя нет (Cube, Pegs, Same Game —
         // замер по `game.can_solve`), кнопки тоже нет. Кнопка-пустышка хуже отсутствия.
-        ...(движок?.решаем ? [{ id: 'hint', label: t('btn_hint'), icon: 'bulb-outline' as const, onPress: подсказать }] : []),
+        /**
+         * 🔴 НЕ «ПОДСКАЗКА», А «ПОКАЗАТЬ РЕШЕНИЕ» — И ЭТО ЧЕСТНОСТЬ, А НЕ ПРИДИРКА.
+         * Денис 10.09.2026, глядя на кнопку `Solve game` у Тэтхэма: «типа подсказки,
+         * но конечное; понятно, что это проигрыш сразу же, но зато ты можешь увидеть
+         * правильную логику». Кнопка ровно это и делает — зовёт ЕГО решатель и
+         * показывает ответ целиком, а ступень не засчитывает. Название «Подсказка»
+         * обещало маленький намёк, и человек жал её, не зная цены.
+         */
+        ...(движок?.решаем ? [{ id: 'hint', label: t('puzzleShowSolution'), icon: 'bulb-outline' as const, onPress: подсказать }] : []),
         { id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline', onPress: () => DeviceEventEmitter.emit(HELP_OPEN_EVENT) },
         { id: 'home', label: t('goHome'), icon: 'home', leave: true },
       ]}
@@ -240,8 +253,41 @@ export default function PuzzlesScreen() {
             партия={партия}
             ширина={Math.min(width - 32, 420)}
             фон={colors.background}
-            onЖест={(x, y, ж, п) => { void жать(x, y, ж, п); }}
+            onЖест={(x, y, ж, п) => { void жать(x, y, ж, п || второе); }}
           />
+          {/* Второе действие: им ставят пустую клетку, метку, обратный перебор. */}
+          {ВТОРОЕ_ДЕЙСТВИЕ.has(имяРежима) ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ selected: второе }}
+              onPress={() => setВторое((v) => !v)}
+              style={[styles.второе, {
+                borderColor: второе ? GRADIENT[0] : colors.border,
+                backgroundColor: второе ? GRADIENT[0] : colors.card,
+              }]}
+            >
+              <Ionicons name="swap-horizontal" size={18} color={второе ? '#FFF' : colors.text} />
+              <Text style={[styles.второеТекст, { color: второе ? '#FFF' : colors.text }]}>
+                {t('puzzleSecondAction')}
+              </Text>
+            </Pressable>
+          ) : null}
+          {/* Клавиши цифр — вид взят у судоку (`numPad`), там он выверен по пальцу. */}
+          {ЦИФРОВЫЕ.has(имяРежима) ? (
+            <View style={styles.цифры}>
+              {Array.from({ length: клавишДоски(имяРежима, движок?.ступени?.[ступень]?.параметры ?? '') }, (_, k) => k + 1).map((ц) => (
+                <Pressable
+                  key={ц}
+                  accessibilityRole="button"
+                  accessibilityLabel={String(ц)}
+                  onPress={() => { void клавиша(48 + ц).then(setПартия); }}
+                  style={[styles.цифра, { backgroundColor: GRADIENT[0] }]}
+                >
+                  <Text style={styles.цифраТекст}>{ц}</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
           {СТРЕЛОЧНЫЕ.has(имяРежима) ? (
             <View style={styles.крестовина}>
               {([['влево', 'chevron-back'], ['вверх', 'chevron-up'], ['вниз', 'chevron-down'], ['вправо', 'chevron-forward']] as const).map(([куда, знак]) => (
@@ -269,5 +315,15 @@ const styles = StyleSheet.create({
   start: { minHeight: 52, paddingHorizontal: 34, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   startText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   крестовина: { flexDirection: 'row', gap: 10 },
+  второе: {
+    flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'center',
+    marginTop: 12, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1.5, minHeight: 46,
+  },
+  второеТекст: { fontSize: 14, fontWeight: '800' },
+  // Ряд клавиш как в судоку: 50×50, скругление 12, крупная цифра — размер выверен
+  // там по пальцу (репорт Вали 28.08: «капсулы снизу слишком широкие»).
+  цифры: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12, maxWidth: 420 },
+  цифра: { width: 50, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  цифраТекст: { color: '#FFF', fontSize: 26, fontWeight: '800' },
   стрелка: { width: 54, height: 46, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });
