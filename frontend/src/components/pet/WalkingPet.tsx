@@ -281,7 +281,39 @@ export default function WalkingPet() {
   const reduced = useReducedMotion();
   const x = React.useRef(new Animated.Value(40)).current;
   const flip = React.useRef(new Animated.Value(1)).current;   // scaleX: 1 вправо, -1 влево
+  /**
+   * 🔴 ВЫСОТА НАД НИЗОМ ЭКРАНА ПЕРЕЕЗЖАЕТ ПЛАВНО, А НЕ СКАЧКОМ.
+   *
+   * Вторая половина жалобы «телепортируется» (Денис 10.09.2026). `bottom` считался
+   * прямо из `pathname` (`insets.bottom + 6 + BOTTOM_BAR_LIFT(pathname)`), а
+   * слагаемое зависит от экрана: на «Разминке» добавляется высота панели
+   * инструментов, на главной нет. При переходе между такими экранами кот мгновенно
+   * уезжал вверх или вниз на всю высоту панели — при том что сам никуда не шёл.
+   *
+   * Теперь величина доезжает за 220 мс. Первый кадр ставится без анимации, иначе
+   * кот въезжал бы снизу при каждом запуске приложения.
+   *
+   * ⚠️ `useMemo`, а не `useRef(...).current`: соседние `x` и `flip` написаны второй
+   * идиомой, и линт считает её ошибкой на КАЖДОЕ использование значения. Сброс
+   * кэша здесь безвреден — в отличие от `x`, потеря этой величины means лишь один
+   * невыразительный переезд, а не прыжок питомца через экран.
+   */
+  const низ = React.useMemo(() => new Animated.Value(0), []);
+  /** Куда уже доехали: чтобы не гонять анимацию на каждый кадр рендера. */
+  const низБыл = React.useRef<number | null>(null);
+
   const posRef = React.useRef(40);
+  /**
+   * 🔴 ПОЗИЦИЯ НЕ ЗАПИСЫВАЕТСЯ НЕДОСТИГНУТОЙ ЦЕЛЬЮ — см. `if (finished)` ниже.
+   *
+   * Первая половина жалобы «телепортируется». Проход клал в `posRef` ЦЕЛЬ, и делал
+   * это даже когда `finished === false`, то есть когда проход оборвали (вход в игру
+   * прячет питомца и чистит эффект). Кот возвращался не туда, где его прервали, а
+   * туда, КУДА ОН СОБИРАЛСЯ идти — на длинном проходе это полэкрана скачком.
+   *
+   * Отдельный слушатель значения для этого не нужен: уборка эффекта уже снимает
+   * настоящую позицию через `x.stopAnimation`.
+   */
   const widthRef = React.useRef(width);
   widthRef.current = width;
   const langRef = React.useRef(language);
@@ -330,7 +362,9 @@ export default function WalkingPet() {
         easing: Easing.inOut(Easing.quad),
         useNativeDriver: true,
       }).start(({ finished }) => {
-        posRef.current = target;
+        // Только при честном завершении: оборванный проход оставляет позицию,
+        // которую записал слушатель выше, а не недостигнутую цель.
+        if (finished) posRef.current = target;
         walkingRef.current = false;
         if (finished && alive) {
           setSprite('idle');
@@ -441,12 +475,29 @@ export default function WalkingPet() {
     };
   }, [active, x, flip, reduced]);
 
-  if (!active) return null;
+  /**
+   * Переезд по вертикали при смене экрана (см. объяснение у `низ`). Первый кадр —
+   * без анимации: иначе кот въезжал бы снизу при каждом запуске приложения.
+   */
+  const цельНиза = insets.bottom + 6 + BOTTOM_BAR_LIFT(pathname);
+  React.useEffect(() => {
+    if (низБыл.current === null) { низ.setValue(цельНиза); низБыл.current = цельНиза; return; }
+    if (низБыл.current === цельНиза) return;
+    низБыл.current = цельНиза;
+    Animated.timing(низ, { toValue: цельНиза, duration: 220, easing: Easing.out(Easing.quad), useNativeDriver: false }).start();
+  }, [цельНиза, низ]);
 
   return (
     <Animated.View
-      pointerEvents="box-none"
-      style={[styles.walker, { bottom: insets.bottom + 6 + BOTTOM_BAR_LIFT(pathname), transform: [{ translateX: x }] }]}
+      pointerEvents={active ? 'box-none' : 'none'}
+      style={[
+        styles.walker,
+        {
+          bottom: низ,
+          opacity: active ? 1 : 0,
+          transform: [{ translateX: x }],
+        },
+      ]}
     >
       {bubble != null && (
         <TouchableOpacity
