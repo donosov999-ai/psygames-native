@@ -41,7 +41,7 @@
  *    `useGameKeyboard`, а не свой `onKeyDown` на ScrollView.
  */
 import React from 'react';
-import { AppState, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AppState, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
   ballColorForLevel, ballImage, type BallStyle, type BallColor,
@@ -62,6 +62,7 @@ import {
   type ObjectTrackerLocale,
   type ObjectTrackerMetrics,
   type ObjectTrackerSession,
+  type ObjectTrackerSessionPhase,
   type TrackerObjectState,
 } from './core/index';
 import { useTrackerLoop } from './useTrackerLoop';
@@ -122,6 +123,16 @@ export interface ObjectTrackerTheme {
   warning: string;
 }
 
+/** Что слежение отдаёт в шапку каркаса. Числа, а не вёрстка. */
+export interface ObjectTrackerHud {
+  /** Тот же тип, что у сессии, — свой список фаз разъехался бы с ядром молча. */
+  phase: ObjectTrackerSessionPhase;
+  level: number;
+  /** Сколько уже сделано и сколько всего — секунды движения либо выбранные цели. */
+  current: number;
+  total: number;
+}
+
 export interface ObjectTrackerGameProps {
   seed: string;
   level: number;
@@ -143,6 +154,21 @@ export interface ObjectTrackerGameProps {
    * где партия уже что-то накопила.
    */
   onProgress?: (armed: boolean) => void;
+  /**
+   * 🔴 ПОКАЗАНИЯ НАВЕРХ — ЧТОБЫ ИХ РИСОВАЛ КАРКАС, А НЕ МОДУЛЬ.
+   *
+   * Замер 09.09.2026: у слежения плашка счётчиков каркаса стояла ПУСТОЙ (высота
+   * 8 против 56 у соседей), а уровень и прогресс модуль рисовал внутри поля.
+   * Из-за этого верх поля был 71 вместо 119, и в «Зарядке» экран прыгал на 48
+   * точек при каждом переходе к слежению и от него.
+   *
+   * ⚠️ Передан `onHud` — модуль СВОИ уровень и прогресс НЕ рисует. Иначе они
+   * оказались бы на экране дважды, и это было бы хуже прежнего.
+   * Подпись фазы («Запомните цели» / «Следите» / «Выберите») остаётся в поле:
+   * это строка «что делать», её держит гейт `game-task-line`, и в шапку она не
+   * лезет — там счётчики, а не задание.
+   */
+  onHud?: (h: ObjectTrackerHud) => void;
   /**
    * Своя кнопка «Выход». НЕОБЯЗАТЕЛЬНА, и это принципиально: когда модуль стоит
    * внутри `GameShell`, выход из партии один — кнопка «назад» в шапке каркаса,
@@ -336,6 +362,7 @@ function ObjectTrackerRound({
   ballStyle,
   onComplete,
   onProgress,
+  onHud,
   onExit,
 }: ObjectTrackerGameProps) {
   const strings = getObjectTrackerStrings(locale);
@@ -394,6 +421,29 @@ function ObjectTrackerRound({
    */
   const armed = hasSomethingToLose(session);
   React.useEffect(() => { onProgress?.(armed); }, [armed, onProgress]);
+
+  /**
+   * Показания в шапку каркаса. Секунды движения на этапе слежения, выбранные
+   * цели на этапе ответа; на показе целей — ноль из скольких предстоит выбрать.
+   *
+   * ⚠️ Отдаём ЧИСЛА, а не готовую строку: подписи и порядок счётчиков решает
+   * каркас, у него на это один канон для всех игр (`HudItem`, `TONE_BY_KEY`).
+   */
+  React.useEffect(() => {
+    if (!onHud) return;
+    const фаза = session.phase;
+    onHud({
+      phase: фаза,
+      level: session.round.level,
+      current: фаза === 'moving'
+        ? Math.round(session.world.timeMs / 100) / 10
+        : session.selectedIds.length,
+      total: фаза === 'moving'
+        ? Math.round(session.round.durationMs / 100) / 10
+        : session.round.targetCount,
+    });
+  }, [onHud, session.phase, session.round.level, session.round.durationMs,
+      session.round.targetCount, session.world.timeMs, session.selectedIds.length]);
 
   // Уходим с экрана — состояние сессии гасим явно, чтобы отложенный кадр не
   // дописал мир уже мёртвой партии.
@@ -468,31 +518,52 @@ function ObjectTrackerRound({
   });
 
   return (
-    <ScrollView
-      style={[styles.root, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-    >
+    /**
+     * 🔴 ОБЫЧНЫЙ View, А НЕ ScrollView — внутри каркаса прокрутка была ВТОРОЙ.
+     *
+     * `GameShell` сам центрирует поле и, если игре нужна прокрутка, даёт
+     * `scrollableField`. Своя прокрутка внутри чужой означала два перехвата
+     * жеста на одном экране: палец, ведущий по полю за целью, иногда прокручивал
+     * страницу вместо слежения. Поле здесь фиксированного размера (`fieldSize`
+     * считается от экрана), прокручивать нечего.
+     */
+    <View style={[styles.root, styles.content, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
         <View style={styles.titleBlock}>
           <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
             {phaseTitle(session, locale)}
           </Text>
-          <Text style={[styles.levelLine, { color: theme.textSecondary }]}>
-            {interpolateObjectTracker(strings.levelLine, {
-              level: session.round.level,
-              objects: session.round.objectCount,
-              targets: session.round.targetCount,
-            })}
-          </Text>
+          {/* Уровень ушёл в шапку каркаса — см. `onHud`. Рисовать его и тут
+              значило бы показать одно и то же дважды. */}
+          {onHud ? null : (
+            <Text style={[styles.levelLine, { color: theme.textSecondary }]}>
+              {interpolateObjectTracker(strings.levelLine, {
+                level: session.round.level,
+                objects: session.round.objectCount,
+                targets: session.round.targetCount,
+              })}
+            </Text>
+          )}
         </View>
         {/* Под каркасом выход один — «назад» в шапке, через вопрос. См. проп `onExit`. */}
         {onExit ? <ActionButton label={strings.exit} theme={theme} secondary compact onPress={onExit} /> : null}
       </View>
 
-      <Text accessibilityLiveRegion="polite" style={[styles.progress, { color: theme.textSecondary }]}>
-        {session.phase === 'selection' ? selectionProgress : progress}
-      </Text>
+      {/* Прогресс тоже в шапке каркаса. Живая область для скринридера остаётся
+          здесь: в шапке её нет, а слышать «выбрано 2 из 3» человеку нужно. */}
+      {onHud ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          accessibilityRole="text"
+          style={styles.progressSR}
+        >
+          {session.phase === 'selection' ? selectionProgress : progress}
+        </Text>
+      ) : (
+        <Text accessibilityLiveRegion="polite" style={[styles.progress, { color: theme.textSecondary }]}>
+          {session.phase === 'selection' ? selectionProgress : progress}
+        </Text>
+      )}
 
       <View
         style={[styles.field, {
@@ -562,7 +633,7 @@ function ObjectTrackerRound({
       {session.config.reducedMotion ? (
         <Text style={[styles.reducedBadge, { color: theme.primary }]}>{strings.reducedModeBadge}</Text>
       ) : null}
-    </ScrollView>
+    </View>
   );
 }
 
@@ -583,6 +654,12 @@ const styles = StyleSheet.create({
   title: { fontSize: 23, lineHeight: 28, fontWeight: '900' },
   levelLine: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
   progress: { minHeight: 20, fontSize: 14, lineHeight: 20, fontWeight: '800', textAlign: 'center' },
+  /**
+   * Прогресс для СКРИНРИДЕРА, когда числа уже показаны в шапке каркаса.
+   * Высота ноль: строка не должна занимать место дважды, но и молчать нельзя —
+   * «выбрано 2 из 3» человек без зрения слышит только отсюда.
+   */
+  progressSR: { height: 0, opacity: 0, fontSize: 1, lineHeight: 0 },
   field: { alignSelf: 'center', borderWidth: 1, borderRadius: 20, overflow: 'hidden', position: 'relative' },
   trackerObject: { position: 'absolute', minWidth: 48, minHeight: 48 },
   objectPressed: { transform: [{ scale: 0.94 }] },
