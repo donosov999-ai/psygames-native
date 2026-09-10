@@ -26,6 +26,7 @@ import GameResult from '@/src/components/GameResult';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { reserveBottom } from '@/src/games/search/layout';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { capPresetByLevel } from '@/src/services/presetCap';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -467,6 +468,17 @@ export default function SchulteGame() {
     setCellColors(colors);
     setSequence(orderedSequence);
   }, [gridSize, contentMode, script, direction, lettersFirst]);
+
+  /**
+   * Повтор партии в ТОМ ЖЕ режиме, в котором человек играет.
+   *
+   * ⚠️ Отдельной функцией, а не `() => startGame(useLevelRef.current)` прямо в
+   * разметке: компилятор React считает чтение `ref` в пропсах обращением ВО
+   * ВРЕМЯ ОТРИСОВКИ и даёт «Cannot access refs during render» — замер 09.09.2026
+   * показал +4 ошибки линта ровно на этой строке. Здесь ref читается при
+   * нажатии, когда режим уже известен.
+   */
+  const повторитьТемЖе = () => startGame(useLevelRef.current);
 
   const startGame = (useLevel = false) => {
     if (useLevel && !isPreset) {
@@ -1299,6 +1311,24 @@ export default function SchulteGame() {
       <GameShell
         title={t('schulteTable')}
         onBack={() => goBackOrHome()}
+        /**
+         * Меню паузы (каркас 2.52.2). Стрелка «назад» держит партию и открывает
+         * меню вместо мгновенного выхода — у Шульте это особенно заметно, потому
+         * что здесь идёт секундомер и он теперь останавливается.
+         *
+         * «Заново» повторяет ТОТ ЖЕ режим, в котором человек играет:
+         * `useLevelRef` помнит, пришли по лестнице или свободной партией. Иначе
+         * «Заново» на уровне 12 молча сбрасывало бы на ручные настройки.
+         *
+         * ⚠️ Пункта «Правила» нет: мид-партийной справки у экрана нет —
+         * `GameAbout` живёт на экране настройки, `LevelRuleModal` не подключён.
+         * Мёртвая кнопка хуже отсутствующей.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => повторитьТемЖе() },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
         headerRight={
           <TouchableOpacity
             accessibilityRole="button" accessibilityLabel={t('a11yNewTable')}
@@ -1341,6 +1371,12 @@ export default function SchulteGame() {
           <View style={[styles.groupDot, { backgroundColor: COLORS[activeGroup % COLORS.length] }]} />
         ) : undefined}
       >
+        <View style={styles.fieldCol}>
+        {/* Строка «что делать» — НАД полем, как у остальных четырёх игр раздела.
+            Была под сеткой, и из-за этого игровая поверхность Шульте вставала на
+            22 точки выше соседних игр (живой замер 09.09.2026): подсказка
+            занимала место снизу, а центрируется группа целиком. */}
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('schulteHint')}</Text>
         <View style={[
           styles.grid,
           { width: cellSize * gridSize + (gridSize - 1) * 4 }
@@ -1387,9 +1423,7 @@ export default function SchulteGame() {
               );
             })}
         </View>
-        {/* Строка «что делать»: без неё правило видно только в справке, а
-            в справку во время партии не ходят. */}
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('schulteHint')}</Text>
+        </View>
       </GameShell>
     );
   };
@@ -1426,6 +1460,19 @@ export default function SchulteGame() {
          */
         title={t('schulteTable')}
         onBack={() => { leaveSeries(false); goBackOrHome(); }}
+        /**
+         * Меню паузы серии. «Заново» = НОВАЯ СЕРИЯ с первого блока
+         * (`beginSeries`), а не перезапуск текущего: серия — это одна проба из
+         * трёх правил подряд, и половина её сама по себе не результат.
+         *
+         * ⚠️ Перед новой серией текущая закрывается `leaveSeries(false)`, иначе
+         * прежний прогон остался бы открытым и попал в статистику дважды.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => { leaveSeries(false); beginSeries(); } },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
         headerRight={
           <TouchableOpacity
             accessibilityRole="button" accessibilityLabel={t('a11yNewTable')}
@@ -1445,6 +1492,8 @@ export default function SchulteGame() {
         <Text style={[styles.seriesBlockLine, { color: colors.textSecondary }]}>
           {`${interpolate(seriesStrings.blockOf, { n: seriesState.blockIndex + 1, total: SCHULTE_SERIES_PLAN.length })} · ${blockLabel(key)}`}
         </Text>
+        <View style={styles.fieldCol}>
+        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{blockRule(key, total)}</Text>
         <View style={[styles.grid, { width: cs * side + (side - 1) * 4 }]}>
           {seriesState.field.cells.map((value, index) => {
             const isTaken = seriesState.taken[index];
@@ -1479,7 +1528,7 @@ export default function SchulteGame() {
             );
           })}
         </View>
-        <Text style={[styles.hintText, { color: colors.textSecondary }]}>{blockRule(key, total)}</Text>
+        </View>
       </GameShell>
     );
   };
@@ -1647,6 +1696,33 @@ export default function SchulteGame() {
 }
 
 const styles = StyleSheet.create({
+  /**
+   * 🔴 РЕЗЕРВ ПОД НИЖНЮЮ ПОЛОСУ СТОИТ ЗДЕСЬ, А НЕ НА СЕТКЕ.
+   *
+   * Сначала я повесил его на `grid` — и живой замер показал, что содержимое
+   * встало на 22 точки ВЫШЕ соседей: подсказка «что делать» лежит ПОД сеткой
+   * отдельным элементом, и отступ снизу сетки раздвинул их между собой, вместо
+   * того чтобы зарезервировать место в самом низу. Резерв обязан висеть на
+   * ПОСЛЕДНЕМ ребёнке поля, иначе он не резерв, а щель посередине.
+   *
+   * Оба места вызова каркаса (партия и блочная серия) кончаются этой подписью —
+   * значит число одно и то же, разъехаться им нечем.
+   */
+  fieldCol: {
+    alignItems: 'center',
+    gap: 12,
+    /**
+     * 🔴 РЕЗЕРВ ПОД НИЖНЮЮ ПОЛОСУ, КОТОРОЙ У ЭТОЙ ИГРЫ НЕТ, — на ОБЩЕМ
+     * контейнере поля, как у зрительного поиска, отличий и маджонга.
+     *
+     * Два промаха по дороге, оба видны только живым замером: сначала резерв
+     * стоял на сетке и раздвигал сетку с подсказкой между собой (щель посередине
+     * вместо места внизу), потом на подсказке — и поверхность игры всё равно
+     * стояла на 22 точки выше соседей, потому что подсказка лежала ПОД сеткой.
+     * Теперь подсказка сверху, резерв на группе, число — из модуля раздела.
+     */
+    marginBottom: reserveBottom(0),
+  },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320, marginTop: 12 },
   // ── серия блоков ──
   seriesNote: { fontSize: 13, lineHeight: 18, marginBottom: 6, paddingHorizontal: 4 },
