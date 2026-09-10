@@ -143,8 +143,11 @@ export default function PuzzlesScreen() {
   }, []);
 
   const подсказать = useCallback(() => {
-    setСдался(true);                       // весь ответ показан — ступень не засчитана
-    void решить().then(setПартия);
+    void решить().then((п) => {
+      if (!п) return;                      // решатель отказал — ступень не жжём
+      setСдался(true);                     // весь ответ показан — ступень не засчитана
+      setПартия(п);
+    });
   }, []);
 
   const победа = партия?.статус === 1;
@@ -206,7 +209,15 @@ export default function PuzzlesScreen() {
          * показывает ответ целиком, а ступень не засчитывает. Название «Подсказка»
          * обещало маленький намёк, и человек жал её, не зная цены.
          */
-        ...(движок?.решаем ? [{ id: 'hint', label: t('puzzleShowSolution'), icon: 'bulb-outline' as const, onPress: подсказать }] : []),
+        /**
+         * ⚠️ У «Сапёра» кнопка появляется только ПОСЛЕ первого хода. Раскладка мин
+         * там рождается от первого щелчка (`mines.c:4032`), и до него решатель
+         * честно отвечает «Game has not been started yet». Показывать кнопку,
+         * которая заведомо откажет, — та же пустышка.
+         */
+        ...(движок?.решаем && (движок.имя !== 'Mines' || ходов > 0)
+          ? [{ id: 'hint', label: t('puzzleShowSolution'), icon: 'bulb-outline' as const, onPress: подсказать }]
+          : []),
         { id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline', onPress: () => DeviceEventEmitter.emit(HELP_OPEN_EVENT) },
         { id: 'home', label: t('goHome'), icon: 'home', leave: true },
       ]}
