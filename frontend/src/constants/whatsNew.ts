@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.53.1',
+    date: '2026-09-10',
+    ru: [
+      'Пауза теперь есть в каждой игре. Раньше в шестидесяти трёх упражнениях из восьмидесяти одного нажатие «назад» показывало картинку без единой кнопки — ни продолжить, ни выйти',
+      'Кнопку паузы стало видно: вместо серой стрелки в углу — заметная кнопка с ⏸',
+      'В паузе видно, как идёт партия: уровень, ходы, верно, ошибки, время',
+      'Оттуда же: тихий режим одним тапом, «Отменить» и «Подсказка», уровень проще или сложнее, пропуск шага зарядки и «Сообщить о проблеме»',
+      'У «Детского мата» было две кнопки выхода с разными подписями и одинаковым действием — осталась одна',
+    ],
+    en: [
+      'Every game now has a pause menu. In sixty-three exercises out of eighty-one, pressing “back” used to show a picture with no buttons at all — no resume, no exit',
+      'The pause button is now visible: a clear ⏸ button instead of a grey arrow in the corner',
+      'The pause screen shows how the round is going: level, moves, correct answers, mistakes, time',
+      'From the same place: quiet mode in one tap, Undo and Hint, an easier or harder level, skipping a workout step, and “Report a problem”',
+      '“Scholar’s Mate” had two exit buttons with different labels and the same effect — now there is one',
+    ],
+  },
+  {
     version: '2.53.0',
     date: '2026-09-10',
     ru: [
