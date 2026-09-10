@@ -1905,7 +1905,7 @@ const t: Record<string, string> = {
   "lr_cpt_newtarget_example": "예: 안내가 “K를 누르세요”라면 X는 평범한 글자입니다. 그냥 지나치세요.",
   "lr_cpt_colorrule_title": "색도 규칙입니다",
   "lr_cpt_colorrule_rule": "이제 빨간 목표만 인정됩니다. 같은 글자라도 색이 다르면 함정이니 누르지 마세요.",
-  "lr_cpt_colorrule_example": "예: A 다음의 빨간 K는 누르고, 파란 K는 지나칩니다.",
+  "lr_cpt_colorrule_example": "예: 빨간 목표는 누르고, 같은 글자가 파란색이면 지나칩니다.",
   "lr_digit_span_reverse_title": "거꾸로 입력",
   "lr_digit_span_reverse_rule": "이 레벨부터는 숫자를 거꾸로 입력하세요 — 마지막에 나온 숫자부터요.",
   "lr_digit_span_reverse_example": "예: 4 9 2가 나왔다면 294를 입력해요.",

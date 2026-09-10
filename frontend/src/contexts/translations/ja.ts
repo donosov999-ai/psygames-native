@@ -1904,7 +1904,7 @@ const t: Record<string, string> = {
   "lr_cpt_newtarget_example": "例：案内が「K を押す」なら、X はただの文字です。見送りましょう。",
   "lr_cpt_colorrule_title": "色もルールのうち",
   "lr_cpt_colorrule_rule": "これからは赤いターゲットだけが有効です。同じ文字でも色が違えば罠なので押さないでください。",
-  "lr_cpt_colorrule_example": "例：A のあとの赤い K は押す。青い K は見送る。",
+  "lr_cpt_colorrule_example": "例：赤いターゲットは押す。同じ文字が青なら見送る。",
   "lr_digit_span_reverse_title": "うしろから入力",
   "lr_digit_span_reverse_rule": "このレベルからは、数字を逆の順番で入力します — 最後に出た数字から先に。",
   "lr_digit_span_reverse_example": "例：4 9 2 と出たら、294 と入力します。",

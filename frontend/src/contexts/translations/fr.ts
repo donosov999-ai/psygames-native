@@ -1905,7 +1905,7 @@ const t: Record<string, string> = {
   "lr_cpt_newtarget_example": "Exemple : si l'indication dit « appuie sur K », le X devient une lettre ordinaire — laisse-le passer.",
   "lr_cpt_colorrule_title": "La couleur fait partie de la règle",
   "lr_cpt_colorrule_rule": "Désormais, seule la cible ROUGE compte. La même lettre dans une autre couleur est un piège : ne la touche pas.",
-  "lr_cpt_colorrule_example": "Exemple : un K rouge après un A — appuie. Un K bleu — laisse passer.",
+  "lr_cpt_colorrule_example": "Exemple : la cible en rouge — appuie. La même lettre en bleu — laisse passer.",
   "lr_digit_span_reverse_title": "Saisie à l'envers",
   "lr_digit_span_reverse_rule": "À partir de ce niveau, saisis les chiffres dans l'ordre INVERSE — le dernier en premier.",
   "lr_digit_span_reverse_example": "Exemple : affiché 4 9 2 — saisis 294.",

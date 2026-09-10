@@ -1910,7 +1910,7 @@ const t: Record<string, string> = {
   "lr_cpt_newtarget_example": "Exemplo: se disser «toca no K», o X passa a ser uma letra comum — deixa passar.",
   "lr_cpt_colorrule_title": "A cor também é regra",
   "lr_cpt_colorrule_rule": "Agora só conta o alvo VERMELHO. A mesma letra noutra cor é uma armadilha: não toques.",
-  "lr_cpt_colorrule_example": "Exemplo: um K vermelho depois de um A — toca. Um K azul — deixa passar.",
+  "lr_cpt_colorrule_example": "Exemplo: o alvo a vermelho — toca. A mesma letra a azul — deixa passar.",
   "lr_digit_span_reverse_title": "Digite ao contrário",
   "lr_digit_span_reverse_rule": "A partir deste nível, digite os dígitos NA ORDEM INVERSA — começando pelo último.",
   "lr_digit_span_reverse_example": "Exemplo: apareceu 4 9 2 — digite 294.",

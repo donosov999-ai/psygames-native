@@ -1906,7 +1906,7 @@ const t: Record<string, string> = {
   "lr_cpt_newtarget_example": "مثال: إذا قال التلميح «اضغط K»، فحرف X صار حرفًا عاديًا — دعه يمرّ.",
   "lr_cpt_colorrule_title": "اللون جزء من القاعدة",
   "lr_cpt_colorrule_rule": "الآن لا يُحتسب الهدف إلا إذا كان أحمر. الحرف نفسه بلون آخر فخّ — لا تضغط عليه.",
-  "lr_cpt_colorrule_example": "مثال: حرف K أحمر بعد A — اضغط. وK أزرق — دعه يمرّ.",
+  "lr_cpt_colorrule_example": "مثال: الهدف بالأحمر — اضغط. والحرف نفسه بالأزرق — دعه يمرّ.",
   "lr_digit_span_reverse_title": "اكتب من الآخر",
   "lr_digit_span_reverse_rule": "من هذا المستوى أدخل الأرقام معكوسة — الرقم الأخير أولًا.",
   "lr_digit_span_reverse_example": "مثال: ظهر 4 9 2 — اكتب 294",

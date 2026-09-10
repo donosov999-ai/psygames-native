@@ -1910,7 +1910,7 @@ const t: Record<string, string> = {
   "lr_cpt_newtarget_example": "例如：提示说“按 K”，那么 X 就只是普通字母，放它过去。",
   "lr_cpt_colorrule_title": "颜色也是规则",
   "lr_cpt_colorrule_rule": "现在只有红色的目标才算数。同一个字母换了颜色就是陷阱，不要按。",
-  "lr_cpt_colorrule_example": "例如：A 之后出现红色 K——按；蓝色 K——放过。",
+  "lr_cpt_colorrule_example": "例如：红色的目标——按；同一个字母是蓝色——放过。",
   "lr_digit_span_reverse_title": "倒序输入",
   "lr_digit_span_reverse_rule": "从本关起，请倒序输入数字——从最后一位开始往回输。",
   "lr_digit_span_reverse_example": "例：显示 4 9 2——就输入 294。",

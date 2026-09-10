@@ -1910,7 +1910,7 @@ const t: Record<string, string> = {
   "lr_cpt_newtarget_example": "Ejemplo: si dice «pulsa K», la X pasa a ser una letra más: déjala pasar.",
   "lr_cpt_colorrule_title": "El color también es regla",
   "lr_cpt_colorrule_rule": "Ahora solo cuenta el objetivo en ROJO. La misma letra en otro color es una trampa: no la pulses.",
-  "lr_cpt_colorrule_example": "Ejemplo: una K roja después de una A — púlsala. Una K azul — déjala pasar.",
+  "lr_cpt_colorrule_example": "Ejemplo: el objetivo en rojo — púlsalo. La misma letra en azul — déjala pasar.",
   "lr_digit_span_reverse_title": "Escribe al revés",
   "lr_digit_span_reverse_rule": "A partir de este nivel, escribe los dígitos EN ORDEN INVERSO: primero el último.",
   "lr_digit_span_reverse_example": "Ejemplo: si muestran 4 9 2, escribe 294.",
