@@ -61,6 +61,7 @@ import { isRTLLang } from '@/src/services/rtl';
 import { GameAuxAction } from '@/src/components/GameAuxAction';
 import { FEEDBACK_OPEN_EVENT, FEEDBACK_ENABLED } from '@/src/services/appFeedback';
 import { текущаяЛестница } from '@/src/services/levelRegistry';
+import { router } from 'expo-router';
 import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
@@ -201,6 +202,16 @@ export interface PauseAction {
    * «На главную» в меню паузы, уже ответил на вопрос «выйти?», второй раз не спрашиваем.
    */
   leave?: boolean;
+  /**
+   * 🔴 УХОД НА ГЛАВНУЮ, А НЕ НА ШАГ НАЗАД — ЭТО РАЗНЫЕ ИСХОДЫ (Денис 10.09.2026:
+   * «не хватает кнопки выйти из упражнения и выйти в главное меню, надо оба»).
+   *
+   * `leave` уводит через `onBack` игры, а это почти везде `goBackOrHome()` — ШАГ
+   * НАЗАД, в развилку раздела. Подпись при этом стояла «На главную», то есть
+   * обещала не то, что делала: из игры внутри развилки человек попадал в развилку.
+   * Теперь пунктов два, и каждый делает ровно то, что написано.
+   */
+  toHome?: boolean;
   /**
    * 🔴 ВЫКЛЮЧЕННОЕ ДЕЙСТВИЕ ПОКАЗЫВАЕТСЯ СЕРЫМ, А НЕ ПРЯЧЕТСЯ.
    *
@@ -998,7 +1009,10 @@ export default function GameShell({
       ...(onRestart ? [{ id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: onRestart }] : []),
       ...добавка,
       ...общие,
-      { id: 'home', label: t('goHome'), icon: 'home', leave: true },
+      // Шаг назад: в развилку раздела, откуда человек и пришёл.
+      { id: 'exit', label: t('pauseExitGame'), icon: 'exit-outline', leave: true },
+      // На самую главную — минуя развилки.
+      { id: 'home', label: t('goHome'), icon: 'home', toHome: true },
     ];
   }, [pauseActions, onRestart, onFinishEarly, служебныеИзШапки, тихо, щелчокТишины, paused, wu, wuStep, wuSkip, t]);
 
@@ -1413,6 +1427,16 @@ export default function GameShell({
                     pauseHoldRef.current?.();
                     pauseHoldRef.current = null;
                     if (a.leave) { exitGuard.confirmExit(); return; }
+                    /**
+                     * На главную — тем же путём сохранения, что и `leave`, иначе
+                     * партия не ляжет в «продолжить». Отличается только цель.
+                     */
+                    if (a.toHome) {
+                      void Promise.resolve(onSaveBeforeExit?.()).finally(() => {
+                        router.replace('/' as never);
+                      });
+                      return;
+                    }
                     a.onPress?.();
                   }}
                 >

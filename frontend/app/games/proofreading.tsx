@@ -265,7 +265,26 @@ export default function ProofreadingGame() {
   // rows/cols из пресета зарядки; в личной игре перезаписываются параметрами уровня
   const [rows, setRows] = useState(() => num('rows', 14));
   const [cols, setCols] = useState(() => num('cols', 12));
-  const [mode, setMode] = useState<ScriptId | 'digits'>(() => (str('mode', language === 'ru' ? 'cyrillic' : 'latin') as ScriptId | 'digits'));
+  /**
+   * 🔴 ПРИВЕДЕНИЕ ТИПОМ — НЕ ПРОВЕРКА. Отчёт Дениса 10.09.2026: в языковой зарядке
+   * на ВТОРОМ упражнении приложение падало с «undefined is not an object
+   * (evaluating SCRIPTS[mode].chars)».
+   *
+   * Причина: зарядка подавала сюда `mode: 'fillwords'` (chessWarmup.ts,
+   * `wordWarmupSteps`), имея в виду ВИД ЗАДАНИЯ. А `mode` здесь означает
+   * ПИСЬМЕННОСТЬ — латиница, кириллица, греческий… `SCRIPTS['fillwords']` не
+   * существует, и `generateGrid` разбивался о `.chars` у `undefined`.
+   * Прежняя запись `str(...) as ScriptId | 'digits'` компилятор успокаивала, но
+   * значение приходит СНАРУЖИ, из параметров маршрута, и `as` его не проверяет.
+   *
+   * Теперь неизвестная письменность откатывается на язык интерфейса. Падать из-за
+   * чужого параметра экран не имеет права: человек в зарядке теряет весь заход.
+   */
+  const [mode, setMode] = useState<ScriptId | 'digits'>(() => {
+    const сырое = str('mode', language === 'ru' ? 'cyrillic' : 'latin');
+    const годно = сырое === 'digits' || (SCRIPT_IDS as string[]).includes(сырое);
+    return (годно ? сырое : (language === 'ru' ? 'cyrillic' : 'latin')) as ScriptId | 'digits';
+  });
   /**
    * 🔴 ПИСЬМЕННОСТЬ ПО УМОЛЧАНИЮ — КОГДА ЯЗЫК УЖЕ ИЗВЕСТЕН.
    *
@@ -300,7 +319,18 @@ export default function ProofreadingGame() {
    * кнопку и выдать по ней пустое поле было бы хуже, чем не показывать её.
    */
   const fwAvailable = isFillwordsLocale(language);
-  const [taskMode, setTaskMode] = useState<TaskMode>('letters');
+  /**
+   * 🔴 ВИД ЗАДАНИЯ ЧИТАЕТСЯ ИЗ ПРЕСЕТА, А НЕ ТОЛЬКО СТАВИТСЯ КНОПКОЙ.
+   *
+   * Языковая зарядка просила здесь филворды с самого начала (`wordWarmupSteps`),
+   * но экран этот параметр НЕ ЧИТАЛ — только кнопка внутри партии. То есть шаг
+   * зарядки не просто падал: даже без падения он играл бы буквы вместо филвордов.
+   * Филворды бывают не во всех языках, поэтому просьба уважается только там, где
+   * они есть.
+   */
+  const [taskMode, setTaskMode] = useState<TaskMode>(
+    () => (str('taskMode', 'letters') === 'fillwords' && isFillwordsLocale(language) ? 'fillwords' : 'letters'),
+  );
   /**
    * 🔴 ЛИНИЯ ГНЁТСЯ ИЛИ ИДЁТ ПРЯМО — ЭТО ОСЬ СЛОЖНОСТИ, А НЕ УКРАШЕНИЕ.
    * Замер: пространство поиска (число самонепересекающихся путей длины L из
