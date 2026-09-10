@@ -1913,7 +1913,7 @@ const t: Record<string, string> = {
   "lr_cpt_newtarget_example": "उदाहरण: संकेत कहे «K दबाओ», तो X अब सामान्य अक्षर है — उसे जाने दें।",
   "lr_cpt_colorrule_title": "रंग भी नियम है",
   "lr_cpt_colorrule_rule": "अब केवल लाल लक्ष्य गिना जाता है। वही अक्षर किसी और रंग में जाल है — उसे न दबाएँ।",
-  "lr_cpt_colorrule_example": "उदाहरण: A के बाद लाल K — दबाएँ। नीला K — जाने दें।",
+  "lr_cpt_colorrule_example": "उदाहरण: लक्ष्य लाल हो — दबाएँ। वही अक्षर नीला हो — जाने दें।",
   "lr_digit_span_reverse_title": "आख़िर से टाइप करें",
   "lr_digit_span_reverse_rule": "इस स्तर से अंक उल्टे क्रम में डालें — आख़िरी अंक सबसे पहले।",
   "lr_digit_span_reverse_example": "उदाहरण: दिखा 4 9 2 — टाइप करें 294",

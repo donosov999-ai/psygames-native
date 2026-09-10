@@ -3199,7 +3199,7 @@ const translations: Translations = {
   lr_cpt_newtarget_example: { ru: 'Пример: сказано «жми на K» — значит X теперь обычная буква, мимо неё.', en: 'Example: if the hint says tap K, then X is just another letter — let it pass.' },
   lr_cpt_colorrule_title: { ru: 'Цвет тоже правило', en: 'Colour is part of the rule' },
   lr_cpt_colorrule_rule: { ru: 'Теперь мишень засчитывается только КРАСНАЯ. Та же буква другого цвета — ловушка, жать нельзя.', en: 'Now only a RED target counts. The same letter in another colour is a trap — don\'t tap it.' },
-  lr_cpt_colorrule_example: { ru: 'Пример: красная K после A — жми. Синяя K — мимо.', en: 'Example: a red K after an A — tap. A blue K — let it pass.' },
+  lr_cpt_colorrule_example: { ru: 'Пример: мишень красная — жми. Та же буква синей — мимо.', en: 'Example: the target in red — tap. The same letter in blue — let it pass.' },
   lr_digit_span_reverse_title: { ru: 'Ввод с конца', en: 'Type backwards' },
   lr_digit_span_reverse_rule: { ru: 'С этого уровня вводи цифры В ОБРАТНОМ порядке — от последней к первой.', en: 'From this level on, enter the digits in REVERSE order — last digit first.' },
   lr_digit_span_reverse_example: { ru: 'Пример: показано 4 9 2 — вводи 294.', en: 'Example: shown 4 9 2 — type 294.' },

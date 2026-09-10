@@ -1905,7 +1905,7 @@ const t: Record<string, string> = {
   "lr_cpt_newtarget_example": "Esempio: se dice «tocca K», la X diventa una lettera qualsiasi: lasciala passare.",
   "lr_cpt_colorrule_title": "Anche il colore è una regola",
   "lr_cpt_colorrule_rule": "Ora conta solo il bersaglio ROSSO. La stessa lettera di un altro colore è una trappola: non toccarla.",
-  "lr_cpt_colorrule_example": "Esempio: una K rossa dopo una A — tocca. Una K blu — lasciala passare.",
+  "lr_cpt_colorrule_example": "Esempio: il bersaglio in rosso — tocca. La stessa lettera in blu — lasciala passare.",
   "lr_digit_span_reverse_title": "Inserimento al contrario",
   "lr_digit_span_reverse_rule": "Da questo livello inserisci le cifre IN ORDINE INVERSO — prima l'ultima, poi a ritroso.",
   "lr_digit_span_reverse_example": "Esempio: mostrato 4 9 2 — digita 294.",

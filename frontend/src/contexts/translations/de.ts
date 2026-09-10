@@ -1910,7 +1910,7 @@ const t: Record<string, string> = {
   "lr_cpt_newtarget_example": "Beispiel: Steht dort „Tippe K“, ist X nur noch ein Buchstabe wie jeder andere — vorbeiziehen lassen.",
   "lr_cpt_colorrule_title": "Die Farbe gehört zur Regel",
   "lr_cpt_colorrule_rule": "Jetzt zählt das Ziel nur noch in ROT. Derselbe Buchstabe in einer anderen Farbe ist eine Falle — nicht antippen.",
-  "lr_cpt_colorrule_example": "Beispiel: ein rotes K nach einem A — antippen. Ein blaues K — vorbeiziehen lassen.",
+  "lr_cpt_colorrule_example": "Beispiel: das Ziel in Rot — antippen. Derselbe Buchstabe in Blau — vorbeiziehen lassen.",
   "lr_digit_span_reverse_title": "Eingabe von hinten",
   "lr_digit_span_reverse_rule": "Ab diesem Level gibst du die Ziffern in UMGEKEHRTER Reihenfolge ein — die letzte zuerst.",
   "lr_digit_span_reverse_example": "Beispiel: gezeigt 4 9 2 — tippe 294.",
