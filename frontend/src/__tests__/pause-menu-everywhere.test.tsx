@@ -69,6 +69,19 @@ async function пауза(пропсы: Record<string, unknown>) {
  * его хост-потомков — один `pause-action:hint` пришёл четырьмя. Первая редакция это
  * скрыла, потому что все проверки были `toContain`: они зелёные и на повторах.
  */
+function текстВнутри(n: any): string {
+  const куски: string[] = [];
+  const обойти = (x: any) => {
+    if (!x) return;
+    if (typeof x === 'string') { куски.push(x); return; }
+    if (typeof x === 'number') { куски.push(String(x)); return; }
+    if (Array.isArray(x)) { x.forEach(обойти); return; }
+    if (x.children) x.children.forEach(обойти);
+  };
+  обойти(n.children);
+  return куски.join(' ');
+}
+
 const пунктыМеню = (r: any): string[] =>
   [...new Set(r.root.findAll((n: any) => typeof n.props?.testID === 'string'
     && n.props.testID.startsWith('pause-action:'))
@@ -91,7 +104,9 @@ describe('меню паузы есть у каждой игры', () => {
     const пункты = пунктыМеню(await пауза({
       pauseActions: [{ id: 'hint', label: 'Подсказка', icon: 'bulb-outline', onPress: () => {} }],
     }));
-    expect(пункты).toEqual(['hint']);
+    // Свой набор игры на месте; общие пункты каркаса приходят сверх него.
+    expect(пункты[0]).toBe('hint');
+    expect(пункты).not.toContain('home');   // своего выхода игра не объявила — каркас его не дописывает
   });
 
   it('🔴 контрпроба: меню без кнопок невозможно, сколько бы игра ни молчала', async () => {
@@ -138,7 +153,11 @@ describe('меню паузы есть у каждой игры', () => {
       headerActions: React.createElement(GameAuxAction,
         { icon: 'shuffle', label: 'Перемешать', onPress: () => {} }),
     }));
-    expect(пункты).toEqual(['resume', 'aux:Перемешать', 'home']);
+    // Общие пункты каркаса встают вместе с собранным — ПЕРЕД выходом.
+    expect(пункты[0]).toBe('resume');
+    expect(пункты[пункты.length - 1]).toBe('home');
+    expect(пункты.indexOf('aux:Перемешать')).toBeGreaterThan(0);
+    expect(пункты.indexOf('aux:Перемешать')).toBeLessThan(пункты.indexOf('home'));
   });
 
   it('🔴 «СТОП» в паузу не берётся: там это дубль выхода, и опасный', async () => {
@@ -147,6 +166,80 @@ describe('меню паузы есть у каждой игры', () => {
       headerActions: React.createElement(GameAuxAction, { label: 'СТОП', danger: true, onPress: () => {} }),
     }));
     expect(пункты).not.toContain('aux:СТОП');
+  });
+
+  it('🔴 общие пункты приходят на КАЖДЫЙ экран: тишина и отчёт', async () => {
+    const пункты = пунктыМеню(await пауза({}));
+    expect(пункты).toContain('hush');
+    expect(пункты).toContain('report');
+  });
+
+  it('🔴 «как идёт партия» показывает те же счётчики, что и шапка', async () => {
+    const r = await пауза({
+      hud: [
+        { key: 'level', label: 'Уровень', value: 7 },
+        { key: 'errors', label: 'Ошибок', value: 2 },
+      ],
+    });
+    const текст = текстВнутри(r.root.findAll((n: any) => n.props?.testID === 'game-pause-menu')[0]);
+    expect(текст).toContain('7');
+    expect(текст).toContain('Уровень');
+    expect(текст).toContain('Ошибок');
+  });
+
+  it('🔴 второй вид счётчиков (stats=) тоже виден в паузе', async () => {
+    const { Text } = require('react-native');  // eslint-disable-line @typescript-eslint/no-require-imports
+    // Так кормят каркас 10 экранов из 77 — готовой разметкой, а не разобранным списком.
+    // На этом я и споткнулся: первая редакция читала только `hud`, и у «Ментальной
+    // ротации» строка «как идёт партия» не появилась вовсе.
+    const r = await пауза({ stats: React.createElement(Text, null, 'Раунд 3 из 10') });
+    const текст = текстВнутри(r.root.findAll((n: any) => n.props?.testID === 'game-pause-menu')[0]);
+    expect(текст).toContain('Раунд 3 из 10');
+  });
+
+  it('🔴 пропуск шага зарядки — ТОЛЬКО в зарядке, а не в обычной партии', async () => {
+    expect(пунктыМеню(await пауза({}))).not.toContain('wu-skip');
+  });
+
+  it('🔴 Б1: пока меню открыто, часы партии стоят', async () => {
+    const { gameNow, isGameHeld } = require('@/src/services/gamePause');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const r = await пауза({});
+    expect(isGameHeld()).toBe(true);
+    const t1 = gameNow();
+    await new Promise((f) => setTimeout(f, 120));
+    const t2 = gameNow();
+    // Часы игры — не часы стены: под открытым меню они обязаны стоять.
+    expect(`сдвиг часов ${t2 - t1} мс, стоят: ${t2 === t1}`).toBe(`сдвиг часов ${t2 - t1} мс, стоят: true`);
+    // Снимаем задержку, чтобы не оставить счётчик пауз поднятым для соседей.
+    const продолжить = r.root.findAll((n: any) => n.props?.testID === 'pause-action:resume')[0];
+    await TestRenderer.act(async () => { продолжить.props.onPress?.(); });
+  });
+
+  it('🔴 Д6: «закончить и записать» есть только у игры, давшей обработчик', async () => {
+    expect(пунктыМеню(await пауза({}))).not.toContain('finish');
+    expect(пунктыМеню(await пауза({ onFinishEarly: () => {} }))).toContain('finish');
+  });
+
+  it('🔴 Д2/Д3: смены уровня НЕТ, если каркасу нечем перераздать партию', async () => {
+    // Лестница живая, но ни onRestart, ни своего пункта restart — менять уровень
+    // молча, не перераздав, значит соврать про то, во что человек играет.
+    const { renderHook } = { renderHook: null } as any;   // hook монтируется самим экраном
+    const пункты = пунктыМеню(await пауза({}));
+    expect(пункты).not.toContain('easier');
+    expect(пункты).not.toContain('harder');
+    expect(renderHook).toBeNull();
+  });
+
+  it('🔴 «тихий режим» не выбрасывает из паузы и меняет подпись', async () => {
+    const r = await пауза({});
+    const кнопка = () => r.root.findAll((n: any) => n.props?.testID === 'pause-action:hush')[0];
+    const было = текстВнутри(кнопка());
+    await TestRenderer.act(async () => { кнопка().props.onPress?.(); });
+    // Меню на месте: переключатель — не выход.
+    expect(пунктыМеню(r)).toContain('hush');
+    expect(текстВнутри(кнопка())).not.toBe(было);
+    // Возвращаем звук, чтобы не менять настройку соседним пробам.
+    await TestRenderer.act(async () => { кнопка().props.onPress?.(); });
   });
 
   it('🔴 кнопка в шапке читается как ПАУЗА, а не как «выйти»', async () => {
