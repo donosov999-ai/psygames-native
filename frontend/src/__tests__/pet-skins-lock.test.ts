@@ -68,9 +68,18 @@ describe('наряды питомца под замком', () => {
   it('🔴 новичок: базовый скин ОТКРЫТ, остальные заперты', async () => {
     const r = await монтировать(0);
     const c = карточки(r);
-    expect(c.length).toBe(4);              // ни одна карточка не спряталась
+    /**
+     * 🔴 БЫЛО ЧЕТЫРЕ КАРТОЧКИ, СТАЛО ТРИ — И ЭТО ПОЧИНКА, А НЕ ПОТЕРЯ (10.09.2026).
+     *
+     * Четвёртой стояло «Авто», и она давала РОВНО ТОГО ЖЕ кота:
+     * `resolvePetSkin('auto')` возвращает 'cat' всегда с тех пор, как сняли
+     * автоматическую подмену облика по стадии, а карточка осталась. Денис по снимку:
+     * «у меня два значка выбора Синапса» — он нажал обе и увидел одно и то же.
+     * Сохранённый выбор `auto` не потерян: он подсвечивает «Нейро-кота».
+     */
+    expect(c.length).toBe(3);              // ни одна карточка не спряталась
     const заперты = c.filter((n) => /Unlocks at level|Откроется на уровне/i.test(n.props.accessibilityLabel));
-    expect(заперты.length).toBe(3);        // ровно три наряда, базовый свободен
+    expect(заперты.length).toBe(2);        // два наряда под замком, базовый свободен
     const базовый = c.find((n) => /Cat|Кот/i.test(n.props.accessibilityLabel));
     expect(/Unlocks at level|Откроется/i.test(базовый.props.accessibilityLabel)).toBe(false);
     await TestRenderer.act(async () => { r.unmount(); });
@@ -89,7 +98,7 @@ describe('наряды питомца под замком', () => {
   it('на восьмом уровне заперто ничего', async () => {
     const r = await монтировать(8);
     const c = карточки(r);
-    expect(c.length).toBe(4);
+    expect(c.length).toBe(3);
     expect(c.filter((n) => /Unlocks at level|Откроется/i.test(n.props.accessibilityLabel)).length).toBe(0);
     await TestRenderer.act(async () => { r.unmount(); });
   });
