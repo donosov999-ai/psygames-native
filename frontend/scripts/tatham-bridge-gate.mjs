@@ -26,6 +26,15 @@ const require_ = createRequire(import.meta.url);
 const ЗДЕСЬ = path.dirname(fileURLToPath(import.meta.url));
 const МОСТ = path.join(ЗДЕСЬ, '../src/games/tatham-bridge/tatham.js');
 
+/**
+ * 🔴 КТО ПОКАЗЫВАЕТ ДОСКУ ТЕКСТОМ. Замер 10.09.2026: `text_format` реализован у 33
+ * головоломок из 40 в каноне и у 18 из 20 в нашем модуле. Это ключ ко всей коллекции —
+ * наша сторона рисует сетку по ASCII, не разбирая двадцать разных форматов описания.
+ * Keen и Map себя текстом не показывают: им нужна своя отрисовка, и это записанный факт,
+ * а не дефект.
+ */
+const БЕЗ_ТЕКСТА = new Set(['Keen', 'Map']);
+
 /** Замер 10.09.2026, канон на коммите 38e7ea3: сколько ступеней объявил САМ автор. */
 const СТУПЕНИ = {
   Solo: 16, Unequal: 12, Dominosa: 12, 'Train Tracks': 12, Keen: 10, Singles: 10,
@@ -60,14 +69,27 @@ for (let i = 0; i < n; i++) {
     беды.push(`${имя}: доска не сгенерирована — «${описание.slice(0, 30)}»`);
   }
 
-  // 2. лестница автора на месте
+  // 2. доска отдаётся текстом — то, по чему рисует наша сторона
+  const умеет = M.ccall('psy_has_board', 'number', ['number'], [i]) === 1;
+  if (умеет === БЕЗ_ТЕКСТА.has(имя)) {
+    беды.push(`${имя}: показывает текстом ${умеет}, а в замере записано обратное`);
+  }
+  if (умеет) {
+    const b = M.ccall('psy_board', 'number', ['number', 'string', 'number'], [i, '', 42]);
+    const доска = b ? M.UTF8ToString(b) : '';
+    if (b) M.ccall('psy_free', null, ['number'], [b]);
+    const строк = доска.split('\n').filter(Boolean).length;
+    if (строк < 3) беды.push(`${имя}: доска текстом пуста или в ${строк} строк`);
+  }
+
+  // 3. лестница автора на месте
   const было = СТУПЕНИ[имя];
   const стало = M.ccall('psy_presets', 'number', ['number'], [i]);
   if (было === undefined) беды.push(`${имя}: движка не было в замере 10.09.2026`);
   else if (было !== стало) беды.push(`${имя}: ступеней автора было ${было}, стало ${стало}`);
 }
 
-// 3. одно зерно — одна доска, иначе прогресс игрока не воспроизводится
+// 4. одно зерно — одна доска, иначе прогресс игрока не воспроизводится
 const a = (() => { const p = M.ccall('psy_generate', 'number', ['number', 'string', 'number'], [0, '', 777]); const s = M.UTF8ToString(p); M.ccall('psy_free', null, ['number'], [p]); return s; })();
 const b = (() => { const p = M.ccall('psy_generate', 'number', ['number', 'string', 'number'], [0, '', 777]); const s = M.UTF8ToString(p); M.ccall('psy_free', null, ['number'], [p]); return s; })();
 if (a !== b || a.length < 8) беды.push(`одно зерно даёт разные доски: «${a.slice(0, 20)}» против «${b.slice(0, 20)}»`);
@@ -79,4 +101,4 @@ if (беды.length) {
   console.error('а повод пересчитать лестницу той головоломки: его ступень у нас ось сложности.');
   process.exit(1);
 }
-console.log(`✅ мост: ${n} движков, каждый выдаёт доску, лестницы автора на месте, зерно воспроизводится`);
+console.log(`✅ мост: ${n} движков · доску текстом дают ${n - БЕЗ_ТЕКСТА.size} · лестницы автора на месте · зерно воспроизводится`);
