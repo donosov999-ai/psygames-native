@@ -1,4 +1,4 @@
-/* psygames-game-cake-sort · VER 2 · 09.09.2026 */
+/* psygames-game-cake-sort · VER 5 · 09.09.2026 */
 /**
  * ТОРТЫ — собрать круг из ШЕСТИ секторов.
  *
@@ -302,15 +302,37 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
       setSel(i); hapticTap(); return;
     }
     if (sel === i) { setSel(null); return; }
-    const src = board.plates[sel] ?? [];
+    переложить(sel, i);
+  };
+
+  /**
+   * 🔴 ХОД С ЯВНО НАЗВАННЫМИ «ОТКУДА» И «КУДА» — И ПОЧЕМУ ЭТО НЕ ПРИДИРКА.
+   *
+   * 📍 Поймано собственным гейтом 09.09.2026. Отпускание жеста делало
+   * `setSel(f); тронуть(t);` — то есть рассчитывало, что состояние обновится
+   * МЕЖДУ двумя строками. Оно так не работает: `тронуть` в том же такте видит
+   * `sel === null` и вместо хода ВЫБИРАЕТ цель. Кусок оставался поднятым, ход не
+   * происходил.
+   *
+   * ⚠️ В браузере беда пряталась: если выбор уже был сделан тапом раньше, ход
+   * проходил — и жест выглядел рабочим через раз. Ровно поэтому проверять надо
+   * пробой с чистого состояния, а не «у меня получилось».
+   *
+   * Теперь и тап, и жест зовут ОДИН ход с явными концами. Тап по-прежнему
+   * отвечает за выбор, жест выбора не касается.
+   */
+  const переложить = (откуда: number, куда: number) => {
+    if (!board || done || откуда === куда) { setSel(null); return; }
+    const src = board.plates[откуда] ?? [];
+    if (!src.length) { setSel(null); return; }
     const тип = src[src.length - 1] as number;
-    if (!canPlace(board, i, тип)) { setSel(null); hapticTap(); sndWrong(); return; }
-    const после = moveTop(board, sel, i);
+    if (!canPlace(board, куда, тип)) { setSel(null); пометитьОтказ(куда); hapticTap(); sndWrong(); return; }
+    const после = moveTop(board, откуда, куда);
     if (!после) { setSel(null); return; }
     история.push({ b: board, moves });
     // Пошёл как советовали — снимаем шаг с пути; свернул — путь больше не наш.
     const шаг = путь?.[0];
-    setПуть(шаг && шаг.from === sel && шаг.to === i ? путь!.slice(1) : null);
+    setПуть(шаг && шаг.from === откуда && шаг.to === куда ? путь!.slice(1) : null);
     setMoves(moves + 1);
     setSel(null); setHint(null);
     /**
@@ -318,6 +340,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
      * «стало меньше секторов»: очередь тут же занимает освободившееся место, и
      * разница в числе секторов соврала бы.
      */
+    const i = куда;
     const пустыхДо = board.plates.filter((p) => p.length === 0).length;
     const пустыхПосле = после.plates.filter((p) => p.length === 0).length;
     const собрано = Math.max(0, пустыхПосле - пустыхДо + (board.queue.length - после.queue.length));
@@ -385,6 +408,47 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
   const СДВИГ = 6;
   const [тащим, setТащим] = useState<number | null>(null);
   const [цель, setЦель] = useState<number | null>(null);
+  /**
+   * 🔴 ЧТО В РУКЕ И КУДА ЦЕЛИМСЯ — ЕЩЁ И В ССЫЛКАХ, А НЕ ТОЛЬКО В СОСТОЯНИИ.
+   *
+   * 📍 Найдено 09.09.2026 живым замером: `onStartShouldSetResponderCapture` и
+   * `onResponderGrant` срабатывают, а перенос всё равно ничем не кончается.
+   * Причина — устаревшее замыкание: система ответчика запоминает обработчики В
+   * МОМЕНТ ЗАХВАТА, и `onResponderMove` с `onResponderRelease` читают состояние
+   * ТОГО рендера, где `тащим` ещё `null`. Движение молча выходит по первой
+   * строке, `цель` не обновляется, отпускание видит пустую руку — и ход не
+   * делается ни разу.
+   *
+   * ⚠️ Шапка этого файла утверждала обратное: «пропсы пересоздаются каждый
+   * рендер и замыкают свежее состояние». Для ПРОПСОВ это правда, но ответчику
+   * их к тому времени уже отдали. Сосед (сортировка товаров) держит ровно эти
+   * две величины в ссылках, и его перетаскивание работает — теперь понятно,
+   * почему.
+   *
+   * Пишутся только из обработчиков событий: запрет React на ссылки во время
+   * рендера не нарушается.
+   */
+  const тащимRef = useRef<number | null>(null);
+  const цельRef = useRef<number | null>(null);
+  /**
+   * 🔴 ОТКАЗ ОБЯЗАН БЫТЬ ВИДЕН, А НЕ ТОЛЬКО СЛЫШЕН.
+   *
+   * 📍 Решение Дениса 09.09.2026: «тапы — главный путь, как в жанре и как в
+   * остальных наших сортировках; довести их до того же качества: отказ должен
+   * быть виден, а не только слышен».
+   *
+   * Так и было: `переложить` на запрещённом ходе звало `hapticTap()` и
+   * `sndWrong()` — и всё. В нашей сборке (Tauri = вебвью) вибрации НЕТ вовсе, а
+   * звук человек выключает первым делом, поэтому запрещённый ход выглядел ровно
+   * как «не нажалось». Ровно та же дыра, что нашлась сегодня в сортировке
+   * товаров, и лечится так же: тарелка на треть секунды обводится алым.
+   */
+  const [отказал, setОтказал] = useState<number | null>(null);
+  const ОТКАЗ_МС = 380;
+  const пометитьОтказ = (i: number) => {
+    setОтказал(i);
+    setTimeout(() => setОтказал((c) => (c === i ? null : c)), ОТКАЗ_МС);
+  };
   const столRef = useRef<View | null>(null);
   /**
    * 🔴 УГОЛ СТОЛА И ТОЧКА КАСАНИЯ ЖИВУТ В ССЫЛКАХ, А НЕ В СОСТОЯНИИ.
@@ -413,14 +477,35 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
   /** Тарелка под точкой экрана. Вся арифметика — в `plateAtPoint`. */
   const тарелкаПод = (pageX: number, pageY: number) =>
     (стол.plate
-      ? plateAtPoint(pageX - боксRef.current.x, pageY - боксRef.current.y, стол.cols, стол.plate, cfg.plates)
+      ? plateAtPoint(pageX - боксRef.current.x, pageY - боксRef.current.y, стол.cols, стол.plate, cfg.plates, стол.boardW)
       : null);
+
+  /**
+   * 🔴 ЖЕСТ ЗАБИРАЕТСЯ ТОЛЬКО ЕСЛИ ЕСТЬ ЧТО НЕСТИ.
+   *
+   * 📍 Денис 09.09.2026: «не работает ни драг-энд-дроп, ни ПО КЛИКУ». Второе —
+   * следствие первого. Стол забирал ответчика у тарелки на любом сдвиге дальше
+   * порога, а мышью и тачпадом «клик» почти всегда едет на несколько точек.
+   * Ответчик уходил к столу, `onPress` тарелки отменялся — и тап пропадал. При
+   * этом сам жест ничем не кончался: тарелка под точкой касания вычислялась по
+   * сбитой сетке (см. `rowLeft`), `тащим` оставался пустым.
+   *
+   * Теперь стол спрашивает СЕБЯ, есть ли под точкой касания непустая тарелка.
+   * Нечего нести — жест не забираем, и тап достаётся тарелке, как и задумано.
+   */
+  const естьЧтоНести = () => {
+    const с = стартRef.current;
+    if (!с || !board || done) return false;
+    const i = тарелкаДляХвата(с.x, с.y);
+    return i !== null && !!(board.plates[i]?.length);
+  };
 
   const далеко = (e: any) => {
     const с = стартRef.current;
     if (!с) return false;
     const { pageX, pageY } = e.nativeEvent;
-    return Math.abs(pageX - с.x) + Math.abs(pageY - с.y) > СДВИГ;
+    if (Math.abs(pageX - с.x) + Math.abs(pageY - с.y) <= СДВИГ) return false;
+    return естьЧтоНести();
   };
 
   /**
@@ -428,7 +513,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    * Разбор, почему у хвата и сброса разная строгость, — в `plateForGrab`.
    */
   const тарелкаДляХвата = (pageX: number, pageY: number) =>
-    (стол.plate ? plateForGrab(pageX - боксRef.current.x, pageY - боксRef.current.y, стол.cols, стол.plate, cfg.plates) : null);
+    (стол.plate ? plateForGrab(pageX - боксRef.current.x, pageY - боксRef.current.y, стол.cols, стол.plate, cfg.plates, стол.boardW) : null);
 
   const жест = {
     /**
@@ -475,19 +560,21 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
       // С пустой тарелки брать нечего: начать жест, который заведомо ничем не
       // кончится, хуже, чем не начать — сектор «поднимется» и упадёт назад.
       if (i === null || !(board.plates[i]?.length)) return;
+      тащимRef.current = i; цельRef.current = i;
       setТащим(i); setЦель(i); hapticTap();
     },
     onResponderMove: (e: any) => {
-      if (тащим === null) return;
+      if (тащимRef.current === null) return;
       const i = тарелкаПод(e.nativeEvent.pageX, e.nativeEvent.pageY);
-      if (i !== цель) setЦель(i);
+      if (i !== цельRef.current) { цельRef.current = i; setЦель(i); }
     },
     onResponderRelease: () => {
-      const f = тащим; const t = цель;
+      const f = тащимRef.current; const t = цельRef.current;
+      тащимRef.current = null; цельRef.current = null;
       setТащим(null); setЦель(null);
-      if (f !== null && t !== null && f !== t) { setSel(f); тронуть(t); }
+      if (f !== null && t !== null && f !== t) переложить(f, t);
     },
-    onResponderTerminate: () => { setТащим(null); setЦель(null); },
+    onResponderTerminate: () => { тащимRef.current = null; цельRef.current = null; setТащим(null); setЦель(null); },
   };
 
   const эталон = referenceFor(кругов, точныйМин);
@@ -506,7 +593,39 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
      */
     const рад = cakeRadius(стол.plate);
     const выбрана = sel === i || тащим === i;
-    const подЦелью = тащим !== null && цель === i && цель !== тащим;
+    /**
+     * 🔴 ПОДСВЕТКА ОБЯЗАНА ГОВОРИТЬ ПРАВДУ, А НЕ «ты целишься сюда».
+     *
+     * 📍 Денис 09.09.2026: «нихуя не тащится на другие тарелки нормально».
+     * Замер разобрал жалобу надвое. Механизм переноса ЖИВОЙ: на свежей доске
+     * 2→4 и 3→5 через ряд проходят. Не проходит ровно то, что ЗАПРЕЩЕНО
+     * правилом — класть можно на пустую или на свой цвет. А игра об этом
+     * молчала: вибрации в вебе нет, звук человек выключает, и при этом цель
+     * подсвечивалась ГОЛУБЫМ независимо от того, ляжет кусок или нет.
+     * То есть подсветка обещала ход, которого не будет, — и «не тащится».
+     *
+     * Теперь во время переноса видно ДО отпускания: голубым — куда ляжет,
+     * алым — куда не примут. Тот же размен, что у соседа: отказ обязан быть
+     * виден, а не только слышен.
+     */
+    /*
+     * ⚠️ «В РУКЕ» — ЭТО И ТАЩИМОЕ, И ВЫБРАННОЕ ТАПОМ. Тап — главный путь игры
+     * (решение Дениса 09.09.2026 по разбору жанра: во всех водных сортировках
+     * управление двумя тапами, перетаскивания нет вовсе). Значит подсказки
+     * «куда можно» обязаны гореть и после первого ТАПА, а не только под пальцем.
+     */
+    const вРукеИндекс = тащим ?? sel;
+    const вРуке = вРукеИндекс !== null ? (board?.plates[вРукеИндекс] ?? []) : [];
+    const типВРуке = вРуке.length ? (вРуке[вРуке.length - 1] as number) : null;
+    const приму = вРукеИндекс !== null && вРукеИндекс !== i && board !== null && типВРуке !== null
+      && canPlace(board, i, типВРуке);
+    const подЦелью = тащим !== null && цель === i && цель !== тащим && приму;
+    /** Целятся сюда, но не примут — про это надо сказать, а не промолчать. */
+    const неПриму = тащим !== null && цель === i && цель !== тащим && !приму;
+    /** Тап по запрещённой тарелке: ход не прошёл, и это ВИДНО, а не только слышно. */
+    const отказНаМне = отказал === i;
+    /** Куда вообще можно положить то, что в руке: видно на всём столе сразу. */
+    const можноСюда = приму && цель !== i;
     return (
       <TouchableOpacity
         key={i}
@@ -577,7 +696,9 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
             );
           })}
           {выбрана && <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke="#f59e0b" strokeWidth={3} />}
-          {подЦелью && <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke="#38bdf8" strokeWidth={3} />}
+          {можноСюда && <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke="#38bdf8" strokeWidth={2} strokeDasharray="5 5" />}
+          {подЦелью && <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke="#38bdf8" strokeWidth={4} />}
+          {(неПриму || отказНаМне) && <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke="#f43f5e" strokeWidth={4} />}
           {(hint?.from === i || hint?.to === i) && (
             <SvgCircle cx={r} cy={r} r={r - 2} fill="none" stroke={hint?.to === i ? '#38bdf8' : '#a3e635'} strokeWidth={3} strokeDasharray="6 5" />
           )}
