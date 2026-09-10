@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
   крестовина: { flexDirection: 'row', gap: 10 },
   второе: {
     flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'center',
-    marginTop: 12, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1.5, minHeight: 46,
+    marginTop: 12, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1.5, minHeight: 48,
   },
   второеТекст: { fontSize: 14, fontWeight: '800' },
   // Ряд клавиш как в судоку: 50×50, скругление 12, крупная цифра — размер выверен
@@ -336,5 +336,7 @@ const styles = StyleSheet.create({
   цифры: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12, maxWidth: 420 },
   цифра: { width: 50, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   цифраТекст: { color: '#FFF', fontSize: 26, fontWeight: '800' },
-  стрелка: { width: 54, height: 46, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  // ⚠️ 48 — не «покруглее», а пол `tap-target-audit` (48×48). На 46 CI поймал кнопку
+  // второго действия 182×46 и был прав: два пункта ниже пола на КАЖДОМ нажатии игры.
+  стрелка: { width: 54, height: 48, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });
