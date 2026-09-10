@@ -125,7 +125,9 @@ const ALREADY: Record<string, string> = {
   'chinese-tones.tsx': "t('ctPickTone')",
   'cloze.tsx': "t('clozeHint')",
   'corsi.tsx': "t('watchSequence')",
-  'cpt.tsx': "'cptTapAX' : 'cptTapX'",
+  // 10.09.2026: строка стала называть ТЕКУЩУЮ мишень (с L9 она не X) и правило
+  // цвета (с L13). Старый токен указывал на ключи, которых в рендере больше нет.
+  'cpt.tsx': "'cptTapAXLetter' : 'cptTapLetter'",
   'digit-span.tsx': "t('typeAsShown')",
   'eye-gym.tsx': 't(step.instrKey)',
   'find-differences.tsx': "t('findHint')",
