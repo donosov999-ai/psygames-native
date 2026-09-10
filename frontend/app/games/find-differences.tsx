@@ -16,10 +16,8 @@ import {
   ScrollView, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -249,7 +247,6 @@ export default function FindDifferencesGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const { profile } = useProfile();
-  const router = useRouter();
   const { width, height } = useWindowDimensions();
   const sprites = pairSpritesForProfile(profile?.id);
 

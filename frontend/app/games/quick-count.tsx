@@ -9,7 +9,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -209,11 +208,10 @@ function scatterDots(n: number, w: number, h: number, r: number): Dot[] {
 export default function QuickCountGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
-  const router = useRouter();
   const [windowShift, setWindowShift] = useState(0);
   const { width, height } = useWindowDimensions();
 
-  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const lvl = usePersistentLevel('quick_count');
   const levelRef = useRef(1);
