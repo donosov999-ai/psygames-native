@@ -155,6 +155,37 @@ for (let i = 0; i < n; i++) {
   }
 }
 
+/*
+ * 🔴 НИ ОДИН РЕЖИМ НЕ ПОКАЗЫВАЕТ «УРОВЕНЬ 1/0». Замер 10.09.2026 на симуляторе iPhone:
+ * у «Сапёра» счётчик в шапке обещал НОЛЬ ступеней — `psy_presets` у Mines и Loopy
+ * возвращает 0, меню пресетов у них устроено иначе. Лестница им набрана размером поля
+ * в `names.ts` (`СВОЯ_ЛЕСТНИЦА`), и здесь проверяется, что она есть и РАБОТАЕТ:
+ * каждая её ступень обязана открыть доску и нарисовать её.
+ */
+{
+  const имена = ЗДЕСЬ && (await import('node:fs')).readFileSync(
+    path.join(ЗДЕСЬ, '../src/games/tatham-bridge/names.ts'), 'utf8');
+  const блок = /СВОЯ_ЛЕСТНИЦА[^=]*= \{([\s\S]*?)\n\};/.exec(имена)?.[1] ?? '';
+  const пары = [...блок.matchAll(/(\w[\w ]*):\s*\[([\s\S]*?)\]/g)];
+  const безЛестницы = [];
+  for (let i = 0; i < n; i++) {
+    const имя = M.ccall('psy_name', 'string', ['number'], [i]);
+    if (M.ccall('psy_presets', 'number', ['number'], [i]) > 0) continue;
+    const своя = пары.find(([, к]) => к.trim() === имя.trim());
+    if (!своя) { безЛестницы.push(`${имя}: ступеней автора 0 и своей лестницы нет — покажет «1/0»`); continue; }
+    const параметры = [...своя[2].matchAll(/параметры: '([^']+)'/g)].map((m) => m[1]);
+    if (параметры.length < 3) безЛестницы.push(`${имя}: своя лестница из ${параметры.length} ступеней — это не лестница`);
+    for (const п of параметры) {
+      if (!M.ccall('psy_open', 'number', ['number', 'string', 'number'], [i, п, 7])) {
+        безЛестницы.push(`${имя}: ступень «${п}» не открывается`); continue;
+      }
+      const пр = (M.UTF8ToString(M.ccall('psy_draw', 'number', [], [])) || '').split('\n').filter(Boolean).length;
+      if (пр < 4) безЛестницы.push(`${имя}: ступень «${п}» нарисовала ${пр} примитивов`);
+    }
+  }
+  беды.push(...безЛестницы);
+}
+
 // 4. одно зерно — одна доска, иначе прогресс игрока не воспроизводится
 const a = (() => { const p = M.ccall('psy_generate', 'number', ['number', 'string', 'number'], [0, '', 777]); const s = M.UTF8ToString(p); M.ccall('psy_free', null, ['number'], [p]); return s; })();
 const b = (() => { const p = M.ccall('psy_generate', 'number', ['number', 'string', 'number'], [0, '', 777]); const s = M.UTF8ToString(p); M.ccall('psy_free', null, ['number'], [p]); return s; })();
