@@ -41,7 +41,7 @@
  * она смонтирована глобально в _layout и иначе перекрывает крайнюю кнопку.
  */
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { type PetMood } from '@/src/components/pet/GamePet';
@@ -51,14 +51,16 @@ import { streakMultiplier, scoreWithStreak } from '@/src/services/scoring';
 import { attachEdgeBack } from '@/src/services/edgeBack';
 import { bumpBestStreak } from '@/src/services/streak';
 
-import { sndCorrect, sndWrong, sndMatch, sndLose } from '@/src/services/feedback';
+import { sndCorrect, sndWrong, sndMatch, sndLose, soundOn as звукВключён, setSoundEnabled, hapticEnabledNow, setHapticEnabled } from '@/src/services/feedback';
 import { HudBadge, useScorePopups, ScorePopupLayer } from '@/src/components/juice';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmupSafe } from '@/src/contexts/WarmupContext';
 import { GAMES } from '@/src/constants/games';
 import { isRTLLang } from '@/src/services/rtl';
-import GameAuxAction from '@/src/components/GameAuxAction';
+import { GameAuxAction } from '@/src/components/GameAuxAction';
+import { FEEDBACK_OPEN_EVENT, FEEDBACK_ENABLED } from '@/src/services/appFeedback';
+import { текущаяЛестница } from '@/src/hooks/usePersistentLevel';
 import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
@@ -194,6 +196,14 @@ export interface PauseAction {
    * человек уже решил, что отмены здесь нет.
    */
   disabled?: boolean;
+  /**
+   * 🔴 ПУНКТ НЕ ЗАКРЫВАЕТ ПАУЗУ. Каркас снимает задержку на ЛЮБОМ нажатии — для
+   * «Продолжить», «Заново» и «На главную» это верно, они и так уводят из меню.
+   * Но переключатель обязан оставить человека там, где он стоял: замер 10.09.2026
+   * показал, что «Тихий режим» выбрасывал обратно в партию, и чтобы увидеть
+   * изменившуюся подпись, паузу приходилось открывать снова.
+   */
+  keepOpen?: boolean;
 }
 
 export interface GameShellProps {
@@ -271,6 +281,16 @@ export interface GameShellProps {
    * Играм, у которых есть свой `pauseActions`, этот проп не нужен.
    */
   onRestart?: () => void;
+  /**
+   * 🔴 Д6 «ЗАКОНЧИТЬ И ЗАПИСАТЬ» — доиграть досрочно так, чтобы партия ЗАСЧИТАЛАСЬ.
+   * Сейчас выход из длинной партии означает, что её не было вовсе.
+   *
+   * ⚠️ Единственный пункт меню, который каркас НЕ может сделать за игру. Счёт,
+   * метрики и схема `details` у каждой игры свои (гейт `assessment-metrics`
+   * сверяет их поимённо), а собрать сессию из счётчиков шапки — значит записать
+   * правдоподобную неправду. Поэтому обработчик даёт игра; не дала — пункта нет.
+   */
+  onFinishEarly?: () => void;
   /**
    * Фиксированные высоты слотов для ПОСЛЕДОВАТЕЛЬНОСТИ упражнений (пространственный
    * пакет). Обычная игра проп не передаёт и живёт как жила.
@@ -463,7 +483,7 @@ export function HeaderRightSlot({ rtl, mood, headerRight, wuStep, wuSkip, skipLa
 }
 
 export default function GameShell({
-  title, onBack, stats, hud, mods, bottom, headerActions, toolbar, headerRight, scrollableField, overlay, pet, pauseActions, onRestart, frame,
+  title, onBack, stats, hud, mods, bottom, headerActions, toolbar, headerRight, scrollableField, overlay, pet, pauseActions, onRestart, onFinishEarly, frame,
   confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
   const { colors } = useTheme();
@@ -525,6 +545,16 @@ export default function GameShell({
    */
   React.useEffect(() => () => { pauseHoldRef.current?.(); pauseHoldRef.current = null; }, []);
   const [paused, setPaused] = React.useState(isGameHeld());
+  /**
+   * Отражение звука в меню паузы. Служба хранит флаг в модуле, а не в состоянии
+   * React, поэтому подпись кнопки надо пересчитывать — иначе она врёт после нажатия.
+   *
+   * ⚠️ Не `useState` + эффект: линт справедливо ловит `setState` внутри эффекта как
+   * каскад рендеров. Здесь нечего хранить — значение живёт в службе; нужен только
+   * повод перерисоваться после нажатия.
+   */
+  const [щелчокТишины, дёрнутьТишину] = React.useReducer((x: number) => x + 1, 0);
+  const тихо = !звукВключён() && !hapticEnabledNow();
   React.useEffect(() => onGameHold((v) => {
     setPaused(v);
     if (v) announce(t('gamePaused'));
@@ -861,10 +891,82 @@ export default function GameShell({
   }, [headerActions]);
 
   const действияПаузы = React.useMemo<PauseAction[]>(() => {
+    // Счётчик нажатий на «тихий режим» — единственный повод пересобрать набор после
+    // переключения: само значение живёт в службе, а не в состоянии React.
+    void щелчокТишины;
     const свои = pauseActions && pauseActions.length > 0 ? pauseActions : null;
     // Подписи, уже занятые набором игры: «Отменить» не должно стоять дважды.
     const занято = new Set((свои ?? []).map((a) => a.label));
     const добавка = служебныеИзШапки.filter((a) => !занято.has(a.label));
+
+    /**
+     * 🔴 ОБЩИЕ ПУНКТЫ — У ВСЕХ ИГР ОДИНАКОВЫЕ И В ОДНОМ ПОРЯДКЕ (пункт Б2 решения
+     * Дениса 10.09.2026). Раньше состав меню зависел от того, что вспомнил автор
+     * экрана: у восьми игр было три кнопки, у семи четыре, у «Детского мата» вместо
+     * «Правил» своя «Меню». Теперь общее живёт ЗДЕСЬ и приходит на каждый экран.
+     */
+    /**
+     * 🔴 Д2 «СМЕНИТЬ УРОВЕНЬ» И Д3 «ПРОЩЕ / СЛОЖНЕЕ» — ТОЛЬКО ЕСЛИ ИЗМЕНЕНИЕ ДОЙДЁТ
+     * ДО ПАРТИИ. Уровень читается при раздаче: сменить его посреди партии и не
+     * перераздать — значит показать человеку «Уровень 8» на доске восьмого... то
+     * есть седьмого. Поэтому пункты появляются, когда каркасу есть чем перераздать:
+     * либо игра дала `onRestart`, либо в её собственном меню есть пункт `restart`.
+     * Нечем — пунктов нет. Кнопка, которая делает вид, хуже отсутствующей.
+     */
+    const своиПеререздачи = (pauseActions ?? []).find((a) => a.id === 'restart')?.onPress;
+    const перераздать = onRestart ?? своиПеререздачи;
+    const лестница = paused ? текущаяЛестница() : null;
+    const уровеньМожно = !!перераздать && !!лестница && лестница.loaded;
+
+    const общие: PauseAction[] = [
+      ...(уровеньМожно && лестница!.level > 1
+        ? [{
+            id: 'easier',
+            label: t('pauseEasier'),
+            icon: 'remove-circle-outline' as const,
+            onPress: () => { лестница!.pick(Math.max(1, лестница!.level - 1)); перераздать!(); },
+          }]
+        : []),
+      ...(уровеньМожно && лестница!.level < лестница!.best
+        ? [{
+            id: 'harder',
+            label: t('pauseHarder'),
+            icon: 'add-circle-outline' as const,
+            onPress: () => { лестница!.pick(Math.min(лестница!.best, лестница!.level + 1)); перераздать!(); },
+          }]
+        : []),
+      // Д4: тихий режим — звук и вибрация одним тапом, без выхода в настройки.
+      {
+        id: 'hush',
+        label: тихо ? t('pauseSoundOn') : t('pauseSoundOff'),
+        icon: тихо ? 'volume-high-outline' : 'volume-mute-outline',
+        keepOpen: true,
+        onPress: () => {
+          const новое = !тихо;
+          void setSoundEnabled(!новое);
+          void setHapticEnabled(!новое);
+          дёрнутьТишину();
+        },
+      },
+      // Д7: отчёт о проблеме. Кружок на поле ОСТАЁТСЯ — убрать его значит получить
+      // меньше отчётов; здесь он просто ещё и там, где человек уже остановился.
+      ...(FEEDBACK_ENABLED
+        ? [{
+            id: 'report',
+            label: t('pauseReport'),
+            icon: 'chatbubble-ellipses-outline' as const,
+            onPress: () => DeviceEventEmitter.emit(FEEDBACK_OPEN_EVENT),
+          }]
+        : []),
+      // Д6: закончить досрочно с записью — только если игра дала чем.
+      ...(onFinishEarly
+        ? [{ id: 'finish', label: t('pauseFinish'), icon: 'checkmark-done-outline' as const, onPress: onFinishEarly }]
+        : []),
+      // Д8: пропуск шага зарядки — только когда игра открыта из зарядки.
+      ...(wu && wuStep
+        ? [{ id: 'wu-skip', label: t('skipStep'), icon: 'play-skip-forward-outline' as const, onPress: wuSkip }]
+        : []),
+    ];
     if (свои) {
       /**
        * 🔴 ВЫХОД ОБЯЗАН ОСТАВАТЬСЯ ПОСЛЕДНИМ. Замер 10.09.2026 на маджонге: добавка
@@ -873,16 +975,17 @@ export default function GameShell({
        * встаёт ПЕРЕД первым пунктом с `leave`, а если такого нет — в конец.
        */
       const выход = свои.findIndex((a) => a.leave);
-      if (выход < 0) return [...свои, ...добавка];
-      return [...свои.slice(0, выход), ...добавка, ...свои.slice(выход)];
+      if (выход < 0) return [...свои, ...добавка, ...общие];
+      return [...свои.slice(0, выход), ...добавка, ...общие, ...свои.slice(выход)];
     }
     return [
       { id: 'resume', label: t('exitConfirmStay'), icon: 'play', primary: true },
       ...(onRestart ? [{ id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: onRestart }] : []),
       ...добавка,
+      ...общие,
       { id: 'home', label: t('goHome'), icon: 'home', leave: true },
     ];
-  }, [pauseActions, onRestart, служебныеИзШапки, t]);
+  }, [pauseActions, onRestart, onFinishEarly, служебныеИзШапки, тихо, щелчокТишины, paused, wu, wuStep, wuSkip, t]);
 
   const выходRef = React.useRef(exitGuard.requestExit);
   React.useEffect(() => { выходRef.current = exitGuard.requestExit; });
@@ -1245,6 +1348,32 @@ export default function GameShell({
           ]}
           pointerEvents="auto"
         >
+          {/*
+            🔴 Д5 «КАК ИДЁТ ПАРТИЯ» — БЕРЁТСЯ ИЗ ТЕХ ЖЕ СЧЁТЧИКОВ, ЧТО В ШАПКЕ.
+            Каркас уже получает `hud` от каждой игры: уровень, ходы, верно, ошибки,
+            время. В шапке они мелкие и по ходу партии в них не всматриваются —
+            а на паузе человек как раз остановился посмотреть, как дела. Ни одной
+            правки в играх это не стоит: данные уже здесь.
+            ⚠️ ДВА ПРОПСА СЧЁТЧИКОВ, А НЕ ОДИН — на этом я и споткнулся. Замер по 77
+            игровым экранам: `hud=` (разобранный список) у 58, `stats=` (готовая
+            разметка игры) у 10, ни того ни другого у 9. Первая редакция читала
+            только `hud`, и в «Ментальной ротации» строка не появилась вовсе.
+            Разобранный рисуем своей сеткой, готовую разметку показываем как есть.
+            ⚠️ Показываем ТОЛЬКО когда счётчики есть: пустая строка хуже отсутствия.
+          */}
+          {(!hud || hud.length === 0) && stats ? (
+            <View style={styles.pauseStatsRaw}>{stats}</View>
+          ) : null}
+          {hud && hud.length > 0 ? (
+            <View style={styles.pauseStats}>
+              {hud.map((h) => (
+                <View key={h.key} style={styles.pauseStat}>
+                  <Text style={[styles.pauseStatVal, { color: colors.text }]}>{String(h.value)}</Text>
+                  <Text style={[styles.pauseStatLbl, { color: colors.textSecondary }]} numberOfLines={1}>{h.label}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
           {действияПаузы.length > 0 ? (
             <View style={styles.pauseMenu}>
               {действияПаузы.map((a) => (
@@ -1262,6 +1391,8 @@ export default function GameShell({
                     a.disabled ? { opacity: 0.4 } : null,
                   ]}
                   onPress={() => {
+                    // Переключатель остаётся в меню: см. `keepOpen` в типе.
+                    if (a.keepOpen) { a.onPress?.(); return; }
                     // Снимаем СВОЮ задержку до действия: «Заново» и «На главную»
                     // уводят с экрана, и повисшая пауза остановила бы часы навсегда.
                     pauseHoldRef.current?.();
@@ -1359,6 +1490,16 @@ const styles = StyleSheet.create({
     gap: 10, minHeight: 56, borderRadius: 28, paddingHorizontal: 20,
   },
   pauseBtnText: { fontSize: 17, fontWeight: '700', color: '#FFFFFF', flexShrink: 1 },
+  /** Строка «как идёт партия» над кнопками паузы (Д5). */
+  pauseStats: {
+    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center',
+    gap: 18, rowGap: 10, marginBottom: 26, paddingHorizontal: 16, maxWidth: 420,
+  },
+  pauseStat: { alignItems: 'center', minWidth: 56 },
+  /** Готовая разметка счётчиков игры (`stats=`) — показываем как есть. */
+  pauseStatsRaw: { marginBottom: 22, alignItems: 'center', maxWidth: 420, width: '100%' },
+  pauseStatVal: { fontSize: 22, fontWeight: '700' },
+  pauseStatLbl: { fontSize: 11, marginTop: 2 },
   pauseText: { fontSize: 16, fontWeight: '800' },
   header: {
     flexDirection: 'row',

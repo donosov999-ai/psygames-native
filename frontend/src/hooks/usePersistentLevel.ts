@@ -58,6 +58,29 @@ export interface PersistentLevel {
   pick: (n: number) => void;            // переиграть пройденный уровень; n ≥ best снимает выбор
 }
 
+/**
+ * 🔴 РЕЕСТР ЖИВЫХ ЛЕСТНИЦ — ЧТОБЫ КАРКАС МОГ МЕНЯТЬ УРОВЕНЬ ИЗ МЕНЮ ПАУЗЫ.
+ *
+ * Пункты Д2 «Сменить уровень» и Д3 «Проще / Сложнее» (решение Дениса 10.09.2026)
+ * требуют от каркаса того, что знает только игра: где она на лестнице. Хук зовут
+ * 75 экранов, и дописывать каждому проп — 75 правок в чужих файлах.
+ *
+ * ⚠️ ВТОРОЙ ЭКЗЕМПЛЯР ХУКА НЕ ГОДИТСЯ. Каркас мог бы позвать `usePersistentLevel`
+ * сам, выведя `gameId` из маршрута, — и получил бы ВТОРОЕ состояние поверх того же
+ * ключа хранилища. Нажатие «сложнее» меняло бы его копию, игра продолжала бы играть
+ * со своей, и починка выглядела бы рабочей, ничего не меняя. Ровно тот случай,
+ * который в проекте уже записан как «механизм есть, до игрока не доехал».
+ *
+ * Поэтому регистрируется ЖИВОЙ экземпляр: каркас дёргает `pick` у той самой
+ * лестницы, по которой играет экран. Берём последнюю зарегистрированную — экран
+ * игры монтируется последним и он же активен.
+ */
+interface ЖиваяЛестница { id: string; api: PersistentLevel }
+const живые: ЖиваяЛестница[] = [];
+export function текущаяЛестница(): PersistentLevel | null {
+  return живые.length ? живые[живые.length - 1].api : null;
+}
+
 export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel {
   const { profile } = useProfile();
   const pid = (profile as any)?.id ?? 'default';
@@ -178,5 +201,30 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
     return false;
   };
 
-  return { level: picked ?? level, best: level, picked, loaded, setLevel, reach, fail, pick };
+  const снаружи: PersistentLevel = { level: picked ?? level, best: level, picked, loaded, setLevel, reach, fail, pick };
+
+  /**
+   * Запись в реестр живых лестниц (см. `текущаяЛестница`).
+   *
+   * ⚠️ Ссылка обновляется В ЭФФЕКТЕ БЕЗ СПИСКА ЗАВИСИМОСТЕЙ, а не во время рендера.
+   * Первая редакция писала `слот.api` прямо в теле функции — это чтение и правка
+   * ref во время рендера, что линт ловит как ошибку, и правильно: при повторном
+   * рендере под Strict Mode запись прошла бы дважды. Эффект без списка выполняется
+   * после КАЖДОГО кадра, а меню паузы открывается нажатием — то есть заведомо
+   * позже, и видит свежие `pick`/`reach`.
+   */
+  const мойСлот = useRef<ЖиваяЛестница | null>(null);
+  useEffect(() => {
+    const слот: ЖиваяЛестница = { id: gameId, api: снаружи };
+    мойСлот.current = слот;
+    живые.push(слот);
+    return () => {
+      const i = живые.indexOf(слот);
+      if (i >= 0) живые.splice(i, 1);
+      мойСлот.current = null;
+    };
+  }, [gameId]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (мойСлот.current) мойСлот.current.api = снаружи; });
+
+  return снаружи;
 }
