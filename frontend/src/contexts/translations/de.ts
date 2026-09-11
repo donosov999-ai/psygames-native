@@ -2609,6 +2609,7 @@ const t: Record<string, string> = {
   "pauseEasier": "Leichteres Level",
   "pauseHarder": "Schwereres Level",
   "pauseFinish": "Beenden und speichern",
+  "puzzleDragHint": "↔ Hier wird gezogen, nicht getippt",
   "puzzleNoMoves": "Keine Züge mehr. Du kannst neu anfangen",
   "puzzleBlownUp": "Explodiert. Zug zurücknehmen und weiterspielen",
   "puzzleHudMarked": "Markiert",

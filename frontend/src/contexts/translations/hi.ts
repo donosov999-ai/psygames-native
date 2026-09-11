@@ -2612,6 +2612,7 @@ const t: Record<string, string> = {
   "pauseEasier": "आसान स्तर",
   "pauseHarder": "कठिन स्तर",
   "pauseFinish": "समाप्त करें और सहेजें",
+  "puzzleDragHint": "↔ यहाँ उँगली से खींचें, टैप न करें",
   "puzzleNoMoves": "कोई चाल नहीं बची। चाहें तो नए सिरे से शुरू करें",
   "puzzleBlownUp": "आप उड़ गए। चाल पूर्ववत करें और खेलते रहें",
   "puzzleHudMarked": "चिह्नित",

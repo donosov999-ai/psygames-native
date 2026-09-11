@@ -2605,6 +2605,7 @@ const t: Record<string, string> = {
   "pauseEasier": "مستوى أسهل",
   "pauseHarder": "مستوى أصعب",
   "pauseFinish": "إنهاء وحفظ",
+  "puzzleDragHint": "↔ هنا تسحب بإصبعك ولا تنقر",
   "puzzleNoMoves": "لم تبقَ نقلات. يمكنك البدء من جديد",
   "puzzleBlownUp": "انفجرت. تراجع عن النقلة وواصل اللعب",
   "puzzleHudMarked": "معلَّم",
