@@ -21,6 +21,7 @@
  * Длительность 4/8/12 мин — достаточно чтобы поймать decrement.
  */
 
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -31,7 +32,6 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -882,9 +882,9 @@ export default function CPTGame() {
               <TouchableOpacity accessibilityRole="button" activeOpacity={0.8}
                 onPress={() => handleTap('bar')}
                 style={{ width: КНОПКА.w, height: КНОПКА.h, borderRadius: КНОПКА.radius,
-                         backgroundColor: GRADIENT[0], justifyContent: 'center', alignItems: 'center' }}>
+                         backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' }}>
                 {/* Короткая подпись: полное правило стоит в подсказке над полем. */}
-                <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '800' }}>{t('cptTapBtn')}</Text>
+                <Text style={{ color: textOn(colors.primary), fontSize: 18, fontWeight: '800' }}>{t('cptTapBtn')}</Text>
               </TouchableOpacity>
             </AnswerBar>
           }

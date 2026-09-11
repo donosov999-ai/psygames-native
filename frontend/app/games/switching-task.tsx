@@ -595,12 +595,12 @@ export default function SwitchingTaskGame() {
         toolbar={
           <View style={[styles.choiceRow, { flex: 1, maxWidth: stStim }]}>
             <TouchableOpacity
-              accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: GRADIENT[0], flex: 1 }]} onPress={() => handleAnswer(true)}>
-              <Text style={[styles.choiceTextSmall, { color: textOn(GRADIENT[0]) }]}>← {meta.left}</Text>
+              accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: colors.primary, flex: 1 }]} onPress={() => handleAnswer(true)}>
+              <Text style={[styles.choiceTextSmall, { color: textOn(colors.primary) }]}>← {meta.left}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: GRADIENT[1], flex: 1 }]} onPress={() => handleAnswer(false)}>
-              <Text style={[styles.choiceTextSmall, { color: textOn(GRADIENT[1]) }]}>{meta.right} →</Text>
+              accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: colors.primary, flex: 1 }]} onPress={() => handleAnswer(false)}>
+              <Text style={[styles.choiceTextSmall, { color: textOn(colors.primary) }]}>{meta.right} →</Text>
             </TouchableOpacity>
           </View>
         }

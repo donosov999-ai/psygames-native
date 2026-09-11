@@ -485,8 +485,8 @@ export default function ChoiceRtGame() {
         activeDirs.length === 2
           ? { width: ДВЕ_СТОРОНЫ.w, height: ДВЕ_СТОРОНЫ.h, borderRadius: ДВЕ_СТОРОНЫ.radius }
           : { width: ЧЕТЫРЕ.w, height: ЧЕТЫРЕ.h, borderRadius: ЧЕТЫРЕ.radius },
-        { backgroundColor: GRADIENT[0] }]} onPress={() => handlePress(d)}>
-      <Ionicons name={ARROW_ICON[d] as any} size={32} color={textOn(GRADIENT[0])} />
+        { backgroundColor: colors.primary }]} onPress={() => handlePress(d)}>
+      <Ionicons name={ARROW_ICON[d] as any} size={32} color={textOn(colors.primary)} />
     </TouchableOpacity>
   );
 
