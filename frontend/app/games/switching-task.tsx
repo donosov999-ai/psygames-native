@@ -27,7 +27,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { makeDecoys, DECOYS_MAX } from '@/src/games/attention/decoys';
-import { stimBox, ANSWER_BAR_ROW, STIM_BOX } from '@/src/games/attention/layout';
+import { stimBox, ANSWER_BAR_ROW, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -629,9 +629,9 @@ export default function SwitchingTaskGame() {
           </View>
           <View style={[styles.stimBox, {
             width: ОКНО.w, height: ОКНО.h,
-            backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
+            backgroundColor: feedback === 'right' ? ОТКЛИК.верноФон : feedback === 'wrong' ? ОТКЛИК.неверноФон : colors.surface,
             // colors.border, как у остальных: textSecondary давал кромку #838387 против #E5E5EA у соседей
-            borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border,
+            borderColor: feedback === 'right' ? ОТКЛИК.верно : feedback === 'wrong' ? ОТКЛИК.неверно : colors.border,
           }]}>
             {renderStim()}
           </View>

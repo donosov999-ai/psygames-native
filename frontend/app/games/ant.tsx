@@ -32,7 +32,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { answerButton, stimBox, ANSWER_BAR_ROW, STIM_BOX } from '@/src/games/attention/layout';
+import { answerButton, stimBox, ANSWER_BAR_ROW, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -414,7 +414,7 @@ export default function ANTGame() {
           <View style={styles.statsCol}>
             <View style={styles.statsRow} />
             <View style={[styles.networkRow]}>
-              <Text style={[styles.netText, { color: '#22c55e' }]}>{t('hud_netAlerting')} {m.alerting}{t('msShort')}</Text>
+              <Text style={[styles.netText, { color: ОТКЛИК.верно }]}>{t('hud_netAlerting')} {m.alerting}{t('msShort')}</Text>
               <Text style={[styles.netText, { color: '#fbbf24' }]}>{t('hud_netOrienting')} {m.orienting}{t('msShort')}</Text>
               <Text style={[styles.netText, { color: '#ef4444' }]}>{t('hud_netExecutive')} {m.executive}{t('msShort')}</Text>
             </View>
@@ -431,7 +431,7 @@ export default function ANTGame() {
           </View>
         }
       >
-        <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
+        <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? ОТКЛИК.верно : feedback === 'wrong' ? ОТКЛИК.неверно : colors.border }]}>
           {/* top cue / target slot */}
           <View style={styles.row}>
             {showCue && (trial.cue === 'double' || (trial.cue === 'spatial' && trial.pos === 'top')) && <Text style={styles.cueDot}>*</Text>}

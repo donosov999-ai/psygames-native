@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { BTN_GAP, answerButton, stimBox, ANSWER_BAR_ROW, STIM_BOX } from '@/src/games/attention/layout';
+import { BTN_GAP, answerButton, stimBox, ANSWER_BAR_ROW, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -49,7 +49,7 @@ type Valence = 'threat' | 'positive' | 'neutral';
 const BOSS_EVERY = 3;
 
 const COLORS_RGB = ['red', 'green', 'blue', 'yellow'];
-const COLOR_HEX: Record<string, string> = { red: '#ef4444', green: '#22c55e', blue: '#3b82f6', yellow: '#eab308' };
+const COLOR_HEX: Record<string, string> = { red: '#ef4444', green: ОТКЛИК.верно, blue: '#3b82f6', yellow: '#eab308' };
 // Режим для дальтоников: палитра Okabe-Ito (та же, что в WCST). В этой игре цвет
 // и есть ответ — при неразличимых красном и зелёном она просто непроходима
 // («переключатель Colorblind ни на что не влияет» — репорт Rulon, v1.171).
@@ -427,7 +427,7 @@ export default function StroopEmotionalGame() {
         }
       >
         <View style={styles.fieldCol}>
-          <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
+          <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? ОТКЛИК.верно : feedback === 'wrong' ? ОТКЛИК.неверно : colors.border }]}>
             {showStim ? (
               <Text style={{ color: HEX[trial.color], fontSize: 44, fontWeight: '900', letterSpacing: 2 }}>
                 {trial.word}

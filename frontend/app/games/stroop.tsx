@@ -25,7 +25,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_ROW, answerButton, STIM_BOX, stimBox } from '@/src/games/attention/layout';
+import { ANSWER_BAR_ROW, answerButton, STIM_BOX, stimBox, ОТКЛИК } from '@/src/games/attention/layout';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -73,7 +73,7 @@ const STROOP_BENEFITS = [
 const COLORS_DEF = [
   { name: 'red', ru: 'КРАСНЫЙ', en: 'RED', hex: '#ef4444' },
   { name: 'blue', ru: 'СИНИЙ', en: 'BLUE', hex: '#3b82f6' },
-  { name: 'green', ru: 'ЗЕЛЁНЫЙ', en: 'GREEN', hex: '#22c55e' },
+  { name: 'green', ru: 'ЗЕЛЁНЫЙ', en: 'GREEN', hex: ОТКЛИК.верно },
   { name: 'yellow', ru: 'ЖЁЛТЫЙ', en: 'YELLOW', hex: '#eab308' },
 ];
 

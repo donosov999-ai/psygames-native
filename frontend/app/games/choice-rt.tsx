@@ -27,7 +27,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { answerButton, BTN_GAP, stimBox, STIM_BOX } from '@/src/games/attention/layout';
+import { answerButton, BTN_GAP, stimBox, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { AnswerBar } from '@/src/games/attention/AnswerBar';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -514,22 +514,26 @@ export default function ChoiceRtGame() {
      * лишние 36 px высоты. Полоса поднята до 156 под три ряда по 48.
      */
     const есть = (d: Direction) => activeDirs.includes(d);
+    /**
+     * ⚠️ ДВА РЯДА, А НЕ ТРИ — 11.09.2026, и это временно.
+     * Крест из трёх рядов требует 3 × 48 + 2 × 6 = 156, а высота полосы ответа
+     * 11.09 стала числом, ОБЩИМ с разделом «Поиск» (ядро gameLayout.ts), причём
+     * «Поиск» считает от неё размер своих кнопок. Поднять её значило бы изменить
+     * шесть чужих экранов — решение за владельцем, вопрос ему задан.
+     * Пока: ↑ сверху, ← ↓ → снизу = 48 + 12 + 48 = 108, влезает в 120.
+     * Верх и низ остаются на своих местах, лево и право — по краям: главное
+     * свойство пробы (направление отвечается ПОЛОЖЕНИЕМ) сохранено, кроме
+     * соседства ↓ с боковыми.
+     */
     return (
       <View style={styles.padGrid}>
         <View style={styles.padRow}>
-          {пусто('l0')}
           {есть('up') ? padBtn('up') : пусто('u')}
-          {пусто('r0')}
         </View>
         <View style={styles.padRow}>
           {padBtn('left')}
-          {пусто('c')}
-          {padBtn('right')}
-        </View>
-        <View style={styles.padRow}>
-          {пусто('l2')}
           {есть('down') ? padBtn('down') : пусто('d')}
-          {пусто('r2')}
+          {padBtn('right')}
         </View>
       </View>
     );
@@ -550,14 +554,14 @@ export default function ChoiceRtGame() {
         toolbar={<AnswerBar>{renderPad()}</AnswerBar>}
       >
         <View style={[styles.stimulusBox, { width: ОКНО.w, height: ОКНО.h }, {
-          borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border,
-          backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
+          borderColor: feedback === 'right' ? ОТКЛИК.верно : feedback === 'wrong' ? ОТКЛИК.неверно : colors.border,
+          backgroundColor: feedback === 'right' ? ОТКЛИК.верноФон : feedback === 'wrong' ? ОТКЛИК.неверноФон : colors.surface,
         }]}>
           {showStim ? (
             <Ionicons
               name={(stim === 'neutral' ? NEUTRAL_ICON : GLYPH_ICON[glyph][stim]) as any}
               size={120}
-              color={feedback === 'wrong' ? '#f43f5e' : GRADIENT[1]}
+              color={feedback === 'wrong' ? ОТКЛИК.неверно : GRADIENT[1]}
             />
           ) : (
             <Text style={[styles.waitText, { color: colors.textSecondary }]}>•</Text>
