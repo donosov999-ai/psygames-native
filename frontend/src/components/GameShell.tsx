@@ -66,6 +66,7 @@ import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import { ПОЛОСА_ПОКАЗАТЕЛЕЙ } from '@/src/components/gameLayout';
 
 /** Один счётчик в шапке: что показать и каким тоном. */
 export interface HudItem {
@@ -837,9 +838,30 @@ export default function GameShell({
     ? ({ touchAction: 'none', overscrollBehavior: 'none' } as unknown as Record<string, string>)
     : null;
 
+  /**
+   * 🔴 У ПОЛЯ И У ПОЛОСЫ ПОКАЗАТЕЛЕЙ ЕСТЬ ИМЕНА — БЕЗ НИХ ЗАМЕР ЦЕНТРОВКИ СЛЕП.
+   *
+   * 📍 Чат «Поиск», замер 11.09.2026 по 81 экрану: горизонтальный сдвиг от центра
+   * НОЛЬ у всех 75 измеримых, вертикальный размах центра содержимого 558 точек
+   * (109…667 при экране 844). Горизонталь идеальна потому, что правило горизонтали в
+   * каркасе ЕСТЬ; вертикального нет — и разброс ровно такой, каким бывает его
+   * отсутствие.
+   *
+   * Шесть экранов (`phoneme-pairs`, `picture-pairs`, `sudoku`, `sudoku-samurai`,
+   * `pause`, `iowa`) не поддались замеру вовсе: у них не нашлось нерастянутой коробки
+   * содержимого. Пока так, «не измерено» читается как «в норме», и любая проверка
+   * центровки оказывается слепа ровно на этих шести.
+   *
+   * ⚠️ И полосу показателей до сих пор приходилось искать ПО ПОЗИЦИИ: у `game-toolbar`,
+   * `game-header-actions`, `game-bottom-actions` и `game-header-right` имена есть, у
+   * неё — не было. Чат «Поиск» обходил это через «родитель `game-header-right` и его
+   * следующий сосед», и прямо написал в своём приборе: «когда координатор добавит
+   * testID — заменить одной строкой». Добавляю.
+   */
   const field = scrollableField ? (
     <ScrollView
       ref={fieldScrollRef}
+      testID="game-field"
       style={styles.fieldScroll}
       contentContainerStyle={[styles.fieldScrollContent, toolbar ? null : { paddingBottom: 8 + bottomSafe }]}
       keyboardShouldPersistTaps="handled"
@@ -849,6 +871,7 @@ export default function GameShell({
     </ScrollView>
   ) : (
     <View
+      testID="game-field"
       style={[styles.field, toolbar ? null : { paddingBottom: bottomSafe }, безПрокрутки]}
       onLayout={(ev) => {
         const { width: w, height: h } = ev.nativeEvent.layout;
@@ -1158,7 +1181,7 @@ export default function GameShell({
         * вёрсткой из `stats`. Так перевод 72 игр идёт по одной, а вид у всех
         * меняется отсюда.
         */}
-      <View style={styles.statsOuter}>
+      <View testID="game-hud" style={styles.statsOuter}>
         {/**
           * Единая ПЛАШКА тулбара: у эталона жанра маскот и все счётчики сидят в
           * одной скруглённой панели, и она одинакова на каждом экране. У нас же
@@ -1606,7 +1629,26 @@ const styles = StyleSheet.create({
   stats: { paddingHorizontal: PAD_H, paddingBottom: PAD_V },
   // Питомец слева, счётчики занимают остаток: строка не разъезжается, когда
   // питомца нет (игра не передала `pet`) или он выключен в настройках.
-  statsOuter: { paddingHorizontal: PAD_H, paddingBottom: PAD_V },
+  /**
+   * 🔴 ПОЛОСА ПОКАЗАТЕЛЕЙ ДЕРЖИТ ПОСТОЯННУЮ ВЫСОТУ — ИНАЧЕ ОНА ДВИГАЕТ ПОЛЕ.
+   *
+   * 📍 Замер чата «Поиск» 11.09.2026 по 81 экрану: горизонтальный сдвиг от центра
+   * НОЛЬ у всех 75 измеримых, вертикальный размах центра содержимого 558 точек при
+   * экране 844. Правило горизонтали в каркасе есть, вертикального не было.
+   *
+   * Перемер по классам (2.53.8, окно 390×844): верх поля гуляет 71…173, и почти весь
+   * размах дают две вещи над полем — ряд служебных действий (+54, лечится объявлением
+   * `bottom="actions"` у игр, где ответ даётся тапом по полю) и ВЫСОТА ЭТОЙ ПОЛОСЫ:
+   * 61 у большинства и 13 у «Тортов» с «Пиццей», где счётчиков мало и полоса
+   * схлопывается. Отсюда верх поля 71 вместо 119 и центр 458 вместо 482.
+   *
+   * 61 — не «покруглее», а замеренная высота заполненного случая: плашка 56 плюс
+   * нижний отступ. Резерв тот же приём, что у соседей в «Поиске» (`reserveBottom`):
+   * место под необязательный элемент занимается ВСЕГДА, чтобы поле не прыгало между
+   * упражнениями. Цена — 48 точек пустоты на двух экранах из восьмидесяти одного,
+   * и это дешевле, чем разъехавшаяся вертикаль у всех.
+   */
+  statsOuter: { paddingHorizontal: PAD_H, paddingBottom: PAD_V, minHeight: ПОЛОСА_ПОКАЗАТЕЛЕЙ, justifyContent: 'center' },
   /**
    * 🔴 ПЛАШКА НЕ ШИРЕ ЭКРАНА. Два отчёта 02.09.2026 («поехали кнопки верх тулбара»,
    * «с меню пиздец сверху»): счётчики растягивали плашку за край телефона, и вместе
