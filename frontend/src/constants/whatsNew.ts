@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.53.9',
+    date: '2026-09-11',
+    ru: [
+      'Две новые головоломки: «Клоцки» — растолкать блоки, чтобы главный вышел наружу, и «Сокобан» — толкать бочки на метки, не загоняя их в угол',
+      'Игровое поле больше не гуляет по высоте: у большинства экранов оно начинается ровно в одном и том же месте',
+      '«Матрица» даёт дочитать задание до первой вспышки — теперь в обоих режимах, а не в одном',
+      '«Анаграммы» показывают выбранные настройки сразу, без прокрутки до карточек',
+    ],
+    en: [
+      'Two new puzzles: Klotski — shuffle the blocks aside so the main one can slide out, and Sokoban — push the barrels onto the targets without wedging them into a corner',
+      'The playing field no longer drifts up and down: on most screens it now starts at exactly the same place',
+      'Memory Matrix gives you time to read the task before the first flash — now in both modes, not just one',
+      'Anagrams shows the settings you picked right away, with no scrolling down to the cards',
+    ],
+  },
+  {
     version: '2.53.8',
     date: '2026-09-11',
     ru: [
