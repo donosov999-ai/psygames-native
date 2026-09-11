@@ -28,6 +28,7 @@ import { useWordLanguage } from '@/src/hooks/useWordLanguage';
 import { wordLangsFor, WORD_LANG_LABEL } from '@/src/services/wordLanguage';
 import type { ОтчётРежима, УправлениеРежима } from '@/src/games/anagrams/core/hudReport';
 import type { HudItem } from '@/src/components/GameShell';
+import { ПАЛЕЦ } from '@/src/components/gameLayout';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
 import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
@@ -878,7 +879,15 @@ export default function AnagramGame() {
             testID="anagrams-setup-summary"
             accessibilityRole="button"
             onPress={() => прокрутка.current?.scrollTo({ y: Math.max(0, yНастроек.current - 12), animated: true })}
-            style={{ marginTop: 8, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10,
+            /**
+             * ⚠️ ВЫСОТА НЕ ОТ ОТСТУПОВ, А ОТ ПАЛЬЦА. С `paddingVertical: 6` и шрифтом 12
+             * строка выходила 291×28 при полу 44 — гейт `tap-routes` покраснел на этом
+             * экране и продержал main красным семь часов (11.09.2026, восемь коммитов
+             * легли поверх красного). `ПАЛЕЦ` = 48 берётся из `gameLayout.ts`, чтобы
+             * пол жил в одном месте на всё приложение, а не переписывался числом.
+             */
+            style={{ marginTop: 8, minHeight: ПАЛЕЦ, justifyContent: 'center',
+              paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10,
               borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card }}>
             <Text style={{ color: colors.text, fontSize: 12, textAlign: 'center' }}>
               {подписьРежима} · {WORD_LANG_LABEL[wordLang.lang]} · {тема.emoji} {t('anagramTheme_' + тема.k)}
