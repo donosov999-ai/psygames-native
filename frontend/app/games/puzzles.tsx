@@ -427,7 +427,19 @@ export default function PuzzlesScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t('a11yErase')}
-                onPress={() => { void клавиша(ВВОД.has(имяРежима) ? 8 : 48).then(setПартия); }}
+                /**
+                 * ⚠️ У «УГАДАЙ КОД» СТИРАЕТ НЕ КЛАВИША, А ОТМЕНА ХОДА. Я посадил сюда
+                 * код 8 (забой) по аналогии с цифровыми — и это было МОЕЙ выдумкой,
+                 * а не замером. Проверка 11.09.2026: код 8 даёт 0 попаданий из 4, и
+                 * перебор 32…127 плюс 8/9/13/27/127 не нашёл НИ ОДНОГО кода, который
+                 * убирает поставленный цвет. У остальных шести цифровых код 48
+                 * стирает в 1063 случаях из 1063 на 58 ступенях.
+                 * Поэтому здесь честная отмена хода: она поставленный цвет снимает.
+                 */
+                onPress={() => {
+                  if (ВВОД.has(имяРежима)) { void отменить().then(setПартия); return; }
+                  void клавиша(48).then(setПартия);
+                }}
                 style={[styles.цифра, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
               >
                 <Ionicons name="backspace-outline" size={24} color={colors.text} />
