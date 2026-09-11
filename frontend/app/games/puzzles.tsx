@@ -29,6 +29,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import GameShell from '@/src/components/GameShell';
 import PuzzleCanvas from '@/src/components/PuzzleCanvas';
+import PlayBoard, { сторонаДоски } from '@/src/components/PlayBoard';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { HELP_OPEN_EVENT } from '@/src/components/GameHelpOverlay';
@@ -41,7 +42,7 @@ import { saveSession } from '@/src/services/api';
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
 import { открыть, указатель, стрелка, клавиша, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
-import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
+import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
 
@@ -76,6 +77,9 @@ export default function PuzzlesScreen() {
   const [второе, setВторое] = useState(false);
   const [зерно, setЗерно] = useState(() => Math.floor(Math.random() * 1e6));
   const начатоВ = useRef(gameNow());
+
+  /** Сторона квадрата под доску — общий носитель стандарта (`PlayBoard`). */
+  const сторонаПоля = сторонаДоски(width);
 
   const движок = список.find((д) => д.имя === имяРежима) ?? null;
   const ключИгры = `puzzles_${имяРежима.toLowerCase().replace(/\s+/g, '_')}`;
@@ -270,7 +274,12 @@ export default function PuzzlesScreen() {
     >
       {фаза === 'config' ? (
         <View style={styles.centre}>
-          <Text style={[styles.rule, { color: colors.textSecondary }]}>
+          {/*
+            ⚠️ Строка задания держит ПОСТОЯННУЮ высоту: у одних игр она в одну строку,
+            у других в три, и без этого доска съезжала на два десятка точек от игры к
+            игре — половина жалобы «плавает по высоте».
+          */}
+          <Text numberOfLines={3} style={[styles.rule, { color: colors.textSecondary }]}>
             {t(КЛЮЧ_ОПИСАНИЯ[имяРежима] ?? КЛЮЧ_ОПИСАНИЯ[ПО_УМОЛЧАНИЮ])}
           </Text>
           <LevelProgressMap
@@ -302,12 +311,20 @@ export default function PuzzlesScreen() {
           <Text style={[styles.rule, { color: colors.textSecondary }]}>
             {t(КЛЮЧ_ОПИСАНИЯ[имяРежима] ?? КЛЮЧ_ОПИСАНИЯ[ПО_УМОЛЧАНИЮ])}
           </Text>
-          <PuzzleCanvas
-            партия={партия}
-            ширина={Math.min(width - 32, 420)}
-            фон={colors.background}
-            onЖест={(x, y, ж, п) => { void жать(x, y, ж, п || второе); }}
-          />
+          {/*
+            🔴 МЕСТО ПОД ДОСКУ ОДНО И ТО ЖЕ У ВСЕХ СОРОКА — квадрат, а не «сколько
+            вышло». Денис 11.09.2026: «то там по высоте, то там, то шире, то уже».
+            Доска вписывается в этот квадрат по обеим сторонам и стоит в середине.
+          */}
+          <PlayBoard ширинаЭкрана={width}>
+            <PuzzleCanvas
+              партия={партия}
+              ширина={сторонаПоля}
+              высота={сторонаПоля}
+              фон={colors.background}
+              onЖест={(x, y, ж, п) => { void жать(x, y, ж, п || второе); }}
+            />
+          </PlayBoard>
           {/*
             🔴 ВЫХОД ИЗ ТУПИКА СТОИТ ТАМ, ГДЕ ТУПИК, — НАД ДОСКОЙ.
             Денис 11.09.2026, снимок «Сапёра» с подорванной клеткой: «в конце не
@@ -345,6 +362,13 @@ export default function PuzzlesScreen() {
                 </Pressable>
               </View>
             </View>
+          ) : null}
+          {/*
+            Подсказка тем, у кого тычок не работает вовсе (см. `ТОЛЬКО_ПРОТЯЖКА`):
+            без неё доска выглядит сломанной — жмёшь и ничего.
+          */}
+          {ТОЛЬКО_ПРОТЯЖКА.has(имяРежима) ? (
+            <Text style={[styles.протяжка, { color: colors.textSecondary }]}>{t('puzzleDragHint')}</Text>
           ) : null}
           {/* Второе действие: им ставят пустую клетку, метку, обратный перебор. */}
           {ВТОРОЕ_ДЕЙСТВИЕ.has(имяРежима) ? (
@@ -384,10 +408,26 @@ export default function PuzzlesScreen() {
                 Ряд строился как `1..N`, и кнопки стирания в нём не было НИ НА ОДНОМ
                 из шести цифровых экранов.
               */}
+              {/*
+                🔴 «ГОТОВО» — ЕДИНСТВЕННЫЙ СПОСОБ СХОДИТЬ В «УГАДАЙ КОД». Цифры
+                набирают строку, но на проверку она уходит только по Enter. Замер
+                11.09.2026: код 13 меняет рисунок; без кнопки набор висел, и партия
+                не двигалась вовсе.
+              */}
+              {ВВОД.has(имяРежима) ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('storyDone')}   /* «Готово» в словаре уже есть — своего ключа не завожу */
+                  onPress={() => { void клавиша(13).then(setПартия); }}
+                  style={[styles.цифра, { width: 74, backgroundColor: GRADIENT[0] }]}
+                >
+                  <Ionicons name="checkmark" size={24} color="#FFF" />
+                </Pressable>
+              ) : null}
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t('a11yErase')}
-                onPress={() => { void клавиша(48).then(setПартия); }}
+                onPress={() => { void клавиша(ВВОД.has(имяРежима) ? 8 : 48).then(setПартия); }}
                 style={[styles.цифра, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
               >
                 <Ionicons name="backspace-outline" size={24} color={colors.text} />
@@ -417,10 +457,12 @@ export default function PuzzlesScreen() {
 
 const styles = StyleSheet.create({
   centre: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 10 },
-  rule: { fontSize: 13, lineHeight: 18, textAlign: 'center', maxWidth: 320 },
+  // 54 = три строки по 18: место под задание не зависит от длины текста.
+  rule: { fontSize: 13, lineHeight: 18, textAlign: 'center', maxWidth: 320, height: 54, textAlignVertical: 'center' },
   start: { minHeight: 52, paddingHorizontal: 34, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   startText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   крестовина: { flexDirection: 'row', gap: 10 },
+  протяжка: { marginTop: 10, fontSize: 13, textAlign: 'center', maxWidth: 420, fontWeight: '600' },
   тупик: {
     marginTop: 12, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1,
     alignItems: 'center', gap: 10, alignSelf: 'stretch', maxWidth: 420,

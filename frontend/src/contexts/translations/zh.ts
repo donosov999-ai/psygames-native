@@ -2609,6 +2609,7 @@ const t: Record<string, string> = {
   "pauseEasier": "降低难度",
   "pauseHarder": "提高难度",
   "pauseFinish": "结束并保存",
+  "puzzleDragHint": "↔ 这里要拖动，不是点击",
   "puzzleNoMoves": "没有可走的步了，可以重新开始",
   "puzzleBlownUp": "被炸到了。撤销这一步，继续游戏",
   "puzzleHudMarked": "已标记",
