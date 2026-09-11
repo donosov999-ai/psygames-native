@@ -506,6 +506,20 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
    * её высота от размера сосудов не зависит, круга здесь нет.
    */
   const [подписьH, setПодписьH] = useState(0);
+  /**
+   * 🔴 ВЫСОТА СЛУЖЕБНОГО РЯДА МЕРЯЕТСЯ, ПОТОМУ ЧТО ОНА НЕ ПОСТОЯННАЯ.
+   *
+   * 📍 Замер по снимку 12.09.2026: у переливалки ТРИ служебные кнопки («Отменить»,
+   * «Подсказка», «Заново»), и на 390 точках они переносятся во второй ряд — блок
+   * выходит вдвое выше `РЯД_ДЕЙСТВИЙ`. Расчёт по одному ряду давал сосудам 102 %
+   * отведённой высоты, и подпись под полем обрезалась на второй строке. У тортов
+   * кнопки две, ряд один — там та же формула сходилась, и дефект был не виден.
+   *
+   * ⚠️ КРУГА ЗДЕСЬ НЕТ, и это главное отличие от высоты поля: ряд — МОЙ узел, его
+   * высота зависит от числа кнопок, ширины экрана и языка, но НЕ от размера
+   * сосудов. Значит мерить его можно, а поле — нельзя.
+   */
+  const [рядH, setРядH] = useState(0);
   const { isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
 
@@ -793,7 +807,8 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
      * достаётся ТО, ЧТО ОСТАЛОСЬ, а не вся середина. Пока замер не пришёл
      * (первый кадр), высота равна нулю и расчёт идёт прежним путём, по ширине.
      */
-    const свободно = высотаЭкрана - ВЕРХ_ПОЛЯ - РЯД_ДЕЙСТВИЙ - ПОЛЯ_РЯДА;
+    const низ = рядH > 0 ? рядH + ПОЛЯ_РЯДА : РЯД_ДЕЙСТВИЙ + ПОЛЯ_РЯДА;
+    const свободно = высотаЭкрана - ВЕРХ_ПОЛЯ - низ;
     const местоПодСосуды = Math.max(0, свободно - подписьH - ПОЛЕ_СВЕРХУ);
     const ш = ширинаПробирки(field!.tubes.length, ширинаЭкрана - ЗАПАС_ПОЛЕЙ, местоПодСосуды);
     const в = Math.round(ш * СТЕКЛО_ОТНОШЕНИЕ);
@@ -1159,6 +1174,12 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
           проведена в шапке `GameAuxAction`, и решать её заново тут не надо.
         */
         headerActions={
+          /*
+            ⚠️ Обёртка нужна ТОЛЬКО ради замера высоты. Каркас ищет `GameAuxAction`
+            обходом по `props.children`, поэтому лишний узел его не сбивает —
+            проверено чтением `служебныеИзШапки` в `GameShell`.
+          */
+          <View onLayout={(e) => setРядH(Math.round(e.nativeEvent.layout.height))}>
           <GameAuxBar>
             <GameAuxAction
               icon="arrow-undo" tint="#d97706" ladder="undo" label={t('btn_undo')}
@@ -1175,6 +1196,7 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
             />
             <LevelRuleBadge lr={правилаУровня} color="#0072ff" ru={language === 'ru'} />
           </GameAuxBar>
+          </View>
         }
       >
         <LevelRuleModal lr={правилаУровня} colors={colors} ru={language === 'ru'} />

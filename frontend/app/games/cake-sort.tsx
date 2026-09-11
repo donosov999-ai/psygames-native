@@ -318,11 +318,21 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    * координатором на собранном вебе и общие для всех разделов — своя копия
    * разъехалась бы с ними при первой же правке каркаса.
    */
+  /**
+   * Высота служебного ряда — МЕРЯЕТСЯ, а не берётся числом: у переливалки три
+   * кнопки переносятся во второй ряд, и блок выходит вдвое выше `РЯД_ДЕЙСТВИЙ`.
+   * У тортов кнопок две и перенос случается только на длинных языках — но именно
+   * поэтому его и надо мерить, а не надеяться. Круга здесь нет: высота ряда от
+   * размера тарелок не зависит.
+   */
+  const [рядH, setРядH] = useState(0);
+
   const стол = useMemo(() => {
     const доступно = Math.min(width, 520) - 16;
-    const поле = Math.max(240, (окноH || 640) - ВЕРХ_ПОЛЯ - РЯД_ДЕЙСТВИЙ - ПОЛЯ_РЯДА);
+    const низ = (рядH > 0 ? рядH : РЯД_ДЕЙСТВИЙ) + ПОЛЯ_РЯДА;
+    const поле = Math.max(240, (окноH || 640) - ВЕРХ_ПОЛЯ - низ);
     return { ...tableFit(доступно, поле, cfg.plates), boardW: доступно };
-  }, [width, окноH, cfg.plates]);
+  }, [width, окноH, рядH, cfg.plates]);
 
   const тронуть = (i: number) => {
     if (!board || done) return;
@@ -805,6 +815,9 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
         и вид, и цель нажатия 48×48, и лестница замков приходят оттуда.
       */
       headerActions={
+        /* Обёртка только ради замера высоты ряда; каркас ищет действия обходом
+           по `children`, поэтому лишний узел его не сбивает. */
+        <View onLayout={(e) => setРядH(Math.round(e.nativeEvent.layout.height))}>
         <GameAuxBar>
           <GameAuxAction
             icon="arrow-undo" tint="#d97706" ladder="undo" label={t('btn_undo')}
@@ -817,6 +830,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
           />
           <LevelRuleBadge lr={levelRules} color={colors.text} />
         </GameAuxBar>
+        </View>
       }
     >
       <LevelRuleModal lr={levelRules} colors={colors} />
