@@ -2603,6 +2603,7 @@ const t: Record<string, string> = {
   "pauseEasier": "やさしいレベル",
   "pauseHarder": "むずかしいレベル",
   "pauseFinish": "終了して記録",
+  "puzzleBlownUp": "爆発しました。手を戻して続けましょう",
   "puzzleHudMarked": "マーク済み",
   "puzzleHudActive": "接続済み",
   "puzzleHudMovesUsed": "使用",

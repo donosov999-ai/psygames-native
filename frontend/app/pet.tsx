@@ -18,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
-import PetSprite, { PetAccessory, PetSkin, PetStill } from '@/src/components/pet/PetSprite';
+import PetSprite, { PetAccessory, PetSkin, PetState, PetStill } from '@/src/components/pet/PetSprite';
 import PetTreat from '@/src/components/pet/PetTreat';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import {
@@ -102,7 +102,27 @@ export default function PetScreen() {
   const [washedDays, setWashedDays] = React.useState<number>(0);
   React.useEffect(() => { currentPetLook().then(setLook).catch(() => {}); }, [fed]);
   const [balance, setBalance] = React.useState(0);
-  const [feastAnim, setFeastAnim] = React.useState(false);
+  /**
+   * 🔴 У КАЖДОГО ДЕЙСТВИЯ СВОЯ АНИМАЦИЯ, А НЕ ОДИН ФЛАГ НА ВСЕХ.
+   *
+   * 📍 Денис 11.09.2026: «это из кнопок только кадры еды есть, других тоже нет».
+   * Он прочитал так, потому что было ХУЖЕ, чем он думал: `feastAnim` включали ВСЕ
+   * три действия, а рисовал он `eat` и выкладывал лакомство. То есть на «погладить»
+   * и «помыть» кот принимался ЖЕВАТЬ — не «кадров нет», а чужие кадры.
+   *
+   * Кадры при этом лежали в паке всё это время. Замер 11.09.2026 по
+   * `assets/images/pet/cat`: тридцать девять состояний по семь кадров, и среди них
+   * ровно то, что нужно, — `groom` (умывается), `wiggle` (ёрзает от удовольствия),
+   * `tailchase`, `dance`, `cheer`. Механизм подстановки для обликов без своих кадров
+   * уже есть (`ЗАМЕНА` в PetSprite): у робота и Созвездия `groom` станет `idle`,
+   * `wiggle` — прыжком, и это осознанный выбор по СМЫСЛУ движения.
+   */
+  const [действие, setДействие] = React.useState<PetState | null>(null);
+  /** Показать состояние и вернуться в покой. Позднее действие перебивает раннее. */
+  const показатьДействие = React.useCallback((состояние: PetState, мс: number) => {
+    setДействие(состояние);
+    setTimeout(() => setДействие((текущее) => (текущее === состояние ? null : текущее)), мс);
+  }, []);
 
   // На фокусе, не на маунте: вернулся с тренировки → шкалы уже подросли
   useFocusEffect(
@@ -165,16 +185,14 @@ export default function PetScreen() {
     await markWashed();
     setWashedDays(0);
     setLook(await currentPetLook());
-    setFeastAnim(true);
+    показатьДействие('groom', 2200);          // умывается, а не жуёт
     setGreeting(pickPettedLine(language).text);
-    setTimeout(() => setFeastAnim(false), 2200);
   };
 
   const pet = () => {
     sndToken();
     setGreeting(pickPettedLine(language).text);
-    setFeastAnim(true);
-    setTimeout(() => setFeastAnim(false), 1800);
+    показатьДействие('wiggle', 1800);         // ёрзает от удовольствия
   };
 
   const feed = async () => {
@@ -188,9 +206,8 @@ export default function PetScreen() {
     setFed(true);
     setBalance(await getTokens(pid));
     // Радость: прыжки на пару секунд + благодарная реплика
-    setFeastAnim(true);
+    показатьДействие('eat', 2600);
     setGreeting(pickPettedLine(language).text);
-    setTimeout(() => setFeastAnim(false), 2600);
   };
 
   const skillLabel = (k: keyof PetStats['skills']): string => {
@@ -264,8 +281,9 @@ export default function PetScreen() {
           заиграют сами, слой лакомства им не мешает.
         */}
         <View style={{ width: portrait, height: portrait }}>
-          <PetSprite state={feastAnim ? 'eat' : 'idle'} size={portrait} skin={skin} accessory={accessory} />
-          <PetTreat skin={skin} size={portrait} active={feastAnim} />
+          <PetSprite state={действие ?? 'idle'} size={portrait} skin={skin} accessory={accessory} subject />
+          {/* Лакомство — только к еде: на «погладить» оно и делало вид, будто кормят. */}
+          <PetTreat skin={skin} size={portrait} active={действие === 'eat'} />
         </View>
         <Text style={[styles.stageName, { color: colors.text }]}>{stageName}</Text>
         <Text style={[styles.stageHint, { color: colors.textSecondary }]}>

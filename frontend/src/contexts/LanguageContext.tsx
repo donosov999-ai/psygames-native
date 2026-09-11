@@ -920,6 +920,11 @@ const translations: Translations = {
    * по ходу игры. Показывать его текст как есть нельзя — он английский, — поэтому из
    * строки достаются числа, а подпись берётся отсюда (`tatham-bridge/status.ts`).
    */
+  /**
+   * Подрыв у «Сапёра» и «Инерции». Формулировка не «проиграл»: по замыслу автора это
+   * ход, который отменяют и играют дальше (`mines.c:5606`, `inertia.c:2191`).
+   */
+  puzzleBlownUp: { ru: 'Подорвался. Отмени ход — и играй дальше', en: 'You blew up. Undo the move and carry on' },
   puzzleHudMarked: { ru: 'Отмечено', en: 'Marked' },
   puzzleHudActive: { ru: 'Соединено', en: 'Connected' },
   /**
