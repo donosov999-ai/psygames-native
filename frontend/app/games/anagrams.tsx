@@ -1200,14 +1200,34 @@ export default function AnagramGame() {
             глазами; прятать длину значило бы вернуть то самое «рубленое»
             последовательное устройство, от которого уходим.
           */}
-          {билингво && тройкаСлова.length === 3 ? (
+          {билингво && тройкаСлова.length === 3 ? (() => {
+            /**
+             * 🔴 КЛЕТКА СЧИТАЕТСЯ ОТ ЭКРАНА, А НЕ СТОИТ ЖЁСТКИМИ 44 px.
+             *
+             * 📍 ЗАМЕР 11.09.2026 на 360 px: три ряда вылезали за край на 10 px,
+             * потому что ряд объявлен `nowrap` (иначе строки разъехались бы) и
+             * шесть клеток по 44 плюс зазоры плюс метка языка не помещались.
+             * Отчёты тестировщиков 2.53.1–2.53.2 про «съехавший огромный
+             * тулбар» пришли без кадра и экрана, привязать их нельзя — но этот
+             * вылет мой и настоящий, найден обходом своей зоны.
+             *
+             * ⚠️ Размер ОДИН на все три ряда и считается по САМОМУ ДЛИННОМУ
+             * слову тройки: разные размеры в рядах сломали бы то, ради чего
+             * ряды заведены, — общий вид трёх слов сразу.
+             */
+            const максДлина = Math.max(...тройкаСлова.map((x) => x.слово.length));
+            const зазор = максДлина > 7 ? 4 : 8;
+            const доступно = Math.min(width, 420) - 32 - 30 - 6 - зазор * (максДлина - 1);
+            const бок = Math.max(22, Math.min(44, Math.floor(доступно / максДлина)));
+            const выс = Math.round(бок * 54 / 44);
+            return (
             <View style={styles.тройкаКол}>
               {тройкаСлова.map((сл, r) => {
                 const разгадана = r < тройкаОтвет.length;
                 const активна = r === тройкаОтвет.length;
                 const буквы = разгадана ? [...(тройкаОтвет[r] ?? '')] : null;
                 return (
-                  <View key={`${сл.язык}-${r}`} style={styles.тройкаРяд}>
+                  <View key={`${сл.язык}-${r}`} style={[styles.тройкаРяд, { gap: зазор }]}>
                     {/*
                       🔴 МЕТКА ЯЗЫКА ПЕРЕД СТРОКОЙ. Просьба Дениса 10.09.2026:
                       «подписи языка не хватает, значок перед словом». Без неё
@@ -1230,6 +1250,7 @@ export default function AnagramGame() {
                         key={i}
                         style={[
                           styles.pickedSlot,
+                          { width: бок, height: выс },
                           {
                             borderColor: активна ? GRADIENT[0] : colors.textSecondary,
                             backgroundColor: colors.surface,
@@ -1237,7 +1258,7 @@ export default function AnagramGame() {
                           },
                         ]}
                       >
-                        <Text style={[styles.pickedLetter, { color: colors.text }]}>
+                        <Text style={[styles.pickedLetter, { color: colors.text, fontSize: Math.round(бок / 2) }]}>
                           {буквы ? (буквы[i] ?? '') : активна && picked[i] !== undefined ? letters[picked[i]] : ''}
                         </Text>
                       </View>
@@ -1246,7 +1267,8 @@ export default function AnagramGame() {
                 );
               })}
             </View>
-          ) : (
+            );
+          })() : (
             <View style={styles.pickedRow}>
               {Array.from({ length: target.length }).map((_, i) => (
                 <View key={i} style={[styles.pickedSlot, { borderColor: colors.textSecondary, backgroundColor: colors.surface }]}>
