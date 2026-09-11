@@ -2604,6 +2604,7 @@ const t: Record<string, string> = {
   "pauseEasier": "Livello più facile",
   "pauseHarder": "Livello più difficile",
   "pauseFinish": "Termina e salva",
+  "puzzleBlownUp": "Sei esploso. Annulla la mossa e continua",
   "puzzleHudMarked": "Segnate",
   "puzzleHudActive": "Collegate",
   "puzzleHudMovesUsed": "Usate",

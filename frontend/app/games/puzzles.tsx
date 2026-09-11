@@ -151,6 +151,15 @@ export default function PuzzlesScreen() {
   }, []);
 
   const победа = партия?.статус === 1;
+  /**
+   * 🔴 КОНЕЦ РАЗДАЧИ — ЭТО НЕ ТОЛЬКО ПОБЕДА. Экран ждал `статус === 1` и на всё
+   * остальное молчал, а `−1` (проигрыш) не обрабатывал вовсе: партия «Заливки» с
+   * исчерпанным лимитом ходов оставалась на экране навсегда.
+   * Замер 11.09.2026 по всем сорока (случайная игра до смены статуса): настоящий
+   * `−1` умеет отдавать ОДНА игра — «Заливка». Одна, но повисала намертво.
+   */
+  const проиграл = партия?.статус === -1;
+  const конец = победа || проиграл;
   const прошёл = победа && !сдался;
 
   /*
@@ -159,7 +168,7 @@ export default function PuzzlesScreen() {
    * ловит гейт `level-replay`. `reach` двигает только потолок вверх.
    */
   useEffect(() => {
-    if (!победа) return;
+    if (!конец) return;
     const секунд = (gameNow() - начатоВ.current) / 1000;
     if (!isPreset) {
       if (прошёл) lvl.reach(Math.min(lvl.level + 1, ступеней));
@@ -175,13 +184,13 @@ export default function PuzzlesScreen() {
       mode: имяРежима,
       details: { level: lvl.level, mode: имяРежима, moves: ходов, solver_used: сдался },
     }).catch(() => { /* офлайн — партия всё равно доиграна */ });
-  }, [победа]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [конец]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <GameShell
       title={t(КЛЮЧ_ИМЕНИ[имяРежима] ?? КЛЮЧ_ИМЕНИ[ПО_УМОЛЧАНИЮ])}
       onBack={() => router.back()}
-      confirmExit={ходов > 0 && !победа}
+      confirmExit={ходов > 0 && !конец}
       overlay={фаза === 'cleared' ? (
         <LevelCleared
           gameId="puzzles"
@@ -277,6 +286,37 @@ export default function PuzzlesScreen() {
             фон={colors.background}
             onЖест={(x, y, ж, п) => { void жать(x, y, ж, п || второе); }}
           />
+          {/*
+            🔴 ВЫХОД ИЗ ТУПИКА СТОИТ ТАМ, ГДЕ ТУПИК, — НАД ДОСКОЙ.
+            Денис 11.09.2026, снимок «Сапёра» с подорванной клеткой: «в конце не
+            двигается, выходит только через кнопку паузы». Так и было: у «Сапёра» и
+            «Инерции» подрыв — не проигрыш (см. `status.ts`), партия продолжается, а
+            единственное осмысленное действие — отменить ход — лежало в меню паузы.
+            Человек видит мёртвую доску и не догадывается туда лезть.
+          */}
+          {партия?.подорвался ? (
+            <View style={[styles.тупик, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.тупикТекст, { color: colors.text }]}>{t('puzzleBlownUp')}</Text>
+              <View style={styles.тупикРяд}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => { void отменить().then(setПартия); }}
+                  style={[styles.тупикКнопка, { backgroundColor: GRADIENT[0] }]}
+                >
+                  <Ionicons name="arrow-undo" size={18} color="#FFF" />
+                  <Text style={styles.тупикКнопкаТекст}>{t('btn_undo')}</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => новая()}
+                  style={[styles.тупикКнопка, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+                >
+                  <Ionicons name="refresh" size={18} color={colors.text} />
+                  <Text style={[styles.тупикКнопкаТекст, { color: colors.text }]}>{t('restart')}</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
           {/* Второе действие: им ставят пустую клетку, метку, обратный перебор. */}
           {ВТОРОЕ_ДЕЙСТВИЕ.has(имяРежима) ? (
             <Pressable
@@ -337,6 +377,18 @@ const styles = StyleSheet.create({
   start: { minHeight: 52, paddingHorizontal: 34, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   startText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   крестовина: { flexDirection: 'row', gap: 10 },
+  тупик: {
+    marginTop: 12, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1,
+    alignItems: 'center', gap: 10, alignSelf: 'stretch', maxWidth: 420,
+  },
+  тупикТекст: { fontSize: 15, fontWeight: '700', textAlign: 'center' },
+  тупикРяд: { flexDirection: 'row', gap: 10 },
+  // 48 — пол площади нажатия (`tap-target-audit`), тот же, что у второго действия.
+  тупикКнопка: {
+    flexDirection: 'row', alignItems: 'center', gap: 7,
+    paddingVertical: 12, paddingHorizontal: 18, borderRadius: 14, minHeight: 48,
+  },
+  тупикКнопкаТекст: { color: '#FFF', fontSize: 14, fontWeight: '800' },
   второе: {
     flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'center',
     marginTop: 12, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1.5, minHeight: 48,

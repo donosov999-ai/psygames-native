@@ -2612,6 +2612,7 @@ const t: Record<string, string> = {
   "pauseEasier": "आसान स्तर",
   "pauseHarder": "कठिन स्तर",
   "pauseFinish": "समाप्त करें और सहेजें",
+  "puzzleBlownUp": "आप उड़ गए। चाल पूर्ववत करें और खेलते रहें",
   "puzzleHudMarked": "चिह्नित",
   "puzzleHudActive": "जुड़े",
   "puzzleHudMovesUsed": "खर्च",

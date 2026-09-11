@@ -2609,6 +2609,7 @@ const t: Record<string, string> = {
   "pauseEasier": "降低难度",
   "pauseHarder": "提高难度",
   "pauseFinish": "结束并保存",
+  "puzzleBlownUp": "被炸到了。撤销这一步，继续游戏",
   "puzzleHudMarked": "已标记",
   "puzzleHudActive": "已连接",
   "puzzleHudMovesUsed": "已用",
