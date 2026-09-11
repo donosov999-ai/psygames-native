@@ -1,4 +1,4 @@
-/* psygames-game-water-sort · VER 2 · 09.09.2026 */
+/* psygames-game-water-sort · VER 3 · 11.09.2026 */
 /**
  * СОРТИРОВКА ЖИДКОСТЕЙ — переливание по пробиркам, пока каждая не станет одного цвета.
  *
@@ -380,6 +380,22 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
    */
   const фактураШара = useBallStyle();
   const { t, language } = useLanguage();
+  /**
+   * 🔴 КАЖДАЯ ШКУРКА ГОВОРИТ СВОИМИ СЛОВАМИ, А НЕ СЛОВАМИ ПРОБИРОК.
+   *
+   * 📍 Замер 11.09.2026 по снимкам поля: «Шарики» и «Гайки» были подписаны
+   * «Нажми ПРОБИРКУ, потом вторую» — экран звал `t('waterSortHint')` в обход
+   * шкурки, и чужое слово уехало в двенадцать языков. Тем же путём тянулись
+   * «Пустая пробирка» (озвучка для незрячих), строка параметров уровня и
+   * описание на экране настройки — причём `ballSortDesc` и `nutSortDesc` в
+   * словарях УЖЕ ЛЕЖАЛИ и просто не были подключены.
+   *
+   * Приставка берётся из `titleKey` (`waterSort` / `ballSort` / `nutSort`), а не
+   * из своей карты по `skin`: карта — второй источник правды, который разъедется
+   * на четвёртой шкурке. Здесь же новая шкурка обязана принести свои ключи —
+   * иначе `t` вернёт само имя ключа, и это видно с первого взгляда на экран.
+   */
+  const тс = (хвост: string) => t(`${titleKey}${хвост}` as Parameters<typeof t>[0]);
   const lvl = usePersistentLevel(gameId);
   /**
    * ⚠️ ГОТОВЫЙ ХУК, А НЕ СВОЙ `useWindowDimensions` С ЗАПАСНЫМ ЧИСЛОМ. В проекте
@@ -724,7 +740,7 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
         accessibilityLabel={трубка.length
           ? трубка.map((c, глуб) => (слойВиден(field!, скрытые, i, глуб)
             ? ЦВЕТА[c % ЦВЕТА.length]!.mark : '?')).join(' ')
-          : t('waterSortEmptyTube')}
+          : тс('EmptyVessel')}
         accessibilityState={{ selected: выбор }}
         onPress={() => нажать(i)}
         activeOpacity={0.85}
@@ -935,14 +951,14 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={[styles.heroCard, { backgroundColor: GRADIENT[1] }]}>
             <Ionicons name="flask" size={44} color={ON_GRAD.color} />
-            <Text style={[styles.heroTitle, { color: ON_GRAD.color }]}>{t('waterSort')}</Text>
-            <Text style={[styles.heroDesc, { color: ON_GRAD_SOFT }]}>{t('waterSortDesc')}</Text>
+            <Text style={[styles.heroTitle, { color: ON_GRAD.color }]}>{t(titleKey)}</Text>
+            <Text style={[styles.heroDesc, { color: ON_GRAD_SOFT }]}>{тс('Desc')}</Text>
           </View>
-          <GameAbout descriptionKey="waterSortIntroDesc" benefits={БОНУСЫ} accent={GRADIENT[0]} />
+          <GameAbout descriptionKey={`${titleKey}IntroDesc`} benefits={БОНУСЫ} accent={GRADIENT[0]} />
           <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
             <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')} {lvl.level}</Text>
             <Text style={[styles.optionHint, { color: colors.textSecondary }]}>
-              {t('waterSortLvlParams')
+              {тс('LvlParams')
                 .replace('{c}', String(p.colors))
                 .replace('{h}', String(p.cap))
                 .replace('{e}', String(p.empty))}
@@ -1028,7 +1044,7 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
             {field.tubes.map((тр, i) => рисоватьПробирку(тр, i))}
           </View>
           {/* Строка «что делать»: правило партии на виду, а не только в справке. */}
-          <Text style={[styles.задание, { color: colors.textSecondary }]}>{t('waterSortHint')}</Text>
+          <Text style={[styles.задание, { color: colors.textSecondary }]}>{тс('Hint')}</Text>
         </View>
         {тупик ? (
           <Text style={[styles.тупик, { color: colors.textSecondary }]}>{t('waterSortStuck')}</Text>
@@ -1048,7 +1064,7 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>{t('waterSort')}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t(titleKey)}</Text>
         <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
       {phase === 'config' && renderConfig()}
