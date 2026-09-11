@@ -310,6 +310,16 @@ export default function DictationGame() {
               colors={colors}
               hint={t('dictationHint')}
               hideUntyped
+              /*
+               * 🔴 РЕГИСТР И ЗНАКИ НЕ СЧИТАЮТСЯ ОШИБКОЙ. Решение Дениса
+               * 11.09.2026. Диктант меряет СЛУХ: заглавная буква и запятая не
+               * звучат, требовать их — мерить орфографию под видом слуха. Хуже
+               * того, движок блокирует курсор на ошибке, и человек запирался на
+               * символе, которого не мог услышать.
+               * Флаг включён ТОЛЬКО здесь: словарь и беглость печатают по
+               * образцу, там точный символ осмыслен.
+               */
+              lenient
               onDone={фразаНабрана}
             />
           ) : (
@@ -330,9 +340,25 @@ export default function DictationGame() {
         }
       >
         <View style={styles.fieldCol}>
-          <View style={[styles.earCircle, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          {/*
+            🔴 КРУПНЫЙ ЗНАК — КНОПКА ПОВТОРА, А НЕ КАРТИНКА. Тот же дефект, что
+            в «Тонах», и найден тем же отчётом «Полиглота» 11.09.2026: человек
+            жмёт по центру поля, потому что круг выглядит главным органом
+            управления, — а повтор жил мелкой кнопкой в шапке. Подпись под
+            значком обязательна, иначе круг снова читается как украшение.
+            Повтор здесь не штрафуется (см. `повторить`): это подача задания,
+            а не подсказка, поэтому кнопка не гаснет.
+          */}
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('replaySound')}
+            style={[styles.earCircle, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            onPress={повторить}
+            activeOpacity={0.8}
+          >
             <Ionicons name="volume-high" size={44} color={colors.textSecondary} />
-          </View>
+            <Text style={[styles.earLabel, { color: colors.textSecondary }]}>{t('replaySound')}</Text>
+          </TouchableOpacity>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('dictationTask')}</Text>
         </View>
       </GameShell>
@@ -398,6 +424,7 @@ const styles = StyleSheet.create({
   warnCard: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 14, borderWidth: 1, padding: 14 },
   warnText: { flex: 1, fontSize: 14, fontWeight: '600' },
   fieldCol: { alignItems: 'center', gap: 16, paddingHorizontal: 16 },
-  earCircle: { width: 96, height: 96, borderRadius: 48, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  earCircle: { width: 120, height: 120, borderRadius: 60, borderWidth: 2, alignItems: 'center', justifyContent: 'center', gap: 4 },
+  earLabel: { fontSize: 12, fontWeight: '600' },
   hintText: { fontSize: 15, textAlign: 'center', lineHeight: 21 },
 });
