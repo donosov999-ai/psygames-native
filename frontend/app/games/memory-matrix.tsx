@@ -365,35 +365,38 @@ export default function MemoryMatrixGame() {
     setPhase('showing');
     setShowingSeries(0);   // клетки тёмные, пока читается задание
 
-    const начатьПоказ = () => {
-      if (matrixMode === 'static') {
-        if (two) {
-          // показать серию1 (цвет1) → серию2 (цвет2) → ввод
-          setShowingSeries(1);
-          setTimeout(() => setShowingSeries(2), flashMsRef.current);
-          setTimeout(() => { setShowingSeries(0); openInput(); }, flashMsRef.current * 2);
-        } else {
-          setShowingSeries(1);
-          setTimeout(() => { setShowingSeries(0); openInput(); }, Math.max(500, flashMsRef.current - r * 60));
-        }
-      }
-    };
+    /**
+     * 🔴 ПАУЗА ОДНА НА ОБА РЕЖИМА. Первая правка (bc461f7e) дала её только
+     * `static`, и в `sequential` вспышки по-прежнему начинались в том же кадре,
+     * что и подпись — то есть жалоба «пока читаешь, клетки закрываются» была
+     * закрыта у половины носителей. Нашлось сравнением с параллельной веткой
+     * `span/matrix-readable`: там ту же беду чинили независимо и оба режима
+     * покрыли сразу. Приём оттуда и взят — смещение всех таймеров на `пауза`.
+     * ⚠️ Урок общий: правка в одной ветке if закрывает дефект ровно наполовину.
+     */
+    const подпись = подписьПоказа(1, set3.size);
+    const пауза = паузаНаЧтение(подпись, прошлаяПодписьRef.current);
+    if (пауза > 0) прошлаяПодписьRef.current = подпись;
 
     if (matrixMode === 'static') {
-      const подпись = подписьПоказа(1, set3.size);
-      const пауза = паузаНаЧтение(подпись, прошлаяПодписьRef.current);
-      if (пауза > 0) { прошлаяПодписьRef.current = подпись; setTimeout(начатьПоказ, пауза); }
-      else начатьПоказ();
+      if (two) {
+        // показать серию1 (цвет1) → серию2 (цвет2) → ввод
+        setTimeout(() => setShowingSeries(1), пауза);
+        setTimeout(() => setShowingSeries(2), пауза + flashMsRef.current);
+        setTimeout(() => { setShowingSeries(0); openInput(); }, пауза + flashMsRef.current * 2);
+      } else {
+        setTimeout(() => setShowingSeries(1), пауза);
+        setTimeout(() => { setShowingSeries(0); openInput(); }, пауза + Math.max(500, flashMsRef.current - r * 60));
+      }
     } else {
       // Sequential: flash cells one by one, then await ordered reproduction (1 серия)
-      setShowingSeries(0);
       const flashMs = Math.max(400, 700 - r * 30);
       const gapMs = 200;
       seq.forEach((cellIdx, i) => {
-        setTimeout(() => setActiveIdx(cellIdx), i * (flashMs + gapMs));
-        setTimeout(() => setActiveIdx(-1), i * (flashMs + gapMs) + flashMs);
+        setTimeout(() => setActiveIdx(cellIdx), пауза + i * (flashMs + gapMs));
+        setTimeout(() => setActiveIdx(-1), пауза + i * (flashMs + gapMs) + flashMs);
       });
-      setTimeout(() => openInput(), seq.length * (flashMs + gapMs) + 300);
+      setTimeout(() => openInput(), пауза + seq.length * (flashMs + gapMs) + 300);
     }
   };
 
