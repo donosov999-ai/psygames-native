@@ -967,6 +967,13 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
     const закрыто = field.tubes.filter((_, i) => isDone(field, i) && field.tubes[i]!.length > 0).length;
     return (
       <GameShell
+      /**
+       * Служебный ряд ВНИЗУ, а не над полем — правило каркаса (GameShell:276): «низ
+       * принадлежит ОТВЕТУ; там, где ответа кнопками нет, низ отдаётся служебному».
+       * Здесь ответ даётся тапом по полю. Без объявления ряд стоял НАД полем и опускал
+       * его: замер 11.09.2026 — верх поля 173 вместо 119, центр 509/516 вместо 482.
+       */
+      bottom="actions"
         title={t(titleKey)}
         onBack={() => { if (таймерRef.current) clearInterval(таймерRef.current); goBackOrHome(); }}
         hud={[
