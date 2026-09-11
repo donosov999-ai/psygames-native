@@ -142,6 +142,17 @@ export default function PuzzlesScreen() {
     setХодов((n) => n + 1);
   }, []);
 
+  /**
+   * 🔴 ЦИФРА ВЫШЕ ДЕВЯТКИ — ЭТО БУКВА, А НЕ КОД `48 + n`.
+   *
+   * У судоку бывают поля 12×12 и 16×16, и автор ждёт там `a`..`g` (`solo.c:3636`):
+   * `1..9`, потом `a` за десять. Мы слали `48 + ц` всегда, то есть `:`, `;`, `<`…
+   * Замер 11.09.2026: на ступени 15 (блоки 3×4) МЁРТВЫМИ были три клавиши из
+   * двенадцати, на ступени 16 (4×4) — семь из шестнадцати. Человек жал и ничего
+   * не происходило.
+   */
+  const кодЦифры = (ц: number) => (ц <= 9 ? 48 + ц : 97 + (ц - 10));
+
   const подсказать = useCallback(() => {
     void решить().then((п) => {
       if (!п) return;                      // решатель отказал — ступень не жжём
@@ -191,6 +202,17 @@ export default function PuzzlesScreen() {
       title={t(КЛЮЧ_ИМЕНИ[имяРежима] ?? КЛЮЧ_ИМЕНИ[ПО_УМОЛЧАНИЮ])}
       onBack={() => router.back()}
       confirmExit={ходов > 0 && !конец}
+      /**
+       * 🔴 ДОСКА БЫВАЕТ ВЫШЕ ЭКРАНА, И ТОГДА ДО НИЖНИХ КЛЕТОК НЕ ДОТЯНУТЬСЯ.
+       * Замер 11.09.2026 на телефоне 360 точек (под доску 328): «Колышки» на третьей
+       * ступени занимают 548 экранных точек по высоте, «Угадай код» — 524, у прочих
+       * тридцати восьми около 328. Прокрутки поля не было — нижняя часть доски просто
+       * оказывалась за краем.
+       * ⚠️ Касание доски прокрутку не перехватывает: `PuzzleCanvas` ставит себе
+       * `touchAction: 'none'`, так что палец по доске по-прежнему ходит, а прокрутка
+       * живёт на экране вокруг неё.
+       */
+      scrollableField
       overlay={фаза === 'cleared' ? (
         <LevelCleared
           gameId="puzzles"
@@ -294,9 +316,16 @@ export default function PuzzlesScreen() {
             единственное осмысленное действие — отменить ход — лежало в меню паузы.
             Человек видит мёртвую доску и не догадывается туда лезть.
           */}
-          {партия?.подорвался ? (
+          {партия?.подорвался || партия?.тупик ? (
             <View style={[styles.тупик, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Text style={[styles.тупикТекст, { color: colors.text }]}>{t('puzzleBlownUp')}</Text>
+              {/*
+                Два разных положения — две разные подписи. «Подорвался» зовёт отменить
+                ход, «ходов больше нет» — начать заново: отменять там нечего, партия
+                доиграна до конца, просто без победы.
+              */}
+              <Text style={[styles.тупикТекст, { color: colors.text }]}>
+                {партия?.подорвался ? t('puzzleBlownUp') : t('puzzleNoMoves')}
+              </Text>
               <View style={styles.тупикРяд}>
                 <Pressable
                   accessibilityRole="button"
@@ -342,12 +371,27 @@ export default function PuzzlesScreen() {
                   key={ц}
                   accessibilityRole="button"
                   accessibilityLabel={String(ц)}
-                  onPress={() => { void клавиша(48 + ц).then(setПартия); }}
+                  onPress={() => { void клавиша(кодЦифры(ц)).then(setПартия); }}
                   style={[styles.цифра, { backgroundColor: GRADIENT[0] }]}
                 >
                   <Text style={styles.цифраТекст}>{ц}</Text>
                 </Pressable>
               ))}
+              {/*
+                🔴 БЕЗ «СТЕРЕТЬ» ОШИБОЧНУЮ ЦИФРУ СНИМАЛИ ТОЛЬКО ЧЕРЕЗ МЕНЮ ПАУЗЫ.
+                Замер 11.09.2026: движок стирает клетку кодом `0` — «Небоскрёбы»
+                16 попаданий из 16, «Заполнение областей» 18 из 18, «Нежить» 3 из 5.
+                Ряд строился как `1..N`, и кнопки стирания в нём не было НИ НА ОДНОМ
+                из шести цифровых экранов.
+              */}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('a11yErase')}
+                onPress={() => { void клавиша(48).then(setПартия); }}
+                style={[styles.цифра, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+              >
+                <Ionicons name="backspace-outline" size={24} color={colors.text} />
+              </Pressable>
             </View>
           ) : null}
           {СТРЕЛОЧНЫЕ.has(имяРежима) ? (

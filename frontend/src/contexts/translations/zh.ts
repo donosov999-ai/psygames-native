@@ -2590,7 +2590,7 @@ const t: Record<string, string> = {
   "puzzlesFlip": "翻转",
   "puzzlesFlipDesc": "每次点击也会翻转相邻格：把整个棋盘熄灭",
   "puzzlesCube": "滚动方块",
-  "puzzlesCubeDesc": "用方向键让立方体在网格上滚动，收集所有标记",
+  "puzzlesCubeDesc": "用方向键让立体在网格上滚动，拾取所有标记",
   "puzzlesBlackBox": "黑箱",
   "puzzlesBlackBoxDesc": "根据光束射出箱子的位置，找出藏在里面的球",
   "puzzlesGuess": "破解密码",
@@ -2609,6 +2609,7 @@ const t: Record<string, string> = {
   "pauseEasier": "降低难度",
   "pauseHarder": "提高难度",
   "pauseFinish": "结束并保存",
+  "puzzleNoMoves": "没有可走的步了，可以重新开始",
   "puzzleBlownUp": "被炸到了。撤销这一步，继续游戏",
   "puzzleHudMarked": "已标记",
   "puzzleHudActive": "已连接",
@@ -2642,7 +2643,7 @@ const t: Record<string, string> = {
   "puzzlesFifteenDesc": "把方块滑入空格，恢复顺序",
   "puzzlesLightUpDesc": "放置灯泡照亮整个棋盘",
   "puzzlesLoopyDesc": "按格中数字围出一个闭环",
-  "puzzlesUnrulyDesc": "圆圈与圆点等量，绝无三连同",
+  "puzzlesUnrulyDesc": "黑格与白格数量相同，同色不得连续三个",
   "puzzlesUnrulyIntroDesc": "这里有四十道逻辑谜题。每道题都有自己的规则，但有一点相同：每个棋盘恰好只有一个解，靠推理总能走到，从不需要猜。模式在卡片上选择，难度沿着每道谜题自己的阶梯上升。轻点走一步，长按是第二种操作：在《磁铁》里让多米诺的一半留空，在《扫雷》里标记地雷，在《奇偶》里反向切换。撤销、求提示和重新开始都在暂停菜单里——左上角的 ⏸ 按钮。",
 };
 export default t;

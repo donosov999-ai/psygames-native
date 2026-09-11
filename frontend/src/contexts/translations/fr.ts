@@ -2585,7 +2585,7 @@ const t: Record<string, string> = {
   "puzzlesFlip": "Bascule",
   "puzzlesFlipDesc": "Chaque appui bascule aussi les voisines : éteignez toute la grille",
   "puzzlesCube": "Cube sur la grille",
-  "puzzlesCubeDesc": "Roulez le cube avec les flèches et ramassez toutes les marques",
+  "puzzlesCubeDesc": "Fais rouler le solide sur la grille avec les flèches et ramasse chaque marque",
   "puzzlesBlackBox": "Boîte noire",
   "puzzlesBlackBoxDesc": "Trouvez les billes cachées d’après l’endroit où le rayon sort de la boîte",
   "puzzlesGuess": "Percer le code",
@@ -2604,6 +2604,7 @@ const t: Record<string, string> = {
   "pauseEasier": "Niveau plus facile",
   "pauseHarder": "Niveau plus difficile",
   "pauseFinish": "Terminer et enregistrer",
+  "puzzleNoMoves": "Plus de coups possibles. Tu peux recommencer",
   "puzzleBlownUp": "Explosion. Annule le coup et continue",
   "puzzleHudMarked": "Marquées",
   "puzzleHudActive": "Connectées",
@@ -2637,7 +2638,7 @@ const t: Record<string, string> = {
   "puzzlesFifteenDesc": "Glissez les tuiles pour remettre en ordre",
   "puzzlesLightUpDesc": "Placez les lampes pour tout éclairer",
   "puzzlesLoopyDesc": "Formez une boucle fermée selon les nombres",
-  "puzzlesUnrulyDesc": "Autant de cercles que de points, jamais trois",
+  "puzzlesUnrulyDesc": "Autant de cases noires que de blanches, jamais trois pareilles à la suite",
   "puzzlesUnrulyIntroDesc": "Quarante casse-tête logiques vivent ici. Chacun a sa règle, mais un point commun : chaque grille a exactement une solution et le raisonnement y mène toujours — deviner n'est jamais nécessaire. Choisis le mode sur la carte ; la difficulté monte selon une échelle propre à chaque casse-tête. Un appui court joue un coup, un appui LONG est la seconde action : dans Aimants elle laisse une moitié de domino vide, dans Mines elle marque une mine, dans Pair-impair elle parcourt en sens inverse. Annuler, demander un indice ou recommencer se trouvent dans le menu pause — le bouton ⏸ en haut à gauche.",
 };
 export default t;
