@@ -33,6 +33,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -46,6 +47,17 @@ import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#7873f5', '#ff6ec4'];
+
+/**
+ * 🔴 КАРТОЧКА ПРО ПОМЕХИ, 10.09.2026. Сперва я её НЕ завёл, сославшись на
+ * прецедент мишеней: там плотность помех растёт без объяснения. Прецедент
+ * оказался плохим доводом — владелец, глядя на свой же экран, спросил «это что
+ * за спецсимволы». Если спрашивает он, игрок спросит тем более.
+ * Порог 4 — тот самый уровень, с которого помехи включаются (levelParams).
+ */
+const SWITCH_RULES: LevelRule[] = [
+  { key: 'noise', fromLevel: 4 },
+];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
 // Было зашито '#FFF' — контраст 2.54 (норма AA 4.5), стало 4.65.
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
@@ -304,6 +316,7 @@ export default function SwitchingTaskGame() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const levelRules = useLevelRules('switching_task', lvl.level, SWITCH_RULES, phase === 'playing');
   const [clearedPassed, setClearedPassed] = useState(true);
   const [mode, setMode] = useState<StimMode>(() => (str('stimMode', 'mix') as StimMode));
 
@@ -545,7 +558,7 @@ export default function SwitchingTaskGame() {
     if (!п.length) return ядро;
     const бок = Math.ceil(п.length / 2);
     const знак = (g: string, k: number) => (
-      <Text key={k} style={[styles.stimText, { fontSize: stStim * 0.20, color: colors.textSecondary }]}>{g}</Text>
+      <Ionicons key={k} name={g as any} size={Math.round(stStim * 0.16)} color={colors.textSecondary} />
     );
     return (
       <View style={{ alignItems: 'center', gap: 4 }}>
@@ -622,6 +635,13 @@ export default function SwitchingTaskGame() {
           }]}>
             {renderStim()}
           </View>
+          {/*
+            Бейдж правила — ПОД коробкой, в потоке, а не отдельной полосой над
+            полем: полоса опустила бы коробку и сломала сведённую 10.09
+            геометрию (у CPT ровно это стоило 49 px).
+          */}
+          <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
+          <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
         </View>
       </GameShell>
     );

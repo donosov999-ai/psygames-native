@@ -497,7 +497,7 @@ export default function ChoiceRtGame() {
    * Порядок ← ↑ ↓ → : физические лево и право стоят по краям, как у фланкера,
    * Саймона и ANT, и не зеркалятся в RTL (`padRow` прибит writingDirection).
    */
-  const ПОРЯДОК: Direction[] = ['left', 'up', 'down', 'right'];
+  const пусто = (k: string) => <View key={k} style={{ width: ЧЕТЫРЕ.w, height: ЧЕТЫРЕ.h }} />;
   const renderPad = () => {
     if (activeDirs.length === 2) {
       return (
@@ -507,9 +507,30 @@ export default function ChoiceRtGame() {
         </View>
       );
     }
+    /**
+     * 🔴 КРЕСТ, А НЕ РЯД. Направление здесь отвечается ПОЛОЖЕНИЕМ кнопки:
+     * ↑ сверху, ↓ снизу, ← и → по бокам. Ряд ← ↑ ↓ → влезал в прежнюю полосу
+     * 120, но рушил это соответствие — для пробы про направления это хуже, чем
+     * лишние 36 px высоты. Полоса поднята до 156 под три ряда по 48.
+     */
+    const есть = (d: Direction) => activeDirs.includes(d);
     return (
-      <View style={styles.padRow}>
-        {ПОРЯДОК.filter((d) => activeDirs.includes(d)).map(padBtn)}
+      <View style={styles.padGrid}>
+        <View style={styles.padRow}>
+          {пусто('l0')}
+          {есть('up') ? padBtn('up') : пусто('u')}
+          {пусто('r0')}
+        </View>
+        <View style={styles.padRow}>
+          {padBtn('left')}
+          {пусто('c')}
+          {padBtn('right')}
+        </View>
+        <View style={styles.padRow}>
+          {пусто('l2')}
+          {есть('down') ? padBtn('down') : пусто('d')}
+          {пусто('r2')}
+        </View>
       </View>
     );
   };
@@ -617,7 +638,8 @@ const styles = StyleSheet.create({
   stimulusBox: { ...STIM_BOX },
   waitText: { fontSize: 60, opacity: 0.5 },
   // RTL-пин: пад-кнопки ←/→ должны стоять на своих физических сторонах (глифы стрелок не зеркалятся)
-  padRow: { flexDirection: 'row', gap: BTN_GAP, justifyContent: 'center', writingDirection: 'ltr' },
+  padGrid: { gap: 6, alignItems: 'center' },
+  padRow: { flexDirection: 'row', gap: 6, justifyContent: 'center', writingDirection: 'ltr' },
   // Размер приходит из answerButton — здесь только выравнивание содержимого.
   padBtn: { justifyContent: 'center', alignItems: 'center' },
 });

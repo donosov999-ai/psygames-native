@@ -427,10 +427,6 @@ export default function StroopEmotionalGame() {
         }
       >
         <View style={styles.fieldCol}>
-          {/* Подсказка ВНЕ ПОТОКА: иначе она участвует в центрировании колонки и
-              сдвигает коробку вниз на половину своей высоты. Замер 07.09: у этой
-              пробы коробка стояла на 277 против 237…249 у соседей. */}
-          <Text style={[styles.hintText, { position: 'absolute', top: 0, color: colors.textSecondary }]}>{t('stroop2Hint')}</Text>
           <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
             {showStim ? (
               <Text style={{ color: HEX[trial.color], fontSize: 44, fontWeight: '900', letterSpacing: 2 }}>
@@ -440,6 +436,17 @@ export default function StroopEmotionalGame() {
               <Text style={{ color: colors.textSecondary, fontSize: 36 }}>+</Text>
             )}
           </View>
+          {/*
+            🔴 ПОДСКАЗКА ПОД КОРОБКОЙ И В ПОТОКЕ, 10.09.2026.
+            Прежний довод (запись 07.09) был верен для положения НАД коробкой:
+            в потоке сверху она участвовала в центрировании и роняла коробку —
+            277 против 237…249 у соседей. Но вынос из потока лечил симптом, а не
+            причину, и делал эту пробу непохожей на остальные девять.
+            Под коробкой с резервом высоты обе беды снимаются разом: центрирование
+            учитывает постоянный блок, а длина текста коробку не двигает.
+            ⚠️ `minHeight: 40` — резерв на две строки 13 pt.
+          */}
+          <Text style={[styles.hintText, { color: colors.textSecondary, minHeight: 40 }]}>{t('stroop2Hint')}</Text>
         </View>
       </GameShell>
     );
