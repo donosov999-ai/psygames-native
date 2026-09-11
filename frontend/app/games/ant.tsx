@@ -422,10 +422,10 @@ export default function ANTGame() {
         }
         toolbar={
           <View style={styles.choiceRow}>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius }, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius }, { backgroundColor: colors.primary }]} onPress={() => handleAnswer('left')}>
               <Ionicons name="arrow-back" size={28} color="#FFF" />
             </TouchableOpacity>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius }, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius }, { backgroundColor: colors.primary }]} onPress={() => handleAnswer('right')}>
               <Ionicons name="arrow-forward" size={28} color="#FFF" />
             </TouchableOpacity>
           </View>

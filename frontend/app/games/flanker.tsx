@@ -9,7 +9,7 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { stimBox, ANSWER_BAR_ROW, STIM_BOX } from '@/src/games/attention/layout';
@@ -429,11 +429,20 @@ export default function FlankerGame() {
         toolbar={
           /* RTL-пин: кнопка ← обязана быть физически СЛЕВА (S-R совместимость), иначе в ar психометрика рушится */
           <View style={styles.toolbarLtr}>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
-              <Ionicons name="arrow-back" size={32} color="#FFF" />
+            {/*
+              🔴 ОБЕ КНОПКИ ОДНИМ ЦВЕТОМ, 10.09.2026. Стояли GRADIENT[0] и
+              GRADIENT[1] — две РАЗНЫЕ заливки на левой и правой. Цвет тут ничего
+              не значит (ответ задаёт направление стрелки), а разные цвета читались
+              как «цвет что-то кодирует» — ложный сигнал.
+              Акцент темы вместо брендового градиента: он меняется вместе с темой,
+              а зашитый хекс в тёмной давал контраст 1,30 при норме 3,0.
+              Подпись — `textOn`, а не зашитый белый.
+            */}
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { backgroundColor: colors.primary }]} onPress={() => handleAnswer('left')}>
+              <Ionicons name="arrow-back" size={32} color={textOn(colors.primary)} />
             </TouchableOpacity>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
-              <Ionicons name="arrow-forward" size={32} color="#FFF" />
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { backgroundColor: colors.primary }]} onPress={() => handleAnswer('right')}>
+              <Ionicons name="arrow-forward" size={32} color={textOn(colors.primary)} />
             </TouchableOpacity>
           </View>
         }
