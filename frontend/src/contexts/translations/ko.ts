@@ -2120,6 +2120,7 @@ const t: Record<string, string> = {
   "cptTapLetter": "{letter}가 나오면 모두 누르세요. 놓치지 마세요!",
   "cptTapAXLetter": "바로 앞에 A가 있었을 때만 {letter}를 누르세요",
   "cptTapColor": "A 다음의 빨간 {letter}만. 다른 색은 건드리지 마세요",
+  "cptTapBtn": "이게 목표입니다",
   "cptLvlParamsColor": "AX-CPT · A 다음 빨간 {letter}만 · 비슷한 글자 · 90초",
   "cptLvlParamsLetter": "AX-CPT · A 다음에만 {letter} 누르기 · 비슷한 글자 · 90초",
   "prlModeLevels": "레벨 — 단계별 상승",

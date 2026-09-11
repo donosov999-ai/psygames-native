@@ -35,7 +35,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_ROW } from '@/src/games/attention/layout';
+import { ANSWER_BAR_ROW, STIM_BOX, stimBox } from '@/src/games/attention/layout';
 import { ruleCatchStats } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -51,7 +51,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
-import { useScreenWidth } from '@/src/hooks/useScreenWidth';
+import { useScreenWidth, useScreenSize } from '@/src/hooks/useScreenWidth';
 
 const GRADIENT = ['#834d9b', '#d04ed6'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -311,6 +311,9 @@ export default function WcstGame() {
   // 07.09.2026: ширину берём защищённым хуком — голый useWindowDimensions()
   // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
   const screenW = useScreenWidth();
+  // Общая коробка раздела: до 10.09.2026 карточка стояла прямо на фоне.
+  const { w: winW, h: winH } = useScreenSize();
+  const ОКНО = stimBox(winW, winH);
   const refSize = refCardWidth(screenW);
   const { t, language } = useLanguage();
   const router = useRouter();
@@ -612,9 +615,21 @@ export default function WcstGame() {
       );
     }
     return (
-      <LinearGradient colors={[colors.surface, GRADIENT[1] + '18']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.targetCard, { borderColor: GRADIENT[1] }]}>
-        {inner}
-      </LinearGradient>
+      /*
+        🔴 ПОДЛОЖКА, 10.09.2026. Карточка стояла прямо на фоне — WCST был одним из
+        трёх экранов раздела без коробки, и из-за этого окно «плясало» между
+        пробами. Карточка внутри своего размера НЕ меняет: её ширина считается от
+        экрана (refCardWidth), это условие пробы.
+      */
+      <View style={[STIM_BOX, {
+        width: ОКНО.w, height: ОКНО.h,
+        backgroundColor: colors.surface,
+        borderColor: colors.border,
+      }]}>
+        <LinearGradient colors={[colors.surface, GRADIENT[1] + '18']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.targetCard, { borderColor: GRADIENT[1] }]}>
+          {inner}
+        </LinearGradient>
+      </View>
     );
   };
 
@@ -725,16 +740,6 @@ export default function WcstGame() {
            */
           { key: 'streak', icon: 'flame', label: t('hud_streak'), value: `${streak}/${ruleStreakRef.current}`, tone: 'warn' as const },
         ]}
-        stats={
-          <View style={styles.statsRow}>
-            {null}
-            {/* v1.169 (репорт Вали «в справке каждые 6 карточек, а сменилось после 10»):
-                числа «6» в справке давно нет, но взамен там «после серии верных подряд» —
-                верно и бесполезно. Порог живой: классика 10, по уровням 9 → 3. Поэтому
-                показываем ТЕКУЩИЙ прямо в счётчиках: серия и сколько до смены правила.
-                Статичное число в тексте всё равно разъехалось бы с кодом. */}
-          </View>
-        }
         toolbar={
           <View style={[styles.refRow, refSize.ряд === 2 ? { maxWidth: refSize.w * 2 + REF_GAP } : null]}>
             {REF_CARDS.map((c, i) =>
@@ -744,12 +749,17 @@ export default function WcstGame() {
         }
       >
         <View style={styles.fieldCol}>
-          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-            {ruleShiftNote ? t('wcstRuleShifted') : t('wcstHint')}
-          </Text>
           <View style={styles.targetWrap}>
             {renderCard(target, false)}
           </View>
+          {/*
+            🔴 10.09.2026 подсказка переехала ПОД коробку. Стоя над ней, она
+            опускала коробку: замер гейтом дал центр 432 против 387…411 у
+            соседей. Теперь как у всех — под стимулом, в потоке.
+          */}
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            {ruleShiftNote ? t('wcstRuleShifted') : t('wcstHint')}
+          </Text>
         </View>
       </GameShell>
     );

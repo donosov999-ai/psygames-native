@@ -2120,6 +2120,7 @@ const t: Record<string, string> = {
   "cptTapLetter": "Appuie sur chaque {letter}. N'en rate aucun !",
   "cptTapAXLetter": "Appuie sur {letter} seulement si un A le précédait",
   "cptTapColor": "Seulement un {letter} ROUGE après un A. Une autre couleur : n'y touche pas",
+  "cptTapBtn": "C'est la cible",
   "cptLvlParamsColor": "AX-CPT · seulement {letter} ROUGE après A · lettres ressemblantes · 90 s",
   "cptLvlParamsLetter": "AX-CPT · appuie sur {letter} seulement après A · lettres ressemblantes · 90 s",
   "prlModeLevels": "Niveaux — progression",

@@ -40,7 +40,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
+import { stimBox, ANSWER_BAR_ROW, STIM_BOX } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -493,11 +493,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   // Размеры приходят из stimBox() — общая коробка раздела.
-  stimBox: {
-    borderRadius: 16,
-    justifyContent: 'center', alignItems: 'center',
-    position: 'relative',
-  },
+  stimBox: { ...STIM_BOX, position: 'relative' },
   choiceBtn: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
   // RTL-пин: раскладка кнопок лево/право не зеркалится в ar (web: writingDirection → CSS direction)
   toolbarLtr: { ...ANSWER_BAR_ROW, gap: 10, writingDirection: 'ltr', maxWidth: '100%' },

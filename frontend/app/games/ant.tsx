@@ -32,7 +32,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { answerButton, stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
+import { answerButton, stimBox, ANSWER_BAR_ROW, STIM_BOX } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -539,7 +539,8 @@ const styles = StyleSheet.create({
    * узком»: разметка внутри и так центрируется, ужиматься ей есть куда.
    */
   // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
-  stimBox: { borderRadius: 14, borderWidth: 2, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
+  // ⚠️ justifyContent своё: содержимое ANT — колонка рядов, а не один стимул.
+  stimBox: { ...STIM_BOX, justifyContent: 'space-between', paddingVertical: 16 },
   row: { height: 50, justifyContent: 'center', alignItems: 'center' },
   cueDot: { color: '#fbbf24', fontSize: 36, fontWeight: '900' },
   // RTL-пин: стрелочный стимул и кнопки лево/право не зеркалятся в ar (web: writingDirection → CSS direction)

@@ -2121,6 +2121,7 @@ const t: Record<string, string> = {
   "cptTapLetter": "اضغط على كل {letter}. لا تفوّت أيًّا منها!",
   "cptTapAXLetter": "اضغط {letter} فقط إذا سبقها حرف A",
   "cptTapColor": "فقط {letter} الأحمر بعد A. أي لون آخر — لا تلمسه",
+  "cptTapBtn": "هذا هو الهدف",
   "cptLvlParamsColor": "AX-CPT · فقط {letter} أحمر بعد A · حروف متشابهة · ٩٠ ثانية",
   "cptLvlParamsLetter": "AX-CPT · اضغط {letter} بعد A فقط · حروف متشابهة · ٩٠ ثانية",
   "prlModeLevels": "مستويات — تدرّج",

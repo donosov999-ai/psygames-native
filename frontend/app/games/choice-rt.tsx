@@ -27,7 +27,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { answerButton, stimBox } from '@/src/games/attention/layout';
+import { answerButton, stimBox, STIM_BOX } from '@/src/games/attention/layout';
 import { AnswerBar } from '@/src/games/attention/AnswerBar';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 15, fontWeight: '700' },
   // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
-  stimulusBox: { borderRadius: 24, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
+  stimulusBox: { ...STIM_BOX },
   waitText: { fontSize: 60, opacity: 0.5 },
   padGrid: { gap: 8, alignItems: 'center' },
   // RTL-пин: пад-кнопки ←/→ должны стоять на своих физических сторонах (глифы стрелок не зеркалятся)

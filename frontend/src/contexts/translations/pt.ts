@@ -2125,6 +2125,7 @@ const t: Record<string, string> = {
   "cptTapLetter": "Toca em cada {letter}. Não deixes escapar!",
   "cptTapAXLetter": "Toca em {letter} só se ANTES apareceu um A",
   "cptTapColor": "Só o {letter} VERMELHO depois de um A. Outra cor — não toques",
+  "cptTapBtn": "É o alvo",
   "cptLvlParamsColor": "AX-CPT · só {letter} VERMELHO depois de A · letras parecidas · 90 s",
   "cptLvlParamsLetter": "AX-CPT · toca em {letter} só depois de A · letras parecidas · 90 s",
   "prlModeLevels": "Níveis — progressão",

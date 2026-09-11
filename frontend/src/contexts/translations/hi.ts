@@ -2128,6 +2128,7 @@ const t: Record<string, string> = {
   "cptTapLetter": "हर {letter} पर दबाएँ। एक भी न छूटे!",
   "cptTapAXLetter": "{letter} तभी दबाएँ जब उससे पहले A आया हो",
   "cptTapColor": "A के बाद केवल लाल {letter}। दूसरा रंग — हाथ न लगाएँ",
+  "cptTapBtn": "यही लक्ष्य है",
   "cptLvlParamsColor": "AX-CPT · A के बाद केवल लाल {letter} · मिलते-जुलते अक्षर · 90 सेकंड",
   "cptLvlParamsLetter": "AX-CPT · {letter} केवल A के बाद दबाएँ · मिलते-जुलते अक्षर · 90 सेकंड",
   "prlModeLevels": "स्तर — क्रमिक प्रगति",

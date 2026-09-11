@@ -27,7 +27,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { makeDecoys, DECOYS_MAX } from '@/src/games/attention/decoys';
-import { stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
+import { stimBox, ANSWER_BAR_ROW, STIM_BOX } from '@/src/games/attention/layout';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -617,7 +617,8 @@ export default function SwitchingTaskGame() {
           <View style={[styles.stimBox, {
             width: ОКНО.w, height: ОКНО.h,
             backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
-            borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.textSecondary,
+            // colors.border, как у остальных: textSecondary давал кромку #838387 против #E5E5EA у соседей
+            borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border,
           }]}>
             {renderStim()}
           </View>
@@ -697,7 +698,7 @@ const styles = StyleSheet.create({
   cueBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 11, borderRadius: 22 },
   cueText: { color: '#FFF', fontSize: 17, fontWeight: '800', letterSpacing: 0.3 },
   cueSwitch: { color: '#FFF', fontSize: 18, fontWeight: '900' },
-  stimBox: { borderRadius: 24, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
+  stimBox: { ...STIM_BOX },
   stimText: { fontWeight: '900' },
   // RTL-пин: подписи кнопок содержат ←/→ (глифы не зеркалятся) — раскладка не переворачивается в ar
   // alignItems обязателен: без него ряд постоянной высоты растягивает кнопки на всю

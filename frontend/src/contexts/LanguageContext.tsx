@@ -3437,6 +3437,9 @@ const translations: Translations = {
   // {letter} подставляет сама игра (пакет переводов подстановки не делает).
   cptTapLetter: { ru: 'Жми на каждую {letter}. Не пропускай!', en: 'Tap every {letter}. Don\'t miss!' },
   cptTapAXLetter: { ru: 'Жми только на {letter}, если ПЕРЕД ней была A', en: 'Tap {letter} only if it followed A' },
+  // Короткая подпись кнопки ответа: полное правило стоит в подсказке над полем,
+  // дублировать его на кнопке незачем — одна и та же фраза дважды на экране.
+  cptTapBtn: { ru: 'Это мишень', en: "That's the target" },
   cptTapColor: { ru: 'Только КРАСНАЯ {letter} после A. Другой цвет — не трогай', en: 'Only a RED {letter} after A. Ignore other colours' },
   cptLvlParamsColor: { ru: 'AX-CPT · только КРАСНАЯ {letter} после A · похожие буквы · 90 сек', en: 'AX-CPT · only a RED {letter} after A · look-alikes · 90 s' },
   cptLvlParamsLetter: { ru: 'AX-CPT · жми на {letter} только после A · похожие буквы · 90 сек', en: 'AX-CPT · tap {letter} only after A · look-alikes · 90 s' },
