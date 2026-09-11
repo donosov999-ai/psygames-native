@@ -335,6 +335,7 @@ export default function ChineseTonesGame() {
             <GameAuxAction icon="volume-high" label={t('replaySound')} disabled={answered !== null} onPress={replay} />
           </GameAuxBar>
         }
+        auxInHud
         bottom="answer"
         toolbar={
           <View style={p.pinyinMode ? styles.answerCol : styles.answerRow}>

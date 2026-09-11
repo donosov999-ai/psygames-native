@@ -353,16 +353,21 @@ export default function PhonemicFluencyGame() {
           { key: 'left', icon: 'time', label: t('timeLeftLabel'), value: `${remaining}${t('secShort')}`, tone: remaining <= 10 ? 'warn' as const : 'accent' as const },
           { key: 'words', icon: 'text', label: t('hud_words'), value: validCount, tone: 'good' as const, pop: true },
         ]}
-        stats={
-          <View style={styles.statsRow}>
-            {null}
-            <View style={[styles.letterBox, { borderColor: GRADIENT[0] }]}>
-              {/* Подпись к стимулу: без неё в шапке просто висит большая буква */}
-              <Text style={[styles.letterCap, { color: colors.textSecondary }]}>{t('hud_letter')}</Text>
-              <Text style={[styles.letterBig, { color: colors.text }]}>{letter}</Text>
-            </View>
-          </View>
-        }
+        /**
+         * 🔴 БУКВА-СТИМУЛ ПЕРЕЕХАЛА ИЗ ШАПКИ В ПОЛЕ — 11.09.2026, задача 013d9af5.
+         *
+         * 📍 ЗАМЕР (`screen-geometry.mjs`, 390×844): у этого экрана полоса
+         * показателей была **141 px вместо канонных 61**, а верх поля 199 вместо
+         * 119 — худшее отклонение из всех 85 измеримых экранов приложения.
+         * Причину даёт арифметика: 61 + круг буквы 80×80 = ровно 141.
+         *
+         * ⚠️ ПРЕДПИСАНИЕ ЗАДАЧИ ЗДЕСЬ НЕ ПОДХОДИТ ДОСЛОВНО. Там сказано «убрать
+         * из шапки счётчик, за которым не следят ПО ХОДУ партии». За буквой
+         * следят всю партию — она и есть задание («Слова на букву Н»). Поэтому
+         * не убрана, а перенесена туда, где у остальных игр раздела живёт
+         * стимул: в поле. Слово в словаре, фраза в пропущенном слове, буква
+         * здесь — одно и то же место.
+         */
         /**
          * 🔴 ОТВЕТ ПЕРЕЕХАЛ В НИЖНИЙ СЛОТ — 11.09.2026. Раньше ввод и «+ добавить»
          * стояли в поле, и рядом было объяснение «чтобы рядом с клавиатурой».
@@ -413,6 +418,11 @@ export default function PhonemicFluencyGame() {
         }
       >
         <View style={styles.fieldCol}>
+          <View style={[styles.letterBox, { borderColor: GRADIENT[0] }]}>
+            {/* Подпись к стимулу: без неё просто висит большая буква */}
+            <Text style={[styles.letterCap, { color: colors.textSecondary }]}>{t('hud_letter')}</Text>
+            <Text style={[styles.letterBig, { color: colors.text }]}>{letter}</Text>
+          </View>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
             {t('phonemicHint').replace('{L}', letter)}
           </Text>
@@ -492,7 +502,6 @@ const styles = StyleSheet.create({
   fieldCol: { flex: 1, alignSelf: 'stretch', paddingVertical: 8, gap: 14, alignItems: 'center' },
   /** Полоса ответа: поле набора и «+ добавить» в один столбец, как у соседей раздела. */
   answerCol: { width: '100%', alignItems: 'center', gap: 10 },
-  statsRow: { flexDirection: 'row', gap: 24, alignItems: 'center', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '900' },
   letterBox: { width: 80, height: 80, borderRadius: 40, borderWidth: 3, justifyContent: 'center', alignItems: 'center' },
   letterBig: { fontSize: 40, fontWeight: '900' },

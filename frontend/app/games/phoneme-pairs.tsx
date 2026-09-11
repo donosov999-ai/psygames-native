@@ -511,6 +511,7 @@ export default function PhonemePairsGame() {
             />
           </GameAuxBar>
         }
+        auxInHud
         bottom="answer"
         toolbar={
           <View style={styles.toolbarCol}>
