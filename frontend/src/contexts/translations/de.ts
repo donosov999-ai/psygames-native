@@ -2125,6 +2125,7 @@ const t: Record<string, string> = {
   "cptTapLetter": "Tippe jedes {letter}. Nichts auslassen!",
   "cptTapAXLetter": "Tippe {letter} nur, wenn DAVOR ein A stand",
   "cptTapColor": "Nur ein ROTES {letter} nach einem A. Andere Farbe — nicht antippen",
+  "cptTapBtn": "Das ist das Ziel",
   "cptLvlParamsColor": "AX-CPT · nur rotes {letter} nach A · ähnliche Buchstaben · 90 Sek.",
   "cptLvlParamsLetter": "AX-CPT · {letter} nur nach A antippen · ähnliche Buchstaben · 90 Sek.",
   "prlModeLevels": "Level — Progression",

@@ -2119,6 +2119,7 @@ const t: Record<string, string> = {
   "cptTapLetter": "{letter} が出たら必ず押す。見逃さないで！",
   "cptTapAXLetter": "直前が A のときだけ {letter} を押す",
   "cptTapColor": "A のあとの赤い {letter} だけ。ほかの色は触らない",
+  "cptTapBtn": "これがターゲット",
   "cptLvlParamsColor": "AX-CPT · A のあとの赤い {letter} だけ · 似た文字 · 90秒",
   "cptLvlParamsLetter": "AX-CPT · A のあとだけ {letter} を押す · 似た文字 · 90秒",
   "prlModeLevels": "レベル — 段階的に難化",

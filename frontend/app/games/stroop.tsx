@@ -25,8 +25,8 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_ROW } from '@/src/games/attention/layout';
-import { answerButton, BTN_GAP } from '@/src/games/attention/layout';
+import { ANSWER_BAR_ROW, answerButton, STIM_BOX, stimBox } from '@/src/games/attention/layout';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -237,6 +237,9 @@ export default function StroopGame() {
   // 07.09.2026: ширину берём защищённым хуком — голый useWindowDimensions()
   // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
   const screenW = useScreenWidth();
+  // Размер общей коробки раздела — от экрана, а не своё число (см. STIM_BOX).
+  const { w: winW, h: winH } = useScreenSize();
+  const ОКНО = stimBox(winW, winH);
   const БТН = answerButton('choice', screenW);   // общий макет раздела
   const router = useRouter();
 
@@ -577,19 +580,34 @@ export default function StroopGame() {
             размера не меняет — уменьшив его, мы добавили бы к пробе остроту
             зрения, а меряем не её.
           */}
-          <View style={{ alignItems: 'center', gap: 4 }}>
-            <View style={{ flexDirection: 'row', gap: 18 }}>
-              {decoys.slice(0, Math.ceil(decoys.length / 2)).map((g, k) => (
-                <Text key={`dt${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
-              ))}
-            </View>
-            <Text style={[styles.bigWord, { color: inkColor.hex }]}>
-              {language === 'ru' ? word.ru : word.en}
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 18 }}>
-              {decoys.slice(Math.ceil(decoys.length / 2)).map((g, k) => (
-                <Text key={`db${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
-              ))}
+          {/*
+            🔴 ПОДЛОЖКА ПОД СЛОВОМ, 10.09.2026. До этого слово стояло прямо на фоне
+            экрана — единственная проба раздела без коробки вместе с WCST и
+            мишенями. Владелец увидел это первым, поставив три экрана рядом:
+            «пляшет между тремя экранами окно вывода».
+            ⚠️ Размер слова НЕ меняется: 308 px влезают в коробку 360 с полями 26
+            по бокам. Уменьшать шрифт нельзя — это добавило бы к пробе остроту
+            зрения, а меряем не её.
+          */}
+          <View style={[STIM_BOX, {
+            width: ОКНО.w, height: ОКНО.h,
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+          }]}>
+            <View style={{ alignItems: 'center', gap: 4 }}>
+              <View style={{ flexDirection: 'row', gap: 18 }}>
+                {decoys.slice(0, Math.ceil(decoys.length / 2)).map((g, k) => (
+                  <Text key={`dt${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
+                ))}
+              </View>
+              <Text style={[styles.bigWord, { color: inkColor.hex }]}>
+                {language === 'ru' ? word.ru : word.en}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 18 }}>
+                {decoys.slice(Math.ceil(decoys.length / 2)).map((g, k) => (
+                  <Text key={`db${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
+                ))}
+              </View>
             </View>
           </View>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>

@@ -804,7 +804,7 @@ export default function TargetsGame() {
     >
       <View style={styles.fieldCol}>
         {/* Shapes Display */}
-        <View style={[styles.shapesArea, { backgroundColor: colors.surface }]}>
+        <View style={[styles.shapesArea, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {feedback && (
             <View style={[
               styles.feedbackBadge,
@@ -1033,8 +1033,16 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 12 },
   statValue: { fontSize: 20, fontWeight: '700', marginTop: 2 },
   shapesArea: {
+    /**
+     * ⚠️ `flex: 1` оставлен НАМЕРЕННО. Поле 370×488 — это площадь поиска, а она
+     * параметр пробы: сжав её до общей коробки 360×300, мы изменили бы разнос
+     * фигур и саму задачу. Решение владельца 10.09.2026: «мишеням только радиус
+     * и рамка, размер не трогать».
+     * Радиус здесь уже совпадал с общим STIM_RADIUS = 20; добавлена рамка.
+     */
     flex: 1,
     borderRadius: 20,
+    borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,

@@ -35,7 +35,7 @@ import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientTe
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { stimBox, answerButton } from '@/src/games/attention/layout';
+import { stimBox, answerButton, STIM_BOX } from '@/src/games/attention/layout';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { AnswerBar } from '@/src/games/attention/AnswerBar';
 import { vigilanceAccuracySlope } from '@/src/games/attention/measures';
@@ -852,19 +852,22 @@ export default function CPTGame() {
             { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const, pop: true },
             { key: 'trials', icon: 'repeat', label: t('hud_trials'), value: trialIdx },
           ]}
-          stats={
-            <View style={styles.statsRow}>
-              <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
-            </View>
-          }
           /* 🔴 САМЫЙ ОСТРЫЙ СЛУЧАЙ ПРАВИЛА СЛОТОВ. Ответ в CPT — тап по окну
              стимула в ПОЛЕ, и бьют по нему полторы минуты на скорость. Раньше
              прямо под этим окном, в нижней полосе — той самой, которая во
              «Фланкере» и «Саймоне» означает ответ, — стоял «СТОП»,
              заканчивающий сеанс. Промах вниз стоил всей пробы.
              Теперь «СТОП» в шапке, как и у остальных упражнений с сеансом. */
+          /**
+           * 🔴 10.09.2026 ДВЕ ПОЛОСЫ НАД ПОЛЕМ ВМЕСТО ТРЁХ. Бейдж правил жил в
+           * отдельном слоте `stats`, и над полем стояло три ряда: счётчики,
+           * бейдж, «СТОП». Замер гейтом: коробка CPT на 438 против 387…411 у
+           * соседей — окно «плясало» именно из-за лишнего ряда, а не из-за
+           * коробки. Бейдж переехал в тот же ряд, что и «СТОП».
+           */
           headerActions={
             <GameAuxBar>
+              <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
               <GameAuxAction icon="stop-circle" label={t('btn_stop')} danger onPress={stop} />
             </GameAuxBar>
           }
@@ -880,12 +883,8 @@ export default function CPTGame() {
                 onPress={() => handleTap('bar')}
                 style={{ width: КНОПКА.w, height: КНОПКА.h, borderRadius: КНОПКА.radius,
                          backgroundColor: GRADIENT[0], justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '800' }}>
-                  {(rule.colorRule
-                    ? t('cptTapColor')
-                    : t(rule.mode === 'AX' ? 'cptTapAXLetter' : 'cptTapLetter')
-                  ).replace('{letter}', rule.target)}
-                </Text>
+                {/* Короткая подпись: полное правило стоит в подсказке над полем. */}
+                <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '800' }}>{t('cptTapBtn')}</Text>
               </TouchableOpacity>
             </AnswerBar>
           }
@@ -914,8 +913,14 @@ export default function CPTGame() {
                  * цель выскакивает сама. Нашлось при заведении цветового
                  * правила — с подсветкой оно было бы бессмысленным вдвойне.
                  */
-                borderColor: fbColor || colors.border,
-                borderWidth: letterVisible ? 3 : 1,
+                /**
+                 * ⚠️ Толщина рамки БОЛЬШЕ НЕ МЕНЯЕТСЯ (было `letterVisible ? 3 : 1`).
+                 * Она росла ровно в тот момент, когда буква уже видна, и внутренняя
+                 * область прыгала на 4 px ПОД стимулом — то есть стимул съезжал
+                 * в момент ответа. Постоянная 2 приходит из STIM_BOX; видимость
+                 * показываем цветом, а не толщиной.
+                 */
+                borderColor: fbColor || (letterVisible ? colors.text : colors.border),
               }]}
             >
               {letterVisible && (
@@ -1002,7 +1007,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
-  stimBox: { borderRadius: 28, justifyContent: 'center', alignItems: 'center' },  // размеры задаются инлайном от защищённого useScreenSize()
+  stimBox: { ...STIM_BOX },   // размеры задаются инлайном от защищённого useScreenSize()
   stimText: { fontWeight: '900' },                                                // fontSize задаётся инлайном (масштаб окна)
   fixCross: { fontSize: 48, opacity: 0.4 },
   // ⚠️ Осиротело после разводки слотов: СТОП уехал в шапку (GameAuxAction).

@@ -2125,6 +2125,7 @@ const t: Record<string, string> = {
   "cptTapLetter": "每个 {letter} 都要按，别漏！",
   "cptTapAXLetter": "只有前面出现过 A 时，才按 {letter}",
   "cptTapColor": "只按 A 之后的红色 {letter}。别的颜色不要碰",
+  "cptTapBtn": "这就是目标",
   "cptLvlParamsColor": "AX-CPT · 只按 A 之后的红色 {letter} · 相似字母 · 90 秒",
   "cptLvlParamsLetter": "AX-CPT · 只在 A 之后按 {letter} · 相似字母 · 90 秒",
   "prlModeLevels": "关卡——逐级进阶",

@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
+import { stimBox, ANSWER_BAR_ROW, STIM_BOX } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
-  stimBox: { borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  stimBox: { ...STIM_BOX },
   // RTL-пин (writingDirection → CSS direction на web, на нативе no-op): направленный
   // стимул и раскладка кнопок лево/право не зеркалятся в ar
   arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 4, writingDirection: 'ltr' },
