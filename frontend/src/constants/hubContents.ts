@@ -239,10 +239,23 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/puzzles?mode=Inertia', icon: 'diamond', nameKey: 'puzzlesInertia', descKey: 'puzzlesInertiaDesc' },
   ],
 
+  /**
+   * 🔴 ПЯТЬ, А НЕ ТРИ (решение Дениса 11.09.2026). Две последние — из папки `unfinished`
+   * канона Тэтхэма, шестого раздела коллекции, которого нет на его сайте. Взяты за
+   * ПРОСТРАНСТВЕННУЮ ось: «Клоцки» — планирование перестановок на тесной доске,
+   * «Сокобан» — необратимость хода (бочку, загнанную в угол, не вытащить).
+   * Обе играются тапом, крестовина не нужна: замер `interpret_move` — у `slide.c` это
+   * LEFT_BUTTON/DRAG/RELEASE, у `sokoban.c` клик задаёт направление относительно игрока.
+   * ⚠️ Число карточек закреплено ЛИТЕРАЛОМ в `hub-not-empty-in-every-profile.test.ts` —
+   * меняя состав, правь и его, иначе проба покраснеет (так и задумано).
+   * Движки, лестница Сокобана и запрет своих параметров у Клоцков — `tatham-bridge/names.ts`.
+   */
   '/games/spatial-hub': [
     { route: '/games/mental-rotation', icon: 'cube', nameKey: 'mentalRotation', descKey: 'mentalRotationDesc' },
     { route: '/games/spatial-lab?mode=twiddle', icon: 'sync-circle', nameKey: 'spatialTwiddle', descKey: 'spatialTwiddleDesc' },
     { route: '/games/spatial-lab?mode=net', icon: 'git-network', nameKey: 'spatialNet', descKey: 'spatialNetDesc' },
+    { route: '/games/puzzles?mode=Slide', icon: 'albums', nameKey: 'puzzlesSlide', descKey: 'puzzlesSlideDesc' },
+    { route: '/games/puzzles?mode=Sokoban', icon: 'cube-outline', nameKey: 'puzzlesSokoban', descKey: 'puzzlesSokobanDesc' },
   ],
   '/games/sorting-hub': [
     { route: '/games/goods-sort', icon: 'basket', nameKey: 'goodsSort', descKey: 'goodsSortDesc' },
