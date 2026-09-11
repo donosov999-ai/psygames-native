@@ -566,18 +566,31 @@ export default function StroopGame() {
         }
       >
         <View style={styles.fieldCol}>
-          {/* Помехи по бокам слова. Само слово размера НЕ меняет: уменьшив его,
-              мы добавили бы к пробе остроту зрения, а меряем не её. */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, writingDirection: 'ltr' } as any}>
-            {decoys.slice(0, Math.ceil(decoys.length / 2)).map((g, k) => (
-              <Text key={`dl${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
-            ))}
+          {/*
+            🔴 ПОМЕХИ НАД И ПОД СЛОВОМ, А НЕ ПО БОКАМ. Первая редакция ставила их
+            в строку — и слово «КРАСНЫЙ» на русском (56 px, letterSpacing 4) уже
+            занимает почти всю ширину экрана: правый знак уезжал ЗА КРАЙ, два из
+            четырёх не показывались вовсе. Видно это было только на скриншоте
+            живого L12 — по ширине букв заранее не посчитаешь.
+            Сверху и снизу поле пустое, и переполнение становится невозможным ПО
+            ПОСТРОЕНИЮ: помехи не добавляют ширины ни на пиксель. Слово при этом
+            размера не меняет — уменьшив его, мы добавили бы к пробе остроту
+            зрения, а меряем не её.
+          */}
+          <View style={{ alignItems: 'center', gap: 4 }}>
+            <View style={{ flexDirection: 'row', gap: 18 }}>
+              {decoys.slice(0, Math.ceil(decoys.length / 2)).map((g, k) => (
+                <Text key={`dt${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
+              ))}
+            </View>
             <Text style={[styles.bigWord, { color: inkColor.hex }]}>
               {language === 'ru' ? word.ru : word.en}
             </Text>
-            {decoys.slice(Math.ceil(decoys.length / 2)).map((g, k) => (
-              <Text key={`dr${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
-            ))}
+            <View style={{ flexDirection: 'row', gap: 18 }}>
+              {decoys.slice(Math.ceil(decoys.length / 2)).map((g, k) => (
+                <Text key={`db${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
+              ))}
+            </View>
           </View>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
             {trialRule === 'ink' ? t('stroopHintInk') : t('stroopHintWord')}
