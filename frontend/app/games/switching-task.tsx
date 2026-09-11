@@ -548,10 +548,10 @@ export default function SwitchingTaskGame() {
       <Text key={k} style={[styles.stimText, { fontSize: stStim * 0.20, color: colors.textSecondary }]}>{g}</Text>
     );
     return (
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, writingDirection: 'ltr' } as any}>
-        {п.slice(0, бок).map(знак)}
+      <View style={{ alignItems: 'center', gap: 4 }}>
+        <View style={{ flexDirection: 'row', gap: 14 }}>{п.slice(0, бок).map(знак)}</View>
         {ядро}
-        {п.slice(бок).map((g, k) => знак(g, k + бок))}
+        <View style={{ flexDirection: 'row', gap: 14 }}>{п.slice(бок).map((g, k) => знак(g, k + бок))}</View>
       </View>
     );
   };
