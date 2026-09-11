@@ -301,6 +301,29 @@ export default function ProofreadingGame() {
     setMode(language === 'ru' ? 'cyrillic' : 'latin');
   }, [языкГотов, language]);
   const [wrongFlash, setWrongFlash] = useState<number | null>(null);
+  /**
+   * 🔴 ПОДСКАЗКА В КОРРЕКТУРЕ: ПОКАЗАТЬ ОДНУ ЦЕЛЬ, А НЕ ЗАСЧИТАТЬ ЕЁ.
+   *
+   * 📍 Два отчёта NZT-48 об одном и том же: `26af9227` (05.09.2026, «подсказка
+   * ни фига не работает») и `19eaaa3a` (08.09.2026, «подсказки не работают»).
+   * Первый закрыли версией 2.43.0 БЕЗ `fix_note`, и через три дня он вернулся
+   * слово в слово. Замер 09.09 объяснил почему: подсказки в этом режиме НЕ
+   * БЫЛО ВОВСЕ — кнопка рисовалась только при `fwPlaying`, то есть в змейке.
+   * Человек искал её в сетке букв и не находил; «не работает» было точным
+   * описанием, а не преувеличением.
+   *
+   * ⚠️ ПОКАЗЫВАЕТ, А НЕ РЕШАЕТ. Клетку не засчитываем — подсвечиваем, и нажать
+   * её человек должен сам. Иначе подсказка отменяет само упражнение: корректура
+   * это зрительный поиск, и «нашлось само» ему не равно. Тот же выбор сделан у
+   * змейки (`takeHint` подсвечивает неразобранное) — держим одну механику.
+   *
+   * ЦЕНА. Взятая подсказка идёт в `mistakes` наравне с промахом, как и в
+   * змейке: иначе ею проходится весь уровень. Запас — три на партию.
+   */
+  const ПОДСКАЗОК_В_КОРРЕКТУРЕ = 3;
+  const [подсказкаКлетка, setПодсказкаКлетка] = useState<number | null>(null);
+  const [подсказокВзято, setПодсказокВзято] = useState(0);
+  const подсказокВзятоRef = useRef(0);
   const [grid, setGrid] = useState<string[]>([]);
   const [targetLetters, setTargetLetters] = useState<string[]>([]);
   const [foundIndices, setFoundIndices] = useState<Set<number>>(new Set());
@@ -528,6 +551,9 @@ export default function ProofreadingGame() {
     rowsRef.current = r;
     colsRef.current = c;
     errorsRef.current = 0;
+    подсказокВзятоRef.current = 0;
+    setПодсказокВзято(0);
+    setПодсказкаКлетка(null);
     finishedRef.current = false;
     if (!fillwordsRound) generateGrid(r, c);
     setErrors(0);
@@ -557,7 +583,9 @@ export default function ProofreadingGame() {
     const missed = Math.max(0, total - found);
     const errs = errorsRef.current;
     /** Подсказка — цена уровня: в звёздах она стоит столько же, сколько промах. */
-    const hintsTaken = fwRoundRef.current && fwSessionRef.current ? fwSessionRef.current.hints : 0;
+    const hintsTaken = fwRoundRef.current && fwSessionRef.current
+      ? fwSessionRef.current.hints
+      : подсказокВзятоRef.current;   // в буквах цена та же — см. разбор у состояния
     /**
      * ПРОХОД УРОВНЯ СЧИТАЕТСЯ ПО-РАЗНОМУ, И ЭТО ГЛАВНОЕ ОТЛИЧИЕ ДВУХ ЗАДАНИЙ.
      *
@@ -625,6 +653,8 @@ export default function ProofreadingGame() {
 
   const handleCellPress = (index: number) => {
     if (finishedRef.current || foundIndices.has(index)) return;
+    // Подсказанную клетку гасим при любом нажатии на неё: показ своё дело сделал.
+    if (подсказкаКлетка === index) setПодсказкаКлетка(null);
 
     if (targetIndices.has(index)) {
       hapticSuccess();
@@ -767,6 +797,20 @@ export default function ProofreadingGame() {
   const fwFound = fwSession ? fwSession.found.length : 0;
   const fwTotalWords = fwSession ? fwSession.puzzle.words.length : 0;
   const fwLettersLeft = fwSession ? lettersLeft(fwSession) : 0;
+
+  /**
+   * Показать ОДНУ ненайденную цель. Берём первую по порядку поля, а не
+   * случайную: человек должен понимать, что именно ему показали, и увидеть
+   * закономерность («мне показывают ближайшую сверху»), а не гадать.
+   */
+  const взятьПодсказкуБукв = () => {
+    if (finishedRef.current || подсказокВзятоRef.current >= ПОДСКАЗОК_В_КОРРЕКТУРЕ) return;
+    const остались = [...targetIndices].filter((i) => !foundIndices.has(i));
+    if (остались.length === 0) return;
+    подсказокВзятоRef.current += 1;
+    setПодсказокВзято(подсказокВзятоRef.current);
+    setПодсказкаКлетка(остались[0]!);
+  };
 
   const fwTakeHint = () => {
     const session = fwSessionRef.current;
@@ -1416,17 +1460,23 @@ export default function ProofreadingGame() {
       title={t('proofreading')}
       onBack={() => goBackOrHome()}
       scrollableField
-      headerActions={fwPlaying ? (
-        /* Подсказка — СЛУЖЕБНОЕ действие (тратит ресурс уровня), поэтому она в
-           шапке, а не в нижней полосе: правило слотов каркаса, см. GameShell. */
+      /* Подсказка — СЛУЖЕБНОЕ действие (тратит ресурс уровня), поэтому она в
+         шапке, а не в нижней полосе: правило слотов каркаса, см. GameShell.
+         🔴 Раньше здесь стояло `fwPlaying ? … : undefined`, то есть в САМОЙ
+         корректуре кнопки не было вовсе — отчёты 19eaaa3a и 26af9227. */
+      headerActions={
         <GameAuxBar>
           <GameAuxAction
             icon="bulb-outline" tint="#0d9488"
-            ladder="hint" label={t('btn_hint')} count={fwHintsLeft}
-            disabled={fwHintsLeft === 0} onPress={fwTakeHint}
+            ladder="hint" label={t('btn_hint')}
+            count={fwPlaying ? fwHintsLeft : ПОДСКАЗОК_В_КОРРЕКТУРЕ - подсказокВзято}
+            disabled={fwPlaying
+              ? fwHintsLeft === 0
+              : подсказокВзято >= ПОДСКАЗОК_В_КОРРЕКТУРЕ || foundIndices.size >= targetIndices.size}
+            onPress={fwPlaying ? fwTakeHint : взятьПодсказкуБукв}
           />
         </GameAuxBar>
-      ) : undefined}
+      }
       /*
         🔴 СЧЁТЧИКИ — ДАННЫМИ, ПЛИТКИ ИСКОМЫХ БУКВ — ВЁРСТКОЙ.
         `hud` умеет подпись со значением, но не цветную плитку буквы, а плитка
@@ -1592,8 +1642,12 @@ export default function ProofreadingGame() {
       <View testID="proof-grid" style={[styles.gridContainer, { width: gridWidth }]}>
         {grid.map((letter, index) => {
           // Цель до нажатия НЕ подсвечивается — в этом вся проба: её надо
-          // увидеть самому. Поэтому здесь только «уже найдено».
+          // увидеть самому. Поэтому здесь только «уже найдено»…
           const isFound = foundIndices.has(index);
+          // …и ОДНА клетка, которую человек попросил показать сам, заплатив за
+          // это звездой. Цвет тот же, что у плиток задания в шапке, — человек
+          // уже связал его со словом «искать».
+          const подсказана = подсказкаКлетка === index && !isFound;
 
           return (
             <TouchableOpacity
@@ -1604,7 +1658,9 @@ export default function ProofreadingGame() {
                 {
                   width: cellSize - 2,
                   height: cellSize - 2,
-                  backgroundColor: isFound ? GRADIENT[0] : wrongFlash === index ? '#f43f5e' : colors.surface,
+                  backgroundColor: isFound ? GRADIENT[0]
+                    : подсказана ? '#fbbf24'
+                      : wrongFlash === index ? '#f43f5e' : colors.surface,
                 },
               ]}
               onPress={() => handleCellPress(index)}
@@ -1615,8 +1671,8 @@ export default function ProofreadingGame() {
                   styles.cellText,
                   {
                     fontSize: Math.min(cellSize * 0.5, 24),
-                    color: isFound ? '#333' : wrongFlash === index ? '#fff' : colors.text,
-                    fontWeight: isFound || wrongFlash === index ? '700' : '500',
+                    color: isFound || подсказана ? '#333' : wrongFlash === index ? '#fff' : colors.text,
+                    fontWeight: isFound || подсказана || wrongFlash === index ? '700' : '500',
                   },
                 ]}
               >
