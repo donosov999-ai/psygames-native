@@ -144,6 +144,21 @@ export function cellsNeeded(level: number, round: number, mode: 'static' | 'sequ
   return { need, decoys, free: total - (two ? need * 2 : need) };
 }   // с этого уровня скорость на дне и появляются клоны — дальше держит задержка
 
+/**
+ * Сколько времени дать на чтение задания перед первой вспышкой. Ноль — если эту
+ * же строку человек уже читал (тот же уровень, тот же раунд-другой).
+ *
+ * 46 мс на знак — обратное к ~21,7 зн/с, чуть щедрее «быстрых» 22 зн/с, которыми
+ * считает проба: она мерит своим числом, а не этой константой, и на 17-значной
+ * строке разница уже красила гейт (765 против 773). Нижняя граница 700 мс держит
+ * момент переключения внимания, верхняя 2200 не даёт длинной строке останавливать игру.
+ * ⚠️ Это НЕ ось сложности: пауза стоит ДО показа и запоминать легче не делает.
+ */
+export function паузаНаЧтение(подпись: string, прошлая: string): number {
+  if (подпись === прошлая) return 0;
+  return Math.min(2200, Math.max(700, подпись.length * 46));
+}
+
 export function levelParams(level: number): { gridSize: number; baseFlashes: number; flashMs: number; seriesCount: number; holdMs: number; decoys: number } {
   const gridSize = Math.min(6, 2 + level);              // L1=3 → L4=6
   const baseFlashes = 3 + Math.floor(level / 1.5);       // клеток запомнить: L1=3 → L15≈13
@@ -279,6 +294,45 @@ export default function MemoryMatrixGame() {
     setPhase('input');
   };
 
+  /**
+   * 🔴 ПОДПИСЬ ПОКАЗА — ОДНА ФУНКЦИЯ НА ЭКРАН И НА ПАУЗУ ЧТЕНИЯ.
+   * Копия правила в двух местах — тот самый дефект, которым я уже дважды ловил
+   * сам себя: мутация экрана оставляла гейт зелёным, потому что он сверялся со
+   * своей копией расчёта. Здесь строка считается один раз и обоими читается.
+   */
+  const подписьПоказа = (серия: number, ложных: number) => {
+    const две = seriesCountRef.current === 2 && matrixMode === 'static';
+    const ядро = две
+      ? (серия === 2 ? t('mmMemorizeRed') : t('mmMemorizePurple'))
+      : t('matrixMemorize');
+    return ложных > 0 ? `${ядро} · ${t('mmIgnoreCrossed')}` : ядро;
+  };
+
+  /**
+   * 🔴 ПАУЗА НА ЧТЕНИЕ ПЕРЕД ПЕРВОЙ ВСПЫШКОЙ. Отчёт «Релакс» 7be44621 (08.09.2026):
+   * «Задание не крупно и не видно сразу, пока читаешь его клетки закрываются».
+   *
+   * ЗАМЕР 11.09.2026, почему он прав и где моя вина. Подпись сменяется В МОМЕНТ
+   * вспышки, то есть окно на чтение равно длительности показа серии
+   * (`flashMs`, строки ниже). Против длины строки:
+   *   L8  — окно 940 мс, «Запомните клетки!» 17 знаков ≈ 850 мс — успевает;
+   *   L10 — окно 800 мс, та же строка — уже НЕ успевает;
+   *   L15 — окно 500 мс, «🟣 Запомни ФИОЛЕТОВЫЕ» 20 знаков ≈ 1000 мс — вдвое;
+   *   L16 — окно 500 мс, с моей припиской «· Перечёркнутые — мимо» 43 знака
+   *         ≈ 2150 мс — В 4,3 РАЗА больше, чем дано.
+   * (20 знаков/с — быстрое чтение ЗНАКОМОЙ фразы; новую читают медленнее.)
+   * Приписку добавил я 07.09 коммитом c6027391 и времени под неё не прибавил.
+   *
+   * ⚠️ ЛЕСТНИЦУ НЕ ТРОГАЕМ. Отчёт про ЧИТАЕМОСТЬ, а не про сложность: `flashMs`,
+   * `baseFlashes`, `decoys`, `holdMs` остаются как были. Пауза стоит ДО показа,
+   * запоминать легче не становится — появляется время прочесть задание.
+   *
+   * ⚠️ И НЕ КАЖДЫЙ РАУНД, иначе игра встанет. Пауза даётся, только когда подпись
+   * ОТЛИЧАЕТСЯ от показанной в прошлый раз: новый уровень, приход второй серии
+   * (L11), приход ложных вспышек (L16). Дальше человек её уже прочёл.
+   */
+  const прошлаяПодписьRef = useRef('');
+
   const newRound = (gs: number, r: number) => {
     const total = gs * gs;
     const two = seriesCountRef.current === 2 && matrixMode === 'static';   // 2 серии — только static
@@ -309,17 +363,27 @@ export default function MemoryMatrixGame() {
     setHolding(false);
     swipedCellsRef.current = new Set();   // палец могли не отрывать через feedback → новый раунд = чистый жест
     setPhase('showing');
+    setShowingSeries(0);   // клетки тёмные, пока читается задание
+
+    const начатьПоказ = () => {
+      if (matrixMode === 'static') {
+        if (two) {
+          // показать серию1 (цвет1) → серию2 (цвет2) → ввод
+          setShowingSeries(1);
+          setTimeout(() => setShowingSeries(2), flashMsRef.current);
+          setTimeout(() => { setShowingSeries(0); openInput(); }, flashMsRef.current * 2);
+        } else {
+          setShowingSeries(1);
+          setTimeout(() => { setShowingSeries(0); openInput(); }, Math.max(500, flashMsRef.current - r * 60));
+        }
+      }
+    };
 
     if (matrixMode === 'static') {
-      if (two) {
-        // показать серию1 (цвет1) → серию2 (цвет2) → ввод
-        setShowingSeries(1);
-        setTimeout(() => setShowingSeries(2), flashMsRef.current);
-        setTimeout(() => { setShowingSeries(0); openInput(); }, flashMsRef.current * 2);
-      } else {
-        setShowingSeries(1);
-        setTimeout(() => { setShowingSeries(0); openInput(); }, Math.max(500, flashMsRef.current - r * 60));
-      }
+      const подпись = подписьПоказа(1, set3.size);
+      const пауза = паузаНаЧтение(подпись, прошлаяПодписьRef.current);
+      if (пауза > 0) { прошлаяПодписьRef.current = подпись; setTimeout(начатьПоказ, пауза); }
+      else начатьПоказ();
     } else {
       // Sequential: flash cells one by one, then await ordered reproduction (1 серия)
       setShowingSeries(0);
@@ -676,14 +740,13 @@ export default function MemoryMatrixGame() {
                * ⚠️ Своего цвета у ложных нет и не будет, пока FlashCell общий на пять
                * игр (ТЗ §1): отдельное состояние `decoy` — к координатору.
                */
-              : phase === 'showing' && decoyCells.size > 0
-              ? `${seriesCountRef.current === 2 && matrixMode === 'static'
-                  ? (showingSeries === 2 ? t('mmMemorizeRed') : t('mmMemorizePurple'))
-                  : t('matrixMemorize')} · ${t('mmIgnoreCrossed')}`
+              /**
+               * ⚠️ Строка берётся из `подписьПоказа` — той же, по которой считается
+               * пауза на чтение. Две копии одного правила разъезжаются молча: пауза
+               * считалась бы по одной строке, а на экране стояла бы другая.
+               */
               : phase === 'showing'
-              ? (seriesCountRef.current === 2 && matrixMode === 'static'
-                  ? (showingSeries === 2 ? t('mmMemorizeRed') : t('mmMemorizePurple'))
-                  : t('matrixMemorize'))
+              ? подписьПоказа(showingSeries, decoyCells.size)
               : phase === 'input'
               ? (seriesCountRef.current === 2 && matrixMode === 'static'
                   ? (inputSeries === 1 ? t('mmNowRed') : t('mmPurpleFirst'))
