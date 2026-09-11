@@ -924,6 +924,13 @@ const translations: Translations = {
    * Подрыв у «Сапёра» и «Инерции». Формулировка не «проиграл»: по замыслу автора это
    * ход, который отменяют и играют дальше (`mines.c:5606`, `inertia.c:2191`).
    */
+  // «Стереть» в словаре уже есть ключом `a11yErase` — ряд цифр берёт его, своего не заводим.
+  /**
+   * Ходов больше нет («Снос групп», «Заливка»). Не «проиграл»: партия доиграна до
+   * конца, просто без победы, и отменять тут нечего — можно только начать заново.
+   */
+  puzzleNoMoves: { ru: 'Ходов больше нет. Можно начать заново', en: 'No moves left. Start over if you like' },
+
   puzzleBlownUp: { ru: 'Подорвался. Отмени ход — и играй дальше', en: 'You blew up. Undo the move and carry on' },
   puzzleHudMarked: { ru: 'Отмечено', en: 'Marked' },
   puzzleHudActive: { ru: 'Соединено', en: 'Connected' },
@@ -971,7 +978,12 @@ const translations: Translations = {
   puzzlesFlip: { ru: 'Переворот', en: 'Flip' },
   puzzlesFlipDesc: { ru: 'Каждое нажатие переворачивает и соседей: погасить всё поле', en: 'Each tap flips its neighbours too: turn the whole board off' },
   puzzlesCube: { ru: 'Куб по полю', en: 'Rolling Cube' },
-  puzzlesCubeDesc: { ru: 'Катить куб по сетке стрелками и собрать все метки на грани', en: 'Roll the cube across the grid with the arrows and pick up every marker' },
+  /**
+   * ⚠️ «Куб» — не всегда куб: лестница этой игры это ЧЕТЫРЕ РАЗНЫХ ТЕЛА
+   * (`c4x4` куб, `t1x2` тетраэдр, `o2x2` октаэдр, `i3x3` икосаэдр), а не рост
+   * сложности одного. Прежний текст был верен для одной ступени из четырёх.
+   */
+  puzzlesCubeDesc: { ru: 'Катить многогранник по сетке стрелками и собрать все метки на грани', en: 'Roll the solid across the grid with the arrows and pick up every marker' },
   puzzlesBlackBox: { ru: 'Чёрный ящик', en: 'Black Box' },
   puzzlesBlackBoxDesc: { ru: 'Найти спрятанные шары по тому, где луч вышел из ящика', en: 'Find the hidden balls from where each beam leaves the box' },
   puzzlesGuess: { ru: 'Угадай код', en: 'Crack the Code' },
@@ -1003,7 +1015,13 @@ const translations: Translations = {
   puzzlesFifteenDesc: { ru: 'Двигать плитки в пустую клетку и собрать порядок', en: 'Slide tiles into the gap and restore the order' },
   puzzlesLightUpDesc: { ru: 'Расставить фонари так, чтобы осветить всё поле', en: 'Place lamps so the whole board is lit' },
   puzzlesLoopyDesc: { ru: 'Собрать одну замкнутую петлю по числам в клетках', en: 'Build one closed loop guided by the numbers' },
-  puzzlesUnrulyDesc: { ru: 'Поровну кружков и точек, трёх одинаковых подряд не бывает', en: 'Equal circles and dots, never three of a kind in a row' },
+  /**
+   * ⚠️ ЗДЕСЬ БЫЛО ВРАНЬЁ, И ОНО ЖИЛО В ДВЕНАДЦАТИ ЯЗЫКАХ: «Поровну кружков и точек».
+   * Замер 11.09.2026 по всем семи ступеням: кругов на доске НОЛЬ, в `unruly.c` нет
+   * ни одного `draw_circle` — движок рисует чёрные и белые КВАДРАТЫ. Человек читал
+   * задание и искал на доске то, чего там нет.
+   */
+  puzzlesUnrulyDesc: { ru: 'Поровну чёрных и белых клеток, трёх одинаковых подряд не бывает', en: 'Equal black and white cells, never three of a kind in a row' },
   /* Головоломки Тэтхэма: имена режимов. Движок один, экран один, правила его. */
   puzzlesKeen: { ru: 'Клетки с арифметикой', en: 'Arithmetic Cages' },
   puzzlesSingles: { ru: 'Лишние числа', en: 'Extra Numbers' },

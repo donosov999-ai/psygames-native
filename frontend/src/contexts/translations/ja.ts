@@ -2584,7 +2584,7 @@ const t: Record<string, string> = {
   "puzzlesFlip": "反転",
   "puzzlesFlipDesc": "タップは隣も裏返す。盤面すべてを消灯させる",
   "puzzlesCube": "転がす立方体",
-  "puzzlesCubeDesc": "矢印で立方体を盤上に転がし、印をすべて拾う",
+  "puzzlesCubeDesc": "矢印で立体を盤上に転がし、すべての印を拾います",
   "puzzlesBlackBox": "ブラックボックス",
   "puzzlesBlackBoxDesc": "光線が箱から出た場所から、隠れた球の位置を突き止める",
   "puzzlesGuess": "暗号を解く",
@@ -2603,6 +2603,7 @@ const t: Record<string, string> = {
   "pauseEasier": "やさしいレベル",
   "pauseHarder": "むずかしいレベル",
   "pauseFinish": "終了して記録",
+  "puzzleNoMoves": "手がありません。やり直せます",
   "puzzleBlownUp": "爆発しました。手を戻して続けましょう",
   "puzzleHudMarked": "マーク済み",
   "puzzleHudActive": "接続済み",
@@ -2636,7 +2637,7 @@ const t: Record<string, string> = {
   "puzzlesFifteenDesc": "空きマスへ滑らせて順に並べる",
   "puzzlesLightUpDesc": "盤全体が照らされるように明かりを置く",
   "puzzlesLoopyDesc": "数字に従って閉じた輪を一つ作る",
-  "puzzlesUnrulyDesc": "丸と点は同数、三連続はなし",
+  "puzzlesUnrulyDesc": "黒と白のマスは同数、同じものが三つ続いてはいけません",
   "puzzlesUnrulyIntroDesc": "ここには四十の論理パズルがあります。それぞれ独自のルールを持ちますが、共通点がひとつ——どの盤面にも解はちょうど一つで、推理すれば必ずたどり着けます。当てずっぽうは要りません。モードはカードから選び、難易度はパズルごとの階段で上がります。短いタップで一手、長押しが第二の操作です。「磁石」では牌の半分を空白にし、「地雷」では地雷に印を付け、「偶奇」では逆向きに切り替えます。取り消し・ヒント・やり直しはポーズメニュー——左上の ⏸ ボタンから。",
 };
 export default t;

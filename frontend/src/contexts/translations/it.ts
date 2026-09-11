@@ -2585,7 +2585,7 @@ const t: Record<string, string> = {
   "puzzlesFlip": "Ribaltamento",
   "puzzlesFlipDesc": "Ogni tocco ribalta anche i vicini: spegni tutta la griglia",
   "puzzlesCube": "Cubo sulla griglia",
-  "puzzlesCubeDesc": "Fai rotolare il cubo con le frecce e raccogli tutti i segni",
+  "puzzlesCubeDesc": "Fai rotolare il solido sulla griglia con le frecce e raccogli ogni segno",
   "puzzlesBlackBox": "Scatola nera",
   "puzzlesBlackBoxDesc": "Trova le sfere nascoste da dove il raggio esce dalla scatola",
   "puzzlesGuess": "Scopri il codice",
@@ -2604,6 +2604,7 @@ const t: Record<string, string> = {
   "pauseEasier": "Livello più facile",
   "pauseHarder": "Livello più difficile",
   "pauseFinish": "Termina e salva",
+  "puzzleNoMoves": "Non ci sono più mosse. Puoi ricominciare",
   "puzzleBlownUp": "Sei esploso. Annulla la mossa e continua",
   "puzzleHudMarked": "Segnate",
   "puzzleHudActive": "Collegate",
@@ -2637,7 +2638,7 @@ const t: Record<string, string> = {
   "puzzlesFifteenDesc": "Fai scorrere le tessere e riordina",
   "puzzlesLightUpDesc": "Posiziona le lampade per illuminare tutto",
   "puzzlesLoopyDesc": "Forma un anello chiuso seguendo i numeri",
-  "puzzlesUnrulyDesc": "Pari cerchi e punti, mai tre uguali",
+  "puzzlesUnrulyDesc": "Stesso numero di caselle nere e bianche, mai tre uguali di fila",
   "puzzlesUnrulyIntroDesc": "Qui vivono quaranta rompicapi logici. Ognuno ha la sua regola, ma una cosa è comune: ogni schema ha esattamente una soluzione e il ragionamento ci arriva sempre — indovinare non serve mai. Scegli la modalità dalla scheda; la difficoltà cresce su una scala propria per ogni rompicapo. Un tocco breve fa una mossa, una pressione LUNGA è la seconda azione: in Magneti lascia vuota una metà di domino, in Mine segna una mina, in Pari e dispari scorre all'indietro. Annulla, chiedi un aiuto o ricomincia dal menu pausa — il tasto ⏸ in alto a sinistra.",
 };
 export default t;

@@ -2585,7 +2585,7 @@ const t: Record<string, string> = {
   "puzzlesFlip": "뒤집기",
   "puzzlesFlipDesc": "누르면 이웃도 함께 뒤집힌다. 판 전체를 끈다",
   "puzzlesCube": "굴리는 정육면체",
-  "puzzlesCubeDesc": "화살표로 정육면체를 굴려 표시를 모두 주워 담는다",
+  "puzzlesCubeDesc": "화살표로 입체를 굴려 모든 표시를 주우세요",
   "puzzlesBlackBox": "블랙박스",
   "puzzlesBlackBoxDesc": "광선이 상자에서 나온 자리로 숨은 공을 찾아낸다",
   "puzzlesGuess": "암호 풀기",
@@ -2604,6 +2604,7 @@ const t: Record<string, string> = {
   "pauseEasier": "쉬운 레벨",
   "pauseHarder": "어려운 레벨",
   "pauseFinish": "종료하고 저장",
+  "puzzleNoMoves": "더 둘 수가 없습니다. 다시 시작할 수 있어요",
   "puzzleBlownUp": "폭발했습니다. 수를 되돌리고 계속하세요",
   "puzzleHudMarked": "표시됨",
   "puzzleHudActive": "연결됨",
@@ -2637,7 +2638,7 @@ const t: Record<string, string> = {
   "puzzlesFifteenDesc": "빈 칸으로 밀어 순서 맞추기",
   "puzzlesLightUpDesc": "판 전체가 밝아지도록 등을 놓기",
   "puzzlesLoopyDesc": "숫자에 따라 닫힌 고리 하나 만들기",
-  "puzzlesUnrulyDesc": "동그라미와 점이 같은 수, 삼연속 금지",
+  "puzzlesUnrulyDesc": "검은 칸과 흰 칸의 수가 같고, 같은 것이 셋 연속될 수 없습니다",
   "puzzlesUnrulyIntroDesc": "여기에는 마흔 개의 논리 퍼즐이 있습니다. 각각 규칙은 다르지만 공통점이 하나 있습니다. 어떤 판이든 해답은 정확히 하나이고, 추론하면 반드시 닿을 수 있습니다. 찍을 필요는 없습니다. 모드는 카드에서 고르고, 난이도는 퍼즐마다 고유한 사다리로 올라갑니다. 짧게 누르면 한 수, 길게 누르면 두 번째 동작입니다. 「자석」에서는 도미노 한쪽을 비우고, 「지뢰」에서는 지뢰를 표시하고, 「홀짝」에서는 반대 방향으로 넘깁니다. 되돌리기·힌트·다시 시작은 일시정지 메뉴에 있습니다 — 왼쪽 위 ⏸ 버튼.",
 };
 export default t;

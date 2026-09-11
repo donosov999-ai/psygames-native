@@ -2590,7 +2590,7 @@ const t: Record<string, string> = {
   "puzzlesFlip": "Volteo",
   "puzzlesFlipDesc": "Cada toque voltea también a los vecinos: apaga el tablero entero",
   "puzzlesCube": "Cubo por el tablero",
-  "puzzlesCubeDesc": "Rueda el cubo con las flechas y recoge todas las marcas",
+  "puzzlesCubeDesc": "Rueda el sólido por la cuadrícula con las flechas y recoge cada marca",
   "puzzlesBlackBox": "Caja negra",
   "puzzlesBlackBoxDesc": "Halla las bolas ocultas por el punto donde el rayo sale de la caja",
   "puzzlesGuess": "Descifra el código",
@@ -2609,6 +2609,7 @@ const t: Record<string, string> = {
   "pauseEasier": "Nivel más fácil",
   "pauseHarder": "Nivel más difícil",
   "pauseFinish": "Terminar y guardar",
+  "puzzleNoMoves": "No quedan jugadas. Puedes empezar de nuevo",
   "puzzleBlownUp": "Has explotado. Deshaz la jugada y sigue",
   "puzzleHudMarked": "Marcadas",
   "puzzleHudActive": "Conectadas",
@@ -2642,7 +2643,7 @@ const t: Record<string, string> = {
   "puzzlesFifteenDesc": "Desliza fichas al hueco y ordena",
   "puzzlesLightUpDesc": "Coloca lámparas hasta iluminar todo",
   "puzzlesLoopyDesc": "Forma un bucle cerrado según los números",
-  "puzzlesUnrulyDesc": "Igual de círculos y puntos, nunca tres iguales",
+  "puzzlesUnrulyDesc": "Igual número de casillas negras y blancas, nunca tres iguales seguidas",
   "puzzlesUnrulyIntroDesc": "Aquí viven cuarenta rompecabezas lógicos. Cada uno tiene su regla, pero comparten algo: cada tablero tiene exactamente una solución y siempre se llega razonando; adivinar nunca hace falta. Elige el modo en la tarjeta; la dificultad crece por una escalera propia en cada rompecabezas. Un toque corto hace una jugada, una pulsación LARGA es la segunda acción: en Imanes deja media ficha vacía, en Minas marca una mina, en Par e impar recorre al revés. Deshacer, pedir pista o empezar de nuevo están en el menú de pausa: el botón ⏸ arriba a la izquierda.",
 };
 export default t;

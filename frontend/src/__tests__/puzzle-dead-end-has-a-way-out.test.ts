@@ -49,3 +49,35 @@ describe('подрыв на доске', () => {
     expect(ходПартии('[0:00] DEAD!  Deaths: 1')).toBeNull();
   });
 });
+
+/**
+ * ВТОРОЙ МОЛЧАЛИВЫЙ ТУПИК: ХОДОВ БОЛЬШЕ НЕТ, А ДВИЖОК КОНЦА НЕ ОБЪЯВЛЯЕТ.
+ *
+ * Замер 11.09.2026: «Снос групп» — одиннадцать партий из пятнадцати кончаются
+ * строкой «Cannot move! Score: N» при `psy_status` равном нулю; «Заливка» пишет
+ * «FAILED! 24 / 24 moves».
+ *
+ * ⚠️ И эта же находка вскрыла МОЙ дефект: узор `/Score:\s*(\d+)/` вытаскивал из
+ * «Cannot move! Score: 96» счёт и проглатывал сигнал конца — человек оставался с
+ * бодрым «Счёт 96» на мёртвой доске.
+ */
+describe('ходов больше нет', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { тупик, ходПартии: разбор } = require('@/src/games/tatham-bridge/status');
+
+  it('🔴 живые строки конца опознаются', () => {
+    const живые = ['Cannot move! Score: 96', 'FAILED! 24 / 24 moves'];
+    expect(живые.filter((s: string) => !тупик(s))).toEqual([]);
+  });
+
+  it('🔴 «Cannot move!» больше НЕ превращается в счётчик шапки', () => {
+    expect(разбор('Cannot move! Score: 96')).toBeNull();
+    // …а обычный счёт по-прежнему разбирается.
+    expect(разбор('Score: 96')).toEqual({ ключ: 'score', значение: '96' });
+  });
+
+  it('🔴 мирные строки тупиком не считаются', () => {
+    const мирные = ['Score: 0', '0 / 22 moves', 'Gems: 16', 'Clues left: 44', ''];
+    expect(мирные.filter((s: string) => тупик(s))).toEqual([]);
+  });
+});

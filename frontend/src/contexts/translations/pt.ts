@@ -2590,7 +2590,7 @@ const t: Record<string, string> = {
   "puzzlesFlip": "Virada",
   "puzzlesFlipDesc": "Cada toque vira também os vizinhos: apague o tabuleiro inteiro",
   "puzzlesCube": "Cubo pelo tabuleiro",
-  "puzzlesCubeDesc": "Role o cubo com as setas e recolha todas as marcas",
+  "puzzlesCubeDesc": "Role o sólido pela grade com as setas e recolha cada marca",
   "puzzlesBlackBox": "Caixa preta",
   "puzzlesBlackBoxDesc": "Ache as bolas escondidas pelo ponto em que o raio sai da caixa",
   "puzzlesGuess": "Quebre o código",
@@ -2609,6 +2609,7 @@ const t: Record<string, string> = {
   "pauseEasier": "Nível mais fácil",
   "pauseHarder": "Nível mais difícil",
   "pauseFinish": "Terminar e guardar",
+  "puzzleNoMoves": "Não há mais jogadas. Você pode recomeçar",
   "puzzleBlownUp": "Você explodiu. Desfaça a jogada e continue",
   "puzzleHudMarked": "Marcadas",
   "puzzleHudActive": "Conectadas",
@@ -2642,7 +2643,7 @@ const t: Record<string, string> = {
   "puzzlesFifteenDesc": "Desliza peças para o vazio e ordena",
   "puzzlesLightUpDesc": "Coloca lâmpadas até iluminar tudo",
   "puzzlesLoopyDesc": "Forma um laço fechado conforme os números",
-  "puzzlesUnrulyDesc": "Igual de círculos e pontos, nunca três iguais",
+  "puzzlesUnrulyDesc": "Mesmo número de casas pretas e brancas, nunca três iguais seguidas",
   "puzzlesUnrulyIntroDesc": "Aqui vivem quarenta quebra-cabeças lógicos. Cada um tem sua regra, mas há algo em comum: cada tabuleiro tem exatamente uma solução e o raciocínio sempre chega lá — adivinhar nunca é preciso. Escolha o modo no cartão; a dificuldade cresce por uma escada própria em cada quebra-cabeça. Um toque curto faz uma jogada, um toque LONGO é a segunda ação: em Ímãs deixa metade do dominó vazia, em Minas marca uma mina, em Par e ímpar percorre ao contrário. Desfazer, pedir dica ou recomeçar estão no menu de pausa — o botão ⏸ no canto superior esquerdo.",
 };
 export default t;

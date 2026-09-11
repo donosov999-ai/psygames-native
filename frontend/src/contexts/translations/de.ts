@@ -2590,7 +2590,7 @@ const t: Record<string, string> = {
   "puzzlesFlip": "Umschlag",
   "puzzlesFlipDesc": "Jeder Tipp kippt auch die Nachbarn: das ganze Brett ausschalten",
   "puzzlesCube": "Würfel auf dem Feld",
-  "puzzlesCubeDesc": "Den Würfel mit den Pfeilen über das Gitter rollen und alle Marken aufnehmen",
+  "puzzlesCubeDesc": "Rolle den Körper mit den Pfeilen über das Gitter und sammle jede Marke auf",
   "puzzlesBlackBox": "Schwarze Kiste",
   "puzzlesBlackBoxDesc": "Die versteckten Kugeln daran erkennen, wo der Strahl die Kiste verlässt",
   "puzzlesGuess": "Code knacken",
@@ -2609,6 +2609,7 @@ const t: Record<string, string> = {
   "pauseEasier": "Leichteres Level",
   "pauseHarder": "Schwereres Level",
   "pauseFinish": "Beenden und speichern",
+  "puzzleNoMoves": "Keine Züge mehr. Du kannst neu anfangen",
   "puzzleBlownUp": "Explodiert. Zug zurücknehmen und weiterspielen",
   "puzzleHudMarked": "Markiert",
   "puzzleHudActive": "Verbunden",
@@ -2642,7 +2643,7 @@ const t: Record<string, string> = {
   "puzzlesFifteenDesc": "Steine ins Loch schieben und ordnen",
   "puzzlesLightUpDesc": "Lampen setzen, bis alles hell ist",
   "puzzlesLoopyDesc": "Eine geschlossene Schleife nach den Zahlen",
-  "puzzlesUnrulyDesc": "Gleich viele Kreise und Punkte, nie drei gleiche",
+  "puzzlesUnrulyDesc": "Gleich viele schwarze und weiße Felder, nie drei gleiche in Folge",
   "puzzlesUnrulyIntroDesc": "Hier warten vierzig Logikrätsel. Jedes hat seine eigene Regel, gemeinsam ist eins: Jedes Brett hat genau eine Lösung, und Nachdenken führt immer hin — Raten ist nie nötig. Den Modus wählst du auf der Karte; die Schwierigkeit wächst bei jedem Rätsel auf eigener Leiter. Kurzes Tippen setzt einen Zug, LANGES Drücken ist die zweite Aktion: bei Magnete lässt sie eine Dominohälfte leer, bei Minen markiert sie eine Mine, bei Gerade-ungerade blättert sie rückwärts. Rückgängig, Tipp und Neustart liegen im Pausenmenü — die Taste ⏸ links oben.",
 };
 export default t;
