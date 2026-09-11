@@ -1,4 +1,4 @@
-/* sorting-shots · VER 2 · 11.09.2026 */
+/* sorting-shots · VER 3 · 11.09.2026 */
 /**
  * sorting-shots — снимки ПОЛЯ всех шести игр раздела «Сортировки» для глазного
  * контроля Дениса.
@@ -73,6 +73,40 @@ const READ = () => ({
   toolbar: !!document.querySelector('[data-testid="game-toolbar"]'),
   headerActions: !!document.querySelector('[data-testid="game-header-actions"]'),
   canvases: document.querySelectorAll('canvas, svg').length,
+  /*
+   * 🔴 ДОЛЯ ЗАНЯТОЙ ВЫСОТЫ — ЗДЕСЬ, А НЕ В JEST, И ЭТО ВЫНУЖДЕННО.
+   *
+   * 📍 Проба «стол крупнее того, что даёт оценка от окна» в jest НЕ РАЗЛИЧАЕТ
+   * правку: там нет окна, `useWindowDimensions` отдаёт нули, экран падает на
+   * запасные 640 — и любая формула высоты даёт одну и ту же раскладку. Проба
+   * была зелёной при любом коде. Здесь окно настоящее, поэтому доля меряется
+   * тут и уезжает в манифест рядом со снимком.
+   *
+   * Поле — от низа служебной шапки (если она над полем) до верха нижнего ряда
+   * кнопок; занятое — от верхнего края самого верхнего предмета до нижнего края
+   * самого нижнего. Предметы узнаются по размеру: всё крупнее 40 точек в обе
+   * стороны и ниже шапки.
+   */
+  поле: (() => {
+    const низКнопок = [...document.querySelectorAll('[role="button"], button')]
+      .map((b) => b.getBoundingClientRect())
+      .filter((r) => r.top > innerHeight * 0.6 && r.height > 20)
+      .reduce((m, r) => Math.min(m, r.top), innerHeight);
+    const предметы = [...document.querySelectorAll('div, img, svg')]
+      .map((e) => e.getBoundingClientRect())
+      .filter((r) => r.width > 40 && r.height > 40 && r.top > 100 && r.bottom <= низКнопок + 4
+        && r.width < innerWidth * 0.96);
+    if (!предметы.length) return null;
+    const верх = Math.min(...предметы.map((r) => r.top));
+    const низ = Math.max(...предметы.map((r) => r.bottom));
+    const свободно = низКнопок - 119;          // 119 = ВЕРХ_ПОЛЯ каркаса
+    return {
+      свободно: Math.round(свободно),
+      занято: Math.round(низ - верх),
+      доля: свободно > 0 ? Math.round((100 * (низ - верх)) / свободно) : 0,
+      пустоСверху: Math.round(верх - 119),
+    };
+  })(),
 });
 
 /** Кадр на полукадре — недомер, который выглядит успехом. Ждём устойчивость. */
@@ -214,12 +248,14 @@ async function main() {
     const verdict = hit ? `🔴 запрещённый текст «${hit[0]}» — это не поле`
       : !shell ? '🟡 каркас партии не найден (ни меток шапки, ни нижнего ряда кнопок)'
         : '🟢 поле';
-    console.log(`   ${verdict} · кнопок ${state.buttons} · svg/canvas ${state.canvases} · шаги: ${steps.join(' → ') || '—'}`);
+    const п = state.поле;
+    console.log(`   ${verdict} · кнопок ${state.buttons} · поле ${п ? `${п.занято}/${п.свободно} = ${п.доля} %, пусто сверху ${п.пустоСверху}` : '—'} · шаги: ${steps.join(' → ') || '—'}`);
+    if (п && п.доля < 45) console.log(`   🟡 поле занято меньше 45 % высоты — размер считается не от каркаса`);
     if (failed.length) console.log(`   ⚠️ битых запросов ${failed.length}: ${failed.slice(0, 4).join(' | ')}`);
 
     manifest.push({
       id: s.id, title: s.title, route: s.route, file, verdict,
-      buttons: state.buttons, canvases: state.canvases, shell, нижнийРяд,
+      buttons: state.buttons, canvases: state.canvases, shell, нижнийРяд, поле: state.поле,
       forbidHit: hit ? hit[0] : null, steps, failed: failed.slice(0, 12),
       text: state.text.slice(0, 300),
     });

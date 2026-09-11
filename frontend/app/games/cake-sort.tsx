@@ -47,6 +47,7 @@ import { prebuilt, prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
 import { topFor, boardsFor, type КруглаяШкурка } from '@/src/constants/cakeTops';
 import { plateAtPoint, plateForGrab, PLATE_GAP, SECTOR_MIN, tableFit, cakeRadius } from '@/src/games/cake-sort/core/layout';
+import { ВЕРХ_ПОЛЯ, РЯД_ДЕЙСТВИЙ } from '@/src/components/gameLayout';
 import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
 
 export const CS_GAME_ID = 'cake_sort';
@@ -281,18 +282,32 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    * строкой правила, под ним — кнопки, и всё это разной высоты на разных языках.
    * До первого `onLayout` берём оценку от окна — она нужна ровно на один кадр.
    */
-  const [полеH, setПолеH] = useState(0);
-
   /**
    * Геометрия стола. Столбцы подбираются под ШИРИНУ И ВЫСОТУ поля: разбор и
-   * правило выбора — в шапке `tableFit`. Прежняя редакция брала только ширину и
-   * при честном замере клина оставляла нижний ряд тарелок под обрезом.
+   * правило выбора — в шапке `tableFit`.
+   *
+   * 🔴 ВЫСОТА ПОЛЯ СЧИТАЕТСЯ ОТ КАРКАСА, А НЕ МЕРЯЕТСЯ У СЕБЯ. Здесь стоял
+   * `onLayout` на собственном контейнере поля, и 11.09.2026 он дал ЗАМКНУТЫЙ
+   * КРУГ: контейнер `flex: 1` внутри каркаса отдавал высоту СВОЕГО СОДЕРЖИМОГО,
+   * то есть высоту уже разложенного стола. Раскладка в три столбца занимала 252
+   * точки, замер возвращал 252, при 252 два столбца «не влезали» — и стол
+   * навсегда оставался трёхстолбцовым, сколько бы места на экране ни было.
+   *
+   * 📍 ЗАМЕР, КОТОРЫМ ЭТО ПОЙМАНО: окно 812 и окно 900 дали ОДНУ И ТУ ЖЕ тарелку
+   * 109 точек, хотя поле выросло с 624 до 712. Ровно та ловушка, про которую
+   * написано в переливалке («мерить один только `поле` нельзя: его высоту задаёт
+   * содержимое»), — и я всё равно наступил на неё в соседнем экране.
+   *
+   * Теперь высота берётся из общего каркаса (`gameLayout`): окно минус всё, что
+   * каркас рисует НАД полем, минус служебный ряд под ним. Числа там замерены
+   * координатором на собранном вебе и общие для всех разделов — своя копия
+   * разъехалась бы с ними при первой же правке каркаса.
    */
   const стол = useMemo(() => {
     const доступно = Math.min(width, 520) - 16;
-    const поле = полеH > 0 ? полеH : Math.max(240, Math.round((окноH || 640) * 0.62));
+    const поле = Math.max(240, (окноH || 640) - ВЕРХ_ПОЛЯ - РЯД_ДЕЙСТВИЙ);
     return { ...tableFit(доступно, поле, cfg.plates), boardW: доступно };
-  }, [width, окноH, полеH, cfg.plates]);
+  }, [width, окноH, cfg.plates]);
 
   const тронуть = (i: number) => {
     if (!board || done) return;
@@ -792,10 +807,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
     >
       <LevelRuleModal lr={levelRules} colors={colors} />
       <ScorePopupLayer popups={popups} />
-      <View style={styles.field} onLayout={(e) => {
-        const h = Math.round(e.nativeEvent.layout.height);
-        setПолеH((п) => (Math.abs(п - h) > 2 ? h : п));
-      }}>
+      <View style={styles.field}>
       <View
         ref={столRef}
         {...жест}

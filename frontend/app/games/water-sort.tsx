@@ -1,4 +1,4 @@
-/* psygames-game-water-sort · VER 5 · 11.09.2026 */
+/* psygames-game-water-sort · VER 6 · 11.09.2026 */
 /**
  * СОРТИРОВКА ЖИДКОСТЕЙ — переливание по пробиркам, пока каждая не станет одного цвета.
  *
@@ -42,7 +42,8 @@ import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useMoveHistory } from '@/src/hooks/useMoveHistory';
-import { useScreenWidth } from '@/src/hooks/useScreenWidth';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
+import { ВЕРХ_ПОЛЯ, РЯД_ДЕЙСТВИЙ } from '@/src/components/gameLayout';
 import { gameNow } from '@/src/services/gamePause';
 import { hudTime } from '@/src/services/hudTime';
 import {
@@ -466,9 +467,10 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
    * настоящей ширины. `useScreenWidth` спрашивает `window.innerWidth` (наши
    * Android и iOS — WebView) и падает на константу только там, где `window` нет.
    */
-  const ширинаЭкрана = useScreenWidth();
+  const { w: ширинаЭкрана, h: высотаЭкрана } = useScreenSize();
   /**
-   * 🔴 ВЫСОТА ПОЛЯ МЕРЯЕТСЯ, А НЕ НАЗНАЧАЕТСЯ — и до 11.09.2026 не мерялась вовсе.
+   * 🔴 ВЫСОТА ПОЛЯ СЧИТАЕТСЯ ОТ КАРКАСА, А ПОДПИСЬ МЕРЯЕТСЯ — и до 11.09.2026 не
+   * считалась и не мерялась вовсе.
    *
    * Сосуд считался только от ширины, поэтому на снимке живой партии (375×812)
    * пять пробирок стояли одним рядом по 62 точки, занимая 27 % высоты, а 463
@@ -476,11 +478,18 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
    * строка правила и, изредка, строка тупика — всё разной высоты на разных
    * языках, поэтому единственный честный путь — снять размеры с самих узлов.
    *
-   * Меряем ДВА: `середина` (она `flex: 1`, то есть получает всё свободное) и
-   * саму подпись. Разность и есть место под сосуды. Мерить один только `поле`
-   * нельзя: его высоту задаёт содержимое, и расчёт замкнулся бы сам на себя.
+   * ⚠️ СОБСТВЕННЫЙ КОНТЕЙНЕР МЕРИТЬ НЕЛЬЗЯ — И ЭТО ПРОВЕРЕНО ПОЛОМКОЙ В СОСЕДНЕМ
+   * ЭКРАНЕ. Первая редакция снимала высоту с `середина` (`flex: 1`), и в тортах
+   * такой же приём дал ЗАМКНУТЫЙ КРУГ: контейнер отдавал высоту своего
+   * содержимого, то есть уже разложенного поля, и раскладка навсегда застревала
+   * в той, которая случилась первой. Замер: окно 812 и окно 900 давали одну и ту
+   * же тарелку 109 при поле 624 и 712.
+   *
+   * Поэтому свободное место берётся из общего каркаса (`gameLayout`): окно минус
+   * всё, что каркас рисует НАД полем, минус служебный ряд под ним. Числа там
+   * замерены координатором и общие для всех разделов. Меряется только ПОДПИСЬ —
+   * её высота от размера сосудов не зависит, круга здесь нет.
    */
-  const [серединаH, setСерединаH] = useState(0);
   const [подписьH, setПодписьH] = useState(0);
   const { isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
@@ -769,9 +778,8 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
      * достаётся ТО, ЧТО ОСТАЛОСЬ, а не вся середина. Пока замер не пришёл
      * (первый кадр), высота равна нулю и расчёт идёт прежним путём, по ширине.
      */
-    const местоПодСосуды = серединаH > 0
-      ? Math.max(0, серединаH - подписьH - ПОЛЕ_СВЕРХУ)
-      : 0;
+    const свободно = высотаЭкрана - ВЕРХ_ПОЛЯ - РЯД_ДЕЙСТВИЙ;
+    const местоПодСосуды = Math.max(0, свободно - подписьH - ПОЛЕ_СВЕРХУ);
     const ш = ширинаПробирки(field!.tubes.length, ширинаЭкрана - ЗАПАС_ПОЛЕЙ, местоПодСосуды);
     const в = Math.round(ш * СТЕКЛО_ОТНОШЕНИЕ);
     const выбор = выбрана === i;
@@ -1162,11 +1170,7 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
           * беды разом и держит поле на месте при трёх и при четырнадцати
           * пробирках.
           */}
-        <View
-          testID="sort-field-box"
-          style={styles.середина}
-          onLayout={(e) => setСерединаH(Math.round(e.nativeEvent.layout.height))}
-        >
+        <View testID="sort-field-box" style={styles.середина}>
           <View style={styles.поле}>
             {field.tubes.map((тр, i) => рисоватьПробирку(тр, i))}
           </View>
