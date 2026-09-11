@@ -7,9 +7,6 @@ import {
   SafeAreaView,
 } from 'react-native-safe-area-context';
 import {
-  useRouter,
-} from 'expo-router';
-import {
   goBackOrHome,
 } from '@/src/utils/nav';
 import {
@@ -122,6 +119,12 @@ import {
 import type {
   GoodsLiveParty, GoodsRestored, GoodsResume, ShelfStyle, BoardGeom, GamePhase, Goal, GsLayout, HiddenRunStats, HintMove, Obstacle, Sel, Snapshot,
 } from '@/src/games/goods-sort/core/level';
+import {
+  makeBoard, collapseTriples, makeReport, type CollapseReport, type Shelf,
+} from '@/src/games/goods-sort/core/board';
+import {
+  isDeadEnd, hintMove,
+} from '@/src/games/goods-sort/core/solver';
 
 export {
   CAP_MAX, CAP_MIN, CAP_ONE, CLEAR_SCORE, EMPTY_HIDDEN_STATS, GOOD_ONBOARD_H, GOOD_ONBOARD_W,
@@ -330,12 +333,6 @@ const SHELF_TILES = {
  * сами плитки — они `require` ассетов и уехать не могут.
  */
 
-import {
-  makeBoard, collapseTriples, makeReport, type CollapseReport, type Shelf,
-} from '@/src/games/goods-sort/core/board';
-import {
-  isDeadEnd, hintMove,
-} from '@/src/games/goods-sort/core/solver';
 
 // Доска РАСТЁТ с уровнем: L1-7 3×3 (9), L8-11 4×3 (12), L12+ 4×4 (16) → больше типов на верхах.
 
@@ -606,7 +603,6 @@ export default function GoodsSortGame() {
   /** Стиль шкафа берётся от профиля; незнакомый — берёза. */
   const shelfStyle: ShelfStyle = shelfForProfile(profile?.id);
   const { t, language } = useLanguage();
-  const router = useRouter();
   const { width, height } = useWindowDimensions();
 
   const { isPreset, autostart, isCalm } = useGamePreset();
@@ -648,7 +644,15 @@ export default function GoodsSortGame() {
    * планшете — и получил бесплатные ходы. Поэтому лимит теперь берётся оттуда
    * же, откуда доска: из раздачи (`loadLevel`) или из снимка партии.
    */
+  /**
+   * ⚠️ ЛИМИТ ХОДОВ ХРАНИТСЯ ДВАЖДЫ, И ЭТО НЕ НЕБРЕЖНОСТЬ. Ссылку читают
+   * обработчики и снимок партии — им нужно СВЕЖЕЕ значение даже из замыкания,
+   * созданного раньше. Состояние читает шапка во время отрисовки, где чтение
+   * ссылки запрещено (строгий режим делает второй проход, и значение уехало бы
+   * до показа кадра). Ставятся всегда парой — в `пуск` и в восстановлении партии.
+   */
   const moveLimitRef = useRef(0);
+  const [moveLimit, setMoveLimit] = useState(0);
   /** Партия поднята из хранилища — уровень взят из неё, а не из сохранённого потолка. */
   const resumedRef = useRef(false);
   // Сортировка в зарядке тоже двигает общую лесенку: вход через wu=1 не должен
@@ -684,6 +688,16 @@ export default function GoodsSortGame() {
   const [score, setScore] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [elapsed, setElapsed] = useState(0);
+  /**
+   * ⚠️ ЧИСЛО ХОДОВ ТОЖЕ ХРАНИТСЯ ДВАЖДЫ, И ОТРИСОВКА БЕРЁТ СОСТОЯНИЕ. Ссылку
+   * читают обработчики и решатель из замыканий, состояние — экран победы
+   * (`stars`). Чтение ссылки во время отрисовки линт запрещает по делу: строгий
+   * режим делает второй проход, и значение уехало бы до показа кадра.
+   *
+   * 📍 Подмена безопасна ПО ЗАМЕРУ, а не на веру: ссылка и состояние ставятся
+   * ПАРОЙ во всех пяти местах, где меняются (сброс уровня, восстановление партии,
+   * ход, откат, ход в подвижных нишах) — в отрисовке они равны по построению.
+   */
   const scoreRef = useRef(0); const movesRef = useRef(0);
   /**
    * 🔴 ТОЧНЫЙ МИНИМУМ ХОДОВ ЭТОЙ ДОСКИ — СЧИТАЕТСЯ В ФОНЕ, НЕ ДЕРЖИТ ПАРТИЮ.
@@ -708,7 +722,7 @@ export default function GoodsSortGame() {
    * ⚠️ Щадящий режим и вечерний набор пропускают разъезд: движение — украшение, а
    * итог — содержание. `settle` уже умеет обе проверки (см. `juice/motion`).
    */
-  const scatter = useRef(new Animated.Value(0)).current;
+  const scatter = useState(() => new Animated.Value(0))[0];
   /**
    * Замеры §20.4 — в ref, а не в состоянии: рендеру они не нужны, а нужны
    * обработчику хода В МОМЕНТ события — к концу уровня «когда был первый ход»
@@ -745,9 +759,9 @@ export default function GoodsSortGame() {
    * значение и список ниш, которых оно касается: анимация всегда ровно одна, а
    * какие ниши мигают — обычное состояние.
    */
-  const flash = useRef(new Animated.Value(0)).current;
+  const flash = useState(() => new Animated.Value(0))[0];
   const [flashCells, setFlashCells] = useState<number[]>([]);
-  const shake = useRef(new Animated.Value(0)).current;
+  const shake = useState(() => new Animated.Value(0))[0];
   const [shakeCell, setShakeCell] = useState<number | null>(null);
   const reduced = useReducedMotion();
 
@@ -786,7 +800,7 @@ export default function GoodsSortGame() {
    * В щадящем режиме полёта нет вовсе: проезд по экрану — ровно то движение,
    * от которого там отказываются. Ход остаётся мгновенным, как и был.
    */
-  const flyAt = useRef(new Animated.Value(0)).current;
+  const flyAt = useState(() => new Animated.Value(0))[0];
   const [fly, setFly] = useState<{ type: number; toCell: number; covered: boolean; ax: number; ay: number; bx: number; by: number } | null>(null);
 
   /** Центр ниши в координатах экрана — общий и для полёта, и для чего угодно ещё. */
@@ -846,7 +860,7 @@ export default function GoodsSortGame() {
    * оседание, а перетасовку (её делают подвижные ниши, и у них своё движение).
    */
   const [осевшие, setОсевшие] = useState<Record<number, number>>({});
-  const осадка = useRef(new Animated.Value(0)).current;
+  const осадка = useState(() => new Animated.Value(0))[0];
   const оседание = (доМест: number[], послеМест: number[], столбцы: number[]) => {
     if (reduced) return;
     /*
@@ -973,7 +987,7 @@ export default function GoodsSortGame() {
      * потому что зависший экран хуже трудного уровня, а отмена и перемешивание
      * у человека на руках.
      */
-    moveLimitRef.current = cfg.moveLimit;   // лимит уровня фиксируется вместе с доской
+    moveLimitRef.current = cfg.moveLimit; setMoveLimit(cfg.moveLimit);   // лимит уровня фиксируется вместе с доской
     /**
      * Раздача и препятствия — одним вызовом (`dealBoard`). Это не косметика:
      * гарантия «свободных ниш минимум две» держится на том, что запас под
@@ -1153,7 +1167,7 @@ export default function GoodsSortGame() {
     setGoal(r.goal); goalRef.current = r.goal;
     // ⚠️ Лимит берём ИЗ СНИМКА, а не пересчитываем по уровню: пересчёт на
     // другой ширине экрана вернул бы человеку ходы, которые он потратил.
-    moveLimitRef.current = r.moveLimit;
+    moveLimitRef.current = r.moveLimit; setMoveLimit(r.moveLimit);
     movesRef.current = r.moves; setMoves(r.moves);
     scoreRef.current = r.score; setScore(r.score);
     setCleared(r.cleared);
@@ -1491,6 +1505,12 @@ export default function GoodsSortGame() {
    * Ниши-джокеры этого уровня. Считаются от ЖИВОЙ доски по той же причине, что и
    * ёмкости: число ниш задаёт маска формы, а не размер сетки.
    */
+  /*
+   * ⚠️ ЗАВИСИМОСТЬ ПО ДЛИНЕ, А НЕ ПО САМОМУ СПИСКУ — НАМЕРЕННО. Джокеры задаёт
+   * маска формы, то есть ЧИСЛО ниш; содержимое ячеек меняется на каждом ходе, и
+   * зависимость от `cells` пересчитывала бы их десятки раз за партию впустую.
+   */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const jokers = useMemo(() => jokersForBoard(level, cells), [level, cells.length]);
   const isJokerNiche = (i: number) => jokers[i] === true;
 
@@ -1507,6 +1527,12 @@ export default function GoodsSortGame() {
     if (cells.length === 0) return false;
     const board = makeBoard(cells, caps, jokers);
     return isDeadEnd(board, cells.map((_, i) => cellUsable(i)), strict);
+    /*
+     * ⚠️ `cellUsable` в зависимостях НЕ НУЖЕН и вреден: это функция, созданная
+     * заново на каждом кадре, и от неё расчёт тупика шёл бы каждый рендер. Всё,
+     * от чего она зависит на самом деле (`obstacles`, `frozen`), в списке есть.
+     */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cells, caps, jokers, obstacles, strict, frozen]);
   /** Есть ли на этом уровне разные ёмкости — от этого зависит показ насечек. */
   const mixedCaps = new Set(caps).size > 1;
@@ -1803,7 +1829,7 @@ export default function GoodsSortGame() {
   const boardBox = useRef({ x: 0, y: 0 });
   /** Где палец коснулся доски. Пишется в Capture, читается при признании жеста. */
   const touchStart = useRef<{ x: number; y: number } | null>(null);
-  const dragPos = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  const dragPos = useState(() => new Animated.ValueXY({ x: 0, y: 0 }))[0];
   const [drag, setDrag] = useState<{ cell: number; idx: number; type: number } | null>(null);
   const [hover, setHover] = useState<number | null>(null);
   /**
@@ -2914,7 +2940,7 @@ const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hin
            * (только когда она измерима). Больше четырёх каркас и не покажет.
            */
           hud={(() => {
-            const ml = moveLimitRef.current;
+            const ml = moveLimit;
             const left = ml > 0 ? Math.max(0, ml - moves) : null;
             const hot = left !== null && (left <= 3 || left <= ml * 0.2);
             const warm = left !== null && !hot && left <= ml * 0.35;
@@ -3208,7 +3234,7 @@ const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hin
                       : ц.kind === 'free' ? t('goalDoneFree')
                       : t('goalDoneMoves');
                   })()}
-                  stars={starsFor(levelBanner === -1 ? level : levelBanner, movesRef.current)}
+                  stars={starsFor(levelBanner === -1 ? level : levelBanner, moves)}
                   gradient={GRADIENT}
                   colors={colors}
                   language={language}

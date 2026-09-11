@@ -111,7 +111,6 @@ describe('СМЁТ смешанных кругов тортов', () => {
       строки.push(`L${String(L).padStart(3)} · видов ${String(cfg.types).padStart(2)} · ${части.join('  ')}`);
     }
 
-    // eslint-disable-next-line no-console
     console.log(['', 'ЗАПАС СВОБОДНЫХ ТАРЕЛОК → доказано из ' + ПОПЫТОК, ...строки, '',
       'ИТОГО по запасу:',
       ...[...свод.entries()].map(([з, s]) =>
@@ -149,7 +148,6 @@ describe('СМЁТ смешанных кругов тортов', () => {
       }
       строки.push(`L${String(L).padStart(3)} · видов ${String(cfg.types).padStart(2)} · ${доказано}/${ПОПЫТОК}`);
     }
-    // eslint-disable-next-line no-console
     console.log(['', 'КОНТРОЛЬ (все круги по 6):', ...строки].join('\n'));
     expect(строки.length).toBe(уровни.length);
   });

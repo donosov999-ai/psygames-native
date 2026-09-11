@@ -50,6 +50,21 @@ import { plateAtPoint, plateForGrab, PLATE_GAP, SECTOR_MIN, tableFit, cakeRadius
 import { ВЕРХ_ПОЛЯ, РЯД_ДЕЙСТВИЙ } from '@/src/components/gameLayout';
 import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
 
+/**
+ * 🔴 ПОД РЯДОМ ДЕЙСТВИЙ ЕСТЬ ЕЩЁ ОТСТУП, И БЕЗ НЕГО ПОЛЕ ВЫЛЕЗАЕТ.
+ *
+ * 📍 ЗАМЕР 11.09.2026 в браузере на собранном вебе, окно 375×812: контейнер поля
+ * идёт с 119 до 743, то есть 624 точки, а служебные кнопки стоят с 754. Значит
+ * снизу занято 69, а не 56: `РЯД_ДЕЙСТВИЙ` — высота самого ряда, вокруг него
+ * ещё поля каркаса. Без этих тринадцати точек сосуды переливалки занимали 102 %
+ * отведённой высоты — подпись под ними уходила под обрез.
+ *
+ * ⚠️ Число местное и потому под присмотром: съёмщик `scripts/sorting-shots.mjs`
+ * меряет долю занятой высоты на ЖИВОЙ раскладке и печатает предупреждение, если
+ * она уходит за границы. Разъедется каркас — это увидит замер, а не глаз.
+ */
+const ПОЛЯ_РЯДА = 13;
+
 export const CS_GAME_ID = 'cake_sort';
 
 /** Версия снимка партии. Меняется, когда меняется форма состояния. */
@@ -305,7 +320,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    */
   const стол = useMemo(() => {
     const доступно = Math.min(width, 520) - 16;
-    const поле = Math.max(240, (окноH || 640) - ВЕРХ_ПОЛЯ - РЯД_ДЕЙСТВИЙ);
+    const поле = Math.max(240, (окноH || 640) - ВЕРХ_ПОЛЯ - РЯД_ДЕЙСТВИЙ - ПОЛЯ_РЯДА);
     return { ...tableFit(доступно, поле, cfg.plates), boardW: доступно };
   }, [width, окноH, cfg.plates]);
 
@@ -355,7 +370,6 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
      * «стало меньше секторов»: очередь тут же занимает освободившееся место, и
      * разница в числе секторов соврала бы.
      */
-    const i = куда;
     const пустыхДо = board.plates.filter((p) => p.length === 0).length;
     const пустыхПосле = после.plates.filter((p) => p.length === 0).length;
     const собрано = Math.max(0, пустыхПосле - пустыхДо + (board.queue.length - после.queue.length));

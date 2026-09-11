@@ -52,7 +52,6 @@ describe('СМЁТ числа видов на смешанных кругах', 
         строки.push(`видов ${видов}, свободных ${своб}: ${д}/8 · ${Math.round((Date.now() - т0) / 1000)} с`);
       }
     }
-    // eslint-disable-next-line no-console
     console.log(['', 'ЧИСЛО ВИДОВ → доказано из 8:', ...строки].join('\n'));
     expect(строки.length).toBe(14);
   });
