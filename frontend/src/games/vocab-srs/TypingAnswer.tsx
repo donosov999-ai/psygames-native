@@ -35,11 +35,17 @@ export interface TypingAnswerProps {
    * Тогда ненабранные знаки рисуются точками, а набранные открываются.
    */
   hideUntyped?: boolean;
+  /**
+   * Диктовка на слух: регистр не важен, знаки препинания проставляются сами.
+   * По умолчанию ВЫКЛЮЧЕНО — печать по образцу (словарь, беглость) остаётся
+   * с нулевой терпимостью к опечатке, как у Шестова.
+   */
+  lenient?: boolean;
 }
 
-export default function TypingAnswer({ word, colors, onDone, hint, disabled, hideUntyped }: TypingAnswerProps) {
+export default function TypingAnswer({ word, colors, onDone, hint, disabled, hideUntyped, lenient = false }: TypingAnswerProps) {
   const [, форсировать] = useState(0);
-  const состояние = useRef<TypingState>(createState([word]));
+  const состояние = useRef<TypingState>(createState([word], lenient));
   const ошибкаНа = useRef<number | null>(null);
   const полеRef = useRef<TextInput>(null);
   /**
@@ -54,14 +60,14 @@ export default function TypingAnswer({ word, colors, onDone, hint, disabled, hid
 
   // Новое слово — новое состояние. Иначе курсор остался бы от прошлой карточки.
   useEffect(() => {
-    состояние.current = createState([word]);
+    состояние.current = createState([word], lenient);
     ошибкаНа.current = null;
     подрядНа.current = { поз: -1, счёт: 0 };
     открытоДо.current = 0;
     форсировать((n) => n + 1);
     const t = setTimeout(() => полеRef.current?.focus(), 60);
     return () => clearTimeout(t);
-  }, [word]);
+  }, [word, lenient]);
 
   const нажатие = useCallback((ключ: string) => {
     if (disabled) return;
@@ -69,7 +75,7 @@ export default function TypingAnswer({ word, colors, onDone, hint, disabled, hid
     if (ключ === 'Backspace') { backspace(ст); ошибкаНа.current = null; форсировать((n) => n + 1); return; }
     if (ключ.length !== 1) return;                       // Shift, Tab, стрелки — не буквы
     const до = ст.errors;
-    const итог = pressChar(ст, ключ, true);              // true = блокировка на ошибке, метод Шестова
+    const итог = pressChar(ст, ключ, true, lenient);              // true = блокировка на ошибке, метод Шестова
     ошибкаНа.current = ст.errors > до ? ст.pos : null;
     if (hideUntyped) {
       if (ст.errors > до) {
@@ -85,7 +91,7 @@ export default function TypingAnswer({ word, colors, onDone, hint, disabled, hid
     }
     форсировать((n) => n + 1);
     if (итог.finished) onDone(ст.errors);
-  }, [disabled, onDone, hideUntyped, word]);
+  }, [disabled, onDone, hideUntyped, word, lenient]);
 
   const буквы = useMemo(() => [...word], [word]);
   const ст = состояние.current;

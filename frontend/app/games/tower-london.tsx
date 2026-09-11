@@ -344,6 +344,13 @@ export default function TowerLondonGame() {
   if (phase === 'playing' || phase === 'cleared') {
     return (
       <GameShell
+      /**
+       * Служебный ряд ВНИЗУ, а не над полем — правило каркаса (GameShell:276): «низ
+       * принадлежит ОТВЕТУ; там, где ответа кнопками нет, низ отдаётся служебному».
+       * Здесь ответ даётся тапом по полю. Без объявления ряд стоял НАД полем и опускал
+       * его: замер 11.09.2026 — верх поля 173 вместо 119, центр 509/516 вместо 482.
+       */
+      bottom="actions"
         overlay={phase === 'cleared' ? (
           <LevelCleared
           variant="overlay" gameId="tower_london" passed={clearedPassed} level={levelRef.current} stars={errors === 0 ? 3 : errors <= 2 ? 2 : 1}

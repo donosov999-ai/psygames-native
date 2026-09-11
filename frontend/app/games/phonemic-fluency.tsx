@@ -23,9 +23,8 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -40,7 +39,6 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { saveSession } from '@/src/services/api';
 import { sndTimerTick, sndTimerEnd } from '@/src/services/feedback';
-import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
@@ -75,7 +73,7 @@ export default function PhonemicFluencyGame() {
    * языка интерфейса: при русском меню английская беглость была недоступна.
    */
   const { profile } = useProfile();
-  const { isPreset, str, autostart, num, isCalm } = useGamePreset();
+  const { str, autostart, num, isCalm } = useGamePreset();
   const wordLang = useWordLanguage('phonemic_fluency', profile?.id, language, str('targetLang', ''));
   /**
    * СЧЁТЧИК ПРОХОЖДЕНИЙ, не ступень сложности.
@@ -87,7 +85,6 @@ export default function PhonemicFluencyGame() {
    * бы работать. Тихая порча данных, которую заметили бы через месяцы.
    */
   const runs = usePersistentLevel('phonemic_fluency');
-  const router = useRouter();
 
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
@@ -112,6 +109,71 @@ export default function PhonemicFluencyGame() {
   useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
 
   const letterPool = phonemicLetterPool(wordLang.lang);
+
+  /**
+   * ⚠️ ОБЪЯВЛЕН ВЫШЕ ТАЙМЕРА НАМЕРЕННО. `startGame` зовёт `finish()` из
+   * интервала, и раньше объявление стояло НИЖЕ вызова: держалось это на
+   * порядке выполнения (интервал срабатывает после отрисовки), а линтер
+   * справедливо считал ошибкой — `react-hooks/immutability`, «Cannot access
+   * variable before it is declared». Тем же способом 07.09.2026 починили
+   * `startGame` в анаграммах. Проверено: `finish` не обращается ни к
+   * `isValidWord`, ни к `submitWord`, ни к `startGame` — перестановка ничего
+   * не разрывает.
+   */
+  const finish = async () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setPhase('result');
+
+    const said = wordsRef.current;   // ← из ref, а не из состояния: таймер видит устаревшее
+    const validWords = said.filter(w => w.valid);
+    const repetitions = said.filter(w => !w.valid && w.reason === 'repetition').length;
+    const wrongLetter = said.filter(w => !w.valid && w.reason === 'wrong_letter').length;
+    const tooShort = said.filter(w => !w.valid && w.reason === 'too_short').length;
+
+    // mean inter-word interval (only on valid)
+    let meanInter = 0;
+    if (validWords.length >= 2) {
+      let totalGap = 0;
+      for (let i = 1; i < validWords.length; i++) {
+        totalGap += (validWords[i].ts - validWords[i-1].ts) / 1000;
+      }
+      meanInter = totalGap / (validWords.length - 1);
+    }
+
+    // First/second half breakdown
+    const halfTime = startTimeRef.current + (duration / 2) * 1000;
+    const firstHalf = validWords.filter(w => w.ts < halfTime).length;
+    const secondHalf = validWords.filter(w => w.ts >= halfTime).length;
+
+    // Подход доводят до конца по таймеру — провалить нельзя. Засчитан завершением.
+    const doneRun = runs.level;
+    runs.reach(doneRun + 1);
+    try {
+      // passed отсутствует НАМЕРЕННО (задача e53f4958, группа «провала нет по
+      // устройству»): минутная беглость: сколько слов набрал — столько набрал.
+      // Поле «всегда true» не несёт бита и портит статистику долей — не врём им.
+      await saveSession({
+        game_type: 'phonemic_fluency',
+        score: validWords.length * 10,
+        time_seconds: duration,
+        difficulty: `letter-${letter}`,   // машинное значение: от языка интерфейса не зависит (иначе один прогон = две разные строки в статистике)
+        mode: `${duration}s`,
+        errors: repetitions + wrongLetter + tooShort,
+        details: {
+          level: doneRun,   // по нему счётчик восстановится, если ключ прогресса потерян
+          word_count: validWords.length,
+          repetitions,
+          wrong_letter: wrongLetter,
+          too_short: tooShort,
+          mean_inter_word_sec: Number(meanInter.toFixed(2)),
+          first_half_count: firstHalf,
+          second_half_count: secondHalf,
+          letter,
+          words_list: validWords.map(w => w.word),
+        },
+      });
+    } catch (e) { console.error(e); }
+  };
 
   const startGame = () => {
     const L = autoPickLetter
@@ -180,60 +242,6 @@ export default function PhonemicFluencyGame() {
     setWords(prev => { const next = [...prev, { word: raw, ts, valid, reason }]; wordsRef.current = next; return next; });
   };
 
-  const finish = async () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setPhase('result');
-
-    const said = wordsRef.current;   // ← из ref, а не из состояния: таймер видит устаревшее
-    const validWords = said.filter(w => w.valid);
-    const repetitions = said.filter(w => !w.valid && w.reason === 'repetition').length;
-    const wrongLetter = said.filter(w => !w.valid && w.reason === 'wrong_letter').length;
-    const tooShort = said.filter(w => !w.valid && w.reason === 'too_short').length;
-
-    // mean inter-word interval (only on valid)
-    let meanInter = 0;
-    if (validWords.length >= 2) {
-      let totalGap = 0;
-      for (let i = 1; i < validWords.length; i++) {
-        totalGap += (validWords[i].ts - validWords[i-1].ts) / 1000;
-      }
-      meanInter = totalGap / (validWords.length - 1);
-    }
-
-    // First/second half breakdown
-    const halfTime = startTimeRef.current + (duration / 2) * 1000;
-    const firstHalf = validWords.filter(w => w.ts < halfTime).length;
-    const secondHalf = validWords.filter(w => w.ts >= halfTime).length;
-
-    // Подход доводят до конца по таймеру — провалить нельзя. Засчитан завершением.
-    const doneRun = runs.level;
-    runs.reach(doneRun + 1);
-    try {
-      // passed отсутствует НАМЕРЕННО (задача e53f4958, группа «провала нет по
-      // устройству»): минутная беглость: сколько слов набрал — столько набрал.
-      // Поле «всегда true» не несёт бита и портит статистику долей — не врём им.
-      await saveSession({
-        game_type: 'phonemic_fluency',
-        score: validWords.length * 10,
-        time_seconds: duration,
-        difficulty: `letter-${letter}`,   // машинное значение: от языка интерфейса не зависит (иначе один прогон = две разные строки в статистике)
-        mode: `${duration}s`,
-        errors: repetitions + wrongLetter + tooShort,
-        details: {
-          level: doneRun,   // по нему счётчик восстановится, если ключ прогресса потерян
-          word_count: validWords.length,
-          repetitions,
-          wrong_letter: wrongLetter,
-          too_short: tooShort,
-          mean_inter_word_sec: Number(meanInter.toFixed(2)),
-          first_half_count: firstHalf,
-          second_half_count: secondHalf,
-          letter,
-          words_list: validWords.map(w => w.word),
-        },
-      });
-    } catch (e) { console.error(e); }
-  };
 
   // ─── render ──────────────────────────────────────────────────────────
 
@@ -355,27 +363,59 @@ export default function PhonemicFluencyGame() {
             </View>
           </View>
         }
+        /**
+         * 🔴 ОТВЕТ ПЕРЕЕХАЛ В НИЖНИЙ СЛОТ — 11.09.2026. Раньше ввод и «+ добавить»
+         * стояли в поле, и рядом было объяснение «чтобы рядом с клавиатурой».
+         *
+         * Объяснение опровергнуто соседом того же раздела: `dictation` тоже
+         * НАБИРАЕТ ответ и делает это ровно здесь — `bottom="answer"` плюс
+         * `TypingAnswer` в `toolbar` (`app/games/dictation.tsx:304`). Значит
+         * «в поле» было не требованием клавиатуры, а привычкой.
+         *
+         * 📍 ЧТО ЭТО ЧИНИТ, КРОМЕ ЕДИНООБРАЗИЯ. Без `bottom` каркас не рисует
+         * полосу ответа, а гейт геометрии раздела опознаёт «мы в партии» именно
+         * по ней. Из-за этого экран НЕ ИЗМЕРЯЛСЯ вовсе и висел в долге прибора —
+         * единственный из одиннадцати. Замер 11.09.2026 показал, что причина
+         * долга («мерилка не входит») была неверной: вход исправен, мерить было
+         * нечего.
+         *
+         * Список набранных слов остаётся в поле: это не ответ, а его история, и
+         * он должен расти вверх на всю высоту.
+         */
+        bottom="answer"
+        toolbar={
+          <View style={styles.answerCol}>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
+              placeholder={t('phonemicPlaceholder').replace('{L}', letter.toLowerCase())}
+              placeholderTextColor={colors.textSecondary}
+              value={input}
+              onChangeText={setInput}
+              onSubmitEditing={submitWord}
+              autoCorrect={false}
+              autoCapitalize="none"
+              returnKeyType="done"
+              /**
+               * ⚠️ АВТОФОКУС ТОЛЬКО НА ВЕБЕ — так же, как в `TypingAnswer`
+               * (`src/games/vocab-srs/TypingAnswer.tsx:139`), которым набирает
+               * диктант. Причина ровно в переносе ввода вниз: у каркаса нет
+               * подъёма под клавиатуру, и на телефоне автофокус открыл бы её
+               * поверх той самой полосы, в которую мы только что переехали.
+               * На вебе клавиатуры нет, и фокус экономит игроку клик.
+               */
+              {...(Platform.OS === 'web' ? { autoFocus: true } : {})}
+            />
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitWord}>
+              <Text style={[styles.addBtnText, { color: textOn(GRADIENT[0]) }]}>+ {t('phonemicAdd')}</Text>
+            </TouchableOpacity>
+          </View>
+        }
       >
         <View style={styles.fieldCol}>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
             {t('phonemicHint').replace('{L}', letter)}
           </Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
-            placeholder={t('phonemicPlaceholder').replace('{L}', letter.toLowerCase())}
-            placeholderTextColor={colors.textSecondary}
-            value={input}
-            onChangeText={setInput}
-            onSubmitEditing={submitWord}
-            autoFocus
-            autoCorrect={false}
-            autoCapitalize="none"
-            returnKeyType="done"
-          />
-          <TouchableOpacity
-            accessibilityRole="button" style={[styles.addBtn, { backgroundColor: GRADIENT[0] }]} onPress={submitWord}>
-            <Text style={[styles.addBtnText, { color: textOn(GRADIENT[0]) }]}>+ {t('phonemicAdd')}</Text>
-          </TouchableOpacity>
           <ScrollView style={styles.wordList} contentContainerStyle={styles.wordListInner}>
             {words.slice().reverse().map((w, i) => (
               <View key={i} style={[styles.wordChip, {
@@ -450,6 +490,8 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
   fieldCol: { flex: 1, alignSelf: 'stretch', paddingVertical: 8, gap: 14, alignItems: 'center' },
+  /** Полоса ответа: поле набора и «+ добавить» в один столбец, как у соседей раздела. */
+  answerCol: { width: '100%', alignItems: 'center', gap: 10 },
   statsRow: { flexDirection: 'row', gap: 24, alignItems: 'center', justifyContent: 'center' },
   statText: { fontSize: 14, fontWeight: '900' },
   letterBox: { width: 80, height: 80, borderRadius: 40, borderWidth: 3, justifyContent: 'center', alignItems: 'center' },

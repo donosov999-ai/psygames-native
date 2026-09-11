@@ -33,7 +33,14 @@ const МОСТ = path.join(ЗДЕСЬ, '../src/games/tatham-bridge/tatham.js');
  * Keen и Map себя текстом не показывают: им нужна своя отрисовка, и это записанный факт,
  * а не дефект.
  */
-const БЕЗ_ТЕКСТА = new Set(['Black Box', 'Cube', 'Guess', 'Keen', 'Map', 'Net', 'Netslide', 'Untangle']);
+const БЕЗ_ТЕКСТА = new Set(['Black Box', 'Cube', 'Guess', 'Keen', 'Map', 'Net', 'Netslide', 'Untangle',
+  // 11.09.2026: Sokoban из папки `unfinished`. Замер `psy_has_board` → 0 — своей ASCII-сетки
+  // не даёт, как Keen и Map.
+  // ⚠️ ПОПРАВКА ТОГО ЖЕ ДНЯ (координатор): это НЕ значит «рисовать своим кодом». Экран
+  // рисует ВСЕХ по векторным примитивам `psy_draw`, текстовая форма нужна только этому
+  // гейту. Отсутствие текста — строка в замере, а не работа. Проверено экраном: Сокобан
+  // рисуется и ходит (клик выше игрока сдвинул его, отпечаток доски сменился).
+  'Sokoban']);
 
 /**
  * 🔴 У КОГО НЕТ РЕШАТЕЛЯ — ФЛАГ САМОГО АВТОРА, НЕ МОЙ СПИСОК. `psy_can_solve` читает
@@ -41,7 +48,11 @@ const БЕЗ_ТЕКСТА = new Set(['Black Box', 'Cube', 'Guess', 'Keen', 'Map'
  * Same Game. Причина одна на всех: единственного решения у них не существует по
  * устройству игры. Кнопка подсказки в таких режимах не показывается.
  */
-const БЕЗ_РЕШАТЕЛЯ = new Set(['Cube', 'Pegs', 'Same Game']);
+const БЕЗ_РЕШАТЕЛЯ = new Set(['Cube', 'Pegs', 'Same Game',
+  // 11.09.2026: Sokoban — `psy_can_solve` → 0. В `unfinished/CMakeLists.txt` строка
+  // `solver(...)` есть только у group и slide, у sokoban её нет. Значит подсказки и
+  // «Показать решение» ему не положены, и решаемость выданного уровня проверить нечем.
+  'Sokoban']);
 
 /**
  * 🔴 РЕШАТЕЛЬ ЕСТЬ, А ПАРТИЮ ОН НЕ ЗАКАНЧИВАЕТ — одиннадцать движков, замер 10.09.2026
@@ -62,12 +73,20 @@ const БЕЗ_РЕШАТЕЛЯ = new Set(['Cube', 'Pegs', 'Same Game']);
  * теперь доводят до победы. Если они снова появятся в этом списке — сломано зерно.
  */
 const РЕШАТЕЛЬ_НЕ_ЗАКАНЧИВАЕТ = new Set([
+  // 11.09.2026: Sokoban — решателя нет вовсе (`psy_can_solve` → 0, строки `solver(` в
+  // unfinished/CMakeLists.txt у него нет), поэтому и до победы доводить нечему.
+  'Sokoban',
   'Black Box', 'Cube', 'Flip', 'Flood', 'Guess', 'Inertia', 'Mines',
   'Pegs', 'Rectangles', 'Same Game', 'Undead',
 ]);
 
 /** Замер 10.09.2026, канон на коммите 38e7ea3: сколько ступеней объявил САМ автор. */
 const СТУПЕНИ = {
+  // ── папка `unfinished` канона, добавлены 11.09.2026 (замер в свежем модуле) ──
+  // Slide: решатель есть, текстом показывается. ⚠️ Лестница — ТОЛЬКО три его пресета:
+  // 9x7u и 10x8u роняют весь модуль (out of memory), см. запись в names.ts.
+  Slide: 3,
+  Sokoban: 3,
   Solo: 16, Dominosa: 12, 'Train Tracks': 12, Unequal: 12, Keen: 10, Net: 10, Singles: 10,
   Bridges: 9, 'Light Up': 9, Netslide: 9, Pegs: 9, Magnets: 8, Pearl: 8, Twiddle: 8,
   Undead: 8, Flood: 7, Rectangles: 7, Towers: 7, Unruly: 7, Flip: 6, Galaxies: 6, Map: 6,

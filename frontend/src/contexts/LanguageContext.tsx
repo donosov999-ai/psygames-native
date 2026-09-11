@@ -914,6 +914,42 @@ const translations: Translations = {
   /** «Чёт-нечет» — первая головоломка на движке Тэтхэма (Unruly). */
   puzzlesUnruly: { ru: 'Чёт-нечет', en: 'Odd or Even' },
   puzzlesUnrulyIntroDesc: { ru: 'Здесь сорок логических головоломок. У каждой своё правило, но общее одно: у доски ровно одно решение, и до него можно дойти рассуждением — угадывать не нужно. Режим выбирается карточкой в развилке, сложность растёт по своей лестнице у каждой головоломки. Короткое нажатие по полю делает ход, ДОЛГОЕ — второе действие: в «Магнитах» им ставят пустую половинку, в «Минах» помечают мину, в «Чёт-нечете» перебирают в обратную сторону. Отменить ход, попросить подсказку или начать заново можно в меню паузы — кнопка ⏸ слева вверху.', en: 'Forty logic puzzles live here. Each has its own rule, but one thing is shared: every board has exactly one solution and reasoning always gets you there — guessing is never required. Pick a mode from the section card; difficulty grows along a ladder of its own for each puzzle. A short tap makes a move, a LONG press is the second action: in Magnets it leaves a domino half blank, in Mines it flags a mine, in Unruly it cycles the other way. Undo, ask for a hint or start over from the pause menu — the ⏸ button at the top left.' },
+  /**
+   * 🔴 ЧТО ДВИЖОК СЧИТАЕТ САМ — подписи для слота «ход партии» в шапке. Замер
+   * 10.09.2026: строку состояния дают 14 движков из 40, и у двенадцати она меняется
+   * по ходу игры. Показывать его текст как есть нельзя — он английский, — поэтому из
+   * строки достаются числа, а подпись берётся отсюда (`tatham-bridge/status.ts`).
+   */
+  /**
+   * Подрыв у «Сапёра» и «Инерции». Формулировка не «проиграл»: по замыслу автора это
+   * ход, который отменяют и играют дальше (`mines.c:5606`, `inertia.c:2191`).
+   */
+  // «Стереть» в словаре уже есть ключом `a11yErase` — ряд цифр берёт его, своего не заводим.
+  /**
+   * Ходов больше нет («Снос групп», «Заливка»). Не «проиграл»: партия доиграна до
+   * конца, просто без победы, и отменять тут нечего — можно только начать заново.
+   */
+  /**
+   * Тем четырём, где одиночный тычок не делает ничего (замер: 0 откликов из 1704
+   * суммарно), а работает только протяжка.
+   */
+  puzzleDragHint: { ru: '↔ Здесь тянут пальцем, а не касаются', en: '↔ Drag here instead of tapping' },
+  puzzleNoMoves: { ru: 'Ходов больше нет. Можно начать заново', en: 'No moves left. Start over if you like' },
+
+  puzzleBlownUp: { ru: 'Подорвался. Отмени ход — и играй дальше', en: 'You blew up. Undo the move and carry on' },
+  puzzleHudMarked: { ru: 'Отмечено', en: 'Marked' },
+  puzzleHudActive: { ru: 'Соединено', en: 'Connected' },
+  /**
+   * ⚠️ НЕ «Лимит ходов»: этой парой уже зовётся счётчик «Сортировки товаров»
+   * (`lr_goods_sort_movelimit_title`), и гейт дублей словаря прав — одинаковый текст
+   * под двумя ключами расходится при первой же правке. У «Заливки» величина другая
+   * по смыслу: сколько ходов ПОТРАЧЕНО из отпущенных.
+   */
+  puzzleHudMovesUsed: { ru: 'Потрачено', en: 'Used' },
+  puzzleHudCluesLeft: { ru: 'Подсказки', en: 'Clues' },
+  puzzleHudGems: { ru: 'Кристаллы', en: 'Gems' },
+  // «Счёт» в словаре уже есть ключом `score` — разбор берёт его, своего не заводим.
+  puzzleHudRegion: { ru: 'Область', en: 'Region' },
   puzzlesMines: { ru: 'Сапёр', en: 'Minesweeper' },
   puzzlesMinesDesc: { ru: 'Числа говорят, сколько мин рядом; доска решается без угадывания', en: 'Numbers count the mines around them; the board never needs a guess' },
   puzzlesMosaic: { ru: 'Мозаика', en: 'Mosaic' },
@@ -943,11 +979,20 @@ const translations: Translations = {
   puzzlesTwiddle: { ru: 'Поворот квадрата', en: 'Twiddle' },
   puzzlesTwiddleDesc: { ru: 'Крутить квадрат клеток целиком, пока числа не встанут по порядку', en: 'Rotate a whole square of cells until the numbers fall into order' },
   puzzlesSixteen: { ru: 'Шестнадцать', en: 'Sixteen' },
+  puzzlesSlide: { ru: 'Клоцки', en: 'Klotski' },
+  puzzlesSlideDesc: { ru: 'Растолкать блоки так, чтобы главный вышел наружу', en: 'Shuffle the blocks aside so the main one can slide out' },
+  puzzlesSokoban: { ru: 'Сокобан', en: 'Sokoban' },
+  puzzlesSokobanDesc: { ru: 'Толкать бочки на метки, не загоняя их в угол', en: 'Push the barrels onto the targets without wedging them into a corner' },
   puzzlesSixteenDesc: { ru: 'Гонять строки и столбцы по кругу, пока числа не встанут по порядку', en: 'Slide rows and columns around the board until the numbers line up' },
   puzzlesFlip: { ru: 'Переворот', en: 'Flip' },
   puzzlesFlipDesc: { ru: 'Каждое нажатие переворачивает и соседей: погасить всё поле', en: 'Each tap flips its neighbours too: turn the whole board off' },
   puzzlesCube: { ru: 'Куб по полю', en: 'Rolling Cube' },
-  puzzlesCubeDesc: { ru: 'Катить куб по сетке стрелками и собрать все метки на грани', en: 'Roll the cube across the grid with the arrows and pick up every marker' },
+  /**
+   * ⚠️ «Куб» — не всегда куб: лестница этой игры это ЧЕТЫРЕ РАЗНЫХ ТЕЛА
+   * (`c4x4` куб, `t1x2` тетраэдр, `o2x2` октаэдр, `i3x3` икосаэдр), а не рост
+   * сложности одного. Прежний текст был верен для одной ступени из четырёх.
+   */
+  puzzlesCubeDesc: { ru: 'Катить многогранник по сетке стрелками и собрать все метки на грани', en: 'Roll the solid across the grid with the arrows and pick up every marker' },
   puzzlesBlackBox: { ru: 'Чёрный ящик', en: 'Black Box' },
   puzzlesBlackBoxDesc: { ru: 'Найти спрятанные шары по тому, где луч вышел из ящика', en: 'Find the hidden balls from where each beam leaves the box' },
   puzzlesGuess: { ru: 'Угадай код', en: 'Crack the Code' },
@@ -979,7 +1024,13 @@ const translations: Translations = {
   puzzlesFifteenDesc: { ru: 'Двигать плитки в пустую клетку и собрать порядок', en: 'Slide tiles into the gap and restore the order' },
   puzzlesLightUpDesc: { ru: 'Расставить фонари так, чтобы осветить всё поле', en: 'Place lamps so the whole board is lit' },
   puzzlesLoopyDesc: { ru: 'Собрать одну замкнутую петлю по числам в клетках', en: 'Build one closed loop guided by the numbers' },
-  puzzlesUnrulyDesc: { ru: 'Поровну кружков и точек, трёх одинаковых подряд не бывает', en: 'Equal circles and dots, never three of a kind in a row' },
+  /**
+   * ⚠️ ЗДЕСЬ БЫЛО ВРАНЬЁ, И ОНО ЖИЛО В ДВЕНАДЦАТИ ЯЗЫКАХ: «Поровну кружков и точек».
+   * Замер 11.09.2026 по всем семи ступеням: кругов на доске НОЛЬ, в `unruly.c` нет
+   * ни одного `draw_circle` — движок рисует чёрные и белые КВАДРАТЫ. Человек читал
+   * задание и искал на доске то, чего там нет.
+   */
+  puzzlesUnrulyDesc: { ru: 'Поровну чёрных и белых клеток, трёх одинаковых подряд не бывает', en: 'Equal black and white cells, never three of a kind in a row' },
   /* Головоломки Тэтхэма: имена режимов. Движок один, экран один, правила его. */
   puzzlesKeen: { ru: 'Клетки с арифметикой', en: 'Arithmetic Cages' },
   puzzlesSingles: { ru: 'Лишние числа', en: 'Extra Numbers' },

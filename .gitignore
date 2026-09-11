@@ -138,3 +138,6 @@ languages-chat/
 # Twiddle, Netslide). Строка идёт ВМЕСТЕ с папкой — правило выше требует
 # добавлять сюда каждую новую, и один раз чужой `git add -A` уже уводил работу.
 spatial-chat/
+
+# отчёт прибора геометрии экранов (scripts/screen-geometry.mjs) — локальный, не в репо
+frontend/screen-geometry.json

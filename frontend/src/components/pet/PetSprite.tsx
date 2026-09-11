@@ -607,10 +607,26 @@ function AccessoryOverlay({ kind, size, skin, state, frame }: {
   );
 }
 
-export default function PetSprite({ state, size = 56, skin = 'cat', accessory = null, look = null }: {
+export default function PetSprite({ state, size = 56, skin = 'cat', accessory = null, look = null, subject = false }: {
   state: PetState; size?: number; skin?: PetSkin; accessory?: PetAccessory | null;
   /** Вид по заботе (`petLook`) — подменяет ПОКОЙ одним неподвижным кадром. */
   look?: { axis: string; stage: number } | null;
+  /**
+   * 🔴 ЭТОТ ПИТОМЕЦ И ЕСТЬ СОДЕРЖИМОЕ ЭКРАНА, А НЕ ФОН.
+   *
+   * 📍 Денис 11.09.2026 со снимком экрана питомца: «не шевелится, фото статика».
+   *
+   * Щадящий режим гасит кадры ВЕЗДЕ (см. ниже), и это верно для гуляки внизу и для
+   * мини-аватара в шапке: они движутся сами по себе всё время, пока человек занят
+   * другим, — ровно то, из-за чего настройку и включают. Но на экране `/pet` питомец
+   * не фон: человек пришёл СМОТРЕТЬ на него, экран о нём и называется его именем.
+   * Замерший портрет там читается не как бережность, а как не загрузившаяся картинка,
+   * что Денис и написал.
+   *
+   * Поэтому носитель, который объявил себя `subject`, продолжает дышать. Правило
+   * узкое намеренно: по умолчанию `false`, и ни гуляка, ни шапка его не получают.
+   */
+  subject?: boolean;
 }) {
   useChannel();                                   // приехал облик канала — перерисуемся
   const видЗаботы = state === 'idle' ? petLookFrame(skin, look) : null;
@@ -658,10 +674,10 @@ export default function PetSprite({ state, size = 56, skin = 'cat', accessory = 
      * поза, просто без перелистывания. То есть ответ на действие сохраняется,
      * исчезает только фоновое шевеление.
      */
-    if (reduced) return;
+    if (reduced && !subject) return;
     const t = setInterval(() => setFrame((f) => (f + 1) % кадров), тактМс);
     return () => clearInterval(t);
-  }, [state, skin, кадров, тактМс, reduced]);
+  }, [state, skin, кадров, тактМс, reduced, subject]);
 
   /**
    * Все кадры лежат стопкой, анимация — переключение видимости.

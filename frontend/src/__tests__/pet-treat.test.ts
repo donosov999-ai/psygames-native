@@ -65,7 +65,12 @@ describe('лакомство питомца', () => {
     const path = require('path');
     const экран: string = fs.readFileSync(path.join(__dirname, '../../app/pet.tsx'), 'utf8');
     expect(экран).toContain('<PetTreat');
-    expect(экран).toContain('active={feastAnim}');
+    /**
+     * ⚠️ 11.09.2026 условие сузилось, и в этом вся починка: флаг `feastAnim` включали
+     * ВСЕ три кнопки заботы, поэтому лакомство выкладывалось и когда кота гладили или
+     * мыли. Теперь оно привязано ровно к еде.
+     */
+    expect(экран).toContain("active={действие === 'eat'}");
   });
 
   it('🔴 без якорей лакомство не рисуется, а не падает в угол', () => {

@@ -29,6 +29,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import GameShell from '@/src/components/GameShell';
 import PuzzleCanvas from '@/src/components/PuzzleCanvas';
+import PlayBoard, { сторонаДоски } from '@/src/components/PlayBoard';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { HELP_OPEN_EVENT } from '@/src/components/GameHelpOverlay';
@@ -41,7 +42,7 @@ import { saveSession } from '@/src/services/api';
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
 import { открыть, указатель, стрелка, клавиша, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
-import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
+import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
 
@@ -76,6 +77,9 @@ export default function PuzzlesScreen() {
   const [второе, setВторое] = useState(false);
   const [зерно, setЗерно] = useState(() => Math.floor(Math.random() * 1e6));
   const начатоВ = useRef(gameNow());
+
+  /** Сторона квадрата под доску — общий носитель стандарта (`PlayBoard`). */
+  const сторонаПоля = сторонаДоски(width);
 
   const движок = список.find((д) => д.имя === имяРежима) ?? null;
   const ключИгры = `puzzles_${имяРежима.toLowerCase().replace(/\s+/g, '_')}`;
@@ -142,6 +146,17 @@ export default function PuzzlesScreen() {
     setХодов((n) => n + 1);
   }, []);
 
+  /**
+   * 🔴 ЦИФРА ВЫШЕ ДЕВЯТКИ — ЭТО БУКВА, А НЕ КОД `48 + n`.
+   *
+   * У судоку бывают поля 12×12 и 16×16, и автор ждёт там `a`..`g` (`solo.c:3636`):
+   * `1..9`, потом `a` за десять. Мы слали `48 + ц` всегда, то есть `:`, `;`, `<`…
+   * Замер 11.09.2026: на ступени 15 (блоки 3×4) МЁРТВЫМИ были три клавиши из
+   * двенадцати, на ступени 16 (4×4) — семь из шестнадцати. Человек жал и ничего
+   * не происходило.
+   */
+  const кодЦифры = (ц: number) => (ц <= 9 ? 48 + ц : 97 + (ц - 10));
+
   const подсказать = useCallback(() => {
     void решить().then((п) => {
       if (!п) return;                      // решатель отказал — ступень не жжём
@@ -151,6 +166,15 @@ export default function PuzzlesScreen() {
   }, []);
 
   const победа = партия?.статус === 1;
+  /**
+   * 🔴 КОНЕЦ РАЗДАЧИ — ЭТО НЕ ТОЛЬКО ПОБЕДА. Экран ждал `статус === 1` и на всё
+   * остальное молчал, а `−1` (проигрыш) не обрабатывал вовсе: партия «Заливки» с
+   * исчерпанным лимитом ходов оставалась на экране навсегда.
+   * Замер 11.09.2026 по всем сорока (случайная игра до смены статуса): настоящий
+   * `−1` умеет отдавать ОДНА игра — «Заливка». Одна, но повисала намертво.
+   */
+  const проиграл = партия?.статус === -1;
+  const конец = победа || проиграл;
   const прошёл = победа && !сдался;
 
   /*
@@ -159,7 +183,7 @@ export default function PuzzlesScreen() {
    * ловит гейт `level-replay`. `reach` двигает только потолок вверх.
    */
   useEffect(() => {
-    if (!победа) return;
+    if (!конец) return;
     const секунд = (gameNow() - начатоВ.current) / 1000;
     if (!isPreset) {
       if (прошёл) lvl.reach(Math.min(lvl.level + 1, ступеней));
@@ -175,13 +199,24 @@ export default function PuzzlesScreen() {
       mode: имяРежима,
       details: { level: lvl.level, mode: имяРежима, moves: ходов, solver_used: сдался },
     }).catch(() => { /* офлайн — партия всё равно доиграна */ });
-  }, [победа]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [конец]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <GameShell
       title={t(КЛЮЧ_ИМЕНИ[имяРежима] ?? КЛЮЧ_ИМЕНИ[ПО_УМОЛЧАНИЮ])}
       onBack={() => router.back()}
-      confirmExit={ходов > 0 && !победа}
+      confirmExit={ходов > 0 && !конец}
+      /**
+       * 🔴 ДОСКА БЫВАЕТ ВЫШЕ ЭКРАНА, И ТОГДА ДО НИЖНИХ КЛЕТОК НЕ ДОТЯНУТЬСЯ.
+       * Замер 11.09.2026 на телефоне 360 точек (под доску 328): «Колышки» на третьей
+       * ступени занимают 548 экранных точек по высоте, «Угадай код» — 524, у прочих
+       * тридцати восьми около 328. Прокрутки поля не было — нижняя часть доски просто
+       * оказывалась за краем.
+       * ⚠️ Касание доски прокрутку не перехватывает: `PuzzleCanvas` ставит себе
+       * `touchAction: 'none'`, так что палец по доске по-прежнему ходит, а прокрутка
+       * живёт на экране вокруг неё.
+       */
+      scrollableField
       overlay={фаза === 'cleared' ? (
         <LevelCleared
           gameId="puzzles"
@@ -222,13 +257,51 @@ export default function PuzzlesScreen() {
         { id: 'home', label: t('goHome'), icon: 'home', leave: true },
       ]}
       hud={[
-        { key: 'level', icon: 'trending-up-outline', label: t('hud_step'), value: `${lvl.level}/${ступеней}` },
+        /**
+         * 🔴 ПОКА ОПИСЬ ДВИЖКОВ НЕ ПОДНЯЛАСЬ — ПРОЧЕРК, А НЕ ВЫДУМАННОЕ «1/1».
+         *
+         * `ступеней` считается как `max(ступени.length, 1)`, а до загрузки wasm
+         * `движок` пуст и ступеней ноль — значит экран уверенно показывает «1/1»
+         * ЛЮБОЙ головоломке, даже той, у которой их шестнадцать.
+         *
+         * 📍 Замер 11.09.2026, свой показ без торможения сети: «1/1» видно с 263-й
+         * по 652-ю миллисекунду, потом становится «1/3». Окно растёт вместе со
+         * временем загрузки модуля (969 КБ), и на телефоне оно заметно длиннее.
+         * Отсюда сообщение чата «Пространство»: «Клоцки показывают Уровень 1/1,
+         * хотя psy_presets отдаёт 3» — пресеты отдавали три всегда, читали раньше
+         * времени. Прочерк не врёт и не требует угадывать, дочитался ли модуль.
+         */
+        { key: 'level', icon: 'trending-up-outline', label: t('hud_step'), value: движок ? `${lvl.level}/${ступеней}` : '—' },
         { key: 'moves', icon: 'swap-horizontal', label: t('hud_moves'), value: ходов, pop: true },
+        /**
+         * 🔴 ТРЕТИЙ СЧЁТЧИК СЧИТАЕТ САМ ДВИЖОК, И МЫ ЕГО ВЫБРАСЫВАЛИ. Замер
+         * 10.09.2026: строку состояния ведут 14 движков из 40, у двенадцати она
+         * меняется по ходу партии — «отмечено 3 из 5», «соединено 6 из 25»,
+         * «подсказок осталось 44». Ровно та обратная связь, которой не хватало.
+         * Разбор и подписи — в `tatham-bridge/status.ts`: показываем НАШИ слова и
+         * числа движка, а не его английский текст.
+         */
+        ...(партия?.ход
+          ? [{ key: 'engine', icon: 'stats-chart-outline' as const, label: t(партия.ход.ключ), value: партия.ход.значение }]
+          : []),
       ]}
     >
-      {фаза === 'config' ? (
+      {/**
+        * ⚠️ Настройка без описи движков — это экран, который ВРЁТ и не работает:
+        * лестница показывает «1/1» вместо настоящей, а кнопка «Начать» ничего не
+        * делает — `начать()` первой строкой выходит по `if (!движок) return`.
+        * Ждём опись тем же кружком, что и раздачу партии.
+        */}
+      {фаза === 'config' && !движок ? (
+        <View style={styles.centre}><ActivityIndicator color={colors.primary} /></View>
+      ) : фаза === 'config' ? (
         <View style={styles.centre}>
-          <Text style={[styles.rule, { color: colors.textSecondary }]}>
+          {/*
+            ⚠️ Строка задания держит ПОСТОЯННУЮ высоту: у одних игр она в одну строку,
+            у других в три, и без этого доска съезжала на два десятка точек от игры к
+            игре — половина жалобы «плавает по высоте».
+          */}
+          <Text numberOfLines={3} style={[styles.rule, { color: colors.textSecondary }]}>
             {t(КЛЮЧ_ОПИСАНИЯ[имяРежима] ?? КЛЮЧ_ОПИСАНИЯ[ПО_УМОЛЧАНИЮ])}
           </Text>
           <LevelProgressMap
@@ -260,12 +333,65 @@ export default function PuzzlesScreen() {
           <Text style={[styles.rule, { color: colors.textSecondary }]}>
             {t(КЛЮЧ_ОПИСАНИЯ[имяРежима] ?? КЛЮЧ_ОПИСАНИЯ[ПО_УМОЛЧАНИЮ])}
           </Text>
-          <PuzzleCanvas
-            партия={партия}
-            ширина={Math.min(width - 32, 420)}
-            фон={colors.background}
-            onЖест={(x, y, ж, п) => { void жать(x, y, ж, п || второе); }}
-          />
+          {/*
+            🔴 МЕСТО ПОД ДОСКУ ОДНО И ТО ЖЕ У ВСЕХ СОРОКА — квадрат, а не «сколько
+            вышло». Денис 11.09.2026: «то там по высоте, то там, то шире, то уже».
+            Доска вписывается в этот квадрат по обеим сторонам и стоит в середине.
+          */}
+          <PlayBoard ширинаЭкрана={width}>
+            <PuzzleCanvas
+              партия={партия}
+              ширина={сторонаПоля}
+              высота={сторонаПоля}
+              фон={colors.background}
+              onЖест={(x, y, ж, п) => { void жать(x, y, ж, п || второе); }}
+            />
+          </PlayBoard>
+          {/*
+            🔴 ВЫХОД ИЗ ТУПИКА СТОИТ ТАМ, ГДЕ ТУПИК, — НАД ДОСКОЙ.
+            Денис 11.09.2026, снимок «Сапёра» с подорванной клеткой: «в конце не
+            двигается, выходит только через кнопку паузы». Так и было: у «Сапёра» и
+            «Инерции» подрыв — не проигрыш (см. `status.ts`), партия продолжается, а
+            единственное осмысленное действие — отменить ход — лежало в меню паузы.
+            Человек видит мёртвую доску и не догадывается туда лезть.
+          */}
+          {партия?.подорвался || партия?.тупик ? (
+            <View style={[styles.тупик, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              {/*
+                Два разных положения — две разные подписи. «Подорвался» зовёт отменить
+                ход, «ходов больше нет» — начать заново: отменять там нечего, партия
+                доиграна до конца, просто без победы.
+              */}
+              <Text style={[styles.тупикТекст, { color: colors.text }]}>
+                {партия?.подорвался ? t('puzzleBlownUp') : t('puzzleNoMoves')}
+              </Text>
+              <View style={styles.тупикРяд}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => { void отменить().then(setПартия); }}
+                  style={[styles.тупикКнопка, { backgroundColor: GRADIENT[0] }]}
+                >
+                  <Ionicons name="arrow-undo" size={18} color="#FFF" />
+                  <Text style={styles.тупикКнопкаТекст}>{t('btn_undo')}</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => новая()}
+                  style={[styles.тупикКнопка, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+                >
+                  <Ionicons name="refresh" size={18} color={colors.text} />
+                  <Text style={[styles.тупикКнопкаТекст, { color: colors.text }]}>{t('restart')}</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
+          {/*
+            Подсказка тем, у кого тычок не работает вовсе (см. `ТОЛЬКО_ПРОТЯЖКА`):
+            без неё доска выглядит сломанной — жмёшь и ничего.
+          */}
+          {ТОЛЬКО_ПРОТЯЖКА.has(имяРежима) ? (
+            <Text style={[styles.протяжка, { color: colors.textSecondary }]}>{t('puzzleDragHint')}</Text>
+          ) : null}
           {/* Второе действие: им ставят пустую клетку, метку, обратный перебор. */}
           {ВТОРОЕ_ДЕЙСТВИЕ.has(имяРежима) ? (
             <Pressable
@@ -291,12 +417,55 @@ export default function PuzzlesScreen() {
                   key={ц}
                   accessibilityRole="button"
                   accessibilityLabel={String(ц)}
-                  onPress={() => { void клавиша(48 + ц).then(setПартия); }}
+                  onPress={() => { void клавиша(кодЦифры(ц)).then(setПартия); }}
                   style={[styles.цифра, { backgroundColor: GRADIENT[0] }]}
                 >
                   <Text style={styles.цифраТекст}>{ц}</Text>
                 </Pressable>
               ))}
+              {/*
+                🔴 БЕЗ «СТЕРЕТЬ» ОШИБОЧНУЮ ЦИФРУ СНИМАЛИ ТОЛЬКО ЧЕРЕЗ МЕНЮ ПАУЗЫ.
+                Замер 11.09.2026: движок стирает клетку кодом `0` — «Небоскрёбы»
+                16 попаданий из 16, «Заполнение областей» 18 из 18, «Нежить» 3 из 5.
+                Ряд строился как `1..N`, и кнопки стирания в нём не было НИ НА ОДНОМ
+                из шести цифровых экранов.
+              */}
+              {/*
+                🔴 «ГОТОВО» — ЕДИНСТВЕННЫЙ СПОСОБ СХОДИТЬ В «УГАДАЙ КОД». Цифры
+                набирают строку, но на проверку она уходит только по Enter. Замер
+                11.09.2026: код 13 меняет рисунок; без кнопки набор висел, и партия
+                не двигалась вовсе.
+              */}
+              {ВВОД.has(имяРежима) ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('storyDone')}   /* «Готово» в словаре уже есть — своего ключа не завожу */
+                  onPress={() => { void клавиша(13).then(setПартия); }}
+                  style={[styles.цифра, { width: 74, backgroundColor: GRADIENT[0] }]}
+                >
+                  <Ionicons name="checkmark" size={24} color="#FFF" />
+                </Pressable>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('a11yErase')}
+                /**
+                 * ⚠️ У «УГАДАЙ КОД» СТИРАЕТ НЕ КЛАВИША, А ОТМЕНА ХОДА. Я посадил сюда
+                 * код 8 (забой) по аналогии с цифровыми — и это было МОЕЙ выдумкой,
+                 * а не замером. Проверка 11.09.2026: код 8 даёт 0 попаданий из 4, и
+                 * перебор 32…127 плюс 8/9/13/27/127 не нашёл НИ ОДНОГО кода, который
+                 * убирает поставленный цвет. У остальных шести цифровых код 48
+                 * стирает в 1063 случаях из 1063 на 58 ступенях.
+                 * Поэтому здесь честная отмена хода: она поставленный цвет снимает.
+                 */
+                onPress={() => {
+                  if (ВВОД.has(имяРежима)) { void отменить().then(setПартия); return; }
+                  void клавиша(48).then(setПартия);
+                }}
+                style={[styles.цифра, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
+              >
+                <Ionicons name="backspace-outline" size={24} color={colors.text} />
+              </Pressable>
             </View>
           ) : null}
           {СТРЕЛОЧНЫЕ.has(имяРежима) ? (
@@ -322,13 +491,27 @@ export default function PuzzlesScreen() {
 
 const styles = StyleSheet.create({
   centre: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 10 },
-  rule: { fontSize: 13, lineHeight: 18, textAlign: 'center', maxWidth: 320 },
+  // 54 = три строки по 18: место под задание не зависит от длины текста.
+  rule: { fontSize: 13, lineHeight: 18, textAlign: 'center', maxWidth: 320, height: 54, textAlignVertical: 'center' },
   start: { minHeight: 52, paddingHorizontal: 34, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   startText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   крестовина: { flexDirection: 'row', gap: 10 },
+  протяжка: { marginTop: 10, fontSize: 13, textAlign: 'center', maxWidth: 420, fontWeight: '600' },
+  тупик: {
+    marginTop: 12, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1,
+    alignItems: 'center', gap: 10, alignSelf: 'stretch', maxWidth: 420,
+  },
+  тупикТекст: { fontSize: 15, fontWeight: '700', textAlign: 'center' },
+  тупикРяд: { flexDirection: 'row', gap: 10 },
+  // 48 — пол площади нажатия (`tap-target-audit`), тот же, что у второго действия.
+  тупикКнопка: {
+    flexDirection: 'row', alignItems: 'center', gap: 7,
+    paddingVertical: 12, paddingHorizontal: 18, borderRadius: 14, minHeight: 48,
+  },
+  тупикКнопкаТекст: { color: '#FFF', fontSize: 14, fontWeight: '800' },
   второе: {
     flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'center',
-    marginTop: 12, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1.5, minHeight: 46,
+    marginTop: 12, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1.5, minHeight: 48,
   },
   второеТекст: { fontSize: 14, fontWeight: '800' },
   // Ряд клавиш как в судоку: 50×50, скругление 12, крупная цифра — размер выверен
@@ -336,5 +519,7 @@ const styles = StyleSheet.create({
   цифры: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12, maxWidth: 420 },
   цифра: { width: 50, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   цифраТекст: { color: '#FFF', fontSize: 26, fontWeight: '800' },
-  стрелка: { width: 54, height: 46, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  // ⚠️ 48 — не «покруглее», а пол `tap-target-audit` (48×48). На 46 CI поймал кнопку
+  // второго действия 182×46 и был прав: два пункта ниже пола на КАЖДОМ нажатии игры.
+  стрелка: { width: 54, height: 48, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });
