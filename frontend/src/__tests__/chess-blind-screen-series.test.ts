@@ -536,6 +536,94 @@ describe('экран серии: три блока по одной позици�
       expect(page).toContain(EN.yourLevels.split('{')[0].trim());
     } finally { TestRenderer.act(() => { try { r.unmount(); } catch { /* уже ушёл */ } }); }
   });
+
+  /**
+   * 🔴 МЕНЮ ПАУЗЫ НА ЭКРАНЕ СЕРИИ — ТРЕТИЙ КАРКАС ИГРЫ, И САМЫЙ ДОРОГОЙ.
+   *
+   * Серия меряет разности T₂−T₁ и T₃−T₁; вылет из неё одним касанием стрелки
+   * стоит не «партии», а всего замера — прогон уходит в никуда. Каркасная проба
+   * `game-shell-pause-menu` сторожит сам каркас, проводку игры — не видит.
+   * Замер 09.09 до правки: `grep -c pauseActions app/games/chess-blind.tsx` → 0.
+   */
+  it('🔴 стрелка в серии открывает меню паузы, а не обрывает замер', async () => {
+    const r = await mountScreen();
+    try {
+      pressText(r, EN.entry);
+      const метка = (id: string) => r.root.findAll((n: any) => n.props?.testID === id, OUTER);
+      expect(`меню до стрелки: ${метка('game-pause-menu').length > 0}`).toBe('меню до стрелки: false');
+
+      await TestRenderer.act(async () => { метка('game-back')[0].props.onPress(); });
+      await settle();
+      expect(`меню после стрелки: ${метка('game-pause-menu').length > 0}`).toBe('меню после стрелки: true');
+      const пункты = ['resume', 'restart', 'home']
+        .map((id) => `${id}:${метка(`pause-action:${id}`).length > 0}`).join(' ');
+      expect(пункты).toBe('resume:true restart:true home:true');
+
+      // Отпускаем общий счётчик пауз — иначе он утечёт в следующую пробу файла.
+      await TestRenderer.act(async () => { метка('pause-action:resume')[0].props.onPress(); });
+      await settle();
+      expect(`меню после «Продолжить»: ${метка('game-pause-menu').length > 0}`)
+        .toBe('меню после «Продолжить»: false');
+    } finally { TestRenderer.act(() => { try { r.unmount(); } catch { /* уже ушёл */ } }); }
+  });
+
+  it('🔴 разбор ошибки показывает фигуру КАРТИНКОЙ, а не шрифтовым знаком', async () => {
+    /**
+     * Продолжение отчётов `18be48ff` и `d35840f8`. Коммит `bf9e3237` перевёл на
+     * картинку ДВА места сразу — вопрос блока «память» и разбор ошибок «что стояло
+     * на поле на самом деле». Проба тогда была написана только на первое.
+     *
+     * 🔴 ЗАМЕР 09.09.2026, почему проба нужна: вернул разбор к прежней строке со
+     * шрифтовым знаком (`squareName — truthLabel`) и прогнал всё своё —
+     * **24 набора, 284 пробы, код выхода 0**. Дефект вернулся, не покраснело ничто.
+     *
+     * Чтобы разбор вообще появился, блок «память» проходится ЗАВЕДОМО МИМО: на
+     * каждый вопрос жмётся ответ, противоположный верному. Что стояло на поле,
+     * проба знает из показанной ГЛАЗАМИ расстановки, а не из внутренностей игры,
+     * и поэтому умеет сказать, сколько картинок обязано быть — не «хотя бы одна».
+     */
+    const r = await mountScreen();
+    try {
+      pressText(r, EN.entry);
+      playBlock(r, null);
+      await advance(INTERLUDE);
+      playBlock(r, null);
+      await advance(INTERLUDE);
+      pressText(r, START);
+      const shown = layout(r);
+      await advance(EXPOSE);
+
+      const правда: string[] = [];
+      for (let i = 0; i < QUESTIONS_PER_BLOCK; i += 1) {
+        const вопрос = matchAsk(r, RE_RECALL);
+        expect(`вопрос памяти №${i + 1} на экране: ${вопрос !== null}`)
+          .toBe(`вопрос памяти №${i + 1} на экране: true`);
+        const [поле] = squaresIn(вопрос as string);
+        const верно = shown[поле] === glyphIn(вопрос as string);
+        правда.push(shown[поле] ?? '');
+        pressText(r, верно ? EN.answerNo : EN.answerYes);   // намеренно мимо
+      }
+      await settle();
+
+      // Разбор без единой фигуры судить нельзя — сперва доказываем, что смотреть есть на что.
+      const сФигурой = правда.filter((g) => g !== '').length;
+      expect(`полей с фигурой среди ошибок: ${сФигурой > 0}`)
+        .toBe('полей с фигурой среди ошибок: true');
+
+      const rows = r.root.findAll((n: any) => n.props?.testID === 'chess-miss', OUTER);
+      expect(`строк разбора: ${rows.length}`).toBe(`строк разбора: ${QUESTIONS_PER_BLOCK}`);
+
+      const картинок = rows.reduce((n: number, row: any) => n + row.findAll(
+        (x: any) => String(x.props?.testID ?? '').startsWith('piece:'), OUTER,
+      ).length, 0);
+      expect(`фигур-картинок в разборе: ${картинок}`)
+        .toBe(`фигур-картинок в разборе: ${сФигурой}`);
+
+      const текст = rows.map((row: any) => joined(row)).join(' ');
+      expect(`шрифтовой знак в тексте разбора: ${/[♔-♟]/.test(текст)}`)
+        .toBe('шрифтовой знак в тексте разбора: false');
+    } finally { TestRenderer.act(() => { try { r.unmount(); } catch { /* уже ушёл */ } }); }
+  });
 });
 
 /**

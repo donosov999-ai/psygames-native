@@ -29,6 +29,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 import { visibleHubCards } from '@/src/constants/hubContents';
+import HubEmpty from '@/src/components/HubEmpty';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { filterAllowedGames } from '@/src/constants/profiles';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -115,9 +116,11 @@ export default function AttentionConflictGame() {
           <Text style={styles.heroTitle}>{t('attentionConflict')}</Text>
           <Text style={styles.heroDesc}>{t('attentionConflictDesc')}</Text>
         </GradientSurface>
-        <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
-          {t('attentionConflictPickMode')}
-        </Text>
+        {карточки.length > 0 ? (
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+            {t('attentionConflictPickMode')}
+          </Text>
+        ) : null}
         {карточки.map(({ card: g, route: маршрут, tag: тип }) => (
           <TouchableOpacity
             accessibilityRole="button"
@@ -137,6 +140,12 @@ export default function AttentionConflictGame() {
             <Ionicons name="chevron-forward" size={22} color={colors.textSecondary} />
           </TouchableOpacity>
         ))}
+        {/**
+          * 🔴 Развилка не имеет права быть тупиком — разбор в шапке `HubEmpty`.
+          * Замер 09.09.2026 на собранной сборке: пустыми открывались 6 развилок
+          * из 17 у профиля «Бесплатный» и 4 из 17 у «Детей».
+          */}
+        {карточки.length === 0 ? <HubEmpty accent={GRADIENT[0]} /> : null}
         <Text style={[styles.footnote, { color: colors.textSecondary }]}>
           {t('attentionConflictFootnote')}
         </Text>

@@ -1,7 +1,7 @@
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /** Local-only exercise adapter. Per-profile local saves; no server rewards. */
 import React, {useState, useEffect, useRef,useCallback} from 'react';
-import {View, Text, Pressable, StyleSheet, Animated, Easing} from 'react-native';
+import {View, Text, Pressable, StyleSheet, Animated, Easing, DeviceEventEmitter } from 'react-native';
 // 🔴 НЕ `useWindowDimensions`: на первом кадре он отдаёт 0, и поле считается от
 // нулевой высоты. Защита живёт в `useScreenSize` — общая для всех игр.
 import {useScreenSize} from '@/src/hooks/useScreenWidth';
@@ -9,6 +9,7 @@ import Svg, {Path, Circle} from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useProfile} from '@/src/contexts/ProfileContext';
 import GameShell from './GameShell';
+import {HELP_OPEN_EVENT} from './GameHelpOverlay';
 import {GameAuxAction, GameAuxBar} from './GameAuxAction';
 import {useTheme} from '@/src/contexts/ThemeContext';
 import {session, commit, undo, redo, scramble, solved, replay} from '../games/spatial-core/core.mjs';
@@ -20,7 +21,6 @@ import type {Cell} from '../games/spatial-core/core.mjs';
 import {createDeal,decodeSnapshot,encodeSnapshot} from '../games/spatial-core/snapshot.mjs';
 import {spatialFrame} from '../games/spatial-core/frame';
 
-import {useReducedMotion} from '@/src/hooks/useReducedMotion';
 import {useLanguage} from '@/src/contexts/LanguageContext';
 type Mode = 'twiddle' | 'net';
 type LevelTask = NetLevelTask | (TwiddleLevelTask & {locked:number[];highlighted:number[]});
@@ -57,12 +57,11 @@ export function SpatialPipe({cell,active,source}:{cell:Cell;active:boolean;sourc
 }
 
 /**
- * `header`, `overlay` и `onReady` — слоты для маршрута app/games/spatial-lab.tsx (09.09.2026): тропинка
- * уровней каркаса рисуется над вкладками, а маршрут получает `request(level)` и зовёт его сам —
- * с тропинки и с экрана итога («дальше»). Механика поля не тронута: это тот же `request()`,
- * что у кнопок «Проще/Сложнее».
+ * `overlay` и `onReady` — слоты для маршрута app/games/spatial-lab.tsx (09.09.2026): окно «уровень собран»
+ * рисуется поверх поля, а маршрут получает `request(level)` и зовёт его сам — с экрана итога («дальше»).
+ * Механика поля Codex не тронута: это тот же `request()`, что у кнопок «Проще/Сложнее».
  */
-export default function SpatialLab({onBack,preset,initialMode,onComplete,header,overlay,onReady}:{onBack:()=>void;preset?:{mode:Mode;level:number;seed:number};initialMode?:Mode;onComplete?:(result:{mode:Mode;level:number;moves:number})=>void;header?:React.ReactNode;overlay?:React.ReactNode;onReady?:(api:{request:(level:number)=>void})=>void}) {
+export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay,onReady}:{onBack:()=>void;preset?:{mode:Mode;level:number;seed:number};initialMode?:Mode;onComplete?:(result:{mode:Mode;level:number;moves:number})=>void;overlay?:React.ReactNode;onReady?:(api:{request:(level:number)=>void})=>void}) {
   const {t}=useLanguage();   // названия упражнений — из общего словаря (12 языков), не литералами
   const {colors}=useTheme();
   const {h:viewportHeight}=useScreenSize();
@@ -86,7 +85,6 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,header,
   const [turning,setTurning]=useState<number|null>(null);
   const [angle]=useState(()=>new Animated.Value(0));
   const turnLock=useRef(false);
-  const reduceMotion=useReducedMotion();   // «меньше движения»: поворот блока без анимации
   const completionSent=useRef(false);
   const presetMode=preset?.mode,presetSeed=preset?.seed,presetLevel=preset?.level;
   const start=useCallback((target:Mode,nextSeed:number,level=0)=>{
@@ -98,12 +96,18 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,header,
   },[angle]);
   const animateTurn=useCallback((amount:number,onComplete:()=>void)=>{
     turnLock.current=true;angle.setValue(0);setTurning(amount);
-    if(reduceMotion){onComplete();turnLock.current=false;setTurning(null);return;}
+    /*
+     * 🔴 ВРАЩЕНИЕ ЗДЕСЬ НЕ СПРАШИВАЕТ СИСТЕМНУЮ НАСТРОЙКУ «МЕНЬШЕ ДВИЖЕНИЯ» (09.09.2026).
+     * 09.09 я подчинил её этому переключателю ради гейта reduced-motion — и на устройстве с
+     * включённой настройкой фигура перестала поворачиваться вовсе. Здесь поворот — это САМО
+     * УПРАЖНЕНИЕ и объяснение ошибки, а не украшение: без него экран показывает ту же картинку,
+     * из-за которой человек ошибся. Настройка гасит декор, а не содержание.
+     */
     Animated.timing(angle,{toValue:amount*90,duration:320,easing:Easing.inOut(Easing.cubic),useNativeDriver:false}).start(({finished})=>{
       if(finished)onComplete();
       turnLock.current=false;setTurning(null);
     });
-  },[angle,reduceMotion]);
+  },[angle]);
   useEffect(()=>{
     if(!profileReady)return;
     let cancelled=false;
@@ -196,6 +200,18 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,header,
     frame={preset?spatialFrame(viewportHeight):undefined}
     confirmExit={state.past.length>0&&!won} scrollableField
     /*
+      МЕНЮ ПАУЗЫ — как в судоку и в играх внимания (09.09.2026): стрелка «назад» открывает
+      выбор, а не выкидывает молча. «Новая» перекладывает партию заново тем же request('new'),
+      что и кнопка на экране; уход домой делает сам каркас (leave).
+    */
+    pauseActions={preset?undefined:[
+      {id:'resume',label:t('exitConfirmStay'),icon:'play',primary:true},
+      {id:'restart',label:t('restart'),icon:'refresh',onPress:()=>request('new')},
+      {id:'undo',label:t('btn_undo'),icon:'arrow-undo',onPress:()=>setState(undo)},
+      {id:'rules',label:t('btn_rules'),icon:'help-circle-outline',onPress:()=>DeviceEventEmitter.emit(HELP_OPEN_EVENT)},
+      {id:'home',label:t('goHome'),icon:'home',leave:true},
+    ]}
+    /*
       🔴 СЧЁТЧИКИ — БЕЙДЖАМИ `hud`, А НЕ СТРОКОЙ `stats` (перенос 09.09.2026).
       Строка из трёх подписей растягивалась на всю плашку, и третья («№ 42»)
       ложилась под угловой ряд питомца и справки: pan-audit на 360 px дал наезд
@@ -208,7 +224,13 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,header,
       { key: 'round', icon: 'pricetag-outline', label: t('hud_puzzle'), value: `#${seed}` },
     ]}
     headerActions={<View style={styles.top}>
-      {header}
+      {/*
+        🔴 ТРОПИНКИ УРОВНЕЙ ЗДЕСЬ НЕТ — И ЭТО ВОЗВРАТ, А НЕ ПРОПУСК (09.09.2026).
+        Я поставил её над вкладками, и на iPhone 403×873 (отчёты cc1a7535, 652e6eee)
+        настройка заняла верхнюю половину экрана, а поле уехало под сгиб и обрезалось.
+        Экран Codex уже показывает уровень строкой «Уровень N/50», «Пройдено N/50» и
+        кнопками «Проще / Сложнее / Свободная» — второй навигации ему не нужно.
+      */}
       {!preset&&<View style={styles.tabs}>{(['twiddle','net'] as const).map(m=><Pressable key={m} accessibilityRole="button" accessibilityState={{selected:mode===m}} onPress={()=>{if(m!==mode)request(m);}} style={[styles.tab,{borderColor:mode===m?colors.primary:colors.border,backgroundColor:colors.surface}]}><Text style={ink}>{m==='twiddle'?'Числа':'Трубы'}</Text></Pressable>)}</View>}
       {/*
         ⚠️ ПАНЕЛЬ СЛУЖЕБНЫХ КНОПОК ОБЁРНУТА В РЯД (перенос 09.09.2026).

@@ -75,12 +75,29 @@ export default function GameModeSwitch<M extends string = PlayMode>({
   ];
   return (
     <View style={bare ? styles.bare : [styles.card, { backgroundColor: colors.surface }]}>
-      <View style={styles.row}>
+      {/**
+        * 🔴 ЯКОРЬ ДЛЯ АУДИТА — И ЭТО НЕ УКРАШЕНИЕ, А ЕДИНСТВЕННЫЙ СПОСОБ ЕГО НАЙТИ.
+        *
+        * Замер 09.09.2026 на собранном бандле, экран Шульте: из четырнадцати
+        * кнопок страницы `aria-selected` / `aria-checked` / `aria-pressed` /
+        * `aria-current` нет НИ У ОДНОЙ. То есть `accessibilityState={{ selected }}`
+        * ниже до разметки НЕ доезжает: react-native-web его теряет.
+        *
+        * Следствий два, и оба неприятные:
+        * · `scripts/tap-target-audit.mjs` не может найти переключатель по
+        *   положительному признаку и меряет только режим по умолчанию — у «Найди
+        *   все слова» так пропустили полосу 519 px при экране 375 (замер «Слов»
+        *   07.09.2026, гейт был зелёный);
+        * · скринридер не сообщает, какой режим выбран, — это отдельный дефект
+        *   доступности, и якорь его НЕ чинит.
+        */}
+      <View style={styles.row} testID="game-mode-switch">
         {items.map(({ m, label }) => {
           const on = mode === m;
           return (
             <TouchableOpacity
               key={m}
+              testID={`game-mode:${m}`}
               accessibilityRole="button"
               accessibilityState={{ selected: on }}
               style={[

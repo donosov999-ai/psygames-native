@@ -32,6 +32,9 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { BilingualToggle } from '@/src/components/BilingualToggle';
+import { LanguageBadge } from '@/src/components/LanguageBadge';
+import { паройЯзыков, вторымНеПервый, БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
@@ -54,7 +57,7 @@ const CLOZE_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
-interface Round { text: string; answer: string; options: string[] }
+interface Round { text: string; answer: string; options: string[]; язык: string }
 
 /** Сентинел «время вышло»: picked не совпадает ни с одной опцией →
  *  подсветится только правильный ответ (зелёным), как reveal. */
@@ -127,6 +130,16 @@ export default function ClozeGame() {
   useEffect(() => () => clearAllTimers(), []);
 
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+  /** Режим билингво: два иностранных вперемешку в одной партии (см. bilingualMode). */
+  const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
+  /**
+   * 🔴 ВТОРОЙ ЯЗЫК ПАРЫ — ВЫБОР ЧЕЛОВЕКА (отчёт `2aa5892c` на v2.53.0:
+   * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
+   * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
+   */
+  const [желаемыйВторой, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
+  /** Пара не бывает из одного языка — разбор у `вторымНеПервый`. */
+  const второйЯзык = вторымНеПервый(language, tgt, желаемыйВторой);
 
   /** Показ новой фразы: сброс флага ответа + дедлайн уровня (0 = лимита нет). */
   const armDeadline = () => {
@@ -190,27 +203,42 @@ export default function ClozeGame() {
      * ⚠️ Ключ — ТЕКСТ фразы, а не номер: номер переезжает при любой правке корпуса,
      * и человек получил бы «уже виденным» то, чего не видел (урок freshPool).
      */
-    const все = [...(CLOZE_PHRASES[tgt] ?? [])];
-    const виденные = await readSeen('cloze_phrases_' + tgt, profile?.id);
-    const свежие = pickFreshFrom(все, roundsCount, виденные, (f) => f.text, Math.random);
-    await writeSeen('cloze_phrases_' + tgt, profile?.id, свежие.seen);
-    /* Добор хвостом: фраза с неизвестным answerEn ниже пропускается, и без запаса
-       раундов вышло бы меньше заказанного. */
-    const остальные = все.filter((f) => !свежие.picked.includes(f));
-    for (let i = остальные.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [остальные[i], остальные[j]] = [остальные[j], остальные[i]];
+    /**
+     * 🔴 В БИЛИНГВО РАУНД ЦЕЛИКОМ НА ОДНОМ ЯЗЫКЕ, А ЯЗЫК МЕНЯЕТСЯ ОТ РАУНДА К
+     * РАУНДУ. Фраза, ответ и дистракторы обязаны быть из одного языка: испанский
+     * вариант среди английских виден, не зная ни одного из них.
+     * Запас «невиданного» тоже свой у каждого языка — ключ хранилища с языком.
+     */
+    const языкиРаунда = билингво ? [tgt, второйЯзык] : [tgt];
+    const поЯзыку: Record<string, { text: string; answerEn: string }[]> = {};
+    for (const л of языкиРаунда) {
+      const все = [...(CLOZE_PHRASES[л] ?? [])];
+      const виденные = await readSeen('cloze_phrases_' + л, profile?.id);
+      const свежие = pickFreshFrom(все, roundsCount, виденные, (f) => f.text, Math.random);
+      await writeSeen('cloze_phrases_' + л, profile?.id, свежие.seen);
+      /* Добор хвостом: фраза с неизвестным answerEn ниже пропускается, и без запаса
+         раундов вышло бы меньше заказанного. */
+      const остальные = все.filter((f) => !свежие.picked.includes(f));
+      for (let i = остальные.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [остальные[i], остальные[j]] = [остальные[j], остальные[i]];
+      }
+      поЯзыку[л] = [...свежие.picked, ...остальные];
     }
-    const phrases = [...свежие.picked, ...остальные];
+    const phrases: { text: string; answerEn: string; язык: string }[] = билингво
+      ? разложитьПоРяду(поЯзыку, roundsCount * 2, language, [tgt, второйЯзык]).элементы
+          .map((x) => ({ ...x.элемент, язык: x.язык }))
+      : (поЯзыку[tgt] ?? []).map((f) => ({ ...f, язык: tgt }));
     const newRounds: Round[] = [];
     for (const p2 of phrases) {
       if (newRounds.length >= roundsCount) break;
+      const яз = p2.язык;
       const entry = TRANSLATION_VOCAB.find((w) => w.en === p2.answerEn);
-      if (!entry || !entry[tgt]) continue; // фраза с неизвестным answerEn — пропуск
-      const answer = entry[tgt];
+      if (!entry || !entry[яз]) continue; // фраза с неизвестным answerEn — пропуск
+      const answer = entry[яз];
       // дистракторы той же категории; добор из всего словаря, если категория мала
-      const sameCat = TRANSLATION_VOCAB.filter((w) => w.cat === entry.cat && w[tgt] && w[tgt] !== answer).map((w) => w[tgt]);
-      const anyOther = TRANSLATION_VOCAB.filter((w) => w[tgt] && w[tgt] !== answer).map((w) => w[tgt]);
+      const sameCat = TRANSLATION_VOCAB.filter((w) => w.cat === entry.cat && w[яз] && w[яз] !== answer).map((w) => w[яз]);
+      const anyOther = TRANSLATION_VOCAB.filter((w) => w[яз] && w[яз] !== answer).map((w) => w[яз]);
       const distractors = new Set<string>();
       const pickFrom = (arr: string[]) => {
         let guard = 0;
@@ -226,7 +254,7 @@ export default function ClozeGame() {
         const j = Math.floor(Math.random() * (i + 1));
         [options[i], options[j]] = [options[j], options[i]];
       }
-      newRounds.push({ text: p2.text, answer, options });
+      newRounds.push({ text: p2.text, answer, options, язык: яз });
     }
     roundsRef.current = newRounds;
     idxRef.current = 0;
@@ -317,19 +345,33 @@ export default function ClozeGame() {
           </LinearGradient>
           <GameAbout descriptionKey="clozeIntroDesc" benefits={CLOZE_BENEFITS} accent={GRADIENT[0]} />
 
+          {/*
+            🔴 ПЕРЕКЛЮЧАТЕЛЬ СТОИТ ВЫШЕ ВЫБОРА ЯЗЫКА, А НЕ ПОД НИМ.
+          
+            📍 ЗАМЕР 10.09.2026 ПО КАДРУ, а не по DOM: список языков вырос до
+            одиннадцати и занял четыре ряда, утопив переключатель НИЖЕ СГИБА —
+            на первом экране его не видно вовсе. Денис: «я в твоих скринах не вижу
+            изменений», и он был прав: в дереве узлы были, на экране их не было.
+          
+            ⚠️ Порядок теперь читается сам: сперва «два языка сразу», под ним
+            выбор первого. Раньше человек доходил до конца списка и только там
+            узнавал, что выбор можно отменить режимом.
+          */}
+          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
+            первый={tgt} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
             <Text style={[styles.optionLabel, { color: colors.text }]}>
               {LANGUAGES.find((l) => l.code === language)?.name} →
             </Text>
             <View style={styles.optionButtons}>
-              /*
+              {/*
                 🔴 ПРЕДЛАГАЕМ ТОЛЬКО ТЕ ЯЗЫКИ, НА КОТОРЫХ ЕСТЬ СЛОВАРЬ.
                 Раньше выбор строился из всех двенадцати языков приложения, а
                 словарь покрывает семь: на французском игра запускалась и
                 оказывалась пустой — «выбери 1-е из 0», а в зарядке экран
                 оставался мёртвым навсегда, без шапки и без «назад».
                 Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
-              */
+              */}
               {LANGUAGES.filter((l) => l.code !== language && hasVocab(l.code)).map((l) => (
                 <TouchableOpacity
                   accessibilityRole="button"
@@ -385,15 +427,38 @@ export default function ClozeGame() {
         title={t('cloze')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
         scrollableField
-        stats={
-          <View style={styles.hudRow}>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('round')} {idx + 1}/{rounds.length}</Text>
-            {timeLimitRef.current > 0 && (
-              <Text style={[styles.hudText, { color: lowTime ? '#f43f5e' : colors.textSecondary }]}>{t('timeLeftLabel')} {timeLeft}{t('secShort')}</Text>
-            )}
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('hud_correct')} {correctCount} · {t('hud_errors')} {errorsCount}</Text>
-          </View>
-        }
+        bottom="answer"
+        hud={[
+          /**
+           * 🔴 КАКОЙ СЕЙЧАС ЯЗЫК — ВИДНО В ШАПКЕ.
+           *
+           * 📍 ОТЧЁТ ТЕСТИРОВЩИКА `475ac1e4` на v2.53.0: «Поставил режим два
+           * языка сразу, что-то не видно ни фига». Справедливо: слова
+           * чередовались, но НИ ОДНОГО признака режима на экране не было —
+           * `casa`, потом `house`, и если языков не знаешь, отличить нельзя.
+           * В анаграммах метка появилась только потому, что Денис попросил её
+           * отдельно; в остальных четырёх её не было вовсе.
+           *
+           * 🔴 И В ЗАРЯДКЕ ТОЖЕ — ОТДЕЛЬНОЕ ЗАМЕЧАНИЕ ДЕНИСА 10.09.2026:
+           * «в режиме зарядки я там тоже не обнаружил мультиязычности». Причина
+           * та же: поток честно меняет язык от шага к шагу, но на экране этого
+           * нечем увидеть. Условие поэтому шире флага режима — метка нужна
+           * везде, где язык материала выбран НЕ человеком на этом экране.
+           *
+           * ⚠️ Код языка, а не название: «Английский» распирает пилюлю шапки.
+           */
+          ...((билингво || isPreset) && rounds[idx]?.язык
+            ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
+                value: паройЯзыков(String(rounds[idx]?.язык), билингво ? [tgt, второйЯзык] : []),
+                tone: 'accent' as const }]
+            : []),
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${rounds.length}` },
+          ...(timeLimitRef.current > 0
+            ? [{ key: 'time', icon: 'time-outline' as const, label: t('timeLeftLabel'), value: `${timeLeft}${t('secShort')}`, tone: lowTime ? ('bad' as const) : ('neutral' as const) }]
+            : []),
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },
+          { key: 'hud_errors', icon: 'close-circle', label: t('hud_errors'), value: errorsCount, tone: 'bad' as const },
+        ]}
         toolbar={
           <View style={styles.toolbarOptions}>
             {round.options.map((o) => {
@@ -423,6 +488,19 @@ export default function ClozeGame() {
         <View style={[styles.promptCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.promptPhrase, { color: colors.text }]}>{round.text}</Text>
         </View>
+        {/*
+          🔴 ЯЗЫК — СЛОВОМ И У САМОГО СТИМУЛА, А НЕ ТОЛЬКО ДВУМЯ БУКВАМИ В ШАПКЕ.
+          Правка Дениса 10.09.2026: «подписи должны быть — раз переход в
+          мультиязычности, какой язык пишется; обозначение мелкое». Переход
+          отмечается стрелкой и заливкой, повтор языка — спокойным серым.
+        */}
+        {(билингво || isPreset) && (
+          <LanguageBadge
+            язык={round.язык}
+            сменился={idx > 0 && rounds[idx - 1]?.язык !== undefined && rounds[idx - 1]?.язык !== round.язык}
+            accent={GRADIENT[0]}
+          />
+        )}
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('clozeHint')}</Text>
       </GameShell>

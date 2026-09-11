@@ -472,6 +472,16 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillSpatial",
     "introKey": "spatialGroupIntroDesc"
   },
+  "/games/puzzles": {
+    "nameKey": "puzzlesUnruly",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesUnrulyIntroDesc"
+  },
+  "/games/puzzles-hub": {
+    "nameKey": "puzzlesGroup",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesUnrulyIntroDesc"
+  },
   "/games/spatial-lab": {
     "nameKey": "spatialLab",
     "skillKey": "skillSpatial",

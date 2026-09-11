@@ -35,9 +35,14 @@ frontend/src/services/tts.ts  ·  voiceSamples.ts
 frontend/src/__tests__/voice-*  ·  phoneme-*  ·  mnemonics-*  ·  faces-names-*
 ```
 
-⚠️ `tts.ts` и `voiceSamples.ts` — общие для всего приложения, но фактически
-твои: кроме тебя ими никто не пользуется. Правишь аккуратно и говоришь
-координатору.
+⚠️ `tts.ts` и `voiceSamples.ts` — общие для всего приложения. Ведёшь их ты, но
+🔴 **«кроме тебя ими никто не пользуется» перестало быть правдой** (замер
+09.09.2026: `git grep -l "services/tts" origin/main` → 12 носителей, из них три
+чужие игры раздела «Объём памяти» — `digit-span.tsx`, `listening-span.tsx`,
+`n-back.tsx`, плюс `src/games/digit-span/core/i18n.ts` и общий хук
+`src/hooks/useTtsAvailable.ts`). Поэтому перед правкой голосового слоя —
+`git grep -l "services/tts"`, предупреждение владельцу «Объёма памяти» и
+координатору; правка «своего» файла молча задевает соседний раздел.
 
 **За их пределы не выходишь.** Не трогаешь чужие разделы.
 

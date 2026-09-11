@@ -356,6 +356,10 @@ const translations: Translations = {
   skillInhibition: { ru: 'Тренируем: самоконтроль', en: 'Training: self-control' },
   skillShortTermMemory: { ru: 'Тренируем: кратковременную память', en: 'Training: short-term memory' },
   skillVisualMemory: { ru: 'Тренируем: зрительную память', en: 'Training: visual memory' },
+  // Заявка чата шахмат 10.09.2026: «Детский мат» считает варианты, а не помнит доску.
+  skillChessCalc: { ru: 'Тренируем: расчёт вариантов', en: 'Training: calculating lines' },
+  chessTypeTactics: { ru: 'Тактика · мат в 1–2 хода', en: 'Tactics · mate in 1–2' },
+  chessTypeBlind: { ru: 'Вслепую · доска в голове', en: 'Blindfold · board in your head' },
   skillSwitching: { ru: 'Тренируем: переключение внимания', en: 'Training: attention switching' },
 
   // ───── Round 2: 7 more games ─────
@@ -595,6 +599,7 @@ const translations: Translations = {
   collectionTitle:  { ru: 'Коллекция', en: 'Collection' },
   collectionSub:    { ru: 'Собрано {have} из {all} · ⭐{earned} за всё время', en: '{have} of {all} collected · ⭐{earned} all time' },
   collectionLocked: { ru: 'Откроется на ⭐{n}', en: 'Opens at ⭐{n}' },
+  collectionHowToOpen: { ru: '{name}: откроется на ⭐{at}, не хватает {n} ⭐ — звёзды приходят за партии', en: '{name}: opens at ⭐{at}, {n} ⭐ to go — stars come from rounds' },
   collectionOpen:   { ru: 'Открыть коллекцию', en: 'Open collection' },
   figAcorn:        { ru: 'Жёлудь', en: 'Acorn' },
   figPebble:    { ru: 'Камешек',     en: 'Pebble' },
@@ -906,6 +911,161 @@ const translations: Translations = {
   yourTime: { ru: 'Ваше время', en: 'Your Time' },
   yourScore: { ru: 'Ваш счёт', en: 'Your Score' },
   goHome: { ru: 'На главную', en: 'Go Home' },
+  /** «Чёт-нечет» — первая головоломка на движке Тэтхэма (Unruly). */
+  puzzlesUnruly: { ru: 'Чёт-нечет', en: 'Odd or Even' },
+  puzzlesUnrulyIntroDesc: { ru: 'Здесь сорок логических головоломок. У каждой своё правило, но общее одно: у доски ровно одно решение, и до него можно дойти рассуждением — угадывать не нужно. Режим выбирается карточкой в развилке, сложность растёт по своей лестнице у каждой головоломки. Короткое нажатие по полю делает ход, ДОЛГОЕ — второе действие: в «Магнитах» им ставят пустую половинку, в «Минах» помечают мину, в «Чёт-нечете» перебирают в обратную сторону. Отменить ход, попросить подсказку или начать заново можно в меню паузы — кнопка ⏸ слева вверху.', en: 'Forty logic puzzles live here. Each has its own rule, but one thing is shared: every board has exactly one solution and reasoning always gets you there — guessing is never required. Pick a mode from the section card; difficulty grows along a ladder of its own for each puzzle. A short tap makes a move, a LONG press is the second action: in Magnets it leaves a domino half blank, in Mines it flags a mine, in Unruly it cycles the other way. Undo, ask for a hint or start over from the pause menu — the ⏸ button at the top left.' },
+  /**
+   * 🔴 ЧТО ДВИЖОК СЧИТАЕТ САМ — подписи для слота «ход партии» в шапке. Замер
+   * 10.09.2026: строку состояния дают 14 движков из 40, и у двенадцати она меняется
+   * по ходу игры. Показывать его текст как есть нельзя — он английский, — поэтому из
+   * строки достаются числа, а подпись берётся отсюда (`tatham-bridge/status.ts`).
+   */
+  /**
+   * Подрыв у «Сапёра» и «Инерции». Формулировка не «проиграл»: по замыслу автора это
+   * ход, который отменяют и играют дальше (`mines.c:5606`, `inertia.c:2191`).
+   */
+  // «Стереть» в словаре уже есть ключом `a11yErase` — ряд цифр берёт его, своего не заводим.
+  /**
+   * Ходов больше нет («Снос групп», «Заливка»). Не «проиграл»: партия доиграна до
+   * конца, просто без победы, и отменять тут нечего — можно только начать заново.
+   */
+  /**
+   * Тем четырём, где одиночный тычок не делает ничего (замер: 0 откликов из 1704
+   * суммарно), а работает только протяжка.
+   */
+  puzzleDragHint: { ru: '↔ Здесь тянут пальцем, а не касаются', en: '↔ Drag here instead of tapping' },
+  puzzleNoMoves: { ru: 'Ходов больше нет. Можно начать заново', en: 'No moves left. Start over if you like' },
+
+  puzzleBlownUp: { ru: 'Подорвался. Отмени ход — и играй дальше', en: 'You blew up. Undo the move and carry on' },
+  puzzleHudMarked: { ru: 'Отмечено', en: 'Marked' },
+  puzzleHudActive: { ru: 'Соединено', en: 'Connected' },
+  /**
+   * ⚠️ НЕ «Лимит ходов»: этой парой уже зовётся счётчик «Сортировки товаров»
+   * (`lr_goods_sort_movelimit_title`), и гейт дублей словаря прав — одинаковый текст
+   * под двумя ключами расходится при первой же правке. У «Заливки» величина другая
+   * по смыслу: сколько ходов ПОТРАЧЕНО из отпущенных.
+   */
+  puzzleHudMovesUsed: { ru: 'Потрачено', en: 'Used' },
+  puzzleHudCluesLeft: { ru: 'Подсказки', en: 'Clues' },
+  puzzleHudGems: { ru: 'Кристаллы', en: 'Gems' },
+  // «Счёт» в словаре уже есть ключом `score` — разбор берёт его, своего не заводим.
+  puzzleHudRegion: { ru: 'Область', en: 'Region' },
+  puzzlesMines: { ru: 'Сапёр', en: 'Minesweeper' },
+  puzzlesMinesDesc: { ru: 'Числа говорят, сколько мин рядом; доска решается без угадывания', en: 'Numbers count the mines around them; the board never needs a guess' },
+  puzzlesMosaic: { ru: 'Мозаика', en: 'Mosaic' },
+  puzzlesMosaicDesc: { ru: 'Число в клетке — сколько закрашено в квадрате 3×3 вокруг неё', en: 'A number counts the filled cells in the 3×3 square around it' },
+  puzzlesRange: { ru: 'Обзор', en: 'Line of Sight' },
+  puzzlesRangeDesc: { ru: 'Число — сколько клеток видно из неё по строке и столбцу', en: 'A number says how many cells it sees along its row and column' },
+  puzzlesUndead: { ru: 'Нежить', en: 'Undead' },
+  puzzlesUndeadDesc: { ru: 'Расставить призраков, вампиров и зомби по счёту в отражениях', en: 'Place ghosts, vampires and zombies to match the counts seen through mirrors' },
+  puzzlesSolo: { ru: 'Судоку Тэтхэма', en: 'Tatham’s Sudoku' },
+  puzzlesSoloDesc: { ru: 'Классический латинский квадрат с блоками и авторской лестницей из шестнадцати ступеней', en: 'The classic Latin square with blocks, on its author’s own sixteen-step ladder' },
+  puzzlesTowers: { ru: 'Небоскрёбы Тэтхэма', en: 'Tatham’s Towers' },
+  puzzlesTowersDesc: { ru: 'Число снаружи — сколько башен видно с этой стороны ряда', en: 'A number outside the grid says how many towers are visible from there' },
+  puzzlesUnequal: { ru: 'Неравенства Тэтхэма', en: 'Tatham’s Unequal' },
+  puzzlesUnequalDesc: { ru: 'Латинский квадрат со знаками «больше» и «меньше» между клетками', en: 'A Latin square with greater-than signs standing between the cells' },
+  puzzlesRectangles: { ru: 'Прямоугольники', en: 'Rectangles' },
+  puzzlesRectanglesDesc: { ru: 'Разрезать поле на прямоугольники: в каждом одно число — его площадь', en: 'Cut the board into rectangles, each holding one number: its own area' },
+  puzzlesPalisade: { ru: 'Частокол', en: 'Palisade' },
+  puzzlesPalisadeDesc: { ru: 'Разрезать поле на равные области; число — сколько границ у клетки', en: 'Split the board into equal regions; a number counts a cell’s own walls' },
+  puzzlesBridges: { ru: 'Мосты', en: 'Bridges' },
+  puzzlesBridgesDesc: { ru: 'Соединить острова мостами: число на острове — сколько их к нему сходится', en: 'Join the islands with bridges: the number says how many meet there' },
+  puzzlesUntangle: { ru: 'Распутать', en: 'Untangle' },
+  puzzlesUntangleDesc: { ru: 'Растащить узлы так, чтобы ни одна линия не пересекала другую', en: 'Drag the nodes apart until no two lines cross' },
+  puzzlesNet: { ru: 'Трубы', en: 'Pipes' },
+  puzzlesNetDesc: { ru: 'Повернуть каждый кусок так, чтобы сеть соединилась целиком', en: 'Rotate every piece until the whole network hangs together' },
+  puzzlesNetslide: { ru: 'Трубы со сдвигом', en: 'Sliding Pipes' },
+  puzzlesNetslideDesc: { ru: 'Та же сеть, но куски не поворачиваются, а ездят рядами и столбцами', en: 'The same network, but pieces slide by row and column instead of turning' },
+  puzzlesTwiddle: { ru: 'Поворот квадрата', en: 'Twiddle' },
+  puzzlesTwiddleDesc: { ru: 'Крутить квадрат клеток целиком, пока числа не встанут по порядку', en: 'Rotate a whole square of cells until the numbers fall into order' },
+  puzzlesSixteen: { ru: 'Шестнадцать', en: 'Sixteen' },
+  puzzlesSlide: { ru: 'Клоцки', en: 'Klotski' },
+  puzzlesSlideDesc: { ru: 'Растолкать блоки так, чтобы главный вышел наружу', en: 'Shuffle the blocks aside so the main one can slide out' },
+  puzzlesSokoban: { ru: 'Сокобан', en: 'Sokoban' },
+  puzzlesSokobanDesc: { ru: 'Толкать бочки на метки, не загоняя их в угол', en: 'Push the barrels onto the targets without wedging them into a corner' },
+  puzzlesSixteenDesc: { ru: 'Гонять строки и столбцы по кругу, пока числа не встанут по порядку', en: 'Slide rows and columns around the board until the numbers line up' },
+  puzzlesFlip: { ru: 'Переворот', en: 'Flip' },
+  puzzlesFlipDesc: { ru: 'Каждое нажатие переворачивает и соседей: погасить всё поле', en: 'Each tap flips its neighbours too: turn the whole board off' },
+  puzzlesCube: { ru: 'Куб по полю', en: 'Rolling Cube' },
+  /**
+   * ⚠️ «Куб» — не всегда куб: лестница этой игры это ЧЕТЫРЕ РАЗНЫХ ТЕЛА
+   * (`c4x4` куб, `t1x2` тетраэдр, `o2x2` октаэдр, `i3x3` икосаэдр), а не рост
+   * сложности одного. Прежний текст был верен для одной ступени из четырёх.
+   */
+  puzzlesCubeDesc: { ru: 'Катить многогранник по сетке стрелками и собрать все метки на грани', en: 'Roll the solid across the grid with the arrows and pick up every marker' },
+  puzzlesBlackBox: { ru: 'Чёрный ящик', en: 'Black Box' },
+  puzzlesBlackBoxDesc: { ru: 'Найти спрятанные шары по тому, где луч вышел из ящика', en: 'Find the hidden balls from where each beam leaves the box' },
+  puzzlesGuess: { ru: 'Угадай код', en: 'Crack the Code' },
+  puzzlesGuessDesc: { ru: 'Подобрать скрытую комбинацию цветов по подсказкам о попаданиях', en: 'Deduce the hidden colour code from hit-and-place clues' },
+  puzzlesFlood: { ru: 'Заливка', en: 'Flood' },
+  puzzlesFloodDesc: { ru: 'Залить всё поле одним цветом за отведённое число ходов', en: 'Flood the whole board with a single colour inside the move limit' },
+  puzzlesSameGame: { ru: 'Снос групп', en: 'Same Game' },
+  puzzlesSameGameDesc: { ru: 'Снимать группы одного цвета: чем крупнее группа, тем больше очков', en: 'Clear groups of one colour: the bigger the group, the bigger the score' },
+  puzzlesPegs: { ru: 'Колышки', en: 'Solitaire Pegs' },
+  puzzlesPegsDesc: { ru: 'Перепрыгивать колышком через соседа, пока не останется один', en: 'Jump a peg over its neighbour until a single peg is left' },
+  puzzlesInertia: { ru: 'Инерция', en: 'Inertia' },
+  puzzlesInertiaDesc: { ru: 'Скользить стрелками до упора, собрать самоцветы и не влететь в мину', en: 'Slide with the arrows until you hit something: gather the gems, dodge the mines' },
+  puzzlesGroup: { ru: 'Головоломки', en: 'Puzzles' },
+  puzzlesGroupDesc: { ru: 'Сорок логических головоломок Саймона Тэтхэма — его движки целиком', en: 'Forty logic puzzles by Simon Tatham — his engines, whole' },
+  puzzlesGroupFootnote: { ru: 'У каждой головоломки своя лестница сложности: где-то три ступени, где-то шестнадцать', en: 'Each puzzle has its own difficulty ladder: three steps in some, sixteen in others' },
+  puzzlesKeenDesc: { ru: 'Латинский квадрат: подсказки — арифметика на группах клеток', en: 'A Latin square where clues are arithmetic on groups of cells' },
+  puzzlesSinglesDesc: { ru: 'Вычеркнуть повторы так, чтобы остальные клетки остались связны', en: 'Cross out repeats so the remaining cells stay connected' },
+  puzzlesTentsDesc: { ru: 'Поставить палатку у каждого дерева, соблюдая счёт по краям', en: 'Pitch a tent by every tree, matching the counts on the edges' },
+  puzzlesMagnetsDesc: { ru: 'Разложить магниты по силуэтам домино, соблюдая счёт полюсов', en: 'Lay magnets on domino shapes, matching the pole counts' },
+  puzzlesPearlDesc: { ru: 'Замкнутая петля: белый кружок требует прямой, чёрный — поворота', en: 'A closed loop: white circles need a straight, black ones a turn' },
+  puzzlesSlantDesc: { ru: 'Провести диагональ в каждой клетке и не замкнуть ни одной петли', en: 'Draw a diagonal in every cell and close no loop' },
+  puzzlesMapDesc: { ru: 'Раскрасить области так, чтобы соседние были разного цвета', en: 'Colour the regions so no two neighbours share a colour' },
+  puzzlesSignpostDesc: { ru: 'Соединить числа по порядку, каждый шаг — вдоль стрелки', en: 'Link the numbers in order, each step along an arrow' },
+  puzzlesFillingDesc: { ru: 'Вписать цифру, равную размеру своей связной области', en: 'Write a digit equal to the size of its own region' },
+  puzzlesDominosaDesc: { ru: 'Восстановить, как полный набор домино разложен по полю', en: 'Work out how a full set of dominoes was laid out' },
+  puzzlesTracksDesc: { ru: 'Достроить рельсы от края до края по счёту в строках', en: 'Complete the track from edge to edge, matching row counts' },
+  puzzlesPatternDesc: { ru: 'Закрасить клетки по числам сбоку и сверху', en: 'Fill cells according to the numbers on the sides' },
+  puzzlesGalaxiesDesc: { ru: 'Разрезать поле на области, симметричные вокруг своей точки', en: 'Cut the board into regions symmetric about their dot' },
+  puzzlesFifteenDesc: { ru: 'Двигать плитки в пустую клетку и собрать порядок', en: 'Slide tiles into the gap and restore the order' },
+  puzzlesLightUpDesc: { ru: 'Расставить фонари так, чтобы осветить всё поле', en: 'Place lamps so the whole board is lit' },
+  puzzlesLoopyDesc: { ru: 'Собрать одну замкнутую петлю по числам в клетках', en: 'Build one closed loop guided by the numbers' },
+  /**
+   * ⚠️ ЗДЕСЬ БЫЛО ВРАНЬЁ, И ОНО ЖИЛО В ДВЕНАДЦАТИ ЯЗЫКАХ: «Поровну кружков и точек».
+   * Замер 11.09.2026 по всем семи ступеням: кругов на доске НОЛЬ, в `unruly.c` нет
+   * ни одного `draw_circle` — движок рисует чёрные и белые КВАДРАТЫ. Человек читал
+   * задание и искал на доске то, чего там нет.
+   */
+  puzzlesUnrulyDesc: { ru: 'Поровну чёрных и белых клеток, трёх одинаковых подряд не бывает', en: 'Equal black and white cells, never three of a kind in a row' },
+  /* Головоломки Тэтхэма: имена режимов. Движок один, экран один, правила его. */
+  puzzlesKeen: { ru: 'Клетки с арифметикой', en: 'Arithmetic Cages' },
+  puzzlesSingles: { ru: 'Лишние числа', en: 'Extra Numbers' },
+  puzzlesTents: { ru: 'Палатки у деревьев', en: 'Tents by the Trees' },
+  puzzlesMagnets: { ru: 'Магниты', en: 'Magnets' },
+  puzzlesPearl: { ru: 'Жемчужная петля', en: 'Pearl Loop' },
+  puzzlesSlant: { ru: 'Косые черты', en: 'Slashes' },
+  puzzlesMap: { ru: 'Раскраска карты', en: 'Map Colouring' },
+  puzzlesSignpost: { ru: 'Указатели', en: 'Signposts' },
+  puzzlesFilling: { ru: 'Заполнение областей', en: 'Filling Regions' },
+  puzzlesDominosa: { ru: 'Домино', en: 'Dominoes' },
+  puzzlesTracks: { ru: 'Рельсы', en: 'Train Tracks' },
+  puzzlesPattern: { ru: 'Японский кроссворд', en: 'Nonogram' },
+  puzzlesGalaxies: { ru: 'Галактики', en: 'Galaxies' },
+  puzzlesFifteen: { ru: 'Пятнашки', en: 'Fifteen' },
+  puzzlesLightUp: { ru: 'Фонари', en: 'Light Up' },
+  puzzlesLoopy: { ru: 'Замкнутая петля', en: 'Closed Loop' },
+  puzzlesUnrulyRule: {
+    ru: 'В каждой строке и каждом столбце поровну кружков и точек. Трёх одинаковых подряд не бывает. Нажимай клетку, чтобы перебрать: пусто → ○ → ●',
+    en: 'Every row and column holds as many circles as dots. Three of a kind in a row never happens. Tap a cell to cycle: empty → ○ → ●',
+  },
+  /**
+   * ПУСТАЯ РАЗВИЛКА. Экран развилки — меню; когда за ним профилю не открыто ни
+   * одного упражнения, он рисовал заголовок, подпись «Выбери упражнение» и НИЧЕГО
+   * под ней. Замер 09.09.2026 на собранном вебе: так вели себя 6 развилок из 17 у
+   * профиля «Бесплатный» и 4 из 17 у «Детей». Снаружи это «не запускается, ошибка».
+   */
+  hubEmptyTitle: { ru: 'В этом профиле здесь пока пусто', en: 'Nothing here in this profile yet' },
+  hubEmptyDesc: {
+    ru: 'Упражнения этой развилки не входят в выбранный профиль. Их можно открыть, сменив профиль в настройках.',
+    en: 'The exercises behind this entry are not part of the selected profile. Switch profiles in settings to open them.',
+  },
+  hubEmptyAction: { ru: 'Ко всем играм', en: 'All games' },
+  /** Профиль ещё читается — список пуст не потому, что закрыт. */
+  hubLoading: { ru: 'Загружаем…', en: 'Loading…' },
   shareResult: { ru: 'Поделиться', en: 'Share' },
   shareCopied: { ru: 'Результат скопирован ✓', en: 'Result copied ✓' },
   configureGame: { ru: 'Настройка игры', en: 'Configure Game' },
@@ -1600,7 +1760,9 @@ const translations: Translations = {
   // склонения ради двух строк — лишняя сущность. Проба сторожит.
   goalSheetDays: { ru: '{n} дней', en: '{n} days' },
   goalSheetToday: { ru: 'Сегодня: {g} партий · {p} ⭐ · серия {s}', en: 'Today: {g} games · {p} ⭐ · streak {s}' },
-  goalSuggest_best_streak: { ru: 'Твой рекорд — {n} дн.', en: 'Your best is {n} days' },
+  // 09.09.2026, отчёт 622e217d: «предложили какой-то рекорд поставить» — слово «рекорд» читалось
+  // как требование. Подпись объясняет ОСНОВАНИЕ предложения: сколько дней подряд уже получалось.
+  goalSuggest_best_streak: { ru: 'Твоя лучшая серия — {n} дн. подряд', en: 'Your longest streak so far: {n} days in a row' },
   goalSuggest_at_top: { ru: 'Ты уже держал {n} дн.', en: 'You already held {n} days' },
   // ⚠️ Факт, а не упрёк: «в прошлый раз было 30» — это число, «ты не смог» — оценка.
   goalSuggest_smaller: { ru: 'В прошлый раз было {n} — начнём с меньшего', en: 'Last goal was {n} — start smaller' },
@@ -1620,7 +1782,14 @@ const translations: Translations = {
   // Дениса (метод §10): «защищает от деменции» и «мозг стареет медленнее»
   // запрещены, отсрочка симптомов ≠ профилактика болезни.
   languagesWarmupTitle: { ru: 'Языковая зарядка', en: 'Language warm-up' },
-  languagesWarmupDesc: { ru: 'Английский и испанский вперемешку. Ошибок будет больше, чем на одном языке, — так и задумано', en: 'English and Spanish mixed together. You will make more mistakes than on one language — that is the point' },
+  /**
+   * ⚠️ ЯЗЫКИ ЗДЕСЬ НЕ НАЗВАНЫ НАРОЧНО — правка 09.09.2026. Прежний текст обещал
+   * «английский и испанский», и на английском интерфейсе это была ЛОЖЬ: свой
+   * язык целью не бывает, англоговорящий получает испанский и запасной. Пару
+   * решает `языкиДляИнтерфейса`, и она показывается ОТДЕЛЬНОЙ строкой под
+   * подписью — так текст не может разойтись с тем, что запустится.
+   */
+  languagesWarmupDesc: { ru: 'Два иностранных вперемешку, родной остаётся опорой. Ошибок будет больше, чем на одном языке, — так и задумано', en: 'Two foreign languages mixed, your own stays the anchor. You will make more mistakes than on one language — that is the point' },
   andMore: { ru: 'ещё {n} ›', en: '{n} more ›' },
   // 07.09.2026: ключ звался из anagrams.tsx:319, а в словаре его не было —
   // игрок видел бы в панели сырое «anagramBonusJar». Копилка — настоящие
@@ -1676,6 +1845,16 @@ const translations: Translations = {
   exitConfirmTitle: { ru: 'Выйти из игры?', en: 'Leave the game?' },
   exitConfirmSaved: { ru: 'Партия сохранится — вернётесь и продолжите с этого места.', en: 'Your game will be saved — come back and pick up where you left off.' },
   exitConfirmLost: { ru: 'Партия не сохранится: доска и прогресс пропадут.', en: 'This game will not be saved: the board and your progress will be lost.' },
+  pauseFinish: { ru: 'Закончить и записать', en: 'Finish and save' },
+  pauseEasier: { ru: 'Уровень проще', en: 'Easier level' },
+  pauseHarder: { ru: 'Уровень сложнее', en: 'Harder level' },
+  puzzleShowSolution: { ru: 'Показать решение', en: 'Show solution' },
+  puzzleSecondAction: { ru: 'Второе действие', en: 'Second action' },
+  pauseExitGame: { ru: 'Выйти из упражнения', en: 'Leave exercise' },
+  pauseSoundOff: { ru: 'Тихий режим', en: 'Quiet mode' },
+  pauseSoundOn: { ru: 'Вернуть звук', en: 'Sound back on' },
+  pauseReport: { ru: 'Сообщить о проблеме', en: 'Report a problem' },
+  gamePauseOpen: { ru: 'Пауза и выход', en: 'Pause and exit' },
   exitConfirmStay: { ru: 'Продолжить игру', en: 'Keep playing' },
   exitConfirmLeave: { ru: 'Выйти', en: 'Leave' },
   // --- a11y: подписи для скринридеров (VoiceOver/TalkBack), v1.161 ---
@@ -1969,6 +2148,17 @@ const translations: Translations = {
 
   brDimHint: { ru: '💡 Перед сном убавьте яркость экрана — так проще заснуть', en: '💡 Before sleep, dim your screen — it helps you fall asleep' },
   warmupStepOf: { ru: 'Игра {n} из {m}', en: 'Game {n} of {m}' },
+  // Вопрос на мосту, когда обещанное время вышло, а подходы остались (09.09.2026).
+  // Длина зарядки задана ПОДХОДАМИ, минуты — оценка; у медленного темпа они
+  // расходятся. Не обрываем и не молчим — спрашиваем один раз за комплекс.
+  /**
+   * 🔴 РЕЖИМ БИЛИНГВО В САМОМ УПРАЖНЕНИИ. Правка Дениса 09.09.2026: зарядка —
+   * финал, а режим нужен там, где ищут перевод. Подпись НЕ называет языки:
+   * пара считается от интерфейса, и на английской локали она другая.
+   */
+  bilingualMode: { ru: 'Два языка сразу', en: 'Two languages at once' },
+  bilingualModeDesc: { ru: '{a} и {b} вперемешку, русский — опора. Ошибок будет больше: так и задумано', en: '{a} and {b} mixed together, your own language stays the anchor. Expect more mistakes — that is the point' },
+  warmupOvertime: { ru: 'Обещанные {m} мин вышли. Осталось подходов: {n}', en: 'The {m} min are up. Rounds left: {n}' },
   warmupNextGame: { ru: 'Следующая игра', en: 'Next game' },
   warmupFinish: { ru: 'Завершить комплекс', en: 'Finish the set' },
   setGotIt: { ru: 'Понятно', en: 'Got it' },
@@ -1994,7 +2184,16 @@ const translations: Translations = {
   updCheckFailed: { ru: 'Не удалось проверить (нет сети?)', en: 'Check failed (offline?)' },
   petFeed: { ru: 'Угостить', en: 'Feed' },
   petFedToday: { ru: 'Сыт и доволен', en: 'Fed and happy' },
+  petLook_hungry: { ru: 'Отощал — давно не кормили', en: 'Thin — not fed for a while' },
+  petLook_overfed: { ru: 'Перекормлен', en: 'Overfed' },
+  petLook_dirty: { ru: 'Пора помыть — неделя без мытья', en: 'Needs a wash — a week unwashed' },
+  petLook_lonely: { ru: 'Скучает — неделя без тренировки', en: 'Lonely — a week without training' },
+  petLook_neglected: { ru: 'Заброшен — две недели без тренировок', en: 'Neglected — two weeks without training' },
   petRename: { ru: 'Переименовать питомца', en: 'Rename pet' },
+  petWash: { ru: 'Помыть', en: 'Wash' },
+  petWashedToday: { ru: 'Чистый', en: 'All clean' },
+  petStroke: { ru: 'Погладить', en: 'Pet' },
+  petPlay: { ru: 'Поиграть', en: 'Play' },
   petSkinAuto: { ru: 'Авто', en: 'Auto' },
   shopPetSection: { ru: '🐾 Для питомца — аксессуары Синапса (надеваются глобально)', en: '🐾 For the pet — Synapse accessories (equipped globally)' },
   cosName_pet_bow: { ru: 'Бантик', en: 'Bow' },

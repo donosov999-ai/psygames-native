@@ -28,12 +28,15 @@ import { useWordLanguage } from '@/src/hooks/useWordLanguage';
 import { wordLangsFor, WORD_LANG_LABEL } from '@/src/services/wordLanguage';
 import type { ОтчётРежима, УправлениеРежима } from '@/src/games/anagrams/core/hudReport';
 import type { HudItem } from '@/src/components/GameShell';
+import { ПАЛЕЦ } from '@/src/components/gameLayout';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
 import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
 import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
 import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
 import { allWordsCount, allWordsPack, банкКлассики, словаПоДлине } from '@/src/games/anagrams/core/allWords';
 import { classicLevel as levelParams } from '@/src/games/anagrams/core/classicLevel';
+import { БИЛИНГВО, тройкиПары, параЯзыков } from '@/src/services/bilingualMode';
+import { BilingualToggle } from '@/src/components/BilingualToggle';
 import { стилиРежима } from '@/src/games/anagrams/modeStyles';
 import { ключКольца, кольцаЯзыка, языкиКолец } from '@/src/games/anagrams/core/ring';
 import { показатьКорейское } from '@/src/games/anagrams/core/chamo';
@@ -130,9 +133,38 @@ export default function AnagramGame() {
    * русском интерфейсе английские анаграммы были недоступны вовсе.
    */
   const { profile } = useProfile();
-  const wordLang = useWordLanguage('anagrams', profile?.id, language);
+  const { isPreset, str, autostart, num, isCalm } = useGamePreset();
+  const wordLang = useWordLanguage('anagrams', profile?.id, language, str('targetLang', ''));
+  /**
+   * 🔴 РЕЖИМ БИЛИНГВО В АНАГРАММАХ — ТРОЙКАМИ, А НЕ ЧЕРЕДОВАНИЕМ.
+   * Решение Дениса 10.09.2026: одно слово три раза — родной, потом два
+   * иностранных. Первый заход решается как анаграмма, второй и третий —
+   * припоминание перевода. Разбор в `bilingualMode.тройки`.
+   */
+  const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
+  /**
+   * 🔴 ВТОРОЙ ЯЗЫК ПАРЫ — ВЫБОР ЧЕЛОВЕКА (отчёт `2aa5892c` на v2.53.0:
+   * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
+   * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
+   */
+  const [второйЯзык, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
+  const очередьТроек = useRef<{ ключ: string; шаги: { язык: string; слово: string }[] }[]>([]);
+  const тройкаIdx = useRef(0);
+  const шагIdx = useRef(0);
+  /**
+   * 🔴 ТРИ СТРОКИ ПЕРЕД ГЛАЗАМИ, А НЕ ТРИ ЗАХОДА ПОДРЯД.
+   *
+   * 📍 РЕШЕНИЕ ДЕНИСА 10.09.2026: «сделать три строки и колесо под ними, чтобы
+   * меняло буквы после заполнения первой строки — так визуальная память будет
+   * держать 3 слова перед глазами, а последовательно будет рублена».
+   *
+   * Здесь лежит уже разгаданное этой тройки: строка выше остаётся заполненной и
+   * СЛУЖИТ ПОДСКАЗКОЙ следующей — отдельный баннер с родным словом поэтому не
+   * нужен, значение видно прямо в поле.
+   */
+  const [тройкаОтвет, setТройкаОтвет] = useState<string[]>([]);
+  const [тройкаСлова, setТройкаСлова] = useState<{ язык: string; слово: string }[]>([]);
 
-  const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечер и ночь: ни писка на букву, ни победного звука
   const lvl = usePersistentLevel('anagrams');
   /**
@@ -476,6 +508,40 @@ export default function AnagramGame() {
   };
 
   const newRound = () => {
+    if (билингво && очередьТроек.current.length > 0) {
+      if (шагIdx.current >= 3) {                       // тройка кончилась — берём следующую
+        тройкаIdx.current += 1;
+        шагIdx.current = 0;
+        setТройкаОтвет([]);
+        setТройкаСлова(очередьТроек.current[тройкаIdx.current]?.шаги ?? []);
+      }
+      const шаг = очередьТроек.current[тройкаIdx.current]?.шаги[шагIdx.current];
+      шагIdx.current += 1;
+      if (шаг) {
+        const w = шаг.слово.toUpperCase();
+        setTarget(w);
+        /**
+         * Подсказка второму и третьему заходу — САМО РОДНОЕ СЛОВО. Это и есть
+         * задача режима: значение уже поднято, достань перевод. У первого
+         * захода подсказки нет — он решается как обычная анаграмма.
+         */
+        /* Подсказки-баннера в тройках нет: разгаданные строки выше и есть
+           подсказка — значение видно прямо в поле. */
+        setHint('');
+        let arr2 = w.split('');
+        let n = 0;
+        do { arr2 = shuffle(arr2); n++; } while (arr2.join('') === w && n < 5);
+        setLetters(arr2);
+        setPicked([]);
+        hist.reset();
+        закрытьСлово(false);
+        /* Лимита времени на слово в этом режиме нет: припоминание перевода
+           медленнее решения анаграммы, и общий секундомер это уже учитывает. */
+        if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+        wordDeadlineAtRef.current = 0;
+        return;
+      }
+    }
     const len = lengthRef.current;
     let bank = wordsBank(len, theme);
     if (bank.length < 4) bank = wordsBank(len, 'all');   // мало слов этой темы на этой длине → вся длина
@@ -551,6 +617,54 @@ export default function AnagramGame() {
       setLength(p.length);
       setTotalTrials(p.trials);
       setWordSec(p.wordSec);
+    }
+    /**
+     * ⚠️ ДЛИНА СЛОВА В ТРОЙКАХ НЕ ПОДЧИНЯЕТСЯ ЛЕСТНИЦЕ, И ЭТО ЦЕНА РЕЖИМА.
+     * Слово берётся из словаря значений, а перевод той же длины не бывает:
+     * «арбуз» пять букв, `watermelon` десять. Держать длину значило бы выкинуть
+     * почти все тройки. Поэтому в этом режиме растёт не длина, а число троек.
+     */
+    if (билингво) {
+      const годится = (w: string) => /^[\p{L}]{3,12}$/u.test(w);
+      /* Своим `shuffle` проекта, а не Math.random здесь: `startGame` зовётся и
+         автостартом, и правило React-компилятора справедливо считает вызов
+         случайности на этом пути вызовом во время рендера. */
+      const перемешано = shuffle([...TRANSLATION_VOCAB] as unknown[]);
+      /**
+       * 🔴 ТРИ ЯЗЫКА ТРОЙКИ ОБЯЗАНЫ БЫТЬ РАЗНЫМИ, И САМ ПО СЕБЕ ВЫБОР ЭТОГО НЕ
+       * ГАРАНТИРУЕТ.
+       *
+       * 📍 ЗАМЕР 10.09.2026 ПО КАДРУ: на английском интерфейсе язык слов у
+       * анаграмм тоже `en`, то есть родной и первый совпадали. Тройка требует
+       * трёх РАЗНЫХ языков, поэтому не собиралась ни одна, очередь выходила
+       * пустой, счётчик показывал «1/0» и партия молча шла обычной анаграммой.
+       * Денис увидел это первым вопросом «с билингво режим где».
+       */
+      const родной = language;
+      const п1 = wordLang.lang !== родной ? wordLang.lang : параЯзыков(родной)[0];
+      const п2 = (второйЯзык !== родной && второйЯзык !== п1)
+        ? второйЯзык
+        : параЯзыков(родной).find((l) => l !== п1) ?? параЯзыков(родной)[1];
+      const т = тройкиПары(перемешано as Record<string, unknown>[], родной, п1, п2,
+        Math.max(1, Math.ceil(trialsRef.current / 3)), годится);
+      /**
+       * ⚠️ ТРОЕК НЕ СОБРАЛОСЬ — ИГРАЕМ ОБЫЧНУЮ АНАГРАММУ, А НЕ ПУСТУЮ ПАРТИЮ.
+       * Пустая очередь давала `trials = 0`: счётчик «1/0», раунды из ниоткуда и
+       * никакого признака, что режим не включился. Молчаливая пустота хуже
+       * честного отказа от режима.
+       */
+      if (т.length === 0) {
+        очередьТроек.current = [];
+        setТройкаСлова([]);
+      } else {
+        очередьТроек.current = т;
+        тройкаIdx.current = 0;
+        шагIdx.current = 0;
+        setТройкаОтвет([]);
+        setТройкаСлова(т[0]!.шаги);
+        trialsRef.current = т.length * 3;
+        setTotalTrials(т.length * 3);
+      }
     }
     hitsRef.current = 0; errorsRef.current = 0; hintUsesRef.current = 0;
     roundRef.current = 1;
@@ -666,19 +780,59 @@ export default function AnagramGame() {
       if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
       const guess = newPicked.map((i) => letters[i]).join('');
       // Любая валидная анаграмма из этих букв = зачёт (буквы те же — игрок собрал их все)
-      const correct = guess === target || validWordsRef.current.has(guess);
+      /**
+       * ⚠️ В ТРОЙКАХ ЗАСЧИТЫВАЕТСЯ ТОЛЬКО ТОЧНОЕ СЛОВО. Обычная анаграмма
+       * принимает любое настоящее слово из тех же букв — здесь это сломало бы
+       * смысл: спрашивается КОНКРЕТНЫЙ перевод, а не любое слово.
+       */
+      const correct = билингво ? guess === target : (guess === target || validWordsRef.current.has(guess));
       if (correct) { hitsRef.current += 1; setHits(hitsRef.current); hapticSuccess(); }
       else { errorsRef.current += 1; setErrors(errorsRef.current); hapticError(); }
+      /**
+       * ⚠️ СТРОКА ОСТАЁТСЯ ЗАПОЛНЕННОЙ ПРАВИЛЬНЫМ СЛОВОМ ДАЖЕ ПРИ ОШИБКЕ.
+       * Смысл трёх строк в том, что значение держится перед глазами; оставить
+       * ошибочную строку пустой значило бы отнять опору у следующих двух и
+       * превратить тройку обратно в три отдельных захода.
+       */
+      if (билингво) setТройкаОтвет((v) => [...v, target]);
       nextTimerRef.current = setTimeout(advance, 700);
     }
   };
 
+  /**
+   * 🔴 ССЫЛКА НА СКРОЛЛЕР И ЯКОРЬ НАСТРОЕК — ОТЧЁТ `42863de7` (10.09.2026).
+   *
+   * Тестировщик: «А почему нельзя выбрать чтобы любая тема была или случайно».
+   * Выбрать МОЖНО, и «🎲 Все» стоит первой и по умолчанию — просто её не видно.
+   *
+   * 📍 ЗАМЕР 11.09.2026 (собранный веб, 403×873 — ширина из отчёта): экран
+   * настроек 1673 px при окне 720, ниже сгиба СКРЫТО 953 px (57 %). Карточка
+   * «Тема» начинается на 1274 — прокрутить надо 594 px, почти целый экран.
+   * По разделу это выброс: словарь SRS прячет 656, пропущенное слово 336,
+   * сортировка 296, слово-или-нет 234, слуховой охват 90, пары слов 61.
+   *
+   * ⚠️ И ПРИЧИНА ОТЧАСТИ В ПРЕДЫДУЩЕЙ ПОЧИНКЕ. 02.09.2026 по отчёту «не мотать
+   * экран вниз, чтобы запустить» кнопку «Начать» прибили книзу (см. комментарий
+   * у `GameSetupBar`). Запуск стал доступен сразу — и вместе с этим исчезла
+   * единственная причина прокручивать вообще. Настройки погасли не потому, что
+   * их убрали, а потому, что до них перестали доходить.
+   *
+   * Полосу прокрутки не включаю: её прячут 62 экрана приложения из 77, это
+   * принятый вид, и менять его в одной игре значит расходиться с остальными.
+   */
+  const прокрутка = useRef<ScrollView>(null);
+  const yНастроек = useRef(0);
+
   const renderConfig = () => {
     const p = levelParams(lvl.level);
+    const подписьРежима = режимИгры === 'square' ? t('anagramSquare')
+      : режимИгры === 'all' ? t('anagramAllWords')
+        : режимИгры === 'cross' ? t('anagramCrossword') : t('classicLabel');
+    const тема = ANAGRAM_THEMES.find((x) => x.k === theme) ?? ANAGRAM_THEMES[0]!;
     return (
       <View style={{ flex: 1 }}>
       <>
-      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={прокрутка} style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
           <Ionicons name="language" size={48} color={ON_GRAD.color} />
           <Text style={styles.configTitle}>{t('anagrams')}</Text>
@@ -713,6 +867,33 @@ export default function AnagramGame() {
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
+          {/*
+            🔴 ЧТО СЕЙЧАС ВЫБРАНО — ВИДНО БЕЗ ПРОКРУТКИ. Отчёт `42863de7`.
+            Строка собрана ИЗ ТЕХ ЖЕ значений, что рисуют карточки ниже, а не из
+            своих копий: разъехаться нечему. Новых ключей перевода не заводит —
+            всё уже переведено на 12 языков для самих карточек.
+            Тап уводит к настройкам: сказать «они есть» и не показать где —
+            половина ответа.
+          */}
+          <TouchableOpacity
+            testID="anagrams-setup-summary"
+            accessibilityRole="button"
+            onPress={() => прокрутка.current?.scrollTo({ y: Math.max(0, yНастроек.current - 12), animated: true })}
+            /**
+             * ⚠️ ВЫСОТА НЕ ОТ ОТСТУПОВ, А ОТ ПАЛЬЦА. С `paddingVertical: 6` и шрифтом 12
+             * строка выходила 291×28 при полу 44 — гейт `tap-routes` покраснел на этом
+             * экране и продержал main красным семь часов (11.09.2026, восемь коммитов
+             * легли поверх красного). `ПАЛЕЦ` = 48 берётся из `gameLayout.ts`, чтобы
+             * пол жил в одном месте на всё приложение, а не переписывался числом.
+             */
+            style={{ marginTop: 8, minHeight: ПАЛЕЦ, justifyContent: 'center',
+              paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10,
+              borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card }}>
+            <Text style={{ color: colors.text, fontSize: 12, textAlign: 'center' }}>
+              {подписьРежима} · {WORD_LANG_LABEL[wordLang.lang]} · {тема.emoji} {t('anagramTheme_' + тема.k)}
+              {' · '}{t('btn_hint')} {hintsOn ? t('label_on') : t('label_off')}{'  ⌄'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/*
@@ -720,7 +901,19 @@ export default function AnagramGame() {
           мата» той же недели: три параллельных входа в одну игру человек читает
           как три разные игры и спрашивает, чем они отличаются.
         */}
-        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        {/*
+          ⚠️ ПЕРЕКЛЮЧАТЕЛЬ СТОИТ ДО ВЫБОРА РЕЖИМА, ПОТОМУ ЧТО ОТМЕНЯЕТ ЧАСТЬ
+          НАСТРОЕК: в тройках длина слова идёт от словаря, а не от лестницы, и
+          лимита времени на слово нет. Показать его после и не связать значило бы
+          оставить человека гадать, почему выбранная длина ни на что не влияет.
+        */}
+        {режимИгры === 'classic' && (
+          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
+            первый={wordLang.lang} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
+        )}
+        <View
+          style={[styles.optionCard, { backgroundColor: colors.surface }]}
+          onLayout={(ev) => { yНастроек.current = ev.nativeEvent.layout.y; }}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
           <View style={styles.optionButtons}>
             {(['classic', 'square', 'all', 'cross'] as const).map((р) => (
@@ -863,7 +1056,7 @@ export default function AnagramGame() {
   if (phase === 'playing' && режимИгры === 'cross') {
     const пак = allWordsPack(wordLang.lang, lvl.level);
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <CrosswordGame
             key={`cross-${wordLang.lang}-${пак.base}-${lvl.level}`}
@@ -905,7 +1098,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <AllWordsGame
             key={`${wordLang.lang}-${пак.base}`}
@@ -960,7 +1153,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {к ? (
           <WordSquareGame
             key={ключКольца(к.верх, к.право, к.низ, к.лево)}
@@ -1000,10 +1193,6 @@ export default function AnagramGame() {
           { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
           ...(wordSec > 0 ? [{ key: 'left', icon: 'time' as const, label: t('timeLeftLabel'), value: `${Math.ceil(wordLeft)}${t('secShort')}`, tone: wordLeft <= 10 ? 'warn' as const : 'neutral' as const }] : []),
         ]}
-        stats={
-          <View style={styles.statsRow}>
-          </View>
-        }
         /* 💡 Подсказка ушла НАВЕРХ, к остальному служебному: она открывает
            следующую верную букву и растит счётчик `hintUses`, который режет
            результат — то есть трогает игру, а не черновик ответа.
@@ -1052,15 +1241,102 @@ export default function AnagramGame() {
               <Text style={[styles.hintBannerText, { color: colors.text }]}>{hint}</Text>
             </View>
           ) : null}
-          <View style={styles.pickedRow}>
-            {Array.from({ length: target.length }).map((_, i) => (
-              <View key={i} style={[styles.pickedSlot, { borderColor: colors.textSecondary, backgroundColor: colors.surface }]}>
-                <Text style={[styles.pickedLetter, { color: colors.text }]}>
-                  {picked[i] !== undefined ? letters[picked[i]] : ''}
-                </Text>
-              </View>
-            ))}
-          </View>
+          {/*
+            🔴 ТРИ СТРОКИ ОДНОГО ЗНАЧЕНИЯ, А НЕ ТРИ ЗАХОДА ПОДРЯД.
+
+            📍 РЕШЕНИЕ ДЕНИСА 10.09.2026: «сделать три строки и колесо под ними,
+            чтобы меняло буквы после заполнения первой строки — так визуальная
+            память будет держать 3 слова перед глазами, а последовательно будет
+            рублена».
+
+            Разгаданные строки остаются на экране и служат подсказкой следующим:
+            значение уже поднято, достань перевод. Поэтому отдельного баннера с
+            родным словом в этом режиме нет — он дублировал бы первую строку.
+
+            ⚠️ ПУСТЫЕ КЛЕТКИ БУДУЩИХ СТРОК ПОКАЗЫВАЮТ ДЛИНУ, И ЭТО НЕ ПОДДАВКИ.
+            Три строки и заведены затем, чтобы форма всех трёх слов стояла перед
+            глазами; прятать длину значило бы вернуть то самое «рубленое»
+            последовательное устройство, от которого уходим.
+          */}
+          {билингво && тройкаСлова.length === 3 ? (() => {
+            /**
+             * 🔴 КЛЕТКА СЧИТАЕТСЯ ОТ ЭКРАНА, А НЕ СТОИТ ЖЁСТКИМИ 44 px.
+             *
+             * 📍 ЗАМЕР 11.09.2026 на 360 px: три ряда вылезали за край на 10 px,
+             * потому что ряд объявлен `nowrap` (иначе строки разъехались бы) и
+             * шесть клеток по 44 плюс зазоры плюс метка языка не помещались.
+             * Отчёты тестировщиков 2.53.1–2.53.2 про «съехавший огромный
+             * тулбар» пришли без кадра и экрана, привязать их нельзя — но этот
+             * вылет мой и настоящий, найден обходом своей зоны.
+             *
+             * ⚠️ Размер ОДИН на все три ряда и считается по САМОМУ ДЛИННОМУ
+             * слову тройки: разные размеры в рядах сломали бы то, ради чего
+             * ряды заведены, — общий вид трёх слов сразу.
+             */
+            const максДлина = Math.max(...тройкаСлова.map((x) => x.слово.length));
+            const зазор = максДлина > 7 ? 4 : 8;
+            const доступно = Math.min(width, 420) - 32 - 30 - 6 - зазор * (максДлина - 1);
+            const бок = Math.max(22, Math.min(44, Math.floor(доступно / максДлина)));
+            const выс = Math.round(бок * 54 / 44);
+            return (
+            <View style={styles.тройкаКол}>
+              {тройкаСлова.map((сл, r) => {
+                const разгадана = r < тройкаОтвет.length;
+                const активна = r === тройкаОтвет.length;
+                const буквы = разгадана ? [...(тройкаОтвет[r] ?? '')] : null;
+                return (
+                  <View key={`${сл.язык}-${r}`} style={[styles.тройкаРяд, { gap: зазор }]}>
+                    {/*
+                      🔴 МЕТКА ЯЗЫКА ПЕРЕД СТРОКОЙ. Просьба Дениса 10.09.2026:
+                      «подписи языка не хватает, значок перед словом». Без неё
+                      три ряда читаются как один длинный ребус: непонятно, на
+                      каком языке ждут ответ, пока не начнёшь набирать.
+                      Код языка, а не название: «Английский» в строку не
+                      помещается и отодвинул бы клетки за край на 360 px.
+                    */}
+                    <Text
+                      accessibilityLabel={WORD_LANG_LABEL[сл.язык] ?? сл.язык}
+                      style={[styles.тройкаЯзык, {
+                        color: активна ? GRADIENT[0] : colors.textSecondary,
+                        borderColor: активна ? GRADIENT[0] : colors.border,
+                      }]}
+                    >
+                      {сл.язык.toUpperCase()}
+                    </Text>
+                    {Array.from({ length: сл.слово.length }).map((_, i) => (
+                      <View
+                        key={i}
+                        style={[
+                          styles.pickedSlot,
+                          { width: бок, height: выс },
+                          {
+                            borderColor: активна ? GRADIENT[0] : colors.textSecondary,
+                            backgroundColor: colors.surface,
+                            opacity: разгадана ? 0.55 : 1,
+                          },
+                        ]}
+                      >
+                        <Text style={[styles.pickedLetter, { color: colors.text, fontSize: Math.round(бок / 2) }]}>
+                          {буквы ? (буквы[i] ?? '') : активна && picked[i] !== undefined ? letters[picked[i]] : ''}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                );
+              })}
+            </View>
+            );
+          })() : (
+            <View style={styles.pickedRow}>
+              {Array.from({ length: target.length }).map((_, i) => (
+                <View key={i} style={[styles.pickedSlot, { borderColor: colors.textSecondary, backgroundColor: colors.surface }]}>
+                  <Text style={[styles.pickedLetter, { color: colors.text }]}>
+                    {picked[i] !== undefined ? letters[picked[i]] : ''}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
           {/*
             🔴 КРУГ БУКВ ВМЕСТО РЯДА ПЛИТОК.
 
@@ -1163,6 +1439,10 @@ const styles = StyleSheet.create({
   hintBannerEmoji: { fontSize: 20, flexShrink: 0 },  // иконка рядом с текстом не сжимается
   hintBannerText: { fontSize: 14, fontWeight: '600', flex: 1, minWidth: 0 },  // крупный шрифт: текст переносится внутри баннера, а не распирает его
   // RTL-пин: слоты собираемого слова (ru/en) заполняются слева направо — иначе слово читается задом наперёд
+  тройкаКол: { gap: 8, alignItems: 'center' },
+  тройкаРяд: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'nowrap' },
+  /* Ширина фиксирована, чтобы клетки трёх рядов стояли строго друг под другом. */
+  тройкаЯзык: { width: 30, fontSize: 11, fontWeight: '700', textAlign: 'center', borderWidth: 1, borderRadius: 6, paddingVertical: 2 },
   pickedRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', flexWrap: 'wrap', writingDirection: 'ltr', maxWidth: '100%' },
   pickedSlot: { width: 44, height: 54, borderRadius: 8, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   pickedLetter: { fontSize: 22, fontWeight: '700' },

@@ -16,6 +16,250 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.53.9',
+    date: '2026-09-11',
+    ru: [
+      'Две новые головоломки: «Клоцки» — растолкать блоки, чтобы главный вышел наружу, и «Сокобан» — толкать бочки на метки, не загоняя их в угол',
+      'Игровое поле больше не гуляет по высоте: у большинства экранов оно начинается ровно в одном и том же месте',
+      '«Матрица» даёт дочитать задание до первой вспышки — теперь в обоих режимах, а не в одном',
+      '«Анаграммы» показывают выбранные настройки сразу, без прокрутки до карточек',
+    ],
+    en: [
+      'Two new puzzles: Klotski — shuffle the blocks aside so the main one can slide out, and Sokoban — push the barrels onto the targets without wedging them into a corner',
+      'The playing field no longer drifts up and down: on most screens it now starts at exactly the same place',
+      'Memory Matrix gives you time to read the task before the first flash — now in both modes, not just one',
+      'Anagrams shows the settings you picked right away, with no scrolling down to the cards',
+    ],
+  },
+  {
+    version: '2.53.8',
+    date: '2026-09-11',
+    ru: [
+      'Доска головоломок больше не прыгает: у всех сорока она теперь в одном и том же квадрате и одного размера',
+      '«Угадай код» стало чем играть: шесть клавиш цветов, кнопка «Готово» и работающее стирание — раньше на экране не было ни одного органа управления',
+      '«Раскраска карты» получила второе действие — карандашные пометки, без которых половина приёмов игры была недоступна',
+      'Четырём играм сказано прямо под доской, что там тянут пальцем, а не касаются — раньше нажатие просто ничего не делало',
+    ],
+    en: [
+      'The puzzle board no longer jumps around: all forty now sit in the same square and at the same size',
+      'Guess is playable at last: six colour keys, a Done button and a working erase — the screen had no controls at all before',
+      'Map Colouring gained its second action — the pencil marks that half its technique depends on',
+      'Four games now say right under the board that you drag there instead of tapping — a tap simply did nothing',
+    ],
+  },
+  {
+    version: '2.53.7',
+    date: '2026-09-11',
+    ru: [
+      'Доска головоломок больше не прыгает: у всех сорока она теперь в одном и том же квадрате и одного размера',
+      '«Угадай код» стало чем играть: шесть клавиш цветов и кнопка «Готово» — раньше на экране не было ни одного органа управления',
+      'Четырём играм сказано прямо под доской, что там тянут пальцем, а не касаются — раньше нажатие просто ничего не делало',
+    ],
+    en: [
+      'The puzzle board no longer jumps around: all forty now sit in the same square and at the same size',
+      'Guess is playable at last: six colour keys and a Done button — the screen had no controls at all before',
+      'Four games now say right under the board that you drag there instead of tapping — a tap simply did nothing',
+    ],
+  },
+  {
+    version: '2.53.6',
+    date: '2026-09-11',
+    ru: [
+      'В «Мостах» вернулись числа на островах — без них играть было не во что: наша отрисовка закрашивала их при перерисовке',
+      'Второе действие появилось ещё у тринадцати головоломок. У «Сапёра» это пометить мину, у японского кроссворда — крестик «здесь пусто»: без них они просто не решаются',
+      'В ряду цифр появилась клавиша «стереть» — раньше ошибочную цифру снимали только через меню паузы',
+      'Кот больше не жуёт, когда его гладят: у мытья, поглаживания и кормления теперь свои кадры',
+      'Подорвался в «Сапёре» — прямо над доской появляются «Отменить» и «Заново». Раньше оттуда можно было выйти только через паузу',
+    ],
+    en: [
+      'Bridges got its island numbers back — the game was unplayable without them: our drawing painted over them on redraw',
+      'Thirteen more puzzles gained a second action. In Minesweeper it flags a mine, in the nonogram it marks an empty cell — without it they simply cannot be solved',
+      'The digit row now has an erase key — a wrong digit used to be removable only from the pause menu',
+      'The cat no longer chews when you stroke it: washing, stroking and feeding now have their own frames',
+      'Blow up in Minesweeper and Undo and Restart appear right above the board. Before that the only way out was the pause menu',
+    ],
+  },
+  {
+    version: '2.53.5',
+    date: '2026-09-11',
+    ru: [
+      'В головоломках видно, как идёт партия: «отмечено 3 из 10», «соединено 6 из 25», «подсказок осталось 44». Эти счётчики движок вёл и раньше — просто не показывались',
+      'Справка режима головоломок теперь верна на всех языках: раньше на десяти из двенадцати она отправляла к стрелке «назад», которой там больше нет, и молчала про долгое нажатие',
+    ],
+    en: [
+      'Puzzles now show how the round is going: “marked 3 of 10”, “connected 6 of 25”, “44 clues left”. The engine counted all this before — it just was not shown',
+      'The puzzle help text is now correct in every language: in ten of twelve it still pointed at a back arrow that no longer exists and said nothing about the long press',
+    ],
+  },
+  {
+    version: '2.53.4',
+    date: '2026-09-10',
+    ru: [
+      'В паузе у каждой игры теперь два выхода: «Выйти из игры» — шаг назад, к выбору упражнения, и «На главную» — сразу на главный экран',
+      'У восемнадцати игр выход был один и подписан «На главную», хотя уводил на шаг назад — подпись теперь совпадает с тем, что кнопка делает',
+    ],
+    en: [
+      'Every game’s pause menu now has two exits: “Exit game” steps back to the exercise list, and “Go Home” goes straight to the main screen',
+      'In eighteen games there was a single exit labelled “Go Home” that actually stepped back — the label now matches what the button does',
+    ],
+  },
+  {
+    version: '2.53.3',
+    date: '2026-09-10',
+    ru: [
+      'Головоломки стало чем играть: цифры, второе действие и крест стрелок под доской. У шести из сорока нечем было сделать ход, «Магниты» без второго действия не решались вовсе',
+      'Кнопка «Показать решение» действительно показывает решение — раньше в двух играх она не делала ничего',
+      'Питомец обновился у всех: часть игроков видела старого кота. Четыре действия заботы — помыть, погладить, покормить, поиграть',
+      'Языковая зарядка больше не падает на втором упражнении',
+      'В паузе два разных выхода: из упражнения и сразу в главное меню',
+      'Медальон в шапке показывает голову целиком у робота и созвездия, а не только у кота',
+    ],
+    en: [
+      'The puzzles are now playable: digits, a second action and an arrow pad under the board. Six of the forty had no way to make a move; Magnets could not be solved at all',
+      '“Show solution” really shows the solution — in two games it used to do nothing',
+      'The pet is up to date for everyone — some players still saw the old cat. Four care actions: wash, stroke, feed, play',
+      'The language workout no longer crashes on the second exercise',
+      'Pause now has two separate exits: leave the exercise, or go straight to the main menu',
+      'The header medallion shows the whole head for the robot and the constellation, not just the cat',
+    ],
+  },
+  {
+    version: '2.53.2',
+    date: '2026-09-10',
+    ru: [
+      'Питомец перестал дёргаться: спящий кот больше не вскакивал каждые четыре секунды, а движение стало вдвое плавнее',
+      'Гуляющий питомец больше не телепортируется при переходе между экранами',
+      'Робот-питомец не просвечивает щеками — на тёмной теме они были дырами',
+      'Анаграммы наконец входят в режим двух языков: раньше при английском интерфейсе режим молча не включался и счётчик показывал 1/0',
+    ],
+    en: [
+      'The pet no longer jerks: the sleeping cat used to jump upright every four seconds, and motion is now twice as smooth',
+      'The strolling pet no longer teleports when you move between screens',
+      'The robot pet’s cheeks are no longer see-through — on the dark theme they were holes',
+      'Anagrams finally enter bilingual mode: with an English interface the mode silently failed and the counter showed 1/0',
+    ],
+  },
+  {
+    version: '2.53.1',
+    date: '2026-09-10',
+    ru: [
+      'Пауза теперь есть в каждой игре. Раньше в шестидесяти трёх упражнениях из восьмидесяти одного нажатие «назад» показывало картинку без единой кнопки — ни продолжить, ни выйти',
+      'Кнопку паузы стало видно: вместо серой стрелки в углу — заметная кнопка с ⏸',
+      'В паузе видно, как идёт партия: уровень, ходы, верно, ошибки, время',
+      'Оттуда же: тихий режим одним тапом, «Отменить» и «Подсказка», уровень проще или сложнее, пропуск шага зарядки и «Сообщить о проблеме»',
+      'У «Детского мата» было две кнопки выхода с разными подписями и одинаковым действием — осталась одна',
+    ],
+    en: [
+      'Every game now has a pause menu. In sixty-three exercises out of eighty-one, pressing “back” used to show a picture with no buttons at all — no resume, no exit',
+      'The pause button is now visible: a clear ⏸ button instead of a grey arrow in the corner',
+      'The pause screen shows how the round is going: level, moves, correct answers, mistakes, time',
+      'From the same place: quiet mode in one tap, Undo and Hint, an easier or harder level, skipping a workout step, and “Report a problem”',
+      '“Scholar’s Mate” had two exit buttons with different labels and the same effect — now there is one',
+    ],
+  },
+  {
+    version: '2.53.0',
+    date: '2026-09-10',
+    ru: [
+      'Новый раздел «Головоломки»: сорок логических головоломок Саймона Тэтхэма — судоку и его родня, закраска по подсказкам, петли и мосты, разрезание поля, аркады',
+      'Зарядка: подсказка «Не понимаешь, как играть?» больше не закрывает поле в первом упражнении — из-за неё вспышки Корси проходили незаметно, а таблица символов SDMT была не видна',
+      'SDMT: два значка из девяти выглядели одинаково («пламя» и «капля»), и ответ на них был угадыванием — заменили на непохожий',
+      'Ряд служебных кнопок в шапке больше не наезжает на игровое поле — это было на двадцати экранах',
+      'Торты и пицца: тап стал главным способом хода, перетаскивание наконец работает, ряды тарелок ровные',
+      'Раздел «Поиск»: шесть игр приведены к одной геометрии, у всех появилось меню паузы',
+    ],
+    en: [
+      'New “Puzzles” section: forty logic puzzles by Simon Tatham — sudoku and its relatives, shading by clues, loops and bridges, region cutting, arcade boards',
+      'Workout: the “Not sure how to play?” hint no longer covers the board in the first exercise — it used to hide the Corsi flashes and the SDMT symbol key',
+      'SDMT: two of the nine symbols looked identical (“flame” and “water”), so answering them was guesswork — replaced with a distinct one',
+      'The row of tool buttons in the header no longer overlaps the game field — this affected twenty screens',
+      'Cakes and pizza: tapping is now the main way to move, dragging finally works, plate rows are aligned',
+      '“Search” section: six games share one geometry, and every one of them now has a pause menu',
+    ],
+  },
+  {
+    version: '2.52.12',
+    date: '2026-09-09',
+    ru: [
+      'Исправлено падение «Что-то сломалось» при переходе между экранами — ломался переход в любую игру и развилку',
+      'Судоку открыта во всех профилях: классическая доска, «Небоскрёбы» и «Неравенства» — раньше у семи профилей из тринадцати раздел открывался пустым',
+      'Раздел, в котором профилю пока ничего не открыто, больше не встречает белым экраном: он объясняет, почему пусто, и выводит ко всем играм',
+    ],
+    en: [
+      'Fixed the “Something went wrong” crash when moving between screens — it broke entering any game or section',
+      'Sudoku is now open in every profile: the classic board, “Skyscrapers” and “Inequalities” — seven profiles out of thirteen used to open the section empty',
+      'A section with nothing open for your profile no longer greets you with a blank screen: it explains why it is empty and takes you to all games',
+    ],
+  },
+  {
+    version: '2.52.11',
+    date: '2026-09-09',
+    ru: [
+      'Раздел «Ментальная ротация» открыт во всех профилях полностью: вращение фигур, «Поворот чисел» и «Сеть труб» — раньше у большинства профилей раздел открывался пустым',
+    ],
+    en: [
+      'The “Mental Rotation” section is now open in every profile in full: shape rotation, “Number Twist” and “Pipe Network” — most profiles used to open it empty',
+    ],
+  },
+  {
+    version: '2.52.10',
+    date: '2026-09-09',
+    ru: [
+      'Технический выпуск: доставка исправлений «Ментальной ротации» — экран во весь размер, вращение и меню паузы',
+    ],
+    en: [
+      'Technical release: delivers the Mental Rotation fixes — full-size board, rotation and the pause menu',
+    ],
+  },
+  {
+    version: '2.52.9',
+    date: '2026-09-09',
+    ru: [
+      '«Поворот чисел» и «Сеть труб» вернулись к своему экрану: поле во весь экран, уровни — своими кнопками',
+    ],
+    en: [
+      '“Number Twist” and “Pipe Network” are back to their own screen: full-size board, levels via their own buttons',
+    ],
+  },
+  {
+    version: '2.52.8',
+    date: '2026-09-09',
+    ru: [
+      'Вращение вернулось во все три упражнения «Ментальной ротации»: фигура крутится, разбор ошибки показывает поворот, блок и труба поворачиваются с анимацией',
+      '«Поворот чисел» и «Сеть труб»: стрелка «назад» открывает меню паузы — продолжить, заново, отменить ход, правила, на главную',
+    ],
+    en: [
+      'Rotation is back in all three “Mental Rotation” exercises: the shape turns, the mistake review shows the turn, the block and the pipe rotate with animation',
+      '“Number Twist” and “Pipe Network”: the back arrow opens a pause menu — resume, restart, undo, rules, home',
+    ],
+  },
+  {
+    version: '2.52.7',
+    date: '2026-09-09',
+    ru: [
+      '«Поворот чисел» и «Сеть труб»: убрана лишняя полоса уровней над полем — поле снова во весь экран',
+      'Ментальная ротация: разбор ошибки снова показывает, как повернулась фигура',
+    ],
+    en: [
+      '“Number Twist” and “Pipe Network”: the extra level strip above the board is gone — the board is full-screen again',
+      'Mental Rotation: the mistake review shows how the shape turned again',
+    ],
+  },
+  {
+    version: '2.52.6',
+    date: '2026-09-09',
+    ru: [
+      'Питомец: новый цикл ходьбы, колпак держится на голове, норма — ежедневное кормление, кот объясняет свой вид словами под кнопкой кормления',
+      'Главная и коллекция: карточки не режут текст при крупном шрифте, чип профиля без яркой заливки, закрытая фигурка отвечает на тап — на сколько ⭐ откроется',
+      'Зарядка «Eyes & breathing» открывается на старых Android (WebView Chrome 90); карточки зарядки считают время по живым партиям',
+    ],
+    en: [
+      'Pet: new walk cycle, the party hat stays on the head, daily feeding is the norm, the cat explains its look in words under the feed button',
+      'Home and collection: cards no longer clip text at large font sizes, the profile chip lost its loud fill, a locked figure answers a tap — at how many ⭐ it opens',
+      '“Eyes & breathing” opens on older Android (WebView Chrome 90); warm-up cards estimate time from real rounds',
+    ],
+  },
+  {
     version: '2.52.5',
     date: '2026-09-09',
     ru: [

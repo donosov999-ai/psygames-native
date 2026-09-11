@@ -318,16 +318,26 @@ function OnboardingInner() {
           <View style={styles.pickerCards}>{pickerGames.map(renderGameCard)}</View>
 
           <Text style={[styles.pickerHint, { color: colors.textSecondary }]}>{t('onbPickGameHint')}</Text>
+        </ScrollView>
+        {/*
+          🔴 «ПРОПУСТИТЬ» ПРИБИТО К НИЗУ ЭКРАНА, А НЕ К КОНЦУ СПИСКА (отчёт 8f6557d8, 09.09.2026:
+          «кнопка Skip тут должна быть закреплена снизу экрана»). Раньше кнопка стояла
+          последней внутри прокрутки — её видел только тот, кто долистал двадцать карточек.
+          Верхний выход (стрелка) остаётся: он же — норма для всех экранов; нижняя кнопка —
+          второй, крупный выход у большого пальца. Вне ScrollView, поэтому виден всегда.
+        */}
+        <View style={[styles.pickerFooter, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel={t('skip')}
+            testID="onb-skip-footer"
             disabled={busy}
             onPress={skipPicker}
             style={[styles.pickerSkip, { borderColor: colors.border, backgroundColor: colors.surface }]}
           >
             <Text style={[styles.pickerSkipText, { color: colors.text }]}>{t('skip')}</Text>
           </TouchableOpacity>
-        </ScrollView>
+        </View>
       </SafeAreaView>
     );
   }
@@ -422,6 +432,7 @@ const styles = StyleSheet.create({
   quizProfile: { fontSize: 12.5, textAlign: 'center' },
   quizOr: { fontSize: 12.5, fontWeight: '700', textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5 },
   pickerSkip: { minHeight: 48, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  pickerFooter: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12, borderTopWidth: StyleSheet.hairlineWidth },
   pickerSkipText: { fontSize: 15, fontWeight: '800' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12 },
   stepCounter: { fontSize: 13, fontWeight: '700' },

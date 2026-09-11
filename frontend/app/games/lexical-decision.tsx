@@ -33,6 +33,9 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { BilingualToggle } from '@/src/components/BilingualToggle';
+import { LanguageBadge } from '@/src/components/LanguageBadge';
+import { паройЯзыков, вторымНеПервый, БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { generatePseudowords, sampleRealWords } from '@/src/services/pseudowords';
@@ -53,7 +56,7 @@ const LD_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
-interface Trial { text: string; isWord: boolean }
+interface Trial { text: string; isWord: boolean; язык: string }
 
 // Уровень 1..15: окно ответа сокращается 3.0с → 1.1с, число проб растёт ступенями.
 // Языковые параметры уровень НЕ трогает — словники всех языков работают как раньше.
@@ -117,6 +120,16 @@ export default function LexicalDecisionGame() {
   useEffect(() => () => clearAllTimers(), []);
 
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+  /** Режим билингво: два иностранных вперемешку в одной партии (см. bilingualMode). */
+  const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
+  /**
+   * 🔴 ВТОРОЙ ЯЗЫК ПАРЫ — ВЫБОР ЧЕЛОВЕКА (отчёт `2aa5892c` на v2.53.0:
+   * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
+   * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
+   */
+  const [желаемыйВторой, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
+  /** Пара не бывает из одного языка — разбор у `вторымНеПервый`. */
+  const второйЯзык = вторымНеПервый(language, tgt, желаемыйВторой);
 
   // Показ текущей пробы: фиксируем момент показа + взводим дедлайн уровня.
   const presentTrial = () => {
@@ -154,13 +167,36 @@ export default function LexicalDecisionGame() {
     windowMsRef.current = isPreset ? 0 : p.windowMs;   // пресет = прежний self-paced режим
     const count = isPreset ? presetTrials : p.trials;
     tgtRef.current = tgt;
-    const half = Math.floor(count / 2);
-    const real = sampleRealWords(tgt, count - half).map((w) => ({ text: w, isWord: true }));
-    const pseudo = generatePseudowords(tgt, half).map((w) => ({ text: w, isWord: false }));
-    const all = [...real, ...pseudo];
-    for (let i = all.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [all[i], all[j]] = [all[j], all[i]];
+    /**
+     * 🔴 В БИЛИНГВО ПРОБЫ ДВУХ ЯЗЫКОВ ИДУТ ПО РЯДУ ЧЕРЕДОВАНИЯ.
+     *
+     * ⚠️ Псевдослова генерируются ПО ЯЗЫКУ: испанское псевдослово среди
+     * английских настоящих узнаётся по одному виду букв, и проба превращается
+     * в «угадай, на каком это языке». Поэтому и настоящие, и псевдо берутся у
+     * каждого языка отдельно и только потом раскладываются вперемешку.
+     *
+     * ⚠️ Порядок здесь НЕ перемешивается случайно, как в одноязычной партии:
+     * узор чередования и есть измеряемая величина.
+     */
+    const языки = билингво ? [tgt, второйЯзык] : [tgt];
+    const наЯзык = Math.max(1, Math.round(count / языки.length));
+    const поЯзыку: Record<string, Trial[]> = {};
+    for (const л of языки) {
+      const пол = Math.floor(наЯзык / 2);
+      const r = sampleRealWords(л, наЯзык - пол).map((w) => ({ text: w, isWord: true, язык: л }));
+      const ps = generatePseudowords(л, пол).map((w) => ({ text: w, isWord: false, язык: л }));
+      const смесь = [...r, ...ps];
+      for (let i = смесь.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [смесь[i], смесь[j]] = [смесь[j], смесь[i]];
+      }
+      поЯзыку[л] = смесь;
+    }
+    let all: Trial[];
+    if (билингво) {
+      all = разложитьПоРяду(поЯзыку, count, language, [tgt, второйЯзык]).элементы.map((x) => x.элемент);
+    } else {
+      all = поЯзыку[tgt] ?? [];
     }
     trialsRef.current = all;
     setTrials(all);
@@ -260,19 +296,33 @@ export default function LexicalDecisionGame() {
           </LinearGradient>
           <GameAbout descriptionKey="lexicalDecisionIntroDesc" benefits={LD_BENEFITS} accent={GRADIENT[0]} />
 
+          {/*
+            🔴 ПЕРЕКЛЮЧАТЕЛЬ СТОИТ ВЫШЕ ВЫБОРА ЯЗЫКА, А НЕ ПОД НИМ.
+          
+            📍 ЗАМЕР 10.09.2026 ПО КАДРУ, а не по DOM: список языков вырос до
+            одиннадцати и занял четыре ряда, утопив переключатель НИЖЕ СГИБА —
+            на первом экране его не видно вовсе. Денис: «я в твоих скринах не вижу
+            изменений», и он был прав: в дереве узлы были, на экране их не было.
+          
+            ⚠️ Порядок теперь читается сам: сперва «два языка сразу», под ним
+            выбор первого. Раньше человек доходил до конца списка и только там
+            узнавал, что выбор можно отменить режимом.
+          */}
+          <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
+            первый={tgt} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
           <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
             <Text style={[styles.optionLabel, { color: colors.text }]}>
               {LANGUAGES.find((l) => l.code === language)?.name} →
             </Text>
             <View style={styles.optionButtons}>
-              /*
+              {/*
                 🔴 ПРЕДЛАГАЕМ ТОЛЬКО ТЕ ЯЗЫКИ, НА КОТОРЫХ ЕСТЬ СЛОВАРЬ.
                 Раньше выбор строился из всех двенадцати языков приложения, а
                 словарь покрывает семь: на французском игра запускалась и
                 оказывалась пустой — «выбери 1-е из 0», а в зарядке экран
                 оставался мёртвым навсегда, без шапки и без «назад».
                 Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
-              */
+              */}
               {LANGUAGES.filter((l) => l.code !== language && hasPseudowords(l.code)).map((l) => (
                 <TouchableOpacity
                   accessibilityRole="button"
@@ -330,14 +380,45 @@ export default function LexicalDecisionGame() {
         title={t('lexicalDecision')}
         onBack={() => { clearAllTimers(); goBackOrHome(); }}
         scrollableField
-        stats={
-          <View style={styles.hudRow}>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('round')} {idx + 1}/{trials.length}</Text>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('hud_correct')} {correctCount} · {t('hud_errors')} {errorsCount}</Text>
-          </View>
-        }
+        bottom="answer"
+        hud={[
+          /**
+           * 🔴 КАКОЙ СЕЙЧАС ЯЗЫК — ВИДНО В ШАПКЕ.
+           *
+           * 📍 ОТЧЁТ ТЕСТИРОВЩИКА `475ac1e4` на v2.53.0: «Поставил режим два
+           * языка сразу, что-то не видно ни фига». Справедливо: слова
+           * чередовались, но НИ ОДНОГО признака режима на экране не было —
+           * `casa`, потом `house`, и если языков не знаешь, отличить нельзя.
+           * В анаграммах метка появилась только потому, что Денис попросил её
+           * отдельно; в остальных четырёх её не было вовсе.
+           *
+           * 🔴 И В ЗАРЯДКЕ ТОЖЕ — ОТДЕЛЬНОЕ ЗАМЕЧАНИЕ ДЕНИСА 10.09.2026:
+           * «в режиме зарядки я там тоже не обнаружил мультиязычности». Причина
+           * та же: поток честно меняет язык от шага к шагу, но на экране этого
+           * нечем увидеть. Условие поэтому шире флага режима — метка нужна
+           * везде, где язык материала выбран НЕ человеком на этом экране.
+           *
+           * ⚠️ Код языка, а не название: «Английский» распирает пилюлю шапки.
+           */
+          ...((билингво || isPreset) && trials[idx]?.язык
+            ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
+                value: паройЯзыков(String(trials[idx]?.язык), билингво ? [tgt, второйЯзык] : []),
+                tone: 'accent' as const }]
+            : []),
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${trials.length}` },
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },
+          { key: 'hud_errors', icon: 'close-circle', label: t('hud_errors'), value: errorsCount, tone: 'bad' as const },
+        ]}
         toolbar={
-          <>
+          /*
+           * ⚠️ КОНТЕЙНЕР, А НЕ ФРАГМЕНТ. Замер геометрии 09.09.2026 на 390×844:
+           * у трёх соседних экранов раздела полоса ответа заканчивалась на 834,
+           * а здесь — на 844, впритык к нижнему краю. Причина в том, что кнопки
+           * лежали голым фрагментом `<>`, без общей обёртки: отступы и промежуток
+           * задавала каждая сама. Тот же `toolbarOptions`, что у «Cloze» и
+           * «Сортировки слов», ставит полосу на общую высоту.
+           */
+          <View style={styles.toolbarOptions}>
             <TouchableOpacity
               accessibilityRole="button"
               style={[styles.bigButton, { backgroundColor: '#34d399' }]}
@@ -356,7 +437,7 @@ export default function LexicalDecisionGame() {
               <Ionicons name="close" size={28} color="#fff" />
               <Text style={styles.bigButtonText}>{t('ldNonwordBtn')}</Text>
             </TouchableOpacity>
-          </>
+          </View>
         }
       >
         <View
@@ -368,6 +449,19 @@ export default function LexicalDecisionGame() {
         >
           <Text style={[styles.promptWord, { color: showFeedback ? '#fff' : colors.text }]}>{trial.text}</Text>
         </View>
+        {/*
+          🔴 ЯЗЫК — СЛОВОМ И У САМОГО СТИМУЛА, А НЕ ТОЛЬКО ДВУМЯ БУКВАМИ В ШАПКЕ.
+          Правка Дениса 10.09.2026: «подписи должны быть — раз переход в
+          мультиязычности, какой язык пишется; обозначение мелкое». Переход
+          отмечается стрелкой и заливкой, повтор языка — спокойным серым.
+        */}
+        {(билингво || isPreset) && (
+          <LanguageBadge
+            язык={trial.язык}
+            сменился={idx > 0 && trials[idx - 1]?.язык !== undefined && trials[idx - 1]?.язык !== trial.язык}
+            accent={GRADIENT[0]}
+          />
+        )}
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('ldHint')}</Text>
       </GameShell>
@@ -463,6 +557,7 @@ const styles = StyleSheet.create({
   },
   promptWord: { fontSize: 36, fontWeight: '800', textAlign: 'center' },
   hint: { fontSize: 13, textAlign: 'center', marginBottom: 16 },
+  toolbarOptions: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 10, maxWidth: '100%' },
   bigButton: {
     flex: 1,
     borderRadius: 16,

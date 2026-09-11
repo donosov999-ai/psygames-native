@@ -25,7 +25,7 @@ const СЛОВАРЬ: Record<string, string> = {
   goalSheetDays: '{n} дней',
   goalSheetToday: 'Сегодня: {g} партий · {p} ⭐ · серия {s}',
   notNow: 'Не сейчас',
-  goalSuggest_best_streak: 'Твой рекорд — {n} дн.',
+  goalSuggest_best_streak: 'Твоя лучшая серия — {n} дн. подряд',
   goalSuggest_at_top: 'Ты уже держал {n} дн.',
   goalSuggest_smaller: 'В прошлый раз было {n} — начнём с меньшего',
 };
@@ -123,7 +123,7 @@ describe('окно цели', () => {
     it('есть замер — есть подпись с его числом', () => {
       const r = окно({ suggestion: suggestGoal({ days: подряд(4), hasSessions: true }) });
       expect(поId(r, 'goal-option-why').length).toBe(1);
-      expect(текст(r)).toContain('Твой рекорд — 4 дн.');
+      expect(текст(r)).toContain('Твоя лучшая серия — 4 дн. подряд');
     });
 
     it('🔴 замера нет — подписи НЕТ, а не выдуманная', () => {

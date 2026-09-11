@@ -58,6 +58,11 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'breathing_streak_7',name_ru: 'Неделя дыхания',   name_en: 'Breath week',      desc_ru: '7 дней дыхания подряд',           desc_en: '7 days of breathing in a row',  emoji: '🌊', category: 'streak' },
   { id: 'chess_blind_5',    name_ru: 'Слепой взгляд',     name_en: 'Blind eye',        desc_ru: 'Слепые шахматы: пройди уровень 5', desc_en: 'Blind chess: clear level 5',   emoji: '♟️', category: 'quality' },
   { id: 'chess_blind_10',   name_ru: 'Гроссмейстер памяти',name_en: 'Memory grandmaster',desc_ru: 'Слепые шахматы: пройди уровень 10', desc_en: 'Blind chess: clear level 10', emoji: '👑', category: 'quality' },
+  // Заявка чата шахмат 10.09.2026: у «Доски в уме» три записи в общем слое, у
+  // «Детского мата» — ноль. Пороги те же (5 и 10), чтобы две игры одного раздела
+  // не мерились разными линейками.
+  { id: 'scholars_mate_5',  name_ru: 'Видит мат',          name_en: 'Sees the mate',    desc_ru: 'Детский мат: пройди уровень 5',  desc_en: 'Scholar’s mate: clear level 5', emoji: '♞', category: 'quality' },
+  { id: 'scholars_mate_10', name_ru: 'Матовая сеть',       name_en: 'Mating net',       desc_ru: 'Детский мат: пройди уровень 10', desc_en: 'Scholar’s mate: clear level 10', emoji: '⚔️', category: 'quality' },
   { id: 'polyglot_100',     name_ru: 'Полиглот-сотня',    name_en: 'Polyglot century', desc_ru: '100 языковых сессий',             desc_en: '100 language sessions',         emoji: '🌍', category: 'volume' },
   { id: 'clean_run_5',      name_ru: 'Чистая пятёрка',    name_en: 'Clean five',       desc_ru: '5 чистых раундов подряд (0 ошибок)', desc_en: '5 clean rounds in a row (0 errors)', emoji: '🔥', category: 'quality' },
 ];
@@ -99,6 +104,7 @@ interface Context {
   challengeStreak?: { streak: number; total: number };
   breathingStreak?: number;
   chessBlindMaxLevel?: number;
+  scholarsMateMaxLevel?: number;
   cleanRun?: number;
 }
 
@@ -117,6 +123,8 @@ function evalCondition(id: string, ctx: Context): boolean {
     case 'breathing_streak_7': return (ctx.breathingStreak ?? 0) >= 7;
     case 'chess_blind_5':      return (ctx.chessBlindMaxLevel ?? 0) >= 5;
     case 'chess_blind_10':     return (ctx.chessBlindMaxLevel ?? 0) >= 10;
+    case 'scholars_mate_5':    return (ctx.scholarsMateMaxLevel ?? 0) >= 5;
+    case 'scholars_mate_10':   return (ctx.scholarsMateMaxLevel ?? 0) >= 10;
     case 'polyglot_100':       return sessions.filter(s => POLYGLOT_GAMES.has(s.game_type)).length >= 100;
     case 'clean_run_5':        return (ctx.cleanRun ?? 0) >= 5;
     case 'first_session':       return sessions.length >= 1;
@@ -224,6 +232,7 @@ export async function runAchievementsCheck(sessions: GameSession[]): Promise<Ach
   let challengeStreak: Context['challengeStreak'];
   let breathingStreak = 0;
   let chessBlindMaxLevel = 0;
+  let scholarsMateMaxLevel = 0;
   let cleanRun = 0;
   if (pid) {
     try {
@@ -238,6 +247,8 @@ export async function runAchievementsCheck(sessions: GameSession[]): Promise<Ach
       const { getLevelStars } = await import('@/src/services/levelStars');
       const stars = await getLevelStars('chess_blind', pid);
       chessBlindMaxLevel = Math.max(0, ...Object.keys(stars).map(Number).filter(n => (stars as any)[n] > 0));
+      const мат = await getLevelStars('scholars_mate', pid);
+      scholarsMateMaxLevel = Math.max(0, ...Object.keys(мат).map(Number).filter(n => (мат as any)[n] > 0));
     } catch {}
     try {
       const { getCleanRun } = await import('@/src/services/cleanRun');
@@ -247,7 +258,7 @@ export async function runAchievementsCheck(sessions: GameSession[]): Promise<Ach
 
   const newly = await checkNewAchievements({
     sessions, warmupHistory, assessmentHistory, currentStreak,
-    challengeStreak, breathingStreak, chessBlindMaxLevel, cleanRun,
+    challengeStreak, breathingStreak, chessBlindMaxLevel, scholarsMateMaxLevel, cleanRun,
   });
   if (newly.length > 0) {
     try {

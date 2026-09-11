@@ -47,7 +47,21 @@ jest.mock('@/src/contexts/LanguageContext', () => ({
 }));
 jest.mock('@/src/services/edgeBack', () => ({ attachEdgeBack: () => () => {} }));
 jest.mock('@/src/services/a11y', () => ({ announce: () => {} }));
-jest.mock('@/src/services/feedback', () => ({ sndCorrect: () => {}, sndWrong: () => {}, sndMatch: () => {}, sndLose: () => {} }));
+/**
+ * ⚠️ ПОДМЕНА ОБЯЗАНА ОТДАВАТЬ ВСЁ, ЧТО КАРКАС ЗОВЁТ. С появлением пункта «тихий
+ * режим» (10.09.2026) `GameShell` читает `soundOn`/`hapticEnabledNow` и пишет
+ * `setSoundEnabled`/`setHapticEnabled`. Неполная подмена валила ВЕСЬ набор с
+ * `soundOn is not a function` — семь проб разом, и ни одна из них не про звук.
+ */
+jest.mock('@/src/services/feedback', () => {
+  // ⚠️ Состояние держим ВНУТРИ фабрики: jest не пускает в неё внешние переменные.
+  let звук = true;
+  return {
+    sndCorrect: () => {}, sndWrong: () => {}, sndMatch: () => {}, sndLose: () => {},
+    soundOn: () => звук, hapticEnabledNow: () => звук,
+    setSoundEnabled: (v: boolean) => { звук = v; }, setHapticEnabled: () => {},
+  };
+});
 jest.mock('@/src/services/petMood', () => ({ setGameMood: () => {} }));
 jest.mock('@/src/components/GameHelpOverlay', () => ({ __esModule: true, HELP_CORNER_SPACE: 0, default: () => null }));
 
@@ -84,12 +98,26 @@ const меню = (доп: Partial<Record<'restart' | 'rules', () => void>> = {})
 ];
 
 describe('меню паузы GameShell — стрелка «назад» открывает меню', () => {
-  it('1. с pauseActions стрелка держит партию и показывает меню из четырёх пунктов, выхода не спрашивает', () => {
+  /**
+   * 🔴 ДОГОВОР ИЗМЕНЁН 10.09.2026, И ЭТОТ НАБОР ПЕРЕПИСАН ПОД НОВЫЙ.
+   *
+   * Раньше здесь было записано: «нет `pauseActions` — стрелка спрашивает про выход,
+   * меню нет». Замер показал, во что это обошлось: меню было у 18 игровых экранов
+   * из 81, и на остальных 63 человек, нажав «назад», получал карточку «Игра на
+   * паузе» БЕЗ ЕДИНОЙ КНОПКИ. Денис: «пауза походу опять не доехала до всех».
+   *
+   * Теперь набор по умолчанию даёт КАРКАС, а игра лишь дополняет его своим.
+   * Пробы ниже сверяют новый договор; старые ожидания сохранены рядом в тексте
+   * пробы, чтобы было видно, что именно поменялось и почему.
+   */
+  it('1. с pauseActions стрелка держит партию и показывает пункты игры, выхода не спрашивает', () => {
     const tr = смонтировать({ pauseActions: меню() });
     expect(`до нажатия: держится ${isGameHeld()}, меню ${есть(tr, 'game-pause-menu')}`).toBe('до нажатия: держится false, меню false');
     нажать(tr, 'game-back');
     expect(`после: держится ${isGameHeld()}, меню ${есть(tr, 'game-pause-menu')}, requestExit ${mockGuard.requestExit.mock.calls.length}`)
       .toBe('после: держится true, меню true, requestExit 0');
+    // Пункты игры на месте. Общие пункты каркаса (тишина, отчёт) приходят сверх них
+    // и здесь не перечисляются: их сторожит `pause-menu-everywhere`.
     const пункты = ['resume', 'restart', 'rules', 'home'].map((id) => `${id}:${есть(tr, `pause-action:${id}`)}`).join(' ');
     expect(пункты).toBe('resume:true restart:true rules:true home:true');
   });
@@ -121,17 +149,21 @@ describe('меню паузы GameShell — стрелка «назад» отк
       .toBe('confirmExit 1, requestExit 0, держится false');
   });
 
-  it('4. без pauseActions стрелка ведёт себя как прежде: вопрос о выходе, партия не держится, меню нет', () => {
+  it('4. 🔴 без pauseActions меню ЕСТЬ — его даёт каркас (было: «вопрос о выходе, меню нет»)', () => {
     const tr = смонтировать({});
     нажать(tr, 'game-back');
+    // Вопроса про выход больше нет: выход стал пунктом внутри меню.
     expect(`requestExit ${mockGuard.requestExit.mock.calls.length}, держится ${isGameHeld()}, меню ${есть(tr, 'game-pause-menu')}`)
-      .toBe('requestExit 1, держится false, меню false');
+      .toBe('requestExit 0, держится true, меню true');
+    const пункты = ['resume', 'home'].map((id) => `${id}:${есть(tr, `pause-action:${id}`)}`).join(' ');
+    expect(пункты).toBe('resume:true home:true');
   });
 
-  it('4а. пустой список pauseActions = меню нет (игра ничего не дала)', () => {
+  it('4а. 🔴 пустой список pauseActions — то же самое: молчание игры не оставляет человека без кнопок', () => {
     const tr = смонтировать({ pauseActions: [] });
     нажать(tr, 'game-back');
-    expect(`requestExit ${mockGuard.requestExit.mock.calls.length}, держится ${isGameHeld()}`).toBe('requestExit 1, держится false');
+    expect(`requestExit ${mockGuard.requestExit.mock.calls.length}, держится ${isGameHeld()}, меню ${есть(tr, 'game-pause-menu')}`)
+      .toBe('requestExit 0, держится true, меню true');
   });
 
   it('5. стрелка «назад» — не меньше 48 pt в обе стороны', () => {

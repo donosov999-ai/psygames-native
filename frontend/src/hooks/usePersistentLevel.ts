@@ -39,6 +39,7 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { завестиЛестницу } from '@/src/services/levelRegistry';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getMaxLevelFromSessions } from '@/src/services/api';
 import { pickTarget } from '@/src/services/levelPick';
@@ -178,5 +179,23 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
     return false;
   };
 
-  return { level: picked ?? level, best: level, picked, loaded, setLevel, reach, fail, pick };
+  const снаружи: PersistentLevel = { level: picked ?? level, best: level, picked, loaded, setLevel, reach, fail, pick };
+
+  /**
+   * Запись в общий реестр живых лестниц (`services/levelRegistry`), откуда каркас
+   * берёт её для пунктов «уровень проще / сложнее» в меню паузы.
+   *
+   * ⚠️ Ссылка обновляется В ЭФФЕКТЕ БЕЗ СПИСКА ЗАВИСИМОСТЕЙ, а не во время рендера:
+   * запись во время рендера линт ловит как ошибку, и правильно — под Strict Mode
+   * она прошла бы дважды. Эффект без списка выполняется после каждого кадра, а меню
+   * паузы открывается нажатием, то есть заведомо позже.
+   */
+  const запись = useRef<ReturnType<typeof завестиЛестницу> | null>(null);
+  useEffect(() => {
+    запись.current = завестиЛестницу(gameId, снаружи);
+    return () => { запись.current?.снять(); запись.current = null; };
+  }, [gameId]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { запись.current?.обновить(снаружи); });
+
+  return снаружи;
 }

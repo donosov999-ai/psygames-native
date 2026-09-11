@@ -39,6 +39,7 @@ export type Technique =
   | 'towers_clue'     // вывод из подсказки «сколько зданий видно с края»
   | 'unequal_chain'   // цепочка неравенств: границы протянуты через ПУСТЫХ соседей
   | 'x_wing'          // X-wing
+  | 'xy_wing'         // XY-wing: ось {a,b} и два клюва {a,c} и {b,c} — c уходит там, где видно оба
   | 'guess';          // логики не хватило — нужен перебор
 
 export const TECHNIQUE_TIER: Record<Technique, number> = {
@@ -57,7 +58,7 @@ export const TECHNIQUE_TIER: Record<Technique, number> = {
    * обязана оставаться сравнимой между вариантами.
    */
   cage_sum: 4,
-  hidden_subset: 5, x_wing: 6, guess: 9,
+  hidden_subset: 5, x_wing: 6, xy_wing: 7, guess: 9,
 };
 
 export interface GradeCtx {
@@ -679,11 +680,69 @@ export function gradePuzzle(puzzle: Cell[][], ctx: GradeCtx, tierCap = 9): Grade
     return false;
   };
 
+  /**
+   * XY-WING. Ось — клетка ровно с двумя кандидатами {a,b}. Два клюва видят ось и имеют
+   * {a,c} и {b,c}. Тогда c стоит в одном из клювов при любом раскладе, и c уходит из
+   * всех клеток, которые видят ОБА клюва.
+   *
+   * 🔴 ЗАЧЕМ ЗАВЕДЕНА. Замер 09.09.2026: между X-Wing (ступень 6) и догадкой (9) не было
+   * НИ ОДНОЙ техники, а банк отдаёт на уровнях 58–80 доски с рейтингом SE 6.3…7.8 —
+   * ровно эту полосу. Оценщик на них не молчал: он делал 19–26 настоящих шагов и
+   * упирался, помечая доску `tier: 9` («нужна догадка»), а экран показывал пояс вместо
+   * приёма. Мера не считалась на 92 банковских досках из 92.
+   *
+   * ⚠️ «Видят друг друга» берётся из `unitsOfCell`, а не из строки/столбца/квадрата.
+   * Это обязательное условие для вариантов: у кривых блоков и гипер-судоку области
+   * другие, и техника обязана работать по НАСТОЯЩИМ областям доски, иначе она даст
+   * неверное исключение там, где блок не квадратный.
+   */
+  const xyWing = (): boolean => {
+    const пары: [number, number][] = [];
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) if (grid[r][c] === 0 && popcount(cand[r][c]) === 2) пары.push([r, c]);
+    }
+    const видит = (a: [number, number], b: [number, number]): boolean =>
+      (a[0] !== b[0] || a[1] !== b[1])
+      && unitsOfCell[a[0]][a[1]].some((u) => unitsOfCell[b[0]][b[1]].includes(u));
+
+    for (const ось of пары) {
+      const mo = cand[ось[0]][ось[1]];
+      for (const клюв1 of пары) {
+        if (!видит(ось, клюв1)) continue;
+        const m1 = cand[клюв1[0]][клюв1[1]];
+        if (popcount(mo & m1) !== 1) continue;               // с осью ровно одна общая цифра
+        for (const клюв2 of пары) {
+          if (клюв2 === клюв1 || !видит(ось, клюв2)) continue;
+          const m2 = cand[клюв2[0]][клюв2[1]];
+          if (popcount(mo & m2) !== 1) continue;
+          if ((mo & m2) === (mo & m1)) continue;             // клювы держат РАЗНЫЕ цифры оси
+          const c = m1 & m2;                                  // общая цифра клювов — её и убираем
+          if (popcount(c) !== 1 || (c & mo)) continue;        // в оси её быть не должно
+          let hit = false;
+          for (let r = 0; r < N; r++) {
+            for (let cc = 0; cc < N; cc++) {
+              if (grid[r][cc] !== 0 || !(cand[r][cc] & c)) continue;
+              if ((r === ось[0] && cc === ось[1]) || (r === клюв1[0] && cc === клюв1[1])
+                || (r === клюв2[0] && cc === клюв2[1])) continue;
+              const цель: [number, number] = [r, cc];
+              if (видит(цель, клюв1) && видит(цель, клюв2)) {
+                cand[r][cc] &= ~c; hit = true;
+                if (cand[r][cc] === 0) return false;
+              }
+            }
+          }
+          if (hit) { bump('xy_wing'); return true; }
+        }
+      }
+    }
+    return false;
+  };
+
   // tierCap отсекает техники сверху: так можно спросить «решается ли это БЕЗ техник выше k».
   // На этом стоит ПОЛ сложности: пазл требует технику k, если без неё он не добирается.
   const all: [Technique, () => boolean][] = [
     ['naked_single', nakedSingle], ['hidden_single', hiddenSingle], ['locked', locked],
-    ['naked_subset', nakedSubset], ['hidden_subset', hiddenSubset], ['x_wing', xWing],
+    ['naked_subset', nakedSubset], ['hidden_subset', hiddenSubset], ['x_wing', xWing], ['xy_wing', xyWing],
   ];
   const steps = all.filter(([t]) => TECHNIQUE_TIER[t] <= tierCap).map(([, f]) => f);
   for (let guard = 0; guard < N * N * 25; guard++) {
@@ -1462,9 +1521,58 @@ export function liftByClueRemoval(
   return { gen, grade, removed };
 }
 
+/**
+ * СКОЛЬКО ДОСОК ПРОСМОТРЕТЬ НА ЭТОМ УРОВНЕ, ПРЕЖДЕ ЧЕМ ВЫБРАТЬ.
+ *
+ * 🔴 ЗАЧЕМ. Замер 09.09.2026 по всей лестнице (levelConfig + effectiveBand): у 27 пар
+ * соседних уровней из 91 совпадает ВСЁ — вариант, число пустых и полоса трудности,
+ * то есть человек играет ту же ступень дважды. Две серии идут по четыре подряд:
+ * L30–33 evenodd и L34–37 kropki. Причина не в лени лестницы, а в двух потолках
+ * сразу: пустые клетки упираются в 58, а полоса — в потолок варианта (evenodd 4).
+ * По правилу «потолков нет» это значит, что ось не найдена, а не что её нет.
+ *
+ * Ось: первый уровень серии берёт первую подходящую доску, остальные — лучшую из двух.
+ *
+ * 🔴 ДВЕ СТУПЕНИ, А НЕ ЧЕТЫРЕ — И ЭТО ЗАМЕР, А НЕ ОСТОРОЖНОСТЬ. Сперва я сделал
+ * лестницу 1·2·3·4 по лабораторному замеру (лучший из префикса одной цепочки: L30
+ * 101·112·117·123, рост +22). На боевом пути это НЕ повторилось. Замер по 18 досок
+ * на уровень, тем же путём, что строит экран:
+ *   L30(1) ср 97 · L31(2) ср 108 · L32(3) ср 107 · L33(4) ср 105
+ * То есть скачок есть только с первого кандидата на второй (+11), а дальше рост тонет
+ * в шуме — обычная убывающая отдача максимума из k. Держать look=3 и look=4 значило бы
+ * платить временем (L33 1323мс против 647мс у look=2) за ступени, которых нет.
+ *
+ * ⚠️ Лабораторный замер был честным по себе, но отвечал на другой вопрос: там префиксы
+ * ОДНОГО вызова, они вложены и максимум обязан расти. Живой построитель на каждый
+ * уровень делает свой вызов — `logicalBuilder` не принимает зерна, и цепочки
+ * независимы. Отсюда разница между +22 и +11.
+ *
+ * ⚠️ БАНКОВСКИЕ УРОВНИ ВСЕГДА 1. На `variant === 'none'` и 9×9 доска берётся из банка
+ * (bankBoardForLevel), построитель не участвует, и просмотр кандидатов там — холостая
+ * настройка. Первая версия этой функции давала им 4, и это было бы враньё в замере:
+ * 22 уровня «получили ось», не получив ничего.
+ */
+export function selectionLookForLevel(lv: number): number {
+  const ключ = (L: number): string | null => {
+    const c = levelConfig(L) as unknown as { N: number; variant: Variant; blanks?: number };
+    if (c.variant === 'none' && c.N === 9) return null;   // банк — оси нет
+    const b = effectiveBand(c.variant, targetTier(L));
+    return `${c.variant}|${c.blanks ?? ''}|${b.min}..${b.max}`;
+  };
+  const свой = ключ(lv);
+  if (свой === null) return 1;
+  const МАКС = 2;   // см. замер выше: третья и четвёртая доска ступени не добавляют
+  let pos = 1;
+  for (let L = lv; L > 1 && pos < МАКС; L--) {
+    if (ключ(L - 1) !== свой) break;
+    pos += 1;
+  }
+  return pos;
+}
+
 export function logicalBuilder(
   level: number, blanksCap: number, N: number, BR: number, BC: number, variant: Variant,
-  opts: { budgetMs?: number; tier?: { min: number; max: number }; waitMs?: number } = {},
+  opts: { budgetMs?: number; tier?: { min: number; max: number }; waitMs?: number; look?: number } = {},
 ): {
   steps: number;
   step: () => { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean };
@@ -1492,12 +1600,40 @@ export function logicalBuilder(
    * Поэтому проверка вправе купить себе времени; игра по-прежнему берёт 6000.
    */
   const deadline = Date.now() + (opts.waitMs ?? BUILD_WAIT_MS);
+  /**
+   * 🔴 ОСЬ «СКОЛЬКО ДОСОК ПРОСМОТРЕТЬ, ПРЕЖДЕ ЧЕМ ВЫБРАТЬ» (09.09.2026).
+   *
+   * Компаратор «при равной ступени бери доску дороже» стоит здесь с 07.09, но он
+   * НИКОГДА не получал второго кандидата: `enough` отпускал первую же доску, попавшую
+   * в полосу (`dist === 0`), а таких — почти каждая. Замер: построитель объявляет
+   * BUILD_STEPS = 4 шага, рисует игроку «шаг 1 из 4» и заканчивает на первом.
+   *
+   * Зачем ось. У части уровней расти нечем: пустые клетки упираются в 58, а полоса —
+   * в потолок варианта (evenodd 4, kropki 5). Замер 09.09: неотличимых соседних пар
+   * 27 из 91, серии по 4 подряд на L30–33 и L34–37. При этом цена вывода на тех же
+   * досках гуляет широко, и просмотр большего числа кандидатов её поднимает —
+   * замер по 12 цепочек, лучший из префикса:
+   *   L30 evenodd: 101 · 112 · 117 · 123  (рост +22)
+   *   L34 kropki:   98 · 108 · 110 · 115  (рост +17)
+   * Монотонно по построению: максимум по префиксу не убывает.
+   *
+   * ⚠️ ПОТОЛОК, А НЕ ОБЯЗАННОСТЬ. Четыре кандидата стоят времени, и неравномерно:
+   * замер 09.09 — L53 thermocage 462мс, L33 evenodd 1950мс, а L84 thermoknight 4618мс
+   * против 1239мс на первом. Поэтому просмотр ограничен СВОИМ сроком (budgetMs): на
+   * дешёвых вариантах успевают все четыре, на дорогих — сколько успеется, и берётся
+   * лучшее из просмотренного. Ждать доску вчетверо дольше хуже, чем получить её чуть
+   * легче задуманного (та же логика, что у пола полосы ниже).
+   */
+  const look = Math.max(1, Math.round(opts.look ?? 1));
+  const lookDeadline = Date.now() + (opts.budgetMs ?? 2200);
+  let seen = 0;
   let best: { gen: GeneratedPuzzle; grade: Grade; dug: number; fellBack: boolean } | null = null;
 
   return {
     steps: BUILD_STEPS,
     step: () => {
       const r = generateLogical(level, blanksCap, N, BR, BC, variant, { budgetMs: perStep, tier: { min, max } });
+      seen += 1;
       /**
        * 🔴 ПРИ РАВНОЙ СТУПЕНИ БЕРЁМ ДОСКУ ДОРОЖЕ — ось для тех уровней, где ярлык упёрся.
        *
@@ -1521,6 +1657,7 @@ export function logicalBuilder(
      * лишней ступени было бы хуже, чем отдать ему партию.
      */
     enough: (r) => r.grade.solved && r.grade.tier <= max
+      && (seen >= look || Date.now() > lookDeadline)
       && (dist(r.grade.tier) === 0 || Date.now() > deadline),
   };
 }

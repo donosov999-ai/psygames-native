@@ -46,9 +46,45 @@ export interface TypingState {
 
 export const MARK = { PENDING: 0, CORRECT: 1, WRONG: 2 } as const;
 
-export function createState(lines: string[]): TypingState {
+/**
+ * 🔴 ПОСЛАБЛЕНИЕ ДЛЯ ДИКТОВКИ НА СЛУХ — ВКЛЮЧАЕТСЯ ЯВНО, ПО УМОЛЧАНИЮ ЕГО НЕТ.
+ *
+ * Решение Дениса 11.09.2026: «в диктанте надо сделать, чтобы заглавные не
+ * считались ошибкой, и пунктуация тоже».
+ *
+ * ПОЧЕМУ ЭТО НЕ ПОБЛАЖКА, А ЧЕСТНОСТЬ СЧЁТА. Диктант меряет слух: человек
+ * слышит фразу и записывает её. Заглавная буква и запятая на слух НЕ ЗВУЧАТ —
+ * требовать их значит мерить орфографию под видом слуха, а при блокировке на
+ * ошибке ещё и запирать человека на символе, которого он не мог услышать.
+ *
+ * ⚠️ ВЫКЛЮЧЕНО ПО УМОЛЧАНИЮ, И ЭТО ГЛАВНОЕ. Движок общий: кроме диктанта на
+ * нём стоят печатный ответ словаря (`vocab-srs`) и беглость (`phonemic-fluency`)
+ * — обе игры раздела «Языки», не мои. Там печать ПО ОБРАЗЦУ, у Шестова нулевая
+ * терпимость к опечатке и есть смысл требовать точный символ. Поэтому послабление
+ * — отдельный флаг, а не смена общего правила: чужие игры ведут себя как вели.
+ */
+export const PUNCT = /[.,!?;:…—–‑\-«»"'“”‘’()\[\]]/u;
+
+/** Знак препинания набирать не нужно: он проставляется сам. */
+export function isPunct(ch: string): boolean {
+  return PUNCT.test(ch);
+}
+
+/**
+ * Перешагнуть знаки препинания, пометив их набранными.
+ * Зовётся и при создании состояния (фраза может начинаться с тире), и после
+ * каждого принятого символа.
+ */
+function пропуститьЗнаки(st: TypingState): void {
+  while (st.pos < st.pattern.length && isPunct(st.pattern[st.pos]!)) {
+    st.marks[st.pos] = MARK.CORRECT;
+    st.pos++;
+  }
+}
+
+export function createState(lines: string[], lenient = false): TypingState {
   const pattern = lines.join('\n');
-  return {
+  const st: TypingState = {
     pattern,
     pos: 0,
     errors: 0,
@@ -56,6 +92,21 @@ export function createState(lines: string[]): TypingState {
     finishedAt: null,
     marks: new Uint8Array(pattern.length),
   };
+  /*
+   * Фраза может начинаться со знака («— Привет»). Здесь пропускаем знаки И
+   * ПРОБЕЛЫ: в середине фразы пробел человек набирает сам (он слышен паузой
+   * между словами), а пробел ПЕРЕД первым словом он набрать не может — его
+   * поставил тот же знак, которого человек не печатал. Проба
+   * `dictation-lenient-typing` поймала это на «— Привет»: курсор вставал
+   * на пробел и партия запиралась на первом же символе.
+   */
+  if (lenient) {
+    while (st.pos < pattern.length && (isPunct(pattern[st.pos]!) || /\s/.test(pattern[st.pos]!))) {
+      st.marks[st.pos] = MARK.CORRECT;
+      st.pos++;
+    }
+  }
+  return st;
 }
 
 export interface KeyResult {
@@ -68,18 +119,26 @@ export interface KeyResult {
  * Обработать введённый символ.
  * @param blockOnError true = не пускать дальше, пока не нажат верный символ (как оригинал)
  */
-export function pressChar(st: TypingState, ch: string, blockOnError: boolean): KeyResult {
+export function pressChar(st: TypingState, ch: string, blockOnError: boolean, lenient = false): KeyResult {
   if (st.finishedAt !== null) return { accepted: false, wrong: false, finished: true };
   if (st.startedAt === null) st.startedAt = Date.now();
 
   const expected = st.pattern[st.pos];
   // Enter/возврат каретки в образце — ожидаем '\n'
   const norm = ch === '\r' ? '\n' : ch;
-  const ok = norm === expected;
+  /*
+   * При послаблении регистр не важен: «а» засчитывается за «А». Сравниваем в
+   * нижнем регистре ОБА символа, а не приводим образец — образец на экране
+   * должен остаться как в языке, с заглавной в начале фразы.
+   */
+  const ok = lenient
+    ? norm.toLowerCase() === (expected ?? '').toLowerCase()
+    : norm === expected;
 
   if (ok) {
     st.marks[st.pos] = MARK.CORRECT;
     st.pos++;
+    if (lenient) пропуститьЗнаки(st);
     const finished = st.pos >= st.pattern.length;
     if (finished) st.finishedAt = Date.now();
     return { accepted: true, wrong: false, finished };

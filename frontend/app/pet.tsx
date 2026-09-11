@@ -18,18 +18,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { isRTLLang } from '@/src/services/rtl';
-import PetSprite, { PetAccessory, PetSkin, PetStill } from '@/src/components/pet/PetSprite';
+import PetSprite, { PetAccessory, PetSkin, PetState, PetStill } from '@/src/components/pet/PetSprite';
 import PetTreat from '@/src/components/pet/PetTreat';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import {
   getFedToday, getPetAccessory, getPetName, getPetSkinChoice, getPetStats, markFedToday,
+  markWashed, getDaysSinceWash,
   PET_FEED_COST, PetSkinChoice, pickReaction, PetStats, resolvePetSkin, setPetName, setPetSkin,
 } from '@/src/services/pet';
 import { pickPettedLine } from '@/src/services/petLines';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getTokens, spendTokens } from '@/src/services/tokens';
 import { sndToken, sndWrong } from '@/src/services/feedback';
-import { CATEGORY_TO_SKILL } from '@/src/services/pet';
+import { CATEGORY_TO_SKILL, currentPetLook } from '@/src/services/pet';
+import type { PetLook } from '@/src/services/petLook';
 import { GAMES } from '@/src/constants/games';
 import { isGameAllowed } from '@/src/constants/profiles';
 
@@ -55,7 +57,9 @@ function ruTrainings(n: number): string {
 
 export default function PetScreen() {
   // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
-  if (isWebDemo()) return <Redirect href="/" />;
+  // ⚠️ Сам return — НИЖЕ всех хуков (см. перед `return (`): ранний return перед хуками делал каждый
+  // хук экрана «условным» (rules-of-hooks, 20 ошибок линта) и был бы React #310 при смене флага.
+  const webDemo = isWebDemo();
   const { colors } = useTheme();
   const { t, language } = useLanguage();
   const ru = language === 'ru';   // остался только для русской плюрализации (ruTrainings)
@@ -92,8 +96,33 @@ export default function PetScreen() {
   const [editingName, setEditingName] = React.useState(false);
   // Кормление: раз в день за токены активного профиля
   const [fed, setFed] = React.useState(false);
+  /** Вид питомца с причиной — та же шкала, что рисует ходящего кота (см. currentPetLook). */
+  const [look, setLook] = React.useState<PetLook | null>(null);
+  /** Дней с последнего мытья: 999 у того, кто не мыл ни разу (кот грязный по умолчанию). */
+  const [washedDays, setWashedDays] = React.useState<number>(0);
+  React.useEffect(() => { currentPetLook().then(setLook).catch(() => {}); }, [fed]);
   const [balance, setBalance] = React.useState(0);
-  const [feastAnim, setFeastAnim] = React.useState(false);
+  /**
+   * 🔴 У КАЖДОГО ДЕЙСТВИЯ СВОЯ АНИМАЦИЯ, А НЕ ОДИН ФЛАГ НА ВСЕХ.
+   *
+   * 📍 Денис 11.09.2026: «это из кнопок только кадры еды есть, других тоже нет».
+   * Он прочитал так, потому что было ХУЖЕ, чем он думал: `feastAnim` включали ВСЕ
+   * три действия, а рисовал он `eat` и выкладывал лакомство. То есть на «погладить»
+   * и «помыть» кот принимался ЖЕВАТЬ — не «кадров нет», а чужие кадры.
+   *
+   * Кадры при этом лежали в паке всё это время. Замер 11.09.2026 по
+   * `assets/images/pet/cat`: тридцать девять состояний по семь кадров, и среди них
+   * ровно то, что нужно, — `groom` (умывается), `wiggle` (ёрзает от удовольствия),
+   * `tailchase`, `dance`, `cheer`. Механизм подстановки для обликов без своих кадров
+   * уже есть (`ЗАМЕНА` в PetSprite): у робота и Созвездия `groom` станет `idle`,
+   * `wiggle` — прыжком, и это осознанный выбор по СМЫСЛУ движения.
+   */
+  const [действие, setДействие] = React.useState<PetState | null>(null);
+  /** Показать состояние и вернуться в покой. Позднее действие перебивает раннее. */
+  const показатьДействие = React.useCallback((состояние: PetState, мс: number) => {
+    setДействие(состояние);
+    setTimeout(() => setДействие((текущее) => (текущее === состояние ? null : текущее)), мс);
+  }, []);
 
   // На фокусе, не на маунте: вернулся с тренировки → шкалы уже подросли
   useFocusEffect(
@@ -103,6 +132,7 @@ export default function PetScreen() {
       getPetAccessory().then(setAccessory).catch(() => {});
       getPetName().then(setPetNameState).catch(() => {});
       getFedToday().then(setFed).catch(() => {});
+      getDaysSinceWash().then(setWashedDays).catch(() => {});
       if (profile?.id) getTokens(profile.id).then(setBalance).catch(() => {});
       setGreeting(pickReaction(language));
     }, [language, profile?.id]),
@@ -132,6 +162,39 @@ export default function PetScreen() {
     setPetName(petName).catch(() => {});
   };
 
+  /**
+   * 🔴 ЗАБОТА ЧЕТЫРЬМЯ ДЕЙСТВИЯМИ, А НЕ ОДНИМ КОРМЛЕНИЕМ (Денис 10.09.2026:
+   * «кнопки заботы надо добавить, чтобы хотя бы 4 шт: помыть, погладить, поиграть»).
+   *
+   * 📍 ПОВОД СИЛЬНЕЕ ПРОСЬБЫ. Экран писал «Пора помыть — неделя без мытья», а помыть
+   * было НЕЧЕМ: `markWashed()` объявлена в `services/pet.ts` и не вызывалась ниоткуда
+   * (проверено грепом по src и app). Механизм написали, до игрока не довели —
+   * человеку показывали упрёк без способа его снять.
+   *
+   * ⚠️ ЧЕТВЁРТОЕ ДЕЙСТВИЕ ПОДДЕЛАТЬ НЕЛЬЗЯ, И ОНО ЧЕСТНО ВЕДЁТ В ИГРУ. Настроение и
+   * здоровье считаются по `daysSincePlay`, а он берётся из РЕАЛЬНЫХ сессий
+   * (`getSessions`, pet.ts:345). Кнопка «поиграть», двигающая шкалу сама, была бы
+   * обманом: питомец повеселел бы, а тренировки не случилось. Поэтому она открывает
+   * подбор игры — шкала поднимется, когда человек действительно сыграет.
+   */
+  const мытьДоступно = washedDays >= 1;
+
+  const wash = async () => {
+    if (!мытьДоступно) return;
+    sndToken();
+    await markWashed();
+    setWashedDays(0);
+    setLook(await currentPetLook());
+    показатьДействие('groom', 2200);          // умывается, а не жуёт
+    setGreeting(pickPettedLine(language).text);
+  };
+
+  const pet = () => {
+    sndToken();
+    setGreeting(pickPettedLine(language).text);
+    показатьДействие('wiggle', 1800);         // ёрзает от удовольствия
+  };
+
   const feed = async () => {
     const pid = profile?.id;
     if (!pid || fed) return;
@@ -143,9 +206,8 @@ export default function PetScreen() {
     setFed(true);
     setBalance(await getTokens(pid));
     // Радость: прыжки на пару секунд + благодарная реплика
-    setFeastAnim(true);
+    показатьДействие('eat', 2600);
     setGreeting(pickPettedLine(language).text);
-    setTimeout(() => setFeastAnim(false), 2600);
   };
 
   const skillLabel = (k: keyof PetStats['skills']): string => {
@@ -162,6 +224,8 @@ export default function PetScreen() {
   const total = stats?.total ?? 0;
   const skin: PetSkin = resolvePetSkin(skinChoice, stage);
   const shownName = petName || t('petName');
+
+  if (webDemo) return <Redirect href="/" />;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -217,8 +281,9 @@ export default function PetScreen() {
           заиграют сами, слой лакомства им не мешает.
         */}
         <View style={{ width: portrait, height: portrait }}>
-          <PetSprite state={feastAnim ? 'eat' : 'idle'} size={portrait} skin={skin} accessory={accessory} />
-          <PetTreat skin={skin} size={portrait} active={feastAnim} />
+          <PetSprite state={действие ?? 'idle'} size={portrait} skin={skin} accessory={accessory} subject />
+          {/* Лакомство — только к еде: на «погладить» оно и делало вид, будто кормят. */}
+          <PetTreat skin={skin} size={portrait} active={действие === 'eat'} />
         </View>
         <Text style={[styles.stageName, { color: colors.text }]}>{stageName}</Text>
         <Text style={[styles.stageHint, { color: colors.textSecondary }]}>
@@ -274,6 +339,57 @@ export default function PetScreen() {
           <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{t('needMoreTokens')}</Text>
         )}
 
+        {/* Ряд заботы: помыть · погладить · поиграть. Вместе с кормлением — четыре
+            действия, как просил Денис 10.09.2026. Объяснение, почему «поиграть»
+            уводит в игру, а не двигает шкалу само — у обработчиков выше. */}
+        <View style={styles.careRow}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('petWash')}
+            onPress={wash}
+            disabled={!мытьДоступно}
+            activeOpacity={0.8}
+            style={[styles.careBtn, {
+              backgroundColor: colors.surface,
+              borderColor: мытьДоступно ? '#8a68f5' : colors.border,
+              opacity: мытьДоступно ? 1 : 0.5,
+            }]}
+          >
+            <Text style={styles.careEmoji}>🫧</Text>
+            <Text style={[styles.careText, { color: colors.text }]} numberOfLines={1}>
+              {мытьДоступно ? t('petWash') : t('petWashedToday')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('petStroke')}
+            onPress={pet}
+            activeOpacity={0.8}
+            style={[styles.careBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          >
+            <Text style={styles.careEmoji}>🤚</Text>
+            <Text style={[styles.careText, { color: colors.text }]} numberOfLines={1}>{t('petStroke')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('petPlay')}
+            onPress={() => router.push('/games' as any)}
+            activeOpacity={0.8}
+            style={[styles.careBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          >
+            <Text style={styles.careEmoji}>🎮</Text>
+            <Text style={[styles.careText, { color: colors.text }]} numberOfLines={1}>{t('petPlay')}</Text>
+          </TouchableOpacity>
+        </View>
+        {/* Почему кот выглядит так: «Сыт и доволен» по одному флагу кормления обманывало —
+            грусть приходила с другой шкалы (мытьё, тренировки, перекорм), и человек этого не
+            видел (отчёты 622e217d, d1264bfd). Причина — та же, по которой рисуется кадр. */}
+        {look && look.reason !== 'growing' && (
+          <Text testID="pet-look-reason" style={[styles.feedHint, { color: colors.textSecondary }]}>{t(`petLook_${look.reason}`)}</Text>
+        )}
+
         {/* Подпись над рядом. Без неё это четыре карточки с чужими именами
             («Нейро-кот», «Нейрон», «Робот») и ни намёка, что все они — один и тот
             же питомец в разном виде. Репорт Вали: «не могу понять, кто такой
@@ -292,8 +408,22 @@ export default function PetScreen() {
           contentContainerStyle={styles.skinRow}
           style={styles.skinScroll}
         >
-          {(['cat', 'robot', 'constellation', 'auto'] as PetSkinChoice[]).map((s) => {
-            const on = skinChoice === s;
+          {/**
+            * 🔴 «АВТО» УБРАНО ИЗ ВЫБОРА — ЭТО БЫЛ ДУБЛЬ «НЕЙРО-КОТА».
+            *
+            * Денис 10.09.2026 по снимку: «у меня два значка выбора Синапса». Так и
+            * было: `resolvePetSkin('auto')` возвращает 'cat' ВСЕГДА — автоматическую
+            * подмену облика по стадии сняли раньше («убран только автоматический
+            * подмен за спиной», pet.ts), а карточка осталась. Две карточки давали
+            * один и тот же облик, и переключение между ними ничего не меняло —
+            * Денис это и проверил, нажав обе.
+            *
+            * Сохранённый выбор `auto` не теряется: он и раньше значил кота, и здесь
+            * подсвечивает «Нейро-кота». Само значение в хранилище не трогаем —
+            * `resolvePetSkin` разбирает его как прежде.
+            */}
+          {(['cat', 'robot', 'constellation'] as PetSkinChoice[]).map((s) => {
+            const on = skinChoice === s || (s === 'cat' && skinChoice === 'auto');
             const заперт = нарядыЗаперты && s !== БАЗОВЫЙ;
             const thumbSkin: PetSkin = s === 'auto' ? resolvePetSkin('auto', stage) : s;
             const подпись = t(s === 'cat' ? 'petSkinCat' : s === 'robot' ? 'petSkinRobot' : s === 'constellation' ? 'petSkinConstellation' : 'petSkinAuto');
@@ -411,6 +541,14 @@ const styles = StyleSheet.create({
   feedBtn: { borderRadius: 16, borderWidth: 1.5, minHeight: 48, justifyContent: 'center', paddingVertical: 9, paddingHorizontal: 20, marginTop: 8 },
   feedText: { fontSize: 13.5, fontWeight: '800' },
   feedHint: { fontSize: 11.5, marginTop: 3 },
+  /** Ряд заботы под кормлением: три кнопки в строку, каждая не уже 48pt по нажатию. */
+  careRow: { flexDirection: 'row', gap: 8, marginTop: 10, alignSelf: 'stretch', paddingHorizontal: 4 },
+  careBtn: {
+    flex: 1, minHeight: 56, borderRadius: 14, borderWidth: 1.5,
+    alignItems: 'center', justifyContent: 'center', paddingVertical: 6, paddingHorizontal: 4,
+  },
+  careEmoji: { fontSize: 19, marginBottom: 1 },
+  careText: { fontSize: 11.5, fontWeight: '700' },
   autoBadge: { position: 'absolute', top: 6, right: 8 },
   // ⚠️ paddingBottom общим числом: с 07.09.2026 внизу стоит полоса вкладок, и
   // без него последняя карточка ухода уезжала бы под неё. `FAB_CLEARANCE` уже

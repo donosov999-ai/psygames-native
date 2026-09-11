@@ -12,6 +12,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSessions } from '@/src/services/api';
+import { petLook, type PetLook } from '@/src/services/petLook';
 import { GAMES, GameCategory } from '@/src/constants/games';
 
 /** Тумблер «Питомец Синапс» в настройках (паттерн = getDevChatVisible в
@@ -324,4 +325,30 @@ export async function getPetStats(): Promise<PetStats> {
   } catch {
     return computePetStats([]);
   }
+}
+
+/**
+ * ВИД ПИТОМЦА СЕЙЧАС — одним вызовом, для экрана питомца и ходящего кота.
+ *
+ * 🔴 ЗАЧЕМ ОБЩИЙ. Расчёт жил только в WalkingPet, а экран питомца писал «Сыт и
+ * доволен» по одному флагу кормления. Отчёты тестировщика 08.09.2026 (622e217d,
+ * d1264bfd): «кормлю каждый день, а он грустный» — грусть приходила с ДРУГОЙ
+ * шкалы (неделя без мытья, перекорм), и ни одна подпись этого не говорила.
+ * Теперь причина одна на оба места и показывается человеку словами.
+ */
+export async function currentPetLook(): Promise<PetLook> {
+  const [fedDays, daysSinceWash, stats, ss] = await Promise.all([
+    getFedDays(), getDaysSinceWash(), getPetStats(), getSessions(),
+  ]);
+  const last = ss.length ? ss[ss.length - 1]?.timestamp : null;
+  const t = last ? Date.parse(last) : NaN;
+  const daysSincePlay = Number.isFinite(t) ? (Date.now() - t) / 86400000 : 999;
+  const шкалы = Object.values(stats.skills);
+  return petLook({
+    fedDays,
+    daysSinceWash,
+    daysSincePlay,
+    stage: stats.stage,
+    skillAvg: шкалы.reduce((a, b) => a + b, 0) / Math.max(1, шкалы.length),
+  });
 }

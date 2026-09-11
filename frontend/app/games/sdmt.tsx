@@ -55,8 +55,18 @@ const SDMT_BENEFITS = [
 ];
 
 // 9 unique symbols (rendered as Ionicons), each mapped to digit 1..9. Mapping is shuffled per game.
+/**
+ * 🔴 ДЕВЯТЬ РАЗЛИЧИМЫХ ЗНАЧКОВ, А НЕ ПРОСТО ДЕВЯТЬ. Отчёт тестировщика 10.09.2026
+ * (v2.52.12, кадр `2026-09-10/19zkv1hkur3.jpg`): «выделяю правильный ответ» — и он не
+ * засчитывается. По кадру видно почему: `flame` и `water` в шрифте Ionicons — две
+ * капли, отличающиеся зазубриной сверху, и в клетке легенды размером 22 px они
+ * НЕРАЗЛИЧИМЫ. Две из девяти строк таблицы читались как одна, и ответ на каплю был
+ * подбрасыванием монеты. `flame` заменён на `moon` — форма, ни на что здесь не похожая.
+ * ⚠️ Правило для пополнения набора: значок обязан отличаться СИЛУЭТОМ, а не деталью;
+ * проверять на 22 px, а не в редакторе.
+ */
 const SYMBOLS = [
-  'star', 'heart', 'leaf', 'flash', 'cloud', 'flower', 'snow', 'water', 'flame',
+  'star', 'heart', 'leaf', 'flash', 'cloud', 'flower', 'snow', 'water', 'moon',
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';

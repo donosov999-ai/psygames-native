@@ -1,4 +1,4 @@
-/* psygames-warmup-embed · VER 2 · 27.08.2026 */
+/* psygames-warmup-embed · VER 3 · 09.09.2026 */
 /**
  * ВСТРОЕННАЯ «ЗАРЯДКА» В ОБЩЕМ ДИЗАЙНЕ PSYGAMES.
  *
@@ -122,3 +122,16 @@ body.is-embedded .engine-badge { display: none; }                    /* П2: Pur
 body.is-embedded .catalog-note { display: none; }                    /* П2: «Загружено из pause-practices core» / ⓘ */
 body.is-embedded .app-version { display: none; }                     /* П2: v0.1.0-local */
 body.is-embedded .planner-card { margin-top: 4px; }
+
+/*
+ * ЗАПАСНАЯ ВЫСОТА БЕЗ dvh (09.09.2026). Привозной styles.css задаёт `.practice-shell`
+ * `height: 100dvh` без запасного `100vh`; WebView Chrome 90 (телефон тестировщика)
+ * единицу не знает, объявление отбрасывает — оболочка без высоты, экран пустой
+ * (кадры fac0ff8f/54b549c9/a9e93754). @supports Chrome 90 понимает, правило
+ * срабатывает только там, где dvh нет; на новых браузерах не меняет ничего.
+ */
+@supports not (height: 100dvh) {
+  .practice-shell {
+    height: 100vh;
+  }
+}

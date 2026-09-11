@@ -2,7 +2,7 @@ import { textOn, onSolidText, onGradientTextMuted } from '@/src/services/onGradi
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Platform, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { usePathname, useRouter } from 'expo-router';
+import { usePathname, useRouter, useGlobalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -115,6 +115,13 @@ export function HelpCornerRow({ rtl, mood, top, label, helpLabel, accent, accent
   );
 }
 
+/**
+ * Открыть справку снаружи (меню паузы): экран игры не держит её состояние — она живёт
+ * в общем угловом слое. Событие, а не проп, потому что слой рисуется каркасом, а зовёт
+ * его экран (09.09.2026, меню паузы пространственных упражнений).
+ */
+export const HELP_OPEN_EVENT = 'psygames:help-open';
+
 export default function GameHelpOverlay() {
   const mood = useGameMood();
   const router = useRouter();
@@ -168,10 +175,30 @@ export default function GameHelpOverlay() {
     if (open && !deep) import('@/src/constants/gamesDeep.json').then((m: any) => setDeep(m.default || m)).catch(() => {});
   }, [open, deep]);
 
-  // Одноразовая подсказка-указатель на «?». Флаг ставим сразу при показе —
-  // иначе выход/вход в игру покажет облачко второй раз.
+  /**
+   * Одноразовая подсказка-указатель на «?». Флаг ставим сразу при показе —
+   * иначе выход/вход в игру покажет облачко второй раз.
+   *
+   * 🔴 НО НЕ В ЗАРЯДКЕ. Два отчёта тестировщика 10.09.2026 (v2.52.12): «кубики Корси
+   * стартовали — пришлось пропустить» и «ни одно упражнение зарядки не стартует».
+   * Причина найдена замером: шаг зарядки открывается с `?wu=1` и НАЧИНАЕТСЯ САМ, а
+   * облачко висит над полем 12 секунд. Показ последовательности в Корси длится
+   * 3 × 800 мс = 2,4 с — то есть весь стимул проходит ПОД облачком, и человека
+   * спрашивают о том, чего ему не показали. У SDMT облачко закрывает таблицу
+   * символов, по которой только и можно отвечать.
+   * Флаг при этом НЕ тратим: в обычном заходе (человек сам жмёт «Начать», поле пустое)
+   * облачко покажется как задумано. Тот же отвод для `auto=1` — «Вызов дня».
+   *
+   * ⚠️ ИМЕННО `useGlobalSearchParams`, И ЭТО ЗАМЕР, А НЕ ВКУС. Оверлей висит один на всё
+   * приложение в `app/_layout.tsx`; `useLocalSearchParams` отдаёт параметры СВОЕГО
+   * сегмента, то есть корня, — там `wu` нет никогда, и первая моя правка прошла тихо
+   * мимо (контроль: облачко осталось на `?wu=1`). Глобальный вариант отдаёт параметры
+   * экрана, который сейчас открыт, — то, что и нужно.
+   */
+  const параметрыЭкрана = useGlobalSearchParams<{ wu?: string; auto?: string }>();
+  const самозапуск = параметрыЭкрана?.wu === '1' || параметрыЭкрана?.auto === '1';
   useEffect(() => {
-    if (!hasHelp) return;
+    if (!hasHelp || самозапуск) return;
     let alive = true;
     AsyncStorage.getItem(HELP_COACH_KEY)
       .then((seen) => {
@@ -181,7 +208,7 @@ export default function GameHelpOverlay() {
       })
       .catch(() => {});
     return () => { alive = false; };
-  }, [hasHelp]);
+  }, [hasHelp, самозапуск]);
 
   // Само-скрытие: облачко висит над игровым полем, вечно держать его нельзя.
   useEffect(() => {
@@ -189,6 +216,31 @@ export default function GameHelpOverlay() {
     const tm = setTimeout(() => setCoach(false), 12000);
     return () => clearTimeout(tm);
   }, [coach]);
+
+  /**
+   * 🔴 ЭТОТ ХУК ОБЯЗАН СТОЯТЬ ДО РАННЕГО ВЫХОДА. Он стоял ПОСЛЕ `if (!hasHelp)
+   * return null` — то есть при `hasHelp === false` не вызывался вовсе, а при
+   * `true` вызывался. Число хуков у одного и того же узла менялось между
+   * рендерами, и React отвечал ошибкой #310 «Rendered more hooks than during
+   * the previous render».
+   *
+   * ЦЕНА. Справка висит на КАЖДОМ игровом экране и на каждой развилке, поэтому
+   * падало не одно место, а переход куда угодно. Замер 09.09.2026 на симуляторе
+   * iPhone 17 Pro (iOS 18, сборка метки): нажатие карточки «Ментальная ротация»
+   * в каталоге → экран «Что-то сломалось», Minified React error #310. Отчёт
+   * тестировщика 6ec1941e того же часа — та же ошибка на `/achievements`,
+   * iPhone OS 18.7, профиль «Дети».
+   *
+   * ⚠️ ПОЧЕМУ ЭТОГО НЕ ВИДЕЛ НИ ОДИН ГЕЙТ. `tsc` про порядок хуков не знает,
+   * пробы монтируют экран один раз (при первом рендере число хуков постоянно, и
+   * ошибки нет), а eslint-правило `react-hooks/rules-of-hooks` считалось внутри
+   * общего долга линта — 53 нарушения жили под потолком и не выделялись.
+   * Поэтому рядом заведён отдельный гейт: нарушений правил хуков должно быть 0.
+   */
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener(HELP_OPEN_EVENT, () => { setCoach(false); setOpen(true); });
+    return () => sub.remove();
+  }, []);
 
   if (!hasHelp) return null;                           // нет справки — нет кнопки
 

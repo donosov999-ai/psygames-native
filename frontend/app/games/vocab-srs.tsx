@@ -30,6 +30,9 @@ import GameAbout from '@/src/components/GameAbout';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GameShell from '@/src/components/GameShell';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { паройЯзыков, вторымНеПервый, БИЛИНГВО, параЯзыков, разложитьПоРяду } from '@/src/services/bilingualMode';
+import { BilingualToggle } from '@/src/components/BilingualToggle';
+import { LanguageBadge } from '@/src/components/LanguageBadge';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -145,6 +148,20 @@ export default function VocabSrsGame() {
   // Сессия
   const [queue, setQueue] = useState<CardRef[]>([]);
   const [pool, setPool] = useState<{ base: string; target: string }[]>([]);
+  /**
+   * 🔴 РЕЖИМ БИЛИНГВО: два иностранных языка вперемешку В ОДНОЙ ПАРТИИ.
+   * Правка Дениса 09.09.2026 — зарядка это финал, а сам режим нужен в
+   * упражнении. Разбор правила и ряда чередования — в `bilingualMode.ts`.
+   */
+  const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
+  /**
+   * 🔴 ВТОРОЙ ЯЗЫК ПАРЫ — ВЫБОР ЧЕЛОВЕКА (отчёт `2aa5892c` на v2.53.0:
+   * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
+   * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
+   */
+  /** Пул дистракторов ПО ЯЗЫКАМ: в билингво их нельзя смешивать между языками. */
+  const [пулЯзыков, setПулЯзыков] = useState<Record<string, { base: string; target: string }[]>>({});
+  const [сменЯзыка, setСменЯзыка] = useState(0);
   const [idx, setIdx] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
   const [picked, setPicked] = useState<string | null>(null);
@@ -161,6 +178,9 @@ export default function VocabSrsGame() {
 
   // Целевой язык не может совпадать с языком интерфейса
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+  const [желаемыйВторой, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
+  /** Пара не бывает из одного языка — разбор у `вторымНеПервый`. */
+  const второйЯзык = вторымНеПервый(language, tgt, желаемыйВторой);
 
   useEffect(() => {
     if (phase === 'config') {
@@ -168,17 +188,56 @@ export default function VocabSrsGame() {
     }
   }, [phase, language, tgt]);
 
-  const makeOptions = (card: CardRef, poolArg: { base: string; target: string }[]) => {
+  const makeOptions = (
+    card: CardRef,
+    poolArg: { base: string; target: string }[],
+    поЯзыкам?: Record<string, { base: string; target: string }[]>,
+  ) => {
     const field = direction === 'recognize' ? 'base' : 'target';
-    const opts = buildOptions(card[field], poolArg.map((p) => p[field]));
+    /**
+     * ⚠️ ДИСТРАКТОРЫ — ИЗ ЯЗЫКА ЭТОЙ КАРТОЧКИ. Смешать языки в вариантах значит
+     * подсказать ответ: испанское слово среди английских видно, не зная ни
+     * одного из них.
+     */
+    const свой = (поЯзыкам ?? пулЯзыков)[card.lang ?? ''] ?? poolArg;
+    const opts = buildOptions(card[field], свой.map((p) => p[field]));
     setOptions(opts);
     setPicked(null);
     shownAtRef.current = gameNow();
   };
 
   const startSession = async () => {
-    const q = await buildQueue(language, tgt, newLimit);
-    const cards = [...q.due, ...q.fresh];
+    /**
+     * 🔴 В БИЛИНГВО СОБИРАЮТСЯ ДВЕ КОЛОДЫ И РАСКЛАДЫВАЮТСЯ ПО РЯДУ ЧЕРЕДОВАНИЯ.
+     *
+     * ⚠️ Колода SRS живёт на ПАРЕ языков (`buildQueue(base, target)`) — расписание
+     * повторов у английского и испанского своё, и объединять их в одну нельзя:
+     * карточка вернулась бы по чужому графику. Поэтому очереди строятся
+     * раздельно и только ПОКАЗЫВАЮТСЯ вперемешку, а оценка каждой уходит в свою
+     * колоду по `card.lang`.
+     */
+    const языки = билингво ? [tgt, второйЯзык] : [tgt];
+    const очереди = await Promise.all(языки.map((l) => buildQueue(language, l, newLimit)));
+
+    const пулПоЯзыкам: Record<string, { base: string; target: string }[]> = {};
+    const поЯзыку: Record<string, CardRef[]> = {};
+    языки.forEach((l, i) => {
+      const q = очереди[i]!;
+      пулПоЯзыкам[l] = q.pool;
+      поЯзыку[l] = [...q.due, ...q.fresh].map((c) => ({ ...c, lang: l }));
+    });
+
+    let cards: CardRef[];
+    let смен = 0;
+    if (билингво) {
+      const всего = Object.values(поЯзыку).reduce((n, v) => n + v.length, 0);
+      const р = разложитьПоРяду(поЯзыку, всего, language, [tgt, второйЯзык]);
+      cards = р.элементы.map((x) => ({ ...x.элемент, lang: x.язык }));
+      смен = р.сколькоСмен;
+    } else {
+      cards = поЯзыку[tgt] ?? [];
+    }
+
     if (cards.length === 0) {
       const s = await getStats(language, tgt);
       setStats(s);
@@ -186,7 +245,9 @@ export default function VocabSrsGame() {
       return;
     }
     setQueue(cards);
-    setPool(q.pool);
+    setPool(пулПоЯзыкам[cards[0]!.lang ?? tgt] ?? []);
+    setПулЯзыков(пулПоЯзыкам);
+    setСменЯзыка(смен);
     setIdx(0);
     setCorrectCount(0);
     setWrongCount(0);
@@ -197,7 +258,7 @@ export default function VocabSrsGame() {
     answersRef.current = 0;
     setStartTime(gameNow());
     setPhase('playing');
-    makeOptions(cards[0], q.pool);
+    makeOptions(cards[0]!, пулПоЯзыкам[cards[0]!.lang ?? tgt] ?? [], пулПоЯзыкам);
   };
 
   const finishSession = async (finalQueueLen: number) => {
@@ -221,7 +282,14 @@ export default function VocabSrsGame() {
         details: {
           level: doneRun,   // по нему счётчик восстановится, если ключ прогресса потерян
           base_lang: language,
-          target_lang: tgt,
+          /**
+           * 🔴 В БИЛИНГВО ЯЗЫК ЦЕЛИ НЕ ОДИН — И ПИСАТЬ ОДИН ЗНАЧИЛО БЫ СОВРАТЬ
+           * СТАТИСТИКЕ. Пишем пару и ЧИСЛО НАСТОЯЩИХ ПЕРЕКЛЮЧЕНИЙ: если материал
+           * одного языка кончился на середине, партия к концу стала одноязычной,
+           * и по включённому флагу этого не видно, а по числу смен — видно.
+           */
+          target_lang: билингво ? [tgt, второйЯзык].join('+') : tgt,
+          ...(билингво ? { lang_switches: сменЯзыка } : {}),
           cards_total: finalQueueLen,
           new_learned: newLearnedRef.current.size,
           reviews_done: reviewsDoneRef.current,
@@ -257,11 +325,11 @@ export default function VocabSrsGame() {
     setCorrectCount((c) => c + 1);
     if (card.isNew) newLearnedRef.current.add(card.id);
     else reviewsDoneRef.current += 1;
-    await gradeCard(language, tgt, card.id, typos === 0 && rt < EASY_RT_MS * 3 ? 'easy' : 'good');
+    await gradeCard(language, card.lang ?? tgt, card.id, typos === 0 && rt < EASY_RT_MS * 3 ? 'easy' : 'good');
     setTimeout(() => {
       const next = idx + 1;
       if (next >= queue.length) finishSession(queue.length);
-      else { setIdx(next); makeOptions(queue[next], pool); }
+      else { setIdx(next); makeOptions(queue[next]!, пулЯзыков[queue[next]!.lang ?? tgt] ?? pool); }
     }, 450);
   };
 
@@ -281,10 +349,10 @@ export default function VocabSrsGame() {
       setCorrectCount((c) => c + 1);
       if (card.isNew) newLearnedRef.current.add(card.id);
       else reviewsDoneRef.current += 1;
-      await gradeCard(language, tgt, card.id, rt < EASY_RT_MS ? 'easy' : 'good');
+      await gradeCard(language, card.lang ?? tgt, card.id, rt < EASY_RT_MS ? 'easy' : 'good');
     } else {
       setWrongCount((c) => c + 1);
-      await gradeCard(language, tgt, card.id, 'again');
+      await gradeCard(language, card.lang ?? tgt, card.id, 'again');
       // again → вернуть карточку через 3 позиции (один повторный заход в рамках сессии)
       nextQueue = [...queue];
       nextQueue.splice(Math.min(idx + 3, nextQueue.length), 0, { ...card });
@@ -297,7 +365,7 @@ export default function VocabSrsGame() {
         finishSession(nextQueue.length);
       } else {
         setIdx(next);
-        makeOptions(nextQueue[next], pool);
+        makeOptions(nextQueue[next]!, пулЯзыков[nextQueue[next]!.lang ?? tgt] ?? pool);
       }
     }, isRight ? 450 : 1100); // на ошибке дольше показываем правильный ответ
   };
@@ -339,20 +407,34 @@ export default function VocabSrsGame() {
           </View>
         )}
 
+        {/*
+          🔴 ПЕРЕКЛЮЧАТЕЛЬ СТОИТ ВЫШЕ ВЫБОРА ЯЗЫКА, А НЕ ПОД НИМ.
+        
+          📍 ЗАМЕР 10.09.2026 ПО КАДРУ, а не по DOM: список языков вырос до
+          одиннадцати и занял четыре ряда, утопив переключатель НИЖЕ СГИБА —
+          на первом экране его не видно вовсе. Денис: «я в твоих скринах не вижу
+          изменений», и он был прав: в дереве узлы были, на экране их не было.
+        
+          ⚠️ Порядок теперь читается сам: сперва «два языка сразу», под ним
+          выбор первого. Раньше человек доходил до конца списка и только там
+          узнавал, что выбор можно отменить режимом.
+        */}
+        <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
+            первый={tgt} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
         {/* Целевой язык */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
             {LANGUAGES.find((l) => l.code === language)?.name} →
           </Text>
           <View style={styles.optionButtons}>
-            /*
+            {/*
                 🔴 ПРЕДЛАГАЕМ ТОЛЬКО ТЕ ЯЗЫКИ, НА КОТОРЫХ ЕСТЬ СЛОВАРЬ.
                 Раньше выбор строился из всех двенадцати языков приложения, а
                 словарь покрывает семь: на французском игра запускалась и
                 оказывалась пустой — «выбери 1-е из 0», а в зарядке экран
                 оставался мёртвым навсегда, без шапки и без «назад».
                 Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
-              */
+              */}
               {LANGUAGES.filter((l) => l.code !== language && hasVocab(l.code)).map((l) => (
               <TouchableOpacity
                 accessibilityRole="button"
@@ -371,6 +453,7 @@ export default function VocabSrsGame() {
             ))}
           </View>
         </View>
+
 
         {/* Новых за сессию */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
@@ -469,21 +552,36 @@ export default function VocabSrsGame() {
         title={t('vocabSrs')}
         onBack={() => goBackOrHome()}
         scrollableField
-        stats={
-          <View style={styles.hudRow}>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>
-              {t('round')} {idx + 1}/{queue.length}
-            </Text>
-            {card.isNew && (
-              <View style={[styles.newBadge, { backgroundColor: GRADIENT[0] }]}>
-                <Text style={[styles.newBadgeText, { color: textOn(GRADIENT[0]) }]}>{t('srsNew')}</Text>
-              </View>
-            )}
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>
-              {t('hud_correct')} {correctCount} · {t('hud_errors')} {wrongCount}
-            </Text>
-          </View>
-        }
+        bottom="answer"
+        hud={[
+          /**
+           * 🔴 КАКОЙ СЕЙЧАС ЯЗЫК — ВИДНО В ШАПКЕ.
+           *
+           * 📍 ОТЧЁТ ТЕСТИРОВЩИКА `475ac1e4` на v2.53.0: «Поставил режим два
+           * языка сразу, что-то не видно ни фига». Справедливо: слова
+           * чередовались, но НИ ОДНОГО признака режима на экране не было —
+           * `casa`, потом `house`, и если языков не знаешь, отличить нельзя.
+           * В анаграммах метка появилась только потому, что Денис попросил её
+           * отдельно; в остальных четырёх её не было вовсе.
+           *
+           * 🔴 И В ЗАРЯДКЕ ТОЖЕ — ОТДЕЛЬНОЕ ЗАМЕЧАНИЕ ДЕНИСА 10.09.2026:
+           * «в режиме зарядки я там тоже не обнаружил мультиязычности». Причина
+           * та же: поток честно меняет язык от шага к шагу, но на экране этого
+           * нечем увидеть. Условие поэтому шире флага режима — метка нужна
+           * везде, где язык материала выбран НЕ человеком на этом экране.
+           *
+           * ⚠️ Код языка, а не название: «Английский» распирает пилюлю шапки.
+           */
+          ...((билингво || isPreset) && card.lang
+            ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
+                value: паройЯзыков(String(card.lang), билингво ? [tgt, второйЯзык] : []),
+                tone: 'accent' as const }]
+            : []),
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${queue.length}` },
+          ...(card.isNew ? [{ key: 'srsNew', icon: 'sparkles' as const, label: t('srsNew'), value: '', tone: 'accent' as const }] : []),
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },
+          { key: 'hud_errors', icon: 'close-circle', label: t('hud_errors'), value: wrongCount, tone: 'bad' as const },
+        ]}
         toolbar={
           печатаем ? (
             <TypingAnswer
@@ -531,6 +629,19 @@ export default function VocabSrsGame() {
         <View style={[styles.promptCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.promptWord, { color: colors.text }]}>{prompt}</Text>
         </View>
+        {/*
+          🔴 ЯЗЫК — СЛОВОМ И У САМОГО СТИМУЛА, А НЕ ТОЛЬКО ДВУМЯ БУКВАМИ В ШАПКЕ.
+          Правка Дениса 10.09.2026: «подписи должны быть — раз переход в
+          мультиязычности, какой язык пишется; обозначение мелкое». Переход
+          отмечается стрелкой и заливкой, повтор языка — спокойным серым.
+        */}
+        {(билингво || isPreset) && (
+          <LanguageBadge
+            язык={card.lang}
+            сменился={idx > 0 && queue[idx - 1]?.lang !== undefined && queue[idx - 1]?.lang !== card.lang}
+            accent={GRADIENT[0]}
+          />
+        )}
         {/* Строка «что делать»: без неё правило видно только в справке, а
             в справку во время партии не ходят. */}
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{печатаем ? t('srsTypingTask') : t('vocabSrsHint')}</Text>

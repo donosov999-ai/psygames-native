@@ -13,6 +13,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { reserveBottom } from '@/src/games/search/layout';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -464,6 +465,22 @@ export default function VisualSearchGame() {
         <GameShell
           title={t('visualSearch')}
           onBack={() => goBackOrHome()}
+          /**
+           * Меню паузы (каркас 2.52.2). Стрелка «назад» больше не выбрасывает из
+           * живой партии одним касанием: она ДЕРЖИТ партию и открывает меню.
+           *
+           * ⚠️ «Правила» — УСЛОВНЫЙ пункт: `LevelRuleModal` рисует что-то только
+           * при `levelRules.active` (LevelRules.tsx:168), и на уровне без
+           * спец-правила пункт открыл бы пустоту.
+           */
+          pauseActions={[
+            { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+            { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame() },
+            ...(levelRules.active
+              ? [{ id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline' as const, onPress: () => levelRules.setOpen(true) }]
+              : []),
+            { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+          ]}
           /** Счётчики данными (см. `HudItem`); ошибки — не в шапку (§12.4). */
           hud={[
             { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}`, pop: true },
@@ -594,7 +611,17 @@ const styles = StyleSheet.create({
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
-  fieldCol: { alignItems: 'center', gap: 12 },
+  /**
+   * 🔴 РЕЗЕРВ ПОД НИЖНЮЮ ПОЛОСУ, КОТОРОЙ ЗДЕСЬ НЕТ. Отвечают тапом по полю, и
+   * рисовать полосу нельзя — `slot-meaning` справедливо потребовал бы объявить,
+   * чем игрок отвечает внизу. Но у быстрого счёта раздела полоса ЕСТЬ, и без
+   * резерва поле этой игры разрастается вниз на её высоту: замер 09.09.2026 дал
+   * расхождение центров полей 67 точек на экране 390 и 97 на 360. В «Зарядке»
+   * игры идут вперемешку, и человек видит именно этот скачок.
+   *
+   * Число одно на весь раздел — `reserveBottom` в `src/games/search/layout.ts`.
+   */
+  fieldCol: { alignItems: 'center', gap: 12, marginBottom: reserveBottom(0) },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 280 },
   hintRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 2, maxWidth: '100%' },

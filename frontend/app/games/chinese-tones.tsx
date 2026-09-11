@@ -312,6 +312,20 @@ export default function ChineseTonesGame() {
       <GameShell
         title={t('chineseTonesShort')}
         onBack={() => goBackOrHome()}
+        /**
+         * 🔴 МЕНЮ ПАУЗЫ — ОДНО НА ВСЕ ИГРЫ. Стрелка «назад» открывает список
+         * Продолжить · Заново · На главную вместо немого выхода.
+         * Механизм в каркасе с v2.52.2, но до игрока он доехал у ТРЁХ игр из 96
+         * (замер `grep -l pauseActions app/games/*.tsx` на `main` 09.09.2026) —
+         * остальные подключают сами. «Заново» и выход разные: выход через
+         * `leave: true` идёт тем же путём, что стрелка, и сохраняет партию
+         * в «продолжить»; своё `router.back()` сохранение бы потеряло.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame() },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
         hud={[
           { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${total} · ${t('label_level_short')}${level}` },
           { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
@@ -321,6 +335,7 @@ export default function ChineseTonesGame() {
             <GameAuxAction icon="volume-high" label={t('replaySound')} disabled={answered !== null} onPress={replay} />
           </GameAuxBar>
         }
+        bottom="answer"
         toolbar={
           <View style={p.pinyinMode ? styles.answerCol : styles.answerRow}>
             {tr.options.map((вариант, i) => {
@@ -350,16 +365,36 @@ export default function ChineseTonesGame() {
         }
       >
         <View style={styles.fieldCol}>
-          {/* Крупный знак «идёт звук»: поле упражнения на слух иначе пустует и
-              читается как недогруженный экран. Меняет вид после ответа, чтобы
-              было видно — проба засчитана. */}
-          <View style={[styles.earCircle, { backgroundColor: colors.surface, borderColor: answered === null ? colors.border : (верно ? '#22c55e' : '#f43f5e') }]}>
+          {/*
+            🔴 КРУПНЫЙ ЗНАК — КНОПКА ПОВТОРА, А НЕ КАРТИНКА.
+            Отчёт «Полиглота» 11.09.2026: «нажать озвучку должна по центру быть
+            доступна… иконка нарисована, тапнуть по ней нельзя, чтобы
+            произношение повторно прошло, если человек не расслышал с первого
+            раза». Он прав: здесь стоял `View`, а повтор жил мелкой кнопкой в
+            служебном ряду шапки. Крупный круг в центре поля выглядит главным
+            органом управления — им и должен быть.
+            Подпись под значком обязательна: без неё круг снова читается как
+            украшение. Образец взят из «Эха псевдослов», где так с самого начала.
+            После ответа кнопка гаснет вместе с мелкой (`disabled`) и меняет вид
+            на галочку или крестик — проба уже засчитана, переслушивать нечего.
+          */}
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('replaySound')}
+            style={[styles.earCircle, { backgroundColor: colors.surface, borderColor: answered === null ? colors.border : (верно ? '#22c55e' : '#f43f5e') }]}
+            onPress={replay}
+            disabled={answered !== null}
+            activeOpacity={0.8}
+          >
             <Ionicons
               name={answered === null ? 'volume-high' : (верно ? 'checkmark' : 'close')}
               size={44}
               color={answered === null ? colors.textSecondary : (верно ? '#22c55e' : '#f43f5e')}
             />
-          </View>
+            {answered === null && (
+              <Text style={[styles.earLabel, { color: colors.textSecondary }]}>{t('replaySound')}</Text>
+            )}
+          </TouchableOpacity>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>
             {p.pinyinMode ? t('ctPickPinyin') : t('ctPickTone')}
           </Text>
@@ -426,7 +461,8 @@ const styles = StyleSheet.create({
   warnCard: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 14, borderWidth: 1, padding: 14 },
   warnText: { flex: 1, fontSize: 14, fontWeight: '600' },
   fieldCol: { alignItems: 'center', gap: 16, paddingHorizontal: 16 },
-  earCircle: { width: 96, height: 96, borderRadius: 48, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  earCircle: { width: 120, height: 120, borderRadius: 60, borderWidth: 2, alignItems: 'center', justifyContent: 'center', gap: 4 },
+  earLabel: { fontSize: 12, fontWeight: '600' },
   hintText: { fontSize: 15, textAlign: 'center', lineHeight: 21 },
   revealText: { fontSize: 26, fontWeight: '800' },
   /**

@@ -36,9 +36,25 @@ export function humanDate(key: string, language: string): string {
   }
 }
 
+/**
+ * 🔴 ВЫХОД В WEB-DEMO — В ОБЁРТКЕ БЕЗ ХУКОВ, А НЕ ПЕРВОЙ СТРОКОЙ ЭКРАНА.
+ *
+ * Стоял первой строкой, ДО всех хуков: `if (isWebDemo()) return <Redirect/>`.
+ * Условный ранний выход перед хуками — это разное их число между рендерами и
+ * ошибка React #310. Замер 09.09.2026: `react-hooks/rules-of-hooks` насчитал
+ * 53 нарушения по проекту, из них AchievementsScreen держал свою долю; отчёт
+ * тестировщика 6ec1941e — экран «Что-то сломалось» на `/achievements`.
+ * Тот же приём применён в `pet.tsx`, `span.tsx` и `sudoku-hub.tsx` 05.09.2026.
+ *
+ * Обёртка хуков не вызывает вовсе, поэтому возвращать из неё по условию законно.
+ */
 export default function AchievementsScreen() {
   // Web-demo: экран недоступен — только демо-лендинг и игры. Гейт статичен (build-time флаг).
   if (isWebDemo()) return <Redirect href="/" />;
+  return <AchievementsScreenBody />;
+}
+
+function AchievementsScreenBody() {
   const { colors } = useTheme();
   const { language, t } = useLanguage() as any;
   const router = useRouter();

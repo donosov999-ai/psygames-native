@@ -5,7 +5,6 @@ import Svg,{Polygon,Defs,LinearGradient,Stop} from 'react-native-svg';
 import {shapeSurface} from '../games/mental-rotation/core/surface';
 import type {Axis,Shape} from '../games/mental-rotation/core/types';
 
-import {useReducedMotion} from '@/src/hooks/useReducedMotion';
 export function RotationShape({shape,size,axis='x',degrees=0}:{shape:Shape;size:number;axis?:Axis;degrees?:number}){
   const shine=`cube-shine-${useId().replace(/[^a-zA-Z0-9]/g,'')}`;
   return <Svg testID="rotation-shape" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -18,10 +17,14 @@ export function RotationShape({shape,size,axis='x',degrees=0}:{shape:Shape;size:
 }
 
 /** A genuine 3D interpolation, not a crossfade between unrelated stills. */
-export function RotationTransition({from,to,axis,size,reduceMotion:reduceMotionProp=false}:{from:Shape;to:Shape;axis:Axis;size:number;reduceMotion?:boolean}){
-  // Настройку «меньше движения» компонент читает САМ (гейт reduced-motion: кто запускает
-  // анимацию — тот и спрашивает); проп оставлен — экран может форсировать мгновенный показ.
-  const reduceMotion=useReducedMotion()||reduceMotionProp;
+/*
+ * 🔴 ВРАЩЕНИЕ ЗДЕСЬ НЕ СПРАШИВАЕТ СИСТЕМНУЮ НАСТРОЙКУ «МЕНЬШЕ ДВИЖЕНИЯ» (09.09.2026).
+ * 09.09 я подчинил её этому переключателю ради гейта reduced-motion — и на устройстве с
+ * включённой настройкой фигура перестала поворачиваться вовсе. Здесь поворот — это САМО
+ * УПРАЖНЕНИЕ и объяснение ошибки, а не украшение: без него экран показывает ту же картинку,
+ * из-за которой человек ошибся. Настройка гасит декор, а не содержание.
+ */
+export function RotationTransition({from,to,axis,size,reduceMotion=false}:{from:Shape;to:Shape;axis:Axis;size:number;reduceMotion?:boolean}){
   const [value]=useState(()=>new Animated.Value(0));
   const [degrees,setDegrees]=useState(0);
   useEffect(()=>{

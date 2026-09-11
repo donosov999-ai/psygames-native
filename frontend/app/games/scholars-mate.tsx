@@ -328,7 +328,39 @@ export default function ScholarsMateScreen() {
   if (phase === 'playing') {
     const сторона = Math.min(width - 32, 420);
     return (
-      <GameShell title={t('scholarsMate')} onBack={() => setPhase('config')} confirmExit={armed}>
+      <GameShell
+        title={t('scholarsMate')}
+        onBack={() => setPhase('config')}
+        confirmExit={armed}
+        /**
+         * 🔴 МЕНЮ ПАУЗЫ (выпуск 2.52.2). Стрелка больше не выкидывает из партии
+         * одним касанием: часы встают, дальше выбор.
+         *
+         * ⚠️ ЗДЕСЬ ДВА РАЗНЫХ УХОДА, И ПУТАТЬ ИХ НЕЛЬЗЯ. `leave` уводит тем же
+         * путём, что стрелка, а стрелка у этой игры ведёт НЕ домой, а в её
+         * собственное меню выбора узора («Назад»). Выход из приложения к списку
+         * игр — отдельным пунктом, иначе «На главную» врала бы дважды: и словом,
+         * и местом, куда приводит. Жалоба `dd2869c6` «Как выйти ???» ровно про это.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => start(поток, режим, узор, микс) },
+          /**
+           * 🔴 БЫЛО ДВЕ КНОПКИ УХОДА С РАЗНЫМИ ПОДПИСЯМИ, ДЕЛАЮЩИЕ ОДНО И ТО ЖЕ.
+           *
+           * Замер 10.09.2026 (пункт Б2 решения Дениса): пункт `menu` с подписью
+           * «Назад» уходил через `leave`, пункт `home` — своим `goBackOrHome()`.
+           * Разница между ними была бы только при `onSaveBeforeExit`, а этот экран
+           * его не объявляет вовсе (как и `resumable`) — то есть оба ухода
+           * равнозначны, и человек выбирал между двумя словами за одним исходом.
+           *
+           * Оставлен один, канонический: `leave` уводит тем же путём, что и все
+           * прочие игры, и продолжит работать, если экран когда-нибудь заведёт
+           * сохранение партии.
+           */
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
+      >
         <ScholarsMateGame
           key={attempt}
           level={level}

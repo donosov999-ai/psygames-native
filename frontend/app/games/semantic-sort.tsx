@@ -24,6 +24,8 @@ import GameShell from '@/src/components/GameShell';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
+import { BilingualToggle } from '@/src/components/BilingualToggle';
+import { LanguageBadge } from '@/src/components/LanguageBadge';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
@@ -32,6 +34,7 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
+import { паройЯзыков, вторымНеПервый, БИЛИНГВО, параЯзыков, рядЯзыковПары } from '@/src/services/bilingualMode';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#10b981', '#6366f1'];
@@ -70,7 +73,7 @@ export const SEMANTICSORT_RULES: LevelRule[] = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
-interface Round { word: string; correctCat: string; cats: string[] }
+interface Round { word: string; correctCat: string; cats: string[]; язык: string }
 
 export default function SemanticSortGame() {
   const { colors } = useTheme();
@@ -87,7 +90,13 @@ export default function SemanticSortGame() {
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [targetLang, setTargetLang] = useState<string>(() => str('targetLang', language === 'en' ? 'es' : 'en'));
   const [roundsCount, setRoundsCount] = useState(() => num('rounds', 15));
-  const [catsPerRound, setCatsPerRound] = useState(() => num('cats', 3));
+  /**
+   * ⚠️ НОЛЬ КАК ПРИЗНАК «НЕ ЗАДАНО». `num('cats', 3)` не различал «шаг попросил
+   * три категории» и «шаг не просил ничего», а различать надо: во втором случае
+   * сложность берётся с личного уровня (см. `startGame`).
+   */
+  const catsЗадано = num('cats', 0) > 0;
+  const [catsPerRound, setCatsPerRound] = useState(() => num('cats', 0) || 3);
 
   // Уровни (persist): ручные селекторы раундов/категорий заменены лесенкой 1..15.
   const lvl = usePersistentLevel('semantic_sort');
@@ -111,18 +120,46 @@ export default function SemanticSortGame() {
   const [elapsedTime, setElapsedTime] = useState(0);
 
   const tgt = targetLang === language ? (language === 'en' ? 'es' : 'en') : targetLang;
+  /** Режим билингво: два иностранных вперемешку в одной партии (см. bilingualMode). */
+  const [билингво, setБилингво] = useState<boolean>(() => str(БИЛИНГВО, '') === '1');
+  /**
+   * 🔴 ВТОРОЙ ЯЗЫК ПАРЫ — ВЫБОР ЧЕЛОВЕКА (отчёт `2aa5892c` на v2.53.0:
+   * «как выбрать второй язык-то»). Умолчание берётся от интерфейса, дальше его
+   * можно сменить в переключателе; параметр зарядки перекрывает и то и другое.
+   */
+  const [желаемыйВторой, setВторойЯзык] = useState<string>(() => str('lang2', '') || параЯзыков(language)[1]);
+  /** Пара не бывает из одного языка — разбор у `вторымНеПервый`. */
+  const второйЯзык = вторымНеПервый(language, tgt, желаемыйВторой);
 
   const startGame = async () => {
-    // Уровневый режим: число раундов и категорий-дистракторов из levelParams.
-    // Пресет зарядки — ручные rounds/cats из URL-параметров.
+    /**
+     * 🔴 СЛОЖНОСТЬ ИДЁТ С ЛИЧНОГО УРОВНЯ И В ЗАРЯДКЕ ТОЖЕ (09.09.2026).
+     *
+     * 📍 РЕШЕНИЕ ДЕНИСА: «зарядка и оценка идут с ЛИЧНОГО уровня» — играет один
+     * человек, и меряем прогресс человека. Коммит `8f0bfc47` снял подмену
+     * уровня картой тира в семи экранах; здесь была другая форма той же беды.
+     *
+     * ЧТО БЫЛО. `useLevel = !isPreset`, и в зарядке уровень не участвовал ВОВСЕ:
+     * число категорий-дистракторов бралось из умолчания `cats = 3` — одинаково
+     * человеку с первым уровнем (ему полагается 2) и с двенадцатым (полагается
+     * 4). А это не косметика: категории-дистракторы и есть ось сложности этой
+     * игры, вторая после числа кругов.
+     *
+     * ЧТО СТАЛО. Число кругов по-прежнему за зарядкой — она набирает шаги под
+     * бюджет и вправе задать длину. А СЛОЖНОСТЬ — с личного уровня, если шаг не
+     * попросил своё явно.
+     */
     const useLevel = !isPreset;
     useLevelRef.current = useLevel;
+    const p = levelParams(lvl.level);
+    levelRef.current = lvl.level;
     let rc = roundsCount, cpr = catsPerRound;
     if (useLevel) {
-      const p = levelParams(lvl.level);
-      levelRef.current = lvl.level;
       rc = p.roundsCount; cpr = p.catsPerRound;
       setRoundsCount(rc); setCatsPerRound(cpr);
+    } else if (!catsЗадано) {
+      cpr = p.catsPerRound;
+      setCatsPerRound(cpr);
     }
     // слова целевого языка, сгруппированные по категориям (+ обратный маппинг слово → категория)
     const byCat = new Map<string, string[]>();
@@ -153,7 +190,15 @@ export default function SemanticSortGame() {
      * Порядок обращён: сначала отбираем слова, потом у каждого берём его
      * категорию. Логика «коварных» дистракторов ниже не тронута.
      */
-    const wordsPool = TRANSLATION_VOCAB.filter((w) => w[tgt] && w.cat && cats.includes(w.cat));
+    /**
+     * 🔴 В БИЛИНГВО СЛОВО БЕРЁТСЯ ИЗ ЗАПИСИ, ЗАПОЛНЕННОЙ НА ОБОИХ ЯЗЫКАХ.
+     * Иначе на половине раундов пришлось бы подставлять пустую строку — запись
+     * есть, а перевода на нужный язык нет. Пул от этого короче, и это честная
+     * цена режима: показываем только то, что можем показать на любом из двух.
+     */
+    const языкиРаунда = билингво ? рядЯзыковПары(rc, tgt, второйЯзык) : [];
+    const wordsPool = TRANSLATION_VOCAB.filter((w) => w.cat && cats.includes(w.cat)
+      && (билингво ? [tgt, второйЯзык].every((l) => w[l]) : !!w[tgt]));
     const seenWords = await readSeen('semantic_sort_words', profile?.id);
     const freshRes = pickFreshFrom(wordsPool, rc, seenWords, (w) => String(w.en), Math.random);
     await writeSeen('semantic_sort_words', profile?.id, freshRes.seen);
@@ -163,7 +208,8 @@ export default function SemanticSortGame() {
       const entry = freshRes.picked[r];
       if (!entry) break;
       const correctCat = String(entry.cat);
-      const word = String(entry[tgt]);
+      const языкСлова = билингво ? (языкиРаунда[r] ?? tgt) : tgt;
+      const word = String(entry[языкСлова]);
       const others = cats.filter((c) => c !== correctCat);
       for (let i = others.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -183,7 +229,7 @@ export default function SemanticSortGame() {
         const j = Math.floor(Math.random() * (i + 1));
         [roundCats[i], roundCats[j]] = [roundCats[j], roundCats[i]];
       }
-      newRounds.push({ word, correctCat, cats: roundCats });
+      newRounds.push({ word, correctCat, cats: roundCats, язык: языкСлова });
     }
     roundsRef.current = newRounds;
     setRounds(newRounds);
@@ -285,19 +331,33 @@ export default function SemanticSortGame() {
           )}
         </View>
 
+        {/*
+          🔴 ПЕРЕКЛЮЧАТЕЛЬ СТОИТ ВЫШЕ ВЫБОРА ЯЗЫКА, А НЕ ПОД НИМ.
+        
+          📍 ЗАМЕР 10.09.2026 ПО КАДРУ, а не по DOM: список языков вырос до
+          одиннадцати и занял четыре ряда, утопив переключатель НИЖЕ СГИБА —
+          на первом экране его не видно вовсе. Денис: «я в твоих скринах не вижу
+          изменений», и он был прав: в дереве узлы были, на экране их не было.
+        
+          ⚠️ Порядок теперь читается сам: сперва «два языка сразу», под ним
+          выбор первого. Раньше человек доходил до конца списка и только там
+          узнавал, что выбор можно отменить режимом.
+        */}
+        <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
+            первый={tgt} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
         <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>
             {LANGUAGES.find((l) => l.code === language)?.name} →
           </Text>
           <View style={styles.optionButtons}>
-            /*
+            {/*
                 🔴 ПРЕДЛАГАЕМ ТОЛЬКО ТЕ ЯЗЫКИ, НА КОТОРЫХ ЕСТЬ СЛОВАРЬ.
                 Раньше выбор строился из всех двенадцати языков приложения, а
                 словарь покрывает семь: на французском игра запускалась и
                 оказывалась пустой — «выбери 1-е из 0», а в зарядке экран
                 оставался мёртвым навсегда, без шапки и без «назад».
                 Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
-              */
+              */}
               {LANGUAGES.filter((l) => l.code !== language && hasVocab(l.code)).map((l) => (
               <TouchableOpacity
                 accessibilityRole="button"
@@ -330,12 +390,35 @@ export default function SemanticSortGame() {
         title={t('semanticSort')}
         onBack={() => goBackOrHome()}
         scrollableField
-        stats={
-          <View style={styles.hudRow}>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('round')} {idx + 1}/{rounds.length}</Text>
-            <Text style={[styles.hudText, { color: colors.textSecondary }]}>{t('hud_correct')} {correctCount} · {t('hud_errors')} {errorsCount}</Text>
-          </View>
-        }
+        bottom="answer"
+        hud={[
+          /**
+           * 🔴 КАКОЙ СЕЙЧАС ЯЗЫК — ВИДНО В ШАПКЕ.
+           *
+           * 📍 ОТЧЁТ ТЕСТИРОВЩИКА `475ac1e4` на v2.53.0: «Поставил режим два
+           * языка сразу, что-то не видно ни фига». Справедливо: слова
+           * чередовались, но НИ ОДНОГО признака режима на экране не было —
+           * `casa`, потом `house`, и если языков не знаешь, отличить нельзя.
+           * В анаграммах метка появилась только потому, что Денис попросил её
+           * отдельно; в остальных четырёх её не было вовсе.
+           *
+           * 🔴 И В ЗАРЯДКЕ ТОЖЕ — ОТДЕЛЬНОЕ ЗАМЕЧАНИЕ ДЕНИСА 10.09.2026:
+           * «в режиме зарядки я там тоже не обнаружил мультиязычности». Причина
+           * та же: поток честно меняет язык от шага к шагу, но на экране этого
+           * нечем увидеть. Условие поэтому шире флага режима — метка нужна
+           * везде, где язык материала выбран НЕ человеком на этом экране.
+           *
+           * ⚠️ Код языка, а не название: «Английский» распирает пилюлю шапки.
+           */
+          ...((билингво || isPreset) && rounds[idx]?.язык
+            ? [{ key: 'bilang', icon: 'language' as const, label: t('bilingualMode'),
+                value: паройЯзыков(String(rounds[idx]?.язык), билингво ? [tgt, второйЯзык] : []),
+                tone: 'accent' as const }]
+            : []),
+          { key: 'round', icon: 'repeat', label: t('round'), value: `${idx + 1}/${rounds.length}` },
+          { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: correctCount, tone: 'good' as const },
+          { key: 'hud_errors', icon: 'close-circle', label: t('hud_errors'), value: errorsCount, tone: 'bad' as const },
+        ]}
         toolbar={
           <View style={styles.toolbarOptions}>
             {round.cats.map((cat) => {
@@ -367,6 +450,19 @@ export default function SemanticSortGame() {
         <View style={[styles.promptCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.promptWord, { color: colors.text }]}>{round.word}</Text>
         </View>
+        {/*
+          🔴 ЯЗЫК — СЛОВОМ И У САМОГО СТИМУЛА, А НЕ ТОЛЬКО ДВУМЯ БУКВАМИ В ШАПКЕ.
+          Правка Дениса 10.09.2026: «подписи должны быть — раз переход в
+          мультиязычности, какой язык пишется; обозначение мелкое». Переход
+          отмечается стрелкой и заливкой, повтор языка — спокойным серым.
+        */}
+        {(билингво || isPreset) && (
+          <LanguageBadge
+            язык={round.язык}
+            сменился={idx > 0 && rounds[idx - 1]?.язык !== undefined && rounds[idx - 1]?.язык !== round.язык}
+            accent={GRADIENT[0]}
+          />
+        )}
 
         <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('sortHint')}</Text>
       </GameShell>

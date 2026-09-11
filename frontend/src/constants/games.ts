@@ -363,7 +363,11 @@ export const GAMES: GameConfig[] = [
     id: 'scholars_mate',
     nameKey: 'scholarsMate',
     descKey: 'scholarsMateDesc',
-    skillKey: 'skillVisualMemory',
+    // 🔴 НЕ зрительная память. Заявка чата шахмат 10.09.2026: «Детский мат» — это
+    // расчёт вариантов и узнавание матовых узоров; доску видно всё время, помнить
+    // нечего. Под одним ключом с «Доской в уме» две разные способности мерились
+    // одной подписью.
+    skillKey: 'skillChessCalc',
     gradient: ['#8e5b2f', '#2f2a24'],
     icon: 'flash',
     route: '/games/scholars-mate',
@@ -375,7 +379,9 @@ export const GAMES: GameConfig[] = [
     nameKey: 'chessBlind',
     descKey: 'chessBlindDesc',
     skillKey: 'skillVisualMemory',
-    gradient: ['#334155', '#0f172a'],
+    // Градиент раздела, а не свой: заявка чата шахмат 10.09.2026 — карточка ехала
+    // тёмно-синей внутри коричневой развилки.
+    gradient: ['#8e5b2f', '#2f2a24'],
     icon: 'grid',
     route: '/games/chess-blind',
     category: 'memory',
@@ -1413,6 +1419,40 @@ export const GAMES: GameConfig[] = [
     route: '/games/sorting-hub',
     category: 'logic',
     hub: true,
+  },
+  {
+    /**
+     * Развилка «Головоломки» (10.09.2026, решение Дениса «берём все»). Семнадцать
+     * головоломок Саймона Тэтхэма на ОДНОМ экране: доски раздают его движки, правила
+     * знает его код, рисуем своим SVG. Разбор — `src/games/tatham-bridge/README.md`.
+     * ⚠️ Пока все в одной развилке НАРОЧНО: перенос карточки в тематическую — это
+     * переставить строку в `HUB_CONTENTS`, маршрут и прогресс при этом не трогаются.
+     */
+    id: 'puzzles_group',
+    nameKey: 'puzzlesGroup',
+    descKey: 'puzzlesGroupDesc',
+    skillKey: 'skillLogic',
+    gradient: ['#0f766e', '#f59e0b'],
+    icon: 'extension-puzzle',
+    route: '/games/puzzles-hub',
+    category: 'logic',
+    hub: true,
+  },
+  {
+    /**
+     * Экран всех сорока: режим приходит параметром `?mode=<движок>`. Карточки в
+     * каталоге у него нет — вход только через развилку, поэтому `hideFromMenu`.
+     */
+    id: 'puzzles',
+    nameKey: 'puzzlesUnruly',
+    descKey: 'puzzlesUnrulyRule',
+    skillKey: 'skillLogic',
+    gradient: ['#0f766e', '#f59e0b'],
+    icon: 'grid',
+    route: '/games/puzzles',
+    category: 'logic',
+    hideFromMenu: true,
+    mergedInto: 'puzzles_group',
   },
   {
     /** Развилка «Ментальная ротация» (09.09.2026): ротация фигур, поворот чисел, сеть труб. */

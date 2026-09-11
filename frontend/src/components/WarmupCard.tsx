@@ -30,6 +30,13 @@ export interface WarmupCardProps {
   accent: string;
   /** Уровни ещё читаются из хранилища — кнопка ждёт. */
   loading?: boolean;
+  /**
+   * Строка под подписью — то, что зависит от состояния и не может жить в
+   * словаре. У языковой зарядки это ПАРА ЯЗЫКОВ: она считается от интерфейса
+   * (`языкиДляИнтерфейса`), и написать её в переводе значило бы соврать на тех
+   * локалях, где пара другая.
+   */
+  подЗаголовком?: string;
 }
 
 /**
@@ -52,7 +59,7 @@ export function имяИгры(gameId: string, t: (k: string) => string): string
   return g ? (t(g.nameKey) || gameId) : gameId;
 }
 
-export function WarmupCard({ темы, titleKey, descKey, ярлык, accent, loading }: WarmupCardProps) {
+export function WarmupCard({ темы, titleKey, descKey, ярлык, accent, loading, подЗаголовком }: WarmupCardProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const { startPlaylist } = useWarmup();
@@ -78,27 +85,36 @@ export function WarmupCard({ темы, titleKey, descKey, ярлык, accent, lo
         <Text style={[стили.заголовок, { color: colors.text }]}>{t(titleKey)}</Text>
       </View>
       <Text style={[стили.подпись, { color: colors.textSecondary }]}>{t(descKey)}</Text>
+      {!!подЗаголовком && (
+        <Text style={[стили.подпись, { color: accent, fontWeight: '700' }]}>{подЗаголовком}</Text>
+      )}
 
       <View style={стили.кнопки}>
-        {ДЛИТЕЛЬНОСТИ.map((м) => (
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityState={{ selected: минут === м }}
-            accessibilityLabel={`${м} ${t('unitMin')}`}
-            key={м}
-            onPress={() => setМинут(м)}
-            style={[стили.минута, минут === м
-              ? { backgroundColor: accent }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-          >
-            <Text style={[стили.минутаТекст, { color: минут === м ? '#fff' : colors.text }]}>{м} {t('unitMin')}</Text>
-          </TouchableOpacity>
-        ))}
+        {ДЛИТЕЛЬНОСТИ.map((м) => {
+          const подходов = темаШаги(темы, м).length;
+          const выбрана = минут === м;
+          const счёт = t('warmupPlanCount').replace('{n}', String(подходов));
+          return (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ selected: выбрана }}
+              accessibilityLabel={`${счёт}, ≈ ${м} ${t('unitMin')}`}
+              key={м}
+              onPress={() => setМинут(м)}
+              style={[стили.минута, выбрана
+                ? { backgroundColor: accent }
+                : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+            >
+              <Text style={[стили.минутаТекст, { color: выбрана ? '#fff' : colors.text }]}>{счёт}</Text>
+              <Text style={[стили.минутаМелко, { color: выбрана ? '#fff' : colors.textSecondary }]}>≈ {м} {t('unitMin')}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
-      <Text style={[стили.мелко, { color: colors.textSecondary }]}>
-        {t('warmupPlanCount').replace('{n}', String(шаги.length))}{состав.length ? ` · ${состав.join(' · ')}` : ''}
-      </Text>
+      {состав.length > 0 && (
+        <Text style={[стили.мелко, { color: colors.textSecondary }]}>{состав.join(' · ')}</Text>
+      )}
 
       <TouchableOpacity
         accessibilityRole="button"
@@ -121,9 +137,16 @@ const стили = StyleSheet.create({
   заголовок: { fontSize: 17, fontWeight: '700' },
   подпись: { fontSize: 13, lineHeight: 18 },
   кнопки: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  // 44 — норма цели нажатия: выбор длительности жмут пальцем.
-  минута: { minHeight: 44, minWidth: 72, paddingHorizontal: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  минутаТекст: { fontSize: 15, fontWeight: '700' },
+  /**
+   * Две кнопки в ряд — решение Дениса 09.09.2026. Четыре варианта (5/10/15/20)
+   * с подписью «Подходов: N» в одну строку не помещаются на 360 px.
+   * `flexBasis` вместо ширины: тянется под любой экран, `flexWrap` у ряда
+   * переносит на вторую строку сам.
+   * 44 — норма цели нажатия: выбор длительности жмут пальцем.
+   */
+  минута: { flexBasis: '47%', flexGrow: 1, minHeight: 52, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  минутаТекст: { fontSize: 14, fontWeight: '700' },
+  минутаМелко: { fontSize: 11, marginTop: 1 },
   мелко: { fontSize: 12 },
   старт: { minHeight: 48, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   стартТекст: { color: '#fff', fontSize: 16, fontWeight: '700' },

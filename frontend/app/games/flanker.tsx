@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_H, stimBox } from '@/src/games/attention/layout';
+import { stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -118,6 +118,28 @@ export function levelParams(level: number): { trials: number; windowMs: number; 
     Math.round(FLANKER_GAP_MAX - (L - 1) * (FLANKER_GAP_MAX - FLANKER_GAP_MIN) / 14),
   );
   return { trials, windowMs, pCong: FLANKER_P_CONG, pIncong: FLANKER_P_INCONG, gapPx };
+}
+
+/**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТ ПОКАЗАТЕЛЬ, — РЯДОМ С САМИМ ПОКАЗАТЕЛЕМ.
+ *
+ * 🔴 Заведено 09.09.2026, после того как решение Дениса («меряем прогресс
+ * человека») увело зарядку и оценку на ЛИЧНЫЙ уровень (коммит 8f0bfc47 снял
+ * фикс-ступень тира). Показатель этой пробы сверяется с ЖЁСТКОЙ нормой батареи,
+ * а условие теперь едет вместе с уровнем игрока — значит два одинаковых на вид
+ * числа могут быть сняты в разных задачах.
+ *
+ * Восстановить условие «через levelParams(level)» технически можно, но это
+ * привязывает разбор старых партий к сегодняшнему коду: поменяется формула — и
+ * накопленное молча станет нечитаемым.
+ *
+ * Стережёт `src/__tests__/attention-condition-recorded.test.ts`: он сам
+ * прогоняет levelParams по уровням и требует, чтобы КАЖДОЕ меняющееся поле сюда
+ * попало. Руками список не пишется — разойдётся.
+ */
+export function levelCondition(level: number): { windowMs: number; gapPx: number } {
+  const { windowMs, gapPx } = levelParams(level);
+  return { windowMs, gapPx };
 }
 
 function makeTrial(pCong: number, pIncong: number): Trial {
@@ -275,6 +297,8 @@ export default function FlankerGame() {
           p_congruent: pCongRef.current,
           p_incongruent: pIncongRef.current,
           flanker_gap_px: gapRef.current,
+          // Условие уровня — рядом с показателем (см. шапку levelCondition).
+          ...levelCondition(levelRef.current),
         },
       });
     } catch (err) { console.error(err); }
@@ -482,6 +506,6 @@ const styles = StyleSheet.create({
   // RTL-пин (writingDirection → CSS direction на web, на нативе no-op): направленный
   // стимул и раскладка кнопок лево/право не зеркалятся в ar
   arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 4, writingDirection: 'ltr' },
-  toolbarLtr: { height: ANSWER_BAR_H, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap', writingDirection: 'ltr', maxWidth: '100%' },
+  toolbarLtr: { ...ANSWER_BAR_ROW, gap: 10, writingDirection: 'ltr', maxWidth: '100%' },
   choiceBtn: { width: 88, height: 88, borderRadius: 44, justifyContent: 'center', alignItems: 'center' },
 });
