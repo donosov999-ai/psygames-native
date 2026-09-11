@@ -798,12 +798,40 @@ export default function AnagramGame() {
     }
   };
 
+  /**
+   * 🔴 ССЫЛКА НА СКРОЛЛЕР И ЯКОРЬ НАСТРОЕК — ОТЧЁТ `42863de7` (10.09.2026).
+   *
+   * Тестировщик: «А почему нельзя выбрать чтобы любая тема была или случайно».
+   * Выбрать МОЖНО, и «🎲 Все» стоит первой и по умолчанию — просто её не видно.
+   *
+   * 📍 ЗАМЕР 11.09.2026 (собранный веб, 403×873 — ширина из отчёта): экран
+   * настроек 1673 px при окне 720, ниже сгиба СКРЫТО 953 px (57 %). Карточка
+   * «Тема» начинается на 1274 — прокрутить надо 594 px, почти целый экран.
+   * По разделу это выброс: словарь SRS прячет 656, пропущенное слово 336,
+   * сортировка 296, слово-или-нет 234, слуховой охват 90, пары слов 61.
+   *
+   * ⚠️ И ПРИЧИНА ОТЧАСТИ В ПРЕДЫДУЩЕЙ ПОЧИНКЕ. 02.09.2026 по отчёту «не мотать
+   * экран вниз, чтобы запустить» кнопку «Начать» прибили книзу (см. комментарий
+   * у `GameSetupBar`). Запуск стал доступен сразу — и вместе с этим исчезла
+   * единственная причина прокручивать вообще. Настройки погасли не потому, что
+   * их убрали, а потому, что до них перестали доходить.
+   *
+   * Полосу прокрутки не включаю: её прячут 62 экрана приложения из 77, это
+   * принятый вид, и менять его в одной игре значит расходиться с остальными.
+   */
+  const прокрутка = useRef<ScrollView>(null);
+  const yНастроек = useRef(0);
+
   const renderConfig = () => {
     const p = levelParams(lvl.level);
+    const подписьРежима = режимИгры === 'square' ? t('anagramSquare')
+      : режимИгры === 'all' ? t('anagramAllWords')
+        : режимИгры === 'cross' ? t('anagramCrossword') : t('classicLabel');
+    const тема = ANAGRAM_THEMES.find((x) => x.k === theme) ?? ANAGRAM_THEMES[0]!;
     return (
       <View style={{ flex: 1 }}>
       <>
-      <ScrollView style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={прокрутка} style={styles.configScroll} contentContainerStyle={styles.configContainer} showsVerticalScrollIndicator={false}>
         <LinearGradient colors={GRADIENT as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.configCard}>
           <Ionicons name="language" size={48} color={ON_GRAD.color} />
           <Text style={styles.configTitle}>{t('anagrams')}</Text>
@@ -838,6 +866,25 @@ export default function AnagramGame() {
               <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
             </TouchableOpacity>
           )}
+          {/*
+            🔴 ЧТО СЕЙЧАС ВЫБРАНО — ВИДНО БЕЗ ПРОКРУТКИ. Отчёт `42863de7`.
+            Строка собрана ИЗ ТЕХ ЖЕ значений, что рисуют карточки ниже, а не из
+            своих копий: разъехаться нечему. Новых ключей перевода не заводит —
+            всё уже переведено на 12 языков для самих карточек.
+            Тап уводит к настройкам: сказать «они есть» и не показать где —
+            половина ответа.
+          */}
+          <TouchableOpacity
+            testID="anagrams-setup-summary"
+            accessibilityRole="button"
+            onPress={() => прокрутка.current?.scrollTo({ y: Math.max(0, yНастроек.current - 12), animated: true })}
+            style={{ marginTop: 8, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10,
+              borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card }}>
+            <Text style={{ color: colors.text, fontSize: 12, textAlign: 'center' }}>
+              {подписьРежима} · {WORD_LANG_LABEL[wordLang.lang]} · {тема.emoji} {t('anagramTheme_' + тема.k)}
+              {' · '}{t('btn_hint')} {hintsOn ? t('label_on') : t('label_off')}{'  ⌄'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/*
@@ -855,7 +902,9 @@ export default function AnagramGame() {
           <BilingualToggle включён={билингво} переключить={() => setБилингво((v) => !v)} accent={GRADIENT[0]}
             первый={wordLang.lang} второй={второйЯзык} выбратьВторой={setВторойЯзык} />
         )}
-        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <View
+          style={[styles.optionCard, { backgroundColor: colors.surface }]}
+          onLayout={(ev) => { yНастроек.current = ev.nativeEvent.layout.y; }}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('mode')}</Text>
           <View style={styles.optionButtons}>
             {(['classic', 'square', 'all', 'cross'] as const).map((р) => (
