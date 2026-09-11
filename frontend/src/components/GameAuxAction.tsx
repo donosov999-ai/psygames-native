@@ -30,7 +30,24 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useLadderLock } from '@/src/contexts/PlayerLevelContext';
 
 export interface GameAuxActionProps {
-  /** Иконка без подписи. Подпись остаётся в accessibilityLabel кнопки. */
+  /**
+   * Значок без СЛОВА. Подпись остаётся в `accessibilityLabel` кнопки.
+   *
+   * 📍 ЗАЧЕМ ОН НУЖЕН ИМЕННО СЕЙЧАС. `GameShell.auxInHud` кладёт служебное в
+   * полосу счётчиков, и в его же шапке записано ограничение: «если действий
+   * больше одного — включать НЕЛЬЗЯ, кнопка уедет на вторую строку». Замер
+   * 11.09.2026 показал, что ограничение уже нарушено — у «Анаграмм» режим «Все
+   * слова» несёт ДВЕ кнопки, и на 360 px «Перемешать» уходила за правый край
+   * экрана на 27 точек (390 px: правый край кнопки 387 при границе поля 380).
+   * Пилюли со словами 131 и 146 не влезают в свободные 254; два значка по 48 —
+   * влезают с запасом. Компактный вид и есть то, что снимает ограничение.
+   *
+   * ⚠️ ОСТАТОК РЕСУРСА (`count`) ПРИ ЭТОМ НЕ ПРОПАДАЕТ — и это не уступка.
+   * У самого `count` ниже записано, зачем он: «ресурс, о котором узнаёшь только
+   * когда он кончился, читается как поломка, а не как правило». Компактный вид
+   * убирает слово, потому что слово узнаётся один раз; число меняется по ходу
+   * партии, и прятать надо было именно неизменное.
+   */
   compact?: boolean;
   /** Иконка Ionicons. Без неё кнопка остаётся текстовой — так у «СТОП». */
   icon?: React.ComponentProps<typeof Ionicons>['name'];
@@ -109,11 +126,14 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
 {/* Компактный вид: остаётся иконка, подпись уходит — но НЕ из дерева
           доступности, `accessibilityLabel` кнопки её сохраняет. Нужен там, где
           служебные кнопки стоят в фиксированной по высоте полосе плейлиста. */}
-      {(!compact || !icon) && (
-            <Text style={[styles.label, { color: fg }]} numberOfLines={1}>
-        {заперт || count === undefined ? label : `${label} · ${count}`}
-      </Text>
-      )}
+      {!compact || !icon ? (
+        <Text style={[styles.label, { color: fg }]} numberOfLines={1}>
+          {заперт || count === undefined ? label : `${label} · ${count}`}
+        </Text>
+      ) : (!заперт && count !== undefined ? (
+        /* Компактный вид: слово ушло, ЧИСЛО осталось — см. разбор у `compact`. */
+        <Text style={[styles.label, { color: fg }]} numberOfLines={1}>{count}</Text>
+      ) : null)}
       {/* Ответ на нажатие по замку: чем именно он откроется. */}
       {сказали && порог !== null ? (
         <View style={[styles.tip, { backgroundColor: colors.text }]}>

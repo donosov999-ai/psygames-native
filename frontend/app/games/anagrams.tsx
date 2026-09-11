@@ -392,6 +392,7 @@ export default function AnagramGame() {
       <GameAuxBar>
         {управление.подсказка ? (
           <GameAuxAction
+            compact
             icon="bulb" tint="#d97706" ladder="hint" label={t('btn_hint')}
             count={управление.подсказокОсталось}
             disabled={!управление.подсказкаДоступна}
@@ -400,6 +401,7 @@ export default function AnagramGame() {
         ) : null}
         {управление.перемешать ? (
           <GameAuxAction
+            compact
             icon="shuffle" tint={GRADIENT[0]} label={t('shuffleBtn')}
             onPress={управление.перемешать}
           />
@@ -1202,6 +1204,7 @@ export default function AnagramGame() {
           hintsOn ? (
             <GameAuxBar>
               <GameAuxAction
+                compact
                 icon="bulb" tint="#d97706"
                 ladder="hint" label={t('btn_hint')} count={hintUses > 0 ? hintUses : undefined}
                 onPress={revealHint}

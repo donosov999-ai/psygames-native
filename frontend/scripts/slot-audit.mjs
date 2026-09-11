@@ -195,12 +195,19 @@ const READ_SLOTS = () => {
   const box = (el) => { const r = el.getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom) }; };
   const label = (el) => (el.getAttribute('aria-label') || el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 40);
   const size = (el) => { const r = el.getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height) }; };
+  /*
+   * Горизонталь нужна отдельно: вертикаль ловит «кнопка вылезла из полосы», а
+   * уход ЗА ПРАВЫЙ КРАЙ ЭКРАНА не виден ни по высоте, ни по размеру — кнопка
+   * остаётся 48×48 и «нарисованной», просто её половины нет на экране.
+   */
+  const span = (el) => { const r = el.getBoundingClientRect(); return { left: Math.round(r.left), right: Math.round(r.right) }; };
   const toolbar = document.querySelector('[data-testid="game-toolbar"]');
   const header = document.querySelector('[data-testid="game-header-actions"]');
   const aux = [...document.querySelectorAll('[data-testid="game-aux"]')].map((el) => ({
     label: label(el),
     ...size(el),
     ...box(el),
+    ...span(el),
     inToolbar: !!(toolbar && toolbar.contains(el)),
     inHeader: !!(header && header.contains(el)),
     visible: getComputedStyle(el).visibility !== 'hidden' && getComputedStyle(el).display !== 'none'
@@ -213,7 +220,23 @@ const READ_SLOTS = () => {
         .filter((el) => !el.parentElement?.closest('[role="button"], button'))
         .map((el) => ({ label: label(el), ...size(el) }))
     : [];
+  /*
+   * Граница, внутри которой кнопке положено находиться, — это поле СОДЕРЖИМОГО
+   * полосы счётчиков, а не край окна. Разница решает: на 390 «Перемешать»
+   * кончалась на 387 — в окно влезает, в свою коробку уже нет, и на 360 та же
+   * кнопка уходила за экран на 27 точек. Отступ читаем у самой полосы, а не
+   * зашиваем числом: `PAD_H` каркаса может измениться.
+   */
+  const hud = document.querySelector('[data-testid="game-hud"]');
+  let поле = null;
+  if (hud) {
+    const r = hud.getBoundingClientRect();
+    const cs = getComputedStyle(hud);
+    поле = { left: Math.round(r.left + parseFloat(cs.paddingLeft || '0')), right: Math.round(r.right - parseFloat(cs.paddingRight || '0')) };
+  }
   return {
+    ширинаОкна: window.innerWidth,
+    полеПолосы: поле,
     hasToolbar: !!toolbar,
     toolbarBox: toolbar ? box(toolbar) : null,
     headerBox: header ? box(header) : null,
@@ -438,6 +461,37 @@ async function main() {
   if (small.length) {
     console.log(`\n🔴 СЛУЖЕБНАЯ КНОПКА МЕЛЬЧЕ 48×48:`);
     small.forEach((s) => console.log(`    ${s}`));
+    bad = 1;
+  }
+
+  /*
+   * 4) ЗА КРАЕМ ЭКРАНА.
+   *
+   * 📍 ЗАМЕР 11.09.2026, откуда взялась проверка. `GameShell.auxInHud` кладёт
+   * служебное в полосу счётчиков и в своей же шапке предупреждает: «если
+   * действий больше одного — включать НЕЛЬЗЯ». У «Анаграмм» режим «Все слова»
+   * несёт ДВЕ подписанные кнопки (131 и 146 точек), и на 360 px «Перемешать»
+   * уходила за правый край на 27 точек; на 390 её правый край стоял на 387 при
+   * границе поля 380. Ни один из трёх проходов выше этого не видел: кнопка
+   * 48×48, «нарисована», зона верная — просто половины её нет на экране.
+   *
+   * ⚠️ Именно поэтому обход ходит по РЕЖИМАМ: правило включали, померив ОДИН
+   * режим из четырёх, и три остальных остались непроверенными.
+   */
+  const offscreen = [];
+  for (const r of entered) {
+    const W = r.ширинаОкна ?? 390;
+    const поле = r.полеПолосы ?? { left: 0, right: W };
+    const где = `${r.route}${r.mode ? ' · ' + r.mode.replace('game-mode-', '') : ''}`;
+    for (const a of r.aux) {
+      if (!a.visible) continue;
+      if (a.right > поле.right + 1) offscreen.push(`${где}: «${a.label}» правый край ${a.right} при границе полосы ${поле.right} (окно ${W})`);
+      else if (a.left < поле.left - 1) offscreen.push(`${где}: «${a.label}» левый край ${a.left} при границе полосы ${поле.left}`);
+    }
+  }
+  if (offscreen.length) {
+    console.log(`\n🔴 СЛУЖЕБНАЯ КНОПКА ЗА КРАЕМ ЭКРАНА:`);
+    offscreen.forEach((o) => console.log(`    ${o}`));
     bad = 1;
   }
 
