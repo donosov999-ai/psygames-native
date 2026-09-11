@@ -67,7 +67,27 @@ for (const g of экраны) {
       await page.waitForTimeout(1400);
     }
     await page.waitForTimeout(900);
-    const м = await page.evaluate(() => {
+    const м = await page.evaluate((имя) => {
+      /*
+       * 🔴 СНАЧАЛА — «Я ВСЁ ЕЩЁ НА ТОМ ЭКРАНЕ?», И ТОЛЬКО ПОТОМ ЗАМЕР.
+       *
+       * Цикл входа в партию жмёт всё, что похоже на «начать», в том числе
+       * «Уровень 1 →». На развилках (`*-hub`) такая кнопка — это ЗАРЯДКА, и
+       * нажатие уводит на другой экран. Прибор этого не замечал и записывал
+       * чужие числа под именем развилки.
+       *
+       * 📍 ЗАМЕР 11.09.2026: четыре развилки из шестнадцати отдали число вместо
+       * пустоты — chess-hub 119, languages-hub 119, routes-hub 119 и words-hub
+       * 173. Проверка `/games/words-hub` без единого нажатия: поля нет вовсе
+       * (`game-field` отсутствует), а после нажатий адрес уже `/games/anagrams`,
+       * заголовок «Анаграммы» и верх поля 173 — ровно строка анаграмм.
+       *
+       * ⚠️ ЦЕНА ОШИБКИ НЕ КОСМЕТИЧЕСКАЯ. Три фантома ложились в «на каноне» и
+       * завышали счёт, а четвёртый попал в задачу 013d9af5 отдельной строкой с
+       * указанием «объявить bottom="actions"» — а объявлять там нечего:
+       * развилка собрана из `HubScreen`, каркаса игры на ней нет.
+       */
+      if (!location.pathname.endsWith(`/games/${имя}`)) return { ушли: location.pathname };
       const полоса = document.querySelector('[data-testid="game-hud"]');
       const поле = document.querySelector('[data-testid="game-field"]');
       if (!полоса || !поле) return null;
@@ -75,8 +95,9 @@ for (const g of экраны) {
         полоса: Math.round(полоса.getBoundingClientRect().height),
         полеВерх: Math.round(поле.getBoundingClientRect().top),
       };
-    });
-    итог.push(м ? { экран: g, ...м } : { экран: g, полоса: null, полеВерх: null });
+    }, g);
+    if (м && м.ушли) итог.push({ экран: g, полоса: null, полеВерх: null, ушли: м.ушли });
+    else итог.push(м ? { экран: g, ...м } : { экран: g, полоса: null, полеВерх: null });
   } catch (e) { итог.push({ экран: g, ошибка: String(e.message).slice(0, 60) }); }
 }
 await br.close();
@@ -90,6 +111,11 @@ for (const x of откл) {
   const изПолосы = x.полоса - 61;
   const прочее = x.полеВерх - КАНОН - изПолосы;
   console.log(`${x.экран.padEnd(18)} ${String(x.полеВерх).padStart(4)} ${String(x.полоса).padStart(5)}   полоса +${изПолосы}${прочее ? `, ряд над полем +${прочее}` : ''}`);
+}
+const ушедшие = итог.filter((x) => x.ушли);
+if (ушедшие.length) {
+  console.log(`\nне мерены — нажатие увело с экрана (${ушедшие.length}):`);
+  for (const x of ушедшие) console.log(`  ${x.экран.padEnd(18)} → ${x.ушли}`);
 }
 const в = изм.map((x) => x.полеВерх);
 console.log(`размах верха поля: ${Math.min(...в)} … ${Math.max(...в)}`);

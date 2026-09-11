@@ -1464,6 +1464,7 @@ export default function ProofreadingGame() {
          шапке, а не в нижней полосе: правило слотов каркаса, см. GameShell.
          🔴 Раньше здесь стояло `fwPlaying ? … : undefined`, то есть в САМОЙ
          корректуре кнопки не было вовсе — отчёты 19eaaa3a и 26af9227. */
+      auxInHud
       headerActions={
         <GameAuxBar>
           <GameAuxAction
@@ -1730,6 +1731,7 @@ export default function ProofreadingGame() {
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
         }
+        auxInHud
         headerActions={isSign ? undefined : (
           /* Подсказка — служебное действие, поэтому в шапке (правило слотов GameShell).
              В блоке «Знак» её нет: там искать нечего, знаки названы прямо в шапке. */

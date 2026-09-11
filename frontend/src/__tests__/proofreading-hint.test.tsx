@@ -84,21 +84,6 @@ async function поднять() {
 const кнопки = (r: any) => r.root.findAll((n: any) => n.props
   && n.props.accessibilityRole === 'button' && typeof n.props.onPress === 'function', { deep: true });
 
-/** Подпись без служебных глифов шрифта значков (они попадают в текст узла). */
-const подпись = (b: any): string => {
-  const из: string[] = [];
-  const идти = (x: any) => {
-    if (typeof x === 'string') из.push(x);
-    else if (Array.isArray(x)) x.forEach(идти);
-    else if (x && x.props) идти(x.props.children);
-  };
-  идти(b.props.children);
-  return [...из.join('')].filter((c) => {
-    const k = c.charCodeAt(0);
-    return !(k >= 0xE000 && k <= 0xF8FF);
-  }).join('').trim();
-};
-
 /** Сколько клеток поля сейчас подсвечено как подсказка. */
 function подсвечено(r: any): number {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- StyleSheet после моков
