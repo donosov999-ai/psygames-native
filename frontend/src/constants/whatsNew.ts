@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.53.7',
+    date: '2026-09-11',
+    ru: [
+      'Доска головоломок больше не прыгает: у всех сорока она теперь в одном и том же квадрате и одного размера',
+      '«Угадай код» стало чем играть: шесть клавиш цветов и кнопка «Готово» — раньше на экране не было ни одного органа управления',
+      'Четырём играм сказано прямо под доской, что там тянут пальцем, а не касаются — раньше нажатие просто ничего не делало',
+    ],
+    en: [
+      'The puzzle board no longer jumps around: all forty now sit in the same square and at the same size',
+      'Guess is playable at last: six colour keys and a Done button — the screen had no controls at all before',
+      'Four games now say right under the board that you drag there instead of tapping — a tap simply did nothing',
+    ],
+  },
+  {
     version: '2.53.6',
     date: '2026-09-11',
     ru: [
