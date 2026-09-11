@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.53.6',
+    date: '2026-09-11',
+    ru: [
+      'В «Мостах» вернулись числа на островах — без них играть было не во что: наша отрисовка закрашивала их при перерисовке',
+      'Второе действие появилось ещё у тринадцати головоломок. У «Сапёра» это пометить мину, у японского кроссворда — крестик «здесь пусто»: без них они просто не решаются',
+      'В ряду цифр появилась клавиша «стереть» — раньше ошибочную цифру снимали только через меню паузы',
+      'Кот больше не жуёт, когда его гладят: у мытья, поглаживания и кормления теперь свои кадры',
+      'Подорвался в «Сапёре» — прямо над доской появляются «Отменить» и «Заново». Раньше оттуда можно было выйти только через паузу',
+    ],
+    en: [
+      'Bridges got its island numbers back — the game was unplayable without them: our drawing painted over them on redraw',
+      'Thirteen more puzzles gained a second action. In Minesweeper it flags a mine, in the nonogram it marks an empty cell — without it they simply cannot be solved',
+      'The digit row now has an erase key — a wrong digit used to be removable only from the pause menu',
+      'The cat no longer chews when you stroke it: washing, stroking and feeding now have their own frames',
+      'Blow up in Minesweeper and Undo and Restart appear right above the board. Before that the only way out was the pause menu',
+    ],
+  },
+  {
     version: '2.53.5',
     date: '2026-09-11',
     ru: [
