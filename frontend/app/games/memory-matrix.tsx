@@ -144,6 +144,45 @@ export function cellsNeeded(level: number, round: number, mode: 'static' | 'sequ
   return { need, decoys, free: total - (two ? need * 2 : need) };
 }   // с этого уровня скорость на дне и появляются клоны — дальше держит задержка
 
+/**
+ * 🔴 ПАУЗА НА ЧТЕНИЕ ЗАДАНИЯ — ОТЧЁТ ВАЛИ 08.09.2026 (app_feedback 7be44621):
+ * «Задание не крупно и не видно сразу, пока читаешь его клетки закрываются».
+ *
+ * ЗАМЕР 11.09.2026, почему она права и почему виноват я. Подпись фазы и время показа
+ * росли навстречу друг другу:
+ *   L8  показ 940 мс · подпись 17 симв — уже впритык
+ *   L15 показ 500 мс (пол) · подпись 17 симв — не успеть
+ *   L16 показ 500 мс · подпись 40 симв — нужно вчетверо больше времени, чем есть
+ * На L16 включаются ложные вспышки, и МОЙ же коммит c6027391 дописывает к подписи
+ * «· Перечёркнутые — мимо». То есть самая длинная подпись появляется ровно там, где
+ * показ уже упёрся в пол.
+ *
+ * 🔴 ПОЧЕМУ НЕЛЬЗЯ ПРОСТО УБРАТЬ ПОДПИСЬ. Ложные того же красного, что вторая серия
+ * (своего цвета у них нет, пока `FlashCell` общий на пять игр — ТЗ §1). Без пояснения
+ * «Запомни КРАСНЫЕ» рядом с перечёркнутыми красными — ребус. Это разбор 07.09, он верен.
+ *
+ * 🔴 ПОЧЕМУ НЕЛЬЗЯ ПРОСТО ЗАМЕДЛИТЬ ПОКАЗ. `flashMs` — ось сложности лестницы.
+ * Отчёт про ЧИТАЕМОСТЬ, а не про сложность; трогать нагрузку в ответ на него нельзя.
+ *
+ * ЧТО СДЕЛАНО: задание показывается ДО первой вспышки, отдельной паузой, и только
+ * когда оно НОВОЕ — первый раунд уровня. Дальше раунды идут как раньше, без задержки.
+ * Нагрузка лестницы не тронута: пауза стоит ПЕРЕД показом, а не внутри него.
+ */
+export const ЧИТАТЬ_ЗАДАНИЕ_МС = 1800;
+
+/**
+ * СКОЛЬКО ДАТЬ НА ЧТЕНИЕ ЗАДАНИЯ ПЕРЕД ПЕРВОЙ ВСПЫШКОЙ. Разбор — у `ЧИТАТЬ_ЗАДАНИЕ_МС`
+ * в теле экрана. Коротко: задание читается ДО показа и только когда оно новое.
+ * Чистая функция, чтобы проба мерила решение, а не таймеры компонента.
+ *
+ * @param уровеньСейчас   уровень начинающегося раунда
+ * @param уровеньПрочитан на каком уровне задание уже показывали (−1 — ещё ни на каком)
+ * @param пауза           сколько давать на чтение
+ */
+export function паузаНаЧтение(уровеньСейчас: number, уровеньПрочитан: number, пауза: number): number {
+  return уровеньПрочитан === уровеньСейчас ? 0 : пауза;
+}
+
 export function levelParams(level: number): { gridSize: number; baseFlashes: number; flashMs: number; seriesCount: number; holdMs: number; decoys: number } {
   const gridSize = Math.min(6, 2 + level);              // L1=3 → L4=6
   const baseFlashes = 3 + Math.floor(level / 1.5);       // клеток запомнить: L1=3 → L15≈13
@@ -220,6 +259,8 @@ export default function MemoryMatrixGame() {
    */
   const [decoyCells, setDecoyCells] = useState<Set<number>>(new Set());
   const decoysRef = useRef(0);
+
+  const заданиеПрочитаноНаУровне = useRef(-1);
   const [inputSeries, setInputSeries] = useState(0);                 // какую серию воспроизводим (0=первая, 1=вторая)
   const [showingSeries, setShowingSeries] = useState(0);             // показываемая серия в фазе showing (1/2; 0=нет)
   const seriesCountRef = useRef(1);
@@ -310,26 +351,34 @@ export default function MemoryMatrixGame() {
     swipedCellsRef.current = new Set();   // палец могли не отрывать через feedback → новый раунд = чистый жест
     setPhase('showing');
 
+    /*
+     * Пауза на чтение задания — только когда оно НОВОЕ (первый раунд уровня).
+     * `showingSeries === 0` в фазе `showing` — это «подпись есть, клетки ещё не горят»:
+     * состояние уже существует, отдельного вводить не пришлось.
+     */
+    const пауза = паузаНаЧтение(levelRef.current, заданиеПрочитаноНаУровне.current, ЧИТАТЬ_ЗАДАНИЕ_МС);
+    заданиеПрочитаноНаУровне.current = levelRef.current;
+    setShowingSeries(0);
+
     if (matrixMode === 'static') {
       if (two) {
         // показать серию1 (цвет1) → серию2 (цвет2) → ввод
-        setShowingSeries(1);
-        setTimeout(() => setShowingSeries(2), flashMsRef.current);
-        setTimeout(() => { setShowingSeries(0); openInput(); }, flashMsRef.current * 2);
+        setTimeout(() => setShowingSeries(1), пауза);
+        setTimeout(() => setShowingSeries(2), пауза + flashMsRef.current);
+        setTimeout(() => { setShowingSeries(0); openInput(); }, пауза + flashMsRef.current * 2);
       } else {
-        setShowingSeries(1);
-        setTimeout(() => { setShowingSeries(0); openInput(); }, Math.max(500, flashMsRef.current - r * 60));
+        setTimeout(() => setShowingSeries(1), пауза);
+        setTimeout(() => { setShowingSeries(0); openInput(); }, пауза + Math.max(500, flashMsRef.current - r * 60));
       }
     } else {
       // Sequential: flash cells one by one, then await ordered reproduction (1 серия)
-      setShowingSeries(0);
       const flashMs = Math.max(400, 700 - r * 30);
       const gapMs = 200;
       seq.forEach((cellIdx, i) => {
-        setTimeout(() => setActiveIdx(cellIdx), i * (flashMs + gapMs));
-        setTimeout(() => setActiveIdx(-1), i * (flashMs + gapMs) + flashMs);
+        setTimeout(() => setActiveIdx(cellIdx), пауза + i * (flashMs + gapMs));
+        setTimeout(() => setActiveIdx(-1), пауза + i * (flashMs + gapMs) + flashMs);
       });
-      setTimeout(() => openInput(), seq.length * (flashMs + gapMs) + 300);
+      setTimeout(() => openInput(), пауза + seq.length * (flashMs + gapMs) + 300);
     }
   };
 
