@@ -377,6 +377,36 @@ export interface GameShellProps {
   pet?: PetMood;
   headerActions?: React.ReactNode;
   /**
+   * 🔴 ЕДИНСТВЕННОЕ СЛУЖЕБНОЕ ДЕЙСТВИЕ — В ПОЛОСУ СЧЁТЧИКОВ, А НЕ ТРЕТЬИМ РЯДОМ.
+   *
+   * 📍 ПОВОД — SPEC_SCREEN_GEOMETRY.md (11.09.2026): канон `ВЕРХ_ПОЛЯ = 119`
+   * (ШАПКА 58 + ПОЛОСА 61), и 22 экрана из 85 от него отходят. Одиннадцать — из-за
+   * служебного ряда над полем. Для тех, у кого низ СВОБОДЕН, лечение известно:
+   * `bottom="actions"`, ряд уезжает вниз. А для тех, у кого низ УЖЕ ПОД ОТВЕТОМ,
+   * лечения не было: ряд остаётся третьей полосой и добавляет 54 px.
+   *
+   * 📍 ЗАМЕР 11.09.2026 по всему приложению: экранов с `bottom="answer"` И
+   * служебным рядом ровно ЧЕТЫРЕ (`anagrams`, `chinese-tones`, `dictation`,
+   * `phoneme-pairs`), все на 173, и ни один такой экран нигде не стоял на 119.
+   * У всех четырёх служебное действие РОВНО ОДНО (подсказка либо «ещё раз»).
+   *
+   * 📍 И МЕСТО ДЛЯ НЕГО УЖЕ ЕСТЬ — замер живьём на 390 px:
+   *     экран            плашка   свободно справа   кнопка
+   *     chinese-tones     199          181           113
+   *     dictation         199          171           113
+   *     phoneme-pairs     199          171           113
+   *     anagrams          164          206           132
+   * Плашка у них сжата по содержимому (`statsPlateBare`: игра не передаёт
+   * `stats`), поэтому справа остаётся 171…206 px при кнопке 113…132.
+   *
+   * ⚠️ ВКЛЮЧАЕТСЯ ЯВНО И ТОЛЬКО ТАМ, ГДЕ ЗАМЕРЕНО, ЧТО ВЛЕЗАЕТ. Экран, который
+   * не попросил, рисуется ровно как раньше — правка добавочная. Если действий
+   * больше одного или плашка занимает всю ширину (игра передаёт `stats`),
+   * включать НЕЛЬЗЯ: кнопка уедет на вторую строку и полоса вырастет вместо
+   * того, чтобы исчезнуть.
+   */
+  auxInHud?: boolean;
+  /**
    * 🔴 ОТВЕТ игрока — прибит к низу экрана. Опционально: у игр, где отвечают
    * прямо на поле (маджонг, ханой, сортировка), нижней полосы нет вовсе.
    *
@@ -526,9 +556,17 @@ function domesticate(
 }
 
 export default function GameShell({
-  title, onBack, stats, hud, mods, bottom, headerActions, toolbar, headerRight, scrollableField, overlay, pet, pauseActions, onRestart, onFinishEarly, frame,
+  title, onBack, stats, hud, mods, bottom, headerActions, auxInHud, toolbar, headerRight, scrollableField, overlay, pet, pauseActions, onRestart, onFinishEarly, frame,
   confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
+
+  /**
+   * Служебное действие рисуется ВНУТРИ полосы счётчиков (см. `auxInHud`).
+   * `frame` не трогаем: в режиме замера каркас рисует слоты фиксированной
+   * высоты, и прятать ряд там значило бы мерить не то, что рисуется.
+   * При `bottom="actions"` ряд и так уезжает вниз — вмешиваться незачем.
+   */
+  const рядВПолосе = Boolean(auxInHud && headerActions && !frame && bottom !== 'actions');
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   // RTL: стрелка «назад» смотрит вправо, отступ под кнопку фидбека зеркалится
@@ -1181,7 +1219,7 @@ export default function GameShell({
         * вёрсткой из `stats`. Так перевод 72 игр идёт по одной, а вид у всех
         * меняется отсюда.
         */}
-      <View testID="game-hud" style={styles.statsOuter}>
+      <View testID="game-hud" style={[styles.statsOuter, рядВПолосе ? styles.statsOuterRow : null]}>
         {/**
           * Единая ПЛАШКА тулбара: у эталона жанра маскот и все счётчики сидят в
           * одной скруглённой панели, и она одинакова на каждом экране. У нас же
@@ -1254,6 +1292,18 @@ export default function GameShell({
             {stats}
           </View>
         </View>
+        {/**
+          * Служебное действие ВНУТРИ полосы — рядом с плашкой, а не рядом ниже.
+          * Разбор и замеры свободной ширины — в шапке пропа `auxInHud`.
+          * `testID` прежний (`game-header-actions`): живой аудит слотов
+          * (`scripts/slot-audit.mjs`) ищет кнопку по нему и не должен потерять
+          * её только оттого, что она переехала на 54 пикселя выше.
+          */}
+        {рядВПолосе ? (
+          <View testID="game-header-actions" style={styles.auxInHud}>
+            {headerActions}
+          </View>
+        ) : null}
       </View>
 
       {/* testID — якорь для живого аудита слотов (`scripts/slot-audit.mjs`):
@@ -1279,7 +1329,7 @@ export default function GameShell({
         * тапом по полю (сортировка, судоку, маджонг, ханой), низ свободен и
         * достаётся служебному. Смешения в ОДНОЙ игре по-прежнему нет.
         */}
-      {(headerActions || frame) && bottom !== 'actions' ? (
+      {(headerActions || frame) && bottom !== 'actions' && !рядВПолосе ? (
         <View
           testID="game-header-actions"
           style={[
@@ -1649,6 +1699,17 @@ const styles = StyleSheet.create({
    * и это дешевле, чем разъехавшаяся вертикаль у всех.
    */
   statsOuter: { paddingHorizontal: PAD_H, paddingBottom: PAD_V, minHeight: ПОЛОСА_ПОКАЗАТЕЛЕЙ, justifyContent: 'center' },
+  /** Полоса становится рядом: плашка счётчиков слева, служебное действие справа. */
+  statsOuterRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  /**
+   * Служебное действие в полосе. `alignSelf: 'stretch'` обязателен: `GameAuxBar`
+   * внутри объявлен `flexGrow: 1, flexBasis: 0`, и без заданной высоты обёртка
+   * схлопывается в НОЛЬ, а кнопка свисает ниже полосы. Замер 11.09.2026 до
+   * правки: обёртка h=0, кнопка 86…134 при полосе 58…119 — вылезала на 15 px.
+   * `flexShrink: 0` — ширина кнопки замерена и в свободное место влезает,
+   * сжимать её незачем.
+   */
+  auxInHud: { flexShrink: 0, alignSelf: 'stretch', justifyContent: 'center' },
   /**
    * 🔴 ПЛАШКА НЕ ШИРЕ ЭКРАНА. Два отчёта 02.09.2026 («поехали кнопки верх тулбара»,
    * «с меню пиздец сверху»): счётчики растягивали плашку за край телефона, и вместе

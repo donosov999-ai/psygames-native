@@ -301,6 +301,7 @@ export default function DictationGame() {
             <GameAuxAction icon="volume-high" label={t('replaySound')} onPress={повторить} />
           </GameAuxBar>
         }
+        auxInHud
         bottom="answer"
         toolbar={
           вводОткрыт ? (
