@@ -27,7 +27,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { answerButton, stimBox, STIM_BOX } from '@/src/games/attention/layout';
+import { answerButton, BTN_GAP, stimBox, STIM_BOX } from '@/src/games/attention/layout';
 import { AnswerBar } from '@/src/games/attention/AnswerBar';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -222,6 +222,7 @@ export default function ChoiceRtGame() {
    * с зазорами дают 208.
    */
   const ДВЕ_СТОРОНЫ = answerButton('side', screenW);
+  const ЧЕТЫРЕ = answerButton('quad', screenW);
   const router = useRouter();
 
   const { isPreset, autostart, isCalm } = useGamePreset();
@@ -479,51 +480,36 @@ export default function ChoiceRtGame() {
     <TouchableOpacity key={d} accessibilityRole="button"
       accessibilityLabel={t(`a11y${d.charAt(0).toUpperCase()}${d.slice(1)}`)}
       style={[styles.padBtn,
-        // две стороны — общий размер раздела; крестовина остаётся своей (см. выше)
-        activeDirs.length === 2 ? { width: ДВЕ_СТОРОНЫ.w, height: ДВЕ_СТОРОНЫ.h, borderRadius: ДВЕ_СТОРОНЫ.radius } : null,
+        // Обе раскладки берут размер из общей геометрии раздела: две стороны —
+        // круг 88 как у фланкера и Саймона, три-четыре — круг 55 в один ряд.
+        activeDirs.length === 2
+          ? { width: ДВЕ_СТОРОНЫ.w, height: ДВЕ_СТОРОНЫ.h, borderRadius: ДВЕ_СТОРОНЫ.radius }
+          : { width: ЧЕТЫРЕ.w, height: ЧЕТЫРЕ.h, borderRadius: ЧЕТЫРЕ.radius },
         { backgroundColor: GRADIENT[0] }]} onPress={() => handlePress(d)}>
       <Ionicons name={ARROW_ICON[d] as any} size={32} color={textOn(GRADIENT[0])} />
     </TouchableOpacity>
   );
 
+  /**
+   * 🔴 ОДИН РЯД ВМЕСТО КРЕСТОВИНЫ, 10.09.2026. Крест занимал 208 px при полосе
+   * 120 и лез вверх, поверх подсказки; на трёх направлениях — 136, тоже с
+   * переполнением. Разбор и числа — в `answerButton('quad')`.
+   * Порядок ← ↑ ↓ → : физические лево и право стоят по краям, как у фланкера,
+   * Саймона и ANT, и не зеркалятся в RTL (`padRow` прибит writingDirection).
+   */
+  const ПОРЯДОК: Direction[] = ['left', 'up', 'down', 'right'];
   const renderPad = () => {
-    if (activeDirs.length === 4) {
+    if (activeDirs.length === 2) {
       return (
-        <View style={styles.padGrid}>
-          <View style={styles.padRow}>
-            <View style={styles.padCell} />
-            {padBtn('up')}
-            <View style={styles.padCell} />
-          </View>
-          <View style={styles.padRow}>
-            {padBtn('left')}
-            <View style={styles.padCell} />
-            {padBtn('right')}
-          </View>
-          <View style={styles.padRow}>
-            <View style={styles.padCell} />
-            {padBtn('down')}
-            <View style={styles.padCell} />
-          </View>
-        </View>
-      );
-    }
-    if (activeDirs.length === 3) {
-      return (
-        <View style={styles.padGrid}>
-          <View style={styles.padRow}>{padBtn('up')}</View>
-          <View style={styles.padRow}>
-            {padBtn('left')}
-            <View style={styles.padCell} />
-            {padBtn('right')}
-          </View>
+        <View style={styles.padRow}>
+          {padBtn('left')}
+          {padBtn('right')}
         </View>
       );
     }
     return (
       <View style={styles.padRow}>
-        {padBtn('left')}
-        {padBtn('right')}
+        {ПОРЯДОК.filter((d) => activeDirs.includes(d)).map(padBtn)}
       </View>
     );
   };
@@ -630,9 +616,8 @@ const styles = StyleSheet.create({
   // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
   stimulusBox: { ...STIM_BOX },
   waitText: { fontSize: 60, opacity: 0.5 },
-  padGrid: { gap: 8, alignItems: 'center' },
   // RTL-пин: пад-кнопки ←/→ должны стоять на своих физических сторонах (глифы стрелок не зеркалятся)
-  padRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', writingDirection: 'ltr' },
-  padBtn: { width: 64, height: 64, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  padCell: { width: 64, height: 64 },
+  padRow: { flexDirection: 'row', gap: BTN_GAP, justifyContent: 'center', writingDirection: 'ltr' },
+  // Размер приходит из answerButton — здесь только выравнивание содержимого.
+  padBtn: { justifyContent: 'center', alignItems: 'center' },
 });
