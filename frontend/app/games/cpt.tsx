@@ -890,13 +890,6 @@ export default function CPTGame() {
           }
         >
           <View style={styles.fieldCol}>
-            {/* Подсказка вне потока — иначе сдвигает коробку вниз при центрировании. */}
-            <Text style={[styles.hintText, { position: 'absolute', top: 0, color: colors.textSecondary }]}>
-              {(rule.colorRule
-                ? t('cptTapColor')
-                : t(rule.mode === 'AX' ? 'cptTapAXLetter' : 'cptTapLetter')
-              ).replace('{letter}', rule.target)}
-            </Text>
             <TouchableOpacity
               accessibilityRole="button"
               activeOpacity={0.7}
@@ -937,6 +930,23 @@ export default function CPTGame() {
               )}
               {!letterVisible && <Text style={[styles.fixCross, { color: colors.textSecondary }]}>+</Text>}
             </TouchableOpacity>
+            {/*
+              🔴 ПОДСКАЗКА ПОД КОРОБКОЙ И В ПОТОКЕ, 10.09.2026. Стояла НАД полем
+              и вне потока (`position: absolute; top: 0`) — так её когда-то
+              вынесли, чтобы она не сдвигала коробку вниз. Побочный итог: поле
+              CPT оказывалось выше соседского, и коробка садилась ниже всех
+              (замер: 422 против медианы 381, отклонение 41).
+              Теперь как у остальных девяти: под коробкой, в потоке.
+              ⚠️ `minHeight: 40` — резерв на две строки 13 pt. Без него длина
+              текста двигала бы коробку: у CPT подсказка меняется по уровням
+              («жми на K» / «только КРАСНАЯ T после A»), и её высота гуляет.
+            */}
+            <Text style={[styles.hintText, { color: colors.textSecondary, minHeight: 40 }]}>
+              {(rule.colorRule
+                ? t('cptTapColor')
+                : t(rule.mode === 'AX' ? 'cptTapAXLetter' : 'cptTapLetter')
+              ).replace('{letter}', rule.target)}
+            </Text>
           </View>
         </GameShell>
         <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />

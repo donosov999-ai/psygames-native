@@ -31,6 +31,7 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -46,6 +47,17 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { makeDecoys, DECOYS_MAX } from '@/src/games/attention/decoys';
 
 const GRADIENT = ['#fc466b', '#3f5efb'];
+
+/**
+ * 🔴 КАРТОЧКА ПРО ПОМЕХИ, 10.09.2026. Сперва я её НЕ завёл, сославшись на
+ * прецедент мишеней: там плотность помех растёт без объяснения. Прецедент
+ * оказался плохим доводом — владелец, глядя на свой же экран, спросил «это что
+ * за спецсимволы». Если спрашивает он, игрок спросит тем более.
+ * Порог 4 — тот самый уровень, с которого помехи включаются (levelParams).
+ */
+const STROOP_RULES: LevelRule[] = [
+  { key: 'noise', fromLevel: 4 },
+];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
 // Было зашито '#FFF' — контраст 3.37 (норма AA 4.5), стало 4.53.
 // Сплошным цветом этот градиент AA не берёт ни при каком цвете текста — GradientSurface
@@ -252,6 +264,7 @@ export default function StroopGame() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const levelRules = useLevelRules('stroop', lvl.level, STROOP_RULES, phase === 'playing');
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'ink') === 'word' ? 'word' : 'ink'));
   const [word, setWord] = useState(PALETTE[0]);
   const [inkColor, setInkColor] = useState(PALETTE[1]);
@@ -597,7 +610,7 @@ export default function StroopGame() {
             <View style={{ alignItems: 'center', gap: 4 }}>
               <View style={{ flexDirection: 'row', gap: 18 }}>
                 {decoys.slice(0, Math.ceil(decoys.length / 2)).map((g, k) => (
-                  <Text key={`dt${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
+                  <Ionicons key={`dt${k}`} name={g as any} size={26} color={colors.textSecondary} />
                 ))}
               </View>
               <Text style={[styles.bigWord, { color: inkColor.hex }]}>
@@ -605,14 +618,23 @@ export default function StroopGame() {
               </Text>
               <View style={{ flexDirection: 'row', gap: 18 }}>
                 {decoys.slice(Math.ceil(decoys.length / 2)).map((g, k) => (
-                  <Text key={`db${k}`} style={[styles.decoy, { color: colors.textSecondary }]}>{g}</Text>
+                  <Ionicons key={`db${k}`} name={g as any} size={26} color={colors.textSecondary} />
                 ))}
               </View>
             </View>
           </View>
-          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-            {trialRule === 'ink' ? t('stroopHintInk') : t('stroopHintWord')}
-          </Text>
+          {/*
+            Бейдж правила стоит В ОДНУ СТРОКУ с подсказкой, а не отдельной
+            полосой над полем: полоса опустила бы коробку и сломала сведённую
+            10.09 геометрию (у CPT это стоило 49 px).
+          */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+              {trialRule === 'ink' ? t('stroopHintInk') : t('stroopHintWord')}
+            </Text>
+            <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
+          </View>
+          <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
         </View>
       </GameShell>
     );
@@ -681,7 +703,6 @@ const styles = StyleSheet.create({
   statText: { fontSize: 16, fontWeight: '700' },
   fieldCol: { alignItems: 'center', gap: 20 },
   bigWord: { fontSize: 56, fontWeight: '900', letterSpacing: 4 },
-  decoy: { fontSize: 24, fontWeight: '900' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320 },
   // Ширина ряда НЕ ограничивается своим числом: её задаёт слот каркаса
   // (390 − FAB_GUTTER·2 = 258 на телефоне). Прежний maxWidth 360 обещал место,
