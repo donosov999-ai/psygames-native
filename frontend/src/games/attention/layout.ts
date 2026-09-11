@@ -178,7 +178,7 @@ export function stimBox(screenW: number, screenH: number): { w: number; h: numbe
   return { w, h, side: Math.min(w, h) };
 }
 
-export type AnswerKind = 'side' | 'choice' | 'single';
+export type AnswerKind = 'side' | 'choice' | 'single' | 'quad';
 
 /**
  * РАЗМЕР КНОПКИ ОТВЕТА ПО ТИПУ ОТВЕТА.
@@ -203,11 +203,33 @@ export function answerButton(kind: AnswerKind, screenW: number): { w: number; h:
     const w = Math.max(MIN_TAP, Math.min(170, Math.floor((avail - BTN_GAP) / 2)));
     return { w, h: MIN_TAP, radius: 14 };
   }
+  if (kind === 'quad') {
+    /**
+     * 🔴 ЧЕТЫРЕ НАПРАВЛЕНИЯ В ОДИН РЯД, А НЕ КРЕСТОМ. Заведено 10.09.2026.
+     *
+     * ЧТО БЫЛО. «Выбор-реакция» на четырёх направлениях выкладывала крестовину:
+     * три ряда по 64 плюс два зазора 8 = 208 px при высоте полосы 120.
+     * Замер двумя способами сошёлся: по коду 3·64 + 2·8 = 208, по снимку блок
+     * 626…834 = 208. Лишние 88 px уходили ВВЕРХ, поверх подсказки; на трёх
+     * направлениях было 136, тоже с переполнением.
+     *
+     * ⚠️ Крест не влезает НИ ПРИ КАКОМ зазоре: три ряда по норме пальца это
+     * 3 × 48 = 144 > 120. Поднять полосу нельзя — она одна на весь раздел, в
+     * «Зарядке» пробы идут вперемешку; +88 отнялись бы у поля CPT и мишеней.
+     *
+     * Один ряд из четырёх: (258 − 3·12) / 4 = 55 ≥ 48. Порядок ← ↑ ↓ → —
+     * физические лево/право по краям, как требует пин соответствия
+     * «стимул–ответ» у фланкера, Саймона и ANT.
+     */
+    const d = Math.max(MIN_TAP, Math.floor((avail - 3 * BTN_GAP) / 4));
+    return { w: d, h: d, radius: Math.round(d / 2) };
+  }
   return { w: Math.max(MIN_TAP, avail), h: 56, radius: 16 };
 }
 
 /** Сколько рядов занимает ответ данного типа — для проверки, что полоса не переполнена. */
 export const answerRows = (kind: AnswerKind): number => (kind === 'choice' ? 2 : 1);
+// 'quad' — ОДИН ряд: четыре направления, разбор в answerButton.
 
 /** Высота, которую ответ реально займёт. Должна помещаться в ANSWER_BAR_H. */
 export function answerContentH(kind: AnswerKind, screenW: number): number {
