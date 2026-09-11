@@ -35,7 +35,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { stimBox, answerButton, STIM_BOX } from '@/src/games/attention/layout';
+import { stimBox, answerButton, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { AnswerBar } from '@/src/games/attention/AnswerBar';
 import { vigilanceAccuracySlope } from '@/src/games/attention/measures';
@@ -833,7 +833,7 @@ export default function CPTGame() {
   if (phase === 'playing') {
     const mins = Math.floor(remaining / 60);
     const secs = remaining % 60;
-    const fbColor = feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : null;
+    const fbColor = feedback === 'right' ? ОТКЛИК.верно : feedback === 'wrong' ? ОТКЛИК.неверно : null;
     return (
       <View style={{ flex: 1 }}>
         <GameShell

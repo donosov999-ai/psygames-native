@@ -16,7 +16,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { AnswerBar } from '@/src/games/attention/AnswerBar';
-import { answerButton } from '@/src/games/attention/layout';
+import { answerButton, ОТКЛИК } from '@/src/games/attention/layout';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { commissionRate } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
@@ -780,26 +780,25 @@ export default function TargetsGame() {
     <GameShell
       title={t('targets')}
       onBack={() => { stoppedRef.current = true; clearAllTimers(); goBackOrHome(); }}
-      stats={
-        <View style={styles.gameHeader}>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('level')}</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>{level}</Text>
-          </View>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('score')}</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>{score}</Text>
-          </View>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {t('label_lives')}
-            </Text>
-            <Text style={[styles.statValue, { color: lives <= 2 ? colors.error : colors.text }]}>
-              {lives}
-            </Text>
-          </View>
-        </View>
-      }
+      /**
+       * 🔴 СЧЁТЧИКИ — ОБЩИМИ ЧИПАМИ КАРКАСА, А НЕ СВОИМ БЛОКОМ. 11.09.2026.
+       *
+       * Здесь стоял собственный `stats` из трёх коробок: подпись 12/400 и
+       * значение 20/700 голым текстом. У остальных девяти проб раздела — капсулы
+       * каркаса 12/700 и 14/900. Мишени были ЕДИНСТВЕННЫМ экраном, выпадающим из
+       * этого языка, и вдобавок собственный блок давал ТРЕТЬЮ полосу над полем —
+       * ту самую, из-за которой у CPT коробка стимула садилась ниже соседской.
+       *
+       * ⚠️ Смысл сохранён: «жизни» по-прежнему краснеют на двух и меньше. Только
+       * теперь это не зашитый `colors.error`, а `tone: 'bad'` — каркас сам решает,
+       * каким цветом показать, и в тёмной теме цвет придёт правильный.
+       */
+      hud={[
+        { key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: level },
+        { key: 'score', icon: 'star', label: t('score'), value: score, pop: true },
+        { key: 'lives', icon: 'heart', label: t('label_lives'), value: lives,
+          tone: lives <= 2 ? ('bad' as const) : ('neutral' as const) },
+      ]}
       toolbar={<AnswerBar>{clickButton}</AnswerBar>}
     >
       <View style={styles.fieldCol}>
@@ -808,7 +807,9 @@ export default function TargetsGame() {
           {feedback && (
             <View style={[
               styles.feedbackBadge,
-              { backgroundColor: feedback === 'hit' ? colors.success : colors.error }
+              // Та же пара «верно/неверно», что у остальных девяти проб раздела:
+              // цвета темы дали бы мишеням СВОЙ зелёный и красный (разбор — в ОТКЛИК).
+              { backgroundColor: feedback === 'hit' ? ОТКЛИК.верно : ОТКЛИК.неверно }
             ]}>
               <Ionicons
                 name={feedback === 'hit' ? 'checkmark' : 'close'}

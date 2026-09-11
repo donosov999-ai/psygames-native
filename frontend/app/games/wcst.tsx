@@ -35,7 +35,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_ROW, STIM_BOX, stimBox } from '@/src/games/attention/layout';
+import { ANSWER_BAR_ROW, STIM_BOX, stimBox, ОТКЛИК } from '@/src/games/attention/layout';
 import { ruleCatchStats } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -75,7 +75,7 @@ type Shape = 'circle' | 'triangle' | 'square' | 'star';
 type Count = 1 | 2 | 3 | 4;
 type Rule = 'color' | 'shape' | 'count';
 
-const COLOR_HEX: Record<Color, string> = { R: '#ef4444', G: '#22c55e', B: '#3b82f6', Y: '#eab308' };
+const COLOR_HEX: Record<Color, string> = { R: '#ef4444', G: ОТКЛИК.верно, B: '#3b82f6', Y: '#eab308' };
 // A1 колор-блайнд — Okabe-Ito (вермильон/бирюз-зелёный/синий/жёлтый, различимы при дальтонизме).
 const COLOR_HEX_CB: Record<Color, string> = { R: '#d55e00', G: '#009e73', B: '#0072b2', Y: '#f0e442' };
 const COLORS: Color[] = ['R','G','B','Y'];
@@ -586,7 +586,7 @@ export default function WcstGame() {
     `${c.count} ${t(COLOR_KEY[c.color]).toLowerCase()} ${t('shape_' + c.shape)}`;
 
   const renderCard = (card: Card, isRef: boolean, idx?: number, fb?: 'right' | 'wrong' | null) => {
-    const fbColor = fb === 'right' ? '#22c55e' : fb === 'wrong' ? '#f43f5e' : null;
+    const fbColor = fb === 'right' ? ОТКЛИК.верно : fb === 'wrong' ? ОТКЛИК.неверно : null;
     const inner = (
       <>
         <View style={styles.shapeRow}>

@@ -40,7 +40,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { stimBox, ANSWER_BAR_ROW, STIM_BOX } from '@/src/games/attention/layout';
+import { stimBox, ANSWER_BAR_ROW, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -372,8 +372,8 @@ export default function SimonGame() {
   // playing-фаза — на едином каркасе GameShell (кнопки-ответы прибиты к низу)
   if (phase === 'playing') {
     const fbColor =
-      feedback === 'right' ? '#22c55e' :
-      feedback === 'wrong' ? '#f43f5e' :
+      feedback === 'right' ? ОТКЛИК.верно :
+      feedback === 'wrong' ? ОТКЛИК.неверно :
       colors.text;
     const stimColor = trial.color === 'blue' ? COLOR_BLUE : COLOR_RED;
     return (
