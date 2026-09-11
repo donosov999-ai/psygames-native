@@ -1,4 +1,4 @@
-/* psygames-game-water-sort · VER 4 · 11.09.2026 */
+/* psygames-game-water-sort · VER 5 · 11.09.2026 */
 /**
  * СОРТИРОВКА ЖИДКОСТЕЙ — переливание по пробиркам, пока каждая не станет одного цвета.
  *
@@ -507,7 +507,20 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
    * его ровно один раз.
    */
   const [винт] = useState(() => new Animated.Value(1));
-  const [завинчено, setЗавинчено] = useState<{ сосуд: number; сколько: number } | null>(null);
+  /**
+   * 🔴 ПРИБЫТИЕ ПОКАЗЫВАЮТ ВСЕ ТРИ ШКУРКИ, А НЕ ОДНИ ГАЙКИ.
+   *
+   * 📍 До 11.09.2026 анимация была только у гаек: у воды и шариков столбик
+   * ПЕРЕСКАКИВАЛ из сосуда в сосуд одним кадром. У сортировки товаров перелёт
+   * есть (`flyItem`), у переливалки не было — то есть ход, который игрок делает
+   * чаще всего, оставался единственным без отклика.
+   *
+   * Идиома у каждой шкурки своя, механизм один: гайка НАКРУЧИВАЕТСЯ (поворот
+   * вокруг оси болта), а жидкость и шарики ПАДАЮТ СВЕРХУ — приехавшие порции
+   * съезжают от горлышка на своё место. Считать их надо одинаково, поэтому
+   * состояние общее, а расходится только преобразование в отрисовке.
+   */
+  const [прибыло, setПрибыло] = useState<{ сосуд: number; сколько: number } | null>(null);
   const [выбрана, setВыбрана] = useState<number | null>(null);
   const [ходов, setХодов] = useState(0);
   const [ошибок, setОшибок] = useState(0);
@@ -686,8 +699,8 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
      * столб целиком.
      */
     const пришло = после.tubes[i]!.length - field.tubes[i]!.length;
-    if (skin === 'nuts' && пришло > 0 && !щадящий) {
-      setЗавинчено({ сосуд: i, сколько: пришло });
+    if (пришло > 0 && !щадящий) {
+      setПрибыло({ сосуд: i, сколько: пришло });
       винт.setValue(0);
       /*
        * ⚠️ `useNativeDriver: false` НАМЕРЕННО. Сборка для веба (а Tauri — это
@@ -696,7 +709,7 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
        * на КАЖДЫЙ ход. Работает всё равно через JS — так и попросим прямо.
        */
       Animated.timing(винт, { toValue: 1, duration: 320, useNativeDriver: false })
-        .start(({ finished }) => { if (finished) setЗавинчено(null); });
+        .start(({ finished }) => { if (finished) setПрибыло(null); });
     }
     setField(после);
     setВыбрана(null);
@@ -912,7 +925,15 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
              * СВЕРХУ (столб рисуется перевёрнутым), поэтому пришедшие порции —
              * это первые `сколько` штук.
              */
-            const крутится = !!завинчено && завинчено.сосуд === i && k < завинчено.сколько;
+            const приехала = !!прибыло && прибыло.сосуд === i && k < прибыло.сколько;
+            /*
+             * ⚠️ ВЫСОТА ПАДЕНИЯ — ОТ ГОРЛЫШКА, А НЕ КРУГЛОЕ ЧИСЛО. Порция
+             * выезжает из-за верхней кромки сосуда: столько, сколько занимает
+             * сама пачка приехавшего плюс отступ от верха стекла. Возьми
+             * фиксированные «минус двадцать» — на высоком сосуде порция
+             * появилась бы уже внутри, и перелив читался бы как подмигивание.
+             */
+            const сВысоты = -(верхЖ + высотаПорции * (прибыло?.сколько ?? 0));
             return (
               <Animated.View
                 key={k}
@@ -934,11 +955,21 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
                    * вышла бы «не туда». Плюс осадка вниз — гайка садится на
                    * место.
                    */
-                  крутится ? {
+                  приехала && гайка ? {
                     transform: [
                       { perspective: 600 },
                       { rotateY: винт.interpolate({ inputRange: [0, 1], outputRange: ['-360deg', '0deg'] }) },
                       { translateY: винт.interpolate({ inputRange: [0, 1], outputRange: [-8, 0] }) },
+                    ],
+                  } : приехала ? {
+                    /*
+                     * Вода и шарики приезжают СВЕРХУ: пачка съезжает от горлышка
+                     * на своё место. Прозрачность в начале — чтобы порция не
+                     * выныривала поверх стекла резким прямоугольником.
+                     */
+                    opacity: винт.interpolate({ inputRange: [0, 0.25, 1], outputRange: [0.35, 1, 1] }),
+                    transform: [
+                      { translateY: винт.interpolate({ inputRange: [0, 1], outputRange: [сВысоты, 0] }) },
                     ],
                   } : null,
                   {

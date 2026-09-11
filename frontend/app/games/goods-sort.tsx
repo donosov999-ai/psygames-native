@@ -117,7 +117,7 @@ import {
   removeTriple, revealUncovered, rowOfNiche, scoreForClears, sessionDetails, setAvailable,
   setThumbBox, shelfForProfile, setUnlockLevel, shapeFor, shiftCoveredAfterTake, solvableStrict,
   starsForMoves, strictPlacement, targetSlots, tripleIn, typeBudget, dealBoard, generate,
-  permuteCells, restoreGoodsParty, setRows, shuffle, snapshotGoodsParty, capsForParty,
+  permuteCells, restoreGoodsParty, setRows, shuffle, snapshotGoodsParty, capsForParty, картаОседания,
 } from '@/src/games/goods-sort/core/level';
 import type {
   GoodsLiveParty, GoodsRestored, GoodsResume, ShelfStyle, BoardGeom, GamePhase, Goal, GsLayout, HiddenRunStats, HintMove, Obstacle, Sel, Snapshot,
@@ -848,15 +848,14 @@ export default function GoodsSortGame() {
   const [осевшие, setОсевшие] = useState<Record<number, number>>({});
   const осадка = useRef(new Animated.Value(0)).current;
   const оседание = (доМест: number[], послеМест: number[], столбцы: number[]) => {
-    if (reduced || !доМест.length || доМест.length !== послеМест.length) return;
-    const карта: Record<number, number> = {};
-    послеМест.forEach((номер, место) => {
-      const было = доМест.indexOf(номер);
-      if (было < 0 || было === место) return;
-      if (столбцы[было] !== столбцы[место]) return;   // не свой столбец — не оседание
-      const рядов = послеМест.filter((_, k) => столбцы[k] === столбцы[место] && k > было && k <= место).length;
-      if (рядов > 0) карта[место] = рядов;
-    });
+    if (reduced) return;
+    /*
+     * ⚠️ САМ РАСЧЁТ ЖИВЁТ В ЯДРЕ (`картаОседания`). Здесь он был строками внутри
+     * компонента, и проверить его можно было только монтированием экрана с
+     * подбором хода, который закроет полку, — то есть на деле он не проверялся,
+     * и приход НОВОЙ полки сверху так и остался без движения до 11.09.2026.
+     */
+    const карта = картаОседания(доМест, послеМест, столбцы);
     /*
      * ⚠️ КАРТУ СТАВИМ ВСЕГДА, ДАЖЕ ПУСТУЮ, И СНИМАЕМ ЕЁ СЛЕДУЮЩИМ ХОДОМ — не по
      * концу движения.
