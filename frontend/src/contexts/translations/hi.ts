@@ -164,7 +164,7 @@ const t: Record<string, string> = {
   "sudokuGroup": "सुडोकू: तीन बोर्ड",
   "sudokuGroupDesc": "क्लासिक, सामुराई और फ्रैक्टल",
   "sudokuPickBoard": "बोर्ड चुनें",
-  "sudokuTypeClassic": "एक ग्रिड · 57 सीढ़ियाँ",
+  "sudokuTypeClassic": "एक ग्रिड · 92 सीढ़ियाँ",
   "sudokuTypeSamurai": "कोनों से जुड़े पाँच ग्रिड",
   "sudokuTypeFractal": "हर खाने के भीतर एक पूरा ग्रिड",
   "sudokuGroupFootnote": "तीनों का नियम एक ही है: कोई अंक पंक्ति, स्तंभ या ब्लॉक में दोहराया नहीं जाता। फ़र्क सिर्फ़ बोर्ड का है। हर बोर्ड अपने स्तर और अपना इतिहास अलग रखता है — खेल आपस में नहीं मिलते।",

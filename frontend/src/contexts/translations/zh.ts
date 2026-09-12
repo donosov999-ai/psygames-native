@@ -161,7 +161,7 @@ const t: Record<string, string> = {
   "sudokuGroup": "数独：三种棋盘",
   "sudokuGroupDesc": "经典、武士与分形",
   "sudokuPickBoard": "选择棋盘",
-  "sudokuTypeClassic": "单张网格 · 57 级",
+  "sudokuTypeClassic": "单张网格 · 92 级",
   "sudokuTypeSamurai": "五张网格在角上互相咬合",
   "sudokuTypeFractal": "每个格子里还有一张网格",
   "sudokuGroupFootnote": "三者规则相同：同一数字在行、列、宫中都不重复，不同的只是棋盘。每种棋盘各自计算关卡、各自记录历史，对局互不混淆。",
