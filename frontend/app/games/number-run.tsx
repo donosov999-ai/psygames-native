@@ -269,7 +269,19 @@ const styles = StyleSheet.create({
   строкаИтога: { flexDirection: 'row', justifyContent: 'space-between' },
   подписьИтога: { fontSize: 14 },
   значениеИтога: { fontSize: 16, fontWeight: '700' },
-  // Три кнопки в ряд, каждая не мельче пальца по высоте (`ПАЛЕЦ` = 48).
-  руль: { flexDirection: 'row', gap: 10, alignSelf: 'stretch', justifyContent: 'center' },
-  кнопкаРуля: { flex: 1, maxWidth: 120, height: 48, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  /**
+   * 🔴 ТРИ КНОПКИ В РЯД, И КАЖДАЯ НЕ МЕЛЬЧЕ ПАЛЬЦА ПО ОБЕИМ СТОРОНАМ (`ПАЛЕЦ` = 48).
+   *
+   * ⚠️ ЗДЕСЬ Я ПЕРЕПУТАЛ ОСЬ, И ГЕЙТ `tap-field` МЕНЯ ПОЙМАЛ. Стояло
+   * `alignSelf: 'stretch'`, а нижний слот каркаса (`styles.toolbar` в GameShell)
+   * — СТРОКА. В строке `stretch` тянет по ПОПЕРЕЧНОЙ оси, то есть по высоте;
+   * ширину такой ребёнок берёт по содержимому. Внутренний `flex: 1` делил уже
+   * скукоженную ширину, и кнопки выходили 26 px при пороге 48.
+   *
+   * 📍 Замер 12.09.2026, окно 390×844, собранный бандл: 26×48 ×3 на
+   * `/games/number-run`. Ширину в строке даёт `flex`, а не `alignSelf`.
+   * `minWidth` — страховка: даже в узком слоте кнопка не уедет ниже пальца.
+   */
+  руль: { flexDirection: 'row', gap: 10, flex: 1, justifyContent: 'center' },
+  кнопкаРуля: { flex: 1, minWidth: 48, maxWidth: 120, height: 48, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });
