@@ -80,6 +80,8 @@ export interface ScholarsMateGameProps {
   labels: {
     mate: string; defend: string; threat: string; sacrifice: string;
     yes: string; no: string; best: string; timeUp: string; sec: string;
+    /** «Подсказка» и «Подсказка использована» — ключи `btn_hint` и `hintUsed`, оба уже в словаре. */
+    hint: string; hintUsed: string;
 
   };
 }
@@ -116,6 +118,20 @@ export default function ScholarsMateGame({
   const [fen, setFen] = React.useState(() => shownFen(колода[0]!));
   const [выбрана, setВыбрана] = React.useState<string | null>(null);
   const [подсветка, setПодсветка] = React.useState<string[]>([]);
+  /**
+   * 🔴 ПОДСКАЗКА, КОГДА ЗАСТРЯЛ. Кнопка появляется на ПОЛОВИНЕ отпущенного времени
+   * и подсвечивает поле, с которого начинается решение. До половины её нет нарочно:
+   * иначе это не подсказка, а способ играть.
+   *
+   * Замер 12.09.2026: подсказок в разделе не было ни одной, а у всех шести соседей
+   * по нише они есть. Человек, не увидевший решения, досиживал до таймаута и получал
+   * промах — то есть игра наказывала за незнание, ничему не научив.
+   *
+   * ⚠️ Нажатие кнопки НЕ трогает `первоеКасание`: это не ход рукой, и `msFirst`
+   * обязан остаться той же величиной. Цена подсказки берётся потолком звёзд.
+   */
+  const [подсказкаПоле, setПодсказкаПоле] = React.useState<string | null>(null);
+  const подсказокЗаПодход = React.useRef(0);
   const [вердикт, setВердикт] = React.useState<{ ok: boolean; best?: string; наказание?: string } | null>(null);
   const [осталось, setОсталось] = React.useState(п.seconds);
   /**
@@ -189,12 +205,14 @@ export default function ScholarsMateGame({
         accuracy: попытки.current.length ? верные.length / попытки.current.length : 0,
         // Хоть одно касание доски за подход — иначе это не игра, а открытый экран.
         touched: попытки.current.some((a) => !a.timeout),
+        hints: подсказокЗаПодход.current,
       });
       return;
     }
     setШаг(след);
     setFen(shownFen(колода[след]!));
     setОсталось(п.seconds);
+    setПодсказкаПоле(null);
     началоRef.current = now();
   }, [шаг, колода, onComplete, п.seconds, now, flowMs]);
 
@@ -215,6 +233,7 @@ export default function ScholarsMateGame({
       ms: полное,
       // Не касался вовсе (прозевал по времени) — считаем полным временем.
       msFirst: первоеКасание.current ? первоеКасание.current - началоRef.current : полное,
+      hinted: подсказкаПоле !== null,
     });
     onProgress?.(scholarsArmed(попытки.current));
     setВердикт({ ok: correct, best, наказание });
@@ -432,6 +451,7 @@ export default function ScholarsMateGame({
           const тёмная = (Math.floor(i / 8) + (i % 8)) % 2 === 1;
           const фигура = расстановка[i];
           const цель = подсветка.includes(имя);
+          const подсказано = подсказкаПоле === имя;
           return (
             <Pressable
               key={имя}
@@ -448,7 +468,10 @@ export default function ScholarsMateGame({
               style={{
                 width: клетка,
                 height: клетка,
-                backgroundColor: выбрана === имя ? '#f6d97a' : тёмная ? '#b0864f' : '#eddcbd',
+                backgroundColor: выбрана === имя ? '#f6d97a'
+                  // Поле, которое показала подсказка: янтарь отличается от жёлтого выбора.
+                  : подсказано ? '#f3b95f'
+                  : тёмная ? '#b0864f' : '#eddcbd',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -474,6 +497,34 @@ export default function ScholarsMateGame({
           );
         })}
       </View>
+
+      {/*
+        🔴 ПОДСКАЗКА ПОЯВЛЯЕТСЯ НА ПОЛОВИНЕ ВРЕМЕНИ И СТОИТ ЗВЕЗДЫ.
+        До половины кнопки нет нарочно: подсказка с первой секунды — это не помощь
+        застрявшему, а способ играть. На вопросе «грозит ли мат» её нет вовсе:
+        подсказывать там нечего, ответ и так двоичный.
+      */}
+      {!вердикт && задача.kind !== 'threat' && осталось <= п.seconds / 2 ? (
+        <View style={стили.кнопки}>
+          {подсказкаПоле ? (
+            <Text style={[стили.кнопкаТекст, { color: theme.textSecondary }]}>{labels.hintUsed}</Text>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={labels.hint}
+              onPress={() => {
+                const первый = задача.solutions?.[0];
+                if (!первый) return;
+                подсказокЗаПодход.current += 1;
+                setПодсказкаПоле(первый.slice(0, 2));
+              }}
+              style={[стили.кнопка, { borderColor: theme.border, backgroundColor: theme.surface }]}
+            >
+              <Text style={[стили.кнопкаТекст, { color: theme.text }]}>{labels.hint} −1⭐</Text>
+            </Pressable>
+          )}
+        </View>
+      ) : null}
 
       {задача.kind === 'threat' ? (
         <View style={стили.кнопки}>
