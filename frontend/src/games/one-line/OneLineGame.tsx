@@ -13,6 +13,7 @@ import {
   type AccessibilityActionEvent,
 } from 'react-native';
 import Svg, { Line, Polygon } from 'react-native-svg';
+import { useWindowDimensions } from 'react-native';
 import { sndPlace } from '@/src/services/feedback';
 import { БЕЗ_ЖЕСТА_ПРОКРУТКИ } from '@/src/components/GameShell';
 import { ballImage, useBallStyle } from '@/src/games/balls/ballChoice';
@@ -206,6 +207,31 @@ function OneLineBoard({
   const initialCursor = puzzle.startHintVertexId ?? puzzle.vertices[0]?.id ?? '';
   const [cursorId, setCursorId] = React.useState(initialCursor);
   const [boardSize, setBoardSize] = React.useState(320);
+  /**
+   * 🔴 ДОСКА ВПИСЫВАЕТСЯ ПО ОБЕИМ СТОРОНАМ, А НЕ ТОЛЬКО ПО ШИРИНЕ (правило 5).
+   *
+   * Было `width: '100%'` с `aspectRatio: 1` — квадрат по ширине, и высота экрана
+   * на него не влияла ВООБЩЕ. Замер 12.09.2026: на 390×844 и на 390×760 доска
+   * одинаковая, 374 точки, верх 303 — то есть на коротком экране нижний ряд
+   * кнопок оказывался на 33 точки ниже края.
+   *
+   * РЕЗЕРВ 430 — это замеренная сумма того, что стоит выше и ниже доски, а не
+   * круглое число: номер тренировки и подсказки сверху (≈190 после снятия
+   * дубля заголовка), два ряда кнопок снизу (48 + 10 + 48 = 106) и отступы (24).
+   * ⚠️ Меняешь состав строк над доской или кнопок под ней — ПЕРЕМЕРЬ это число,
+   * иначе оно начнёт врать молча.
+   *
+   * ⚠️ ПОЛ 240: вершину берут пальцем с радиусом 38/сторона, и ниже этого она
+   * становится непопадаемой. Не влезло даже так — остаётся прокрутка поля, но
+   * не уменьшение цели (правило 5).
+   */
+  const { width: ширинаОкна, height: высотаОкна } = useWindowDimensions();
+  const РЕЗЕРВ_ВЫСОТЫ = 430;
+  const ПОЛ_ДОСКИ = 240;
+  const потолокДоски = Math.max(
+    ПОЛ_ДОСКИ,
+    Math.min(ширинаОкна - 16, высотаОкна - РЕЗЕРВ_ВЫСОТЫ, 620),
+  );
   const [focused, setFocused] = React.useState(false);
   const byId = React.useMemo(
     () => new Map(puzzle.vertices.map((vertex) => [vertex.id, vertex])),
@@ -391,6 +417,8 @@ function OneLineBoard({
       onLayout={(event) => setBoardSize(Math.max(1, event.nativeEvent.layout.width))}
       style={[
         styles.board,
+        // Сторона задаётся числом: `aspectRatio` знает только ширину.
+        { width: потолокДоски, height: потолокДоски, maxWidth: '100%' },
         /**
          * 🔴 ПОЛЕ НЕ ОТДАЁТ СВОЁ КАСАНИЕ СТРАНИЦЕ (правило 6 UI_LAYOUT_RULES).
          *
@@ -756,7 +784,15 @@ function OneLineSessionView({
     >
       <View style={styles.topRow}>
         <View style={styles.titleBlock}>
-          <Text accessibilityRole="header" style={[styles.gameTitle, { color: theme.text }]}>{strings.title}</Text>
+          {/*
+            🔴 ЗАГОЛОВОК ИГРЫ ЗДЕСЬ НЕ ПОВТОРЯЕМ — ОН ПРИНАДЛЕЖИТ КАРКАСУ.
+            Замер 12.09.2026 на 390×760: «Одна линия» стояло дважды — в шапке
+            каркаса (y=18) и своё же на y=134, а рядом вторая кнопка «Пауза» при
+            уже имеющейся в шапке. Дубль съедал высоту, и нижний ряд кнопок
+            («Начать заново») уезжал за край на 33 точки — до ответа приходилось
+            доскроллить (правило 9 UI_LAYOUT_RULES).
+            Номер тренировки остаётся: он меняется по ходу и в шапке его нет.
+          */}
           <Text style={[styles.round, { color: theme.textSecondary }]}>{roundLabel}</Text>
           {session.phase === 'playing' ? (
             /*
