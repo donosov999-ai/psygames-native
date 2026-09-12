@@ -1,4 +1,4 @@
-/* psygames-sudoku-level-help · VER 1 · 07.09.2026 */
+/* psygames-sudoku-level-help · VER 2 · 12.09.2026 */
 import type { Variant } from './sudoku-core';
 import { variantLabel, variantRule } from './sudoku-core';
 
@@ -107,6 +107,38 @@ export function beltKey(level: number): string | null {
   return null;
 }
 
+/**
+ * ═══ РАСШИФРОВКА ПОЯСА — ЧТО ЭТИ ДОСКИ ТРЕБУЮТ (правка 12.09.2026) ═══
+ *
+ * 🔴 ПОВОД — ЖИВОЙ ОТЧЁТ. Валя, 12.09: «на 58 уровне не вижу нормальной
+ * расшифровки и правил уровня». Замер подтвердил поштучно: справка уровня 57
+ * состоит из ПЯТИ разделов (492 знака), справка 58-го — из ТРЁХ (362), и
+ * заголовок теряет имя: «Ур.57 · ⧉ кривые блоки» против голого «Ур.58».
+ * Так на 23 уровнях подряд — 58…80. Всего по лестнице: 61 уровень из 92 имеет
+ * пять разделов, 31 — три (это L1–L8 и весь банковский пояс).
+ *
+ * 🔴 ПОЧЕМУ ЭТО ХУЖЕ, ЧЕМ ПРОСТО «МЕНЬШЕ ТЕКСТА». Беднеет справка ровно там, где
+ * она нужнее всего: 58–80 — самые трудные доски лестницы, оценщик на них молчит
+ * (замер 09.09: 92 доски из 92), и человеку доставался ТЕРМИН БЕЗ РАСШИФРОВКИ —
+ * «Пояс ALS». Слово из решательских форумов вместо объяснения.
+ *
+ * ⚠️ ОТКУДА ВЗЯТЫ СЛОВА. Не сочинены: каждая строка `RATING_LADDER` в
+ * services/sudoku-bank говорит, какое семейство приёмов стоит за полосой SE —
+ * 6.3 ALS-XZ, 6.4 ALS-XY-Wing, 6.6–6.7 ALS-цепи, 6.8 короткие AIC, 7.0 Nishio.
+ * Здесь это сказано по-человечески и сгруппировано по поясам, потому что внутри
+ * пояса человеку важно одно и то же: чем этот пласт отличается от предыдущего.
+ */
+const BELT_HOW: Record<string, string> = {
+  sudokuBeltAls: 'sudokuBeltAlsHow',
+  sudokuBeltChains: 'sudokuBeltChainsHow',
+  sudokuBeltLegend: 'sudokuBeltLegendHow',
+};
+
+export function beltHowKey(level: number): string | null {
+  const belt = beltKey(level);
+  return belt ? (BELT_HOW[belt] ?? null) : null;
+}
+
 function section(head: string, text: string): string {
   return `${head}\n${text}`;
 }
@@ -124,7 +156,13 @@ export function buildLevelHelp(inp: LevelHelpInput, tr: Translate, language: str
   } else if (mode === 'free') {
     title = tr('btn_rules');
   } else {
-    const label = variant !== 'none' ? variantLabel(variant, language) : '';
+    /**
+     * ⚠️ У БАНКОВСКИХ УРОВНЕЙ ВАРИАНТА НЕТ, И ЗАГОЛОВОК ОСТАВАЛСЯ БЕЗЫМЯННЫМ.
+     * «Ур.58» рядом с «Ур.57 · ⧉ кривые блоки» читается как шаг назад: уровень
+     * труднее, а сказать о нём нечего. Имя пояса уже переведено — берём его.
+     */
+    const belt = variant === 'none' ? beltKey(level) : null;
+    const label = variant !== 'none' ? variantLabel(variant, language) : (belt ? tr(belt) : '');
     title = `${tr('label_level_short')}${level}${label ? ` · ${label}` : ''}`;
   }
 
@@ -142,15 +180,26 @@ export function buildLevelHelp(inp: LevelHelpInput, tr: Translate, language: str
     parts.push(section(tr('sudokuHowLabel'), tr(techniqueHowKey(tier))));
   } else {
     const belt = mode === 'levels' ? beltKey(level) : null;
+    const how = mode === 'levels' ? beltHowKey(level) : null;
     // Замер 07.09.2026: на 114 банковских досках из 115 (уровни 58–80, пять
     // профилей) со старта доступна скрытая одиночка. Поэтому совет «пройди одной
     // цифрой по блокам» — не общее место, а измеренный вход.
     const tail = tr('sudokuHowUnmeasured');
-    parts.push(section(tr('sudokuHowLabel'), belt ? `${tr(belt)}. ${tail}` : tail));
+    // Имя пояса + ЧТО ОН ТРЕБУЕТ + измеренный вход. Раньше здесь стоял голый
+    // термин и сразу вход — человек читал «Пояс ALS» и не узнавал ничего.
+    const head = belt ? (how ? `${tr(belt)}. ${tr(how)}` : `${tr(belt)}.`) : '';
+    parts.push(section(tr('sudokuHowLabel'), head ? `${head}\n\n${tail}` : tail));
   }
 
   // 4. как смотреть именно на этом варианте
-  const scan = mode === 'killer' ? 'sudokuScanCages' : variantScanKey(variant);
+  //
+  // ⚠️ У КЛАССИКИ ВЫСОКОГО ПОЯСА ВАРИАНТА НЕТ, И РАЗДЕЛ ПРОПАДАЛ ЦЕЛИКОМ. Но
+  // смотреть там надо ИНАЧЕ, чем на первых уровнях: без расставленных кандидатов
+  // ни почти-запертая группа, ни цепь не видны вовсе. Это и есть «как смотреть»
+  // для банковского пояса — он подставляется вместо отсутствующего варианта.
+  const scan = mode === 'killer'
+    ? 'sudokuScanCages'
+    : (variantScanKey(variant) ?? (mode === 'levels' && variant === 'none' && beltKey(level) ? 'sudokuScanHighBelt' : null));
   if (scan) parts.push(section(tr('sudokuScanLabel'), tr(scan)));
 
   // 5. чем игрок располагает на этом уровне
