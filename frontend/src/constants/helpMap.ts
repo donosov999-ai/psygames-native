@@ -247,11 +247,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillInhibition",
     "introKey": "attentionConflictIntroDesc"
   },
-  "/games/inhibition-hub": {
-    "nameKey": "inhibitionGroup",
-    "skillKey": "skillInhibition",
-    "introKey": "inhibitionGroupIntroDesc"
-  },
   "/games/inhibition": {
     "nameKey": "inhibition",
     "skillKey": "skillInhibition",
@@ -417,16 +412,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillVisualSearch",
     "introKey": "searchGroupIntroDesc"
   },
-  "/games/risk-hub": {
-    "nameKey": "riskGroup",
-    "skillKey": "skillRisk",
-    "introKey": "riskGroupIntroDesc"
-  },
-  "/games/visual-memory-hub": {
-    "nameKey": "visualMemoryGroup",
-    "skillKey": "skillVisualMemory",
-    "introKey": "visualMemoryGroupIntroDesc"
-  },
   "/games/mnemonics-hub": {
     "nameKey": "mnemonicsGroup",
     "skillKey": "skillSequence",
@@ -486,15 +471,5 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "spatialLab",
     "skillKey": "skillSpatial",
     "introKey": "spatialLabIntroDesc"
-  },
-  "/games/routes-hub": {
-    "nameKey": "routesGroup",
-    "skillKey": "skillPlanning",
-    "introKey": "routesGroupIntroDesc"
-  },
-  "/games/flexibility-hub": {
-    "nameKey": "flexibilityGroup",
-    "skillKey": "skillSwitching",
-    "introKey": "flexibilityGroupIntroDesc"
   }
 };

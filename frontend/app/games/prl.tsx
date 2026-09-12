@@ -60,6 +60,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
 const GRADIENT = ['#1e3c72', '#2a5298'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -543,6 +544,7 @@ export default function PRLGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('prl')}</Text>
         <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared gameId="prl" level={levelRef.current} passed={clearedPassed} stars={clearedStars}

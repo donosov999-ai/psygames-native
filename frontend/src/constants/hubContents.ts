@@ -95,17 +95,18 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
      * отдельной карточкой до 04.09.2026 — при том, что меряет ровно это.
      */
     { route: '/games/n-back', icon: 'sync', nameKey: 'nBack', descKey: 'nBackDesc', typeKey: 'spanTypeNBack' },
-  ],
-
-  '/games/visual-memory-hub': [
     /**
-     * ⚠️ «Матрица памяти» стоит И ЗДЕСЬ, И в охвате памяти — это законно и есть
-     * та самая причина, по которой состав развилки нельзя выводить из `mergedInto`:
-     * родитель у игры один (`span_group`), а входов к ней два.
+     * «Парные картинки» пришли 12.09.2026 из расформированной «Зрительной
+     * памяти» (вариант А, задача 43bc1ca2). Резали по МЕХАНИКЕ, а не по
+     * материалу: здесь всё про «удержать сейчас», и `skillVisualMemory` у
+     * парных картинок тот же, что у всех трёх экранов набора «Позиции».
+     *
+     * ⚠️ Второй вход к «Матрице памяти» при этом СНЯТ, а не потерян: экран
+     * живёт в наборе «Позиции» выше. Прежде он стоял в двух развилках сразу —
+     * это было законно и специально описано в шапке файла; теперь развилки,
+     * дававшей второй вход, просто нет.
      */
-    { route: '/games/memory-matrix', icon: 'grid', nameKey: 'memoryMatrix', descKey: 'memoryMatrixDesc' },
     { route: '/games/picture-pairs', icon: 'copy', nameKey: 'picturePairs', descKey: 'picturePairsDesc' },
-    { route: '/games/navigator', icon: 'navigate', nameKey: 'navigator', descKey: 'navigatorDesc' },
   ],
 
   '/games/mnemonics-hub': [
@@ -113,6 +114,14 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/memory-palace', icon: 'home', nameKey: 'memoryPalace', descKey: 'memoryPalaceDesc' },
     { route: '/games/faces-names', icon: 'person', nameKey: 'facesNames', descKey: 'facesNamesDesc' },
     { route: '/games/word-pairs', icon: 'link', nameKey: 'wordPairs', descKey: 'wordPairsDesc' },
+    /**
+     * RMET «Прочти эмоции» — 12.09.2026, вариант «б» (задача 4332ce4e).
+     * ⚠️ Слабое место названо Денису ДО решения: `skillKey: 'skillSocial'` —
+     * единственный такой во всём каталоге, ни одна из развилок не берёт игру
+     * по навыку. Сходится по МАТЕРИАЛУ: лица и глаза, как у «Лиц и имён».
+     * Наберётся ещё социальных — из них двоих выйдет развилка «Люди».
+     */
+    { route: '/games/rmet', icon: 'eye', nameKey: 'rmet', descKey: 'rmetDesc' },
   ],
 
   '/games/chess-hub': [
@@ -134,16 +143,27 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     // а не стрелка), у второй правило не объявляется вовсе — сливать не с чем.
     { route: '/games/targets', icon: 'locate', nameKey: 'targets', descKey: 'targetsDesc', typeKey: 'acTypeTargets' },
     { route: '/games/wcst', icon: 'grid', nameKey: 'wcst', descKey: 'wcstDesc', typeKey: 'acTypeWcst' },
-  ],
-
-  '/games/inhibition-hub': [
-    { route: '/games/inhibition', icon: 'hand-left', nameKey: 'inhibition', descKey: 'inhibitionDesc' },
+    /**
+     * 🔴 ЧЕТЫРЕ ПРИБАВЛЕНИЯ 12.09.2026 — расформированы развилки «Торможение» и
+     * «Риск», плюс «Корректура» пришла из «Поиска». Задачи 80eb49c9, 4dce5eb9,
+     * 9dc01150. Причина у всех трёх одна: у развилок не было владельца, а оси
+     * родственные — здесь уже меряют, как человек держит правило против помехи.
+     *
+     * Posner НЕ в набор «Торможения»: три его режима меряют удержание и отмену
+     * действия, а Posner — выигрыш во времени от подсказки-метки. Тот же довод,
+     * по которому одиночными оставлены «Мишени» и WCST.
+     */
+    { route: '/games/inhibition', icon: 'hand-left', nameKey: 'suiteInhibition', descKey: 'suiteInhibitionDesc', suiteId: 'suite_inhibition' },
     { route: '/games/posner', icon: 'navigate', nameKey: 'posner', descKey: 'posnerDesc' },
+    { route: '/games/prl', icon: 'shuffle', nameKey: 'suiteDecisions', descKey: 'suiteDecisionsDesc', suiteId: 'suite_decisions' },
+    // Корректурная проба Бурдона всегда была тестом концентрации, а не словарём:
+    // механика — удержание внимания на однообразном материале. Экран НЕ режем,
+    // филворды едут вместе с ним (решение Дениса 12.09.2026).
+    { route: '/games/proofreading', icon: 'create-outline', nameKey: 'proofreading', descKey: 'proofreadingDesc' },
   ],
 
   '/games/search-hub': [
     { route: '/games/visual-search', icon: 'scan', nameKey: 'visualSearch', descKey: 'visualSearchDesc' },
-    { route: '/games/proofreading', icon: 'create-outline', nameKey: 'proofreading', descKey: 'proofreadingDesc' },
     /*
      * ⚠️ КЛЮЧИ `findDiff*`, А НЕ `findDifferences*`. Второй пары в словаре нет
      * вовсе, и человек видел на карточке буквально «findDifferences» —
@@ -155,6 +175,15 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/schulte', icon: 'apps', nameKey: 'schulteTable', descKey: 'schulteTableDesc' },
     { route: '/games/quick-count', icon: 'eye', nameKey: 'quickCount', descKey: 'quickCountDesc' },
     { route: '/games/object-tracker', icon: 'locate', nameKey: 'objectTracker', descKey: 'objectTrackerDesc' },
+    /**
+     * SDMT и SET пришли 12.09.2026 из расформированной «Гибкости» (задача
+     * 8f0b0428). Довод из определения самой развилки — «найти нужное среди
+     * похожего»: у SDMT ключ символ→цифра вверху и таблица внизу, глаза бегают
+     * между ними, и `skillKey` у него `skillProcessingSpeed`; у SET надо найти
+     * тройку среди похожих карточек — тот же зрительный перебор.
+     */
+    { route: '/games/sdmt', icon: 'swap-horizontal', nameKey: 'sdmt', descKey: 'sdmtDesc' },
+    { route: '/games/set-game', icon: 'apps', nameKey: 'setGame', descKey: 'setGameDesc' },
   ],
 
   /* ——— Логика ——— */
@@ -262,6 +291,19 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/spatial-lab?mode=net', icon: 'git-network', nameKey: 'spatialNet', descKey: 'spatialNetDesc' },
     { route: '/games/puzzles?mode=Slide', icon: 'albums', nameKey: 'puzzlesSlide', descKey: 'puzzlesSlideDesc' },
     { route: '/games/puzzles?mode=Sokoban', icon: 'cube-outline', nameKey: 'puzzlesSokoban', descKey: 'puzzlesSokobanDesc' },
+    /**
+     * ЧЕТЫРЕ ПРИБАВЛЕНИЯ 12.09.2026. Три первых — расформированная развилка
+     * «Маршруты» (задача 81486a4a): дорожная карта движков Тэтхэма у того же
+     * владельца прямо ведёт заимствования В ЭТИ экраны (Loopy и Bridges → «Одна
+     * линия», Rectangles → «Точки»), так что оставить их отдельно значило бы
+     * разрезать одну задачу между двумя чатами.
+     * «Навигатор» — из расформированной «Зрительной памяти» (задача 43bc1ca2):
+     * `skillKey` у него `skillSpatial`, единственный такой во всей той тройке.
+     */
+    { route: '/games/dots-connect', icon: 'ellipse', nameKey: 'dotsConnect', descKey: 'dotsConnectDesc' },
+    { route: '/games/one-line', icon: 'analytics', nameKey: 'oneLine', descKey: 'oneLineDesc' },
+    { route: '/games/trail-making', icon: 'git-network', nameKey: 'trailMaking', descKey: 'trailMakingDesc' },
+    { route: '/games/navigator', icon: 'navigate', nameKey: 'navigator', descKey: 'navigatorDesc' },
   ],
   '/games/sorting-hub': [
     { route: '/games/goods-sort', icon: 'basket', nameKey: 'goodsSort', descKey: 'goodsSortDesc' },
@@ -284,23 +326,6 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/tower-london', icon: 'git-branch', nameKey: 'towerLondon', descKey: 'towerLondonDesc' },
   ],
 
-  '/games/routes-hub': [
-    { route: '/games/dots-connect', icon: 'ellipse', nameKey: 'dotsConnect', descKey: 'dotsConnectDesc' },
-    { route: '/games/one-line', icon: 'analytics', nameKey: 'oneLine', descKey: 'oneLineDesc' },
-    { route: '/games/trail-making', icon: 'git-network', nameKey: 'trailMaking', descKey: 'trailMakingDesc' },
-  ],
-
-  '/games/flexibility-hub': [
-    { route: '/games/pattern', icon: 'trending-up', nameKey: 'pattern', descKey: 'patternDesc' },
-    { route: '/games/set-game', icon: 'apps', nameKey: 'setGame', descKey: 'setGameDesc' },
-    { route: '/games/sdmt', icon: 'swap-horizontal', nameKey: 'sdmt', descKey: 'sdmtDesc' },
-  ],
-
-  '/games/risk-hub': [
-    { route: '/games/bart', icon: 'balloon', nameKey: 'bart', descKey: 'bartDesc' },
-    { route: '/games/iowa', icon: 'card', nameKey: 'iowa', descKey: 'iowaDesc' },
-    { route: '/games/prl', icon: 'shuffle', nameKey: 'prl', descKey: 'prlDesc' },
-  ],
 
   /* ——— Счёт и слова ——— */
   '/games/counting-hub': [
@@ -310,6 +335,14 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/number-bonds', icon: 'git-merge', nameKey: 'numberBonds', descKey: 'numberBondsDesc' },
     // 04.09.2026: перенесён из «Объёма памяти» по решению Дениса (отчёт a0df2925)
     { route: '/games/ospan', icon: 'calculator', nameKey: 'ospan', descKey: 'ospanDesc' },
+    /**
+     * «Паттерны» пришли 12.09.2026 из расформированной «Гибкости» (вариант Г,
+     * задача 8f0b0428). ⚠️ Расхождение названо Денису ДО решения и осталось:
+     * материал числовой (ряд 7·14·21·28 — арифметическая прогрессия), а
+     * `skillKey` у игры `skillReasoning` и `category: 'logic'`. По материалу
+     * счёт, по навыку вывод правила. Не сойдётся на замере — кандидат в «Судоку».
+     */
+    { route: '/games/pattern', icon: 'trending-up', nameKey: 'pattern', descKey: 'patternDesc' },
   ],
 
   '/games/words-hub': [
@@ -333,6 +366,14 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/chinese-tones', icon: 'musical-note', nameKey: 'chineseTones', descKey: 'chineseTonesDesc' },
     { route: '/games/pseudoword-echo', icon: 'mic', nameKey: 'pseudowordEcho', descKey: 'pseudowordEchoDesc' },
     { route: '/games/dictation', icon: 'headset', nameKey: 'dictation', descKey: 'dictationDesc' },
+    /**
+     * «Ритм и высота» — 12.09.2026 (задача 4332ce4e). Довод замером, не по
+     * названию: `skillKey: 'skillListening'` стоит ровно у ПЯТИ игр каталога,
+     * четыре из них уже здесь, пятая стояла снаружи одна.
+     * ⚠️ У карточки `sandbox: true` — динамика сырая; переезд закрывает вопрос
+     * дома, но не вопрос качества.
+     */
+    { route: '/games/rhythm-pitch', icon: 'musical-notes', nameKey: 'rhythmPitch', descKey: 'rhythmPitchDesc' },
   ],
 
   /**

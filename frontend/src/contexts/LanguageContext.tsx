@@ -1179,10 +1179,10 @@ const translations: Translations = {
   spatialNetDesc: { ru: 'Поверни трубы так, чтобы вода дошла до каждого конца', en: 'Rotate the pipes so water reaches every end' },
   spatialTwiddleDesc: { ru: 'Вращай блок 2×2 и расставь числа по порядку', en: 'Rotate a 2×2 block and put the numbers in order' },
   // Развилка названа по флагману, но не слово в слово (гейт dictionary-duplicates: ru+en не должны совпадать с mentalRotation).
-  spatialGroup: { ru: 'Ментальная ротация: 3 пробы', en: 'Mental Rotation: 3 tasks' },
-  spatialGroupDesc: { ru: 'Фигуры, трубы и поворот чисел — три упражнения на вращение в уме', en: 'Shapes, pipes and number twist — three exercises in turning things in your mind' },
-  spatialGroupFootnote: { ru: 'Все три про одно: удержать образ и повернуть его в голове, а не руками.', en: 'All three train one thing: hold the image and turn it in your head, not with your hands.' },
-  spatialGroupIntroDesc: { ru: 'Три упражнения на вращение в уме. «Ментальная ротация» — найди повёрнутую копию фигуры из кубиков. «Поворот чисел» — вращай блок 2×2, чтобы расставить числа по порядку. «Сеть труб» — поворачивай трубы, чтобы вода дошла до каждого конца.', en: 'Three exercises in mental rotation. “Mental Rotation” — find the rotated copy of a cube shape. “Number Twist” — rotate a 2×2 block to put the numbers in order. “Pipe Network” — turn the pipes so water reaches every end.' },
+  spatialGroup: { ru: 'Пространство', en: 'Space' },
+  spatialGroupDesc: { ru: 'Повернуть в уме, растолкать, проложить путь', en: 'Turn it in your head, push it through, plot a path' },
+  spatialGroupFootnote: { ru: 'Общее у всех: ход надо просчитать в голове заранее — на поле почти каждый ход выглядит законным и заводит в тупик.', en: 'What they share: the move has to be worked out in your head first — on the board almost any move looks legal and leads nowhere.' },
+  spatialGroupIntroDesc: { ru: 'Девять упражнений про пространство: повернуть в уме, растолкать блоки, проложить путь. «Ментальная ротация» — найди повёрнутую копию фигуры из кубиков. «Поворот чисел» — вращай блок 2×2, чтобы расставить числа по порядку. «Сеть труб» — поворачивай трубы, чтобы вода дошла до каждого конца.', en: 'Nine exercises about space: turn things in your mind, push blocks through, plot a path. “Mental Rotation” — find the rotated copy of a cube shape. “Number Twist” — rotate a 2×2 block to put the numbers in order. “Pipe Network” — turn the pipes so water reaches every end.' },
   readingSpanDesc:    { ru: 'Оцените смысл и запомните слова',     en: 'Judge sense, recall last words' },
   switchingTaskDesc:  { ru: 'Чередуйте правила числа/буквы',        en: 'Alternate number/letter rules' },
   visualSearchDesc:   { ru: 'Найди все заданные фигуры среди похожих', en: 'Find all the target shapes among similar ones' },
@@ -1458,6 +1458,18 @@ const translations: Translations = {
   suiteStreamDesc:    { ru: 'Поток проб без пауз: держать редкую цель и держать правило, которое меняется', en: 'A stream with no breaks: hold a rare target, hold a rule that keeps changing' },
   suiteModeEmotion:   { ru: 'Эмоциональный',             en: 'Emotional' },
   suiteModeFlanker:   { ru: 'Бока',                      en: 'Flankers' },
+  // Наборы «Торможение» и «Решения» — 12.09.2026, расформирование развилок
+  // `inhibition-hub` и `risk-hub` (задачи 80eb49c9 и 4dce5eb9).
+  suiteInhibition:     { ru: 'Стоп и запрет',                en: 'Stop and hold' },
+  suiteInhibitionDesc: { ru: 'Не нажать на запрет и отменить уже начатое движение', en: "Don't press the forbidden one, and cancel a move already started" },
+  suiteModeAllInOne:   { ru: 'Всё вместе',                   en: 'All in one' },
+  suiteModeGoNoGo:     { ru: 'Запрет',                       en: 'Forbidden one' },
+  suiteModeStopSignal: { ru: 'Отмена начатого',              en: 'Cancel a started move' },
+  suiteDecisions:      { ru: 'Решения',                      en: 'Decisions' },
+  suiteDecisionsDesc:  { ru: 'Правило не объявляют — его приходится вывести из выигрышей и потерь', en: 'Nobody states the rule — you infer it from wins and losses' },
+  suiteModeReversal:   { ru: 'Правило меняется',             en: 'Rule flips' },
+  suiteModeDecks:      { ru: 'Четыре колоды',                en: 'Four decks' },
+  suiteModeBalloon:    { ru: 'Надувай шар',                  en: 'Pump the balloon' },
   suiteModeSimon:     { ru: 'Позиция',                   en: 'Position' },
   suiteModeChoice:    { ru: 'Выбор',                     en: 'Choice' },
   suiteModeAnt:       { ru: 'Подсказка',                 en: 'Cue' },
@@ -1469,12 +1481,12 @@ const translations: Translations = {
    * добавлении и каждом переезде в соседний хаб; формулировка без числа — нет.
    */
   attentionConflictFootnote:{
-    ru: 'Все парадигмы хаба тренируют одну способность — interference resolution. Биомаркер (interference effect = RT_inc − RT_con) сохраняется отдельно для каждой парадигмы.',
-    en: 'Every paradigm here trains one ability — interference resolution. Biomarker (interference effect = RT_inc − RT_con) saved separately per paradigm.'
+    ru: 'Раздел про одно: держать правило, когда всё вокруг толкает ответить иначе. Помеха бывает разной — спорящий признак, запрет на готовое движение, невыгодная привычка, — и каждая парадигма хранит свой замер отдельно.',
+    en: 'One theme here: holding a rule while everything pushes you to answer otherwise. The interference comes in different shapes — a conflicting feature, a forbidden ready move, a habit that costs you — and each paradigm keeps its own measure.'
   },
 
   // Span group (Digit Span + Corsi + Spatial Span)
-  spanGroup:        { ru: 'Span: память на последовательности',          en: 'Span: Sequence Memory' },
+  spanGroup:        { ru: 'Объём памяти',                              en: 'Memory Span' },
   spanGroupDesc:    { ru: 'Цифры или пространство, прямой или обратный', en: 'Digits or space, forward or backward' },
   spanPickModality: { ru: 'Выбери модальность', en: 'Choose modality' },
   spanFootnote: {
@@ -1993,23 +2005,23 @@ const translations: Translations = {
   },
   mnemonicsGroup: { ru: 'Мнемотехники', en: 'Mnemonics' },
   mnemonicsGroupDesc: { ru: 'Привязать новое к тому, что уже помнишь', en: 'Tie the new to what you already know' },
-  mnemonicsGroupFootnote: { ru: 'Все четыре про один приём: новое запоминается не само по себе, а сцепкой с уже известным — местом, лицом, словом, образом.', en: 'All four rest on one trick: the new is remembered not on its own but hooked to the known — a place, a face, a word, an image.' },
+  mnemonicsGroupFootnote: { ru: 'Общий приём: новое запоминается не само по себе, а сцепкой с уже известным — местом, лицом, словом, образом.', en: 'The shared trick: the new is remembered not on its own but hooked to the known — a place, a face, a word, an image.' },
   mnemonicsGroupIntroDesc: {
     ru: 'Четыре техники одного приёма: новое цепляется к уже известному. «Мнемотехники» учат превращать список в образы; «Дворец памяти» раскладывает их по знакомому маршруту; «Лица и имена» привязывают имя к черте лица; «Пары слов» связывают два слова так, чтобы одно вытягивало другое.\n\nПамять плохо держит одиночное и хорошо — связанное. Поэтому запоминают не усилием, а сцепкой: место, лицо, слово, образ. Все четыре тренируют именно её.',
     en: 'Four techniques of one trick: the new gets hooked to the known. Mnemonics turn a list into images; the Memory Palace lays them along a familiar route; Faces and Names ties a name to a feature; Word Pairs link two words so one pulls the other.\n\nMemory holds isolated things badly and connected things well. So you remember not by effort but by hook: a place, a face, a word, an image. All four train exactly that.',
   },
   countingGroup: { ru: 'Счёт', en: 'Counting' },
   countingGroupDesc: { ru: 'Числа в уме: пересчёт, прикидка, скорость', en: 'Numbers in the head: counting, estimating, speed' },
-  countingGroupFootnote: { ru: 'Четыре подхода к одному навыку: удержать число, прикинуть, посчитать быстро, разложить на слагаемые.', en: 'Four takes on one skill: hold a number, estimate, count fast, split into parts.' },
+  countingGroupFootnote: { ru: 'Разные подходы к одному навыку: удержать число, прикинуть, посчитать быстро, разложить на слагаемые, продолжить ряд.', en: 'Different takes on one skill: hold a number, estimate, count fast, split into parts, continue a series.' },
   wordsGroup: { ru: 'Слова', en: 'Words' },
   wordsGroupDesc: { ru: 'Словарь и извлечение слова из памяти', en: 'Vocabulary and pulling a word out of memory' },
   wordsGroupFootnote: { ru: 'От узнавания слова до извлечения его из памяти без подсказки — по нарастанию усилия.', en: 'From recognising a word to pulling it out unaided — in order of effort.' },
   hearingGroup: { ru: 'Слух', en: 'Hearing' },
   hearingGroupDesc: { ru: 'Задание звучит: различить, повторить, назвать тон', en: 'The task is heard: tell apart, repeat, name the tone' },
-  hearingGroupFootnote: { ru: 'Всем троим нужен голос в системе: без него упражнение честно говорит об этом и не притворяется.', en: 'All three need a system voice: without one the exercise says so instead of pretending.' },
+  hearingGroupFootnote: { ru: 'Почти всем нужен голос в системе: без него упражнение честно говорит об этом и не притворяется. Ритму и высоте голос не нужен — там звучат тоны.', en: 'Most of them need a system voice: without one the exercise says so instead of pretending. Rhythm and pitch need none — those are tones.' },
   searchGroup: { ru: 'Поиск глазами', en: 'Visual Search' },
   searchGroupDesc: { ru: 'Найти нужное среди похожего', en: 'Find the one among the many' },
-  searchGroupFootnote: { ru: 'Корректурная проба здесь не случайно: вычёркивать знаки в тексте — тот же поиск, только по буквам.', en: 'The proofreading test belongs here: crossing out letters is the same search, done on text.' },
+  searchGroupFootnote: { ru: 'Общее у всех: цель известна заранее, трудность — в том, что рядом лежит похожее.', en: 'What they share: you know what you are looking for; the difficulty is everything similar lying next to it.' },
   riskGroup: { ru: 'Решения под риском', en: 'Decisions Under Risk' },
   riskGroupDesc: { ru: 'Выбор, когда исход неизвестен', en: 'Choosing when the outcome is unknown' },
   riskGroupFootnote: { ru: 'Три классические пробы: рискнуть ещё раз, распознать невыгодную колоду, заметить смену правила.', en: 'Three classic paradigms: push your luck, spot the bad deck, notice the rule change.' },

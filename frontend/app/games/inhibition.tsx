@@ -51,6 +51,7 @@ import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
 const GRADIENT = ['#11998e', '#ee0979'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -498,6 +499,7 @@ export default function InhibitionGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('inhibition')}</Text>
         <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       {phase === 'boss' && (
         <BossRound

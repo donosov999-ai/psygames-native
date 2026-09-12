@@ -164,15 +164,22 @@ describe('🔴 рекомендуется только разрешённое п
      * двенадцать, затем «Торможение» отделилось от «Конфликта внимания» — пятнадцать.
      * 05.09.2026 добавились «Шахматы» — шестнадцать.
      */
+    /**
+     * ⚠️ БЫЛО ВОСЕМНАДЦАТЬ, СТАЛО ТРИНАДЦАТЬ — 12.09.2026, решением Дениса
+     * расформированы пять развилок: «Торможение», «Риск», «Маршруты»,
+     * «Гибкость», «Зрительная память» (задачи 80eb49c9, 4dce5eb9, 81486a4a,
+     * 8f0b0428, 43bc1ca2). Список остаётся ПОИМЁННЫМ литералом нарочно: взять
+     * его из `GAMES.filter(g => g.hub)` значило бы двигать оба конца сразу, и
+     * тихо пропавшая развилка стала бы «нормой».
+     */
     const HUBS = [
       'span_group', 'attention_conflict', 'sudoku_group',
       'counting_group', 'words_group', 'hearing_group', 'search_group',
-      'risk_group', 'visual_memory_group', 'mnemonics_group',
-      'languages_group', 'routes_group', 'flexibility_group',
+      'mnemonics_group', 'languages_group',
       'sorting_group',
       'puzzles_group',
       'spatial_group',
-      'inhibition_group', 'chess_group',
+      'chess_group',
     ];
     expect([...RECO_GROUP_HUBS].sort()).toEqual([...HUBS].sort());
     const p = profile('odv999');

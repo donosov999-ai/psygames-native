@@ -272,6 +272,18 @@ export default function RhythmPitchScreen() {
         title={strings.title}
         onBack={leaveToConfig}
         /**
+         * Меню паузы — общий канон приложения (задача 12.09.2026 при переезде
+         * экрана в развилку «Слух»). Без него игрок, начав партию, не может
+         * ни продолжить осознанно, ни перезапустить, ни выйти без потери.
+         * Пункт обязан ЧТО-ТО делать: `restart` зовёт настоящий перезапуск игры,
+         * а не закрывает шторку.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => start() },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
+        /**
          * Спрашиваем только когда терять есть что: на правилах уходим молча, а
          * с первого удара подстройки — уже нет. Задание выпадет то же (зерно
          * фиксировано уровнем), но поправку задержки придётся набивать заново.

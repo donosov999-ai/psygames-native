@@ -50,6 +50,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
 const GRADIENT = ['#11998e', '#38ef7d'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -373,6 +374,7 @@ export default function GoNoGoGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('goNoGo')}</Text>
         <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       <LeaderboardModal
         visible={showLeaderboard} onClose={() => setShowLeaderboard(false)}

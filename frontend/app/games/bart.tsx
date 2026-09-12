@@ -47,6 +47,7 @@ import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
 const GRADIENT = ['#ff5e62', '#ff9966'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -528,6 +529,7 @@ export default function BARTGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('bart')}</Text>
         <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       {phase === 'cleared' && (
         <LevelCleared gameId="bart" level={levelRef.current} passed={clearedPassed} stars={stars}
