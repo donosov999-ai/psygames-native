@@ -2635,6 +2635,7 @@ const t: Record<string, string> = {
   "puzzleShowSolution": "Mostrar solución",
   "puzzleSecondAction": "Segunda acción",
   "puzzleNextStep": "Siguiente paso",
+  "puzzleSelect": "Tomar",
   "pauseExitGame": "Salir del ejercicio",
   "pauseSoundOff": "Modo silencioso",
   "pauseSoundOn": "Volver a activar el sonido",

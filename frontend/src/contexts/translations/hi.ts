@@ -2638,6 +2638,7 @@ const t: Record<string, string> = {
   "puzzleShowSolution": "हल दिखाएँ",
   "puzzleSecondAction": "दूसरी क्रिया",
   "puzzleNextStep": "अगला चरण",
+  "puzzleSelect": "चुनें",
   "pauseExitGame": "अभ्यास से बाहर",
   "pauseSoundOff": "शांत मोड",
   "pauseSoundOn": "ध्वनि वापस चालू करें",

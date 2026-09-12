@@ -2629,6 +2629,7 @@ const t: Record<string, string> = {
   "puzzleShowSolution": "答えを見る",
   "puzzleSecondAction": "第2の操作",
   "puzzleNextStep": "次の手",
+  "puzzleSelect": "つかむ",
   "pauseExitGame": "エクササイズを終了",
   "pauseSoundOff": "サイレントモード",
   "pauseSoundOn": "音を戻す",

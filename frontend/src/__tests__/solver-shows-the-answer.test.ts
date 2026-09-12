@@ -144,3 +144,41 @@ describe('стирание введённого ряда', () => {
     expect(с).not.toContain('if (ВВОД.has(имяРежима)) { void отменить()');
   });
 });
+
+/**
+ * ━━━ КРЕСТОВИНА НЕ ЗАМЕНЯЕТ КОМАНДЫ МЕХАНИКИ (P2-07) ━━━
+ *
+ * Замер 12.09.2026, прямой прогон моста в Node, зерно 777:
+ *   Untangle SELECT(525) → ХОД · SELECT2(526) → НИЧЕГО
+ *   Pegs · Signpost · Map — и SELECT, и SELECT2 → ХОД
+ *   Inertia SELECT → НЕ ПОНЯЛ, зато четыре диагонали → ХОД
+ * Отсюда два разных списка и отсутствие кнопки выбора у «Инерции».
+ */
+const имена = () => readFileSync(join(__dirname, '../games/tatham-bridge/names.ts'), 'utf8');
+
+describe('команды механики, а не одни стрелки', () => {
+  it('🔴 четыре игры получили «Взять», и «Распутай» — без второго действия', () => {
+    const н = имена();
+    expect(н).toContain("export const ВЫБОР = new Set(['Map', 'Pegs', 'Signpost', 'Untangle']);");
+    // У Untangle SELECT2 отвечает «ничего» — кнопки-пустышки быть не должно.
+    expect(н).toContain("export const ВЫБОР_ВТОРОЙ = new Set(['Map', 'Pegs', 'Signpost']);");
+    expect(н).not.toMatch(/ВЫБОР_ВТОРОЙ = new Set\(\[[^\]]*'Untangle'/);
+  });
+
+  it('🔴 диагонали — только «Инерции», и коды взяты из его enum', () => {
+    const н = имена();
+    expect(н).toContain("export const ВОСЕМЬ_НАПРАВЛЕНИЙ = new Set(['Inertia']);");
+    const м = мост();
+    expect(м).toContain('const CURSOR_SELECT = 525;');
+    expect(м).toContain('const CURSOR_SELECT2 = 526;');
+    expect(м).toContain('const ЦИФРОВОЙ_БЛОК = 0x4000;');
+  });
+
+  it('🔴 нажатие команды растит счётчик только на настоящем ходе', () => {
+    const с = код();
+    // Обе новые кнопки спрашивают движок, а не считают сами.
+    const выборы = с.match(/выбрать\((?:true)?\)\.then\(\(и\) => \{ setПартия\(и\.партия\); if \(и\.подействовало\) setХодов/g) || [];
+    expect(выборы.length).toBe(2);
+    expect(с).toContain('поДиагонали(куда).then((и) => { setПартия(и.партия); if (и.подействовало) setХодов');
+  });
+});
