@@ -144,7 +144,13 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
   '/games/search-hub': [
     { route: '/games/visual-search', icon: 'scan', nameKey: 'visualSearch', descKey: 'visualSearchDesc' },
     { route: '/games/proofreading', icon: 'create-outline', nameKey: 'proofreading', descKey: 'proofreadingDesc' },
-    { route: '/games/find-differences', icon: 'copy', nameKey: 'findDifferences', descKey: 'findDifferencesDesc' },
+    /*
+     * ⚠️ КЛЮЧИ `findDiff*`, А НЕ `findDifferences*`. Второй пары в словаре нет
+     * вовсе, и человек видел на карточке буквально «findDifferences» —
+     * подтверждено на собранном вебе 12.09.2026, и в русском, и в английском.
+     * Нашёл чат «Поиск»; сторожит теперь `hub-keys-exist`.
+     */
+    { route: '/games/find-differences', icon: 'copy', nameKey: 'findDiff', descKey: 'findDiffDesc' },
     { route: '/games/mahjong', icon: 'grid', nameKey: 'mahjong', descKey: 'mahjongDesc' },
     { route: '/games/schulte', icon: 'apps', nameKey: 'schulteTable', descKey: 'schulteTableDesc' },
     { route: '/games/quick-count', icon: 'eye', nameKey: 'quickCount', descKey: 'quickCountDesc' },
@@ -312,8 +318,14 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
     { route: '/games/cloze', icon: 'create', nameKey: 'cloze', descKey: 'clozeDesc' },
     { route: '/games/lexical-decision', icon: 'checkmark-done', nameKey: 'lexicalDecision', descKey: 'lexicalDecisionDesc' },
     { route: '/games/anagrams', icon: 'shuffle', nameKey: 'anagrams', descKey: 'anagramsDesc' },
-    { route: '/games/phonemic-fluency', icon: 'chatbubbles', nameKey: 'phonemicFluency', descKey: 'phonemicFluencyDesc' },
-    { route: '/games/story-recall', icon: 'book', nameKey: 'storyRecall', descKey: 'storyRecallDesc' },
+    /*
+     * ⚠️ Ключи `phonemic`/`phonemicDesc`, а НЕ `phonemicFluency*`: вторых в словаре
+     * нет, и карточка показывала бы сам ключ. Та же болезнь, что у «Найди отличия»
+     * (12.09.2026). Сторожит `hub-keys-exist`.
+     */
+    { route: '/games/phonemic-fluency', icon: 'chatbubbles', nameKey: 'phonemic', descKey: 'phonemicDesc' },
+    /* ⚠️ Ключи `story`/`storyDesc` — см. соседний разбор выше. */
+    { route: '/games/story-recall', icon: 'book', nameKey: 'story', descKey: 'storyDesc' },
   ],
 
   '/games/hearing-hub': [
