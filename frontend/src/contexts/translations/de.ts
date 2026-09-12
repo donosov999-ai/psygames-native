@@ -2640,6 +2640,8 @@ const t: Record<string, string> = {
   "numberRunRule": "Lenke deine Zahl über die Straße. Blaue Blöcke addieren, rote ziehen ab, was daraufsteht. In einer Reihe kannst du alle fünf Zahlen einsammeln, nicht nur eine wählen. Die grüne Rampe schleudert dich über die Lücke.",
   "numberRunDesc": "Du lenkst eine Zahl über die Straße und entscheidest unterwegs, was du mitnimmst: Blau addiert, Rot zieht ab.",
   "numberRunDone": "Lauf geschafft",
+  "numberRunTask": "Blau addiert, Rot subtrahiert",
+  "numberRunIntroDesc": "Du lenkst eine einzige Zahl über die Straße und entscheidest unterwegs, was du aufnimmst. Ein blauer Block addiert, was daraufsteht, ein roter zieht es ab. Eine Reihe fasst bis zu fünf Zahlen, jede wird einzeln genommen: du kannst alle fünf einsammeln oder keine. Die grüne Platte schleudert dich über die Lücke — verfehlst du sie, stürzt du. Zwölf Etappen laufen ohne Pause und ohne Rücksetzen der Zahl durch.",
   "numberRunWebOnly": "Der Lauf läuft in der Web-Schicht der App; in diesem Build ist die Grafik nicht verfügbar.",
   "pauseExitGame": "Übung verlassen",
   "pauseSoundOff": "Leiser Modus",

@@ -312,6 +312,11 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillMath",
     "introKey": "counterIntroDesc"
   },
+  "/games/number-run": {
+    "nameKey": "numberRun",
+    "skillKey": "skillMath",
+    "introKey": "numberRunIntroDesc"
+  },
   "/games/math-slider": {
     "nameKey": "mathSlider",
     "skillKey": "skillMath",

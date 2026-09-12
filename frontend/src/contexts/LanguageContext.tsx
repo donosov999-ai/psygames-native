@@ -2357,6 +2357,11 @@ const translations: Translations = {
     ru: 'Ведёшь число по дороге и решаешь на ходу, что подобрать: синее прибавит, красное вычтет.',
     en: 'Steer a number down the road and decide on the move what to pick up: blue adds, red subtracts.',
   },
+  numberRunIntroDesc: {
+    ru: 'Ты ведёшь одно число по дороге и на ходу решаешь, что подобрать. Синий блок прибавит к нему то, что на нём написано, красный — вычтет. В поперечном ряду до пяти чисел, и каждое берётся отдельно: можно собрать все пять, а можно ни одного. Зелёная площадка подбрасывает через разрыв — мимо неё падение. Двенадцать этапов идут подряд, без остановок и без сброса числа.',
+    en: 'You steer a single number down the road and decide on the move what to pick up. A blue block adds what is written on it, a red one subtracts. A row holds up to five numbers and each is taken separately: you can collect all five or none. The green pad throws you across the gap — miss it and you fall. Twelve stages run back to back, with no stops and no reset of your number.',
+  },
+  numberRunTask: { ru: 'Синее прибавляет, красное вычитает', en: 'Blue adds, red subtracts' },
   numberRunDone: { ru: 'Забег пройден', en: 'Run completed' },
   numberRunWebOnly: {
     ru: 'Забег работает в веб-слое приложения; в этой сборке графика недоступна.',

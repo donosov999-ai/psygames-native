@@ -2640,6 +2640,8 @@ const t: Record<string, string> = {
   "numberRunRule": "Conduza o seu número pela estrada. Os blocos azuis somam e os vermelhos subtraem o que está escrito neles. Numa mesma fila dá para apanhar os cinco números, não escolher só um. A rampa verde atira você por cima da falha.",
   "numberRunDesc": "Você conduz um número pela estrada e decide em movimento o que apanhar: azul soma, vermelho subtrai.",
   "numberRunDone": "Corrida concluída",
+  "numberRunTask": "Azul soma, vermelho subtrai",
+  "numberRunIntroDesc": "Você conduz um único número pela estrada e decide em movimento o que apanhar. Um bloco azul soma o que está escrito nele; um vermelho subtrai. Uma fila tem até cinco números e cada um é apanhado à parte: dá para levar todos ou nenhum. A plataforma verde atira você por cima da falha; se errar, cai. Doze etapas seguidas, sem paradas e sem zerar o número.",
   "numberRunWebOnly": "A corrida funciona na camada web do aplicativo; nesta build não há gráficos.",
   "pauseExitGame": "Sair do exercício",
   "pauseSoundOff": "Modo silencioso",
