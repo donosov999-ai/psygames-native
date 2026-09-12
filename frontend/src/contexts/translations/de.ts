@@ -2101,7 +2101,7 @@ const t: Record<string, string> = {
   "lr_set_game_timelimit_rule": "Für einen SET hast du jetzt nur begrenzte Zeit. Nicht geschafft: Strafe ✗ und eine neue Auslage. Mit jedem Level wird das Limit enger.",
   "lr_set_game_timelimit_example": "Beispiel: L11 — 26 s pro SET, danach −4 s pro Level (mindestens 8 s).",
   "lr_spatial_span_grid5_title": "Raster 5×5",
-  "lr_spatial_span_hold_title": "Pause vor der Antwort",
+  "lr_spatial_span_hold_title": "Pause vor der Rückwärts-Antwort",
   "lr_spatial_span_hold_rule": "Ab diesem Level entsteht zwischen dem letzten Aufleuchten und deiner Eingabe eine Pause, die weiter wächst. Die Reihenfolge bleibt umgekehrt, nur musst du sie länger halten — Raster und Tempo ändern sich nicht.",
   "lr_spatial_span_hold_example": "Die Felder sind verloschen, das Raster bleibt ein paar Sekunden still — erst danach antwortest du, vom letzten zum ersten.",
   "lr_spatial_span_grid5_rule": "Das Raster ist auf 5×5 gewachsen — mehr Quadrate, dafür kleinere. Die Reihenfolge bleibt umgekehrt.",

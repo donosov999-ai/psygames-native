@@ -2101,7 +2101,7 @@ const t: Record<string, string> = {
   "lr_set_game_timelimit_rule": "Ahora tienes un tiempo limitado para encontrar un SET. Si se acaba: penalización ✗ y cartas nuevas. Cada nivel aprieta más el límite.",
   "lr_set_game_timelimit_example": "Ejemplo: L11 — 26 s por SET; después, −4 s por nivel (mínimo 8 s).",
   "lr_spatial_span_grid5_title": "Cuadrícula 5×5",
-  "lr_spatial_span_hold_title": "Una pausa antes de responder",
+  "lr_spatial_span_hold_title": "Una pausa antes de la respuesta invertida",
   "lr_spatial_span_hold_rule": "Desde este nivel aparece una pausa entre el último destello y tu respuesta, y después crece. El orden sigue invertido, solo hay que sostenerlo más tiempo — la cuadrícula y el ritmo no cambian.",
   "lr_spatial_span_hold_example": "Las casillas se apagaron, la cuadrícula queda en silencio un par de segundos — solo entonces respondes, de la última a la primera.",
   "lr_spatial_span_grid5_rule": "El campo ha crecido a 5×5: más celdas y más pequeñas. El orden sigue siendo inverso.",

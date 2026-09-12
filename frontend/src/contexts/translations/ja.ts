@@ -2095,7 +2095,7 @@ const t: Record<string, string> = {
   "lr_set_game_timelimit_rule": "SET を見つけるまでの時間に制限がつきます。間に合わないと ✗ の減点があり、カードは並べ直しです。制限はレベルごとに短くなります。",
   "lr_set_game_timelimit_example": "例：L11 は SET 1つにつき26秒、以降はレベルごとに −4秒（最短8秒）。",
   "lr_spatial_span_grid5_title": "5×5の格子",
-  "lr_spatial_span_hold_title": "答える前の間",
+  "lr_spatial_span_hold_title": "逆順で答える前の間",
   "lr_spatial_span_hold_rule": "このレベルから、最後の点滅と入力のあいだに間が入り、その後さらに長くなります。順番は逆のままで、長く保つ必要があるだけです — 盤面の大きさも速さも変わりません。",
   "lr_spatial_span_hold_example": "マスが消え、盤面が数秒静かになります — そのあとで最後から順に答えます。",
   "lr_spatial_span_grid5_rule": "格子が5×5に広がりました。マスは増え、1つずつは小さくなります。再現はこれまでどおり逆の順番です。",

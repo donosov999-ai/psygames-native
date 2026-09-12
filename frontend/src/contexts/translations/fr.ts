@@ -2096,7 +2096,7 @@ const t: Record<string, string> = {
   "lr_set_game_timelimit_rule": "Tu as maintenant un temps limité pour trouver un SET. Temps écoulé : pénalité ✗ et nouvelle donne. La limite se resserre à chaque niveau.",
   "lr_set_game_timelimit_example": "Exemple : L11 — 26 s par SET, puis −4 s par niveau (8 s minimum).",
   "lr_spatial_span_grid5_title": "Grille 5×5",
-  "lr_spatial_span_hold_title": "Une pause avant de répondre",
+  "lr_spatial_span_hold_title": "Une pause avant la réponse inversée",
   "lr_spatial_span_hold_rule": "À partir de ce niveau, une pause apparaît entre le dernier éclat et ta saisie, et elle grandit ensuite. L’ordre reste inversé, il faut seulement le tenir plus longtemps — la grille et le rythme ne changent pas.",
   "lr_spatial_span_hold_example": "Les cases se sont éteintes, la grille reste silencieuse quelques secondes — ce n’est qu’après que tu réponds, de la dernière à la première.",
   "lr_spatial_span_grid5_rule": "La grille est passée à 5×5 — plus de carrés, et plus petits. L'ordre reste inversé.",

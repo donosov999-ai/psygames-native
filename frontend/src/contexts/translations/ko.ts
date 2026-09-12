@@ -2096,7 +2096,7 @@ const t: Record<string, string> = {
   "lr_set_game_timelimit_rule": "이제 SET 하나를 찾는 데 제한 시간이 있어요. 못 찾으면 ✗ 벌점과 함께 카드가 새로 깔려요. 레벨이 오를수록 시간이 빡빡해져요.",
   "lr_set_game_timelimit_example": "예: L11은 SET당 26초, 이후 레벨마다 −4초(최소 8초).",
   "lr_spatial_span_grid5_title": "5×5 격자",
-  "lr_spatial_span_hold_title": "답하기 전의 멈춤",
+  "lr_spatial_span_hold_title": "거꾸로 답하기 전의 멈춤",
   "lr_spatial_span_hold_rule": "이 레벨부터 마지막 깜빡임과 입력 사이에 멈춤이 생기고, 이후 점점 길어집니다. 순서는 여전히 거꾸로이며 더 오래 붙잡아야 할 뿐입니다 — 격자와 속도는 그대로입니다.",
   "lr_spatial_span_hold_example": "칸이 모두 꺼지고 격자가 몇 초 동안 조용해집니다 — 그 뒤에 마지막부터 처음까지 답합니다.",
   "lr_spatial_span_grid5_rule": "격자가 5×5로 커졌어요 — 칸은 많아지고 하나하나는 작아져요. 순서는 여전히 거꾸로예요.",
