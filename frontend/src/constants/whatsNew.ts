@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.2',
+    date: '2026-09-12',
+    ru: [
+      'Судоку: ряд цифр больше не уезжает за нижний край на невысоких экранах — обе строки клавиатуры видны целиком, без прокрутки',
+      'Судоку: цифры стоят двумя ровными строками по пять, а не вразнобой — нужная клавиша всегда на одном и том же месте',
+    ],
+    en: [
+      'Sudoku: the digit keys no longer run off the bottom on shorter screens — both rows are fully visible without scrolling',
+      'Sudoku: digits now sit in two even rows of five instead of an uneven wrap — the key you want is always in the same place',
+    ],
+  },
+  {
     version: '2.54.1',
     date: '2026-09-12',
     ru: [
