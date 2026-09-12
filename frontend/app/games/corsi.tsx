@@ -41,8 +41,28 @@ import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 /** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+/**
+ * 🔴 ВЕРХ ОБЪЁМА И СКОРОСТИ. Выше него прежние оси не двигаются: startSpan упирается в 8 на L6, tickMs в 480 на L13, flashMs в 280 на L14, обратный порядок приходит на L10.
+ * Прогон levelParams() на L1…L60 (11.09.2026) дал 46 пар одинаковых соседей из 59 —
+ * сорок шесть уровней требовали прохождения, ничем не отличаясь от предыдущего.
+ *
+ * ⚠️ ОБЪЯВЛЕНА ВЫШЕ МАССИВА ПРАВИЛ СОЗНАТЕЛЬНО. `const` в мёртвой зоне роняет
+ * экран на старте: порог правила считается от этого числа, а массив инициализируется
+ * раньше. На этом я споткнулся трижды — в digit-span, memory-matrix и listening-span.
+ */
+export const CORSI_VOLUME_TOP = 14;
+
 export const CORSI_RULES: LevelRule[] = [
   { key: 'reverse', fromLevel: 10 },   // lr_corsi_reverse_*
+  /**
+   * ⚠️ ПОРЯДОК ЗДЕСЬ ЗНАЧИМ: побеждает ПОСЛЕДНЕЕ подошедшее правило
+   * (`LevelRules.tsx:100` — массив разворачивается и берётся первое совпадение),
+   * поэтому список пишется по возрастанию `fromLevel`. Я сперва вставил `hold`
+   * первым, и гейт `level-rules-i18n` сразу сказал: «не показывается ни на одном
+   * уровне 1–60 — диапазон накрыт соседним правилом». Механика была бы введена
+   * молча, а молчаливая ось уже роняла main на выпуске 2.49.0.
+   */
+  { key: 'hold', fromLevel: CORSI_VOLUME_TOP + 1 },   // lr_corsi_hold_* — порог от константы, не числом
 ];
 
 const GRADIENT = ['#0083B0', '#00B4DB'];
@@ -64,13 +84,20 @@ type Mode = 'forward' | 'backward';
 
 // Уровень (1..15+): L1-6 span 3→8 · L7-9 показ быстрее · L10+ обязательный обратный порядок.
 /** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
-export function levelParams(level: number): { startSpan: number; tickMs: number; flashMs: number; reverse: boolean } {
+export function levelParams(level: number): { startSpan: number; tickMs: number; flashMs: number; reverse: boolean; holdMs: number } {
   const startSpan = Math.min(8, 2 + level);             // L1=3 → L6=8
   const fast = Math.max(0, level - 6);
   const tickMs = Math.max(480, 800 - fast * 45);
   const flashMs = Math.max(280, 500 - fast * 30);
   const reverse = level >= 10;                            // L10+ — обратный порядок
-  return { startSpan, tickMs, flashMs, reverse };
+  /**
+   * 🔴 ОСЬ 3 — ЗАДЕРЖКА между концом показа и открытием ввода. Та же механика,
+   * что уже стоит в пяти играх раздела с 07.09: объём и скорость кончились, а
+   * «потолков нет нигде» (правило Дениса 06.09) — значит нужна следующая ось,
+   * а не обрезанная лестница. Держать последовательность в уме дольше труднее,
+   * при этом ни длина, ни темп показа не тронуты.
+   */
+  return { startSpan, tickMs, flashMs, reverse, holdMs: Math.max(0, level - CORSI_VOLUME_TOP) * 700 };
 }
 
 const POS = [
@@ -194,6 +221,8 @@ export default function CorsiGame() {
   const levelRef = useRef(1);
   const tickMsRef = useRef(800);
   const flashMsRef = useRef(500);
+  /** Ось 3: сколько держать последовательность в уме до открытия ввода. Пресет идёт мимо лестницы. */
+  const holdRef = useRef(0);
   const modeRef = useRef<Mode>('forward');
 
   useEffect(() => () => {
@@ -216,12 +245,12 @@ export default function CorsiGame() {
       // ⚠️ Пресет — потолок желания (см. `presetCap`): программа просит ряд из
       // четырёх, а игрок освоил три. Верх лесенки — восемь.
       startSpan = capPresetByLevel({ want: num('startLen', 3), atLevel: p.startSpan, atTop: p.startSpan >= 8 });
-      tickMsRef.current = 800; flashMsRef.current = 500;
+      tickMsRef.current = 800; flashMsRef.current = 500; holdRef.current = 0;
       modeRef.current = mode;
     } else {
       // уровень рулит: span → скорость показа → обратный порядок
       startSpan = p.startSpan;
-      tickMsRef.current = p.tickMs; flashMsRef.current = p.flashMs;
+      tickMsRef.current = p.tickMs; flashMsRef.current = p.flashMs; holdRef.current = p.holdMs;
       modeRef.current = p.reverse ? 'backward' : 'forward';
       setMode(modeRef.current);
     }
@@ -251,7 +280,14 @@ export default function CorsiGame() {
         i++;
       } else {
         if (tickerRef.current) clearInterval(tickerRef.current);
-        setPhase('recall');
+        /**
+         * ⚠️ ОБЪЯВЛЕННАЯ СЛОЖНОСТЬ ОБЯЗАНА ИСПОЛНЯТЬСЯ. Задержка не просто лежит
+         * в levelParams — она стоит здесь, между последней вспышкой и вводом.
+         * Ровно на расхождении этих двух мест построен дефект memory-matrix:
+         * формула обещала 43 клетки, поле давало 17.
+         */
+        if (holdRef.current > 0) setTimeout(() => setPhase('recall'), holdRef.current);
+        else setPhase('recall');
       }
     }, tickMsRef.current);
   };

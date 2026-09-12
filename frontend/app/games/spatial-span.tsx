@@ -33,8 +33,21 @@ import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 /** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
+/**
+ * 🔴 ВЕРХ ОБЪЁМА И СКОРОСТИ. Выше него прежние оси не двигаются: startSpan упирается в 7 на L6, сетка 5×5 приходит на L11, tickMs в 450 и flashMs в 250 — на L14.
+ * Прогон levelParams() на L1…L60 (11.09.2026) дал 46 пар одинаковых соседей из 59 —
+ * сорок шесть уровней требовали прохождения, ничем не отличаясь от предыдущего.
+ *
+ * ⚠️ ОБЪЯВЛЕНА ВЫШЕ МАССИВА ПРАВИЛ СОЗНАТЕЛЬНО. `const` в мёртвой зоне роняет
+ * экран на старте: порог правила считается от этого числа, а массив инициализируется
+ * раньше. На этом я споткнулся трижды — в digit-span, memory-matrix и listening-span.
+ */
+export const SS_VOLUME_TOP = 14;
+
 export const SS_RULES: LevelRule[] = [
   { key: 'grid5', fromLevel: 11 },   // lr_spatial_span_grid5_*
+  /** ⚠️ По возрастанию fromLevel: побеждает ПОСЛЕДНЕЕ подошедшее (LevelRules.tsx:100). */
+  { key: 'hold', fromLevel: SS_VOLUME_TOP + 1 },   // lr_spatial_span_hold_* — порог от константы, не числом
 ];
 
 const GRADIENT = ['#1A2980', '#26D0CE'];
@@ -57,13 +70,20 @@ type GamePhase = 'intro' | 'config' | 'show' | 'recall' | 'cleared' | 'result';
 
 // Уровень (1..15+): L1-6 span 2→7 · L7-10 показ быстрее · L11+ сетка 5×5 (span дальше). Реверс — всегда (CANTAB backward).
 /** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
-export function levelParams(level: number): { startSpan: number; gridSize: number; tickMs: number; flashMs: number } {
+export function levelParams(level: number): { startSpan: number; gridSize: number; tickMs: number; flashMs: number; holdMs: number } {
   const startSpan = Math.min(7, 1 + level);
   const fast = Math.max(0, level - 6);
   const gridSize = level >= 11 ? 5 : 4;
   const tickMs = Math.max(450, 750 - fast * 40);
   const flashMs = Math.max(250, 450 - fast * 25);
-  return { startSpan, gridSize, tickMs, flashMs };
+  /**
+   * 🔴 ОСЬ 3 — ЗАДЕРЖКА между концом показа и открытием ввода. Та же механика,
+   * что уже стоит в пяти играх раздела с 07.09: объём и скорость кончились, а
+   * «потолков нет нигде» (правило Дениса 06.09) — значит нужна следующая ось,
+   * а не обрезанная лестница. Держать последовательность в уме дольше труднее,
+   * при этом ни длина, ни темп показа не тронуты.
+   */
+  return { startSpan, gridSize, tickMs, flashMs, holdMs: Math.max(0, level - SS_VOLUME_TOP) * 700 };
 }
 
 export default function SpatialSpanGame() {
@@ -168,6 +188,8 @@ export default function SpatialSpanGame() {
   const levelRef = useRef(1);
   const tickMsRef = useRef(750);
   const flashMsRef = useRef(450);
+  /** Ось 3: сколько держать последовательность в уме до открытия ввода. */
+  const holdRef = useRef(0);
   const gridSizeRef = useRef(4);
 
   useEffect(() => () => {
@@ -201,7 +223,14 @@ export default function SpatialSpanGame() {
         i++;
       } else {
         if (tickerRef.current) clearInterval(tickerRef.current);
-        setPhase('recall');
+        /**
+         * ⚠️ ОБЪЯВЛЕННАЯ СЛОЖНОСТЬ ОБЯЗАНА ИСПОЛНЯТЬСЯ. Задержка не просто лежит
+         * в levelParams — она стоит здесь, между последней вспышкой и вводом.
+         * Ровно на расхождении этих двух мест построен дефект memory-matrix:
+         * формула обещала 43 клетки, поле давало 17.
+         */
+        if (holdRef.current > 0) setTimeout(() => setPhase('recall'), holdRef.current);
+        else setPhase('recall');
       }
     }, tickMsRef.current);
   };
@@ -217,6 +246,7 @@ export default function SpatialSpanGame() {
     levelRef.current = effLevel;
     tickMsRef.current = p.tickMs;
     flashMsRef.current = p.flashMs;
+    holdRef.current = isPreset ? 0 : p.holdMs;   // пресет идёт мимо лестницы
     gridSizeRef.current = p.gridSize;
     setGridSize(p.gridSize);
     setSpan(0); setErrorsAtLen(0); setTotalErrors(0);
