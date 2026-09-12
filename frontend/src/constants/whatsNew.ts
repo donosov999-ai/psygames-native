@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.5',
+    date: '2026-09-12',
+    ru: [
+      'Новая игра «Числовой забег» в разделе «Счёт»: ведёшь число по дороге и на ходу решаешь, что подобрать — синее прибавляет, красное вычитает написанное',
+      'В одном ряду можно собрать все пять чисел, а не выбрать одно; зелёный трамплин перебрасывает через разрыв',
+      'Забег идёт двенадцать этапов подряд, без остановок и без сброса числа — около восьми с половиной минут',
+    ],
+    en: [
+      'New game «Number Run» in the Counting section: steer a number down the road and decide on the move what to pick up — blue adds, red subtracts what is written',
+      'A row lets you collect all five numbers instead of picking one; a green ramp throws you across the gap',
+      'The run goes through twelve stages back to back, with no stops and no reset of your number — about eight and a half minutes',
+    ],
+  },
+  {
     version: '2.54.4',
     date: '2026-09-12',
     ru: [
