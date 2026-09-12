@@ -23,14 +23,28 @@
 ```
 frontend/app/games/digit-span.tsx
 frontend/app/games/memory-matrix.tsx
+frontend/app/games/corsi.tsx            ← с 10.09.2026
+frontend/app/games/spatial-span.tsx     ← с 10.09.2026
 frontend/app/games/listening-span.tsx
 frontend/app/games/reading-span.tsx
 frontend/app/games/n-back.tsx
-frontend/app/games/span.tsx            ← развилка
+frontend/app/games/span.tsx             ← развилка
 frontend/src/games/span/**  (если заведёшь)
 frontend/src/__tests__/digit-span-*  ·  memory-matrix-*  ·  n-back-*
 frontend/src/__tests__/listening-span-*  ·  reading-span-*
+frontend/src/__tests__/corsi-*  ·  spatial-span-*
 ```
+
+🔴 **ЭКРАНОВ СЕМЬ, А КАРТОЧЕК В ХАБЕ ПЯТЬ — НЕ ПУТАТЬ.** Карточка «Позиции»
+несёт `suiteId: 'suite_positions'` (`frontend/src/constants/gameSuites.ts`), и
+за ней ТРИ экрана: `memory-matrix`, `corsi`, `spatial-span`. Игрок доходит до
+всех семи; считать состав раздела надо по `hubContents.ts` + `gameSuites.ts`, а
+не по числу карточек и не по росписи задач.
+
+⚠️ **`corsi` и `spatial-span` пришли в раздел 10.09.2026** решением координатора
+(задача `550a2edf`). До этого полгода стояли без владельца и без единой пробы:
+у обеих было по **46 клонов уровней из 59**, лестница застывала на L14. Снято
+12.09.2026 осью задержки (коммит `c3dc9350`), клонов 0, пробы заведены.
 
 **За их пределы не выходишь.** Не трогаешь `src/games/anagrams/`,
 `src/games/goods-sort/`, `src/games/sudoku/`, `src/games/water-sort/`,
@@ -82,6 +96,8 @@ frontend/src/__tests__/listening-span-*  ·  reading-span-*
 | `memory-matrix` | клетки на сетке, зрительный объём |
 | `listening-span` | слова на слух + счёт между ними |
 | `reading-span` | предложения + запоминание последнего слова |
+| `corsi` | нерегулярные блоки, порядок касаний; с L10 обратный |
+| `spatial-span` | та же сетка, порядок всегда обратный; с L11 поле 5×5 |
 | `n-back` | совпадение с позицией N назад, одиночный и двойной |
 
 Озвучка готова и не требует работы: **1442 синтезированных семпла + 988 живых
