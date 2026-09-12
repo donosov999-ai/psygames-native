@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.4',
+    date: '2026-09-12',
+    ru: [
+      '«Одна линия»: экран больше не уезжает под пальцем, когда ведёшь линию по графу',
+      '«Одна линия»: «Отменить», «Подсказка» и «Начать заново» всегда видны — за ними больше не надо прокручивать',
+      '«Одна линия»: поле подстраивается под высоту экрана, а не только под ширину; лишняя вторая кнопка паузы убрана',
+    ],
+    en: [
+      'One Line: the screen no longer slides under your finger while you draw a path',
+      'One Line: Undo, Hint and Restart are always visible — no more scrolling to reach them',
+      'One Line: the board now fits the screen height as well as its width, and a duplicate pause button is gone',
+    ],
+  },
+  {
     version: '2.54.3',
     date: '2026-09-12',
     ru: [
