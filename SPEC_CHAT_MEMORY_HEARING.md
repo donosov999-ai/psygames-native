@@ -31,18 +31,26 @@ frontend/app/games/chinese-tones.tsx
 frontend/app/games/pseudoword-echo.tsx
 frontend/app/games/dictation.tsx
 frontend/app/games/hearing-hub.tsx
-frontend/src/services/tts.ts  ·  voiceSamples.ts
-frontend/src/__tests__/voice-*  ·  phoneme-*  ·  mnemonics-*  ·  faces-names-*
+frontend/src/__tests__/phoneme-*  ·  mnemonics-*  ·  faces-names-*
 ```
 
-⚠️ `tts.ts` и `voiceSamples.ts` — общие для всего приложения. Ведёшь их ты, но
-🔴 **«кроме тебя ими никто не пользуется» перестало быть правдой** (замер
-09.09.2026: `git grep -l "services/tts" origin/main` → 12 носителей, из них три
-чужие игры раздела «Объём памяти» — `digit-span.tsx`, `listening-span.tsx`,
-`n-back.tsx`, плюс `src/games/digit-span/core/i18n.ts` и общий хук
-`src/hooks/useTtsAvailable.ts`). Поэтому перед правкой голосового слоя —
-`git grep -l "services/tts"`, предупреждение владельцу «Объёма памяти» и
-координатору; правка «своего» файла молча задевает соседний раздел.
+🔴 **ГОЛОСОВОЙ СЛОЙ ПЕРЕДАН `psygames-languages-claude-mac` («Билингво») 12.09.2026,
+решение Дениса. Правки — через него, не здесь.**
+
+Что ушло: `frontend/src/services/tts.ts`, `voiceSamples.ts`,
+`frontend/src/hooks/useTtsAvailable.ts`, три `frontend/src/constants/*.generated.ts`
+(`voiceIndex`, `voiceLive`, `letterVoice`), корпус `voice-wiktionary/**`,
+`scripts/fetch_wiktionary_voice.py` и пробы `voice-*`.
+
+ПОЧЕМУ ТАК ПРАВИЛЬНО, ЧИСЛОМ. Замер 09.09.2026 `git grep -l "services/tts" origin/main`
+— 12 носителей. Игровых экранов среди них семь: четыре слуховых (`phoneme-pairs`,
+`chinese-tones`, `pseudoword-echo`, `dictation`) и три чужих из «Объёма памяти»
+(`digit-span`, `listening-span`, `n-back`). Когда развилка «Слух» уходит в «Языки»,
+у этого раздела не остаётся НИ ОДНОГО своего потребителя слоя — держать общий файл
+без единого носителя значит гарантировать расхождение.
+
+⚠️ И слой возвращается туда, откуда пришёл: первый его коммит — `9b6a27a6`
+«feat(polyglot): TIER 2 — три аудио-упражнения через системный TTS».
 
 **За их пределы не выходишь.** Не трогаешь чужие разделы.
 
@@ -102,6 +110,9 @@ frontend/src/__tests__/voice-*  ·  phoneme-*  ·  mnemonics-*  ·  faces-names-
 - обе базы раздаются с psy-games.pro, проверено живым запросом: файл 200,
   3012 байт настоящего Ogg/Opus
 - `tts.ts` предпочитает ЗАПИСЬ и падает на синтез; гейт `voice-live-first` зелен
+
+⚠️ Раздел оставлен СПРАВКОЙ: с 12.09.2026 слой ведёт «Билингво»
+(`psygames-languages-claude-mac`), числа выше — замер на момент передачи.
 
 Чего нет: банка псевдослов (эхо генерирует их на лету). Это опция за ~$0.33,
 не долг.
