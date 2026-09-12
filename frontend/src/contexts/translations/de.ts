@@ -2634,6 +2634,7 @@ const t: Record<string, string> = {
   "puzzleHudRegion": "Region",
   "puzzleShowSolution": "Lösung zeigen",
   "puzzleSecondAction": "Zweite Aktion",
+  "puzzleNextStep": "Nächster Schritt",
   "pauseExitGame": "Übung verlassen",
   "pauseSoundOff": "Leiser Modus",
   "pauseSoundOn": "Ton wieder an",

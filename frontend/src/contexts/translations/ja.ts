@@ -2628,6 +2628,7 @@ const t: Record<string, string> = {
   "puzzleHudRegion": "領域",
   "puzzleShowSolution": "答えを見る",
   "puzzleSecondAction": "第2の操作",
+  "puzzleNextStep": "次の手",
   "pauseExitGame": "エクササイズを終了",
   "pauseSoundOff": "サイレントモード",
   "pauseSoundOn": "音を戻す",

@@ -42,7 +42,7 @@ import { saveSession } from '@/src/services/api';
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
 import { открыть, указатель, стрелка, клавиша, стеретьВвод, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
-import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
+import { ПЛАН_ШАГАМИ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
 
@@ -529,6 +529,31 @@ export default function PuzzlesScreen() {
               </Pressable>
             </View>
           ) : null}
+          {/*
+            🔴 «СЛЕДУЮЩИЙ ШАГ» — ТОЛЬКО ТАМ, ГДЕ РЕШАТЕЛЬ СТРОИТ ПЛАН, А НЕ ПОКАЗЫВАЕТ ОТВЕТ.
+            Пункт P1-02 аудита 12.09.2026: у «Заливки» и «Инерции» решатель НЕ раскрывает
+            доску — он оставляет статус 0 и план, который надо проиграть. Кнопки для этого
+            не было, и «решение показано» означало у них «ничего не видно».
+
+            ЗАМЕР МОЙ, прямым прогоном моста в Node (зерно 123456), а не по чтению кода:
+            · Заливка — решатель вернул 1, статус 0, текст «Auto-solver used. 0 / 25 moves»,
+              затем пробел сделал 20 шагов и статус стал 1;
+            · Инерция — статус 0, «Auto-solver used. Gems: 16», пробел дал 32 шага до 1.
+
+            ⚠️ ПРОБЕЛ НЕЛЬЗЯ СЛАТЬ ВСЕМ ТРИДЦАТИ СЕМИ. У «Переворота» он отмечает клетки,
+            у «Сапёра» ставит флажок — то есть делает ход, которого человек не просил.
+            Поэтому список поимённый, а не «у кого статус 0».
+          */}
+          {ПЛАН_ШАГАМИ.has(имяРежима) && сдался && !конец ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => { void клавиша(32).then((и) => setПартия(и.партия)); }}
+              style={[styles.шагПлана, { backgroundColor: GRADIENT[0] }]}
+            >
+              <Ionicons name="play-forward" size={20} color="#FFF" />
+              <Text style={styles.шагПланаТекст}>{t('puzzleNextStep')}</Text>
+            </Pressable>
+          ) : null}
           {СТРЕЛОЧНЫЕ.has(имяРежима) ? (
             <View style={styles.крестовина}>
               {([['влево', 'chevron-back'], ['вверх', 'chevron-up'], ['вниз', 'chevron-down'], ['вправо', 'chevron-forward']] as const).map(([куда, знак]) => (
@@ -557,6 +582,11 @@ const styles = StyleSheet.create({
   start: { minHeight: 52, paddingHorizontal: 34, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   startText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   крестовина: { flexDirection: 'row', gap: 10 },
+  // Кнопка во всю ширину полосы: это единственное действие разбора, делить строку не с кем.
+  // Высота 48 — `ПАЛЕЦ` из gameLayout: орган ответа не мельче пальца (правило 5).
+  шагПлана: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    alignSelf: 'stretch', height: 48, borderRadius: 14, paddingHorizontal: 18 },
+  шагПланаТекст: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   протяжка: { marginTop: 10, fontSize: 13, textAlign: 'center', maxWidth: 420, fontWeight: '600' },
   тупик: {
     marginTop: 12, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1,

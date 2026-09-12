@@ -1854,6 +1854,7 @@ const translations: Translations = {
   pauseHarder: { ru: 'Уровень сложнее', en: 'Harder level' },
   puzzleShowSolution: { ru: 'Показать решение', en: 'Show solution' },
   puzzleSecondAction: { ru: 'Второе действие', en: 'Second action' },
+  puzzleNextStep: { ru: 'Следующий шаг', en: 'Next step' },
   pauseExitGame: { ru: 'Выйти из упражнения', en: 'Leave exercise' },
   pauseSoundOff: { ru: 'Тихий режим', en: 'Quiet mode' },
   pauseSoundOn: { ru: 'Вернуть звук', en: 'Sound back on' },
