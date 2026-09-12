@@ -16,6 +16,28 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.3',
+    date: '2026-09-12',
+    ru: [
+      'Головоломки: «Показать решение» теперь показывает решение, а не карточку итога поверх него — и за просмотр ответа больше не снимают ступень',
+      '«Заново» повторяет ту же головоломку, а не раздаёт другую — можно переиграть именно ту доску, на которой застрял',
+      'Счёт ходов перестал расти от промахов по пустому месту и от движения курсора, а он влияет на баллы',
+      '«Угадай код»: кнопка «Стереть» наконец стирает набранный ряд',
+      '«Заливка» и «Инерция»: у решателя появилась кнопка «Следующий шаг» — его план можно проиграть и увидеть',
+      'Четыре головоломки получили кнопку «Взять», а «Инерция» — ходы по диагонали: раньше половина ходов была недоступна',
+      'Поле больше не прыгает по высоте при переходе между головоломками',
+    ],
+    en: [
+      'Puzzles: Show solution now shows the solution instead of covering it with the result card — and looking at the answer no longer costs you a level',
+      'Restart replays the same puzzle instead of dealing a new one, so you can retry the board you got stuck on',
+      'The move counter no longer grows on taps that hit nothing or on cursor movement — and it feeds your score',
+      'Guess: the Erase button finally erases the row you typed',
+      'Flood and Inertia: the solver now has a Next step button, so its plan can be played out and seen',
+      'Four puzzles gained a Select button and Inertia gained diagonal moves — half of its moves were unreachable before',
+      'The board no longer jumps vertically when you switch between puzzles',
+    ],
+  },
+  {
     version: '2.54.2',
     date: '2026-09-12',
     ru: [
