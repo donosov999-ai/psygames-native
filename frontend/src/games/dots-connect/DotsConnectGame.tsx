@@ -1,6 +1,7 @@
 /* psygames-dots-connect-game · VER 5 · 23.08.2026 */
 import React from 'react';
 import { БЕЗ_ЖЕСТА_ПРОКРУТКИ } from '@/src/components/GameShell';
+import { ПАЛЕЦ } from '@/src/components/gameLayout';
 import {
   AppState,
   PanResponder,
@@ -529,6 +530,22 @@ function DotsBoard({
   );
 }
 
+/**
+ * ОБЁРТКА ФАЗЫ ПАРТИИ. Обычно — неподвижный `View`: доска вписана, прокручивать
+ * нечего. Если экран настолько короткий, что доска не влезает даже по полу пальца
+ * (`тесно`), возвращаем `ScrollView`: пусть лучше нижние ряды достаются прокруткой,
+ * чем клетка станет меньше пальца. Запрет жеста на самой доске остаётся в обоих
+ * случаях, поэтому рисование прокрутку не вызывает ни там, ни там.
+ */
+function ФазаПартии({ тесно, style, children }: { тесно: boolean; style: any; children: React.ReactNode }) {
+  if (!тесно) return <View style={style}>{children}</View>;
+  return (
+    <ScrollView style={style[0]} contentContainerStyle={style[1]} keyboardShouldPersistTaps="handled">
+      {children}
+    </ScrollView>
+  );
+}
+
 function DotsConnectSession({
   seed,
   level,
@@ -544,6 +561,10 @@ function DotsConnectSession({
   onAux,
   onExit,
 }: DotsConnectGameProps) {
+  /** Сторона доски: МЕНЬШАЯ из доступной ширины и высоты. Разбор — у входа игровой фазы. */
+  const [boardSide, setBoardSide] = React.useState<number>(320);
+  /** true — доска не влезла даже по полу пальца: возвращаем прокрутку страницы. */
+  const [тесно, setТесно] = React.useState<boolean>(false);
   const strings = getDotsStrings(locale);
   const [session, setSession] = React.useState(() => {
     const fresh = createDotsSession({ seed, level });
@@ -678,12 +699,26 @@ function DotsConnectSession({
       pairs: puzzle.pairCount,
     });
 
+  /**
+   * 🔴 ИГРОВАЯ ФАЗА НЕ ПРОКРУЧИВАЕТСЯ — ДОСКА ВПИСЫВАЕТСЯ В ОКНО.
+   *
+   * Замер psygames-codex-mac 12.09.2026 (A/B в одной сборке, окно 440×720):
+   *   · без запрета жеста — свайп вверх сдвигал поле на 120 px, обратный на 127;
+   *   · с запретом — сдвиг 0, НО доска шириной 424 уходила нижним краем на 768
+   *     при окне 720: 48 px сетки оставались за краем, и достать их было уже нечем;
+   *   · доска, вписанная по высоте — 289×289, все клетки и нижние кнопки видны, сдвиг 0.
+   *
+   * То есть запрет жеста снял конфликт, но обнажил вторую половину: поле рассчитано
+   * только по ШИРИНЕ (`width:'100%'` + `aspectRatio:1`), а высота никого не
+   * спрашивала. Здесь фаза партии выходит из общей прокрутки, а сторона доски
+   * берётся как МЕНЬШАЯ из доступной ширины и доступной высоты.
+   *
+   * ⚠️ Прокрутку у правил и меню НЕ трогаем: им она нужна, и ветки выше её сохраняют.
+   * ⚠️ На больших сетках уменьшать клетку бесконечно нельзя — там понадобится явный
+   * режим масштаба с раздельным управлением, а не скрытая прокрутка тем же жестом.
+   */
   return (
-    <ScrollView
-      style={[styles.root, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.gameContent}
-      keyboardShouldPersistTaps="handled"
-    >
+    <ФазаПартии тесно={тесно} style={[styles.root, styles.gameContent, { backgroundColor: theme.background }]}>
       <View style={styles.topRow}>
         {/* Название игры — в общей шапке приложения; здесь только что за раунд идёт. */}
         <View style={styles.titleBlock}>
@@ -738,6 +773,29 @@ function DotsConnectSession({
           {strings.solutionNote}
         </Text>
       ) : null}
+      <View
+        style={styles.boardRegion}
+        onLayout={(event) => {
+          const { width, height } = event.nativeEvent.layout;
+          // Меньшая из сторон, и не шире прежнего потолка 620 — иначе на планшете
+          // доска раздуется во весь экран и перестанет быть полем для пальца.
+          /**
+           * 🔴 ПОЛ У СТОРОНЫ — КАНОН ПАЛЬЦА, А НЕ «СКОЛЬКО ОСТАЛОСЬ».
+           * Замер 12.09.2026: без пола на окне 320×640 доска ужалась до 120 px,
+           * то есть клетка 30 px при каноне 48 (`ПАЛЕЦ`). Это меняло «48 px за
+           * краем» на «в клетку нельзя попасть» — обмен в худшую сторону.
+           * Ниже пола поле не сжимаем: тогда оно честно не влезает, и нижние
+           * ряды достаются прокруткой страницы (см. `тесно` ниже), а рисование
+           * по-прежнему прокрутку не вызывает — запрет висит на самой доске.
+           */
+          const пол = puzzle.size * ПАЛЕЦ;
+          const влезает = Math.max(1, Math.min(width, height, 620));
+          const сторона = Math.max(влезает, Math.min(пол, width, 620));
+          setBoardSide((было: number) => (Math.abs(было - сторона) > 1 ? сторона : было));
+          setТесно(сторона > height + 1);
+        }}
+      >
+      <View style={{ width: boardSide, height: boardSide }}>
       <DotsBoard
         key={`${puzzle.id}:${trainingComplete ? 'complete' : 'active'}`}
         session={session}
@@ -754,6 +812,8 @@ function DotsConnectSession({
         onRestart={restart}
         onPause={() => setSession((current) => pauseSession(current, now()))}
       />
+      </View>
+      </View>
       {trainingComplete ? (
         <View accessibilityLiveRegion="polite" style={[styles.card, styles.successCard, { backgroundColor: theme.card, borderColor: theme.success }]}>
           <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.success }]}>{strings.trainingDone}</Text>
@@ -765,7 +825,7 @@ function DotsConnectSession({
           <ActionButton label={strings.restart} theme={theme} secondary onPress={restart} />
         </View>
       )}
-    </ScrollView>
+    </ФазаПартии>
   );
 }
 
@@ -805,6 +865,8 @@ const styles = StyleSheet.create({
   hudGoal: { fontSize: 12, textAlign: 'center' },
   solutionNote: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   board: { width: '100%', maxWidth: 620, alignSelf: 'center', aspectRatio: 1, borderWidth: 2, borderRadius: 18, overflow: 'hidden' },
+  /** Остаток экрана под доску: сюда она и вписывается. */
+  boardRegion: { flex: 1, width: '100%', minHeight: 120, alignItems: 'center', justifyContent: 'center' },
   boardRow: { flex: 1, flexDirection: 'row' },
   cell: { flex: 1, aspectRatio: 1, borderWidth: 0.5, alignItems: 'center', justifyContent: 'center' },
   // Стена держит место в ряду (иначе сетка съедет), но не рисует ни рамки, ни
