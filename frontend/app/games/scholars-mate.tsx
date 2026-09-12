@@ -50,7 +50,7 @@ import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
 import { КЛЮЧ_ВИДА, LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, mixedMotifCount, namedMotifCount, newMotifAt, видыУровня } from '@/src/games/scholars-mate/core/deck';
-import { starsFor, ступеньПоМедиане, порогУровня, допускПромахов } from '@/src/games/scholars-mate/core/run';
+import { starsFor, звёздыПодхода, ступеньПоМедиане, порогУровня, допускПромахов } from '@/src/games/scholars-mate/core/run';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
 
@@ -242,7 +242,7 @@ export default function ScholarsMateScreen() {
    * позицию времени: уложился в треть — три звезды.
    */
   const stars = React.useMemo(
-    () => (last && last.solved ? starsFor(last.medianMs, shownLevel) : 1),
+    () => (last && last.solved ? звёздыПодхода(last.medianMs, shownLevel, last.hints ?? 0) : 1),
     [last, shownLevel],
   );
 
@@ -390,6 +390,9 @@ export default function ScholarsMateScreen() {
             best: t('scholarsBest'),
             timeUp: t('timeIsUp'),
             sec: t('secShort'),
+            /* Оба ключа уже в словаре и переведены — новых заводить не пришлось. */
+            hint: t('btn_hint'),
+            hintUsed: t('hintUsed'),
           }}
         />
       </GameShell>
