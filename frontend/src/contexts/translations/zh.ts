@@ -2640,6 +2640,8 @@ const t: Record<string, string> = {
   "numberRunRule": "驾着你的数字沿路前进。蓝色方块把上面写的数加上，红色方块则减去。同一排里五个数字都能收，不必只选一个。绿色跳板会把你抛过断口。",
   "numberRunDesc": "驾着一个数字沿路前进，边跑边决定捡什么：蓝色加，红色减。",
   "numberRunDone": "跑完了",
+  "numberRunTask": "蓝色加，红色减",
+  "numberRunIntroDesc": "你驾着一个数字沿路前进，边跑边决定捡什么。蓝色方块把上面写的数加上，红色则减去。一排里最多五个数字，每个都单独收取：五个全收得，一个不收也行。绿色踏板把你抛过断口，错过就会坠落。十二个阶段连着跑，中间不停，数字也不清零。",
   "numberRunWebOnly": "奔跑运行在应用的网页层；此版本无法显示图形。",
   "pauseExitGame": "退出练习",
   "pauseSoundOff": "静音模式",

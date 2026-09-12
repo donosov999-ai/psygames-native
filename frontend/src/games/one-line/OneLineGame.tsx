@@ -13,7 +13,7 @@ import {
   type AccessibilityActionEvent,
 } from 'react-native';
 import Svg, { Line, Polygon } from 'react-native-svg';
-import { useWindowDimensions } from 'react-native';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { sndPlace } from '@/src/services/feedback';
 import { БЕЗ_ЖЕСТА_ПРОКРУТКИ } from '@/src/components/GameShell';
 import { ballImage, useBallStyle } from '@/src/games/balls/ballChoice';
@@ -225,7 +225,13 @@ function OneLineBoard({
    * становится непопадаемой. Не влезло даже так — остаётся прокрутка поля, но
    * не уменьшение цели (правило 5).
    */
-  const { width: ширинаОкна, height: высотаОкна } = useWindowDimensions();
+  /**
+   * ⚠️ ЗАЩИЩЁННЫЙ ХУК, А НЕ ГОЛЫЙ `useWindowDimensions`. На ПЕРВОМ кадре тот
+   * отдаёт 0 и обновляется только по `resize`, которого при обычной загрузке
+   * экрана не бывает: ноль запёкся бы в сторону доски навсегда. Я написал здесь
+   * голый вариант и поймал это гейтом `screen-width-guard`, а не глазами.
+   */
+  const { w: ширинаОкна, h: высотаОкна } = useScreenSize();
   const РЕЗЕРВ_ВЫСОТЫ = 430;
   const ПОЛ_ДОСКИ = 240;
   const потолокДоски = Math.max(
