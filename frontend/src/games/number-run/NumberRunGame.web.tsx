@@ -1,4 +1,4 @@
-/* psygames-number-run-adapter · VER 1 · 12.09.2026 · psygames-claude-mac */
+/* psygames-number-run-adapter · VER 1 · 12.09.2026 */
 /**
  * ЧИСЛОВОЙ ЗАБЕГ — ВЕБ-АДАПТЕР ЯДРА ЛАБОРАТОРИИ К КАРКАСУ ПРИЛОЖЕНИЯ.
  *
@@ -87,6 +87,8 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
   const тащим = useRef<{ id: number; startX: number; target: number } | null>(null);
   const итогОтдан = useRef(false);
   const прошлыеПоказатели = useRef('');
+  /** 12 — из `runner-campaign.mjs`; уточняется настоящим `STAGE_COUNT` при загрузке. */
+  const этаповВсего = useRef(12);
   const [ошибка, setОшибка] = useState<string | null>(null);
   const [готово, setГотово] = useState(false);
 
@@ -100,7 +102,14 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
     const п: ПоказателиЗабега = {
       число: Math.round(s.sum),
       этап: s.stage ?? 1,
-      этапов: маршрут.current?.stages ?? 12,
+      /**
+       * ⚠️ ЧИСЛО ЭТАПОВ — `STAGE_COUNT`, А НЕ `course.stages`. Второе у кампании —
+       * МАССИВ описаний этапов, и в шапку он уходил как «1/[object Object],…».
+       * Поймано живым открытием экрана, а не пробой: `tsc` тут молчит, потому что
+       * состояние маршрута описано как `any` (см. `runner.d.ts` — там честно
+       * написано, что это опись, а не источник истины).
+       */
+      этапов: этаповВсего.current,
       столкновений: s.hits ?? 0,
       секунд: Math.round(s.elapsed ?? 0),
     };
@@ -129,6 +138,7 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
         ]);
         if (!живо) return;
         ядро.current = c;
+        этаповВсего.current = Number(k.STAGE_COUNT) || 12;
         маршрут.current = k.makeCampaign(зерно);
         состояние.current = c.initial(маршрут.current);
 
