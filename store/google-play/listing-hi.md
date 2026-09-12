@@ -18,7 +18,7 @@ PsyGames: दिमागी कसरत
 ## 2. КРАТКОЕ ОПИСАНИЕ — 80 символов
 
 ```
-याददाश्त, फोकस और लॉजिक के 74 अभ्यास। ऑफलाइन, बिना विज्ञापन
+याददाश्त, फोकस और लॉजिक के 75 अभ्यास। ऑफलाइन, बिना विज्ञापन
 ```
 
 ---
@@ -58,7 +58,7 @@ Stroop, Go/No-Go, समयबद्ध गणना और Trail Making से 
 • daily challenge और achievements अगला लक्ष्य साफ रखते हैं
 
 ऐप में क्या है
-• memory, attention, logic, speed और control के 74 अभ्यास
+• memory, attention, logic, speed और control के 75 अभ्यास
 • सुबह, दिन, शाम और रात के लिए एक टैप में तैयार warm-up
 • डार्क थीम और «नींद न आए» वाला रात का सेट: मंद स्क्रीन पर 4-7-8 साँस, बिना points और बिना streak
 • 12 लक्ष्य-आधारित profiles: languages, kids, 50+, focus, reaction, students और अन्य
