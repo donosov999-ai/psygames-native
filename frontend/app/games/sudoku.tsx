@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 13 · 28.08.2026 */
+/* psygames-game-sudoku · VER 14 · 09.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +19,7 @@ import {
 import GlassButton from '@/src/components/GlassButton';
 import { useLadderLock } from '@/src/contexts/PlayerLevelContext';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
+import { PencilMarksLayer } from '@/src/components/PencilMarksLayer';
 import BossRound, { BossType } from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -41,6 +42,7 @@ import { failurePolicy, formatErrorCount, isOver as isFailOver } from '@/src/ser
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Line, Rect } from 'react-native-svg';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import { buildLevelHelp, type HelpMode } from '@/src/services/sudoku-level-help';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -80,11 +82,11 @@ const SUDOKU_BENEFITS = [
 // v1.111.0: чистое ядро судоку (типы, варианты, генерация с unique-check) вынесено в сервис.
 import {
   Cell, Variant, ThermoPN, ArrowMap, SudokuDifficultyTier, UnequalMap, TowersMap,
-  dimsForSize, blanksFor, killerBlanks, generateCages,
+  dimsForSize, blanksFor, killerBlanksForStep, killerStepCount, generateCages,
   sudokuDifficultyTier, variantLabel, variantRule, shuffle, generatePuzzle, HYPER_BOXES,
   rejectionReason,
 } from '@/src/services/sudoku-core';
-import { gradePuzzle, logicalBuilder } from '@/src/services/sudoku-grade';
+import { gradePuzzle, logicalBuilder, selectionLookForLevel } from '@/src/services/sudoku-grade';
 // Небоскрёбы и неравенства — режимы со своими мини-лестницами (решение 70b58bbe:
 // в 57-ступенчатую лестницу оба не помещаются по замеренным причинам — разбор в шапке сервиса).
 import { SideMode, sideModeBuilder, sideStepCount, type SideBoard } from '@/src/services/sudoku-modes';
@@ -524,6 +526,14 @@ export default function SudokuGame() {
    * несёт текущую ступень; здесь — достигнутые потолки для возврата и записи.
    */
   const [sideSteps, setSideSteps] = useState<Record<SideMode, number>>({ towers: 1, unequal: 1 });
+  /**
+   * 🔴 У КИЛЛЕРА ТЕПЕРЬ ЛЕСТНИЦА, А НЕ ТРИ КНОПКИ (07.09.2026). Замер показал, чего
+   * стоили кнопки: на «Легко» (44 пустых) клетки-суммы решались 12 досками из 12
+   * БЕЗ НИХ ВООБЩЕ — то есть киллер там не был киллером. Ступень живёт в `level`, как
+   * у башен и неравенств, и весь их механизм (снимок партии, счёт очков, HUD)
+   * переиспользуется без второго экземпляра.
+   */
+  const [killerStep, setKillerStep] = useState(1);
   const [sideStepsLoaded, setSideStepsLoaded] = useState(false);   // ?mode= из хаба ждёт загрузки счётчиков
   /**
    * 🔴 ПРОЙДЕННАЯ ступень мини-лестницы — ДЛЯ ЭКРАНА ИТОГА. К моменту рендера итога
@@ -658,29 +668,40 @@ export default function SudokuGame() {
   const chainNext = shouldChainNextLevel(useGameMode());
   const paintPalette = colorblind ? CELL_COLORS_CB : CELL_COLORS;
 
-  // Большая глобальная кнопка «Правила» раньше показывала только общую статью,
-  // поэтому на доске Кропки/диагонали человек не видел правило текущей партии.
-  // Публикуем его в общий оверлей; локальный бейдж у таймера остаётся как был.
+  // Большая глобальная кнопка «Правила» раньше показывала правило ВАРИАНТА и на
+  // этом останавливалась: на 54-м уровне — «блоки кривые, а не квадраты». Игрок
+  // это и так видит нарисованным, а встаёт он на приёме. Теперь справка собирается
+  // под текущий уровень целиком — см. шапку services/sudoku-level-help.
+  //
+  // ⚠️ `boardTier` в зависимостях обязателен: приём берётся у ВЫДАННОЙ доски, а не
+  // выводится из номера уровня, и до конца сборки он ещё null.
   useEffect(() => {
     if (phase !== 'playing') {
       clearGameContextHelp(GAME_ID);
       return;
     }
-    const base = translateFor(language, 'sudokuBaseRule').replace('{n}', String(N));
-    const specific = mode === 'killer'
-      ? translateFor(language, 'sudokuKillerRule')
-      : variantRule(variant, language);
-    publishGameContextHelp({
-      gameId: GAME_ID,
-      title: mode === 'killer'
-        ? 'Killer'
-        : variant !== 'none'
-          ? variantLabel(variant, language)
-          : translateFor(language, 'btn_rules'),
-      body: specific ? `${base}\n\n${specific}` : base,
-    });
+    const steps = mode === 'killer'
+      ? killerStepCount()
+      : mode === 'towers' || mode === 'unequal'
+        ? sideStepCount(mode)
+        : undefined;
+    const { title, body } = buildLevelHelp(
+      {
+        mode: mode as HelpMode,
+        level,
+        N,
+        variant,
+        tier: boardTier,
+        hintMax,
+        errorMax: failure.lives,
+        steps,
+      },
+      (key) => translateFor(language, key as never),
+      language,
+    );
+    publishGameContextHelp({ gameId: GAME_ID, title, body });
     return () => clearGameContextHelp(GAME_ID);
-  }, [phase, mode, variant, N, language]);
+  }, [phase, mode, variant, N, language, level, boardTier, hintMax, failure.lives]);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
@@ -714,7 +735,7 @@ export default function SudokuGame() {
       if (modeRef.current === 'levels' && !resumedRef.current) setLevel(reached);
     }).catch(() => {});
     // Ступени мини-лестниц режимов — свои счётчики, дороги их не касаются.
-    AsyncStorage.multiGet([`psygames_sudoku_towers_step_${pid}`, `psygames_sudoku_unequal_step_${pid}`]).then((pairs) => {
+    AsyncStorage.multiGet([`psygames_sudoku_towers_step_${pid}`, `psygames_sudoku_unequal_step_${pid}`, `psygames_sudoku_killer_step_${pid}`]).then((pairs) => {
       if (cancelled) return;
       const read = (v: string | null, cap: number) => {
         const n = parseInt(v || '1', 10);
@@ -724,6 +745,7 @@ export default function SudokuGame() {
         towers: read(pairs[0]?.[1] ?? null, sideStepCount('towers')),
         unequal: read(pairs[1]?.[1] ?? null, sideStepCount('unequal')),
       });
+      setKillerStep(read(pairs[2]?.[1] ?? null, killerStepCount()));
       setSideStepsLoaded(true);
     }).catch(() => { if (!cancelled) setSideStepsLoaded(true); });
     return () => { cancelled = true; };
@@ -782,7 +804,8 @@ export default function SudokuGame() {
       blanks = cfg.blanks; vr = cfg.variant; hMax = cfg.hintMax;
     } else if (mode === 'killer') {
       d = dimsForSize(9);
-      blanks = killerBlanks(difficulty);
+      // Глубина — от ступени лестницы (KILLER_LADDER), а не от трёх кнопок.
+      blanks = killerBlanksForStep(lvlOverride ?? level);
     } else if (mode === 'towers' || mode === 'unequal') {
       // Мини-лестницы режимов: башни живут на 6×6 (на 9×9 вариант не решается —
       // замер в шапке sudoku-modes), неравенства — на 9×9. Глубину и полосу техник
@@ -877,6 +900,9 @@ export default function SudokuGame() {
       // в sudoku-grade). Без сдвига полосы «полегче» было бы обещанием без вещества.
       const builder = logicalBuilder(lv, blanks, d.N, d.BR, d.BC, vr, {
         budgetMs: 2200, tier: roadTier(lv, road),
+        // Место уровня в серии одинаковых: чем дальше, тем из большего числа досок
+        // выбираем (см. selectionLookForLevel). На банковских уровнях всегда 1.
+        look: selectionLookForLevel(lv),
       });
       setBuild({ step: 1, steps: builder.steps, slow: false });
       setPhase('building');
@@ -1227,6 +1253,14 @@ export default function SudokuGame() {
         setLevel(nextStep);
         AsyncStorage.setItem(`psygames_sudoku_${mode}_step_${pidDone}`, String(nextStep)).catch(() => {});
       }
+      // Киллер — та же мини-лестница: свой счётчик, максимум, переигровка не срезает.
+      if (mode === 'killer') setSideDoneLevel(level);
+      if (mode === 'killer' && pidDone) {
+        const nextStep = Math.min(killerStepCount(), Math.max(killerStep, level + 1));
+        setKillerStep(nextStep);
+        setLevel(nextStep);
+        AsyncStorage.setItem(`psygames_sudoku_killer_step_${pidDone}`, String(nextStep)).catch(() => {});
+      }
       if (pidDone) clearResume(GAME_ID, pidDone).catch(() => {});   // доиграна — продолжать нечего
       // Ступени мини-лестниц оцениваются той же формулой, что уровни: рост награды со ступенью.
       const baseScore = (mode === 'levels' || mode === 'towers' || mode === 'unequal') ? 1500 + level * 150 : 2000;
@@ -1389,24 +1423,13 @@ export default function SudokuGame() {
    * Касаний слой не перехватывает (pointerEvents none): палец обязан попадать в клетку,
    * а не в цифру поверх неё.
    */
-  const renderMarks = (r: number, c: number, value: Cell) => {
+  const renderMarks = (r: number, c: number, value: Cell, bg: string) => {
     const digits = sudokuVisibleMarks(marks[r]?.[c] ?? 0, value, N);
-    if (!digits.length) return null;
     return (
-      <View style={styles.markGrid} pointerEvents="none">
-        {Array.from({ length: N }, (_, k) => k + 1).map((d) => (
-          <Text
-            key={d}
-            style={{
-              width: cellSize / 3, height: cellSize / 3, lineHeight: cellSize / 3,
-              fontSize: Math.max(6, cellSize * 0.235), textAlign: 'center',
-              color: digits.includes(d) ? colors.textSecondary : 'transparent',
-            }}
-          >
-            {d}
-          </Text>
-        ))}
-      </View>
+      <PencilMarksLayer
+        digits={digits} cellSize={cellSize} slots={N}
+        color={colors.textSecondary} on={bg}
+      />
     );
   };
 
@@ -1547,7 +1570,11 @@ export default function SudokuGame() {
           </View>
         </View>
       )}
-      {(mode === 'free' || mode === 'killer') && (
+      {/* ⚠️ У КИЛЛЕРА КНОПОК СЛОЖНОСТИ БОЛЬШЕ НЕТ — у него лестница (KILLER_LADDER).
+          Три кнопки давали «Легко», на котором клетки-суммы решались 12 досками из 12
+          БЕЗ НИХ ВООБЩЕ (замер 07.09.2026), то есть киллер там не был киллером.
+          У свободной партии кнопки остаются: там лестницы нет и не должно быть. */}
+      {mode === 'free' && (
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.optionLabel, { color: colors.text }]}>{t('difficultyLabel')}</Text>
           <View style={styles.optionButtons}>
@@ -1645,6 +1672,7 @@ export default function SudokuGame() {
             setMode(m);
             // У мини-лестниц режимов свой счётчик ступени; у уровней — дорога.
             if (m === 'towers' || m === 'unequal') setLevel(sideSteps[m]);
+            else if (m === 'killer') setLevel(killerStep);
             else if (m === 'levels') setLevel(effectiveRoadLevel(roadLevels, road));
           }}
           colors={colors}
@@ -1672,7 +1700,7 @@ export default function SudokuGame() {
       <TouchableOpacity
         accessibilityRole="button" style={styles.startBtn} onPress={() => startGame()}>
         <LinearGradient colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
-          <Text style={styles.startBtnText}>{(mode === 'levels' || mode === 'towers' || mode === 'unequal') ? t('playLevelN').replace('{n}', String(level)) : t('start')}</Text>
+          <Text style={styles.startBtnText}>{(mode === 'levels' || mode === 'towers' || mode === 'unequal' || mode === 'killer') ? t('playLevelN').replace('{n}', String(level)) : t('start')}</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>
@@ -1682,16 +1710,31 @@ export default function SudokuGame() {
   const renderPlaying = () => {
     const statsEl = (
       <View style={styles.statsRow}>
-        {mode === 'levels' && (
+        {/*
+          * 🔴 НОМЕР УРОВНЯ ОТСЮДА УБРАН — он уже стоит капсулой «⚑ 55» строкой выше.
+          * Замечание Дениса 09.09 по живому экрану: «зачем-то продублирован второй
+          * строкой уровень». Так и было: капсула отдаёт число, а эта строка писала
+          * его же словом. Причина дубля в общем компоненте — `HudBadge` показывает
+          * своё слово ТОЛЬКО когда у капсулы нет иконки (juice/HudBadge.tsx:62), а у
+          * уровня иконка есть, поэтому «Ур.» пропадало и его дописывали здесь.
+          *
+          * Дорога словом остаётся: её капсула не показывает вовсе, и без неё «полегче»
+          * и «пожёстче» неотличимы — а это разные лестницы прогресса.
+          */}
+        {mode === 'levels' && road !== DEFAULT_SUDOKU_ROAD && (
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>
-            {t('label_level_short')}{level}
-            {road !== DEFAULT_SUDOKU_ROAD ? ` · ${t(SUDOKU_ROAD_NAME_KEY[road])}` : ''}
+            {t(SUDOKU_ROAD_NAME_KEY[road])}
           </Text>
         )}
+        {/* Ступень «2/8» уже стоит капсулой; здесь остаётся только ИМЯ режима —
+            его капсула прячет, потому что у неё есть иконка. */}
         {(mode === 'towers' || mode === 'unequal') && (
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>
-            {variantLabel(mode, language)} · {t('label_level_short')}{level}/{sideStepCount(mode)}
+            {variantLabel(mode, language)}
           </Text>
+        )}
+        {mode === 'killer' && (
+          <Text style={[styles.statText, { color: GRADIENT[0] }]}>Killer</Text>
         )}
         {/* Приём ЭТОЙ доски — посчитанный градатором, а не выведенный из номера уровня. */}
         {boardTier !== null && (
@@ -1719,6 +1762,10 @@ export default function SudokuGame() {
         {null}
         {backtrackCount > 0 && (
           <Text style={[styles.statText, { color: colors.textSecondary }]}>↻ {backtrackCount}</Text>
+        )}
+        {/* Сколько пометок на доске — показатель, а не запас: см. блок у `pencilBtn`. */}
+        {countPencilMarks(marks) > 0 && (
+          <Text style={[styles.statText, { color: colors.textSecondary }]}>✎ {countPencilMarks(marks)}</Text>
         )}
         <TouchableOpacity
           accessibilityRole="button" onPress={() => setRulesOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
@@ -2011,7 +2058,7 @@ export default function SudokuGame() {
               )}
               {/* Карандаш — ПОД суммой клетки killer и под цифрой: сумма и цифра важнее
                   кандидатов, и перекрывать их слой бухгалтерии не имеет права. */}
-              {renderMarks(r, c, v)}
+              {renderMarks(r, c, v, bg)}
               {/* Сумма — в углу клетки, колба термометра — по центру: на одной клетке
                   обе разметки не спорят за место. */}
               {cageAt(r, c) >= 0 && cageAnchors[cageAt(r, c)] === r * N + c && (
@@ -2103,10 +2150,10 @@ export default function SudokuGame() {
      * видно 15 из 50. Третий ряд сделал бы это хуже, а не лучше.
      *
      * СЧИТАНО: 5 × 50 + 4 × 6 = 274 — влезает в 320 с запасом 46.
-     * Разбивка ровная: строк = ceil(всего / потолок), в строке = ceil(всего / строк).
-     * Десять клавиш дают 5 + 5, семь (судоку 6×6) — 4 + 3, пять (4×4) — одну строку.
-     * Ландшафт не трогаем: там цифры стоят СБОКУ от доски, дефицитна высота, и три
-     * в строке — это уже проверенная раскладка v1.30.6.
+     * Разбивка ровная: в строке = ceil(всего / строк). Десять клавиш дают 5 + 5,
+     * семь (судоку 6×6) — 4 + 3, пять (4×4) — одну строку. Ландшафт не трогаем: там
+     * цифры стоят СБОКУ от доски, дефицитна высота, и три в строке — проверенная
+     * раскладка v1.30.6.
      */
     const клавиши: Array<number | 'стереть'> = [
       ...Array.from({ length: N }, (_, i) => i + 1),
@@ -2150,7 +2197,6 @@ export default function SudokuGame() {
         ))}
       </View>
     );
-
     {/* Hint button + biomarker counters */}
     /**
      * ⚠️ РЕЖИМЫ ПИСЬМА — ВТОРЫМ РЯДОМ В ПОРТРЕТЕ И ОДНИМ РЯДОМ В ЛАНДШАФТЕ, потому что
@@ -2223,11 +2269,24 @@ export default function SudokuGame() {
         disabled={!hist.canUndo}
       />
     );
+    /**
+     * 🔴 ЧИСЛО С ПЕРЕКЛЮЧАТЕЛЯ СНЯТО — отчёт 779c482d (08.09.2026): «почему стоит
+     * ограничение по количеству пометок, я не могу поставить больше того количества,
+     * которое сейчас стоит». Ограничения не было: число показывало, СКОЛЬКО пометок
+     * уже на доске. Но рядом стоит «Подсказка 0» — настоящий остаток, считающий вниз, —
+     * и одинаковая форма «слово + число» на соседних капсулах читается как одинаковый
+     * смысл. Человек построил на этом неверную теорию и написал о ней в отчёт.
+     *
+     * Правило в этом файле уже записано двумя блоками выше: счётчик переделок переехал
+     * из ряда действий в шапку, потому что он ПОКАЗАТЕЛЬ, А НЕ КНОПКА. Пометки нарушали
+     * ровно это правило: карандаш — режим письма, у него нет запаса, который тратится.
+     * Поэтому число не удалено, а переехало к «↻» — туда, где стоят показатели.
+     */
     const pencilBtn = (
       <GlassButton
         grow
         icon="pencil-outline"
-        label={countPencilMarks(marks) ? `${t('sudokuPencilMode')} ${countPencilMarks(marks)}` : t('sudokuPencilMode')}
+        label={t('sudokuPencilMode')}
         active={pencil}
         onPress={() => setPencilMode(!pencil)}
       />
@@ -2294,6 +2353,19 @@ export default function SudokuGame() {
         resumable
         onSaveBeforeExit={saveBeforeExit}
         /**
+         * Меню паузы (ТЗ чата судоку 475ece36, решение Дениса 09.09.2026): отдельной
+         * кнопки ⏸ нет — стрелка «назад» открывает меню на весь экран, поле скрыто,
+         * часы стоят (holdGame). Подписи — существующие ключи словаря, новых нет.
+         * «Заново» — новая доска той же ступени (`startGame()`, как на экране 💔);
+         * «На главную» — через `leave`: сохранение в «продолжить», потом выход.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play', primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh', onPress: () => startGame() },
+          { id: 'rules', label: t('btn_rules'), icon: 'help-circle-outline', onPress: () => setRulesOpen(true) },
+          { id: 'home', label: t('goHome'), icon: 'home', leave: true },
+        ]}
+        /**
          * Счётчики данными (см. `HudItem`): вид одинаков со всеми играми.
          *
          * ⚠️ ОШИБКИ ЗДЕСЬ ОСТАЮТСЯ, и это не противоречит §12.4. В судоку ошибка —
@@ -2306,6 +2378,7 @@ export default function SudokuGame() {
         hud={[
           ...(mode === 'levels' ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: level }] : []),
           ...((mode === 'towers' || mode === 'unequal') ? [{ key: 'lvl', icon: 'flag' as const, label: variantLabel(mode, language), value: `${level}/${sideStepCount(mode)}`, tone: 'accent' as const }] : []),
+          ...(mode === 'killer' ? [{ key: 'lvl', icon: 'flag' as const, label: 'Killer', value: `${level}/${killerStepCount()}`, tone: 'accent' as const }] : []),
           { key: 'err', icon: 'close-circle', label: t('errors'), value: formatErrorCount(failure, errors), tone: 'bad' as const },
           ...(!isCalm ? [{ key: 'time', icon: 'time' as const, label: t('time'), value: hudTime(elapsedTime, t('secShort')) }] : []),
         ]}
@@ -2554,7 +2627,7 @@ const styles = StyleSheet.create({
   /**
    * ⚠️ `numPad` С `flexWrap` БОЛЬШЕ НЕ ИСПОЛЬЗУЕТСЯ — строки задаются ЯВНО (см. padEl).
    * Перенос раскладывал десять клавиш по-разному на разной ширине (6+4 на 360), и
-   * человек каждый раз искал девятку заново. Правило 8 и 9 в UI_LAYOUT_RULES.md.
+   * человек каждый раз искал девятку заново. Правила 8 и 9 в UI_LAYOUT_RULES.md.
    */
   numPadCol: { gap: 6, alignItems: 'center', alignSelf: 'stretch' },
   numPadRow: { flexDirection: 'row', gap: 6, justifyContent: 'center', writingDirection: 'ltr' },
@@ -2565,12 +2638,6 @@ const styles = StyleSheet.create({
   // alignItems:'stretch' — иначе ряд кнопок сжимается по содержимому и вылезает
   // за экран: на 375px первая капсула уезжала за левый край и обрезалась.
   hintBlock: { alignSelf: 'stretch', alignItems: 'stretch', gap: 5 },
-  // Карандашные пометки: три в ряд поверх клетки и БЕЗ перехвата касаний —
-  // палец должен попадать в саму клетку, а не в слой с цифрами.
-  markGrid: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
-  },
   // Кнопки тянутся по ширине панели поровну (flex: 1) и держат минимум 48 точек по
   // высоте. Было paddingVertical: 8 — около 36 точек, ниже минимума, при котором палец
   // попадает надёжно (44 у Apple, 48 у Material). Промах по «Отменить» в судоку стоит
