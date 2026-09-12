@@ -26,11 +26,29 @@
 ```
 frontend/app/games/goods-sort.tsx        frontend/src/games/goods-sort/**
 frontend/app/games/cake-sort.tsx         frontend/src/games/cake-sort/**
+frontend/app/games/pizza-sort.tsx        (шкурка тортов — тот же CakeSortScreen)
 frontend/app/games/water-sort.tsx        frontend/src/games/water-sort/**
 frontend/app/games/ball-sort.tsx
 frontend/app/games/nut-sort.tsx
-frontend/src/__tests__/{goods-sort,cake-sort,water-sort,ball-sort,nut-sort}-*
+frontend/app/games/hanoi.tsx             ← 12.09.2026
+frontend/app/games/tower-london.tsx      ← 12.09.2026
+frontend/src/__tests__/{goods-sort,cake-sort,pizza-sort,water-sort,ball-sort,nut-sort,hanoi,tower-london}-*
 ```
+
+🔴 **ЗОНА РАСШИРЕНА ВТОРОЙ РАЗ 12.09.2026 — БАШНИ ТВОИ.** Денис, дословно:
+«сортся в его хабе — его». То есть правило теперь общее и простое: **экран стоит
+в твоей развилке — экран твой.** До этого «Ханойская башня» и «Лондонская башня»
+стояли в `sorting-hub` с 06.09, но в списке файлов их не было, и ты сам писал
+«ядро их не трогаю». Полгода они не принадлежали никому: опрос двенадцати чатов
+12.09.2026 показал, что их не назвал СВОИМИ ни один и не упомянула ни одна
+карточка реестра агентов.
+
+⚠️ Что это значит на деле: обе башни — про планирование ходов, а не про
+раскладывание по цветам, и лестница у них своя. Ось «потолков нет нигде» на них
+распространяется так же, как на переливалку.
+
+📌 Пицца вписана тем же заходом: она сделана 07.09, а в списке её не было —
+карточка раздела в TeamOps до сих пор говорит «пять игр».
 
 ⚠️ **Шарики и Гайки — тот же движок, что Переливалка:** оба экрана это
 `SortGameScreen` из `app/games/water-sort.tsx`, своё у них только оформление.
