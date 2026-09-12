@@ -26,6 +26,18 @@
  */
 import { PROFILES, filterAllowedGames } from '@/src/constants/profiles';
 import { HUB_CONTENTS, visibleHubCards } from '@/src/constants/hubContents';
+import { GAMES } from '@/src/constants/games';
+
+/**
+ * ⚠️ ПЕСОЧНИЦА СЧИТАЕТСЯ ОТДЕЛЬНО, И ЭТО НЕ ПОСЛАБЛЕНИЕ. Игра с `sandbox: true`
+ * доделана до работающей, но динамика сырая, и профиль без песочницы её не
+ * получает НАМЕРЕННО (`filterAllowedGames`). Сравнивать по ней «кто богаче»
+ * бессмысленно: профили с `allowed_games: 'all'` всегда будут впереди ровно на
+ * число песочниц, сколько бы их ни завезли. Сравниваем по готовому составу.
+ */
+const ПЕСОЧНИЦА = new Set(
+  GAMES.filter((g) => (g as { sandbox?: boolean }).sandbox).map((g) => g.route),
+);
 
 /** Развилки, из которых состоит раздел «Языки». */
 const РАЗДЕЛ = ['/games/words-hub', '/games/hearing-hub'] as const;
@@ -36,7 +48,13 @@ const РАЗДЕЛ = ['/games/words-hub', '/games/hearing-hub'] as const;
  * профилю уместны. Появится языковое упражнение, которое полиглоту НЕ нужно, —
  * вписать сюда маршрут и причину строкой, а не снимать проверку.
  */
-const МОЖНО_НЕ_ДАВАТЬ: Record<string, string> = {};
+const МОЖНО_НЕ_ДАВАТЬ: Record<string, string> = {
+  '/games/rhythm-pitch':
+    'пришла в «Слух» 12.09.2026 из каталога, где не входила ни в одну развилку (задача 4332ce4e). ' +
+    'У карточки стоит sandbox: true — динамика сырая, и профиль без песочницы её не получает ' +
+    'по построению filterAllowedGames, а не по недосмотру. Игра выйдет из песочницы — эту строку снять, ' +
+    'и проверка снова потребует её для полиглота.',
+};
 
 const ЯЗЫКОВОЙ = 'polyglot';
 
@@ -62,7 +80,11 @@ describe('раздел «Языки» в языковом профиле', () =>
   it('🔴 языковой профиль не беднее неязыковых по своему же разделу', () => {
     const счёт = (p: any) => {
       const можно = new Set(filterAllowedGames(p).map((g: any) => g.route));
-      return РАЗДЕЛ.reduce((s, h) => s + visibleHubCards(h, можно, (k: string) => k).length, 0);
+      return РАЗДЕЛ.reduce(
+        (s, h) =>
+          s + visibleHubCards(h, можно, (k: string) => k).filter((c: any) => !ПЕСОЧНИЦА.has(c.route)).length,
+        0,
+      );
     };
     const свой = счёт((PROFILES as any[]).find((x) => x.id === ЯЗЫКОВОЙ));
     const богаче = (PROFILES as any[])

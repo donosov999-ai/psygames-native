@@ -22,6 +22,7 @@
  * нет. Один источник, а не два.
  */
 import { исходникЭкрана } from './helpers/screenSource';
+import { РАСФОРМИРОВАННЫЕ } from './_helpers/hubScreens';
 declare const __dirname: string;
 declare function require(m: string): any;
 const { readFileSync, readdirSync } = require('fs');
@@ -50,7 +51,14 @@ function hubsByRoute(): Map<string, boolean> {
 }
 
 const screens = (): string[] =>
-  readdirSync(APP_GAMES).filter((f: string) => f.endsWith('.tsx')).map((f: string) => f.replace(/\.tsx$/, ''));
+  readdirSync(APP_GAMES)
+    .filter((f: string) => f.endsWith('.tsx'))
+    // Расформированные 12.09.2026 развилки: карточки в каталоге уже нет, а файл
+    // оставлен по прямому указанию Дениса («удалять только по отдельному слову»).
+    // Каркас им не нужен по той же причине, что и живым развилкам: это не игра,
+    // а меню. Список и сторож при нём — в _helpers/hubScreens.ts.
+    .filter((f: string) => !РАСФОРМИРОВАННЫЕ.has(f))
+    .map((f: string) => f.replace(/\.tsx$/, ''));
 
 describe('партия идёт в общем каркасе', () => {
   it('есть что проверять — иначе гейт зелен вслепую', () => {

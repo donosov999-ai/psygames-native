@@ -407,6 +407,18 @@ export default function RMETGame() {
         title={t('rmet')}
         onBack={() => goBackOrHome()}
         /**
+         * Меню паузы — общий канон приложения (задача 12.09.2026 при переезде
+         * экрана в развилку «Мнемотехники»). Без него игрок, начав партию, не может
+         * ни продолжить осознанно, ни перезапустить, ни выйти без потери.
+         * Пункт обязан ЧТО-ТО делать: `restart` зовёт настоящий перезапуск игры,
+         * а не закрывает шторку.
+         */
+        pauseActions={[
+          { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+          { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame() },
+          { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+        ]}
+        /**
          * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
          * играх, и правка вида приходит сразу везде.
          *

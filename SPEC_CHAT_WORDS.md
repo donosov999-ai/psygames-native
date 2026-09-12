@@ -1,4 +1,4 @@
-# ТЗ чату «Слова» — анаграммы и филворды
+# ТЗ чату «Слова» — анаграммы
 
 *Автор: Denis Onosov (ODV999) · ⚠️ Информация конфиденциальная · 06.09.2026*
 
@@ -24,7 +24,17 @@ frontend/src/games/anagrams/**
 frontend/src/games/fillwords/**
 frontend/src/components/letterWheel/**
 frontend/app/games/anagrams.tsx
-frontend/app/games/proofreading.tsx
+
+🔴 «КОРРЕКТУРА» И ФИЛВОРДЫ УШЛИ 12.09.2026 во «Внимание» (задача 9dc01150,
+решение Дениса: «корректурка это раздел внимание»). Вместе с экраном
+`app/games/proofreading.tsx` уехал движок `src/games/fillwords/**` и пробы
+`{proofread,fillwords}-*`. Новый владелец — `psygames-attention-claude-mac`.
+
+⚠️ СКАЗАНО ПРЯМО, А НЕ ДАНО ОБНАРУЖИТЬ: у раздела остаётся ОДНА игра —
+«Анаграммы» (четыре режима, `letterWheel`, корпус `allWords`). Это не приговор
+(у «Шахмат» две), но из владельца двух движков раздел стал владельцем одного.
+Филворды по материалу словесные и стоят на твоём движке — если через месяц
+окажется, что «Внимание» их не трогает, разрезание экрана вернётся в обсуждение.
 frontend/src/constants/allWords*.json
 wordlist-build/**
 frontend/src/__tests__/  — только anagram*, allwords*, fillwords*, proofread*, wordlist*

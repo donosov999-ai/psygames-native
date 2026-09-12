@@ -1,4 +1,4 @@
-# ТЗ чату «Поиск» — семь игр про найти глазами
+# ТЗ чату «Поиск» — восемь игр про найти глазами
 
 *Автор: Denis Onosov (ODV999) · ⚠️ Информация конфиденциальная · 06.09.2026*
 
@@ -26,7 +26,18 @@ frontend/app/games/mahjong.tsx
 frontend/app/games/schulte.tsx
 frontend/app/games/quick-count.tsx
 frontend/app/games/object-tracker.tsx
+frontend/app/games/sdmt.tsx              ← с 12.09.2026, задача 8f0b0428
+frontend/app/games/set-game.tsx          ← с 12.09.2026, задача 8f0b0428
 frontend/app/games/search-hub.tsx
+
+🔴 ДВА ПРИХОДА И ОДИН УХОД, 12.09.2026.
+Пришли SDMT и SET из расформированной развилки «Гибкость». Довод не вкусовой, а
+из определения самого раздела — «найти нужное среди похожего»: у SDMT ключ
+символ→цифра вверху и таблица внизу, глаза бегают между ними, `skillKey` у него
+`skillProcessingSpeed`; у SET надо найти тройку среди похожих карточек.
+🔴 УШЛА «Корректура: фокус» — во «Внимание» (задача 9dc01150). Корректурная проба
+Бурдона всегда была тестом концентрации, а не зрительного поиска. Оговорка про
+«седьмую карточку, которую ведут другие» больше не нужна: карточки здесь нет.
 frontend/src/games/mahjong/**
 frontend/src/__tests__/mahjong-*
 frontend/src/__tests__/visual-search-*

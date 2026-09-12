@@ -1,4 +1,4 @@
-# ТЗ чату «Объём памяти» — пять проб на то, сколько помещается в голове
+# ТЗ чату «Объём памяти» — шесть карточек, восемь экранов
 
 *Автор: Denis Onosov (ODV999) · ⚠️ Информация конфиденциальная · 06.09.2026*
 
@@ -28,7 +28,18 @@ frontend/app/games/spatial-span.tsx     ← с 10.09.2026
 frontend/app/games/listening-span.tsx
 frontend/app/games/reading-span.tsx
 frontend/app/games/n-back.tsx
+frontend/app/games/picture-pairs.tsx    ← с 12.09.2026, задача 43bc1ca2
 frontend/app/games/span.tsx             ← развилка
+
+🔴 ДВЕ ПЕРЕМЕНЫ 12.09.2026.
+1. «Парные картинки» пришли из расформированной «Зрительной памяти». Резали по
+   МЕХАНИКЕ, а не по материалу: раздел весь про «удержать сейчас», и
+   `skillVisualMemory` у парных картинок тот же, что у всех трёх экранов набора
+   «Позиции». «Навигатор» из той же развилки ушёл НЕ к тебе, а в «Пространство» —
+   у него `skillSpatial`.
+2. Развилка ПЕРЕИМЕНОВАНА для игрока: было «Span: память на последовательности»,
+   стало «Объём памяти» (решение Дениса — иностранное слово в лицо игроку).
+   Ключ словаря прежний, `spanGroup`.
 frontend/src/games/span/**  (если заведёшь)
 frontend/src/__tests__/digit-span-*  ·  memory-matrix-*  ·  n-back-*
 frontend/src/__tests__/listening-span-*  ·  reading-span-*

@@ -153,7 +153,7 @@ export const GAMES: GameConfig[] = [
     icon: 'search',
     route: '/games/proofreading',
     category: 'attention',
-    mergedInto: 'search_group',
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'find_differences',
@@ -339,6 +339,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#4338ca', '#22d3ee'],
     icon: 'musical-notes',
     route: '/games/rhythm-pitch',
+    mergedInto: 'hearing_group',
     category: 'memory',
   },
   {
@@ -460,7 +461,7 @@ export const GAMES: GameConfig[] = [
     icon: 'heart',
     route: '/games/picture-pairs',
     category: 'memory',
-    mergedInto: 'visual_memory_group',
+    mergedInto: 'span_group',
   },
   // ⚠️ Градиент менять только с пересчётом: onGradientText считает по ОБОИМ концам,
   // и тот же цвет уходит внутрь партии подписью на кнопках ответа.
@@ -550,7 +551,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/navigator',
     category: 'memory',
     // 04.09.2026: запоминание увиденного маршрута — зрительная память, только развёрнутая во времени
-    mergedInto: 'visual_memory_group',
+    mergedInto: 'spatial_group',
   },
   // Group card combining digit_span + corsi + spatial_span
   {
@@ -677,7 +678,7 @@ export const GAMES: GameConfig[] = [
     icon: 'analytics',
     route: '/games/pattern',
     category: 'logic',
-    mergedInto: 'flexibility_group',
+    mergedInto: 'counting_group',
   },
   {
     id: 'set_game',
@@ -688,7 +689,7 @@ export const GAMES: GameConfig[] = [
     icon: 'shapes',
     route: '/games/set-game',
     category: 'logic',
-    mergedInto: 'flexibility_group',
+    mergedInto: 'search_group',
   },
   {
     id: 'mental_rotation',
@@ -860,7 +861,7 @@ export const GAMES: GameConfig[] = [
     icon: 'share-social',
     route: '/games/dots-connect',
     category: 'logic',
-    mergedInto: 'routes_group',
+    mergedInto: 'spatial_group',
   },
   // ⚠️ Тот же градиент зашит в экране. Левый конец сдвинут с #7c3aed нарочно:
   // тот совпадал с хабом «Конфликт внимания». Белый даёт 7.90 и 4.60 — вуаль не нужна.
@@ -874,7 +875,7 @@ export const GAMES: GameConfig[] = [
     icon: 'share-social',
     route: '/games/one-line',
     category: 'logic',
-    mergedInto: 'routes_group',
+    mergedInto: 'spatial_group',
   },
 
   // CONTROL / INHIBITION
@@ -895,17 +896,6 @@ export const GAMES: GameConfig[] = [
    * проб; разделение идёт не по тесноте, а по оси: там разрешают СПОР двух
    * признаков, здесь отменяют уже начатое движение.
    */
-  {
-    id: 'inhibition_group',
-    nameKey: 'inhibitionGroup',
-    descKey: 'inhibitionGroupDesc',
-    skillKey: 'skillInhibition',
-    gradient: ['#11998e', '#ee0979'],
-    icon: 'hand-left',
-    route: '/games/inhibition-hub',
-    category: 'action',
-    hub: true,
-  },
   // Group card: Go/No-Go + Stop-Signal (action restraint vs cancellation)
   // 04.09.2026: переехала ВНУТРЬ хаба «Конфликт внимания» (решение Дениса). Обе
   // подпробы уже были помечены mergedInto: 'attention_conflict', а карточка
@@ -920,7 +910,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/inhibition',
     category: 'action',
     hideFromMenu: true,
-    mergedInto: 'inhibition_group',
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'stroop',
@@ -944,7 +934,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/go-no-go',
     category: 'action',
     hideFromMenu: true,
-    mergedInto: 'inhibition_group', // через групповую карточку «Торможение»
+    mergedInto: 'attention_conflict', // через групповую карточку «Торможение»
   },
   {
     id: 'stop_signal',
@@ -956,7 +946,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/stop-signal',
     category: 'action',
     hideFromMenu: true,
-    mergedInto: 'inhibition_group', // через групповую карточку «Торможение»
+    mergedInto: 'attention_conflict', // через групповую карточку «Торможение»
   },
   {
     id: 'trail_making',
@@ -968,7 +958,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/trail-making',
     category: 'logic',
     // соединить цепочку 1-А-2-Б: путь, который обязан покрыть всё
-    mergedInto: 'routes_group',
+    mergedInto: 'spatial_group',
   },
   {
     id: 'switching_task',
@@ -1027,7 +1017,7 @@ export const GAMES: GameConfig[] = [
     icon: 'warning',
     route: '/games/bart',
     category: 'intuition',
-    mergedInto: 'risk_group',
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'iowa',
@@ -1038,7 +1028,7 @@ export const GAMES: GameConfig[] = [
     icon: 'cash',
     route: '/games/iowa',
     category: 'intuition',
-    mergedInto: 'risk_group',
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'prl',
@@ -1049,7 +1039,7 @@ export const GAMES: GameConfig[] = [
     icon: 'trending-up',
     route: '/games/prl',
     category: 'intuition',
-    mergedInto: 'risk_group',
+    mergedInto: 'attention_conflict',
   },
 
   // MATH
@@ -1145,7 +1135,7 @@ export const GAMES: GameConfig[] = [
     icon: 'apps',
     route: '/games/sdmt',
     category: 'action',
-    mergedInto: 'flexibility_group',
+    mergedInto: 'search_group',
   },
   {
     id: 'posner',
@@ -1157,7 +1147,7 @@ export const GAMES: GameConfig[] = [
     route: '/games/posner',
     category: 'attention',
     // подсказка направляет внимание, а невалидная его отвлекает — тот же конфликт
-    mergedInto: 'inhibition_group',
+    mergedInto: 'attention_conflict',
   },
   {
     id: 'ant',
@@ -1225,6 +1215,7 @@ export const GAMES: GameConfig[] = [
     gradient: ['#fc466b', '#a445b2'],
     icon: 'eye',
     route: '/games/rmet',
+    mergedInto: 'mnemonics_group',
     category: 'action',
   },
   // ─── 48-я игра (v1.9.0): Simon Task ─────────────────────────────────
@@ -1318,33 +1309,6 @@ export const GAMES: GameConfig[] = [
     icon: 'search',
     route: '/games/search-hub',
     category: 'attention',
-    hub: true,
-  },
-  {
-    /**
-     * Развилка «Решения под риском» (04.09.2026, решение Дениса). Каталог из 52 карточек
-     * не листается; эти пробы меряют одно и то же и жили рядом порознь.
-     */
-    id: 'risk_group',
-    nameKey: 'riskGroup',
-    descKey: 'riskGroupDesc',
-    skillKey: 'skillRisk',
-    gradient: ['#b45309', '#f59e0b'],
-    icon: 'scale',
-    route: '/games/risk-hub',
-    category: 'action',
-    hub: true,
-  },
-  {
-    /** Развилка «Зрительная память» (04.09.2026). «Память» разрослась до 14 карточек. */
-    id: 'visual_memory_group',
-    nameKey: 'visualMemoryGroup',
-    descKey: 'visualMemoryGroupDesc',
-    skillKey: 'skillVisualMemory',
-    gradient: ['#7c3aed', '#0ea5e9'],
-    icon: 'images',
-    route: '/games/visual-memory-hub',
-    category: 'memory',
     hub: true,
   },
   {
@@ -1463,38 +1427,6 @@ export const GAMES: GameConfig[] = [
     gradient: ['#5614b0', '#dbd65c'],
     icon: 'cube',
     route: '/games/spatial-hub',
-    category: 'logic',
-    hub: true,
-  },
-  {
-    /**
-     * Развилка «Маршруты» (04.09.2026, выбор Дениса). Соединить пары непересекающимися
-     * путями и обойти все рёбра ровно по разу — одна работа: почти каждый ход законен
-     * сам по себе и заводит в тупик, поэтому считать надо покрытие заранее.
-     */
-    id: 'routes_group',
-    nameKey: 'routesGroup',
-    descKey: 'routesGroupDesc',
-    skillKey: 'skillPlanning',
-    gradient: ['#0f766e', '#4f46e5'],
-    icon: 'git-network',
-    route: '/games/routes-hub',
-    category: 'logic',
-    hub: true,
-  },
-  {
-    /**
-     * Развилка «Гибкость» (04.09.2026, состав от Дениса). Три пробы, где
-     * переключаться надо САМОМУ, без внешнего сигнала: бросить негодную гипотезу,
-     * сменить признак поиска, перейти между строками ключа.
-     */
-    id: 'flexibility_group',
-    nameKey: 'flexibilityGroup',
-    descKey: 'flexibilityGroupDesc',
-    skillKey: 'skillSwitching',
-    gradient: ['#6366f1', '#14b8a6'],
-    icon: 'swap-horizontal',
-    route: '/games/flexibility-hub',
     category: 'logic',
     hub: true,
   },
