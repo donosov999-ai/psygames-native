@@ -1,4 +1,4 @@
-/* psygames-number-run-types · VER 1 · 12.09.2026 · psygames-claude-mac */
+/* psygames-number-run-types · VER 1 · 12.09.2026 */
 /**
  * ТИПЫ ПЕРЕНЕСЁННЫХ МОДУЛЕЙ ЛАБОРАТОРИИ.
  *
