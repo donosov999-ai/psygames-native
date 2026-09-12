@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.0',
+    date: '2026-09-12',
+    ru: [
+      'Меню стало короче: разделов 13 вместо 18. Упражнения из мелких развилок переехали к родственным, искать стало быстрее',
+      'Два раздела названы понятнее: «Объём памяти» и «Пространство»',
+      'Две пробы на торможение впервые открылись — «Запрет» и «Отмена начатого». Раньше до них не было пути из меню',
+      'Четыре карточки показывали служебное слово вместо названия — исправлено',
+    ],
+    en: [
+      'The menu is shorter: 13 sections instead of 18. Exercises from small hubs moved next to their relatives, so they are quicker to find',
+      'Two sections got clearer names: Memory Span and Space',
+      'Two inhibition tasks are finally reachable — Forbidden one and Cancel a started move. Until now the menu had no way in',
+      'Four cards showed an internal word instead of a name — fixed',
+    ],
+  },
+  {
     version: '2.53.9',
     date: '2026-09-11',
     ru: [
