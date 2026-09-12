@@ -41,8 +41,8 @@ import { saveSession } from '@/src/services/api';
 // дисциплина игровых часов, гейт `game-clock-discipline`.
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
-import { открыть, указатель, стрелка, клавиша, стеретьВвод, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
-import { ПЛАН_ШАГАМИ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
+import { открыть, указатель, стрелка, клавиша, стеретьВвод, выбрать, поДиагонали, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
+import { ПЛАН_ШАГАМИ, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
 
@@ -569,6 +569,59 @@ export default function PuzzlesScreen() {
               ))}
             </View>
           ) : null}
+          {/*
+            🔴 ДИАГОНАЛИ — ТОЛЬКО «ИНЕРЦИИ», И ЭТО ЗАМЕР, А НЕ ВКУС. Её автор читает
+            восемь направлений цифровым блоком (`inertia.c:1613…1619`), а крестовина
+            даёт четыре: половина ходов игры была недоступна. Прогон 12.09.2026,
+            зерно 777: ↖ ХОД · ↗ ХОД · ↙ ХОД · ↘ ХОД.
+          */}
+          {ВОСЕМЬ_НАПРАВЛЕНИЙ.has(имяРежима) ? (
+            <View style={styles.крестовина}>
+              {([['вверх-влево', 'arrow-up-outline', '-45deg'], ['вверх-вправо', 'arrow-up-outline', '45deg'],
+                 ['вниз-влево', 'arrow-down-outline', '45deg'], ['вниз-вправо', 'arrow-down-outline', '-45deg']] as const).map(([куда, знак, поворот]) => (
+                <Pressable
+                  key={куда}
+                  accessibilityRole="button"
+                  accessibilityLabel={куда}
+                  onPress={() => { void поДиагонали(куда).then((и) => { setПартия(и.партия); if (и.подействовало) setХодов((n) => n + 1); }); }}
+                  style={[styles.стрелка, { borderColor: colors.border, backgroundColor: colors.card }]}
+                >
+                  <Ionicons name={знак} size={22} color={colors.text} style={{ transform: [{ rotate: поворот }] }} />
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+          {/*
+            🔴 «ВЫБРАТЬ» — ТАМ, ГДЕ КРЕСТОВИНЫ МАЛО. У «Раскраски карты», «Колышков»,
+            «Указателей» и «Распутай» стрелки только водят курсор: взять узел, положить
+            колышек, подтвердить или отменить нечем. Авторские движки ждут CURSOR_SELECT
+            (`map.c:2513`, `pegs.c:982`, `signpost.c:1528`, `untangle.c:1549`).
+            Замер 12.09.2026, зерно 777: у всех четырёх SELECT → ХОД.
+            ⚠️ Второе действие показываем ТОЛЬКО троим: у «Распутай» SELECT2 отвечает
+            «ничего», и кнопка-пустышка хуже отсутствующей.
+          */}
+          {ВЫБОР.has(имяРежима) ? (
+            <View style={styles.командыВыбора}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => { void выбрать().then((и) => { setПартия(и.партия); if (и.подействовало) setХодов((n) => n + 1); }); }}
+                style={[styles.командаВыбора, { backgroundColor: GRADIENT[0] }]}
+              >
+                <Ionicons name="hand-left" size={20} color="#FFF" />
+                <Text style={styles.командаВыбораТекст}>{t('puzzleSelect')}</Text>
+              </Pressable>
+              {ВЫБОР_ВТОРОЙ.has(имяРежима) ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => { void выбрать(true).then((и) => { setПартия(и.партия); if (и.подействовало) setХодов((n) => n + 1); }); }}
+                  style={[styles.командаВыбора, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                >
+                  <Ionicons name="swap-horizontal" size={20} color={colors.text} />
+                  <Text style={[styles.командаВыбораТекст, { color: colors.text }]}>{t('puzzleSecondAction')}</Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : null}
         </View>
       )}
     </GameShell>
@@ -587,6 +640,11 @@ const styles = StyleSheet.create({
   шагПлана: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     alignSelf: 'stretch', height: 48, borderRadius: 14, paddingHorizontal: 18 },
   шагПланаТекст: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  // Команды механики: одна или две в строку — правило 8 (две кнопки = строка).
+  командыВыбора: { flexDirection: 'row', gap: 10, alignSelf: 'stretch' },
+  командаВыбора: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 8, height: 48, borderRadius: 14, paddingHorizontal: 14 },
+  командаВыбораТекст: { color: '#FFF', fontSize: 15, fontWeight: '700' },
   протяжка: { marginTop: 10, fontSize: 13, textAlign: 'center', maxWidth: 420, fontWeight: '600' },
   тупик: {
     marginTop: 12, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1,
