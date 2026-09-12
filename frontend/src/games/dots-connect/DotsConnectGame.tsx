@@ -1,5 +1,6 @@
 /* psygames-dots-connect-game · VER 5 · 23.08.2026 */
 import React from 'react';
+import { БЕЗ_ЖЕСТА_ПРОКРУТКИ } from '@/src/components/GameShell';
 import {
   AppState,
   PanResponder,
@@ -401,6 +402,16 @@ function DotsBoard({
       onLayout={(event) => setBoardWidth(Math.max(1, event.nativeEvent.layout.width))}
       style={[
         styles.board,
+        /**
+         * 🔴 ДОСКА НЕ ОТДАЁТ СВОЁ КАСАНИЕ БРАУЗЕРУ. Отчёт Дениса 12.09.2026 на
+         * установленной сборке: «когда пальцем веду линию — оно едет вниз».
+         * Игра рисует внутри своего `ScrollView` (ниже по файлу), и этот скроллер
+         * стоит между пальцем и защищённым полем каркаса — каркасный запрет до
+         * него не достаёт. Здесь запрет висит на САМОЙ доске: рисование браузер
+         * прокруткой больше не считает, а прокрутка остального экрана цела, и
+         * нижние клетки на маленьком экране остаются достижимыми.
+         */
+        БЕЗ_ЖЕСТА_ПРОКРУТКИ as any,
         { borderColor: theme.border, backgroundColor: theme.border },
         focused && ({
           outlineColor: theme.warning,
