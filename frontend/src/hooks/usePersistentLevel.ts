@@ -17,7 +17,8 @@
  *
  * reach(target): поднимает уровень до target, если target больше достигнутого (и сохраняет),
  *   плюс сбрасывает счётчик провалов подряд (успех = чистый лист).
- * fail(): увеличивает счётчик провалов подряд; при достижении FAIL_STREAK_THRESHOLD (3)
+ * fail(): увеличивает счётчик провалов подряд; при достижении порога (3 по умолчанию,
+ *   у маджонга 5 — третий довод хука)
  *   понижает уровень на 1 (не ниже 1) и сбрасывает счётчик. Возвращает true при понижении.
  *   Паттерн гистерезиса — как в brainworkshop/cogniba: единичный провал НЕ наказывает
  *   сразу, чтобы не разочаровывать за одну неудачную сессию.
@@ -46,6 +47,16 @@ import { pickTarget } from '@/src/services/levelPick';
 import { IS_WEB_DEMO } from '@/src/services/buildTarget';
 import { cachedLevelValue, rememberLevelValue, warmLevelCache } from '@/src/services/levelCache';
 
+/**
+ * Сколько провалов ПОДРЯД опускают уровень. Три — общее правило приложения.
+ *
+ * ⚠️ Порог настраивается третьим доводом `usePersistentLevel`, и это не украшение
+ * API: у игр разная цена проигрыша. В маджонге доска встаёт насмерть у 60 % раздач
+ * на 28-м уровне и у 53 % на 40-м (замер 06.09.2026, 30 партий на уровень,
+ * случайная игра — для человека верхняя граница). Три подряд там — обычное
+ * невезение, а не «стало трудно». Решение Дениса 11.09.2026: у маджонга ПЯТЬ.
+ * Менять порог ОДНОЙ игре, а не всем сразу.
+ */
 const FAIL_STREAK_THRESHOLD = 3;
 
 export interface PersistentLevel {
@@ -59,7 +70,7 @@ export interface PersistentLevel {
   pick: (n: number) => void;            // переиграть пройденный уровень; n ≥ best снимает выбор
 }
 
-export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel {
+export function usePersistentLevel(gameId: string, initial = 1, порогПровалов = FAIL_STREAK_THRESHOLD): PersistentLevel {
   const { profile } = useProfile();
   const pid = (profile as any)?.id ?? 'default';
   const key = `psygames_${gameId}_level_${pid}`;
@@ -171,7 +182,7 @@ export function usePersistentLevel(gameId: string, initial = 1): PersistentLevel
     // человека. Понижать за это значит наказывать за интерес к своей же истории.
     if (pickedRef.current !== null) { clearPick(); return false; }
     const streak = failStreakRef.current + 1;
-    if (streak >= FAIL_STREAK_THRESHOLD && levelRef.current > 1) {
+    if (streak >= порогПровалов && levelRef.current > 1) {
       setLevel(levelRef.current - 1);   // setLevel уже обнуляет failStreak
       return true;
     }
