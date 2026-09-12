@@ -87,8 +87,12 @@ export default function CollectionScreen() {
               <Pressable
                 key={f.key}
                 accessibilityRole="button"
+                /* ⚠️ `{at}` здесь БОЛЬШЕ НЕ ПОДСТАВЛЯЕТСЯ: порог написан на самой
+                   карточке, а в подсказке от него был только вред — два числа в
+                   одной фразе читались как противоречие (отчёт 972a4657). Если
+                   `{at}` вернут в перевод, он покажется как есть — и это заметят. */
                 onPress={() => setПодсказка(собрана ? null : t('collectionHowToOpen')
-                  .replace('{name}', имя).replace('{at}', String(f.at))
+                  .replace('{name}', имя)
                   .replace('{n}', String(Math.max(0, f.at - заработано))))}
                 testID={собрана ? 'figure-owned' : 'figure-locked'}
                 accessibilityLabel={собрана ? имя : `${имя} — ${t('collectionLocked').replace('{n}', String(f.at))}`}

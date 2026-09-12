@@ -1264,7 +1264,7 @@ const t: Record<string, string> = {
   "collectionTitle": "संग्रह",
   "collectionSub": "{all} में से {have} · कुल ⭐{earned}",
   "collectionLocked": "⭐{n} पर खुलेगा",
-  "collectionHowToOpen": "{name}: ⭐{at} पर खुलेगा, {n} ⭐ बाकी — सितारे खेलों से मिलते हैं",
+  "collectionHowToOpen": "{name}: {n} ⭐ बाकी — सितारे खेलों से मिलते हैं",
   "collectionOpen": "संग्रह खोलें",
   "figAcorn": "बलूत",
   "figPebble": "कंकड़",

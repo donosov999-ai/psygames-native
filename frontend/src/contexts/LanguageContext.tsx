@@ -599,7 +599,16 @@ const translations: Translations = {
   collectionTitle:  { ru: 'Коллекция', en: 'Collection' },
   collectionSub:    { ru: 'Собрано {have} из {all} · ⭐{earned} за всё время', en: '{have} of {all} collected · ⭐{earned} all time' },
   collectionLocked: { ru: 'Откроется на ⭐{n}', en: 'Opens at ⭐{n}' },
-  collectionHowToOpen: { ru: '{name}: откроется на ⭐{at}, не хватает {n} ⭐ — звёзды приходят за партии', en: '{name}: opens at ⭐{at}, {n} ⭐ to go — stars come from rounds' },
+  /**
+   * 🔴 ОДНО ЧИСЛО, А НЕ ДВА. Стояло «откроется на ⭐{at}, не хватает {n} ⭐» —
+   * в одной фразе и порог, и остаток. Игрок с 15 звёздами читал у «Фонаря»
+   * «opens at ⭐1550, 1535 ⭐ to go» и понимал это как противоречие: так 1550
+   * или 1535? Отчёт 972a4657 (11.09.2026, iOS 2.53.8): «не могу понять, как
+   * получить предмет». Порог и так написан на самой карточке
+   * (`collectionLocked`), поэтому здесь остаётся только ОСТАТОК — то, чего
+   * на карточке нет. Каждое число живёт в одном месте.
+   */
+  collectionHowToOpen: { ru: '{name}: ещё {n} ⭐ — звёзды приходят за партии', en: '{name}: {n} ⭐ to go — stars come from rounds' },
   collectionOpen:   { ru: 'Открыть коллекцию', en: 'Open collection' },
   figAcorn:        { ru: 'Жёлудь', en: 'Acorn' },
   figPebble:    { ru: 'Камешек',     en: 'Pebble' },
