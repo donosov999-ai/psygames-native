@@ -123,6 +123,9 @@ search-chat/
 sudoku-chat/
 chess-chat/
 span-chat/
+# Папка чата «Mental rotation» (раздел «Пространство»), 12.09.2026. До переименования
+# называлась spatial-chat/ — строка ниже оставлена, пока старая папка не удалена.
+mental-rotation-chat/
 counting-chat/
 attention-chat/
 memory-hearing-chat/
