@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.1',
+    date: '2026-09-12',
+    ru: [
+      '«Соедини точки»: поле больше не съезжает вниз, пока ведёшь линию пальцем — касание остаётся в игре, а не уходит на прокрутку страницы',
+      '«Соедини точки»: доска целиком помещается в экран на больших размерах — раньше нижний ряд уходил за край, и до него было не дотянуться',
+    ],
+    en: [
+      'Connect the Dots: the board no longer slides down while you drag a line — the touch stays in the game instead of scrolling the page',
+      'Connect the Dots: the whole board now fits the screen on larger sizes — the bottom row used to run off the edge, out of reach',
+    ],
+  },
+  {
     version: '2.54.0',
     date: '2026-09-12',
     ru: [
