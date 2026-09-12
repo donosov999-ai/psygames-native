@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import Svg, { Line, Polygon } from 'react-native-svg';
 import { sndPlace } from '@/src/services/feedback';
+import { БЕЗ_ЖЕСТА_ПРОКРУТКИ } from '@/src/components/GameShell';
 import { ballImage, useBallStyle } from '@/src/games/balls/ballChoice';
 import {
   edgeAllowsDirection,
@@ -390,6 +391,22 @@ function OneLineBoard({
       onLayout={(event) => setBoardSize(Math.max(1, event.nativeEvent.layout.width))}
       style={[
         styles.board,
+        /**
+         * 🔴 ПОЛЕ НЕ ОТДАЁТ СВОЁ КАСАНИЕ СТРАНИЦЕ (правило 6 UI_LAYOUT_RULES).
+         *
+         * Замер Дениса на iPhone, TestFlight 2.54.3, 12.09.2026: «как ездило, так
+         * и ездит» — два снимка одного экрана в разных положениях прокрутки. Палец
+         * вёл линию, а страница уезжала под ним.
+         *
+         * ⚠️ ПОЧЕМУ ЗАПРЕТ СТОИТ ЗДЕСЬ, А НЕ У ПРЕДКА. `touch-action` действует на
+         * касания, НАЧАВШИЕСЯ на узле; между полем и корнем экрана стоит свой
+         * `ScrollView`, и запрет с предка до поля не доходит. Ровно на этом мы уже
+         * обожглись в «Соедини точки» (коммит c00d952f).
+         *
+         * Этот экран стоял ПЕРВОЙ строкой долга в гейте `board-keeps-its-touch` с
+         * пометкой «снимать после замера на устройстве». Замер получен — снимаю.
+         */
+        БЕЗ_ЖЕСТА_ПРОКРУТКИ,
         { backgroundColor: theme.surface, borderColor: theme.border },
         focused && ({
           outlineColor: theme.warning,
