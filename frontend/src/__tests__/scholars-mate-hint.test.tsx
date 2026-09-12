@@ -22,6 +22,7 @@
 import React from 'react';
 
 import ScholarsMateScreen from '@/app/games/scholars-mate';
+import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
 import { buildDeck } from '@/src/games/scholars-mate/core/deck';
 import { starsFor, звёздыПодхода } from '@/src/games/scholars-mate/core/run';
 
@@ -201,5 +202,61 @@ describe('«Детский мат»: подсказка застрявшему �
     // И на медленной медиане потолок ничего не портит: было и так мало.
     expect(`медленно и с подсказкой: ${звёздыПодхода(9_000, 1, 2)}`)
       .toBe('медленно и с подсказкой: 1');
+  });
+});
+
+/**
+ * 🔴 ФЛАГ ПОДСКАЗКИ В ПОПЫТКЕ ОБЯЗАН БЫТЬ ПРАВДОЙ, А НЕ УКРАШЕНИЕМ.
+ *
+ * 📍 НАШЁЛ ЛИНТЕР, А НЕ ПРОБА, 12.09.2026. `ответить` мемоизирован и не
+ * пересоздаётся при взятии подсказки — замыкание держало `подсказкаПоле` таким,
+ * каким оно было при создании колбэка, и в попытку писался `false` даже там, где
+ * подсказку брали. Потолок звёзд при этом работал (он считает по счётчику-ref), то
+ * есть дефект был НЕВИДИМ снаружи и жил бы, пока кто-нибудь не начал читать поле.
+ *
+ * Здесь модуль монтируется НАПРЯМУЮ, без экрана: нужен `onComplete` с попытками,
+ * а экран его наружу не отдаёт.
+ */
+describe('«Детский мат»: подсказка отмечена в той позиции, где её взяли', () => {
+  it('🔴 hinted стоит там, где нажимали, и не стоит там, где нет', () => {
+    let итог: any = null;
+    let tree: any;
+    TestRenderer.act(() => {
+      tree = TestRenderer.create(React.createElement(ScholarsMateGame as any, {
+        level: 1, seed: 2, size: 390,
+        theme: { surface: '#fff', text: '#000', textSecondary: '#666', border: '#ccc', primary: '#07c', success: '#0a0', danger: '#a00' },
+        now: () => mockЧасы.t,
+        onComplete: (r: any) => { итог = r; },
+        labels: {
+          mate: 'мат', defend: 'защита', threat: 'угроза', sacrifice: 'жертва',
+          yes: 'да', no: 'нет', best: 'лучше', timeUp: 'время', sec: 'с',
+          hint: 'подсказка', hintUsed: 'использована',
+        },
+      }));
+      mounted.push(tree);
+    });
+
+    const кнопка = (метка: string) => tree.root.findAll(
+      (n: any) => typeof n.props?.onPress === 'function'
+        && String(n.props.accessibilityLabel ?? '') === метка, { deep: true },
+    )[0];
+
+    // Первая позиция: доживаем до половины, берём подсказку, дальше молчим до таймаута.
+    TestRenderer.act(() => { mockЧасы.t += 11_000; jest.advanceTimersByTime(11_000); });
+    expect(`кнопка подсказки на первой позиции: ${!!кнопка('подсказка')}`)
+      .toBe('кнопка подсказки на первой позиции: true');
+    TestRenderer.act(() => { кнопка('подсказка').props.onPress(); });
+
+    // Досиживаем все восемь позиций до таймаута — отвечать не нужно, нужен итог.
+    for (let i = 0; i < 9; i += 1) {
+      TestRenderer.act(() => { mockЧасы.t += 21_000; jest.advanceTimersByTime(21_000); });
+      TestRenderer.act(() => { mockЧасы.t += 2_000; jest.advanceTimersByTime(2_000); });
+    }
+
+    expect(`подход закончился: ${итог !== null}`).toBe('подход закончился: true');
+    const сФлагом = (итог.attempts as any[]).filter((a) => a.hinted).length;
+    expect(`попыток с отмеченной подсказкой: ${сФлагом} (нажимали на одной)`)
+      .toBe('попыток с отмеченной подсказкой: 1 (нажимали на одной)');
+    expect(`подсказок в итоге подхода: ${итог.hints}`).toBe('подсказок в итоге подхода: 1');
   });
 });

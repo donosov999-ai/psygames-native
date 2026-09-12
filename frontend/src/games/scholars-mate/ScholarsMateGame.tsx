@@ -132,6 +132,15 @@ export default function ScholarsMateGame({
    */
   const [подсказкаПоле, setПодсказкаПоле] = React.useState<string | null>(null);
   const подсказокЗаПодход = React.useRef(0);
+  /**
+   * ⚠️ ЗЕРКАЛО СОСТОЯНИЯ В REF, И ЭТО НЕ УКРАШЕНИЕ. `ответить` мемоизирован и НЕ
+   * пересоздаётся при взятии подсказки: замыкание держало бы `подсказкаПоле` таким,
+   * каким оно было при создании колбэка, и флаг попытки писался бы `false` даже у
+   * тех позиций, где подсказку брали. Потолок звёзд при этом работал бы (он считает
+   * по счётчику-ref), а поле попытки молча врало. Нашёл линтером, а не пробой.
+   */
+  const подсказкаRef = React.useRef<string | null>(null);
+  React.useEffect(() => { подсказкаRef.current = подсказкаПоле; }, [подсказкаПоле]);
   const [вердикт, setВердикт] = React.useState<{ ok: boolean; best?: string; наказание?: string } | null>(null);
   const [осталось, setОсталось] = React.useState(п.seconds);
   /**
@@ -233,7 +242,7 @@ export default function ScholarsMateGame({
       ms: полное,
       // Не касался вовсе (прозевал по времени) — считаем полным временем.
       msFirst: первоеКасание.current ? первоеКасание.current - началоRef.current : полное,
-      hinted: подсказкаПоле !== null,
+      hinted: подсказкаRef.current !== null,
     });
     onProgress?.(scholarsArmed(попытки.current));
     setВердикт({ ok: correct, best, наказание });
