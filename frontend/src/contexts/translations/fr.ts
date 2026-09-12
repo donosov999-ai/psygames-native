@@ -2635,6 +2635,8 @@ const t: Record<string, string> = {
   "numberRunRule": "Guide ton nombre sur la route. Les blocs bleus ajoutent, les rouges retranchent ce qui est écrit dessus. Sur une même ligne tu peux ramasser les cinq nombres, pas en choisir un seul. Le tremplin vert te propulse par-dessus la brèche.",
   "numberRunDesc": "Tu guides un nombre sur la route et décides en roulant quoi ramasser : le bleu ajoute, le rouge retranche.",
   "numberRunDone": "Course terminée",
+  "numberRunTask": "Le bleu ajoute, le rouge retranche",
+  "numberRunIntroDesc": "Tu guides un seul nombre sur la route et décides en roulant ce que tu ramasses. Un bloc bleu ajoute ce qui y est écrit, un rouge le retranche. Une ligne contient jusqu’à cinq nombres et chacun se prend séparément : tu peux tous les ramasser ou aucun. Le tremplin vert te projette par-dessus la brèche ; si tu le manques, tu tombes. Douze étapes s’enchaînent sans arrêt et sans remise à zéro.",
   "numberRunWebOnly": "La course fonctionne dans la couche web de l’application ; dans cette version le rendu n’est pas disponible.",
   "pauseExitGame": "Quitter l’exercice",
   "pauseSoundOff": "Mode silencieux",
