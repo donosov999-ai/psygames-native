@@ -28,7 +28,7 @@
  * у раннера нет и не требуется (Skia/Filament/Fabric сюда не нужны — см.
  * `PLATFORM_AND_RENDERING_FACTS.md`).
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 
 /** Значения для шапки — единственное, что уходит в React каждый раз. */
@@ -65,7 +65,18 @@ type Ядро = typeof import('./runner-core.mjs');
 type Кампания = typeof import('./runner-campaign.mjs');
 type Сцена = typeof import('./runner-scene.mjs');
 
-export default function NumberRunGame({ зерно, пауза, onПоказатели, onИтог, фон, цветТекста }: Props) {
+/**
+ * Руль наружу — для трёх кнопок нижней полосы. Кнопки принадлежат route (они
+ * часть каркаса), а состояние забега — адаптеру; передавать состояние наружу
+ * ради трёх кнопок значило бы гонять его через React каждый кадр.
+ */
+export interface РульЗабега {
+  /** x от −1 (левый край) до 1 (правый). Промежуточные значения допустимы. */
+  рулить(x: number): void;
+}
+
+const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRunGame(
+  { зерно, пауза, onПоказатели, onИтог, фон, цветТекста }: Props, ref) {
   const контейнер = useRef<View | null>(null);
   const rafRef = useRef<number | null>(null);
   const состояние = useRef<any>(null);
@@ -246,6 +257,14 @@ export default function NumberRunGame({ зерно, пауза, onПоказат
     dom.addEventListener('pointercancel', отпустить);
   }, []);
 
+  useImperativeHandle(ref, () => ({
+    рулить(x: number) {
+      const c = ядро.current, s = состояние.current;
+      if (!c || !s || s.status !== 'running') return;
+      состояние.current = c.setTarget(s, x);
+    },
+  }), []);
+
   return (
     <View style={styles.поле} ref={узелЖеста as any} collapsable={false}>
       {ошибка ? (
@@ -259,7 +278,9 @@ export default function NumberRunGame({ зерно, пауза, onПоказат
       ) : null}
     </View>
   );
-}
+});
+
+export default NumberRunGame;
 
 const styles = StyleSheet.create({
   // Поле занимает ВСЁ оставшееся место между полосами каркаса; размер камеры
