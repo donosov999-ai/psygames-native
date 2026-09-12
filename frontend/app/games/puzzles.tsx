@@ -129,6 +129,28 @@ export default function PuzzlesScreen() {
     void раздать(движок, ст ?? ступень, з);
   }, [движок, ступень, раздать]);
 
+  /**
+   * 🔴 «ЗАНОВО» — ТА ЖЕ РАЗДАЧА, А НЕ ДРУГАЯ ГОЛОВОЛОМКА.
+   *
+   * ЧТО БЫЛО. И меню паузы, и карточка тупика звали `новая()`, а она бросает НОВОЕ
+   * зерно. Человек, упёршийся в доску и нажавший «Заново», получал другую доску —
+   * то есть терял ту, которую разбирал. Найдено аудитом сорока головоломок
+   * (psygames-codex-mac, 12.09.2026, пункт P2-06; живое воспроизведение в «Мостах»
+   * до первого хода, `restart-ui.json`).
+   *
+   * РАЗНИЦА, КОТОРУЮ ТЕПЕРЬ ДЕРЖИМ: «Заново» повторяет текущие параметры и ЗЕРНО,
+   * «Новая партия» меняет зерно. Проверять это надо сравнением самой позиции, а не
+   * номера уровня: номер совпадёт и у другой доски.
+   *
+   * `раздать` сбрасывает счёт ходов и признак показанного ответа — то есть «Заново»
+   * возвращает именно чистую ту же доску, а не её разобранное состояние.
+   */
+  const заново = useCallback(() => {
+    if (!движок) return;
+    setФаза('playing');
+    void раздать(движок, ступень, зерно);
+  }, [движок, ступень, зерно, раздать]);
+
   const начать = useCallback(() => {
     if (!движок) return;
     setФаза('playing');
@@ -254,7 +276,7 @@ export default function PuzzlesScreen() {
       ) : null}
       pauseActions={[
         { id: 'resume', label: t('exitConfirmStay'), icon: 'play', primary: true },
-        { id: 'restart', label: t('restart'), icon: 'refresh', onPress: () => новая() },
+        { id: 'restart', label: t('restart'), icon: 'refresh', onPress: () => заново() },
         { id: 'undo', label: t('btn_undo'), icon: 'arrow-undo', onPress: () => { void отменить().then(setПартия); } },
         // Подсказка живёт на ЕГО решателе: где решателя нет (Cube, Pegs, Same Game —
         // замер по `game.can_solve`), кнопки тоже нет. Кнопка-пустышка хуже отсутствия.
@@ -398,7 +420,7 @@ export default function PuzzlesScreen() {
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => новая()}
+                  onPress={() => заново()}
                   style={[styles.тупикКнопка, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
                 >
                   <Ionicons name="refresh" size={18} color={colors.text} />
