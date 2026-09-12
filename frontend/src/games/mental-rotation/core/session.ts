@@ -19,13 +19,26 @@
  * развёртками, требуя, чтобы наклон их не заметил.
  */
 import { buildNetTask } from './net';
+import { buildSameTask } from './same';
+import { buildViewpointTask } from './viewpoint';
 import { buildProjectionTask } from './projection';
 import { buildRotationTask, levelParams } from './rotation';
 import { shuffle } from './rng';
 import type { MentalRotationTask, Rng, TaskKind } from './types';
 
-/** С какого уровня появляется вид задания. Поворот — с первого и всегда. */
-export const KIND_UNLOCK: Record<TaskKind, number> = { rotation: 1, projection: 3, net: 5 };
+/**
+ * С какого уровня появляется вид задания. Поворот — с первого и всегда.
+ *
+ * ⚠️ ПОРОГИ РАЗНЕСЕНЫ, А НЕ ПОСТАВЛЕНЫ ОДИН НА ДРУГОЙ. Открой два новых вида на
+ * одном уровне — и человек за одну партию получит два незнакомых правила сразу,
+ * а доля поворотных проб просядет к нижней границе рывком. Ракурс идёт седьмым:
+ * он ближе всего к повороту и читается как его продолжение. Пара «да/нет» —
+ * девятым: у неё другой способ отвечать (две кнопки вместо выбора картинки), и
+ * её лучше встретить, когда остальное уже привычно.
+ */
+export const KIND_UNLOCK: Record<TaskKind, number> = {
+  rotation: 1, projection: 3, net: 5, viewpoint: 7, same: 9,
+};
 
 /** Ниже этой доли поворотных проб партия опускаться не должна — см. шапку. */
 export const MIN_ROTATION_SHARE = 0.6;
@@ -71,6 +84,8 @@ export function buildTask(kind: TaskKind, level: number, rng: Rng): MentalRotati
     return buildProjectionTask({ minCubes: p.minC, maxCubes: p.maxC, optionCount: p.optionCount }, rng);
   }
   if (kind === 'net') return buildNetTask({ optionCount: p.optionCount }, rng);
+  if (kind === 'viewpoint') return buildViewpointTask(level, rng);
+  if (kind === 'same') return buildSameTask(level, rng);
   return buildRotationTask(level, rng);
 }
 
@@ -120,8 +135,17 @@ export function meanSlopeRt(records: readonly TrialRecord[]): number {
   return Math.round(pairs.reduce((s, p) => s + p.rt, 0) / pairs.length);
 }
 
+/**
+ * Сколько проб какого вида было в партии.
+ *
+ * ⚠️ НУЛИ БЕРУТСЯ ИЗ `KIND_UNLOCK`, А НЕ ПИШУТСЯ РУКАМИ. Здесь до 12.09.2026 стоял
+ * второй по счёту список видов заданий, и он уже отстал: добавление вида в
+ * `TaskKind` его не трогало, счётчик молча терял новую пробу — а в сводке партии
+ * это выглядело бы не ошибкой, а «таких заданий не выпало». Список видов в модуле
+ * должен быть ОДИН.
+ */
 export function taskKindCounts(records: readonly TrialRecord[]): Record<TaskKind, number> {
-  const out: Record<TaskKind, number> = { rotation: 0, projection: 0, net: 0 };
+  const out = Object.fromEntries((Object.keys(KIND_UNLOCK) as TaskKind[]).map((k) => [k, 0])) as Record<TaskKind, number>;
   for (const r of records) out[r.kind] += 1;
   return out;
 }

@@ -58,6 +58,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import {ViewpointReference} from '@/src/components/ViewpointReference';
 import {RotationShape,RotationTransition} from '@/src/components/RotationShape';
 import RotationWorkbench from '@/src/components/RotationWorkbench';
 import {spatialFrame} from '@/src/games/spatial-core/frame';
@@ -207,8 +208,8 @@ function markPolygon(mark: FaceMark, a: Pt, b: Pt, d: Pt): string {
     .join(' ');
 }
 
-function renderShape(shape: Shape, size: number, _baseColor: string) {
-  return <RotationShape shape={shape} size={size}/>;
+function renderShape(shape: Shape, size: number, _baseColor: string, axis?: Axis, degrees?: number) {
+  return <RotationShape shape={shape} size={size} axis={axis} degrees={degrees}/>;
 }
 
 /**
@@ -515,19 +516,23 @@ export default function MentalRotationGame() {
   };
 
   const kindWord = (kind: TaskKind): string => (
-    kind === 'rotation' ? strings.taskRotation : kind === 'projection' ? strings.taskProjection : strings.taskNet
+    kind === 'rotation' ? strings.taskRotation
+      : kind === 'projection' ? strings.taskProjection
+      : kind === 'viewpoint' ? strings.taskViewpoint
+      : kind === 'same' ? strings.taskSame
+      : strings.taskNet
   );
   const axisWord = (axis: Axis): string => (
     axis === 'x' ? strings.axisX : axis === 'y' ? strings.axisY : strings.axisZ
   );
   /** Подпись под вариантом после ответа: чем он хорош или плох. */
-  const optionNote = (opt: { isMatch: boolean; flaw: string }): string => {
+  const optionNote = (opt: { isMatch: boolean; flaw?: string }): string => {
     if (!feedback) return '';
     if (opt.isMatch) return strings.optionCorrect;
     if (opt.flaw === 'mirror') return strings.optionMirror;
     if (opt.flaw === 'other') return strings.optionOther;
     if (opt.flaw === 'other-view') return strings.optionOtherView;
-    if (opt.flaw === 'edited-shape') return strings.optionEditedShape;
+    if (opt.flaw === 'edited-shape' || opt.flaw === 'one-cube') return strings.optionEditedShape;
     if (opt.flaw === 'swap') return strings.optionSwap;
     return '';
   };
@@ -641,6 +646,10 @@ export default function MentalRotationGame() {
                   {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1])}
                   {task.kind === 'projection' && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
                   {task.kind === 'net' && renderMarkedCube((opt as { faces: FaceMap }).faces, optSize, GRADIENT[1])}
+                  {task.kind === 'viewpoint' && renderShape(task.shape, optSize, GRADIENT[1], task.axis, (opt as { degrees: number }).degrees)}
+                  {task.kind === 'same' && <Text style={{fontSize:Math.max(16,Math.min(26,optSize/3)),fontWeight:'700',color:colors.text}}>
+                    {(opt as { answer: boolean }).answer ? strings.answerYes : strings.answerNo}
+                  </Text>}
                   {feedback&&<Text numberOfLines={1} style={[styles.optionLabel2, { color: colors.textSecondary }]}>
                     {optionNote(opt)}
                   </Text>}
@@ -675,6 +684,8 @@ export default function MentalRotationGame() {
                   ? interpolateMentalRotation(strings.projectionPrompt, {
                       view: task.view === 'top' ? strings.viewTop : task.view === 'front' ? strings.viewFront : strings.viewSide,
                     })
+                  : task.kind === 'viewpoint' ? strings.viewpointPrompt
+                  : task.kind === 'same' ? strings.samePrompt
                   : strings.netPrompt}
             </Text>
             <View testID="mental-reference" style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }]}>
@@ -684,6 +695,14 @@ export default function MentalRotationGame() {
                   ? <RotationWorkbench key={round} initial={frames[reviewStep]?.shape??task.base} target={task.options[task.correctIdx].shape} size={baseSize} reduceMotion={reduceMotion} ink={colors.text} accent={colors.primary} ru={language==='ru'}/>
                   : task.kind==='rotation'&&reviewing&&reviewStep>0
                   ? <RotationTransition key={`${round}-${reviewStep}`} from={frames[reviewStep-1].shape} to={frames[reviewStep].shape} axis={frames[reviewStep].axis!} size={baseSize} reduceMotion={reduceMotion}/>
+                  : task.kind === 'viewpoint'
+                  ? <ViewpointReference shape={task.shape} degrees={task.degrees} size={baseSize} accent={colors.primary}/>
+                  : task.kind === 'same'
+                  ? <View testID="same-pair" style={{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8}}>
+                      <RotationShape shape={task.left} size={baseSize*0.8}/>
+                      <Text style={{fontSize:20,fontWeight:'700',color:colors.textSecondary}}>?</Text>
+                      <RotationShape shape={task.right} size={baseSize*0.8}/>
+                    </View>
                   : <RotationShape shape={
                     task.kind === 'rotation'
                       ? (frames[reviewStep]?.shape ?? task.base)   // в разборе эталон сам поворачивается
@@ -699,7 +718,10 @@ export default function MentalRotationGame() {
                 <Text style={[styles.reviewHint, { color: colors.textSecondary }]}>
                   {task.kind === 'rotation'
                     ? strings.reviewRotationHint
-                    : task.kind === 'projection' ? strings.reviewProjectionHint : strings.reviewNetHint}
+                    : task.kind === 'projection' ? strings.reviewProjectionHint
+                    : task.kind === 'viewpoint' ? strings.reviewViewpointHint
+                    : task.kind === 'same' ? strings.reviewSameHint
+                    : strings.reviewNetHint}
                 </Text>
                 {task.kind === 'rotation' && (
                   <ScrollView

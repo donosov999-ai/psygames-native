@@ -776,7 +776,11 @@ describe('смесь заданий не портит наклон RT по уг�
   it('🔴 новые виды заданий и правда появляются, а не остались задумкой', () => {
     const seen = new Set<string>();
     for (let i = 0; i < 30; i++) for (const k of planTaskKinds(11, 15, createRng(`mix-${i}`))) seen.add(k);
-    expect([...seen].sort()).toEqual(['net', 'projection', 'rotation']);
+    // 🔴 СПИСОК ЛИТЕРАЛОМ, А НЕ `Object.keys(KIND_UNLOCK)`. Ключи брались бы из
+    // того же кода, который проба и проверяет: добавь вид и забудь открыть его в
+    // плане партии — проба всё равно позеленеет. Правится РУКАМИ и с датой.
+    // 12.09.2026: +viewpoint (с 7 уровня) и +same (с 9-го), задача 148ecbb4.
+    expect([...seen].sort()).toEqual(['net', 'projection', 'rotation', 'same', 'viewpoint']);
     // …и на первом уровне не появляются: там ещё учат поворот.
     const early = new Set(planTaskKinds(1, 15, createRng('early')));
     expect([...early]).toEqual(['rotation']);
@@ -841,9 +845,12 @@ describe('смесь заданий не портит наклон RT по уг�
       { kind: 'net', angle: 0, rt: 1500, correct: true },
       { kind: 'rotation', angle: 180, rt: 900, correct: true },
     ];
-    expect(taskKindCounts(log)).toEqual({ rotation: 2, projection: 1, net: 1 });
+    // Виды, которых в журнале не было, обязаны стоять нулями, а не отсутствовать:
+    // пропущенный ключ в сводке партии читается как «такого задания нет», а не
+    // как «не выпало». 12.09.2026 добавлены viewpoint и same (задача 148ecbb4).
+    expect(taskKindCounts(log)).toEqual({ rotation: 2, projection: 1, net: 1, viewpoint: 0, same: 0 });
     const counts = taskKindCounts(log);
-    expect(counts.rotation + counts.projection + counts.net).toBe(log.length);
+    expect(Object.values(counts).reduce((a, b) => a + b, 0)).toBe(log.length);
   });
 
   it('🔴 угол есть только у поворотной пробы', () => {
@@ -945,6 +952,8 @@ const APP_LOCALES: string[] = (() => {
 const SAME_AS_EN: Record<string, string> = {
   'fr.taskRotation': 'французское «Rotation» пишется ровно так же, как английское',
   'fr.taskProjection': 'французское «Projection» пишется ровно так же, как английское',
+  'es.answerNo': 'испанское отрицание — то же самое слово «No», другого написания у него нет',
+  'it.answerNo': 'итальянское отрицание — то же самое слово «No», другого написания у него нет',
 };
 
 describe('словарь модуля знает все двенадцать языков', () => {
