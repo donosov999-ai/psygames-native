@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.6',
+    date: '2026-09-13',
+    ru: [
+      'Кнопка подсказки, которая ещё не открылась, теперь честно говорит об этом: раньше ответ появлялся, но его закрывало игровое поле — и казалось, что подсказки просто не работают',
+      'В коллекции у закрытой фигурки было два числа звёзд сразу — сколько нужно всего и сколько осталось. Оставили одно: сколько осталось',
+    ],
+    en: [
+      'A hint button that is not unlocked yet now says so where you can see it: the answer used to appear behind the game field, so hints looked simply broken',
+      'A locked collection figure showed two star numbers at once — the total and what is left. Only one stays now: what is left',
+    ],
+  },
+  {
     version: '2.54.5',
     date: '2026-09-12',
     ru: [
