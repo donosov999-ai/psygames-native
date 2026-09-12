@@ -2101,7 +2101,7 @@ const t: Record<string, string> = {
   "lr_set_game_timelimit_rule": "Agora o tempo para achar um SET é limitado. Acabou o tempo: penalidade ✗ e cartas novas. A cada nível o limite aperta mais.",
   "lr_set_game_timelimit_example": "Exemplo: L11 — 26 s por SET, depois −4 s por nível (mínimo 8 s).",
   "lr_spatial_span_grid5_title": "Grade 5×5",
-  "lr_spatial_span_hold_title": "Uma pausa antes de responder",
+  "lr_spatial_span_hold_title": "Uma pausa antes da resposta invertida",
   "lr_spatial_span_hold_rule": "A partir deste nível surge uma pausa entre o último brilho e a sua resposta, e depois ela cresce. A ordem continua invertida, só é preciso segurá-la por mais tempo — a grade e o ritmo não mudam.",
   "lr_spatial_span_hold_example": "As casas se apagaram, a grade fica em silêncio por alguns segundos — só então você responde, da última para a primeira.",
   "lr_spatial_span_grid5_rule": "O campo cresceu para 5×5 — mais células e menores. A ordem continua invertida.",

@@ -2096,7 +2096,7 @@ const t: Record<string, string> = {
   "lr_set_game_timelimit_rule": "Ora per trovare un SET hai un tempo limitato. Se scade — penalità ✗ e nuovo tavolo. A ogni livello il limite stringe di più.",
   "lr_set_game_timelimit_example": "Esempio: L11 — 26 s per SET, poi −4 s a ogni livello (minimo 8 s).",
   "lr_spatial_span_grid5_title": "Griglia 5×5",
-  "lr_spatial_span_hold_title": "Una pausa prima di rispondere",
+  "lr_spatial_span_hold_title": "Una pausa prima della risposta inversa",
   "lr_spatial_span_hold_rule": "Da questo livello compare una pausa tra l’ultimo lampo e la tua risposta, e poi cresce. L’ordine resta inverso, va solo tenuto più a lungo — griglia e ritmo non cambiano.",
   "lr_spatial_span_hold_example": "Le caselle si sono spente, la griglia resta in silenzio un paio di secondi — solo allora rispondi, dall’ultima alla prima.",
   "lr_spatial_span_grid5_rule": "Il campo è cresciuto a 5×5 — più celle, e ognuna più piccola. L'ordine resta al contrario.",

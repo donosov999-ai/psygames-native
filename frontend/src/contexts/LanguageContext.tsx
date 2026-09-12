@@ -3471,7 +3471,14 @@ const translations: Translations = {
   lr_set_game_timelimit_example: { ru: 'Пример: L11 — 26 с на SET, дальше −4 с за уровень (минимум 8 с).', en: 'Example: L11 — 26 s per SET, then −4 s per level (8 s minimum).' },
   lr_spatial_span_grid5_title: { ru: 'Сетка 5×5', en: '5×5 grid' },
   lr_spatial_span_grid5_rule: { ru: 'Поле выросло до 5×5 — клеток больше, а сами они мельче. Порядок по-прежнему обратный.', en: 'The board grew to 5×5 — more cells, each one smaller. The order is still reversed.' },
-  lr_spatial_span_hold_title: { ru: 'Пауза перед ответом', en: 'A pause before you answer' },
+  /**
+   * ⚠️ ЗАГОЛОВОК НАРОЧНО НЕ ТАКОЙ, КАК У corsi. Сначала я скопировал туда и сюда
+   * одну строку, и гейт dictionary-duplicates справедливо назвал это дублем:
+   * совпадение было от копипасты, а не от языка. Свёл по существу — у этой игры
+   * порядок ответа обратный ВСЕГДА (сама игра называется «Spatial Span (обратный)»),
+   * у corsi он приходит только с L10. Храповик исключений остался на 29.
+   */
+  lr_spatial_span_hold_title: { ru: 'Пауза перед обратным ответом', en: 'A pause before the reverse answer' },
   lr_spatial_span_hold_rule: { ru: 'С этого уровня между последней вспышкой и вводом появляется пауза, и дальше она растёт. Порядок по-прежнему обратный, а держать его в уме нужно дольше — сетка и темп показа не менялись.', en: 'From this level a pause appears between the last flash and your input, and it grows further on. The order is still reversed, and you have to hold it in mind for longer — the grid and the pace stay the same.' },
   lr_spatial_span_hold_example: { ru: 'Клетки отгорели, поле молчит пару секунд — и только потом отвечаешь, с конца к началу.', en: 'The cells have finished flashing, the board stays quiet for a couple of seconds — only then you answer, from the last one back to the first.' },
   lr_visual_search_multi_title: { ru: 'Несколько целей', en: 'Multiple targets' },

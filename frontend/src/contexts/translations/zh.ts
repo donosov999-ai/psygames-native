@@ -2101,7 +2101,7 @@ const t: Record<string, string> = {
   "lr_set_game_timelimit_rule": "现在找出一个 SET 的时间有限。超时就记一次 ✗，并重新发牌。关卡越往后，时限收得越紧。",
   "lr_set_game_timelimit_example": "例：L11——每个 SET 26 秒，之后每关 −4 秒（最少 8 秒）。",
   "lr_spatial_span_grid5_title": "5×5 网格",
-  "lr_spatial_span_hold_title": "作答前的停顿",
+  "lr_spatial_span_hold_title": "倒着作答前的停顿",
   "lr_spatial_span_hold_rule": "从本关开始，最后一次闪烁与你输入之间会出现停顿，之后还会变长。顺序依然是倒着的，只是要多记一会儿——网格和节奏都没有变。",
   "lr_spatial_span_hold_example": "格子已经熄灭，网格安静几秒——之后再从最后一个倒着答。",
   "lr_spatial_span_grid5_rule": "网格扩大到 5×5——格子更多，每个也更小。顺序依旧是倒着来。",

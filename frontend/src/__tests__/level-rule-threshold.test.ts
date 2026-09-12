@@ -95,6 +95,12 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'chess-blind', ключ: 'moves', вид: 'порог', есть: (L) => puzzleLevelParams(L).moves > 0 },
   { игра: 'chess-blind', ключ: 'locate', вид: 'порог', есть: (L) => puzzleLevelParams(L).quizType === 'locate' },
   { игра: 'corsi', ключ: 'reverse', вид: 'порог', есть: (L) => corsi(L).reverse },
+  /**
+   * Ось 3 — задержка между концом показа и открытием ввода (12.09.2026, c3dc9350).
+   * Вопрос к плану, а не к экрану: правило обещает порог, `holdMs` обязан стать
+   * положительным ровно на нём. У обеих игр верх прежних осей = 14, правило с 15.
+   */
+  { игра: 'corsi', ключ: 'hold', вид: 'порог', есть: (L) => corsi(L).holdMs > 0 },
   { игра: 'cpt', ключ: 'lookalike', вид: 'порог', есть: (L) => cpt(L).confusableRatio > 0 },
   { игра: 'digit-span', ключ: 'reverse', вид: 'порог', есть: (L) => digitSpan(L).reverse },
   { игра: 'hanoi', ключ: 'pegs4', вид: 'состояние', есть: (L) => hanoi(L).pegs === 4 },
@@ -139,6 +145,7 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'semantic-sort', ключ: 'four', вид: 'порог', есть: (L) => semantic(L).catsPerRound >= 4 },
   { игра: 'set-game', ключ: 'timelimit', вид: 'порог', есть: (L) => setGame(L).timeLimit > 0 },
   { игра: 'spatial-span', ключ: 'grid5', вид: 'порог', есть: (L) => spatial(L).gridSize >= 5 },
+  { игра: 'spatial-span', ключ: 'hold', вид: 'порог', есть: (L) => spatial(L).holdMs > 0 },
   // `targetCount` зажат ещё и номером раунда; берём двадцатый, где потолок уровня уже раскрыт.
   { игра: 'visual-search', ключ: 'multi', вид: 'состояние', есть: (L) => visual(L, 20).targetCount === 2 },
   { игра: 'visual-search', ключ: 'conj', вид: 'порог', есть: (L) => visual(L, 1).conjunction },
