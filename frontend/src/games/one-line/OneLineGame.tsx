@@ -13,7 +13,7 @@ import {
   type AccessibilityActionEvent,
 } from 'react-native';
 import Svg, { Line, Polygon } from 'react-native-svg';
-import { useWindowDimensions } from 'react-native';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { sndPlace } from '@/src/services/feedback';
 import { БЕЗ_ЖЕСТА_ПРОКРУТКИ } from '@/src/components/GameShell';
 import { ballImage, useBallStyle } from '@/src/games/balls/ballChoice';
@@ -225,7 +225,15 @@ function OneLineBoard({
    * становится непопадаемой. Не влезло даже так — остаётся прокрутка поля, но
    * не уменьшение цели (правило 5).
    */
-  const { width: ширинаОкна, height: высотаОкна } = useWindowDimensions();
+  /**
+   * ⚠️ ЗАЩИЩЁННЫЙ ХУК, А НЕ ГОЛЫЙ `useWindowDimensions`. Тот на ПЕРВОМ кадре
+   * отдаёт 0 и обновляется только по `resize`, которого при обычной загрузке
+   * экрана не бывает: ноль запёкся бы в сторону доски навсегда — у всех осталась
+   * бы минимальная 240.
+   * 🔴 Я написал здесь именно голый вариант и уронил им CI на main (коммит
+   * 14358ef1, гейт `screen-width-guard`). Поймал гейт, не я.
+   */
+  const { w: ширинаОкна, h: высотаОкна } = useScreenSize();
   const РЕЗЕРВ_ВЫСОТЫ = 430;
   const ПОЛ_ДОСКИ = 240;
   const потолокДоски = Math.max(
@@ -777,11 +785,22 @@ function OneLineSessionView({
     });
 
   return (
-    <ScrollView
-      style={[styles.root, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.gameContent}
-      keyboardShouldPersistTaps="handled"
-    >
+    /**
+     * 🔴 ПРОКРУТКА ОСТАЁТСЯ ТОЛЬКО У ТЕКСТА. Раньше в один `ScrollView` были
+     * завёрнуты разом задание, ДОСКА и кнопки ответа — отсюда обе беды со снимков
+     * Дениса: палец водил страницу вместо линии, а «Начать заново» уезжало под
+     * сгиб. Разбор `psygames-codex-mac` 12.09.2026 (ONE_LINE_SCROLL) назвал ту же
+     * причину: наш модуль встроен целым самостоятельным экраном внутрь другого.
+     *
+     * ⚠️ ПРОСТО ЗАПРЕТИТЬ ПРОКРУТКУ БЫЛО НЕЛЬЗЯ — это спрятало бы нижние кнопки
+     * (правило 9). Поэтому прокручивается ТЕКСТ, а доска и ответ прибиты.
+     */
+    <View style={[styles.root, styles.игровойСтолбец, { backgroundColor: theme.background }]}>
+      <ScrollView
+        style={styles.текстоваяЧасть}
+        contentContainerStyle={styles.текстВнутри}
+        keyboardShouldPersistTaps="handled"
+      >
       <View style={styles.topRow}>
         <View style={styles.titleBlock}>
           {/*
@@ -809,9 +828,15 @@ function OneLineSessionView({
             </Text>
           ) : null}
         </View>
-        {!trainingComplete ? (
-          <ActionButton label={strings.pause} theme={theme} secondary onPress={() => setSession((current) => pauseOneLineSession(current, now()))} />
-        ) : null}
+        {/*
+          🔴 СВОЕЙ «ПАУЗЫ» ЗДЕСЬ БОЛЬШЕ НЕТ — ОНА ЕСТЬ В ШАПКЕ КАРКАСА.
+          Замер 12.09.2026: на экране стояли ДВЕ кнопки паузы, своя на y=146 при
+          каркасной на y=5. Дубль съедал 48 точек высоты, из-за которых нижний ряд
+          кнопок уезжал за край. Часы партии и так идут по `gameNow()`, то есть уже
+          останавливаются вместе с общей паузой — своя кнопка ничего не добавляла.
+          ⚠️ Фаза `paused` модуля остаётся: в неё ведёт клавиша и она же нужна
+          сборке ядра. Здесь снят только ДУБЛИРУЮЩИЙ орган управления.
+        */}
       </View>
       {training ? <Text style={[styles.trainingHint, { color: theme.textSecondary }]}>{strings.trainingHint}</Text> : null}
       {/*
@@ -850,6 +875,7 @@ function OneLineSessionView({
         ключей приложению не приносит.
       */}
       <Text style={[styles.fieldRule, { color: theme.textSecondary }]}>{strings.rulesRepeat}</Text>
+      </ScrollView>
       <OneLineBoard
         key={`${puzzle.id}:${trainingComplete ? 'complete' : 'active'}`}
         session={session}
@@ -876,7 +902,7 @@ function OneLineSessionView({
           <ActionButton label={strings.restart} theme={theme} secondary onPress={restart} />
         </View>
       )}
-    </ScrollView>
+    </View>
   );
 }
 
@@ -889,6 +915,11 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 16, paddingVertical: 18, gap: 14 },
   gameContent: { width: '100%', maxWidth: 700, alignSelf: 'center', paddingHorizontal: 8, paddingVertical: 12, gap: 10 },
+  /** Столбец партии: текст сверху (сжимается), доска и ответ снизу — неподвижны. */
+  игровойСтолбец: { alignItems: 'center', paddingHorizontal: 8, paddingVertical: 8, gap: 8 },
+  /** `flexShrink` даёт тексту уступать место доске, а не наоборот. */
+  текстоваяЧасть: { alignSelf: 'stretch', flexGrow: 0, flexShrink: 1 },
+  текстВнутри: { width: '100%', maxWidth: 700, alignSelf: 'center', gap: 8 },
   centered: { justifyContent: 'center', alignItems: 'center', padding: 16 },
   hero: { width: '100%', borderRadius: 24, paddingVertical: 28, paddingHorizontal: 22, gap: 8 },
   heroTitle: { fontSize: 30, fontWeight: '900', textAlign: 'center' },
