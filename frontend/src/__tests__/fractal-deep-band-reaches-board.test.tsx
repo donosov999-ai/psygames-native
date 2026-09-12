@@ -23,16 +23,22 @@ const TestRenderer = require('react-test-renderer');
 
 /** Полосы, с которыми экран реально звал движок. Имя с приставкой mock — требование jest. */
 const mockПолосы: number[] = [];
+/** Приправа, с которой экран звал движок, — вторая величина, уезжающая через снимок. */
+const mockПриправы: boolean[] = [];
+/** Снимки, которые экран отдал на сохранение. */
+const mockСохранено: { spice?: boolean; rating?: number; band?: number }[] = [];
+/** Снимок, который подсовывается при подъёме партии (null — партии не было). */
+const mockСнимок: { v: unknown } = { v: null };
 jest.mock('@/src/services/fractal-deep', () => {
   const настоящий = jest.requireActual('@/src/services/fractal-deep');
   return {
     ...настоящий,
-    materializeNode: (seed: string, path: string, cfg: { rating: number }, digit: number) => {
-      mockПолосы.push(cfg.rating);
+    materializeNode: (seed: string, path: string, cfg: { rating: number; spice?: boolean }, digit: number) => {
+      mockПолосы.push(cfg.rating); mockПриправы.push(!!cfg.spice);
       return настоящий.materializeNode(seed, path, cfg, digit);
     },
-    materializePick: (seed: string, path: string, cfg: { rating: number }) => {
-      mockПолосы.push(cfg.rating);
+    materializePick: (seed: string, path: string, cfg: { rating: number; spice?: boolean }) => {
+      mockПолосы.push(cfg.rating); mockПриправы.push(!!cfg.spice);
       return настоящий.materializePick(seed, path, cfg);
     },
   };
@@ -40,8 +46,21 @@ jest.mock('@/src/services/fractal-deep', () => {
 
 jest.mock('@/src/hooks/useScreenWidth', () => ({ useScreenWidth: () => 390 }));
 jest.mock('@/src/hooks/useGameKeyboard', () => ({ useGameKeyboard: () => {}, digitKeys: () => [] }));
-jest.mock('@/src/hooks/useResumeBoot', () => ({ useResumeBoot: () => {} }));
-jest.mock('@/src/services/resume', () => ({ saveResume: () => Promise.resolve(), clearResume: () => Promise.resolve() }));
+/** Подъём партии — настоящим путём экрана: хук зовёт обработчик снимком. */
+jest.mock('@/src/hooks/useResumeBoot', () => {
+  const R = require('react');
+  return {
+    useResumeBoot: (_g: string, _v: number, onLoaded: (s: unknown) => void) => {
+      R.useEffect(() => { if (mockСнимок.v) onLoaded(mockСнимок.v); }, []);
+    },
+  };
+});
+jest.mock('@/src/services/resume', () => ({
+  saveResume: (_g: string, _p: string, _v: number, snap: Record<string, unknown>) => {
+    mockСохранено.push(snap as never); return Promise.resolve();
+  },
+  clearResume: () => Promise.resolve(),
+}));
 jest.mock('@/src/services/api', () => ({ saveSession: () => Promise.resolve() }));
 jest.mock('@/src/services/feedback', () => ({ sndPlace: () => {}, sndWrong: () => {} }));
 jest.mock('@/src/services/gamePause', () => ({
@@ -84,7 +103,7 @@ let mounted: any[] = [];
 afterEach(() => {
   TestRenderer.act(() => { mounted.forEach((t) => { try { t.unmount(); } catch { /* снят */ } }); });
   mounted = [];
-  mockПолосы.length = 0;
+  mockПолосы.length = 0; mockПриправы.length = 0; mockСохранено.length = 0; mockСнимок.v = null;
 });
 
 function поднять() {
@@ -170,5 +189,62 @@ describe('ступень трудности Бездны доезжает до �
     жать(tree, 'deep-start');
     expect(`trek на полосе ${[...new Set(mockПолосы)].join(',')}`)
       .toBe(`trek на полосе ${DEEP_BANDS[0]!.rating}`);
+  });
+});
+
+/**
+ * 🔴 СНИМОК ПАРТИИ — ПОВЕДЕНИЕМ, А НЕ ГРЕПОМ ПО ИСХОДНИКУ.
+ *
+ * ⚠️ ПОВОД, 12.09.2026. Это же требование сторожил `deep-spice.test.ts` строкой
+ * `expect(screen).toContain('({ preset, spice, seed, path, grids, marks, errors, elapsed')`.
+ * 11.09 я вставил в снимок два поля (`rating`, `band`) — приправа осталась на месте,
+ * дефекта не возникло, а литерал перестал совпадать: main покраснел и задержал выпуск.
+ * Греп по исходнику ловит ПОРЯДОК СЛОВ, а сторожить надо, что величина переживает
+ * сохранение и подъём. Здесь именно это: партия сохраняется, снимок подаётся обратно
+ * настоящим путём (`useResumeBoot`), и сверяется, с чем экран зовёт движок ПОСЛЕ подъёма.
+ */
+describe('снимок партии Бездны переживает выход и подъём', () => {
+  /** Сыграть настройку, выйти — и отдать то, что экран сохранил. */
+  function снятьСнимок(band: number, приправа: boolean) {
+    const tree = поднять();
+    жать(tree, 'deep-preset-scout');
+    жать(tree, `deep-band-${band}`);
+    if (приправа) жать(tree, 'deep-spice-toggle');
+    жать(tree, 'deep-start');
+    mockСохранено.length = 0;
+    TestRenderer.act(() => { tree.unmount(); });   // выход из партии сохраняет снимок
+    return mockСохранено[mockСохранено.length - 1];
+  }
+
+  it('🔴 в снимок попадают И приправа, И полоса — обе задают доску', () => {
+    const верх = DEEP_BANDS.length - 1;
+    const снимок = снятьСнимок(верх, true);
+    expect(`приправа ${снимок?.spice}, полоса ${снимок?.rating}`)
+      .toBe(`приправа true, полоса ${DEEP_BANDS[верх]!.rating}`);
+  });
+
+  it('🔴 поднятая партия собирается ТЕМИ ЖЕ досками, а не настройкой по умолчанию', () => {
+    const верх = DEEP_BANDS.length - 1;
+    const снимок = снятьСнимок(верх, true);
+    mockСнимок.v = снимок;
+    mockПолосы.length = 0; mockПриправы.length = 0;
+    поднять();
+    expect(`полосы ${[...new Set(mockПолосы)].join(',')} · приправа ${[...new Set(mockПриправы)].join(',')}`)
+      .toBe(`полосы ${DEEP_BANDS[верх]!.rating} · приправа true`);
+  });
+
+  /**
+   * Снимки до 11.09.2026 полосы не несут. Продолжать их надо на ТОЙ, что была
+   * впаяна в пресет (scout = 1.2), иначе дерево пересоберётся другими досками
+   * под уже наигранной рукой.
+   */
+  it('🔴 старый снимок без полосы поднимается на впаянной в пресет, а не на верхней ступени', () => {
+    const снимок = снятьСнимок(DEEP_BANDS.length - 1, false) as Record<string, unknown>;
+    delete снимок.rating; delete снимок.band;   // форма снимка до 11.09
+    mockСнимок.v = снимок;
+    mockПолосы.length = 0;
+    поднять();
+    expect(`старый снимок scout поднялся на полосе ${[...new Set(mockПолосы)].join(',')}`)
+      .toBe('старый снимок scout поднялся на полосе 1.2');
   });
 });
