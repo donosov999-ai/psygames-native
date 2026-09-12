@@ -2354,6 +2354,21 @@ const translations: Translations = {
   eyeBreakTitle: { ru: 'Передышка для глаз', en: 'Eye break' },
   eyeBreakHint: { ru: 'Посмотри вдаль, поморгай. Дай глазам отдохнуть от азарта — играешь 10-й уровень подряд.', en: 'Look into the distance, blink. Let your eyes rest — you’ve played 10 levels in a row.' },
   levelDone: { ru: 'Уровень {n} пройден!', en: 'Level {n} done!' },
+  // Числовой забег (перенос LOCAL 0.4 от psygames-codex-mac, 12.09.2026).
+  numberRun: { ru: 'Числовой забег', en: 'Number Run' },
+  numberRunRule: {
+    ru: 'Веди число по дороге. Синие блоки прибавляют, красные вычитают написанное. В одном ряду можно собрать все пять чисел, а не выбрать одно. Зелёный трамплин перебрасывает через разрыв.',
+    en: 'Steer your number along the road. Blue blocks add, red ones subtract what is written. In one row you can collect all five numbers, not pick just one. A green ramp throws you across the gap.',
+  },
+  numberRunDesc: {
+    ru: 'Ведёшь число по дороге и решаешь на ходу, что подобрать: синее прибавит, красное вычтет.',
+    en: 'Steer a number down the road and decide on the move what to pick up: blue adds, red subtracts.',
+  },
+  numberRunDone: { ru: 'Забег пройден', en: 'Run completed' },
+  numberRunWebOnly: {
+    ru: 'Забег работает в веб-слое приложения; в этой сборке графика недоступна.',
+    en: 'The run works in the app web layer; graphics are unavailable in this build.',
+  },
   levelAlmost: { ru: 'Уровень {n} — почти!', en: 'Level {n} — almost!' },
   cleanRunBadge: { ru: '🔥 Серия {n} чистых', en: '🔥 Clean run {n}' },
   levelStarting: { ru: 'Уровень {n} запускается…', en: 'Starting level {n}…' },
