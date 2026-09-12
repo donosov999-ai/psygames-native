@@ -1055,6 +1055,23 @@ export const GAMES: GameConfig[] = [
     mergedInto: 'counting_group',
   },
   {
+    /**
+     * Числовой забег. Перенос LOCAL 0.4 от `psygames-codex-mac` 12.09.2026;
+     * механика в `src/games/number-run/`, экран — тонкая стыковка с каркасом.
+     * ⚠️ Полный забег 8:24 — это НЕ короткая проба: в расписание зарядки игра
+     * не включается, пока не согласован отдельный короткий режим.
+     */
+    id: 'number_run',
+    nameKey: 'numberRun',
+    descKey: 'numberRunDesc',
+    skillKey: 'skillMath',
+    gradient: ['#2563eb', '#7c3aed'],
+    icon: 'trending-up',
+    route: '/games/number-run',
+    category: 'action',
+    mergedInto: 'counting_group',
+  },
+  {
     id: 'math_slider',
     nameKey: 'mathSlider',
     descKey: 'mathSliderDesc',
