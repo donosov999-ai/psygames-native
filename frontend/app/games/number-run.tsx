@@ -43,8 +43,8 @@ const СЕКУНД_НА_ЭТАП = 42;
 type Фаза = 'config' | 'playing' | 'result';
 
 export default function NumberRunScreen() {
-  const { colors, isDark } = useTheme();
-  const { t, language } = useLanguage();
+  const { colors } = useTheme();
+  const { t } = useLanguage();
   const { isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка, общий канон
   const [фаза, setФаза] = useState<Фаза>('config');
@@ -97,6 +97,13 @@ export default function NumberRunScreen() {
 
   const рулить = useCallback((x: number) => руль.current?.рулить(x), []);
 
+  /**
+   * ⚠️ КЛЮЧ ТЕМЫ СЧИТАЕТСЯ ДО `useMemo`, А НЕ ВНУТРИ СПИСКА ЗАВИСИМОСТЕЙ. Вызов
+   * функции в списке — правило `react-hooks/use-memo`, и заглушить его строкой про
+   * `exhaustive-deps` нельзя: это разные правила. Поймал линт, не я.
+   */
+  const ключЦветов = колорыКлюч(colors);
+
   const нижниеКнопки = useMemo(() => (
     /**
      * 🔴 ТРИ КНОПКИ: ЛЕВЫЙ КРАЙ, ЦЕНТР, ПРАВЫЙ КРАЙ. Это НЕ крестовина и не
@@ -119,7 +126,7 @@ export default function NumberRunScreen() {
         </Pressable>
       ))}
     </View>
-  ), [колорыКлюч(colors), рулить]);   // eslint-disable-line react-hooks/exhaustive-deps
+  ), [ключЦветов, рулить]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── настройка: объясняем, во что человек входит ─────────────────────────── */
   if (фаза === 'config') {
