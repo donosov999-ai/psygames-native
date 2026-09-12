@@ -375,7 +375,7 @@ const t: Record<string, string> = {
   "sudokuGroup": "سودوكو: ثلاثة ألواح",
   "sudokuGroupDesc": "كلاسيكي وساموراي وكسوري",
   "sudokuPickBoard": "اختر لوحًا",
-  "sudokuTypeClassic": "شبكة واحدة · 57 درجة",
+  "sudokuTypeClassic": "شبكة واحدة · 92 درجة",
   "sudokuTypeSamurai": "خمس شبكات متشابكة عند الزوايا",
   "sudokuTypeFractal": "شبكة كاملة داخل كل خانة",
   "sudokuGroupFootnote": "القاعدة واحدة في الثلاثة: لا يتكرر الرقم في الصف أو العمود أو المربع. المختلف هو اللوح فقط. لكل لوح عدّ مستوياته وسجلّه الخاص، والمباريات لا تختلط أبدًا.",

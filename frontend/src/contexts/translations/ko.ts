@@ -375,7 +375,7 @@ const t: Record<string, string> = {
   "sudokuGroup": "스도쿠: 세 가지 판",
   "sudokuGroupDesc": "클래식, 사무라이, 프랙탈",
   "sudokuPickBoard": "판을 고르세요",
-  "sudokuTypeClassic": "하나의 격자 · 57단계",
+  "sudokuTypeClassic": "하나의 격자 · 92단계",
   "sudokuTypeSamurai": "모서리로 맞물린 다섯 격자",
   "sudokuTypeFractal": "칸마다 들어 있는 또 하나의 격자",
   "sudokuGroupFootnote": "세 가지 모두 규칙은 같습니다. 숫자는 행, 열, 블록 안에서 겹치지 않습니다. 다른 것은 판뿐입니다. 각 판은 자기 레벨과 자기 기록을 따로 가지며 판끼리 섞이지 않습니다.",

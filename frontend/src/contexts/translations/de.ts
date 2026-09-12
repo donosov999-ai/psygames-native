@@ -161,7 +161,7 @@ const t: Record<string, string> = {
   "sudokuGroup": "Sudoku: drei Bretter",
   "sudokuGroupDesc": "Klassisch, Samurai und fraktal",
   "sudokuPickBoard": "Wähle ein Brett",
-  "sudokuTypeClassic": "Ein Gitter · 57 Stufen",
+  "sudokuTypeClassic": "Ein Gitter · 92 Stufen",
   "sudokuTypeSamurai": "Fünf an den Ecken verzahnte Gitter",
   "sudokuTypeFractal": "Ein Gitter in jeder Zelle",
   "sudokuGroupFootnote": "Alle drei folgen einer Regel: eine Ziffer wiederholt sich nie in Zeile, Spalte oder Block. Anders ist nur das Brett. Jedes führt seine eigene Levelzählung und seine eigene Historie — die Partien vermischen sich nie.",

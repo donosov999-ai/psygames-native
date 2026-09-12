@@ -645,7 +645,14 @@ const translations: Translations = {
   sudokuGroup:     { ru: 'Судоку: три доски',            en: 'Sudoku: three boards' },
   sudokuGroupDesc: { ru: 'Классическая, самурай и фрактальная', en: 'Classic, samurai and fractal' },
   sudokuPickBoard: { ru: 'Выбери доску',                 en: 'Choose a board' },
-  sudokuTypeClassic: { ru: 'Одна сетка · 57 ступеней',   en: 'One grid · 57 steps' },
+  /**
+   * 🔴 92, А НЕ 57. Число ступеней классической лестницы посчитано разделом
+   * «Судоку» 12.09.2026 (задача 7a8d80cc), решение Дениса — ставить настоящее.
+   * ⚠️ Число ЗАПИСАНО РУКАМИ и потому расходится молча: лестница растёт, плитка
+   * остаётся. Считать его из самой лестницы — отдельная задача 6d534161
+   * («хабы: считать число вложенных игр, а не писать руками»).
+   */
+  sudokuTypeClassic: { ru: 'Одна сетка · 92 ступени',   en: 'One grid · 92 steps' },
   sudokuTypeSamurai: { ru: 'Пять сеток, сцепленных углами', en: 'Five grids locked at the corners' },
   sudokuTypeFractal: { ru: 'Сетка внутри каждой клетки',  en: 'A grid inside every cell' },
   sudokuGroupFootnote: {

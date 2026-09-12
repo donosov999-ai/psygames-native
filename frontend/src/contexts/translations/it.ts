@@ -375,7 +375,7 @@ const t: Record<string, string> = {
   "sudokuGroup": "Sudoku: tre griglie",
   "sudokuGroupDesc": "Classico, samurai e frattale",
   "sudokuPickBoard": "Scegli una griglia",
-  "sudokuTypeClassic": "Una griglia · 57 gradini",
+  "sudokuTypeClassic": "Una griglia · 92 gradini",
   "sudokuTypeSamurai": "Cinque griglie incastrate agli angoli",
   "sudokuTypeFractal": "Una griglia dentro ogni casella",
   "sudokuGroupFootnote": "Tutte e tre seguono una sola regola: una cifra non si ripete mai nella riga, nella colonna o nel blocco. Cambia solo la griglia. Ognuna tiene il proprio conteggio dei livelli e la propria storia: le partite non si mescolano mai.",
