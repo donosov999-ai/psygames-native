@@ -259,6 +259,34 @@ const scholarsMate = () => {
   );
 };
 
+/**
+ * ЧИСЛОВОЙ ЗАБЕГ. Дорога уходит вдаль, по ней едет число, а навстречу летят два
+ * блока: синий прибавляет, красный вычитает. Это и есть вся механика одной
+ * картинкой — читается без подписи.
+ * ⚠️ Рисуем КОДОМ, как и остальные: у пиктограмм точная геометрия (сходящиеся
+ * к горизонту края дороги), генератор картинок такое коверкает.
+ */
+const numberRun = () => {
+  // Дорога: трапеция, сходящаяся к точке схода на высоте 46.
+  const road = `<path d="M46 136 L70 46 L90 46 L114 136 Z" fill="${C.slate}" opacity="0.16"/>`;
+  // Разметка по центру — три штриха, укорачивающиеся к горизонту.
+  const dashes = [[124, 10, 3], [100, 7, 2.4], [80, 5, 1.8]]
+    .map(([y, h, w]) => `<rect x="${80 - w / 2}" y="${y}" width="${w * 2}" height="${h}" rx="1" fill="${C.greyLine}"/>`)
+    .join('');
+  // Блоки: синий слева со знаком «плюс», красный справа со знаком «минус».
+  const block = (x, y, w, h, fill, sign) =>
+    `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="${fill}"/>` +
+    `<rect x="${x + w / 2 - 6}" y="${y + h / 2 - 1.5}" width="12" height="3" rx="1.5" fill="${C.white}"/>` +
+    (sign === '+' ? `<rect x="${x + w / 2 - 1.5}" y="${y + h / 2 - 6}" width="3" height="12" rx="1.5" fill="${C.white}"/>` : '');
+  const blocks = block(52, 66, 22, 18, C.blue, '+') + block(88, 66, 22, 18, C.coral, '-');
+  // Само число — крупно, внизу, на своей полосе: оно и есть игрок.
+  const player =
+    `<rect x="62" y="104" width="36" height="26" rx="6" fill="${C.white}" stroke="${C.indigo}" stroke-width="2.5"/>` +
+    `<text x="80" y="123" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif"` +
+    ` font-size="17" font-weight="800" fill="${C.ink}">41</text>`;
+  return frame(road + dashes + blocks + player);
+};
+
 const dotsConnect = () => {
   const at = (c, r) => [38 + 28 * (c - 1), 38 + 28 * (r - 1)];
   const line = (cells) => `M${cells.map(([c, r]) => at(c, r).join(' ')).join(' L')}`;
@@ -340,6 +368,7 @@ const THUMBS = {
   object_tracker: objectTracker,
   faces_names: facesNames,
   one_line: oneLine,
+  number_run: numberRun,
   dots_connect: dotsConnect,
   scholars_mate: scholarsMate,
 };

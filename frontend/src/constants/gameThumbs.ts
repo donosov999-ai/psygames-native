@@ -29,6 +29,7 @@ const THUMBS: Record<string, any> = {
   cloze: require('../../assets/images/gamethumbs/cloze.webp'),
   corsi: require('../../assets/images/gamethumbs/corsi.webp'),
   counter: require('../../assets/images/gamethumbs/counter.webp'),
+  number_run: require('../../assets/images/gamethumbs/number_run.webp'),
   cpt: require('../../assets/images/gamethumbs/cpt.webp'),
   digit_span: require('../../assets/images/gamethumbs/digit_span.webp'),
   dots_connect: require('../../assets/images/gamethumbs/dots_connect.webp'),

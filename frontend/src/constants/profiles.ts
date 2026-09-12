@@ -509,6 +509,7 @@ const FREE: ProfileDef = {
     'schulte_table',     // attention — классика
     'hanoi',             // logic — наглядная
     'math_sprint',       // action — счёт интуитивный
+    'number_run',       // action — счёт на ходу, перенос LOCAL 0.4 (12.09.2026)
     // +5 темовых (по 1 ещё в каждой категории + 1 attention)
     'n_back',            // ещё memory — teaser для DUAL premium
     'find_differences',  // ещё attention — простая
@@ -699,6 +700,7 @@ const EXECS: ProfileDef = {
     'prl',               // ещё logic — reversal learning (меняющиеся правила)
     'switching_task',    // ещё logic — multitasking
     'math_sprint',
+    'number_run',       // action — счёт на ходу, перенос LOCAL 0.4 (12.09.2026)
     // +4 из лаборатории 19.08.2026 — дешёвый локальный ход против дорогого глобального.
     'dots_connect',      // планирование под ограничением ресурса
     'one_line',          // цена ошибки видна не сразу, а через десять ходов
@@ -757,6 +759,7 @@ const STUDENTS: ProfileDef = {
     'schulte_table',     // attention — концентрация на длинном экзамене
     'pattern',           // logic — распознавание паттернов в задачах
     'math_sprint',       // action — быстрая арифметика
+    'number_run',       // action — счёт на ходу, перенос LOCAL 0.4 (12.09.2026)
     // +5 темовых (bias на учебу: память + счёт)
     'n_back',            // ещё memory — WM формулы в голове
     'story_recall',      // ещё memory — удержание прочитанного
