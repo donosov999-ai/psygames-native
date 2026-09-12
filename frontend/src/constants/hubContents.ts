@@ -331,6 +331,7 @@ export const HUB_CONTENTS: Record<string, HubSubGame[]> = {
   '/games/counting-hub': [
     { route: '/games/counter', icon: 'list-outline', nameKey: 'counter', descKey: 'counterDesc' },
     { route: '/games/math-slider', icon: 'swap-horizontal', nameKey: 'mathSlider', descKey: 'mathSliderDesc' },
+    { route: '/games/number-run', icon: 'trending-up', nameKey: 'numberRun', descKey: 'numberRunDesc' },
     { route: '/games/math-sprint', icon: 'flash', nameKey: 'mathSprint', descKey: 'mathSprintDesc' },
     { route: '/games/number-bonds', icon: 'git-merge', nameKey: 'numberBonds', descKey: 'numberBondsDesc' },
     // 04.09.2026: перенесён из «Объёма памяти» по решению Дениса (отчёт a0df2925)
