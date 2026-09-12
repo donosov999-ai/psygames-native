@@ -29,6 +29,8 @@ import GameShell from '@/src/components/GameShell';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { onGameHold, isGameHeld } from '@/src/services/gamePause';
+import { useGamePreset } from '@/src/hooks/useGamePreset';
+import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { saveSession } from '@/src/services/api';
 import { goBackOrHome } from '@/src/utils/nav';
 import NumberRunGame, { type РульЗабега, type ПоказателиЗабега, type ИтогЗабега } from '@/src/games/number-run/NumberRunGame.web';
@@ -43,6 +45,8 @@ type Фаза = 'config' | 'playing' | 'result';
 export default function NumberRunScreen() {
   const { colors, isDark } = useTheme();
   const { t, language } = useLanguage();
+  const { isCalm } = useGamePreset();
+  useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка, общий канон
   const [фаза, setФаза] = useState<Фаза>('config');
   const [зерно, setЗерно] = useState(() => Math.floor(Math.random() * 1e6));
   const [пауза, setПауза] = useState(isGameHeld());
@@ -191,11 +195,26 @@ export default function NumberRunScreen() {
       hud={[
         { key: 'sum', icon: 'trending-up', label: t('score'), value: показатели.число, tone: 'accent' as const, pop: true },
         { key: 'stage', icon: 'flag', label: t('round'), value: `${показатели.этап}/${показатели.этапов}` },
-        { key: 'hits', icon: 'close-circle', label: t('errors'), value: показатели.столкновений, tone: 'bad' as const },
+        /**
+         * ⚠️ КЛЮЧ `crashes`, А НЕ `hits`. `hits` уже занят n-back, где он значит
+         * ПОПАДАНИЯ — то есть успех, и канон красит его в «хорошо». У забега это
+         * СТОЛКНОВЕНИЯ, то есть беда. Один ключ с двумя смыслами покрасил бы
+         * ошибку зелёным; гейт `hud-tone-canon` это и поймал.
+         */
+        { key: 'crashes', icon: 'close-circle', label: t('errors'), value: показатели.столкновений, tone: 'bad' as const },
       ]}
       bottom="answer"
       toolbar={нижниеКнопки}
     >
+      {/*
+        🔴 СТРОКА ЗАДАНИЯ ЖИВЁТ ВСЮ ПАРТИЮ, а не только на настройке. Человек входит
+        в забег на восемь минут; к четвёртому этапу он уже не помнит, что красное
+        вычитает. Гейт `game-task-line` держит её именно в партии.
+        ⚠️ Одна строка, а не три: место над полем платится высотой поля (правило 9).
+      */}
+      <Text style={[styles.заданиеВПартии, { color: colors.textSecondary }]} numberOfLines={1}>
+        {t('numberRunTask')}
+      </Text>
       {Platform.OS === 'web' ? (
         <NumberRunGame
           ref={руль}
@@ -224,6 +243,7 @@ export default function NumberRunScreen() {
 function колорыКлюч(c: { card: string; border: string; text: string }) { return `${c.card}|${c.border}|${c.text}`; }
 
 const styles = StyleSheet.create({
+  заданиеВПартии: { fontSize: 13, textAlign: 'center', paddingHorizontal: 12, paddingBottom: 4 },
   центр: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 20 },
   заголовок: { fontSize: 22, fontWeight: '800', textAlign: 'center' },
   правило: { fontSize: 15, lineHeight: 21, textAlign: 'center', maxWidth: 420 },

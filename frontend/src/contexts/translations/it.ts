@@ -2635,6 +2635,8 @@ const t: Record<string, string> = {
   "numberRunRule": "Guida il tuo numero lungo la strada. I blocchi blu aggiungono, quelli rossi sottraggono ciò che vi è scritto. Nella stessa fila puoi raccogliere tutti e cinque i numeri, non sceglierne uno solo. La rampa verde ti lancia oltre il varco.",
   "numberRunDesc": "Guidi un numero lungo la strada e decidi al volo cosa raccogliere: il blu aggiunge, il rosso sottrae.",
   "numberRunDone": "Corsa completata",
+  "numberRunTask": "Il blu aggiunge, il rosso sottrae",
+  "numberRunIntroDesc": "Guidi un solo numero lungo la strada e decidi al volo cosa raccogliere. Un blocco blu aggiunge ciò che vi è scritto, uno rosso lo sottrae. Una fila contiene fino a cinque numeri e ognuno si prende a sé: puoi raccoglierli tutti o nessuno. La pedana verde ti lancia oltre il varco; se la manchi, cadi. Dodici tappe di seguito, senza soste e senza azzerare il numero.",
   "numberRunWebOnly": "La corsa funziona nel livello web dell’app; in questa build la grafica non è disponibile.",
   "pauseExitGame": "Esci dall’esercizio",
   "pauseSoundOff": "Modalità silenziosa",
