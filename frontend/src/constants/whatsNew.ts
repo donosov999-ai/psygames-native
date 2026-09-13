@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.9',
+    date: '2026-09-13',
+    ru: [
+      'Разделы приехали разложенными: сорок две головоломки больше не лежат одной кучей — числовые ушли к судоку, пространственные к вращению, поиск к поиску',
+      'Зарядка у каждого профиля своя во всех четырёх временах суток и на все семь дней: это больше не общий набор на всех',
+      'У каждого профиля появились свои серии-потоки на 5, 10 и 15 минут — одно умение подряд, с новым упражнением каждую минуту',
+    ],
+    en: [
+      'Sections arrive sorted: forty-two puzzles are no longer one pile — number grids moved next to sudoku, spatial ones next to rotation, search next to search',
+      'Every profile now has its own session for all four times of day and all seven days: no longer one shared set for everyone',
+      'Every profile got its own flow series of 5, 10 and 15 minutes — one skill in a row, with a new exercise about every minute',
+    ],
+  },
+  {
     version: '2.54.8',
     date: '2026-09-13',
     ru: [
