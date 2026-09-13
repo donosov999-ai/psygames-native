@@ -1,0 +1,484 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>PsyGames — редактор плейлистов</title>
+<!--
+  РЕДАКТОР ПЛЕЙЛИСТОВ · VER 1 · 13.09.2026
+
+  Просьба Дениса: «мне не нравится что сейчас это занимает много времени, а по сути
+  это редакция списка». Раньше галочка «какая игра в каком профиле» ехала к человеку
+  через коммит, CI, сборку и магазины — часами. Здесь она ставится мышью, а результат
+  уезжает файлом настроек, который приложение читает само.
+
+  🔴 СТРАНИЦА СОБИРАЕТСЯ СКРИПТОМ, ПРАВИТЬ НАДО ШАБЛОН.
+  `node scripts/build-playlist-editor.mjs` вклеивает сюда свежий снимок состава.
+  Открывать готовый `tools/playlist-editor.html` прямо с диска — ни сервера, ни сети.
+
+  Зависимостей нет нарочно: инструмент одного человека не должен ломаться из-за
+  того, что чей-то CDN сегодня недоступен.
+-->
+<style>
+  :root {
+    --фон: #f6f7f9; --карта: #fff; --текст: #16191d; --тускло: #6b7280;
+    --рамка: #e5e7eb; --синий: #2563eb; --зелёный: #16a34a; --красный: #dc2626;
+    --жёлтый: #d97706;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --фон: #14171a; --карта: #1c2024; --текст: #e8eaed; --тускло: #9aa0a6;
+            --рамка: #2c3237; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 -apple-system, system-ui, sans-serif;
+         background: var(--фон); color: var(--текст); }
+  header { position: sticky; top: 0; z-index: 10; background: var(--карта);
+           border-bottom: 1px solid var(--рамка); padding: 10px 16px;
+           display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0 8px 0 0; }
+  .растяжка { flex: 1; }
+  button { font: inherit; padding: 7px 13px; border-radius: 8px; cursor: pointer;
+           border: 1px solid var(--рамка); background: var(--карта); color: var(--текст); }
+  button.главная { background: var(--синий); color: #fff; border-color: var(--синий); }
+  button:hover { filter: brightness(0.97); }
+  main { display: grid; grid-template-columns: 220px 1fr; gap: 16px; padding: 16px;
+         align-items: start; }
+  .колонка, .панель { background: var(--карта); border: 1px solid var(--рамка);
+                      border-radius: 12px; padding: 12px; }
+  .профиль { display: flex; justify-content: space-between; gap: 8px; padding: 7px 9px;
+             border-radius: 8px; cursor: pointer; }
+  .профиль:hover { background: var(--фон); }
+  .профиль.выбран { background: var(--синий); color: #fff; }
+  .профиль .счёт { color: var(--тускло); font-variant-numeric: tabular-nums; }
+  .профиль.выбран .счёт { color: #dbeafe; }
+  .витрина { font-size: 11px; color: var(--жёлтый); }
+  .вкладки { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .вкладка { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--рамка);
+             cursor: pointer; }
+  .вкладка.выбрана { background: var(--текст); color: var(--фон); }
+  .разделы { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 14px; }
+  .бейдж { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--рамка);
+           font-size: 12px; }
+  .бейдж.ноль { border-color: var(--красный); color: var(--красный); font-weight: 700; }
+  .строка { display: flex; align-items: center; gap: 10px; padding: 5px 6px;
+            border-radius: 7px; }
+  .строка:hover { background: var(--фон); }
+  .строка .ид { color: var(--тускло); font-size: 12px; }
+  .заголовокРаздела { margin: 14px 0 4px; font-weight: 700; color: var(--тускло);
+                      text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+  input[type=search], input[type=text], input[type=number], select {
+    font: inherit; padding: 6px 9px; border-radius: 8px; border: 1px solid var(--рамка);
+    background: var(--фон); color: var(--текст); }
+  input[type=number] { width: 72px; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { padding: 5px 7px; border-bottom: 1px solid var(--рамка); text-align: left; }
+  .шаг { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+         padding: 6px; border: 1px solid var(--рамка); border-radius: 8px; margin-bottom: 6px; }
+  .мелко { font-size: 12px; color: var(--тускло); }
+  .пусто { color: var(--тускло); padding: 10px 0; }
+  #итог { font-size: 12px; color: var(--тускло); }
+</style>
+
+<header>
+  <h1>Редактор плейлистов</h1>
+  <span id="итог"></span>
+  <span class="растяжка"></span>
+  <button id="кнЗагрузить">Открыть файл…</button>
+  <button id="кнБуфер">Скопировать в буфер</button>
+  <button id="кнСкачать" class="главная">Скачать файл настроек</button>
+</header>
+
+<main>
+  <div class="колонка">
+    <div class="мелко" style="margin-bottom:8px">Профили</div>
+    <div id="списокПрофилей"></div>
+  </div>
+
+  <div class="панель">
+    <div class="вкладки" id="вкладки"></div>
+    <div id="тело"></div>
+  </div>
+</main>
+
+<script>
+/* Снимок состава вклеивается сборщиком. */
+const ДАННЫЕ = /*ДАННЫЕ*/null/*/ДАННЫЕ*/;
+
+/* ── состояние правок. Пусто = «ничего не меняли», и в файл такое не попадает ── */
+const правки = { профили: {}, наборы: [] };
+let текущийПрофиль = ДАННЫЕ.профили[0].id;
+let вкладка = 'игры';
+
+const поId = Object.fromEntries(ДАННЫЕ.профили.map(p => [p.id, p]));
+const игрыПоРазделам = {};
+for (const г of ДАННЫЕ.игры) (игрыПоРазделам[г.раздел] ??= []).push(г);
+
+/** Что сейчас включено у профиля: правка, если её делали, иначе заводское. */
+function составПрофиля(ид) {
+  const мой = правки.профили[ид];
+  if (мой && мой.игры !== undefined) return мой.игры;
+  return поId[ид].игры;
+}
+const включена = (ид, игра) => {
+  const с = составПрофиля(ид);
+  return с === 'all' || (Array.isArray(с) && с.includes(игра));
+};
+
+/**
+ * 🔴 ГАЛОЧКА НЕ ПЕРЕРИСОВЫВАЕТ СПИСОК ЦЕЛИКОМ.
+ *
+ * Первая редакция звала `нарисовать()` на каждый клик, и при 95 строках это значило
+ * прыжок прокрутки после каждой галочки: разметка пересобиралась, браузер терял
+ * место. Поймано живой проверкой — автоматический клик подменял элемент под курсором
+ * и снял подряд 27 галочек вместо одной.
+ *
+ * Поэтому здесь меняются только те три вещи, которые правда зависят от галочки:
+ * счётчики разделов, число у профиля и строка «изменено». Сам список не трогается —
+ * его состояние и так в самом чекбоксе.
+ */
+function переключить(ид, игра) {
+  const было = составПрофиля(ид);
+  /* «Все игры» разворачивается в явный список при первой же правке: иначе снятие
+     одной галочки пришлось бы хранить как «все, кроме», а это другая сущность. */
+  const список = было === 'all' ? ДАННЫЕ.игры.map(г => г.id) : [...было];
+  const i = список.indexOf(игра);
+  if (i >= 0) список.splice(i, 1); else список.push(игра);
+  (правки.профили[ид] ??= {}).игры = список;
+  обновитьСчётчики();
+}
+
+function обновитьСчётчики() {
+  const счёт = поРазделам(текущийПрофиль);
+  document.querySelectorAll('[data-бейдж]').forEach(б => {
+    const н = счёт[б.dataset.бейдж] ?? 0;
+    б.textContent = `${б.dataset.бейдж}: ${н}`;
+    б.classList.toggle('ноль', н === 0);
+  });
+  document.querySelectorAll('[data-заголовокРаздела]').forEach(з => {
+    const р = з.dataset.заголовокраздела ?? з.dataset.заголовокРаздела;
+    з.textContent = `${р} — ${счёт[р]} из ${игрыПоРазделам[р].length}`;
+  });
+  нарисоватьПрофили();
+  нарисоватьИтог();
+}
+
+function нарисоватьИтог() {
+  const менялось = Object.keys(правки.профили).length;
+  document.getElementById('итог').textContent = менялось
+    ? `изменено профилей: ${менялось}${правки.наборы.length ? `, своих наборов: ${правки.наборы.length}` : ''}`
+    : 'правок нет — файл будет пустым';
+}
+
+/* ── подсчёт по разделам: ноль в разделе = пустая полка у игрока ── */
+function поРазделам(ид) {
+  const итог = {};
+  for (const [раздел, игры] of Object.entries(игрыПоРазделам))
+    итог[раздел] = игры.filter(г => включена(ид, г.id)).length;
+  return итог;
+}
+
+function числоИгр(ид) {
+  const с = составПрофиля(ид);
+  return с === 'all' ? ДАННЫЕ.игры.length : с.length;
+}
+
+/* ── отрисовка ─────────────────────────────────────────────────────────────── */
+function нарисоватьПрофили() {
+  const узел = document.getElementById('списокПрофилей');
+  узел.innerHTML = '';
+  for (const п of ДАННЫЕ.профили) {
+    const д = document.createElement('div');
+    д.className = 'профиль' + (п.id === текущийПрофиль ? ' выбран' : '');
+    const менялся = правки.профили[п.id] ? ' •' : '';
+    д.innerHTML = `<span>${п.имя}${менялся}${п.витрина ? '<div class="витрина">витрина, не профиль</div>' : ''}</span>`
+                + `<span class="счёт">${числоИгр(п.id)}</span>`;
+    д.onclick = () => { текущийПрофиль = п.id; нарисовать(); };
+    узел.appendChild(д);
+  }
+}
+
+function нарисоватьВкладки() {
+  const узел = document.getElementById('вкладки');
+  узел.innerHTML = '';
+  for (const [ключ, имя] of [['игры','Игры в профиле'],['главная','Главная'],['зарядка','Зарядка'],['наборы','Свои наборы'],['хабы','Состав развилок']]) {
+    const д = document.createElement('div');
+    д.className = 'вкладка' + (вкладка === ключ ? ' выбрана' : '');
+    д.textContent = имя;
+    д.onclick = () => { вкладка = ключ; нарисовать(); };
+    узел.appendChild(д);
+  }
+}
+
+function телоИгры() {
+  const ид = текущийПрофиль;
+  const счёт = поРазделам(ид);
+  const бейджи = Object.entries(счёт).map(([р, н]) =>
+    `<span class="бейдж${н === 0 ? ' ноль' : ''}" data-бейдж="${р}">${р}: ${н}</span>`).join('');
+  const поиск = `<input type="search" id="поиск" placeholder="найти игру…" style="width:220px">`;
+  let html = `<div class="разделы">${бейджи}</div>${поиск}`;
+  const строка = (г) => `<label class="строка">
+      <input type="checkbox" ${включена(ид, г.id) ? 'checked' : ''} data-игра="${г.id}">
+      <span>${г.id}</span><span class="ид">${г.route}</span></label>`;
+  for (const [раздел, игры] of Object.entries(игрыПоРазделам)) {
+    html += `<div class="заголовокРаздела" data-заголовокРаздела="${раздел}">${раздел} — ${счёт[раздел]} из ${игры.length}</div>`;
+    html += игры.map(строка).join('');
+  }
+  return html;
+}
+
+function шагиПрофиля(когда) {
+  const мой = правки.профили[текущийПрофиль]?.[когда];
+  if (мой !== undefined) return мой;
+  return поId[текущийПрофиль][когда] ?? [];
+}
+
+function нарисоватьШаг(шаг, когда, i) {
+  const выбор = ДАННЫЕ.игры.map(г =>
+    `<option value="${г.id}" ${г.id === шаг.game_id ? 'selected' : ''}>${г.id}</option>`).join('');
+  return `<div class="шаг" data-когда="${когда}" data-и="${i}">
+    <select data-поле="game_id">${выбор}</select>
+    <label class="мелко">повторов <input type="number" min="1" max="99"
+      value="${шаг.trials ?? шаг.settings?.trials ?? ''}" data-поле="trials"></label>
+    <label class="мелко">секунд <input type="number" min="10" max="900"
+      value="${шаг.est_duration_sec ?? 60}" data-поле="est_duration_sec"></label>
+    <select data-поле="difficulty">
+      ${['','easy','medium','hard'].map(d =>
+        `<option value="${d}" ${d === (шаг.difficulty ?? '') ? 'selected' : ''}>${d || 'по умолчанию'}</option>`).join('')}
+    </select>
+    <button data-убрать="1">убрать</button>
+  </div>`;
+}
+
+function телоЗарядка() {
+  const дни = ['вс','пн','вт','ср','чт','пт','сб'];
+  let html = '';
+  for (const [когда, имя] of [['утро','Утро'],['вечер','Вечер']]) {
+    const шаги = шагиПрофиля(когда);
+    html += `<div class="заголовокРаздела">${имя} — упражнений ${шаги.length}</div>`;
+    html += шаги.map((ш, i) => нарисоватьШаг(ш, когда, i)).join('') || '<div class="пусто">пусто</div>';
+    html += `<button data-добавить="${когда}">+ упражнение</button>`;
+  }
+  const план = правки.профили[текущийПрофиль]?.по_дням ?? поId[текущийПрофиль].по_дням ?? {};
+  html += `<div class="заголовокРаздела">По дням недели</div>`;
+  html += `<div class="мелко">Заводской недельный план: ${
+    Object.keys(план).length ? Object.keys(план).map(д => дни[д]).join(', ') : 'нет'}</div>`;
+  return html;
+}
+
+function телоНаборы() {
+  let html = `<div class="мелко">Свой набор — список упражнений подряд, как утренняя зарядка. Его можно назначить профилям.</div>`;
+  html += правки.наборы.map((н, i) => `
+    <div class="заголовокРаздела">${н.название || н.id} <button data-убратьНабор="${i}">удалить</button></div>
+    ${н.шаги.map((ш, j) => нарисоватьШаг(ш, 'набор:' + i, j)).join('')}
+    <button data-добавитьВНабор="${i}">+ упражнение</button>`).join('');
+  html += `<div style="margin-top:14px">
+    <input type="text" id="имяНабора" placeholder="название нового набора" style="width:260px">
+    <button id="кнНовыйНабор">Создать набор</button></div>`;
+  return html;
+}
+
+/* Состав развилок — ПРОФИЛЬНЫЙ: за карточкой `/games/puzzles-hub` стоят 40 режимов
+   Тэтхэма, и отбор по составу игр открывает их скопом. Отдельный список на профиль —
+   единственный способ дать детям десять, а взрослым сорок. */
+function хабыПрофиля() {
+  return правки.профили[текущийПрофиль]?.хабы ?? {};
+}
+
+/* Блоки главной: файл умеет только УБРАТЬ блок. Свои условия у блоков остаются
+   главнее — иначе получился бы заголовок над пустотой. */
+function телоГлавная() {
+  const мои = правки.профили[текущийПрофиль]?.главная ?? null;
+  let html = `<div class="мелко">Что показывать на главной у профиля «${поId[текущийПрофиль].имя}».
+    Снятый блок не рисуется. Включить блок, который и так пуст (например «Рекомендуем сегодня» без рекомендаций), файл не может — он покажется сам, когда будет чем наполниться.</div>`;
+  html += `<div class="заголовокРаздела" data-заголовокГлавной="1">Блоков включено: ${(мои ?? ДАННЫЕ.блокиГлавной.map(б => б.id)).length} из ${ДАННЫЕ.блокиГлавной.length}</div>`;
+  html += ДАННЫЕ.блокиГлавной.map(б => `<label class="строка">
+      <input type="checkbox" ${!мои || мои.includes(б.id) ? 'checked' : ''} data-блок="${б.id}">
+      <span>${б.подпись}</span><span class="ид">${б.id}</span></label>`).join('');
+  return html;
+}
+
+function телоХабы() {
+  const мои = хабыПрофиля();
+  let html = `<div class="мелко">Что показывать внутри развилки у профиля «${поId[текущийПрофиль].имя}» и в каком порядке.
+    Придумать новую карточку нельзя — только убрать или переставить. Не тронутая развилка остаётся заводской.</div>`;
+  for (const [маршрут, карточки] of Object.entries(ДАННЫЕ.хабы)) {
+    const выбрано = мои[маршрут] ?? карточки.map(к => к.route);
+    const менялась = мои[маршрут] ? ' •' : '';
+    html += `<div class="заголовокРаздела" data-заголовокХаба="${маршрут}">${маршрут} — ${выбрано.length} из ${карточки.length}${менялась}</div>`;
+    html += карточки.map(к => `<label class="строка">
+        <input type="checkbox" ${выбрано.includes(к.route) ? 'checked' : ''}
+               data-хаб="${маршрут}" data-карточка="${к.route}">
+        <span>${к.имяКлюч}</span><span class="ид">${к.route}</span></label>`).join('');
+  }
+  return html;
+}
+
+function нарисовать() {
+  нарисоватьПрофили();
+  нарисоватьВкладки();
+  const тело = document.getElementById('тело');
+  тело.innerHTML = вкладка === 'игры' ? телоИгры()
+                 : вкладка === 'главная' ? телоГлавная()
+                 : вкладка === 'зарядка' ? телоЗарядка()
+                 : вкладка === 'наборы' ? телоНаборы()
+                 : телоХабы();
+  подключитьСобытия();
+  нарисоватьИтог();
+}
+
+function подключитьСобытия() {
+  const тело = document.getElementById('тело');
+  тело.querySelectorAll('input[data-игра]').forEach(эл => {
+    эл.onchange = () => переключить(текущийПрофиль, эл.dataset.игра);
+  });
+  тело.querySelectorAll('input[data-хаб]').forEach(эл => {
+    эл.onchange = () => {
+      const м = эл.dataset.хаб;
+      const все = ДАННЫЕ.хабы[м].map(к => к.route);
+      const мои = (правки.профили[текущийПрофиль] ??= {});
+      мои.хабы ??= {};
+      const текущ = мои.хабы[м] ?? все;
+      мои.хабы[м] = эл.checked
+        ? все.filter(r => текущ.includes(r) || r === эл.dataset.карточка)
+        : текущ.filter(r => r !== эл.dataset.карточка);
+      /* Как и с играми: перерисовываем не список, а только его заголовок со счётом. */
+      const з = document.querySelector(`[data-заголовокХаба="${м}"]`);
+      if (з) з.textContent = `${м} — ${мои.хабы[м].length} из ${все.length} •`;
+      нарисоватьПрофили();
+      нарисоватьИтог();
+    };
+  });
+  тело.querySelectorAll('input[data-блок]').forEach(эл => {
+    эл.onchange = () => {
+      const все = ДАННЫЕ.блокиГлавной.map(б => б.id);
+      const мои = (правки.профили[текущийПрофиль] ??= {});
+      const текущ = мои.главная ?? все;
+      мои.главная = эл.checked
+        ? все.filter(b => текущ.includes(b) || b === эл.dataset.блок)
+        : текущ.filter(b => b !== эл.dataset.блок);
+      const з = document.querySelector('[data-заголовокГлавной]');
+      if (з) з.textContent = `Блоков включено: ${мои.главная.length} из ${все.length}`;
+      нарисоватьПрофили();
+      нарисоватьИтог();
+    };
+  });
+
+  const поиск = document.getElementById('поиск');
+  if (поиск) поиск.oninput = () => {
+    const q = поиск.value.toLowerCase().trim();
+    тело.querySelectorAll('.строка').forEach(с => {
+      с.style.display = !q || с.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  };
+  тело.querySelectorAll('[data-добавить]').forEach(к => {
+    к.onclick = () => {
+      const когда = к.dataset.добавить;
+      const шаги = [...шагиПрофиля(когда), {
+        game_id: ДАННЫЕ.игры[0].id, game_route: ДАННЫЕ.игры[0].route, est_duration_sec: 60 }];
+      (правки.профили[текущийПрофиль] ??= {})[когда] = шаги;
+      нарисовать();
+    };
+  });
+  тело.querySelectorAll('.шаг').forEach(узел => {
+    const когда = узел.dataset.когда, и = Number(узел.dataset.и);
+    const взять = () => когда.startsWith('набор:')
+      ? правки.наборы[Number(когда.split(':')[1])].шаги
+      : [...шагиПрофиля(когда)];
+    const положить = (шаги) => {
+      if (когда.startsWith('набор:')) правки.наборы[Number(когда.split(':')[1])].шаги = шаги;
+      else (правки.профили[текущийПрофиль] ??= {})[когда] = шаги;
+      нарисовать();
+    };
+    узел.querySelectorAll('[data-поле]').forEach(поле => {
+      поле.onchange = () => {
+        const шаги = взять();
+        const ш = { ...шаги[и] };
+        const имя = поле.dataset.поле;
+        if (имя === 'game_id') {
+          ш.game_id = поле.value;
+          ш.game_route = (ДАННЫЕ.игры.find(г => г.id === поле.value) || {}).route || ш.game_route;
+        } else if (имя === 'difficulty') {
+          if (поле.value) ш.difficulty = поле.value; else delete ш.difficulty;
+        } else {
+          const ч = Number(поле.value);
+          if (Number.isFinite(ч) && ч > 0) ш[имя] = ч; else delete ш[имя];
+        }
+        шаги[и] = ш;
+        положить(шаги);
+      };
+    });
+    const убрать = узел.querySelector('[data-убрать]');
+    if (убрать) убрать.onclick = () => { const ш = взять(); ш.splice(и, 1); положить(ш); };
+  });
+  const новый = document.getElementById('кнНовыйНабор');
+  if (новый) новый.onclick = () => {
+    const имя = (document.getElementById('имяНабора').value || '').trim();
+    if (!имя) return;
+    правки.наборы.push({
+      id: 'набор-' + (правки.наборы.length + 1),
+      название: имя,
+      шаги: [{ game_id: ДАННЫЕ.игры[0].id, game_route: ДАННЫЕ.игры[0].route, est_duration_sec: 60 }],
+    });
+    нарисовать();
+  };
+  тело.querySelectorAll('[data-убратьНабор]').forEach(к => {
+    к.onclick = () => { правки.наборы.splice(Number(к.dataset.убратьНабор), 1); нарисовать(); };
+  });
+  тело.querySelectorAll('[data-добавитьВНабор]').forEach(к => {
+    к.onclick = () => {
+      const н = правки.наборы[Number(к.dataset.добавитьВНабор)];
+      н.шаги.push({ game_id: ДАННЫЕ.игры[0].id, game_route: ДАННЫЕ.игры[0].route, est_duration_sec: 60 });
+      нарисовать();
+    };
+  });
+}
+
+/* ── файл настроек ─────────────────────────────────────────────────────────── */
+function собратьФайл() {
+  const файл = { app: 'PsyGames-Playlists', format: 1, exported_at: new Date().toISOString(), профили: {} };
+  for (const [ид, п] of Object.entries(правки.профили)) if (Object.keys(п).length) файл.профили[ид] = п;
+  if (правки.наборы.length) файл.наборы = правки.наборы;
+  /* Развилка, совпавшая с заводской, в файл не пишется: файл должен содержать
+     РАЗНИЦУ, иначе он тихо заморозит состав, который позже поменяют в сборке. */
+  for (const п of Object.values(файл.профили)) {
+    if (п.главная && п.главная.length === ДАННЫЕ.блокиГлавной.length) delete п.главная;
+    if (!п.хабы) continue;
+    for (const [м, список] of Object.entries(п.хабы)) {
+      const заводской = ДАННЫЕ.хабы[м].map(к => к.route);
+      if (список.length === заводской.length && список.every((r, i) => r === заводской[i])) delete п.хабы[м];
+    }
+    if (!Object.keys(п.хабы).length) delete п.хабы;
+  }
+  return JSON.stringify(файл, null, 2);
+}
+
+document.getElementById('кнСкачать').onclick = () => {
+  const b = new Blob([собратьФайл()], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = 'psygames-playlists.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+document.getElementById('кнБуфер').onclick = async () => {
+  /* Буфер нужен для сборки под Tauri: там импорт читает именно его. */
+  try { await navigator.clipboard.writeText(собратьФайл()); alert('Скопировано. В приложении: Настройки → Загрузить состав из файла'); }
+  catch { alert('Браузер не дал доступ к буферу — скачайте файл кнопкой рядом'); }
+};
+
+document.getElementById('кнЗагрузить').onclick = () => {
+  const вход = document.createElement('input');
+  вход.type = 'file'; вход.accept = 'application/json,.json';
+  вход.onchange = async () => {
+    const ф = вход.files?.[0]; if (!ф) return;
+    try {
+      const п = JSON.parse(await ф.text());
+      if (п.app !== 'PsyGames-Playlists') { alert('Это файл другого рода: ' + п.app); return; }
+      правки.профили = п.профили || {};
+      правки.наборы = п.наборы || [];
+      нарисовать();
+    } catch (e) { alert('Не удалось прочитать файл: ' + e.message); }
+  };
+  вход.click();
+};
+
+нарисовать();
+</script>

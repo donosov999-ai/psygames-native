@@ -608,6 +608,16 @@ const translations: Translations = {
    * (`collectionLocked`), поэтому здесь остаётся только ОСТАТОК — то, чего
    * на карточке нет. Каждое число живёт в одном месте.
    */
+  /* Редактор состава профилей — раздел виден только владельцу (профиль odv999).
+     Тексты через словарь, а не тернарником по языку: гейт ci-i18n-hardcode-guard. */
+  btn_load_playlists: { ru: 'Загрузить состав из файла', en: 'Load playlists from file' },
+  btn_reset_playlists: { ru: 'Вернуть заводской состав', en: 'Restore factory playlists' },
+  playlistsNowFactory: { ru: 'Сейчас: заводской состав из сборки', en: 'Now: factory playlists from the build' },
+  playlistsNowFile: { ru: 'Сейчас: файл, профилей изменено — {n}', en: 'Now: file, profiles changed — {n}' },
+  playlistsLoaded: { ru: 'Состав принят: профилей — {n}', en: 'Playlists applied: {n} profile(s)' },
+  playlistsDropped: { ru: 'Отброшено строк: {n}. Первая: {first}', en: 'Dropped rows: {n}. First: {first}' },
+  playlistsReset: { ru: 'Вернулись к заводскому составу', en: 'Back to factory playlists' },
+  playlistsPasteHint: { ru: 'Скопируйте файл состава в буфер обмена и повторите', en: 'Copy the playlist file to the clipboard and try again' },
   collectionHowToOpen: { ru: '{name}: ещё {n} ⭐ — звёзды приходят за партии', en: '{name}: {n} ⭐ to go — stars come from rounds' },
   collectionOpen:   { ru: 'Открыть коллекцию', en: 'Open collection' },
   figAcorn:        { ru: 'Жёлудь', en: 'Acorn' },

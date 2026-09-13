@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProfileId, ProfileDef, PROFILE_BY_ID, PROFILES } from '@/src/constants/profiles';
 import { tryUnlock, requiresUnlock } from '@/src/services/unlock';
+import { загрузить as загрузитьСостав, наложить, type СохранённыйСостав } from '@/src/services/playlistOverride';
+import { установитьХабыИзФайла } from '@/src/constants/hubContents';
 
 const ACTIVE_PROFILE_KEY = 'psygames_active_profile';
 const UNLOCKED_THEMED_KEY = 'psygames_unlocked_themed';   // string[] of profile ids
@@ -32,6 +34,11 @@ interface ProfileCtx {
   isFirstRun: boolean;
   /** Mark first run as completed (dismiss welcome). */
   completeFirstRun: () => Promise<void>;
+
+  /** Наложенный файлом состав (null = заводской из сборки). Для экрана настроек. */
+  составИзФайла: СохранённыйСостав | null;
+  /** Перечитать файл состава после загрузки или сброса — без перезапуска приложения. */
+  перечитатьСостав: () => Promise<void>;
 }
 
 const Ctx = createContext<ProfileCtx | null>(null);
@@ -45,6 +52,21 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [unlockedThemed, setUnlockedThemed] = useState<Set<ProfileId>>(new Set());
   const [isFirstRun, setIsFirstRun] = useState(false);
+  /**
+   * 🔴 ЕДИНСТВЕННАЯ ТОЧКА, ГДЕ НАКЛАДЫВАЕТСЯ ФАЙЛ СОСТАВА.
+   *
+   * Замер 13.09.2026: `allowed_games` читают 13 мест, плейлисты зарядки — 16, и
+   * все берут их из объекта профиля, который раздаёт этот контекст. Поэтому
+   * переопределение делается здесь один раз, а двадцать девять мест о нём даже
+   * не знают. Править каждое было бы той же ошибкой, что чинить нехватку меню
+   * паузы на 63 экранах поимённо вместо одной правки каркаса.
+   */
+  const [состав, setСостав] = useState<СохранённыйСостав | null>(null);
+
+  /** Перечитать файл состава — зовётся после загрузки файла и после сброса. */
+  const перечитатьСостав = useCallback(async () => {
+    setСостав(await загрузитьСостав());
+  }, []);
 
   // Load on mount
   useEffect(() => {
@@ -87,6 +109,12 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
             }
           }
         }
+        /**
+         * Состав читается ПОСЛЕ профиля и НЕ мешает запуску: любая беда с файлом
+         * оставляет заводской состав из сборки. Приложение обязано открываться
+         * даже с испорченным хранилищем.
+         */
+        try { setСостав(await загрузитьСостав()); } catch {}
       } catch (e) {
         console.warn('ProfileContext load failed:', e);
       } finally {
@@ -166,9 +194,32 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     (globalThis as any).__psygames_active_profile_id = profile.id;
   }, [profile]);
 
+  /* Наложенные профили считаются один раз на смену состава, а не каждый рендер:
+     новый объект профиля на каждом кадре перерисовывал бы весь каталог. */
+  const профильСоСоставом = React.useMemo(() => наложить(profile, состав?.профили ?? null), [profile, состав]);
+
+  /**
+   * 🔴 СОСТАВ РАЗВИЛОК СТАВИТСЯ ПОД АКТИВНЫЙ ПРОФИЛЬ, А НЕ ОДИН НА ВСЕХ.
+   *
+   * За карточкой `/games/puzzles-hub` стоят 40 режимов Тэтхэма, и отбор по
+   * `allowed_games` открывает их скопом: разрешён базовый маршрут — открыты все
+   * сорок. Профильный список — единственный способ дать детям десять, а взрослым
+   * сорок, не трогая сам отбор. Общий раздел `хабы` остаётся запасным слоем для
+   * профилей, у которых своего списка нет.
+   *
+   * Эффект, а не useMemo: `установитьХабыИзФайла` меняет модульное состояние
+   * реестра — это побочное действие, и оно обязано случаться после рендера, а не
+   * во время него.
+   */
+  React.useEffect(() => {
+    установитьХабыИзФайла(состав?.профили?.[profile.id]?.хабы ?? состав?.хабы ?? null);
+  }, [profile.id, состав]);
+  const всеСоСоставом = React.useMemo(() => PROFILES.map((p) => наложить(p, состав?.профили ?? null)), [состав]);
+
   return (
     <Ctx.Provider value={{
-      profile, switchProfile, ready, allProfiles: PROFILES,
+      profile: профильСоСоставом, switchProfile, ready, allProfiles: всеСоСоставом,
+      составИзФайла: состав, перечитатьСостав,
       unlockedThemed, redeemCode, resetUnlocks, isAccessible,
       isFirstRun, completeFirstRun,
     }}>
