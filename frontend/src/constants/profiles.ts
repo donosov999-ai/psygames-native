@@ -88,6 +88,20 @@ export interface ProfileDef {
   price_year_old?: number;
   group?: ProfileGroup;       // default 'personal' if undefined (back-compat)
   allowed_games: 'all' | string[];   // 'all' = no filter, otherwise whitelist of game_ids
+  /**
+   * 🔴 ЗАКРЫТЬ ИГРУ, КОТОРАЯ ОТКРЫТА ВСЕМ. Пусто у всех заводских профилей —
+   * поле существует ради файла настроек.
+   *
+   * ЗАЧЕМ ОНО ПОЯВИЛОСЬ (13.09.2026). Денис: «Тэтхэма, что доступна во всех
+   * местах, — выключить по умолчанию, чтобы не сбивал». Сделать это файлом было
+   * НЕЛЬЗЯ: `ALWAYS_ALLOWED` отвечает «да» раньше, чем смотрит на профиль, и
+   * никакой список `игры` его не перебивает. То есть выбор был между «править
+   * код при каждой такой просьбе» и «один раз научить файл закрывать».
+   *
+   * Выбрано второе: это последний код в этой теме, дальше всё решается файлом
+   * (поле `убрать`). ⚠️ Закрытие СИЛЬНЕЕ открытия — иначе поле бессмысленно.
+   */
+  closed_games?: string[];
   custom_playlists?: Partial<Record<Weekday, PlaylistStep[]>>;
   /** v1.23 «Комплексы»: фиксированный УТРЕННИЙ набор (если задан — заменяет weekday-логику для этого профиля). */
   morning_playlist?: PlaylistStep[];
@@ -1215,6 +1229,8 @@ const ALWAYS_ALLOWED = new Set<string>([
 ]);
 
 export function isGameAllowed(profile: ProfileDef, gameId: string): boolean {
+  /* Закрытое файлом не открывает ничто — ни `all`, ни общий список. */
+  if (profile.closed_games?.includes(gameId)) return false;
   if (profile.allowed_games === 'all') return true;
   if (ALWAYS_ALLOWED.has(gameId)) return true;
   return profile.allowed_games.includes(gameId);
