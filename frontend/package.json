@@ -1,8 +1,9 @@
 {
   "name": "frontend",
   "main": "expo-router/entry",
-  "version": "2.54.10",
+  "version": "2.54.11",
   "scripts": {
+    "structure": "node scripts/build-structure.mjs",
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
