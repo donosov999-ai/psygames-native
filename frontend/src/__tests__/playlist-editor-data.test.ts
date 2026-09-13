@@ -26,13 +26,12 @@ import { ASSESSMENT_PLAYLIST } from '@/src/services/assessment';
 import { PROOF_SERIES_PLAN } from '@/src/games/proofreading/core/blocks';
 import { CHESS_SERIES_PLAN } from '@/src/games/chess-blind/core/blocks';
 import { SCHULTE_SERIES_PLAN } from '@/src/games/schulte/core/blocks';
-import { buildFinancialBatteryPlaylist } from '@/src/services/warmup';
 import { FEATURE_LADDER } from '@/src/services/featureLadder';
 import { FIGURES } from '@/src/services/collection';
 import { translateFor } from '@/src/contexts/LanguageContext';
 import {
   buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildDayPlaylist, buildNightPlaylist,
-  buildFixedPlaylist,
+  buildFixedPlaylist, buildFinancialBatteryPlaylist,
 } from '@/src/services/warmup';
 
 
