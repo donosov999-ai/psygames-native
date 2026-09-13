@@ -75,6 +75,10 @@ const translations: Translations = {
   seriesBlocksCount: { ru: 'Блоков', en: 'Blocks' },
   seriesGroupNote: { ru: 'Набор упражнений подряд с одним итогом', en: 'A fixed run of exercises with a single result' },
   seriesFixedNote: { ru: 'Состав неизменен — иначе замеры несравнимы', en: 'Fixed set — otherwise measurements can’t be compared' },
+  // Свои серии («поток») — заводятся в редакторе плейлистов и назначаются профилю файлом.
+  ownSeriesGroup: { ru: 'Свои серии', en: 'Your series' },
+  ownSeriesGroupNote: { ru: 'Поток: одно умение подряд, 5–15 минут', en: 'Flow: one skill in a row, 5–15 min' },
+  ownSeriesMeta: { ru: 'Свой набор из файла настроек', en: 'Your own set from the settings file' },
   restDay: { ru: 'Сегодня набора нет', en: 'No set today' },
   fractalTitle: { ru: 'Фрактальная судоку', en: 'Fractal Sudoku' },
   fractalDesc: { ru: 'За каждой клеткой верхней сетки спрятана целая судоку', en: 'Behind every cell of the top grid hides a whole sudoku' },
@@ -599,7 +603,26 @@ const translations: Translations = {
   collectionTitle:  { ru: 'Коллекция', en: 'Collection' },
   collectionSub:    { ru: 'Собрано {have} из {all} · ⭐{earned} за всё время', en: '{have} of {all} collected · ⭐{earned} all time' },
   collectionLocked: { ru: 'Откроется на ⭐{n}', en: 'Opens at ⭐{n}' },
-  collectionHowToOpen: { ru: '{name}: откроется на ⭐{at}, не хватает {n} ⭐ — звёзды приходят за партии', en: '{name}: opens at ⭐{at}, {n} ⭐ to go — stars come from rounds' },
+  /**
+   * 🔴 ОДНО ЧИСЛО, А НЕ ДВА. Стояло «откроется на ⭐{at}, не хватает {n} ⭐» —
+   * в одной фразе и порог, и остаток. Игрок с 15 звёздами читал у «Фонаря»
+   * «opens at ⭐1550, 1535 ⭐ to go» и понимал это как противоречие: так 1550
+   * или 1535? Отчёт 972a4657 (11.09.2026, iOS 2.53.8): «не могу понять, как
+   * получить предмет». Порог и так написан на самой карточке
+   * (`collectionLocked`), поэтому здесь остаётся только ОСТАТОК — то, чего
+   * на карточке нет. Каждое число живёт в одном месте.
+   */
+  /* Редактор состава профилей — раздел виден только владельцу (профиль odv999).
+     Тексты через словарь, а не тернарником по языку: гейт ci-i18n-hardcode-guard. */
+  btn_load_playlists: { ru: 'Загрузить состав из файла', en: 'Load playlists from file' },
+  btn_reset_playlists: { ru: 'Вернуть заводской состав', en: 'Restore factory playlists' },
+  playlistsNowFactory: { ru: 'Сейчас: заводской состав из сборки', en: 'Now: factory playlists from the build' },
+  playlistsNowFile: { ru: 'Сейчас: файл, профилей изменено — {n}', en: 'Now: file, profiles changed — {n}' },
+  playlistsLoaded: { ru: 'Состав принят: профилей — {n}', en: 'Playlists applied: {n} profile(s)' },
+  playlistsDropped: { ru: 'Отброшено строк: {n}. Первая: {first}', en: 'Dropped rows: {n}. First: {first}' },
+  playlistsReset: { ru: 'Вернулись к заводскому составу', en: 'Back to factory playlists' },
+  playlistsPasteHint: { ru: 'Скопируйте файл состава в буфер обмена и повторите', en: 'Copy the playlist file to the clipboard and try again' },
+  collectionHowToOpen: { ru: '{name}: ещё {n} ⭐ — звёзды приходят за партии', en: '{name}: {n} ⭐ to go — stars come from rounds' },
   collectionOpen:   { ru: 'Открыть коллекцию', en: 'Open collection' },
   figAcorn:        { ru: 'Жёлудь', en: 'Acorn' },
   figPebble:    { ru: 'Камешек',     en: 'Pebble' },
@@ -619,8 +642,8 @@ const translations: Translations = {
   sudoku: { ru: 'Судоку', en: 'Sudoku' },
   sudokuDesc: { ru: 'Цифры без повторов в строке, столбце и блоке (6×6 и 9×9)', en: 'Digits with no repeats in each row, column and box (6×6 and 9×9)' },
   sudokuIntroDesc: {
-    ru: 'Заполните сетку так, чтобы цифры встречались ровно один раз в каждой строке, столбце и блоке. Классический логический пазл.\n\n🎚 Уровни — с ростом уровня добавляются правила-варианты:\n• L9 ⟍ диагонали: цифры уникальны и по двум диагоналям\n• L14 ♞ ход коня: равные цифры не на ходу коня\n• L18 ⊞ доп. зоны: ещё 4 квадрата 3×3 без повторов\n• L22 ≠ не подряд: соседи по стороне не отличаются на 1\n• L26 ♚ ход короля: равные не касаются даже по диагонали\n• L30 ◩ чёт/нечёт: □ клетка — чётная цифра, ○ — нечётная\n• L34 ● точки Кропки: белая точка — соседи отличаются на 1, чёрная — вдвое\n• L38 ⊐ сэндвич: число у края — сумма цифр между 1 и 9 в этом ряду\n• L42 🌡 термометры: вдоль термометра цифры растут от колбы\n• L46 ↗ стрелки: цифра в кружке — сумма цифр вдоль стрелки\n• L50 🌡+ термометр и суммы: два правила разом — цепочка растёт от колбы, а группа даёт сумму из угла\n• L54 ⧉ кривые блоки: блоки неправильной формы\n\n👑 Killer — поле разбито на группы: цифры в группе дают сумму в её углу и не повторяются.\n\n🆓 Свободно — поле 6×6 или 9×9 без вариантов, с выбором сложности.',
-    en: 'Fill the grid so digits appear exactly once in every row, column and block. The classic logic puzzle.\n\n🎚 Levels — new variant rules unlock as you climb:\n• L9 ⟍ diagonals: digits are also unique on both diagonals\n• L14 ♞ anti-knight: equal digits cannot be a knight move apart\n• L18 ⊞ hyper: 4 extra 3×3 zones with no repeats\n• L22 ≠ non-consecutive: side-neighbours cannot differ by 1\n• L26 ♚ anti-king: equal digits cannot touch even diagonally\n• L30 ◩ even/odd: □ cell = even digit, ○ = odd\n• L34 ● kropki: a white dot means neighbours differ by 1, a black one means double\n• L38 ⊐ sandwich: the number at the edge is the sum of digits between 1 and 9 in that line\n• L42 🌡 thermometers: digits increase along the thermometer, from the bulb\n• L46 ↗ arrows: the digit in the circle is the sum of digits along the arrow\n• L50 🌡+ thermo and cages: two rules at once — the chain grows from the bulb, the cage adds up to its corner\n• L54 ⧉ jigsaw: irregular blocks instead of squares\n\n👑 Killer — the grid splits into cages: digits in a cage add up to the number in its corner and never repeat.\n\n🆓 Free — a 6×6 or 9×9 board with no variants, your choice of difficulty.',
+    ru: 'Заполните сетку так, чтобы цифры встречались ровно один раз в каждой строке, столбце и блоке. Классический логический пазл.\n\n🎚 Уровни — с ростом уровня добавляются правила-варианты:\n• L9 ⟍ диагонали: цифры уникальны и по двум диагоналям\n• L14 ♞ ход коня: равные цифры не на ходу коня\n• L18 ⊞ доп. зоны: ещё 4 квадрата 3×3 без повторов\n• L22 ≠ не подряд: соседи по стороне не отличаются на 1\n• L26 ♚ ход короля: равные не касаются даже по диагонали\n• L30 ◩ чёт/нечёт: □ клетка — чётная цифра, ○ — нечётная\n• L34 ● точки Кропки: белая точка — соседи отличаются на 1, чёрная — вдвое\n• L38 ⊐ сэндвич: число у края — сумма цифр между 1 и 9 в этом ряду\n• L42 🌡 термометры: вдоль термометра цифры растут от колбы\n• L46 ↗ стрелки: цифра в кружке — сумма цифр вдоль стрелки\n• L50 🌡+ термометр и суммы: два правила разом — цепочка растёт от колбы, а группа даёт сумму из угла\n• L54 ⧉ кривые блоки: блоки неправильной формы\n• L58 ◆ пояс ALS: одиночек и пар уже не хватает — доска берётся почти запертыми группами\n• L66 ⛓ пояс цепей: ход находится цепочкой — если здесь 5, то там не 5\n• L80 ★ доска-легенда: самая трудная в банке, одна на всю лестницу\n• L81 ✚ комбо: два правила разом — термометр с конём, сэндвич с чётностью, суммы с диагоналями\n\n👑 Killer — поле разбито на группы: цифры в группе дают сумму в её углу и не повторяются.\n\n🆓 Свободно — поле 6×6 или 9×9 без вариантов, с выбором сложности.',
+    en: 'Fill the grid so digits appear exactly once in every row, column and block. The classic logic puzzle.\n\n🎚 Levels — new variant rules unlock as you climb:\n• L9 ⟍ diagonals: digits are also unique on both diagonals\n• L14 ♞ anti-knight: equal digits cannot be a knight move apart\n• L18 ⊞ hyper: 4 extra 3×3 zones with no repeats\n• L22 ≠ non-consecutive: side-neighbours cannot differ by 1\n• L26 ♚ anti-king: equal digits cannot touch even diagonally\n• L30 ◩ even/odd: □ cell = even digit, ○ = odd\n• L34 ● kropki: a white dot means neighbours differ by 1, a black one means double\n• L38 ⊐ sandwich: the number at the edge is the sum of digits between 1 and 9 in that line\n• L42 🌡 thermometers: digits increase along the thermometer, from the bulb\n• L46 ↗ arrows: the digit in the circle is the sum of digits along the arrow\n• L50 🌡+ thermo and cages: two rules at once — the chain grows from the bulb, the cage adds up to its corner\n• L54 ⧉ jigsaw: irregular blocks instead of squares\n• L58 ◆ ALS belt: singles and pairs no longer carry you — almost locked groups do\n• L66 ⛓ chains belt: the move is found along a chain — if 5 here, then not there\n• L80 ★ legend board: the hardest in the bank, one for the whole ladder\n• L81 ✚ combo: two rules at once — thermo with anti-knight, sandwich with parity, cages with diagonals\n\n👑 Killer — the grid splits into cages: digits in a cage add up to the number in its corner and never repeat.\n\n🆓 Free — a 6×6 or 9×9 board with no variants, your choice of difficulty.',
   },
   difficultyLabel: { ru: 'Сложность', en: 'Difficulty' },
   sudokuTierBeginner: { ru: 'Начинающий', en: 'Beginner' },
@@ -645,7 +668,14 @@ const translations: Translations = {
   sudokuGroup:     { ru: 'Судоку: три доски',            en: 'Sudoku: three boards' },
   sudokuGroupDesc: { ru: 'Классическая, самурай и фрактальная', en: 'Classic, samurai and fractal' },
   sudokuPickBoard: { ru: 'Выбери доску',                 en: 'Choose a board' },
-  sudokuTypeClassic: { ru: 'Одна сетка · 57 ступеней',   en: 'One grid · 57 steps' },
+  /**
+   * 🔴 92, А НЕ 57. Число ступеней классической лестницы посчитано разделом
+   * «Судоку» 12.09.2026 (задача 7a8d80cc), решение Дениса — ставить настоящее.
+   * ⚠️ Число ЗАПИСАНО РУКАМИ и потому расходится молча: лестница растёт, плитка
+   * остаётся. Считать его из самой лестницы — отдельная задача 6d534161
+   * («хабы: считать число вложенных игр, а не писать руками»).
+   */
+  sudokuTypeClassic: { ru: 'Одна сетка · 92 ступени',   en: 'One grid · 92 steps' },
   sudokuTypeSamurai: { ru: 'Пять сеток, сцепленных углами', en: 'Five grids locked at the corners' },
   sudokuTypeFractal: { ru: 'Сетка внутри каждой клетки',  en: 'A grid inside every cell' },
   sudokuGroupFootnote: {
@@ -1179,10 +1209,10 @@ const translations: Translations = {
   spatialNetDesc: { ru: 'Поверни трубы так, чтобы вода дошла до каждого конца', en: 'Rotate the pipes so water reaches every end' },
   spatialTwiddleDesc: { ru: 'Вращай блок 2×2 и расставь числа по порядку', en: 'Rotate a 2×2 block and put the numbers in order' },
   // Развилка названа по флагману, но не слово в слово (гейт dictionary-duplicates: ru+en не должны совпадать с mentalRotation).
-  spatialGroup: { ru: 'Ментальная ротация: 3 пробы', en: 'Mental Rotation: 3 tasks' },
-  spatialGroupDesc: { ru: 'Фигуры, трубы и поворот чисел — три упражнения на вращение в уме', en: 'Shapes, pipes and number twist — three exercises in turning things in your mind' },
-  spatialGroupFootnote: { ru: 'Все три про одно: удержать образ и повернуть его в голове, а не руками.', en: 'All three train one thing: hold the image and turn it in your head, not with your hands.' },
-  spatialGroupIntroDesc: { ru: 'Три упражнения на вращение в уме. «Ментальная ротация» — найди повёрнутую копию фигуры из кубиков. «Поворот чисел» — вращай блок 2×2, чтобы расставить числа по порядку. «Сеть труб» — поворачивай трубы, чтобы вода дошла до каждого конца.', en: 'Three exercises in mental rotation. “Mental Rotation” — find the rotated copy of a cube shape. “Number Twist” — rotate a 2×2 block to put the numbers in order. “Pipe Network” — turn the pipes so water reaches every end.' },
+  spatialGroup: { ru: 'Пространство', en: 'Space' },
+  spatialGroupDesc: { ru: 'Повернуть в уме, растолкать, проложить путь', en: 'Turn it in your head, push it through, plot a path' },
+  spatialGroupFootnote: { ru: 'Общее у всех: ход надо просчитать в голове заранее — на поле почти каждый ход выглядит законным и заводит в тупик.', en: 'What they share: the move has to be worked out in your head first — on the board almost any move looks legal and leads nowhere.' },
+  spatialGroupIntroDesc: { ru: 'Девять упражнений про пространство: повернуть в уме, растолкать блоки, проложить путь. «Ментальная ротация» — найди повёрнутую копию фигуры из кубиков. «Поворот чисел» — вращай блок 2×2, чтобы расставить числа по порядку. «Сеть труб» — поворачивай трубы, чтобы вода дошла до каждого конца.', en: 'Nine exercises about space: turn things in your mind, push blocks through, plot a path. “Mental Rotation” — find the rotated copy of a cube shape. “Number Twist” — rotate a 2×2 block to put the numbers in order. “Pipe Network” — turn the pipes so water reaches every end.' },
   readingSpanDesc:    { ru: 'Оцените смысл и запомните слова',     en: 'Judge sense, recall last words' },
   switchingTaskDesc:  { ru: 'Чередуйте правила числа/буквы',        en: 'Alternate number/letter rules' },
   visualSearchDesc:   { ru: 'Найди все заданные фигуры среди похожих', en: 'Find all the target shapes among similar ones' },
@@ -1458,6 +1488,18 @@ const translations: Translations = {
   suiteStreamDesc:    { ru: 'Поток проб без пауз: держать редкую цель и держать правило, которое меняется', en: 'A stream with no breaks: hold a rare target, hold a rule that keeps changing' },
   suiteModeEmotion:   { ru: 'Эмоциональный',             en: 'Emotional' },
   suiteModeFlanker:   { ru: 'Бока',                      en: 'Flankers' },
+  // Наборы «Торможение» и «Решения» — 12.09.2026, расформирование развилок
+  // `inhibition-hub` и `risk-hub` (задачи 80eb49c9 и 4dce5eb9).
+  suiteInhibition:     { ru: 'Стоп и запрет',                en: 'Stop and hold' },
+  suiteInhibitionDesc: { ru: 'Не нажать на запрет и отменить уже начатое движение', en: "Don't press the forbidden one, and cancel a move already started" },
+  suiteModeAllInOne:   { ru: 'Всё вместе',                   en: 'All in one' },
+  suiteModeGoNoGo:     { ru: 'Запрет',                       en: 'Forbidden one' },
+  suiteModeStopSignal: { ru: 'Отмена начатого',              en: 'Cancel a started move' },
+  suiteDecisions:      { ru: 'Решения',                      en: 'Decisions' },
+  suiteDecisionsDesc:  { ru: 'Правило не объявляют — его приходится вывести из выигрышей и потерь', en: 'Nobody states the rule — you infer it from wins and losses' },
+  suiteModeReversal:   { ru: 'Правило меняется',             en: 'Rule flips' },
+  suiteModeDecks:      { ru: 'Четыре колоды',                en: 'Four decks' },
+  suiteModeBalloon:    { ru: 'Надувай шар',                  en: 'Pump the balloon' },
   suiteModeSimon:     { ru: 'Позиция',                   en: 'Position' },
   suiteModeChoice:    { ru: 'Выбор',                     en: 'Choice' },
   suiteModeAnt:       { ru: 'Подсказка',                 en: 'Cue' },
@@ -1469,12 +1511,12 @@ const translations: Translations = {
    * добавлении и каждом переезде в соседний хаб; формулировка без числа — нет.
    */
   attentionConflictFootnote:{
-    ru: 'Все парадигмы хаба тренируют одну способность — interference resolution. Биомаркер (interference effect = RT_inc − RT_con) сохраняется отдельно для каждой парадигмы.',
-    en: 'Every paradigm here trains one ability — interference resolution. Biomarker (interference effect = RT_inc − RT_con) saved separately per paradigm.'
+    ru: 'Раздел про одно: держать правило, когда всё вокруг толкает ответить иначе. Помеха бывает разной — спорящий признак, запрет на готовое движение, невыгодная привычка, — и каждая парадигма хранит свой замер отдельно.',
+    en: 'One theme here: holding a rule while everything pushes you to answer otherwise. The interference comes in different shapes — a conflicting feature, a forbidden ready move, a habit that costs you — and each paradigm keeps its own measure.'
   },
 
   // Span group (Digit Span + Corsi + Spatial Span)
-  spanGroup:        { ru: 'Span: память на последовательности',          en: 'Span: Sequence Memory' },
+  spanGroup:        { ru: 'Объём памяти',                              en: 'Memory Span' },
   spanGroupDesc:    { ru: 'Цифры или пространство, прямой или обратный', en: 'Digits or space, forward or backward' },
   spanPickModality: { ru: 'Выбери модальность', en: 'Choose modality' },
   spanFootnote: {
@@ -1842,6 +1884,8 @@ const translations: Translations = {
   pauseHarder: { ru: 'Уровень сложнее', en: 'Harder level' },
   puzzleShowSolution: { ru: 'Показать решение', en: 'Show solution' },
   puzzleSecondAction: { ru: 'Второе действие', en: 'Second action' },
+  puzzleNextStep: { ru: 'Следующий шаг', en: 'Next step' },
+  puzzleSelect: { ru: 'Взять', en: 'Select' },
   pauseExitGame: { ru: 'Выйти из упражнения', en: 'Leave exercise' },
   pauseSoundOff: { ru: 'Тихий режим', en: 'Quiet mode' },
   pauseSoundOn: { ru: 'Вернуть звук', en: 'Sound back on' },
@@ -1993,23 +2037,23 @@ const translations: Translations = {
   },
   mnemonicsGroup: { ru: 'Мнемотехники', en: 'Mnemonics' },
   mnemonicsGroupDesc: { ru: 'Привязать новое к тому, что уже помнишь', en: 'Tie the new to what you already know' },
-  mnemonicsGroupFootnote: { ru: 'Все четыре про один приём: новое запоминается не само по себе, а сцепкой с уже известным — местом, лицом, словом, образом.', en: 'All four rest on one trick: the new is remembered not on its own but hooked to the known — a place, a face, a word, an image.' },
+  mnemonicsGroupFootnote: { ru: 'Общий приём: новое запоминается не само по себе, а сцепкой с уже известным — местом, лицом, словом, образом.', en: 'The shared trick: the new is remembered not on its own but hooked to the known — a place, a face, a word, an image.' },
   mnemonicsGroupIntroDesc: {
     ru: 'Четыре техники одного приёма: новое цепляется к уже известному. «Мнемотехники» учат превращать список в образы; «Дворец памяти» раскладывает их по знакомому маршруту; «Лица и имена» привязывают имя к черте лица; «Пары слов» связывают два слова так, чтобы одно вытягивало другое.\n\nПамять плохо держит одиночное и хорошо — связанное. Поэтому запоминают не усилием, а сцепкой: место, лицо, слово, образ. Все четыре тренируют именно её.',
     en: 'Four techniques of one trick: the new gets hooked to the known. Mnemonics turn a list into images; the Memory Palace lays them along a familiar route; Faces and Names ties a name to a feature; Word Pairs link two words so one pulls the other.\n\nMemory holds isolated things badly and connected things well. So you remember not by effort but by hook: a place, a face, a word, an image. All four train exactly that.',
   },
   countingGroup: { ru: 'Счёт', en: 'Counting' },
   countingGroupDesc: { ru: 'Числа в уме: пересчёт, прикидка, скорость', en: 'Numbers in the head: counting, estimating, speed' },
-  countingGroupFootnote: { ru: 'Четыре подхода к одному навыку: удержать число, прикинуть, посчитать быстро, разложить на слагаемые.', en: 'Four takes on one skill: hold a number, estimate, count fast, split into parts.' },
+  countingGroupFootnote: { ru: 'Разные подходы к одному навыку: удержать число, прикинуть, посчитать быстро, разложить на слагаемые, продолжить ряд.', en: 'Different takes on one skill: hold a number, estimate, count fast, split into parts, continue a series.' },
   wordsGroup: { ru: 'Слова', en: 'Words' },
   wordsGroupDesc: { ru: 'Словарь и извлечение слова из памяти', en: 'Vocabulary and pulling a word out of memory' },
   wordsGroupFootnote: { ru: 'От узнавания слова до извлечения его из памяти без подсказки — по нарастанию усилия.', en: 'From recognising a word to pulling it out unaided — in order of effort.' },
   hearingGroup: { ru: 'Слух', en: 'Hearing' },
   hearingGroupDesc: { ru: 'Задание звучит: различить, повторить, назвать тон', en: 'The task is heard: tell apart, repeat, name the tone' },
-  hearingGroupFootnote: { ru: 'Всем троим нужен голос в системе: без него упражнение честно говорит об этом и не притворяется.', en: 'All three need a system voice: without one the exercise says so instead of pretending.' },
+  hearingGroupFootnote: { ru: 'Почти всем нужен голос в системе: без него упражнение честно говорит об этом и не притворяется. Ритму и высоте голос не нужен — там звучат тоны.', en: 'Most of them need a system voice: without one the exercise says so instead of pretending. Rhythm and pitch need none — those are tones.' },
   searchGroup: { ru: 'Поиск глазами', en: 'Visual Search' },
   searchGroupDesc: { ru: 'Найти нужное среди похожего', en: 'Find the one among the many' },
-  searchGroupFootnote: { ru: 'Корректурная проба здесь не случайно: вычёркивать знаки в тексте — тот же поиск, только по буквам.', en: 'The proofreading test belongs here: crossing out letters is the same search, done on text.' },
+  searchGroupFootnote: { ru: 'Общее у всех: цель известна заранее, трудность — в том, что рядом лежит похожее.', en: 'What they share: you know what you are looking for; the difficulty is everything similar lying next to it.' },
   riskGroup: { ru: 'Решения под риском', en: 'Decisions Under Risk' },
   riskGroupDesc: { ru: 'Выбор, когда исход неизвестен', en: 'Choosing when the outcome is unknown' },
   riskGroupFootnote: { ru: 'Три классические пробы: рискнуть ещё раз, распознать невыгодную колоду, заметить смену правила.', en: 'Three classic paradigms: push your luck, spot the bad deck, notice the rule change.' },
@@ -2333,6 +2377,26 @@ const translations: Translations = {
   eyeBreakTitle: { ru: 'Передышка для глаз', en: 'Eye break' },
   eyeBreakHint: { ru: 'Посмотри вдаль, поморгай. Дай глазам отдохнуть от азарта — играешь 10-й уровень подряд.', en: 'Look into the distance, blink. Let your eyes rest — you’ve played 10 levels in a row.' },
   levelDone: { ru: 'Уровень {n} пройден!', en: 'Level {n} done!' },
+  // Числовой забег (перенос LOCAL 0.4 от psygames-codex-mac, 12.09.2026).
+  numberRun: { ru: 'Числовой забег', en: 'Number Run' },
+  numberRunRule: {
+    ru: 'Веди число по дороге. Синие блоки прибавляют, красные вычитают написанное. В одном ряду можно собрать все пять чисел, а не выбрать одно. Зелёный трамплин перебрасывает через разрыв.',
+    en: 'Steer your number along the road. Blue blocks add, red ones subtract what is written. In one row you can collect all five numbers, not pick just one. A green ramp throws you across the gap.',
+  },
+  numberRunDesc: {
+    ru: 'Ведёшь число по дороге и решаешь на ходу, что подобрать: синее прибавит, красное вычтет.',
+    en: 'Steer a number down the road and decide on the move what to pick up: blue adds, red subtracts.',
+  },
+  numberRunIntroDesc: {
+    ru: 'Ты ведёшь одно число по дороге и на ходу решаешь, что подобрать. Синий блок прибавит к нему то, что на нём написано, красный — вычтет. В поперечном ряду до пяти чисел, и каждое берётся отдельно: можно собрать все пять, а можно ни одного. Зелёная площадка подбрасывает через разрыв — мимо неё падение. Двенадцать этапов идут подряд, без остановок и без сброса числа.',
+    en: 'You steer a single number down the road and decide on the move what to pick up. A blue block adds what is written on it, a red one subtracts. A row holds up to five numbers and each is taken separately: you can collect all five or none. The green pad throws you across the gap — miss it and you fall. Twelve stages run back to back, with no stops and no reset of your number.',
+  },
+  numberRunTask: { ru: 'Синее прибавляет, красное вычитает', en: 'Blue adds, red subtracts' },
+  numberRunDone: { ru: 'Забег пройден', en: 'Run completed' },
+  numberRunWebOnly: {
+    ru: 'Забег работает в веб-слое приложения; в этой сборке графика недоступна.',
+    en: 'The run works in the app web layer; graphics are unavailable in this build.',
+  },
   levelAlmost: { ru: 'Уровень {n} — почти!', en: 'Level {n} — almost!' },
   cleanRunBadge: { ru: '🔥 Серия {n} чистых', en: '🔥 Clean run {n}' },
   levelStarting: { ru: 'Уровень {n} запускается…', en: 'Starting level {n}…' },
@@ -2855,6 +2919,12 @@ const translations: Translations = {
   sudokuVariantThermoknight: { ru: '🌡+ конь', en: '🌡+ knight' },
   sudokuVariantKillerdiag: { ru: '➕ суммы + диагонали', en: '➕ cages + diagonals' },
   sudokuBeltCombo: { ru: 'комбо: два правила разом', en: 'combo: two rules at once' },
+  // Расшифровка пояса — что эти доски требуют. Заведены 12.09.2026 по отчёту Вали:
+  // на 58-м она видела термин «Пояс ALS» без объяснения и справку из трёх разделов вместо пяти.
+  sudokuBeltAlsHow: { ru: 'Одиночек и пар здесь уже не хватает. Работает поиск почти запертых групп: несколько клеток одной зоны, в которых кандидатов ровно на одного больше, чем самих клеток. Такая группа сама не решается, зато вычёркивает кандидатов у соседей — и доска снова трогается с места.', en: 'Singles and pairs no longer carry you here. What works is spotting almost locked groups: a few cells of one unit holding exactly one candidate more than there are cells. Such a group never solves itself, but it strikes candidates off its neighbours — and the board moves again.' },
+  sudokuBeltChainsHow: { ru: 'Ход находится ниточкой, а не взглядом: если сюда 5, то там не 5, значит вот здесь 7… Цепочку ведут до противоречия или до замыкания. Сканировать блоки тут почти бесполезно: смотри на клетки с двумя кандидатами и на связи между ними.', en: 'The move is found along a thread, not at a glance: if 5 goes here, then not there, so this one is 7… You follow the chain to a contradiction or back to its start. Scanning blocks barely helps: look at cells with two candidates and the links between them.' },
+  sudokuBeltLegendHow: { ru: 'Самая трудная доска банка — одна на всю лестницу. Первый ход ищут минутами, и это нормально: быстрого входа здесь нет, есть терпеливая цепочка.', en: 'The hardest board in the bank — one for the whole ladder. Finding the first move takes minutes, and that is normal: there is no quick way in, only a patient chain.' },
+  sudokuScanHighBelt: { ru: 'Карандаш тут не роскошь, а инструмент: без расставленных кандидатов не видно ни группы, ни цепочки. Начинай с клеток, где кандидатов всего два, — с них начинаются и группы, и цепи.', en: 'Pencil marks are a tool here, not a luxury: with no candidates written in, neither a group nor a chain is visible. Start from cells with only two candidates — both groups and chains begin there.' },
   sudokuRuleThermoknight: { ru: 'Два правила разом: вдоль термометра цифры строго растут от колбы, и одинаковые цифры не стоят на расстоянии хода шахматного коня.', en: 'Two rules at once: digits strictly increase along each thermometer from the bulb, and equal digits never sit a chess knight’s move apart.' },
   sudokuRuleSandparity: { ru: 'Два правила разом: число у края — сумма цифр между 1 и 9 в этом ряду, а метки в клетках задают чётность (квадрат — чётная, круг — нечётная).', en: 'Two rules at once: an edge number is the sum of digits between 1 and 9 in that line, and cell marks fix parity (square — even, circle — odd).' },
   sudokuRuleKillerdiag: { ru: 'Два правила разом: в цветной группе цифры дают сумму из угла и не повторяются, и на обеих диагоналях каждая цифра встречается один раз.', en: 'Two rules at once: inside a tinted cage digits add up to its corner number without repeating, and each digit appears once on both main diagonals.' },
@@ -3248,6 +3318,9 @@ const translations: Translations = {
   lr_switching_task_noise_title: { ru: 'Значки вокруг задания', en: 'Shapes around the task' },
   lr_switching_task_noise_rule: { ru: 'Вокруг цифры и буквы появляются посторонние значки. Оценивать по-прежнему надо только то, что просит плашка сверху.', en: 'Extra shapes appear around the digit and the letter. Judge only what the cue at the top asks for.' },
   lr_switching_task_noise_example: { ru: 'Пример: значки не цифра и не буква — их не оценивают.', en: 'Example: a shape is neither a digit nor a letter — it is not judged.' },
+  lr_corsi_hold_title: { ru: 'Пауза перед ответом', en: 'A pause before you answer' },
+  lr_corsi_hold_rule: { ru: 'С этого уровня между последней вспышкой и вводом появляется пауза, и дальше она растёт. Последовательность придётся удерживать в уме дольше — длина и темп показа при этом прежние.', en: 'From this level a pause appears between the last flash and your input, and it grows further on. You have to hold the sequence in mind for longer — the length and the pace of the flashes stay the same.' },
+  lr_corsi_hold_example: { ru: 'Блоки отгорели, поле молчит пару секунд — и только потом можно нажимать.', en: 'The blocks have finished flashing, the board stays quiet for a couple of seconds — only then can you tap.' },
   lr_cpt_lookalike_title: { ru: 'Буквы-ловушки', en: 'Look-alike traps' },
   lr_cpt_lookalike_rule: { ru: 'Среди букв всё чаще попадаются похожие на X: K, Y, V, W, N, M. Не жми на них — жди настоящую X (после A).', en: 'Letters that resemble X now appear more often: K, Y, V, W, N, M. Don\'t tap them — wait for a real X (after A).' },
   lr_cpt_lookalike_example: { ru: 'Пример: мелькнула K — руки прочь, это не X.', en: 'Example: a K flashes by — hands off, it\'s not an X.' },
@@ -3468,6 +3541,16 @@ const translations: Translations = {
   lr_set_game_timelimit_example: { ru: 'Пример: L11 — 26 с на SET, дальше −4 с за уровень (минимум 8 с).', en: 'Example: L11 — 26 s per SET, then −4 s per level (8 s minimum).' },
   lr_spatial_span_grid5_title: { ru: 'Сетка 5×5', en: '5×5 grid' },
   lr_spatial_span_grid5_rule: { ru: 'Поле выросло до 5×5 — клеток больше, а сами они мельче. Порядок по-прежнему обратный.', en: 'The board grew to 5×5 — more cells, each one smaller. The order is still reversed.' },
+  /**
+   * ⚠️ ЗАГОЛОВОК НАРОЧНО НЕ ТАКОЙ, КАК У corsi. Сначала я скопировал туда и сюда
+   * одну строку, и гейт dictionary-duplicates справедливо назвал это дублем:
+   * совпадение было от копипасты, а не от языка. Свёл по существу — у этой игры
+   * порядок ответа обратный ВСЕГДА (сама игра называется «Spatial Span (обратный)»),
+   * у corsi он приходит только с L10. Храповик исключений остался на 29.
+   */
+  lr_spatial_span_hold_title: { ru: 'Пауза перед обратным ответом', en: 'A pause before the reverse answer' },
+  lr_spatial_span_hold_rule: { ru: 'С этого уровня между последней вспышкой и вводом появляется пауза, и дальше она растёт. Порядок по-прежнему обратный, а держать его в уме нужно дольше — сетка и темп показа не менялись.', en: 'From this level a pause appears between the last flash and your input, and it grows further on. The order is still reversed, and you have to hold it in mind for longer — the grid and the pace stay the same.' },
+  lr_spatial_span_hold_example: { ru: 'Клетки отгорели, поле молчит пару секунд — и только потом отвечаешь, с конца к началу.', en: 'The cells have finished flashing, the board stays quiet for a couple of seconds — only then you answer, from the last one back to the first.' },
   lr_visual_search_multi_title: { ru: 'Несколько целей', en: 'Multiple targets' },
   lr_visual_search_multi_rule: { ru: 'Теперь в раунде может быть несколько целей — найди ВСЕ, счётчик 🎯 покажет прогресс.', en: 'A round can now hold several targets — find ALL of them, the 🎯 counter shows progress.' },
   lr_visual_search_multi_example: { ru: 'Пример: 🎯 1/3 — найдена одна цель из трёх.', en: 'Example: 🎯 1/3 — one of three targets found.' },

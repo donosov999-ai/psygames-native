@@ -48,6 +48,7 @@ export const THUMB_AUDIT: Record<string, ThumbAudit> = {
   "n_back": { about: false, yellow: 0.0, sha: '8b1c8c134ea7' },
   "navigator": { about: false, yellow: 0.0, sha: 'f78d5531a190' },
   "number_bonds": { about: false, yellow: 0.0, sha: '5588c92d79f7' },
+  "number_run": { about: false, yellow: 0.0, sha: 'e67c4865b977' },
   "object_tracker": { about: false, yellow: 0.0, sha: '0bf873ee20bc' },
   "one_line": { about: false, yellow: 0.0, sha: 'eed5e3d82f86' },
   "ospan": { about: false, yellow: 0.0, sha: '4affb87a9de5' },

@@ -23,10 +23,38 @@ interface UnlockEventDetail {
   labelEn?: string;
 }
 
+/**
+ * 🔴 ВТОРОЕ СОБЫТИЕ — ОТВЕТ ЗАПЕРТОЙ КНОПКИ («откроется на уровне N»).
+ *
+ * Раньше этот ответ рисовался ПЛАШКОЙ ВНУТРИ самой кнопки (`GameAuxAction`), и
+ * человек его не видел. Замер 12.09.2026 на собранном бандле, окно 403×873,
+ * пять игр — ответ дошёл до глаз ровно в одной:
+ *   water-sort   ✅ виден
+ *   proofreading 🔴 перекрыт полем игры
+ *   anagrams     🔴 перекрыт строкой правил
+ *   hanoi        🔴 нарисован на 868…910 при высоте окна 873 — за нижним краем
+ * Две разные причины, итог один: жмёшь — ничего не происходит. Отчёт
+ * тестировщика 19eaaa3a: «Подсказки не работают».
+ *
+ * Плашке внутри кнопки всплыть было НЕЧЕМ: у слота шапки собственный контекст
+ * наложения (`game-header-actions`, z-index 0), и `zIndex: 20` изнутри работает
+ * только в его границах. Поэтому ответ переехал сюда — в корневой слой, где
+ * тост уже лежит над всем экраном (z-index 9999) и не зависит ни от вёрстки
+ * игры, ни от места кнопки на экране.
+ */
+interface LockEventDetail {
+  /** Готовая фраза «Откроется на уровне N» — склеена там, где известен порог. */
+  text: string;
+}
+
+type ToastState =
+  | { kind: 'unlock'; detail: UnlockEventDetail }
+  | { kind: 'lock'; text: string };
+
 export default function UnlockToast() {
   const { language, t } = useLanguage();
   const [visible, setVisible] = useState(false);
-  const [detail, setDetail] = useState<UnlockEventDetail | null>(null);
+  const [state, setState] = useState<ToastState | null>(null);
   const opacity = React.useRef(new Animated.Value(0)).current;
   const translateY = React.useRef(new Animated.Value(-50)).current;
   /**
@@ -41,10 +69,10 @@ export default function UnlockToast() {
 
   useEffect(() => {
     // Cross-platform event bus (RN DeviceEventEmitter — native iOS/Android + web/Tauri).
-    const handler = (d: UnlockEventDetail) => {
-      setDetail(d);
+    const показать = (следующее: ToastState, вслух: string) => {
+      setState(следующее);
       setVisible(true);
-      announce(`${t('label_unlocked')}: ${language === 'en' && d.labelEn ? d.labelEn : d.label}`);
+      announce(вслух);
       /**
        * Щадящий режим: плашка остаётся, выезд сверху исчезает.
        *
@@ -65,7 +93,7 @@ export default function UnlockToast() {
       }
       // Auto-dismiss after 4.5s
       setTimeout(() => {
-        const hide = () => { setVisible(false); setDetail(null); };
+        const hide = () => { setVisible(false); setState(null); };
         if (reducedRef.current) {
           opacity.setValue(0);
           translateY.setValue(-50);
@@ -79,20 +107,42 @@ export default function UnlockToast() {
       }, 4500);
     };
 
-    const sub = DeviceEventEmitter.addListener('psygames:level-unlocked', handler);
-    return () => sub.remove();
+    const наОткрытие = (d: UnlockEventDetail) => показать(
+      { kind: 'unlock', detail: d },
+      `${t('label_unlocked')}: ${language === 'en' && d.labelEn ? d.labelEn : d.label}`,
+    );
+    /** Ответ запертой кнопки. Тот же носитель — про ту же лестницу открытия. */
+    const наЗамок = (d: LockEventDetail) => показать({ kind: 'lock', text: d.text }, d.text);
+
+    const subUnlock = DeviceEventEmitter.addListener('psygames:level-unlocked', наОткрытие);
+    const subLock = DeviceEventEmitter.addListener('psygames:ladder-locked', наЗамок);
+    return () => { subUnlock.remove(); subLock.remove(); };
   }, [opacity, translateY]);
 
-  if (!visible || !detail) return null;
+  if (!visible || !state) return null;
 
   return (
     <Animated.View pointerEvents="none" style={[styles.toast, {
       opacity, transform: [{ translateY }],
     }]}>
-      <Ionicons name="trophy" size={20} color="#fbbf24" />
+      <Ionicons
+        name={state.kind === 'lock' ? 'lock-closed' : 'trophy'}
+        size={20}
+        color="#fbbf24"
+      />
       <View style={{ flex: 1 }}>
-        <Text style={styles.toastTitle}>{t('toast_new_level_unlocked')}</Text>
-        <Text style={styles.toastSub}>{language === 'ru' ? detail.label : (detail.labelEn ?? detail.label)}</Text>
+        {state.kind === 'lock' ? (
+          /* У замка одна строка: сама фраза «Откроется на уровне N» и есть
+             сообщение целиком — заголовок над ней был бы водой. */
+          <Text style={styles.toastSub}>{state.text}</Text>
+        ) : (
+          <>
+            <Text style={styles.toastTitle}>{t('toast_new_level_unlocked')}</Text>
+            <Text style={styles.toastSub}>
+              {language === 'ru' ? state.detail.label : (state.detail.labelEn ?? state.detail.label)}
+            </Text>
+          </>
+        )}
       </View>
     </Animated.View>
   );

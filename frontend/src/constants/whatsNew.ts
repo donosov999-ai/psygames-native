@@ -16,6 +16,178 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.11',
+    date: '2026-09-13',
+    ru: [
+      'Поток каждого раздела теперь собран только из его игр: в шахматном не будет ни судоку, ни матрицы памяти — только доска в уме и детский мат, причём мат идёт миксом узоров: сперва узнать картинку среди девятнадцати, и каждый раз новая раздача',
+    ],
+    en: [
+      'Each section\u2019s flow now uses only that section\u2019s games: the chess flow holds no sudoku and no memory matrix — just the blindfold board and mates, and the mates come mixed: recognise the pattern among nineteen, a fresh deal every time',
+    ],
+  },
+  {
+    version: '2.54.10',
+    date: '2026-09-13',
+    ru: [
+      'Головоломки разложены до конца: в общем разделе осталось четыре, остальные тридцать восемь стоят там, где их ищут — петли и рельсы к порядку, галактики и частокол к счёту, прямоугольники и карта к поиску',
+    ],
+    en: [
+      'Puzzles are fully sorted now: four stay in the general section, the other thirty-eight sit where you would look for them — loops and tracks with order, galaxies and palisade with counting, rectangles and map with search',
+    ],
+  },
+  {
+    version: '2.54.9',
+    date: '2026-09-13',
+    ru: [
+      'Разделы приехали разложенными: сорок две головоломки больше не лежат одной кучей — числовые ушли к судоку, пространственные к вращению, поиск к поиску',
+      'Зарядка у каждого профиля своя во всех четырёх временах суток и на все семь дней: это больше не общий набор на всех',
+      'У каждого профиля появились свои серии-потоки на 5, 10 и 15 минут — одно умение подряд, с новым упражнением каждую минуту',
+    ],
+    en: [
+      'Sections arrive sorted: forty-two puzzles are no longer one pile — number grids moved next to sudoku, spatial ones next to rotation, search next to search',
+      'Every profile now has its own session for all four times of day and all seven days: no longer one shared set for everyone',
+      'Every profile got its own flow series of 5, 10 and 15 minutes — one skill in a row, with a new exercise about every minute',
+    ],
+  },
+  {
+    version: '2.54.8',
+    date: '2026-09-13',
+    ru: [
+      'Состав разделов и профилей теперь меняется без обновления приложения: новые подборки упражнений будут приезжать сразу, не дожидаясь следующей версии',
+      'Головоломки Тэтхэма можно разложить по тематическим разделам — числовые к судоку, пространственные к вращению, поиск к поиску: сорок две штуки перестают лежать одной кучей',
+    ],
+    en: [
+      'What each section and profile contains can now change without an app update: new sets of exercises arrive right away instead of waiting for the next version',
+      'Tatham puzzles can be spread across the themed sections — number grids next to sudoku, spatial ones next to rotation, search next to search: forty-two of them stop being one pile',
+    ],
+  },
+  {
+    version: '2.54.7',
+    date: '2026-09-13',
+    ru: [
+      'Длину зарядки теперь выбираешь во всех четырёх: утро, дневной перерыв, вечер и «не спится». Раньше кнопки 5 / 10 / 15 минут были только у утра',
+      'Пять, десять и пятнадцать минут — это три РАЗНЫХ набора, а не обрезанный длинный: короткая зарядка может начинаться с другого упражнения',
+      '«Не спится» больше не одно дыхание: спокойные головоломки без секундомера — трубы, судоку, ханойская башня, — и дыхание в конце. Ничего, что торопит, ночью нет',
+      'Телесные практики «Пауза» открыты во всех профилях. Отдых не должен быть платным — дыхание открыто всем с прошлого года, теперь и «Пауза»',
+      'Свои серии: набор упражнений с одним итогом можно собрать самому и назначить профилю — в приложении он появится рядом с «Оценкой» и FIN BRAIN',
+      'Головоломки Тэтхэма в наборах перестали начинать партию с первого уровня, не дождавшись твоего: доска раздавалась раньше, чем читался достигнутый уровень',
+    ],
+    en: [
+      'You now choose the length of every session — morning, midday break, evening and “can’t sleep”. The 5 / 10 / 15 minute buttons used to exist only for the morning one',
+      'Five, ten and fifteen minutes are three DIFFERENT sets, not a trimmed long one: the short session may well start with another exercise',
+      '“Can’t sleep” is no longer a single breathing drill: calm puzzles with no stopwatch — pipes, sudoku, tower of Hanoi — and breathing at the end. Nothing that hurries you at night',
+      'The “Pause” body practices are open in every profile. Rest should not be paid for — breathing has been open to everyone since last year, and now Pause is too',
+      'Your own series: you can assemble a run of exercises with a single result and assign it to a profile — it shows up next to Assessment and FIN BRAIN',
+      'Tatham puzzles inside a set no longer start at level one before your own level is read: the board used to be dealt before the stored level arrived',
+    ],
+  },
+  {
+    version: '2.54.6',
+    date: '2026-09-13',
+    ru: [
+      'Кнопка подсказки, которая ещё не открылась, теперь честно говорит об этом: раньше ответ появлялся, но его закрывало игровое поле — и казалось, что подсказки просто не работают',
+      'В коллекции у закрытой фигурки было два числа звёзд сразу — сколько нужно всего и сколько осталось. Оставили одно: сколько осталось',
+    ],
+    en: [
+      'A hint button that is not unlocked yet now says so where you can see it: the answer used to appear behind the game field, so hints looked simply broken',
+      'A locked collection figure showed two star numbers at once — the total and what is left. Only one stays now: what is left',
+    ],
+  },
+  {
+    version: '2.54.5',
+    date: '2026-09-12',
+    ru: [
+      'Новая игра «Числовой забег» в разделе «Счёт»: ведёшь число по дороге и на ходу решаешь, что подобрать — синее прибавляет, красное вычитает написанное',
+      'В одном ряду можно собрать все пять чисел, а не выбрать одно; зелёный трамплин перебрасывает через разрыв',
+      'Забег идёт двенадцать этапов подряд, без остановок и без сброса числа — около восьми с половиной минут',
+    ],
+    en: [
+      'New game «Number Run» in the Counting section: steer a number down the road and decide on the move what to pick up — blue adds, red subtracts what is written',
+      'A row lets you collect all five numbers instead of picking one; a green ramp throws you across the gap',
+      'The run goes through twelve stages back to back, with no stops and no reset of your number — about eight and a half minutes',
+    ],
+  },
+  {
+    version: '2.54.4',
+    date: '2026-09-12',
+    ru: [
+      '«Одна линия»: экран больше не уезжает под пальцем, когда ведёшь линию по графу',
+      '«Одна линия»: «Отменить», «Подсказка» и «Начать заново» всегда видны — за ними больше не надо прокручивать',
+      '«Одна линия»: поле подстраивается под высоту экрана, а не только под ширину; лишняя вторая кнопка паузы убрана',
+      'Судоку: плитка в меню показывала 57 ступеней вместо 92 настоящих — теперь число верное',
+    ],
+    en: [
+      'One Line: the screen no longer slides under your finger while you draw a path',
+      'One Line: Undo, Hint and Restart are always visible — no more scrolling to reach them',
+      'One Line: the board now fits the screen height as well as its width, and a duplicate pause button is gone',
+      'Sudoku: the menu tile promised 57 steps instead of the real 92 — the number is now correct',
+    ],
+  },
+  {
+    version: '2.54.3',
+    date: '2026-09-12',
+    ru: [
+      'Головоломки: «Показать решение» теперь показывает решение, а не карточку итога поверх него — и за просмотр ответа больше не снимают ступень',
+      '«Заново» повторяет ту же головоломку, а не раздаёт другую — можно переиграть именно ту доску, на которой застрял',
+      'Счёт ходов перестал расти от промахов по пустому месту и от движения курсора, а он влияет на баллы',
+      '«Угадай код»: кнопка «Стереть» наконец стирает набранный ряд',
+      '«Заливка» и «Инерция»: у решателя появилась кнопка «Следующий шаг» — его план можно проиграть и увидеть',
+      'Четыре головоломки получили кнопку «Взять», а «Инерция» — ходы по диагонали: раньше половина ходов была недоступна',
+      'Поле больше не прыгает по высоте при переходе между головоломками',
+    ],
+    en: [
+      'Puzzles: Show solution now shows the solution instead of covering it with the result card — and looking at the answer no longer costs you a level',
+      'Restart replays the same puzzle instead of dealing a new one, so you can retry the board you got stuck on',
+      'The move counter no longer grows on taps that hit nothing or on cursor movement — and it feeds your score',
+      'Guess: the Erase button finally erases the row you typed',
+      'Flood and Inertia: the solver now has a Next step button, so its plan can be played out and seen',
+      'Four puzzles gained a Select button and Inertia gained diagonal moves — half of its moves were unreachable before',
+      'The board no longer jumps vertically when you switch between puzzles',
+    ],
+  },
+  {
+    version: '2.54.2',
+    date: '2026-09-12',
+    ru: [
+      'Судоку: ряд цифр больше не уезжает за нижний край на невысоких экранах — обе строки клавиатуры видны целиком, без прокрутки',
+      'Судоку: цифры стоят двумя ровными строками по пять, а не вразнобой — нужная клавиша всегда на одном и том же месте',
+      'Головоломки: прерванное касание больше не засчитывается ходом — если жест перехватила прокрутка, ход не делается',
+    ],
+    en: [
+      'Sudoku: the digit keys no longer run off the bottom on shorter screens — both rows are fully visible without scrolling',
+      'Sudoku: digits now sit in two even rows of five instead of an uneven wrap — the key you want is always in the same place',
+      'Puzzles: an interrupted touch no longer counts as a move — if scrolling steals the gesture, no move is made',
+    ],
+  },
+  {
+    version: '2.54.1',
+    date: '2026-09-12',
+    ru: [
+      '«Соедини точки»: поле больше не съезжает вниз, пока ведёшь линию пальцем — касание остаётся в игре, а не уходит на прокрутку страницы',
+      '«Соедини точки»: доска целиком помещается в экран на больших размерах — раньше нижний ряд уходил за край, и до него было не дотянуться',
+    ],
+    en: [
+      'Connect the Dots: the board no longer slides down while you drag a line — the touch stays in the game instead of scrolling the page',
+      'Connect the Dots: the whole board now fits the screen on larger sizes — the bottom row used to run off the edge, out of reach',
+    ],
+  },
+  {
+    version: '2.54.0',
+    date: '2026-09-12',
+    ru: [
+      'Меню стало короче: разделов 13 вместо 18. Упражнения из мелких развилок переехали к родственным, искать стало быстрее',
+      'Два раздела названы понятнее: «Объём памяти» и «Пространство»',
+      'Две пробы на торможение впервые открылись — «Запрет» и «Отмена начатого». Раньше до них не было пути из меню',
+      'Четыре карточки показывали служебное слово вместо названия — исправлено',
+    ],
+    en: [
+      'The menu is shorter: 13 sections instead of 18. Exercises from small hubs moved next to their relatives, so they are quicker to find',
+      'Two sections got clearer names: Memory Span and Space',
+      'Two inhibition tasks are finally reachable — Forbidden one and Cancel a started move. Until now the menu had no way in',
+      'Four cards showed an internal word instead of a name — fixed',
+    ],
+  },
+  {
     version: '2.53.9',
     date: '2026-09-11',
     ru: [

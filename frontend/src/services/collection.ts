@@ -96,12 +96,40 @@ export interface ChestState {
  * Состояние сундука по заработанному. Чистая функция: её проверяют без
  * хранилища, и она же считает то, что рисуется на экране.
  */
+/**
+ * 🔴 ПОРОГИ ФИГУРОК ИЗ ФАЙЛА НАСТРОЕК — «чтобы не копаться с такой мелочовкой в коде».
+ *
+ * Лестница из двенадцати чисел (150 · 350 · 640 … 17300) — чистый баланс: его
+ * хочется щупать, а не выпускать сборкой. Заводские значения остаются выше и
+ * действуют всегда, когда файла нет.
+ *
+ * ⚠️ ПОРОГИ ОБЯЗАНЫ ВОЗРАСТАТЬ, И ЭТО НЕ ПРИДИРКА. `chestState` считает «сколько
+ * уже есть» как число фигурок ниже счёта, а «следующую» — как элемент по этому
+ * номеру. Список вразнобой даёт неверную следующую фигурку и полосу прогресса,
+ * которая едет назад. Поэтому порядок проверяется при разборе файла, а не здесь.
+ */
+let порогиИзФайла: Record<string, number> | null = null;
+
+export function установитьПорогиФигурок(x: Record<string, number> | null): void {
+  порогиИзФайла = x;
+}
+
+/** Фигурки с учётом файла. Та же длина и тот же порядок, меняются только пороги. */
+export function фигурки(): readonly Figure[] {
+  if (!порогиИзФайла) return FIGURES;
+  return FIGURES.map((ф) => {
+    const свой = порогиИзФайла?.[ф.key];
+    return typeof свой === 'number' ? { ...ф, at: свой } : ф;
+  });
+}
+
 export function chestState(earned: number): ChestState {
+  const СПИСОК = фигурки();
   const e = Number.isFinite(earned) ? Math.max(0, Math.floor(earned)) : 0;
-  const have = FIGURES.filter((f) => e >= f.at).length;
-  const next = FIGURES[have] ?? null;
+  const have = СПИСОК.filter((f) => e >= f.at).length;
+  const next = СПИСОК[have] ?? null;
   if (!next) return { earned: e, have, next: null, left: 0, ratio: 1 };
-  const с = have === 0 ? 0 : FIGURES[have - 1].at;   // низ текущей ступени
+  const с = have === 0 ? 0 : СПИСОК[have - 1].at;   // низ текущей ступени
   const пройдено = e - с;
   const ширина = next.at - с;
   return {

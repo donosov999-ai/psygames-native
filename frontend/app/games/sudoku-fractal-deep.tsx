@@ -1,4 +1,4 @@
-/* psygames-game-sudoku-fractal-deep · VER 1 · 28.08.2026 */
+/* psygames-game-sudoku-fractal-deep · VER 2 · 11.09.2026 */
 /**
  * ФРАКТАЛ: БЕЗДНА — судоку «их масштаба» (Денис 28.08, по референсу Fractal Sudoku).
  *
@@ -60,6 +60,7 @@ import {
   materializeNode, materializePick, countDeep,
   deepNodeProgress, deepNodeDone, deepValueAt, deepRootComplete,
   deepPortalsFor, portalOfLeaf,
+  DEEP_BANDS, deepBandRating,
   type DeepCfg, type DeepNode, type DeepPath, type DeepPick, type DeepPortal,
 } from '@/src/services/fractal-deep';
 
@@ -73,22 +74,44 @@ const GAME_ID = 'sudoku_fractal_deep';
 const RESUME_V = 1;
 
 /**
- * Пресеты объёма — та самая ручка «ограничим вручную»: человек ДО старта видит,
+ * Пресеты ОБЪЁМА — та самая ручка «ограничим вручную»: человек ДО старта видит,
  * во что ввязывается (счёт пазлов — countDeep, точный и без решений досок).
- * Полосы банка лёгкие нарочно: пометок в первой версии нет, доски обязаны
- * браться головой без карандаша.
+ *
+ * ⚠️ ТРУДНОСТЬ ИЗ ЭТОЙ СТРОКИ УЕХАЛА (11.09.2026). Полоса банка стояла здесь же
+ * (scout 1.2 / trek 1.5 / abyss 1.7), то есть объём и трудность сидели на ОДНОЙ
+ * ручке. Это отнимало ровно те партии, которые человек скорее всего и хочет:
+ * маленькой, но трудной не существовало вовсе, а марафон на недели приходил всегда
+ * на самых лёгких досках банка. Теперь полоса — своя ось, DEEP_BANDS в
+ * services/fractal-deep; там же сказано, почему прежнее обоснование («пометок в
+ * первой версии нет, доски обязаны браться головой без карандаша») перестало
+ * действовать: пометки приехали в X5, а потолок остался стоять.
+ *
+ * 🔴 `legacyRating` — НЕ настройка, а ПАМЯТЬ. Снимки партий до 11.09 ступени
+ * трудности не несут, и продолжать их надо на той полосе, на которой они
+ * начинались: зерно выбора доски включает полосу (`pickBoard`), поэтому другая
+ * полоса пересоберёт всё дерево другими досками, и рука человека встанет на
+ * клетки, которых в новых досках нет пустыми.
  */
 const PRESETS = [
-  { key: 'scout', depth: 2, feedCount: 9 as const, rating: 1.2, unlockShare: 0.24 },
-  { key: 'trek', depth: 3, feedCount: 12 as const, rating: 1.5, unlockShare: 0.24 },
-  { key: 'abyss', depth: 3, feedCount: 'all' as const, rating: 1.7, unlockShare: 0.24 },
+  { key: 'scout', depth: 2, feedCount: 9 as const, legacyRating: 1.2, unlockShare: 0.24 },
+  { key: 'trek', depth: 3, feedCount: 12 as const, legacyRating: 1.5, unlockShare: 0.24 },
+  { key: 'abyss', depth: 3, feedCount: 'all' as const, legacyRating: 1.7, unlockShare: 0.24 },
 ] as const;
 
 type PresetKey = (typeof PRESETS)[number]['key'];
 
-const cfgOf = (key: PresetKey, spice = false): DeepCfg => {
+/** Ступень трудности по умолчанию — низ лестницы: вход в Бездну остаётся пологим. */
+const DEFAULT_BAND = 0;
+
+/** Полоса, на которой продолжается снимок без ступени (партии до 11.09.2026). */
+const legacyRatingOf = (key: PresetKey): number =>
+  PRESETS.find((x) => x.key === key)!.legacyRating;
+
+/** Полоса приходит ГОТОВЫМ ЧИСЛОМ, а не номером ступени: продолжение старой партии
+ *  берёт её из снимка, новая — из лестницы. Одна дорога вместо двух развилок. */
+const cfgOf = (key: PresetKey, rating: number, spice = false): DeepCfg => {
   const p = PRESETS.find((x) => x.key === key)!;
-  return { depth: p.depth, feedCount: p.feedCount, rating: p.rating, unlockShare: p.unlockShare, spice };
+  return { depth: p.depth, feedCount: p.feedCount, rating, unlockShare: p.unlockShare, spice };
 };
 
 type Phase = 'config' | 'play' | 'result';
@@ -98,6 +121,16 @@ interface DeepMove { path: DeepPath; r: number; c: number; prev: number }
 
 interface DeepResume {
   preset: PresetKey;
+  /**
+   * 🔴 ПОЛОСА ХРАНИТСЯ ВМЕСТЕ С СОСТОЯНИЕМ, А НЕ ВЫВОДИТСЯ ИЗ НАСТРОЕК. Доски всех
+   * узлов выбираются зерном, куда полоса входит (`pickBoard`); продолжить партию на
+   * другой полосе значит пересобрать всё дерево другими досками под уже наигранной
+   * рукой. Поля необязательные: снимки до 11.09.2026 их не несут и продолжаются на
+   * полосе, впаянной тогда в пресет (legacyRatingOf).
+   */
+  rating?: number;
+  /** Ступень лестницы — только чтобы показать её человеку при продолжении. */
+  band?: number;
   /** Приправа листьев. Без неё продолжение собрало бы доску БЕЗ выкопанных цифр —
    *  и рука человека встала бы на клетки, которых в новой доске нет пустыми. */
   spice?: boolean;
@@ -125,6 +158,13 @@ export default function FractalDeepScreen() {
    * и мешать их в одну карточку значит заставить выбирать вслепую.
    */
   const [spice, setSpice] = useState(false);
+  /**
+   * Ступень трудности — ВТОРАЯ ось настройки, независимая от объёма (см. PRESETS).
+   * `band` — что выбрано на экране, `rating` — на какой полосе ИДЁТ партия. Разные
+   * величины: продолжение старого снимка получает полосу из него, а не из лестницы.
+   */
+  const [band, setBand] = useState(DEFAULT_BAND);
+  const [rating, setRating] = useState(deepBandRating(DEFAULT_BAND));
   const [seed, setSeed] = useState('');
   const [path, setPath] = useState<DeepPath>('');
   /** Наигранное по ТРОННУТЫМ узлам: путь → доска (0 = пусто). Ключ снимка партии. */
@@ -141,8 +181,29 @@ export default function FractalDeepScreen() {
   const [won, setWon] = useState(false);
   // Лента ходов — ОБЩИМ хуком (undo-honesty): один список по всем узлам дерева.
   const hist = useMoveHistory<DeepMove>();
-  /** Счёт партии для карточки настройки: пазлов всего по слоям. */
-  const [sizes, setSizes] = useState<Record<PresetKey, number[] | null>>({ scout: null, trek: null, abyss: null });
+  /**
+   * Счёт партии для карточки настройки: пазлов всего по слоям.
+   * ⚠️ Ключ — пресет И полоса: на трудных досках банка дырок больше, значит больше
+   * и кормимых клеток, значит дерево ДРУГОГО размера. Замер 11.09: abyss SE 1.7 →
+   * 2848 пазлов, SE 3.4 → 2908, SE 5.7 → 2973. Один ключ по пресету показывал бы
+   * человеку счёт от чужой полосы.
+   */
+  const [sizes, setSizes] = useState<Record<string, number[]>>({});
+
+  /** Ключ кэша размеров: дерево зависит и от пресета, и от полосы. */
+  const sizeKey = (k: PresetKey, r: number): string => `${k}|${r}`;
+  /**
+   * Счёт дерева — лениво и один раз на пару (пресет, полоса). Замер 11.09.2026:
+   * abyss на SE 1.7 считается за 3 мс, глубина 4 на 8421 пазл — за 17 мс, поэтому
+   * пересчёт по тапу человек не замечает. Считать все три пресета разом всё равно
+   * не надо: две карточки из трёх он не откроет.
+   */
+  const ensureSize = (k: PresetKey, r: number) => {
+    const key = sizeKey(k, r);
+    if (sizes[key]) return;
+    const { byDepth } = countDeep('size-preview', cfgOf(k, r));
+    setSizes((prev) => ({ ...prev, [key]: byDepth }));
+  };
 
   const startRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -154,10 +215,10 @@ export default function FractalDeepScreen() {
    */
   const cache = React.useMemo(
     () => ({ nodes: new Map<DeepPath, ScreenNode>(), picks: new Map<DeepPath, DeepPick>(), portals: new Map<DeepPath, DeepPortal[]>() }),
-    // Зерно и пресет — КЛЮЧ СБРОСА кэша, а не «использованные значения»: одно зерно =
-    // те же узлы, смена зерна обязана дать пустые карты.
+    // Зерно, пресет и ПОЛОСА — КЛЮЧ СБРОСА кэша, а не «использованные значения»: одно
+    // зерно = те же узлы, смена любого из трёх обязана дать пустые карты.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [seed, preset],
+    [seed, preset, rating],
   );
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
@@ -166,7 +227,7 @@ export default function FractalDeepScreen() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   }, [phase]);
 
-  const cfg = cfgOf(preset, spice);
+  const cfg = cfgOf(preset, rating, spice);
 
   /** Материализовать узел (с решением) — через кэш и цепочку кормящих цифр.
    *  Листу применяется его сторона портала (X5): дроп-подсказка снимается,
@@ -199,7 +260,7 @@ export default function FractalDeepScreen() {
     }
     cache.nodes.set(p, node);
     return node;
-  }, [seed, preset, spice, cache]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [seed, preset, rating, spice, cache]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const pickAt = (p: DeepPath): DeepPick => {
     const hit = cache.picks.get(p);
@@ -226,6 +287,7 @@ export default function FractalDeepScreen() {
     // повторяется, а снимок хранит зерно и переживает что угодно.
     const s = `${pid ?? 'guest'}|${Math.floor(gameNow() / 1000)}`;
     setSeed(s);
+    setRating(deepBandRating(band));
     setPath('');
     setGrids({});
     setMarks({});
@@ -341,10 +403,13 @@ export default function FractalDeepScreen() {
   }, phase === 'play');
 
   // ───────────────────── незаконченная партия ─────────────────────
-  const snapshot = (): DeepResume => ({ preset, spice, seed, path, grids, marks, errors, elapsed, history: hist.serialize() });
+  const snapshot = (): DeepResume => ({ preset, spice, rating, band, seed, path, grids, marks, errors, elapsed, history: hist.serialize() });
   const applyResume = (s: DeepResume) => {
     setPreset(s.preset);
     setSpice(s.spice ?? false);   // снимки до приправы её не несут — это чистая классика
+    // Снимки до 11.09 не несут полосы: продолжаем на той, что была впаяна в пресет.
+    setRating(s.rating ?? legacyRatingOf(s.preset));
+    setBand(s.band ?? DEFAULT_BAND);
     setSeed(s.seed);
     setPath(s.path ?? '');
     setGrids(s.grids ?? {});
@@ -397,21 +462,14 @@ export default function FractalDeepScreen() {
 
           {PRESETS.map((p) => {
             const on = preset === p.key;
+            const sz = sizes[sizeKey(p.key, rating)];
             return (
               <TouchableOpacity
                 key={p.key}
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}
                 testID={`deep-preset-${p.key}`}
-                onPress={() => {
-                  setPreset(p.key);
-                  // Размер партии считается лениво и один раз: полоса+глубина+охват
-                  // не меняются, а счёт «Бездны» — ~50 обращений к банку, не мгновение.
-                  if (sizes[p.key] === null) {
-                    const { byDepth } = countDeep('size-preview', cfgOf(p.key));
-                    setSizes((prev) => ({ ...prev, [p.key]: byDepth }));
-                  }
-                }}
+                onPress={() => { setPreset(p.key); ensureSize(p.key, rating); }}
                 style={[styles.presetCard, {
                   backgroundColor: colors.surface,
                   borderColor: on ? GRADIENT[1] : colors.border,
@@ -421,19 +479,19 @@ export default function FractalDeepScreen() {
                 <Text style={[styles.presetName, { color: colors.text }]}>{t(`deepPreset_${p.key}` as never)}</Text>
                 <Text style={[styles.presetDesc, { color: colors.textSecondary }]}>
                   {t(`deepPresetDesc_${p.key}` as never)}
-                  {sizes[p.key] !== null ? `  ·  ${t('deepPuzzles')}: ~${sizes[p.key]!.reduce((x, y) => x + y, 0)}` : ''}
+                  {sz ? `  ·  ${t('deepPuzzles')}: ~${sz.reduce((x, y) => x + y, 0)}` : ''}
                 </Text>
                 {/* Каталожное превью (X5): дерево слоями — сколько пазлов прячется на
                     каждой глубине. Полоса лог-шкалой: 81 линейно раздавил бы единицу. */}
-                {sizes[p.key] !== null && (
+                {sz && (
                   <View style={styles.layerPreview}>
-                    {sizes[p.key]!.map((n, d) => (
+                    {sz.map((n, d) => (
                       <View key={d} style={styles.layerRow}>
                         <Text style={[styles.layerLabel, { color: colors.textSecondary }]}>L{d + 1}</Text>
                         <View style={[styles.layerBarTrack, { backgroundColor: colors.border }]}>
                           <View style={[styles.layerBarFill, {
                             backgroundColor: on ? GRADIENT[1] : colors.textSecondary,
-                            width: `${Math.max(8, Math.round(100 * Math.log10(1 + n) / Math.log10(1 + Math.max(...sizes[p.key]!))))}%`,
+                            width: `${Math.max(8, Math.round(100 * Math.log10(1 + n) / Math.log10(1 + Math.max(...sz))))}%`,
                           }]} />
                         </View>
                         <Text style={[styles.layerCount, { color: colors.text }]}>~{n}</Text>
@@ -444,6 +502,45 @@ export default function FractalDeepScreen() {
               </TouchableOpacity>
             );
           })}
+
+          {/* ═══ ТРУДНОСТЬ — ВТОРАЯ ОСЬ, ОТДЕЛЬНАЯ ОТ ОБЪЁМА (11.09.2026) ═══
+              Раньше полоса банка была впаяна в пресет объёма, и маленькой, но трудной
+              партии не существовало вовсе. Почему подпись относительная, а не имя
+              приёма, — сказано замером в шапке DEEP_BANDS: обещание «голая пара» на
+              половине полос не выполняется, а обещание порядка выполняется всегда.
+              Слова готовые (sudokuTier*, ими же подписана карта уровней классики). */}
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.presetName, { color: colors.text }]}>{t('difficultyLabel')}</Text>
+            <View style={styles.bandRow}>
+              {DEEP_BANDS.map((b, i) => {
+                const on = band === i;
+                return (
+                  <TouchableOpacity
+                    key={b.rating}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: on }}
+                    accessibilityLabel={`${t('difficultyLabel')}: ${t(b.nameKey as never)}`}
+                    testID={`deep-band-${i}`}
+                    onPress={() => {
+                      setBand(i);
+                      // Счёт партии зависит от полосы (на трудных досках дырок больше),
+                      // поэтому превью выбранного пресета пересчитывается тут же.
+                      setRating(deepBandRating(i));
+                      ensureSize(preset, deepBandRating(i));
+                    }}
+                    style={[styles.bandChip, {
+                      backgroundColor: on ? GRADIENT[1] : 'transparent',
+                      borderColor: on ? GRADIENT[1] : colors.border,
+                    }]}
+                  >
+                    <Text style={[styles.bandChipText, { color: on ? '#FFF' : colors.textSecondary }]}>
+                      {t(b.nameKey as never)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
 
           {/* Приправа листьев: правило, а не объём — потому отдельной строкой под пресетами. */}
           <TouchableOpacity
@@ -746,6 +843,11 @@ const styles = StyleSheet.create({
   card: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, padding: 14 },
   cardText: { fontSize: 14, lineHeight: 20 },
   presetCard: { borderRadius: 14, padding: 14, gap: 4 },
+  // Полоски трудности переносятся: шесть имён приёмов в одну строку телефона не лягут.
+  bandRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
+  // minHeight 44 — тап-цель по гейту целей нажатия (он уже ловил 39 px).
+  bandChip: { borderRadius: 10, borderWidth: 1, paddingHorizontal: 12, minHeight: 44, justifyContent: 'center' },
+  bandChipText: { fontSize: 13, fontWeight: '700' },
   presetName: { fontSize: 16, fontWeight: '800' },
   presetDesc: { fontSize: 12.5, lineHeight: 18 },
   layerPreview: { gap: 3, marginTop: 6 },

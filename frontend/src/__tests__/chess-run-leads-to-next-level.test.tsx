@@ -49,7 +49,9 @@ jest.mock('@/src/hooks/usePersistentLevel', () => ({
 /** Признак «шаг зарядки» — переключаемый: без него ветка isPreset не проверяется. */
 const mockПресет = { on: false };
 jest.mock('@/src/hooks/useGamePreset', () => ({
-  useGamePreset: () => ({ isPreset: mockПресет.on, autostart: false, num: (_k: string, d: number) => d, isCalm: false }),
+  /* `bool`/`str` — часть настоящего API хука: экран читает ими `?flow=1`,
+     `?mix=1` и `?motif=`. Урезанный мок падал на первом же чтении. */
+  useGamePreset: () => ({ isPreset: mockПресет.on, autostart: false, num: (_k: string, d: number) => d, isCalm: false, bool: (_k: string, d = false) => d, str: (_k: string, d = '') => d }),
   useAutostartWhenReady: () => {},
 }));
 jest.mock('@/src/hooks/useGameMode', () => ({
