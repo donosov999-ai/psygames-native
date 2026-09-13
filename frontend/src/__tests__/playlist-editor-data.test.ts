@@ -29,6 +29,7 @@ import { SCHULTE_SERIES_PLAN } from '@/src/games/schulte/core/blocks';
 import { FEATURE_LADDER } from '@/src/services/featureLadder';
 import { FIGURES } from '@/src/services/collection';
 import { translateFor } from '@/src/contexts/LanguageContext';
+import { КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ } from '@/src/games/tatham-bridge/names';
 import {
   buildMorningWarmupPlaylist, buildEveningWarmupPlaylist, buildDayPlaylist, buildNightPlaylist,
   buildFixedPlaylist, buildFinancialBatteryPlaylist,
@@ -165,6 +166,43 @@ describe('снимок состава для редактора плейлист
          * не переключал.
          */
         всегда: isGameAllowed({ id: '__нет__', allowed_games: [] } as unknown as (typeof PROFILES)[number], g.id),
+      };
+    }),
+    /**
+     * 🔴 ГОЛОВОЛОМКИ ТЭТХЭМА — ОТДЕЛЬНЫМИ СТРОКАМИ, А НЕ ОДНИМ `puzzles`.
+     *
+     * Денис 13.09.2026: «в зарядке или в серии ты просто включал Пазлы, а что из
+     * пазла идёт в серию — вообще непонятно; надо, чтобы они были видны
+     * самостоятельно, как другие игры».
+     *
+     * Он прав, и замер объясняет, почему так вышло: движков сорок два, у каждого
+     * свой генератор, правила и лестница уровней (`puzzles_<режим>`), — но в
+     * каталоге игр это ОДНА карточка `puzzles`, а режим едет параметром. Шаг с
+     * `game_id: 'puzzles'` в редакторе выглядел одинаково для «Труб» и «Сапёра».
+     *
+     * Поэтому здесь заводится ВИРТУАЛЬНЫЙ id вида `puzzles:Net`. Он живёт только
+     * в редакторе: при записи в файл распадается на `game_id: 'puzzles'` и
+     * `mode: 'Net'` — то, что приложение и так понимает. Ничего нового в
+     * приложение не добавляется, добавляется только различимость в списке.
+     */
+    тэтхэма: Object.keys(КЛЮЧ_ИМЕНИ).map((режим) => {
+      const имя = translateFor('ru', КЛЮЧ_ИМЕНИ[режим]);
+      const опис = translateFor('ru', КЛЮЧ_ОПИСАНИЯ[режим]);
+      return {
+        id: `puzzles:${режим}`,
+        реальный: 'puzzles',
+        режим,
+        route: режим === ПО_УМОЛЧАНИЮ ? '/games/puzzles' : `/games/puzzles?mode=${encodeURIComponent(режим)}`,
+        раздел: 'logic',
+        имя: имя === КЛЮЧ_ИМЕНИ[режим] ? режим : имя,
+        /* Словарные ключи — чтобы редактор мог описать карточку файлом, а подпись
+           осталась на двенадцати языках, а не на одном. */
+        имяКлюч: КЛЮЧ_ИМЕНИ[режим],
+        описаниеКлюч: КЛЮЧ_ОПИСАНИЯ[режим],
+        описание: опис === КЛЮЧ_ОПИСАНИЯ[режим] ? '' : опис,
+        навык: 'Тэтхэма',
+        обложка: обложкаФайлом('puzzles'),
+        всегда: true,
       };
     }),
     профили: PROFILES.map((p) => ({

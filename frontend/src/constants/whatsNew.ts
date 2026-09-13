@@ -16,6 +16,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.8',
+    date: '2026-09-13',
+    ru: [
+      'Состав разделов и профилей теперь меняется без обновления приложения: новые подборки упражнений будут приезжать сразу, не дожидаясь следующей версии',
+      'Головоломки Тэтхэма можно разложить по тематическим разделам — числовые к судоку, пространственные к вращению, поиск к поиску: сорок две штуки перестают лежать одной кучей',
+    ],
+    en: [
+      'What each section and profile contains can now change without an app update: new sets of exercises arrive right away instead of waiting for the next version',
+      'Tatham puzzles can be spread across the themed sections — number grids next to sudoku, spatial ones next to rotation, search next to search: forty-two of them stop being one pile',
+    ],
+  },
+  {
     version: '2.54.7',
     date: '2026-09-13',
     ru: [
