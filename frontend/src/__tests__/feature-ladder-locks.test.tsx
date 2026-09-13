@@ -6,6 +6,7 @@
 /* eslint-disable import/first */
 import React from 'react';
 import renderer, { act } from 'react-test-renderer';
+import { DeviceEventEmitter } from 'react-native';
 import { translateFor } from '@/src/contexts/LanguageContext';
 
 /**
@@ -72,12 +73,48 @@ describe('лестница замков — служебные кнопки', ()
     expect(тексты).toContain('Подсказка');
   });
 
-  it('🔴 запертая кнопка ОТВЕЧАЕТ на нажатие, а не молчит', () => {
-    const { дерево, кнопка, нажатия } = нарисовать(0);
-    expect(кнопка.props.disabled).toBeFalsy();
-    act(() => { (кнопка.props.onPress as () => void)(); });
-    expect(JSON.stringify(дерево.toJSON())).toContain(translateFor('ru', 'ladderLockedAt').replace('{n}', '2'));
-    expect(нажатия).toEqual([]);   // сам приём не сработал
+  /**
+   * 🔴 ОТВЕТ ПРОВЕРЯЕТСЯ ПО ОТПРАВЛЕННОМУ СОБЫТИЮ, А НЕ ПО ДЕРЕВУ КНОПКИ.
+   *
+   * Раньше здесь стояло `toJSON()).toContain('Откроется на уровне 2')`, и проба
+   * была ЗЕЛЁНОЙ ровно тогда, когда дефект был на экране: текст в дереве
+   * присутствовал, а до глаз не доходил. Замер 12.09.2026 на собранном бандле
+   * (403×873, пять игр) — ответ видно в одной: в «Корректуре» и «Анаграммах»
+   * плашку закрывало поле, в «Ханое» она уезжала за нижний край (868…910 при
+   * высоте 873). Отчёт 19eaaa3a: «Подсказки не работают».
+   *
+   * Поэтому ответ переехал в общий тост корневого слоя, а проба спрашивает то
+   * единственное, что этот слой получает, — событие с готовой фразой.
+   * ⚠️ «Текст есть в дереве» больше НЕ доказательство: дерево не знает про
+   * наложение и про край экрана.
+   */
+  it('🔴 запертая кнопка ОТВЕЧАЕТ на нажатие — шлёт фразу в общий тост', () => {
+    const пойманные: string[] = [];
+    const подписка = DeviceEventEmitter.addListener(
+      'psygames:ladder-locked',
+      (d: { text: string }) => пойманные.push(d.text),
+    );
+    try {
+      const { кнопка, нажатия } = нарисовать(0);
+      expect(кнопка.props.disabled).toBeFalsy();
+      act(() => { (кнопка.props.onPress as () => void)(); });
+      expect(пойманные).toEqual([translateFor('ru', 'ladderLockedAt').replace('{n}', '2')]);
+      expect(нажатия).toEqual([]);   // сам приём не сработал
+    } finally {
+      подписка.remove();
+    }
+  });
+
+  it('открытая кнопка НИЧЕГО в тост не шлёт — иначе замок мигал бы на рабочем приёме', () => {
+    const пойманные: string[] = [];
+    const подписка = DeviceEventEmitter.addListener('psygames:ladder-locked', () => пойманные.push('!'));
+    try {
+      const { кнопка } = нарисовать(10);
+      act(() => { (кнопка.props.onPress as () => void)(); });
+      expect(пойманные).toEqual([]);
+    } finally {
+      подписка.remove();
+    }
   });
 
   it('открытый уровень возвращает обычную кнопку и обработчик', () => {

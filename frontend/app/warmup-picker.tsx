@@ -33,7 +33,7 @@ import {
   WarmupSlot, currentSlot, isTrainingSlot,
   buildDayPlaylist, buildNightPlaylist, buildEveningWarmupPlaylist,
   buildFixedPlaylist, buildMorningWarmupPlaylist, getCurrentWeekday,
-  getFinancialCooldown,
+  getFinancialCooldown, длинаВлияет, buildСвояСерия, type Длительность,
 } from '@/src/services/warmup';
 import { getAssessmentStatus } from '@/src/services/assessment';
 import { SERIES_KEYS, SeriesKey, seriesPlaylist, seriesProfileFlag, seriesKind, seriesBlockCount, seriesGameId, launchPlanFor } from '@/src/services/warmupEntries';
@@ -58,9 +58,22 @@ const ORDER: WarmupSlot[] = ['morning', 'day', 'evening', 'night'];
  * по времени суток, состав в нём плавает. Серия — ЗАМЕР: состав фиксирован, и
  * менять его нельзя, иначе замеры разных дней несравнимы.
  */
-type PickKey = WarmupSlot | SeriesKey;
+/**
+ * 🔴 СВОИ СЕРИИ ИЗ ФАЙЛА — ЗДЕСЬ ЖЕ, А НЕ В НИКУДА.
+ *
+ * Денис 13.09.2026: «не вижу, как новую серию создать можно?» и следом «режим
+ * поток — это же серия вроде». Своя серия («поток» — одно узкое умение подряд)
+ * заводится в редакторе и назначается профилю. До этой правки она никуда не
+ * приезжала: файл её разбирал, а экранов, читающих поле `наборы`, было НОЛЬ.
+ */
+type СвояКлюч = `своя:${string}`;
+type PickKey = WarmupSlot | SeriesKey | СвояКлюч;
 
-const ICON: Record<PickKey, keyof typeof Ionicons.glyphMap> = {
+const isСвоя = (k: string): k is СвояКлюч => k.startsWith('своя:');
+/** Палитра и значок своих серий — общие: их может быть сколько угодно. */
+const СВОЯ_TINT: [string, string] = ['#0ea5e9', '#7c3aed'];
+
+const ICON: Record<WarmupSlot | SeriesKey, keyof typeof Ionicons.glyphMap> = {
   morning: 'sunny-outline',
   day: 'partly-sunny-outline',
   evening: 'moon-outline',
@@ -73,7 +86,7 @@ const ICON: Record<PickKey, keyof typeof Ionicons.glyphMap> = {
 };
 
 /** Своя палитра у каждого слота — время суток должно читаться до текста. */
-const TINT: Record<PickKey, [string, string]> = {
+const TINT_БАЗА: Record<WarmupSlot | SeriesKey, [string, string]> = {
   morning: ['#f7b733', '#fc4a1a'],
   day:     ['#43cea2', '#185a9d'],
   evening: ['#7b4397', '#dc2430'],
@@ -86,11 +99,24 @@ const TINT: Record<PickKey, [string, string]> = {
 };
 
 const isSeries = (k: PickKey): k is SeriesKey => (SERIES_KEYS as readonly string[]).includes(k);
+const TINT = new Proxy(TINT_БАЗА as Record<string, [string, string]>, {
+  get: (о, к: string) => о[к] ?? СВОЯ_TINT,
+}) as Record<string, [string, string]>;
+const значок = (k: PickKey): keyof typeof Ionicons.glyphMap =>
+  isСвоя(k) ? 'flash-outline' : ICON[k as WarmupSlot | SeriesKey];
+
+/** Где помнится выбранная длина каждого слота. Утро — прежним ключом. */
+const КЛЮЧ_ДЛИНЫ: Record<WarmupSlot, string> = {
+  morning: 'psygames_warmup_duration',
+  day: 'psygames_warmup_duration_day',
+  evening: 'psygames_warmup_duration_evening',
+  night: 'psygames_warmup_duration_night',
+};
 
 export default function WarmupPicker() {
   const { colors } = useTheme();
   const { t } = useLanguage();
-  const { profile } = useProfile();
+  const { profile, составИзФайла } = useProfile();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -106,15 +132,36 @@ export default function WarmupPicker() {
    * то есть недельная сетка тренировок была недостижима из приложения.
    * Выбор запоминается: завтра зарядка стартует той же длины без лишнего тапа.
    */
-  const [mDur, setMDur] = React.useState<5 | 10 | 15>(5);
+  /**
+   * 🔴 ДЛИНА — У ВСЕХ ЧЕТЫРЁХ СЛОТОВ, А НЕ ТОЛЬКО У УТРА.
+   *
+   * Денис 13.09.2026: «выбор длины зарядки нужно добавить во все 4 зарядки — это
+   * ошибка, что доступно в приложении только для утра, ещё 3 шт пропущены».
+   *
+   * Длина запоминается ОТДЕЛЬНО НА КАЖДЫЙ СЛОТ, а не одной цифрой на всё: утром
+   * человек берёт пятнадцать, ночью пять, и общая память тут же подсунула бы
+   * пятнадцатиминутную ночь. Ключ утра остался прежним — иначе у всех, кто уже
+   * выбрал длину, она бы молча сбросилась.
+   */
+  const [dur, setDur] = React.useState<Record<WarmupSlot, Длительность>>({ morning: 5, day: 5, evening: 5, night: 5 });
   React.useEffect(() => {
-    AsyncStorage.getItem('psygames_warmup_duration')
-      .then((v) => { const n = Number(v); if (n === 10 || n === 15) setMDur(n as 10 | 15); })
-      .catch(() => {});
+    let alive = true;
+    (async () => {
+      const пары = await Promise.all(
+        (Object.keys(КЛЮЧ_ДЛИНЫ) as WarmupSlot[]).map(async (sl) => {
+          const v = await AsyncStorage.getItem(КЛЮЧ_ДЛИНЫ[sl]).catch(() => null);
+          const n = Number(v);
+          return [sl, (n === 10 || n === 15 ? n : 5) as Длительность] as const;
+        }),
+      );
+      if (!alive) return;
+      setDur((было) => ({ ...было, ...Object.fromEntries(пары) }));
+    })();
+    return () => { alive = false; };
   }, []);
-  const pickDur = (d: 5 | 10 | 15) => {
-    setMDur(d);
-    AsyncStorage.setItem('psygames_warmup_duration', String(d)).catch(() => {});
+  const pickDur = (sl: WarmupSlot, d: Длительность) => {
+    setDur((было) => ({ ...было, [sl]: d }));
+    AsyncStorage.setItem(КЛЮЧ_ДЛИНЫ[sl], String(d)).catch(() => {});
   };
   const [helpOpen, setHelpOpen] = React.useState(false);
   // Состояние серий приехало сюда вместе с карточками с главной.
@@ -145,13 +192,24 @@ export default function WarmupPicker() {
 
   const wd = getCurrentWeekday();
 
+  /** Свои серии, назначенные этому профилю файлом настроек. */
+  const мои = React.useMemo(() => {
+    const ид = составИзФайла?.профили?.[profile.id]?.наборы ?? [];
+    return (составИзФайла?.наборы ?? []).filter((н) => ид.includes(н.id));
+  }, [составИзФайла, profile.id]);
+  const своя = React.useCallback((k: PickKey) => (
+    isСвоя(k) ? мои.find((н) => `своя:${н.id}` === k) ?? null : null
+  ), [мои]);
+
   /** Сколько шагов и минут в наборе — показываем на карточке, чтобы выбор был осознанным. */
   const metaFor = React.useCallback((slot: PickKey) => {
+    const н = своя(slot);
+    if (н) return buildСвояСерия(н.название, н.шаги, wd);
     switch (slot) {
       case 'assessment':
       case 'financial':  return seriesPlaylist(slot)!;
-      case 'day':   return buildDayPlaylist(wd, (g: string) => isGameAllowed(profile, g));
-      case 'night': return buildNightPlaylist(wd);
+      case 'day':   return buildDayPlaylist(wd, (g: string) => isGameAllowed(profile, g), dur.day);
+      case 'night': return buildNightPlaylist(wd, dur.night);
       case 'evening': {
         const morning = profile.morning_playlist?.length
           ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, (g: string) => isGameAllowed(profile, g))
@@ -160,6 +218,7 @@ export default function WarmupPicker() {
           weekday: wd,
           excludeGameIds: morning.steps.map((s) => s.game_id),
           profileEvening: profile.evening_playlist,
+          duration: dur.evening,
           // ⚠️ Фильтр был потерян ИМЕННО ЗДЕСЬ, в предпросмотре: сам запуск
           // (WarmupContext) его передаёт. Карточка обещала пять шагов, набор
           // шёл из трёх — расхождение читается как поломка счётчика.
@@ -169,9 +228,16 @@ export default function WarmupPicker() {
       default:
         return profile.morning_playlist?.length
           ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, (g: string) => isGameAllowed(profile, g))
-          : buildMorningWarmupPlaylist({ duration: mDur, weekday: wd, profilePlaylists: profile.custom_playlists, allow: (g: string) => isGameAllowed(profile, g) });
+          : buildMorningWarmupPlaylist({ duration: dur.morning, weekday: wd, profilePlaylists: profile.custom_playlists, allow: (g: string) => isGameAllowed(profile, g) });
     }
-  }, [wd, profile, mDur]);
+  }, [wd, profile, dur, своя]);
+
+  /** Назван ли состав слота профилем целиком — тогда длина ничего не меняет. */
+  const слотЗафиксирован = React.useCallback((slot: WarmupSlot) => (
+    slot === 'morning' ? !!profile.morning_playlist?.length
+      : slot === 'evening' ? !!profile.evening_playlist?.length
+        : false
+  ), [profile]);
 
   // Пустой набор — не выбор. Среда у нас день отдыха, и утренний плейлист в этот
   // день пуст; предвыбранное по часам «Утро» показывало бы «0 игр», а «Начать»
@@ -184,6 +250,7 @@ export default function WarmupPicker() {
   // прошлом прогоне, а не решения. Внешне это то же самое: карточка гаснет и не
   // берётся, а на ней написано, сколько ждать.
   const isEmpty = React.useCallback((slot: PickKey) => {
+    if (isСвоя(slot)) return metaFor(slot).steps.length === 0;
     if (slot === 'financial') return !finCooldown.ready;
     if (slot === 'assessment') return false;
     if (isSeries(slot)) return false;   // серия блоков всегда доступна: остывания у неё нет
@@ -208,6 +275,8 @@ export default function WarmupPicker() {
      * ⚠️ Список `case` — ручная копия реестра, и расходится она молча. Теперь
      * ветка выбирается по `seriesKind`, и новая серия работает без правки экрана.
      */
+    const мояСерия = своя(picked);
+    if (мояСерия) { warmup.startPlaylist(buildСвояСерия(мояСерия.название, мояСерия.шаги, wd)); return; }
     if ((SERIES_KEYS as readonly string[]).includes(picked)) {
       const plan = launchPlanFor(picked as SeriesKey);
       // Серия блоков — одна игра, её ведёт сам экран игры. `auto=1`, а не `wu=1`:
@@ -217,16 +286,18 @@ export default function WarmupPicker() {
       return;
     }
     switch (picked) {
-      case 'day':     warmup.startDay(); break;
-      case 'night':   warmup.startNight(); break;
-      case 'evening': warmup.startEvening(); break;
-      default:        warmup.startWarmup(mDur); break;
+      case 'day':     warmup.startDay(dur.day); break;
+      case 'night':   warmup.startNight(dur.night); break;
+      case 'evening': warmup.startEvening(dur.evening); break;
+      default:        warmup.startWarmup(dur.morning); break;
     }
   };
 
   /** Заголовок и подпись карточки: у слотов они из словаря слотов, у серий — свои. */
   const cap = (k: WarmupSlot) => 'slot' + k.charAt(0).toUpperCase() + k.slice(1);
   const titleOf = (k: PickKey) => {
+    const н = своя(k);
+    if (н) return н.название;
     if (k === 'assessment') return t('complexAssessment');
     if (k === 'financial') return 'FIN BRAIN';
     if (k === 'schulte-blocks') return t('schulteTable');
@@ -235,6 +306,7 @@ export default function WarmupPicker() {
     return t(cap(k as WarmupSlot));
   };
   const descOf = (k: PickKey) => {
+    if (isСвоя(k)) return t('ownSeriesMeta');
     if (k === 'assessment') return t('assessmentMeta');
     if (k === 'financial') return t('finBrainMeta');
     if (isSeries(k) && seriesKind(k) === 'blocks') return t('seriesBlocksMeta');
@@ -266,7 +338,7 @@ export default function WarmupPicker() {
         }]}
       >
         <View style={[styles.icon, { backgroundColor: TINT[slot][0] + '22' }]}>
-          <Ionicons name={ICON[slot]} size={narrow ? 20 : 24} color={TINT[slot][0]} />
+          <Ionicons name={значок(slot)} size={narrow ? 20 : 24} color={TINT[slot][0]} />
         </View>
         <View style={styles.cardBody}>
           <Text style={[styles.cardTitle, { color: colors.text }]}>{titleOf(slot)}</Text>
@@ -293,23 +365,25 @@ export default function WarmupPicker() {
               {slot === 'assessment' && assessDays !== null ? `${t('seriesFixedNote')} · ${assessDays}${t('unitDayShort')}` : t('seriesFixedNote')}
             </Text>
           )}
-          {/* З1: длительность утра — чипы прямо на карточке. Фикс-набору профиля
-              длительность не управляется, там чипов нет. */}
-          {slot === 'morning' && on && !profile.morning_playlist?.length && (
+          {/* Длительность — чипы прямо на карточке, у ВСЕХ четырёх слотов.
+              Там, где состав назван целиком (фикс-набор профиля или набор слота
+              из файла), три длины дали бы один и тот же список — чипов нет, и
+              решает это `длинаВлияет`, а не перечень слотов здесь. */}
+          {!series && on && длинаВлияет(wd, slot as WarmupSlot, слотЗафиксирован(slot as WarmupSlot)) && (
             <View style={styles.durRow}>
               {([5, 10, 15] as const).map((d) => (
                 <TouchableOpacity
                   key={d}
                   accessibilityRole="radio"
-                  accessibilityState={{ selected: mDur === d }}
+                  accessibilityState={{ selected: dur[slot as WarmupSlot] === d }}
                   accessibilityLabel={`${d} ${t('unitMin')}`}
-                  onPress={() => pickDur(d)}
+                  onPress={() => pickDur(slot as WarmupSlot, d)}
                   style={[styles.durChip, {
-                    backgroundColor: mDur === d ? TINT.morning[0] : 'transparent',
-                    borderColor: mDur === d ? TINT.morning[0] : colors.border,
+                    backgroundColor: dur[slot as WarmupSlot] === d ? TINT[slot][0] : 'transparent',
+                    borderColor: dur[slot as WarmupSlot] === d ? TINT[slot][0] : colors.border,
                   }]}
                 >
-                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: mDur === d ? '#fff' : colors.text }}>
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: dur[slot as WarmupSlot] === d ? '#fff' : colors.text }}>
                     {d} {t('unitMin')}
                   </Text>
                 </TouchableOpacity>
@@ -358,6 +432,14 @@ export default function WarmupPicker() {
           </View>
         )}
         {seriesShown.map(renderCard)}
+
+        {мои.length > 0 && (
+          <View style={styles.groupHead}>
+            <Text style={[styles.groupTitle, { color: colors.text }]}>{t('ownSeriesGroup')}</Text>
+            <Text style={[styles.groupNote, { color: colors.textSecondary }]}>{t('ownSeriesGroupNote')}</Text>
+          </View>
+        )}
+        {мои.map((н) => renderCard(`своя:${н.id}` as PickKey))}
       </ScrollView>
 
       {/* Нижний тулбар — как на экране «Об игре»: слева справка, справа запуск. */}
@@ -394,7 +476,7 @@ export default function WarmupPicker() {
             <ScrollView style={{ maxHeight: 340 }} showsVerticalScrollIndicator={false}>
               {ORDER.map((slot) => (
                 <View key={slot} style={styles.sheetRow}>
-                  <Ionicons name={ICON[slot]} size={18} color={TINT[slot][0]} />
+                  <Ionicons name={значок(slot)} size={18} color={TINT[slot][0]} />
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={[styles.sheetName, { color: colors.text }]}>
                       {t('slot' + slot.charAt(0).toUpperCase() + slot.slice(1))}

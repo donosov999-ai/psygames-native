@@ -14,8 +14,10 @@ import { isSandboxGame } from '@/src/constants/games';
 import { GameSession } from '@/src/services/api';
 import { translateFor } from '@/src/contexts/LanguageContext';
 import { estimateStepSec } from '@/src/services/gameDuration';
+import { cachedLevelValue } from '@/src/services/levelCache';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
+
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Sunday, 1 = Monday, ...
 
 export interface PlaylistStep {
@@ -93,7 +95,76 @@ export interface PlaylistMeta {
  * ⚠️ Пометка идёт от СЛОТА, а не от имени игры: список вечерних наборов у
  * каждого профиля свой, и перечислять игры поимённо значит забыть новую.
  */
-export function stepToParams(step: PlaylistStep, slot?: WarmupSlot): Record<string, string> {
+/**
+ * 🔴 С КАКОГО УРОВНЯ ЗАРЯДКА ЗАПУСКАЕТ УПРАЖНЕНИЕ.
+ *
+ * Просьба Дениса 13.09.2026: «убрать развилку в зарядках и сериях — использовать
+ * прогресс по уровням: с первого, или с освоенного, или максимум минус пять, или
+ * минус двадцать процентов. Это тоже надо задавать».
+ *
+ * Развилка правда была: шаг либо не говорил про уровень вовсе — и игра брала
+ * личный (решение 09.09.2026), — либо прибивал число намертво. Середины не было,
+ * и «дай зарядку чуть полегче освоенного» выразить было нечем.
+ *
+ * ⚠️ ПРАВИЛО НЕ ПЕРЕБИВАЕТ ПРИБИТЫЙ УРОВЕНЬ. У «Ритма» и «Дворца памяти» уровень
+ * задан в шаге НАРОЧНО (на верхних уровнях допуск слишком узкий — см. комментарий
+ * у шага). Правило вступает только там, где шаг про уровень промолчал.
+ *
+ * ⚠️ НЕ ЗНАЕМ ОСВОЕННЫЙ — НЕ ТРОГАЕМ. Кэш уровней может быть холодным (первые
+ * кадры после запуска). Подставить в этот миг единицу значило бы дать человеку с
+ * сороковым уровнем первый — ровно тот дефект, ради которого заводили тёплый кэш.
+ */
+export type ПравилоУровня =
+  | { как: 'первый' }
+  | { как: 'освоенный' }
+  | { как: 'минус'; сколько: number }
+  | { как: 'процент'; сколько: number };
+
+let правилоУровня: ПравилоУровня | null = null;
+let профильДляУровня = 'default';
+
+export function установитьПравилоУровня(правило: ПравилоУровня | null, профиль: string): void {
+  правилоУровня = правило;
+  профильДляУровня = профиль;
+}
+
+/** Чистый расчёт — его и проверяет проба, без хранилища и кэша. */
+export function уровеньПоПравилу(правило: ПравилоУровня, освоенный: number): number {
+  switch (правило.как) {
+    case 'первый': return 1;
+    case 'освоенный': return освоенный;
+    case 'минус': return Math.max(1, освоенный - Math.max(0, Math.floor(правило.сколько)));
+    case 'процент': return Math.max(1, Math.round(освоенный * (1 - Math.min(100, Math.max(0, правило.сколько)) / 100)));
+  }
+}
+
+function уровеньШага(gameId: string): number | null {
+  if (!правилоУровня) return null;
+  const сырое = cachedLevelValue(`psygames_${gameId}_level_${профильДляУровня}`);
+  const освоенный = Number(сырое);
+  if (!Number.isFinite(освоенный) || освоенный < 1) return null;
+  return уровеньПоПравилу(правилоУровня, Math.floor(освоенный));
+}
+
+/**
+ * 🔴 ПРАВИЛО УРОВНЯ НЕ КАСАЕТСЯ ЗАМЕРОВ.
+ *
+ * Денис 13.09.2026 раскидал правило «освоенный минус 20 %» по всем профилям — и
+ * это законная настройка разминки: заходить чуть ниже потолка, чтобы зарядка
+ * была зарядкой, а не попыткой максимума.
+ *
+ * Но ровно то же правило, применённое к ЗАМЕРУ, тихо рвёт ряд сравнения: вчера
+ * ядро-снимок шло на двадцатом уровне, сегодня на шестнадцатом, и кривая
+ * прогресса показывает падение, которого не было. В шапке `warmupEntries`
+ * записано прямо: «состав фиксирован жёстко… иначе замеры разных дней
+ * несравнимы» — уровень такая же часть состава, как список игр.
+ *
+ * Поэтому правило пропускается там, где идёт замер: у шагов с пометкой
+ * `is_fixed_baseline` (ядро-снимок ЧТ/ВС) и в мерных дорожках целиком.
+ */
+const МЕРНЫЕ: ReadonlySet<string> = new Set(['assessment', 'financial-battery', 'measure-peak', 'measure-baseline']);
+
+export function stepToParams(step: PlaylistStep, slot?: WarmupSlot, track?: PlaylistMeta['track']): Record<string, string> {
   const p: Record<string, string> = { wu: '1' };
   if (step.difficulty) p.diff = step.difficulty;   // у уровневых игр шаг трудность не задаёт — уровень личный
   // Вечер И НОЧЬ: в полночь торопить человека тем более незачем.
@@ -103,6 +174,12 @@ export function stepToParams(step: PlaylistStep, slot?: WarmupSlot): Record<stri
   if (step.settings) {
     for (const k of Object.keys(step.settings)) p[k] = String(step.settings[k]);
   }
+  /* Уровень по правилу — последним и только если шаг про него молчал. */
+  const замер = step.is_fixed_baseline === true || (track !== undefined && МЕРНЫЕ.has(track));
+  if (p.level === undefined && !замер) {
+    const уровень = уровеньШага(step.game_id);
+    if (уровень !== null) p.level = String(уровень);
+  }
   return p;
 }
 
@@ -110,13 +187,33 @@ export function stepToParams(step: PlaylistStep, slot?: WarmupSlot): Record<stri
  * Строит PlaylistMeta из фиксированного набора шагов (для per-profile утро/вечер,
  * где порядок задан в profiles.ts, а не вычисляется по дню недели).
  */
+/**
+ * 🔴 НАБОР, НАЗНАЧЕННЫЙ ФАЙЛОМ, НЕ РЕЖЕТСЯ СОСТАВОМ ПРОФИЛЯ.
+ *
+ * Вопрос Дениса 13.09.2026: «можно отвязать? чтобы в зарядке показывалось, а профиль
+ * не перегружать». Да — и это следует из уже записанного здесь правила: срезов ДВА,
+ * «профиль — по желанию зовущего, песочница — безусловно». Профильный срез нужен,
+ * когда набор СОБИРАЕТСЯ автоматически: там игра попадает в зарядку случайно, и
+ * человек мог её не открывать. Набор из файла собран не случайно — его назначил
+ * владелец, и резать его составом каталога значит спорить с его же решением.
+ *
+ * ⚠️ ПЕСОЧНИЦА РЕЖЕТСЯ ВСЕГДА, И ЭТО НЕ ОБСУЖДАЕТСЯ. Сырые игры попадали в зарядку
+ * мимо каталога и раньше — «человек получал сырое, вообще не заходя в каталог, и
+ * никакой профиль его от этого не спасал». Файл такого права не даёт.
+ */
+let наборыНазначеныФайлом = false;
+
+export function установитьЯвноеНазначение(да: boolean): void {
+  наборыНазначеныФайлом = да;
+}
+
 export function buildFixedPlaylist(
   steps: PlaylistStep[],
   slot: 'morning' | 'evening',
   weekday: Weekday,
   allow?: AllowFn,
 ): PlaylistMeta {
-  steps = keepAllowed(steps, allow);
+  steps = keepAllowed(steps, наборыНазначеныФайлом ? undefined : allow);
   const total = steps.reduce((s, x) => s + estimateStepSec(x), 0);
   return {
     duration_min: Math.max(1, Math.round(total / 60)),
@@ -127,6 +224,34 @@ export function buildFixedPlaylist(
     steps: steps.map((s) => ({ ...s })),
     est_total_sec: total,
     slot,
+  };
+}
+
+/**
+ * 🔴 СВОЯ СЕРИЯ («ПОТОК») — ЗАПУСКАЕМЫЙ НАБОР ИЗ ФАЙЛА.
+ *
+ * Денис 13.09.2026, два сообщения подряд: «не вижу, как новую серию создать
+ * можно?» и «режим поток — это же серия вроде». Да, это одно и то же, и раньше
+ * оно никуда не приезжало: файл свои наборы РАЗБИРАЛ и назначал профилю, а в
+ * приложении их не показывал никто — замер по исходникам 13.09.2026 дал ноль
+ * мест, где поле `наборы` читается экраном. То есть механизм был, а до человека
+ * не доехал.
+ *
+ * Здесь набор превращается в обычный плейлист: та же механика шагов, что у
+ * зарядки, своё имя в подписи.
+ *
+ * ⚠️ ЭТО НЕ ЗАМЕР. Заводские серии («Оценка профиля», FIN BRAIN) сравнимы между
+ * днями именно потому, что их состав прибит. Своя серия правится файлом в любой
+ * момент — сравнивать её прогоны между собой можно ровно до следующей правки.
+ */
+export function buildСвояСерия(название: string, шаги: PlaylistStep[], weekday: Weekday): PlaylistMeta {
+  const steps = keepAllowed(шаги.map((s) => ({ ...s })), undefined);
+  const total = steps.reduce((s, x) => s + estimateStepSec(x), 0);
+  return {
+    duration_min: Math.max(1, Math.round(total / 60)),
+    weekday, weekday_name: WEEKDAY_NAMES[weekday],
+    track: 'training', track_label: название,
+    steps, est_total_sec: total, slot: 'morning',
   };
 }
 
@@ -395,6 +520,59 @@ const NIGHT_STEPS: PlaylistStep[] = [
   { game_id: 'breathing', game_route: '/games/breathing', difficulty: 'easy', settings: { tech: 'calm478', dim: 1 }, est_duration_sec: 120 },
 ];
 
+/** Дыхание 4-7-8 — общий хвост всех ночных раскладок. */
+const НОЧНОЕ_ДЫХАНИЕ: PlaylistStep = NIGHT_STEPS[0];
+
+/**
+ * 🔴 НОЧЬ — ТРИ РАСКЛАДКИ, И В НИХ НЕТ СКОРОСТИ.
+ *
+ * Решение Дениса 13.09.2026: «ночь отбирай простые, типа трубы, которые не
+ * требуют скорости; моё решение — 5 минут». До этого ночь была одним дыханием на
+ * две минуты, и я защищал это тем, что ночь намеренно НЕ тренировка.
+ *
+ * Довод остаётся верным — и именно он задаёт отбор. Сюда берутся только те
+ * упражнения, где НЕТ ни секундомера, ни серии на скорость, ни проигрыша по
+ * времени: «Трубы» и «Клубок» Тэтхэма, судоку, ханойская башня, маджонг, пары.
+ * Всё, что меряет реакцию (фланкер, Шульте, счёт на время), ночью запрещено —
+ * это и есть та часть прежнего решения, которая не отменяется.
+ *
+ * ⚠️ ДЫХАНИЕ — ПОСЛЕДНИМ ШАГОМ. Правило «восстановительное в конец» (Денис,
+ * 13.09.2026) здесь работает буквально: человек заканчивает выдохом и ложится.
+ * У дневного перерыва исключение обратное — там дыхание первым, потому что оно и
+ * есть повод открыть приложение.
+ *
+ * ⚠️ ПО ПРОФИЛЮ НЕ ФИЛЬТРУЕТСЯ — см. разбор у `buildNightPlaylist`. «Трубы» и
+ * судоку открыты всем и так, «Пауза» открыта всем с 13.09.2026 (просьба Дениса
+ * «открой всем»), остальное приходит из его же решения не перегружать каталог.
+ */
+const NIGHT_BY_DURATION: Record<Длительность, PlaylistStep[]> = {
+  5: [
+    { game_id: 'puzzles', game_route: '/games/puzzles', difficulty: 'easy', mode: 'Net', est_duration_sec: 150 },
+    { game_id: 'hanoi',   game_route: '/games/hanoi',   difficulty: 'easy', mode: '3 discs', est_duration_sec: 90 },
+    НОЧНОЕ_ДЫХАНИЕ,
+  ],
+  10: [
+    { game_id: 'puzzles', game_route: '/games/puzzles', difficulty: 'easy', mode: 'Net', est_duration_sec: 150 },
+    { game_id: 'sudoku',  game_route: '/games/sudoku',  difficulty: 'easy', est_duration_sec: 140 },
+    { game_id: 'mahjong', game_route: '/games/mahjong', difficulty: 'easy', est_duration_sec: 40 },
+    { game_id: 'hanoi',   game_route: '/games/hanoi',   difficulty: 'easy', mode: '4 discs', est_duration_sec: 70 },
+    { game_id: 'pause',   game_route: '/games/pause',   difficulty: 'easy', est_duration_sec: 90 },
+    НОЧНОЕ_ДЫХАНИЕ,
+  ],
+  15: [
+    { game_id: 'puzzles', game_route: '/games/puzzles', difficulty: 'easy', mode: 'Net', est_duration_sec: 150 },
+    { game_id: 'sudoku',  game_route: '/games/sudoku',  difficulty: 'easy', est_duration_sec: 140 },
+    { game_id: 'puzzles', game_route: '/games/puzzles', difficulty: 'easy', mode: 'Untangle', est_duration_sec: 150 },
+    { game_id: 'mahjong', game_route: '/games/mahjong', difficulty: 'easy', est_duration_sec: 40 },
+    { game_id: 'hanoi',   game_route: '/games/hanoi',   difficulty: 'easy', mode: '4 discs', est_duration_sec: 70 },
+    { game_id: 'word_pairs', game_route: '/games/word-pairs', difficulty: 'easy', mode: '4 pairs', est_duration_sec: 60 },
+    { game_id: 'picture_pairs', game_route: '/games/picture-pairs', difficulty: 'easy', mode: '6 pairs', est_duration_sec: 30 },
+    { game_id: 'pause',   game_route: '/games/pause',   difficulty: 'easy', est_duration_sec: 90 },
+    { game_id: 'eye_gym', game_route: '/games/eye-gym', difficulty: 'easy', est_duration_sec: 60 },
+    НОЧНОЕ_ДЫХАНИЕ,
+  ],
+};
+
 /**
  * Дневной перерыв. Фиксированный, от дня недели не зависит.
  *
@@ -407,8 +585,150 @@ const NIGHT_STEPS: PlaylistStep[] = [
  * Без `allow` берём весь состав: так зовут места, где профиля ещё нет (тесты,
  * предпросмотр каталога). В приложении зовущий обязан передать фильтр.
  */
-export function buildDayPlaylist(weekday: Weekday, allow?: AllowFn): PlaylistMeta {
-  const steps = keepAllowed(DAY_STEPS.map((s) => ({ ...s })), allow);
+/**
+ * 🔴 ДЕНЬ И НОЧЬ ТОЖЕ РЕДАКТИРУЮТСЯ — СЛОТОВ ЧЕТЫРЕ, А НЕ ДВА.
+ *
+ * Заметил Денис 13.09.2026, глядя на редактор: «а где день и вечер? утро и ночь —
+ * там же 4 шт». Он прав: `WarmupSlot` знает morning · day · evening · night, но в
+ * профиле полей было только два — утро и вечер. День и ночь собирались из общих
+ * `DAY_STEPS`/`NIGHT_STEPS`, одинаковых для всех профилей, и задать их было нечем.
+ *
+ * Теперь профиль может назвать и их. Не назвал — работают общие, как раньше.
+ */
+let наборДня: PlaylistStep[] | null = null;
+let наборНочи: PlaylistStep[] | null = null;
+
+export function установитьНаборыДняИНочи(день: PlaylistStep[] | null, ночь: PlaylistStep[] | null): void {
+  наборДня = день;
+  наборНочи = ночь;
+}
+
+/** Длина зарядки. Выбор человека, а не свойство набора. */
+export type Длительность = 5 | 10 | 15;
+
+/**
+ * 🔴 ТРИ РАСКЛАДКИ, А НЕ ОДНА УРЕЗАННАЯ.
+ *
+ * Правка Дениса 13.09.2026: «ты сделал урезку, а должно быть три раскладки — 5
+ * минут, 10 минут и 15 минут». Он прав, и вот чем это отличается от прежнего.
+ *
+ * Раньше на слот был ОДИН список, а кнопки 5/10/15 резали его `pickSteps` под
+ * бюджет. У такого отбора нет права выбирать: он идёт подряд и обрывается, где
+ * кончился бюджет, — значит «пять минут» получались обрубком пятнадцати, а не
+ * самостоятельным набором. Для утра на десяти минутах это давало 0,60 обещанного
+ * (замер 08.09.2026), и это не баг отбора, а его природа.
+ *
+ * Теперь каждая длина — СВОЙ список, составленный целиком: короткая версия может
+ * начинаться с другого упражнения, а не быть первой третью длинной.
+ *
+ * ⚠️ СПИСОК ИЗ СЕТКИ НЕ РЕЖЕТСЯ И НЕ ДОБИРАЕТСЯ. Ни `pickSteps`, ни пул остывания
+ * к нему не применяются: его собрал человек, и «поправить» его под бюджет значит
+ * вернуть ту самую урезку. Профильный срез тоже снят — по тому же правилу, что и
+ * у наборов дня и ночи (набор назначен явно, а не собрался случайно). Песочница
+ * режется всегда.
+ */
+export type СеткаНаборов = Partial<Record<Weekday, Partial<Record<WarmupSlot, Partial<Record<Длительность, PlaylistStep[]>>>>>>;
+
+let сеткаИзФайла: СеткаНаборов | null = null;
+
+export function установитьСеткуИзФайла(сетка: СеткаНаборов | null): void {
+  сеткаИзФайла = сетка;
+}
+
+/** Есть ли в файле готовая раскладка ровно на этот день, слот и длину. */
+export function изСетки(weekday: Weekday, slot: WarmupSlot, duration: Длительность): PlaylistStep[] | null {
+  const шаги = сеткаИзФайла?.[weekday]?.[slot]?.[duration];
+  return шаги && шаги.length ? шаги.map((s) => ({ ...s })) : null;
+}
+
+/**
+ * Мета для готовой раскладки.
+ *
+ * ⚠️ `duration_min` — СУММА, А НЕ ЗАПРОШЕННАЯ КНОПКА. Отчёт `5fb3e5b1`: «подписи
+ * расходятся с суммами — 5→6, 10→14, 15→16». Пока список резался под бюджет,
+ * обещанием была кнопка; теперь список задан целиком, и честнее показать то, что
+ * в нём действительно лежит. От `duration_min` считается вопрос «идём дольше
+ * задуманного?» — он тоже должен идти от настоящей длины.
+ */
+function изГотового(steps: PlaylistStep[], weekday: Weekday, slot: WarmupSlot, label: string,
+                    track: PlaylistMeta['track'] = 'training'): PlaylistMeta {
+  const годные = keepAllowed(steps, undefined);
+  return {
+    duration_min: Math.max(1, Math.round(sumDuration(годные) / 60)),
+    weekday, weekday_name: WEEKDAY_NAMES[weekday],
+    track, track_label: label,
+    steps: годные, est_total_sec: sumDuration(годные), slot,
+  };
+}
+
+/**
+ * Набор под запрошенную длину: база плюс добор из пула, без повторов.
+ *
+ * Пороги те же, что у `pickSteps` (0,9 и 1,15 бюджета) — и это не совпадение:
+ * два разных правила отбора в одном экране разошлись бы молча, а человек увидел
+ * бы, что «десять минут» у утра и у перерыва меряются по-разному.
+ */
+function поДлине(база: PlaylistStep[], пул: PlaylistStep[], duration: Длительность): PlaylistStep[] {
+  const бюджет = duration * 60;
+  const out = (sumDuration(база) > бюджет * 1.15 ? pickSteps(база, бюджет) : база).map((s) => ({ ...s }));
+  const взято = new Set(out.map((s) => s.game_id));
+  for (const шаг of пул) {
+    const набрано = sumDuration(out);
+    if (набрано >= бюджет * 0.9) break;
+    if (взято.has(шаг.game_id)) continue;
+    if (набрано + estimateStepSec(шаг) > бюджет * 1.15) continue;
+    out.push({ ...шаг });
+    взято.add(шаг.game_id);
+  }
+  return out;
+}
+
+/** Вечерние наборы соседних дней — пул добора для длинного вечера. */
+function вечерниеСоседи(weekday: Weekday): PlaylistStep[] {
+  const out: PlaylistStep[] = [];
+  for (let i = 1; i <= 6; i++) out.push(...EVENING_BY_WEEKDAY[(((weekday - i) % 7) + 7) % 7 as Weekday]);
+  return out;
+}
+
+/**
+ * 🔴 КНОПКА ДЛИНЫ НЕ ДОЛЖНА СТОЯТЬ ТАМ, ГДЕ ОНА НИЧЕГО НЕ МЕНЯЕТ.
+ *
+ * Денис 13.09.2026: «выбор длины зарядки нужно добавить во все 4». Кнопки теперь
+ * есть у всех четырёх слотов — но у слота, чей состав назван целиком (фикс-набор
+ * профиля или набор слота из файла), три длины дают один и тот же список. Кнопка,
+ * которая не меняет ничего, — сломанная кнопка, а не настройка; поэтому экран
+ * спрашивает здесь, показывать ли её.
+ *
+ * `фиксПрофиля` — есть ли у профиля жёсткий набор на этот слот (`morning_playlist`
+ * / `evening_playlist`); про день и ночь эта функция знает сама.
+ */
+export function длинаВлияет(weekday: Weekday, slot: WarmupSlot, фиксПрофиля = false): boolean {
+  const вСетке = сеткаИзФайла?.[weekday]?.[slot];
+  if (вСетке && Object.keys(вСетке).length > 0) return true;
+  if (slot === 'day') return !наборДня;
+  if (slot === 'night') return !наборНочи;
+  return !фиксПрофиля;
+}
+
+export function buildDayPlaylist(weekday: Weekday, allow?: AllowFn, duration: Длительность = 5): PlaylistMeta {
+  const готовое = изСетки(weekday, 'day', duration);
+  if (готовое) return изГотового(готовое, weekday, 'day', 'перерыв');
+  /* Набор дня из файла назначен явно — ни профильным составом не режем, ни под
+     длину не подгоняем: и то и другое спорило бы с решением владельца. */
+  /**
+   * ⚠️ ГИМНАСТИКА ДЛЯ ГЛАЗ — ПОСЛЕДНЕЙ, А НЕ ТРЕТЬЕЙ. Правило Дениса 13.09.2026
+   * («восстановительное ставить в конце»); до добора она и так стояла последней,
+   * а после него оказалась бы в середине.
+   */
+  const базаДня = DAY_STEPS.filter((s) => s.game_id !== 'eye_gym');
+  const глаза = DAY_STEPS.filter((s) => s.game_id === 'eye_gym');
+  const steps = наборДня
+    ? keepAllowed(наборДня.map((s) => ({ ...s })), undefined)
+    : keepAllowed([
+        ...поДлине(базаДня, [...COOLDOWN_POOL, ...TRAINING_BY_WEEKDAY[weekday]], duration)
+          .filter((s) => s.game_id !== 'eye_gym'),
+        ...глаза,
+      ], allow);
   return {
     duration_min: Math.max(1, Math.round(sumDuration(steps) / 60)),
     weekday, weekday_name: WEEKDAY_NAMES[weekday],
@@ -429,8 +749,10 @@ export function buildDayPlaylist(weekday: Weekday, allow?: AllowFn): PlaylistMet
  *
  * Если решим гейтить и это — одна строка: `keepAllowed(..., allow)`, как в дне.
  */
-export function buildNightPlaylist(weekday: Weekday): PlaylistMeta {
-  const steps = NIGHT_STEPS.map((s) => ({ ...s }));
+export function buildNightPlaylist(weekday: Weekday, duration: Длительность = 5): PlaylistMeta {
+  const готовое = изСетки(weekday, 'night', duration);
+  if (готовое) return изГотового(готовое, weekday, 'night', 'не спится', 'rest');
+  const steps = (наборНочи ?? NIGHT_BY_DURATION[duration] ?? NIGHT_STEPS).map((s) => ({ ...s }));
   return {
     duration_min: Math.max(1, Math.round(sumDuration(steps) / 60)),
     weekday, weekday_name: WEEKDAY_NAMES[weekday],
@@ -444,8 +766,11 @@ export function buildEveningWarmupPlaylist(opts: {
   excludeGameIds?: string[];          // id игр утреннего комплекса сегодня — не повторять вечером
   profileEvening?: PlaylistStep[];    // профильный фикс-вечер (override)
   allow?: AllowFn;                    // игры профиля; без него — весь каталог
+  duration?: Длительность;            // 5 / 10 / 15 — выбор человека, как у утра
 }): PlaylistMeta {
-  const { weekday, excludeGameIds, profileEvening, allow } = opts;
+  const { weekday, excludeGameIds, profileEvening, allow, duration = 5 } = opts;
+  const готовое = изСетки(weekday, 'evening', duration);
+  if (готовое) return изГотового(готовое, weekday, 'evening', 'перед сном');
   const fixed = !!(profileEvening && profileEvening.length);
   const base = fixed ? profileEvening! : EVENING_BY_WEEKDAY[weekday];
   // v1.157 (репорт Вали «почему всего одна игра перед сном?»): дедуп против утра
@@ -455,7 +780,11 @@ export function buildEveningWarmupPlaylist(opts: {
   // срезал их и от 3 игр оставалась 1, при этом карточка на главной (строится БЕЗ
   // excludeGameIds) обещала 3 — расхождение обещания и запуска.
   const ex = new Set(fixed ? [] : (excludeGameIds || []));
-  let steps = keepAllowed(base.filter((s) => !ex.has(s.game_id)).map((s) => ({ ...s })), allow);
+  /* Фикс-вечер профиля берём как есть; ротацию набираем под запрошенную длину. */
+  const подДлину = fixed
+    ? base.map((s) => ({ ...s }))
+    : поДлине(base.filter((s) => !ex.has(s.game_id)), [...COOLDOWN_POOL, ...вечерниеСоседи(weekday)].filter((s) => !ex.has(s.game_id)), duration);
+  let steps = keepAllowed(подДлину, allow);
 
   /**
    * Пустой вечер — та же сломанная кнопка, что и пустое утро (см. комментарий в
@@ -515,6 +844,13 @@ export function buildMorningWarmupPlaylist(opts: {
   allow?: AllowFn;                    // игры профиля; без него — весь каталог
 }): PlaylistMeta {
   const { duration, weekday, profilePlaylists, allow } = opts;
+  /**
+   * Готовая раскладка на этот день и эту длину — берётся целиком, до всех веток.
+   * Замерный день исключением не становится: если владелец назвал состав утра
+   * явно, ядро-снимок в нём либо есть, либо его там нет намеренно.
+   */
+  const готовое = изСетки(weekday, 'morning', duration);
+  if (готовое) return изГотового(готовое, weekday, 'morning', TRACK_LABEL[getTrack(weekday)] ?? 'тренировка', getTrack(weekday));
   const track = getTrack(weekday);
   let steps: PlaylistStep[];
 
@@ -793,21 +1129,43 @@ const FINANCIAL_BATTERY_PLAYLIST: PlaylistStep[] = [
 
 export function buildFinancialBatteryPlaylist(): PlaylistMeta {
   const wd = getCurrentWeekday();
+  const набор: PlaylistStep[] = серииИзФайла?.financial ?? FINANCIAL_BATTERY_PLAYLIST;
   return {
-    duration_min: Math.round(FINANCIAL_BATTERY_PLAYLIST.reduce((s, x) => s + x.est_duration_sec, 0) / 60),
+    duration_min: Math.round(набор.reduce((s, x) => s + x.est_duration_sec, 0) / 60),
     weekday: wd,
     weekday_name: WEEKDAY_NAMES[wd],
     track: 'financial-battery',
     track_label: TRACK_LABEL['financial-battery'],
-    steps: FINANCIAL_BATTERY_PLAYLIST.map(s => ({ ...s })),
-    est_total_sec: FINANCIAL_BATTERY_PLAYLIST.reduce((s, x) => s + x.est_duration_sec, 0),
+    steps: набор.map(s => ({ ...s })),
+    est_total_sec: набор.reduce((s, x) => s + x.est_duration_sec, 0),
   };
 }
 
 // G1 — Initial Skill Assessment battery (12 short tests, ~12 min)
+/**
+ * 🔴 СОСТАВ СЕРИЙ-ПЛЕЙЛИСТОВ ИЗ ФАЙЛА НАСТРОЕК.
+ *
+ * Решение Дениса 13.09.2026: «тащи моё решение» — после того, как я назвал риск.
+ * Риск называю здесь один раз, чтобы он жил рядом с кодом, а не в переписке:
+ *
+ * ⚠️ СЕРИЯ — ЗАМЕР, И СМЕНА СОСТАВА ДЕЛАЕТ ЗАМЕРЫ ДО И ПОСЛЕ НЕСРАВНИМЫМИ.
+ * Так записано в шапке `services/warmupEntries.ts` (23.08.2026): «состав фиксирован
+ * жёстко… иначе замеры разных дней несравнимы и кривая прогресса превращается в
+ * шум». Менять состав — законное право владельца; важно лишь понимать, что кривая
+ * прогресса на стыке правки разрывается, и сравнивать «до» и «после» нельзя.
+ *
+ * Заводской состав остаётся в коде и работает, пока файл молчит.
+ */
+let серииИзФайла: Record<string, PlaylistStep[]> | null = null;
+
+export function установитьСерииИзФайла(x: Record<string, PlaylistStep[]> | null): void {
+  серииИзФайла = x;
+}
+
 export function buildAssessmentPlaylist(): PlaylistMeta {
   // Lazy import to avoid circular dependency
-  const { ASSESSMENT_PLAYLIST } = require('@/src/services/assessment');
+  const { ASSESSMENT_PLAYLIST: ЗАВОДСКОЙ } = require('@/src/services/assessment');
+  const ASSESSMENT_PLAYLIST: PlaylistStep[] = серииИзФайла?.assessment ?? ЗАВОДСКОЙ;
   const wd = getCurrentWeekday();
   return {
     duration_min: Math.round(ASSESSMENT_PLAYLIST.reduce((s: number, x: PlaylistStep) => s + x.est_duration_sec, 0) / 60),

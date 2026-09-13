@@ -1,8 +1,9 @@
 {
   "name": "frontend",
   "main": "expo-router/entry",
-  "version": "2.53.9",
+  "version": "2.54.11",
   "scripts": {
+    "structure": "node scripts/build-structure.mjs",
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
@@ -58,6 +59,7 @@
     "react-native-web": "^0.21.0",
     "react-native-webview": "13.16.1",
     "react-native-worklets": "0.8.3",
+    "three": "^0.180.0",
     "zustand": "^5.0.10"
   },
   "devDependencies": {

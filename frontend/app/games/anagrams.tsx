@@ -1056,7 +1056,7 @@ export default function AnagramGame() {
   if (phase === 'playing' && режимИгры === 'cross') {
     const пак = allWordsPack(wordLang.lang, lvl.level);
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} auxInHud toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <CrosswordGame
             key={`cross-${wordLang.lang}-${пак.base}-${lvl.level}`}
@@ -1098,7 +1098,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} auxInHud toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {пак ? (
           <AllWordsGame
             key={`${wordLang.lang}-${пак.base}`}
@@ -1153,7 +1153,7 @@ export default function AnagramGame() {
      * мате» днём раньше; тут я повторил ту же ошибку, скопировав каркас.
      */
     return (
-      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
+      <GameShell title={t('anagrams')} hud={шапкаРежима} headerActions={шапкаДействий} auxInHud toolbar={низРежима} bottom="answer" onBack={() => { clearAllTimers(); setPhase('config'); }} confirmExit={armedSquare}>
         {к ? (
           <WordSquareGame
             key={ключКольца(к.верх, к.право, к.низ, к.лево)}
@@ -1216,6 +1216,16 @@ export default function AnagramGame() {
           анаграмма ничего не проверяет. Правка ответа обязана стоять рядом со
           сдачей ответа, а не в шапке: это одна и та же работа.
         */
+        /**
+         * ⚠️ `bottom` ЗДЕСЬ НЕ БЫЛ ОБЪЯВЛЕН, хотя реестр смыслов уже говорил
+         * «ЧЕТЫРЕ РЕЖИМА, и низ у всех — ответ» (`slot-meaning.test.ts`).
+         * Три вызова каркаса из четырёх объявляли, классический — нет; замер
+         * 11.09.2026 нашёл это по геометрии: экран стоял на 173 вместо 119,
+         * потому что служебный ряд без объявления встаёт НАД полем.
+         * Код приведён к реестру, а не наоборот.
+         */
+        auxInHud
+        bottom="answer"
         toolbar={
           <View style={styles.actionsRow}>
             <TouchableOpacity

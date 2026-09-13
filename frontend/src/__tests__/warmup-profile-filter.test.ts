@@ -95,7 +95,17 @@ describe('состав набора считается с профилем', () 
       'find_differences', 'anagrams', 'counter', 'targets']);
     const meta = warmup.buildDayPlaylist(1, (g: string) => free.has(g));
     const ids = meta.steps.map((s) => s.game_id);
-    expect(ids).toEqual(['schulte_table']);
+    /**
+     * 🔴 СПИСОК БОЛЬШЕ НЕ ПРИБИТ ПОИМЁННО (13.09.2026). Перерыв научился длине
+     * 5/10/15 — Денис: «выбор длины нужен во всех 4 зарядках». Прибитый список
+     * ловил бы не дефект, а факт добора: он меняется от длины и от дня.
+     *
+     * Что проверяется вместо него — то же, ради чего проба и написана: НИ ОДНОГО
+     * упражнения мимо профиля. Раньше сюда проезжали `flanker` и `eye_gym`,
+     * которых в «Стандарте» нет.
+     */
+    expect(ids.filter((id) => !free.has(id))).toEqual([]);
+    expect(ids.length).toBeGreaterThan(0);
     /**
      * 🔴 БЫЛО 60, СТАЛО 46 — И ЭТО ПОЧИНКА, А НЕ РЕГРЕССИЯ (08.09.2026, `c810938d`).
      *
@@ -104,12 +114,17 @@ describe('состав набора считается с профилем', () 
      * 0,39 обещанного по живому замеру. Теперь оценка = медиана живых партий этой
      * игры плюс измеренная стоимость перехода: Шульте 34 с + 12 с = 46.
      */
-    expect(meta.est_total_sec).toBe(46);
-    expect(meta.duration_min).toBe(1);
+    expect(meta.est_total_sec).toBeGreaterThan(0);
+    expect(meta.duration_min).toBeGreaterThanOrEqual(1);
   });
 
-  it('без фильтра состав дневного перерыва прежний — зовущие без профиля не сломаны', () => {
-    expect(warmup.buildDayPlaylist(1).steps.map((s) => s.game_id)).toEqual(['schulte_table', 'flanker', 'eye_gym']);
+  it('без фильтра перерыв начинается прежним ядром и заканчивается глазами', () => {
+    const ids = warmup.buildDayPlaylist(1).steps.map((s) => s.game_id);
+    /* Ядро перерыва то же, что было: поиск → избирательное внимание. Дальше —
+       добор под выбранную длину, а гимнастика для глаз всегда последняя. */
+    expect(ids.slice(0, 2)).toEqual(['schulte_table', 'flanker']);
+    expect(ids[ids.length - 1]).toBe('eye_gym');
+    expect(ids.filter((id) => id === 'eye_gym').length).toBe(1);
   });
 
   it('каждое исключение объяснено, а не просто вписано', () => {
@@ -126,9 +141,28 @@ describe('состав набора считается с профилем', () 
    * потребует объясниться заново.
    */
   it('🔴 ночь и правда вне тренировочной механики, иначе довод исключения ложный', () => {
-    const night = warmup.buildNightPlaylist(1);
-    expect(isTrainingSlot(night.slot!)).toBe(false);
-    expect(night.steps.map((s) => s.game_id)).toEqual(['breathing']);
+    /**
+     * 🔴 СОСТАВ НОЧИ ИЗМЕНИЛСЯ, ДОВОД — НЕТ (13.09.2026).
+     *
+     * Было одно дыхание; решение Дениса: «ночь отбирай простые, типа трубы,
+     * которые не требуют скорости; моё решение — 5 минут». Прибитый список из
+     * одного `breathing` тут больше не проверка, а копия состава.
+     *
+     * Проверяется ровно то, ради чего исключение и написано: ночь вне
+     * тренировочной механики И в ней нет ни одного упражнения на скорость.
+     * Появится секундомер — гейт покраснеет и потребует объясниться.
+     */
+    const СКОРОСТЬ = ['flanker', 'stroop', 'choice_rt', 'go_no_go', 'stop_signal', 'simon',
+      'targets', 'sdmt', 'schulte_table', 'math_sprint', 'cpt', 'ant', 'posner', 'inhibition',
+      'switching_task', 'trail_making', 'quick_count', 'counter', 'stroop_emotional', 'visual_search'];
+    for (const d of [5, 10, 15] as const) {
+      const night = warmup.buildNightPlaylist(1, d);
+      expect(isTrainingSlot(night.slot!)).toBe(false);
+      expect(night.steps.length).toBeGreaterThan(0);
+      expect(night.steps.map((s) => s.game_id).filter((id) => СКОРОСТЬ.includes(id))).toEqual([]);
+      /* Дыхание закрывает ночь: человек заканчивает выдохом и ложится. */
+      expect(night.steps[night.steps.length - 1].game_id).toBe('breathing');
+    }
   });
 
   /** Батареи названы мерными — значит и дорожка у них мерная, а не тренировочная. */

@@ -79,6 +79,7 @@ function playRender(src: string): string {
  * который схлопывали 19.08 (см. dictionary-duplicates).
  */
 const ADDED: Record<string, string> = {
+  'number-run.tsx': 'numberRunTask',
   'ant.tsx': 'hint_center_arrow',
   'choice-rt.tsx': 'choiceRtHint',
   'counter.tsx': 'counterHint',

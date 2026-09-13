@@ -2,7 +2,7 @@
 import React, { createContext, useContext } from 'react';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { usePlayerLevel } from '@/src/hooks/usePlayerLevel';
-import { FEATURE_LADDER } from '@/src/services/featureLadder';
+import { порогЗамка } from '@/src/services/featureLadder';
 
 /**
  * УРОВЕНЬ ИГРОКА — ОДНО ЧТЕНИЕ НА ЭКРАН, А НЕ НА КНОПКУ.
@@ -50,7 +50,9 @@ export function usePlayerLevelCtx(): number | null {
  */
 export function useLadderLock(ladder?: string): { заперт: boolean; порог: number | null } {
   const уровень = usePlayerLevelCtx();
-  const замок = FEATURE_LADDER.find((l) => l.key === ladder);
-  if (!замок) return { заперт: false, порог: null };
-  return { заперт: уровень !== null && уровень < замок.level, порог: замок.level };
+  /* Порог берём функцией, а не поиском по списку: она знает про файл настроек,
+     а список — только про заводские значения. Копия правила расходится молча. */
+  const порог = ladder ? порогЗамка(ladder) : null;
+  if (порог === null) return { заперт: false, порог: null };
+  return { заперт: уровень !== null && уровень < порог, порог };
 }
