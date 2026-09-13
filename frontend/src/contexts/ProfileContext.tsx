@@ -4,6 +4,9 @@ import { ProfileId, ProfileDef, PROFILE_BY_ID, PROFILES } from '@/src/constants/
 import { tryUnlock, requiresUnlock } from '@/src/services/unlock';
 import { загрузить as загрузитьСостав, наложить, type СохранённыйСостав } from '@/src/services/playlistOverride';
 import { установитьХабыИзФайла } from '@/src/constants/hubContents';
+import { установитьЗамкиИзФайла } from '@/src/services/featureLadder';
+import { установитьПорогиФигурок } from '@/src/services/collection';
+import { установитьПравилоУровня } from '@/src/services/warmup';
 
 const ACTIVE_PROFILE_KEY = 'psygames_active_profile';
 const UNLOCKED_THEMED_KEY = 'psygames_unlocked_themed';   // string[] of profile ids
@@ -213,6 +216,21 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
    */
   React.useEffect(() => {
     установитьХабыИзФайла(состав?.профили?.[profile.id]?.хабы ?? состав?.хабы ?? null);
+  }, [profile.id, состав]);
+
+  /**
+   * Баланс — общий на всё приложение, а не на профиль: экономика одна. Поэтому
+   * зависимость только от состава, без `profile.id`.
+   */
+  React.useEffect(() => {
+    установитьЗамкиИзФайла(состав?.замки ?? null);
+    установитьПорогиФигурок(состав?.коллекция ?? null);
+  }, [состав]);
+
+  /* Правило уровня — ПРОФИЛЬНОЕ: зарядка у детей и у взрослых разной строгости.
+     Профиль нужен и как часть ключа уровня в хранилище. */
+  React.useEffect(() => {
+    установитьПравилоУровня(состав?.профили?.[profile.id]?.уровень_в_зарядке ?? null, profile.id);
   }, [profile.id, состав]);
   const всеСоСоставом = React.useMemo(() => PROFILES.map((p) => наложить(p, состав?.профили ?? null)), [состав]);
 

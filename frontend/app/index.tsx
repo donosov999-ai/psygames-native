@@ -33,7 +33,7 @@ import { wagerTick } from '@/src/services/wager';
 import { getTodayChallenge, challengeToParams, loadChallengeStreak, setPendingChallenge, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
 import { useAllLevelStars } from '@/src/hooks/useAllLevelStars';
 import { playerLevel, nextLock, levelsToNextLock } from '@/src/services/featureLadder';
-import { chestState, earnedTotal, FIGURES } from '@/src/services/collection';
+import { chestState, earnedTotal, фигурки } from '@/src/services/collection';
 import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic, getMusicEnabled } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, visibleInCatalog, GameConfig } from '@/src/constants/games';
@@ -968,7 +968,7 @@ function FullHome() {
           activeOpacity={0.85}
           onPress={() => router.push('/collection' as any)}
           accessibilityLabel={`${сундук.next
-            ? t('chestToNext').replace('{n}', String(сундук.left)).replace('{have}', String(сундук.have)).replace('{all}', String(FIGURES.length))
+            ? t('chestToNext').replace('{n}', String(сундук.left)).replace('{have}', String(сундук.have)).replace('{all}', String(фигурки().length))
             : t('chestFull')} — ${t('collectionOpen')}`}
           style={[styles.chestCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
         >
@@ -976,7 +976,7 @@ function FullHome() {
           <View style={styles.chestBody}>
             <Text style={[styles.chestText, { color: colors.textSecondary }]} numberOfLines={2}>
               {сундук.next
-                ? t('chestToNext').replace('{n}', String(сундук.left)).replace('{have}', String(сундук.have)).replace('{all}', String(FIGURES.length))
+                ? t('chestToNext').replace('{n}', String(сундук.left)).replace('{have}', String(сундук.have)).replace('{all}', String(фигурки().length))
                 : t('chestFull')}
             </Text>
             <View style={[styles.chestTrack, { backgroundColor: colors.border }]}>

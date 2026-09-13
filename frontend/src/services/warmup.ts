@@ -14,8 +14,10 @@ import { isSandboxGame } from '@/src/constants/games';
 import { GameSession } from '@/src/services/api';
 import { translateFor } from '@/src/contexts/LanguageContext';
 import { estimateStepSec } from '@/src/services/gameDuration';
+import { cachedLevelValue } from '@/src/services/levelCache';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
+
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Sunday, 1 = Monday, ...
 
 export interface PlaylistStep {
@@ -93,6 +95,57 @@ export interface PlaylistMeta {
  * ⚠️ Пометка идёт от СЛОТА, а не от имени игры: список вечерних наборов у
  * каждого профиля свой, и перечислять игры поимённо значит забыть новую.
  */
+/**
+ * 🔴 С КАКОГО УРОВНЯ ЗАРЯДКА ЗАПУСКАЕТ УПРАЖНЕНИЕ.
+ *
+ * Просьба Дениса 13.09.2026: «убрать развилку в зарядках и сериях — использовать
+ * прогресс по уровням: с первого, или с освоенного, или максимум минус пять, или
+ * минус двадцать процентов. Это тоже надо задавать».
+ *
+ * Развилка правда была: шаг либо не говорил про уровень вовсе — и игра брала
+ * личный (решение 09.09.2026), — либо прибивал число намертво. Середины не было,
+ * и «дай зарядку чуть полегче освоенного» выразить было нечем.
+ *
+ * ⚠️ ПРАВИЛО НЕ ПЕРЕБИВАЕТ ПРИБИТЫЙ УРОВЕНЬ. У «Ритма» и «Дворца памяти» уровень
+ * задан в шаге НАРОЧНО (на верхних уровнях допуск слишком узкий — см. комментарий
+ * у шага). Правило вступает только там, где шаг про уровень промолчал.
+ *
+ * ⚠️ НЕ ЗНАЕМ ОСВОЕННЫЙ — НЕ ТРОГАЕМ. Кэш уровней может быть холодным (первые
+ * кадры после запуска). Подставить в этот миг единицу значило бы дать человеку с
+ * сороковым уровнем первый — ровно тот дефект, ради которого заводили тёплый кэш.
+ */
+export type ПравилоУровня =
+  | { как: 'первый' }
+  | { как: 'освоенный' }
+  | { как: 'минус'; сколько: number }
+  | { как: 'процент'; сколько: number };
+
+let правилоУровня: ПравилоУровня | null = null;
+let профильДляУровня = 'default';
+
+export function установитьПравилоУровня(правило: ПравилоУровня | null, профиль: string): void {
+  правилоУровня = правило;
+  профильДляУровня = профиль;
+}
+
+/** Чистый расчёт — его и проверяет проба, без хранилища и кэша. */
+export function уровеньПоПравилу(правило: ПравилоУровня, освоенный: number): number {
+  switch (правило.как) {
+    case 'первый': return 1;
+    case 'освоенный': return освоенный;
+    case 'минус': return Math.max(1, освоенный - Math.max(0, Math.floor(правило.сколько)));
+    case 'процент': return Math.max(1, Math.round(освоенный * (1 - Math.min(100, Math.max(0, правило.сколько)) / 100)));
+  }
+}
+
+function уровеньШага(gameId: string): number | null {
+  if (!правилоУровня) return null;
+  const сырое = cachedLevelValue(`psygames_${gameId}_level_${профильДляУровня}`);
+  const освоенный = Number(сырое);
+  if (!Number.isFinite(освоенный) || освоенный < 1) return null;
+  return уровеньПоПравилу(правилоУровня, Math.floor(освоенный));
+}
+
 export function stepToParams(step: PlaylistStep, slot?: WarmupSlot): Record<string, string> {
   const p: Record<string, string> = { wu: '1' };
   if (step.difficulty) p.diff = step.difficulty;   // у уровневых игр шаг трудность не задаёт — уровень личный
@@ -102,6 +155,11 @@ export function stepToParams(step: PlaylistStep, slot?: WarmupSlot): Record<stri
   if (step.mode) p.mode = step.mode;
   if (step.settings) {
     for (const k of Object.keys(step.settings)) p[k] = String(step.settings[k]);
+  }
+  /* Уровень по правилу — последним и только если шаг про него молчал. */
+  if (p.level === undefined) {
+    const уровень = уровеньШага(step.game_id);
+    if (уровень !== null) p.level = String(уровень);
   }
   return p;
 }

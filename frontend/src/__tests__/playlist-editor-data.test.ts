@@ -21,6 +21,8 @@ import { PROFILES } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 import { HUB_CONTENTS } from '@/src/constants/hubContents';
 import { БЛОКИ_ГЛАВНОЙ } from '@/src/constants/homeBlocks';
+import { FEATURE_LADDER } from '@/src/services/featureLadder';
+import { FIGURES } from '@/src/services/collection';
 
 /**
  * `require`, а не `import`: node-типов в tsconfig проекта нет, и `import * as fs`
@@ -57,6 +59,8 @@ describe('снимок состава для редактора плейлист
       по_дням: p.custom_playlists ?? null,
     })),
     блокиГлавной: БЛОКИ_ГЛАВНОЙ.map((б) => ({ id: б.id, подпись: б.подпись })),
+    замки: FEATURE_LADDER.map((з) => ({ key: з.key, level: з.level })),
+    фигурки: FIGURES.map((ф) => ({ key: ф.key, at: ф.at, face: ф.face })),
     хабы: Object.fromEntries(
       Object.entries(HUB_CONTENTS).map(([маршрут, карточки]) => [
         маршрут,
@@ -81,6 +85,11 @@ describe('снимок состава для редактора плейлист
   it('блоки главной названы — редактор ставит галочки по именам', () => {
     expect(снимок.блокиГлавной.length).toBeGreaterThanOrEqual(5);
     expect(снимок.блокиГлавной.every((б) => б.id && б.подпись)).toBe(true);
+  });
+
+  it('баланс попал в снимок — замки и фигурки редактируются в редакторе', () => {
+    expect(снимок.замки.length).toBeGreaterThanOrEqual(4);
+    expect(снимок.фигурки.length).toBeGreaterThanOrEqual(12);
   });
 
   it('развилки не пусты — иначе фасовать нечего', () => {
