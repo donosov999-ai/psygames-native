@@ -20,6 +20,10 @@ import { PROFILE_BY_ID } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 import { HUB_CONTENTS, visibleHubCards, установитьХабыИзФайла } from '@/src/constants/hubContents';
 import { БЛОКИ_ГЛАВНОЙ, показыватьБлок } from '@/src/constants/homeBlocks';
+import { FEATURE_LADDER, порогЗамка, установитьЗамкиИзФайла } from '@/src/services/featureLadder';
+import { FIGURES, chestState, фигурки, установитьПорогиФигурок } from '@/src/services/collection';
+import { уровеньПоПравилу, stepToParams, установитьПравилоУровня } from '@/src/services/warmup';
+import { rememberLevelValue, resetLevelCacheForTests } from '@/src/services/levelCache';
 
 const ЖИВАЯ_ИГРА = GAMES[0].id;
 const ВТОРАЯ_ИГРА = GAMES[1].id;
@@ -295,5 +299,152 @@ describe('состав главной', () => {
 
   it('имена блоков уникальны — иначе редактор покажет две одинаковые галочки', () => {
     expect(new Set(ВСЕ).size).toBe(ВСЕ.length);
+  });
+});
+
+
+describe('баланс из файла: замки', () => {
+  afterEach(() => установитьЗамкиИзФайла(null));
+
+  it('🔴 порог приёма берётся из файла, а не из сборки', () => {
+    const r = разобрать(JSON.stringify({
+      app: 'PsyGames-Playlists', format: 1, профили: {}, замки: { hint: 6 },
+    }));
+    expect(r.замки).toEqual({ hint: 6 });
+    установитьЗамкиИзФайла(r.замки);
+    expect(порогЗамка('hint')).toBe(6);
+    // неназванный приём остаётся заводским
+    expect(порогЗамка('undo')).toBe(FEATURE_LADDER.find((l) => l.key === 'undo')!.level);
+  });
+
+  it('🔴 несуществующий приём отбрасывается и называет, какие бывают', () => {
+    const r = разобрать(JSON.stringify({
+      app: 'PsyGames-Playlists', format: 1, профили: {}, замки: { нетТакого: 3 },
+    }));
+    expect(r.замки).toBeNull();
+    expect(r.отброшено.join(' ')).toMatch(/нет приёма «нетТакого»/);
+    expect(r.отброшено.join(' ')).toMatch(/есть: /);
+  });
+
+  it('🔴 нецелый и нулевой уровень не принимаются', () => {
+    const r = разобрать(JSON.stringify({
+      app: 'PsyGames-Playlists', format: 1, профили: {}, замки: { hint: 0, undo: 2.5 },
+    }));
+    expect(r.замки).toBeNull();
+    expect(r.отброшено.length).toBe(2);
+  });
+
+  it('без файла порог заводской', () => {
+    expect(порогЗамка('hint')).toBe(FEATURE_LADDER.find((l) => l.key === 'hint')!.level);
+  });
+});
+
+describe('баланс из файла: пороги коллекции', () => {
+  afterEach(() => установитьПорогиФигурок(null));
+  const конверт = (коллекция: unknown) => JSON.stringify({
+    app: 'PsyGames-Playlists', format: 1, профили: {}, коллекция,
+  });
+
+  it('🔴 порог фигурки берётся из файла и виден в сундуке', () => {
+    const r = разобрать(конверт({ [FIGURES[0].key]: 50 }));
+    expect(r.коллекция).toEqual({ [FIGURES[0].key]: 50 });
+    установитьПорогиФигурок(r.коллекция);
+    expect(фигурки()[0].at).toBe(50);
+    // при 60 звёздах первая фигурка уже собрана, хотя заводской порог был 150
+    expect(chestState(60).have).toBe(1);
+  });
+
+  it('🔴 ЛЕСТНИЦА ОБЯЗАНА РАСТИ: порог, ломающий порядок, не принимается', () => {
+    // второй фигурке даём меньше, чем у первой — «следующая» посчиталась бы неверно
+    const r = разобрать(конверт({ [FIGURES[1].key]: 10 }));
+    expect(r.коллекция).toBeNull();
+    expect(r.отброшено.join(' ')).toMatch(/перестала расти/);
+  });
+
+  it('🔴 равные пороги тоже ломают лестницу и не принимаются', () => {
+    const r = разобрать(конверт({ [FIGURES[1].key]: FIGURES[0].at }));
+    expect(r.коллекция).toBeNull();
+  });
+
+  it('согласованная правка всей лестницы принимается', () => {
+    const вдвое = Object.fromEntries(FIGURES.map((ф) => [ф.key, ф.at * 2]));
+    const r = разобрать(конверт(вдвое));
+    expect(r.коллекция).not.toBeNull();
+    установитьПорогиФигурок(r.коллекция);
+    expect(фигурки().map((ф) => ф.at)).toEqual(FIGURES.map((ф) => ф.at * 2));
+  });
+
+  it('🔴 неизвестная фигурка отбрасывается по имени', () => {
+    const r = разобрать(конверт({ 'Дракон': 100 }));
+    expect(r.коллекция).toBeNull();
+    expect(r.отброшено.join(' ')).toMatch(/нет фигурки «Дракон»/);
+  });
+
+  it('без файла пороги заводские', () => {
+    expect(фигурки()).toBe(FIGURES);
+  });
+});
+
+
+describe('с какого уровня зарядка запускает упражнение', () => {
+  afterEach(() => { установитьПравилоУровня(null, 'default'); resetLevelCacheForTests(); });
+
+  it('🔴 четыре правила считают то, что обещают (освоено 43)', () => {
+    expect(уровеньПоПравилу({ как: 'первый' }, 43)).toBe(1);
+    expect(уровеньПоПравилу({ как: 'освоенный' }, 43)).toBe(43);
+    expect(уровеньПоПравилу({ как: 'минус', сколько: 5 }, 43)).toBe(38);
+    expect(уровеньПоПравилу({ как: 'процент', сколько: 20 }, 43)).toBe(34);
+  });
+
+  it('🔴 ниже первого не опускаемся, каким бы ни было вычитание', () => {
+    expect(уровеньПоПравилу({ как: 'минус', сколько: 99 }, 3)).toBe(1);
+    expect(уровеньПоПравилу({ как: 'процент', сколько: 100 }, 40)).toBe(1);
+  });
+
+  it('🔴 правило подставляет уровень в параметры шага', () => {
+    rememberLevelValue('psygames_schulte_table_level_kids', '43');
+    установитьПравилоУровня({ как: 'минус', сколько: 5 }, 'kids');
+    const p = stepToParams({ game_id: 'schulte_table', game_route: '/games/schulte', est_duration_sec: 60 });
+    expect(p.level).toBe('38');
+  });
+
+  it('🔴 ПРИБИТЫЙ В ШАГЕ УРОВЕНЬ ПРАВИЛО НЕ ПЕРЕБИВАЕТ', () => {
+    // у «Ритма» уровень задан нарочно — на верхних допуск слишком узкий
+    rememberLevelValue('psygames_rhythm_pitch_level_kids', '40');
+    установитьПравилоУровня({ как: 'освоенный' }, 'kids');
+    const p = stepToParams({
+      game_id: 'rhythm_pitch', game_route: '/games/rhythm-pitch',
+      settings: { level: 3 }, est_duration_sec: 90,
+    });
+    expect(p.level).toBe('3');
+  });
+
+  it('🔴 освоенный НЕИЗВЕСТЕН — уровень не подставляем вовсе', () => {
+    установитьПравилоУровня({ как: 'освоенный' }, 'kids');
+    const p = stepToParams({ game_id: 'нет_такой_игры', game_route: '/games/x', est_duration_sec: 60 });
+    expect(p.level).toBeUndefined();
+  });
+
+  it('без правила параметры шага прежние', () => {
+    rememberLevelValue('psygames_schulte_table_level_kids', '43');
+    const p = stepToParams({ game_id: 'schulte_table', game_route: '/games/schulte', est_duration_sec: 60 });
+    expect(p.level).toBeUndefined();
+  });
+
+  it('🔴 непонятное правило отбрасывается и называет, какие бывают', () => {
+    const r = разобрать(файл({ kids: { уровень_в_зарядке: { как: 'наугад' } } }));
+    expect(r.состав?.kids).toBeUndefined();
+    expect(r.отброшено.join(' ')).toMatch(/бывает первый, освоенный, минус, процент/);
+  });
+
+  it('🔴 «минус» без числа не принимается', () => {
+    const r = разобрать(файл({ kids: { уровень_в_зарядке: { как: 'минус' } } }));
+    expect(r.состав?.kids).toBeUndefined();
+    expect(r.отброшено.join(' ')).toMatch(/требует число/);
+  });
+
+  it('правило принимается и попадает в состав профиля', () => {
+    const r = разобрать(файл({ kids: { уровень_в_зарядке: { как: 'процент', сколько: 20 } } }));
+    expect(r.состав?.kids.уровень_в_зарядке).toEqual({ как: 'процент', сколько: 20 });
   });
 });
