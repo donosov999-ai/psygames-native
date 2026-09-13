@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.10',
+    date: '2026-09-13',
+    ru: [
+      'Головоломки разложены до конца: в общем разделе осталось четыре, остальные тридцать восемь стоят там, где их ищут — петли и рельсы к порядку, галактики и частокол к счёту, прямоугольники и карта к поиску',
+    ],
+    en: [
+      'Puzzles are fully sorted now: four stay in the general section, the other thirty-eight sit where you would look for them — loops and tracks with order, galaxies and palisade with counting, rectangles and map with search',
+    ],
+  },
+  {
     version: '2.54.9',
     date: '2026-09-13',
     ru: [
