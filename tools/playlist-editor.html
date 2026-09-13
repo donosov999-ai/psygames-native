@@ -1,0 +1,484 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>PsyGames — редактор плейлистов</title>
+<!--
+  РЕДАКТОР ПЛЕЙЛИСТОВ · VER 1 · 13.09.2026
+
+  Просьба Дениса: «мне не нравится что сейчас это занимает много времени, а по сути
+  это редакция списка». Раньше галочка «какая игра в каком профиле» ехала к человеку
+  через коммит, CI, сборку и магазины — часами. Здесь она ставится мышью, а результат
+  уезжает файлом настроек, который приложение читает само.
+
+  🔴 СТРАНИЦА СОБИРАЕТСЯ СКРИПТОМ, ПРАВИТЬ НАДО ШАБЛОН.
+  `node scripts/build-playlist-editor.mjs` вклеивает сюда свежий снимок состава.
+  Открывать готовый `tools/playlist-editor.html` прямо с диска — ни сервера, ни сети.
+
+  Зависимостей нет нарочно: инструмент одного человека не должен ломаться из-за
+  того, что чей-то CDN сегодня недоступен.
+-->
+<style>
+  :root {
+    --фон: #f6f7f9; --карта: #fff; --текст: #16191d; --тускло: #6b7280;
+    --рамка: #e5e7eb; --синий: #2563eb; --зелёный: #16a34a; --красный: #dc2626;
+    --жёлтый: #d97706;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --фон: #14171a; --карта: #1c2024; --текст: #e8eaed; --тускло: #9aa0a6;
+            --рамка: #2c3237; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 -apple-system, system-ui, sans-serif;
+         background: var(--фон); color: var(--текст); }
+  header { position: sticky; top: 0; z-index: 10; background: var(--карта);
+           border-bottom: 1px solid var(--рамка); padding: 10px 16px;
+           display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0 8px 0 0; }
+  .растяжка { flex: 1; }
+  button { font: inherit; padding: 7px 13px; border-radius: 8px; cursor: pointer;
+           border: 1px solid var(--рамка); background: var(--карта); color: var(--текст); }
+  button.главная { background: var(--синий); color: #fff; border-color: var(--синий); }
+  button:hover { filter: brightness(0.97); }
+  main { display: grid; grid-template-columns: 220px 1fr; gap: 16px; padding: 16px;
+         align-items: start; }
+  .колонка, .панель { background: var(--карта); border: 1px solid var(--рамка);
+                      border-radius: 12px; padding: 12px; }
+  .профиль { display: flex; justify-content: space-between; gap: 8px; padding: 7px 9px;
+             border-radius: 8px; cursor: pointer; }
+  .профиль:hover { background: var(--фон); }
+  .профиль.выбран { background: var(--синий); color: #fff; }
+  .профиль .счёт { color: var(--тускло); font-variant-numeric: tabular-nums; }
+  .профиль.выбран .счёт { color: #dbeafe; }
+  .витрина { font-size: 11px; color: var(--жёлтый); }
+  .вкладки { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .вкладка { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--рамка);
+             cursor: pointer; }
+  .вкладка.выбрана { background: var(--текст); color: var(--фон); }
+  .разделы { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 14px; }
+  .бейдж { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--рамка);
+           font-size: 12px; }
+  .бейдж.ноль { border-color: var(--красный); color: var(--красный); font-weight: 700; }
+  .строка { display: flex; align-items: center; gap: 10px; padding: 5px 6px;
+            border-radius: 7px; }
+  .строка:hover { background: var(--фон); }
+  .строка .ид { color: var(--тускло); font-size: 12px; }
+  .заголовокРаздела { margin: 14px 0 4px; font-weight: 700; color: var(--тускло);
+                      text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+  input[type=search], input[type=text], input[type=number], select {
+    font: inherit; padding: 6px 9px; border-radius: 8px; border: 1px solid var(--рамка);
+    background: var(--фон); color: var(--текст); }
+  input[type=number] { width: 72px; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { padding: 5px 7px; border-bottom: 1px solid var(--рамка); text-align: left; }
+  .шаг { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+         padding: 6px; border: 1px solid var(--рамка); border-radius: 8px; margin-bottom: 6px; }
+  .мелко { font-size: 12px; color: var(--тускло); }
+  .пусто { color: var(--тускло); padding: 10px 0; }
+  #итог { font-size: 12px; color: var(--тускло); }
+</style>
+
+<header>
+  <h1>Редактор плейлистов</h1>
+  <span id="итог"></span>
+  <span class="растяжка"></span>
+  <button id="кнЗагрузить">Открыть файл…</button>
+  <button id="кнБуфер">Скопировать в буфер</button>
+  <button id="кнСкачать" class="главная">Скачать файл настроек</button>
+</header>
+
+<main>
+  <div class="колонка">
+    <div class="мелко" style="margin-bottom:8px">Профили</div>
+    <div id="списокПрофилей"></div>
+  </div>
+
+  <div class="панель">
+    <div class="вкладки" id="вкладки"></div>
+    <div id="тело"></div>
+  </div>
+</main>
+
+<script>
+/* Снимок состава вклеивается сборщиком. */
+const ДАННЫЕ = /*ДАННЫЕ*/{"app":"PsyGames-Playlists-Data","format":1,"снято":"2026-09-13T06:27:02.107Z","игры":[{"id":"schulte_table","route":"/games/schulte","раздел":"attention","имяКлюч":"schulteTable"},{"id":"proofreading","route":"/games/proofreading","раздел":"attention","имяКлюч":"proofreading"},{"id":"find_differences","route":"/games/find-differences","раздел":"attention","имяКлюч":"findDiff"},{"id":"object_tracker","route":"/games/object-tracker","раздел":"attention","имяКлюч":"objectTracker"},{"id":"eye_gym","route":"/games/eye-gym","раздел":"attention","имяКлюч":"eyeGym"},{"id":"goods_sort","route":"/games/goods-sort","раздел":"logic","имяКлюч":"goodsSort"},{"id":"word_pairs","route":"/games/word-pairs","раздел":"memory","имяКлюч":"wordPairs"},{"id":"vocab_srs","route":"/games/vocab-srs","раздел":"memory","имяКлюч":"vocabSrs"},{"id":"semantic_sort","route":"/games/semantic-sort","раздел":"memory","имяКлюч":"semanticSort"},{"id":"cloze","route":"/games/cloze","раздел":"logic","имяКлюч":"cloze"},{"id":"lexical_decision","route":"/games/lexical-decision","раздел":"action","имяКлюч":"lexicalDecision"},{"id":"phoneme_pairs","route":"/games/phoneme-pairs","раздел":"attention","имяКлюч":"phonemePairs"},{"id":"dictation","route":"/games/dictation","раздел":"attention","имяКлюч":"dictation"},{"id":"chinese_tones","route":"/games/chinese-tones","раздел":"attention","имяКлюч":"chineseTones"},{"id":"pseudoword_echo","route":"/games/pseudoword-echo","раздел":"memory","имяКлюч":"pseudowordEcho"},{"id":"rhythm_pitch","route":"/games/rhythm-pitch","раздел":"memory","имяКлюч":"rhythmPitch"},{"id":"listening_span","route":"/games/listening-span","раздел":"memory","имяКлюч":"listeningSpan"},{"id":"scholars_mate","route":"/games/scholars-mate","раздел":"memory","имяКлюч":"scholarsMate"},{"id":"chess_blind","route":"/games/chess-blind","раздел":"memory","имяКлюч":"chessBlind"},{"id":"mnemonics","route":"/games/mnemonics","раздел":"memory","имяКлюч":"mnemonics"},{"id":"memory_palace","route":"/games/memory-palace","раздел":"memory","имяКлюч":"memoryPalace"},{"id":"n_back","route":"/games/n-back","раздел":"memory","имяКлюч":"nBack"},{"id":"digit_span","route":"/games/digit-span","раздел":"memory","имяКлюч":"digitSpan"},{"id":"memory_matrix","route":"/games/memory-matrix","раздел":"memory","имяКлюч":"memoryMatrix"},{"id":"picture_pairs","route":"/games/picture-pairs","раздел":"memory","имяКлюч":"picturePairs"},{"id":"faces_names","route":"/games/faces-names","раздел":"memory","имяКлюч":"facesNames"},{"id":"mahjong","route":"/games/mahjong","раздел":"memory","имяКлюч":"mahjong"},{"id":"reading_span","route":"/games/reading-span","раздел":"memory","имяКлюч":"readingSpan"},{"id":"corsi","route":"/games/corsi","раздел":"memory","имяКлюч":"corsi"},{"id":"ospan","route":"/games/ospan","раздел":"memory","имяКлюч":"ospan"},{"id":"spatial_span","route":"/games/spatial-span","раздел":"memory","имяКлюч":"spatialSpan"},{"id":"navigator","route":"/games/navigator","раздел":"memory","имяКлюч":"navigator"},{"id":"span_group","route":"/games/span","раздел":"memory","имяКлюч":"spanGroup"},{"id":"hanoi","route":"/games/hanoi","раздел":"logic","имяКлюч":"hanoi"},{"id":"sudoku_group","route":"/games/sudoku-hub","раздел":"logic","имяКлюч":"sudokuGroup"},{"id":"sudoku","route":"/games/sudoku","раздел":"logic","имяКлюч":"sudoku"},{"id":"sudoku-samurai","route":"/games/sudoku-samurai","раздел":"logic","имяКлюч":"samuraiTitle"},{"id":"sudoku-fractal","route":"/games/sudoku-fractal","раздел":"logic","имяКлюч":"fractalTitle"},{"id":"sudoku-fractal-deep","route":"/games/sudoku-fractal-deep","раздел":"logic","имяКлюч":"deepTitle"},{"id":"anagrams","route":"/games/anagrams","раздел":"logic","имяКлюч":"anagrams"},{"id":"pattern","route":"/games/pattern","раздел":"logic","имяКлюч":"pattern"},{"id":"set_game","route":"/games/set-game","раздел":"logic","имяКлюч":"setGame"},{"id":"mental_rotation","route":"/games/mental-rotation","раздел":"logic","имяКлюч":"mentalRotation"},{"id":"spatial_lab","route":"/games/spatial-lab","раздел":"logic","имяКлюч":"spatialLab"},{"id":"tower_london","route":"/games/tower-london","раздел":"logic","имяКлюч":"towerLondon"},{"id":"cake_sort","route":"/games/cake-sort","раздел":"logic","имяКлюч":"cakeSort"},{"id":"pizza_sort","route":"/games/pizza-sort","раздел":"logic","имяКлюч":"pizzaSort"},{"id":"ball_sort","route":"/games/ball-sort","раздел":"logic","имяКлюч":"ballSort"},{"id":"nut_sort","route":"/games/nut-sort","раздел":"logic","имяКлюч":"nutSort"},{"id":"water_sort","route":"/games/water-sort","раздел":"logic","имяКлюч":"waterSort"},{"id":"pause","route":"/games/pause","раздел":"recovery","имяКлюч":"pause"},{"id":"dots_connect","route":"/games/dots-connect","раздел":"logic","имяКлюч":"dotsConnect"},{"id":"one_line","route":"/games/one-line","раздел":"logic","имяКлюч":"oneLine"},{"id":"attention_conflict","route":"/games/attention-conflict","раздел":"action","имяКлюч":"attentionConflict"},{"id":"inhibition","route":"/games/inhibition","раздел":"action","имяКлюч":"inhibition"},{"id":"stroop","route":"/games/stroop","раздел":"action","имяКлюч":"stroop"},{"id":"go_no_go","route":"/games/go-no-go","раздел":"action","имяКлюч":"goNoGo"},{"id":"stop_signal","route":"/games/stop-signal","раздел":"action","имяКлюч":"stopSignal"},{"id":"trail_making","route":"/games/trail-making","раздел":"logic","имяКлюч":"trailMaking"},{"id":"switching_task","route":"/games/switching-task","раздел":"logic","имяКлюч":"switchingTask"},{"id":"wcst","route":"/games/wcst","раздел":"intuition","имяКлюч":"wcst"},{"id":"flanker","route":"/games/flanker","раздел":"action","имяКлюч":"flanker"},{"id":"stroop_emotional","route":"/games/stroop-emotional","раздел":"action","имяКлюч":"stroopEmotional"},{"id":"bart","route":"/games/bart","раздел":"intuition","имяКлюч":"bart"},{"id":"iowa","route":"/games/iowa","раздел":"intuition","имяКлюч":"iowa"},{"id":"prl","route":"/games/prl","раздел":"intuition","имяКлюч":"prl"},{"id":"counter","route":"/games/counter","раздел":"action","имяКлюч":"counter"},{"id":"number_run","route":"/games/number-run","раздел":"action","имяКлюч":"numberRun"},{"id":"math_slider","route":"/games/math-slider","раздел":"action","имяКлюч":"mathSlider"},{"id":"math_sprint","route":"/games/math-sprint","раздел":"action","имяКлюч":"mathSprint"},{"id":"number_bonds","route":"/games/number-bonds","раздел":"action","имяКлюч":"numberBonds"},{"id":"targets","route":"/games/targets","раздел":"action","имяКлюч":"targets"},{"id":"choice_rt","route":"/games/choice-rt","раздел":"action","имяКлюч":"choiceRt"},{"id":"visual_search","route":"/games/visual-search","раздел":"attention","имяКлюч":"visualSearch"},{"id":"sdmt","route":"/games/sdmt","раздел":"action","имяКлюч":"sdmt"},{"id":"posner","route":"/games/posner","раздел":"attention","имяКлюч":"posner"},{"id":"ant","route":"/games/ant","раздел":"attention","имяКлюч":"ant"},{"id":"quick_count","route":"/games/quick-count","раздел":"attention","имяКлюч":"quickCount"},{"id":"cpt","route":"/games/cpt","раздел":"attention","имяКлюч":"cpt"},{"id":"phonemic_fluency","route":"/games/phonemic-fluency","раздел":"logic","имяКлюч":"phonemic"},{"id":"story_recall","route":"/games/story-recall","раздел":"memory","имяКлюч":"story"},{"id":"rmet","route":"/games/rmet","раздел":"action","имяКлюч":"rmet"},{"id":"simon","route":"/games/simon","раздел":"action","имяКлюч":"simon"},{"id":"breathing","route":"/games/breathing","раздел":"recovery","имяКлюч":"breathing"},{"id":"counting_group","route":"/games/counting-hub","раздел":"action","имяКлюч":"countingGroup"},{"id":"words_group","route":"/games/words-hub","раздел":"memory","имяКлюч":"wordsGroup"},{"id":"hearing_group","route":"/games/hearing-hub","раздел":"attention","имяКлюч":"hearingGroup"},{"id":"search_group","route":"/games/search-hub","раздел":"attention","имяКлюч":"searchGroup"},{"id":"mnemonics_group","route":"/games/mnemonics-hub","раздел":"memory","имяКлюч":"mnemonicsGroup"},{"id":"languages_group","route":"/games/languages-hub","раздел":"memory","имяКлюч":"languagesGroup"},{"id":"chess_group","route":"/games/chess-hub","раздел":"memory","имяКлюч":"chessGroup"},{"id":"sorting_group","route":"/games/sorting-hub","раздел":"logic","имяКлюч":"sortingGroup"},{"id":"puzzles_group","route":"/games/puzzles-hub","раздел":"logic","имяКлюч":"puzzlesGroup"},{"id":"puzzles","route":"/games/puzzles","раздел":"logic","имяКлюч":"puzzlesUnruly"},{"id":"spatial_group","route":"/games/spatial-hub","раздел":"logic","имяКлюч":"spatialGroup"}],"профили":[{"id":"odv999","имя":"ODV999","витрина":false,"игры":"all","зарядка_включена":true,"утро":null,"вечер":null,"по_дням":null},{"id":"whatsnew","имя":"Новинки","витрина":true,"игры":["memory_palace","rhythm_pitch","navigator","object_tracker","faces_names","one_line","dots_connect","goods_sort","sudoku-samurai","set_game","sudoku-fractal","find_differences","prl","mahjong","math_slider"],"зарядка_включена":true,"утро":null,"вечер":null,"по_дням":null},{"id":"women","имя":"Микро-релакс","витрина":false,"игры":["picture_pairs","memory_matrix","find_differences","visual_search","schulte_table","proofreading","goods_sort","water_sort","ball_sort","nut_sort","cake_sort","pizza_sort","anagrams","sudoku","set_game","targets","trail_making","scholars_mate","dots_connect","one_line","chess_blind","vocab_srs","semantic_sort","cloze","lexical_decision","phonemic_fluency","story_recall","phoneme_pairs","chinese_tones","pseudoword_echo","dictation"],"зарядка_включена":true,"утро":[{"game_id":"memory_matrix","game_route":"/games/memory-matrix","difficulty":"easy","settings":{"size":3},"est_duration_sec":100},{"game_id":"picture_pairs","game_route":"/games/picture-pairs","difficulty":"easy","settings":{"pairsCount":6},"est_duration_sec":100},{"game_id":"pattern","game_route":"/games/pattern","difficulty":"easy","settings":{"trials":5},"est_duration_sec":90}],"вечер":[{"game_id":"find_differences","game_route":"/games/find-differences","difficulty":"easy","settings":{"diffCount":2},"est_duration_sec":90},{"game_id":"mahjong","game_route":"/games/mahjong","difficulty":"easy","est_duration_sec":90},{"game_id":"goods_sort","game_route":"/games/goods-sort","difficulty":"easy","est_duration_sec":90},{"game_id":"breathing","game_route":"/games/breathing","difficulty":"easy","settings":{"tech":"calm478"},"est_duration_sec":120}],"по_дням":null},{"id":"free","имя":"Стандарт","витрина":false,"игры":["picture_pairs","schulte_table","hanoi","math_sprint","n_back","find_differences","anagrams","counter","targets","goods_sort","trail_making","scholars_mate"],"зарядка_включена":true,"утро":null,"вечер":null,"по_дням":null},{"id":"kids","имя":"Дети 7-12","витрина":false,"игры":["picture_pairs","find_differences","hanoi","targets","memory_matrix","memory_palace","schulte_table","anagrams","math_sprint","counter","sudoku","dots_connect","one_line","object_tracker","scholars_mate","trail_making","chess_blind","vocab_srs","semantic_sort","cloze","lexical_decision","phonemic_fluency","story_recall","phoneme_pairs","chinese_tones","pseudoword_echo","dictation"],"зарядка_включена":true,"утро":[{"game_id":"schulte_table","game_route":"/games/schulte","difficulty":"easy","settings":{"size":5},"est_duration_sec":60},{"game_id":"find_differences","game_route":"/games/find-differences","difficulty":"easy","settings":{"diffCount":3},"est_duration_sec":100},{"game_id":"number_bonds","game_route":"/games/number-bonds","difficulty":"easy","settings":{"trials":8},"est_duration_sec":80},{"game_id":"pattern","game_route":"/games/pattern","difficulty":"easy","settings":{"trials":5},"est_duration_sec":90}],"вечер":[{"game_id":"picture_pairs","game_route":"/games/picture-pairs","difficulty":"easy","settings":{"pairsCount":6,"previewMs":3000},"est_duration_sec":100},{"game_id":"memory_matrix","game_route":"/games/memory-matrix","difficulty":"easy","settings":{"size":3},"est_duration_sec":80},{"game_id":"hanoi","game_route":"/games/hanoi","difficulty":"easy","settings":{"discs":3},"est_duration_sec":80},{"game_id":"dots_connect","game_route":"/games/dots-connect","difficulty":"easy","est_duration_sec":100}],"по_дням":null},{"id":"seniors","имя":"50+ профилактика","витрина":false,"игры":["picture_pairs","schulte_table","mnemonics","sdmt","memory_matrix","word_pairs","trail_making","counter","anagrams","faces_names","navigator","memory_palace","dots_connect","scholars_mate"],"зарядка_включена":true,"утро":[{"game_id":"schulte_table","game_route":"/games/schulte","difficulty":"medium","settings":{"size":5},"est_duration_sec":60},{"game_id":"digit_span","game_route":"/games/digit-span","difficulty":"easy","mode":"forward","settings":{"startLen":4},"est_duration_sec":90},{"game_id":"trail_making","game_route":"/games/trail-making","difficulty":"easy","mode":"A","settings":{"count":8},"est_duration_sec":80},{"game_id":"number_bonds","game_route":"/games/number-bonds","difficulty":"easy","settings":{"trials":8},"est_duration_sec":80}],"вечер":[{"game_id":"faces_names","game_route":"/games/faces-names","difficulty":"easy","settings":{"level":6},"est_duration_sec":110},{"game_id":"picture_pairs","game_route":"/games/picture-pairs","difficulty":"easy","settings":{"pairsCount":8},"est_duration_sec":120},{"game_id":"mnemonics","game_route":"/games/mnemonics","difficulty":"easy","mode":"words","settings":{"itemCount":10},"est_duration_sec":90},{"game_id":"memory_matrix","game_route":"/games/memory-matrix","difficulty":"medium","mode":"static","settings":{"size":4},"est_duration_sec":120},{"game_id":"digit_span","game_route":"/games/digit-span","difficulty":"easy","mode":"forward","settings":{"startLen":4},"est_duration_sec":90}],"по_дням":null},{"id":"chess","имя":"Шахматист","витрина":false,"игры":["corsi","cpt","tower_london","choice_rt","mental_rotation","spatial_lab","pattern","set_game","sudoku","schulte_table","chess_blind","scholars_mate","dots_connect","one_line","navigator","object_tracker","anagrams","trail_making","vocab_srs","semantic_sort","cloze","lexical_decision","phonemic_fluency","story_recall","phoneme_pairs","chinese_tones","pseudoword_echo","dictation"],"зарядка_включена":true,"утро":[{"game_id":"mental_rotation","game_route":"/games/mental-rotation","difficulty":"medium","settings":{"trials":10},"est_duration_sec":120},{"game_id":"pattern","game_route":"/games/pattern","difficulty":"medium","settings":{"trials":10},"est_duration_sec":120},{"game_id":"tower_london","game_route":"/games/tower-london","difficulty":"medium","settings":{"trials":5},"est_duration_sec":150},{"game_id":"set_game","game_route":"/games/set-game","difficulty":"medium","settings":{"trials":6},"est_duration_sec":120}],"вечер":[{"game_id":"sudoku","game_route":"/games/sudoku","difficulty":"easy","est_duration_sec":120},{"game_id":"hanoi","game_route":"/games/hanoi","difficulty":"medium","settings":{"discs":5},"est_duration_sec":150},{"game_id":"memory_matrix","game_route":"/games/memory-matrix","difficulty":"medium","mode":"static","settings":{"size":4},"est_duration_sec":120}],"по_дням":null},{"id":"drivers","имя":"Реакция ПРО","витрина":false,"игры":["n_back","cpt","trail_making","choice_rt","schulte_table","visual_search","find_differences","targets","attention_conflict","navigator","anagrams","scholars_mate"],"зарядка_включена":true,"утро":[{"game_id":"choice_rt","game_route":"/games/choice-rt","difficulty":"medium","mode":"4dir","settings":{"trials":20},"est_duration_sec":70},{"game_id":"go_no_go","game_route":"/games/go-no-go","difficulty":"medium","settings":{"trials":30},"est_duration_sec":80},{"game_id":"flanker","game_route":"/games/flanker","difficulty":"medium","settings":{"trials":20},"est_duration_sec":90},{"game_id":"targets","game_route":"/games/targets","difficulty":"medium","settings":{"level":3},"est_duration_sec":90}],"вечер":[{"game_id":"picture_pairs","game_route":"/games/picture-pairs","difficulty":"easy","settings":{"pairsCount":8},"est_duration_sec":120},{"game_id":"sudoku","game_route":"/games/sudoku","difficulty":"easy","est_duration_sec":120},{"game_id":"corsi","game_route":"/games/corsi","difficulty":"easy","mode":"forward","settings":{"startLen":3},"est_duration_sec":90}],"по_дням":null},{"id":"execs","имя":"Предприниматели","витрина":false,"игры":["n_back","cpt","tower_london","attention_conflict","bart","iowa","prl","switching_task","math_sprint","dots_connect","one_line","faces_names","memory_palace","anagrams","scholars_mate","trail_making"],"зарядка_включена":true,"утро":[{"game_id":"switching_task","game_route":"/games/switching-task","difficulty":"medium","settings":{"trials":20},"est_duration_sec":120},{"game_id":"flanker","game_route":"/games/flanker","difficulty":"medium","settings":{"trials":20},"est_duration_sec":90},{"game_id":"n_back","game_route":"/games/n-back","difficulty":"medium","settings":{"nLevel":2,"modality":"single","trials":20},"est_duration_sec":90},{"game_id":"math_sprint","game_route":"/games/math-sprint","difficulty":"medium","settings":{"duration":60},"est_duration_sec":65}],"вечер":[{"game_id":"faces_names","game_route":"/games/faces-names","difficulty":"medium","settings":{"level":12},"est_duration_sec":170},{"game_id":"tower_london","game_route":"/games/tower-london","difficulty":"medium","settings":{"trials":5},"est_duration_sec":150},{"game_id":"sudoku","game_route":"/games/sudoku","difficulty":"easy","est_duration_sec":120},{"game_id":"mnemonics","game_route":"/games/mnemonics","difficulty":"easy","mode":"words","settings":{"itemCount":10},"est_duration_sec":90}],"по_дням":null},{"id":"students","имя":"Студенты PRO","витрина":false,"игры":["reading_span","schulte_table","pattern","math_sprint","n_back","story_recall","memory_matrix","anagrams","counter","memory_palace","faces_names","dots_connect","one_line","scholars_mate","trail_making"],"зарядка_включена":true,"утро":[{"game_id":"n_back","game_route":"/games/n-back","difficulty":"medium","settings":{"nLevel":2,"modality":"single","trials":20},"est_duration_sec":90},{"game_id":"reading_span","game_route":"/games/reading-span","difficulty":"medium","settings":{"setSize":4},"est_duration_sec":100},{"game_id":"sdmt","game_route":"/games/sdmt","difficulty":"medium","settings":{"duration":60},"est_duration_sec":65},{"game_id":"switching_task","game_route":"/games/switching-task","difficulty":"medium","settings":{"trials":20},"est_duration_sec":120}],"вечер":[{"game_id":"reading_span","game_route":"/games/reading-span","difficulty":"medium","settings":{"setSize":4},"est_duration_sec":100},{"game_id":"mnemonics","game_route":"/games/mnemonics","difficulty":"easy","mode":"words","settings":{"itemCount":20},"est_duration_sec":120},{"game_id":"anagrams","game_route":"/games/anagrams","difficulty":"medium","settings":{"length":5},"est_duration_sec":100},{"game_id":"sudoku","game_route":"/games/sudoku","difficulty":"easy","est_duration_sec":120}],"по_дням":null},{"id":"nzt48","имя":"NZT-48 (полный)","витрина":false,"игры":"all","зарядка_включена":true,"утро":null,"вечер":[{"game_id":"mnemonics","game_route":"/games/mnemonics","difficulty":"easy","mode":"words","settings":{"itemCount":20},"est_duration_sec":120},{"game_id":"sudoku","game_route":"/games/sudoku","difficulty":"medium","est_duration_sec":150},{"game_id":"picture_pairs","game_route":"/games/picture-pairs","difficulty":"easy","settings":{"pairsCount":10},"est_duration_sec":140},{"game_id":"reading_span","game_route":"/games/reading-span","difficulty":"medium","settings":{"setSize":4},"est_duration_sec":100}],"по_дням":null},{"id":"vasilyeva","имя":"Скорочтение PRO","витрина":false,"игры":["reading_span","schulte_table","anagrams","sdmt","visual_search","proofreading","find_differences","story_recall","phonemic_fluency","object_tracker","mnemonics","trail_making","scholars_mate"],"зарядка_включена":true,"утро":[{"game_id":"schulte_table","game_route":"/games/schulte","difficulty":"medium","settings":{"size":6},"est_duration_sec":90},{"game_id":"visual_search","game_route":"/games/visual-search","difficulty":"medium","settings":{"trials":8},"est_duration_sec":90},{"game_id":"sdmt","game_route":"/games/sdmt","difficulty":"medium","settings":{"duration":60},"est_duration_sec":65},{"game_id":"proofreading","game_route":"/games/proofreading","difficulty":"medium","mode":"cyrillic","settings":{"rows":12,"cols":10},"est_duration_sec":120}],"вечер":[{"game_id":"reading_span","game_route":"/games/reading-span","difficulty":"medium","settings":{"setSize":4},"est_duration_sec":100},{"game_id":"picture_pairs","game_route":"/games/picture-pairs","difficulty":"easy","settings":{"pairsCount":8},"est_duration_sec":120},{"game_id":"anagrams","game_route":"/games/anagrams","difficulty":"medium","settings":{"length":6},"est_duration_sec":110}],"по_дням":null},{"id":"polyglot","имя":"Языки / Полиглот","витрина":false,"игры":["word_pairs","vocab_srs","semantic_sort","cloze","lexical_decision","proofreading","anagrams","sdmt","reading_span","ospan","n_back","phonemic_fluency","switching_task","phoneme_pairs","pseudoword_echo","listening_span","rhythm_pitch","trail_making","scholars_mate","chinese_tones","dictation","story_recall"],"зарядка_включена":true,"утро":[{"game_id":"word_pairs","game_route":"/games/word-pairs","difficulty":"easy","mode":"translation","settings":{"targetLang":"en","pairCount":15},"est_duration_sec":150},{"game_id":"n_back","game_route":"/games/n-back","difficulty":"medium","settings":{"nLevel":2,"modality":"single","trials":20},"est_duration_sec":90},{"game_id":"sdmt","game_route":"/games/sdmt","difficulty":"medium","settings":{"duration":60},"est_duration_sec":65},{"game_id":"phonemic_fluency","game_route":"/games/phonemic-fluency","difficulty":"medium","settings":{"duration":60},"est_duration_sec":65}],"вечер":[{"game_id":"word_pairs","game_route":"/games/word-pairs","difficulty":"easy","mode":"translation","settings":{"targetLang":"en","pairCount":10},"est_duration_sec":110},{"game_id":"reading_span","game_route":"/games/reading-span","difficulty":"easy","settings":{"setSize":3},"est_duration_sec":90},{"game_id":"anagrams","game_route":"/games/anagrams","difficulty":"medium","settings":{"length":5},"est_duration_sec":100},{"game_id":"mnemonics","game_route":"/games/mnemonics","difficulty":"easy","mode":"words","settings":{"itemCount":10},"est_duration_sec":90}],"по_дням":null}],"блокиГлавной":[{"id":"цель_дня","подпись":"Цель дня"},{"id":"сегодня","подпись":"Сегодня — что сыграно за сутки"},{"id":"рекомендации","подпись":"Рекомендуем сегодня"},{"id":"практики","подпись":"Практики дня: зарядка, пауза, вызов"},{"id":"любимые_разделы","подпись":"Любимые разделы и лента игр"}],"хабы":{"/games/span":[{"route":"/games/digit-span","имяКлюч":"digitSpan"},{"route":"/games/memory-matrix","имяКлюч":"suitePositions"},{"route":"/games/listening-span","имяКлюч":"listeningSpan"},{"route":"/games/reading-span","имяКлюч":"readingSpan"},{"route":"/games/n-back","имяКлюч":"nBack"},{"route":"/games/picture-pairs","имяКлюч":"picturePairs"}],"/games/mnemonics-hub":[{"route":"/games/mnemonics","имяКлюч":"mnemonics"},{"route":"/games/memory-palace","имяКлюч":"memoryPalace"},{"route":"/games/faces-names","имяКлюч":"facesNames"},{"route":"/games/word-pairs","имяКлюч":"wordPairs"},{"route":"/games/rmet","имяКлюч":"rmet"}],"/games/chess-hub":[{"route":"/games/scholars-mate","имяКлюч":"scholarsMate"},{"route":"/games/chess-blind","имяКлюч":"chessBlind"}],"/games/attention-conflict":[{"route":"/games/stroop","имяКлюч":"suiteStroop"},{"route":"/games/flanker","имяКлюч":"suiteArrows"},{"route":"/games/cpt","имяКлюч":"suiteStream"},{"route":"/games/targets","имяКлюч":"targets"},{"route":"/games/wcst","имяКлюч":"wcst"},{"route":"/games/inhibition","имяКлюч":"suiteInhibition"},{"route":"/games/posner","имяКлюч":"posner"},{"route":"/games/prl","имяКлюч":"suiteDecisions"},{"route":"/games/proofreading","имяКлюч":"proofreading"}],"/games/search-hub":[{"route":"/games/visual-search","имяКлюч":"visualSearch"},{"route":"/games/find-differences","имяКлюч":"findDiff"},{"route":"/games/mahjong","имяКлюч":"mahjong"},{"route":"/games/schulte","имяКлюч":"schulteTable"},{"route":"/games/quick-count","имяКлюч":"quickCount"},{"route":"/games/object-tracker","имяКлюч":"objectTracker"},{"route":"/games/sdmt","имяКлюч":"sdmt"},{"route":"/games/set-game","имяКлюч":"setGame"}],"/games/sudoku-hub":[{"route":"/games/sudoku","имяКлюч":"sudoku"},{"route":"/games/sudoku-samurai","имяКлюч":"samuraiTitle"},{"route":"/games/sudoku-fractal","имяКлюч":"fractalTitle"},{"route":"/games/sudoku?mode=towers","имяКлюч":"sudokuTowersTitle"},{"route":"/games/sudoku?mode=unequal","имяКлюч":"sudokuUnequalTitle"}],"/games/puzzles-hub":[{"route":"/games/puzzles","имяКлюч":"puzzlesUnruly"},{"route":"/games/puzzles?mode=Mines","имяКлюч":"puzzlesMines"},{"route":"/games/puzzles?mode=Mosaic","имяКлюч":"puzzlesMosaic"},{"route":"/games/puzzles?mode=Pattern","имяКлюч":"puzzlesPattern"},{"route":"/games/puzzles?mode=Singles","имяКлюч":"puzzlesSingles"},{"route":"/games/puzzles?mode=Range","имяКлюч":"puzzlesRange"},{"route":"/games/puzzles?mode=Light%20Up","имяКлюч":"puzzlesLightUp"},{"route":"/games/puzzles?mode=Tents","имяКлюч":"puzzlesTents"},{"route":"/games/puzzles?mode=Magnets","имяКлюч":"puzzlesMagnets"},{"route":"/games/puzzles?mode=Undead","имяКлюч":"puzzlesUndead"},{"route":"/games/puzzles?mode=Keen","имяКлюч":"puzzlesKeen"},{"route":"/games/puzzles?mode=Solo","имяКлюч":"puzzlesSolo"},{"route":"/games/puzzles?mode=Towers","имяКлюч":"puzzlesTowers"},{"route":"/games/puzzles?mode=Unequal","имяКлюч":"puzzlesUnequal"},{"route":"/games/puzzles?mode=Rectangles","имяКлюч":"puzzlesRectangles"},{"route":"/games/puzzles?mode=Filling","имяКлюч":"puzzlesFilling"},{"route":"/games/puzzles?mode=Palisade","имяКлюч":"puzzlesPalisade"},{"route":"/games/puzzles?mode=Galaxies","имяКлюч":"puzzlesGalaxies"},{"route":"/games/puzzles?mode=Map","имяКлюч":"puzzlesMap"},{"route":"/games/puzzles?mode=Loopy","имяКлюч":"puzzlesLoopy"},{"route":"/games/puzzles?mode=Pearl","имяКлюч":"puzzlesPearl"},{"route":"/games/puzzles?mode=Slant","имяКлюч":"puzzlesSlant"},{"route":"/games/puzzles?mode=Bridges","имяКлюч":"puzzlesBridges"},{"route":"/games/puzzles?mode=Train%20Tracks","имяКлюч":"puzzlesTracks"},{"route":"/games/puzzles?mode=Signpost","имяКлюч":"puzzlesSignpost"},{"route":"/games/puzzles?mode=Dominosa","имяКлюч":"puzzlesDominosa"},{"route":"/games/puzzles?mode=Untangle","имяКлюч":"puzzlesUntangle"},{"route":"/games/puzzles?mode=Net","имяКлюч":"puzzlesNet"},{"route":"/games/puzzles?mode=Netslide","имяКлюч":"puzzlesNetslide"},{"route":"/games/puzzles?mode=Twiddle","имяКлюч":"puzzlesTwiddle"},{"route":"/games/puzzles?mode=Sixteen","имяКлюч":"puzzlesSixteen"},{"route":"/games/puzzles?mode=Fifteen","имяКлюч":"puzzlesFifteen"},{"route":"/games/puzzles?mode=Flip","имяКлюч":"puzzlesFlip"},{"route":"/games/puzzles?mode=Cube","имяКлюч":"puzzlesCube"},{"route":"/games/puzzles?mode=Black%20Box","имяКлюч":"puzzlesBlackBox"},{"route":"/games/puzzles?mode=Guess","имяКлюч":"puzzlesGuess"},{"route":"/games/puzzles?mode=Flood","имяКлюч":"puzzlesFlood"},{"route":"/games/puzzles?mode=Same%20Game","имяКлюч":"puzzlesSameGame"},{"route":"/games/puzzles?mode=Pegs","имяКлюч":"puzzlesPegs"},{"route":"/games/puzzles?mode=Inertia","имяКлюч":"puzzlesInertia"}],"/games/spatial-hub":[{"route":"/games/mental-rotation","имяКлюч":"mentalRotation"},{"route":"/games/spatial-lab?mode=twiddle","имяКлюч":"spatialTwiddle"},{"route":"/games/spatial-lab?mode=net","имяКлюч":"spatialNet"},{"route":"/games/puzzles?mode=Slide","имяКлюч":"puzzlesSlide"},{"route":"/games/puzzles?mode=Sokoban","имяКлюч":"puzzlesSokoban"},{"route":"/games/dots-connect","имяКлюч":"dotsConnect"},{"route":"/games/one-line","имяКлюч":"oneLine"},{"route":"/games/trail-making","имяКлюч":"trailMaking"},{"route":"/games/navigator","имяКлюч":"navigator"}],"/games/sorting-hub":[{"route":"/games/goods-sort","имяКлюч":"goodsSort"},{"route":"/games/water-sort","имяКлюч":"waterSort"},{"route":"/games/ball-sort","имяКлюч":"ballSort"},{"route":"/games/nut-sort","имяКлюч":"nutSort"},{"route":"/games/cake-sort","имяКлюч":"cakeSort"},{"route":"/games/pizza-sort","имяКлюч":"pizzaSort"},{"route":"/games/hanoi","имяКлюч":"hanoi"},{"route":"/games/tower-london","имяКлюч":"towerLondon"}],"/games/counting-hub":[{"route":"/games/counter","имяКлюч":"counter"},{"route":"/games/math-slider","имяКлюч":"mathSlider"},{"route":"/games/number-run","имяКлюч":"numberRun"},{"route":"/games/math-sprint","имяКлюч":"mathSprint"},{"route":"/games/number-bonds","имяКлюч":"numberBonds"},{"route":"/games/ospan","имяКлюч":"ospan"},{"route":"/games/pattern","имяКлюч":"pattern"}],"/games/words-hub":[{"route":"/games/vocab-srs","имяКлюч":"vocabSrs"},{"route":"/games/semantic-sort","имяКлюч":"semanticSort"},{"route":"/games/cloze","имяКлюч":"cloze"},{"route":"/games/lexical-decision","имяКлюч":"lexicalDecision"},{"route":"/games/anagrams","имяКлюч":"anagrams"},{"route":"/games/phonemic-fluency","имяКлюч":"phonemic"},{"route":"/games/story-recall","имяКлюч":"story"}],"/games/hearing-hub":[{"route":"/games/phoneme-pairs","имяКлюч":"phonemePairs"},{"route":"/games/chinese-tones","имяКлюч":"chineseTones"},{"route":"/games/pseudoword-echo","имяКлюч":"pseudowordEcho"},{"route":"/games/dictation","имяКлюч":"dictation"},{"route":"/games/rhythm-pitch","имяКлюч":"rhythmPitch"}],"/games/languages-hub":[{"route":"/games/words-hub","имяКлюч":"wordsGroup"},{"route":"/games/hearing-hub","имяКлюч":"hearingGroup"}]}}/*/ДАННЫЕ*/;
+
+/* ── состояние правок. Пусто = «ничего не меняли», и в файл такое не попадает ── */
+const правки = { профили: {}, наборы: [] };
+let текущийПрофиль = ДАННЫЕ.профили[0].id;
+let вкладка = 'игры';
+
+const поId = Object.fromEntries(ДАННЫЕ.профили.map(p => [p.id, p]));
+const игрыПоРазделам = {};
+for (const г of ДАННЫЕ.игры) (игрыПоРазделам[г.раздел] ??= []).push(г);
+
+/** Что сейчас включено у профиля: правка, если её делали, иначе заводское. */
+function составПрофиля(ид) {
+  const мой = правки.профили[ид];
+  if (мой && мой.игры !== undefined) return мой.игры;
+  return поId[ид].игры;
+}
+const включена = (ид, игра) => {
+  const с = составПрофиля(ид);
+  return с === 'all' || (Array.isArray(с) && с.includes(игра));
+};
+
+/**
+ * 🔴 ГАЛОЧКА НЕ ПЕРЕРИСОВЫВАЕТ СПИСОК ЦЕЛИКОМ.
+ *
+ * Первая редакция звала `нарисовать()` на каждый клик, и при 95 строках это значило
+ * прыжок прокрутки после каждой галочки: разметка пересобиралась, браузер терял
+ * место. Поймано живой проверкой — автоматический клик подменял элемент под курсором
+ * и снял подряд 27 галочек вместо одной.
+ *
+ * Поэтому здесь меняются только те три вещи, которые правда зависят от галочки:
+ * счётчики разделов, число у профиля и строка «изменено». Сам список не трогается —
+ * его состояние и так в самом чекбоксе.
+ */
+function переключить(ид, игра) {
+  const было = составПрофиля(ид);
+  /* «Все игры» разворачивается в явный список при первой же правке: иначе снятие
+     одной галочки пришлось бы хранить как «все, кроме», а это другая сущность. */
+  const список = было === 'all' ? ДАННЫЕ.игры.map(г => г.id) : [...было];
+  const i = список.indexOf(игра);
+  if (i >= 0) список.splice(i, 1); else список.push(игра);
+  (правки.профили[ид] ??= {}).игры = список;
+  обновитьСчётчики();
+}
+
+function обновитьСчётчики() {
+  const счёт = поРазделам(текущийПрофиль);
+  document.querySelectorAll('[data-бейдж]').forEach(б => {
+    const н = счёт[б.dataset.бейдж] ?? 0;
+    б.textContent = `${б.dataset.бейдж}: ${н}`;
+    б.classList.toggle('ноль', н === 0);
+  });
+  document.querySelectorAll('[data-заголовокРаздела]').forEach(з => {
+    const р = з.dataset.заголовокраздела ?? з.dataset.заголовокРаздела;
+    з.textContent = `${р} — ${счёт[р]} из ${игрыПоРазделам[р].length}`;
+  });
+  нарисоватьПрофили();
+  нарисоватьИтог();
+}
+
+function нарисоватьИтог() {
+  const менялось = Object.keys(правки.профили).length;
+  document.getElementById('итог').textContent = менялось
+    ? `изменено профилей: ${менялось}${правки.наборы.length ? `, своих наборов: ${правки.наборы.length}` : ''}`
+    : 'правок нет — файл будет пустым';
+}
+
+/* ── подсчёт по разделам: ноль в разделе = пустая полка у игрока ── */
+function поРазделам(ид) {
+  const итог = {};
+  for (const [раздел, игры] of Object.entries(игрыПоРазделам))
+    итог[раздел] = игры.filter(г => включена(ид, г.id)).length;
+  return итог;
+}
+
+function числоИгр(ид) {
+  const с = составПрофиля(ид);
+  return с === 'all' ? ДАННЫЕ.игры.length : с.length;
+}
+
+/* ── отрисовка ─────────────────────────────────────────────────────────────── */
+function нарисоватьПрофили() {
+  const узел = document.getElementById('списокПрофилей');
+  узел.innerHTML = '';
+  for (const п of ДАННЫЕ.профили) {
+    const д = document.createElement('div');
+    д.className = 'профиль' + (п.id === текущийПрофиль ? ' выбран' : '');
+    const менялся = правки.профили[п.id] ? ' •' : '';
+    д.innerHTML = `<span>${п.имя}${менялся}${п.витрина ? '<div class="витрина">витрина, не профиль</div>' : ''}</span>`
+                + `<span class="счёт">${числоИгр(п.id)}</span>`;
+    д.onclick = () => { текущийПрофиль = п.id; нарисовать(); };
+    узел.appendChild(д);
+  }
+}
+
+function нарисоватьВкладки() {
+  const узел = document.getElementById('вкладки');
+  узел.innerHTML = '';
+  for (const [ключ, имя] of [['игры','Игры в профиле'],['главная','Главная'],['зарядка','Зарядка'],['наборы','Свои наборы'],['хабы','Состав развилок']]) {
+    const д = document.createElement('div');
+    д.className = 'вкладка' + (вкладка === ключ ? ' выбрана' : '');
+    д.textContent = имя;
+    д.onclick = () => { вкладка = ключ; нарисовать(); };
+    узел.appendChild(д);
+  }
+}
+
+function телоИгры() {
+  const ид = текущийПрофиль;
+  const счёт = поРазделам(ид);
+  const бейджи = Object.entries(счёт).map(([р, н]) =>
+    `<span class="бейдж${н === 0 ? ' ноль' : ''}" data-бейдж="${р}">${р}: ${н}</span>`).join('');
+  const поиск = `<input type="search" id="поиск" placeholder="найти игру…" style="width:220px">`;
+  let html = `<div class="разделы">${бейджи}</div>${поиск}`;
+  const строка = (г) => `<label class="строка">
+      <input type="checkbox" ${включена(ид, г.id) ? 'checked' : ''} data-игра="${г.id}">
+      <span>${г.id}</span><span class="ид">${г.route}</span></label>`;
+  for (const [раздел, игры] of Object.entries(игрыПоРазделам)) {
+    html += `<div class="заголовокРаздела" data-заголовокРаздела="${раздел}">${раздел} — ${счёт[раздел]} из ${игры.length}</div>`;
+    html += игры.map(строка).join('');
+  }
+  return html;
+}
+
+function шагиПрофиля(когда) {
+  const мой = правки.профили[текущийПрофиль]?.[когда];
+  if (мой !== undefined) return мой;
+  return поId[текущийПрофиль][когда] ?? [];
+}
+
+function нарисоватьШаг(шаг, когда, i) {
+  const выбор = ДАННЫЕ.игры.map(г =>
+    `<option value="${г.id}" ${г.id === шаг.game_id ? 'selected' : ''}>${г.id}</option>`).join('');
+  return `<div class="шаг" data-когда="${когда}" data-и="${i}">
+    <select data-поле="game_id">${выбор}</select>
+    <label class="мелко">повторов <input type="number" min="1" max="99"
+      value="${шаг.trials ?? шаг.settings?.trials ?? ''}" data-поле="trials"></label>
+    <label class="мелко">секунд <input type="number" min="10" max="900"
+      value="${шаг.est_duration_sec ?? 60}" data-поле="est_duration_sec"></label>
+    <select data-поле="difficulty">
+      ${['','easy','medium','hard'].map(d =>
+        `<option value="${d}" ${d === (шаг.difficulty ?? '') ? 'selected' : ''}>${d || 'по умолчанию'}</option>`).join('')}
+    </select>
+    <button data-убрать="1">убрать</button>
+  </div>`;
+}
+
+function телоЗарядка() {
+  const дни = ['вс','пн','вт','ср','чт','пт','сб'];
+  let html = '';
+  for (const [когда, имя] of [['утро','Утро'],['вечер','Вечер']]) {
+    const шаги = шагиПрофиля(когда);
+    html += `<div class="заголовокРаздела">${имя} — упражнений ${шаги.length}</div>`;
+    html += шаги.map((ш, i) => нарисоватьШаг(ш, когда, i)).join('') || '<div class="пусто">пусто</div>';
+    html += `<button data-добавить="${когда}">+ упражнение</button>`;
+  }
+  const план = правки.профили[текущийПрофиль]?.по_дням ?? поId[текущийПрофиль].по_дням ?? {};
+  html += `<div class="заголовокРаздела">По дням недели</div>`;
+  html += `<div class="мелко">Заводской недельный план: ${
+    Object.keys(план).length ? Object.keys(план).map(д => дни[д]).join(', ') : 'нет'}</div>`;
+  return html;
+}
+
+function телоНаборы() {
+  let html = `<div class="мелко">Свой набор — список упражнений подряд, как утренняя зарядка. Его можно назначить профилям.</div>`;
+  html += правки.наборы.map((н, i) => `
+    <div class="заголовокРаздела">${н.название || н.id} <button data-убратьНабор="${i}">удалить</button></div>
+    ${н.шаги.map((ш, j) => нарисоватьШаг(ш, 'набор:' + i, j)).join('')}
+    <button data-добавитьВНабор="${i}">+ упражнение</button>`).join('');
+  html += `<div style="margin-top:14px">
+    <input type="text" id="имяНабора" placeholder="название нового набора" style="width:260px">
+    <button id="кнНовыйНабор">Создать набор</button></div>`;
+  return html;
+}
+
+/* Состав развилок — ПРОФИЛЬНЫЙ: за карточкой `/games/puzzles-hub` стоят 40 режимов
+   Тэтхэма, и отбор по составу игр открывает их скопом. Отдельный список на профиль —
+   единственный способ дать детям десять, а взрослым сорок. */
+function хабыПрофиля() {
+  return правки.профили[текущийПрофиль]?.хабы ?? {};
+}
+
+/* Блоки главной: файл умеет только УБРАТЬ блок. Свои условия у блоков остаются
+   главнее — иначе получился бы заголовок над пустотой. */
+function телоГлавная() {
+  const мои = правки.профили[текущийПрофиль]?.главная ?? null;
+  let html = `<div class="мелко">Что показывать на главной у профиля «${поId[текущийПрофиль].имя}».
+    Снятый блок не рисуется. Включить блок, который и так пуст (например «Рекомендуем сегодня» без рекомендаций), файл не может — он покажется сам, когда будет чем наполниться.</div>`;
+  html += `<div class="заголовокРаздела" data-заголовокГлавной="1">Блоков включено: ${(мои ?? ДАННЫЕ.блокиГлавной.map(б => б.id)).length} из ${ДАННЫЕ.блокиГлавной.length}</div>`;
+  html += ДАННЫЕ.блокиГлавной.map(б => `<label class="строка">
+      <input type="checkbox" ${!мои || мои.includes(б.id) ? 'checked' : ''} data-блок="${б.id}">
+      <span>${б.подпись}</span><span class="ид">${б.id}</span></label>`).join('');
+  return html;
+}
+
+function телоХабы() {
+  const мои = хабыПрофиля();
+  let html = `<div class="мелко">Что показывать внутри развилки у профиля «${поId[текущийПрофиль].имя}» и в каком порядке.
+    Придумать новую карточку нельзя — только убрать или переставить. Не тронутая развилка остаётся заводской.</div>`;
+  for (const [маршрут, карточки] of Object.entries(ДАННЫЕ.хабы)) {
+    const выбрано = мои[маршрут] ?? карточки.map(к => к.route);
+    const менялась = мои[маршрут] ? ' •' : '';
+    html += `<div class="заголовокРаздела" data-заголовокХаба="${маршрут}">${маршрут} — ${выбрано.length} из ${карточки.length}${менялась}</div>`;
+    html += карточки.map(к => `<label class="строка">
+        <input type="checkbox" ${выбрано.includes(к.route) ? 'checked' : ''}
+               data-хаб="${маршрут}" data-карточка="${к.route}">
+        <span>${к.имяКлюч}</span><span class="ид">${к.route}</span></label>`).join('');
+  }
+  return html;
+}
+
+function нарисовать() {
+  нарисоватьПрофили();
+  нарисоватьВкладки();
+  const тело = document.getElementById('тело');
+  тело.innerHTML = вкладка === 'игры' ? телоИгры()
+                 : вкладка === 'главная' ? телоГлавная()
+                 : вкладка === 'зарядка' ? телоЗарядка()
+                 : вкладка === 'наборы' ? телоНаборы()
+                 : телоХабы();
+  подключитьСобытия();
+  нарисоватьИтог();
+}
+
+function подключитьСобытия() {
+  const тело = document.getElementById('тело');
+  тело.querySelectorAll('input[data-игра]').forEach(эл => {
+    эл.onchange = () => переключить(текущийПрофиль, эл.dataset.игра);
+  });
+  тело.querySelectorAll('input[data-хаб]').forEach(эл => {
+    эл.onchange = () => {
+      const м = эл.dataset.хаб;
+      const все = ДАННЫЕ.хабы[м].map(к => к.route);
+      const мои = (правки.профили[текущийПрофиль] ??= {});
+      мои.хабы ??= {};
+      const текущ = мои.хабы[м] ?? все;
+      мои.хабы[м] = эл.checked
+        ? все.filter(r => текущ.includes(r) || r === эл.dataset.карточка)
+        : текущ.filter(r => r !== эл.dataset.карточка);
+      /* Как и с играми: перерисовываем не список, а только его заголовок со счётом. */
+      const з = document.querySelector(`[data-заголовокХаба="${м}"]`);
+      if (з) з.textContent = `${м} — ${мои.хабы[м].length} из ${все.length} •`;
+      нарисоватьПрофили();
+      нарисоватьИтог();
+    };
+  });
+  тело.querySelectorAll('input[data-блок]').forEach(эл => {
+    эл.onchange = () => {
+      const все = ДАННЫЕ.блокиГлавной.map(б => б.id);
+      const мои = (правки.профили[текущийПрофиль] ??= {});
+      const текущ = мои.главная ?? все;
+      мои.главная = эл.checked
+        ? все.filter(b => текущ.includes(b) || b === эл.dataset.блок)
+        : текущ.filter(b => b !== эл.dataset.блок);
+      const з = document.querySelector('[data-заголовокГлавной]');
+      if (з) з.textContent = `Блоков включено: ${мои.главная.length} из ${все.length}`;
+      нарисоватьПрофили();
+      нарисоватьИтог();
+    };
+  });
+
+  const поиск = document.getElementById('поиск');
+  if (поиск) поиск.oninput = () => {
+    const q = поиск.value.toLowerCase().trim();
+    тело.querySelectorAll('.строка').forEach(с => {
+      с.style.display = !q || с.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  };
+  тело.querySelectorAll('[data-добавить]').forEach(к => {
+    к.onclick = () => {
+      const когда = к.dataset.добавить;
+      const шаги = [...шагиПрофиля(когда), {
+        game_id: ДАННЫЕ.игры[0].id, game_route: ДАННЫЕ.игры[0].route, est_duration_sec: 60 }];
+      (правки.профили[текущийПрофиль] ??= {})[когда] = шаги;
+      нарисовать();
+    };
+  });
+  тело.querySelectorAll('.шаг').forEach(узел => {
+    const когда = узел.dataset.когда, и = Number(узел.dataset.и);
+    const взять = () => когда.startsWith('набор:')
+      ? правки.наборы[Number(когда.split(':')[1])].шаги
+      : [...шагиПрофиля(когда)];
+    const положить = (шаги) => {
+      if (когда.startsWith('набор:')) правки.наборы[Number(когда.split(':')[1])].шаги = шаги;
+      else (правки.профили[текущийПрофиль] ??= {})[когда] = шаги;
+      нарисовать();
+    };
+    узел.querySelectorAll('[data-поле]').forEach(поле => {
+      поле.onchange = () => {
+        const шаги = взять();
+        const ш = { ...шаги[и] };
+        const имя = поле.dataset.поле;
+        if (имя === 'game_id') {
+          ш.game_id = поле.value;
+          ш.game_route = (ДАННЫЕ.игры.find(г => г.id === поле.value) || {}).route || ш.game_route;
+        } else if (имя === 'difficulty') {
+          if (поле.value) ш.difficulty = поле.value; else delete ш.difficulty;
+        } else {
+          const ч = Number(поле.value);
+          if (Number.isFinite(ч) && ч > 0) ш[имя] = ч; else delete ш[имя];
+        }
+        шаги[и] = ш;
+        положить(шаги);
+      };
+    });
+    const убрать = узел.querySelector('[data-убрать]');
+    if (убрать) убрать.onclick = () => { const ш = взять(); ш.splice(и, 1); положить(ш); };
+  });
+  const новый = document.getElementById('кнНовыйНабор');
+  if (новый) новый.onclick = () => {
+    const имя = (document.getElementById('имяНабора').value || '').trim();
+    if (!имя) return;
+    правки.наборы.push({
+      id: 'набор-' + (правки.наборы.length + 1),
+      название: имя,
+      шаги: [{ game_id: ДАННЫЕ.игры[0].id, game_route: ДАННЫЕ.игры[0].route, est_duration_sec: 60 }],
+    });
+    нарисовать();
+  };
+  тело.querySelectorAll('[data-убратьНабор]').forEach(к => {
+    к.onclick = () => { правки.наборы.splice(Number(к.dataset.убратьНабор), 1); нарисовать(); };
+  });
+  тело.querySelectorAll('[data-добавитьВНабор]').forEach(к => {
+    к.onclick = () => {
+      const н = правки.наборы[Number(к.dataset.добавитьВНабор)];
+      н.шаги.push({ game_id: ДАННЫЕ.игры[0].id, game_route: ДАННЫЕ.игры[0].route, est_duration_sec: 60 });
+      нарисовать();
+    };
+  });
+}
+
+/* ── файл настроек ─────────────────────────────────────────────────────────── */
+function собратьФайл() {
+  const файл = { app: 'PsyGames-Playlists', format: 1, exported_at: new Date().toISOString(), профили: {} };
+  for (const [ид, п] of Object.entries(правки.профили)) if (Object.keys(п).length) файл.профили[ид] = п;
+  if (правки.наборы.length) файл.наборы = правки.наборы;
+  /* Развилка, совпавшая с заводской, в файл не пишется: файл должен содержать
+     РАЗНИЦУ, иначе он тихо заморозит состав, который позже поменяют в сборке. */
+  for (const п of Object.values(файл.профили)) {
+    if (п.главная && п.главная.length === ДАННЫЕ.блокиГлавной.length) delete п.главная;
+    if (!п.хабы) continue;
+    for (const [м, список] of Object.entries(п.хабы)) {
+      const заводской = ДАННЫЕ.хабы[м].map(к => к.route);
+      if (список.length === заводской.length && список.every((r, i) => r === заводской[i])) delete п.хабы[м];
+    }
+    if (!Object.keys(п.хабы).length) delete п.хабы;
+  }
+  return JSON.stringify(файл, null, 2);
+}
+
+document.getElementById('кнСкачать').onclick = () => {
+  const b = new Blob([собратьФайл()], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = 'psygames-playlists.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+document.getElementById('кнБуфер').onclick = async () => {
+  /* Буфер нужен для сборки под Tauri: там импорт читает именно его. */
+  try { await navigator.clipboard.writeText(собратьФайл()); alert('Скопировано. В приложении: Настройки → Загрузить состав из файла'); }
+  catch { alert('Браузер не дал доступ к буферу — скачайте файл кнопкой рядом'); }
+};
+
+document.getElementById('кнЗагрузить').onclick = () => {
+  const вход = document.createElement('input');
+  вход.type = 'file'; вход.accept = 'application/json,.json';
+  вход.onchange = async () => {
+    const ф = вход.files?.[0]; if (!ф) return;
+    try {
+      const п = JSON.parse(await ф.text());
+      if (п.app !== 'PsyGames-Playlists') { alert('Это файл другого рода: ' + п.app); return; }
+      правки.профили = п.профили || {};
+      правки.наборы = п.наборы || [];
+      нарисовать();
+    } catch (e) { alert('Не удалось прочитать файл: ' + e.message); }
+  };
+  вход.click();
+};
+
+нарисовать();
+</script>
