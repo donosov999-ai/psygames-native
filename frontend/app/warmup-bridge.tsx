@@ -63,12 +63,12 @@ export default function WarmupBridge() {
     if (warmup.overtime || countdown !== 0 || navFiredRef.current || !next) return;
     navFiredRef.current = true;
     if (intervalRef.current) clearInterval(intervalRef.current);
-    router.replace({ pathname: next.game_route, params: stepToParams(next, meta?.slot) } as any);
+    router.replace({ pathname: next.game_route, params: stepToParams(next, meta?.slot, meta?.track) } as any);
   }, [countdown]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startNow = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    if (next) router.replace({ pathname: next.game_route, params: stepToParams(next, meta?.slot) } as any);
+    if (next) router.replace({ pathname: next.game_route, params: stepToParams(next, meta?.slot, meta?.track) } as any);
   };
 
   /**
@@ -89,7 +89,7 @@ export default function WarmupBridge() {
     skipWaitRef.current = false;
     navFiredRef.current = true;   // отсчёт больше не должен стрелять своей навигацией
     if (warmup.currentStep) {
-      router.replace({ pathname: warmup.currentStep.game_route, params: stepToParams(warmup.currentStep, meta?.slot) } as any);
+      router.replace({ pathname: warmup.currentStep.game_route, params: stepToParams(warmup.currentStep, meta?.slot, meta?.track) } as any);
     }
     // Шагов не осталось — advanceToNext уже увёл на /warmup-complete сам.
   }, [warmup.currentIdx]);   // eslint-disable-line react-hooks/exhaustive-deps

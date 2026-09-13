@@ -16,6 +16,26 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.7',
+    date: '2026-09-13',
+    ru: [
+      'Длину зарядки теперь выбираешь во всех четырёх: утро, дневной перерыв, вечер и «не спится». Раньше кнопки 5 / 10 / 15 минут были только у утра',
+      'Пять, десять и пятнадцать минут — это три РАЗНЫХ набора, а не обрезанный длинный: короткая зарядка может начинаться с другого упражнения',
+      '«Не спится» больше не одно дыхание: спокойные головоломки без секундомера — трубы, судоку, ханойская башня, — и дыхание в конце. Ничего, что торопит, ночью нет',
+      'Телесные практики «Пауза» открыты во всех профилях. Отдых не должен быть платным — дыхание открыто всем с прошлого года, теперь и «Пауза»',
+      'Свои серии: набор упражнений с одним итогом можно собрать самому и назначить профилю — в приложении он появится рядом с «Оценкой» и FIN BRAIN',
+      'Головоломки Тэтхэма в наборах перестали начинать партию с первого уровня, не дождавшись твоего: доска раздавалась раньше, чем читался достигнутый уровень',
+    ],
+    en: [
+      'You now choose the length of every session — morning, midday break, evening and “can’t sleep”. The 5 / 10 / 15 minute buttons used to exist only for the morning one',
+      'Five, ten and fifteen minutes are three DIFFERENT sets, not a trimmed long one: the short session may well start with another exercise',
+      '“Can’t sleep” is no longer a single breathing drill: calm puzzles with no stopwatch — pipes, sudoku, tower of Hanoi — and breathing at the end. Nothing that hurries you at night',
+      'The “Pause” body practices are open in every profile. Rest should not be paid for — breathing has been open to everyone since last year, and now Pause is too',
+      'Your own series: you can assemble a run of exercises with a single result and assign it to a profile — it shows up next to Assessment and FIN BRAIN',
+      'Tatham puzzles inside a set no longer start at level one before your own level is read: the board used to be dealt before the stored level arrived',
+    ],
+  },
+  {
     version: '2.54.6',
     date: '2026-09-13',
     ru: [

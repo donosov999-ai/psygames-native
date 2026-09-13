@@ -75,6 +75,10 @@ const translations: Translations = {
   seriesBlocksCount: { ru: 'Блоков', en: 'Blocks' },
   seriesGroupNote: { ru: 'Набор упражнений подряд с одним итогом', en: 'A fixed run of exercises with a single result' },
   seriesFixedNote: { ru: 'Состав неизменен — иначе замеры несравнимы', en: 'Fixed set — otherwise measurements can’t be compared' },
+  // Свои серии («поток») — заводятся в редакторе плейлистов и назначаются профилю файлом.
+  ownSeriesGroup: { ru: 'Свои серии', en: 'Your series' },
+  ownSeriesGroupNote: { ru: 'Поток: одно умение подряд, 5–15 минут', en: 'Flow: one skill in a row, 5–15 min' },
+  ownSeriesMeta: { ru: 'Свой набор из файла настроек', en: 'Your own set from the settings file' },
   restDay: { ru: 'Сегодня набора нет', en: 'No set today' },
   fractalTitle: { ru: 'Фрактальная судоку', en: 'Fractal Sudoku' },
   fractalDesc: { ru: 'За каждой клеткой верхней сетки спрятана целая судоку', en: 'Behind every cell of the top grid hides a whole sudoku' },
