@@ -95,7 +95,7 @@ export default function ScholarsMateScreen() {
   // и доска встала бы нулевого размера. Гейт ширины это ловит.
   const width = useScreenWidth();
   const lvl = usePersistentLevel('scholars_mate');
-  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, num, bool, str, isCalm } = useGamePreset();
   useCalmHush(isCalm);
   const mode = useGameMode();
 
@@ -104,12 +104,24 @@ export default function ScholarsMateScreen() {
   const [clearedPassed, setClearedPassed] = React.useState(false);
   const [armed, setArmed] = React.useState(false);
   const [attempt, setAttempt] = React.useState(0);
-  const [поток, setПоток] = React.useState(false);
-  const [режим, setРежим] = React.useState<'sacrifice' | null>(null);
+  /**
+   * 🔴 ПОТОК ВКЛЮЧАЕТСЯ И ПАРАМЕТРОМ (13.09.2026).
+   *
+   * Режим потока здесь с 05.09.2026 по просьбе Дениса («десять минут позиций
+   * подряд, без экрана итога между ними»), но включался он только галочкой на
+   * экране настройки — то есть своя серия из редактора запустить его не могла и
+   * получала обычные партии с итогом после каждой. Теперь `?flow=1` включает
+   * ровно то же, а `?motif=<узор>` задаёт узор: «для шахмат это слепые шахматы в
+   * рандом-режиме детского мата» (13.09.2026).
+   */
+  const [поток, setПоток] = React.useState(() => bool('flow', false));
+  const [режим, setРежим] = React.useState<'sacrifice' | null>(() => (str('drill', '') === 'sacrifice' ? 'sacrifice' : null));
   /** Выбранный именованный узор и открыт ли список. */
-  const [узор, setУзор] = React.useState<string | null>(null);
+  const [узор, setУзор] = React.useState<string | null>(() => str('motif', '') || null);
   /** Микс узоров: подаются вперемешку, имя до ответа скрыто. */
-  const [микс, setМикс] = React.useState(false);
+  /* Рандом-режим: узоры вперемешку, имя скрыто до ответа. `?mix=1` — чтобы своя
+     серия могла попросить именно его («в рандом-режиме детского мата»). */
+  const [микс, setМикс] = React.useState(() => bool('mix', false));
   const [списокОткрыт, setСписокОткрыт] = React.useState(false);
 
   const level = num('level', lvl.level);

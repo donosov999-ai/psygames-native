@@ -6,7 +6,7 @@ import {
   buildMorningWarmupPlaylist, buildFinancialBatteryPlaylist, buildAssessmentPlaylist,
   buildFixedPlaylist, buildEveningWarmupPlaylist, buildDayPlaylist, buildNightPlaylist, stepToParams,
   getCurrentWeekday, todayDateKey,
-  saveWarmupHistory, WarmupHistoryEntry, Weekday,
+  saveWarmupHistory, WarmupHistoryEntry, Weekday, Длительность,
   shouldAdvance,
 } from '@/src/services/warmup';
 import { setSessionListener, GameSession } from '@/src/services/api';
@@ -40,9 +40,9 @@ interface WarmupState {
 interface WarmupCtx extends WarmupState {
   currentStep: PlaylistStep | null;
   startWarmup: (duration: 5 | 10 | 15) => void;
-  startEvening: () => void;              // v1.23 — вечерний комплекс (перед сном)
-  startDay: () => void;                  // v1.179 — дневной перерыв
-  startNight: () => void;                // v1.179 — «Не спится»: НЕ тренировка, вне стрика
+  startEvening: (duration?: Длительность) => void;  // v1.23 — вечерний комплекс (перед сном)
+  startDay: (duration?: Длительность) => void;      // v1.179 — дневной перерыв
+  startNight: (duration?: Длительность) => void;    // v1.179 — «Не спится»: НЕ тренировка, вне стрика
   startFinancialBattery: () => void;     // D1 — Iowa+BART+PRL session
   /** Локальная приёмка пространственных упражнений: только loopback, без записи. */
   startSpatialLab: () => void;
@@ -169,18 +169,18 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       // rest day — open completion immediately
       router.replace('/warmup-complete' as any);
     } else {
-      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot) } as any);
+      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot, meta.track) } as any);
     }
   }, [router, profile, allow]);
 
   // v1.23 «Комплексы» — вечерний комплекс (перед сном): спокойные игры из profile.evening_playlist.
-  const startEvening = useCallback(() => {
+  const startEvening = useCallback((duration: Длительность = 5) => {
     const wd = getCurrentWeekday();
     // утро сегодня → дедуп: вечер не повторяет утренние игры (утро≠вечер)
     const morning = profile.morning_playlist && profile.morning_playlist.length > 0
       ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, allow)
       : buildMorningWarmupPlaylist({ duration: 15, weekday: wd, profilePlaylists: profile.custom_playlists, allow });
-    const meta = buildEveningWarmupPlaylist({ weekday: wd, excludeGameIds: morning.steps.map((s) => s.game_id), profileEvening: profile.evening_playlist, allow });
+    const meta = buildEveningWarmupPlaylist({ weekday: wd, excludeGameIds: morning.steps.map((s) => s.game_id), profileEvening: profile.evening_playlist, allow, duration });
     const warmupId = genUUID();
     setState({
       active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],
@@ -189,7 +189,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     if (meta.steps.length === 0) {
       router.replace('/warmup-complete' as any);
     } else {
-      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot) } as any);
+      router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot, meta.track) } as any);
     }
   }, [router, profile, allow]);
 
@@ -207,17 +207,22 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       warmupId, sessionTag: meta.slot === 'night' ? 'manual' : 'warmup',
     });
     if (meta.steps.length === 0) router.replace('/warmup-complete' as any);
-    else router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot) } as any);
+    else router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot, meta.track) } as any);
   }, [router]);
 
-  const startDay = useCallback(() => {
+  /**
+   * 🔴 ДЛИНА ЕСТЬ У ВСЕХ ЧЕТЫРЁХ СЛОТОВ, А НЕ ТОЛЬКО У УТРА.
+   * Правка Дениса 13.09.2026: «выбор длины зарядки нужно добавить во все 4 —
+   * это ошибка, что в приложении он только для утра, ещё 3 шт пропущены».
+   */
+  const startDay = useCallback((duration: Длительность = 5) => {
     // Фильтр профиля — как в утреннем и вечернем наборах. Без него перерыв
     // раздавал упражнения, которых в профиле нет.
-    startSlotPlaylist(buildDayPlaylist(getCurrentWeekday(), allow));
+    startSlotPlaylist(buildDayPlaylist(getCurrentWeekday(), allow, duration));
   }, [startSlotPlaylist, allow]);
 
-  const startNight = useCallback(() => {
-    startSlotPlaylist(buildNightPlaylist(getCurrentWeekday()));
+  const startNight = useCallback((duration: Длительность = 5) => {
+    startSlotPlaylist(buildNightPlaylist(getCurrentWeekday(), duration));
   }, [startSlotPlaylist]);
 
   /**
@@ -236,7 +241,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       active: true, localSpatial: true, meta, currentIdx: 0,
       startTime: Date.now(), results: [], warmupId: null, sessionTag: null,
     });
-    router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0]) } as any);
+    router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], undefined, meta.track) } as any);
   }, [router]);
 
   const startFinancialBattery = useCallback(() => {

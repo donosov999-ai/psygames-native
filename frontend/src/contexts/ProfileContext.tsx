@@ -2,11 +2,11 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProfileId, ProfileDef, PROFILE_BY_ID, PROFILES } from '@/src/constants/profiles';
 import { tryUnlock, requiresUnlock } from '@/src/services/unlock';
-import { загрузить as загрузитьСостав, наложить, type СохранённыйСостав } from '@/src/services/playlistOverride';
+import { загрузить as загрузитьСостав, наложить, поПорядку, вСеткуЗарядки, type СохранённыйСостав } from '@/src/services/playlistOverride';
 import { установитьХабыИзФайла } from '@/src/constants/hubContents';
 import { установитьЗамкиИзФайла } from '@/src/services/featureLadder';
 import { установитьПорогиФигурок } from '@/src/services/collection';
-import { установитьПравилоУровня } from '@/src/services/warmup';
+import { установитьПравилоУровня, установитьНаборыДняИНочи, установитьЯвноеНазначение, установитьСеткуИзФайла } from '@/src/services/warmup';
 
 const ACTIVE_PROFILE_KEY = 'psygames_active_profile';
 const UNLOCKED_THEMED_KEY = 'psygames_unlocked_themed';   // string[] of profile ids
@@ -231,8 +231,22 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
      Профиль нужен и как часть ключа уровня в хранилище. */
   React.useEffect(() => {
     установитьПравилоУровня(состав?.профили?.[profile.id]?.уровень_в_зарядке ?? null, profile.id);
+    /* День и ночь — тоже профильные: у «Микро-релакса» перерыв не такой, как у «Детей». */
+    const мой = состав?.профили?.[profile.id];
+    установитьНаборыДняИНочи(мой?.день ?? null, мой?.ночь ?? null);
+    /* Сетка «день × слот × длина» — самая точная форма назначения; она перекрывает
+       и заводское, и наборы слотов выше, но только в названных клетках. */
+    установитьСеткуИзФайла(вСеткуЗарядки(мой?.сетка));
+    /* Есть свой набор хотя бы на один слот — значит наборы назначены осознанно,
+       и профильный срез к ним не применяется. */
+    установитьЯвноеНазначение(Boolean(мой?.утро || мой?.день || мой?.вечер || мой?.ночь || мой?.сетка));
   }, [profile.id, состав]);
-  const всеСоСоставом = React.useMemo(() => PROFILES.map((p) => наложить(p, состав?.профили ?? null)), [состав]);
+  /* Порядок из файла применяется ЗДЕСЬ же: список профилей расходится по экранам
+     отсюда, и сортировать его на каждом экране отдельно значило бы разойтись. */
+  const всеСоСоставом = React.useMemo(
+    () => поПорядку(PROFILES.map((p) => наложить(p, состав?.профили ?? null)), состав?.порядок ?? null),
+    [состав],
+  );
 
   return (
     <Ctx.Provider value={{
