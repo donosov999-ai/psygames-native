@@ -16,6 +16,16 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.11',
+    date: '2026-09-13',
+    ru: [
+      'Поток каждого раздела теперь собран только из его игр: в шахматном не будет ни судоку, ни матрицы памяти — только доска в уме и детский мат, причём мат идёт миксом узоров: сперва узнать картинку среди девятнадцати, и каждый раз новая раздача',
+    ],
+    en: [
+      'Each section\u2019s flow now uses only that section\u2019s games: the chess flow holds no sudoku and no memory matrix — just the blindfold board and mates, and the mates come mixed: recognise the pattern among nineteen, a fresh deal every time',
+    ],
+  },
+  {
     version: '2.54.10',
     date: '2026-09-13',
     ru: [
