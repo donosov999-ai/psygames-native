@@ -42,7 +42,7 @@ import { saveSession } from '@/src/services/api';
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
 import { открыть, указатель, стрелка, клавиша, стеретьВвод, выбрать, поДиагонали, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
-import { ПЛАН_ШАГАМИ, ИМЯ_ВТОРОГО, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
+import { ПЛАН_ШАГАМИ, ИМЯ_ВТОРОГО, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски, ПОДСВЕТКА_ЧИСЛА, клавишПодсветки, ГНЁЗД_ПОДСВЕТКИ } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
 
@@ -75,6 +75,12 @@ export default function PuzzlesScreen() {
    * Денис попросил явные кнопки снизу, и он прав: скрытый жест не находят.
    */
   const [второе, setВторое] = useState(false);
+  /**
+   * Какие числа сейчас зажжены. Держим у себя, потому что движок своё состояние
+   * подсветки наружу не отдаёт, а игрок обязан видеть, что горит. Правило то же,
+   * что у автора (`dominosa.c`): повтор гасит, гнёзд два, третье нажатие — мимо.
+   */
+  const [подсвечено, setПодсвечено] = useState<number[]>([]);
   const [зерно, setЗерно] = useState(() => Math.floor(Math.random() * 1e6));
   const начатоВ = useRef(gameNow());
 
@@ -100,6 +106,7 @@ export default function PuzzlesScreen() {
     setПартия(await открыть(д.индекс, лестница[ст]?.параметры ?? '', з));
     setХодов(0);
     setСдался(false);
+    setПодсвечено([]);      // новая доска — подсветка гаснет вместе с ней
     начатоВ.current = gameNow();
   }, []);
 
@@ -490,6 +497,50 @@ export default function PuzzlesScreen() {
               </Text>
             </Pressable>
           ) : null}
+          {/*
+            🔴 ПОДСВЕТКА ЧИСЛА — НЕ ВВОД, И ВЫГЛЯДИТ ИНАЧЕ.
+            У «Домино» цифра зажигает все половинки с этим числом (`dominosa.c`,
+            ветка `isdigit` отдаёт `MOVE_UI_UPDATE`), а не вписывает значение.
+            Поэтому клавиши здесь ОБВЕДЁННЫЕ, а не залитые как у судоку: залитый
+            фиолетовый ряд обещает ввод, которого в этой игре нет. Подпись сверху
+            говорит, что кнопка делает, а зажжённая клавиша видна по заливке.
+            Правило (гнёзд два, повтор гасит) живёт в `names.ts`, здесь только вид.
+          */}
+          {ПОДСВЕТКА_ЧИСЛА.has(имяРежима) ? (
+            <View style={styles.подсветкаБлок}>
+              <Text style={[styles.подсветкаПодпись, { color: colors.textSecondary }]}>
+                {t('puzzleHighlightNumber')}
+              </Text>
+              <View style={styles.цифры}>
+                {Array.from({ length: клавишПодсветки(имяРежима, движок?.ступени?.[ступень]?.параметры ?? '') }, (_, k) => k).map((ц) => {
+                  const горит = подсвечено.includes(ц);
+                  // Движок молчит на третье число — молчим и мы, чтобы нажатие не врало.
+                  const занято = !горит && подсвечено.length >= ГНЁЗД_ПОДСВЕТКИ;
+                  return (
+                    <Pressable
+                      key={ц}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: горит, disabled: занято }}
+                      accessibilityLabel={String(ц)}
+                      disabled={занято}
+                      onPress={() => {
+                        setПодсвечено((был) => (был.includes(ц) ? был.filter((x) => x !== ц) : [...был, ц]));
+                        void клавиша(кодЦифры(ц)).then((и) => setПартия(и.партия));
+                      }}
+                      style={[styles.цифра, {
+                        borderWidth: 2,
+                        borderColor: горит ? GRADIENT[0] : colors.border,
+                        backgroundColor: горит ? GRADIENT[0] : colors.card,
+                        opacity: занято ? 0.4 : 1,
+                      }]}
+                    >
+                      <Text style={[styles.цифраТекст, { color: горит ? '#FFF' : colors.text }]}>{ц}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
           {/* Клавиши цифр — вид взят у судоку (`numPad`), там он выверен по пальцу. */}
           {ЦИФРОВЫЕ.has(имяРежима) ? (
             <View style={styles.цифры}>
@@ -720,6 +771,8 @@ const styles = StyleSheet.create({
   // Ряд клавиш как в судоку: 50×50, скругление 12, крупная цифра — размер выверен
   // там по пальцу (репорт Вали 28.08: «капсулы снизу слишком широкие»).
   цифры: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12, maxWidth: 420 },
+  подсветкаБлок: { alignItems: 'center', marginTop: 12 },
+  подсветкаПодпись: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   цифра: { width: 50, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   цифраТекст: { color: '#FFF', fontSize: 26, fontWeight: '800' },
   // ⚠️ 48 — не «покруглее», а пол `tap-target-audit` (48×48). На 46 CI поймал кнопку
