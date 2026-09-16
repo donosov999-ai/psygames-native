@@ -1427,6 +1427,7 @@ const t: Record<string, string> = {
   "sudokuVariantSandparity": "🥪+ paridade",
   "sudokuVariantThermoknight": "🌡+ cavalo",
   "sudokuVariantKillerdiag": "➕ somas + diagonais",
+  "sudokuModeKiller": "Killer",
   "sudokuBeltCombo": "combo: duas regras de uma vez",
   "sudokuBeltAlsHow": "Aqui já não bastam os únicos nem os pares. O que funciona é procurar grupos quase fechados: algumas casas de uma mesma zona com exatamente um candidato a mais do que casas. Esse grupo nunca se resolve sozinho, mas risca candidatos das vizinhas — e o tabuleiro volta a andar.",
   "sudokuBeltChainsHow": "A jogada aparece seguindo um fio, não de relance: se aqui vai o 5, ali não, então esta é 7… A cadeia segue-se até à contradição ou até fechar. Varrer blocos quase não ajuda: olhe para as casas com dois candidatos e para as ligações entre elas.",

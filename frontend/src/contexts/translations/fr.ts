@@ -1552,6 +1552,7 @@ const t: Record<string, string> = {
   "sudokuVariantSandparity": "🥪+ parité",
   "sudokuVariantThermoknight": "🌡+ cavalier",
   "sudokuVariantKillerdiag": "➕ sommes + diagonales",
+  "sudokuModeKiller": "Killer",
   "sudokuBeltCombo": "combo : deux règles à la fois",
   "sudokuBeltAlsHow": "Les singletons et les paires ne suffisent plus ici. Ce qui marche, c est repérer les groupes presque fermés : quelques cases d une même zone portant exactement un candidat de plus qu il n y a de cases. Ce groupe ne se résout jamais seul, mais il élimine des candidats chez ses voisines — et la grille repart.",
   "sudokuBeltChainsHow": "Le coup se trouve au fil, pas d un coup d œil : si 5 ici, alors pas là, donc celle-ci est 7… On suit la chaîne jusqu à la contradiction ou jusqu à sa fermeture. Balayer les blocs ne sert presque à rien : regardez les cases à deux candidats et les liens entre elles.",

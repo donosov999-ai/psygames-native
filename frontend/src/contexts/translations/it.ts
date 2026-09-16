@@ -1552,6 +1552,7 @@ const t: Record<string, string> = {
   "sudokuVariantSandparity": "🥪+ parità",
   "sudokuVariantThermoknight": "🌡+ cavallo",
   "sudokuVariantKillerdiag": "➕ somme + diagonali",
+  "sudokuModeKiller": "Killer",
   "sudokuBeltCombo": "combo: due regole insieme",
   "sudokuBeltAlsHow": "Qui singoli e coppie non bastano più. Funziona cercare i gruppi quasi chiusi: alcune celle di una stessa zona con esattamente un candidato in più rispetto alle celle. Un gruppo così non si risolve da solo, ma cancella candidati alle vicine — e la griglia riparte.",
   "sudokuBeltChainsHow": "La mossa si trova seguendo un filo, non a colpo d occhio: se qui va il 5, lì no, quindi questa è 7… La catena si segue fino alla contraddizione o fino a chiudersi. Scorrere i blocchi serve poco: guarda le celle con due candidati e i legami fra loro.",

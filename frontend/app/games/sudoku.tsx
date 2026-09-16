@@ -236,7 +236,7 @@ function RulesHelpModal({ visible, variant, killer, N, colors, language, onClose
     <View style={rhStyles.backdrop}>
       <View style={[rhStyles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[rhStyles.title, { color: colors.text }]}>
-          {killer ? 'Killer' : variant !== 'none' ? variantLabel(variant, language) : translateFor(language, 'btn_rules')}
+          {killer ? translateFor(language, 'sudokuModeKiller') : variant !== 'none' ? variantLabel(variant, language) : translateFor(language, 'btn_rules')}
         </Text>
         <Text style={[rhStyles.base, { color: colors.textSecondary }]}>
           {translateFor(language, 'sudokuBaseRule').replace('{n}', String(N))}
@@ -1548,7 +1548,7 @@ export default function SudokuGame() {
 
       {mode === 'killer' && (
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>Killer Sudoku</Text>
+          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('sudokuModeKiller')}</Text>
           <Text style={{ color: GRADIENT[0], fontSize: 12, marginTop: 2, fontWeight: '600', lineHeight: 17 }}>
             {t('killerCageRule')}
           </Text>
@@ -1680,7 +1680,7 @@ export default function SudokuGame() {
           t={t}
           bare
           extra={[
-            ['killer', 'Killer'],
+            ['killer', t('sudokuModeKiller')],
             // Короткие имена из хаба, не variantLabel с эмодзи: в ряду пять кнопок,
             // и «🏙 небоскрёбы» не влезает даже со второй строкой.
             ['towers', t('sudokuTowersTitle')],
@@ -1734,7 +1734,7 @@ export default function SudokuGame() {
           </Text>
         )}
         {mode === 'killer' && (
-          <Text style={[styles.statText, { color: GRADIENT[0] }]}>Killer</Text>
+          <Text style={[styles.statText, { color: GRADIENT[0] }]}>{t('sudokuModeKiller')}</Text>
         )}
         {/* Приём ЭТОЙ доски — посчитанный градатором, а не выведенный из номера уровня. */}
         {boardTier !== null && (
@@ -1770,7 +1770,7 @@ export default function SudokuGame() {
         <TouchableOpacity
           accessibilityRole="button" onPress={() => setRulesOpen(true)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.7}>
           <Text style={[styles.statText, { color: GRADIENT[0] }]}>
-            {mode === 'killer' ? 'Killer' : variant !== 'none' ? variantLabel(variant, language).split(' ')[0] : t('rulesWord')} ⓘ
+            {mode === 'killer' ? t('sudokuModeKiller') : variant !== 'none' ? variantLabel(variant, language).split(' ')[0] : t('rulesWord')} ⓘ
           </Text>
         </TouchableOpacity>
       </View>
@@ -2400,7 +2400,7 @@ export default function SudokuGame() {
         hud={[
           ...(mode === 'levels' ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: level }] : []),
           ...((mode === 'towers' || mode === 'unequal') ? [{ key: 'lvl', icon: 'flag' as const, label: variantLabel(mode, language), value: `${level}/${sideStepCount(mode)}`, tone: 'accent' as const }] : []),
-          ...(mode === 'killer' ? [{ key: 'lvl', icon: 'flag' as const, label: 'Killer', value: `${level}/${killerStepCount()}`, tone: 'accent' as const }] : []),
+          ...(mode === 'killer' ? [{ key: 'lvl', icon: 'flag' as const, label: t('sudokuModeKiller'), value: `${level}/${killerStepCount()}`, tone: 'accent' as const }] : []),
           { key: 'err', icon: 'close-circle', label: t('errors'), value: formatErrorCount(failure, errors), tone: 'bad' as const },
           ...(!isCalm ? [{ key: 'time', icon: 'time' as const, label: t('time'), value: hudTime(elapsedTime, t('secShort')) }] : []),
         ]}

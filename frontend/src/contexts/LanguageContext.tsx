@@ -2925,7 +2925,7 @@ const translations: Translations = {
   timeErrorsLine: { ru: 'Время {t}с · ошибок {n}', en: 'Time {t}s · errors {n}' },
   sudokuMenu: { ru: 'Меню судоку', en: 'Sudoku menu' },
   sudokuBaseRule: { ru: 'Базово: каждая цифра 1–{n} ровно один раз в строке, столбце и блоке.', en: 'Base: each digit 1–{n} exactly once per row, column and box.' },
-  sudokuKillerRule: { ru: 'Killer: поле разбито на рамки-группы. Цифры группы дают указанную сумму и не повторяются внутри рамки.', en: 'Killer: the board is split into cages. Digits in a cage sum to its clue and don’t repeat inside it.' },
+  sudokuKillerRule: { ru: 'Киллер: поле разбито на рамки-группы. Цифры группы дают указанную сумму и не повторяются внутри рамки.', en: 'Killer: the board is split into cages. Digits in a cage sum to its clue and don’t repeat inside it.' },
   /**
    * Судоку — справка ТЕКУЩЕГО уровня (services/sudoku-level-help.ts).
    * Правило говорит, ЧТО запрещено; эти строки говорят, КАК искать ход. Живой
@@ -2976,6 +2976,7 @@ const translations: Translations = {
   sudokuVariantSandparity: { ru: '🥪+ чёт/нечет', en: '🥪+ parity' },
   sudokuVariantThermoknight: { ru: '🌡+ конь', en: '🌡+ knight' },
   sudokuVariantKillerdiag: { ru: '➕ суммы + диагонали', en: '➕ cages + diagonals' },
+  sudokuModeKiller: { ru: 'Киллер', en: 'Killer' },
   sudokuBeltCombo: { ru: 'комбо: два правила разом', en: 'combo: two rules at once' },
   // Расшифровка пояса — что эти доски требуют. Заведены 12.09.2026 по отчёту Вали:
   // на 58-м она видела термин «Пояс ALS» без объяснения и справку из трёх разделов вместо пяти.

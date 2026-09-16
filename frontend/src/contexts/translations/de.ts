@@ -1427,6 +1427,7 @@ const t: Record<string, string> = {
   "sudokuVariantSandparity": "🥪+ Parität",
   "sudokuVariantThermoknight": "🌡+ Springer",
   "sudokuVariantKillerdiag": "➕ Summen + Diagonalen",
+  "sudokuModeKiller": "Killer",
   "sudokuBeltCombo": "Kombo: zwei Regeln zugleich",
   "sudokuBeltAlsHow": "Einzelne und Paare reichen hier nicht mehr. Es hilft die Suche nach fast geschlossenen Gruppen: einige Zellen einer Einheit, in denen genau ein Kandidat mehr steckt als Zellen vorhanden sind. Diese Gruppe löst sich nie selbst, streicht aber Kandidaten bei den Nachbarn — und das Brett kommt wieder in Bewegung.",
   "sudokuBeltChainsHow": "Der Zug findet sich an einem Faden, nicht auf einen Blick: kommt hier die 5, dann dort nicht, also steht hier die 7… Die Kette wird bis zum Widerspruch oder bis zum Ringschluss verfolgt. Blockweises Scannen bringt kaum etwas: schau auf Zellen mit zwei Kandidaten und auf ihre Verbindungen.",

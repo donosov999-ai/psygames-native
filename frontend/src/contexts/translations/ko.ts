@@ -1552,6 +1552,7 @@ const t: Record<string, string> = {
   "sudokuVariantSandparity": "🥪+ 홀짝",
   "sudokuVariantThermoknight": "🌡+ 나이트",
   "sudokuVariantKillerdiag": "➕ 케이지 + 대각선",
+  "sudokuModeKiller": "킬러",
   "sudokuBeltCombo": "콤보: 두 규칙 동시에",
   "sudokuBeltAlsHow": "여기서는 단일 후보나 짝만으로는 더 나아가지 못합니다. 통하는 것은 거의 잠긴 묶음 찾기입니다. 같은 구역의 몇 칸에 칸 수보다 정확히 하나 많은 후보가 들어 있는 상태죠. 그 묶음 자체는 풀리지 않지만 이웃 칸의 후보를 지워 줍니다 — 그러면 판이 다시 움직입니다.",
   "sudokuBeltChainsHow": "수는 한눈에 보이지 않고 실을 따라가며 찾습니다. 여기가 5라면 저기는 5가 아니고, 그러면 이 칸은 7…… 모순에 닿거나 제자리로 돌아올 때까지 사슬을 따라갑니다. 블록을 훑는 것은 거의 도움이 되지 않습니다. 후보가 둘뿐인 칸과 그 사이의 연결을 보세요.",

@@ -790,6 +790,7 @@ const t: Record<string, string> = {
   "sudokuVariantSandparity": "🥪+ 偶奇",
   "sudokuVariantThermoknight": "🌡+ ナイト",
   "sudokuVariantKillerdiag": "➕ ケージ + 対角線",
+  "sudokuModeKiller": "キラー",
   "sudokuBeltCombo": "コンボ：2つのルールを同時に",
   "sudokuBeltAlsHow": "ここでは単独候補や二国同盟だけでは進みません。効くのは、ほぼ確定した組を見つけることです。同じ領域のいくつかのマスに、マス数よりちょうど一つ多い候補が入っている状態。その組自体は解けませんが、隣のマスから候補を消してくれます。そこから盤面が再び動きます。",
   "sudokuBeltChainsHow": "手は一目ではなく、糸をたどって見つかります。ここが 5 なら、そこは 5 でない、ならここは 7…… 矛盾に行き着くか、元に戻るまで鎖を追います。ブロックを見渡すのはほとんど役に立ちません。候補が二つだけのマスと、その間のつながりを見てください。",

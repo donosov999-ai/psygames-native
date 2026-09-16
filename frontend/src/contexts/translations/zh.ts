@@ -1427,6 +1427,7 @@ const t: Record<string, string> = {
   "sudokuVariantSandparity": "🥪+ 奇偶",
   "sudokuVariantThermoknight": "🌡+ 马步",
   "sudokuVariantKillerdiag": "➕ 杀手笼 + 对角线",
+  "sudokuModeKiller": "Killer",
   "sudokuBeltCombo": "组合：两条规则同时生效",
   "sudokuBeltAlsHow": "到这里，唯一解和数对已经不够用了。要找的是几乎锁定的组：同一区域里的若干格，候选数恰好比格子多一个。这样的组自己解不出来，却能划掉邻格的候选数——棋盘就又动了起来。",
   "sudokuBeltChainsHow": "这里的一步是顺着线索推出来的，不是一眼看出来的：若这格放 5，那格就不是 5，于是这格是 7…… 链条一直推到矛盾，或者推回原点。逐块扫描几乎没用：要看只有两个候选数的格子，以及它们之间的关联。",

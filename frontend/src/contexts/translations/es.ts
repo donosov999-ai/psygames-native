@@ -1427,6 +1427,7 @@ const t: Record<string, string> = {
   "sudokuVariantSandparity": "🥪+ paridad",
   "sudokuVariantThermoknight": "🌡+ caballo",
   "sudokuVariantKillerdiag": "➕ sumas + diagonales",
+  "sudokuModeKiller": "Killer",
   "sudokuBeltCombo": "combo: dos reglas a la vez",
   "sudokuBeltAlsHow": "Aquí ya no bastan los solitarios ni las parejas. Funciona buscar grupos casi cerrados: varias casillas de una misma zona con exactamente un candidato más que casillas. Ese grupo nunca se resuelve solo, pero tacha candidatos de sus vecinas — y el tablero vuelve a moverse.",
   "sudokuBeltChainsHow": "La jugada se encuentra siguiendo un hilo, no de un vistazo: si aquí va el 5, allí no, entonces esta es un 7… La cadena se sigue hasta la contradicción o hasta cerrarse. Barrer bloques apenas sirve: mira las casillas con dos candidatos y los enlaces entre ellas.",
