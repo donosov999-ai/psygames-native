@@ -1033,12 +1033,12 @@ const translations: Translations = {
   puzzlesTwiddleDesc: { ru: 'Крутить квадрат клеток целиком, пока числа не встанут по порядку', en: 'Rotate a whole square of cells until the numbers fall into order' },
   puzzlesSixteen: { ru: 'Шестнадцать', en: 'Sixteen' },
   puzzlesSlide: { ru: 'Клоцки', en: 'Klotski' },
-  puzzlesSlideDesc: { ru: 'Растолкать блоки так, чтобы главный вышел наружу', en: 'Shuffle the blocks aside so the main one can slide out' },
+  puzzlesSlideDesc: { ru: 'Тяни блок пальцем в свободное место — выведи главный блок наружу', en: 'Drag a block into the free space — get the main block out' },
   puzzlesSokoban: { ru: 'Сокобан', en: 'Sokoban' },
-  puzzlesSokobanDesc: { ru: 'Толкать бочки на метки, не загоняя их в угол', en: 'Push the barrels onto the targets without wedging them into a corner' },
+  puzzlesSokobanDesc: { ru: 'Ходи стрелками и толкай бочки на метки. Загонишь бочку в угол — не вытащишь', en: 'Walk with the arrows and push barrels onto the marks. A cornered barrel is stuck for good' },
   puzzlesSixteenDesc: { ru: 'Гонять строки и столбцы по кругу, пока числа не встанут по порядку', en: 'Slide rows and columns around the board until the numbers line up' },
   puzzlesFlip: { ru: 'Переворот', en: 'Flip' },
-  puzzlesFlipDesc: { ru: 'Каждое нажатие переворачивает и соседей: погасить всё поле', en: 'Each tap flips its neighbours too: turn the whole board off' },
+  puzzlesFlipDesc: { ru: 'Нажимай клетки: каждое нажатие переворачивает её и соседей. Погаси всё поле', en: 'Tap cells: each tap flips it and its neighbours. Turn the whole board off' },
   puzzlesCube: { ru: 'Куб по полю', en: 'Rolling Cube' },
   /**
    * ⚠️ «Куб» — не всегда куб: лестница этой игры это ЧЕТЫРЕ РАЗНЫХ ТЕЛА
@@ -1074,7 +1074,7 @@ const translations: Translations = {
   puzzlesTracksDesc: { ru: 'Достроить рельсы от края до края по счёту в строках', en: 'Complete the track from edge to edge, matching row counts' },
   puzzlesPatternDesc: { ru: 'Закрасить клетки по числам сбоку и сверху. Тап — закрасить, второе действие — крестик «здесь пусто»; протяжкой красят подряд', en: 'Fill cells according to the numbers on the side and top. Tap to fill; the second action puts a cross for “empty”; drag to fill a run' },
   puzzlesGalaxiesDesc: { ru: 'Разрезать поле на области, симметричные вокруг своей точки. Тап по ребру между клетками — поставить стенку, второе действие — пометка', en: 'Cut the grid into regions, each symmetric about its dot. Tap the edge between cells to place a wall; the second action leaves a mark' },
-  puzzlesFifteenDesc: { ru: 'Двигать плитки в пустую клетку и собрать порядок', en: 'Slide tiles into the gap and restore the order' },
+  puzzlesFifteenDesc: { ru: 'Нажимай плитку рядом с пустой клеткой или води стрелками — собери порядок', en: 'Tap a tile next to the gap, or use the arrows — restore the order' },
   puzzlesLightUpDesc: { ru: 'Осветить всё поле фонарями. Тап — поставить фонарь, второе действие — метка «сюда фонарь не ставить»', en: 'Light the whole grid with lamps. Tap to place a lamp; the second action marks a cell as “no lamp”' },
   puzzlesLoopyDesc: { ru: 'Собрать одну замкнутую петлю по числам в клетках', en: 'Build one closed loop guided by the numbers' },
   /**
