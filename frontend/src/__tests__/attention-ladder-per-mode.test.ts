@@ -39,6 +39,7 @@ import { levelCondition as posnerCondition } from '@/app/games/posner';
 import { levelCondition as proofCondition } from '@/app/games/proofreading';
 import { levelCondition as bartCondition } from '@/app/games/bart';
 import { levelCondition as prlCondition } from '@/app/games/prl';
+import { levelCondition as iowaCondition } from '@/app/games/iowa';
 
 const levels = (m: AttentionMode) => Array.from({ length: LADDER_RANGE[m] }, (_, i) => i + 1);
 
@@ -61,6 +62,7 @@ const fingerprint: Record<AttentionMode, (l: number) => string> = {
   proofreading:       (l) => JSON.stringify(proofCondition(l)),
   bart:               (l) => JSON.stringify(bartCondition(l)),
   prl:                (l) => JSON.stringify(prlCondition(l)),
+  iowa:               (l) => JSON.stringify(iowaCondition(l)),
 };
 
 /**
@@ -97,7 +99,7 @@ const MAX_FLAT_RUN: Record<AttentionMode, number> = {
    */
   'stroop-emotional': 1, simon: 1, 'choice-rt': 1, ant: 1, 'switching-task': 1,
   /* Первый из восьми приехавших 12.09 — поблажки тоже нет. */
-  'go-no-go': 1, 'stop-signal': 1, inhibition: 1, posner: 1, proofreading: 1, bart: 1, prl: 1,
+  'go-no-go': 1, 'stop-signal': 1, inhibition: 1, posner: 1, proofreading: 1, bart: 1, prl: 1, iowa: 1,
 };
 
 /**
@@ -129,6 +131,7 @@ const BAND_EDGES: Record<AttentionMode, number[]> = {
   proofreading: [5, 10],        // proofreading.tsx — cols 8 / 10 / 12, порог 80 / 90 / 100 %
   bart: [3, 6, 9],              // bart.tsx        — шаров 8 / 12 / 16 / 20
   prl: [4, 8],                  // prl.tsx         — проб 30 / 40 / 50
+  iowa: [],                     // iowa.tsx        — полос нет: одна ось, шаг на каждом уровне
 };
 
 describe('конфликт внимания: у каждой пробы своя лестница и она не откатывается', () => {

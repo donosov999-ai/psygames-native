@@ -1,5 +1,5 @@
 /* psygames-game-iowa · VER 1 · 19.08.2026 */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView
@@ -67,6 +67,47 @@ const LOSS_PATTERNS: Record<Deck, number[]> = {
   D: [0, 0, 0, 0, 0, 0, 0, 0, 0, -250],
 };
 
+/**
+ * Потолок лестницы. Пятнадцать — как у остальных проб раздела; на L15 задержка
+ * обратной связи доходит до 700 мс.
+ * ⚠️ «Расти некуда» = «нужна НОВАЯ ось», а не предел (CHATS_RULES.md §4а).
+ */
+export const MAX_LEVEL = 15;
+
+/**
+ * 🔴 ЛЕСТНИЦЫ У ЭТОГО ЭКРАНА НЕ БЫЛО ВООБЩЕ, 16.09.2026.
+ *
+ * `usePersistentLevel('iowa')` считал не уровень, а число ПРОЙДЕННЫХ ПАРТИЙ —
+ * `runs.reach(doneRun + 1)` после каждой. Карта уровней и LevelCleared рисовались,
+ * но за номером не стояло ни одного условия: партия пятнадцатого «уровня» ничем
+ * не отличалась от первой.
+ *
+ * ⚠️ ЧТО ЗДЕСЬ НЕЛЬЗЯ ТРОГАТЬ — И ПОЭТОМУ ОСЕЙ ТАК МАЛО.
+ * · Структура выплат колод (`DECK_INFO`, `LOSS_PATTERNS`) — это и ЕСТЬ методика
+ *   Бехары; сдвинешь её, и результаты перестанут быть сравнимыми ни с прошлыми
+ *   партиями человека, ни с каноном.
+ * · Перетасовка колод по экрану бессмысленна: буква едет вместе с колодой, и
+ *   человек следит за буквой, а не за местом.
+ * · Перевешивать личности за фиксированными буквами — это уже другая проба
+ *   (IGT с разворотом), а не усложнение этой.
+ * · Число попыток (40 / 60 / 100) задаёт ЧЕЛОВЕК в настройках, и это канонная
+ *   длина методики, а не ручка сложности.
+ *
+ * Остаётся задержка обратной связи: выплаты не меняются вовсе, тяжелее
+ * становится связать выбор с его исходом. Тот же приём применён сегодня к PRL.
+ * ⚠️ Одной оси для лестницы мало по духу раздела: это рабочий минимум, а не
+ * предел. Вторую ось искать надо, и искать среди того, что НЕ трогает выплаты.
+ */
+export function levelParams(level: number): { feedbackDelayMs: number } {
+  const шаг = Math.max(0, Math.min(14, Math.round(level) - 1));
+  return { feedbackDelayMs: шаг * 50 };   // L1 = 0 … L15 = 700 мс
+}
+
+/** Мера УРОВНЯ по контракту раздела — прогоняется гейтом без игрока. */
+export function levelCondition(level: number): { feedbackDelayMs: number } {
+  return levelParams(level);
+}
+
 export default function IowaGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -86,6 +127,8 @@ export default function IowaGame() {
   const runs = usePersistentLevel('iowa');
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в блок «Об игре» (GameAbout);
   const [trials, setTrials] = useState(60);
+  const respondLockRef = useRef(false);   // замок на время отложенного исхода
+  const feedbackDelayRef = useRef(0);     // ось сложности: задержка обратной связи
 
   const [round, setRound] = useState(0);
   const [bank, setBank] = useState(2000); // start with $2000 (Bechara)
@@ -98,6 +141,11 @@ export default function IowaGame() {
     setBank(2000); setPicks([]);
     setDeckCounters({ A: 0, B: 0, C: 0, D: 0 });
     setLastFeedback(null);
+    respondLockRef.current = false;
+    /* Задержка исхода — по текущему уровню. Уровень здесь и раньше двигался
+       (runs.reach после каждой партии), но за номером не стояло ни одного
+       условия; теперь стоит. */
+    feedbackDelayRef.current = levelParams(runs.level).feedbackDelayMs;
     setRound(1);
     setPhase('playing');
   };
@@ -134,28 +182,51 @@ export default function IowaGame() {
           // level читает getMaxLevelFromSessions — по нему счётчик восстановится,
           // если локальный ключ прогресса потерян.
           level: doneRun,
+          /* Условие партии едет ВМЕСТЕ с результатом. */
+          feedback_delay_ms: feedbackDelayRef.current,
+          n_trials: finalPicks.length,
+          /* 🔴 ДОЛЯ, А НЕ СЧЁТ. `adv_minus_disadv` — разность ЧИСЕЛ выборов, и
+             она растёт вместе с длиной партии: 40 попыток и 100 дают разные
+             величины при одинаковом поведении. Длину выбирает человек в
+             настройках, поэтому сравнивать партии по счёту нельзя. Доля от
+             этого свободна. */
+          adv_share: finalPicks.length > 0
+            ? Math.round(((advantageous - disadvantageous) / finalPicks.length) * 1000) / 1000
+            : 0,
         },
       });
     } catch (e) { console.error(e); }
   };
 
   const pickDeck = (d: Deck) => {
-    if (lastFeedback) return;
+    /* 🔴 ЗАМОК НА REF, А НЕ НА СОСТОЯНИИ. Пока исход показывался сразу, хватало
+       проверки `lastFeedback`. С задержкой она перестала работать: состояние
+       ставится ТОЛЬКО ПОСЛЕ паузы, и всё это время нажатия проходили бы насквозь —
+       можно было натыкать несколько карт за один ход. Ref запирается сразу. */
+    if (respondLockRef.current || lastFeedback) return;
+    respondLockRef.current = true;
     const cnt = deckCounters[d];
     const win = DECK_INFO[d].win;
     const loss = LOSS_PATTERNS[d][cnt % 10];
     const net = win + loss; // loss is negative
     const newBank = bank + net;
-    setBank(newBank);
     const newPicks = [...picks, { deck: d, win, loss }];
     setPicks(newPicks);
     setDeckCounters({ ...deckCounters, [d]: cnt + 1 });
-    setLastFeedback({ deck: d, win, loss });
+    /* Исход приходит НЕ СРАЗУ: задержка — ось сложности (разбор над levelParams).
+       ⚠️ Банк двигается вместе с показом, а не раньше: прыгнувшее число выдавало
+       бы результат до самой обратной связи, и задержка не нагружала бы ничего.
+       Новые нажатия всё это время держит respondLockRef — см. замок в pickDeck. */
     setTimeout(() => {
-      setLastFeedback(null);
-      if (round >= trials) finish(newBank, newPicks);
-      else setRound(r => r + 1);
-    }, 1300);
+      setBank(newBank);
+      setLastFeedback({ deck: d, win, loss });
+      setTimeout(() => {
+        setLastFeedback(null);
+        respondLockRef.current = false;
+        if (round >= trials) finish(newBank, newPicks);
+        else setRound(r => r + 1);
+      }, 1300);
+    }, feedbackDelayRef.current);
   };
 
   const advCount = picks.filter(p => p.deck === 'C' || p.deck === 'D').length;

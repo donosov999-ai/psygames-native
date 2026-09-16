@@ -40,6 +40,7 @@ import { levelParams as posnerParams } from '@/app/games/posner';
 import { levelParams as proofParams } from '@/app/games/proofreading';
 import { levelCondition as bartCondition } from '@/app/games/bart';
 import { levelCondition as prlCondition } from '@/app/games/prl';
+import { levelCondition as iowaCondition } from '@/app/games/iowa';
 
 export type AttentionMode =
   | 'stroop' | 'flanker' | 'cpt' | 'targets' | 'wcst'
@@ -49,7 +50,7 @@ export type AttentionMode =
   /** Первый из восьми, приехавших 12.09.2026 с расформированием развилок
    *  «Торможение» и «Риск». Остальные семь ждут своей меры прохода —
    *  дописывать сюда имя БЕЗ неё нельзя, см. шапку ниже. */
-  | 'go-no-go' | 'stop-signal' | 'inhibition' | 'posner' | 'proofreading' | 'bart' | 'prl';
+  | 'go-no-go' | 'stop-signal' | 'inhibition' | 'posner' | 'proofreading' | 'bart' | 'prl' | 'iowa';
 
 /**
  * 🔴 ЭТОТ СПИСОК ПОКРЫВАЕТ 10 ЭКРАНОВ ИЗ 18, А НЕ ВЕСЬ ХАБ. Замер 13.09.2026
@@ -109,6 +110,9 @@ export const LADDER_RANGE: Record<AttentionMode, number> = {
      в полы уже на одиннадцатом. Третья ось (задержка обратной связи)
      доводит до пятнадцати без дублей. prl.tsx::MAX_LEVEL. */
   prl: 15,
+  /* Лестницы у экрана не было вовсе — уровень считал пройденные партии.
+     Заведена 16.09.2026 одной осью: задержка исхода 0 → 700 мс. iowa.tsx::MAX_LEVEL. */
+  iowa: 15,
 };
 
 /** Что пишется в партию у этой пробы, и чем это меряется в методике. */
@@ -137,6 +141,7 @@ export const SESSION_MEASURE: Record<AttentionMode, { field: string; norm: strin
   proofreading:       { field: 'proof_omission_pct',    norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Доля пропущенных целей — корректурная проба Бурдона, классический показатель концентрации на однообразном материале. ⚠️ ИМЕННО ДОЛЯ, А НЕ СЧЁТ: ось сложности здесь размер сетки (8×8 → 16×12), и число пропусков росло бы само от роста числа целей. ⚠️ Читать только вместе с task_mode: у экрана два задания — буквы (проба Бурдона) и филворды (материал раздела «Слова»), сравнивать их между собой нельзя' },
   bart:               { field: 'adj_avg_pumps',         norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Среднее число нажатий на НЕ лопнувших шарах — канонический показатель склонности к риску (Lejuez 2002). ⚠️ ЧИТАТЬ ТОЛЬКО ПРИ ОДНОМ И ТОМ ЖЕ ПРЕДЕЛЕ: при равномерной точке взрыва выгоднее качать до половины предела, поэтому рост maxBurst 16 → 128 поднимает саму величину примерно в восемь раз, и партии разных уровней между собой не сравнимы. Для этого max_burst и burst_spread кладутся в запись партии рядом. Третья ось (разброс предела между шарами) выбрана так, чтобы среднее НЕ двигать — она растит только неопределённость' },
   prl:                { field: 'perseverative_errors',  norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Персеверативные ошибки — сколько раз человек держался прежнего выбора уже ПОСЛЕ разворота. ⚠️ ЧИТАТЬ ВМЕСТЕ С n_reversals: это счёт, а частота разворотов служит осью сложности (8 → 3 верных подряд), поэтому число событий между уровнями разное; рядом пишутся mean_post_reversal_acc и post_reversal_adapt_acc — доли, свободные от этого. ⚠️ И вместе с feedback_delay_ms и reward_prob: обе величины меняются по уровням. Проба на переучивание, Cools 2002' },
+  iowa:               { field: 'adv_share',              norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Перевес выгодных колод над невыгодными, ДОЛЕЙ от числа попыток. ⚠️ ИМЕННО ДОЛЯ: прежнее adv_minus_disadv — разность СЧЁТОВ, и она растёт с длиной партии, а длину (40/60/100) выбирает человек в настройках, поэтому счётом партии не сравнить. Рядом остаются adv_minus_disadv и last_block_adv для прежней истории. Карточная проба Айовы (Bechara 1994)' },
 };
 
 /**
@@ -502,6 +507,22 @@ export function prlLoad(level: number): number {
   return p.trialsTotal * (шум(p) / шум(б)) * (б.revMin / p.revMin) * (1 + p.feedbackDelayMs / 800);
 }
 
+/**
+ * Айова — «задержка исхода».
+ *
+ * ⚠️ ОСЬ ЗДЕСЬ ОДНА, И ЭТО ЗАПИСАНО ЧЕСТНО, а не выдано за достаток. Структуру
+ * выплат колод трогать нельзя — она и есть методика; длину партии выбирает
+ * человек; перетасовка колод по экрану бессмысленна (буква едет вместе с
+ * колодой). Остаётся задержка обратной связи 0 → 700 мс: выплаты не меняются,
+ * тяжелее становится связать выбор с его исходом.
+ * Вторую ось искать надо — среди того, что НЕ трогает выплаты.
+ *
+ * ⚠️ Складывать с нагрузкой других проб нельзя: у каждой своя валюта.
+ */
+export function iowaLoad(level: number): number {
+  return 1 + iowaCondition(level).feedbackDelayMs / 700;
+}
+
 export function attentionLoad(mode: AttentionMode, level: number): number {
   switch (mode) {
     case 'stroop':  return stroopLoad(level);
@@ -521,11 +542,12 @@ export function attentionLoad(mode: AttentionMode, level: number): number {
     case 'proofreading':     return proofreadingLoad(level);
     case 'bart':             return bartLoad(level);
     case 'prl':              return prlLoad(level);
+    case 'iowa':             return iowaLoad(level);
   }
 }
 
 export const ATTENTION_MODES: AttentionMode[] = [
   'stroop', 'flanker', 'cpt', 'targets', 'wcst',
   'stroop-emotional', 'simon', 'choice-rt', 'ant', 'switching-task',
-  'go-no-go', 'stop-signal', 'inhibition', 'posner', 'proofreading', 'bart', 'prl',
+  'go-no-go', 'stop-signal', 'inhibition', 'posner', 'proofreading', 'bart', 'prl', 'iowa',
 ];
