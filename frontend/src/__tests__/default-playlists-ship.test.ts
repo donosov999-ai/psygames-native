@@ -175,7 +175,12 @@ describe('STRUCTURE.md не отстал от состава', () => {
     const { join } = require('path');
     const текст = readFileSync(join(__dirname, '../../..', 'STRUCTURE.md'), 'utf8') as string;
     const вФайле = new Map<string, number>();
-    for (const м of текст.matchAll(/^### .+ · `(\/games\/[^`]+)` — (\d+)$/gm)) {
+    /* ⚠️ Заголовок бывает ДВУХ видов, и оба верны:
+       «— 7» у развилки без наборов и «— 9 карточек · 18 экранов» у той, где
+       карточка открывает набор режимов (правка сборщика 16.09.2026 — до неё
+       документ выдавал карточки за экраны). Здесь сверяется число КАРТОЧЕК,
+       поэтому берётся первое число в обоих видах. */
+    for (const м of текст.matchAll(/^### .+ · `(\/games\/[^`]+)` — (\d+)(?: карточек · \d+ экранов)?$/gm)) {
       вФайле.set(м[1]!, Number(м[2]));
     }
     expect(`развилок в STRUCTURE.md: ${вФайле.size}`).toBe(`развилок в STRUCTURE.md: ${Object.keys(HUB_CONTENTS).length}`);
