@@ -1,3 +1,4 @@
+// VER 5 · 2026-09-17 · psygames-search-claude-mac: прямой ряд — «берёт середина, вбок через ряд — несколько», как обещают правила.
 // VER 4 · 2026-09-17 · psygames-search-claude-mac: ряд на арках проверяется и на L30 («знак меняется»): «•» и типографский минус.
 // VER 3 · 2026-09-16 · psygames-search-claude-mac: + «память в пути» (setSize — лестница OSpan из ospanLadder).
 // VER 2 · 2026-09-16 · psygames-search-claude-mac: + станции «ряд на арках» (patternSequences) и «шкала» (math-slider core).
@@ -32,10 +33,23 @@ const level=(L,seed)=>makeLevel(L,seed,tasks,{boss:isBoss(L)});
 function aim(course,path,s){const p=path[s.nextRow];if(!p?.route)return p.lane;const row=course.rows[p.id],w=row.routes.find(r=>r.id===p.route).waypoints.find(w=>row.z+w.dz>=s.z-1e-9);return w?w.x:p.lane;}
 function run(course,path,dt=.05){let s=resume(initial(course));for(let n=0;n<40000&&s.status==='running';n++)s=step(setTarget(s,aim(course,path,s)),dt,course);return s;}
 function through(course,row,x0,waypoints,dt=1/120){
- const previous=course.rows[row.id-1];let s={...resume(initial(course)),z:previous.z+(previous.window??0),nextRow:row.id,sum:1000,peak:1000,x:x0,target:x0};
+ const previous=course.rows[row.id-1];let s={...resume(initial(course)),z:previous?previous.z+(previous.window??0):0,nextRow:row.id,sum:1000,peak:1000,x:x0,target:x0};
  while(s.nextRow===row.id&&s.status==='running'){const w=waypoints?.find(w=>row.z+w.dz>=s.z-1e-9);s=step(setTarget(s,w?w.x:s.target),dt,course);}
  return s;
 }
+// Правила (numberRunIntroDesc, 12 языков) обещают игроку: «берёт середина числа, а не края; чтобы взять из ряда несколько,
+// проведи число вбок прямо через них». Отзыв 3aaa1b75 (ребёнок, 2.54.6): «не могу забрать сразу несколько чисел, забираю вместо
+// 5 и 2» — способ был, но о нём не говорилось. Поменяется сбор в ядре — эта проба покраснеет: текст правил менять вместе с ним.
+test('straight row: the middle takes — standing takes one, sliding sideways through two takes both, across the row takes five',()=>{
+ const c=makeCampaign(20260912),lines=c.rows.filter(r=>r.kind==='pickups'&&r.shape==='line');
+ const taken=(row,x0,x1)=>through(c,row,x0,x1===undefined?[]:[{dz:-2.5,x:x0},{dz:1e9,x:x1}]).events.filter(e=>e.type==='pickup'&&e.id===row.id).length;
+ for(const row of lines){
+  assert.equal(taken(row,0),1,`ряд ${row.id}: стоя — одно число`);
+  assert.equal(taken(row,0,.5),2,`ряд ${row.id}: вбок через соседнее — оба`);
+  assert.equal(taken(row,-1,1),5,`ряд ${row.id}: вбок через весь ряд — все пять`);
+ }
+ assert.ok(lines.length>=10&&lines[0].id===0,`прямых рядов ${lines.length}, первый — ряд ${lines[0]?.id}`);
+});
 test('marathon is unchanged by moving shapes into runner-shapes: seven seeds hash the same as before the move',()=>{
  const h=createHash('sha256');for(const seed of [0,1,2,7,20260912,445293,118929])h.update(JSON.stringify(makeCampaign(seed)));
  assert.equal(h.digest('hex'),'c34600e05c63547b010404ad533445293e432429257ba41896bcb65174d14516');
