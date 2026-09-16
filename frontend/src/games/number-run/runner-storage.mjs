@@ -1,7 +1,9 @@
+// VER 5 · 2026-09-16 · psygames-search-claude-mac: журнал станций — ответ арки (answer) и числа-части ворот «ровно N»
+// (не меняют число при касании, ворота применяют exactDelta на выходе ряда).
 // VER 4 · 2026-09-16 · psygames-search-claude-mac: трамплин над числами (VER 4 маршрута) — по желанию, пропуск не портит сохранение;
 // обязательный прыжок остался только у препятствия.
 // VER 3 · LOCAL 0.4 · 2026-09-12 · Flight checkpoint, preserve older training results.
-import {LEVELS,makeCourse,applyOperation} from './runner-levels.mjs';
+import {LEVELS,makeCourse,applyOperation,exactDelta,scaleDelta,scaleValue} from './runner-levels.mjs';
 import {makeCampaign} from './runner-campaign.mjs';
 import {CORE_VERSION,replay} from './runner-core.mjs';
 export const STORAGE_KEY='psygames:number-run:local-v3', LEGACY_KEY='psygames:number-run:local-v2';
@@ -12,10 +14,14 @@ function validJourneyJournal(course,s){
   const r=course.rows[index];if(!r||e.id!==index)return false;
   if(e.type==='pickup'){
    const item=r.items?.[e.item];if(!item||items.includes(e.item)||item.value!==e.value||e.before!==sum)return false;
-   sum+=item.value;items.push(e.item);if(e.after!==sum)return false;peak=Math.max(peak,sum);continue;
+   if(!item.part)sum+=item.value;items.push(e.item);if(e.after!==sum)return false;peak=Math.max(peak,sum);continue;
   }
   if(e.type!==r.kind)return false;
-  if(r.kind==='pickups'){if(JSON.stringify(e.items)!==JSON.stringify(items)||e.sum!==sum)return false;items=[];}
+  if(r.kind==='pickups'){if(JSON.stringify(e.items)!==JSON.stringify(items))return false;
+   if(r.exact){const got=items.reduce((a,i)=>a+(r.items[i].part?r.items[i].value:0),0);if(e.exact?.got!==got)return false;sum+=exactDelta(r.exact,got);}
+   if(e.sum!==sum)return false;items=[];}
+  else if(r.kind==='scale'){const delta=scaleDelta(r,Math.abs(scaleValue(r,e.x)-r.answer)/(r.max-r.min));if(e.before!==sum||e.delta!==delta)return false;sum+=delta;if(e.after!==sum)return false;}
+  else if(r.kind==='answer'){const ok=e.lane+1===r.correct;if(e.before!==sum||e.ok!==ok)return false;sum+=ok?r.reward:-r.penalty;if(e.after!==sum)return false;}
   else if(r.kind==='operation'){if(e.before!==sum||e.operation!==r.options[e.lane+1])return false;sum=applyOperation(sum,e.operation,1e6);if(e.after!==sum)return false;}
   else if(r.kind==='obstacle'){const damage=r.span?0:r.penalties[e.lane+1];if(e.fall||e.damage!==damage||e.before!==sum)return false;sum-=damage;if(e.after!==sum)return false;if(damage)hits++;}
   else if(e.sum!==sum||!e.ok)return false;

@@ -1,4 +1,4 @@
-/* psygames-game-pattern · VER 1 · 19.08.2026 */
+/* psygames-game-pattern · VER 2 · 17.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -26,6 +26,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import { makeSequence, makeOptions, levelLabelKey, type Sequence } from '@/src/games/counting/patternSequences';
 
 const GRADIENT = ['#7028e4', '#e5b2ca'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -45,92 +46,33 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 // Каждый ряд = ОДНОЗНАЧНО продолжаемая прогрессия (правило Дениса: фрактальные/неоднозначные нельзя).
 // Подсказка 2 ступени: classKey (класс) → ruleKey+ruleParams (формула/правило).
 // v1.137: тексты в словаре LanguageContext (patternClass*/patternRule*), параметры — {a}/{b}/{c}/{n}.
-interface Sequence { items: number[]; answer: number; classKey: string; ruleKey: string; ruleParams?: Record<string, string | number>; }
 function fillParams(s: string, params?: Record<string, string | number>): string {
   if (!params) return s;
   return Object.entries(params).reduce((acc, [k, v]) => acc.replace(new RegExp('\\{' + k + '\\}', 'g'), String(v)), s);
 }
 
-function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
-const rnd = (n: number) => Math.floor(Math.random() * n);
-
-function genArithmetic(): Sequence {
-  const start = 1 + rnd(9), step = 2 + rnd(6);
-  return { items: [start, start+step, start+2*step, start+3*step], answer: start+4*step,
-    classKey: 'patternClassArithmetic', ruleKey: 'patternRuleArithmetic', ruleParams: { n: step } };
-}
-function genGeometric(): Sequence {
-  const start = 2 + rnd(3), r = 2 + rnd(2);   // ×2..×3
-  return { items: [start, start*r, start*r*r, start*r*r*r], answer: start*r*r*r*r,
-    classKey: 'patternClassGeometric', ruleKey: 'patternRuleGeometric', ruleParams: { n: r } };
-}
-function genSquares(): Sequence {
-  const s = 1 + rnd(4);
-  return { items: [s*s, (s+1)*(s+1), (s+2)*(s+2), (s+3)*(s+3)], answer: (s+4)*(s+4),
-    classKey: 'patternClassSquares', ruleKey: 'patternRuleSquares', ruleParams: { a: s, b: s+1, c: s+2 } };
-}
-function genCubes(): Sequence {
-  const s = 1 + rnd(2);
-  return { items: [s*s*s, (s+1)*(s+1)*(s+1), (s+2)*(s+2)*(s+2)], answer: (s+3)*(s+3)*(s+3),
-    classKey: 'patternClassCubes', ruleKey: 'patternRuleCubes', ruleParams: { a: s, b: s+1 } };
-}
-function genFibonacci(): Sequence {
-  let a = 1 + rnd(3), b = a + 1 + rnd(2);
-  const all = [a, b]; for (let i=0;i<3;i++){ const c=a+b; all.push(c); a=b; b=c; }
-  return { items: all.slice(0,4), answer: all[4],
-    classKey: 'patternClassFibonacci', ruleKey: 'patternRuleFibonacci' };
-}
-function genGrowingDiff(): Sequence {
-  const start = 1 + rnd(5), baseStep = 1 + rnd(3);
-  const items = [start]; let s = baseStep;
-  for (let i=0;i<3;i++){ items.push(items[items.length-1] + s); s++; }
-  return { items, answer: items[3] + s,
-    classKey: 'patternClassGrowingDiff', ruleKey: 'patternRuleGrowingDiff', ruleParams: { a: baseStep, b: baseStep+1 } };
-}
-function genLookAndSay(): Sequence {
-  const seqs = [1, 11, 21, 1211, 111221, 312211];   // однозначный ряд «посмотри и скажи»
-  const i = rnd(2);
-  return { items: seqs.slice(i, i+4), answer: seqs[i+4],
-    classKey: 'patternClassLookSay', ruleKey: 'patternRuleLookSay' };
-}
-function genInterleaved(): Sequence {
-  const startO = 1 + rnd(4), a = 1 + rnd(3);     // нечётные позиции: +a
-  const startE = 5 + rnd(5),  b = 5 + rnd(6);     // чётные позиции: +b
-  // показываем O1,E1,O2,E2; ответ = O3 (следующая нечётная позиция)
-  return { items: [startO, startE, startO+a, startE+b], answer: startO + 2*a,
-    classKey: 'patternClassInterleaved', ruleKey: 'patternRuleInterleaved', ruleParams: { a, b } };
-}
+// Ряды и варианты ответа — в src/games/counting/patternSequences.ts (их делит «Числовой забег»);
+// реэкспорт — для гейта pattern-ladder, который читает лестницу через экран.
+export { pickSequence, makeSequence } from '@/src/games/counting/patternSequences';
 
 /**
- * Уровень → класс прогрессии (труднота растёт; БЕЗ лимита времени).
- *
- * ⚠️ ЭКСПОРТИРОВАНО ДЛЯ ГЕЙТА `pattern-ladder` (16.09.2026). Лестница у этой игры
- * задаётся КЛАССОМ ряда, а не числом, поэтому проверять её можно только прогоном
- * генератора — чтение полос глазами не скажет, что на самом деле выпадает игроку.
- * Тот же приём у соседей: `levelParams` у счётчика, `generateScene` у отличий.
+ * РАЗМЕР КЛЕТОК РЯДА ПОД ШИРИНУ ПОЛЯ: ряд вместе с «?» встаёт в одну строку, пока это возможно.
+ * Замер 17.09.2026 живьём в сборке: поле под ряд 352 точки на 375–430 и 340 на 360. Пять клеток по 64
+ * с зазором 8 — ровно 352, поэтому на 360 «?» уезжал на вторую строку уже на первом уровне, а ряды
+ * из шести и семи клеток (L17, L19) переносились и на 390. Ширина знака — 0,66 кегля и 4 точки на рамки: при 0,62
+ * без рамок ряды «5 −8 18 −34 ?» и «139 211 350 561 ?» на 360 всё равно переносились (замер того же дня).
+ * Число не влезает и на кегле 16 (смесь далеко за L100) — перенос строки, как раньше.
  */
-export function pickSequence(level: number): Sequence {
-  if (level <= 2)  return genArithmetic();
-  if (level <= 4)  return genGeometric();
-  if (level <= 6)  return rnd(2) ? genSquares() : genCubes();
-  if (level <= 8)  return genFibonacci();
-  if (level <= 10) return genGrowingDiff();
-  if (level <= 12) return genLookAndSay();
-  return genInterleaved();
-}
-
-// v1.112.0: полный перебор пространств ВСЕХ генераторов (449 рядов) нашёл ровно 2
-// неоднозначных префикса — валидны два правила с РАЗНЫМИ ответами:
-// [2,3,5,8] → Фибоначчи 13 vs растущая разность 12; [4,5,7,10] → 14 vs 10.
-// Такие ряды перегенерируем (иначе честный игрок получает несправедливую ошибку).
-// При изменении диапазонов генераторов пересчитать блэклист (скрипт в notes задачи БД).
-const AMBIGUOUS_ITEMS = new Set(['2,3,5,8', '4,5,7,10']);
-export function makeSequence(level: number): Sequence {
-  for (let guard = 0; guard < 10; guard++) {
-    const s = pickSequence(level);
-    if (!AMBIGUOUS_ITEMS.has(s.items.join(','))) return s;
-  }
-  return genArithmetic();   // практически недостижимо
+function cellSize(width: number, labels: string[]) {
+  const cells = labels.length, chars = Math.max(...labels.map((l) => l.length));
+  const variant = (font: number) => {
+    const pad = font >= 24 ? 8 : 5, gap = font >= 24 ? 8 : 6;
+    const need = Math.ceil(chars * font * 0.66) + 2 * pad + 4;       // самое длинное число целиком, с рамками
+    const room = Math.floor((width - gap * (cells - 1)) / cells);    // сколько поле даёт на клетку
+    return { font, pad, gap, cell: Math.max(need, Math.min(64, room)), fits: need <= room };
+  };
+  if (!width) return { font: 24, pad: 8, gap: 8, cell: 64, fits: true };   // до первого замера поля — прежний вид
+  return [24, 20, 18, 16].map(variant).find((v) => v.fits) ?? variant(16);
 }
 
 /**
@@ -143,16 +85,6 @@ export function makeSequence(level: number): Sequence {
  * и sessionFitsStep её опознает. Число проб задаёт шаг (assessment: 5).
  */
 
-function makeOptions(answer: number, count = 4): number[] {
-  const opts = new Set<number>([answer]);
-  while (opts.size < count) {
-    const delta = Math.max(1, Math.round(Math.abs(answer) * 0.15)) + Math.floor(Math.random() * 5) + 1;
-    const sign = Math.random() < 0.5 ? -1 : 1;
-    const candidate = answer + sign * delta;
-    if (candidate !== answer && candidate > -1000) opts.add(candidate);
-  }
-  return shuffle(Array.from(opts));
-}
 
 export default function PatternGame() {
   const { colors } = useTheme();
@@ -176,6 +108,7 @@ export default function PatternGame() {
   const [errors, setErrors] = useState(0);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [hintStage, setHintStage] = useState(0);   // 0 нет · 1 класс · 2 правило
+  const [rowWidth, setRowWidth] = useState(0);     // ширина поля под ряд — по ней cellSize
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -274,15 +207,8 @@ export default function PatternGame() {
       <LevelProgressMap bestLevel={lvl.best} gameId="pattern" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('level')} {lvl.level}</Text>
-        <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-          {lvl.level <= 2 ? t('patternClassArithmetic')
-           : lvl.level <= 4 ? t('patternClassGeometric')
-           : lvl.level <= 6 ? t('patternClassSquaresCubes')
-           : lvl.level <= 8 ? t('patternClassFibonacci')
-           : lvl.level <= 10 ? t('patternClassGrowingDiff')
-           : lvl.level <= 12 ? t('patternClassLookSayHint')
-           : t('patternClassInterleaved')}
-        </Text>
+        {/* Класс ряда под уровнем — из той же таблицы полос, что и генератор (L23+ — «смесь»), а не своей лестницей. */}
+        <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>{t(levelLabelKey(lvl.level))}</Text>
         {lvl.level > 1 && (
           <TouchableOpacity
             accessibilityRole="button" accessibilityLabel={t('a11yResetLevel')} onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -371,25 +297,33 @@ export default function PatternGame() {
                 onPress={() => handleAnswer(o)}
                 style={[styles.optBtn, { backgroundColor: GRADIENT[0] }]}
               >
-                <Text style={styles.optText}>{o}</Text>
+                <Text style={styles.optText}>{String(o).replace('-', '−')}</Text>
               </TouchableOpacity>
             ))}
           </View>
         }
       >
-        <View style={styles.fieldCol}>
+        <View style={styles.fieldCol} onLayout={(e) => setRowWidth(Math.round(e.nativeEvent.layout.width))}>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('patternHint')}</Text>
-          <View style={styles.sequenceArea}>
-            {seq.items.map((n, i) => (
-              <View key={i} style={[styles.seqCell, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                {/* число ряда — всегда одной строкой (иначе 111221 рвётся пополам) */}
-                <Text style={[styles.seqText, { color: colors.text }]} numberOfLines={1}>{n}</Text>
+          {(() => {
+            // С L17 в ряду пять и шесть чисел, в смеси (L23+) — числа в тысячи: клетки и кегль по ширине поля.
+            const labels = [...seq.items.map((n) => String(n).replace('-', '−')), '?'];
+            const size = cellSize(rowWidth, labels);
+            const cellStyle = { minWidth: size.cell, minHeight: size.font >= 24 ? 64 : size.font >= 20 ? 56 : 48, paddingHorizontal: size.pad };
+            return (
+              <View style={[styles.sequenceArea, { gap: size.gap }]}>
+                {labels.slice(0, -1).map((label, i) => (
+                  <View key={i} style={[styles.seqCell, cellStyle, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    {/* число ряда — всегда одной строкой (иначе 111221 рвётся пополам); минус — типографский */}
+                    <Text style={[styles.seqText, { fontSize: size.font, color: colors.text }]} numberOfLines={1}>{label}</Text>
+                  </View>
+                ))}
+                <View style={[styles.seqCell, cellStyle, { backgroundColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : 'transparent', borderColor: GRADIENT[0], borderWidth: 2 }]}>
+                  <Text style={[styles.seqText, { fontSize: size.font, color: feedback ? '#FFF' : GRADIENT[0] }]}>?</Text>
+                </View>
               </View>
-            ))}
-            <View style={[styles.seqCell, { backgroundColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : 'transparent', borderColor: GRADIENT[0], borderWidth: 2 }]}>
-              <Text style={[styles.seqText, { color: feedback ? '#FFF' : GRADIENT[0] }]}>?</Text>
-            </View>
-          </View>
+            );
+          })()}
           {hintStage >= 1 && (
             <View style={[styles.hintBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
               <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14, textAlign: 'center' }}>💡 {t(seq.classKey)}</Text>
@@ -452,7 +386,8 @@ const styles = StyleSheet.create({
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
-  fieldCol: { alignItems: 'center', gap: 18 },
+  // alignSelf: 'stretch' — ширину поля мерит onLayout (cellSize); без него колонка сжималась до своего ряда и мерила сама себя.
+  fieldCol: { alignItems: 'center', gap: 18, alignSelf: 'stretch' },
   statsRow: { flexDirection: 'row', gap: 24, justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320 },

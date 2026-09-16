@@ -26,6 +26,7 @@ import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import { levelParams } from '@/src/games/counting/ospanLadder';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 /** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
@@ -58,22 +59,9 @@ interface Equation { left: string; right: number; isCorrect: boolean; }
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
-// Уровень (1..16 и дальше БЕЗ потолка), v3 07.09.2026 (правило §R: способов считать
-// бесконечно — счётная ось не замирает никогда; поручение Дениса 07.09):
-//   · setSize 3→9 (охват, ось методики — cap НЕ трогаем, это вопрос развилки R7);
-//   · letterMs 1100→500 плавно (500 мс — пол восприятия буквы, дальше ось несёт счёт);
-//   · счётная нагрузка mathLoad растёт ПЛАВНО и БЕЗ КЛАМПА: за L16 равенства идут по
-//     школьной оси — квадраты n² (≈L16+) → корни √N (≈L20+) → цепочки a×b±c (≈L24+),
-//     числа растут с load всегда. Кнопки те же (верно/неверно) — span-механика цела.
-/** Экспортирован для гейта `level-rule-threshold`: порог правила сверяется ИСПОЛНЕНИЕМ этой функции. */
-export function levelParams(level: number): { setSize: number; letterMs: number; hardMath: boolean; mathLoad: number } {
-  const setSize = Math.min(9, 2 + level);               // L1=3 → L7=9
-  const fast = Math.max(0, level - 5);
-  const letterMs = Math.max(500, 1100 - fast * 55);
-  const hardMath = level >= 6;                          // порог карточки: с L6 «×, числа крупнее»
-  const mathLoad = Math.max(0, (level - 4) / 8);        // 0 → 1,5 (L16) → дальше без потолка
-  return { setSize, letterMs, hardMath, mathLoad };
-}
+// Лестница — в src/games/counting/ospanLadder.ts (её читает и «Числовой забег»); реэкспорт — для гейтов.
+export { levelParams };
+
 
 /** Экспортирована для гейта ospan-ladder: формы за L16 проверяются ПОВЕДЕНИЕМ, не чтением исходника. */
 export function makeEquation(load: number, allowMult: boolean): Equation {

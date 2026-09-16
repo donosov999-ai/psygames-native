@@ -1,14 +1,19 @@
+// VER 8 · 2026-09-16 · psygames-search-claude-mac: ряд scale (станция «шкала» из «Мат. шкалы») — место на дороге x от −1 до 1
+// читается как число на прямой [min, max] без округления до полосы; цена — scaleDelta по доле ошибки.
+// VER 7 · 2026-09-16 · psygames-search-claude-mac: станции хаба «Счёт» — ряд answer (арки с ответами, полоса = ответ,
+// верно +reward / неверно −penalty и счётчик mistakes) и числа-части part: не меняют число сразу, а складываются в сумму ряда,
+// которую ворота row.exact сверяют с целью (exactDelta). Ряды без этих полей считаются как в VER 6.
 // VER 6 · 2026-09-16 · psygames-search-claude-mac, на основе LOCAL 0.4 (psygames-codex-mac). Строй чисел по глубине (item.dz),
 // широкие числа стопок (item.half), столб-разделитель (row.divider) и трамплин над числами: в полёте их не собрать.
 // Прежние ряды считаются ровно как в VER 5: без dz/half/divider ветки совпадают построчно.
 // VER 5 · Number Run local 0.4 · 2026-09-12. Flight over actual void, no jitter pause in journey.
-import {makeCourse,applyOperation,meets,ruleDifference} from './runner-levels.mjs';
-export const CORE_VERSION='number-run-core/6', FIXED_DT=1/120;
+import {makeCourse,applyOperation,meets,ruleDifference,exactDelta,scaleDelta,scaleValue} from './runner-levels.mjs';
+export const CORE_VERSION='number-run-core/8', FIXED_DT=1/120;
 export function jumpHeight(s){if(!s.jump)return 0;const u=(s.z-s.jump.startZ)/(s.jump.endZ-s.jump.startZ);return u<=0||u>=1?0:4*s.jump.height*u*(1-u);}
 // Visual size follows the current positive value; hitboxes stay one lane wide.
 export const numberScale=value=>1+Math.min(1.6,Math.log2(1+Math.max(0,value))/7);
 export function initial(course=makeCourse()){
- return {version:CORE_VERSION,mode:course.mode??'training',levelId:course.levelId,seed:course.seed,stage:course.stages?.[0]?.id??course.levelId,clearedStages:0,peak:course.start,hits:0,jump:null,collected:[],z:0,x:0,target:0,sum:course.start,gates:0,status:'ready',nextRow:0,elapsed:0,events:[],failure:null,slowFrames:0,discardedTime:0,pauses:0};
+ return {version:CORE_VERSION,mode:course.mode??'training',levelId:course.levelId,seed:course.seed,stage:course.stages?.[0]?.id??course.levelId,clearedStages:0,peak:course.start,hits:0,jump:null,collected:[],z:0,x:0,target:0,sum:course.start,gates:0,status:'ready',nextRow:0,elapsed:0,events:[],failure:null,slowFrames:0,discardedTime:0,pauses:0,mistakes:0};
 }
 export function setTarget(s,x){if(!Number.isFinite(x))throw Error('Invalid target');return s.status==='running'?{...s,target:Math.max(-1,Math.min(1,x))}:s;}
 export function changeLane(s,delta){return setTarget(s,Math.round(s.target)+delta);}
@@ -46,8 +51,9 @@ export function step(s,dt,course){
    if(t!==null&&t>=ta-1e-9&&t<=tb+1e-9)hits.push({t:Math.max(ta,t),index,item});
   });
   if(hits.length){next.collected=[...s.collected];for(const hit of hits.sort((a,b)=>a.t-b.t||a.index-b.index)){
-   const before=next.sum;next.sum+=hit.item.value;next.peak=Math.max(next.peak,next.sum);next.collected.push(hit.index);
-   next.events.push({type:'pickup',id:terrain.id,item:hit.index,value:hit.item.value,before,after:next.sum,t:s.elapsed+hit.t,z:s.z+hit.t*course.speed});
+   // Число-часть ворот «ровно N» число не меняет: оно идёт в сумму ряда, которую ворота сверят на выходе.
+   const before=next.sum;if(!hit.item.part)next.sum+=hit.item.value;next.peak=Math.max(next.peak,next.sum);next.collected.push(hit.index);
+   next.events.push({type:'pickup',id:terrain.id,item:hit.index,value:hit.item.value,before,after:next.sum,t:s.elapsed+hit.t,z:s.z+hit.t*course.speed,...(hit.item.part?{part:true}:{})});
   }}
  }
  const airborne=next.jump&&next.jump.id===terrain?.id;
@@ -68,7 +74,17 @@ export function step(s,dt,course){
   const row=course.rows[next.nextRow],eventZ=row.z+(row.window??0),t=Math.max(0,(eventZ-s.z)/course.speed),x=xAt(t),lane=Math.max(-1,Math.min(1,Math.round(x))),before=next.sum;
   // Every full-width lane is an option; → explicitly skips. No collision gap.
   if(row.kind==='pickups'){
-   next.events.push({type:'pickups',id:row.id,lane,items:next.collected,sum:next.sum,t:s.elapsed+t,z:eventZ});next.collected=[];
+   if(row.exact){const got=next.collected.reduce((a,i)=>a+(row.items[i].part?row.items[i].value:0),0),delta=exactDelta(row.exact,got);
+    next.sum+=delta;if(delta<0)next.mistakes++;
+    next.events.push({type:'pickups',id:row.id,lane,items:next.collected,sum:next.sum,exact:{target:row.exact.target,got,delta},before,t:s.elapsed+t,z:eventZ});}
+   else next.events.push({type:'pickups',id:row.id,lane,items:next.collected,sum:next.sum,t:s.elapsed+t,z:eventZ});
+   next.collected=[];
+  }else if(row.kind==='scale'){
+   const value=scaleValue(row,x),err=Math.abs(value-row.answer)/(row.max-row.min),delta=scaleDelta(row,err);next.sum+=delta;if(delta<0)next.mistakes++;
+   next.events.push({type:'scale',id:row.id,x,value,err,delta,before,after:next.sum,t:s.elapsed+t,z:row.z});
+  }else if(row.kind==='answer'){
+   const ok=lane+1===row.correct;next.sum+=ok?row.reward:-row.penalty;if(!ok)next.mistakes++;
+   next.events.push({type:'answer',id:row.id,lane,value:row.options[lane+1],ok,before,after:next.sum,t:s.elapsed+t,z:row.z});
   }else if(row.kind==='operation'){
    const operation=row.options[lane+1];next.sum=applyOperation(before,operation,course.mode==='journey'?1e6:9999);
    next.events.push({type:'operation',id:row.id,lane,operation,before,after:next.sum,t:s.elapsed+t,z:row.z});
@@ -100,5 +116,6 @@ export function replay(course,lanes){let sum=course.start;for(let i=0;i<lanes.le
  const row=course.rows[i],lane=lanes[i],route=typeof lane==='string'?row?.routes?.find(r=>r.id===lane):null;
  if(!row||(!route&&![-1,-.5,0,.5,1].includes(lane)))throw Error('Invalid replay');
  if(route)sum+=route.gain;else if(row.kind==='pickups')sum+=row.items.find(item=>item.x===lane)?.value??0;
+ else if(row.kind==='answer')sum+=lane+1===row.correct?row.reward:-row.penalty;
  else if(row.kind==='operation')sum=applyOperation(sum,row.options[lane+1],course.mode==='journey'?1e6:9999);else if(row.kind==='obstacle'){if(!row.jump){if(row.span&&row.penalties[lane+1])return {sum,failedAt:i};sum-=row.penalties[lane+1];}}else if(!meets(sum,row.rules.length===1?row.rules[0]:row.rules[lane+1]))return {sum,failedAt:i};
  }return {sum,failedAt:null};}

@@ -1,4 +1,4 @@
-/* psygames-counting-math-sprint-core · VER 1 · 07.09.2026 */
+/* psygames-counting-math-sprint-core · VER 3 · 07.09.2026 */
 /**
  * Ядро «Спринта» — лестница v2 по ШКОЛЬНОЙ ОСИ (задана Денисом 07.09.2026,
  * counting-chat/PROJECT_REF §R; образец — слайдер v2). Вынесено из экрана

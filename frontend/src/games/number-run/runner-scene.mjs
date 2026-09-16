@@ -1,3 +1,9 @@
+// VER 8 · 2026-09-16 · psygames-search-claude-mac: память в пути — знаки показа плывут над дорогой по одному, в ряду
+// «вспомнить» знаки стоят вместо чисел (подписью, не цифровой геометрией); всплывает знак, а не ±1.
+// VER 7 · 2026-09-16 · psygames-search-claude-mac: шкала поперёк дороги (станция «Мат. шкалы») — прямая с делениями и
+// подписями, ворота с выражением; после проезда — флажок верного ответа. Ряд на арках рисуется теми же арками ответа.
+// VER 6 · 2026-09-16 · psygames-search-claude-mac: станции уровней — арки с ответами и табло примера, числа-части «ровно N»
+// (янтарные) с табло цели и счётчиком над числом, «Страж» — огромное число впереди и одна стена в финале вместо лестницы.
 // VER 5 · 2026-09-16 · psygames-search-claude-mac, на основе VER 4 LOCAL 0.4 (psygames-codex-mac). Построения маршрута VER 4:
 // числа по глубине, широкие стопки, столб, стены операций, большое красное под трамплином. Искры, осколки и всплывающие
 // «+8 / −30» — по событиям ядра, не по своей догадке. Финиш клеткой и финальная лестница стен (render(state,time,finaleT)).
@@ -11,8 +17,11 @@ import {wallsBroken} from './runner-campaign.mjs';
 const BG=0x57c7df, LANE=2.4, FINALE_GAP=5, FINALE_SPEED=12;
 const colors={add:0x86f4cb,subtract:0xffb891,multiply:0xd0acff,skip:0x65829d,gate:0xb8a3ff};
 const WALL={'−':0xff4d6d,'+':0x4f7bff,'×':0x9b6bff},LADDER=[0xffe14d,0xf4e84a,0xdcee52,0xbcf05c,0x98ec69,0x78e27c,0x5dd697,0x4fcab4,0x4cc0d1,0x53b5ea];
+// Финал — лестница из десяти стен или одна стена «Стража» (уровень-босс). Сколько пробито — правило финала, не сцены.
+const finaleWalls=course=>course.finale?.boss!==undefined?[course.finale.boss]:course.finale?.walls??null;
+const finaleBroken=(course,value)=>course.finale?.boss!==undefined?(value>=course.finale.boss?1:0):wallsBroken(course.finale,value);
 export function finaleDistance(course,state){
- const walls=course.finale?.walls;if(!walls)return 0;const broken=wallsBroken(course.finale,state.sum);
+ const walls=finaleWalls(course);if(!walls)return 0;const broken=finaleBroken(course,state.sum);
  return broken===walls.length?FINALE_GAP*walls.length+6:FINALE_GAP*(broken+1)-1.4;
 }
 // Сколько секунд идёт финал: дорога до последней пробитой стены и секунда показать, где остановился.
@@ -41,7 +50,8 @@ export function createScene(container){
   update(text);return {sprite,update};
  }
  const numerals=createNumerals(),hero=new T.Group();let digit=numerals.make('1');hero.add(digit);scene.add(hero);
- let objects=new Map(),lastNumber=null,course,visualScale=1,lastTime=null,compactScale=1,seenEvents=0,finale=null,bump=0;
+ let objects=new Map(),lastNumber=null,course,visualScale=1,lastTime=null,compactScale=1,seenEvents=0,finale=null,bump=0,guard=null,partText='';
+ const GUARD=0x7c3aed,PART=0xd97706;
  // ── Эффекты: пул искр/осколков и шесть всплывающих подписей ─────────────────────────────────────────────
  const SPARKS=280,sparkPosition=new Float32Array(SPARKS*3),sparkColor=new Float32Array(SPARKS*3),sparks=[];let sparkNext=0;
  const sparkGeometry=new T.BufferGeometry();sparkGeometry.setAttribute('position',new T.BufferAttribute(sparkPosition,3));sparkGeometry.setAttribute('color',new T.BufferAttribute(sparkColor,3));
@@ -58,6 +68,7 @@ export function createScene(container){
   sparkGeometry.attributes.position.needsUpdate=true;sparkGeometry.attributes.color.needsUpdate=true;
  }
  const popups=Array.from({length:6},()=>{const l=label('',{w:1.7,h:.85,font:140});l.sprite.visible=false;scene.add(l.sprite);return {...l,life:0};});
+ const counter=label(' ',{background:'#78350f',w:1.9,h:.8,font:120});counter.sprite.visible=false;scene.add(counter.sprite);
  function popup(text,ink,x){const p=popups.reduce((a,b)=>a.life<=b.life?a:b);p.update(text,ink);p.life=.8;p.sprite.visible=true;p.sprite.position.set(x,2.2,0);}
  function stepPopups(dt){for(const p of popups){if(p.life<=0)continue;p.life-=dt;p.sprite.position.y+=dt*1.6;p.sprite.material.opacity=Math.max(0,Math.min(1,p.life/.3));if(p.life<=0)p.sprite.visible=false;}}
  function dispose(group){group.traverse(o=>{if(o.geometry&&!o.geometry.userData.shared)o.geometry.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])if(!m.userData.shared){m.map?.dispose();m.dispose();}});scene.remove(group);}
@@ -73,12 +84,41 @@ export function createScene(container){
     if(row.terrain==='bridge')for(let z=.3;z<span;z+=.65){const plank=box(2.2,.035,.38,0xc3a780);plank.position.set((i-1)*LANE,-.02,z);root.add(plank);}
     }
    }
-   if(row.kind==='pickups')row.items.forEach((item,index)=>{
-    const mesh=numerals.make(item.value<0?`−${Math.abs(item.value)}`:item.value,item.value<0?0xff1839:0x443bff),half=item.half??.18;
+   if(row.kind==='pickups'&&row.show)row.show.symbols.forEach((symbol,i)=>{
+    // Знак показа: не собирается и не сталкивается — висит над дорогой, пока ряд впереди.
+    const tag=label(symbol,{background:'#0f766e',w:1.7,h:1.7,font:190});tag.sprite.position.set(0,2.7,-row.show.dzs[i]);group.add(tag.sprite);
+   });
+   if(row.kind==='pickups'&&row.recall)row.items.forEach((item,index)=>{
+    const tag=label(item.symbol,{background:'#134e4a',w:1.35,h:1.35,font:180});tag.sprite.position.set(item.x*LANE,.85,-(item.dz??0));tag.sprite.userData.pickupIndex=index;group.add(tag.sprite);
+   });
+   else if(row.kind==='pickups')row.items.forEach((item,index)=>{
+    const mesh=numerals.make(item.value<0?`−${Math.abs(item.value)}`:item.value,item.part?PART:item.value<0?0xff1839:0x443bff),half=item.half??.18;
     // Ширина числа — по его логической ширине: стопка в полдороги, большое красное через всю дорогу.
     const scale=half>=1?Math.min(2.7,5.6/mesh.userData.width):half>=.5?Math.min(1.2,1.6/mesh.userData.width):Math.min(.98,1.03/mesh.userData.width);
     mesh.scale.setScalar(scale);mesh.position.set(item.x*LANE,.08,-(item.dz??0));mesh.userData.pickupIndex=index;group.add(mesh);
    });
+   else if(row.kind==='answer'){row.options.forEach((value,index)=>{
+    // Арка ответа: въезд в неё и есть ответ. Пример — на табло над тремя арками (и строкой задания на экране).
+    const lane=new T.Group();lane.position.x=(index-1)*LANE;lane.userData.answerLane=index-1;
+    for(const x of [-1.05,1.05]){const post=box(.14,2.6,.14,0x3b82f6);post.position.set(x,1.3,0);lane.add(post);}
+    const cross=box(2.24,.16,.16,0x3b82f6);cross.position.y=2.55;lane.add(cross);
+    const tag=label(String(value).replace('-','−'),{background:'#1e3a8a',w:1.9,h:.95,font:130});tag.sprite.position.set(0,1.7,0);lane.add(tag.sprite);
+    group.add(lane);
+   });
+    const board=label(row.prompt,{background:'#0f172a',w:7,h:1.45,font:112});board.sprite.position.set(0,3.6,0);group.add(board.sprite);
+   }
+   else if(row.kind==='scale'){
+    // Прямая через всю дорогу: x = −1…1 ↔ min…max. Подписи — у каждого деления, если их до шести, иначе через одно.
+    const toX=v=>((v-row.min)/(row.max-row.min)*2-1)*LANE,bar=box(2*LANE+.5,.07,.26,0xe0e7ff);bar.position.set(0,.06,0);group.add(bar);
+    const every=row.ticks.length<=6?1:2,num=v=>String(Math.round(v*10)/10).replace('-','−');
+    row.ticks.forEach((v,i)=>{const tick=box(.06,.03,.62,0x312e81);tick.position.set(toX(v),.1,0);group.add(tick);
+     if(i%every===0||i===row.ticks.length-1){const tag=label(num(v),{background:'#312e81',w:1.25,h:.62,font:120});tag.sprite.position.set(toX(v),.75,.2);group.add(tag.sprite);}});
+    for(const x of [-(LANE+.35),LANE+.35]){const post=box(.16,3.2,.16,0x6366f1);post.position.set(x,1.6,0);group.add(post);}
+    const cross=box(2*LANE+.86,.16,.16,0x6366f1);cross.position.y=3.15;group.add(cross);
+    const board=label(row.prompt,{background:'#1e1b4b',w:7,h:1.45,font:112});board.sprite.position.set(0,3.85,0);group.add(board.sprite);
+    // Флажок верного ответа — в корне ряда: ворота после проезда гаснут, а флажок остаётся показать, где было надо.
+    const flag=box(.12,1.6,.12,0x22c55e);flag.position.set(toX(row.answer),.8,.05);flag.visible=false;flag.userData.answerFlag=true;root.add(flag);
+   }
    else if(row.kind==='operation'&&course.mode==='journey')row.options.forEach((operation,index)=>{
     // Стена во всю полосу: цвет — знак операции, надпись — сама операция. Проезд разбивает только твою.
     const lane=new T.Group();lane.position.x=(index-1)*LANE;lane.userData.wallLane=index-1;
@@ -120,6 +160,7 @@ export function createScene(container){
      const tag=label(ruleText(row.rules[i]),{background:'#665399',w:split?2.24:3.35,h:split?1.18:1.3,font:105});tag.sprite.position.set(middle,2.25,0);group.add(tag.sprite);
     }
    }
+   if(row.exact&&!row.recall){const board=label(`= ${row.exact.target}`,{background:'#78350f',color:'#fef3c7',w:3.4,h:1.3,font:150});board.sprite.position.set(0,2.4,21);root.add(board.sprite);}
    if(row.divider){
     // Столб делит дорогу на время стопок: сторона выбрана там, где он начинается.
     const d=row.divider,length=d.toDz-d.fromDz,z=-(d.fromDz+d.toDz)/2;
@@ -135,11 +176,11 @@ export function createScene(container){
    scene.add(root);return {row,group:root,items:group};
  }
  function buildFinale(){
-  const root=new T.Group(),walls=course.finale.walls,total=FINALE_GAP*(walls.length+1)+40;
+  const root=new T.Group(),walls=finaleWalls(course),boss=course.finale.boss!==undefined,total=FINALE_GAP*(walls.length+1)+40;
   const deck=box(7.2,.55,total,0xeef1f7);deck.position.set(0,-.32,-total/2);deck.receiveShadow=true;root.add(deck);
   const slabs=walls.map((value,i)=>{const g=new T.Group();g.position.z=-FINALE_GAP*(i+1);
-   const slab=box(7.1,2.3,.8,LADDER[i%LADDER.length]);slab.position.y=1.15;slab.castShadow=true;g.add(slab);
-   const tag=label(String(value),{w:3.8,h:1.9,font:170});tag.sprite.position.set(0,1.25,.48);g.add(tag.sprite);
+   const slab=box(7.1,boss?3.4:2.3,boss?1.2:.8,boss?GUARD:LADDER[i%LADDER.length]);slab.position.y=boss?1.7:1.15;slab.castShadow=true;g.add(slab);
+   const tag=label(String(value),{w:boss?4.8:3.8,h:boss?2.4:1.9,font:170});tag.sprite.position.set(0,boss?1.8:1.25,boss?.68:.48);g.add(tag.sprite);
    root.add(g);return g;});
   scene.add(root);return {root,slabs,broken:0};
  }
@@ -152,7 +193,13 @@ export function createScene(container){
  function load(nextCourse){
   objects.forEach(({group})=>dispose(group));objects.clear();if(finale){dispose(finale.root);finale=null;}
   course=nextCourse;lastNumber=null;visualScale=numberScale(course.start);lastTime=null;seenEvents=0;bump=0;syncRows(0);
-  renderer.domElement.dataset.seed=String(course.seed);
+  renderer.domElement.dataset.seed=String(course.seed);renderer.domElement.dataset.level=String(course.levelId);
+  if(guard){dispose(guard);guard=null;}
+  // «Страж» виден весь уровень: огромное число над горизонтом — столько нужно набрать к финишу.
+  if(course.finale?.boss!==undefined){guard=numerals.make(course.finale.boss,GUARD);guard.scale.setScalar(Math.min(2.6,7/guard.userData.width));guard.position.set(0,3.2,-52);
+   // Страж далеко, в тумане он белел до нечитаемого: своим материалам туман выключен (общие цифры не трогаем).
+   guard.traverse(o=>{if(o.isMesh)o.material=(Array.isArray(o.material)?o.material:[o.material]).map(m=>{const c=m.clone();c.fog=false;c.userData.shared=false;return c;});});
+   scene.add(guard);}
  }
  const observer=new ResizeObserver(()=>{
   const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;
@@ -164,7 +211,15 @@ export function createScene(container){
  function react(state,reduced){
   if(state.events.length<seenEvents)seenEvents=0;
   for(const e of state.events.slice(seenEvents)){
-   if(e.type==='pickup'){const good=e.value>0;popup(`${good?'+':'−'}${Math.abs(e.value)}`,good?'#dfe6ff':'#ffd6dc',state.x*LANE);if(!reduced)burst(state.x*LANE,.9+jumpHeight(state),0,good?0x5b6cff:0xff2d55,good?6:12,{spread:2.4,lift:3.2});}
+   if(e.type==='pickup'&&e.part&&course.rows[e.id]?.recall){const it=course.rows[e.id].items[e.item];popup(it.symbol,it.value>0?'#bbf7d0':'#ffd6dc',state.x*LANE);if(!reduced)burst(state.x*LANE,.9,0,it.value>0?0x14b8a6:0xff2d55,8,{spread:2.4,lift:3.2});}
+   else if(e.type==='pickup'&&e.part){popup(String(e.value),'#fde68a',state.x*LANE);if(!reduced)burst(state.x*LANE,.9,0,PART,6,{spread:2.4,lift:3.2});}
+   else if(e.type==='pickup'){const good=e.value>0;popup(`${good?'+':'−'}${Math.abs(e.value)}`,good?'#dfe6ff':'#ffd6dc',state.x*LANE);if(!reduced)burst(state.x*LANE,.9+jumpHeight(state),0,good?0x5b6cff:0xff2d55,good?6:12,{spread:2.4,lift:3.2});}
+   else if(e.type==='answer'){const o=objects.get(e.id);if(o)for(const lane of o.items.children)if(lane.userData.answerLane===e.lane)lane.visible=false;
+    popup(`${e.ok?'✓ +':'✗ −'}${Math.abs(e.after-e.before)}`,e.ok?'#bbf7d0':'#ffd6dc',e.lane*LANE);if(!reduced)burst(e.lane*LANE,1.4,0,e.ok?0x22c55e:0xff2d55,26,{spread:4,lift:5,drift:6});}
+   else if(e.type==='scale'){const o=objects.get(e.id);if(o)o.group.traverse(m=>{if(m.userData.answerFlag)m.visible=true;});
+    const text=e.delta>0?`✓ +${e.delta}`:e.delta<0?`✗ −${-e.delta}`:'≈ 0';popup(text,e.delta>0?'#bbf7d0':e.delta<0?'#ffd6dc':'#e0e7ff',e.x*LANE);
+    if(!reduced)burst(e.x*LANE,1,0,e.delta>0?0x22c55e:e.delta<0?0xff2d55:0x818cf8,24,{spread:4,lift:5,drift:6});}
+   else if(e.type==='pickups'&&e.exact){const ok=e.exact.delta>0;popup(`${ok?'✓ +':'≠ −'}${Math.abs(e.exact.delta)}`,ok?'#bbf7d0':'#ffd6dc',state.x*LANE);if(!reduced)burst(state.x*LANE,1.2,0,ok?0x22c55e:0xff2d55,ok?30:16,{spread:4,lift:5});}
    else if(e.type==='operation'){const o=objects.get(e.id);if(o)for(const lane of o.items.children)if(lane.userData.wallLane===e.lane)lane.visible=false;
     popup(`${e.operation}`,e.operation[0]==='−'?'#ffd6dc':'#dfe6ff',e.lane*LANE);if(!reduced)burst(e.lane*LANE,1,0,WALL[e.operation[0]]??WALL['×'],26,{spread:4,lift:5,drift:6});}
    else if(e.type==='obstacle'&&e.damage>0){popup(`−${e.damage}`,'#ffd6dc',e.lane*LANE);if(!reduced)burst(e.lane*LANE,.8,0,0xa63c51,26,{spread:4,lift:4.5,drift:6});}
@@ -191,10 +246,20 @@ export function createScene(container){
   objects.forEach(({row,group,items})=>{group.position.z=view-row.z;group.visible=row.z-view<90;items.visible=row.id>=state.nextRow||row.kind==='operation'&&course.mode==='journey';
    if(row.kind==='pickups')for(const item of items.children)item.visible=row.id!==state.nextRow||!state.collected.includes(item.userData.pickupIndex);
   });
+  // Над числом — сколько частей уже взято в воротах «ровно N», пока их ряд впереди.
+  const exactRow=course.rows[state.nextRow]?.exact?course.rows[state.nextRow]:null;
+  const got=exactRow?state.collected.reduce((a,i)=>a+(exactRow.items[i].part?exactRow.items[i].value:0),0):0,text=exactRow&&state.collected.length?`${got} / ${exactRow.exact.target}`:'';
+  if(text!==partText){partText=text;counter.update(text||' ','#fef3c7');counter.sprite.visible=!!text;}
+  counter.sprite.position.set(hero.position.x,2.9+hero.position.y,0);
+  // Высота стража — ниже строки задания экрана (кадр живого L6 16.09: на y 5,4 число пряталось под ней наполовину).
+  // Пока впереди станция (те же 70 единиц, что у строки задания экрана), страж прячется: крупная строка станции
+  // ложилась на его число (кадр живого L12 16.09: «Собери ровно 15» поверх «755»).
+  const stationAhead=course.rows.slice(state.nextRow,state.nextRow+3).some(r=>(r.station||r.exact)&&r.z-view<=70);
+  if(guard){guard.visible=course.length-view>=100&&!won&&!stationAhead;guard.position.y=3.2+(!reduced?Math.sin(time*.0015)*.2:0);}
   if(course.finale&&!finale&&course.length-view<100)finale=buildFinale();
   if(finale){finale.root.position.z=view-course.length;
-   const broken=won?wallsBroken(course.finale,state.sum):0;
-   finale.slabs.forEach((slab,i)=>{if(slab.visible&&i<broken&&along>=FINALE_GAP*(i+1)-.9){slab.visible=false;finale.broken=i+1;if(!reduced)burst(0,1.2,-.6,LADDER[i%LADDER.length],30,{spread:5,lift:6,drift:FINALE_SPEED});}});
+   const broken=won?finaleBroken(course,state.sum):0;
+   finale.slabs.forEach((slab,i)=>{if(slab.visible&&i<broken&&along>=FINALE_GAP*(i+1)-.9){slab.visible=false;finale.broken=i+1;if(!reduced)burst(0,1.2,-.6,course.finale.boss!==undefined?GUARD:LADDER[i%LADDER.length],course.finale.boss!==undefined?60:30,{spread:5,lift:6,drift:FINALE_SPEED});}});
    if(won&&broken<finale.slabs.length&&along>=finaleDistance(course,state)&&bump===0)bump=.001;
    renderer.domElement.dataset.finaleBroken=String(finale.broken);
   }

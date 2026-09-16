@@ -1,6 +1,11 @@
-/* psygames-number-run-adapter · VER 2 · 16.09.2026 */
+/* psygames-number-run-adapter · VER 3 · 16.09.2026 */
 /**
  * ЧИСЛОВОЙ ЗАБЕГ — ВЕБ-АДАПТЕР ЯДРА ЛАБОРАТОРИИ К КАРКАСУ ПРИЛОЖЕНИЯ.
+ *
+ * VER 3 (16.09.2026): режим уровней — `уровень` не null строит уровень `runner-level.mjs` со станциями
+ * хаба «Счёт»; задачи станций — генераторы самих упражнений (`mathSprintCore`, `numberBondsLadder`),
+ * своей арифметики адаптер не считает. Итог несёт «пройден»: у уровня — ≥ 5 стен или страж побеждён.
+ * Наружу уходит ближайшая станция (пример арки, цель ворот) — экран пишет её строкой задания.
  *
  * VER 2 (16.09.2026, psygames-search-claude-mac): маршрут VER 4 кончается финальной
  * лестницей стен. Итог отдаётся не на черте 12-го этапа, а когда финал доиграл, и
@@ -43,7 +48,18 @@ export interface ПоказателиЗабега {
   этапов: number;
   столкновений: number;
   секунд: number;
+  /** Неверные ответы станций: арка не та, ворота «ровно N» не сошлись. */
+  промахов: number;
+  /** Ближайшая станция впереди — для строки задания; null, пока станции не видно. */
+  станция: СтанцияВпереди | null;
 }
+
+/** Что показать строкой задания: пример блиц-арки или цель ворот «ровно N». */
+export type СтанцияВпереди =
+  | { вид: 'blitz' | 'pattern' | 'scale'; пример: string }
+  | { вид: 'exact'; цель: number }
+  | { вид: 'memorize' }
+  | { вид: 'recall' };
 
 /** Итог всей партии. Одна запись на ЗАБЕГ, а не на этап (контракт адаптера). */
 export interface ИтогЗабега {
@@ -57,11 +73,24 @@ export interface ИтогЗабега {
   стен: number;
   /** Сколько стен в лестнице этого маршрута (верхняя — число эталонного пути). */
   стенВсего: number;
+  /** Засчитан ли проход: уровень — ≥ 5 стен или страж; марафон — дошёл до конца. */
+  пройден: boolean;
+  /** Номер уровня; null — марафон. */
+  уровень: number | null;
+  /** Число стража на уровне-боссе; null — не босс. */
+  страж: number | null;
+  промахов: number;
 }
 
 interface Props {
   /** Зерно маршрута. Одно и то же зерно даёт тот же забег. */
   зерно: number;
+  /** Номер уровня; null — марафон на 12 этапов. */
+  уровень: number | null;
+  /** Уровень-босс (веха `isBossLevel`): финал — страж вместо лестницы стен. */
+  босс: boolean;
+  /** Язык записи выражений шкалы (десятичная запятая или точка) — как в самой «Мат. шкале». */
+  язык: 'ru' | 'en';
   /** Ручная пауза каркаса. Ядро останавливается СИНХРОННО, а не прикрывается окном. */
   пауза: boolean;
   onПоказатели: (п: ПоказателиЗабега) => void;
@@ -73,6 +102,7 @@ interface Props {
 type Ядро = typeof import('./runner-core.mjs');
 type Кампания = typeof import('./runner-campaign.mjs');
 type Сцена = typeof import('./runner-scene.mjs');
+type Уровни = typeof import('./runner-level.mjs');
 
 /**
  * Руль наружу — для трёх кнопок нижней полосы. Кнопки принадлежат route (они
@@ -85,7 +115,7 @@ export interface РульЗабега {
 }
 
 const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRunGame(
-  { зерно, пауза, onПоказатели, onИтог, фон, цветТекста }: Props, ref) {
+  { зерно, уровень, босс, язык, пауза, onПоказатели, onИтог, фон, цветТекста }: Props, ref) {
   const контейнер = useRef<View | null>(null);
   const rafRef = useRef<number | null>(null);
   const состояние = useRef<any>(null);
@@ -93,6 +123,7 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
   const сцена = useRef<any>(null);
   const ядро = useRef<Ядро | null>(null);
   const кампания = useRef<Кампания | null>(null);
+  const уровни = useRef<Уровни | null>(null);
   /** Секунды финала: копятся только при идущем кадре без паузы — это часы лестницы стен. */
   const финалСекунд = useRef(0);
   /** Пауза для кадрового цикла: сам цикл замкнут на первый рендер и проп не видит. */
@@ -126,8 +157,10 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
       этапов: этаповВсего.current,
       столкновений: s.hits ?? 0,
       секунд: Math.round(s.elapsed ?? 0),
+      промахов: s.mistakes ?? 0,
+      станция: станцияВпереди(маршрут.current, s),
     };
-    const ключ = `${п.число}|${п.этап}|${п.столкновений}|${п.секунд}`;
+    const ключ = `${п.число}|${п.этап}|${п.столкновений}|${п.секунд}|${п.промахов}|${JSON.stringify(п.станция)}`;
     if (ключ === прошлыеПоказатели.current) return;
     прошлыеПоказатели.current = ключ;
     onПоказатели(п);
@@ -145,16 +178,48 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
          * каждом экране приложения нельзя: импорт стоит ЗДЕСЬ, внутри эффекта
          * игрового экрана, а не в начале модуля и не в реестре игр.
          */
-        const [c, k, sc] = await Promise.all([
+        const [c, k, sc, lv, спринт, состав, ряды, шкала, ospan] = await Promise.all([
           import('./runner-core.mjs') as Promise<Ядро>,
           import('./runner-campaign.mjs') as Promise<Кампания>,
           import('./runner-scene.mjs') as Promise<Сцена>,
+          import('./runner-level.mjs') as Promise<Уровни>,
+          import('../counting/mathSprintCore'),
+          import('../counting/numberBondsLadder'),
+          import('../counting/patternSequences'),
+          import('../math-slider/core'),
+          import('../counting/ospanLadder'),
         ]);
         if (!живо) return;
         ядро.current = c;
         кампания.current = k;
-        этаповВсего.current = Number(k.STAGE_COUNT) || 12;
-        маршрут.current = k.makeCampaign(зерно);
+        уровни.current = lv;
+        /**
+         * 🔴 ЗАДАЧИ СТАНЦИЙ — ГЕНЕРАТОРЫ САМИХ УПРАЖНЕНИЙ. Блиц-арка берёт пример у
+         * «Мат. спринта», ворота «ровно N» — задачу у «Состава числа», каждое по своей
+         * лестнице. Вторая арифметика в раннере разошлась бы с упражнениями молча.
+         */
+        маршрут.current = уровень !== null
+          ? lv.makeLevel(уровень, зерно, {
+            blitz: (L: number, rnd: () => number) => спринт.generateSprintProblem(L, rnd),
+            exact: (L: number, rnd: () => number) => состав.makePuzzle(состав.levelParams(L), rnd),
+            pattern: (L: number, rnd: () => number) => {
+              const ряд = ряды.makeSequence(L, rnd);
+              return { ...ряд, options: ряды.makeOptions(ряд.answer, 3, rnd) };
+            },
+            /**
+             * Вопрос «Мат. шкалы» её же генератором. Зерно у неё строковое — берём его из генератора
+             * уровня, чтобы уровень повторялся по зерну. Выше 52-го у шкалы фигуры-интегралы: на
+             * табло над дорогой их не нарисовать, поэтому потолок станции — 52.
+             */
+            scale: (L: number, rnd: () => number) => {
+              const q = шкала.generateMathSliderQuestions(`run-${Math.floor(rnd() * 1e9)}`, Math.min(52, L), 1)[0];
+              return { prompt: шкала.formatExpression(q.expression, язык), min: q.scale.min, max: q.scale.max, answer: q.answer, ticks: q.scale.ticks };
+            },
+            /** Сколько знаков держать — лестница OSpan (`setSize`); сами знаки выбирает уровень. */
+            memory: (L: number) => ospan.levelParams(L),
+          }, { boss: босс })
+          : k.makeCampaign(зерно);
+        этаповВсего.current = уровень !== null ? 1 : Number(k.STAGE_COUNT) || 12;
         состояние.current = c.initial(маршрут.current);
 
         const узел = контейнер.current as unknown as HTMLElement | null;
@@ -189,8 +254,8 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
       try { сцена.current?.destroy?.(); } catch { /* сцена могла не создаться */ }
       сцена.current = null;
     };
-    // зерно меняется только при новой партии — экран пересоздаётся целиком
-  }, [зерно]);   // eslint-disable-line react-hooks/exhaustive-deps
+    // зерно меняется при каждой новой партии — экран пересоздаётся целиком
+  }, [зерно, уровень, босс, язык]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── ручная пауза каркаса: ядро СИНХРОННО, а не окном поверх ────────────── */
   useEffect(() => {
@@ -209,11 +274,16 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
   const завершить = useCallback((причина: ИтогЗабега['причина']) => {
     if (итогОтдан.current) return;
     итогОтдан.current = true;
-    const s = состояние.current, лестница = маршрут.current?.finale;
+    const s = состояние.current, м = маршрут.current, лестница = м?.finale, дошёл = s?.status === 'won';
+    const страж: number | null = лестница?.boss ?? null;
     onИтог({
-      победа: s?.status === 'won',
-      стен: s?.status === 'won' && лестница && кампания.current ? кампания.current.wallsBroken(лестница, s.sum) : 0,
-      стенВсего: лестница?.walls?.length ?? 0,
+      победа: дошёл,
+      стен: !дошёл || !лестница ? 0 : страж !== null ? (s.sum >= страж ? 1 : 0) : кампания.current ? кампания.current.wallsBroken(лестница, s.sum) : 0,
+      стенВсего: страж !== null ? 1 : лестница?.walls?.length ?? 0,
+      пройден: дошёл && (м?.format === 'level' ? !!уровни.current?.levelPassed(м, s.sum) : true),
+      уровень: м?.format === 'level' ? м.levelId : null,
+      страж,
+      промахов: s?.mistakes ?? 0,
       число: Math.round(s?.sum ?? 0),
       этаповПройдено: s?.clearedStages ?? 0,
       столкновений: s?.hits ?? 0,
@@ -323,3 +393,23 @@ const styles = StyleSheet.create({
   середина: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   сообщение: { fontSize: 15, fontWeight: '600', textAlign: 'center', paddingHorizontal: 24 },
 });
+
+/**
+ * Ближайшая станция впереди: ряд со станцией в пределах 70 единиц дороги (≈ 9 с при
+ * скорости 8), который ещё не пройден. Пример видно на табло сцены, но мелко и под
+ * углом; строка задания даёт его крупно и ровно — считать надо успеть до арок.
+ */
+function станцияВпереди(маршрут: any, s: any): СтанцияВпереди | null {
+  const rows = маршрут?.rows;
+  if (!rows) return null;
+  for (let i = s.nextRow; i < Math.min(rows.length, s.nextRow + 3); i++) {
+    const r = rows[i];
+    if (r.z - s.z > 70) return null;
+    if (r.show) return { вид: 'memorize' };
+    if (r.recall) return { вид: 'recall' };
+    if (r.kind === 'answer') return { вид: r.station === 'pattern' ? 'pattern' : 'blitz', пример: String(r.prompt) };
+    if (r.kind === 'scale') return { вид: 'scale', пример: String(r.prompt) };
+    if (r.exact) return { вид: 'exact', цель: r.exact.target };
+  }
+  return null;
+}
