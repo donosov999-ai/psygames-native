@@ -387,6 +387,7 @@ export default function PuzzlesScreen() {
         <LevelCleared
           gameId="puzzles"
           level={уровеньПартии}
+          maxLevel={ступеней}
           passed={прошёл}
           stars={сдался ? 1 : ходов <= ступеней * 12 ? 3 : 2}
           gradient={GRADIENT}

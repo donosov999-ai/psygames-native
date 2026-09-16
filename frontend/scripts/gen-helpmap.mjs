@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), '..', 'src');
 const CATALOG = join(SRC, 'constants', 'games.ts');
-const ИМЕНА_ТЭТХЭМА = join(SRC, 'games', 'tatham-bridge', 'names.ts');
+const ОТПЕЧАТОК_ТЭТХЭМА = join(SRC, '__tests__', 'tatham-tables.generated.json');
 const DICT = join(SRC, 'contexts', 'LanguageContext.tsx');
 const OUT = join(SRC, 'constants', 'helpMap.ts');
 
@@ -68,24 +68,25 @@ const games = catalog(readFileSync(CATALOG, 'utf8'));
  * переведено на все языки и говорит хотя бы про ЭТУ игру, а не про соседнюю.
  */
 function режимыТэтхэма() {
-  const src = readFileSync(ИМЕНА_ТЭТХЭМА, 'utf8');
-  const кусок = (имя) => {
-    const i = src.indexOf(`export const ${имя}`);
-    return i < 0 ? '' : src.slice(i, src.indexOf('};', i));
-  };
-  /* ⚠️ Ключ бывает и в кавычках, и без них: `Net: 'puzzlesNet'`, но
-     `'Light Up': 'puzzlesLightUp'` — многословные обязаны быть в кавычках.
-     Первая редакция читала только закавыченные и нашла 4 режима из 42;
-     карта вышла на четыре строки, и это выглядело как «почти всё готово». */
-  const пары = (имя) => Object.fromEntries(
-    [...кусок(имя).matchAll(/(?:'([^']+)'|([A-Za-z][A-Za-z0-9_]*))\s*:\s*'([^']+)'/g)]
-      .map((m) => [m[1] ?? m[2], m[3]]),
-  );
-  const имена = пары('КЛЮЧ_ИМЕНИ');
-  /* КЛЮЧ_ОПИСАНИЯ собирается из КЛЮЧ_ИМЕНИ по правилу «имя + Desc» — повторяем его,
-     а не разбираем выражение: разбор сломался бы на первой же правке формулы. */
-  const поумолчанию = (src.match(/ПО_УМОЛЧАНИЮ = '([^']+)'/) || [])[1] || 'Unruly';
-  return { имена, поумолчанию };
+  /**
+   * 🔴 РЕЖИМЫ БЕРУТСЯ ИЗ ОТПЕЧАТКА ТАБЛИЦ, А НЕ РАЗБОРОМ names.ts (17.09.2026).
+   *
+   * Прежняя редакция искала литерал `export const КЛЮЧ_ИМЕНИ = {…}`. После раскладки режимов
+   * по разделам (`sections/*.ts`) в names.ts стоит `Object.fromEntries(...)`, и разбор находил
+   * НОЛЬ режимов: запуск генератора молча выбрасывал из карты все 42 строки
+   * `/games/puzzles?mode=` (−212 строк, замер раздела «Поиск», задача 6c28a36d).
+   * Отпечаток `src/__tests__/tatham-tables.generated.json` держит проба
+   * `tatham-tables-snapshot` вровень с names.ts — это готовые данные, а не текст кода.
+   *
+   * ⚠️ Пустой список — ОШИБКА, а не «режимов нет»: иначе карта снова тихо потеряет справки.
+   */
+  const отпечаток = JSON.parse(readFileSync(ОТПЕЧАТОК_ТЭТХЭМА, 'utf8'));
+  const имена = отпечаток.ключИмени ?? {};
+  const n = Object.keys(имена).length;
+  if (n < 40) {
+    throw new Error(`gen-helpmap: в отпечатке ${n} режимов головоломок — ждали не меньше 40. Карту не пишу.`);
+  }
+  return { имена, поумолчанию: отпечаток.поУмолчанию || 'Unruly' };
 }
 const { имена: ИМЯ_РЕЖИМА, поумолчанию: РЕЖИМ_ПО_УМОЛЧАНИЮ } = режимыТэтхэма();
 
