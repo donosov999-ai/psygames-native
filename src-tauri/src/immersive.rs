@@ -1,4 +1,4 @@
-// psygames-immersive-native · VER 1 · 16.09.2026
+// psygames-immersive-native · VER 2 · 16.09.2026
 //! Полноэкранный режим игры: убрать системные полосы телефона на время партии.
 //!
 //! 🔴 ЗАЧЕМ. Денис 16.09.2026, про «Числовой забег»: «надо добавить и продумать
@@ -36,7 +36,14 @@ pub fn set_immersive(webview_window: tauri::WebviewWindow, on: bool) -> Result<(
                 #[cfg(target_os = "android")]
                 w.jni_handle().exec(move |env, activity, _webview| {
                     // Ошибку JNI наружу не несём: полосы — удобство, а не условие игры.
-                    let _ = android::apply(env, activity, on);
+                    // ⚠️ Но исключение Java обязано быть СНЯТО: оставшееся висеть в этом
+                    // потоке роняет следующий же вызов JNI самого wry, и вместо «полосы не
+                    // спрятались» получаем падение приложения.
+                    if android::apply(env, activity, on).is_err() {
+                        if env.exception_check().unwrap_or(false) {
+                            let _ = env.exception_clear();
+                        }
+                    }
                 });
             })
             .map_err(|e| e.to_string())?;
@@ -50,8 +57,8 @@ pub fn set_immersive(webview_window: tauri::WebviewWindow, on: bool) -> Result<(
 
 #[cfg(target_os = "ios")]
 mod ios {
-    use objc2::msg_send;
-    use objc2::runtime::{AnyObject, Bool};
+    use objc2::runtime::{AnyObject, Bool, Sel};
+    use objc2::{msg_send, sel};
 
     /// `UIRectEdgeBottom`. Откладываем только нижний край: свайп сверху — шторка
     /// уведомлений, её человек ждёт мгновенно и игре она не мешает.
@@ -62,15 +69,31 @@ mod ios {
     /// зовут `setNeedsStatusBarAppearanceUpdate` / `setNeedsUpdateOf…`. UIKit спрашивает
     /// контроллер, потому что `UIViewControllerBasedStatusBarAppearance` в Info.plist
     /// не задан — по умолчанию это YES.
+    ///
+    /// 🔴 КАЖДЫЙ СЕЛЕКТОР СПРАШИВАЕМ `respondsToSelector:` ДО ОТПРАВКИ. Сообщение, которого
+    /// класс не знает, — исключение Objective-C, а сборка выпуска собрана с `panic = "abort"`:
+    /// приложение закрылось бы на старте забега. Если контроллер окажется не tao
+    /// (другая версия Tauri), полосы просто останутся на месте.
     pub unsafe fn apply(view_controller: *mut std::ffi::c_void, on: bool) {
         let vc = view_controller as *mut AnyObject;
         if vc.is_null() {
             return;
         }
-        let _: () = msg_send![vc, setPrefersStatusBarHidden: Bool::new(on)];
-        let _: () = msg_send![vc, setPrefersHomeIndicatorAutoHidden: Bool::new(on)];
-        let edges: usize = if on { UI_RECT_EDGE_BOTTOM } else { 0 };
-        let _: () = msg_send![vc, setPreferredScreenEdgesDeferringSystemGestures: edges];
+        if умеет(vc, sel!(setPrefersStatusBarHidden:)) {
+            let _: () = msg_send![vc, setPrefersStatusBarHidden: Bool::new(on)];
+        }
+        if умеет(vc, sel!(setPrefersHomeIndicatorAutoHidden:)) {
+            let _: () = msg_send![vc, setPrefersHomeIndicatorAutoHidden: Bool::new(on)];
+        }
+        if умеет(vc, sel!(setPreferredScreenEdgesDeferringSystemGestures:)) {
+            let edges: usize = if on { UI_RECT_EDGE_BOTTOM } else { 0 };
+            let _: () = msg_send![vc, setPreferredScreenEdgesDeferringSystemGestures: edges];
+        }
+    }
+
+    unsafe fn умеет(vc: *mut AnyObject, selector: Sel) -> bool {
+        let ответ: Bool = msg_send![vc, respondsToSelector: selector];
+        ответ.as_bool()
     }
 }
 
