@@ -1,5 +1,5 @@
 /* psygames-game-picture-pairs · VER 1 · 19.08.2026 */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
   ScrollView, Image
@@ -209,8 +209,13 @@ export default function PicturePairsGame() {
 
   // Живые значения для эффекта правила: он срабатывает по открытию карточки, и через
   // замыкание видел бы ходы и время на момент своей записи, а не на момент события.
-  const movesRef = useRef(0); movesRef.current = moves;
-  const elapsedRef = useRef(0); elapsedRef.current = elapsedTime;
+  // ⚠️ Пишутся ПОСЛЕ коммита, а не в теле компонента: запись в ref во время рендера —
+  // ошибка `react-hooks/refs` (две штуки держали храповик линта красным на метке
+  // 2.54.13). Слой-эффект срабатывает раньше обычного эффекта ниже, так что тот
+  // читает уже свежие ходы и время — как в `WarmupContext` со `stateRef`.
+  const movesRef = useRef(0);
+  const elapsedRef = useRef(0);
+  useLayoutEffect(() => { movesRef.current = moves; elapsedRef.current = elapsedTime; }, [moves, elapsedTime]);
   const правилоОткрывалосьRef = useRef(false);
   useEffect(() => {
     if (levelRules.open) {
