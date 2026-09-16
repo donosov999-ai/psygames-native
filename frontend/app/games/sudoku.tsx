@@ -1,5 +1,5 @@
 /* psygames-game-sudoku · VER 14 · 09.09.2026 */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -225,8 +225,17 @@ function exampleCaption(variant: Variant | 'killer', lang: string): string {
   return translateFor(lang, 'sudokuEx_' + variant);
 }
 
-function RulesHelpModal({ visible, variant, killer, N, colors, language, onClose }: {
+export function RulesHelpModal({ visible, variant, killer, N, colors, language, onClose, help }: {
   visible: boolean; variant: Variant; killer: boolean; N: number; colors: any; language: string; onClose: () => void;
+  /**
+   * 🔴 ТА ЖЕ СПРАВКА УРОВНЯ, ЧТО У КНОПКИ «СПРАВКА» В УГЛУ. Замер 17.09.2026, 390×844, уровень 1:
+   * угловая кнопка добавляла на экран 2052 знака (правило, «Чем берётся эта доска», «На этом
+   * уровне»), а «Правила» из меню паузы и чип «правила ⓘ» — 103 знака, одну строку правила.
+   * Человек, который ищет помощь в паузе, получал однострочник. Теперь все двери показывают
+   * одно содержание; пример на мини-сетке остаётся — это собственная ценность этого окна.
+   * Нет справки (экран настройки, партия не идёт) — прежний вид: правило варианта.
+   */
+  help?: { title: string; body: string } | null;
 }) {
   if (!visible) return null;
   const grid = exampleGrid(variant);
@@ -236,12 +245,17 @@ function RulesHelpModal({ visible, variant, killer, N, colors, language, onClose
     <View style={rhStyles.backdrop}>
       <View style={[rhStyles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[rhStyles.title, { color: colors.text }]}>
-          {killer ? translateFor(language, 'sudokuModeKiller') : variant !== 'none' ? variantLabel(variant, language) : translateFor(language, 'btn_rules')}
+          {help ? help.title : killer ? translateFor(language, 'sudokuModeKiller') : variant !== 'none' ? variantLabel(variant, language) : translateFor(language, 'btn_rules')}
         </Text>
-        <Text style={[rhStyles.base, { color: colors.textSecondary }]}>
-          {translateFor(language, 'sudokuBaseRule').replace('{n}', String(N))}
-        </Text>
-        {(variant !== 'none' || killer) && (
+        <ScrollView style={rhStyles.scroll} contentContainerStyle={rhStyles.scrollBody}>
+        {help ? (
+          <Text style={[rhStyles.helpBody, { color: colors.text }]}>{help.body}</Text>
+        ) : (
+          <Text style={[rhStyles.base, { color: colors.textSecondary }]}>
+            {translateFor(language, 'sudokuBaseRule').replace('{n}', String(N))}
+          </Text>
+        )}
+        {!help && (variant !== 'none' || killer) && (
           <Text style={[rhStyles.rule, { color: colors.text }]}>
             {killer
               ? translateFor(language, 'sudokuKillerRule')
@@ -267,6 +281,7 @@ function RulesHelpModal({ visible, variant, killer, N, colors, language, onClose
           </View>
         )}
         <Text style={[rhStyles.caption, { color: colors.textSecondary }]}>{exampleCaption(key, language)}</Text>
+        </ScrollView>
         {/* Пока правила открыты, плавающая кнопка репорта накрыта этим окном и
             недоступна — а сказать «в правилах ошибка» хочется именно отсюда.
             Расшифровка голосового репорта 02.08 (прочитана только 12.08, месяц
@@ -292,7 +307,11 @@ function RulesHelpModal({ visible, variant, killer, N, colors, language, onClose
 
 const rhStyles = StyleSheet.create({
   backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 20 },
-  card: { width: '100%', maxWidth: 380, borderRadius: 18, borderWidth: 1, padding: 20, alignItems: 'center', gap: 10 },
+  // maxHeight + прокрутка: справка уровня на варианте — до шести абзацев, на 360×640 без них карточка уезжала бы за экран.
+  card: { width: '100%', maxWidth: 380, maxHeight: '92%', borderRadius: 18, borderWidth: 1, padding: 20, alignItems: 'center', gap: 10 },
+  scroll: { alignSelf: 'stretch', flexShrink: 1 },
+  scrollBody: { alignItems: 'center', gap: 10 },
+  helpBody: { fontSize: 14, lineHeight: 20, alignSelf: 'stretch' },
   title: { fontSize: 20, fontWeight: '900' },
   base: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
   rule: { fontSize: 15, fontWeight: '700', textAlign: 'center', lineHeight: 21 },
@@ -675,17 +694,17 @@ export default function SudokuGame() {
   //
   // ⚠️ `boardTier` в зависимостях обязателен: приём берётся у ВЫДАННОЙ доски, а не
   // выводится из номера уровня, и до конца сборки он ещё null.
-  useEffect(() => {
-    if (phase !== 'playing') {
-      clearGameContextHelp(GAME_ID);
-      return;
-    }
+  // Справка уровня считается В РЕНДЕРЕ, а не в эффекте: её показывают две двери сразу —
+  // угловая кнопка каркаса (через publishGameContextHelp) и своё окно правил (пауза, чип ⓘ).
+  // Состояние из эффекта дало бы ошибку линта set-state-in-effect и кадр со старым текстом.
+  const levelHelpText = useMemo(() => {
+    if (phase !== 'playing') return null;
     const steps = mode === 'killer'
       ? killerStepCount()
       : mode === 'towers' || mode === 'unequal'
         ? sideStepCount(mode)
         : undefined;
-    const { title, body } = buildLevelHelp(
+    return buildLevelHelp(
       {
         mode: mode as HelpMode,
         level,
@@ -699,9 +718,15 @@ export default function SudokuGame() {
       (key) => translateFor(language, key as never),
       language,
     );
-    publishGameContextHelp({ gameId: GAME_ID, title, body });
-    return () => clearGameContextHelp(GAME_ID);
   }, [phase, mode, variant, N, language, level, boardTier, hintMax, failure.lives]);
+  useEffect(() => {
+    if (!levelHelpText) {
+      clearGameContextHelp(GAME_ID);
+      return;
+    }
+    publishGameContextHelp({ gameId: GAME_ID, title: levelHelpText.title, body: levelHelpText.body });
+    return () => clearGameContextHelp(GAME_ID);
+  }, [levelHelpText]);
 
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
@@ -2477,7 +2502,7 @@ export default function SudokuGame() {
         )}
         {/* v1.111.0: справка правил уровня (авто при первом входе на вариант / тап по бейджу ⓘ) */}
         <RulesHelpModal visible={rulesOpen} variant={variant} killer={mode === 'killer'} N={N}
-          colors={colors} language={language} onClose={() => setRulesOpen(false)} />
+          colors={colors} language={language} onClose={() => setRulesOpen(false)} help={levelHelpText} />
         {over && (
           <View style={styles.overWrap}>
             <View style={[styles.overCard, { backgroundColor: colors.surface }]}>
@@ -2514,7 +2539,7 @@ export default function SudokuGame() {
       {phase === 'config' && renderConfig()}
       {/* v1.111.0: справка правил уровня (на конфиге — если открыта) */}
       <RulesHelpModal visible={rulesOpen} variant={variant} killer={mode === 'killer'} N={N}
-        colors={colors} language={language} onClose={() => setRulesOpen(false)} />
+        colors={colors} language={language} onClose={() => setRulesOpen(false)} help={levelHelpText} />
       {phase === 'boss' && (
         <BossRound
           config={{ type: bossTypeRef.current, gradient: GRADIENT as [string, string] }}
