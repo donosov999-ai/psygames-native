@@ -24,8 +24,11 @@ describe('СМЁТ комбо-пояса 81–92', () => {
   jest.setTimeout(1800_000);
 
   const CASES: [string, number][] = [
-    ['sandparity вход', 81], ['sandparity верх', 84],
-    ['thermoknight вход', 85], ['thermoknight верх', 88],
+    // ⚠️ Подписи приведены к лестнице 16.09.2026: пары переставили по итогам ЭТОГО замера
+    // (thermoknight слабейший → первым), а подписи остались старые. Вариант в распечатке
+    // всегда берётся из levelConfig, так что числа 29.08 от подписей не зависели.
+    ['thermoknight вход', 81], ['thermoknight верх', 84],
+    ['sandparity вход', 85], ['sandparity верх', 88],
     ['killerdiag вход', 89], ['killerdiag верх', 92],
   ];
 
