@@ -345,7 +345,12 @@ export default function GameHelpOverlay() {
         <View {...a11yModal} style={styles.backdrop}>
           <View style={[styles.sheet, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <View style={styles.sheetHead}>
-              <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>{t(entry.nameKey)}</Text>
+              {/*
+                Заголовок. Режим, заменивший общую статью своей, называет и окно: иначе
+                у «Сокобана» в шапке стояло «Чёт-нечет» — имя чужой игры над своими
+                правилами (замер 16.09.2026, отсюда и вся починка).
+              */}
+              <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>{contextHelp?.replacesIntro ? contextHelp.title : t(entry.nameKey)}</Text>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('close')}
                 onPress={() => setOpen(false)} style={[styles.close, { backgroundColor: colors.surface }]}>
                 <Ionicons name="close" size={20} color={colors.text} />
@@ -360,11 +365,16 @@ export default function GameHelpOverlay() {
             <ScrollView style={styles.body} contentContainerStyle={{ paddingBottom: 8 }} showsVerticalScrollIndicator={false}>
               {contextHelp ? (
                 <View style={[styles.contextCard, { backgroundColor: accent + '14', borderColor: accent + '55' }]}>
-                  <Text style={[styles.contextTitle, { color: accent }]}>{contextHelp.title}</Text>
+                  {/* Имя режима уже стоит в шапке окна — второй раз его не повторяем. */}
+                  {contextHelp.replacesIntro ? null : <Text style={[styles.contextTitle, { color: accent }]}>{contextHelp.title}</Text>}
                   <Text style={[styles.contextBody, { color: colors.text }]}>{contextHelp.body}</Text>
                 </View>
               ) : null}
-              <Text style={[styles.intro, { color: colors.text }]}>{t(entry.introKey)}</Text>
+              {/*
+                Общая статья экрана. Режим может попросить её убрать (`replacesIntro`):
+                у головоломок Тэтхэма она одна на все 42 и рассказывает про чужую игру.
+              */}
+              {contextHelp?.replacesIntro ? null : <Text style={[styles.intro, { color: colors.text }]}>{t(entry.introKey)}</Text>}
 
               {gd ? (
                 <View style={{ marginTop: 18 }}>
