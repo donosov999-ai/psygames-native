@@ -197,7 +197,7 @@ const t: Record<string, string> = {
   "mathSprintDesc": "在限定时间内尽量多解题",
   "mathSliderIntroDesc": "估算算式的结果，把标记放到数轴上。不需要精确计算，关键是落在刻度的正确区间。训练数感与估算能力；随着关卡推进，算式类型也在变化：加法、减法、乘法、小数、百分比、折扣、比例。",
   "mathSprintIntroDesc": "在限时内解算术题。连续答对会累积连击加成。提升心算和处理速度。",
-  "mathHint": "输入答案并按 ✓",
+  "mathHint": "用下方按键输入答案",
   "benefitMath1": "不用计算器也能算",
   "benefitMath2": "工作中更快地处理数字",
   "benefitMath3": "对数字更有信心",

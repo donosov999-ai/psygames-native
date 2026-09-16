@@ -432,7 +432,7 @@ const t: Record<string, string> = {
   "mathSprintDesc": "Risolvi più operazioni possibili nel tempo dato",
   "mathSliderIntroDesc": "Stima il valore dell'espressione e posiziona il segno sulla retta numerica. Non serve calcolare con esattezza: conta centrare la zona giusta della scala. Allena il senso della grandezza e il calcolo approssimato; con i livelli cambia il tipo di espressione: addizione, sottrazione, moltiplicazione, decimali, percentuali, sconti, proporzioni.",
   "mathSprintIntroDesc": "Risolvi operazioni aritmetiche contro il tempo. Le risposte corrette consecutive fanno crescere il bonus streak. Sviluppa calcolo mentale e velocità di elaborazione.",
-  "mathHint": "Digita la risposta e premi ✓",
+  "mathHint": "Digita la risposta sui tasti in basso",
   "benefitMath1": "Calcoli senza calcolatrice",
   "benefitMath2": "Lavori coi numeri più in fretta",
   "benefitMath3": "Sicurezza con i numeri",

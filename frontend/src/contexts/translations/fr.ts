@@ -432,7 +432,7 @@ const t: Record<string, string> = {
   "mathSprintDesc": "Résous un max d'opérations dans le temps imparti",
   "mathSliderIntroDesc": "Estime la valeur de l'expression et place le repère sur la droite numérique. Le calcul exact n'est pas l'objectif : il faut viser la bonne zone de l'échelle. Développe le sens des grandeurs et le calcul approché ; au fil des niveaux, la famille d'expressions change : addition, soustraction, multiplication, décimaux, pourcentages, remises, proportions.",
   "mathSprintIntroDesc": "Résous des opérations contre la montre. Les bonnes réponses d'affilée font grimper le bonus de série. Développe le calcul mental et la vitesse de traitement.",
-  "mathHint": "Saisis la réponse et appuie sur ✓",
+  "mathHint": "Tape la réponse sur les touches en bas",
   "benefitMath1": "Calculer sans calculatrice",
   "benefitMath2": "Brasser les chiffres plus vite au travail",
   "benefitMath3": "De l'aisance avec les nombres",

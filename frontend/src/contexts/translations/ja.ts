@@ -1640,7 +1640,7 @@ const t: Record<string, string> = {
   "benefitCpt2": "衝動の制御（Xは止まる）",
   "skillSocial": "きたえる力：社会的認知",
   "benefitGoNoGo2": "速くて正確な反応",
-  "mathHint": "答えを入力して ✓ を押す",
+  "mathHint": "下のキーで答えを入力",
   "benefitSort1": "訳さずに意味をつかむ",
   "skillSpatial": "きたえる力：空間認知",
   "benefitPrl2": "ルール変化への柔軟さ",

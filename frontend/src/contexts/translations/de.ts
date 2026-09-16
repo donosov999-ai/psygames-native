@@ -197,7 +197,7 @@ const t: Record<string, string> = {
   "mathSprintDesc": "Löse so viele Aufgaben wie möglich in der Zeit",
   "mathSliderIntroDesc": "Schätze den Wert des Ausdrucks und setze die Marke auf dem Zahlenstrahl. Exaktes Rechnen ist nicht gefragt — entscheidend ist der richtige Bereich der Skala. Trainiert Größengefühl und Überschlagsrechnen; mit den Stufen wechselt die Art des Ausdrucks: Addition, Subtraktion, Multiplikation, Dezimalzahlen, Prozente, Rabatte, Proportionen.",
   "mathSprintIntroDesc": "Löse Rechenaufgaben gegen die Uhr. Aufeinanderfolgende richtige Antworten lassen einen Serienbonus wachsen. Stärkt Kopfrechnen und Verarbeitungsgeschwindigkeit.",
-  "mathHint": "Gib die Antwort ein und drücke ✓",
+  "mathHint": "Tippe die Antwort unten auf den Tasten",
   "benefitMath1": "Ohne Taschenrechner rechnen",
   "benefitMath2": "Bei der Arbeit schneller mit Zahlen jonglieren",
   "benefitMath3": "Sicherheit im Umgang mit Zahlen",
