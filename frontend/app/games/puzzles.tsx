@@ -39,6 +39,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { saveSession } from '@/src/services/api';
+import { publishFeedbackGameState } from '@/src/services/feedbackGameState';
 // 🔴 НЕ Date.now(): пауза посреди партии не должна попадать в её время — общая
 // дисциплина игровых часов, гейт `game-clock-discipline`.
 import { gameNow } from '@/src/services/gamePause';
@@ -290,6 +291,21 @@ export default function PuzzlesScreen() {
   const проиграл = партия?.статус === -1;
   const конец = победа || проиграл;
   const прошёл = победа && !сдался;
+  /**
+   * Живое состояние — в канал отзывов (`feedbackGameState`): КАКАЯ из 42 головоломок,
+   * ступень, фаза, ходы, взят ли ответ решателем. Без этого восемь отзывов Дениса
+   * 16.09.2026 с этого экрана («не переходит на следующий уровень», «что значат цифры
+   * у магнитов», «мелко») пришли с адресом /games/puzzles и без режима — какая из
+   * семи головоломок «Счёта» имелась в виду, приходилось угадывать по тексту.
+   * Одинаковые подряд метки журнал шагов склеивает сам, так что ход не плодит шагов.
+   */
+  useEffect(() => {
+    publishFeedbackGameState({
+      mode: имяРежима, level: lvl.level, phase: фаза,
+      moves: ходов, solver_used: сдался, status: партия?.статус ?? null,
+    });
+    return () => publishFeedbackGameState(null);
+  }, [имяРежима, lvl.level, фаза, ходов, сдался, партия?.статус]);
   /**
    * 🔴 РАЗБОР — НЕ ПОБЕДА И НЕ ПРОИГРЫШ, А ТРЕТЬЕ СОСТОЯНИЕ.
    *

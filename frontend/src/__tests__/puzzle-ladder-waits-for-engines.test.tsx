@@ -22,6 +22,7 @@
  */
 import React from 'react';
 import PuzzlesScreen from '@/app/games/puzzles';
+import { readFeedbackGameState } from '@/src/services/feedbackGameState';
 
 // ⚠️ Имя с приставкой `mock` — требование jest: фабрика `jest.mock` поднимается выше
 // объявлений, и обращаться из неё разрешено только к таким именам.
@@ -113,5 +114,19 @@ describe('лестница головоломки ждёт опись движк
       await Promise.resolve();
     });
     expect(весьТекст(дерево)).toMatch(/level=\d+\/3/);
+  });
+
+  /**
+   * 🔴 ОТЗЫВ С ЭКРАНА ГОЛОВОЛОМОК НАЗЫВАЕТ ИГРУ. Восемь отзывов Дениса 16.09.2026
+   * пришли с адресом /games/puzzles и без режима — какая из 42 игр, угадывали по тексту.
+   * Проба смотрит в тот же канал, из которого отзыв берёт контекст.
+   */
+  it('🔴 канал отзыва знает режим, пока экран открыт, и забывает его после ухода', async () => {
+    let дерево: any;
+    await TestRenderer.act(async () => { дерево = TestRenderer.create(React.createElement(PuzzlesScreen)); });
+    const состояние = readFeedbackGameState();
+    expect(`режим: ${состояние?.mode}, фаза: ${состояние?.phase}`).toBe('режим: Slide, фаза: config');
+    await TestRenderer.act(async () => { дерево.unmount(); });
+    expect(readFeedbackGameState()).toBeNull();
   });
 });
