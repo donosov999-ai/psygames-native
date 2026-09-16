@@ -19,6 +19,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Pressable, Image, ScrollView, useWindowDimensions } from 'react-native';
 import Svg, { Path, Circle as SvgCircle, ClipPath, Defs, Image as SvgImage } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { goBackOrHome } from '@/src/utils/nav';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -62,8 +63,19 @@ import { cakeThemeForProfile } from '@/src/constants/cakeThemes';
  * ⚠️ Число местное и потому под присмотром: съёмщик `scripts/sorting-shots.mjs`
  * меряет долю занятой высоты на ЖИВОЙ раскладке и печатает предупреждение, если
  * она уходит за границы. Разъедется каркас — это увидит замер, а не глаз.
+ *
+ * 🔴 ПЕРЕСНЯТО 16.09.2026: НЕ 13, А 21 — И ЭТО НЕ ОКРУГЛЕНИЕ.
+ * 📍 Замер по «Сортировке товаров», у которой ряд цел: ряд каркаса 123 точки при
+ * баре 102 — вокруг бара ровно 21. Складывается из отступа сверху 10, отступа
+ * снизу `Math.max(insets.bottom, 10)` и волосяной черты границы (`GameShell`,
+ * узел `game-bottom-actions`). Прежние 13 были сняты 11.09 по ОБНУЛЁННОМУ ряду и
+ * потому меньше настоящих.
+ * ⚠️ Полоса жеста iPhone сюда не входит — её добавляет `insets.bottom`, и он
+ * берётся живьём (`useSafeAreaInsets`), а не числом: на телефоне с полосой
+ * константа 21 недобрала бы 24 точки, и ряд снова уехал бы за край.
  */
-const ПОЛЯ_РЯДА = 13;
+const ПОЛЯ_РЯДА_БЕЗ_ПОЛОСЫ = 11;
+const полосаРяда = (низИнсет: number) => ПОЛЯ_РЯДА_БЕЗ_ПОЛОСЫ + Math.max(низИнсет, 10);
 
 export const CS_GAME_ID = 'cake_sort';
 
@@ -362,13 +374,15 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    * размера тарелок не зависит.
    */
   const [рядH, setРядH] = useState(0);
+  /** Полоса жеста внизу телефона — её каркас добавляет отступом под ряд. */
+  const низИнсет = useSafeAreaInsets().bottom;
 
   const стол = useMemo(() => {
     const доступно = Math.min(width, 520) - 16;
-    const низ = (рядH > 0 ? рядH : РЯД_ДЕЙСТВИЙ) + ПОЛЯ_РЯДА;
+    const низ = (рядH > 0 ? рядH : РЯД_ДЕЙСТВИЙ) + полосаРяда(низИнсет);
     const поле = Math.max(240, (окноH || 640) - ВЕРХ_ПОЛЯ - низ);
     return { ...tableFit(доступно, поле, cfg.plates), boardW: доступно };
-  }, [width, окноH, рядH, cfg.plates]);
+  }, [width, окноH, рядH, низИнсет, cfg.plates]);
 
   const тронуть = (i: number) => {
     if (!board || done) return;
@@ -890,8 +904,21 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
       */
       headerActions={
         /* Обёртка только ради замера высоты ряда; каркас ищет действия обходом
-           по `children`, поэтому лишний узел его не сбивает. */
-        <View onLayout={(e) => setРядH(Math.round(e.nativeEvent.layout.height))}>
+           по `children`, поэтому лишний узел его не сбивает.
+
+           🔴 `flexDirection: 'row'` ЗДЕСЬ ОБЯЗАТЕЛЕН, ИНАЧЕ ОБЁРТКА ОБНУЛЯЕТ РЯД.
+           📍 Замер 16.09.2026, окно 390×844: ряд каркаса был 21 точку при нужных
+           68, кнопки «Отменить» и «Подсказка» стояли 834…882 — на 38 точек ниже
+           края экрана. `GameAuxBar` объявлен `flexGrow: 1, flexBasis: 0`; в ряду
+           это ширина, а в столбце (умолчание `View`) — ВЫСОТА, и бар схлопнулся
+           в ноль. Разбор и контроль целиком — в шапке того же узла переливалки.
+           ⚠️ `flexShrink: 1, flexBasis: 0` тут не украшение: без них обрез
+           поворачивается на бок — у переливалки «Заново» уехало за правый край,
+           потому что `flexShrink` у `View` в RNW по умолчанию 0. */
+        <View
+          style={{ flexDirection: 'row', flexGrow: 1, flexShrink: 1, flexBasis: 0 }}
+          onLayout={(e) => setРядH(Math.round(e.nativeEvent.layout.height))}
+        >
         <GameAuxBar>
           <GameAuxAction
             icon="arrow-undo" tint="#d97706" ladder="undo" label={t('btn_undo')}

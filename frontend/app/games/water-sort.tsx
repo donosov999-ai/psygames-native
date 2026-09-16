@@ -19,7 +19,7 @@
  */
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Animated } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { goBackOrHome } from '@/src/utils/nav';
@@ -68,8 +68,18 @@ import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
  * ⚠️ Число местное и потому под присмотром: съёмщик `scripts/sorting-shots.mjs`
  * меряет долю занятой высоты на ЖИВОЙ раскладке и печатает предупреждение, если
  * она уходит за границы. Разъедется каркас — это увидит замер, а не глаз.
+ *
+ * 🔴 ПЕРЕСНЯТО 16.09.2026: НЕ 13, А 21 ПЛЮС ПОЛОСА ЖЕСТА.
+ * 📍 Замер по «Сортировке товаров», у которой ряд не обнулялся: ряд каркаса 123
+ * точки при баре 102 — вокруг бара ровно 21 = отступ сверху 10 + отступ снизу
+ * `Math.max(insets.bottom, 10)` + волосяная граница. Прежние 13 сняты 11.09 по
+ * ряду, который тогда был схлопнут (разбор — в шапке обёртки `headerActions`),
+ * и потому вышли меньше настоящих.
+ * ⚠️ `insets.bottom` берётся живьём: на iPhone с полосой жеста константа 21
+ * недобрала бы 24 точки и ряд опять уехал бы за нижний край.
  */
-const ПОЛЯ_РЯДА = 13;
+const ПОЛЯ_РЯДА_БЕЗ_ПОЛОСЫ = 11;
+const полосаРяда = (низИнсет: number) => ПОЛЯ_РЯДА_БЕЗ_ПОЛОСЫ + Math.max(низИнсет, 10);
 
 /**
  * 🔴 СЛУЖЕБНЫХ РЯДОВ У ЭТОГО ЭКРАНА ДВА, А НЕ ОДИН — И ЗАМЕР СВОЕЙ ОБЁРТКИ ЭТОГО
@@ -541,6 +551,8 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
    * сосудов. Значит мерить его можно, а поле — нельзя.
    */
   const [рядH, setРядH] = useState(0);
+  /** Полоса жеста внизу телефона — её каркас добавляет отступом под ряд. */
+  const низИнсет = useSafeAreaInsets().bottom;
   const { isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
 
@@ -828,7 +840,7 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
      * достаётся ТО, ЧТО ОСТАЛОСЬ, а не вся середина. Пока замер не пришёл
      * (первый кадр), высота равна нулю и расчёт идёт прежним путём, по ширине.
      */
-    const низ = Math.max(рядH, РЯД_ДЕЙСТВИЙ * РЯДОВ_ДЕЙСТВИЙ) + ПОЛЯ_РЯДА;
+    const низ = Math.max(рядH, РЯД_ДЕЙСТВИЙ * РЯДОВ_ДЕЙСТВИЙ) + полосаРяда(низИнсет);
     const свободно = высотаЭкрана - ВЕРХ_ПОЛЯ - низ;
     const местоПодСосуды = Math.max(0, свободно - подписьH - ПОЛЕ_СВЕРХУ);
     const ш = ширинаПробирки(field!.tubes.length, ширинаЭкрана - ЗАПАС_ПОЛЕЙ, местоПодСосуды);
@@ -1199,8 +1211,32 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
             ⚠️ Обёртка нужна ТОЛЬКО ради замера высоты. Каркас ищет `GameAuxAction`
             обходом по `props.children`, поэтому лишний узел его не сбивает —
             проверено чтением `служебныеИзШапки` в `GameShell`.
+
+            🔴 У ОБЁРТКИ ОБЯЗАН СТОЯТЬ `flexDirection: 'row'`, ИНАЧЕ ОНА ОБНУЛЯЕТ РЯД.
+            📍 ЗАМЕР 16.09.2026, собранный веб, окно 390×844: ряд каркаса
+            `game-bottom-actions` был 21 точку при нужных 68, а кнопки стояли
+            834…882 — то есть на 38 точек НИЖЕ КРАЯ ЭКРАНА. Видны были одни
+            макушки, нажать нельзя. Задело пять игр: переливалку с «Шариками» и
+            «Гайками», торты с пиццей.
+            Причина ровно в этом узле. `GameAuxBar` объявлен `flexGrow: 1,
+            flexBasis: 0` — в РЯДУ это про ширину, а моя обёртка по умолчанию
+            `flexDirection: 'column'`, и там `flexBasis: 0` стал ВЫСОТОЙ. Бар
+            схлопнулся в ноль, ряд за ним, кнопки вывалились наружу.
+            Контроль, которым это поймано: у «Сортировки товаров» такой обёртки
+            НЕТ — там ряд 123 точки при баре 102, и ничего не обрезано.
+            Сторож: `node scripts/sorting-acceptance.mjs` печатает «обрезан на N».
+
+            ⚠️ `flexShrink: 1, flexBasis: 0` — ВТОРАЯ ПОЛОВИНА ТОЙ ЖЕ ПОЧИНКИ, и без
+            неё обрез просто поворачивается на бок. С одним `flexGrow` ряд перестал
+            уезжать вниз, но «Заново» уехало ЗА ПРАВЫЙ КРАЙ: ширина обёртки бралась
+            по содержимому, а `flexShrink` у `View` в RNW по умолчанию 0 — сжиматься
+            и переносить кнопку было некуда. Эти три свойства вместе повторяют то,
+            чем у товаров объявлен сам `GameAuxBar`.
           */
-          <View onLayout={(e) => setРядH(Math.round(e.nativeEvent.layout.height))}>
+          <View
+            style={{ flexDirection: 'row', flexGrow: 1, flexShrink: 1, flexBasis: 0 }}
+            onLayout={(e) => setРядH(Math.round(e.nativeEvent.layout.height))}
+          >
           <GameAuxBar>
             <GameAuxAction
               icon="arrow-undo" tint="#d97706" ladder="undo" label={t('btn_undo')}
