@@ -1,3 +1,4 @@
+/* psygames-gate-cake-sort-hint · VER 2 · 16.09.2026 */
 /**
  * 🔴 ПОДСКАЗКА ЗАКОННА И ВЕДЁТ К РЕШЕНИЮ.
  *
@@ -7,7 +8,7 @@
  * Здесь подсказка — первый ход НАСТОЯЩЕГО решения, и проверяется это
  * исполнением: ход применяется, и с него стол по-прежнему разбирается.
  */
-import { makeBoard, moveTop, canPlace, collapse, isCleared, completeIn, CIRCLE } from '@/src/games/cake-sort/core/plate';
+import { makeBoard, moveType, canPlace, collapse, isCleared, completeIn, CIRCLE } from '@/src/games/cake-sort/core/plate';
 import { hintMove, solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
 import { deal } from '@/src/games/cake-sort/core/level';
 
@@ -28,9 +29,15 @@ describe('подсказка тортов', () => {
       if (!h) { плохо.push(`L${L}: подсказки нет`); continue; }
       const src = b.plates[h.from] ?? [];
       if (!src.length) { плохо.push(`L${L}: берёт с пустой тарелки`); continue; }
-      const тип = src[src.length - 1] as number;
-      if (!canPlace(b, h.to, тип)) плохо.push(`L${L}: ход ${h.from}→${h.to} игра не примет`);
-      if (moveTop(b, h.from, h.to) === null) плохо.push(`L${L}: ход не применяется`);
+      /*
+       * ⚠️ ВИД БЕРЁТСЯ ИЗ ПОДСКАЗКИ, А НЕ С ВЕРХА ТАРЕЛКИ (перенацелено 16.09.2026).
+       * С правилами «ход любым куском» подсказка называет ВИД. Прежняя редакция
+       * проверяла верхний кусок — то есть не тот ход, который подсказан, — и
+       * зеленела случайно, когда верхний совпадал с подсказанным.
+       */
+      if (!src.includes(h.type)) плохо.push(`L${L}: на тарелке ${h.from} нет вида ${h.type}`);
+      if (!canPlace(b, h.to, h.type)) плохо.push(`L${L}: ход ${h.from}→${h.to} игра не примет`);
+      if (moveType(b, h.from, h.type, h.to) === null) плохо.push(`L${L}: ход не применяется`);
     }
     expect(плохо).toEqual([]);
   });
@@ -85,7 +92,7 @@ describe('подсказка тортов', () => {
       if (!путь) { плохо.push(`L${L}: путь не найден`); continue; }
       let b = начало;
       for (const m of путь) {
-        const nb = moveTop(b, m.from, m.to);
+        const nb = moveType(b, m.from, m.type, m.to);
         if (!nb) { плохо.push(`L${L}: ход ${m.from}→${m.to} не применился`); break; }
         b = nb;
       }
@@ -182,8 +189,8 @@ describe('подсказка тортов', () => {
     expect(h).not.toBeNull();
     // Ход законен именно на ВИДИМОМ столе, а не на исходном.
     const src = видимый.plates[h!.from] ?? [];
-    expect(src.length).toBeGreaterThan(0);
-    expect(canPlace(видимый, h!.to, src[src.length - 1] as number)).toBe(true);
-    expect(moveTop(видимый, h!.from, h!.to)).not.toBeNull();
+    expect(src).toContain(h!.type);
+    expect(canPlace(видимый, h!.to, h!.type)).toBe(true);
+    expect(moveType(видимый, h!.from, h!.type, h!.to)).not.toBeNull();
   });
 });

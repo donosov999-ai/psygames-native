@@ -1,4 +1,4 @@
-/* psygames-cake-sort-solver · VER 2 · 09.09.2026 */
+/* psygames-cake-sort-solver · VER 3 · 16.09.2026 */
 /**
  * РЕШАТЕЛЬ ТОРТОВ: доказательство решаемости и честный минимум ходов.
  *
@@ -12,7 +12,7 @@
  * ~90 мс и всё равно принимали последнюю. Здесь `solve` возвращает `exhausted`
  * отдельным флагом, и браковать разрешено только ДОКАЗАННУЮ нерешаемость.
  */
-import { Board, CIRCLE, canPlace, capOf, collapse, isCleared, moveTop, queueCapOf } from './plate';
+import { Board, CIRCLE, canPlace, capOf, collapse, isCleared, moveType, queueCapOf } from './plate';
 
 export interface SolveResult {
   solvable: boolean;
@@ -36,7 +36,20 @@ function ключ(b: Board): string {
    * ⚠️ Пока все круги по умолчанию, ключ побайтово прежний — вместимость
    * дописывается только там, где доска её и правда задаёт.
    */
-  const тар = b.plates.map((p, i) => (b.caps ? `${p.join(',')}/${capOf(b, i)}` : p.join(',')));
+  /*
+   * 🔴 КУСКИ В ТАРЕЛКЕ СОРТИРУЮТСЯ — С 16.09.2026 ПОРЯДОК НИЧЕГО НЕ ЗНАЧИТ.
+   *
+   * Ход берёт ЛЮБОЙ кусок (решение Дениса, см. `moveType`), значит две тарелки,
+   * отличающиеся только перестановкой, — одно и то же состояние. Без сортировки
+   * решатель считал бы их разными и перебирал одно и то же по многу раз.
+   *
+   * ⚠️ Это НЕ косметика ключа: именно она уменьшает пространство состояний, и
+   * только поэтому новые правила не сделали поиск дороже.
+   */
+  const тар = b.plates.map((p, i) => {
+    const куски = [...p].sort((x, y) => x - y).join(',');
+    return b.caps ? `${куски}/${capOf(b, i)}` : куски;
+  });
   const оч = b.queue.map((p, i) => (b.queueCaps ? `${p.join(',')}/${queueCapOf(b, i)}` : p.join(',')));
   return `${тар.sort().join('|')}#${оч.join('|')}`;
 }
@@ -55,18 +68,25 @@ function ключ(b: Board): string {
  * единственное решение. Гейт `cake-sort-solver-cutoff` прогоняет доски с
  * отсечением и без и требует, чтобы вердикт совпал на всех.
  */
-export function moves(b: Board, prune = true): { from: number; to: number }[] {
-  const out: { from: number; to: number }[] = [];
+export function moves(b: Board, prune = true): { from: number; type: number; to: number }[] {
+  const out: { from: number; type: number; to: number }[] = [];
   for (let from = 0; from < b.plates.length; from += 1) {
     const src = b.plates[from] ?? [];
     if (!src.length) continue;
-    const type = src[src.length - 1] as number;
-    const однородна = src.every((s) => s === type);
-    for (let to = 0; to < b.plates.length; to += 1) {
-      if (to === from) continue;
-      if (!canPlace(b, to, type)) continue;
-      if (prune && однородна && (b.plates[to] ?? []).length === 0) continue;
-      out.push({ from, to });
+    /*
+     * 🔴 ПЕРЕБИРАЕМ ВИДЫ, А НЕ МЕСТА. Два куска одного вида неразличимы, и ход
+     * «взять третий по счёту» ничего бы не значил: важен только ВИД. Поэтому
+     * ветвление растёт не на длину тарелки, а на число РАЗНЫХ видов в ней.
+     */
+    for (const type of new Set(src)) {
+      const однородна = src.every((s) => s === type);
+      for (let to = 0; to < b.plates.length; to += 1) {
+        if (to === from) continue;
+        if (!canPlace(b, to, type)) continue;
+        /* Гонять однородную тарелку целиком в пустую — тот же стол другими словами. */
+        if (prune && однородна && (b.plates[to] ?? []).length === 0) continue;
+        out.push({ from, type, to });
+      }
     }
   }
   return out;
@@ -82,7 +102,7 @@ export function solve(start: Board, budget = 20000, prune = true): SolveResult {
     const b = стек.pop() as Board;
     if (++nodes > budget) return { solvable: false, exhausted: true, nodes };
     for (const m of moves(b, prune)) {
-      const nb = moveTop(b, m.from, m.to);
+      const nb = moveType(b, m.from, m.type, m.to);
       if (!nb) continue;
       if (isCleared(nb)) return { solvable: true, exhausted: false, nodes };
       const k = ключ(nb);
@@ -106,7 +126,7 @@ export function solve(start: Board, budget = 20000, prune = true): SolveResult {
  * Поэтому ищется ПУТЬ, а вызывающий его помнит и идёт по нему, пока не свернёт.
  * Тогда завершение гарантировано построением: путь — настоящее решение.
  */
-function кратчайшийПуть(start: Board, budget: number): { from: number; to: number }[] | null {
+function кратчайшийПуть(start: Board, budget: number): { from: number; type: number; to: number }[] | null {
   const начало = collapse(start).board;
   if (isCleared(начало)) return [];
   /**
@@ -122,8 +142,8 @@ function кратчайшийПуть(start: Board, budget: number): { from: num
    * Не уложились в бюджет — отдаём `null`: подсказки нет, и это честнее
    * длинной. Экран в этом случае не тратит счётчик.
    */
-  const корзины: { b: Board; путь: { from: number; to: number }[] }[][] = [];
-  const положить = (b: Board, путь: { from: number; to: number }[]) => {
+  const корзины: { b: Board; путь: { from: number; type: number; to: number }[] }[][] = [];
+  const положить = (b: Board, путь: { from: number; type: number; to: number }[]) => {
     const f = путь.length + lowerBound(b);
     (корзины[f] ??= []).push({ b, путь });
   };
@@ -134,12 +154,12 @@ function кратчайшийПуть(start: Board, budget: number): { from: num
     const пачка = корзины[f];
     if (!пачка) continue;
     while (пачка.length) {
-      const { b, путь } = пачка.pop() as { b: Board; путь: { from: number; to: number }[] };
+      const { b, путь } = пачка.pop() as { b: Board; путь: { from: number; type: number; to: number }[] };
       if (isCleared(b)) return путь;
       if (++nodes > budget) return null;
       if ((видели.get(ключ(b)) ?? Infinity) < путь.length) continue;
       for (const m of moves(b, false)) {
-        const nb = moveTop(b, m.from, m.to);
+        const nb = moveType(b, m.from, m.type, m.to);
         if (!nb) continue;
         const k = ключ(nb);
         const было = видели.get(k);
@@ -159,17 +179,17 @@ function кратчайшийПуть(start: Board, budget: number): { from: num
  * 24 и 155 при минимуме 45 — в 3,4–3,6 раза длиннее. Подсказка по такому пути
  * ведёт к решению и по дороге отнимает у игрока все звёзды.
  */
-function любойПуть(start: Board, budget: number): { from: number; to: number }[] | null {
+function любойПуть(start: Board, budget: number): { from: number; type: number; to: number }[] | null {
   const начало = collapse(start).board;
   if (isCleared(начало)) return [];
   const видели = new Set<string>([ключ(начало)]);
-  const стек: { b: Board; путь: { from: number; to: number }[] }[] = [{ b: начало, путь: [] }];
+  const стек: { b: Board; путь: { from: number; type: number; to: number }[] }[] = [{ b: начало, путь: [] }];
   let nodes = 0;
   while (стек.length) {
-    const { b, путь } = стек.pop() as { b: Board; путь: { from: number; to: number }[] };
+    const { b, путь } = стек.pop() as { b: Board; путь: { from: number; type: number; to: number }[] };
     if (++nodes > budget) return null;
     for (const m of moves(b)) {
-      const nb = moveTop(b, m.from, m.to);
+      const nb = moveType(b, m.from, m.type, m.to);
       if (!nb) continue;
       const далее = [...путь, m];
       if (isCleared(nb)) return далее;
@@ -194,7 +214,7 @@ function любойПуть(start: Board, budget: number): { from: number; to: n
  * Поэтому: пробуем кратчайший, не вышло — берём длинный. Подсказка, которая
  * ведёт длинной дорогой, лучше отсутствующей; подсказка кратчайшая лучше обеих.
  */
-export function solvePath(start: Board, budget = 20000): { from: number; to: number }[] | null {
+export function solvePath(start: Board, budget = 20000): { from: number; type: number; to: number }[] | null {
   return кратчайшийПуть(start, budget) ?? любойПуть(start, budget);
 }
 
@@ -204,9 +224,9 @@ export function solvePath(start: Board, budget = 20000): { from: number; to: num
  * ⚠️ Вернуть `null` честнее, чем выдумать: если за бюджет решение не нашлось,
  * подсказки нет, и экран обязан не тратить её счётчик.
  */
-export function hintMove(start: Board, budget = 20000): { from: number; to: number } | null {
+export function hintMove(start: Board, budget = 20000): { from: number; type: number; to: number } | null {
   const путь = solvePath(start, budget);
-  return путь && путь.length ? (путь[0] as { from: number; to: number }) : null;
+  return путь && путь.length ? (путь[0] as { from: number; type: number; to: number }) : null;
 }
 
 /** Доказано ли, что стол НЕ разбирается. Только этим разрешено браковать раздачу. */
@@ -296,7 +316,7 @@ export function minMoves(start: Board, budget = 40000, prune = false): MinMovesR
       if (++nodes > budget) return { moves: null, nodes };
       if ((видели.get(ключ(b)) ?? Infinity) < g) continue;
       for (const m of moves(b, prune)) {
-        const nb = moveTop(b, m.from, m.to);
+        const nb = moveType(b, m.from, m.type, m.to);
         if (!nb) continue;
         const k = ключ(nb);
         const было = видели.get(k);
@@ -307,4 +327,46 @@ export function minMoves(start: Board, budget = 40000, prune = false): MinMovesR
     }
   }
   return { moves: null, nodes };
+}
+
+/**
+ * 🔴 ДЛИНА ПРЕДЪЯВЛЕННОЙ ПАРТИИ — ПОИСК ЛУЧОМ ПО НИЖНЕЙ ГРАНИЦЕ.
+ *
+ * ЗАЧЕМ. Звёзды обязаны быть достижимыми: «сыграл идеально — получил высшую
+ * оценку». Точный минимум (`minMoves`) это гарантирует, но со свободным выбором
+ * куска он достаётся только на L1…L4 (замер 16.09.2026: L5 и L6 не дошли до дна
+ * за 400 000 узлов). Выше звёзды считались от одной калибровки на круг — и
+ * замер показал, что честного такого числа НЕТ: малым столам хватает 3,75 хода
+ * на круг, а уровням с очередью нужно до 4,46, иначе высшая оценка не доказана.
+ *
+ * ЧТО ДАЁТ ЛУЧ. Не минимум, а партию: длина ЛЮБОЙ найденной партии — честная
+ * ВЕРХНЯЯ граница минимума. Порог «ходов ≤ 1,15 × эталон» от такой длины
+ * достижим ПОСТРОЕНИЕМ — партия предъявлена. Щедрость ограничена тем, насколько
+ * луч длиннее минимума, а не тем, насколько разные столы у лестницы.
+ *
+ * ⚠️ ДЕТЕРМИНИРОВАН. Сортировка в JS устойчивая, порядок детей — порядок ходов
+ * `moves`, ключ состояния тот же, что у A*. Одна доска и ширина — одна длина:
+ * на этом стоит гейт, перепроверяющий записанные длины.
+ *
+ * @returns длина найденной партии или `null`, если луч не дошёл за `limit` слоёв.
+ */
+export function beamPath(start: Board, width = 150, limit = 600): number | null {
+  if (isCleared(start)) return 0;
+  const ключ = (b: Board) => b.plates.map((p) => [...p].sort((x, y) => x - y).join(',')).join('|') + '#' + b.queue.length;
+  let слой: Board[] = [start];
+  for (let g = 0; g < limit; g += 1) {
+    const дети = new Map<string, { b: Board; h: number }>();
+    for (const s of слой) {
+      for (const m of moves(s, true)) {
+        const n = moveType(s, m.from, m.type, m.to);
+        if (!n) continue;
+        if (isCleared(n)) return g + 1;
+        const k = ключ(n);
+        if (!дети.has(k)) дети.set(k, { b: n, h: lowerBound(n) });
+      }
+    }
+    if (!дети.size) return null;
+    слой = [...дети.values()].sort((a, z) => a.h - z.h).slice(0, width).map((x) => x.b);
+  }
+  return null;
 }

@@ -36,7 +36,7 @@ import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jok
 import { HN_RULES, levelParams as hanoi } from '@/app/games/hanoi';
 import { WATER_SORT_RULES } from '@/app/games/water-sort';
 import { скрытоНаУровне } from '@/src/games/water-sort/core/hidden';
-import { levelParams, moveLimitFor, строгийНалив } from '@/src/games/water-sort/core/generate';
+import { levelParams, moveLimitFor, строгийНалив, СТРОГИЙ_НАЛИВ_ВКЛЮЧЁН } from '@/src/games/water-sort/core/generate';
 import { LISTENINGSPAN_RULES, levelParams as listening } from '@/app/games/listening-span';
 import { MAHJONG_RULES } from '@/app/games/mahjong';
 import { MS_RULES } from '@/app/games/math-sprint';
@@ -217,7 +217,16 @@ const МЕХАНИКИ: Механика[] = [
    * человек прочтёт про камни за четыре уровня до первого камня.
    */
   { игра: 'water-sort', ключ: 'short', вид: 'порог', есть: (L) => levelParams(L).shortBy > 0 },
-  { игра: 'water-sort', ключ: 'strict', вид: 'порог', есть: (L) => строгийНалив(L) },
+  /*
+   * ⚠️ Строгий налив выключен решением Дениса 16.09.2026 («одинаковые подряд
+   * переносятся только вместе»). Карточки правила при выключенной оси нет, и
+   * вопроса к механике тоже нет: предикат ответил бы «нет» на всех шестидесяти
+   * уровнях, и проба «вопрос различает уровни» справедливо назвала бы его
+   * мёртвым. Включат ось — вернутся оба, от одного выключателя.
+   */
+  ...(СТРОГИЙ_НАЛИВ_ВКЛЮЧЁН
+    ? [{ игра: 'water-sort', ключ: 'strict', вид: 'порог' as const, есть: (L: number) => строгийНалив(L) }]
+    : []),
   { игра: 'water-sort', ключ: 'stones', вид: 'порог', есть: (L) => levelParams(L).stones > 0 },
   { игра: 'water-sort', ключ: 'sealed', вид: 'порог', есть: (L) => levelParams(L).deferred > 0 },
   /*
