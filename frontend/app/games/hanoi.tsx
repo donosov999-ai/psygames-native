@@ -1,4 +1,4 @@
-/* psygames-game-hanoi · VER 3 · 28.08.2026 */
+/* psygames-game-hanoi · VER 4 · 16.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -574,6 +574,30 @@ export default function HanoiGame() {
     <GameShell
       title={t('hanoi')}
       /**
+       * 🔴 КАРТОЧКА ИТОГА — ЧЕРЕЗ СЛОТ `overlay` КАРКАСА, А НЕ СОСЕДНИМ СЛОЕМ.
+       *
+       * 📍 Отчёт 9312047a (задача 45d479ed), дословно: «в конце, на следующий уровень
+       * когда переходишь — не очки не показываются, не "молодец", не уровень два, не
+       * победа, просто подвисает и потом новая картинка появляется».
+       * Замер 16.09.2026 на собранном вебе 390×844, L1 решён за 7 ходов настоящей
+       * мышью (`scripts/hanoi-win-probe.mjs`): текст «Уровень 1 пройден! Три звезды ⭐
+       * Уровень 2 запускается…» в DOM ЕСТЬ, а `elementFromPoint` в центре заголовка
+       * отдаёт `game-stats` — шапку каркаса. На кадре карточки нет вовсе.
+       * Причина: карточка стояла отдельным `absoluteFill`-слоем ПЕРЕД каркасом, а
+       * абсолютный узел, стоящий в дереве раньше соседа, рисуется ПОД ним. Каркас
+       * со своим фоном ложился сверху и закрывал её целиком.
+       * Контроль рядом: «Лондонская башня» отдаёт ту же карточку через `overlay`
+       * (слой `zIndex: 80`) — и её видно.
+       */
+      overlay={phase === 'cleared' ? (
+        <LevelCleared
+          recordLine={record.benchmark ? recordLineFor('hanoi', record.benchmark, t) : undefined}
+          variant="overlay" gameId="hanoi" level={levelRef.current}
+          stars={hanoiStars(moves, optimal(discs))}
+          gradient={GRADIENT} language={language} colors={colors}
+          onContinue={() => startGame()} onStop={() => setPhase('config')} />
+      ) : null}
+      /**
        * 🔴 СЛУЖЕБНЫЙ РЯД ВНИЗУ, А НЕ НАД ПОЛЕМ — И ЭТО ПРАВИЛО САМОГО КАРКАСА:
        * «низ принадлежит ОТВЕТУ; там, где ответа кнопками нет, низ отдаётся
        * служебному» (GameShell:276). В «Ханойской башне» ответ даётся тапом по полю,
@@ -648,6 +672,14 @@ export default function HanoiGame() {
             ]}
           >
             <View style={[styles.pegStack, { minHeight: boardH }]}>
+              {/* 🔴 СТЕРЖЕНЬ — ПЕРВЫМ, ДИСКИ ПОВЕРХ НЕГО. У каждого View в react-native-web
+                  `position: relative; z-index: 0`, поэтому рисуются они строго в порядке
+                  дерева, и абсолютный стержень, стоявший ПОСЛЕ дисков, ложился на них сверху:
+                  светлая полоса шла через цифры. 📍 Замер 16.09.2026, собранный веб 390×844,
+                  `scripts/hanoi-disc-label-probe.mjs`: в центре номера у всех трёх дисков L1
+                  `elementFromPoint` отдавал стержень 10×373. Диск на стержне и должен его
+                  закрывать — так он и надет. */}
+              <View style={[styles.pole, { backgroundColor: colors.text, height: boardH - 20 }]} />
               {/* ЗАЧЕМ: в peg[] индекс 0 = НИЗ стержня, последний элемент = ВЕРХ
                   (handlePegPress берёт top = from[from.length - 1]). Колонка RN рисует детей
                   сверху вниз, поэтому массив разворачиваем: без reverse широкий диск оказывался
@@ -668,7 +700,6 @@ export default function HanoiGame() {
                   <Text style={styles.discLabel} numberOfLines={1}>{size}</Text>
                 </LinearGradient>
               ))}
-              <View style={[styles.pole, { backgroundColor: colors.text, height: boardH - 20 }]} />
               <View style={[styles.pegBase, { backgroundColor: colors.text, width: pegW - 12 }]} />
             </View>
           </TouchableOpacity>
@@ -718,20 +749,11 @@ export default function HanoiGame() {
   // Игровая фаза — на едином каркасе GameShell; модалка правил уровня поверх
   // (обёртка View flex:1, паттерн digit-span).
   // Доска остаётся видна и после победы — она и есть награда; карточка итога
-  // висит поверх неё (решение Дениса «карточка над всей доской»).
+  // висит поверх неё (решение Дениса «карточка над всей доской») — через слот
+  // `overlay` каркаса, см. `renderPlaying`.
   if (phase === 'playing' || phase === 'cleared') {
     return (
       <View style={{ flex: 1 }}>
-        {phase === 'cleared' && (
-          <View style={StyleSheet.absoluteFill as any} pointerEvents="box-none">
-            <LevelCleared
-          recordLine={record.benchmark ? recordLineFor('hanoi', record.benchmark, t) : undefined}
-          variant="overlay" gameId="hanoi" level={levelRef.current}
-          stars={hanoiStars(moves, optimal(discs))}
-          gradient={GRADIENT} language={language} colors={colors}
-          onContinue={() => startGame()} onStop={() => setPhase('config')} />
-          </View>
-        )}
         {renderPlaying()}
         <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
       </View>

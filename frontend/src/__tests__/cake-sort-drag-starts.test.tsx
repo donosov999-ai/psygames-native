@@ -149,7 +149,23 @@ function ширинаСтола(r: any): number {
  * ровно ту ошибку, которую чинит проверяемый код, и промахивалась мимо нижнего
  * ряда на 63 точки.
  */
-function центрТарелки(i: number, d: number, boardW: number, всего: number, cols = 3) {
+/**
+ * 🔴 СТОЛБЦЫ СЧИТАЮТСЯ ОТ НАРИСОВАННОГО, А НЕ ПИШУТСЯ ТРОЙКОЙ.
+ *
+ * 📍 Здесь стояло `cols = 3` по умолчанию, и 11.09.2026 раскладка стола
+ * перестала быть трёхстолбцовой: пол столбцов опущен до двух, и маленький стол
+ * из пяти тарелок теперь 2×3 (тарелка 168 вместо 109, см. `tableFit`). Две
+ * пробы этого набора покраснели на ИСПРАВНОМ коде — они целились в координаты
+ * несуществующей сетки. Столбцы выводятся из ширины стола и диаметра тарелки,
+ * то есть из того же, что видит игрок; тогда любая будущая раскладка не
+ * потребует править эти пробы вовсе.
+ */
+function столбцов(d: number, boardW: number): number {
+  if (d <= 0 || boardW <= 0) return 1;
+  return Math.max(1, Math.round((boardW - PLATE_GAP) / (d + PLATE_GAP)));
+}
+
+function центрТарелки(i: number, d: number, boardW: number, всего: number, cols = столбцов(d, boardW)) {
   const шаг = d + PLATE_GAP;
   const r = Math.floor(i / cols);
   const c = i % cols;
@@ -254,6 +270,22 @@ describe('перетаскивание в тортах начинается', ()
     expect(полная).toBeGreaterThanOrEqual(0);
     const центр = (i: number) => центрТарелки(i, d, ширинаСтола(r), подписи().length);
     const a = центр(полная); const b = центр(пустая);
+    /*
+     * 🔴 КУСОК СНАЧАЛА БЕРУТ, И ТОЛЬКО ПОТОМ ТАЩАТ — НОВЫЕ ПРАВИЛА 16.09.2026.
+     *
+     * Протяжка больше не несёт «верхний» кусок: его на круге не видно ниоткуда,
+     * и игра брала не тот, по которому целился человек (отчёт c72e57cb). Теперь
+     * тарелка разворачивается во весь экран, кусок выбирают тапом, и протяжка
+     * осталась ярлыком ТОЛЬКО когда кусок уже в руке.
+     *
+     * ⚠️ Без этих двух строк проба тащила бы пустой рукой и утверждала, что
+     * «жест ничего не переложил», — то есть краснела бы на исправной игре.
+     */
+    await TestRenderer.act(async () => { тарелки(r)[полная].props.onPress(); });
+    const кусок = r.root.findAll((n: any) => typeof n.type !== 'string'
+      && n.props?.testID === 'plate-slice' && typeof n.props?.onPress === 'function');
+    expect(кусок.length).toBeGreaterThan(0);       // премиса: тарелка развернулась
+    await TestRenderer.act(async () => { кусок[0].props.onPress(); });
     await TestRenderer.act(async () => {
       с.props.onStartShouldSetResponderCapture({ nativeEvent: { pageX: a.x, pageY: a.y } });
       с.props.onMoveShouldSetResponderCapture({ nativeEvent: { pageX: a.x + 40, pageY: a.y } });
