@@ -28,7 +28,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import GameShell from '@/src/components/GameShell';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { onGameHold, isGameHeld } from '@/src/services/gamePause';
+import { onGameHold, isGameHeld, requestPauseMenu } from '@/src/services/gamePause';
+import { useImmersive } from '@/src/hooks/useImmersive';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ПАЛЕЦ, ПОЛЯ_ОТВЕТА } from '@/src/components/gameLayout';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { saveSession } from '@/src/services/api';
@@ -56,6 +60,8 @@ export default function NumberRunScreen() {
   const [итог, setИтог] = useState<ИтогЗабега | null>(null);
   const руль = useRef<РульЗабега | null>(null);
   const итогЗаписан = useRef(false);
+  /** Отступы телефона (вырез, полоса «домой») — полноэкранный слой ложится под них. */
+  const insets = useSafeAreaInsets();
 
   /**
    * 🔴 ПАУЗА БЕРЁТСЯ ИЗ ОБЩЕЙ СЛУЖБЫ, А НЕ ИЗ СВОЕГО ФЛАГА. Меню паузы рисует
@@ -63,6 +69,11 @@ export default function NumberRunScreen() {
    * любом другом источнике удержания — например, при открытом отзыве.
    */
   useEffect(() => onGameHold((held) => setПауза(held)), []);
+  /**
+   * Полосы телефона (часы, «домой») уходят, пока идёт забег, и возвращаются на
+   * паузе и на итоге — правила в `src/services/immersive.ts`, Денис 16.09.2026.
+   */
+  useImmersive(фаза === 'playing');
 
   const начать = useCallback(() => {
     setЗерно(Math.floor(Math.random() * 1e6));
@@ -189,7 +200,41 @@ export default function NumberRunScreen() {
     );
   }
 
-  /* ── забег ───────────────────────────────────────────────────────────────── */
+  /* ── забег: во весь экран ───────────────────────────────────────────────── */
+  /**
+   * 🔴 ПОЛНОЭКРАННЫЙ РЕЖИМ НА ВРЕМЯ ЗАБЕГА (Денис 16.09.2026: «для раннера — чтобы
+   * когда игра запускается, был полноэкранный режим»).
+   *
+   * 📍 ДО: замер живой сборки (`/tmp/run-toolbar.mjs`) — шапка 0…58, плашка
+   * показателей 58…119, строка задания 119…139, полоса руля 69 точек снизу. Дорога
+   * занимала 68–69 % экрана (375×667: холст 139…598; 360×640: 139…571).
+   *
+   * КАК. Вся партия — в слоте `overlay` каркаса: он кладётся поверх ВСЕГО каркаса,
+   * шапки в том числе (слой 80), а меню паузы (90) и вопрос о выходе — выше него.
+   * Дорога идёт от верха экрана до полосы руля; счёт, этап и столкновения лежат
+   * фишками прямо на дороге.
+   *
+   * ⚠️ ТРИ ВЕЩИ, НА КОТОРЫХ ЭТО ЛЕГКО СЛОМАТЬ:
+   *  · игра рисуется В ОДНОМ МЕСТЕ всю партию. Переставь её между «слоем» и «полем»
+   *    при паузе — React пересоздаст сцену, и восемь минут забега пропадут;
+   *  · кнопка паузы не берёт задержку сама (`holdGame`): её «Продолжить» каркаса не
+   *    снял бы, и игра замёрзла бы с закрытым меню. Она ПРОСИТ меню у каркаса
+   *    (`requestPauseMenu`), и задержку берёт каркас тем же путём, что кнопка «II»;
+   *  · руль живёт ВНИЗУ СЛОЯ, а не в полосе каркаса: обёртка `overlay` ловит касания
+   *    во весь экран, и полоса под ней не нажималась бы. Высота и отступы — как у
+   *    полосы каркаса: 10 сверху, палец 48, снизу не меньше 10, черта; поля по 66
+   *    под плавающую кнопку отзыва (`ПОЛЯ_ОТВЕТА`).
+   *
+   * `hud` каркасу оставлен: меню паузы показывает из него «как идёт партия».
+   */
+  const полосаРуля = 10 + ПАЛЕЦ + Math.max(insets.bottom, 10) + StyleSheet.hairlineWidth;
+  const фишка = (ключ: string, значок: React.ComponentProps<typeof Ionicons>['name'], значение: string | number, беда = false, крупно = false) => (
+    <View key={ключ} style={[styles.фишка, беда ? styles.фишкаБеда : null]}>
+      <Ionicons name={значок} size={крупно ? 18 : 14} color="#FFFFFF" />
+      <Text style={[styles.фишкаТекст, крупно ? styles.фишкаКрупно : null]}>{значение}</Text>
+    </View>
+  );
+
   return (
     <GameShell
       title={t('numberRun')}
@@ -202,8 +247,8 @@ export default function NumberRunScreen() {
        */
       confirmExit={показатели.секунд > 0}
       /**
-       * Показатели ДАННЫМИ: каркас рисует их одинаково во всех играх. Обновляются
-       * только при изменении значений — адаптер сравнивает и молчит, пока цифры те же.
+       * Показатели ДАННЫМИ: каркас рисует их одинаково во всех играх, а меню паузы
+       * показывает из них «как идёт партия». На самой дороге те же числа — фишками.
        */
       hud={[
         { key: 'sum', icon: 'trending-up', label: t('score'), value: показатели.число, tone: 'accent' as const, pop: true },
@@ -216,38 +261,76 @@ export default function NumberRunScreen() {
          */
         { key: 'crashes', icon: 'close-circle', label: t('errors'), value: показатели.столкновений, tone: 'bad' as const },
       ]}
-      bottom="answer"
-      toolbar={нижниеКнопки}
-    >
-      {/*
-        🔴 СТРОКА ЗАДАНИЯ ЖИВЁТ ВСЮ ПАРТИЮ, а не только на настройке. Человек входит
-        в забег на восемь минут; к четвёртому этапу он уже не помнит, что красное
-        вычитает. Гейт `game-task-line` держит её именно в партии.
-        ⚠️ Одна строка, а не три: место над полем платится высотой поля (правило 9).
-      */}
-      <Text style={[styles.заданиеВПартии, { color: colors.textSecondary }]} numberOfLines={1}>
-        {t('numberRunTask')}
-      </Text>
-      {Platform.OS === 'web' ? (
-        <NumberRunGame
-          ref={руль}
-          зерно={зерно}
-          пауза={пауза}
-          onПоказатели={setПоказатели}
-          onИтог={принятьИтог}
-          фон={colors.background}
-          цветТекста={colors.text}
-        />
-      ) : (
-        /**
-         * Приложение на телефоне — это WebView, и веб-ветка там и работает. Эта
-         * заглушка на случай запуска в настоящем нативном окружении (например,
-         * в пробах): лучше честная строка, чем пустой экран.
-         */
-        <View style={styles.центр}>
-          <Text style={[styles.правило, { color: colors.textSecondary }]}>{t('numberRunWebOnly')}</Text>
+      /*
+        Вся партия — прямо в слоте каркаса: дорога, фишки, строка задания и руль.
+        Здесь, внутри тега, а не константой выше: пробы module-games-guard и
+        game-task-line читают партию по тексту между открывающим и закрывающим тегом
+        каркаса. ⚠️ Сам тег в этом комментарии писать нельзя: проба режет по его букве.
+      */
+      overlay={(
+        <View style={[styles.полныйЭкран, { backgroundColor: colors.background }]}>
+          <View style={[styles.дорога, { bottom: полосаРуля }]}>
+            {Platform.OS === 'web' ? (
+              <NumberRunGame
+                ref={руль}
+                зерно={зерно}
+                пауза={пауза}
+                onПоказатели={setПоказатели}
+                onИтог={принятьИтог}
+                фон={colors.background}
+                цветТекста={colors.text}
+              />
+            ) : (
+              /**
+               * Приложение на телефоне — это WebView, и веб-ветка там и работает. Эта
+               * заглушка на случай запуска в настоящем нативном окружении (например,
+               * в пробах): лучше честная строка, чем пустой экран.
+               */
+              <View style={styles.центр}>
+                <Text style={[styles.правило, { color: colors.textSecondary }]}>{t('numberRunWebOnly')}</Text>
+              </View>
+            )}
+          </View>
+          <View style={[styles.верхЗабега, { top: insets.top + 5, right: HELP_CORNER_SPACE }]} pointerEvents="box-none">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('gamePauseOpen')}
+              onPress={() => { requestPauseMenu(); }}
+              style={[styles.паузаЗабега, { backgroundColor: colors.primary }]}
+            >
+              <Ionicons name="pause" size={22} color="#FFFFFF" />
+            </Pressable>
+            <View style={styles.фишки} pointerEvents="none">
+              {фишка('sum', 'trending-up', показатели.число, false, true)}
+              {фишка('stage', 'flag', `${показатели.этап}/${показатели.этапов}`)}
+              {фишка('crashes', 'close-circle', показатели.столкновений, показатели.столкновений > 0)}
+            </View>
+          </View>
+          {/*
+            🔴 СТРОКА ЗАДАНИЯ ЖИВЁТ ВСЮ ПАРТИЮ, а не только на настройке. Человек входит
+            в забег на восемь минут; к четвёртому этапу он уже не помнит, что красное
+            вычитает. Гейт `game-task-line` держит её именно в партии. В полноэкранном
+            режиме — плашкой на дороге под фишками, одной строкой.
+          */}
+          <View style={[styles.заданиеПоверх, { top: insets.top + 5 + ПАЛЕЦ + 6 }]} pointerEvents="none">
+            <Text style={styles.заданиеПоверхТекст} numberOfLines={1}>{t('numberRunTask')}</Text>
+          </View>
+          <View
+            style={[styles.низЗабега, {
+              height: полосаРуля,
+              paddingBottom: Math.max(insets.bottom, 10),
+              paddingHorizontal: ПОЛЯ_ОТВЕТА / 2,
+              borderTopColor: colors.border,
+              backgroundColor: colors.background,
+            }]}
+          >
+            {нижниеКнопки}
+          </View>
         </View>
       )}
+    >
+      {/* Поле каркаса пустое: вся партия — в полноэкранном слое `overlay` выше. */}
+      <View style={styles.подСлоем} />
     </GameShell>
   );
 }
@@ -256,7 +339,19 @@ export default function NumberRunScreen() {
 function колорыКлюч(c: { card: string; border: string; text: string }) { return `${c.card}|${c.border}|${c.text}`; }
 
 const styles = StyleSheet.create({
-  заданиеВПартии: { fontSize: 13, textAlign: 'center', paddingHorizontal: 12, paddingBottom: 4 },
+  полныйЭкран: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  дорога: { position: 'absolute', top: 0, left: 0, right: 0 },
+  подСлоем: { flex: 1 },
+  верхЗабега: { position: 'absolute', left: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  паузаЗабега: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  фишки: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, flexShrink: 1 },
+  фишка: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, height: 30, borderRadius: 15, backgroundColor: 'rgba(15,23,42,0.62)' },
+  фишкаБеда: { backgroundColor: 'rgba(190,18,60,0.78)' },
+  фишкаТекст: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  фишкаКрупно: { fontSize: 17 },
+  заданиеПоверх: { position: 'absolute', left: 10, right: 10, alignItems: 'center' },
+  заданиеПоверхТекст: { color: '#FFFFFF', fontSize: 12, fontWeight: '700', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10, overflow: 'hidden', backgroundColor: 'rgba(15,23,42,0.5)' },
+  низЗабега: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
   центр: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 20 },
   заголовок: { fontSize: 22, fontWeight: '800', textAlign: 'center' },
   правило: { fontSize: 15, lineHeight: 21, textAlign: 'center', maxWidth: 420 },

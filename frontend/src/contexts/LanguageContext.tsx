@@ -210,8 +210,8 @@ const translations: Translations = {
   
   // Game Intro - detailed descriptions
   schulteIntroDesc: {
-    ru: 'Находите символы по порядку как можно быстрее. 5 модификаций под уровень нагрузки:\n\n• 🔢 Цифры 1→25 (классика, легче всего)\n• 🔢 Цифры 25→1 (обратный — сложнее)\n• 🔤 Буквы А→Я (тот же принцип на алфавите)\n• 🔤 Буквы Я→А (обратный алфавит — сложнее)\n• 🔀 1-А-2-Б-3-В (Шульте-Горбов: переключение между двумя последовательностями параллельно)\n\nЦветной режим добавляет визуальный шум для повышенной сложности. Упражнение расширяет периферическое зрение, ускоряет сканирование информации и тренирует устойчивое внимание.',
-    en: 'Find symbols in order as fast as possible. 5 modifications for different challenge levels:\n\n• 🔢 Numbers 1→25 (classic, easiest)\n• 🔢 Numbers 25→1 (backward — harder)\n• 🔤 Letters A→Z (same principle, alphabet)\n• 🔤 Letters Z→A (backward alphabet — harder)\n• 🔀 1-A-2-B-3-C (Schulte-Gorbov: switching between two sequences in parallel)\n\nColor mode adds visual noise for extra challenge. Expands peripheral vision, speeds up information scanning, and trains sustained attention.'
+    ru: 'Нажимайте на символы по порядку — какой искать сейчас, показано в полосе сверху. Находите символы по порядку как можно быстрее. 5 модификаций под уровень нагрузки:\n\n• 🔢 Цифры 1→25 (классика, легче всего)\n• 🔢 Цифры 25→1 (обратный — сложнее)\n• 🔤 Буквы А→Я (тот же принцип на алфавите)\n• 🔤 Буквы Я→А (обратный алфавит — сложнее)\n• 🔀 1-А-2-Б-3-В (Шульте-Горбов: переключение между двумя последовательностями параллельно)\n\nЦветной режим добавляет визуальный шум для повышенной сложности. Упражнение расширяет периферическое зрение, ускоряет сканирование информации и тренирует устойчивое внимание.',
+    en: 'Tap the symbols in order — the one to find now is shown in the bar at the top. Find symbols in order as fast as possible. 5 modifications for different challenge levels:\n\n• 🔢 Numbers 1→25 (classic, easiest)\n• 🔢 Numbers 25→1 (backward — harder)\n• 🔤 Letters A→Z (same principle, alphabet)\n• 🔤 Letters Z→A (backward alphabet — harder)\n• 🔀 1-A-2-B-3-C (Schulte-Gorbov: switching between two sequences in parallel)\n\nColor mode adds visual noise for extra challenge. Expands peripheral vision, speeds up information scanning, and trains sustained attention.'
   },
   wordPairsIntroDesc: { 
     ru: 'Запомните связи между словами, а затем восстановите пары. Тренирует ассоциативную память — способность связывать информацию между собой.', 
@@ -222,20 +222,20 @@ const translations: Translations = {
     en: 'Memorize a sequence of words or numbers in the correct order. Develops working memory — the ability to hold information in mind.' 
   },
   counterIntroDesc: { 
-    ru: 'Найдите числа, сумма которых равна заданному числу. Тренирует устный счёт и способность быстро анализировать варианты.', 
-    en: 'Find numbers that sum to the target. Trains mental arithmetic and the ability to quickly analyze options.' 
+    ru: 'Нажимайте на числа в сетке, пока их сумма не станет равна заданной. Найдите числа, сумма которых равна заданному числу. Тренирует устный счёт и способность быстро анализировать варианты.', 
+    en: 'Tap numbers in the grid until they add up to the target. Find numbers that sum to the target. Trains mental arithmetic and the ability to quickly analyze options.' 
   },
-  proofreadingIntroDesc: { 
-    ru: 'Найдите заданные буквы в большой таблице символов. Развивает избирательное внимание — способность находить нужное среди лишнего.', 
-    en: 'Find specific letters in a large grid of characters. Develops selective attention — the ability to find what you need among distractions.' 
+  proofreadingIntroDesc: {
+    ru: 'Два задания под одной карточкой, переключаются наверху.\n«Буквы» — корректурная проба: в плотной таблице символов надо найти все заданные и не пропустить ни одного. Чем дальше, тем больше поле и тем меньше времени на клетку.\n«Слова» — филворды: слова спрятаны в сетке ломаной змейкой, их надо обвести.\nОбщее у обоих одно — удержать внимание на однообразном материале. Игра смотрит на пропуски, а не на скорость.',
+    en: 'Two tasks under one card, switched at the top.\n"Letters" is the proofreading task: find every target symbol in a dense grid and miss none. The further you go, the bigger the grid and the less time per cell.\n"Words" is a word-snake: words hide in the grid along a bending path and you trace them.\nWhat the two share is holding attention on monotonous material. The game watches what you miss, not how fast you go.'
   },
   targetsIntroDesc: {
-    ru: 'Реагируйте на появление цветных объектов. Тренирует скорость реакции и способность быстро принимать решения.',
-    en: 'React to colored objects appearing on screen. Trains reaction speed and the ability to make quick decisions.'
+    ru: 'Внизу вспыхивают цветные фигуры. Режима два, и задача в них РАЗНАЯ — переключатель на экране настройки.\n«Поле»: мишень — когда две фигуры из трёх одного цвета. Увидел — жми; все цвета разные — не жми.\n«Джокер»: мишень — когда среди фигур попадается цвет круга из ПРЕДЫДУЩЕГО показа. Его приходится держать в уме, так что здесь проверяется не только реакция, но и память на шаг назад.\nДороже всего обходится не «не успел», а нажатие на пустое: именно такие нажатия игра и считает.',
+    en: 'Coloured shapes flash at the bottom. There are TWO modes and the task differs — switch them on the settings screen.\n"Field": a target is when two of the three shapes share a colour. See it, press it; all colours different, hands off.\n"Joker": a target is when the colour of the circle from the PREVIOUS round turns up among the shapes. You have to hold it in mind, so this one tests memory one step back as well as speed.\nThe costly mistake is not being late but pressing on nothing: those presses are what the game counts.'
   },
   quickCountIntroDesc: {
-    ru: 'На мгновение появятся точки — оцените их количество, не пересчитывая по одной. Тренирует восприятие количества (subitizing) — отдельный от арифметики навык мгновенной оценки числа объектов.',
-    en: 'Dots flash briefly — estimate how many without counting one by one. Trains numerosity perception (subitizing) — a skill distinct from arithmetic, the instant sense of quantity.'
+    ru: 'Когда точки исчезнут, нажмите кнопку с их числом внизу. На мгновение появятся точки — оцените их количество, не пересчитывая по одной. Тренирует восприятие количества (subitizing) — отдельный от арифметики навык мгновенной оценки числа объектов.',
+    en: 'When the dots disappear, tap the button with their number below. Dots flash briefly — estimate how many without counting one by one. Trains numerosity perception (subitizing) — a skill distinct from arithmetic, the instant sense of quantity.'
   },
   quickCountLookHint: { ru: 'Смотри — не считай!', en: 'Look — don’t count!' },
   quickCountAnswerHint: { ru: 'Сколько было точек?', en: 'How many dots were there?' },
@@ -413,8 +413,8 @@ const translations: Translations = {
   findDiff: { ru: 'Найди отличия', en: 'Find Differences' },
   findDiffDesc: { ru: 'Сравни две картинки и найди отличия', en: 'Spot what differs between two scenes' },
   findDiffIntroDesc: {
-    ru: 'Найдите все отличия между двумя сценами справа и слева. Тренирует детальное внимание и зрительное сравнение.',
-    en: 'Find every difference between the two scenes. Trains detail attention and visual comparison.',
+    ru: 'Нажимайте на отличия на нижней картинке. Найдите все отличия между двумя сценами справа и слева. Тренирует детальное внимание и зрительное сравнение.',
+    en: 'Tap the differences on the lower picture. Find every difference between the two scenes. Trains detail attention and visual comparison.',
   },
   diffsCount: { ru: 'Отличий за раунд', en: 'Differences per round' },
   findHint: { ru: 'Нажимайте на отличия на нижней картинке', en: 'Tap the differences on the lower scene' },
@@ -777,10 +777,10 @@ const translations: Translations = {
     en: 'Estimate the value of the expression and place a marker on the number line. Exact calculation is not the point — landing in the right region of the scale is. Builds number sense and approximation, and the expression family itself changes with the levels: addition, subtraction, multiplication, decimals, percentages, discounts, proportions.',
   },
   mathSprintIntroDesc: {
-    ru: 'Решайте арифметические примеры на скорость. Каждое правильное подряд увеличивает бонус-стрик. Развивает устный счёт и быстроту мышления.',
-    en: 'Solve arithmetic problems against the clock. Consecutive correct answers grow a streak bonus. Builds mental arithmetic and processing speed.',
+    ru: 'Набирайте ответ на клавишах внизу — верный засчитывается сразу. Решайте арифметические примеры на скорость. Каждое правильное подряд увеличивает бонус-стрик. Развивает устный счёт и быстроту мышления.',
+    en: 'Type the answer on the keys below — a correct one counts at once. Solve arithmetic problems against the clock. Consecutive correct answers grow a streak bonus. Builds mental arithmetic and processing speed.',
   },
-  mathHint: { ru: 'Введите ответ и нажмите ✓', en: 'Type the answer and press ✓' },
+  mathHint: { ru: 'Набери ответ клавишами внизу', en: 'Type the answer on the keys below' },
   benefitMath1: { ru: 'Считать в уме без калькулятора', en: 'Calculate without a calculator' },
   benefitMath2: { ru: 'Быстрее работать с числами в работе', en: 'Crunch numbers at work faster' },
   benefitMath3: { ru: 'Уверенность с цифрами', en: 'Confidence with numbers' },
@@ -1162,8 +1162,8 @@ const translations: Translations = {
 
   // Round-3 — intro descriptions
   patternIntroDesc: {
-    ru: 'Перед вами 4 числа — они подчинены скрытому правилу (арифметическая прогрессия, удвоение, квадраты, Фибоначчи и т.д.). Найдите следующее число. Тренирует абстрактное мышление, выявление закономерностей и математическую интуицию.',
-    en: 'You see 4 numbers — they follow a hidden rule (arithmetic, doubling, squares, Fibonacci, etc.). Find the next number. Trains abstract thinking, pattern detection and mathematical intuition.'
+    ru: 'Нажмите на число внизу, которое продолжает последовательность. Перед вами 4 числа — они подчинены скрытому правилу (арифметическая прогрессия, удвоение, квадраты, Фибоначчи и т.д.). Найдите следующее число. Тренирует абстрактное мышление, выявление закономерностей и математическую интуицию.',
+    en: 'Tap the number below that continues the sequence. You see 4 numbers — they follow a hidden rule (arithmetic, doubling, squares, Fibonacci, etc.). Find the next number. Trains abstract thinking, pattern detection and mathematical intuition.'
   },
   choiceRtIntroDesc: {
     ru: 'На экране появится стрелка ←, → , ↑ или ↓. Нажмите кнопку соответствующего направления как можно быстрее. Тренирует скорость выбора и точность моторных реакций.',
@@ -1178,8 +1178,8 @@ const translations: Translations = {
     en: 'The target number is at the top. Tap chips to make exactly that sum: two or three are enough at first, more later on. Tapped a wrong one — tap it again to remove it; “Reset” clears everything. Once the sum is right, press “Check”. Each puzzle is timed — the counter runs at the top: running out or getting the sum wrong counts as an error, and two are allowed per level. Trains mental arithmetic and combination search.'
   },
   setGameIntroDesc: {
-    ru: 'Каждая карточка имеет 4 признака: цвет, форма, штриховка, количество. Найдите тройку, где каждый признак либо одинаков на всех трёх, либо разный на всех трёх. Тренирует визуальную логику.',
-    en: 'Each card has 4 attributes: color, shape, shading, count. Find a triple where every attribute is either identical across all three or all different. Trains visual logic.'
+    ru: 'Нажмите на три карточки, образующие SET. Каждая карточка имеет 4 признака: цвет, форма, штриховка, количество. Найдите тройку, где каждый признак либо одинаков на всех трёх, либо разный на всех трёх. Тренирует визуальную логику.',
+    en: 'Tap the three cards that form a SET. Each card has 4 attributes: color, shape, shading, count. Find a triple where every attribute is either identical across all three or all different. Trains visual logic.'
   },
   stopSignalIntroDesc: {
     ru: 'Жмите Go при появлении зелёного сигнала. Но если после Go появится красный — резко остановитесь и не нажимайте. Усложнённая версия Go/No-Go: тренирует префронтальный контроль и подавление уже начатого действия.',
@@ -1251,12 +1251,12 @@ const translations: Translations = {
     en: 'Read sentences one at a time. For each: judge whether it makes sense (✓ or ✗) AND remember the last word. After N sentences, type all the last words in order. This is the classic Daneman-Carpenter Reading Working Memory test.'
   },
   switchingTaskIntroDesc: {
-    ru: 'Видите пару «цифра+буква», например «3A». Цвет/значок наверху подсказывает задачу: NUMBER — нечётная или чётная цифра? LETTER — гласная или согласная буква? Задача меняется случайно. Тренирует когнитивную гибкость и измеряет switch cost.',
-    en: 'You see a digit+letter pair, e.g. "3A". A coloured cue tells you the task: NUMBER — is the digit odd or even? LETTER — is the letter a vowel or consonant? The task switches randomly. Trains cognitive flexibility and measures switch cost.'
+    ru: 'Видишь пару вроде «3A». Плашка сверху говорит, что именно оценивать: цифру — чётная или нечётная, либо букву — гласная или согласная. Задание меняется без предупреждения, следи за плашкой. Сразу после смены ответ всегда выходит медленнее, чем при повторе того же задания, — эта задержка и есть то, что здесь меряют.',
+    en: 'You see a pair like "3A". The cue on top says what to judge: the digit — odd or even, or the letter — vowel or consonant. The task changes without warning, so watch the cue. Right after a change the answer always comes out slower than when the task repeats — and that delay is what is being measured here.'
   },
   visualSearchIntroDesc: {
-    ru: 'Поле заполнено похожими фигурами под разными углами. Найди все заданные — образец показан рядом. Искомая фигура меняется каждый раунд, а с уровнями объектов и целей становится больше. Классическая парадигма селективного внимания.',
-    en: 'The field is filled with similar shapes at various angles. Find all the target shapes — the reference is shown alongside. The target changes every round, and as levels rise there are more objects and targets. A classic selective-attention paradigm.'
+    ru: 'Нажимай на фигуры в поле, которые совпадают с образцом. Поле заполнено похожими фигурами под разными углами. Найди все заданные — образец показан рядом. Искомая фигура меняется каждый раунд, а с уровнями объектов и целей становится больше. Классическая парадигма селективного внимания.',
+    en: 'Tap the shapes in the field that match the sample. The field is filled with similar shapes at various angles. Find all the target shapes — the reference is shown alongside. The target changes every round, and as levels rise there are more objects and targets. A classic selective-attention paradigm.'
   },
   sdmtIntroDesc: {
     ru: 'В таблице: 9 символов ↔ 9 цифр (привязка случайная для каждой игры). Появляется символ — нажмите соответствующую цифру. За отведённое время делайте максимум правильных ответов. Чувствительный показатель скорости обработки информации.',
@@ -1337,12 +1337,12 @@ const translations: Translations = {
     en: 'Center: an arrow ← or →. Sides: distractor flankers (same or opposite direction). Respond only to the CENTER, ignoring the sides. Measures ability to suppress automatic responses (Eriksen Flanker, 1974).'
   },
   ospanIntroDesc: {
-    ru: 'Чередуйте: уравнение «верно?» → запомнить букву → уравнение → буква → ... После N итераций впишите буквы в ПРАВИЛЬНОМ ПОРЯДКЕ. Двойная нагрузка: счёт + хранение. Operation Span — золотой стандарт измерения рабочей памяти под нагрузкой.',
-    en: 'Alternate: equation "is it correct?" → remember a letter → equation → letter → ... After N iterations type the letters IN ORDER. Dual load: arithmetic + storage. Operation Span — the gold standard for working memory under load.'
+    ru: 'Отвечайте «Правильно» или «Неправильно» на уравнение и запоминайте букву; в конце наберите буквы по порядку и нажмите «Проверить». Чередуйте: уравнение «верно?» → запомнить букву → уравнение → буква → ... После N итераций впишите буквы в ПРАВИЛЬНОМ ПОРЯДКЕ. Двойная нагрузка: счёт + хранение. Operation Span — золотой стандарт измерения рабочей памяти под нагрузкой.',
+    en: 'Answer “Correct” or “Incorrect” to each equation and remember the letter; at the end type the letters in order and press “Check”. Alternate: equation "is it correct?" → remember a letter → equation → letter → ... After N iterations type the letters IN ORDER. Dual load: arithmetic + storage. Operation Span — the gold standard for working memory under load.'
   },
   simonIntroDesc: {
-    ru: 'Цветной квадрат появляется СЛЕВА или СПРАВА от центра. Жми ЛЕВУЮ кнопку если СИНИЙ, ПРАВУЮ если КРАСНЫЙ (по ЦВЕТУ, не по позиции). Когда позиция стимула совпадает с правильной стороной ответа — легко. Когда не совпадает (incongruent) — медленнее. Simon Effect = разница RT. Классика измерения inhibitory control (Simon, 1969).',
-    en: 'A colored square appears LEFT or RIGHT of center. Press LEFT button if BLUE, RIGHT if RED (by COLOR, not position). When stimulus position matches the correct response side, it\'s easy. When it doesn\'t (incongruent), slower. Simon Effect = RT difference. Classic measure of inhibitory control (Simon, 1969).'
+    ru: 'Цветной квадрат появляется слева или справа от центра. Жми по ЦВЕТУ, а не по месту: синий — левая кнопка, красный — правая. Когда цвет и сторона совпали, всё легко. А когда квадрат справа, а жать надо влево, рука тянется не туда — и ответ выходит медленнее. На этой разнице и проверяют, умеешь ли ты держать правило против привычки. Классическая проба Саймона.',
+    en: 'A coloured square appears to the left or the right of centre. Press by COLOUR, not by place: blue is the left button, red is the right one. When colour and side agree, it is easy. When the square is on the right but the answer is on the left, your hand goes the wrong way and the answer comes out slower. That difference is the test: can you hold a rule against a habit. The classic Simon task.'
   },
 
   // Round-5 — benefits
@@ -1381,7 +1381,8 @@ const translations: Translations = {
   wcstHint:       { ru: 'К какому эталону подходит карточка? (правило скрыто)', en: 'Which reference card matches? (rule is hidden)' },
   ospanEqHint:    { ru: 'Это уравнение верно?',   en: 'Is this equation correct?' },
   ospanRememberLetter: { ru: 'Запомните букву',     en: 'Remember the letter' },
-  ospanRecallHint:{ ru: 'Введите буквы через пробел в правильном порядке', en: 'Type the letters separated by spaces in order' },
+  ospanRecallHint:{ ru: 'Нажимайте буквы по порядку — пробелы не нужны', en: 'Tap the letters in order — no spaces needed' },
+  ospanRecallTitle: { ru: 'Вспомните буквы', en: 'Recall the letters' },
 
   // Round-6 — names
   posner:          { ru: 'Posner Cuing: внимание',     en: 'Posner Cuing: Attention' },
@@ -1401,24 +1402,24 @@ const translations: Translations = {
 
   // Round-6 — intro descriptions
   posnerIntroDesc: {
-    ru: 'В центре — точка фиксации. Сначала появляется cue (стрелка-подсказка) на одну из сторон, потом мишень. Cue обычно подсказывает правильно (валидный), но иногда обманывает (невалидный) или нейтральный. Реагируйте на сторону мишени. Метрика: validity effect = RT(invalid) − RT(valid) — индикатор orienting attention.',
-    en: 'A fixation cross in the center. First a cue (arrow) appears on one side, then a target. The cue is usually valid, but can mislead (invalid) or be neutral. React to the target side. Metric: validity effect = RT(invalid) − RT(valid) — index of orienting attention.'
+    ru: 'В центре — точка, смотри на неё. Сбоку мигает подсказка: чаще она права, но иногда обманывает, а иногда не указывает никуда. Потом появляется мишень — жми ту сторону, где она возникла. Когда подсказка обманула, ответ выходит заметно медленнее. Игра как раз и смотрит, сколько времени экономит верная подсказка и сколько отнимает ложная. Проба Познера, 1980.',
+    en: 'A dot in the centre — keep your eyes on it. A cue flashes to one side: usually it is right, sometimes it misleads you, sometimes it points nowhere. Then the target appears — press the side it showed up on. When the cue misled you, the answer comes out noticeably slower. That is what the game measures: how much time a true cue saves and a false one costs. The Posner cueing task, 1980.'
   },
   antIntroDesc: {
-    ru: 'Тест Фана-Познера измеряет 3 сети внимания одновременно: alerting (готовность), orienting (пространственное), executive (конфликт-резолюция через flanker). Один трайл сочетает: cue (none/center/double/spatial) + target (стрелка с конгруэнтными/инконгруэнтными фланкерами). Получаете 3 биомаркера сразу.',
-    en: 'Fan-Posner test measures 3 attention networks simultaneously: alerting (readiness), orienting (spatial), executive (conflict resolution via flanker). One trial combines: cue (none/center/double/spatial) + target (arrow with congruent/incongruent flankers). 3 biomarkers in one go.'
+    ru: 'Смотри в центр. Сперва мигает подсказка — где-то сбоку, в центре, сразу в двух местах или её нет вовсе. Потом появляется ряд стрелок: жми в ту сторону, куда смотрит СРЕДНЯЯ. Соседние часто смотрят иначе и сбивают — их надо не замечать. Игра ловит три разные вещи сразу: успел ли ты собраться по сигналу, помогла ли подсказка найти место, и насколько мешают соседи. Тест Фана–Познера, 2002.',
+    en: 'Look at the centre. First a cue flashes — to one side, in the middle, in two places at once, or not at all. Then a row of arrows appears: press the way the MIDDLE one points. The neighbours often point elsewhere and throw you off — ignore them. The game catches three separate things at once: whether the cue got you ready, whether it helped you find the place, and how much the neighbours interfere. The Fan–Posner test, 2002.'
   },
   bartIntroDesc: {
-    ru: 'Шарик можно надувать кнопкой Pump (+1¢ за каждое нажатие в копилку pending). В любой момент Cash → деньги в банк. Но шар может ЛОПНУТЬ — точка взрыва скрыта. Если лопнет — pending обнуляется. Метрика: avg pumps на не-лопнувших шарах = склонность к риску. Балансируй жадность и осторожность.',
-    en: 'Pump button +1¢ to pending. Cash button → bank. But balloon may BURST at hidden point. Burst → pending lost. Metric: adjusted average pumps on non-burst balloons = risk tendency. Balance greed vs caution.'
+    ru: 'Шар надувается кнопкой: каждое нажатие кладёт монету в копилку, но копилка пока не твоя. Нажми «Забрать» — и деньги уходят в банк. Только шар может лопнуть, и предел у каждого свой, заранее его не видно. Лопнул — копилка обнуляется, банк остаётся. Вся игра про то, где остановиться: осторожничаешь — заработаешь мало, жадничаешь — потеряешь набранное.',
+    en: 'Each press pumps the balloon and puts a coin in the pot, but the pot is not yours yet. Press "Collect" and the money goes to the bank. The balloon can burst, and every balloon has its own limit, which you cannot see in advance. If it bursts, the pot is gone; the bank stays. The whole game is about where to stop: play it too safe and you earn little, push too far and you lose what you gathered.'
   },
   iowaIntroDesc: {
-    ru: 'Перед вами 4 колоды (A/B/C/D). Каждая карта даёт выигрыш + иногда потерю. Колоды A,B "плохие" (большой выигрыш, ОЧЕНЬ большие потери) — на длинной дистанции минус. C,D "хорошие" (меньший выигрыш, маленькие потери) — на длинной дистанции плюс. Игрок не знает какие — учится по обратной связи. Тест аффективного обучения и интуиции.',
-    en: 'Four decks (A/B/C/D). Each card: win + sometimes loss. A,B are "bad" (high win, HUGE losses) — net negative long-term. C,D are "good" (lower win, small losses) — net positive long-term. You don\'t know which — learn from feedback. Tests affective learning and intuition.'
+    ru: 'Перед тобой четыре колоды. Каждая карта приносит выигрыш, а иногда вместе с ним и потерю. Две колоды выглядят щедрее, но изредка бьют так, что съедают весь заработок; две другие дают поменьше, зато на длинной дистанции остаются в плюсе. Какая какая — не сказано, это выясняется только по ходу, по собственным потерям. Задача простая: закончить партию в плюсе. Карточная проба Айовы.',
+    en: 'Four decks in front of you. Every card brings a win, and sometimes a loss along with it. Two decks look more generous but occasionally hit hard enough to eat everything you earned; the other two give less and stay ahead over the long run. Which is which is not stated — you find out as you go, from your own losses. The goal is simple: finish the round in the black. The Iowa Gambling Task.'
   },
   stroopEmotionalIntroDesc: {
-    ru: 'Назовите ЦВЕТ шрифта, игнорируя значение слова. Слова бывают 3 валентностей: угрожающие (боль/страх/война), позитивные (радость/любовь), нейтральные (стол/окно). Угрожающие слова замедляют реакцию (attentional bias). Метрика: interference threat = RT(threat) − RT(neutral). Используется для диагностики тревожности.',
-    en: 'Name the FONT COLOR, ignore the word meaning. Words have 3 valences: threat (pain/fear/war), positive (joy/love), neutral (table/window). Threat words slow reactions (attentional bias). Metric: interference threat = RT(threat) − RT(neutral). Used in anxiety research.'
+    ru: 'Называй ЦВЕТ, которым написано слово, а само слово не читай. Слова здесь разные: тревожные, приятные и обычные. На тревожных рука сама замедляется, хотя смысл слова к заданию не относится вовсе, — именно эту невольную задержку игра и ловит. Эмоциональный вариант пробы Струпа.',
+    en: 'Name the COLOUR the word is printed in, and do not read the word itself. The words come in three kinds: alarming, pleasant and plain. On the alarming ones your hand slows down by itself, even though the meaning has nothing to do with the task — and that involuntary delay is exactly what the game catches. The emotional version of the Stroop task.'
   },
   spatialSpanIntroDesc: {
     ru: 'CANTAB-стиль: сетка квадратов вспыхивает в случайном порядке. Повторите последовательность В ОБРАТНОМ порядке. Длина растёт пока не ошибётесь дважды на одной длине. Backward вариант — более чистый тест visuospatial working memory чем forward (требует ментальной перестановки).',
@@ -1427,11 +1428,11 @@ const translations: Translations = {
 
   // Round-6 — benefits
   benefitPosner1: { ru: 'Пространственное внимание', en: 'Spatial attention' },
-  benefitPosner2: { ru: 'Reorienting',                en: 'Reorienting' },
+  benefitPosner2: { ru: 'Переключиться, когда подсказка обманула', en: 'Switching over when the cue misled you' },
   benefitPosner3: { ru: 'Скорость реакции',           en: 'Reaction speed' },
-  benefitAnt1:    { ru: 'Alerting attention',         en: 'Alerting' },
-  benefitAnt2:    { ru: 'Orienting attention',        en: 'Orienting' },
-  benefitAnt3:    { ru: 'Executive control',          en: 'Executive control' },
+  benefitAnt1:    { ru: 'Собраться по сигналу',       en: 'Getting ready on a signal' },
+  benefitAnt2:    { ru: 'Найти место по подсказке',   en: 'Finding the place from a cue' },
+  benefitAnt3:    { ru: 'Не поддаться помехе',        en: 'Not giving in to a distractor' },
   benefitBart1:   { ru: 'Принятие решений в риске',   en: 'Risk decision-making' },
   benefitBart2:   { ru: 'Калибровка вероятностей',    en: 'Probability calibration' },
   benefitBart3:   { ru: 'Импульс vs осторожность',    en: 'Impulse vs caution' },
@@ -1439,7 +1440,7 @@ const translations: Translations = {
   benefitIgt2:    { ru: 'Долгосрочная стратегия',     en: 'Long-term strategy' },
   benefitIgt3:    { ru: 'Соматические маркеры',       en: 'Somatic markers' },
   benefitStroop2_1: { ru: 'Подавление эмоций',         en: 'Emotion suppression' },
-  benefitStroop2_2: { ru: 'Attentional bias',          en: 'Attentional bias' },
+  benefitStroop2_2: { ru: 'Внимание цепляется за тревожные слова',          en: 'Attention catches on alarming words' },
   benefitStroop2_3: { ru: 'Контроль реакции',          en: 'Response control' },
   benefitSs1:     { ru: 'Зрительно-простр. память',   en: 'Visuospatial memory' },
   benefitSs2:     { ru: 'Ментальная перестановка',    en: 'Mental rearrangement' },
@@ -1450,8 +1451,8 @@ const translations: Translations = {
   inhibition:        { ru: 'Торможение',                          en: 'Inhibition' },
   inhibitionDesc:    { ru: 'Go/No-Go и Стоп-сигнал в одной игре',  en: 'Go/No-Go and Stop-Signal in one game' },
   inhibitionIntroDesc: {
-    ru: 'Две парадигмы торможения в одной игре. Go/No-Go = решение ДО движения (action restraint). Стоп-сигнал = отмена УЖЕ начатого движения (action cancellation). Микс — чередование обоих, плюс тренировка переключения между типами торможения. Биомаркеры (% commission errors, SSRT) сохраняются раздельно — совместимы с историей.',
-    en: 'Two inhibition paradigms in one game. Go/No-Go = decision BEFORE movement (action restraint). Stop-Signal = cancellation of ALREADY initiated movement (action cancellation). Mixed alternates both, training switching between inhibition types. Biomarkers (% commission errors, SSRT) saved separately — backward-compatible with history.'
+    ru: 'Два разных торможения в одной игре. «Запрет» — решить НЕ нажимать, пока рука не пошла. «Отмена начатого» — остановить уже начавшееся нажатие по внезапному сигналу; это труднее, и промахи здесь нормальны. «Микс» чередует оба, и переключаться между ними тяжелее, чем делать каждое по отдельности. Результат по каждому режиму считается отдельно, поэтому прежние партии не путаются с новыми.',
+    en: 'Two different kinds of stopping in one game. "Hold back" — decide NOT to press before your hand moves. "Cancel" — stop a press you have already started, on a sudden signal; this is harder, and misses here are normal. "Mix" alternates the two, and switching between them is harder than doing either alone. Each mode is scored separately, so earlier rounds do not get mixed up with new ones.'
   },
   inhibitionModeLabel: { ru: 'Парадигма',  en: 'Paradigm' },
   inhibitionGngHint:   { ru: 'Зелёный круг = жми. Красный = НЕ жми. Решение ДО движения.', en: 'Green = press. Red = DON\'T press. Decide before moving.' },
@@ -1601,15 +1602,15 @@ const translations: Translations = {
   cpt:            { ru: 'CPT: устойчивое внимание', en: 'CPT: Sustained Attention' },
   cptDesc:        { ru: 'Жми на X. На высоких уровнях — только если перед X была A', en: 'Tap X. On higher levels — only when X follows A' },
   cptIntroDesc: {
-    ru: 'CPT — измерение устойчивого внимания и импульс-контроля. Примерно раз в секунду появляется буква. Уровни 1-5: жми на КАЖДУЮ X (классический X-CPT). Уровни 6-15: AX-CPT — жми на X ТОЛЬКО если перед ней была A (нагрузка на рабочую память); темп растёт, добавляются похожие на X буквы. Длительность фиксирована ~90 секунд — сложность растёт ТРУДНОСТЬЮ задачи, а не временем. Биомаркеры: пропуски (omission), ложные нажатия (commission), средняя реакция, вариативность реакции (CV-RT — сильный ADHD-маркер), снижение бдительности к концу сессии.',
-    en: 'CPT — measures sustained attention and impulse control. About once a second a letter appears. Levels 1-5: tap EVERY X (classic X-CPT). Levels 6-15: AX-CPT — tap X ONLY if it followed an A (working-memory load); pace rises and X-look-alike letters are added. Duration is fixed at ~90 seconds — difficulty grows by TASK difficulty, not by time. Biomarkers: omission errors, commission errors, mean RT, RT variability (CV-RT — strong ADHD marker), vigilance decrement toward the end of the session.'
+    ru: 'Примерно раз в секунду появляется буква. На первых уровнях жми на каждую X. Дальше правило строже: жать надо только на ту X, перед которой была A, — остальные пропускать. Темп растёт, и подмешиваются буквы, похожие на X. Партия всегда около 90 секунд: труднее становится само задание, а не время. Самое трудное здесь — не начало, а конец: внимание к последним минутам садится у всех, и игра смотрит именно на это.',
+    en: 'About once a second a letter appears. On the first levels, press every X. Later the rule gets stricter: press only the X that had an A before it, and let the rest go. The pace picks up and letters that look like X get mixed in. A round always runs about 90 seconds: it is the task that gets harder, not the clock. The hard part is not the start but the end — attention sags in the last minutes for everyone, and that is exactly what the game is watching.'
   },
   cptStrenuous:   { ru: 'Игра на концентрацию — лучше в спокойной обстановке', en: 'A concentration task — best in a calm setting' },
   cptHint:        { ru: 'Жми на X (на AX-уровнях — только если перед X была A)', en: 'Tap X (on AX levels — only if X followed an A)' },
 
   benefitCpt1:    { ru: 'Устойчивое внимание (vigilance)',  en: 'Sustained attention (vigilance)' },
   benefitCpt2:    { ru: 'Контроль импульса (X = stop)',      en: 'Impulse control (X = stop)' },
-  benefitCpt3:    { ru: 'RT variability (ADHD-маркер)',      en: 'RT variability (ADHD marker)' },
+  benefitCpt3:    { ru: 'Ровность реакции — насколько она не скачет',      en: 'Steadiness of reaction — how little it jumps' },
 
   skillSustainedAttention: { ru: 'Тренируем: устойчивое внимание', en: 'Training: sustained attention' },
 
@@ -1617,12 +1618,12 @@ const translations: Translations = {
   prl:            { ru: 'PRL: смена правил',           en: 'PRL: Reversal Learning' },
   prlDesc:        { ru: 'Один из 2 цветов даёт +10. Когда правило поменяется — переключись', en: 'One of 2 colors pays +10. When rule reverses — switch' },
   prlIntroDesc: {
-    ru: 'Probabilistic Reversal Learning (Cools 2002, Hampshire 2008) — классический тест функции орбитофронтальной коры (vmPFC). Перед тобой 2 круга — синий (A) и оранжевый (B). Один даёт +10¢ с вероятностью 80%, второй с 20%. Через несколько правильных подряд правила СКРЫТНО меняются местами — теперь хороший стал плохим. Ты должен заметить по обратной связи и переключиться. Ключевые биомаркеры: reversal_errors (медленность переучивания), perseverative_errors (продолжаешь старое правило несмотря на негатив), win_stay_rate, lose_shift_rate. Прямой коррелят финансовых решений: vmPFC обновляет ценность по обратной связи; PRL мерит насколько быстро. Третья ножка финансового combo (Iowa + BART + PRL).',
-    en: 'Probabilistic Reversal Learning (Cools 2002, Hampshire 2008) — classic orbitofrontal/vmPFC test. Two circles: blue (A) and orange (B). One pays +10¢ with 80% probability, the other with 20%. After several correct in a row, rules SILENTLY swap — good became bad. You must detect from feedback and switch. Key biomarkers: reversal_errors (slow relearning), perseverative_errors (sticking to old rule despite punishment), win_stay_rate, lose_shift_rate. Direct correlate of financial decision-making: vmPFC updates value from feedback; PRL measures how fast. Third leg of financial combo (Iowa + BART + PRL).'
+    ru: 'Перед тобой два круга. Один чаще приносит деньги, другой чаще пустой — какой именно, заранее не сказано, это выясняется по ходу. Угадывать не нужно: смотри, что приносит, и держись этого. Главное — иногда круги молча меняются местами, и хороший становится плохим. Предупреждения не будет: понять это можно только по тому, что удачный выбор вдруг перестал работать. Две-три осечки подряд после хорошей серии — верный знак, что пора пробовать другой круг. Игра смотрит не на везение, а на то, быстро ли ты замечаешь перемену и не упрямишься ли со старым выбором. Классическая проба на переучивание, Cools 2002.',
+    en: 'Two circles. One pays more often, the other is mostly empty — which is which is not stated, you work it out as you go. No guessing is needed: watch what pays and stay with it. The catch is that the circles quietly swap round now and then, and the good one becomes the bad one. There is no warning: the only sign is that a choice that was working suddenly stops. Two or three misses in a row after a good run mean it is time to try the other circle. The game is not watching your luck but how quickly you notice the change, and whether you keep stubbornly to the old choice. The classic reversal-learning task, Cools 2002.'
   },
   prlHint:        { ru: 'Выбирай круг. Правило может меняться — следи за фидбеком', en: 'Pick a circle. Rule may change — watch feedback' },
   prlNote:        { ru: 'Главное правило: после нескольких правильных подряд правила меняются. Не упрямься со старым выбором.', en: 'Key rule: after several correct in a row, rules swap. Don\'t persist with old choice.' },
-  benefitPrl1:    { ru: 'Обучение по обратной связи (vmPFC)', en: 'Feedback-based learning (vmPFC)' },
+  benefitPrl1:    { ru: 'Обучение по обратной связи', en: 'Learning from feedback' },
   benefitPrl2:    { ru: 'Гибкость к смене правил',            en: 'Flexibility to rule changes' },
   benefitPrl3:    { ru: 'Финансовые решения (Iowa+BART+PRL)',  en: 'Financial decisions (Iowa+BART+PRL)' },
 
@@ -1962,6 +1963,9 @@ const translations: Translations = {
   pauseExitGame: { ru: 'Выйти из упражнения', en: 'Leave exercise' },
   pauseSoundOff: { ru: 'Тихий режим', en: 'Quiet mode' },
   pauseSoundOn: { ru: 'Вернуть звук', en: 'Sound back on' },
+  // Полноэкранный режим игры (`src/services/immersive.ts`): подпись — действие, как у звука выше.
+  pauseFullscreenOff: { ru: 'Не скрывать панели телефона', en: 'Keep phone bars visible' },
+  pauseFullscreenOn: { ru: 'Скрывать панели телефона', en: 'Hide phone bars in game' },
   pauseReport: { ru: 'Сообщить о проблеме', en: 'Report a problem' },
   gamePauseOpen: { ru: 'Пауза и выход', en: 'Pause and exit' },
   exitConfirmStay: { ru: 'Продолжить игру', en: 'Keep playing' },
@@ -2940,7 +2944,7 @@ const translations: Translations = {
   timeErrorsLine: { ru: 'Время {t}с · ошибок {n}', en: 'Time {t}s · errors {n}' },
   sudokuMenu: { ru: 'Меню судоку', en: 'Sudoku menu' },
   sudokuBaseRule: { ru: 'Базово: каждая цифра 1–{n} ровно один раз в строке, столбце и блоке.', en: 'Base: each digit 1–{n} exactly once per row, column and box.' },
-  sudokuKillerRule: { ru: 'Killer: поле разбито на рамки-группы. Цифры группы дают указанную сумму и не повторяются внутри рамки.', en: 'Killer: the board is split into cages. Digits in a cage sum to its clue and don’t repeat inside it.' },
+  sudokuKillerRule: { ru: 'Киллер: поле разбито на рамки-группы. Цифры группы дают указанную сумму и не повторяются внутри рамки.', en: 'Killer: the board is split into cages. Digits in a cage sum to its clue and don’t repeat inside it.' },
   /**
    * Судоку — справка ТЕКУЩЕГО уровня (services/sudoku-level-help.ts).
    * Правило говорит, ЧТО запрещено; эти строки говорят, КАК искать ход. Живой
@@ -2991,6 +2995,7 @@ const translations: Translations = {
   sudokuVariantSandparity: { ru: '🥪+ чёт/нечет', en: '🥪+ parity' },
   sudokuVariantThermoknight: { ru: '🌡+ конь', en: '🌡+ knight' },
   sudokuVariantKillerdiag: { ru: '➕ суммы + диагонали', en: '➕ cages + diagonals' },
+  sudokuModeKiller: { ru: 'Киллер', en: 'Killer' },
   sudokuBeltCombo: { ru: 'комбо: два правила разом', en: 'combo: two rules at once' },
   // Расшифровка пояса — что эти доски требуют. Заведены 12.09.2026 по отчёту Вали:
   // на 58-м она видела термин «Пояс ALS» без объяснения и справку из трёх разделов вместо пяти.
@@ -3158,7 +3163,7 @@ const translations: Translations = {
   trailNodes: { ru: '{n} узлов', en: '{n} nodes' },
   trailPass: { ru: 'Проход уровня: пройти цепочку за ≤{t} с и сделать не больше {e} ошибок', en: 'To pass: finish the trail within {t}s with at most {e} errors' },
   wcstLvlParams: { ru: '{n} проб · смена правила после {s} подряд', en: '{n} trials · rule switches after {s} in a row' },
-  wcstPass: { ru: 'Проход уровня: ≤{c} персеверативных ошибок и ≥55% верных', en: 'To pass: ≤{c} perseverative errors and ≥55% correct' },
+  wcstPass: { ru: 'Проход уровня: не больше {c} раз повторить старое правило после смены и ≥55% верных', en: 'To pass: repeat the old rule after a switch no more than {c} times, and ≥55% correct' },
 
   // ── v1.142: анлок-подсказки «🔒 Следующий …» тематических профилей (formatUnlockHint
   // в level-unlocks.ts; useLevelGate + schulte). Каркас + контент по (game, level);
@@ -3385,12 +3390,24 @@ const translations: Translations = {
   lr_corsi_reverse_title: { ru: 'Обратный порядок', en: 'Reverse order' },
   lr_corsi_reverse_rule: { ru: 'С этого уровня повторяй последовательность В ОБРАТНОМ порядке — от последнего блока к первому.', en: 'From this level on, reproduce the sequence in REVERSE — from the last block back to the first.' },
   lr_corsi_reverse_example: { ru: 'Пример: загорелись блоки 1 → 2 → 3 — нажимай 3, 2, 1.', en: 'Example: blocks flash 1 → 2 → 3 — tap 3, 2, 1.' },
+  lr_stroop_noise_title: { ru: 'Знаки вокруг стимула', en: 'Symbols around the stimulus' },
+  lr_stroop_noise_rule: { ru: 'Вокруг стимула появляются посторонние знаки. Они ничего не значат — задача та же самая, просто найти нужное труднее.', en: 'Extra symbols appear around the stimulus. They mean nothing — the task is exactly the same, it is just harder to find what matters.' },
+  lr_stroop_noise_example: { ru: 'Пример: к заданию они не относятся. Смотри только на сам стимул.', en: 'Example: they are not part of the task. Look only at the stimulus itself.' },
+  lr_switching_task_noise_title: { ru: 'Значки вокруг задания', en: 'Shapes around the task' },
+  lr_switching_task_noise_rule: { ru: 'Вокруг цифры и буквы появляются посторонние значки. Оценивать по-прежнему надо только то, что просит плашка сверху.', en: 'Extra shapes appear around the digit and the letter. Judge only what the cue at the top asks for.' },
+  lr_switching_task_noise_example: { ru: 'Пример: значки не цифра и не буква — их не оценивают.', en: 'Example: a shape is neither a digit nor a letter — it is not judged.' },
   lr_corsi_hold_title: { ru: 'Пауза перед ответом', en: 'A pause before you answer' },
   lr_corsi_hold_rule: { ru: 'С этого уровня между последней вспышкой и вводом появляется пауза, и дальше она растёт. Последовательность придётся удерживать в уме дольше — длина и темп показа при этом прежние.', en: 'From this level a pause appears between the last flash and your input, and it grows further on. You have to hold the sequence in mind for longer — the length and the pace of the flashes stay the same.' },
   lr_corsi_hold_example: { ru: 'Блоки отгорели, поле молчит пару секунд — и только потом можно нажимать.', en: 'The blocks have finished flashing, the board stays quiet for a couple of seconds — only then can you tap.' },
   lr_cpt_lookalike_title: { ru: 'Буквы-ловушки', en: 'Look-alike traps' },
   lr_cpt_lookalike_rule: { ru: 'Среди букв всё чаще попадаются похожие на X: K, Y, V, W, N, M. Не жми на них — жди настоящую X (после A).', en: 'Letters that resemble X now appear more often: K, Y, V, W, N, M. Don\'t tap them — wait for a real X (after A).' },
   lr_cpt_lookalike_example: { ru: 'Пример: мелькнула K — руки прочь, это не X.', en: 'Example: a K flashes by — hands off, it\'s not an X.' },
+  lr_cpt_newtarget_title: { ru: 'Мишень сменилась', en: 'The target changed' },
+  lr_cpt_newtarget_rule: { ru: 'С этого уровня ждать надо НЕ X. Нужная буква названа в подсказке над полем — и меняется от уровня к уровню.', en: 'From this level the target is no longer X. The letter you need is named in the hint above the field, and it changes from level to level.' },
+  lr_cpt_newtarget_example: { ru: 'Пример: сказано «жми на K» — значит X теперь обычная буква, мимо неё.', en: 'Example: if the hint says tap K, then X is just another letter — let it pass.' },
+  lr_cpt_colorrule_title: { ru: 'Цвет тоже правило', en: 'Colour is part of the rule' },
+  lr_cpt_colorrule_rule: { ru: 'Теперь мишень засчитывается только КРАСНАЯ. Та же буква другого цвета — ловушка, жать нельзя.', en: 'Now only a RED target counts. The same letter in another colour is a trap — don\'t tap it.' },
+  lr_cpt_colorrule_example: { ru: 'Пример: мишень красная — жми. Та же буква синей — мимо.', en: 'Example: the target in red — tap. The same letter in blue — let it pass.' },
   lr_digit_span_reverse_title: { ru: 'Ввод с конца', en: 'Type backwards' },
   lr_digit_span_reverse_rule: { ru: 'С этого уровня вводи цифры В ОБРАТНОМ порядке — от последней к первой.', en: 'From this level on, enter the digits in REVERSE order — last digit first.' },
   lr_digit_span_reverse_example: { ru: 'Пример: показано 4 9 2 — вводи 294.', en: 'Example: shown 4 9 2 — type 294.' },
@@ -3668,12 +3685,23 @@ const translations: Translations = {
   sspanLvlAuto: { ru: 'Ур. {n} — растёт сам (span → скорость показа → сетка 5×5)', en: 'Lv {n} — grows with results (span → show speed → 5×5 grid)' },
   cptTapAX: { ru: 'Жми только на X, если ПЕРЕД ней была A', en: 'Tap X only if it followed A' },
   cptTapX: { ru: 'Жми на каждую X. Не пропускай!', en: 'Tap every X. Don\'t miss!' },
+  // 10.09.2026: мишень с L9 уже не X, а правило с L12 составное (буква И цвет).
+  // Подсказка обязана называть ТЕКУЩУЮ мишень — иначе механика неиграбельна.
+  // {letter} подставляет сама игра (пакет переводов подстановки не делает).
+  cptTapLetter: { ru: 'Жми на каждую {letter}. Не пропускай!', en: 'Tap every {letter}. Don\'t miss!' },
+  cptTapAXLetter: { ru: 'Жми только на {letter}, если ПЕРЕД ней была A', en: 'Tap {letter} only if it followed A' },
+  // Короткая подпись кнопки ответа: полное правило стоит в подсказке над полем,
+  // дублировать его на кнопке незачем — одна и та же фраза дважды на экране.
+  cptTapBtn: { ru: 'Это мишень', en: "That's the target" },
+  cptTapColor: { ru: 'Только КРАСНАЯ {letter} после A. Другой цвет — не трогай', en: 'Only a RED {letter} after A. Ignore other colours' },
+  cptLvlParamsColor: { ru: 'AX-CPT · только КРАСНАЯ {letter} после A · похожие буквы · 90 сек', en: 'AX-CPT · only a RED {letter} after A · look-alikes · 90 s' },
+  cptLvlParamsLetter: { ru: 'AX-CPT · жми на {letter} только после A · похожие буквы · 90 сек', en: 'AX-CPT · tap {letter} only after A · look-alikes · 90 s' },
   prlModeLevels: { ru: 'Уровни — прогрессия', en: 'Levels — progression' },
   prlModeClassic: { ru: 'Классический — диагностика', en: 'Classic — diagnostic' },
   modeLevels: { ru: 'Уровни', en: 'Levels' },
   modeClassic: { ru: 'Классический', en: 'Classic' },
   wcstModeClassicDesc: { ru: 'Стандартные параметры: правило меняется после 10 подряд. Для чистой метрики.', en: 'Standard params: rule switches after 10 in a row. For a clean metric.' },
-  wcstModeLevelsDesc: { ru: 'Правило меняется всё чаще с уровнем. Держи персеверативные ошибки низкими.', en: 'Rule switches more often each level. Keep perseverative errors low.' },
+  wcstModeLevelsDesc: { ru: 'Правило меняется всё чаще с уровнем. Главное — не упрямиться со старым, когда ответы перестали подходить.', en: 'The rule switches more often each level. The trick is not to stick with the old one once the answers stop fitting.' },
   mrAxisZ: { ru: 'ось Z (плоско)', en: 'Z axis' },
   mrAxisXY: { ru: 'оси X+Y (наклоны)', en: 'X+Y axes' },
   mrAxisXYZ: { ru: 'оси X+Y+Z (3D)', en: 'X+Y+Z axes' },
@@ -3683,7 +3711,7 @@ const translations: Translations = {
   bartClassicDesc: { ru: 'Фиксированные параметры — чистая метрика склонности к риску.', en: 'Fixed parameters — a clean risk-propensity metric.' },
   bartClassicBtn: { ru: 'Классический замер', en: 'Classic run' },
   bartRiskSafe: { ru: '🟢 Безопасно — копи дальше', en: '🟢 Safe — keep banking' },
-  bartRiskCaution: { ru: '🟡 Внимание — pending растёт', en: '🟡 Caution — pending is growing' },
+  bartRiskCaution: { ru: '🟡 Осторожно — копилка растёт, а она ещё не твоя', en: '🟡 Careful — the pot is growing, and it is not yours yet' },
   bartRiskRisky: { ru: '🟠 Рискованно — может стоит cash?', en: '🟠 Risky — maybe cash out?' },
   bartRiskDanger: { ru: '🔴 Очень опасно — почти гарантированный взрыв', en: '🔴 Very dangerous — burst almost guaranteed' },
   chessPcWK: { ru: 'белый король', en: 'white king' },

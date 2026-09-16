@@ -18,7 +18,7 @@
  *
  * Режим выбирается параметром `?mode=<имя движка>`; без него — «Чёт-нечет».
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator, DeviceEventEmitter } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -29,7 +29,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import GameShell from '@/src/components/GameShell';
 import ArrowPad, { ПРЯМЫЕ } from '@/src/components/ArrowPad';
-import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
+import { GameAuxAction } from '@/src/components/GameAuxAction';
 import PuzzleCanvas from '@/src/components/PuzzleCanvas';
 import PlayBoard, { сторонаДоски } from '@/src/components/PlayBoard';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -113,9 +113,21 @@ export default function PuzzlesScreen() {
    * Для Mines и Loopy НИЧЕГО НЕ МЕНЯЕТСЯ: у них `д.ступени` пуст, и наша таблица как
    * была единственной, так и осталась.
    */
-  const ступени = движок
-    ? лестницаДвижка(имяРежима, движок.ступени)
-    : [];
+  /*
+    ⚠️ `useMemo` — НЕ ОПТИМИЗАЦИЯ «НА ВСЯКИЙ СЛУЧАЙ», А ЦЕНА ДЛЯ КОМПИЛЯТОРА REACT.
+    16.09.2026 чат судоку держал здесь свою копию `лестницаДвижка` ВНЕ компонента и
+    прямо записал зачем: иначе компилятор не может сохранить ручную мемоизацию. Я
+    снял копию как дубль общей функции из `names.ts` — и линт тут же дал ШЕСТЬ
+    ошибок `react-hooks/preserve-manual-memoization` на `новая`/`заново`/`начать`/…:
+    вызов ИМПОРТИРОВАННОЙ функции для компилятора непрозрачен, `ступени` становились
+    новым массивом на каждый рисунок, и зависимости колбэков — тоже. Долг линта вырос
+    до 504 при потолке 498 и держал бы CI красным на выпуске 2.54.12.
+    Лечит устойчивая ссылка: массив пересчитывается только при смене движка/режима.
+  */
+  const ступени = useMemo(
+    () => (движок ? лестницаДвижка(имяРежима, движок.ступени) : []),
+    [движок, имяРежима],
+  );
   const ступеней = Math.max(ступени.length, 1);
   const ступень = Math.min(Math.max(lvl.level - 1, 0), Math.max(ступеней - 1, 0));
 

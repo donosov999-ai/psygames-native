@@ -135,3 +135,35 @@ test('🔴 номер уровня в шапке ОДИН раз, а не дву
   expect(`уровень капсулой: ${капсула} · он же строкой: ${строкой}`)
     .toBe('уровень капсулой: true · он же строкой: false');
 });
+
+/**
+ * 🔴 «KILLER» НА РУССКОМ ЭКРАНЕ — ЗАМЕР 16.09.2026.
+ *
+ * На русском хабе судоку ряд режимов читался «Свободно · Killer · Небоскрёбы ·
+ * Неравенства»: слово было зашито строкой в шести местах двух файлов (`sudoku.tsx` ×5,
+ * `sudoku-level-help.ts` ×1), и даже русское правило начиналось с «Killer:».
+ * `ci-i18n-hardcode-guard` этого не ловит — он ищет зашитую кириллицу, а слово
+ * латинское. Поэтому здесь две пробы: поведение (заголовок справки по-русски) и
+ * исходник экрана (ни одного литерала `Killer` в разметке).
+ */
+test('киллер называется по-русски в справке, а на английском остаётся Killer', () => {
+  const ru = help({ mode: 'killer', level: 3, steps: 6 }).title;
+  const en = buildLevelHelp(
+    { mode: 'killer', level: 3, N: 9, variant: 'none', tier: 1, hintMax: 3, errorMax: 3, steps: 6 },
+    (k: string) => translateFor('en', k), 'en',
+  ).title;
+  expect(`ru: латиницы нет ${!/Killer/.test(ru)} · начинается с «Киллер» ${ru.startsWith('Киллер')}`)
+    .toBe('ru: латиницы нет true · начинается с «Киллер» true');
+  expect(`en: ${en.startsWith('Killer')}`).toBe('en: true');
+  expect(`правило по-русски без латиницы: ${!/Killer/.test(translateFor('ru', 'sudokuKillerRule'))}`)
+    .toBe('правило по-русски без латиницы: true');
+});
+
+test('в разметке экрана судоку нет зашитого слова Killer', () => {
+  const src: string = require('fs').readFileSync(require('path').join(__dirname, '../../app/games/sudoku.tsx'), 'utf8');
+  const зашито = src.split('\n')
+    .map((с, i) => ({ с, n: i + 1 }))
+    .filter(({ с }) => !/^\s*(\*|\/\/|\{\/\*)/.test(с) && /(['"`>])Killer(['"`<\s])/.test(с))
+    .map(({ n }) => n);
+  expect(`строк с зашитым Killer: ${зашито.join(',') || 'нет'}`).toBe('строк с зашитым Killer: нет');
+});

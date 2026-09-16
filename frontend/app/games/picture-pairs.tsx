@@ -1,5 +1,5 @@
 /* psygames-game-picture-pairs · VER 1 · 19.08.2026 */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
   ScrollView, Image
@@ -187,10 +187,73 @@ export default function PicturePairsGame() {
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scoreRef = useRef(0);
   const groupSizeRef = useRef(2);   // сколько одинаковых карт = группа (2 пара / 3 тройка / 4 четвёрка)
-  // Справка правил уровня: только игровой режим (в одиночном всегда пары, в пресете свой поток).
-  // Не всплываем во время баннера уровня и фото-показа — иначе модалка перекроет флеш карт.
+  /**
+   * 🔴 ПРАВИЛО УРОВНЯ — ДО ПОКАЗА, А НЕ ПОСЛЕ. Отчёт 7d506dbe (08.09.2026, «Релакс»):
+   * «для запоминания слишком мало времени».
+   *
+   * БЫЛО: карточка правила включалась при `!previewActive`, то есть ПОСЛЕ фото-показа.
+   * Кадр живой сборки 390×844, L14: карты уже закрыты, секундомер 2 с, поверх —
+   * «Четвёрки: совпадение — это ЧЕТЫРЕ одинаковые». На уровнях, где правило меняется
+   * (тройки L10, четвёрки L13), человек проходил показ, НЕ ЗНАЯ, что запоминать, а
+   * правило читал уже при закрытых картах и под секундомером, который входит в счёт.
+   * Сделано так было потому, что уровни идут цепочкой и экрана настройки между ними
+   * нет, а модалка поверх показа перекрыла бы его.
+   *
+   * СТАЛО: проверка правила включается с НАЧАЛА раунда, и если карточка открылась,
+   * показ и секундомер останавливаются (эффект ниже). После «Понятно» показ идёт
+   * ЦЕЛИКОМ заново — человек видит карты, уже зная правило, — и лишь потом стартует
+   * секундомер. Время чтения правила в счёт не идёт.
+   */
   const levelRules = useLevelRules('picture_pairs', level, PAIRS_RULES,
-    phase === 'playing' && mode === 'game' && !isPreset && !previewActive && levelBanner === null);
+    phase === 'playing' && mode === 'game' && !isPreset && levelBanner === null);
+
+  // Живые значения для эффекта правила: он срабатывает по открытию карточки, и через
+  // замыкание видел бы ходы и время на момент своей записи, а не на момент события.
+  // ⚠️ Пишутся ПОСЛЕ коммита, а не в теле компонента: запись в ref во время рендера —
+  // ошибка `react-hooks/refs` (две штуки держали храповик линта красным на метке
+  // 2.54.13). Слой-эффект срабатывает раньше обычного эффекта ниже, так что тот
+  // читает уже свежие ходы и время — как в `WarmupContext` со `stateRef`.
+  const movesRef = useRef(0);
+  const elapsedRef = useRef(0);
+  useLayoutEffect(() => { movesRef.current = moves; elapsedRef.current = elapsedTime; }, [moves, elapsedTime]);
+  const правилоОткрывалосьRef = useRef(false);
+  useEffect(() => {
+    if (levelRules.open) {
+      // Карточка правила открылась: ни показ, ни секундомер не должны идти под ней.
+      правилоОткрывалосьRef.current = true;
+      if (previewTimerRef.current) { clearTimeout(previewTimerRef.current); previewTimerRef.current = null; }
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+      setCards((cs) => cs.map((c) => ({ ...c, flipped: c.matched })));
+      setPreviewActive(false);
+      setLocked(true);
+      return;
+    }
+    if (!правилоОткрывалосьRef.current) return;
+    правилоОткрывалосьRef.current = false;
+    if (phase !== 'playing') return;
+    const запуститьЧасы = (прошлоСек: number) => {
+      const start = gameNow() - прошлоСек * 1000;
+      setStartTime(start);
+      timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
+    };
+    if (movesRef.current === 0) {
+      // Ходов ещё не было — показ целиком заново: теперь человек знает, что запоминать.
+      setElapsedTime(0);
+      setCards((cs) => cs.map((c) => ({ ...c, flipped: true })));
+      setPreviewActive(true);
+      setLocked(true);
+      previewTimerRef.current = setTimeout(() => {
+        setCards((cs) => cs.map((c) => ({ ...c, flipped: c.matched })));
+        setPreviewActive(false);
+        setLocked(false);
+        запуститьЧасы(0);
+      }, previewMs);
+    } else {
+      // Ход уже сделан — расклад не сбрасываем, секундомер продолжает с того же места.
+      setLocked(false);
+      запуститьЧасы(elapsedRef.current);
+    }
+  }, [levelRules.open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const buildDeck = (n: number, groupSize: number) => {
     const symbols = shuffle(sprites.map((_, i) => i)).slice(0, Math.min(n, sprites.length));

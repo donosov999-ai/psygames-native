@@ -16,6 +16,38 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.13',
+    date: '2026-09-16',
+    ru: [
+      '«Числовой забег» теперь на весь экран: дорога занимает почти весь телефон, а счёт, пауза и руль лежат прямо на ней',
+      '«Запомни цифры» и «Математический спринт» получили свою клавиатуру под полем — системная больше не закрывает пол-экрана и кнопку «Проверить»',
+      'У игр на внимание новые ступени сложности вместо повторяющихся уровней, в PRL счёт стоит в центре и растёт на глазах, а справки раздела переписаны простым языком',
+      'OSpan засчитывает буквы, набранные подряд без пробелов. «Считалка», SDMT, «Найди отличия» и «Математическая шкала» помещаются на маленьких телефонах',
+    ],
+    en: [
+      'Number Run is now full screen: the road fills almost the whole phone, with the score, pause and steering right on top of it',
+      'Digit Span and Mental Math Sprint have their own keypad under the board, so the system keyboard no longer covers half the screen and the Check button',
+      'Attention games gain new difficulty steps instead of repeated levels, PRL shows the score in the centre as it grows, and the section help is rewritten in plain words',
+      'OSpan accepts letters typed without spaces. Counter, SDMT, Find Differences and Math Slider now fit small phones',
+    ],
+  },
+  {
+    version: '2.54.12',
+    date: '2026-09-16',
+    ru: [
+      'У каждой из 42 головоломок теперь своя справка: она объясняет именно эту игру и то, куда нажимать. Раньше все головоломки показывали справку одной игры',
+      '«Отменить» и «Заново» стоят прямо под полем, а не в меню паузы. Стрелки собраны крестом — вверх над рядом «влево, вниз, вправо», как на клавиатуре',
+      'Доска головоломок больше не сливается с тёмной темой: «Мосты» и ещё двадцать игр снова видны целиком. Неторопливое нажатие больше не срабатывает как второе действие',
+      'В «Судоку Тэтхэма» все девять цифр на доске 9×9 и своя лестница сложности; в ментальной ротации два новых режима — «Точка зрения» и «Одинаковая фигура»',
+    ],
+    en: [
+      'Each of the 42 puzzles now has its own help: it explains that game and where to tap. Before, every puzzle showed the help of a single game',
+      'Undo and Restart sit right under the board instead of the pause menu. The arrows form a cross — up above a row of left, down, right, like on a keyboard',
+      'Puzzle boards no longer blend into the dark theme: Bridges and twenty other games are fully visible again. A slow tap no longer triggers the second action',
+      'Tatham\u2019s Sudoku has all nine digits on the 9×9 board and its own difficulty ladder; mental rotation gains two new modes — Point of View and Same Shape',
+    ],
+  },
+  {
     version: '2.54.11',
     date: '2026-09-13',
     ru: [

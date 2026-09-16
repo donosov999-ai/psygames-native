@@ -62,7 +62,8 @@ import { GameAuxAction } from '@/src/components/GameAuxAction';
 import { FEEDBACK_OPEN_EVENT, FEEDBACK_ENABLED } from '@/src/services/appFeedback';
 import { текущаяЛестница } from '@/src/services/levelRegistry';
 import { router } from 'expo-router';
-import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
+import { onGameHold, isGameHeld, holdGame, onPauseMenuRequest } from '@/src/services/gamePause';
+import { immersiveCapable, onImmersiveCapable, immersiveEnabled, setImmersiveEnabled, onImmersivePref } from '@/src/services/immersive';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
 import { HELP_CORNER_SPACE, HELP_CORNER_RESERVE } from '@/src/components/GameHelpOverlay';
@@ -625,6 +626,15 @@ export default function GameShell({
    * не увидела бы (замер 09.09.2026: пять проб подряд «держится true» из одной утечки).
    */
   React.useEffect(() => () => { pauseHoldRef.current?.(); pauseHoldRef.current = null; }, []);
+  /**
+   * Игра, закрывшая шапку полноэкранным слоем (забег), просит меню паузы через
+   * службу — и каркас берёт СВОЮ задержку тем же путём, что кнопка «II». Так
+   * «Продолжить», «Заново» и «Выйти» снимают её как обычно. Пока никто не просит,
+   * подписка молчит: остальные игры это не задевает.
+   */
+  React.useEffect(() => onPauseMenuRequest(() => {
+    if (!pauseHoldRef.current) pauseHoldRef.current = holdGame();
+  }), []);
   const [paused, setPaused] = React.useState(isGameHeld());
   /**
    * Отражение звука в меню паузы. Служба хранит флаг в модуле, а не в состоянии
@@ -635,6 +645,15 @@ export default function GameShell({
    * повод перерисоваться после нажатия.
    */
   const [щелчокТишины, дёрнутьТишину] = React.useReducer((x: number) => x + 1, 0);
+  /**
+   * Полноэкранный режим в меню паузы — только у игры, объявившей его через
+   * `useImmersive` (сейчас «Числовой забег»). Выбор живёт в службе, как и звук:
+   * здесь только повод перерисовать подпись после нажатия.
+   */
+  const [полноэкранныйДоступен, setПолноэкранныйДоступен] = React.useState(immersiveCapable());
+  const [щелчокЭкрана, дёрнутьЭкран] = React.useReducer((x: number) => x + 1, 0);
+  React.useEffect(() => onImmersiveCapable(setПолноэкранныйДоступен), []);
+  React.useEffect(() => onImmersivePref(дёрнутьЭкран), []);
   const тихо = !звукВключён() && !hapticEnabledNow();
   React.useEffect(() => onGameHold((v) => {
     setPaused(v);
@@ -997,6 +1016,7 @@ export default function GameShell({
     // Счётчик нажатий на «тихий режим» — единственный повод пересобрать набор после
     // переключения: само значение живёт в службе, а не в состоянии React.
     void щелчокТишины;
+    void щелчокЭкрана;
     const свои = pauseActions && pauseActions.length > 0 ? pauseActions : null;
     // Подписи, уже занятые набором игры: «Отменить» не должно стоять дважды.
     const занято = new Set((свои ?? []).map((a) => a.label));
@@ -1051,6 +1071,17 @@ export default function GameShell({
           дёрнутьТишину();
         },
       },
+      // Полосы телефона на время партии. Выключил — часы и «домой» остаются на месте
+      // во всех играх на весь экран; выбор запоминается (`src/services/immersive.ts`).
+      ...(полноэкранныйДоступен
+        ? [{
+            id: 'fullscreen',
+            label: immersiveEnabled() ? t('pauseFullscreenOff') : t('pauseFullscreenOn'),
+            icon: immersiveEnabled() ? 'contract-outline' as const : 'expand-outline' as const,
+            keepOpen: true,
+            onPress: () => { void setImmersiveEnabled(!immersiveEnabled()); },
+          }]
+        : []),
       // Д7: отчёт о проблеме. Кружок на поле ОСТАЁТСЯ — убрать его значит получить
       // меньше отчётов; здесь он просто ещё и там, где человек уже остановился.
       ...(FEEDBACK_ENABLED
@@ -1121,7 +1152,7 @@ export default function GameShell({
       // На самую главную — минуя развилки.
       { id: 'home', label: t('goHome'), icon: 'home', toHome: true },
     ];
-  }, [pauseActions, onRestart, onFinishEarly, служебныеИзШапки, тихо, щелчокТишины, paused, wu, wuStep, wuSkip, t]);
+  }, [pauseActions, onRestart, onFinishEarly, служебныеИзШапки, тихо, щелчокТишины, полноэкранныйДоступен, щелчокЭкрана, paused, wu, wuStep, wuSkip, t]);
 
   const выходRef = React.useRef(exitGuard.requestExit);
   React.useEffect(() => { выходRef.current = exitGuard.requestExit; });

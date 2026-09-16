@@ -22,6 +22,7 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameAbout from '@/src/components/GameAbout';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -185,6 +186,25 @@ export default function OSpanGame() {
   }, []);
 
   const letterPool = language === 'ru' ? LETTERS_RU : LETTERS_EN;
+  /**
+   * 🔴 СВОИ КЛАВИШИ БУКВ НА ВОСПРОИЗВЕДЕНИИ.
+   *
+   * Приёмка 16.09.2026 (решение Дениса «кнопки управления и клавы, где игры это
+   * требуют»; задача 1bbb9413). Буквы вспоминались только набором в поле ввода:
+   * на телефоне это системная клавиатура, а пул букв у русской версии — А…Ш.
+   * На телефоне без русской раскладки ответить было нечем вовсе.
+   *
+   * Клавиши — ВЕСЬ пул из двадцати букв, а не только показанные: иначе ряд
+   * подсказал бы ответ. Поле осталось для настоящей клавиатуры на компьютере,
+   * системную на телефоне гасит `inputMode="none"`.
+   */
+  const { w: экранШ } = useScreenSize();
+  const клавишаБуквы = Math.floor(Math.max(44, Math.min((Math.min(экранШ, 420) - 32 - 4 * 6 - 2) / 5, 64)));
+  const нажатьБукву = (буква: string) => setRecallInput((v) => (v.trim() ? `${v.trim()} ${буква}` : буква));
+  const стеретьБукву = () => setRecallInput((v) => {
+    const t = v.trim();
+    return /\s/.test(t) ? t.split(/\s+/).slice(0, -1).join(' ') : t.slice(0, -1);
+  });
 
   const startGame = () => {
     // уровень рулит: размер набора → сложность счёта → скорость показа буквы
@@ -232,7 +252,16 @@ export default function OSpanGame() {
 
   const handleRecall = async () => {
     const expected = letters;
-    const given = recallInput.toUpperCase().split(/[\s,]+/).filter(Boolean);
+    /**
+     * 🔴 СЛИТНЫЙ ВВОД ТЕРЯЛ УРОВЕНЬ ПРИ ВЕРНОМ ОТВЕТЕ. Разбор делил строку только по
+     * пробелам и запятым. Живой замер 16.09.2026 (`/tmp/ospan-recall.mjs`, уровень 1):
+     * верные буквы «Ц Х М» через пробел — «Уровень 1 пройден!»; верные буквы «ГВА»
+     * слитно — «Уровень 1 — почти! ещё раз»: вся строка «ГВА» сравнивалась с первой
+     * буквой. Все буквы пула — одиночные знаки, поэтому строка без разделителей
+     * делится на знаки.
+     */
+    const сырой = recallInput.toUpperCase().trim();
+    const given = /[\s,]/.test(сырой) ? сырой.split(/[\s,]+/).filter(Boolean) : [...сырой];
     let h = 0, e = 0;
     for (let i = 0; i < expected.length; i++) {
       if (given[i] === expected[i].toUpperCase()) h++;
@@ -366,7 +395,8 @@ export default function OSpanGame() {
           )}
           {phase === 'recall' && (
             <View style={styles.fieldCol}>
-              <Text style={[styles.recallTitle, { color: colors.text }]}>{t('recallNow')}</Text>
+              {/* «Вспомните слова» (общий ключ recallNow) здесь врал: вспоминают БУКВЫ. */}
+              <Text style={[styles.recallTitle, { color: colors.text }]}>{t('ospanRecallTitle')}</Text>
               <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('ospanRecallHint')}</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
@@ -377,7 +407,29 @@ export default function OSpanGame() {
                 autoFocus
                 autoCorrect={false}
                 autoCapitalize="characters"
+                inputMode="none"      /* клавиши свои, ниже */
               />
+              <View style={[styles.letterKeys, { width: клавишаБуквы * 5 + 4 * 6 + 2 }]}>
+                {letterPool.map((буква) => (
+                  <TouchableOpacity
+                    key={буква}
+                    accessibilityRole="button"
+                    accessibilityLabel={буква}
+                    onPress={() => нажатьБукву(буква)}
+                    style={[styles.letterKey, { width: клавишаБуквы, height: Math.min(клавишаБуквы, 52), backgroundColor: colors.surface, borderColor: colors.border }]}
+                  >
+                    <Text style={[styles.letterKeyText, { color: colors.text }]}>{буква}</Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={t('a11yErase')}
+                  onPress={стеретьБукву}
+                  style={[styles.letterKey, { width: клавишаБуквы * 2 + 6, height: Math.min(клавишаБуквы, 52), backgroundColor: colors.surface, borderColor: colors.border }]}
+                >
+                  <Ionicons name="backspace-outline" size={24} color={colors.text} />
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </GameShell>
@@ -455,4 +507,7 @@ const styles = StyleSheet.create({
   input: { width: '100%', maxWidth: 360, minHeight: 56, padding: 14, fontSize: 20, borderRadius: 12, borderWidth: 1, textAlign: 'center', fontWeight: '700', letterSpacing: 4 },
   // кнопка «Проверить» в тулбаре — тянется по ряду до ширины поля ввода
   recallSubmit: { flexGrow: 1, maxWidth: 360 },
+  letterKeys: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'center', writingDirection: 'ltr', maxWidth: '100%' },
+  letterKey: { borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  letterKeyText: { fontSize: 20, fontWeight: '800' },
 });

@@ -16,7 +16,7 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { AnswerBar } from '@/src/games/attention/AnswerBar';
-import { answerButton } from '@/src/games/attention/layout';
+import { answerButton, ОТКЛИК } from '@/src/games/attention/layout';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { commissionRate } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
@@ -68,7 +68,7 @@ const COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'
  */
 const TARGET_RATE = 0.5;
 
-export function levelParams(level: number): { delay: number; numSquares: number } {
+export function levelParams(level: number): { delay: number; numSquares: number; jitterPx: number } {
   /**
    * 🔴 БЫЛО `- level * 120`, И ПОСЛЕДНИЕ ДВА УРОВНЯ СОВПАДАЛИ ПОБАЙТОВО.
    * Пол 450 мс достигался уже на L14 (2100−1680=420 → 450), а `numSquares` даёт 5
@@ -88,7 +88,39 @@ export function levelParams(level: number): { delay: number; numSquares: number 
   // невозможно построить в принципе.
   const wanted = 2 + Math.floor((level - 1) / 4);
   const numSquares = Math.min(wanted, COLORS.length - 1);
-  return { delay, numSquares };
+  /**
+   * 🔴 ТРЕТЬЯ ОСЬ, 10.09.2026: РАЗБРОС ФИГУР ПО ВЕРТИКАЛИ.
+   *
+   * ПОВОД. Осей было две — темп (delay) и число квадратов, причём второе упирается
+   * в палитру: «не мишень» требует, чтобы все цвета были разными, поэтому фигур не
+   * больше семи. Замер по уровням: numSquares идёт 2·2·2·2·3·3·3·3·4·4·4·4·5·5·5,
+   * то есть всего ЧЕТЫРЕ разных значения на пятнадцать ступеней.
+   *
+   * ⚠️ ПОЧЕМУ НЕ ОСЬ СХОДСТВА ЦВЕТОВ, КОТОРАЯ НАПРАШИВАЕТСЯ. Вся задача здесь —
+   * сравнение ЦВЕТОВ. Сблизив их, мы отняли бы решаемость у людей с
+   * дальтонизмом: замер 10.09 по палитре Струпа (ΔE в Lab + симуляция трёх
+   * видов) показал, что запаса нет уже сейчас. Разбор — PROJECT_REF §22.
+   *
+   * Разброс свободен от этого: цвета не трогает, долю мишеней (TARGET_RATE) не
+   * трогает, раздаётся одинаково мишеням и не-мишеням. Растёт время ОБХОДА поля:
+   * ровный ряд читается одним движением глаз, разбросанный — нет.
+   * ⚠️ Смещение делается трансформацией, а не отступом: отступ подвинул бы
+   * соседей и менял бы ещё и расстояние между фигурами — вторую ось разом.
+   */
+  const jitterPx = level <= 4 ? 0 : Math.min(26, 8 + (level - 5) * 2);
+  return { delay, numSquares, jitterPx };
+}
+
+/**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТА МЕРА ПРОХОДА, — В САМУ ПАРТИЮ.
+ *
+ * `commission_errors` (ошибки торможения) зависит и от темпа, и от числа фигур,
+ * и теперь от разброса. Два одинаковых на вид числа, снятые на разных уровнях,
+ * означают разное, а раздел с 09.09.2026 меряет прогресс ЧЕЛОВЕКА.
+ */
+export function levelCondition(level: number): { delay: number; numSquares: number; jitterPx: number } {
+  const { delay, numSquares, jitterPx } = levelParams(level);
+  return { delay, numSquares, jitterPx };
 }
 
 /**
@@ -168,7 +200,7 @@ export default function TargetsGame() {
   // round/isTarget/showTime/gameOver — в JSX они НЕ используются, но каждый setState
   // гонял лишний ре-рендер игрового поля (LinearGradient + фигуры) по 4 раза за раунд.
   // Их значения переехали в рефы ниже (см. levelRef/isTargetRef/showTimeRef/gameOverRef).
-  const [shapes, setShapes] = useState<{ type: 'circle' | 'square'; color: string }[]>([]);
+  const [shapes, setShapes] = useState<{ type: 'circle' | 'square'; color: string; dy: number }[]>([]);
   const [prevCircleColor, setPrevCircleColor] = useState<string | null>(null);
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
   const [feedback, setFeedback] = useState<'hit' | 'miss' | 'wrong' | null>(null);
@@ -284,7 +316,7 @@ export default function TargetsGame() {
   const generateRound = () => {
     if (stoppedRef.current || gameOverRef.current) return;
 
-    const newShapes: { type: 'circle' | 'square'; color: string }[] = [];
+    const newShapes: { type: 'circle' | 'square'; color: string; dy: number }[] = [];
     
     // Generate circle
     const ns = levelParams(levelRef.current).numSquares;
@@ -296,8 +328,16 @@ export default function TargetsGame() {
     const wantTarget = Math.random() < TARGET_RATE;
     const round = buildRoundColors(ns, mode === 'field' ? 'field' : 'joker', wantTarget, prevColorRef.current);
     const circleColor = round.circle;
-    newShapes.push({ type: 'circle', color: circleColor });
-    round.squares.forEach((c) => newShapes.push({ type: 'square', color: c }));
+    /**
+     * Смещение рождается ВМЕСТЕ с раундом, а не в отрисовке: иначе фигуры
+     * дрожали бы на каждом кадре, дрожание читалось бы как движение и добавляло
+     * к пробе совсем другую нагрузку.
+     * ⚠️ Раздаётся ОДИНАКОВО мишеням и не-мишеням — оно не должно намекать на ответ.
+     */
+    const размах = levelParams(levelRef.current).jitterPx;
+    const сдвиг = () => (размах === 0 ? 0 : Math.round((Math.random() * 2 - 1) * размах));
+    newShapes.push({ type: 'circle', color: circleColor, dy: сдвиг() });
+    round.squares.forEach((c) => newShapes.push({ type: 'square', color: c, dy: сдвиг() }));
     const target = round.isTarget;
 
     prevColorRef.current = circleColor;
@@ -484,6 +524,10 @@ export default function TargetsGame() {
           mean_rt: Math.round(avgReaction),
           std_rt: Math.round(rtStd),
           n_targets: rts.length,
+          /* Чем человек отвечал: полем или кнопкой. Чтобы решение «кнопка снизу
+             или тап по полю» опиралось на замер, а не на вкус. */
+          answers_via_field: viaFieldRef.current,
+          answers_via_bar: viaBarRef.current,
           /**
            * Главный показатель go/no-go — ошибки ТОРМОЖЕНИЯ, и до сих пор их
            * не было в партии вовсе. Доля считается от ФАКТИЧЕСКИ показанных
@@ -571,9 +615,21 @@ export default function TargetsGame() {
   // и раньше пересобиралась (вместе с LinearGradient) на КАЖДЫЙ setState раунда.
   // Стабильный onPress + useMemo → тяжёлый градиент рендерится один раз за партию,
   // а не 4 раза за раунд. handleClick читается через реф, поэтому не устаревает.
+  /* 🔴 ОТКУДА ПРИШЁЛ ОТВЕТ — СЧИТАЕМ. Приёмка 16.09.2026, решение Дениса:
+     «многие сделали тухло через кнопки снизу, будто пытались адаптировать
+     компьютерную версию». У мишеней ответ был ТОЛЬКО кнопкой под полем, хотя
+     три соседа по набору — CPT, Go/No-Go и «Торможение» — давно принимают тап
+     по самому полю. Счётчики нужны, чтобы через неделю было видно ЗАМЕРОМ, чем
+     люди отвечают на самом деле. Тот же приём, что в cpt.tsx (answers_via_box). */
+  const viaFieldRef = useRef(0);
+  const viaBarRef = useRef(0);
+
   const handleClickRef = useRef(handleClick);
   handleClickRef.current = handleClick;
-  const onTargetPress = useCallback(() => handleClickRef.current(), []);
+  const onTargetPress = useCallback(() => { viaBarRef.current += 1; handleClickRef.current(); }, []);
+  /* Тап по ПОЛЮ — тот же ответ, что кнопкой. Обработчик ОДИН: разойтись им
+     нельзя, иначе два пути ответа начнут считать по-разному. */
+  const onFieldPress = useCallback(() => { viaFieldRef.current += 1; handleClickRef.current(); }, []);
   const clickButton = useMemo(() => (
     <TouchableOpacity
       accessibilityRole="button"
@@ -740,35 +796,43 @@ export default function TargetsGame() {
     <GameShell
       title={t('targets')}
       onBack={() => { stoppedRef.current = true; clearAllTimers(); goBackOrHome(); }}
-      stats={
-        <View style={styles.gameHeader}>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('level')}</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>{level}</Text>
-          </View>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('score')}</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>{score}</Text>
-          </View>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {t('label_lives')}
-            </Text>
-            <Text style={[styles.statValue, { color: lives <= 2 ? colors.error : colors.text }]}>
-              {lives}
-            </Text>
-          </View>
-        </View>
-      }
+      /**
+       * 🔴 СЧЁТЧИКИ — ОБЩИМИ ЧИПАМИ КАРКАСА, А НЕ СВОИМ БЛОКОМ. 11.09.2026.
+       *
+       * Здесь стоял собственный `stats` из трёх коробок: подпись 12/400 и
+       * значение 20/700 голым текстом. У остальных девяти проб раздела — капсулы
+       * каркаса 12/700 и 14/900. Мишени были ЕДИНСТВЕННЫМ экраном, выпадающим из
+       * этого языка, и вдобавок собственный блок давал ТРЕТЬЮ полосу над полем —
+       * ту самую, из-за которой у CPT коробка стимула садилась ниже соседской.
+       *
+       * ⚠️ Смысл сохранён: «жизни» по-прежнему краснеют на двух и меньше. Только
+       * теперь это не зашитый `colors.error`, а `tone: 'bad'` — каркас сам решает,
+       * каким цветом показать, и в тёмной теме цвет придёт правильный.
+       */
+      hud={[
+        { key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: level },
+        { key: 'score', icon: 'star', label: t('score'), value: score, pop: true },
+        { key: 'lives', icon: 'heart', label: t('label_lives'), value: lives,
+          tone: lives <= 2 ? ('bad' as const) : ('neutral' as const) },
+      ]}
       toolbar={<AnswerBar>{clickButton}</AnswerBar>}
     >
       <View style={styles.fieldCol}>
-        {/* Shapes Display */}
-        <View style={[styles.shapesArea, { backgroundColor: colors.surface }]}>
+        {/* Поле само по себе — кнопка ответа: тапать можно по нему, а не только
+            по полосе снизу. activeOpacity=1, чтобы поле не мигало на каждом тапе:
+            обратная связь здесь своя, значком «верно/неверно». */}
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t('hint_targets_tap_if')}
+          activeOpacity={1}
+          onPress={onFieldPress}
+          style={[styles.shapesArea, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {feedback && (
             <View style={[
               styles.feedbackBadge,
-              { backgroundColor: feedback === 'hit' ? colors.success : colors.error }
+              // Та же пара «верно/неверно», что у остальных девяти проб раздела:
+              // цвета темы дали бы мишеням СВОЙ зелёный и красный (разбор — в ОТКЛИК).
+              { backgroundColor: feedback === 'hit' ? ОТКЛИК.верно : ОТКЛИК.неверно }
             ]}>
               <Ionicons
                 name={feedback === 'hit' ? 'checkmark' : 'close'}
@@ -784,7 +848,8 @@ export default function TargetsGame() {
                 key={index}
                 style={[
                   shape.type === 'circle' ? styles.circle : styles.square,
-                  { backgroundColor: shape.color }
+                  // Трансформацией, а не отступом: раскладка ряда не меняется.
+                  { backgroundColor: shape.color, transform: [{ translateY: shape.dy }] }
                 ]}
               />
             ))}
@@ -798,7 +863,7 @@ export default function TargetsGame() {
               <View style={[styles.miniCircle, { backgroundColor: prevCircleColor }]} />
             </View>
           )}
-        </View>
+        </TouchableOpacity>
 
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
           {t('hint_targets_tap_if')}
@@ -992,8 +1057,16 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 12 },
   statValue: { fontSize: 20, fontWeight: '700', marginTop: 2 },
   shapesArea: {
+    /**
+     * ⚠️ `flex: 1` оставлен НАМЕРЕННО. Поле 370×488 — это площадь поиска, а она
+     * параметр пробы: сжав её до общей коробки 360×300, мы изменили бы разнос
+     * фигур и саму задачу. Решение владельца 10.09.2026: «мишеням только радиус
+     * и рамка, размер не трогать».
+     * Радиус здесь уже совпадал с общим STIM_RADIUS = 20; добавлена рамка.
+     */
     flex: 1,
     borderRadius: 20,
+    borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,

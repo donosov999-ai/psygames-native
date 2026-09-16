@@ -26,12 +26,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
-import { stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
+import { makeDecoys, DECOYS_MAX } from '@/src/games/attention/decoys';
+import { stimBox, ANSWER_BAR_ROW, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -45,6 +47,17 @@ import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#7873f5', '#ff6ec4'];
+
+/**
+ * 🔴 КАРТОЧКА ПРО ПОМЕХИ, 10.09.2026. Сперва я её НЕ завёл, сославшись на
+ * прецедент мишеней: там плотность помех растёт без объяснения. Прецедент
+ * оказался плохим доводом — владелец, глядя на свой же экран, спросил «это что
+ * за спецсимволы». Если спрашивает он, игрок спросит тем более.
+ * Порог 4 — тот самый уровень, с которого помехи включаются (levelParams).
+ */
+const SWITCH_RULES: LevelRule[] = [
+  { key: 'noise', fromLevel: 4 },
+];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
 // Было зашито '#FFF' — контраст 2.54 (норма AA 4.5), стало 4.65.
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
@@ -104,11 +117,48 @@ const MODES: { key: StimMode; ru: string; en: string }[] = [
  */
 export const SWITCH_PROB = 0.5;
 
-export function levelParams(level: number): { trials: number; switchProb: number; windowMs: number } {
+/**
+ * 🔴 ТРЕТЬЯ ОСЬ, 10.09.2026: ПЛОТНОСТЬ ПОМЕХ ВОКРУГ СТИМУЛА.
+ *
+ * ПОВОД. Замер лестниц раздела: у переключения задач нагрузка росла ×4,0 при
+ * ДВУХ осях — самая бедная лестница из десяти. Расти дальше было нечем.
+ *
+ * ⚠️ ПОЧЕМУ ИМЕННО ЭТА ОСЬ, А НЕ ОЧЕВИДНЫЕ. У этой парадигмы почти всё
+ * модулирует саму измеряемую разность, и потому в оси не годится:
+ *   · интервал подготовки — разобран выше, отвергнут 07.09;
+ *   · предсказуемость чередования (фиксированный цикл AABB вместо случайного) —
+ *     канонная ось Роджерса–Монселла, но предсказуемость позволяет готовиться и
+ *     СНИЖАЕТ стоимость: та же беда с другого конца;
+ *   · третья задача вместо двух — размер набора меняет и общий RT, и асимметрию
+ *     стоимостей между задачами;
+ *   · разная трудность двух задач (близость числа к границе) — асимметричная
+ *     трудность даёт асимметричную стоимость переключения, это известный эффект.
+ *
+ * Помехи свободны от этого: они свойство САМОГО СТИМУЛА, а не перехода между
+ * задачами, и удлиняют пробу одинаково на сменах и повторах — то есть входят в
+ * оба уменьшаемых разности и из неё сокращаются.
+ *
+ * 📌 Валюта не выдумана: «плотность помех» уже ось у мишеней (`numSquares`) и у
+ * фланкера (`gapPx`) в этом же разделе.
+ *
+ * ⚠️ Знаки подобраны НЕ буквами и НЕ цифрами намеренно: буква или цифра рядом
+ * со стимулом «афишировала» бы одну из задач и добавила бы к пробе смысловой
+ * конфликт вместо чистого перцептивного.
+ */
+// Знаки и предел — в общем модуле раздела: разбор там же, в шапке decoys.ts.
+// Здесь их держать нельзя: копия разъедется, и помеха станет буквой.
+
+export function levelParams(level: number): { trials: number; switchProb: number; windowMs: number; decoys: number } {
   const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
   const switchProb = SWITCH_PROB;
   const windowMs = Math.max(1400, 3400 - (level - 1) * 145);       // 3400мс → 1400мс
-  return { trials, switchProb, windowMs };
+  /**
+   * Границы (4 и 9) намеренно НЕ совпадают с границами объёма (6 и 11): оси
+   * переключаются вразнобой и дают больше различимых ступеней.
+   * L1–L3 без помех: на первых ступенях человек учится самому правилу.
+   */
+  const decoys = level <= 3 ? 0 : level <= 8 ? 2 : DECOYS_MAX;
+  return { trials, switchProb, windowMs, decoys };
 }
 
 /**
@@ -128,9 +178,9 @@ export function levelParams(level: number): { trials: number; switchProb: number
  * прогоняет levelParams по уровням и требует, чтобы КАЖДОЕ меняющееся поле сюда
  * попало. Руками список не пишется — разойдётся.
  */
-export function levelCondition(level: number): { trials: number; windowMs: number } {
-  const { trials, windowMs } = levelParams(level);
-  return { trials, windowMs };
+export function levelCondition(level: number): { trials: number; windowMs: number; decoys: number } {
+  const { trials, windowMs, decoys } = levelParams(level);
+  return { trials, windowMs, decoys };
 }
 
 function midFor(mode: StimMode): number { return mode === 'num3' ? 500 : 50; }
@@ -203,7 +253,7 @@ function modeHint(mode: StimMode, lang: string): string {
   return `${a.cue} → ${a.left}/${a.right}  ·  ${b.cue} → ${b.left}/${b.right}`;
 }
 
-interface Trial { taskIdx: number; num: number; letter: string; full: string; correctLeft: boolean; isSwitch: boolean; }
+interface Trial { taskIdx: number; num: number; letter: string; full: string; correctLeft: boolean; isSwitch: boolean; decoys: string[]; }
 
 function rndItem<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -230,14 +280,20 @@ function judgeLeft(mode: StimMode, idx: number, num: number, letter: string): bo
  * (следующая задача зависит от предыдущей), поэтому предыдущая передаётся явно.
  */
 export function makeTrial(mode: StimMode, level: number, last: number | null): Trial {
-  const { switchProb } = levelParams(level);
+  const { switchProb, decoys: сколькоПомех } = levelParams(level);
   let taskIdx: number;
   if (last === null) taskIdx = Math.random() < 0.5 ? 0 : 1;
   else if (Math.random() < switchProb) taskIdx = last === 0 ? 1 : 0;
   else taskIdx = last;
   const isSwitch = last !== null && last !== taskIdx;
   const { num: n, letter, full } = genStim(mode);
-  return { taskIdx, num: n, letter, full, correctLeft: judgeLeft(mode, taskIdx, n, letter), isSwitch };
+  /**
+   * Помехи рождаются ВМЕСТЕ с пробой, а не в отрисовке: иначе они менялись бы на
+   * каждом кадре, мельтешение читалось бы как движение и добавляло к пробе
+   * совсем другую нагрузку.
+   */
+  const помехи = makeDecoys(сколькоПомех);
+  return { taskIdx, num: n, letter, full, correctLeft: judgeLeft(mode, taskIdx, n, letter), isSwitch, decoys: помехи };
 }
 
 export default function SwitchingTaskGame() {
@@ -260,12 +316,13 @@ export default function SwitchingTaskGame() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const levelRules = useLevelRules('switching_task', lvl.level, SWITCH_RULES, phase === 'playing');
   const [clearedPassed, setClearedPassed] = useState(true);
   const [mode, setMode] = useState<StimMode>(() => (str('stimMode', 'mix') as StimMode));
 
   const [round, setRound] = useState(0);
   const [totalTrials, setTotalTrials] = useState(12);
-  const [trial, setTrial] = useState<Trial>({ taskIdx: 0, num: 0, letter: '', full: '', correctLeft: true, isSwitch: false });
+  const [trial, setTrial] = useState<Trial>({ taskIdx: 0, num: 0, letter: '', full: '', correctLeft: true, isSwitch: false, decoys: [] });
   const [showStim, setShowStim] = useState(false);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
 
@@ -285,7 +342,7 @@ export default function SwitchingTaskGame() {
   const switchRtsRef = useRef<number[]>([]);
   // repeat-пробы отдельно: switch cost = swMean − repMean (см. switchCostMs выше)
   const repeatRtsRef = useRef<number[]>([]);
-  const trialRef = useRef<Trial>({ taskIdx: 0, num: 0, letter: '', full: '', correctLeft: true, isSwitch: false });
+  const trialRef = useRef<Trial>({ taskIdx: 0, num: 0, letter: '', full: '', correctLeft: true, isSwitch: false, decoys: [] });
   const stimAtRef = useRef(0);
   const answeredRef = useRef(false);
   const startTimeRef = useRef(0);
@@ -492,11 +549,31 @@ export default function SwitchingTaskGame() {
     );
   };
 
+  /**
+   * Помехи по бокам ядра. Ядро своего размера НЕ меняет: уменьшив его, мы
+   * добавили бы к пробе остроту зрения, а меряем не её.
+   */
+  const обрамить = (ядро: React.ReactNode) => {
+    const п = trial?.decoys ?? [];
+    if (!п.length) return ядро;
+    const бок = Math.ceil(п.length / 2);
+    const знак = (g: string, k: number) => (
+      <Ionicons key={k} name={g as any} size={Math.round(stStim * 0.16)} color={colors.textSecondary} />
+    );
+    return (
+      <View style={{ alignItems: 'center', gap: 4 }}>
+        <View style={{ flexDirection: 'row', gap: 14 }}>{п.slice(0, бок).map(знак)}</View>
+        {ядро}
+        <View style={{ flexDirection: 'row', gap: 14 }}>{п.slice(бок).map((g, k) => знак(g, k + бок))}</View>
+      </View>
+    );
+  };
+
   const renderStim = () => {
     if (!showStim) return <Text style={[styles.stimText, { fontSize: stStim * 0.4, color: colors.textSecondary }]}>•</Text>;
     if (mode === 'mix') {
       const numOn = meta.emph === 'num';
-      return (
+      return обрамить(
         // RTL-пин: составной стимул «цифра+буква» читается в одном порядке во всех локалях
         <View style={{ flexDirection: 'row', alignItems: 'center', writingDirection: 'ltr' } as any}>
           <Text style={[styles.stimText, { fontSize: stStim * 0.42, color: numOn ? meta.color : colors.textSecondary, opacity: numOn ? 1 : 0.3 }]}>{trial.num}</Text>
@@ -504,7 +581,9 @@ export default function SwitchingTaskGame() {
         </View>
       );
     }
-    return <Text style={[styles.stimText, { fontSize: stStim * (mode === 'num3' ? 0.3 : 0.36), color: meta.color }]}>{trial.full}</Text>;
+    return обрамить(
+      <Text style={[styles.stimText, { fontSize: stStim * (mode === 'num3' ? 0.3 : 0.36), color: meta.color }]}>{trial.full}</Text>
+    );
   };
 
   // playing-фаза — на едином каркасе GameShell (кнопки лево/право прибиты к низу)
@@ -529,12 +608,12 @@ export default function SwitchingTaskGame() {
         toolbar={
           <View style={[styles.choiceRow, { flex: 1, maxWidth: stStim }]}>
             <TouchableOpacity
-              accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: GRADIENT[0], flex: 1 }]} onPress={() => handleAnswer(true)}>
-              <Text style={[styles.choiceTextSmall, { color: textOn(GRADIENT[0]) }]}>← {meta.left}</Text>
+              accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: colors.primary, flex: 1 }]} onPress={() => handleAnswer(true)}>
+              <Text style={[styles.choiceTextSmall, { color: textOn(colors.primary) }]}>← {meta.left}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: GRADIENT[1], flex: 1 }]} onPress={() => handleAnswer(false)}>
-              <Text style={[styles.choiceTextSmall, { color: textOn(GRADIENT[1]) }]}>{meta.right} →</Text>
+              accessibilityRole="button" style={[styles.choiceBtn, { backgroundColor: colors.primary, flex: 1 }]} onPress={() => handleAnswer(false)}>
+              <Text style={[styles.choiceTextSmall, { color: textOn(colors.primary) }]}>{meta.right} →</Text>
             </TouchableOpacity>
           </View>
         }
@@ -550,11 +629,19 @@ export default function SwitchingTaskGame() {
           </View>
           <View style={[styles.stimBox, {
             width: ОКНО.w, height: ОКНО.h,
-            backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
-            borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.textSecondary,
+            backgroundColor: feedback === 'right' ? ОТКЛИК.верноФон : feedback === 'wrong' ? ОТКЛИК.неверноФон : colors.surface,
+            // colors.border, как у остальных: textSecondary давал кромку #838387 против #E5E5EA у соседей
+            borderColor: feedback === 'right' ? ОТКЛИК.верно : feedback === 'wrong' ? ОТКЛИК.неверно : colors.border,
           }]}>
             {renderStim()}
           </View>
+          {/*
+            Бейдж правила — ПОД коробкой, в потоке, а не отдельной полосой над
+            полем: полоса опустила бы коробку и сломала сведённую 10.09
+            геометрию (у CPT ровно это стоило 49 px).
+          */}
+          <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
+          <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
         </View>
       </GameShell>
     );
@@ -631,7 +718,7 @@ const styles = StyleSheet.create({
   cueBadge: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, paddingVertical: 11, borderRadius: 22 },
   cueText: { color: '#FFF', fontSize: 17, fontWeight: '800', letterSpacing: 0.3 },
   cueSwitch: { color: '#FFF', fontSize: 18, fontWeight: '900' },
-  stimBox: { borderRadius: 24, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
+  stimBox: { ...STIM_BOX },
   stimText: { fontWeight: '900' },
   // RTL-пин: подписи кнопок содержат ←/→ (глифы не зеркалятся) — раскладка не переворачивается в ar
   // alignItems обязателен: без него ряд постоянной высоты растягивает кнопки на всю

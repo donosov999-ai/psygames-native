@@ -32,7 +32,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { answerButton, stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
+import { answerButton, stimBox, ANSWER_BAR_ROW, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -414,7 +414,7 @@ export default function ANTGame() {
           <View style={styles.statsCol}>
             <View style={styles.statsRow} />
             <View style={[styles.networkRow]}>
-              <Text style={[styles.netText, { color: '#22c55e' }]}>{t('hud_netAlerting')} {m.alerting}{t('msShort')}</Text>
+              <Text style={[styles.netText, { color: ОТКЛИК.верно }]}>{t('hud_netAlerting')} {m.alerting}{t('msShort')}</Text>
               <Text style={[styles.netText, { color: '#fbbf24' }]}>{t('hud_netOrienting')} {m.orienting}{t('msShort')}</Text>
               <Text style={[styles.netText, { color: '#ef4444' }]}>{t('hud_netExecutive')} {m.executive}{t('msShort')}</Text>
             </View>
@@ -422,16 +422,16 @@ export default function ANTGame() {
         }
         toolbar={
           <View style={styles.choiceRow}>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius }, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius }, { backgroundColor: colors.primary }]} onPress={() => handleAnswer('left')}>
               <Ionicons name="arrow-back" size={28} color="#FFF" />
             </TouchableOpacity>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius }, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { width: БТН.w, height: БТН.h, borderRadius: БТН.radius }, { backgroundColor: colors.primary }]} onPress={() => handleAnswer('right')}>
               <Ionicons name="arrow-forward" size={28} color="#FFF" />
             </TouchableOpacity>
           </View>
         }
       >
-        <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
+        <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? ОТКЛИК.верно : feedback === 'wrong' ? ОТКЛИК.неверно : colors.border }]}>
           {/* top cue / target slot */}
           <View style={styles.row}>
             {showCue && (trial.cue === 'double' || (trial.cue === 'spatial' && trial.pos === 'top')) && <Text style={styles.cueDot}>*</Text>}
@@ -539,7 +539,8 @@ const styles = StyleSheet.create({
    * узком»: разметка внутри и так центрируется, ужиматься ей есть куда.
    */
   // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
-  stimBox: { borderRadius: 14, borderWidth: 2, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
+  // ⚠️ justifyContent своё: содержимое ANT — колонка рядов, а не один стимул.
+  stimBox: { ...STIM_BOX, justifyContent: 'space-between', paddingVertical: 16 },
   row: { height: 50, justifyContent: 'center', alignItems: 'center' },
   cueDot: { color: '#fbbf24', fontSize: 36, fontWeight: '900' },
   // RTL-пин: стрелочный стимул и кнопки лево/право не зеркалятся в ar (web: writingDirection → CSS direction)

@@ -37,6 +37,7 @@ import { levelParams as stroopParams, makeTrial as stroopTrial, INCONGRUENT_RATI
 import { levelParams as simonParams, makeTrial as simonTrial, INCONGRUENT_PROB } from '@/app/games/simon';
 import { levelParams as posnerParams, makeTrial as posnerTrial, VALID_RATIO } from '@/app/games/posner';
 import { levelParams as goParams, pickStim, NOGO_PROB } from '@/app/games/go-no-go';
+import { levelCondition as inhibitionCondition } from '@/app/games/inhibition';
 import { levelParams as cptParams, makeTrial as cptTrial, TARGET_RATE } from '@/app/games/cpt';
 import { levelParams as antParams, makeTrial as antTrial } from '@/app/games/ant';
 import { levelParams as emoParams, makeTrial as emoTrial } from '@/app/games/stroop-emotional';
@@ -197,6 +198,33 @@ describe('🔴 доля проб задаёт величину эффекта �
       expect(`L${L} валидных среди направленных ${informative >= 0.7}`).toBe(`L${L} валидных среди направленных true`);
     });
     expect(Math.abs(last - VALID_RATIO)).toBeLessThan(TOL);
+  });
+
+  it('🔴 Торможение: доля стоп-проб одна на всех уровнях', () => {
+    /* Снято 16.09.2026, восьмой случай этого дефекта в разделе. Было
+       `stopProb = min(0.35, 0.20 + (level-1)*0.011)` — доля росла 20 % → 35 %,
+       и стоп-проб на партию выходило 4,0 (L1) против 11,2 (L15). Мера прохода
+       здесь — ошибки торможения, поэтому рост доли добавлял их сам собой.
+       Оба режима, из которых состоит экран, были заморожены задолго до этого:
+       go-no-go 0.25, stop-signal 0.25 — «Торможение» играло по своим долям.
+
+       ⚠️ Число 0.25 здесь ЛИТЕРАЛ, а не импорт константы: порог, взятый у
+       проверяемого, порогом не является — переименуй константу, и проба
+       осталась бы зелёной на любом значении. */
+    const доли = Array.from({ length: 15 }, (_, i) => inhibitionCondition(i + 1).stopProb);
+    expect(new Set(доли).size).toBe(1);
+    expect(доли[0]).toBe(0.25);
+  });
+
+  it('Торможение: растут ДРУГИЕ величины — иначе лестница встанет', () => {
+    /* Заморозка доли не должна превратиться в «уровни одинаковые»: у экрана
+       остаются три оси, и две из них обязаны меняться на КАЖДОМ уровне. */
+    const окна = Array.from({ length: 15 }, (_, i) => inhibitionCondition(i + 1).goWindow);
+    const задержки = Array.from({ length: 15 }, (_, i) => inhibitionCondition(i + 1).ssd);
+    expect(new Set(окна).size).toBe(15);
+    expect(new Set(задержки).size).toBe(15);
+    expect(окна[14]).toBeLessThan(окна[0]);       // реагировать быстрее
+    expect(задержки[14]).toBeGreaterThan(задержки[0]);  // отменять труднее
   });
 
   it('Go/No-Go: преобладающая реакция остаётся преобладающей', () => {

@@ -18,7 +18,7 @@
  * (проба `tatham-tables-snapshot`): собранные таблицы обязаны совпадать с ним до
  * строчки. Осознанная правка состава меняет и отпечаток — с объяснением в коммите.
  */
-import type { НастройкаРежима } from './sections/тип';
+import type { НастройкаРежима, ШагЛестницы } from './sections/тип';
 import { РЕЖИМЫ_РАЗДЕЛА as СЧЁТ } from './sections/counting';
 import { РЕЖИМЫ_РАЗДЕЛА as ГОЛОВОЛОМКИ } from './sections/puzzles';
 import { РЕЖИМЫ_РАЗДЕЛА as ПОИСК } from './sections/search';
@@ -510,8 +510,7 @@ export function клавишДоски(имя: string, параметры: strin
  * меньше пальца. Потолок лестницы задан шириной экрана, а не амбицией.
  */
 /** Ступень лестницы: как её зовут игроку и какими параметрами открывается доска. */
-export type { ШагЛестницы, НастройкаРежима } from './sections/тип';
-import type { ШагЛестницы } from './sections/тип';
+export type { ШагЛестницы, НастройкаРежима };
 
 export const СВОЯ_ЛЕСТНИЦА: Record<string, ШагЛестницы[]> = Object.fromEntries(
   Object.entries(ВСЕ_РЕЖИМЫ).filter(([, н]) => н.лестница).map(([м, н]) => [м, н.лестница!]),
