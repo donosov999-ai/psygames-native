@@ -59,6 +59,8 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import {ViewpointReference} from '@/src/components/ViewpointReference';
 import {RotationShape,RotationTransition} from '@/src/components/RotationShape';
+import {stillUnit} from '@/src/games/mental-rotation/core/surface';
+import {optionLayout} from '@/src/games/mental-rotation/optionLayout';
 import RotationWorkbench from '@/src/components/RotationWorkbench';
 import {spatialFrame} from '@/src/games/spatial-core/frame';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -206,8 +208,8 @@ function markPolygon(mark: FaceMark, a: Pt, b: Pt, d: Pt): string {
     .join(' ');
 }
 
-function renderShape(shape: Shape, size: number, _baseColor: string, axis?: Axis, degrees?: number) {
-  return <RotationShape shape={shape} size={size} axis={axis} degrees={degrees}/>;
+function renderShape(shape: Shape, size: number, _baseColor: string, axis?: Axis, degrees?: number, unit?: number) {
+  return <RotationShape shape={shape} size={size} axis={axis} degrees={degrees} unit={unit}/>;
 }
 
 /**
@@ -332,7 +334,7 @@ export default function MentalRotationGame() {
    * истинно, и экран рисуется компактным ещё до того, как узнал свой размер.
    * `useScreenSize` — общая защита проекта, её же требует гейт `screen-width-guard`.
    */
-  const { h: viewportHeight } = useScreenSize();
+  const { h: viewportHeight, w: viewportWidth } = useScreenSize();
   const [answerWidth,setAnswerWidth]=useState(208);
   const { t, language } = useLanguage();
   const strings = getMentalRotationStrings(language as MentalRotationLocale);
@@ -622,9 +624,17 @@ export default function MentalRotationGame() {
     const baseSize = compactScreen?(isPreset?80:104):130;
     // Measure the actual answer slot: split panels/zoom can make it much
     // narrower than the window. Never let minWidth force a one-column tower.
-    const optSize = compactReview
-      ? Math.max(24,(answerWidth-(task.options.length-1)*6)/task.options.length-18)
-      : Math.min(compactScreen?48:viewportHeight<720?78:110,Math.max(48,(answerWidth-10)/2-18));
+    // Размер вариантов — от той стороны экрана, которой не хватает (отчёт c8903296): см. optionLayout.
+    const { optSize, oneRow: wideShort } = optionLayout({ viewportWidth, viewportHeight, answerWidth, count: task.options.length, compactReview });
+    /*
+     * Неподвижные варианты рисуются по контуру и ОДНИМ масштабом на все варианты задания:
+     * по описанной сфере рисунок занимал 53–84 % своего квадрата (запас под поворот, которого
+     * у варианта нет), а свой масштаб у каждого выдавал бы пару «фигура + зеркало» одинаковым
+     * габаритом.
+     */
+    const optUnit = task.kind === 'rotation' || task.kind === 'missing' || task.kind === 'assembly' || task.kind === 'formation'
+      ? stillUnit(task.options.map((o) => (o as { shape: Shape }).shape), optSize)
+      : undefined;
     return (
       <View style={{ flex: 1 }}>
         <GameShell
@@ -644,7 +654,7 @@ export default function MentalRotationGame() {
           }
           toolbar={
             <View style={{ width: '100%', alignItems: 'center', gap: 10 }}>
-            <View style={[styles.optionsRow,compactReview?{flexWrap:'nowrap',gap:6}:null]} onLayout={e=>setAnswerWidth(e.nativeEvent.layout.width)}>
+            <View style={[styles.optionsRow,compactReview?{flexWrap:'nowrap',gap:6}:null,wideShort?{flexWrap:'nowrap',maxWidth:760}:null]} onLayout={e=>setAnswerWidth(e.nativeEvent.layout.width)}>
               {task.options.map((opt, i) => (
                 <TouchableOpacity
                   accessibilityRole="button" key={i}
@@ -653,16 +663,17 @@ export default function MentalRotationGame() {
                   onPress={() => handlePick(i)}
                   style={[styles.optionBox, {
                     ...(compactReview?{width:(answerWidth-(task.options.length-1)*6)/task.options.length}:{}),
+                    ...(wideShort?{width:optSize+12}:{}),
                     backgroundColor: colors.surface,
                     borderColor: optionBorder(i),
                     borderWidth: feedback ? 3 : 1,
                   }]}
                 >
-                  {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1])}
+                  {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
                   {task.kind === 'projection' && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
                   {task.kind === 'net' && renderMarkedCube((opt as { faces: FaceMap }).faces, optSize, GRADIENT[1])}
                   {task.kind === 'viewpoint' && renderShape(task.shape, optSize, GRADIENT[1], task.axis, (opt as { degrees: number }).degrees)}
-                  {(task.kind === 'missing' || task.kind === 'assembly' || task.kind === 'formation') && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1])}
+                  {(task.kind === 'missing' || task.kind === 'assembly' || task.kind === 'formation') && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
                   {task.kind === 'same' && <Text style={{fontSize:Math.max(16,Math.min(26,optSize/3)),fontWeight:'700',color:colors.text}}>
                     {(opt as { answer: boolean }).answer ? strings.answerYes : strings.answerNo}
                   </Text>}
