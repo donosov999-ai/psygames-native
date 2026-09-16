@@ -33,6 +33,8 @@ import { levelParams as choiceParams } from '@/app/games/choice-rt';
 import { levelParams as antParams } from '@/app/games/ant';
 import { levelParams as switchParams } from '@/app/games/switching-task';
 import { levelParams as goNoGoParams } from '@/app/games/go-no-go';
+import { levelParams as stopSignalParams } from '@/src/games/stop-signal/core/ladder';
+import { levelCondition as inhibitionCondition } from '@/app/games/inhibition';
 
 const levels = (m: AttentionMode) => Array.from({ length: LADDER_RANGE[m] }, (_, i) => i + 1);
 
@@ -49,6 +51,8 @@ const fingerprint: Record<AttentionMode, (l: number) => string> = {
   ant:                (l) => JSON.stringify(antParams(l)),
   'switching-task':   (l) => JSON.stringify(switchParams(l)),
   'go-no-go':         (l) => JSON.stringify(goNoGoParams(l)),
+  'stop-signal':      (l) => JSON.stringify(stopSignalParams(l)),
+  inhibition:         (l) => JSON.stringify(inhibitionCondition(l)),
 };
 
 /**
@@ -85,7 +89,7 @@ const MAX_FLAT_RUN: Record<AttentionMode, number> = {
    */
   'stroop-emotional': 1, simon: 1, 'choice-rt': 1, ant: 1, 'switching-task': 1,
   /* Первый из восьми приехавших 12.09 — поблажки тоже нет. */
-  'go-no-go': 1,
+  'go-no-go': 1, 'stop-signal': 1, inhibition: 1,
 };
 
 /**
@@ -111,6 +115,8 @@ const BAND_EDGES: Record<AttentionMode, number[]> = {
   ant: [5, 10],                 // ant.tsx         — trials 12 / 16 / 20
   'switching-task': [5, 10],    // switching-task  — trials 12 / 16 / 20
   'go-no-go': [5, 10],          // go-no-go.tsx    — trials 24 / 32 / 40
+  'stop-signal': [5, 10],       // stop-signal/core/ladder.ts — trials 12 / 16 / 20
+  inhibition: [5, 10],          // inhibition.tsx  — trials 20 / 26 / 32
 };
 
 describe('конфликт внимания: у каждой пробы своя лестница и она не откатывается', () => {

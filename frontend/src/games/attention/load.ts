@@ -34,6 +34,8 @@ import { levelParams as choiceParams } from '@/app/games/choice-rt';
 import { levelParams as antParams } from '@/app/games/ant';
 import { levelParams as switchParams } from '@/app/games/switching-task';
 import { levelParams as goNoGoParams } from '@/app/games/go-no-go';
+import { levelParams as stopSignalParams } from '@/src/games/stop-signal/core/ladder';
+import { levelCondition as inhibitionCondition } from '@/app/games/inhibition';
 
 export type AttentionMode =
   | 'stroop' | 'flanker' | 'cpt' | 'targets' | 'wcst'
@@ -43,7 +45,7 @@ export type AttentionMode =
   /** Первый из восьми, приехавших 12.09.2026 с расформированием развилок
    *  «Торможение» и «Риск». Остальные семь ждут своей меры прохода —
    *  дописывать сюда имя БЕЗ неё нельзя, см. шапку ниже. */
-  | 'go-no-go';
+  | 'go-no-go' | 'stop-signal' | 'inhibition';
 
 /**
  * 🔴 ЭТОТ СПИСОК ПОКРЫВАЕТ 10 ЭКРАНОВ ИЗ 18, А НЕ ВЕСЬ ХАБ. Замер 13.09.2026
@@ -86,6 +88,12 @@ export const LADDER_RANGE: Record<AttentionMode, number> = {
   /* Полы формул (окно 550 · пауза 280 · разброс 180) достигаются разом на L15,
      до L14 меняются все три — мёртвых ступеней нет. go-no-go.tsx::MAX_LEVEL. */
   'go-no-go': 15,
+  /* step в levelParams ограничен 14 — на L15 все четыре величины в концах.
+     stop-signal/core/ladder.ts::MAX_LEVEL. */
+  'stop-signal': 15,
+  /* На L15 окно (852 мс) и задержка стоп-сигнала (480 мс) приходят в концы.
+     inhibition.tsx::MAX_LEVEL. */
+  inhibition: 15,
 };
 
 /** Что пишется в партию у этой пробы, и чем это меряется в методике. */
@@ -108,6 +116,8 @@ export const SESSION_MEASURE: Record<AttentionMode, { field: string; norm: strin
   ant:                { field: 'executive_ms',           norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Разность RT конфликтные−согласованные, одна из трёх сетей внимания (рядом alerting_ms и orienting_ms). Доли заморожены на каноне Fan 2002 — треть/треть/треть' },
   'switching-task':   { field: 'switch_cost_ms',         norm: '✅ норма батареи 150±80 (assessment.ts). Разность RT смена−повтор; доля смен заморожена на каноне парадигмы SWITCH_PROB = 0.5' },
   'go-no-go':         { field: 'falseAlarms',           norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Ошибки торможения — нажатия на no-go; главный показатель парадигмы. Доля no-go заморожена на каноне: NOGO_PROB = 0.25 (канон go/no-go — 25 % либо 50 %). ⚠️ Прежде доля РОСЛА по уровням (0.20 → 0.42) — тот самый дефект «доля как ось сложности», снятый в разделе семь раз; разбор в блоке над NOGO_PROB' },
+  'stop-signal':      { field: 'ssrt_ms',               norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. SSRT — за сколько человек успевает отменить уже начатое движение; главный показатель парадигмы. ⚠️ ПОЛЕ БЫВАЕТ null, И ЭТО ДОСТОИНСТВО, А НЕ ДЕФЕКТ: экран пишет рядом ssrt_method и ssrt_doubt и отказывается выдавать число, когда условия применимости не выполнены (стоп-проб мало, лестница не сошлась). Пустое место честнее выдуманного числа. Доля стоп-проб заморожена: STOP_PROB = 0.25 — поднять её значит сдвинуть сам SSRT' },
+  inhibition:         { field: 'inhibition_commission', norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Ошибки торможения — нажатия там, где жать было нельзя. ⚠️ ИМЯ ПОЛЯ СВОЁ, не общее falseAlarms: у go-no-go мера уже так называется, а здесь число значит другое. Экран играет ОБЕ парадигмы (запрет, отмена начатого, микс), поэтому рядом пишется submode. ⚠️ ЧИТАТЬ ТОЛЬКО ПРИ ОДНОЙ И ТОЙ ЖЕ ЗАДЕРЖКЕ: ось сложности здесь SSD (150 → 480 мс), а при фиксированной задержке доля неудавшихся торможений зависит от самой задержки — ошибки двух РАЗНЫХ уровней между собой не сравнимы. Для этого ssd_ms кладётся в запись партии рядом с ошибками. Доля стоп-проб заморожена 16.09.2026: INHIBITION_STOP_PROB = 0.25, прежде росла 0.20 → 0.35' },
 };
 
 /**
@@ -365,6 +375,40 @@ export function goNoGoLoad(level: number): number {
   return p.trials * (б.windowMs / p.windowMs) * (б.itiMinMs / p.itiMinMs);
 }
 
+/**
+ * Стоп-сигнал — «темп и объём».
+ *
+ * Величина прохода — SSRT. Осью сложности он быть не может сам себе: SSRT
+ * считается из доли стоп-проб, и рост доли сдвинул бы саму измеряемую величину.
+ * Не может ею быть и задержка стоп-сигнала (SSD) — её ведёт сходящаяся лестница,
+ * переживающая партию, а не номер уровня. Остаются темп и объём: окно ответа
+ * 1400 → 700 мс, фиксация 700 → 350, разброс 700 → 280, пауза 600 → 320,
+ * проб 12 → 20.
+ *
+ * ⚠️ Складывать с нагрузкой других проб нельзя: у каждой своя валюта.
+ */
+export function stopSignalLoad(level: number): number {
+  const p = stopSignalParams(level);
+  const б = stopSignalParams(1);
+  return p.trials * (б.goWindowMs / p.goWindowMs) * (б.interTrialMs / p.interTrialMs);
+}
+
+/**
+ * Торможение — «темп, задержка и объём».
+ *
+ * Доля стоп-проб осью НЕ является и заморожена (разбор в inhibition.tsx):
+ * мера прохода — ошибки торможения, и рост доли добавлял бы их сам собой.
+ * Растут три другие величины: окно ответа 1300 → 852 мс, задержка стоп-сигнала
+ * 150 → 480 мс (позже сигнал — труднее отменить), проб 20 → 32.
+ *
+ * ⚠️ Складывать с нагрузкой других проб нельзя: у каждой своя валюта.
+ */
+export function inhibitionLoad(level: number): number {
+  const p = inhibitionCondition(level);
+  const б = inhibitionCondition(1);
+  return p.trials * (б.goWindow / p.goWindow) * (p.ssd / б.ssd);
+}
+
 export function attentionLoad(mode: AttentionMode, level: number): number {
   switch (mode) {
     case 'stroop':  return stroopLoad(level);
@@ -378,11 +422,13 @@ export function attentionLoad(mode: AttentionMode, level: number): number {
     case 'ant':              return antLoad(level);
     case 'switching-task':   return switchingLoad(level);
     case 'go-no-go':         return goNoGoLoad(level);
+    case 'stop-signal':      return stopSignalLoad(level);
+    case 'inhibition':       return inhibitionLoad(level);
   }
 }
 
 export const ATTENTION_MODES: AttentionMode[] = [
   'stroop', 'flanker', 'cpt', 'targets', 'wcst',
   'stroop-emotional', 'simon', 'choice-rt', 'ant', 'switching-task',
-  'go-no-go',
+  'go-no-go', 'stop-signal', 'inhibition',
 ];
