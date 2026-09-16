@@ -1,4 +1,4 @@
-/* psygames-game-pause · VER 1 · 19.08.2026 */
+/* psygames-game-pause · VER 2 · 16.09.2026 */
 /**
  * ОБЩАЯ ПАУЗА ИГРЫ, ПОКА ЧЕЛОВЕК ПИШЕТ ОТЗЫВ.
  *
@@ -75,17 +75,31 @@ export function onGameHold(l: Listener): () => void {
  * не делает вид, что пауза случилась.
  */
 type PauseMenuRequest = () => void;
-const _menuRequests = new Set<PauseMenuRequest>();
+/**
+ * ⚠️ ОТВЕЧАЕТ ТОЛЬКО ВЕРХНИЙ КАРКАС, А НЕ ВСЕ ПОДПИСАННЫЕ.
+ *
+ * Экран, открытый через `router.push`, не размонтирует предыдущий: так
+ * судоку открывает «Самурая», фрактал — «Глубину». Каркасов тогда смонтировано
+ * два, и оба подписаны. Разошли просьбу всем — задержку возьмёт и скрытый
+ * каркас. «Продолжить» в видимом меню снимет только свою, чужая останется, и
+ * игра замёрзнет при закрытом меню. Это ровно тот класс, от которого просьба
+ * заведена. Поэтому стопка: отвечает последний смонтированный, то есть видимый.
+ */
+const _menuRequests: PauseMenuRequest[] = [];
 
 export function requestPauseMenu(): boolean {
-  if (_menuRequests.size === 0) return false;
-  _menuRequests.forEach((l) => { try { l(); } catch { /* слушатель умер — не наша беда */ } });
+  const верхний = _menuRequests[_menuRequests.length - 1];
+  if (!верхний) return false;
+  try { верхний(); } catch { /* слушатель умер — не наша беда */ }
   return true;
 }
 
 export function onPauseMenuRequest(l: PauseMenuRequest): () => void {
-  _menuRequests.add(l);
-  return () => { _menuRequests.delete(l); };
+  _menuRequests.push(l);
+  return () => {
+    const i = _menuRequests.lastIndexOf(l);
+    if (i >= 0) _menuRequests.splice(i, 1);
+  };
 }
 
 /**
