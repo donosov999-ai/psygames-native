@@ -681,12 +681,25 @@ export default function MentalRotationGame() {
                   {task.kind === 'same' && <Text style={{fontSize:Math.max(16,Math.min(26,optSize/3)),fontWeight:'700',color:colors.text}}>
                     {(opt as { answer: boolean }).answer ? strings.answerYes : strings.answerNo}
                   </Text>}
-                  {feedback&&<Text numberOfLines={1} style={[styles.optionLabel2, { color: colors.textSecondary }]}>
+                  {/*
+                    🔴 ПОДПИСЬ ПОД ВАРИАНТОМ ОБРЕЗАЛАСЬ (замер 17.09.2026, экспорт-сборка). Все подписи
+                    разбора, 108 строк на 12 языках, подставлены в живой элемент: на 390×844 в одну
+                    строку не влезали 18 (7 языков: «вид с другой стороны», «Ansicht von einer anderen
+                    Seite»…), а в сжатом разборе на 375×667 — 86 из 108, от «друг…» до «верн…».
+                    Поэтому в обычном разборе подпись в две строки, а в сжатом её под карточкой нет:
+                    там одна строка под рядом — чем плох выбранный вариант (красная рамка и так видна).
+                  */}
+                  {feedback&&!compactReview&&<Text numberOfLines={2} style={[styles.optionLabel2, { color: colors.textSecondary }]}>
                     {optionNote(opt)}
                   </Text>}
                 </TouchableOpacity>
               ))}
             </View>
+            {reviewing && compactReview && feedback ? (
+              <Text testID="mental-picked-note" numberOfLines={2} style={[styles.optionLabel2, { color: BAD_COLOR, fontSize: 13 }]}>
+                {optionNote(task.options[feedback.idx])}
+              </Text>
+            ) : null}
             {reviewing && (
               <TouchableOpacity
                 testID="mental-review-next"
