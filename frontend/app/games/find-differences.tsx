@@ -27,6 +27,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import { reserveBottom } from '@/src/games/search/layout';
+import { ВЕРХ_ПОЛЯ } from '@/src/components/gameLayout';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { capPresetByLevel } from '@/src/services/presetCap';
@@ -307,7 +308,25 @@ export default function FindDifferencesGame() {
   // Кап по высоте: обе сцены должны быть видны целиком в поле каркаса (шапка+статы+подсказка
   // -240px) — иначе центрируемое поле переполняется и контент наезжает на шапку.
   const sceneW = Math.min(width - 24, 440);
-  const sceneH = Math.min(340, sceneW * 0.8, Math.max(150, (height - 240) / 2));
+  /**
+   * 🔴 СТРОКА «НАЖИМАЙТЕ НА ОТЛИЧИЯ» ЛЕЖАЛА ПОД ПЛАШКОЙ ПОКАЗАТЕЛЕЙ НА ВСЕХ ЭКРАНАХ.
+   *
+   * Замер 16.09.2026 (приёмка 1bbb9413, `/tmp/fd-layout.mjs`, живая сборка): верх строки
+   * подсказки 92 на 390×844 и 83 на 375×667, 360×640, 320×568 — при низе плашки 119.
+   * Нижняя сцена при этом кончалась на 563 из 667, то есть внизу оставалась сотня пустых
+   * точек: дело было не в нехватке экрана, а в бюджете. Высота сцены считалась как
+   * «(экран − 240) / 2», а над полем каркас занимает `ВЕРХ_ПОЛЯ` = 119, и под колонкой
+   * стоит резерв `reserveBottom(0)` = 141. Колонка с резервом выходила выше поля, и
+   * каркас, центрируя её, выдвигал верх под плашку.
+   *
+   * Теперь бюджет из тех же чисел, что рисуют экран: строка подсказки 16 + зазор колонки
+   * 12 + зазор между сценами 18 + рамки двух сцен 4 × 2. Нижний предел 150 — прежний,
+   * оставлен как был, его смысл я не мерил. После: строка с 120 на 390×844, 375×667 и
+   * 360×640 (наименьший экран, по которому меряет команда). ⚠️ На 320×568 предел
+   * срабатывает, и строка остаётся под плашкой на 22 точки — это известный остаток.
+   */
+  const ЗАЗОРЫ_КОЛОНКИ = 16 + 12 + 18 + 4 * 2;
+  const sceneH = Math.min(340, sceneW * 0.8, Math.max(150, (height - ВЕРХ_ПОЛЯ - reserveBottom(0) - ЗАЗОРЫ_КОЛОНКИ) / 2));
 
   const clearAllTimers = () => {
     if (countdownRef.current) clearInterval(countdownRef.current);
