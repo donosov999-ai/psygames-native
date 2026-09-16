@@ -179,7 +179,7 @@ export default function PRLGame() {
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
 
   // Правило показываем при первом входе и даём перечитать по бейджу.
-  const levelRules = useLevelRules('prl', lvl.level, PRL_RULES, phase === 'playing');
+  const levelRules = useLevelRules('prl', lvl.level, PRL_RULES, phase === 'config');
   const [runMode, setRunMode] = useState<RunMode>('level');
   // Классический режим (диагностика): пресет-зарядка (isPreset) читает diff из URL.
   const [difficulty, setDifficulty] = useState<Difficulty>(() => (str('diff', 'medium') as Difficulty));
@@ -538,6 +538,11 @@ export default function PRLGame() {
       </ScrollView>
       {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
       <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
+      {/* 🔴 Карточка правила — на НАСТРОЙКЕ, до старта (16.09.2026). В партии пробы идут по
+           таймерам и за открытой карточкой не останавливаются: замер на Струпе L5 — счётчик
+           1/20 → 2/20 за 3,2 с чтения, а «не успел ответить» считается ошибкой. Тот же приём,
+           что у Корси и игр памяти (f1eb95b3); в партии правило открывается бейджем ⓘ. */}
+      <LevelRuleModal lr={levelRules} colors={colors} />
       </>
     </View>
     );
