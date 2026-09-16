@@ -1,4 +1,4 @@
-/* psygames-game-pattern · VER 1 · 19.08.2026 */
+/* psygames-game-pattern · VER 2 · 17.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -26,7 +26,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
-import { makeSequence, makeOptions, type Sequence } from '@/src/games/counting/patternSequences';
+import { makeSequence, makeOptions, levelLabelKey, type Sequence } from '@/src/games/counting/patternSequences';
 
 const GRADIENT = ['#7028e4', '#e5b2ca'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -54,6 +54,26 @@ function fillParams(s: string, params?: Record<string, string | number>): string
 // Ряды и варианты ответа — в src/games/counting/patternSequences.ts (их делит «Числовой забег»);
 // реэкспорт — для гейта pattern-ladder, который читает лестницу через экран.
 export { pickSequence, makeSequence } from '@/src/games/counting/patternSequences';
+
+/**
+ * РАЗМЕР КЛЕТОК РЯДА ПОД ШИРИНУ ПОЛЯ: ряд вместе с «?» встаёт в одну строку, пока это возможно.
+ * Замер 17.09.2026 живьём в сборке: поле под ряд 352 точки на 375–430 и 340 на 360. Пять клеток по 64
+ * с зазором 8 — ровно 352, поэтому на 360 «?» уезжал на вторую строку уже на первом уровне, а ряды
+ * из шести и семи клеток (L17, L19) переносились и на 390. Ширина знака — 0,66 кегля и 4 точки на рамки: при 0,62
+ * без рамок ряды «5 −8 18 −34 ?» и «139 211 350 561 ?» на 360 всё равно переносились (замер того же дня).
+ * Число не влезает и на кегле 16 (смесь далеко за L100) — перенос строки, как раньше.
+ */
+function cellSize(width: number, labels: string[]) {
+  const cells = labels.length, chars = Math.max(...labels.map((l) => l.length));
+  const variant = (font: number) => {
+    const pad = font >= 24 ? 8 : 5, gap = font >= 24 ? 8 : 6;
+    const need = Math.ceil(chars * font * 0.66) + 2 * pad + 4;       // самое длинное число целиком, с рамками
+    const room = Math.floor((width - gap * (cells - 1)) / cells);    // сколько поле даёт на клетку
+    return { font, pad, gap, cell: Math.max(need, Math.min(64, room)), fits: need <= room };
+  };
+  if (!width) return { font: 24, pad: 8, gap: 8, cell: 64, fits: true };   // до первого замера поля — прежний вид
+  return [24, 20, 18, 16].map(variant).find((v) => v.fits) ?? variant(16);
+}
 
 /**
  * 🔴 ШАГ ЗАРЯДКИ/ОЦЕНКИ ИГРАЕТ ФИКСИРОВАННЫЙ ПРЕСЕТ, А НЕ ЛИЧНЫЙ УРОВЕНЬ.
@@ -88,6 +108,7 @@ export default function PatternGame() {
   const [errors, setErrors] = useState(0);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [hintStage, setHintStage] = useState(0);   // 0 нет · 1 класс · 2 правило
+  const [rowWidth, setRowWidth] = useState(0);     // ширина поля под ряд — по ней cellSize
   const [startTime, setStartTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -186,15 +207,8 @@ export default function PatternGame() {
       <LevelProgressMap bestLevel={lvl.best} gameId="pattern" currentLevel={lvl.level} onPickLevel={lvl.pick} colors={colors} language={language} />
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('level')} {lvl.level}</Text>
-        <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-          {lvl.level <= 2 ? t('patternClassArithmetic')
-           : lvl.level <= 4 ? t('patternClassGeometric')
-           : lvl.level <= 6 ? t('patternClassSquaresCubes')
-           : lvl.level <= 8 ? t('patternClassFibonacci')
-           : lvl.level <= 10 ? t('patternClassGrowingDiff')
-           : lvl.level <= 12 ? t('patternClassLookSayHint')
-           : t('patternClassInterleaved')}
-        </Text>
+        {/* Класс ряда под уровнем — из той же таблицы полос, что и генератор (L23+ — «смесь»), а не своей лестницей. */}
+        <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>{t(levelLabelKey(lvl.level))}</Text>
         {lvl.level > 1 && (
           <TouchableOpacity
             accessibilityRole="button" accessibilityLabel={t('a11yResetLevel')} onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
@@ -283,25 +297,33 @@ export default function PatternGame() {
                 onPress={() => handleAnswer(o)}
                 style={[styles.optBtn, { backgroundColor: GRADIENT[0] }]}
               >
-                <Text style={styles.optText}>{o}</Text>
+                <Text style={styles.optText}>{String(o).replace('-', '−')}</Text>
               </TouchableOpacity>
             ))}
           </View>
         }
       >
-        <View style={styles.fieldCol}>
+        <View style={styles.fieldCol} onLayout={(e) => setRowWidth(Math.round(e.nativeEvent.layout.width))}>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('patternHint')}</Text>
-          <View style={styles.sequenceArea}>
-            {seq.items.map((n, i) => (
-              <View key={i} style={[styles.seqCell, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                {/* число ряда — всегда одной строкой (иначе 111221 рвётся пополам) */}
-                <Text style={[styles.seqText, { color: colors.text }]} numberOfLines={1}>{n}</Text>
+          {(() => {
+            // С L17 в ряду пять и шесть чисел, в смеси (L23+) — числа в тысячи: клетки и кегль по ширине поля.
+            const labels = [...seq.items.map((n) => String(n).replace('-', '−')), '?'];
+            const size = cellSize(rowWidth, labels);
+            const cellStyle = { minWidth: size.cell, minHeight: size.font >= 24 ? 64 : size.font >= 20 ? 56 : 48, paddingHorizontal: size.pad };
+            return (
+              <View style={[styles.sequenceArea, { gap: size.gap }]}>
+                {labels.slice(0, -1).map((label, i) => (
+                  <View key={i} style={[styles.seqCell, cellStyle, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    {/* число ряда — всегда одной строкой (иначе 111221 рвётся пополам); минус — типографский */}
+                    <Text style={[styles.seqText, { fontSize: size.font, color: colors.text }]} numberOfLines={1}>{label}</Text>
+                  </View>
+                ))}
+                <View style={[styles.seqCell, cellStyle, { backgroundColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : 'transparent', borderColor: GRADIENT[0], borderWidth: 2 }]}>
+                  <Text style={[styles.seqText, { fontSize: size.font, color: feedback ? '#FFF' : GRADIENT[0] }]}>?</Text>
+                </View>
               </View>
-            ))}
-            <View style={[styles.seqCell, { backgroundColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : 'transparent', borderColor: GRADIENT[0], borderWidth: 2 }]}>
-              <Text style={[styles.seqText, { color: feedback ? '#FFF' : GRADIENT[0] }]}>?</Text>
-            </View>
-          </View>
+            );
+          })()}
           {hintStage >= 1 && (
             <View style={[styles.hintBox, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}>
               <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14, textAlign: 'center' }}>💡 {t(seq.classKey)}</Text>
@@ -364,7 +386,8 @@ const styles = StyleSheet.create({
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },
-  fieldCol: { alignItems: 'center', gap: 18 },
+  // alignSelf: 'stretch' — ширину поля мерит onLayout (cellSize); без него колонка сжималась до своего ряда и мерила сама себя.
+  fieldCol: { alignItems: 'center', gap: 18, alignSelf: 'stretch' },
   statsRow: { flexDirection: 'row', gap: 24, justifyContent: 'center' },
   statText: { fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320 },

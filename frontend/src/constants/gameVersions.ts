@@ -61,7 +61,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'object-tracker': { ver: 2, date: '20.08.2026' },
   'one-line': { ver: 2, date: '20.08.2026' },
   'ospan': { ver: 4, date: '07.09.2026' },
-  'pattern': { ver: 1, date: '19.08.2026' },
+  'pattern': { ver: 2, date: '17.09.2026' },
   'pause': { ver: 1, date: '26.08.2026' },
   'phoneme-pairs': { ver: 1, date: '19.08.2026' },
   'phonemic-fluency': { ver: 1, date: '19.08.2026' },
