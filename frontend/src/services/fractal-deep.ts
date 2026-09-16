@@ -127,18 +127,70 @@ export function depthOf(path: DeepPath): number {
 
 // ─────────────────────────── материализация ───────────────────────────
 
+/**
+ * ═══ АВТОМОРФИЗМ ДОСКИ: 40 УЗОРОВ НА ПОЛОСУ ПРЕВРАЩАЮТСЯ В СОТНИ ТЫСЯЧ ═══
+ *
+ * 🔴 ЗАЧЕМ. Замер 16.09.2026: в партии `abyss` первые 400 узлов дали ровно 40 РАЗНЫХ
+ * узоров подсказок — каждый повторялся десять раз; на полной партии в 2848 узлов это
+ * около семидесяти повторов. Причина видна из устройства: банк отдаёт до 40 досок на
+ * полосу (`boards.json` — 1835 досок на 58 полос), а `pickBoard` берёт строку и
+ * отдаёт как есть. Цифры при этом каждый раз разные — `materializeNode` меняет две
+ * цифры во всей доске ради кормящей, — но перестановка ЦИФР не двигает подсказки, и
+ * человек видит один и тот же рисунок.
+ *
+ * ЧТО ДЕЛАЕМ. Не докладываем досок в бандл, а преобразуем имеющиеся. Перестановка
+ * строк внутри полосы, самих полос, столбцов, стопок и транспонирование — это
+ * АВТОМОРФИЗМЫ судоку: валидность, единственность решения и рейтинг сохраняются по
+ * построению, а УЗОР меняется. Тот же приём уже работает у фрактала-босса
+ * (`fractal-sudoku.ts`, `transformSeed`) — здесь он нужен без перекраски цифр, её
+ * делает `materializeNode` отдельно и позже.
+ *
+ * Сколько это даёт: 6 перестановок строк внутри полосы в кубе × 6 перестановок полос
+ * × столько же по столбцам × транспонирование = 2 × (6³ × 6)² ≈ 3.4 млн видов одной
+ * доски. Стоит это 81 присваивание на узел и ни байта в бандле.
+ *
+ * ⚠️ ЗЕРНО — (партия, путь), как и всё в Бездне: узел, материализованный заново после
+ * перезапуска, обязан прийти тем же. Отдельная струя `shape`, чтобы не сдвинуть выбор
+ * самой доски: иначе у всех уже сохранённых партий сменились бы доски.
+ */
+function перетасовать(доска: Cell[][], seed: string, path: DeepPath): Cell[][] {
+  const rnd = makeRng(`fractal-deep-shape|${normalizeSeed(seed)}|${path}`);
+  const порядок = (): number[] => {
+    const полосы = [0, 1, 2];
+    for (let i = 2; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [полосы[i], полосы[j]] = [полосы[j]!, полосы[i]!]; }
+    const out: number[] = [];
+    for (const b of полосы) {
+      const внутри = [0, 1, 2];
+      for (let i = 2; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [внутри[i], внутри[j]] = [внутри[j]!, внутри[i]!]; }
+      for (const k of внутри) out.push(b * 3 + k);
+    }
+    return out;
+  };
+  const строки = порядок(); const столбцы = порядок(); const транспонировать = rnd() < 0.5;
+  const out: Cell[][] = [];
+  for (let r = 0; r < DEEP_N; r++) {
+    const line: Cell[] = [];
+    for (let c = 0; c < DEEP_N; c++) {
+      const [sr, sc] = транспонировать ? [столбцы[c]!, строки[r]!] : [строки[r]!, столбцы[c]!];
+      line.push(доска[sr]![sc]!);
+    }
+    out.push(line);
+  }
+  return out;
+}
+
 function pickBoard(seed: string, path: DeepPath, rating: number): { puzzle: Cell[][]; rating: number } {
   const pool = bankPool(rating);
   if (pool.length === 0) throw new Error(`fractal-deep: полоса ${rating} пуста`);
   const rng = makeRng(`fractal-deep|${normalizeSeed(seed)}|${path}|R${Math.round(rating * 10)}`);
   const row = pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))]!;
-  const puzzle: Cell[][] = [];
+  const сырая: Cell[][] = [];
   for (let r = 0; r < DEEP_N; r++) {
     const line: Cell[] = [];
     for (let c = 0; c < DEEP_N; c++) line.push(row.p.charCodeAt(r * DEEP_N + c) - 48);
-    puzzle.push(line);
+    сырая.push(line);
   }
-  return { puzzle, rating: row.r };
+  return { puzzle: перетасовать(сырая, seed, path), rating: row.r };
 }
 
 /**
