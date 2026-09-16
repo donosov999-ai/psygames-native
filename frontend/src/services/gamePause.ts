@@ -122,8 +122,16 @@ let _pausedTotal = 0;
 let _pausedAt: number | null = null;
 
 export function gameNow(): number {
-  const held = _pausedTotal + (_pausedAt !== null ? Date.now() - _pausedAt : 0);
-  return Date.now() - held;
+  /**
+   * 🔴 ОДНО ЧТЕНИЕ НАСТЕННЫХ ЧАСОВ, А НЕ ДВА. Было `Date.now()` в простое и ещё раз
+   * в ответе: если между чтениями проходила миллисекунда, часы НА ПАУЗЕ сдвигались
+   * на 1 мс. Под нагрузкой CI это и происходило — проба pause-menu-everywhere
+   * («пока меню открыто, часы партии стоят») падала «сдвиг часов 1 мс, стоят: false»
+   * только в полном прогоне и держала выпуск 2.54.13. Задача ecfa89b6.
+   */
+  const now = Date.now();
+  const held = _pausedTotal + (_pausedAt !== null ? now - _pausedAt : 0);
+  return now - held;
 }
 
 /** Сколько всего простояли на паузе — для отладки и тестов. */
