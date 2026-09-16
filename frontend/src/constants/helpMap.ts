@@ -485,17 +485,17 @@ export const HELP_MAP: Record<string, HelpEntry> = {
   "/games/puzzles?mode=Mines": {
     "nameKey": "puzzlesMines",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesMinesDesc"
+    "introKey": "puzzlesMinesIntroDesc"
   },
   "/games/puzzles?mode=Mosaic": {
     "nameKey": "puzzlesMosaic",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesMosaicDesc"
+    "introKey": "puzzlesMosaicIntroDesc"
   },
   "/games/puzzles?mode=Pattern": {
     "nameKey": "puzzlesPattern",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesPatternDesc"
+    "introKey": "puzzlesPatternIntroDesc"
   },
   "/games/puzzles?mode=Singles": {
     "nameKey": "puzzlesSingles",
@@ -505,22 +505,22 @@ export const HELP_MAP: Record<string, HelpEntry> = {
   "/games/puzzles?mode=Range": {
     "nameKey": "puzzlesRange",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesRangeDesc"
+    "introKey": "puzzlesRangeIntroDesc"
   },
   "/games/puzzles?mode=Light Up": {
     "nameKey": "puzzlesLightUp",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesLightUpDesc"
+    "introKey": "puzzlesLightUpIntroDesc"
   },
   "/games/puzzles?mode=Tents": {
     "nameKey": "puzzlesTents",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesTentsDesc"
+    "introKey": "puzzlesTentsIntroDesc"
   },
   "/games/puzzles?mode=Magnets": {
     "nameKey": "puzzlesMagnets",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesMagnetsDesc"
+    "introKey": "puzzlesMagnetsIntroDesc"
   },
   "/games/puzzles?mode=Undead": {
     "nameKey": "puzzlesUndead",
@@ -550,7 +550,7 @@ export const HELP_MAP: Record<string, HelpEntry> = {
   "/games/puzzles?mode=Rectangles": {
     "nameKey": "puzzlesRectangles",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesRectanglesDesc"
+    "introKey": "puzzlesRectanglesIntroDesc"
   },
   "/games/puzzles?mode=Filling": {
     "nameKey": "puzzlesFilling",
@@ -560,17 +560,17 @@ export const HELP_MAP: Record<string, HelpEntry> = {
   "/games/puzzles?mode=Palisade": {
     "nameKey": "puzzlesPalisade",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesPalisadeDesc"
+    "introKey": "puzzlesPalisadeIntroDesc"
   },
   "/games/puzzles?mode=Galaxies": {
     "nameKey": "puzzlesGalaxies",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesGalaxiesDesc"
+    "introKey": "puzzlesGalaxiesIntroDesc"
   },
   "/games/puzzles?mode=Map": {
     "nameKey": "puzzlesMap",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesMapDesc"
+    "introKey": "puzzlesMapIntroDesc"
   },
   "/games/puzzles?mode=Loopy": {
     "nameKey": "puzzlesLoopy",
@@ -605,7 +605,7 @@ export const HELP_MAP: Record<string, HelpEntry> = {
   "/games/puzzles?mode=Dominosa": {
     "nameKey": "puzzlesDominosa",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesDominosaDesc"
+    "introKey": "puzzlesDominosaIntroDesc"
   },
   "/games/puzzles?mode=Untangle": {
     "nameKey": "puzzlesUntangle",
