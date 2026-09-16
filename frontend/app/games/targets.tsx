@@ -524,6 +524,10 @@ export default function TargetsGame() {
           mean_rt: Math.round(avgReaction),
           std_rt: Math.round(rtStd),
           n_targets: rts.length,
+          /* Чем человек отвечал: полем или кнопкой. Чтобы решение «кнопка снизу
+             или тап по полю» опиралось на замер, а не на вкус. */
+          answers_via_field: viaFieldRef.current,
+          answers_via_bar: viaBarRef.current,
           /**
            * Главный показатель go/no-go — ошибки ТОРМОЖЕНИЯ, и до сих пор их
            * не было в партии вовсе. Доля считается от ФАКТИЧЕСКИ показанных
@@ -611,9 +615,21 @@ export default function TargetsGame() {
   // и раньше пересобиралась (вместе с LinearGradient) на КАЖДЫЙ setState раунда.
   // Стабильный onPress + useMemo → тяжёлый градиент рендерится один раз за партию,
   // а не 4 раза за раунд. handleClick читается через реф, поэтому не устаревает.
+  /* 🔴 ОТКУДА ПРИШЁЛ ОТВЕТ — СЧИТАЕМ. Приёмка 16.09.2026, решение Дениса:
+     «многие сделали тухло через кнопки снизу, будто пытались адаптировать
+     компьютерную версию». У мишеней ответ был ТОЛЬКО кнопкой под полем, хотя
+     три соседа по набору — CPT, Go/No-Go и «Торможение» — давно принимают тап
+     по самому полю. Счётчики нужны, чтобы через неделю было видно ЗАМЕРОМ, чем
+     люди отвечают на самом деле. Тот же приём, что в cpt.tsx (answers_via_box). */
+  const viaFieldRef = useRef(0);
+  const viaBarRef = useRef(0);
+
   const handleClickRef = useRef(handleClick);
   handleClickRef.current = handleClick;
-  const onTargetPress = useCallback(() => handleClickRef.current(), []);
+  const onTargetPress = useCallback(() => { viaBarRef.current += 1; handleClickRef.current(); }, []);
+  /* Тап по ПОЛЮ — тот же ответ, что кнопкой. Обработчик ОДИН: разойтись им
+     нельзя, иначе два пути ответа начнут считать по-разному. */
+  const onFieldPress = useCallback(() => { viaFieldRef.current += 1; handleClickRef.current(); }, []);
   const clickButton = useMemo(() => (
     <TouchableOpacity
       accessibilityRole="button"
@@ -802,8 +818,15 @@ export default function TargetsGame() {
       toolbar={<AnswerBar>{clickButton}</AnswerBar>}
     >
       <View style={styles.fieldCol}>
-        {/* Shapes Display */}
-        <View style={[styles.shapesArea, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        {/* Поле само по себе — кнопка ответа: тапать можно по нему, а не только
+            по полосе снизу. activeOpacity=1, чтобы поле не мигало на каждом тапе:
+            обратная связь здесь своя, значком «верно/неверно». */}
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t('hint_targets_tap_if')}
+          activeOpacity={1}
+          onPress={onFieldPress}
+          style={[styles.shapesArea, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           {feedback && (
             <View style={[
               styles.feedbackBadge,
@@ -840,7 +863,7 @@ export default function TargetsGame() {
               <View style={[styles.miniCircle, { backgroundColor: prevCircleColor }]} />
             </View>
           )}
-        </View>
+        </TouchableOpacity>
 
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
           {t('hint_targets_tap_if')}

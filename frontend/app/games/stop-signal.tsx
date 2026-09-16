@@ -500,9 +500,23 @@ export default function StopSignalGame() {
       >
         <View style={styles.fieldCol}>
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('stopHint')}</Text>
-          <View style={[styles.stimulusBox, { backgroundColor: stimColor + '33', borderColor: stimColor }]}>
+          {/* 🔴 ПОЛЕ САМО — КНОПКА GO. Приёмка 16.09.2026, решение Дениса:
+              «многие сделали тухло через кнопки снизу, будто пытались адаптировать
+              компьютерную версию». Ответ здесь одиночный, и тянуться пальцем вниз
+              к узкой кнопке — лишнее движение, которое вдобавок ПОРТИТ ЗАМЕР:
+              мера прохода тут SSRT, а он считается из времени ответа, и путь
+              пальца входит в него слагаемым. Соседи по набору (CPT, Go/No-Go,
+              «Торможение») давно принимают тап по полю.
+              ⚠️ Обработчик ТОТ ЖЕ, что у кнопки: разойтись им нельзя, иначе два
+              пути ответа начнут считать по-разному. */}
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={t('goBtn')}
+            activeOpacity={1}
+            onPress={onPressGo}
+            style={[styles.stimulusBox, { backgroundColor: stimColor + '33', borderColor: stimColor }]}>
             <Text style={[styles.stimText, { color: stimColor }]}>{stimLabel}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </GameShell>
     );
