@@ -1,4 +1,4 @@
-/* psygames-game-water-sort · VER 7 · 16.09.2026 */
+/* psygames-game-water-sort · VER 8 · 16.09.2026 */
 /**
  * СОРТИРОВКА ЖИДКОСТЕЙ — переливание по пробиркам, пока каждая не станет одного цвета.
  *
@@ -48,9 +48,10 @@ import { gameNow } from '@/src/services/gamePause';
 import { hudTime } from '@/src/services/hudTime';
 import {
   Field, isDone, isSolved, canPour, pour, legalMoves, capOf, stonesIn, isOpen,
+  почемуНельзя, type ПричинаОтказа,
 } from '@/src/games/water-sort/core/tubes';
 import {
-  generateLevel, levelParams, solve, КОРОТКИЕ_С, КАМНИ_С, ОТЛОЖЕННЫЙ_С, ХОДЫ_С, СТРОГО_С, levelMoveReference, moveLimitFor } from '@/src/games/water-sort/core/generate';
+  generateLevel, levelParams, solve, КОРОТКИЕ_С, КАМНИ_С, ОТЛОЖЕННЫЙ_С, ХОДЫ_С, СТРОГО_С, СТРОГИЙ_НАЛИВ_ВКЛЮЧЁН, levelMoveReference, moveLimitFor } from '@/src/games/water-sort/core/generate';
 import {
   СКРЫТО_С, скрытоНаУровне, скрытыеСлои, слойВиден, звёздыПоХодам,
 } from '@/src/games/water-sort/core/hidden';
@@ -101,6 +102,20 @@ const полосаРяда = (низИнсет: number) => ПОЛЯ_РЯДА_Б�
  * Поэтому число живёт у того экрана, который эту кнопку и рисует.
  */
 const РЯДОВ_ДЕЙСТВИЙ = 2;
+
+/**
+ * Причина отказа → строка словаря. Слова НЕЙТРАЛЬНЫ К ШКУРКЕ нарочно: «там уже
+ * полно» одинаково верно для пробирки, трубки с шарами и стержня с гайками, и
+ * три шкурки не плодят двенадцать ключей на двенадцати языках.
+ * `пусто` не озвучивается: пустой сосуд выбрать нельзя, до отказа не доходит.
+ */
+const КЛЮЧ_ОТКАЗА: Record<ПричинаОтказа, 'sortRefuseFull' | 'sortRefuseColour' | 'sortRefusePointless' | 'sortRefuseLocked' | null> = {
+  полон: 'sortRefuseFull',
+  другойЦвет: 'sortRefuseColour',
+  безТолку: 'sortRefusePointless',
+  закрыт: 'sortRefuseLocked',
+  пусто: null,
+};
 
 const GAME_ID = 'water-sort';
 /**
@@ -207,8 +222,13 @@ export const WATER_SORT_RULES: LevelRule[] = [
   /*
    * Строгий налив (L34+). Порог равен `СТРОГО_С` — там же, где лестница прежде
    * кончалась и где доска ужимается в обмен на ось.
+   *
+   * 🔴 КАРТОЧКИ НЕТ, ПОКА ОСЬ ВЫКЛЮЧЕНА (решение Дениса 16.09.2026: одинаковые
+   * подряд переносятся только вместе). Оставь её безусловной — и на L34 игрок
+   * прочтёт «теперь по одной порции» про правило, которого в партии нет. Порог и
+   * выключатель берутся из ядра, поэтому карточка и механика не разъедутся.
    */
-  { key: 'strict', fromLevel: СТРОГО_С },
+  ...(СТРОГИЙ_НАЛИВ_ВКЛЮЧЁН ? [{ key: 'strict', fromLevel: СТРОГО_С }] : []),
 ];
 
 const БОНУСЫ = [
@@ -595,6 +615,30 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
   const [выбрана, setВыбрана] = useState<number | null>(null);
   const [ходов, setХодов] = useState(0);
   const [ошибок, setОшибок] = useState(0);
+  /**
+   * 🔴 ОТКАЗАННЫЙ ХОД НАЗЫВАЕТ ПРИЧИНУ, А НЕ МОЛЧИТ.
+   *
+   * 📍 Отчёт e0e027fc (задача 44e6cd21): «не могу со второго шурупа снять гайки,
+   * никуда не хотят сходить, и так и сяк кликаю». Ход был запрещён правилами, но
+   * игра только снимала выбор и молча добавляла промах — причина не называлась
+   * нигде. Теперь на полторы секунды на месте строки-подсказки стоит причина.
+   *
+   * ⚠️ СТРОКА ДЕРЖИТ ПРЕЖНЮЮ ВЫСОТУ. Её высота через `подписьH` задаёт размер
+   * сосудов, и подмена текста в лоб дёргала бы всю доску на каждом отказе.
+   * Поэтому, пока показан отказ, замер не обновляется, а строка не ниже прежней.
+   *
+   * ⚠️ ТАЙМЕР ГАСИТСЯ ПРИ УХОДЕ С ЭКРАНА — открытый таймер после размонтирования
+   * валит весь прогон проб молча (записано в памяти раздела).
+   */
+  const [отказ, setОтказ] = useState<ПричинаОтказа | null>(null);
+  const отказТаймер = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (отказТаймер.current) clearTimeout(отказТаймер.current); }, []);
+  const показатьОтказ = (п: ПричинаОтказа | null) => {
+    if (!п || !КЛЮЧ_ОТКАЗА[п]) return;
+    if (отказТаймер.current) clearTimeout(отказТаймер.current);
+    setОтказ(п);
+    отказТаймер.current = setTimeout(() => setОтказ(null), 1800);
+  };
   const [времени, setВремени] = useState(0);
   /* ⚠️ Хранится ДЛИНА НАЙДЕННОГО ПУТИ, а не минимум: она нужна подсказке и
      проверке решаемости, но НЕ оценке — та считается от `levelMoveReference`. */
@@ -758,10 +802,12 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
     }
     if (выбрана === i) { setВыбрана(null); return; }    // повторное нажатие снимает выбор
     if (!canPour(field, выбрана, i)) {
+      показатьОтказ(почемуНельзя(field, выбрана, i));
       setОшибок((n) => n + 1);
       setВыбрана(null);
       return;
     }
+    if (отказ) setОтказ(null);   // ход прошёл — прежняя причина больше не про него
     история.push(field);
     const после = pour(field, выбрана, i)!;
     /*
@@ -1271,9 +1317,14 @@ export function SortGameScreen({ gameId, skin, titleKey }: SortScreenProps) {
           {/* Строка «что делать»: правило партии на виду, а не только в справке. */}
           <Text
             testID="sort-field-hint"
-            style={[styles.задание, { color: colors.textSecondary }]}
-            onLayout={(e) => setПодписьH(Math.round(e.nativeEvent.layout.height))}
-          >{тс('Hint')}</Text>
+            accessibilityLiveRegion="polite"
+            style={[
+              styles.задание,
+              { color: отказ ? '#d97706' : colors.textSecondary },
+              отказ && подписьH > 0 ? { minHeight: подписьH } : null,
+            ]}
+            onLayout={(e) => { if (!отказ) setПодписьH(Math.round(e.nativeEvent.layout.height)); }}
+          >{отказ && КЛЮЧ_ОТКАЗА[отказ] ? t(КЛЮЧ_ОТКАЗА[отказ]!) : тс('Hint')}</Text>
         </View>
         {тупик ? (
           <Text style={[styles.тупик, { color: colors.textSecondary }]}>{t('waterSortStuck')}</Text>
