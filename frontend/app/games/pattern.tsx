@@ -101,8 +101,15 @@ function genInterleaved(): Sequence {
     classKey: 'patternClassInterleaved', ruleKey: 'patternRuleInterleaved', ruleParams: { a, b } };
 }
 
-// Уровень → класс прогрессии (труднота растёт; БЕЗ лимита времени).
-function pickSequence(level: number): Sequence {
+/**
+ * Уровень → класс прогрессии (труднота растёт; БЕЗ лимита времени).
+ *
+ * ⚠️ ЭКСПОРТИРОВАНО ДЛЯ ГЕЙТА `pattern-ladder` (16.09.2026). Лестница у этой игры
+ * задаётся КЛАССОМ ряда, а не числом, поэтому проверять её можно только прогоном
+ * генератора — чтение полос глазами не скажет, что на самом деле выпадает игроку.
+ * Тот же приём у соседей: `levelParams` у счётчика, `generateScene` у отличий.
+ */
+export function pickSequence(level: number): Sequence {
   if (level <= 2)  return genArithmetic();
   if (level <= 4)  return genGeometric();
   if (level <= 6)  return rnd(2) ? genSquares() : genCubes();
@@ -118,7 +125,7 @@ function pickSequence(level: number): Sequence {
 // Такие ряды перегенерируем (иначе честный игрок получает несправедливую ошибку).
 // При изменении диапазонов генераторов пересчитать блэклист (скрипт в notes задачи БД).
 const AMBIGUOUS_ITEMS = new Set(['2,3,5,8', '4,5,7,10']);
-function makeSequence(level: number): Sequence {
+export function makeSequence(level: number): Sequence {
   for (let guard = 0; guard < 10; guard++) {
     const s = pickSequence(level);
     if (!AMBIGUOUS_ITEMS.has(s.items.join(','))) return s;
