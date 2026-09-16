@@ -225,13 +225,13 @@ const translations: Translations = {
     ru: 'Найдите числа, сумма которых равна заданному числу. Тренирует устный счёт и способность быстро анализировать варианты.', 
     en: 'Find numbers that sum to the target. Trains mental arithmetic and the ability to quickly analyze options.' 
   },
-  proofreadingIntroDesc: { 
-    ru: 'Найдите заданные буквы в большой таблице символов. Развивает избирательное внимание — способность находить нужное среди лишнего.', 
-    en: 'Find specific letters in a large grid of characters. Develops selective attention — the ability to find what you need among distractions.' 
+  proofreadingIntroDesc: {
+    ru: 'Два задания под одной карточкой, переключаются наверху.\n«Буквы» — корректурная проба: в плотной таблице символов надо найти все заданные и не пропустить ни одного. Чем дальше, тем больше поле и тем меньше времени на клетку.\n«Слова» — филворды: слова спрятаны в сетке ломаной змейкой, их надо обвести.\nОбщее у обоих одно — удержать внимание на однообразном материале. Игра смотрит на пропуски, а не на скорость.',
+    en: 'Two tasks under one card, switched at the top.\n"Letters" is the proofreading task: find every target symbol in a dense grid and miss none. The further you go, the bigger the grid and the less time per cell.\n"Words" is a word-snake: words hide in the grid along a bending path and you trace them.\nWhat the two share is holding attention on monotonous material. The game watches what you miss, not how fast you go.'
   },
   targetsIntroDesc: {
-    ru: 'Реагируйте на появление цветных объектов. Тренирует скорость реакции и способность быстро принимать решения.',
-    en: 'React to colored objects appearing on screen. Trains reaction speed and the ability to make quick decisions.'
+    ru: 'Внизу вспыхивают цветные фигуры. Режима два, и задача в них РАЗНАЯ — переключатель на экране настройки.\n«Поле»: мишень — когда две фигуры из трёх одного цвета. Увидел — жми; все цвета разные — не жми.\n«Джокер»: мишень — когда среди фигур попадается цвет круга из ПРЕДЫДУЩЕГО показа. Его приходится держать в уме, так что здесь проверяется не только реакция, но и память на шаг назад.\nДороже всего обходится не «не успел», а нажатие на пустое: именно такие нажатия игра и считает.',
+    en: 'Coloured shapes flash at the bottom. There are TWO modes and the task differs — switch them on the settings screen.\n"Field": a target is when two of the three shapes share a colour. See it, press it; all colours different, hands off.\n"Joker": a target is when the colour of the circle from the PREVIOUS round turns up among the shapes. You have to hold it in mind, so this one tests memory one step back as well as speed.\nThe costly mistake is not being late but pressing on nothing: those presses are what the game counts.'
   },
   quickCountIntroDesc: {
     ru: 'На мгновение появятся точки — оцените их количество, не пересчитывая по одной. Тренирует восприятие количества (subitizing) — отдельный от арифметики навык мгновенной оценки числа объектов.',
