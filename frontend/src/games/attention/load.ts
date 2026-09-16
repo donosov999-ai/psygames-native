@@ -36,6 +36,8 @@ import { levelParams as switchParams } from '@/app/games/switching-task';
 import { levelParams as goNoGoParams } from '@/app/games/go-no-go';
 import { levelParams as stopSignalParams } from '@/src/games/stop-signal/core/ladder';
 import { levelCondition as inhibitionCondition } from '@/app/games/inhibition';
+import { levelParams as posnerParams } from '@/app/games/posner';
+import { levelParams as proofParams } from '@/app/games/proofreading';
 
 export type AttentionMode =
   | 'stroop' | 'flanker' | 'cpt' | 'targets' | 'wcst'
@@ -45,7 +47,7 @@ export type AttentionMode =
   /** Первый из восьми, приехавших 12.09.2026 с расформированием развилок
    *  «Торможение» и «Риск». Остальные семь ждут своей меры прохода —
    *  дописывать сюда имя БЕЗ неё нельзя, см. шапку ниже. */
-  | 'go-no-go' | 'stop-signal' | 'inhibition';
+  | 'go-no-go' | 'stop-signal' | 'inhibition' | 'posner' | 'proofreading';
 
 /**
  * 🔴 ЭТОТ СПИСОК ПОКРЫВАЕТ 10 ЭКРАНОВ ИЗ 18, А НЕ ВЕСЬ ХАБ. Замер 13.09.2026
@@ -94,6 +96,10 @@ export const LADDER_RANGE: Record<AttentionMode, number> = {
   /* На L15 окно (852 мс) и задержка стоп-сигнала (480 мс) приходят в концы.
      inhibition.tsx::MAX_LEVEL. */
   inhibition: 15,
+  /* На L15 окно 900 мс и обе границы паузы (80 и 700) в концах. posner.tsx::MAX_LEVEL. */
+  posner: 15,
+  /* На L15 сетка упирается в 16 строк, темп — в пол 0,45 с/клетка. proofreading.tsx::MAX_LEVEL. */
+  proofreading: 15,
 };
 
 /** Что пишется в партию у этой пробы, и чем это меряется в методике. */
@@ -118,6 +124,8 @@ export const SESSION_MEASURE: Record<AttentionMode, { field: string; norm: strin
   'go-no-go':         { field: 'falseAlarms',           norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Ошибки торможения — нажатия на no-go; главный показатель парадигмы. Доля no-go заморожена на каноне: NOGO_PROB = 0.25 (канон go/no-go — 25 % либо 50 %). ⚠️ Прежде доля РОСЛА по уровням (0.20 → 0.42) — тот самый дефект «доля как ось сложности», снятый в разделе семь раз; разбор в блоке над NOGO_PROB' },
   'stop-signal':      { field: 'ssrt_ms',               norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. SSRT — за сколько человек успевает отменить уже начатое движение; главный показатель парадигмы. ⚠️ ПОЛЕ БЫВАЕТ null, И ЭТО ДОСТОИНСТВО, А НЕ ДЕФЕКТ: экран пишет рядом ssrt_method и ssrt_doubt и отказывается выдавать число, когда условия применимости не выполнены (стоп-проб мало, лестница не сошлась). Пустое место честнее выдуманного числа. Доля стоп-проб заморожена: STOP_PROB = 0.25 — поднять её значит сдвинуть сам SSRT' },
   inhibition:         { field: 'inhibition_commission', norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Ошибки торможения — нажатия там, где жать было нельзя. ⚠️ ИМЯ ПОЛЯ СВОЁ, не общее falseAlarms: у go-no-go мера уже так называется, а здесь число значит другое. Экран играет ОБЕ парадигмы (запрет, отмена начатого, микс), поэтому рядом пишется submode. ⚠️ ЧИТАТЬ ТОЛЬКО ПРИ ОДНОЙ И ТОЙ ЖЕ ЗАДЕРЖКЕ: ось сложности здесь SSD (150 → 480 мс), а при фиксированной задержке доля неудавшихся торможений зависит от самой задержки — ошибки двух РАЗНЫХ уровней между собой не сравнимы. Для этого ssd_ms кладётся в запись партии рядом с ошибками. Доля стоп-проб заморожена 16.09.2026: INHIBITION_STOP_PROB = 0.25, прежде росла 0.20 → 0.35' },
+  posner:             { field: 'validity_effect_ms',    norm: '✅ НОРМА БАТАРЕИ ЕСТЬ — 50 ± 30, higher_is_better = false (assessment.ts, домен attention_orient). Единственный из восьми экранов, приехавших 12.09, у кого норма заведена. Выигрыш от подсказки: RT(невалидная) − RT(валидная). Мера РАЗНОСТНАЯ, поэтому доля валидных подсказок осью сложности быть не может и заморожена: VALID_RATIO = 0.7. Проба Познера, 1980' },
+  proofreading:       { field: 'proof_omission_pct',    norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Доля пропущенных целей — корректурная проба Бурдона, классический показатель концентрации на однообразном материале. ⚠️ ИМЕННО ДОЛЯ, А НЕ СЧЁТ: ось сложности здесь размер сетки (8×8 → 16×12), и число пропусков росло бы само от роста числа целей. ⚠️ Читать только вместе с task_mode: у экрана два задания — буквы (проба Бурдона) и филворды (материал раздела «Слова»), сравнивать их между собой нельзя' },
 };
 
 /**
@@ -409,6 +417,42 @@ export function inhibitionLoad(level: number): number {
   return p.trials * (б.goWindow / p.goWindow) * (p.ssd / б.ssd);
 }
 
+/**
+ * Познер — «темп и непредсказуемость паузы».
+ *
+ * Величина прохода РАЗНОСТНАЯ (выигрыш от подсказки), поэтому доля валидных
+ * подсказок заморожена и осью не служит. Растут две другие величины: окно
+ * ответа 2200 → 900 мс и разброс паузы между подсказкой и мишенью — с 100 мс
+ * (150…250) до 620 мс (80…700). Чем шире разброс, тем меньше можно подгадать
+ * момент появления мишени.
+ *
+ * ⚠️ Складывать с нагрузкой других проб нельзя: у каждой своя валюта.
+ */
+export function posnerLoad(level: number): number {
+  const p = posnerParams(level);
+  const б = posnerParams(1);
+  const разброс = (x: { soaMinMs: number; soaMaxMs: number }) => x.soaMaxMs - x.soaMinMs;
+  return p.trials * (б.windowMs / p.windowMs) * (разброс(p) / разброс(б));
+}
+
+/**
+ * Корректура — «объём поля и темп сканирования».
+ *
+ * Величина прохода — доля пропущенных целей, поэтому осью служит не число
+ * целей, а сколько поля надо просмотреть и за какое время: сетка растёт
+ * 8×8 → 16×12, а времени на клетку остаётся 1,00 → 0,45 с. Порог прохода тоже
+ * поднимается: 80 % → 90 % → 100 % найденных.
+ *
+ * ⚠️ Складывать с нагрузкой других проб нельзя: у каждой своя валюта.
+ */
+export function proofreadingLoad(level: number): number {
+  const p = proofParams(level);
+  const б = proofParams(1);
+  const клеток = (x: { rows: number; cols: number }) => x.rows * x.cols;
+  const наКлетку = (x: { rows: number; cols: number; timeLimitSec: number }) => x.timeLimitSec / клеток(x);
+  return (клеток(p) / клеток(б)) * (наКлетку(б) / наКлетку(p)) * (p.minFoundPct / б.minFoundPct);
+}
+
 export function attentionLoad(mode: AttentionMode, level: number): number {
   switch (mode) {
     case 'stroop':  return stroopLoad(level);
@@ -424,11 +468,13 @@ export function attentionLoad(mode: AttentionMode, level: number): number {
     case 'go-no-go':         return goNoGoLoad(level);
     case 'stop-signal':      return stopSignalLoad(level);
     case 'inhibition':       return inhibitionLoad(level);
+    case 'posner':           return posnerLoad(level);
+    case 'proofreading':     return proofreadingLoad(level);
   }
 }
 
 export const ATTENTION_MODES: AttentionMode[] = [
   'stroop', 'flanker', 'cpt', 'targets', 'wcst',
   'stroop-emotional', 'simon', 'choice-rt', 'ant', 'switching-task',
-  'go-no-go', 'stop-signal', 'inhibition',
+  'go-no-go', 'stop-signal', 'inhibition', 'posner', 'proofreading',
 ];

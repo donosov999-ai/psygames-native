@@ -35,6 +35,8 @@ import { levelParams as switchParams } from '@/app/games/switching-task';
 import { levelParams as goNoGoParams } from '@/app/games/go-no-go';
 import { levelParams as stopSignalParams } from '@/src/games/stop-signal/core/ladder';
 import { levelCondition as inhibitionCondition } from '@/app/games/inhibition';
+import { levelCondition as posnerCondition } from '@/app/games/posner';
+import { levelCondition as proofCondition } from '@/app/games/proofreading';
 
 const levels = (m: AttentionMode) => Array.from({ length: LADDER_RANGE[m] }, (_, i) => i + 1);
 
@@ -53,6 +55,8 @@ const fingerprint: Record<AttentionMode, (l: number) => string> = {
   'go-no-go':         (l) => JSON.stringify(goNoGoParams(l)),
   'stop-signal':      (l) => JSON.stringify(stopSignalParams(l)),
   inhibition:         (l) => JSON.stringify(inhibitionCondition(l)),
+  posner:             (l) => JSON.stringify(posnerCondition(l)),
+  proofreading:       (l) => JSON.stringify(proofCondition(l)),
 };
 
 /**
@@ -89,7 +93,7 @@ const MAX_FLAT_RUN: Record<AttentionMode, number> = {
    */
   'stroop-emotional': 1, simon: 1, 'choice-rt': 1, ant: 1, 'switching-task': 1,
   /* Первый из восьми приехавших 12.09 — поблажки тоже нет. */
-  'go-no-go': 1, 'stop-signal': 1, inhibition: 1,
+  'go-no-go': 1, 'stop-signal': 1, inhibition: 1, posner: 1, proofreading: 1,
 };
 
 /**
@@ -117,6 +121,8 @@ const BAND_EDGES: Record<AttentionMode, number[]> = {
   'go-no-go': [5, 10],          // go-no-go.tsx    — trials 24 / 32 / 40
   'stop-signal': [5, 10],       // stop-signal/core/ladder.ts — trials 12 / 16 / 20
   inhibition: [5, 10],          // inhibition.tsx  — trials 20 / 26 / 32
+  posner: [5, 10],              // posner.tsx      — trials 24 / 30 / 36
+  proofreading: [5, 10],        // proofreading.tsx — cols 8 / 10 / 12, порог 80 / 90 / 100 %
 };
 
 describe('конфликт внимания: у каждой пробы своя лестница и она не откатывается', () => {
