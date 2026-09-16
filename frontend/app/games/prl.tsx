@@ -32,6 +32,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import { MIN_TRIALS_FOR_LEVEL } from '@/app/games/cpt';
 import {
@@ -204,6 +205,7 @@ export default function PRLGame() {
    * значило бы выломать экран из общего языка.
    */
   const bankScale = useRef(new Animated.Value(1)).current;
+  const reducedMotion = useReducedMotion();
   const [bankFlash, setBankFlash] = useState<'up' | 'down' | null>(null);
   const prevBankRef = useRef(0);
   const [feedback, setFeedback] = useState<{ choice: Choice; outcome: 'reward' | 'punish' } | null>(null);
@@ -547,11 +549,18 @@ export default function PRLGame() {
     setBankFlash(вверх ? 'up' : 'down');
     /* Прибавка — счёт подрастает, потеря — съёживается. Разный ЗНАК движения,
        а не просто «мигнуло»: по нему видно, что случилось, не читая цифру. */
+    if (reducedMotion) {
+      /* Движение выключено — знак события несёт ЦВЕТ: зелёный вверх, розовый вниз.
+         Держим ровно столько же (130 + 260), чтобы событие не мелькало иначе. */
+      bankScale.setValue(1);
+      const снять = setTimeout(() => setBankFlash(null), 390);
+      return () => clearTimeout(снять);
+    }
     Animated.sequence([
       Animated.timing(bankScale, { toValue: вверх ? 1.28 : 0.82, duration: 130, easing: Easing.out(Easing.quad), useNativeDriver: true }),
       Animated.timing(bankScale, { toValue: 1, duration: 260, easing: Easing.out(Easing.quad), useNativeDriver: true }),
     ]).start(() => setBankFlash(null));
-  }, [bank, bankScale]);
+  }, [bank, bankScale, reducedMotion]);
 
   const renderStimulus = (which: Choice, color: string) => {
     const isFeedback = feedback?.choice === which;
