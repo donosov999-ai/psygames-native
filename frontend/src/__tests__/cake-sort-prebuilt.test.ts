@@ -1,3 +1,4 @@
+/* psygames-gate-cake-sort-prebuilt · VER 2 · 16.09.2026 */
 /**
  * 🔴 ВШИТЫЙ УРОВЕНЬ ОБЯЗАН СОВПАДАТЬ С ТЕМ, ЧТО РАЗДАСТ ИГРА.
  *
@@ -10,11 +11,11 @@
  * ⚠️ Сверяется СОСТАВ доски, а не факт наличия записи: запись есть всегда, и
  * проверка «файл не пуст» зеленела бы на любом мусоре.
  */
-import { prebuilt, prebuiltMin, PREBUILT_COUNT } from '@/src/games/cake-sort/core/prebuilt';
+import { prebuilt, prebuiltMin, prebuiltPath, PREBUILT_COUNT } from '@/src/games/cake-sort/core/prebuilt';
 import { deal } from '@/src/games/cake-sort/core/level';
 import { makeBoard, allSectors, CIRCLE } from '@/src/games/cake-sort/core/plate';
 import { solve, minMoves } from '@/src/games/cake-sort/core/solver';
-import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
+import { referenceFor, starsFor, moveReference } from '@/src/games/cake-sort/core/stars';
 
 jest.setTimeout(600000);
 
@@ -30,11 +31,19 @@ jest.setTimeout(600000);
  * не «ослабленный гейт», а перемеренная граница; поднять её обратно можно только
  * уменьшив уровни, то есть отменив саму очередь.
  *
- * ⚠️ И это НЕ ослабляет звёзды: калибровка, которая работает за границей,
- * отдельно доказана достижимой — гейт `cake-sort-reference` требует, чтобы порог
- * трёх звёзд нигде не опускался ниже доказуемого минимума уровня.
+ * 🔴 ПЕРЕМЕРЕНО 16.09.2026: ПЯТЬ → ЧЕТЫРЕ, ИЗ-ЗА СВОБОДНОГО ВЫБОРА КУСКА.
+ * Ход берёт любой вид с тарелки, ветвление шире, и A* дорожает на порядок.
+ * 📍 Замер (`scripts/measure/cake-exact-min-budget.measure.ts`, бюджет 400 000):
+ *   L3 — минимум 15, 25 489 узлов · L4 — 15, 18 206 узлов ·
+ *   L5 и L6 — НЕ ДОСТАЛ, 400 001 узел (23 и 52 с).
+ * Выкупить бюджетом нельзя по той же причине, что и раньше: следующий уровень
+ * добавляет вид начинки.
+ *
+ * ⚠️ И это НЕ ослабляет звёзды: где минимума нет, эталон — длина предъявленной
+ * партии (`path`), и три звезды достижимы построением на всех 120 уровнях —
+ * гейт `cake-stars-reachable`.
  */
-const МИНИМУМОВ_НЕ_МЕНЬШЕ = 5;
+const МИНИМУМОВ_НЕ_МЕНЬШЕ = 4;
 
 describe('вшитые уровни', () => {
   it('есть что проверять — файл не пуст', () => {
@@ -119,8 +128,11 @@ describe('вшитые уровни', () => {
     expect(prebuiltMin(99999)).toBeNull();
     expect(prebuilt(99999)).toBeNull();
     // И эталон в этом случае берёт калибровку, а не единицу.
+    // ⚠️ Сравнение с самой калибровкой, а не «больше 20»: число 20 держалось на
+    // прежних 5,6 хода на круг и краснело бы на любой честной перекалибровке.
     const э = referenceFor(5, prebuiltMin(99999));
-    expect(э).toBeGreaterThan(20);
+    expect(э).toBe(moveReference(5));
+    expect(э).toBeGreaterThan(5);
     // Три звезды при таком эталоне достижимы — а при подставленной единице нет.
     expect(starsFor(э, 5, prebuiltMin(99999))).toBe(3);
   });
@@ -153,14 +165,21 @@ describe('вшитые уровни', () => {
    * ⚠️ И ТАМ, ГДЕ МИНИМУМА НЕТ, ЗВЁЗДЫ ИДУТ ОТ КАЛИБРОВКИ — хуже минимума, но
    * честнее выдумки. Проверяем, что эталон при этом остаётся достижимым.
    */
-  it('🔴 выше границы эталон берётся от калибровки и остаётся достижимым', () => {
+  it('🔴 выше границы эталон берётся от записанной партии и остаётся достижимым', () => {
     const плохо: string[] = [];
     for (let L = 1; L <= PREBUILT_COUNT; L += 1) {
       if (prebuiltMin(L) !== null) continue;
-      const у = prebuilt(L) as { types: number };
-      const э = referenceFor(у.types, null);
+      const у = prebuilt(L) as { types: number; queue: number[][] };
+      const кругов = у.types + у.queue.length;
+      /*
+       * ⚠️ С 16.09.2026 эталон выше границы — длина записанной партии, а не
+       * калибровка по видам: одно число на круг честным не бывает (разбор —
+       * `referenceFor`). Проверяем то, что берёт экран.
+       */
+      const э = referenceFor(кругов, null, prebuiltPath(L));
       if (э <= 0) плохо.push(`L${L}: эталон ${э}`);
-      if (starsFor(э, у.types, null) !== 3) плохо.push(`L${L}: игра ровно по эталону не даёт трёх звёзд`);
+      if (э !== prebuiltPath(L)) плохо.push(`L${L}: эталон ${э} не равен записанной партии ${prebuiltPath(L)}`);
+      if (starsFor(э, кругов, null, prebuiltPath(L)) !== 3) плохо.push(`L${L}: игра ровно по эталону не даёт трёх звёзд`);
     }
     expect(плохо).toEqual([]);
   });

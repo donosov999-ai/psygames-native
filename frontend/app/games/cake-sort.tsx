@@ -44,7 +44,7 @@ import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/
 import { CIRCLE, Board, canPlace, moveType, isCleared, hasAnyMove, makeBoard } from '@/src/games/cake-sort/core/plate';
 import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
-import { prebuilt, prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
+import { prebuilt, prebuiltMin, prebuiltPath } from '@/src/games/cake-sort/core/prebuilt';
 import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
 import { topFor, boardsFor, type КруглаяШкурка } from '@/src/constants/cakeTops';
 import { plateAtPoint, plateForGrab, PLATE_GAP, SECTOR_MIN, tableFit, cakeRadius } from '@/src/games/cake-sort/core/layout';
@@ -467,7 +467,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
        */
       saveSession({
         game_type: gameId, score: moves, time_seconds: 0, passed: true,
-        details: { level, moves, types: cfg.types, stars: starsFor(moves, кругов, точныйМин) },
+        details: { level, moves, types: cfg.types, stars: starsFor(moves, кругов, точныйМин, prebuiltPath(level)) },
       }).catch(() => {});
     }
   };
@@ -699,8 +699,13 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
     onResponderTerminate: () => { тащимRef.current = null; цельRef.current = null; setТащим(null); setЦель(null); },
   };
 
-  const эталон = referenceFor(кругов, точныйМин);
-  const звёзды = starsFor(moves, кругов, точныйМин);
+  /*
+   * ⚠️ Где точного минимума нет, эталон — длина предъявленной партии уровня, а не
+   * калибровка на круг: одно число честным быть не может (разбор — `referenceFor`).
+   */
+  const известныйПуть = prebuiltPath(level);
+  const эталон = referenceFor(кругов, точныйМин, известныйПуть);
+  const звёзды = starsFor(moves, кругов, точныйМин, известныйПуть);
   const встал = board ? !isCleared(board) && !hasAnyMove(board) : false;
 
   const тарелка = (i: number) => {
