@@ -2802,5 +2802,7 @@ const t: Record<string, string> = {
   "puzzlesSlantIntroDesc": "Trace exatamente uma diagonal em cada célula — “/” ou “\\\\”. Os números ficam nos cantos e dizem quantas pontas se encontram NAQUELE canto: 0 nenhuma, 4 as quatro. A restrição principal: as linhas nunca podem formar um laço fechado. Um toque curto inverte o traço, um toque longo o inverte no outro sentido.",
   "puzzlesBlackBoxIntroDesc": "Numa caixa fechada há bolas escondidas e você precisa encontrá-las sem olhar. Tocar numa seta da borda dispara um feixe: segue reto, desvia ao passar ao lado de uma bola e é absorvido ao acertar uma. Por onde sai, volta ou não aparece, as posições seguem com certeza. Tocar numa célula coloca “há uma bola aqui”; um toque longo marca-a vazia.",
   "puzzlesGuessIntroDesc": "Uma fila de cores está escondida e as tentativas são contadas. Monte sua fila e confirme; a resposta volta como marcas: quantas cores estão no lugar CERTO e quantas fazem parte do código mas em outra posição. Nunca se revela qual marca pertence a qual pino: cada tentativa é uma dedução, não uma varredura. Um toque define a cor, um toque longo a apaga.",
+  "warmupStopAsk": "Parar o aquecimento? Jogados {n} de {m}",
+  "warmupStopKeep": "Continuar o aquecimento",
 };
 export default t;

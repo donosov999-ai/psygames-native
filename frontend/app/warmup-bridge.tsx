@@ -38,6 +38,31 @@ export default function WarmupBridge() {
   // (симптом: зарядка обрывается раньше времени). Отсчёт только меняет число; переход — в
   // отдельном эффекте по countdown===0, с firedRef-гардом от двойного replace.
   const navFiredRef = useRef(false);
+  /**
+   * 🔴 МОСТ ПОЯВЛЯЕТСЯ ПОД ПАЛЬЦЕМ — ВТОРОСТЕПЕННЫЕ КНОПКИ ВЗВОДЯТСЯ НЕ СРАЗУ.
+   *
+   * ПОВОД — отчёт a0b6d77f (задача 1436bcdd), 13.09.2026, 2.54.4 Android: «на второй игре
+   * зарядка вылетела, скинулось всё». Хронология из самого отчёта: игра → мост → главная
+   * В ОДНУ СЕКУНДУ, «Итог зарядки» не открывался, дальше зарядка началась с первой игры.
+   * Мгновенный уход с моста домой бывает, только если зарядка уже остановлена.
+   *
+   * УСТРОЙСТВО, КОТОРОЕ ЭТО ДОПУСКАЕТ (замер на экспорт-сборке, 390×844): мост открывается
+   * САМ через 2 с после сохранения партии (`WarmupContext`, слушатель сессий) — ровно тогда,
+   * когда человек читает итог и тянется к кнопке. На мосту под этим пальцем стоят
+   * «Пропустить» (y 662–704) и красная «Остановить» (y 662–704), и «Остановить» стирала всю
+   * серию одним касанием, без вопроса.
+   *
+   * ⚠️ ПРИЧИНА ОТЧЁТА НЕ ДОКАЗАНА ЖИВЬЁМ — это защита от единственного найденного пути
+   * «мост → главная в одну секунду», а не установленный виновник. Поэтому две меры сразу:
+   * первые 800 мс мост не принимает «Пропустить» и «Остановить», а «Остановить» переспрашивает
+   * со счётом сыгранного.
+   */
+  const [взведено, setВзведено] = useState(false);
+  const [спрашиваемСтоп, setСпрашиваемСтоп] = useState(false);
+  useEffect(() => {
+    const таймер = setTimeout(() => setВзведено(true), 800);
+    return () => clearTimeout(таймер);
+  }, []);
   useEffect(() => {
     if (!warmup.active || !next) {
       router.replace('/' as any);
@@ -54,13 +79,13 @@ export default function WarmupBridge() {
    * игру ПОД вопросом, и человек нажмёт «Закончить» уже в чужом экране.
    */
   useEffect(() => {
-    if (!warmup.overtime || !intervalRef.current) return;
+    if (!(warmup.overtime || спрашиваемСтоп) || !intervalRef.current) return;
     clearInterval(intervalRef.current);
     intervalRef.current = null;
-  }, [warmup.overtime]);
+  }, [warmup.overtime, спрашиваемСтоп]);
 
   useEffect(() => {
-    if (warmup.overtime || countdown !== 0 || navFiredRef.current || !next) return;
+    if (warmup.overtime || спрашиваемСтоп || countdown !== 0 || navFiredRef.current || !next) return;
     navFiredRef.current = true;
     if (intervalRef.current) clearInterval(intervalRef.current);
     router.replace({ pathname: next.game_route, params: stepToParams(next, meta?.slot, meta?.track) } as any);
@@ -80,6 +105,7 @@ export default function WarmupBridge() {
    */
   const skipWaitRef = useRef(false);
   const skip = () => {
+    if (!взведено) return;
     if (intervalRef.current) clearInterval(intervalRef.current);
     skipWaitRef.current = true;
     warmup.skipCurrent();
@@ -99,6 +125,7 @@ export default function WarmupBridge() {
     await warmup.stopWarmup(false);
     router.replace('/' as any);
   };
+  const спроситьСтоп = () => { if (взведено) setСпрашиваемСтоп(true); };
 
   if (!warmup.active || !next) {
     return (
@@ -182,6 +209,35 @@ export default function WarmupBridge() {
           </Text>
         )}
 
+        {спрашиваемСтоп ? (
+          <View style={styles.actions} testID="warmup-stop-ask">
+            <Text style={[styles.countdown, { color: colors.text, textAlign: 'center' }]}>
+              {t('warmupStopAsk')
+                .replace('{n}', String(Math.max(0, warmup.currentIdx)))
+                .replace('{m}', String(meta?.steps.length ?? 0))}
+            </Text>
+            {/* Безопасный ответ первым и залитым — как в вопросе о выходе из игры. */}
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={t('warmupStopKeep')}
+              testID="warmup-stop-keep"
+              style={styles.actionPrimary}
+              onPress={() => { setСпрашиваемСтоп(false); startNow(); }}>
+              <LinearGradient colors={GRADIENT as [string, string]} style={styles.actionPrimaryGrad}>
+                <Text style={styles.actionPrimaryText}>{t('warmupStopKeep')}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button" accessibilityLabel={t('stopComplex')}
+              testID="warmup-stop-confirm"
+              style={[styles.actionSecondary, { borderColor: '#f43f5e' }]} onPress={stop}>
+              <Ionicons name="stop" size={18} color="#f43f5e" />
+              <Text numberOfLines={1} style={[styles.actionSecondaryText, { color: '#f43f5e', flexShrink: 1 }]}>
+                {t('stopComplex')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
         <View style={styles.actions}>
           <TouchableOpacity
             accessibilityRole="button"
@@ -209,7 +265,8 @@ export default function WarmupBridge() {
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button" accessibilityLabel={t('stopComplex')}
-              style={[styles.actionSecondary, { borderColor: '#f43f5e' }]} onPress={stop}>
+              testID="warmup-stop"
+              style={[styles.actionSecondary, { borderColor: '#f43f5e' }]} onPress={спроситьСтоп}>
               <Ionicons name="stop" size={18} color="#f43f5e" />
               <Text numberOfLines={1} style={[styles.actionSecondaryText, { color: '#f43f5e', flexShrink: 1 }]}>
                 {t('stopComplex')}
@@ -217,6 +274,7 @@ export default function WarmupBridge() {
             </TouchableOpacity>
           </View>
         </View>
+        )}
       </View>
     </SafeAreaView>
   );
