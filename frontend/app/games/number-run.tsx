@@ -29,6 +29,7 @@ import GameShell from '@/src/components/GameShell';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { onGameHold, isGameHeld, requestPauseMenu } from '@/src/services/gamePause';
+import { useImmersive } from '@/src/hooks/useImmersive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ПАЛЕЦ, ПОЛЯ_ОТВЕТА } from '@/src/components/gameLayout';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -68,6 +69,11 @@ export default function NumberRunScreen() {
    * любом другом источнике удержания — например, при открытом отзыве.
    */
   useEffect(() => onGameHold((held) => setПауза(held)), []);
+  /**
+   * Полосы телефона (часы, «домой») уходят, пока идёт забег, и возвращаются на
+   * паузе и на итоге — правила в `src/services/immersive.ts`, Денис 16.09.2026.
+   */
+  useImmersive(фаза === 'playing');
 
   const начать = useCallback(() => {
     setЗерно(Math.floor(Math.random() * 1e6));

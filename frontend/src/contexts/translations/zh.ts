@@ -2705,6 +2705,8 @@ const t: Record<string, string> = {
   "pauseExitGame": "退出练习",
   "pauseSoundOff": "静音模式",
   "pauseSoundOn": "恢复声音",
+  "pauseFullscreenOff": "不隐藏系统栏",
+  "pauseFullscreenOn": "游戏时隐藏系统栏",
   "pauseReport": "报告问题",
   "gamePauseOpen": "暂停与退出",
   "puzzlesGroup": "谜题",

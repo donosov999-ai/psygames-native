@@ -1,3 +1,5 @@
+mod immersive;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default();
@@ -10,6 +12,8 @@ pub fn run() {
         .plugin(tauri_plugin_process::init());
 
     builder
+        // Полноэкранный режим игр: фронт зовёт `set_immersive`, пока идёт партия.
+        .invoke_handler(tauri::generate_handler![immersive::set_immersive])
         .setup(|_app| Ok(()))
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

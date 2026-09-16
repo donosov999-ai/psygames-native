@@ -2700,6 +2700,8 @@ const t: Record<string, string> = {
   "pauseExitGame": "연습 나가기",
   "pauseSoundOff": "무음 모드",
   "pauseSoundOn": "소리 켜기",
+  "pauseFullscreenOff": "시스템 바 숨기지 않기",
+  "pauseFullscreenOn": "게임 중 시스템 바 숨기기",
   "pauseReport": "문제 신고",
   "gamePauseOpen": "일시정지 및 나가기",
   "puzzlesGroup": "퍼즐",
