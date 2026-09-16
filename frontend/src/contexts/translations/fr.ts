@@ -2646,6 +2646,8 @@ const t: Record<string, string> = {
   "puzzleSecondNoDomino": "Pas de domino",
   "puzzleHighlightNumber": "Mettre un chiffre en évidence",
   "puzzleSecondPencil": "Crayon",
+  "puzzleSecondTurnBack": "Tourner dans l’autre sens",
+  "puzzleSecondSlideBack": "Glisser dans l’autre sens",
   "puzzleSecondFlag": "Drapeau",
   "puzzleSecondEmpty": "Vide",
   "puzzleSecondCross": "Croix",

@@ -2646,6 +2646,8 @@ const t: Record<string, string> = {
   "puzzleSecondNoDomino": "도미노 없음",
   "puzzleHighlightNumber": "숫자 강조",
   "puzzleSecondPencil": "연필",
+  "puzzleSecondTurnBack": "반대로 돌리기",
+  "puzzleSecondSlideBack": "반대로 밀기",
   "puzzleSecondFlag": "깃발",
   "puzzleSecondEmpty": "빈칸",
   "puzzleSecondCross": "엑스",

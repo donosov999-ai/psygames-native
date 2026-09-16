@@ -1912,6 +1912,13 @@ const translations: Translations = {
   puzzleSecondNoDomino: { ru: 'Нет домино', en: 'No domino' },
   puzzleHighlightNumber: { ru: 'Подсветить число', en: 'Highlight a number' },
   puzzleSecondPencil: { ru: 'Карандаш', en: 'Pencil' },
+  /* ★ 16.09.2026 «Пространство»: у четырёх режимов правая кнопка — РОВНО обратное
+     левой, это замер, а не догадка. Левая и правая в одной точке возвращают доску
+     в исходное: Трубы 15/15 · Поворот квадрата 5/5 · Шестнадцать 32/32 · Трубы со
+     сдвигом 16/16. Контроль — Сапёр, где правая ставит флажок: 0/1, обратной не
+     является. До этого все четыре подписывались общим «Второе действие». */
+  puzzleSecondTurnBack: { ru: 'Повернуть обратно', en: 'Turn back' },
+  puzzleSecondSlideBack: { ru: 'Сдвинуть обратно', en: 'Slide back' },
   puzzleSecondFlag: { ru: 'Флажок', en: 'Flag' },
   puzzleSecondEmpty: { ru: 'Пусто', en: 'Empty' },
   puzzleSecondCross: { ru: 'Крестик', en: 'Cross' },

@@ -45,122 +45,131 @@
     "Untangle"
   ],
   "ключИмени": {
-    "Unruly": "puzzlesUnruly",
     "Mines": "puzzlesMines",
     "Mosaic": "puzzlesMosaic",
     "Pattern": "puzzlesPattern",
-    "Singles": "puzzlesSingles",
     "Range": "puzzlesRange",
+    "Magnets": "puzzlesMagnets",
+    "Galaxies": "puzzlesGalaxies",
+    "Palisade": "puzzlesPalisade",
+    "Unruly": "puzzlesUnruly",
+    "Slant": "puzzlesSlant",
+    "Black Box": "puzzlesBlackBox",
+    "Guess": "puzzlesGuess",
     "Light Up": "puzzlesLightUp",
     "Tents": "puzzlesTents",
-    "Magnets": "puzzlesMagnets",
-    "Undead": "puzzlesUndead",
-    "Keen": "puzzlesKeen",
-    "Solo": "puzzlesSolo",
-    "Towers": "puzzlesTowers",
-    "Unequal": "puzzlesUnequal",
+    "Dominosa": "puzzlesDominosa",
     "Rectangles": "puzzlesRectangles",
-    "Filling": "puzzlesFilling",
-    "Palisade": "puzzlesPalisade",
-    "Galaxies": "puzzlesGalaxies",
     "Map": "puzzlesMap",
+    "Pegs": "puzzlesPegs",
+    "Flood": "puzzlesFlood",
+    "Same Game": "puzzlesSameGame",
+    "Signpost": "puzzlesSignpost",
+    "Inertia": "puzzlesInertia",
     "Loopy": "puzzlesLoopy",
     "Pearl": "puzzlesPearl",
-    "Slant": "puzzlesSlant",
     "Bridges": "puzzlesBridges",
     "Train Tracks": "puzzlesTracks",
-    "Signpost": "puzzlesSignpost",
-    "Dominosa": "puzzlesDominosa",
-    "Untangle": "puzzlesUntangle",
+    "Slide": "puzzlesSlide",
+    "Sokoban": "puzzlesSokoban",
     "Net": "puzzlesNet",
     "Netslide": "puzzlesNetslide",
     "Twiddle": "puzzlesTwiddle",
+    "Cube": "puzzlesCube",
+    "Flip": "puzzlesFlip",
     "Sixteen": "puzzlesSixteen",
     "Fifteen": "puzzlesFifteen",
-    "Flip": "puzzlesFlip",
-    "Cube": "puzzlesCube",
-    "Black Box": "puzzlesBlackBox",
-    "Guess": "puzzlesGuess",
-    "Slide": "puzzlesSlide",
-    "Sokoban": "puzzlesSokoban",
-    "Flood": "puzzlesFlood",
-    "Same Game": "puzzlesSameGame",
-    "Pegs": "puzzlesPegs",
-    "Inertia": "puzzlesInertia"
+    "Untangle": "puzzlesUntangle",
+    "Solo": "puzzlesSolo",
+    "Towers": "puzzlesTowers",
+    "Unequal": "puzzlesUnequal",
+    "Keen": "puzzlesKeen",
+    "Singles": "puzzlesSingles",
+    "Filling": "puzzlesFilling",
+    "Undead": "puzzlesUndead"
   },
   "ключОписания": {
-    "Unruly": "puzzlesUnrulyDesc",
     "Mines": "puzzlesMinesDesc",
     "Mosaic": "puzzlesMosaicDesc",
     "Pattern": "puzzlesPatternDesc",
-    "Singles": "puzzlesSinglesDesc",
     "Range": "puzzlesRangeDesc",
+    "Magnets": "puzzlesMagnetsDesc",
+    "Galaxies": "puzzlesGalaxiesDesc",
+    "Palisade": "puzzlesPalisadeDesc",
+    "Unruly": "puzzlesUnrulyDesc",
+    "Slant": "puzzlesSlantDesc",
+    "Black Box": "puzzlesBlackBoxDesc",
+    "Guess": "puzzlesGuessDesc",
     "Light Up": "puzzlesLightUpDesc",
     "Tents": "puzzlesTentsDesc",
-    "Magnets": "puzzlesMagnetsDesc",
-    "Undead": "puzzlesUndeadDesc",
-    "Keen": "puzzlesKeenDesc",
-    "Solo": "puzzlesSoloDesc",
-    "Towers": "puzzlesTowersDesc",
-    "Unequal": "puzzlesUnequalDesc",
+    "Dominosa": "puzzlesDominosaDesc",
     "Rectangles": "puzzlesRectanglesDesc",
-    "Filling": "puzzlesFillingDesc",
-    "Palisade": "puzzlesPalisadeDesc",
-    "Galaxies": "puzzlesGalaxiesDesc",
     "Map": "puzzlesMapDesc",
+    "Pegs": "puzzlesPegsDesc",
+    "Flood": "puzzlesFloodDesc",
+    "Same Game": "puzzlesSameGameDesc",
+    "Signpost": "puzzlesSignpostDesc",
+    "Inertia": "puzzlesInertiaDesc",
     "Loopy": "puzzlesLoopyDesc",
     "Pearl": "puzzlesPearlDesc",
-    "Slant": "puzzlesSlantDesc",
     "Bridges": "puzzlesBridgesDesc",
     "Train Tracks": "puzzlesTracksDesc",
-    "Signpost": "puzzlesSignpostDesc",
-    "Dominosa": "puzzlesDominosaDesc",
-    "Untangle": "puzzlesUntangleDesc",
+    "Slide": "puzzlesSlideDesc",
+    "Sokoban": "puzzlesSokobanDesc",
     "Net": "puzzlesNetDesc",
     "Netslide": "puzzlesNetslideDesc",
     "Twiddle": "puzzlesTwiddleDesc",
+    "Cube": "puzzlesCubeDesc",
+    "Flip": "puzzlesFlipDesc",
     "Sixteen": "puzzlesSixteenDesc",
     "Fifteen": "puzzlesFifteenDesc",
-    "Flip": "puzzlesFlipDesc",
-    "Cube": "puzzlesCubeDesc",
-    "Black Box": "puzzlesBlackBoxDesc",
-    "Guess": "puzzlesGuessDesc",
-    "Slide": "puzzlesSlideDesc",
-    "Sokoban": "puzzlesSokobanDesc",
-    "Flood": "puzzlesFloodDesc",
-    "Same Game": "puzzlesSameGameDesc",
-    "Pegs": "puzzlesPegsDesc",
-    "Inertia": "puzzlesInertiaDesc"
+    "Untangle": "puzzlesUntangleDesc",
+    "Solo": "puzzlesSoloDesc",
+    "Towers": "puzzlesTowersDesc",
+    "Unequal": "puzzlesUnequalDesc",
+    "Keen": "puzzlesKeenDesc",
+    "Singles": "puzzlesSinglesDesc",
+    "Filling": "puzzlesFillingDesc",
+    "Undead": "puzzlesUndeadDesc"
   },
   "имяВторого": {
-    "Solo": "puzzleSecondPencil",
-    "Towers": "puzzleSecondPencil",
-    "Unequal": "puzzleSecondPencil",
-    "Keen": "puzzleSecondPencil",
-    "Undead": "puzzleSecondPencil",
-    "Singles": "puzzleSecondKeep",
-    "Light Up": "puzzleSecondNoLamp",
-    "Tents": "puzzleSecondGrass",
-    "Dominosa": "puzzleSecondNoDomino",
-    "Map": "puzzleSecondPencil",
     "Mines": "puzzleSecondFlag",
     "Mosaic": "puzzleSecondEmpty",
     "Pattern": "puzzleSecondCross",
     "Range": "puzzleSecondDot",
     "Magnets": "puzzleSecondEmpty",
     "Galaxies": "puzzleSecondMark",
-    "Palisade": "puzzleSecondMark"
+    "Palisade": "puzzleSecondMark",
+    "Light Up": "puzzleSecondNoLamp",
+    "Tents": "puzzleSecondGrass",
+    "Dominosa": "puzzleSecondNoDomino",
+    "Map": "puzzleSecondPencil",
+    "Net": "puzzleSecondTurnBack",
+    "Netslide": "puzzleSecondSlideBack",
+    "Twiddle": "puzzleSecondTurnBack",
+    "Sixteen": "puzzleSecondSlideBack",
+    "Solo": "puzzleSecondPencil",
+    "Towers": "puzzleSecondPencil",
+    "Unequal": "puzzleSecondPencil",
+    "Keen": "puzzleSecondPencil",
+    "Singles": "puzzleSecondKeep",
+    "Undead": "puzzleSecondPencil"
   },
   "стрелочные": [
     "Cube",
     "Fifteen",
+    "Flip",
     "Inertia",
     "Map",
+    "Net",
+    "Netslide",
     "Pegs",
     "Rectangles",
     "Signpost",
+    "Sixteen",
     "Sokoban",
     "Solo",
+    "Twiddle",
     "Unequal",
     "Untangle"
   ],
@@ -212,10 +221,15 @@
     "Inertia"
   ],
   "выбор": [
+    "Flip",
     "Map",
+    "Net",
+    "Netslide",
     "Pegs",
     "Rectangles",
     "Signpost",
+    "Sixteen",
+    "Twiddle",
     "Untangle"
   ],
   "выборВторой": [
@@ -256,6 +270,28 @@
         "параметры": "24x20n99"
       }
     ],
+    "Loopy": [
+      {
+        "имя": "7×7, лёгкая",
+        "параметры": "7x7t0de"
+      },
+      {
+        "имя": "7×7, обычная",
+        "параметры": "7x7t0dn"
+      },
+      {
+        "имя": "10×10, трудная",
+        "параметры": "10x10t0dh"
+      },
+      {
+        "имя": "12×10, трудная",
+        "параметры": "12x10t0dh"
+      },
+      {
+        "имя": "15×15, трудная",
+        "параметры": "15x15t0dh"
+      }
+    ],
     "Sokoban": [
       {
         "имя": "10×8",
@@ -276,6 +312,58 @@
       {
         "имя": "20×16",
         "параметры": "20x16"
+      }
+    ],
+    "Twiddle": [
+      {
+        "имя": "3×3, поворот 2×2",
+        "параметры": "3x3n2"
+      },
+      {
+        "имя": "3×3, с направлением",
+        "параметры": "3x3n2o"
+      },
+      {
+        "имя": "4×4, поворот 2×2",
+        "параметры": "4x4n2"
+      },
+      {
+        "имя": "4×4, с направлением",
+        "параметры": "4x4n2o"
+      },
+      {
+        "имя": "4×4, поворот 3×3",
+        "параметры": "4x4n3"
+      },
+      {
+        "имя": "5×5, поворот 3×3",
+        "параметры": "5x5n3"
+      },
+      {
+        "имя": "6×6, поворот 4×4",
+        "параметры": "6x6n4"
+      }
+    ],
+    "Fifteen": [
+      {
+        "имя": "3×3, восемь плиток",
+        "параметры": "3x3"
+      },
+      {
+        "имя": "4×4, пятнадцать",
+        "параметры": "4x4"
+      },
+      {
+        "имя": "4×5, девятнадцать",
+        "параметры": "4x5"
+      },
+      {
+        "имя": "5×5, двадцать четыре",
+        "параметры": "5x5"
+      },
+      {
+        "имя": "6×6, тридцать пять",
+        "параметры": "6x6"
       }
     ],
     "Solo": [
@@ -388,28 +476,6 @@
         "параметры": "12x12dk"
       }
     ],
-    "Undead": [
-      {
-        "имя": "4×4, лёгкая",
-        "параметры": "4x4de"
-      },
-      {
-        "имя": "4×4, обычная",
-        "параметры": "4x4dn"
-      },
-      {
-        "имя": "4×4, хитрая",
-        "параметры": "4x4dt"
-      },
-      {
-        "имя": "5×5, хитрая",
-        "параметры": "5x5dt"
-      },
-      {
-        "имя": "7×7, хитрая",
-        "параметры": "7x7dt"
-      }
-    ],
     "Filling": [
       {
         "имя": "9×7",
@@ -432,26 +498,26 @@
         "параметры": "17x13"
       }
     ],
-    "Loopy": [
+    "Undead": [
       {
-        "имя": "7×7, лёгкая",
-        "параметры": "7x7t0de"
+        "имя": "4×4, лёгкая",
+        "параметры": "4x4de"
       },
       {
-        "имя": "7×7, обычная",
-        "параметры": "7x7t0dn"
+        "имя": "4×4, обычная",
+        "параметры": "4x4dn"
       },
       {
-        "имя": "10×10, трудная",
-        "параметры": "10x10t0dh"
+        "имя": "4×4, хитрая",
+        "параметры": "4x4dt"
       },
       {
-        "имя": "12×10, трудная",
-        "параметры": "12x10t0dh"
+        "имя": "5×5, хитрая",
+        "параметры": "5x5dt"
       },
       {
-        "имя": "15×15, трудная",
-        "параметры": "15x15t0dh"
+        "имя": "7×7, хитрая",
+        "параметры": "7x7dt"
       }
     ]
   }

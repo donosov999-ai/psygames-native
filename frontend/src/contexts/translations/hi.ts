@@ -2654,6 +2654,8 @@ const t: Record<string, string> = {
   "puzzleSecondNoDomino": "कोई डोमिनो नहीं",
   "puzzleHighlightNumber": "एक संख्या को उजागर करें",
   "puzzleSecondPencil": "पेंसिल",
+  "puzzleSecondTurnBack": "उल्टा घुमाएँ",
+  "puzzleSecondSlideBack": "उल्टा खिसकाएँ",
   "puzzleSecondFlag": "झंडा",
   "puzzleSecondEmpty": "खाली",
   "puzzleSecondCross": "क्रॉस",
