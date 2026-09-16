@@ -28,6 +28,7 @@ import { CS_RULES } from '@/app/games/cake-sort';
 import { CHESSBLIND_RULES } from '@/app/games/chess-blind';
 import { COUNTER_RULES, levelParams as counterLp } from '@/app/games/counter';
 import { CORSI_RULES, levelParams as corsi } from '@/app/games/corsi';
+import { STROOP_RULES, levelParams as stroop } from '@/app/games/stroop';
 import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
 // Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
@@ -68,6 +69,7 @@ const RULES: Record<string, LevelRule[]> = {
   'chess-blind': CHESSBLIND_RULES, corsi: CORSI_RULES, cpt: CPT_RULES, 'digit-span': DS_RULES,
   'goods-sort': GS_RULES, hanoi: HN_RULES, 'listening-span': LISTENINGSPAN_RULES,
   'water-sort': WATER_SORT_RULES,
+  stroop: STROOP_RULES,
   mahjong: MAHJONG_RULES, 'math-sprint': MS_RULES, 'memory-matrix': MEMORYMATRIX_RULES,
   'mental-rotation': MR_RULES, mnemonics: MNEMONICS_RULES, 'n-back': NB_RULES, ospan: OSPAN_RULES,
   'picture-pairs': PAIRS_RULES, prl: PRL_RULES, 'pseudoword-echo': PSEUDOWORDECHO_RULES,
@@ -94,6 +96,10 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'cake-sort', ключ: 'queue', вид: 'порог', есть: (L) => cakeLevel(L).queue > 0 },
   { игра: 'chess-blind', ключ: 'locate', вид: 'порог', есть: (L) => puzzleLevelParams(L).quizType === 'locate' },
   { игра: 'corsi', ключ: 'reverse', вид: 'порог', есть: (L) => corsi(L).reverse },
+  // Струп: знаки вокруг стимула и смена правила внутри партии (добавлено 16.09.2026 —
+  // до этого правила Струпа в карте не было, и порог «шума» не сверялся ни с чем).
+  { игра: 'stroop', ключ: 'noise', вид: 'порог', есть: (L) => stroop(L).decoys > 0 },
+  { игра: 'stroop', ключ: 'switch', вид: 'порог', есть: (L) => stroop(L).switchRate > 0 },
   /**
    * Ось 3 — задержка между концом показа и открытием ввода (12.09.2026, c3dc9350).
    * Вопрос к плану, а не к экрану: правило обещает порог, `holdMs` обязан стать

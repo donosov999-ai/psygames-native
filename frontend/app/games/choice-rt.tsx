@@ -28,8 +28,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { answerButton, BTN_GAP, stimBox, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
+import { stimBox, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { AnswerBar } from '@/src/games/attention/AnswerBar';
+import ArrowPad, { type Направление } from '@/src/components/ArrowPad';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -62,9 +63,9 @@ const CHOICE_BENEFITS = [
 ];
 
 export type Direction = 'left' | 'right' | 'up' | 'down';
-const ARROW_ICON: Record<Direction, string> = {
-  left: 'arrow-back', right: 'arrow-forward', up: 'arrow-up', down: 'arrow-down',
-};
+/** Слово общей крестовины ↔ направление пробы. Общая говорит по-русски словом. */
+export const В_СЛОВО: Record<Direction, Направление> = { left: 'влево', right: 'вправо', up: 'вверх', down: 'вниз' };
+const ИЗ_СЛОВА: Partial<Record<Направление, Direction>> = { влево: 'left', вправо: 'right', вверх: 'up', вниз: 'down' };
 
 /**
  * 🔴 ОСЬ «ПОХОЖЕСТЬ ЗНАКА» — ЗАВЕДЕНА 10.09.2026 ПО СЛОВУ ДЕНИСА.
@@ -195,14 +196,6 @@ export function направленияБлока(n: number): Direction[] {
   return (['left', 'right', 'up', 'down'] as Direction[]).slice(0, Math.max(2, Math.min(4, n)));
 }
 
-/**
- * Раскладка пада на ВСЮ партию — по самому большому блоку уровня.
- * Живость кнопок меняется от блока к блоку, геометрия — нет: см. разбор
- * закона Фиттса у `padDirs`.
- */
-export function падУровня(level: number): Direction[] {
-  return направленияБлока(Math.max(...блокиХика(level)));
-}
 
 export function levelParams(level: number): { trials: number; dirs: Direction[]; windowMs: number; glyph: Glyph; hickBlocks: number[] } {
   const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
@@ -245,19 +238,6 @@ export default function ChoiceRtGame() {
   const screenW = useScreenWidth();
   const { height: screenH } = useWindowDimensions();
   const ОКНО = stimBox(screenW, screenH);
-  /**
-   * 🔴 ЧИСЛО КНОПОК ЗДЕСЬ — ОСЬ СЛОЖНОСТИ, А НЕ ОФОРМЛЕНИЕ. L1-5 две стороны,
-   * L6-10 три, L11-15 четыре крестовиной (закон Хика: время выбора растёт с числом
-   * альтернатив). Поэтому единая полоса ответа 120 px применяется ТОЛЬКО к варианту
-   * с двумя кнопками — там проба совпадает с фланкером и Саймоном, и именно эта
-   * четвёрка чаще всего идёт подряд в зарядке.
-   * Крестовина остаётся выше полосы, и это осознанное исключение: разложить её в
-   * один ряд значит потерять пространственное соответствие «вверх — это вверх»,
-   * а в направленной пробе оно и меряется. Ужать до 120 нельзя — три ряда по 64
-   * с зазорами дают 208.
-   */
-  const ДВЕ_СТОРОНЫ = answerButton('side', screenW);
-  const ЧЕТЫРЕ = answerButton('quad', screenW);
   const router = useRouter();
 
   const { isPreset, autostart, isCalm } = useGamePreset();
@@ -282,20 +262,6 @@ export default function ChoiceRtGame() {
   const [showStim, setShowStim] = useState(false);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [activeDirs, setActiveDirs] = useState<Direction[]>(['left', 'right']);
-  /**
-   * 🔴 РАСКЛАДКУ ЗАДАЁТ САМЫЙ БОЛЬШОЙ БЛОК ПАРТИИ, А НЕ ТЕКУЩИЙ, 16.09.2026.
-   * Пока число вариантов было осью УРОВНЯ, внутри партии оно не менялось, и
-   * крестовина спокойно перестраивалась под него. С блоками Хика n меняется
-   * ВНУТРИ партии, и раскладка «по текущему n» подменяла бы замер: при двух
-   * вариантах это ряд из кругов 88, при трёх-четырёх — крест из кругов 55.
-   * Менялись бы и ширина мишени, и расстояние до неё, а по закону Фиттса
-   * время движения MT = a + b·log2(2D/W) зависит ровно от них. Тогда в наклон
-   * Хика вместо «цены перебора вариантов» попала бы разница моторики, и
-   * величина мерила бы не то, ради чего проба существует.
-   * Поэтому геометрия прибита к максимуму `hickBlocks` на всю партию, а от
-   * блока к блоку меняется ТОЛЬКО то, какие кнопки живы.
-   */
-  const [padDirs, setPadDirs] = useState<Direction[]>(['left', 'right']);
 
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -389,7 +355,6 @@ export default function ChoiceRtGame() {
     блокиRef.current = p.hickBlocks;
     /* Первый блок — самый малый: человек входит в задание на простом наборе. */
     dirsRef.current = направленияБлока(p.hickBlocks[0] ?? 2);
-    setPadDirs(падУровня(lvl.level));
     glyphRef.current = p.glyph;
     setGlyph(p.glyph);
     windowMsRef.current = p.windowMs;
@@ -569,69 +534,33 @@ export default function ChoiceRtGame() {
     );
   };
 
-  const padBtn = (d: Direction) => (
-    <TouchableOpacity key={d} accessibilityRole="button"
-      accessibilityLabel={t(`a11y${d.charAt(0).toUpperCase()}${d.slice(1)}`)}
-      style={[styles.padBtn,
-        // Обе раскладки берут размер из общей геометрии раздела: две стороны —
-        // круг 88 как у фланкера и Саймона, три-четыре — круг 55 в один ряд.
-        // Считаем по padDirs: размер мишени обязан быть один на всю партию.
-        padDirs.length === 2
-          ? { width: ДВЕ_СТОРОНЫ.w, height: ДВЕ_СТОРОНЫ.h, borderRadius: ДВЕ_СТОРОНЫ.radius }
-          : { width: ЧЕТЫРЕ.w, height: ЧЕТЫРЕ.h, borderRadius: ЧЕТЫРЕ.radius },
-        { backgroundColor: colors.primary }]} onPress={() => handlePress(d)}>
-      <Ionicons name={ARROW_ICON[d] as any} size={32} color={textOn(colors.primary)} />
-    </TouchableOpacity>
-  );
-
   /**
-   * 🔴 ОДИН РЯД ВМЕСТО КРЕСТОВИНЫ, 10.09.2026. Крест занимал 208 px при полосе
-   * 120 и лез вверх, поверх подсказки; на трёх направлениях — 136, тоже с
-   * переполнением. Разбор и числа — в `answerButton('quad')`.
-   * Порядок ← ↑ ↓ → : физические лево и право стоят по краям, как у фланкера,
-   * Саймона и ANT, и не зеркалятся в RTL (`padRow` прибит writingDirection).
+   * 🔴 КРЕСТОВИНА ОБЩАЯ, А НЕ СВОЯ — 16.09.2026, решение Дениса (CHATS_RULES §4б):
+   * «перевёрнутая Т», одна на приложение, `ArrowPad`. До этого здесь была своя,
+   * и по ходу дня она успела побыть рядом ← ↑ ↓ →, крестом из трёх рядов и крестом
+   * из двух — ровно то расползание, от которого правило и защищает.
+   *
+   * 🔴 ПОЧЕМУ `живые`, А НЕ ПЕРЕСТРОЙКА ПОД ЧИСЛО ВАРИАНТОВ. Число вариантов n —
+   * переменная пробы Хика и меняется блоками ВНУТРИ партии. Прежняя своя крестовина
+   * выбирала раскладку по числу живых кнопок: при двух вариантах ряд из кругов 88,
+   * при трёх-четырёх — крест из кругов 55. Вместе с n менялись бы ширина мишени и
+   * расстояние до неё, а по закону Фиттса MT = a + b·log2(2D/W) время движения
+   * зависит ровно от них — в наклон вместо цены выбора села бы разница моторики.
+   * Общая «Т» стоит одна и та же на ВСЕХ уровнях и во всех блоках; от блока к блоку
+   * меняется только то, какие направления в игре, остальные — пустым местом того же
+   * размера. Лишняя живая кнопка тоже не годится: в каноне Хика n лампочек и n клавиш.
    */
-  const пусто = (k: string) => <View key={k} style={{ width: ЧЕТЫРЕ.w, height: ЧЕТЫРЕ.h }} />;
-  const renderPad = () => {
-    if (padDirs.length === 2) {
-      return (
-        <View style={styles.padRow}>
-          {padBtn('left')}
-          {padBtn('right')}
-        </View>
-      );
-    }
-    /**
-     * 🔴 КРЕСТ, А НЕ РЯД. Направление здесь отвечается ПОЛОЖЕНИЕМ кнопки:
-     * ↑ сверху, ↓ снизу, ← и → по бокам. Ряд ← ↑ ↓ → влезал в прежнюю полосу
-     * 120, но рушил это соответствие — для пробы про направления это хуже, чем
-     * лишние 36 px высоты. Полоса поднята до 156 под три ряда по 48.
-     */
-    const есть = (d: Direction) => activeDirs.includes(d);
-    /**
-     * ⚠️ ДВА РЯДА, А НЕ ТРИ — 11.09.2026, и это временно.
-     * Крест из трёх рядов требует 3 × 48 + 2 × 6 = 156, а высота полосы ответа
-     * 11.09 стала числом, ОБЩИМ с разделом «Поиск» (ядро gameLayout.ts), причём
-     * «Поиск» считает от неё размер своих кнопок. Поднять её значило бы изменить
-     * шесть чужих экранов — решение за владельцем, вопрос ему задан.
-     * Пока: ↑ сверху, ← ↓ → снизу = 48 + 12 + 48 = 108, влезает в 120.
-     * Верх и низ остаются на своих местах, лево и право — по краям: главное
-     * свойство пробы (направление отвечается ПОЛОЖЕНИЕМ) сохранено, кроме
-     * соседства ↓ с боковыми.
-     */
-    return (
-      <View style={styles.padGrid}>
-        <View style={styles.padRow}>
-          {есть('up') ? padBtn('up') : пусто('u')}
-        </View>
-        <View style={styles.padRow}>
-          {padBtn('left')}
-          {есть('down') ? padBtn('down') : пусто('d')}
-          {padBtn('right')}
-        </View>
-      </View>
-    );
-  };
+  const renderPad = () => (
+    <ArrowPad
+      живые={activeDirs.map((d) => В_СЛОВО[d])}
+      onPress={(куда) => { const d = ИЗ_СЛОВА[куда]; if (d) handlePress(d); }}
+      подпись={(куда) => {
+        const d = ИЗ_СЛОВА[куда];
+        return d ? t(`a11y${d.charAt(0).toUpperCase()}${d.slice(1)}`) : куда;
+      }}
+      цвета={{ border: colors.primary, card: colors.primary, text: textOn(colors.primary) }}
+    />
+  );
 
   // playing-фаза — на едином каркасе GameShell (пад-кнопки направлений прибиты к низу)
   if (phase === 'playing') {
@@ -735,9 +664,4 @@ const styles = StyleSheet.create({
   // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
   stimulusBox: { ...STIM_BOX },
   waitText: { fontSize: 60, opacity: 0.5 },
-  // RTL-пин: пад-кнопки ←/→ должны стоять на своих физических сторонах (глифы стрелок не зеркалятся)
-  padGrid: { gap: 6, alignItems: 'center' },
-  padRow: { flexDirection: 'row', gap: 6, justifyContent: 'center', writingDirection: 'ltr' },
-  // Размер приходит из answerButton — здесь только выравнивание содержимого.
-  padBtn: { justifyContent: 'center', alignItems: 'center' },
 });

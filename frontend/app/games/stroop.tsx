@@ -55,8 +55,19 @@ const GRADIENT = ['#fc466b', '#3f5efb'];
  * за спецсимволы». Если спрашивает он, игрок спросит тем более.
  * Порог 4 — тот самый уровень, с которого помехи включаются (levelParams).
  */
-const STROOP_RULES: LevelRule[] = [
+/**
+ * Правила уровня — механики, которые ВКЛЮЧАЮТСЯ с уровнем и без объяснения читаются
+ * как «игра сломалась». Порог каждого сверяет с кодом `level-rule-threshold`.
+ *
+ * 🔴 `switch` ЗАВЕДЕНО 16.09.2026. С L5 `levelParams().switchRate` > 0: часть проб идёт
+ * по ДРУГОМУ правилу (цвет чернил ↔ значение слова), к L15 — 40 %. До этой записи
+ * смена включалась молча: карточка была только про знаки вокруг стимула, а строка
+ * параметров уровня говорит «конфликтных N %» — это замороженная доля конфликтных
+ * проб, она одинакова на всех уровнях и про смену правила не говорит ничего.
+ */
+export const STROOP_RULES: LevelRule[] = [
   { key: 'noise', fromLevel: 4 },
+  { key: 'switch', fromLevel: 5 },
 ];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
 // Было зашито '#FFF' — контраст 3.37 (норма AA 4.5), стало 4.53.
@@ -264,7 +275,7 @@ export default function StroopGame() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
-  const levelRules = useLevelRules('stroop', lvl.level, STROOP_RULES, phase === 'playing');
+  const levelRules = useLevelRules('stroop', lvl.level, STROOP_RULES, phase === 'config');
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'ink') === 'word' ? 'word' : 'ink'));
   const [word, setWord] = useState(PALETTE[0]);
   const [inkColor, setInkColor] = useState(PALETTE[1]);
@@ -511,6 +522,11 @@ export default function StroopGame() {
       </ScrollView>
       {/* Полоса прибита книзу: «Начать» видно без прокрутки до конца (отчёт 02.09.2026: «не мотать экран вниз, чтобы запустить»). */}
       <GameSetupBar label={t('start')} onStart={startGame} colors={GRADIENT as [string, string]} />
+      {/* 🔴 Карточка правила — на НАСТРОЙКЕ, до старта (16.09.2026). В партии пробы идут по
+           таймерам и за открытой карточкой не останавливаются: замер на Струпе L5 — счётчик
+           1/20 → 2/20 за 3,2 с чтения, а «не успел ответить» считается ошибкой. Тот же приём,
+           что у Корси и игр памяти (f1eb95b3); в партии правило открывается бейджем ⓘ. */}
+      <LevelRuleModal lr={levelRules} colors={colors} />
       </>
     </View>
     );

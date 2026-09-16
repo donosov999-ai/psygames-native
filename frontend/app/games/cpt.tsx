@@ -485,7 +485,7 @@ export default function CPTGame() {
   useEffect(() => () => { stoppedRef.current = true; clearAllTimers(); }, []);
 
   // Справка правил уровня (в CPT пресета-зарядки нет — всегда личная игра)
-  const levelRules = useLevelRules('cpt', lvl.level, CPT_RULES, phase === 'playing');
+  const levelRules = useLevelRules('cpt', lvl.level, CPT_RULES, phase === 'config');
 
   const scheduleNextStimulus = () => {
     if (stoppedRef.current) return;
