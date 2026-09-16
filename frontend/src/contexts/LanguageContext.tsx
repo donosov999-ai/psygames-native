@@ -210,8 +210,8 @@ const translations: Translations = {
   
   // Game Intro - detailed descriptions
   schulteIntroDesc: {
-    ru: 'Находите символы по порядку как можно быстрее. 5 модификаций под уровень нагрузки:\n\n• 🔢 Цифры 1→25 (классика, легче всего)\n• 🔢 Цифры 25→1 (обратный — сложнее)\n• 🔤 Буквы А→Я (тот же принцип на алфавите)\n• 🔤 Буквы Я→А (обратный алфавит — сложнее)\n• 🔀 1-А-2-Б-3-В (Шульте-Горбов: переключение между двумя последовательностями параллельно)\n\nЦветной режим добавляет визуальный шум для повышенной сложности. Упражнение расширяет периферическое зрение, ускоряет сканирование информации и тренирует устойчивое внимание.',
-    en: 'Find symbols in order as fast as possible. 5 modifications for different challenge levels:\n\n• 🔢 Numbers 1→25 (classic, easiest)\n• 🔢 Numbers 25→1 (backward — harder)\n• 🔤 Letters A→Z (same principle, alphabet)\n• 🔤 Letters Z→A (backward alphabet — harder)\n• 🔀 1-A-2-B-3-C (Schulte-Gorbov: switching between two sequences in parallel)\n\nColor mode adds visual noise for extra challenge. Expands peripheral vision, speeds up information scanning, and trains sustained attention.'
+    ru: 'Нажимайте на символы по порядку — какой искать сейчас, показано в полосе сверху. Находите символы по порядку как можно быстрее. 5 модификаций под уровень нагрузки:\n\n• 🔢 Цифры 1→25 (классика, легче всего)\n• 🔢 Цифры 25→1 (обратный — сложнее)\n• 🔤 Буквы А→Я (тот же принцип на алфавите)\n• 🔤 Буквы Я→А (обратный алфавит — сложнее)\n• 🔀 1-А-2-Б-3-В (Шульте-Горбов: переключение между двумя последовательностями параллельно)\n\nЦветной режим добавляет визуальный шум для повышенной сложности. Упражнение расширяет периферическое зрение, ускоряет сканирование информации и тренирует устойчивое внимание.',
+    en: 'Tap the symbols in order — the one to find now is shown in the bar at the top. Find symbols in order as fast as possible. 5 modifications for different challenge levels:\n\n• 🔢 Numbers 1→25 (classic, easiest)\n• 🔢 Numbers 25→1 (backward — harder)\n• 🔤 Letters A→Z (same principle, alphabet)\n• 🔤 Letters Z→A (backward alphabet — harder)\n• 🔀 1-A-2-B-3-C (Schulte-Gorbov: switching between two sequences in parallel)\n\nColor mode adds visual noise for extra challenge. Expands peripheral vision, speeds up information scanning, and trains sustained attention.'
   },
   wordPairsIntroDesc: { 
     ru: 'Запомните связи между словами, а затем восстановите пары. Тренирует ассоциативную память — способность связывать информацию между собой.', 
@@ -222,8 +222,8 @@ const translations: Translations = {
     en: 'Memorize a sequence of words or numbers in the correct order. Develops working memory — the ability to hold information in mind.' 
   },
   counterIntroDesc: { 
-    ru: 'Найдите числа, сумма которых равна заданному числу. Тренирует устный счёт и способность быстро анализировать варианты.', 
-    en: 'Find numbers that sum to the target. Trains mental arithmetic and the ability to quickly analyze options.' 
+    ru: 'Нажимайте на числа в сетке, пока их сумма не станет равна заданной. Найдите числа, сумма которых равна заданному числу. Тренирует устный счёт и способность быстро анализировать варианты.', 
+    en: 'Tap numbers in the grid until they add up to the target. Find numbers that sum to the target. Trains mental arithmetic and the ability to quickly analyze options.' 
   },
   proofreadingIntroDesc: { 
     ru: 'Найдите заданные буквы в большой таблице символов. Развивает избирательное внимание — способность находить нужное среди лишнего.', 
@@ -234,8 +234,8 @@ const translations: Translations = {
     en: 'React to colored objects appearing on screen. Trains reaction speed and the ability to make quick decisions.'
   },
   quickCountIntroDesc: {
-    ru: 'На мгновение появятся точки — оцените их количество, не пересчитывая по одной. Тренирует восприятие количества (subitizing) — отдельный от арифметики навык мгновенной оценки числа объектов.',
-    en: 'Dots flash briefly — estimate how many without counting one by one. Trains numerosity perception (subitizing) — a skill distinct from arithmetic, the instant sense of quantity.'
+    ru: 'Когда точки исчезнут, нажмите кнопку с их числом внизу. На мгновение появятся точки — оцените их количество, не пересчитывая по одной. Тренирует восприятие количества (subitizing) — отдельный от арифметики навык мгновенной оценки числа объектов.',
+    en: 'When the dots disappear, tap the button with their number below. Dots flash briefly — estimate how many without counting one by one. Trains numerosity perception (subitizing) — a skill distinct from arithmetic, the instant sense of quantity.'
   },
   quickCountLookHint: { ru: 'Смотри — не считай!', en: 'Look — don’t count!' },
   quickCountAnswerHint: { ru: 'Сколько было точек?', en: 'How many dots were there?' },
@@ -413,8 +413,8 @@ const translations: Translations = {
   findDiff: { ru: 'Найди отличия', en: 'Find Differences' },
   findDiffDesc: { ru: 'Сравни две картинки и найди отличия', en: 'Spot what differs between two scenes' },
   findDiffIntroDesc: {
-    ru: 'Найдите все отличия между двумя сценами справа и слева. Тренирует детальное внимание и зрительное сравнение.',
-    en: 'Find every difference between the two scenes. Trains detail attention and visual comparison.',
+    ru: 'Нажимайте на отличия на нижней картинке. Найдите все отличия между двумя сценами справа и слева. Тренирует детальное внимание и зрительное сравнение.',
+    en: 'Tap the differences on the lower picture. Find every difference between the two scenes. Trains detail attention and visual comparison.',
   },
   diffsCount: { ru: 'Отличий за раунд', en: 'Differences per round' },
   findHint: { ru: 'Нажимайте на отличия на нижней картинке', en: 'Tap the differences on the lower scene' },
@@ -777,8 +777,8 @@ const translations: Translations = {
     en: 'Estimate the value of the expression and place a marker on the number line. Exact calculation is not the point — landing in the right region of the scale is. Builds number sense and approximation, and the expression family itself changes with the levels: addition, subtraction, multiplication, decimals, percentages, discounts, proportions.',
   },
   mathSprintIntroDesc: {
-    ru: 'Решайте арифметические примеры на скорость. Каждое правильное подряд увеличивает бонус-стрик. Развивает устный счёт и быстроту мышления.',
-    en: 'Solve arithmetic problems against the clock. Consecutive correct answers grow a streak bonus. Builds mental arithmetic and processing speed.',
+    ru: 'Набирайте ответ на клавишах внизу — верный засчитывается сразу. Решайте арифметические примеры на скорость. Каждое правильное подряд увеличивает бонус-стрик. Развивает устный счёт и быстроту мышления.',
+    en: 'Type the answer on the keys below — a correct one counts at once. Solve arithmetic problems against the clock. Consecutive correct answers grow a streak bonus. Builds mental arithmetic and processing speed.',
   },
   mathHint: { ru: 'Набери ответ клавишами внизу', en: 'Type the answer on the keys below' },
   benefitMath1: { ru: 'Считать в уме без калькулятора', en: 'Calculate without a calculator' },
@@ -1162,8 +1162,8 @@ const translations: Translations = {
 
   // Round-3 — intro descriptions
   patternIntroDesc: {
-    ru: 'Перед вами 4 числа — они подчинены скрытому правилу (арифметическая прогрессия, удвоение, квадраты, Фибоначчи и т.д.). Найдите следующее число. Тренирует абстрактное мышление, выявление закономерностей и математическую интуицию.',
-    en: 'You see 4 numbers — they follow a hidden rule (arithmetic, doubling, squares, Fibonacci, etc.). Find the next number. Trains abstract thinking, pattern detection and mathematical intuition.'
+    ru: 'Нажмите на число внизу, которое продолжает последовательность. Перед вами 4 числа — они подчинены скрытому правилу (арифметическая прогрессия, удвоение, квадраты, Фибоначчи и т.д.). Найдите следующее число. Тренирует абстрактное мышление, выявление закономерностей и математическую интуицию.',
+    en: 'Tap the number below that continues the sequence. You see 4 numbers — they follow a hidden rule (arithmetic, doubling, squares, Fibonacci, etc.). Find the next number. Trains abstract thinking, pattern detection and mathematical intuition.'
   },
   choiceRtIntroDesc: {
     ru: 'На экране появится стрелка ←, → , ↑ или ↓. Нажмите кнопку соответствующего направления как можно быстрее. Тренирует скорость выбора и точность моторных реакций.',
@@ -1178,8 +1178,8 @@ const translations: Translations = {
     en: 'The target number is at the top. Tap chips to make exactly that sum: two or three are enough at first, more later on. Tapped a wrong one — tap it again to remove it; “Reset” clears everything. Once the sum is right, press “Check”. Each puzzle is timed — the counter runs at the top: running out or getting the sum wrong counts as an error, and two are allowed per level. Trains mental arithmetic and combination search.'
   },
   setGameIntroDesc: {
-    ru: 'Каждая карточка имеет 4 признака: цвет, форма, штриховка, количество. Найдите тройку, где каждый признак либо одинаков на всех трёх, либо разный на всех трёх. Тренирует визуальную логику.',
-    en: 'Each card has 4 attributes: color, shape, shading, count. Find a triple where every attribute is either identical across all three or all different. Trains visual logic.'
+    ru: 'Нажмите на три карточки, образующие SET. Каждая карточка имеет 4 признака: цвет, форма, штриховка, количество. Найдите тройку, где каждый признак либо одинаков на всех трёх, либо разный на всех трёх. Тренирует визуальную логику.',
+    en: 'Tap the three cards that form a SET. Each card has 4 attributes: color, shape, shading, count. Find a triple where every attribute is either identical across all three or all different. Trains visual logic.'
   },
   stopSignalIntroDesc: {
     ru: 'Жмите Go при появлении зелёного сигнала. Но если после Go появится красный — резко остановитесь и не нажимайте. Усложнённая версия Go/No-Go: тренирует префронтальный контроль и подавление уже начатого действия.',
@@ -1255,8 +1255,8 @@ const translations: Translations = {
     en: 'You see a digit+letter pair, e.g. "3A". A coloured cue tells you the task: NUMBER — is the digit odd or even? LETTER — is the letter a vowel or consonant? The task switches randomly. Trains cognitive flexibility and measures switch cost.'
   },
   visualSearchIntroDesc: {
-    ru: 'Поле заполнено похожими фигурами под разными углами. Найди все заданные — образец показан рядом. Искомая фигура меняется каждый раунд, а с уровнями объектов и целей становится больше. Классическая парадигма селективного внимания.',
-    en: 'The field is filled with similar shapes at various angles. Find all the target shapes — the reference is shown alongside. The target changes every round, and as levels rise there are more objects and targets. A classic selective-attention paradigm.'
+    ru: 'Нажимай на фигуры в поле, которые совпадают с образцом. Поле заполнено похожими фигурами под разными углами. Найди все заданные — образец показан рядом. Искомая фигура меняется каждый раунд, а с уровнями объектов и целей становится больше. Классическая парадигма селективного внимания.',
+    en: 'Tap the shapes in the field that match the sample. The field is filled with similar shapes at various angles. Find all the target shapes — the reference is shown alongside. The target changes every round, and as levels rise there are more objects and targets. A classic selective-attention paradigm.'
   },
   sdmtIntroDesc: {
     ru: 'В таблице: 9 символов ↔ 9 цифр (привязка случайная для каждой игры). Появляется символ — нажмите соответствующую цифру. За отведённое время делайте максимум правильных ответов. Чувствительный показатель скорости обработки информации.',
@@ -1337,8 +1337,8 @@ const translations: Translations = {
     en: 'Center: an arrow ← or →. Sides: distractor flankers (same or opposite direction). Respond only to the CENTER, ignoring the sides. Measures ability to suppress automatic responses (Eriksen Flanker, 1974).'
   },
   ospanIntroDesc: {
-    ru: 'Чередуйте: уравнение «верно?» → запомнить букву → уравнение → буква → ... После N итераций впишите буквы в ПРАВИЛЬНОМ ПОРЯДКЕ. Двойная нагрузка: счёт + хранение. Operation Span — золотой стандарт измерения рабочей памяти под нагрузкой.',
-    en: 'Alternate: equation "is it correct?" → remember a letter → equation → letter → ... After N iterations type the letters IN ORDER. Dual load: arithmetic + storage. Operation Span — the gold standard for working memory under load.'
+    ru: 'Отвечайте «Правильно» или «Неправильно» на уравнение и запоминайте букву; в конце наберите буквы по порядку и нажмите «Проверить». Чередуйте: уравнение «верно?» → запомнить букву → уравнение → буква → ... После N итераций впишите буквы в ПРАВИЛЬНОМ ПОРЯДКЕ. Двойная нагрузка: счёт + хранение. Operation Span — золотой стандарт измерения рабочей памяти под нагрузкой.',
+    en: 'Answer “Correct” or “Incorrect” to each equation and remember the letter; at the end type the letters in order and press “Check”. Alternate: equation "is it correct?" → remember a letter → equation → letter → ... After N iterations type the letters IN ORDER. Dual load: arithmetic + storage. Operation Span — the gold standard for working memory under load.'
   },
   simonIntroDesc: {
     ru: 'Цветной квадрат появляется СЛЕВА или СПРАВА от центра. Жми ЛЕВУЮ кнопку если СИНИЙ, ПРАВУЮ если КРАСНЫЙ (по ЦВЕТУ, не по позиции). Когда позиция стимула совпадает с правильной стороной ответа — легко. Когда не совпадает (incongruent) — медленнее. Simon Effect = разница RT. Классика измерения inhibitory control (Simon, 1969).',
