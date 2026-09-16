@@ -4,7 +4,8 @@ import {board,apply,rng} from './core.mjs';
 // NESW bits, bounded board. Positive quarter turns are clockwise. Canonical source.
 const dirs=[[-1,0,1,4],[0,1,2,8],[1,0,4,1],[0,-1,8,2]];
 export function maskAt(cell){let m=cell.mask;for(let i=0;i<cell.turns;i++)m=((m<<1)&15)|(m>>3);return m;}
-export function network(b){
+/** `start` — клетка источника; у «Сети со сдвигом» источник ездит вместе со строкой (17.09.2026). */
+export function network(b,start=0){
   let leaks=0;const adjacency=b.cells.map(()=>[]);
   for(let i=0;i<b.cells.length;i++){
     const m=maskAt(b.cells[i]),r=Math.floor(i/b.width),c=i%b.width;
@@ -12,7 +13,7 @@ export function network(b){
       if(nr<0||nr>=b.height||nc<0||nc>=b.width||!(maskAt(b.cells[j])&opposite))leaks++;else adjacency[i].push(j);
     }
   }
-  const connected=new Set([0]),stack=[0];
+  const connected=new Set([start]),stack=[start];
   while(stack.length)for(const j of adjacency[stack.pop()])if(!connected.has(j)){connected.add(j);stack.push(j);}
   return {leaks,connected,won:leaks===0&&connected.size===b.cells.length};
 }
