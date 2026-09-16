@@ -2,6 +2,7 @@
 /** Local-only exercise adapter. Per-profile local saves; no server rewards. */
 import React, {useState, useEffect, useRef,useCallback} from 'react';
 import {победаКОтправке} from './spatialLabWin';
+import {levelNote} from './spatialLabLevelNote';
 import {View, Text, Pressable, StyleSheet, Animated, Easing, DeviceEventEmitter } from 'react-native';
 // 🔴 НЕ `useWindowDimensions`: на первом кадре он отдаёт 0, и поле считается от
 // нулевой высоты. Защита живёт в `useScreenSize` — общая для всех игр.
@@ -329,7 +330,7 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
           <GameAuxAction label={t(task?'spatialLabHarder':'spatialLabStartLevels')} disabled={task?.level===50||busy||pending!==null} onPress={()=>request((task?.level??0)+1)}/>
           {task?<GameAuxAction label={t('spatialFreePlay')} disabled={busy||pending!==null} onPress={()=>request(0)}/>:null}
         </GameAuxBar></View>}
-        {task?<Text style={[styles.instruction,ink]}>{task.spec.change}</Text>:null}
+        {task?<Text testID="spatial-level-note" style={[styles.instruction,ink]}>{levelNote(task,t)}</Text>:null}
       </View>
       {/*
         ВКЛАДКИ РЕЖИМОВ — ТОЖЕ ПОД ДОСКОЙ (16.09.2026): это выбор игры, а не ход, и
