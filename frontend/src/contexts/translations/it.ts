@@ -2583,7 +2583,6 @@ const t: Record<string, string> = {
   "puzzlesUndeadDesc": "Disponi fantasmi, vampiri e zombie perché tornino i conti visti dagli specchi. Tocca una cella, poi una cifra in basso; la seconda azione lascia un appunto",
   "puzzlesSolo": "Il sudoku di Tatham",
   "puzzlesSoloDesc": "Cifre 1–9 una volta per riga, colonna e blocco. Tocca una cella, poi una cifra in basso; la seconda azione lascia un appunto",
-  "puzzleSecondPencil": "Appunto",
   "puzzleSecondKeep": "Tenere",
   "puzzlesTowers": "I grattacieli di Tatham",
   "puzzlesTowersDesc": "Il numero al bordo dice quante torri si vedono da lì. Tocca una cella, poi una cifra in basso; la seconda azione lascia un appunto",
@@ -2697,5 +2696,8 @@ const t: Record<string, string> = {
   "suiteModeReversal": "La regola cambia",
   "suiteModeDecks": "Quattro mazzi",
   "suiteModeBalloon": "Gonfia il palloncino",
+  "puzzlesSlantIntroDesc": "Traccia esattamente una diagonale in ogni cella — “/” oppure “\\\\”. I numeri stanno sugli angoli e dicono quante estremità si incontrano IN QUELL’angolo: 0 nessuna, 4 tutte e quattro. Il vincolo decisivo: le linee non devono mai formare un anello chiuso. Un tocco breve cambia l’inclinazione, una pressione lunga la cambia al contrario. Comune a tutti i rompicapo di Tatham: ogni schema ha esattamente una soluzione e il ragionamento ci porta sempre — indovinare non serve mai. Un tocco breve fa la mossa, una pressione LUNGA è la seconda azione. Annulla, chiedi un aiuto o ricomincia dal menu pausa, pulsante ⏸ in alto a sinistra.",
+  "puzzlesBlackBoxIntroDesc": "In una scatola chiusa sono nascoste delle biglie e devi trovarle senza guardarci dentro. Toccando una freccia sul bordo parte un raggio: va dritto, devia accanto a una biglia, viene assorbito se ne colpisce una. Da dove esce, torna o non compare, le posizioni si deducono con certezza. Toccare una cella pone “qui c’è una biglia”; una pressione lunga la segna vuota. Comune a tutti i rompicapo di Tatham: ogni schema ha esattamente una soluzione e il ragionamento ci porta sempre — indovinare non serve mai. Un tocco breve fa la mossa, una pressione LUNGA è la seconda azione. Annulla, chiedi un aiuto o ricomincia dal menu pausa, pulsante ⏸ in alto a sinistra.",
+  "puzzlesGuessIntroDesc": "Una fila di colori è nascosta e i tentativi sono contati. Componi la tua fila e conferma; la risposta torna come segni: quanti colori sono al posto GIUSTO e quanti compaiono nel codice ma altrove. Quale segno appartenga a quale pedina non viene mai detto: ogni tentativo è una deduzione, non una scansione. Un tocco imposta un colore, una pressione lunga lo toglie. Comune a tutti i rompicapo di Tatham: ogni schema ha esattamente una soluzione e il ragionamento ci porta sempre — indovinare non serve mai. Un tocco breve fa la mossa, una pressione LUNGA è la seconda azione. Annulla, chiedi un aiuto o ricomincia dal menu pausa, pulsante ⏸ in alto a sinistra.",
 };
 export default t;

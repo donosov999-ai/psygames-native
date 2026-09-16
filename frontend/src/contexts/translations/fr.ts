@@ -2583,7 +2583,6 @@ const t: Record<string, string> = {
   "puzzlesUndeadDesc": "Placez fantômes, vampires et zombies pour que les comptes vus par les miroirs tombent juste. Touchez une case, puis un chiffre en bas ; la seconde action pose une note",
   "puzzlesSolo": "Le sudoku de Tatham",
   "puzzlesSoloDesc": "Les chiffres 1–9 une fois par ligne, colonne et bloc. Touchez une case, puis un chiffre en bas ; la seconde action pose une note",
-  "puzzleSecondPencil": "Note",
   "puzzleSecondKeep": "Garder",
   "puzzlesTowers": "Les gratte-ciel de Tatham",
   "puzzlesTowersDesc": "Le chiffre en bordure dit combien de tours on voit depuis là. Touchez une case, puis un chiffre en bas ; la seconde action pose une note",
@@ -2697,5 +2696,8 @@ const t: Record<string, string> = {
   "suiteModeReversal": "La règle bascule",
   "suiteModeDecks": "Quatre paquets",
   "suiteModeBalloon": "Gonfle le ballon",
+  "puzzlesSlantIntroDesc": "Tracez exactement une diagonale dans chaque case — « / » ou « \\\\ ». Les chiffres sont aux coins et indiquent combien d’extrémités se rejoignent À CE coin : 0 aucune, 4 les quatre. La contrainte essentielle : les lignes ne doivent jamais former de boucle fermée. Un appui bref bascule le trait, un appui long le bascule en sens inverse. Commun à tous les casse-tête de Tatham : chaque grille a exactement une solution et le raisonnement y mène toujours — deviner n’est jamais nécessaire. Un appui bref joue, un appui LONG est la seconde action. Annuler, demander un indice ou recommencer depuis le menu pause, bouton ⏸ en haut à gauche.",
+  "puzzlesBlackBoxIntroDesc": "Des billes sont cachées dans une boîte fermée et il faut les trouver sans regarder dedans. Toucher une flèche du bord envoie un rayon : il va tout droit, dévie près d’une bille, et est absorbé s’il en touche une. Selon l’endroit où il ressort, revient ou ne ressort pas, les positions se déduisent avec certitude. Toucher une case pose « une bille ici » ; un appui long la marque vide. Commun à tous les casse-tête de Tatham : chaque grille a exactement une solution et le raisonnement y mène toujours — deviner n’est jamais nécessaire. Un appui bref joue, un appui LONG est la seconde action. Annuler, demander un indice ou recommencer depuis le menu pause, bouton ⏸ en haut à gauche.",
+  "puzzlesGuessIntroDesc": "Une rangée de couleurs est cachée et vos essais sont comptés. Composez votre rangée et validez ; la réponse revient en marques : combien de couleurs sont à la BONNE place, et combien figurent dans le code mais ailleurs. On ne dit jamais quelle marque correspond à quel pion : chaque essai est une déduction, pas un balayage. Un appui pose une couleur, un appui long l’efface. Commun à tous les casse-tête de Tatham : chaque grille a exactement une solution et le raisonnement y mène toujours — deviner n’est jamais nécessaire. Un appui bref joue, un appui LONG est la seconde action. Annuler, demander un indice ou recommencer depuis le menu pause, bouton ⏸ en haut à gauche.",
 };
 export default t;

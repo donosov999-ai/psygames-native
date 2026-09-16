@@ -191,12 +191,30 @@ export const ЦИФРОВЫЕ = new Set(['Keen', 'Towers', 'Solo', 'Unequal', 'F
  * Здесь только семь режимов развилки «Судоку»: правку остальных делают их разделы.
  */
 export const ИМЯ_ВТОРОГО: Record<string, string> = {
+  /* ⚠️ КАРТА ОДНА НА ВСЕ РАЗДЕЛЫ, И ЭТО ПОЧИНКА СТОЛКНОВЕНИЯ 16.09.2026.
+     Судоку и «Поиск» независимо собрали по своей карте подписей — `ИМЯ_ВТОРОГО`
+     и `ПОДПИСЬ_ВТОРОГО`, — и обе указали на ключ `puzzleSecondPencil` с РАЗНЫМ
+     текстом («Пометка» против «Карандаш»). Слияние веток дало дубль ключа и
+     красный tsc во всех двенадцати словарях. Причина не в них: координатор
+     раздал пяти разделам задачи «подписать второе действие», не назвав, ГДЕ
+     живёт карта, — её не было вовсе. Теперь она одна, дописывают в неё же. */
   Solo: 'puzzleSecondPencil',
   Towers: 'puzzleSecondPencil',
   Unequal: 'puzzleSecondPencil',
   Keen: 'puzzleSecondPencil',
   Undead: 'puzzleSecondPencil',
   Singles: 'puzzleSecondKeep',
+  'Light Up': 'puzzleSecondNoLamp',      // метка «сюда фонарь не ставить»
+  Tents: 'puzzleSecondGrass',            // трава вокруг палаток
+  Dominosa: 'puzzleSecondNoDomino',      // «домино здесь нет»
+  Map: 'puzzleSecondPencil',             // карандашная пометка (map.c:2594)
+  Mines: 'puzzleSecondFlag',             // флажок на мине
+  Mosaic: 'puzzleSecondEmpty',           // клетка пуста
+  Pattern: 'puzzleSecondCross',          // крестик «здесь пусто» — без него нонограмма не решается
+  Range: 'puzzleSecondDot',              // точка против чёрного поля
+  Magnets: 'puzzleSecondEmpty',          // пустая половинка домино
+  Galaxies: 'puzzleSecondMark',
+  Palisade: 'puzzleSecondMark',
 };
 
 /**
@@ -599,18 +617,12 @@ export const СВОЯ_ЛЕСТНИЦА: Record<string, { имя: string; пар�
  * правая делает СВОЁ, но ЧТО именно — он не говорит, а выдумывать точное слово
  * хуже, чем сказать честно общее.
  */
-export const ПОДПИСЬ_ВТОРОГО: Record<string, string> = {
-  'Light Up': 'puzzleSecondNoLamp',      // метка «сюда фонарь не ставить»
-  Tents: 'puzzleSecondGrass',            // трава вокруг палаток
-  Dominosa: 'puzzleSecondNoDomino',      // «домино здесь нет»
-  Map: 'puzzleSecondPencil',             // карандашная пометка (map.c:2594)
-  Mines: 'puzzleSecondFlag',             // флажок на мине
-  Mosaic: 'puzzleSecondEmpty',           // клетка пуста
-  Pattern: 'puzzleSecondCross',          // крестик «здесь пусто» — без него нонограмма не решается
-  Range: 'puzzleSecondDot',              // точка против чёрного поля
-  Magnets: 'puzzleSecondEmpty',          // пустая половинка домино
-  Galaxies: 'puzzleSecondMark',
-  Palisade: 'puzzleSecondMark',
-};
+/**
+ * Прежнее имя той же карты. Оставлено ПСЕВДОНИМОМ, а не удалено: ветка
+ * `search/live` ссылается на него и сейчас в работе — снос сломал бы чужую
+ * сборку молча. Новые записи добавлять в `ИМЯ_ВТОРОГО`.
+ */
+export const ПОДПИСЬ_ВТОРОГО = ИМЯ_ВТОРОГО;
+
 
 export const РЕЖИМЫ = Object.keys(КЛЮЧ_ИМЕНИ);

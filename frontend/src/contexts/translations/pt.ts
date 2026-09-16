@@ -2588,7 +2588,6 @@ const t: Record<string, string> = {
   "puzzlesUndeadDesc": "Posicione fantasmas, vampiros e zumbis para bater as contas vistas pelos espelhos. Toque numa casa e depois num número abaixo; a segunda ação deixa uma anotação",
   "puzzlesSolo": "O sudoku de Tatham",
   "puzzlesSoloDesc": "Dígitos 1–9 uma vez por linha, coluna e bloco. Toque numa casa e depois num número abaixo; a segunda ação deixa uma anotação",
-  "puzzleSecondPencil": "Anotação",
   "puzzleSecondKeep": "Manter",
   "puzzlesTowers": "Os arranha-céus de Tatham",
   "puzzlesTowersDesc": "O número na borda diz quantas torres se veem dali. Toque numa casa e depois num número abaixo; a segunda ação deixa uma anotação",
@@ -2702,5 +2701,8 @@ const t: Record<string, string> = {
   "suiteModeReversal": "A regra muda",
   "suiteModeDecks": "Quatro baralhos",
   "suiteModeBalloon": "Encha o balão",
+  "puzzlesSlantIntroDesc": "Trace exatamente uma diagonal em cada célula — “/” ou “\\\\”. Os números ficam nos cantos e dizem quantas pontas se encontram NAQUELE canto: 0 nenhuma, 4 as quatro. A restrição principal: as linhas nunca podem formar um laço fechado. Um toque curto inverte o traço, um toque longo o inverte no outro sentido. Comum a todos os quebra-cabeças de Tatham: cada tabuleiro tem exatamente uma solução e o raciocínio sempre chega lá — nunca é preciso adivinhar. Um toque curto faz a jogada, um toque LONGO é a segunda ação. Desfazer, pedir dica ou recomeçar pelo menu de pausa, botão ⏸ no canto superior esquerdo.",
+  "puzzlesBlackBoxIntroDesc": "Numa caixa fechada há bolas escondidas e você precisa encontrá-las sem olhar. Tocar numa seta da borda dispara um feixe: segue reto, desvia ao passar ao lado de uma bola e é absorvido ao acertar uma. Por onde sai, volta ou não aparece, as posições seguem com certeza. Tocar numa célula coloca “há uma bola aqui”; um toque longo marca-a vazia. Comum a todos os quebra-cabeças de Tatham: cada tabuleiro tem exatamente uma solução e o raciocínio sempre chega lá — nunca é preciso adivinhar. Um toque curto faz a jogada, um toque LONGO é a segunda ação. Desfazer, pedir dica ou recomeçar pelo menu de pausa, botão ⏸ no canto superior esquerdo.",
+  "puzzlesGuessIntroDesc": "Uma fila de cores está escondida e as tentativas são contadas. Monte sua fila e confirme; a resposta volta como marcas: quantas cores estão no lugar CERTO e quantas fazem parte do código mas em outra posição. Nunca se revela qual marca pertence a qual pino: cada tentativa é uma dedução, não uma varredura. Um toque define a cor, um toque longo a apaga. Comum a todos os quebra-cabeças de Tatham: cada tabuleiro tem exatamente uma solução e o raciocínio sempre chega lá — nunca é preciso adivinhar. Um toque curto faz a jogada, um toque LONGO é a segunda ação. Desfazer, pedir dica ou recomeçar pelo menu de pausa, botão ⏸ no canto superior esquerdo.",
 };
 export default t;

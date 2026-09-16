@@ -42,7 +42,7 @@ import { saveSession } from '@/src/services/api';
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
 import { открыть, указатель, стрелка, клавиша, стеретьВвод, выбрать, поДиагонали, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
-import { ПЛАН_ШАГАМИ, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
+import { ПЛАН_ШАГАМИ, ИМЯ_ВТОРОГО, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, СВОЯ_ЛЕСТНИЦА, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
 
@@ -471,8 +471,22 @@ export default function PuzzlesScreen() {
               }]}
             >
               <Ionicons name="swap-horizontal" size={18} color={второе ? '#FFF' : colors.text} />
+              {/**
+                * 🔴 ПОДПИСЬ НАЗЫВАЕТ ТО, ЧТО КНОПКА ДЕЛАЕТ ЗДЕСЬ.
+                *
+                * «Второе действие» — имя внутреннего действия движка, и одним словом
+                * оно подписывало кнопку во всех 28 режимах, где она есть, хотя делает
+                * разное: в «Сапёре» ставит ФЛАЖОК, в японском кроссворде — КРЕСТИК
+                * «здесь пусто» (без него нонограмма не решается), в «Раскраске карты»
+                * — карандашную пометку. Карту порежимных подписей и словарь на все
+                * двенадцать языков собрал `psygames-search-claude-mac` (задача
+                * `c5335b2e`); экран — общий слой, поэтому строку ставит координатор.
+                *
+                * ⚠️ `?? 'puzzleSecondAction'` оставляет прежнюю общую подпись тем
+                * режимам, чей владелец до карты ещё не дошёл: сейчас это 17 из 28.
+                */}
               <Text style={[styles.второеТекст, { color: второе ? '#FFF' : colors.text }]}>
-                {t('puzzleSecondAction')}
+                {t(ИМЯ_ВТОРОГО[имяРежима] ?? 'puzzleSecondAction')}
               </Text>
             </Pressable>
           ) : null}
@@ -629,7 +643,13 @@ export default function PuzzlesScreen() {
                   style={[styles.командаВыбора, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 >
                   <Ionicons name="swap-horizontal" size={20} color={colors.text} />
-                  <Text style={[styles.командаВыбораТекст, { color: colors.text }]}>{t('puzzleSecondAction')}</Text>
+                  {/* Та же кнопка, второе её место — ряд команд выбора (`ВЫБОР_ВТОРОЙ`:
+                      «Раскраска карты», «Колышки», «Указатели»). Подпись обязана
+                      совпадать с переключателем выше, иначе одно действие называется
+                      на экране двумя словами. */}
+                  <Text style={[styles.командаВыбораТекст, { color: colors.text }]}>
+                    {t(ИМЯ_ВТОРОГО[имяРежима] ?? 'puzzleSecondAction')}
+                  </Text>
                 </Pressable>
               ) : null}
             </View>

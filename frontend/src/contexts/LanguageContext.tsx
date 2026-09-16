@@ -1011,7 +1011,6 @@ const translations: Translations = {
   puzzlesUndeadDesc: { ru: 'Призраки, вампиры и зомби — по счёту в отражениях. Нажми клетку, потом цифру снизу; второе действие ставит пометку', en: 'Ghosts, vampires and zombies to match the counts in the mirrors. Tap a cell, then a digit below; the second action leaves a pencil mark' },
   puzzlesSolo: { ru: 'Судоку Тэтхэма', en: 'Tatham’s Sudoku' },
   // Имя второго действия — порежимно, таблица ИМЯ_ВТОРОГО в tatham-bridge/names.ts.
-  puzzleSecondPencil: { ru: 'Пометка', en: 'Pencil mark' },
   puzzleSecondKeep: { ru: 'Оставить', en: 'Keep' },
   puzzlesSoloDesc: { ru: 'Цифры 1–9 по разу в строке, столбце и блоке. Нажми клетку, потом цифру снизу; второе действие ставит пометку', en: 'Digits 1–9 once per row, column and block. Tap a cell, then a digit below; the second action leaves a pencil mark' },
   puzzlesTowers: { ru: 'Небоскрёбы Тэтхэма', en: 'Tatham’s Towers' },
