@@ -43,7 +43,7 @@ jest.mock('@/src/services/feedback', () => ({
   soundOn: () => true, hapticEnabledNow: () => true,
   setSoundEnabled: () => {}, setHapticEnabled: () => {},
 }));
-jest.mock('@/src/services/petMood', () => ({ setGameMood: () => {} }));
+jest.mock('@/src/services/petMood', () => ({ setGameMood: () => {}, setGameStreak: () => {} }));
 jest.mock('@/src/components/GameHelpOverlay', () => ({ __esModule: true, HELP_CORNER_SPACE: 0, default: () => null }));
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(() => Promise.resolve(null)),

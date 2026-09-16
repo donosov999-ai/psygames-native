@@ -1,4 +1,4 @@
-/* psygames-pet-mood · VER 1 · 03.09.2026 */
+/* psygames-pet-mood · VER 2 · 17.09.2026 */
 import { useEffect, useState } from 'react';
 import type { PetMood } from '@/src/components/pet/GamePet';
 
@@ -45,4 +45,41 @@ export function useGameMood(): PetMood {
     return () => { слушатели.delete(setM); };
   }, []);
   return m;
+}
+
+/**
+ * СЕРИЯ ВЕРНЫХ ОТВЕТОВ — ТОЖЕ У ПИТОМЦА, А НЕ В ПОЛОСЕ СЧЁТЧИКОВ (17.09.2026, задача cca5f572).
+ *
+ * 🔴 ПОВОД. Значок «🔥 2» каркас вставлял в плашку счётчиков после второго верного ответа
+ * подряд и убирал на ошибке. У ряда счётчиков `flexWrap`, и лишний значок переносил его
+ * на вторую строку: поле уезжало на 54 точки вниз посреди партии и возвращалось на
+ * ошибке. Замер «Внимания» (0d7734f0): 5 экранов из 11 при 390×844, 6 из 18 при 360×640.
+ * Резерв места с начала не годится — на 390 четыре счётчика и резерв в ряд не влезают.
+ *
+ * Поэтому значок живёт на медальоне питомца в углу справки: угол одинаков на каждом
+ * экране игры и в поток плашки не входит, так что его появление ничего не сдвигает.
+ * Устроено так же, как настроение: величина в модуле и подписка — плашка и угол
+ * справки лежат в разных поддеревьях.
+ */
+let _streak = 0;
+const слушателиСерии = new Set<(n: number) => void>();
+
+/** Каркас сообщает длину серии. 0 — серии нет (ошибка, уход с экрана). */
+export function setGameStreak(n: number) {
+  const v = Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+  if (v === _streak) return;
+  _streak = v;
+  слушателиСерии.forEach((f) => f(v));
+}
+
+export function gameStreakNow(): number { return _streak; }
+
+/** Подписка для угла справки. */
+export function useGameStreak(): number {
+  const [n, setN] = useState<number>(_streak);
+  useEffect(() => {
+    слушателиСерии.add(setN);
+    return () => { слушателиСерии.delete(setN); };
+  }, []);
+  return n;
 }

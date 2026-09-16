@@ -45,7 +45,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, DeviceE
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { type PetMood } from '@/src/components/pet/GamePet';
-import { setGameMood } from '@/src/services/petMood';
+import { setGameMood, setGameStreak } from '@/src/services/petMood';
 import { onGameEvent, type GameEventKind } from '@/src/services/gameEvents';
 import { streakMultiplier, scoreWithStreak } from '@/src/services/scoring';
 import { attachEdgeBack } from '@/src/services/edgeBack';
@@ -763,6 +763,9 @@ export default function GameShell({
   React.useEffect(() => { setGameMood(pet ?? autoMood); }, [pet, autoMood]);
   React.useEffect(() => () => setGameMood('idle'), []);   // ушли с экрана — покой
   const [streak, setStreak] = React.useState(0);
+  // Серия — на медальон питомца (см. `setGameStreak`). Свой питомец у экрана — серии в углу нет, как не было и в плашке.
+  React.useEffect(() => { setGameStreak(pet === undefined ? streak : 0); }, [pet, streak]);
+  React.useEffect(() => () => setGameStreak(0), []);
   /**
    * Под каким именем писать рекорд комбо. Берём из заголовка экрана: `GameShell`
    * не знает идентификатора игры, а заводить новый обязательный проп ради одного
@@ -1275,10 +1278,12 @@ export default function GameShell({
             и перестраивается по ходу партии — из-за этого он «переезжал» (жалоба
             Дениса 03.09.2026). Угол справки одинаков на каждом экране игры.
           */}
-          {/* Серия показывается с двойки: единица — это ещё не серия, а один ход. */}
-          {pet === undefined && streak >= 2 ? (
-            <HudBadge icon="flame" label={t('hud_streak')} value={streak} colors={['#fb923c', '#c2410c']} pop />
-          ) : null}
+          {/*
+            ⚠️ ЗНАЧКА СЕРИИ «🔥 N» ЗДЕСЬ БОЛЬШЕ НЕТ (17.09.2026, задача cca5f572). Появляясь
+            после второго верного ответа, он переносил ряд счётчиков на вторую строку, и поле
+            прыгало на 54 точки посреди партии. Серия показывается на медальоне питомца в углу
+            справки (`setGameStreak` → `HelpCornerRow`), где ничего не сдвигает.
+          */}
           <View style={styles.statsFlex}>
             {hud && hud.length ? (
               <View style={styles.hudRow}>
