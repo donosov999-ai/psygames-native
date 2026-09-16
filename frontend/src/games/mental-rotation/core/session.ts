@@ -20,6 +20,7 @@
  */
 import { buildNetTask } from './net';
 import { buildAssemblyTask, buildMissingTask } from './pieces';
+import { buildFormationTask } from './formation';
 import { buildSameTask } from './same';
 import { buildViewpointTask } from './viewpoint';
 import { buildProjectionTask } from './projection';
@@ -40,9 +41,11 @@ import type { MentalRotationTask, Rng, TaskKind } from './types';
  * куска по три — читается сразу). «Недостающая часть» — только с 21-го, где в фигуре
  * восемь кубиков: пустота из четырёх не больше сплошной части. На шести кубиках живой
  * кадр показал столбик из двух кубиков и пунктир — понять задание было нельзя.
+ * «Три вида» (задача 0d96f48e) — пятнадцатым: это обратная «Проекция» (открыта третьим),
+ * и к ней человек подходит, когда проекцию уже решал много раз.
  */
 export const KIND_UNLOCK: Record<TaskKind, number> = {
-  rotation: 1, projection: 3, net: 5, viewpoint: 7, same: 9, assembly: 11, missing: 21,
+  rotation: 1, projection: 3, net: 5, viewpoint: 7, same: 9, assembly: 11, formation: 15, missing: 21,
 };
 
 /** Ниже этой доли поворотных проб партия опускаться не должна — см. шапку. */
@@ -93,6 +96,7 @@ export function buildTask(kind: TaskKind, level: number, rng: Rng): MentalRotati
   if (kind === 'same') return buildSameTask(level, rng);
   if (kind === 'missing') return buildMissingTask(level, rng);
   if (kind === 'assembly') return buildAssemblyTask(level, rng);
+  if (kind === 'formation') return buildFormationTask(level, rng);
   return buildRotationTask(level, rng);
 }
 

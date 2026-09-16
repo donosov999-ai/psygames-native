@@ -47,7 +47,7 @@ export type Axis = 'x' | 'y' | 'z';
  * ракурса, пары «да/нет», проекции и развёртки угла поворота нет вовсе, и одна
  * такая проба портит единственную настоящую величину игры.
  */
-export type TaskKind = 'rotation' | 'projection' | 'net' | 'viewpoint' | 'same' | 'missing' | 'assembly';
+export type TaskKind = 'rotation' | 'projection' | 'net' | 'viewpoint' | 'same' | 'missing' | 'assembly' | 'formation';
 
 /**
  * Направление взгляда для проекции.
@@ -219,9 +219,10 @@ export interface SameTask {
 
 /**
  * Чем неверный кусок (или неверное целое) отличается от верного. Показывается в разборе.
- * `one-cube` — один кубик переставлен, `mirror` — зеркальная копия, `other` — другая фигура.
+ * `one-cube` — один кубик переставлен, `mirror` — зеркальная копия, `other` — другая фигура,
+ * `other-view` — та же фигура, но повёрнутая (в «Трёх видах» её тени другие).
  */
-export type PieceFlaw = 'none' | 'mirror' | 'one-cube' | 'other';
+export type PieceFlaw = 'none' | 'mirror' | 'one-cube' | 'other' | 'other-view';
 
 export interface PieceOption {
   shape: Shape;
@@ -250,6 +251,17 @@ export interface AssemblyTask {
   correctIdx: number;
 }
 
+/**
+ * «Три вида» (задача 0d96f48e, «Формирование»): виды сверху, спереди, справа → какая фигура
+ * их даёт. Варианты НЕ повёрнуты: виды считаются в осях экрана.
+ */
+export interface FormationTask {
+  kind: 'formation';
+  views: { top: Cell2D[]; front: Cell2D[]; side: Cell2D[] };
+  options: PieceOption[];
+  correctIdx: number;
+}
+
 export type MentalRotationTask =
   | RotationTask
   | ProjectionTask
@@ -257,4 +269,5 @@ export type MentalRotationTask =
   | ViewpointTask
   | SameTask
   | MissingTask
-  | AssemblyTask;
+  | AssemblyTask
+  | FormationTask;

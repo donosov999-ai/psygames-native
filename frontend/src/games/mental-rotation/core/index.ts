@@ -11,6 +11,7 @@ export * from './viewpoint';
 export * from './same';
 export * from './split';
 export * from './pieces';
+export * from './formation';
 export * from './replay';
 export * from './session';
 export * from './i18n';
