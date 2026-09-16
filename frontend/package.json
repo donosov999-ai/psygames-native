@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "main": "expo-router/entry",
-  "version": "2.54.11",
+  "version": "2.54.12",
   "scripts": {
     "structure": "node scripts/build-structure.mjs",
     "start": "expo start",
