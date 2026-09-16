@@ -91,6 +91,19 @@ export function createTrack(rng){
    add(stage,{kind:'answer',station:'blitz',prompt:problem.display,options,correct:options.indexOf(answer),reward,penalty:reward});
    track.intended+=reward;
   },
+  // Ряд на арках («Паттерны»): члены ряда на табло, три продолжения на арках; варианты — генератор самой игры.
+  pattern(stage,k,seq){
+   const options=seq.options.slice(0,3),reward=Math.max(2*k,round5(track.intended*.1));
+   add(stage,{kind:'answer',station:'pattern',prompt:`${seq.items.join(' · ')} · ?`,options,correct:options.indexOf(seq.answer),reward,penalty:reward});
+   track.intended+=reward;
+  },
+  // Шкала («Мат. шкала»): поперёк дороги числовая прямая [min, max], над ней выражение; проехать там, где ответ.
+  scale(stage,k,question){
+   const reward=Math.max(3*k,round5(track.intended*.12)),x=(question.answer-question.min)/(question.max-question.min)*2-1;
+   add(stage,{kind:'scale',station:'scale',prompt:question.prompt,min:question.min,max:question.max,answer:question.answer,ticks:question.ticks,tolerance:.1,reward,penalty:reward,
+    routes:[{id:'scale',entry:{dz:-8,x},exit:x,gain:reward,waypoints:[{dz:0,x}]}]});
+   track.intended+=reward;
+  },
   // Ворота «ровно N» (number-bonds): числа-части лежат по строкам, собрать ровно N. Путь строится первым: полоса на строку,
   // соседние строки — не дальше соседней полосы; числа решения — на пути, лишние — только вне пути. Пустая полоса пути
   // пропускает строку. Верно — прибавка; мимо — минус, пропорциональный промаху.

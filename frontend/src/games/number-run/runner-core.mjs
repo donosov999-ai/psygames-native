@@ -1,3 +1,5 @@
+// VER 8 · 2026-09-16 · psygames-search-claude-mac: ряд scale (станция «шкала» из «Мат. шкалы») — место на дороге x от −1 до 1
+// читается как число на прямой [min, max] без округления до полосы; цена — scaleDelta по доле ошибки.
 // VER 7 · 2026-09-16 · psygames-search-claude-mac: станции хаба «Счёт» — ряд answer (арки с ответами, полоса = ответ,
 // верно +reward / неверно −penalty и счётчик mistakes) и числа-части part: не меняют число сразу, а складываются в сумму ряда,
 // которую ворота row.exact сверяют с целью (exactDelta). Ряды без этих полей считаются как в VER 6.
@@ -5,8 +7,8 @@
 // широкие числа стопок (item.half), столб-разделитель (row.divider) и трамплин над числами: в полёте их не собрать.
 // Прежние ряды считаются ровно как в VER 5: без dz/half/divider ветки совпадают построчно.
 // VER 5 · Number Run local 0.4 · 2026-09-12. Flight over actual void, no jitter pause in journey.
-import {makeCourse,applyOperation,meets,ruleDifference,exactDelta} from './runner-levels.mjs';
-export const CORE_VERSION='number-run-core/7', FIXED_DT=1/120;
+import {makeCourse,applyOperation,meets,ruleDifference,exactDelta,scaleDelta,scaleValue} from './runner-levels.mjs';
+export const CORE_VERSION='number-run-core/8', FIXED_DT=1/120;
 export function jumpHeight(s){if(!s.jump)return 0;const u=(s.z-s.jump.startZ)/(s.jump.endZ-s.jump.startZ);return u<=0||u>=1?0:4*s.jump.height*u*(1-u);}
 // Visual size follows the current positive value; hitboxes stay one lane wide.
 export const numberScale=value=>1+Math.min(1.6,Math.log2(1+Math.max(0,value))/7);
@@ -77,6 +79,9 @@ export function step(s,dt,course){
     next.events.push({type:'pickups',id:row.id,lane,items:next.collected,sum:next.sum,exact:{target:row.exact.target,got,delta},before,t:s.elapsed+t,z:eventZ});}
    else next.events.push({type:'pickups',id:row.id,lane,items:next.collected,sum:next.sum,t:s.elapsed+t,z:eventZ});
    next.collected=[];
+  }else if(row.kind==='scale'){
+   const value=scaleValue(row,x),err=Math.abs(value-row.answer)/(row.max-row.min),delta=scaleDelta(row,err);next.sum+=delta;if(delta<0)next.mistakes++;
+   next.events.push({type:'scale',id:row.id,x,value,err,delta,before,after:next.sum,t:s.elapsed+t,z:row.z});
   }else if(row.kind==='answer'){
    const ok=lane+1===row.correct;next.sum+=ok?row.reward:-row.penalty;if(!ok)next.mistakes++;
    next.events.push({type:'answer',id:row.id,lane,value:row.options[lane+1],ok,before,after:next.sum,t:s.elapsed+t,z:row.z});

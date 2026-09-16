@@ -1,3 +1,5 @@
+// VER 7 · 2026-09-16 · psygames-search-claude-mac: шкала поперёк дороги (станция «Мат. шкалы») — прямая с делениями и
+// подписями, ворота с выражением; после проезда — флажок верного ответа. Ряд на арках рисуется теми же арками ответа.
 // VER 6 · 2026-09-16 · psygames-search-claude-mac: станции уровней — арки с ответами и табло примера, числа-части «ровно N»
 // (янтарные) с табло цели и счётчиком над числом, «Страж» — огромное число впереди и одна стена в финале вместо лестницы.
 // VER 5 · 2026-09-16 · psygames-search-claude-mac, на основе VER 4 LOCAL 0.4 (psygames-codex-mac). Построения маршрута VER 4:
@@ -96,6 +98,18 @@ export function createScene(container){
    });
     const board=label(row.prompt,{background:'#0f172a',w:7,h:1.45,font:112});board.sprite.position.set(0,3.6,0);group.add(board.sprite);
    }
+   else if(row.kind==='scale'){
+    // Прямая через всю дорогу: x = −1…1 ↔ min…max. Подписи — у каждого деления, если их до шести, иначе через одно.
+    const toX=v=>((v-row.min)/(row.max-row.min)*2-1)*LANE,bar=box(2*LANE+.5,.07,.26,0xe0e7ff);bar.position.set(0,.06,0);group.add(bar);
+    const every=row.ticks.length<=6?1:2,num=v=>String(Math.round(v*10)/10).replace('-','−');
+    row.ticks.forEach((v,i)=>{const tick=box(.06,.03,.62,0x312e81);tick.position.set(toX(v),.1,0);group.add(tick);
+     if(i%every===0||i===row.ticks.length-1){const tag=label(num(v),{background:'#312e81',w:1.25,h:.62,font:120});tag.sprite.position.set(toX(v),.75,.2);group.add(tag.sprite);}});
+    for(const x of [-(LANE+.35),LANE+.35]){const post=box(.16,3.2,.16,0x6366f1);post.position.set(x,1.6,0);group.add(post);}
+    const cross=box(2*LANE+.86,.16,.16,0x6366f1);cross.position.y=3.15;group.add(cross);
+    const board=label(row.prompt,{background:'#1e1b4b',w:7,h:1.45,font:112});board.sprite.position.set(0,3.85,0);group.add(board.sprite);
+    // Флажок верного ответа — в корне ряда: ворота после проезда гаснут, а флажок остаётся показать, где было надо.
+    const flag=box(.12,1.6,.12,0x22c55e);flag.position.set(toX(row.answer),.8,.05);flag.visible=false;flag.userData.answerFlag=true;root.add(flag);
+   }
    else if(row.kind==='operation'&&course.mode==='journey')row.options.forEach((operation,index)=>{
     // Стена во всю полосу: цвет — знак операции, надпись — сама операция. Проезд разбивает только твою.
     const lane=new T.Group();lane.position.x=(index-1)*LANE;lane.userData.wallLane=index-1;
@@ -192,6 +206,9 @@ export function createScene(container){
    else if(e.type==='pickup'){const good=e.value>0;popup(`${good?'+':'−'}${Math.abs(e.value)}`,good?'#dfe6ff':'#ffd6dc',state.x*LANE);if(!reduced)burst(state.x*LANE,.9+jumpHeight(state),0,good?0x5b6cff:0xff2d55,good?6:12,{spread:2.4,lift:3.2});}
    else if(e.type==='answer'){const o=objects.get(e.id);if(o)for(const lane of o.items.children)if(lane.userData.answerLane===e.lane)lane.visible=false;
     popup(`${e.ok?'✓ +':'✗ −'}${Math.abs(e.after-e.before)}`,e.ok?'#bbf7d0':'#ffd6dc',e.lane*LANE);if(!reduced)burst(e.lane*LANE,1.4,0,e.ok?0x22c55e:0xff2d55,26,{spread:4,lift:5,drift:6});}
+   else if(e.type==='scale'){const o=objects.get(e.id);if(o)o.group.traverse(m=>{if(m.userData.answerFlag)m.visible=true;});
+    const text=e.delta>0?`✓ +${e.delta}`:e.delta<0?`✗ −${-e.delta}`:'≈ 0';popup(text,e.delta>0?'#bbf7d0':e.delta<0?'#ffd6dc':'#e0e7ff',e.x*LANE);
+    if(!reduced)burst(e.x*LANE,1,0,e.delta>0?0x22c55e:e.delta<0?0xff2d55:0x818cf8,24,{spread:4,lift:5,drift:6});}
    else if(e.type==='pickups'&&e.exact){const ok=e.exact.delta>0;popup(`${ok?'✓ +':'≠ −'}${Math.abs(e.exact.delta)}`,ok?'#bbf7d0':'#ffd6dc',state.x*LANE);if(!reduced)burst(state.x*LANE,1.2,0,ok?0x22c55e:0xff2d55,ok?30:16,{spread:4,lift:5});}
    else if(e.type==='operation'){const o=objects.get(e.id);if(o)for(const lane of o.items.children)if(lane.userData.wallLane===e.lane)lane.visible=false;
     popup(`${e.operation}`,e.operation[0]==='−'?'#ffd6dc':'#dfe6ff',e.lane*LANE);if(!reduced)burst(e.lane*LANE,1,0,WALL[e.operation[0]]??WALL['×'],26,{spread:4,lift:5,drift:6});}
@@ -225,7 +242,10 @@ export function createScene(container){
   if(text!==partText){partText=text;counter.update(text||' ','#fef3c7');counter.sprite.visible=!!text;}
   counter.sprite.position.set(hero.position.x,2.9+hero.position.y,0);
   // Высота стража — ниже строки задания экрана (кадр живого L6 16.09: на y 5,4 число пряталось под ней наполовину).
-  if(guard){guard.visible=course.length-view>=100&&!won;guard.position.y=3.2+(!reduced?Math.sin(time*.0015)*.2:0);}
+  // Пока впереди станция (те же 70 единиц, что у строки задания экрана), страж прячется: крупная строка станции
+  // ложилась на его число (кадр живого L12 16.09: «Собери ровно 15» поверх «755»).
+  const stationAhead=course.rows.slice(state.nextRow,state.nextRow+3).some(r=>(r.station||r.exact)&&r.z-view<=70);
+  if(guard){guard.visible=course.length-view>=100&&!won&&!stationAhead;guard.position.y=3.2+(!reduced?Math.sin(time*.0015)*.2:0);}
   if(course.finale&&!finale&&course.length-view<100)finale=buildFinale();
   if(finale){finale.root.position.z=view-course.length;
    const broken=won?finaleBroken(course,state.sum):0;

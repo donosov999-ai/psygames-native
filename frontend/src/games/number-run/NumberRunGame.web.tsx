@@ -55,7 +55,7 @@ export interface ПоказателиЗабега {
 }
 
 /** Что показать строкой задания: пример блиц-арки или цель ворот «ровно N». */
-export type СтанцияВпереди = { вид: 'blitz'; пример: string } | { вид: 'exact'; цель: number };
+export type СтанцияВпереди = { вид: 'blitz' | 'pattern' | 'scale'; пример: string } | { вид: 'exact'; цель: number };
 
 /** Итог всей партии. Одна запись на ЗАБЕГ, а не на этап (контракт адаптера). */
 export interface ИтогЗабега {
@@ -85,6 +85,8 @@ interface Props {
   уровень: number | null;
   /** Уровень-босс (веха `isBossLevel`): финал — страж вместо лестницы стен. */
   босс: boolean;
+  /** Язык записи выражений шкалы (десятичная запятая или точка) — как в самой «Мат. шкале». */
+  язык: 'ru' | 'en';
   /** Ручная пауза каркаса. Ядро останавливается СИНХРОННО, а не прикрывается окном. */
   пауза: boolean;
   onПоказатели: (п: ПоказателиЗабега) => void;
@@ -109,7 +111,7 @@ export interface РульЗабега {
 }
 
 const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRunGame(
-  { зерно, уровень, босс, пауза, onПоказатели, onИтог, фон, цветТекста }: Props, ref) {
+  { зерно, уровень, босс, язык, пауза, onПоказатели, onИтог, фон, цветТекста }: Props, ref) {
   const контейнер = useRef<View | null>(null);
   const rafRef = useRef<number | null>(null);
   const состояние = useRef<any>(null);
@@ -172,13 +174,15 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
          * каждом экране приложения нельзя: импорт стоит ЗДЕСЬ, внутри эффекта
          * игрового экрана, а не в начале модуля и не в реестре игр.
          */
-        const [c, k, sc, lv, спринт, состав] = await Promise.all([
+        const [c, k, sc, lv, спринт, состав, ряды, шкала] = await Promise.all([
           import('./runner-core.mjs') as Promise<Ядро>,
           import('./runner-campaign.mjs') as Promise<Кампания>,
           import('./runner-scene.mjs') as Promise<Сцена>,
           import('./runner-level.mjs') as Promise<Уровни>,
           import('../counting/mathSprintCore'),
           import('../counting/numberBondsLadder'),
+          import('../counting/patternSequences'),
+          import('../math-slider/core'),
         ]);
         if (!живо) return;
         ядро.current = c;
@@ -193,6 +197,19 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
           ? lv.makeLevel(уровень, зерно, {
             blitz: (L: number, rnd: () => number) => спринт.generateSprintProblem(L, rnd),
             exact: (L: number, rnd: () => number) => состав.makePuzzle(состав.levelParams(L), rnd),
+            pattern: (L: number, rnd: () => number) => {
+              const ряд = ряды.makeSequence(L, rnd);
+              return { ...ряд, options: ряды.makeOptions(ряд.answer, 3, rnd) };
+            },
+            /**
+             * Вопрос «Мат. шкалы» её же генератором. Зерно у неё строковое — берём его из генератора
+             * уровня, чтобы уровень повторялся по зерну. Выше 52-го у шкалы фигуры-интегралы: на
+             * табло над дорогой их не нарисовать, поэтому потолок станции — 52.
+             */
+            scale: (L: number, rnd: () => number) => {
+              const q = шкала.generateMathSliderQuestions(`run-${Math.floor(rnd() * 1e9)}`, Math.min(52, L), 1)[0];
+              return { prompt: шкала.formatExpression(q.expression, язык), min: q.scale.min, max: q.scale.max, answer: q.answer, ticks: q.scale.ticks };
+            },
           }, { boss: босс })
           : k.makeCampaign(зерно);
         этаповВсего.current = уровень !== null ? 1 : Number(k.STAGE_COUNT) || 12;
@@ -231,7 +248,7 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
       сцена.current = null;
     };
     // зерно меняется при каждой новой партии — экран пересоздаётся целиком
-  }, [зерно, уровень, босс]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [зерно, уровень, босс, язык]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── ручная пауза каркаса: ядро СИНХРОННО, а не окном поверх ────────────── */
   useEffect(() => {
@@ -381,7 +398,8 @@ function станцияВпереди(маршрут: any, s: any): Станци
   for (let i = s.nextRow; i < Math.min(rows.length, s.nextRow + 3); i++) {
     const r = rows[i];
     if (r.z - s.z > 70) return null;
-    if (r.kind === 'answer') return { вид: 'blitz', пример: String(r.prompt) };
+    if (r.kind === 'answer') return { вид: r.station === 'pattern' ? 'pattern' : 'blitz', пример: String(r.prompt) };
+    if (r.kind === 'scale') return { вид: 'scale', пример: String(r.prompt) };
     if (r.exact) return { вид: 'exact', цель: r.exact.target };
   }
   return null;

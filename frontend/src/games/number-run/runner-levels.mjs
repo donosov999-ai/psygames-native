@@ -51,6 +51,9 @@ export function applyOperation(sum,label,limit=9999){
  if(label.startsWith('+'))value+=Number(label.slice(1));else if(label.startsWith('−'))value-=Number(label.slice(1));else if(label.startsWith('×'))value*=Number(label.slice(1));else throw Error(`Unknown operation ${label}`);
  if(!Number.isSafeInteger(value)||Math.abs(value)>limit)throw Error('Arithmetic out of range');return value;
 }
+// Цена шкалы: ошибка — доля ширины шкалы. В допуске — прибавка; до двух допусков — ноль («близко»); дальше — минус.
+export function scaleDelta(row,err){return err<=row.tolerance?row.reward:err<=2*row.tolerance?0:-row.penalty;}
+export const scaleValue=(row,x)=>row.min+(Math.max(-1,Math.min(1,x))+1)/2*(row.max-row.min);
 // Цена ворот «ровно N» при собранной сумме got: ровно — прибавка; мимо — минус, растущий с промахом, не больше прибавки.
 // Живёт с прочими правилами арифметики: её читают ядро, решатель и построитель станций (без кольца импортов).
 export function exactDelta(exact,got){
@@ -67,7 +70,7 @@ function stationaryGain(r,lane){const d=r.divider,side=d?Math.sign(lane)||1:0,x=
  const touched=r.items.filter(i=>{const dz=i.dz??0;if(flying&&dz>-r.jump.launchOffset&&dz<r.jump.landingOffset)return false;if(d&&dz>=d.fromDz&&dz<=d.toDz&&Math.sign(i.x)!==side)return false;return Math.abs(i.x-x)<=(i.half??.18);});
  const plain=touched.filter(i=>!i.part).reduce((a,i)=>a+i.value,0);
  return r.exact?plain+exactDelta(r.exact,touched.filter(i=>i.part).reduce((a,i)=>a+i.value,0)):plain;}
-export function stationaryWins(course,lane){let sum=course.start;for(const r of course.rows){if(r.kind==='pickups')sum+=stationaryGain(r,lane);else if(r.kind==='answer')sum+=lane+1===r.correct?r.reward:-r.penalty;else if(r.kind==='operation')sum=applyOperation(sum,r.options[lane+1],course.mode==='journey'?1e6:9999);else if(r.kind==='obstacle'){if(r.jump){if(lane!==r.jump.lane)return false;}else {if(r.span&&r.penalties[lane+1])return false;sum-=r.penalties[lane+1];}}else if(!meets(sum,r.rules.length===1?r.rules[0]:r.rules[lane+1]))return false;}return true;}
+export function stationaryWins(course,lane){let sum=course.start;for(const r of course.rows){if(r.kind==='pickups')sum+=stationaryGain(r,lane);else if(r.kind==='answer')sum+=lane+1===r.correct?r.reward:-r.penalty;else if(r.kind==='scale')sum+=scaleDelta(r,Math.abs(scaleValue(r,lane)-r.answer)/(r.max-r.min));else if(r.kind==='operation')sum=applyOperation(sum,r.options[lane+1],course.mode==='journey'?1e6:9999);else if(r.kind==='obstacle'){if(r.jump){if(lane!==r.jump.lane)return false;}else {if(r.span&&r.penalties[lane+1])return false;sum-=r.penalties[lane+1];}}else if(!meets(sum,r.rules.length===1?r.rules[0]:r.rules[lane+1]))return false;}return true;}
 // Full accumulated states and intermediate gates, not a greedy sum of pickups.
 export function solveCourse(course){
  let candidates=[{sum:course.start,lane:0,z:0,path:[]}];

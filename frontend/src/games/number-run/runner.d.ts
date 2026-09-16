@@ -64,10 +64,13 @@ declare module '*/runner-level.mjs' {
   export const PASS_WALLS: number;
   export const BOSS_SHARE: number;
   export const CHAPTERS: readonly { from: number; station: string }[];
+  export const MIX_FROM: number;
   /** Генераторы задач станций приходят снаружи — те же, что у упражнений хаба. */
   export interface ЗадачиСтанций {
     blitz(level: number, rnd: () => number): { display: string; answer: number };
     exact(level: number, rnd: () => number): { target: number; chips: number[] };
+    pattern(level: number, rnd: () => number): { items: number[]; answer: number; options: number[] };
+    scale(level: number, rnd: () => number): { prompt: string; min: number; max: number; answer: number; ticks: number[] };
   }
   export function makeLevel(level: number, seed: number, tasks: ЗадачиСтанций, options?: { boss?: boolean }): any;
   export function levelPassed(course: any, value: number): boolean;
