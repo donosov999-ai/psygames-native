@@ -191,11 +191,17 @@ export default function MathSliderScreen() {
         onBack={() => setPhase('config')}
         /** Спрашиваем, только когда терять есть что: см. `onProgress` ниже. */
         confirmExit={armed}
+        /**
+         * Уровень — в полосу показателей. Без `hud` каркас рисовал ПУСТУЮ плашку под
+         * шапкой (кадры приёмки 16.09.2026): белая «таблетка» без единого знака.
+         */
+        hud={[{ key: 'level', icon: 'trending-up-outline', label: t('level'), value: level }]}
       >
         <MathSliderGame
           key={attempt}                 /* новый заход — чистое состояние модуля */
           seed={seed}
           level={level}
+          embedded      /* имя и пауза — в шапке каркаса, второй раз не рисуем */
           locale={language === 'ru' ? 'ru' : 'en'}
           trialCount={trialCount}
           /**
