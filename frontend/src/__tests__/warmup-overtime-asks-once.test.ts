@@ -1,4 +1,4 @@
-/* psygames-warmup-overtime · VER 1 · 09.09.2026 */
+/* psygames-warmup-overtime · VER 2 · 17.09.2026 */
 /**
  * 🔴 ВРЕМЯ ВЫШЛО, А ПОДХОДЫ ОСТАЛИСЬ — СПРАШИВАЕМ, НО ТОЛЬКО ОДИН РАЗ.
  *
@@ -91,8 +91,10 @@ describe('перебор времени спрашивает один раз', (
    */
   it('🔴 пока висит вопрос — отсчёт остановлен и переход не делается', () => {
     const src = код(читать('../../app/warmup-bridge.tsx'));
-    expect(src).toMatch(/if \(!warmup\.overtime \|\| !intervalRef\.current\) return;/);
-    expect(src).toMatch(/if \(warmup\.overtime \|\| countdown !== 0/);
+    // С 17.09.2026 отсчёт стоит и под вторым вопросом моста — «Остановить зарядку?»
+    // (warmup-bridge-stop-asks-first). Условие перебора обязано остаться в обеих строках.
+    expect(src).toMatch(/if \(!\(?warmup\.overtime(?: \|\| спрашиваемСтоп)?\)? \|\| !intervalRef\.current\) return;/);
+    expect(src).toMatch(/if \(warmup\.overtime(?: \|\| спрашиваемСтоп)? \|\| countdown !== 0/);
   });
 
   it('🔴 ответ «доиграть» помечает комплекс спрошенным, иначе вопрос вернётся', () => {

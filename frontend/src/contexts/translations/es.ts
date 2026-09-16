@@ -2846,5 +2846,7 @@ const t: Record<string, string> = {
   "puzzlesSlantIntroDesc": "Traza exactamente una diagonal en cada casilla — “/” o “\\\\”. Los números están en las esquinas e indican cuántos extremos de diagonal se juntan EN ESA esquina: 0 ninguno, 4 los cuatro. La restricción clave: las líneas nunca deben formar un bucle cerrado. Un toque breve cambia la inclinación, una pulsación larga la cambia al revés.",
   "puzzlesBlackBoxIntroDesc": "Dentro de una caja cerrada hay bolas escondidas y debes encontrarlas sin mirar. Tocar una flecha del borde dispara un rayo: viaja recto, se desvía al pasar junto a una bola y se absorbe al chocar con una. Por dónde sale, si vuelve o si no aparece, las posiciones se deducen con certeza. Tocar una casilla coloca la suposición “aquí hay una bola”; una pulsación larga la marca vacía.",
   "puzzlesGuessIntroDesc": "Hay una fila de colores oculta y tienes intentos limitados. Arma tu fila y confirma; la respuesta llega como marcas: cuántos colores están en el lugar CORRECTO y cuántos figuran en el código pero en otro sitio. Nunca se revela qué marca corresponde a qué ficha, así que cada intento es una deducción, no un barrido. Un toque pone un color, una pulsación larga lo quita.",
+  "warmupStopAsk": "¿Detener el calentamiento? Jugados {n} de {m}",
+  "warmupStopKeep": "Seguir con el calentamiento",
 };
 export default t;

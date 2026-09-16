@@ -2841,5 +2841,7 @@ const t: Record<string, string> = {
   "puzzlesSlantIntroDesc": "Traccia esattamente una diagonale in ogni cella — “/” oppure “\\\\”. I numeri stanno sugli angoli e dicono quante estremità si incontrano IN QUELL’angolo: 0 nessuna, 4 tutte e quattro. Il vincolo decisivo: le linee non devono mai formare un anello chiuso. Un tocco breve cambia l’inclinazione, una pressione lunga la cambia al contrario.",
   "puzzlesBlackBoxIntroDesc": "In una scatola chiusa sono nascoste delle biglie e devi trovarle senza guardarci dentro. Toccando una freccia sul bordo parte un raggio: va dritto, devia accanto a una biglia, viene assorbito se ne colpisce una. Da dove esce, torna o non compare, le posizioni si deducono con certezza. Toccare una cella pone “qui c’è una biglia”; una pressione lunga la segna vuota.",
   "puzzlesGuessIntroDesc": "Una fila di colori è nascosta e i tentativi sono contati. Componi la tua fila e conferma; la risposta torna come segni: quanti colori sono al posto GIUSTO e quanti compaiono nel codice ma altrove. Quale segno appartenga a quale pedina non viene mai detto: ogni tentativo è una deduzione, non una scansione. Un tocco imposta un colore, una pressione lunga lo toglie.",
+  "warmupStopAsk": "Interrompere il riscaldamento? Giocati {n} di {m}",
+  "warmupStopKeep": "Continua il riscaldamento",
 };
 export default t;
