@@ -4,7 +4,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
   ScrollView, Image
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { hudTime } from '@/src/services/hudTime';
@@ -34,6 +34,8 @@ import { SPRITE_COUNT, pairSpritesForProfile, pairBackForProfile } from '@/src/c
 import {FlipCard, HudBadge, ScorePopupLayer, useScorePopups, hapticSuccess, hapticError } from '@/src/components/juice';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
+import { ПАЛЕЦ } from '@/src/components/gameLayout';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#f857a6', '#ff5858'];
@@ -161,6 +163,62 @@ export function levelCfg(L: number): { pairs: number; groupSize: number; photo: 
   return { pairs, groupSize, photo: true, previewMs, swapsPerMiss };
 }
 
+/** Зазор между картами поля. */
+const ЗАЗОР_КАРТ = 8;
+
+/**
+ * Сетка поля: столбцы и сторона карты.
+ *
+ * 🔴 СТОРОНА ПОДГОНЯЕТСЯ И ПОД ВЫСОТУ, А НЕ ТОЛЬКО ПОД ШИРИНУ. Пока карта считалась
+ * от одной ширины, на 360×640 четыре столбца давали карту 76 и поле L14 (5 рядов)
+ * вставало одной картой под кнопку отзыва — замер живой сборки 16.09.2026. Теперь
+ * карта не больше того, что влезает по высоте над резервом под кнопку, но и не меньше
+ * пальца (ПАЛЕЦ = 48): мельче нажимать нельзя, и там поле честно прокручивается.
+ * Ширина — жёсткий предел: на экране 320 шесть столбцов по 48 не помещаются, и карта
+ * остаётся той, что влезает (как было до правки), а не вылезает за край.
+ *
+ * `высотаПоля` = 0 — поле ещё не измерено (первый кадр, пробы без раскладки): тогда
+ * считаем только по ширине, то есть ровно как прежде.
+ */
+export function сеткаПар(p: {
+  групп: number;
+  карт: number;
+  ширинаКонтейнера: number;
+  высотаПоля: number;
+  резервСнизу: number;
+  подсказка: number;
+}): { столбцов: number; карта: number; ширина: number; высота: number; безПрокрутки: boolean } {
+  const вариант = (столбцов: number) => {
+    const рядов = Math.max(1, Math.ceil(p.карт / столбцов));
+    const поШирине = (p.ширинаКонтейнера - (столбцов - 1) * ЗАЗОР_КАРТ) / столбцов;
+    const поВысоте = p.высотаПоля > 0
+      ? (p.высотаПоля - p.резервСнизу - p.подсказка - (рядов - 1) * ЗАЗОР_КАРТ) / рядов
+      : Infinity;
+    const карта = Math.floor(Math.min(поШирине, Math.max(ПАЛЕЦ, поВысоте)));
+    const высота = рядов * карта + (рядов - 1) * ЗАЗОР_КАРТ;
+    return {
+      столбцов,
+      карта,
+      ширина: столбцов * карта + (столбцов - 1) * ЗАЗОР_КАРТ,
+      высота,
+      безПрокрутки: p.высотаПоля <= 0 || высота + p.подсказка + p.резервСнизу <= p.высотаПоля,
+    };
+  };
+  const прежний = p.групп <= 10 ? 4 : 6;
+  if (p.высотаПоля <= 0) return вариант(прежний);
+  /**
+   * 🔴 СТОЛБЦЫ ВЫБИРАЮТСЯ ПО ПОЛЮ, А НЕ ПО ЧИСЛУ ГРУПП. Правило «до десяти групп — четыре
+   * столбца» писалось под пары: десять пар — 20 карт, 5 рядов. У четвёрок девять-десять
+   * групп — 36–40 карт, и в четыре столбца это 9–10 рядов: на эталонном 390×844 уровни
+   * L18 и L19 не помещались над кнопкой (проба `picture-pairs-field-clears-feedback-button`).
+   * Берём тот из двух раскладов, что помещается без прокрутки; из подходящих — с картой крупнее.
+   */
+  const [четыре, шесть] = [вариант(4), вариант(6)];
+  if (четыре.безПрокрутки !== шесть.безПрокрутки) return четыре.безПрокрутки ? четыре : шесть;
+  if (четыре.карта !== шесть.карта) return четыре.карта > шесть.карта ? четыре : шесть;
+  return прежний === 4 ? четыре : шесть;
+}
+
 /** Сколько обменов после этой ошибки: целая часть среднего — всегда, дробная — броском. */
 export function обменовПослеОшибки(swapsPerMiss: number, rnd: () => number): number {
   const целых = Math.floor(swapsPerMiss);
@@ -182,6 +240,22 @@ export default function PicturePairsGame() {
   const { profile } = useProfile();
   const router = useRouter();
   const { width } = useWindowDimensions();
+  /**
+   * 🔴 ПОЛЕ НЕ ЗАХОДИТ ПОД КНОПКУ ОТЗЫВА. Замер живой сборки 16.09.2026, L37, 48 карт:
+   * кнопка (слева внизу, поднята на FAB_BOTTOM над вырезом) закрывала «Карточку 43» на
+   * 38 % при 390×844 и «Карточку 37» на 94 % при 360×640, прокрутки у поля не было —
+   * карту не достать. Держалось с L21; пункт приёмки мерился только на L5 и L14.
+   *
+   * Резерв снизу — `insets.bottom + FAB_CLEARANCE`, а не `reserveBottom` раздела «Поиск»:
+   * тот равен 131 + max(вырез, 10) и на iPhone с вырезом 34 даёт 165 при верхе кнопки
+   * 174 — перекрытие 9 точек. Карты мельче пальца (48) делать нельзя, поэтому там, где
+   * 48 карт выше кнопки не помещаются (360×640), поле прокручивается.
+   */
+  const insets = useSafeAreaInsets();
+  const резервПодКнопку = insets.bottom + FAB_CLEARANCE;
+  /** Высота окна прокрутки поля и строки-подсказки под ним — замер onLayout, не догадка. */
+  const [высотаПоля, setВысотаПоля] = useState(0);
+  const [высотаПодсказки, setВысотаПодсказки] = useState(44);
   const sprites = pairSpritesForProfile(profile?.id);
   const cardBack = pairBackForProfile(profile?.id);
   const { popups, spawn } = useScorePopups();
@@ -581,11 +655,13 @@ export default function PicturePairsGame() {
     }
   };
 
-  // grid layout — adapt cols to pairsCount
-  const cols = pairsCount <= 6 ? 4 : pairsCount <= 10 ? 4 : 6;
-  const gap = 8;
+  // Сетка: столбцы по числу групп, сторона карты — по ширине и по высоте поля (см. сеткаПар).
   const containerW = Math.min(width - 32, 480);
-  const cardSize = (containerW - (cols - 1) * gap) / cols;
+  const сетка = сеткаПар({
+    групп: pairsCount, карт: cards.length, ширинаКонтейнера: containerW,
+    высотаПоля, резервСнизу: резервПодКнопку, подсказка: высотаПодсказки,
+  });
+  const cardSize = сетка.карта;
 
   /**
    * Выбор «уровни / свободно» — ОБЩИЙ компонент, как в судоку, Шульте, глазной
@@ -755,48 +831,66 @@ export default function PicturePairsGame() {
             </View>
           )}
         >
-          <View style={[styles.cardsArea, { width: containerW }]}>
-            {cards.map((card, i) => (
-              <FlipCard
-                key={i}
-                size={cardSize}
-                radius={10}
-                flipped={card.flipped || card.matched}
-                matched={card.matched}
-                disabled={card.matched || card.flipped || locked}
-                onPress={() => handleCardPress(i)}
-                a11yLabel={
-                  // Пока карта закрыта — символ НЕ называем, иначе игра теряет смысл.
-                  card.flipped || card.matched
-                    ? `${t('a11yCard')} ${i + 1}, ${card.symbol + 1}${card.matched ? `, ${t('a11yFound')}` : ''}`
-                    : `${t('a11yCard')} ${i + 1}`
-                }
-                back={
-                  swapPair?.includes(i) ? (
-                    // Пара, которая сейчас меняется местами: толстая рамка и значок обмена —
-                    // одной рамки на девяти цветах рубашек мало.
-                    <View testID="pp-swap-lit" style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: cardBack.color, justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: SWAP_LIT_COLOR }}>
-                      <Ionicons name="swap-horizontal" size={cardSize * 0.42} color="#ffffff" />
+          {/* Накладка итога и всплывающие очки — ВНЕ прокрутки: иначе уехали бы вместе с полем. */}
+          <ScrollView
+            testID="pp-field-scroll"
+            style={styles.fieldScroll}
+            contentContainerStyle={[styles.fieldScrollContent, { paddingBottom: резервПодКнопку }]}
+            showsVerticalScrollIndicator={false}
+            onLayout={(e) => {
+              const h = Math.round(e.nativeEvent.layout.height);
+              setВысотаПоля((было) => (Math.abs(было - h) > 1 ? h : было));
+            }}
+          >
+            <View style={[styles.cardsArea, { width: сетка.ширина }]}>
+              {cards.map((card, i) => (
+                <FlipCard
+                  key={i}
+                  size={cardSize}
+                  radius={10}
+                  flipped={card.flipped || card.matched}
+                  matched={card.matched}
+                  disabled={card.matched || card.flipped || locked}
+                  onPress={() => handleCardPress(i)}
+                  a11yLabel={
+                    // Пока карта закрыта — символ НЕ называем, иначе игра теряет смысл.
+                    card.flipped || card.matched
+                      ? `${t('a11yCard')} ${i + 1}, ${card.symbol + 1}${card.matched ? `, ${t('a11yFound')}` : ''}`
+                      : `${t('a11yCard')} ${i + 1}`
+                  }
+                  back={
+                    swapPair?.includes(i) ? (
+                      // Пара, которая сейчас меняется местами: толстая рамка и значок обмена —
+                      // одной рамки на девяти цветах рубашек мало.
+                      <View testID="pp-swap-lit" style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: cardBack.color, justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: SWAP_LIT_COLOR }}>
+                        <Ionicons name="swap-horizontal" size={cardSize * 0.42} color="#ffffff" />
+                      </View>
+                    ) : (
+                      <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: cardBack.color, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
+                        <Ionicons name={cardBack.icon as any} size={cardSize * 0.32} color="rgba(255,255,255,0.6)" />
+                      </View>
+                    )
+                  }
+                  front={
+                    <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: card.matched ? '#22c55e' : colors.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }}>
+                      <Image source={sprites[card.symbol]} style={{ width: cardSize * 0.82, height: cardSize * 0.82 }} resizeMode="contain" />
                     </View>
-                  ) : (
-                    <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: cardBack.color, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
-                      <Ionicons name={cardBack.icon as any} size={cardSize * 0.32} color="rgba(255,255,255,0.6)" />
-                    </View>
-                  )
-                }
-                front={
-                  <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: card.matched ? '#22c55e' : colors.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }}>
-                    <Image source={sprites[card.symbol]} style={{ width: cardSize * 0.82, height: cardSize * 0.82 }} resizeMode="contain" />
-                  </View>
-                }
-              />
-            ))}
-          </View>
-          {/* Строка «что делать»: без неё правило видно только в справке, а
-              в справку во время партии не ходят. */}
-          {!previewActive && (
-            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('picturePairsHint')}</Text>
-          )}
+                  }
+                />
+              ))}
+            </View>
+            {/* Строка «что делать»: без неё правило видно только в справке, а
+                в справку во время партии не ходят. */}
+            {!previewActive && (
+              <Text
+                style={[styles.hintText, { color: colors.textSecondary }]}
+                onLayout={(e) => {
+                  const h = Math.round(e.nativeEvent.layout.height) + 12;   // + marginTop строки
+                  setВысотаПодсказки((было) => (Math.abs(было - h) > 1 ? h : было));
+                }}
+              >{t('picturePairsHint')}</Text>
+            )}
+          </ScrollView>
           {/* Итог — общей карточкой поверх поля. Своя плашка не сохраняла звёзды,
               не считала серию и не тикала глаз-разрядку; всё это живёт в общей. */}
           {levelBanner !== null && (
@@ -846,6 +940,8 @@ export default function PicturePairsGame() {
 
 const styles = StyleSheet.create({
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 320, marginTop: 12 },
+  fieldScroll: { flex: 1, alignSelf: 'stretch' },
+  fieldScrollContent: { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
@@ -865,7 +961,7 @@ const styles = StyleSheet.create({
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   statsRow: { flexDirection: 'row', justifyContent: 'center', gap: 10, flexWrap: 'wrap', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
-  cardsArea: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start', maxWidth: '100%' },
+  cardsArea: { flexDirection: 'row', flexWrap: 'wrap', gap: ЗАЗОР_КАРТ, justifyContent: 'flex-start', maxWidth: '100%' },
   card: { borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   cardText: { textAlign: 'center' },
 });
