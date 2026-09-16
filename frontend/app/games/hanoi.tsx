@@ -1,4 +1,4 @@
-/* psygames-game-hanoi · VER 3 · 28.08.2026 */
+/* psygames-game-hanoi · VER 4 · 16.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -672,6 +672,14 @@ export default function HanoiGame() {
             ]}
           >
             <View style={[styles.pegStack, { minHeight: boardH }]}>
+              {/* 🔴 СТЕРЖЕНЬ — ПЕРВЫМ, ДИСКИ ПОВЕРХ НЕГО. У каждого View в react-native-web
+                  `position: relative; z-index: 0`, поэтому рисуются они строго в порядке
+                  дерева, и абсолютный стержень, стоявший ПОСЛЕ дисков, ложился на них сверху:
+                  светлая полоса шла через цифры. 📍 Замер 16.09.2026, собранный веб 390×844,
+                  `scripts/hanoi-disc-label-probe.mjs`: в центре номера у всех трёх дисков L1
+                  `elementFromPoint` отдавал стержень 10×373. Диск на стержне и должен его
+                  закрывать — так он и надет. */}
+              <View style={[styles.pole, { backgroundColor: colors.text, height: boardH - 20 }]} />
               {/* ЗАЧЕМ: в peg[] индекс 0 = НИЗ стержня, последний элемент = ВЕРХ
                   (handlePegPress берёт top = from[from.length - 1]). Колонка RN рисует детей
                   сверху вниз, поэтому массив разворачиваем: без reverse широкий диск оказывался
@@ -692,7 +700,6 @@ export default function HanoiGame() {
                   <Text style={styles.discLabel} numberOfLines={1}>{size}</Text>
                 </LinearGradient>
               ))}
-              <View style={[styles.pole, { backgroundColor: colors.text, height: boardH - 20 }]} />
               <View style={[styles.pegBase, { backgroundColor: colors.text, width: pegW - 12 }]} />
             </View>
           </TouchableOpacity>
