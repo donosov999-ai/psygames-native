@@ -19,6 +19,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import CategorySections from '@/src/components/CategorySections';
+import { показыватьБлок } from '@/src/constants/homeBlocks';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { favouriteCategories } from '@/src/services/favouriteCategories';
 import { FEATURE_ICONS } from '@/src/constants/featureIcons';
@@ -32,7 +33,7 @@ import { wagerTick } from '@/src/services/wager';
 import { getTodayChallenge, challengeToParams, loadChallengeStreak, setPendingChallenge, isChallengeDoneToday, ChallengeStreak } from '@/src/services/daily-challenge';
 import { useAllLevelStars } from '@/src/hooks/useAllLevelStars';
 import { playerLevel, nextLock, levelsToNextLock } from '@/src/services/featureLadder';
-import { chestState, earnedTotal, FIGURES } from '@/src/services/collection';
+import { chestState, earnedTotal, фигурки } from '@/src/services/collection';
 import { sndToken, sndLevelUp, sndStreak, startMusic, stopMusic, getMusicEnabled } from '@/src/services/feedback';
 import { useFocusEffect } from 'expo-router';
 import { GAMES, visibleInCatalog, GameConfig } from '@/src/constants/games';
@@ -117,7 +118,14 @@ function FullHome() {
   const { t, language } = useLanguage();
   const router = useRouter();
   const warmup = useWarmup();
-  const { profile, ready: profileReady } = useProfile();
+  const { profile, ready: profileReady, составИзФайла } = useProfile();
+  /**
+   * Какие блоки главной показывать у этого профиля — из файла настроек.
+   * `null` = файл про главную ничего не сказал, показываем всё, как в сборке.
+   * Файл умеет только УБРАТЬ блок: свои условия у блоков остаются главнее,
+   * иначе можно было бы вывести заголовок над пустотой.
+   */
+  const блокиГлавной = составИзФайла?.профили?.[profile.id]?.главная ?? null;
   // Витрина тем: надетые чужой фон/значок перекрывают профильные (Т5).
   const [bgOverride, setBgOverride] = useState<string | null>(null);
   const [badgeOverride, setBadgeOverride] = useState<string | null>(null);
@@ -960,7 +968,7 @@ function FullHome() {
           activeOpacity={0.85}
           onPress={() => router.push('/collection' as any)}
           accessibilityLabel={`${сундук.next
-            ? t('chestToNext').replace('{n}', String(сундук.left)).replace('{have}', String(сундук.have)).replace('{all}', String(FIGURES.length))
+            ? t('chestToNext').replace('{n}', String(сундук.left)).replace('{have}', String(сундук.have)).replace('{all}', String(фигурки().length))
             : t('chestFull')} — ${t('collectionOpen')}`}
           style={[styles.chestCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
         >
@@ -968,7 +976,7 @@ function FullHome() {
           <View style={styles.chestBody}>
             <Text style={[styles.chestText, { color: colors.textSecondary }]} numberOfLines={2}>
               {сундук.next
-                ? t('chestToNext').replace('{n}', String(сундук.left)).replace('{have}', String(сундук.have)).replace('{all}', String(FIGURES.length))
+                ? t('chestToNext').replace('{n}', String(сундук.left)).replace('{have}', String(сундук.have)).replace('{all}', String(фигурки().length))
                 : t('chestFull')}
             </Text>
             <View style={[styles.chestTrack, { backgroundColor: colors.border }]}>
@@ -1026,6 +1034,7 @@ function FullHome() {
             onSkip={onGoalSkip}
           />
         )}
+        {показыватьБлок('цель_дня', блокиГлавной) && (
         <DailyGoalCard
           state={goalCard.state}
           goalText={goalCard.goal?.text ?? null}
@@ -1038,6 +1047,7 @@ function FullHome() {
           onDismiss={onGoalDismiss}
           onOutcome={onGoalOutcome}
         />
+        )}
 
         {/* 📒 «Сегодня» — что сыграно за календарные сутки и сколько принесло.
             Блок рисуется ВСЕГДА, в том числе на пустом дне: заголовок с приглашением
@@ -1053,6 +1063,7 @@ function FullHome() {
           * карточек в рекомендациях: полоса читается одним взглядом, а полный список
           * живёт на своём экране.
           */}
+        {показыватьБлок('сегодня', блокиГлавной) && (
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={t('today')}
@@ -1115,12 +1126,13 @@ function FullHome() {
             </>
           )}
         </TouchableOpacity>
+        )}
 
         {/* 🎯 «Рекомендуем сегодня» — три упражнения вместо выбора из семидесяти одного.
             Под каждым сказано, ПОЧЕМУ оно здесь: причину считает recommend.ts по партиям
             этого человека, разметка её только показывает. Пустой блок не рисуем вовсе —
             заголовок над пустотой читается как поломка. */}
-        {reco.length > 0 && (
+        {reco.length > 0 && показыватьБлок('рекомендации', блокиГлавной) && (
           <View style={styles.recoBlock}>
             <View style={styles.sectionHeader}>
               <View style={[styles.sectionDot, { backgroundColor: colors.primary }]} />
@@ -1189,6 +1201,8 @@ function FullHome() {
           * продолжение рекомендаций, хотя это другое: там упражнения на выбор, здесь —
           * ежедневные практики и вызов. Заголовок той же формы, что у соседей.
           */}
+        {показыватьБлок('практики', блокиГлавной) && (
+        <>
         <View style={styles.sectionHeader}>
           <View style={[styles.sectionDot, { backgroundColor: '#10b981' }]} />
           <Ionicons name="leaf-outline" size={19} color="#10b981" />
@@ -1280,6 +1294,8 @@ function FullHome() {
             </GradientSurface>
           </TouchableOpacity>
         </View>
+        </>
+        )}
 
         {/* v1.238: ВТОРОГО РЯДА КАРТОЧЕК БОЛЬШЕ НЕТ.
             В нём оставался ровно один жилец — «Вызов дня»: «Оценка» и FIN BRAIN
@@ -1300,7 +1316,7 @@ function FullHome() {
           «Рекомендуем сегодня» с тремя упражнениями и причиной под каждым, а
           весь каталог лежит во вкладке в одном нажатии.
         */}
-        {любимыеРазделы.length > 0 && (
+        {любимыеРазделы.length > 0 && показыватьБлок('любимые_разделы', блокиГлавной) && (
           <>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('favouriteSections')}</Text>

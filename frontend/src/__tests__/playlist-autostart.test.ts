@@ -47,8 +47,15 @@ describe('плейлист зарядки: авто-старт', () => {
      * написания старта и краснела на исправных экранах, стоило написать четвёртым
      * способом. Требование одно: переход в партию висит на признаке автостарта.
      */
+    /**
+     * ⚠️ И ПРИЗНАК ПИШУТ ПО-РУССКИ ТОЖЕ. 13.09.2026 «Трубы» (`puzzles`) попали в
+     * ночной набор, и гейт объявил их ручными — хотя автостарт там есть, просто
+     * записан как `setФаза('playing')`, а условие стоит не первым (`живо &&
+     * autostart`). Слепое пятно ровно того же рода, что чинила прошлая редакция:
+     * проверялась ФОРМА записи, а не смысл.
+     */
     const auto = /useAutostart(?:WhenReady)?\(/.test(src)
-      || /if \(autostart[^)]*\)\s*(?:\{\s*)?(?:start|setPhase\('playing'\))/.test(src);
+      || /if \([^)]*autostart[^)]*\)\s*(?:\{\s*)?(?:start|setPhase\('playing'\)|setФаза\('playing'\))/.test(src);
     expect(auto).toBe(true);
   });
 
@@ -71,7 +78,7 @@ describe('плейлист зарядки: авто-старт', () => {
     if (!lvl) return;   // экран без персист-уровня ждать нечего
     const calls = [...src.matchAll(/useAutostart(?:WhenReady)?\(([\s\S]*?),\s*(?:\(\)|[A-Za-z_$])/g)]
       .map((m) => m[1] as string);
-    const manual = [...src.matchAll(/if \(autostart([^)]*)\)/g)].map((m) => m[1] as string);
+    const manual = [...src.matchAll(/if \(([^)]*autostart[^)]*)\)/g)].map((m) => m[1] as string);
     const conds = calls.concat(manual);
     expect(`${id}: условий автостарта ${conds.length > 0}`).toBe(`${id}: условий автостарта true`);
     for (const c of conds) {

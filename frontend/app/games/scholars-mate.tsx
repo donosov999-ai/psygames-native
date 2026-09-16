@@ -49,8 +49,8 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
-import { LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, mixedMotifCount, namedMotifCount } from '@/src/games/scholars-mate/core/deck';
-import { starsFor, ступеньПоМедиане, порогУровня, допускПромахов } from '@/src/games/scholars-mate/core/run';
+import { КЛЮЧ_ВИДА, LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, mixedMotifCount, namedMotifCount, newMotifAt, видыУровня } from '@/src/games/scholars-mate/core/deck';
+import { звёздыПодхода, ступеньПоМедиане, порогУровня, допускПромахов } from '@/src/games/scholars-mate/core/run';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
 
@@ -95,7 +95,7 @@ export default function ScholarsMateScreen() {
   // и доска встала бы нулевого размера. Гейт ширины это ловит.
   const width = useScreenWidth();
   const lvl = usePersistentLevel('scholars_mate');
-  const { isPreset, autostart, num, isCalm } = useGamePreset();
+  const { isPreset, autostart, num, bool, str, isCalm } = useGamePreset();
   useCalmHush(isCalm);
   const mode = useGameMode();
 
@@ -104,13 +104,41 @@ export default function ScholarsMateScreen() {
   const [clearedPassed, setClearedPassed] = React.useState(false);
   const [armed, setArmed] = React.useState(false);
   const [attempt, setAttempt] = React.useState(0);
-  const [поток, setПоток] = React.useState(false);
-  const [режим, setРежим] = React.useState<'sacrifice' | null>(null);
+  /**
+   * 🔴 ПОТОК ВКЛЮЧАЕТСЯ И ПАРАМЕТРОМ (13.09.2026).
+   *
+   * Режим потока здесь с 05.09.2026 по просьбе Дениса («десять минут позиций
+   * подряд, без экрана итога между ними»), но включался он только галочкой на
+   * экране настройки — то есть своя серия из редактора запустить его не могла и
+   * получала обычные партии с итогом после каждой. Теперь `?flow=1` включает
+   * ровно то же, а `?motif=<узор>` задаёт узор: «для шахмат это слепые шахматы в
+   * рандом-режиме детского мата» (13.09.2026).
+   */
+  const [поток, setПоток] = React.useState(() => bool('flow', false));
+  const [режим, setРежим] = React.useState<'sacrifice' | null>(() => (str('drill', '') === 'sacrifice' ? 'sacrifice' : null));
   /** Выбранный именованный узор и открыт ли список. */
-  const [узор, setУзор] = React.useState<string | null>(null);
+  const [узор, setУзор] = React.useState<string | null>(() => str('motif', '') || null);
   /** Микс узоров: подаются вперемешку, имя до ответа скрыто. */
-  const [микс, setМикс] = React.useState(false);
+  /* Рандом-режим: узоры вперемешку, имя скрыто до ответа. `?mix=1` — чтобы своя
+     серия могла попросить именно его («в рандом-режиме детского мата»). */
+  const [микс, setМикс] = React.useState(() => bool('mix', false));
   const [списокОткрыт, setСписокОткрыт] = React.useState(false);
+  /**
+   * 🔴 ЗЕРНО КОЛОДЫ — ПАРАМЕТРОМ, ИНАЧЕ ПОВТОР ШАГА СДАЁТ ТУ ЖЕ РАЗДАЧУ.
+   *
+   * `seed` внизу был `attempt + 1`, а `attempt` при запуске из зарядки всегда 0:
+   * экран монтируется заново на каждом шаге. Значит два шага «Детского мата» в
+   * одной серии получали ОДНУ И ТУ ЖЕ колоду — и в потоке на пятнадцать минут,
+   * где микс идёт девять раз, человек девять раз видел бы одни позиции.
+   *
+   * Замечено 13.09.2026, когда Денис попросил ставить в поток именно микс:
+   * «детский мат в одной фазе слишком простой, когда переключение — это сложнее».
+   * Разное зерно на шаг и делает переключение настоящим.
+   *
+   * ⚠️ Вне зарядки поведение прежнее: `attempt + 1`, чтобы «ещё раз» на экране
+   * итога сдавал следующую раздачу, а не случайную.
+   */
+  const зерноШага = num('seed', 0);
 
   const level = num('level', lvl.level);
   /**
@@ -242,7 +270,7 @@ export default function ScholarsMateScreen() {
    * позицию времени: уложился в треть — три звезды.
    */
   const stars = React.useMemo(
-    () => (last && last.solved ? starsFor(last.medianMs, shownLevel) : 1),
+    () => (last && last.solved ? звёздыПодхода(last.medianMs, shownLevel, last.hints ?? 0) : 1),
     [last, shownLevel],
   );
 
@@ -364,7 +392,7 @@ export default function ScholarsMateScreen() {
         <ScholarsMateGame
           key={attempt}
           level={level}
-          seed={attempt + 1}
+          seed={зерноШага > 0 ? зерноШага + attempt : attempt + 1}
           flowMs={поток ? FLOW_MS : undefined}
           onlyKind={режим ?? undefined}
           namedMotif={узор ?? undefined}
@@ -379,15 +407,20 @@ export default function ScholarsMateScreen() {
           onComplete={onComplete}
           motifName={имяУзора}
           labels={{
-            mate: t('scholarsMateAsk'),
-            defend: t('scholarsDefendAsk'),
-            threat: t('scholarsThreatAsk'),
-            sacrifice: t('scholarsSacrificeAsk'),
+            /* Подписи берутся из КАРТЫ В ЯДРЕ (`КЛЮЧ_ВИДА`) — по ней же подписана
+               карточка уровня. Два списка разошлись бы при первой же правке. */
+            mate: t(КЛЮЧ_ВИДА.mate),
+            defend: t(КЛЮЧ_ВИДА.defend),
+            threat: t(КЛЮЧ_ВИДА.threat),
+            sacrifice: t(КЛЮЧ_ВИДА.sacrifice),
             yes: t('scholarsYes'),
             no: t('scholarsNo'),
             best: t('scholarsBest'),
             timeUp: t('timeIsUp'),
             sec: t('secShort'),
+            /* Оба ключа уже в словаре и переведены — новых заводить не пришлось. */
+            hint: t('btn_hint'),
+            hintUsed: t('hintUsed'),
           }}
         />
       </GameShell>
@@ -446,6 +479,34 @@ export default function ScholarsMateScreen() {
                 {п.seconds} {t('secShort')} · {п.count} · ✕ ≤{допускПромахов(level)}
               </Text>
             </View>
+            {/*
+              🔴 ЧЕМУ УЧИТ ЭТОТ УРОВЕНЬ — СЛОВАМИ, А НЕ НОМЕРОМ.
+              Замер 12.09.2026: карточка называла ноль из видов задания, стоящих на
+              уровне. Человек видел «Уровень 19 · 13 с · 10 · ✕ ≤1» и узнавал, что здесь
+              спрашивают «грозит ли мат» и «защитись», только начав играть. У соседней
+              игры такая строка есть с самого начала (`chess-blind.tsx`, `descBits`).
+              ⚠️ Новых ключей НЕТ: подписи те же, что игра показывает над доской, и
+              берутся из одной карты в ядре. Разойтись им не даёт проба.
+            */}
+            <View style={стили.строка}>
+              <Ionicons name="school-outline" size={18} color={colors.textSecondary} />
+              <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]}>
+                {видыУровня(level).map((k) => t(КЛЮЧ_ВИДА[k])).join(' · ')}
+              </Text>
+            </View>
+            {/* Узор, который ОТКРЫВАЕТСЯ именно здесь: ступень названа тем, что на ней ново. */}
+            {(() => {
+              const узорСтупени = newMotifAt(level);
+              const имя = узорСтупени ? имяУзора(узорСтупени) : '';
+              return имя ? (
+                <View style={стили.строка}>
+                  <Ionicons name="sparkles-outline" size={18} color={colors.textSecondary} />
+                  <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]}>
+                    {t('scholarsNewMotif')}: {имя}
+                  </Text>
+                </View>
+              ) : null;
+            })()}
             {/*
               ⚠️ Было четыре голых числа подряд — «38028 · 378 · 3000 · 371».
               Что это, не понимал никто, включая меня через час. Теперь одна

@@ -1367,10 +1367,26 @@ export default function SudokuGame() {
    * (0.6 клетки, см. clueGutter ниже). Без неё в бюджете доска 9×9 занимала 359 точек
    * в поле шириной 343 и вылезала за оба края (замер живой сборки 20.08.2026).
    */
+  /**
+   * 🔴 СКОЛЬКО СТРОК У КЛАВИАТУРЫ — ЗНАТЬ ДО ТОГО, КАК СЧИТАТЬ ДОСКУ.
+   * Правило 9 (UI_LAYOUT_RULES.md): ответ, до которого надо доскроллить, ответом не
+   * считается. Бюджет высоты доски обязан вычитать ПОЛНУЮ высоту клавиатуры, включая
+   * вторую строку, иначе доска забирает её место и строка уезжает за нижний край.
+   * Замер 12.09.2026, 360×640: ряд «6 7 8 9 ⌫» стоял на y 625…675 при экране 640.
+   */
+  const ПОТОЛОК_В_СТРОКЕ = landscape ? 3 : 5;
+  const строкКлавиатуры = Math.ceil((N + 1) / ПОТОЛОК_В_СТРОКЕ);
+  /** Высота строки клавиш: кнопка `numBtn` 50 + зазор `numPadCol` 6. */
+  const СТРОКА_КЛАВИШ = 50 + 6;
+  /**
+   * Базовый резерв 330 замерен, когда клавиатура была ОДНОСТРОЧНОЙ. Каждая следующая
+   * строка стоит ровно свою высоту — это не подгонка, а то же число, что и в вёрстке.
+   */
+  const резервНиза = 330 + (строкКлавиатуры - 1) * СТРОКА_КЛАВИШ;
   const clueCols = variant === 'sandwich' ? 0.6 : variant === 'towers' ? 1.2 : 0;   // towers: колонки видимости с ОБОИХ краёв
   const cellSize = landscape
     ? Math.max(16, Math.floor(Math.min((height - 96 - BOARD_HINT_H) / N, (width - 240) / (N + clueCols), 92)))
-    : Math.max(14, Math.floor(Math.min((width - 36) / (N + clueCols), (height - 330 - BOARD_HINT_H) / N, 92)));
+    : Math.max(14, Math.floor(Math.min((width - 36) / (N + clueCols), (height - резервНиза - BOARD_HINT_H) / N, 92)));
   /**
    * 🔴 ПОЛЕ ПРОКРУЧИВАЕТСЯ ВСЕГДА, А НЕ «КОГДА ДОСКА НЕ ВЛЕЗЛА».
    *
@@ -2118,29 +2134,67 @@ export default function SudokuGame() {
         )}
       </View>
     );
+    /**
+     * 🔴 КЛАВИАТУРА — ЯВНЫЕ РОВНЫЕ СТРОКИ, А НЕ ПЕРЕНОС. Решение Дениса 12.09.2026:
+     * «они там должны стоять в два ряда по 5 шт, а стоят вроде 6 и 4» и «вывод цифр
+     * в телефонной раскладке не уместен, так как интерфейс порушит».
+     *
+     * ЧТО БЫЛО. `flexWrap` раскладывал десять клавиш (девять цифр и стирание) по
+     * ширине: на 360 выходило 6 + 4, на другой ширине вышло бы иначе. Ряды разной
+     * длины читаются как разные ряды, и девятка каждый раз оказывается в новом месте.
+     *
+     * ПОЧЕМУ НЕ ТЕЛЕФОННАЯ СЕТКА 3×3, как велит правило 8 для ввода числа. Три колонки
+     * — это ТРИ РЯДА в высоту. Здесь цифры стоят полосой ответа под доской, и лишний
+     * ряд платится высотой поля либо уезжает за нижний край. Замер 12.09.2026 на
+     * 360×640: второй ряд стоял на y 625…675 при экране 640 — 35 точек за краем,
+     * видно 15 из 50. Третий ряд сделал бы это хуже, а не лучше.
+     *
+     * СЧИТАНО: 5 × 50 + 4 × 6 = 274 — влезает в 320 с запасом 46.
+     * Разбивка ровная: в строке = ceil(всего / строк). Десять клавиш дают 5 + 5,
+     * семь (судоку 6×6) — 4 + 3, пять (4×4) — одну строку. Ландшафт не трогаем: там
+     * цифры стоят СБОКУ от доски, дефицитна высота, и три в строке — проверенная
+     * раскладка v1.30.6.
+     */
+    const клавиши: Array<number | 'стереть'> = [
+      ...Array.from({ length: N }, (_, i) => i + 1),
+      'стереть' as const,
+    ];
+    const вСтроке = Math.ceil(клавиши.length / строкКлавиатуры);
+    const рядыКлавиш = Array.from({ length: строкКлавиатуры }, (_, r) =>
+      клавиши.slice(r * вСтроке, (r + 1) * вСтроке));
+
+    const клавишаЦифры = (n: number) => (
+      <TouchableOpacity
+        accessibilityRole="button"
+        key={n}
+        onPress={() => handleNumPress(n)}
+        style={[styles.numBtn, {
+          backgroundColor: blendHex(colors.surface, DIGIT_TINT[(n - 1) % DIGIT_TINT.length], isDark ? 0.34 : 0.20),
+          borderWidth: 1,
+          borderColor: blendHex(colors.border, DIGIT_TINT[(n - 1) % DIGIT_TINT.length], 0.55),
+        }]}
+      >
+        {digitMode === 'plain'
+          ? <Text style={{ fontSize: 24, fontWeight: '800', color: colors.text }}>{n}</Text>
+          : <Image source={DIGIT_IMG[n]} accessibilityLabel={String(n)}
+          style={{ width: 40, height: 40 }} resizeMode="contain" />}
+      </TouchableOpacity>
+    );
+
     const padEl = (
-      <View style={[styles.numPad, landscape && styles.numPadLand]}>
-        {Array.from({ length: N }, (_, i) => i + 1).map((n) => (
-          <TouchableOpacity
-            accessibilityRole="button"
-            key={n}
-            onPress={() => handleNumPress(n)}
-            style={[styles.numBtn, {
-              backgroundColor: blendHex(colors.surface, DIGIT_TINT[(n - 1) % DIGIT_TINT.length], isDark ? 0.34 : 0.20),
-              borderWidth: 1,
-              borderColor: blendHex(colors.border, DIGIT_TINT[(n - 1) % DIGIT_TINT.length], 0.55),
-            }]}
-          >
-            {digitMode === 'plain'
-              ? <Text style={{ fontSize: 24, fontWeight: '800', color: colors.text }}>{n}</Text>
-              : <Image source={DIGIT_IMG[n]} accessibilityLabel={String(n)}
-              style={{ width: 40, height: 40 }} resizeMode="contain" />}
-          </TouchableOpacity>
+      <View style={styles.numPadCol}>
+        {рядыКлавиш.map((ряд, r) => (
+          <View key={`ряд${r}`} style={styles.numPadRow}>
+            {ряд.map((к) => (к === 'стереть'
+              ? (
+                <TouchableOpacity key="стереть" accessibilityRole="button" accessibilityLabel={t('a11yErase')}
+                  onPress={() => handleNumPress(0)} style={[styles.numBtn, { backgroundColor: colors.surface }]}>
+                  <Ionicons name="backspace-outline" size={20} color={colors.text} />
+                </TouchableOpacity>
+              )
+              : клавишаЦифры(к)))}
+          </View>
         ))}
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yErase')}
-          onPress={() => handleNumPress(0)} style={[styles.numBtn, { backgroundColor: colors.surface }]}>
-          <Ionicons name="backspace-outline" size={20} color={colors.text} />
-        </TouchableOpacity>
       </View>
     );
     {/* Hint button + biomarker counters */}
@@ -2554,7 +2608,7 @@ const styles = StyleSheet.create({
   playAreaLand: { flexDirection: 'row', gap: 22, alignItems: 'center' },   // landscape: сетка | цифры
   landControls: { gap: 14, alignItems: 'center', justifyContent: 'center' },
   toolbarCol: { flex: 1, alignItems: 'center', gap: 8 },           // portrait: numPad+hint колонкой в тулбаре каркаса
-  numPadLand: { maxWidth: 56 * 3 },                                // 3 столбца цифр справа
+  // numPadLand снят вместе с flexWrap: в ландшафте ширину строки задаёт ПОТОЛОК_В_СТРОКЕ = 3.
   // до 4 счётчиков (уровень/жизни/время/правила) при крупном шрифте не влезали в ряд → перенос
   statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
@@ -2570,7 +2624,13 @@ const styles = StyleSheet.create({
   boardHint: { height: BOARD_HINT_TEXT_H, fontSize: 12, lineHeight: 15, fontWeight: '600', textAlign: 'center', marginBottom: 6 },
   edgeClue: { alignItems: 'center', justifyContent: 'center', marginHorizontal: 2, marginVertical: 2, paddingVertical: 2, borderRadius: 5 },
   edgeClueText: { fontSize: 11, fontWeight: '700' },
-  numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr', maxWidth: '100%' },
+  /**
+   * ⚠️ `numPad` С `flexWrap` БОЛЬШЕ НЕ ИСПОЛЬЗУЕТСЯ — строки задаются ЯВНО (см. padEl).
+   * Перенос раскладывал десять клавиш по-разному на разной ширине (6+4 на 360), и
+   * человек каждый раз искал девятку заново. Правила 8 и 9 в UI_LAYOUT_RULES.md.
+   */
+  numPadCol: { gap: 6, alignItems: 'center', alignSelf: 'stretch' },
+  numPadRow: { flexDirection: 'row', gap: 6, justifyContent: 'center', writingDirection: 'ltr' },
   // 50, не 64: капсулы «снизу слишком широкие» (Денис по скрину Валентины 28.08) —
   // на 6×6 семь клавиш не влезали в ряд телефона и переносились вразнобой.
   numBtn: { width: 50, height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },

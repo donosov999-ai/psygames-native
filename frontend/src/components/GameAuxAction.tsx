@@ -23,7 +23,7 @@
  * служебной НЕ является: она не трогает ничего, кроме ещё не сданного ответа.
  */
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, DeviceEventEmitter } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -74,7 +74,23 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
   const { colors } = useTheme();
   const { t } = useLanguage();
   const { заперт, порог } = useLadderLock(ladder);
-  const [сказали, setСказали] = React.useState(false);
+
+  /**
+   * 🔴 ОТВЕТ ЗАПЕРТОЙ КНОПКИ ЕДЕТ В ОБЩИЙ ТОСТ, А НЕ РИСУЕТСЯ ЗДЕСЬ.
+   *
+   * Плашка стояла внутри кнопки (`position:absolute; top:100%`) и до глаз почти
+   * не доходила. Замер 12.09.2026, собранный бандл, окно 403×873, пять игр:
+   * видна ровно в одной (water-sort); в «Корректуре» и «Анаграммах» её
+   * закрывало содержимое поля, в «Ханое» она рисовалась на 868…910 при высоте
+   * окна 873 — целиком за нижним краем. Отчёт 19eaaa3a: «Подсказки не работают».
+   *
+   * Всплыть ей было нечем: слот шапки (`game-header-actions`) заводит свой
+   * контекст наложения, и `zIndex` изнутри кнопки действует только в его
+   * границах. Чинить наложение в каркасе пришлось бы для каждого расположения
+   * кнопки отдельно, а место под плашку всё равно не гарантировано.
+   * Поэтому ответ отдан `UnlockToast` в корневом слое: он смонтирован всегда,
+   * лежит над всем экраном и уже показывает сообщения про ЭТУ ЖЕ лестницу.
+   */
 
   const fg = заперт ? colors.textSecondary : (danger ? DANGER : colors.text);
   return (
@@ -92,7 +108,11 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
       // уровне N». Отключённая кнопка на нажатие молчит, и замок превращается
       // в поломку — ровно та жалоба, что уже приходила про кончившийся ресурс.
       disabled={disabled && !заперт}
-      onPress={заперт ? () => setСказали((v) => !v) : onPress}
+      onPress={заперт
+        ? () => DeviceEventEmitter.emit('psygames:ladder-locked', {
+            text: t('ladderLockedAt').replace('{n}', String(порог)),
+          })
+        : onPress}
       activeOpacity={0.8}
       style={[
         styles.btn,
@@ -114,14 +134,6 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
         {заперт || count === undefined ? label : `${label} · ${count}`}
       </Text>
       )}
-      {/* Ответ на нажатие по замку: чем именно он откроется. */}
-      {сказали && порог !== null ? (
-        <View style={[styles.tip, { backgroundColor: colors.text }]}>
-          <Text style={[styles.tipText, { color: colors.background }]} numberOfLines={2}>
-            {t('ladderLockedAt').replace('{n}', String(порог))}
-          </Text>
-        </View>
-      ) : null}
     </TouchableOpacity>
   );
 }
@@ -143,18 +155,6 @@ const styles = StyleSheet.create({
    * служебных кнопок и так вылезал за край на узких экранах, и всплывающая
    * подпись не имеет права добавлять туда ширину.
    */
-  tip: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    marginTop: 6,
-    maxWidth: 190,
-    paddingHorizontal: 9,
-    paddingVertical: 6,
-    borderRadius: 8,
-    zIndex: 20,
-  },
-  tipText: { fontSize: 12, fontWeight: '600' },
   /**
    * Зазор 6, а не 8: при переносе на вторую строку каждая лишняя пара точек
    * между кнопками отнимается у поля дважды — по горизонтали и по вертикали.

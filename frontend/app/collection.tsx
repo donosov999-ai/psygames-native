@@ -7,7 +7,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
-import { FIGURES, chestState, earnedTotal } from '@/src/services/collection';
+/* `фигурки()`, а не `FIGURES`: экран показывает САМИ пороги, и заводской список
+   врал бы, когда пороги переопределены файлом настроек. */
+import { фигурки, chestState, earnedTotal } from '@/src/services/collection';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 
 /**
@@ -70,7 +72,7 @@ export default function CollectionScreen() {
         <Text style={[styles.sub, { color: colors.textSecondary }]}>
           {t('collectionSub')
             .replace('{have}', String(сундук.have))
-            .replace('{all}', String(FIGURES.length))
+            .replace('{all}', String(фигурки().length))
             .replace('{earned}', String(заработано))}
         </Text>
         {/* Тап по закрытой фигурке отвечает словами — «непонятно, что делать дальше,
@@ -80,15 +82,19 @@ export default function CollectionScreen() {
         ) : null}
 
         <View style={styles.shelf}>
-          {FIGURES.map((f, i) => {
+          {фигурки().map((f, i) => {
             const собрана = i < сундук.have;
             const имя = t(`fig${f.key}`);
             return (
               <Pressable
                 key={f.key}
                 accessibilityRole="button"
+                /* ⚠️ `{at}` здесь БОЛЬШЕ НЕ ПОДСТАВЛЯЕТСЯ: порог написан на самой
+                   карточке, а в подсказке от него был только вред — два числа в
+                   одной фразе читались как противоречие (отчёт 972a4657). Если
+                   `{at}` вернут в перевод, он покажется как есть — и это заметят. */
                 onPress={() => setПодсказка(собрана ? null : t('collectionHowToOpen')
-                  .replace('{name}', имя).replace('{at}', String(f.at))
+                  .replace('{name}', имя)
                   .replace('{n}', String(Math.max(0, f.at - заработано))))}
                 testID={собрана ? 'figure-owned' : 'figure-locked'}
                 accessibilityLabel={собрана ? имя : `${имя} — ${t('collectionLocked').replace('{n}', String(f.at))}`}

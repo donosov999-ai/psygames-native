@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Redirect } from 'expo-router';
 import { isWebDemo } from '@/src/services/buildTarget';
 import { goBackOrHome } from '@/src/utils/nav';
+import { разобрать as разобратьСостав, сохранить as сохранитьСостав, сбросить as сброситьСостав } from '@/src/services/playlistOverride';
 import { Ionicons } from '@expo/vector-icons';
 import { VolumeSlider } from '@/src/components/VolumeSlider';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -81,6 +82,7 @@ function SettingsScreenBody() {
   const {
     profile, switchProfile, allProfiles,
     unlockedThemed, redeemCode, resetUnlocks, isAccessible,
+    составИзФайла, перечитатьСостав,
   } = useProfile();
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -294,6 +296,58 @@ function SettingsScreenBody() {
       );
     }
   };
+  /**
+   * 🔴 РЕДАКТОР СОСТАВА — ТОЛЬКО У ВЛАДЕЛЬЦА. Просьба Дениса 13.09.2026:
+   * «по сути редактировать буду только я, пользователям пока не надо». Поэтому
+   * раздел показывается под профилем `odv999` и не переводится на 12 языков —
+   * переводить инструмент одного человека значило бы делать работу впустую.
+   * Сами подписи всё равно идут через словарь (ru/en): гейт i18n не различает,
+   * кому экран показан, и зашитый текст уронил бы его по делу.
+   */
+  const загрузитьСоставИзТекста = async (текст: string) => {
+    const р = разобратьСостав(текст);
+    if (!р.состав) { Alert.alert(t('alert_import_error'), р.ошибка ?? ''); return; }
+    await сохранитьСостав({ профили: р.состав, наборы: р.наборы, порядок: р.порядок, хабы: р.хабы, замки: р.замки, коллекция: р.коллекция });
+    await перечитатьСостав();
+    const хвост = р.отброшено.length
+      ? '\n' + t('playlistsDropped').replace('{n}', String(р.отброшено.length)).replace('{first}', р.отброшено[0])
+      : '';
+    Alert.alert(t('btn_load_playlists'), t('playlistsLoaded').replace('{n}', String(р.профилейПринято)) + хвост);
+  };
+
+  const handleLoadPlaylists = async () => {
+    try {
+      if (Platform.OS === 'web' && !inTauri) {
+        /* Выбор файла тем же приёмом, что у бэкапа: на вебе это единственный
+           способ прочитать файл с диска без нативных модулей. */
+        const вход = document.createElement('input');
+        вход.type = 'file';
+        вход.accept = 'application/json,.json';
+        вход.onchange = async () => {
+          const файл = вход.files?.[0];
+          if (!файл) return;
+          await загрузитьСоставИзТекста(await файл.text());
+        };
+        вход.click();
+        return;
+      }
+      let текст = '';
+      try {
+        if (typeof navigator !== 'undefined' && navigator.clipboard) текст = await navigator.clipboard.readText();
+      } catch {}
+      if (!текст.trim()) { Alert.alert(t('btn_load_playlists'), t('playlistsPasteHint')); return; }
+      await загрузитьСоставИзТекста(текст);
+    } catch (e: any) {
+      Alert.alert(t('alert_import_error'), e?.message ?? '');
+    }
+  };
+
+  const handleResetPlaylists = async () => {
+    await сброситьСостав();
+    await перечитатьСостав();
+    Alert.alert(t('btn_reset_playlists'), t('playlistsReset'));
+  };
+
   const handleImportBackup = async () => {
     const okMsg = (restored: number) => Alert.alert(
       t('alert_backup_restored'),
@@ -989,6 +1043,39 @@ function SettingsScreenBody() {
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
+
+        {/* Состав профилей из файла — виден только владельцу (см. комментарий у обработчиков). */}
+        {profile.id === 'odv999' && (
+          <>
+            <TouchableOpacity
+              testID="playlists-load"
+              accessibilityRole="button" style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={handleLoadPlaylists}>
+              <View style={styles.settingInfo}>
+                <Ionicons name="list-outline" size={24} color="#a855f7" />
+                <View style={{ flexShrink: 1 }}>
+                  <Text style={[styles.settingLabel, { color: colors.text }]}>{t('btn_load_playlists')}</Text>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }} numberOfLines={2}>
+                    {составИзФайла
+                      ? t('playlistsNowFile').replace('{n}', String(Object.keys(составИзФайла.профили).length))
+                      : t('playlistsNowFactory')}
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+            {составИзФайла && (
+              <TouchableOpacity
+                testID="playlists-reset"
+                accessibilityRole="button" style={[styles.settingItem, { backgroundColor: colors.surface }]} onPress={handleResetPlaylists}>
+                <View style={styles.settingInfo}>
+                  <Ionicons name="refresh-outline" size={24} color="#f59e0b" />
+                  <Text style={[styles.settingLabel, { color: colors.text }]}>{t('btn_reset_playlists')}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </>
+        )}
       </View>
 
       {/* App Info */}

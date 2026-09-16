@@ -23,6 +23,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
 const GRADIENT = ['#0F2027', '#2C5364'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -264,6 +265,7 @@ export default function IowaGame() {
         <Text style={[styles.title, { color: colors.text }]}>{t('iowa')}</Text>
         <View style={{ width: HELP_CORNER_SPACE }} />
       </View>
+      <GameSuiteSwitch />
       {phase === 'config' && renderConfig()}
       {/* Итог — общим экраном «уровень пройден»: только он пишет звёзды, считает
           серию чистых и тикает глаз-разрядку.

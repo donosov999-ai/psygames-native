@@ -113,6 +113,54 @@ export const GAME_SUITES: GameSuite[] = [
       { route: '/games/switching-task', labelKey: 'suiteModeSwitch' },
     ],
   },
+  /**
+   * ТОРМОЖЕНИЕ — собрано 12.09.2026 при расформировании развилки «Торможение»
+   * (решение Дениса, вариант Б; задача TeamOps 80eb49c9).
+   *
+   * 🔴 ДВА ИЗ ТРЁХ ЭКРАНОВ БЫЛИ НЕДОСТУПНЫ ИГРОКУ. Замер 12.09.2026:
+   * `/games/go-no-go` имел ровно один вход — строку плейлиста зарядки
+   * (`profiles.ts:592`), а у `/games/stop-signal` входов не было вовсе, при
+   * живом экране, ядре `src/games/stop-signal/core/**` и своей пробе.
+   *
+   * ⚠️ ФОРМА ВРЕМЕННАЯ И ЭТО ИЗВЕСТНО. `/games/inhibition` САМ переключает те же
+   * три парадигмы внутри себя, то есть первый режим набора — переключатель тех
+   * же режимов. Денис 12.09.2026: «я бы их добавил щас рядом чтобы на виду были
+   * рядом с их близнецами, пока думаю». Витрина «посмотреть рядом», не конечный
+   * вид. Чем кончится — решает задача 4c4de3c2: у `/games/stop-signal` задержка
+   * ходит по лестнице и считается SSRT, а у `/games/inhibition` та же задержка
+   * назначается НОМЕРОМ УРОВНЯ, и это тот самый дефект, ради которого писали
+   * отдельный экран (коммит 2724c83c: разброс торможений 85 процентных пунктов).
+   */
+  {
+    id: 'suite_inhibition',
+    titleKey: 'suiteInhibition',
+    descKey: 'suiteInhibitionDesc',
+    modes: [
+      { route: '/games/inhibition', labelKey: 'suiteModeAllInOne' },
+      { route: '/games/go-no-go', labelKey: 'suiteModeGoNoGo' },
+      { route: '/games/stop-signal', labelKey: 'suiteModeStopSignal' },
+    ],
+  },
+  /**
+   * РЕШЕНИЯ — собрано 12.09.2026 при расформировании развилки «Риск»
+   * (задача TeamOps 4dce5eb9). Все три меряют одно: выбор по обратной связи,
+   * когда правило заранее не объявлено. Потому и набор, а не три плитки —
+   * `prl` по сути меряет то же, что стоящий рядом `wcst`.
+   *
+   * ⚠️ Берущий берёт долг: замер 12.09.2026 — своих проб 0 у всех трёх, своего
+   * ядра нет ни у одной, в плейлистах зарядки не встречаются, а у `iowa`
+   * лестницы нет вовсе (`usePersistentLevel('iowa')` стоит, уровней нет).
+   */
+  {
+    id: 'suite_decisions',
+    titleKey: 'suiteDecisions',
+    descKey: 'suiteDecisionsDesc',
+    modes: [
+      { route: '/games/prl', labelKey: 'suiteModeReversal' },
+      { route: '/games/iowa', labelKey: 'suiteModeDecks' },
+      { route: '/games/bart', labelKey: 'suiteModeBalloon' },
+    ],
+  },
 ];
 
 /**
