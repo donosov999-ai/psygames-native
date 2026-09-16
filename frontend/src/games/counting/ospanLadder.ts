@@ -1,4 +1,4 @@
-/* psygames-ospan-ladder · VER 1 · 16.09.2026 */
+/* psygames-counting-ospan-ladder · VER 1 · 16.09.2026 */
 /**
  * ЛЕСТНИЦА OSpan — вынесена из экрана `app/games/ospan.tsx` без изменения, чтобы её читал и «Числовой забег»
  * (станция «память в пути»: сколько знаков держать — `setSize`). Экран реэкспортирует `levelParams` для гейтов
