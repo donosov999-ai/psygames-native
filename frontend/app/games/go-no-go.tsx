@@ -109,6 +109,32 @@ export function levelParams(level: number): {
   return { trials, windowMs, itiMinMs, itiJitterMs };
 }
 
+/**
+ * Потолок лестницы. Пятнадцать — не круглое число, а точка, где формулы
+ * `levelParams` упираются в свои полы РАЗОМ: окно 550 мс, пауза 280 мс, разброс
+ * паузы 180 мс. До L14 все три ещё меняются, поэтому мёртвых ступеней нет.
+ * ⚠️ «Дальше расти некуда» здесь означает «дальше нужна НОВАЯ ось», а не предел:
+ * потолков сложности в разделе нет ни у одной пробы (CHATS_RULES.md §4а).
+ */
+export const MAX_LEVEL = 15;
+
+/**
+ * Мера УРОВНЯ раздела: детерминированная, без игрока, прогоняется гейтом.
+ * Отдельная от `levelParams` обёртка нужна по контракту раздела — им пользуются
+ * `attention-ladder-per-mode` и `attention-condition-recorded`, и через неё же
+ * условие партии попадает в запись сессии.
+ */
+export function levelCondition(level: number): {
+  trials: number; windowMs: number; itiMinMs: number; itiJitterMs: number; nogoRate: number;
+} {
+  const { trials, windowMs, itiMinMs, itiJitterMs } = levelParams(level);
+  /* Доля no-go идёт сюда КОНСТАНТОЙ намеренно: она заморожена (NOGO_PROB = 0.25,
+     канон go/no-go 25 % либо 50 %) и осью сложности быть не может — мера прохода
+     здесь ошибки торможения, и рост доли no-go их просто добавляет, не делая
+     задачу труднее. Разбор — в блоке над NOGO_PROB. */
+  return { trials, windowMs, itiMinMs, itiJitterMs, nogoRate: NOGO_PROB };
+}
+
 export default function GoNoGoGame() {
   const { colors } = useTheme();
   const { t, language } = useLanguage();

@@ -32,6 +32,7 @@ import { levelParams as simonParams } from '@/app/games/simon';
 import { levelParams as choiceParams } from '@/app/games/choice-rt';
 import { levelParams as antParams } from '@/app/games/ant';
 import { levelParams as switchParams } from '@/app/games/switching-task';
+import { levelParams as goNoGoParams } from '@/app/games/go-no-go';
 
 const levels = (m: AttentionMode) => Array.from({ length: LADDER_RANGE[m] }, (_, i) => i + 1);
 
@@ -47,6 +48,7 @@ const fingerprint: Record<AttentionMode, (l: number) => string> = {
   'choice-rt':        (l) => JSON.stringify(choiceParams(l)),
   ant:                (l) => JSON.stringify(antParams(l)),
   'switching-task':   (l) => JSON.stringify(switchParams(l)),
+  'go-no-go':         (l) => JSON.stringify(goNoGoParams(l)),
 };
 
 /**
@@ -82,6 +84,8 @@ const MAX_FLAT_RUN: Record<AttentionMode, number> = {
    * «ступень без нового условия разрешена», а именно её проба и ищет.
    */
   'stroop-emotional': 1, simon: 1, 'choice-rt': 1, ant: 1, 'switching-task': 1,
+  /* Первый из восьми приехавших 12.09 — поблажки тоже нет. */
+  'go-no-go': 1,
 };
 
 /**
@@ -106,6 +110,7 @@ const BAND_EDGES: Record<AttentionMode, number[]> = {
   'choice-rt': [5, 10],         // choice-rt.tsx   — и trials, и число альтернатив 2 / 3 / 4
   ant: [5, 10],                 // ant.tsx         — trials 12 / 16 / 20
   'switching-task': [5, 10],    // switching-task  — trials 12 / 16 / 20
+  'go-no-go': [5, 10],          // go-no-go.tsx    — trials 24 / 32 / 40
 };
 
 describe('конфликт внимания: у каждой пробы своя лестница и она не откатывается', () => {

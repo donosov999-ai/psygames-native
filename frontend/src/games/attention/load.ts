@@ -33,12 +33,17 @@ import { levelParams as simonParams } from '@/app/games/simon';
 import { levelParams as choiceParams } from '@/app/games/choice-rt';
 import { levelParams as antParams } from '@/app/games/ant';
 import { levelParams as switchParams } from '@/app/games/switching-task';
+import { levelParams as goNoGoParams } from '@/app/games/go-no-go';
 
 export type AttentionMode =
   | 'stroop' | 'flanker' | 'cpt' | 'targets' | 'wcst'
   /** ⚠️ Пять режимов внутри наборов — зона расширена решением Дениса 07.09.2026
    * («всё, что входит в хаб конфликт внимания, твоя зона»). */
-  | 'stroop-emotional' | 'simon' | 'choice-rt' | 'ant' | 'switching-task';
+  | 'stroop-emotional' | 'simon' | 'choice-rt' | 'ant' | 'switching-task'
+  /** Первый из восьми, приехавших 12.09.2026 с расформированием развилок
+   *  «Торможение» и «Риск». Остальные семь ждут своей меры прохода —
+   *  дописывать сюда имя БЕЗ неё нельзя, см. шапку ниже. */
+  | 'go-no-go';
 
 /**
  * 🔴 ЭТОТ СПИСОК ПОКРЫВАЕТ 10 ЭКРАНОВ ИЗ 18, А НЕ ВЕСЬ ХАБ. Замер 13.09.2026
@@ -78,6 +83,9 @@ export const LADDER_RANGE: Record<AttentionMode, number> = {
   'choice-rt': 15,         // окно 2000→1000 (пол объявлен константой), альтернатив 2→4
   ant: 15,                 // окно 3000→1040, разбросы 400→1520 и 100→660
   'switching-task': 15,    // окно 3400→1400, объём 12→20
+  /* Полы формул (окно 550 · пауза 280 · разброс 180) достигаются разом на L15,
+     до L14 меняются все три — мёртвых ступеней нет. go-no-go.tsx::MAX_LEVEL. */
+  'go-no-go': 15,
 };
 
 /** Что пишется в партию у этой пробы, и чем это меряется в методике. */
@@ -99,6 +107,7 @@ export const SESSION_MEASURE: Record<AttentionMode, { field: string; norm: strin
   'choice-rt':        { field: 'mean_rt',                norm: '🔴 КЛИНИЧЕСКОГО ПОКАЗАТЕЛЯ НЕТ — единственная из десяти. Наклон Хика посчитать нельзя: число альтернатив постоянно ВНУТРИ партии, а между уровнями различается ещё и окно. Открытый вопрос Денису, см. PROJECT_REF §10' },
   ant:                { field: 'executive_ms',           norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Разность RT конфликтные−согласованные, одна из трёх сетей внимания (рядом alerting_ms и orienting_ms). Доли заморожены на каноне Fan 2002 — треть/треть/треть' },
   'switching-task':   { field: 'switch_cost_ms',         norm: '✅ норма батареи 150±80 (assessment.ts). Разность RT смена−повтор; доля смен заморожена на каноне парадигмы SWITCH_PROB = 0.5' },
+  'go-no-go':         { field: 'falseAlarms',           norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Ошибки торможения — нажатия на no-go; главный показатель парадигмы. Доля no-go заморожена на каноне: NOGO_PROB = 0.25 (канон go/no-go — 25 % либо 50 %). ⚠️ Прежде доля РОСЛА по уровням (0.20 → 0.42) — тот самый дефект «доля как ось сложности», снятый в разделе семь раз; разбор в блоке над NOGO_PROB' },
 };
 
 /**
@@ -339,6 +348,23 @@ export function switchingLoad(level: number): number {
   return (base.windowMs / p.windowMs) * (p.trials / base.trials) * (1 + p.decoys / 4);
 }
 
+/**
+ * Go/No-Go — «темп и объём».
+ *
+ * Величина прохода — ошибки торможения (нажатия на no-go). Ось у неё НЕ доля
+ * no-go: доля заморожена, и её рост добавлял бы ошибок, не делая задачу труднее.
+ * Труднее становится от того, что решение «не жать» приходится принимать быстрее
+ * и чаще: окно ответа сжимается 1100 → 550 мс, пауза между пробами 600 → 280 мс,
+ * а самих проб становится 24 → 40.
+ *
+ * ⚠️ Складывать это число с нагрузкой других проб нельзя: у каждой своя валюта.
+ */
+export function goNoGoLoad(level: number): number {
+  const p = goNoGoParams(level);
+  const б = goNoGoParams(1);
+  return p.trials * (б.windowMs / p.windowMs) * (б.itiMinMs / p.itiMinMs);
+}
+
 export function attentionLoad(mode: AttentionMode, level: number): number {
   switch (mode) {
     case 'stroop':  return stroopLoad(level);
@@ -351,10 +377,12 @@ export function attentionLoad(mode: AttentionMode, level: number): number {
     case 'choice-rt':        return choiceRtLoad(level);
     case 'ant':              return antLoad(level);
     case 'switching-task':   return switchingLoad(level);
+    case 'go-no-go':         return goNoGoLoad(level);
   }
 }
 
 export const ATTENTION_MODES: AttentionMode[] = [
   'stroop', 'flanker', 'cpt', 'targets', 'wcst',
   'stroop-emotional', 'simon', 'choice-rt', 'ant', 'switching-task',
+  'go-no-go',
 ];
