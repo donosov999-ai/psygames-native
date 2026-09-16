@@ -77,6 +77,19 @@ export interface MathSliderGameProps {
    * уезжает `mathSliderArmed(session)`, чистая функция, которую гейт гоняет.
    */
   onProgress?: (armed: boolean) => void;
+  /**
+   * Игра стоит внутри каркаса приложения, у которого СВОЯ шапка: имя игры и пауза
+   * там уже есть. Тогда модуль не рисует их второй раз.
+   *
+   * 🔴 ЗАЧЕМ. Приёмка 16.09.2026 (задача 1bbb9413), кадры 390×844 и 375×667: в
+   * строке партии стояли заголовок «Математическая шкала» крупным шрифтом и своя
+   * кнопка «Пауза» — строка не влезала в ширину, и «Пауза» обрезалась правым краем
+   * экрана («Пауз…»). При этом шапка каркаса НАД ней уже показывала и имя игры, и
+   * оранжевую паузу, которая останавливает игровые часы (`now={gameNow}`). Две
+   * паузы на одном экране, и одна из них срезана.
+   * Заодно в каркасе не показывается служебная строка «Seed: …» на итогах.
+   */
+  embedded?: boolean;
 }
 
 interface NumberLineProps {
@@ -298,6 +311,7 @@ function MathSliderSession({
   now = Date.now,
   onComplete,
   onExit,
+  embedded = false,
   onProgress,
 }: MathSliderGameProps) {
   const theme = React.useMemo(() => ({ ...DEFAULT_THEME, ...themeOverrides }), [themeOverrides]);
@@ -452,7 +466,7 @@ function MathSliderSession({
           <View style={styles.metric}><Text style={[styles.metricValue, { color: theme.text }]}>{session.result.errors}</Text><Text style={[styles.metricLabel, { color: theme.textSecondary }]}>{strings.errors}</Text></View>
           <View style={styles.metric}><Text style={[styles.metricValue, { color: theme.text }]}>{biasLabel}</Text><Text style={[styles.metricLabel, { color: theme.textSecondary }]}>{strings.bias}</Text></View>
         </View>
-        <Text style={[styles.seed, { color: theme.textSecondary }]}>{strings.seed}: {session.result.seed}</Text>
+        {embedded ? null : <Text style={[styles.seed, { color: theme.textSecondary }]}>{strings.seed}: {session.result.seed}</Text>}
         <View style={styles.actions}>
           <ActionButton label={strings.playAgain} theme={theme} onPress={restart} />
           {onExit ? <ActionButton label={strings.exit} theme={theme} secondary onPress={onExit} /> : null}
@@ -475,10 +489,10 @@ function MathSliderSession({
     <ScrollView style={[styles.root, { backgroundColor: theme.background }]} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <View style={styles.topRow}>
         <View>
-          <Text accessibilityRole="header" style={[styles.gameTitle, { color: theme.text }]}>{strings.title}</Text>
+          {embedded ? null : <Text accessibilityRole="header" style={[styles.gameTitle, { color: theme.text }]}>{strings.title}</Text>}
           <Text style={[styles.round, { color: theme.textSecondary }]}>{roundLabel} · {interpolate(strings.levelLabel, { level: session.config.level })}</Text>
         </View>
-        {!isFeedback ? <ActionButton label={strings.pause} theme={theme} secondary onPress={() => setSession((current) => pauseSession(current, now()))} /> : null}
+        {!isFeedback && !embedded ? <ActionButton label={strings.pause} theme={theme} secondary onPress={() => setSession((current) => pauseSession(current, now()))} /> : null}
       </View>
       {isTraining ? <Text style={[styles.trainingHint, { color: theme.textSecondary }]}>{strings.trainingHint}</Text> : null}
       <View style={[styles.expressionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>

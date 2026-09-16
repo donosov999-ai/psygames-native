@@ -1,7 +1,7 @@
 /* psygames-game-digit-span · VER 3 · 28.08.2026 */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, TextInput,
+  View, Text, StyleSheet, TouchableOpacity, Pressable,
   ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -821,6 +821,74 @@ export default function DigitSpanGame() {
     </View>
   );
 
+  /**
+   * 🔴 ЦИФРОВОЙ БЛОК 3×4 — КАК НА ТЕЛЕФОНЕ: 1-2-3 / 4-5-6 / 7-8-9 / ·-0-«Стереть».
+   *
+   * ПОЧЕМУ ИМЕННО ТАК, ЧИСЛОМ. Канон приёмки — клавиша не мельче 48×48 и целиком
+   * внутри экрана 390 pt. Но полоса ответа каркаса отступает от ОБОИХ краёв на
+   * FAB_GUTTER = 66 pt (GameShell.tsx) под кнопку отзыва в левом нижнем углу,
+   * значит полезная ширина 390 − 2·66 = 258 pt.
+   *   · Первая раскладка была два ряда по шесть: 6·48 + 5·8 = 328 > 258. Прибор
+   *     tap-target-audit показал зелёное (клавиши 48, внутри экрана), а кадр 390
+   *     показал, что крайняя «1» уехала под кнопку отзыва и почти не видна:
+   *     перекрытие другим плавающим элементом прибор не спрашивает.
+   *   · Шесть клавиш по 48 в 258 не помещаются в принципе, даже без зазора.
+   *   · Блок 3×4 по 72: 3·72 + 2·12 = 240 ≤ 258 — на 390 чисто. Но на узком и
+   *     коротком 360×640 (Galaxy A/M из живых отчётов) полезная ширина 360 − 132 =
+   *     228 < 240, и замер показал «4» и «7» под кнопкой отзыва.
+   *   · Итог: 3·64 + 2·10 = 212 ≤ 228 — чисто и на 360. Ширина ФИКСИРОВАНА, а не
+   *     от useWindowDimensions: на первом кадре та отдаёт 0, и расчёт от неё
+   *     развалил бы блок (ловушка, найденная first-paint-audit).
+   * Высота полосы у этой игры не зафиксирована (frame не передаётся), поэтому
+   * 4·52 + 3·8 = 232 pt полоса занимает честно, а поле ужимается — у «Цифрового
+   * ряда» поле почти пустое: задание и строка набранного.
+   *
+   * ⚠️ «Готово» нет сознательно: движок принимает ответ ровно той длины, что была
+   * показана, и проверяет его сам на последней цифре (`userInput.length === seqLen`).
+   * Кнопка отправить недобранный ряд вела бы только к заведомо неверному ответу.
+   * Клавиши совпадают с тем, что принимает упражнение: 0–9, ни одной лишней.
+   */
+  const можноНабирать = phase === 'input' && lastFeedback === null;
+  const нажатьЦифру = (d: number) => {
+    if (!можноНабирать) return;
+    setUserInput((s) => (s + d).slice(0, seqLen));
+  };
+  const стеретьЦифру = () => {
+    if (!можноНабирать) return;
+    setUserInput((s) => s.slice(0, -1));
+  };
+  const клавиша = (key: string, label: string, onPress: () => void, a11y: string) => (
+    <Pressable
+      key={key}
+      testID={key}
+      accessibilityRole="button"
+      accessibilityLabel={a11y}
+      accessibilityState={{ disabled: !можноНабирать }}
+      disabled={!можноНабирать}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.key,
+        { backgroundColor: colors.surface, borderColor: colors.border, opacity: можноНабирать ? (pressed ? 0.6 : 1) : 0.35 },
+      ]}
+    >
+      <Text style={[styles.keyText, { color: colors.text }]}>{label}</Text>
+    </Pressable>
+  );
+  const цифровойРяд = (
+    <View style={styles.keypad}>
+      {[[1, 2, 3], [4, 5, 6], [7, 8, 9]].map((ряд) => (
+        <View key={ряд.join('')} style={styles.keyRow}>
+          {ряд.map((d) => клавиша(`ds-key-${d}`, String(d), () => нажатьЦифру(d), String(d)))}
+        </View>
+      ))}
+      <View style={styles.keyRow}>
+        <View style={styles.keySpacer} />
+        {клавиша('ds-key-0', '0', () => нажатьЦифру(0), '0')}
+        {клавиша('ds-key-erase', '⌫', стеретьЦифру, t('a11yErase'))}
+      </View>
+    </View>
+  );
+
   // игровые фазы (показ и ввод) — на едином каркасе GameShell; модалка правил поверх каркаса
   if (phase === 'showing' || phase === 'input') {
     return (
@@ -828,6 +896,13 @@ export default function DigitSpanGame() {
         <GameShell
           title={t('digitSpan')}
           onBack={() => goBackOrHome()}
+          /**
+           * Низ — ОТВЕТ: ряд цифр. Стоит всю партию и гаснет вне фазы ввода, а не
+           * появляется только на вводе — иначе низ экрана прыгал бы между показом
+           * и вводом, а геометрия поля держится одной на всё приложение.
+           */
+          bottom="answer"
+          toolbar={цифровойРяд}
           /**
            * Счётчики данными (см. `HudItem`).
            *
@@ -887,23 +962,32 @@ export default function DigitSpanGame() {
               <Text style={[styles.statText, { color: colors.text }]}>
                 {direction === 'ascending' ? ds.typeAscending : direction === 'backward' ? t('typeReversed') : t('typeAsShown')}
               </Text>
-              <TextInput
+              {/**
+                * 🔴 ОТВЕТ НАБИРАЕТСЯ СВОИМ РЯДОМ ПОД ПОЛЕМ, А НЕ СИСТЕМНОЙ КЛАВИАТУРОЙ.
+                * Приёмка Дениса 16.09.2026 (CHATS_RULES.md §4б, задача 6596a00d):
+                * «кнопки управления и клавы, где игры это требуют… вниз под полем —
+                * элементы управления». Здесь стоял TextInput keyboardType="numeric":
+                * на телефоне всплывала клавиатура ОС и закрывала пол-экрана, на
+                * компьютере не было ничего — набирать приходилось вслепую. Своего
+                * органа под полем не было вовсе, и tap-target-audit был зелёным лишь
+                * потому, что отсутствующая кнопка не бывает мельче 48.
+                * Теперь это ПОКАЗ набранного: фокуса нет, клавиатура ОС не всплывает,
+                * и ответ проходит ТОЛЬКО рядом цифр ниже.
+                */}
+              <View
                 testID="ds-input"
-                value={userInput}
-                onChangeText={(s) => setUserInput(s.replace(/[^0-9]/g, '').slice(0, seqLen))}
-                keyboardType="numeric"
-                autoFocus
-                maxLength={seqLen}
-                editable={lastFeedback === null}
+                accessibilityLabel={`${userInput.length}/${seqLen}`}
                 style={[styles.inputField, {
-                  color: colors.text,
                   borderColor: lastFeedback === 'right' ? '#22c55e' : lastFeedback === 'wrong' ? '#f43f5e' : colors.border,
                   borderWidth: lastFeedback ? 3 : 1,
                   backgroundColor: colors.surface,
+                  justifyContent: 'center',
                 }]}
-                placeholder={'•'.repeat(seqLen)}
-                placeholderTextColor={colors.textSecondary}
-              />
+              >
+                <Text testID="ds-typed" style={[styles.typedText, { color: userInput ? colors.text : colors.textSecondary }]}>
+                  {userInput + '•'.repeat(Math.max(0, seqLen - userInput.length))}
+                </Text>
+              </View>
               {/* Status badge (replaces manual Check button — auto-submit happens on last digit) */}
               {lastFeedback === null ? (
                 <Text style={{ color: colors.textSecondary, fontSize: 12, fontStyle: 'italic' }}>
@@ -1003,6 +1087,12 @@ const styles = StyleSheet.create({
   // фикс 200×200 обрезал цифру при крупном системном шрифте (140px × масштаб) → min + рост по контенту
   digitArea: { minWidth: 200, minHeight: 200, justifyContent: 'center', alignItems: 'center' },
   bigDigit: { fontSize: 140, fontWeight: '900' },
+  keypad: { gap: 8, alignItems: 'center' },
+  keyRow: { flexDirection: 'row', gap: 10, justifyContent: 'center' },
+  key: { width: 64, height: 52, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  keySpacer: { width: 64, height: 52 },
+  keyText: { fontSize: 22, fontWeight: '700' },
+  typedText: { fontSize: 28, fontWeight: '700', letterSpacing: 6, textAlign: 'center' },
   inputField: {
     fontSize: 32, fontWeight: '700', textAlign: 'center', letterSpacing: 8,
     paddingVertical: 18, paddingHorizontal: 24, borderRadius: 12, borderWidth: 2,

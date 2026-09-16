@@ -190,10 +190,19 @@ function mountGame(): Game {
     if (!node) throw new Error(`нет кнопки ${id}`);
     TestRenderer.act(() => { node.props.onPress(); });
   };
+  /**
+   * 🔴 ОТВЕТ НАБИРАЕТСЯ НАЖАТИЯМИ РЯДА ЦИФР — ТЕМ ЖЕ ОРГАНОМ, ЧТО У ЧЕЛОВЕКА.
+   * До 16.09.2026 помощник звал `onChangeText` у поля ввода напрямую. После
+   * приёмки (§4б, задача 6596a00d) поля с клавиатурой ОС больше нет: ответ идёт
+   * ТОЛЬКО рядом `ds-key-*` под полем. Звать старый путь значило бы мерить
+   * орган, которым человек пользоваться не может, — и проба зеленела бы мимо
+   * настоящего ввода. Поэтому каждая цифра — отдельное нажатие своей клавиши.
+   */
   const type = async (s: string) => {
-    const node = r.root.findAll((n: any) => n.props?.testID === 'ds-input' && typeof n.props?.onChangeText === 'function')[0];
-    if (!node) throw new Error('поля ввода нет на экране');
-    await TestRenderer.act(async () => { node.props.onChangeText(s); });
+    for (const ch of s) {
+      if (!/[0-9]/.test(ch)) throw new Error(`в ряду нет клавиши «${ch}» — упражнение принимает только 0–9`);
+      press(`ds-key-${ch}`);
+    }
     await tick(400);   // авто-проверка ответа ждёт 250 мс, чтобы человек увидел свою последнюю цифру
   };
 
@@ -304,7 +313,17 @@ describe('режим «по возрастанию» — ответ это от�
       await g.type(asShown);
       expect(`ввод ${asShown} → ${verdict(g)}`).toBe(`ввод ${asShown} → wrong`);
       // Строка «было: …» обязана назвать тот же ответ, по которому считали.
-      const all = textUnder(g.root.toJSON());
+      /**
+       * ⚠️ ИЗ ЗАМЕРА ВЫЧТЕНО ЭХО СОБСТВЕННОГО ВВОДА — ОДИН РАЗ. До 16.09.2026 ответ
+       * набирался в TextInput: человек ВИДЕЛ «5281» в поле, но в дерево текста оно
+       * не попадало, и проверка «5281 нигде нет» держалась на этом артефакте. После
+       * приёмки §4б набранное — обычный Text `ds-typed`, и эхо ввода честно видно.
+       * Вычитаем его ровно один раз: если строка «было» ошибочно назовёт «5281»,
+       * вхождение останется вторым — и проба покраснеет, как и раньше. Сила
+       * проверки не ослаблена, убран только артефакт отрисовки поля ввода.
+       */
+      const эхо = g.textOf('ds-typed').replace(/•/g, '').trim();
+      const all = textUnder(g.root.toJSON()).replace(эхо, '');
       expect(`на экране назван ${ascending}: ${all.includes(ascending)}`).toBe(`на экране назван ${ascending}: true`);
       expect(`на экране назван ${asShown}: ${all.includes(asShown)}`).toBe(`на экране назван ${asShown}: false`);
     } finally { g.unmount(); }
@@ -449,6 +468,60 @@ describe('охват и рекорд видно по ходу партии', () 
       expect(`шапка по ходу партии: ${hud.includes('4')}`).toBe('шапка по ходу партии: true');
       // и рекорд подрос вместе с охватом — 4 больше прежних 3
       expect(`рекорд перебит на глазах: ${!hud.includes('3')}`).toBe('рекорд перебит на глазах: true');
+    } finally { g.unmount(); }
+  });
+
+  /**
+   * 🔴 ПРИЁМКА §4б, ПУНКТ 2 — ЗАМЕР ПОВЕДЕНИЕМ. Решение Дениса 16.09.2026: «кнопки
+   * управления и клавы, где игры это требуют… вниз под полем — элементы
+   * управления». До этого дня ответ набирался системной клавиатурой ОС через
+   * TextInput, и своего органа под полем не было вовсе.
+   * Канон требует трёх вещей, и каждая проверяется здесь поведением:
+   *   · ряд совпадает с тем, что принимает упражнение (0–9, ни одной лишней);
+   *   · ответ проходит ТОЛЬКО этим органом — другого пути ввода на экране нет;
+   *   · «Стереть» убирает последнюю цифру.
+   */
+  it('🔴 ряд под полем — ровно цифры 0–9 и «Стереть», и других клавиш нет', async () => {
+    mockParams = { wu: '1', startLen: '4' };
+    fixSequence();
+    const g = mountGame();
+    try {
+      await g.settle();
+      await watchDigits(g, 4, 1100);
+      const ключи = g.root.root
+        .findAll((n: any) => typeof n.props?.testID === 'string' && n.props.testID.startsWith('ds-key-') && typeof n.props?.onPress === 'function')
+        .map((n: any) => n.props.testID.replace('ds-key-', ''));
+      const набор = [...new Set(ключи)].sort();
+      expect(`клавиши: ${набор.join(',')}`).toBe('клавиши: 0,1,2,3,4,5,6,7,8,9,erase');
+    } finally { g.unmount(); }
+  });
+
+  it('🔴 ответ проходит ТОЛЬКО рядом цифр: поля с клавиатурой ОС на экране нет', async () => {
+    mockParams = { wu: '1', startLen: '4' };
+    fixSequence();
+    const g = mountGame();
+    try {
+      await g.settle();
+      await watchDigits(g, 4, 1100);
+      const полейВвода = g.root.root.findAll((n: any) => typeof n.props?.onChangeText === 'function').length;
+      expect(`полей с onChangeText: ${полейВвода}`).toBe('полей с onChangeText: 0');
+      const сКлавиатуройОС = g.root.root.findAll((n: any) => n.props?.keyboardType !== undefined).length;
+      expect(`узлов с keyboardType: ${сКлавиатуройОС}`).toBe('узлов с keyboardType: 0');
+    } finally { g.unmount(); }
+  });
+
+  it('🔴 «Стереть» убирает последнюю цифру, а не весь ряд и не ничего', async () => {
+    mockParams = { wu: '1', startLen: '4' };
+    fixSequence();
+    const g = mountGame();
+    try {
+      await g.settle();
+      await watchDigits(g, 4, 1100);
+      g.press('ds-key-7');
+      g.press('ds-key-3');
+      expect(`набрано: ${g.textOf('ds-typed').replace(/•/g, '')}`).toBe('набрано: 73');
+      g.press('ds-key-erase');
+      expect(`после «Стереть»: ${g.textOf('ds-typed').replace(/•/g, '')}`).toBe('после «Стереть»: 7');
     } finally { g.unmount(); }
   });
 

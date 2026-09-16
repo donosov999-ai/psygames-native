@@ -149,7 +149,7 @@ export function buildLevelHelp(inp: LevelHelpInput, tr: Translate, language: str
   // ── заголовок: номер ступени всегда виден, иначе «текущий уровень» — слово ──
   let title: string;
   if (mode === 'killer') {
-    title = steps ? `Killer · ${tr('label_level_short')}${level}/${steps}` : 'Killer';
+    title = steps ? `${tr('sudokuModeKiller')} · ${tr('label_level_short')}${level}/${steps}` : tr('sudokuModeKiller');
   } else if (mode === 'towers' || mode === 'unequal') {
     const label = variantLabel(variant, language) || tr('btn_rules');
     title = steps ? `${label} · ${tr('label_level_short')}${level}/${steps}` : label;
