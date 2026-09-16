@@ -36,7 +36,7 @@ import { levelOutcome } from '@/src/services/levelOutcome';
 import { MIN_TRIALS_FOR_LEVEL } from '@/app/games/cpt';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView
+  ScrollView, Animated, Easing
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -187,6 +187,25 @@ export default function PRLGame() {
   const [trialIdx, setTrialIdx] = useState(0);
   const [totalTrials, setTotalTrials] = useState(30);
   const [bank, setBank] = useState(0);
+  /**
+   * 🔴 СЧЁТ В ЦЕНТРЕ И ЖИВОЙ. Два отчёта тестировщика 11.09.2026 (ae031eb8,
+   * ae0922ad), дословно: «основная суть игры — мы набираем баллы, а показывалось
+   * у мелкой колонки вверху; иначе интереса нету» и «сделать по центру растущий
+   * шарик суммой, который меняется в размере».
+   *
+   * Претензия по делу: в игре, где единственная награда — накопленный балл,
+   * этот балл занимал самое незаметное место экрана, а центр был отдан статичной
+   * подсказке, которую читают один раз.
+   *
+   * ⚠️ ЧТО ЗДЕСЬ НЕЛЬЗЯ БЫЛО СДЕЛАТЬ: вытеснить обратную связь. Игра прямо просит
+   * «следи за фидбеком», и отклик показывается НА КРУГАХ (цвет и рамка в
+   * renderStimulus) — центр под ним не занят, поэтому счёт туда и встал.
+   * Капсула банка в шапке ОСТАВЛЕНА: она общая для всех игр раздела, и убрать её
+   * значило бы выломать экран из общего языка.
+   */
+  const bankScale = useRef(new Animated.Value(1)).current;
+  const [bankFlash, setBankFlash] = useState<'up' | 'down' | null>(null);
+  const prevBankRef = useRef(0);
   const [feedback, setFeedback] = useState<{ choice: Choice; outcome: 'reward' | 'punish' } | null>(null);
   const [revealCount, setRevealCount] = useState(0);  // current block trial counter
   const [clearedPassed, setClearedPassed] = useState(true);   // память результата для баннера LevelCleared
@@ -520,6 +539,20 @@ export default function PRLGame() {
     );
   };
 
+  useEffect(() => {
+    const было = prevBankRef.current;
+    prevBankRef.current = bank;
+    if (bank === было) return;
+    const вверх = bank > было;
+    setBankFlash(вверх ? 'up' : 'down');
+    /* Прибавка — счёт подрастает, потеря — съёживается. Разный ЗНАК движения,
+       а не просто «мигнуло»: по нему видно, что случилось, не читая цифру. */
+    Animated.sequence([
+      Animated.timing(bankScale, { toValue: вверх ? 1.28 : 0.82, duration: 130, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+      Animated.timing(bankScale, { toValue: 1, duration: 260, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+    ]).start(() => setBankFlash(null));
+  }, [bank, bankScale]);
+
   const renderStimulus = (which: Choice, color: string) => {
     const isFeedback = feedback?.choice === which;
     const fbColor = isFeedback
@@ -563,9 +596,9 @@ export default function PRLGame() {
           { key: 'bank', icon: 'cash', label: t('hud_bank'), value: `${bank}¢`, tone: bank >= 100 ? 'good' as const : 'warn' as const, pop: true },
           { key: 'rev', icon: 'swap-horizontal', label: t('hud_reversals'), value: blockIndexRef.current, tone: 'accent' as const },
         ]}
-        stats={
-          <View style={styles.statsRow} />
-        }
+        /* Слот `stats` СНЯТ 16.09.2026: в нём стоял пустой <View/>. Пустой слот
+           каркас всё равно рисует полосой, и она отжимала поле вниз ни за что —
+           ровно тот же случай, что был у WCST. */
         toolbar={
           <View style={styles.toolbarCol}>
             <View style={styles.stimRow}>
@@ -579,6 +612,21 @@ export default function PRLGame() {
           </View>
         }
       >
+        {/* Центр экрана: накопленное. Подсказка ушла под него — её читают один
+            раз, а счёт смотрят каждую пробу. */}
+        <View style={styles.bankCenterWrap}>
+          <Animated.Text
+            accessibilityRole="text"
+            style={[
+              styles.bankCenter,
+              { color: bankFlash === 'up' ? '#22c55e' : bankFlash === 'down' ? '#f43f5e' : colors.text,
+                transform: [{ scale: bankScale }] },
+            ]}>
+            {`${bank}¢`}
+          </Animated.Text>
+          <Text style={[styles.bankCenterLabel, { color: colors.textSecondary }]}>{t('hud_bank')}</Text>
+        </View>
+
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>
           {t('prlHint')}
         </Text>
@@ -646,6 +694,9 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 16, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
+  bankCenterWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 12, gap: 2 },
+  bankCenter: { fontSize: 56, fontWeight: '800', letterSpacing: -1 },
+  bankCenterLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6 },
   stimRow: { flexDirection: 'row', gap: 28, marginTop: 12 },
   stim: { width: 130, height: 130, borderRadius: 65, justifyContent: 'center', alignItems: 'center' },
   stimLabel: { color: '#FFF', fontSize: 48, fontWeight: '900' },
