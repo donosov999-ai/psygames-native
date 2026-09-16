@@ -20,6 +20,7 @@
 import { PROFILES, isGameAllowed } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 import { HUB_CONTENTS } from '@/src/constants/hubContents';
+import { GAME_SUITES, suiteEntryRoute } from '@/src/constants/gameSuites';
 import { БЛОКИ_ГЛАВНОЙ } from '@/src/constants/homeBlocks';
 import { SERIES_KEYS, seriesKind } from '@/src/services/warmupEntries';
 import { ASSESSMENT_PLAYLIST } from '@/src/services/assessment';
@@ -292,6 +293,25 @@ describe('снимок состава для редактора плейлист
         карточки.map((c) => ({ route: c.route, имяКлюч: c.nameKey, имя: translateFor('ru', c.nameKey) })),
       ]),
     ),
+    /**
+     * 🔴 КАРТОЧКА РАЗВИЛКИ С `suiteId` ОТКРЫВАЕТ НЕ ОДИН ЭКРАН, А НЕСКОЛЬКО.
+     * Без этого поля снимок отдаёт только маршрут карточки, и всё, что лежит
+     * под наборами, выглядит недостижимым. Замер 13.09.2026 по собранному
+     * STRUCTURE.md: одиннадцать экранов стояли с прочерком в колонке «развилки»
+     * — то есть «вход только из профиля, главной или зарядки», — хотя они в
+     * развилке: simon, choice-rt, ant, stroop-emotional, switching-task,
+     * go-no-go, stop-signal, iowa, bart (все девять — «Конфликт внимания»)
+     * плюс corsi и spatial-span («Объём памяти»).
+     *
+     * Ключ здесь — МАРШРУТ КАРТОЧКИ, а не `suiteId`: состав развилок берётся
+     * из файла настроек, когда он там задан, и `suiteId` до сборщика не
+     * доезжает вовсе. По маршруту связь находится в обоих случаях.
+     */
+    наборы: GAME_SUITES.map((н) => ({
+      id: н.id,
+      карточка: suiteEntryRoute(н),
+      режимы: н.modes.map((м) => ({ route: м.route, имя: translateFor('ru', м.labelKey) })),
+    })),
   };
 
   it('🔴 реестр игр не пуст — иначе редактор покажет пустую таблицу', () => {

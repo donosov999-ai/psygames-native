@@ -1,11 +1,11 @@
-<!-- STRUCTURE.md · СОБИРАЕТСЯ, РУКАМИ НЕ ПРАВИТЬ · 2026-09-13 16:52 · коммит 6d7a0bf8 -->
+<!-- STRUCTURE.md · СОБИРАЕТСЯ, РУКАМИ НЕ ПРАВИТЬ · 2026-09-16 02:26 · коммит ba9a3337 -->
 # PsyGames — структура: игры, развилки, потоки, профили
 
 > 🔴 **ЭТОТ ФАЙЛ СОБИРАЕТСЯ, А НЕ ПИШЕТСЯ.** Пересобрать: `node frontend/scripts/build-structure.mjs`
 > из корня репозитория. Правка руками пропадёт при следующей сборке — и, что хуже,
 > соврёт до неё. Числа сняты из тех же данных, что показывает приложение.
 >
-> Снято 2026-09-13 16:52 на коммите `6d7a0bf8`. Копия для Дениса лежит в Obsidian:
+> Снято 2026-09-16 02:26 на коммите `ba9a3337`. Копия для Дениса лежит в Obsidian:
 > `PsyGames/Структура игр и развилок.md` — обе печатает один прогон.
 
 > ⚙️ **Состав правится не здесь и не в коде, а ФАЙЛОМ настроек.**
@@ -16,16 +16,25 @@
 
 Развилок 13. Карточка «(группа)» — вход в другую развилку.
 
-### Конфликт внимания · `/games/attention-conflict` — 9
+### Конфликт внимания · `/games/attention-conflict` — 9 карточек · 18 экранов
 
-- **Струп: торможение** — `/games/stroop`
-- **Фланкер: стрелки** — `/games/flanker`
-- **CPT: устойчивое внимание** — `/games/cpt`
+- **Струп: торможение** — `/games/stroop` — набор:
+    - Эмоциональный — `/games/stroop-emotional`
+- **Фланкер: стрелки** — `/games/flanker` — набор:
+    - Позиция — `/games/simon`
+    - Выбор — `/games/choice-rt`
+    - Подсказка — `/games/ant`
+- **CPT: устойчивое внимание** — `/games/cpt` — набор:
+    - Смена правил — `/games/switching-task`
 - **Мишени: реакция** — `/games/targets`
 - **WCST: правила** — `/games/wcst`
-- **Торможение** — `/games/inhibition`
+- **Торможение** — `/games/inhibition` — набор:
+    - Запрет — `/games/go-no-go`
+    - Отмена начатого — `/games/stop-signal`
 - **Posner Cuing: внимание** — `/games/posner`
-- **PRL: смена правил** — `/games/prl`
+- **PRL: смена правил** — `/games/prl` — набор:
+    - Четыре колоды — `/games/iowa`
+    - Надувай шар — `/games/bart`
 - **Корректура: фокус** — `/games/proofreading`
 
 ### Шахматы · `/games/chess-hub` — 2
@@ -114,10 +123,12 @@
 - **Мосты** — `/games/puzzles` `?mode=Bridges`
 - **Рельсы** — `/games/puzzles` `?mode=Train Tracks`
 
-### Объём памяти · `/games/span` — 6
+### Объём памяти · `/games/span` — 6 карточек · 8 экранов
 
 - **Запомни цифры** — `/games/digit-span`
-- **Матрица памяти** — `/games/memory-matrix`
+- **Матрица памяти** — `/games/memory-matrix` — набор:
+    - Блоки Корси — `/games/corsi`
+    - Наоборот — `/games/spatial-span`
 - **Слуховой охват** — `/games/listening-span`
 - **Reading Span: память** — `/games/reading-span`
 - **N-back: оперативная память** — `/games/n-back`
@@ -229,17 +240,17 @@
 
 | игра | id | маршрут | развилки |
 |---|---|---|---|
-| Go / No-Go: торможение | `go_no_go` | `/games/go-no-go` | — |
+| Go / No-Go: торможение | `go_no_go` | `/games/go-no-go` | Конфликт внимания |
 | SDMT: символ→цифра | `sdmt` | `/games/sdmt` | Поиск глазами |
-| Simon: цвет vs позиция | `simon` | `/games/simon` | — |
-| Выбор-реакция: скорость | `choice_rt` | `/games/choice-rt` | — |
+| Simon: цвет vs позиция | `simon` | `/games/simon` | Конфликт внимания |
+| Выбор-реакция: скорость | `choice_rt` | `/games/choice-rt` | Конфликт внимания |
 | Конфликт внимания | `attention_conflict` | `/games/attention-conflict` | — |
 | Математическая шкала | `math_slider` | `/games/math-slider` | Счёт |
 | Математический спринт | `math_sprint` | `/games/math-sprint` | Счёт |
 | Мишени: реакция | `targets` | `/games/targets` | Конфликт внимания |
 | Прочти эмоцию | `rmet` | `/games/rmet` | Мнемотехники |
 | Слово или нет? | `lexical_decision` | `/games/lexical-decision` | Слова |
-| Стоп-сигнал: торможение | `stop_signal` | `/games/stop-signal` | — |
+| Стоп-сигнал: торможение | `stop_signal` | `/games/stop-signal` | Конфликт внимания |
 | Струп: торможение | `stroop` | `/games/stroop` | Конфликт внимания |
 | Счёт | `counting_group` | `/games/counting-hub` | — |
 | Считалка: счёт | `counter` | `/games/counter` | Счёт |
@@ -247,13 +258,13 @@
 | Фланкер: стрелки | `flanker` | `/games/flanker` | Конфликт внимания |
 | Числовой забег | `number_run` | `/games/number-run` | Счёт |
 | Числовые пары: счёт | `number_bonds` | `/games/number-bonds` | Счёт |
-| Эмоциональный Stroop | `stroop_emotional` | `/games/stroop-emotional` | — |
+| Эмоциональный Stroop | `stroop_emotional` | `/games/stroop-emotional` | Конфликт внимания |
 
 ### Раздел `attention` — 15
 
 | игра | id | маршрут | развилки |
 |---|---|---|---|
-| ANT: 3 сети внимания | `ant` | `/games/ant` | — |
+| ANT: 3 сети внимания | `ant` | `/games/ant` | Конфликт внимания |
 | CPT: устойчивое внимание | `cpt` | `/games/cpt` | Конфликт внимания |
 | Posner Cuing: внимание | `posner` | `/games/posner` | Конфликт внимания |
 | Быстрый счёт | `quick_count` | `/games/quick-count` | Поиск глазами |
@@ -273,8 +284,8 @@
 
 | игра | id | маршрут | развилки |
 |---|---|---|---|
-| BART: риск-баллон | `bart` | `/games/bart` | — |
-| Iowa: 4 колоды | `iowa` | `/games/iowa` | — |
+| BART: риск-баллон | `bart` | `/games/bart` | Конфликт внимания |
+| Iowa: 4 колоды | `iowa` | `/games/iowa` | Конфликт внимания |
 | PRL: смена правил | `prl` | `/games/prl` | Конфликт внимания |
 | WCST: правила | `wcst` | `/games/wcst` | Конфликт внимания |
 
@@ -291,7 +302,7 @@
 | Ментальная ротация | `mental_rotation` | `/games/mental-rotation` | Пространство |
 | Одна линия | `one_line` | `/games/one-line` | Пространство |
 | Паттерны: мышление | `pattern` | `/games/pattern` | Счёт |
-| Переключение задач | `switching_task` | `/games/switching-task` | — |
+| Переключение задач | `switching_task` | `/games/switching-task` | Конфликт внимания |
 | Пицца | `pizza_sort` | `/games/pizza-sort` | Сортировка |
 | Пробирки | `water_sort` | `/games/water-sort` | Сортировка |
 | Пространственная лаборатория | `spatial_lab` | `/games/spatial-lab` | Пространство |
@@ -318,13 +329,13 @@
 | N-back: оперативная память | `n_back` | `/games/n-back` | Объём памяти |
 | OSpan: счёт+память | `ospan` | `/games/ospan` | Счёт |
 | Reading Span: память | `reading_span` | `/games/reading-span` | Объём памяти |
-| Spatial Span (обратный) | `spatial_span` | `/games/spatial-span` | — |
+| Spatial Span (обратный) | `spatial_span` | `/games/spatial-span` | Объём памяти |
 | Story Recall: память на детали | `story_recall` | `/games/story-recall` | Слова |
 | Дворец памяти | `memory_palace` | `/games/memory-palace` | Мнемотехники |
 | Детский мат | `scholars_mate` | `/games/scholars-mate` | Шахматы |
 | Доска в уме | `chess_blind` | `/games/chess-blind` | Шахматы |
 | Запомни цифры | `digit_span` | `/games/digit-span` | Объём памяти |
-| Кубики Корси | `corsi` | `/games/corsi` | — |
+| Кубики Корси | `corsi` | `/games/corsi` | Объём памяти |
 | Лица и имена | `faces_names` | `/games/faces-names` | Мнемотехники |
 | Маджонг | `mahjong` | `/games/mahjong` | Поиск глазами |
 | Матрица памяти | `memory_matrix` | `/games/memory-matrix` | Объём памяти |
