@@ -1,4 +1,4 @@
-/* psygames-game-pause · VER 2 · 16.09.2026 */
+/* psygames-game-pause · VER 3 · 16.09.2026 */
 /**
  * ОБЩАЯ ПАУЗА ИГРЫ, ПОКА ЧЕЛОВЕК ПИШЕТ ОТЗЫВ.
  *
@@ -132,6 +132,87 @@ export function gameNow(): number {
   const now = Date.now();
   const held = _pausedTotal + (_pausedAt !== null ? now - _pausedAt : 0);
   return now - held;
+}
+
+/**
+ * 🔴 ТАЙМЕРЫ ПАРТИИ, КОТОРЫЕ СТОЯТ НА ПАУЗЕ: `gameTimeout` / `gameInterval`.
+ *
+ * ПОВОД — замер раздела «Внимание» 16.09.2026, Струп L1: меню паузы открыто, а счётчик
+ * проб идёт 2/20 → 3/20 → 4/20 за 5 секунд, и каждая пропущенная проба пишется ошибкой.
+ * Человек стоит на паузе и проигрывает.
+ *
+ * ⚠️ ПОЧЕМУ ЧАСОВ `gameNow()` МАЛО. Они честно вычитают паузу из ВРЕМЕНИ РЕАКЦИИ, но
+ * пробы сменяет обычный `setTimeout`, а он про паузу не знает ничего. Подписаны на
+ * паузу 2 экрана из 95 (`chess-blind`, `number-run`), `setTimeout` стоит в 61, а
+ * `setInterval` — в 41. Чинить каждый экран своим способом — девяносто разных
+ * реализаций одного правила, поэтому правило живёт здесь, одно.
+ *
+ * КАК МЕНЯТЬ — построчно, форма та же, что у `setTimeout`:
+ *     ref.current = setTimeout(fn, ms)   →   ref.current = gameTimeout(fn, ms)
+ *     clearTimeout(ref.current)          →   clearGameTimer(ref.current)
+ *
+ * Срок считается по ИГРОВЫМ часам: на паузе таймер снят, после «Продолжить» ставится
+ * заново ровно на остаток. Таймер, заведённый во время паузы, начнёт идти после неё.
+ * Для анимаций интерфейса (вспышка ответа, тряска) это не нужно — только для того,
+ * что меняет партию: смена пробы, окно ответа, обратный отсчёт, появление целей.
+ */
+export interface GameTimer {
+  /** Снять таймер. Повторный вызов ничего не делает. */
+  cancel(): void;
+}
+
+function gameTimer(fn: () => void, ms: number, repeat: boolean): GameTimer {
+  const period = Math.max(0, Number.isFinite(ms) ? ms : 0);
+  let due = gameNow() + period;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let off: (() => void) | null = null;
+  let done = false;
+
+  const disarm = () => {
+    if (timer !== null) { clearTimeout(timer); timer = null; }
+  };
+  const finish = () => {
+    done = true;
+    disarm();
+    if (off) { off(); off = null; }
+  };
+  const arm = () => {
+    disarm();
+    if (done || isGameHeld()) return;
+    timer = setTimeout(fire, Math.max(0, due - gameNow()));
+  };
+  function fire(): void {
+    timer = null;
+    if (done) return;
+    // Сработал раньше срока по игровым часам (пауза пришлась между постановкой
+    // и срабатыванием) или прямо на паузе — не стреляем, ждём остаток.
+    if (isGameHeld()) return;
+    if (gameNow() < due) { arm(); return; }
+    if (repeat) { due += period > 0 ? period : 1; arm(); } else finish();
+    fn();
+  }
+
+  off = onGameHold((held) => { if (held) disarm(); else arm(); });
+  arm();
+  return { cancel: finish };
+}
+
+/** Как `setTimeout`, но на паузе стоит и после неё дожидается остатка. */
+export function gameTimeout(fn: () => void, ms: number): GameTimer {
+  return gameTimer(fn, ms, false);
+}
+
+/**
+ * Как `setInterval`, но на паузе стоит. Тики отсчитываются от срока, а не от момента
+ * срабатывания: медленный кадр не сдвигает всю дальнейшую сетку.
+ */
+export function gameInterval(fn: () => void, ms: number): GameTimer {
+  return gameTimer(fn, ms, true);
+}
+
+/** Как `clearTimeout`: принимает и пустой ref. */
+export function clearGameTimer(t: GameTimer | null | undefined): void {
+  t?.cancel();
 }
 
 /** Сколько всего простояли на паузе — для отладки и тестов. */
