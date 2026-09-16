@@ -256,10 +256,15 @@ jobs:
           - { shard: 2, label: 'осколок 2 из 4' }
           - { shard: 3, label: 'осколок 3 из 4' }
           - { shard: 4, label: 'осколок 4 из 4' }
+          # ⚠️ ТРИ ГРУППЫ, А НЕ ДВЕ (17.09.2026): в прогоне fc931c9c группа Б отменена по 45 минутам —
+          # cake-sort-hint делил раннер с cake-sort-uses-prebuilt (1082 с) и не успел. Подсказка
+          # тортов теперь едет одна, самые долгие файлы разнесены по разным раннерам.
           - label: 'тяжёлые пробы A'
-            heavy: 'src/__tests__/cake-sort-levels.test.ts src/__tests__/cake-sort-reference.test.ts src/__tests__/water-sort-ladder.test.ts'
+            heavy: 'src/__tests__/cake-sort-levels.test.ts src/__tests__/water-sort-ladder.test.ts src/__tests__/mahjong-human-stuck.test.ts'
           - label: 'тяжёлые пробы Б'
-            heavy: 'src/__tests__/cake-sort-hint.test.ts src/__tests__/cake-sort-uses-prebuilt.test.tsx src/__tests__/cake-sort-prebuilt.test.ts src/__tests__/mahjong-human-stuck.test.ts'
+            heavy: 'src/__tests__/cake-sort-hint.test.ts'
+          - label: 'тяжёлые пробы В'
+            heavy: 'src/__tests__/cake-sort-uses-prebuilt.test.tsx src/__tests__/cake-sort-reference.test.ts src/__tests__/cake-sort-prebuilt.test.ts'
     steps:
       - uses: actions/checkout@v6
       - name: Setup Node
