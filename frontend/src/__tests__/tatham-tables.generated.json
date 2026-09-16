@@ -154,9 +154,13 @@
     "Unequal": "puzzleSecondPencil",
     "Keen": "puzzleSecondPencil",
     "Singles": "puzzleSecondKeep",
-    "Undead": "puzzleSecondPencil"
+    "Undead": "puzzleSecondPencil",
+    "Pearl": "puzzleSecondNoLine",
+    "Train Tracks": "puzzleSecondNoTrack",
+    "Bridges": "puzzleSecondNoBridge"
   },
   "стрелочные": [
+    "Bridges",
     "Cube",
     "Fifteen",
     "Flip",
@@ -176,6 +180,7 @@
   ],
   "второеДействие": [
     "Black Box",
+    "Bridges",
     "Dominosa",
     "Galaxies",
     "Guess",
@@ -222,6 +227,7 @@
     "Inertia"
   ],
   "выбор": [
+    "Bridges",
     "Flip",
     "Map",
     "Net",
@@ -234,6 +240,7 @@
     "Untangle"
   ],
   "выборВторой": [
+    "Bridges",
     "Map",
     "Pegs",
     "Rectangles",
