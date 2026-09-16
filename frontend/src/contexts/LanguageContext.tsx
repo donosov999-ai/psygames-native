@@ -1243,8 +1243,8 @@ const translations: Translations = {
 
   // Round-4 — intro descriptions
   mentalRotationIntroDesc: {
-    ru: 'Слева — эталонная фигура. Справа — варианты, повёрнутые на разные углы. Один из них — это ТА ЖЕ фигура (просто повёрнутая), остальные — её зеркальное отражение или другая фигура. Тренирует пространственное мышление и визуальную ротацию.',
-    en: 'On the left — a reference shape. On the right — options rotated at different angles. One is the SAME shape (just rotated); the others are mirror reflections or different shapes. Trains spatial reasoning and visual rotation.'
+    ru: 'Сверху — эталон, снизу — варианты ответа. В основном задании «Поворот» выбери ту же фигуру, только повёрнутую: остальные варианты — её зеркальное отражение или другая фигура. С уровнем добавляются новые задания: «Проекция», «Развёртка», «Точка зрения», «Одинаковая фигура», «Сборка», «Три вида» и «Недостающая часть»; вопрос каждого написан над эталоном. Тренирует пространственное мышление и мысленное вращение.',
+    en: 'The reference is at the top, the answer options below. In the main task, “Rotation”, pick the same shape, just turned: the other options are its mirror image or a different shape. As you level up, new tasks join in: “Projection”, “Cube net”, “Viewpoint”, “Same figure”, “Assembly”, “Three views” and “Missing piece”; each one’s question is written above the reference. Trains spatial reasoning and mental rotation.'
   },
   readingSpanIntroDesc: {
     ru: 'Читайте предложения по очереди. Для каждого: оцените, есть ли в нём смысл (✓ или ✗), И запомните последнее слово. После N предложений впишите все последние слова в правильном порядке. Это классический тест рабочей памяти Дэйнмана-Карпентера (RWMC).',
