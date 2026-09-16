@@ -41,7 +41,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { makeDecoys, DECOYS_MAX } from '@/src/games/attention/decoys';
@@ -313,7 +313,7 @@ export default function StroopGame() {
 
   useEffect(() => () => {
     stoppedRef.current = true;
-    if (windowTimerRef.current) clearGameTimeout(windowTimerRef.current);
+    if (windowTimerRef.current) clearGameTimer(windowTimerRef.current);
   }, []);
 
   const nextRound = () => {
@@ -329,7 +329,7 @@ export default function StroopGame() {
     if (r !== modeRef.current) switchedTrialsRef.current += 1;
     answeredRef.current = false;
     trialStartRef.current = gameNow();
-    if (windowTimerRef.current) clearGameTimeout(windowTimerRef.current);
+    if (windowTimerRef.current) clearGameTimer(windowTimerRef.current);
     windowTimerRef.current = gameTimeout(handleTimeout, windowMsRef.current);
   };
 
@@ -353,7 +353,7 @@ export default function StroopGame() {
   const handleAnswer = (chosen: typeof COLORS_DEF[0]) => {
     if (stoppedRef.current || answeredRef.current) return;
     answeredRef.current = true;
-    if (windowTimerRef.current) clearGameTimeout(windowTimerRef.current);
+    if (windowTimerRef.current) clearGameTimer(windowTimerRef.current);
     // сверяем по правилу ПРОБЫ, а не партии: часть проб идёт по другому правилу
     const correctName = trialRuleRef.current === 'ink' ? inkRef.current.name : wordRef.current.name;
     const isCongruent = inkRef.current.name === wordRef.current.name;
@@ -403,7 +403,7 @@ export default function StroopGame() {
   };
 
   const finish = async () => {
-    if (windowTimerRef.current) clearGameTimeout(windowTimerRef.current);
+    if (windowTimerRef.current) clearGameTimer(windowTimerRef.current);
     const finalTime = (gameNow() - startTimeRef.current) / 1000;
     setElapsedTime(finalTime);
     const totalHits = hitsRef.current;
@@ -566,7 +566,7 @@ export default function StroopGame() {
     return (
       <GameShell
         title={t('stroop')}
-        onBack={() => { stoppedRef.current = true; if (windowTimerRef.current) clearGameTimeout(windowTimerRef.current); goBackOrHome(); }}
+        onBack={() => { stoppedRef.current = true; if (windowTimerRef.current) clearGameTimer(windowTimerRef.current); goBackOrHome(); }}
         /**
          * Счётчики ДАННЫМИ (см. `HudItem`): каркас рисует их одинаково во всех
          * играх, и правка вида приходит сразу везде.
@@ -661,7 +661,7 @@ export default function StroopGame() {
       <View style={styles.header}>
         <TouchableOpacity
           accessibilityRole="button" accessibilityLabel={t('a11yBack')} style={[styles.backBtn, { backgroundColor: colors.surface }]}
-          onPress={() => { stoppedRef.current = true; if (windowTimerRef.current) clearGameTimeout(windowTimerRef.current); goBackOrHome(); }}>
+          onPress={() => { stoppedRef.current = true; if (windowTimerRef.current) clearGameTimer(windowTimerRef.current); goBackOrHome(); }}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>{t('stroop')}</Text>

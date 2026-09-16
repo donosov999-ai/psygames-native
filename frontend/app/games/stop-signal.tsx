@@ -60,7 +60,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import {
@@ -197,7 +197,7 @@ export default function StopSignalGame() {
   const interTimerRef = useRef<GameTimer | null>(null);
 
   const clearTimers = () => {
-    [goTimerRef, stopTimerRef, endTimerRef, interTimerRef].forEach(r => { if (r.current) clearGameTimeout(r.current); });
+    [goTimerRef, stopTimerRef, endTimerRef, interTimerRef].forEach(r => { if (r.current) clearGameTimer(r.current); });
   };
 
   useEffect(() => () => clearTimers(), []);
@@ -322,8 +322,8 @@ export default function StopSignalGame() {
   };
 
   const endTrial = (outcome: TrialOutcome, rt: number | null) => {
-    if (stopTimerRef.current) clearGameTimeout(stopTimerRef.current);
-    if (endTimerRef.current) clearGameTimeout(endTimerRef.current);
+    if (stopTimerRef.current) clearGameTimer(stopTimerRef.current);
+    if (endTimerRef.current) clearGameTimer(endTimerRef.current);
     let fb: 'right' | 'wrong' = 'right';
     if (outcome === 'go_hit')   { hitsRef.current += 1; rtsRef.current = [...rtsRef.current, rt as number]; fb = 'right'; }
     if (outcome === 'go_miss')  { errorsRef.current += 1; fb = 'wrong'; }

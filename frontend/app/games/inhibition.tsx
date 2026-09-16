@@ -49,7 +49,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
@@ -188,7 +188,7 @@ export default function InhibitionGame() {
   const timersRef = useRef<GameTimer[]>([]);
   const pushTimer = (id: GameTimer) => timersRef.current.push(id);
   const clearAllTimers = () => {
-    timersRef.current.forEach((id) => clearGameTimeout(id));
+    timersRef.current.forEach((id) => clearGameTimer(id));
     timersRef.current = [];
   };
 

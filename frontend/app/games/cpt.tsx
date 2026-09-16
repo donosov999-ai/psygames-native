@@ -55,7 +55,7 @@ import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
@@ -478,7 +478,7 @@ export default function CPTGame() {
   const prevLetterRef = useRef('');
 
   const clearAllTimers = () => {
-    [isiTimerRef, stimTimerRef, offTimerRef, fbTimerRef].forEach(r => { if (r.current) clearGameTimeout(r.current); });
+    [isiTimerRef, stimTimerRef, offTimerRef, fbTimerRef].forEach(r => { if (r.current) clearGameTimer(r.current); });
     if (remainingTimerRef.current) clearInterval(remainingTimerRef.current);
   };
 
@@ -550,7 +550,7 @@ export default function CPTGame() {
 
   const flashFeedback = (kind: 'right' | 'wrong') => {
     setFeedback(kind);
-    if (fbTimerRef.current) clearGameTimeout(fbTimerRef.current);
+    if (fbTimerRef.current) clearGameTimer(fbTimerRef.current);
     fbTimerRef.current = gameTimeout(() => setFeedback(null), 200);
   };
 

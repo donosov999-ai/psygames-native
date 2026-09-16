@@ -134,80 +134,90 @@ export function gameNow(): number {
   return now - held;
 }
 
-/** Сколько всего простояли на паузе — для отладки и тестов. */
-export function heldTotalMs(): number {
-  return _pausedTotal + (_pausedAt !== null ? Date.now() - _pausedAt : 0);
+/**
+ * 🔴 ТАЙМЕРЫ ПАРТИИ, КОТОРЫЕ СТОЯТ НА ПАУЗЕ: `gameTimeout` / `gameInterval`.
+ *
+ * ПОВОД — замер раздела «Внимание» 16.09.2026, Струп L1: меню паузы открыто, а счётчик
+ * проб идёт 2/20 → 3/20 → 4/20 за 5 секунд, и каждая пропущенная проба пишется ошибкой.
+ * Человек стоит на паузе и проигрывает.
+ *
+ * ⚠️ ПОЧЕМУ ЧАСОВ `gameNow()` МАЛО. Они честно вычитают паузу из ВРЕМЕНИ РЕАКЦИИ, но
+ * пробы сменяет обычный `setTimeout`, а он про паузу не знает ничего. Подписаны на
+ * паузу 2 экрана из 95 (`chess-blind`, `number-run`), `setTimeout` стоит в 61, а
+ * `setInterval` — в 41. Чинить каждый экран своим способом — девяносто разных
+ * реализаций одного правила, поэтому правило живёт здесь, одно.
+ *
+ * КАК МЕНЯТЬ — построчно, форма та же, что у `setTimeout`:
+ *     ref.current = setTimeout(fn, ms)   →   ref.current = gameTimeout(fn, ms)
+ *     clearTimeout(ref.current)          →   clearGameTimer(ref.current)
+ *
+ * Срок считается по ИГРОВЫМ часам: на паузе таймер снят, после «Продолжить» ставится
+ * заново ровно на остаток. Таймер, заведённый во время паузы, начнёт идти после неё.
+ * Для анимаций интерфейса (вспышка ответа, тряска) это не нужно — только для того,
+ * что меняет партию: смена пробы, окно ответа, обратный отсчёт, появление целей.
+ */
+export interface GameTimer {
+  /** Снять таймер. Повторный вызов ничего не делает. */
+  cancel(): void;
+}
+
+function gameTimer(fn: () => void, ms: number, repeat: boolean): GameTimer {
+  const period = Math.max(0, Number.isFinite(ms) ? ms : 0);
+  let due = gameNow() + period;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let off: (() => void) | null = null;
+  let done = false;
+
+  const disarm = () => {
+    if (timer !== null) { clearTimeout(timer); timer = null; }
+  };
+  const finish = () => {
+    done = true;
+    disarm();
+    if (off) { off(); off = null; }
+  };
+  const arm = () => {
+    disarm();
+    if (done || isGameHeld()) return;
+    timer = setTimeout(fire, Math.max(0, due - gameNow()));
+  };
+  function fire(): void {
+    timer = null;
+    if (done) return;
+    // Сработал раньше срока по игровым часам (пауза пришлась между постановкой
+    // и срабатыванием) или прямо на паузе — не стреляем, ждём остаток.
+    if (isGameHeld()) return;
+    if (gameNow() < due) { arm(); return; }
+    if (repeat) { due += period > 0 ? period : 1; arm(); } else finish();
+    fn();
+  }
+
+  off = onGameHold((held) => { if (held) disarm(); else arm(); });
+  arm();
+  return { cancel: finish };
+}
+
+/** Как `setTimeout`, но на паузе стоит и после неё дожидается остатка. */
+export function gameTimeout(fn: () => void, ms: number): GameTimer {
+  return gameTimer(fn, ms, false);
 }
 
 /**
- * 🔴 ТАЙМАУТ, КОТОРЫЙ СТОИТ ВМЕСТЕ С ИГРОЙ.
- *
- * ЗАМЕР 16.09.2026, живая сборка, Струп L1, 390×844: меню паузы на экране, а
- * счётчик проб идёт 2/20 → 3/20 → 4/20 за 5 секунд, и каждая просроченная проба
- * засчитывается ошибкой. Часы `gameNow()` при этом честны: паузу они вычитают из
- * ВРЕМЕНИ РЕАКЦИИ. Но пробы сменяет обычный `setTimeout`, а удержание его не
- * касается. На удержание были подписаны 2 экрана из 95.
- *
- * `gameTimeout` заменяет `setTimeout` один в один во всём, что двигает партию:
- * окно ответа, показ стимула, промежуток между пробами. Пока игру держат, таймер
- * снят и остаток запомнен; как только отпустили, он ставится заново на остаток.
- * Созданный на паузе таймер не запускается, пока паузу не снимут.
- *
- * Отмена — `clearGameTimeout(t)` вместо `clearTimeout(t)`, либо просто `t()`.
- * Повторная отмена и отмена после срабатывания ничего не делают.
- *
- * ⚠️ ОСТАТОК СЧИТАЕТСЯ ОТ МОМЕНТА ПОСТАНОВКИ, А НЕ ОТ `gameNow()`. Между
- * постановкой и снятием игра по определению не стояла, так что настенная
- * разница здесь и есть игровая, а лишнего чтения общих часов не нужно.
- *
- * ⚠️ `setInterval` сюда не переводится, если тик сам считает по `gameNow()`: такой
- * отсчёт на паузе уже стоит (у cpt, wcst и proofreading так и есть).
+ * Как `setInterval`, но на паузе стоит. Тики отсчитываются от срока, а не от момента
+ * срабатывания: медленный кадр не сдвигает всю дальнейшую сетку.
  */
-export type GameTimer = () => void;
-
-export function gameTimeout(fn: () => void, ms: number): GameTimer {
-  let остаток = Math.max(0, ms);
-  let поставленВ = 0;
-  let таймер: ReturnType<typeof setTimeout> | null = null;
-  let закончен = false;
-  let отписка: () => void = () => {};
-
-  const сработал = () => {
-    таймер = null;
-    if (закончен) return;
-    закончен = true;
-    отписка();
-    fn();
-  };
-  const поставить = () => {
-    поставленВ = Date.now();
-    таймер = setTimeout(сработал, остаток);
-  };
-  const снять = () => {
-    if (таймер === null) return;
-    clearTimeout(таймер);
-    таймер = null;
-    остаток = Math.max(0, остаток - (Date.now() - поставленВ));
-  };
-
-  отписка = onGameHold((держат) => {
-    if (закончен) return;
-    if (держат) снять();
-    else if (таймер === null) поставить();
-  });
-  if (!isGameHeld()) поставить();
-
-  return () => {
-    if (закончен) return;
-    закончен = true;
-    if (таймер !== null) { clearTimeout(таймер); таймер = null; }
-    отписка();
-  };
+export function gameInterval(fn: () => void, ms: number): GameTimer {
+  return gameTimer(fn, ms, true);
 }
 
-/** Отмена таймера из `gameTimeout`. Пустое значение допустимо — как у `clearTimeout`. */
-export function clearGameTimeout(t: GameTimer | null | undefined): void {
-  if (t) t();
+/** Как `clearTimeout`: принимает и пустой ref. */
+export function clearGameTimer(t: GameTimer | null | undefined): void {
+  t?.cancel();
+}
+
+/** Сколько всего простояли на паузе — для отладки и тестов. */
+export function heldTotalMs(): number {
+  return _pausedTotal + (_pausedAt !== null ? Date.now() - _pausedAt : 0);
 }
 
 /** Сброс часов — только для тестов, в приложении не звать. */

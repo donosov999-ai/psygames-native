@@ -30,7 +30,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getAbilityCount, useAbility } from '@/src/services/abilities';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -291,7 +291,7 @@ export default function TargetsGame() {
 
   const clearAllTimers = () => {
     if (stepTimerRef.current) {
-      clearGameTimeout(stepTimerRef.current);
+      clearGameTimer(stepTimerRef.current);
       stepTimerRef.current = null;
     }
   };

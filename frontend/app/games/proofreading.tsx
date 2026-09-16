@@ -36,7 +36,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { gameNow, gameTimeout, clearGameTimeout } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer } from '@/src/services/gamePause';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import {
   FILLWORDS_INK,
@@ -1116,7 +1116,7 @@ export default function ProofreadingGame() {
       beginBlockClock();
       setPhase('series');
     }, INTERLUDE_MS);
-    return () => clearGameTimeout(id);
+    return () => clearGameTimer(id);
     // Врезка живёт ровно одну фазу: зависимости — фаза и состояние блока, часы
     // заводятся ВНУТРИ таймаута, поэтому больше эффекту ничего не нужно.
   }, [phase, seriesState]);

@@ -23,7 +23,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
@@ -218,7 +218,7 @@ export default function StroopEmotionalGame() {
   const deadlineTimer = useRef<GameTimer | null>(null);
 
   useEffect(() => () => {
-    [stimTimer, fbTimer, deadlineTimer].forEach(r => { if (r.current) clearGameTimeout(r.current); });
+    [stimTimer, fbTimer, deadlineTimer].forEach(r => { if (r.current) clearGameTimer(r.current); });
   }, []);
 
   const advance = () => {
@@ -268,7 +268,7 @@ export default function StroopEmotionalGame() {
   };
 
   const finish = async () => {
-    if (deadlineTimer.current) clearGameTimeout(deadlineTimer.current);
+    if (deadlineTimer.current) clearGameTimer(deadlineTimer.current);
     const totalTime = (gameNow() - startTimeRef.current) / 1000;
     const allRts = rtsRef.current;
     const meanV = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
@@ -321,7 +321,7 @@ export default function StroopEmotionalGame() {
   const handleAnswer = (color: string) => {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimer.current) clearGameTimeout(deadlineTimer.current);
+    if (deadlineTimer.current) clearGameTimer(deadlineTimer.current);
     const rt = gameNow() - stimAt;
     const ok = color === trial.color;
     if (ok) {

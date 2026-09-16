@@ -26,7 +26,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
@@ -233,9 +233,9 @@ export default function FlankerGame() {
   const stimOnsetRef = useRef(0);
 
   useEffect(() => () => {
-    if (stimTimerRef.current) clearGameTimeout(stimTimerRef.current);
-    if (deadlineTimerRef.current) clearGameTimeout(deadlineTimerRef.current);
-    if (fbTimerRef.current) clearGameTimeout(fbTimerRef.current);
+    if (stimTimerRef.current) clearGameTimer(stimTimerRef.current);
+    if (deadlineTimerRef.current) clearGameTimer(deadlineTimerRef.current);
+    if (fbTimerRef.current) clearGameTimer(fbTimerRef.current);
   }, []);
 
   const newTrial = () => {
@@ -347,7 +347,7 @@ export default function FlankerGame() {
   const handleAnswer = (chosen: Direction) => {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimerRef.current) clearGameTimeout(deadlineTimerRef.current);
+    if (deadlineTimerRef.current) clearGameTimer(deadlineTimerRef.current);
     const rt = gameNow() - stimAt;
     const tr = trialRef.current;
     const ok = chosen === tr.center;

@@ -47,7 +47,7 @@ import { recordLineFor, useRecordBenchmark } from '@/src/hooks/useRecordBenchmar
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
@@ -294,7 +294,7 @@ export default function ChoiceRtGame() {
   const fbTimerRef = useRef<GameTimer | null>(null);
 
   const clearAllTimers = () => {
-    [stimTimerRef, deadlineTimerRef, fbTimerRef].forEach(r => { if (r.current) clearGameTimeout(r.current); });
+    [stimTimerRef, deadlineTimerRef, fbTimerRef].forEach(r => { if (r.current) clearGameTimer(r.current); });
   };
 
   useEffect(() => () => clearAllTimers(), []);
@@ -456,7 +456,7 @@ export default function ChoiceRtGame() {
   const handlePress = (chosen: Direction) => {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimerRef.current) clearGameTimeout(deadlineTimerRef.current);
+    if (deadlineTimerRef.current) clearGameTimer(deadlineTimerRef.current);
     const rt = gameNow() - stimAtRef.current;
     // Нажатие на нейтраль — ложная тревога: считаем отдельно от промаха по
     // направлению, потому что это разные ошибки. Промах = не разглядел знак;

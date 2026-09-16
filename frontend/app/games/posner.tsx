@@ -42,7 +42,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#3a6186', '#89253e'];
@@ -201,7 +201,7 @@ export default function PosnerGame() {
 
   const clearAllTimers = () => {
     [cueTimerRef, cueOffTimerRef, gapTimerRef, deadlineTimerRef, fbTimerRef]
-      .forEach(r => { if (r.current) clearGameTimeout(r.current); });
+      .forEach(r => { if (r.current) clearGameTimer(r.current); });
   };
 
   useEffect(() => () => clearAllTimers(), []);
@@ -316,7 +316,7 @@ export default function PosnerGame() {
   const handleAnswer = (side: Side) => {
     if (!showTarget || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimerRef.current) clearGameTimeout(deadlineTimerRef.current);
+    if (deadlineTimerRef.current) clearGameTimer(deadlineTimerRef.current);
     const rt = gameNow() - stimAtRef.current;
     const tr = trialRef.current;
     const ok = side === tr.targetSide;

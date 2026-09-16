@@ -43,7 +43,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#7873f5', '#ff6ec4'];
@@ -355,7 +355,7 @@ export default function SwitchingTaskGame() {
   const fbTimerRef = useRef<GameTimer | null>(null);
 
   const clearAllTimers = () => {
-    [stimTimerRef, deadlineTimerRef, fbTimerRef].forEach(r => { if (r.current) clearGameTimeout(r.current); });
+    [stimTimerRef, deadlineTimerRef, fbTimerRef].forEach(r => { if (r.current) clearGameTimer(r.current); });
   };
 
   useEffect(() => () => clearAllTimers(), []);
@@ -462,7 +462,7 @@ export default function SwitchingTaskGame() {
   const handleAnswer = (left: boolean) => {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimerRef.current) clearGameTimeout(deadlineTimerRef.current);
+    if (deadlineTimerRef.current) clearGameTimer(deadlineTimerRef.current);
     const rt = gameNow() - stimAtRef.current;
     const tr = trialRef.current;
     const ok = left === tr.correctLeft;

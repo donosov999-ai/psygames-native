@@ -49,7 +49,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth, useScreenSize } from '@/src/hooks/useScreenWidth';
 
@@ -402,7 +402,7 @@ export default function WcstGame() {
 
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    if (advanceTimerRef.current) clearGameTimeout(advanceTimerRef.current);
+    if (advanceTimerRef.current) clearGameTimer(advanceTimerRef.current);
   }, []);
 
   const pickNewRule = (prev: Rule): Rule => {

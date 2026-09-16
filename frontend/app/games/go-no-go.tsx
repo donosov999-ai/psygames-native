@@ -48,7 +48,7 @@ import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
@@ -184,7 +184,7 @@ export default function GoNoGoGame() {
   const itiTimerRef = useRef<GameTimer | null>(null);
 
   const clearAllTimers = () => {
-    [windowTimerRef, itiTimerRef].forEach(r => { if (r.current) clearGameTimeout(r.current); });
+    [windowTimerRef, itiTimerRef].forEach(r => { if (r.current) clearGameTimer(r.current); });
   };
 
   useEffect(() => () => { stoppedRef.current = true; clearAllTimers(); }, []);

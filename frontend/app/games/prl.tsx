@@ -60,7 +60,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
-import { gameNow, gameTimeout, clearGameTimeout } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
@@ -590,7 +590,7 @@ export default function PRLGame() {
          Держим ровно столько же (130 + 260), чтобы событие не мелькало иначе. */
       bankScale.setValue(1);
       const снять = gameTimeout(() => setBankFlash(null), 390);
-      return () => clearGameTimeout(снять);
+      return () => clearGameTimer(снять);
     }
     Animated.sequence([
       Animated.timing(bankScale, { toValue: вверх ? 1.28 : 0.82, duration: 130, easing: Easing.out(Easing.quad), useNativeDriver: true }),

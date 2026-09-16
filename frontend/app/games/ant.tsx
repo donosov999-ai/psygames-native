@@ -46,7 +46,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
@@ -193,7 +193,7 @@ export default function ANTGame() {
   const fbTimer = useRef<GameTimer | null>(null);
 
   const clearAllTimers = () => {
-    [cueTimer, targetTimer, blankTimer, deadlineTimer, fbTimer].forEach(r => { if (r.current) clearGameTimeout(r.current); });
+    [cueTimer, targetTimer, blankTimer, deadlineTimer, fbTimer].forEach(r => { if (r.current) clearGameTimer(r.current); });
   };
 
   useEffect(() => () => clearAllTimers(), []);
@@ -323,7 +323,7 @@ export default function ANTGame() {
   const handleAnswer = (d: Direction) => {
     if (!showTarget || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimer.current) clearGameTimeout(deadlineTimer.current);
+    if (deadlineTimer.current) clearGameTimer(deadlineTimer.current);
     const rt = gameNow() - stimAtRef.current;
     const tr = trialRef.current;
     const ok = d === tr.dir;
