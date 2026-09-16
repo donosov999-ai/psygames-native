@@ -29,6 +29,17 @@ declare function require(id: string): any;
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/**
+ * 🔴 ОДНА СРЕДА НА ВСЕ ВЫЗОВЫ git. Замер 16.09.2026: `xcode-select -p` показывает на
+ * Xcode с непринятой лицензией, и обёртка `/usr/bin/git` отвечает «You have not agreed
+ * to the Xcode license agreements» КАЖДОМУ, кто её зовёт. Проба падала до первого
+ * утверждения (`Test suite failed to run`, тестов 0); после починки одного вызова из
+ * трёх остальные два молча возвращали «нет» — и это было хуже падения, потому что
+ * выглядело как пройденная проверка. Инструменты командной строки лежат рядом и
+ * лицензии не требуют. Настоящая починка машины — `sudo xcodebuild -license accept`,
+ * она требует пароля владельца.
+ */
+const СРЕДА = { ...process.env, DEVELOPER_DIR: process.env.DEVELOPER_DIR || '/Library/Developer/CommandLineTools' };
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
 
@@ -48,7 +59,18 @@ const FORBIDDEN: [RegExp, string][] = [
 const BINARY = /\.(png|jpg|jpeg|webp|gif|ttf|otf|woff2?|mp3|wav|zip|keystore|jks|ico|icns|pdf)$/i;
 
 function trackedFiles(): string[] {
-  const out = execSync('git ls-files', { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  /**
+   * 🔴 `DEVELOPER_DIR` — НЕ УКРАШЕНИЕ, БЕЗ НЕГО ГЕЙТ ПАДАЕТ НА ВСЕЙ МАШИНЕ.
+   *
+   * Замер 16.09.2026: `git ls-files` отвечает «You have not agreed to the Xcode license
+   * agreements», и проба падает ещё до первого утверждения — `Test suite failed to run`,
+   * тестов 0. Причина не в репозитории: `xcode-select -p` показывает на Xcode, чья
+   * лицензия не принята, и обёртка `/usr/bin/git` отказывается работать у ВСЕХ, кто
+   * зовёт git. Настоящая починка требует пароля владельца машины
+   * (`sudo xcodebuild -license accept`), а до неё гейт обязан работать сам.
+   * Инструменты командной строки лежат рядом и лицензии не требуют.
+   */
+  const out = execSync('git ls-files', { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: СРЕДА });
   return out.split('\n').filter((f: string) => f && !BINARY.test(f));
 }
 
@@ -116,7 +138,7 @@ describe('публичный репозиторий: инфраструктур�
    * законно (общие зависимости на девять чатов), запрещено её ОТСЛЕЖИВАТЬ.
    */
   it('🔴 в индексе нет ни одного симлинка — путь на чужой машине наружу не течёт', () => {
-    const строки = String(execSync('git ls-files -s', { cwd: ROOT })).split('\n');
+    const строки = String(execSync('git ls-files -s', { cwd: ROOT, env: СРЕДА })).split('\n');
     // Режим 120000 = симлинк. Их в индексе быть не должно ни одного.
     const ссылки = строки.filter((l: string) => l.startsWith('120000'))
       .map((l: string) => l.split('\t')[1]).filter(Boolean);
@@ -126,7 +148,7 @@ describe('публичный репозиторий: инфраструктур�
 
   it('🔴 node_modules игнорируется И как каталог, И как ссылка', () => {
     const проверить = (p: string) => {
-      try { execSync(`git check-ignore -q -- ${p}`, { cwd: ROOT }); return true; }
+      try { execSync(`git check-ignore -q -- ${p}`, { cwd: ROOT, env: СРЕДА }); return true; }
       catch { return false; }
     };
     /*
