@@ -33,7 +33,6 @@ import PlayBoard, { сторонаДоски } from '@/src/components/PlayBoard'
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { HELP_OPEN_EVENT } from '@/src/components/GameHelpOverlay';
-import { publishGameContextHelp, clearGameContextHelp } from '@/src/services/gameContextHelp';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -43,7 +42,7 @@ import { saveSession } from '@/src/services/api';
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
 import { открыть, указатель, стрелка, ходЗаЖест, клавиша, стеретьВвод, выбрать, поДиагонали, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
-import { ПЛАН_ШАГАМИ, ИМЯ_ВТОРОГО, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, лестницаДвижка, КЛЮЧ_СПРАВКИ, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
+import { ПЛАН_ШАГАМИ, ИМЯ_ВТОРОГО, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, лестницаДвижка, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
 
@@ -200,29 +199,15 @@ export default function PuzzlesScreen() {
    */
   const эффектЗаЖест = useRef(false);
   /*
-   * 🔴 СВОЯ СПРАВКА НА РЕЖИМ, А НЕ ОДНА НА ВСЕ СОРОК ДВЕ.
-   *
-   * Глобальная справка выбирает статью по `pathname`, а режим головоломки живёт в
-   * `?mode=`. Значит у всех 42 режимов статья ОДНА — про «Чёт-нечет»: открыть
-   * «Сокобан» → «Правила» → заголовок чужой игры и примеры про «Магниты» и «Мины»
-   * (замер 16.09.2026). Денис: «надо чтобы разное было, у каждого своё, без лишнего
-   * описания чужих игр».
-   *
-   * Чинится не подменой ключа в общей карте — туда `?mode=` не доходит, — а готовым
-   * каналом `gameContextHelp`: экран публикует правила ТЕКУЩЕГО режима, а флагом
-   * `replacesIntro` просит убрать чужую статью. Тем же каналом уже пользуется судоку.
-   *
-   * ⚠️ Публикуем только тем, у кого текст НАПИСАН (`КЛЮЧ_СПРАВКИ`). Ключ без перевода
-   * словарь возвращает своим же именем — человек увидел бы `puzzlesMinesHelp` вместо
-   * правил. У остальных остаётся прежняя общая статья, пока тексты не написаны.
+   * 📌 СПРАВКА РЕЖИМА ЖИВЁТ В `helpMap`, А НЕ ЗДЕСЬ. Было наоборот: 16.09.2026 я
+   * решил, что ключ с `?mode=` в общую карту не завести — оверлей висит в корневом
+   * слое и параметров экрана не видит, — и построил вторую дорогу через
+   * `gameContextHelp`. Это оказалось НЕВЕРНО: `useGlobalSearchParams` отдаёт
+   * параметры ОТКРЫТОГО экрана, координатор в тот же день так и сделал, и справка
+   * знает все 42 режима. Вторая дорога снесена в тот же день: два источника одной
+   * справки — это следующая поломка, а не запас прочности.
+   * Тексты (`puzzles<Режим>Help`, 10 игр × 12 языков) остались, их читает `helpMap`.
    */
-  useEffect(() => {
-    const ключ = КЛЮЧ_СПРАВКИ[имяРежима];
-    if (!ключ) return;
-    publishGameContextHelp({ gameId: 'puzzles', title: t(КЛЮЧ_ИМЕНИ[имяРежима] ?? ''), body: t(ключ), replacesIntro: true });
-    return () => clearGameContextHelp('puzzles');
-  }, [имяРежима, t]);
-
   const жать = useCallback(async (x: number, y: number, жест: Жест, правой: boolean) => {
     const итог = await указатель(x, y, жест, правой);
     setПартия(итог.партия);

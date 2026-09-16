@@ -610,42 +610,42 @@ export const HELP_MAP: Record<string, HelpEntry> = {
   "/games/puzzles?mode=Untangle": {
     "nameKey": "puzzlesUntangle",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesUntangleDesc"
+    "introKey": "puzzlesUntangleIntroDesc"
   },
   "/games/puzzles?mode=Net": {
     "nameKey": "puzzlesNet",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesNetDesc"
+    "introKey": "puzzlesNetIntroDesc"
   },
   "/games/puzzles?mode=Netslide": {
     "nameKey": "puzzlesNetslide",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesNetslideDesc"
+    "introKey": "puzzlesNetslideIntroDesc"
   },
   "/games/puzzles?mode=Twiddle": {
     "nameKey": "puzzlesTwiddle",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesTwiddleDesc"
+    "introKey": "puzzlesTwiddleIntroDesc"
   },
   "/games/puzzles?mode=Sixteen": {
     "nameKey": "puzzlesSixteen",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesSixteenDesc"
+    "introKey": "puzzlesSixteenIntroDesc"
   },
   "/games/puzzles?mode=Fifteen": {
     "nameKey": "puzzlesFifteen",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesFifteenDesc"
+    "introKey": "puzzlesFifteenIntroDesc"
   },
   "/games/puzzles?mode=Flip": {
     "nameKey": "puzzlesFlip",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesFlipDesc"
+    "introKey": "puzzlesFlipIntroDesc"
   },
   "/games/puzzles?mode=Cube": {
     "nameKey": "puzzlesCube",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesCubeDesc"
+    "introKey": "puzzlesCubeIntroDesc"
   },
   "/games/puzzles?mode=Black Box": {
     "nameKey": "puzzlesBlackBox",
@@ -660,12 +660,12 @@ export const HELP_MAP: Record<string, HelpEntry> = {
   "/games/puzzles?mode=Slide": {
     "nameKey": "puzzlesSlide",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesSlideDesc"
+    "introKey": "puzzlesSlideIntroDesc"
   },
   "/games/puzzles?mode=Sokoban": {
     "nameKey": "puzzlesSokoban",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesSokobanDesc"
+    "introKey": "puzzlesSokobanIntroDesc"
   },
   "/games/puzzles?mode=Flood": {
     "nameKey": "puzzlesFlood",
