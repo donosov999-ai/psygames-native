@@ -147,6 +147,8 @@ export default function CounterGame() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [gridSize, setGridSize] = useState(3);
   const [grid, setGrid] = useState<Cell[]>([]);
+  /** Сколько места досталось сетке на самом деле — см. расчёт `cellSize`. */
+  const [место, setМесто] = useState<{ w: number; h: number } | null>(null);
   const [targetSum, setTargetSum] = useState(0);
   const [selectedSum, setSelectedSum] = useState(0);
   const [score, setScore] = useState(0);          // решённые раунды (hits)
@@ -351,11 +353,28 @@ export default function CounterGame() {
 
   // v1.29.3 (мобайл): потолок 90px делал сетку мелкой по центру (3×3 = 76% ширины).
   // Теперь тянется на всю ширину; высотный лимит держит ландшафт/десктоп.
-  const cellSize = Math.min(
-    (width - 28 - (gridSize - 1) * 8) / gridSize,
-    (height - 320 - (gridSize - 1) * 8) / gridSize,
+  /**
+   * 🔴 ВЫСОТА БЕРЁТСЯ ИЗ МЕСТА, КОТОРОЕ СЕТКЕ ДОСТАЛОСЬ, А НЕ ИЗ «ЭКРАН МИНУС 320».
+   *
+   * Замер 16.09.2026 (приёмка 1bbb9413, живая сборка, `/tmp/accept15.mjs`): на
+   * 375×667 три нижние клетки сетки 3×3 уходили за нижний край, до 22 точек, и
+   * ПРОКРУТКИ НЕТ — ответить ими нельзя вовсе. Причина в числе 320: над сеткой
+   * стоят шапка, полоса показателей, карточка суммы, карточка «Ваша сумма» и
+   * строка подсказки — на кадре 390×844 сетка начинается на 422-й точке, то есть
+   * «запас 320» был меньше занятого на сотню с лишним. Число угадывалось один раз
+   * и не знало ни про строку подсказки, добавленную позже, ни про полосу каркаса.
+   *
+   * Теперь размер клетки считается от `gridContainer` — у него `flex: 1`, и он
+   * получает ровно остаток высоты под сеткой. «Экран минус 320» остался только на
+   * первый кадр, пока раскладка не измерена.
+   */
+  const высотаМеста = место ? место.h - 8 /* marginBottom сетки */ : height - 320;
+  const ширинаМеста = место ? место.w : width - 28;
+  const cellSize = Math.max(28, Math.min(
+    (ширинаМеста - (gridSize - 1) * 8) / gridSize,
+    (высотаМеста - (gridSize - 1) * 8) / gridSize,
     140
-  );
+  ));
 
   const renderConfig = () => {
     const p = levelParams(lvl.level);
@@ -489,7 +508,14 @@ export default function CounterGame() {
             в справку во время партии не ходят. */}
         <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('counterHint')}</Text>
         {/* Grid */}
-        <View style={styles.gridContainer}>
+        <View
+          style={styles.gridContainer}
+          onLayout={(e) => {
+            const { width: w, height: h } = e.nativeEvent.layout;
+            // Сравнение с допуском: иначе дробные точки дают лишний перерендер на каждый кадр.
+            setМесто((было) => (было && Math.abs(было.w - w) < 1 && Math.abs(было.h - h) < 1 ? было : { w, h }));
+          }}
+        >
           <View style={[
             styles.grid,
             { width: cellSize * gridSize + (gridSize - 1) * 8 }
