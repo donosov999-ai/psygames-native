@@ -1,4 +1,4 @@
-/* psygames-game-navigator · VER 2 · 20.08.2026 */
+/* psygames-game-navigator · VER 3 · 17.09.2026 */
 /**
  * Navigator — «Навигатор»: мысленная карта маршрута.
  *

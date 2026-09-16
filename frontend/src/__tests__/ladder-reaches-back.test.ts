@@ -103,7 +103,10 @@ describe('экраны', () => {
         if (!m) return '';
         try { return strip(fs.readFileSync(path.join(__dirname, '..', 'components', `${m[1]}.tsx`), 'utf8')); } catch { return ''; }
       })();
-      const ownLadder = /Проще/.test(делегат) && /Свободная/.test(делегат);
+      // ⚠️ 16.09.2026: экран переведён в словарь (задача 50b87961), букв «Проще» и
+      // «Свободная» в коде больше нет — считаются и их ключи. Без этого проба сочла бы
+      // исправную лестницу отрезанной: путь назад на экране тот же, сменилась запись.
+      const ownLadder = /Проще|'spatialLabEasier'/.test(делегат) && /Свободная|'spatialFreePlay'/.test(делегат);
       if (!canDemote && !canPick && !countsRuns && !ownLadder) stuck.push(f);
     }
     expect(stuck).toEqual([]);

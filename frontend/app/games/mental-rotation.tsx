@@ -1,4 +1,4 @@
-/* psygames-game-mental-rotation · VER 4 · 09.09.2026 */
+/* psygames-game-mental-rotation · VER 5 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /**
  * Mental Rotation — три вида пространственных заданий на одной геометрии
@@ -59,6 +59,8 @@ import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
 import {ViewpointReference} from '@/src/components/ViewpointReference';
 import {RotationShape,RotationTransition} from '@/src/components/RotationShape';
+import {stillUnit} from '@/src/games/mental-rotation/core/surface';
+import {optionLayout} from '@/src/games/mental-rotation/optionLayout';
 import RotationWorkbench from '@/src/components/RotationWorkbench';
 import {spatialFrame} from '@/src/games/spatial-core/frame';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -72,8 +74,7 @@ import {
   getMentalRotationStrings,
   gridSize,
   interpolateMentalRotation,
-  levelParams,
-  rotationLevelSpec,
+  levelSummary,
   meanSlopeRt,
   netCellKey,
   netSize,
@@ -207,8 +208,8 @@ function markPolygon(mark: FaceMark, a: Pt, b: Pt, d: Pt): string {
     .join(' ');
 }
 
-function renderShape(shape: Shape, size: number, _baseColor: string, axis?: Axis, degrees?: number) {
-  return <RotationShape shape={shape} size={size} axis={axis} degrees={degrees}/>;
+function renderShape(shape: Shape, size: number, _baseColor: string, axis?: Axis, degrees?: number, unit?: number) {
+  return <RotationShape shape={shape} size={size} axis={axis} degrees={degrees} unit={unit}/>;
 }
 
 /**
@@ -333,7 +334,7 @@ export default function MentalRotationGame() {
    * истинно, и экран рисуется компактным ещё до того, как узнал свой размер.
    * `useScreenSize` — общая защита проекта, её же требует гейт `screen-width-guard`.
    */
-  const { h: viewportHeight } = useScreenSize();
+  const { h: viewportHeight, w: viewportWidth } = useScreenSize();
   const [answerWidth,setAnswerWidth]=useState(208);
   const { t, language } = useLanguage();
   const strings = getMentalRotationStrings(language as MentalRotationLocale);
@@ -538,6 +539,9 @@ export default function MentalRotationGame() {
       : kind === 'projection' ? strings.taskProjection
       : kind === 'viewpoint' ? strings.taskViewpoint
       : kind === 'same' ? strings.taskSame
+      : kind === 'missing' ? strings.taskMissing
+      : kind === 'assembly' ? strings.taskAssembly
+      : kind === 'formation' ? strings.taskFormation
       : strings.taskNet
   );
   const axisWord = (axis: Axis): string => (
@@ -576,12 +580,7 @@ export default function MentalRotationGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('level')} {selectedLevel}/50</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-          {(() => {
-            if(language==='ru')return rotationLevelSpec(selectedLevel).change;
-            const p = levelParams(selectedLevel);
-            const axesTxt = t(p.axes.length === 1 ? 'mrAxisZ' : p.axes.length === 2 ? 'mrAxisXY' : 'mrAxisXYZ');
-            return `${p.minC}–${p.maxC} ${t('mrCubes')} · ${axesTxt}${p.compound ? ` · ${t('mrOblique')}` : ''}`;
-          })()}
+          {levelSummary(selectedLevel, strings)}
         </Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>{strings.kindsSummary}</Text>
         {lvl.level > 1 && (
@@ -625,9 +624,17 @@ export default function MentalRotationGame() {
     const baseSize = compactScreen?(isPreset?80:104):130;
     // Measure the actual answer slot: split panels/zoom can make it much
     // narrower than the window. Never let minWidth force a one-column tower.
-    const optSize = compactReview
-      ? Math.max(24,(answerWidth-(task.options.length-1)*6)/task.options.length-18)
-      : Math.min(compactScreen?48:viewportHeight<720?78:110,Math.max(48,(answerWidth-10)/2-18));
+    // Размер вариантов — от той стороны экрана, которой не хватает (отчёт c8903296): см. optionLayout.
+    const { optSize, oneRow: wideShort } = optionLayout({ viewportWidth, viewportHeight, answerWidth, count: task.options.length, compactReview });
+    /*
+     * Неподвижные варианты рисуются по контуру и ОДНИМ масштабом на все варианты задания:
+     * по описанной сфере рисунок занимал 53–84 % своего квадрата (запас под поворот, которого
+     * у варианта нет), а свой масштаб у каждого выдавал бы пару «фигура + зеркало» одинаковым
+     * габаритом.
+     */
+    const optUnit = task.kind === 'rotation' || task.kind === 'missing' || task.kind === 'assembly' || task.kind === 'formation'
+      ? stillUnit(task.options.map((o) => (o as { shape: Shape }).shape), optSize)
+      : undefined;
     return (
       <View style={{ flex: 1 }}>
         <GameShell
@@ -647,7 +654,7 @@ export default function MentalRotationGame() {
           }
           toolbar={
             <View style={{ width: '100%', alignItems: 'center', gap: 10 }}>
-            <View style={[styles.optionsRow,compactReview?{flexWrap:'nowrap',gap:6}:null]} onLayout={e=>setAnswerWidth(e.nativeEvent.layout.width)}>
+            <View style={[styles.optionsRow,compactReview?{flexWrap:'nowrap',gap:6}:null,wideShort?{flexWrap:'nowrap',maxWidth:760}:null]} onLayout={e=>setAnswerWidth(e.nativeEvent.layout.width)}>
               {task.options.map((opt, i) => (
                 <TouchableOpacity
                   accessibilityRole="button" key={i}
@@ -656,15 +663,17 @@ export default function MentalRotationGame() {
                   onPress={() => handlePick(i)}
                   style={[styles.optionBox, {
                     ...(compactReview?{width:(answerWidth-(task.options.length-1)*6)/task.options.length}:{}),
+                    ...(wideShort?{width:optSize+12}:{}),
                     backgroundColor: colors.surface,
                     borderColor: optionBorder(i),
                     borderWidth: feedback ? 3 : 1,
                   }]}
                 >
-                  {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1])}
+                  {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
                   {task.kind === 'projection' && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
                   {task.kind === 'net' && renderMarkedCube((opt as { faces: FaceMap }).faces, optSize, GRADIENT[1])}
                   {task.kind === 'viewpoint' && renderShape(task.shape, optSize, GRADIENT[1], task.axis, (opt as { degrees: number }).degrees)}
+                  {(task.kind === 'missing' || task.kind === 'assembly' || task.kind === 'formation') && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
                   {task.kind === 'same' && <Text style={{fontSize:Math.max(16,Math.min(26,optSize/3)),fontWeight:'700',color:colors.text}}>
                     {(opt as { answer: boolean }).answer ? strings.answerYes : strings.answerNo}
                   </Text>}
@@ -704,6 +713,9 @@ export default function MentalRotationGame() {
                     })
                   : task.kind === 'viewpoint' ? strings.viewpointPrompt
                   : task.kind === 'same' ? strings.samePrompt
+                  : task.kind === 'missing' ? strings.missingPrompt
+                  : task.kind === 'assembly' ? strings.assemblyPrompt
+                  : task.kind === 'formation' ? strings.formationPrompt
                   : strings.netPrompt}
             </Text>
             <View testID="mental-reference" style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }]}>
@@ -715,6 +727,23 @@ export default function MentalRotationGame() {
                   ? <RotationTransition key={`${round}-${reviewStep}`} from={frames[reviewStep-1].shape} to={frames[reviewStep].shape} axis={frames[reviewStep].axis!} size={baseSize}/>
                   : task.kind === 'viewpoint'
                   ? <ViewpointReference shape={task.shape} degrees={task.degrees} size={baseSize} accent={colors.primary}/>
+                  : task.kind === 'missing'
+                  ? <View testID="missing-whole"><RotationShape shape={task.whole} ghost={task.hole} size={baseSize}/></View>
+                  : task.kind === 'formation'
+                  ? <View testID="formation-views" style={{flexDirection:'row',alignItems:'flex-start',justifyContent:'center',gap:10}}>
+                      {([['top', strings.viewTop], ['front', strings.viewFront], ['side', strings.viewSide]] as const).map(([view, label]) => (
+                        <View key={view} style={{alignItems:'center',gap:2}}>
+                          {renderGrid(task.views[view], baseSize*0.62, GRADIENT[1], colors.border)}
+                          <Text style={{fontSize:12,color:colors.textSecondary}}>{label}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  : task.kind === 'assembly'
+                  ? <View testID="assembly-parts" style={{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8}}>
+                      <RotationShape shape={task.parts[0]} size={baseSize*0.8}/>
+                      <Text style={{fontSize:20,fontWeight:'700',color:colors.textSecondary}}>+</Text>
+                      <RotationShape shape={task.parts[1]} size={baseSize*0.8}/>
+                    </View>
                   : task.kind === 'same'
                   ? <View testID="same-pair" style={{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8}}>
                       <RotationShape shape={task.left} size={baseSize*0.8}/>
@@ -726,7 +755,7 @@ export default function MentalRotationGame() {
                       ? (frames[reviewStep]?.shape ?? task.base)   // в разборе эталон сам поворачивается
                       : task.shape} size={baseSize}/>}
               <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>
-                {task.kind === 'net' ? strings.taskNet : t('label_reference')}
+                {task.kind === 'net' ? strings.taskNet : task.kind === 'assembly' || task.kind === 'formation' ? '' : t('label_reference')}
               </Text>
             </View>
             {reviewing&&task.kind==='rotation'&&!manualReview?<TouchableOpacity testID="rotation-manual-start" accessibilityRole="button" onPress={()=>setManualReview(true)} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.primary,fontWeight:'700'}}>{strings.rotateManually}</Text></TouchableOpacity>:null}
@@ -739,6 +768,9 @@ export default function MentalRotationGame() {
                     : task.kind === 'projection' ? strings.reviewProjectionHint
                     : task.kind === 'viewpoint' ? strings.reviewViewpointHint
                     : task.kind === 'same' ? strings.reviewSameHint
+                    : task.kind === 'missing' ? strings.reviewMissingHint
+                    : task.kind === 'assembly' ? strings.reviewAssemblyHint
+                    : task.kind === 'formation' ? strings.reviewFormationHint
                     : strings.reviewNetHint}
                 </Text>
                 {task.kind === 'rotation' && (

@@ -64,7 +64,14 @@ export interface NavigatorStrings {
   delayBody: string;
   continue: string;
   ready: string;
+  /** Заголовок экрана ПАУЗЫ — состояние («Paused»). */
   pause: string;
+  /**
+   * Подпись КНОПКИ паузы в идущей партии — действие, а не состояние. Разведены
+   * 16.09.2026: один ключ стоял в обоих местах, и по-английски кнопка во время
+   * игры гласила «Paused», хотя «Step 1 of 3» шёл (найдено кадром, приёмка 50b87961).
+   */
+  pauseAction: string;
   resume: string;
   restart: string;
   exit: string;
@@ -104,6 +111,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: 'Продолжить',
     ready: 'Готов — перейти к ответу',
     pause: 'Пауза',
+    pauseAction: 'Пауза',
     resume: 'Продолжить',
     restart: 'Начать заново',
     exit: 'Выйти',
@@ -141,6 +149,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: 'Continue',
     ready: 'Ready — answer',
     pause: 'Paused',
+    pauseAction: 'Pause',
     resume: 'Resume',
     restart: 'Restart',
     exit: 'Exit',
@@ -178,6 +187,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: 'Continuar',
     ready: 'Listo — voy a responder',
     pause: 'Pausa',
+    pauseAction: 'Pausar',
     resume: 'Continuar',
     restart: 'Reiniciar',
     exit: 'Salir',
@@ -215,6 +225,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: 'Weiter',
     ready: 'Bereit — zur Antwort',
     pause: 'Pause',
+    pauseAction: 'Pausieren',
     resume: 'Fortsetzen',
     restart: 'Neu starten',
     exit: 'Beenden',
@@ -252,6 +263,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: '继续',
     ready: '准备好了——开始作答',
     pause: '暂停',
+    pauseAction: '暂停',
     resume: '继续',
     restart: '重新开始',
     exit: '退出',
@@ -289,6 +301,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: 'जारी रखें',
     ready: 'तैयार — जवाब देने चलें',
     pause: 'ठहराव',
+    pauseAction: 'रोकें',
     resume: 'जारी रखें',
     restart: 'नए सिरे से',
     exit: 'बाहर',
@@ -326,6 +339,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: 'Continuar',
     ready: 'Pronto — vamos responder',
     pause: 'Pausa',
+    pauseAction: 'Pausar',
     resume: 'Continuar',
     restart: 'Recomeçar',
     exit: 'Sair',
@@ -363,6 +377,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: 'Continuer',
     ready: 'Prêt — passer à la réponse',
     pause: 'Pause',
+    pauseAction: 'Mettre en pause',
     resume: 'Reprendre',
     restart: 'Recommencer',
     exit: 'Quitter',
@@ -400,6 +415,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: 'Continua',
     ready: 'Pronto — passo alla risposta',
     pause: 'Pausa',
+    pauseAction: 'Pausa',
     resume: 'Riprendi',
     restart: 'Ricomincia',
     exit: 'Esci',
@@ -437,6 +453,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: '続ける',
     ready: '準備できた — 回答へ',
     pause: '一時停止',
+    pauseAction: '一時停止',
     resume: '再開',
     restart: 'やり直す',
     exit: '終了',
@@ -474,6 +491,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: '계속하기',
     ready: '준비됐어요 — 답하러 가기',
     pause: '일시정지',
+    pauseAction: '일시정지',
     resume: '이어하기',
     restart: '다시 시작',
     exit: '나가기',
@@ -511,6 +529,7 @@ const STRINGS: Record<NavigatorLocale, NavigatorStrings> = {
     continue: 'متابعة',
     ready: 'جاهز — إلى الإجابة',
     pause: 'إيقاف مؤقت',
+    pauseAction: 'إيقاف مؤقت',
     resume: 'استئناف',
     restart: 'إعادة البدء',
     exit: 'خروج',
