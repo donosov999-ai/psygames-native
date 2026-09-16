@@ -2746,6 +2746,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoLine": "कोई रेखा नहीं",
   "puzzleSecondNoTrack": "कोई पटरी नहीं",
   "puzzleSecondNoBridge": "कोई पुल नहीं",
+  "puzzleSecondToPrev": "पिछले से जोड़ें",
   "puzzleNextStep": "अगला चरण",
   "puzzleSelect": "चुनें",
   "numberRun": "अंक दौड़",

@@ -1958,6 +1958,7 @@ const translations: Translations = {
   puzzleSecondNoLine: { ru: 'Нет линии', en: 'No line' },
   puzzleSecondNoTrack: { ru: 'Нет рельсов', en: 'No track' },
   puzzleSecondNoBridge: { ru: 'Нет моста', en: 'No bridge' },
+  puzzleSecondToPrev: { ru: 'К предыдущей', en: 'To previous' },
   puzzleNextStep: { ru: 'Следующий шаг', en: 'Next step' },
   puzzleSelect: { ru: 'Взять', en: 'Select' },
   pauseExitGame: { ru: 'Выйти из упражнения', en: 'Leave exercise' },

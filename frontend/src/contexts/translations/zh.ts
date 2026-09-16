@@ -2743,6 +2743,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoLine": "无线",
   "puzzleSecondNoTrack": "无轨",
   "puzzleSecondNoBridge": "无桥",
+  "puzzleSecondToPrev": "连到上一格",
   "puzzleNextStep": "下一步",
   "puzzleSelect": "选取",
   "numberRun": "数字奔跑",

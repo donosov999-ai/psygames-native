@@ -2738,6 +2738,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoLine": "선 없음",
   "puzzleSecondNoTrack": "선로 없음",
   "puzzleSecondNoBridge": "다리 없음",
+  "puzzleSecondToPrev": "이전 칸으로",
   "puzzleNextStep": "다음 단계",
   "puzzleSelect": "잡기",
   "numberRun": "숫자 달리기",

@@ -1,4 +1,4 @@
-/* psygames-tatham-bridge-sorting · VER 2 · 16.09.2026 */
+/* psygames-tatham-bridge-sorting · VER 3 · 16.09.2026 */
 /**
  * РЕЖИМЫ РАЗДЕЛА «Сортировка» — ФАЙЛ ЕГО ВЛАДЕЛЬЦА (psygames-sorting-claude-mac).
  *
@@ -79,9 +79,16 @@ export const РЕЖИМЫ_РАЗДЕЛА: Record<string, НастройкаРе�
   'Same Game': {
     имя: 'puzzlesSameGame',
   },
+  /*
+   * ⚠️ ИМЯ ВТОРОГО ДЕЙСТВИЯ — ПО РУКОВОДСТВУ АВТОРА, А НЕ ПО ДОГАДКЕ (задача c51b31a7, п.5).
+   * `puzzles.but`, раздел signpost-controls: «Drag with the left button from a square to its
+   * successor, or with the right button from a square to its predecessor». То есть второе
+   * действие тянет связь к ПРЕДЫДУЩЕЙ клетке (`signpost.c`: RIGHT_BUTTON → drag_is_from = false).
+   * Общая подпись «Второе действие» здесь не говорила ничего и переносилась в две строки.
+   */
   'Signpost': {
     имя: 'puzzlesSignpost',
-    второе: true,
+    второе: 'puzzleSecondToPrev',
     стрелки: true,
     выбор: true,
     выборВторой: true,
@@ -94,9 +101,13 @@ export const РЕЖИМЫ_РАЗДЕЛА: Record<string, НастройкаРе�
     восемьНаправлений: true,
   },
   // ── петли, линии и пути ──
+  /*
+   * ⚠️ Правая кнопка ставит на ребро «линии нет» (`loopy.c:3097`: LINE_UNKNOWN → 'n'), ровно как у
+   * «Жемчужной петли», — поэтому и имя то же, общий ключ `puzzleSecondNoLine` (задача c51b31a7, п.5).
+   */
   'Loopy': {
     имя: 'puzzlesLoopy',
-    второе: true,
+    второе: 'puzzleSecondNoLine',
     лестница: [
       { имя: '7×7, лёгкая', параметры: '7x7t0de' },
       { имя: '7×7, обычная', параметры: '7x7t0dn' },

@@ -155,6 +155,8 @@
     "Keen": "puzzleSecondPencil",
     "Singles": "puzzleSecondKeep",
     "Undead": "puzzleSecondPencil",
+    "Signpost": "puzzleSecondToPrev",
+    "Loopy": "puzzleSecondNoLine",
     "Pearl": "puzzleSecondNoLine",
     "Train Tracks": "puzzleSecondNoTrack",
     "Bridges": "puzzleSecondNoBridge"

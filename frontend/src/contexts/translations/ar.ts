@@ -2739,6 +2739,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoLine": "لا خط",
   "puzzleSecondNoTrack": "لا سكة",
   "puzzleSecondNoBridge": "لا جسر",
+  "puzzleSecondToPrev": "إلى السابق",
   "puzzleNextStep": "الخطوة التالية",
   "puzzleSelect": "التقاط",
   "numberRun": "سباق الأرقام",

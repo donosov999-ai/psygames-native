@@ -2743,6 +2743,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoLine": "Sin línea",
   "puzzleSecondNoTrack": "Sin vía",
   "puzzleSecondNoBridge": "Sin puente",
+  "puzzleSecondToPrev": "Al anterior",
   "puzzleNextStep": "Siguiente paso",
   "puzzleSelect": "Tomar",
   "numberRun": "Carrera numérica",

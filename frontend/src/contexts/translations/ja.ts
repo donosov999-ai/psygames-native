@@ -2737,6 +2737,7 @@ const t: Record<string, string> = {
   "puzzleSecondNoLine": "線なし",
   "puzzleSecondNoTrack": "線路なし",
   "puzzleSecondNoBridge": "橋なし",
+  "puzzleSecondToPrev": "前のマスへ",
   "puzzleNextStep": "次の手",
   "puzzleSelect": "つかむ",
   "numberRun": "ナンバーラン",
