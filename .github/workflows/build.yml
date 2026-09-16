@@ -219,16 +219,29 @@ jobs:
   # потому что регрессии вёрстки приезжают с обычными правками UI, а не с релизом.
   # Сборка нужна одна на обе проверки, поэтому они в одной джобе.
   unit-tests:
-    name: Юнит-пробы (jest, осколок ${{ matrix.shard }} из 4)
+    name: Юнит-пробы (jest, ${{ matrix.label }})
     runs-on: ubuntu-latest
-    # ⚠️ 45, А НЕ 30 — ВРЕМЕННО, С 16.09.2026. После вливания sorting/on-main (новое правило
-    # тортов «ход любым куском» расширило перебор решателя) проба cake-sort-levels шла на CI
-    # 1264 с вместо 503 (прогон 35139533009, 8461775f). Осколок 3 упёрся в 30 минут и был
-    # отменён — отмена выглядит как `cancelled`, а не как провал. Проба при этом зелёная.
-    # Вернуть 30, когда раздел «Сортировка» вернёт пробу к прежнему времени: решаемость
-    # уровней можно доказывать проигрышем записанной партии (`path` в levels.json), а не
-    # новым поиском на 120 уровнях.
+    # 🔴 ТЯЖЁЛЫЕ ПРОБЫ — СВОИМИ ДВУМЯ ДЖОБАМИ, А НЕ ВНУТРИ ОСКОЛКОВ (17.09.2026).
+    #
+    # После вливания sorting/on-main (правило тортов «ход любым куском» расширило перебор
+    # решателя) пробы тортов на CI пошли в 3–4 раза дольше. Замер прогонов 7aff5f00 → 54d87ef7:
+    #   cake-sort-levels          302 → 1267 с
+    #   cake-sort-uses-prebuilt   233 →  909 с
+    #   cake-sort-reference         — →  346 с
+    #   water-sort-ladder          86 →  211 с
+    #   cake-sort-hint            312 → не уложилась
+    # Осколок 3 дважды отменён по лимиту (30 и 45 минут): 157 проб из 159 закончились за
+    # 23 минуты, cake-sort-hint и mahjong-human-stuck — нет. Отмена выглядит как `cancelled`,
+    # упавших проб при этом нет.
+    # Поднимать лимит дальше значило бы держать каждую заливку в main больше часа. Поэтому
+    # семь самых долгих проб вынесены из осколков и гоняются двумя отдельными джобами
+    # параллельно. Все они по-прежнему блокируют выпуск: это та же матрица `unit-tests`.
+    # Когда раздел «Сортировка» вернёт пробам тортов прежнее время (решаемость уровней можно
+    # доказывать проигрышем записанной партии `path`, а не новым поиском), их можно вернуть
+    # в осколки.
     timeout-minutes: 45
+    env:
+      HEAVY_TESTS: 'cake-sort-levels|cake-sort-reference|water-sort-ladder|cake-sort-hint|cake-sort-uses-prebuilt|cake-sort-prebuilt\.test|mahjong-human-stuck'
     # 🔴 ЧЕТЫРЕ ОСКОЛКА ВМЕСТО ОДНОГО ПРОГОНА (09.09.2026). Шаг «Unit tests» шёл
     # 25 минут из 29 у джобы typecheck — и iOS с Play ждали его целиком (замер прогона
     # v2.52.4, run 34322055677). `jest --shard` делит 526 файлов на четыре равные части
@@ -238,7 +251,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        include:
+          - { shard: 1, label: 'осколок 1 из 4' }
+          - { shard: 2, label: 'осколок 2 из 4' }
+          - { shard: 3, label: 'осколок 3 из 4' }
+          - { shard: 4, label: 'осколок 4 из 4' }
+          - label: 'тяжёлые пробы A'
+            heavy: 'src/__tests__/cake-sort-levels.test.ts src/__tests__/cake-sort-reference.test.ts src/__tests__/water-sort-ladder.test.ts'
+          - label: 'тяжёлые пробы Б'
+            heavy: 'src/__tests__/cake-sort-hint.test.ts src/__tests__/cake-sort-uses-prebuilt.test.tsx src/__tests__/cake-sort-prebuilt.test.ts src/__tests__/mahjong-human-stuck.test.ts'
     steps:
       - uses: actions/checkout@v6
       - name: Setup Node
@@ -268,11 +289,18 @@ jobs:
       # проверялась НИ РАЗУ ни на одной сборке. Довод «дорого» относился к прогону
       # всех двенадцати уровней (197 с); замер 19.08.2026 на этом файле: 9.3 с без
       # флага, 15.6 с с флагом. Шесть секунд.
-      - name: Unit tests (gate) — осколок ${{ matrix.shard }}/4
+      - name: Unit tests (gate) — ${{ matrix.label }}
         working-directory: frontend
         env:
           SAMURAI_FULL: '1'
-        run: npm test -- --ci --shard=${{ matrix.shard }}/4
+          HEAVY: ${{ matrix.heavy }}
+          SHARD: ${{ matrix.shard }}
+        run: |
+          if [ -n "$HEAVY" ]; then
+            npm test -- --ci --runTestsByPath $HEAVY
+          else
+            npm test -- --ci --shard=$SHARD/4 --testPathIgnorePatterns "$HEAVY_TESTS"
+          fi
 
   web-gates:
     name: Веб-гейты (${{ matrix.audit }})
