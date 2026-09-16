@@ -96,14 +96,55 @@ function rulesSourceFor(f: string): string | null {
   return rulesArrayText(текст) ? `${свой}\n${текст}` : null;
 }
 
+/**
+ * 🔴 ОДИН ЭКРАН — НЕСКОЛЬКО ИГР: gameId ПЕРЕДАЁТСЯ ПЕРЕМЕННОЙ, А НЕ ЛИТЕРАЛОМ.
+ *
+ * 📍 Замер 16.09.2026. Гейт искал `useLevelRules('<литерал>')`, а переливалка
+ * (с 06.09, «Шарики» и «Гайки» на её движке) и торты (с «Пиццей») зовут
+ * `useLevelRules(gameId, …)`. Регулярка не совпадала, и гейт МОЛЧА ПРОПУСКАЛ
+ * оба экрана — десять дней ни один текст их правил не проверялся. Цена живая:
+ * на собранном вебе у «Гаек» L40 всплывало окно правила «⚡ / ПОНЯТНО» без
+ * единой строки текста — ключей `lr_nut_sort_*` в словаре не было вовсе, как и
+ * `lr_ball_sort_*` и `lr_pizza_sort_*`.
+ *
+ * Теперь для такого экрана находится компонент, внутри которого стоит вызов, и
+ * по всем экранам собираются его обёртки `<Компонент gameId="…">` (или
+ * `gameId={КОНСТАНТА}` с числом-строкой из того же файла). Правила проверяются
+ * у КАЖДОЙ игры, которую экран обслуживает.
+ */
+function idsFor(f: string, src: string): string[] {
+  const lit = src.match(/useLevelRules\(\s*'([a-z_]+)'/);
+  if (lit) return [lit[1] as string];
+  if (!/useLevelRules\(\s*gameId\b/.test(src)) return [];
+  const comp = src.match(/export function (\w+)\(\s*\{[^}]*\bgameId\b/);
+  if (!comp) return [];
+  const ids = new Set<string>();
+  for (const g of FILES) {
+    const text = readFileSync(join(DIR, g), 'utf8') as string;
+    for (const m of text.matchAll(new RegExp(`<${comp[1]}\\b[^>]*\\bgameId=(?:"([a-z_]+)"|\\{([A-Z_]+)\\})`, 'g'))) {
+      if (m[1]) { ids.add(m[1]); continue; }
+      const c = text.match(new RegExp(`\\b(?:export\\s+)?const\\s+${m[2]}\\s*=\\s*'([a-z_-]+)'`));
+      if (c) ids.add(c[1] as string);
+    }
+  }
+  /*
+   * ⚠️ Экран переливалки отдаёт `gameId.replace(/-/g, '_')`: уровень игрока
+   * хранится под `water-sort`, а ключи правил — под `water_sort`. Нормализуем
+   * ТОЛЬКО если экран сам так делает; убери он замену — id останется с дефисом,
+   * и проба «ключ из латиницы, цифр и _» покраснеет, а не промолчит.
+   */
+  const нормализует = /useLevelRules\(\s*gameId\.replace\(\/-\/g,\s*'_'\)/.test(src);
+  return [...ids].map((id) => (нормализует ? id.replace(/-/g, '_') : id)).sort();
+}
+
 function collectRules(): FoundRule[] {
   const out: FoundRule[] = [];
   for (const f of FILES) {
     const src = rulesSourceFor(f);
     if (!src) continue;
-    const gm = src.match(/useLevelRules\(\s*'([a-z_]+)'/);
+    const ids = idsFor(f, src);
     const arr = rulesArrayText(src);
-    if (!gm || !arr) continue;
+    if (!ids.length || !arr) continue;
     let decls: LevelRule[] | null = null;
     try { decls = eval('(' + arr + ')') as LevelRule[]; } catch { decls = null; }
     if (!decls) {
@@ -122,14 +163,31 @@ function collectRules(): FoundRule[] {
        * разъехаться (за этим же следит `level-rule-threshold`). Гейт наказывал
        * за верное решение — чинится гейт, а не игры.
        */
+      /*
+       * ⚠️ ПОРОГ ИЩЕТСЯ И В ЯДРЕ ИГРЫ, А НЕ ТОЛЬКО В ЭКРАНЕ (16.09.2026).
+       * Переливалка берёт пороги импортом из `src/games/water-sort/core/*`
+       * (КОРОТКИЕ_С, КАМНИ_С, ХОДЫ_С, СКРЫТО_С) — ровно так, как этот гейт и
+       * советует выше. Искал он при этом только в файле экрана, не находил ни
+       * одного числа и объявлял массив «НЕ РАЗОБРАЛСЯ».
+       */
+      const ядроИгры = (() => {
+        const папка = join(DIR, '..', '..', 'src', 'games', f.replace(/\.tsx$/, ''), 'core');
+        if (!existsSync(папка)) return '';
+        return (readdirSync(папка) as string[]).filter((x) => x.endsWith('.ts'))
+          .map((x) => readFileSync(join(папка, x), 'utf8') as string).join('\n');
+      })();
       const числоКонстанты = (имя: string): number | null => {
-        const m = src.match(new RegExp(`\\b(?:const|let)\\s+${имя}\\s*(?::[^=]+)?=\\s*(\\d+)`));
+        const rx = new RegExp(`\\b(?:const|let)\\s+${имя}\\s*(?::[^=]+)?=\\s*(\\d+)`);
+        const m = src.match(rx) ?? ядроИгры.match(rx);
         return m ? Number(m[1]) : null;
       };
       const разобрать = (выражение: string): number | null => {
         const e = выражение.trim();
         if (/^\d+$/.test(e)) return Number(e);
-        const m = e.match(/^([A-Za-z_$][\w$]*)\s*(?:([+-])\s*(\d+))?$/);
+        /* ⚠️ Имя константы — буквы ЛЮБОГО алфавита: пороги переливалки называются
+           `СКРЫТО_С`, `КОРОТКИЕ_С`, и латинский класс `[A-Za-z_$]` молча отбрасывал
+           каждый — массив из пяти правил выходил «НЕ РАЗОБРАЛСЯ» (замер 16.09.2026). */
+        const m = e.match(/^([\p{L}_$][\p{L}\p{N}_$]*)\s*(?:([+-])\s*(\d+))?$/u);
         if (!m) return null;
         const база = числоКонстанты(m[1]);
         if (база === null) return null;
@@ -146,10 +204,10 @@ function collectRules(): FoundRule[] {
     }
     const declared = (arr.match(/\bkey:\s*'/g) ?? []).length;
     if (!decls || decls.length !== declared) {
-      out.push({ file: f, gameId: gm[1], key: 'НЕ РАЗОБРАЛСЯ', decl: { key: 'НЕ РАЗОБРАЛСЯ', fromLevel: 1 }, inline: 'НЕ РАЗОБРАЛСЯ' });
+      for (const id of ids) out.push({ file: f, gameId: id, key: 'НЕ РАЗОБРАЛСЯ', decl: { key: 'НЕ РАЗОБРАЛСЯ', fromLevel: 1 }, inline: 'НЕ РАЗОБРАЛСЯ' });
       continue;
     }
-    for (const d of decls) out.push({ file: f, gameId: gm[1], key: d.key, decl: d, inline: d.ru ?? d.en ?? null });
+    for (const id of ids) for (const d of decls) out.push({ file: f, gameId: id, key: d.key, decl: d, inline: d.ru ?? d.en ?? null });
   }
   return out;
 }
