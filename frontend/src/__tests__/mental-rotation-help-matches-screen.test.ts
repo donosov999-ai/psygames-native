@@ -18,7 +18,7 @@ import type { MentalRotationLocale, MentalRotationStrings, TaskKind } from '@/sr
 
 const ИМЯ: Record<TaskKind, keyof MentalRotationStrings> = {
   rotation: 'taskRotation', projection: 'taskProjection', net: 'taskNet', viewpoint: 'taskViewpoint',
-  same: 'taskSame', missing: 'taskMissing', assembly: 'taskAssembly', formation: 'taskFormation',
+  same: 'taskSame', missing: 'taskMissing', assembly: 'taskAssembly', formation: 'taskFormation', section: 'taskSection',
 };
 
 /** «Слева / справа» на всех языках — литералами. */

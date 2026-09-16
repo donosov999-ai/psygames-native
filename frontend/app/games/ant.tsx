@@ -1,4 +1,4 @@
-/* psygames-game-ant · VER 1 · 19.08.2026 */
+/* psygames-game-ant · VER 2 · 16.09.2026 */
 /**
  * ANT — Attention Network Test (Fan, McCandliss, Sommer, Raz, Posner 2002).
  *
@@ -46,7 +46,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
@@ -186,14 +186,14 @@ export default function ANTGame() {
   const answeredRef = useRef(false);
   const startTimeRef = useRef(0);
 
-  const cueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const targetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const blankTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const deadlineTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fbTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cueTimer = useRef<GameTimer | null>(null);
+  const targetTimer = useRef<GameTimer | null>(null);
+  const blankTimer = useRef<GameTimer | null>(null);
+  const deadlineTimer = useRef<GameTimer | null>(null);
+  const fbTimer = useRef<GameTimer | null>(null);
 
   const clearAllTimers = () => {
-    [cueTimer, targetTimer, blankTimer, deadlineTimer, fbTimer].forEach(r => { if (r.current) clearTimeout(r.current); });
+    [cueTimer, targetTimer, blankTimer, deadlineTimer, fbTimer].forEach(r => { if (r.current) clearGameTimer(r.current); });
   };
 
   useEffect(() => () => clearAllTimers(), []);
@@ -203,14 +203,14 @@ export default function ANTGame() {
     answeredRef.current = false;
     setShowTarget(true);
     // Окно ответа уровня: не успел — ошибка-пропуск, проба закрывается сама
-    deadlineTimer.current = setTimeout(() => {
+    deadlineTimer.current = gameTimeout(() => {
       if (answeredRef.current) return;
       answeredRef.current = true;
       errorsRef.current += 1;
       setErrors(errorsRef.current);
       setFeedback('wrong');
       hapticError();
-      fbTimer.current = setTimeout(advance, 350);
+      fbTimer.current = gameTimeout(advance, 350);
     }, windowMsRef.current);
   };
 
@@ -220,17 +220,17 @@ export default function ANTGame() {
     trialRef.current = tr;
     setTrial(tr);
     // Пред-пауза: разброс растёт с уровнем — момент cue нельзя предугадать
-    cueTimer.current = setTimeout(() => {
+    cueTimer.current = gameTimeout(() => {
       if (tr.cue !== 'none') {
         setShowCue(true);
-        targetTimer.current = setTimeout(() => {
+        targetTimer.current = gameTimeout(() => {
           setShowCue(false);
           // CTOA-вариативность уровня: blank 300..300+ctoaVar (вместо фикс. 400мс)
-          blankTimer.current = setTimeout(onTargetShown, 300 + Math.random() * ctoaVarRef.current);
+          blankTimer.current = gameTimeout(onTargetShown, 300 + Math.random() * ctoaVarRef.current);
         }, 100);
       } else {
         // no cue → сопоставимая по времени пауза, тоже с вариативностью уровня
-        blankTimer.current = setTimeout(onTargetShown, 400 + Math.random() * ctoaVarRef.current);
+        blankTimer.current = gameTimeout(onTargetShown, 400 + Math.random() * ctoaVarRef.current);
       }
     }, 400 + Math.random() * preJitterRef.current);
   };
@@ -323,7 +323,7 @@ export default function ANTGame() {
   const handleAnswer = (d: Direction) => {
     if (!showTarget || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimer.current) clearTimeout(deadlineTimer.current);
+    if (deadlineTimer.current) clearGameTimer(deadlineTimer.current);
     const rt = gameNow() - stimAtRef.current;
     const tr = trialRef.current;
     const ok = d === tr.dir;
@@ -338,7 +338,7 @@ export default function ANTGame() {
     }
     setFeedback(ok ? 'right' : 'wrong');
     if (ok) hapticSuccess(); else hapticError();
-    fbTimer.current = setTimeout(advance, 350);
+    fbTimer.current = gameTimeout(advance, 350);
   };
 
   const m = calcMeans(rts);

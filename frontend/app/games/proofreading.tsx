@@ -1,4 +1,4 @@
-/* psygames-game-proofreading · VER 4 · 23.08.2026 */
+/* psygames-game-proofreading · VER 6 · 17.09.2026 */
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
@@ -36,7 +36,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer } from '@/src/services/gamePause';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import {
   FILLWORDS_INK,
@@ -706,7 +706,7 @@ export default function ProofreadingGame() {
       errorsRef.current += 1;
       setErrors(errorsRef.current);
       setWrongFlash(index);
-      setTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);
+      setTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);   // вспышка — оформление, не партия: обычный таймер (ce0e0b21)
     }
   };
 
@@ -833,7 +833,6 @@ export default function ProofreadingGame() {
   const fwHintsLeft = Math.max(0, подсказокНаУровне(lvl.level) - (fwSession ? fwSession.hints : 0));
   const fwFound = fwSession ? fwSession.found.length : 0;
   const fwTotalWords = fwSession ? fwSession.puzzle.words.length : 0;
-  const fwLettersLeft = fwSession ? lettersLeft(fwSession) : 0;
 
   /**
    * Показать ОДНУ ненайденную цель. Берём первую по порядку поля, а не
@@ -1097,7 +1096,7 @@ export default function ProofreadingGame() {
     else {
       hapticError();
       setWrongFlash(index);
-      setTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);
+      setTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);   // вспышка — оформление, не партия: обычный таймер (ce0e0b21)
     }
     setSeries(step.state);
     if (step.result === 'hit' && blockDone(step.state)) closeBlock(step.state, true);
@@ -1110,13 +1109,13 @@ export default function ProofreadingGame() {
    */
   useEffect(() => {
     if (phase !== 'interlude' || !seriesState) return;
-    const id = setTimeout(() => {
+    const id = gameTimeout(() => {
       setSeries(nextBlock(seriesState));
       serSetTrace([]);
       beginBlockClock();
       setPhase('series');
     }, INTERLUDE_MS);
-    return () => clearTimeout(id);
+    return () => clearGameTimer(id);
     // Врезка живёт ровно одну фазу: зависимости — фаза и состояние блока, часы
     // заводятся ВНУТРИ таймаута, поэтому больше эффекту ничего не нужно.
   }, [phase, seriesState]);
@@ -1504,7 +1503,14 @@ export default function ProofreadingGame() {
       auxInHud
       headerActions={
         <GameAuxBar>
+          {/*
+            🔴 КОМПАКТНО: ЗНАЧОК И ОСТАТОК, БЕЗ СЛОВА. Замер 17.09.2026 живьём: подписанная кнопка
+            131 px в полосе счётчиков не помещалась — в филвордах видно 50 % на 360, 73 % на 390,
+            90 % на 412, остальное за правым краем экрана. Контракт `auxInHud` каркаса требует,
+            чтобы кнопка влезала; компактный вид для этого и заведён (48 px, число остаётся).
+          */}
           <GameAuxAction
+            compact
             icon="bulb-outline" tint="#0d9488"
             ladder="hint" label={t('btn_hint')}
             count={fwPlaying ? fwHintsLeft : ПОДСКАЗОК_В_КОРРЕКТУРЕ - подсказокВзято}
@@ -1523,11 +1529,27 @@ export default function ProofreadingGame() {
         Обратный отсчёт краснеет на последних 10 секундах, как в math-sprint и
         sdmt: ключ канонный, тон — по остатку.
       */
+      /*
+        🔴 ФОРМА ПОЛОСЫ НЕ МЕНЯЕТСЯ ПО ХОДУ ПАРТИИ — ИНАЧЕ ПОЛЕ ПРЫГАЕТ ПОД ПАЛЬЦЕМ.
+        📍 Замер 17.09.2026 (~/dev/psygames/attention-chat/поле-прыгает-после-ошибки.mjs, настоящие
+        касания): в филвордах счётчик ошибок появлялся только с первой ошибкой, а у счётчиков без
+        значка каркас печатает слово («Слова», «Буквы», «Ошибок»). Четвёртая плашка со словом не
+        влезала в строку, полоса переносилась на второй ряд, и поле уезжало вниз на 54 точки
+        (360×640 и 390×844, L1 и L46) — ровно тогда, когда человек ведёт следующее слово.
+        Теперь «Ошибок» стоит с начала партии и значком, без слова (так же у «Шульте»): полоса одной
+        высоты от первой секунды до последней.
+        ⚠️ У ГЛАВНОГО СЧЁТЧИКА СЛОВО ОСТАЁТСЯ. Отчёт Дениса 23.08.2026 «непонятно, сколько слов ждёт
+        система» чинился именно подписью рядом с числом («Слова 0/6»); значок вместо неё вернул бы
+        вопрос. Слово теряют только время (значок часов понятен) и ошибки.
+        ⚠️ И СЧЁТЧИКОВ В ФИЛВОРДАХ ТРИ, А НЕ ЧЕТЫРЕ. Плашка сжата по содержимому, а справа от неё
+        встаёт кнопка подсказки: при четырёх плашках она начиналась с 326 и на 360 уходила за край
+        (видно 71 % даже компактной). «Буквы» (сколько клеток осталось) сняты: прогресс уже виден
+        по «Словам», а без подсказки на экране человек не может её взять.
+      */
       hud={[
         ...(fwPlaying
           ? [
               { key: 'found', label: t('label_words'), value: `${fwFound}/${fwTotalWords}` },
-              { key: 'len', label: t('label_letters'), value: fwLettersLeft },
             ]
           : [
               { key: 'found', label: t('label_found'), value: `${foundIndices.size}/${targetIndices.size}` },
@@ -1537,7 +1559,7 @@ export default function ProofreadingGame() {
               value: `${Math.max(0, Math.ceil(timeLimitRef.current - elapsedTime))}${t('secShort')}`,
               tone: timeLimitRef.current - elapsedTime <= 10 ? 'warn' as const : 'neutral' as const }
           : { key: 'time', icon: 'time' as const, label: t('time'), value: hudTime(elapsedTime, t('secShort')) },
-        ...(errors > 0 ? [{ key: 'errors', label: t('hud_errors'), value: errors }] : []),
+        { key: 'errors', icon: 'close-circle' as const, label: t('hud_errors'), value: errors, pop: true },
       ]}
     >
       {fwPlaying ? (
@@ -1776,6 +1798,7 @@ export default function ProofreadingGame() {
              В блоке «Знак» её нет: там искать нечего, знаки названы прямо в шапке. */
           <GameAuxBar>
             <GameAuxAction
+              compact
               icon="bulb-outline" tint="#0d9488"
               ladder="hint" label={t('btn_hint')} count={serHintsLeft}
               disabled={serHintsLeft === 0} onPress={serTakeHint}
@@ -1783,11 +1806,10 @@ export default function ProofreadingGame() {
           </GameAuxBar>
         )}
         hud={[
+          // та же постоянная форма полосы, что и в обычной партии (см. выше)
           { key: 'found', label: t('label_found'), value: `${done}/${total}` },
           { key: 'time', icon: 'time' as const, label: t('time'), value: hudTime(elapsedTime, t('secShort')) },
-          ...(seriesState.errors > 0
-            ? [{ key: 'errors', label: t('hud_errors'), value: seriesState.errors }]
-            : []),
+          { key: 'errors', icon: 'close-circle' as const, label: t('hud_errors'), value: seriesState.errors, pop: true },
         ]}
       >
         <Text style={[styles.seriesBlockLine, { color: colors.textSecondary }]}

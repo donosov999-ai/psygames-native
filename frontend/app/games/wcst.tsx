@@ -1,4 +1,4 @@
-/* psygames-game-wcst · VER 1 · 19.08.2026 */
+/* psygames-game-wcst · VER 2 · 16.09.2026 */
 /**
  * WCST — Wisconsin Card Sorting Test (когнитивная гибкость / set-shifting)
  *
@@ -49,7 +49,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth, useScreenSize } from '@/src/hooks/useScreenWidth';
 
@@ -398,11 +398,11 @@ export default function WcstGame() {
   const startTimeRef = useRef(0);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const advanceTimerRef = useRef<GameTimer | null>(null);
 
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    if (advanceTimerRef.current) clearGameTimer(advanceTimerRef.current);
   }, []);
 
   const pickNewRule = (prev: Rule): Rule => {
@@ -532,7 +532,7 @@ export default function WcstGame() {
     setPerseverative(persevRef.current); setStreak(streakRef.current);
     setFeedback({ idx: refIdx, ok });
 
-    advanceTimerRef.current = setTimeout(() => {
+    advanceTimerRef.current = gameTimeout(() => {
       // правило МОЛЧА меняется после серии верных (окно уровня / 10 в классике)
       if (streakRef.current >= ruleStreakRef.current) {
         const nextRule = pickNewRule(ruleRef.current);

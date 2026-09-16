@@ -850,8 +850,8 @@ describe('смесь заданий не портит наклон RT по уг�
     // пропущенный ключ в сводке партии читается как «такого задания нет», а не
     // как «не выпало». 12.09.2026 добавлены viewpoint и same (задача 148ecbb4).
     // 16.09.2026 добавлены missing и assembly (задача 5a1b4d25).
-    // 17.09.2026 добавлен formation (задача 0d96f48e).
-    expect(taskKindCounts(log)).toEqual({ rotation: 2, projection: 1, net: 1, viewpoint: 0, same: 0, missing: 0, assembly: 0, formation: 0 });
+    // 17.09.2026 добавлен formation (задача 0d96f48e), затем section (задача 4f85b6a9).
+    expect(taskKindCounts(log)).toEqual({ rotation: 2, projection: 1, net: 1, viewpoint: 0, same: 0, missing: 0, assembly: 0, formation: 0, section: 0 });
     const counts = taskKindCounts(log);
     expect(Object.values(counts).reduce((a, b) => a + b, 0)).toBe(log.length);
   });

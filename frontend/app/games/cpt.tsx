@@ -1,4 +1,4 @@
-/* psygames-game-cpt · VER 2 · 23.08.2026 */
+/* psygames-game-cpt · VER 3 · 16.09.2026 */
 /**
  * CPT — Continuous Performance Test (Conners Not-X variant)
  *
@@ -55,7 +55,7 @@ import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
@@ -459,10 +459,10 @@ export default function CPTGame() {
   const stimOnsetRef = useRef(0);
   const respondedRef = useRef(false);
 
-  const isiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const stimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const offTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isiTimerRef = useRef<GameTimer | null>(null);
+  const stimTimerRef = useRef<GameTimer | null>(null);
+  const offTimerRef = useRef<GameTimer | null>(null);
+  const fbTimerRef = useRef<GameTimer | null>(null);
   const remainingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stoppedRef = useRef(false);
 
@@ -478,7 +478,7 @@ export default function CPTGame() {
   const prevLetterRef = useRef('');
 
   const clearAllTimers = () => {
-    [isiTimerRef, stimTimerRef, offTimerRef, fbTimerRef].forEach(r => { if (r.current) clearTimeout(r.current); });
+    [isiTimerRef, stimTimerRef, offTimerRef, fbTimerRef].forEach(r => { if (r.current) clearGameTimer(r.current); });
     if (remainingTimerRef.current) clearInterval(remainingTimerRef.current);
   };
 
@@ -495,7 +495,7 @@ export default function CPTGame() {
       return;
     }
     const isi = isiRef.current * (0.85 + Math.random() * 0.3);   // ISI уровня ±15% дрожание
-    isiTimerRef.current = setTimeout(() => {
+    isiTimerRef.current = gameTimeout(() => {
       if (stoppedRef.current) return;
       // выбрать стимул по режиму уровня; isTarget = «нужно ли жать»
       const prev = prevLetterRef.current;
@@ -518,13 +518,13 @@ export default function CPTGame() {
       setCurrentColor(color);
       setLetterVisible(true);
       // hide after STIM_DURATION
-      offTimerRef.current = setTimeout(() => {
+      offTimerRef.current = gameTimeout(() => {
         if (stoppedRef.current) return;
         setLetterVisible(false);
       }, STIM_DURATION);
       // close trial window after one full ISI from onset
       const trialWindow = isiRef.current; // окно ответа = один ISI уровня
-      stimTimerRef.current = setTimeout(() => {
+      stimTimerRef.current = gameTimeout(() => {
         if (stoppedRef.current) return;
         // close trial: if not responded and target = omission; if not responded and non-target = correct rejection
         const t = currentTrialRef.current;
@@ -550,8 +550,8 @@ export default function CPTGame() {
 
   const flashFeedback = (kind: 'right' | 'wrong') => {
     setFeedback(kind);
-    if (fbTimerRef.current) clearTimeout(fbTimerRef.current);
-    fbTimerRef.current = setTimeout(() => setFeedback(null), 200);
+    if (fbTimerRef.current) clearGameTimer(fbTimerRef.current);
+    fbTimerRef.current = gameTimeout(() => setFeedback(null), 200);
   };
 
   const handleTap = (источник: 'box' | 'bar' = 'box') => {

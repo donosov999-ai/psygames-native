@@ -1,4 +1,4 @@
-/* psygames-game-bart · VER 1 · 19.08.2026 */
+/* psygames-game-bart · VER 2 · 16.09.2026 */
 /**
  * BART — Balloon Analogue Risk Task (Lejuez et al., 2002), клиника склонности к риску.
  *
@@ -48,6 +48,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
+import { gameTimeout } from '@/src/services/gamePause';
 
 const GRADIENT = ['#ff5e62', '#ff9966'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -326,7 +327,7 @@ export default function BARTGame() {
       historyRef.current = [...historyRef.current, { pumps: nextPumps, popped: true }];
       setHistory(historyRef.current);
       sizeTo(0, 200);
-      setTimeout(() => {
+      gameTimeout(() => {
         if (roundRef.current >= balloonsRef.current) finish();
         else advance();
       }, 1200);
@@ -340,7 +341,7 @@ export default function BARTGame() {
     setBank(bankRef.current);
     historyRef.current = [...historyRef.current, { pumps, popped: false }];
     setHistory(historyRef.current);
-    setTimeout(() => {
+    gameTimeout(() => {
       if (roundRef.current >= balloonsRef.current) finish();
       else advance();
     }, 800);

@@ -1,4 +1,4 @@
-/* psygames-game-posner · VER 2 · 23.08.2026 */
+/* psygames-game-posner · VER 3 · 16.09.2026 */
 /**
  * Posner Cueing Task — пространственное внимание (orienting).
  *
@@ -42,7 +42,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#3a6186', '#89253e'];
@@ -193,15 +193,15 @@ export default function PosnerGame() {
   const answeredRef = useRef(false);
   const startTimeRef = useRef(0);
 
-  const cueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cueOffTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const gapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const deadlineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cueTimerRef = useRef<GameTimer | null>(null);
+  const cueOffTimerRef = useRef<GameTimer | null>(null);
+  const gapTimerRef = useRef<GameTimer | null>(null);
+  const deadlineTimerRef = useRef<GameTimer | null>(null);
+  const fbTimerRef = useRef<GameTimer | null>(null);
 
   const clearAllTimers = () => {
     [cueTimerRef, cueOffTimerRef, gapTimerRef, deadlineTimerRef, fbTimerRef]
-      .forEach(r => { if (r.current) clearTimeout(r.current); });
+      .forEach(r => { if (r.current) clearGameTimer(r.current); });
   };
 
   useEffect(() => () => clearAllTimers(), []);
@@ -211,24 +211,24 @@ export default function PosnerGame() {
     const tr = makeTrial(levelRef.current);
     trialRef.current = tr;
     setTrial(tr);
-    cueTimerRef.current = setTimeout(() => {
+    cueTimerRef.current = gameTimeout(() => {
       setShowCue(true);
       // cue виден 100мс, затем пауза (SOA уровня — варьируется сильнее с уровнем), затем цель
-      cueOffTimerRef.current = setTimeout(() => {
+      cueOffTimerRef.current = gameTimeout(() => {
         setShowCue(false);
         const gap = soaMinRef.current + Math.random() * (soaMaxRef.current - soaMinRef.current);
-        gapTimerRef.current = setTimeout(() => {
+        gapTimerRef.current = gameTimeout(() => {
           stimAtRef.current = gameNow();
           answeredRef.current = false;
           setShowTarget(true);
           // Окно ответа уровня: не успел — ошибка-пропуск, проба закрывается сама
-          deadlineTimerRef.current = setTimeout(() => {
+          deadlineTimerRef.current = gameTimeout(() => {
             if (answeredRef.current) return;
             answeredRef.current = true;
             errorsRef.current += 1;
             setErrors(errorsRef.current);
             setFeedback('wrong');
-            fbTimerRef.current = setTimeout(advance, 350);
+            fbTimerRef.current = gameTimeout(advance, 350);
           }, windowMsRef.current);
         }, gap);
       }, 100);
@@ -316,7 +316,7 @@ export default function PosnerGame() {
   const handleAnswer = (side: Side) => {
     if (!showTarget || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+    if (deadlineTimerRef.current) clearGameTimer(deadlineTimerRef.current);
     const rt = gameNow() - stimAtRef.current;
     const tr = trialRef.current;
     const ok = side === tr.targetSide;
@@ -332,7 +332,7 @@ export default function PosnerGame() {
       setErrors(errorsRef.current);
     }
     setFeedback(ok ? 'right' : 'wrong');
-    fbTimerRef.current = setTimeout(advance, 350);
+    fbTimerRef.current = gameTimeout(advance, 350);
   };
 
   const meanRtAll = (() => {
