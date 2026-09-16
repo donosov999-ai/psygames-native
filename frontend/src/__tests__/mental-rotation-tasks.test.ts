@@ -780,7 +780,8 @@ describe('смесь заданий не портит наклон RT по уг�
     // того же кода, который проба и проверяет: добавь вид и забудь открыть его в
     // плане партии — проба всё равно позеленеет. Правится РУКАМИ и с датой.
     // 12.09.2026: +viewpoint (с 7 уровня) и +same (с 9-го), задача 148ecbb4.
-    expect([...seen].sort()).toEqual(['net', 'projection', 'rotation', 'same', 'viewpoint']);
+    // 16.09.2026: +assembly (с 11-го), задача 5a1b4d25; missing открывается 21-м и здесь ещё не виден.
+    expect([...seen].sort()).toEqual(['assembly', 'net', 'projection', 'rotation', 'same', 'viewpoint']);
     // …и на первом уровне не появляются: там ещё учат поворот.
     const early = new Set(planTaskKinds(1, 15, createRng('early')));
     expect([...early]).toEqual(['rotation']);
@@ -848,7 +849,8 @@ describe('смесь заданий не портит наклон RT по уг�
     // Виды, которых в журнале не было, обязаны стоять нулями, а не отсутствовать:
     // пропущенный ключ в сводке партии читается как «такого задания нет», а не
     // как «не выпало». 12.09.2026 добавлены viewpoint и same (задача 148ecbb4).
-    expect(taskKindCounts(log)).toEqual({ rotation: 2, projection: 1, net: 1, viewpoint: 0, same: 0 });
+    // 16.09.2026 добавлены missing и assembly (задача 5a1b4d25).
+    expect(taskKindCounts(log)).toEqual({ rotation: 2, projection: 1, net: 1, viewpoint: 0, same: 0, missing: 0, assembly: 0 });
     const counts = taskKindCounts(log);
     expect(Object.values(counts).reduce((a, b) => a + b, 0)).toBe(log.length);
   });

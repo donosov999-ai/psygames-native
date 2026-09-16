@@ -5,12 +5,14 @@ import Svg,{Polygon,Defs,LinearGradient,Stop} from 'react-native-svg';
 import {shapeSurface} from '../games/mental-rotation/core/surface';
 import type {Axis,Shape} from '../games/mental-rotation/core/types';
 
-export function RotationShape({shape,size,axis='x',degrees=0}:{shape:Shape;size:number;axis?:Axis;degrees?:number}){
+/** `ghost` — кубики `shape`, нарисованные пустыми (пунктирный контур): место недостающей части. */
+export function RotationShape({shape,size,axis='x',degrees=0,ghost}:{shape:Shape;size:number;axis?:Axis;degrees?:number;ghost?:Shape}){
   const shine=`cube-shine-${useId().replace(/[^a-zA-Z0-9]/g,'')}`;
   return <Svg testID="rotation-shape" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
     <Defs><LinearGradient id={shine} x1="0%" y1="0%" x2="65%" y2="100%"><Stop offset="0%" stopColor="#ffffff" stopOpacity={.42}/><Stop offset="48%" stopColor="#ffffff" stopOpacity={.05}/><Stop offset="100%" stopColor="#302043" stopOpacity={.18}/></LinearGradient></Defs>
-    {shapeSurface(shape,size,axis,degrees).map(f=>{
+    {shapeSurface(shape,size,axis,degrees,ghost).map(f=>{
       const points=f.points.map(p=>p.join(',')).join(' ');
+      if(f.ghost)return <Polygon key={f.id} testID="rotation-ghost-face" points={points} fill="#c4b5fd" fillOpacity={.2} stroke="#6d28d9" strokeWidth={1.8} strokeDasharray="5 3" strokeLinejoin="round"/>;
       return <React.Fragment key={f.id}><Polygon points={points} fill={f.fill} stroke="#635078" strokeWidth={1.1} strokeLinejoin="round"/><Polygon points={points} fill={`url(#${shine})`} stroke="#eee3ff" strokeOpacity={.22} strokeWidth={.45} strokeLinejoin="round"/></React.Fragment>;
     })}
   </Svg>;

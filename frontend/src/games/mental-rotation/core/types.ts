@@ -47,7 +47,7 @@ export type Axis = 'x' | 'y' | 'z';
  * ракурса, пары «да/нет», проекции и развёртки угла поворота нет вовсе, и одна
  * такая проба портит единственную настоящую величину игры.
  */
-export type TaskKind = 'rotation' | 'projection' | 'net' | 'viewpoint' | 'same';
+export type TaskKind = 'rotation' | 'projection' | 'net' | 'viewpoint' | 'same' | 'missing' | 'assembly';
 
 /**
  * Направление взгляда для проекции.
@@ -215,9 +215,46 @@ export interface SameTask {
   correctIdx: number;
 }
 
+// ─── задания на куски: «недостающая часть» и «сборка» ─────────────
+
+/**
+ * Чем неверный кусок (или неверное целое) отличается от верного. Показывается в разборе.
+ * `one-cube` — один кубик переставлен, `mirror` — зеркальная копия, `other` — другая фигура.
+ */
+export type PieceFlaw = 'none' | 'mirror' | 'one-cube' | 'other';
+
+export interface PieceOption {
+  shape: Shape;
+  isMatch: boolean;
+  flaw: PieceFlaw;
+}
+
+/**
+ * «Недостающая часть»: целая фигура, в которой кубики `hole` нарисованы пустыми.
+ * Варианты — куски в случайных ориентациях; верный — ровно тот, что заполняет пустоту.
+ */
+export interface MissingTask {
+  kind: 'missing';
+  whole: Shape;
+  /** Кубики недостающей части — в координатах `whole`, по ним рисуется пустота. */
+  hole: Shape;
+  options: PieceOption[];
+  correctIdx: number;
+}
+
+/** «Сборка»: два куска, каждый в своей ориентации; варианты — целые фигуры. */
+export interface AssemblyTask {
+  kind: 'assembly';
+  parts: [Shape, Shape];
+  options: PieceOption[];
+  correctIdx: number;
+}
+
 export type MentalRotationTask =
   | RotationTask
   | ProjectionTask
   | NetTask
   | ViewpointTask
-  | SameTask;
+  | SameTask
+  | MissingTask
+  | AssemblyTask;

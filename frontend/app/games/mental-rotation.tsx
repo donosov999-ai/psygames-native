@@ -538,6 +538,8 @@ export default function MentalRotationGame() {
       : kind === 'projection' ? strings.taskProjection
       : kind === 'viewpoint' ? strings.taskViewpoint
       : kind === 'same' ? strings.taskSame
+      : kind === 'missing' ? strings.taskMissing
+      : kind === 'assembly' ? strings.taskAssembly
       : strings.taskNet
   );
   const axisWord = (axis: Axis): string => (
@@ -665,6 +667,7 @@ export default function MentalRotationGame() {
                   {task.kind === 'projection' && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
                   {task.kind === 'net' && renderMarkedCube((opt as { faces: FaceMap }).faces, optSize, GRADIENT[1])}
                   {task.kind === 'viewpoint' && renderShape(task.shape, optSize, GRADIENT[1], task.axis, (opt as { degrees: number }).degrees)}
+                  {(task.kind === 'missing' || task.kind === 'assembly') && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1])}
                   {task.kind === 'same' && <Text style={{fontSize:Math.max(16,Math.min(26,optSize/3)),fontWeight:'700',color:colors.text}}>
                     {(opt as { answer: boolean }).answer ? strings.answerYes : strings.answerNo}
                   </Text>}
@@ -704,6 +707,8 @@ export default function MentalRotationGame() {
                     })
                   : task.kind === 'viewpoint' ? strings.viewpointPrompt
                   : task.kind === 'same' ? strings.samePrompt
+                  : task.kind === 'missing' ? strings.missingPrompt
+                  : task.kind === 'assembly' ? strings.assemblyPrompt
                   : strings.netPrompt}
             </Text>
             <View testID="mental-reference" style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }]}>
@@ -715,6 +720,14 @@ export default function MentalRotationGame() {
                   ? <RotationTransition key={`${round}-${reviewStep}`} from={frames[reviewStep-1].shape} to={frames[reviewStep].shape} axis={frames[reviewStep].axis!} size={baseSize}/>
                   : task.kind === 'viewpoint'
                   ? <ViewpointReference shape={task.shape} degrees={task.degrees} size={baseSize} accent={colors.primary}/>
+                  : task.kind === 'missing'
+                  ? <View testID="missing-whole"><RotationShape shape={task.whole} ghost={task.hole} size={baseSize}/></View>
+                  : task.kind === 'assembly'
+                  ? <View testID="assembly-parts" style={{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8}}>
+                      <RotationShape shape={task.parts[0]} size={baseSize*0.8}/>
+                      <Text style={{fontSize:20,fontWeight:'700',color:colors.textSecondary}}>+</Text>
+                      <RotationShape shape={task.parts[1]} size={baseSize*0.8}/>
+                    </View>
                   : task.kind === 'same'
                   ? <View testID="same-pair" style={{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8}}>
                       <RotationShape shape={task.left} size={baseSize*0.8}/>
@@ -726,7 +739,7 @@ export default function MentalRotationGame() {
                       ? (frames[reviewStep]?.shape ?? task.base)   // в разборе эталон сам поворачивается
                       : task.shape} size={baseSize}/>}
               <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>
-                {task.kind === 'net' ? strings.taskNet : t('label_reference')}
+                {task.kind === 'net' ? strings.taskNet : task.kind === 'assembly' ? '' : t('label_reference')}
               </Text>
             </View>
             {reviewing&&task.kind==='rotation'&&!manualReview?<TouchableOpacity testID="rotation-manual-start" accessibilityRole="button" onPress={()=>setManualReview(true)} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.primary,fontWeight:'700'}}>{strings.rotateManually}</Text></TouchableOpacity>:null}
@@ -739,6 +752,8 @@ export default function MentalRotationGame() {
                     : task.kind === 'projection' ? strings.reviewProjectionHint
                     : task.kind === 'viewpoint' ? strings.reviewViewpointHint
                     : task.kind === 'same' ? strings.reviewSameHint
+                    : task.kind === 'missing' ? strings.reviewMissingHint
+                    : task.kind === 'assembly' ? strings.reviewAssemblyHint
                     : strings.reviewNetHint}
                 </Text>
                 {task.kind === 'rotation' && (

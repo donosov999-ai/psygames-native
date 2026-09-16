@@ -19,6 +19,7 @@
  * развёртками, требуя, чтобы наклон их не заметил.
  */
 import { buildNetTask } from './net';
+import { buildAssemblyTask, buildMissingTask } from './pieces';
 import { buildSameTask } from './same';
 import { buildViewpointTask } from './viewpoint';
 import { buildProjectionTask } from './projection';
@@ -35,9 +36,13 @@ import type { MentalRotationTask, Rng, TaskKind } from './types';
  * он ближе всего к повороту и читается как его продолжение. Пара «да/нет» —
  * девятым: у неё другой способ отвечать (две кнопки вместо выбора картинки), и
  * её лучше встретить, когда остальное уже привычно.
+ * 16.09.2026, задача 5a1b4d25: «сборка» — одиннадцатым (шесть кубиков режутся на два
+ * куска по три — читается сразу). «Недостающая часть» — только с 21-го, где в фигуре
+ * восемь кубиков: пустота из четырёх не больше сплошной части. На шести кубиках живой
+ * кадр показал столбик из двух кубиков и пунктир — понять задание было нельзя.
  */
 export const KIND_UNLOCK: Record<TaskKind, number> = {
-  rotation: 1, projection: 3, net: 5, viewpoint: 7, same: 9,
+  rotation: 1, projection: 3, net: 5, viewpoint: 7, same: 9, assembly: 11, missing: 21,
 };
 
 /** Ниже этой доли поворотных проб партия опускаться не должна — см. шапку. */
@@ -86,6 +91,8 @@ export function buildTask(kind: TaskKind, level: number, rng: Rng): MentalRotati
   if (kind === 'net') return buildNetTask({ optionCount: p.optionCount }, rng);
   if (kind === 'viewpoint') return buildViewpointTask(level, rng);
   if (kind === 'same') return buildSameTask(level, rng);
+  if (kind === 'missing') return buildMissingTask(level, rng);
+  if (kind === 'assembly') return buildAssemblyTask(level, rng);
   return buildRotationTask(level, rng);
 }
 

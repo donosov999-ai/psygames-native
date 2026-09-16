@@ -9,6 +9,8 @@ export * from './net';
 export * from './rotation';
 export * from './viewpoint';
 export * from './same';
+export * from './split';
+export * from './pieces';
 export * from './replay';
 export * from './session';
 export * from './i18n';
