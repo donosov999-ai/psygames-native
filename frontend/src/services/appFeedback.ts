@@ -46,7 +46,15 @@ function netTrace(): { net_base: string; net_how: string } {
  */
 export function shouldRetryUpload(outcome: string): boolean {
   if (outcome === 'ok' || outcome.startsWith('ok')) return false;
-  return /Failed to fetch|NetworkError|network|timeout|aborted|ECONN|TypeError/i.test(outcome);
+  /**
+   * 🔴 `Load failed` — ТАК СЕТЕВОЙ ОТКАЗ НАЗЫВАЕТ WebKit, то есть iPhone. Chrome пишет
+   * `Failed to fetch`, и список писался под него. На iPhone сетевой обрыв не
+   * узнавался и второго адреса не получал вовсе: замер app_feedback 16.09.2026 —
+   * 10 скриншотов с `err:Load failed` без единой повторной попытки, все tauri-ios;
+   * это треть всех потерянных скриншотов за месяц. «appears to be offline» — там же,
+   * текст WebKit для выключенной сети.
+   */
+  return /Failed to fetch|Load failed|appears to be offline|NetworkError|network|timeout|aborted|ECONN|TypeError/i.test(outcome);
 }
 
 /**

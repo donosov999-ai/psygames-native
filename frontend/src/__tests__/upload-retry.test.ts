@@ -17,7 +17,9 @@ import { shouldRetryUpload, uploadWithRetry } from '@/src/services/appFeedback';
 describe('что повторяем, а что нет', () => {
   it('🔴 сетевой отказ — повторяем', () => {
     for (const o of ['err:Failed to fetch', 'timeout', 'err:NetworkError when attempting to fetch',
-                     'threw:TypeError: Failed to fetch', 'err:ECONNRESET', 'err:aborted']) {
+                     'threw:TypeError: Failed to fetch', 'err:ECONNRESET', 'err:aborted',
+                     // iPhone (WebKit): так приходит тот же обрыв сети — 10 скриншотов потеряны без повтора.
+                     'err:Load failed', 'err:The Internet connection appears to be offline.']) {
       expect(`${o} → ${shouldRetryUpload(o)}`).toBe(`${o} → true`);
     }
   });
