@@ -81,6 +81,17 @@ frontend/src/__tests__/phoneme-*  ·  mnemonics-*  ·  faces-names-*
 ⚠️ И слой возвращается туда, откуда пришёл: первый его коммит — `9b6a27a6`
 «feat(polyglot): TIER 2 — три аудио-упражнения через системный TTS».
 
+🟡 **ГРАНИЦА ПО ЧЕТЫРЁМ СЛУХОВЫМ ЭКРАНАМ ОТКРЫТА, И ЭТО НАПИСАНО С ОБЕИХ СТОРОН.**
+`SPEC_CHAT_LANGUAGES.md` (строки 65–75, 159–163) перечисляет `phoneme-pairs`,
+`chinese-tones`, `pseudoword-echo`, `dictation` как свои и приводит замер
+12.09.2026: у `hearing-hub` ровно ОДИН родитель — `languages-hub`, игрок попадает
+в слух только через «Языки» (подтверждается `STRUCTURE.md`, развилка «Языки» — 2
+карточки, обе групповые). Тот же файл сам называет это открытым вопросом и обещает
+предупреждать владельца до правки. Передан решением Дениса 12.09 **голосовой слой**;
+про сами экраны решения не было. До решения админа доски (`teamops-claude-mac`)
+правлю их я, о каждой правке предупреждаю `psygames-languages-claude-mac`.
+⚠️ `rhythm-pitch` в списке «Билингво» НЕТ — там четыре экрана, в развилке пять.
+
 **За их пределы не выходишь.** Не трогаешь чужие разделы.
 
 **Общий слой — через координатора**: `games.ts` · `profiles.ts` ·
@@ -118,16 +129,14 @@ frontend/src/__tests__/phoneme-*  ·  mnemonics-*  ·  faces-names-*
 
 ## 3. Что уже есть — и что НЕ надо делать заново
 
-| экран | что это |
-|---|---|
-| `mnemonics` | приёмы запоминания |
-| `memory-palace` | дворец памяти |
-| `faces-names` | лица и имена |
-| `word-pairs` | пары слов |
-| `phoneme-pairs` | различить близкие звуки |
-| `chinese-tones` | тоны китайского |
-| `pseudoword-echo` | повторить псевдослово |
-| `dictation` | диктант |
+📋 **Состав развилок — в `STRUCTURE.md`** (корень репозитория; собирается
+`node frontend/scripts/build-structure.mjs`, руками не правится). Таблица экранов
+стояла здесь до 16.09.2026 и отстала на две игры: «Ритм и высота» и RMET пришли
+12.09, а список остался восьмёркой. Один пересказ состава = одна копия, которая
+расходится молча, поэтому здесь ссылка, а не список.
+
+📍 Проверено 16.09.2026: пересборка на `b8c7b76a` дала файл, **посимвольно равный**
+закоммиченному на `6d7a0bf8`, — снимок не протух, менялся только штамп даты.
 
 🔴 **ОЗВУЧКА СДЕЛАНА ЦЕЛИКОМ — не берись за неё.** Замер 06.09.2026:
 
@@ -185,12 +194,19 @@ frontend/src/__tests__/phoneme-*  ·  mnemonics-*  ·  faces-names-*
 ```sql
 select id, created_at::date, person, game_id, message
 from app_feedback
-where game_id in ('mnemonics', 'memory-palace', 'faces-names', 'word-pairs', 'phoneme-pairs', 'chinese-tones', 'pseudoword-echo', 'dictation') and status = 'new'
+where game_id in ('mnemonics', 'memory-palace', 'faces-names', 'word-pairs', 'rmet',
+                 'phoneme-pairs', 'chinese-tones', 'pseudoword-echo', 'dictation', 'rhythm-pitch')
+  and status = 'new'
 order by created_at desc;
 ```
 
 Закрывая — пиши `fixed_in_version`, `fix_note` **на языке автора** и
 `status='fixed'`. Гейт выпуска это проверяет, и человек увидит ответ.
+
+🔴 **Фильтр был слеп на две игры до 16.09.2026.** `rhythm-pitch` и `rmet` пришли в
+раздел 12.09, а в список идентификаторов их не дописали — замер 16.09 в
+`app_feedback` показал 4 отчёта (`rhythm-pitch` 3, `rmet` 1), которых этот запрос
+не показывал ни разу. Приходит игра — тем же шагом правится этот `in (...)`.
 
 ---
 
