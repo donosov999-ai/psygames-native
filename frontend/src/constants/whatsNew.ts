@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.15',
+    date: '2026-09-17',
+    ru: [
+      '«Числовой забег» собрал весь хаб «Счёт»: на уровнях станции с примерами, воротами, рядами и памятью в пути, а каждый третий уровень — страж',
+      'Пауза теперь держит партию в играх на внимание, а значок серии переехал на питомца — поле не прыгает посреди игры',
+      '«Мысленное вращение»: новые задания «Сборка», «Недостающая часть», «Три вида» и «Срез»; в лаборатории — «Сдвиг чисел» и «Сеть со сдвигом»',
+      'Справки головоломок объясняют, что значат числа и почему решение не засчитано; в «Нежити» на клавишах чудовища вместо цифр',
+    ],
+    en: [
+      'Number Run now gathers the whole Counting hub: levels have stations with sums, gates, sequences and memory on the road, and every third level has a guardian',
+      'Pause now truly holds attention games, and the streak badge moved onto the pet, so the board no longer jumps mid-game',
+      'Mental Rotation adds Assembly, Missing piece, Three views and Slice tasks; the Spatial Lab adds Number Slide and Sliding Network',
+      'Puzzle help explains what the numbers mean and why a solution was not accepted; Undead keys show the monsters instead of digits',
+    ],
+  },
+  {
     version: '2.54.14',
     date: '2026-09-16',
     ru: [
