@@ -178,3 +178,34 @@ it('🔴 компактная кнопка прячет СЛОВО, но пок�
   const безСчёта = await кнопка({ compact: true });
   expect(видимыйТекст(безСчёта)).toBe('');
 });
+
+/**
+ * 🔴 СЛУЖЕБНАЯ КНОПКА НЕ ЗАЕЗЖАЕТ ПОД СКВОЗНОЙ УГОЛ (питомец + «Правила»).
+ *
+ * Угловой ряд абсолютный и висит поверх любого экрана, поэтому полоса счётчиков
+ * о нём не знает. Замер 16.09.2026 (Playwright, 375×812, статика от 12.09): у
+ * ВСЕХ ЧЕТЫРЁХ экранов с `auxInHud` кнопка лежала под питомцем — на «Тонах
+ * китайского» 76×25 под спрайтом и 38×13 под самой кнопкой «Правила», то есть
+ * палец в правый верхний угол кнопки открывал правила вместо повтора звука.
+ * Контроль с известным ответом: `pseudoword-echo` — тот же раздел, та же кнопка,
+ * но без `auxInHud` — перекрытий ноль.
+ *
+ * ⚠️ ПРОБА СМОТРИТ НА ОТВЕДЁННОЕ МЕСТО, А НЕ НА ПИКСЕЛИ. Геометрию меряет живой
+ * аудит (`scripts/slot-audit.mjs`) на собранном приложении; здесь сторожится то,
+ * что вернуть обратно проще всего, — сам резерв. Число берётся из константы угла,
+ * а не переписывается сюда: разъедутся — и кнопка снова уедет под питомца.
+ */
+it('🔴 auxInHud: под угловой ряд отведено место, и ровно то, что он занимает', async () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- после моков
+  const { StyleSheet } = require('react-native');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- после моков
+  const { HELP_CORNER_RESERVE } = require('@/src/components/GameHelpOverlay');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- после моков
+  const { PAD_H } = require('@/src/components/GameShell');
+  const r = await поднять({ auxInHud: true });
+  const ряд = якоря(r.root, 'game-header-actions')[0]!;
+  const плоско = StyleSheet.flatten(ряд.props.style) as Record<string, unknown>;
+  expect(`отступ справа: ${плоско.marginRight ?? 0}`).toBe(`отступ справа: ${HELP_CORNER_RESERVE - PAD_H}`);
+  /* Ширина ряда 120 плюс его собственный отступ 4 — одной ширины не хватало. */
+  expect(HELP_CORNER_RESERVE).toBeGreaterThan(120);
+});

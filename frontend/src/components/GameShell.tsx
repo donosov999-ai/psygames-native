@@ -65,7 +65,7 @@ import { router } from 'expo-router';
 import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
-import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
+import { HELP_CORNER_SPACE, HELP_CORNER_RESERVE } from '@/src/components/GameHelpOverlay';
 import { ПОЛОСА_ПОКАЗАТЕЛЕЙ } from '@/src/components/gameLayout';
 
 /** Один счётчик в шапке: что показать и каким тоном. */
@@ -1300,7 +1300,31 @@ export default function GameShell({
           * её только оттого, что она переехала на 54 пикселя выше.
           */}
         {рядВПолосе ? (
-          <View testID="game-header-actions" style={styles.auxInHud}>
+          /**
+           * 🔴 КНОПКА НЕ ДОЛЖНА ЗАЕЗЖАТЬ ПОД СКВОЗНОЙ УГОЛ (питомец + «Правила»).
+           *
+           * Угловой ряд висит ПОВЕРХ любого экрана и рисуется абсолютно, поэтому
+           * вёрстка полосы о нём не знает и спокойно кладёт служебную кнопку под
+           * него. Замер 16.09.2026, окно 375×812, статика от 12.09: у всех ЧЕТЫРЁХ
+           * экранов с `auxInHud` кнопка лежала под питомцем — «Тоны китайского»
+           * 76×25 под спрайтом и 38×13 под самой кнопкой «Правила», то есть палец
+           * в правый верхний угол кнопки открывал правила вместо повтора звука.
+           * Контроль с известным ответом: `pseudoword-echo` — тот же раздел, та же
+           * кнопка повтора, но БЕЗ `auxInHud` — перекрытий ноль. Значит виноват
+           * режим, а не экраны и не питомец.
+           *
+           * Отводим ПОЛНОЕ расстояние до края (`HELP_CORNER_RESERVE` = ширина ряда
+           * плюс его собственный отступ). Одной ширины мало: ряд не прижат к краю,
+           * и промах был бы ровно на эти 4 px.
+           *
+           * ⚠️ Минус `PAD_H`: полоса уже отступает от края на эти десять пикселей,
+           * и без вычитания кнопка потеряла бы их дважды. Ширина у неё и так в
+           * обрез — «Повторить» на «Тонах» занимает 124 px из 355 доступных.
+           */
+          <View
+            testID="game-header-actions"
+            style={[styles.auxInHud, rtl ? { marginLeft: HELP_CORNER_RESERVE - PAD_H } : { marginRight: HELP_CORNER_RESERVE - PAD_H }]}
+          >
             {headerActions}
           </View>
         ) : null}
