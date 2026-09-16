@@ -1,4 +1,4 @@
-/* psygames-game-prl · VER 1 · 19.08.2026 */
+/* psygames-game-prl · VER 2 · 16.09.2026 */
 /**
  * PRL — Probabilistic Reversal Learning
  *
@@ -37,7 +37,7 @@ import { levelOutcome } from '@/src/services/levelOutcome';
 import { MIN_TRIALS_FOR_LEVEL } from '@/app/games/cpt';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, Animated, Easing
+  ScrollView, Animated, Easing, useWindowDimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -52,6 +52,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
 import GameShell from '@/src/components/GameShell';
+import { ПОЛЯ_ОТВЕТА, ПАЛЕЦ } from '@/src/components/gameLayout';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -76,6 +77,32 @@ const PRL_BENEFITS = [
 
 // Проход уровня: доля верных выборов ПОСЛЕ реверсалов (адаптация к смене правила).
 const PASS_ACC = 0.6;
+
+/** Зазор между кругами «A» и «B». */
+export const ЗАЗОР_КРУГОВ = 28;
+/** Самый крупный круг — прежний размер, на широком экране он не растёт. */
+const КРУГ_НАИБОЛЬШИЙ = 130;
+
+/**
+ * 🔴 КРУГ ОТВЕТА СЧИТАЕТСЯ ОТ ШИРИНЫ ПОЛОСЫ ОТВЕТА, А НЕ ЗАШИТ ЧИСЛОМ 130.
+ *
+ * Замер 16.09.2026, живая сборка, партия L1, прибор
+ * ~/dev/psygames/attention-chat/кнопка-отзыва-в-партии.mjs (все 18 экранов раздела,
+ * по два окна): органы ответа под кнопкой «Сообщить о проблеме» нашлись у ОДНОГО экрана,
+ * и это PRL. Кнопка закрывала левый край круга «A»: 236 pt² на 390×844 и 844 pt² на
+ * 360×640, то есть уже треть кнопки отзыва лежала на ответе.
+ *
+ * Причина — арифметика. Полоса ответа каркаса отступает под кнопку отзыва на 66 с
+ * ОБЕИХ сторон (ПОЛЯ_ОТВЕТА = 132), и на 390 внутри остаётся 258. Два круга по 130 с
+ * зазором 28 — это 288: ряд вылезал из отступа на 15 с каждой стороны, а на 360 — на 30.
+ *
+ * Теперь круг — половина того, что остаётся в полосе после зазора, но не больше
+ * прежних 130 и не меньше пальца (48): 390 → 115, 360 → 100, 320 → 80.
+ */
+export function кругОтвета(ширинаОкна: number): number {
+  const поПолосе = Math.floor((ширинаОкна - ПОЛЯ_ОТВЕТА - ЗАЗОР_КРУГОВ) / 2);
+  return Math.max(ПАЛЕЦ, Math.min(КРУГ_НАИБОЛЬШИЙ, поПолосе));
+}
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
 type Difficulty = 'easy' | 'medium' | 'hard';
@@ -177,6 +204,8 @@ export default function PRLGame() {
   const lvl = usePersistentLevel('prl');
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const { width: ширинаОкна } = useWindowDimensions();
+  const круг = кругОтвета(ширинаОкна);
 
   // Правило показываем при первом входе и даём перечитать по бейджу.
   const levelRules = useLevelRules('prl', lvl.level, PRL_RULES, phase === 'config');
@@ -581,12 +610,13 @@ export default function PRLGame() {
         disabled={feedback !== null}
         onPress={() => handleChoice(which)}
         style={[styles.stim, {
+          width: круг, height: круг, borderRadius: круг / 2,
           backgroundColor: fbColor || color,
           borderColor: isFeedback ? (feedback.outcome === 'reward' ? '#16a34a' : '#dc2626') : 'transparent',
           borderWidth: isFeedback ? 4 : 0,
         }]}
       >
-        <Text style={styles.stimLabel}>{which}</Text>
+        <Text style={[styles.stimLabel, { fontSize: Math.round(круг * 0.37) }]}>{which}</Text>
         {isFeedback && (
           <Text style={styles.fbText}>
             {feedback.outcome === 'reward' ? '+10¢' : '−5¢'}
@@ -713,7 +743,7 @@ const styles = StyleSheet.create({
   bankCenterWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 12, gap: 2 },
   bankCenter: { fontSize: 56, fontWeight: '800', letterSpacing: -1 },
   bankCenterLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6 },
-  stimRow: { flexDirection: 'row', gap: 28, marginTop: 12 },
+  stimRow: { flexDirection: 'row', gap: ЗАЗОР_КРУГОВ, marginTop: 12 },
   stim: { width: 130, height: 130, borderRadius: 65, justifyContent: 'center', alignItems: 'center' },
   stimLabel: { color: '#FFF', fontSize: 48, fontWeight: '900' },
   fbText: { color: '#FFF', fontSize: 18, fontWeight: '900', marginTop: -8 },
