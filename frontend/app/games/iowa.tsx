@@ -1,4 +1,4 @@
-/* psygames-game-iowa · VER 1 · 19.08.2026 */
+/* psygames-game-iowa · VER 2 · 16.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -24,6 +24,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
+import { gameTimeout } from '@/src/services/gamePause';
 
 const GRADIENT = ['#0F2027', '#2C5364'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -217,10 +218,10 @@ export default function IowaGame() {
        ⚠️ Банк двигается вместе с показом, а не раньше: прыгнувшее число выдавало
        бы результат до самой обратной связи, и задержка не нагружала бы ничего.
        Новые нажатия всё это время держит respondLockRef — см. замок в pickDeck. */
-    setTimeout(() => {
+    gameTimeout(() => {
       setBank(newBank);
       setLastFeedback({ deck: d, win, loss });
-      setTimeout(() => {
+      gameTimeout(() => {
         setLastFeedback(null);
         respondLockRef.current = false;
         if (round >= trials) finish(newBank, newPicks);

@@ -1,4 +1,4 @@
-/* psygames-game-inhibition · VER 1 · 19.08.2026 */
+/* psygames-game-inhibition · VER 2 · 16.09.2026 */
 /**
  * Торможение — объединённая игра: Go/No-Go + Стоп-сигнал.
  *
@@ -49,7 +49,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
@@ -185,10 +185,10 @@ export default function InhibitionGame() {
   const ssRespondedRef = useRef<boolean>(false);
 
   // Timers
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const pushTimer = (id: ReturnType<typeof setTimeout>) => timersRef.current.push(id);
+  const timersRef = useRef<GameTimer[]>([]);
+  const pushTimer = (id: GameTimer) => timersRef.current.push(id);
   const clearAllTimers = () => {
-    timersRef.current.forEach((id) => clearTimeout(id));
+    timersRef.current.forEach((id) => clearGameTimer(id));
     timersRef.current = [];
   };
 
@@ -212,7 +212,7 @@ export default function InhibitionGame() {
     setSsSignal('idle'); setSsFeedback(null);
     setPhase('playing');
     startTimeRef.current = gameNow();
-    pushTimer(setTimeout(() => runRound(0), 800));
+    pushTimer(gameTimeout(() => runRound(0), 800));
   };
 
   const finish = async () => {
@@ -312,7 +312,7 @@ export default function InhibitionGame() {
     gngStimAtRef.current = gameNow();
     gngRespondedRef.current = false;
 
-    pushTimer(setTimeout(() => {
+    pushTimer(gameTimeout(() => {
       const s = statsRef.current;
       if (!gngRespondedRef.current) {
         // No press: if go → miss; if nogo → correct rejection
@@ -320,7 +320,7 @@ export default function InhibitionGame() {
         else               { updateStats({ ...s, cr: s.cr + 1 }); hapticSuccess(); }
       }
       setGngStim(null);
-      pushTimer(setTimeout(() => runRound(r + 1), 500 + Math.random() * 300));
+      pushTimer(gameTimeout(() => runRound(r + 1), 500 + Math.random() * 300));
     }, goWindowRef.current));
   };
 
@@ -348,15 +348,15 @@ export default function InhibitionGame() {
     ssRespondedRef.current = false;
 
     const fixDelay = 600 + Math.random() * 400;
-    pushTimer(setTimeout(() => {
+    pushTimer(gameTimeout(() => {
       setSsSignal('go');
       ssGoAtRef.current = gameNow();
       if (isStop) {
-        pushTimer(setTimeout(() => {
+        pushTimer(gameTimeout(() => {
           if (!ssRespondedRef.current) setSsSignal('stop');
         }, ssdRef.current));
       }
-      pushTimer(setTimeout(() => {
+      pushTimer(gameTimeout(() => {
         if (ssRespondedRef.current) return;
         endSsTrial(r, isStop ? 'stop_ok' : 'go_miss', 0);
       }, goWindowRef.current));
@@ -378,7 +378,7 @@ export default function InhibitionGame() {
     updateStats(next);
     if (fb === 'right') hapticSuccess(); else hapticError();
     setSsSignal('feedback'); setSsFeedback(fb);
-    pushTimer(setTimeout(() => runRound(r + 1), 500));
+    pushTimer(gameTimeout(() => runRound(r + 1), 500));
   };
 
   const onSsPress = () => {

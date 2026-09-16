@@ -563,6 +563,15 @@ function pressLabel(r: any, label: string) {
   TestRenderer.act(() => { btns[0].props.onPress(); });
 }
 
+/** Кнопка по подписи для скринридера — у компактной кнопки слова на экране нет (17.09.2026). */
+function pressA11y(r: any, начало: string) {
+  const btns = r.root.findAll((n: any) => (
+    typeof n.props?.onPress === 'function' && String(n.props.accessibilityLabel ?? '').startsWith(начало)
+  ), OUTER);
+  if (btns.length !== 1) throw new Error(`кнопку с подписью «${начало}…» не опознать: найдено ${btns.length}`);
+  TestRenderer.act(() => { btns[0].props.onPress(); });
+}
+
 function tapCell(r: any, index: number) {
   const node = cells(r)[index];
   if (!node || typeof node.props.onPress !== 'function') throw new Error(`клетка ${index} не нажимается`);
@@ -630,11 +639,21 @@ function dragAlong(r: any, path: readonly number[], side: number) {
 /** Английская подпись кнопки подсказки — тот же ключ, что видит человек. */
 const EN_HINT = 'Hint';
 
-/** Сколько подсказок осталось по ШАПКЕ: «Hint · 3» → 3. */
+/**
+ * Подписи для скринридера по всему дереву.
+ * 📍 17.09.2026: подсказка в шапке стала компактной (значок и число, без слова «Hint»), а
+ * «Ошибок» — значком. Слово у них осталось только в `accessibilityLabel` — его и читаем:
+ * так проба видит то же, что диктор, и не зависит от того, словом или значком нарисовано.
+ */
+const подписи = (r: any): string[] => r.root
+  .findAll((n: any) => typeof n.props?.accessibilityLabel === 'string', { deep: true })
+  .map((n: any) => n.props.accessibilityLabel as string);
+
+/** Сколько подсказок осталось по ШАПКЕ: подпись кнопки «Hint — 3» → 3. */
 function hudHints(r: any): number {
-  const m = /Hint[^\d]*(\d+)/.exec(joined(r.root));
-  if (!m) throw new Error('счётчик подсказок в шапке не найден');
-  return Number(m[1]);
+  const подпись = подписи(r).find((l) => /^Hint — \d+$/.test(l));
+  if (!подпись) throw new Error('счётчик подсказок в шапке не найден');
+  return Number(/(\d+)$/.exec(подпись)![1]);
 }
 
 function hudProgress(r: any): string {
@@ -652,8 +671,8 @@ function hudProgress(r: any): string {
  * `hudHints` с самого начала писал мягко (`[^\d]*`); привожу к нему.
  */
 function hudErrors(r: any): number {
-  const m = /Errors[^\d]*(\d+)/.exec(joined(r.root));
-  return m ? Number(m[1]) : 0;
+  const подпись = подписи(r).find((l) => /^Errors: \d+$/.test(l));
+  return подпись ? Number(/(\d+)$/.exec(подпись)![1]) : 0;
 }
 
 describe('экран: серия идёт по одному полю и пишет одну сессию', () => {
@@ -922,7 +941,7 @@ describe('серия: подсказка и читаемый счётчик', ()
       pressLabel(r, EN.entry);
       expect(joined(r.root)).toContain(EN.blockSign);
       const hintIn = (): number => r.root.findAll((n: any) => (
-        typeof n.props?.onPress === 'function' && joined(n).includes(EN_HINT)
+        typeof n.props?.onPress === 'function' && String(n.props.accessibilityLabel ?? '').startsWith(EN_HINT)
       ), OUTER).length;
       expect(hintIn()).toBe(0);                       // блок «Знак» — искать нечего
 
@@ -932,7 +951,7 @@ describe('серия: подсказка и читаемый счётчик', ()
       expect(hintIn()).toBe(1);                       // блок «Слово» — подсказка на месте
 
       const before = hudHints(r);
-      pressLabel(r, EN_HINT);
+      pressA11y(r, EN_HINT);
       expect(hudHints(r)).toBe(before - 1);           // ресурс потрачен, а не нарисован
     } finally {
       r.unmount();
