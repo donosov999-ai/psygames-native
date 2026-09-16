@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import { превьюРежимаКорректуры } from '@/src/games/fillwords/core/modeThumbs';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
+import { сеткаКорректуры } from '@/src/games/attention/layout';
 import { ширинаПодПоле } from '@/src/games/fillwords/core/generator';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
@@ -251,6 +252,18 @@ export default function ProofreadingGame() {
     не сообщила, и отдаёт константы телефона лишь там, где `window` нет вовсе.
   */
   const { w: width, h: height } = useScreenSize();
+  const insets = useSafeAreaInsets();
+  /**
+   * Сколько места занимает то, что стоит НАД сеткой, — замером `onLayout`, а не числом.
+   * Было `высота − 210`: догадка, из-за которой сетка получала лишнее место и уходила под
+   * кнопку отзыва (разбор у `сеткаКорректуры`). Начальные значения — замер 390×844 от
+   * 16.09, чтобы первый кадр уже стоял верно; дальше экран уточняет сам.
+   * Обновляем только при сдвиге больше 2 точек: клетка от этих высот не зависит, так
+   * что раскладка сходится за один лишний проход и не качается.
+   */
+  const [надСеткой, setНадСеткой] = useState({ буквы: 88, филворды: 30, серияСтрока: 27, серияЗадание: 88 });
+  const замеритьНад = (ключ: keyof typeof надСеткой, h: number) =>
+    setНадСеткой((было) => (Math.abs(было[ключ] - h) > 2 ? { ...было, [ключ]: Math.round(h) } : было));
 
   const { isPreset, autostart, str, num, bool, isCalm } = useGamePreset();
   /**
@@ -702,8 +715,6 @@ export default function ProofreadingGame() {
   // Компромисс: сетка ВСЕГДА влезает (cell = min по ширине И высоте, без overflow),
   // но не мельчит — выше потолок контейнера/клетки и меньше резерв сверху → на
   // просторных экранах клетки крупные, на узких — ужимаются ровно до помещения.
-  const reservedHeight = 210;
-  const availableHeight = Math.max(200, height - reservedHeight);
   /**
    * 🔴 СПИСОК СЛОВ СТОИТ СБОКУ, А НЕ НАД ПОЛЕМ — И ЭТО ЗАМЕР, А НЕ ВКУС.
    *
@@ -720,14 +731,17 @@ export default function ProofreadingGame() {
   // Расчёт живёт в ядре, а не здесь: иначе проба сверяет свою копию формулы сама
   // с собой и не замечает, что экран её не применил.
   const containerW = ширинаПодПоле(width, списокСбоку);
-  const widthBased = Math.floor(containerW / cols);
-  const heightBased = Math.floor(availableHeight / rows);
-  const cellSize = Math.max(22, Math.min(widthBased, heightBased, 72));   // clamp 22-72px
+  /** Идёт ли сейчас партия филвордов (решает, что рисовать в поле). Объявлен ДО расчёта
+   *  клетки: над сеткой филвордов и над сеткой букв стоят разные блоки. */
+  const fwPlaying = taskMode === 'fillwords' && !isPreset && fwSession !== null;
+  const { клетка: cellSize, резервСнизу } = сеткаКорректуры({
+    ширинаПоля: containerW, высотаОкна: height, низВыреза: insets.bottom,
+    столбцов: cols, рядов: rows,
+    надСеткой: fwPlaying ? надСеткой.филворды : надСеткой.буквы,
+  });   // clamp 22-72px — внутри ядра
   const gridWidth = cellSize * cols;
 
   // ── Филворды: ведение пальца по буквам ────────────────────────────────────
-  /** Идёт ли сейчас партия филвордов (решает, что рисовать в поле). */
-  const fwPlaying = taskMode === 'fillwords' && !isPreset && fwSession !== null;
 
   /** Черновик линии держим в рефе И в state: реф читает жест, state рисует. */
   const fwSetTrace = (next: number[]) => { fwTraceRef.current = next; setFwTrace(next); };
@@ -1137,11 +1151,11 @@ export default function ProofreadingGame() {
   // Геометрия поля серии считается отдельно от обычной сетки: там rows×cols из
   // уровня корректуры (до 16×12), здесь квадрат 5×5…8×8.
   const seriesSide = seriesState ? seriesState.field.size : 1;
-  const seriesCell = Math.max(24, Math.min(
-    Math.floor(Math.min(width - 24, 760) / seriesSide),
-    Math.floor(Math.max(200, height - 260) / seriesSide),
-    72,
-  ));
+  const seriesCell = сеткаКорректуры({
+    ширинаПоля: Math.min(width - 24, 760), высотаОкна: height, низВыреза: insets.bottom,
+    столбцов: seriesSide, рядов: seriesSide,
+    надСеткой: надСеткой.серияСтрока + надСеткой.серияЗадание, пол: 24,
+  }).клетка;
 
   /**
    * Слово засчитывается в тот же миг, когда линия его накрыла. Промах — только
@@ -1597,7 +1611,8 @@ export default function ProofreadingGame() {
               })}
             </View>
           )}
-          <View style={[styles.gridContainer, { width: gridWidth }]} {...fwPan.panHandlers}>
+          <View style={[styles.gridContainer, { width: gridWidth, marginBottom: резервСнизу }]}
+            onLayout={(e) => замеритьНад('филворды', e.nativeEvent.layout.y)} {...fwPan.panHandlers}>
             {(fwSession as FillwordsSession).puzzle.letters.map((letter, index) => {
               const session = fwSession as FillwordsSession;
               const owner = session.owner[index];
@@ -1653,7 +1668,8 @@ export default function ProofreadingGame() {
         тем, ЧТО искать, и тем, ГДЕ искать, и делал это на каждой клетке.
         Задание — не счётчик; счётчики (найдено, время, ошибки) остались в шапке.
       */}
-      <View testID="proof-target" style={styles.gameHeader}>
+      <View testID="proof-target" style={styles.gameHeader}
+        onLayout={(e) => замеритьНад('буквы', e.nativeEvent.layout.height + 8 /* gameHeader.marginBottom */)}>
         <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
           <Text style={[styles.targetLabel, { color: colors.text }]}>{t('find')}:</Text>
           {targetLetters.map((tl, i) => (
@@ -1663,7 +1679,7 @@ export default function ProofreadingGame() {
           ))}
         </View>
       </View>
-      <View testID="proof-grid" style={[styles.gridContainer, { width: gridWidth }]}>
+      <View testID="proof-grid" style={[styles.gridContainer, { width: gridWidth, marginBottom: резервСнизу }]}>
         {grid.map((letter, index) => {
           // Цель до нажатия НЕ подсвечивается — в этом вся проба: её надо
           // увидеть самому. Поэтому здесь только «уже найдено»…
@@ -1774,11 +1790,13 @@ export default function ProofreadingGame() {
             : []),
         ]}
       >
-        <Text style={[styles.seriesBlockLine, { color: colors.textSecondary }]}>
+        <Text style={[styles.seriesBlockLine, { color: colors.textSecondary }]}
+          onLayout={(e) => замеритьНад('серияСтрока', e.nativeEvent.layout.height + 8 /* seriesBlockLine.marginBottom */)}>
           {`${interpolate(seriesStrings.blockOf, { n: seriesState.blockIndex + 1, total: PROOF_SERIES_PLAN.length })} · ${blockLabel(key)}`}
         </Text>
         {/* Задание — над полем, по той же причине, что и в обычной партии. */}
-        <View testID="proof-target" style={styles.gameHeader}>
+        <View testID="proof-target" style={styles.gameHeader}
+          onLayout={(e) => замеритьНад('серияЗадание', e.nativeEvent.layout.height + 8 /* gameHeader.marginBottom */)}>
           <View style={[styles.targetBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.targetLabel, { color: colors.text }]}>{blockLabel(key)}</Text>
             {isSign && field.signs.map((sign, i) => (
@@ -1790,7 +1808,7 @@ export default function ProofreadingGame() {
         </View>
         <View
           testID="proof-grid"
-          style={[styles.gridContainer, { width: seriesCell * seriesSide }]}
+          style={[styles.gridContainer, { width: seriesCell * seriesSide, marginBottom: резервСнизу }]}
           {...(isSign ? {} : fwPan.panHandlers)}
         >
           {field.puzzle.letters.map((letter, index) => {
