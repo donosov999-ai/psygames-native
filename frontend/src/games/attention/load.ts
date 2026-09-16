@@ -38,6 +38,7 @@ import { levelParams as stopSignalParams } from '@/src/games/stop-signal/core/la
 import { levelCondition as inhibitionCondition } from '@/app/games/inhibition';
 import { levelParams as posnerParams } from '@/app/games/posner';
 import { levelParams as proofParams } from '@/app/games/proofreading';
+import { levelCondition as bartCondition } from '@/app/games/bart';
 
 export type AttentionMode =
   | 'stroop' | 'flanker' | 'cpt' | 'targets' | 'wcst'
@@ -47,7 +48,7 @@ export type AttentionMode =
   /** Первый из восьми, приехавших 12.09.2026 с расформированием развилок
    *  «Торможение» и «Риск». Остальные семь ждут своей меры прохода —
    *  дописывать сюда имя БЕЗ неё нельзя, см. шапку ниже. */
-  | 'go-no-go' | 'stop-signal' | 'inhibition' | 'posner' | 'proofreading';
+  | 'go-no-go' | 'stop-signal' | 'inhibition' | 'posner' | 'proofreading' | 'bart';
 
 /**
  * 🔴 ЭТОТ СПИСОК ПОКРЫВАЕТ 10 ЭКРАНОВ ИЗ 18, А НЕ ВЕСЬ ХАБ. Замер 13.09.2026
@@ -100,6 +101,9 @@ export const LADDER_RANGE: Record<AttentionMode, number> = {
   posner: 15,
   /* На L15 сетка упирается в 16 строк, темп — в пол 0,45 с/клетка. proofreading.tsx::MAX_LEVEL. */
   proofreading: 15,
+  /* Третья ось (разброс предела взрыва) доводит лестницу до L15 без дублей:
+     без неё L13–L15 совпадали. bart.tsx::MAX_LEVEL. */
+  bart: 15,
 };
 
 /** Что пишется в партию у этой пробы, и чем это меряется в методике. */
@@ -126,6 +130,7 @@ export const SESSION_MEASURE: Record<AttentionMode, { field: string; norm: strin
   inhibition:         { field: 'inhibition_commission', norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Ошибки торможения — нажатия там, где жать было нельзя. ⚠️ ИМЯ ПОЛЯ СВОЁ, не общее falseAlarms: у go-no-go мера уже так называется, а здесь число значит другое. Экран играет ОБЕ парадигмы (запрет, отмена начатого, микс), поэтому рядом пишется submode. ⚠️ ЧИТАТЬ ТОЛЬКО ПРИ ОДНОЙ И ТОЙ ЖЕ ЗАДЕРЖКЕ: ось сложности здесь SSD (150 → 480 мс), а при фиксированной задержке доля неудавшихся торможений зависит от самой задержки — ошибки двух РАЗНЫХ уровней между собой не сравнимы. Для этого ssd_ms кладётся в запись партии рядом с ошибками. Доля стоп-проб заморожена 16.09.2026: INHIBITION_STOP_PROB = 0.25, прежде росла 0.20 → 0.35' },
   posner:             { field: 'validity_effect_ms',    norm: '✅ НОРМА БАТАРЕИ ЕСТЬ — 50 ± 30, higher_is_better = false (assessment.ts, домен attention_orient). Единственный из восьми экранов, приехавших 12.09, у кого норма заведена. Выигрыш от подсказки: RT(невалидная) − RT(валидная). Мера РАЗНОСТНАЯ, поэтому доля валидных подсказок осью сложности быть не может и заморожена: VALID_RATIO = 0.7. Проба Познера, 1980' },
   proofreading:       { field: 'proof_omission_pct',    norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Доля пропущенных целей — корректурная проба Бурдона, классический показатель концентрации на однообразном материале. ⚠️ ИМЕННО ДОЛЯ, А НЕ СЧЁТ: ось сложности здесь размер сетки (8×8 → 16×12), и число пропусков росло бы само от роста числа целей. ⚠️ Читать только вместе с task_mode: у экрана два задания — буквы (проба Бурдона) и филворды (материал раздела «Слова»), сравнивать их между собой нельзя' },
+  bart:               { field: 'adj_avg_pumps',         norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Среднее число нажатий на НЕ лопнувших шарах — канонический показатель склонности к риску (Lejuez 2002). ⚠️ ЧИТАТЬ ТОЛЬКО ПРИ ОДНОМ И ТОМ ЖЕ ПРЕДЕЛЕ: при равномерной точке взрыва выгоднее качать до половины предела, поэтому рост maxBurst 16 → 128 поднимает саму величину примерно в восемь раз, и партии разных уровней между собой не сравнимы. Для этого max_burst и burst_spread кладутся в запись партии рядом. Третья ось (разброс предела между шарами) выбрана так, чтобы среднее НЕ двигать — она растит только неопределённость' },
 };
 
 /**
@@ -453,6 +458,25 @@ export function proofreadingLoad(level: number): number {
   return (клеток(p) / клеток(б)) * (наКлетку(б) / наКлетку(p)) * (p.minFoundPct / б.minFoundPct);
 }
 
+/**
+ * BART — «объём, предел и неопределённость».
+ *
+ * Шаров 8 → 20, предел точки взрыва 16 → 128, и с 16.09.2026 третья ось —
+ * разброс предела МЕЖДУ шарами 0 → 0,5. Первые две упираются в концы уже к
+ * L13, третья доводит лестницу до L15 без мёртвых ступеней.
+ *
+ * ⚠️ Разброс выбран именно потому, что он симметричен вокруг предела: среднее
+ * не двигается, а значит мера прохода (adj_avg_pumps) от него не уезжает —
+ * растёт только неопределённость, и выучить одно безопасное число нельзя.
+ *
+ * ⚠️ Складывать с нагрузкой других проб нельзя: у каждой своя валюта.
+ */
+export function bartLoad(level: number): number {
+  const p = bartCondition(level);
+  const б = bartCondition(1);
+  return p.balloons * (p.maxBurst / б.maxBurst) * (1 + p.burstSpread);
+}
+
 export function attentionLoad(mode: AttentionMode, level: number): number {
   switch (mode) {
     case 'stroop':  return stroopLoad(level);
@@ -470,11 +494,12 @@ export function attentionLoad(mode: AttentionMode, level: number): number {
     case 'inhibition':       return inhibitionLoad(level);
     case 'posner':           return posnerLoad(level);
     case 'proofreading':     return proofreadingLoad(level);
+    case 'bart':             return bartLoad(level);
   }
 }
 
 export const ATTENTION_MODES: AttentionMode[] = [
   'stroop', 'flanker', 'cpt', 'targets', 'wcst',
   'stroop-emotional', 'simon', 'choice-rt', 'ant', 'switching-task',
-  'go-no-go', 'stop-signal', 'inhibition', 'posner', 'proofreading',
+  'go-no-go', 'stop-signal', 'inhibition', 'posner', 'proofreading', 'bart',
 ];
