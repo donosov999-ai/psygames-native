@@ -1,3 +1,5 @@
+// VER 4 · 2026-09-16 · psygames-search-claude-mac: трамплин над числами (VER 4 маршрута) — по желанию, пропуск не портит сохранение;
+// обязательный прыжок остался только у препятствия.
 // VER 3 · LOCAL 0.4 · 2026-09-12 · Flight checkpoint, preserve older training results.
 import {LEVELS,makeCourse,applyOperation} from './runner-levels.mjs';
 import {makeCampaign} from './runner-campaign.mjs';
@@ -49,7 +51,7 @@ export function decodeProgress(raw){
   const jumps=s.events.filter(e=>e.type==='jump');
   if(jumps.some(e=>{const row=course.rows[e.id];return !row?.jump||e.lane!==row.jump.lane||e.z!==row.z-row.jump.launchOffset||e.z>s.z;}))return result;
   if(new Set(jumps.map(e=>e.id)).size!==jumps.length)return result;
-  if(previousRows.some(row=>row.jump&&!jumps.some(e=>e.id===row.id)))return result;
+  if(previousRows.some(row=>row.kind==='obstacle'&&row.jump&&!jumps.some(e=>e.id===row.id)))return result;
   const lastJump=jumps.at(-1),jr=lastJump&&course.rows[lastJump.id];
   const expectedJump=jr&&s.z<jr.z+jr.jump.landingOffset?{id:jr.id,startZ:jr.z-jr.jump.launchOffset,endZ:jr.z+jr.jump.landingOffset,height:jr.jump.height}:null;
   if(JSON.stringify(s.jump)!==JSON.stringify(expectedJump))return result;

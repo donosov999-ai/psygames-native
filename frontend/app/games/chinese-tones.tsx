@@ -332,7 +332,10 @@ export default function ChineseTonesGame() {
         ]}
         headerActions={
           <GameAuxBar>
-            <GameAuxAction icon="volume-high" label={t('replaySound')} disabled={answered !== null} onPress={replay} />
+            {/* compact: в полосе счётчиков (auxInHud) подпись «ещё раз» не влезает на длинных языках —
+                 замер 16.09.2026 на 390 pt: es «Escuchar otra vez» 177 px, правый край 398 — за экраном на 8;
+                 de 175 px, край 389 — впритык. Слово остаётся в accessibilityLabel. */}
+            <GameAuxAction compact icon="volume-high" label={t('replaySound')} disabled={answered !== null} onPress={replay} />
           </GameAuxBar>
         }
         auxInHud

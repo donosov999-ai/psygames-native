@@ -28,6 +28,7 @@ import { CS_RULES } from '@/app/games/cake-sort';
 import { CHESSBLIND_RULES } from '@/app/games/chess-blind';
 import { COUNTER_RULES, levelParams as counterLp } from '@/app/games/counter';
 import { CORSI_RULES, levelParams as corsi } from '@/app/games/corsi';
+import { STROOP_RULES, levelParams as stroop } from '@/app/games/stroop';
 import { CPT_RULES, levelParams as cpt } from '@/app/games/cpt';
 import { DS_RULES, levelParams as digitSpan } from '@/app/games/digit-span';
 // Лист без React: 14 мс против 3298 мс у экрана (замер 06.09.2026).
@@ -35,7 +36,7 @@ import { GS_RULES, goalPlan, levelCfg as gsCfg, strictPlacement, hiddenInfo, jok
 import { HN_RULES, levelParams as hanoi } from '@/app/games/hanoi';
 import { WATER_SORT_RULES } from '@/app/games/water-sort';
 import { скрытоНаУровне } from '@/src/games/water-sort/core/hidden';
-import { levelParams, moveLimitFor, строгийНалив } from '@/src/games/water-sort/core/generate';
+import { levelParams, moveLimitFor, строгийНалив, СТРОГИЙ_НАЛИВ_ВКЛЮЧЁН } from '@/src/games/water-sort/core/generate';
 import { LISTENINGSPAN_RULES, levelParams as listening } from '@/app/games/listening-span';
 import { MAHJONG_RULES } from '@/app/games/mahjong';
 import { MS_RULES } from '@/app/games/math-sprint';
@@ -68,6 +69,7 @@ const RULES: Record<string, LevelRule[]> = {
   'chess-blind': CHESSBLIND_RULES, corsi: CORSI_RULES, cpt: CPT_RULES, 'digit-span': DS_RULES,
   'goods-sort': GS_RULES, hanoi: HN_RULES, 'listening-span': LISTENINGSPAN_RULES,
   'water-sort': WATER_SORT_RULES,
+  stroop: STROOP_RULES,
   mahjong: MAHJONG_RULES, 'math-sprint': MS_RULES, 'memory-matrix': MEMORYMATRIX_RULES,
   'mental-rotation': MR_RULES, mnemonics: MNEMONICS_RULES, 'n-back': NB_RULES, ospan: OSPAN_RULES,
   'picture-pairs': PAIRS_RULES, prl: PRL_RULES, 'pseudoword-echo': PSEUDOWORDECHO_RULES,
@@ -94,6 +96,10 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'cake-sort', ключ: 'queue', вид: 'порог', есть: (L) => cakeLevel(L).queue > 0 },
   { игра: 'chess-blind', ключ: 'locate', вид: 'порог', есть: (L) => puzzleLevelParams(L).quizType === 'locate' },
   { игра: 'corsi', ключ: 'reverse', вид: 'порог', есть: (L) => corsi(L).reverse },
+  // Струп: знаки вокруг стимула и смена правила внутри партии (добавлено 16.09.2026 —
+  // до этого правила Струпа в карте не было, и порог «шума» не сверялся ни с чем).
+  { игра: 'stroop', ключ: 'noise', вид: 'порог', есть: (L) => stroop(L).decoys > 0 },
+  { игра: 'stroop', ключ: 'switch', вид: 'порог', есть: (L) => stroop(L).switchRate > 0 },
   /**
    * Ось 3 — задержка между концом показа и открытием ввода (12.09.2026, c3dc9350).
    * Вопрос к плану, а не к экрану: правило обещает порог, `holdMs` обязан стать
@@ -145,6 +151,7 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'ospan', ключ: 'hardmath', вид: 'порог', есть: (L) => ospan(L).hardMath },
   { игра: 'picture-pairs', ключ: 'triple', вид: 'состояние', есть: (L) => pairs(L).groupSize === 3 },
   { игра: 'picture-pairs', ключ: 'quad', вид: 'порог', есть: (L) => pairs(L).groupSize === 4 },
+  { игра: 'picture-pairs', ключ: 'swap', вид: 'порог', есть: (L) => pairs(L).swapsPerMiss > 0 },
   { игра: 'pseudoword-echo', ключ: 'longer6', вид: 'порог', есть: (L) => echo(L).lenMin >= 6 },
   { игра: 'pseudoword-echo', ключ: 'longer8', вид: 'порог', есть: (L) => echo(L).lenMin >= 8 },
   { игра: 'semantic-sort', ключ: 'three', вид: 'порог', есть: (L) => semantic(L).catsPerRound >= 3 },
@@ -210,7 +217,16 @@ const МЕХАНИКИ: Механика[] = [
    * человек прочтёт про камни за четыре уровня до первого камня.
    */
   { игра: 'water-sort', ключ: 'short', вид: 'порог', есть: (L) => levelParams(L).shortBy > 0 },
-  { игра: 'water-sort', ключ: 'strict', вид: 'порог', есть: (L) => строгийНалив(L) },
+  /*
+   * ⚠️ Строгий налив выключен решением Дениса 16.09.2026 («одинаковые подряд
+   * переносятся только вместе»). Карточки правила при выключенной оси нет, и
+   * вопроса к механике тоже нет: предикат ответил бы «нет» на всех шестидесяти
+   * уровнях, и проба «вопрос различает уровни» справедливо назвала бы его
+   * мёртвым. Включат ось — вернутся оба, от одного выключателя.
+   */
+  ...(СТРОГИЙ_НАЛИВ_ВКЛЮЧЁН
+    ? [{ игра: 'water-sort', ключ: 'strict', вид: 'порог' as const, есть: (L: number) => строгийНалив(L) }]
+    : []),
   { игра: 'water-sort', ключ: 'stones', вид: 'порог', есть: (L) => levelParams(L).stones > 0 },
   { игра: 'water-sort', ключ: 'sealed', вид: 'порог', есть: (L) => levelParams(L).deferred > 0 },
   /*

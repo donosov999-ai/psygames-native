@@ -1,10 +1,22 @@
+// VER 5 · 2026-09-16 · psygames-search-claude-mac, на основе VER 4 LOCAL 0.4 (psygames-codex-mac). Построения маршрута VER 4:
+// числа по глубине, широкие стопки, столб, стены операций, большое красное под трамплином. Искры, осколки и всплывающие
+// «+8 / −30» — по событиям ядра, не по своей догадке. Финиш клеткой и финальная лестница стен (render(state,time,finaleT)).
+// Эффекты — один пул точек и шесть подписей на всю сцену: число объектов не растёт с длиной забега.
 // VER 4 · LOCAL 0.4 · 2026-09-12 · Five independent blue/red pickups, ramps, bridge supports.
 import * as T from 'three';
 import {ruleText} from './runner-levels.mjs';
 import {numberScale,jumpHeight} from './runner-core.mjs';
 import {createNumerals} from './runner-numerals.mjs';
-const BG=0x57c7df, LANE=2.4;
+import {wallsBroken} from './runner-campaign.mjs';
+const BG=0x57c7df, LANE=2.4, FINALE_GAP=5, FINALE_SPEED=12;
 const colors={add:0x86f4cb,subtract:0xffb891,multiply:0xd0acff,skip:0x65829d,gate:0xb8a3ff};
+const WALL={'−':0xff4d6d,'+':0x4f7bff,'×':0x9b6bff},LADDER=[0xffe14d,0xf4e84a,0xdcee52,0xbcf05c,0x98ec69,0x78e27c,0x5dd697,0x4fcab4,0x4cc0d1,0x53b5ea];
+export function finaleDistance(course,state){
+ const walls=course.finale?.walls;if(!walls)return 0;const broken=wallsBroken(course.finale,state.sum);
+ return broken===walls.length?FINALE_GAP*walls.length+6:FINALE_GAP*(broken+1)-1.4;
+}
+// Сколько секунд идёт финал: дорога до последней пробитой стены и секунда показать, где остановился.
+export const finaleDuration=(course,state)=>course.finale?finaleDistance(course,state)/FINALE_SPEED+1.3:0;
 export function createScene(container){
  const renderer=new T.WebGLRenderer({antialias:true,alpha:false});
  renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor(BG);renderer.outputColorSpace=T.SRGBColorSpace;
@@ -22,14 +34,32 @@ export function createScene(container){
   const c=document.createElement('canvas');c.width=512;c.height=256;const ctx=c.getContext('2d');
   const texture=new T.CanvasTexture(c);texture.colorSpace=T.SRGBColorSpace;
   const sprite=new T.Sprite(new T.SpriteMaterial({map:texture,depthTest:true,transparent:true}));sprite.scale.set(w,h,1);
-  const update=value=>{ctx.clearRect(0,0,512,256);if(background){ctx.fillStyle=background;ctx.beginPath();ctx.roundRect(5,7,502,242,36);ctx.fill();}
-   ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`800 ${font}px system-ui`;ctx.fillStyle=color;
+  const update=(value,ink=color)=>{ctx.clearRect(0,0,512,256);if(background){ctx.fillStyle=background;ctx.beginPath();ctx.roundRect(5,7,502,242,36);ctx.fill();}
+   ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`800 ${font}px system-ui`;ctx.fillStyle=ink;
    if(!background){ctx.shadowBlur=28;ctx.shadowColor='#ac8bff';ctx.strokeStyle='#332255';ctx.lineWidth=9;ctx.strokeText(value,256,136,480);}
    ctx.fillText(value,256,136,480);ctx.shadowBlur=0;texture.needsUpdate=true;};
   update(text);return {sprite,update};
  }
  const numerals=createNumerals(),hero=new T.Group();let digit=numerals.make('1');hero.add(digit);scene.add(hero);
- let objects=new Map(),lastNumber=null,course,visualScale=1,lastTime=null,compactScale=1;
+ let objects=new Map(),lastNumber=null,course,visualScale=1,lastTime=null,compactScale=1,seenEvents=0,finale=null,bump=0;
+ // ── Эффекты: пул искр/осколков и шесть всплывающих подписей ─────────────────────────────────────────────
+ const SPARKS=280,sparkPosition=new Float32Array(SPARKS*3),sparkColor=new Float32Array(SPARKS*3),sparks=[];let sparkNext=0;
+ const sparkGeometry=new T.BufferGeometry();sparkGeometry.setAttribute('position',new T.BufferAttribute(sparkPosition,3));sparkGeometry.setAttribute('color',new T.BufferAttribute(sparkColor,3));
+ const sparkPoints=new T.Points(sparkGeometry,new T.PointsMaterial({size:.15,vertexColors:true,transparent:true,depthWrite:false}));sparkPoints.frustumCulled=false;scene.add(sparkPoints);
+ for(let i=0;i<SPARKS;i++){sparks.push({life:0,vx:0,vy:0,vz:0});sparkPosition[i*3+1]=-60;}
+ function burst(x,y,z,color,count,{spread=3.2,lift=4,drift=0}={}){
+  const c=new T.Color(color);for(let n=0;n<count;n++){const i=sparkNext;sparkNext=(sparkNext+1)%SPARKS;const p=sparks[i],a=Math.random()*Math.PI*2;
+   p.life=.45+Math.random()*.45;p.vx=Math.cos(a)*spread*Math.random();p.vz=Math.sin(a)*spread*Math.random()+drift;p.vy=lift*(.4+Math.random());
+   sparkPosition.set([x,y,z],i*3);const shade=.75+Math.random()*.25;sparkColor.set([c.r*shade,c.g*shade,c.b*shade],i*3);}
+ }
+ function stepSparks(dt){
+  for(let i=0;i<SPARKS;i++){const p=sparks[i];if(p.life<=0)continue;p.life-=dt;p.vy-=9*dt;
+   sparkPosition[i*3]+=p.vx*dt;sparkPosition[i*3+1]=p.life<=0?-60:Math.max(-.2,sparkPosition[i*3+1]+p.vy*dt);sparkPosition[i*3+2]+=p.vz*dt;}
+  sparkGeometry.attributes.position.needsUpdate=true;sparkGeometry.attributes.color.needsUpdate=true;
+ }
+ const popups=Array.from({length:6},()=>{const l=label('',{w:1.7,h:.85,font:140});l.sprite.visible=false;scene.add(l.sprite);return {...l,life:0};});
+ function popup(text,ink,x){const p=popups.reduce((a,b)=>a.life<=b.life?a:b);p.update(text,ink);p.life=.8;p.sprite.visible=true;p.sprite.position.set(x,2.2,0);}
+ function stepPopups(dt){for(const p of popups){if(p.life<=0)continue;p.life-=dt;p.sprite.position.y+=dt*1.6;p.sprite.material.opacity=Math.max(0,Math.min(1,p.life/.3));if(p.life<=0)p.sprite.visible=false;}}
  function dispose(group){group.traverse(o=>{if(o.geometry&&!o.geometry.userData.shared)o.geometry.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])if(!m.userData.shared){m.map?.dispose();m.dispose();}});scene.remove(group);}
  function buildRow(row){const root=new T.Group(),group=new T.Group();root.add(group);
    const previous=course.rows[row.id-1],length=row.z-(previous?.z??0),span=row.span??0;
@@ -44,8 +74,18 @@ export function createScene(container){
     }
    }
    if(row.kind==='pickups')row.items.forEach((item,index)=>{
-    const mesh=numerals.make(item.value<0?`−${Math.abs(item.value)}`:item.value,item.value<0?0xff1839:0x443bff);
-    mesh.scale.setScalar(Math.min(.98,1.03/mesh.userData.width));mesh.position.set(item.x*LANE,.08,0);mesh.userData.pickupIndex=index;group.add(mesh);
+    const mesh=numerals.make(item.value<0?`−${Math.abs(item.value)}`:item.value,item.value<0?0xff1839:0x443bff),half=item.half??.18;
+    // Ширина числа — по его логической ширине: стопка в полдороги, большое красное через всю дорогу.
+    const scale=half>=1?Math.min(2.7,5.6/mesh.userData.width):half>=.5?Math.min(1.2,1.6/mesh.userData.width):Math.min(.98,1.03/mesh.userData.width);
+    mesh.scale.setScalar(scale);mesh.position.set(item.x*LANE,.08,-(item.dz??0));mesh.userData.pickupIndex=index;group.add(mesh);
+   });
+   else if(row.kind==='operation'&&course.mode==='journey')row.options.forEach((operation,index)=>{
+    // Стена во всю полосу: цвет — знак операции, надпись — сама операция. Проезд разбивает только твою.
+    const lane=new T.Group();lane.position.x=(index-1)*LANE;lane.userData.wallLane=index-1;
+    const wall=new T.Mesh(new T.BoxGeometry(2.3,1.95,.34),new T.MeshStandardMaterial({color:WALL[operation[0]]??WALL['×'],roughness:.42,metalness:.05,transparent:true,opacity:.9}));
+    wall.position.y=.97;wall.castShadow=true;lane.add(wall);
+    const tag=label(operation,{w:2.15,h:1.08,font:150});tag.sprite.position.set(0,1.02,.32);lane.add(tag.sprite);
+    group.add(lane);
    });
    else if(row.kind==='operation')row.options.forEach((operation,index)=>{
     const lane=new T.Group();lane.position.x=(index-1)*LANE;
@@ -68,7 +108,9 @@ export function createScene(container){
     group.add(lane);
    });
    else if(row.checkpoint){
-    for(let i=0;i<12;i++){const square=box(.6,.025,.8,i%2?0x202839:0xffffff);square.position.set(-3.3+i*.6,.015,0);group.add(square);}
+    // Последняя черта — финиш: клетка в два ряда. Промежуточные — одна строка, как было.
+    const bands=row.id===course.rows.length-1?2:1;
+    for(let r=0;r<bands;r++)for(let i=0;i<12;i++){const square=box(.6,.025,.8,(i+r)%2?0x202839:0xffffff);square.position.set(-3.3+i*.6,.015+r*.001,-r*.8);group.add(square);}
    }else {
     const split=row.rules.length===3;
     for(let i=0;i<row.rules.length;i++){
@@ -78,13 +120,28 @@ export function createScene(container){
      const tag=label(ruleText(row.rules[i]),{background:'#665399',w:split?2.24:3.35,h:split?1.18:1.3,font:105});tag.sprite.position.set(middle,2.25,0);group.add(tag.sprite);
     }
    }
+   if(row.divider){
+    // Столб делит дорогу на время стопок: сторона выбрана там, где он начинается.
+    const d=row.divider,length=d.toDz-d.fromDz,z=-(d.fromDz+d.toDz)/2;
+    const pole=box(.24,1.7,length,0x6a45ff);pole.position.set(0,.8,z);pole.castShadow=true;root.add(pole);
+    const cap=box(.26,.1,length,0x9d86ff);cap.position.set(0,1.68,z);root.add(cap);
+   }
    if(row.jump){
     const ramp=new T.Group();ramp.position.set(row.jump.lane*LANE,0,row.jump.launchOffset);
     const base=box(2.2,.23,2.5,0x93ef13);base.rotation.x=-.18;base.position.y=.12;ramp.add(base);
     for(const z of [-.65,.35])for(const sign of [-1,1]){const arrow=box(.16,.035,.75,0xffffff);arrow.rotation.y=sign*.65;arrow.position.set(sign*.22,.4,z);ramp.add(arrow);}
-    const tag=label('ПРЫЖОК',{background:'#45780c',w:2.1,h:.65,font:80});tag.sprite.position.set(0,1,0);ramp.add(tag.sprite);root.add(ramp);
+    const tag=label('▲▲',{background:'#45780c',w:1.3,h:.65,font:110});tag.sprite.position.set(0,1,0);ramp.add(tag.sprite);root.add(ramp);
    }
    scene.add(root);return {row,group:root,items:group};
+ }
+ function buildFinale(){
+  const root=new T.Group(),walls=course.finale.walls,total=FINALE_GAP*(walls.length+1)+40;
+  const deck=box(7.2,.55,total,0xeef1f7);deck.position.set(0,-.32,-total/2);deck.receiveShadow=true;root.add(deck);
+  const slabs=walls.map((value,i)=>{const g=new T.Group();g.position.z=-FINALE_GAP*(i+1);
+   const slab=box(7.1,2.3,.8,LADDER[i%LADDER.length]);slab.position.y=1.15;slab.castShadow=true;g.add(slab);
+   const tag=label(String(value),{w:3.8,h:1.9,font:170});tag.sprite.position.set(0,1.25,.48);g.add(tag.sprite);
+   root.add(g);return g;});
+  scene.add(root);return {root,slabs,broken:0};
  }
  function syncRows(nextRow){
   // One trailing deck + six upcoming rows, not all168. Shared digit geometries.
@@ -93,7 +150,9 @@ export function createScene(container){
   renderer.domElement.dataset.rowObjects=String(objects.size);
  }
  function load(nextCourse){
-  objects.forEach(({group})=>dispose(group));objects.clear();course=nextCourse;lastNumber=null;visualScale=numberScale(course.start);lastTime=null;syncRows(0);
+  objects.forEach(({group})=>dispose(group));objects.clear();if(finale){dispose(finale.root);finale=null;}
+  course=nextCourse;lastNumber=null;visualScale=numberScale(course.start);lastTime=null;seenEvents=0;bump=0;syncRows(0);
+  renderer.domElement.dataset.seed=String(course.seed);
  }
  const observer=new ResizeObserver(()=>{
   const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;
@@ -101,23 +160,49 @@ export function createScene(container){
   camera.fov=camera.aspect<.62?65:55;camera.updateProjectionMatrix();
   compactScale=h<360?1.35:1;
  });observer.observe(container);
- function render(state,time){
+ // События ядра, случившиеся с прошлого кадра, — в искры и подписи. Смысл берётся из события, не из картинки.
+ function react(state,reduced){
+  if(state.events.length<seenEvents)seenEvents=0;
+  for(const e of state.events.slice(seenEvents)){
+   if(e.type==='pickup'){const good=e.value>0;popup(`${good?'+':'−'}${Math.abs(e.value)}`,good?'#dfe6ff':'#ffd6dc',state.x*LANE);if(!reduced)burst(state.x*LANE,.9+jumpHeight(state),0,good?0x5b6cff:0xff2d55,good?6:12,{spread:2.4,lift:3.2});}
+   else if(e.type==='operation'){const o=objects.get(e.id);if(o)for(const lane of o.items.children)if(lane.userData.wallLane===e.lane)lane.visible=false;
+    popup(`${e.operation}`,e.operation[0]==='−'?'#ffd6dc':'#dfe6ff',e.lane*LANE);if(!reduced)burst(e.lane*LANE,1,0,WALL[e.operation[0]]??WALL['×'],26,{spread:4,lift:5,drift:6});}
+   else if(e.type==='obstacle'&&e.damage>0){popup(`−${e.damage}`,'#ffd6dc',e.lane*LANE);if(!reduced)burst(e.lane*LANE,.8,0,0xa63c51,26,{spread:4,lift:4.5,drift:6});}
+  }
+  seenEvents=state.events.length;
+ }
+ function render(state,time,finaleT=0){
   if(lastNumber!==state.sum){hero.remove(digit);digit=numerals.make(state.sum,state.sum<0?0xff1839:0x443bff);hero.add(digit);lastNumber=state.sum;}
-  hero.position.x=state.x*LANE;hero.position.y=jumpHeight(state);
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const dt=lastTime===null?0:Math.max(0,Math.min(.1,(time-lastTime)/1000));lastTime=time;
+  const won=state.status==='won'&&course.finale,moving=state.status==='running'||won;
+  // Финал: число едет дальше по лестнице стен, пока пробивает; двигает его время финала, которое держит адаптер.
+  const along=won?Math.min(finaleDistance(course,state),finaleT*FINALE_SPEED):0,view=state.z+along;
+  // В финале число съезжает на середину: четырёхзначное у края полосы уходило за край экрана.
+  hero.position.x=state.x*LANE*(won?Math.max(0,1-finaleT/.5):1);hero.position.y=jumpHeight(state);
   const targetScale=numberScale(state.sum);visualScale=reduced?targetScale:visualScale+(targetScale-visualScale)*(1-Math.exp(-dt*8));
-  const size=1.12*visualScale*compactScale;digit.scale.set(Math.min(size,3.5/digit.userData.width),size,size);digit.position.y=.08+(!reduced&&state.status==='running'?Math.sin(time*.003)*.025:0);
+  const size=1.12*visualScale*compactScale;digit.scale.set(Math.min(size,3/digit.userData.width),size,size);digit.position.y=.08+(!reduced&&moving?Math.sin(time*.003)*.025:0);
   renderer.domElement.dataset.numberScale=visualScale.toFixed(3);
   renderer.domElement.dataset.jumpHeight=hero.position.y.toFixed(3);
-  syncRows(state.nextRow);
+  // Где забег — для живой проверки снаружи (тем же приёмом, что numberScale и jumpHeight выше).
+  renderer.domElement.dataset.nextRow=String(state.nextRow);renderer.domElement.dataset.z=state.z.toFixed(2);renderer.domElement.dataset.status=state.status;
+  syncRows(state.nextRow);react(state,reduced);
   renderer.domElement.dataset.numeralGeometry='extruded';renderer.domElement.dataset.glyphPool=String(numerals.glyphCount);
-  objects.forEach(({row,group,items})=>{group.position.z=state.z-row.z;group.visible=row.z-state.z<90;items.visible=row.id>=state.nextRow;
+  objects.forEach(({row,group,items})=>{group.position.z=view-row.z;group.visible=row.z-view<90;items.visible=row.id>=state.nextRow||row.kind==='operation'&&course.mode==='journey';
    if(row.kind==='pickups')for(const item of items.children)item.visible=row.id!==state.nextRow||!state.collected.includes(item.userData.pickupIndex);
   });
-  startPlatform.position.z=state.z+9;startPlatform.visible=state.z<24;
+  if(course.finale&&!finale&&course.length-view<100)finale=buildFinale();
+  if(finale){finale.root.position.z=view-course.length;
+   const broken=won?wallsBroken(course.finale,state.sum):0;
+   finale.slabs.forEach((slab,i)=>{if(slab.visible&&i<broken&&along>=FINALE_GAP*(i+1)-.9){slab.visible=false;finale.broken=i+1;if(!reduced)burst(0,1.2,-.6,LADDER[i%LADDER.length],30,{spread:5,lift:6,drift:FINALE_SPEED});}});
+   if(won&&broken<finale.slabs.length&&along>=finaleDistance(course,state)&&bump===0)bump=.001;
+   renderer.domElement.dataset.finaleBroken=String(finale.broken);
+  }
+  if(bump>0){bump+=dt;hero.position.z=bump<.45?-Math.sin(bump/.45*Math.PI)*.35:0;}else hero.position.z=0;
+  if(moving&&dt>0){stepSparks(dt);stepPopups(dt);}
+  startPlatform.position.z=view+9;startPlatform.visible=view<24;
   renderer.render(scene,camera);
  }
  function destroy(){observer.disconnect();for(const child of [...scene.children])dispose(child);numerals.destroy();renderer.dispose();renderer.domElement.remove();}
- return {load,render,destroy,canvas:renderer.domElement,dpr:renderer.getPixelRatio()};
+ return {load,render,destroy,canvas:renderer.domElement,dpr:renderer.getPixelRatio(),finaleDuration:state=>finaleDuration(course,state)};
 }

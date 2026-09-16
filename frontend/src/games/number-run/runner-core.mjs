@@ -1,6 +1,9 @@
+// VER 6 · 2026-09-16 · psygames-search-claude-mac, на основе LOCAL 0.4 (psygames-codex-mac). Строй чисел по глубине (item.dz),
+// широкие числа стопок (item.half), столб-разделитель (row.divider) и трамплин над числами: в полёте их не собрать.
+// Прежние ряды считаются ровно как в VER 5: без dz/half/divider ветки совпадают построчно.
 // VER 5 · Number Run local 0.4 · 2026-09-12. Flight over actual void, no jitter pause in journey.
 import {makeCourse,applyOperation,meets,ruleDifference} from './runner-levels.mjs';
-export const CORE_VERSION='number-run-core/5', FIXED_DT=1/120;
+export const CORE_VERSION='number-run-core/6', FIXED_DT=1/120;
 export function jumpHeight(s){if(!s.jump)return 0;const u=(s.z-s.jump.startZ)/(s.jump.endZ-s.jump.startZ);return u<=0||u>=1?0:4*s.jump.height*u*(1-u);}
 // Visual size follows the current positive value; hitboxes stay one lane wide.
 export const numberScale=value=>1+Math.min(1.6,Math.log2(1+Math.max(0,value))/7);
@@ -15,28 +18,37 @@ export function step(s,dt,course){
  if(!Number.isFinite(dt)||dt<0||dt>.1+1e-10)throw Error('dt outside simulation contract');
  if(s.status!=='running'||dt===0)return s;
  if(course.levelId!==s.levelId||course.seed!==s.seed)throw Error('Wrong course');
- const xAt=t=>s.x+Math.sign(s.target-s.x)*Math.min(Math.abs(s.target-s.x),t*course.lateralSpeed),endZ=s.z+dt*course.speed;
+ const terrain=course.rows[s.nextRow],endZ=s.z+dt*course.speed,lat=course.lateralSpeed;
+ const move=(x0,t)=>x0+Math.sign(s.target-x0)*Math.min(Math.abs(s.target-x0),t*lat);
+ // Pole: the side is taken where the pole begins; inside its span x cannot cross the middle.
+ const div=terrain?.divider,zoneA=div?terrain.z+div.fromDz:0,zoneB=div?terrain.z+div.toDz:0;let side=0,tA=0,tB=dt;
+ if(div&&endZ>=zoneA&&s.z<=zoneB){tA=Math.max(0,(zoneA-s.z)/course.speed);tB=Math.min(dt,(zoneB-s.z)/course.speed);side=Math.sign(move(s.x,tA))||Math.sign(s.target)||1;}
+ const bound=x=>side<0?Math.min(x,-div.gap):Math.max(x,div.gap);
+ const xAt=t=>!side||t<=tA?move(s.x,t):t<=tB?bound(move(s.x,t)):move(bound(move(s.x,tB)),t-tB);
  const next={...s,z:endZ,x:xAt(dt),elapsed:s.elapsed+dt,events:[...s.events]};
- const terrain=course.rows[s.nextRow];
- if(terrain?.kind==='pickups'){
-  const ta=Math.max(0,(terrain.z-terrain.window-s.z)/course.speed),tb=Math.min(dt,(terrain.z+terrain.window-s.z)/course.speed);
-  if(ta<=tb){const xa=xAt(ta),xb=xAt(tb),velocity=Math.sign(s.target-s.x)*course.lateralSpeed,hits=[];
-   terrain.items.forEach((item,index)=>{if(s.collected.includes(index))return;const lo=item.x-.18,hi=item.x+.18;
-    if(Math.max(xa,xb)<lo||Math.min(xa,xb)>hi)return;
-    const t=xa>=lo&&xa<=hi?ta:velocity===0?null:((velocity>0?lo:hi)-s.x)/velocity;
-    if(t!==null&&t>=ta-1e-9&&t<=tb+1e-9)hits.push({t:Math.max(ta,t),index,item});
-   });
-   next.collected=[...s.collected];for(const hit of hits.sort((a,b)=>a.t-b.t||a.index-b.index)){
-    const before=next.sum;next.sum+=hit.item.value;next.peak=Math.max(next.peak,next.sum);next.collected.push(hit.index);
-    next.events.push({type:'pickup',id:terrain.id,item:hit.index,value:hit.item.value,before,after:next.sum,t:s.elapsed+hit.t,z:s.z+hit.t*course.speed});
-   }
-  }
- }
  if(next.jump&&endZ>=next.jump.endZ)next.jump=null;
+ let launched=null;
  if(terrain?.jump){const launchZ=terrain.z-terrain.jump.launchOffset;
   if(s.z<launchZ&&endZ>=launchZ){const t=(launchZ-s.z)/course.speed,x=xAt(t);
-   if(Math.abs(x-terrain.jump.lane)<.48){next.jump={id:terrain.id,startZ:launchZ,endZ:terrain.z+terrain.jump.landingOffset,height:terrain.jump.height};next.events.push({type:'jump',id:terrain.id,lane:terrain.jump.lane,z:launchZ,t:s.elapsed+t});}
+   if(Math.abs(x-terrain.jump.lane)<.48){launched=next.jump={id:terrain.id,startZ:launchZ,endZ:terrain.z+terrain.jump.landingOffset,height:terrain.jump.height};next.events.push({type:'jump',id:terrain.id,lane:terrain.jump.lane,z:launchZ,t:s.elapsed+t});}
   }
+ }
+ if(terrain?.kind==='pickups'){
+  // Each number has its own depth, window and width; nothing under a flight arc or behind the pole is touched.
+  const flights=[s.jump,launched].filter(Boolean),velocity=Math.sign(s.target-s.x)*lat,hits=[];
+  terrain.items.forEach((item,index)=>{if(s.collected.includes(index))return;
+   const zi=terrain.z+(item.dz??0),w=item.window??terrain.window,half=item.half??.18;
+   const ta=Math.max(0,(zi-w-s.z)/course.speed),tb=Math.min(dt,(zi+w-s.z)/course.speed);if(ta>tb)return;
+   if(flights.some(f=>zi>f.startZ&&zi<f.endZ)||(side&&zi>=zoneA&&zi<=zoneB&&Math.sign(item.x)!==side))return;
+   const xa=xAt(ta),xb=xAt(tb),lo=item.x-half,hi=item.x+half;
+   if(Math.max(xa,xb)<lo||Math.min(xa,xb)>hi)return;
+   const t=xa>=lo&&xa<=hi?ta:velocity===0?null:((velocity>0?lo:hi)-s.x)/velocity;
+   if(t!==null&&t>=ta-1e-9&&t<=tb+1e-9)hits.push({t:Math.max(ta,t),index,item});
+  });
+  if(hits.length){next.collected=[...s.collected];for(const hit of hits.sort((a,b)=>a.t-b.t||a.index-b.index)){
+   const before=next.sum;next.sum+=hit.item.value;next.peak=Math.max(next.peak,next.sum);next.collected.push(hit.index);
+   next.events.push({type:'pickup',id:terrain.id,item:hit.index,value:hit.item.value,before,after:next.sum,t:s.elapsed+hit.t,z:s.z+hit.t*course.speed});
+  }}
  }
  const airborne=next.jump&&next.jump.id===terrain?.id;
  if(terrain?.kind==='obstacle'&&terrain.span&&!airborne&&endZ>=terrain.z-terrain.span&&s.z<terrain.z){
@@ -83,8 +95,10 @@ export function advanceFrame(s,dt,course){
  let next={...s,slowFrames:s.slowFrames+(dt>.1?1:0),discardedTime:s.discardedTime+Math.max(0,dt-.25)},remaining=Math.min(dt,.25);
  while(remaining>1e-10&&next.status==='running'){const part=Math.min(remaining,FIXED_DT);next=step(next,part,course);remaining-=part;}return next;
 }
+// A lane per row, or the id of a VER 4 route for rows that have routes (its gain is fixed by construction).
 export function replay(course,lanes){let sum=course.start;for(let i=0;i<lanes.length;i++){
- if(!course.rows[i]||![-1,-.5,0,.5,1].includes(lanes[i]))throw Error('Invalid replay');const row=course.rows[i],lane=lanes[i];
- if(row.kind==='pickups')sum+=row.items.find(item=>item.x===lane)?.value??0;
+ const row=course.rows[i],lane=lanes[i],route=typeof lane==='string'?row?.routes?.find(r=>r.id===lane):null;
+ if(!row||(!route&&![-1,-.5,0,.5,1].includes(lane)))throw Error('Invalid replay');
+ if(route)sum+=route.gain;else if(row.kind==='pickups')sum+=row.items.find(item=>item.x===lane)?.value??0;
  else if(row.kind==='operation')sum=applyOperation(sum,row.options[lane+1],course.mode==='journey'?1e6:9999);else if(row.kind==='obstacle'){if(!row.jump){if(row.span&&row.penalties[lane+1])return {sum,failedAt:i};sum-=row.penalties[lane+1];}}else if(!meets(sum,row.rules.length===1?row.rules[0]:row.rules[lane+1]))return {sum,failedAt:i};
  }return {sum,failedAt:null};}

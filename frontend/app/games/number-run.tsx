@@ -1,6 +1,11 @@
-/* psygames-game-number-run · VER 1 · 12.09.2026 */
+/* psygames-game-number-run · VER 2 · 16.09.2026 */
 /**
  * ЧИСЛОВОЙ ЗАБЕГ — ЭКРАН НА ОБЩЕМ КАРКАСЕ.
+ *
+ * VER 2 (16.09.2026, psygames-search-claude-mac; Денис: «у нас слишком простой»):
+ * маршрут VER 4 — змейки, сетки, две стопки за столбом, стены операций, трамплин
+ * над большим красным, финальная лестница стен. В итоге — сколько стен пробило
+ * число (`numberRunWalls`), и то же уходит в сессию (`details.walls`).
  *
  * Игру собрал `psygames-codex-mac` (LOCAL 0.4, `renderer-lab/`), передал
  * инструкцией `RUNNER_INTEGRATION_FOR_CLAUDE.md` VER 1 от 12.09.2026. Здесь —
@@ -58,6 +63,13 @@ export default function NumberRunScreen() {
     число: 1, этап: 1, этапов: ЭТАПОВ, столкновений: 0, секунд: 0,
   });
   const [итог, setИтог] = useState<ИтогЗабега | null>(null);
+  /**
+   * ⚠️ ВЫСОТА РЯДА ФИШЕК — ЗАМЕРОМ, А НЕ ЧИСЛОМ ПАЛЬЦА. Четырёхзначное число переносит
+   * фишку столкновений на вторую строку, и она ложилась на строку задания (кадр живого
+   * забега 16.09.2026: «8420 · 12/12», под ними «⊗ 0» поверх «Синее прибавляет…»).
+   * Стоит здесь, до ранних return фаз: хук после них ломает смену фазы.
+   */
+  const [высотаВерха, setВысотаВерха] = useState(ПАЛЕЦ);
   const руль = useRef<РульЗабега | null>(null);
   const итогЗаписан = useRef(false);
   /** Отступы телефона (вырез, полоса «домой») — полноэкранный слой ложится под них. */
@@ -102,6 +114,7 @@ export default function NumberRunScreen() {
       details: {
         stages: и.этаповПройдено, hits: и.столкновений,
         number: и.число, reason: и.причина, seed: зерно,
+        walls: и.стен, walls_total: и.стенВсего,
       },
     }).catch(() => { /* офлайн — забег всё равно пройден */ });
   }, [зерно]);
@@ -180,6 +193,8 @@ export default function NumberRunScreen() {
           <View style={styles.строкиИтога}>
             {([
               [t('score'), String(итог.число)],
+              // Стены финала — только если до финала доехал: у упавшего на седьмом этапе их не было.
+              ...(итог.победа && итог.стенВсего > 0 ? [[t('numberRunWalls'), `${итог.стен}/${итог.стенВсего}`] as const] : []),
               [t('round'), `${итог.этаповПройдено}/${ЭТАПОВ}`],
               [t('errors'), String(итог.столкновений)],
               [t('time'), `${итог.активныхСекунд} ${t('secShort')}`],
@@ -291,7 +306,11 @@ export default function NumberRunScreen() {
               </View>
             )}
           </View>
-          <View style={[styles.верхЗабега, { top: insets.top + 5, right: HELP_CORNER_SPACE }]} pointerEvents="box-none">
+          <View
+            style={[styles.верхЗабега, { top: insets.top + 5, right: HELP_CORNER_SPACE }]}
+            pointerEvents="box-none"
+            onLayout={(e) => setВысотаВерха(Math.round(e.nativeEvent.layout.height))}
+          >
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('gamePauseOpen')}
@@ -312,7 +331,7 @@ export default function NumberRunScreen() {
             вычитает. Гейт `game-task-line` держит её именно в партии. В полноэкранном
             режиме — плашкой на дороге под фишками, одной строкой.
           */}
-          <View style={[styles.заданиеПоверх, { top: insets.top + 5 + ПАЛЕЦ + 6 }]} pointerEvents="none">
+          <View style={[styles.заданиеПоверх, { top: insets.top + 5 + Math.max(ПАЛЕЦ, высотаВерха) + 6 }]} pointerEvents="none">
             <Text style={styles.заданиеПоверхТекст} numberOfLines={1}>{t('numberRunTask')}</Text>
           </View>
           <View

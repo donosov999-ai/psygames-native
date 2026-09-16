@@ -46,7 +46,15 @@ function netTrace(): { net_base: string; net_how: string } {
  */
 export function shouldRetryUpload(outcome: string): boolean {
   if (outcome === 'ok' || outcome.startsWith('ok')) return false;
-  return /Failed to fetch|NetworkError|network|timeout|aborted|ECONN|TypeError/i.test(outcome);
+  /**
+   * 🔴 `Load failed` — ТАК СЕТЕВОЙ ОТКАЗ НАЗЫВАЕТ WebKit, то есть iPhone. Chrome пишет
+   * `Failed to fetch`, и список писался под него. На iPhone сетевой обрыв не
+   * узнавался и второго адреса не получал вовсе: замер app_feedback 16.09.2026 —
+   * 10 скриншотов с `err:Load failed` без единой повторной попытки, все tauri-ios;
+   * это треть всех потерянных скриншотов за месяц. «appears to be offline» — там же,
+   * текст WebKit для выключенной сети.
+   */
+  return /Failed to fetch|Load failed|appears to be offline|NetworkError|network|timeout|aborted|ECONN|TypeError/i.test(outcome);
 }
 
 /**
@@ -69,7 +77,17 @@ export async function uploadWithRetry(
   if (!shouldRetryUpload(out)) return out;
   try {
     const second = await attempt(alt());
-    return second === 'ok' ? `ok-${altName}` : `${out} → ${altName}:${second}`;
+    if (second === 'ok') return `ok-${altName}`;
+    /**
+     * 🔴 «УЖЕ ЕСТЬ» НА ВТОРОЙ ПОПЫТКЕ — ЭТО УСПЕХ ПЕРВОЙ, А НЕ ОТКАЗ.
+     * Имя файла у каждого отзыва случайное, чужого файла под ним быть не может. Значит,
+     * первая заливка оборвалась по тайм-ауту у нас, а на сервер долетела — и повтор
+     * упёрся в её же файл. Раньше это читалось как неудача: отзыв уходил «без скриншота»,
+     * файл лежал сиротой. Случай 16.09.2026, отзыв Дениса 28a9d55c: `timeout →
+     * relay:err:The resource already exists`, файл 48 959 байт нашёлся в бакете отдельно.
+     */
+    if (/already exists|Duplicate/i.test(second)) return `ok-${altName}-exists`;
+    return `${out} → ${altName}:${second}`;
   } catch (e: any) {
     return `${out} → ${altName}:threw:${String(e?.message ?? e).slice(0, 60)}`;
   }

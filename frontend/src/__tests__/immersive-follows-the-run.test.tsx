@@ -14,15 +14,15 @@
 import React from 'react';
 import { Text } from 'react-native';
 import TestRenderer, { act } from 'react-test-renderer';
+import { useImmersive } from '@/src/hooks/useImmersive';
+import { holdGame, __resetGameClock } from '@/src/services/gamePause';
+import { __resetImmersive, immersiveCapable, setImmersiveEnabled } from '@/src/services/immersive';
 
+// jest поднимает jest.mock выше импортов сам, поэтому импорты стоят сверху (линт import/first).
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(() => Promise.resolve(null)),
   setItem: jest.fn(() => Promise.resolve()),
 }));
-
-import { useImmersive } from '@/src/hooks/useImmersive';
-import { holdGame, __resetGameClock } from '@/src/services/gamePause';
-import { __resetImmersive, immersiveCapable, setImmersiveEnabled } from '@/src/services/immersive';
 
 const команды: boolean[] = [];
 
@@ -46,14 +46,19 @@ async function осесть(): Promise<void> {
   await act(async () => { await Promise.resolve(); await Promise.resolve(); });
 }
 
-function Экран({ идёт }: { идёт: boolean }) {
+/**
+ * ⚠️ ИМЯ ЛАТИНИЦЕЙ НАРОЧНО. Правило хуков узнаёт компонент по ЛАТИНСКОЙ заглавной
+ * первой букве: «Экран» оно считает обычной функцией и красит вызов хука ошибкой —
+ * а храповик линта держит правила хуков с нулевой терпимостью. Так упал CI метки 2.54.13.
+ */
+function RunScreen({ идёт }: { идёт: boolean }) {
   useImmersive(идёт);
   return <Text>забег</Text>;
 }
 
 async function смонтировать(идёт: boolean): Promise<TestRenderer.ReactTestRenderer> {
   let tr!: TestRenderer.ReactTestRenderer;
-  await act(async () => { tr = TestRenderer.create(<Экран идёт={идёт} />); });
+  await act(async () => { tr = TestRenderer.create(<RunScreen идёт={идёт} />); });
   await осесть();
   return tr;
 }
@@ -62,7 +67,7 @@ describe('useImmersive — полосы телефона идут за парт�
   it('до старта партии полосы не трогаем, со стартом — прячем', async () => {
     const tr = await смонтировать(false);
     expect(команды.includes(true)).toBe(false);
-    await act(async () => { tr.update(<Экран идёт />); });
+    await act(async () => { tr.update(<RunScreen идёт />); });
     await осесть();
     expect(команды[команды.length - 1]).toBe(true);
     await act(async () => { tr.unmount(); });

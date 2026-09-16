@@ -1,3 +1,4 @@
+/* psygames-gate-cake-wedge-is-a-cake · VER 2 · 16.09.2026 */
 /**
  * 🔴 КУСОК ТОРТА ВЫГЛЯДИТ ТОРТОМ, А НЕ ДОЛЕЙ ДИАГРАММЫ.
  *
@@ -243,15 +244,40 @@ describe('эталон ходов доезжает до шапки', () => {
    * минимум посчитан заранее и побеждает калибровку, а без очереди круги и виды
    * это одно число — в обоих случаях подмена была бы неразличима.
    */
-  it('🔴 в шапке стоит эталон по КРУГАМ, а не по видам', async () => {
+  /*
+   * ⚠️ ПЕРЕНАЦЕЛЕНО 16.09.2026. На вшитых уровнях без точного минимума эталон
+   * теперь — длина записанной партии (`prebuiltPath`), а калибровка по кругам
+   * работает только ЗА вшитыми уровнями. Поэтому проводок проверяется дважды: на
+   * L20 шапка обязана показать запись, за L120 — калибровку по кругам.
+   */
+  it('🔴 на вшитом уровне без минимума в шапке стоит длина записанной партии', async () => {
     const { levelCfg } = require('@/src/games/cake-sort/core/level');  // eslint-disable-line @typescript-eslint/no-require-imports
     const { moveReference } = require('@/src/games/cake-sort/core/stars');  // eslint-disable-line @typescript-eslint/no-require-imports
-    const { prebuiltMin } = require('@/src/games/cake-sort/core/prebuilt');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const { prebuiltMin, prebuiltPath } = require('@/src/games/cake-sort/core/prebuilt');  // eslint-disable-line @typescript-eslint/no-require-imports
     const УРОВЕНЬ = 20;
     const c = levelCfg(УРОВЕНЬ);
-    // Условия различимости — проверяем их, а не полагаемся на них.
-    expect(c.queue).toBeGreaterThan(0);
     expect(prebuiltMin(УРОВЕНЬ)).toBeNull();
+    const запись = prebuiltPath(УРОВЕНЬ);
+    const калибровка = moveReference(c.types + c.queue);
+    // Различимость: иначе проба хвалила бы калибровку, принятую за запись.
+    expect(запись).not.toBe(калибровка);
+
+    const r = await открыть('@/app/games/cake-sort', { cake_sort: String(УРОВЕНЬ) });
+    const текст = текстВнутри(r.root);
+    expect(текст).toContain(`0/${запись}`);
+    expect(текст).not.toContain(`0/${калибровка}`);
+  }, 180_000);
+
+  it('🔴 за вшитыми уровнями в шапке эталон по КРУГАМ, а не по видам', async () => {
+    const { levelCfg } = require('@/src/games/cake-sort/core/level');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const { moveReference } = require('@/src/games/cake-sort/core/stars');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const { prebuilt, prebuiltPath, PREBUILT_COUNT } = require('@/src/games/cake-sort/core/prebuilt');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const УРОВЕНЬ = PREBUILT_COUNT + 5;
+    const c = levelCfg(УРОВЕНЬ);
+    // Условия различимости — проверяем их, а не полагаемся на них.
+    expect(prebuilt(УРОВЕНЬ)).toBeNull();
+    expect(prebuiltPath(УРОВЕНЬ)).toBeNull();
+    expect(c.queue).toBeGreaterThan(0);
     const поКругам = moveReference(c.types + c.queue);
     const поВидам = moveReference(c.types);
     expect(поКругам).not.toBe(поВидам);
@@ -260,7 +286,7 @@ describe('эталон ходов доезжает до шапки', () => {
     const текст = текстВнутри(r.root);
     expect(текст).toContain(`0/${поКругам}`);
     expect(текст).not.toContain(`0/${поВидам}`);
-  }, 180_000);
+  }, 900_000);
 });
 
 describe('у пиццы своя лестница', () => {

@@ -1,4 +1,4 @@
-/* psygames-cake-sort-generate-levels · VER 1 · 06.09.2026 */
+/* psygames-cake-sort-generate-levels · VER 2 · 16.09.2026 */
 /**
  * 🔴 ОФЛАЙН-ГЕНЕРАЦИЯ УРОВНЕЙ С ДОКАЗАННЫМ МИНИМУМОМ ХОДОВ.
  *
@@ -26,7 +26,7 @@
  * правил, и заметить это будет нечем.
  */
 import { deal } from '../core/level';
-import { solve, minMoves } from '../core/solver';
+import { solve, minMoves, beamPath } from '../core/solver';
 import { allSectors, CIRCLE } from '../core/plate';
 
 declare const __dirname: string;
@@ -60,6 +60,12 @@ const СКОЛЬКО = Number(process.env.CAKE_LEVELS ?? 60);
  */
 const БЮДЖЕТ_МИНИМУМА = Number(process.env.CAKE_MIN_BUDGET ?? 120000);
 const БЮДЖЕТ_РЕШАЕМОСТИ = 20000;
+/**
+ * Ширина луча для длины предъявленной партии. 150 — замер 16.09.2026: на L45…L120
+ * уровень считается за 20–30 с, и найденные партии дают 4,0…4,4 хода на круг.
+ * Шире — партии короче (порог честнее), но прогон на 120 уровней растёт вдвое.
+ */
+const ШИРИНА_ЛУЧА = Number(process.env.CAKE_BEAM ?? 150);
 
 jest.setTimeout(1800000);
 
@@ -100,12 +106,19 @@ it(`генерирует ${СКОЛЬКО} уровней тортов с док
       ? { moves: null }
       : minMoves(board, БЮДЖЕТ_МИНИМУМА);
     if (m.moves !== null) { сМинимумом += 1; подрядБезМинимума = 0; } else подрядБезМинимума += 1;
+    /*
+     * 🔴 ДЛИНА ПРЕДЪЯВЛЕННОЙ ПАРТИИ — У КАЖДОГО УРОВНЯ, И С МИНИМУМОМ ТОЖЕ.
+     * Где минимума нет, эталон звёзд берётся от неё (см. `referenceFor`); где он
+     * есть, она нужна гейту — луч не имеет права быть короче минимума, и это
+     * проверка честности самой записи.
+     */
+    const путь = beamPath(board, ШИРИНА_ЛУЧА);
     уровни.push({
       level: L, types: cfg.types,
       plates: board.plates.map((p) => [...p]),
       queue: board.queue.map((p) => [...p]),
       /** Точный минимум ходов; null — не уложились даже в офлайн-бюджет. */
-      min: m.moves, tries,
+      min: m.moves, path: путь, tries,
       /**
        * 🔴 ДОКАЗАННОСТЬ ЗАПИСЫВАЕТСЯ ФАКТОМ, А НЕ ПОДРАЗУМЕВАЕТСЯ.
        *
@@ -119,6 +132,13 @@ it(`генерирует ${СКОЛЬКО} уровней тортов с док
   }
 
   const файл = path.join(__dirname, '..', 'core', 'levels.json');
+  /*
+   * ⚠️ ОТСТУП 1 — ФОРМАТ MAIN, И ЕГО НЕ МЕНЯТЬ. Сверено 16.09.2026 байт в байт:
+   * `origin/main` = JSON.stringify(…, null, 1) + перевод строки (150 КБ). Ветка
+   * sorting/axis-cakes однажды переписала файл с отступом 2 (коммит 60aad09b):
+   * дифф на 38 358 строк ради шести минимумов — настоящее изменение утонуло в
+   * пробелах. Сверять формат с main, а не с веткой, от которой идёт работа.
+   */
   fs.writeFileSync(файл, `${JSON.stringify({ circle: CIRCLE, levels: уровни }, null, 1)}\n`, 'utf8');
   console.log(`ГОТОВО: уровней ${уровни.length} из ${СКОЛЬКО} · с точным минимумом ${сМинимумом}`);
   if (пропущено.length) console.log(`ПРОПУЩЕНО: ${пропущено.join(' | ')}`);

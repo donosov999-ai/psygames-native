@@ -909,7 +909,7 @@ export function targetTier(level: number): { min: number; max: number } {
    */
   if (lv >= 81) {
     // Комбо-пояс (X4): полоса растёт внутри четвёрки, потолок — по замеру пары
-    // (VARIANT_TIER_CEILING ниже; scripts/measure/combo-tiers.mjs).
+    // (VARIANT_TIER_CEILING ниже; scripts/measure/combo-tiers.measure.ts (лаборатория, 6000 мс) и combo-tiers-combat.measure.ts (боевой путь экрана)).
     const band = [{ min: 4, max: 5 }, { min: 4, max: 5 }, { min: 5, max: 6 }, { min: 5, max: 6 }][bandPos(lv)] as { min: number; max: number };   // {6,6} недостижим: шестёрка 0–1/15 по замеру
     const ceiling = VARIANT_TIER_CEILING[levelConfig(lv).variant as Variant];
     if (ceiling === undefined) return band;

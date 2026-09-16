@@ -1,4 +1,4 @@
-/* psygames-game-puzzles · VER 4 · 10.09.2026 */
+/* psygames-game-puzzles · VER 5 · 16.09.2026 */
 /**
  * ГОЛОВОЛОМКИ ТЭТХЭМА — ВСЕ СОРОК движков на одном экране.
  *
@@ -39,6 +39,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { saveSession } from '@/src/services/api';
+import { publishFeedbackGameState } from '@/src/services/feedbackGameState';
 // 🔴 НЕ Date.now(): пауза посреди партии не должна попадать в её время — общая
 // дисциплина игровых часов, гейт `game-clock-discipline`.
 import { gameNow } from '@/src/services/gamePause';
@@ -290,6 +291,21 @@ export default function PuzzlesScreen() {
   const проиграл = партия?.статус === -1;
   const конец = победа || проиграл;
   const прошёл = победа && !сдался;
+  /**
+   * Живое состояние — в канал отзывов (`feedbackGameState`): КАКАЯ из 42 головоломок,
+   * ступень, фаза, ходы, взят ли ответ решателем. Без этого восемь отзывов Дениса
+   * 16.09.2026 с этого экрана («не переходит на следующий уровень», «что значат цифры
+   * у магнитов», «мелко») пришли с адресом /games/puzzles и без режима — какая из
+   * семи головоломок «Счёта» имелась в виду, приходилось угадывать по тексту.
+   * Одинаковые подряд метки журнал шагов склеивает сам, так что ход не плодит шагов.
+   */
+  useEffect(() => {
+    publishFeedbackGameState({
+      mode: имяРежима, level: lvl.level, phase: фаза,
+      moves: ходов, solver_used: сдался, status: партия?.статус ?? null,
+    });
+    return () => publishFeedbackGameState(null);
+  }, [имяРежима, lvl.level, фаза, ходов, сдался, партия?.статус]);
   /**
    * 🔴 РАЗБОР — НЕ ПОБЕДА И НЕ ПРОИГРЫШ, А ТРЕТЬЕ СОСТОЯНИЕ.
    *
@@ -549,8 +565,11 @@ export default function PuzzlesScreen() {
             строке, где слева и справа было пусто. Высота экрана не выросла ни на точку.
             У режимов без второго действия строка из двух значков.
 
-            «ПОКАЗАТЬ РЕШЕНИЕ» ОСТАВЛЕНО В ПАУЗЕ НАРОЧНО: это сдача ступени, ответ целиком
-            и ступень не засчитана. Лишний шаг до неё — защита от случайного нажатия.
+            «ПОКАЗАТЬ РЕШЕНИЕ» — ТОЖЕ ЗДЕСЬ, ЗНАЧКОМ ЛАМПОЧКИ (решение Дениса 16.09.2026, отзыв
+            67dbd7a8): «вынести не только в паузу, чтобы была доступна: если не понимаешь, как
+            играть, ткнёшь раз-два и уйдёшь без шансов». Раньше я держал её только в паузе как
+            защиту от случайной сдачи ступени — но человек, который не понял правил, до паузы
+            не доходит вовсе, а разбор ответа и есть способ понять. Пункт в паузе остаётся.
 
             ⚠️ `ladder="undo"` — общий замок по уровню игрока, порог правится файлом баланса
             (отмена сейчас с уровня 3). Выключенную кнопку НЕ прячем: спрятанная «Отменить»
@@ -597,6 +616,14 @@ export default function PuzzlesScreen() {
               compact icon="refresh" tint="#d97706" label={t('restart')}
               onPress={() => заново()}
             />
+            {/* То же условие, что у пункта паузы: без решателя и у «Сапёра» до первого хода
+                кнопки нет — решатель заведомо откажет, а кнопка-пустышка хуже отсутствия. */}
+            {движок?.решаем && (движок.имя !== 'Mines' || ходов > 0) ? (
+              <GameAuxAction
+                compact icon="bulb-outline" tint="#d97706" label={t('puzzleShowSolution')}
+                onPress={подсказать}
+              />
+            ) : null}
           </View>
           {/*
             🔴 ПОДСВЕТКА ЧИСЛА — НЕ ВВОД, И ВЫГЛЯДИТ ИНАЧЕ.
@@ -878,7 +905,8 @@ const styles = StyleSheet.create({
   командаВыбора: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 8, height: 48, borderRadius: 14, paddingHorizontal: 14 },
   командаВыбораТекст: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-  протяжка: { marginTop: 10, fontSize: 13, textAlign: 'center', maxWidth: 420, fontWeight: '600' },
+  // Отступ сверху даёт `gap` сцены: свой `marginTop` поверх него съедал высоту, см. `рядКоманд`.
+  протяжка: { fontSize: 13, textAlign: 'center', maxWidth: 420, fontWeight: '600' },
   тупик: {
     marginTop: 12, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1,
     alignItems: 'center', gap: 10, alignSelf: 'stretch', maxWidth: 420,
@@ -891,11 +919,26 @@ const styles = StyleSheet.create({
     paddingVertical: 12, paddingHorizontal: 18, borderRadius: 14, minHeight: 48,
   },
   тупикКнопкаТекст: { color: '#FFF', fontSize: 14, fontWeight: '800' },
-  // Строка под полем: ↶ · переключатель второго действия · ↻. Отступ сверху даёт ряд.
-  рядКоманд: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 12 },
+  /**
+   * Строка под полем: ↶ · переключатель второго действия · ↻ · 💡.
+   *
+   * 🔴 ЧЕТВЁРТАЯ КНОПКА ОБЯЗАНА ПОМЕЩАТЬСЯ В УЗКИЙ ЭКРАН. Замер на экспорт-сборке main
+   * 16.09.2026 (9911ace2), «Указатели»: с лампочкой ряд был 368 pt при сцене 340 на экране
+   * 360 — крайние кнопки срезало краем на 4 pt с обеих сторон. На 390×844 у «Колышков» и
+   * «Указателей» ряд «Взять» уходил на 11 pt под нижний край (855 при 844): над ним
+   * стояли два отступа поверх `gap` сцены (`marginTop` 12 у ряда и 10 у подсказки протяжки).
+   *
+   * ЧТО СТАЛО: промежуток 6 и поля переключателя 12 — ряд из четырёх 338 pt, влезает в 340;
+   * своих отступов сверху нет, их даёт `gap: 14` сцены. `flexWrap` — страховка для языков
+   * с длинной подписью и экранов уже 360: лишняя кнопка уходит строкой ниже, а не за край.
+   */
+  рядКоманд: {
+    flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
+    columnGap: 6, rowGap: 8,
+  },
   второе: {
     flexDirection: 'row', alignItems: 'center', gap: 7,
-    paddingVertical: 10, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1.5, minHeight: 48,
+    paddingVertical: 10, paddingHorizontal: 12, borderRadius: 14, borderWidth: 1.5, minHeight: 48,
   },
   второеТекст: { fontSize: 14, fontWeight: '800' },
   // Ряд клавиш как в судоку: 50×50, скругление 12, крупная цифра — размер выверен

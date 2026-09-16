@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.14',
+    date: '2026-09-16',
+    ru: [
+      '«Числовой забег» стал сложнее: змейки и сетки чисел, стопки за столбом, стены с выбором, трамплин над большим красным числом и финальная лестница из десяти стен',
+      'В головоломках кнопка «Показать решение» теперь прямо под полем, а ряд кнопок помещается даже на узком телефоне',
+      'В сортировках у гаек, шариков и тортов свои слова, отказанный ход объясняет причину, у «Колышков» и «Заливки» новая лестница уровней',
+      'В «Парных картинках» с 22-го уровня после ошибки карты меняются местами, а у игр на внимание карточка нового правила открывается до старта, а не посреди партии',
+    ],
+    en: [
+      'Number Run got harder: snakes and grids of numbers, stacks behind a pole, walls with a choice, a ramp over a big red number and a final ladder of ten walls',
+      'Puzzles show the Show solution button right under the board, and the button row now fits even narrow phones',
+      'In sorting games nuts, balls and cakes speak their own words, a refused move explains why, and Pegs and Flood get a new level ladder',
+      'In Picture Pairs cards swap places after a mistake from level 22, and attention games show the new-rule card before the start instead of mid-game',
+    ],
+  },
+  {
     version: '2.54.13',
     date: '2026-09-16',
     ru: [

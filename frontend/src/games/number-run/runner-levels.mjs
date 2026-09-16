@@ -1,3 +1,6 @@
+// VER 4 · 2026-09-16 · psygames-search-claude-mac, на основе LOCAL 0.4. Решатель забега знает построения маршрута VER 4:
+// у ряда с row.routes варианты — пути построения (вход, выход, прибавка), а не отдельные числа; трамплин обязателен
+// только у препятствия. Тренировки не тронуты: у их рядов routes нет, ветки совпадают построчно.
 // VER 3 · Number Run local 0.4 · 2026-09-12. Ramp entry reachability; training unchanged.
 export const GENERATOR_VERSION='number-run/2';
 const row=(...options)=>({kind:'operation',options}), gate=(...rules)=>({kind:'gate',rules});
@@ -50,16 +53,21 @@ export const meets=(sum,r)=>(r.min===null||sum>=r.min)&&(r.max===null||sum<=r.ma
 export function ruleDifference(sum,r){if(r.min!==null&&sum<r.min)return {kind:'short',amount:r.min-sum};if(r.max!==null&&sum>r.max)return {kind:'over',amount:sum-r.max};return {kind:'pass',amount:0};}
 function random(seed){let a=seed>>>0;return ()=>{a=(a+0x6d2b79f5)>>>0;let t=Math.imul(a^(a>>>15),1|a);t^=t+Math.imul(t^(t>>>7),61|t);return ((t^(t>>>14))>>>0)/4294967296;};}
 function shuffled(items,rng){const a=[...items];for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-export function stationaryWins(course,lane){let sum=course.start;for(const r of course.rows){if(r.kind==='pickups')sum+=r.items.filter(i=>Math.abs(i.x-lane)<=.18).reduce((a,i)=>a+i.value,0);else if(r.kind==='operation')sum=applyOperation(sum,r.options[lane+1],course.mode==='journey'?1e6:9999);else if(r.kind==='obstacle'){if(r.jump){if(lane!==r.jump.lane)return false;}else {if(r.span&&r.penalties[lane+1])return false;sum-=r.penalties[lane+1];}}else if(!meets(sum,r.rules.length===1?r.rules[0]:r.rules[lane+1]))return false;}return true;}
+// Стоящий на месте: столб прижимает к своей стороне, трамплин в его полосе уносит над числами.
+function stationaryGain(r,lane){const d=r.divider,side=d?Math.sign(lane)||1:0,x=d?(side<0?Math.min(lane,-d.gap):Math.max(lane,d.gap)):lane,flying=r.jump&&r.jump.lane===lane;
+ return r.items.filter(i=>{const dz=i.dz??0;if(flying&&dz>-r.jump.launchOffset&&dz<r.jump.landingOffset)return false;if(d&&dz>=d.fromDz&&dz<=d.toDz&&Math.sign(i.x)!==side)return false;return Math.abs(i.x-x)<=(i.half??.18);}).reduce((a,i)=>a+i.value,0);}
+export function stationaryWins(course,lane){let sum=course.start;for(const r of course.rows){if(r.kind==='pickups')sum+=stationaryGain(r,lane);else if(r.kind==='operation')sum=applyOperation(sum,r.options[lane+1],course.mode==='journey'?1e6:9999);else if(r.kind==='obstacle'){if(r.jump){if(lane!==r.jump.lane)return false;}else {if(r.span&&r.penalties[lane+1])return false;sum-=r.penalties[lane+1];}}else if(!meets(sum,r.rules.length===1?r.rules[0]:r.rules[lane+1]))return false;}return true;}
 // Full accumulated states and intermediate gates, not a greedy sum of pickups.
 export function solveCourse(course){
  let candidates=[{sum:course.start,lane:0,z:0,path:[]}];
- for(const row of course.rows){const next=new Map();for(const c of candidates)for(const lane of row.kind==='pickups'?row.items.map(i=>i.x):[-1,0,1]){
-  if(Math.abs(lane-c.lane)/course.lateralSpeed>(row.z-(row.jump?.launchOffset??row.span??0)-c.z)/course.speed+1e-9)continue;
-  if(row.jump?lane!==row.jump.lane:row.kind==='obstacle'&&row.span&&row.penalties[lane+1])continue;
-  let sum;try{sum=row.kind==='pickups'?c.sum+row.items.find(i=>i.x===lane).value:row.kind==='operation'?applyOperation(c.sum,row.options[lane+1],course.mode==='journey'?1e6:9999):row.kind==='obstacle'&&!row.jump?c.sum-row.penalties[lane+1]:c.sum;}catch{continue;}
+ for(const row of course.rows){const next=new Map();for(const c of candidates)for(const option of row.routes??(row.kind==='pickups'?row.items.map(i=>i.x):[-1,0,1])){
+  // A route of a VER 4 shape: reach its entry in time, then its gain and exit are fixed by construction.
+  const route=typeof option==='object'?option:null,lane=route?route.exit:option,entryX=route?route.entry.x:lane;
+  if(Math.abs(entryX-c.lane)/course.lateralSpeed>((route?row.z+route.entry.dz:row.z-(row.jump?.launchOffset??row.span??0))-c.z)/course.speed+1e-9)continue;
+  if(row.kind==='obstacle'&&(row.jump?lane!==row.jump.lane:row.span&&row.penalties[lane+1]))continue;
+  let sum;try{sum=route?c.sum+route.gain:row.kind==='pickups'?c.sum+row.items.find(i=>i.x===lane).value:row.kind==='operation'?applyOperation(c.sum,row.options[lane+1],course.mode==='journey'?1e6:9999):row.kind==='obstacle'&&!row.jump?c.sum-row.penalties[lane+1]:c.sum;}catch{continue;}
   if(row.kind==='gate'&&!meets(sum,row.rules.length===1?row.rules[0]:row.rules[lane+1]))continue;
-  const key=`${sum}:${lane}`;if(!next.has(key))next.set(key,{sum,lane,z:row.z+(row.window??0),path:[...c.path,{id:row.id,lane,sum}]});
+  const key=`${sum}:${lane}`;if(!next.has(key))next.set(key,{sum,lane,z:row.z+(row.window??0),path:[...c.path,{id:row.id,lane,sum,...(route?{route:route.id}:{})}]});
  }candidates=[...next.values()];if(!candidates.length)return null;
  // Journey stage lines impose no arithmetic threshold; maximize pickups, then route terrain.
  if(course.mode==='journey'){candidates.sort((a,b)=>b.sum-a.sum);candidates=candidates.slice(0,3);}

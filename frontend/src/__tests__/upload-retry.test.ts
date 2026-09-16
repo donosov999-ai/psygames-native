@@ -1,4 +1,4 @@
-/* psygames-upload-retry · VER 1 · 21.08.2026 */
+/* psygames-upload-retry · VER 2 · 16.09.2026 */
 /**
  * ЗАПИСЬ, КОТОРАЯ НЕ ДОЛЕТЕЛА, — ЭТО ПОТЕРЯННЫЙ РАССКАЗ О ПРОБЛЕМЕ.
  *
@@ -17,7 +17,9 @@ import { shouldRetryUpload, uploadWithRetry } from '@/src/services/appFeedback';
 describe('что повторяем, а что нет', () => {
   it('🔴 сетевой отказ — повторяем', () => {
     for (const o of ['err:Failed to fetch', 'timeout', 'err:NetworkError when attempting to fetch',
-                     'threw:TypeError: Failed to fetch', 'err:ECONNRESET', 'err:aborted']) {
+                     'threw:TypeError: Failed to fetch', 'err:ECONNRESET', 'err:aborted',
+                     // iPhone (WebKit): так приходит тот же обрыв сети — 10 скриншотов потеряны без повтора.
+                     'err:Load failed', 'err:The Internet connection appears to be offline.']) {
       expect(`${o} → ${shouldRetryUpload(o)}`).toBe(`${o} → true`);
     }
   });
@@ -83,6 +85,20 @@ describe('вторая попытка другим адресом', () => {
     );
     expect(out).toContain('Failed to fetch');
     expect(out).toContain('direct:');
+  });
+
+  /**
+   * 🔴 16.09.2026, отзыв 28a9d55c: первая заливка оборвалась по тайм-ауту у нас, но файл
+   * долетел; повтор получил «The resource already exists», и отзыв ушёл без скриншота,
+   * хотя картинка лежала в бакете. Имя случайное — «уже есть» значит «это наш файл».
+   */
+  it('🔴 вторая попытка упёрлась в «уже есть» — это успех первой, скриншот привязывается', async () => {
+    const out = await uploadWithRetry(
+      async (c) => (c === firstClient ? 'timeout' : 'err:The resource already exists'),
+      firstClient, () => altClient, 'relay',
+    );
+    expect(out.startsWith('ok')).toBe(true);
+    expect(out).toBe('ok-relay-exists');
   });
 
   it('исключение на первой попытке не съедает вторую', async () => {

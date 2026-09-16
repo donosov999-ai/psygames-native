@@ -1,4 +1,4 @@
-/* psygames-puzzle-ladder-waits-for-engines · VER 1 · 11.09.2026 */
+/* psygames-puzzle-ladder-waits-for-engines · VER 2 · 16.09.2026 */
 /**
  * 🔴 ЭКРАН НЕ ОБЪЯВЛЯЕТ ЛЕСТНИЦУ, КОТОРОЙ ЕЩЁ НЕ ВИДЕЛ.
  *
@@ -22,6 +22,7 @@
  */
 import React from 'react';
 import PuzzlesScreen from '@/app/games/puzzles';
+import { readFeedbackGameState } from '@/src/services/feedbackGameState';
 
 // ⚠️ Имя с приставкой `mock` — требование jest: фабрика `jest.mock` поднимается выше
 // объявлений, и обращаться из неё разрешено только к таким именам.
@@ -77,10 +78,23 @@ function весьТекст(узел: any): string {
   return куски.join(' ');
 }
 
+/**
+ * ⚠️ КАЖДОЕ ДЕРЕВО РАЗМОНТИРУЕТСЯ В КОНЦЕ ПРОБЫ (задача 8ef62482, 16.09.2026).
+ * Раньше деревья оставались смонтированными: таймер питомца (`PetSprite`) срабатывал
+ * уже ПОСЛЕ сноса окружения jest, экран перерисовывался без модулей и печатал
+ * «неперехваченная ошибка в дереве: Element type is invalid» — при зелёных пробах.
+ * Такой шум прячет настоящую ошибку рядом: к нему привыкаешь и перестаёшь читать.
+ */
+const деревья: any[] = [];
+afterEach(async () => {
+  await TestRenderer.act(async () => { деревья.splice(0).forEach((д) => д.unmount()); });
+});
+
 describe('лестница головоломки ждёт опись движков', () => {
   it('🔴 до загрузки описи экран НЕ показывает выдуманное «1/1»', async () => {
     let дерево: any;
     await TestRenderer.act(async () => { дерево = TestRenderer.create(React.createElement(PuzzlesScreen)); });
+    деревья.push(дерево);
     const текст = весьТекст(дерево);
     expect(текст).toContain('level=—');
     expect(текст).not.toMatch(/level=\d+\/1\b/);
@@ -89,6 +103,7 @@ describe('лестница головоломки ждёт опись движк
   it('🔴 как опись пришла — в шапке настоящее число ступеней', async () => {
     let дерево: any;
     await TestRenderer.act(async () => { дерево = TestRenderer.create(React.createElement(PuzzlesScreen)); });
+    деревья.push(дерево);
     await TestRenderer.act(async () => {
       отдатьОпись([{ индекс: 0, имя: 'Slide', умеетТекстом: false, решаем: false, ступени: [
         { индекс: 0, имя: '7x6, max 25 moves', параметры: '7x6m25' },
@@ -99,5 +114,19 @@ describe('лестница головоломки ждёт опись движк
       await Promise.resolve();
     });
     expect(весьТекст(дерево)).toMatch(/level=\d+\/3/);
+  });
+
+  /**
+   * 🔴 ОТЗЫВ С ЭКРАНА ГОЛОВОЛОМОК НАЗЫВАЕТ ИГРУ. Восемь отзывов Дениса 16.09.2026
+   * пришли с адресом /games/puzzles и без режима — какая из 42 игр, угадывали по тексту.
+   * Проба смотрит в тот же канал, из которого отзыв берёт контекст.
+   */
+  it('🔴 канал отзыва знает режим, пока экран открыт, и забывает его после ухода', async () => {
+    let дерево: any;
+    await TestRenderer.act(async () => { дерево = TestRenderer.create(React.createElement(PuzzlesScreen)); });
+    const состояние = readFeedbackGameState();
+    expect(`режим: ${состояние?.mode}, фаза: ${состояние?.phase}`).toBe('режим: Slide, фаза: config');
+    await TestRenderer.act(async () => { дерево.unmount(); });
+    expect(readFeedbackGameState()).toBeNull();
   });
 });
