@@ -29,6 +29,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import GameShell from '@/src/components/GameShell';
 import ArrowPad, { ПРЯМЫЕ } from '@/src/components/ArrowPad';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import PuzzleCanvas from '@/src/components/PuzzleCanvas';
 import PlayBoard, { сторонаДоски } from '@/src/components/PlayBoard';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -499,6 +500,40 @@ export default function PuzzlesScreen() {
           {ТОЛЬКО_ПРОТЯЖКА.has(имяРежима) ? (
             <Text style={[styles.протяжка, { color: colors.textSecondary }]}>{t('puzzleDragHint')}</Text>
           ) : null}
+          {/*
+            🔴 «ОТМЕНИТЬ» И «ЗАНОВО» — ПОД ПОЛЕМ, В ОДНОЙ СТРОКЕ С ПЕРЕКЛЮЧАТЕЛЕМ.
+
+            ПОВОД. Приёмка psygames-sorting-claude-mac 16.09.2026 (окно 390×844, собранный
+            веб): у девяти головоломок раздела служебных кнопок на экране партии НОЛЬ.
+            Проверил по коду — у ВСЕХ 42 режимов они жили только в `pauseActions`, то есть
+            отменить ход можно было, лишь догадавшись нажать паузу. Это пункт приёмки
+            Дениса «вниз под полем — элементы управления» (`CHATS_RULES §4б`).
+
+            ПОЧЕМУ НЕ ОТДЕЛЬНЫЙ РЯД КАРКАСА, КАК У ПЕРЕЛИВАЛКИ. Так и было сделано первым
+            ходом (`headerActions` + `bottom="actions"`) — и замер на живом экране это
+            отверг: доска у всех 42 одного размера (`сторонаДоски` от ширины, общий
+            стандарт), под ней уже переключатель, ряд цифр и крестовина. Отдельный ряд
+            встал на 721…844 и НАКРЫЛ крестовину (724…830): на кадре стрелок не было
+            вовсе, а сам ряд переносился на две строки (123 точки). Тесты при этом были
+            зелёные — 70 наборов из 71; увидел только скрин.
+
+            ЧТО СТАЛО. Значки «Отменить» и «Заново» встали по бокам переключателя, в
+            строке, где слева и справа было пусто. Высота экрана не выросла ни на точку.
+            У режимов без второго действия строка из двух значков.
+
+            «ПОКАЗАТЬ РЕШЕНИЕ» ОСТАВЛЕНО В ПАУЗЕ НАРОЧНО: это сдача ступени, ответ целиком
+            и ступень не засчитана. Лишний шаг до неё — защита от случайного нажатия.
+
+            ⚠️ `ladder="undo"` — общий замок по уровню игрока, порог правится файлом баланса
+            (отмена сейчас с уровня 3). Выключенную кнопку НЕ прячем: спрятанная «Отменить»
+            читается как «отмены нет».
+          */}
+          <View style={styles.рядКоманд}>
+            <GameAuxAction
+              compact icon="arrow-undo" tint="#d97706" ladder="undo" label={t('btn_undo')}
+              disabled={ходов === 0}
+              onPress={() => { void отменить().then(setПартия); }}
+            />
           {/* Второе действие: им ставят пустую клетку, метку, обратный перебор. */}
           {ВТОРОЕ_ДЕЙСТВИЕ.has(имяРежима) ? (
             <Pressable
@@ -530,6 +565,11 @@ export default function PuzzlesScreen() {
               </Text>
             </Pressable>
           ) : null}
+            <GameAuxAction
+              compact icon="refresh" tint="#d97706" label={t('restart')}
+              onPress={() => заново()}
+            />
+          </View>
           {/*
             🔴 ПОДСВЕТКА ЧИСЛА — НЕ ВВОД, И ВЫГЛЯДИТ ИНАЧЕ.
             У «Домино» цифра зажигает все половинки с этим числом (`dominosa.c`,
@@ -804,9 +844,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12, paddingHorizontal: 18, borderRadius: 14, minHeight: 48,
   },
   тупикКнопкаТекст: { color: '#FFF', fontSize: 14, fontWeight: '800' },
+  // Строка под полем: ↶ · переключатель второго действия · ↻. Отступ сверху даёт ряд.
+  рядКоманд: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, marginTop: 12 },
   второе: {
-    flexDirection: 'row', alignItems: 'center', gap: 7, alignSelf: 'center',
-    marginTop: 12, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1.5, minHeight: 48,
+    flexDirection: 'row', alignItems: 'center', gap: 7,
+    paddingVertical: 10, paddingHorizontal: 18, borderRadius: 14, borderWidth: 1.5, minHeight: 48,
   },
   второеТекст: { fontSize: 14, fontWeight: '800' },
   // Ряд клавиш как в судоку: 50×50, скругление 12, крупная цифра — размер выверен
