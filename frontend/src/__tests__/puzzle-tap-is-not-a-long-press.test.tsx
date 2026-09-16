@@ -44,7 +44,7 @@ const партия = {
 
 /** Касание: удержали `мс` и отпустили там же. Возвращает список вызовов onЖест. */
 function касание(мс: number) {
-  const вызовы: Array<[number, number, string, boolean]> = [];
+  const вызовы: [number, number, string, boolean][] = [];
   let дерево: renderer.ReactTestRenderer;
   act(() => {
     дерево = renderer.create(

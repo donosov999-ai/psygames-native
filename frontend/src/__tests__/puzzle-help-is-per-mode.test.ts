@@ -28,7 +28,7 @@
  */
 import { КЛЮЧ_ИМЕНИ } from '@/src/games/tatham-bridge/names';
 import { HELP_MAP } from '@/src/constants/helpMap';
-import { translateFor, LANGUAGES } from '@/src/contexts/LanguageContext';
+import { translateFor } from '@/src/contexts/LanguageContext';
 
 declare const __dirname: string;
 declare function require(id: string): any;

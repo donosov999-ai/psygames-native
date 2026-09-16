@@ -17,15 +17,15 @@
  * можно ТОЛЬКО вместе с осознанной правкой состава — и тогда объяснять в коммите,
  * что именно изменилось и почему.
  */
-declare const __dirname: string;
-const { readFileSync, writeFileSync, existsSync } = require('fs');   // eslint-disable-line @typescript-eslint/no-require-imports
-const { join } = require('path');                                    // eslint-disable-line @typescript-eslint/no-require-imports
-
 import {
   ПО_УМОЛЧАНИЮ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, СТРЕЛОЧНЫЕ, ВТОРОЕ_ДЕЙСТВИЕ, ЦИФРОВЫЕ,
   ИМЯ_ВТОРОГО, ВВОД, ПЛАН_ШАГАМИ, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ,
   ТОЛЬКО_ПРОТЯЖКА, СВОЯ_ЛЕСТНИЦА, РЕЖИМЫ,
 } from '@/src/games/tatham-bridge/names';
+
+declare const __dirname: string;
+const { readFileSync, writeFileSync, existsSync } = require('fs');   // eslint-disable-line @typescript-eslint/no-require-imports
+const { join } = require('path');                                    // eslint-disable-line @typescript-eslint/no-require-imports
 
 const ФАЙЛ = join(__dirname, 'tatham-tables.generated.json');
 const список = (м: Set<string>) => [...м].sort();

@@ -17,6 +17,8 @@
  * прогнать это поведением, нужен рендер экрана с настоящим мостом WASM — отдельная
  * работа. ДОЛГ: заменить поведенческой пробой, когда мост поднимут в jest.
  */
+import { ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ } from '@/src/games/tatham-bridge/names';
+
 declare const __dirname: string;
 const { readFileSync } = require('fs');   // eslint-disable-line @typescript-eslint/no-require-imports
 const { join } = require('path');         // eslint-disable-line @typescript-eslint/no-require-imports
@@ -178,10 +180,6 @@ describe('стирание введённого ряда', () => {
  *   Inertia SELECT → НЕ ПОНЯЛ, зато четыре диагонали → ХОД
  * Отсюда два разных списка и отсутствие кнопки выбора у «Инерции».
  */
-import { ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ } from '@/src/games/tatham-bridge/names';
-
-const имена = () => readFileSync(join(__dirname, '../games/tatham-bridge/names.ts'), 'utf8');
-
 describe('команды механики, а не одни стрелки', () => {
   /** Имена внутри набора — чтобы проверять СОСТАВ, а не дословную строку файла. */
   /**

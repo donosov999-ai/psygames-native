@@ -145,10 +145,6 @@ function текст(node: any): string {
   return out.join(' ');
 }
 
-/** Есть ли узел с таким testID ВНУТРИ поддерева. */
-function внутри(корень: any, testID: string): boolean {
-  return корень.findAll((n: any) => n.props?.testID === testID).length > 0;
-}
 
 
 /** Вернуть все узлы этого вида, у которых поворот погашен пропом. */
