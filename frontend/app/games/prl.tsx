@@ -110,12 +110,50 @@ export const PRL_RULES: LevelRule[] = [
   { key: 'noisy', fromLevel: 5 },   // lr_prl_noisy_*
 ];
 
-function levelParams(level: number): { rewardProb: number; trialsTotal: number; revMin: number; revMax: number } {
+/**
+ * Потолок лестницы. Было двенадцать, и L12 совпадал с L11 по всем параметрам:
+ * и шум (`rewardProb`), и частота реверса (`revMin`) упираются в свои полы уже
+ * на одиннадцатом. С третьей осью лестница доходит до пятнадцати без дублей —
+ * столько же, сколько у остальных проб раздела.
+ * ⚠️ «Расти некуда» = «нужна НОВАЯ ось», а не предел (CHATS_RULES.md §4а).
+ */
+export const MAX_LEVEL = 15;
+
+/**
+ * 🔴 ТРЕТЬЯ ОСЬ — ЗАДЕРЖКА ОБРАТНОЙ СВЯЗИ, 16.09.2026.
+ *
+ * Замер до: при двух осях уровни L12…L15 совпадали с L11 по всем параметрам —
+ * четыре мёртвых перехода (при объявленном потолке 12 — один). Резать лестницу
+ * нельзя, решение Дениса 10.09.2026: «надо не мёртвые переходы убрать, а
+ * доработать».
+ *
+ * ⚠️ И ТРЕТЬЮ ОСЬ ЗДЕСЬ НЕЛЬЗЯ ВЗЯТЬ ЛЮБУЮ. Мера прохода — насколько быстро
+ * человек замечает разворот и не упрямится ли со старым выбором. Любая ручка,
+ * трогающая ВЕРОЯТНОСТИ НАГРАДЫ или ЧАСТОТУ РАЗВОРОТОВ, сдвигает саму эту
+ * величину: шум уже служит осью (0,90 → 0,68), а частота разворотов меняет
+ * число событий, по которым мера и считается.
+ *
+ * Задержка свободна от этого: вероятности и частота не меняются вовсе. Тяжелее
+ * становится СВЯЗАТЬ свой выбор с его исходом — между нажатием и ответом
+ * проходит до 0,8 секунды, и удерживать «что я только что выбрал» приходится в
+ * уме. Приём канонический для задач обучения по обратной связи.
+ */
+function levelParams(level: number): {
+  rewardProb: number; trialsTotal: number; revMin: number; revMax: number; feedbackDelayMs: number;
+} {
   const trialsTotal = level <= 4 ? 30 : level <= 8 ? 40 : 50;
   const rewardProb = Math.max(0.68, 0.90 - (level - 1) * 0.022);   // 0.90 → ~0.68 (шумнее)
   const revMin = Math.max(3, 8 - Math.floor((level - 1) * 0.5));   // 8 → 3 (реверс чаще)
   const revMax = revMin + 2;
-  return { rewardProb, trialsTotal, revMin, revMax };
+  const feedbackDelayMs = Math.min(800, Math.round((level - 1) * 57));  // 0 → 798 мс
+  return { rewardProb, trialsTotal, revMin, revMax, feedbackDelayMs };
+}
+
+/** Мера УРОВНЯ по контракту раздела — прогоняется гейтом без игрока. */
+export function levelCondition(level: number): {
+  rewardProb: number; trialsTotal: number; revMin: number; revMax: number; feedbackDelayMs: number;
+} {
+  return levelParams(level);
 }
 
 interface TrialRecord {
@@ -170,6 +208,7 @@ export default function PRLGame() {
   const rewardProbRef = useRef(0.90);
   const totalRef = useRef(30);
   const revMinRef = useRef(8);
+  const feedbackDelayRef = useRef(0);   // третья ось: задержка обратной связи
   const revMaxRef = useRef(10);
 
   useEffect(() => () => { respondLockRef.current = true; }, []);
@@ -188,11 +227,17 @@ export default function PRLGame() {
       rewardProb = cfg.rewardProb; total = cfg.trialsTotal;
       [revMin, revMax] = cfg.reversalAfter;
       lvlNum = 0;
+      /* 🔴 В КЛАССИЧЕСКОМ РЕЖИМЕ ЗАДЕРЖКИ НЕТ — и это не забывчивость.
+         Классика существует ради чистой метрики на стандартных параметрах:
+         обратная связь там приходит сразу, как в исходной методике.
+         Третья ось живёт только в уровневом режиме. */
+      feedbackDelayRef.current = 0;
     } else {
       const p = levelParams(lvl.level);
       rewardProb = p.rewardProb; total = p.trialsTotal;
       revMin = p.revMin; revMax = p.revMax;
       lvlNum = lvl.level;
+      feedbackDelayRef.current = p.feedbackDelayMs;
     }
     rewardProbRef.current = rewardProb;
     totalRef.current = total;
@@ -248,17 +293,23 @@ export default function PRLGame() {
     if (isCorrect) consecutiveCorrectRef.current++;
     else consecutiveCorrectRef.current = 0;
 
-    setBank((b) => b + (outcome === 'reward' ? 10 : -5));
-    setFeedback({ choice: c, outcome });
     setTrialIdx(trialsRef.current.length);
     setRevealCount(trialInBlockRef.current);
 
+    /* Исход приходит НЕ СРАЗУ: задержка — третья ось (разбор над levelParams).
+       ⚠️ Счёт двигается вместе с показом, а не раньше: иначе прыгнувший банк
+       выдавал бы результат до самой обратной связи, и задержка ничего бы не
+       нагружала. Ответы всё это время заперты respondLockRef. */
     setTimeout(() => {
-      maybeReverse();
-      setFeedback(null);
-      respondLockRef.current = false;
-      if (trialsRef.current.length >= totalRef.current) finish();
-    }, 600);
+      setBank((b) => b + (outcome === 'reward' ? 10 : -5));
+      setFeedback({ choice: c, outcome });
+      setTimeout(() => {
+        maybeReverse();
+        setFeedback(null);
+        respondLockRef.current = false;
+        if (trialsRef.current.length >= totalRef.current) finish();
+      }, 600);
+    }, feedbackDelayRef.current);
   };
 
   const finish = async (stoppedEarly = false) => {
@@ -353,6 +404,10 @@ export default function PRLGame() {
           errors: totalErrors,
           n_trials: trials.length,
           n_reversals: blockIndexRef.current,
+          /* Условие партии едет ВМЕСТЕ с результатом: без задержки и шума
+             партии разных уровней между собой не сравнимы. */
+          feedback_delay_ms: feedbackDelayRef.current,
+          reward_prob: rewardProbRef.current,
           reversal_errors: reversalErrors,
           perseverative_errors: perseverative,
           win_stay_rate: Number(winStayRate.toFixed(3)),
@@ -405,7 +460,7 @@ export default function PRLGame() {
 
         {runMode === 'level' ? (
           <>
-            <LevelProgressMap bestLevel={lvl.best} gameId="prl" currentLevel={lvl.level} onPickLevel={lvl.pick} maxLevel={12} colors={colors} language={language} />
+            <LevelProgressMap bestLevel={lvl.best} gameId="prl" currentLevel={lvl.level} onPickLevel={lvl.pick} maxLevel={MAX_LEVEL} colors={colors} language={language} />
             <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
               <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>
                 {t('level')} {lvl.level}

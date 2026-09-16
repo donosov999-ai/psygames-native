@@ -39,6 +39,7 @@ import { levelCondition as inhibitionCondition } from '@/app/games/inhibition';
 import { levelParams as posnerParams } from '@/app/games/posner';
 import { levelParams as proofParams } from '@/app/games/proofreading';
 import { levelCondition as bartCondition } from '@/app/games/bart';
+import { levelCondition as prlCondition } from '@/app/games/prl';
 
 export type AttentionMode =
   | 'stroop' | 'flanker' | 'cpt' | 'targets' | 'wcst'
@@ -48,7 +49,7 @@ export type AttentionMode =
   /** Первый из восьми, приехавших 12.09.2026 с расформированием развилок
    *  «Торможение» и «Риск». Остальные семь ждут своей меры прохода —
    *  дописывать сюда имя БЕЗ неё нельзя, см. шапку ниже. */
-  | 'go-no-go' | 'stop-signal' | 'inhibition' | 'posner' | 'proofreading' | 'bart';
+  | 'go-no-go' | 'stop-signal' | 'inhibition' | 'posner' | 'proofreading' | 'bart' | 'prl';
 
 /**
  * 🔴 ЭТОТ СПИСОК ПОКРЫВАЕТ 10 ЭКРАНОВ ИЗ 18, А НЕ ВЕСЬ ХАБ. Замер 13.09.2026
@@ -104,6 +105,10 @@ export const LADDER_RANGE: Record<AttentionMode, number> = {
   /* Третья ось (разброс предела взрыва) доводит лестницу до L15 без дублей:
      без неё L13–L15 совпадали. bart.tsx::MAX_LEVEL. */
   bart: 15,
+  /* Было двенадцать, и L12 совпадал с L11: шум и частота реверса упираются
+     в полы уже на одиннадцатом. Третья ось (задержка обратной связи)
+     доводит до пятнадцати без дублей. prl.tsx::MAX_LEVEL. */
+  prl: 15,
 };
 
 /** Что пишется в партию у этой пробы, и чем это меряется в методике. */
@@ -131,6 +136,7 @@ export const SESSION_MEASURE: Record<AttentionMode, { field: string; norm: strin
   posner:             { field: 'validity_effect_ms',    norm: '✅ НОРМА БАТАРЕИ ЕСТЬ — 50 ± 30, higher_is_better = false (assessment.ts, домен attention_orient). Единственный из восьми экранов, приехавших 12.09, у кого норма заведена. Выигрыш от подсказки: RT(невалидная) − RT(валидная). Мера РАЗНОСТНАЯ, поэтому доля валидных подсказок осью сложности быть не может и заморожена: VALID_RATIO = 0.7. Проба Познера, 1980' },
   proofreading:       { field: 'proof_omission_pct',    norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Доля пропущенных целей — корректурная проба Бурдона, классический показатель концентрации на однообразном материале. ⚠️ ИМЕННО ДОЛЯ, А НЕ СЧЁТ: ось сложности здесь размер сетки (8×8 → 16×12), и число пропусков росло бы само от роста числа целей. ⚠️ Читать только вместе с task_mode: у экрана два задания — буквы (проба Бурдона) и филворды (материал раздела «Слова»), сравнивать их между собой нельзя' },
   bart:               { field: 'adj_avg_pumps',         norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Среднее число нажатий на НЕ лопнувших шарах — канонический показатель склонности к риску (Lejuez 2002). ⚠️ ЧИТАТЬ ТОЛЬКО ПРИ ОДНОМ И ТОМ ЖЕ ПРЕДЕЛЕ: при равномерной точке взрыва выгоднее качать до половины предела, поэтому рост maxBurst 16 → 128 поднимает саму величину примерно в восемь раз, и партии разных уровней между собой не сравнимы. Для этого max_burst и burst_spread кладутся в запись партии рядом. Третья ось (разброс предела между шарами) выбрана так, чтобы среднее НЕ двигать — она растит только неопределённость' },
+  prl:                { field: 'perseverative_errors',  norm: '🔴 НОРМЫ В БАТАРЕЕ НЕТ. Персеверативные ошибки — сколько раз человек держался прежнего выбора уже ПОСЛЕ разворота. ⚠️ ЧИТАТЬ ВМЕСТЕ С n_reversals: это счёт, а частота разворотов служит осью сложности (8 → 3 верных подряд), поэтому число событий между уровнями разное; рядом пишутся mean_post_reversal_acc и post_reversal_adapt_acc — доли, свободные от этого. ⚠️ И вместе с feedback_delay_ms и reward_prob: обе величины меняются по уровням. Проба на переучивание, Cools 2002' },
 };
 
 /**
@@ -477,6 +483,25 @@ export function bartLoad(level: number): number {
   return p.balloons * (p.maxBurst / б.maxBurst) * (1 + p.burstSpread);
 }
 
+/**
+ * PRL — «шум, частота разворотов и задержка ответа».
+ *
+ * Величина прохода — насколько быстро человек замечает разворот и не упрямится
+ * ли со старым выбором. Шум (0,90 → 0,68) и частота разворотов (8 → 3 верных
+ * подряд) служат осями давно; обе упираются в полы на одиннадцатом уровне.
+ * Третья ось, добавленная 16.09.2026, — задержка обратной связи 0 → 798 мс:
+ * она НЕ трогает ни вероятности награды, ни частоту разворотов, а нагружает
+ * связь «мой выбор → его исход».
+ *
+ * ⚠️ Складывать с нагрузкой других проб нельзя: у каждой своя валюта.
+ */
+export function prlLoad(level: number): number {
+  const p = prlCondition(level);
+  const б = prlCondition(1);
+  const шум = (x: { rewardProb: number }) => 1 - x.rewardProb;
+  return p.trialsTotal * (шум(p) / шум(б)) * (б.revMin / p.revMin) * (1 + p.feedbackDelayMs / 800);
+}
+
 export function attentionLoad(mode: AttentionMode, level: number): number {
   switch (mode) {
     case 'stroop':  return stroopLoad(level);
@@ -495,11 +520,12 @@ export function attentionLoad(mode: AttentionMode, level: number): number {
     case 'posner':           return posnerLoad(level);
     case 'proofreading':     return proofreadingLoad(level);
     case 'bart':             return bartLoad(level);
+    case 'prl':              return prlLoad(level);
   }
 }
 
 export const ATTENTION_MODES: AttentionMode[] = [
   'stroop', 'flanker', 'cpt', 'targets', 'wcst',
   'stroop-emotional', 'simon', 'choice-rt', 'ant', 'switching-task',
-  'go-no-go', 'stop-signal', 'inhibition', 'posner', 'proofreading', 'bart',
+  'go-no-go', 'stop-signal', 'inhibition', 'posner', 'proofreading', 'bart', 'prl',
 ];
