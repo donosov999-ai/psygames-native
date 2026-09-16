@@ -33,11 +33,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useReducedMotion } from '@/src/hooks/useReducedMotion';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import { MIN_TRIALS_FOR_LEVEL } from '@/app/games/cpt';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, Animated, Easing, useWindowDimensions
+  ScrollView, Animated, Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -204,7 +205,8 @@ export default function PRLGame() {
   const lvl = usePersistentLevel('prl');
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
-  const { width: ширинаОкна } = useWindowDimensions();
+  // Ширина — через useScreenWidth: голый useWindowDimensions() на первом кадре веб-сборки отдаёт 0 (гейт screen-width-guard).
+  const ширинаОкна = useScreenWidth();
   const круг = кругОтвета(ширинаОкна);
 
   // Правило показываем при первом входе и даём перечитать по бейджу.
