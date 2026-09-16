@@ -2816,5 +2816,7 @@ const t: Record<string, string> = {
   "puzzlesSlantIntroDesc": "Zeichne in jede Zelle genau eine Diagonale — „/“ oder „\\\\“. Die Zahlen sitzen auf den Gitterecken und sagen, wie viele Diagonalenden AN DIESER Ecke zusammentreffen: 0 heißt keines, 4 heißt alle vier. Die wichtigste Einschränkung: Die Linien dürfen nie eine geschlossene Schleife bilden. Kurzes Tippen kippt den Strich, langes Drücken kippt ihn zurück.",
   "puzzlesBlackBoxIntroDesc": "Im geschlossenen Kasten sind Kugeln versteckt, und du musst sie finden, ohne hineinzusehen. Ein Tippen auf einen Pfeil am Rand schickt einen Strahl: Er läuft gerade, wird abgelenkt, wenn er an einer Kugel vorbeikommt, und verschluckt, wenn er eine trifft. Daraus, wo der Strahl austritt, zurückkehrt oder gar nicht erscheint, ergeben sich die Positionen eindeutig. Tippen auf ein Feld setzt die Vermutung „hier ist eine Kugel“, langes Drücken markiert es als leer.",
   "puzzlesGuessIntroDesc": "Eine Reihe von Farben ist verborgen, und du hast begrenzt viele Versuche. Stelle deine Reihe zusammen und bestätige; die Antwort kommt als Marken: wie viele Farben am RICHTIGEN Platz stehen und wie viele im Code vorkommen, aber woanders liegen. Welche Marke zu welchem Stift gehört, wird nie verraten — jeder Versuch ist eine Schlussfolgerung, kein Durchprobieren. Tippen setzt eine Farbe, langes Drücken löscht sie.",
+  "warmupStopAsk": "Aufwärmen beenden? Gespielt: {n} von {m}",
+  "warmupStopKeep": "Weiter aufwärmen",
 };
 export default t;

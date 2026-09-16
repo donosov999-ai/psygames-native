@@ -2240,6 +2240,8 @@ const translations: Translations = {
   skipGameNamed:     { ru: 'Пропустить:', en: 'Skip:' },
   skipStep:          { ru: 'Пропустить игру', en: 'Skip this game' },
   stopComplex:       { ru: 'Остановить', en: 'Stop the set' },
+  warmupStopAsk:     { ru: 'Остановить зарядку? Сыграно {n} из {m}', en: 'Stop the warm-up? Played {n} of {m}' },
+  warmupStopKeep:    { ru: 'Продолжить зарядку', en: 'Keep going' },
   skippedNamed:      { ru: 'Пропущено', en: 'Skipped' },
   setTimeUpTitle: { ru: '⏱ Время вышло — сет тут был', en: '⏱ Time is up — there was a SET' },
   setTimeUpBody: { ru: 'Подсвечен один из сетов, которые были на столе. Сет есть на КАЖДОЙ доске — игра не раздаёт поля без решения', en: 'One of the SETs that was on the table is highlighted. Every board has at least one — the game never deals an unsolvable table' },
