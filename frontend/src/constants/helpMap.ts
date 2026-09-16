@@ -240,12 +240,12 @@ export const HELP_MAP: Record<string, HelpEntry> = {
   "/games/ball-sort": {
     "nameKey": "ballSort",
     "skillKey": "skillPlanning",
-    "introKey": "waterSortIntroDesc"
+    "introKey": "ballSortIntroDesc"
   },
   "/games/nut-sort": {
     "nameKey": "nutSort",
     "skillKey": "skillPlanning",
-    "introKey": "waterSortIntroDesc"
+    "introKey": "nutSortIntroDesc"
   },
   "/games/water-sort": {
     "nameKey": "waterSort",
@@ -477,11 +477,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillSpatial",
     "introKey": "spatialGroupIntroDesc"
   },
-  "/games/puzzles?mode=Unruly": {
-    "nameKey": "puzzlesUnruly",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesUnrulyIntroDesc"
-  },
   "/games/puzzles?mode=Mines": {
     "nameKey": "puzzlesMines",
     "skillKey": "skillLogic",
@@ -497,15 +492,45 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillLogic",
     "introKey": "puzzlesPatternIntroDesc"
   },
-  "/games/puzzles?mode=Singles": {
-    "nameKey": "puzzlesSingles",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesSinglesDesc"
-  },
   "/games/puzzles?mode=Range": {
     "nameKey": "puzzlesRange",
     "skillKey": "skillLogic",
     "introKey": "puzzlesRangeIntroDesc"
+  },
+  "/games/puzzles?mode=Magnets": {
+    "nameKey": "puzzlesMagnets",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesMagnetsIntroDesc"
+  },
+  "/games/puzzles?mode=Galaxies": {
+    "nameKey": "puzzlesGalaxies",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesGalaxiesIntroDesc"
+  },
+  "/games/puzzles?mode=Palisade": {
+    "nameKey": "puzzlesPalisade",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesPalisadeIntroDesc"
+  },
+  "/games/puzzles?mode=Unruly": {
+    "nameKey": "puzzlesUnruly",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesUnrulyIntroDesc"
+  },
+  "/games/puzzles?mode=Slant": {
+    "nameKey": "puzzlesSlant",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesSlantIntroDesc"
+  },
+  "/games/puzzles?mode=Black Box": {
+    "nameKey": "puzzlesBlackBox",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesBlackBoxIntroDesc"
+  },
+  "/games/puzzles?mode=Guess": {
+    "nameKey": "puzzlesGuess",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesGuessIntroDesc"
   },
   "/games/puzzles?mode=Light Up": {
     "nameKey": "puzzlesLightUp",
@@ -517,60 +542,45 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillLogic",
     "introKey": "puzzlesTentsIntroDesc"
   },
-  "/games/puzzles?mode=Magnets": {
-    "nameKey": "puzzlesMagnets",
+  "/games/puzzles?mode=Dominosa": {
+    "nameKey": "puzzlesDominosa",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesMagnetsIntroDesc"
-  },
-  "/games/puzzles?mode=Undead": {
-    "nameKey": "puzzlesUndead",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesUndeadDesc"
-  },
-  "/games/puzzles?mode=Keen": {
-    "nameKey": "puzzlesKeen",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesKeenDesc"
-  },
-  "/games/puzzles?mode=Solo": {
-    "nameKey": "puzzlesSolo",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesSoloDesc"
-  },
-  "/games/puzzles?mode=Towers": {
-    "nameKey": "puzzlesTowers",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesTowersDesc"
-  },
-  "/games/puzzles?mode=Unequal": {
-    "nameKey": "puzzlesUnequal",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesUnequalDesc"
+    "introKey": "puzzlesDominosaIntroDesc"
   },
   "/games/puzzles?mode=Rectangles": {
     "nameKey": "puzzlesRectangles",
     "skillKey": "skillLogic",
     "introKey": "puzzlesRectanglesIntroDesc"
   },
-  "/games/puzzles?mode=Filling": {
-    "nameKey": "puzzlesFilling",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesFillingDesc"
-  },
-  "/games/puzzles?mode=Palisade": {
-    "nameKey": "puzzlesPalisade",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesPalisadeIntroDesc"
-  },
-  "/games/puzzles?mode=Galaxies": {
-    "nameKey": "puzzlesGalaxies",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesGalaxiesIntroDesc"
-  },
   "/games/puzzles?mode=Map": {
     "nameKey": "puzzlesMap",
     "skillKey": "skillLogic",
     "introKey": "puzzlesMapIntroDesc"
+  },
+  "/games/puzzles?mode=Pegs": {
+    "nameKey": "puzzlesPegs",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesPegsDesc"
+  },
+  "/games/puzzles?mode=Flood": {
+    "nameKey": "puzzlesFlood",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesFloodDesc"
+  },
+  "/games/puzzles?mode=Same Game": {
+    "nameKey": "puzzlesSameGame",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesSameGameDesc"
+  },
+  "/games/puzzles?mode=Signpost": {
+    "nameKey": "puzzlesSignpost",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesSignpostDesc"
+  },
+  "/games/puzzles?mode=Inertia": {
+    "nameKey": "puzzlesInertia",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesInertiaDesc"
   },
   "/games/puzzles?mode=Loopy": {
     "nameKey": "puzzlesLoopy",
@@ -582,11 +592,6 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillLogic",
     "introKey": "puzzlesPearlDesc"
   },
-  "/games/puzzles?mode=Slant": {
-    "nameKey": "puzzlesSlant",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesSlantIntroDesc"
-  },
   "/games/puzzles?mode=Bridges": {
     "nameKey": "puzzlesBridges",
     "skillKey": "skillLogic",
@@ -597,20 +602,15 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillLogic",
     "introKey": "puzzlesTracksDesc"
   },
-  "/games/puzzles?mode=Signpost": {
-    "nameKey": "puzzlesSignpost",
+  "/games/puzzles?mode=Slide": {
+    "nameKey": "puzzlesSlide",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesSignpostDesc"
+    "introKey": "puzzlesSlideIntroDesc"
   },
-  "/games/puzzles?mode=Dominosa": {
-    "nameKey": "puzzlesDominosa",
+  "/games/puzzles?mode=Sokoban": {
+    "nameKey": "puzzlesSokoban",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesDominosaIntroDesc"
-  },
-  "/games/puzzles?mode=Untangle": {
-    "nameKey": "puzzlesUntangle",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesUntangleIntroDesc"
+    "introKey": "puzzlesSokobanIntroDesc"
   },
   "/games/puzzles?mode=Net": {
     "nameKey": "puzzlesNet",
@@ -627,6 +627,16 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillLogic",
     "introKey": "puzzlesTwiddleIntroDesc"
   },
+  "/games/puzzles?mode=Cube": {
+    "nameKey": "puzzlesCube",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesCubeIntroDesc"
+  },
+  "/games/puzzles?mode=Flip": {
+    "nameKey": "puzzlesFlip",
+    "skillKey": "skillLogic",
+    "introKey": "puzzlesFlipIntroDesc"
+  },
   "/games/puzzles?mode=Sixteen": {
     "nameKey": "puzzlesSixteen",
     "skillKey": "skillLogic",
@@ -637,54 +647,44 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "skillKey": "skillLogic",
     "introKey": "puzzlesFifteenIntroDesc"
   },
-  "/games/puzzles?mode=Flip": {
-    "nameKey": "puzzlesFlip",
+  "/games/puzzles?mode=Untangle": {
+    "nameKey": "puzzlesUntangle",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesFlipIntroDesc"
+    "introKey": "puzzlesUntangleIntroDesc"
   },
-  "/games/puzzles?mode=Cube": {
-    "nameKey": "puzzlesCube",
+  "/games/puzzles?mode=Solo": {
+    "nameKey": "puzzlesSolo",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesCubeIntroDesc"
+    "introKey": "puzzlesSoloDesc"
   },
-  "/games/puzzles?mode=Black Box": {
-    "nameKey": "puzzlesBlackBox",
+  "/games/puzzles?mode=Towers": {
+    "nameKey": "puzzlesTowers",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesBlackBoxIntroDesc"
+    "introKey": "puzzlesTowersDesc"
   },
-  "/games/puzzles?mode=Guess": {
-    "nameKey": "puzzlesGuess",
+  "/games/puzzles?mode=Unequal": {
+    "nameKey": "puzzlesUnequal",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesGuessIntroDesc"
+    "introKey": "puzzlesUnequalDesc"
   },
-  "/games/puzzles?mode=Slide": {
-    "nameKey": "puzzlesSlide",
+  "/games/puzzles?mode=Keen": {
+    "nameKey": "puzzlesKeen",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesSlideIntroDesc"
+    "introKey": "puzzlesKeenDesc"
   },
-  "/games/puzzles?mode=Sokoban": {
-    "nameKey": "puzzlesSokoban",
+  "/games/puzzles?mode=Singles": {
+    "nameKey": "puzzlesSingles",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesSokobanIntroDesc"
+    "introKey": "puzzlesSinglesDesc"
   },
-  "/games/puzzles?mode=Flood": {
-    "nameKey": "puzzlesFlood",
+  "/games/puzzles?mode=Filling": {
+    "nameKey": "puzzlesFilling",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesFloodDesc"
+    "introKey": "puzzlesFillingDesc"
   },
-  "/games/puzzles?mode=Same Game": {
-    "nameKey": "puzzlesSameGame",
+  "/games/puzzles?mode=Undead": {
+    "nameKey": "puzzlesUndead",
     "skillKey": "skillLogic",
-    "introKey": "puzzlesSameGameDesc"
-  },
-  "/games/puzzles?mode=Pegs": {
-    "nameKey": "puzzlesPegs",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesPegsDesc"
-  },
-  "/games/puzzles?mode=Inertia": {
-    "nameKey": "puzzlesInertia",
-    "skillKey": "skillLogic",
-    "introKey": "puzzlesInertiaDesc"
+    "introKey": "puzzlesUndeadDesc"
   }
 };
