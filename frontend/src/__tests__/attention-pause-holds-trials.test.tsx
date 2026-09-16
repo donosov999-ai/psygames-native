@@ -1,4 +1,4 @@
-/* psygames-attention-pause-holds-trials · VER 1 · 16.09.2026 */
+/* psygames-attention-pause-holds-trials · VER 2 · 17.09.2026 */
 /**
  * ПОКА ИГРУ ДЕРЖАТ, ПАРТИЯ СТОИТ — НА ВСЕХ 18 ЭКРАНАХ «КОНФЛИКТА ВНИМАНИЯ».
  *
@@ -44,7 +44,7 @@ jest.mock('@/src/services/api', () => ({
 
 /* eslint-disable @typescript-eslint/no-require-imports -- загрузка ПОСЛЕ jest.mock */
 const TestRenderer = require('react-test-renderer');
-const { holdGame, __resetGameClock } = require('@/src/services/gamePause');
+const { holdGame, isGameHeld, __resetGameClock } = require('@/src/services/gamePause');
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 /** Состав развилки на 16.09.2026 (hubContents.ts + gameSuites.ts). Проверка состава — ниже. */
@@ -230,6 +230,41 @@ describe('раздел «Внимание»: пока игру держат, п�
     }
     expect([...поКоду].sort()).toEqual([...ЭКРАНЫ].sort());
   });
+
+  /**
+   * 🔴 ЧЕРЕЗ НАСТОЯЩЕЕ МЕНЮ, А НЕ ЧЕРЕЗ holdGame(). Проверки ниже держат игру напрямую —
+   * так видно каждый экран, но не видно проводку «кнопка паузы каркаса → удержание». Здесь
+   * жмётся та же кнопка, что у человека (`game-back`, «Пауза и выход»), и «Продолжить игру»
+   * (`pause-action:resume`). Просьба координатора (ce0e0b21): «меню открыто → счётчик проб стоит».
+   */
+  it('🔴 stroop через настоящее меню паузы: меню 16 с — счётчик стоит, «Продолжить» — партия идёт', async () => {
+    const r = await смонтировать('stroop');
+    const почему = await начатьПартию(r);
+    expect(`stroop: партия началась${почему ? ` — НЕТ: ${почему}` : ''}`).toBe('stroop: партия началась');
+    const счётчик = (): string => {
+      const узлы = r.root.findAll((n: any) => typeof n.type === 'string' && typeof n.props?.children === 'string' && /^\d+\/\d+$/.test(n.props.children), { deep: true });
+      return узлы.length ? узлы[0].props.children : '—';
+    };
+    const поId = (id: string) => r.root.findAll((n: any) => n.props?.testID === id && typeof n.props.onPress === 'function', { deep: true })[0];
+    const меню = () => r.root.findAll((n: any) => n.props?.testID === 'game-pause-menu', { deep: true }).length > 0;
+
+    const пауза = поId('game-back');
+    expect(`кнопка паузы каркаса найдена: ${!!пауза}`).toBe('кнопка паузы каркаса найдена: true');
+    await нажать(пауза);
+    expect(`меню открыто: ${меню()}, игру держат: ${isGameHeld()}`).toBe('меню открыто: true, игру держат: true');
+    const c0 = счётчик();
+    await крутить(КРУТИТЬ_МС);
+    const c1 = счётчик();
+    expect(`под меню 16 с: было ${c0}, стало ${c1}`).toBe(`под меню 16 с: было ${c0}, стало ${c0}`);
+
+    const дальше = поId('pause-action:resume');
+    expect(`пункт «Продолжить игру» найден: ${!!дальше}`).toBe('пункт «Продолжить игру» найден: true');
+    await нажать(дальше);
+    expect(`после «Продолжить»: меню ${меню()}, держат ${isGameHeld()}`).toBe('после «Продолжить»: меню false, держат false');
+    await крутить(КРУТИТЬ_МС);
+    const c2 = счётчик();
+    expect(`после «Продолжить» 16 с партия пошла: ${c1} → ${c2}, сдвинулась ${c2 !== c1}`).toBe(`после «Продолжить» 16 с партия пошла: ${c1} → ${c2}, сдвинулась true`);
+  }, 60_000);
 
   for (const экран of ЭКРАНЫ) {
     it(`🔴 ${экран}: под удержанием снимок не меняется 16 с, после снятия партия идёт`, async () => {

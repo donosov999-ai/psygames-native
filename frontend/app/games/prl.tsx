@@ -60,7 +60,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
-import { gameNow, gameTimeout, clearGameTimer } from '@/src/services/gamePause';
+import { gameNow, gameTimeout } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
@@ -589,8 +589,11 @@ export default function PRLGame() {
       /* Движение выключено — знак события несёт ЦВЕТ: зелёный вверх, розовый вниз.
          Держим ровно столько же (130 + 260), чтобы событие не мелькало иначе. */
       bankScale.setValue(1);
-      const снять = gameTimeout(() => setBankFlash(null), 390);
-      return () => clearGameTimer(снять);
+      /* ⚠️ Обычный setTimeout, а не gameTimeout — и это решение, а не пропуск: вспышка
+         счёта — оформление, партию она не двигает (форма паузы у координатора, ce0e0b21:
+         «анимации интерфейса остаются на setTimeout»). */
+      const снять = setTimeout(() => setBankFlash(null), 390);
+      return () => clearTimeout(снять);
     }
     Animated.sequence([
       Animated.timing(bankScale, { toValue: вверх ? 1.28 : 0.82, duration: 130, easing: Easing.out(Easing.quad), useNativeDriver: true }),

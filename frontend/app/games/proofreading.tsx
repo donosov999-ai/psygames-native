@@ -706,7 +706,7 @@ export default function ProofreadingGame() {
       errorsRef.current += 1;
       setErrors(errorsRef.current);
       setWrongFlash(index);
-      gameTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);
+      setTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);   // вспышка — оформление, не партия: обычный таймер (ce0e0b21)
     }
   };
 
@@ -1097,7 +1097,7 @@ export default function ProofreadingGame() {
     else {
       hapticError();
       setWrongFlash(index);
-      gameTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);
+      setTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);   // вспышка — оформление, не партия: обычный таймер (ce0e0b21)
     }
     setSeries(step.state);
     if (step.result === 'hit' && blockDone(step.state)) closeBlock(step.state, true);
