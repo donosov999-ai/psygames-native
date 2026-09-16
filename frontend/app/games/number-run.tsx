@@ -444,9 +444,12 @@ export default function NumberRunScreen() {
   );
 }
 
-/** Строка станции: пример арки, ряд или выражение шкалы — как есть; цель ворот — словами на языке игрока. */
+/** Строка станции: пример арки, ряд или выражение шкалы — как есть; цель ворот и память — словами на языке игрока. */
 function текстСтанции(с: СтанцияВпереди, t: (k: string) => string): string {
-  return с.вид === 'exact' ? t('numberRunExact').replace('{n}', String(с.цель)) : с.пример;
+  if (с.вид === 'exact') return t('numberRunExact').replace('{n}', String(с.цель));
+  if (с.вид === 'memorize') return t('numberRunMemorize');
+  if (с.вид === 'recall') return t('numberRunRecall');
+  return с.пример;
 }
 
 /** Ключ темы для мемоизации: пересобираем кнопки при смене цветов, а не каждый кадр. */

@@ -71,6 +71,8 @@ declare module '*/runner-level.mjs' {
     exact(level: number, rnd: () => number): { target: number; chips: number[] };
     pattern(level: number, rnd: () => number): { items: number[]; answer: number; options: number[] };
     scale(level: number, rnd: () => number): { prompt: string; min: number; max: number; answer: number; ticks: number[] };
+    /** Сколько знаков держать — лестница OSpan. */
+    memory(level: number): { setSize: number };
   }
   export function makeLevel(level: number, seed: number, tasks: ЗадачиСтанций, options?: { boss?: boolean }): any;
   export function levelPassed(course: any, value: number): boolean;

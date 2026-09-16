@@ -1,3 +1,4 @@
+// VER 3 · 2026-09-16 · psygames-search-claude-mac: + «память в пути» (setSize — лестница OSpan из ospanLadder).
 // VER 2 · 2026-09-16 · psygames-search-claude-mac: + станции «ряд на арках» (patternSequences) и «шкала» (math-slider core).
 // VER 1 · 2026-09-16 · psygames-search-claude-mac. Режим уровней: станции хаба «Счёт» (блиц-арки, ворота «ровно N»),
 // главы, страж, правило прохождения. Задачи — настоящие генераторы упражнений (mathSprintCore, numberBondsLadder), не заглушки.
@@ -11,6 +12,7 @@ import {initial,step,resume,setTarget,replay} from './runner-core.mjs';
 import {generateSprintProblem} from '../counting/mathSprintCore.ts';
 import {levelParams,makePuzzle} from '../counting/numberBondsLadder.ts';
 import {makeSequence,makeOptions} from '../counting/patternSequences.ts';
+import {levelParams as ospanLevel} from '../counting/ospanLadder.ts';
 import {registerHooks} from 'node:module';
 // Ядро «Мат. шкалы» импортирует соседей без расширения (./work) — так пишет Metro. Node такие пути не находит; крючок
 // дописывает .ts только им, и шкала в пробах — настоящий генератор упражнения, а не заглушка.
@@ -22,6 +24,7 @@ const tasks={
  exact:(L,rnd)=>makePuzzle(levelParams(L),rnd),
  pattern:(L,rnd)=>{const seq=makeSequence(L,rnd);return {...seq,options:makeOptions(seq.answer,3,rnd)};},
  scale:(L,rnd)=>{const q=generateMathSliderQuestions(`run-${Math.floor(rnd()*1e9)}`,Math.min(52,L),1)[0];return {prompt:formatExpression(q.expression,'en'),min:q.scale.min,max:q.scale.max,answer:q.answer,ticks:q.scale.ticks};},
+ memory:L=>ospanLevel(L),
 };
 const isBoss=L=>L%3===0;   // constants/bosses.ts: BOSS_EVERY = 3
 const level=(L,seed)=>makeLevel(L,seed,tasks,{boss:isBoss(L)});
@@ -49,8 +52,8 @@ test('chapters: L1–3 none, 4 blitz, 7 exact, 10 pattern, 13 scale — each fir
  for(const L of [4,5,6])assert.deepEqual([...kinds(L)],['blitz']);
  assert.deepEqual([...kinds(7)],['exact']);assert.deepEqual([...kinds(8)].sort(),['blitz','exact']);
  assert.deepEqual([...kinds(10)],['pattern']);assert.deepEqual([...kinds(13)],['scale']);assert.ok(kinds(14).has('scale')&&kinds(14).size===2);
- assert.deepEqual([...kinds(18)].sort(),['blitz','exact','pattern','scale']);
- for(const L of [9,12,15,16,24])assert.equal(level(L,3).rows.filter(r=>r.station).length,6);
+ assert.deepEqual([...kinds(16)],['memory']);assert.deepEqual([...kinds(21)].sort(),['blitz','exact','memory','pattern','scale']);
+ for(const L of [9,12,15,19,24])assert.equal(new Set(level(L,3).rows.filter(r=>r.station).map(r=>r.id)).size>=6,true);
  assert.deepEqual(stationPlan(4,false),['blitz','blitz','blitz']);assert.equal(stationLevel('blitz',4),1);assert.equal(stationLevel('exact',7),1);assert.equal(stationLevel('blitz',30),27);
 });
 test('solver route wins every level in simulation and passes it: walls 10/10 or the boss beaten; replay agrees',()=>{
@@ -106,4 +109,21 @@ test('scale: x reads as a number on the line; the route lands in tolerance, far 
    assert.equal(e.delta,e.err<=r.tolerance?r.reward:e.err<=2*r.tolerance?0:-r.penalty);assert.equal(s.mistakes,e.delta<0?1:0);}
  }}
  assert.ok(rows>=20);
+});
+
+test('memory: symbols shown over the road, recalled two rows later in the same order; the route takes all and only the right ones',()=>{
+ let pairs=0;for(let seed=0;seed<12;seed++)for(const L of [16,17,20]){const c=level(L,seed),shows=c.rows.filter(r=>r.shape==='memory-show');
+  for(const show of shows){const recall=c.rows[show.id+4];pairs++;
+   assert.equal(recall?.shape,'memory-recall',`${L}/${seed} row ${show.id}`);
+   const n=show.show.symbols.length;assert.ok(n>=3&&n<=5);assert.equal(new Set(show.show.symbols).size,n);
+   const right=recall.items.filter(i=>i.value===1).sort((a,b)=>a.dz-b.dz).map(i=>i.symbol);assert.deepEqual(right,show.show.symbols);
+   const lines=new Map();for(const i of recall.items)lines.set(i.dz,(lines.get(i.dz)??[]).concat(i));
+   for(const line of lines.values()){assert.equal(line.length,3);assert.equal(new Set(line.map(i=>i.symbol)).size,3);assert.equal(line.filter(i=>i.value===1).length,1);}
+   const route=recall.routes[0];for(const dt of [1/60,1/120]){const s=through(c,recall,route.entry.x,route.waypoints,dt),e=s.events.find(e=>e.type==='pickups');
+    assert.equal(e.exact.got,n);assert.equal(s.sum,1000+recall.exact.bonus);assert.equal(s.mistakes,0);}
+   // Одна чужая строка вместо своей — промах и минус.
+   const wrong=route.waypoints.map((w,i)=>i===0?{...w,x:recall.items.find(it=>it.dz===w.dz&&it.value===-1&&Math.abs(it.x-route.waypoints[1].x)<=1).x}:w);
+   const s=through(c,recall,wrong[0].x,wrong);assert.ok(s.events.find(e=>e.type==='pickups').exact.got<n);assert.ok(s.sum<1000);
+  }}
+ assert.ok(pairs>=40);
 });

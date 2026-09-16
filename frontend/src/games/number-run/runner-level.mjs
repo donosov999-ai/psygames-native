@@ -3,19 +3,21 @@
 // Уровень ≈ 90 с: 15 рядов содержимого между 14 препятствиями и черта финиша. Финал — лестница 10 стен (пройден при ≥ 5)
 // или «Страж» на уровне-боссе (пройден, если число не меньше стража). Главы вводят станции хаба по одной:
 // 1–3 дорога VER 4 · 4–6 + блиц-арки (math-sprint) · 7–9 + ворота «ровно N» (number-bonds) · 10–12 + ряд на арках (pattern)
-// · 13–15 + шкала (math-slider) · 16+ смесь. VER 2: главы ряда и шкалы.
+// · 13–15 + шкала (math-slider) · 16–18 + память в пути (ospan) · 19+ смесь. VER 2: главы ряда и шкалы; VER 3: память —
+// станция из двух рядов (показ и вспомнить через ряд), поэтому места станций раскладываются блоками, а не по одному.
 // Задачи станций приходят снаружи (tasks): планировщик и ядро — чистые .mjs, а арифметику считает тот же код, что в упражнениях.
 // Уровень — тот же непрерывный забег (mode 'journey' для ядра: без модалок, лимит чисел 1e6), отличает его format 'level'.
 import {solveCourse,stationaryWins} from './runner-levels.mjs';
-import {random,createTrack,round5} from './runner-shapes.mjs';
+import {random,createTrack,round5,shuffle,MEMORY_SYMBOLS} from './runner-shapes.mjs';
 import {finaleLadder,wallsBroken} from './runner-campaign.mjs';
-export const LEVEL_VERSION='number-run-level/2',LEVEL_SLOTS=15,PASS_WALLS=5,BOSS_SHARE=.6;
+export const LEVEL_VERSION='number-run-level/3',LEVEL_SLOTS=15,PASS_WALLS=5,BOSS_SHARE=.6;
 // С какого уровня входит станция. Уровень главы, кратный трём, — страж (признак босса даёт экран из constants/bosses.ts).
 export const CHAPTERS=Object.freeze([
  Object.freeze({from:4,station:'blitz'}),
  Object.freeze({from:7,station:'exact'}),
  Object.freeze({from:10,station:'pattern'}),
  Object.freeze({from:13,station:'scale'}),
+ Object.freeze({from:16,station:'memory'}),
 ]);
 // С какого уровня все введённые станции идут вперемешку: через главу после последней.
 export const MIX_FROM=CHAPTERS.at(-1).from+3;
@@ -33,8 +35,14 @@ export function stationPlan(level,boss){
  if(level===chapter.from)return Array(3).fill(chapter.station);
  return older.length?[chapter.station,chapter.station,older[0],chapter.station,chapter.station]:Array(4).fill(chapter.station);
 }
-// Места станций среди 15 рядов: равномерно, не первым рядом (он всегда строй) и не последним (он стены).
-const spread=n=>Array.from({length:n},(_,i)=>1+Math.round((i+1)*(LEVEL_SLOTS-2)/(n+1)));
+// Места станций среди 15 рядов: блоками, равномерно, не первым рядом (он всегда строй) и не последним (стены).
+// Память — блок из трёх: показ, ряд дороги между, вспомнить. Остальные станции — блок из одного ряда.
+function layout(stations){
+ const blocks=stations.map(s=>s==='memory'?['memory-show',null,'memory-recall']:[s]),inner=LEVEL_SLOTS-2;
+ let free=Math.max(0,inner-blocks.reduce((a,b)=>a+b.length,0)),slot=1;const at=new Map();
+ blocks.forEach((b,i)=>{const gap=Math.floor(free/(blocks.length-i+1));slot+=gap;free-=gap;b.forEach((e,j)=>{if(e)at.set(slot+j,e);});slot+=b.length;});
+ return at;
+}
 export function makeLevel(level,seed,tasks,{boss=false}={}){
  if(!Number.isInteger(level)||level<1)throw Error('Invalid level');
  if(!Number.isInteger(seed)||seed<0||seed>0xffffffff)throw Error('Invalid level seed');
@@ -46,7 +54,7 @@ export function makeLevel(level,seed,tasks,{boss=false}={}){
 }
 function buildLevel(level,seed,salt,tasks,boss){
  const rng=random((seed^Math.imul(level,0x9e3779b1)^Math.imul(salt,0x85ebca6b))>>>0),track=createTrack(rng),k=level+1,stations=stationPlan(level,boss);
- const stationAt=new Map(spread(stations.length).map((slot,i)=>[slot,stations[i]]));
+ const stationAt=layout(stations);let memory=null;
  let shape=level%SHAPES.length;
  for(let i=0;i<LEVEL_SLOTS;i++){
   const station=stationAt.get(i);
@@ -55,6 +63,8 @@ function buildLevel(level,seed,salt,tasks,boss){
   else if(station==='exact')track.exact(1,k,tasks.exact(stationLevel('exact',level),rng));
   else if(station==='pattern')track.pattern(1,k,tasks.pattern(stationLevel('pattern',level),rng));
   else if(station==='scale')track.scale(1,k,tasks.scale(stationLevel('scale',level),rng));
+  else if(station==='memory-show'){const n=Math.min(5,tasks.memory(stationLevel('memory',level)).setSize);memory=shuffle(MEMORY_SYMBOLS,rng).slice(0,n);track.memoryShow(1,k,memory);}
+  else if(station==='memory-recall')track.memoryRecall(1,k,memory);
   else if(i===LEVEL_SLOTS-1){if(boss)track.double(1,k,.85);else track.walls(1,k);}
   else{const next=SHAPES[shape++%SHAPES.length];
    if(next==='snake')track.snake(1,k,level===1?0:level<6?1:2);else if(next==='line')track.line(1,k,5*k,3*k);else track[next](1,k);}

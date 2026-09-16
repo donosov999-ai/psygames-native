@@ -55,7 +55,11 @@ export interface ПоказателиЗабега {
 }
 
 /** Что показать строкой задания: пример блиц-арки или цель ворот «ровно N». */
-export type СтанцияВпереди = { вид: 'blitz' | 'pattern' | 'scale'; пример: string } | { вид: 'exact'; цель: number };
+export type СтанцияВпереди =
+  | { вид: 'blitz' | 'pattern' | 'scale'; пример: string }
+  | { вид: 'exact'; цель: number }
+  | { вид: 'memorize' }
+  | { вид: 'recall' };
 
 /** Итог всей партии. Одна запись на ЗАБЕГ, а не на этап (контракт адаптера). */
 export interface ИтогЗабега {
@@ -174,7 +178,7 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
          * каждом экране приложения нельзя: импорт стоит ЗДЕСЬ, внутри эффекта
          * игрового экрана, а не в начале модуля и не в реестре игр.
          */
-        const [c, k, sc, lv, спринт, состав, ряды, шкала] = await Promise.all([
+        const [c, k, sc, lv, спринт, состав, ряды, шкала, ospan] = await Promise.all([
           import('./runner-core.mjs') as Promise<Ядро>,
           import('./runner-campaign.mjs') as Promise<Кампания>,
           import('./runner-scene.mjs') as Promise<Сцена>,
@@ -183,6 +187,7 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
           import('../counting/numberBondsLadder'),
           import('../counting/patternSequences'),
           import('../math-slider/core'),
+          import('../counting/ospanLadder'),
         ]);
         if (!живо) return;
         ядро.current = c;
@@ -210,6 +215,8 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
               const q = шкала.generateMathSliderQuestions(`run-${Math.floor(rnd() * 1e9)}`, Math.min(52, L), 1)[0];
               return { prompt: шкала.formatExpression(q.expression, язык), min: q.scale.min, max: q.scale.max, answer: q.answer, ticks: q.scale.ticks };
             },
+            /** Сколько знаков держать — лестница OSpan (`setSize`); сами знаки выбирает уровень. */
+            memory: (L: number) => ospan.levelParams(L),
           }, { boss: босс })
           : k.makeCampaign(зерно);
         этаповВсего.current = уровень !== null ? 1 : Number(k.STAGE_COUNT) || 12;
@@ -398,6 +405,8 @@ function станцияВпереди(маршрут: any, s: any): Станци
   for (let i = s.nextRow; i < Math.min(rows.length, s.nextRow + 3); i++) {
     const r = rows[i];
     if (r.z - s.z > 70) return null;
+    if (r.show) return { вид: 'memorize' };
+    if (r.recall) return { вид: 'recall' };
     if (r.kind === 'answer') return { вид: r.station === 'pattern' ? 'pattern' : 'blitz', пример: String(r.prompt) };
     if (r.kind === 'scale') return { вид: 'scale', пример: String(r.prompt) };
     if (r.exact) return { вид: 'exact', цель: r.exact.target };

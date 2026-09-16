@@ -20,6 +20,8 @@ const SNAKES=[[0,.5,1,1,.5,0,-.5],[-1,-.5,0,.5,1,.5,0],[-.5,0,.5,0,-.5,0,.5],[1,
 const LANES5=[-1,-.5,0,.5,1];
 // Строки ворот «ровно N»: по одному числу на строку, между строками палец успевает на соседнюю полосу.
 const EXACT_LINES=[-18,-13.5,-9,-4.5,0];
+// Знаки станции «память в пути»: одинаковы на всех языках и не путаются с цифрами дороги.
+export const MEMORY_SYMBOLS=Object.freeze(['●','▲','■','★','◆','♥','✚','☾']);
 export function createTrack(rng){
  const track={rows:[],intended:1,columnsSeen:0,wallsSeen:0};
  const add=(stage,entry)=>{const row={...entry,id:track.rows.length,stage,z:24*(track.rows.length+1)};track.rows.push(row);return row;};
@@ -103,6 +105,24 @@ export function createTrack(rng){
    add(stage,{kind:'scale',station:'scale',prompt:question.prompt,min:question.min,max:question.max,answer:question.answer,ticks:question.ticks,tolerance:.1,reward,penalty:reward,
     routes:[{id:'scale',entry:{dz:-8,x},exit:x,gain:reward,waypoints:[{dz:0,x}]}]});
    track.intended+=reward;
+  },
+  // Память в пути (OSpan): знаки проплывают над дорогой по одному — запомнить порядок; через ряд — вспомнить.
+  memoryShow(stage,k,symbols){
+   const dzs=symbols.map((_,i)=>symbols.length===1?-9:-18+i*18/(symbols.length-1));
+   add(stage,{kind:'pickups',shape:'memory-show',station:'memory',window:1,items:[],show:{symbols,dzs}});
+  },
+  // Вспомнить: по строке на знак, в строке три знака; верный лежит на пути (+1), чужие — вне пути (−1).
+  // Это ворота «ровно N» с целью N: сумма ровно N только когда взяты все верные и ни одного чужого.
+  memoryRecall(stage,k,symbols){
+   const n=symbols.length,lines=EXACT_LINES.slice(0,n),path=[Math.floor(rng()*3)-1];
+   for(let i=1;i<n;i++){const options=[-1,0,1].filter(l=>Math.abs(l-path[i-1])<=1);path.push(options[Math.floor(rng()*options.length)]);}
+   const items=[];
+   lines.forEach((dz,i)=>{const others=shuffle(MEMORY_SYMBOLS.filter(s=>s!==symbols[i]),rng);let o=0;
+    for(const x of [-1,0,1])items.push(x===path[i]?{x,dz,window:.4,value:1,part:true,symbol:symbols[i]}:{x,dz,window:.4,value:-1,part:true,symbol:others[o++]});});
+   const bonus=Math.max(3*k,round5(track.intended*.15));
+   add(stage,{kind:'pickups',shape:'memory-recall',station:'memory',window:1,items,recall:true,exact:{target:n,bonus,unit:k},
+    routes:[{id:'recall',entry:{dz:lines[0]-1,x:path[0]},exit:path.at(-1),gain:bonus,waypoints:lines.map((dz,i)=>({dz,x:path[i]}))}]});
+   track.intended+=bonus;
   },
   // Ворота «ровно N» (number-bonds): числа-части лежат по строкам, собрать ровно N. Путь строится первым: полоса на строку,
   // соседние строки — не дальше соседней полосы; числа решения — на пути, лишние — только вне пути. Пустая полоса пути

@@ -1,3 +1,5 @@
+// VER 8 · 2026-09-16 · psygames-search-claude-mac: память в пути — знаки показа плывут над дорогой по одному, в ряду
+// «вспомнить» знаки стоят вместо чисел (подписью, не цифровой геометрией); всплывает знак, а не ±1.
 // VER 7 · 2026-09-16 · psygames-search-claude-mac: шкала поперёк дороги (станция «Мат. шкалы») — прямая с делениями и
 // подписями, ворота с выражением; после проезда — флажок верного ответа. Ряд на арках рисуется теми же арками ответа.
 // VER 6 · 2026-09-16 · psygames-search-claude-mac: станции уровней — арки с ответами и табло примера, числа-части «ровно N»
@@ -82,7 +84,14 @@ export function createScene(container){
     if(row.terrain==='bridge')for(let z=.3;z<span;z+=.65){const plank=box(2.2,.035,.38,0xc3a780);plank.position.set((i-1)*LANE,-.02,z);root.add(plank);}
     }
    }
-   if(row.kind==='pickups')row.items.forEach((item,index)=>{
+   if(row.kind==='pickups'&&row.show)row.show.symbols.forEach((symbol,i)=>{
+    // Знак показа: не собирается и не сталкивается — висит над дорогой, пока ряд впереди.
+    const tag=label(symbol,{background:'#0f766e',w:1.7,h:1.7,font:190});tag.sprite.position.set(0,2.7,-row.show.dzs[i]);group.add(tag.sprite);
+   });
+   if(row.kind==='pickups'&&row.recall)row.items.forEach((item,index)=>{
+    const tag=label(item.symbol,{background:'#134e4a',w:1.35,h:1.35,font:180});tag.sprite.position.set(item.x*LANE,.85,-(item.dz??0));tag.sprite.userData.pickupIndex=index;group.add(tag.sprite);
+   });
+   else if(row.kind==='pickups')row.items.forEach((item,index)=>{
     const mesh=numerals.make(item.value<0?`−${Math.abs(item.value)}`:item.value,item.part?PART:item.value<0?0xff1839:0x443bff),half=item.half??.18;
     // Ширина числа — по его логической ширине: стопка в полдороги, большое красное через всю дорогу.
     const scale=half>=1?Math.min(2.7,5.6/mesh.userData.width):half>=.5?Math.min(1.2,1.6/mesh.userData.width):Math.min(.98,1.03/mesh.userData.width);
@@ -151,7 +160,7 @@ export function createScene(container){
      const tag=label(ruleText(row.rules[i]),{background:'#665399',w:split?2.24:3.35,h:split?1.18:1.3,font:105});tag.sprite.position.set(middle,2.25,0);group.add(tag.sprite);
     }
    }
-   if(row.exact){const board=label(`= ${row.exact.target}`,{background:'#78350f',color:'#fef3c7',w:3.4,h:1.3,font:150});board.sprite.position.set(0,2.4,21);root.add(board.sprite);}
+   if(row.exact&&!row.recall){const board=label(`= ${row.exact.target}`,{background:'#78350f',color:'#fef3c7',w:3.4,h:1.3,font:150});board.sprite.position.set(0,2.4,21);root.add(board.sprite);}
    if(row.divider){
     // Столб делит дорогу на время стопок: сторона выбрана там, где он начинается.
     const d=row.divider,length=d.toDz-d.fromDz,z=-(d.fromDz+d.toDz)/2;
@@ -202,7 +211,8 @@ export function createScene(container){
  function react(state,reduced){
   if(state.events.length<seenEvents)seenEvents=0;
   for(const e of state.events.slice(seenEvents)){
-   if(e.type==='pickup'&&e.part){popup(String(e.value),'#fde68a',state.x*LANE);if(!reduced)burst(state.x*LANE,.9,0,PART,6,{spread:2.4,lift:3.2});}
+   if(e.type==='pickup'&&e.part&&course.rows[e.id]?.recall){const it=course.rows[e.id].items[e.item];popup(it.symbol,it.value>0?'#bbf7d0':'#ffd6dc',state.x*LANE);if(!reduced)burst(state.x*LANE,.9,0,it.value>0?0x14b8a6:0xff2d55,8,{spread:2.4,lift:3.2});}
+   else if(e.type==='pickup'&&e.part){popup(String(e.value),'#fde68a',state.x*LANE);if(!reduced)burst(state.x*LANE,.9,0,PART,6,{spread:2.4,lift:3.2});}
    else if(e.type==='pickup'){const good=e.value>0;popup(`${good?'+':'−'}${Math.abs(e.value)}`,good?'#dfe6ff':'#ffd6dc',state.x*LANE);if(!reduced)burst(state.x*LANE,.9+jumpHeight(state),0,good?0x5b6cff:0xff2d55,good?6:12,{spread:2.4,lift:3.2});}
    else if(e.type==='answer'){const o=objects.get(e.id);if(o)for(const lane of o.items.children)if(lane.userData.answerLane===e.lane)lane.visible=false;
     popup(`${e.ok?'✓ +':'✗ −'}${Math.abs(e.after-e.before)}`,e.ok?'#bbf7d0':'#ffd6dc',e.lane*LANE);if(!reduced)burst(e.lane*LANE,1.4,0,e.ok?0x22c55e:0xff2d55,26,{spread:4,lift:5,drift:6});}
