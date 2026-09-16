@@ -2442,18 +2442,19 @@ const translations: Translations = {
   // Числовой забег (перенос LOCAL 0.4 от psygames-codex-mac, 12.09.2026).
   numberRun: { ru: 'Числовой забег', en: 'Number Run' },
   numberRunRule: {
-    ru: 'Веди число по дороге. Синие блоки прибавляют, красные вычитают написанное. В одном ряду можно собрать все пять чисел, а не выбрать одно. Зелёный трамплин перебрасывает через разрыв.',
-    en: 'Steer your number along the road. Blue blocks add, red ones subtract what is written. In one row you can collect all five numbers, not pick just one. A green ramp throws you across the gap.',
+    ru: 'Веди число по дороге: синее прибавляет, красное вычитает. У столба выбирай сторону по сумме её стопки, у стен — меньший минус. Зелёный трамплин перебрасывает через разрыв и над большим красным. На финише число пробивает стены — сколько хватит.',
+    en: 'Steer your number down the road: blue adds, red subtracts. At a pole, pick the side by the sum of its stack; at walls, take the smaller minus. The green ramp throws you over a gap and over a big red. At the finish your number smashes through as many walls as it can.',
   },
   numberRunDesc: {
     ru: 'Ведёшь число по дороге и решаешь на ходу, что подобрать: синее прибавит, красное вычтет.',
     en: 'Steer a number down the road and decide on the move what to pick up: blue adds, red subtracts.',
   },
   numberRunIntroDesc: {
-    ru: 'Ты ведёшь одно число по дороге и на ходу решаешь, что подобрать. Синий блок прибавит к нему то, что на нём написано, красный — вычтет. В поперечном ряду до пяти чисел, и каждое берётся отдельно: можно собрать все пять, а можно ни одного. Зелёная площадка подбрасывает через разрыв — мимо неё падение. Двенадцать этапов идут подряд, без остановок и без сброса числа.',
-    en: 'You steer a single number down the road and decide on the move what to pick up. A blue block adds what is written on it, a red one subtracts. A row holds up to five numbers and each is taken separately: you can collect all five or none. The green pad throws you across the gap — miss it and you fall. Twelve stages run back to back, with no stops and no reset of your number.',
+    ru: 'Ты ведёшь одно число по дороге и на ходу решаешь, что подобрать. Синее число прибавит написанное, красное — вычтет; каждое берётся отдельно. Змейку синих веди пальцем, красные рядом объезжай. Столб делит дорогу надвое: сторону выбери до него — по сумме её стопки, через столб не перебраться. Из стен во всю дорогу проезжаешь одну, и её действие применится к твоему числу: бери меньший минус или сравни «×2» с прибавкой. Зелёная площадка перебрасывает через разрыв — мимо неё падение — и уносит над большим красным. Двенадцать этапов идут подряд, без остановок и без сброса числа; на финише число пробивает стены, сколько хватит.',
+    en: 'You steer one number down the road and decide on the move what to pick up. A blue number adds what is written on it, a red one subtracts; each is taken separately. Follow a snake of blues with your finger and swerve around the reds beside it. A pole splits the road in two: pick your side before it by the sum of that stack — you cannot cross the pole. Of a row of walls across the road you drive through one, and its action applies to your number: take the smaller minus, or compare ×2 with the plus. The green pad throws you across a gap — miss it and you fall — and carries you over a big red. Twelve stages run back to back, with no stops and no reset of your number; at the finish your number smashes through as many walls as it can.',
   },
   numberRunTask: { ru: 'Синее прибавляет, красное вычитает', en: 'Blue adds, red subtracts' },
+  numberRunWalls: { ru: 'Пробито стен', en: 'Walls broken' },
   numberRunDone: { ru: 'Забег пройден', en: 'Run completed' },
   numberRunWebOnly: {
     ru: 'Забег работает в веб-слое приложения; в этой сборке графика недоступна.',
