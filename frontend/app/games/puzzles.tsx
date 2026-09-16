@@ -28,6 +28,7 @@ import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import GameShell from '@/src/components/GameShell';
+import ArrowPad, { ПРЯМЫЕ } from '@/src/components/ArrowPad';
 import PuzzleCanvas from '@/src/components/PuzzleCanvas';
 import PlayBoard, { сторонаДоски } from '@/src/components/PlayBoard';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -41,7 +42,7 @@ import { saveSession } from '@/src/services/api';
 // дисциплина игровых часов, гейт `game-clock-discipline`.
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
-import { открыть, указатель, стрелка, ходЗаЖест, клавиша, стеретьВвод, выбрать, поДиагонали, отменить, решить, type Партия, type Жест, type Сторона } from '@/src/games/tatham-bridge/play';
+import { открыть, указатель, стрелка, ходЗаЖест, клавиша, стеретьВвод, выбрать, поДиагонали, отменить, решить, type Партия, type Жест, type Сторона, type Диагональ } from '@/src/games/tatham-bridge/play';
 import { ПЛАН_ШАГАМИ, ИМЯ_ВТОРОГО, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, лестницаДвижка, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски, ПОДСВЕТКА_ЧИСЛА, клавишПодсветки, ГНЁЗД_ПОДСВЕТКИ } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
@@ -663,20 +664,26 @@ export default function PuzzlesScreen() {
               <Text style={styles.шагПланаТекст}>{t('puzzleNextStep')}</Text>
             </Pressable>
           ) : null}
-          {СТРЕЛОЧНЫЕ.has(имяРежима) ? (
-            <View style={styles.крестовина}>
-              {([['влево', 'chevron-back'], ['вверх', 'chevron-up'], ['вниз', 'chevron-down'], ['вправо', 'chevron-forward']] as const).map(([куда, знак]) => (
-                <Pressable
-                  key={куда}
-                  accessibilityRole="button"
-                  accessibilityLabel={куда}
-                  onPress={() => { void шагнуть(куда); }}
-                  style={[styles.стрелка, { borderColor: colors.border, backgroundColor: colors.card }]}
-                >
-                  <Ionicons name={знак} size={22} color={colors.text} />
-                </Pressable>
-              ))}
-            </View>
+          {/*
+            🔴 ПЕРЕВЁРНУТАЯ «Т», А НЕ ЧЕТЫРЕ КНОПКИ В РЯД. Решение Дениса 16.09.2026
+            по кадру раскладки клавиш: «это оптимальная схема, скажи всем, у кого
+            есть стрелки».
+
+            ЧТО БЫЛО: `крестовина` имела `flexDirection: 'row'`, и все четыре стрелки
+            стояли одной строкой в порядке ← ↑ ↓ →. То есть «вверх» и «вниз» лежали
+            РЯДОМ ПО ГОРИЗОНТАЛИ и различались только значком, а не местом. Палец
+            целится в место, а не читает иконку, — оттого управление и читалось как
+            «перенесли компьютерную версию».
+
+            ЧТО СТАЛО: ↑ отдельной строкой над рядом ← ↓ →, как на любой клавиатуре
+            и в любой приставке. Направление теперь совпадает с положением кнопки.
+            Сторожит `arrow-pad-is-an-inverted-t`.
+          */}
+          {СТРЕЛОЧНЫЕ.has(имяРежима) && !ВОСЕМЬ_НАПРАВЛЕНИЙ.has(имяРежима) ? (
+            <ArrowPad
+              onPress={(куда) => { void шагнуть(куда as Сторона); }}
+              цвета={{ border: colors.border, card: colors.card, text: colors.text }}
+            />
           ) : null}
           {/*
             🔴 ДИАГОНАЛИ — ТОЛЬКО «ИНЕРЦИИ», И ЭТО ЗАМЕР, А НЕ ВКУС. Её автор читает
@@ -684,21 +691,24 @@ export default function PuzzlesScreen() {
             даёт четыре: половина ходов игры была недоступна. Прогон 12.09.2026,
             зерно 777: ↖ ХОД · ↗ ХОД · ↙ ХОД · ↘ ХОД.
           */}
+          {/*
+            🔴 ВОСЕМЬ НАПРАВЛЕНИЙ — БЛОК ТРИ НА ТРИ, А НЕ ДВА РЯДА ПО ЧЕТЫРЕ.
+            То же решение Дениса и та же причина: место кнопки обязано совпадать с
+            направлением. Было: четыре прямых одной строкой и четыре диагональных
+            другой — восемь кнопок, ни одна не стоит там, куда ведёт.
+            Стало: настоящий блок, середина пустая, каждая кнопка на своём месте.
+            Прямые идут в `шагнуть`, угловые — в `поДиагонали`; это разные вызовы
+            движка, и блок их не смешивает.
+          */}
           {ВОСЕМЬ_НАПРАВЛЕНИЙ.has(имяРежима) ? (
-            <View style={styles.крестовина}>
-              {([['вверх-влево', 'arrow-up-outline', '-45deg'], ['вверх-вправо', 'arrow-up-outline', '45deg'],
-                 ['вниз-влево', 'arrow-down-outline', '45deg'], ['вниз-вправо', 'arrow-down-outline', '-45deg']] as const).map(([куда, знак, поворот]) => (
-                <Pressable
-                  key={куда}
-                  accessibilityRole="button"
-                  accessibilityLabel={куда}
-                  onPress={() => { void поДиагонали(куда).then((и) => { setПартия(и.партия); if (и.подействовало) setХодов((n) => n + 1); }); }}
-                  style={[styles.стрелка, { borderColor: colors.border, backgroundColor: colors.card }]}
-                >
-                  <Ionicons name={знак} size={22} color={colors.text} style={{ transform: [{ rotate: поворот }] }} />
-                </Pressable>
-              ))}
-            </View>
+            <ArrowPad
+              восемь
+              цвета={{ border: colors.border, card: colors.card, text: colors.text }}
+              onPress={(куда) => {
+                if (ПРЯМЫЕ.includes(куда)) { void шагнуть(куда as Сторона); return; }
+                void поДиагонали(куда as Диагональ).then((и) => { setПартия(и.партия); if (и.подействовало) setХодов((n) => n + 1); });
+              }}
+            />
           ) : null}
           {/*
             🔴 «ВЫБРАТЬ» — ТАМ, ГДЕ КРЕСТОВИНЫ МАЛО. У «Раскраски карты», «Колышков»,
@@ -771,7 +781,6 @@ const styles = StyleSheet.create({
   rule: { fontSize: 13, lineHeight: 18, textAlign: 'center', maxWidth: 320, height: 54, textAlignVertical: 'center' },
   start: { minHeight: 52, paddingHorizontal: 34, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   startText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  крестовина: { flexDirection: 'row', gap: 10 },
   // Кнопка во всю ширину полосы: это единственное действие разбора, делить строку не с кем.
   // Высота 48 — `ПАЛЕЦ` из gameLayout: орган ответа не мельче пальца (правило 5).
   шагПлана: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -807,7 +816,4 @@ const styles = StyleSheet.create({
   подсветкаПодпись: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   цифра: { width: 50, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   цифраТекст: { color: '#FFF', fontSize: 26, fontWeight: '800' },
-  // ⚠️ 48 — не «покруглее», а пол `tap-target-audit` (48×48). На 46 CI поймал кнопку
-  // второго действия 182×46 и был прав: два пункта ниже пола на КАЖДОМ нажатии игры.
-  стрелка: { width: 54, height: 48, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });
