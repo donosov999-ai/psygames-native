@@ -2708,6 +2708,8 @@ const t: Record<string, string> = {
   "pauseExitGame": "अभ्यास से बाहर",
   "pauseSoundOff": "शांत मोड",
   "pauseSoundOn": "ध्वनि वापस चालू करें",
+  "pauseFullscreenOff": "फ़ोन की पट्टियाँ न छिपाएँ",
+  "pauseFullscreenOn": "खेल में फ़ोन की पट्टियाँ छिपाएँ",
   "pauseReport": "समस्या की सूचना दें",
   "gamePauseOpen": "रोकें और बाहर निकलें",
   "puzzlesGroup": "पहेलियाँ",

@@ -2430,6 +2430,8 @@ dependencies = [
 name = "psygames"
 version = "1.0.0"
 dependencies = [
+ "jni 0.21.1",
+ "objc2",
  "serde",
  "serde_json",
  "tauri",

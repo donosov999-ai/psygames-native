@@ -1948,6 +1948,9 @@ const translations: Translations = {
   pauseExitGame: { ru: 'Выйти из упражнения', en: 'Leave exercise' },
   pauseSoundOff: { ru: 'Тихий режим', en: 'Quiet mode' },
   pauseSoundOn: { ru: 'Вернуть звук', en: 'Sound back on' },
+  // Полноэкранный режим игры (`src/services/immersive.ts`): подпись — действие, как у звука выше.
+  pauseFullscreenOff: { ru: 'Не скрывать панели телефона', en: 'Keep phone bars visible' },
+  pauseFullscreenOn: { ru: 'Скрывать панели телефона', en: 'Hide phone bars in game' },
   pauseReport: { ru: 'Сообщить о проблеме', en: 'Report a problem' },
   gamePauseOpen: { ru: 'Пауза и выход', en: 'Pause and exit' },
   exitConfirmStay: { ru: 'Продолжить игру', en: 'Keep playing' },

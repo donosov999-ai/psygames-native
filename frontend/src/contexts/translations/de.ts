@@ -2705,6 +2705,8 @@ const t: Record<string, string> = {
   "pauseExitGame": "Übung verlassen",
   "pauseSoundOff": "Leiser Modus",
   "pauseSoundOn": "Ton wieder an",
+  "pauseFullscreenOff": "Handyleisten nicht ausblenden",
+  "pauseFullscreenOn": "Handyleisten im Spiel ausblenden",
   "pauseReport": "Problem melden",
   "gamePauseOpen": "Pause und Beenden",
   "puzzlesGroup": "Rätsel",

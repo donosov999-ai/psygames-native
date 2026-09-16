@@ -1,4 +1,4 @@
-/* psygames-puzzle-ladder-waits-for-engines · VER 1 · 11.09.2026 */
+/* psygames-puzzle-ladder-waits-for-engines · VER 2 · 16.09.2026 */
 /**
  * 🔴 ЭКРАН НЕ ОБЪЯВЛЯЕТ ЛЕСТНИЦУ, КОТОРОЙ ЕЩЁ НЕ ВИДЕЛ.
  *
@@ -77,10 +77,23 @@ function весьТекст(узел: any): string {
   return куски.join(' ');
 }
 
+/**
+ * ⚠️ КАЖДОЕ ДЕРЕВО РАЗМОНТИРУЕТСЯ В КОНЦЕ ПРОБЫ (задача 8ef62482, 16.09.2026).
+ * Раньше деревья оставались смонтированными: таймер питомца (`PetSprite`) срабатывал
+ * уже ПОСЛЕ сноса окружения jest, экран перерисовывался без модулей и печатал
+ * «неперехваченная ошибка в дереве: Element type is invalid» — при зелёных пробах.
+ * Такой шум прячет настоящую ошибку рядом: к нему привыкаешь и перестаёшь читать.
+ */
+const деревья: any[] = [];
+afterEach(async () => {
+  await TestRenderer.act(async () => { деревья.splice(0).forEach((д) => д.unmount()); });
+});
+
 describe('лестница головоломки ждёт опись движков', () => {
   it('🔴 до загрузки описи экран НЕ показывает выдуманное «1/1»', async () => {
     let дерево: any;
     await TestRenderer.act(async () => { дерево = TestRenderer.create(React.createElement(PuzzlesScreen)); });
+    деревья.push(дерево);
     const текст = весьТекст(дерево);
     expect(текст).toContain('level=—');
     expect(текст).not.toMatch(/level=\d+\/1\b/);
@@ -89,6 +102,7 @@ describe('лестница головоломки ждёт опись движк
   it('🔴 как опись пришла — в шапке настоящее число ступеней', async () => {
     let дерево: any;
     await TestRenderer.act(async () => { дерево = TestRenderer.create(React.createElement(PuzzlesScreen)); });
+    деревья.push(дерево);
     await TestRenderer.act(async () => {
       отдатьОпись([{ индекс: 0, имя: 'Slide', умеетТекстом: false, решаем: false, ступени: [
         { индекс: 0, имя: '7x6, max 25 moves', параметры: '7x6m25' },

@@ -2699,6 +2699,8 @@ const t: Record<string, string> = {
   "pauseExitGame": "エクササイズを終了",
   "pauseSoundOff": "サイレントモード",
   "pauseSoundOn": "音を戻す",
+  "pauseFullscreenOff": "システムバーを隠さない",
+  "pauseFullscreenOn": "プレイ中はシステムバーを隠す",
   "pauseReport": "問題を報告",
   "gamePauseOpen": "一時停止と終了",
   "puzzlesGroup": "パズル",

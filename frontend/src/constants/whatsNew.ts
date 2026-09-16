@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.13',
+    date: '2026-09-16',
+    ru: [
+      '«Числовой забег» теперь на весь экран: дорога занимает почти весь телефон, а счёт, пауза и руль лежат прямо на ней',
+      '«Запомни цифры» и «Математический спринт» получили свою клавиатуру под полем — системная больше не закрывает пол-экрана и кнопку «Проверить»',
+      'У игр на внимание новые ступени сложности вместо повторяющихся уровней, в PRL счёт стоит в центре и растёт на глазах, а справки раздела переписаны простым языком',
+      'OSpan засчитывает буквы, набранные подряд без пробелов. «Считалка», SDMT, «Найди отличия» и «Математическая шкала» помещаются на маленьких телефонах',
+    ],
+    en: [
+      'Number Run is now full screen: the road fills almost the whole phone, with the score, pause and steering right on top of it',
+      'Digit Span and Mental Math Sprint have their own keypad under the board, so the system keyboard no longer covers half the screen and the Check button',
+      'Attention games gain new difficulty steps instead of repeated levels, PRL shows the score in the centre as it grows, and the section help is rewritten in plain words',
+      'OSpan accepts letters typed without spaces. Counter, SDMT, Find Differences and Math Slider now fit small phones',
+    ],
+  },
+  {
     version: '2.54.12',
     date: '2026-09-16',
     ru: [
