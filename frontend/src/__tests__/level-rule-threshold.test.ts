@@ -145,6 +145,7 @@ const МЕХАНИКИ: Механика[] = [
   { игра: 'ospan', ключ: 'hardmath', вид: 'порог', есть: (L) => ospan(L).hardMath },
   { игра: 'picture-pairs', ключ: 'triple', вид: 'состояние', есть: (L) => pairs(L).groupSize === 3 },
   { игра: 'picture-pairs', ключ: 'quad', вид: 'порог', есть: (L) => pairs(L).groupSize === 4 },
+  { игра: 'picture-pairs', ключ: 'swap', вид: 'порог', есть: (L) => pairs(L).swapsPerMiss > 0 },
   { игра: 'pseudoword-echo', ключ: 'longer6', вид: 'порог', есть: (L) => echo(L).lenMin >= 6 },
   { игра: 'pseudoword-echo', ключ: 'longer8', вид: 'порог', есть: (L) => echo(L).lenMin >= 8 },
   { игра: 'semantic-sort', ключ: 'three', вид: 'порог', есть: (L) => semantic(L).catsPerRound >= 3 },

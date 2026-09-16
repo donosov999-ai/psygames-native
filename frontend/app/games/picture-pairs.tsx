@@ -47,19 +47,26 @@ const PAIRS_BENEFITS = [
   { icon: 'time-outline', textKey: 'benefitPairs3' },
 ];
 
+/**
+ * Последний уровень, где ещё растёт ОБЪЁМ. С L13 групп 4 + (L − 13), и на L21 их становится
+ * двенадцать — ровно столько картинок в наборе (SPRITE_COUNT). Скорость показа упёрлась в
+ * пол 250 мс ещё на L14. Без новой оси L22…L60 были бы копиями L21: 39 пар одинаковых
+ * соседних уровней из 59 (замер 16.09.2026, задача 2fb42171).
+ */
+export const PAIRS_VOLUME_TOP = 13 + SPRITE_COUNT - 4;
+/** Сколько пара подсвечена перед обменом и пауза до следующей пары. */
+export const SWAP_LIT_MS = 450;
+export const SWAP_GAP_MS = 150;
+const SWAP_LIT_COLOR = '#fde047';
+
 // v1.112.0: правила-по-уровням объясняются явно (аудит «молчаливых механик»)
 /** Экспортирован для гейта `level-rule-threshold`: пороги сверяются с механикой исполнением, а не разбором исходника. */
 export const PAIRS_RULES: LevelRule[] = [
-  {
-    key: 'triple', fromLevel: 10, toLevel: 12,
-    ru: { title: 'Тройки', rule: 'С этого уровня совпадение — не пара, а ТРИ одинаковые картинки. Открывай три подряд: две одинаковые — ещё не матч.', example: 'Пример: 🐱🐱 — мало, группа снимется только с третьей 🐱.' },
-    en: { title: 'Triples', rule: 'From this level a match is not a pair but THREE identical pictures. Open three in a row: two of a kind is not a match yet.', example: 'Example: 🐱🐱 is not enough — the group clears only with a third 🐱.' },
-  },
-  {
-    key: 'quad', fromLevel: 13,
-    ru: { title: 'Четвёрки', rule: 'Теперь совпадение — ЧЕТЫРЕ одинаковые картинки. Открой все четыре подряд, чтобы снять группу.', example: 'Пример: 🐱🐱🐱 — мало, нужна четвёртая 🐱.' },
-    en: { title: 'Quads', rule: 'Now a match is FOUR identical pictures. Open all four in a row to clear the group.', example: 'Example: 🐱🐱🐱 is not enough — you need a fourth 🐱.' },
-  },
+  // Тексты всех трёх правил — в словаре: lr_picture_pairs_<key>_{title,rule,example}, 12 языков.
+  // Инлайн ru/en снят 16.09.2026 (долг гейта level-rules-i18n): он знал два языка из двенадцати.
+  { key: 'triple', fromLevel: 10, toLevel: 12 },
+  { key: 'quad', fromLevel: 13 },
+  { key: 'swap', fromLevel: PAIRS_VOLUME_TOP + 1 },
 ];
 
 // Спрайты карточек подбираются под активный профиль (зверята / шахматы / биохак / …),
@@ -114,7 +121,7 @@ interface Card {
  * разбирать исходник регуляркой: разбор ломается на верной правке и перестаёт
  * что-либо стеречь.
  */
-export function levelCfg(L: number): { pairs: number; groupSize: number; photo: boolean; previewMs: number } {
+export function levelCfg(L: number): { pairs: number; groupSize: number; photo: boolean; previewMs: number; swapsPerMiss: number } {
   // Сложность: L1-9 пары 4→12 · L10-12 ТРОЙКИ (3 одинаковых на символ) · L13-15 ЧЕТВЁРКИ.
   // groupSize = сколько копий каждого символа нужно открыть. previewMs ещё короче с уровнем.
   const groupSize = L <= 9 ? 2 : L <= 12 ? 3 : 4;
@@ -133,7 +140,31 @@ export function levelCfg(L: number): { pairs: number; groupSize: number; photo: 
               : 4 + (L - 13);                            // L13+ четвёрок, но не больше набора
   const pairs = Math.min(wanted, SPRITE_COUNT);
   const previewMs = Math.max(250, 800 - L * 40);        // показ быстрее с уровнем
-  return { pairs, groupSize, photo: true, previewMs };
+  /**
+   * 🔴 ОСЬ ПОСЛЕ ОБЪЁМА — КАРТЫ МЕНЯЮТСЯ МЕСТАМИ ПОСЛЕ ОШИБКИ. Ось 9 из правила раздела
+   * «потолков нет» (span-chat/RULE_NO_CEILINGS.md): раскладка меняется ВНУТРИ партии.
+   * Число — СРЕДНЕЕ обменов на одну ошибку; дробную часть решает бросок.
+   *
+   * ПОЧЕМУ НЕ ЗАДЕРЖКА ПОСЛЕ ПОКАЗА, как у семи других игр раздела. Замер моделью
+   * партии на 48 картах, игрок помнит всё увиденное: показ, из которого человек уносит
+   * около четырёх карт (ёмкость зрительной рабочей памяти — Luck & Vogel, Nature 390,
+   * 1997), экономит 3,9 % ходов — задержке после него стирать нечего. А между идеальной
+   * памятью по ходу партии и памятью на 16 карт — 25 против 66 ходов. Нагрузка этой
+   * игры живёт в САМОЙ ПАРТИИ, и ось обязана бить туда.
+   *
+   * ПОЧЕМУ ЧЕТВЕРТЬ ОБМЕНА НА УРОВЕНЬ. Та же модель, игрок успевает проследить один
+   * обмен из серии, а остальные стирают его знание об обеих клетках: L29 ×1,3 хода к
+   * L21, L33 ×2,1, L41 ×6,7, L60 ×50 — и все 600 партий на уровень доходят до конца.
+   * Хвост без потолка, но проходимый. Целый обмен на уровень делал бы L30+ неигровыми.
+   */
+  const swapsPerMiss = Math.max(0, L - PAIRS_VOLUME_TOP) / 4;
+  return { pairs, groupSize, photo: true, previewMs, swapsPerMiss };
+}
+
+/** Сколько обменов после этой ошибки: целая часть среднего — всегда, дробная — броском. */
+export function обменовПослеОшибки(swapsPerMiss: number, rnd: () => number): number {
+  const целых = Math.floor(swapsPerMiss);
+  return целых + (rnd() < swapsPerMiss - целых ? 1 : 0);
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -185,6 +216,9 @@ export default function PicturePairsGame() {
   const [locked, setLocked] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Пара клеток, которые сейчас меняются местами: подсвечена на рубашке. */
+  const [swapPair, setSwapPair] = useState<[number, number] | null>(null);
+  const swapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scoreRef = useRef(0);
   const groupSizeRef = useRef(2);   // сколько одинаковых карт = группа (2 пара / 3 тройка / 4 четвёрка)
   /**
@@ -213,14 +247,67 @@ export default function PicturePairsGame() {
   // ошибка `react-hooks/refs` (две штуки держали храповик линта красным на метке
   // 2.54.13). Слой-эффект срабатывает раньше обычного эффекта ниже, так что тот
   // читает уже свежие ходы и время — как в `WarmupContext` со `stateRef`.
+  // Раскладку и открытость правила читают таймеры обменов — им тоже нужен живой кадр.
   const movesRef = useRef(0);
   const elapsedRef = useRef(0);
-  useLayoutEffect(() => { movesRef.current = moves; elapsedRef.current = elapsedTime; }, [moves, elapsedTime]);
+  const cardsRef = useRef<Card[]>([]);
+  const правилоОткрытоRef = useRef(false);
+  useLayoutEffect(() => {
+    movesRef.current = moves; elapsedRef.current = elapsedTime;
+    cardsRef.current = cards; правилоОткрытоRef.current = levelRules.open;
+  }, [moves, elapsedTime, cards, levelRules.open]);
   const правилоОткрывалосьRef = useRef(false);
+
+  /** Секундомер с уже набежавшими секундами — после паузы на правило или на обмены. */
+  const запуститьЧасы = (прошлоСек: number) => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    const start = gameNow() - прошлоСек * 1000;
+    setStartTime(start);
+    timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
+  };
+
+  const остановитьОбмены = () => {
+    if (swapTimerRef.current) { clearTimeout(swapTimerRef.current); swapTimerRef.current = null; }
+    setSwapPair(null);
+  };
+
+  /**
+   * Обмены после ошибки: пары закрытых карт по одной, каждая подсвечена SWAP_LIT_MS до
+   * обмена — человек видит, КАКИЕ клетки поменялись, и может перенести запомненное.
+   * Поле заперто, секундомер стоит: это время навязано игрой и в счёт не идёт.
+   * Пара берётся из живого расклада (cardsRef), поэтому первая — после паузы SWAP_GAP_MS,
+   * когда только что открытые карты уже закрылись и тоже могут переехать.
+   */
+  const запуститьОбмены = (сколько: number) => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    const шаг = (осталось: number) => {
+      swapTimerRef.current = null;
+      if (правилоОткрытоRef.current) { setSwapPair(null); return; }   // карточка правила сама отпустит поле
+      const закрытые = cardsRef.current.map((c, i) => (c.matched || c.flipped ? -1 : i)).filter((i) => i >= 0);
+      if (осталось <= 0 || закрытые.length < 2) {
+        setSwapPair(null);
+        setLocked(false);
+        запуститьЧасы(elapsedRef.current);
+        return;
+      }
+      const a = закрытые[Math.floor(Math.random() * закрытые.length)];
+      const прочие = закрытые.filter((i) => i !== a);
+      const b = прочие[Math.floor(Math.random() * прочие.length)];
+      setSwapPair([a, b]);
+      swapTimerRef.current = setTimeout(() => {
+        setCards((cs) => { const n = [...cs]; [n[a], n[b]] = [n[b], n[a]]; return n; });
+        setSwapPair(null);
+        swapTimerRef.current = setTimeout(() => шаг(осталось - 1), SWAP_GAP_MS);
+      }, SWAP_LIT_MS);
+    };
+    swapTimerRef.current = setTimeout(() => шаг(сколько), SWAP_GAP_MS);
+  };
+
   useEffect(() => {
     if (levelRules.open) {
       // Карточка правила открылась: ни показ, ни секундомер не должны идти под ней.
       правилоОткрывалосьRef.current = true;
+      остановитьОбмены();
       if (previewTimerRef.current) { clearTimeout(previewTimerRef.current); previewTimerRef.current = null; }
       if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
       setCards((cs) => cs.map((c) => ({ ...c, flipped: c.matched })));
@@ -231,11 +318,6 @@ export default function PicturePairsGame() {
     if (!правилоОткрывалосьRef.current) return;
     правилоОткрывалосьRef.current = false;
     if (phase !== 'playing') return;
-    const запуститьЧасы = (прошлоСек: number) => {
-      const start = gameNow() - прошлоСек * 1000;
-      setStartTime(start);
-      timerRef.current = setInterval(() => setElapsedTime((gameNow() - start) / 1000), 100);
-    };
     if (movesRef.current === 0) {
       // Ходов ещё не было — показ целиком заново: теперь человек знает, что запоминать.
       setElapsedTime(0);
@@ -266,6 +348,7 @@ export default function PicturePairsGame() {
 
   // Запустить один раунд с заданным конфигом (общий для обоих режимов).
   const startRound = (pairs: number, groupSize: number, photo: boolean, pms: number) => {
+    остановитьОбмены();
     groupSizeRef.current = groupSize;
     setPreviewMs(pms || previewMs);
     const deck = buildDeck(pairs, groupSize);
@@ -361,6 +444,7 @@ export default function PicturePairsGame() {
   useEffect(() => () => {
     if (timerRef.current) clearInterval(timerRef.current);
     if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    if (swapTimerRef.current) clearTimeout(swapTimerRef.current);
   }, []);
 
   // ── незаконченная партия ────────────────────────────────────────────────
@@ -382,6 +466,7 @@ export default function PicturePairsGame() {
 
   /** Поднять расклад из снимка — поле ровно то, что оставили. */
   const applyResume = (r: PairsResume) => {
+    остановитьОбмены();
     setMode(r.mode);
     setLevel(r.level);
     setPairsCount(r.pairsCount);
@@ -488,7 +573,9 @@ export default function PicturePairsGame() {
             newOpen.includes(i) ? { ...c, flipped: false } : c
           ));
           setOpenIdx([]);
-          setLocked(false);
+          const обменов = mode === 'game' && !isPreset ? обменовПослеОшибки(levelCfg(level).swapsPerMiss, Math.random) : 0;
+          if (обменов > 0 && !правилоОткрытоRef.current) запуститьОбмены(обменов);
+          else setLocked(false);
         }, 800);
       }
     }
@@ -685,9 +772,17 @@ export default function PicturePairsGame() {
                     : `${t('a11yCard')} ${i + 1}`
                 }
                 back={
-                  <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: cardBack.color, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
-                    <Ionicons name={cardBack.icon as any} size={cardSize * 0.32} color="rgba(255,255,255,0.6)" />
-                  </View>
+                  swapPair?.includes(i) ? (
+                    // Пара, которая сейчас меняется местами: толстая рамка и значок обмена —
+                    // одной рамки на девяти цветах рубашек мало.
+                    <View testID="pp-swap-lit" style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: cardBack.color, justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: SWAP_LIT_COLOR }}>
+                      <Ionicons name="swap-horizontal" size={cardSize * 0.42} color="#ffffff" />
+                    </View>
+                  ) : (
+                    <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: cardBack.color, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
+                      <Ionicons name={cardBack.icon as any} size={cardSize * 0.32} color="rgba(255,255,255,0.6)" />
+                    </View>
+                  )
                 }
                 front={
                   <View style={{ width: cardSize, height: cardSize, borderRadius: 10, backgroundColor: card.matched ? '#22c55e' : colors.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }}>
