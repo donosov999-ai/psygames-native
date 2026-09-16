@@ -72,8 +72,7 @@ import {
   getMentalRotationStrings,
   gridSize,
   interpolateMentalRotation,
-  levelParams,
-  rotationLevelSpec,
+  levelSummary,
   meanSlopeRt,
   netCellKey,
   netSize,
@@ -578,12 +577,7 @@ export default function MentalRotationGame() {
       <View style={[styles.optionCard, { backgroundColor: colors.surface, alignItems: 'center' }]}>
         <Text style={[styles.optionLabel, { color: colors.text, fontSize: 18 }]}>{t('level')} {selectedLevel}/50</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>
-          {(() => {
-            if(language==='ru')return rotationLevelSpec(selectedLevel).change;
-            const p = levelParams(selectedLevel);
-            const axesTxt = t(p.axes.length === 1 ? 'mrAxisZ' : p.axes.length === 2 ? 'mrAxisXY' : 'mrAxisXYZ');
-            return `${p.minC}–${p.maxC} ${t('mrCubes')} · ${axesTxt}${p.compound ? ` · ${t('mrOblique')}` : ''}`;
-          })()}
+          {levelSummary(selectedLevel, strings)}
         </Text>
         <Text style={{ color: colors.textSecondary, fontSize: 13, textAlign: 'center' }}>{strings.kindsSummary}</Text>
         {lvl.level > 1 && (

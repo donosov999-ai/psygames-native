@@ -84,6 +84,16 @@ export interface MentalRotationStrings {
   a11yOption: string;
   /** Строка на экране настройки: из чего состоит партия. */
   kindsSummary: string;
+  /**
+   * Описание уровня на экране настройки, части склеиваются через « · » (`levelSummary`).
+   * Число всегда после двоеточия: склонять «4 кубиков» в двенадцати языках нечем.
+   */
+  levelCubes: string;
+  levelOptions: string;
+  /** `{a}`–`{b}` — углы в градусах, те же, что `angleSum` заданий уровня. */
+  levelTurnFlat: string;
+  levelTurnDepth: string;
+  levelFoilOneCube: string;
 }
 
 const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
@@ -131,6 +141,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Вращать самому',
     a11yOption: 'Вариант {n}',
     kindsSummary: 'Семь видов заданий: поворот, проекция, развёртка, точка зрения, сравнение фигур, недостающая часть и сборка.',
+    levelCubes: 'Кубиков: {n}',
+    levelOptions: 'вариантов: {n}',
+    levelTurnFlat: 'поворот в плоскости экрана: {a}–{b}°',
+    levelTurnDepth: 'поворот в объёме по двум осям, в сумме: {a}–{b}°',
+    levelFoilOneCube: 'подделка отличается одним кубиком',
   },
   en: {
     taskLabel: 'Task',
@@ -176,6 +191,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Rotate manually',
     a11yOption: 'Option {n}',
     kindsSummary: 'Seven task kinds: rotation, projection, cube net, viewpoint, figure matching, missing piece and assembly.',
+    levelCubes: 'Cubes: {n}',
+    levelOptions: 'options: {n}',
+    levelTurnFlat: 'turn in the screen plane: {a}–{b}°',
+    levelTurnDepth: 'turn in depth around two axes, in total: {a}–{b}°',
+    levelFoilOneCube: 'decoys differ by one cube',
   },
   es: {
     taskLabel: 'Tarea',
@@ -221,6 +241,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Girar a mano',
     a11yOption: 'Opción {n}',
     kindsSummary: 'Siete tipos de tarea: rotación, proyección, desarrollo, punto de vista, comparación de figuras, pieza que falta y montaje.',
+    levelCubes: 'Cubos: {n}',
+    levelOptions: 'opciones: {n}',
+    levelTurnFlat: 'giro en el plano de la pantalla: {a}–{b}°',
+    levelTurnDepth: 'giro en profundidad sobre dos ejes, en total: {a}–{b}°',
+    levelFoilOneCube: 'los señuelos difieren en un cubo',
   },
   de: {
     taskLabel: 'Aufgabe',
@@ -266,6 +291,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Selbst drehen',
     a11yOption: 'Variante {n}',
     kindsSummary: 'Sieben Aufgabenarten: Drehung, Projektion, Würfelnetz, Blickpunkt, Figurenvergleich, fehlendes Teil und Zusammenbau.',
+    levelCubes: 'Würfel: {n}',
+    levelOptions: 'Antworten: {n}',
+    levelTurnFlat: 'Drehung in der Bildschirmebene: {a}–{b}°',
+    levelTurnDepth: 'Drehung in die Tiefe um zwei Achsen, insgesamt: {a}–{b}°',
+    levelFoilOneCube: 'Fälschungen weichen um einen Würfel ab',
   },
   zh: {
     taskLabel: '任务',
@@ -311,6 +341,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: '手动旋转',
     a11yOption: '选项 {n}',
     kindsSummary: '七种题型：旋转、投影、展开图、视角、图形比对、缺失的部分和拼合。',
+    levelCubes: '方块：{n}个',
+    levelOptions: '选项：{n}个',
+    levelTurnFlat: '在屏幕平面内旋转：{a}–{b}°',
+    levelTurnDepth: '绕两条轴立体旋转，合计：{a}–{b}°',
+    levelFoilOneCube: '干扰项只差一个方块',
   },
   hi: {
     taskLabel: 'कार्य',
@@ -356,6 +391,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'स्वयं घुमाएँ',
     a11yOption: 'विकल्प {n}',
     kindsSummary: 'सात प्रकार के कार्य: घुमाव, प्रक्षेपण, घनजाल, दृष्टिकोण, आकृति मिलान, छूटा हुआ टुकड़ा और जोड़ना।',
+    levelCubes: 'घन: {n}',
+    levelOptions: 'विकल्प: {n}',
+    levelTurnFlat: 'स्क्रीन के तल में घुमाव: {a}–{b}°',
+    levelTurnDepth: 'दो अक्षों पर गहराई में घुमाव, कुल: {a}–{b}°',
+    levelFoilOneCube: 'नकली आकृति में सिर्फ़ एक घन अलग है',
   },
   pt: {
     taskLabel: 'Tarefa',
@@ -401,6 +441,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Girar manualmente',
     a11yOption: 'Opção {n}',
     kindsSummary: 'Sete tipos de tarefa: rotação, projeção, planificação, ponto de vista, comparação de figuras, peça que falta e montagem.',
+    levelCubes: 'Cubos: {n}',
+    levelOptions: 'opções: {n}',
+    levelTurnFlat: 'giro no plano da tela: {a}–{b}°',
+    levelTurnDepth: 'giro em profundidade em dois eixos, no total: {a}–{b}°',
+    levelFoilOneCube: 'as falsas diferem em um cubo',
   },
   fr: {
     taskLabel: 'Tâche',
@@ -446,6 +491,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Tourner à la main',
     a11yOption: 'Choix {n}',
     kindsSummary: 'Sept types de tâches : rotation, projection, patron du cube, point de vue, comparaison de figures, pièce manquante et assemblage.',
+    levelCubes: 'Cubes : {n}',
+    levelOptions: 'choix : {n}',
+    levelTurnFlat: 'rotation dans le plan de l’écran : {a}–{b}°',
+    levelTurnDepth: 'rotation en profondeur autour de deux axes, au total : {a}–{b}°',
+    levelFoilOneCube: 'les leurres diffèrent d’un cube',
   },
   it: {
     taskLabel: 'Compito',
@@ -491,6 +541,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Ruota a mano',
     a11yOption: 'Opzione {n}',
     kindsSummary: 'Sette tipi di esercizio: rotazione, proiezione, sviluppo del cubo, punto di vista, confronto di figure, pezzo mancante e assemblaggio.',
+    levelCubes: 'Cubetti: {n}',
+    levelOptions: 'opzioni: {n}',
+    levelTurnFlat: 'rotazione nel piano dello schermo: {a}–{b}°',
+    levelTurnDepth: 'rotazione in profondità su due assi, in totale: {a}–{b}°',
+    levelFoilOneCube: 'le figure false differiscono per un cubetto',
   },
   ja: {
     taskLabel: '課題',
@@ -536,6 +591,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: '自分で回す',
     a11yOption: '選択肢 {n}',
     kindsSummary: '課題は七種類：回転・投影・展開図・視点・形の照合・足りないピース・組み立て。',
+    levelCubes: 'キューブ：{n}個',
+    levelOptions: '選択肢：{n}',
+    levelTurnFlat: '画面の平面内で回転：{a}〜{b}°',
+    levelTurnDepth: '2つの軸で立体的に回転、合計：{a}〜{b}°',
+    levelFoilOneCube: 'ダミーはキューブ1個だけ違う',
   },
   ko: {
     taskLabel: '과제',
@@ -581,6 +641,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: '직접 회전',
     a11yOption: '선택지 {n}',
     kindsSummary: '과제는 일곱 가지: 회전, 투영, 전개도, 시점, 도형 비교, 빠진 조각, 조립.',
+    levelCubes: '큐브: {n}개',
+    levelOptions: '보기: {n}개',
+    levelTurnFlat: '화면 평면에서 회전: {a}–{b}°',
+    levelTurnDepth: '두 축을 중심으로 입체 회전, 합계: {a}–{b}°',
+    levelFoilOneCube: '가짜는 큐브 하나만 다릅니다',
   },
   ar: {
     taskLabel: 'المهمة',
@@ -626,6 +691,11 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'أدِر بنفسك',
     a11yOption: 'الخيار {n}',
     kindsSummary: 'سبعة أنواع من المهام: التدوير والإسقاط وشبكة المكعب وزاوية النظر ومطابقة الأشكال والقطعة الناقصة والتجميع.',
+    levelCubes: 'المكعّبات: {n}',
+    levelOptions: 'الخيارات: {n}',
+    levelTurnFlat: 'دوران في مستوى الشاشة: {a}–{b}°',
+    levelTurnDepth: 'دوران في العمق حول محورين، بالمجموع: {a}–{b}°',
+    levelFoilOneCube: 'الأشكال الخادعة تختلف بمكعّب واحد',
   },
 };
 

@@ -15,3 +15,4 @@ export * from './replay';
 export * from './session';
 export * from './i18n';
 export * from './levels';
+export * from './levelSummary';
