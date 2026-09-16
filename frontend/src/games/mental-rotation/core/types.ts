@@ -38,8 +38,16 @@ export type Shape = Cube[];
 
 export type Axis = 'x' | 'y' | 'z';
 
-/** Вид задания. Пишется в сессию: по нему отбираются пробы для наклона RT по углу. */
-export type TaskKind = 'rotation' | 'projection' | 'net';
+/**
+ * Вид задания. Пишется в сессию: по нему отбираются пробы для наклона RT по углу.
+ *
+ * ⚠️ ДОБАВЛЯЯ СЮДА СЛОВО, НЕ ТРОГАЙ ФИЛЬТР БИОМАРКЕРА. `slopeSamples` в
+ * `session.ts` отбирает пробы БЕЛЫМ СПИСКОМ (`kind === 'rotation'`), поэтому новый
+ * вид в регрессию не попадёт сам собой — но и снимать этот фильтр нельзя: у
+ * ракурса, пары «да/нет», проекции и развёртки угла поворота нет вовсе, и одна
+ * такая проба портит единственную настоящую величину игры.
+ */
+export type TaskKind = 'rotation' | 'projection' | 'net' | 'viewpoint' | 'same';
 
 /**
  * Направление взгляда для проекции.
@@ -157,4 +165,59 @@ export interface NetTask {
   correctIdx: number;
 }
 
-export type MentalRotationTask = RotationTask | ProjectionTask | NetTask;
+// ─── задание на точку зрения ─────────────────────────────────────
+
+/**
+ * Вариант ракурса. Фигура во ВСЕХ вариантах одна и та же — отличается только угол,
+ * с которого она нарисована. Поэтому вариант не носит фигуру: носить одно и то же
+ * четыре раза — приглашение когда-нибудь подменить её в одном из вариантов.
+ */
+export interface ViewpointOption {
+  /** Угол обхода в градусах вокруг `ViewpointTask.axis`. */
+  degrees: number;
+  isMatch: boolean;
+}
+
+export interface ViewpointTask {
+  kind: 'viewpoint';
+  /** Одна фигура на всё задание: и эталон, и все варианты — она же. */
+  shape: Shape;
+  /** Ось обхода. Сейчас всегда вертикаль экрана — обход кругом, как вокруг предмета. */
+  axis: Axis;
+  /** Угол правильного ракурса. Эталон показан под 0°, поэтому нулём не бывает. */
+  degrees: number;
+  options: ViewpointOption[];
+  correctIdx: number;
+}
+
+// ─── задание «одинаковая фигура» ────────────────────────────────
+
+/** Чем правая фигура отличается от левой, когда ответ «нет». Показывается в разборе. */
+export type SameFlaw = 'none' | 'mirror' | 'one-cube';
+
+/**
+ * Кнопка ответа. Порядок ФИКСИРОВАН (сначала «да», потом «нет») и не перемешивается:
+ * прыгающие кнопки меряют чтение подписи, а не мысленный поворот.
+ */
+export interface SameOption {
+  answer: boolean;
+  isMatch: boolean;
+}
+
+export interface SameTask {
+  kind: 'same';
+  left: Shape;
+  right: Shape;
+  /** Ответ задания. Считается `isValidRotation`, а не назначается генератором. */
+  isSame: boolean;
+  flaw: SameFlaw;
+  options: SameOption[];
+  correctIdx: number;
+}
+
+export type MentalRotationTask =
+  | RotationTask
+  | ProjectionTask
+  | NetTask
+  | ViewpointTask
+  | SameTask;

@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.12',
+    date: '2026-09-16',
+    ru: [
+      'У каждой из 42 головоломок теперь своя справка: она объясняет именно эту игру и то, куда нажимать. Раньше все головоломки показывали справку одной игры',
+      '«Отменить» и «Заново» стоят прямо под полем, а не в меню паузы. Стрелки собраны крестом — вверх над рядом «влево, вниз, вправо», как на клавиатуре',
+      'Доска головоломок больше не сливается с тёмной темой: «Мосты» и ещё двадцать игр снова видны целиком. Неторопливое нажатие больше не срабатывает как второе действие',
+      'В «Судоку Тэтхэма» все девять цифр на доске 9×9 и своя лестница сложности; в ментальной ротации два новых режима — «Точка зрения» и «Одинаковая фигура»',
+    ],
+    en: [
+      'Each of the 42 puzzles now has its own help: it explains that game and where to tap. Before, every puzzle showed the help of a single game',
+      'Undo and Restart sit right under the board instead of the pause menu. The arrows form a cross — up above a row of left, down, right, like on a keyboard',
+      'Puzzle boards no longer blend into the dark theme: Bridges and twenty other games are fully visible again. A slow tap no longer triggers the second action',
+      'Tatham\u2019s Sudoku has all nine digits on the 9×9 board and its own difficulty ladder; mental rotation gains two new modes — Point of View and Same Shape',
+    ],
+  },
+  {
     version: '2.54.11',
     date: '2026-09-13',
     ru: [

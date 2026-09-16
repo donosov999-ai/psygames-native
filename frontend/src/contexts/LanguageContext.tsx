@@ -385,10 +385,21 @@ const translations: Translations = {
 
   // Anagrams
   anagrams: { ru: 'Анаграммы', en: 'Anagrams' },
-  anagramsDesc: { ru: 'Составь слово из перемешанных букв', en: 'Reassemble word from shuffled letters' },
+  anagramsDesc: { ru: 'Собери слова из перемешанных букв — четыре режима', en: 'Make words from shuffled letters — four modes' },
+  /**
+   * 🔴 СПРАВКА ОБЯЗАНА НАЗЫВАТЬ ВСЕ РЕЖИМЫ, А НЕ ОДИН.
+   *
+   * `GameHelpOverlay` в своей же шапке объявляет: «Справка = НАШЕ описание
+   * (режимы/уровни, ключ introKey)». У анаграмм режимов ЧЕТЫРЕ, а и карточка,
+   * и справка описывали только классику — то есть три режима из четырёх
+   * существовали, но узнать о них было неоткуда, кроме случайного тыка в
+   * переключатель на экране настройки.
+   * Стережёт `src/__tests__/anagrams-help-names-modes.test.ts`: список режимов
+   * берётся ИЗ ЭКРАНА, поэтому пятый режим покраснит пробу сам.
+   */
   anagramsIntroDesc: {
-    ru: 'Из перемешанных букв соберите исходное слово как можно быстрее. Тренирует словарный запас, гибкость мышления и способность видеть структуру в хаосе.',
-    en: 'Reassemble the original word from shuffled letters as fast as you can. Trains vocabulary, mental flexibility and pattern recognition.',
+    ru: 'Из одного набора перемешанных букв собираются слова. Буквы берутся из выбранной темы и языка, с уровнем растут их длина и число.\n\n🎛 Режимы — выбираются перед партией:\n• Классика — собрать одно загаданное слово\n• Все слова — найти в наборе все слова сразу: пустые клетки показывают, сколько букв в каждом\n• Кроссворд — слова вписываются в сетку и пересекаются, открытая буква подсказывает соседнее\n• Слово-квадрат — четыре слова по краям поля, у соседних общие углы\n\nТренирует словарный запас, гибкость мышления и умение видеть структуру в хаосе.',
+    en: 'One pile of shuffled letters becomes words. The letters come from the theme and language you pick; they grow longer and more numerous as levels rise.\n\n🎛 Modes — chosen before the round:\n• Classic — rebuild the one hidden word\n• All words — find every word the letters hide: empty cells show how long each one is\n• Crossword — words cross in a grid, and an open letter gives away its neighbour\n• Word square — four words along the edges, sharing their corner letters\n\nTrains vocabulary, mental flexibility and the knack of seeing structure in chaos.',
   },
   lettersInWord: { ru: 'Букв в слове', en: 'Letters' },
   anagramHint: { ru: 'Ведите пальцем по буквам — или нажимайте по одной', en: 'Swipe across the letters — or tap them one by one' },
@@ -943,7 +954,17 @@ const translations: Translations = {
   goHome: { ru: 'На главную', en: 'Go Home' },
   /** «Чёт-нечет» — первая головоломка на движке Тэтхэма (Unruly). */
   puzzlesUnruly: { ru: 'Чёт-нечет', en: 'Odd or Even' },
-  puzzlesUnrulyIntroDesc: { ru: 'Здесь сорок логических головоломок. У каждой своё правило, но общее одно: у доски ровно одно решение, и до него можно дойти рассуждением — угадывать не нужно. Режим выбирается карточкой в развилке, сложность растёт по своей лестнице у каждой головоломки. Короткое нажатие по полю делает ход, ДОЛГОЕ — второе действие: в «Магнитах» им ставят пустую половинку, в «Минах» помечают мину, в «Чёт-нечете» перебирают в обратную сторону. Отменить ход, попросить подсказку или начать заново можно в меню паузы — кнопка ⏸ слева вверху.', en: 'Forty logic puzzles live here. Each has its own rule, but one thing is shared: every board has exactly one solution and reasoning always gets you there — guessing is never required. Pick a mode from the section card; difficulty grows along a ladder of its own for each puzzle. A short tap makes a move, a LONG press is the second action: in Magnets it leaves a domino half blank, in Mines it flags a mine, in Unruly it cycles the other way. Undo, ask for a hint or start over from the pause menu — the ⏸ button at the top left.' },
+  /* 🔴 ПРАВИЛА ПИШУТСЯ НА ВОПРОС «КУДА НАЖИМАТЬ», А НЕ «В ЧЁМ ЦЕЛЬ».
+     Жалоба 16.09.2026 (задача 2b774e8b): четыре РАЗНЫЕ головоломки брошены за 90 секунд
+     подряд с текстом «Как играть? Где справка?» — при том что кнопка «Правила» видна на
+     всех четырёх кадрах. За ней лежал один текст на сорок две игры.
+     Образец для владельцев режимов: сперва правило доски, потом ЧЕМ делается ход и что
+     делает долгое нажатие ИМЕННО ЗДЕСЬ, в конце — общий хвост про меню паузы.
+     Ключ режима: `<nameKey>IntroDesc`, раскладка режимов по разделам — STRUCTURE.md. */
+  puzzlesUnrulyIntroDesc: { ru: 'Доска заполняется чёрными и белыми клетками по трём правилам: в каждой строке и в каждом столбце чёрных ровно столько же, сколько белых; трёх одинаковых подряд не бывает ни по горизонтали, ни по вертикали; двух одинаковых строк или столбцов тоже. Начинают с расставленных клеток — они не меняются. Короткое нажатие перебирает пусто → чёрное → белое, долгое перебирает в обратную сторону.', en: 'Fill the grid with black and white cells under three rules: every row and every column holds as many black cells as white; no three of a kind ever sit in a row, across or down; and no two rows or columns are identical. The cells you start with are fixed. A short tap cycles empty → black → white, a long press cycles the other way.' },
+  puzzlesSlantIntroDesc: { ru: 'В каждой клетке надо провести одну диагональ — либо «/», либо «\». Числа стоят в узлах сетки и говорят, сколько концов диагоналей сходится ИМЕННО в этом узле: 0 — ни одной, 4 — все четыре. И главное ограничение: линии не должны образовать ни одной замкнутой петли, даже большой. Короткое нажатие по клетке меняет наклон, долгое — меняет в обратную сторону.', en: 'Draw exactly one diagonal in every cell — either “/” or “\”. The numbers sit on grid corners and say how many diagonal ends meet AT THAT corner: 0 means none, 4 means all four. The key restriction: the lines must never form a closed loop, however large. A short tap flips the slash, a long press flips it the other way.' },
+  puzzlesBlackBoxIntroDesc: { ru: 'В закрытом ящике спрятаны шары, и найти их надо, не заглядывая внутрь. Нажатие на стрелку по краю пускает луч: он летит прямо, но рядом с шаром отклоняется, а попав в шар — гаснет. По тому, из какой точки луч вышел, вернулся назад или не вышел вовсе, положение шаров вычисляется однозначно. Нажатие по клетке внутри ящика ставит догадку «здесь шар», долгое — помечает клетку как пустую, чтобы не путаться. Когда все шары расставлены, ящик открывается и показывает, где они были.', en: 'Balls are hidden inside a closed box and you must find them without looking in. Tapping an arrow on the edge fires a beam: it travels straight, deflects when it passes beside a ball, and is absorbed when it hits one. From where the beam comes out, returns, or fails to appear at all, the positions follow with certainty. Tapping a cell inside places a guess “a ball is here”, a long press marks the cell as empty so you don’t lose track. Place every ball and the box opens to show where they really were.' },
+  puzzlesGuessIntroDesc: { ru: 'Загадан ряд цветов, и его надо угадать за несколько попыток. Собираешь свой ряд и подтверждаешь; в ответ выставляются метки: сколько цветов стоят на СВОИХ местах и сколько угаданы, но стоят не там. Какой метке какой цвет соответствует — не говорят, поэтому каждая попытка это вывод из прошлых, а не перебор. Цвет в ячейке выбирается нажатием, долгое нажатие снимает его. Ряд подтверждается кнопкой под полем.', en: 'A row of colours is hidden and you have a limited number of tries to name it. Build your row and submit; the answer comes back as markers: how many colours sit in the RIGHT place, and how many are in the code but placed elsewhere. Which marker belongs to which peg is never revealed, so every try is a deduction from the previous ones rather than a sweep. Tap a slot to set a colour, long press to clear it, then confirm the row with the button below the board.' },
   /**
    * 🔴 ЧТО ДВИЖОК СЧИТАЕТ САМ — подписи для слота «ход партии» в шапке. Замер
    * 10.09.2026: строку состояния дают 14 движков из 40, и у двенадцати она меняется
@@ -981,48 +1002,50 @@ const translations: Translations = {
   // «Счёт» в словаре уже есть ключом `score` — разбор берёт его, своего не заводим.
   puzzleHudRegion: { ru: 'Область', en: 'Region' },
   puzzlesMines: { ru: 'Сапёр', en: 'Minesweeper' },
-  puzzlesMinesDesc: { ru: 'Числа говорят, сколько мин рядом; доска решается без угадывания', en: 'Numbers count the mines around them; the board never needs a guess' },
+  puzzlesMinesDesc: { ru: 'Числа говорят, сколько мин рядом; доска решается без угадывания. Тап — открыть клетку, второе действие — флажок на мине', en: 'The numbers say how many mines are adjacent; the board is solvable without guessing. Tap to open a cell; the second action flags a mine' },
   puzzlesMosaic: { ru: 'Мозаика', en: 'Mosaic' },
-  puzzlesMosaicDesc: { ru: 'Число в клетке — сколько закрашено в квадрате 3×3 вокруг неё', en: 'A number counts the filled cells in the 3×3 square around it' },
+  puzzlesMosaicDesc: { ru: 'Число в клетке — сколько закрашено в квадрате 3×3 вокруг неё. Тап — закрасить клетку, второе действие — пометить её пустой', en: 'The number in a cell counts the filled cells in the 3×3 square around it. Tap to fill a cell; the second action marks it empty' },
   puzzlesRange: { ru: 'Обзор', en: 'Line of Sight' },
-  puzzlesRangeDesc: { ru: 'Число — сколько клеток видно из неё по строке и столбцу', en: 'A number says how many cells it sees along its row and column' },
+  puzzlesRangeDesc: { ru: 'Число — сколько клеток видно из неё по строке и столбцу. Тап — закрасить клетку чёрным, второе действие — точка «здесь пусто»', en: 'A number says how many cells are visible from it along its row and column. Tap to black out a cell; the second action puts a dot for “empty”' },
   puzzlesUndead: { ru: 'Нежить', en: 'Undead' },
-  puzzlesUndeadDesc: { ru: 'Расставить призраков, вампиров и зомби по счёту в отражениях', en: 'Place ghosts, vampires and zombies to match the counts seen through mirrors' },
+  puzzlesUndeadDesc: { ru: 'Призраки, вампиры и зомби — по счёту в отражениях. Нажми клетку, потом цифру снизу; второе действие ставит пометку', en: 'Ghosts, vampires and zombies to match the counts in the mirrors. Tap a cell, then a digit below; the second action leaves a pencil mark' },
   puzzlesSolo: { ru: 'Судоку Тэтхэма', en: 'Tatham’s Sudoku' },
-  puzzlesSoloDesc: { ru: 'Классический латинский квадрат с блоками и авторской лестницей из шестнадцати ступеней', en: 'The classic Latin square with blocks, on its author’s own sixteen-step ladder' },
+  // Имя второго действия — порежимно, таблица ИМЯ_ВТОРОГО в tatham-bridge/names.ts.
+  puzzleSecondKeep: { ru: 'Оставить', en: 'Keep' },
+  puzzlesSoloDesc: { ru: 'Цифры 1–9 по разу в строке, столбце и блоке. Нажми клетку, потом цифру снизу; второе действие ставит пометку', en: 'Digits 1–9 once per row, column and block. Tap a cell, then a digit below; the second action leaves a pencil mark' },
   puzzlesTowers: { ru: 'Небоскрёбы Тэтхэма', en: 'Tatham’s Towers' },
-  puzzlesTowersDesc: { ru: 'Число снаружи — сколько башен видно с этой стороны ряда', en: 'A number outside the grid says how many towers are visible from there' },
+  puzzlesTowersDesc: { ru: 'Число снаружи — сколько башен видно с этой стороны. Нажми клетку, потом цифру снизу; второе действие ставит пометку', en: 'A number outside says how many towers are visible from there. Tap a cell, then a digit below; the second action leaves a pencil mark' },
   puzzlesUnequal: { ru: 'Неравенства Тэтхэма', en: 'Tatham’s Unequal' },
-  puzzlesUnequalDesc: { ru: 'Латинский квадрат со знаками «больше» и «меньше» между клетками', en: 'A Latin square with greater-than signs standing between the cells' },
+  puzzlesUnequalDesc: { ru: 'Знаки «больше» и «меньше» между клетками задают порядок. Нажми клетку, потом цифру снизу; второе действие ставит пометку', en: 'Greater-than signs between cells fix the order. Tap a cell, then a digit below; the second action leaves a pencil mark' },
   puzzlesRectangles: { ru: 'Прямоугольники', en: 'Rectangles' },
-  puzzlesRectanglesDesc: { ru: 'Разрезать поле на прямоугольники: в каждом одно число — его площадь', en: 'Cut the board into rectangles, each holding one number: its own area' },
+  puzzlesRectanglesDesc: { ru: 'Разрезать поле на прямоугольники: число внутри — его площадь. Рамку тянут пальцем от угла к углу; одиночный тап берёт одну клетку', en: 'Cut the grid into rectangles; the number inside is its area. Drag from corner to corner to draw a rectangle — a single tap takes one cell' },
   puzzlesPalisade: { ru: 'Частокол', en: 'Palisade' },
-  puzzlesPalisadeDesc: { ru: 'Разрезать поле на равные области; число — сколько границ у клетки', en: 'Split the board into equal regions; a number counts a cell’s own walls' },
+  puzzlesPalisadeDesc: { ru: 'Разрезать поле на равные области; число — сколько границ у клетки. Тап по ребру — поставить границу, второе действие — пометка', en: 'Cut the grid into equal regions; a number says how many borders that cell has. Tap an edge to place a border; the second action leaves a mark' },
   puzzlesBridges: { ru: 'Мосты', en: 'Bridges' },
   puzzlesBridgesDesc: { ru: 'Соединить острова мостами: число на острове — сколько их к нему сходится', en: 'Join the islands with bridges: the number says how many meet there' },
   puzzlesUntangle: { ru: 'Распутать', en: 'Untangle' },
-  puzzlesUntangleDesc: { ru: 'Растащить узлы так, чтобы ни одна линия не пересекала другую', en: 'Drag the nodes apart until no two lines cross' },
+  puzzlesUntangleDesc: { ru: 'Тяни узел пальцем и растаскивай их, пока ни одна линия не пересечёт другую', en: 'Drag a node with your finger and pull them apart until no two lines cross' },
   puzzlesNet: { ru: 'Трубы', en: 'Pipes' },
-  puzzlesNetDesc: { ru: 'Повернуть каждый кусок так, чтобы сеть соединилась целиком', en: 'Rotate every piece until the whole network hangs together' },
+  puzzlesNetDesc: { ru: 'Нажимай кусок — он поворачивается. Второе действие запирает готовый. Собери всю сеть', en: 'Tap a piece to turn it; the second action locks one you are sure of. Join the whole network' },
   puzzlesNetslide: { ru: 'Трубы со сдвигом', en: 'Sliding Pipes' },
-  puzzlesNetslideDesc: { ru: 'Та же сеть, но куски не поворачиваются, а ездят рядами и столбцами', en: 'The same network, but pieces slide by row and column instead of turning' },
+  puzzlesNetslideDesc: { ru: 'Нажимай стрелку с краю — весь ряд едет по кругу. Куски не поворачиваются, только ездят', en: 'Tap an arrow at the edge and the whole row slides around. Pieces never turn, they only travel' },
   puzzlesTwiddle: { ru: 'Поворот квадрата', en: 'Twiddle' },
-  puzzlesTwiddleDesc: { ru: 'Крутить квадрат клеток целиком, пока числа не встанут по порядку', en: 'Rotate a whole square of cells until the numbers fall into order' },
+  puzzlesTwiddleDesc: { ru: 'Нажимай внутри квадрата из клеток — он повернётся целиком. Расставь числа по порядку', en: 'Tap inside a square of cells and it turns as one block. Put the numbers back in order' },
   puzzlesSixteen: { ru: 'Шестнадцать', en: 'Sixteen' },
   puzzlesSlide: { ru: 'Клоцки', en: 'Klotski' },
-  puzzlesSlideDesc: { ru: 'Растолкать блоки так, чтобы главный вышел наружу', en: 'Shuffle the blocks aside so the main one can slide out' },
+  puzzlesSlideDesc: { ru: 'Тяни блок пальцем в свободное место — выведи главный блок наружу', en: 'Drag a block into the free space — get the main block out' },
   puzzlesSokoban: { ru: 'Сокобан', en: 'Sokoban' },
-  puzzlesSokobanDesc: { ru: 'Толкать бочки на метки, не загоняя их в угол', en: 'Push the barrels onto the targets without wedging them into a corner' },
-  puzzlesSixteenDesc: { ru: 'Гонять строки и столбцы по кругу, пока числа не встанут по порядку', en: 'Slide rows and columns around the board until the numbers line up' },
+  puzzlesSokobanDesc: { ru: 'Ходи стрелками и толкай бочки на метки. Загонишь бочку в угол — не вытащишь', en: 'Walk with the arrows and push barrels onto the marks. A cornered barrel is stuck for good' },
+  puzzlesSixteenDesc: { ru: 'Нажимай стрелку с краю — строка или столбец уезжает по кругу. Расставь числа по порядку', en: 'Tap an arrow at the edge: that row or column wraps around. Put the numbers in order' },
   puzzlesFlip: { ru: 'Переворот', en: 'Flip' },
-  puzzlesFlipDesc: { ru: 'Каждое нажатие переворачивает и соседей: погасить всё поле', en: 'Each tap flips its neighbours too: turn the whole board off' },
+  puzzlesFlipDesc: { ru: 'Нажимай клетки: каждое нажатие переворачивает её и соседей. Погаси всё поле', en: 'Tap cells: each tap flips it and its neighbours. Turn the whole board off' },
   puzzlesCube: { ru: 'Куб по полю', en: 'Rolling Cube' },
   /**
    * ⚠️ «Куб» — не всегда куб: лестница этой игры это ЧЕТЫРЕ РАЗНЫХ ТЕЛА
    * (`c4x4` куб, `t1x2` тетраэдр, `o2x2` октаэдр, `i3x3` икосаэдр), а не рост
    * сложности одного. Прежний текст был верен для одной ступени из четырёх.
    */
-  puzzlesCubeDesc: { ru: 'Катить многогранник по сетке стрелками и собрать все метки на грани', en: 'Roll the solid across the grid with the arrows and pick up every marker' },
+  puzzlesCubeDesc: { ru: 'Води стрелками — многогранник перекатывается через ребро и подбирает метки гранями', en: 'Steer with the arrows: the solid rolls over an edge and picks up markers with its faces' },
   puzzlesBlackBox: { ru: 'Чёрный ящик', en: 'Black Box' },
   puzzlesBlackBoxDesc: { ru: 'Найти спрятанные шары по тому, где луч вышел из ящика', en: 'Find the hidden balls from where each beam leaves the box' },
   puzzlesGuess: { ru: 'Угадай код', en: 'Crack the Code' },
@@ -1038,21 +1061,21 @@ const translations: Translations = {
   puzzlesGroup: { ru: 'Головоломки', en: 'Puzzles' },
   puzzlesGroupDesc: { ru: 'Сорок логических головоломок Саймона Тэтхэма — его движки целиком', en: 'Forty logic puzzles by Simon Tatham — his engines, whole' },
   puzzlesGroupFootnote: { ru: 'У каждой головоломки своя лестница сложности: где-то три ступени, где-то шестнадцать', en: 'Each puzzle has its own difficulty ladder: three steps in some, sixteen in others' },
-  puzzlesKeenDesc: { ru: 'Латинский квадрат: подсказки — арифметика на группах клеток', en: 'A Latin square where clues are arithmetic on groups of cells' },
-  puzzlesSinglesDesc: { ru: 'Вычеркнуть повторы так, чтобы остальные клетки остались связны', en: 'Cross out repeats so the remaining cells stay connected' },
-  puzzlesTentsDesc: { ru: 'Поставить палатку у каждого дерева, соблюдая счёт по краям', en: 'Pitch a tent by every tree, matching the counts on the edges' },
-  puzzlesMagnetsDesc: { ru: 'Разложить магниты по силуэтам домино, соблюдая счёт полюсов', en: 'Lay magnets on domino shapes, matching the pole counts' },
+  puzzlesKeenDesc: { ru: 'В каждой группе арифметика сходится к числу в её углу. Нажми клетку, потом цифру снизу; второе действие ставит пометку', en: 'In each cage the arithmetic adds up to the number in its corner. Tap a cell, then a digit below; the second action leaves a pencil mark' },
+  puzzlesSinglesDesc: { ru: 'Числа уже расставлены: вычеркни повторы, не разорвав поле. Нажми клетку, чтобы вычеркнуть; второе действие обводит нужную', en: 'The numbers are already there: cross out repeats without splitting the grid. Tap a cell to cross it out; the second action circles one to keep' },
+  puzzlesTentsDesc: { ru: 'Поставить палатку у каждого дерева, соблюдая счёт по краям. Тап — палатка, второе действие — трава', en: 'Put a tent by each tree, matching the counts on the edges. Tap for a tent; the second action marks grass' },
+  puzzlesMagnetsDesc: { ru: 'Разложить магниты по силуэтам домино, соблюдая счёт полюсов. Тап — сменить полюс, второе действие — пометить половинку пустой', en: 'Lay magnets onto the domino shapes, matching the pole counts. Tap to change the pole; the second action marks a half as empty' },
   puzzlesPearlDesc: { ru: 'Замкнутая петля: белый кружок требует прямой, чёрный — поворота', en: 'A closed loop: white circles need a straight, black ones a turn' },
   puzzlesSlantDesc: { ru: 'Провести диагональ в каждой клетке и не замкнуть ни одной петли', en: 'Draw a diagonal in every cell and close no loop' },
-  puzzlesMapDesc: { ru: 'Раскрасить области так, чтобы соседние были разного цвета', en: 'Colour the regions so no two neighbours share a colour' },
+  puzzlesMapDesc: { ru: 'Раскрасить области так, чтобы соседние были разного цвета. Цвет переносят протяжкой от закрашенной области к пустой, второе действие — карандашная пометка', en: 'Colour the regions so that neighbours differ. Drag from a coloured region to an empty one to carry the colour; the second action leaves a pencil mark' },
   puzzlesSignpostDesc: { ru: 'Соединить числа по порядку, каждый шаг — вдоль стрелки', en: 'Link the numbers in order, each step along an arrow' },
-  puzzlesFillingDesc: { ru: 'Вписать цифру, равную размеру своей связной области', en: 'Write a digit equal to the size of its own region' },
-  puzzlesDominosaDesc: { ru: 'Восстановить, как полный набор домино разложен по полю', en: 'Work out how a full set of dominoes was laid out' },
+  puzzlesFillingDesc: { ru: 'В каждой клетке — размер её связной области. Нажми клетку, потом цифру снизу', en: 'Each cell holds the size of its own connected region. Tap a cell, then a digit below' },
+  puzzlesDominosaDesc: { ru: 'Восстановить, как полный набор домино разложен по полю. Тап по границе между числами — соединить их, второе действие — отметить, что домино здесь нет', en: 'Rebuild how a full set of dominoes lies on the grid. Tap the line between two numbers to join them; the second action marks that no domino is there' },
   puzzlesTracksDesc: { ru: 'Достроить рельсы от края до края по счёту в строках', en: 'Complete the track from edge to edge, matching row counts' },
-  puzzlesPatternDesc: { ru: 'Закрасить клетки по числам сбоку и сверху', en: 'Fill cells according to the numbers on the sides' },
-  puzzlesGalaxiesDesc: { ru: 'Разрезать поле на области, симметричные вокруг своей точки', en: 'Cut the board into regions symmetric about their dot' },
-  puzzlesFifteenDesc: { ru: 'Двигать плитки в пустую клетку и собрать порядок', en: 'Slide tiles into the gap and restore the order' },
-  puzzlesLightUpDesc: { ru: 'Расставить фонари так, чтобы осветить всё поле', en: 'Place lamps so the whole board is lit' },
+  puzzlesPatternDesc: { ru: 'Закрасить клетки по числам сбоку и сверху. Тап — закрасить, второе действие — крестик «здесь пусто»; протяжкой красят подряд', en: 'Fill cells according to the numbers on the side and top. Tap to fill; the second action puts a cross for “empty”; drag to fill a run' },
+  puzzlesGalaxiesDesc: { ru: 'Разрезать поле на области, симметричные вокруг своей точки. Тап по ребру между клетками — поставить стенку, второе действие — пометка', en: 'Cut the grid into regions, each symmetric about its dot. Tap the edge between cells to place a wall; the second action leaves a mark' },
+  puzzlesFifteenDesc: { ru: 'Нажимай плитку рядом с пустой клеткой или води стрелками — собери порядок', en: 'Tap a tile next to the gap, or use the arrows — restore the order' },
+  puzzlesLightUpDesc: { ru: 'Осветить всё поле фонарями. Тап — поставить фонарь, второе действие — метка «сюда фонарь не ставить»', en: 'Light the whole grid with lamps. Tap to place a lamp; the second action marks a cell as “no lamp”' },
   puzzlesLoopyDesc: { ru: 'Собрать одну замкнутую петлю по числам в клетках', en: 'Build one closed loop guided by the numbers' },
   /**
    * ⚠️ ЗДЕСЬ БЫЛО ВРАНЬЁ, И ОНО ЖИЛО В ДВЕНАДЦАТИ ЯЗЫКАХ: «Поровну кружков и точек».
@@ -1884,6 +1907,41 @@ const translations: Translations = {
   pauseHarder: { ru: 'Уровень сложнее', en: 'Harder level' },
   puzzleShowSolution: { ru: 'Показать решение', en: 'Show solution' },
   puzzleSecondAction: { ru: 'Второе действие', en: 'Second action' },
+  puzzleSecondNoLamp: { ru: 'Не ставить', en: 'No lamp' },
+  puzzleSecondGrass: { ru: 'Трава', en: 'Grass' },
+  puzzleSecondNoDomino: { ru: 'Нет домино', en: 'No domino' },
+  puzzleHighlightNumber: { ru: 'Подсветить число', en: 'Highlight a number' },
+  puzzleSecondPencil: { ru: 'Карандаш', en: 'Pencil' },
+  /* ★ 16.09.2026 «Пространство»: у четырёх режимов правая кнопка — РОВНО обратное
+     левой, это замер, а не догадка. Левая и правая в одной точке возвращают доску
+     в исходное: Трубы 15/15 · Поворот квадрата 5/5 · Шестнадцать 32/32 · Трубы со
+     сдвигом 16/16. Контроль — Сапёр, где правая ставит флажок: 0/1, обратной не
+     является. До этого все четыре подписывались общим «Второе действие». */
+  puzzleSecondTurnBack: { ru: 'Повернуть обратно', en: 'Turn back' },
+  puzzleSecondSlideBack: { ru: 'Сдвинуть обратно', en: 'Slide back' },
+  puzzleSecondFlag: { ru: 'Флажок', en: 'Flag' },
+  puzzleSecondEmpty: { ru: 'Пусто', en: 'Empty' },
+  puzzleSecondCross: { ru: 'Крестик', en: 'Cross' },
+  puzzleSecondDot: { ru: 'Точка', en: 'Dot' },
+  puzzleSecondMark: { ru: 'Пометка', en: 'Mark' },
+  /* Лаборатория пространства: строка режима. Отчёт ee0889e7 — «Свободная игра и что
+     под ней зачем эта строка»: счётчик пройденного относится к УРОВНЯМ, а человек
+     видел его в свободной игре и читал как показание того, что делает сейчас. */
+  spatialFreePlay: { ru: 'Свободная игра', en: 'Free play' },
+  spatialFreePlayHint: { ru: 'Здесь ходы в прогресс не идут. Нажми «Начать уровни»', en: 'Moves here do not count towards progress. Tap “Start levels”' },
+  spatialDoneInLevels: { ru: 'В уровнях пройдено', en: 'Completed in levels' },
+  spatialDone: { ru: 'Пройдено', en: 'Completed' },
+  puzzlesSlideIntroDesc: { ru: 'Цель — вывести главный блок к выходу. Тяни блок пальцем в свободное место: он едет только по прямой и только пока есть куда. Ходы не ограничены, но лишние считаются — думай, прежде чем двигать.', en: 'Goal: get the main block out. Drag a block with your finger into the free space; it only travels straight and only while there is room. Moves are unlimited but counted — think before you push.' },
+  puzzlesSokobanIntroDesc: { ru: 'Цель — закатить все бочки на метки. Ходи стрелками; бочку можно только ТОЛКАТЬ перед собой, тянуть нельзя. Бочка, загнанная в угол или к стене между метками, застревает навсегда — тогда остаётся «Отменить» или «Заново».', en: 'Goal: push every barrel onto a mark. Walk with the arrows; a barrel can only be PUSHED ahead of you, never pulled. A barrel forced into a corner is stuck for good — then it is undo or restart.' },
+  puzzlesNetIntroDesc: { ru: 'Цель — соединить все трубы с источником так, чтобы не осталось открытых концов. Нажимай кусок — он поворачивается на четверть. Уверен в куске — запри его вторым действием, чтобы не сбить случайно.', en: 'Goal: connect every pipe to the source with no loose ends left. Tap a piece to turn it a quarter. Sure about a piece? Lock it with the second action so you do not knock it out later.' },
+  puzzlesNetslideIntroDesc: { ru: 'Та же сеть, но куски НЕ поворачиваются. Нажимай стрелку с краю — весь ряд или столбец уезжает по кругу, и то, что ушло за край, появляется с другой стороны. Один сдвиг трогает сразу многое: считай ход заранее.', en: 'The same network, but pieces never turn. Tap an arrow at the edge and the whole row or column wraps around — what leaves one side comes back on the other. One slide moves a lot at once, so plan the move first.' },
+  puzzlesTwiddleIntroDesc: { ru: 'Цель — расставить числа по порядку, слева направо и сверху вниз. Нажми внутри квадрата из клеток — он повернётся целиком, вместе со всем, что в нём. Поэтому каждый поворот и чинит, и ломает: собирай с угла.', en: 'Goal: put the numbers in order, left to right and top to bottom. Tap inside a square of cells and it turns as one block with everything inside it. Every turn both fixes and breaks — work from a corner.' },
+  puzzlesCubeIntroDesc: { ru: 'Цель — собрать все метки на грани многогранника. Веди его стрелками: он перекатывается через ребро и забирает метку той гранью, которая на неё легла. Метка возвращается на поле, если прокатиться по клетке снова, — порядок обхода решает всё.', en: 'Goal: collect every marker on the faces of the solid. Steer with the arrows: it tips over an edge and picks a marker up with whichever face lands on it. Rolling back over a square puts the marker down again, so the order of your route decides everything.' },
+  puzzlesFlipIntroDesc: { ru: 'Цель — погасить всё поле. Нажимай клетки: каждое нажатие переворачивает не только её, но и соседей по кресту. Порядок нажатий неважен, важно ЧТО нажать: дважды одно и то же — как не нажимал вовсе.', en: 'Goal: turn the whole board off. Tap cells: each tap flips the cell and its neighbours in a cross. Order does not matter, the choice does — tapping the same cell twice is the same as not tapping it.' },
+  puzzlesSixteenIntroDesc: { ru: 'Цель — расставить числа по порядку. Нажимай стрелку с краю: строка или столбец уезжает по кругу, ушедшее с края возвращается с другой стороны. В отличие от пятнашек здесь двигается не одна плитка, а весь ряд.', en: 'Goal: put the numbers in order. Tap an arrow at the edge: the row or column wraps around, and what leaves one side returns on the other. Unlike the fifteen puzzle, a move shifts a whole line, not one tile.' },
+  puzzlesFifteenIntroDesc: { ru: 'Цель — расставить числа по порядку, пустая клетка в конце. Нажимай плитку, СОСЕДНЮЮ с пустой клеткой, — она в неё и съедет; по остальным нажимать бесполезно. Стрелками проще: они не промахиваются мимо плитки.', en: 'Goal: put the numbers in order with the gap at the end. Tap a tile NEXT TO the gap and it slides in; tapping anything else does nothing. The arrows are easier — they cannot miss a tile.' },
+  puzzlesUntangleIntroDesc: { ru: 'Цель — растащить узлы так, чтобы ни одна линия не пересекала другую. Тяни узел пальцем; линии тянутся за ним. Решение есть всегда, и обычно проще начинать с узла, у которого больше всего линий.', en: 'Goal: pull the nodes apart until no two lines cross. Drag a node with your finger and the lines follow it. A solution always exists, and it is usually easier to start from the node with the most lines.' },
+  puzzleSecondErase: { ru: 'Стереть', en: 'Erase' },
   puzzleNextStep: { ru: 'Следующий шаг', en: 'Next step' },
   puzzleSelect: { ru: 'Взять', en: 'Select' },
   pauseExitGame: { ru: 'Выйти из упражнения', en: 'Leave exercise' },

@@ -1,6 +1,7 @@
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /** Local-only exercise adapter. Per-profile local saves; no server rewards. */
 import React, {useState, useEffect, useRef,useCallback} from 'react';
+import {победаКОтправке} from './spatialLabWin';
 import {View, Text, Pressable, StyleSheet, Animated, Easing, DeviceEventEmitter } from 'react-native';
 // 🔴 НЕ `useWindowDimensions`: на первом кадре он отдаёт 0, и поле считается от
 // нулевой высоты. Защита живёт в `useScreenSize` — общая для всех игр.
@@ -61,6 +62,7 @@ export function SpatialPipe({cell,active,source}:{cell:Cell;active:boolean;sourc
  * рисуется поверх поля, а маршрут получает `request(level)` и зовёт его сам — с экрана итога («дальше»).
  * Механика поля Codex не тронута: это тот же `request()`, что у кнопок «Проще/Сложнее».
  */
+
 export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay,onReady}:{onBack:()=>void;preset?:{mode:Mode;level:number;seed:number};initialMode?:Mode;onComplete?:(result:{mode:Mode;level:number;moves:number})=>void;overlay?:React.ReactNode;onReady?:(api:{request:(level:number)=>void})=>void}) {
   const {t}=useLanguage();   // названия упражнений — из общего словаря (12 языков), не литералами
   const {colors}=useTheme();
@@ -85,10 +87,11 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   const [turning,setTurning]=useState<number|null>(null);
   const [angle]=useState(()=>new Animated.Value(0));
   const turnLock=useRef(false);
-  const completionSent=useRef(false);
+  /** Имя уже отправленной наверх победы, «режим:уровень». Пусто — ещё ни одной. */
+  const completionSent=useRef('');
   const presetMode=preset?.mode,presetSeed=preset?.seed,presetLevel=preset?.level;
   const start=useCallback((target:Mode,nextSeed:number,level=0)=>{
-    completionSent.current=false;
+    completionSent.current='';
     const next=createDeal(target,nextSeed,level);
     angle.stopAnimation();turnLock.current=false;setTurning(null);setReplayIndex(null);
     setTask(next.task);setMode(target);setSeed(nextSeed);setState(next.state);
@@ -163,12 +166,35 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   const liveColour=task?.spec.liveColour!==false;
   const locked=(i:number)=>task?.locked.includes(i)??false;
   const won=info?info.won:solved(state.present);
+  /*
+   * 🔴 О ПОБЕДЕ НАДО СООБЩИТЬ НАВЕРХ В ЛЮБОЙ ПАРТИИ, А НЕ ТОЛЬКО В ЗАРЯДКЕ.
+   *
+   * ОТЧЁТ 63e3ef0d (11.09.2026, iOS 2.53.6), дословно: «Решил задачу на следующий
+   * уровень не переходит». Задача 577d79b2.
+   *
+   * ЧТО БЫЛО. Эта проверка вызывала `onComplete` ТОЛЬКО при `preset`, то есть только
+   * когда экран открыт шагом зарядки. В обычной партии ветка молча возвращалась.
+   * А окно «уровень собран» с кнопкой «дальше» рисует МАРШРУТ (`app/games/spatial-lab.tsx`),
+   * и рисует он его как раз по `onComplete` — то есть в обычной игре оно не появлялось
+   * никогда. Уровень при этом засчитывался: строка «Пройдено N/50» росла (строка ниже
+   * добавляет его в `completed`), лестница — нет, сессия — нет, перехода — нет.
+   * Снаружи это выглядит ровно как «решил, а дальше некуда».
+   *
+   * ⚠️ ОДНОКРАТНОСТЬ ТЕПЕРЬ ПО УРОВНЮ, А НЕ ОДНИМ ФЛАГОМ НА ВСЮ ЖИЗНЬ ЭКРАНА.
+   * В зарядке уровень ровно один, и логического флага хватало. В обычной партии за
+   * одно монтирование человек проходит уровень за уровнем, и флаг `true` заглушил бы
+   * все победы, кроме первой. Поэтому храним ИМЯ уже отправленной победы («режим:уровень»):
+   * повторные отрисовки того же выигранного состояния молчат, а следующий уровень
+   * отправляется.
+   *
+   * ⚠️ Свободная игра сюда не попадает: у неё `task` пуст, и проверка выходит строкой выше.
+   */
   useEffect(()=>{
-    if(readyFor!==hydrationKey||!won||!task||busy)return;
-    if(preset){
-      if(!completionSent.current){completionSent.current=true;onComplete?.({mode,level:task.level,moves:state.past.length});}
-      return;
-    }
+    if(readyFor!==hydrationKey)return;
+    const отметка=победаКОтправке({готово:won,уровень:task?task.level:null,режим:mode,занято:busy,ужеОтправлено:completionSent.current});
+    if(!отметка)return;
+    completionSent.current=отметка;
+    onComplete?.({mode,level:task!.level,moves:state.past.length});
   },[won,task,mode,busy,readyFor,hydrationKey,preset,onComplete,state.past.length]);
   // Derived from this render's committed board; guarded against repeat renders.
   if(!preset&&readyFor===hydrationKey&&won&&task&&!busy&&!completed[mode].includes(task.level)){
@@ -249,8 +275,17 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
         <View style={styles.auxRow}><GameAuxBar><GameAuxAction label="Остаться" onPress={()=>setPending(null)}/><GameAuxAction label="Начать" onPress={()=>accept(pending)}/></GameAuxBar></View>
       </View>:null}
       <View style={{alignItems:'center',gap:8}}>
-        <Text testID="spatial-level" style={ink}>{task?`Уровень ${task.level}/50`:'Свободная игра'}</Text>
-        {!preset&&<Text testID="spatial-completed" style={ink}>Пройдено: {completed[mode].length}/50</Text>}
+        {/*
+          🔴 СЧЁТЧИК ПРОЙДЕННОГО ОТНОСИТСЯ К УРОВНЯМ, А СТОЯЛ ПОД «СВОБОДНОЙ ИГРОЙ».
+          Отчёт ee0889e7 (12.09.2026), дословно: «Свободная игра и что под ней зачем
+          эта строка». Человек читал «Пройдено: 0/50» как показание того, что делает
+          СЕЙЧАС, — а оно про другой режим и в свободной игре не двигается никогда.
+          Поэтому в свободной игре подпись прямо называет, чей это счёт, и рядом
+          сказано, что здесь ходы в прогресс не идут и где его начать.
+        */}
+        <Text testID="spatial-level" style={ink}>{task?`${t('level')} ${task.level}/50`:t('spatialFreePlay')}</Text>
+        {!preset&&<Text testID="spatial-completed" style={ink}>{task?t('spatialDone'):t('spatialDoneInLevels')}: {completed[mode].length}/50</Text>}
+        {!preset&&!task&&<Text testID="spatial-free-hint" style={[styles.instruction,ink]}>{t('spatialFreePlayHint')}</Text>}
         {!preset&&<View style={styles.auxRow}><GameAuxBar>
           <GameAuxAction label="Проще" disabled={!task||task.level===1||busy||pending!==null} onPress={()=>request((task?.level??1)-1)}/>
           <GameAuxAction label={task?'Сложнее':'Начать уровни'} disabled={task?.level===50||busy||pending!==null} onPress={()=>request((task?.level??0)+1)}/>
