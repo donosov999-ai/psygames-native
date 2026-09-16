@@ -17,15 +17,27 @@ import {useTheme} from '@/src/contexts/ThemeContext';
 import {session, commit, undo, redo, scramble, solved, replay} from '../games/spatial-core/core.mjs';
 import {isGameHeld} from '@/src/services/gamePause';
 import {netPuzzle, network, maskAt} from '../games/spatial-core/net.mjs';
-import type {NetLevelTask} from '../games/spatial-core/net-levels.mjs';
-import type {TwiddleLevelTask} from '../games/spatial-core/twiddle-levels.mjs';
+import {sourceAt} from '../games/spatial-core/netslide-levels.mjs';
 import type {Cell} from '../games/spatial-core/core.mjs';
-import {createDeal,decodeSnapshot,encodeSnapshot} from '../games/spatial-core/snapshot.mjs';
+import {createDeal,decodeSnapshot,encodeSnapshot,shifts,SPATIAL_MODES} from '../games/spatial-core/snapshot.mjs';
+import type {SpatialMode,SpatialTask} from '../games/spatial-core/snapshot.mjs';
 import {spatialFrame} from '../games/spatial-core/frame';
 
 import {useLanguage} from '@/src/contexts/LanguageContext';
-type Mode = 'twiddle' | 'net';
-type LevelTask = NetLevelTask | (TwiddleLevelTask & {locked:number[];highlighted:number[]});
+type Mode = SpatialMode;
+type LevelTask = SpatialTask;
+/** Имя упражнения — заголовок экрана и подпись вкладки, одним ключом словаря. */
+const ИМЯ:Record<Mode,string>={twiddle:'spatialTwiddle',net:'spatialNet',sixteen:'spatialSixteen',netslide:'spatialNetslide'};
+const пустоПройдено=():Record<Mode,number[]>=>({twiddle:[],net:[],sixteen:[],netslide:[]});
+/**
+ * 🔴 УПРАЖНЕНИЯ СДВИГА — «СДВИГ ЧИСЕЛ» И «СЕТЬ СО СДВИГОМ» (17.09.2026, задача afb6ab5b).
+ * Механика та же, что у «Шестнадцати» и «Труб со сдвигом» Тэтхэма, но на ядре лаборатории:
+ * команда `{kind:'row'|'column'}` в `core.mjs` была написана и не использовалась.
+ * Ход устроен как у соседей по экрану: нажатие клетки ВЫБИРАЕТ (её строку и столбец),
+ * ходят кнопки под полем. Четыре стрелки: ← → двигают строку, ↑ ↓ — столбец, по кругу.
+ * Знак — как в ядре: строка +1 едет вправо, столбец +1 — вниз.
+ */
+const СТРЕЛКИ=[['row',-1,'spatialLabShiftRowLeft','←'],['row',1,'spatialLabShiftRowRight','→'],['column',-1,'spatialLabShiftColUp','↑'],['column',1,'spatialLabShiftColDown','↓']] as const;
 const deal = (mode:Mode,seed:number) => session((mode==='net'?netPuzzle(seed):scramble(seed)).initial);
 // Serialize writes across mounts; read waits for previous queued writes too.
 let saveQueue:Promise<void>=Promise.resolve();
@@ -74,7 +86,7 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   const [readyFor,setReadyFor]=useState<string|null>(null);
   const [saveAllowed,setSaveAllowed]=useState(false);
   const [saveError,setSaveError]=useState('');
-  const [completed,setCompleted]=useState<Record<Mode,number[]>>({net:[],twiddle:[]});
+  const [completed,setCompleted]=useState<Record<Mode,number[]>>(пустоПройдено);
   // SSR and first client frame must agree; measuring the field also handles
   // split windows and safe-area padding without stale hydration styles.
   const [available,setAvailable]=useState(248);
@@ -120,7 +132,7 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
       if(cancelled)return;
       setSaveError('');
       if(presetMode){
-        start(presetMode,presetSeed!,presetLevel!);setCompleted({net:[],twiddle:[]});
+        start(presetMode,presetSeed!,presetLevel!);setCompleted(пустоПройдено());
         setSaveAllowed(false);setReadyFor(hydrationKey);return;
       }
       const restored=decodeSnapshot(raw);
@@ -133,11 +145,11 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
         angle.stopAnimation();turnLock.current=false;setTurning(null);setReplayIndex(null);setPending(null);
         setMode(restored.mode);setSeed(restored.seed);setTask(restored.task);setState(restored.state);setSelection(restored.selection);setCompleted(restored.completed);
       }else{
-        start(initialMode??'twiddle',42);setCompleted({net:[],twiddle:[]});
+        start(initialMode??'twiddle',42);setCompleted(пустоПройдено());
         if(raw!==null)setSaveError('spatialLabSaveOldUnreadable');
       }
       setSaveAllowed(raw===null||restored!==null);setReadyFor(hydrationKey);
-    }).catch(()=>{if(!cancelled){start(initialMode??'twiddle',42);setCompleted({net:[],twiddle:[]});setSaveError('spatialLabSaveUnavailable');setReadyFor(hydrationKey);}});
+    }).catch(()=>{if(!cancelled){start(initialMode??'twiddle',42);setCompleted(пустоПройдено());setSaveError('spatialLabSaveUnavailable');setReadyFor(hydrationKey);}});
     return()=>{cancelled=true;};
   },[profileReady,hydrationKey,presetMode,presetSeed,presetLevel,saveKey,angle,start,initialMode]);
   useEffect(()=>{
@@ -155,7 +167,8 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
       clearInterval(timer);
       if(replayIndex>=state.past.length){setReplayIndex(null);return;}
       const cmd=state.past[replayIndex];
-      setSelection(cmd.kind==='block'?cmd.row*state.present.width+cmd.col:'index' in cmd?cmd.index:0);
+      // строка index → её первая клетка; столбец и плитка — сама клетка index
+      setSelection(cmd.kind==='block'?cmd.row*state.present.width+cmd.col:cmd.kind==='row'?cmd.index*state.present.width:cmd.index);
       animateTurn(cmd.amount??1,()=>setReplayIndex(i=>i===null?null:i+1));
     },150);
     return ()=>{clearInterval(timer);angle.stopAnimation();};
@@ -163,8 +176,11 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   const busy=replayIndex!==null||turning!==null;
   const view=replayIndex!==null?replay(state.initial,state.past.slice(0,replayIndex)):state.present;
   const n=state.present.width;
-  const info=mode==='net'?network(view):null;
-  const liveColour=task?.spec.liveColour!==false;
+  const сдвиг=shifts(mode);
+  // «Сеть со сдвигом»: источник — плитка 0, и он ездит вместе со строкой
+  const info=mode==='net'?network(view):mode==='netslide'?network(view,sourceAt(view)):null;
+  // у упражнений сдвига подсветки «на месте» не отключают: в спецификации ступени такого флага нет
+  const liveColour=!task||!('liveColour' in task.spec)||task.spec.liveColour!==false;
   const locked=(i:number)=>task?.locked.includes(i)??false;
   const won=info?info.won:solved(state.present);
   /*
@@ -240,13 +256,18 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
     const command=mode==='net'?{kind:'tile' as const,index:selection,amount}:{kind:'block' as const,row:Math.floor(selection/n),col:selection%n,size:2,amount};
     animateTurn(amount,()=>setState(s=>commit(s,command)));
   }
+  function shift(kind:'row'|'column',amount:number) {
+    if(won||pending!==null||busy||turnLock.current)return;
+    const index=kind==='row'?Math.floor(selection/n):selection%n;
+    setState(s=>commit(s,{kind,index,amount}));
+  }
   useEffect(()=>{
     if(!onReady)return;
     onReady({request:(level:number)=>{if(preset||readyFor!==hydrationKey||busy)return;request(Math.max(1,Math.min(50,level)));}});
   });   // без списка зависимостей нарочно: наружу уходит ссылка на ТЕКУЩИЙ request, маршрут держит её в ref
   const ink={color:colors.text};
   if(!profileReady||readyFor!==hydrationKey)return <View style={styles.field}><Text style={ink}>{t('spatialLabRestoring')}</Text></View>;
-  return <GameShell title={mode==='net'?t('spatialNet'):t('spatialTwiddle')} onBack={onBack} overlay={overlay}
+  return <GameShell title={t(ИМЯ[mode])} onBack={onBack} overlay={overlay}
     frame={preset?spatialFrame(viewportHeight):undefined}
     confirmExit={state.past.length>0&&!won} scrollableField
     /*
@@ -273,29 +294,30 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
       ...(info ? [{ key: 'found', icon: 'git-network-outline' as const, label: t('hud_linked'), value: `${info.connected.size}/${n*n}` }] : []),
       { key: 'round', icon: 'pricetag-outline', label: t('hud_puzzle'), value: `#${seed}` },
     ]}
-    toolbar={<View style={styles.turns}>{([-1,1] as const).map(a=><Pressable key={a} accessibilityRole="button" accessibilityLabel={t(a<0?'spatialLabTurnLeft':'spatialLabTurnRight')} disabled={won||pending!==null||busy||locked(selection)} onPress={()=>turn(a)} style={[styles.turn,{backgroundColor:colors.primary,opacity:won||pending!==null||busy||locked(selection)?0.4:1}]}><Text style={styles.turnText}>{a<0?`↶ ${t('a11yLeft')}`:`${t('a11yRight')} ↷`}</Text></Pressable>)}</View>}>
+    toolbar={сдвиг?<View style={styles.arrows}>{СТРЕЛКИ.map(([kind,amount,key,glyph])=><Pressable key={key} accessibilityRole="button" accessibilityLabel={t(key)} disabled={won||pending!==null||busy} onPress={()=>shift(kind,amount)} style={[styles.turn,styles.arrow,{backgroundColor:colors.primary,opacity:won||pending!==null||busy?0.4:1}]}><Text style={styles.arrowText}>{glyph}</Text></Pressable>)}</View>:<View style={styles.turns}>{([-1,1] as const).map(a=><Pressable key={a} accessibilityRole="button" accessibilityLabel={t(a<0?'spatialLabTurnLeft':'spatialLabTurnRight')} disabled={won||pending!==null||busy||locked(selection)} onPress={()=>turn(a)} style={[styles.turn,{backgroundColor:colors.primary,opacity:won||pending!==null||busy||locked(selection)?0.4:1}]}><Text style={styles.turnText}>{a<0?`↶ ${t('a11yLeft')}`:`${t('a11yRight')} ↷`}</Text></Pressable>)}</View>}>
     <View style={styles.field} onLayout={e=>setAvailable(e.nativeEvent.layout.width)}>
       {pending!==null?<View style={[styles.confirm,{backgroundColor:colors.surface,borderColor:colors.border}]}>
         <Text style={ink}>{t('spatialLabRestartConfirm')}</Text>
         <View style={styles.auxRow}><GameAuxBar><GameAuxAction label={t('spatialLabStay')} onPress={()=>setPending(null)}/><GameAuxAction label={t('start')} onPress={()=>accept(pending)}/></GameAuxBar></View>
       </View>:null}
-      <Text style={[styles.instruction,ink]}>{mode==='net'?t('spatialLabNetGoal'):t('spatialLabTwiddleGoal').replace('{n}',String(n*n))}</Text>
+      <Text style={[styles.instruction,ink]}>{mode==='net'?t('spatialLabNetGoal'):mode==='netslide'?t('spatialLabNetslideGoal'):t(mode==='sixteen'?'spatialLabSixteenGoal':'spatialLabTwiddleGoal').replace('{n}',String(n*n))}</Text>
       <View testID="spatial-board" style={{width:side,gap:4}}>{Array.from({length:n},(_,r)=><View key={r} style={styles.row}>{view.cells.slice(r*n,(r+1)*n).map((cell,c)=>{
         const i=r*n+c, sr=Math.floor(selection/n),sc=selection%n;
-        const selected=mode==='net'?selection===i:r>=sr&&r<sr+2&&c>=sc&&c<sc+2;
+        const selected=mode==='net'||сдвиг?selection===i:r>=sr&&r<sr+2&&c>=sc&&c<sc+2;
+        const наЛинии=сдвиг&&!selected&&(r===sr||c===sc);   // строка и столбец выбранной клетки — то, что сдвинут стрелки
         const directions=[t('a11yUp'),t('a11yRight'),t('a11yDown'),t('a11yLeft')].filter((_,d)=>maskAt(cell)&(1<<d));
-        return <Pressable key={i} testID={`spatial-cell-${i}`} accessibilityRole="button" accessibilityState={{selected}} accessibilityLabel={(mode==='net'?t('spatialLabCellPipe').replace('{dirs}',directions.join(', ')):t('spatialLabCellNumber').replace('{n}',String(cell.id+1))).replace('{r}',String(r+1)).replace('{c}',String(c+1))} disabled={pending!==null||busy||locked(i)} onPress={()=>{if(locked(i))return;setSelection(mode==='net'?i:Math.min(r,n-2)*n+Math.min(c,n-2));}}
-          style={[styles.cell,{opacity:turning!==null&&selected?0:1,width:size,height:size,borderColor:selected?'#713ed4':'#aaa1c5',backgroundColor:info?(liveColour&&info.connected.has(i)?'#c3ebdd':'#e1e6ef'):liveColour&&cell.id===i?'#cbebdf':'#e3d9f8',borderWidth:selected?3:1}]}>
-          {info?<SpatialPipe cell={cell} active={liveColour&&info.connected.has(i)} source={i===0}/>:<Text style={styles.number}>{cell.id+1}</Text>}
+        return <Pressable key={i} testID={`spatial-cell-${i}`} accessibilityRole="button" accessibilityState={{selected}} accessibilityLabel={(info?t('spatialLabCellPipe').replace('{dirs}',directions.join(', ')):t('spatialLabCellNumber').replace('{n}',String(cell.id+1))).replace('{r}',String(r+1)).replace('{c}',String(c+1))} disabled={pending!==null||busy||locked(i)} onPress={()=>{if(locked(i))return;setSelection(mode==='net'||сдвиг?i:Math.min(r,n-2)*n+Math.min(c,n-2));}}
+          style={[styles.cell,{opacity:turning!==null&&selected&&!сдвиг?0:1,width:size,height:size,borderColor:selected?'#713ed4':наЛинии?'#a78bfa':'#aaa1c5',backgroundColor:info?(liveColour&&info.connected.has(i)?'#c3ebdd':'#e1e6ef'):liveColour&&cell.id===i?'#cbebdf':'#e3d9f8',borderWidth:selected?3:наЛинии?2:1}]}>
+          {info?<SpatialPipe cell={cell} active={liveColour&&info.connected.has(i)} source={mode==='netslide'?cell.id===0:i===0}/>:<Text style={styles.number}>{cell.id+1}</Text>}
           {locked(i)?<Text style={{position:'absolute',right:3,top:1,fontSize:12}} accessibilityLabel={t('spatialLabLocked')}>●</Text>:null}
         </Pressable>;
       })}</View>)}
-      {turning!==null?<Animated.View testID="spatial-turn-animation" pointerEvents="none" accessibilityElementsHidden style={{position:'absolute',left:(selection%n)*(size+4),top:Math.floor(selection/n)*(size+4),width:mode==='net'?size:size*2+4,height:mode==='net'?size:size*2+4,zIndex:2,transform:[{rotate:angle.interpolate({inputRange:[-90,90],outputRange:['-90deg','90deg']})},{scale:angle.interpolate({inputRange:[-90,-45,0,45,90],outputRange:[1,0.707,1,0.707,1]})}]}}>
+      {turning!==null&&!сдвиг?<Animated.View testID="spatial-turn-animation" pointerEvents="none" accessibilityElementsHidden style={{position:'absolute',left:(selection%n)*(size+4),top:Math.floor(selection/n)*(size+4),width:mode==='net'?size:size*2+4,height:mode==='net'?size:size*2+4,zIndex:2,transform:[{rotate:angle.interpolate({inputRange:[-90,90],outputRange:['-90deg','90deg']})},{scale:angle.interpolate({inputRange:[-90,-45,0,45,90],outputRange:[1,0.707,1,0.707,1]})}]}}>
         {(mode==='net'?[selection]:[selection,selection+1,selection+n,selection+n+1]).map((i,j)=><View key={i} style={[styles.cell,{position:'absolute',left:mode==='net'?0:(j%2)*(size+4),top:mode==='net'?0:Math.floor(j/2)*(size+4),width:size,height:size,backgroundColor:mode==='net'?'#e1e6ef':'#e3d9f8',borderWidth:3,borderColor:'#713ed4'}]}>
           {mode==='net'?<SpatialPipe cell={view.cells[i]} active={liveColour&&!!info?.connected.has(i)} source={i===0}/>:<Animated.Text style={[styles.number,{transform:[{rotate:angle.interpolate({inputRange:[-90,90],outputRange:['90deg','-90deg']})}]}]}>{view.cells[i].id+1}</Animated.Text>}
         </View>)}
       </Animated.View>:null}</View>
-      <Text testID={guide?'spatial-guide':'spatial-status'} accessibilityLiveRegion="polite" style={[styles.status,ink]}>{turning!==null?t('spatialLabTurning'):replayIndex!==null?t('spatialLabReplayProgress').replace('{i}',String(replayIndex)).replace('{n}',String(state.past.length)):won?t('spatialLabSolved'):guide?t(guide.amount!<0?'spatialLabGuideLeft':'spatialLabGuideRight'):info?t('spatialLabOpenEnds').replace('{n}',String(info.leaks)):t('spatialLabBlockPos').replace('{r}',String(Math.floor(selection/n)+1)).replace('{c}',String(selection%n+1))}</Text>
+      <Text testID={guide?'spatial-guide':'spatial-status'} accessibilityLiveRegion="polite" style={[styles.status,ink]}>{turning!==null&&!сдвиг?t('spatialLabTurning'):replayIndex!==null?t('spatialLabReplayProgress').replace('{i}',String(replayIndex)).replace('{n}',String(state.past.length)):won?t('spatialLabSolved'):guide?t(guide.kind==='row'?(guide.amount!<0?'spatialLabGuideRowLeft':'spatialLabGuideRowRight'):guide.kind==='column'?(guide.amount!<0?'spatialLabGuideColUp':'spatialLabGuideColDown'):guide.amount!<0?'spatialLabGuideLeft':'spatialLabGuideRight'):info?t('spatialLabOpenEnds').replace('{n}',String(info.leaks)):t(сдвиг?'spatialLabLinePos':'spatialLabBlockPos').replace('{r}',String(Math.floor(selection/n)+1)).replace('{c}',String(selection%n+1))}</Text>
       {/*
         🔴 СЛУЖЕБНЫЕ КНОПКИ ПОД ДОСКОЙ И ЗНАЧКАМИ — ПРИЁМКА 50b87961 (16.09.2026).
         Стояли в шапке, над полем, подписями. Замер на 390×844: доска начиналась на
@@ -330,7 +352,7 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
           <GameAuxAction label={t(task?'spatialLabHarder':'spatialLabStartLevels')} disabled={task?.level===50||busy||pending!==null} onPress={()=>request((task?.level??0)+1)}/>
           {task?<GameAuxAction label={t('spatialFreePlay')} disabled={busy||pending!==null} onPress={()=>request(0)}/>:null}
         </GameAuxBar></View>}
-        {task?<Text testID="spatial-level-note" style={[styles.instruction,ink]}>{levelNote(task,t)}</Text>:null}
+        {task?<Text testID="spatial-level-note" style={[styles.instruction,ink]}>{levelNote(task,t,mode)}</Text>:null}
       </View>
       {/*
         ВКЛАДКИ РЕЖИМОВ — ТОЖЕ ПОД ДОСКОЙ (16.09.2026): это выбор игры, а не ход, и
@@ -345,13 +367,19 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
         Экран Codex уже показывает уровень строкой «Уровень N/50», «Пройдено N/50» и
         кнопками «Проще / Сложнее / Свободная» — второй навигации ему не нужно.
       */}
-      {!preset&&<View style={styles.tabs}>{(['twiddle','net'] as const).map(m=><Pressable key={m} accessibilityRole="button" accessibilityState={{selected:mode===m}} onPress={()=>{if(m!==mode)request(m);}} style={[styles.tab,{borderColor:mode===m?colors.primary:colors.border,backgroundColor:colors.surface}]}><Text style={ink}>{t(m==='twiddle'?'spatialTwiddle':'spatialNet')}</Text></Pressable>)}</View>}
+      {!preset&&<View style={styles.tabs}>{SPATIAL_MODES.map(m=><Pressable key={m} accessibilityRole="button" accessibilityState={{selected:mode===m}} onPress={()=>{if(m!==mode)request(m);}} style={[styles.tab,{borderColor:mode===m?colors.primary:colors.border,backgroundColor:colors.surface}]}><Text style={ink}>{t(ИМЯ[m])}</Text></Pressable>)}</View>}
       <View style={{paddingHorizontal:52}}><Text testID="spatial-save-status" style={[styles.note,{color:colors.textSecondary}]}>{preset?t('spatialLabWarmupNote'):saveError?t(saveError):t('spatialLabLocalSave')}</Text></View>
     </View>
   </GameShell>;
 }
 const styles=StyleSheet.create({
-  top:{gap:8},auxRow:{flexDirection:'row',alignSelf:'stretch'},tabs:{flexDirection:'row',gap:8,justifyContent:'center'},tab:{minHeight:48,minWidth:100,borderWidth:2,borderRadius:12,alignItems:'center',justifyContent:'center'},
-  turns:{flexDirection:'row',gap:8,width:'100%',maxWidth:640,paddingLeft:32},turn:{flex:1,minHeight:52,borderRadius:12,alignItems:'center',justifyContent:'center',padding:8},turnText:{color:'#fff',fontSize:16,fontWeight:'700'},
+  top:{gap:8},auxRow:{flexDirection:'row',alignSelf:'stretch'},tabs:{flexDirection:'row',flexWrap:'wrap',gap:8,justifyContent:'center'},tab:{minHeight:48,minWidth:100,borderWidth:2,borderRadius:12,alignItems:'center',justifyContent:'center'},
+  turns:{flexDirection:'row',gap:8,width:'100%',maxWidth:640,paddingLeft:32},turn:{flex:1,minHeight:52,borderRadius:12,alignItems:'center',justifyContent:'center',padding:8},turnText:{color:'#fff',fontSize:16,fontWeight:'700'},arrowText:{color:'#fff',fontSize:26,fontWeight:'800'},
+  /*
+   * Четыре стрелки сдвига — без отступа слева 32, который стоит у пары «Влево/Вправо» (пришёл
+   * из пакета Codex без объяснения). Замер 17.09.2026 на 375×667: слот панели 244 pt, с отступом
+   * и зазором 8 стрелка выходила 47 pt — ниже пола 48. Без отступа и с зазором 6 — 56 pt.
+   */
+  arrows:{flexDirection:'row',gap:6,width:'100%',maxWidth:640},arrow:{minWidth:48},
   field:{alignItems:'center',width:'100%',gap:12},instruction:{fontSize:16,textAlign:'center',maxWidth:420,lineHeight:22},row:{flexDirection:'row',gap:4},cell:{borderRadius:12,alignItems:'center',justifyContent:'center',overflow:'hidden'},number:{fontSize:27,fontWeight:'800',color:'#352654'},status:{fontSize:16,textAlign:'center'},note:{fontSize:12,textAlign:'center'},confirm:{padding:12,borderWidth:1,borderRadius:12,gap:12,width:'100%'},
 });
