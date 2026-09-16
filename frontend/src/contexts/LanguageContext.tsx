@@ -1404,11 +1404,11 @@ const translations: Translations = {
 
   // Round-6 — benefits
   benefitPosner1: { ru: 'Пространственное внимание', en: 'Spatial attention' },
-  benefitPosner2: { ru: 'Reorienting',                en: 'Reorienting' },
+  benefitPosner2: { ru: 'Переключиться, когда подсказка обманула', en: 'Switching over when the cue misled you' },
   benefitPosner3: { ru: 'Скорость реакции',           en: 'Reaction speed' },
-  benefitAnt1:    { ru: 'Alerting attention',         en: 'Alerting' },
-  benefitAnt2:    { ru: 'Orienting attention',        en: 'Orienting' },
-  benefitAnt3:    { ru: 'Executive control',          en: 'Executive control' },
+  benefitAnt1:    { ru: 'Собраться по сигналу',       en: 'Getting ready on a signal' },
+  benefitAnt2:    { ru: 'Найти место по подсказке',   en: 'Finding the place from a cue' },
+  benefitAnt3:    { ru: 'Не поддаться помехе',        en: 'Not giving in to a distractor' },
   benefitBart1:   { ru: 'Принятие решений в риске',   en: 'Risk decision-making' },
   benefitBart2:   { ru: 'Калибровка вероятностей',    en: 'Probability calibration' },
   benefitBart3:   { ru: 'Импульс vs осторожность',    en: 'Impulse vs caution' },
@@ -1416,7 +1416,7 @@ const translations: Translations = {
   benefitIgt2:    { ru: 'Долгосрочная стратегия',     en: 'Long-term strategy' },
   benefitIgt3:    { ru: 'Соматические маркеры',       en: 'Somatic markers' },
   benefitStroop2_1: { ru: 'Подавление эмоций',         en: 'Emotion suppression' },
-  benefitStroop2_2: { ru: 'Attentional bias',          en: 'Attentional bias' },
+  benefitStroop2_2: { ru: 'Внимание цепляется за тревожные слова',          en: 'Attention catches on alarming words' },
   benefitStroop2_3: { ru: 'Контроль реакции',          en: 'Response control' },
   benefitSs1:     { ru: 'Зрительно-простр. память',   en: 'Visuospatial memory' },
   benefitSs2:     { ru: 'Ментальная перестановка',    en: 'Mental rearrangement' },
@@ -1574,7 +1574,7 @@ const translations: Translations = {
 
   benefitCpt1:    { ru: 'Устойчивое внимание (vigilance)',  en: 'Sustained attention (vigilance)' },
   benefitCpt2:    { ru: 'Контроль импульса (X = stop)',      en: 'Impulse control (X = stop)' },
-  benefitCpt3:    { ru: 'RT variability (ADHD-маркер)',      en: 'RT variability (ADHD marker)' },
+  benefitCpt3:    { ru: 'Ровность реакции — насколько она не скачет',      en: 'Steadiness of reaction — how little it jumps' },
 
   skillSustainedAttention: { ru: 'Тренируем: устойчивое внимание', en: 'Training: sustained attention' },
 
@@ -1587,7 +1587,7 @@ const translations: Translations = {
   },
   prlHint:        { ru: 'Выбирай круг. Правило может меняться — следи за фидбеком', en: 'Pick a circle. Rule may change — watch feedback' },
   prlNote:        { ru: 'Главное правило: после нескольких правильных подряд правила меняются. Не упрямься со старым выбором.', en: 'Key rule: after several correct in a row, rules swap. Don\'t persist with old choice.' },
-  benefitPrl1:    { ru: 'Обучение по обратной связи (vmPFC)', en: 'Feedback-based learning (vmPFC)' },
+  benefitPrl1:    { ru: 'Обучение по обратной связи', en: 'Learning from feedback' },
   benefitPrl2:    { ru: 'Гибкость к смене правил',            en: 'Flexibility to rule changes' },
   benefitPrl3:    { ru: 'Финансовые решения (Iowa+BART+PRL)',  en: 'Financial decisions (Iowa+BART+PRL)' },
 
