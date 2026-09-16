@@ -47,7 +47,7 @@ export type Axis = 'x' | 'y' | 'z';
  * ракурса, пары «да/нет», проекции и развёртки угла поворота нет вовсе, и одна
  * такая проба портит единственную настоящую величину игры.
  */
-export type TaskKind = 'rotation' | 'projection' | 'net' | 'viewpoint' | 'same' | 'missing' | 'assembly' | 'formation';
+export type TaskKind = 'rotation' | 'projection' | 'net' | 'viewpoint' | 'same' | 'missing' | 'assembly' | 'formation' | 'section';
 
 /**
  * Направление взгляда для проекции.
@@ -262,6 +262,34 @@ export interface FormationTask {
   correctIdx: number;
 }
 
+/**
+ * «Срез» (задача 4f85b6a9, ортогональный вариант): в фигуре выделен один слой — как выглядит
+ * этот срез с той стороны, что поперёк слоя. Варианты — сетки, как у «Проекции».
+ * `whole` — проекция всей фигуры, `neighbour` — соседний слой, `mirror` / `turned` — зеркало и
+ * четверть оборота среза, `one-cell` — одна клетка переставлена.
+ */
+export type SectionFlaw = 'none' | 'whole' | 'neighbour' | 'mirror' | 'turned' | 'one-cell';
+
+export interface SectionOption {
+  cells: Cell2D[];
+  isMatch: boolean;
+  flaw: SectionFlaw;
+}
+
+export interface SectionTask {
+  kind: 'section';
+  shape: Shape;
+  view: ProjectionView;
+  /** Координата слоя по оси вида (`SECTION_AXIS`). */
+  layer: number;
+  /** Кубики слоя — рисуются сплошными. */
+  cubes: Shape;
+  /** Остальные кубики фигуры — рисуются пунктиром. */
+  rest: Shape;
+  options: SectionOption[];
+  correctIdx: number;
+}
+
 export type MentalRotationTask =
   | RotationTask
   | ProjectionTask
@@ -270,4 +298,5 @@ export type MentalRotationTask =
   | SameTask
   | MissingTask
   | AssemblyTask
-  | FormationTask;
+  | FormationTask
+  | SectionTask;

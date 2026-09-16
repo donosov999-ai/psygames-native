@@ -1,4 +1,4 @@
-/* psygames-game-mental-rotation · VER 5 · 17.09.2026 */
+/* psygames-game-mental-rotation · VER 6 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /**
  * Mental Rotation — три вида пространственных заданий на одной геометрии
@@ -542,6 +542,7 @@ export default function MentalRotationGame() {
       : kind === 'missing' ? strings.taskMissing
       : kind === 'assembly' ? strings.taskAssembly
       : kind === 'formation' ? strings.taskFormation
+      : kind === 'section' ? strings.taskSection
       : strings.taskNet
   );
   const axisWord = (axis: Axis): string => (
@@ -554,7 +555,10 @@ export default function MentalRotationGame() {
     if (opt.flaw === 'mirror') return strings.optionMirror;
     if (opt.flaw === 'other') return strings.optionOther;
     if (opt.flaw === 'other-view') return strings.optionOtherView;
-    if (opt.flaw === 'edited-shape' || opt.flaw === 'one-cube') return strings.optionEditedShape;
+    if (opt.flaw === 'edited-shape' || opt.flaw === 'one-cube' || opt.flaw === 'one-cell') return strings.optionEditedShape;
+    if (opt.flaw === 'whole') return strings.optionWholeFigure;
+    if (opt.flaw === 'neighbour') return strings.optionNeighbourLayer;
+    if (opt.flaw === 'turned') return strings.optionTurned;
     if (opt.flaw === 'swap') return strings.optionSwap;
     return '';
   };
@@ -670,7 +674,7 @@ export default function MentalRotationGame() {
                   }]}
                 >
                   {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
-                  {task.kind === 'projection' && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
+                  {(task.kind === 'projection' || task.kind === 'section') && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
                   {task.kind === 'net' && renderMarkedCube((opt as { faces: FaceMap }).faces, optSize, GRADIENT[1])}
                   {task.kind === 'viewpoint' && renderShape(task.shape, optSize, GRADIENT[1], task.axis, (opt as { degrees: number }).degrees)}
                   {(task.kind === 'missing' || task.kind === 'assembly' || task.kind === 'formation') && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
@@ -716,6 +720,10 @@ export default function MentalRotationGame() {
                   : task.kind === 'missing' ? strings.missingPrompt
                   : task.kind === 'assembly' ? strings.assemblyPrompt
                   : task.kind === 'formation' ? strings.formationPrompt
+                  : task.kind === 'section'
+                  ? interpolateMentalRotation(strings.sectionPrompt, {
+                      view: task.view === 'top' ? strings.viewTop : task.view === 'front' ? strings.viewFront : strings.viewSide,
+                    })
                   : strings.netPrompt}
             </Text>
             <View testID="mental-reference" style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }]}>
@@ -729,6 +737,9 @@ export default function MentalRotationGame() {
                   ? <ViewpointReference shape={task.shape} degrees={task.degrees} size={baseSize} accent={colors.primary}/>
                   : task.kind === 'missing'
                   ? <View testID="missing-whole"><RotationShape shape={task.whole} ghost={task.hole} size={baseSize}/></View>
+                  : task.kind === 'section'
+                  // Срез: кубики слоя сплошные, остальная фигура пунктиром — слой виден внутри фигуры.
+                  ? <View testID="section-layer"><RotationShape shape={task.shape} ghost={task.rest} size={baseSize}/></View>
                   : task.kind === 'formation'
                   ? <View testID="formation-views" style={{flexDirection:'row',alignItems:'flex-start',justifyContent:'center',gap:10}}>
                       {([['top', strings.viewTop], ['front', strings.viewFront], ['side', strings.viewSide]] as const).map(([view, label]) => (
@@ -771,6 +782,7 @@ export default function MentalRotationGame() {
                     : task.kind === 'missing' ? strings.reviewMissingHint
                     : task.kind === 'assembly' ? strings.reviewAssemblyHint
                     : task.kind === 'formation' ? strings.reviewFormationHint
+                    : task.kind === 'section' ? strings.reviewSectionHint
                     : strings.reviewNetHint}
                 </Text>
                 {task.kind === 'rotation' && (
