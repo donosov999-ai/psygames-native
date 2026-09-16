@@ -275,8 +275,17 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
         <View style={styles.auxRow}><GameAuxBar><GameAuxAction label="Остаться" onPress={()=>setPending(null)}/><GameAuxAction label="Начать" onPress={()=>accept(pending)}/></GameAuxBar></View>
       </View>:null}
       <View style={{alignItems:'center',gap:8}}>
-        <Text testID="spatial-level" style={ink}>{task?`Уровень ${task.level}/50`:'Свободная игра'}</Text>
-        {!preset&&<Text testID="spatial-completed" style={ink}>Пройдено: {completed[mode].length}/50</Text>}
+        {/*
+          🔴 СЧЁТЧИК ПРОЙДЕННОГО ОТНОСИТСЯ К УРОВНЯМ, А СТОЯЛ ПОД «СВОБОДНОЙ ИГРОЙ».
+          Отчёт ee0889e7 (12.09.2026), дословно: «Свободная игра и что под ней зачем
+          эта строка». Человек читал «Пройдено: 0/50» как показание того, что делает
+          СЕЙЧАС, — а оно про другой режим и в свободной игре не двигается никогда.
+          Поэтому в свободной игре подпись прямо называет, чей это счёт, и рядом
+          сказано, что здесь ходы в прогресс не идут и где его начать.
+        */}
+        <Text testID="spatial-level" style={ink}>{task?`${t('level')} ${task.level}/50`:t('spatialFreePlay')}</Text>
+        {!preset&&<Text testID="spatial-completed" style={ink}>{task?t('spatialDone'):t('spatialDoneInLevels')}: {completed[mode].length}/50</Text>}
+        {!preset&&!task&&<Text testID="spatial-free-hint" style={[styles.instruction,ink]}>{t('spatialFreePlayHint')}</Text>}
         {!preset&&<View style={styles.auxRow}><GameAuxBar>
           <GameAuxAction label="Проще" disabled={!task||task.level===1||busy||pending!==null} onPress={()=>request((task?.level??1)-1)}/>
           <GameAuxAction label={task?'Сложнее':'Начать уровни'} disabled={task?.level===50||busy||pending!==null} onPress={()=>request((task?.level??0)+1)}/>

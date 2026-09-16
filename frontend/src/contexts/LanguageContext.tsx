@@ -1916,6 +1916,13 @@ const translations: Translations = {
   puzzleSecondCross: { ru: 'Крестик', en: 'Cross' },
   puzzleSecondDot: { ru: 'Точка', en: 'Dot' },
   puzzleSecondMark: { ru: 'Пометка', en: 'Mark' },
+  /* Лаборатория пространства: строка режима. Отчёт ee0889e7 — «Свободная игра и что
+     под ней зачем эта строка»: счётчик пройденного относится к УРОВНЯМ, а человек
+     видел его в свободной игре и читал как показание того, что делает сейчас. */
+  spatialFreePlay: { ru: 'Свободная игра', en: 'Free play' },
+  spatialFreePlayHint: { ru: 'Здесь ходы в прогресс не идут. Нажми «Начать уровни»', en: 'Moves here do not count towards progress. Tap “Start levels”' },
+  spatialDoneInLevels: { ru: 'В уровнях пройдено', en: 'Completed in levels' },
+  spatialDone: { ru: 'Пройдено', en: 'Completed' },
   puzzleNextStep: { ru: 'Следующий шаг', en: 'Next step' },
   puzzleSelect: { ru: 'Взять', en: 'Select' },
   pauseExitGame: { ru: 'Выйти из упражнения', en: 'Leave exercise' },
