@@ -385,10 +385,21 @@ const translations: Translations = {
 
   // Anagrams
   anagrams: { ru: 'Анаграммы', en: 'Anagrams' },
-  anagramsDesc: { ru: 'Составь слово из перемешанных букв', en: 'Reassemble word from shuffled letters' },
+  anagramsDesc: { ru: 'Собери слова из перемешанных букв — четыре режима', en: 'Make words from shuffled letters — four modes' },
+  /**
+   * 🔴 СПРАВКА ОБЯЗАНА НАЗЫВАТЬ ВСЕ РЕЖИМЫ, А НЕ ОДИН.
+   *
+   * `GameHelpOverlay` в своей же шапке объявляет: «Справка = НАШЕ описание
+   * (режимы/уровни, ключ introKey)». У анаграмм режимов ЧЕТЫРЕ, а и карточка,
+   * и справка описывали только классику — то есть три режима из четырёх
+   * существовали, но узнать о них было неоткуда, кроме случайного тыка в
+   * переключатель на экране настройки.
+   * Стережёт `src/__tests__/anagrams-help-names-modes.test.ts`: список режимов
+   * берётся ИЗ ЭКРАНА, поэтому пятый режим покраснит пробу сам.
+   */
   anagramsIntroDesc: {
-    ru: 'Из перемешанных букв соберите исходное слово как можно быстрее. Тренирует словарный запас, гибкость мышления и способность видеть структуру в хаосе.',
-    en: 'Reassemble the original word from shuffled letters as fast as you can. Trains vocabulary, mental flexibility and pattern recognition.',
+    ru: 'Из одного набора перемешанных букв собираются слова. Буквы берутся из выбранной темы и языка, с уровнем растут их длина и число.\n\n🎛 Режимы — выбираются перед партией:\n• Классика — собрать одно загаданное слово\n• Все слова — найти в наборе все слова сразу: пустые клетки показывают, сколько букв в каждом\n• Кроссворд — слова вписываются в сетку и пересекаются, открытая буква подсказывает соседнее\n• Слово-квадрат — четыре слова по краям поля, у соседних общие углы\n\nТренирует словарный запас, гибкость мышления и умение видеть структуру в хаосе.',
+    en: 'One pile of shuffled letters becomes words. The letters come from the theme and language you pick; they grow longer and more numerous as levels rise.\n\n🎛 Modes — chosen before the round:\n• Classic — rebuild the one hidden word\n• All words — find every word the letters hide: empty cells show how long each one is\n• Crossword — words cross in a grid, and an open letter gives away its neighbour\n• Word square — four words along the edges, sharing their corner letters\n\nTrains vocabulary, mental flexibility and the knack of seeing structure in chaos.',
   },
   lettersInWord: { ru: 'Букв в слове', en: 'Letters' },
   anagramHint: { ru: 'Ведите пальцем по буквам — или нажимайте по одной', en: 'Swipe across the letters — or tap them one by one' },
