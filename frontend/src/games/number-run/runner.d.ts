@@ -58,6 +58,28 @@ declare module '*/runner-levels.mjs' {
   export function ruleText(...args: any[]): string;
 }
 
+declare module '*/runner-level.mjs' {
+  export const LEVEL_VERSION: string;
+  export const LEVEL_SLOTS: number;
+  export const PASS_WALLS: number;
+  export const BOSS_SHARE: number;
+  export const CHAPTERS: readonly { from: number; station: string }[];
+  /** Генераторы задач станций приходят снаружи — те же, что у упражнений хаба. */
+  export interface ЗадачиСтанций {
+    blitz(level: number, rnd: () => number): { display: string; answer: number };
+    exact(level: number, rnd: () => number): { target: number; chips: number[] };
+  }
+  export function makeLevel(level: number, seed: number, tasks: ЗадачиСтанций, options?: { boss?: boolean }): any;
+  export function levelPassed(course: any, value: number): boolean;
+  export function stationPlan(level: number, boss: boolean): string[];
+  export function stationLevel(station: string, level: number): number;
+}
+
+declare module '*/runner-shapes.mjs' {
+  export function createTrack(rng: () => number): any;
+  export function random(seed: number): () => number;
+}
+
 declare module '*/runner-scene.mjs' {
   export interface Сцена {
     canvas: HTMLCanvasElement;

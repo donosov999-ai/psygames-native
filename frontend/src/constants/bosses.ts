@@ -39,6 +39,7 @@ export const GAMES_WITH_BOSS: ReadonlySet<string> = new Set([
   'math_sprint',
   'n_back',
   'number_bonds',
+  'number_run',   // 16.09.2026: уровни «Числового забега», страж каждый третий (станции хаба «Счёт»)
   'posner',
   'proofreading',
   'quick_count',
