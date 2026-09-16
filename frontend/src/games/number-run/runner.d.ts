@@ -1,4 +1,4 @@
-/* psygames-number-run-types · VER 1 · 12.09.2026 */
+/* psygames-number-run-types · VER 2 · 16.09.2026 */
 /**
  * ТИПЫ ПЕРЕНЕСЁННЫХ МОДУЛЕЙ ЛАБОРАТОРИИ.
  *
@@ -37,6 +37,13 @@ declare module '*/runner-campaign.mjs' {
   export const CAMPAIGN_VERSION: string;
   export const STAGE_COUNT: number;
   export function makeCampaign(seed?: number): any;
+  /** Семь построений рядов чисел на каждый из 12 этапов (VER 4 маршрута). */
+  export const PLAN: readonly (readonly string[])[];
+  export const LADDER_WALLS: number;
+  export const NICE_STEPS: readonly number[];
+  /** Финальная лестница: десять стен, верхняя не выше числа эталонного пути. */
+  export function finaleLadder(reference: number): { reference: number; walls: number[] };
+  export function wallsBroken(finale: { walls: number[] }, value: number): number;
 }
 
 declare module '*/runner-levels.mjs' {
@@ -56,10 +63,15 @@ declare module '*/runner-scene.mjs' {
     canvas: HTMLCanvasElement;
     dpr: number;
     load(course: any): void;
-    render(state: any, time: number): void;
+    /** `finaleT` — секунды финала по часам адаптера (стоят на паузе). */
+    render(state: any, time: number, finaleT?: number): void;
+    /** Сколько секунд идёт финал для этого состояния: до последней пробитой стены и пауза на показ. */
+    finaleDuration(state: any): number;
     destroy(): void;
   }
   export function createScene(container: HTMLElement): Сцена;
+  export function finaleDistance(course: any, state: any): number;
+  export function finaleDuration(course: any, state: any): number;
 }
 
 declare module '*/runner-numerals.mjs' {

@@ -2442,18 +2442,19 @@ const translations: Translations = {
   // Числовой забег (перенос LOCAL 0.4 от psygames-codex-mac, 12.09.2026).
   numberRun: { ru: 'Числовой забег', en: 'Number Run' },
   numberRunRule: {
-    ru: 'Веди число по дороге. Синие блоки прибавляют, красные вычитают написанное. В одном ряду можно собрать все пять чисел, а не выбрать одно. Зелёный трамплин перебрасывает через разрыв.',
-    en: 'Steer your number along the road. Blue blocks add, red ones subtract what is written. In one row you can collect all five numbers, not pick just one. A green ramp throws you across the gap.',
+    ru: 'Веди число по дороге: синее прибавляет, красное вычитает. У столба выбирай сторону по сумме её стопки, у стен — меньший минус. Зелёный трамплин перебрасывает через разрыв и над большим красным. На финише число пробивает стены — сколько хватит.',
+    en: 'Steer your number down the road: blue adds, red subtracts. At a pole, pick the side by the sum of its stack; at walls, take the smaller minus. The green ramp throws you over a gap and over a big red. At the finish your number smashes through as many walls as it can.',
   },
   numberRunDesc: {
     ru: 'Ведёшь число по дороге и решаешь на ходу, что подобрать: синее прибавит, красное вычтет.',
     en: 'Steer a number down the road and decide on the move what to pick up: blue adds, red subtracts.',
   },
   numberRunIntroDesc: {
-    ru: 'Ты ведёшь одно число по дороге и на ходу решаешь, что подобрать. Синий блок прибавит к нему то, что на нём написано, красный — вычтет. В поперечном ряду до пяти чисел, и каждое берётся отдельно: можно собрать все пять, а можно ни одного. Зелёная площадка подбрасывает через разрыв — мимо неё падение. Двенадцать этапов идут подряд, без остановок и без сброса числа.',
-    en: 'You steer a single number down the road and decide on the move what to pick up. A blue block adds what is written on it, a red one subtracts. A row holds up to five numbers and each is taken separately: you can collect all five or none. The green pad throws you across the gap — miss it and you fall. Twelve stages run back to back, with no stops and no reset of your number.',
+    ru: 'Ты ведёшь одно число по дороге и на ходу решаешь, что подобрать. Синее число прибавит написанное, красное — вычтет; каждое берётся отдельно. Змейку синих веди пальцем, красные рядом объезжай. Столб делит дорогу надвое: сторону выбери до него — по сумме её стопки, через столб не перебраться. Из стен во всю дорогу проезжаешь одну, и её действие применится к твоему числу: бери меньший минус или сравни «×2» с прибавкой. Зелёная площадка перебрасывает через разрыв — мимо неё падение — и уносит над большим красным. Двенадцать этапов идут подряд, без остановок и без сброса числа; на финише число пробивает стены, сколько хватит.',
+    en: 'You steer one number down the road and decide on the move what to pick up. A blue number adds what is written on it, a red one subtracts; each is taken separately. Follow a snake of blues with your finger and swerve around the reds beside it. A pole splits the road in two: pick your side before it by the sum of that stack — you cannot cross the pole. Of a row of walls across the road you drive through one, and its action applies to your number: take the smaller minus, or compare ×2 with the plus. The green pad throws you across a gap — miss it and you fall — and carries you over a big red. Twelve stages run back to back, with no stops and no reset of your number; at the finish your number smashes through as many walls as it can.',
   },
   numberRunTask: { ru: 'Синее прибавляет, красное вычитает', en: 'Blue adds, red subtracts' },
+  numberRunWalls: { ru: 'Пробито стен', en: 'Walls broken' },
   numberRunDone: { ru: 'Забег пройден', en: 'Run completed' },
   numberRunWebOnly: {
     ru: 'Забег работает в веб-слое приложения; в этой сборке графика недоступна.',
@@ -3581,6 +3582,9 @@ const translations: Translations = {
   lr_picture_pairs_quad_title: { ru: 'Четвёрки', en: 'Quads' },
   lr_picture_pairs_quad_rule: { ru: 'Теперь совпадение — ЧЕТЫРЕ одинаковые картинки. Открой все четыре подряд, чтобы снять группу.', en: 'Now a match is FOUR identical pictures. Open all four in a row to clear the group.' },
   lr_picture_pairs_quad_example: { ru: 'Пример: 🐱🐱🐱 — мало, нужна четвёртая 🐱.', en: 'Example: 🐱🐱🐱 is not enough — you need a fourth 🐱.' },
+  lr_picture_pairs_swap_title: { ru: 'Карты меняются местами', en: 'Cards swap places' },
+  lr_picture_pairs_swap_rule: { ru: 'С этого уровня после каждой ошибки закрытые карты меняются местами — по паре за раз, и пара подсвечивается. Чем выше уровень, тем больше обменов. Следи за подсветкой: запомненная карта могла переехать.', en: 'From this level, after every mistake face-down cards swap places — one pair at a time, and the pair lights up. The higher the level, the more swaps. Watch the highlight: a card you remembered may have moved.' },
+  lr_picture_pairs_swap_example: { ru: 'Пример: ты помнишь 🐱 в углу, и угол подсветился вместе с серединой — теперь 🐱 в середине.', en: 'Example: you remember 🐱 in the corner, and the corner lights up together with the middle — now 🐱 is in the middle.' },
   lr_prl_reversal_title: { ru: 'Угадывать не нужно — нужно замечать', en: 'Not a guessing game — a noticing game' },
   lr_prl_reversal_rule: { ru: 'Один из двух кругов чаще приносит выигрыш. Какой именно — в начале неизвестно, это выясняется пробами. Через несколько верных выборов подряд стороны МОЛЧА меняются местами: тот, что был хорошим, становится плохим. Никакого сигнала об этом не будет.', en: 'One of the two circles pays off more often. Which one is unknown at first — you find out by trying. After a few correct choices in a row the sides SILENTLY swap: the good one becomes the bad one. You will get no warning.' },
   lr_prl_reversal_example: { ru: 'Поэтому две ошибки подряд после долгой удачной серии — это почти наверняка не невезение, а смена правила. Меняйте выбор. Одна ошибка ещё ничего не значит: даже хороший круг иногда обманывает.', en: 'So two errors in a row after a long good streak is almost never bad luck — it is the rule changing. Switch. A single error means nothing: even the good circle misleads sometimes.' },

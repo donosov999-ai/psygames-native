@@ -69,7 +69,17 @@ export async function uploadWithRetry(
   if (!shouldRetryUpload(out)) return out;
   try {
     const second = await attempt(alt());
-    return second === 'ok' ? `ok-${altName}` : `${out} → ${altName}:${second}`;
+    if (second === 'ok') return `ok-${altName}`;
+    /**
+     * 🔴 «УЖЕ ЕСТЬ» НА ВТОРОЙ ПОПЫТКЕ — ЭТО УСПЕХ ПЕРВОЙ, А НЕ ОТКАЗ.
+     * Имя файла у каждого отзыва случайное, чужого файла под ним быть не может. Значит,
+     * первая заливка оборвалась по тайм-ауту у нас, а на сервер долетела — и повтор
+     * упёрся в её же файл. Раньше это читалось как неудача: отзыв уходил «без скриншота»,
+     * файл лежал сиротой. Случай 16.09.2026, отзыв Дениса 28a9d55c: `timeout →
+     * relay:err:The resource already exists`, файл 48 959 байт нашёлся в бакете отдельно.
+     */
+    if (/already exists|Duplicate/i.test(second)) return `ok-${altName}-exists`;
+    return `${out} → ${altName}:${second}`;
   } catch (e: any) {
     return `${out} → ${altName}:threw:${String(e?.message ?? e).slice(0, 60)}`;
   }

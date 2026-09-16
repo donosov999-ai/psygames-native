@@ -1,6 +1,11 @@
-/* psygames-number-run-adapter · VER 1 · 12.09.2026 */
+/* psygames-number-run-adapter · VER 2 · 16.09.2026 */
 /**
  * ЧИСЛОВОЙ ЗАБЕГ — ВЕБ-АДАПТЕР ЯДРА ЛАБОРАТОРИИ К КАРКАСУ ПРИЛОЖЕНИЯ.
+ *
+ * VER 2 (16.09.2026, psygames-search-claude-mac): маршрут VER 4 кончается финальной
+ * лестницей стен. Итог отдаётся не на черте 12-го этапа, а когда финал доиграл, и
+ * в нём — сколько стен пробило число. Часы финала стоят на паузе и в скрытой
+ * вкладке, как и сам забег.
  *
  * Игру собрал `psygames-codex-mac` как LOCAL 0.4 (`renderer-lab/`), передал
  * инструкцией `RUNNER_INTEGRATION_FOR_CLAUDE.md` VER 1 от 12.09.2026. Сюда
@@ -48,6 +53,10 @@ export interface ИтогЗабега {
   столкновений: number;
   активныхСекунд: number;
   причина: 'дошёл' | 'упал' | 'вышел' | 'графика';
+  /** Сколько стен финальной лестницы пробило число; 0 — если до финала не доехал. */
+  стен: number;
+  /** Сколько стен в лестнице этого маршрута (верхняя — число эталонного пути). */
+  стенВсего: number;
 }
 
 interface Props {
@@ -83,6 +92,11 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
   const маршрут = useRef<any>(null);
   const сцена = useRef<any>(null);
   const ядро = useRef<Ядро | null>(null);
+  const кампания = useRef<Кампания | null>(null);
+  /** Секунды финала: копятся только при идущем кадре без паузы — это часы лестницы стен. */
+  const финалСекунд = useRef(0);
+  /** Пауза для кадрового цикла: сам цикл замкнут на первый рендер и проп не видит. */
+  const паузаСейчас = useRef(пауза);
   const прошлоеВремя = useRef<number | null>(null);
   const тащим = useRef<{ id: number; startX: number; target: number } | null>(null);
   const итогОтдан = useRef(false);
@@ -138,6 +152,7 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
         ]);
         if (!живо) return;
         ядро.current = c;
+        кампания.current = k;
         этаповВсего.current = Number(k.STAGE_COUNT) || 12;
         маршрут.current = k.makeCampaign(зерно);
         состояние.current = c.initial(маршрут.current);
@@ -179,6 +194,7 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
 
   /* ── ручная пауза каркаса: ядро СИНХРОННО, а не окном поверх ────────────── */
   useEffect(() => {
+    паузаСейчас.current = пауза;
     const c = ядро.current, s = состояние.current;
     if (!c || !s) return;
     if (пауза && s.status === 'running') состояние.current = c.pause(s, 'manual');
@@ -193,9 +209,11 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
   const завершить = useCallback((причина: ИтогЗабега['причина']) => {
     if (итогОтдан.current) return;
     итогОтдан.current = true;
-    const s = состояние.current;
+    const s = состояние.current, лестница = маршрут.current?.finale;
     onИтог({
       победа: s?.status === 'won',
+      стен: s?.status === 'won' && лестница && кампания.current ? кампания.current.wallsBroken(лестница, s.sum) : 0,
+      стенВсего: лестница?.walls?.length ?? 0,
       число: Math.round(s?.sum ?? 0),
       этаповПройдено: s?.clearedStages ?? 0,
       столкновений: s?.hits ?? 0,
@@ -225,11 +243,17 @@ const NumberRunGame = forwardRef<РульЗабега, Props>(function NumberRun
       // нельзя попадать в `step` напрямую (контракт).
       состояние.current = c.advanceFrame(s, dt, маршрут.current);
       отдатьПоказатели();
-      const st = состояние.current.status;
-      if (st === 'won') завершить('дошёл');
-      else if (st === 'failed') завершить('упал');
+      if (состояние.current.status === 'failed') завершить('упал');
+    } else if (s.status === 'won' && !итогОтдан.current) {
+      /**
+       * 🔴 ЧЕРТА 12-ГО ЭТАПА — ЕЩЁ НЕ ИТОГ. Дальше число едет по лестнице стен и
+       * пробивает, сколько хватит (`runner-scene.mjs`, `finaleDuration`). Итог — когда
+       * финал доиграл. Кадр больше 0,1 с не проматывает финал рывком.
+       */
+      if (!паузаСейчас.current) финалСекунд.current += Math.min(dt, 0.1);
+      if (финалСекунд.current >= (сцена.current?.finaleDuration?.(s) ?? 0)) завершить('дошёл');
     }
-    try { сцена.current?.render(состояние.current, now); } catch { /* кадр пропускаем, забег живёт */ }
+    try { сцена.current?.render(состояние.current, now, финалСекунд.current); } catch { /* кадр пропускаем, забег живёт */ }
     rafRef.current = requestAnimationFrame(кадр);
   }, [завершить, отдатьПоказатели]);
 
