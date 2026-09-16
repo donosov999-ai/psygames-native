@@ -1381,7 +1381,8 @@ const translations: Translations = {
   wcstHint:       { ru: 'К какому эталону подходит карточка? (правило скрыто)', en: 'Which reference card matches? (rule is hidden)' },
   ospanEqHint:    { ru: 'Это уравнение верно?',   en: 'Is this equation correct?' },
   ospanRememberLetter: { ru: 'Запомните букву',     en: 'Remember the letter' },
-  ospanRecallHint:{ ru: 'Введите буквы через пробел в правильном порядке', en: 'Type the letters separated by spaces in order' },
+  ospanRecallHint:{ ru: 'Нажимайте буквы по порядку — пробелы не нужны', en: 'Tap the letters in order — no spaces needed' },
+  ospanRecallTitle: { ru: 'Вспомните буквы', en: 'Recall the letters' },
 
   // Round-6 — names
   posner:          { ru: 'Posner Cuing: внимание',     en: 'Posner Cuing: Attention' },
