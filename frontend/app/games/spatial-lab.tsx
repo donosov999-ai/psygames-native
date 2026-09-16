@@ -1,4 +1,4 @@
-/* psygames-game-spatial-lab · VER 2 · 09.09.2026 */
+/* psygames-game-spatial-lab · VER 3 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.2 · psygames-codex-mac · not an app release */
 /**
  * Маршрут лаборатории: экран Codex (`SpatialLab`) + стандарт каркаса поверх него.

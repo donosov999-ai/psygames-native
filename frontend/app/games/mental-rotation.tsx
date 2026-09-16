@@ -1,4 +1,4 @@
-/* psygames-game-mental-rotation · VER 4 · 09.09.2026 */
+/* psygames-game-mental-rotation · VER 5 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /**
  * Mental Rotation — три вида пространственных заданий на одной геометрии
