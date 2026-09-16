@@ -61,7 +61,7 @@ import {
   View,
 } from 'react-native';
 import { useGameKeyboard, type KeyMap } from '@/src/hooks/useGameKeyboard';
-import { useScreenWidth } from '@/src/hooks/useScreenWidth';
+import { useScreenSize, useScreenWidth } from '@/src/hooks/useScreenWidth';
 import {
   CARDINAL_DIRECTIONS,
   HOME_SECTORS,
@@ -477,6 +477,7 @@ function NavigatorSessionView({
 }: NavigatorGameProps) {
   const strings = getNavigatorStrings(locale);
   const screenW = useScreenWidth();
+  const { h: screenH } = useScreenSize();
   const [session, setSession] = React.useState(() => createNavigatorSession({ seed, level, mode }));
   const sessionRef = React.useRef(session);
   const completionReported = React.useRef(false);
@@ -549,7 +550,40 @@ function NavigatorSessionView({
    */
   if (session.phase === 'result') return null;
 
-  const boardSize = Math.min(600, Math.max(220, screenW - 24));
+  /**
+   * 🔴 СТОРОНА КАРТЫ — ОТ ШИРИНЫ И ОТ ВЫСОТЫ (16.09.2026, приёмка 50b87961).
+   * Считалась только от ширины, и в фазе ОТВЕТА кнопки уходили под нижний край.
+   * Замер на собранном экране (низ «Restart» против высоты окна):
+   *   Route Recall    — на 375×667 за краем на 151 pt;
+   *   Home Direction  — 8 кнопок в ДВА ряда: за краем даже на 390×844 (61 pt) и 403×873 (45);
+   *   Turn Sequence   — в фазе ответа карты нет, кнопки наверху, помещается везде.
+   * Постоянные величины, одинаковые на 375, 390 и 403 pt ширины:
+   *   верх карты в фазе ответа 229 (в фазе запоминания 199 — строки «Шаг N из 3» ещё нет);
+   *   от низа карты до низа «Restart» — 238 в Route Recall, 310 в Home Direction на 390/403
+   *   и 323 на 375 (подписи в узких кнопках переносятся, ряды выше) — берётся большее.
+   * ⚠️ РАЗМЕР ЗАВИСИТ ОТ РЕЖИМА РАУНДА, А НЕ ОТ ФАЗЫ — нарочно. Это игра на пространственную
+   * память: карта обязана быть одной и той же в запоминании и в ответе, иначе меняется
+   * сама задача. Режим внутри раунда не меняется, значит и сторона тоже.
+   * ⚠️ ПОЛ — 28 pt на клетку: ниже номера на карте не читаются. На самых мелких окнах и
+   * старших сетках (до 8×8) пол честно даёт прокрутку, а не нечитаемую карту.
+   */
+  // ⚠️ 257 — ХУДШИЙ ИЗ 12 ЯЗЫКОВ, А НЕ АНГЛИЙСКИЙ 229. Первая версия брала 229, замеренный
+  // по-английски, и на 375×667 одна кнопка уходила под край на ru, es, de, it, ja (и fr в
+  // Route Recall): шапка с названием режима переносится на лишнюю строку, верх карты
+  // 215 / 229 / 257 в зависимости от языка. Цена худшего случая — карта на 28 pt меньше
+  // там, где хватило бы английского запаса (390×844, Route Recall: 322 вместо 366 вместе с запасом ниже).
+  const ВЕРХ_КАРТЫ_В_ОТВЕТЕ = 257;
+  // ⚠️ И ЗАПАС ПОД КАРТОЙ — ХУДШИЙ ИЗ 12 ЯЗЫКОВ. Подписи в кнопках ответа и текст карточки
+  // свайпа переносятся по-разному. Замер «низ карты → низ последнего органа», 375 и 390 pt:
+  //   Route Recall    en/zh/hi/pt/ja/ko/ar 238 · ru/es/de/it/fr 257
+  //   Home Direction  большинство 310 · en 323 · fr 329 · ru 355 («Северо-восток» в два ряда)
+  // Константа по английскому оставляла кнопку за краем на пяти языках — пойман прогоном
+  // по всем двенадцати, а не выводом.
+  const ЗАПАС_ПОД_КАРТОЙ: Record<NavigatorMode, number> = { 'route-recall': 257, 'turn-sequence': 257, 'home-direction': 355 };
+  const поШирине = Math.min(600, Math.max(220, screenW - 24));
+  const поВысоте = screenH - ВЕРХ_КАРТЫ_В_ОТВЕТЕ - ЗАПАС_ПОД_КАРТОЙ[session.round.mode] - 8;
+  const полКарты = session.round.gridSize * 28;
+  const boardSize = Math.min(поШирине, Math.max(полКарты, поВысоте));
 
   if (session.phase === 'rules') {
     return (
@@ -636,7 +670,7 @@ function NavigatorSessionView({
           <Text accessibilityRole="header" style={[styles.gameTitle, { color: theme.text }]}>{isStudy ? strings.study : strings.recall}</Text>
           <Text style={[styles.round, { color: theme.textSecondary }]}>{modeLabel} · {gridLabel} · {session.round.mapRotation}°</Text>
         </View>
-        <ActionButton label={strings.pause} theme={theme} onPrimaryText={gameGradientText} secondary
+        <ActionButton label={strings.pauseAction} theme={theme} onPrimaryText={gameGradientText} secondary
           onPress={() => setSession((current) => pauseNavigatorSession(current, now()))} />
       </View>
 
