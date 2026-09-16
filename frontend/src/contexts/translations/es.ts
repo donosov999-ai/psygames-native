@@ -197,7 +197,7 @@ const t: Record<string, string> = {
   "mathSprintDesc": "Resuelve tantos problemas como puedas en el tiempo",
   "mathSliderIntroDesc": "Estima el valor de la expresión y coloca la marca en la recta numérica. No hace falta calcular con exactitud: lo importante es acertar la zona correcta de la escala. Entrena el sentido numérico y el cálculo aproximado, y con los niveles cambia el tipo de expresión: sumas, restas, multiplicaciones, decimales, porcentajes, descuentos y proporciones.",
   "mathSprintIntroDesc": "Resuelve operaciones aritméticas contrarreloj. Las respuestas correctas consecutivas aumentan un bono por racha. Desarrolla el cálculo mental y la velocidad de procesamiento.",
-  "mathHint": "Escribe la respuesta y pulsa ✓",
+  "mathHint": "Escribe la respuesta con las teclas de abajo",
   "benefitMath1": "Calcula sin calculadora",
   "benefitMath2": "Maneja números en el trabajo más rápido",
   "benefitMath3": "Confianza con los números",

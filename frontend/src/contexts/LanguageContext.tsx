@@ -780,7 +780,7 @@ const translations: Translations = {
     ru: 'Решайте арифметические примеры на скорость. Каждое правильное подряд увеличивает бонус-стрик. Развивает устный счёт и быстроту мышления.',
     en: 'Solve arithmetic problems against the clock. Consecutive correct answers grow a streak bonus. Builds mental arithmetic and processing speed.',
   },
-  mathHint: { ru: 'Введите ответ и нажмите ✓', en: 'Type the answer and press ✓' },
+  mathHint: { ru: 'Набери ответ клавишами внизу', en: 'Type the answer on the keys below' },
   benefitMath1: { ru: 'Считать в уме без калькулятора', en: 'Calculate without a calculator' },
   benefitMath2: { ru: 'Быстрее работать с числами в работе', en: 'Crunch numbers at work faster' },
   benefitMath3: { ru: 'Уверенность с цифрами', en: 'Confidence with numbers' },

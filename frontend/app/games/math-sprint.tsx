@@ -10,6 +10,8 @@ import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
+import { ВЕРХ_ПОЛЯ, ПОЛЯ_ОТВЕТА, ПАЛЕЦ, РЯД_ДЕЙСТВИЙ } from '@/src/components/gameLayout';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -121,6 +123,42 @@ export default function MathSprintGame() {
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inputRef = useRef<TextInput>(null);
+  /**
+   * 🔴 СВОЯ КЛАВИАТУРА, А НЕ СИСТЕМНАЯ.
+   *
+   * Приёмка 16.09.2026 (решение Дениса: «кнопки управления и клавы, где игры это
+   * требуют»; задача 1bbb9413). Ответ вводился только в поле `TextInput` с
+   * `autoFocus`: на телефоне всплывает системная клавиатура и закрывает нижнюю
+   * половину экрана — ровно там, где стоит «Проверить». Подсказка под полем при
+   * этом обещала «нажмите ✓», а кнопка называлась «Проверить».
+   *
+   * Теперь под полем свои клавиши 0–9, минус (ответы бывают отрицательными — фильтр
+   * ввода `[^-0-9]` и уравнения «3x − 7 = 25») и стирание. Поле осталось: на нём
+   * набирают с настоящей клавиатуры на компьютере, а системную на телефоне гасит
+   * `inputMode="none"`. Верный ответ по-прежнему засчитывается сам, как только
+   * набранное с ним совпало (эффект выше) — «Проверить» сдаёт неверный.
+   *
+   * Размер: ширина — из внутренней ширины полосы (`ПОЛЯ_ОТВЕТА` — отступы 66 с двух
+   * сторон), высота — чтобы задача, поле и подсказка уместились над четырьмя рядами.
+   *
+   * ⚠️ ВЫСОТА КОЛОНКИ ПОЛЯ — ЗАМЕР, А НЕ ПРИКИДКА. Первая версия заложила на задачу,
+   * поле и подсказку 180 точек — и строка подсказки пропала на 375×667 и 360×640:
+   * её накрыла полоса. Живой замер (`/tmp/sprint-field.mjs`): колонка 242 точки на
+   * 390×844, полоса с клавишами 325 (из них 4 ряда по 56, остальное 101 — зазоры,
+   * «Проверить», отступы). На низком экране задача теряет 40 точек своих полей
+   * (paddingVertical 32 → 12), и колонка становится 202.
+   */
+  const { w: экранШ, h: экранВ } = useScreenSize();
+  const низкийЭкран = экранВ < 760;
+  const колонкаПоля = низкийЭкран ? 202 : 242;
+  const клавишаШ = Math.floor(Math.max(ПАЛЕЦ, Math.min((экранШ - ПОЛЯ_ОТВЕТА - 16 - 2) / 3, 88)));
+  const клавишаВ = Math.floor(Math.max(ПАЛЕЦ, Math.min(РЯД_ДЕЙСТВИЙ,
+    (экранВ - ВЕРХ_ПОЛЯ - колонкаПоля - 101 /* зазоры, «Проверить», отступы полосы */) / 4)));
+  const нажать = (к: string) => {
+    if (к === '⌫') setUserAnswer((v) => v.slice(0, -1));
+    else if (к === '−') setUserAnswer((v) => (v.startsWith('-') ? v.slice(1) : `-${v}`));
+    else setUserAnswer((v) => (v.replace('-', '').length >= 6 ? v : v + к));
+  };
   const levelRef = useRef(1);            // текущий уровень партии (рулит набором операций и числами)
 
   useEffect(() => () => { if (tickRef.current) clearInterval(tickRef.current); }, []);
@@ -318,14 +356,30 @@ export default function MathSprintGame() {
             </View>
           ) : undefined}
           toolbar={
-            <TouchableOpacity
-              accessibilityRole="button" onPress={submit} style={[styles.submitBtn, { backgroundColor: GRADIENT[0] }]}>
-              <Text style={[styles.submitText, { color: textOn(GRADIENT[0]) }]}>{t('check')}</Text>
-            </TouchableOpacity>
+            <View style={[styles.keypad, { width: клавишаШ * 3 + 16 + 2 }]}>
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9', '−', '0', '⌫'].map((к) => (
+                <TouchableOpacity
+                  key={к}
+                  accessibilityRole="button"
+                  accessibilityLabel={к === '⌫' ? t('a11yErase') : к}
+                  disabled={feedback !== null}
+                  onPress={() => нажать(к)}
+                  style={[styles.key, { width: клавишаШ, height: клавишаВ, backgroundColor: colors.surface, borderColor: colors.border }]}
+                >
+                  {к === '⌫'
+                    ? <Ionicons name="backspace-outline" size={24} color={colors.text} />
+                    : <Text style={[styles.keyText, { color: colors.text }]}>{к}</Text>}
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity
+                accessibilityRole="button" onPress={submit} style={[styles.submitBtn, { backgroundColor: GRADIENT[0], alignSelf: 'stretch' }]}>
+                <Text style={[styles.submitText, { color: textOn(GRADIENT[0]), textAlign: 'center' }]}>{t('check')}</Text>
+              </TouchableOpacity>
+            </View>
           }
         >
           <View style={styles.fieldCol}>
-            <View style={[styles.problemArea, {
+            <View style={[styles.problemArea, низкийЭкран ? { paddingVertical: 12 } : null, {
               backgroundColor: feedback === 'correct' ? 'rgba(34,197,94,0.15)' : feedback === 'wrong' ? 'rgba(244,63,94,0.15)' : 'transparent',
             }]}>
               {problem && (
@@ -342,6 +396,7 @@ export default function MathSprintGame() {
               onSubmitEditing={submit}
               autoFocus
               keyboardType="numeric"
+              inputMode="none"      /* системную клавиатуру на телефоне не звать: клавиши свои, под полем */
               placeholder="?"
               placeholderTextColor={colors.textSecondary}
               style={[styles.input, {
@@ -434,6 +489,9 @@ const styles = StyleSheet.create({
     minWidth: 180, maxWidth: '100%', alignSelf: 'stretch',
   },
   submitBtn: { minHeight: 48, paddingVertical: 14, paddingHorizontal: 48, borderRadius: 16 , justifyContent: 'center'},
+  keypad: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', writingDirection: 'ltr', maxWidth: '100%' },
+  key: { borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  keyText: { fontSize: 24, fontWeight: '800' },
   submitText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   hintText: { fontSize: 12, textAlign: 'center' },
 });
