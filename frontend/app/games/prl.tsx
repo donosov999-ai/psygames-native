@@ -204,7 +204,9 @@ export default function PRLGame() {
    * Капсула банка в шапке ОСТАВЛЕНА: она общая для всех игр раздела, и убрать её
    * значило бы выломать экран из общего языка.
    */
-  const bankScale = useRef(new Animated.Value(1)).current;
+  /* Состоянием с ленивым началом, а не useRef(...).current: чтение ref во время
+     рендера линт считает ошибкой (react-hooks/refs), и эта одна строка давала семь. */
+  const [bankScale] = useState(() => new Animated.Value(1));
   const reducedMotion = useReducedMotion();
   const [bankFlash, setBankFlash] = useState<'up' | 'down' | null>(null);
   const prevBankRef = useRef(0);
