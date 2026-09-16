@@ -1,4 +1,4 @@
-/* psygames-game-cake-sort · VER 5 · 09.09.2026 */
+/* psygames-game-cake-sort · VER 6 · 17.09.2026 */
 /**
  * ТОРТЫ — собрать круг из ШЕСТИ секторов.
  *
@@ -45,7 +45,7 @@ import { CIRCLE, Board, canPlace, moveType, isCleared, hasAnyMove, makeBoard } f
 import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { prebuilt, prebuiltMin, prebuiltPath } from '@/src/games/cake-sort/core/prebuilt';
-import { solvePath, minMoves } from '@/src/games/cake-sort/core/solver';
+import { solvePath } from '@/src/games/cake-sort/core/solver';
 import { topFor, boardsFor, type КруглаяШкурка } from '@/src/constants/cakeTops';
 import { plateAtPoint, plateForGrab, PLATE_GAP, SECTOR_MIN, tableFit, cakeRadius } from '@/src/games/cake-sort/core/layout';
 import { ВЕРХ_ПОЛЯ, РЯД_ДЕЙСТВИЙ } from '@/src/components/gameLayout';
@@ -310,12 +310,22 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
      * теле эффекта даёт каскад перерисовок — линт ругается на это по делу, и
      * «у нас же значение уже есть» тут не оправдание: кадр всё равно лишний.
      */
+    /**
+     * 🔴 ПОИСКА МИНИМУМА НА УСТРОЙСТВЕ БОЛЬШЕ НЕТ (17.09.2026, координатор, выпуск 2.54.14).
+     *
+     * `setTimeout(0)` не уводит работу в фон: поиск идёт в том же потоке, что и отрисовка,
+     * и экран стоит, пока он не кончится. А эффект зависит от `board`, то есть повторялся
+     * после КАЖДОГО хода. С правилом «ход любым куском» один такой вызов
+     * `minMoves(board, 30000)` стал идти секундами. Замер (jest, загруженный мак):
+     * L5 3,9 с, L10 13,3 с, L20 43,5 с, L60 61,6 с — и ни разу не дошёл до ответа (null).
+     * Живьём на экспорт-сборке: старт L10 — долгая задача 4 556 мс.
+     * Ничего не теряем: вшитый минимум есть у L1–L4, у L5–L120 звёзды считаются по записанной
+     * партии, дальше — по калибровке (`referenceFor` / `starsFor`). Искать здесь было нечего.
+     */
     const t = setTimeout(() => {
       if (!живо) return;
       const готовый = prebuiltMin(level);
-      if (готовый !== null) { setТочныйМин(готовый); return; }
-      const r = minMoves(board, 30000);
-      if (живо && r.moves !== null) setТочныйМин(r.moves);
+      if (готовый !== null) setТочныйМин(готовый);
     }, 0);
     return () => { живо = false; clearTimeout(t); };
   }, [level, board]);
@@ -487,7 +497,15 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    */
   const подсказать = () => {
     if (!board || hints <= 0 || done) { hapticTap(); return; }
-    const текущий = путь && путь.length ? путь : solvePath(board, 20000);
+    /**
+     * 🔴 БЮДЖЕТ ПОДСКАЗКИ — ПО ЗАМЕРУ, ИНАЧЕ НАЖАТИЕ ЗАМОРАЖИВАЕТ ИГРУ (17.09.2026).
+     * `solvePath(board, 20000)` после правила «ход любым куском» (jest, загруженный мак):
+     * L5 2,2 с, L10 9 с, L20 27 с, L30 40 с на ОДНО нажатие, всё в потоке отрисовки.
+     * С бюджетом 400: L5 53 мс, L10 165 мс, L30 0,9 с, L140 1,4 с, и путь при этом находится.
+     * На L1–L2 полный бюджет дешёвый (70–137 мс) и даёт кратчайший путь — там его и оставляем.
+     * Путь запоминается, так что посчитан он один раз на отрезок партии.
+     */
+    const текущий = путь && путь.length ? путь : solvePath(board, level <= 2 ? 20000 : 400);
     if (текущий !== путь) setПуть(текущий);
     const h = текущий?.[0] ?? null;
     if (!h) { hapticTap(); sndWrong(); return; }

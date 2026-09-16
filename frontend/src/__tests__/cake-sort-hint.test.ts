@@ -1,4 +1,4 @@
-/* psygames-gate-cake-sort-hint · VER 2 · 16.09.2026 */
+/* psygames-gate-cake-sort-hint · VER 3 · 17.09.2026 */
 /**
  * 🔴 ПОДСКАЗКА ЗАКОННА И ВЕДЁТ К РЕШЕНИЮ.
  *
@@ -16,8 +16,21 @@ jest.setTimeout(300000);
 const УРОВНИ = Array.from({ length: 30 }, (_, i) => i + 1);
 
 describe('подсказка тортов', () => {
+  /**
+   * ⚠️ ПОДСКАЗКИ ТРИДЦАТИ СТОЛОВ СЧИТАЮТСЯ ОДИН РАЗ НА ОБЕ ПРОБЫ НИЖЕ (17.09.2026, координатор).
+   * Решатель детерминирован, раздача тоже: две пробы звали `hintMove` на тех же тридцати
+   * досках дважды. После правила «ход любым куском» одна такая серия шла 381 и 489 с
+   * (замер на загруженной машине), и джоба CI с этим файлом не укладывалась в 45 минут —
+   * выпуск 2.54.14 стоял. Проверяемое не изменилось: те же доски, тот же вызов, тот же
+   * предикат законности.
+   */
+  const подсказки = new Map<number, ReturnType<typeof hintMove>>();
+  beforeAll(() => {
+    for (const L of УРОВНИ) подсказки.set(L, hintMove(deal(L).board));
+  }, 3_600_000);
+
   it('есть что проверять — подсказка находится на живых столах', () => {
-    const есть = УРОВНИ.filter((L) => hintMove(deal(L).board) !== null);
+    const есть = УРОВНИ.filter((L) => подсказки.get(L) !== null);
     expect(есть.length).toBe(УРОВНИ.length);
   });
 
@@ -25,7 +38,7 @@ describe('подсказка тортов', () => {
     const плохо: string[] = [];
     for (const L of УРОВНИ) {
       const b = deal(L).board;
-      const h = hintMove(b);
+      const h = подсказки.get(L) ?? null;
       if (!h) { плохо.push(`L${L}: подсказки нет`); continue; }
       const src = b.plates[h.from] ?? [];
       if (!src.length) { плохо.push(`L${L}: берёт с пустой тарелки`); continue; }
