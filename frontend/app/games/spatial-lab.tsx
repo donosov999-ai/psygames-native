@@ -1,4 +1,4 @@
-/* psygames-game-spatial-lab · VER 3 · 17.09.2026 */
+/* psygames-game-spatial-lab · VER 4 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.2 · psygames-codex-mac · not an app release */
 /**
  * Маршрут лаборатории: экран Codex (`SpatialLab`) + стандарт каркаса поверх него.
@@ -26,9 +26,12 @@ import {useTheme} from '@/src/contexts/ThemeContext';
 import {useLanguage} from '@/src/contexts/LanguageContext';
 import {gameNow} from '@/src/services/gamePause';
 import {saveSession} from '@/src/services/api';
+import type {SpatialMode} from '@/src/games/spatial-core/snapshot.mjs';
 
 const GRADIENT = ['#38bdf8', '#6366f1'];
-type Mode = 'net' | 'twiddle';
+type Mode = SpatialMode;
+/** Упражнения, которые маршрут узнаёт в `?mode=`; всё прочее — «Поворот чисел», как было. */
+const ИЗ_АДРЕСА:readonly Mode[]=['net','sixteen','netslide'];
 
 type Result = {mode:Mode;level:number;moves:number};
 
@@ -40,12 +43,15 @@ function useSpatialLabStandard(mode:Mode,isPreset:boolean){
   const warmup=useWarmup(),started=useRef(gameNow());
   const { colors } = useTheme();
   const { language } = useLanguage();
-  // Две лестницы — по упражнению (две карточки одной развилки); оба хука зовутся всегда.
+  // Лестница — своя у каждого упражнения; все хуки зовутся всегда, в одном порядке.
+  // «Сдвиг чисел» и «Сеть со сдвигом» (17.09.2026, задача afb6ab5b) — вкладками того же экрана.
   const lvlNet = usePersistentLevel('spatial_lab_net');
   const lvlTwiddle = usePersistentLevel('spatial_lab_twiddle');
-  const lvlFor = (m:Mode) => (m==='net'?lvlNet:lvlTwiddle);
+  const lvlSixteen = usePersistentLevel('spatial_lab_sixteen');
+  const lvlNetslide = usePersistentLevel('spatial_lab_netslide');
+  const lvlFor = (m:Mode) => ({net:lvlNet,twiddle:lvlTwiddle,sixteen:lvlSixteen,netslide:lvlNetslide}[m]);
   const lvl = lvlFor(mode);
-  const gameId = (m:Mode) => (m==='net'?'spatial_lab_net':'spatial_lab_twiddle');
+  const gameId = (m:Mode) => `spatial_lab_${m}`;
   const [cleared,setCleared]=useState<Result|null>(null);
   const api=useRef<{request:(level:number)=>void}|null>(null);
   const askLevel=(l:number)=>api.current?.request(l);
@@ -89,7 +95,8 @@ export default function SpatialLabRoute(){
   // Вечер и ночь — звуки молчат, как везде; флаг ИЗ useGamePreset (гейт calm-hush-everywhere сторожит происхождение).
   const { isCalm } = useGamePreset();
   useCalmHush(isCalm);
-  const mode:Mode=params.str('mode')==='net'?'net':'twiddle';
+  const запрошен=params.str('mode') as Mode;
+  const mode:Mode=ИЗ_АДРЕСА.includes(запрошен)?запрошен:'twiddle';
   const level=Math.max(1,Math.min(50,params.num('level',1)));
   const seed=Math.max(0,Math.min(0xffffffff,params.num('seed',42)));
   const std=useSpatialLabStandard(mode,params.isPreset);

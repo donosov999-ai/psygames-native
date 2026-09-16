@@ -1,6 +1,6 @@
-/* psygames-spatial-lab-level-note · VER 1 · 16.09.2026 */
+/* psygames-spatial-lab-level-note · VER 2 · 17.09.2026 */
 /* psygames-spatial-claude-mac · приёмка 50b87961 */
-import type {SpatialTask} from '../games/spatial-core/snapshot.mjs';
+import type {SpatialMode,SpatialTask} from '../games/spatial-core/snapshot.mjs';
 
 const TWIDDLE_OPENING=['spatialLabTwiddleL1','spatialLabTwiddleL2','spatialLabTwiddleL3','spatialLabTwiddleL4','spatialLabTwiddleL5'];
 const NET_OPENING=['spatialLabNetL1','spatialLabNetL2','spatialLabNetL3','spatialLabNetL4','spatialLabNetL5'];
@@ -26,15 +26,34 @@ const NET_OPENING=['spatialLabNetL1','spatialLabNetL2','spatialLabNetL3','spatia
  */
 const склеить=(части:string[])=>части.filter(Boolean).reduce((всё,часть)=>!всё?часть:/[。！？]$/.test(всё)?всё+часть:`${всё} ${часть}`,'');
 
-export function levelNote(task:SpatialTask,t:(key:string)=>string):string{
+/**
+ * Упражнения сдвига (17.09.2026, задача afb6ab5b).
+ * «Сдвиг чисел» говорит те же числа, что «Поворот чисел»: ход здесь — сдвиг линии, а подписи
+ * «Ходов в самом коротком решении» и «Ходов — не меньше» про ход вообще. Своя только первая
+ * ступень: там выделен не блок, а линия.
+ * «Сеть со сдвигом» минимума не знает — победа любая связная раскладка, а не одна. Поэтому
+ * ступень называет, СКОЛЬКИМИ сдвигами поле перемешано, и не выдаёт это за длину решения.
+ */
+function shiftNote(task:SpatialTask,mode:'sixteen'|'netslide',t:(key:string)=>string,w:(s:string)=>string):string{
+  if(task.level===1)return t('spatialLabShiftL1');
+  if(mode==='netslide')return w(t('spatialLabNetslideShifts')).replace('{s}',String('shifts' in task?task.shifts:''));
+  if(!('minimumMoves' in task))return '';
+  return task.minimumMoves!==null
+    ?w(t('spatialLabTwiddleExact')).replace('{n}',String(task.minimumMoves))
+    :w(t('spatialLabTwiddleBound')).replace('{d}',String(task.spec.displacement)).replace('{m}',String(task.lowerBound));
+}
+
+export function levelNote(task:SpatialTask,t:(key:string)=>string,mode?:SpatialMode):string{
   const w=(s:string)=>s.replace(/\{w\}/g,String(task.spec.width));
-  if('minimumMoves' in task){
+  if(mode==='sixteen'||mode==='netslide')return shiftNote(task,mode,t,w);
+  if('minimumMoves' in task&&'liveColour' in task.spec){
     if(task.level<=TWIDDLE_OPENING.length)return t(TWIDDLE_OPENING[task.level-1]);
     const main=task.minimumMoves!==null
       ?w(t('spatialLabTwiddleExact')).replace('{n}',String(task.minimumMoves))
       :w(t('spatialLabTwiddleBound')).replace('{d}',String(task.spec.displacement)).replace('{m}',String(task.lowerBound));
     return склеить([main,task.spec.liveColour?'':t('spatialLabTwiddleNoColour')]);
   }
+  if(!('repair' in task.spec))return '';
   if(task.level<=NET_OPENING.length)return t(NET_OPENING[task.level-1]);
   const {affected,junctions,cycles,liveColour}=task.spec;
   return склеить([

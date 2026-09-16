@@ -1,4 +1,4 @@
-/* psygames-spatial-lab-level-note · VER 1 · 16.09.2026 */
+/* psygames-spatial-lab-level-note · VER 2 · 17.09.2026 */
 /* psygames-spatial-claude-mac · приёмка 50b87961 */
 /**
  * 🔴 ОПИСАНИЕ УРОВНЯ ГОВОРИТ НА ЯЗЫКЕ ИГРОКА — НА ВСЕХ СТА УРОВНЯХ ЛАБОРАТОРИИ.
@@ -129,6 +129,7 @@ describe('описание уровня лаборатории', () => {
     const код = fs.readFileSync(path.join(__dirname, '..', 'components', 'SpatialLab.tsx'), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '').replace(/^\s*\/\/.*$/gm, '');
     expect(код).not.toMatch(/spec\.change/);
-    expect(код).toMatch(/levelNote\(task,t\)/);
+    // 17.09.2026 (afb6ab5b): третьим доводом идёт упражнение — у «Сдвига чисел» и «Сети со сдвигом» своё описание
+    expect(код).toMatch(/levelNote\(task,t,mode\)/);
   });
 });
