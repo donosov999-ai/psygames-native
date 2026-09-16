@@ -1,3 +1,5 @@
+// VER 2 · 2026-09-17 · psygames-search-claude-mac: ряд на табло — «•» между числами и типографский минус. «·» и «-» издали
+// сливались: кадр уровня 30 читался «4 --13-38--115-?» (живой автопилот L24–32, задача e9c750f5).
 // VER 1 · 2026-09-16 · psygames-search-claude-mac. Построения дороги — общие для забега (runner-campaign) и уровней (runner-level):
 // строй, змейка, сетка, стопки за столбом, трамплин над красным, стены, препятствия, черта. Вынесены из makeCampaign VER 4
 // без изменения порядка вызовов генератора: то же зерно даёт ту же дорогу (слепок сверен при выносе, проба в runner-level.test.mjs).
@@ -96,7 +98,7 @@ export function createTrack(rng){
   // Ряд на арках («Паттерны»): члены ряда на табло, три продолжения на арках; варианты — генератор самой игры.
   pattern(stage,k,seq){
    const options=seq.options.slice(0,3),reward=Math.max(2*k,round5(track.intended*.1));
-   add(stage,{kind:'answer',station:'pattern',prompt:`${seq.items.join(' · ')} · ?`,options,correct:options.indexOf(seq.answer),reward,penalty:reward});
+   add(stage,{kind:'answer',station:'pattern',prompt:`${seq.items.map(v=>String(v).replace('-','−')).join(' • ')} • ?`,options,correct:options.indexOf(seq.answer),reward,penalty:reward});
    track.intended+=reward;
   },
   // Шкала («Мат. шкала»): поперёк дороги числовая прямая [min, max], над ней выражение; проехать там, где ответ.

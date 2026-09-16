@@ -1,3 +1,4 @@
+// VER 4 · 2026-09-17 · psygames-search-claude-mac: ряд на арках проверяется и на L30 («знак меняется»): «•» и типографский минус.
 // VER 3 · 2026-09-16 · psygames-search-claude-mac: + «память в пути» (setSize — лестница OSpan из ospanLadder).
 // VER 2 · 2026-09-16 · psygames-search-claude-mac: + станции «ряд на арках» (patternSequences) и «шкала» (math-slider core).
 // VER 1 · 2026-09-16 · psygames-search-claude-mac. Режим уровней: станции хаба «Счёт» (блиц-арки, ворота «ровно N»),
@@ -94,9 +95,13 @@ test('deterministic per level and seed; seeds change the road, not the level pla
 });
 
 test('pattern arches: sequence on the board, three distinct continuations from the game itself, one correct',()=>{
- let rows=0;for(let seed=0;seed<10;seed++)for(const r of level(11,seed).rows.filter(r=>r.station==='pattern')){rows++;
-  assert.equal(new Set(r.options).size,3);assert.ok(/ · \?$/.test(r.prompt));const items=r.prompt.replace(/ · \?$/,'').split(' · ').map(Number);assert.ok(items.length>=3&&items.every(Number.isFinite));
-  assert.ok(r.correct>=0);const c=level(11,seed);for(const lane of [-1,0,1]){const s=through(c,r,lane);assert.equal(s.sum,1000+(lane+1===r.correct?r.reward:-r.penalty));}
+ let rows=0;for(let seed=0;seed<10;seed++)for(const L of [11,30])for(const r of level(L,seed).rows.filter(r=>r.station==='pattern')){rows++;
+  assert.equal(new Set(r.options).size,3);assert.ok(/ • \?$/.test(r.prompt));
+  // L30 — «знак меняется»: минус на табло типографский, иначе издали он сливается с разделителем.
+  assert.ok(!r.prompt.includes('-'),`дефис на табло: ${r.prompt}`);
+  const items=r.prompt.replace(/ • \?$/,'').split(' • ').map(s=>Number(s.replace('−','-')));assert.ok(items.length>=3&&items.every(Number.isFinite));
+  if(L===30)assert.ok(items.some(v=>v<0),`на L30 ждём отрицательные: ${r.prompt}`);
+  assert.ok(r.correct>=0);const c=level(L,seed);for(const lane of [-1,0,1]){const s=through(c,r,lane);assert.equal(s.sum,1000+(lane+1===r.correct?r.reward:-r.penalty));}
  }
  assert.ok(rows>=30);
 });

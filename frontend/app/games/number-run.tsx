@@ -419,7 +419,9 @@ export default function NumberRunScreen() {
               табло сцены он мелкий и под углом, а посчитать надо успеть до арок.
             */}
             {показатели.станция ? (
-              <Text style={[styles.заданиеПоверхТекст, styles.станцияТекст]} numberOfLines={1}>{текстСтанции(показатели.станция, t)}</Text>
+              // Ряд смеси «Паттернов» (с L32) бывает длиннее 30 знаков: кеглем 20 он резался многоточием, а числа
+              // ряда нужны все до одного. Длинный — кеглем 15 (плашка 355 точек на 375 вмещает ~50 знаков).
+              <Text style={[styles.заданиеПоверхТекст, styles.станцияТекст, текстСтанции(показатели.станция, t).length > 30 && styles.станцияТекстДлинный]} numberOfLines={1}>{текстСтанции(показатели.станция, t)}</Text>
             ) : (
               <Text style={styles.заданиеПоверхТекст} numberOfLines={1}>{t('numberRunTask')}</Text>
             )}
@@ -469,6 +471,7 @@ const styles = StyleSheet.create({
   заданиеПоверх: { position: 'absolute', left: 10, right: 10, alignItems: 'center' },
   заданиеПоверхТекст: { color: '#FFFFFF', fontSize: 12, fontWeight: '700', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10, overflow: 'hidden', backgroundColor: 'rgba(15,23,42,0.5)' },
   станцияТекст: { fontSize: 20, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 14, backgroundColor: 'rgba(30,58,138,0.88)' },
+  станцияТекстДлинный: { fontSize: 15, paddingHorizontal: 10 },
   режимы: { alignSelf: 'stretch', maxWidth: 420 },
   карта: { alignSelf: 'stretch', maxWidth: 420 },
   низЗабега: { position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
