@@ -1008,7 +1008,7 @@ const translations: Translations = {
   puzzlesRange: { ru: 'Обзор', en: 'Line of Sight' },
   puzzlesRangeDesc: { ru: 'Число — сколько клеток видно из неё по строке и столбцу. Тап — закрасить клетку чёрным, второе действие — точка «здесь пусто»', en: 'A number says how many cells are visible from it along its row and column. Tap to black out a cell; the second action puts a dot for “empty”' },
   puzzlesUndead: { ru: 'Нежить', en: 'Undead' },
-  puzzlesUndeadDesc: { ru: 'Призраки, вампиры и зомби — по счёту в отражениях. Нажми клетку, потом цифру снизу; второе действие ставит пометку', en: 'Ghosts, vampires and zombies to match the counts in the mirrors. Tap a cell, then a digit below; the second action leaves a pencil mark' },
+  puzzlesUndeadDesc: { ru: 'Призраки, вампиры и зомби — по счёту в отражениях. Нажми клетку, потом чудовище снизу; второе действие ставит пометку', en: 'Ghosts, vampires and zombies to match the counts in the mirrors. Tap a cell, then a monster below; the second action leaves a pencil mark' },
   puzzlesSolo: { ru: 'Судоку Тэтхэма', en: 'Tatham’s Sudoku' },
   // Имя второго действия — порежимно, таблица ИМЯ_ВТОРОГО в tatham-bridge/names.ts.
   puzzleSecondKeep: { ru: 'Оставить', en: 'Keep' },
@@ -1925,6 +1925,10 @@ const translations: Translations = {
   puzzleSecondNoDomino: { ru: 'Нет домино', en: 'No domino' },
   puzzleHighlightNumber: { ru: 'Подсветить число', en: 'Highlight a number' },
   puzzleSecondPencil: { ru: 'Карандаш', en: 'Pencil' },
+  // Клавиши «Нежити»: имя чудовища для чтеца экрана, на самой клавише знак (sections/sudoku.ts).
+  puzzleUndeadGhost: { ru: 'Призрак', en: 'Ghost' },
+  puzzleUndeadVampire: { ru: 'Вампир', en: 'Vampire' },
+  puzzleUndeadZombie: { ru: 'Зомби', en: 'Zombie' },
   /* ★ 16.09.2026 «Пространство»: у четырёх режимов правая кнопка — РОВНО обратное
      левой, это замер, а не догадка. Левая и правая в одной точке возвращают доску
      в исходное: Трубы 15/15 · Поворот квадрата 5/5 · Шестнадцать 32/32 · Трубы со

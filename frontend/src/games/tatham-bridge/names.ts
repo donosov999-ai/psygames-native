@@ -296,6 +296,11 @@ export function клавишПодсветки(имя: string, параметр�
 /** Больше двух чисел движок не зажигает (`dominosa.c`: highlight_1 + highlight_2). */
 export const ГНЁЗД_ПОДСВЕТКИ = 2;
 
+/** Знаки клавиш цифрового ряда там, где цифра движка — не число (`знакиЦифр` в `sections/тип.ts`). */
+export const ЗНАКИ_ЦИФР: Record<string, readonly { знак: string; имя: string }[]> = Object.fromEntries(
+  Object.entries(ВСЕ_РЕЖИМЫ).filter(([, н]) => н.знакиЦифр?.length).map(([м, н]) => [м, н.знакиЦифр!]),
+);
+
 /**
  * 🔴 ИМЯ ВТОРОГО ДЕЙСТВИЯ — ПОРЕЖИМНО, А НЕ «ВТОРОЕ ДЕЙСТВИЕ» НА ВСЕХ.
  *
