@@ -1,4 +1,4 @@
-/* psygames-spatial-lab-help-says-how · VER 1 · 17.09.2026 */
+/* psygames-spatial-lab-help-says-how · VER 2 · 17.09.2026 */
 /* psygames-spatial-claude-mac · приёмка 50b87961, пункт «справка своя» */
 /**
  * 🔴 СПРАВКА ЛАБОРАТОРИИ ГОВОРИТ, КАК ХОДИТЬ, А НЕ ТОЛЬКО ЧТО СОБРАТЬ.
@@ -11,6 +11,10 @@
  *
  * Проба на 12 языках: справка называет обе кнопки ТЕМИ ЖЕ подписями, что на экране, и оба
  * режима их именами; и узко по исходнику — экран подписывает кнопки именно этими ключами.
+ *
+ * VER 2 (17.09.2026, задача afb6ab5b): в лаборатории четыре упражнения — добавлены «Сдвиг
+ * чисел» и «Сеть со сдвигом», у них вместо «Влево/Вправо» четыре стрелки. Справка обязана
+ * назвать все четыре вкладки и все четыре стрелки.
  */
 import { translateFor, LANGUAGES } from '@/src/contexts/LanguageContext';
 
@@ -20,15 +24,16 @@ const fs = require('fs');
 const path = require('path');
 
 describe('справка «Пространственной лаборатории»', () => {
-  it('🔴 на каждом языке названы обе кнопки поворота и оба режима — словами экрана', () => {
+  it('🔴 на каждом языке названы обе кнопки поворота, все четыре упражнения и четыре стрелки сдвига — словами экрана', () => {
     expect(LANGUAGES.length).toBe(12);
     const плохо: string[] = [];
     for (const { code } of LANGUAGES) {
       const справка = translateFor(code, 'spatialLabIntroDesc');
-      for (const ключ of ['a11yLeft', 'a11yRight', 'spatialNet', 'spatialTwiddle']) {
+      for (const ключ of ['a11yLeft', 'a11yRight', 'spatialNet', 'spatialTwiddle', 'spatialSixteen', 'spatialNetslide']) {
         const слово = translateFor(code, ключ);
         if (!справка.includes(слово)) плохо.push(`${code}: нет «${слово}» (${ключ})`);
       }
+      for (const стрелка of ['←', '→', '↑', '↓']) if (!справка.includes(стрелка)) плохо.push(`${code}: нет стрелки ${стрелка}`);
     }
     expect(плохо.slice(0, 5)).toEqual([]);
   });

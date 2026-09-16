@@ -10,7 +10,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { HELP_MAP } from '@/src/constants/helpMap';
 import { isRTLLang } from '@/src/services/rtl';
 import GamePet, { type PetMood } from '@/src/components/pet/GamePet';
-import { useGameMood } from '@/src/services/petMood';
+import { useGameMood, useGameStreak } from '@/src/services/petMood';
 import { a11yModal } from '@/src/services/a11y';
 import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 import type { GameContextHelp } from '@/src/services/gameContextHelp';
@@ -53,10 +53,12 @@ const PROSE_KEYS = ['about', 'benefit', 'history', 'creator', 'methods', 'durati
  * единица позволяет гейту `pet-next-to-help` нарисовать угол и посмотреть порядок,
  * не поднимая весь оверлей с роутером и картой справки.
  */
-export function HelpCornerRow({ rtl, mood, top, label, helpLabel, accent, accentFg, onPress, onPetPress, petLabel }: {
+export function HelpCornerRow({ rtl, mood, top, label, helpLabel, accent, accentFg, onPress, onPetPress, petLabel, streak = 0, streakLabel }: {
   rtl: boolean; mood: PetMood; top: number; label: string; helpLabel: string;
   accent: string; accentFg: string; onPress: () => void;
   onPetPress?: () => void; petLabel?: string;
+  /** Серия верных ответов подряд (`useGameStreak`). Значок — с двойки: единица ещё не серия. */
+  streak?: number; streakLabel?: string;
 }) {
   const openPet = onPetPress ?? (() => {});
   return (
@@ -94,6 +96,18 @@ export function HelpCornerRow({ rtl, mood, top, label, helpLabel, accent, accent
         style={styles.petBtn}
       >
         <GamePet mood={mood} size={38} />
+        {/* Значок серии лежит поверх медальона, а не рядом: угол не шире, соседей не задевает. */}
+        {streak >= 2 ? (
+          <View
+            testID="pet-streak"
+            accessibilityLabel={`${streakLabel ?? 'streak'}: ${streak}`}
+            style={[styles.streakChip, rtl ? { right: 0 } : { left: 0 }]}
+            pointerEvents="none"
+          >
+            <Ionicons name="flame" size={11} color="#FFFFFF" />
+            <Text style={styles.streakText}>{streak}</Text>
+          </View>
+        ) : null}
       </TouchableOpacity>
       {/* Кнопка = кружок «?» + подпись словом. Голая иконка не читалась как справка. */}
       <TouchableOpacity
@@ -124,6 +138,7 @@ export const HELP_OPEN_EVENT = 'psygames:help-open';
 
 export default function GameHelpOverlay() {
   const mood = useGameMood();
+  const streak = useGameStreak();
   const router = useRouter();
   const { colors } = useTheme();
   const { t, language } = useLanguage();
@@ -315,7 +330,8 @@ export default function GameHelpOverlay() {
       */}
       <HelpCornerRow rtl={rtl} mood={mood} top={insets.top + 10} label={t('btn_rules')}
         helpLabel={helpLabel} accent={accent} accentFg={accentFg} onPress={openHelp}
-        petLabel={t('petSynapse')} onPetPress={() => router.push('/pet' as any)} />
+        petLabel={t('petSynapse')} onPetPress={() => router.push('/pet' as any)}
+        streak={streak} streakLabel={t('hud_streak')} />
 
       {coach ? (
         <View
@@ -456,6 +472,11 @@ const styles = StyleSheet.create({
   // Сторона и выравнивание — в рендере (RTL-зеркало вместе с «?»-кнопкой)
   /** Ряд «питомец + справка» в углу: один абсолютный слой вместо двух. */
   petBtn: { alignItems: 'center', justifyContent: 'center' },
+  streakChip: {
+    position: 'absolute', bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 1,
+    paddingHorizontal: 4, height: 16, borderRadius: 8, backgroundColor: '#ea580c',
+  },
+  streakText: { color: '#FFFFFF', fontSize: 10, fontWeight: '900' },
   cornerRow: { position: 'absolute', zIndex: 100, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   /** Кнопка внутри ряда: своё позиционирование ей больше не нужно. */
   fabInRow: { alignItems: 'center' },

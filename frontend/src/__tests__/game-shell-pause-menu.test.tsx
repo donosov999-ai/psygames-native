@@ -62,7 +62,7 @@ jest.mock('@/src/services/feedback', () => {
     setSoundEnabled: (v: boolean) => { звук = v; }, setHapticEnabled: () => {},
   };
 });
-jest.mock('@/src/services/petMood', () => ({ setGameMood: () => {} }));
+jest.mock('@/src/services/petMood', () => ({ setGameMood: () => {}, setGameStreak: () => {} }));
 jest.mock('@/src/components/GameHelpOverlay', () => ({ __esModule: true, HELP_CORNER_SPACE: 0, default: () => null }));
 
 const mounted: TestRenderer.ReactTestRenderer[] = [];
