@@ -210,6 +210,18 @@ function подсказокНаУровне(level: number): number {
 //   - скорость сканирования: бюджет времени на клетку 1.0с → 0.45с (лимит раунда ~60-90с)
 //   - допуск пропущенных целей снижается: найти ≥80% → ≥90% → 100% целей до конца времени
 /** Экспортирована для гейта `search-ladder-label`: объявленный потолок сверяется ИСПОЛНЕНИЕМ этой функции. */
+/**
+ * Потолок лестницы. На L15 сетка доходит до своего предела (16 строк, `min(16, …)`),
+ * а темп сканирования — до пола 0,45 с на клетку. До L14 растут обе величины.
+ * ⚠️ «Расти некуда» = «нужна НОВАЯ ось», а не предел (CHATS_RULES.md §4а).
+ */
+export const MAX_LEVEL = 15;
+
+/** Мера УРОВНЯ по контракту раздела — прогоняется гейтом без игрока. */
+export function levelCondition(level: number): { rows: number; cols: number; timeLimitSec: number; minFoundPct: number } {
+  return levelParams(level);
+}
+
 export function levelParams(level: number): { rows: number; cols: number; timeLimitSec: number; minFoundPct: number } {
   const rows = level <= 5 ? 7 + level : level <= 10 ? 4 + level : Math.min(16, 1 + level);  // 8→12, 10→14, 12→16
   const cols = level <= 5 ? 8 : level <= 10 ? 10 : 12;
@@ -608,6 +620,17 @@ export default function ProofreadingGame() {
           errors: errs,
           missed,
           n_targets: total,
+          /**
+           * 🔴 МЕРА ПРОХОДА РАЗДЕЛА — ДОЛЯ, А НЕ СЧЁТ. Корректурная проба Бурдона
+           * меряется пропусками, но брать сюда голое `missed` нельзя: ось сложности
+           * здесь — размер сетки (8×8 → 16×12), значит целей на партию становится
+           * больше, и число пропусков растёт само, без падения внимания. Это тот
+           * же дефект «счёт вместо доли», что доля конфликтных проб у соседей.
+           * Доля от этого свободна: она нормирована на число целей.
+           * ⚠️ Имя своё, не общее `accuracy`: у экрана ДВА задания (буквы и
+           * филворды, см. task_mode), и сравнивать между собой их нельзя.
+           */
+          proof_omission_pct: total > 0 ? Math.round((missed / total) * 100) : 0,
           accuracy: total > 0 ? Math.round((found / total) * 100) : 100,
           rows: rowsRef.current,
           cols: colsRef.current,

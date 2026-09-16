@@ -22,12 +22,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
+import { наклонХика, type ТочкаХика } from '@/src/games/attention/hick';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { answerButton, stimBox } from '@/src/games/attention/layout';
+import { answerButton, BTN_GAP, stimBox, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { AnswerBar } from '@/src/games/attention/AnswerBar';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
@@ -60,10 +61,73 @@ const CHOICE_BENEFITS = [
   { icon: 'hand-right-outline', textKey: 'benefitChoiceRt3' },
 ];
 
-type Direction = 'left' | 'right' | 'up' | 'down';
+export type Direction = 'left' | 'right' | 'up' | 'down';
 const ARROW_ICON: Record<Direction, string> = {
   left: 'arrow-back', right: 'arrow-forward', up: 'arrow-up', down: 'arrow-down',
 };
+
+/**
+ * 🔴 ОСЬ «ПОХОЖЕСТЬ ЗНАКА» — ЗАВЕДЕНА 10.09.2026 ПО СЛОВУ ДЕНИСА.
+ *
+ * ПОВОД. Трудность росла числом альтернатив (2 → 3 → 4) и упиралась в экран:
+ * больше кнопок в полосу ответа не влезает. Это выглядело как потолок.
+ * 📌 Слово Дениса дословно: «можно усложнить, рисуя не стрелки тогда, а иногда
+ * вообще нейтраль или что-то похожее на стрелку — скобку».
+ *
+ * Ось не трогает число кнопок вовсе. Направление по-прежнему читается, но
+ * УЗНАТЬ его с одного взгляда уже нельзя: стрелка имеет и древко, и остриё,
+ * шеврон — только остриё, скобка — тонкий контур без заливки. Растёт время на
+ * РАЗЛИЧЕНИЕ, а не на выбор кнопки, и мера прохода (RT) от этого растёт честно.
+ *
+ * ⚠️ Кнопки ответа остаются стрелками ВСЕГДА. Труднее должно становиться читать
+ * стимул, а не вспоминать, какая кнопка куда: иначе ось меряла бы уже другое.
+ */
+export type Glyph = 'arrow' | 'chevron' | 'bracket';
+
+const GLYPH_ICON: Record<Glyph, Record<Direction, string>> = {
+  arrow:   { left: 'arrow-back',          right: 'arrow-forward',          up: 'arrow-up',          down: 'arrow-down' },
+  chevron: { left: 'chevron-back',        right: 'chevron-forward',        up: 'chevron-up',        down: 'chevron-down' },
+  bracket: { left: 'caret-back-outline',  right: 'caret-forward-outline',  up: 'caret-up-outline',  down: 'caret-down-outline' },
+};
+
+/** Знак без направления: на него жать НЕЛЬЗЯ. Круг выбран как заведомо не-стрелка. */
+const NEUTRAL_ICON = 'ellipse-outline';
+
+/**
+ * 🔴 ДОЛЯ НЕЙТРАЛЕЙ ЗАМОРОЖЕНА — И ЭТО НЕ ЗАБЫТАЯ РУЧКА.
+ *
+ * Нейтраль здесь работает не только на трудность. Без неё быстрый RT может
+ * означать не скорость, а нажатие ДО появления стимула: жать всё равно надо,
+ * промахнуться некуда, и упреждение ничем не наказано. Нейтраль делает
+ * упреждение ошибкой — то есть ЗАЩИЩАЕТ меру прохода.
+ *
+ * ⚠️ Растить её долю с уровнем нельзя. Чем чаще нейтрали, тем осторожнее игрок,
+ * и RT растёт не от трудности различения, а от осторожности — ручка уровня
+ * начала бы двигать саму измеряемую величину. Ровно этот дефект в разделе
+ * «Конфликт внимания» чинился семь раз (доля конфликтных как ручка сложности).
+ * Растёт ПОХОЖЕСТЬ знака, доля нейтралей стоит на месте.
+ *
+ * 0,15 — канонная для проб со случайными «пустыми» пробами доля 10–20 %;
+ * на партии в 12 проб это 1,8 пробы, на партии в 20 — три.
+ */
+export const NEUTRAL_RATE = 0.15;
+
+/**
+ * РАЗДАЧА ОДНОЙ ПРОБЫ — ОТДЕЛЬНОЙ ФУНКЦИЕЙ, ЧТОБЫ ЕЁ МОЖНО БЫЛО ПРОГНАТЬ.
+ *
+ * 🔴 Уровень сюда НЕ передаётся, и это не упущение, а способ сделать заморозку
+ * доли нейтралей невозможной к нарушению: не имея уровня, функция физически не
+ * может раздавать их чаще на верхних ступенях. Проверять «не растёт ли доля»
+ * тогда не нужно — её нечем растить.
+ *
+ * Гейт `src/__tests__/choice-rt-neutral-and-glyph.test.ts` прогоняет эту
+ * функцию, а не сверяет константу: константа может стоять в коде и не доезжать
+ * до раздачи, и такое в разделе уже случалось.
+ */
+export function nextStim(dirs: Direction[]): Direction | 'neutral' {
+  if (Math.random() < NEUTRAL_RATE) return 'neutral';
+  return dirs[Math.floor(Math.random() * dirs.length)];
+}
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
@@ -106,7 +170,41 @@ const УРОВНЕЙ = 15;
 // Уровень 1..15: число вариантов выбора растёт (2 → 3 → 4 стрелки — по механике
 // парадигмы: больше альтернатив = закон Хика, RT растёт), окно ответа сокращается,
 // число проб растёт ступенями (12 → 16 → 20).
-export function levelParams(level: number): { trials: number; dirs: Direction[]; windowMs: number } {
+/**
+ * 🔴 БЛОКИ ХИКА — сколько вариантов живо в каждом отрезке партии.
+ *
+ * До 16.09.2026 число альтернатив было ОСЬЮ УРОВНЯ: 2 на L1-5, 3 на L6-10,
+ * 4 дальше. Из-за этого наклон Хика посчитать было нельзя — вместе с числом
+ * вариантов между уровнями менялось и окно ответа, и две точки оказывались
+ * несравнимы.
+ *
+ * Теперь число вариантов меняется ВНУТРИ партии, блоками, при одном окне:
+ * несколько точек снимается за один заход, и всё, кроме числа вариантов,
+ * остаётся постоянным. Уровень по-прежнему растит МАКСИМУМ (2 → 3 → 4), то
+ * есть на верхних уровнях точек больше и наклон надёжнее.
+ *
+ * ⚠️ Порядок блоков фиксирован от меньшего к большему. При случайном порядке
+ * наклон поехал бы от обучения по ходу партии, а не от числа вариантов.
+ */
+function блокиХика(level: number): number[] {
+  return level <= 5 ? [2, 3] : [2, 3, 4];
+}
+
+/** Живые направления для блока из n вариантов. Порядок постоянен. */
+export function направленияБлока(n: number): Direction[] {
+  return (['left', 'right', 'up', 'down'] as Direction[]).slice(0, Math.max(2, Math.min(4, n)));
+}
+
+/**
+ * Раскладка пада на ВСЮ партию — по самому большому блоку уровня.
+ * Живость кнопок меняется от блока к блоку, геометрия — нет: см. разбор
+ * закона Фиттса у `padDirs`.
+ */
+export function падУровня(level: number): Direction[] {
+  return направленияБлока(Math.max(...блокиХика(level)));
+}
+
+export function levelParams(level: number): { trials: number; dirs: Direction[]; windowMs: number; glyph: Glyph; hickBlocks: number[] } {
   const trials = level <= 5 ? 12 : level <= 10 ? 16 : 20;
   const dirs: Direction[] =
     level <= 5 ? ['left', 'right']
@@ -115,7 +213,28 @@ export function levelParams(level: number): { trials: number; dirs: Direction[];
   const шаг = (CHOICE_RT_WINDOW_START_MS - CHOICE_RT_WINDOW_FLOOR_MS) / (УРОВНЕЙ - 1);
   const windowMs = Math.max(CHOICE_RT_WINDOW_FLOOR_MS,
     Math.round(CHOICE_RT_WINDOW_START_MS - (level - 1) * шаг));   // 2000мс → 1000мс
-  return { trials, dirs, windowMs };
+  /**
+   * Границы начертания (4 и 9) намеренно НЕ совпадают с границами числа
+   * направлений (6 и 11): так две оси переключаются вразнобой и дают больше
+   * различимых ступеней, чем если бы менялись вместе.
+   */
+  const glyph: Glyph = level <= 3 ? 'arrow' : level <= 8 ? 'chevron' : 'bracket';
+  return { trials, dirs, windowMs, glyph, hickBlocks: блокиХика(level) };
+}
+
+/**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТА МЕРА ПРОХОДА, — В САМУ ПАРТИЮ.
+ *
+ * `mean_rt` зависит от всего сразу: сколько кнопок, сколько времени на ответ и
+ * каким знаком нарисовано направление. Одно и то же «420 мс» на третьем и на
+ * двенадцатом уровне означает разное, а раздел с 09.09.2026 меряет прогресс
+ * человека — то есть сравнивает два его прохода между собой.
+ * Стережёт `src/__tests__/attention-condition-recorded.test.ts`: список полей он
+ * выводит сам, прогоняя `levelParams` по лестнице.
+ */
+export function levelCondition(level: number): { trials: number; dirs: Direction[]; windowMs: number; glyph: Glyph; hickBlocks: number[] } {
+  const { trials, dirs, windowMs, glyph, hickBlocks } = levelParams(level);
+  return { trials, dirs, windowMs, glyph, hickBlocks };
 }
 
 export default function ChoiceRtGame() {
@@ -138,6 +257,7 @@ export default function ChoiceRtGame() {
    * с зазорами дают 208.
    */
   const ДВЕ_СТОРОНЫ = answerButton('side', screenW);
+  const ЧЕТЫРЕ = answerButton('quad', screenW);
   const router = useRouter();
 
   const { isPreset, autostart, isCalm } = useGamePreset();
@@ -155,10 +275,27 @@ export default function ChoiceRtGame() {
 
   const [round, setRound] = useState(0);
   const [totalTrials, setTotalTrials] = useState(12);
-  const [stim, setStim] = useState<Direction>('left');
+  /** Нейтраль — полноправный стимул, а не отсутствие стимула: на неё жать нельзя. */
+  const [stim, setStim] = useState<Direction | 'neutral'>('left');
+  /** Начертание уровня — состоянием: во время отрисовки реф читать нельзя. */
+  const [glyph, setGlyph] = useState<Glyph>('arrow');
   const [showStim, setShowStim] = useState(false);
   const [feedback, setFeedback] = useState<'right' | 'wrong' | null>(null);
   const [activeDirs, setActiveDirs] = useState<Direction[]>(['left', 'right']);
+  /**
+   * 🔴 РАСКЛАДКУ ЗАДАЁТ САМЫЙ БОЛЬШОЙ БЛОК ПАРТИИ, А НЕ ТЕКУЩИЙ, 16.09.2026.
+   * Пока число вариантов было осью УРОВНЯ, внутри партии оно не менялось, и
+   * крестовина спокойно перестраивалась под него. С блоками Хика n меняется
+   * ВНУТРИ партии, и раскладка «по текущему n» подменяла бы замер: при двух
+   * вариантах это ряд из кругов 88, при трёх-четырёх — крест из кругов 55.
+   * Менялись бы и ширина мишени, и расстояние до неё, а по закону Фиттса
+   * время движения MT = a + b·log2(2D/W) зависит ровно от них. Тогда в наклон
+   * Хика вместо «цены перебора вариантов» попала бы разница моторики, и
+   * величина мерила бы не то, ради чего проба существует.
+   * Поэтому геометрия прибита к максимуму `hickBlocks` на всю партию, а от
+   * блока к блоку меняется ТОЛЬКО то, какие кнопки живы.
+   */
+  const [padDirs, setPadDirs] = useState<Direction[]>(['left', 'right']);
 
   const [hits, setHits] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -174,7 +311,14 @@ export default function ChoiceRtGame() {
   const hitsRef = useRef(0);
   const errorsRef = useRef(0);
   const rtsRef = useRef<number[]>([]);
-  const stimRef = useRef<Direction>('left');
+  /* Точки для наклона Хика: у каждой пробы своё число живых вариантов. */
+  const точкиХикаRef = useRef<ТочкаХика[]>([]);
+  const блокиRef = useRef<number[]>([2, 3]);
+  const stimRef = useRef<Direction | 'neutral'>('left');
+  const glyphRef = useRef<Glyph>('arrow');
+  const falseAlarmsRef = useRef(0);        // нажал на нейтраль
+  const correctRejectsRef = useRef(0);     // удержался на нейтрали
+  const neutralsRef = useRef(0);           // сколько нейтралей реально показали
   const stimAtRef = useRef(0);
   const answeredRef = useRef(false);
   const startTimeRef = useRef(0);
@@ -191,8 +335,20 @@ export default function ChoiceRtGame() {
 
   const newTrial = () => {
     setShowStim(false); setFeedback(null);
+    /* 🔴 БЛОК ПО НОМЕРУ ПРОБЫ. Партия делится на равные отрезки, в каждом своё
+       число живых вариантов. Окно ответа при этом НЕ меняется — иначе точки
+       наклона станут несравнимы, ровно как было между уровнями. */
+    const блоки = блокиRef.current;
+    const наБлок = Math.max(1, Math.ceil(totalTrialsRef.current / блоки.length));
+    const индекс = Math.min(блоки.length - 1, Math.floor((roundRef.current - 1) / наБлок));
+    const нужно = направленияБлока(блоки[индекс] ?? 2);
+    if (нужно.length !== dirsRef.current.length) {
+      dirsRef.current = нужно;
+      setActiveDirs(нужно);
+    }
     const dirs = dirsRef.current;
-    const next = dirs[Math.floor(Math.random() * dirs.length)];
+    const next = nextStim(dirs);
+    if (next === 'neutral') neutralsRef.current += 1;
     stimRef.current = next;
     stimTimerRef.current = setTimeout(() => {
       stimAtRef.current = gameNow();
@@ -203,9 +359,18 @@ export default function ChoiceRtGame() {
       deadlineTimerRef.current = setTimeout(() => {
         if (answeredRef.current) return;
         answeredRef.current = true;
-        errorsRef.current += 1;
-        setErrors(errorsRef.current);
-        setFeedback('wrong');
+        // 🔴 На НЕЙТРАЛИ молчание — это верный ответ, а не пропуск. Считать его
+        // ошибкой значило бы требовать нажатия там, где правило его запрещает.
+        if (stimRef.current === 'neutral') {
+          correctRejectsRef.current += 1;
+          hitsRef.current += 1;
+          setHits(hitsRef.current);
+          setFeedback('right');
+        } else {
+          errorsRef.current += 1;
+          setErrors(errorsRef.current);
+          setFeedback('wrong');
+        }
         fbTimerRef.current = setTimeout(advance, 350);
       }, windowMsRef.current);
     }, 600 + Math.random() * 1200);
@@ -221,12 +386,18 @@ export default function ChoiceRtGame() {
   const startGame = () => {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
-    dirsRef.current = p.dirs;
+    блокиRef.current = p.hickBlocks;
+    /* Первый блок — самый малый: человек входит в задание на простом наборе. */
+    dirsRef.current = направленияБлока(p.hickBlocks[0] ?? 2);
+    setPadDirs(падУровня(lvl.level));
+    glyphRef.current = p.glyph;
+    setGlyph(p.glyph);
     windowMsRef.current = p.windowMs;
     totalTrialsRef.current = p.trials;
-    setActiveDirs(p.dirs);
+    setActiveDirs(dirsRef.current);
     setTotalTrials(p.trials);
-    hitsRef.current = 0; errorsRef.current = 0; rtsRef.current = [];
+    hitsRef.current = 0; errorsRef.current = 0; rtsRef.current = []; точкиХикаRef.current = [];
+    falseAlarmsRef.current = 0; correctRejectsRef.current = 0; neutralsRef.current = 0;
     roundRef.current = 1;
     setHits(0); setErrors(0); setRts([]);
     setRound(1);
@@ -271,7 +442,37 @@ export default function ChoiceRtGame() {
           hits: h,
           accuracy: Math.round(accuracy * 100),
           n_trials: totalTrialsRef.current,
-          n_choices: dirsRef.current.length,
+          /* ⚠️ n_choices теперь МАКСИМУМ уровня, а не «столько было всю партию»:
+             число вариантов меняется блоками внутри партии. Оставлено ради
+             прежней истории; для сравнения партий смотреть hick_by_n. */
+          n_choices: (levelParams(levelRef.current).hickBlocks.slice(-1)[0] ?? 2),
+          /**
+           * 🔴 НАКЛОН ХИКА — клинический показатель этой парадигмы, до 16.09.2026
+           * его не было вовсе. RT ≈ a + b·log2(n); клиническое значение у b —
+           * скорость перебора вариантов, мс на бит.
+           * ⚠️ null, а не ноль, когда точек мало: ноль означал бы «перебор
+           * бесплатен», сильное утверждение на пустом месте.
+           */
+          ...(() => {
+            const н = наклонХика(точкиХикаRef.current);
+            return {
+              hick_slope_ms_per_bit: н.slopeMsPerBit,
+              hick_intercept_ms: н.interceptMs,
+              hick_distinct_n: н.distinctN,
+              hick_trials: н.trials,
+              hick_by_n: н.byN,
+            };
+          })(),
+          // Условие, при котором снят mean_rt: без него два прохода несравнимы.
+          ...levelCondition(levelRef.current),
+          /**
+           * Ложная тревога и удержание — по нейтралям. Пишем и знаменатель
+           * (сколько нейтралей реально показали): в короткой партии заданная
+           * доля и фактическое число расходятся, и делить на номинал нельзя.
+           */
+          neutral_trials: neutralsRef.current,
+          false_alarms: falseAlarmsRef.current,
+          correct_rejections: correctRejectsRef.current,
         },
       });
     } catch (err) { console.error(err); }
@@ -292,11 +493,22 @@ export default function ChoiceRtGame() {
     answeredRef.current = true;
     if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
     const rt = gameNow() - stimAtRef.current;
+    // Нажатие на нейтраль — ложная тревога: считаем отдельно от промаха по
+    // направлению, потому что это разные ошибки. Промах = не разглядел знак;
+    // ложная тревога = жал, не дожидаясь знака, либо не удержал правило.
+    if (stimRef.current === 'neutral') falseAlarmsRef.current += 1;
     const correct = chosen === stimRef.current;
     if (correct) {
       hapticSuccess();
       hitsRef.current += 1;
       rtsRef.current = [...rtsRef.current, rt];
+      /* 🔴 ТОЧКА ДЛЯ НАКЛОНА — только с ВЕРНОГО ответа и только с направления.
+         Ошибочные пробы в наклон брать нельзя: их время означает не перебор
+         вариантов, а промах. Нейтрали тоже: там выбора нет вовсе, и n для них
+         не определено. */
+      if (stimRef.current !== 'neutral') {
+        точкиХикаRef.current.push({ n: dirsRef.current.length, rt });
+      }
       setHits(hitsRef.current);
       setRts(rtsRef.current);
     } else {
@@ -361,51 +573,62 @@ export default function ChoiceRtGame() {
     <TouchableOpacity key={d} accessibilityRole="button"
       accessibilityLabel={t(`a11y${d.charAt(0).toUpperCase()}${d.slice(1)}`)}
       style={[styles.padBtn,
-        // две стороны — общий размер раздела; крестовина остаётся своей (см. выше)
-        activeDirs.length === 2 ? { width: ДВЕ_СТОРОНЫ.w, height: ДВЕ_СТОРОНЫ.h, borderRadius: ДВЕ_СТОРОНЫ.radius } : null,
-        { backgroundColor: GRADIENT[0] }]} onPress={() => handlePress(d)}>
-      <Ionicons name={ARROW_ICON[d] as any} size={32} color={textOn(GRADIENT[0])} />
+        // Обе раскладки берут размер из общей геометрии раздела: две стороны —
+        // круг 88 как у фланкера и Саймона, три-четыре — круг 55 в один ряд.
+        // Считаем по padDirs: размер мишени обязан быть один на всю партию.
+        padDirs.length === 2
+          ? { width: ДВЕ_СТОРОНЫ.w, height: ДВЕ_СТОРОНЫ.h, borderRadius: ДВЕ_СТОРОНЫ.radius }
+          : { width: ЧЕТЫРЕ.w, height: ЧЕТЫРЕ.h, borderRadius: ЧЕТЫРЕ.radius },
+        { backgroundColor: colors.primary }]} onPress={() => handlePress(d)}>
+      <Ionicons name={ARROW_ICON[d] as any} size={32} color={textOn(colors.primary)} />
     </TouchableOpacity>
   );
 
+  /**
+   * 🔴 ОДИН РЯД ВМЕСТО КРЕСТОВИНЫ, 10.09.2026. Крест занимал 208 px при полосе
+   * 120 и лез вверх, поверх подсказки; на трёх направлениях — 136, тоже с
+   * переполнением. Разбор и числа — в `answerButton('quad')`.
+   * Порядок ← ↑ ↓ → : физические лево и право стоят по краям, как у фланкера,
+   * Саймона и ANT, и не зеркалятся в RTL (`padRow` прибит writingDirection).
+   */
+  const пусто = (k: string) => <View key={k} style={{ width: ЧЕТЫРЕ.w, height: ЧЕТЫРЕ.h }} />;
   const renderPad = () => {
-    if (activeDirs.length === 4) {
+    if (padDirs.length === 2) {
       return (
-        <View style={styles.padGrid}>
-          <View style={styles.padRow}>
-            <View style={styles.padCell} />
-            {padBtn('up')}
-            <View style={styles.padCell} />
-          </View>
-          <View style={styles.padRow}>
-            {padBtn('left')}
-            <View style={styles.padCell} />
-            {padBtn('right')}
-          </View>
-          <View style={styles.padRow}>
-            <View style={styles.padCell} />
-            {padBtn('down')}
-            <View style={styles.padCell} />
-          </View>
+        <View style={styles.padRow}>
+          {padBtn('left')}
+          {padBtn('right')}
         </View>
       );
     }
-    if (activeDirs.length === 3) {
-      return (
-        <View style={styles.padGrid}>
-          <View style={styles.padRow}>{padBtn('up')}</View>
-          <View style={styles.padRow}>
-            {padBtn('left')}
-            <View style={styles.padCell} />
-            {padBtn('right')}
-          </View>
-        </View>
-      );
-    }
+    /**
+     * 🔴 КРЕСТ, А НЕ РЯД. Направление здесь отвечается ПОЛОЖЕНИЕМ кнопки:
+     * ↑ сверху, ↓ снизу, ← и → по бокам. Ряд ← ↑ ↓ → влезал в прежнюю полосу
+     * 120, но рушил это соответствие — для пробы про направления это хуже, чем
+     * лишние 36 px высоты. Полоса поднята до 156 под три ряда по 48.
+     */
+    const есть = (d: Direction) => activeDirs.includes(d);
+    /**
+     * ⚠️ ДВА РЯДА, А НЕ ТРИ — 11.09.2026, и это временно.
+     * Крест из трёх рядов требует 3 × 48 + 2 × 6 = 156, а высота полосы ответа
+     * 11.09 стала числом, ОБЩИМ с разделом «Поиск» (ядро gameLayout.ts), причём
+     * «Поиск» считает от неё размер своих кнопок. Поднять её значило бы изменить
+     * шесть чужих экранов — решение за владельцем, вопрос ему задан.
+     * Пока: ↑ сверху, ← ↓ → снизу = 48 + 12 + 48 = 108, влезает в 120.
+     * Верх и низ остаются на своих местах, лево и право — по краям: главное
+     * свойство пробы (направление отвечается ПОЛОЖЕНИЕМ) сохранено, кроме
+     * соседства ↓ с боковыми.
+     */
     return (
-      <View style={styles.padRow}>
-        {padBtn('left')}
-        {padBtn('right')}
+      <View style={styles.padGrid}>
+        <View style={styles.padRow}>
+          {есть('up') ? padBtn('up') : пусто('u')}
+        </View>
+        <View style={styles.padRow}>
+          {padBtn('left')}
+          {есть('down') ? padBtn('down') : пусто('d')}
+          {padBtn('right')}
+        </View>
       </View>
     );
   };
@@ -425,11 +648,15 @@ export default function ChoiceRtGame() {
         toolbar={<AnswerBar>{renderPad()}</AnswerBar>}
       >
         <View style={[styles.stimulusBox, { width: ОКНО.w, height: ОКНО.h }, {
-          borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border,
-          backgroundColor: feedback === 'right' ? '#22c55e22' : feedback === 'wrong' ? '#f43f5e22' : colors.surface,
+          borderColor: feedback === 'right' ? ОТКЛИК.верно : feedback === 'wrong' ? ОТКЛИК.неверно : colors.border,
+          backgroundColor: feedback === 'right' ? ОТКЛИК.верноФон : feedback === 'wrong' ? ОТКЛИК.неверноФон : colors.surface,
         }]}>
           {showStim ? (
-            <Ionicons name={ARROW_ICON[stim] as any} size={120} color={feedback === 'wrong' ? '#f43f5e' : GRADIENT[1]} />
+            <Ionicons
+              name={(stim === 'neutral' ? NEUTRAL_ICON : GLYPH_ICON[glyph][stim]) as any}
+              size={120}
+              color={feedback === 'wrong' ? ОТКЛИК.неверно : GRADIENT[1]}
+            />
           ) : (
             <Text style={[styles.waitText, { color: colors.textSecondary }]}>•</Text>
           )}
@@ -506,11 +733,11 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 15, fontWeight: '700' },
   // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
-  stimulusBox: { borderRadius: 24, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
+  stimulusBox: { ...STIM_BOX },
   waitText: { fontSize: 60, opacity: 0.5 },
-  padGrid: { gap: 8, alignItems: 'center' },
   // RTL-пин: пад-кнопки ←/→ должны стоять на своих физических сторонах (глифы стрелок не зеркалятся)
-  padRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', writingDirection: 'ltr' },
-  padBtn: { width: 64, height: 64, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  padCell: { width: 64, height: 64 },
+  padGrid: { gap: 6, alignItems: 'center' },
+  padRow: { flexDirection: 'row', gap: 6, justifyContent: 'center', writingDirection: 'ltr' },
+  // Размер приходит из answerButton — здесь только выравнивание содержимого.
+  padBtn: { justifyContent: 'center', alignItems: 'center' },
 });

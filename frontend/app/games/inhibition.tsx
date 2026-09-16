@@ -69,17 +69,50 @@ type SubMode = 'go_no_go' | 'stop_signal' | 'mixed';
 // Синергия (пилот): каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 
-// Уровень 1..15. Ось усложнения (по паттерну cpt/simon):
-//   goWindow сокращается (реагировать надо быстрее),
-//   ssd растёт (стоп-сигнал приходит позже — отменить ответ труднее),
-//   stopProb растёт умеренно (стоп-проб больше — выше нагрузка на торможение),
-//   trials растёт ступенями 20 → 26 → 32.
+/**
+ * 🔴 ДОЛЯ СТОП-ПРОБ ЗАМОРОЖЕНА. ЗДЕСЬ СТОЯЛА ОСЬ, И ЭТО БЫЛ ДЕФЕКТ.
+ *
+ * Было: `stopProb = min(0.35, 0.20 + (level-1)*0.011)` — доля росла 20 % → 35 %.
+ * Замер 16.09.2026: стоп-проб на партию 4,0 (L1) → 11,2 (L15), рост в 2,8 раза,
+ * из которых 75 % дал рост ДОЛИ и 60 % — рост объёма.
+ *
+ * Почему это ось только на вид: мера прохода здесь — ошибки торможения. Больше
+ * стоп-проб = больше возможностей ошибиться, то есть число ошибок растёт само,
+ * без всякого роста трудности. Ровно этот дефект снят в разделе уже семь раз
+ * (stroop, simon, flanker, ant, stroop-emotional, switching-task, go-no-go) и
+ * стережётся `conflict-ratio-is-not-difficulty`. Соседи этого же экрана давно
+ * заморожены: go-no-go NOGO_PROB = 0.25, stop-signal STOP_PROB = 0.25 — то есть
+ * «Торможение» играло по другим долям, чем оба режима, из которых оно состоит.
+ *
+ * Канон go/no-go — 25 % либо 50 %; взято 25 %, как у обоих соседей.
+ */
+export const INHIBITION_STOP_PROB = 0.25;
+
+/**
+ * Уровень 1..15. Оси усложнения — ТРИ, и все три меняют задание, а не счёт:
+ *   goWindow 1300 → 852 мс — реагировать надо быстрее,
+ *   ssd      150 → 480 мс — стоп-сигнал приходит позже, отменить труднее,
+ *   trials   20 → 26 → 32 — дольше держать режим.
+ *
+ * ⚠️ SSD ОСЬЮ БЫТЬ МОЖЕТ, но с оговоркой, и она записана в SESSION_MEASURE:
+ * при фиксированной задержке доля неудавшихся торможений зависит от самой
+ * задержки, поэтому ошибки двух РАЗНЫХ уровней между собой не сравнимы.
+ * Сравнивать можно человека с собой на одном уровне — и ровно для этого экран
+ * кладёт `ssd_ms` в запись партии рядом с ошибками.
+ */
 function levelParams(level: number): { trials: number; stopProb: number; ssd: number; goWindow: number } {
   const trials = level <= 5 ? 20 : level <= 10 ? 26 : 32;
-  const stopProb = Math.min(0.35, 0.20 + (level - 1) * 0.011);   // 20% → 35%
   const ssd = Math.min(480, 150 + (level - 1) * 24);             // 150мс → 480мс
   const goWindow = Math.max(850, 1300 - (level - 1) * 32);       // 1300мс → ~850мс
-  return { trials, stopProb, ssd, goWindow };
+  return { trials, stopProb: INHIBITION_STOP_PROB, ssd, goWindow };
+}
+
+/** Потолок лестницы: на L15 окно и задержка приходят в свои концы. */
+export const MAX_LEVEL = 15;
+
+/** Мера УРОВНЯ по контракту раздела — её прогоняет гейт без игрока. */
+export function levelCondition(level: number): { trials: number; stopProb: number; ssd: number; goWindow: number } {
+  return levelParams(level);
 }
 
 type GngStimulus = 'go' | 'nogo' | null;
@@ -231,6 +264,17 @@ export default function InhibitionGame() {
           level: levelRef.current,
           hits: h, misses: m, falseAlarms: fa, correctRej: cr,
           accuracy: Math.round(accuracy * 100), avgRT, mean_rt: avgRT,
+          /**
+           * 🔴 СВОЁ ИМЯ ПОЛЯ, А НЕ ОБЩЕЕ `falseAlarms`. Гейт раздела требует у
+           * каждой пробы СВОЮ меру прохода и краснеет, когда два экрана называют
+           * её одинаково: по общему имени в батарее не отличить, чей это
+           * результат. У go-no-go мера уже называется `falseAlarms`, а здесь
+           * число значит другое — ошибки собраны на ДВУХ парадигмах сразу и при
+           * зафиксированной задержке стоп-сигнала, поэтому и читаются они иначе:
+           * только вместе с `submode` и `ssd_ms`, что лежат рядом.
+           * `falseAlarms` оставлен нетронутым — на него смотрит прежняя история.
+           */
+          inhibition_commission: fa,
           submode: subModeRef.current,
           n_trials: totalTrialsRef.current,
           stop_prob: stopProbRef.current,

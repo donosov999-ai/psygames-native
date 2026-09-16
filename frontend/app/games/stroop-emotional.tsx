@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { BTN_GAP, answerButton, stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
+import { BTN_GAP, answerButton, stimBox, ANSWER_BAR_ROW, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -49,7 +49,7 @@ type Valence = 'threat' | 'positive' | 'neutral';
 const BOSS_EVERY = 3;
 
 const COLORS_RGB = ['red', 'green', 'blue', 'yellow'];
-const COLOR_HEX: Record<string, string> = { red: '#ef4444', green: '#22c55e', blue: '#3b82f6', yellow: '#eab308' };
+const COLOR_HEX: Record<string, string> = { red: '#ef4444', green: ОТКЛИК.верно, blue: '#3b82f6', yellow: '#eab308' };
 // Режим для дальтоников: палитра Okabe-Ito (та же, что в WCST). В этой игре цвет
 // и есть ответ — при неразличимых красном и зелёном она просто непроходима
 // («переключатель Colorblind ни на что не влияет» — репорт Rulon, v1.171).
@@ -427,11 +427,7 @@ export default function StroopEmotionalGame() {
         }
       >
         <View style={styles.fieldCol}>
-          {/* Подсказка ВНЕ ПОТОКА: иначе она участвует в центрировании колонки и
-              сдвигает коробку вниз на половину своей высоты. Замер 07.09: у этой
-              пробы коробка стояла на 277 против 237…249 у соседей. */}
-          <Text style={[styles.hintText, { position: 'absolute', top: 0, color: colors.textSecondary }]}>{t('stroop2Hint')}</Text>
-          <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? '#22c55e' : feedback === 'wrong' ? '#f43f5e' : colors.border }]}>
+          <View style={[styles.stimBox, { width: ОКНО.w, height: ОКНО.h }, { backgroundColor: colors.surface, borderColor: feedback === 'right' ? ОТКЛИК.верно : feedback === 'wrong' ? ОТКЛИК.неверно : colors.border }]}>
             {showStim ? (
               <Text style={{ color: HEX[trial.color], fontSize: 44, fontWeight: '900', letterSpacing: 2 }}>
                 {trial.word}
@@ -440,6 +436,17 @@ export default function StroopEmotionalGame() {
               <Text style={{ color: colors.textSecondary, fontSize: 36 }}>+</Text>
             )}
           </View>
+          {/*
+            🔴 ПОДСКАЗКА ПОД КОРОБКОЙ И В ПОТОКЕ, 10.09.2026.
+            Прежний довод (запись 07.09) был верен для положения НАД коробкой:
+            в потоке сверху она участвовала в центрировании и роняла коробку —
+            277 против 237…249 у соседей. Но вынос из потока лечил симптом, а не
+            причину, и делал эту пробу непохожей на остальные девять.
+            Под коробкой с резервом высоты обе беды снимаются разом: центрирование
+            учитывает постоянный блок, а длина текста коробку не двигает.
+            ⚠️ `minHeight: 40` — резерв на две строки 13 pt.
+          */}
+          <Text style={[styles.hintText, { color: colors.textSecondary, minHeight: 40 }]}>{t('stroop2Hint')}</Text>
         </View>
       </GameShell>
     );
@@ -505,7 +512,7 @@ const styles = StyleSheet.create({
   statText: { fontSize: 13, fontWeight: '700' },
   hintText: { fontSize: 13, textAlign: 'center', maxWidth: 360, width: '100%' },
   // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
-  stimBox: { borderRadius: 16, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
+  stimBox: { ...STIM_BOX },
   // Тот же ряд, что у обычного Струпа: ширину задаёт слот каркаса, а не своё число.
   choiceGrid: { ...ANSWER_BAR_ROW },
   // Размеры приходят из answerButton('choice') — тот же макет, что у обычного Струпа.

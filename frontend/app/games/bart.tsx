@@ -86,10 +86,54 @@ export const MAX_BURST_BY_DIFF: Record<Difficulty, number> = { easy: 64, medium:
 //   maxBurst  16 → 128 (шире диапазон точки взрыва = выше ставки и соблазн)
 //   balloons  8 → 20   (больше экспозиции к риску за раунд)
 // Механику НЕ меняем — только частоту/размах.
-function levelParams(level: number): { balloons: number; maxBurst: number } {
+/**
+ * Потолок лестницы: на L15 разброс точки взрыва доходит до половины предела,
+ * а сам предел и число шаров — до своих концов.
+ * ⚠️ «Расти некуда» = «нужна НОВАЯ ось», а не предел (CHATS_RULES.md §4а).
+ */
+export const MAX_LEVEL = 15;
+
+/**
+ * 🔴 ТРЕТЬЯ ОСЬ — РАЗБРОС ТОЧКИ ВЗРЫВА МЕЖДУ ШАРАМИ, 16.09.2026.
+ *
+ * Замер до: при двух осях (`balloons`, `maxBurst`) уровни L13, L14 и L15
+ * совпадали по всем параметрам — `maxBurst` упирается в 128 уже на L13, а число
+ * шаров в 20 на L10. Два мёртвых перехода из четырнадцати: человек «брал»
+ * ступень, за которой не стояло ни одного нового условия.
+ * Резать лестницу до тринадцати было нельзя — решение Дениса 10.09.2026
+ * дословно: «надо не мёртвые переходы убрать, а доработать».
+ *
+ * ⚠️ ПОЧЕМУ ИМЕННО РАЗБРОС, А НЕ ЕЩЁ ОДНА РУЧКА ПРЕДЕЛА. Мера прохода здесь —
+ * `adj_avg_pumps`, среднее число нажатий на не лопнувших шарах, и она ПРЯМО
+ * привязана к пределу: при равномерной точке взрыва выгоднее всего качать до
+ * половины предела, поэтому рост `maxBurst` 16 → 128 поднимает саму измеряемую
+ * величину примерно в восемь раз. Разброс устроен иначе: предел каждого шара
+ * тянется СИММЕТРИЧНО вокруг `maxBurst`, среднее не меняется — растёт только
+ * неопределённость. Выучить одно безопасное число больше нельзя, а мера
+ * остаётся сравнимой сама с собой.
+ */
+function levelParams(level: number): { balloons: number; maxBurst: number; burstSpread: number } {
   const balloons = level <= 3 ? 8 : level <= 6 ? 12 : level <= 9 ? 16 : 20;
-  const maxBurst = Math.min(128, 16 + (level - 1) * 10);   // L1=16 … L12=126 (cap 128)
-  return { balloons, maxBurst };
+  const maxBurst = Math.min(128, 16 + (level - 1) * 10);   // L1=16 … L13=128 (cap)
+  const burstSpread = Math.min(0.5, (level - 1) * 0.036);  // L1=0 (все шары одинаковы) … L15=0.5
+  return { balloons, maxBurst, burstSpread };
+}
+
+/** Мера УРОВНЯ по контракту раздела — прогоняется гейтом без игрока. */
+export function levelCondition(level: number): { balloons: number; maxBurst: number; burstSpread: number } {
+  return levelParams(level);
+}
+
+/**
+ * Предел ОТДЕЛЬНОГО шара: симметричный разброс вокруг `maxBurst`.
+ * Вынесено отдельно и экспортировано, чтобы гейт мог прогнать генератор, а не
+ * читать формулу глазами: среднее обязано совпадать с `maxBurst`, иначе третья
+ * ось начнёт двигать меру прохода — ровно то, чего она призвана избежать.
+ */
+export function burstCapForBalloon(maxBurst: number, spread: number, rnd: () => number = Math.random): number {
+  if (spread <= 0) return maxBurst;
+  const отклонение = maxBurst * spread * (2 * rnd() - 1);
+  return Math.max(4, Math.round(maxBurst + отклонение));
 }
 
 interface BalloonRecord { pumps: number; popped: boolean; }
@@ -140,6 +184,7 @@ export default function BARTGame() {
   const classicRef = useRef(false);       // true → классический/пресет прогон (уровень не трогаем)
   const levelRef = useRef(1);
   const maxBurstRef = useRef(32);
+  const burstSpreadRef = useRef(0);   // третья ось: разброс предела между шарами
   const balloonsRef = useRef(15);
   const roundRef = useRef(0);
   const bankRef = useRef(0);
@@ -152,7 +197,11 @@ export default function BARTGame() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startClassic()); // eslint-disable-line react-hooks/exhaustive-deps
 
   const resetBalloon = () => {
-    setBurstAt(1 + Math.floor(Math.random() * maxBurstRef.current));
+    /* Предел у КАЖДОГО шара свой — разброс вокруг maxBurst растёт с уровнем
+       (третья ось, разбор над levelParams). При spread = 0 ведёт себя ровно как
+       прежде: предел один на всю партию. */
+    const пределШара = burstCapForBalloon(maxBurstRef.current, burstSpreadRef.current);
+    setBurstAt(1 + Math.floor(Math.random() * пределШара));
     setPumps(0);
     setPending(0);
     setPopped(false);
@@ -177,6 +226,7 @@ export default function BARTGame() {
     const p = levelParams(lvl.level);
     levelRef.current = lvl.level;
     maxBurstRef.current = p.maxBurst;
+    burstSpreadRef.current = p.burstSpread;
     balloonsRef.current = p.balloons;
     beginRound();
   };
@@ -185,6 +235,11 @@ export default function BARTGame() {
   const startClassic = () => {
     classicRef.current = true;
     maxBurstRef.current = MAX_BURST_BY_DIFF[difficulty];
+    /* 🔴 В КЛАССИЧЕСКОМ РЕЖИМЕ РАЗБРОСА НЕТ — и это не забывчивость.
+       Классика существует ради чистой метрики на стандартных параметрах: там
+       предел взрыва обязан быть один на всю партию, как в исходной методике.
+       Третья ось живёт только в уровневом режиме. */
+    burstSpreadRef.current = 0;
     balloonsRef.current = balloons;
     beginRound();
   };
@@ -248,6 +303,9 @@ export default function BARTGame() {
           pop_rate: Math.round(popRate * 100) / 100,
           lose_shift_pumps: loseShift,                   // пост-взрывная адаптация риска
           max_burst: maxBurst,
+          /* Условие партии едет ВМЕСТЕ с результатом: adj_avg_pumps привязан к
+             пределу, и без этих двух чисел сравнивать партии между собой нельзя. */
+          burst_spread: classicRef.current ? 0 : levelParams(levelRef.current).burstSpread,
           ...(useLevels ? { level: levelRef.current } : { difficulty }),
         },
       });

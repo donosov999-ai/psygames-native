@@ -25,12 +25,13 @@ import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGr
 import GradientSurface from '@/src/components/GradientSurface';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { ANSWER_BAR_ROW } from '@/src/games/attention/layout';
-import { answerButton, BTN_GAP } from '@/src/games/attention/layout';
+import { ANSWER_BAR_ROW, answerButton, STIM_BOX, stimBox, ОТКЛИК } from '@/src/games/attention/layout';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -43,8 +44,20 @@ import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
+import { makeDecoys, DECOYS_MAX } from '@/src/games/attention/decoys';
 
 const GRADIENT = ['#fc466b', '#3f5efb'];
+
+/**
+ * 🔴 КАРТОЧКА ПРО ПОМЕХИ, 10.09.2026. Сперва я её НЕ завёл, сославшись на
+ * прецедент мишеней: там плотность помех растёт без объяснения. Прецедент
+ * оказался плохим доводом — владелец, глядя на свой же экран, спросил «это что
+ * за спецсимволы». Если спрашивает он, игрок спросит тем более.
+ * Порог 4 — тот самый уровень, с которого помехи включаются (levelParams).
+ */
+const STROOP_RULES: LevelRule[] = [
+  { key: 'noise', fromLevel: 4 },
+];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
 // Было зашито '#FFF' — контраст 3.37 (норма AA 4.5), стало 4.53.
 // Сплошным цветом этот градиент AA не берёт ни при каком цвете текста — GradientSurface
@@ -60,7 +73,7 @@ const STROOP_BENEFITS = [
 const COLORS_DEF = [
   { name: 'red', ru: 'КРАСНЫЙ', en: 'RED', hex: '#ef4444' },
   { name: 'blue', ru: 'СИНИЙ', en: 'BLUE', hex: '#3b82f6' },
-  { name: 'green', ru: 'ЗЕЛЁНЫЙ', en: 'GREEN', hex: '#22c55e' },
+  { name: 'green', ru: 'ЗЕЛЁНЫЙ', en: 'GREEN', hex: ОТКЛИК.верно },
   { name: 'yellow', ru: 'ЖЁЛТЫЙ', en: 'YELLOW', hex: '#eab308' },
 ];
 
@@ -135,7 +148,7 @@ export type StroopColor = typeof COLORS_DEF[0];
  */
 export const INCONGRUENT_RATIO = 0.5;
 
-export interface StroopTrial { word: StroopColor; ink: StroopColor; congruent: boolean }
+export interface StroopTrial { word: StroopColor; ink: StroopColor; congruent: boolean; decoys: string[] }
 
 /**
  * Проба уровня. Уровень стоит в подписи НАМЕРЕННО, хотя доля конфликтных от него
@@ -145,10 +158,16 @@ export interface StroopTrial { word: StroopColor; ink: StroopColor; congruent: b
  */
 export function makeTrial(level: number, palette: StroopColor[] = COLORS_DEF): StroopTrial {
   const word = palette[Math.floor(Math.random() * palette.length)];
-  if (Math.random() >= INCONGRUENT_RATIO) return { word, ink: word, congruent: true };
+  /**
+   * ⚠️ Помехи раздаются ОДИНАКОВО конгруэнтным и неконгруэнтным пробам — иначе
+   * ось попала бы прямо в интерференцию, ради которой проба существует. Поэтому
+   * они считаются ДО ветвления по конгруэнтности, а не внутри веток.
+   */
+  const decoys = makeDecoys(levelParams(level).decoys);
+  if (Math.random() >= INCONGRUENT_RATIO) return { word, ink: word, congruent: true, decoys };
   let ink = word;
   while (ink.name === word.name) ink = palette[Math.floor(Math.random() * palette.length)];
-  return { word, ink, congruent: false };
+  return { word, ink, congruent: false, decoys };
 }
 
 // Маппинг уровня (1..15) в параметры сложности — темп и объём:
@@ -175,13 +194,46 @@ export function makeTrial(level: number, palette: StroopColor[] = COLORS_DEF): S
  * совпало с выбранным режимом): переключения дают трудность, а биомаркер снимается
  * с однородного набора. Сторожит `attention-ladder-per-mode`.
  */
-export function levelParams(level: number): { trials: number; windowMs: number; switchRate: number } {
+export function levelParams(level: number): { trials: number; windowMs: number; switchRate: number; decoys: number } {
   const L = Math.max(1, Math.min(15, level));
   const trials = L <= 5 ? 20 : L <= 10 ? 24 : Math.min(34, 24 + (L - 10) * 2);
   const windowMs = Math.max(1200, 3500 - (L - 1) * 165);
   // До L4 переключений нет вовсе: правило надо сперва освоить. Дальше 0 → 0,40.
   const switchRate = L <= 4 ? 0 : Number((((L - 4) * 0.40) / 11).toFixed(3));
-  return { trials, windowMs, switchRate };
+  /**
+   * 🔴 ЧЕТВЁРТАЯ ОСЬ, 10.09.2026: ПОМЕХИ ВОКРУГ СЛОВА.
+   *
+   * ПОВОД. Замер лестниц раздела: у Струпа нагрузка росла ×4,1 при трёх осях —
+   * вторая с конца. Доля неконгруэнтных заморожена правильно (она сжимает саму
+   * интерференцию), окно и объём у полов на верхних уровнях.
+   *
+   * ⚠️ ОСЬ СХОДСТВА ЦВЕТОВ, КОТОРАЯ НАПРАШИВАЕТСЯ ПЕРВОЙ, ОТВЕРГНУТА ЗАМЕРОМ.
+   * Замер 10.09 (ΔE в Lab, симуляция трёх видов дальтонизма): у палитры для
+   * дальтонизма худшая пара под ПРОТАНОПИЕЙ уже сейчас ΔE = 8,2 — то есть два
+   * цвета почти неразличимы ДО всякого сближения. Сближать их значило бы съесть
+   * запас, которого нет. Числа и разбор — в PROJECT_REF §22.
+   *
+   * Помехи свободны от этого: мера прохода Струпа — РАЗНОСТЬ (интерференция
+   * incongruent − congruent), а помехи удлиняют обе её половины одинаково и из
+   * разности сокращаются. Знаки берутся из общего модуля раздела, где записано,
+   * почему среди них не должно быть букв: буква рядом со словом читалась бы
+   * вместе с ним.
+   */
+  const decoys = L <= 3 ? 0 : L <= 8 ? 2 : DECOYS_MAX;
+  return { trials, windowMs, switchRate, decoys };
+}
+
+/**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТА МЕРА ПРОХОДА, — В САМУ ПАРТИЮ.
+ *
+ * Интерференция Струпа зависит и от окна ответа, и от доли смен правила, и
+ * теперь от помех. Два одинаковых на вид числа, снятые на разных уровнях,
+ * означают разное, а раздел с 09.09.2026 меряет прогресс ЧЕЛОВЕКА — то есть
+ * сравнивает два его прохода между собой.
+ */
+export function levelCondition(level: number): { trials: number; windowMs: number; switchRate: number; decoys: number } {
+  const { trials, windowMs, switchRate, decoys } = levelParams(level);
+  return { trials, windowMs, switchRate, decoys };
 }
 
 /** Правило текущей пробы: обычно базовое, с вероятностью `switchRate` — другое. */
@@ -197,6 +249,9 @@ export default function StroopGame() {
   // 07.09.2026: ширину берём защищённым хуком — голый useWindowDimensions()
   // на первом кадре веб-сборки отдаёт 0, и ноль запекается в размеры.
   const screenW = useScreenWidth();
+  // Размер общей коробки раздела — от экрана, а не своё число (см. STIM_BOX).
+  const { w: winW, h: winH } = useScreenSize();
+  const ОКНО = stimBox(winW, winH);
   const БТН = answerButton('choice', screenW);   // общий макет раздела
   const router = useRouter();
 
@@ -209,9 +264,12 @@ export default function StroopGame() {
   useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps — пресет → авто-старт
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
+  const levelRules = useLevelRules('stroop', lvl.level, STROOP_RULES, phase === 'playing');
   const [mode, setMode] = useState<Mode>(() => (str('mode', 'ink') === 'word' ? 'word' : 'ink'));
   const [word, setWord] = useState(PALETTE[0]);
   const [inkColor, setInkColor] = useState(PALETTE[1]);
+  /** Помехи текущей пробы — состоянием: во время отрисовки реф читать нельзя. */
+  const [decoys, setDecoys] = useState<string[]>([]);
   const [trialRule, setTrialRule] = useState<Mode>('ink');
   const [round, setRound] = useState(0);
   const [hits, setHits] = useState(0);
@@ -249,9 +307,10 @@ export default function StroopGame() {
 
   const nextRound = () => {
     if (stoppedRef.current) return;
-    const { word: w, ink: c } = makeTrial(levelRef.current, PALETTE);
+    const t = makeTrial(levelRef.current, PALETTE);
+    const { word: w, ink: c } = t;
     wordRef.current = w; inkRef.current = c;
-    setWord(w); setInkColor(c);
+    setWord(w); setInkColor(c); setDecoys(t.decoys);
     // правило пробы разыгрывается ДО показа: подсказка под стимулом покажет его человеку
     const r = ruleForTrial(modeRef.current, switchRateRef.current);
     trialRuleRef.current = r;
@@ -523,12 +582,59 @@ export default function StroopGame() {
         }
       >
         <View style={styles.fieldCol}>
-          <Text style={[styles.bigWord, { color: inkColor.hex }]}>
-            {language === 'ru' ? word.ru : word.en}
-          </Text>
-          <Text style={[styles.hintText, { color: colors.textSecondary }]}>
-            {trialRule === 'ink' ? t('stroopHintInk') : t('stroopHintWord')}
-          </Text>
+          {/*
+            🔴 ПОМЕХИ НАД И ПОД СЛОВОМ, А НЕ ПО БОКАМ. Первая редакция ставила их
+            в строку — и слово «КРАСНЫЙ» на русском (56 px, letterSpacing 4) уже
+            занимает почти всю ширину экрана: правый знак уезжал ЗА КРАЙ, два из
+            четырёх не показывались вовсе. Видно это было только на скриншоте
+            живого L12 — по ширине букв заранее не посчитаешь.
+            Сверху и снизу поле пустое, и переполнение становится невозможным ПО
+            ПОСТРОЕНИЮ: помехи не добавляют ширины ни на пиксель. Слово при этом
+            размера не меняет — уменьшив его, мы добавили бы к пробе остроту
+            зрения, а меряем не её.
+          */}
+          {/*
+            🔴 ПОДЛОЖКА ПОД СЛОВОМ, 10.09.2026. До этого слово стояло прямо на фоне
+            экрана — единственная проба раздела без коробки вместе с WCST и
+            мишенями. Владелец увидел это первым, поставив три экрана рядом:
+            «пляшет между тремя экранами окно вывода».
+            ⚠️ Размер слова НЕ меняется: 308 px влезают в коробку 360 с полями 26
+            по бокам. Уменьшать шрифт нельзя — это добавило бы к пробе остроту
+            зрения, а меряем не её.
+          */}
+          <View style={[STIM_BOX, {
+            width: ОКНО.w, height: ОКНО.h,
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+          }]}>
+            <View style={{ alignItems: 'center', gap: 4 }}>
+              <View style={{ flexDirection: 'row', gap: 18 }}>
+                {decoys.slice(0, Math.ceil(decoys.length / 2)).map((g, k) => (
+                  <Ionicons key={`dt${k}`} name={g as any} size={26} color={colors.textSecondary} />
+                ))}
+              </View>
+              <Text style={[styles.bigWord, { color: inkColor.hex }]}>
+                {language === 'ru' ? word.ru : word.en}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 18 }}>
+                {decoys.slice(Math.ceil(decoys.length / 2)).map((g, k) => (
+                  <Ionicons key={`db${k}`} name={g as any} size={26} color={colors.textSecondary} />
+                ))}
+              </View>
+            </View>
+          </View>
+          {/*
+            Бейдж правила стоит В ОДНУ СТРОКУ с подсказкой, а не отдельной
+            полосой над полем: полоса опустила бы коробку и сломала сведённую
+            10.09 геометрию (у CPT это стоило 49 px).
+          */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+              {trialRule === 'ink' ? t('stroopHintInk') : t('stroopHintWord')}
+            </Text>
+            <LevelRuleBadge lr={levelRules} color={GRADIENT[1]} ru={language === 'ru'} />
+          </View>
+          <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
         </View>
       </GameShell>
     );

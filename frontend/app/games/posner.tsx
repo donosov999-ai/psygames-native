@@ -90,6 +90,28 @@ const BOSS_EVERY = 3;
 // Уровень 1..15 (ось — по образцу cpt): интервал cue→target варьируется сильнее
 // (цель труднее «поймать» по ритму), окно ответа сокращается, число проб растёт
 // ступенями. Доли типов подсказок осью сложности НЕ являются — см. VALID_RATIO.
+/**
+ * Потолок лестницы. На L15 все три величины приходят в свои концы разом: окно
+ * 900 мс, нижняя граница паузы 80 мс, верхняя 700 мс. До L14 каждая меняется.
+ * ⚠️ «Расти некуда» = «нужна НОВАЯ ось», а не предел (CHATS_RULES.md §4а).
+ */
+export const MAX_LEVEL = 15;
+
+/**
+ * Мера УРОВНЯ по контракту раздела — прогоняется гейтом без игрока.
+ *
+ * ⚠️ Доля валидных подсказок идёт сюда КОНСТАНТОЙ (`VALID_RATIO = 0.7`) и осью
+ * быть не может: мера прохода здесь РАЗНОСТНАЯ — выигрыш от подсказки,
+ * RT(невалидная) − RT(валидная). Сдвинь долю, и сдвинется сама величина, ради
+ * которой проба существует. Это стережёт `conflict-ratio-is-not-difficulty`.
+ */
+export function levelCondition(level: number): {
+  trials: number; windowMs: number; soaMinMs: number; soaMaxMs: number; validRatio: number;
+} {
+  const { trials, windowMs, soaMinMs, soaMaxMs } = levelParams(level);
+  return { trials, windowMs, soaMinMs, soaMaxMs, validRatio: VALID_RATIO };
+}
+
 export function levelParams(level: number): { trials: number; windowMs: number; soaMinMs: number; soaMaxMs: number } {
   const trials = level <= 5 ? 24 : level <= 10 ? 30 : 36;
   const windowMs = Math.max(900, 2200 - (level - 1) * 95);       // 2200мс → 900мс

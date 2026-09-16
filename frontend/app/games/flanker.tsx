@@ -9,10 +9,10 @@ import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
-import { stimBox, ANSWER_BAR_ROW } from '@/src/games/attention/layout';
+import { stimBox, ANSWER_BAR_ROW, STIM_BOX, ОТКЛИК } from '@/src/games/attention/layout';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
@@ -106,8 +106,27 @@ export const FLANKER_GAP_MIN = 4;
 export const flankerRowWidthPx = (gapPx: number) => 4 * 36 + 56 + 4 * gapPx;
 
 export function levelParams(level: number): { trials: number; windowMs: number; pCong: number; pIncong: number; gapPx: number } {
-  const trials = 20;
   const L = Math.max(1, Math.min(15, level));
+  /**
+   * 🔴 ТРЕТЬЯ ОСЬ, 10.09.2026: ОБЪЁМ. Здесь стояло зашитое `trials = 20` — фланкер
+   * был ЕДИНСТВЕННОЙ пробой раздела, у которой объём не рос вовсе.
+   *
+   * ⚠️ И это не «тупое количество ради числа», а починка самой меры. Показатель
+   * `flanker_effect_ms` — РАЗНОСТЬ средних, и половина её (`mean_rt_congruent`)
+   * считается по согласованным пробам, которых при 20 пробах и pCong 0,40 всего
+   * ВОСЕМЬ. Среднее по восьми числам сравнивается с ЖЁСТКОЙ нормой батареи
+   * 70±30 (assessment.ts) — то есть норма проверяется по горстке.
+   * 20 → 26 → 32 даёт 8 → 10,4 → 12,8 согласованных проб.
+   *
+   * 🚫 ПОЧЕМУ НЕ СИЛЬНЕЕ ОСЬ. Всё, что напрашивается у этой парадигмы, попадает
+   * прямо в измеряемую разность:
+   *   · больше фланкеров — эффект РАСТЁТ (набор помех прямо его модулирует);
+   *   · перцептивная нагрузка (посторонние знаки) — по теории нагрузки Лави
+   *     эффект, наоборот, СЖИМАЕТСЯ: помеха обрабатывается хуже;
+   *   · неопределённость позиции цели — рассеивает внимание и тоже двигает эффект.
+   * У пробы с жёсткой нормой цена такой ошибки выше, чем польза от оси.
+   */
+  const trials = L <= 5 ? 20 : L <= 10 ? 26 : 32;
   // Окно оставлено прежним: его монотонность сторожит attention-conflict-ladders.
   const windowMs =
     L <= 5 ? 3000 - (L - 1) * 200 :
@@ -137,9 +156,12 @@ export function levelParams(level: number): { trials: number; windowMs: number; 
  * прогоняет levelParams по уровням и требует, чтобы КАЖДОЕ меняющееся поле сюда
  * попало. Руками список не пишется — разойдётся.
  */
-export function levelCondition(level: number): { windowMs: number; gapPx: number } {
-  const { windowMs, gapPx } = levelParams(level);
-  return { windowMs, gapPx };
+export function levelCondition(level: number): { windowMs: number; gapPx: number; trials: number } {
+  // 10.09.2026 добавлен `trials`: объём стал третьей осью, а показатель этой
+  // пробы сверяется с ЖЁСТКОЙ нормой батареи — по скольким пробам он снят,
+  // обязано ехать вместе с ним.
+  const { windowMs, gapPx, trials } = levelParams(level);
+  return { windowMs, gapPx, trials };
 }
 
 function makeTrial(pCong: number, pIncong: number): Trial {
@@ -390,8 +412,8 @@ export default function FlankerGame() {
   // playing-фаза — на едином каркасе GameShell (кнопки ответов прибиты к низу)
   if (phase === 'playing') {
     const fbColor =
-      feedback === 'right' ? '#22c55e' :
-      feedback === 'wrong' ? '#f43f5e' :
+      feedback === 'right' ? ОТКЛИК.верно :
+      feedback === 'wrong' ? ОТКЛИК.неверно :
       colors.text;
     return (
       <GameShell
@@ -407,11 +429,20 @@ export default function FlankerGame() {
         toolbar={
           /* RTL-пин: кнопка ← обязана быть физически СЛЕВА (S-R совместимость), иначе в ar психометрика рушится */
           <View style={styles.toolbarLtr}>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { backgroundColor: GRADIENT[0] }]} onPress={() => handleAnswer('left')}>
-              <Ionicons name="arrow-back" size={32} color="#FFF" />
+            {/*
+              🔴 ОБЕ КНОПКИ ОДНИМ ЦВЕТОМ, 10.09.2026. Стояли GRADIENT[0] и
+              GRADIENT[1] — две РАЗНЫЕ заливки на левой и правой. Цвет тут ничего
+              не значит (ответ задаёт направление стрелки), а разные цвета читались
+              как «цвет что-то кодирует» — ложный сигнал.
+              Акцент темы вместо брендового градиента: он меняется вместе с темой,
+              а зашитый хекс в тёмной давал контраст 1,30 при норме 3,0.
+              Подпись — `textOn`, а не зашитый белый.
+            */}
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yLeft')} style={[styles.choiceBtn, { backgroundColor: colors.primary }]} onPress={() => handleAnswer('left')}>
+              <Ionicons name="arrow-back" size={32} color={textOn(colors.primary)} />
             </TouchableOpacity>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { backgroundColor: GRADIENT[1] }]} onPress={() => handleAnswer('right')}>
-              <Ionicons name="arrow-forward" size={32} color="#FFF" />
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('a11yRight')} style={[styles.choiceBtn, { backgroundColor: colors.primary }]} onPress={() => handleAnswer('right')}>
+              <Ionicons name="arrow-forward" size={32} color={textOn(colors.primary)} />
             </TouchableOpacity>
           </View>
         }
@@ -502,7 +533,7 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
   statText: { fontSize: 14, fontWeight: '700' },
   // Размеры приходят из stimBox() — общая коробка раздела, одна на все десять.
-  stimBox: { borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  stimBox: { ...STIM_BOX },
   // RTL-пин (writingDirection → CSS direction на web, на нативе no-op): направленный
   // стимул и раскладка кнопок лево/право не зеркалятся в ar
   arrowRow: { flexDirection: 'row', alignItems: 'center', gap: 4, writingDirection: 'ltr' },
