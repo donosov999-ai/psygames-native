@@ -72,6 +72,13 @@ const LEVELS_HINT_KEY = 'psygames_levels_hint_seen';   // глобальный �
 
 interface Props {
   level: number;            // текущий уровень (passed: N ✓ → N+1; !passed: N — ещё раз)
+  /**
+   * 🔴 ВЕРХ ЛЕСТНИЦЫ, ЕСЛИ ОН ЕСТЬ. На верхней ступени карточка писала «Уровень N+1
+   * запускается…», а игра раздавала ту же N-ю: у головоломок так 7 режимов из 7 (проход
+   * раздела «Судоку» по всем 35 ступеням, 16.09.2026). С `maxLevel` строка называет тот
+   * уровень, который действительно начнётся. Не передан — прежнее «N+1».
+   */
+  maxLevel?: number;
   stars?: number;           // 1–3 (только при passed)
   passed?: boolean;         // прошёл чисто? false → баннер «почти, ещё раз» + рестарт того же уровня
   gradient: string[];
@@ -139,7 +146,9 @@ interface Props {
  */
 const ACT = { stars: 120, run: 220, earn: 320, record: 420, compare: 500 } as const;
 
-export default function LevelCleared({ level, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, recordLine, reasonLine, onContinue, onStop, stopKind = 'config', variant = 'screen' }: Props) {
+export default function LevelCleared({ level, maxLevel, stars = 3, passed = true, gradient, colors, autoMs = 2200, gameId, comparisonLine, recordLine, reasonLine, onContinue, onStop, stopKind = 'config', variant = 'screen' }: Props) {
+  /** Какой уровень начнётся следом: на верхней ступени — тот же, а не несуществующий N+1. */
+  const следующий = maxLevel !== undefined && level >= maxLevel ? maxLevel : level + 1;
   const { t, language } = useLanguage();
   /**
    * ЦВЕТ ТЕКСТА НА КАРТОЧКЕ СЧИТАЕТСЯ, А НЕ ЗАШИТ.
@@ -398,7 +407,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
           stars={stars}
           ms={INTERLUDE_MS}
           doneLine={t('levelDone').replace('{n}', String(level))}
-          nextLine={t('levelStarting').replace('{n}', String(level + 1))}
+          nextLine={t('levelStarting').replace('{n}', String(следующий))}
           colors={colors}
           praise={praise}
         />
@@ -546,7 +555,7 @@ export default function LevelCleared({ level, stars = 3, passed = true, gradient
         {!IS_WEB_DEMO && (
           <Text style={[styles.next, { color: fgSoft }]}>
             {passed
-              ? t('levelStarting').replace('{n}', String(level + 1))
+              ? t('levelStarting').replace('{n}', String(следующий))
               : t('sameLevelRetry')}
           </Text>
         )}
