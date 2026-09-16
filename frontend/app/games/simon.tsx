@@ -1,4 +1,4 @@
-/* psygames-game-simon · VER 2 · 23.08.2026 */
+/* psygames-game-simon · VER 3 · 16.09.2026 */
 /**
  * Simon Task (v1.9.0 — 48-я игра, классика inhibitory control)
  *
@@ -54,7 +54,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
@@ -180,12 +180,12 @@ export default function SimonGame() {
   const answeredRef = useRef(false);
   const startTimeRef = useRef(0);
 
-  const stimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const deadlineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stimTimerRef = useRef<GameTimer | null>(null);
+  const deadlineTimerRef = useRef<GameTimer | null>(null);
+  const fbTimerRef = useRef<GameTimer | null>(null);
 
   const clearAllTimers = () => {
-    [stimTimerRef, deadlineTimerRef, fbTimerRef].forEach(r => { if (r.current) clearTimeout(r.current); });
+    [stimTimerRef, deadlineTimerRef, fbTimerRef].forEach(r => { if (r.current) clearGameTimeout(r.current); });
   };
 
   useEffect(() => () => clearAllTimers(), []);
@@ -195,18 +195,18 @@ export default function SimonGame() {
     const tr = makeTrial(levelRef.current);
     trialRef.current = tr;
     setTrial(tr);
-    stimTimerRef.current = setTimeout(() => {
+    stimTimerRef.current = gameTimeout(() => {
       stimAtRef.current = gameNow();
       answeredRef.current = false;
       setShowStim(true);
       // Окно ответа уровня: не успел — ошибка-пропуск, проба закрывается сама
-      deadlineTimerRef.current = setTimeout(() => {
+      deadlineTimerRef.current = gameTimeout(() => {
         if (answeredRef.current) return;
         answeredRef.current = true;
         errorsRef.current += 1;
         setErrors(errorsRef.current);
         setFeedback('wrong');
-        fbTimerRef.current = setTimeout(advance, 350);
+        fbTimerRef.current = gameTimeout(advance, 350);
       }, windowMsRef.current);
     }, preMinRef.current + Math.random() * preJitterRef.current);
   };
@@ -288,7 +288,7 @@ export default function SimonGame() {
   const handleAnswer = (chosen: Position) => {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+    if (deadlineTimerRef.current) clearGameTimeout(deadlineTimerRef.current);
     const rt = gameNow() - stimAtRef.current;
     const tr = trialRef.current;
     const ok = chosen === correctSide(tr.color);
@@ -304,7 +304,7 @@ export default function SimonGame() {
       setErrors(errorsRef.current);
     }
     setFeedback(ok ? 'right' : 'wrong');
-    fbTimerRef.current = setTimeout(advance, 350);
+    fbTimerRef.current = gameTimeout(advance, 350);
   };
 
   const meanRtAll = (() => {

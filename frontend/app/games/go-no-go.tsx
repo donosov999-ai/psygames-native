@@ -1,4 +1,4 @@
-/* psygames-game-go-no-go · VER 3 · 28.08.2026 */
+/* psygames-game-go-no-go · VER 4 · 16.09.2026 */
 /**
  * Go/No-Go — классика инхибиторного контроля.
  *
@@ -48,7 +48,7 @@ import BossRound from '@/src/components/BossRound';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
@@ -180,11 +180,11 @@ export default function GoNoGoGame() {
   const startTimeRef = useRef(0);
   const stoppedRef = useRef(false);
 
-  const windowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const itiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const windowTimerRef = useRef<GameTimer | null>(null);
+  const itiTimerRef = useRef<GameTimer | null>(null);
 
   const clearAllTimers = () => {
-    [windowTimerRef, itiTimerRef].forEach(r => { if (r.current) clearTimeout(r.current); });
+    [windowTimerRef, itiTimerRef].forEach(r => { if (r.current) clearGameTimeout(r.current); });
   };
 
   useEffect(() => () => { stoppedRef.current = true; clearAllTimers(); }, []);
@@ -200,7 +200,7 @@ export default function GoNoGoGame() {
     stimAtRef.current = gameNow();
     setStimulus(stim);
     // Окно ответа уровня: истекло без нажатия → miss на go / correct rejection на nogo
-    windowTimerRef.current = setTimeout(() => {
+    windowTimerRef.current = gameTimeout(() => {
       if (stoppedRef.current) return;
       if (!respondedRef.current) {
         if (stim === 'go') { missesRef.current += 1; setMisses(missesRef.current); }
@@ -209,7 +209,7 @@ export default function GoNoGoGame() {
       stimulusRef.current = null;
       setStimulus(null);
       // Межпробная пауза уровня (темп предъявления)
-      itiTimerRef.current = setTimeout(runTrial, itiMinRef.current + Math.random() * itiJitterRef.current);
+      itiTimerRef.current = gameTimeout(runTrial, itiMinRef.current + Math.random() * itiJitterRef.current);
     }, windowMsRef.current);
   };
 
@@ -232,7 +232,7 @@ export default function GoNoGoGame() {
     setStimulus(null);
     setPhase('playing');
     startTimeRef.current = gameNow();
-    itiTimerRef.current = setTimeout(runTrial, 800);
+    itiTimerRef.current = gameTimeout(runTrial, 800);
   };
 
   const handleResponse = () => {

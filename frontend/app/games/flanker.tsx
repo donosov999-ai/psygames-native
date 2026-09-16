@@ -1,4 +1,4 @@
-/* psygames-game-flanker · VER 1 · 19.08.2026 */
+/* psygames-game-flanker · VER 2 · 16.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -26,7 +26,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
@@ -212,9 +212,9 @@ export default function FlankerGame() {
   const [errors, setErrors] = useState(0);
   const [rtsByKind, setRtsByKind] = useState<Record<TrialKind, number[]>>({ congruent: [], incongruent: [], neutral: [] });
 
-  const stimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const deadlineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stimTimerRef = useRef<GameTimer | null>(null);
+  const deadlineTimerRef = useRef<GameTimer | null>(null);
+  const fbTimerRef = useRef<GameTimer | null>(null);
 
   // рефы — таймеры (окно ответа) живут вне ре-рендера, без stale-closure на счётчиках
   const levelRef = useRef(1);
@@ -233,9 +233,9 @@ export default function FlankerGame() {
   const stimOnsetRef = useRef(0);
 
   useEffect(() => () => {
-    if (stimTimerRef.current) clearTimeout(stimTimerRef.current);
-    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
-    if (fbTimerRef.current) clearTimeout(fbTimerRef.current);
+    if (stimTimerRef.current) clearGameTimeout(stimTimerRef.current);
+    if (deadlineTimerRef.current) clearGameTimeout(deadlineTimerRef.current);
+    if (fbTimerRef.current) clearGameTimeout(fbTimerRef.current);
   }, []);
 
   const newTrial = () => {
@@ -244,12 +244,12 @@ export default function FlankerGame() {
     trialRef.current = tr;
     setTrial(tr);
     answeredRef.current = false;
-    stimTimerRef.current = setTimeout(() => {
+    stimTimerRef.current = gameTimeout(() => {
       stimOnsetRef.current = gameNow();
       setStimAt(gameNow());
       setShowStim(true);
       // окно ответа уровня: не успел — считается ошибкой (пропуск)
-      deadlineTimerRef.current = setTimeout(() => handleMiss(), windowRef.current);
+      deadlineTimerRef.current = gameTimeout(() => handleMiss(), windowRef.current);
     }, 500 + Math.random() * 600);
   };
 
@@ -328,7 +328,7 @@ export default function FlankerGame() {
 
   // конец попытки (ответ или пропуск) → пауза на фидбек → следующая или финиш
   const advance = () => {
-    fbTimerRef.current = setTimeout(() => {
+    fbTimerRef.current = gameTimeout(() => {
       if (roundRef.current >= trialsTotalRef.current) finish();
       else { roundRef.current += 1; setRound(roundRef.current); newTrial(); }
     }, 350);
@@ -347,7 +347,7 @@ export default function FlankerGame() {
   const handleAnswer = (chosen: Direction) => {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+    if (deadlineTimerRef.current) clearGameTimeout(deadlineTimerRef.current);
     const rt = gameNow() - stimAt;
     const tr = trialRef.current;
     const ok = chosen === tr.center;

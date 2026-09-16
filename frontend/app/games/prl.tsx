@@ -60,7 +60,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimeout } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 
@@ -352,10 +352,10 @@ export default function PRLGame() {
        ⚠️ Счёт двигается вместе с показом, а не раньше: иначе прыгнувший банк
        выдавал бы результат до самой обратной связи, и задержка ничего бы не
        нагружала. Ответы всё это время заперты respondLockRef. */
-    setTimeout(() => {
+    gameTimeout(() => {
       setBank((b) => b + (outcome === 'reward' ? 10 : -5));
       setFeedback({ choice: c, outcome });
-      setTimeout(() => {
+      gameTimeout(() => {
         maybeReverse();
         setFeedback(null);
         respondLockRef.current = false;
@@ -589,8 +589,8 @@ export default function PRLGame() {
       /* Движение выключено — знак события несёт ЦВЕТ: зелёный вверх, розовый вниз.
          Держим ровно столько же (130 + 260), чтобы событие не мелькало иначе. */
       bankScale.setValue(1);
-      const снять = setTimeout(() => setBankFlash(null), 390);
-      return () => clearTimeout(снять);
+      const снять = gameTimeout(() => setBankFlash(null), 390);
+      return () => clearGameTimeout(снять);
     }
     Animated.sequence([
       Animated.timing(bankScale, { toValue: вверх ? 1.28 : 0.82, duration: 130, easing: Easing.out(Easing.quad), useNativeDriver: true }),

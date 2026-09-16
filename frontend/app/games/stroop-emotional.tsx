@@ -1,4 +1,4 @@
-/* psygames-game-stroop-emotional · VER 1 · 19.08.2026 */
+/* psygames-game-stroop-emotional · VER 2 · 16.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, useWindowDimensions, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,7 +23,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 
@@ -213,12 +213,12 @@ export default function StroopEmotionalGame() {
   const answeredRef = useRef(false);
   const startTimeRef = useRef(0);
 
-  const stimTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fbTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const deadlineTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stimTimer = useRef<GameTimer | null>(null);
+  const fbTimer = useRef<GameTimer | null>(null);
+  const deadlineTimer = useRef<GameTimer | null>(null);
 
   useEffect(() => () => {
-    [stimTimer, fbTimer, deadlineTimer].forEach(r => { if (r.current) clearTimeout(r.current); });
+    [stimTimer, fbTimer, deadlineTimer].forEach(r => { if (r.current) clearGameTimeout(r.current); });
   }, []);
 
   const advance = () => {
@@ -235,7 +235,7 @@ export default function StroopEmotionalGame() {
     errorsRef.current += 1;
     setErrors(errorsRef.current);
     setFeedback('wrong');
-    fbTimer.current = setTimeout(advance, 350);
+    fbTimer.current = gameTimeout(advance, 350);
   };
 
   const newTrial = () => {
@@ -243,10 +243,10 @@ export default function StroopEmotionalGame() {
     answeredRef.current = false;
     const tr = makeTrial(language, levelRef.current);
     setTrial(tr);
-    stimTimer.current = setTimeout(() => {
+    stimTimer.current = gameTimeout(() => {
       setStimAt(gameNow());
       setShowStim(true);
-      deadlineTimer.current = setTimeout(handleTimeout, windowRef.current);
+      deadlineTimer.current = gameTimeout(handleTimeout, windowRef.current);
     }, isiBaseRef.current + Math.random() * isiJitterRef.current);
   };
 
@@ -268,7 +268,7 @@ export default function StroopEmotionalGame() {
   };
 
   const finish = async () => {
-    if (deadlineTimer.current) clearTimeout(deadlineTimer.current);
+    if (deadlineTimer.current) clearGameTimeout(deadlineTimer.current);
     const totalTime = (gameNow() - startTimeRef.current) / 1000;
     const allRts = rtsRef.current;
     const meanV = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
@@ -321,7 +321,7 @@ export default function StroopEmotionalGame() {
   const handleAnswer = (color: string) => {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimer.current) clearTimeout(deadlineTimer.current);
+    if (deadlineTimer.current) clearGameTimeout(deadlineTimer.current);
     const rt = gameNow() - stimAt;
     const ok = color === trial.color;
     if (ok) {
@@ -336,7 +336,7 @@ export default function StroopEmotionalGame() {
       setErrors(errorsRef.current);
     }
     setFeedback(ok ? 'right' : 'wrong');
-    fbTimer.current = setTimeout(advance, 350);
+    fbTimer.current = gameTimeout(advance, 350);
   };
 
   const meanV = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;

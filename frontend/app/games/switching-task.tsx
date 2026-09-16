@@ -1,4 +1,4 @@
-/* psygames-game-switching-task · VER 1 · 19.08.2026 */
+/* psygames-game-switching-task · VER 2 · 16.09.2026 */
 /**
  * Switching Task — переключение между двумя правилами (task switching, switch cost)
  *
@@ -43,7 +43,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#7873f5', '#ff6ec4'];
@@ -350,12 +350,12 @@ export default function SwitchingTaskGame() {
   const modeRef = useRef<StimMode>(mode);
   useEffect(() => { modeRef.current = mode; }, [mode]);
 
-  const stimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const deadlineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fbTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stimTimerRef = useRef<GameTimer | null>(null);
+  const deadlineTimerRef = useRef<GameTimer | null>(null);
+  const fbTimerRef = useRef<GameTimer | null>(null);
 
   const clearAllTimers = () => {
-    [stimTimerRef, deadlineTimerRef, fbTimerRef].forEach(r => { if (r.current) clearTimeout(r.current); });
+    [stimTimerRef, deadlineTimerRef, fbTimerRef].forEach(r => { if (r.current) clearGameTimeout(r.current); });
   };
 
   useEffect(() => () => clearAllTimers(), []);
@@ -368,18 +368,18 @@ export default function SwitchingTaskGame() {
     lastTaskRef.current = tr.taskIdx;
     trialRef.current = tr;
     setTrial(tr);
-    stimTimerRef.current = setTimeout(() => {
+    stimTimerRef.current = gameTimeout(() => {
       stimAtRef.current = gameNow();
       answeredRef.current = false;
       setShowStim(true);
       // Окно ответа уровня: не успел — ошибка-пропуск, проба закрывается сама
-      deadlineTimerRef.current = setTimeout(() => {
+      deadlineTimerRef.current = gameTimeout(() => {
         if (answeredRef.current) return;
         answeredRef.current = true;
         errorsRef.current += 1;
         setErrors(errorsRef.current);
         setFeedback('wrong');
-        fbTimerRef.current = setTimeout(advance, 350);
+        fbTimerRef.current = gameTimeout(advance, 350);
       }, windowMsRef.current);
     }, 500);
   };
@@ -462,7 +462,7 @@ export default function SwitchingTaskGame() {
   const handleAnswer = (left: boolean) => {
     if (!showStim || feedback !== null || answeredRef.current) return;
     answeredRef.current = true;
-    if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
+    if (deadlineTimerRef.current) clearGameTimeout(deadlineTimerRef.current);
     const rt = gameNow() - stimAtRef.current;
     const tr = trialRef.current;
     const ok = left === tr.correctLeft;
@@ -480,7 +480,7 @@ export default function SwitchingTaskGame() {
       setErrors(errorsRef.current);
     }
     setFeedback(ok ? 'right' : 'wrong');
-    fbTimerRef.current = setTimeout(advance, 350);
+    fbTimerRef.current = gameTimeout(advance, 350);
   };
 
   const meanRt = rts.length ? Math.round(rts.reduce((a, b) => a + b, 0) / rts.length) : 0;

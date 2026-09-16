@@ -1,4 +1,4 @@
-/* psygames-game-proofreading · VER 4 · 23.08.2026 */
+/* psygames-game-proofreading · VER 5 · 16.09.2026 */
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
@@ -36,7 +36,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimeout } from '@/src/services/gamePause';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import {
   FILLWORDS_INK,
@@ -706,7 +706,7 @@ export default function ProofreadingGame() {
       errorsRef.current += 1;
       setErrors(errorsRef.current);
       setWrongFlash(index);
-      setTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);
+      gameTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);
     }
   };
 
@@ -1097,7 +1097,7 @@ export default function ProofreadingGame() {
     else {
       hapticError();
       setWrongFlash(index);
-      setTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);
+      gameTimeout(() => setWrongFlash((f) => (f === index ? null : f)), 350);
     }
     setSeries(step.state);
     if (step.result === 'hit' && blockDone(step.state)) closeBlock(step.state, true);
@@ -1110,13 +1110,13 @@ export default function ProofreadingGame() {
    */
   useEffect(() => {
     if (phase !== 'interlude' || !seriesState) return;
-    const id = setTimeout(() => {
+    const id = gameTimeout(() => {
       setSeries(nextBlock(seriesState));
       serSetTrace([]);
       beginBlockClock();
       setPhase('series');
     }, INTERLUDE_MS);
-    return () => clearTimeout(id);
+    return () => clearGameTimeout(id);
     // Врезка живёт ровно одну фазу: зависимости — фаза и состояние блока, часы
     // заводятся ВНУТРИ таймаута, поэтому больше эффекту ничего не нужно.
   }, [phase, seriesState]);

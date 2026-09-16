@@ -1,4 +1,4 @@
-/* psygames-game-targets · VER 2 · 27.08.2026 */
+/* psygames-game-targets · VER 3 · 16.09.2026 */
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
@@ -30,7 +30,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getAbilityCount, useAbility } from '@/src/services/abilities';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -285,20 +285,20 @@ export default function TargetsGame() {
   // раундом. Отсюда и репорты: цвета/крестик «мигают», а темп «ускоряется» к концу
   // уровня (цепочки копятся по ходу уровня и никогда не схлопываются).
   // Единственный слот делает лишнюю цепочку невозможной: новый шаг отменяет прошлый.
-  const stepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stepTimerRef = useRef<GameTimer | null>(null);
   const stoppedRef = useRef(false);              // размонтировали/ушли назад — таймеры молчат
   const roundLiveRef = useRef(false);            // стимул на экране и ещё не отвечен
 
   const clearAllTimers = () => {
     if (stepTimerRef.current) {
-      clearTimeout(stepTimerRef.current);
+      clearGameTimeout(stepTimerRef.current);
       stepTimerRef.current = null;
     }
   };
 
   const schedule = (fn: () => void, ms: number) => {
     clearAllTimers();
-    stepTimerRef.current = setTimeout(() => {
+    stepTimerRef.current = gameTimeout(() => {
       stepTimerRef.current = null;
       if (stoppedRef.current) return;
       fn();

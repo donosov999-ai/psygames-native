@@ -1,4 +1,4 @@
-/* psygames-game-stop-signal · VER 2 · 23.08.2026 */
+/* psygames-game-stop-signal · VER 3 · 16.09.2026 */
 /**
  * Stop-Signal Task — классика inhibitory control (response inhibition).
  *
@@ -60,7 +60,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
-import { gameNow } from '@/src/services/gamePause';
+import { gameNow, gameTimeout, clearGameTimeout, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
 import {
@@ -191,13 +191,13 @@ export default function StopSignalGame() {
   const respondedRef = useRef<boolean>(false);
   const startTimeRef = useRef(0);
 
-  const goTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const stopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const interTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const goTimerRef = useRef<GameTimer | null>(null);
+  const stopTimerRef = useRef<GameTimer | null>(null);
+  const endTimerRef = useRef<GameTimer | null>(null);
+  const interTimerRef = useRef<GameTimer | null>(null);
 
   const clearTimers = () => {
-    [goTimerRef, stopTimerRef, endTimerRef, interTimerRef].forEach(r => { if (r.current) clearTimeout(r.current); });
+    [goTimerRef, stopTimerRef, endTimerRef, interTimerRef].forEach(r => { if (r.current) clearGameTimeout(r.current); });
   };
 
   useEffect(() => () => clearTimers(), []);
@@ -303,17 +303,17 @@ export default function StopSignalGame() {
     respondedRef.current = false;
 
     const fixDelay = fixMinRef.current + Math.random() * fixJitterRef.current;
-    goTimerRef.current = setTimeout(() => {
+    goTimerRef.current = gameTimeout(() => {
       setSignal('go');
       goAtRef.current = gameNow();
       // стоп-сигнал приходит через ступень ЛЕСТНИЦЫ (не через параметр уровня)
       if (isStop) {
-        stopTimerRef.current = setTimeout(() => {
+        stopTimerRef.current = gameTimeout(() => {
           if (!respondedRef.current) setSignal('stop');
         }, trialSsdRef.current);
       }
       // end trial window (окно ответа уровня)
-      endTimerRef.current = setTimeout(() => {
+      endTimerRef.current = gameTimeout(() => {
         if (respondedRef.current) return;
         // No press — Go = miss; Stop = correct inhibition
         endTrial(isStop ? 'stop_ok' : 'go_miss', null);
@@ -322,8 +322,8 @@ export default function StopSignalGame() {
   };
 
   const endTrial = (outcome: TrialOutcome, rt: number | null) => {
-    if (stopTimerRef.current) clearTimeout(stopTimerRef.current);
-    if (endTimerRef.current) clearTimeout(endTimerRef.current);
+    if (stopTimerRef.current) clearGameTimeout(stopTimerRef.current);
+    if (endTimerRef.current) clearGameTimeout(endTimerRef.current);
     let fb: 'right' | 'wrong' = 'right';
     if (outcome === 'go_hit')   { hitsRef.current += 1; rtsRef.current = [...rtsRef.current, rt as number]; fb = 'right'; }
     if (outcome === 'go_miss')  { errorsRef.current += 1; fb = 'wrong'; }
@@ -346,7 +346,7 @@ export default function StopSignalGame() {
     setRts([...rtsRef.current]);
     setSignal('feedback'); setFeedback(fb);
     if (fb === 'right') hapticSuccess(); else hapticError();
-    interTimerRef.current = setTimeout(() => {
+    interTimerRef.current = gameTimeout(() => {
       if (roundRef.current >= totalTrialsRef.current) { finish(); return; }
       roundRef.current += 1;
       setRound(roundRef.current);
