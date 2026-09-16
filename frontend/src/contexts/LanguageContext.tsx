@@ -340,8 +340,8 @@ const translations: Translations = {
   trailMaking: { ru: 'Соедини цепочку', en: 'Trail Making' },
   trailMakingDesc: { ru: '1→А→2→Б→3 — переключение внимания', en: '1→A→2→B→3 — attention switching' },
   trailMakingIntroDesc: {
-    ru: 'Соединяйте цифры и буквы по порядку как можно быстрее. Версия B (с переключением «цифра-буква-цифра») — стандартный тест когнитивной гибкости.',
-    en: 'Connect numbers and letters in order as fast as possible. Version B (number-letter-number switching) is a standard test of cognitive flexibility.',
+    ru: 'Нажимайте кружки по порядку или ведите по ним пальцем. Соединяйте цифры и буквы по порядку как можно быстрее. Версия B (с переключением «цифра-буква-цифра») — стандартный тест когнитивной гибкости.',
+    en: 'Tap the circles in order or slide your finger across them. Connect numbers and letters in order as fast as possible. Version B (number-letter-number switching) is a standard test of cognitive flexibility.',
   },
   trailModeLabel: { ru: 'Версия', en: 'Version' },
   trailA: { ru: 'A: 1→2→3', en: 'A: 1→2→3' },
@@ -3841,15 +3841,15 @@ const translations: Translations = {
   dotsConnect: { ru: 'Соедини точки', en: 'Dots Connect' },
   dotsConnectDesc: { ru: 'Соединяйте одинаковые точки непересекающимися путями и заполните всю сетку', en: 'Connect matching dots with non-crossing paths and fill the whole grid' },
   dotsConnectIntroDesc: {
-    ru: 'Тренирует пространственное планирование: проложите для каждой пары свой путь без пересечений и пустых клеток.',
-    en: 'Trains spatial planning: give every pair its own path without crossings or empty cells.',
+    ru: 'Проведи пальцем от точки к её паре того же цвета — за пальцем потянется путь. Пути разных пар не пересекаются, и в конце на поле не должно остаться пустых клеток. Тренирует пространственное планирование.',
+    en: 'Drag your finger from a dot to its partner of the same colour — a path follows your finger. Paths of different pairs never cross, and by the end no cell may stay empty. Trains spatial planning.',
   },
 
   oneLine: { ru: 'Одна линия', en: 'One Line' },
   oneLineDesc: { ru: 'Проведите одну непрерывную линию по всем рёбрам, не проходя ни одно дважды', en: 'Draw one continuous line across every edge without using any edge twice' },
   oneLineIntroDesc: {
-    ru: 'Проведите одну непрерывную линию по каждому ребру графа ровно один раз. В вершины можно возвращаться, а вот пройденное ребро использовать второй раз нельзя. Место, где линии пересеклись на экране, вершиной не является — повернуть там не получится. Тренирует планирование маршрута: почти каждый ход законен сам по себе, но заводит в тупик, из которого остаток рёбер уже не собрать. С уровнями растёт не скорость, а сам граф: больше вершин, треугольники-развилки, запутаннее раскладка, а подсказка допустимого старта исчезает после третьего уровня.',
-    en: 'Draw one continuous line across every edge of the graph exactly once. You may revisit vertices, but an edge you have already used is spent. A place where two lines cross on screen is not a vertex — you cannot turn there. Trains route planning: nearly every move is legal on its own, yet many lead to a dead end from which the remaining edges cannot be collected. Levels grow the graph rather than the speed: more vertices, triangle branches, more tangled layouts, and the hint that marks a legal start disappears after level three.',
+    ru: 'Нажимайте вершины по очереди — линия пройдёт по ребру между ними. Проведите одну непрерывную линию по каждому ребру графа ровно один раз. В вершины можно возвращаться, а вот пройденное ребро использовать второй раз нельзя. Место, где линии пересеклись на экране, вершиной не является — повернуть там не получится. Тренирует планирование маршрута: почти каждый ход законен сам по себе, но заводит в тупик, из которого остаток рёбер уже не собрать. С уровнями растёт не скорость, а сам граф: больше вершин, треугольники-развилки, запутаннее раскладка, а подсказка допустимого старта исчезает после третьего уровня.',
+    en: 'Tap the vertices one after another — the line runs along the edge between them. Draw one continuous line across every edge of the graph exactly once. You may revisit vertices, but an edge you have already used is spent. A place where two lines cross on screen is not a vertex — you cannot turn there. Trains route planning: nearly every move is legal on its own, yet many lead to a dead end from which the remaining edges cannot be collected. Levels grow the graph rather than the speed: more vertices, triangle branches, more tangled layouts, and the hint that marks a legal start disappears after level three.',
   },
 
   // ⚠️ facesNamesDesc короткое НАМЕРЕННО: оно стоит подписью на карточке каталога,
@@ -3871,8 +3871,8 @@ const translations: Translations = {
   navigator: { ru: 'Навигатор', en: 'Navigator' },
   navigatorDesc: { ru: 'Запоминайте маршруты, последовательности поворотов и направление к старту', en: 'Remember routes, turn sequences, and the direction back to the start' },
   navigatorIntroDesc: {
-    ru: 'Тренирует пространственную память: изучите маршрут, мысленно удерживайте карту и восстановите путь или направление домой.',
-    en: 'Trains spatial memory: study a route, maintain the mental map, and reconstruct the path or direction home.',
+    ru: 'Сначала изучите маршрут на карте, затем повторите его кнопками направлений под полем — можно клавишами или движением пальца по полю. В других режимах вспомните повороты по порядку или укажите направление к старту. Тренирует пространственную память.',
+    en: 'First study the route on the map, then repeat it with the direction buttons below the board — keys or a swipe across the board work too. In other modes, recall the turns in order or point to where the start is. Trains spatial memory.',
   },
 
   rhythmPitch: { ru: 'Ритм и высота', en: 'Rhythm & Pitch' },
