@@ -45,7 +45,7 @@ import { publishFeedbackGameState } from '@/src/services/feedbackGameState';
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
 import { открыть, указатель, стрелка, ходЗаЖест, клавиша, стеретьВвод, выбрать, поДиагонали, отменить, решить, type Партия, type Жест, type Сторона, type Диагональ } from '@/src/games/tatham-bridge/play';
-import { ПЛАН_ШАГАМИ, ИМЯ_ВТОРОГО, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, лестницаДвижка, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски, ПОДСВЕТКА_ЧИСЛА, клавишПодсветки, ГНЁЗД_ПОДСВЕТКИ } from '@/src/games/tatham-bridge/names';
+import { ПЛАН_ШАГАМИ, ИМЯ_ВТОРОГО, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, лестницаДвижка, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски, ЗНАКИ_ЦИФР, ПОДСВЕТКА_ЧИСЛА, клавишПодсветки, ГНЁЗД_ПОДСВЕТКИ } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
 
@@ -691,17 +691,22 @@ export default function PuzzlesScreen() {
                   Замер 16.09.2026: ряд считался по АВТОРСКОЙ лестнице (`движок.ступени`), а доска
                   открывалась по нашей — на первой ступени Solo доска вышла 9×9, а клавиш дали
                   четыре (авторский `2x2`). Цифры 5–9 вводить было нечем при подписи «Цифры 1–9». */}
-              {Array.from({ length: клавишДоски(имяРежима, ступени[ступень]?.параметры ?? '') }, (_, k) => k + 1).map((ц) => (
-                <Pressable
-                  key={ц}
-                  accessibilityRole="button"
-                  accessibilityLabel={String(ц)}
-                  onPress={() => { void клавиша(кодЦифры(ц)).then((и) => setПартия(и.партия)); }}
-                  style={[styles.цифра, { backgroundColor: GRADIENT[0] }]}
-                >
-                  <Text style={styles.цифраТекст}>{ц}</Text>
-                </Pressable>
-              ))}
+              {Array.from({ length: клавишДоски(имяРежима, ступени[ступень]?.параметры ?? '') }, (_, k) => k + 1).map((ц) => {
+                // Где цифра движка — не число («Нежить»: призрак, вампир, зомби), клавиша показывает
+                // знак, а чтецу называет имя. Движку по-прежнему уходит цифра.
+                const знак = ЗНАКИ_ЦИФР[имяРежима]?.[ц - 1];
+                return (
+                  <Pressable
+                    key={ц}
+                    accessibilityRole="button"
+                    accessibilityLabel={знак ? t(знак.имя) : String(ц)}
+                    onPress={() => { void клавиша(кодЦифры(ц)).then((и) => setПартия(и.партия)); }}
+                    style={[styles.цифра, { backgroundColor: GRADIENT[0] }]}
+                  >
+                    <Text style={знак ? styles.знакКлавиши : styles.цифраТекст}>{знак ? знак.знак : ц}</Text>
+                  </Pressable>
+                );
+              })}
               {/*
                 🔴 БЕЗ «СТЕРЕТЬ» ОШИБОЧНУЮ ЦИФРУ СНИМАЛИ ТОЛЬКО ЧЕРЕЗ МЕНЮ ПАУЗЫ.
                 Замер 11.09.2026: движок стирает клетку кодом `0` — «Небоскрёбы»
@@ -986,4 +991,5 @@ const styles = StyleSheet.create({
   подсветкаПодпись: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   цифра: { width: 50, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   цифраТекст: { color: '#FFF', fontSize: 26, fontWeight: '800' },
+  знакКлавиши: { fontSize: 26 },
 });
