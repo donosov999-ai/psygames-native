@@ -1967,6 +1967,8 @@ const t: Record<string, string> = {
   "lr_water_sort_movelimit_rule": "À partir de ce niveau la partie a une limite de coups, affichée en haut. Ce n'est pas « autant qu'il faudra » : elle laisse environ un quart de coups au-dessus du jeu parfait pour se raviser. Annuler ne rend PAS le coup : tu t'es ravisé, tu l'as dépensé. Sur les niveaux à couche cachée il n'y a pas de limite — explorer coûte des coups et rien ne permet de les mesurer.",
   "lr_water_sort_movelimit_example": "Exemple : limite 40, dépensés 38 — deux coups pour finir. Si cela ne suffit pas, le niveau recommence avec le même plateau.",
   "cakeSortDesc": "Réunis un cercle de six parts identiques",
+  "cakeSortSlice": "Part",
+  "cakeSortPickSlice": "Choisis la part à déplacer",
   "pizzaSortDesc": "Réunis un cercle de six parts identiques",
   "cakeSortIntroDesc": "Fais glisser une part de gâteau d’une assiette à l’autre, ou touche la part puis l’assiette. Elle ne se pose que sur son propre parfum ou sur une place libre. Un cercle complet de six parts identiques, et l’assiette s’en va en libérant la place. Certaines assiettes attendent dans une file et sortent d’elles-mêmes dès qu’une place se libère : la file est finie et s’affiche en haut. Tout est là — libérer la place à temps plutôt que d’entasser un mélange sur chaque assiette.",
   "pizzaSortIntroDesc": "Rassemble un cercle de six parts de pizza identiques. Une part ne va que sur une part identique ou sur une planche vide. Le cercle complet, la planche part et la place se libère.",

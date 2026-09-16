@@ -1,4 +1,4 @@
-/* sorting-shots · VER 3 · 11.09.2026 */
+/* sorting-shots · VER 4 · 16.09.2026 */
 /**
  * sorting-shots — снимки ПОЛЯ всех шести игр раздела «Сортировки» для глазного
  * контроля Дениса.
@@ -67,6 +67,21 @@ const FORBID = /Как играть|Уровень \d+\s*\/\s*\d+|Выбери �
 
 /** Кнопки, по которым НЕЛЬЗЯ продвигаться внутрь игры. */
 const NOT_ADVANCE = /Назад|Выход|Справка|Как играть|Пауза|Отмен|Подсказк|Заново|Перемеша|Звук|Настройк/i;
+
+/**
+ * Девять головоломок развилки «Сортировка». Снимаются ради СТРОКИ ПРАВИЛА под
+ * доской: 16.09.2026 она у всех девяти дописана «чем ходить», и увидеть это
+ * можно только кадром — в словаре видно текст, а не то, влез ли он в три строки.
+ */
+const ГОЛОВОЛОМКИ = [
+  ['Мосты', 'Bridges'], ['Снос групп', 'Same Game'], ['Колышки', 'Pegs'],
+  ['Заливка', 'Flood'], ['Указатели', 'Signpost'], ['Инерция', 'Inertia'],
+  ['Замкнутая петля', 'Loopy'], ['Жемчужная петля', 'Pearl'], ['Рельсы', 'Train Tracks'],
+].map(([имя, mode], k) => ({
+  id: `p${k + 1}-${String(mode).toLowerCase().replace(/\s+/g, '-')}`,
+  route: `/games/puzzles?mode=${encodeURIComponent(String(mode))}&auto=1`,
+  title: имя,
+}));
 
 const SHOTS = [
   { id: '1-goods-sort', route: '/games/goods-sort?auto=1', title: 'Сортировка товаров' },
@@ -181,7 +196,7 @@ async function dismissCoach(page) {
 }
 
 async function main() {
-  let shots = SHOTS;
+  let shots = args.puzzles ? ГОЛОВОЛОМКИ : SHOTS;
   if (ONLY) shots = shots.filter((s) => ONLY.some((o) => s.id.includes(o)));
   if (!shots.length) { console.log('🔴 --only не выбрал ни одного кадра'); process.exit(1); }
 

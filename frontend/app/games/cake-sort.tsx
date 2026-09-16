@@ -17,7 +17,7 @@
  * лежит замер, при какой ширине сколько столбцов ещё читаемо.
  */
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Pressable, Image, ScrollView, useWindowDimensions } from 'react-native';
 import Svg, { Path, Circle as SvgCircle, ClipPath, Defs, Image as SvgImage } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -40,7 +40,7 @@ import { sndPlace, sndMatch, sndCombo, sndWrong } from '@/src/services/feedback'
 import { saveResume, clearResume } from '@/src/services/resume';
 import { useResumeBoot } from '@/src/hooks/useResumeBoot';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
-import { CIRCLE, Board, canPlace, moveTop, isCleared, hasAnyMove, makeBoard } from '@/src/games/cake-sort/core/plate';
+import { CIRCLE, Board, canPlace, moveType, isCleared, hasAnyMove, makeBoard } from '@/src/games/cake-sort/core/plate';
 import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { prebuilt, prebuiltMin } from '@/src/games/cake-sort/core/prebuilt';
@@ -83,6 +83,25 @@ export const CS_RULES: LevelRule[] = [
 ];
 
 const GRADIENT = ['#f472b6', '#f59e0b'];
+
+/**
+ * 🔴 ТАРЕЛКА РАЗВОРАЧИВАЕТСЯ ВО ВЕСЬ ЭКРАН, А НЕ В ЛУПУ.
+ *
+ * Уточнение Дениса 16.09.2026: «нужна не лупа, а просто приближение — кликнул
+ * тарелку, она развернулась в большую на весь экран». Первая редакция рисовала
+ * круг в 280 точек на затемнённом фоне; это читалось как всплывашка, а не как
+ * та же тарелка вблизи.
+ *
+ * Диаметр берётся от МЕНЬШЕЙ стороны окна: круг обязан влезть целиком, иначе
+ * нижние куски уедут за обрез — ровно то, на чём уже обожглись поля сортировок.
+ */
+const ПОЛЯ_КРУГА = 24;      // воздух от края экрана
+const ПОДПИСЬ_СНИЗУ = 96;   // строка «выбери кусок» и запас под палец
+const ЦЕЛЬ = 56;
+
+function кругПоЭкрану(ш: number, в: number): number {
+  return Math.max(200, Math.min(ш - ПОЛЯ_КРУГА * 2, в - ПОДПИСЬ_СНИЗУ - ПОЛЯ_КРУГА * 2));
+}
 
 /** Путь одного сектора круга: клин от центра, шестая часть. */
 function wedgePath(cx: number, cy: number, r: number, index: number): string {
@@ -153,6 +172,23 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
 
   const [board, setBoard] = useState<Board | null>(null);
   const [sel, setSel] = useState<number | null>(null);
+  /**
+   * 🔴 ХОД В ДВА ШАГА ЧЕРЕЗ УВЕЛИЧЕННЫЙ КРУГ — РЕШЕНИЕ ДЕНИСА 16.09.2026.
+   *
+   * Дословно: «мы тапаем по пицце или тортику, он увеличивается до большого
+   * круга, в нём мы выбираем нужный кусок», и дальше цель выбирается НА СТОЛЕ,
+   * где годные тарелки подсвечены.
+   *
+   * 📍 ЗАЧЕМ. Тарелка внутри стопка, а нарисована кругом: какой кусок «верхний»,
+   * игрок не видит ниоткуда. Отсюда отчёт c72e57cb «Не перетаскивается ничего» —
+   * человек жал по нужному куску, а игра брала другой. Замер клина на живом
+   * кадре: 38 точек по среднему радиусу при тарелке 168 — в такой пирог попасть
+   * пальцем можно, а РАЗЛИЧИТЬ в нём верхний нельзя.
+   *
+   * `увеличена` — какая тарелка раскрыта; `вРуке` — что из неё взято.
+   */
+  const [увеличена, setУвеличена] = useState<number | null>(null);
+  const [вРуке, setВРуке] = useState<{ откуда: number; тип: number } | null>(null);
   const [moves, setMoves] = useState(0);
   const [done, setDone] = useState(false);
   /**
@@ -177,7 +213,7 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    * ломается именно их последовательность. Помним путь и идём по нему, пока
    * игрок ходит как советовали; свернул — путь сбрасывается и ищется заново.
    */
-  const [путь, setПуть] = useState<{ from: number; to: number }[] | null>(null);
+  const [путь, setПуть] = useState<{ from: number; type: number; to: number }[] | null>(null);
   /** Точный минимум, если фоновый расчёт успел. Иначе звёзды идут от калибровки. */
   const [точныйМин, setТочныйМин] = useState<number | null>(null);
   /**
@@ -337,12 +373,23 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
   const тронуть = (i: number) => {
     if (!board || done) return;
     const тарелка = board.plates[i] ?? [];
-    if (sel === null) {
-      if (!тарелка.length) { hapticTap(); return; }
-      setSel(i); hapticTap(); return;
+    /* Кусок уже в руке — тап по столу выбирает ЦЕЛЬ. */
+    if (вРуке) {
+      if (i === вРуке.откуда) { setВРуке(null); hapticTap(); return; }
+      переложить(вРуке.откуда, вРуке.тип, i);
+      return;
     }
-    if (sel === i) { setSel(null); return; }
-    переложить(sel, i);
+    /* Руки пусты — тап раскрывает тарелку в большой круг. */
+    if (!тарелка.length) { hapticTap(); return; }
+    setУвеличена(i); setSel(i); hapticTap();
+  };
+
+  /** Взять кусок из раскрытой тарелки: круг закрывается, кусок уходит в руку. */
+  const взятьКусок = (тип: number) => {
+    if (увеличена === null) return;
+    setВРуке({ откуда: увеличена, тип });
+    setУвеличена(null);
+    hapticTap();
   };
 
   /**
@@ -361,20 +408,28 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
    * Теперь и тап, и жест зовут ОДИН ход с явными концами. Тап по-прежнему
    * отвечает за выбор, жест выбора не касается.
    */
-  const переложить = (откуда: number, куда: number) => {
-    if (!board || done || откуда === куда) { setSel(null); return; }
+  const переложить = (откуда: number, тип: number, куда: number) => {
+    const сброс = () => { setSel(null); setВРуке(null); };
+    if (!board || done || откуда === куда) { сброс(); return; }
     const src = board.plates[откуда] ?? [];
-    if (!src.length) { setSel(null); return; }
-    const тип = src[src.length - 1] as number;
-    if (!canPlace(board, куда, тип)) { setSel(null); пометитьОтказ(куда); hapticTap(); sndWrong(); return; }
-    const после = moveTop(board, откуда, куда);
-    if (!после) { setSel(null); return; }
+    if (!src.length) { сброс(); return; }
+    if (!canPlace(board, куда, тип)) {
+      /* ⚠️ Руку НЕ роняем: отказ — это «не сюда», а не «начни сначала». */
+      пометитьОтказ(куда); hapticTap(); sndWrong(); return;
+    }
+    const после = moveType(board, откуда, тип, куда);
+    if (!после) { сброс(); return; }
     история.push({ b: board, moves });
     // Пошёл как советовали — снимаем шаг с пути; свернул — путь больше не наш.
     const шаг = путь?.[0];
-    setПуть(шаг && шаг.from === откуда && шаг.to === куда ? путь!.slice(1) : null);
+    /*
+     * ⚠️ Совпадение хода с советом теперь сверяется и ПО ВИДУ КУСКА: с 16.09.2026
+     * из одной тарелки в одну цель ведут разные ходы, и «та же пара тарелок» уже
+     * не означает «тот самый ход».
+     */
+    setПуть(шаг && шаг.from === откуда && шаг.type === тип && шаг.to === куда ? путь!.slice(1) : null);
     setMoves(moves + 1);
-    setSel(null); setHint(null);
+    setSel(null); setВРуке(null); setHint(null);
     /**
      * Сколько кругов замкнулось этим ходом. Считаем по ПУСТЫМ тарелкам, а не по
      * «стало меньше секторов»: очередь тут же занимает освободившееся место, и
@@ -611,7 +666,21 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
       const f = тащимRef.current; const t = цельRef.current;
       тащимRef.current = null; цельRef.current = null;
       setТащим(null); setЦель(null);
-      if (f !== null && t !== null && f !== t) переложить(f, t);
+      /*
+       * 🔴 ПРОТЯЖКА БОЛЬШЕ НЕ ДЕЛАЕТ ХОД САМА — И ЭТО СЛЕДСТВИЕ НОВЫХ ПРАВИЛ.
+       *
+       * Раньше она несла ВЕРХНИЙ кусок, а с 16.09.2026 кусок выбирает игрок в
+       * увеличенном круге. Тащить «неизвестно что» — ровно та беда, с которой
+       * пришёл отчёт c72e57cb «Не перетаскивается ничего»: игра брала не то,
+       * по чему человек целился.
+       *
+       * Поэтому протяжка осталась ярлыком, но только КОГДА КУСОК УЖЕ В РУКЕ:
+       * тогда она несёт именно его. Пустой рукой протяжка равна тапу —
+       * раскрывает тарелку.
+       */
+      if (f === null) return;
+      if (вРуке && t !== null && t !== вРуке.откуда) { переложить(вРуке.откуда, вРуке.тип, t); return; }
+      if (t === null || t === f) тронуть(f);
     },
     onResponderTerminate: () => { тащимRef.current = null; цельRef.current = null; setТащим(null); setЦель(null); },
   };
@@ -653,9 +722,14 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
      * управление двумя тапами, перетаскивания нет вовсе). Значит подсказки
      * «куда можно» обязаны гореть и после первого ТАПА, а не только под пальцем.
      */
-    const вРукеИндекс = тащим ?? sel;
-    const вРуке = вРукеИндекс !== null ? (board?.plates[вРукеИндекс] ?? []) : [];
-    const типВРуке = вРуке.length ? (вРуке[вРуке.length - 1] as number) : null;
+    /*
+     * ⚠️ ВИД БЕРЁТСЯ ИЗ РУКИ, А НЕ С ВЕРХА ТАРЕЛКИ. С 16.09.2026 игрок сам
+     * выбирает кусок в увеличенном круге, и подсветка обязана спрашивать
+     * `canPlace` именно про ВЫБРАННЫЙ вид — иначе она подсветит не те тарелки.
+     */
+    const вРукеИндекс = вРуке ? вРуке.откуда : (тащим ?? sel);
+    const стопка = вРукеИндекс !== null ? (board?.plates[вРукеИндекс] ?? []) : [];
+    const типВРуке = вРуке ? вРуке.тип : (стопка.length ? (стопка[стопка.length - 1] as number) : null);
     const приму = вРукеИндекс !== null && вРукеИндекс !== i && board !== null && типВРуке !== null
       && canPlace(board, i, типВРуке);
     const подЦелью = тащим !== null && цель === i && цель !== тащим && приму;
@@ -835,6 +909,86 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
     >
       <LevelRuleModal lr={levelRules} colors={colors} />
       <ScorePopupLayer popups={popups} />
+      {/*
+        🔴 УВЕЛИЧЕННЫЙ КРУГ — ГЛАВНАЯ ЧАСТЬ НОВЫХ ПРАВИЛ, А НЕ УКРАШЕНИЕ.
+        Решение Дениса 16.09.2026: «тапаем по пицце или тортику, он увеличивается
+        до большого круга, в нём выбираем нужный кусок».
+
+        📍 ЗАЧЕМ ИМЕННО УВЕЛИЧЕНИЕ. Замер клина на живом кадре: 38 точек по
+        среднему радиусу при тарелке 168 — попасть пальцем можно, а РАЗЛИЧИТЬ
+        кусок нельзя, и до 16.09 игра всё равно брала верхний в стопке, которого
+        на круге не видно ниоткуда. Отсюда отчёт c72e57cb «Не перетаскивается
+        ничего»: человек целился в один кусок, уезжал другой.
+
+        ⚠️ Круг рисуется ТЕМ ЖЕ `wedgePath`, что и тарелка на столе: иначе
+        увеличенный вид разъехался бы с обычным, и выбранный кусок оказался бы
+        не тем, по которому целились.
+      */}
+      {увеличена !== null && board && (() => {
+      const КРУГ = кругПоЭкрану(width, окноH || 640);
+      return (
+        <Pressable
+          style={styles.кругФон}
+          accessibilityRole="button"
+          accessibilityLabel={t('close')}
+          onPress={() => { setУвеличена(null); setSel(null); }}
+        >
+          <View style={{ width: КРУГ, height: КРУГ }} onStartShouldSetResponder={() => true}>
+            <Svg width={КРУГ} height={КРУГ}>
+              <Defs>
+                {(board.plates[увеличена] ?? []).map((_, k) => (
+                  <ClipPath key={`lc${k}`} id={`круг-${k}`}>
+                    <Path d={wedgePath(КРУГ / 2, КРУГ / 2, КРУГ / 2 - 6, k)} />
+                  </ClipPath>
+                ))}
+              </Defs>
+              {(board.plates[увеличена] ?? []).map((тип, k) => (
+                <React.Fragment key={k}>
+                  <Path
+                    d={wedgePath(КРУГ / 2, КРУГ / 2, КРУГ / 2 - 6, k)}
+                    fill={тема.colors[тип % тема.colors.length]}
+                  />
+                  <SvgImage
+                    href={topFor(skin, тип)}
+                    x={6} y={6} width={КРУГ - 12} height={КРУГ - 12}
+                    preserveAspectRatio="xMidYMid slice"
+                    clipPath={`url(#круг-${k})`}
+                  />
+                  <Path
+                    d={wedgePath(КРУГ / 2, КРУГ / 2, КРУГ / 2 - 6, k)}
+                    fill="none" stroke="#00000055" strokeWidth={2}
+                  />
+                </React.Fragment>
+              ))}
+            </Svg>
+            {/*
+              ⚠️ ЖМУТ НЕ ПО SVG, А ПО НАКЛАДКЕ ИЗ КНОПОК. У каждого куска своя
+              цель нажатия: попадание по сектору считается тем же углом, что и
+              рисунок, а `Pressable` поверх даёт озвучку для незрячих и отклик
+              нажатия, которых у `Path` нет.
+            */}
+            {(board.plates[увеличена] ?? []).map((тип, k) => {
+              const угол = ((k + 0.5) * 2 * Math.PI) / CIRCLE - Math.PI / 2;
+              const радиус = (КРУГ / 2 - 6) * 0.62;
+              return (
+                <Pressable
+                  key={`t${k}`}
+                  testID="plate-slice"
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('cakeSortSlice')} ${тип + 1}`}
+                  onPress={() => взятьКусок(тип)}
+                  style={[styles.кругКусок, {
+                    left: КРУГ / 2 + радиус * Math.cos(угол) - ЦЕЛЬ / 2,
+                    top: КРУГ / 2 + радиус * Math.sin(угол) - ЦЕЛЬ / 2,
+                  }]}
+                />
+              );
+            })}
+          </View>
+          <Text style={[styles.кругПодпись, { color: colors.textSecondary }]}>{t('cakeSortPickSlice')}</Text>
+        </Pressable>
+      );
+      })()}
       <View style={styles.field}>
       <View
         ref={столRef}
@@ -881,6 +1035,13 @@ const styles = StyleSheet.create({
   setupLabel: { fontSize: 18, fontWeight: '700', marginBottom: 6 },
   setupHint: { fontSize: 14, lineHeight: 20 },
   field: { flex: 1, justifyContent: 'center' },
+  /* Затемнение под развёрнутой тарелкой: стол остаётся на месте, но уходит вглубь. */
+  кругФон: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.72)', alignItems: 'center', justifyContent: 'center', zIndex: 20,
+  },
+  кругКусок: { position: 'absolute', width: ЦЕЛЬ, height: ЦЕЛЬ, borderRadius: ЦЕЛЬ / 2 },
+  кругПодпись: { marginTop: 18, fontSize: 14, textAlign: 'center', paddingHorizontal: 24 },
   table: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignSelf: 'center', paddingVertical: 8 },
   plateBox: { alignItems: 'center', justifyContent: 'center' },
   tools: { flexDirection: 'row', justifyContent: 'center', gap: 14, paddingTop: 4 },

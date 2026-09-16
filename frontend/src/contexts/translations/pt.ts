@@ -1972,6 +1972,8 @@ const t: Record<string, string> = {
   "lr_water_sort_movelimit_rule": "A partir deste nível a partida tem um limite de movimentos, mostrado em cima. Não é «quantos forem precisos»: deixa cerca de um quarto acima do jogo perfeito para mudar de ideia. Desfazer NÃO devolve o movimento: mudou de ideia, gastou. Nos níveis com camada oculta não há limite — explorar custa movimentos e não há com o que medi-los.",
   "lr_water_sort_movelimit_example": "Exemplo: limite 40, gastos 38 — restam dois para terminar. Se não bastarem, o nível recomeça com o mesmo tabuleiro.",
   "cakeSortDesc": "Junte um círculo de seis fatias iguais",
+  "cakeSortSlice": "Fatia",
+  "cakeSortPickSlice": "Escolhe a fatia a mover",
   "pizzaSortDesc": "Junte um círculo de seis fatias iguais",
   "cakeSortIntroDesc": "Arraste uma fatia de bolo de um prato para outro, ou toque na fatia e depois no prato. Ela só entra sobre o mesmo sabor ou num lugar vazio. Ao completar um círculo de seis fatias iguais, o prato sai e libera o lugar. Alguns pratos esperam numa fila e aparecem sozinhos assim que abre espaço: a fila é finita e aparece no cabeçalho. É aí que está a tarefa — liberar espaço na hora certa em vez de acumular mistura em todos os pratos.",
   "pizzaSortIntroDesc": "Junte um círculo de seis fatias de pizza iguais. Uma fatia só vai sobre outra igual ou sobre uma tábua vazia. Complete o círculo e a tábua sai, liberando o lugar.",

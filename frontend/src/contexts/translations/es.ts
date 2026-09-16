@@ -1972,6 +1972,8 @@ const t: Record<string, string> = {
   "lr_water_sort_movelimit_rule": "Desde este nivel la partida tiene un límite de movimientos, visible arriba. No es «los que hagan falta»: deja alrededor de una cuarta parte por encima del juego perfecto para cambiar de idea. Deshacer NO devuelve el movimiento: si cambiaste de idea, ya lo gastaste. En los niveles con capa oculta no hay límite: explorar cuesta movimientos y no hay con qué medirlos.",
   "lr_water_sort_movelimit_example": "Ejemplo: límite 40, gastados 38 — quedan dos para terminar. Si no alcanzan, el nivel vuelve a empezar con el mismo tablero.",
   "cakeSortDesc": "Reúne un círculo de seis porciones iguales",
+  "cakeSortSlice": "Porción",
+  "cakeSortPickSlice": "Elige la porción que quieres mover",
   "pizzaSortDesc": "Reúne un círculo de seis porciones iguales",
   "cakeSortIntroDesc": "Arrastra un trozo de tarta de un plato a otro, o toca el trozo y luego el plato. Solo se coloca sobre su mismo sabor o en un hueco vacío. Cuando completas un círculo de seis trozos iguales, el plato se va y libera el hueco. Algunos platos esperan en una cola y salen solos en cuanto queda sitio: la cola es finita y se ve en la cabecera. Ahí está toda la tarea: liberar espacio a tiempo en vez de amontonar mezcla en cada plato.",
   "pizzaSortIntroDesc": "Reúne un círculo de seis porciones de pizza iguales. Una porción solo va sobre otra igual o sobre una tabla vacía. Completa el círculo y la tabla se va, liberando el sitio.",

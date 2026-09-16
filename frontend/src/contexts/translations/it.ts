@@ -1967,6 +1967,8 @@ const t: Record<string, string> = {
   "lr_water_sort_movelimit_rule": "Da questo livello la partita ha un limite di mosse, mostrato in alto. Non è «quante servono»: lascia circa un quarto di mosse oltre il gioco perfetto per ripensarci. Annullare NON restituisce la mossa: se hai cambiato idea, l’hai spesa. Nei livelli con strato nascosto il limite non c’è — esplorare costa mosse e non c’è con cosa misurarle.",
   "lr_water_sort_movelimit_example": "Esempio: limite 40, spese 38 — restano due mosse per finire. Se non bastano, il livello riparte con lo stesso tavolo.",
   "cakeSortDesc": "Componi un cerchio di sei fette uguali",
+  "cakeSortSlice": "Fetta",
+  "cakeSortPickSlice": "Scegli la fetta da spostare",
   "pizzaSortDesc": "Componi un cerchio di sei fette uguali",
   "cakeSortIntroDesc": "Trascina una fetta di torta da un piatto all’altro, oppure tocca la fetta e poi il piatto. Entra solo sul proprio gusto o in un posto vuoto. Completato un cerchio di sei fette uguali, il piatto se ne va e libera il posto. Alcuni piatti aspettano in coda ed escono da soli appena si libera spazio: la coda è finita ed è indicata in alto. È tutta qui la sfida — liberare spazio per tempo invece di accumulare un misto su ogni piatto.",
   "pizzaSortIntroDesc": "Raccogli un cerchio di sei fette di pizza uguali. Una fetta va solo su una uguale o su un tagliere vuoto. Completato il cerchio, il tagliere se ne va e il posto si libera.",

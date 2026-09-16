@@ -1972,6 +1972,8 @@ const t: Record<string, string> = {
   "lr_water_sort_movelimit_rule": "Ab dieser Stufe hat die Runde ein Zuglimit — es steht oben. Es ist nicht «so viele wie nötig»: etwa ein Viertel der Züge über dem fehlerfreien Spiel bleibt zum Umentscheiden. Rückgängig gibt den Zug NICHT zurück: umentschieden heißt verbraucht. Auf Stufen mit verdeckter Schicht gibt es kein Limit — Erkunden kostet Züge, und dafür gibt es keinen Maßstab.",
   "lr_water_sort_movelimit_example": "Beispiel: Limit 40, verbraucht 38 — zwei Züge zum Fertigsortieren. Reicht es nicht, beginnt die Stufe mit demselben Brett von vorn.",
   "cakeSortDesc": "Sammle einen Kreis aus sechs gleichen Stücken",
+  "cakeSortSlice": "Stück",
+  "cakeSortPickSlice": "Wähle das Stück zum Umlegen",
   "pizzaSortDesc": "Sammle einen Kreis aus sechs gleichen Stücken",
   "cakeSortIntroDesc": "Zieh ein Tortenstück von einem Teller auf einen anderen — oder tippe erst das Stück an, dann den Teller. Es passt nur auf die eigene Sorte oder auf einen freien Platz. Ist ein voller Kreis aus sechs gleichen Stücken fertig, geht der Teller weg und der Platz wird frei. Manche Teller warten in einer Schlange und kommen von selbst heraus, sobald Platz da ist: die Schlange ist endlich und steht in der Kopfzeile. Genau darin liegt die Aufgabe — rechtzeitig Platz schaffen, statt auf jedem Teller ein Gemisch anzuhäufen.",
   "pizzaSortIntroDesc": "Sammle einen Kreis aus sechs gleichen Pizzastücken. Ein Stück passt nur auf ein gleiches oder auf ein freies Brett. Ist der Kreis fertig, geht das Brett weg und der Platz wird frei.",
