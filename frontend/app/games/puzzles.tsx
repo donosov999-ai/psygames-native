@@ -132,9 +132,19 @@ export default function PuzzlesScreen() {
   const ступеней = Math.max(ступени.length, 1);
   const ступень = Math.min(Math.max(lvl.level - 1, 0), Math.max(ступеней - 1, 0));
 
+  /**
+   * 🔴 УРОВЕНЬ ПАРТИИ ЗАПОМИНАЕТСЯ ВМЕСТЕ С ДОСКОЙ, А НЕ ЧИТАЕТСЯ ИЗ `lvl` ПОСЛЕ ПОБЕДЫ.
+   * Замер 17.09.2026, WebKit с касаниями, окно 390×844, все семь сеток «Судоку»: прошёл
+   * первую ступень — карточка «Уровень 2 пройден!» и «Уровень 3 запускается…», а раздали
+   * вторую. Эффект конца партии поднимает `lvl.reach(+1)` раньше, чем карточка рисуется,
+   * и `level={lvl.level}` читал уже новый уровень. Гейт `puzzle-cleared-card-level`.
+   */
+  const [уровеньПартии, setУровеньПартии] = useState(1);
+
   const раздать = useCallback(async (д: Движок, ст: number, з: number) => {
     const лестница = лестницаДвижка(д.имя, д.ступени);
     setПартия(await открыть(д.индекс, лестница[ст]?.параметры ?? '', з));
+    setУровеньПартии(ст + 1);
     setХодов(0);
     setСдался(false);
     setПодсвечено([]);      // новая доска — подсветка гаснет вместе с ней
@@ -376,7 +386,7 @@ export default function PuzzlesScreen() {
       overlay={фаза === 'cleared' ? (
         <LevelCleared
           gameId="puzzles"
-          level={lvl.level}
+          level={уровеньПартии}
           passed={прошёл}
           stars={сдался ? 1 : ходов <= ступеней * 12 ? 3 : 2}
           gradient={GRADIENT}
