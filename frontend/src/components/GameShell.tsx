@@ -62,7 +62,7 @@ import { GameAuxAction } from '@/src/components/GameAuxAction';
 import { FEEDBACK_OPEN_EVENT, FEEDBACK_ENABLED } from '@/src/services/appFeedback';
 import { текущаяЛестница } from '@/src/services/levelRegistry';
 import { router } from 'expo-router';
-import { onGameHold, isGameHeld, holdGame } from '@/src/services/gamePause';
+import { onGameHold, isGameHeld, holdGame, onPauseMenuRequest } from '@/src/services/gamePause';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
 import { HELP_CORNER_SPACE, HELP_CORNER_RESERVE } from '@/src/components/GameHelpOverlay';
@@ -625,6 +625,15 @@ export default function GameShell({
    * не увидела бы (замер 09.09.2026: пять проб подряд «держится true» из одной утечки).
    */
   React.useEffect(() => () => { pauseHoldRef.current?.(); pauseHoldRef.current = null; }, []);
+  /**
+   * Игра, закрывшая шапку полноэкранным слоем (забег), просит меню паузы через
+   * службу — и каркас берёт СВОЮ задержку тем же путём, что кнопка «II». Так
+   * «Продолжить», «Заново» и «Выйти» снимают её как обычно. Пока никто не просит,
+   * подписка молчит: остальные игры это не задевает.
+   */
+  React.useEffect(() => onPauseMenuRequest(() => {
+    if (!pauseHoldRef.current) pauseHoldRef.current = holdGame();
+  }), []);
   const [paused, setPaused] = React.useState(isGameHeld());
   /**
    * Отражение звука в меню паузы. Служба хранит флаг в модуле, а не в состоянии
