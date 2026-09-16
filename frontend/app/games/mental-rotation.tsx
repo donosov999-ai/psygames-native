@@ -52,7 +52,6 @@ import { saveSession } from '@/src/services/api';
 import {useWarmup} from '@/src/contexts/WarmupContext';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
-import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
@@ -341,7 +340,26 @@ export default function MentalRotationGame() {
   // Разбор поворота — это движение. Человеку, попросившему систему «меньше
   // движения», кадры показываются все сразу и без проезда: смысл сохранён,
   // мельтешения нет.
-  const reduceMotion = useReducedMotion();
+  /*
+   * 🔴 СИСТЕМНАЯ НАСТРОЙКА «МЕНЬШЕ ДВИЖЕНИЯ» СЮДА НЕ ДОТЯГИВАЕТСЯ — И ЭТО ПРАВИЛО,
+   * А НЕ НЕДОСМОТР. Здесь поворот фигуры это САМО УПРАЖНЕНИЕ и объяснение ошибки:
+   * без него разбор замирает на той самой картинке, из-за которой человек ошибся.
+   *
+   * ЧТО БЫЛО. Экран читал `useReducedMotion()` и передавал значение в
+   * `RotationTransition` и `RotationWorkbench`. У обоих внутри есть честная ветка
+   * «показать мгновенно», и на устройстве с включённой настройкой разбор переставал
+   * вращаться вовсе — ровно жалоба Дениса 16.09.2026 «вращение не работает после
+   * ошибки» и отчёт тестировщика 11.09 «просто слайдшоу из картинок стало».
+   *
+   * ⚠️ ПОЧЕМУ ЭТОГО НЕ ВИДЕЛ ГЕЙТ. `reduced-motion.test.ts` уже вносил
+   * `RotationShape.tsx` и `RotationWorkbench.tsx` в исключения и прямо писал:
+   * «экран может форсировать мгновенный показ пропом, но системная настройка сюда
+   * не дотягивается». Гейт проверяет файлы, которые АНИМИРУЮТ, — а экран не
+   * анимирует, он только передаёт чужое значение. Слепое пятно ровно в один проп.
+   *
+   * Проп у обоих остался: он для случая «покажи сразу», который когда-нибудь
+   * понадобится осознанно. Системная настройка в него больше не течёт.
+   */
 
   const lvl = usePersistentLevel('mental_rotation');
   const { isPreset, autostart, num, isCalm } = useGamePreset();
@@ -692,9 +710,9 @@ export default function MentalRotationGame() {
               {task.kind === 'net'
                 ? renderNet(task.net, task.markOfCell, baseSize, '#F3F0FF', SHAPE_BASE)
                 : task.kind==='rotation'&&reviewing&&manualReview
-                  ? <RotationWorkbench key={round} initial={frames[reviewStep]?.shape??task.base} target={task.options[task.correctIdx].shape} size={baseSize} reduceMotion={reduceMotion} ink={colors.text} accent={colors.primary} ru={language==='ru'}/>
+                  ? <RotationWorkbench key={round} initial={frames[reviewStep]?.shape??task.base} target={task.options[task.correctIdx].shape} size={baseSize} reduceMotion={false} ink={colors.text} accent={colors.primary} ru={language==='ru'}/>
                   : task.kind==='rotation'&&reviewing&&reviewStep>0
-                  ? <RotationTransition key={`${round}-${reviewStep}`} from={frames[reviewStep-1].shape} to={frames[reviewStep].shape} axis={frames[reviewStep].axis!} size={baseSize} reduceMotion={reduceMotion}/>
+                  ? <RotationTransition key={`${round}-${reviewStep}`} from={frames[reviewStep-1].shape} to={frames[reviewStep].shape} axis={frames[reviewStep].axis!} size={baseSize}/>
                   : task.kind === 'viewpoint'
                   ? <ViewpointReference shape={task.shape} degrees={task.degrees} size={baseSize} accent={colors.primary}/>
                   : task.kind === 'same'
