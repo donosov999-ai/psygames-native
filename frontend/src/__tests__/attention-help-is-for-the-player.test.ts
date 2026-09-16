@@ -1,6 +1,9 @@
 /* attention-help-is-for-the-player · VER 1 · 16.09.2026 */
 import { translateFor } from '@/src/contexts/LanguageContext';
 
+declare const __dirname: string;
+declare function require(m: string): any;
+
 /**
  * 🔴 ЧТО СТЕРЕЖЁТ. Справка «Об игре» — единственный текст, который человек читает
  * ПЕРЕД партией, и читает её не исследователь. Замер 16.09.2026 по восемнадцати
@@ -38,7 +41,26 @@ const ЖАРГОН = [
   'validity effect', 'orienting', 'alerting', 'executive', 'cue (',
   // формулы в тексте для человека
   'RT(', 'Метрика:', 'Метрики:',
+  // русские термины методик — человеку они ничего не говорят
+  'персеверат', 'интерференци', 'дисперси', 'z-скор', 'конгруэнтн',
 ];
+
+/**
+ * ⚠️ КОРОТКИЕ СОКРАЩЕНИЯ ЛОВИМ СЛОВОМ, А НЕ ПОДСТРОКОЙ.
+ * «ISI» подстрокой сидит внутри английского «decisions», и проба покраснела на
+ * честной строке «Snap decisions». Три ложных срабатывания из трёх — ровно тот
+ * случай, когда слишком жадный прибор дороже отсутствующего.
+ */
+const ЖАРГОН_СЛОВОМ = ['SOA', 'ISI', 'CV-RT', 'SSRT', 'ADHD'];
+
+function жаргонВ(текст: string): string[] {
+  const t = текст.toLowerCase();
+  const найдено = ЖАРГОН.filter((ж) => t.includes(ж.toLowerCase()));
+  for (const ж of ЖАРГОН_СЛОВОМ) {
+    if (new RegExp(`(^|[^A-Za-z])${ж.replace('-', '\\-')}([^A-Za-z]|$)`, 'i').test(текст)) найдено.push(ж);
+  }
+  return найдено;
+}
 
 function справка(ключ: string): { ru: string; en: string } | null {
   /* translateFor отдаёт САМ КЛЮЧ, когда строки нет — иначе «текста нет»
@@ -61,7 +83,7 @@ describe('справка раздела написана для игрока', (
       const т = справка(к);
       if (!т) continue;
       const текст = `${т.ru} ${т.en}`.toLowerCase();
-      const нашлось = ЖАРГОН.filter((ж) => текст.includes(ж.toLowerCase()));
+      const нашлось = жаргонВ(текст);
       if (нашлось.length) грязные.push(`${к}: ${нашлось.join(', ')}`);
     }
     expect(грязные).toEqual([]);
@@ -71,7 +93,7 @@ describe('справка раздела написана для игрока', (
     /* Контроль с известным ответом. Без него проверка выше зеленела бы и на
        пустом списке, и на опечатке в именах ключей. */
     const образец = 'Биомаркеры: omission, commission, CV-RT — сильный ADHD-маркер'.toLowerCase();
-    const поймано = ЖАРГОН.filter((ж) => образец.includes(ж.toLowerCase()));
+    const поймано = жаргонВ(образец);
     expect(поймано.length).toBeGreaterThanOrEqual(4);
   });
 
@@ -89,9 +111,36 @@ describe('справка раздела написана для игрока', (
         const en = translateFor('en', ключ);
         if (ru === ключ && en === ключ) continue;   // такой карточки нет — это норма
         const текст = `${ru} ${en}`.toLowerCase();
-        const нашлось = ЖАРГОН.filter((ж) => текст.includes(ж.toLowerCase()));
+        const нашлось = жаргонВ(текст);
         if (нашлось.length) грязные.push(`${ключ}: ${нашлось.join(', ')}`);
       }
+    }
+    expect(грязные).toEqual([]);
+  });
+
+  it('🔴 жаргона нет НИ В ОДНОМ тексте моих экранов, а не только в справке', () => {
+    /* 🔴 УРОК, РАДИ КОТОРОГО ЭТА ПРОВЕРКА И НАПИСАНА. Первый гейт смотрел только
+       `<игра>IntroDesc` и был зелёным, пока рядом висели семь карточек
+       `benefit<Игра><N>` с «Attentional bias» и «RT variability (ADHD-маркер)».
+       Расширил на benefit — и он снова позеленел, пока в `wcstPass` и
+       `wcstModeLevelsDesc` стояли «персеверативные ошибки»: это строка условия
+       прохода и подпись режима, человек читает их на том же экране.
+       Покрытие надо считать по МЕСТУ ПОКАЗА, а не по удобному семейству ключей.
+
+       ⚠️ Проверка идёт по СЫРОМУ словарю: ключей у экрана бывает три десятка,
+       и перечислять их руками — значит снова оставить дыру. */
+    const { readFileSync } = require('fs');
+    const { join } = require('path');
+    const словарь: string = readFileSync(join(__dirname, '..', 'contexts', 'LanguageContext.tsx'), 'utf8');
+    const грязные: string[] = [];
+    const строки = словарь.split('\n');
+    for (const строка of строки) {
+      const m = /^ {2}([A-Za-z][A-Za-z0-9_]*):\s*\{\s*ru:\s*'((?:[^'\\]|\\.)*)'/.exec(строка);
+      if (!m) continue;
+      const ключ = m[1]!, текст = m[2]!;
+      if (!МОИ.some((и) => ключ.toLowerCase().includes(и.toLowerCase()))) continue;
+      const нашлось = жаргонВ(текст);
+      if (нашлось.length) грязные.push(`${ключ}: ${нашлось.join(', ')}`);
     }
     expect(грязные).toEqual([]);
   });

@@ -3085,7 +3085,7 @@ const translations: Translations = {
   trailNodes: { ru: '{n} узлов', en: '{n} nodes' },
   trailPass: { ru: 'Проход уровня: пройти цепочку за ≤{t} с и сделать не больше {e} ошибок', en: 'To pass: finish the trail within {t}s with at most {e} errors' },
   wcstLvlParams: { ru: '{n} проб · смена правила после {s} подряд', en: '{n} trials · rule switches after {s} in a row' },
-  wcstPass: { ru: 'Проход уровня: ≤{c} персеверативных ошибок и ≥55% верных', en: 'To pass: ≤{c} perseverative errors and ≥55% correct' },
+  wcstPass: { ru: 'Проход уровня: не больше {c} раз повторить старое правило после смены и ≥55% верных', en: 'To pass: repeat the old rule after a switch no more than {c} times, and ≥55% correct' },
 
   // ── v1.142: анлок-подсказки «🔒 Следующий …» тематических профилей (formatUnlockHint
   // в level-unlocks.ts; useLevelGate + schulte). Каркас + контент по (game, level);
@@ -3588,7 +3588,7 @@ const translations: Translations = {
   modeLevels: { ru: 'Уровни', en: 'Levels' },
   modeClassic: { ru: 'Классический', en: 'Classic' },
   wcstModeClassicDesc: { ru: 'Стандартные параметры: правило меняется после 10 подряд. Для чистой метрики.', en: 'Standard params: rule switches after 10 in a row. For a clean metric.' },
-  wcstModeLevelsDesc: { ru: 'Правило меняется всё чаще с уровнем. Держи персеверативные ошибки низкими.', en: 'Rule switches more often each level. Keep perseverative errors low.' },
+  wcstModeLevelsDesc: { ru: 'Правило меняется всё чаще с уровнем. Главное — не упрямиться со старым, когда ответы перестали подходить.', en: 'The rule switches more often each level. The trick is not to stick with the old one once the answers stop fitting.' },
   mrAxisZ: { ru: 'ось Z (плоско)', en: 'Z axis' },
   mrAxisXY: { ru: 'оси X+Y (наклоны)', en: 'X+Y axes' },
   mrAxisXYZ: { ru: 'оси X+Y+Z (3D)', en: 'X+Y+Z axes' },
@@ -3598,7 +3598,7 @@ const translations: Translations = {
   bartClassicDesc: { ru: 'Фиксированные параметры — чистая метрика склонности к риску.', en: 'Fixed parameters — a clean risk-propensity metric.' },
   bartClassicBtn: { ru: 'Классический замер', en: 'Classic run' },
   bartRiskSafe: { ru: '🟢 Безопасно — копи дальше', en: '🟢 Safe — keep banking' },
-  bartRiskCaution: { ru: '🟡 Внимание — pending растёт', en: '🟡 Caution — pending is growing' },
+  bartRiskCaution: { ru: '🟡 Осторожно — копилка растёт, а она ещё не твоя', en: '🟡 Careful — the pot is growing, and it is not yours yet' },
   bartRiskRisky: { ru: '🟠 Рискованно — может стоит cash?', en: '🟠 Risky — maybe cash out?' },
   bartRiskDanger: { ru: '🔴 Очень опасно — почти гарантированный взрыв', en: '🔴 Very dangerous — burst almost guaranteed' },
   chessPcWK: { ru: 'белый король', en: 'white king' },
