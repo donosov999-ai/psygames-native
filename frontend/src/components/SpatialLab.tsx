@@ -98,6 +98,8 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   const [pending,setPending]=useState<Mode|'new'|number|null>(null);
   const [replayIndex,setReplayIndex]=useState<number|null>(null);
   const [turning,setTurning]=useState<number|null>(null);
+  /** Линия, которая едет в анимации сдвига; `turning` при этом хранит направление (±1). */
+  const [sliding,setSliding]=useState<{kind:'row'|'column';index:number}|null>(null);
   const [angle]=useState(()=>new Animated.Value(0));
   const turnLock=useRef(false);
   /** Имя уже отправленной наверх победы, «режим:уровень». Пусто — ещё ни одной. */
@@ -106,7 +108,7 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   const start=useCallback((target:Mode,nextSeed:number,level=0)=>{
     completionSent.current='';
     const next=createDeal(target,nextSeed,level);
-    angle.stopAnimation();turnLock.current=false;setTurning(null);setReplayIndex(null);
+    angle.stopAnimation();turnLock.current=false;setTurning(null);setSliding(null);setReplayIndex(null);
     setTask(next.task);setMode(target);setSeed(nextSeed);setState(next.state);
     setSelection(next.selection);setPending(null);
   },[angle]);
@@ -121,7 +123,7 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
      */
     Animated.timing(angle,{toValue:amount*90,duration:320,easing:Easing.inOut(Easing.cubic),useNativeDriver:false}).start(({finished})=>{
       if(finished)onComplete();
-      turnLock.current=false;setTurning(null);
+      turnLock.current=false;setTurning(null);setSliding(null);
     });
   },[angle]);
   useEffect(()=>{
@@ -139,10 +141,10 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
       if(restored&&initialMode&&restored.mode!==initialMode){
         // Карточка развилки открыла ДРУГОЕ упражнение, чем лежит в сохранении (09.09.2026):
         // намерение человека важнее слота — пройденные уровни оставляем, поле начинаем в нужном режиме.
-        angle.stopAnimation();turnLock.current=false;setTurning(null);setReplayIndex(null);setPending(null);
+        angle.stopAnimation();turnLock.current=false;setTurning(null);setSliding(null);setReplayIndex(null);setPending(null);
         setCompleted(restored.completed);start(initialMode,42);
       }else if(restored){
-        angle.stopAnimation();turnLock.current=false;setTurning(null);setReplayIndex(null);setPending(null);
+        angle.stopAnimation();turnLock.current=false;setTurning(null);setSliding(null);setReplayIndex(null);setPending(null);
         setMode(restored.mode);setSeed(restored.seed);setTask(restored.task);setState(restored.state);setSelection(restored.selection);setCompleted(restored.completed);
       }else{
         start(initialMode??'twiddle',42);setCompleted(пустоПройдено());
@@ -169,6 +171,7 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
       const cmd=state.past[replayIndex];
       // строка index → её первая клетка; столбец и плитка — сама клетка index
       setSelection(cmd.kind==='block'?cmd.row*state.present.width+cmd.col:cmd.kind==='row'?cmd.index*state.present.width:cmd.index);
+      if(cmd.kind==='row'||cmd.kind==='column')setSliding({kind:cmd.kind,index:cmd.index});
       animateTurn(cmd.amount??1,()=>setReplayIndex(i=>i===null?null:i+1));
     },150);
     return ()=>{clearInterval(timer);angle.stopAnimation();};
@@ -242,6 +245,10 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   const ЗАПАС_ПО_ВЫСОТЕ=351;
   const side=Math.max(240,Math.min(available-8,420,viewportHeight-ЗАПАС_ПО_ВЫСОТЕ));
   const size=(side-(n-1)*4)/n;
+  /** Смещение едущей линии: угол таймера ±90 → ±одна клетка с зазором. */
+  const сдвигПикс=angle.interpolate({inputRange:[-90,90],outputRange:[-(size+4),size+4]});
+  const фонКлетки=(cell:Cell,i:number)=>info?(liveColour&&info.connected.has(i)?'#c3ebdd':'#e1e6ef'):liveColour&&cell.id===i?'#cbebdf':'#e3d9f8';
+  const рисунокКлетки=(cell:Cell,i:number)=>info?<SpatialPipe cell={cell} active={liveColour&&info.connected.has(i)} source={mode==='netslide'?cell.id===0:i===0}/>:<Text style={styles.number}>{cell.id+1}</Text>;
   function accept(target:Mode|'new'|number) {
     if(typeof target==='number')start(mode,42,target);
     else start(target==='new'?mode:target,target==='new'?(seed+1)>>>0:42,target==='new'?(task?.level??0):0);
@@ -259,7 +266,15 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   function shift(kind:'row'|'column',amount:number) {
     if(won||pending!==null||busy||turnLock.current)return;
     const index=kind==='row'?Math.floor(selection/n):selection%n;
-    setState(s=>commit(s,{kind,index,amount}));
+    /*
+     * 🔴 СДВИГ ЕДЕТ, А НЕ ПЕРЕСКАКИВАЕТ (17.09.2026). В первой версии линия менялась мгновенно:
+     * в упражнении на удержание позиций не видно, какие числа куда уехали и какое перешло
+     * через край. Теперь линия едет на клетку тем же таймером, что поворот блока (320 мс),
+     * уходящая клетка скрывается за краем доски, а её копия въезжает с другой стороны.
+     * Ход засчитывается в конце анимации — как у поворота.
+     */
+    setSliding({kind,index});
+    animateTurn(amount,()=>setState(s=>commit(s,{kind,index,amount})));
   }
   useEffect(()=>{
     if(!onReady)return;
@@ -301,17 +316,28 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
         <View style={styles.auxRow}><GameAuxBar><GameAuxAction label={t('spatialLabStay')} onPress={()=>setPending(null)}/><GameAuxAction label={t('start')} onPress={()=>accept(pending)}/></GameAuxBar></View>
       </View>:null}
       <Text style={[styles.instruction,ink]}>{mode==='net'?t('spatialLabNetGoal'):mode==='netslide'?t('spatialLabNetslideGoal'):t(mode==='sixteen'?'spatialLabSixteenGoal':'spatialLabTwiddleGoal').replace('{n}',String(n*n))}</Text>
-      <View testID="spatial-board" style={{width:side,gap:4}}>{Array.from({length:n},(_,r)=><View key={r} style={styles.row}>{view.cells.slice(r*n,(r+1)*n).map((cell,c)=>{
+      <View testID="spatial-board" style={{width:side,gap:4,overflow:sliding?'hidden':'visible'}}>{Array.from({length:n},(_,r)=><View key={r} style={styles.row}>{view.cells.slice(r*n,(r+1)*n).map((cell,c)=>{
         const i=r*n+c, sr=Math.floor(selection/n),sc=selection%n;
         const selected=mode==='net'||сдвиг?selection===i:r>=sr&&r<sr+2&&c>=sc&&c<sc+2;
         const наЛинии=сдвиг&&!selected&&(r===sr||c===sc);   // строка и столбец выбранной клетки — то, что сдвинут стрелки
         const directions=[t('a11yUp'),t('a11yRight'),t('a11yDown'),t('a11yLeft')].filter((_,d)=>maskAt(cell)&(1<<d));
-        return <Pressable key={i} testID={`spatial-cell-${i}`} accessibilityRole="button" accessibilityState={{selected}} accessibilityLabel={(info?t('spatialLabCellPipe').replace('{dirs}',directions.join(', ')):t('spatialLabCellNumber').replace('{n}',String(cell.id+1))).replace('{r}',String(r+1)).replace('{c}',String(c+1))} disabled={pending!==null||busy||locked(i)} onPress={()=>{if(locked(i))return;setSelection(mode==='net'||сдвиг?i:Math.min(r,n-2)*n+Math.min(c,n-2));}}
-          style={[styles.cell,{opacity:turning!==null&&selected&&!сдвиг?0:1,width:size,height:size,borderColor:selected?'#713ed4':наЛинии?'#a78bfa':'#aaa1c5',backgroundColor:info?(liveColour&&info.connected.has(i)?'#c3ebdd':'#e1e6ef'):liveColour&&cell.id===i?'#cbebdf':'#e3d9f8',borderWidth:selected?3:наЛинии?2:1}]}>
-          {info?<SpatialPipe cell={cell} active={liveColour&&info.connected.has(i)} source={mode==='netslide'?cell.id===0:i===0}/>:<Text style={styles.number}>{cell.id+1}</Text>}
+        const едет=сдвиг&&sliding!==null&&turning!==null&&(sliding.kind==='row'?r===sliding.index:c===sliding.index);
+        const клетка=<Pressable key={i} testID={`spatial-cell-${i}`} accessibilityRole="button" accessibilityState={{selected}} accessibilityLabel={(info?t('spatialLabCellPipe').replace('{dirs}',directions.join(', ')):t('spatialLabCellNumber').replace('{n}',String(cell.id+1))).replace('{r}',String(r+1)).replace('{c}',String(c+1))} disabled={pending!==null||busy||locked(i)} onPress={()=>{if(locked(i))return;setSelection(mode==='net'||сдвиг?i:Math.min(r,n-2)*n+Math.min(c,n-2));}}
+          style={[styles.cell,{opacity:turning!==null&&selected&&!сдвиг?0:1,width:size,height:size,borderColor:selected?'#713ed4':наЛинии?'#a78bfa':'#aaa1c5',backgroundColor:фонКлетки(cell,i),borderWidth:selected?3:наЛинии?2:1}]}>
+          {рисунокКлетки(cell,i)}
           {locked(i)?<Text style={{position:'absolute',right:3,top:1,fontSize:12}} accessibilityLabel={t('spatialLabLocked')}>●</Text>:null}
         </Pressable>;
+        return едет&&sliding?<Animated.View key={i} style={{transform:[sliding.kind==='row'?{translateX:сдвигПикс}:{translateY:сдвигПикс}]}}>{клетка}</Animated.View>:клетка;
       })}</View>)}
+      {сдвиг&&sliding&&turning!==null?(()=>{
+        // Копия клетки, уходящей за край: въезжает с противоположной стороны той же линии.
+        const уходит=turning>0?n-1:0, место=turning>0?-1:n;
+        const i=sliding.kind==='row'?sliding.index*n+уходит:уходит*n+sliding.index;
+        return <Animated.View testID="spatial-slide-wrap" pointerEvents="none" accessibilityElementsHidden
+          style={{position:'absolute',width:size,height:size,left:(sliding.kind==='row'?место:sliding.index)*(size+4),top:(sliding.kind==='row'?sliding.index:место)*(size+4),transform:[sliding.kind==='row'?{translateX:сдвигПикс}:{translateY:сдвигПикс}]}}>
+          <View style={[styles.cell,{width:size,height:size,borderWidth:1,borderColor:'#aaa1c5',backgroundColor:фонКлетки(view.cells[i],i)}]}>{рисунокКлетки(view.cells[i],i)}</View>
+        </Animated.View>;
+      })():null}
       {turning!==null&&!сдвиг?<Animated.View testID="spatial-turn-animation" pointerEvents="none" accessibilityElementsHidden style={{position:'absolute',left:(selection%n)*(size+4),top:Math.floor(selection/n)*(size+4),width:mode==='net'?size:size*2+4,height:mode==='net'?size:size*2+4,zIndex:2,transform:[{rotate:angle.interpolate({inputRange:[-90,90],outputRange:['-90deg','90deg']})},{scale:angle.interpolate({inputRange:[-90,-45,0,45,90],outputRange:[1,0.707,1,0.707,1]})}]}}>
         {(mode==='net'?[selection]:[selection,selection+1,selection+n,selection+n+1]).map((i,j)=><View key={i} style={[styles.cell,{position:'absolute',left:mode==='net'?0:(j%2)*(size+4),top:mode==='net'?0:Math.floor(j/2)*(size+4),width:size,height:size,backgroundColor:mode==='net'?'#e1e6ef':'#e3d9f8',borderWidth:3,borderColor:'#713ed4'}]}>
           {mode==='net'?<SpatialPipe cell={view.cells[i]} active={liveColour&&!!info?.connected.has(i)} source={i===0}/>:<Animated.Text style={[styles.number,{transform:[{rotate:angle.interpolate({inputRange:[-90,90],outputRange:['90deg','-90deg']})}]}]}>{view.cells[i].id+1}</Animated.Text>}

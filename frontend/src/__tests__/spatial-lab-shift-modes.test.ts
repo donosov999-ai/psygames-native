@@ -1,4 +1,4 @@
-/* psygames-spatial-lab-shift-modes · VER 1 · 17.09.2026 */
+/* psygames-spatial-lab-shift-modes · VER 2 · 17.09.2026 */
 /* psygames-spatial-claude-mac · задача afb6ab5b */
 /**
  * 🔴 «СДВИГ ЧИСЕЛ» И «СЕТЬ СО СДВИГОМ» — ВКЛАДКАМИ ЛАБОРАТОРИИ, НА ЯДРЕ CODEX.
@@ -141,12 +141,16 @@ describe('«Сдвиг чисел» и «Сеть со сдвигом» в ла�
     expect(плохо).toEqual([]);
   });
 
-  it('экран и маршрут ведут к ним: вкладки из списка упражнений, четыре стрелки, ход — сдвиг выбранной линии, своя лестница', () => {
+  it('экран и маршрут ведут к ним: вкладки из списка упражнений, четыре стрелки, ход — сдвиг выбранной линии с анимацией, своя лестница', () => {
     const экран = fs.readFileSync(path.join(__dirname, '..', 'components', 'SpatialLab.tsx'), 'utf8');
     expect(экран).toMatch(/SPATIAL_MODES\.map\(m=>/);
     for (const к of ['spatialLabShiftRowLeft', 'spatialLabShiftRowRight', 'spatialLabShiftColUp', 'spatialLabShiftColDown']) expect(экран).toContain(`'${к}'`);
     expect(экран).toMatch(/accessibilityLabel=\{t\(key\)\}[^\n]*onPress=\{\(\)=>shift\(kind,amount\)\}/);
-    expect(экран).toMatch(/const index=kind==='row'\?Math\.floor\(selection\/n\):selection%n;\s*setState\(s=>commit\(s,\{kind,index,amount\}\)\)/);
+    // VER 2: сдвиг едет, а не перескакивает — ход засчитывается в конце анимации, линия уходит за край доски
+    expect(экран).toMatch(/const index=kind==='row'\?Math\.floor\(selection\/n\):selection%n;[\s\S]{0,900}?setSliding\(\{kind,index\}\);\s*animateTurn\(amount,\(\)=>setState\(s=>commit\(s,\{kind,index,amount\}\)\)\)/);
+    expect(экран).toMatch(/testID="spatial-board" style=\{\{width:side,gap:4,overflow:sliding\?'hidden':'visible'\}\}/);
+    expect(экран).toMatch(/testID="spatial-slide-wrap"/);
+    expect(экран).toMatch(/if\(cmd\.kind==='row'\|\|cmd\.kind==='column'\)setSliding\(/);
     const маршрут = fs.readFileSync(path.join(__dirname, '..', '..', 'app', 'games', 'spatial-lab.tsx'), 'utf8');
     expect(маршрут).toMatch(/ИЗ_АДРЕСА:readonly Mode\[\]=\['net','sixteen','netslide'\]/);
     for (const id of ['spatial_lab_net', 'spatial_lab_twiddle', 'spatial_lab_sixteen', 'spatial_lab_netslide']) expect(маршрут).toContain(`usePersistentLevel('${id}')`);
