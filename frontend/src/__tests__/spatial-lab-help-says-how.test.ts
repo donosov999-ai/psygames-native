@@ -1,4 +1,4 @@
-/* psygames-spatial-lab-help-says-how · VER 2 · 17.09.2026 */
+/* psygames-spatial-lab-help-says-how · VER 3 · 17.09.2026 */
 /* psygames-spatial-claude-mac · приёмка 50b87961, пункт «справка своя» */
 /**
  * 🔴 СПРАВКА ЛАБОРАТОРИИ ГОВОРИТ, КАК ХОДИТЬ, А НЕ ТОЛЬКО ЧТО СОБРАТЬ.
@@ -15,6 +15,10 @@
  * VER 2 (17.09.2026, задача afb6ab5b): в лаборатории четыре упражнения — добавлены «Сдвиг
  * чисел» и «Сеть со сдвигом», у них вместо «Влево/Вправо» четыре стрелки. Справка обязана
  * назвать все четыре вкладки и все четыре стрелки.
+ *
+ * VER 3 (17.09.2026, задача f3fae4e2, отчёт 60913453): «по двойному нажатию вращение, чтобы шло
+ * тоже». Нажатие клетки по-прежнему выбирает, а второе нажатие по той же клетке поворачивает по
+ * часовой. Справка на каждом языке обязана это назвать — иначе функцию найдут только случайно.
  */
 import { translateFor, LANGUAGES } from '@/src/contexts/LanguageContext';
 
@@ -43,10 +47,18 @@ describe('справка «Пространственной лаборатори
     expect(старая.includes(translateFor('ru', 'a11yLeft'))).toBe(false);
   });
 
-  it('экран подписывает кнопки поворота теми же ключами, а нажатие клетки только выбирает', () => {
+  it('экран подписывает кнопки поворота теми же ключами; нажатие клетки выбирает, второе по той же — поворачивает', () => {
     const код = fs.readFileSync(path.join(__dirname, '..', 'components', 'SpatialLab.tsx'), 'utf8');
     expect(код).toMatch(/t\('a11yLeft'\)/);
     expect(код).toMatch(/t\('a11yRight'\)/);
-    expect(код).toMatch(/onPress=\{\(\)=>\{if\(locked\(i\)\)return;setSelection\(/);
+    expect(код).toMatch(/onPress=\{\(\)=>нажатьКлетку\(i,r,c\)\}/);
+    expect(код).toMatch(/if\(двойноеНажатие\(цель\)&&!сдвиг&&selection===цель\)\{turn\(1\);return;\}/);
+    expect(код).toMatch(/сейчас-было\.t<=ДВОЙНОЕ_НАЖАТИЕ_МС/);
+  });
+
+  it('🔴 на каждом языке справка называет двойное нажатие', () => {
+    const слова: Record<string, string> = { ru: 'Двойное нажатие', en: 'double tap', de: 'Doppeltipp', es: 'doble toque', fr: 'double appui', it: 'doppio tocco', pt: 'toque duplo', hi: 'दो बार', ja: 'ダブルタップ', ko: '두 번 탭', zh: '双击', ar: 'النقر المزدوج' };
+    const плохо = LANGUAGES.map(({ code }) => code).filter((code) => !translateFor(code, 'spatialLabIntroDesc').includes(слова[code]));
+    expect(плохо).toEqual([]);
   });
 });
