@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.20',
+    date: '2026-09-17',
+    ru: [
+      'Служебные кнопки всех игр — одним рядом значков под полем: подсказки, отмена, «Показать решение», «Начать заново»',
+      'Головоломки: разбор по шагам в «Косых чертах», «Угадай код» и «Чёрном ящике»; нарушенное правило отмечено красным',
+      '«Клоцки» засчитываются только решёнными, а ходы в головоломках считаются честно',
+      'Выпадающие списки вместо рядов кнопок: языки в «Парах слов», алфавит в «Корректуре», вид заданий в «Мысленном вращении»',
+    ],
+    en: [
+      'Service buttons in every game now sit in one row of icons under the field: hints, undo, Show solution, Start over',
+      'Puzzles: step-by-step walkthroughs in Slashes, Crack the Code and Black Box; a broken rule is marked in red',
+      'Klotski counts a level only when it is solved, and puzzle moves are counted fairly',
+      'Drop-down lists instead of button rows: languages in Word Pairs, alphabet in Proofread, task type in Mental Rotation',
+    ],
+  },
+  {
     version: '2.54.19',
     date: '2026-09-17',
     ru: [
