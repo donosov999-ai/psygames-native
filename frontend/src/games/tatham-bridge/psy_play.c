@@ -1,4 +1,4 @@
-/* psygames-tatham-bridge-play · VER 2 · 10.09.2026
+/* psygames-tatham-bridge-play · VER 3 · 17.09.2026
  *
  * ИГРАБЕЛЬНЫЙ СЛОЙ: одна реализация — все сорок головоломок.
  *
@@ -321,6 +321,15 @@ EMSCRIPTEN_KEEPALIVE int psy_key(int code)
 
 /** +1 решено, -1 проиграно, 0 идёт. */
 EMSCRIPTEN_KEEPALIVE int psy_status(void) { return ПАРТИЯ ? midend_status(ПАРТИЯ) : 0; }
+
+/*
+ * 🔴 НОМЕР ПОЗИЦИИ В ИСТОРИИ ХОДОВ — ПО НЕМУ И ТОЛЬКО ПО НЕМУ ВИДНО, ЧТО ХОД СДЕЛАН.
+ * `PKR_SOME_EFFECT` приходит и на `MOVE_UI_UPDATE` (midend.c:1043): выделение клетки, начало протяжки,
+ * шаг курсора — позиция при этом не пишется. «Клоцки» 17.09.2026 (задача f0ab1936): тычок в блок без
+ * протяжки считался ходом. Канон позицию наружу не отдаёт — геттер дописан заплатой в `build.sh`.
+ */
+int psy_midend_statepos(midend *me);
+EMSCRIPTEN_KEEPALIVE int psy_statepos(void) { return ПАРТИЯ ? psy_midend_statepos(ПАРТИЯ) : 0; }
 EMSCRIPTEN_KEEPALIVE int psy_undo(void) { return ПАРТИЯ && midend_can_undo(ПАРТИЯ) ? ход(midend_process_key(ПАРТИЯ, -1, -1, 'u')) : 0; }
 EMSCRIPTEN_KEEPALIVE int psy_redo(void) { return ПАРТИЯ && midend_can_redo(ПАРТИЯ) ? ход(midend_process_key(ПАРТИЯ, -1, -1, 'r')) : 0; }
 

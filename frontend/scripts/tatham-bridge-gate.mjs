@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* psygames-tatham-bridge-gate · VER 1 · 10.09.2026 */
+/* psygames-tatham-bridge-gate · VER 2 · 17.09.2026 */
 /**
  * МОСТ К ДВИЖКАМ ТЭТХЭМА ДЕЛАЕТ ТО, РАДИ ЧЕГО ВЗЯТ.
  *
@@ -76,6 +76,11 @@ const РЕШАТЕЛЬ_НЕ_ЗАКАНЧИВАЕТ = new Set([
   // 11.09.2026: Sokoban — решателя нет вовсе (`psy_can_solve` → 0, строки `solver(` в
   // unfinished/CMakeLists.txt у него нет), поэтому и до победы доводить нечему.
   'Sokoban',
+  // 17.09.2026: Slide. Решатель кладёт ПУТЬ решения (`slide.c`, ход 'S': тень следующего хода), доску не
+  // двигает. Прежний замер «доводит до победы» был ложным: `game_status` отдавал `completed ? +1 : 0`
+  // при completed = −1, то есть 1 ещё до решения (задача f0ab1936, заплата в `build.sh`). Доведение по
+  // пути до статуса 1 — снимок `capture-move-positions.mjs`, 9 раздач из 9.
+  'Slide',
   'Black Box', 'Cube', 'Flip', 'Flood', 'Guess', 'Inertia', 'Mines',
   'Pegs', 'Rectangles', 'Same Game', 'Undead',
 ]);

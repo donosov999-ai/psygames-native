@@ -1,4 +1,4 @@
-/* psygames-game-puzzles · VER 9 · 17.09.2026 */
+/* psygames-game-puzzles · VER 10 · 17.09.2026 */
 /**
  * ГОЛОВОЛОМКИ ТЭТХЭМА — ВСЕ СОРОК движков на одном экране.
  *
@@ -47,7 +47,7 @@ import { publishFeedbackGameState } from '@/src/services/feedbackGameState';
 // дисциплина игровых часов, гейт `game-clock-discipline`.
 import { gameNow } from '@/src/services/gamePause';
 import { движки, type Движок } from '@/src/games/tatham-bridge';
-import { открыть, указатель, стрелка, ходЗаЖест, клавиша, стеретьВвод, выбрать, поДиагонали, отменить, решить, нажать, протянуть, type Партия, type Жест, type Сторона, type Диагональ } from '@/src/games/tatham-bridge/play';
+import { открыть, указатель, стрелка, ходЗаЖест, клавиша, стеретьВвод, выбрать, поДиагонали, отменить, решить, нажать, протянуть, type Итог, type Партия, type Жест, type Сторона, type Диагональ } from '@/src/games/tatham-bridge/play';
 import { УЧИТЕЛЯ, type КарточкаУрока as КарточкаУчителя } from '@/src/games/tatham-bridge/teach';
 import { ПЛАН_ШАГАМИ, ИМЯ_ВТОРОГО, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, лестницаДвижка, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски, ЗНАКИ_ЦИФР, ПОДСВЕТКА_ЧИСЛА, клавишПодсветки, ГНЁЗД_ПОДСВЕТКИ } from '@/src/games/tatham-bridge/names';
 
@@ -310,16 +310,30 @@ export default function PuzzlesScreen() {
   const жать = useCallback(async (x: number, y: number, жест: Жест, правой: boolean) => {
     const итог = await указатель(x, y, жест, правой);
     setПартия(итог.партия);
-    const { накоплено, ход } = ходЗаЖест(жест, итог.подействовало, эффектЗаЖест.current);
+    // 🔴 Ход — `сдвинул` (позиция в истории движка выросла), а не `подействовало`: тот же ответ приходит на
+    // выделение клетки и начало протяжки. «Клоцки» 17.09.2026, задача f0ab1936 — см. `Итог` в play.ts.
+    const { накоплено, ход } = ходЗаЖест(жест, итог.сдвинул, эффектЗаЖест.current);
     эффектЗаЖест.current = накоплено;
     if (ход) setХодов((n) => n + 1);
+  }, []);
+
+  /**
+   * Цифра, «Готово», «Стереть»: ход засчитывается, только если движок его записал (`сдвинул`).
+   * ⚠️ До 17.09.2026 эти кнопки ход не считали ВОВСЕ, а счётчик цифровых режимов рос от тычка
+   * выбора клетки — то есть от ненастоящего хода (замер моста: «Судоку», «Кенкен», «Заполнение» —
+   * 144 тычка, 144 «хода», 0 записанных). Убрав ложный счёт с тычка, настоящий надо было дать цифре,
+   * иначе «Отменить» (`disabled={ходов === 0}`) у цифровых режимов не включилась бы никогда.
+   */
+  const учестьКлавишу = useCallback((и: Итог) => {
+    setПартия(и.партия);
+    if (и.сдвинул) setХодов((n) => n + 1);
   }, []);
 
   const шагнуть = useCallback(async (куда: Сторона) => {
     const итог = await стрелка(куда);
     setПартия(итог.партия);
     // Во многих режимах стрелка двигает КУРСОР, а не фигуру: это не ход.
-    if (итог.подействовало) setХодов((n) => n + 1);
+    if (итог.сдвинул) setХодов((n) => n + 1);
   }, []);
 
   /**
@@ -911,7 +925,7 @@ export default function PuzzlesScreen() {
                     key={ц}
                     accessibilityRole="button"
                     accessibilityLabel={знак ? t(знак.имя) : String(ц)}
-                    onPress={() => { void клавиша(кодЦифры(ц)).then((и) => setПартия(и.партия)); }}
+                    onPress={() => { void клавиша(кодЦифры(ц)).then(учестьКлавишу); }}
                     style={[styles.цифра, { backgroundColor: GRADIENT[0] }]}
                   >
                     <Text style={знак ? styles.знакКлавиши : styles.цифраТекст}>{знак ? знак.знак : ц}</Text>
@@ -935,7 +949,7 @@ export default function PuzzlesScreen() {
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={t('storyDone')}   /* «Готово» в словаре уже есть — своего ключа не завожу */
-                  onPress={() => { void клавиша(13).then((и) => setПартия(и.партия)); }}
+                  onPress={() => { void клавиша(13).then(учестьКлавишу); }}
                   style={[styles.цифра, { width: 74, backgroundColor: GRADIENT[0] }]}
                 >
                   <Ionicons name="checkmark" size={24} color="#FFF" />
@@ -960,8 +974,8 @@ export default function PuzzlesScreen() {
                  * случаях из 1063 на 58 ступенях — их ветка не тронута.
                  */
                 onPress={() => {
-                  if (ВВОД.has(имяРежима)) { void стеретьВвод().then((и) => setПартия(и.партия)); return; }
-                  void клавиша(48).then((и) => setПартия(и.партия));
+                  if (ВВОД.has(имяРежима)) { void стеретьВвод().then(учестьКлавишу); return; }
+                  void клавиша(48).then(учестьКлавишу);
                 }}
                 style={[styles.цифра, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
               >
@@ -1056,7 +1070,7 @@ export default function PuzzlesScreen() {
               цвета={{ border: colors.border, card: colors.card, text: colors.text }}
               onPress={(куда) => {
                 if (ПРЯМЫЕ.includes(куда)) { void шагнуть(куда as Сторона); return; }
-                void поДиагонали(куда as Диагональ).then((и) => { setПартия(и.партия); if (и.подействовало) setХодов((n) => n + 1); });
+                void поДиагонали(куда as Диагональ).then((и) => { setПартия(и.партия); if (и.сдвинул) setХодов((n) => n + 1); });
               }}
             />
           ) : null}
@@ -1073,7 +1087,7 @@ export default function PuzzlesScreen() {
             <View style={styles.командыВыбора}>
               <Pressable
                 accessibilityRole="button"
-                onPress={() => { void выбрать().then((и) => { setПартия(и.партия); if (и.подействовало) setХодов((n) => n + 1); }); }}
+                onPress={() => { void выбрать().then((и) => { setПартия(и.партия); if (и.сдвинул) setХодов((n) => n + 1); }); }}
                 style={[styles.командаВыбора, { backgroundColor: GRADIENT[0] }]}
               >
                 <Ionicons name="hand-left" size={20} color="#FFF" />
@@ -1082,7 +1096,7 @@ export default function PuzzlesScreen() {
               {ВЫБОР_ВТОРОЙ.has(имяРежима) ? (
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => { void выбрать(true).then((и) => { setПартия(и.партия); if (и.подействовало) setХодов((n) => n + 1); }); }}
+                  onPress={() => { void выбрать(true).then((и) => { setПартия(и.партия); if (и.сдвинул) setХодов((n) => n + 1); }); }}
                   style={[styles.командаВыбора, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
                 >
                   <Ionicons name="swap-horizontal" size={20} color={colors.text} />
