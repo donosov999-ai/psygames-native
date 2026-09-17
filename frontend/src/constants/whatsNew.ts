@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.16',
+    date: '2026-09-17',
+    ru: [
+      '«Паттерны»: варианты ответа больше не подсказывают ответ своими числами — правильный стоит на случайном месте',
+      '«Числовой забег»: правила объясняют, как взять из ряда сразу несколько чисел — проведи своё число вбок прямо через них',
+      'PRL: кнопка «СТОП» переехала в шапку, поле стало выше; в «Торможении» режим Go/No-Go держит те же 25 % запретных сигналов, что и отдельная игра',
+      'В головоломках на маленьком телефоне нижнюю строку доски можно прокрутить выше кнопки «Сообщить о проблеме»',
+    ],
+    en: [
+      'Patterns: the answer options no longer give the answer away by their numbers — the right one sits in a random place',
+      'Number Run: the rules now explain how to collect several numbers from a row — sweep your number sideways right through them',
+      'PRL: the STOP button moved to the header and the board got taller; in Inhibition the Go/No-Go mode keeps the same 25% of no-go signals as the standalone game',
+      'On small phones, puzzle boards can now be scrolled so the bottom row sits above the Send feedback button',
+    ],
+  },
+  {
     version: '2.54.15',
     date: '2026-09-17',
     ru: [
