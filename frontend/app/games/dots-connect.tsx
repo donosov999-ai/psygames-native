@@ -1,4 +1,4 @@
-/* psygames-game-dots-connect · VER 5 · 23.08.2026 */
+/* psygames-game-dots-connect · VER 6 · 17.09.2026 */
 /**
  * Соедини точки — пути между парами, которые обязаны занять ВСЮ сетку.
  *
@@ -54,6 +54,13 @@
  * следующие — сразу в партию (`skipIntro`). Вернуться к правилам можно кнопкой
  * на экране настроек, чтобы они не пропали навсегда.
  *
+ * 🔴 VER 6 — ЗНАКОМСТВО САМО ТОЛЬКО В ПЕРВЫЙ РАЗ ПО ПРОФИЛЮ, А НЕ ЗА ЗАХОД (отчёт 96ea896d,
+ * задача d952c080). «Один раз за заход» оказался «при каждом запуске»: каждый новый заход и
+ * каждый запуск из зарядки (автостарт) снова вели через правила и сетку 4×4. Теперь флаг
+ * «знакомство пройдено» хранится по профилю (`useIntroSeen`) и ставится первым ходом в партии;
+ * у кого уже есть пройденные уровни, тот правила видел. Кнопка «Как играть» на экране
+ * настройки — всегда, когда знакомство не покажется само.
+ *
  * 🔴 ШАПКА С «НАЗАД» ВО ВРЕМЯ ПАРТИИ — НАША, НЕ МОДУЛЯ. Модуль рисует кнопку
  * выхода ТОЛЬКО на экране правил. Пропустив правила, человек оказывался бы в
  * партии без единого способа уйти: пауза даёт только «продолжить» и «заново».
@@ -79,6 +86,7 @@ import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
+import { useIntroSeen } from '@/src/hooks/useIntroSeen';
 import DotsConnectGame, { type DotsAuxControls } from '@/src/games/dots-connect/DotsConnectGame';
 import { LEVELS, getDotsStrings, isPassed, type DotsMetrics } from '@/src/games/dots-connect/core';
 
@@ -166,6 +174,17 @@ export default function DotsConnectScreen() {
    */
   const [armed, setArmed] = React.useState(false);
   /**
+   * Знакомство (правила + тренировка) — само только пока профиль его не прошёл. Пройденные
+   * уровни — тоже знак, что правила человек видел: после обновления игрок 13-го уровня не
+   * должен снова решать сетку 4×4 (замер отчёта 96ea896d — ровно такой случай).
+   */
+  const { loaded: introLoaded, seen: introSeen, markSeen: markIntroSeen } = useIntroSeen('dots_connect');
+  const introAuto = !(introSeen || (lvl.loaded && lvl.best > 1));
+  const onProgress = React.useCallback((armedNow: boolean) => {
+    setArmed(armedNow);
+    if (armedNow && !introSeen) markIntroSeen();
+  }, [introSeen, markIntroSeen]);
+  /**
    * 🔴 СЛУЖЕБНОЕ ДЕЙСТВИЕ ПАРТИИ, ОТДАННОЕ МОДУЛЕМ. Здесь оно только ХРАНИТСЯ и
    * рисуется в шапке каркаса: состояние партии живёт у модуля, экран про его
    * фазы не знает — ровно как с `armed` выше.
@@ -175,7 +194,8 @@ export default function DotsConnectScreen() {
   // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => setPhase('playing'));
+  // Флаг знакомства ждём так же, как уровень: автостарт из зарядки — тоже «запуск».
+  useAutostartWhenReady(() => autostart && lvl.loaded && introLoaded, () => { setWithIntro(introAuto); setPhase('playing'); });
 
   const onComplete = React.useCallback(async (m: DotsMetrics) => {
     // Порог живёт в модуле — здесь только читаем, чтобы не завести вторую копию правила.
@@ -369,7 +389,7 @@ export default function DotsConnectScreen() {
             gameGradient={GRADIENT as [string, string]}
             gameGradientText={ON_GRAD.color}
             onComplete={onComplete}
-            onProgress={setArmed}
+            onProgress={onProgress}
             /**
              * Служебное действие партии модуль отдаёт наверх — рисуем его в шапке
              * каркаса (см. `headerActions` выше), а не под доской.
@@ -427,7 +447,7 @@ export default function DotsConnectScreen() {
             <Text style={[styles.hint, { color: colors.textSecondary }]}>{strings.rulesNoTouch}</Text>
           </View>
 
-          <TouchableOpacity onPress={() => start(attempt === 0)} accessibilityRole="button">
+          <TouchableOpacity onPress={() => start(attempt === 0 && introAuto)} accessibilityRole="button">
             <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
               <Text style={styles.startText}>{t('start')}</Text>
             </GradientSurface>
@@ -438,7 +458,7 @@ export default function DotsConnectScreen() {
             ровно один раз за визит и потом исчезали навсегда — а вспомнить, что
             сетку надо занять ЦЕЛИКОМ, человеку может понадобиться и на 20-м уровне.
           */}
-          {attempt > 0 && (
+          {(attempt > 0 || !introAuto) && (
             <TouchableOpacity onPress={() => start(true)} accessibilityRole="button"
               style={[styles.rulesBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}>
               {/* Ключ `btn_help` уже есть и переведён на все 12 языков — новый заводить незачем. */}

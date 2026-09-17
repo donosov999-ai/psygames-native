@@ -1264,7 +1264,7 @@ const translations: Translations = {
   mentalRotationDesc: { ru: 'Найдите повёрнутую копию фигуры',     en: 'Find the rotated copy of a shape' },
   spatialLab: { ru: 'Пространственная лаборатория', en: 'Spatial Lab' },
   spatialLabDesc: { ru: 'Трубы и поворот чисел — два упражнения на мысленное вращение', en: 'Pipes and number twist — two exercises in mental rotation' },
-  spatialLabIntroDesc: { ru: 'Четыре головоломки на одном экране. «Сеть труб»: нажми трубу, чтобы выбрать её, и поворачивай кнопками «Влево» и «Вправо» под полем, пока вода не дойдёт до каждого конца. «Поворот чисел»: нажми клетку — выберется блок 2×2 с этой клеткой; те же кнопки вращают его целиком, расставь числа по порядку. «Сдвиг чисел» и «Сеть со сдвигом»: нажми клетку — выделятся её строка и столбец; стрелки ← → сдвигают строку, ↑ ↓ — столбец, по кругу. Уровень личный, партия сохраняется на устройстве.', en: 'Four puzzles on one screen. “Pipe Network”: tap a pipe to select it and turn it with the “Left” and “Right” buttons below the board until water reaches every end. “Number Twist”: tap a cell to select a 2×2 block with that cell; the same buttons turn the whole block — put the numbers in order. “Number Slide” and “Sliding Network”: tap a cell to select its row and column; the ← → arrows slide the row and ↑ ↓ the column, round and round. Your own level; the game is saved on the device.' },
+  spatialLabIntroDesc: { ru: 'Четыре головоломки на одном экране. «Сеть труб»: нажми трубу, чтобы выбрать её, и поворачивай кнопками «Влево» и «Вправо» под полем, пока вода не дойдёт до каждого конца. Двойное нажатие по трубе или клетке тоже поворачивает — по часовой. «Поворот чисел»: нажми клетку — выберется блок 2×2 с этой клеткой; те же кнопки вращают его целиком, расставь числа по порядку. «Сдвиг чисел» и «Сеть со сдвигом»: нажми клетку — выделятся её строка и столбец; стрелки ← → сдвигают строку, ↑ ↓ — столбец, по кругу. Уровень личный, партия сохраняется на устройстве.', en: 'Four puzzles on one screen. “Pipe Network”: tap a pipe to select it and turn it with the “Left” and “Right” buttons below the board until water reaches every end. A double tap on a pipe or cell turns it clockwise too. “Number Twist”: tap a cell to select a 2×2 block with that cell; the same buttons turn the whole block — put the numbers in order. “Number Slide” and “Sliding Network”: tap a cell to select its row and column; the ← → arrows slide the row and ↑ ↓ the column, round and round. Your own level; the game is saved on the device.' },
   spatialNet: { ru: 'Сеть труб', en: 'Pipe Network' },
   spatialTwiddle: { ru: 'Поворот чисел', en: 'Number Twist' },
   spatialSixteen: { ru: 'Сдвиг чисел', en: 'Number Slide' },
@@ -1283,8 +1283,8 @@ const translations: Translations = {
 
   // Round-4 — intro descriptions
   mentalRotationIntroDesc: {
-    ru: 'Сверху — эталон, снизу — варианты ответа. В основном задании «Поворот» выбери ту же фигуру, только повёрнутую: остальные варианты — её зеркальное отражение или другая фигура. С уровнем добавляются новые задания: «Проекция», «Развёртка», «Точка зрения», «Одинаковая фигура», «Сборка», «Память», «Три вида», «Срез» и «Недостающая часть»; вопрос каждого написан над эталоном. Тренирует пространственное мышление и мысленное вращение.',
-    en: 'The reference is at the top, the answer options below. In the main task, “Rotation”, pick the same shape, just turned: the other options are its mirror image or a different shape. As you level up, new tasks join in: “Projection”, “Cube net”, “Viewpoint”, “Same figure”, “Assembly”, “Memory”, “Three views”, “Slice” and “Missing piece”; each one’s question is written above the reference. Trains spatial reasoning and mental rotation.'
+    ru: 'Сверху — эталон, снизу — варианты ответа. В основном задании «Поворот» выбери ту же фигуру, только повёрнутую: остальные варианты — её зеркальное отражение или другая фигура. С уровнем добавляются новые задания: «Проекция», «Развёртка», «Точка зрения», «Одинаковая фигура», «Сборка», «Память», «Три вида», «Срез», «Недостающая часть» и «Сечение»; вопрос каждого написан над эталоном. Тренирует пространственное мышление и мысленное вращение. Перед началом партии можно выбрать один вид заданий и отработать только его.',
+    en: 'The reference is at the top, the answer options below. In the main task, “Rotation”, pick the same shape, just turned: the other options are its mirror image or a different shape. As you level up, new tasks join in: “Projection”, “Cube net”, “Viewpoint”, “Same figure”, “Assembly”, “Memory”, “Three views”, “Slice”, “Missing piece” and “Cross-section”; each one’s question is written above the reference. Trains spatial reasoning and mental rotation. Before a round you can pick one task kind and practise just that.'
   },
   readingSpanIntroDesc: {
     ru: 'Читайте предложения по очереди. Для каждого: оцените, есть ли в нём смысл (✓ или ✗), И запомните последнее слово. После N предложений впишите все последние слова в правильном порядке. Это классический тест рабочей памяти Дэйнмана-Карпентера (RWMC).',
@@ -1986,6 +1986,7 @@ const translations: Translations = {
      видел его в свободной игре и читал как показание того, что делает сейчас. */
   spatialFreePlay: { ru: 'Свободная игра', en: 'Free play' },
   spatialFreePlayHint: { ru: 'Здесь ходы в прогресс не идут. Нажми «Начать уровни»', en: 'Moves here do not count towards progress. Tap “Start levels”' },
+  spatialFreePlayNote: { ru: 'В свободной игре ходы в прогресс уровней не идут.', en: 'Free play moves don’t count towards level progress.' },
   spatialDoneInLevels: { ru: 'В уровнях пройдено', en: 'Completed in levels' },
   spatialDone: { ru: 'Пройдено', en: 'Completed' },
   /* ★ 16.09.2026 «Пространственная лаборатория» — экран был зашит по-русски (~40 строк) во всех 12 языках: на английском интерфейсе рядом стояли «Number Twist» и «Числа · Отменить · Проще». Приёмка 50b87961. */
@@ -2005,7 +2006,7 @@ const translations: Translations = {
   spatialLabStartLevels: { ru: 'Начать уровни', en: 'Start levels' },
   spatialLabGuideLeft: { ru: 'Выделенный блок: поверни влево ↶.', en: 'Highlighted block: turn it left ↶.' },
   spatialLabGuideRight: { ru: 'Выделенный блок: поверни вправо ↷.', en: 'Highlighted block: turn it right ↷.' },
-  spatialLabNetGoal: { ru: 'Нажми трубу и поворачивай её кнопками внизу. Соедини все трубы с источником, без открытых концов.', en: 'Tap a pipe and turn it with the buttons below. Connect every pipe to the source, with no open ends.' },
+  spatialLabNetGoal: { ru: 'Нажми трубу и поворачивай её кнопками внизу или двойным нажатием. Соедини все трубы с источником, без открытых концов.', en: 'Tap a pipe and turn it with the buttons below or a double tap. Connect every pipe to the source, with no open ends.' },
   spatialLabTwiddleGoal: { ru: 'Выбери блок 2×2. Расставь числа по строкам от 1 до {n}.', en: 'Pick a 2×2 block. Put the numbers in order, row by row, from 1 to {n}.' },
   spatialLabCellPipe: { ru: 'Труба {dirs}, строка {r}, столбец {c}', en: 'Pipe {dirs}, row {r}, column {c}' },
   spatialLabCellNumber: { ru: 'Число {n}, строка {r}, столбец {c}', en: 'Number {n}, row {r}, column {c}' },

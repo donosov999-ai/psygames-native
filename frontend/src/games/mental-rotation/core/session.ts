@@ -1,4 +1,4 @@
-/* psygames-mental-rotation-session · VER 2 · 17.09.2026 */
+/* psygames-mental-rotation-session · VER 3 · 17.09.2026 */
 /**
  * СМЕСЬ ЗАДАНИЙ — И БИОМАРКЕР, КОТОРЫЙ ОТ НЕЁ НЕ ПОРТИТСЯ.
  *
@@ -22,6 +22,7 @@ import { buildNetTask } from './net';
 import { buildAssemblyTask, buildMissingTask } from './pieces';
 import { buildFormationTask } from './formation';
 import { buildMemoryTask } from './memory';
+import { buildObliqueTask } from './oblique';
 import { buildSectionTask } from './section';
 import { buildSameTask } from './same';
 import { buildViewpointTask } from './viewpoint';
@@ -48,9 +49,11 @@ import type { MentalRotationTask, Rng, TaskKind } from './types';
  * 17.09.2026, задача 69f1810f: «Память» — тринадцатым. Это «Поворот», у которого эталон
  * прячут, поэтому ставится после «Сборки» (11) и до «Трёх видов» (15): поворот к этому
  * уровню отработан, а держать фигуру в голове — следующий шаг того же навыка.
+ * 17.09.2026, задача 4f85b6a9: «Сечение» (косая плоскость) — двадцать четвёртым, после «Недостающей
+ * части» (21): это самое трудное — вторая геометрия, где разрез уже не клетки, а многоугольник.
  */
 export const KIND_UNLOCK: Record<TaskKind, number> = {
-  rotation: 1, projection: 3, net: 5, viewpoint: 7, same: 9, assembly: 11, memory: 13, formation: 15, section: 18, missing: 21,
+  rotation: 1, projection: 3, net: 5, viewpoint: 7, same: 9, assembly: 11, memory: 13, formation: 15, section: 18, missing: 21, oblique: 24,
 };
 
 /** Ниже этой доли поворотных проб партия опускаться не должна — см. шапку. */
@@ -58,6 +61,32 @@ export const MIN_ROTATION_SHARE = 0.6;
 
 export function unlockedKinds(level: number): TaskKind[] {
   return (Object.keys(KIND_UNLOCK) as TaskKind[]).filter((k) => level >= KIND_UNLOCK[k]);
+}
+
+/**
+ * ОТРАБОТКА ОДНОГО ВИДА (17.09.2026, задача da43411f, отчёт 1263dc58: «в настройках нельзя
+ * запустить отработку одного вида заданий, они идут только вперемешку»).
+ *
+ * Выбрать можно ЛЮБОЙ вид, а не только открытый уровнем. Денис 17.09: «режимы для ротации, чтобы
+ * доступны были те новые». Задания при этом строятся не ниже уровня, где вид открывается, —
+ * лестница позднего вида начинается с его порога («Сечение» — с 24-го), и в обычной партии
+ * генератор ниже порога не зовётся никогда.
+ *
+ * ⚠️ БИОМАРКЕР. Доля поворотных проб (MIN_ROTATION_SHARE) — правило смеси; у отработки её нет.
+ * Поэтому партия-отработка не двигает уровень и пишется в историю отдельным режимом
+ * (`practiceMode`): «Проекция» ×10 не сравнивается со смесью того же уровня.
+ */
+export function practiceLevel(kind: TaskKind, level: number): number {
+  return Math.min(50, Math.max(level, KIND_UNLOCK[kind]));
+}
+
+export function planPractice(kind: TaskKind, trials: number): TaskKind[] {
+  return Array.from({ length: Math.max(0, trials) }, () => kind);
+}
+
+/** Режим партии для истории: у отработки к режиму смеси дописан вид. */
+export function practiceMode(level: number, kind: TaskKind | null): string {
+  return kind ? `lvl${level}-3D-${kind}` : `lvl${level}-3D`;
 }
 
 /**
@@ -104,6 +133,7 @@ export function buildTask(kind: TaskKind, level: number, rng: Rng): MentalRotati
   if (kind === 'formation') return buildFormationTask(level, rng);
   if (kind === 'section') return buildSectionTask(level, rng);
   if (kind === 'memory') return buildMemoryTask(level, rng);
+  if (kind === 'oblique') return buildObliqueTask(level, rng);
   return buildRotationTask(level, rng);
 }
 

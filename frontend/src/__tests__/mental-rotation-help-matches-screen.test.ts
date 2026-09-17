@@ -20,6 +20,7 @@ const ИМЯ: Record<TaskKind, keyof MentalRotationStrings> = {
   rotation: 'taskRotation', projection: 'taskProjection', net: 'taskNet', viewpoint: 'taskViewpoint',
   same: 'taskSame', missing: 'taskMissing', assembly: 'taskAssembly', formation: 'taskFormation', section: 'taskSection',
   memory: 'taskMemory',   // 17.09.2026, задача 69f1810f
+  oblique: 'taskOblique', // 17.09.2026, задача 4f85b6a9
 };
 
 /** «Слева / справа» на всех языках — литералами. */

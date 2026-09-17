@@ -1,4 +1,4 @@
-/* psygames-game-one-line · VER 3 · 17.09.2026 */
+/* psygames-game-one-line · VER 4 · 17.09.2026 */
 /**
  * One Line — «Одна линия»: провести один непрерывный росчерк по ВСЕМ рёбрам
  * графа, не пройдя ни одно дважды (эйлеров путь).
@@ -93,6 +93,7 @@ import GameShell, { PAD_H } from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
+import { useIntroSeen } from '@/src/hooks/useIntroSeen';
 import OneLineGame from '@/src/games/one-line/OneLineGame';
 import { LEVELS, isPassed, type OneLineLocale, type OneLineMetrics } from '@/src/games/one-line/core/index';
 
@@ -172,6 +173,17 @@ export default function OneLineScreen() {
    * держит ответ и отдаёт каркасу: про фазы раунда каркас не знает.
    */
   const [armed, setArmed] = React.useState(false);
+  /**
+   * Знакомство — само только пока профиль его не прошёл (отчёт 96ea896d, задача d952c080;
+   * тот же приём, что у «Соедини точки»): флаг по профилю ставится первым ходом в партии,
+   * пройденные уровни — тоже знак, что правила человек видел.
+   */
+  const { loaded: introLoaded, seen: introSeen, markSeen: markIntroSeen } = useIntroSeen('one_line');
+  const introAuto = !(introSeen || (lvl.loaded && lvl.best > 1));
+  const onProgress = React.useCallback((armedNow: boolean) => {
+    setArmed(armedNow);
+    if (armedNow && !introSeen) markIntroSeen();
+  }, [introSeen, markIntroSeen]);
 
   /**
    * Часы партии. Обёрнуты в useCallback по двум причинам сразу.
@@ -187,7 +199,7 @@ export default function OneLineScreen() {
   // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => setPhase('playing'));
+  useAutostartWhenReady(() => autostart && lvl.loaded && introLoaded, () => { setWithIntro(introAuto); setPhase('playing'); });
 
   const onComplete = React.useCallback(async (m: OneLineMetrics) => {
     const passed = isPassed(m);
@@ -338,7 +350,7 @@ export default function OneLineScreen() {
             skipIntro={!withIntro}
             now={now}
             onComplete={onComplete}
-            onProgress={setArmed}
+            onProgress={onProgress}
             /**
              * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Кнопка «Выход»
              * на экране правил модуля уводила бы МИМО вопроса при выходе — тем
@@ -392,7 +404,7 @@ export default function OneLineScreen() {
             <BallStylePicker level={level} colors={colors} accent={GRADIENT[1]} />
           </View>
 
-          <TouchableOpacity onPress={() => start(attempt === 0)} accessibilityRole="button">
+          <TouchableOpacity onPress={() => start(attempt === 0 && introAuto)} accessibilityRole="button">
             <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
               <Text style={styles.startText}>{t('start')}</Text>
             </GradientSurface>
@@ -402,7 +414,7 @@ export default function OneLineScreen() {
             Дверь обратно к правилам и тренировке. Без неё они показывались бы один раз
             за визит и потом исчезали — а правило про рёбра может понадобиться и на 30-м уровне.
           */}
-          {attempt > 0 && (
+          {(attempt > 0 || !introAuto) && (
             <TouchableOpacity onPress={() => start(true)} accessibilityRole="button"
               style={[styles.rulesBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}>
               {/* Ключ `btn_help` есть на всех 12 языках — тот же, что у «Соедини точки». */}

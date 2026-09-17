@@ -1,4 +1,4 @@
-/* psygames-game-mental-rotation · VER 8 · 17.09.2026 */
+/* psygames-game-mental-rotation · VER 11 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /**
  * Mental Rotation — три вида пространственных заданий на одной геометрии
@@ -36,6 +36,10 @@
  *  - L1-5:   4-5 кубиков, ось Z, 3 варианта; с L3 подмешивается проекция
  *  - L6-10:  5-6 кубиков, оси X+Y, 4 варианта; с L5 подмешивается развёртка
  *  - L11-15: 6-8 кубиков, оси X+Y+Z, с L13 составные (косые) ракурсы
+ *
+ * VER 11 (задача da43411f, отчёт 1263dc58): на экране настройки — «Вид заданий». «Вперемешку» —
+ * партия уровня, как была; любой из видов — отработка только его (ядро: practiceLevel, planPractice).
+ * Отработка не двигает уровень и пишется в историю своим режимом `lvlN-3D-<вид>`.
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -60,7 +64,8 @@ import GameShell from '@/src/components/GameShell';
 import {ViewpointReference} from '@/src/components/ViewpointReference';
 import {RotationShape,RotationTransition} from '@/src/components/RotationShape';
 import {stillUnit} from '@/src/games/mental-rotation/core/surface';
-import {LANDSCAPE_PROMPT_LINE, LANDSCAPE_REF_PADDING, optionLayout} from '@/src/games/mental-rotation/optionLayout';
+import { isRTLLang } from '@/src/services/rtl';
+import { LANDSCAPE_PROMPT_LINE, LANDSCAPE_REF_PADDING, optionLayout, LANDSCAPE_REVIEW_BUTTON, LANDSCAPE_REVIEW_NOTE_LINE, LANDSCAPE_REVIEW_NOTE_GAP, landscapeRowWidth, reviewSideWidth, LANDSCAPE_REVIEW_GAP } from '@/src/games/mental-rotation/optionLayout';
 import RotationWorkbench from '@/src/components/RotationWorkbench';
 import {spatialFrame} from '@/src/games/spatial-core/frame';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -76,12 +81,17 @@ import {
   interpolateMentalRotation,
   levelSummary,
   meanSlopeRt,
+  fitPolygon,
   netCellKey,
   netSize,
+  planPractice,
   planTaskKinds,
+  practiceLevel,
+  practiceMode,
   rotationReplay,
   slopeSamples,
   taskKindCounts,
+  KIND_UNLOCK,
   type Axis,
   type Cell2D,
   type CubeNet,
@@ -89,10 +99,12 @@ import {
   type FaceMark,
   type MentalRotationLocale,
   type MentalRotationTask,
+  type ObliqueOption,
   type Shape,
   type TaskKind,
   type TrialRecord,
 } from '@/src/games/mental-rotation/core';
+import { ObliquePolygonOption, ObliqueSectionReference } from '@/src/components/ObliqueSectionReference';
 
 const GRADIENT = ['#5614b0', '#dbd65c'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -391,6 +403,11 @@ export default function MentalRotationGame() {
   // иначе доля поворотных проб (на них держится биомаркер) плавала бы от броска
   // к броску и в короткой партии могла бы обнулиться.
   const planRef = useRef<TaskKind[]>([]);
+  // Отработка одного вида (задача da43411f): выбор на настройке. null — вперемешку, как было.
+  // Вид партии запоминается на старте: итог и запись сессии читают его, а не выбор на экране.
+  const [chosenKind, setChosenKind] = useState<TaskKind | null>(null);
+  const practiceKind = isPreset ? null : chosenKind;
+  const practiceRef = useRef<TaskKind | null>(null);
   const [task, setTask] = useState<MentalRotationTask>(() => buildTask('rotation', 1, Math.random));
   const levelRef = useRef(1);
   const [playedLevel,setPlayedLevel]=useState(1);
@@ -458,11 +475,13 @@ export default function MentalRotationGame() {
   }, [reviewing, frames, manualReview]);
 
   const startGame = () => {
-    levelRef.current = selectedLevel;
-    setPlayedLevel(selectedLevel);setManualReview(false);
+    const уровень = practiceKind ? practiceLevel(practiceKind, selectedLevel) : selectedLevel;
+    practiceRef.current = practiceKind;
+    levelRef.current = уровень;
+    setPlayedLevel(уровень);setManualReview(false);
     setRecords([]); setRound(1);
-    planRef.current = planTaskKinds(selectedLevel, trials, Math.random);
-    setTask(buildTask(planRef.current[0] ?? 'rotation', selectedLevel, Math.random));
+    planRef.current = practiceKind ? planPractice(practiceKind, trials) : planTaskKinds(уровень, trials, Math.random);
+    setTask(buildTask(planRef.current[0] ?? 'rotation', уровень, Math.random));
     setMemoryHidden(false);
     setFeedback(null);
     setReviewStep(0);
@@ -484,8 +503,9 @@ export default function MentalRotationGame() {
     // пробы с известным углом. Проекция и развёртка в неё не попадают.
     const slope = Number(angleResponseSlope(log).toFixed(2));
     const passed = newHits / trials >= 0.7;
-    if (isPreset) {
-      setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
+    const отработка = practiceRef.current;
+    if (isPreset || отработка) {
+      setPhase('result');   // пресет, свободный режим и отработка одного вида — экран статистики, уровень не трогаем
     } else {
       if (passed) lvl.reach(Math.min(50,levelRef.current + 1));
       else lvl.fail();   // гистерезис понижения (−1 после трёх провалов подряд) — канон каркаса, гейт passed-coverage
@@ -507,7 +527,7 @@ export default function MentalRotationGame() {
         score: Math.max(0, newHits * 100 - newErrors * 30 - Math.floor(finalTime)),
         time_seconds: finalTime,
         difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
-        mode: `lvl${levelRef.current}-3D`,
+        mode: practiceMode(levelRef.current, отработка),
         errors: newErrors,
         details: {
           level: levelRef.current,
@@ -521,6 +541,7 @@ export default function MentalRotationGame() {
           // «наклон 0, потому что точек было меньше двух».
           slope_trials: slopeSamples(log).length,
           task_kinds: taskKindCounts(log),
+          ...(отработка ? { practice_kind: отработка } : {}),
           version: '3D',
         },
       });
@@ -570,6 +591,7 @@ export default function MentalRotationGame() {
       : kind === 'formation' ? strings.taskFormation
       : kind === 'section' ? strings.taskSection
       : kind === 'memory' ? strings.taskMemory
+      : kind === 'oblique' ? strings.taskOblique
       : strings.taskNet
   );
   /** Секунды показа для подписи «Память»: 4,5 — с запятой там, где так пишут дроби. */
@@ -586,6 +608,10 @@ export default function MentalRotationGame() {
     if (!feedback) return '';
     if (opt.isMatch) return strings.optionCorrect;
     if (opt.flaw === 'mirror') return strings.optionMirror;
+    // «Сечение»: «другая» — это другая плоскость, а не другая фигура.
+    if (opt.flaw === 'other' && task.kind === 'oblique') return strings.optionOtherPlane;
+    if (opt.flaw === 'seen') return strings.optionSeenAtAngle;
+    if (opt.flaw === 'shadow') return strings.optionShadow;
     if (opt.flaw === 'other') return strings.optionOther;
     if (opt.flaw === 'other-view') return strings.optionOtherView;
     if (opt.flaw === 'edited-shape' || opt.flaw === 'one-cube' || opt.flaw === 'one-cell') return strings.optionEditedShape;
@@ -627,6 +653,31 @@ export default function MentalRotationGame() {
           </TouchableOpacity>
         )}
       </View>
+      {/* Вид заданий (задача da43411f): вперемешку — партия уровня; любой вид — отработка только его, и ещё не открытого уровнем. */}
+      <View testID="mental-kind-picker" style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{strings.practiceTitle}</Text>
+        <View style={styles.kindChips}>
+          {([null, ...(Object.keys(KIND_UNLOCK) as TaskKind[])] as (TaskKind | null)[]).map((k) => {
+            const выбран = chosenKind === k;
+            return (
+              <TouchableOpacity
+                key={k ?? 'mixed'} testID={`mental-kind-${k ?? 'mixed'}`}
+                accessibilityRole="button" accessibilityState={{ selected: выбран }}
+                style={[styles.kindChip, выбран
+                  ? { backgroundColor: GRADIENT[0] }
+                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                onPress={() => setChosenKind(k)}>
+                <Text style={[styles.modeButtonText, { color: выбран ? '#FFF' : colors.text }]}>{k ? kindWord(k) : strings.practiceMixed}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        {chosenKind && (
+          <Text testID="mental-kind-note" style={{ color: colors.textSecondary, fontSize: 13 }}>
+            {strings.practiceNote.replace('{level}', String(practiceLevel(chosenKind, selectedLevel)))}
+          </Text>
+        )}
+      </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
         <Text style={[styles.optionLabel, { color: colors.text }]}>{t('trialsLabel')}</Text>
         <View style={styles.optionButtons}>
@@ -662,7 +713,15 @@ export default function MentalRotationGame() {
     // narrower than the window. Never let minWidth force a one-column tower.
     // Размер вариантов — от той стороны экрана, которой не хватает (отчёт c8903296): см. optionLayout.
     // В альбоме оттуда же и размер эталона: эталон и варианты делят одну высоту (срез эталона 34 px на 844×390 в 2.54.15).
-    const { optSize, oneRow: wideShort, refSize } = optionLayout({ viewportWidth, viewportHeight, answerWidth, count: task.options.length, compactReview, refCap: isPreset ? 80 : 104, promptLines });
+    const { optSize, oneRow: wideShort, refSize, reviewNoteLines = 0 } = optionLayout({ viewportWidth, viewportHeight, answerWidth, count: task.options.length, compactReview, refCap: isPreset ? 80 : 104, promptLines });
+    // Альбом, разбор: подпись и «Следующий раунд» колонкой справа от ряда — полоса не растёт поверх эталона,
+    // а ряд не сдвигается с центра (задача 5de33bb4, см. LANDSCAPE_REVIEW_SIDE).
+    const reviewSide = reviewing && wideShort;
+    const ширинаКолонки = reviewSide ? reviewSideWidth(viewportWidth, task.options.length, optSize) : 0;
+    // Кнопка отзыва висит слева, а в RTL-языках справа — колонка встаёт с другой стороны ряда.
+    // left/right на вебе не зеркалятся сами (src/services/rtl.ts), поэтому сторона выбирается здесь.
+    const колонкаСлева = isRTLLang(language);
+    const отступКолонки = landscapeRowWidth(task.options.length, optSize) / 2 + LANDSCAPE_REVIEW_GAP;
     const baseSize = refSize ?? (compactScreen?(isPreset?80:104):130);
     /*
      * Доли для эталона из нескольких рисунков. В портрете их держит ширина: три вида и два куска
@@ -701,7 +760,7 @@ export default function MentalRotationGame() {
           }
           toolbar={
             <View style={{ width: '100%', alignItems: 'center', gap: 10 }}>
-            <View style={[styles.optionsRow,compactReview?{flexWrap:'nowrap',gap:6}:null,wideShort?{flexWrap:'nowrap',maxWidth:760}:null]} onLayout={e=>setAnswerWidth(e.nativeEvent.layout.width)}>
+            <View style={[styles.optionsRow,compactReview&&!wideShort?{flexWrap:'nowrap',gap:6}:null,wideShort?{flexWrap:'nowrap',maxWidth:760}:null]} onLayout={e=>setAnswerWidth(e.nativeEvent.layout.width)}>
               {task.options.map((opt, i) => (
                 <TouchableOpacity
                   accessibilityRole="button" key={i}
@@ -710,7 +769,8 @@ export default function MentalRotationGame() {
                   onPress={() => handlePick(i)}
                   style={[styles.optionBox, {
                     ...(compactReview?{width:(answerWidth-(task.options.length-1)*6)/task.options.length}:{}),
-                    ...(wideShort?{width:optSize+12}:{}),
+                    // В альбоме рамка ответа (3 вместо 1) съедает поля, а не высоту полосы: карточка снаружи того же размера.
+                    ...(wideShort?{width:optSize+12,padding:feedback?4:6}:{}),
                     backgroundColor: colors.surface,
                     borderColor: optionBorder(i),
                     borderWidth: feedback ? 3 : 1,
@@ -725,6 +785,7 @@ export default function MentalRotationGame() {
                   {(task.kind === 'rotation' || (task.kind === 'memory' && !studying)) && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
                   {(task.kind === 'projection' || task.kind === 'section') && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
                   {task.kind === 'net' && renderMarkedCube((opt as { faces: FaceMap }).faces, optSize, GRADIENT[1])}
+                  {task.kind === 'oblique' && <ObliquePolygonOption points={fitPolygon((opt as ObliqueOption).points, optSize, 8)} size={optSize} fill={GRADIENT[1]} />}
                   {task.kind === 'viewpoint' && renderShape(task.shape, optSize, GRADIENT[1], task.axis, (opt as { degrees: number }).degrees)}
                   {(task.kind === 'missing' || task.kind === 'assembly' || task.kind === 'formation') && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
                   {task.kind === 'same' && <Text style={{fontSize:Math.max(16,Math.min(26,optSize/3)),fontWeight:'700',color:colors.text}}>
@@ -738,12 +799,32 @@ export default function MentalRotationGame() {
                     Поэтому в обычном разборе подпись в две строки, а в сжатом её под карточкой нет:
                     там одна строка под рядом — чем плох выбранный вариант (красная рамка и так видна).
                   */}
-                  {feedback&&!compactReview&&<Text numberOfLines={2} style={[styles.optionLabel2, { color: colors.textSecondary }]}>
+                  {feedback&&!compactReview&&!wideShort&&<Text numberOfLines={2} style={[styles.optionLabel2, { color: colors.textSecondary }]}>
                     {optionNote(opt)}
                   </Text>}
                 </TouchableOpacity>
               ))}
             </View>
+            {reviewSide && feedback ? (
+              <View testID="mental-review-side" style={[{ position: 'absolute', top: 0, bottom: 0, width: ширинаКолонки, gap: LANDSCAPE_REVIEW_NOTE_GAP, justifyContent: 'center' },
+                колонкаСлева ? { right: '50%', marginRight: отступКолонки } : { left: '50%', marginLeft: отступКолонки }]}>
+                {reviewNoteLines > 0 && (
+                  <Text testID="mental-picked-note" numberOfLines={reviewNoteLines} style={[styles.optionLabel2, { color: BAD_COLOR, fontSize: 13, lineHeight: LANDSCAPE_REVIEW_NOTE_LINE, minHeight: 0 }]}>
+                    {optionNote(task.options[feedback.idx])}
+                  </Text>
+                )}
+                <TouchableOpacity
+                  testID="mental-review-next"
+                  accessibilityRole="button"
+                  onPress={() => advance(records)}
+                  style={[styles.nextBtn, { minHeight: LANDSCAPE_REVIEW_BUTTON, paddingVertical: 4, paddingHorizontal: 12, alignItems: 'center', backgroundColor: GRADIENT[0], borderColor: GRADIENT[0] }]}
+                >
+                  <Text numberOfLines={2} style={{ color: '#FFF', fontWeight: '700', fontSize: 14, lineHeight: 17, textAlign: 'center' }}>
+                    {round < trials ? strings.reviewNextRound : strings.reviewFinishLevel}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (<>
             {reviewing && compactReview && feedback ? (
               <Text testID="mental-picked-note" numberOfLines={2} style={[styles.optionLabel2, { color: BAD_COLOR, fontSize: 13 }]}>
                 {optionNote(task.options[feedback.idx])}
@@ -761,6 +842,7 @@ export default function MentalRotationGame() {
                 </Text>
               </TouchableOpacity>
             )}
+            </>)}
             </View>
           }
         >
@@ -785,6 +867,7 @@ export default function MentalRotationGame() {
                   : task.kind === 'missing' ? strings.missingPrompt
                   : task.kind === 'assembly' ? strings.assemblyPrompt
                   : task.kind === 'formation' ? strings.formationPrompt
+                  : task.kind === 'oblique' ? strings.obliquePrompt
                   : task.kind === 'section'
                   ? interpolateMentalRotation(strings.sectionPrompt, {
                       view: task.view === 'top' ? strings.viewTop : task.view === 'front' ? strings.viewFront : strings.viewSide,
@@ -798,6 +881,9 @@ export default function MentalRotationGame() {
                   ? <RotationWorkbench key={round} initial={frames[reviewStep]?.shape??task.base} target={task.options[task.correctIdx].shape} size={baseSize} reduceMotion={false} ink={colors.text} accent={colors.primary} ru={language==='ru'}/>
                   : (task.kind==='rotation'||task.kind==='memory')&&reviewing&&reviewStep>0
                   ? <RotationTransition key={`${round}-${reviewStep}`} from={frames[reviewStep-1].shape} to={frames[reviewStep].shape} axis={frames[reviewStep].axis!} size={baseSize}/>
+                  : task.kind === 'oblique'
+                  // «Сечение»: рёбра тела и закрашенная косая плоскость, как в учебнике стереометрии.
+                  ? <View testID="oblique-reference"><ObliqueSectionReference dims={task.dims} section={task.section} size={baseSize}/></View>
                   : task.kind === 'memory'
                   // «Память»: фигура видна при показе и в разборе; спрятанной её нет в разметке вовсе —
                   // не прозрачность, а пустая карточка со знаком вопроса.
@@ -839,7 +925,7 @@ export default function MentalRotationGame() {
                       ? (frames[reviewStep]?.shape ?? task.base)   // в разборе эталон сам поворачивается
                       : task.shape} size={baseSize}/>}
               <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>
-                {task.kind === 'net' ? strings.taskNet : task.kind === 'assembly' || task.kind === 'formation' ? '' : t('label_reference')}
+                {task.kind === 'net' ? strings.taskNet : task.kind === 'assembly' || task.kind === 'formation' || task.kind === 'oblique' ? '' : t('label_reference')}
               </Text>
             </View>
             {reviewing&&(task.kind==='rotation'||task.kind==='memory')&&!manualReview?<TouchableOpacity testID="rotation-manual-start" accessibilityRole="button" onPress={()=>setManualReview(true)} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.primary,fontWeight:'700'}}>{strings.rotateManually}</Text></TouchableOpacity>:null}
@@ -857,6 +943,7 @@ export default function MentalRotationGame() {
                     : task.kind === 'formation' ? strings.reviewFormationHint
                     : task.kind === 'section' ? strings.reviewSectionHint
                     : task.kind === 'memory' ? strings.reviewMemoryHint
+                    : task.kind === 'oblique' ? strings.reviewObliqueHint
                     : strings.reviewNetHint}
                 </Text>
                 {(task.kind === 'rotation' || task.kind === 'memory') && (
@@ -944,8 +1031,13 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'column', gap: 8 },
-  modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16 },
+  // Число — по центру кнопки: слева внизу висит кнопка отзыва, и прижатые влево «5» и «10» уходили под неё
+  // (живой кадр 390×844, 17.09.2026: карточка «Вид заданий» опустила «Количество попыток» к низу экрана).
+  modeButton: { minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
+  // Выбор вида заданий: 12 кнопок переносятся строками, высота не ниже порога нажатия на настройке (44).
+  kindChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  kindChip: { minHeight: 44, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 22 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },

@@ -47,7 +47,7 @@ export type Axis = 'x' | 'y' | 'z';
  * ракурса, пары «да/нет», проекции и развёртки угла поворота нет вовсе, и одна
  * такая проба портит единственную настоящую величину игры.
  */
-export type TaskKind = 'rotation' | 'projection' | 'net' | 'viewpoint' | 'same' | 'missing' | 'assembly' | 'formation' | 'section' | 'memory';
+export type TaskKind = 'rotation' | 'projection' | 'net' | 'viewpoint' | 'same' | 'missing' | 'assembly' | 'formation' | 'section' | 'memory' | 'oblique';
 
 /**
  * Направление взгляда для проекции.
@@ -305,9 +305,39 @@ export interface MemoryTask extends Omit<RotationTask, 'kind'> {
   exposureMs: number;
 }
 
+// ─── «Сечение»: косая плоскость режет параллелепипед (17.09.2026, задача 4f85b6a9) ───
+
+export type Vec2 = [number, number];
+export type Vec3 = [number, number, number];
+
+/** Чем вариант неверен: вид сечения под углом, тень на грань, сечение другой плоскостью. */
+export type ObliqueFlaw = 'none' | 'seen' | 'shadow' | 'other';
+
+export interface ObliqueOption {
+  /** Многоугольник в своих координатах; рисуется вписанным в карточку (`fitPolygon`). */
+  points: Vec2[];
+  isMatch: boolean;
+  flaw: ObliqueFlaw;
+}
+
+export interface ObliqueTask {
+  kind: 'oblique';
+  /** Размеры параллелепипеда по x, y, z. */
+  dims: Vec3;
+  /** Плоскость `normal · p = offset`. */
+  plane: { normal: Vec3; offset: number };
+  /** Вершины сечения в пространстве, по обходу — ими рисуется плоскость на теле. */
+  section: Vec3[];
+  options: ObliqueOption[];
+  correctIdx: number;
+  /** Сколько сторон у верного ответа — ось лестницы. */
+  sides: number;
+}
+
 export type MentalRotationTask =
   | RotationTask
   | MemoryTask
+  | ObliqueTask
   | ProjectionTask
   | NetTask
   | ViewpointTask

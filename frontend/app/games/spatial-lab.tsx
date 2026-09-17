@@ -1,4 +1,4 @@
-/* psygames-game-spatial-lab · VER 5 · 17.09.2026 */
+/* psygames-game-spatial-lab · VER 7 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.2 · psygames-codex-mac · not an app release */
 /**
  * Маршрут лаборатории: экран Codex (`SpatialLab`) + стандарт каркаса поверх него.
@@ -10,6 +10,11 @@
  *   · уровень и пройденное показывает сам экран Codex (строка «Уровень N/50», кнопки «Проще/Сложнее»);
  *   · общий экран итога — `LevelCleared`, «дальше» запрашивает следующий уровень у экрана;
  *   · уровень в сессии — `saveSession` с `details.level`.
+ *
+ * VER 6 (задача f3fae4e2, отчёт 1bd5e1ce): у экрана Codex теперь две фазы — настройка и партия.
+ * «Стоп» на карточке итога ведёт в настройку (`toConfig`), а не оставляет решённую доску.
+ * VER 7 (отчёт e5bfc2f0, задача 42dbd9bf): доска экрана Codex вписывается в поле каркаса по измеренной
+ * высоте — поле не ездит на 375×667 и 360×740 (см. «СТОРОНА ДОСКИ» в SpatialLab.tsx).
  *
  * ЛЕСТНИЦА ОДНОСТОРОННЯЯ: головоломка без проигрыша — понижать нечего (гейт passed-coverage).
  * Звёзды — 3 за собранный уровень; шкала по числу ходов против оптимума — задача раздела.
@@ -53,7 +58,7 @@ function useSpatialLabStandard(mode:Mode,isPreset:boolean){
   const lvl = lvlFor(mode);
   const gameId = (m:Mode) => `spatial_lab_${m}`;
   const [cleared,setCleared]=useState<Result|null>(null);
-  const api=useRef<{request:(level:number)=>void}|null>(null);
+  const api=useRef<{request:(level:number)=>void;toConfig:()=>void}|null>(null);
   const askLevel=(l:number)=>api.current?.request(l);
   const onDone=async(result:Result)=>{
     if(isPreset){
@@ -86,8 +91,8 @@ function useSpatialLabStandard(mode:Mode,isPreset:boolean){
     <LevelCleared variant="overlay" gameId={gameId(cleared.mode)} level={cleared.level} stars={3} passed
       gradient={GRADIENT} language={language} colors={colors}
       onContinue={()=>{const next=Math.min(50,cleared.level+1);setCleared(null);askLevel(next);}}
-      onStop={()=>setCleared(null)} /> : undefined;
-  return { overlay, onDone, onReady:(a:{request:(level:number)=>void})=>{api.current=a;} };
+      onStop={()=>{setCleared(null);api.current?.toConfig();}} /> : undefined;
+  return { overlay, onDone, onReady:(a:{request:(level:number)=>void;toConfig:()=>void})=>{api.current=a;} };
 }
 
 export default function SpatialLabRoute(){

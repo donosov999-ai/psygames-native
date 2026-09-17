@@ -14,6 +14,7 @@ export * from './pieces';
 export * from './formation';
 export * from './section';
 export * from './memory';
+export * from './oblique';
 export * from './replay';
 export * from './session';
 export * from './i18n';

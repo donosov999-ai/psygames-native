@@ -1,9 +1,27 @@
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
+/* psygames-spatial-lab-screen · VER 3 · 17.09.2026 · psygames-spatial-claude-mac */
 /** Local-only exercise adapter. Per-profile local saves; no server rewards. */
+/*
+ * 🔴 VER 2 — НАСТРОЙКИ ОТДЕЛЬНО ОТ ПАРТИИ, ПОВОРОТ ДВОЙНЫМ НАЖАТИЕМ (17.09.2026, задача f3fae4e2).
+ * Отчёт 1bd5e1ce (2.54.17, «Сеть труб»): «экран настроек слился с экраном игры, что привело
+ * к недоразумению». Под полем стояли «Свободная игра · В уровнях пройдено · Проще · Начать
+ * уровни» и вкладки упражнений — выбор игры внутри самой игры. Теперь у экрана две фазы, как у
+ * остальных игр: НАСТРОЙКА (упражнение, уровень, «Начать», «Свободная игра», «Продолжить игру»)
+ * и ПАРТИЯ (поле, ход, счёт). Пункт паузы «Настройки» ведёт в настройку, партия при этом не
+ * пропадает («Продолжить игру»); «Выйти из упражнения» уходит с экрана, как у всех игр. Шаг зарядки (`preset`) идёт сразу в партию, как было.
+ * Отчёт 60913453: «по двойному нажатию вращение, чтобы шло тоже» — двойное нажатие по той же
+ * трубе или клетке поворачивает по часовой (у упражнений сдвига направления нет — там нет).
+ *
+ * 🔴 VER 3 — ДОСКА ВПИСЫВАЕТСЯ В ПОЛЕ КАРКАСА (17.09.2026, отчёт e5bfc2f0, задача 42dbd9bf).
+ * См. «СТОРОНА ДОСКИ» у расчёта `side`.
+ */
 import React, {useState, useEffect, useRef,useCallback} from 'react';
 import {победаКОтправке} from './spatialLabWin';
 import {levelNote} from './spatialLabLevelNote';
-import {View, Text, Pressable, StyleSheet, Animated, Easing, DeviceEventEmitter } from 'react-native';
+import {View, Text, Pressable, StyleSheet, Animated, Easing, DeviceEventEmitter, ScrollView } from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {Ionicons} from '@expo/vector-icons';
+import GradientSurface from './GradientSurface';
 // 🔴 НЕ `useWindowDimensions`: на первом кадре он отдаёт 0, и поле считается от
 // нулевой высоты. Защита живёт в `useScreenSize` — общая для всех игр.
 import {useScreenSize} from '@/src/hooks/useScreenWidth';
@@ -11,11 +29,13 @@ import Svg, {Path, Circle} from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useProfile} from '@/src/contexts/ProfileContext';
 import GameShell from './GameShell';
-import {HELP_OPEN_EVENT} from './GameHelpOverlay';
+import {useGameFieldHeight} from './GameFieldHeight';
+import {FAB_SIZE} from '@/src/services/fabPosition';
+import {HELP_OPEN_EVENT, HELP_CORNER_SPACE} from './GameHelpOverlay';
 import {GameAuxAction, GameAuxBar} from './GameAuxAction';
 import {useTheme} from '@/src/contexts/ThemeContext';
 import {session, commit, undo, redo, scramble, solved, replay} from '../games/spatial-core/core.mjs';
-import {isGameHeld} from '@/src/services/gamePause';
+import {isGameHeld, gameNow} from '@/src/services/gamePause';
 import {netPuzzle, network, maskAt} from '../games/spatial-core/net.mjs';
 import {sourceAt} from '../games/spatial-core/netslide-levels.mjs';
 import type {Cell} from '../games/spatial-core/core.mjs';
@@ -39,6 +59,24 @@ const пустоПройдено=():Record<Mode,number[]>=>({twiddle:[],net:[],s
  */
 const СТРЕЛКИ=[['row',-1,'spatialLabShiftRowLeft','←'],['row',1,'spatialLabShiftRowRight','→'],['column',-1,'spatialLabShiftColUp','↑'],['column',1,'spatialLabShiftColDown','↓']] as const;
 const deal = (mode:Mode,seed:number) => session((mode==='net'?netPuzzle(seed):scramble(seed)).initial);
+/** Цвета шапки экрана настройки — те же, что у маршрута (`app/games/spatial-lab.tsx`, GRADIENT). */
+const ГРАДИЕНТ=['#38bdf8','#6366f1'] as const;
+/** Два нажатия по той же клетке не дальше этого — поворот по часовой (отчёт 60913453). */
+export const ДВОЙНОЕ_НАЖАТИЕ_МС=350;
+/**
+ * Двойное нажатие: `(ключ) => true`, если это нажатие — второе по тому же ключу не позже порога.
+ * Отдельным хуком, а не функцией в теле экрана: запись в ref из функции, которую зовёт разметка,
+ * React Compiler не смог сохранить мемоизацию экрана (замер линтом 17.09.2026).
+ */
+function useDoubleTap(){
+  const прошлое=useRef<{key:number;t:number}|null>(null);
+  return useCallback((key:number)=>{
+    const сейчас=gameNow(),было=прошлое.current;
+    if(было&&было.key===key&&сейчас-было.t<=ДВОЙНОЕ_НАЖАТИЕ_МС){прошлое.current=null;return true;}
+    прошлое.current={key,t:сейчас};
+    return false;
+  },[]);
+}
 // Serialize writes across mounts; read waits for previous queued writes too.
 let saveQueue:Promise<void>=Promise.resolve();
 
@@ -76,8 +114,18 @@ export function SpatialPipe({cell,active,source}:{cell:Cell;active:boolean;sourc
  * Механика поля Codex не тронута: это тот же `request()`, что у кнопок «Проще/Сложнее».
  */
 
-export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay,onReady}:{onBack:()=>void;preset?:{mode:Mode;level:number;seed:number};initialMode?:Mode;onComplete?:(result:{mode:Mode;level:number;moves:number})=>void;overlay?:React.ReactNode;onReady?:(api:{request:(level:number)=>void})=>void}) {
-  const {t}=useLanguage();   // названия упражнений — из общего словаря (12 языков), не литералами
+/** Передаёт высоту поля каркаса экрану, который стоит над каркасом (см. `высотаПоля`). Имя латиницей — правило хуков линта. */
+function FieldHeightUp({onChange}:{onChange:(высота:number)=>void}){
+  const высота=useGameFieldHeight();
+  useEffect(()=>{onChange(высота);},[высота,onChange]);
+  return null;
+}
+
+/** Окно ниже этой высоты — «тесное»: у 390×844 и выше раскладка прежняя. */
+export const ТЕСНОЕ_ОКНО=760;
+
+export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay,onReady}:{onBack:()=>void;preset?:{mode:Mode;level:number;seed:number};initialMode?:Mode;onComplete?:(result:{mode:Mode;level:number;moves:number})=>void;overlay?:React.ReactNode;onReady?:(api:{request:(level:number)=>void;toConfig:()=>void})=>void}) {
+  const {t,language}=useLanguage();   // названия упражнений — из общего словаря (12 языков), не литералами
   const {colors}=useTheme();
   const {h:viewportHeight}=useScreenSize();
   const {profile,ready:profileReady}=useProfile();
@@ -90,12 +138,26 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   // SSR and first client frame must agree; measuring the field also handles
   // split windows and safe-area padding without stale hydration styles.
   const [available,setAvailable]=useState(248);
+  /** Высота содержимого поля БЕЗ доски, по ключу раскладки (см. «СТОРОНА ДОСКИ»). */
+  const [замерПоля,setЗамерПоля]=useState<{key:string;h:number}|null>(null);
+  /**
+   * Высота поля каркаса. Каркас отдаёт её только ВНУТРЬ поля (контекст), а этот экран стоит над
+   * каркасом — поэтому узел `FieldHeightUp` внутри поля передаёт её сюда. Хук здесь, наверху,
+   * получал бы 0 всегда: так и было на первом замере (сторона осталась 316 на 375×667).
+   */
+  const [высотаПоля,setВысотаПоля]=useState(0);
   const [mode,setMode]=useState<Mode>('twiddle');
   const [seed,setSeed]=useState(42);
   const [state,setState]=useState(()=>deal('twiddle',42));
   const [selection,setSelection]=useState(0);
   const [task,setTask]=useState<LevelTask|null>(null);
   const [pending,setPending]=useState<Mode|'new'|number|null>(null);
+  /** Фаза экрана: настройка или партия. Шаг зарядки — сразу партия. */
+  const [phase,setPhase]=useState<'config'|'playing'>(preset?'playing':'config');
+  /** Уровень, выбранный на экране настройки (null — ещё не выбран: берётся следующий непройденный). */
+  const [chosenLevel,setChosenLevel]=useState<number|null>(null);
+  /** Двойное нажатие по клетке — поворот по часовой. */
+  const двойноеНажатие=useDoubleTap();
   const [replayIndex,setReplayIndex]=useState<number|null>(null);
   const [turning,setTurning]=useState<number|null>(null);
   /** Линия, которая едет в анимации сдвига; `turning` при этом хранит направление (±1). */
@@ -242,8 +304,28 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
    * состояния до первого хода всё равно стоит «Блок: 1, 1», и подсказка полезнее.
    */
   const guide=task&&'guide' in task&&task.guide&&state.past.length===0?task.guide:null;
+  /**
+   * 🔴 СТОРОНА ДОСКИ — ОТ ИЗМЕРЕННОЙ ВЫСОТЫ ПОЛЯ КАРКАСА (17.09.2026, отчёт e5bfc2f0, задача 42dbd9bf).
+   * Каркас с 568bec9d прибивает поле, которое помещается, и оставляет прокрутку тому, что выше окна.
+   * Замер WebKit на экспорте (вход в партию, колесо по пустому месту поля): лаборатория ездила на
+   * 375×667 на 78–122 px, на 360×740 — на 21–65, на 360×800 «Сеть со сдвигом» — на 5. Запас 351
+   * считался под прежнюю раскладку и под одну длину задания; у «Сети со сдвигом» задание в четыре
+   * строки. Теперь сторона = высота поля каркаса − всё, что в поле кроме доски (замер onLayout).
+   * «Всё кроме доски» от стороны не зависит: одна перекладка, без качелей. Замер только растёт в
+   * пределах ключа (упражнение, уровень, окно, язык): строка состояния в две строки не качает доску
+   * туда-обратно на каждом ходе. Панель «начать заново?» над полем — временная, её не меряем.
+   * Пока каркас поле не измерил (или экран без каркаса) — прежняя формула.
+   * Пол — клетка 45 pt (5×5 → 241, 4×4 → 192, 3×3 → 143), но не выше прежних 240.
+   */
   const ЗАПАС_ПО_ВЫСОТЕ=351;
-  const side=Math.max(240,Math.min(available-8,420,viewportHeight-ЗАПАС_ПО_ВЫСОТЕ));
+  const ЗАПАС_ЗАМЕРА=2;
+  const ключЗамера=(ширина:number)=>`${mode}|${task?.level??'free'}|${viewportHeight}|${Math.round(ширина)}|${language}`;
+  const безДоски=замерПоля&&замерПоля.key===ключЗамера(available)?замерПоля.h:0;
+  const поВысоте=высотаПоля>0&&безДоски>0?высотаПоля-безДоски-ЗАПАС_ЗАМЕРА:viewportHeight-ЗАПАС_ПО_ВЫСОТЕ;
+  const пол=Math.min(240,n*45+(n-1)*4);
+  const side=Math.max(пол,Math.min(available-8,420,поВысоте));
+  /** Тесное окно — плотнее зазоры и задание. Решение по высоте окна, а не по замеру: иначе плотность и замер качали бы друг друга. */
+  const тесно=viewportHeight<ТЕСНОЕ_ОКНО;
   const size=(side-(n-1)*4)/n;
   /** Смещение едущей линии: угол таймера ±90 → ±одна клетка с зазором. */
   const сдвигПикс=angle.interpolate({inputRange:[-90,90],outputRange:[-(size+4),size+4]});
@@ -252,11 +334,24 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   function accept(target:Mode|'new'|number) {
     if(typeof target==='number')start(mode,42,target);
     else start(target==='new'?mode:target,target==='new'?(seed+1)>>>0:42,target==='new'?(task?.level??0):0);
+    // Смена упражнения — выбор на экране настройки, он там и остаётся; уровень и «новая» — это партия.
+    if(typeof target==='number'||target==='new')setPhase('playing');
+    else setChosenLevel(null);
   }
   function request(target:Mode|'new'|number) {
     if(preset||turnLock.current||busy)return;
     if(state.past.length&&!won){setPending(target);return;}
     accept(target);
+  }
+  /**
+   * Нажатие клетки: выбрать; второе нажатие по той же клетке быстрее ДВОЙНОЕ_НАЖАТИЕ_МС —
+   * поворот по часовой. У упражнений сдвига направления у нажатия нет, там только выбор.
+   */
+  function нажатьКлетку(i:number,r:number,c:number) {
+    if(locked(i))return;
+    const цель=mode==='net'||сдвиг?i:Math.min(r,n-2)*n+Math.min(c,n-2);
+    if(двойноеНажатие(цель)&&!сдвиг&&selection===цель){turn(1);return;}
+    setSelection(цель);
   }
   function turn(amount:number) {
     if(won||pending!==null||busy||turnLock.current||locked(selection))return;
@@ -278,10 +373,59 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   }
   useEffect(()=>{
     if(!onReady)return;
-    onReady({request:(level:number)=>{if(preset||readyFor!==hydrationKey||busy)return;request(Math.max(1,Math.min(50,level)));}});
+    onReady({request:(level:number)=>{if(preset||readyFor!==hydrationKey||busy)return;request(Math.max(1,Math.min(50,level)));},
+      toConfig:()=>{if(!preset)setPhase('config');}});
   });   // без списка зависимостей нарочно: наружу уходит ссылка на ТЕКУЩИЙ request, маршрут держит её в ref
   const ink={color:colors.text};
   if(!profileReady||readyFor!==hydrationKey)return <View style={styles.field}><Text style={ink}>{t('spatialLabRestoring')}</Text></View>;
+  const цельУпражнения=mode==='net'?t('spatialLabNetGoal'):mode==='netslide'?t('spatialLabNetslideGoal'):t(mode==='sixteen'?'spatialLabSixteenGoal':'spatialLabTwiddleGoal').replace('{n}',String(n*n));
+  const подтверждение=pending!==null?<View style={[styles.confirm,{backgroundColor:colors.surface,borderColor:colors.border}]}>
+    <Text style={ink}>{t('spatialLabRestartConfirm')}</Text>
+    <View style={styles.auxRow}><GameAuxBar><GameAuxAction label={t('spatialLabStay')} onPress={()=>setPending(null)}/><GameAuxAction label={t('start')} onPress={()=>accept(pending)}/></GameAuxBar></View>
+  </View>:null;
+  if(!preset&&phase==='config'){
+    // Выбрать можно пройденное и следующий уровень — вперёд не перепрыгнуть (как у тропинки уровней).
+    const доступен=Math.min(50,(completed[mode].length?Math.max(...completed[mode]):0)+1);
+    const уровень=Math.max(1,Math.min(доступен,chosenLevel??(task?task.level:доступен)));
+    const идёт=state.past.length>0&&!won;
+    return <SafeAreaView testID="spatial-config" style={[styles.configRoot,{backgroundColor:colors.background}]}>
+      <GradientSurface colors={ГРАДИЕНТ as unknown as [string,string]} style={styles.configHeader} start={{x:0,y:0}} end={{x:1,y:1}}>
+        <Pressable onPress={onBack} style={styles.configBack} accessibilityRole="button" accessibilityLabel={t('back')}>
+          <Ionicons name="arrow-back" size={24} color="#fff"/>
+        </Pressable>
+        <Text style={styles.configTitle} numberOfLines={1}>{t(ИМЯ[mode])}</Text>
+        {/* Место под угловой ряд питомца и справки — как у шапок остальных игр (pan-audit: заголовок под кнопками). */}
+        <View style={{ width: HELP_CORNER_SPACE }} />
+      </GradientSurface>
+      <ScrollView contentContainerStyle={styles.configBody}>
+        {подтверждение}
+        <View style={[styles.configCard,{backgroundColor:colors.surface}]}>
+          <Text style={[styles.instruction,ink]}>{цельУпражнения}</Text>
+          <Text testID="spatial-completed" style={[styles.status,ink]}>{t('spatialDoneInLevels')}: {completed[mode].length}/50</Text>
+        </View>
+        <View style={styles.auxRow}><GameAuxBar>
+          <GameAuxAction label={t('spatialLabEasier')} disabled={уровень<=1} onPress={()=>setChosenLevel(уровень-1)}/>
+          <GameAuxAction label={t('spatialLabHarder')} disabled={уровень>=доступен} onPress={()=>setChosenLevel(уровень+1)}/>
+        </GameAuxBar></View>
+        <Text testID="spatial-level" style={[styles.levelLine,ink]}>{t('level')} {уровень}/50</Text>
+        <Pressable testID="spatial-start-level" accessibilityRole="button" onPress={()=>request(уровень)}>
+          <GradientSurface colors={ГРАДИЕНТ as unknown as [string,string]} style={styles.startBtn}>
+            <Text style={styles.startText}>{t('start')}</Text>
+          </GradientSurface>
+        </Pressable>
+        {идёт?<Pressable testID="spatial-continue" accessibilityRole="button" onPress={()=>setPhase('playing')} style={[styles.secondaryBtn,{borderColor:colors.primary,backgroundColor:colors.surface}]}>
+          <Text style={[styles.secondaryText,ink]}>{t('exitConfirmStay')} · {task?`${t('level')} ${task.level}`:t('spatialFreePlay')}</Text>
+        </Pressable>:null}
+        <Pressable testID="spatial-free-play" accessibilityRole="button" onPress={()=>request(0)} style={[styles.secondaryBtn,{borderColor:colors.border,backgroundColor:colors.surface}]}>
+          <Text style={[styles.secondaryText,ink]}>{t('spatialFreePlay')}</Text>
+        </Pressable>
+        <Text testID="spatial-free-hint" style={[styles.note,{color:colors.textSecondary}]}>{t('spatialFreePlayNote')}</Text>
+        <View style={styles.tabs}>{SPATIAL_MODES.map(m=><Pressable key={m} accessibilityRole="button" accessibilityState={{selected:mode===m}} onPress={()=>{if(m!==mode)request(m);}} style={[styles.tab,{borderColor:mode===m?colors.primary:colors.border,backgroundColor:colors.surface}]}><Text style={ink}>{t(ИМЯ[m])}</Text></Pressable>)}</View>
+        <Text testID="spatial-save-status" style={[styles.note,{color:colors.textSecondary}]}>{saveError?t(saveError):t('spatialLabLocalSave')}</Text>
+      </ScrollView>
+      {overlay}
+    </SafeAreaView>;
+  }
   return <GameShell title={t(ИМЯ[mode])} onBack={onBack} overlay={overlay}
     frame={preset?spatialFrame(viewportHeight):undefined}
     confirmExit={state.past.length>0&&!won} scrollableField
@@ -295,6 +439,7 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
       {id:'restart',label:t('restart'),icon:'refresh',onPress:()=>request('new')},
       {id:'undo',label:t('btn_undo'),icon:'arrow-undo',onPress:()=>setState(undo)},
       {id:'rules',label:t('btn_rules'),icon:'help-circle-outline',onPress:()=>DeviceEventEmitter.emit(HELP_OPEN_EVENT)},
+      {id:'settings',label:t('settings'),icon:'options-outline',onPress:()=>setPhase('config')},
       {id:'home',label:t('goHome'),icon:'home',leave:true},
     ]}
     /*
@@ -310,19 +455,23 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
       { key: 'round', icon: 'pricetag-outline', label: t('hud_puzzle'), value: `#${seed}` },
     ]}
     toolbar={сдвиг?<View style={styles.arrows}>{СТРЕЛКИ.map(([kind,amount,key,glyph])=><Pressable key={key} accessibilityRole="button" accessibilityLabel={t(key)} disabled={won||pending!==null||busy} onPress={()=>shift(kind,amount)} style={[styles.turn,styles.arrow,{backgroundColor:colors.primary,opacity:won||pending!==null||busy?0.4:1}]}><Text style={styles.arrowText}>{glyph}</Text></Pressable>)}</View>:<View style={styles.turns}>{([-1,1] as const).map(a=><Pressable key={a} accessibilityRole="button" accessibilityLabel={t(a<0?'spatialLabTurnLeft':'spatialLabTurnRight')} disabled={won||pending!==null||busy||locked(selection)} onPress={()=>turn(a)} style={[styles.turn,{backgroundColor:colors.primary,opacity:won||pending!==null||busy||locked(selection)?0.4:1}]}><Text style={styles.turnText}>{a<0?`↶ ${t('a11yLeft')}`:`${t('a11yRight')} ↷`}</Text></Pressable>)}</View>}>
-    <View style={styles.field} onLayout={e=>setAvailable(e.nativeEvent.layout.width)}>
-      {pending!==null?<View style={[styles.confirm,{backgroundColor:colors.surface,borderColor:colors.border}]}>
-        <Text style={ink}>{t('spatialLabRestartConfirm')}</Text>
-        <View style={styles.auxRow}><GameAuxBar><GameAuxAction label={t('spatialLabStay')} onPress={()=>setPending(null)}/><GameAuxAction label={t('start')} onPress={()=>accept(pending)}/></GameAuxBar></View>
-      </View>:null}
-      <Text style={[styles.instruction,ink]}>{mode==='net'?t('spatialLabNetGoal'):mode==='netslide'?t('spatialLabNetslideGoal'):t(mode==='sixteen'?'spatialLabSixteenGoal':'spatialLabTwiddleGoal').replace('{n}',String(n*n))}</Text>
+    <View style={[styles.field,тесно&&styles.fieldTight]} onLayout={e=>{
+      const {width,height}=e.nativeEvent.layout;
+      setAvailable(width);
+      if(pending!==null)return;
+      const ключ=ключЗамера(width),h=Math.ceil(height-side);
+      setЗамерПоля(cur=>cur&&cur.key===ключ&&cur.h>=h?cur:{key:ключ,h});
+    }}>
+      <FieldHeightUp onChange={setВысотаПоля}/>
+      {подтверждение}
+      <Text style={[styles.instruction,тесно&&styles.instructionTight,ink]}>{цельУпражнения}</Text>
       <View testID="spatial-board" style={{width:side,gap:4,overflow:sliding?'hidden':'visible'}}>{Array.from({length:n},(_,r)=><View key={r} style={styles.row}>{view.cells.slice(r*n,(r+1)*n).map((cell,c)=>{
         const i=r*n+c, sr=Math.floor(selection/n),sc=selection%n;
         const selected=mode==='net'||сдвиг?selection===i:r>=sr&&r<sr+2&&c>=sc&&c<sc+2;
         const наЛинии=сдвиг&&!selected&&(r===sr||c===sc);   // строка и столбец выбранной клетки — то, что сдвинут стрелки
         const directions=[t('a11yUp'),t('a11yRight'),t('a11yDown'),t('a11yLeft')].filter((_,d)=>maskAt(cell)&(1<<d));
         const едет=сдвиг&&sliding!==null&&turning!==null&&(sliding.kind==='row'?r===sliding.index:c===sliding.index);
-        const клетка=<Pressable key={i} testID={`spatial-cell-${i}`} accessibilityRole="button" accessibilityState={{selected}} accessibilityLabel={(info?t('spatialLabCellPipe').replace('{dirs}',directions.join(', ')):t('spatialLabCellNumber').replace('{n}',String(cell.id+1))).replace('{r}',String(r+1)).replace('{c}',String(c+1))} disabled={pending!==null||busy||locked(i)} onPress={()=>{if(locked(i))return;setSelection(mode==='net'||сдвиг?i:Math.min(r,n-2)*n+Math.min(c,n-2));}}
+        const клетка=<Pressable key={i} testID={`spatial-cell-${i}`} accessibilityRole="button" accessibilityState={{selected}} accessibilityLabel={(info?t('spatialLabCellPipe').replace('{dirs}',directions.join(', ')):t('spatialLabCellNumber').replace('{n}',String(cell.id+1))).replace('{r}',String(r+1)).replace('{c}',String(c+1))} disabled={pending!==null||busy||locked(i)} onPress={()=>нажатьКлетку(i,r,c)}
           style={[styles.cell,{opacity:turning!==null&&selected&&!сдвиг?0:1,width:size,height:size,borderColor:selected?'#713ed4':наЛинии?'#a78bfa':'#aaa1c5',backgroundColor:фонКлетки(cell,i),borderWidth:selected?3:наЛинии?2:1}]}>
           {рисунокКлетки(cell,i)}
           {locked(i)?<Text style={{position:'absolute',right:3,top:1,fontSize:12}} accessibilityLabel={t('spatialLabLocked')}>●</Text>:null}
@@ -361,7 +510,10 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
         строки задания. Обёртка возвращает панели её ряд.
       */}
       <View style={styles.auxRow}><GameAuxBar><GameAuxAction compact icon="arrow-undo" ladder="undo" label={t('btn_undo')} onPress={()=>setState(undo)} disabled={!state.past.length||pending!==null||busy}/><GameAuxAction compact icon="arrow-redo" label={t('spatialLabRedo')} onPress={()=>setState(redo)} disabled={!state.future.length||pending!==null||busy}/><GameAuxAction compact icon={replayIndex!==null?'stop':'play'} label={t(replayIndex!==null?'voiceStop':'spatialLabReplay')} onPress={()=>setReplayIndex(replayIndex!==null?null:0)} disabled={!state.past.length||pending!==null||turning!==null}/>{!preset&&<GameAuxAction compact icon="shuffle" label={t('spatialLabNew')} onPress={()=>request('new')} disabled={pending!==null||busy}/>}</GameAuxBar></View>
-      <View style={{alignItems:'center',gap:8}}>
+      {/* Строки уровня — последние в поле, а поле теперь прибито: слева внизу над ними висит кнопка отзыва
+          (в арабском справа). Отступ с обеих сторон на её ширину — живой кадр 375×667, «Поворот чисел», ур. 1:
+          кнопка накрывала «Один» в строке описания уровня. */}
+      <View style={{alignItems:'center',gap:тесно?4:8,alignSelf:'stretch',paddingHorizontal:FAB_SIZE+12}}>
         {/*
           🔴 СЧЁТЧИК ПРОЙДЕННОГО ОТНОСИТСЯ К УРОВНЯМ, А СТОЯЛ ПОД «СВОБОДНОЙ ИГРОЙ».
           Отчёт ee0889e7 (12.09.2026), дословно: «Свободная игра и что под ней зачем
@@ -370,15 +522,10 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
           Поэтому в свободной игре подпись прямо называет, чей это счёт, и рядом
           сказано, что здесь ходы в прогресс не идут и где его начать.
         */}
-        <Text testID="spatial-level" style={ink}>{task?`${t('level')} ${task.level}/50`:t('spatialFreePlay')}</Text>
-        {!preset&&<Text testID="spatial-completed" style={ink}>{task?t('spatialDone'):t('spatialDoneInLevels')}: {completed[mode].length}/50</Text>}
-        {!preset&&!task&&<Text testID="spatial-free-hint" style={[styles.instruction,ink]}>{t('spatialFreePlayHint')}</Text>}
-        {!preset&&<View style={styles.auxRow}><GameAuxBar>
-          <GameAuxAction label={t('spatialLabEasier')} disabled={!task||task.level===1||busy||pending!==null} onPress={()=>request((task?.level??1)-1)}/>
-          <GameAuxAction label={t(task?'spatialLabHarder':'spatialLabStartLevels')} disabled={task?.level===50||busy||pending!==null} onPress={()=>request((task?.level??0)+1)}/>
-          {task?<GameAuxAction label={t('spatialFreePlay')} disabled={busy||pending!==null} onPress={()=>request(0)}/>:null}
-        </GameAuxBar></View>}
-        {task?<Text testID="spatial-level-note" style={[styles.instruction,ink]}>{levelNote(task,t,mode)}</Text>:null}
+        {/* В партии — только чем занят игрок: пояснение про свободную игру живёт на экране настройки
+            (двухстрочная подпись здесь уходила под кнопку отзыва — живой кадр 430×932, 17.09.2026). */}
+        <Text testID="spatial-game-level" style={ink}>{task?`${t('level')} ${task.level}/50 · ${t('spatialDone')}: ${completed[mode].length}/50`:t('spatialFreePlay')}</Text>
+        {task?<Text testID="spatial-level-note" style={[styles.instruction,тесно&&styles.instructionTight,ink]}>{levelNote(task,t,mode)}</Text>:null}
       </View>
       {/*
         ВКЛАДКИ РЕЖИМОВ — ТОЖЕ ПОД ДОСКОЙ (16.09.2026): это выбор игры, а не ход, и
@@ -393,8 +540,7 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
         Экран Codex уже показывает уровень строкой «Уровень N/50», «Пройдено N/50» и
         кнопками «Проще / Сложнее / Свободная» — второй навигации ему не нужно.
       */}
-      {!preset&&<View style={styles.tabs}>{SPATIAL_MODES.map(m=><Pressable key={m} accessibilityRole="button" accessibilityState={{selected:mode===m}} onPress={()=>{if(m!==mode)request(m);}} style={[styles.tab,{borderColor:mode===m?colors.primary:colors.border,backgroundColor:colors.surface}]}><Text style={ink}>{t(ИМЯ[m])}</Text></Pressable>)}</View>}
-      <View style={{paddingHorizontal:52}}><Text testID="spatial-save-status" style={[styles.note,{color:colors.textSecondary}]}>{preset?t('spatialLabWarmupNote'):saveError?t(saveError):t('spatialLabLocalSave')}</Text></View>
+      {preset?<View style={{paddingHorizontal:52}}><Text testID="spatial-save-status" style={[styles.note,{color:colors.textSecondary}]}>{t('spatialLabWarmupNote')}</Text></View>:null}
     </View>
   </GameShell>;
 }
@@ -407,5 +553,10 @@ const styles=StyleSheet.create({
    * и зазором 8 стрелка выходила 47 pt — ниже пола 48. Без отступа и с зазором 6 — 56 pt.
    */
   arrows:{flexDirection:'row',gap:6,width:'100%',maxWidth:640},arrow:{minWidth:48},
-  field:{alignItems:'center',width:'100%',gap:12},instruction:{fontSize:16,textAlign:'center',maxWidth:420,lineHeight:22},row:{flexDirection:'row',gap:4},cell:{borderRadius:12,alignItems:'center',justifyContent:'center',overflow:'hidden'},number:{fontSize:27,fontWeight:'800',color:'#352654'},status:{fontSize:16,textAlign:'center'},note:{fontSize:12,textAlign:'center'},confirm:{padding:12,borderWidth:1,borderRadius:12,gap:12,width:'100%'},
+  field:{alignItems:'center',width:'100%',gap:12},fieldTight:{gap:8},instructionTight:{fontSize:14,lineHeight:19},
+  configRoot:{flex:1},configHeader:{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:8,paddingVertical:6},
+  configBack:{width:48,height:48,alignItems:'center',justifyContent:'center'},configTitle:{flex:1,color:'#fff',fontSize:20,fontWeight:'800'},
+  configBody:{padding:16,gap:14,alignItems:'stretch'},configCard:{borderRadius:16,padding:14,gap:8,alignItems:'center'},
+  levelLine:{fontSize:17,fontWeight:'700',textAlign:'center'},startBtn:{borderRadius:999,paddingVertical:16,alignItems:'center'},startText:{color:'#fff',fontSize:17,fontWeight:'800'},
+  secondaryBtn:{minHeight:48,borderRadius:999,borderWidth:1,alignItems:'center',justifyContent:'center',paddingHorizontal:18},secondaryText:{fontSize:15,fontWeight:'700',textAlign:'center'},instruction:{fontSize:16,textAlign:'center',maxWidth:420,lineHeight:22},row:{flexDirection:'row',gap:4},cell:{borderRadius:12,alignItems:'center',justifyContent:'center',overflow:'hidden'},number:{fontSize:27,fontWeight:'800',color:'#352654'},status:{fontSize:16,textAlign:'center'},note:{fontSize:12,textAlign:'center'},confirm:{padding:12,borderWidth:1,borderRadius:12,gap:12,width:'100%'},
 });

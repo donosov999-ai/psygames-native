@@ -1,4 +1,4 @@
-/* psygames-rotation-landscape-fit · VER 1 · 17.09.2026 */
+/* psygames-rotation-landscape-fit · VER 3 · 17.09.2026 */
 /**
  * rotation-landscape-fit — в альбоме эталон «Мысленного вращения» виден целиком и не мельче варианта.
  *
@@ -14,6 +14,11 @@
  *   · срез — на сколько низ карточки эталона ниже низа прокручиваемого поля;
  *   · рисунок эталона и рисунок варианта (стороны SVG).
  * Код выхода 1, если где-то срез больше допуска или эталон мельче варианта больше чем на 2 px.
+ *
+ * РАЗБОР (VER 3, задача 5de33bb4). После ответа, если открылся разбор, мерится то же самое ещё раз:
+ * срез эталона, рисунки эталона и варианта — они обязаны совпасть с заданием (ничего не прыгает),
+ * — и кнопка «Следующий раунд»: не ниже 44 px и целиком в окне. До VER 3 разбор в альбоме уводил
+ * эталон под варианты: видно 0–64 px из 96–131 на шести окнах, а этот прибор мерил только задание.
  * Числа `LANDSCAPE_FIXED_HEIGHT` в `src/games/mental-rotation/optionLayout.ts` сняты этим же
  * замером — меняешь шапку каркаса, строку счёта или карточку, перемерь здесь.
  *
@@ -59,7 +64,7 @@ for (const size of SIZES) {
   for (let i = 0; i < 3; i++) { const g = p.getByText(/^понятно$/i); if (!(await g.count())) break; await g.last().click().catch(() => {}); await p.waitForTimeout(500); }
 
   for (let раунд = 1; раунд <= ROUNDS; раунд++) {
-    const r = await p.evaluate(() => {
+    const замер = () => p.evaluate(() => {
       const ref = document.querySelector('[data-testid="mental-reference"]');
       if (!ref) return null;
       let поле = ref.parentElement;
@@ -69,17 +74,46 @@ for (const size of SIZES) {
       const рисунокВарианта = Math.max(0, ...варианты.map((o) => сторона(o.querySelector('svg'))));
       const рисункиЭталона = [...ref.querySelectorAll('svg')].map(сторона);
       // Подписи вида в альбоме нет (шапке не хватает места) — вид узнаём по разметке эталона и вопросу.
-      const поМетке = [['section-layer', 'Срез'], ['missing-whole', 'Недостающая часть'], ['formation-views', 'Три вида'], ['assembly-parts', 'Сборка'], ['same-pair', 'Одинаковы?']]
+      const поМетке = [['section-layer', 'Срез'], ['missing-whole', 'Недостающая часть'], ['formation-views', 'Три вида'], ['assembly-parts', 'Сборка'], ['same-pair', 'Одинаковы?'], ['oblique-reference', 'Сечение'], ['memory-figure', 'Память'], ['memory-hidden', 'Память']]
         .find(([id]) => ref.querySelector(`[data-testid="${id}"]`));
       const вид = поМетке ? поМетке[1] : (ref.previousElementSibling?.textContent ?? '?').trim().slice(0, 28);
+      const дальше = document.querySelector('[data-testid="mental-review-next"]');
+      const кн = дальше?.getBoundingClientRect();
+      // Надпись кнопки и подпись разбора: слово не рвётся посреди (у слова больше одной строки)
+      // и текст не обрезан многоточием (живой кадр 667×375: «Следу…ющ…» при колонке 72 px).
+      const рвётсяИлиОбрезан = (el) => {
+        if (!el) return false;
+        const листья = [...el.querySelectorAll('*')].filter((e) => e.children.length === 0 && (e.textContent || '').trim());
+        for (const лист of листья.length ? листья : [el]) {
+          if (лист.scrollHeight > лист.clientHeight + 1 || лист.scrollWidth > лист.clientWidth + 1) return true;
+          const обход = document.createTreeWalker(лист, NodeFilter.SHOW_TEXT);
+          for (let узел = обход.nextNode(); узел; узел = обход.nextNode()) {
+            for (const m of (узел.textContent || '').matchAll(/\S+/g)) {
+              // японский и китайский переносятся между любыми знаками — это не разрыв слова
+              if (/[\u3040-\u30ff\u3400-\u9fff]/.test(m[0])) continue;
+              const диапазон = document.createRange();
+              диапазон.setStart(узел, m.index); диапазон.setEnd(узел, m.index + m[0].length);
+              if (new Set([...диапазон.getClientRects()].map((q) => Math.round(q.top))).size > 1) return true;
+            }
+          }
+        }
+        return false;
+      };
       return {
         вид,
         срез: поле ? Math.max(0, Math.round(ref.getBoundingClientRect().bottom - поле.getBoundingClientRect().bottom)) : null,
         эталон: Math.max(0, ...рисункиЭталона),
+        карточка: Math.round(ref.getBoundingClientRect().height),
         вариант: рисунокВарианта,
+        вариантX: варианты[0] ? Math.round(варианты[0].getBoundingClientRect().left) : null,
         рисунковВЭталоне: рисункиЭталона.length,
+        кнопка: кн ? { h: Math.round(кн.height), внеОкна: кн.bottom > innerHeight + 0.5 || кн.right > innerWidth + 0.5 || кн.top < 0 || кн.left < 0, рвётся: рвётсяИлиОбрезан(дальше) || рвётсяИлиОбрезан(document.querySelector('[data-testid="mental-picked-note"]')) } : null,
       };
     });
+    // «Память»: пока фигуру показывают, в карточках вариантов пустое место без рисунка — мерить вариант
+    // рано (прибор сравнил бы рисунок 0 в задании с рисунком в разборе и назвал бы это прыжком).
+    for (let i = 0; i < 80 && await p.locator('[data-testid="memory-figure"]').count() && !(await p.locator('[data-testid="mental-review-next"]').count()); i++) await p.waitForTimeout(100);
+    const r = await замер();
     if (!r) break;
     // Эталон сравниваем с вариантом только там, где в карточке один рисунок: у «Сборки»,
     // «Трёх видов» и «Одинаковы?» в эталоне несколько фигур по 0,62–0,8 размера — так задумано.
@@ -92,12 +126,29 @@ for (const size of SIZES) {
     await p.locator('[aria-label^="Вариант"]').first().click().catch(() => {});
     await p.waitForTimeout(900);
     const дальше = p.locator('[data-testid="mental-review-next"]');
-    if (await дальше.count()) { await дальше.first().click().catch(() => {}); }
+    if (await дальше.count()) {
+      const рз = await замер();
+      if (рз) {
+        // В разборе ничего не прыгает: эталон и вариант того же размера, срез в допуске, кнопка под палец и в окне.
+        // Карточку эталона сравниваем всегда; рисунок — только если он есть в обоих замерах: у «Памяти»
+        // после показа на месте фигуры знак «?» той же величины, а в разборе фигура возвращается.
+        const прыжок = Math.abs(рз.карточка - r.карточка) > 1 || Math.abs(рз.вариант - r.вариант) > 1
+          || Math.abs((рз.вариантX ?? 0) - (r.вариантX ?? 0)) > 1
+          || (рз.эталон > 0 && r.эталон > 0 && Math.abs(рз.эталон - r.эталон) > 1);
+        const кнопкаПлохо = !рз.кнопка || рз.кнопка.h < 44 || рз.кнопка.внеОкна || рз.кнопка.рвётся;
+        const okР = (рз.срез ?? 0) <= ДОПУСК && !прыжок && !кнопкаПлохо;
+        if (!okР) плохо++;
+        строки.push({ size, раунд, разбор: true, ...рз, ok: okР });
+        console.log(`${size} раунд ${раунд} «${рз.вид}» РАЗБОР: срез эталона ${рз.срез} px · карточка ${r.карточка} → ${рз.карточка} · ряд x ${r.вариантX} → ${рз.вариантX} · эталон ${рз.эталон} · вариант ${рз.вариант} · кнопка ${рз.кнопка ? `${рз.кнопка.h} px${рз.кнопка.внеОкна ? ' ВНЕ ОКНА' : ''}${рз.кнопка.рвётся ? ' ТЕКСТ РВЁТСЯ' : ''}` : 'нет'}${okР ? '' : '  ❌'}`);
+      }
+      await дальше.first().click().catch(() => {});
+    }
     await p.waitForTimeout(900);
   }
   if (ошибки.length) { плохо++; console.log(`${size}: ошибки страницы — ${ошибки.join(' | ')}`); }
   await ctx.close();
 }
 await b.close();
-console.log(плохо ? `❌ Нарушений: ${плохо} из ${строки.length} замеров.` : `✅ Эталон виден целиком и не мельче варианта: ${строки.length} замеров на ${SIZES.length} окнах.`);
+const разборов = строки.filter((s) => s.разбор).length;
+console.log(плохо ? `❌ Нарушений: ${плохо} из ${строки.length} замеров (разборов ${разборов}).` : `✅ Эталон виден целиком и не мельче варианта: ${строки.length} замеров на ${SIZES.length} окнах, из них разборов ${разборов}.`);
 process.exit(плохо ? 1 : 0);

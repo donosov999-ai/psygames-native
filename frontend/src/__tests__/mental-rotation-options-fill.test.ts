@@ -1,5 +1,5 @@
-/* psygames-mental-rotation-options-fill · VER 2 · 17.09.2026 */
-/* psygames-spatial-claude-mac · задача a2967e6f, отчёт c8903296 */
+/* psygames-mental-rotation-options-fill · VER 3 · 17.09.2026 */
+/* psygames-spatial-claude-mac · задачи a2967e6f (отчёт c8903296), 5de33bb4 */
 /**
  * 🔴 ФИГУРА ВАРИАНТА ЗАНИМАЕТ КАРТОЧКУ, А НЕ ТЕРЯЕТСЯ В НЕЙ — И В АЛЬБОМЕ ТОЖЕ.
  *
@@ -17,8 +17,16 @@
  * 56, прибор `scripts/rotation-landscape-fit.mjs` дал 34 нарушения из 36 замеров. Теперь в альбоме
  * эталон и варианты делят высоту поровну (`LANDSCAPE_FIXED_HEIGHT`), и проба стережёт ДЕЛЁЖ,
  * а не один размер варианта. После правки тот же прибор: 0 нарушений из 56 замеров на 4 окнах.
+ *
+ * 🔴 VER 3 — РАЗБОР (задача 5de33bb4). Делёж высоты держался в задании и ломался в момент ответа:
+ * тесный разбор растягивал варианты по ширине полосы (рисунок 62–97 → 138 px) и ставил под ряд
+ * подпись и кнопку. Прибор, научившись мерить и разбор, на сборке до правки дал 8 нарушений из
+ * 8 разборов: срез эталона 108–128 px, на 740×360 кнопка «Следующий раунд» ниже окна.
  */
-import { LANDSCAPE_FIXED_HEIGHT, LANDSCAPE_PROMPT_LINE, optionLayout } from '@/src/games/mental-rotation/optionLayout';
+import {
+  LANDSCAPE_CARD_EXTRA, LANDSCAPE_FIXED_HEIGHT, LANDSCAPE_PROMPT_LINE, LANDSCAPE_REVIEW_BUTTON, LANDSCAPE_REVIEW_NOTE_GAP,
+  LANDSCAPE_REVIEW_NOTE_LINE, LANDSCAPE_REVIEW_SIDE_MIN, optionLayout, reviewSideWidth,
+} from '@/src/games/mental-rotation/optionLayout';
 import { shapeSurface, stillUnit } from '@/src/games/mental-rotation/core/surface';
 import { buildRotationTask, createRng, shapesOfSize } from '@/src/games/mental-rotation/core';
 import type { Shape } from '@/src/games/mental-rotation/core';
@@ -78,10 +86,34 @@ describe('раскладка вариантов «Мысленного вращ�
     expect((две.refSize as number) - (три.refSize as number)).toBe(LANDSCAPE_PROMPT_LINE);
   });
 
-  it('в разборе на альбоме эталон того же размера, что в задании — не прыгает в момент ответа', () => {
-    const задание = optionLayout({ viewportWidth: 844, viewportHeight: 390, answerWidth: 480, count: 4, compactReview: false });
-    const разбор = optionLayout({ viewportWidth: 844, viewportHeight: 390, answerWidth: 480, count: 4, compactReview: true });
-    expect(разбор.refSize).toBe(задание.refSize);
+  it('🔴 разбор в альбоме: эталон и варианты того же размера, что в задании, колонка «подпись + кнопка» влезает сбоку', () => {
+    // 600×500 и 700×500 — узкие и не низкие окна (разделённый экран): там ряд упирается в ширину, и место
+    // под колонку разбора обязано остаться — ряд сужается, а не колонка уезжает за край.
+    for (const [w, h] of [...АЛЬБОМ, [640, 360], [600, 340], [600, 500], [700, 500]] as [number, number][]) for (const count of [3, 4]) {
+      // answerWidth в разборе другой: ряд вариантов сжимается под колонку — на размер это влиять не должно.
+      const задание = optionLayout({ viewportWidth: w, viewportHeight: h, answerWidth: 480, count, compactReview: false });
+      const разбор = optionLayout({ viewportWidth: w, viewportHeight: h, answerWidth: 300, count, compactReview: true });
+      expect(`${w}×${h}/${count}: ${JSON.stringify(разбор)}`).toBe(`${w}×${h}/${count}: ${JSON.stringify(задание)}`);
+      // ширина: ряд стоит по центру окна, колонке сбоку до края окна остаётся не меньше минимума.
+      // 120 — литерал замера, а не константа кода: самое широкое слово надписи кнопки «Следующий» 87 px
+      // (жирный 14) + поля кнопки 12 + 12 + рамка; живой кадр 667×375 при 4 вариантах и колонке 72 px —
+      // «Следу…ющ…». Уже 120 — перемерить надписи прибором, а не опускать число.
+      const колонкаШирина = reviewSideWidth(w, count, разбор.optSize);
+      expect(`${w}×${h}/${count}: колонка ${колонкаШирина}`).toBe(`${w}×${h}/${count}: колонка ${Math.max(колонкаШирина, 120)}`);
+      expect(LANDSCAPE_REVIEW_SIDE_MIN).toBeGreaterThanOrEqual(120);
+      // высота: колонка не выше карточки варианта — полоса не растёт, поле над ней не сжимается
+      const колонка = (разбор.reviewNoteLines ?? 0) * LANDSCAPE_REVIEW_NOTE_LINE + ((разбор.reviewNoteLines ?? 0) > 0 ? LANDSCAPE_REVIEW_NOTE_GAP : 0) + LANDSCAPE_REVIEW_BUTTON;
+      expect(колонка).toBeLessThanOrEqual(разбор.optSize + LANDSCAPE_CARD_EXTRA);
+      // на альбоме телефонов от 667×375 подпись в две строки; в узких окнах ряд сужен под колонку — там одна
+      const телефон = АЛЬБОМ.some(([aw, ah]) => aw === w && ah === h);
+      if (телефон && h >= 375) expect(`${w}×${h}: строк подписи ${разбор.reviewNoteLines}`).toBe(`${w}×${h}: строк подписи 2`);
+      else expect(разбор.reviewNoteLines).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('разбор в портрете не изменился: тесный разбор — ряд по ширине полосы, без альбомных полей', () => {
+    expect(optionLayout({ viewportWidth: 375, viewportHeight: 667, answerWidth: 343, count: 4, compactReview: true })).toEqual({ optSize: (343 - 18) / 4 - 18, oneRow: false });
+    expect(optionLayout({ viewportWidth: 320, viewportHeight: 540, answerWidth: 288, count: 4, compactReview: true }).oneRow).toBe(false);
   });
 
   it('портрет не изменился: сетка 2×2 и прежние размеры', () => {
@@ -145,6 +177,14 @@ describe('экран зовёт раскладку и общий масштаб'
     expect(код).toMatch(/promptLines \}\)/);
     expect(код).toMatch(/setPromptLines\(/);
     expect(код).toMatch(/stillUnit\(task\.options\.map/);
+    // альбомный разбор: колонка сбоку, подписи под карточками в альбоме не встают, рамка ответа съедает поля
+    expect(код).toMatch(/const reviewSide = reviewing && wideShort;/);
+    expect(код).toMatch(/testID="mental-review-side" style=\{\[\{ position: 'absolute'/);
+    expect(код).toMatch(/reviewSideWidth\(viewportWidth, task\.options\.length, optSize\)/);
+    // в RTL кнопка отзыва справа — колонка слева от ряда
+    expect(код).toMatch(/колонкаСлева \? \{ right: '50%', marginRight: отступКолонки \} : \{ left: '50%', marginLeft: отступКолонки \}/);
+    expect(код).toMatch(/feedback&&!compactReview&&!wideShort&&<Text/);
+    expect(код).toMatch(/padding:feedback\?4:6/);
     expect((код.match(/optSize, GRADIENT\[1\], undefined, undefined, optUnit\)/g) ?? []).length).toBe(2);
   });
 });
