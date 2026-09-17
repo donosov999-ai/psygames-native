@@ -7,7 +7,7 @@ import {
   buildFixedPlaylist, buildEveningWarmupPlaylist, buildDayPlaylist, buildNightPlaylist, stepToParams,
   getCurrentWeekday, todayDateKey,
   saveWarmupHistory, WarmupHistoryEntry, Weekday, Длительность,
-  shouldAdvance,
+  shouldAdvance, партияЗаШаг,
 } from '@/src/services/warmup';
 import { setSessionListener, GameSession } from '@/src/services/api';
 import { localSpatialHost, spatialWarmupPlaylist } from '@/src/games/spatial-core/warmup';
@@ -164,7 +164,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const startWarmup = useCallback((duration: 5 | 10 | 15) => {
     const wd = getCurrentWeekday();
     // Если у профиля задан фиксированный утренний набор — используем его (минуя weekday-логику).
-    const meta = profile.morning_playlist && profile.morning_playlist.length > 0
+    const собран = profile.morning_playlist && profile.morning_playlist.length > 0
       ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, allow)
       : buildMorningWarmupPlaylist({
           duration,
@@ -172,6 +172,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
           profilePlaylists: profile.custom_playlists,    // E1: per-profile override
           allow,
         });
+    const meta: PlaylistMeta = { ...собран, вид: 'слот' };
     const warmupId = genUUID();
     const sessionTag = trackToTag(meta.track);
     setState({
@@ -193,7 +194,10 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
     const morning = profile.morning_playlist && profile.morning_playlist.length > 0
       ? buildFixedPlaylist(profile.morning_playlist, 'morning', wd, allow)
       : buildMorningWarmupPlaylist({ duration: 15, weekday: wd, profilePlaylists: profile.custom_playlists, allow });
-    const meta = buildEveningWarmupPlaylist({ weekday: wd, excludeGameIds: morning.steps.map((s) => s.game_id), profileEvening: profile.evening_playlist, allow, duration });
+    const meta: PlaylistMeta = {
+      ...buildEveningWarmupPlaylist({ weekday: wd, excludeGameIds: morning.steps.map((s) => s.game_id), profileEvening: profile.evening_playlist, allow, duration }),
+      вид: 'слот',
+    };
     const warmupId = genUUID();
     setState({
       active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],
@@ -212,12 +216,16 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
    *
    * sessionTag у ночи 'manual', а не 'warmup': она не тренировка и не должна
    * попадать в статистику комплексов и двигать стрик (решение Дениса 02.08).
+   *
+   * ⚠️ Остальным метка — по дорожке, как у `startWarmup`: сюда же приходит повтор утра
+   * замерного дня («Ещё раз» на итоге), и он обязан остаться 'peak' / 'baseline', а не
+   * стать 'warmup' оттого, что пришёл другой дверью.
    */
   const startSlotPlaylist = useCallback((meta: PlaylistMeta) => {
     const warmupId = genUUID();
     setState({
       active: true, meta, currentIdx: 0, startTime: Date.now(), results: [],
-      warmupId, sessionTag: meta.slot === 'night' ? 'manual' : 'warmup',
+      warmupId, sessionTag: meta.slot === 'night' ? 'manual' : trackToTag(meta.track),
     });
     if (meta.steps.length === 0) router.replace('/warmup-complete' as any);
     else router.replace({ pathname: meta.steps[0].game_route, params: stepToParams(meta.steps[0], meta.slot, meta.track) } as any);
@@ -231,11 +239,19 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const startDay = useCallback((duration: Длительность = 5) => {
     // Фильтр профиля — как в утреннем и вечернем наборах. Без него перерыв
     // раздавал упражнения, которых в профиле нет.
-    startSlotPlaylist(buildDayPlaylist(getCurrentWeekday(), allow, duration));
+    startSlotPlaylist({ ...buildDayPlaylist(getCurrentWeekday(), allow, duration), вид: 'слот' });
   }, [startSlotPlaylist, allow]);
 
   const startNight = useCallback((duration: Длительность = 5) => {
-    startSlotPlaylist(buildNightPlaylist(getCurrentWeekday(), duration));
+    startSlotPlaylist({ ...buildNightPlaylist(getCurrentWeekday(), duration), вид: 'слот' });
+  }, [startSlotPlaylist]);
+
+  /**
+   * Готовый набор: своя серия, серия развилки, тема хаба — и повтор с итога.
+   * Уже помеченный набор (повтор слота) свою пометку сохраняет.
+   */
+  const startPlaylist = useCallback((meta: PlaylistMeta) => {
+    startSlotPlaylist({ вид: 'набор', ...meta });
   }, [startSlotPlaylist]);
 
   /**
@@ -402,7 +418,8 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       if (!cur.active || !cur.meta || cur.localSpatial) return;
       const step = cur.meta.steps[cur.currentIdx];
       if (!step) return;
-      if (s.game_type !== step.game_id) return;  // not the expected game
+      // Не та игра. Сверка по корзине экрана, а не по имени в каталоге — см. `партияЗаШаг`.
+      if (!партияЗаШаг(step.game_id, s)) return;
 
       // ENRICH the just-saved session with warmup metadata for Supabase sync.
       // Mutate in place — saveSession returned this object reference, and the
@@ -414,8 +431,9 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       s.duration_preset = cur.meta.duration_min;
 
       // record into warmup result list
+      // Имя ШАГА, а не корзины партии: итог, ядро-снимок и оценка сверяют результаты с шагами.
       await recordResult({
-        game_type: s.game_type,
+        game_type: step.game_id,
         score: s.score || 0,
         time_seconds: s.time_seconds || 0,
         errors: s.errors || 0,
@@ -471,7 +489,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const dismissOvertime = useCallback(() => setСпрошеноУ(state.warmupId), [state.warmupId]);
 
   return (
-    <Ctx.Provider value={{ ...state, currentStep, overtime, stepsLeft, dismissOvertime, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startSpatialLab, startAssessment, startPlaylist: startSlotPlaylist, recordResult, advanceToNext, skipCurrent, stopWarmup, holdAutoAdvance }}>
+    <Ctx.Provider value={{ ...state, currentStep, overtime, stepsLeft, dismissOvertime, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startSpatialLab, startAssessment, startPlaylist, recordResult, advanceToNext, skipCurrent, stopWarmup, holdAutoAdvance }}>
       {children}
     </Ctx.Provider>
   );

@@ -10,7 +10,7 @@
  *   const playlist = buildMorningWarmupPlaylist({ duration: 5|10|15, weekday: 0..6 })
  */
 
-import { isSandboxGame } from '@/src/constants/games';
+import { GAMES, isSandboxGame, sessionGameType, sessionTypeOf } from '@/src/constants/games';
 import { GameSession } from '@/src/services/api';
 import { translateFor } from '@/src/contexts/LanguageContext';
 import { estimateStepSec } from '@/src/services/gameDuration';
@@ -72,6 +72,16 @@ export interface PlaylistMeta {
   steps: PlaylistStep[];
   est_total_sec: number;
   slot?: WarmupSlot;              // время суток: утро / день / вечер / «не спится»
+  /**
+   * ЧТО ЗАПУЩЕНО: зарядка времени суток или готовый набор (своя серия, серия развилки, тема
+   * хаба). Ставит `WarmupContext` при запуске, а не сборщик набора.
+   *
+   * 📍 Зачем, замер 17.09.2026: свои серии собираются со `slot: 'morning'`, темы хабов — со
+   * `slot: 'day'` (слот им нужен для темпа моста и тишины вечера). Итог по слоту подписывал
+   * «Рабочая память · 5 мин» как «Утренняя», а «Ещё раз» запускал вместо серии утреннюю
+   * зарядку. Слот отвечает на вопрос «когда», а не «что» — поэтому отдельное поле.
+   */
+  вид?: 'слот' | 'набор';
 }
 
 /**
@@ -1346,6 +1356,18 @@ export async function repairWarmupHistoryOnce(
 }
 
 /**
+ * 🔴 «НЕ СПИТСЯ» В СТРИК НЕ ИДЁТ.
+ *
+ * Так решил Денис 02.08 («ночь не тренировка и не должна двигать стрик» — см. `startSlotPlaylist`
+ * в WarmupContext), и это написано на самой карточке ночи: «очки не начисляются и стрик не
+ * растёт». Метку партий ночь получала (`manual`), а история — нет: пройденная ночь пишет
+ * запись `{ track: 'rest', completed: true }`, и календарь, стрик на итоге и достижения её
+ * засчитывали. Замер 17.09.2026 пробой `warmup-night-not-in-streak`: одна ночная запись за
+ * сегодня давала стрик 1.
+ */
+const вСтрик = (h: WarmupHistoryEntry): boolean => h.completed && h.track !== 'rest';
+
+/**
  * Уникальные завершённые дни тренировки в хронологическом порядке.
  *
  * История могла накопить повторные записи за один день или старые битые даты,
@@ -1354,7 +1376,7 @@ export async function repairWarmupHistoryOnce(
 export function completedWarmupDateKeys(history: WarmupHistoryEntry[]): string[] {
   const valid = new Set<string>();
   for (const entry of history) {
-    if (!entry.completed) continue;
+    if (!вСтрик(entry)) continue;
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(entry.date);
     if (!match) continue;
     const year = Number(match[1]);
@@ -1399,7 +1421,7 @@ export function computeLongestStreak(history: WarmupHistoryEntry[]): number {
 // Два пропуска подряд = streak обрывается.
 export function computeStreak(history: WarmupHistoryEntry[]): number {
   if (history.length === 0) return 0;
-  const dates = new Set(history.filter((h) => h.completed).map((h) => h.date));
+  const dates = new Set(history.filter(вСтрик).map((h) => h.date));
   let streak = 0;
   let graceUsed = false;
   const today = new Date();
@@ -1491,4 +1513,67 @@ export function shouldAdvance(o: {
   if (o.fromIdx !== undefined && o.fromIdx !== o.currentIdx) return false;   // шаг уже сменили
   if (o.now - o.lastAdvanceAt < ADVANCE_DEBOUNCE_MS) return false;           // дубль
   return true;
+}
+
+/**
+ * 🔴 ШАГ ЗАСЧИТЫВАЕТ ПАРТИЮ ПО КОРЗИНЕ, В КОТОРУЮ ЭКРАН ЕЁ ПИШЕТ, А НЕ ПО ИМЕНИ В КАТАЛОГЕ.
+ *
+ * 📍 Живой проход серий 17.09.2026 (экспорт-сборка 1101b52b). Шаг набора называет игру её
+ * `id` из каталога, а экран пишет партию под `game_type`. У «Судоку: фрактал» и «Самурая»
+ * это разные строки — `sudoku-fractal` в каталоге, `sudoku_fractal` в партии, — и каталог
+ * это расхождение уже объявляет (`sessionType`). Слушатель зарядки сверял строки напрямую,
+ * поэтому такой шаг не засчитывался никогда: ни результата, ни перехода на мост, а в итоге —
+ * «ЗАРЯДКА ОСТАНОВЛЕНА» и «Пропущено», хотя партия сыграна. Проба на настоящем провайдере:
+ * `sudoku_fractal` на шаге `sudoku-fractal` → результатов 0, переходов 0.
+ *
+ * ⚠️ Прямое совпадение оставлено первым: экран, пишущий партию под `id` каталога, засчитывается
+ * как раньше, даже если ему объявят `sessionType` позже.
+ */
+export function партияЗаШаг(stepGameId: string, s: { game_type?: string; details?: Record<string, any> | null }): boolean {
+  if (s.game_type === stepGameId) return true;
+  const игра = GAMES.find((g) => g.id === stepGameId);
+  return !!игра && sessionGameType(s) === sessionTypeOf(игра);
+}
+
+/**
+ * 🔴 «ЕЩЁ РАЗ» ПОВТОРЯЕТ ТО, ЧТО ТОЛЬКО ЧТО СЫГРАНО, — ТЕ ЖЕ ШАГИ, ТОЙ ЖЕ ДЛИНЫ.
+ *
+ * 📍 Живой проход 17.09.2026, экспорт-сборка 1101b52b. Итог собирал повтор ЗАНОВО по слоту:
+ * `startDay()` / `startEvening()` / `startNight()` без длины (то есть всегда пять минут, какую
+ * бы человек ни выбрал) и `startWarmup(meta.duration_min)` для всего остального. А
+ * `duration_min` у набора из файла — сумма оценок шагов (14, 9, 7…), которой в сетке нет, и
+ * утро собиралось запасной веткой кода — другим набором. Свои серии и темы хабов туда же:
+ * «Ещё раз» после серии запускал утреннюю или дневную зарядку.
+ *
+ * Повтор — это копия уже собранного набора: день недели, профиль и длина с момента старта
+ * не поменялись, пересобирать нечего.
+ *
+ * ⚠️ У ЗАМЕРОВ С ОСТЫВАНИЕМ ПОВТОРА НЕТ. FIN BRAIN повторяют не раньше чем через 14 дней
+ * (`FINANCIAL_COOLDOWN_DAYS`), оценку — раз в квартал: кнопка «ещё раз» сразу после замера
+ * мерила бы память о прошлом прогоне, а не решения. Для них — `null`, кнопки нет.
+ */
+export function повторСерии(meta: PlaylistMeta | null): PlaylistMeta | null {
+  if (!meta || meta.steps.length === 0) return null;
+  if (meta.track === 'financial-battery' || meta.track === 'assessment') return null;
+  return { ...meta, steps: meta.steps.map((s) => ({ ...s })) };
+}
+
+/**
+ * Очки со знаком для строки результата: «+12», «+0», «−6».
+ * Замер 17.09.2026: «Мнемоника» с 11 ошибками на 5 словах пишет score −6, и мост с итогом
+ * показывали «+-6».
+ */
+export function очкиСоЗнаком(n: number): string {
+  return n < 0 ? `−${Math.abs(n)}` : `+${n}`;
+}
+
+/**
+ * Какой игре каталога принадлежит сохранённая партия — обратная сторона `sessionTypeOf`.
+ * Итог зарядки сравнивает сегодняшние результаты (они записаны именем шага) с прошлыми
+ * партиями (они лежат под корзиной экрана); без этого у фрактала «сегодня» и «раньше»
+ * оказались бы разными играми.
+ */
+export function играПартии(s: { game_type?: string; details?: Record<string, any> | null }): string {
+  const корзина = sessionGameType(s);
+  return GAMES.find((g) => sessionTypeOf(g) === корзина)?.id ?? корзина;
 }

@@ -17,11 +17,12 @@ import { saveWeakSkill } from '@/src/services/weakSkill';
 import { getSessions } from '@/src/services/api';
 import {
   loadWarmupHistory, computeStreak, brainTodayVerdict, WarmupHistoryEntry,
-  PlaylistMeta,
+  PlaylistMeta, играПартии, повторСерии, очкиСоЗнаком,
 } from '@/src/services/warmup';
 import { addTokens, comboBonus } from '@/src/services/tokens';
 import { loadReminderSettings, saveReminderSettings, applyReminders, requestReminderPermission, DEFAULT_REMINDERS } from '@/src/services/reminders';
 import { getAiInsight, toneForProfile, dayKey } from '@/src/services/aiInsight';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import type { StepResult } from '@/src/contexts/WarmupContext';
 
 // Промпт «включить напоминания?» показываем после завершённой зарядки, пока
@@ -105,9 +106,11 @@ export default function WarmupComplete() {
       const прошлые: { game_type: string; score: number }[] = [];
       for (let i = все.length - 1; i >= 0; i -= 1) {
         const s = все[i]!;
-        const надо = убрать.get(s.game_type) ?? 0;
-        if (надо > 0) { убрать.set(s.game_type, надо - 1); continue; }
-        прошлые.push({ game_type: s.game_type, score: s.score });
+        // Результаты зарядки записаны именем шага, партии — корзиной экрана: сводим к одному.
+        const игра = играПартии(s);
+        const надо = убрать.get(игра) ?? 0;
+        if (надо > 0) { убрать.set(игра, надо - 1); continue; }
+        прошлые.push({ game_type: игра, score: s.score });
       }
       const р = разборПоНавыкам(сегодня, прошлые,
         (id) => GAMES.find((g) => g.id === id)?.skillKey);
@@ -126,7 +129,10 @@ export default function WarmupComplete() {
         .format(new Date(Date.UTC(2024, 0, 7 + meta.weekday)))
         .replace(/\.$/, '')
     : '';
-  const metaSlot = meta?.slot === 'morning' ? t('slotMorning')
+  // Набор (своя серия, серия развилки, тема хаба) подписан своим названием: слот у него
+  // служебный, и «Утренняя» под «Рабочей памятью · 5 мин» — неправда (см. `PlaylistMeta.вид`).
+  const metaSlot = meta?.вид === 'набор' ? meta.track_label
+    : meta?.slot === 'morning' ? t('slotMorning')
     : meta?.slot === 'day' ? t('slotDay')
       : meta?.slot === 'evening' ? t('slotEvening')
         : meta?.slot === 'night' ? t('slotNight')
@@ -196,15 +202,10 @@ export default function WarmupComplete() {
   };
 
   const goHome = () => router.replace('/' as any);
-  const playAgain = () => {
-    if (!meta) return;
-    // «Ещё раз» повторяет тот же временной слот. Раньше любой результат,
-    // включая вечерний, всегда запускал утреннюю зарядку через startWarmup().
-    if (meta.slot === 'evening') warmup.startEvening();
-    else if (meta.slot === 'day') warmup.startDay();
-    else if (meta.slot === 'night') warmup.startNight();
-    else warmup.startWarmup(meta.duration_min as any);
-  };
+  // «Ещё раз» — ТОТ ЖЕ набор той же длины, а не новая сборка по слоту (см. `повторСерии`).
+  // У замеров с остыванием повтора нет, и кнопки нет.
+  const повтор = повторСерии(meta);
+  const playAgain = () => { if (повтор) warmup.startPlaylist(повтор); };
 
   if (!meta) {
     return (
@@ -231,7 +232,7 @@ export default function WarmupComplete() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[styles.scroll, { paddingBottom: FAB_CLEARANCE }]} showsVerticalScrollIndicator={false}>
         {/* Hero header */}
         {/* Две плашки, а не тернарник в `colors`: у золотой и у серой РАЗНАЯ
             глубина, единого цвета текста на оба градиента нет (чёрный на `#64748b`
@@ -280,7 +281,7 @@ export default function WarmupComplete() {
                     {game ? t(game.nameKey) : r.game_type}
                   </Text>
                   <View style={styles.rowMetrics}>
-                    <Text style={[styles.metric, { color: '#22c55e' }]}>+{r.score}</Text>
+                    <Text style={[styles.metric, { color: r.score < 0 ? '#f43f5e' : '#22c55e' }]}>{очкиСоЗнаком(r.score)}</Text>
                     <Text style={[styles.metric, { color: colors.textSecondary }]}>{r.time_seconds.toFixed(1)}{t('secShort')}</Text>
                     {r.errors > 0 && <Text style={[styles.metric, { color: '#f43f5e' }]}>✗{r.errors}</Text>}
                   </View>
@@ -432,8 +433,22 @@ export default function WarmupComplete() {
           </View>
         )}
 
-        {/* Actions */}
+      </ScrollView>
+
+      {/*
+        🔴 «ЕЩЁ РАЗ» И «НА ГЛАВНУЮ» ЗАКРЕПЛЕНЫ ВНИЗУ, А НЕ ЕДУТ В КОНЦЕ СПИСКА.
+
+        Отчёты 1e47d75d и fef9d101 (13.09.2026, 2.54.5, iOS 403×873, NZT-48), два подряд:
+        «во всех упражнениях зарядке серии нужно сделать нижний тулбар фиксированно».
+        Замер 17.09.2026 на экспорт-сборке 390×844: у дневной зарядки из пяти результатов
+        кнопки стояли ниже края экрана — итог длинный (результаты, разбор по навыкам, общий
+        счёт, серия), и до выхода приходилось листать. Панель — как у экрана выбора
+        зарядки: вне прокрутки, с рамкой сверху. Список внизу оставляет место под кнопку
+        отзыва (`FAB_CLEARANCE`), иначе последняя строка легла бы под неё.
+      */}
+      <View testID="warmup-complete-actions" style={[styles.bar, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
         <View style={styles.actions}>
+          {повтор && (
           <TouchableOpacity
             accessibilityRole="button" style={[styles.btn, { flex: 1 }]} onPress={playAgain}>
             <LinearGradient colors={GRADIENT_GOLD as [string, string]} style={styles.btnGrad}>
@@ -441,6 +456,7 @@ export default function WarmupComplete() {
               <Text style={[styles.btnText, { color: '#000' }]}>{t('ctaAgain')}</Text>
             </LinearGradient>
           </TouchableOpacity>
+          )}
           {/* v1.166 (репорт Вали «нет кнопки вернуться на главную, есть только повторить»):
               кнопка была, но уезжала под сгиб за «Ещё раз». Ставим её В РЯД, а не
               под ним — на невысоком экране видны обе. */}
@@ -449,7 +465,7 @@ export default function WarmupComplete() {
             <Text style={[styles.btnText, { color: colors.text }]}>{t('goHome')}</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -500,7 +516,8 @@ const styles = StyleSheet.create({
   reminderBody: { fontSize: 13, lineHeight: 19, textAlign: 'center' },
   reminderBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', alignSelf: 'stretch', marginTop: 4 },
   reminderLater: { fontSize: 13, fontWeight: '600', paddingVertical: 6 },
-  actions: { flexDirection: 'row', gap: 10, alignItems: 'stretch', marginTop: 8 },
+  bar: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, borderTopWidth: 1 },
+  actions: { flexDirection: 'row', gap: 10, alignItems: 'stretch', maxWidth: 540, alignSelf: 'center', width: '100%' },
   btn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden' },
   btnGrad: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14 },
   btnText: { fontSize: 15, fontWeight: '800', letterSpacing: 1, paddingVertical: 14, textAlign: 'center' },

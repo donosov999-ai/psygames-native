@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { GAMES } from '@/src/constants/games';
-import { stepToParams } from '@/src/services/warmup';
+import { stepToParams, очкиСоЗнаком } from '@/src/services/warmup';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 
 const GRADIENT = ['#fbbf24', '#f59e0b'];
@@ -165,7 +165,7 @@ export default function WarmupBridge() {
             </Text>
             {justCompletedResult && (
               <View style={styles.statsLine}>
-                <Text style={[styles.statBadge, { color: '#22c55e' }]}>+{justCompletedResult.score}</Text>
+                <Text style={[styles.statBadge, { color: justCompletedResult.score < 0 ? '#f43f5e' : '#22c55e' }]}>{очкиСоЗнаком(justCompletedResult.score)}</Text>
                 <Text style={[styles.statBadge, { color: colors.textSecondary }]}>{justCompletedResult.time_seconds.toFixed(1)}{t('secShort')}</Text>
                 {justCompletedResult.errors > 0 && <Text style={[styles.statBadge, { color: '#f43f5e' }]}>✗{justCompletedResult.errors}</Text>}
               </View>
