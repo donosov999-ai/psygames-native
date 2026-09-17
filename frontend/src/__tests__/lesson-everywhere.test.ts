@@ -1,4 +1,4 @@
-/* psygames-lesson-everywhere · VER 2 · 17.09.2026 */
+/* psygames-lesson-everywhere · VER 3 · 17.09.2026 */
 /**
  * 🎓 РАЗБОР ПО ШАГАМ У ВСЕХ ИГР — РЕЕСТР ОХВАТА С ХРАПОВИКОМ.
  *
@@ -80,7 +80,7 @@ const ЖДУТ_РЕЖИМЫ: Record<string, string> = {
   Slide: ПРОСТРАНСТВО, Sokoban: ПРОСТРАНСТВО, Net: ПРОСТРАНСТВО, Netslide: ПРОСТРАНСТВО, Twiddle: ПРОСТРАНСТВО,
   Cube: ПРОСТРАНСТВО, Flip: ПРОСТРАНСТВО, Sixteen: ПРОСТРАНСТВО, Fifteen: ПРОСТРАНСТВО, Untangle: ПРОСТРАНСТВО,
   Solo: СУДОКУ, Towers: СУДОКУ, Unequal: СУДОКУ, Keen: СУДОКУ, Singles: СУДОКУ, Filling: СУДОКУ, Undead: СУДОКУ,
-  'Black Box': 'psygames-claude-mac', Guess: 'psygames-claude-mac',
+  'Black Box': 'psygames-claude-mac',
 };
 
 /**

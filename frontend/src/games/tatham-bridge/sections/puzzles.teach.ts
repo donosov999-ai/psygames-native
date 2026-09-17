@@ -1,4 +1,4 @@
-/* psygames-tatham-bridge-puzzles-teach · VER 2 · 17.09.2026 */
+/* psygames-tatham-bridge-puzzles-teach · VER 3 · 17.09.2026 */
 /**
  * РАЗБОР ПО ШАГАМ ДЛЯ РЕЖИМОВ РАЗДЕЛА «Головоломки» — ФАЙЛ ЕГО ВЛАДЕЛЬЦА (psygames-claude-mac).
  *
@@ -6,10 +6,12 @@
  * играм»). Режимы раздела: Unruly, Slant, Black Box, Guess. Формат — `../teach/types.ts`.
  */
 import type { УчительРежима } from '../teach/types';
+import { учительGuess } from '../teach/guess';
 import { учительSlant } from '../teach/slant';
 import { учительUnruly } from '../teach/unruly';
 
 export const УЧИТЕЛЯ_РАЗДЕЛА: Record<string, УчительРежима> = {
   Unruly: учительUnruly,
   Slant: учительSlant,
+  Guess: учительGuess,
 };
