@@ -28,11 +28,12 @@ import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGamePreset } from '@/src/hooks/useGamePreset';
 import GameShell from '@/src/components/GameShell';
+import { GameFieldHeight } from '@/src/components/GameFieldHeight';
 import ArrowPad, { ПРЯМЫЕ } from '@/src/components/ArrowPad';
 import { GameAuxAction } from '@/src/components/GameAuxAction';
 import PuzzleCanvas from '@/src/components/PuzzleCanvas';
 import LessonPlayer, { длительностьШага } from '@/src/components/LessonPlayer';
-import PlayBoard, { сторонаДоски } from '@/src/components/PlayBoard';
+import PlayBoard, { сторонаПоВысоте } from '@/src/components/PlayBoard';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { HELP_OPEN_EVENT } from '@/src/components/GameHelpOverlay';
@@ -50,6 +51,9 @@ import { разобрать as разобратьДоску, доскаСРис�
 import { ПЛАН_ШАГАМИ, ИМЯ_ВТОРОГО, ВЫБОР, ВЫБОР_ВТОРОЙ, ВОСЕМЬ_НАПРАВЛЕНИЙ, КЛЮЧ_ИМЕНИ, КЛЮЧ_ОПИСАНИЯ, ПО_УМОЛЧАНИЮ, СТРЕЛОЧНЫЕ, лестницаДвижка, ВТОРОЕ_ДЕЙСТВИЕ, ВВОД, ТОЛЬКО_ПРОТЯЖКА, ЦИФРОВЫЕ, клавишДоски, ЗНАКИ_ЦИФР, ПОДСВЕТКА_ЧИСЛА, клавишПодсветки, ГНЁЗД_ПОДСВЕТКИ } from '@/src/games/tatham-bridge/names';
 
 const GRADIENT = ['#6C5CE7', '#A78BFA'];
+/** Зазор между рядами сцены и её поле — числами, потому что по ним считается сторона доски. */
+const ЗАЗОР_СЦЕНЫ = 14;
+const ПОЛЕ_СЦЕНЫ = 10;
 
 /**
  * 🔴 РАЗБОР ПО ШАГАМ — ПИЛОТ ОБУЧЕНИЯ «КАК ИГРАТЬ ПРАВИЛЬНО» (Денис 17.09.2026).
@@ -118,8 +122,22 @@ export default function PuzzlesScreen() {
   const [зерно, setЗерно] = useState(() => Math.floor(Math.random() * 1e6));
   const начатоВ = useRef(gameNow());
 
-  /** Сторона квадрата под доску — общий носитель стандарта (`PlayBoard`). */
-  const сторонаПоля = сторонаДоски(width);
+  /**
+   * Сторона квадрата под доску — общий носитель стандарта (`PlayBoard`, `сторонаПоВысоте`).
+   * Сколько экран занимает НАД доской и ПОД ней — мерится раскладкой, а не числами по режимам:
+   * у сорока двух режимов разный набор рядов под доской (крестовина, цифры, выбор). По этим
+   * двум числам и высоте поля каркаса доска вписывается так, чтобы поле не прокручивалось
+   * (`сторонаПоВысоте`, отчёт e5bfc2f0 «игры всё ещё ездят»).
+   */
+  const [местоДоски, setМестоДоски] = useState({ y: 0, h: 0 });
+  /**
+   * ⚠️ «НИЗ» МЕРИТСЯ СВОИМ УЗЛОМ, А НЕ ВЫСОТОЙ СЦЕНЫ. Первая сборка брала высоту сцены минус
+   * доску — но у сцены `flex: 1`, и при содержимом выше окна её высота режется по окну.
+   * Замер 17.09.2026, «Мосты» 360×640: «низ» выходил ≤ 140 при настоящих ~410, доска не
+   * ужималась, поле оставалось на 270 выше окна.
+   */
+  const [высотаПодДоской, setВысотаПодДоской] = useState(0);
+  const низПодДоской = высотаПодДоской > 0 ? высотаПодДоской + ЗАЗОР_СЦЕНЫ + ПОЛЕ_СЦЕНЫ : 0;
 
   const движок = список.find((д) => д.имя === имяРежима) ?? null;
   const ключИгры = `puzzles_${имяРежима.toLowerCase().replace(/\s+/g, '_')}`;
@@ -659,16 +677,34 @@ export default function PuzzlesScreen() {
             вышло». Денис 11.09.2026: «то там по высоте, то там, то шире, то уже».
             Доска вписывается в этот квадрат по обеим сторонам и стоит в середине.
           */}
-          <PlayBoard ширинаЭкрана={width}>
+          <GameFieldHeight>{(высотаПоля) => {
+            const сторона = сторонаПоВысоте(width, высотаПоля, местоДоски.y, низПодДоской);
+            return (
+          <PlayBoard
+            ширинаЭкрана={width}
+            сторона={сторона}
+            onLayout={(e) => {
+              const { y, height } = e.nativeEvent.layout;
+              const м = { y: Math.round(y), h: Math.round(height) };
+              setМестоДоски((п) => (п.y === м.y && п.h === м.h ? п : м));
+            }}
+          >
             <PuzzleCanvas
               партия={партия}
-              ширина={сторонаПоля}
-              высота={сторонаПоля}
+              ширина={сторона}
+              высота={сторона}
               фон={colors.background}
               // Во время разбора доску ведёт разбор: касание человека разошлось бы с планом.
               onЖест={(x, y, ж, п) => { if (урок) return; void жать(x, y, ж, п || второе); }}
             />
           </PlayBoard>
+            );
+          }}</GameFieldHeight>
+          {/* Всё, что под доской, — одним узлом: его естественная высота и есть «низ» для `сторонаПоВысоте`. */}
+          <View
+            style={styles.подДоской}
+            onLayout={(e) => { const h = Math.round(e.nativeEvent.layout.height); setВысотаПодДоской((п) => (п === h ? п : h)); }}
+          >
           {/*
             🔴 ВЫХОД ИЗ ТУПИКА СТОИТ ТАМ, ГДЕ ТУПИК, — НАД ДОСКОЙ.
             Денис 11.09.2026, снимок «Сапёра» с подорванной клеткой: «в конце не
@@ -1074,6 +1110,7 @@ export default function PuzzlesScreen() {
               ) : null}
             </View>
           ) : null}
+          </View>
         </View>
       )}
     </GameShell>
@@ -1103,7 +1140,9 @@ const styles = StyleSheet.create({
    * ⚠️ ПОЧЕМУ НЕ `overflow: hidden` и не запрет прокрутки: разъезд спрячется, а
    * содержимое станет недостижимым на коротком экране — это правило 9.
    */
-  сцена: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', gap: 14, padding: 10 },
+  сцена: { flex: 1, alignItems: 'center', justifyContent: 'flex-start', gap: ЗАЗОР_СЦЕНЫ, padding: ПОЛЕ_СЦЕНЫ },
+  // Ряды под доской — тем же столбцом, что и сцена: узел нужен только чтобы померить их высоту.
+  подДоской: { alignSelf: 'stretch', alignItems: 'center', gap: ЗАЗОР_СЦЕНЫ },
   // 54 = три строки по 18: место под задание не зависит от длины текста.
   rule: { fontSize: 13, lineHeight: 18, textAlign: 'center', maxWidth: 320, height: 54, textAlignVertical: 'center' },
   start: { minHeight: 52, paddingHorizontal: 34, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },

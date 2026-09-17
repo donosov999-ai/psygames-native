@@ -17,7 +17,7 @@
  * Куда пишет: `PLAYLIST_EDITOR_OUT`, иначе временная папка. В CI это безвредно —
  * файл ложится во временную папку раннера и никуда не едет.
  */
-import { PROFILES, isGameAllowed } from '@/src/constants/profiles';
+import { PROFILES, isGameAllowed, filterAllowedGames } from '@/src/constants/profiles';
 import { GAMES } from '@/src/constants/games';
 import { HUB_CONTENTS } from '@/src/constants/hubContents';
 import { GAME_SUITES, suiteEntryRoute } from '@/src/constants/gameSuites';
@@ -167,6 +167,15 @@ describe('снимок состава для редактора плейлист
          * не переключал.
          */
         всегда: isGameAllowed({ id: '__нет__', allowed_games: [] } as unknown as (typeof PROFILES)[number], g.id),
+        /**
+         * В какой развилке игра лежит в каталоге (`mergedInto`) и сырая ли она (`sandbox`).
+         * Нужны редактору, чтобы считать игры профиля ТЕМ ЖЕ правилом, что приложение
+         * (`filterAllowedGames`): развилка открыта, если открыта хоть одна игра за ней, —
+         * а головоломки видны только в открытых развилках. Денис 17.09.2026: «я вообще
+         * пока цифры не вижу, сколько у нас игр по факту».
+         */
+        развилка: (g as unknown as { mergedInto?: string }).mergedInto ?? null,
+        песочница: (g as unknown as { sandbox?: boolean }).sandbox === true,
       };
     }),
     /**
@@ -211,6 +220,7 @@ describe('снимок состава для редактора плейлист
       имя: p.display_name,
       витрина: p.id === 'whatsnew',
       игры: p.allowed_games,
+      песочница: (p as unknown as { allow_sandbox?: boolean }).allow_sandbox === true,
       зарядка_включена: p.warmup_enabled,
       /**
        * 🔴 «НЕ ВИЖУ, ЧТО ВХОДИТ СЕЙЧАС» — вопрос Дениса 13.09.2026, глядя на профиль
@@ -365,6 +375,67 @@ describe('снимок состава для редактора плейлист
   it('баланс попал в снимок — замки и фигурки редактируются в редакторе', () => {
     expect(снимок.замки.length).toBeGreaterThanOrEqual(4);
     expect(снимок.фигурки.length).toBeGreaterThanOrEqual(12);
+  });
+
+  /**
+   * 🔴 СЧЁТ ИГР В РЕДАКТОРЕ = СЧЁТ ПРИЛОЖЕНИЯ, У КАЖДОГО ПРОФИЛЯ.
+   *
+   * Денис 17.09.2026: редактор «криво показывал, не пересчитывал вообще игры Тэтхэма; я
+   * пока цифры не вижу, сколько у нас игр по факту». Замер: у профилей «все игры» стояло
+   * 94 — тринадцать карточек развилок считались играми, сорок две головоломки не
+   * считались. Функция счёта редактора берётся из шаблона (блок СЧЁТ — чистый) и
+   * сверяется с `filterAllowedGames` самого приложения: игры без развилок и носителя,
+   * головоломки — разные маршруты `/games/puzzles…` в развилках, которые профиль видит.
+   */
+  it('🔴 редактор считает игры и головоломки профиля так же, как приложение', () => {
+    const шаблон: string = readFileSync(join(process.cwd(), '..', 'tools', 'playlist-editor.template.html'), 'utf8');
+    const блок = /\/\*СЧЁТ\*\/([\s\S]*?)\/\*\/СЧЁТ\*\//.exec(шаблон)?.[1] ?? '';
+    expect(блок).toContain('function счётИгрПрофиля');
+    // Код страницы редактора исполняется так же, как в браузере: блок СЧЁТ — чистая функция.
+    const счётИгрПрофиля = new Function(`${блок}\nreturn счётИгрПрофиля;`)() as (
+      д: unknown, п: { игры: 'all' | string[]; песочница: boolean }, з: string[], р: Record<string, string[]>,
+    ) => { игр: number; головоломок: number };
+    const маршрутыРазвилок = new Set(Object.keys(HUB_CONTENTS));
+    /* Раскладка головоломок по развилкам живёт в ФАЙЛЕ состава (заводской — defaultPlaylists.json):
+       в коде `HUB_CONTENTS` они до сих пор лежат старой кучей (40 в «Головоломках»). Сверяем
+       на той раскладке, которую человек получает на деле, а код — запасной путь. */
+    const файл = require('../constants/defaultPlaylists.json') as { профили: Record<string, { хабы?: Record<string, (string | { маршрут: string })[]> }> };
+    const составДля = (ид: string): Record<string, string[]> => Object.fromEntries(Object.entries(HUB_CONTENTS).map(([м, к]) => {
+      const изФайла = файл.профили[ид]?.хабы?.[м];
+      return [м, изФайла ? изФайла.map((э) => (typeof э === 'string' ? э : э.маршрут)) : к.map((c) => c.route)];
+    }));
+    /* Узкий профиль без своих игр на раскладке nzt48 — контроль правила «головоломка видна
+       только в ОТКРЫТОЙ развилке»: у заводских профилей открыты все развилки с
+       головоломками, и без него мутация «брать из всех развилок» проходила зелёной. */
+    const узкий = { id: '__узкий__', allowed_games: [] as string[] } as unknown as (typeof PROFILES)[number];
+    const строки = [...PROFILES, узкий].map((p) => {
+      const состав = составДля(p === узкий ? 'nzt48' : p.id);
+      const видит = filterAllowedGames(p);
+      const игр = видит.filter((g) => !маршрутыРазвилок.has(g.route) && g.id !== 'puzzles').length;
+      const головоломки = new Set<string>();
+      if (видит.some((g) => g.id === 'puzzles')) {
+        for (const g of видит) {
+          if (!маршрутыРазвилок.has(g.route)) continue;
+          for (const м of состав[g.route]) if (м.startsWith('/games/puzzles')) головоломки.add(м);
+        }
+      }
+      const ред = счётИгрПрофиля(снимок, {
+        игры: p.allowed_games as 'all' | string[],
+        песочница: (p as unknown as { allow_sandbox?: boolean }).allow_sandbox === true,
+      }, [], состав);
+      return `${p.id}: редактор ${ред.игр} + ${ред.головоломок}, приложение ${игр} + ${головоломки.size}`;
+    });
+    expect(строки.filter((с) => {
+      const м = /редактор (\d+) \+ (\d+), приложение (\d+) \+ (\d+)/.exec(с)!;
+      return м[1] !== м[3] || м[2] !== м[4];
+    })).toEqual([]);
+    // Контроль, что сверка не пустая: у профиля «все игры» головоломок больше нуля и
+    // карточки развилок в число игр не попали.
+    const все = PROFILES.find((p) => p.allowed_games === 'all')!;
+    const ред = счётИгрПрофиля(снимок, { игры: 'all', песочница: true }, [], составДля('nzt48'));
+    expect(ред.головоломок).toBeGreaterThan(0);
+    expect(ред.игр).toBe(GAMES.filter((g) => !маршрутыРазвилок.has(g.route) && g.id !== 'puzzles').length);
+    expect(все).toBeTruthy();
   });
 
   it('развилки не пусты — иначе фасовать нечего', () => {

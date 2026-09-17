@@ -33,7 +33,7 @@ import {
   WarmupSlot, currentSlot, isTrainingSlot,
   buildDayPlaylist, buildNightPlaylist, buildEveningWarmupPlaylist,
   buildFixedPlaylist, buildMorningWarmupPlaylist, getCurrentWeekday,
-  getFinancialCooldown, длинаВлияет, buildСвояСерия, type Длительность,
+  getFinancialCooldown, длинаВлияет, buildСвояСерия, потокиНаборов, type Длительность,
 } from '@/src/services/warmup';
 import { getAssessmentStatus } from '@/src/services/assessment';
 import { SERIES_KEYS, SeriesKey, seriesPlaylist, seriesProfileFlag, seriesKind, seriesBlockCount, seriesGameId, launchPlanFor } from '@/src/services/warmupEntries';
@@ -106,6 +106,9 @@ const значок = (k: PickKey): keyof typeof Ionicons.glyphMap =>
   isСвоя(k) ? 'flash-outline' : ICON[k as WarmupSlot | SeriesKey];
 
 /** Где помнится выбранная длина каждого слота. Утро — прежним ключом. */
+/** Где помнится выбранная длина своих потоков: { <ключ потока>: 5 | 10 | 15 }. */
+const КЛЮЧ_ДЛИНЫ_ПОТОКОВ = 'psygames_own_series_length';
+
 const КЛЮЧ_ДЛИНЫ: Record<WarmupSlot, string> = {
   morning: 'psygames_warmup_duration',
   day: 'psygames_warmup_duration_day',
@@ -197,9 +200,36 @@ export default function WarmupPicker() {
     const ид = составИзФайла?.профили?.[profile.id]?.наборы ?? [];
     return (составИзФайла?.наборы ?? []).filter((н) => ид.includes(н.id));
   }, [составИзФайла, profile.id]);
-  const своя = React.useCallback((k: PickKey) => (
-    isСвоя(k) ? мои.find((н) => `своя:${н.id}` === k) ?? null : null
-  ), [мои]);
+  /**
+   * 🔴 ПОТОК — ОДНОЙ КАРТОЧКОЙ С ПЕРЕКЛЮЧАТЕЛЕМ ДЛИНЫ (отчёт 5ff162e1, см. `потокиНаборов`).
+   * Выбранная длина помнится по потоку: утром человек берёт «Рабочую память» на пятнадцать,
+   * и завтра она откроется той же длины.
+   */
+  const потоки = React.useMemo(() => потокиНаборов(мои), [мои]);
+  const [длинаПотока, setДлинаПотока] = React.useState<Record<string, Длительность>>({});
+  React.useEffect(() => {
+    let alive = true;
+    AsyncStorage.getItem(КЛЮЧ_ДЛИНЫ_ПОТОКОВ).then((v) => {
+      if (!alive || !v) return;
+      try { setДлинаПотока((было) => ({ ...JSON.parse(v), ...было })); } catch {}
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  const выбратьДлинуПотока = (ключ: string, d: Длительность) => {
+    setДлинаПотока((было) => {
+      const стало = { ...было, [ключ]: d };
+      AsyncStorage.setItem(КЛЮЧ_ДЛИНЫ_ПОТОКОВ, JSON.stringify(стало)).catch(() => {});
+      return стало;
+    });
+  };
+  const потокКарточки = React.useCallback((k: PickKey) => (
+    isСвоя(k) ? потоки.find((п) => `своя:${п.ключ}` === k) ?? null : null
+  ), [потоки]);
+  const своя = React.useCallback((k: PickKey) => {
+    const п = потокКарточки(k);
+    if (!п) return null;
+    return (п.варианты.find((в) => в.длина === длинаПотока[п.ключ]) ?? п.варианты[0]).набор;
+  }, [потокКарточки, длинаПотока]);
 
   /** Сколько шагов и минут в наборе — показываем на карточке, чтобы выбор был осознанным. */
   const metaFor = React.useCallback((slot: PickKey) => {
@@ -296,8 +326,8 @@ export default function WarmupPicker() {
   /** Заголовок и подпись карточки: у слотов они из словаря слотов, у серий — свои. */
   const cap = (k: WarmupSlot) => 'slot' + k.charAt(0).toUpperCase() + k.slice(1);
   const titleOf = (k: PickKey) => {
-    const н = своя(k);
-    if (н) return н.название;
+    const п = потокКарточки(k);
+    if (п) return п.название;
     if (k === 'assessment') return t('complexAssessment');
     if (k === 'financial') return 'FIN BRAIN';
     if (k === 'schulte-blocks') return t('schulteTable');
@@ -369,7 +399,7 @@ export default function WarmupPicker() {
               Там, где состав назван целиком (фикс-набор профиля или набор слота
               из файла), три длины дали бы один и тот же список — чипов нет, и
               решает это `длинаВлияет`, а не перечень слотов здесь. */}
-          {!series && on && длинаВлияет(wd, slot as WarmupSlot, слотЗафиксирован(slot as WarmupSlot)) && (
+          {!series && !isСвоя(slot) && on && длинаВлияет(wd, slot as WarmupSlot, слотЗафиксирован(slot as WarmupSlot)) && (
             <View style={styles.durRow}>
               {([5, 10, 15] as const).map((d) => (
                 <TouchableOpacity
@@ -390,6 +420,35 @@ export default function WarmupPicker() {
               ))}
             </View>
           )}
+          {/* Длина ПОТОКА — те же чипы, но выбирают вариант набора, а не длину слота.
+              У одиночного набора варианта один — чипов нет (раньше тут стояли чипы
+              слота, которые запуск своей серии не читал). */}
+          {(() => {
+            const п = потокКарточки(slot);
+            if (!п || !on || п.варианты.length < 2) return null;
+            const выбранный = (п.варианты.find((в) => в.длина === длинаПотока[п.ключ]) ?? п.варианты[0]).длина;
+            return (
+              <View style={styles.durRow} testID="own-series-length">
+                {п.варианты.map(({ длина }) => (
+                  <TouchableOpacity
+                    key={длина ?? 0}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: выбранный === длина }}
+                    accessibilityLabel={`${длина} ${t('unitMin')}`}
+                    onPress={() => { if (длина) выбратьДлинуПотока(п.ключ, длина); }}
+                    style={[styles.durChip, {
+                      backgroundColor: выбранный === длина ? TINT[slot][0] : 'transparent',
+                      borderColor: выбранный === длина ? TINT[slot][0] : colors.border,
+                    }]}
+                  >
+                    <Text style={{ fontSize: 12.5, fontWeight: '800', color: выбранный === длина ? '#fff' : colors.text }}>
+                      {длина} {t('unitMin')}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            );
+          })()}
           {/* З6: состав набора виден ДО старта. Только на выбранной карточке —
               иначе экран превращается в четыре простыни. Серии блоков без списка:
               их ведёт сама игра. */}
@@ -433,13 +492,13 @@ export default function WarmupPicker() {
         )}
         {seriesShown.map(renderCard)}
 
-        {мои.length > 0 && (
+        {потоки.length > 0 && (
           <View style={styles.groupHead}>
             <Text style={[styles.groupTitle, { color: colors.text }]}>{t('ownSeriesGroup')}</Text>
             <Text style={[styles.groupNote, { color: colors.textSecondary }]}>{t('ownSeriesGroupNote')}</Text>
           </View>
         )}
-        {мои.map((н) => renderCard(`своя:${н.id}` as PickKey))}
+        {потоки.map((п) => renderCard(`своя:${п.ключ}` as PickKey))}
       </ScrollView>
 
       {/* Нижний тулбар — как на экране «Об игре»: слева справка, справа запуск. */}
