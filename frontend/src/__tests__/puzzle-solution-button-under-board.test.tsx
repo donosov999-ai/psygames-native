@@ -1,4 +1,4 @@
-/* psygames-puzzle-solution-button-under-board · VER 2 · 17.09.2026 */
+/* psygames-puzzle-solution-button-under-board · VER 3 · 17.09.2026 */
 /**
  * «ПОКАЗАТЬ РЕШЕНИЕ» — НЕ ТОЛЬКО В ПАУЗЕ, А ЗНАЧКОМ ПОД ПОЛЕМ.
  *
@@ -53,12 +53,16 @@ jest.mock('react-native-safe-area-context', () => {
   return { useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }), SafeAreaView: ({ children, ...p }: any) => React.createElement(View, p, children), SafeAreaProvider: ({ children }: any) => children };
   /* eslint-enable @typescript-eslint/no-require-imports */
 });
-/** Каркас подменён: нужен только ряд под полем, который экран кладёт в детей каркаса. */
+/**
+ * Каркас подменён: нужен ряд под полем, который экран кладёт в детей каркаса, и пропсы,
+ * с которыми экран каркас зовёт (запас под кнопку отзыва — флаг экрана, VER 3).
+ */
+const mockShellProps: Record<string, unknown>[] = [];
 jest.mock('@/src/components/GameShell', () => {
   /* eslint-disable @typescript-eslint/no-require-imports */
   const React = require('react');
   const { View } = require('react-native');
-  return { __esModule: true, default: ({ children }: any) => React.createElement(View, null, children) };
+  return { __esModule: true, default: ({ children, ...p }: any) => { mockShellProps.push(p); return React.createElement(View, null, children); } };
   /* eslint-enable @typescript-eslint/no-require-imports */
 });
 /** Кнопка ряда подменена узлом с теми же пропсами: замок лестницы здесь не предмет пробы. */
@@ -121,5 +125,19 @@ describe('«Показать решение» под полем головоло
   it('режим без решателя — лампочки нет', async () => {
     const д = await партияРежима('Cube');
     expect(кнопкиРяда(д)).toEqual(['btn_undo', 'restart']);
+  });
+
+  /**
+   * 🔴 ЭКРАН ПРОСИТ У КАРКАСА ЗАПАС ПОД КНОПКУ ОТЗЫВА (задача 2fb25cbc).
+   * Без него на 360×640 угловая клетка «Лишних чисел» 10×10 и 12×12 лежит под кнопкой
+   * при любой прокрутке. Сам запас сторожит game-field-scrolls-above-feedback-button;
+   * здесь — что экран головоломок его включает.
+   */
+  it('🔴 поле головоломки прокручивается с запасом под кнопку отзыва', async () => {
+    mockShellProps.length = 0;
+    await партияРежима('Magnets');
+    const последний = mockShellProps[mockShellProps.length - 1] ?? {};
+    expect(`прокрутка: ${последний.scrollableField === true}, запас: ${последний.reserveUnderFab === true}`)
+      .toBe('прокрутка: true, запас: true');
   });
 });

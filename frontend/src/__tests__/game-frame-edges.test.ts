@@ -84,9 +84,15 @@ describe('нижняя безопасная зона оплачена один �
     expect(rootStyle).not.toMatch(/padding/);
   });
 
-  /** Тулбара нет — низ обязано оплатить поле, иначе строка уедет под полосу. */
+  /**
+   * Тулбара нет — низ обязано оплатить поле, иначе строка уедет под полосу.
+   *
+   * 17.09.2026: у скроллящегося поля к отступу может прибавиться запас под кнопку отзыва
+   * (`reserveUnderFab ? FAB_CLEARANCE : 0`, задача 2fb25cbc). Это не второй платёж за
+   * безопасную зону — `bottomSafe` в выражении по-прежнему один раз.
+   */
   it('🔴 без тулбара за низ платит поле — в обоих его видах', () => {
-    expect(SHELL).toMatch(/toolbar \? null : \{ paddingBottom: 8 \+ bottomSafe \}/);  // скроллящееся
+    expect(SHELL).toMatch(/toolbar \? null : \{ paddingBottom: 8 \+ bottomSafe(?: \+ \(reserveUnderFab \? FAB_CLEARANCE : 0\))? \}/);  // скроллящееся
     expect(SHELL).toMatch(/toolbar \? null : \{ paddingBottom: bottomSafe \}/);       // обычное
   });
 });

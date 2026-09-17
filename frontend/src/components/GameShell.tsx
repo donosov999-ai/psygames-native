@@ -428,6 +428,17 @@ export interface GameShellProps {
   /** true — игровое поле в ScrollView (длинный контент: списки слов и т.п.). */
   scrollableField?: boolean;
   /**
+   * true — у прокручиваемого поля без `toolbar` снизу запас высотой с кнопку отзыва
+   * (`FAB_CLEARANCE`): последнюю строку поля можно поднять выше кнопки прокруткой.
+   *
+   * ⚠️ ПО ФЛАГУ, А НЕ ВСЕМ. Запас делает поле прокручиваемым там, где раньше оно
+   * помещалось целиком, — а часть экранов уже держит свой резерв под кнопку внутри
+   * поля: «Корректура» (`сеткаКорректуры`) считает клетку из отступа каркаса 8, и запас
+   * «всем» дал бы ей резерв дважды и 156 px пустой прокрутки. Флаг ставит экран, у
+   * которого своего резерва нет.
+   */
+  reserveUnderFab?: boolean;
+  /**
    * Накладка поверх поля — экран «уровень пройден».
    *
    * ЗАЧЕМ СЛОТ, А НЕ ЗАМЕНА ЭКРАНА. Раньше игра при `phase === 'cleared'` возвращала
@@ -558,7 +569,7 @@ function domesticate(
 }
 
 export default function GameShell({
-  title, onBack, stats, hud, mods, bottom, headerActions, auxInHud, toolbar, headerRight, scrollableField, overlay, pet, pauseActions, onRestart, onFinishEarly, frame,
+  title, onBack, stats, hud, mods, bottom, headerActions, auxInHud, toolbar, headerRight, scrollableField, reserveUnderFab, overlay, pet, pauseActions, onRestart, onFinishEarly, frame,
   confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
 
@@ -928,13 +939,15 @@ export default function GameShell({
    * эту клетку у 42 % досок 10×10 и 49 % досок 12×12 — касанием уровень не пройти
    * (замер раздела «Судоку», WebKit с касаниями). Запас высотой с кнопку позволяет дотянуть
    * любую строку поля выше неё. Видимой разницы нет, пока не прокрутишь до конца.
+   *
+   * ⚠️ Только у экранов с `reserveUnderFab` — почему не у всех, записано у пропа.
    */
   const field = scrollableField ? (
     <ScrollView
       ref={fieldScrollRef}
       testID="game-field"
       style={styles.fieldScroll}
-      contentContainerStyle={[styles.fieldScrollContent, toolbar ? null : { paddingBottom: 8 + bottomSafe + FAB_CLEARANCE }]}
+      contentContainerStyle={[styles.fieldScrollContent, toolbar ? null : { paddingBottom: 8 + bottomSafe + (reserveUnderFab ? FAB_CLEARANCE : 0) }]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
