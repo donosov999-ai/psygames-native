@@ -94,9 +94,13 @@ describe('раскладка вариантов «Мысленного вращ�
       const задание = optionLayout({ viewportWidth: w, viewportHeight: h, answerWidth: 480, count, compactReview: false });
       const разбор = optionLayout({ viewportWidth: w, viewportHeight: h, answerWidth: 300, count, compactReview: true });
       expect(`${w}×${h}/${count}: ${JSON.stringify(разбор)}`).toBe(`${w}×${h}/${count}: ${JSON.stringify(задание)}`);
-      // ширина: ряд стоит по центру полосы (поля окна 24 + 24), колонке справа остаётся не меньше минимума
-      const колонкаШирина = reviewSideWidth(w - 48, count, разбор.optSize);
-      expect(`${w}×${h}/${count}: колонка ${колонкаШирина}`).toBe(`${w}×${h}/${count}: колонка ${Math.max(колонкаШирина, LANDSCAPE_REVIEW_SIDE_MIN)}`);
+      // ширина: ряд стоит по центру окна, колонке сбоку до края окна остаётся не меньше минимума.
+      // 120 — литерал замера, а не константа кода: самое широкое слово надписи кнопки «Следующий» 87 px
+      // (жирный 14) + поля кнопки 12 + 12 + рамка; живой кадр 667×375 при 4 вариантах и колонке 72 px —
+      // «Следу…ющ…». Уже 120 — перемерить надписи прибором, а не опускать число.
+      const колонкаШирина = reviewSideWidth(w, count, разбор.optSize);
+      expect(`${w}×${h}/${count}: колонка ${колонкаШирина}`).toBe(`${w}×${h}/${count}: колонка ${Math.max(колонкаШирина, 120)}`);
+      expect(LANDSCAPE_REVIEW_SIDE_MIN).toBeGreaterThanOrEqual(120);
       // высота: колонка не выше карточки варианта — полоса не растёт, поле над ней не сжимается
       const колонка = (разбор.reviewNoteLines ?? 0) * LANDSCAPE_REVIEW_NOTE_LINE + ((разбор.reviewNoteLines ?? 0) > 0 ? LANDSCAPE_REVIEW_NOTE_GAP : 0) + LANDSCAPE_REVIEW_BUTTON;
       expect(колонка).toBeLessThanOrEqual(разбор.optSize + LANDSCAPE_CARD_EXTRA);
@@ -175,8 +179,10 @@ describe('экран зовёт раскладку и общий масштаб'
     expect(код).toMatch(/stillUnit\(task\.options\.map/);
     // альбомный разбор: колонка сбоку, подписи под карточками в альбоме не встают, рамка ответа съедает поля
     expect(код).toMatch(/const reviewSide = reviewing && wideShort;/);
-    expect(код).toMatch(/testID="mental-review-side" style=\{\{ position: 'absolute'/);
-    expect(код).toMatch(/reviewSideWidth\(toolbarWidth/);
+    expect(код).toMatch(/testID="mental-review-side" style=\{\[\{ position: 'absolute'/);
+    expect(код).toMatch(/reviewSideWidth\(viewportWidth, task\.options\.length, optSize\)/);
+    // в RTL кнопка отзыва справа — колонка слева от ряда
+    expect(код).toMatch(/колонкаСлева \? \{ right: '50%', marginRight: отступКолонки \} : \{ left: '50%', marginLeft: отступКолонки \}/);
     expect(код).toMatch(/feedback&&!compactReview&&!wideShort&&<Text/);
     expect(код).toMatch(/padding:feedback\?4:6/);
     expect((код.match(/optSize, GRADIENT\[1\], undefined, undefined, optUnit\)/g) ?? []).length).toBe(2);

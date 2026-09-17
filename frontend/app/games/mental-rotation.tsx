@@ -60,6 +60,7 @@ import GameShell from '@/src/components/GameShell';
 import {ViewpointReference} from '@/src/components/ViewpointReference';
 import {RotationShape,RotationTransition} from '@/src/components/RotationShape';
 import {stillUnit} from '@/src/games/mental-rotation/core/surface';
+import { isRTLLang } from '@/src/services/rtl';
 import { LANDSCAPE_PROMPT_LINE, LANDSCAPE_REF_PADDING, optionLayout, LANDSCAPE_REVIEW_BUTTON, LANDSCAPE_REVIEW_NOTE_LINE, LANDSCAPE_REVIEW_NOTE_GAP, landscapeRowWidth, reviewSideWidth, LANDSCAPE_REVIEW_GAP } from '@/src/games/mental-rotation/optionLayout';
 import RotationWorkbench from '@/src/components/RotationWorkbench';
 import {spatialFrame} from '@/src/games/spatial-core/frame';
@@ -339,8 +340,6 @@ export default function MentalRotationGame() {
    */
   const { h: viewportHeight, w: viewportWidth } = useScreenSize();
   const [answerWidth,setAnswerWidth]=useState(208);
-  // Ширина нижней полосы — в альбомном разборе колонка «подпись + кнопка» встаёт в свободное поле справа от ряда.
-  const [toolbarWidth,setToolbarWidth]=useState(0);
   /**
    * Сколько строк занял вопрос задания — живым замером. В альбоме высота поделена между эталоном
    * и вариантами с запасом на ДВЕ строки вопроса; замер 17.09.2026 по 12 языкам: из 156 вопросов
@@ -676,7 +675,11 @@ export default function MentalRotationGame() {
     // Альбом, разбор: подпись и «Следующий раунд» колонкой справа от ряда — полоса не растёт поверх эталона,
     // а ряд не сдвигается с центра (задача 5de33bb4, см. LANDSCAPE_REVIEW_SIDE).
     const reviewSide = reviewing && wideShort;
-    const ширинаКолонки = reviewSide ? reviewSideWidth(toolbarWidth || viewportWidth - 48, task.options.length, optSize) : 0;
+    const ширинаКолонки = reviewSide ? reviewSideWidth(viewportWidth, task.options.length, optSize) : 0;
+    // Кнопка отзыва висит слева, а в RTL-языках справа — колонка встаёт с другой стороны ряда.
+    // left/right на вебе не зеркалятся сами (src/services/rtl.ts), поэтому сторона выбирается здесь.
+    const колонкаСлева = isRTLLang(language);
+    const отступКолонки = landscapeRowWidth(task.options.length, optSize) / 2 + LANDSCAPE_REVIEW_GAP;
     const baseSize = refSize ?? (compactScreen?(isPreset?80:104):130);
     /*
      * Доли для эталона из нескольких рисунков. В портрете их держит ширина: три вида и два куска
@@ -714,7 +717,7 @@ export default function MentalRotationGame() {
             </View>
           }
           toolbar={
-            <View style={{ width: '100%', alignItems: 'center', gap: 10 }} onLayout={e=>setToolbarWidth(e.nativeEvent.layout.width)}>
+            <View style={{ width: '100%', alignItems: 'center', gap: 10 }}>
             <View style={[styles.optionsRow,compactReview&&!wideShort?{flexWrap:'nowrap',gap:6}:null,wideShort?{flexWrap:'nowrap',maxWidth:760}:null]} onLayout={e=>setAnswerWidth(e.nativeEvent.layout.width)}>
               {task.options.map((opt, i) => (
                 <TouchableOpacity
@@ -761,7 +764,8 @@ export default function MentalRotationGame() {
               ))}
             </View>
             {reviewSide && feedback ? (
-              <View testID="mental-review-side" style={{ position: 'absolute', top: 0, bottom: 0, left: '50%', marginLeft: landscapeRowWidth(task.options.length, optSize) / 2 + LANDSCAPE_REVIEW_GAP, width: ширинаКолонки, gap: LANDSCAPE_REVIEW_NOTE_GAP, justifyContent: 'center' }}>
+              <View testID="mental-review-side" style={[{ position: 'absolute', top: 0, bottom: 0, width: ширинаКолонки, gap: LANDSCAPE_REVIEW_NOTE_GAP, justifyContent: 'center' },
+                колонкаСлева ? { right: '50%', marginRight: отступКолонки } : { left: '50%', marginLeft: отступКолонки }]}>
                 {reviewNoteLines > 0 && (
                   <Text testID="mental-picked-note" numberOfLines={reviewNoteLines} style={[styles.optionLabel2, { color: BAD_COLOR, fontSize: 13, lineHeight: LANDSCAPE_REVIEW_NOTE_LINE, minHeight: 0 }]}>
                     {optionNote(task.options[feedback.idx])}

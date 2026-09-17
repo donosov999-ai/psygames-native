@@ -64,8 +64,21 @@ export const LANDSCAPE_PROMPT_LINE = 16;
  * справа от ряда, не больше 220; `optionLayout` держит ряд таким, чтобы осталось не меньше 100.
  */
 export const LANDSCAPE_REVIEW_SIDE = 220;
-export const LANDSCAPE_REVIEW_SIDE_MIN = 100;
+/**
+ * Не уже 120: самое широкое слово надписи кнопки — «Следующий», 87 px (жирный 14), плюс поля
+ * кнопки 12 + 12 и рамка; самое широкое слово подписи — «Nachbarschicht», 100 px (13, полужирный).
+ * Замер 17.09.2026 шрифтом экрана по 24 надписям и 144 подписям на 12 языках (японский и китайский
+ * переносятся между знаками — не в счёт). Уже — слово рвётся посреди: так было при колонке 72 px.
+ */
+export const LANDSCAPE_REVIEW_SIDE_MIN = 120;
 export const LANDSCAPE_REVIEW_GAP = 16;
+/**
+ * Отступ колонки от края окна. Колонка меряется от ОКНА, а не от полосы: полоса каркаса отступает
+ * 66 px с обеих сторон под кнопку отзыва (FAB_GUTTER в GameShell), но кнопка висит только с одной
+ * стороны — слева, а в арабском справа, — и колонка встаёт с другой. Живой кадр 667×375, 4 варианта:
+ * посчитанная от полосы колонка вышла 72 px, и «Следующий» рвалось посреди слова («Следу…ющ…»).
+ */
+export const LANDSCAPE_REVIEW_EDGE = 16;
 /** Кнопка «Следующий раунд» в колонке — не ниже пальца. */
 export const LANDSCAPE_REVIEW_BUTTON = 44;
 /** Строка подписи в колонке и зазор до кнопки. */
@@ -79,9 +92,9 @@ export function landscapeRowWidth(count: number, optSize: number): number {
   return count * (optSize + 12) + (count - 1) * 10;
 }
 
-/** Ширина колонки разбора справа от ряда, стоящего по центру полосы шириной `toolbarWidth`. */
-export function reviewSideWidth(toolbarWidth: number, count: number, optSize: number): number {
-  return Math.min(LANDSCAPE_REVIEW_SIDE, Math.floor(toolbarWidth / 2 - landscapeRowWidth(count, optSize) / 2 - LANDSCAPE_REVIEW_GAP));
+/** Ширина колонки разбора сбоку от ряда, стоящего по центру окна шириной `viewportWidth`. */
+export function reviewSideWidth(viewportWidth: number, count: number, optSize: number): number {
+  return Math.min(LANDSCAPE_REVIEW_SIDE, Math.floor(viewportWidth / 2 - landscapeRowWidth(count, optSize) / 2 - LANDSCAPE_REVIEW_GAP - LANDSCAPE_REVIEW_EDGE));
 }
 
 /**
@@ -106,7 +119,7 @@ export function optionLayout({ viewportWidth, viewportHeight, answerWidth, count
   let альбом: { optSize: number; refSize: number } | null = null;
   if (compactScreen && viewportWidth >= 600) {
     // По краям ряда оставляем место под колонку разбора (ряд по центру — место с обеих сторон).
-    const подРяд = Math.min(viewportWidth - 48 - 2 * (LANDSCAPE_REVIEW_SIDE_MIN + LANDSCAPE_REVIEW_GAP), 760);
+    const подРяд = Math.min(viewportWidth - 2 * (LANDSCAPE_REVIEW_SIDE_MIN + LANDSCAPE_REVIEW_GAP + LANDSCAPE_REVIEW_EDGE), 760);
     const byWidth = Math.floor((подРяд - (count - 1) * 10) / count) - 12;
     const наДва = viewportHeight - LANDSCAPE_FIXED_HEIGHT;
     const optSize = Math.max(48, Math.min(Math.round(viewportHeight * 0.24), byWidth, Math.floor(наДва / 2)));

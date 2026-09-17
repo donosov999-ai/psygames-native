@@ -52,9 +52,10 @@ async function осесть(кругов = 6, шаг = 500) {
 }
 
 /** Экран в окне `w×h` до открытого разбора. Возвращает рендерер и ширины карточек до и после ответа. */
-async function доРазбора(w: number, h: number) {
+async function доРазбора(w: number, h: number, язык?: string) {
   mockScreen = { w, h };
   await AsyncStorage.clear();
+  if (язык) await AsyncStorage.setItem('language', язык);
   /* eslint-disable @typescript-eslint/no-require-imports */
   const { ThemeProvider } = require('@/src/contexts/ThemeContext');
   const { LanguageProvider } = require('@/src/contexts/LanguageContext');
@@ -72,10 +73,10 @@ async function доРазбора(w: number, h: number) {
         React.createElement(PlayerLevelValue, { level: 8 }, React.createElement(WarmupProvider, null, React.createElement(Screen))))))));
   });
   await осесть();
-  const старт = r.root.findAll((n: any) => n.props?.accessibilityRole === 'button' && typeof n.props?.onPress === 'function' && /начать|start|play|играть/i.test(текст(n)));
+  const старт = r.root.findAll((n: any) => n.props?.accessibilityRole === 'button' && typeof n.props?.onPress === 'function' && /начать|start|play|играть|ابدأ/i.test(текст(n)));
   await TestRenderer.act(async () => { старт[0].props.onPress(); });
   await осесть(2, 100);
-  const варианты = () => r.root.findAll((n: any) => typeof n.type !== 'string' && /вариант|option/i.test(String(n.props?.accessibilityLabel ?? '')) && typeof n.props?.onPress === 'function');
+  const варианты = () => r.root.findAll((n: any) => typeof n.type !== 'string' && /вариант|option|الخيار/i.test(String(n.props?.accessibilityLabel ?? '')) && typeof n.props?.onPress === 'function');
   const ширины = () => [...new Set(варианты().map((n: any) => StyleSheet.flatten(n.props.style)?.width))];
   const доОтвета: unknown[] = [];
   let разбор = false;
@@ -112,6 +113,21 @@ describe('разбор «Мысленного вращения» в альбом
     // подписи под каждой карточкой в альбоме не встают — «верный ответ» виден рамкой
     expect(`подписей в карточках: ${подписейВКарточках}`).toBe('подписей в карточках: 0');
     await TestRenderer.act(async () => { r.unmount(); });
+  });
+
+  it('🔴 сторона колонки: кнопка отзыва слева — колонка справа; в арабском кнопка справа — колонка слева', async () => {
+    const сторона = (r: any) => {
+      const стиль = StyleSheet.flatten(поId(r, 'mental-review-side')[0]?.props.style) ?? {};
+      return `left ${стиль.left ?? '—'} · right ${стиль.right ?? '—'}`;
+    };
+    const ru = await доРазбора(844, 390, 'ru');
+    expect(`разбор открылся: ${ru.разбор}`).toBe('разбор открылся: true');
+    expect(сторона(ru.r)).toBe('left 50% · right —');
+    await TestRenderer.act(async () => { ru.r.unmount(); });
+    const ar = await доРазбора(844, 390, 'ar');
+    expect(`разбор открылся: ${ar.разбор}`).toBe('разбор открылся: true');
+    expect(сторона(ar.r)).toBe('left — · right 50%');
+    await TestRenderer.act(async () => { ar.r.unmount(); });
   });
 
   it('портрет 390×844: колонки нет, подписи под карточками, кнопка под рядом — как было', async () => {

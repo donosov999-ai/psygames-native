@@ -79,6 +79,26 @@ for (const size of SIZES) {
       const вид = поМетке ? поМетке[1] : (ref.previousElementSibling?.textContent ?? '?').trim().slice(0, 28);
       const дальше = document.querySelector('[data-testid="mental-review-next"]');
       const кн = дальше?.getBoundingClientRect();
+      // Надпись кнопки и подпись разбора: слово не рвётся посреди (у слова больше одной строки)
+      // и текст не обрезан многоточием (живой кадр 667×375: «Следу…ющ…» при колонке 72 px).
+      const рвётсяИлиОбрезан = (el) => {
+        if (!el) return false;
+        const листья = [...el.querySelectorAll('*')].filter((e) => e.children.length === 0 && (e.textContent || '').trim());
+        for (const лист of листья.length ? листья : [el]) {
+          if (лист.scrollHeight > лист.clientHeight + 1 || лист.scrollWidth > лист.clientWidth + 1) return true;
+          const обход = document.createTreeWalker(лист, NodeFilter.SHOW_TEXT);
+          for (let узел = обход.nextNode(); узел; узел = обход.nextNode()) {
+            for (const m of (узел.textContent || '').matchAll(/\S+/g)) {
+              // японский и китайский переносятся между любыми знаками — это не разрыв слова
+              if (/[\u3040-\u30ff\u3400-\u9fff]/.test(m[0])) continue;
+              const диапазон = document.createRange();
+              диапазон.setStart(узел, m.index); диапазон.setEnd(узел, m.index + m[0].length);
+              if (new Set([...диапазон.getClientRects()].map((q) => Math.round(q.top))).size > 1) return true;
+            }
+          }
+        }
+        return false;
+      };
       return {
         вид,
         срез: поле ? Math.max(0, Math.round(ref.getBoundingClientRect().bottom - поле.getBoundingClientRect().bottom)) : null,
@@ -87,7 +107,7 @@ for (const size of SIZES) {
         вариант: рисунокВарианта,
         вариантX: варианты[0] ? Math.round(варианты[0].getBoundingClientRect().left) : null,
         рисунковВЭталоне: рисункиЭталона.length,
-        кнопка: кн ? { h: Math.round(кн.height), внеОкна: кн.bottom > innerHeight + 0.5 || кн.right > innerWidth + 0.5 || кн.top < 0 } : null,
+        кнопка: кн ? { h: Math.round(кн.height), внеОкна: кн.bottom > innerHeight + 0.5 || кн.right > innerWidth + 0.5 || кн.top < 0 || кн.left < 0, рвётся: рвётсяИлиОбрезан(дальше) || рвётсяИлиОбрезан(document.querySelector('[data-testid="mental-picked-note"]')) } : null,
       };
     });
     // «Память»: пока фигуру показывают, в карточках вариантов пустое место без рисунка — мерить вариант
@@ -115,11 +135,11 @@ for (const size of SIZES) {
         const прыжок = Math.abs(рз.карточка - r.карточка) > 1 || Math.abs(рз.вариант - r.вариант) > 1
           || Math.abs((рз.вариантX ?? 0) - (r.вариантX ?? 0)) > 1
           || (рз.эталон > 0 && r.эталон > 0 && Math.abs(рз.эталон - r.эталон) > 1);
-        const кнопкаПлохо = !рз.кнопка || рз.кнопка.h < 44 || рз.кнопка.внеОкна;
+        const кнопкаПлохо = !рз.кнопка || рз.кнопка.h < 44 || рз.кнопка.внеОкна || рз.кнопка.рвётся;
         const okР = (рз.срез ?? 0) <= ДОПУСК && !прыжок && !кнопкаПлохо;
         if (!okР) плохо++;
         строки.push({ size, раунд, разбор: true, ...рз, ok: okР });
-        console.log(`${size} раунд ${раунд} «${рз.вид}» РАЗБОР: срез эталона ${рз.срез} px · карточка ${r.карточка} → ${рз.карточка} · ряд x ${r.вариантX} → ${рз.вариантX} · эталон ${рз.эталон} · вариант ${рз.вариант} · кнопка ${рз.кнопка ? `${рз.кнопка.h} px${рз.кнопка.внеОкна ? ' ВНЕ ОКНА' : ''}` : 'нет'}${okР ? '' : '  ❌'}`);
+        console.log(`${size} раунд ${раунд} «${рз.вид}» РАЗБОР: срез эталона ${рз.срез} px · карточка ${r.карточка} → ${рз.карточка} · ряд x ${r.вариантX} → ${рз.вариантX} · эталон ${рз.эталон} · вариант ${рз.вариант} · кнопка ${рз.кнопка ? `${рз.кнопка.h} px${рз.кнопка.внеОкна ? ' ВНЕ ОКНА' : ''}${рз.кнопка.рвётся ? ' ТЕКСТ РВЁТСЯ' : ''}` : 'нет'}${okР ? '' : '  ❌'}`);
       }
       await дальше.first().click().catch(() => {});
     }
