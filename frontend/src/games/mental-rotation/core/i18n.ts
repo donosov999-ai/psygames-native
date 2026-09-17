@@ -1,4 +1,4 @@
-/* psygames-mental-rotation-i18n · VER 2 · 17.09.2026 */
+/* psygames-mental-rotation-i18n · VER 3 · 17.09.2026 */
 /**
  * СЛОВАРЬ МОДУЛЯ — ДВЕНАДЦАТЬ ЯЗЫКОВ, А НЕ ДВА.
  *
@@ -360,7 +360,7 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     taskOblique: 'Querschnitt',
     obliquePrompt: 'Eine Ebene schneidet den Körper. Welche Form hat der Querschnitt wirklich?',
     reviewObliqueHint: 'Die Ecken des Querschnitts liegen auf den Kanten des Körpers, dort, wo die Ebene sie schneidet. In der Zeichnung sieht man den Schnitt schräg, er wirkt gestaucht; seine wahre Form ist eine andere – die galt es zu finden.',
-    optionSeenAtAngle: 'wie in der Zeichnung gesehen',
+    optionSeenAtAngle: 'wie auf der Zeichnung',
     optionShadow: 'Schatten auf eine Fläche',
     optionOtherPlane: 'andere Ebene',
     viewpointPrompt: 'Die Figur wird umrundet. Was sieht man von der markierten Stelle?',
@@ -377,7 +377,7 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     optionCorrect: 'richtig',
     optionMirror: 'Spiegelbild',
     optionOther: 'andere Figur',
-    optionOtherView: 'Ansicht von einer anderen Seite',
+    optionOtherView: 'andere Ansicht',
     optionEditedShape: 'ein Würfel verschoben',
     optionSwap: 'zwei Flächen vertauscht',
     optionWholeFigure: 'ganze Figur',

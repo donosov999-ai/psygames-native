@@ -1,5 +1,5 @@
-/* psygames-mental-rotation-option-layout · VER 2 · 17.09.2026 */
-/* psygames-spatial-claude-mac · задача a2967e6f, отчёт c8903296 */
+/* psygames-mental-rotation-option-layout · VER 3 · 17.09.2026 */
+/* psygames-spatial-claude-mac · задачи a2967e6f (отчёт c8903296), 5de33bb4 */
 
 export interface OptionLayout {
   /** Сторона квадрата рисунка варианта. */
@@ -11,6 +11,11 @@ export interface OptionLayout {
    * высоту экрана. В остальных раскладках экран берёт свой прежний размер.
    */
   refSize?: number;
+  /**
+   * Только в альбоме: сколько строк подписи выбранного варианта влезает в колонку разбора над
+   * кнопкой «Следующий раунд» (0 — подписи нет, красная рамка варианта и так видна).
+   */
+  reviewNoteLines?: number;
 }
 
 /**
@@ -43,6 +48,43 @@ export const LANDSCAPE_REF_PADDING = 6;
 export const LANDSCAPE_PROMPT_LINE = 16;
 
 /**
+ * 🔴 АЛЬБОМ, РАЗБОР: ПОДПИСЬ И КНОПКА — КОЛОНКОЙ СПРАВА ОТ РЯДА, А НЕ ПОД НИМ (задача 5de33bb4).
+ *
+ * До VER 3 тесный разбор растягивал варианты по ширине полосы (карточка 116 px против 76–111 в
+ * задании), а под рядом вставали подпись и кнопка «Следующий раунд». Полоса росла, поле над ней
+ * сжималось до 21–91 px — и эталон, с которым разбор и сравнивает, уходил под варианты. Замер
+ * 17.09.2026 на экспорт-сборке, видно эталона в задании → в разборе: 667×375 — 103 → 9,
+ * 740×360 — 96 → 0, 812×375 — 103 → 9, 844×390 — 111 → 24, 896×414 — 123 → 48, 932×430 — 131 → 64;
+ * все виды заданий, кроме «Одинаковы?». Ширины в альбоме с избытком, высоты нет — значит колонка
+ * встаёт сбоку, а варианты и эталон в разборе того же размера, что в задании.
+ *
+ * Колонка лежит в свободном поле СПРАВА от ряда, а ряд остаётся по центру: первый вариант колонки
+ * «ряд + колонка по центру» сдвигал карточки влево на 96–118 px в момент ответа (живой кадр 667×375 —
+ * первая карточка заехала под плавающую кнопку отзыва). Поэтому ширина колонки — сколько осталось
+ * справа от ряда, не больше 220; `optionLayout` держит ряд таким, чтобы осталось не меньше 100.
+ */
+export const LANDSCAPE_REVIEW_SIDE = 220;
+export const LANDSCAPE_REVIEW_SIDE_MIN = 100;
+export const LANDSCAPE_REVIEW_GAP = 16;
+/** Кнопка «Следующий раунд» в колонке — не ниже пальца. */
+export const LANDSCAPE_REVIEW_BUTTON = 44;
+/** Строка подписи в колонке и зазор до кнопки. */
+export const LANDSCAPE_REVIEW_NOTE_LINE = 16;
+export const LANDSCAPE_REVIEW_NOTE_GAP = 6;
+/** Карточка варианта в альбоме: рисунок + поля 6 + 6 + рамка 1 + 1 (в ответе рамка 3, поля 4 — снаружи та же). */
+export const LANDSCAPE_CARD_EXTRA = 14;
+
+/** Ширина ряда вариантов в альбоме: карточки `optSize + 12` через 10. */
+export function landscapeRowWidth(count: number, optSize: number): number {
+  return count * (optSize + 12) + (count - 1) * 10;
+}
+
+/** Ширина колонки разбора справа от ряда, стоящего по центру полосы шириной `toolbarWidth`. */
+export function reviewSideWidth(toolbarWidth: number, count: number, optSize: number): number {
+  return Math.min(LANDSCAPE_REVIEW_SIDE, Math.floor(toolbarWidth / 2 - landscapeRowWidth(count, optSize) / 2 - LANDSCAPE_REVIEW_GAP));
+}
+
+/**
  * 🔴 РАЗМЕР ВАРИАНТА ОТВЕТА — ОТ ТОЙ СТОРОНЫ ЭКРАНА, КОТОРОЙ НЕ ХВАТАЕТ.
  *
  * Отчёт c8903296 (11.09.2026, iOS, 932×430, альбом): «картинка чуть ли не на 50 %
@@ -63,14 +105,21 @@ export function optionLayout({ viewportWidth, viewportHeight, answerWidth, count
   const compactScreen = viewportHeight < 560;
   let альбом: { optSize: number; refSize: number } | null = null;
   if (compactScreen && viewportWidth >= 600) {
-    const byWidth = Math.floor((Math.min(viewportWidth - 48, 760) - (count - 1) * 10) / count) - 12;
+    // По краям ряда оставляем место под колонку разбора (ряд по центру — место с обеих сторон).
+    const подРяд = Math.min(viewportWidth - 48 - 2 * (LANDSCAPE_REVIEW_SIDE_MIN + LANDSCAPE_REVIEW_GAP), 760);
+    const byWidth = Math.floor((подРяд - (count - 1) * 10) / count) - 12;
     const наДва = viewportHeight - LANDSCAPE_FIXED_HEIGHT;
     const optSize = Math.max(48, Math.min(Math.round(viewportHeight * 0.24), byWidth, Math.floor(наДва / 2)));
     const лишниеСтроки = Math.max(0, promptLines - 2) * LANDSCAPE_PROMPT_LINE;
     альбом = { optSize, refSize: Math.max(48, Math.min(refCap, наДва - optSize - лишниеСтроки)) };
   }
-  // В разборе эталон остаётся того же размера, что в задании: иначе он прыгал бы в момент ответа.
-  if (compactReview) return { optSize: Math.max(24, (answerWidth - (count - 1) * 6) / count - 18), oneRow: false, refSize: альбом?.refSize };
-  if (альбом) return { optSize: альбом.optSize, oneRow: true, refSize: альбом.refSize };
+  // В альбоме разбор берёт те же размеры, что задание: ни эталон, ни варианты не прыгают в момент
+  // ответа, и полоса не вырастает поверх эталона (см. LANDSCAPE_REVIEW_SIDE).
+  if (альбом) {
+    const местоПодпись = альбом.optSize + LANDSCAPE_CARD_EXTRA - LANDSCAPE_REVIEW_BUTTON - LANDSCAPE_REVIEW_NOTE_GAP;
+    const reviewNoteLines = Math.max(0, Math.min(2, Math.floor(местоПодпись / LANDSCAPE_REVIEW_NOTE_LINE)));
+    return { optSize: альбом.optSize, oneRow: true, refSize: альбом.refSize, reviewNoteLines };
+  }
+  if (compactReview) return { optSize: Math.max(24, (answerWidth - (count - 1) * 6) / count - 18), oneRow: false };
   return { optSize: Math.min(compactScreen ? 48 : viewportHeight < 720 ? 78 : 110, Math.max(48, (answerWidth - 10) / 2 - 18)), oneRow: false };
 }

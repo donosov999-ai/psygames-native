@@ -1,4 +1,4 @@
-/* psygames-game-mental-rotation · VER 9 · 17.09.2026 */
+/* psygames-game-mental-rotation · VER 10 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /**
  * Mental Rotation — три вида пространственных заданий на одной геометрии
@@ -60,7 +60,7 @@ import GameShell from '@/src/components/GameShell';
 import {ViewpointReference} from '@/src/components/ViewpointReference';
 import {RotationShape,RotationTransition} from '@/src/components/RotationShape';
 import {stillUnit} from '@/src/games/mental-rotation/core/surface';
-import {LANDSCAPE_PROMPT_LINE, LANDSCAPE_REF_PADDING, optionLayout} from '@/src/games/mental-rotation/optionLayout';
+import { LANDSCAPE_PROMPT_LINE, LANDSCAPE_REF_PADDING, optionLayout, LANDSCAPE_REVIEW_BUTTON, LANDSCAPE_REVIEW_NOTE_LINE, LANDSCAPE_REVIEW_NOTE_GAP, landscapeRowWidth, reviewSideWidth, LANDSCAPE_REVIEW_GAP } from '@/src/games/mental-rotation/optionLayout';
 import RotationWorkbench from '@/src/components/RotationWorkbench';
 import {spatialFrame} from '@/src/games/spatial-core/frame';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -339,6 +339,8 @@ export default function MentalRotationGame() {
    */
   const { h: viewportHeight, w: viewportWidth } = useScreenSize();
   const [answerWidth,setAnswerWidth]=useState(208);
+  // Ширина нижней полосы — в альбомном разборе колонка «подпись + кнопка» встаёт в свободное поле справа от ряда.
+  const [toolbarWidth,setToolbarWidth]=useState(0);
   /**
    * Сколько строк занял вопрос задания — живым замером. В альбоме высота поделена между эталоном
    * и вариантами с запасом на ДВЕ строки вопроса; замер 17.09.2026 по 12 языкам: из 156 вопросов
@@ -670,7 +672,11 @@ export default function MentalRotationGame() {
     // narrower than the window. Never let minWidth force a one-column tower.
     // Размер вариантов — от той стороны экрана, которой не хватает (отчёт c8903296): см. optionLayout.
     // В альбоме оттуда же и размер эталона: эталон и варианты делят одну высоту (срез эталона 34 px на 844×390 в 2.54.15).
-    const { optSize, oneRow: wideShort, refSize } = optionLayout({ viewportWidth, viewportHeight, answerWidth, count: task.options.length, compactReview, refCap: isPreset ? 80 : 104, promptLines });
+    const { optSize, oneRow: wideShort, refSize, reviewNoteLines = 0 } = optionLayout({ viewportWidth, viewportHeight, answerWidth, count: task.options.length, compactReview, refCap: isPreset ? 80 : 104, promptLines });
+    // Альбом, разбор: подпись и «Следующий раунд» колонкой справа от ряда — полоса не растёт поверх эталона,
+    // а ряд не сдвигается с центра (задача 5de33bb4, см. LANDSCAPE_REVIEW_SIDE).
+    const reviewSide = reviewing && wideShort;
+    const ширинаКолонки = reviewSide ? reviewSideWidth(toolbarWidth || viewportWidth - 48, task.options.length, optSize) : 0;
     const baseSize = refSize ?? (compactScreen?(isPreset?80:104):130);
     /*
      * Доли для эталона из нескольких рисунков. В портрете их держит ширина: три вида и два куска
@@ -708,8 +714,8 @@ export default function MentalRotationGame() {
             </View>
           }
           toolbar={
-            <View style={{ width: '100%', alignItems: 'center', gap: 10 }}>
-            <View style={[styles.optionsRow,compactReview?{flexWrap:'nowrap',gap:6}:null,wideShort?{flexWrap:'nowrap',maxWidth:760}:null]} onLayout={e=>setAnswerWidth(e.nativeEvent.layout.width)}>
+            <View style={{ width: '100%', alignItems: 'center', gap: 10 }} onLayout={e=>setToolbarWidth(e.nativeEvent.layout.width)}>
+            <View style={[styles.optionsRow,compactReview&&!wideShort?{flexWrap:'nowrap',gap:6}:null,wideShort?{flexWrap:'nowrap',maxWidth:760}:null]} onLayout={e=>setAnswerWidth(e.nativeEvent.layout.width)}>
               {task.options.map((opt, i) => (
                 <TouchableOpacity
                   accessibilityRole="button" key={i}
@@ -718,7 +724,8 @@ export default function MentalRotationGame() {
                   onPress={() => handlePick(i)}
                   style={[styles.optionBox, {
                     ...(compactReview?{width:(answerWidth-(task.options.length-1)*6)/task.options.length}:{}),
-                    ...(wideShort?{width:optSize+12}:{}),
+                    // В альбоме рамка ответа (3 вместо 1) съедает поля, а не высоту полосы: карточка снаружи того же размера.
+                    ...(wideShort?{width:optSize+12,padding:feedback?4:6}:{}),
                     backgroundColor: colors.surface,
                     borderColor: optionBorder(i),
                     borderWidth: feedback ? 3 : 1,
@@ -747,12 +754,31 @@ export default function MentalRotationGame() {
                     Поэтому в обычном разборе подпись в две строки, а в сжатом её под карточкой нет:
                     там одна строка под рядом — чем плох выбранный вариант (красная рамка и так видна).
                   */}
-                  {feedback&&!compactReview&&<Text numberOfLines={2} style={[styles.optionLabel2, { color: colors.textSecondary }]}>
+                  {feedback&&!compactReview&&!wideShort&&<Text numberOfLines={2} style={[styles.optionLabel2, { color: colors.textSecondary }]}>
                     {optionNote(opt)}
                   </Text>}
                 </TouchableOpacity>
               ))}
             </View>
+            {reviewSide && feedback ? (
+              <View testID="mental-review-side" style={{ position: 'absolute', top: 0, bottom: 0, left: '50%', marginLeft: landscapeRowWidth(task.options.length, optSize) / 2 + LANDSCAPE_REVIEW_GAP, width: ширинаКолонки, gap: LANDSCAPE_REVIEW_NOTE_GAP, justifyContent: 'center' }}>
+                {reviewNoteLines > 0 && (
+                  <Text testID="mental-picked-note" numberOfLines={reviewNoteLines} style={[styles.optionLabel2, { color: BAD_COLOR, fontSize: 13, lineHeight: LANDSCAPE_REVIEW_NOTE_LINE, minHeight: 0 }]}>
+                    {optionNote(task.options[feedback.idx])}
+                  </Text>
+                )}
+                <TouchableOpacity
+                  testID="mental-review-next"
+                  accessibilityRole="button"
+                  onPress={() => advance(records)}
+                  style={[styles.nextBtn, { minHeight: LANDSCAPE_REVIEW_BUTTON, paddingVertical: 4, paddingHorizontal: 12, alignItems: 'center', backgroundColor: GRADIENT[0], borderColor: GRADIENT[0] }]}
+                >
+                  <Text numberOfLines={2} style={{ color: '#FFF', fontWeight: '700', fontSize: 14, lineHeight: 17, textAlign: 'center' }}>
+                    {round < trials ? strings.reviewNextRound : strings.reviewFinishLevel}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (<>
             {reviewing && compactReview && feedback ? (
               <Text testID="mental-picked-note" numberOfLines={2} style={[styles.optionLabel2, { color: BAD_COLOR, fontSize: 13 }]}>
                 {optionNote(task.options[feedback.idx])}
@@ -770,6 +796,7 @@ export default function MentalRotationGame() {
                 </Text>
               </TouchableOpacity>
             )}
+            </>)}
             </View>
           }
         >
