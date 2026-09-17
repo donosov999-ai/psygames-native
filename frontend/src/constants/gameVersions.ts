@@ -69,7 +69,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'pizza-sort': { ver: 1, date: '07.09.2026' },
   'posner': { ver: 3, date: '16.09.2026' },
   'prl': { ver: 3, date: '17.09.2026' },
-  'proofreading': { ver: 6, date: '17.09.2026' },
+  'proofreading': { ver: 7, date: '17.09.2026' },
   'pseudoword-echo': { ver: 1, date: '19.08.2026' },
   'puzzles-hub': { ver: 2, date: '10.09.2026' },
   'puzzles': { ver: 10, date: '17.09.2026' },
