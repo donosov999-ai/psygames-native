@@ -1,5 +1,5 @@
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
-/* psygames-spatial-lab-screen · VER 2 · 17.09.2026 · psygames-spatial-claude-mac */
+/* psygames-spatial-lab-screen · VER 3 · 17.09.2026 · psygames-spatial-claude-mac */
 /** Local-only exercise adapter. Per-profile local saves; no server rewards. */
 /*
  * 🔴 VER 2 — НАСТРОЙКИ ОТДЕЛЬНО ОТ ПАРТИИ, ПОВОРОТ ДВОЙНЫМ НАЖАТИЕМ (17.09.2026, задача f3fae4e2).
@@ -11,6 +11,9 @@
  * пропадает («Продолжить игру»); «Выйти из упражнения» уходит с экрана, как у всех игр. Шаг зарядки (`preset`) идёт сразу в партию, как было.
  * Отчёт 60913453: «по двойному нажатию вращение, чтобы шло тоже» — двойное нажатие по той же
  * трубе или клетке поворачивает по часовой (у упражнений сдвига направления нет — там нет).
+ *
+ * 🔴 VER 3 — ДОСКА ВПИСЫВАЕТСЯ В ПОЛЕ КАРКАСА (17.09.2026, отчёт e5bfc2f0, задача 42dbd9bf).
+ * См. «СТОРОНА ДОСКИ» у расчёта `side`.
  */
 import React, {useState, useEffect, useRef,useCallback} from 'react';
 import {победаКОтправке} from './spatialLabWin';
@@ -26,6 +29,8 @@ import Svg, {Path, Circle} from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useProfile} from '@/src/contexts/ProfileContext';
 import GameShell from './GameShell';
+import {useGameFieldHeight} from './GameFieldHeight';
+import {FAB_SIZE} from '@/src/services/fabPosition';
 import {HELP_OPEN_EVENT, HELP_CORNER_SPACE} from './GameHelpOverlay';
 import {GameAuxAction, GameAuxBar} from './GameAuxAction';
 import {useTheme} from '@/src/contexts/ThemeContext';
@@ -109,8 +114,18 @@ export function SpatialPipe({cell,active,source}:{cell:Cell;active:boolean;sourc
  * Механика поля Codex не тронута: это тот же `request()`, что у кнопок «Проще/Сложнее».
  */
 
+/** Передаёт высоту поля каркаса экрану, который стоит над каркасом (см. `высотаПоля`). Имя латиницей — правило хуков линта. */
+function FieldHeightUp({onChange}:{onChange:(высота:number)=>void}){
+  const высота=useGameFieldHeight();
+  useEffect(()=>{onChange(высота);},[высота,onChange]);
+  return null;
+}
+
+/** Окно ниже этой высоты — «тесное»: у 390×844 и выше раскладка прежняя. */
+export const ТЕСНОЕ_ОКНО=760;
+
 export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay,onReady}:{onBack:()=>void;preset?:{mode:Mode;level:number;seed:number};initialMode?:Mode;onComplete?:(result:{mode:Mode;level:number;moves:number})=>void;overlay?:React.ReactNode;onReady?:(api:{request:(level:number)=>void;toConfig:()=>void})=>void}) {
-  const {t}=useLanguage();   // названия упражнений — из общего словаря (12 языков), не литералами
+  const {t,language}=useLanguage();   // названия упражнений — из общего словаря (12 языков), не литералами
   const {colors}=useTheme();
   const {h:viewportHeight}=useScreenSize();
   const {profile,ready:profileReady}=useProfile();
@@ -123,6 +138,14 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   // SSR and first client frame must agree; measuring the field also handles
   // split windows and safe-area padding without stale hydration styles.
   const [available,setAvailable]=useState(248);
+  /** Высота содержимого поля БЕЗ доски, по ключу раскладки (см. «СТОРОНА ДОСКИ»). */
+  const [замерПоля,setЗамерПоля]=useState<{key:string;h:number}|null>(null);
+  /**
+   * Высота поля каркаса. Каркас отдаёт её только ВНУТРЬ поля (контекст), а этот экран стоит над
+   * каркасом — поэтому узел `FieldHeightUp` внутри поля передаёт её сюда. Хук здесь, наверху,
+   * получал бы 0 всегда: так и было на первом замере (сторона осталась 316 на 375×667).
+   */
+  const [высотаПоля,setВысотаПоля]=useState(0);
   const [mode,setMode]=useState<Mode>('twiddle');
   const [seed,setSeed]=useState(42);
   const [state,setState]=useState(()=>deal('twiddle',42));
@@ -281,8 +304,28 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
    * состояния до первого хода всё равно стоит «Блок: 1, 1», и подсказка полезнее.
    */
   const guide=task&&'guide' in task&&task.guide&&state.past.length===0?task.guide:null;
+  /**
+   * 🔴 СТОРОНА ДОСКИ — ОТ ИЗМЕРЕННОЙ ВЫСОТЫ ПОЛЯ КАРКАСА (17.09.2026, отчёт e5bfc2f0, задача 42dbd9bf).
+   * Каркас с 568bec9d прибивает поле, которое помещается, и оставляет прокрутку тому, что выше окна.
+   * Замер WebKit на экспорте (вход в партию, колесо по пустому месту поля): лаборатория ездила на
+   * 375×667 на 78–122 px, на 360×740 — на 21–65, на 360×800 «Сеть со сдвигом» — на 5. Запас 351
+   * считался под прежнюю раскладку и под одну длину задания; у «Сети со сдвигом» задание в четыре
+   * строки. Теперь сторона = высота поля каркаса − всё, что в поле кроме доски (замер onLayout).
+   * «Всё кроме доски» от стороны не зависит: одна перекладка, без качелей. Замер только растёт в
+   * пределах ключа (упражнение, уровень, окно, язык): строка состояния в две строки не качает доску
+   * туда-обратно на каждом ходе. Панель «начать заново?» над полем — временная, её не меряем.
+   * Пока каркас поле не измерил (или экран без каркаса) — прежняя формула.
+   * Пол — клетка 45 pt (5×5 → 241, 4×4 → 192, 3×3 → 143), но не выше прежних 240.
+   */
   const ЗАПАС_ПО_ВЫСОТЕ=351;
-  const side=Math.max(240,Math.min(available-8,420,viewportHeight-ЗАПАС_ПО_ВЫСОТЕ));
+  const ЗАПАС_ЗАМЕРА=2;
+  const ключЗамера=(ширина:number)=>`${mode}|${task?.level??'free'}|${viewportHeight}|${Math.round(ширина)}|${language}`;
+  const безДоски=замерПоля&&замерПоля.key===ключЗамера(available)?замерПоля.h:0;
+  const поВысоте=высотаПоля>0&&безДоски>0?высотаПоля-безДоски-ЗАПАС_ЗАМЕРА:viewportHeight-ЗАПАС_ПО_ВЫСОТЕ;
+  const пол=Math.min(240,n*45+(n-1)*4);
+  const side=Math.max(пол,Math.min(available-8,420,поВысоте));
+  /** Тесное окно — плотнее зазоры и задание. Решение по высоте окна, а не по замеру: иначе плотность и замер качали бы друг друга. */
+  const тесно=viewportHeight<ТЕСНОЕ_ОКНО;
   const size=(side-(n-1)*4)/n;
   /** Смещение едущей линии: угол таймера ±90 → ±одна клетка с зазором. */
   const сдвигПикс=angle.interpolate({inputRange:[-90,90],outputRange:[-(size+4),size+4]});
@@ -412,9 +455,16 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
       { key: 'round', icon: 'pricetag-outline', label: t('hud_puzzle'), value: `#${seed}` },
     ]}
     toolbar={сдвиг?<View style={styles.arrows}>{СТРЕЛКИ.map(([kind,amount,key,glyph])=><Pressable key={key} accessibilityRole="button" accessibilityLabel={t(key)} disabled={won||pending!==null||busy} onPress={()=>shift(kind,amount)} style={[styles.turn,styles.arrow,{backgroundColor:colors.primary,opacity:won||pending!==null||busy?0.4:1}]}><Text style={styles.arrowText}>{glyph}</Text></Pressable>)}</View>:<View style={styles.turns}>{([-1,1] as const).map(a=><Pressable key={a} accessibilityRole="button" accessibilityLabel={t(a<0?'spatialLabTurnLeft':'spatialLabTurnRight')} disabled={won||pending!==null||busy||locked(selection)} onPress={()=>turn(a)} style={[styles.turn,{backgroundColor:colors.primary,opacity:won||pending!==null||busy||locked(selection)?0.4:1}]}><Text style={styles.turnText}>{a<0?`↶ ${t('a11yLeft')}`:`${t('a11yRight')} ↷`}</Text></Pressable>)}</View>}>
-    <View style={styles.field} onLayout={e=>setAvailable(e.nativeEvent.layout.width)}>
+    <View style={[styles.field,тесно&&styles.fieldTight]} onLayout={e=>{
+      const {width,height}=e.nativeEvent.layout;
+      setAvailable(width);
+      if(pending!==null)return;
+      const ключ=ключЗамера(width),h=Math.ceil(height-side);
+      setЗамерПоля(cur=>cur&&cur.key===ключ&&cur.h>=h?cur:{key:ключ,h});
+    }}>
+      <FieldHeightUp onChange={setВысотаПоля}/>
       {подтверждение}
-      <Text style={[styles.instruction,ink]}>{цельУпражнения}</Text>
+      <Text style={[styles.instruction,тесно&&styles.instructionTight,ink]}>{цельУпражнения}</Text>
       <View testID="spatial-board" style={{width:side,gap:4,overflow:sliding?'hidden':'visible'}}>{Array.from({length:n},(_,r)=><View key={r} style={styles.row}>{view.cells.slice(r*n,(r+1)*n).map((cell,c)=>{
         const i=r*n+c, sr=Math.floor(selection/n),sc=selection%n;
         const selected=mode==='net'||сдвиг?selection===i:r>=sr&&r<sr+2&&c>=sc&&c<sc+2;
@@ -460,7 +510,10 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
         строки задания. Обёртка возвращает панели её ряд.
       */}
       <View style={styles.auxRow}><GameAuxBar><GameAuxAction compact icon="arrow-undo" ladder="undo" label={t('btn_undo')} onPress={()=>setState(undo)} disabled={!state.past.length||pending!==null||busy}/><GameAuxAction compact icon="arrow-redo" label={t('spatialLabRedo')} onPress={()=>setState(redo)} disabled={!state.future.length||pending!==null||busy}/><GameAuxAction compact icon={replayIndex!==null?'stop':'play'} label={t(replayIndex!==null?'voiceStop':'spatialLabReplay')} onPress={()=>setReplayIndex(replayIndex!==null?null:0)} disabled={!state.past.length||pending!==null||turning!==null}/>{!preset&&<GameAuxAction compact icon="shuffle" label={t('spatialLabNew')} onPress={()=>request('new')} disabled={pending!==null||busy}/>}</GameAuxBar></View>
-      <View style={{alignItems:'center',gap:8}}>
+      {/* Строки уровня — последние в поле, а поле теперь прибито: слева внизу над ними висит кнопка отзыва
+          (в арабском справа). Отступ с обеих сторон на её ширину — живой кадр 375×667, «Поворот чисел», ур. 1:
+          кнопка накрывала «Один» в строке описания уровня. */}
+      <View style={{alignItems:'center',gap:тесно?4:8,alignSelf:'stretch',paddingHorizontal:FAB_SIZE+12}}>
         {/*
           🔴 СЧЁТЧИК ПРОЙДЕННОГО ОТНОСИТСЯ К УРОВНЯМ, А СТОЯЛ ПОД «СВОБОДНОЙ ИГРОЙ».
           Отчёт ee0889e7 (12.09.2026), дословно: «Свободная игра и что под ней зачем
@@ -472,7 +525,7 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
         {/* В партии — только чем занят игрок: пояснение про свободную игру живёт на экране настройки
             (двухстрочная подпись здесь уходила под кнопку отзыва — живой кадр 430×932, 17.09.2026). */}
         <Text testID="spatial-game-level" style={ink}>{task?`${t('level')} ${task.level}/50 · ${t('spatialDone')}: ${completed[mode].length}/50`:t('spatialFreePlay')}</Text>
-        {task?<Text testID="spatial-level-note" style={[styles.instruction,ink]}>{levelNote(task,t,mode)}</Text>:null}
+        {task?<Text testID="spatial-level-note" style={[styles.instruction,тесно&&styles.instructionTight,ink]}>{levelNote(task,t,mode)}</Text>:null}
       </View>
       {/*
         ВКЛАДКИ РЕЖИМОВ — ТОЖЕ ПОД ДОСКОЙ (16.09.2026): это выбор игры, а не ход, и
@@ -500,7 +553,7 @@ const styles=StyleSheet.create({
    * и зазором 8 стрелка выходила 47 pt — ниже пола 48. Без отступа и с зазором 6 — 56 pt.
    */
   arrows:{flexDirection:'row',gap:6,width:'100%',maxWidth:640},arrow:{minWidth:48},
-  field:{alignItems:'center',width:'100%',gap:12},
+  field:{alignItems:'center',width:'100%',gap:12},fieldTight:{gap:8},instructionTight:{fontSize:14,lineHeight:19},
   configRoot:{flex:1},configHeader:{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:8,paddingVertical:6},
   configBack:{width:48,height:48,alignItems:'center',justifyContent:'center'},configTitle:{flex:1,color:'#fff',fontSize:20,fontWeight:'800'},
   configBody:{padding:16,gap:14,alignItems:'stretch'},configCard:{borderRadius:16,padding:14,gap:8,alignItems:'center'},

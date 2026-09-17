@@ -87,7 +87,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'sorting-hub': { ver: 1, date: '06.09.2026' },
   'span': { ver: 1, date: '19.08.2026' },
   'spatial-hub': { ver: 1, date: '09.09.2026' },
-  'spatial-lab': { ver: 6, date: '17.09.2026' },
+  'spatial-lab': { ver: 7, date: '17.09.2026' },
   'spatial-span': { ver: 1, date: '19.08.2026' },
   'stop-signal': { ver: 3, date: '16.09.2026' },
   'story-recall': { ver: 1, date: '19.08.2026' },
