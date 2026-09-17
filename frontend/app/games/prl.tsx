@@ -1,4 +1,4 @@
-/* psygames-game-prl · VER 2 · 16.09.2026 */
+/* psygames-game-prl · VER 3 · 17.09.2026 */
 /**
  * PRL — Probabilistic Reversal Learning
  *
@@ -53,6 +53,7 @@ import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import { ПОЛЯ_ОТВЕТА, ПАЛЕЦ } from '@/src/components/gameLayout';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -631,7 +632,7 @@ export default function PRLGame() {
     );
   };
 
-  // игровая фаза — на едином каркасе GameShell: круги-ответы и стоп прибиты к низу
+  // игровая фаза — на едином каркасе GameShell: круги-ответы прибиты к низу, «СТОП» — в шапке
   if (phase === 'playing') {
     return (
       <GameShell
@@ -650,16 +651,28 @@ export default function PRLGame() {
         /* Слот `stats` СНЯТ 16.09.2026: в нём стоял пустой <View/>. Пустой слот
            каркас всё равно рисует полосой, и она отжимала поле вниз ни за что —
            ровно тот же случай, что был у WCST. */
+        /*
+          🔴 «СТОП» — В ШАПКЕ, А НЕ ПОД КРУГАМИ (17.09.2026). В нижней полосе стояли круги «A» и
+          «B» (ответ) и под ними, через 16 px, «СТОП», который обрывает сеанс. Замер
+          prl-стоп-кадры.mjs: 390×844 — круги 655…770, «СТОП» 786…834; 360×640 — 466…566 и
+          582…630. Промах пальцем вниз стоил всей пробы. Этот же случай гейт slot-meaning держал
+          долгом «ХУДШИЙ ИЗ ОСТАВШИХСЯ» с 19.08. Рецепт тот же, что у CPT, но в ряду счётчиков
+          (`auxInHud`), а не отдельным рядом над полем: отдельный ряд опустил бы поле на 54.
+          Значок без слова — решение Дениса 03.09 для верхнего тулбара; слово остаётся в
+          подписи для скринридера, красная рамка `danger` отличает обрыв сеанса от хода.
+        */
+        auxInHud
+        headerActions={
+          <GameAuxBar>
+            <GameAuxAction compact danger icon="stop-circle" label={t('btn_stop')} onPress={stop} />
+          </GameAuxBar>
+        }
         toolbar={
           <View style={styles.toolbarCol}>
             <View style={styles.stimRow}>
               {renderStimulus('A', '#3b82f6')}
               {renderStimulus('B', '#f59e0b')}
             </View>
-            <TouchableOpacity
-              accessibilityRole="button" style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
-              <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{t('btn_stop')}</Text>
-            </TouchableOpacity>
           </View>
         }
       >
@@ -752,6 +765,4 @@ const styles = StyleSheet.create({
   stim: { width: 130, height: 130, borderRadius: 65, justifyContent: 'center', alignItems: 'center' },
   stimLabel: { color: '#FFF', fontSize: 48, fontWeight: '900' },
   fbText: { color: '#FFF', fontSize: 18, fontWeight: '900', marginTop: -8 },
-  stopBtn: { minHeight: 48, justifyContent: 'center', paddingVertical: 8, paddingHorizontal: 24, borderRadius: 16, borderWidth: 1, marginTop: 12 },
-  stopBtnText: { fontSize: 13, fontWeight: '700' },
 });
