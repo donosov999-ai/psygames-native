@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.17',
+    date: '2026-09-17',
+    ru: [
+      'В выборе зарядки — серии «Все игры» развилок: все игры одной развилки подряд одной кнопкой',
+      '«Стоп» на карточке итога в зарядке переспрашивает, прежде чем остановить серию',
+      '«Мысленное вращение»: новый вид заданий «Память» — фигуру показали, спрятали, узнай её повёрнутой',
+      '«Быстрый счёт» и «Числовой забег»: варианты ответа больше не подсказывают ответ, «Одна линия» не показывает правила перед каждым уровнем',
+    ],
+    en: [
+      'Warm-up now offers “All games” series for hubs: every game of one hub in a row with one tap',
+      'Stop on the result card in a warm-up now asks before ending the series',
+      'Mental Rotation adds a Memory task: the shape is shown, hidden, and you find it rotated',
+      'Quick Count and Number Run answer options no longer give the answer away, and One Line no longer shows the rules before every level',
+    ],
+  },
+  {
     version: '2.54.16',
     date: '2026-09-17',
     ru: [
