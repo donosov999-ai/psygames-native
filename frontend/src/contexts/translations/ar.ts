@@ -2722,6 +2722,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ هنا تسحب بإصبعك ولا تنقر",
   "puzzleNoMoves": "لم تبقَ نقلات. يمكنك البدء من جديد",
   "puzzleBlownUp": "انفجرت. تراجع عن النقلة وواصل اللعب",
+  "puzzleErrorShown": "الأحمر يبيّن أين خولفت قاعدة",
   "puzzleHudMarked": "معلَّم",
   "puzzleHudActive": "موصولة",
   "puzzleHudMovesUsed": "المستخدَم",

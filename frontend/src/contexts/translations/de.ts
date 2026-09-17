@@ -2726,6 +2726,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ Hier wird gezogen, nicht getippt",
   "puzzleNoMoves": "Keine Züge mehr. Du kannst neu anfangen",
   "puzzleBlownUp": "Explodiert. Zug zurücknehmen und weiterspielen",
+  "puzzleErrorShown": "Rot zeigt, wo eine Regel verletzt ist",
   "puzzleHudMarked": "Markiert",
   "puzzleHudActive": "Verbunden",
   "puzzleHudMovesUsed": "Verbraucht",

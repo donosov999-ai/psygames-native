@@ -1,4 +1,4 @@
-/* psygames-game-puzzles · VER 8 · 17.09.2026 */
+/* psygames-game-puzzles · VER 9 · 17.09.2026 */
 /**
  * ГОЛОВОЛОМКИ ТЭТХЭМА — ВСЕ СОРОК движков на одном экране.
  *
@@ -33,6 +33,7 @@ import ArrowPad, { ПРЯМЫЕ } from '@/src/components/ArrowPad';
 import { GameAuxAction } from '@/src/components/GameAuxAction';
 import PuzzleCanvas from '@/src/components/PuzzleCanvas';
 import LessonPlayer, { длительностьШага } from '@/src/components/LessonPlayer';
+import { ЦВЕТ_ОШИБКИ, естьОшибкаНаРисунке } from '@/src/games/tatham-bridge/errorColours';
 import PlayBoard, { сторонаПоВысоте } from '@/src/components/PlayBoard';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -678,6 +679,20 @@ export default function PuzzlesScreen() {
             onLayout={(e) => { const h = Math.round(e.nativeEvent.layout.height); setВысотаПодДоской((п) => (п === h ? п : h)); }}
           >
           {/*
+            🔴 «КРАСНЫМ ОТМЕЧЕНО, ГДЕ НАРУШЕНО ПРАВИЛО» — ЧТОБЫ «РЕШИЛ, А НЕ ЗАСЧИТАНО» НЕ БЫЛО МОЛЧАНИЕМ.
+            Отзывы Дениса 16.09.2026 (28a9d55c, 0b70eff2, d6dd7d66; задача 9022b6ff): решение не признано,
+            а почему — не видно. 26 движков из 42 сами красят нарушение в момент хода, и наш холст этот
+            красный рисует (замер в `errorColours.ts`); не хватало слов, что красное значит.
+            ⚠️ СЛОТ ЕСТЬ ВСЕГДА у этих 26 режимов, пустой, пока ошибок нет: строка, которая появлялась бы и
+            исчезала с каждой правкой, меняла бы высоту под доской — а по ней считается сторона доски
+            (`сторонаПоВысоте`), и доска прыгала бы на каждом ходе. Это то самое «ездит».
+          */}
+          {ЦВЕТ_ОШИБКИ[имяРежима] ? (
+            <Text testID="puzzle-error-hint" numberOfLines={1} style={styles.ошибкаСтрока}>
+              {партия && !победа && !сдался && естьОшибкаНаРисунке(имяРежима, партия.примитивы) ? t('puzzleErrorShown') : ' '}
+            </Text>
+          ) : null}
+          {/*
             🔴 ВЫХОД ИЗ ТУПИКА СТОИТ ТАМ, ГДЕ ТУПИК, — НАД ДОСКОЙ.
             Денис 11.09.2026, снимок «Сапёра» с подорванной клеткой: «в конце не
             двигается, выходит только через кнопку паузы». Так и было: у «Сапёра» и
@@ -1149,6 +1164,7 @@ const styles = StyleSheet.create({
   командаВыбораТекст: { color: '#FFF', fontSize: 15, fontWeight: '700' },
   // Отступ сверху даёт `gap` сцены: свой `marginTop` поверх него съедал высоту, см. `рядКоманд`.
   протяжка: { fontSize: 13, textAlign: 'center', maxWidth: 420, fontWeight: '600' },
+  ошибкаСтрока: { fontSize: 13, lineHeight: 18, height: 18, textAlign: 'center', maxWidth: 420, fontWeight: '700', color: '#dc2626' },
   тупик: {
     marginTop: 12, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16, borderWidth: 1,
     alignItems: 'center', gap: 10, alignSelf: 'stretch', maxWidth: 420,

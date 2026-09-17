@@ -2726,6 +2726,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ Aquí se arrastra, no se toca",
   "puzzleNoMoves": "No quedan jugadas. Puedes empezar de nuevo",
   "puzzleBlownUp": "Has explotado. Deshaz la jugada y sigue",
+  "puzzleErrorShown": "En rojo: donde se rompe una regla",
   "puzzleHudMarked": "Marcadas",
   "puzzleHudActive": "Conectadas",
   "puzzleHudMovesUsed": "Usados",

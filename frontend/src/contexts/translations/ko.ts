@@ -2721,6 +2721,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ 여기서는 탭이 아니라 끌어야 합니다",
   "puzzleNoMoves": "더 둘 수가 없습니다. 다시 시작할 수 있어요",
   "puzzleBlownUp": "폭발했습니다. 수를 되돌리고 계속하세요",
+  "puzzleErrorShown": "빨간색은 규칙을 어긴 곳입니다",
   "puzzleHudMarked": "표시됨",
   "puzzleHudActive": "연결됨",
   "puzzleHudMovesUsed": "사용",

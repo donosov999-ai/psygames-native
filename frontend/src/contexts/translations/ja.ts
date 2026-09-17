@@ -2720,6 +2720,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ ここはタップではなくドラッグです",
   "puzzleNoMoves": "手がありません。やり直せます",
   "puzzleBlownUp": "爆発しました。手を戻して続けましょう",
+  "puzzleErrorShown": "赤はルール違反の場所です",
   "puzzleHudMarked": "マーク済み",
   "puzzleHudActive": "接続済み",
   "puzzleHudMovesUsed": "使用",

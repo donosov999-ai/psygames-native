@@ -1025,6 +1025,7 @@ const translations: Translations = {
   teachNewBoard: { ru: 'Новая доска', en: 'New board' },
   teachPlay: { ru: 'Смотреть', en: 'Play' },
   teachPause: { ru: 'Пауза', en: 'Pause' },
+  puzzleErrorShown: { ru: 'Красным отмечено, где нарушено правило', en: 'Red marks where a rule is broken' },
   puzzleHudMarked: { ru: 'Отмечено', en: 'Marked' },
   puzzleHudActive: { ru: 'Соединено', en: 'Connected' },
   /**

@@ -2729,6 +2729,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ यहाँ उँगली से खींचें, टैप न करें",
   "puzzleNoMoves": "कोई चाल नहीं बची। चाहें तो नए सिरे से शुरू करें",
   "puzzleBlownUp": "आप उड़ गए। चाल पूर्ववत करें और खेलते रहें",
+  "puzzleErrorShown": "लाल रंग बताता है कि नियम कहाँ टूटा",
   "puzzleHudMarked": "चिह्नित",
   "puzzleHudActive": "जुड़े",
   "puzzleHudMovesUsed": "खर्च",
