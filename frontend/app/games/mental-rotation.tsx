@@ -1,4 +1,4 @@
-/* psygames-game-mental-rotation · VER 6 · 17.09.2026 */
+/* psygames-game-mental-rotation · VER 7 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /**
  * Mental Rotation — три вида пространственных заданий на одной геометрии
@@ -60,7 +60,7 @@ import GameShell from '@/src/components/GameShell';
 import {ViewpointReference} from '@/src/components/ViewpointReference';
 import {RotationShape,RotationTransition} from '@/src/components/RotationShape';
 import {stillUnit} from '@/src/games/mental-rotation/core/surface';
-import {optionLayout} from '@/src/games/mental-rotation/optionLayout';
+import {LANDSCAPE_PROMPT_LINE, LANDSCAPE_REF_PADDING, optionLayout} from '@/src/games/mental-rotation/optionLayout';
 import RotationWorkbench from '@/src/components/RotationWorkbench';
 import {spatialFrame} from '@/src/games/spatial-core/frame';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -336,6 +336,13 @@ export default function MentalRotationGame() {
    */
   const { h: viewportHeight, w: viewportWidth } = useScreenSize();
   const [answerWidth,setAnswerWidth]=useState(208);
+  /**
+   * Сколько строк занял вопрос задания — живым замером. В альбоме высота поделена между эталоном
+   * и вариантами с запасом на ДВЕ строки вопроса; замер 17.09.2026 по 12 языкам: из 156 вопросов
+   * три строки даже в ширину 600 у трёх — «Срез» на хинди. Лишняя строка отнимается у эталона.
+   * Высота вопроса от размеров рисунков не зависит, поэтому замер не зацикливается.
+   */
+  const [promptLines,setPromptLines]=useState(2);
   const { t, language } = useLanguage();
   const strings = getMentalRotationStrings(language as MentalRotationLocale);
   // Разбор поворота — это движение. Человеку, попросившему систему «меньше
@@ -625,11 +632,21 @@ export default function MentalRotationGame() {
   if (phase === 'playing') {
     const compactScreen=viewportHeight<560;
     const compactReview=reviewing&&(isPreset||viewportHeight<720);
-    const baseSize = compactScreen?(isPreset?80:104):130;
     // Measure the actual answer slot: split panels/zoom can make it much
     // narrower than the window. Never let minWidth force a one-column tower.
     // Размер вариантов — от той стороны экрана, которой не хватает (отчёт c8903296): см. optionLayout.
-    const { optSize, oneRow: wideShort } = optionLayout({ viewportWidth, viewportHeight, answerWidth, count: task.options.length, compactReview });
+    // В альбоме оттуда же и размер эталона: эталон и варианты делят одну высоту (срез эталона 34 px на 844×390 в 2.54.15).
+    const { optSize, oneRow: wideShort, refSize } = optionLayout({ viewportWidth, viewportHeight, answerWidth, count: task.options.length, compactReview, refCap: isPreset ? 80 : 104, promptLines });
+    const baseSize = refSize ?? (compactScreen?(isPreset?80:104):130);
+    /*
+     * Доли для эталона из нескольких рисунков. В портрете их держит ширина: три вида и два куска
+     * встают в ряд, отсюда 0,62 и 0,8. В альбоме ширины с избытком, а высоту уже поделили с
+     * вариантами — и такие эталоны недобирали её: замер 740×360 и 667×375 — у «Трёх видов»
+     * оставалось 15 px, у «Сборки» 26–27, у «Одинаковы?» 41. Строка подписей видов (16 px)
+     * встаёт на место подписи «эталон» (17 px), поэтому в альбоме хватает полной доли.
+     */
+    const viewShare = refSize !== undefined ? 1 : 0.62;
+    const partShare = refSize !== undefined ? 1 : 0.8;
     /*
      * Неподвижные варианты рисуются по контуру и ОДНИМ масштабом на все варианты задания:
      * по описанной сфере рисунок занимал 53–84 % своего квадрата (запас под поворот, которого
@@ -721,7 +738,8 @@ export default function MentalRotationGame() {
             {!compactScreen&&!isPreset&&<Text style={[styles.taskBadge, { color: colors.text, borderColor: colors.border }]}>
               {strings.taskLabel}: {kindWord(task.kind)}
             </Text>}
-            <Text style={[styles.hintText, { color: colors.textSecondary }]}>
+            <Text style={[styles.hintText, { color: colors.textSecondary }, refSize !== undefined ? { maxWidth: 600, lineHeight: LANDSCAPE_PROMPT_LINE } : null]}
+              onLayout={refSize !== undefined ? (e) => setPromptLines(Math.max(1, Math.round(e.nativeEvent.layout.height / LANDSCAPE_PROMPT_LINE))) : undefined}>
               {task.kind === 'rotation'
                 ? (compactScreen ? strings.hintCompact : t('mentalRotationHint'))
                 : task.kind === 'projection'
@@ -739,7 +757,7 @@ export default function MentalRotationGame() {
                     })
                   : strings.netPrompt}
             </Text>
-            <View testID="mental-reference" style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }]}>
+            <View testID="mental-reference" style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }, refSize !== undefined ? { padding: LANDSCAPE_REF_PADDING } : null]}>
               {task.kind === 'net'
                 ? renderNet(task.net, task.markOfCell, baseSize, '#F3F0FF', SHAPE_BASE)
                 : task.kind==='rotation'&&reviewing&&manualReview
@@ -757,22 +775,22 @@ export default function MentalRotationGame() {
                   ? <View testID="formation-views" style={{flexDirection:'row',alignItems:'flex-start',justifyContent:'center',gap:10}}>
                       {([['top', strings.viewTop], ['front', strings.viewFront], ['side', strings.viewSide]] as const).map(([view, label]) => (
                         <View key={view} style={{alignItems:'center',gap:2}}>
-                          {renderGrid(task.views[view], baseSize*0.62, GRADIENT[1], colors.border)}
+                          {renderGrid(task.views[view], baseSize*viewShare, GRADIENT[1], colors.border)}
                           <Text style={{fontSize:12,color:colors.textSecondary}}>{label}</Text>
                         </View>
                       ))}
                     </View>
                   : task.kind === 'assembly'
                   ? <View testID="assembly-parts" style={{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8}}>
-                      <RotationShape shape={task.parts[0]} size={baseSize*0.8}/>
+                      <RotationShape shape={task.parts[0]} size={baseSize*partShare}/>
                       <Text style={{fontSize:20,fontWeight:'700',color:colors.textSecondary}}>+</Text>
-                      <RotationShape shape={task.parts[1]} size={baseSize*0.8}/>
+                      <RotationShape shape={task.parts[1]} size={baseSize*partShare}/>
                     </View>
                   : task.kind === 'same'
                   ? <View testID="same-pair" style={{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8}}>
-                      <RotationShape shape={task.left} size={baseSize*0.8}/>
+                      <RotationShape shape={task.left} size={baseSize*partShare}/>
                       <Text style={{fontSize:20,fontWeight:'700',color:colors.textSecondary}}>?</Text>
-                      <RotationShape shape={task.right} size={baseSize*0.8}/>
+                      <RotationShape shape={task.right} size={baseSize*partShare}/>
                     </View>
                   : <RotationShape shape={
                     task.kind === 'rotation'

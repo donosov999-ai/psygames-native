@@ -1,4 +1,4 @@
-/* psygames-mental-rotation-options-fill · VER 1 · 17.09.2026 */
+/* psygames-mental-rotation-options-fill · VER 2 · 17.09.2026 */
 /* psygames-spatial-claude-mac · задача a2967e6f, отчёт c8903296 */
 /**
  * 🔴 ФИГУРА ВАРИАНТА ЗАНИМАЕТ КАРТОЧКУ, А НЕ ТЕРЯЕТСЯ В НЕЙ — И В АЛЬБОМЕ ТОЖЕ.
@@ -10,8 +10,15 @@
  *   2. неподвижный вариант вписывался по описанной сфере — с запасом под поворот, которого
  *      у него нет (`stillUnit`): рисунок занимал 53–84 % своего квадрата.
  * После правки на стенде: альбом 24–41 % площади карточки, портрет 30–39 %.
+ *
+ * 🔴 VER 2 — ТРЕТЬЯ ПРИЧИНА, КОТОРУЮ VER 1 САМА И СОЗДАЛА. Проба мерила варианты, а не то,
+ * что после них осталось полю. Варианты выросли до 0,24 высоты, эталон остался 104 — и на
+ * вышедшей 2.54.15 карточка эталона ушла под полосу вариантов: 844×390 — срез 34 px, 740×360 —
+ * 56, прибор `scripts/rotation-landscape-fit.mjs` дал 34 нарушения из 36 замеров. Теперь в альбоме
+ * эталон и варианты делят высоту поровну (`LANDSCAPE_FIXED_HEIGHT`), и проба стережёт ДЕЛЁЖ,
+ * а не один размер варианта. После правки тот же прибор: 0 нарушений из 56 замеров на 4 окнах.
  */
-import { optionLayout } from '@/src/games/mental-rotation/optionLayout';
+import { LANDSCAPE_FIXED_HEIGHT, LANDSCAPE_PROMPT_LINE, optionLayout } from '@/src/games/mental-rotation/optionLayout';
 import { shapeSurface, stillUnit } from '@/src/games/mental-rotation/core/surface';
 import { buildRotationTask, createRng, shapesOfSize } from '@/src/games/mental-rotation/core';
 import type { Shape } from '@/src/games/mental-rotation/core';
@@ -28,15 +35,53 @@ const рамка = (shape: Shape, size: number, unit?: number) => {
 };
 
 describe('раскладка вариантов «Мысленного вращения»', () => {
-  it('🔴 альбом (932×430, 844×390): один ряд, рисунок не мельче 90 px и ряд влезает в ширину', () => {
-    for (const [w, h] of [[932, 430], [844, 390], [896, 414]]) for (const count of [3, 4]) {
+  /** Альбомные окна живых телефонов: Android 740×360, iPhone SE/mini, 12–15, Plus/Pro Max, планшет-фаблет. */
+  const АЛЬБОМ: [number, number][] = [[740, 360], [667, 375], [812, 375], [844, 390], [896, 414], [932, 430], [1024, 500]];
+
+  it('🔴 альбом: один ряд, ряд влезает в ширину, рисунок заполняет карточку', () => {
+    for (const [w, h] of АЛЬБОМ) for (const count of [3, 4]) {
       const l = optionLayout({ viewportWidth: w, viewportHeight: h, answerWidth: 480, count, compactReview: false });
       expect(`${w}×${h}/${count}: ${l.oneRow}`).toBe(`${w}×${h}/${count}: true`);
-      expect(l.optSize).toBeGreaterThanOrEqual(90);
+      // не откат к 48 px из 2.54.14: на самом низком окне 62, на 390 — 77
+      expect(l.optSize).toBeGreaterThanOrEqual(60);
       expect(count * (l.optSize + 12) + (count - 1) * 10).toBeLessThanOrEqual(w - 48);
-      // карточка с полями не выше четверти экрана: полю с эталоном остаётся место
       expect(l.optSize + 14).toBeLessThanOrEqual(Math.round(h * 0.3));
     }
+  });
+
+  it('🔴 альбом: эталон и варианты влезают в высоту вместе, и эталон не мельче варианта', () => {
+    /**
+     * Состав высоты — замер 17.09.2026 на экспорт-сборке (7 альбомных окон, задание «Поворот»):
+     * поле с 119 px; под полем карточка варианта (рисунок + 14) и ещё 21; в поле отступы 5 + 5,
+     * вопрос 16, зазор 6; карточка эталона — рисунок + 33 при полях 6; запас 16 на вторую строку.
+     * Поменялось это число — значит поменялась вёрстка: перемерь прибором и перепиши строку здесь.
+     */
+    expect(LANDSCAPE_FIXED_HEIGHT).toBe(119 + 35 + 32 + 33 + 16);
+    for (const [w, h] of АЛЬБОМ) for (const count of [3, 4]) {
+      const l = optionLayout({ viewportWidth: w, viewportHeight: h, answerWidth: 480, count, compactReview: false });
+      expect(l.refSize).toBeDefined();
+      const ref = l.refSize as number;
+      expect(`${w}×${h}: эталон ${ref} + вариант ${l.optSize} + ${LANDSCAPE_FIXED_HEIGHT} ≤ ${h}`)
+        .toBe(`${w}×${h}: эталон ${ref} + вариант ${l.optSize} + ${LANDSCAPE_FIXED_HEIGHT} ≤ ${ref + l.optSize + LANDSCAPE_FIXED_HEIGHT <= h ? h : 'НЕ ВЛЕЗАЕТ'}`);
+      expect(ref).toBeLessThanOrEqual(104);
+      // эталон не мельче варианта, пока его не упёр потолок 104
+      if (ref < 104) expect(ref).toBeGreaterThanOrEqual(l.optSize);
+    }
+  });
+
+  it('🔴 длинный вопрос отнимает строку у эталона, а не у вариантов — варианты не прыгают между раундами', () => {
+    const две = optionLayout({ viewportWidth: 667, viewportHeight: 375, answerWidth: 480, count: 4, compactReview: false, promptLines: 2 });
+    const одна = optionLayout({ viewportWidth: 667, viewportHeight: 375, answerWidth: 480, count: 4, compactReview: false, promptLines: 1 });
+    const три = optionLayout({ viewportWidth: 667, viewportHeight: 375, answerWidth: 480, count: 4, compactReview: false, promptLines: 3 });
+    expect([одна.optSize, три.optSize]).toEqual([две.optSize, две.optSize]);
+    expect(одна.refSize).toBe(две.refSize);                               // две строки уже заложены
+    expect((две.refSize as number) - (три.refSize as number)).toBe(LANDSCAPE_PROMPT_LINE);
+  });
+
+  it('в разборе на альбоме эталон того же размера, что в задании — не прыгает в момент ответа', () => {
+    const задание = optionLayout({ viewportWidth: 844, viewportHeight: 390, answerWidth: 480, count: 4, compactReview: false });
+    const разбор = optionLayout({ viewportWidth: 844, viewportHeight: 390, answerWidth: 480, count: 4, compactReview: true });
+    expect(разбор.refSize).toBe(задание.refSize);
   });
 
   it('портрет не изменился: сетка 2×2 и прежние размеры', () => {
@@ -95,6 +140,10 @@ describe('экран зовёт раскладку и общий масштаб'
     const код = fs.readFileSync(path.join(__dirname, '..', '..', 'app', 'games', 'mental-rotation.tsx'), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
     expect(код).toMatch(/optionLayout\(\{/);
+    // альбомный размер эталона доходит до рисунка, а строки вопроса — до раскладки
+    expect(код).toMatch(/const baseSize = refSize \?\?/);
+    expect(код).toMatch(/promptLines \}\)/);
+    expect(код).toMatch(/setPromptLines\(/);
     expect(код).toMatch(/stillUnit\(task\.options\.map/);
     expect((код.match(/optSize, GRADIENT\[1\], undefined, undefined, optUnit\)/g) ?? []).length).toBe(2);
   });
