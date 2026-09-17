@@ -1,4 +1,4 @@
-/* psygames-game-field-height · VER 2 · 17.09.2026 */
+/* psygames-game-field-height · VER 3 · 17.09.2026 */
 /**
  * СКОЛЬКО ВЫСОТЫ У ПРОКРУЧИВАЕМОГО ПОЛЯ КАРКАСА — для экрана, который вписывает доску по высоте.
  *
@@ -31,4 +31,16 @@ export function useGameFieldHeight(): number {
 /** Для экрана, который сам стоит НАД каркасом: высота приходит внутрь поля. */
 export function GameFieldHeight({ children }: { children: (высота: number) => React.ReactNode }) {
   return <>{children(React.useContext(ВысотаПоляКаркаса))}</>;
+}
+
+/**
+ * Поднять высоту поля в СОСТОЯНИЕ экрана, который стоит над каркасом, — когда размер доски считается в теле
+ * экрана до разметки и перестраивать его в render-prop дорого (судоку: `cellSize` нужен десятку мест).
+ * Ставится ребёнком `<GameShell>`: `<FieldHeightUp onChange={setВысотаПоля} />`. Приём — из лаборатории
+ * «Пространства» (SpatialLab.tsx, своя копия), здесь общий.
+ */
+export function FieldHeightUp({ onChange }: { onChange: (высота: number) => void }) {
+  const высота = React.useContext(ВысотаПоляКаркаса);
+  React.useEffect(() => { onChange(высота); }, [высота, onChange]);
+  return null;
 }

@@ -1,4 +1,4 @@
-/* psygames-game-sudoku · VER 14 · 09.09.2026 */
+/* psygames-game-sudoku · VER 15 · 17.09.2026 */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Image, ScrollView, DeviceEventEmitter } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,11 +13,12 @@ import { useLanguage, translateFor } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import { FieldHeightUp } from '@/src/components/GameFieldHeight';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import {
   blendHex, cellBackground, thermoThick, thermoColor, thermoSegment, thermoBulb, cageSumFontSize,
 } from '@/src/services/sudoku-overlay';
 import GlassButton from '@/src/components/GlassButton';
-import { useLadderLock } from '@/src/contexts/PlayerLevelContext';
 import GameModeSwitch from '@/src/components/GameModeSwitch';
 import { PencilMarksLayer } from '@/src/components/PencilMarksLayer';
 import BossRound, { BossType } from '@/src/components/BossRound';
@@ -157,6 +158,38 @@ const DIGIT_TINT = ['#e8564f', '#ef8f27', '#e7c229', '#4fb455', '#2fa3a8', '#3f7
  */
 const BOARD_HINT_TEXT_H = 45;
 const BOARD_HINT_H = BOARD_HINT_TEXT_H + 6;
+
+/** Высота строки клавиш: кнопка `numBtn` 50 + зазор `numPadCol` 6. */
+const СТРОКА_КЛАВИШ = 50 + 6;
+
+/**
+ * 🔴 ПОРТРЕТ: КЛЕТКА — ОТ НАСТОЯЩЕЙ ВЫСОТЫ ПОЛЯ, А НЕ ТОЛЬКО ОТ ВЫСОТЫ ОКНА С РЕЗЕРВОМ.
+ *
+ * Отчёт 57a0e9cd (17.09.2026, 2.54.20, Android 384×784): «ПОЧЕМУ ТУЛБАР ВНИЗУ ВСЕ ЦИФРЫ ЗАКРЫЛ» — видны цифры
+ * 1–5 со срезанным низом, 6–9 нет. Причина в общем слое координатора: с 2.54.20 каркас ставит служебный ряд
+ * ПОД полем (и значок «Заново» своей строкой), а резерв окна 330 замерялся, когда этого ряда не было. Замер
+ * экспорта 468fe205, WebKit, 9×9 уровень 62: 384×784 — поле 478, доска 346, низ клавиатуры на 44 px ниже низа
+ * поля; 360×640 — тоже 44.
+ * Резерв окна про ряд под полем знать не может, поэтому второе ограничение — место, которое каркас реально
+ * отдал содержимому (`FieldHeightUp`): строка-объяснение 51, зазор 14, клавиатура (строки по 56 без
+ * последнего зазора 6), рамка сетки 4. Отступ под кнопку отзыва (`marginBottom` 76) в бюджет не входит: он
+ * ниже клавиатуры и цифры не закрывает. `высотаПоля` 0 — поле ещё не измерено, ограничения нет.
+ * Проба `sudoku-digits-fit-field`.
+ */
+export function клеткаПортрета(п: { width: number; height: number; N: number; clueCols: number; строкКлавиатуры: number; высотаПоля: number }): number {
+  const поШирине = (п.width - 36) / (п.N + п.clueCols);
+  /**
+   * Поле измерено — считаем ТОЛЬКО от него, резерв окна больше не участвует: он заложен под раскладку, где
+   * служебное стояло капсулами, и при ряде значков занижал доску. Замер экспорта 17.09.2026, 360×640, 9×9:
+   * с резервом окна доска 202 при месте в поле под 256.
+   */
+  if (п.высотаПоля > 0) {
+    const местоПодДоску = п.высотаПоля - BOARD_HINT_H - 14 - (п.строкКлавиатуры * СТРОКА_КЛАВИШ - 6) - 4;
+    return Math.max(14, Math.floor(Math.min(поШирине, местоПодДоску / (п.N + п.clueCols), 92)));
+  }
+  const резервНиза = 330 + (п.строкКлавиатуры - 1) * СТРОКА_КЛАВИШ;
+  return Math.max(14, Math.floor(Math.min(поШирине, (п.height - резервНиза - BOARD_HINT_H) / п.N, 92)));
+}
 
 // Босс-веха: каждые 3 уровня — короткий раунд с резко другим правилом (bag-рандом, без повторов подряд).
 const BOSS_EVERY = 3;
@@ -496,6 +529,8 @@ export default function SudokuGame() {
   const changeLineHl = (on: boolean) => { setLineHl(on); AsyncStorage.setItem('psygames_sudoku_linehl', on ? 'on' : 'off').catch(() => {}); };
   const router = useRouter();
   const { width, height } = useWindowDimensions();
+  /** Место под содержимое поля каркаса (окно поля минус отступы) — приходит узлом `FieldHeightUp` изнутри поля. */
+  const [высотаПоля, setВысотаПоля] = useState(0);
 
   const { isPreset, autostart, str, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечер и ночь: победный звук общей карточки молчит
@@ -676,8 +711,6 @@ export default function SudokuGame() {
   const [rejectWhy, setRejectWhy] = useState('');
   const [over, setOver] = useState(false);   // жизни кончились (3 ошибки) → game over + рестарт
   const [rulesOpen, setRulesOpen] = useState(false);   // v1.111.0: справка правил уровня (тап по бейджу / авто при первом входе)
-  // Лестница замков: открыта ли подсказка на уровне игрока (см. useLadderLock).
-  const { заперт: подсказкаЗаперта, порог: порогПодсказки } = useLadderLock('hint');
   const [hintUses, setHintUses] = useState(0);
   const [backtrackCount, setBacktrackCount] = useState(0);
   const [startTime, setStartTime] = useState(0);
@@ -1401,17 +1434,15 @@ export default function SudokuGame() {
    */
   const ПОТОЛОК_В_СТРОКЕ = landscape ? 3 : 5;
   const строкКлавиатуры = Math.ceil((N + 1) / ПОТОЛОК_В_СТРОКЕ);
-  /** Высота строки клавиш: кнопка `numBtn` 50 + зазор `numPadCol` 6. */
-  const СТРОКА_КЛАВИШ = 50 + 6;
   /**
    * Базовый резерв 330 замерен, когда клавиатура была ОДНОСТРОЧНОЙ. Каждая следующая
    * строка стоит ровно свою высоту — это не подгонка, а то же число, что и в вёрстке.
+   * Резерв и место от настоящей высоты поля — в `клеткаПортрета` (шапка функции).
    */
-  const резервНиза = 330 + (строкКлавиатуры - 1) * СТРОКА_КЛАВИШ;
   const clueCols = variant === 'sandwich' ? 0.6 : variant === 'towers' ? 1.2 : 0;   // towers: колонки видимости с ОБОИХ краёв
   const cellSize = landscape
     ? Math.max(16, Math.floor(Math.min((height - 96 - BOARD_HINT_H) / N, (width - 240) / (N + clueCols), 92)))
-    : Math.max(14, Math.floor(Math.min((width - 36) / (N + clueCols), (height - резервНиза - BOARD_HINT_H) / N, 92)));
+    : клеткаПортрета({ width, height, N, clueCols, строкКлавиатуры, высотаПоля });
   /**
    * 🔴 ПОЛЕ ПРОКРУЧИВАЕТСЯ ВСЕГДА, А НЕ «КОГДА ДОСКА НЕ ВЛЕЗЛА».
    *
@@ -1824,7 +1855,7 @@ export default function SudokuGame() {
      * разметка: вариантов у судоку двенадцать, лестницу приоритета надо прогонять
      * тестом на каждом и на всех 12 языках.
      */
-    const hintFocus: SudokuHintFocus = boardFocus ?? (paintColor !== null ? { kind: 'paint' } : null);
+    const hintFocus: SudokuHintFocus = boardFocus ?? (paintColor !== null ? { kind: 'paint' } : pencil ? { kind: 'pencil' } : null);
     const boardHint = sudokuBoardHint(
       { variant, killer: mode === 'killer', N, focus: hintFocus }, language,
     );
@@ -2222,173 +2253,89 @@ export default function SudokuGame() {
         ))}
       </View>
     );
-    {/* Hint button + biomarker counters */}
     /**
-     * ⚠️ РЕЖИМЫ ПИСЬМА — ВТОРЫМ РЯДОМ В ПОРТРЕТЕ И ОДНИМ РЯДОМ В ЛАНДШАФТЕ, потому что
-     * в двух раскладках дефицитно РАЗНОЕ.
+     * 🔴 СЛУЖЕБНОЕ СУДОКУ — ОДНОЙ СТРОКОЙ ЗНАЧКОВ ПОД ПОЛЕМ (правило Дениса 17.09.2026 для всех игр).
      *
-     * В портрете дефицит ширины: четыре капсулы на экране 375 делят строку по 80 точек,
-     * и подпись режется до «Подск…» — на этом уже обжигались (см. GlassButton). Значит
-     * два ряда по две: каждой достаётся 155, обе подписи целые.
+     * ПОВОД — отчёт 57a0e9cd (17.09.2026, 2.54.20, Android 384×784): «ПОЧЕМУ ТУЛБАР ВНИЗУ ВСЕ ЦИФРЫ ЗАКРЫЛ».
+     * Каркас с 2.54.20 ставит служебное под полем, а здесь оно было четырьмя капсулами «Подсказка · Отменить ·
+     * Пометки · Цвет» в два ряда (114 px) плюс значок «Заново» своей строкой (170 px всего). Денис 17.09 по
+     * кадру: «кнопки ненужные раздулись, игровой квадрат — единственное полезное». Теперь ряд — 61 px:
+     * отменить → заново (ставит каркас сразу за отменой) → подсказка → пометки → цвет.
      *
-     * В ландшафте наоборот — дефицит высоты, и он жёстче: доска считается от `height-96`
-     * (бюджет учитывает шапку с ОДНИМ рядом кнопок). Второй ряд отнимает ещё 53 точки, и
-     * на экране 812×375 нижний ряд доски уезжал за край. Доскроллить теперь есть куда —
-     * поле каркаса прокручивается в обеих раскладках (см. fieldScrolls), — но ряд всё
-     * равно один: ширины в ландшафте вдоволь, четыре кнопки по 195 точек, ничего не
-     * режется, а высота остаётся дефицитом.
-     *
-     * Смысловое деление сохраняется: сначала ДЕЙСТВИЯ (подсказка, отмена), потом — ЧЕМ
-     * сейчас пишет палец. Счётчик пометок на кнопке нужен потому, что при выключённом
-     * карандаше слоя не видно, и без числа непонятно, есть ли там что-нибудь вообще.
-     */
-    /**
-     * Подсказка судоку нарисована `GlassButton`, а не служебной кнопкой каркаса,
-     * поэтому замок лестницы навешивается здесь вручную — но решение о нём берётся
-     * из ОБЩЕГО хука `useLadderLock`, а не считается тут заново: своя копия правила
-     * рано или поздно разойдётся с оригиналом, и разойдётся молча.
-     *
-     * Запертая кнопка не прячется и не молчит: на ней прямо написано, на каком
-     * уровне она откроется. Пузырь-подсказка здесь не нужен — надпись и есть ответ.
-     */
-    const hintBtn = (
-      <GlassButton
-        grow
-        tone="warn"
-        icon={подсказкаЗаперта ? 'lock-closed' : 'bulb'}
-        // На кнопке — КОРОТКАЯ форма «Ур. 2»: полная фраза вылезала за край на 27 px
-        // (браузерный гейт, 360 px) и обрезалась. Полная остаётся в подписи ниже.
-        /**
-         * 🔴 ЧИСЛО НА КНОПКЕ, А НЕ ОТДЕЛЬНЫМ ЧИПОМ В ШАПКЕ.
-         * Отчёт 11fb04e6 (04.09.2026): «в верхнем тулбаре есть подсказка, и эта же
-         * подсказка есть под верхним тулбаром — получается две кнопки». Он прав по
-         * виду: чип носил ТУ ЖЕ иконку лампочки и ТО ЖЕ слово, что кнопка, — то
-         * есть выглядел кнопкой, хотя был счётчиком остатка.
-         * Приём в игре уже был: «Отменить 7» и «Пометки 3» носят число на себе.
-         * Заодно чип освободил место в шапке — вторая половина того же отчёта:
-         * «кнопок много, не слишком компактно, они разъезжаются».
-         */
-        label={подсказкаЗаперта
-          ? t('ladderLockedShort').replace('{n}', String(порогПодсказки))
-          : `${t('btn_hint')} ${Math.max(0, hintMax - hintUses)}`}
-        accessibilityLabel={подсказкаЗаперта ? t('ladderLockedAt').replace('{n}', String(порогПодсказки)) : undefined}
-        onPress={подсказкаЗаперта ? () => {} : handleHint}
-        disabled={подсказкаЗаперта || !selected || hintUses >= hintMax}
-      />
-    );
-    /**
-     * ЧИСЛО НА КНОПКЕ — ровно тем же приёмом, что счётчик пометок на карандаше.
-     * Со стороны «Отменить» читалась как дубль «нажать ту же цифру ещё раз» (репорт
-     * Вали), и число — самый дешёвый способ показать, что это ЛЕНТА, а не однократное
-     * стирание текущей клетки: назад можно уйти на столько ходов, сколько написано.
-     * Лента живёт в ref, а не в состоянии, поэтому длину читаем на каждой отрисовке —
-     * она случается на каждом ходу, потому что ход меняет доску.
+     * ЧТО СОХРАНЕНО ИЗ ПРЕЖНИХ ОТЧЁТОВ, НЕ ПОТЕРЯТЬ:
+     * · 11fb04e6 (04.09): остаток подсказок — ЧИСЛОМ НА КНОПКЕ, не отдельным чипом → `count` значка;
+     * · «Отменить» — ЛЕНТА, а не стирание клетки (репорт Вали): глубина ленты числом на значке;
+     * · замки — общая лестница через `ladder` («hint» и «undo», как во всех играх; гейт feature-ladder-coverage);
+     *   запертая кнопка не молчит: замок на значке и тост «откроется на уровне N» по нажатию;
+     * · 33f21fc6 (09.09): включённый режим отличается ФОРМОЙ — залитый значок (`pencil` против `pencil-outline`)
+     *   и заливка кнопки (`active`), а не оттенок; объяснение режима — в строке над доской (фокус `pencil`/`paint`);
+     * · 779c482d (08.09): на карандаше числа нет — у режима нет запаса.
+     * Палитра цвета встаёт НА МЕСТО клавиатуры и той же высоты (`слотКлавиатуры`): в режиме цвета цифры не
+     * вводятся (касание клетки красит), а доска при переключении режима не прыгает.
      */
     const undoDepth = hist.serialize().past.length;
-    const undoBtn = (
-      <GlassButton
-        grow
-        icon="arrow-undo"
-        label={undoDepth ? `${t('btn_undo')} ${undoDepth}` : t('btn_undo')}
-        onPress={handleUndo}
-        disabled={!hist.canUndo}
-      />
-    );
-    /**
-     * 🔴 ЧИСЛО С ПЕРЕКЛЮЧАТЕЛЯ СНЯТО — отчёт 779c482d (08.09.2026): «почему стоит
-     * ограничение по количеству пометок, я не могу поставить больше того количества,
-     * которое сейчас стоит». Ограничения не было: число показывало, СКОЛЬКО пометок
-     * уже на доске. Но рядом стоит «Подсказка 0» — настоящий остаток, считающий вниз, —
-     * и одинаковая форма «слово + число» на соседних капсулах читается как одинаковый
-     * смысл. Человек построил на этом неверную теорию и написал о ней в отчёт.
-     *
-     * Правило в этом файле уже записано двумя блоками выше: счётчик переделок переехал
-     * из ряда действий в шапку, потому что он ПОКАЗАТЕЛЬ, А НЕ КНОПКА. Пометки нарушали
-     * ровно это правило: карандаш — режим письма, у него нет запаса, который тратится.
-     * Поэтому число не удалено, а переехало к «↻» — туда, где стоят показатели.
-     */
-    /**
-     * 🔴 ВКЛЮЧЁННЫЙ РЕЖИМ ОТЛИЧАЕТСЯ ФОРМОЙ И ТЕКСТОМ, А НЕ ОТТЕНКОМ.
-     *
-     * ПОВОД — отчёт «Релакс» 33f21fc6 от 09.09.2026, дословно: «поставила цифру 2 не
-     * туда… я хотела пометку поставить… она не загорается ярким, а практически
-     * сливается с экраном». На кадре у неё при этом уже 1 ошибка из 3 — промах стоил
-     * ЖИЗНИ, а не лишнего тапа.
-     *
-     * ЗАМЕР 12.09.2026 подтвердил её словами число. В светлой теме (#F5F5F7)
-     * `active` у GlassButton даёт подложку #E0E0F1 против #FCFCFC у выключенной:
-     * КОНТРАСТ 1.27 по подложке и 1.78 по рамке при пороге различимости для
-     * нетекстовых элементов 3.0. То есть разница в четыре раза ниже порога —
-     * «сливается» это замер, а не впечатление.
-     *
-     * ⚠️ ПОЧЕМУ НЕ КРУТИМ ЦВЕТ. Насыщенность `active` живёт в общем GlassButton и
-     * одинакова у шестидесяти с лишним экранов; трогать её в одиночку значило бы
-     * менять вид всему приложению ради одной кнопки. Здесь добавлены две РАЗНИЦЫ,
-     * которые не зависят от контраста вовсе: залитый значок вместо контурного и
-     * галочка перед словом. Их видно и в светлой теме, и в тёмной, и человеку,
-     * который цвета различает плохо.
-     */
-    const включено = (вкл: boolean, слово: string): string => (вкл ? `✓ ${слово}` : слово);
-    const pencilBtn = (
-      <GlassButton
-        grow
-        icon={pencil ? 'pencil' : 'pencil-outline'}
-        label={включено(pencil, t('sudokuPencilMode'))}
-        active={pencil}
-        onPress={() => setPencilMode(!pencil)}
-      />
-    );
-    const paintBtn = (
-      <GlassButton
-        grow
-        icon={paintColor !== null ? 'color-palette' : 'color-palette-outline'}
-        label={включено(paintColor !== null, t('sudokuColorMode'))}
-        active={paintColor !== null}
-        onPress={() => setPaintMode(paintColor === null)}
-      />
-    );
+    // Значки объявлены ПРЯМО в ряду: гейт slot-meaning разворачивает ссылку на ряд на один шаг и считает действия.
     const hintEl = (
-      <View style={styles.hintBlock}>
-        {landscape ? (
-          <View style={styles.hintRow}>{hintBtn}{undoBtn}{pencilBtn}{paintBtn}</View>
-        ) : (
-          <>
-            <View style={styles.hintRow}>{hintBtn}{undoBtn}</View>
-            <View style={styles.hintRow}>{pencilBtn}{paintBtn}</View>
-          </>
-        )}
-        {/* Подсказку про карандаш показываем только в портрете: в ландшафте каждая
-            строка над доской стоит нижнего ряда клеток (см. арифметику выше). */}
-        {pencil && !landscape && (
-          <Text style={[styles.paintHint, { color: colors.textSecondary }]}>{t('sudokuPencilHint')}</Text>
-        )}
-        {paintColor !== null && (
-          <>
-            <View style={styles.paintPalette}>
-              {paintPalette.map((accent, index) => (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel={`${t('sudokuColorMode')} ${index + 1}`}
-                  accessibilityState={{ selected: paintColor === index }}
-                  key={accent}
-                  onPress={() => setPaintColor(index)}
-                  style={[
-                    styles.paintSwatch,
-                    {
-                      backgroundColor: blendHex(colors.surface, accent, isDark ? 0.62 : 0.44),
-                      borderColor: paintColor === index ? colors.text : colors.border,
-                    },
-                  ]}
-                >
-                  {paintColor === index && <Ionicons name="checkmark" size={16} color={colors.text} />}
-                </TouchableOpacity>
-              ))}
-            </View>
-            <Text style={[styles.paintHint, { color: colors.textSecondary }]}>{t('sudokuColorHint')}</Text>
-          </>
-        )}
+      <GameAuxBar>
+        <GameAuxAction
+          icon="arrow-undo"
+          ladder="undo"
+          label={t('btn_undo')}
+          count={undoDepth || undefined}
+          onPress={handleUndo}
+          disabled={!hist.canUndo}
+        />
+        <GameAuxAction
+          icon="bulb"
+          tint="#d97706"
+          ladder="hint"
+          label={t('btn_hint')}
+          count={Math.max(0, hintMax - hintUses)}
+          onPress={handleHint}
+          disabled={!selected || hintUses >= hintMax}
+        />
+        <GameAuxAction
+          icon={pencil ? 'pencil' : 'pencil-outline'}
+          label={t('sudokuPencilMode')}
+          active={pencil}
+          onPress={() => setPencilMode(!pencil)}
+        />
+        <GameAuxAction
+          icon={paintColor !== null ? 'color-palette' : 'color-palette-outline'}
+          label={t('sudokuColorMode')}
+          active={paintColor !== null}
+          onPress={() => setPaintMode(paintColor === null)}
+        />
+      </GameAuxBar>
+    );
+    /** Высота места клавиатуры: палитра цвета встаёт в него, не меняя вёрстку. */
+    const слотКлавиатуры = строкКлавиатуры * СТРОКА_КЛАВИШ - 6;
+    const paletteEl = (
+      <View style={[styles.paintSlot, { minHeight: слотКлавиатуры }]} testID="sudoku-paint-palette">
+        <View style={styles.paintPalette}>
+          {paintPalette.map((accent, index) => (
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={`${t('sudokuColorMode')} ${index + 1}`}
+              accessibilityState={{ selected: paintColor === index }}
+              key={accent}
+              onPress={() => setPaintColor(index)}
+              style={[
+                styles.paintSwatch,
+                {
+                  backgroundColor: blendHex(colors.surface, accent, isDark ? 0.62 : 0.44),
+                  borderColor: paintColor === index ? colors.text : colors.border,
+                },
+              ]}
+            >
+              {paintColor === index && <Ionicons name="checkmark" size={16} color={colors.text} />}
+            </TouchableOpacity>
+          ))}
+        </View>
+        <Text style={[styles.paintHint, { color: colors.textSecondary }]}>{t('sudokuColorHint')}</Text>
       </View>
     );
+    const клавиатураИлиПалитра = paintColor !== null ? paletteEl : padEl;
     // Единый каркас GameShell: статы — в props каркаса (обе ориентации).
     // Portrait: numPad+hint в прибитом нижнем тулбаре. Landscape: сетка | цифры рядом
     // (numPad остаётся сбоку, тулбара нет) — рабочий landscape v1.30.6 сохранён.
@@ -2446,10 +2393,11 @@ export default function SudokuGame() {
         toolbar={undefined}
         scrollableField={fieldScrolls}
       >
+        <FieldHeightUp onChange={setВысотаПоля} />
         {landscape ? (
           <View style={styles.playAreaLand}>
             {gridEl}
-            <View style={styles.landControls}>{padEl}</View>
+            <View style={styles.landControls}>{клавиатураИлиПалитра}</View>
           </View>
         ) : (
           // Вертикаль: доска и цифры ОДНОЙ колонкой — клавиатура идёт сразу под доской.
@@ -2457,7 +2405,7 @@ export default function SudokuGame() {
           // пустота почти в пол-экрана: рука тянулась вниз через весь телефон.
           <View style={styles.playAreaCol}>
             {gridEl}
-            {padEl}
+            {клавиатураИлиПалитра}
           </View>
         )}
       </GameShell>
@@ -2720,6 +2668,7 @@ const styles = StyleSheet.create({
    * перенос: пять сверху, четыре снизу. Кружки НЕ уменьшаю — они и так меньше порога
    * нажатия, и сжимать цель ради одной строки значило бы чинить вёрстку за счёт руки.
    */
+  paintSlot: { alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', gap: 8 },
   paintPalette: { flexDirection: 'row', flexWrap: 'wrap', maxWidth: 5 * 30 + 4 * 9, alignItems: 'center', justifyContent: 'center', gap: 9, alignSelf: 'center' },
   paintSwatch: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   paintHint: { fontSize: 11, fontWeight: '600', textAlign: 'center' },

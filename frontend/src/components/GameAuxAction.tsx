@@ -1,4 +1,4 @@
-/* psygames-game-aux-action · VER 3 · 17.09.2026 */
+/* psygames-game-aux-action · VER 4 · 17.09.2026 */
 /**
  * GameAuxAction — СЛУЖЕБНОЕ действие игры. Одна кнопка на всё приложение.
  *
@@ -88,6 +88,13 @@ export interface GameAuxActionProps {
    * пока её автор не назовёт приём.
    */
   ladder?: string;
+  /**
+   * Включённый РЕЖИМ (переключатель: пометки, цвет), а не разовое действие. Отличается ФОРМОЙ, а не
+   * оттенком: заливка цветом `tint` (или основным цветом темы) и белый значок — экран передаёт залитый
+   * вариант значка (`pencil` против `pencil-outline`). Отчёт 33f21fc6 (09.09.2026, судоку): включённый
+   * карандаш «практически сливается с экраном» — промах стоил жизни. Скринридер слышит `selected`.
+   */
+  active?: boolean;
   onPress: () => void;
 }
 
@@ -111,7 +118,7 @@ const DANGER = '#f43f5e';
  */
 export const РядЗначков = React.createContext<null | { спросить: (подпись: string, действие: () => void) => void }>(null);
 
-export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladder, onPress, compact }: GameAuxActionProps) {
+export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladder, onPress, compact, active }: GameAuxActionProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const { заперт, порог } = useLadderLock(ladder);
@@ -142,6 +149,8 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
    */
 
   const fg = заперт ? colors.textSecondary : (danger ? DANGER : colors.text);
+  const включён = !!active && !заперт;
+  const заливка = tint ?? colors.primary;
   return (
     <TouchableOpacity
       testID="game-aux"
@@ -152,7 +161,7 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
         заперт ? `${label} — ${t('ladderLockedAt').replace('{n}', String(порог))}`
         : count === undefined ? label : `${label} — ${count}`
       }
-      accessibilityState={{ disabled: !!disabled || заперт }}
+      accessibilityState={{ disabled: !!disabled || заперт, selected: включён }}
       // Запертую кнопку НЕ отключаем: нажатие обязано ответить «откроется на
       // уровне N». Отключённая кнопка на нажатие молчит, и замок превращается
       // в поломку — ровно та жалоба, что уже приходила про кончившийся ресурс.
@@ -166,25 +175,25 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
       style={[
         styles.btn,
         {
-          backgroundColor: colors.surface,
-          borderColor: заперт ? colors.border : (danger ? DANGER : colors.border),
+          backgroundColor: включён ? заливка : colors.surface,
+          borderColor: заперт ? colors.border : (danger ? DANGER : (включён ? заливка : colors.border)),
           opacity: заперт ? 0.55 : (disabled ? 0.4 : 1),
         },
       ]}
     >
       {заперт
         ? <Ionicons name="lock-closed" size={18} color={colors.textSecondary} />
-        : (значок ? <Ionicons name={значок} size={18} color={tint ?? fg} /> : null)}
+        : (значок ? <Ionicons name={значок} size={18} color={включён ? '#FFF' : (tint ?? fg)} /> : null)}
 {/* Компактный вид: остаётся иконка, подпись уходит — но НЕ из дерева
           доступности, `accessibilityLabel` кнопки её сохраняет. Нужен там, где
           служебные кнопки стоят в фиксированной по высоте полосе плейлиста. */}
       {!значкомБезСлова ? (
-        <Text style={[styles.label, { color: fg }]} numberOfLines={1}>
+        <Text style={[styles.label, { color: включён ? '#FFF' : fg }]} numberOfLines={1}>
           {заперт || count === undefined ? label : `${label} · ${count}`}
         </Text>
       ) : (!заперт && count !== undefined ? (
         /* Компактный вид: слово ушло, ЧИСЛО осталось — см. разбор у `compact`. */
-        <Text style={[styles.label, { color: fg }]} numberOfLines={1}>{count}</Text>
+        <Text style={[styles.label, { color: включён ? '#FFF' : fg }]} numberOfLines={1}>{count}</Text>
       ) : null)}
     </TouchableOpacity>
   );

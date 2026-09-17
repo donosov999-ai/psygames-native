@@ -111,13 +111,22 @@ describe('лестница замков на экране судоку', () => {
     const r = await монтировать(0);
     const весьТекст = тексты(r.toJSON()).join(' ');
     expect(иконки(r)).toContain('lock-closed');
-    // На кнопке — КОРОТКАЯ форма: полная фраза вылезала за край на 27 px и
-    // обрезалась (браузерный гейт, 360 px). Проверяем обе: короткую видно…
-    expect(весьТекст).toMatch(/Lv 2|Ур\. 2/);
-    // …а полную обязан услышать скринридер, иначе смысл замка потерян.
+    void весьТекст;
+    // С 17.09.2026 подсказка — значок каркаса (отчёт 57a0e9cd): короткой надписи «Ур. 2» на кнопке нет,
+    // её место — замок на значке. Условие открытия обязан услышать скринридер…
     const подписи = r.root.findAll((n: any) => typeof n.props?.accessibilityLabel === 'string')
       .map((n: any) => n.props.accessibilityLabel).join(' | ');
     expect(подписи).toMatch(/Unlocks at level 2|Откроется на уровне 2/);
+    // …а зрячий — увидеть по нажатию: запертая кнопка не молчит, а шлёт тост с условием открытия.
+    const запертая = r.root.findAll((n: any) => typeof n.props?.accessibilityLabel === 'string'
+      && /Unlocks at level 2|Откроется на уровне 2/.test(n.props.accessibilityLabel) && typeof n.props?.onPress === 'function')[0];
+    expect(`запертая подсказка найдена: ${!!запертая}`).toBe('запертая подсказка найдена: true');
+    const { DeviceEventEmitter } = require('react-native');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const тосты: string[] = [];
+    const подписка = DeviceEventEmitter.addListener('psygames:ladder-locked', (d: { text: string }) => тосты.push(d.text));
+    await TestRenderer.act(async () => { запертая.props.onPress(); });
+    подписка.remove();
+    expect(тосты.join(' | ')).toMatch(/level 2|уровне 2/);
     await TestRenderer.act(async () => { r.unmount(); });
   }, ЗАПАС_МС);
 

@@ -366,6 +366,7 @@ const AUX_UNDER_FIELD: Record<string, number> = {
   'prl.tsx': 1,             // СТОП
   'proofreading.tsx': 1,    // подсказка
   'tower-london.tsx': 1,    // отмена
+  'sudoku.tsx': 4,          // отмена + подсказка + пометки + цвет («заново» ставит каркас); отчёт 57a0e9cd, 17.09.2026
   'water-sort.tsx': 3,      // отмена + подсказка + заново
 };
 
@@ -405,7 +406,6 @@ const DEBT: Record<string, string> = {
  * компонент: своими кнопками в `headerActions` они встают в ряд под полем, но не значками.
  */
 const OWN_AUX_BUTTONS: Record<string, string> = {
-  'sudoku.tsx': '⛔ чужой файл: подсказка/отмена/цвет в headerActions через GlassButton',
   'sudoku-samurai.tsx': '⛔ чужой файл: подсказка и отмена в headerActions своей разметкой',
   'sudoku-fractal.tsx': '⛔ чужой файл: отмена в headerActions своей разметкой',
   'sudoku-fractal-deep.tsx': '⛔ чужой файл: карандаш и отмена в headerActions своими значками (найдено обходом 17.09.2026)',

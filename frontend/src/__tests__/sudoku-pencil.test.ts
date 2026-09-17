@@ -73,11 +73,13 @@ const SAMURAI = code('sudoku-samurai.tsx');
  * «числа на кнопке нет» прошли на пустоте — проба осталась зелёной, ничего не проверяя.
  * Поэтому якорь обязан утверждаться отдельно: не нашёлся — краснеем сразу, а не молчим.
  */
-const ПЕРО_ЯКОРЬ = 'const pencilBtn = (';
+/** С 17.09.2026 кнопка карандаша — значок каркаса прямо в ряду: якорь — её подпись, кусок — от `<GameAuxAction`. */
+const ПЕРО_ЯКОРЬ = "label={t('sudokuPencilMode')}";
 function разметкаПера(длина = 400): string {
   const i = SUDOKU.indexOf(ПЕРО_ЯКОРЬ);
   if (i < 0) return '';
-  return SUDOKU.slice(i, i + длина);
+  const от = SUDOKU.lastIndexOf('<GameAuxAction', i);
+  return SUDOKU.slice(от, от + длина);
 }
 
 
@@ -474,14 +476,19 @@ describe('обе игры дотягиваются до карандаша, а �
   it('🔴 в кнопку карандаша попадает палец: не мельче 48', () => {
     // Промах мимо неё — это не «не нажалось»: под ней в обеих играх стоит либо
     // «Подсказка» (тратит лимит), либо цифровая клавиатура (ставит ход не туда).
-    // Обычная судоку: кнопка на общей капсуле, у которой порог зашит внутрь.
+    // Обычная судоку (с 17.09.2026, отчёт 57a0e9cd): кнопка — значок каркаса `GameAuxAction`; порог 48×48
+    // зашит в стиль его кнопки — меряем ОБЪЯВЛЕНИЕ стиля, а не верим имени компонента.
     expect(MIN_TAP).toBeGreaterThanOrEqual(48);
     // ⚠️ Якорь — ОБЪЯВЛЕНИЕ кнопки: и подпись, и значок уже уезжали (см. `разметкаПера`).
     const glass = разметкаПера();
     expect(`разметка кнопки карандаша найдена: ${glass.length > 0}`).toBe('разметка кнопки карандаша найдена: true');
-    expect(`судоку: кнопка на GlassButton: ${/onPress=\{\(\) => setPencilMode/.test(glass)}`)
-      .toBe('судоку: кнопка на GlassButton: true');
-    expect(glass).toMatch(/<GlassButton\s+grow\s+icon=/);
+    expect(`судоку: кнопка переключает карандаш: ${/onPress=\{\(\) => setPencilMode/.test(glass)}`)
+      .toBe('судоку: кнопка переключает карандаш: true');
+    expect(glass).toMatch(/<GameAuxAction\s+icon=/);
+    const значок = readFileSync(join(__dirname, '../components/GameAuxAction.tsx'), 'utf8') as string;
+    const btn48 = (значок.match(/\n  btn: \{[^}]*\}/) || [''])[0];
+    expect(`значок каркаса: minWidth ${(btn48.match(/minWidth: (\d+)/) || [])[1]} minHeight ${(btn48.match(/minHeight: (\d+)/) || [])[1]}`)
+      .toBe('значок каркаса: minWidth 48 minHeight 48');
     // значок остаётся перьевым — какой бы из двух он ни был
     expect(`значок кнопки перьевой: ${/icon=\{[^}]*pencil/.test(glass) || /icon="pencil/.test(glass)}`)
       .toBe('значок кнопки перьевой: true');
@@ -495,26 +502,19 @@ describe('обе игры дотягиваются до карандаша, а �
     expect(`самурай: кнопка карандаша ${minH}pt`).toBe('самурай: кнопка карандаша 48pt');
   });
 
-  it('🔴 в ландшафте кнопки идут ОДНИМ рядом — иначе доска уезжает за край', () => {
+  it('🔴 кнопки идут ОДНИМ рядом в обеих раскладках — иначе доска уезжает за край', () => {
     // Замер живой сборки 20.08 на 812×375: второй ряд кнопок отнимал 53 точки, и низ
-    // доски оказывался на 427 при высоте окна 375 — БЕЗ спасения прокруткой, потому что
-    // `boardOverflows` включает её только в портрете. Ширины в ландшафте вдоволь, так
-    // что четыре кнопки в ряд там ничего не режут; в портрете наоборот — режут подпись.
+    // доски оказывался на 427 при высоте окна 375. С 17.09.2026 (отчёт 57a0e9cd, «тулбар внизу
+    // все цифры закрыл») служебное — значками каркаса одним `GameAuxBar` в ОБЕИХ раскладках:
+    // второго ряда нет нигде, а объяснение карандаша живёт в строке над доской.
     const el = fnBody(SUDOKU, 'hintEl');
-    const at = el.indexOf('landscape ? (');
-    expect(`развилка по раскладке есть: ${at >= 0}`).toBe('развилка по раскладке есть: true');
-    const land = el.slice(at, el.indexOf(') : (', at));
-    const port = el.slice(el.indexOf(') : (', at), el.indexOf('</View>\n        )}', at) + 1 || undefined);
-    const rows = (s: string) => (s.match(/<View style=\{styles\.hintRow\}>/g) ?? []).length;
-    expect(`ландшафт: рядов ${rows(land)}`).toBe('ландшафт: рядов 1');
-    expect(`портрет: рядов ${rows(port)}`).toBe('портрет: рядов 2');
-    for (const b of ['hintBtn', 'undoBtn', 'pencilBtn', 'paintBtn']) {
-      expect(`ландшафт: ${b} в ряду: ${land.includes(`{${b}}`)}`).toBe(`ландшафт: ${b} в ряду: true`);
-      expect(`портрет: ${b} в ряду: ${port.includes(`{${b}}`)}`).toBe(`портрет: ${b} в ряду: true`);
+    expect(`ряд значков каркаса: ${/<GameAuxBar>/.test(el)}`).toBe('ряд значков каркаса: true');
+    expect(`своих рядов капсул: ${(el.match(/styles\.hintRow/g) ?? []).length}`).toBe('своих рядов капсул: 0');
+    for (const ключ of ['btn_hint', 'btn_undo', 'sudokuPencilMode', 'sudokuColorMode']) {
+      expect(`${ключ} в ряду: ${el.includes(`label={t('${ключ}')}`)}`).toBe(`${ключ} в ряду: true`);
     }
-    // и подсказка про карандаш в ландшафте не появляется: каждая строка над доской
-    // там стоит нижнего ряда клеток
-    expect(/\{pencil && !landscape && \(/.test(SUDOKU)).toBe(true);
+    expect(`подсказка карандаша — фокусом строки над доской: ${/pencil \? \{ kind: 'pencil' \}/.test(SUDOKU)}`)
+      .toBe('подсказка карандаша — фокусом строки над доской: true');
   });
 
   it('🔴 отмена ОБЯЗАНА возвращать пометки — перевёрнуто по жалобе 06.09.2026', () => {
