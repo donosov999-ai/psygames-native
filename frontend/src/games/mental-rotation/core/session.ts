@@ -1,4 +1,4 @@
-/* psygames-mental-rotation-session · VER 2 · 17.09.2026 */
+/* psygames-mental-rotation-session · VER 3 · 17.09.2026 */
 /**
  * СМЕСЬ ЗАДАНИЙ — И БИОМАРКЕР, КОТОРЫЙ ОТ НЕЁ НЕ ПОРТИТСЯ.
  *
@@ -61,6 +61,32 @@ export const MIN_ROTATION_SHARE = 0.6;
 
 export function unlockedKinds(level: number): TaskKind[] {
   return (Object.keys(KIND_UNLOCK) as TaskKind[]).filter((k) => level >= KIND_UNLOCK[k]);
+}
+
+/**
+ * ОТРАБОТКА ОДНОГО ВИДА (17.09.2026, задача da43411f, отчёт 1263dc58: «в настройках нельзя
+ * запустить отработку одного вида заданий, они идут только вперемешку»).
+ *
+ * Выбрать можно ЛЮБОЙ вид, а не только открытый уровнем. Денис 17.09: «режимы для ротации, чтобы
+ * доступны были те новые». Задания при этом строятся не ниже уровня, где вид открывается, —
+ * лестница позднего вида начинается с его порога («Сечение» — с 24-го), и в обычной партии
+ * генератор ниже порога не зовётся никогда.
+ *
+ * ⚠️ БИОМАРКЕР. Доля поворотных проб (MIN_ROTATION_SHARE) — правило смеси; у отработки её нет.
+ * Поэтому партия-отработка не двигает уровень и пишется в историю отдельным режимом
+ * (`practiceMode`): «Проекция» ×10 не сравнивается со смесью того же уровня.
+ */
+export function practiceLevel(kind: TaskKind, level: number): number {
+  return Math.min(50, Math.max(level, KIND_UNLOCK[kind]));
+}
+
+export function planPractice(kind: TaskKind, trials: number): TaskKind[] {
+  return Array.from({ length: Math.max(0, trials) }, () => kind);
+}
+
+/** Режим партии для истории: у отработки к режиму смеси дописан вид. */
+export function practiceMode(level: number, kind: TaskKind | null): string {
+  return kind ? `lvl${level}-3D-${kind}` : `lvl${level}-3D`;
 }
 
 /**

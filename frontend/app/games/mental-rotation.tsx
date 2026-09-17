@@ -1,4 +1,4 @@
-/* psygames-game-mental-rotation · VER 10 · 17.09.2026 */
+/* psygames-game-mental-rotation · VER 11 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /**
  * Mental Rotation — три вида пространственных заданий на одной геометрии
@@ -36,6 +36,10 @@
  *  - L1-5:   4-5 кубиков, ось Z, 3 варианта; с L3 подмешивается проекция
  *  - L6-10:  5-6 кубиков, оси X+Y, 4 варианта; с L5 подмешивается развёртка
  *  - L11-15: 6-8 кубиков, оси X+Y+Z, с L13 составные (косые) ракурсы
+ *
+ * VER 11 (задача da43411f, отчёт 1263dc58): на экране настройки — «Вид заданий». «Вперемешку» —
+ * партия уровня, как была; любой из видов — отработка только его (ядро: practiceLevel, planPractice).
+ * Отработка не двигает уровень и пишется в историю своим режимом `lvlN-3D-<вид>`.
  */
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -80,10 +84,14 @@ import {
   fitPolygon,
   netCellKey,
   netSize,
+  planPractice,
   planTaskKinds,
+  practiceLevel,
+  practiceMode,
   rotationReplay,
   slopeSamples,
   taskKindCounts,
+  KIND_UNLOCK,
   type Axis,
   type Cell2D,
   type CubeNet,
@@ -395,6 +403,11 @@ export default function MentalRotationGame() {
   // иначе доля поворотных проб (на них держится биомаркер) плавала бы от броска
   // к броску и в короткой партии могла бы обнулиться.
   const planRef = useRef<TaskKind[]>([]);
+  // Отработка одного вида (задача da43411f): выбор на настройке. null — вперемешку, как было.
+  // Вид партии запоминается на старте: итог и запись сессии читают его, а не выбор на экране.
+  const [chosenKind, setChosenKind] = useState<TaskKind | null>(null);
+  const practiceKind = isPreset ? null : chosenKind;
+  const practiceRef = useRef<TaskKind | null>(null);
   const [task, setTask] = useState<MentalRotationTask>(() => buildTask('rotation', 1, Math.random));
   const levelRef = useRef(1);
   const [playedLevel,setPlayedLevel]=useState(1);
@@ -462,11 +475,13 @@ export default function MentalRotationGame() {
   }, [reviewing, frames, manualReview]);
 
   const startGame = () => {
-    levelRef.current = selectedLevel;
-    setPlayedLevel(selectedLevel);setManualReview(false);
+    const уровень = practiceKind ? practiceLevel(practiceKind, selectedLevel) : selectedLevel;
+    practiceRef.current = practiceKind;
+    levelRef.current = уровень;
+    setPlayedLevel(уровень);setManualReview(false);
     setRecords([]); setRound(1);
-    planRef.current = planTaskKinds(selectedLevel, trials, Math.random);
-    setTask(buildTask(planRef.current[0] ?? 'rotation', selectedLevel, Math.random));
+    planRef.current = practiceKind ? planPractice(practiceKind, trials) : planTaskKinds(уровень, trials, Math.random);
+    setTask(buildTask(planRef.current[0] ?? 'rotation', уровень, Math.random));
     setMemoryHidden(false);
     setFeedback(null);
     setReviewStep(0);
@@ -488,8 +503,9 @@ export default function MentalRotationGame() {
     // пробы с известным углом. Проекция и развёртка в неё не попадают.
     const slope = Number(angleResponseSlope(log).toFixed(2));
     const passed = newHits / trials >= 0.7;
-    if (isPreset) {
-      setPhase('result');   // пресет/свободный режим — экран статистики, уровень не трогаем
+    const отработка = practiceRef.current;
+    if (isPreset || отработка) {
+      setPhase('result');   // пресет, свободный режим и отработка одного вида — экран статистики, уровень не трогаем
     } else {
       if (passed) lvl.reach(Math.min(50,levelRef.current + 1));
       else lvl.fail();   // гистерезис понижения (−1 после трёх провалов подряд) — канон каркаса, гейт passed-coverage
@@ -511,7 +527,7 @@ export default function MentalRotationGame() {
         score: Math.max(0, newHits * 100 - newErrors * 30 - Math.floor(finalTime)),
         time_seconds: finalTime,
         difficulty: levelRef.current <= 5 ? 'easy' : levelRef.current <= 10 ? 'medium' : 'hard',
-        mode: `lvl${levelRef.current}-3D`,
+        mode: practiceMode(levelRef.current, отработка),
         errors: newErrors,
         details: {
           level: levelRef.current,
@@ -525,6 +541,7 @@ export default function MentalRotationGame() {
           // «наклон 0, потому что точек было меньше двух».
           slope_trials: slopeSamples(log).length,
           task_kinds: taskKindCounts(log),
+          ...(отработка ? { practice_kind: отработка } : {}),
           version: '3D',
         },
       });
@@ -634,6 +651,31 @@ export default function MentalRotationGame() {
             accessibilityRole="button" accessibilityLabel={t('a11yResetLevel')} onPress={() => lvl.setLevel(1)} style={{ marginTop: 4 }}>
             <Text style={{ color: colors.text, fontWeight: '700' }}>↺ 1</Text>
           </TouchableOpacity>
+        )}
+      </View>
+      {/* Вид заданий (задача da43411f): вперемешку — партия уровня; любой вид — отработка только его, и ещё не открытого уровнем. */}
+      <View testID="mental-kind-picker" style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.optionLabel, { color: colors.text }]}>{strings.practiceTitle}</Text>
+        <View style={styles.kindChips}>
+          {([null, ...(Object.keys(KIND_UNLOCK) as TaskKind[])] as (TaskKind | null)[]).map((k) => {
+            const выбран = chosenKind === k;
+            return (
+              <TouchableOpacity
+                key={k ?? 'mixed'} testID={`mental-kind-${k ?? 'mixed'}`}
+                accessibilityRole="button" accessibilityState={{ selected: выбран }}
+                style={[styles.kindChip, выбран
+                  ? { backgroundColor: GRADIENT[0] }
+                  : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
+                onPress={() => setChosenKind(k)}>
+                <Text style={[styles.modeButtonText, { color: выбран ? '#FFF' : colors.text }]}>{k ? kindWord(k) : strings.practiceMixed}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        {chosenKind && (
+          <Text testID="mental-kind-note" style={{ color: colors.textSecondary, fontSize: 13 }}>
+            {strings.practiceNote.replace('{level}', String(practiceLevel(chosenKind, selectedLevel)))}
+          </Text>
         )}
       </View>
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -991,6 +1033,9 @@ const styles = StyleSheet.create({
   optionButtons: { flexDirection: 'column', gap: 8 },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
+  // Выбор вида заданий: 12 кнопок переносятся строками, высота не ниже порога нажатия на настройке (44).
+  kindChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  kindChip: { minHeight: 44, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 22 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },

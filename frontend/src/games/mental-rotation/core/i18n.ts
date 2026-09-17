@@ -1,4 +1,4 @@
-/* psygames-mental-rotation-i18n · VER 3 · 17.09.2026 */
+/* psygames-mental-rotation-i18n · VER 4 · 17.09.2026 */
 /**
  * СЛОВАРЬ МОДУЛЯ — ДВЕНАДЦАТЬ ЯЗЫКОВ, А НЕ ДВА.
  *
@@ -115,6 +115,15 @@ export interface MentalRotationStrings {
   /** Строка на экране настройки: из чего состоит партия. */
   kindsSummary: string;
   /**
+   * 17.09.2026, задача da43411f (отчёт 1263dc58): отработка одного вида на экране настройки.
+   * `practiceTitle` — заголовок выбора; `practiceMixed` — все виды уровня вперемешку, как было;
+   * `practiceNote` — под выбором, когда выбран один вид. `{level}` — уровень, на котором строятся
+   * задания (у вида выше уровня игрока — его порог).
+   */
+  practiceTitle: string;
+  practiceMixed: string;
+  practiceNote: string;
+  /**
    * Описание уровня на экране настройки, части склеиваются через « · » (`levelSummary`).
    * Число всегда после двоеточия: склонять «4 кубиков» в двенадцати языках нечем.
    */
@@ -190,6 +199,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Вращать самому',
     a11yOption: 'Вариант {n}',
     kindsSummary: 'Одиннадцать видов заданий: поворот, проекция, развёртка, точка зрения, сравнение фигур, сборка, память, три вида, срез, недостающая часть и сечение.',
+    practiceTitle: 'Вид заданий',
+    practiceMixed: 'Вперемешку',
+    practiceNote: 'Только этот вид, задания уровня {level}. Твой уровень от такой партии не меняется.',
     levelCubes: 'Кубиков: {n}',
     levelOptions: 'вариантов: {n}',
     levelTurnFlat: 'поворот в плоскости экрана: {a}–{b}°',
@@ -259,6 +271,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Rotate manually',
     a11yOption: 'Option {n}',
     kindsSummary: 'Eleven task kinds: rotation, projection, cube net, viewpoint, figure matching, assembly, memory, three views, slice, missing piece and cross-section.',
+    practiceTitle: 'Task kind',
+    practiceMixed: 'Mixed',
+    practiceNote: 'Only this kind, tasks at level {level}. This round does not change your level.',
     levelCubes: 'Cubes: {n}',
     levelOptions: 'options: {n}',
     levelTurnFlat: 'turn in the screen plane: {a}–{b}°',
@@ -328,6 +343,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Girar a mano',
     a11yOption: 'Opción {n}',
     kindsSummary: 'Once tipos de tarea: rotación, proyección, desarrollo, punto de vista, comparación de figuras, montaje, memoria, tres vistas, corte, pieza que falta y sección.',
+    practiceTitle: 'Tipo de tarea',
+    practiceMixed: 'Mezcladas',
+    practiceNote: 'Solo este tipo, tareas del nivel {level}. Esta partida no cambia tu nivel.',
     levelCubes: 'Cubos: {n}',
     levelOptions: 'opciones: {n}',
     levelTurnFlat: 'giro en el plano de la pantalla: {a}–{b}°',
@@ -397,6 +415,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Selbst drehen',
     a11yOption: 'Variante {n}',
     kindsSummary: 'Elf Aufgabenarten: Drehung, Projektion, Würfelnetz, Blickpunkt, Figurenvergleich, Zusammenbau, Gedächtnis, drei Ansichten, Schnitt, fehlendes Teil und Querschnitt.',
+    practiceTitle: 'Aufgabenart',
+    practiceMixed: 'Gemischt',
+    practiceNote: 'Nur diese Art, Aufgaben auf Level {level}. Diese Runde ändert dein Level nicht.',
     levelCubes: 'Würfel: {n}',
     levelOptions: 'Antworten: {n}',
     levelTurnFlat: 'Drehung in der Bildschirmebene: {a}–{b}°',
@@ -466,6 +487,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: '手动旋转',
     a11yOption: '选项 {n}',
     kindsSummary: '十一种题型：旋转、投影、展开图、视角、图形比对、拼合、记忆、三视图、截面、缺失的部分和斜截面。',
+    practiceTitle: '题型',
+    practiceMixed: '混合',
+    practiceNote: '只练这一种题型，难度为第 {level} 级。这一局不会改变你的等级。',
     levelCubes: '方块：{n}个',
     levelOptions: '选项：{n}个',
     levelTurnFlat: '在屏幕平面内旋转：{a}–{b}°',
@@ -535,6 +559,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'स्वयं घुमाएँ',
     a11yOption: 'विकल्प {n}',
     kindsSummary: 'ग्यारह प्रकार के कार्य: घुमाव, प्रक्षेपण, घनजाल, दृष्टिकोण, आकृति मिलान, जोड़ना, स्मृति, तीन दृश्य, अनुप्रस्थ काट, छूटा हुआ टुकड़ा और तिरछा काट।',
+    practiceTitle: 'कार्य का प्रकार',
+    practiceMixed: 'मिले-जुले',
+    practiceNote: 'केवल यही प्रकार, स्तर {level} के कार्य। यह खेल आपका स्तर नहीं बदलता।',
     levelCubes: 'घन: {n}',
     levelOptions: 'विकल्प: {n}',
     levelTurnFlat: 'स्क्रीन के तल में घुमाव: {a}–{b}°',
@@ -604,6 +631,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Girar manualmente',
     a11yOption: 'Opção {n}',
     kindsSummary: 'Onze tipos de tarefa: rotação, projeção, planificação, ponto de vista, comparação de figuras, montagem, memória, três vistas, corte, peça que falta e seção.',
+    practiceTitle: 'Tipo de tarefa',
+    practiceMixed: 'Misturadas',
+    practiceNote: 'Só este tipo, tarefas do nível {level}. Esta partida não muda o seu nível.',
     levelCubes: 'Cubos: {n}',
     levelOptions: 'opções: {n}',
     levelTurnFlat: 'giro no plano da tela: {a}–{b}°',
@@ -673,6 +703,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Tourner à la main',
     a11yOption: 'Choix {n}',
     kindsSummary: 'Onze types de tâches : rotation, projection, patron du cube, point de vue, comparaison de figures, assemblage, mémoire, trois vues, coupe, pièce manquante et section.',
+    practiceTitle: 'Type de tâche',
+    practiceMixed: 'Mélangées',
+    practiceNote: 'Seulement ce type, tâches du niveau {level}. Cette partie ne change pas votre niveau.',
     levelCubes: 'Cubes : {n}',
     levelOptions: 'choix : {n}',
     levelTurnFlat: 'rotation dans le plan de l’écran : {a}–{b}°',
@@ -742,6 +775,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'Ruota a mano',
     a11yOption: 'Opzione {n}',
     kindsSummary: 'Undici tipi di esercizio: rotazione, proiezione, sviluppo del cubo, punto di vista, confronto di figure, assemblaggio, memoria, tre viste, sezione, pezzo mancante e sezione obliqua.',
+    practiceTitle: 'Tipo di esercizio',
+    practiceMixed: 'Misti',
+    practiceNote: 'Solo questo tipo, esercizi del livello {level}. Questa partita non cambia il tuo livello.',
     levelCubes: 'Cubetti: {n}',
     levelOptions: 'opzioni: {n}',
     levelTurnFlat: 'rotazione nel piano dello schermo: {a}–{b}°',
@@ -811,6 +847,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: '自分で回す',
     a11yOption: '選択肢 {n}',
     kindsSummary: '課題は十一種類：回転・投影・展開図・視点・形の照合・組み立て・記憶・三面図・断面・足りないピース・斜めの断面。',
+    practiceTitle: '課題の種類',
+    practiceMixed: 'ミックス',
+    practiceNote: 'この種類だけ、レベル{level}の課題。このプレイでレベルは変わりません。',
     levelCubes: 'キューブ：{n}個',
     levelOptions: '選択肢：{n}',
     levelTurnFlat: '画面の平面内で回転：{a}〜{b}°',
@@ -880,6 +919,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: '직접 회전',
     a11yOption: '선택지 {n}',
     kindsSummary: '과제는 열한 가지: 회전, 투영, 전개도, 시점, 도형 비교, 조립, 기억, 삼면도, 단면, 빠진 조각, 비스듬한 단면.',
+    practiceTitle: '과제 종류',
+    practiceMixed: '섞어서',
+    practiceNote: '이 종류만, 레벨 {level} 과제. 이 판은 레벨을 바꾸지 않습니다.',
     levelCubes: '큐브: {n}개',
     levelOptions: '보기: {n}개',
     levelTurnFlat: '화면 평면에서 회전: {a}–{b}°',
@@ -949,6 +991,9 @@ const STRINGS: Record<MentalRotationLocale, MentalRotationStrings> = {
     rotateManually: 'أدِر بنفسك',
     a11yOption: 'الخيار {n}',
     kindsSummary: 'أحد عشر نوعًا من المهام: التدوير والإسقاط وشبكة المكعب وزاوية النظر ومطابقة الأشكال والتجميع والذاكرة والمساقط الثلاثة والمقطع والقطعة الناقصة والمقطع المائل.',
+    practiceTitle: 'نوع المهمة',
+    practiceMixed: 'مختلطة',
+    practiceNote: 'هذا النوع فقط، مهام المستوى {level}. هذه الجولة لا تغيّر مستواك.',
     levelCubes: 'المكعّبات: {n}',
     levelOptions: 'الخيارات: {n}',
     levelTurnFlat: 'دوران في مستوى الشاشة: {a}–{b}°',
