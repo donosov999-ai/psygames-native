@@ -988,6 +988,25 @@ const translations: Translations = {
   puzzleNoMoves: { ru: 'Ходов больше нет. Можно начать заново', en: 'No moves left. Start over if you like' },
 
   puzzleBlownUp: { ru: 'Подорвался. Отмени ход — и играй дальше', en: 'You blew up. Undo the move and carry on' },
+
+  /**
+   * РАЗБОР ПО ШАГАМ (пилот на «Чёт-нечет», 17.09.2026): решатель ходит как человек и
+   * объясняет каждый ход правилом. Приёмы и замер — в шапке `tatham-bridge/unruly-teach.ts`.
+   */
+  teachTitle: { ru: 'Разбор по шагам', en: 'Step-by-step walkthrough' },
+  teachButton: { ru: 'Разбор', en: 'Walkthrough' },
+  teachStepOf: { ru: 'Шаг {i} из {n}', en: 'Step {i} of {n}' },
+  teachRow: { ru: 'Строка {n}', en: 'Row {n}' },
+  teachCol: { ru: 'Столбец {n}', en: 'Column {n}' },
+  teachUnrulyPair: { ru: '{line}: две одинаковые клетки стоят рядом. Трёх одинаковых подряд не бывает, поэтому клетки по краям — другого цвета.', en: '{line}: two matching cells sit side by side. Three in a row is not allowed, so the cells at both ends take the other colour.' },
+  teachUnrulyGap: { ru: '{line}: между двумя одинаковыми клетками одна пустая. Того же цвета она быть не может — вышло бы три подряд. Значит, она другого цвета.', en: '{line}: one empty cell sits between two matching cells. It cannot match them — that would make three in a row — so it takes the other colour.' },
+  teachUnrulyCount: { ru: '{line}: клетки одного цвета уже заняли половину линии. Больше таких быть не может, поэтому остальные — другого цвета.', en: '{line}: one colour already fills half of the line. There can be no more of it, so the remaining cells take the other colour.' },
+  teachUnrulyLineOne: { ru: '{line}: переберём, как дописать линию по правилам — поровну цветов и без трёх подряд. Способ всего один.', en: '{line}: let us try every way to finish the line by the rules — equal colours and no three in a row. There is only one way.' },
+  teachUnrulyLineMany: { ru: '{line}: переберём, как дописать линию по правилам — поровну цветов и без трёх подряд. Способов {k}, и во всех выделенные клетки получают один и тот же цвет.', en: '{line}: let us try every way to finish the line by the rules — equal colours and no three in a row. There are {k} ways, and in every one the highlighted cells get the same colour.' },
+  teachErrors: { ru: 'Сначала уберём ошибки: выделенные клетки не сходятся с решением.', en: 'First, let us clear the mistakes: the highlighted cells do not match the solution.' },
+  teachDone: { ru: 'Доска решена. Следующую попробуйте сами — теми же приёмами.', en: 'Solved. Try the next board on your own with the same tricks.' },
+  teachNotCounted: { ru: 'Партия с разбором не засчитывается в уровень.', en: 'A round with a walkthrough does not count toward your level.' },
+  teachNewBoard: { ru: 'Новая доска', en: 'New board' },
   puzzleHudMarked: { ru: 'Отмечено', en: 'Marked' },
   puzzleHudActive: { ru: 'Соединено', en: 'Connected' },
   /**

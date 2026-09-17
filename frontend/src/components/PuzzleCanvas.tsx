@@ -1,4 +1,4 @@
-/* psygames-puzzle-canvas · VER 2 · 10.09.2026 */
+/* psygames-puzzle-canvas · VER 3 · 17.09.2026 */
 /**
  * ДОСКА ГОЛОВОЛОМКИ ТЭТХЭМА, НАРИСОВАННАЯ НАШИМ SVG.
  *
@@ -43,9 +43,14 @@ interface Props {
    */
   onЖест: (x: number, y: number, жест: Жест, правой: boolean) => void;
   фон: string;
+  /**
+   * Рамки поверх доски в ЕГО координатах — разбор по шагам показывает, на что смотреть
+   * (`unruly-teach.ts`). Рисуются последними, поэтому их не закрывает перерисовка клетки.
+   */
+  подсветка?: { x: number; y: number; ш: number; в: number; цвет: string }[];
 }
 
-export default function PuzzleCanvas({ партия, ширина, высота, onЖест, фон }: Props) {
+export default function PuzzleCanvas({ партия, ширина, высота, onЖест, фон, подсветка }: Props) {
   const { ширина: W, высота: H, палитра, примитивы } = партия;
   /**
    * 🔴 ПОТОЛОК УВЕЛИЧЕНИЯ — ЕДИНСТВЕННОЕ, ЧТО МЕШАЛО «МОЗАИКЕ» ЗАПОЛНИТЬ ЭКРАН.
@@ -273,6 +278,13 @@ export default function PuzzleCanvas({ партия, ширина, высота,
       <Svg width={W * масштаб} height={H * масштаб} viewBox={`0 0 ${W} ${H}`}>
         <Rect x={0} y={0} width={W} height={H} fill={бумага} />
         {собрать(примитивы, цвет)}
+        {подсветка?.map((п, k) => (
+          <Rect
+            key={`подсветка-${k}`} testID="puzzle-teach-mark"
+            x={п.x + 2} y={п.y + 2} width={Math.max(0, п.ш - 4)} height={Math.max(0, п.в - 4)}
+            fill="none" stroke={п.цвет} strokeWidth={4} rx={5}
+          />
+        ))}
       </Svg>
     </View>
   );
