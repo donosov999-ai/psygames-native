@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.22',
+    date: '2026-09-17',
+    ru: [
+      'Судоку: цифры под доской снова видны целиком на любом экране',
+      'Судоку: кнопки — одной строкой значков под полем, доска на маленьких экранах крупнее',
+      'Пометки и цвет включаются значками, палитра цвета встаёт на место цифр',
+    ],
+    en: [
+      'Sudoku: the digits under the board are fully visible again on any screen',
+      'Sudoku: buttons now sit in one row of icons under the board, and the board is bigger on small screens',
+      'Notes and color turn on with icons, and the color palette takes the place of the digits',
+    ],
+  },
+  {
     version: '2.54.21',
     date: '2026-09-17',
     ru: [
