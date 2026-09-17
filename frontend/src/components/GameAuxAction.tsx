@@ -161,7 +161,9 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
         заперт ? `${label} — ${t('ladderLockedAt').replace('{n}', String(порог))}`
         : count === undefined ? label : `${label} — ${count}`
       }
-      accessibilityState={{ disabled: !!disabled || заперт, selected: включён }}
+      // `selected` — только у переключателя (`active` задан): у обычной кнопки состояния «выбрано» нет, и пробы,
+      // которые узнают вкладки по `selected`, иначе приняли бы за вкладку любой значок ряда (spatial-lab-config-phase).
+      accessibilityState={active === undefined ? { disabled: !!disabled || заперт } : { disabled: !!disabled || заперт, selected: включён }}
       // Запертую кнопку НЕ отключаем: нажатие обязано ответить «откроется на
       // уровне N». Отключённая кнопка на нажатие молчит, и замок превращается
       // в поломку — ровно та жалоба, что уже приходила про кончившийся ресурс.
