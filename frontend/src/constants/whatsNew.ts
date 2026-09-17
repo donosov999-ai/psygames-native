@@ -16,6 +16,20 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.21',
+    date: '2026-09-17',
+    ru: [
+      '«Где ошибка?» в «Галактиках» и «Мостах»: лишние линии и мосты обводятся красным, а уровень не сдаётся',
+      '«Мосты»: сверка находит мост не на своём месте, даже когда все числа на островах сошлись',
+      'Карта уровней: первая ступень больше не прячется под кнопкой «Сообщить о проблеме»',
+    ],
+    en: [
+      "Where's the mistake? in Galaxies and Bridges: extra lines and bridges are circled in red, and the level is not given up",
+      'Bridges: the check finds a bridge in the wrong place even when every island number adds up',
+      'Level map: the first step no longer hides under the Send feedback button',
+    ],
+  },
+  {
     version: '2.54.20',
     date: '2026-09-17',
     ru: [
