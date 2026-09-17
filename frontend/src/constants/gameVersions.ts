@@ -40,7 +40,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'goods-sort': { ver: 4, date: '09.09.2026' },
   'hanoi': { ver: 4, date: '16.09.2026' },
   'hearing-hub': { ver: 1, date: '04.09.2026' },
-  'inhibition': { ver: 3, date: '17.09.2026' },
+  'inhibition': { ver: 4, date: '17.09.2026' },
   'iowa': { ver: 2, date: '16.09.2026' },
   'languages-hub': { ver: 1, date: '04.09.2026' },
   'lexical-decision': { ver: 1, date: '19.08.2026' },
