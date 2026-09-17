@@ -17,7 +17,7 @@ import { saveWeakSkill } from '@/src/services/weakSkill';
 import { getSessions } from '@/src/services/api';
 import {
   loadWarmupHistory, computeStreak, brainTodayVerdict, WarmupHistoryEntry,
-  PlaylistMeta, играПартии, повторСерии, очкиСоЗнаком,
+  PlaylistMeta, играПартии, повторСерии, очкиСоЗнаком, серияЗасчитана, серияБезСчёта,
 } from '@/src/services/warmup';
 import { addTokens, comboBonus } from '@/src/services/tokens';
 import { loadReminderSettings, saveReminderSettings, applyReminders, requestReminderPermission, DEFAULT_REMINDERS } from '@/src/services/reminders';
@@ -87,7 +87,10 @@ export default function WarmupComplete() {
   const elapsedSec = snap.startTime > 0 ? (Date.now() - snap.startTime) / 1000 : 0;
   const elapsedMin = Math.floor(elapsedSec / 60);
   const elapsedSecRem = Math.floor(elapsedSec % 60);
-  const completed = meta ? results.length >= meta.steps.length : false;
+  // Засчитана при ≥ 80 % сыгранных шагов (решение Дениса 17.09.2026, `серияЗасчитана`).
+  const completed = meta ? серияЗасчитана(meta.steps.length, results.length) : false;
+  // «Не спится»: ни очков, ни разбора, ни стрика (`серияБезСчёта`).
+  const безСчёта = серияБезСчёта(meta);
 
   /**
    * ⚠️ ПРОШЛЫЕ ПАРТИИ БЕРЁМ БЕЗ СЕГОДНЯШНИХ. Партии этой зарядки уже записаны в
@@ -97,6 +100,8 @@ export default function WarmupComplete() {
    * последних записей, сколько её партий было сегодня.
    */
   useEffect(() => {
+    // «Не спится» навыков не разбирает и слабое место в совет не пишет.
+    if (безСчёта) return;
     let жив = true;
     getSessions().then((все) => {
       if (!жив) return;
@@ -120,7 +125,7 @@ export default function WarmupComplete() {
       void saveWeakSkill(р);
     }).catch(() => {});
     return () => { жив = false; };
-  }, [results]);
+  }, [results, безСчёта]);
 
   // PlaylistMeta исторически хранит русские подписи (ПН / перед сном).
   // В интерфейсе показываем язык пользователя, не меняя формат сохранённой истории.
@@ -146,15 +151,16 @@ export default function WarmupComplete() {
         setPersisted(true);
         // Комбо-множитель ×1.5: 3 чистые игры подряд в сессии → бонус токенов сверху
         // (каждая игра уже начислила свои токены отдельно через saveSession/addTokens).
-        const c = comboBonus(results);
+        const c = безСчёта ? { bonus: 0, streakLen: 0 } : comboBonus(results);
         setCombo(c);
         if (c.bonus > 0 && profile?.id) addTokens(profile.id, c.bonus).catch(() => {});
       }
       const h = await loadWarmupHistory();
       setHistory(h);
-      const streakVal = computeStreak(h);
+      // «Не спится»: ни стрика, ни «Мозга сегодня», ни похода к ИИ — напоминание ниже остаётся.
+      const streakVal = безСчёта ? 0 : computeStreak(h);
       setStreak(streakVal);
-      const ruleVerdict = brainTodayVerdict(h, language);
+      const ruleVerdict = безСчёта ? null : brainTodayVerdict(h, language);
       setVerdict(ruleVerdict);
       // ИИ-версия — только если есть о чём говорить (та же база, что и rule-based verdict).
       // Тихий fallback: любая ошибка/нет ключа на сервере → aiVerdictText остаётся null,
@@ -228,7 +234,7 @@ export default function WarmupComplete() {
       .filter((h) => h.duration_min === meta.duration_min && h.track === meta.track && h.completed)
       .map((h) => h.total_score)
   );
-  const isPersonalBest = totalScore > 0 && totalScore >= sameKindBest;
+  const isPersonalBest = !безСчёта && totalScore > 0 && totalScore >= sameKindBest;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -281,9 +287,9 @@ export default function WarmupComplete() {
                     {game ? t(game.nameKey) : r.game_type}
                   </Text>
                   <View style={styles.rowMetrics}>
-                    <Text style={[styles.metric, { color: r.score < 0 ? '#f43f5e' : '#22c55e' }]}>{очкиСоЗнаком(r.score)}</Text>
+                    {!безСчёта && <Text style={[styles.metric, { color: r.score < 0 ? '#f43f5e' : '#22c55e' }]}>{очкиСоЗнаком(r.score)}</Text>}
                     <Text style={[styles.metric, { color: colors.textSecondary }]}>{r.time_seconds.toFixed(1)}{t('secShort')}</Text>
-                    {r.errors > 0 && <Text style={[styles.metric, { color: '#f43f5e' }]}>✗{r.errors}</Text>}
+                    {!безСчёта && r.errors > 0 && <Text style={[styles.metric, { color: '#f43f5e' }]}>✗{r.errors}</Text>}
                   </View>
                 </View>
                 <Ionicons name="checkmark-circle" size={22} color="#22c55e" />
@@ -362,7 +368,8 @@ export default function WarmupComplete() {
           </View>
         )}
 
-        {/* Total */}
+        {/* Total — у «Не спится» счёта нет вовсе */}
+        {!безСчёта && (
         <View style={[styles.totalCard, { backgroundColor: colors.surface }]}>
           <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>{t('totalScoreLabel')}</Text>
           <Text style={[styles.totalValue, { color: '#fbbf24' }]}>{totalScore}</Text>
@@ -379,6 +386,7 @@ export default function WarmupComplete() {
             </View>
           )}
         </View>
+        )}
 
         {/* Streak */}
         {streak > 0 && (

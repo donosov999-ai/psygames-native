@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { GAMES } from '@/src/constants/games';
-import { stepToParams, очкиСоЗнаком } from '@/src/services/warmup';
+import { stepToParams, очкиСоЗнаком, серияБезСчёта } from '@/src/services/warmup';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 
 const GRADIENT = ['#fbbf24', '#f59e0b'];
@@ -30,6 +30,8 @@ export default function WarmupBridge() {
   const completedGame = justCompleted ? GAMES.find((g) => g.id === justCompleted.game_id) : null;
   const nextGame = next ? GAMES.find((g) => g.id === next.game_id) : null;
   const isEvening = meta?.slot === 'evening';
+  // «Не спится» — без очков: у шага только время (`серияБезСчёта`).
+  const безСчёта = серияБезСчёта(meta);
   const accent = isEvening ? '#818cf8' : '#fbbf24';
 
   // ⚠️ Навигация НЕ внутри setState-updater: updater исполняется в фазе рендера, и
@@ -165,9 +167,9 @@ export default function WarmupBridge() {
             </Text>
             {justCompletedResult && (
               <View style={styles.statsLine}>
-                <Text style={[styles.statBadge, { color: justCompletedResult.score < 0 ? '#f43f5e' : '#22c55e' }]}>{очкиСоЗнаком(justCompletedResult.score)}</Text>
+                {!безСчёта && <Text style={[styles.statBadge, { color: justCompletedResult.score < 0 ? '#f43f5e' : '#22c55e' }]}>{очкиСоЗнаком(justCompletedResult.score)}</Text>}
                 <Text style={[styles.statBadge, { color: colors.textSecondary }]}>{justCompletedResult.time_seconds.toFixed(1)}{t('secShort')}</Text>
-                {justCompletedResult.errors > 0 && <Text style={[styles.statBadge, { color: '#f43f5e' }]}>✗{justCompletedResult.errors}</Text>}
+                {!безСчёта && justCompletedResult.errors > 0 && <Text style={[styles.statBadge, { color: '#f43f5e' }]}>✗{justCompletedResult.errors}</Text>}
               </View>
             )}
           </View>
