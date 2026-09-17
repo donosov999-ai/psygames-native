@@ -57,6 +57,19 @@ interface WarmupCtx extends WarmupState {
   skipCurrent: () => void;
   stopWarmup: (completed?: boolean) => Promise<void>;
   /**
+   * 🔴 ПРИДЕРЖАТЬ АВТОПЕРЕХОД, ПОКА ЧЕЛОВЕК ОТВЕЧАЕТ НА ВОПРОС. Возвращает «отпустить».
+   *
+   * 📍 Задача 1436bcdd, отчёт a0b6d77f: «на второй игре зарядка вылетела, скинулось всё».
+   * После сохранения партии зарядка сама уходит на мост через 2 с (3,5 с вечером), а на
+   * карточке итога рядом с «Дальше» стоит «Стоп», который стирал серию одним касанием.
+   * Карточка теперь переспрашивает — и вопрос не должен уехать вместе с экраном по таймеру.
+   *
+   * Пока держат, уже запланированный переход срабатывает вхолостую, а новый не ставится. Отпускание переход
+   * НЕ возобновляет: ответ на вопрос сам решает, куда идти («Продолжить» — дальше,
+   * «Остановить» — домой).
+   */
+  holdAutoAdvance: () => () => void;
+  /**
    * 🔴 ОБЕЩАННОЕ ВРЕМЯ ВЫШЛО, А ШАГИ ОСТАЛИСЬ.
    *
    * 📍 РЕШЕНИЕ ДЕНИСА 09.09.2026: «мы не можем контролировать у каждого скорость
@@ -283,6 +296,19 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   // «где другие игры?????»). У вечера задержка самая длинная → рвалось чаще всего.
   // Лечим двумя замками: гасим запланированный таймер и сверяем номер шага.
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Сколько вопросов сейчас держат автопереход (см. `holdAutoAdvance` в интерфейсе). */
+  const autoAdvanceHoldsRef = useRef(0);
+  const holdAutoAdvance = useCallback(() => {
+    // Уже запланированный переход не снимаем здесь: сработав, он сам увидит держание
+    // и ничего не сделает (проверка в таймере слушателя сессий).
+    autoAdvanceHoldsRef.current += 1;
+    let отпущено = false;
+    return () => {
+      if (отпущено) return;
+      отпущено = true;
+      autoAdvanceHoldsRef.current = Math.max(0, autoAdvanceHoldsRef.current - 1);
+    };
+  }, []);
   const advanceToNext = useCallback((fromIdx?: number) => {
     const s = stateRef.current;
     if (!s.meta) return;
@@ -402,7 +428,15 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
       // then auto-navigate to bridge / complete
       const idxAtSave = cur.currentIdx;   // переход валиден только для ЭТОГО шага
       if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
-      advanceTimerRef.current = setTimeout(() => advanceToNext(idxAtSave), cur.meta.slot === 'evening' ? 3500 : 2000);
+      advanceTimerRef.current = null;
+      // Человек уже отвечает на вопрос карточки итога (сохранение успело прийти позже
+      // касания) — переход не ставим: ответ сам решит, куда идти.
+      if (autoAdvanceHoldsRef.current > 0) return;
+      advanceTimerRef.current = setTimeout(() => {
+        advanceTimerRef.current = null;
+        if (autoAdvanceHoldsRef.current > 0) return;
+        advanceToNext(idxAtSave);
+      }, cur.meta.slot === 'evening' ? 3500 : 2000);
     };
     setSessionListener(listener);
     return () => setSessionListener(null);
@@ -437,7 +471,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   const dismissOvertime = useCallback(() => setСпрошеноУ(state.warmupId), [state.warmupId]);
 
   return (
-    <Ctx.Provider value={{ ...state, currentStep, overtime, stepsLeft, dismissOvertime, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startSpatialLab, startAssessment, startPlaylist: startSlotPlaylist, recordResult, advanceToNext, skipCurrent, stopWarmup }}>
+    <Ctx.Provider value={{ ...state, currentStep, overtime, stepsLeft, dismissOvertime, startWarmup, startEvening, startDay, startNight, startFinancialBattery, startSpatialLab, startAssessment, startPlaylist: startSlotPlaylist, recordResult, advanceToNext, skipCurrent, stopWarmup, holdAutoAdvance }}>
       {children}
     </Ctx.Provider>
   );
