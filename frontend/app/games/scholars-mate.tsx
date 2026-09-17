@@ -1,4 +1,4 @@
-/* psygames-game-scholars-mate · VER 2 · 17.09.2026 */
+/* psygames-game-scholars-mate · VER 3 · 17.09.2026 */
 /**
  * «Детский мат» — заученные этюды на СКОРОСТЬ.
  *
@@ -34,6 +34,7 @@ import GameShell from '@/src/components/GameShell';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GradientSurface from '@/src/components/GradientSurface';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import DropdownSelect from '@/src/components/DropdownSelect';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -122,7 +123,6 @@ export default function ScholarsMateScreen() {
   /* Рандом-режим: узоры вперемешку, имя скрыто до ответа. `?mix=1` — чтобы своя
      серия могла попросить именно его («в рандом-режиме детского мата»). */
   const [микс, setМикс] = React.useState(() => bool('mix', false));
-  const [списокОткрыт, setСписокОткрыт] = React.useState(false);
   /**
    * 🔴 ЗЕРНО КОЛОДЫ — ПАРАМЕТРОМ, ИНАЧЕ ПОВТОР ШАГА СДАЁТ ТУ ЖЕ РАЗДАЧУ.
    *
@@ -346,7 +346,6 @@ export default function ScholarsMateScreen() {
     setРежим(только);
     setУзор(имяУзораДляОтработки);
     setМикс(вперемешку);
-    setСписокОткрыт(false);
     setPlayedLevel(null);
     setArmed(false);
     setAttempt((n) => n + 1);
@@ -434,22 +433,21 @@ export default function ScholarsMateScreen() {
    * партии, а хук здесь поменял бы их число между фазами (React #310).
    * Один список на подписи, числа и действие — второго перечисления режимов на экране нет.
    */
-  type ПунктРежима = { ключ: string; имя: string; число: number | null; значок: React.ComponentProps<typeof Ionicons>['name'] | null; поставить: () => void };
+  type ПунктРежима = { ключ: string; имя: string; число: number | null; поставить: () => void };
   const пунктыРежима: ПунктРежима[] = [
-    { ключ: 'levels', имя: t('modeLevels'), число: null, значок: 'layers-outline',
+    { ключ: 'levels', имя: t('modeLevels'), число: null,
       поставить: () => { setРежим(null); setУзор(null); setМикс(false); } },
-    { ключ: 'mix', имя: t('mixedMode'), число: mixedMotifCount(), значок: 'shuffle-outline',
+    { ключ: 'mix', имя: t('mixedMode'), число: mixedMotifCount(),
       поставить: () => { setРежим(null); setУзор(null); setМикс(true); } },
-    { ключ: 'sacrifice', имя: t('scholarsSacrificeMode'), число: c.sacrifice, значок: 'flame-outline',
+    { ключ: 'sacrifice', имя: t('scholarsSacrificeMode'), число: c.sacrifice,
       поставить: () => { setРежим('sacrifice'); setУзор(null); setМикс(false); } },
     ...NAMED_MOTIFS.map((имя): ПунктРежима => ({
-      ключ: `motif:${имя}`, имя: имяУзора(имя), число: namedMotifCount(имя), значок: null,
+      ключ: `motif:${имя}`, имя: имяУзора(имя), число: namedMotifCount(имя),
       поставить: () => { setРежим(null); setУзор(имя); setМикс(false); },
     })),
   ];
   const ключРежима = микс ? 'mix' : режим === 'sacrifice' ? 'sacrifice' : узор ? `motif:${узор}` : 'levels';
   const пунктРежима = пунктыРежима.find((п) => п.ключ === ключРежима);
-  const имяРежима = пунктРежима?.имя ?? t('modeLevels');
   /**
    * 🔴 КАРТОЧКА ОПИСЫВАЕТ ТО, ЧТО НАЧНЁТСЯ, А НЕ ЛЕСТНИЦУ ВООБЩЕ. Замер 17.09.2026, кадр
    * 390×844: выбран «Мат с жертвой», а карточка — «Поставь мат в один ход · Новый узор:
@@ -594,56 +592,25 @@ export default function ScholarsMateScreen() {
             не было — был набор кнопок старта, а нижняя «Начать» при этом всегда запускала лестницу
             и молча игнорировала узор.
 
-            Теперь как «Вид заданий» у «Мысленного вращения» (psygames-spatial, 9e2fdce6), которое
-            само было сделано по образцу этого экрана: закрытая строка показывает ТЕКУЩИЙ режим,
-            список раскрывается под ней, выбор СТАВИТ режим, а партию запускает одна «Начать».
+            Теперь закрытая строка показывает ТЕКУЩИЙ режим, список раскрывается под ней, выбор
+            СТАВИТ режим, а партию запускает одна «Начать». Сам список — ОБЩИЙ `DropdownSelect`
+            (решение Дениса 17.09: «общий делать»), своей копии у экрана больше нет; число позиций
+            режима идёт припиской справа.
             Подписи — существующие ключи (`mode`, `modeLevels`, `mixedMode`, `scholarsSacrificeMode`,
             имена узоров): новых строк ноль.
 
-            ⚠️ `aria-expanded` задан ПРЯМО: react-native-web не переносит `expanded` из
-            `accessibilityState` (замер соседнего чата на 390×844 — null).
+            ⚠️ Карточка уровня выше читает тот же выбор (`видыРежима`, `позицийВНаборе`): «выбрано,
+            но не начато» — это состояние, и всё, что описывает «что начнётся», обязано его видеть.
           */}
-          <Pressable
-            testID="scholars-mode-select"
-            accessibilityRole="button"
-            accessibilityState={{ expanded: списокОткрыт }}
-            aria-expanded={списокОткрыт}
-            accessibilityLabel={`${t('mode')}: ${имяРежима}`}
-            onPress={() => setСписокОткрыт((v) => !v)}
-            style={[стили.выборРежима, { backgroundColor: colors.surface, borderColor: списокОткрыт ? GRADIENT[0] : colors.border }]}
-          >
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={[стили.мелко, { color: colors.textSecondary }]}>{t('mode')}</Text>
-              <Text style={[стили.значениеРежима, { color: colors.text }]} numberOfLines={1}>{имяРежима}</Text>
-            </View>
-            <Ionicons name={списокОткрыт ? 'chevron-up' : 'chevron-down'} size={22} color={colors.textSecondary} />
-          </Pressable>
-
-          {списокОткрыт && (
-            <View testID="scholars-mode-list" style={[стили.списокРежимов, { borderColor: colors.border, backgroundColor: colors.surface }]}>
-              {пунктыРежима.map((п, i) => {
-                const выбран = п.ключ === ключРежима;
-                return (
-                  <Pressable
-                    key={п.ключ}
-                    testID={`scholars-mode-${п.ключ}`}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: выбран }}
-                    accessibilityLabel={п.имя}
-                    onPress={() => { п.поставить(); setСписокОткрыт(false); }}
-                    style={[стили.строкаРежима, i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border }]}
-                  >
-                    {п.значок ? <Ionicons name={п.значок} size={18} color={выбран ? GRADIENT[0] : colors.textSecondary} /> : null}
-                    <Text style={[стили.подсказка, { flex: 1, minWidth: 0, color: выбран ? GRADIENT[0] : colors.text, fontWeight: выбран ? '800' : '600' }]} numberOfLines={1}>
-                      {п.имя}
-                    </Text>
-                    {п.число !== null ? <Text style={[стили.мелко, { color: colors.textSecondary }]}>{п.число}</Text> : null}
-                    <Ionicons name="checkmark" size={20} color={выбран ? GRADIENT[0] : 'transparent'} />
-                  </Pressable>
-                );
-              })}
-            </View>
-          )}
+          <DropdownSelect
+            подпись={t('mode')}
+            значение={ключРежима}
+            варианты={пунктыРежима.map((п) => ({ значение: п.ключ, текст: п.имя, справа: п.число === null ? undefined : String(п.число) }))}
+            onChange={(ключ) => пунктыРежима.find((п) => п.ключ === ключ)?.поставить()}
+            акцент={GRADIENT[0]}
+            цвета={colors}
+            testID="scholars-mode"
+          />
         </ScrollView>
       )}
 
@@ -695,10 +662,6 @@ const стили = StyleSheet.create({
   мелко: { fontSize: 12 },
   // 48 — норма цели нажатия: строки списка нажимают пальцем, а не мышью.
   // Выпадающий режим: строка и пункты не ниже порога нажатия (48), как у «Мысленного вращения».
-  выборРежима: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8 },
-  значениеРежима: { fontSize: 16, fontWeight: '800' },
-  списокРежимов: { borderWidth: 1, borderRadius: 14, overflow: 'hidden' },
-  строкаРежима: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14 },
   узорСтрока: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1 },
   строка: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });

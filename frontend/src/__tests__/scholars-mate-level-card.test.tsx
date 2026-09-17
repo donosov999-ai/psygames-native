@@ -1,4 +1,4 @@
-/* psygames-scholars-mate-level-card · VER 2 · 17.09.2026 */
+/* psygames-scholars-mate-level-card · VER 3 · 17.09.2026 */
 /**
  * 🔴 КАРТОЧКА УРОВНЯ НАЗЫВАЕТ, ЧЕМУ УЧИТ СТУПЕНЬ, А НЕ ТОЛЬКО ЕЁ НОМЕР.
  *
@@ -137,7 +137,7 @@ function нажать(tree: any, метка: string) {
 
 /** Открыть выпадающий список режима и выбрать пункт — так, как это делает человек. */
 function выбрать(tree: any, ключ: string) {
-  for (const id of ['scholars-mode-select', `scholars-mode-${ключ}`]) {
+  for (const id of ['scholars-mode', `scholars-mode-${ключ}`]) {
     const у = tree.root.findAll(
       (n: any) => n.props?.testID === id && typeof n.props.onPress === 'function',
       { deep: true },

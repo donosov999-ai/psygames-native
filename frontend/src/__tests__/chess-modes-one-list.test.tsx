@@ -23,6 +23,7 @@ import React from 'react';
  * линта поднимать нельзя.
  */
 import ScholarsMateScreen from '@/app/games/scholars-mate';
+import { counts } from '@/src/games/scholars-mate/core/deck';
 
 declare function require(m: string): any;
 const TestRenderer = require('react-test-renderer');
@@ -142,13 +143,18 @@ function текст(tree: any): string {
   return out.join(' ').replace(/\s+/g, ' ');
 }
 const уник = (n: any[]) => { const s = new Set(); return n.filter((x) => !s.has(x.props.onPress) && s.add(x.props.onPress)); };
-function поМетке(tree: any, метка: string) {
+/**
+ * Метка кнопки без хвоста мока и без приписки. Строки общего `DropdownSelect` подписаны
+ * «текст, приписка» (у режима приписка — число позиций), и сравнивать надо текст.
+ */
+const метка = (n: any) => String(n.props?.accessibilityLabel ?? '').split(', ')[0]!.replace(/·т$/, '');
+function поМетке(tree: any, искомая: string) {
   return уник(tree.root.findAll((n: any) => typeof n.props?.onPress === 'function'
-    && String(n.props.accessibilityLabel ?? '').replace(/·т$/, '') === метка, { deep: true }));
+    && метка(n) === искомая, { deep: true }));
 }
-function нажать(tree: any, метка: string) {
-  const у = поМетке(tree, метка);
-  if (!у.length) throw new Error(`нет кнопки «${метка}»`);
+function нажать(tree: any, искомая: string) {
+  const у = поМетке(tree, искомая);
+  if (!у.length) throw new Error(`нет кнопки «${искомая}»`);
   TestRenderer.act(() => { у[0].props.onPress(); });
 }
 function смонтировать() {
@@ -162,7 +168,7 @@ function смонтировать() {
 
 /** Открыть выпадающий «Режим» — строка с testID, подпись у неё «Режим: <текущий>». */
 function открытьРежим(tree: any) {
-  const строка = tree.root.findAll((n: any) => n.props?.testID === 'scholars-mode-select'
+  const строка = tree.root.findAll((n: any) => n.props?.testID === 'scholars-mode'
     && typeof n.props?.onPress === 'function', { deep: true })[0];
   if (!строка) throw new Error('нет строки выбора режима');
   TestRenderer.act(() => { строка.props.onPress(); });
@@ -193,10 +199,14 @@ describe('«Детский мат»: жертва — строка общего 
     открытьРежим(tree);
 
     const пункты = пунктыСписка(tree);
-    const жертва = пункты.filter((n: any) => String(n.props.accessibilityLabel).replace(/·т$/, '') === 'scholarsSacrificeMode');
+    const жертва = пункты.filter((n: any) => метка(n) === 'scholarsSacrificeMode');
     expect(`жертва в раскрытом списке: ${жертва.length}`).toBe('жертва в раскрытом списке: 1');
+    // Число позиций режима — приписка строки. Своя вёрстка списка ушла в общий компонент, и
+    // число теперь держится только на `справа`: без этой строки оно пропало бы молча.
+    expect(`у жертвы приписано число позиций: ${String(жертва[0]?.props.accessibilityLabel ?? '').endsWith(`, ${counts().sacrifice}`)}`)
+      .toBe('у жертвы приписано число позиций: true');
     // И рядом с ней — именованные узоры, в том же контейнере.
-    const узоры = пункты.filter((n: any) => /^scholarsMotif/.test(String(n.props.accessibilityLabel)));
+    const узоры = пункты.filter((n: any) => /^scholarsMotif/.test(метка(n)));
     expect(`узоров в том же списке: ${узоры.length >= 2}`).toBe('узоров в том же списке: true');
   });
 
@@ -211,7 +221,9 @@ describe('«Детский мат»: жертва — строка общего 
 
     expect(`партия пошла от одного выбора: ${играИдёт(tree)}`).toBe('партия пошла от одного выбора: false');
     expect(`список закрылся после выбора: ${пунктыСписка(tree).length === 0}`).toBe('список закрылся после выбора: true');
-    const строка = tree.root.findAll((n: any) => n.props?.testID === 'scholars-mode-select', { deep: true })[0];
+    // Нажимаемая строка, а не сам узел компонента: testID `scholars-mode` несут оба.
+    const строка = tree.root.findAll((n: any) => n.props?.testID === 'scholars-mode'
+      && typeof n.props?.onPress === 'function', { deep: true })[0];
     expect(`закрытая строка называет выбранное: ${String(строка?.props?.accessibilityLabel ?? '').includes('scholarsSacrificeMode')}`)
       .toBe('закрытая строка называет выбранное: true');
   });
@@ -241,8 +253,8 @@ describe('«Детский мат»: жертва — строка общего 
     открытьРежим(tree);
 
     const метки: string[] = пунктыСписка(tree)
-      .filter((n: any) => /^scholarsMotif/.test(String(n.props.accessibilityLabel ?? '')))
-      .map((n: any) => String(n.props.accessibilityLabel).replace(/·т$/, ''));
+      .filter((n: any) => /^scholarsMotif/.test(метка(n)))
+      .map((n: any) => метка(n));
     expect(`строк именованных узоров: ${метки.length >= 2}`).toBe('строк именованных узоров: true');
 
     нажать(tree, метки[0]!);
