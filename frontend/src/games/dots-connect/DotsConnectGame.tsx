@@ -1,7 +1,8 @@
-/* psygames-dots-connect-game · VER 5 · 23.08.2026 */
+/* psygames-dots-connect-game · VER 6 · 17.09.2026 */
 import React from 'react';
 import { БЕЗ_ЖЕСТА_ПРОКРУТКИ } from '@/src/components/GameShell';
 import { ПАЛЕЦ } from '@/src/components/gameLayout';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import {
   AppState,
   PanResponder,
@@ -537,11 +538,23 @@ function DotsBoard({
  * чем клетка станет меньше пальца. Запрет жеста на самой доске остаётся в обоих
  * случаях, поэтому рисование прокрутку не вызывает ни там, ни там.
  */
-function ФазаПартии({ тесно, style, children }: { тесно: boolean; style: any; children: React.ReactNode }) {
-  if (!тесно) return <View style={style}>{children}</View>;
+/** Окно ниже этой высоты — «невысокое»: 390×844 и выше сохраняют прежние зазоры. */
+const НЕВЫСОКОЕ_ОКНО = 760;
+
+function ФазаПартии({ тесно, внешний, внутренний, onОкно, onСодержимое, children }: {
+  тесно: boolean; внешний: any; внутренний: any;
+  onОкно: (высота: number) => void; onСодержимое: (высота: number) => void; children: React.ReactNode;
+}) {
+  /**
+   * Окно фазы и её содержимое меряются РАЗНЫМИ узлами (17.09.2026, см. «ОБЛАСТЬ ДОСКИ — ТОЧНО ПО
+   * СТОРОНЕ»): у неподвижного `View` с flex: 1 высота — это окно, а не содержимое, и сравнивать
+   * было нечего.
+   */
+  const содержимое = <View style={внутренний} onLayout={(e) => onСодержимое(e.nativeEvent.layout.height)}>{children}</View>;
+  if (!тесно) return <View style={внешний} onLayout={(e) => onОкно(e.nativeEvent.layout.height)}>{содержимое}</View>;
   return (
-    <ScrollView style={style[0]} contentContainerStyle={style[1]} keyboardShouldPersistTaps="handled">
-      {children}
+    <ScrollView style={внешний} onLayout={(e) => onОкно(e.nativeEvent.layout.height)} keyboardShouldPersistTaps="handled">
+      {содержимое}
     </ScrollView>
   );
 }
@@ -561,10 +574,15 @@ function DotsConnectSession({
   onAux,
   onExit,
 }: DotsConnectGameProps) {
-  /** Сторона доски: МЕНЬШАЯ из доступной ширины и высоты. Разбор — у входа игровой фазы. */
-  const [boardSide, setBoardSide] = React.useState<number>(320);
-  /** true — доска не влезла даже по полу пальца: возвращаем прокрутку страницы. */
-  const [тесно, setТесно] = React.useState<boolean>(false);
+  /**
+   * Замеры фазы партии — разбор у входа игровой фазы («ОБЛАСТЬ ДОСКИ — ТОЧНО ПО СТОРОНЕ»): ширина
+   * области доски, высота окна фазы и высота всего, что в фазе кроме области доски (по ключу раскладки).
+   */
+  const [ширинаОбласти, setШиринаОбласти] = React.useState<number>(0);
+  const [окноФазы, setОкноФазы] = React.useState<number>(0);
+  const [безДоски, setБезДоски] = React.useState<{ ключ: string; h: number } | null>(null);
+  /** Невысокое окно — плотнее зазоры фазы партии. Решение по высоте ОКНА, а не по замеру: иначе качало бы. */
+  const { h: высотаОкна } = useScreenSize();
   const strings = getDotsStrings(locale);
   const [session, setSession] = React.useState(() => {
     const fresh = createDotsSession({ seed, level });
@@ -717,8 +735,36 @@ function DotsConnectSession({
    * ⚠️ На больших сетках уменьшать клетку бесконечно нельзя — там понадобится явный
    * режим масштаба с раздельным управлением, а не скрытая прокрутка тем же жестом.
    */
+  /**
+   * 🔴 ОБЛАСТЬ ДОСКИ — ТОЧНО ПО СТОРОНЕ, А НЕ flex: 1 (17.09.2026, отчёт e5bfc2f0, задача 2752f33f).
+   *
+   * Замер WebKit на экспорте (вход в партию): на 375×667, уровень 30 (11×11) доска 344 px стояла в
+   * области flex: 1 высотой 292 и наезжала на «Ходы · Покрытие», строку цели и кнопки «Отменить /
+   * Начать заново»; на уровне 60 кнопки уходили за край окна на 128 px, на 360×740 — на 40.
+   * Причина: пол пальца (48 на клетку) у 11×11 — вся ширина, доска меньше не становится, а область
+   * под неё сжималась гибко и была меньше доски. Прокрутка при этом не покрывала вылезшее.
+   * Теперь: область высотой ровно в сторону (плюс свободное место, когда всё помещается); помещается
+   * ли партия — сравнение окна фазы с «всё кроме доски + сторона», а не высоты самой области: та
+   * зависела от решения и качала бы его. «Всё кроме доски» только растёт в пределах ключа (доска,
+   * тренировка, подсказка решения): перенос строки счётчика не качает доску на каждом ходе.
+   */
+  const пол = Math.min(puzzle.size * ПАЛЕЦ, 620);
+  const поШирине = Math.min(ширинаОбласти > 0 ? ширинаОбласти : 320, 620);
+  const ключЗамера = `${puzzle.id}|${training}|${trainingComplete}|${session.solutionShown && !training}`;
+  const прочее = безДоски && безДоски.ключ === ключЗамера ? безДоски.h : 0;
+  const поВысоте = окноФазы > 0 && прочее > 0 ? окноФазы - прочее : поШирине;
+  const boardSide = Math.max(1, Math.min(поШирине, Math.max(поВысоте, Math.min(пол, поШирине))));
+  const тесно = окноФазы > 0 && прочее > 0 && прочее + boardSide > окноФазы + 1;
+  const высотаОбласти = !тесно && окноФазы > 0 && прочее > 0 ? Math.max(boardSide, окноФазы - прочее) : boardSide;
+  const замеритьСодержимое = (высота: number) => {
+    const h = Math.ceil(высота - высотаОбласти);
+    if (h <= 0) return;
+    setБезДоски((было) => (было && было.ключ === ключЗамера && было.h >= h ? было : { ключ: ключЗамера, h }));
+  };
   return (
-    <ФазаПартии тесно={тесно} style={[styles.root, styles.gameContent, { backgroundColor: theme.background }]}>
+    <ФазаПартии тесно={тесно} внешний={[styles.root, { backgroundColor: theme.background }]}
+      внутренний={[styles.gameContent, высотаОкна < НЕВЫСОКОЕ_ОКНО && styles.gameContentTight]}
+      onОкно={(h) => setОкноФазы((было) => (Math.abs(было - h) > 1 ? h : было))} onСодержимое={замеритьСодержимое}>
       <View style={styles.topRow}>
         {/* Название игры — в общей шапке приложения; здесь только что за раунд идёт. */}
         <View style={styles.titleBlock}>
@@ -774,25 +820,17 @@ function DotsConnectSession({
         </Text>
       ) : null}
       <View
-        style={styles.boardRegion}
+        style={[styles.boardRegion, { height: высотаОбласти }]}
+        /**
+         * 🔴 ПОЛ У СТОРОНЫ — КАНОН ПАЛЬЦА, А НЕ «СКОЛЬКО ОСТАЛОСЬ».
+         * Замер 12.09.2026: без пола на окне 320×640 доска ужалась до 120 px, то есть клетка 30 px при
+         * каноне 48 (`ПАЛЕЦ`). Ниже пола поле не сжимаем: тогда оно честно не влезает, и нижние ряды
+         * достаются прокруткой (см. `тесно`), а рисование прокрутку не вызывает — запрет на самой доске.
+         * Здесь меряется только ширина: сторона и теснота считаются выше, до разметки.
+         */
         onLayout={(event) => {
-          const { width, height } = event.nativeEvent.layout;
-          // Меньшая из сторон, и не шире прежнего потолка 620 — иначе на планшете
-          // доска раздуется во весь экран и перестанет быть полем для пальца.
-          /**
-           * 🔴 ПОЛ У СТОРОНЫ — КАНОН ПАЛЬЦА, А НЕ «СКОЛЬКО ОСТАЛОСЬ».
-           * Замер 12.09.2026: без пола на окне 320×640 доска ужалась до 120 px,
-           * то есть клетка 30 px при каноне 48 (`ПАЛЕЦ`). Это меняло «48 px за
-           * краем» на «в клетку нельзя попасть» — обмен в худшую сторону.
-           * Ниже пола поле не сжимаем: тогда оно честно не влезает, и нижние
-           * ряды достаются прокруткой страницы (см. `тесно` ниже), а рисование
-           * по-прежнему прокрутку не вызывает — запрет висит на самой доске.
-           */
-          const пол = puzzle.size * ПАЛЕЦ;
-          const влезает = Math.max(1, Math.min(width, height, 620));
-          const сторона = Math.max(влезает, Math.min(пол, width, 620));
-          setBoardSide((было: number) => (Math.abs(было - сторона) > 1 ? сторона : было));
-          setТесно(сторона > height + 1);
+          const { width } = event.nativeEvent.layout;
+          setШиринаОбласти((было: number) => (Math.abs(было - width) > 1 ? width : было));
         }}
       >
       <View style={{ width: boardSide, height: boardSide }}>
@@ -838,6 +876,8 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 16, paddingVertical: 18, gap: 14 },
   gameContent: { width: '100%', maxWidth: 700, alignSelf: 'center', paddingHorizontal: 8, paddingVertical: 12, gap: 12 },
+  /** Окно ниже `НЕВЫСОКОЕ_ОКНО`: 5 зазоров по 8 и поля 6 — на 375×667 5×5 встаёт без прокрутки (было +21 px). */
+  gameContentTight: { paddingVertical: 6, gap: 8 },
   centered: { justifyContent: 'center', alignItems: 'center', padding: 16 },
   hero: { width: '100%', borderRadius: 24, paddingVertical: 28, paddingHorizontal: 22, gap: 8 },
   heroTitle: { fontSize: 30, fontWeight: '900', textAlign: 'center' },
@@ -866,7 +906,7 @@ const styles = StyleSheet.create({
   solutionNote: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
   board: { width: '100%', maxWidth: 620, alignSelf: 'center', aspectRatio: 1, borderWidth: 2, borderRadius: 18, overflow: 'hidden' },
   /** Остаток экрана под доску: сюда она и вписывается. */
-  boardRegion: { flex: 1, width: '100%', minHeight: 120, alignItems: 'center', justifyContent: 'center' },
+  boardRegion: { width: '100%', alignItems: 'center', justifyContent: 'center' },
   boardRow: { flex: 1, flexDirection: 'row' },
   cell: { flex: 1, aspectRatio: 1, borderWidth: 0.5, alignItems: 'center', justifyContent: 'center' },
   // Стена держит место в ряду (иначе сетка съедет), но не рисует ни рамки, ни
