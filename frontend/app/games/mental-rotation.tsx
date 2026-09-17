@@ -1031,7 +1031,9 @@ const styles = StyleSheet.create({
   optionCard: { padding: 16, borderRadius: 12, gap: 10 },
   optionLabel: { fontSize: 14, fontWeight: '600' },
   optionButtons: { flexDirection: 'column', gap: 8 },
-  modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16 },
+  // Число — по центру кнопки: слева внизу висит кнопка отзыва, и прижатые влево «5» и «10» уходили под неё
+  // (живой кадр 390×844, 17.09.2026: карточка «Вид заданий» опустила «Количество попыток» к низу экрана).
+  modeButton: { minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   // Выбор вида заданий: 12 кнопок переносятся строками, высота не ниже порога нажатия на настройке (44).
   kindChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
