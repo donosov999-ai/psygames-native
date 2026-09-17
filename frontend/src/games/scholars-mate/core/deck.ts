@@ -1,4 +1,4 @@
-/* psygames-scholars-mate-deck · VER 1 · 05.09.2026 */
+/* psygames-scholars-mate-deck · VER 2 · 17.09.2026 */
 /**
  * Набор позиций на подход и лестница трудности.
  *
@@ -301,7 +301,6 @@ export function motifsAt(level: number): ScholarsMotif[] {
   return УЗОРЫ_ПО_СТУПЕНЯМ.filter((з) => L >= з.от).map((з) => з.узор);
 }
 
-/** Узор, который ОТКРЫВАЕТСЯ именно на этом уровне; иначе undefined. */
 /**
  * КЛЮЧ СЛОВАРЯ, КОТОРЫМ НАЗЫВАЕТСЯ ВИД ЗАДАНИЯ.
  *
@@ -334,6 +333,35 @@ export function видыУровня(level: number): ScholarsKind[] {
   return [...new Set(levelParams(level).kinds)];
 }
 
+/**
+ * ВИДЫ ЗАДАНИЯ ТОГО РЕЖИМА, КОТОРЫЙ ВЫБРАН, — для карточки настройки.
+ *
+ * 🔴 Замер 17.09.2026: выпадающий список режима завёл состояние «выбрано, но не начато»,
+ * и карточка продолжала называть виды ЛЕСТНИЦЫ, когда «Начать» запустило бы жертву или
+ * узор. Режим отработки берёт у уровня время и число позиций, но НЕ виды: узор и микс
+ * спрашивают мат из партий (`buildNamedDeck` и `buildMixedMotifDeck` переводят позиции
+ * как `fromGames`), жертва — только жертву (`buildDeck(…, только)`).
+ *
+ * ⚠️ Порядок проверок — как в `ScholarsMateGame` при сборке колоды: микс, узор, вид.
+ * Сверку с настоящими колодами, а не с этой функцией, держит `scholars-mate-level-card`.
+ */
+export function видыРежима(
+  level: number, только: ScholarsKind | null, узор: string | null, микс: boolean,
+): ScholarsKind[] {
+  if (микс || узор) return ['fromGames'];
+  if (только) return [только];
+  return видыУровня(level);
+}
+
+/**
+ * Подписи видов БЕЗ ПОВТОРОВ. У `mate` и `fromGames` подпись одна, и на ступенях 6–18
+ * карточка писала «Поставь мат в один ход» дважды через точку (замер 17.09.2026).
+ */
+export function подписиВидов(виды: readonly ScholarsKind[]): string[] {
+  return [...new Set(виды.map((k) => КЛЮЧ_ВИДА[k]))];
+}
+
+/** Узор, который ОТКРЫВАЕТСЯ именно на этом уровне; иначе undefined. */
 export function newMotifAt(level: number): ScholarsMotif | undefined {
   return УЗОРЫ_ПО_СТУПЕНЯМ.find((з) => з.от === Math.floor(level))?.узор;
 }

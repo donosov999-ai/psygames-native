@@ -49,7 +49,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
-import { КЛЮЧ_ВИДА, LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, mixedMotifCount, namedMotifCount, newMotifAt, видыУровня } from '@/src/games/scholars-mate/core/deck';
+import { КЛЮЧ_ВИДА, LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, mixedMotifCount, namedMotifCount, newMotifAt, видыРежима, подписиВидов } from '@/src/games/scholars-mate/core/deck';
 import { звёздыПодхода, ступеньПоМедиане, порогУровня, допускПромахов } from '@/src/games/scholars-mate/core/run';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
@@ -448,7 +448,19 @@ export default function ScholarsMateScreen() {
     })),
   ];
   const ключРежима = микс ? 'mix' : режим === 'sacrifice' ? 'sacrifice' : узор ? `motif:${узор}` : 'levels';
-  const имяРежима = пунктыРежима.find((п) => п.ключ === ключРежима)?.имя ?? t('modeLevels');
+  const пунктРежима = пунктыРежима.find((п) => п.ключ === ключРежима);
+  const имяРежима = пунктРежима?.имя ?? t('modeLevels');
+  /**
+   * 🔴 КАРТОЧКА ОПИСЫВАЕТ ТО, ЧТО НАЧНЁТСЯ, А НЕ ЛЕСТНИЦУ ВООБЩЕ. Замер 17.09.2026, кадр
+   * 390×844: выбран «Мат с жертвой», а карточка — «Поставь мат в один ход · Новый узор:
+   * Детский мат · Позиций в наборе: 31350». Время и число позиций у режима отработки те же,
+   * что у уровня, поэтому строка с секундами остаётся; меняются три строки — виды, узор
+   * ступени (он про лестницу) и размер набора (у режима он свой, тот же, что в списке).
+   */
+  const наЛестнице = ключРежима === 'levels';
+  const позицийВНаборе = наЛестнице
+    ? c.mate + c.fromGames + c.defend + c.threat + c.sacrifice
+    : (пунктРежима?.число ?? 0);
 
   return (
     <SafeAreaView style={[стили.корень, { backgroundColor: colors.background }]}>
@@ -512,12 +524,12 @@ export default function ScholarsMateScreen() {
             <View style={стили.строка}>
               <Ionicons name="school-outline" size={18} color={colors.textSecondary} />
               <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]}>
-                {видыУровня(level).map((k) => t(КЛЮЧ_ВИДА[k])).join(' · ')}
+                {подписиВидов(видыРежима(level, режим, узор, микс)).map((к) => t(к)).join(' · ')}
               </Text>
             </View>
             {/* Узор, который ОТКРЫВАЕТСЯ именно здесь: ступень названа тем, что на ней ново. */}
             {(() => {
-              const узорСтупени = newMotifAt(level);
+              const узорСтупени = наЛестнице ? newMotifAt(level) : undefined;
               const имя = узорСтупени ? имяУзора(узорСтупени) : '';
               return имя ? (
                 <View style={стили.строка}>
@@ -534,7 +546,7 @@ export default function ScholarsMateScreen() {
               подписанная цифра: сколько всего позиций в наборе.
             */}
             <Text style={[стили.мелко, { color: colors.textSecondary }]}>
-              {t('scholarsBank').replace('{n}', String(c.mate + c.fromGames + c.defend + c.threat + c.sacrifice))}
+              {t('scholarsBank').replace('{n}', String(позицийВНаборе))}
             </Text>
             {/* Источник называем по правилу лицензии CC0. */}
             <Text style={[стили.мелко, { color: colors.textSecondary }]}>Lichess puzzle DB · CC0</Text>
