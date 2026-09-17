@@ -1900,6 +1900,7 @@ const t: Record<string, string> = {
   "exitConfirmSaved": "आपकी बाज़ी सेव हो जाएगी — लौटकर वहीं से जारी रखें जहाँ छोड़ा था।",
   "exitConfirmLost": "यह बाज़ी सेव नहीं होगी: बोर्ड और प्रगति खो जाएँगे।",
   "exitConfirmStay": "खेलते रहें",
+  "restartConfirmTitle": "फिर से शुरू करें?",
   "exitConfirmLeave": "बाहर निकलें",
   "hud_correct": "सही",
   "hud_errors": "गलतियाँ",

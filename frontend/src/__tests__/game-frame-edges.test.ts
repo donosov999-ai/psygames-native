@@ -93,8 +93,14 @@ describe('нижняя безопасная зона оплачена один �
    * выражении по-прежнему один раз.
    */
   it('🔴 без тулбара за низ платит поле — в обоих его видах', () => {
-    expect(SHELL).toMatch(/toolbar \? null : \{ paddingBottom: 8 \+ bottomSafe(?: \+ применённыйЗапас)? \}/);  // скроллящееся
-    expect(SHELL).toMatch(/toolbar \? null : \{ paddingBottom: bottomSafe \}/);       // обычное
+    /*
+     * 17.09.2026: под полем (обоих видов) может стоять ряд служебных значков (`game-aux-row`,
+     * решение Дениса «служебное — значками под полем»). Тогда самый нижний — ряд, и за безопасную
+     * зону платит ОН, а поле — нет. Платёж по-прежнему один.
+     */
+    expect(SHELL).toMatch(/toolbar \? null : \{ paddingBottom: 8 \+ \(рядСлужебных \? 0 : bottomSafe\) \+ применённыйЗапас \}/);  // скроллящееся
+    expect(SHELL).toMatch(/\{ paddingHorizontal: PAD_H, paddingBottom: toolbar \? PAD_V : PAD_V \+ bottomSafe \}/);  // ряд под полем
+    expect(SHELL).toMatch(/toolbar \|\| рядСлужебных \? null : \{ paddingBottom: bottomSafe \}/);       // обычное
   });
 });
 

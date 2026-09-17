@@ -1891,6 +1891,7 @@ const t: Record<string, string> = {
   "exitConfirmSaved": "対局は保存されます。戻ればこの続きから再開できます。",
   "exitConfirmLost": "この対局は保存されません。盤面と進行状況は失われます。",
   "exitConfirmStay": "ゲームを続ける",
+  "restartConfirmTitle": "最初からやり直しますか？",
   "exitConfirmLeave": "終了する",
   "hud_correct": "正解",
   "hud_errors": "ミス",

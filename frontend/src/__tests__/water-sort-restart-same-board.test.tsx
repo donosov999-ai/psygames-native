@@ -51,11 +51,15 @@ async function открыть() {
   return r;
 }
 
-/** Нажать кнопку по подписи. */
+/**
+ * Нажать кнопку по подписи.
+ * ⚠️ 17.09.2026: служебные кнопки стоят в ряду значков под полем и рисуются значком без слова — подпись
+ * у них только в `accessibilityLabel` (правило «служебное — значками под полем», координатор). Ищем по обоим.
+ */
 async function нажать(r: any, подпись: RegExp) {
   const узел = r.root.findAll((n: any) => typeof n.type !== 'string'
     && n.props?.accessibilityRole === 'button'
-    && подпись.test(текстВнутри(n)))[0];
+    && (подпись.test(текстВнутри(n)) || подпись.test(String(n.props?.accessibilityLabel ?? ''))))[0];
   if (!узел) return false;
   await TestRenderer.act(async () => { узел.props.onPress?.(); });
   await TestRenderer.act(async () => { for (let i = 0; i < 20; i += 1) await Promise.resolve(); });

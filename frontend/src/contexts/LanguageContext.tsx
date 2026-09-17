@@ -2085,6 +2085,7 @@ const translations: Translations = {
   pauseReport: { ru: 'Сообщить о проблеме', en: 'Report a problem' },
   gamePauseOpen: { ru: 'Пауза и выход', en: 'Pause and exit' },
   exitConfirmStay: { ru: 'Продолжить игру', en: 'Keep playing' },
+  restartConfirmTitle: { ru: 'Начать заново?', en: 'Start over?' },
   exitConfirmLeave: { ru: 'Выйти', en: 'Leave' },
   // --- a11y: подписи для скринридеров (VoiceOver/TalkBack), v1.161 ---
   a11yBack:        { ru: 'Назад', en: 'Back' },

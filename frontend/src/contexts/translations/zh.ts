@@ -1897,6 +1897,7 @@ const t: Record<string, string> = {
   "exitConfirmSaved": "本局会自动保存，回来后可从中断处继续。",
   "exitConfirmLost": "本局不会保存：棋盘和进度都会丢失。",
   "exitConfirmStay": "继续游戏",
+  "restartConfirmTitle": "重新开始？",
   "exitConfirmLeave": "退出",
   "hud_correct": "正确",
   "hud_errors": "错误",

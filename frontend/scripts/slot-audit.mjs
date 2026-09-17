@@ -14,15 +14,19 @@
  * останется вообще без отмены. Здесь мы заходим В ИГРУ и смотрим глазами
  * браузера.
  *
- * ЧТО ПРОВЕРЯЕТСЯ (три разных обмана):
- *   1) СЛУЖЕБНОЕ ВНИЗУ — кнопка `GameAuxAction` найдена внутри нижней полосы;
- *   2) СЛУЖЕБНОЕ ПРОПАЛО — игра заявлена в реестре со служебными действиями,
- *      а на поле их нарисовано меньше (или ноль): перенос вышел мёртвым;
- *   3) НЕ ЗАШЛИ В ИГРУ — молчание тут читается как успех, поэтому каждая
+ * 📍 17.09.2026, РЕШЕНИЕ ДЕНИСА: служебное — одним рядом значков ПОД ПОЛЕМ (`game-aux-row`), рядом с
+ * «Отменить» и «Начать заново». Шапка как место служебного снята (разбор — в шапке гейта).
+ *
+ * ЧТО ПРОВЕРЯЕТСЯ (четыре разных обмана):
+ *   1) СЛУЖЕБНОЕ В ПОЛОСЕ ОТВЕТА — кнопка `GameAuxAction` найдена внутри нижней полосы;
+ *   2) СЛУЖЕБНОЕ НАД ПОЛЕМ — кнопка в полосе счётчиков или в слоте над полем;
+ *   3) СЛУЖЕБНОЕ ПРОПАЛО — игра заявлена в реестре со служебными действиями,
+ *      а в ряду под полем их нарисовано меньше (или ноль): перенос вышел мёртвым;
+ *   4) НЕ ЗАШЛИ В ИГРУ — молчание тут читается как успех, поэтому каждая
  *      непроверенная игра отчитывается отдельной красной строкой.
  *
- * ⚠️ ЯКОРЯ. Ищем по `data-testid` (`game-toolbar`, `game-header-actions`,
- * `game-aux`), а не по подписям кнопок: подпись переводится и меняется, а
+ * ⚠️ ЯКОРЯ. Ищем по `data-testid` (`game-toolbar`, `game-aux-row`, `game-hud`,
+ * `game-header-actions`, `game-aux`), а не по подписям кнопок: подпись переводится и меняется, а
  * якорь означает роль. Если якорей нет — аудит немедленно останавливается, а
  * не отчитывается «чисто»: слепой аудит опаснее отсутствующего.
  *
@@ -58,11 +62,9 @@ async function registry() {
     if (!m) throw new Error(`в slot-meaning.test.ts не найден ${name} — реестр переехал, почини путь`);
     return m[1];
   };
+  // С 17.09.2026 реестр один: сколько разных служебных действий игра отдаёт в ряд под полем.
   const expected = {};
-  for (const m of block('AUX_IN_HEADER').matchAll(/'([\w-]+)\.tsx':\s*(\d+)/g)) expected['/games/' + m[1]] = Number(m[2]);
-  // Игры, объявившие `bottom="actions"`: те же кнопки, но ждём их ВНИЗУ.
-  const expectedBottom = {};
-  for (const m of block('AUX_IN_BOTTOM').matchAll(/'([\w-]+)\.tsx':\s*(\d+)/g)) expectedBottom['/games/' + m[1]] = Number(m[2]);
+  for (const m of block('AUX_UNDER_FIELD').matchAll(/'([\w-]+)\.tsx':\s*(\d+)/g)) expected['/games/' + m[1]] = Number(m[2]);
 
   const auxKeys = [...block('AUX_KEYS').matchAll(/^\s{2}(\w+):\s*'/gm)].map((m) => m[1]);
   const debt = [...block('DEBT').matchAll(/'([\w-]+)\.tsx':/g)].map((m) => '/games/' + m[1]);
@@ -73,7 +75,7 @@ async function registry() {
     draftOk['/games/' + m[1]] = [...m[2].matchAll(/^\s{4}(\w+):/gm)].map((x) => x[1]);
   }
   if (!Object.keys(expected).length || !auxKeys.length) throw new Error('реестр разобран в пустоту — проверь формат');
-  return { expected, expectedBottom, auxKeys, debt, draftOk };
+  return { expected, auxKeys, debt, draftOk };
 }
 
 /**
@@ -203,13 +205,16 @@ const READ_SLOTS = () => {
   const span = (el) => { const r = el.getBoundingClientRect(); return { left: Math.round(r.left), right: Math.round(r.right) }; };
   const toolbar = document.querySelector('[data-testid="game-toolbar"]');
   const header = document.querySelector('[data-testid="game-header-actions"]');
+  const hudStrip = document.querySelector('[data-testid="game-hud"]');
+  const row = document.querySelector('[data-testid="game-aux-row"]');
   const aux = [...document.querySelectorAll('[data-testid="game-aux"]')].map((el) => ({
     label: label(el),
     ...size(el),
     ...box(el),
     ...span(el),
     inToolbar: !!(toolbar && toolbar.contains(el)),
-    inHeader: !!(header && header.contains(el)),
+    inHeader: !!(header && header.contains(el)) || !!(hudStrip && hudStrip.contains(el)),
+    inRow: !!(row && row.contains(el)),
     visible: getComputedStyle(el).visibility !== 'hidden' && getComputedStyle(el).display !== 'none'
       && el.getBoundingClientRect().width > 1,
   }));
@@ -243,13 +248,14 @@ const READ_SLOTS = () => {
     hasToolbar: !!toolbar,
     toolbarBox: toolbar ? box(toolbar) : null,
     headerBox: header ? box(header) : null,
+    rowBox: row ? box(row) : null,
     aux,
     bottom,
   };
 };
 
 async function main() {
-  const { expected: AUX_EXPECTED, expectedBottom: AUX_EXPECTED_BOTTOM, auxKeys, debt: DEBT, draftOk: DRAFT_OK } = await registry();
+  const { expected: AUX_EXPECTED, auxKeys, debt: DEBT, draftOk: DRAFT_OK } = await registry();
   const LABELS = await auxLabels(auxKeys);
   const HUB_ROUTES = await hubRoutes();
   let routes = (await gameRoutes()).filter((r) => !HUB_ROUTES.has(r));
@@ -365,7 +371,7 @@ async function main() {
   const anyAux = entered.reduce((n, r) => n + r.aux.length, 0);
   if (!anyToolbar || !anyAux) {
     console.log(`\n🔴 АУДИТ СЛЕП: нижних полос найдено ${anyToolbar}, служебных кнопок ${anyAux}.`);
-    console.log('    Якоря testID (game-toolbar / game-header-actions / game-aux) не доехали до сборки —');
+    console.log('    Якоря testID (game-toolbar / game-aux-row / game-aux) не доехали до сборки —');
     console.log('    пересобери веб-билд или проверь GameShell/GameAuxAction. Зелёный отчёт тут был бы враньём.');
     process.exit(1);
   }
@@ -385,6 +391,16 @@ async function main() {
     console.log(`\n🔴 СЛУЖЕБНОЕ ДЕЙСТВИЕ В НИЖНЕЙ ПОЛОСЕ (низ означает ответ игрока):`);
     for (const r of mixed) {
       for (const a of r.aux.filter((x) => x.inToolbar)) console.log(`    ${r.route}: «${a.label}»`);
+    }
+    bad = 1;
+  }
+
+  // 1a) Служебное НАД полем — в полосе счётчиков или в слоте над полем (правило 17.09.2026: только под полем).
+  const above = entered.filter((r) => r.aux.some((a) => a.inHeader && a.visible));
+  if (above.length) {
+    console.log(`\n🔴 СЛУЖЕБНОЕ НАД ПОЛЕМ (место служебного — ряд значков под полем):`);
+    for (const r of above) {
+      for (const a of r.aux.filter((x) => x.inHeader && x.visible)) console.log(`    ${r.route}: «${a.label}»`);
     }
     bad = 1;
   }
@@ -432,23 +448,15 @@ async function main() {
   const действияМаршрута = (route) => {
     const набор = new Set();
     for (const r of entered.filter((x) => x.route === route))
-      for (const a of r.aux) if (a.inHeader && a.visible) набор.add(a.label);
+      for (const a of r.aux) if (a.inRow && a.visible) набор.add(a.label);
     return набор;
   };
   for (const [route, want] of Object.entries(AUX_EXPECTED)) {
     if (!entered.some((x) => x.route === route)) continue;   // не зашли — сказано выше
     const набор = действияМаршрута(route);
     if (набор.size < want) {
-      dead.push(`${route}: в шапке доступно ${набор.size} разных служебных действий [${[...набор].join(', ')}], реестр обещает ${want}`);
+      dead.push(`${route}: в ряду под полем доступно ${набор.size} разных служебных действий [${[...набор].join(', ')}], реестр обещает ${want}`);
     }
-  }
-  // 2б) То же для игр, объявивших `bottom="actions"`: кнопки ждём ВНИЗУ.
-  for (const [route, want] of Object.entries(AUX_EXPECTED_BOTTOM)) {
-    const r = entered.find((x) => x.route === route);
-    if (!r) continue;
-    const drawn = new Set(entered.filter((x) => x.route === route)
-      .flatMap((x) => x.aux.filter((a) => a.visible && !a.inHeader).map((a) => a.label))).size;
-    if (drawn < want) dead.push(`${route}: внизу нарисовано ${drawn} служебных кнопок, реестр обещает ${want}`);
   }
   if (dead.length) {
     console.log(`\n🔴 ПЕРЕНОС ВЫШЕЛ МЁРТВЫМ — написано, но не показывается:`);
@@ -484,12 +492,13 @@ async function main() {
   const offscreen = [];
   for (const r of entered) {
     const W = r.ширинаОкна ?? 390;
-    const поле = r.полеПолосы ?? { left: 0, right: W };
+    // С 17.09.2026 служебное стоит под полем, а не в полосе счётчиков: граница — окно.
+    const поле = { left: 0, right: W };
     const где = `${r.route}${r.mode ? ' · ' + r.mode.replace('game-mode-', '') : ''}`;
     for (const a of r.aux) {
       if (!a.visible) continue;
-      if (a.right > поле.right + 1) offscreen.push(`${где}: «${a.label}» правый край ${a.right} при границе полосы ${поле.right} (окно ${W})`);
-      else if (a.left < поле.left - 1) offscreen.push(`${где}: «${a.label}» левый край ${a.left} при границе полосы ${поле.left}`);
+      if (a.right > поле.right + 1) offscreen.push(`${где}: «${a.label}» правый край ${a.right} при ширине окна ${W}`);
+      else if (a.left < поле.left - 1) offscreen.push(`${где}: «${a.label}» левый край ${a.left}`);
     }
   }
   if (offscreen.length) {
@@ -500,13 +509,13 @@ async function main() {
 
   console.log(`\nСлужебные действия по играм (зона / размер):`);
   for (const r of entered.filter((x) => x.aux.length)) {
-    const where = r.aux.map((a) => `${a.inHeader ? 'шапка' : a.inToolbar ? '🔴НИЗ' : '?'} «${a.label}» ${a.w}×${a.h}`).join(' · ');
+    const where = r.aux.map((a) => `${a.inRow ? 'под полем' : a.inHeader ? '🔴НАД ПОЛЕМ' : a.inToolbar ? '🔴НИЗ' : 'свой ряд'} «${a.label}» ${a.w}×${a.h}`).join(' · ');
     console.log(`    ${(r.route + (r.mode ? ' · ' + r.mode.replace('game-mode-', '') : '')).padEnd(34)} ${where}`);
   }
   const noStrip = entered.filter((x) => !x.hasToolbar).map((x) => x.route);
   console.log(`\nБез нижней полосы (${noStrip.length}): ${noStrip.join(', ') || '—'}`);
 
-  if (!bad) console.log('\n✅ Низ везде означает ответ игрока, служебное нарисовано в шапке.');
+  if (!bad) console.log('\n✅ Низ везде означает ответ игрока, служебное нарисовано рядом значков под полем.');
   process.exit(bad);
 }
 

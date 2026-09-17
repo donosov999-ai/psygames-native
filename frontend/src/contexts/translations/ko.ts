@@ -1892,6 +1892,7 @@ const t: Record<string, string> = {
   "exitConfirmSaved": "진행 상황이 저장됩니다. 다시 들어오면 이어서 할 수 있어요.",
   "exitConfirmLost": "이 판은 저장되지 않습니다. 판과 진행 상황이 사라집니다.",
   "exitConfirmStay": "계속하기",
+  "restartConfirmTitle": "처음부터 다시 시작할까요?",
   "exitConfirmLeave": "나가기",
   "hud_correct": "정답",
   "hud_errors": "오답",

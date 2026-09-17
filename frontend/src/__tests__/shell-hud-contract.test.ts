@@ -58,13 +58,18 @@ describe('договор шапки каркаса', () => {
     expect(/hud\.slice\(0, HUD_MAX\)/.test(shellCode)).toBe(true);
   });
 
-  it('🔴 нижняя полоса переключается объявлением, а не угадыванием', () => {
+  it('🔴 нижняя полоса объявляется, а служебное у всех в одном месте — рядом значков под полем', () => {
     expect(/bottom\?: 'answer' \| 'actions'/.test(shell)).toBe(true);
-    // 09.09.2026: пространственный пакет добавил проп `frame` (фиксированные высоты слотов
-    // для плейлиста) — ряд действий рисуется и без headerActions, когда задан frame.
-    // Условие переключения по `bottom` при этом то же: объявление, не угадывание.
-    expect(/\(?headerActions( \|\| frame)?\)? && bottom !== 'actions'/.test(shellCode)).toBe(true);
-    expect(/headerActions && bottom === 'actions'/.test(shellCode)).toBe(true);
+    /*
+     * 17.09.2026 (решение Дениса): служебное больше не переключается между шапкой и прибитым низом
+     * по `bottom` — у всех игр оно одним рядом значков под полем (`game-aux-row`). Над полем слот
+     * остался только у плейлиста (`frame`, фиксированные высоты), и ни одна ветка не рисует
+     * служебное по `bottom`.
+     */
+    expect(/\{frame \? \(\s*<View\s+testID="game-header-actions"/.test(shellCode)).toBe(true);
+    expect(shellCode).toContain('testID="game-aux-row"');
+    expect(/bottom [!=]== 'actions'/.test(shellCode)).toBe(false);
+    expect(shellCode).not.toContain('game-bottom-actions');
   });
 
   it('отступы каркаса заданы двумя числами, а не рассыпаны по стилям', () => {

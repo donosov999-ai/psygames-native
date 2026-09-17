@@ -1892,6 +1892,7 @@ const t: Record<string, string> = {
   "exitConfirmSaved": "La partita verrà salvata: torna e riprendi da dove eri rimasto.",
   "exitConfirmLost": "La partita non verrà salvata: perderai il tabellone e i progressi.",
   "exitConfirmStay": "Continua a giocare",
+  "restartConfirmTitle": "Ricominciare?",
   "exitConfirmLeave": "Esci",
   "hud_correct": "Corrette",
   "hud_errors": "Errori",

@@ -1893,6 +1893,7 @@ const t: Record<string, string> = {
   "exitConfirmSaved": "سيتم حفظ الجولة — عُد وواصل من حيث توقفت.",
   "exitConfirmLost": "لن يتم حفظ هذه الجولة: ستفقد اللوحة والتقدّم.",
   "exitConfirmStay": "متابعة اللعب",
+  "restartConfirmTitle": "البدء من جديد؟",
   "exitConfirmLeave": "خروج",
   "hud_correct": "صحيح",
   "hud_errors": "أخطاء",

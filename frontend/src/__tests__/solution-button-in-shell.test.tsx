@@ -65,7 +65,7 @@ function каркас(пропсы: Record<string, unknown>): TestRenderer.React
   return tr;
 }
 
-/** Кнопка решения в поле: узел кнопки внутри ряда `game-solution-row`. */
+/** Кнопка решения: узел кнопки внутри `game-solution-row` (ряд служебных значков под полем). */
 function кнопкаВПоле(tr: TestRenderer.ReactTestRenderer): any | null {
   const ряд = tr.root.findAll((n: any) => n.props?.testID === 'game-solution-row')[0];
   if (!ряд) return null;
@@ -117,7 +117,7 @@ describe('«Показать решение» из каркаса', () => {
     expect(пунктыПаузы(tr).includes('solution')).toBe(false);
   });
 
-  it('прокручиваемое поле — кнопка тоже в конце поля', () => {
+  it('прокручиваемое поле — кнопка тоже есть: в ряду служебных сразу под окном прокрутки', () => {
     const tr = каркас({ scrollableField: true, solution: { onPress: () => {} } });
     expect(кнопкаВПоле(tr) ? 'есть' : 'нет').toBe('есть');
   });

@@ -1897,6 +1897,7 @@ const t: Record<string, string> = {
   "exitConfirmSaved": "La partida se guardará: vuelve y continúa donde la dejaste.",
   "exitConfirmLost": "La partida no se guardará: perderás el tablero y tu progreso.",
   "exitConfirmStay": "Seguir jugando",
+  "restartConfirmTitle": "¿Empezar de nuevo?",
   "exitConfirmLeave": "Salir",
   "hud_correct": "Correctas",
   "hud_errors": "Errores",
