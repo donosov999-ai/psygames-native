@@ -1,4 +1,4 @@
-/* psygames-one-line-i18n · VER 2 · 19.08.2026 */
+/* psygames-one-line-i18n · VER 3 · 17.09.2026 */
 /**
  * СВОЙ СЛОВАРЬ МОДУЛЯ — НА ВСЕ ДВЕНАДЦАТЬ ЯЗЫКОВ (VER 2, 19.08.2026).
  *
@@ -40,6 +40,11 @@ export interface OneLineStrings {
   trainingHint: string;
   trainingDone: string;
   startRound: string;
+  /**
+   * Строка под «Тренировка пройдена»: партия начнётся сама. Без неё человек стоял на
+   * карточке и спрашивал «почему стоит?» (отчёт c96bfdd3, 12.09.2026).
+   */
+  roundStarting: string;
   /** Поле и ход партии */
   roundLabel: string;
   graphLabel: string;
@@ -93,6 +98,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: 'Тренировка не входит в результат. Подсвеченная вершина — допустимый старт.',
     trainingDone: 'Тренировка пройдена',
     startRound: 'Начать партию',
+    roundStarting: 'Партия начинается…',
     roundLabel: 'Уровень {level} · вершин {vertices} · рёбер {edges}',
     graphLabel: 'Граф для непрерывной линии',
     graphHint: 'Выбирайте соседние вершины касанием, перетаскиванием или клавиатурой.',
@@ -132,6 +138,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: 'Training is excluded from results. The marked vertex is a valid start.',
     trainingDone: 'Training complete',
     startRound: 'Start round',
+    roundStarting: 'Round starting…',
     roundLabel: 'Level {level} · {vertices} vertices · {edges} edges',
     graphLabel: 'Continuous-line graph',
     graphHint: 'Choose adjacent vertices by touch, drag, or keyboard.',
@@ -171,6 +178,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: 'El entrenamiento no cuenta para el resultado. El vértice marcado es una salida válida.',
     trainingDone: 'Entrenamiento superado',
     startRound: 'Empezar la partida',
+    roundStarting: 'La partida empieza…',
     roundLabel: 'Nivel {level} · vértices {vertices} · aristas {edges}',
     graphLabel: 'Grafo para el trazo continuo',
     graphHint: 'Elige vértices vecinos tocando, arrastrando o con el teclado.',
@@ -210,6 +218,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: 'Die Übung zählt nicht zum Ergebnis. Der markierte Knoten ist ein gültiger Start.',
     trainingDone: 'Übung geschafft',
     startRound: 'Runde starten',
+    roundStarting: 'Die Runde startet …',
     roundLabel: 'Stufe {level} · Knoten {vertices} · Kanten {edges}',
     graphLabel: 'Graph für die durchgehende Linie',
     graphHint: 'Wähle benachbarte Knoten per Tippen, Ziehen oder Tastatur.',
@@ -249,6 +258,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: '练习不计入成绩。高亮的顶点是可用的起点。',
     trainingDone: '练习通过',
     startRound: '开始本局',
+    roundStarting: '本局即将开始…',
     roundLabel: '第 {level} 关 · 顶点 {vertices} · 边 {edges}',
     graphLabel: '一笔画用的图',
     graphHint: '用点按、拖动或键盘选择相邻的顶点。',
@@ -288,6 +298,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: 'अभ्यास नतीजे में नहीं गिना जाता। चमकता बिंदु शुरू करने के लिए सही है।',
     trainingDone: 'अभ्यास पूरा',
     startRound: 'बाज़ी शुरू करें',
+    roundStarting: 'बाज़ी शुरू हो रही है…',
     roundLabel: 'स्तर {level} · बिंदु {vertices} · किनारे {edges}',
     graphLabel: 'एक ही रेखा का आरेख',
     graphHint: 'पड़ोसी बिंदु छूकर, खींचकर या कुंजीपटल से चुनें।',
@@ -327,6 +338,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: 'O treino não entra no resultado. O vértice destacado é uma partida válida.',
     trainingDone: 'Treino concluído',
     startRound: 'Começar a partida',
+    roundStarting: 'A partida está começando…',
     roundLabel: 'Nível {level} · vértices {vertices} · arestas {edges}',
     graphLabel: 'Grafo para o traço contínuo',
     graphHint: 'Escolha vértices vizinhos por toque, arrasto ou teclado.',
@@ -366,6 +378,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: 'L’entraînement ne compte pas dans le résultat. Le sommet marqué est un départ valable.',
     trainingDone: 'Entraînement réussi',
     startRound: 'Lancer la partie',
+    roundStarting: 'La partie commence…',
     roundLabel: 'Niveau {level} · sommets {vertices} · arêtes {edges}',
     graphLabel: 'Graphe pour le trait continu',
     graphHint: 'Choisissez des sommets voisins au doigt, au glissé ou au clavier.',
@@ -405,6 +418,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: 'L’allenamento non entra nel risultato. Il vertice evidenziato è una partenza valida.',
     trainingDone: 'Allenamento superato',
     startRound: 'Inizia la partita',
+    roundStarting: 'La partita sta per iniziare…',
     roundLabel: 'Livello {level} · vertici {vertices} · lati {edges}',
     graphLabel: 'Grafo per il tratto continuo',
     graphHint: 'Scegli i vertici vicini con il tocco, il trascinamento o la tastiera.',
@@ -444,6 +458,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: '練習は成績に入りません。光っている点が使える出発点です。',
     trainingDone: '練習クリア',
     startRound: '本番をはじめる',
+    roundStarting: '本番を開始します…',
     roundLabel: 'レベル {level} · 点 {vertices} · 辺 {edges}',
     graphLabel: '一筆書きの図形',
     graphHint: 'となりの点をタップ、ドラッグ、またはキーボードで選びます。',
@@ -483,6 +498,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: '연습은 성적에 들어가지 않습니다. 밝게 표시된 점이 시작할 수 있는 점입니다.',
     trainingDone: '연습 통과',
     startRound: '한 판 시작',
+    roundStarting: '한 판 시작 중…',
     roundLabel: '{level}단계 · 점 {vertices} · 변 {edges}',
     graphLabel: '한붓그리기 도형',
     graphHint: '이웃한 점을 눌러서, 끌어서, 또는 키보드로 고르세요.',
@@ -522,6 +538,7 @@ const STRINGS: Record<OneLineLocale, OneLineStrings> = {
     trainingHint: 'التدريب لا يدخل في النتيجة. الرأس المضيء بداية صالحة.',
     trainingDone: 'اجتزت التدريب',
     startRound: 'ابدأ الجولة',
+    roundStarting: 'تبدأ الجولة…',
     roundLabel: 'المستوى {level} · رؤوس {vertices} · أضلاع {edges}',
     graphLabel: 'شكل الخط الواحد',
     graphHint: 'اختر الرؤوس المجاورة باللمس أو السحب أو لوحة المفاتيح.',

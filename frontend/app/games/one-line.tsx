@@ -1,4 +1,4 @@
-/* psygames-game-one-line · VER 2 · 20.08.2026 */
+/* psygames-game-one-line · VER 3 · 17.09.2026 */
 /**
  * One Line — «Одна линия»: провести один непрерывный росчерк по ВСЕМ рёбрам
  * графа, не пройдя ни одно дважды (эйлеров путь).
@@ -57,10 +57,21 @@
  * замереть. Оба конца замера (старт и финиш) уезжают в модуль из одного
  * источника, поэтому разность автоматически становится игровым временем.
  *
- * ТРЕНИРОВОЧНЫЙ КРУГ МОДУЛЯ ОСТАВЛЕН. Перед каждой партией модуль показывает
- * правила и маленький круг из четырёх рёбер. Соблазн был его пропустить —
- * но правило «в вершину можно вернуться, в ребро нельзя» на словах не
- * усваивается, а на круге усваивается за пять секунд. Так же принята G1.
+ * 🔴 ТРЕНИРОВКА — ОДИН РАЗ ЗА ЗАХОД, А НЕ ПЕРЕД КАЖДЫМ УРОВНЕМ (с 17.09.2026).
+ * Правило «в вершину можно вернуться, в ребро нельзя» на словах не усваивается, а на
+ * тренировочной фигуре усваивается за пять секунд, — поэтому знакомство модуля
+ * (правила → тренировка → партия) осталось. Но стояло оно перед КАЖДОЙ партией:
+ * `key={attempt}` пересоздаёт модуль, а модуль всегда начинал с правил.
+ *   📍 Денис, 05.09.2026 (c9293c23): «постоянно выскакивает экран с начальным
+ *      упражнением и как играть между уровнями» — тогда починили только экран
+ *      настройки под карточкой уровня, а правила модуля остались.
+ *   📍 Тестировщик, 12.09.2026 (c96bfdd3, 76d9a90e, 2.54.5, iPhone): «Выскакивает
+ *      между уровнями справка с тренировки», «Почему стоит? Не переходит дальше».
+ *   📍 Замер 17.09.2026, экспорт-сборка 403×873: уровни 1 и 2 — после итога правила
+ *      и тренировка каждый раз; тренировка была ТОЙ ЖЕ фигурой, что первый уровень.
+ * Теперь как у «Соедини точки»: первый «Начать» за визит идёт через правила, а
+ * «Продолжить», «Ещё раз» и все следующие — сразу в партию (`skipIntro`). Дверь к
+ * правилам и тренировке — кнопка на экране настройки, чтобы они не пропали насовсем.
  */
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
@@ -152,6 +163,8 @@ export default function OneLineScreen() {
    * человек уже построил в голове план на конкретную картинку.
    */
   const [attempt, setAttempt] = React.useState(0);
+  /** Через правила и тренировку — только первый заход за визит и дверь «Помощь». См. шапку. */
+  const [withIntro, setWithIntro] = React.useState(true);
   const seed = React.useMemo(() => `one-line-${level}`, [level]);
 
   /**
@@ -251,7 +264,13 @@ export default function OneLineScreen() {
    */
   const stars = last ? (last.accuracy >= 0.97 ? 3 : last.accuracy >= 0.9 ? 2 : 1) : 1;
 
-  const start = () => { setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
+  /** intro=true — через правила и тренировку; false — сразу партия. */
+  const start = (intro: boolean) => {
+    setArmed(false);
+    setWithIntro(intro);
+    setAttempt((n) => n + 1);
+    setPhase('playing');
+  };
 
   /** Уйти в экран настройки — сюда ведёт и «назад» каркаса, и конец партии. */
   const leaveToConfig = React.useCallback(() => { setArmed(false); setPhase('config'); }, []);
@@ -316,6 +335,7 @@ export default function OneLineScreen() {
              * глаз-разрядка не запишутся. Подробности в шапке файла.
              */
             showOwnResults={false}
+            skipIntro={!withIntro}
             now={now}
             onComplete={onComplete}
             onProgress={setArmed}
@@ -372,11 +392,23 @@ export default function OneLineScreen() {
             <BallStylePicker level={level} colors={colors} accent={GRADIENT[1]} />
           </View>
 
-          <TouchableOpacity onPress={start} accessibilityRole="button">
+          <TouchableOpacity onPress={() => start(attempt === 0)} accessibilityRole="button">
             <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtn}>
               <Text style={styles.startText}>{t('start')}</Text>
             </GradientSurface>
           </TouchableOpacity>
+
+          {/*
+            Дверь обратно к правилам и тренировке. Без неё они показывались бы один раз
+            за визит и потом исчезали — а правило про рёбра может понадобиться и на 30-м уровне.
+          */}
+          {attempt > 0 && (
+            <TouchableOpacity onPress={() => start(true)} accessibilityRole="button"
+              style={[styles.rulesBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+              {/* Ключ `btn_help` есть на всех 12 языках — тот же, что у «Соедини точки». */}
+              <Text style={[styles.rulesText, { color: colors.text }]}>{t('btn_help')}</Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       )}
 
@@ -384,14 +416,14 @@ export default function OneLineScreen() {
         <LevelCleared gameId="one_line" level={playedLevel} stars={stars}
           passed={clearedPassed}
           gradient={GRADIENT} language={language} colors={colors}
-          onContinue={start} onStop={() => setPhase('config')} />
+          onContinue={() => start(false)} onStop={() => setPhase('config')} />
       )}
       {phase === 'result' && last && (
         <GameResult
           score={last.score}
           time={last.durationMs / 1000}
           errors={last.errors}
-          onPlayAgain={start} onGoHome={() => goBackOrHome()}
+          onPlayAgain={() => start(false)} onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]} />
       )}
     </SafeAreaView>
@@ -422,4 +454,6 @@ const styles = StyleSheet.create({
   hint: { fontSize: 13, lineHeight: 19 },
   startBtn: { borderRadius: 999, paddingVertical: 16, alignItems: 'center' },
   startText: { color: ON_GRAD.color, fontSize: 17, fontWeight: '800' },
+  rulesBtn: { minHeight: 48, borderRadius: 999, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
+  rulesText: { fontSize: 15, fontWeight: '700' },
 });
