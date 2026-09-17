@@ -47,6 +47,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { type PetMood } from '@/src/components/pet/GamePet';
 import { setGameMood, setGameStreak } from '@/src/services/petMood';
 import { FAB_CLEARANCE } from '@/src/services/fabPosition';
+import { ВысотаПоляКаркаса } from '@/src/components/GameFieldHeight';
 import { onGameEvent, type GameEventKind } from '@/src/services/gameEvents';
 import { streakMultiplier, scoreWithStreak } from '@/src/services/scoring';
 import { attachEdgeBack } from '@/src/services/edgeBack';
@@ -452,6 +453,8 @@ export interface GameShellProps {
   /**
    * true — у прокручиваемого поля без `toolbar` снизу запас высотой с кнопку отзыва
    * (`FAB_CLEARANCE`): последнюю строку поля можно поднять выше кнопки прокруткой.
+   * Запас ставится ТОЛЬКО когда поле и без него выше окна (см. «поле, которое помещается,
+   * прибито» у ScrollView поля): запас, который сам создаёт прокрутку, двигал поле под пальцем.
    *
    * ⚠️ ПО ФЛАГУ, А НЕ ВСЕМ. Запас делает поле прокручиваемым там, где раньше оно
    * помещалось целиком, — а часть экранов уже держит свой резерв под кнопку внутри
@@ -933,6 +936,30 @@ export default function GameShell({
     : null;
 
   /**
+   * 🔴 ПРОКРУЧИВАЕМОЕ ПОЛЕ, КОТОРОЕ ПОМЕЩАЕТСЯ, ПРИБИТО (17.09.2026, отчёт e5bfc2f0, задача 42dbd9bf).
+   *
+   * 📍 Денис на iPhone, «Мосты»: «общая проблема всего приложения — всё ещё ездят игры, он всё
+   * ещё не прибитый жёстко»; на кадре верхний ряд островов ушёл под шапку. Замер в Safari
+   * симулятора iPhone 17 (тот же WebKit): протяжка по самой доске поле не двигает (у холста
+   * своя защита), а протяжка по пустому месту между кнопками под доской уносит поле на 276 pt.
+   * Прокрутка была, потому что поле выше окна, а выше оно было во многом из-за запаса под
+   * кнопку отзыва (156 pt), который ставился ВСЕГДА.
+   *
+   * ЧТО СТАЛО. Поле меряет окно и содержимое. Помещается — прокрутка выключена (у веба это
+   * overflow hidden и touch-action none), палец поле не двигает. Не помещается — прокрутка
+   * есть, и только тогда добавляется запас под кнопку отзыва. Оттяжка краёв снята всегда.
+   * Содержимое считается БЕЗ запаса: иначе запас сам себя оправдывал бы.
+   */
+  const [видПоля, setВидПоля] = React.useState(0);
+  const [содержимоеПоля, setСодержимоеПоля] = React.useState(0);
+  const переполнено = видПоля > 0 && содержимоеПоля > видПоля + 1;
+  const применённыйЗапас = reserveUnderFab && переполнено ? FAB_CLEARANCE : 0;
+  const доступноПолю = видПоля > 0 ? Math.max(0, видПоля - PAD_V - 8 - bottomSafe) : 0;
+  const безОттяжки = Platform.OS === 'web'
+    ? ({ overscrollBehavior: 'none' } as unknown as Record<string, string>)
+    : null;
+
+  /**
    * 🔴 У ПОЛЯ И У ПОЛОСЫ ПОКАЗАТЕЛЕЙ ЕСТЬ ИМЕНА — БЕЗ НИХ ЗАМЕР ЦЕНТРОВКИ СЛЕП.
    *
    * 📍 Чат «Поиск», замер 11.09.2026 по 81 экрану: горизонтальный сдвиг от центра
@@ -982,12 +1009,20 @@ export default function GameShell({
     <ScrollView
       ref={fieldScrollRef}
       testID="game-field"
-      style={styles.fieldScroll}
-      contentContainerStyle={[styles.fieldScrollContent, toolbar ? null : { paddingBottom: 8 + bottomSafe + (reserveUnderFab ? FAB_CLEARANCE : 0) }]}
+      style={[styles.fieldScroll, безОттяжки]}
+      contentContainerStyle={[styles.fieldScrollContent, toolbar ? null : { paddingBottom: 8 + bottomSafe + применённыйЗапас }]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
+      scrollEnabled={переполнено}
+      onLayout={(ev) => { const h = Math.round(ev.nativeEvent.layout.height); setВидПоля((prev) => (prev === h ? prev : h)); }}
+      onContentSizeChange={(_w, h) => {
+        const без = Math.round(h - применённыйЗапас);
+        setСодержимоеПоля((prev) => (prev === без ? prev : без));
+      }}
     >
-      {children}
+      <ВысотаПоляКаркаса.Provider value={доступноПолю}>
+        {children}
+      </ВысотаПоляКаркаса.Provider>
       {рядРешения}
     </ScrollView>
   ) : (
