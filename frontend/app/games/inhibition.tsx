@@ -1,4 +1,4 @@
-/* psygames-game-inhibition · VER 2 · 16.09.2026 */
+/* psygames-game-inhibition · VER 3 · 17.09.2026 */
 /**
  * Торможение — объединённая игра: Go/No-Go + Стоп-сигнал.
  *
@@ -6,7 +6,9 @@
  *  - Go/No-Go (action restraint): стимул сразу определяет реакцию.
  *    Биомаркер: % commission errors, hits.
  *  - Стоп-сигнал (action cancellation): всегда «жми», но в части проб
- *    через короткую SSD появляется стоп-сигнал. Биомаркер: SSRT, hits.
+ *    через короткую SSD появляется стоп-сигнал. Мера: ошибки торможения при заданной
+ *    SSD. ⚠️ SSRT этот экран НЕ считает: задержка здесь фиксирована на уровень, а не
+ *    ведётся лестницей (см. блок над levelParams). SSRT — на отдельном экране stop-signal.
  *
  * Sub-mode сохраняет оригинальный game_type ('go_no_go' | 'stop_signal')
  * — биомаркеры и тренды совместимы с историей.
@@ -14,11 +16,12 @@
  * Mixed — ротация обоих режимов внутри одной сессии (50/50).
  *
  * Уровни (persist, по паттерну cpt/simon): ручные селекторы сложности и числа
- * проб заменены на usePersistentLevel('inhibition') + levelParams. Ось усложнения:
+ * проб заменены на usePersistentLevel('inhibition') + levelParams. Оси усложнения:
  *   - окно go-ответа сокращается 1300мс → ~850мс (не успел = пропуск)
  *   - SSD растёт 150мс → ~480мс (стоп-сигнал позже — тормозить труднее)
- *   - доля стоп-проб растёт умеренно 20% → 35%
  *   - число проб растёт ступенями 20 → 26 → 32
+ * Доли запретных (no-go) и стоп-проб — НЕ оси: обе заморожены на 25 % (16–17.09.2026,
+ * разбор у INHIBITION_STOP_PROB и pickGngStimulus).
  * Селектор суб-режима (Go/No-Go / Стоп-сигнал / Микс) остаётся — он меняет
  * ПРАВИЛО игры, не сложность.
  * Проход уровня: ≥80% верных (ложная тревога И пропуск go = ошибки) → LevelCleared.
@@ -52,6 +55,7 @@ import { hapticSuccess, hapticError } from '@/src/components/juice';
 import { gameNow, gameTimeout, clearGameTimer, type GameTimer } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import GameSuiteSwitch from '@/src/components/GameSuiteSwitch';
+import { NOGO_PROB } from '@/app/games/go-no-go';
 
 const GRADIENT = ['#11998e', '#ee0979'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -84,9 +88,32 @@ const BOSS_EVERY = 3;
  * заморожены: go-no-go NOGO_PROB = 0.25, stop-signal STOP_PROB = 0.25 — то есть
  * «Торможение» играло по другим долям, чем оба режима, из которых оно состоит.
  *
- * Канон go/no-go — 25 % либо 50 %; взято 25 %, как у обоих соседей.
+ * Канон стоп-сигнала — 25 % стоп-проб: Verbruggen F. et al. (2019). A consensus guide to
+ * capturing the ability to inhibit actions and impulsive behaviors in the stop-signal task.
+ * eLife 8:e46323 — «For standard stop-signal studies, 25% stop signals is recommended».
+ * Отступления нет.
+ *
+ * ⚠️ ПОПРАВКА 17.09.2026. Здесь стояло «канон go/no-go — 25 % либо 50 %». 50 % — НЕ канон.
+ * Wessel J.R. (2018), Psychophysiology, doi:10.1111/psyp.12871: задания 50/50 встречаются в
+ * ~40 % работ, но надёжно вызывают преобладающую реакцию только быстрые задания с РЕДКИМИ
+ * no-go. Разбор со ссылками — у NOGO_PROB в go-no-go.tsx.
  */
 export const INHIBITION_STOP_PROB = 0.25;
+
+/**
+ * Проба режима Go/No-Go внутри «Торможения».
+ *
+ * 🔴 БЫЛО (до 17.09.2026): `Math.random() < 0.7` прямо в `runGngTrial`, то есть 30 % запретных.
+ * Комментарий выше при этом обещал «25 %, как у обоих соседей», а отдельный экран go-no-go
+ * держит 25 %. Партии этого режима пишутся под тем же game_type 'go_no_go', что и партии
+ * go-no-go, поэтому в одной истории лежали условия 25 % и 30 %. Это +5 п. п. к канону.
+ *
+ * Доля берётся у go-no-go по построению (импорт NOGO_PROB): два экрана с одним game_type не
+ * могут разойтись. Сторожит conflict-ratio-is-not-difficulty — там порог записан литералом.
+ */
+export function pickGngStimulus(): 'go' | 'nogo' {
+  return Math.random() < NOGO_PROB ? 'nogo' : 'go';
+}
 
 /**
  * Уровень 1..15. Оси усложнения — ТРИ, и все три меняют задание, а не счёт:
@@ -99,6 +126,14 @@ export const INHIBITION_STOP_PROB = 0.25;
  * задержки, поэтому ошибки двух РАЗНЫХ уровней между собой не сравнимы.
  * Сравнивать можно человека с собой на одном уровне — и ровно для этого экран
  * кладёт `ssd_ms` в запись партии рядом с ошибками.
+ *
+ * 📚 ОТСТУПЛЕНИЕ ОТ КАНОНА, ЧИСЛОМ. Verbruggen F. et al. (2019), eLife 8:e46323,
+ * Recommendation 4: задержку вести адаптивной лестницей (успешный стоп → SSD больше,
+ * неуспешный → меньше; частый шаг 50 мс; сходится к p(respond|signal) ≈ 0.50). Иначе
+ * человек, угадавший момент стоп-сигнала, начинает его ждать. Здесь SSD на уровне ОДНА:
+ * 150 мс на L1 и 480 мс на L15, шаг между уровнями 24 мс. Поэтому SSRT по этим партиям
+ * не считается. Канон с лестницей 250 мс / шаг 50 мс и SSRT — отдельный экран stop-signal
+ * (src/games/stop-signal/core/ladder.ts).
  */
 function levelParams(level: number): { trials: number; stopProb: number; ssd: number; goWindow: number } {
   const trials = level <= 5 ? 20 : level <= 10 ? 26 : 32;
@@ -306,8 +341,7 @@ export default function InhibitionGame() {
 
   const runGngTrial = (r: number) => {
     setSsSignal('idle'); setSsFeedback(null);
-    const isGo = Math.random() < 0.7;
-    const stim: GngStimulus = isGo ? 'go' : 'nogo';
+    const stim: GngStimulus = pickGngStimulus();
     setGngStim(stim);
     gngStimAtRef.current = gameNow();
     gngRespondedRef.current = false;
