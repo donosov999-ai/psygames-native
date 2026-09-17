@@ -46,6 +46,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import { type PetMood } from '@/src/components/pet/GamePet';
 import { setGameMood, setGameStreak } from '@/src/services/petMood';
+import { FAB_CLEARANCE } from '@/src/services/fabPosition';
 import { onGameEvent, type GameEventKind } from '@/src/services/gameEvents';
 import { streakMultiplier, scoreWithStreak } from '@/src/services/scoring';
 import { attachEdgeBack } from '@/src/services/edgeBack';
@@ -918,12 +919,22 @@ export default function GameShell({
    * следующий сосед», и прямо написал в своём приборе: «когда координатор добавит
    * testID — заменить одной строкой». Добавляю.
    */
+  /**
+   * 🔴 ПОД ПЛАВАЮЩУЮ КНОПКУ ОТЗЫВА — ЗАПАС ВНИЗУ ПРОКРУЧИВАЕМОГО ПОЛЯ (17.09.2026, задача 2fb25cbc).
+   *
+   * Кнопка «Сообщить о проблеме» висит в левом нижнем углу поверх поля. У «Лишних чисел»
+   * 10×10 и 12×12 на 360×640 угловая клетка лежала под ней при ЛЮБОЙ прокрутке: поле кончалось
+   * ровно там, где кнопка, и поднять последнюю строку было нечем. Решатель автора зачёркивает
+   * эту клетку у 42 % досок 10×10 и 49 % досок 12×12 — касанием уровень не пройти
+   * (замер раздела «Судоку», WebKit с касаниями). Запас высотой с кнопку позволяет дотянуть
+   * любую строку поля выше неё. Видимой разницы нет, пока не прокрутишь до конца.
+   */
   const field = scrollableField ? (
     <ScrollView
       ref={fieldScrollRef}
       testID="game-field"
       style={styles.fieldScroll}
-      contentContainerStyle={[styles.fieldScrollContent, toolbar ? null : { paddingBottom: 8 + bottomSafe }]}
+      contentContainerStyle={[styles.fieldScrollContent, toolbar ? null : { paddingBottom: 8 + bottomSafe + FAB_CLEARANCE }]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >

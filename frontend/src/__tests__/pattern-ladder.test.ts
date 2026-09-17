@@ -1,4 +1,4 @@
-/* psygames-pattern-ladder · VER 2 · 17.09.2026 */
+/* psygames-pattern-ladder · VER 3 · 17.09.2026 */
 /**
  * 🔴 ЛЕСТНИЦА «ПАТТЕРНОВ»: ЧЕМ ОТЛИЧАЮТСЯ УРОВНИ, И ПОЧЕМУ ОНА НЕ КОНЧАЕТСЯ.
  *
@@ -41,7 +41,7 @@
  * В смеси (L23+) наоборот: класс уровнем больше не задаётся, и растёт именно величина — её проба и сторожит.
  */
 import { makeSequence, pickSequence } from '@/app/games/pattern';
-import { fair, readings, levelLabelKey, makeOptions, mixScale, MIX_FROM, type Sequence } from '@/src/games/counting/patternSequences';
+import { fair, readings, levelLabelKey, makeOptions, mixScale, MIX_FROM, makeSequence as рядПоЗерну, type Sequence } from '@/src/games/counting/patternSequences';
 import { LANGUAGES, translateFor } from '@/src/contexts/LanguageContext';
 
 const ПРОГОНОВ = 300;
@@ -222,6 +222,50 @@ describe('🔴 «Паттерны»: лестница без потолка', ()
     const варианты = makeOptions(-5000, 4, rng);
     expect(new Set(варианты).size).toBe(4);
     expect(варианты).toContain(-5000);
+  });
+
+  it('🔴 по одним числам вариантов ответ не угадать — ни «средний», ни «крайний», ни «из тесной пары»', () => {
+    // Замер 17.09.2026 на VER 2: «бери вариант, ближайший к среднему» угадывал 73–85 % на всех уровнях L1–43
+    // при случайных 25 %. Неверные ставились вокруг ответа, и ответ почти всегда оказывался посередине.
+    // Прикидки ниже на ряд не смотрят, только на числа вариантов. У каждой доля верных — не выше случайной
+    // плюс 6 пунктов: на 3600 рядах это больше восьми стандартных ошибок, случайно не покраснеет.
+    let a = 20260917;
+    const rng = () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const ближе = (o: number[], m: number) => [...o].sort((x, y) => Math.abs(x - m) - Math.abs(y - m))[0];
+    const прикидки: Record<string, (o: number[]) => number> = {
+      'ближе к среднему': (o) => ближе(o, o.reduce((x, y) => x + y, 0) / o.length),
+      'середина размаха': (o) => ближе(o, (Math.min(...o) + Math.max(...o)) / 2),
+      'медиана': (o) => [...o].sort((x, y) => x - y)[Math.floor((o.length - 1) / 2)],
+      'наибольший': (o) => Math.max(...o),
+      'наименьший': (o) => Math.min(...o),
+      'из тесной пары': (o) => { const q = [...o].sort((x, y) => x - y); let k = 0; for (let i = 1; i < q.length - 1; i += 1) if (q[i + 1] - q[i] < q[k + 1] - q[k]) k = i; return q[k]; },
+    };
+    const выдают: string[] = [];
+    for (const вариантов of [4, 3]) {           // 4 — экран игры, 3 — арки «Числового забега»
+      const случайно = 100 / вариантов, попаданий: Record<string, number> = {}, мест = Array(вариантов).fill(0);
+      let рядов = 0, чётностьВыдаёт = 0, пример = '';
+      for (const уровень of [1, 5, 9, 13, 17, 21, 23, 33, 43]) {
+        for (let i = 0; i < 400; i += 1) {
+          const { answer } = рядПоЗерну(уровень, rng), o = makeOptions(answer, вариантов, rng);
+          expect(o).toContain(answer);
+          expect(new Set(o).size).toBe(вариантов);
+          if (o.some((v) => Math.abs(v - answer) % 2 !== 0)) { чётностьВыдаёт += 1; пример = `${answer} в [${o}]`; }
+          for (const [имя, f] of Object.entries(прикидки)) попаданий[имя] = (попаданий[имя] ?? 0) + Number(f(o) === answer);
+          мест[[...o].sort((x, y) => x - y).indexOf(answer)] += 1;
+          рядов += 1;
+        }
+      }
+      for (const [имя, n] of Object.entries(попаданий)) {
+        const доля = (100 * n) / рядов;
+        if (доля > случайно + 6) выдают.push(`${вариантов} вар.: «${имя}» угадывает ${доля.toFixed(0)} % при случайных ${случайно.toFixed(0)}`);
+      }
+      if (чётностьВыдаёт) выдают.push(`${вариантов} вар.: чётность отличает ответ в ${чётностьВыдаёт} наборах из ${рядов}, например ${пример}`);
+      мест.forEach((n, i) => {
+        const доля = (100 * n) / рядов;
+        if (Math.abs(доля - случайно) > 6) выдают.push(`${вариантов} вар.: ответ на ${i + 1}-м месте по величине в ${доля.toFixed(0)} % наборов`);
+      });
+    }
+    expect(выдают.slice(0, 6)).toEqual([]);
   });
 
   it('🔴 выбор класса зависит от уровня, а не от броска — контрпроба', () => {

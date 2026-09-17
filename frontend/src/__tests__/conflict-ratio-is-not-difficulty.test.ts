@@ -37,7 +37,7 @@ import { levelParams as stroopParams, makeTrial as stroopTrial, INCONGRUENT_RATI
 import { levelParams as simonParams, makeTrial as simonTrial, INCONGRUENT_PROB } from '@/app/games/simon';
 import { levelParams as posnerParams, makeTrial as posnerTrial, VALID_RATIO } from '@/app/games/posner';
 import { levelParams as goParams, pickStim, NOGO_PROB } from '@/app/games/go-no-go';
-import { levelCondition as inhibitionCondition } from '@/app/games/inhibition';
+import { levelCondition as inhibitionCondition, pickGngStimulus as inhibitionGng } from '@/app/games/inhibition';
 import { levelParams as cptParams, makeTrial as cptTrial, TARGET_RATE } from '@/app/games/cpt';
 import { levelParams as antParams, makeTrial as antTrial } from '@/app/games/ant';
 import { levelParams as emoParams, makeTrial as emoTrial } from '@/app/games/stroop-emotional';
@@ -214,6 +214,18 @@ describe('🔴 доля проб задаёт величину эффекта �
     const доли = Array.from({ length: 15 }, (_, i) => inhibitionCondition(i + 1).stopProb);
     expect(new Set(доли).size).toBe(1);
     expect(доли[0]).toBe(0.25);
+  });
+
+  it('Торможение, режим Go/No-Go: запретных столько же, сколько у экрана go-no-go (25 %)', () => {
+    /* 17.09.2026. В `runGngTrial` стояло `Math.random() < 0.7` — 30 % запретных, при том что
+       комментарий экрана обещал 25 %, а отдельный go-no-go держит 25 %. Партии режима пишутся
+       под тем же game_type 'go_no_go', так что в одной истории смешивались два условия.
+       Канон — редкие no-go (Wessel 2018, Psychophysiology, doi:10.1111/psyp.12871).
+       ⚠️ 0.25 — ЛИТЕРАЛ, по правилу этого файла: порог, взятый у проверяемого, порогом не является. */
+    const запретных = share(() => inhibitionGng() === 'nogo');
+    expect(`режим Go/No-Go «Торможения»: запретных ${pct(запретных)}`)
+      .toBe(`режим Go/No-Go «Торможения»: запретных ${pct(Math.abs(запретных - 0.25) < TOL ? запретных : 0.25)}`);
+    expect(Math.abs(запретных - 0.25)).toBeLessThan(TOL);
   });
 
   it('Торможение: растут ДРУГИЕ величины — иначе лестница встанет', () => {
