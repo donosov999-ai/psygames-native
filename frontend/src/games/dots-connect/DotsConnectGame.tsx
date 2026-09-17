@@ -1,4 +1,4 @@
-/* psygames-dots-connect-game · VER 6 · 17.09.2026 */
+/* psygames-dots-connect-game · VER 7 · 17.09.2026 */
 import React from 'react';
 import { БЕЗ_ЖЕСТА_ПРОКРУТКИ } from '@/src/components/GameShell';
 import { ПАЛЕЦ } from '@/src/components/gameLayout';
@@ -103,12 +103,38 @@ export interface DotsConnectGameProps {
    */
   onAux?: (aux: DotsAuxControls) => void;
   /**
+   * 🔴 СЛУЖЕБНЫЙ РЯД ПОД ДОСКОЙ — ЗНАЧКАМИ ЭКРАНА (решение Дениса 17.09.2026).
+   *
+   * По кадру «Соедини точки» 375×667: «„Открыть одну пару“ и „Показать решение“ ты нахуя раздул в два ряда?
+   * Их место снизу иконками под окном упражнения, рядом с „Отменить“ и „Начать заново“. Это надо везде
+   * такое правило делать». Две подсказки в шапке каркаса занимали два ряда (~130 px) над партией.
+   *
+   * Модуль отдаёт ГОТОВЫЕ действия и их положение, экран рисует ряд своими служебными значками
+   * (`GameAuxAction`) — модуль не знает про каркас и работает без него (пробы, лаборатория). Нет
+   * рисовальщика — модуль рисует свои текстовые «Отменить / Начать заново», как было.
+   */
+  renderServiceRow?: (row: DotsServiceRow) => React.ReactNode;
+  /**
    * Своя кнопка «Выход» на экране правил. НЕОБЯЗАТЕЛЬНА, и это принципиально:
    * когда модуль стоит внутри `GameShell`, выход из партии один — «назад» в
    * шапке каркаса, и он проходит через вопрос «партия пропадёт». Вторая кнопка
    * рядом уводила бы МИМО вопроса.
    */
   onExit?: () => void;
+}
+
+/** Служебный ряд под доской: всё, чем партию трогают помимо ответа пальцем по сетке. */
+export interface DotsServiceRow {
+  undo: () => void;
+  /** Отменять нечего — значок гаснет, но остаётся на месте. */
+  canUndo: boolean;
+  restart: () => void;
+  /** Открыть одну пару; null — открывать некого (все пары уже верны или показ запрещён). */
+  hintPair: (() => void) | null;
+  toggleSolution: () => void;
+  solutionVisible: boolean;
+  /** Показывать нечего (тренировка, заморозка) — значок гаснет. */
+  canReveal: boolean;
 }
 
 /** Служебное действие партии, отданное экрану для показа В ШАПКЕ каркаса. */
@@ -572,6 +598,7 @@ function DotsConnectSession({
   onComplete,
   onProgress,
   onAux,
+  renderServiceRow,
   onExit,
 }: DotsConnectGameProps) {
   /**
@@ -588,11 +615,16 @@ function DotsConnectSession({
     const fresh = createDotsSession({ seed, level });
     return skipIntro ? startRound(fresh, now()) : fresh;
   });
-  const completedRef = React.useRef(false);
+  /**
+   * Последний итог, уже отданный наверх. Хранится САМ ИТОГ, а не флаг «отдан»: после «Начать заново» новый итог —
+   * новый объект и отдаётся снова, а `restart` к ref не прикасается. Флаг сбрасывался внутри `restart`, и отдать
+   * `restart` служебному ряду экрана (он рисуется во время отрисовки) линт React Compiler не давал — react-hooks/refs.
+   */
+  const completedRef = React.useRef<typeof session.result>(null);
 
   React.useEffect(() => {
-    if (session.phase === 'result' && session.result && !completedRef.current) {
-      completedRef.current = true;
+    if (session.phase === 'result' && session.result && completedRef.current !== session.result) {
+      completedRef.current = session.result;
       onComplete?.(session.result);
     }
   }, [onComplete, session.phase, session.result]);
@@ -637,7 +669,6 @@ function DotsConnectSession({
   }, [now]);
 
   const restart = () => {
-    completedRef.current = false;
     setSession((current) => restartSession(current, now()));
   };
 
@@ -858,10 +889,20 @@ function DotsConnectSession({
           <ActionButton label={strings.startRound} theme={theme} onPress={() => setSession((current) => advanceFromTraining(current, now()))} />
         </View>
       ) : (
-        <View style={styles.actions}>
-          <ActionButton label={strings.undo} theme={theme} secondary disabled={session.history.length === 0} onPress={() => setSession(undoPath)} />
-          <ActionButton label={strings.restart} theme={theme} secondary onPress={restart} />
-        </View>
+        renderServiceRow ? renderServiceRow({
+          undo: () => setSession(undoPath),
+          canUndo: session.history.length > 0,
+          restart,
+          hintPair,
+          toggleSolution,
+          solutionVisible,
+          canReveal,
+        }) : (
+          <View style={styles.actions}>
+            <ActionButton label={strings.undo} theme={theme} secondary disabled={session.history.length === 0} onPress={() => setSession(undoPath)} />
+            <ActionButton label={strings.restart} theme={theme} secondary onPress={restart} />
+          </View>
+        )
       )}
     </ФазаПартии>
   );

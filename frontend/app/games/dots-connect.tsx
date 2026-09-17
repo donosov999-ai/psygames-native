@@ -1,4 +1,4 @@
-/* psygames-game-dots-connect · VER 7 · 17.09.2026 */
+/* psygames-game-dots-connect · VER 8 · 17.09.2026 */
 /**
  * Соедини точки — пути между парами, которые обязаны занять ВСЮ сетку.
  *
@@ -54,6 +54,8 @@
  * следующие — сразу в партию (`skipIntro`). Вернуться к правилам можно кнопкой
  * на экране настроек, чтобы они не пропали навсегда.
  *
+ * VER 8 (решение Дениса 17.09.2026): «Открыть одну пару» и «Показать решение» — значками ПОД ДОСКОЙ в одном
+ * ряду с «Отменить» и «Начать заново», а не двумя рядами в шапке каркаса (см. `renderServiceRow`).
  * VER 7 (отчёт e5bfc2f0, задача 2752f33f): в модуле область доски — ровно по стороне, доска 11×11 не
  * наезжает на счётчики и кнопки на 375×667; всё, что выше окна, достаётся прокруткой (DotsConnectGame.tsx VER 6).
  *
@@ -90,7 +92,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import { useIntroSeen } from '@/src/hooks/useIntroSeen';
-import DotsConnectGame, { type DotsAuxControls } from '@/src/games/dots-connect/DotsConnectGame';
+import DotsConnectGame, { type DotsServiceRow } from '@/src/games/dots-connect/DotsConnectGame';
 import { LEVELS, getDotsStrings, isPassed, type DotsMetrics } from '@/src/games/dots-connect/core';
 
 /** Опознавательный знак игры в каталоге. Синий → бирюзовый: пути и сетка. */
@@ -187,12 +189,6 @@ export default function DotsConnectScreen() {
     setArmed(armedNow);
     if (armedNow && !introSeen) markIntroSeen();
   }, [introSeen, markIntroSeen]);
-  /**
-   * 🔴 СЛУЖЕБНОЕ ДЕЙСТВИЕ ПАРТИИ, ОТДАННОЕ МОДУЛЕМ. Здесь оно только ХРАНИТСЯ и
-   * рисуется в шапке каркаса: состояние партии живёт у модуля, экран про его
-   * фазы не знает — ровно как с `armed` выше.
-   */
-  const [aux, setAux] = React.useState<DotsAuxControls | null>(null);
 
   // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
@@ -262,15 +258,13 @@ export default function DotsConnectScreen() {
   /** intro=true — через правила и тренировку; false — сразу партия. */
   const start = (intro: boolean) => {
     setArmed(false);
-    // Новый заход — новая партия: положение прошлой кнопки к ней отношения не имеет.
-    setAux(null);
     setWithIntro(intro);
     setAttempt((n) => n + 1);
     setPhase('playing');
   };
 
   /** Уйти в экран настройки — сюда ведёт и «назад» каркаса, и конец партии. */
-  const leaveToConfig = React.useCallback(() => { setArmed(false); setAux(null); setPhase('config'); }, []);
+  const leaveToConfig = React.useCallback(() => { setArmed(false); setPhase('config'); }, []);
 
   if (phase === 'playing') {
     return (
@@ -296,51 +290,6 @@ export default function DotsConnectScreen() {
          * уровнем и вернётся такой же. Первый проложенный путь — уже нет.
          */
         confirmExit={armed}
-        /**
-         * 🔴 «ПОКАЗАТЬ РЕШЕНИЕ» — В ШАПКЕ, И ЭТО НЕ ВКУСОВЩИНА.
-         *
-         * Низ каркаса означает ОТВЕТ игрока. В этой игре отвечают пальцем прямо
-         * по сетке, нижней полосы у неё нет вовсе — и заводить её ради показа
-         * решения было бы худшим из возможных решений: человек учится в соседних
-         * играх, что низ — это его ответ, и бьёт туда же, а там кнопка, которая
-         * снимает уровень с зачёта. Отменять её нечем.
-         *
-         * Показ решения трогает игру сильнее любой подсказки (он и есть ответ),
-         * значит по правилу каркаса он служебный и стоит рядом с прочим
-         * служебным — в шапке, общей кнопкой `GameAuxAction`, с попаданием
-         * пальцем 48×48, заданным там один раз.
-         *
-         * ⚠️ КНОПКА НАРИСОВАНА ВСЕГДА, ПОКА ИДЁТ ЗАХОД, — и гаснет там, где
-         * показывать нечего (правила, пауза, итог). Прятать её насовсем нельзя
-         * двояко: человек читает исчезновение как поломку, а живой аудит слотов
-         * (`scripts/slot-audit.mjs`) заходит в игру сразу после «Начать», видит
-         * экран правил и посчитал бы перенос МЁРТВЫМ.
-         */
-        headerActions={
-          <GameAuxBar>
-            {/*
-              Две подсказки рядом, дешёвая первой. «Открыть одну пару» отвечает
-              на вопрос «где я ошибся» и оставляет остальную доску задачей;
-              «Показать решение» открывает всё и разгадывать после него нечего.
-              Порядок не косметический: рядом стоящая дорогая кнопка забирает
-              нажатия у дешёвой, если стоит первой.
-            */}
-            <GameAuxAction
-              icon="bulb-outline"
-              tint={GRADIENT[0]}
-              label={strings.hintPair}
-              disabled={!aux || aux.disabled || !aux.hintPair}
-              onPress={() => aux?.hintPair?.()}
-            />
-            <GameAuxAction
-              icon={aux?.solutionVisible ? 'eye-off' : 'eye'}
-              tint={GRADIENT[0]}
-              label={aux?.solutionVisible ? strings.hideSolution : strings.showSolution}
-              disabled={!aux || aux.disabled}
-              onPress={() => aux?.toggleSolution()}
-            />
-          </GameAuxBar>
-        }
       >
         <View style={styles.stage}>
           <DotsConnectGame
@@ -394,10 +343,26 @@ export default function DotsConnectScreen() {
             onComplete={onComplete}
             onProgress={onProgress}
             /**
-             * Служебное действие партии модуль отдаёт наверх — рисуем его в шапке
-             * каркаса (см. `headerActions` выше), а не под доской.
+             * 🔴 СЛУЖЕБНЫЙ РЯД — ЗНАЧКАМИ ПОД ДОСКОЙ, А НЕ В ШАПКЕ (решение Дениса 17.09.2026).
+             * «„Открыть одну пару“ и „Показать решение“ ты нахуя раздул в два ряда? Их место снизу
+             * иконками под окном упражнения, рядом с „Отменить“ и „Начать заново“. Это надо везде такое
+             * правило делать». В шапке каркаса две подписанные подсказки стояли двумя рядами (~130 px).
+             * Порядок: отменить, заново, затем подсказки — дешёвая («одна пара») раньше дорогой (решение):
+             * рядом стоящая дорогая забирала бы нажатия у дешёвой. Обе снимают уровень с зачёта.
              */
-            onAux={setAux}
+            renderServiceRow={(ряд: DotsServiceRow) => (
+              <View style={styles.serviceRow}>
+                <GameAuxBar>
+                  <GameAuxAction compact icon="arrow-undo" label={strings.undo} disabled={!ряд.canUndo} onPress={ряд.undo} />
+                  <GameAuxAction compact icon="refresh" label={strings.restart} onPress={ряд.restart} />
+                  <GameAuxAction compact icon="bulb-outline" tint={GRADIENT[0]} label={strings.hintPair}
+                    disabled={!ряд.canReveal || !ряд.hintPair} onPress={() => ряд.hintPair?.()} />
+                  <GameAuxAction compact icon={ряд.solutionVisible ? 'eye-off' : 'eye'} tint={GRADIENT[0]}
+                    label={ряд.solutionVisible ? strings.hideSolution : strings.showSolution}
+                    disabled={!ряд.canReveal} onPress={ряд.toggleSolution} />
+                </GameAuxBar>
+              </View>
+            )}
             /**
              * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Кнопка «Выход»
              * на экране правил модуля уводила бы МИМО вопроса при выходе — тем
@@ -501,6 +466,8 @@ const styles = StyleSheet.create({
    */
   // Поле во всю ширину: гасим боковой отступ каркаса ЕГО ЖЕ числом (см. PAD_H).
   stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -PAD_H },
+  /** Ряд под обёртку `GameAuxBar`: у неё flexGrow + flexBasis 0, в колонке она схлопнулась бы (см. SpatialLab). */
+  serviceRow: { flexDirection: 'row', alignSelf: 'stretch' },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 8, paddingVertical: 6 },
   // 48×48 — норма Material и ровно то, что стоит на 63 играх из 64. У «Прикидки»
   // здесь padding 4 при иконке 24, то есть 32×34, и это записано в долг аудита

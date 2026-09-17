@@ -1,4 +1,4 @@
-/* psygames-game-one-line · VER 4 · 17.09.2026 */
+/* psygames-game-one-line · VER 5 · 17.09.2026 */
 /**
  * One Line — «Одна линия»: провести один непрерывный росчерк по ВСЕМ рёбрам
  * графа, не пройдя ни одно дважды (эйлеров путь).
@@ -90,12 +90,13 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import GameShell, { PAD_H } from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import { useIntroSeen } from '@/src/hooks/useIntroSeen';
-import OneLineGame from '@/src/games/one-line/OneLineGame';
-import { LEVELS, isPassed, type OneLineLocale, type OneLineMetrics } from '@/src/games/one-line/core/index';
+import OneLineGame, { type OneLineServiceRow } from '@/src/games/one-line/OneLineGame';
+import { LEVELS, getOneLineStrings, isPassed, type OneLineLocale, type OneLineMetrics } from '@/src/games/one-line/core/index';
 
 /**
  * Градиент игры. Лаборатория предлагала `#7c3aed → #db2777`, и по контрасту он
@@ -115,6 +116,8 @@ type Phase = 'config' | 'playing' | 'cleared' | 'result';
 export default function OneLineScreen() {
   const { colors } = useTheme();
   const { language, t } = useLanguage();
+  /** Подписи служебных значков — из словаря модуля (12 языков), те же, что у его текстовых кнопок. */
+  const oneLineStrings = getOneLineStrings(language as OneLineLocale);
   const lvl = usePersistentLevel('one_line');
   const { isPreset, autostart, num, isCalm } = useGamePreset();
   useCalmHush(isCalm);   // вечерний и ночной шаг зарядки — без писка
@@ -352,6 +355,20 @@ export default function OneLineScreen() {
             onComplete={onComplete}
             onProgress={onProgress}
             /**
+             * 🔴 СЛУЖЕБНЫЙ РЯД — ЗНАЧКАМИ ПОД ДОСКОЙ (решение Дениса 17.09.2026: «их место снизу иконками под окном
+             * упражнения, рядом с „Отменить“ и „Начать заново“; это надо везде такое правило делать»). Три подписанные
+             * кнопки модуля стояли двумя рядами. Порядок как в «Соедини точки»: отменить, заново, подсказка.
+             */
+            renderServiceRow={(ряд: OneLineServiceRow) => (
+              <View style={styles.serviceRow}>
+                <GameAuxBar>
+                  <GameAuxAction compact icon="arrow-undo" label={oneLineStrings.undo} disabled={!ряд.canUndo} onPress={ряд.undo} />
+                  <GameAuxAction compact icon="refresh" label={oneLineStrings.restart} onPress={ряд.restart} />
+                  <GameAuxAction compact icon="bulb-outline" tint={GRADIENT[0]} label={oneLineStrings.hint} onPress={ряд.hint} />
+                </GameAuxBar>
+              </View>
+            )}
+            /**
              * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Кнопка «Выход»
              * на экране правил модуля уводила бы МИМО вопроса при выходе — тем
              * самым способом, от которого вопрос и защищает. Выход теперь один:
@@ -454,6 +471,8 @@ const styles = StyleSheet.create({
    */
   // Поле во всю ширину: гасим боковой отступ каркаса ЕГО ЖЕ числом (см. PAD_H).
   stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -PAD_H },
+  /** Ряд под обёртку `GameAuxBar`: у неё flexGrow + flexBasis 0, в колонке она схлопнулась бы (см. SpatialLab). */
+  serviceRow: { flexDirection: 'row', alignSelf: 'stretch' },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   // 48×48, а не padding вокруг иконки. Скопировать шапку G1 дословно было
   // соблазнительно, но у неё `padding: 4` даёт 32×34 — это её единственная

@@ -1,4 +1,4 @@
-/* psygames-mental-rotation-practice-kind · VER 1 · 17.09.2026 */
+/* psygames-mental-rotation-practice-kind · VER 2 · 17.09.2026 */
 /* psygames-spatial-claude-mac · задача da43411f, отчёт 1263dc58 */
 /**
  * 🔴 «МЫСЛЕННОЕ ВРАЩЕНИЕ»: ОТРАБОТКА ОДНОГО ВИДА ЗАДАНИЙ С ЭКРАНА НАСТРОЙКИ.
@@ -12,6 +12,9 @@
  * верно на каждое задание (верный номер берётся у настоящего `buildTask`) и смотрит, ЧТО экран
  * построил и ЧТО записал. Отработка не двигает уровень и пишется в историю своим режимом:
  * `taskKey` истории склеивает режим, и «Сечение» ×5 не сравнивается со смесью того же уровня.
+ *
+ * VER 2: выбор — выпадающим списком (Денис 17.09.2026: «лучше бы выбор выпадающим списком сделать»).
+ * Закрытая строка показывает текущий вид, список раскрывается нажатием и закрывается выбором.
  */
 import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -85,6 +88,11 @@ async function нажать(r: any, id: string): Promise<void> {
   await TestRenderer.act(async () => { узел.props.onPress(); });
   await осесть(1, 50);
 }
+/** Выбрать вид: раскрыть список и нажать строку. */
+async function выбратьВид(r: any, вид: string): Promise<void> {
+  await нажать(r, 'mental-kind-select');
+  await нажать(r, `mental-kind-${вид}`);
+}
 async function нажатьТекст(r: any, re: RegExp): Promise<void> {
   const узел = r.root.findAll((n: any) => n.props?.accessibilityRole === 'button' && typeof n.props?.onPress === 'function' && re.test(текст(n)))[0];
   if (!узел) throw new Error(`нет кнопки ${re}; на экране: ${текст(r.toJSON()).slice(0, 300)}`);
@@ -120,23 +128,33 @@ describe('«Мысленное вращение»: выбор вида зада�
   });
   afterEach(() => { jest.useRealTimers(); });
 
-  it('на настройке 12 кнопок: «Вперемешку» и все 11 видов — и на уровне 1, где открыт один поворот', async () => {
+  it('🔴 выпадающий список: закрыт — видна строка «Вперемешку»; раскрыт — 12 строк по порядку; выбор закрывает список и показывает подпись', async () => {
     const r = await экран();
-    const кнопки = r.root.findAll((n: any) => typeof n.type !== 'string' && typeof n.props?.onPress === 'function' && /^mental-kind-/.test(String(n.props?.testID ?? '')))
+    const строки = () => r.root.findAll((n: any) => typeof n.type !== 'string' && typeof n.props?.onPress === 'function' && /^mental-kind-(?!select)/.test(String(n.props?.testID ?? '')))
       .filter((n: any, i: number, все: any[]) => все.findIndex((m: any) => m.props.testID === n.props.testID) === i);
-    expect(кнопки.map((n: any) => n.props.testID)).toEqual([
+    const выбор = () => поId(r, 'mental-kind-select')[0];
+    // закрыт: строк списка нет, в строке выбора — «вперемешку»
+    expect(`строк ${строки().length}, раскрыт ${выбор().props.accessibilityState?.expanded}`).toBe('строк 0, раскрыт false');
+    expect(выбор().props.accessibilityLabel).toMatch(/Mixed|Вперемешку/);
+    await нажать(r, 'mental-kind-select');
+    expect(строки().map((n: any) => n.props.testID)).toEqual([
       'mental-kind-mixed', 'mental-kind-rotation', 'mental-kind-projection', 'mental-kind-net', 'mental-kind-viewpoint', 'mental-kind-same',
       'mental-kind-assembly', 'mental-kind-memory', 'mental-kind-formation', 'mental-kind-section', 'mental-kind-missing', 'mental-kind-oblique',
     ]);
-    // выбрано «вперемешку», подписи отработки нет
-    expect(кнопки[0].props.accessibilityState).toEqual({ selected: true });
+    expect(строки()[0].props.accessibilityState).toEqual({ selected: true });
     expect(естьId(r, 'mental-kind-note')).toBe(false);
+    // вид выше уровня игрока — порог виден прямо в строке списка
+    expect(текст(строки()[11])).toContain('24');
+    await нажать(r, 'mental-kind-oblique');
+    expect(`строк ${строки().length}, раскрыт ${выбор().props.accessibilityState?.expanded}`).toBe('строк 0, раскрыт false');
+    expect(выбор().props.accessibilityLabel).toMatch(/Cross-section|Сечение/);
+    expect(текст(r.root.findAll((n: any) => n.props?.testID === 'mental-kind-note')[0])).toContain('24');
     await TestRenderer.act(async () => { r.unmount(); });
   });
 
   it('🔴 «Сечение» на уровне 1: все задания партии — сечение уровня 24, уровень игрока не сдвинулся, режим истории свой', async () => {
     const r = await экран();
-    await нажать(r, 'mental-kind-oblique');
+    await выбратьВид(r, 'oblique');
     expect(текст(r.root.findAll((n: any) => n.props?.testID === 'mental-kind-note')[0])).toContain('24');
     await нажатьТекст(r, /^\s*5\s*$/);
     await нажатьТекст(r, /начать|start/i);
@@ -170,11 +188,11 @@ describe('«Мысленное вращение»: выбор вида зада�
 
   it('вид, открытый уровнем, строится на уровне игрока, а «Вперемешку» снимает выбор', async () => {
     const r = await экран();
-    await нажать(r, 'mental-kind-rotation');
+    await выбратьВид(r, 'rotation');
     expect(текст(r.root.findAll((n: any) => n.props?.testID === 'mental-kind-note')[0])).toContain('1');
-    await нажать(r, 'mental-kind-mixed');
+    await выбратьВид(r, 'mixed');
     expect(естьId(r, 'mental-kind-note')).toBe(false);
-    await нажать(r, 'mental-kind-projection');
+    await выбратьВид(r, 'projection');
     await нажатьТекст(r, /^\s*5\s*$/);
     await нажатьТекст(r, /начать|start/i);
     await сыграть(r, 5);

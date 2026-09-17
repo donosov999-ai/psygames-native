@@ -1,4 +1,4 @@
-/* psygames-one-line-game · VER 8 · 17.09.2026 */
+/* psygames-one-line-game · VER 9 · 17.09.2026 */
 import React from 'react';
 import {
   AppState,
@@ -92,6 +92,22 @@ export interface OneLineGameProps {
    * МИМО вопроса, то есть ровно тем способом, от которого вопрос защищает.
    */
   onExit?: () => void;
+  /**
+   * 🔴 СЛУЖЕБНЫЙ РЯД ПОД ДОСКОЙ — ЗНАЧКАМИ ЭКРАНА (решение Дениса 17.09.2026, «Соедини точки»: «их место снизу
+   * иконками под окном упражнения, рядом с „Отменить“ и „Начать заново“; это надо везде такое правило делать»).
+   * Три подписанные кнопки стояли здесь двумя рядами. Модуль отдаёт готовые действия, экран рисует ряд своими
+   * `GameAuxAction`; без рисовальщика модуль рисует свои текстовые кнопки, как было.
+   */
+  renderServiceRow?: (row: OneLineServiceRow) => React.ReactNode;
+}
+
+/** Служебный ряд под доской «Одной линии». */
+export interface OneLineServiceRow {
+  undo: () => void;
+  /** Отменять нечего — значок гаснет, но остаётся на месте. */
+  canUndo: boolean;
+  hint: () => void;
+  restart: () => void;
 }
 
 /**
@@ -658,6 +674,7 @@ function OneLineSessionView({
   onComplete,
   onProgress,
   onExit,
+  renderServiceRow,
 }: OneLineGameProps) {
   const strings = getOneLineStrings(locale);
   const [session, setSession] = React.useState(() => {
@@ -688,15 +705,19 @@ function OneLineSessionView({
 
   const scoreLeft = oneLineScoreNow(session, now());
   const sessionRef = React.useRef(session);
-  const completedRef = React.useRef(false);
+  /**
+   * Последний итог, уже отданный наверх, — сам итог, а не флаг: новый итог после «Начать заново» — новый объект.
+   * `restart` к ref не прикасается, поэтому его можно отдать служебному ряду экрана (линт react-hooks/refs).
+   */
+  const completedRef = React.useRef<typeof session.result>(null);
 
   React.useEffect(() => {
     sessionRef.current = session;
   }, [session]);
 
   React.useEffect(() => {
-    if (session.phase === 'result' && session.result && !completedRef.current) {
-      completedRef.current = true;
+    if (session.phase === 'result' && session.result && completedRef.current !== session.result) {
+      completedRef.current = session.result;
       onComplete?.(session.result);
     }
   }, [onComplete, session.phase, session.result]);
@@ -747,7 +768,6 @@ function OneLineSessionView({
   }, []);
 
   const restart = () => {
-    completedRef.current = false;
     setSession((current) => restartOneLineSession(current, now()));
   };
 
@@ -934,11 +954,18 @@ function OneLineSessionView({
           <ActionButton label={strings.startRound} theme={theme} onPress={() => setSession((current) => advanceFromOneLineTraining(current, now()))} />
         </View>
       ) : (
-        <View style={styles.actions}>
-          <ActionButton label={strings.undo} theme={theme} secondary disabled={session.vertexTrail.length === 0} onPress={() => setSession(undoOneLineMove)} />
-          <ActionButton label={strings.hint} theme={theme} secondary onPress={() => setSession(hintOneLineMove)} />
-          <ActionButton label={strings.restart} theme={theme} secondary onPress={restart} />
-        </View>
+        renderServiceRow ? renderServiceRow({
+          undo: () => setSession(undoOneLineMove),
+          canUndo: session.vertexTrail.length > 0,
+          hint: () => setSession(hintOneLineMove),
+          restart,
+        }) : (
+          <View style={styles.actions}>
+            <ActionButton label={strings.undo} theme={theme} secondary disabled={session.vertexTrail.length === 0} onPress={() => setSession(undoOneLineMove)} />
+            <ActionButton label={strings.hint} theme={theme} secondary onPress={() => setSession(hintOneLineMove)} />
+            <ActionButton label={strings.restart} theme={theme} secondary onPress={restart} />
+          </View>
+        )
       )}
     </View>
   );
