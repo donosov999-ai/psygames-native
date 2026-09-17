@@ -1,24 +1,29 @@
 /* psygames-game-cpt · VER 3 · 16.09.2026 */
 /**
- * CPT — Continuous Performance Test (Conners Not-X variant)
+ * CPT — Continuous Performance Test: X-задача Rosvold et al. (1956) и её AX-вариант.
+ * ⚠️ НЕ Conners Not-X: там жмут на всё, КРОМЕ X, и цели частые. Разбор — у TARGET_RATE.
  *
- * Парадигма: каждые 1-2 секунды появляется буква. Тапнуть надо на X (в AX-режиме —
- * на X, которой предшествовала A), на все прочие буквы ответ подавляется.
+ * Парадигма: каждые 1-2 секунды появляется буква. Тапнуть надо на букву-цель: до L8 это X,
+ * с L9 другая буква (блок «МИШЕНЬ НЕ ВСЕГДА X»); в AX-режиме — на цель, которой
+ * предшествовала A. На все прочие буквы ответ подавляется.
  * Цель РЕДКА — 20 % проб, см. блок над TARGET_RATE.
  *
  * ⚠️ VER 2: прежняя шапка описывала обратную задачу («тапнуть на любую букву
  * КРОМЕ X, 80 % targets») — экран так не работал ни одного дня: подпись игроку
  * `cptTapX` говорит «жми на каждую X», и `isTarget` в коде стоит на X.
  *
- * Биомаркеры (классика ADHD-диагностики, Conners CPT-3):
- *   - omission_errors    — пропущенные targets (внимание упало)
- *   - commission_errors  — реакции на X (impulse control failure)
+ * Меры (имена общие для семейства CPT, в том числе Conners CPT-3):
+ *   - omission_errors    — пропущенные цели (внимание упало)
+ *   - commission_errors  — нажатия на НЕ-цель: любую другую букву, а в AX-режиме и на цель без
+ *     A перед ней (сбой удержания). ⚠️ До 17.09.2026 здесь стояло «реакции на X» — остаток
+ *     описания обратной задачи Not-X; в коде (handleTap) commission всегда была нажатием на не-цель.
  *   - mean_rt            — средняя RT на correct hits
  *   - rt_variability     — CV-RT = std/mean (один из самых валидных ADHD-маркеров)
  *   - vigilance_decrement — slope RT по квартилям (мс/quartile) = ЗАМЕДЛЕНИЕ, не точность
  *   - vigilance_accuracy_slope — slope доли пойманных целей по квартилям = ПАДЕНИЕ ТОЧНОСТИ
  *
- * Длительность 4/8/12 мин — достаточно чтобы поймать decrement.
+ * Партия — 90 секунд на любом уровне (levelParams.durationSec). ⚠️ Прежняя строка
+ * «длительность 4/8/12 мин» устарела: так было до перевода на уровни.
  */
 
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
@@ -171,10 +176,23 @@ const STIM_DURATION = 250;          // буква видна 250мс
  * То же правило записано в `iowa.tsx`: методика с популяционными нормами
  * осмысленна только потому, что условие у всех одинаковое.
  *
- * Канон — 10-20 % целей; взято 20 %, верх диапазона: партия длится 90 секунд, за
- * неё выходит 30-90 проб, и на 10 % целей осталось бы 3-9 попаданий, а по ним
- * считаются и `mean_rt`, и `rt_variability` (домен attention_sustained в
- * `assessment.ts`, норма 0.20±0.08). Сторожит `conflict-ratio-is-not-difficulty.test.ts`.
+ * Доля целей 20 %. Партия длится 90 секунд, за неё выходит 30-90 проб; на 10 % целей
+ * осталось бы 3-9 попаданий, а по ним считаются и `mean_rt`, и `rt_variability` (домен
+ * attention_sustained в `assessment.ts`, норма 0.20±0.08). Сторожит
+ * `conflict-ratio-is-not-difficulty.test.ts`.
+ *
+ * 📚 ИСТОЧНИКИ И ОТСТУПЛЕНИЕ (сверено 17.09.2026, не по памяти; до этого здесь стояло
+ * «канон — 10-20 % целей» без источника, и число это не подтвердилось):
+ * · Первоисточник — Rosvold H.E., Mirsky A.F., Sarason I., Bransome E.D., Beck L.H. (1956).
+ *   A continuous performance test of brain damage. Journal of Consulting Psychology
+ *   20(5):343–350, doi:10.1037/h0043220 (метаданные — Europe PMC, PMID 13367264).
+ * · Доля X в X-задаче Rosvold — 8 из 31 буквы, ≈ 26 %, буква раз в 0,92 с. Число взято из
+ *   описания реализации Millisecond (millisecond.com/library/cpt_rosvold), это вторичный
+ *   источник; сам текст 1956 года не открыт.
+ * · Conners CPT 3 — обратная задача Not-X: X ≈ 10 %, остальные 90 % — цели (Millisecond
+ *   NonX-CPT по техническому руководству Conners C.K., 2014, MHS).
+ * Отступление: 20 % против ≈ 26 % у Rosvold — на 6 п. п. реже. Причина — редкость цели держит
+ * смысл пропуска как падения внимания, а 20 % ещё дают 6–18 попаданий за 90 с.
  */
 export const TARGET_RATE = 0.2;
 /** Доля подсказок A, которые замыкаются целью X. Остальные — ловушка AY. */
@@ -567,7 +585,7 @@ export default function CPTGame() {
       flashFeedback('right');
       hapticSuccess();
     } else {
-      // commission: tapped on X
+      // commission: нажатие на НЕ-цель
       t.correct = false;
       setCommissions(c => c + 1);
       flashFeedback('wrong');
