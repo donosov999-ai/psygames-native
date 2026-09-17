@@ -2909,5 +2909,7 @@ const t: Record<string, string> = {
   "teachDone": "हल हो गया। अगला बोर्ड इन्हीं तरकीबों से खुद आज़माएँ।",
   "teachNotCounted": "समझाइश वाली बाज़ी आपके स्तर में नहीं गिनी जाती।",
   "teachNewBoard": "नया बोर्ड",
+  "teachPlay": "चलाएँ",
+  "teachPause": "रोकें",
 };
 export default t;

@@ -2900,5 +2900,7 @@ const t: Record<string, string> = {
   "teachDone": "解けました。次の盤面は同じコツで自分で解いてみましょう。",
   "teachNotCounted": "解説を使った回はレベルに数えられません。",
   "teachNewBoard": "新しい盤面",
+  "teachPlay": "再生",
+  "teachPause": "一時停止",
 };
 export default t;

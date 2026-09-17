@@ -2906,5 +2906,7 @@ const t: Record<string, string> = {
   "teachDone": "Gelöst. Versuche das nächste Brett selbst – mit denselben Tricks.",
   "teachNotCounted": "Eine Runde mit Erklärung zählt nicht für dein Level.",
   "teachNewBoard": "Neues Brett",
+  "teachPlay": "Abspielen",
+  "teachPause": "Anhalten",
 };
 export default t;

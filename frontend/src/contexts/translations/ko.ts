@@ -2901,5 +2901,7 @@ const t: Record<string, string> = {
   "teachDone": "풀었습니다. 다음 판은 같은 방법으로 직접 풀어 보세요.",
   "teachNotCounted": "풀이를 본 판은 레벨에 반영되지 않습니다.",
   "teachNewBoard": "새 판",
+  "teachPlay": "재생",
+  "teachPause": "일시정지",
 };
 export default t;

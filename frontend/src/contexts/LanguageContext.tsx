@@ -1007,6 +1007,8 @@ const translations: Translations = {
   teachDone: { ru: 'Доска решена. Следующую попробуйте сами — теми же приёмами.', en: 'Solved. Try the next board on your own with the same tricks.' },
   teachNotCounted: { ru: 'Партия с разбором не засчитывается в уровень.', en: 'A round with a walkthrough does not count toward your level.' },
   teachNewBoard: { ru: 'Новая доска', en: 'New board' },
+  teachPlay: { ru: 'Смотреть', en: 'Play' },
+  teachPause: { ru: 'Пауза', en: 'Pause' },
   puzzleHudMarked: { ru: 'Отмечено', en: 'Marked' },
   puzzleHudActive: { ru: 'Соединено', en: 'Connected' },
   /**

@@ -240,7 +240,7 @@ export function доскаСРисунка(
 export const КЛЮЧИ_РАЗБОРА = [
   'teachTitle', 'teachButton', 'teachStepOf', 'teachRow', 'teachCol',
   'teachUnrulyPair', 'teachUnrulyGap', 'teachUnrulyCount', 'teachUnrulyLineOne', 'teachUnrulyLineMany',
-  'teachErrors', 'teachDone', 'teachNotCounted', 'teachNewBoard',
+  'teachErrors', 'teachDone', 'teachNotCounted', 'teachNewBoard', 'teachPlay', 'teachPause',
 ] as const;
 
 /** Объяснение шага человеческими словами. */

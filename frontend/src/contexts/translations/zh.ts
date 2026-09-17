@@ -2906,5 +2906,7 @@ const t: Record<string, string> = {
   "teachDone": "已解开。下一块棋盘用同样的方法自己试试。",
   "teachNotCounted": "使用讲解的这一局不计入等级。",
   "teachNewBoard": "新棋盘",
+  "teachPlay": "播放",
+  "teachPause": "暂停",
 };
 export default t;

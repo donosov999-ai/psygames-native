@@ -2902,5 +2902,7 @@ const t: Record<string, string> = {
   "teachDone": "تم الحل. جرّب اللوحة التالية بنفسك بالحيل نفسها.",
   "teachNotCounted": "الجولة التي استُخدم فيها الشرح لا تُحتسب في مستواك.",
   "teachNewBoard": "لوحة جديدة",
+  "teachPlay": "تشغيل",
+  "teachPause": "إيقاف مؤقت",
 };
 export default t;

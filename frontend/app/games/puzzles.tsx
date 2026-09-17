@@ -31,6 +31,7 @@ import GameShell from '@/src/components/GameShell';
 import ArrowPad, { ПРЯМЫЕ } from '@/src/components/ArrowPad';
 import { GameAuxAction } from '@/src/components/GameAuxAction';
 import PuzzleCanvas from '@/src/components/PuzzleCanvas';
+import LessonPlayer, { длительностьШага } from '@/src/components/LessonPlayer';
 import PlayBoard, { сторонаДоски } from '@/src/components/PlayBoard';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -421,69 +422,22 @@ export default function PuzzlesScreen() {
     return [...опора, ...шаг.ставим.map((т) => клетка(т, РАМКА_СТАВИМ))];
   }, [урок, партия, размерДоски]);
 
-  /** Карточка разбора — стоит НАД доской, на месте строки задания (см. стиль `урок`). */
-  const карточкаУрока = (() => {
-    if (!урок) return null;
-    const карточка = урок.карточки[урок.индекс]!;
-    const шагов = урок.карточки.length - 1;
-    const текст = карточка.вид === 'ошибки' ? t('teachErrors')
-      : карточка.вид === 'шаг' ? текстШага(карточка.шаг, t)
-      : t('teachDone');
-    return (
-      <View testID="puzzle-teach-card" style={[styles.урок, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={styles.урокШапка}>
-          <Text style={[styles.урокЗаголовок, { color: colors.text }]}>{t('teachTitle')}</Text>
-          {/* Счётчик держит место и на итоговой карточке: иначе крестик уезжает влево. */}
-          <Text style={[styles.урокСчёт, { color: colors.textSecondary }]}>
-            {карточка.вид !== 'готово' ? t('teachStepOf').replace('{i}', String(урок.индекс + 1)).replace('{n}', String(шагов)) : ''}
-          </Text>
-          <Pressable
-            testID="puzzle-teach-close" accessibilityRole="button" accessibilityLabel={t('close')}
-            onPress={() => setУрок(null)} hitSlop={12} style={styles.урокЗакрыть}
-          >
-            <Ionicons name="close" size={22} color={colors.textSecondary} />
-          </Pressable>
-        </View>
-        <Text testID="puzzle-teach-text" style={[styles.урокТекст, { color: colors.text }]}>{текст}</Text>
-        {урок.индекс === 0 ? (
-          <Text style={[styles.урокСноска, { color: colors.textSecondary }]}>{t('teachNotCounted')}</Text>
-        ) : null}
-        <View style={styles.урокРяд}>
-          <Pressable
-            testID="puzzle-teach-back" accessibilityRole="button"
-            accessibilityState={{ disabled: урок.индекс === 0 || урокЗанят }}
-            disabled={урок.индекс === 0 || урокЗанят}
-            onPress={() => { void урокНазад(); }}
-            style={[styles.тупикКнопка, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, opacity: урок.индекс === 0 ? 0.45 : 1 }]}
-          >
-            <Ionicons name="arrow-back" size={18} color={colors.text} />
-            <Text style={[styles.тупикКнопкаТекст, { color: colors.text }]}>{t('back')}</Text>
-          </Pressable>
-          {карточка.вид !== 'готово' ? (
-            <Pressable
-              testID="puzzle-teach-next" accessibilityRole="button"
-              accessibilityState={{ disabled: урокЗанят }} disabled={урокЗанят}
-              onPress={() => { void урокДальше(); }}
-              style={[styles.тупикКнопка, { backgroundColor: GRADIENT[0] }]}
-            >
-              <Ionicons name="play-forward" size={18} color="#FFF" />
-              <Text style={styles.тупикКнопкаТекст}>{t('puzzleNextStep')}</Text>
-            </Pressable>
-          ) : (
-            // Доска решена — следующая раздача той же ступени: «теперь сами».
-            <Pressable
-              testID="puzzle-teach-new" accessibilityRole="button"
-              onPress={() => новая()}
-              style={[styles.тупикКнопка, { backgroundColor: GRADIENT[0] }]}
-            >
-              <Ionicons name="refresh" size={18} color="#FFF" />
-              <Text style={styles.тупикКнопкаТекст}>{t('teachNewBoard')}</Text>
-            </Pressable>
-          )}
-        </View>
-      </View>
-    );
-  })();
+  /** Что показывает плеер разбора сейчас. */
+  const карточкаУрока = урок?.карточки[урок.индекс];
+  const текстУрока = !карточкаУрока ? ''
+    : карточкаУрока.вид === 'ошибки' ? t('teachErrors')
+    : карточкаУрока.вид === 'шаг' ? текстШага(карточкаУрока.шаг, t)
+    : t('teachDone');
+  /**
+   * Показ как ролик: приём, который человек уже видел в этом разборе, идёт коротко. Замер
+   * 17.09.2026 на экспорте: полный текст шага ~115 знаков = ~9 с, а шагов на доске 8×8 — 36–42,
+   * то есть пять минут одних и тех же двух фраз. Первый показ приёма — время на чтение,
+   * повтор — 2,8 с: глаз уже знает, что искать, и следит за рамками.
+   */
+  const ПОВТОР_ПРИЁМА_МС = 2800;
+  const длительностьУрока = карточкаУрока?.вид === 'шаг'
+    && урок!.карточки.slice(0, урок!.индекс).some((к) => к.вид === 'шаг' && к.шаг.приём === карточкаУрока.шаг.приём)
+    ? ПОВТОР_ПРИЁМА_МС : длительностьШага(текстУрока);
 
   const победа = партия?.статус === 1;
   /**
@@ -697,11 +651,9 @@ export default function PuzzlesScreen() {
             двадцати головоломок разные и ни одни не наши: без строки доска Тэтхэма —
             набор клеток без смысла. Гейт `game-task-line` держит её именно в партии.
           */}
-          {карточкаУрока ?? (
           <Text style={[styles.rule, { color: colors.textSecondary }]}>
             {t(КЛЮЧ_ОПИСАНИЯ[имяРежима] ?? КЛЮЧ_ОПИСАНИЯ[ПО_УМОЛЧАНИЮ])}
           </Text>
-          )}
           {/*
             🔴 МЕСТО ПОД ДОСКУ ОДНО И ТО ЖЕ У ВСЕХ СОРОКА — квадрат, а не «сколько
             вышло». Денис 11.09.2026: «то там по высоте, то там, то шире, то уже».
@@ -713,7 +665,6 @@ export default function PuzzlesScreen() {
               ширина={сторонаПоля}
               высота={сторонаПоля}
               фон={colors.background}
-              подсветка={подсветкаУрока}
               // Во время разбора доску ведёт разбор: касание человека разошлось бы с планом.
               onЖест={(x, y, ж, п) => { if (урок) return; void жать(x, y, ж, п || второе); }}
             />
@@ -794,7 +745,6 @@ export default function PuzzlesScreen() {
             (отмена сейчас с уровня 3). Выключенную кнопку НЕ прячем: спрятанная «Отменить»
             читается как «отмены нет».
           */}
-          {урок ? null : (
           <View style={styles.рядКоманд}>
             <GameAuxAction
               compact icon="arrow-undo" tint="#d97706" ladder="undo" label={t('btn_undo')}
@@ -853,7 +803,31 @@ export default function PuzzlesScreen() {
               />
             ) : null}
           </View>
-          )}
+          {/*
+            🔴 РАЗБОР НА ВЕСЬ ЭКРАН, КАК РОЛИК (Денис 17.09.2026). Первая сборка ставила карточку
+            над доской — Денис: «я думал обучение сделать в полноэкранном режиме, чтобы ближе
+            было к ролику интерактивному». Плеер общий (`LessonPlayer`), доску даёт экран.
+          */}
+          <LessonPlayer
+            visible={!!урок}
+            индекс={урок?.индекс ?? 0}
+            шагов={Math.max(0, (урок?.карточки.length ?? 1) - 1)}
+            текст={текстУрока}
+            сноска={урок?.индекс === 0 ? t('teachNotCounted') : undefined}
+            готово={карточкаУрока?.вид === 'готово'}
+            занят={урокЗанят}
+            длительность={длительностьУрока}
+            renderBoard={(сторона) => (партия ? (
+              <PuzzleCanvas
+                партия={партия} ширина={сторона} высота={сторона} фон={colors.background}
+                подсветка={подсветкаУрока} onЖест={() => {}}
+              />
+            ) : null)}
+            onДальше={урокДальше}
+            onНазад={урокНазад}
+            onЗакрыть={() => setУрок(null)}
+            onНовая={() => новая()}
+          />
           {/*
             🔴 ПОДСВЕТКА ЧИСЛА — НЕ ВВОД, И ВЫГЛЯДИТ ИНАЧЕ.
             У «Домино» цифра зажигает все половинки с этим числом (`dominosa.c`,
@@ -1176,23 +1150,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12, paddingHorizontal: 18, borderRadius: 14, minHeight: 48,
   },
   тупикКнопкаТекст: { color: '#FFF', fontSize: 14, fontWeight: '800' },
-  /**
-   * 🔴 КАРТОЧКА РАЗБОРА — НАД ДОСКОЙ, А НЕ ПОД НЕЙ. Первая сборка ставила её на место ряда
-   * команд, и кадр 390×844 (17.09.2026) показал: кнопка отзыва (левый нижний угол, 704–752 по
-   * вертикали) накрыла начало сноски и край «Назад». Над доской карточка стоит рядом с
-   * подсвеченными клетками, а низ доски (≈690) остаётся выше зоны кнопки.
-   */
-  урок: {
-    paddingVertical: 12, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1,
-    gap: 8, alignSelf: 'stretch', maxWidth: 420,
-  },
-  урокШапка: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  урокЗаголовок: { fontSize: 15, fontWeight: '800', flexShrink: 1 },
-  урокСчёт: { fontSize: 13, fontWeight: '700', flex: 1, textAlign: 'right' },
-  урокЗакрыть: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  урокТекст: { fontSize: 15, lineHeight: 21, fontWeight: '600' },
-  урокСноска: { fontSize: 12, fontWeight: '600' },
-  урокРяд: { flexDirection: 'row', gap: 10, justifyContent: 'center' },
   /**
    * Строка под полем: ↶ · переключатель второго действия · ↻ · 💡.
    *

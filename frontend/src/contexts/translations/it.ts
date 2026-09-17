@@ -2901,5 +2901,7 @@ const t: Record<string, string> = {
   "teachDone": "Risolto. Prova la prossima griglia da solo, con gli stessi trucchi.",
   "teachNotCounted": "Una partita con spiegazione non conta per il tuo livello.",
   "teachNewBoard": "Nuova griglia",
+  "teachPlay": "Riproduci",
+  "teachPause": "Metti in pausa",
 };
 export default t;
