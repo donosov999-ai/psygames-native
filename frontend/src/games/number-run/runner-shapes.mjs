@@ -1,3 +1,4 @@
+// VER 3 · 2026-09-17 · psygames-search-claude-mac: примеры на арках — места вариантов равноправны, средний больше не выдаёт ответ.
 // VER 2 · 2026-09-17 · psygames-search-claude-mac: ряд на табло — «•» между числами и типографский минус. «·» и «-» издали
 // сливались: кадр уровня 30 читался «4 --13-38--115-?» (живой автопилот L24–32, задача e9c750f5).
 // VER 1 · 2026-09-16 · psygames-search-claude-mac. Построения дороги — общие для забега (runner-campaign) и уровней (runner-level):
@@ -90,8 +91,15 @@ export function createTrack(rng){
   // ── Станции хаба «Счёт» ──────────────────────────────────────────────────────────────────────────────
   // Блиц-арки (math-sprint): пример над дорогой, три арки с ответами; въехал в верную — прибавка, в неверную — столько же минус.
   blitz(stage,k,problem){
-   const answer=problem.answer,near=[1,-1,2,-2,10,-10].map(d=>answer+d).filter(v=>v!==answer&&(answer<0||v>=0));
-   const wrong=shuffle(near,rng).slice(0,2),options=shuffle([answer,...wrong],rng),reward=Math.max(2*k,round5(track.intended*.1));
+   // Места трёх вариантов равноправны: промежутки между соседними независимы и одинаковы, ответ — на случайном месте. Прежние
+   // «ответ ±1, ±2 или ±10, два из шести» ставили ответ посередине в 57–61 % при случайных 33: одна приманка ниже, другая выше
+   // (замер 17.09.2026). Шаг 10 — приманка «та же последняя цифра»; у ответов до 10 шаги 1 и 2, иначе запрет отрицательных
+   // вариантов уводил ответ к наименьшему (45–47 %).
+   const answer=problem.answer,steps=answer>=0&&answer<10?[1,2]:[1,2,10],step=()=>steps[Math.floor(rng()*steps.length)];
+   let options=null;
+   for(let t=0;t<20&&!options;t++){const at=[0,step()];at.push(at[1]+step());const place=Math.floor(rng()*3),o=at.map(x=>answer+x-at[place]);if(answer<0||o.every(v=>v>=0))options=o;}
+   options=shuffle(options??[answer,answer+1,answer+2],rng);
+   const reward=Math.max(2*k,round5(track.intended*.1));
    add(stage,{kind:'answer',station:'blitz',prompt:problem.display,options,correct:options.indexOf(answer),reward,penalty:reward});
    track.intended+=reward;
   },
