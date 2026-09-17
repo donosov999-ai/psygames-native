@@ -1,4 +1,4 @@
-/* psygames-search-layout-gate · VER 1 · 09.09.2026 */
+/* psygames-search-layout-gate · VER 2 · 17.09.2026 */
 /**
  * 🔴 ГЕОМЕТРИЯ РАЗДЕЛА «ПОИСК» НЕ ЗАВИСИТ ОТ ТЕЛЕФОНА И ОТ УРОВНЯ.
  *
