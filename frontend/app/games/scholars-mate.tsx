@@ -1,4 +1,4 @@
-/* psygames-game-scholars-mate · VER 1 · 05.09.2026 */
+/* psygames-game-scholars-mate · VER 2 · 17.09.2026 */
 /**
  * «Детский мат» — заученные этюды на СКОРОСТЬ.
  *
@@ -49,7 +49,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
-import { КЛЮЧ_ВИДА, LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, mixedMotifCount, namedMotifCount, newMotifAt, видыУровня } from '@/src/games/scholars-mate/core/deck';
+import { КЛЮЧ_ВИДА, LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, mixedMotifCount, namedMotifCount, newMotifAt, видыУровня, подписиВидов } from '@/src/games/scholars-mate/core/deck';
 import { звёздыПодхода, ступеньПоМедиане, порогУровня, допускПромахов } from '@/src/games/scholars-mate/core/run';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
@@ -491,7 +491,7 @@ export default function ScholarsMateScreen() {
             <View style={стили.строка}>
               <Ionicons name="school-outline" size={18} color={colors.textSecondary} />
               <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]}>
-                {видыУровня(level).map((k) => t(КЛЮЧ_ВИДА[k])).join(' · ')}
+                {подписиВидов(видыУровня(level)).map((к) => t(к)).join(' · ')}
               </Text>
             </View>
             {/* Узор, который ОТКРЫВАЕТСЯ именно здесь: ступень названа тем, что на ней ново. */}
