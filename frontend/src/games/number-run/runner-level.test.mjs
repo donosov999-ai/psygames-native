@@ -1,3 +1,4 @@
+// VER 6 · 2026-09-17 · psygames-search-claude-mac: примеры на арках — место ответа среди трёх вариантов ничего не выдаёт.
 // VER 5 · 2026-09-17 · psygames-search-claude-mac: прямой ряд — «берёт середина, вбок через ряд — несколько», как обещают правила.
 // VER 4 · 2026-09-17 · psygames-search-claude-mac: ряд на арках проверяется и на L30 («знак меняется»): «•» и типографский минус.
 // VER 3 · 2026-09-16 · psygames-search-claude-mac: + «память в пути» (setSize — лестница OSpan из ospanLadder).
@@ -85,6 +86,17 @@ test('blitz arch: one correct answer among three distinct options; correct lane 
  }
  assert.ok(rows>=12);
  const probe=level(30,1).rows.find(r=>r.station==='blitz');assert.ok(/=/.test(probe.prompt));
+});
+// До VER 3 построений (runner-shapes.mjs) неверные были «ответ ±1, ±2 или ±10, два из шести»: одна приманка ниже, другая выше,
+// и средний из трёх вариантов был ответом в 57–61 % при случайных 33 (замер 17.09.2026). Сиды заданы — проба не мигает.
+test('blitz arch: the answer is not given away by its place — median, largest and smallest each ≤ 40 % (random 33)',()=>{
+ const hits={median:0,largest:0,smallest:0};let rows=0;
+ for(const L of [4,5,6,8,11,14,17,20,24,30])for(let seed=0;seed<40;seed++)for(const r of level(L,seed).rows.filter(r=>r.station==='blitz')){
+  const answer=r.options[r.correct],o=[...r.options].sort((a,b)=>a-b);rows++;
+  if(o[1]===answer)hits.median++;if(o[2]===answer)hits.largest++;if(o[0]===answer)hits.smallest++;
+ }
+ assert.ok(rows>=300,`рядов с примерами ${rows}`);
+ for(const [k,v] of Object.entries(hits))assert.ok(v/rows<=.4,`${k}: ${(100*v/rows).toFixed(1)} % из ${rows} рядов`);
 });
 test('exact gate: the route takes exactly N at 60 and 120 Hz; a miss costs by its size; ≤5 numbers per line; parts never change the number on touch',()=>{
  let checked=0;for(const L of [7,8,12,20,28])for(let seed=0;seed<8;seed++){const c=level(L,seed);
