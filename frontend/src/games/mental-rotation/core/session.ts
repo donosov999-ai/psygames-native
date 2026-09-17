@@ -1,4 +1,4 @@
-/* psygames-mental-rotation-session · VER 1 · 23.08.2026 */
+/* psygames-mental-rotation-session · VER 2 · 17.09.2026 */
 /**
  * СМЕСЬ ЗАДАНИЙ — И БИОМАРКЕР, КОТОРЫЙ ОТ НЕЁ НЕ ПОРТИТСЯ.
  *
@@ -21,6 +21,7 @@
 import { buildNetTask } from './net';
 import { buildAssemblyTask, buildMissingTask } from './pieces';
 import { buildFormationTask } from './formation';
+import { buildMemoryTask } from './memory';
 import { buildSectionTask } from './section';
 import { buildSameTask } from './same';
 import { buildViewpointTask } from './viewpoint';
@@ -44,9 +45,12 @@ import type { MentalRotationTask, Rng, TaskKind } from './types';
  * кадр показал столбик из двух кубиков и пунктир — понять задание было нельзя.
  * «Три вида» (задача 0d96f48e) — пятнадцатым: это обратная «Проекция» (открыта третьим),
  * и к ней человек подходит, когда проекцию уже решал много раз.
+ * 17.09.2026, задача 69f1810f: «Память» — тринадцатым. Это «Поворот», у которого эталон
+ * прячут, поэтому ставится после «Сборки» (11) и до «Трёх видов» (15): поворот к этому
+ * уровню отработан, а держать фигуру в голове — следующий шаг того же навыка.
  */
 export const KIND_UNLOCK: Record<TaskKind, number> = {
-  rotation: 1, projection: 3, net: 5, viewpoint: 7, same: 9, assembly: 11, formation: 15, section: 18, missing: 21,
+  rotation: 1, projection: 3, net: 5, viewpoint: 7, same: 9, assembly: 11, memory: 13, formation: 15, section: 18, missing: 21,
 };
 
 /** Ниже этой доли поворотных проб партия опускаться не должна — см. шапку. */
@@ -99,6 +103,7 @@ export function buildTask(kind: TaskKind, level: number, rng: Rng): MentalRotati
   if (kind === 'assembly') return buildAssemblyTask(level, rng);
   if (kind === 'formation') return buildFormationTask(level, rng);
   if (kind === 'section') return buildSectionTask(level, rng);
+  if (kind === 'memory') return buildMemoryTask(level, rng);
   return buildRotationTask(level, rng);
 }
 
