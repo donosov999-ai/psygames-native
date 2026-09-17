@@ -30,6 +30,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
+import DropdownSelect from '@/src/components/DropdownSelect';
 import { gameNow } from '@/src/services/gamePause';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { pickFreshFrom, readSeen, writeSeen } from '@/src/services/freshPool';
@@ -375,38 +376,30 @@ export default function WordPairsGame() {
         </View>
 
         {mode === 'translation' && (
-          <>
-            <Text style={[styles.optionLabel, { color: colors.text, marginTop: 16 }]}>
-              {t('label_translate')}: {LANGUAGES.find(l => l.code === language)?.name} →
-            </Text>
-            <View style={styles.optionButtons}>
-              {/*
-                🔴 ПРЕДЛАГАЕМ ТОЛЬКО ТЕ ЯЗЫКИ, НА КОТОРЫХ ЕСТЬ СЛОВАРЬ.
-                Раньше выбор строился из всех двенадцати языков приложения, а
-                словарь покрывает семь: на французском игра запускалась и
-                оказывалась пустой — «выбери 1-е из 0», а в зарядке экран
-                оставался мёртвым навсегда, без шапки и без «назад».
-                Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
-              */}
-              {LANGUAGES.filter(l => l.code !== language && hasVocab(l.code)).map(l => (
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  key={l.code}
-                  style={[
-                    styles.langButton,
-                    targetLang === l.code
-                      ? { backgroundColor: GRADIENT[0] }
-                      : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-                  ]}
-                  onPress={() => setTargetLang(l.code)}
-                >
-                  <Text style={[styles.langButtonText, { color: targetLang === l.code ? textOn(GRADIENT[0]) : colors.text }]}>
-                    {l.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </>
+          <View style={{ marginTop: 16 }}>
+            {/*
+              🔴 ПРЕДЛАГАЕМ ТОЛЬКО ТЕ ЯЗЫКИ, НА КОТОРЫХ ЕСТЬ СЛОВАРЬ.
+              Раньше выбор строился из всех двенадцати языков приложения, а
+              словарь покрывает семь: на французском игра запускалась и
+              оказывалась пустой — «выбери 1-е из 0», а в зарядке экран
+              оставался мёртвым навсегда, без шапки и без «назад».
+              Список выводится ИЗ САМОГО словаря, вписать его руками нельзя.
+
+              ВЫПАДАЮЩИМ СПИСКОМ, А НЕ КНОПКАМИ (Денис 17.09.2026). Словарь с тех
+              пор вырос до двенадцати языков, и одиннадцать кнопок вставали в
+              четыре ряда: 216 px, настройка 1042 при видимых 659 на экране
+              375×812. Список общий на приложение — `DropdownSelect`.
+            */}
+            <DropdownSelect
+              testID="word-pairs-target-lang"
+              подпись={`${t('label_translate')}: ${LANGUAGES.find(l => l.code === language)?.name ?? language} →`}
+              значение={targetLang}
+              варианты={LANGUAGES.filter(l => l.code !== language && hasVocab(l.code)).map(l => ({ значение: l.code, текст: l.name }))}
+              onChange={setTargetLang}
+              акцент={GRADIENT[0]}
+              цвета={colors}
+            />
+          </View>
         )}
       </View>
 
@@ -675,7 +668,6 @@ const styles = StyleSheet.create({
   infoText: { fontSize: 13, flex: 1 },
   optionCard: { padding: 16, borderRadius: 16 },
   optionLabel: { fontSize: 16, fontWeight: '600' },
-  optionButtons: { flexDirection: 'row', flexWrap: 'wrap', maxWidth: '100%' },
   sizeButton: { minHeight: 48, justifyContent: 'center',
     paddingHorizontal: 20,
     paddingVertical: 12,
@@ -687,8 +679,6 @@ const styles = StyleSheet.create({
   modeRow: { flexDirection: 'row', gap: 8, marginTop: 6 },
   modeButton: { minHeight: 48, justifyContent: 'center', flex: 1, paddingVertical: 12, borderRadius: 16, alignItems: 'center' },
   modeButtonText: { fontSize: 14, fontWeight: '600' },
-  langButton: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, marginRight: 6, marginTop: 8 },
-  langButtonText: { fontSize: 14, fontWeight: '600' },
   startButton: { marginTop: 'auto', marginBottom: 20 },
   startButtonGradient: {
     flexDirection: 'row',
