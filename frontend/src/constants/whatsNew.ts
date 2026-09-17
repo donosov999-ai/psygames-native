@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.18',
+    date: '2026-09-17',
+    ru: [
+      '«Чёт-нечет»: кнопка «Разбор» — игра сама показывает решение по шагам и объясняет каждый ход',
+      'Разбор идёт на весь экран, как ролик: пауза, шаг назад и вперёд, в конце — новая доска',
+      'Разбор начинается с вашей позиции и первым делом показывает неверно поставленные клетки',
+      '«Торможение» записывает партии под своим именем: статистика не смешивается, зарядка засчитывает шаг',
+    ],
+    en: [
+      'Odd or Even: a Walkthrough button — the game shows the solution step by step and explains every move',
+      'The walkthrough plays full screen like a video: pause, step back and forward, then a new board',
+      'It starts from your own position and first points out any cells placed wrong',
+      'Inhibition saves rounds under its own name: stats no longer mix, and warm-ups count the step',
+    ],
+  },
+  {
     version: '2.54.17',
     date: '2026-09-17',
     ru: [

@@ -1,4 +1,4 @@
-/* psygames-game-inhibition · VER 3 · 17.09.2026 */
+/* psygames-game-inhibition · VER 4 · 17.09.2026 */
 /**
  * Торможение — объединённая игра: Go/No-Go + Стоп-сигнал.
  *
@@ -10,8 +10,8 @@
  *    SSD. ⚠️ SSRT этот экран НЕ считает: задержка здесь фиксирована на уровень, а не
  *    ведётся лестницей (см. блок над levelParams). SSRT — на отдельном экране stop-signal.
  *
- * Sub-mode сохраняет оригинальный game_type ('go_no_go' | 'stop_signal')
- * — биомаркеры и тренды совместимы с историей.
+ * Все режимы пишут партии под СВОИМ game_type 'inhibition', режим — в details.submode
+ * (17.09.2026, задача c1dac288, вариант А; разбор — у saveSession ниже).
  *
  * Mixed — ротация обоих режимов внутри одной сессии (50/50).
  *
@@ -105,7 +105,7 @@ export const INHIBITION_STOP_PROB = 0.25;
  *
  * 🔴 БЫЛО (до 17.09.2026): `Math.random() < 0.7` прямо в `runGngTrial`, то есть 30 % запретных.
  * Комментарий выше при этом обещал «25 %, как у обоих соседей», а отдельный экран go-no-go
- * держит 25 %. Партии этого режима пишутся под тем же game_type 'go_no_go', что и партии
+ * держит 25 %. Партии этого режима тогда писались под game_type 'go_no_go', как и партии
  * go-no-go, поэтому в одной истории лежали условия 25 % и 30 %. Это +5 п. п. к канону.
  *
  * Доля берётся у go-no-go по построению (импорт NOGO_PROB): два экрана с одним game_type не
@@ -281,10 +281,20 @@ export default function InhibitionGame() {
       }
     }
 
-    // Save with original game_type for biomarker compatibility
-    const gameType =
-      subModeRef.current === 'mixed' ? 'inhibition_mixed' :
-      subModeRef.current === 'go_no_go' ? 'go_no_go' : 'stop_signal';
+    /*
+      🔴 СВОЙ game_type У ВСЕХ РЕЖИМОВ (17.09.2026, задача c1dac288, вариант А — «ДА» координатора).
+      Было: Go/No-Go → 'go_no_go', Стоп-сигнал → 'stop_signal', Микс → 'inhibition_mixed'.
+      Статистика (app/statistics.tsx) группирует очки по game_type, и:
+      · карточки «Go/No-Go» и «Стоп-сигнал» смешивали разные формулы очков (у stop-signal
+        h·50 + cs·100 − e·60, здесь формула ниже) и разные задания (там лестница задержки и SSRT,
+        здесь одна задержка на уровень);
+      · 'inhibition_mixed' нет в GAMES — statistics.tsx отбрасывал такие партии, а карточка
+        «Торможение» не получала ничего.
+      Прежние партии не переписаны. Отличить их можно: details.submode пишет ТОЛЬКО этот экран, с
+      первой версии файла (6e5f9da6, 17.05.2026); go-no-go.tsx и stop-signal.tsx не писали его ни
+      в одном коммите. Сторожит inhibition-sessions-own-type.
+    */
+    const gameType = 'inhibition';
 
     try {
       await saveSession({
