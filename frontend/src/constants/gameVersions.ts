@@ -99,7 +99,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'sudoku-samurai': { ver: 6, date: '28.08.2026' },
   'sudoku': { ver: 14, date: '09.09.2026' },
   'switching-task': { ver: 2, date: '16.09.2026' },
-  'targets': { ver: 3, date: '16.09.2026' },
+  'targets': { ver: 4, date: '17.09.2026' },
   'tower-london': { ver: 1, date: '19.08.2026' },
   'trail-making': { ver: 2, date: '28.08.2026' },
   'visual-search': { ver: 1, date: '19.08.2026' },

@@ -1,4 +1,4 @@
-/* psygames-game-targets · VER 3 · 16.09.2026 */
+/* psygames-game-targets · VER 4 · 17.09.2026 */
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
@@ -363,9 +363,19 @@ export default function TargetsGame() {
     roundLiveRef.current = false;
     // ⚠️ Пресет — потолок желания (см. `presetCap`): в программах стоит `level: 3`,
     // и новичку выдавали третий уровень вместо первого.
+    /**
+     * 🔴 ВНЕ ПРЕСЕТА УРОВЕНЬ ДАЁТ ТОЛЬКО ЛЕСТНИЦА. 17.09.2026, задача a4d7e3c7.
+     * Было `Math.max(level, lvl.level)`, а `level` — это и ручной ряд «1…10» на настройке,
+     * и уровень прошлой партии того же захода. Три обхода лестницы:
+     *  · новичок жал «10», партия шла с 10-го, и через 10 раундов `lvl.reach(11)` записывал 11 достигнутым;
+     *  · понижение после трёх провалов (`lvl.fail`) не действовало до перезахода — старт брал прошлую партию;
+     *  · переигровка пройденной ступени на карте (`lvl.pick`) после первой партии не срабатывала.
+     * Ручного ряда больше нет, а `lvl.level` уже учитывает и переигровку, и понижение.
+     * Сторожит `targets-level-comes-from-ladder.test.tsx`.
+     */
     const startLvl = isPreset
       ? capPresetByLevel({ want: level, atLevel: lvl.loaded ? lvl.level : 1, atTop: false })
-      : Math.max(level, lvl.level);   // старт с сохранённого уровня
+      : lvl.level;
     if (!isPreset) setLevel(startLvl);
     scoreRef.current = 0;
     setScore(0);
@@ -723,34 +733,8 @@ export default function TargetsGame() {
           </Text>
         </View>
 
-        {/* Level Selection */}
-        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>{t('level')}</Text>
-          <View style={styles.levelButtons}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((lvl) => (
-              <TouchableOpacity
-                accessibilityRole="button"
-                key={lvl}
-                style={[
-                  styles.levelButton,
-                  level === lvl && { backgroundColor: GRADIENT[0] },
-                  level !== lvl && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-                ]}
-                onPress={() => setLevel(lvl)}
-              >
-                <Text
-                  style={[
-                    styles.levelButtonText,
-                    { color: level === lvl ? textOn(GRADIENT[0]) : colors.text },
-                  ]}
-                >
-                  {lvl}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
+        {/* Уровень выбирается только картой: своя ступень или переигровка пройденной.
+            Ручного ряда «1…10» здесь нет нарочно — он пускал мимо лестницы (см. startGame). */}
         <LevelProgressMap bestLevel={lvl.best}
           gameId="targets"
           currentLevel={lvl.level} onPickLevel={lvl.pick}
@@ -1013,15 +997,6 @@ const styles = StyleSheet.create({
   },
   modeButtonText: { fontSize: 15, fontWeight: '600' },
   modeHint: { fontSize: 12, textAlign: 'center' },
-  levelButtons: { flexDirection: 'row', flexWrap: 'wrap', maxWidth: '100%' },
-  levelButton: {
-    width: 44,
-    height: 48,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  levelButtonText: { fontSize: 16, fontWeight: '600' },
   startButton: { marginTop: 10 },
   readyStartButton: { width: '100%', maxWidth: 280 },
   startButtonGradient: {
