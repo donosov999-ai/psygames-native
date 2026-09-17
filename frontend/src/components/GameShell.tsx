@@ -66,6 +66,7 @@ import { текущаяЛестница } from '@/src/services/levelRegistry';
 import { router } from 'expo-router';
 import { onGameHold, isGameHeld, holdGame, onPauseMenuRequest } from '@/src/services/gamePause';
 import { immersiveCapable, onImmersiveCapable, immersiveEnabled, setImmersiveEnabled, onImmersivePref } from '@/src/services/immersive';
+import { useImmersive } from '@/src/hooks/useImmersive';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -326,6 +327,15 @@ export interface GameShellProps {
    * ⚠️ `false` — у экрана «Заново» уже стоит в СВОЁМ ряду под доской (головоломки), иначе значков будет два.
    */
   auxRestart?: boolean;
+  /**
+   * 🔴 ПОЛНЫЙ ЭКРАН — У ВСЕХ ИГР НА КАРКАСЕ (решение Дениса 17.09.2026: «да, делай на все, как дешевле по объёму
+   * работ»; режим проверен им на телефоне в «Числовом забеге»). Пока экран игры открыт, панели телефона спрятаны;
+   * пауза, отзыв поверх игры и сворачивание возвращают их (`useImmersive`). В меню паузы у всех пункт «Не скрывать
+   * панели телефона». Замер цены: на Android тестировщицы (384×784 при плотности 2,8125, экран 832) панели
+   * забирали 48 точек высоты.
+   * `false` — экрану панели нужны (сейчас таких нет); тогда нет и пункта в меню паузы.
+   */
+  immersive?: boolean;
   /**
    * 🔴 Д6 «ЗАКОНЧИТЬ И ЗАПИСАТЬ» — доиграть досрочно так, чтобы партия ЗАСЧИТАЛАСЬ.
    * Сейчас выход из длинной партии означает, что её не было вовсе.
@@ -621,7 +631,7 @@ function служебныеСЗаново(узел: React.ReactNode, значо�
 }
 
 export default function GameShell({
-  title, onBack, stats, hud, mods, headerActions, toolbar, headerRight, scrollableField, reserveUnderFab, solution, overlay, pet, pauseActions, onRestart, auxRestart, onFinishEarly, frame,
+  title, onBack, stats, hud, mods, headerActions, toolbar, headerRight, scrollableField, reserveUnderFab, solution, overlay, pet, pauseActions, onRestart, auxRestart, immersive, onFinishEarly, frame,
   confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
 
@@ -712,14 +722,19 @@ export default function GameShell({
    */
   const [щелчокТишины, дёрнутьТишину] = React.useReducer((x: number) => x + 1, 0);
   /**
-   * Полноэкранный режим в меню паузы — только у игры, объявившей его через
-   * `useImmersive` (сейчас «Числовой забег»). Выбор живёт в службе, как и звук:
+   * Полноэкранный режим: каркас сам объявляет его для любой игры (`immersive`, по умолчанию да) — хук стоит ДО
+   * любого раннего return. Пункт в меню паузы — у экрана, объявившего режим. Выбор живёт в службе, как и звук:
    * здесь только повод перерисовать подпись после нажатия.
    */
   const [полноэкранныйДоступен, setПолноэкранныйДоступен] = React.useState(immersiveCapable());
   const [щелчокЭкрана, дёрнутьЭкран] = React.useReducer((x: number) => x + 1, 0);
   React.useEffect(() => onImmersiveCapable(setПолноэкранныйДоступен), []);
   React.useEffect(() => onImmersivePref(дёрнутьЭкран), []);
+  /**
+   * ⚠️ ХУК — ПОСЛЕ ПОДПИСОК ВЫШЕ. Эффекты идут в порядке объявления: объявление режима, стоящее раньше подписки
+   * на него, прозвучало бы в пустоту, и пункт в меню паузы не появился бы (поймано пробой меню паузы 17.09.2026).
+   */
+  useImmersive(immersive !== false, immersive !== false);
   const тихо = !звукВключён() && !hapticEnabledNow();
   React.useEffect(() => onGameHold((v) => {
     setPaused(v);

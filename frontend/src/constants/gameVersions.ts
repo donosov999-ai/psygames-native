@@ -56,7 +56,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'n-back': { ver: 1, date: '19.08.2026' },
   'navigator': { ver: 3, date: '17.09.2026' },
   'number-bonds': { ver: 2, date: '06.09.2026' },
-  'number-run': { ver: 3, date: '16.09.2026' },
+  'number-run': { ver: 4, date: '17.09.2026' },
   'nut-sort': { ver: 1, date: '06.09.2026' },
   'object-tracker': { ver: 3, date: '17.09.2026' },
   'one-line': { ver: 5, date: '17.09.2026' },

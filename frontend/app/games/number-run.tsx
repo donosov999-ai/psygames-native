@@ -1,4 +1,4 @@
-/* psygames-game-number-run · VER 3 · 16.09.2026 */
+/* psygames-game-number-run · VER 4 · 17.09.2026 */
 /**
  * ЧИСЛОВОЙ ЗАБЕГ — ЭКРАН НА ОБЩЕМ КАРКАСЕ.
  *
@@ -42,7 +42,6 @@ import GameShell from '@/src/components/GameShell';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { onGameHold, isGameHeld, requestPauseMenu } from '@/src/services/gamePause';
-import { useImmersive } from '@/src/hooks/useImmersive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ПАЛЕЦ, ПОЛЯ_ОТВЕТА } from '@/src/components/gameLayout';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -109,10 +108,10 @@ export default function NumberRunScreen() {
    */
   useEffect(() => onGameHold((held) => setПауза(held)), []);
   /**
-   * Полосы телефона (часы, «домой») уходят, пока идёт забег, и возвращаются на
-   * паузе и на итоге — правила в `src/services/immersive.ts`, Денис 16.09.2026.
+   * Полосы телефона (часы, «домой») прячет КАРКАС — у всех игр, пока экран открыт (GameShell `immersive`, решение
+   * Дениса 17.09.2026 после проверки на телефоне именно здесь; правила — `src/services/immersive.ts`). Своя строка
+   * `useImmersive(фаза === 'playing')` снята: два хука спорили бы за одну команду.
    */
-  useImmersive(фаза === 'playing');
 
   const начать = useCallback(() => {
     const уровень = playMode === 'levels' ? lvl.level : null;
