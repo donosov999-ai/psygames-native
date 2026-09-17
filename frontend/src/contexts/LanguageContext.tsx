@@ -1026,6 +1026,9 @@ const translations: Translations = {
   teachPlay: { ru: 'Смотреть', en: 'Play' },
   teachPause: { ru: 'Пауза', en: 'Pause' },
   puzzleErrorShown: { ru: 'Красным отмечено, где нарушено правило', en: 'Red marks where a rule is broken' },
+  puzzleWhereError: { ru: 'Где ошибка?', en: 'Where\'s the mistake?' },
+  puzzleWrongLines: { ru: 'Лишние линии обведены красным: {n}', en: 'Extra lines circled in red: {n}' },
+  puzzleNoWrongLines: { ru: 'Лишних нет — дорисуйте, где нет заливки', en: 'No extra lines — add them where there\'s no fill' },
   puzzleHudMarked: { ru: 'Отмечено', en: 'Marked' },
   puzzleHudActive: { ru: 'Соединено', en: 'Connected' },
   /**
