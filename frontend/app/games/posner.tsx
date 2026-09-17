@@ -81,6 +81,14 @@ interface Trial { cueDir: Side | null; targetSide: Side; validity: CueValidity; 
  * 0.7/0.85 ≈ 82 % среди направленных — внутри канона. Вес сложности перенесён на
  * интервал cue→target, окно ответа и число проб (`levelParams` ниже).
  * Сторожит `conflict-ratio-is-not-difficulty.test.ts`.
+ *
+ * 📚 ИСТОЧНИКИ КАНОНА (сверено 17.09.2026, не по памяти):
+ * · Posner M.I. (1980). Orienting of attention. Quarterly Journal of Experimental
+ *   Psychology 32(1):3–25, doi:10.1080/00335558008248231 — первоисточник парадигмы.
+ * · Доли в реализациях разные: распространённый вариант 80/20, PsyToolkit со ссылкой на
+ *   Posner 1980 даёт 75/25, SOA 150 мс, 100 проб (psytoolkit.org/experiment-library/cueing.html).
+ * Отступление от канона: +2 п. п. к 80/20 (у нас ≈ 82 % среди направленных), +7 п. п. к 75/25.
+ * SOA у нас от 150–250 мс (L1) до 80–700 мс (L15) — это ось сложности, не канон, см. `levelParams`.
  */
 export const VALID_RATIO = 0.7;   // доля валидных подсказок от всех проб
 const NEUTRAL_RATIO = 0.15;       // доля нейтральных проб («+», направления нет)
