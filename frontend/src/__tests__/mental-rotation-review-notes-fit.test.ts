@@ -1,4 +1,4 @@
-/* psygames-mental-rotation-review-notes-fit · VER 1 · 17.09.2026 */
+/* psygames-mental-rotation-review-notes-fit · VER 2 · 17.09.2026 */
 /* psygames-spatial-claude-mac · найдено при приёмке «Среза» (задача 4f85b6a9) */
 /**
  * 🔴 ПОДПИСЬ ПОД ВАРИАНТОМ В РАЗБОРЕ ДОЛЖНА ЧИТАТЬСЯ ЦЕЛИКОМ.
@@ -25,14 +25,16 @@ declare function require(id: string): any;
 const fs = require('fs');
 const path = require('path');
 
-const ПОДПИСИ = ['optionCorrect', 'optionMirror', 'optionOther', 'optionOtherView', 'optionEditedShape', 'optionSwap', 'optionWholeFigure', 'optionNeighbourLayer', 'optionTurned'] as const;
+// VER 2 (17.09.2026, «Сечение», задача 4f85b6a9): +3 подписи — как видно на рисунке, тень на грань, другая плоскость.
+// Самая длинная из новых — «wie in der Zeichnung gesehen», 28 знаков: порог прежний.
+const ПОДПИСИ = ['optionCorrect', 'optionMirror', 'optionOther', 'optionOtherView', 'optionEditedShape', 'optionSwap', 'optionWholeFigure', 'optionNeighbourLayer', 'optionTurned', 'optionSeenAtAngle', 'optionShadow', 'optionOtherPlane'] as const;
 const ПОРОГ = 32;
 
 describe('подписи под вариантами в разборе «Мысленного вращения»', () => {
-  it('прибор жив: 9 подписей × 12 языков, самая длинная — 31 знак', () => {
+  it('прибор жив: 12 подписей × 12 языков, самая длинная — 31 знак', () => {
     expect(LANGUAGES.length).toBe(12);
     const длины = LANGUAGES.flatMap(({ code }) => ПОДПИСИ.map((k) => [...getMentalRotationStrings(code as MentalRotationLocale)[k]].length));
-    expect(длины.length).toBe(108);
+    expect(длины.length).toBe(144);
     expect(Math.max(...длины)).toBe(31);
   });
 

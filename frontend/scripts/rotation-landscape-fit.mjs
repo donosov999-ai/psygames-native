@@ -1,4 +1,4 @@
-/* psygames-rotation-landscape-fit · VER 1 · 17.09.2026 */
+/* psygames-rotation-landscape-fit · VER 2 · 17.09.2026 */
 /**
  * rotation-landscape-fit — в альбоме эталон «Мысленного вращения» виден целиком и не мельче варианта.
  *
@@ -69,7 +69,7 @@ for (const size of SIZES) {
       const рисунокВарианта = Math.max(0, ...варианты.map((o) => сторона(o.querySelector('svg'))));
       const рисункиЭталона = [...ref.querySelectorAll('svg')].map(сторона);
       // Подписи вида в альбоме нет (шапке не хватает места) — вид узнаём по разметке эталона и вопросу.
-      const поМетке = [['section-layer', 'Срез'], ['missing-whole', 'Недостающая часть'], ['formation-views', 'Три вида'], ['assembly-parts', 'Сборка'], ['same-pair', 'Одинаковы?']]
+      const поМетке = [['section-layer', 'Срез'], ['missing-whole', 'Недостающая часть'], ['formation-views', 'Три вида'], ['assembly-parts', 'Сборка'], ['same-pair', 'Одинаковы?'], ['oblique-reference', 'Сечение'], ['memory-figure', 'Память'], ['memory-hidden', 'Память']]
         .find(([id]) => ref.querySelector(`[data-testid="${id}"]`));
       const вид = поМетке ? поМетке[1] : (ref.previousElementSibling?.textContent ?? '?').trim().slice(0, 28);
       return {

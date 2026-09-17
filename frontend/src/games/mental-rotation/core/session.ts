@@ -22,6 +22,7 @@ import { buildNetTask } from './net';
 import { buildAssemblyTask, buildMissingTask } from './pieces';
 import { buildFormationTask } from './formation';
 import { buildMemoryTask } from './memory';
+import { buildObliqueTask } from './oblique';
 import { buildSectionTask } from './section';
 import { buildSameTask } from './same';
 import { buildViewpointTask } from './viewpoint';
@@ -48,9 +49,11 @@ import type { MentalRotationTask, Rng, TaskKind } from './types';
  * 17.09.2026, задача 69f1810f: «Память» — тринадцатым. Это «Поворот», у которого эталон
  * прячут, поэтому ставится после «Сборки» (11) и до «Трёх видов» (15): поворот к этому
  * уровню отработан, а держать фигуру в голове — следующий шаг того же навыка.
+ * 17.09.2026, задача 4f85b6a9: «Сечение» (косая плоскость) — двадцать четвёртым, после «Недостающей
+ * части» (21): это самое трудное — вторая геометрия, где разрез уже не клетки, а многоугольник.
  */
 export const KIND_UNLOCK: Record<TaskKind, number> = {
-  rotation: 1, projection: 3, net: 5, viewpoint: 7, same: 9, assembly: 11, memory: 13, formation: 15, section: 18, missing: 21,
+  rotation: 1, projection: 3, net: 5, viewpoint: 7, same: 9, assembly: 11, memory: 13, formation: 15, section: 18, missing: 21, oblique: 24,
 };
 
 /** Ниже этой доли поворотных проб партия опускаться не должна — см. шапку. */
@@ -104,6 +107,7 @@ export function buildTask(kind: TaskKind, level: number, rng: Rng): MentalRotati
   if (kind === 'formation') return buildFormationTask(level, rng);
   if (kind === 'section') return buildSectionTask(level, rng);
   if (kind === 'memory') return buildMemoryTask(level, rng);
+  if (kind === 'oblique') return buildObliqueTask(level, rng);
   return buildRotationTask(level, rng);
 }
 

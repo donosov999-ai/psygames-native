@@ -1,4 +1,4 @@
-/* psygames-game-mental-rotation · VER 8 · 17.09.2026 */
+/* psygames-game-mental-rotation · VER 9 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /**
  * Mental Rotation — три вида пространственных заданий на одной геометрии
@@ -76,6 +76,7 @@ import {
   interpolateMentalRotation,
   levelSummary,
   meanSlopeRt,
+  fitPolygon,
   netCellKey,
   netSize,
   planTaskKinds,
@@ -89,10 +90,12 @@ import {
   type FaceMark,
   type MentalRotationLocale,
   type MentalRotationTask,
+  type ObliqueOption,
   type Shape,
   type TaskKind,
   type TrialRecord,
 } from '@/src/games/mental-rotation/core';
+import { ObliquePolygonOption, ObliqueSectionReference } from '@/src/components/ObliqueSectionReference';
 
 const GRADIENT = ['#5614b0', '#dbd65c'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -570,6 +573,7 @@ export default function MentalRotationGame() {
       : kind === 'formation' ? strings.taskFormation
       : kind === 'section' ? strings.taskSection
       : kind === 'memory' ? strings.taskMemory
+      : kind === 'oblique' ? strings.taskOblique
       : strings.taskNet
   );
   /** Секунды показа для подписи «Память»: 4,5 — с запятой там, где так пишут дроби. */
@@ -586,6 +590,10 @@ export default function MentalRotationGame() {
     if (!feedback) return '';
     if (opt.isMatch) return strings.optionCorrect;
     if (opt.flaw === 'mirror') return strings.optionMirror;
+    // «Сечение»: «другая» — это другая плоскость, а не другая фигура.
+    if (opt.flaw === 'other' && task.kind === 'oblique') return strings.optionOtherPlane;
+    if (opt.flaw === 'seen') return strings.optionSeenAtAngle;
+    if (opt.flaw === 'shadow') return strings.optionShadow;
     if (opt.flaw === 'other') return strings.optionOther;
     if (opt.flaw === 'other-view') return strings.optionOtherView;
     if (opt.flaw === 'edited-shape' || opt.flaw === 'one-cube' || opt.flaw === 'one-cell') return strings.optionEditedShape;
@@ -725,6 +733,7 @@ export default function MentalRotationGame() {
                   {(task.kind === 'rotation' || (task.kind === 'memory' && !studying)) && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
                   {(task.kind === 'projection' || task.kind === 'section') && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
                   {task.kind === 'net' && renderMarkedCube((opt as { faces: FaceMap }).faces, optSize, GRADIENT[1])}
+                  {task.kind === 'oblique' && <ObliquePolygonOption points={fitPolygon((opt as ObliqueOption).points, optSize, 8)} size={optSize} fill={GRADIENT[1]} />}
                   {task.kind === 'viewpoint' && renderShape(task.shape, optSize, GRADIENT[1], task.axis, (opt as { degrees: number }).degrees)}
                   {(task.kind === 'missing' || task.kind === 'assembly' || task.kind === 'formation') && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
                   {task.kind === 'same' && <Text style={{fontSize:Math.max(16,Math.min(26,optSize/3)),fontWeight:'700',color:colors.text}}>
@@ -785,6 +794,7 @@ export default function MentalRotationGame() {
                   : task.kind === 'missing' ? strings.missingPrompt
                   : task.kind === 'assembly' ? strings.assemblyPrompt
                   : task.kind === 'formation' ? strings.formationPrompt
+                  : task.kind === 'oblique' ? strings.obliquePrompt
                   : task.kind === 'section'
                   ? interpolateMentalRotation(strings.sectionPrompt, {
                       view: task.view === 'top' ? strings.viewTop : task.view === 'front' ? strings.viewFront : strings.viewSide,
@@ -798,6 +808,9 @@ export default function MentalRotationGame() {
                   ? <RotationWorkbench key={round} initial={frames[reviewStep]?.shape??task.base} target={task.options[task.correctIdx].shape} size={baseSize} reduceMotion={false} ink={colors.text} accent={colors.primary} ru={language==='ru'}/>
                   : (task.kind==='rotation'||task.kind==='memory')&&reviewing&&reviewStep>0
                   ? <RotationTransition key={`${round}-${reviewStep}`} from={frames[reviewStep-1].shape} to={frames[reviewStep].shape} axis={frames[reviewStep].axis!} size={baseSize}/>
+                  : task.kind === 'oblique'
+                  // «Сечение»: рёбра тела и закрашенная косая плоскость, как в учебнике стереометрии.
+                  ? <View testID="oblique-reference"><ObliqueSectionReference dims={task.dims} section={task.section} size={baseSize}/></View>
                   : task.kind === 'memory'
                   // «Память»: фигура видна при показе и в разборе; спрятанной её нет в разметке вовсе —
                   // не прозрачность, а пустая карточка со знаком вопроса.
@@ -839,7 +852,7 @@ export default function MentalRotationGame() {
                       ? (frames[reviewStep]?.shape ?? task.base)   // в разборе эталон сам поворачивается
                       : task.shape} size={baseSize}/>}
               <Text style={[styles.baseLabel, { color: colors.textSecondary }]}>
-                {task.kind === 'net' ? strings.taskNet : task.kind === 'assembly' || task.kind === 'formation' ? '' : t('label_reference')}
+                {task.kind === 'net' ? strings.taskNet : task.kind === 'assembly' || task.kind === 'formation' || task.kind === 'oblique' ? '' : t('label_reference')}
               </Text>
             </View>
             {reviewing&&(task.kind==='rotation'||task.kind==='memory')&&!manualReview?<TouchableOpacity testID="rotation-manual-start" accessibilityRole="button" onPress={()=>setManualReview(true)} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.primary,fontWeight:'700'}}>{strings.rotateManually}</Text></TouchableOpacity>:null}
@@ -857,6 +870,7 @@ export default function MentalRotationGame() {
                     : task.kind === 'formation' ? strings.reviewFormationHint
                     : task.kind === 'section' ? strings.reviewSectionHint
                     : task.kind === 'memory' ? strings.reviewMemoryHint
+                    : task.kind === 'oblique' ? strings.reviewObliqueHint
                     : strings.reviewNetHint}
                 </Text>
                 {(task.kind === 'rotation' || task.kind === 'memory') && (
