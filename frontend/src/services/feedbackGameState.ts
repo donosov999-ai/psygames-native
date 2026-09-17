@@ -1,4 +1,4 @@
-/* psygames-feedback-game-state · VER 1 · 28.08.2026 */
+/* psygames-feedback-game-state · VER 2 · 17.09.2026 */
 /**
  * ЖИВОЕ СОСТОЯНИЕ ЭКРАНА — В РЕПОРТ. Денис 28.08 по багу «небоскрёбы · Ур.45/8»:
  * репорт Валентины нёс уровень-ПРОГРЕСС (45 из хранилища) и редакцию файла, но не
@@ -31,4 +31,32 @@ export function publishFeedbackGameState(next: Record<string, unknown> | null): 
 /** Снимок для отправляемого репорта (копия — репорт не должен видеть поздние правки). */
 export function readFeedbackGameState(): Record<string, unknown> | null {
   return state ? { ...state } : null;
+}
+
+/**
+ * 🔴 ПАРАМЕТРЫ ЭКРАНА — В ОТЧЁТ, ДАЖЕ ЕСЛИ ЭКРАН НИЧЕГО НЕ ПУБЛИКУЕТ (задача 75348e44, 17.09.2026).
+ *
+ * 📍 Замер 14.09.2026: `publishFeedbackGameState` зовут 2 экрана из 95. За одним адресом
+ * `/games/puzzles` стоят сорок два режима, за `/games/anagrams` — четыре игры, а в отчёте
+ * лежал только `screen`. Режим, с которым экран ОТКРЫТ (`?mode=Singles`, `wu=1` из зарядки,
+ * `diff`, `seed`), знает маршрут, и снять его можно одним местом — виджетом отзыва, для всех
+ * экранов сразу. Режим, который человек переключил ВНУТРИ экрана, маршрут не знает: это
+ * по-прежнему `publishFeedbackGameState` экрана.
+ *
+ * Чистка: служебные ключи роутера (`__…`) не берём, массив склеиваем через запятую, значение
+ * режем до 120 знаков, ключей не больше 12. Пусто — `undefined`, чтобы в отчёте не было `{}`.
+ */
+export function параметрыЭкранаДляОтзыва(
+  p: Record<string, string | string[] | undefined> | null | undefined,
+): Record<string, string> | undefined {
+  if (!p || typeof p !== 'object') return undefined;
+  const итог: Record<string, string> = {};
+  for (const [ключ, значение] of Object.entries(p)) {
+    if (Object.keys(итог).length >= 12) break;
+    if (!ключ || ключ.startsWith('__')) continue;
+    const строка = Array.isArray(значение) ? значение.join(',') : значение;
+    if (typeof строка !== 'string' || строка === '') continue;
+    итог[ключ] = строка.slice(0, 120);
+  }
+  return Object.keys(итог).length > 0 ? итог : undefined;
 }

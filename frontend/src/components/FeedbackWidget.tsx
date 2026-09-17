@@ -17,6 +17,7 @@
 import { текстОтправки } from '@/src/services/liveFieldText';
 import { textOn } from '@/src/services/onGradientText';
 import { pushCrumb } from '@/src/services/crumbs';
+import { параметрыЭкранаДляОтзыва } from '@/src/services/feedbackGameState';
 import React from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
@@ -31,7 +32,7 @@ import { DEVCHAT_VISIBLE_EVENT } from '@/src/services/pet';
 import { FEEDBACK_OPEN_EVENT } from '@/src/services/appFeedback';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePathname } from 'expo-router';
+import { useGlobalSearchParams, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
@@ -69,6 +70,12 @@ export default function FeedbackWidget() {
   const { t, language } = useLanguage();
   const { profile } = useProfile();
   const pathname = usePathname() || '';
+  /**
+   * Параметры ОТКРЫТОГО экрана (режим, зарядка, трудность) — в отчёт (задача 75348e44).
+   * ⚠️ Именно `useGlobalSearchParams`: виджет смонтирован в корневом слое, и
+   * `useLocalSearchParams` отдал бы параметры корня, где их нет никогда.
+   */
+  const параметрыЭкрана = useGlobalSearchParams();
   // Крошка навигации: каждый экран — шаг траектории репорта (steps, §3.1).
   React.useEffect(() => { if (pathname) pushCrumb(`screen ${pathname}`); }, [pathname]);
   // RTL: кнопка зеркалится к правому краю (а «?»-справка уходит влево) — не конфликтуем
@@ -488,6 +495,7 @@ export default function FeedbackWidget() {
         language, theme: colors.background,
         profile: profile.id, profileName: profile.display_name,
         level,
+        route_params: параметрыЭкранаДляОтзыва(параметрыЭкрана),
       },
     });
     sendingRef.current = false;

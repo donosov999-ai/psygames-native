@@ -11,6 +11,10 @@ import React from 'react';
 import TestRenderer from 'react-test-renderer';
 
 const отправлено: string[] = [];
+/** Контекст последнего отправленного отчёта — для проверки параметров экрана. */
+const mockКонтексты: any[] = [];
+/** Параметры открытого экрана, которые отдаёт роутер (useGlobalSearchParams). */
+let mockParams: Record<string, string | string[]> = {};
 
 jest.mock('@/src/services/appFeedback', () => ({
   FEEDBACK_ENABLED: true,
@@ -19,6 +23,7 @@ jest.mock('@/src/services/appFeedback', () => ({
   captureScreenshot: () => Promise.resolve(null),
   sendFeedback: (a: any) => {
     отправлено.push(a.message);
+    mockКонтексты.push(a.context);
     return Promise.resolve({ ok: true, queued: false, audioSent: false, audioLost: false });
   },
 }));
@@ -31,7 +36,7 @@ jest.mock('@/src/services/voiceNote', () => ({
   SILENCE_PEAK: 0.02,
 }));
 jest.mock('@/src/services/feedbackDialog', () => ({ getMyDialog: () => Promise.resolve([]) }));
-jest.mock('expo-router', () => ({ usePathname: () => '/games/schulte' }));
+jest.mock('expo-router', () => ({ usePathname: () => '/games/schulte', useGlobalSearchParams: () => mockParams }));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
@@ -136,7 +141,7 @@ describe('обрывок в живом виджете', () => {
   // держит его открытым и jest не выходит.
   beforeAll(() => { jest.useFakeTimers(); });
   afterAll(() => { jest.useRealTimers(); });
-  beforeEach(() => { отправлено.length = 0; });
+  beforeEach(() => { отправлено.length = 0; mockКонтексты.length = 0; mockParams = {}; });
 
   it('🔴 «I» с первого нажатия НЕ уезжает — вместо кнопки развилка', async () => {
     const r = await открыть();
@@ -223,5 +228,28 @@ describe('обрывок в живом виджете', () => {
     await TestRenderer.act(async () => { send[0].props.onPress(); send[0].props.onPress(); });
     await settle();
     expect(`отправок за два тапа: ${отправлено.length}`).toBe('отправок за два тапа: 1');
+  });
+  /**
+   * 🔴 ОТЧЁТ ГОВОРИТ, В КАКОМ РЕЖИМЕ ОТКРЫТ ЭКРАН (задача 75348e44). За одним адресом
+   * `/games/puzzles` сорок два режима; раньше в отчёте был только адрес. Контроль с
+   * известным ответом: второй отчёт из ДРУГОГО режима обязан нести другой режим, а не
+   * любое непустое значение.
+   */
+  it('🔴 отчёт несёт параметры открытого экрана, и у другого режима — другие', async () => {
+    mockParams = { mode: 'Singles', wu: '1' };
+    const r = await открыть();
+    await печатать(r, 'Угловая клетка не нажимается');
+    await TestRenderer.act(async () => { кнопкаОтправить(r)[0].props.onPress(); });
+    await settle();
+    expect(`режим в отчёте: ${JSON.stringify(mockКонтексты[0]?.route_params)}`)
+      .toBe('режим в отчёте: {"mode":"Singles","wu":"1"}');
+
+    mockParams = { mode: 'Mines' };
+    await открытьСнова(r);
+    await печатать(r, 'Флажок не ставится долгим нажатием');
+    await TestRenderer.act(async () => { кнопкаОтправить(r)[0].props.onPress(); });
+    await settle();
+    expect(`режим во втором отчёте: ${JSON.stringify(mockКонтексты[1]?.route_params)}`)
+      .toBe('режим во втором отчёте: {"mode":"Mines"}');
   });
 });
