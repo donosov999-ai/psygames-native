@@ -693,9 +693,15 @@ export default function GameShell({
     if (!pauseHoldRef.current) pauseHoldRef.current = holdGame();
   }), []);
   const [paused, setPaused] = React.useState(isGameHeld());
-  /** Висит вопрос «Начать заново?» (значок в ряду под полем при `confirmExit`). Пока висит — игра на паузе. */
-  const [спросЗаново, setСпросЗаново] = React.useState(false);
-  React.useEffect(() => (спросЗаново ? holdGame() : undefined), [спросЗаново]);
+  /**
+   * Вопрос из ряда значков под полем: «Начать заново?» (при `confirmExit`) или «Остановить упражнение?» (у «СТОП»,
+   * см. `РядЗначков`). Пока висит — игра на паузе.
+   */
+  const [вопросРяда, setВопросРяда] = React.useState<null | { заголовок: string; тело?: string; кнопка: string; действие: () => void }>(null);
+  React.useEffect(() => (вопросРяда ? holdGame() : undefined), [вопросРяда]);
+  const контекстРяда = React.useMemo(() => ({
+    спросить: (подпись: string, действие: () => void) => setВопросРяда({ заголовок: t('stopConfirmTitle'), кнопка: подпись, действие }),
+  }), [t]);
   /**
    * Отражение звука в меню паузы. Служба хранит флаг в модуле, а не в состоянии
    * React, поэтому подпись кнопки надо пересчитывать — иначе она врёт после нажатия.
@@ -1040,7 +1046,7 @@ export default function GameShell({
       ? { label: пунктЗаново.label, icon: пунктЗаново.icon, onPress: пунктЗаново.onPress! }
       : onRestart ? { label: t('restart'), icon: 'refresh', onPress: onRestart } : null;
   const рядСлужебных = служебные || solution || заново ? (
-    <РядЗначков.Provider value>
+    <РядЗначков.Provider value={контекстРяда}>
       <View
         testID="game-aux-row"
         style={[styles.auxRow, { paddingHorizontal: PAD_H, paddingBottom: toolbar ? PAD_V : PAD_V + bottomSafe }]}
@@ -1050,7 +1056,10 @@ export default function GameShell({
             key="aux-restart"
             icon={заново.icon}
             label={заново.label}
-            onPress={() => { if (confirmExit) setСпросЗаново(true); else заново.onPress(); }}
+            onPress={() => {
+              if (!confirmExit) { заново.onPress(); return; }
+              setВопросРяда({ заголовок: t('restartConfirmTitle'), тело: t('exitConfirmLost'), кнопка: заново.label, действие: заново.onPress });
+            }}
           />
         ) : null)}
         {solution ? (
@@ -1631,41 +1640,42 @@ export default function GameShell({
       )}
 
       {/*
-        Вопрос «Начать заново?» — та же карточка, что у выхода: безопасный ответ первым и залитым.
-        Задаётся только когда есть что терять (`confirmExit`), см. проп `auxRestart`.
+        Вопрос из ряда значков — та же карточка, что у выхода: безопасный ответ первым и залитым.
+        «Начать заново?» — только когда есть что терять (`confirmExit`, проп `auxRestart`); «Остановить упражнение?» —
+        у «СТОП» в ряду всегда (разбор у `РядЗначков` в GameAuxAction).
       */}
-      {спросЗаново && заново ? (
+      {вопросРяда ? (
         <View style={styles.exitOverlay} pointerEvents="auto">
           <View style={[styles.exitCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text accessibilityRole="header" testID="restart-confirm-title" style={[styles.exitTitle, { color: colors.text }]}>
-              {t('restartConfirmTitle')}
+            <Text accessibilityRole="header" testID="row-confirm-title" style={[styles.exitTitle, { color: colors.text }]}>
+              {вопросРяда.заголовок}
             </Text>
-            <Text testID="restart-confirm-body" style={[styles.exitBody, { color: colors.textSecondary }]}>
-              {t('exitConfirmLost')}
-            </Text>
+            {вопросРяда.тело ? (
+              <Text testID="row-confirm-body" style={[styles.exitBody, { color: colors.textSecondary }]}>{вопросРяда.тело}</Text>
+            ) : null}
             <View style={styles.exitButtons}>
               <TouchableOpacity
-                testID="restart-confirm-stay"
+                testID="row-confirm-stay"
                 accessibilityRole="button"
-                onPress={() => setСпросЗаново(false)}
+                onPress={() => setВопросРяда(null)}
                 style={[styles.exitBtn, { backgroundColor: colors.primary }]}
               >
                 <Text style={[styles.exitBtnText, { color: '#fff' }]}>{t('exitConfirmStay')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                testID="restart-confirm-go"
+                testID="row-confirm-go"
                 accessibilityRole="button"
-                onPress={() => { setСпросЗаново(false); заново.onPress(); }}
+                onPress={() => { const д = вопросРяда.действие; setВопросРяда(null); д(); }}
                 style={[styles.exitBtn, styles.exitBtnGhost, { borderColor: colors.border }]}
               >
-                <Text style={[styles.exitBtnText, { color: colors.text }]}>{заново.label}</Text>
+                <Text style={[styles.exitBtnText, { color: colors.text }]}>{вопросРяда.кнопка}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       ) : null}
 
-      {paused && !exitGuard.asking && !спросЗаново && (
+      {paused && !exitGuard.asking && !вопросРяда && (
         /**
          * 🔴 ПОЛЕ ПРЯЧЕТСЯ ЦЕЛИКОМ, А НЕ ЗАТЕМНЯЕТСЯ. Часы на паузе стоят, и
          * видимая доска при остановленном секундомере превращает рекорд в фикцию:
@@ -1860,6 +1870,12 @@ export const БЕЗ_ЖЕСТА_ПРОКРУТКИ = Platform.OS === 'web'
 
 export const PAD_H = 10;
 const PAD_V = 5;    // вертикальный зазор между полосами (было 6…10)
+/**
+ * Высота ряда служебных значков под полем с полосой ответа внизу: отступ 8 + значок 48 + зазор PAD_V (5).
+ * Нужна экранам, которые держат содержимое в одной линии с соседями БЕЗ ряда (коробка стимула «Внимания»):
+ * ряд отнимает поле снизу — столько же такой экран отдаёт сверху. Замер 17.09.2026, CPT 390×844: ряд 642…703.
+ */
+export const ВЫСОТА_РЯДА_СЛУЖЕБНЫХ = 8 + 48 + PAD_V;
 
 const styles = StyleSheet.create({
   wuPos: { minHeight: 32, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },

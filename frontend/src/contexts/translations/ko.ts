@@ -1893,6 +1893,7 @@ const t: Record<string, string> = {
   "exitConfirmLost": "이 판은 저장되지 않습니다. 판과 진행 상황이 사라집니다.",
   "exitConfirmStay": "계속하기",
   "restartConfirmTitle": "처음부터 다시 시작할까요?",
+  "stopConfirmTitle": "연습을 멈출까요?",
   "exitConfirmLeave": "나가기",
   "hud_correct": "정답",
   "hud_errors": "오답",

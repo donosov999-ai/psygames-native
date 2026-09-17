@@ -1893,6 +1893,7 @@ const t: Record<string, string> = {
   "exitConfirmLost": "La partie ne sera pas sauvegardée : le plateau et votre progression seront perdus.",
   "exitConfirmStay": "Continuer à jouer",
   "restartConfirmTitle": "Recommencer ?",
+  "stopConfirmTitle": "Arrêter l’exercice ?",
   "exitConfirmLeave": "Quitter",
   "hud_correct": "Correct",
   "hud_errors": "Erreurs",

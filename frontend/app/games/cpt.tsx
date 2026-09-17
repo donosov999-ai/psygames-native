@@ -1,4 +1,4 @@
-/* psygames-game-cpt · VER 3 · 16.09.2026 */
+/* psygames-game-cpt · VER 4 · 17.09.2026 */
 /**
  * CPT — Continuous Performance Test: X-задача Rosvold et al. (1956) и её AX-вариант.
  * ⚠️ НЕ Conners Not-X: там жмут на всё, КРОМЕ X, и цели частые. Разбор — у TARGET_RATE.
@@ -47,7 +47,7 @@ import { vigilanceAccuracySlope } from '@/src/games/attention/measures';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
-import GameShell from '@/src/components/GameShell';
+import GameShell, { ВЫСОТА_РЯДА_СЛУЖЕБНЫХ } from '@/src/components/GameShell';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -875,7 +875,8 @@ export default function CPTGame() {
              прямо под этим окном, в нижней полосе — той самой, которая во
              «Фланкере» и «Саймоне» означает ответ, — стоял «СТОП»,
              заканчивающий сеанс. Промах вниз стоил всей пробы.
-             Теперь «СТОП» в шапке, как и у остальных упражнений с сеансом. */
+             Теперь «СТОП» не в полосе ответа: с 17.09.2026 он в ряду значков под полем и сначала
+             спрашивает «Остановить упражнение?» — промах на скорости сеанс не обрывает. */
           /**
            * 🔴 10.09.2026 ДВЕ ПОЛОСЫ НАД ПОЛЕМ ВМЕСТО ТРЁХ. Бейдж правил жил в
            * отдельном слоте `stats`, и над полем стояло три ряда: счётчики,
@@ -907,7 +908,15 @@ export default function CPTGame() {
             </AnswerBar>
           }
         >
-          <View style={styles.fieldCol}>
+          {/*
+            🔴 КОРОБКА СТИМУЛА — В ОДНОЙ ЛИНИИ С ДЕВЯТЬЮ ПРОБАМИ РАЗДЕЛА (координатор, 17.09.2026).
+            Служебные «СТОП» и значок правила уровня стоят теперь рядом значков ПОД полем (решение Дениса), а
+            не над ним. Ряд отнимает у поля 61 pt СНИЗУ, и центрированная коробка поднялась на 57 pt: CI-гейт
+            geometry-attention на кандидате 2.54.20 не нашёл её вовсе (верх 200 при пороге «> 200»), а центр
+            350 вышел бы из линии раздела 377…399. У остальных девяти проб ряда нет, поэтому CPT отдаёт сверху
+            ровно столько, сколько ряд забирает снизу: коробка встаёт на 380, в середину линии.
+          */}
+          <View style={[styles.fieldCol, { paddingTop: ВЫСОТА_РЯДА_СЛУЖЕБНЫХ }]}>
             <TouchableOpacity
               accessibilityRole="button"
               activeOpacity={0.7}

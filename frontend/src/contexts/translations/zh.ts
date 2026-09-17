@@ -1898,6 +1898,7 @@ const t: Record<string, string> = {
   "exitConfirmLost": "本局不会保存：棋盘和进度都会丢失。",
   "exitConfirmStay": "继续游戏",
   "restartConfirmTitle": "重新开始？",
+  "stopConfirmTitle": "停止练习？",
   "exitConfirmLeave": "退出",
   "hud_correct": "正确",
   "hud_errors": "错误",

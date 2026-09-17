@@ -1,4 +1,4 @@
-/* psygames-aux-row-under-field · VER 3 · 17.09.2026 */
+/* psygames-aux-row-under-field · VER 4 · 17.09.2026 */
 /**
  * 🔴 СЛУЖЕБНЫЕ ДЕЙСТВИЯ — ОДНИМ РЯДОМ ЗНАЧКОВ ПОД ПОЛЕМ, У ВСЕХ ИГР, ГДЕ БЫ ИХ НИ ПРОСИЛИ ПОСТАВИТЬ.
  *
@@ -184,7 +184,7 @@ it('🔴 «Начать заново» из пункта паузы — знач
   // Партия без прогресса (`confirmExit` не дан) — перезапуск сразу, без вопроса.
   await TestRenderer.act(async () => { хостДети(ряд)[0]!.props.onClick(); });
   expect(заново).toHaveBeenCalledTimes(1);
-  expect(якоря(r.root, 'restart-confirm-title')).toHaveLength(0);
+  expect(якоря(r.root, 'row-confirm-title')).toHaveLength(0);
 });
 
 it('🔴 порядок как у образцов: отменить, заново, потом подсказки', async () => {
@@ -205,16 +205,44 @@ it('🔴 есть что терять (confirmExit) — значок снача�
   const кнопка = () => хостДети(якоря(r.root, 'game-aux-row')[0]!).find((d) => d.props?.accessibilityLabel === 'Заново')!;
   await TestRenderer.act(async () => { кнопка().props.onClick?.(); });
   expect(заново).not.toHaveBeenCalled();
-  expect(якоря(r.root, 'restart-confirm-title')).toHaveLength(1);
+  expect(якоря(r.root, 'row-confirm-title')).toHaveLength(1);
   // «Продолжить игру» — вопрос снят, перезапуска нет.
-  await TestRenderer.act(async () => { якоря(r.root, 'restart-confirm-stay')[0]!.props.onClick?.(); });
-  expect(якоря(r.root, 'restart-confirm-title')).toHaveLength(0);
+  await TestRenderer.act(async () => { якоря(r.root, 'row-confirm-stay')[0]!.props.onClick?.(); });
+  expect(якоря(r.root, 'row-confirm-title')).toHaveLength(0);
   expect(заново).not.toHaveBeenCalled();
   // Снова, и теперь «Заново» — ровно один перезапуск.
   await TestRenderer.act(async () => { кнопка().props.onClick?.(); });
-  await TestRenderer.act(async () => { якоря(r.root, 'restart-confirm-go')[0]!.props.onClick?.(); });
+  await TestRenderer.act(async () => { якоря(r.root, 'row-confirm-go')[0]!.props.onClick?.(); });
   expect(заново).toHaveBeenCalledTimes(1);
-  expect(якоря(r.root, 'restart-confirm-title')).toHaveLength(0);
+  expect(якоря(r.root, 'row-confirm-title')).toHaveLength(0);
+});
+
+it('🔴 «СТОП» в ряду сначала спрашивает «Остановить упражнение?» — промах на скорости сеанс не обрывает', async () => {
+  /* eslint-disable @typescript-eslint/no-require-imports -- загрузка ПОСЛЕ jest.mock */
+  const { GameAuxAction, GameAuxBar } = require('@/src/components/GameAuxAction');
+  /* eslint-enable @typescript-eslint/no-require-imports */
+  const стоп = jest.fn();
+  const действия = React.createElement(GameAuxBar, null,
+    React.createElement(GameAuxAction, { label: 'СТОП', danger: true, onPress: стоп }));
+  const r = await поднять({ headerActions: действия });
+  const кнопка = () => хостДети(якоря(r.root, 'game-aux-row')[0]!).find((d) => d.props?.accessibilityLabel === 'СТОП')!;
+  await TestRenderer.act(async () => { кнопка().props.onClick(); });
+  expect(стоп).not.toHaveBeenCalled();
+  expect(якоря(r.root, 'row-confirm-title')).toHaveLength(1);
+  await TestRenderer.act(async () => { якоря(r.root, 'row-confirm-stay')[0]!.props.onClick(); });
+  expect(стоп).not.toHaveBeenCalled();
+  expect(якоря(r.root, 'row-confirm-title')).toHaveLength(0);
+  await TestRenderer.act(async () => { кнопка().props.onClick(); });
+  await TestRenderer.act(async () => { якоря(r.root, 'row-confirm-go')[0]!.props.onClick(); });
+  expect(стоп).toHaveBeenCalledTimes(1);
+});
+
+it('«СТОП» ВНЕ ряда каркаса (свой ряд экрана) — без вопроса, как было', async () => {
+  const стоп = jest.fn();
+  const r = await кнопка({ label: 'СТОП', danger: true, icon: undefined, onPress: стоп });
+  const узел = r.root.findAll((n: any) => typeof n.type === 'string' && n.props?.testID === 'game-aux')[0];
+  await TestRenderer.act(async () => { узел.props.onClick(); });
+  expect(стоп).toHaveBeenCalledTimes(1);
 });
 
 it('«Заново» в ряд не ставится: у экрана свой ряд (auxRestart=false), пункт выключен, плейлист', async () => {

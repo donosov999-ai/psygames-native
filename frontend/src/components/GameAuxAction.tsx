@@ -1,4 +1,4 @@
-/* psygames-game-aux-action · VER 2 · 17.09.2026 */
+/* psygames-game-aux-action · VER 3 · 17.09.2026 */
 /**
  * GameAuxAction — СЛУЖЕБНОЕ действие игры. Одна кнопка на всё приложение.
  *
@@ -103,15 +103,20 @@ const DANGER = '#f43f5e';
  * забыть. Каркас кладёт ряд в этот контекст, и кнопка внутри рисуется compact-значком сама; слово
  * остаётся в `accessibilityLabel`, число ресурса — на значке. `GameAuxBar` внутри ряда своей коробки
  * не заводит, чтобы значки игры и лампочка каркаса встали одной строкой.
- * Вне ряда (свои ряды экранов, мост зарядки) контекст `false`, и ничего не меняется.
+ * Вне ряда (свои ряды экранов, мост зарядки) контекст `null`, и ничего не меняется.
+ *
+ * 🔴 «СТОП» В РЯДУ СНАЧАЛА ПЕРЕСПРАШИВАЕТ (`спросить` из каркаса). В ряду под полем он стоит между окном
+ * стимула и полосой ответа — ровно там, откуда раздел «Внимание» его когда-то убрал: в CPT по окну и по кнопке
+ * ответа бьют полторы минуты на скорость, и промах в «СТОП» обрывал всю пробу. Вопрос держит игру на паузе.
  */
-export const РядЗначков = React.createContext(false);
+export const РядЗначков = React.createContext<null | { спросить: (подпись: string, действие: () => void) => void }>(null);
 
 export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladder, onPress, compact }: GameAuxActionProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const { заперт, порог } = useLadderLock(ladder);
-  const вРяду = React.useContext(РядЗначков);
+  const ряд = React.useContext(РядЗначков);
+  const вРяду = ряд !== null;
   /**
    * «СТОП» приходит без значка (подпись и красная рамка). В ряду значков слово уходит у всех — у
    * «СТОПа» остаётся красный круглый знак остановки, иначе он был бы единственной пилюлей в строке.
@@ -156,7 +161,7 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
         ? () => DeviceEventEmitter.emit('psygames:ladder-locked', {
             text: t('ladderLockedAt').replace('{n}', String(порог)),
           })
-        : onPress}
+        : (ряд && danger ? () => ряд.спросить(label, onPress) : onPress)}
       activeOpacity={0.8}
       style={[
         styles.btn,
@@ -194,7 +199,7 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
  */
 export function GameAuxBar({ children }: { children: React.ReactNode }) {
   // Внутри ряда значков каркаса — без своей коробки: значки встают в его строку (см. `РядЗначков`).
-  if (React.useContext(РядЗначков)) return <>{children}</>;
+  if (React.useContext(РядЗначков) !== null) return <>{children}</>;
   return <View style={styles.bar}>{children}</View>;
 }
 

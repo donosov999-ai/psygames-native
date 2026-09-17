@@ -1901,6 +1901,7 @@ const t: Record<string, string> = {
   "exitConfirmLost": "यह बाज़ी सेव नहीं होगी: बोर्ड और प्रगति खो जाएँगे।",
   "exitConfirmStay": "खेलते रहें",
   "restartConfirmTitle": "फिर से शुरू करें?",
+  "stopConfirmTitle": "अभ्यास रोकें?",
   "exitConfirmLeave": "बाहर निकलें",
   "hud_correct": "सही",
   "hud_errors": "गलतियाँ",

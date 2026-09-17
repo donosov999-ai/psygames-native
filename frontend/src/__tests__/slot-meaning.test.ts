@@ -650,8 +650,10 @@ describe('чем правило держится в самом каркасе', 
     expect(код).not.toContain('рядВПолосе');
     expect(/bottom [!=]== 'actions'/.test(код)).toBe(false);
     // Внутри ряда кнопка — значок (контекст из GameAuxAction), и ряд тот, что стоит в поле.
-    expect(код).toContain('<РядЗначков.Provider value>');
-    expect(AUX).toContain('export const РядЗначков = React.createContext(false);');
+    expect(код).toContain('<РядЗначков.Provider value={контекстРяда}>');
+    expect(AUX).toContain('export const РядЗначков = React.createContext<');
+    // «СТОП» в ряду спрашивает прежде, чем оборвать сеанс (CPT: ряд стоит между окном стимула и полосой ответа).
+    expect(AUX).toContain('ряд && danger ? () => ряд.спросить(label, onPress) : onPress');
   });
 
   /**
