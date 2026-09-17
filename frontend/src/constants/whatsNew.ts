@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.19',
+    date: '2026-09-17',
+    ru: [
+      'Поле игры больше не ездит под пальцем: если всё помещается на экран, оно стоит на месте',
+      'Головоломки: доска подстраивается под высоту экрана — на обычном телефоне доска и кнопки видны без прокрутки',
+      'Зарядка засчитана, если сыграно 80 % игр; ночная зарядка — без очков и без серии дней',
+      'Свои серии — одна карточка с выбором 5, 10 или 15 минут; «Ещё раз» повторяет сыгранную серию',
+    ],
+    en: [
+      'The game field no longer slides under your finger: when everything fits, it stays put',
+      'Puzzles: the board fits the screen height — on a typical phone the board and its buttons show without scrolling',
+      'A workout counts once you play 80% of its games; the night workout has no score and no streak',
+      'Your series: one card with a 5, 10 or 15-minute choice; Again repeats the series you played',
+    ],
+  },
+  {
     version: '2.54.18',
     date: '2026-09-17',
     ru: [
