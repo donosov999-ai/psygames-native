@@ -1,4 +1,4 @@
-/* psygames-one-line-intro-once · VER 1 · 17.09.2026 */
+/* psygames-one-line-intro-once · VER 2 · 17.09.2026 */
 /**
  * «ОДНА ЛИНИЯ»: ПРАВИЛА И ТРЕНИРОВКА — ОДИН РАЗ ЗА ЗАХОД, ПАРТИЯ ПОСЛЕ ТРЕНИРОВКИ ИДЁТ САМА.
  *
@@ -15,6 +15,10 @@
  * нажатиями по вершинам из решения ядра, карточка итога отдаёт настоящий `onContinue`.
  * Рядом у «Соедини точки» мутация «модуль не слушает skipIntro» уже однажды прошла зелёной
  * мимо проверки проводки — здесь проверяется то, что человек увидит после «Продолжить».
+ *
+ * 📍 VER 2 — «ОДИН РАЗ ЗА ЗАХОД» ОКАЗАЛОСЬ «ПРИ КАЖДОМ ЗАПУСКЕ» (отчёт 96ea896d, 17.09.2026,
+ * 2.54.17, «Соедини точки»; задача d952c080). Знакомство само — только пока профиль его не
+ * прошёл: флаг `useIntroSeen` ставится первым ходом в партии, пройденные уровни тоже считаются.
  */
 import React from 'react';
 import { holdGame, __resetGameClock } from '@/src/services/gamePause';
@@ -43,9 +47,11 @@ jest.mock('@/src/contexts/LanguageContext', () => ({ useLanguage: () => ({ t: (k
  */
 let mockProfileId = 'intro-once-0';
 jest.mock('@/src/contexts/ProfileContext', () => ({ useProfile: () => ({ profile: { id: mockProfileId } }) }));
+/** Параметры адреса: `auto=1` — запуск из зарядки или вызова дня (автостарт). */
+let mockParams: Record<string, string> = {};
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn() }),
-  useLocalSearchParams: () => ({}),
+  useLocalSearchParams: () => mockParams,
 }));
 jest.mock('@/src/services/api', () => ({ saveSession: jest.fn(async () => ({})) }));
 jest.mock('react-native-safe-area-context', () => {
@@ -78,6 +84,7 @@ const TestRenderer = require('react-test-renderer');  // eslint-disable-line @ty
 const S = getOneLineStrings('ru');
 const деревья: any[] = [];
 afterEach(async () => {
+  mockParams = {};
   await TestRenderer.act(async () => { деревья.splice(0).forEach((д) => { try { д.unmount(); } catch { /* снят */ } }); });
   jest.useRealTimers();
   __resetGameClock();
@@ -285,5 +292,103 @@ describe('🔴 экран целиком: знакомство — первый 
     нажать(д, 'btn_help');
     await дождаться();
     expect(`партия ${партияУровня(текст(д))}, правила ${текст(д).includes(S.startTraining)}`).toBe('партия null, правила true');
+  });
+});
+
+describe('🔴 знакомство само — только в первый раз по профилю, а не на каждом заходе (отчёт 96ea896d)', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const хранилище = require('@react-native-async-storage/async-storage');
+  const AsyncStorage = хранилище.default ?? хранилище;
+  let номер = 0;
+  const новыйПрофиль = () => { номер += 1; return `seen-${номер}`; };
+  async function экранПрофиля(профиль: string): Promise<any> {
+    mockProfileId = профиль;
+    let д: any;
+    await TestRenderer.act(async () => { д = TestRenderer.create(React.createElement(OneLineScreen)); });
+    деревья.push(д);
+    await дождаться();
+    return д;
+  }
+  async function снять(д: any): Promise<void> {
+    await TestRenderer.act(async () => { д.unmount(); });
+    деревья.splice(деревья.indexOf(д), 1);
+  }
+  const уровень1 = () => createOneLineSession({ seed: 'one-line-1', level: 1 });
+  /** Знакомство до партии и ОДИН ход в ней: две вершины решения уровня 1. */
+  async function знакомствоИХод(д: any): Promise<void> {
+    нажать(д, 'start');
+    expect(текст(д)).toContain(S.startTraining);
+    нажать(д, S.startTraining);
+    пройти(д, уровень1().trainingPuzzle);
+    нажать(д, S.startRound);
+    const puzzle = уровень1().puzzle;
+    нажать(д, вершина(puzzle, puzzle.solution.vertexIds[0]));
+    нажать(д, вершина(puzzle, puzzle.solution.vertexIds[1]));
+    await дождаться();
+  }
+
+  it('после хода в партии новый заход того же профиля — сразу партия, дверь «Как играть» видна до «Начать»', async () => {
+    const профиль = новыйПрофиль();
+    const д1 = await экранПрофиля(профиль);
+    // Первый заход нового профиля: двери нет — «Начать» и так ведёт через знакомство.
+    expect(текст(д1)).not.toContain('btn_help');
+    await знакомствоИХод(д1);
+    await снять(д1);
+
+    const д2 = await экранПрофиля(профиль);
+    expect(текст(д2)).toContain('btn_help');
+    нажать(д2, 'start');
+    await дождаться();
+    expect(`партия ${партияУровня(текст(д2))}, правила ${текст(д2).includes(S.startTraining)}`).toBe('партия 1, правила false');
+  });
+
+  it('выход с экрана правил без хода — знакомство не засчитано: новый заход снова через правила', async () => {
+    const профиль = новыйПрофиль();
+    const д1 = await экранПрофиля(профиль);
+    нажать(д1, 'start');
+    expect(текст(д1)).toContain(S.startTraining);
+    await снять(д1);
+    const д2 = await экранПрофиля(профиль);
+    нажать(д2, 'start');
+    await дождаться();
+    expect(текст(д2)).toContain(S.startTraining);
+  });
+
+  it('другой профиль на том же телефоне — снова знакомство', async () => {
+    const д1 = await экранПрофиля(новыйПрофиль());
+    await знакомствоИХод(д1);
+    await снять(д1);
+    const д2 = await экранПрофиля(новыйПрофиль());
+    нажать(д2, 'start');
+    await дождаться();
+    expect(текст(д2)).toContain(S.startTraining);
+  });
+
+  it('запуск из зарядки (автостарт): прошедший знакомство — сразу партия, новый профиль — правила', async () => {
+    const профиль = новыйПрофиль();
+    const д1 = await экранПрофиля(профиль);
+    await знакомствоИХод(д1);
+    await снять(д1);
+
+    mockParams = { auto: '1' };
+    const д2 = await экранПрофиля(профиль);
+    await дождаться();
+    expect(`партия ${партияУровня(текст(д2))}, правила ${текст(д2).includes(S.startTraining)}`).toBe('партия 1, правила false');
+    await снять(д2);
+
+    const д3 = await экранПрофиля(новыйПрофиль());
+    await дождаться();
+    expect(текст(д3)).toContain(S.startTraining);
+  });
+
+  it('у кого уже пройдены уровни (обновились с прошлой версии), знакомство само не показывается', async () => {
+    const профиль = новыйПрофиль();
+    await AsyncStorage.setItem(`psygames_one_line_level_${профиль}`, '5');
+    const д = await экранПрофиля(профиль);
+    await дождаться();
+    expect(текст(д)).toContain('btn_help');
+    нажать(д, 'start');
+    await дождаться();
+    expect(`партия ${партияУровня(текст(д))}, правила ${текст(д).includes(S.startTraining)}`).toBe('партия 5, правила false');
   });
 });
