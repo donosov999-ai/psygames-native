@@ -59,7 +59,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'number-run': { ver: 3, date: '16.09.2026' },
   'nut-sort': { ver: 1, date: '06.09.2026' },
   'object-tracker': { ver: 2, date: '20.08.2026' },
-  'one-line': { ver: 2, date: '20.08.2026' },
+  'one-line': { ver: 3, date: '17.09.2026' },
   'ospan': { ver: 4, date: '07.09.2026' },
   'pattern': { ver: 2, date: '17.09.2026' },
   'pause': { ver: 1, date: '26.08.2026' },
