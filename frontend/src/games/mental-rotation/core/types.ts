@@ -1,4 +1,4 @@
-/* psygames-mental-rotation-types · VER 1 · 23.08.2026 */
+/* psygames-mental-rotation-types · VER 2 · 17.09.2026 */
 /**
  * ТИПЫ ЯДРА «МЕНТАЛЬНОЙ РОТАЦИИ» — ТРИ ВИДА ЗАДАНИЙ НА ОДНОЙ ГЕОМЕТРИИ.
  *
@@ -47,7 +47,7 @@ export type Axis = 'x' | 'y' | 'z';
  * ракурса, пары «да/нет», проекции и развёртки угла поворота нет вовсе, и одна
  * такая проба портит единственную настоящую величину игры.
  */
-export type TaskKind = 'rotation' | 'projection' | 'net' | 'viewpoint' | 'same' | 'missing' | 'assembly' | 'formation' | 'section';
+export type TaskKind = 'rotation' | 'projection' | 'net' | 'viewpoint' | 'same' | 'missing' | 'assembly' | 'formation' | 'section' | 'memory';
 
 /**
  * Направление взгляда для проекции.
@@ -290,8 +290,24 @@ export interface SectionTask {
   correctIdx: number;
 }
 
+/**
+ * «ПАМЯТЬ» (17.09.2026, задача 69f1810f): фигуру показали и спрятали, потом варианты —
+ * ПОВЁРНУТЫЕ. Решение Дениса: «все упражнения на ментальное вращение используют память,
+ * чтобы повернуть в уме, надо помнить». Поэтому это то же поворотное задание, у которого
+ * эталон виден только `exposureMs`, а варианты появляются после.
+ *
+ * ⚠️ В НАКЛОН ВРЕМЕНИ ПО УГЛУ НЕ ИДЁТ. Время ответа здесь складывается из вспоминания и
+ * поворота; `slopeSamples` берёт только `kind === 'rotation'`, и так должно остаться.
+ */
+export interface MemoryTask extends Omit<RotationTask, 'kind'> {
+  kind: 'memory';
+  /** Сколько миллисекунд эталон виден до того, как спрятать его. Ось лестницы режима. */
+  exposureMs: number;
+}
+
 export type MentalRotationTask =
   | RotationTask
+  | MemoryTask
   | ProjectionTask
   | NetTask
   | ViewpointTask

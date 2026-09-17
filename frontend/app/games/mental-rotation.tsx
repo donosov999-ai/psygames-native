@@ -1,4 +1,4 @@
-/* psygames-game-mental-rotation · VER 7 · 17.09.2026 */
+/* psygames-game-mental-rotation · VER 8 · 17.09.2026 */
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
 /**
  * Mental Rotation — три вида пространственных заданий на одной геометрии
@@ -66,7 +66,7 @@ import {spatialFrame} from '@/src/games/spatial-core/frame';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useLevelRules, LevelRuleBadge, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
-import { gameNow } from '@/src/services/gamePause';
+import { clearGameTimer, gameNow, gameTimeout } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import {
   angleResponseSlope,
@@ -343,6 +343,12 @@ export default function MentalRotationGame() {
    * Высота вопроса от размеров рисунков не зависит, поэтому замер не зацикливается.
    */
   const [promptLines,setPromptLines]=useState(2);
+  /**
+   * «Память» (задача 69f1810f): эталон спрятан. Пока `false`, эталон виден, а вариантов нет —
+   * отвечать не на что. Прячет его игровой таймер (`gameTimeout`): на паузе и в окне отзыва
+   * время показа не идёт, иначе человек вернулся бы к уже спрятанной фигуре.
+   */
+  const [memoryHidden,setMemoryHidden]=useState(false);
   const { t, language } = useLanguage();
   const strings = getMentalRotationStrings(language as MentalRotationLocale);
   // Разбор поворота — это движение. Человеку, попросившему систему «меньше
@@ -407,7 +413,18 @@ export default function MentalRotationGame() {
   // Разбор показывается после ПРОМАХА: верный ответ объяснять нечего, а лишняя
   // задержка на верном ответе ломает темп партии и портит замер времени.
   const reviewing = feedback !== null && !feedback.ok;
-  const frames = useMemo(() => (task.kind === 'rotation' ? rotationReplay(task) : []), [task]);
+  const frames = useMemo(() => (task.kind === 'rotation' || task.kind === 'memory' ? rotationReplay(task) : []), [task]);
+  // «Память»: эталон виден, варианты ещё не показаны — время ответа не идёт, нажимать нечего.
+  const studying = phase === 'playing' && task.kind === 'memory' && !memoryHidden && feedback === null;
+  useEffect(() => {
+    if (!studying || task.kind !== 'memory') return undefined;
+    const таймер = gameTimeout(() => {
+      setMemoryHidden(true);
+      // Время ответа считается с появления вариантов, а не с показа фигуры.
+      setTrialStartTime(gameNow());
+    }, task.exposureMs);
+    return () => clearGameTimer(таймер);
+  }, [studying, task]);
   const reviewStep=animatedStep;   // разбор всегда идёт кадрами: поворот и есть объяснение ошибки
 
   // Справка правил уровня (в пресете не всплываем — там свой поток)
@@ -446,6 +463,7 @@ export default function MentalRotationGame() {
     setRecords([]); setRound(1);
     planRef.current = planTaskKinds(selectedLevel, trials, Math.random);
     setTask(buildTask(planRef.current[0] ?? 'rotation', selectedLevel, Math.random));
+    setMemoryHidden(false);
     setFeedback(null);
     setReviewStep(0);
     setPhase('playing');
@@ -515,13 +533,14 @@ export default function MentalRotationGame() {
     setRound(log.length + 1);
     setManualReview(false);
     setTask(buildTask(planRef.current[log.length] ?? 'rotation', levelRef.current, Math.random));
+    setMemoryHidden(false);
     setFeedback(null);
     setReviewStep(0);
     setTrialStartTime(gameNow());
   };
 
   const handlePick = (idx: number) => {
-    if (feedback !== null) return;
+    if (feedback !== null || studying) return;
     const ok = idx === task.correctIdx;
     const rt = gameNow() - trialStartTime;
     // Угол есть только у поворотной пробы. У проекции и развёртки он равен нулю,
@@ -550,8 +569,15 @@ export default function MentalRotationGame() {
       : kind === 'assembly' ? strings.taskAssembly
       : kind === 'formation' ? strings.taskFormation
       : kind === 'section' ? strings.taskSection
+      : kind === 'memory' ? strings.taskMemory
       : strings.taskNet
   );
+  /** Секунды показа для подписи «Память»: 4,5 — с запятой там, где так пишут дроби. */
+  const секунды = (ms: number): string => {
+    const с = ms / 1000;
+    const текст = Number.isInteger(с) ? String(с) : с.toFixed(1);
+    return ['ru', 'es', 'de', 'pt', 'fr', 'it'].includes(language) ? текст.replace('.', ',') : текст;
+  };
   const axisWord = (axis: Axis): string => (
     axis === 'x' ? strings.axisX : axis === 'y' ? strings.axisY : strings.axisZ
   );
@@ -653,7 +679,7 @@ export default function MentalRotationGame() {
      * у варианта нет), а свой масштаб у каждого выдавал бы пару «фигура + зеркало» одинаковым
      * габаритом.
      */
-    const optUnit = task.kind === 'rotation' || task.kind === 'missing' || task.kind === 'assembly' || task.kind === 'formation'
+    const optUnit = task.kind === 'rotation' || task.kind === 'memory' || task.kind === 'missing' || task.kind === 'assembly' || task.kind === 'formation'
       ? stillUnit(task.options.map((o) => (o as { shape: Shape }).shape), optSize)
       : undefined;
     return (
@@ -680,7 +706,7 @@ export default function MentalRotationGame() {
                 <TouchableOpacity
                   accessibilityRole="button" key={i}
                   accessibilityLabel={interpolateMentalRotation(strings.a11yOption, { n: i + 1 })}
-                  disabled={feedback !== null}
+                  disabled={feedback !== null || studying}
                   onPress={() => handlePick(i)}
                   style={[styles.optionBox, {
                     ...(compactReview?{width:(answerWidth-(task.options.length-1)*6)/task.options.length}:{}),
@@ -690,7 +716,13 @@ export default function MentalRotationGame() {
                     borderWidth: feedback ? 3 : 1,
                   }]}
                 >
-                  {task.kind === 'rotation' && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
+                  {/*
+                    «Память»: пока эталон виден, в карточке пустое место РАЗМЕРОМ С РИСУНОК. Без него пустая
+                    карточка схлопывалась в полоску (живой кадр 17.09.2026, 390×844), а после скрытия
+                    вырастала — ряд прыгал ровно в тот момент, когда человек переводит взгляд на варианты.
+                  */}
+                  {task.kind === 'memory' && studying && <View testID="memory-option-blank" style={{ width: optSize, height: optSize }} />}
+                  {(task.kind === 'rotation' || (task.kind === 'memory' && !studying)) && renderShape((opt as { shape: Shape }).shape, optSize, GRADIENT[1], undefined, undefined, optUnit)}
                   {(task.kind === 'projection' || task.kind === 'section') && renderGrid((opt as { cells: Cell2D[] }).cells, optSize, GRADIENT[1], colors.border)}
                   {task.kind === 'net' && renderMarkedCube((opt as { faces: FaceMap }).faces, optSize, GRADIENT[1])}
                   {task.kind === 'viewpoint' && renderShape(task.shape, optSize, GRADIENT[1], task.axis, (opt as { degrees: number }).degrees)}
@@ -742,6 +774,8 @@ export default function MentalRotationGame() {
               onLayout={refSize !== undefined ? (e) => setPromptLines(Math.max(1, Math.round(e.nativeEvent.layout.height / LANDSCAPE_PROMPT_LINE))) : undefined}>
               {task.kind === 'rotation'
                 ? (compactScreen ? strings.hintCompact : t('mentalRotationHint'))
+                : task.kind === 'memory'
+                  ? (studying ? interpolateMentalRotation(strings.memoryStudyPrompt, { s: секунды(task.exposureMs) }) : strings.memoryPrompt)
                 : task.kind === 'projection'
                   ? interpolateMentalRotation(strings.projectionPrompt, {
                       view: task.view === 'top' ? strings.viewTop : task.view === 'front' ? strings.viewFront : strings.viewSide,
@@ -760,10 +794,18 @@ export default function MentalRotationGame() {
             <View testID="mental-reference" style={[styles.baseBox, { backgroundColor: colors.surface, borderColor: SHAPE_BASE }, refSize !== undefined ? { padding: LANDSCAPE_REF_PADDING } : null]}>
               {task.kind === 'net'
                 ? renderNet(task.net, task.markOfCell, baseSize, '#F3F0FF', SHAPE_BASE)
-                : task.kind==='rotation'&&reviewing&&manualReview
+                : (task.kind==='rotation'||task.kind==='memory')&&reviewing&&manualReview
                   ? <RotationWorkbench key={round} initial={frames[reviewStep]?.shape??task.base} target={task.options[task.correctIdx].shape} size={baseSize} reduceMotion={false} ink={colors.text} accent={colors.primary} ru={language==='ru'}/>
-                  : task.kind==='rotation'&&reviewing&&reviewStep>0
+                  : (task.kind==='rotation'||task.kind==='memory')&&reviewing&&reviewStep>0
                   ? <RotationTransition key={`${round}-${reviewStep}`} from={frames[reviewStep-1].shape} to={frames[reviewStep].shape} axis={frames[reviewStep].axis!} size={baseSize}/>
+                  : task.kind === 'memory'
+                  // «Память»: фигура видна при показе и в разборе; спрятанной её нет в разметке вовсе —
+                  // не прозрачность, а пустая карточка со знаком вопроса.
+                  ? (studying || reviewing
+                    ? <View testID="memory-figure"><RotationShape shape={reviewing ? (frames[reviewStep]?.shape ?? task.base) : task.base} size={baseSize}/></View>
+                    : <View testID="memory-hidden" style={{width:baseSize,height:baseSize,alignItems:'center',justifyContent:'center'}}>
+                        <Text style={{fontSize:Math.round(baseSize*0.4),fontWeight:'800',color:colors.textSecondary}}>?</Text>
+                      </View>)
                   : task.kind === 'viewpoint'
                   ? <ViewpointReference shape={task.shape} degrees={task.degrees} size={baseSize} accent={colors.primary}/>
                   : task.kind === 'missing'
@@ -800,7 +842,7 @@ export default function MentalRotationGame() {
                 {task.kind === 'net' ? strings.taskNet : task.kind === 'assembly' || task.kind === 'formation' ? '' : t('label_reference')}
               </Text>
             </View>
-            {reviewing&&task.kind==='rotation'&&!manualReview?<TouchableOpacity testID="rotation-manual-start" accessibilityRole="button" onPress={()=>setManualReview(true)} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.primary,fontWeight:'700'}}>{strings.rotateManually}</Text></TouchableOpacity>:null}
+            {reviewing&&(task.kind==='rotation'||task.kind==='memory')&&!manualReview?<TouchableOpacity testID="rotation-manual-start" accessibilityRole="button" onPress={()=>setManualReview(true)} style={{minHeight:48,justifyContent:'center',paddingHorizontal:16}}><Text style={{color:colors.primary,fontWeight:'700'}}>{strings.rotateManually}</Text></TouchableOpacity>:null}
             {reviewing && (
               <View style={[styles.reviewBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <Text style={[styles.reviewTitle, { color: colors.text }]}>{strings.reviewTitle}</Text>
@@ -814,9 +856,10 @@ export default function MentalRotationGame() {
                     : task.kind === 'assembly' ? strings.reviewAssemblyHint
                     : task.kind === 'formation' ? strings.reviewFormationHint
                     : task.kind === 'section' ? strings.reviewSectionHint
+                    : task.kind === 'memory' ? strings.reviewMemoryHint
                     : strings.reviewNetHint}
                 </Text>
-                {task.kind === 'rotation' && (
+                {(task.kind === 'rotation' || task.kind === 'memory') && (
                   <ScrollView
                     horizontal showsHorizontalScrollIndicator={false}
                     style={styles.frameScroll} contentContainerStyle={styles.frameRow}
@@ -834,7 +877,7 @@ export default function MentalRotationGame() {
                     ))}
                   </ScrollView>
                 )}
-                {task.kind === 'rotation' && frames[reviewStep]?.axis && (
+                {(task.kind === 'rotation' || task.kind === 'memory') && frames[reviewStep]?.axis && (
                   <Text style={[styles.reviewStepText, { color: colors.text }]}>
                     {interpolateMentalRotation(strings.reviewStep, {
                       n: reviewStep,

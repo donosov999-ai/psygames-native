@@ -1,4 +1,4 @@
-/* psygames-mental-rotation-replay · VER 1 · 23.08.2026 */
+/* psygames-mental-rotation-replay · VER 2 · 17.09.2026 */
 /**
  * РАЗБОР ОТВЕТА: ПОКАЗАТЬ САМ ПОВОРОТ.
  *
@@ -26,7 +26,8 @@ export interface ReplayFrame {
   axis: Axis | null;
 }
 
-export function rotationReplay(task: RotationTask): ReplayFrame[] {
+/** Годится и для «Памяти»: у неё тот же эталон и тот же записанный путь поворота. */
+export function rotationReplay(task: Pick<RotationTask, 'base' | 'steps'>): ReplayFrame[] {
   const frames: ReplayFrame[] = [{ index: 0, shape: normalizeShape(task.base), axis: null }];
   let current = task.base;
   task.steps.forEach((step, i) => {
