@@ -154,8 +154,17 @@ export type StroopColor = typeof COLORS_DEF[0];
  * осмысленна только потому, что условие у всех одинаковое. Крутить его значило бы
  * сломать сравнимость и превратить проверенную методику в придуманную механику.
  *
- * Канон Струпа — равные доли, 50/50. Вес сложности перенесён на окно ответа и
+ * Доли 50/50 — несмещённое условие. Вес сложности перенесён на окно ответа и
  * число проб (`levelParams` ниже). Сторожит `conflict-ratio-is-not-difficulty.test.ts`.
+ *
+ * 📚 ИСТОЧНИКИ (сверено 17.09.2026, не по памяти):
+ * · Rothermund K., Gollnick N., Giesen C.G. (2022). Journal of Cognition 5(1):39,
+ *   doi:10.5334/joc.232 — предрегистрированный эксперимент, n = 109: «Stroop interference was
+ *   larger in blocks comprising mostly congruent … compared to blocks comprising mostly incongruent».
+ * · Обзор эффектов доли конгруэнтных проб: Bugg J.M., Crump M.J.C. (2012). Frontiers in
+ *   Psychology 3:367, doi:10.3389/fpsyg.2012.00367.
+ * Доля конгруэнтных сама по себе манипуляция: сдвиг к конфликтным уменьшает измеряемый эффект.
+ * Поэтому доля не может быть ручкой уровня, а 50/50 — условие без сдвига. Отступления нет.
  */
 export const INCONGRUENT_RATIO = 0.5;
 

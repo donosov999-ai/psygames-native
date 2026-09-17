@@ -102,9 +102,19 @@ const correctSide = (c: StimColor): Position => (c === 'blue' ? 'left' : 'right'
  * то, ради чего игра существует.
  *
  * То же правило записано в `iowa.tsx`: методика осмысленна только потому, что
- * условие у всех одинаковое. Канон Simon — равные доли, 50/50; вес сложности
+ * условие у всех одинаковое. Доли 50/50 — несмещённое условие; вес сложности
  * перенесён на окно ответа, темп подачи и число проб (`levelParams` ниже).
  * Сторожит `conflict-ratio-is-not-difficulty.test.ts`.
+ *
+ * 📚 ИСТОЧНИКИ (сверено 17.09.2026, не по памяти):
+ * · Luo J., Yang M., Wang L. (2023). Learned irrelevant stimulus-response associations and
+ *   proportion congruency effect: A diffusion model account. JEP: Learning, Memory, and
+ *   Cognition 49(8):1218–1246, doi:10.1037/xlm0001158. Эффект Simon зависит от доли
+ *   несовпадающих проб и при её росте вплоть до инверсии — ровно то, что делала прежняя
+ *   ручка 35 % → 80 %.
+ * · Обзор механизмов эффекта: Cespón J., Hommel B., Korsch M., Galashan D. (2020).
+ *   Cognitive, Affective, & Behavioral Neuroscience 20(6):1133–1172, doi:10.3758/s13415-020-00836-y.
+ * Отступления нет.
  */
 export const INCONGRUENT_PROB = 0.5;
 
