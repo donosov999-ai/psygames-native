@@ -40,7 +40,7 @@ import { SERIES_KEYS, SeriesKey, seriesPlaylist, seriesProfileFlag, seriesKind, 
 import { a11yBtn, a11yModal } from '@/src/services/a11y';
 import { goBackOrHome } from '@/src/utils/nav';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GAMES } from '@/src/constants/games';
+import { имяШага } from '@/src/services/stepName';
 
 const ORDER: WarmupSlot[] = ['morning', 'day', 'evening', 'night'];
 
@@ -454,11 +454,10 @@ export default function WarmupPicker() {
               их ведёт сама игра. */}
           {on && !off && !(series && seriesKind(slot as SeriesKey) === 'blocks') && meta.steps.length > 0 && (
             <View style={styles.stepsList}>
-              {meta.steps.map((st: { game_id: string; est_duration_sec: number }, i: number) => {
-                const g = GAMES.find((x) => x.id === st.game_id);
+              {meta.steps.map((st: { game_id: string; game_route?: string; mode?: string; est_duration_sec: number }, i: number) => {
                 return (
                   <Text key={`${st.game_id}-${i}`} style={[styles.stepLine, { color: colors.textSecondary }]} numberOfLines={1}>
-                    {i + 1}. {g ? t(g.nameKey) : st.game_id} · ~{Math.max(1, Math.round(st.est_duration_sec / 60))} {t('unitMin')}
+                    {i + 1}. {имяШага(st, t)} · ~{Math.max(1, Math.round(st.est_duration_sec / 60))} {t('unitMin')}
                   </Text>
                 );
               })}

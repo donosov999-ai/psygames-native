@@ -19,6 +19,7 @@ import {
   loadWarmupHistory, computeStreak, brainTodayVerdict, WarmupHistoryEntry,
   PlaylistMeta, играПартии, повторСерии, очкиСоЗнаком, серияЗасчитана, серияБезСчёта,
 } from '@/src/services/warmup';
+import { имяШага } from '@/src/services/stepName';
 import { addTokens, comboBonus } from '@/src/services/tokens';
 import { loadReminderSettings, saveReminderSettings, applyReminders, requestReminderPermission, DEFAULT_REMINDERS } from '@/src/services/reminders';
 import { getAiInsight, toneForProfile, dayKey } from '@/src/services/aiInsight';
@@ -279,12 +280,14 @@ export default function WarmupComplete() {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('resultsTitle')}</Text>
           {results.map((r, i) => {
             const game = GAMES.find((g) => g.id === r.game_type);
+            // Имя — по шагу набора (режим головоломки), а не по общей карточке экрана.
+            const шаг = r.шаг !== undefined ? meta.steps[r.шаг] : undefined;
             return (
               <View key={i} style={[styles.row, { backgroundColor: colors.surface }]}>
                 <View style={[styles.rowDot, { backgroundColor: game?.gradient[0] || '#fbbf24' }]} />
                 <View style={styles.rowMain}>
                   <Text style={[styles.rowGame, { color: colors.text }]}>
-                    {game ? t(game.nameKey) : r.game_type}
+                    {шаг ? имяШага(шаг, t) : game ? t(game.nameKey) : r.game_type}
                   </Text>
                   <View style={styles.rowMetrics}>
                     {!безСчёта && <Text style={[styles.metric, { color: r.score < 0 ? '#f43f5e' : '#22c55e' }]}>{очкиСоЗнаком(r.score)}</Text>}
@@ -300,13 +303,13 @@ export default function WarmupComplete() {
               ошибка приложения («ни 1 игры не было пропущено»). Называем игры
               поимённо: тогда видно, что это был выбор человека, а не сбой. */}
           {meta.steps.length > results.length && (() => {
+            // Пропущенные — шаги без результата с их номером; результаты без номера — по имени, как было.
+            const поНомеру = results.length > 0 && results.every((r) => r.шаг !== undefined);
+            const сыграны = new Set(results.map((r) => r.шаг));
             const doneIds = results.map((r) => r.game_type);
             const missed = meta.steps
-              .filter((st) => !doneIds.includes(st.game_id))
-              .map((st) => {
-                const g = GAMES.find((x) => x.id === st.game_id);
-                return g ? t(g.nameKey) : st.game_id;
-              });
+              .filter((st, i) => (поНомеру ? !сыграны.has(i) : !doneIds.includes(st.game_id)))
+              .map((st) => имяШага(st, t));
             return (
               <Text style={[styles.skipped, { color: colors.textSecondary }]}>
                 {t('skippedNamed')}: {missed.join(', ')}

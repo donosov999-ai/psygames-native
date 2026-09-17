@@ -23,6 +23,13 @@ export interface StepResult {
   time_seconds: number;
   errors: number;
   details?: Record<string, any>;
+  /**
+   * Номер шага в наборе, за который записан результат. Ставит `recordResult` сам — по
+   * текущему шагу. Без номера мост и итог узнавали «сыгранное» по последнему результату и по
+   * имени игры: после пропуска мост писал «✓ СЫГРАНО» с именем пропущенной игры, а игра,
+   * стоящая в наборе дважды, выглядела сыгранной оба раза (см. `результатШага`).
+   */
+  шаг?: number;
 }
 
 interface WarmupState {
@@ -296,7 +303,7 @@ export function WarmupProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const recordResult = useCallback(async (r: StepResult) => {
-    setState((s) => ({ ...s, results: [...s.results, r] }));
+    setState((s) => ({ ...s, results: [...s.results, { ...r, шаг: r.шаг ?? s.currentIdx }] }));
   }, []);
 
   // ⚠️ Побочные эффекты (звук, router.replace) НЕ внутри setState-updater — React вправе

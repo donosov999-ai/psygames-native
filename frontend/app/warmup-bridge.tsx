@@ -7,7 +7,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useWarmup } from '@/src/contexts/WarmupContext';
 import { GAMES } from '@/src/constants/games';
-import { stepToParams, очкиСоЗнаком, серияБезСчёта } from '@/src/services/warmup';
+import { stepToParams, очкиСоЗнаком, серияБезСчёта, результатШага } from '@/src/services/warmup';
+import { имяШага } from '@/src/services/stepName';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 
 const GRADIENT = ['#fbbf24', '#f59e0b'];
@@ -26,7 +27,9 @@ export default function WarmupBridge() {
   const justCompletedIdx = warmup.currentIdx - 1;
   const justCompleted = meta && justCompletedIdx >= 0 ? meta.steps[justCompletedIdx] : null;
   const next = warmup.currentStep;
-  const justCompletedResult = warmup.results[warmup.results.length - 1];
+  // Результат именно этого шага: нет его — шаг пропущен, и карточка говорит «Пропущено».
+  const justCompletedResult = justCompletedIdx >= 0 ? результатШага(warmup.results, justCompletedIdx) : undefined;
+  const пропущен = !!justCompleted && !justCompletedResult;
   const completedGame = justCompleted ? GAMES.find((g) => g.id === justCompleted.game_id) : null;
   const nextGame = next ? GAMES.find((g) => g.id === next.game_id) : null;
   const isEvening = meta?.slot === 'evening';
@@ -159,11 +162,11 @@ export default function WarmupBridge() {
                 этом честно сыграна: +300 за 21.8 с. Подписываем карточку явно и номером
                 шага, чтобы прочитать её наоборот было невозможно. */}
             <Text style={[styles.doneLabel, { color: colors.textSecondary }]}>
-              {t('bridgeJustPlayed')}{justCompletedIdx >= 0 && meta ? ` · ${justCompletedIdx + 1}/${meta.steps.length}` : ''}
+              {пропущен ? t('skippedNamed') : t('bridgeJustPlayed')}{justCompletedIdx >= 0 && meta ? ` · ${justCompletedIdx + 1}/${meta.steps.length}` : ''}
             </Text>
-            <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
+            <Ionicons name={пропущен ? 'play-skip-forward-circle' : 'checkmark-circle'} size={48} color={пропущен ? colors.textSecondary : '#22c55e'} />
             <Text style={[styles.completedTitle, { color: colors.text }]}>
-              {t(completedGame.nameKey)}
+              {имяШага(justCompleted, t)}
             </Text>
             {justCompletedResult && (
               <View style={styles.statsLine}>
@@ -176,11 +179,11 @@ export default function WarmupBridge() {
         )}
 
         {/* Next game preview */}
-        {nextGame && (
+        {next && nextGame && (
           <LinearGradient colors={nextGame.gradient as [string, string]} start={{x:0,y:0}} end={{x:1,y:1}} style={styles.nextCard}>
             <Text style={styles.nextLabel}>{t('onbNext')}:</Text>
             <Ionicons name={nextGame.icon as any} size={56} color="#FFF" />
-            <Text style={styles.nextTitle}>{t(nextGame.nameKey)}</Text>
+            <Text style={styles.nextTitle}>{имяШага(next, t)}</Text>
             <Text style={styles.nextSkill}>{t(nextGame.skillKey)}</Text>
           </LinearGradient>
         )}
@@ -258,11 +261,11 @@ export default function WarmupBridge() {
                 и обе кнопки переведены. */}
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel={nextGame ? `${t('skipGameNamed')} ${t(nextGame.nameKey)}` : t('skipStep')}
+              accessibilityLabel={next ? `${t('skipGameNamed')} ${имяШага(next, t)}` : t('skipStep')}
               style={[styles.actionSecondary, { borderColor: colors.border }]} onPress={skip}>
               <Ionicons name="play-skip-forward" size={18} color={colors.text} />
               <Text numberOfLines={1} style={[styles.actionSecondaryText, { color: colors.text, flexShrink: 1 }]}>
-                {nextGame ? `${t('skipGameNamed')} ${t(nextGame.nameKey)}` : t('skipStep')}
+                {next ? `${t('skipGameNamed')} ${имяШага(next, t)}` : t('skipStep')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
