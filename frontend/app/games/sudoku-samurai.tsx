@@ -1,4 +1,4 @@
-/* psygames-game-sudoku-samurai · VER 6 · 28.08.2026 */
+/* psygames-game-sudoku-samurai · VER 7 · 17.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +12,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import LevelCleared from '@/src/components/LevelCleared';
 import { PencilMarksLayer } from '@/src/components/PencilMarksLayer';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -49,9 +50,19 @@ function blendHex(base: string, over: string, t: number): string {
 }
 
 /** Размер клетки поля. Вынесено из компонента, чтобы гейт мог проверить цель для пальца. */
-export function cellSizeFor(width: number, zoom: 'fit' | 'zoom'): number {
+export function cellSizeFor(width: number, zoom: 'fit' | 'zoom', местоПоВысоте = 0): number {
   const fitCell = Math.floor((Math.min(width, 600) - 36) / SIZE);
-  return zoom === 'fit' ? Math.max(12, fitCell) : Math.max(TOUCH_CELL, fitCell * 2);
+  if (zoom !== 'fit') return Math.max(TOUCH_CELL, fitCell * 2);
+  /**
+   * 🔴 КАРТА СЧИТАЕТСЯ И ОТ ВЫСОТЫ ПОЛЯ, А НЕ ТОЛЬКО ОТ ШИРИНЫ (17.09.2026).
+   *
+   * Замер экспорта, WebKit, окно 360×640: поле каркаса 179 точек, а крест по ширине выходил
+   * 315 — карта рисовалась ПОВЕРХ крышки с показателями и кнопки масштаба, то есть закрывала
+   * собой же переход в рабочий режим. Родня дефекта 57a0e9cd: размер доски считался от окна,
+   * когда место даёт каркас. `местоПоВысоте` 0 — поле ещё не измерено, тогда прежний расчёт.
+   */
+  const поВысоте = местоПоВысоте > 0 ? Math.floor(местоПоВысоте / SIZE) : Infinity;
+  return Math.max(12, Math.min(fitCell, поВысоте));
 }
 
 /**
@@ -1121,6 +1132,12 @@ export default function SamuraiSudokuGame() {
   // кадре и обновляется только по resize, которого при загрузке не бывает. У самурая от
   // ширины считается РАЗМЕР КЛЕТКИ — ноль запёк бы доску в невидимую полоску.
   const width = useScreenWidth();
+  /**
+   * Высота места, которое каркас дал КАРТЕ (режим 'fit'). Меряется onLayout обёртки внутри поля:
+   * поле самурая не прокручиваемое, поэтому контекста `ВысотаПоляКаркаса` тут нет (он живёт в
+   * ветке `scrollableField`), а обёртка flex:1 отдаёт ровно ту же величину.
+   */
+  const [местоПодКарту, setМестоПодКарту] = useState(0);
 
   const { isPreset, autostart } = useGamePreset();
   const { profile } = useProfile();
@@ -1564,7 +1581,7 @@ export default function SamuraiSudokuGame() {
    * Раньше 'zoom' давал 32pt (fitCell × 2) — тоже мимо нормы, только не так заметно.
    * Бюджет 36 = paddingHorizontal каркаса GameShell 16×2 плюс запас, иначе крест вылезал.
    */
-  const cellSize = cellSizeFor(width, zoom);
+  const cellSize = cellSizeFor(width, zoom, местоПодКарту);
 
   const renderConfig = () => (
     <>
@@ -1681,7 +1698,9 @@ export default function SamuraiSudokuGame() {
 
   const boardEl = (
     // RTL-пин: зеркалирование ломает жирные границы боксов (физические border на логических колонках)
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', width: cellSize * SIZE, writingDirection: 'ltr' } as any}>
+    // testID — якорь проб «доска собралась» (samurai-building): раньше им была своя кнопка карандаша,
+    // а с 17.09.2026 служебное рисует общий `GameAuxAction`, и своего testID у него нет.
+    <View testID="samurai-board" style={{ flexDirection: 'row', flexWrap: 'wrap', width: cellSize * SIZE, writingDirection: 'ltr' } as any}>
       {grid.map((row, r) => row.map((_, c) => renderCell(r, c)))}
     </View>
   );
@@ -1689,59 +1708,57 @@ export default function SamuraiSudokuGame() {
   const renderPlaying = () => {
     const { maxErrors, hintMax } = levelParams(levelRef.current);
     const marksWritten = countPencilMarks(marks);
-    const statsEl = (
-      <View style={styles.statsRow}>
-        <TouchableOpacity
-          accessibilityRole="button" onPress={() => setZoom((z) => (z === 'fit' ? 'zoom' : 'fit'))} style={[styles.zoomBtn, { borderColor: colors.border }]}>
-          <Ionicons name={zoom === 'fit' ? 'search' : 'contract'} size={15} color={colors.text} />
-          <Text style={[styles.statText, { color: colors.text, fontSize: 12 }]}>{zoom === 'fit' ? t('zoomIn') : t('zoomFit')}</Text>
-        </TouchableOpacity>
-      </View>
-    );
-    // Действия наверху — как в обычной судоку: подсказка и ОТМЕНА. Расхождение между
-    // играми одного семейства человек читает как поломку, а не как разницу режимов.
+    /**
+     * 🔴 СЛУЖЕБНОЕ — ЗНАЧКАМИ КАРКАСА ОДНИМ РЯДОМ ПОД ПОЛЕМ (правило Дениса 17.09.2026, ede4f9fa).
+     *
+     * Было три подписанные капсулы («Подсказка (0/4) · Отменить · Пометки»), и они НЕ ВСТАВАЛИ в
+     * строку ни на одном телефоне: замер экспорта 17.09.2026 — 388 точек кнопок при ширине 360, 384
+     * и 390, то есть ряд всегда в две строки и 117 точек поля. Поле на 360×640 оставалось 179 при
+     * карте 315 — крест рисовался поверх шапки. Значки дают 61 точку и одну строку.
+     *
+     * МАСШТАБ ПЕРЕЕХАЛ СЮДА ИЗ КРЫШКИ ПОКАЗАТЕЛЕЙ (`stats`): это действие, а не счётчик, и в крышке
+     * оно стоило ещё одной строки над полем — той самой, которую закрывала собой карта. Переключатель,
+     * поэтому с `active`: залитый значок = «вижу весь крест», обычный = рабочий режим.
+     *
+     * Подсказка и отмена — под общей лестницей (`ladder`), как в обычной судоку и во всех играх:
+     * запертая кнопка отвечает тостом «откроется на уровне N», а не молчит.
+     */
     const hintEl = (
-      <View style={styles.headerActionsRow}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={handleHint}
-          disabled={!selected || hintUses >= hintMax}
-          style={[styles.hintBtn, { backgroundColor: '#fbbf24', opacity: (selected && hintUses < hintMax) ? 1 : 0.4 }]}
-        >
-          <Ionicons name="bulb" size={16} color="#000" />
-          <Text style={styles.hintBtnText}>{t('btn_hint')} ({hintUses}/{hintMax})</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel={t('btn_undo')}
+      <GameAuxBar>
+        <GameAuxAction
+          icon="arrow-undo"
+          ladder="undo"
+          label={t('btn_undo')}
           onPress={handleUndo}
           disabled={!hist.canUndo}
-          style={[styles.hintBtn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, opacity: hist.canUndo ? 1 : 0.4 }]}
-        >
-          <Ionicons name="arrow-undo" size={16} color={colors.text} />
-          <Text style={[styles.hintBtnText, { color: colors.text }]}>{t('btn_undo')}</Text>
-        </TouchableOpacity>
-        {/* КАРАНДАШ. Кнопка ровно того же размера, что соседние (styles.hintBtn, minHeight
-            48): промах мимо неё попадает в «Подсказку» и тратит лимит подсказок — цена
-            промаха здесь выше, чем «не нажалось». Счётчик на подписи нужен потому, что при
-            выключённом карандаше слоя не видно, и без числа непонятно, есть ли там что-то. */}
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel={t('sudokuPencilMode')}
-          accessibilityState={{ selected: pencil }}
-          testID="samurai-pencil"
+        />
+        <GameAuxAction
+          icon="bulb"
+          tint="#d97706"
+          ladder="hint"
+          label={t('btn_hint')}
+          count={Math.max(0, hintMax - hintUses)}
+          onPress={handleHint}
+          disabled={!selected || hintUses >= hintMax}
+        />
+        {/* Счётчик пометок остаётся числом НА значке: при выключенном карандаше слоя не видно,
+            и без числа непонятно, есть ли там что-то. */}
+        <GameAuxAction
+          icon={pencil ? 'pencil' : 'pencil-outline'}
+          label={t('sudokuPencilMode')}
+          active={pencil}
+          count={marksWritten || undefined}
           onPress={() => setPencil((on) => !on)}
-          style={[styles.hintBtn, {
-            backgroundColor: pencil ? GRADIENT[0] : colors.surface,
-            borderWidth: 1, borderColor: pencil ? GRADIENT[0] : colors.border,
-          }]}
-        >
-          <Ionicons name="pencil-outline" size={16} color={pencil ? '#FFF' : colors.text} />
-          <Text style={[styles.hintBtnText, { color: pencil ? '#FFF' : colors.text }]}>
-            {marksWritten ? `${t('sudokuPencilMode')} ${marksWritten}` : t('sudokuPencilMode')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+        />
+        {/* ⚠️ БЕЗ `active`: подпись у этого значка — ДЕЙСТВИЕ («Крупнее» / «Всё поле»), а не состояние.
+            Залитый значок рядом с подписью-действием читался бы как «режим включён», хотя включён он
+            ровно наоборот. Состояние видно по самому значку: лупа — вижу весь крест, сжатие — работаю. */}
+        <GameAuxAction
+          icon={zoom === 'fit' ? 'search' : 'contract'}
+          label={zoom === 'fit' ? t('zoomIn') : t('zoomFit')}
+          onPress={() => setZoom((z) => (z === 'fit' ? 'zoom' : 'fit'))}
+        />
+      </GameAuxBar>
     );
     // В режиме 'zoom' оборачиваем поле в 2D-скролл (вложенные ScrollView — работают и в вебе, и нативно).
     const boardWrap = zoom === 'zoom'
@@ -1753,7 +1770,17 @@ export default function SamuraiSudokuGame() {
           <ScrollView ref={vScrollRef} style={{ flex: 1 }} contentContainerStyle={{ padding: 0 }}>{boardEl}</ScrollView>
         </ScrollView>
       )
-      : <View style={{ alignSelf: 'center' }}>{boardEl}</View>;
+      : (
+        <View
+          style={styles.fitWrap}
+          onLayout={(ev) => {
+            const h = Math.round(ev.nativeEvent.layout.height);
+            setМестоПодКарту((prev) => (Math.abs(prev - h) > 2 ? h : prev));
+          }}
+        >
+          <View style={{ alignSelf: 'center' }}>{boardEl}</View>
+        </View>
+      );
 
     const padEl = (
       <View style={styles.toolbarCol}>
@@ -1798,7 +1825,6 @@ export default function SamuraiSudokuGame() {
           { key: 'err', icon: 'close-circle', label: t('errors'), value: `${errors}/${maxErrors}`, tone: 'bad' as const },
           { key: 'time', icon: 'time', label: t('time'), value: hudTime(elapsedTime, t('secShort')) },
         ]}
-        stats={statsEl}
         // Как в обычной судоку: действия наверху, цифры внизу. Расхождение между
         // играми одного семейства человек читает как поломку, а не как замысел.
         headerActions={hintEl}
@@ -1918,16 +1944,12 @@ const styles = StyleSheet.create({
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   toolbarCol: { flex: 1, alignItems: 'center', gap: 8 },   // numPad+hint колонкой в тулбаре каркаса
-  statsRow: { flexDirection: 'row', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
-  statText: { fontSize: 14, fontWeight: '700' },
-  zoomBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16, borderWidth: 1 },
   zoomScroll: { flex: 1, alignSelf: 'stretch' },
+  // Обёртка КАРТЫ: занимает всё поле и этим меряет место под крест (см. `местоПодКарту`).
+  fitWrap: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
   // RTL-пин: цифровой ряд 1..9 не зеркалится (конвенция цифровых клавиатур в RTL-локалях)
   numPad: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', justifyContent: 'center', writingDirection: 'ltr', maxWidth: '100%' },
   numBtn: { width: 46, height: 48, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
-  headerActionsRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '100%' },
-  hintBtn: { minHeight: 48, justifyContent: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16 },
-  hintBtnText: { color: '#000', fontSize: 13, fontWeight: '700' },
   pencilHint: { fontSize: 11, fontWeight: '600', textAlign: 'center', paddingHorizontal: 12 },
   overWrap: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.55)', padding: 24, zIndex: 100 },
   overCard: { width: '100%', maxWidth: 340, borderRadius: 20, padding: 24, alignItems: 'center', gap: 6 },

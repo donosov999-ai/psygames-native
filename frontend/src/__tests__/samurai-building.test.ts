@@ -256,15 +256,15 @@ describe('нажали «играть» — экран говорит, что и
       s.press('samurai-start');
       // Ни одного кадра ещё не прошло — и уже видно, что идёт работа.
       expect(`индикатор виден: ${s.has('board-building')}`).toBe('индикатор виден: true');
-      expect(`доска уже тут: ${s.has('samurai-pencil')}`).toBe('доска уже тут: false');
+      expect(`доска уже тут: ${s.has('samurai-board')}`).toBe('доска уже тут: false');
       // 🔴 И это не «доигралось в микрозадачах». Микрозадачи браузеру рисовать не
       // дают: сколько их ни прогони, кадра не будет, а значит и доски быть не должно.
       await TestRenderer.act(async () => { for (let i = 0; i < 100; i++) await Promise.resolve(); });
-      expect(`доска после микрозадач: ${s.has('samurai-pencil')}`).toBe('доска после микрозадач: false');
+      expect(`доска после микрозадач: ${s.has('samurai-board')}`).toBe('доска после микрозадач: false');
       expect(`индикатор всё ещё тут: ${s.has('board-building')}`).toBe('индикатор всё ещё тут: true');
       // Дожидаемся доски — ожидание конечное, а не вечное.
-      for (let i = 0; i < 200 && !s.has('samurai-pencil'); i++) await s.wait();
-      expect(`доска собралась: ${s.has('samurai-pencil')}`).toBe('доска собралась: true');
+      for (let i = 0; i < 200 && !s.has('samurai-board'); i++) await s.wait();
+      expect(`доска собралась: ${s.has('samurai-board')}`).toBe('доска собралась: true');
       expect(`индикатор убран: ${!s.has('board-building')}`).toBe('индикатор убран: true');
     } finally { s.unmount(); }
   });
@@ -280,8 +280,8 @@ describe('нажали «играть» — экран говорит, что и
       // Пока экран собирает доску, часы уводим вперёд на пять секунд за кадр.
       // ⚠️ Сдвиг идёт ПЕРЕД ожиданием: доска появляется внутри ожидания, и сдвиг
       // после него приписал бы партии время, которого при сборке ещё не было.
-      for (let i = 0; i < 200 && !s.has('samurai-pencil'); i++) { fake += 5000; await s.wait(); }
-      expect(`доска собралась: ${s.has('samurai-pencil')}`).toBe('доска собралась: true');
+      for (let i = 0; i < 200 && !s.has('samurai-board'); i++) { fake += 5000; await s.wait(); }
+      expect(`доска собралась: ${s.has('samurai-board')}`).toBe('доска собралась: true');
       expect(`часы ушли на ${(fake - atPress) / 1000} с`).not.toBe('часы ушли на 0 с');
       /**
        * Даём секундомеру тикнуть: он обязан считать от КОНЦА сборки, а не от

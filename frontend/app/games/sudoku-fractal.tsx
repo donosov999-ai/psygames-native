@@ -1,4 +1,4 @@
-/* psygames-game-sudoku-fractal · VER 4 · 28.08.2026 */
+/* psygames-game-sudoku-fractal · VER 5 · 17.09.2026 */
 /**
  * Фрактальная судоку — сетка, вложенная сама в себя.
  *
@@ -54,6 +54,8 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
 import GameShell, { type HudItem } from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
+import { FieldHeightUp } from '@/src/components/GameFieldHeight';
 import { PencilMarksLayer } from '@/src/components/PencilMarksLayer';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
@@ -116,6 +118,29 @@ const WIN_FLOOR = 300;
 const UNDECIDED_MS = 2600;
 
 const PORTAL_COLOR = '#06b6d4';
+
+/**
+ * Что в поле дочерней сетки занято не доской: зазор 10 + строка «что ты добываешь» (12pt,
+ * до двух строк) 34, а у сетки с порталом ещё строка про близнеца 34 и кнопка перехода 44
+ * с зазорами 20. Замер экспорта 17.09.2026, WebKit, ru, окно 360×640.
+ */
+const ВНЕ_ДОСКИ_ДЕТСКОЙ = 10 + 34;
+const ВНЕ_ДОСКИ_ПОРТАЛ = 34 + 44 + 20;
+
+/**
+ * Сторона клетки дочерней сетки: доска обязана поместиться в МЕСТО, КОТОРОЕ ДАЛ КАРКАС.
+ *
+ * 📍 До 17.09.2026 считалась только от ширины, а под доской ещё стоял запас 150 точек от старой
+ * нижней панели. На 360×640 содержимому поля нужно было 518 при поле 321, и доска — центрированная
+ * в поле — вылезала ВВЕРХ, поверх шапки, крышки с показателями и мордочки питомца (кадр 17.09).
+ * `высотаПоля` 0 — поле ещё не измерено: считаем по-старому, чтобы первый кадр не мигал.
+ */
+export function клеткаСетки(п: { width: number; высотаПоля: number; сПорталом: boolean }): number {
+  const поШирине = Math.floor((Math.min(п.width, 520) - 32) / N);
+  const вне = ВНЕ_ДОСКИ_ДЕТСКОЙ + (п.сПорталом ? ВНЕ_ДОСКИ_ПОРТАЛ : 0);
+  const поВысоте = п.высотаПоля > 0 ? Math.floor((п.высотаПоля - вне - 4) / N) : Infinity;
+  return Math.max(16, Math.min(44, поШирине, поВысоте));
+}
 
 /** Цвет подписи ступени: от спокойного к тревожному, шесть ступеней лестницы. */
 const TIER_COLORS = ['#64748b', '#0ea5e9', '#22c55e', '#f59e0b', '#f43f5e', '#a855f7'] as const;
@@ -189,6 +214,8 @@ export default function FractalSudokuScreen() {
    * запекается в клетки отрицательного размера — до поворота экрана, то есть насовсем.
    */
   const width = useScreenWidth();
+  /** Место под содержимое поля каркаса — приходит узлом `FieldHeightUp` изнутри поля (см. `клеткаСетки`). */
+  const [высотаПоля, setВысотаПоля] = useState(0);
 
   // Лента ходов для отмены. Хранит, ЧТО было в клетке до хода — назад отыгрывает движок.
   // Партия здесь самая длинная в приложении: один промах пальцем не должен стоить часа.
@@ -795,47 +822,42 @@ export default function FractalSudokuScreen() {
    */
   const written = countPencilMarks(openChild !== null ? marks.children[openChild] : marks.root);
   const actions = (
-    <View style={styles.headerActionsRow}>
-      {([
-        ['digit', 'create-outline', t('digitsLabel')],
-        ['pencil', 'pencil-outline', t('sudokuPencilMode')],
-        ['paint', 'color-palette-outline', t('sudokuColorMode')],
-      ] as [Tool, string, string][]).map(([id, icon, label]) => (
-        <TouchableOpacity
-          key={id}
-          accessibilityRole="button"
-          accessibilityState={{ selected: tool === id }}
-          accessibilityLabel={id === 'pencil' && written ? `${label} ${written}` : label}
-          testID={`fractal-tool-${id}`}
-          onPress={() => setTool(id)}
-          style={[styles.toolIconBtn, {
-            backgroundColor: tool === id ? GRADIENT[1] : colors.surface,
-            borderColor: tool === id ? GRADIENT[1] : colors.border,
-          }]}
-        >
-          <Ionicons name={icon as never} size={18} color={tool === id ? '#FFF' : colors.text} />
-          {id === 'pencil' && written > 0 && (
-            <View style={[styles.toolBadge, { backgroundColor: tool === id ? '#FFF' : GRADIENT[1] }]} pointerEvents="none">
-              <Text style={{ fontSize: 9, fontWeight: '800', color: tool === id ? GRADIENT[1] : '#FFF' }}>{written}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      ))}
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessibilityLabel={t('btn_undo')}
-        testID="fractal-undo"
+    /**
+     * 🔴 ЗНАЧКИ КАРКАСА, А НЕ СВОИ КНОПКИ (правило Дениса 17.09.2026, задача ede4f9fa).
+     * Форма та же — 48×48 с залитым значком у включённого режима, — но приходит из `GameAuxAction`:
+     * оттуда же общая лестница (`ladder` у отмены) и единый вид «выбрано» во всех играх семейства.
+     * Счётчик пометок был бейджем на углу значка, стал `count` — числом внутри значка, как везде.
+     */
+    <GameAuxBar>
+      <GameAuxAction
+        icon="arrow-undo"
+        ladder="undo"
+        label={t('btn_undo')}
         onPress={handleUndo}
         disabled={!hist.canUndo}
-        style={[styles.undoBtn, {
-          backgroundColor: colors.surface, borderColor: colors.border,
-          opacity: hist.canUndo ? 1 : 0.4,
-        }]}
-      >
-        <Ionicons name="arrow-undo" size={16} color={colors.text} />
-        <Text style={[styles.undoText, { color: colors.text }]}>{t('btn_undo')}</Text>
-      </TouchableOpacity>
-    </View>
+      />
+      {/* ⚠️ Три значка объявлены ПОИМЁННО, а не через map: гейт `slot-meaning` считает служебные
+          действия по объявлениям в ряду, и свёрнутый цикл выглядел бы для него одной кнопкой. */}
+      <GameAuxAction
+        icon={tool === 'digit' ? 'create' : 'create-outline'}
+        label={t('digitsLabel')}
+        active={tool === 'digit'}
+        onPress={() => setTool('digit')}
+      />
+      <GameAuxAction
+        icon={tool === 'pencil' ? 'pencil' : 'pencil-outline'}
+        label={t('sudokuPencilMode')}
+        active={tool === 'pencil'}
+        count={written || undefined}
+        onPress={() => setTool('pencil')}
+      />
+      <GameAuxAction
+        icon={tool === 'paint' ? 'color-palette' : 'color-palette-outline'}
+        label={t('sudokuColorMode')}
+        active={tool === 'paint'}
+        onPress={() => setTool('paint')}
+      />
+    </GameAuxBar>
   );
 
   // Прогресс по корню: сколько его клеток человек уже закрыл из тех, что вообще его.
@@ -933,6 +955,7 @@ export default function FractalSudokuScreen() {
         ) : undefined}
       >
         <View style={styles.mapWrap}>
+          <FieldHeightUp onChange={setВысотаПоля} />
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>{t('fractalRoot')}</Text>
           <View style={[styles.grid, { borderColor: colors.text }]}>
             {play.rootGrid.map((row, r) => (
@@ -1162,18 +1185,20 @@ export default function FractalSudokuScreen() {
   const task = puzzle!.children[openChild];
   const sol = task.solution;
   const got = solvedCount(ch.grid, sol, task.puzzle.map((row) => row.map((v) => v !== 0)));
-  // Потолок 44 — по той же причине, что 42 у карты: широкий экран заслужил доску крупнее.
-  const cell = Math.min(44, Math.floor((Math.min(width, 520) - 32) / N));
   /** Конец портала этой сетки — или null, если её порталы не задели. */
   // ⚠️ `?? []` не перестраховка: снимок незаконченной партии лежит на устройстве
   // месяцами, и запись без порталов уронила бы экран на ровном месте.
   const link = portalOf(puzzle!.portals ?? [], openChild);
+  const cell = клеткаСетки({ width, высотаПоля, сПорталом: !!link });
 
   return (
     <GameShell
       title={`${t('fractalChildN')} ${openChild + 1}`}
       onBack={() => { setOpenChild(null); setSelected(null); setPhase('map'); }}
       headerActions={actions}
+      // Поле меряется каркасом (отсюда `клеткаСетки`), а прокрутка включается им же — только
+      // когда содержимое и правда не влезло: при крупном системном шрифте или в длинных языках.
+      scrollableField
       confirmExit={false}
       // Панель цифр в липком низу — как на карте (репорт Вали про скролл к цифрам).
       toolbar={(
@@ -1204,6 +1229,7 @@ export default function FractalSudokuScreen() {
       }
     >
       <View style={styles.playCol}>
+        <FieldHeightUp onChange={setВысотаПоля} />
         <View style={[styles.grid, { borderColor: colors.text }]}>
           {ch.grid.map((row, r) => (
             <View key={r} style={styles.row}>
@@ -1317,21 +1343,15 @@ const styles = StyleSheet.create({
 
   stats: { flexDirection: 'row', gap: 14, justifyContent: 'center' },
   stat: { fontSize: 13, fontWeight: '700' },
-  headerActionsRow: { flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },
   // ⚠️ 48 — НЕ КРАСОТА, А ПОРОГ ПОПАДАНИЯ ПАЛЬЦЕМ (норма Material, гейт
   // scripts/tap-target-audit.mjs, проход «на поле»). Промах по мелкой кнопке — это не
   // «не нажалось», а тап по тому, что под ней: здесь под «Отменить» лежит доска, и
   // промах ставит цифру не туда. justifyContent обязателен: без него содержимое ляжет
   // к верху коробки и кнопка станет высокой, но пустой снизу.
-  undoBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    minHeight: 48, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1,
-  },
-  undoText: { fontSize: 13, fontWeight: '700' },
 
   // Клиренс снизу = высота липкой клавиатуры: без него плитки нижних сеток прячутся
   // под тулбаром (скрин Дениса 28.08, 1.250.0 — «тулбар съел всё»).
-  mapWrap: { alignItems: 'center', paddingTop: 4, paddingBottom: 150, gap: 4 },
+  mapWrap: { alignItems: 'center', paddingTop: 4, paddingBottom: 8, gap: 4 },
   sectionLabel: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 320 },
   tile: {
@@ -1340,17 +1360,14 @@ const styles = StyleSheet.create({
   },
   tileHead: { flexDirection: 'row', alignItems: 'center', gap: 5 },
 
-  playCol: { alignItems: 'center', gap: 10, marginBottom: 150 },
+  // ⚠️ Запаса снизу нет: 150 точек стояли под цифровую панель, которая живёт в прибитом тулбаре
+  // каркаса. На 360×640 они выносили доску за поле — она рисовалась поверх шапки.
+  playCol: { alignItems: 'center', gap: 10, marginBottom: 8 },
   // Пометки: три ряда по три, поверх клетки и БЕЗ перехвата касаний —
   // палец должен попадать в саму клетку, а не в слой с цифрами.
   paintRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginBottom: 6 },
   // Иконка-инструмент в шапке: тот же порог 48 (frontend/scripts/tap-target-audit.mjs).
-  toolIconBtn: { width: 48, height: 48, borderRadius: 11, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   // Бейдж счётчика пометок на иконке карандаша — подпись с числом переехала сюда.
-  toolBadge: {
-    position: 'absolute', top: 3, right: 3, minWidth: 14, height: 14, borderRadius: 7,
-    paddingHorizontal: 2, alignItems: 'center', justifyContent: 'center',
-  },
   // Образцы цвета стоят в один ряд с инструментами: тот же порог 48, иначе выбор
   // цвета — самая мелкая мишень на экране, а тыкают в неё десятки раз за партию.
   swatch: { width: 48, height: 48, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },

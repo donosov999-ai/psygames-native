@@ -493,13 +493,14 @@ describe('обе игры дотягиваются до карандаша, а �
     expect(`значок кнопки перьевой: ${/icon=\{[^}]*pencil/.test(glass) || /icon="pencil/.test(glass)}`)
       .toBe('значок кнопки перьевой: true');
 
-    // Самурай: своя кнопка — читаем ИМЯ стиля из разметки и МЕРЯЕМ его объявление.
-    const btn = SAMURAI.slice(SAMURAI.indexOf('testID="samurai-pencil"'), SAMURAI.indexOf('testID="samurai-pencil"') + 500);
-    const styleName = (btn.match(/style=\{\[styles\.(\w+)/) || [])[1];
-    expect(`самурай: стиль кнопки найден: ${!!styleName}`).toBe('самурай: стиль кнопки найден: true');
-    const decl = (SAMURAI.match(new RegExp(`\\n  ${styleName}: \\{[^}]*\\}`)) || [''])[0];
-    const minH = Number((decl.match(/minHeight: (\d+)/) || [])[1]);
-    expect(`самурай: кнопка карандаша ${minH}pt`).toBe('самурай: кнопка карандаша 48pt');
+    // Самурай (с 17.09.2026, ede4f9fa): тот же значок каркаса, что и в обычной судоку —
+    // порог 48×48 уже померен выше по ОБЪЯВЛЕНИЮ стиля `GameAuxAction`. Здесь остаётся
+    // проверить, что кнопка — именно значок ряда, а не своя капсула.
+    const самурай = SAMURAI.slice(SAMURAI.indexOf("label={t('sudokuPencilMode')}") - 200, SAMURAI.indexOf("label={t('sudokuPencilMode')}") + 200);
+    expect(`самурай: карандаш значком каркаса: ${/<GameAuxAction[\s\S]{0,120}?icon=\{pencil \? 'pencil' : 'pencil-outline'\}/.test(самурай)}`)
+      .toBe('самурай: карандаш значком каркаса: true');
+    expect(`самурай: включённый режим залит: ${/active=\{pencil\}/.test(самурай)}`)
+      .toBe('самурай: включённый режим залит: true');
   });
 
   it('🔴 кнопки идут ОДНИМ рядом в обеих раскладках — иначе доска уезжает за край', () => {
