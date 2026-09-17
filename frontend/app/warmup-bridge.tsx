@@ -253,7 +253,15 @@ export default function WarmupBridge() {
               <Text style={styles.actionPrimaryText}>{warmup.overtime ? t('exitConfirmStay') : t('ctaStartNow')}</Text>
             </LinearGradient>
           </TouchableOpacity>
-          <View style={styles.actionsRow}>
+          {/*
+            🔴 РЯД НЕ ШИРЕ ЭКРАНА: «ПРОПУСТИТЬ: <ИМЯ>» СЖИМАЕТСЯ, «ОСТАНОВИТЬ» — НЕТ.
+            📍 17.09.2026, экспорт, WebKit 390×844, «Не спится»: «Пропустить: Пары слов: память» и
+            «Остановить» вылезали за оба края экрана — ряд стоял по центру шириной по содержимому,
+            и `flexShrink` у подписи не работал: сжиматься было не во что. Ряд — на всю ширину
+            блока, кнопка пропуска сжимается и переносит подпись на вторую строку (имя игры
+            остаётся видно — ради него подпись и заводили), кнопка остановки держит ширину.
+          */}
+          <View style={styles.actionsRow} testID="warmup-bridge-actions-row">
             {/* v1.166 (репорт Вали «что значит 1 игра была пропущена, ни 1 игры не было
                 пропущено»): кнопка называлась SKIP — латиницей, без перевода, и стояла
                 под отсчётом «начинаем через N». Читалась как «пропустить ожидание», а
@@ -262,16 +270,16 @@ export default function WarmupBridge() {
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel={next ? `${t('skipGameNamed')} ${имяШага(next, t)}` : t('skipStep')}
-              style={[styles.actionSecondary, { borderColor: colors.border }]} onPress={skip}>
+              style={[styles.actionSecondary, { borderColor: colors.border, flexShrink: 1 }]} onPress={skip}>
               <Ionicons name="play-skip-forward" size={18} color={colors.text} />
-              <Text numberOfLines={1} style={[styles.actionSecondaryText, { color: colors.text, flexShrink: 1 }]}>
+              <Text numberOfLines={2} style={[styles.actionSecondaryText, { color: colors.text, flexShrink: 1 }]}>
                 {next ? `${t('skipGameNamed')} ${имяШага(next, t)}` : t('skipStep')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               accessibilityRole="button" accessibilityLabel={t('stopComplex')}
               testID="warmup-stop"
-              style={[styles.actionSecondary, { borderColor: '#f43f5e' }]} onPress={спроситьСтоп}>
+              style={[styles.actionSecondary, { borderColor: '#f43f5e', flexShrink: 0 }]} onPress={спроситьСтоп}>
               <Ionicons name="stop" size={18} color="#f43f5e" />
               <Text numberOfLines={1} style={[styles.actionSecondaryText, { color: '#f43f5e', flexShrink: 1 }]}>
                 {t('stopComplex')}
@@ -306,7 +314,7 @@ const styles = StyleSheet.create({
   actionPrimary: { borderRadius: 12, overflow: 'hidden', width: '100%', maxWidth: 320 },
   actionPrimaryGrad: { paddingVertical: 16, alignItems: 'center' },
   actionPrimaryText: { color: '#000', fontSize: 16, fontWeight: '900', letterSpacing: 2 },
-  actionsRow: { flexDirection: 'row', gap: 12 },
+  actionsRow: { flexDirection: 'row', gap: 12, width: '100%', justifyContent: 'center' },
   actionSecondary: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 10, borderWidth: 1 },
   actionSecondaryText: { fontSize: 14, fontWeight: '700' },
 });
