@@ -58,7 +58,7 @@ import { HudBadge, useScorePopups, ScorePopupLayer } from '@/src/components/juic
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmupSafe } from '@/src/contexts/WarmupContext';
-import { GAMES } from '@/src/constants/games';
+import { имяШага } from '@/src/services/stepName';
 import { isRTLLang } from '@/src/services/rtl';
 import { GameAuxAction } from '@/src/components/GameAuxAction';
 import { FEEDBACK_OPEN_EVENT, FEEDBACK_ENABLED } from '@/src/services/appFeedback';
@@ -1617,7 +1617,7 @@ export default function GameShell({
               {t('skipStep')}
             </Text>
             <Text testID="skip-step-body" style={[styles.exitBody, { color: colors.textSecondary }]}>
-              {`${t('skipGameNamed')} ${wuStep ? (GAMES.find((x) => x.id === wuStep.game_id) ? t(GAMES.find((x) => x.id === wuStep.game_id)!.nameKey) : wuStep.game_id) : ''}?`}
+              {`${t('skipGameNamed')} ${wuStep ? имяШага(wuStep, t) : ''}?`}
             </Text>
             {/* Безопасный ответ первым и залитым — как в вопросе о выходе. */}
             <View style={styles.exitButtons}>
