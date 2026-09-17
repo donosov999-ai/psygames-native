@@ -1,4 +1,4 @@
-/* psygames-mental-rotation-option-layout · VER 1 · 17.09.2026 */
+/* psygames-mental-rotation-option-layout · VER 2 · 17.09.2026 */
 /* psygames-spatial-claude-mac · задача a2967e6f, отчёт c8903296 */
 
 export interface OptionLayout {
@@ -6,7 +6,41 @@ export interface OptionLayout {
   optSize: number;
   /** Все варианты одним рядом, карточка — ровно под рисунок. */
   oneRow: boolean;
+  /**
+   * Сторона рисунка ЭТАЛОНА — только в альбоме (`oneRow`): там эталон и варианты делят одну
+   * высоту экрана. В остальных раскладках экран берёт свой прежний размер.
+   */
+  refSize?: number;
 }
+
+/**
+ * 🔴 АЛЬБОМ: ЭТАЛОН И ВАРИАНТЫ ДЕЛЯТ ОДНУ ВЫСОТУ — СЧЁТ ПО ЗАМЕРУ, А НЕ НА ГЛАЗ.
+ *
+ * VER 1 подняла варианты в альбоме с 48 px до 0,24 высоты экрана, а эталон оставила 104.
+ * Полоса вариантов подросла, поле над ней стало ниже, и эталон ушёл под полосу. Замер
+ * 17.09.2026 на вышедшей 2.54.15 (экспорт с метки e064affd, задание «Поворот»): срез
+ * карточки эталона 667×375 — 45 px, 740×360 — 56, 812×375 — 45, 844×390 — 34 (подпись
+ * «эталон» не видна), 896×414 — 15, 932×430 — 3, 1024×500 — 0. До VER 1 на 844×390 среза не было.
+ *
+ * ИЗ ЧЕГО СЛОЖЕНА ВЫСОТА (тот же замер, одинаково на всех семи окнах):
+ *   · поле начинается на 119 px — шапка каркаса и строка счёта;
+ *   · под полем — карточка варианта (рисунок + 14) и ещё 21 px полосы;
+ *   · в поле — отступы 5 + 5, строка вопроса 16 и зазор 6;
+ *   · карточка эталона — рисунок + 33 при полях 6 (рамка 2 + 2, поля 6 + 6, подпись 17);
+ *   · и запас 16 на вторую строку вопроса: у «Среза» и «Трёх видов» вопрос длиннее.
+ *     Строк больше двух (замер по 12 языкам: 3 вопроса из 156 при ширине 600, «Срез» на хинди) —
+ *     лишние строки экран меряет живьём и отнимает у эталона, а не у вариантов: варианты
+ *     не должны менять размер от раунда к раунду.
+ * Итого на два рисунка остаётся `высота − 235`, и делится он поровну: эталон не мельче варианта,
+ * иначе сравнивать приходится маленькое с большим.
+ * ⚠️ Меняешь шапку каркаса, строку счёта, вопрос или карточку — ПЕРЕМЕРЬ скриптом
+ * `frontend/scripts/rotation-landscape-fit.mjs`, иначе эти числа начнут врать молча.
+ */
+export const LANDSCAPE_FIXED_HEIGHT = 119 + (14 + 21) + (5 + 5 + 16 + 6) + 33 + 16;
+/** Поля карточки эталона в альбоме: 12 съедали 12 px высоты, которых там нет. */
+export const LANDSCAPE_REF_PADDING = 6;
+/** Высота строки вопроса в альбоме — задаётся явно, чтобы замер строк не зависел от «normal». */
+export const LANDSCAPE_PROMPT_LINE = 16;
 
 /**
  * 🔴 РАЗМЕР ВАРИАНТА ОТВЕТА — ОТ ТОЙ СТОРОНЫ ЭКРАНА, КОТОРОЙ НЕ ХВАТАЕТ.
@@ -19,14 +53,24 @@ export interface OptionLayout {
  *
  * Портретная раскладка (сетка 2×2) и тесный разбор не меняются.
  */
-export function optionLayout({ viewportWidth, viewportHeight, answerWidth, count, compactReview }: {
+export function optionLayout({ viewportWidth, viewportHeight, answerWidth, count, compactReview, refCap = 104, promptLines = 2 }: {
   viewportWidth: number; viewportHeight: number; answerWidth: number; count: number; compactReview: boolean;
+  /** Прежний размер эталона на низком экране (пресет зарядки — 80): больше него эталон не растёт. */
+  refCap?: number;
+  /** Сколько строк занял вопрос (живой замер экрана); две уже заложены в LANDSCAPE_FIXED_HEIGHT. */
+  promptLines?: number;
 }): OptionLayout {
   const compactScreen = viewportHeight < 560;
-  if (compactReview) return { optSize: Math.max(24, (answerWidth - (count - 1) * 6) / count - 18), oneRow: false };
+  let альбом: { optSize: number; refSize: number } | null = null;
   if (compactScreen && viewportWidth >= 600) {
     const byWidth = Math.floor((Math.min(viewportWidth - 48, 760) - (count - 1) * 10) / count) - 12;
-    return { optSize: Math.max(48, Math.min(Math.round(viewportHeight * 0.24), byWidth)), oneRow: true };
+    const наДва = viewportHeight - LANDSCAPE_FIXED_HEIGHT;
+    const optSize = Math.max(48, Math.min(Math.round(viewportHeight * 0.24), byWidth, Math.floor(наДва / 2)));
+    const лишниеСтроки = Math.max(0, promptLines - 2) * LANDSCAPE_PROMPT_LINE;
+    альбом = { optSize, refSize: Math.max(48, Math.min(refCap, наДва - optSize - лишниеСтроки)) };
   }
+  // В разборе эталон остаётся того же размера, что в задании: иначе он прыгал бы в момент ответа.
+  if (compactReview) return { optSize: Math.max(24, (answerWidth - (count - 1) * 6) / count - 18), oneRow: false, refSize: альбом?.refSize };
+  if (альбом) return { optSize: альбом.optSize, oneRow: true, refSize: альбом.refSize };
   return { optSize: Math.min(compactScreen ? 48 : viewportHeight < 720 ? 78 : 110, Math.max(48, (answerWidth - 10) / 2 - 18)), oneRow: false };
 }
