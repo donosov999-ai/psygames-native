@@ -321,6 +321,28 @@ export interface GameShellProps {
    */
   onFinishEarly?: () => void;
   /**
+   * 🔴 «ПОКАЗАТЬ РЕШЕНИЕ» — ОДНО МЕСТО И ОДИН ВИД У ВСЕХ ИГР (задача 3afc4172).
+   *
+   * 📍 Денис 16.09.2026: «во всех играх нужно внизу где-то добавить кнопку „Показать
+   * решение“». Раньше, в отзыве 67dbd7a8: «если не понимаешь, как играть, ткнёшь раз-два
+   * и уйдёшь без шансов». Замер того дня: решение или подсказку имели 7 экранов из 79,
+   * и каждый рисовал кнопку сам.
+   *
+   * Игра даёт обработчик — каркас ставит кнопку-лампочку в конце поля, под доской
+   * (тот же `GameAuxAction`, что у головоломок), и тот же пункт в меню паузы. Один
+   * источник — два места. ЧТО показать, решает игра: ответ решателя, верную
+   * последовательность последней пробы, разбор ответа.
+   *
+   * ⚠️ `available: false` — кнопка остаётся на месте, но выключена: спрятанная кнопка
+   * читается как «функции нет» (урок «Отменить», которую не видели ни разу). В меню
+   * паузы недоступный пункт не показывается.
+   * ⚠️ Правило счёта общее: показал решение — уровень не засчитан. Отмечает это игра
+   * (у головоломок `solver_used`), каркас счёта не знает.
+   * ⚠️ Кнопка занимает строку в поле. Экран, считающий высоту поля своими числами
+   * (например «Корректура», `сеткаКорректуры`), при подключении должен её учесть.
+   */
+  solution?: { onPress: () => void; available?: boolean; label?: string };
+  /**
    * Фиксированные высоты слотов для ПОСЛЕДОВАТЕЛЬНОСТИ упражнений (пространственный
    * пакет). Обычная игра проп не передаёт и живёт как жила.
    *
@@ -569,7 +591,7 @@ function domesticate(
 }
 
 export default function GameShell({
-  title, onBack, stats, hud, mods, bottom, headerActions, auxInHud, toolbar, headerRight, scrollableField, reserveUnderFab, overlay, pet, pauseActions, onRestart, onFinishEarly, frame,
+  title, onBack, stats, hud, mods, bottom, headerActions, auxInHud, toolbar, headerRight, scrollableField, reserveUnderFab, solution, overlay, pet, pauseActions, onRestart, onFinishEarly, frame,
   confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
 
@@ -942,6 +964,20 @@ export default function GameShell({
    *
    * ⚠️ Только у экранов с `reserveUnderFab` — почему не у всех, записано у пропа.
    */
+  /** Кнопка «Показать решение» в конце поля — см. проп `solution`. */
+  const рядРешения = solution ? (
+    <View testID="game-solution-row" style={styles.solutionRow}>
+      <GameAuxAction
+        compact
+        icon="bulb-outline"
+        tint="#d97706"
+        label={solution.label ?? t('puzzleShowSolution')}
+        disabled={solution.available === false}
+        onPress={solution.onPress}
+      />
+    </View>
+  ) : null;
+
   const field = scrollableField ? (
     <ScrollView
       ref={fieldScrollRef}
@@ -952,6 +988,7 @@ export default function GameShell({
       showsVerticalScrollIndicator={false}
     >
       {children}
+      {рядРешения}
     </ScrollView>
   ) : (
     <View
@@ -963,6 +1000,7 @@ export default function GameShell({
       }}
     >
       {children}
+      {рядРешения}
       <ScorePopupLayer popups={popups} />
     </View>
   );
@@ -1068,7 +1106,13 @@ export default function GameShell({
     const лестница = paused ? текущаяЛестница() : null;
     const уровеньМожно = !!перераздать && !!лестница && лестница.loaded;
 
+    const подписьРешения = solution ? (solution.label ?? t('puzzleShowSolution')) : '';
     const общие: PauseAction[] = [
+      // Показать решение — игра дала обработчик и решение сейчас доступно (проп `solution`).
+      // Своё меню игры с тем же пунктом не дублируем.
+      ...(solution && solution.available !== false && !занято.has(подписьРешения)
+        ? [{ id: 'solution', label: подписьРешения, icon: 'bulb-outline' as const, onPress: solution.onPress }]
+        : []),
       ...(уровеньМожно && лестница!.level > 1
         ? [{
             id: 'easier',
@@ -1179,7 +1223,7 @@ export default function GameShell({
       // На самую главную — минуя развилки.
       { id: 'home', label: t('goHome'), icon: 'home', toHome: true },
     ];
-  }, [pauseActions, onRestart, onFinishEarly, служебныеИзШапки, тихо, щелчокТишины, полноэкранныйДоступен, щелчокЭкрана, paused, wu, wuStep, wuSkip, t]);
+  }, [pauseActions, onRestart, onFinishEarly, solution, служебныеИзШапки, тихо, щелчокТишины, полноэкранныйДоступен, щелчокЭкрана, paused, wu, wuStep, wuSkip, t]);
 
   const выходRef = React.useRef(exitGuard.requestExit);
   React.useEffect(() => { выходRef.current = exitGuard.requestExit; });
@@ -1918,6 +1962,7 @@ const styles = StyleSheet.create({
   // поведение для всех игр вместо разнобоя.
   field: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: PAD_H },
   fieldScroll: { flex: 1 },
+  solutionRow: { alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'center', paddingTop: 8 },
   fieldScrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: PAD_H, paddingVertical: PAD_V },
   toolbar: {
     flexDirection: 'row',

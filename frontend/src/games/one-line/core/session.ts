@@ -1,5 +1,5 @@
-/* psygames-one-line-session · VER 5 · 22.08.2026 */
-import { generateOneLinePuzzle } from './generator';
+/* psygames-one-line-session · VER 6 · 17.09.2026 */
+import { generateOneLinePuzzle, generateOneLineTrainingPuzzle } from './generator';
 import {
   ONE_LINE_START_SCORE,
   oneLineScoreAt,
@@ -58,7 +58,7 @@ export function createOneLineSession(config: OneLineSessionConfig): OneLineSessi
   };
   return {
     config: safeConfig,
-    trainingPuzzle: generateOneLinePuzzle(`${safeConfig.seed}-training`, 1),
+    trainingPuzzle: generateOneLineTrainingPuzzle(`${safeConfig.seed}-training`),
     puzzle: generateOneLinePuzzle(safeConfig.seed, safeConfig.level),
     phase: 'rules',
     pausedFrom: null,
@@ -188,6 +188,23 @@ export function expireOneLineSession(session: OneLineSession, now: number): OneL
 export function startOneLineTraining(session: OneLineSession): OneLineSession {
   if (session.phase !== 'rules') return session;
   return emptyRound(session, 'training', null);
+}
+
+/**
+ * 🔴 ДВЕРЬ МИМО ПРАВИЛ И ТРЕНИРОВКИ — СРАЗУ В ПАРТИЮ.
+ *
+ * Модуль из лаборатории ведёт знакомство сам: правила → тренировка → партия. Для первого
+ * раза за заход это верно. Но экран пересоздаёт модуль на каждый уровень, и без этой двери
+ * правила с тренировкой вставали перед КАЖДЫМ уровнем. Отчёты тестировщика 12.09.2026
+ * (c96bfdd3, 76d9a90e): «Выскакивает между уровнями справка с тренировки». Тот же приём
+ * уже стоит у «Соедини точки» (`startRound`).
+ *
+ * Открывается только из правил: из тренировки этой дверью не выйти, иначе тренировочная
+ * фигура засчиталась бы за партию.
+ */
+export function startOneLineRound(session: OneLineSession, now: number): OneLineSession {
+  if (session.phase !== 'rules') return session;
+  return emptyRound(session, 'playing', now);
 }
 
 export function advanceFromOneLineTraining(session: OneLineSession, now: number): OneLineSession {

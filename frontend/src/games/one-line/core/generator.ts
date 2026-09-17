@@ -1,5 +1,5 @@
-/* psygames-one-line-generator · VER 5 · 22.08.2026 */
-import { AUTHORED_LEVELS, AUTHORED_LEVEL_COUNT, authoredLevel } from './authored';
+/* psygames-one-line-generator · VER 6 · 17.09.2026 */
+import { AUTHORED_LEVELS, AUTHORED_LEVEL_COUNT, ONE_LINE_TRAINING_FIGURE, authoredLevel, type AuthoredLevel } from './authored';
 import { visualCrossingCount } from './geometry';
 import {
   createRng,
@@ -317,8 +317,21 @@ function puzzleDifficulty(
 function authoredPuzzle(level: number, seed: string): GeneratedOneLinePuzzle | null {
   const authored = authoredLevel(level);
   if (!authored) return null;
+  return puzzleFromAuthored(authored, level, seed, `one-line:authored:${authored.shape}`);
+}
+
+/**
+ * ТРЕНИРОВКА — СВОЯ ФИГУРА, НЕ ПЕРВЫЙ УРОВЕНЬ. Почему — в `ONE_LINE_TRAINING_FIGURE`.
+ * Номер 1 нужен только для подсветки старта (она горит на первых трёх): в тренировке
+ * человеку и говорят «подсвеченная вершина — допустимый старт».
+ */
+export function generateOneLineTrainingPuzzle(seed: string): GeneratedOneLinePuzzle {
+  return puzzleFromAuthored(ONE_LINE_TRAINING_FIGURE, 1, normalizeSeed(seed), `one-line:training:${ONE_LINE_TRAINING_FIGURE.shape}`);
+}
+
+function puzzleFromAuthored(authored: AuthoredLevel, level: number, seed: string, id: string): GeneratedOneLinePuzzle {
   const draft: OneLinePuzzle = {
-    id: `one-line:authored:${authored.shape}`,
+    id,
     seed,
     level,
     difficulty: 1,

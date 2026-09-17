@@ -1,5 +1,5 @@
 import { ResultActions } from '@/src/components/ResultActions';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import GradientSurface from '@/src/components/GradientSurface';
 import { onGradientText, onGradientTextMuted, accentOn, AA_LARGE } from '@/src/services/onGradientText';
@@ -75,6 +75,21 @@ export default function GameResult({
   const wuIdx = (warmup.currentIdx ?? 0) + 1;
   const wuTotal = warmup.meta?.steps.length ?? 0;
   const wuLast = inWarmup && wuIdx >= wuTotal;
+  /**
+   * 🔴 «СТОП» В ЗАРЯДКЕ ПЕРЕСПРАШИВАЕТ (задача 1436bcdd, отчёт a0b6d77f: «зарядка вылетела,
+   * скинулось всё»). Кнопка стоит под «Дальше» и стирала серию одним касанием — ровно в тот
+   * момент, когда через 2 с после итога зарядка сама уводит на мост. Вопрос держит этот
+   * автопереход (`holdAutoAdvance`), иначе он уехал бы вместе с экраном. Мост зарядки
+   * переспрашивает так же с 2.54.14.
+   */
+  const [спрашиваемСтоп, setСпрашиваемСтоп] = useState(false);
+  const отпуститьПереходRef = useRef<(() => void) | null>(null);
+  const отпуститьПереход = () => { отпуститьПереходRef.current?.(); отпуститьПереходRef.current = null; };
+  useEffect(() => () => { отпуститьПереходRef.current?.(); }, []);
+  const спроситьСтоп = () => {
+    if (!отпуститьПереходRef.current) отпуститьПереходRef.current = warmup.holdAutoAdvance();
+    setСпрашиваемСтоп(true);
+  };
   // 🔴 Раньше здесь была своя прикидка «светлый ли градиент»: средняя яркость по
   // формуле 0.299/0.587/0.114 с порогом 0.62, и дальше жёстко #1a1a1a или #FFFFFF.
   // Две беды. Первая — считалось СРЕДНЕЕ по обоим концам, а текст лежит на обоих:
@@ -267,6 +282,31 @@ export default function GameResult({
             <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('retry')}</Text>
           </TouchableOpacity>
         </View>
+      ) : inWarmup && спрашиваемСтоп ? (
+        <View style={styles.buttonsContainer} testID="result-warmup-stop-ask">
+          <Text style={{ color: colors.text, fontSize: 15, fontWeight: '700', textAlign: 'center', marginBottom: 10 }}>
+            {t('warmupStopAsk').replace('{n}', String(wuIdx)).replace('{m}', String(wuTotal))}
+          </Text>
+          {/* Безопасный ответ первым и залитым — как на мосту зарядки и в вопросе о выходе. */}
+          <TouchableOpacity
+            accessibilityRole="button"
+            testID="result-warmup-stop-keep"
+            style={[styles.button, { backgroundColor: colors.primary }]}
+            onPress={() => { отпуститьПереход(); setСпрашиваемСтоп(false); warmup.advanceToNext(); }}
+          >
+            <Ionicons name="play-forward" size={20} color="#FFFFFF" />
+            <Text style={styles.buttonText} numberOfLines={1}>{t('warmupStopKeep')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            testID="result-warmup-stop-confirm"
+            style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: '#f43f5e' }]}
+            onPress={() => { отпуститьПереход(); warmup.stopWarmup(false); onGoHome(); }}
+          >
+            <Ionicons name="stop" size={20} color="#f43f5e" />
+            <Text style={[styles.buttonText, { color: '#f43f5e' }]} numberOfLines={1}>{t('stopComplex')}</Text>
+          </TouchableOpacity>
+        </View>
       ) : inWarmup ? (
         // Внутри комплекса: прогресс + «Дальше» вместо «Играть снова» (репорт Вали)
         <View style={styles.buttonsContainer}>
@@ -287,7 +327,8 @@ export default function GameResult({
             <TouchableOpacity
               accessibilityRole="button"
               style={[styles.button, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
-              onPress={() => { warmup.stopWarmup(false); onGoHome(); }}
+              testID="result-warmup-stop"
+              onPress={спроситьСтоп}
             >
               <Ionicons name="stop" size={20} color={colors.text} />
               <Text style={[styles.buttonText, { color: colors.text }]} numberOfLines={1}>{t('stop')}</Text>

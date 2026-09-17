@@ -1,4 +1,4 @@
-/* psygames-one-line-game · VER 7 · 22.08.2026 */
+/* psygames-one-line-game · VER 8 · 17.09.2026 */
 import React from 'react';
 import {
   AppState,
@@ -16,6 +16,7 @@ import Svg, { Line, Polygon } from 'react-native-svg';
 import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import { sndPlace } from '@/src/services/feedback';
 import { БЕЗ_ЖЕСТА_ПРОКРУТКИ } from '@/src/components/GameShell';
+import { clearGameTimer, gameTimeout } from '@/src/services/gamePause';
 import { ballImage, useBallStyle } from '@/src/games/balls/ballChoice';
 import {
   edgeAllowsDirection,
@@ -39,6 +40,7 @@ import {
   restartOneLineSession,
   resumeOneLineSession,
   selectOneLineVertex,
+  startOneLineRound,
   startOneLineTraining,
   undoOneLineMove,
   type GraphVertex,
@@ -69,6 +71,12 @@ export interface OneLineGameProps {
   gameGradient: readonly [string, string];
   gameGradientText: string;
   showOwnResults?: boolean;
+  /**
+   * Пропустить правила и тренировку — начать сразу партию (`startOneLineRound`). Экран
+   * передаёт его на всех заходах, кроме первого за визит: иначе знакомство вставало
+   * перед каждым уровнем (отчёты c96bfdd3, 76d9a90e, 12.09.2026).
+   */
+  skipIntro?: boolean;
   now?: () => number;
   onComplete?: (result: OneLineMetrics) => void;
   /**
@@ -101,6 +109,9 @@ export function hasSomethingToLose(session: OneLineSession): boolean {
     || (session.phase === 'paused' && session.pausedFrom === 'playing');
   return inRound && session.edgeTrail.length > 0;
 }
+
+/** Сколько карточка «Тренировка пройдена» стоит до партии: столько же, сколько карточка уровня. */
+export const TRAINING_AUTO_MS = 2200;
 
 function ActionButton({
   label,
@@ -642,13 +653,17 @@ function OneLineSessionView({
   gameGradient,
   gameGradientText,
   showOwnResults = true,
+  skipIntro = false,
   now = Date.now,
   onComplete,
   onProgress,
   onExit,
 }: OneLineGameProps) {
   const strings = getOneLineStrings(locale);
-  const [session, setSession] = React.useState(() => createOneLineSession({ seed, level }));
+  const [session, setSession] = React.useState(() => {
+    const fresh = createOneLineSession({ seed, level });
+    return skipIntro ? startOneLineRound(fresh, now()) : fresh;
+  });
 
   /**
    * ТИК СЧЁТЧИКА. Очки сползают сами по себе, без ходов игрока, поэтому экран
@@ -695,6 +710,28 @@ function OneLineSessionView({
    */
   const armed = hasSomethingToLose(session);
   React.useEffect(() => { onProgress?.(armed); }, [armed, onProgress]);
+
+  /**
+   * 🔴 ПОСЛЕ ТРЕНИРОВКИ ПАРТИЯ НАЧИНАЕТСЯ САМА.
+   *
+   * 📍 Отчёт тестировщика 12.09.2026 (c96bfdd3, 2.54.5, iPhone) — кадр карточки
+   * «Тренировка пройдена» и слова «Почему стоит? Не переходит дальше». Замер 17.09 на
+   * экспорт-сборке 403×873: через 3 с без нажатия карточка стоит как стояла. Экран ждал
+   * кнопку, а между уровнями то же приложение ведёт дальше само (LevelCleared, 2,2 с) —
+   * человек ждал того же и здесь.
+   *
+   * Срок тот же, что у карточки уровня. Кнопка «Начать партию» остаётся — не ждать.
+   * ⚠️ Таймер ИГРОВОЙ (`gameTimeout`): пока открыто меню паузы или окно отзыва, партия
+   * за спиной не начинается и часы её не идут.
+   */
+  React.useEffect(() => {
+    if (session.phase !== 'training-complete') return undefined;
+    const timer = gameTimeout(
+      () => setSession((current) => advanceFromOneLineTraining(current, now())),
+      TRAINING_AUTO_MS,
+    );
+    return () => clearGameTimer(timer);
+  }, [now, session.phase]);
 
   React.useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
@@ -893,6 +930,7 @@ function OneLineSessionView({
       {trainingComplete ? (
         <View accessibilityLiveRegion="polite" style={[styles.card, styles.successCard, { backgroundColor: theme.card, borderColor: theme.success }]}>
           <Text accessibilityRole="header" style={[styles.sectionTitle, { color: theme.success }]}>{strings.trainingDone}</Text>
+          <Text style={[styles.trainingHint, { color: theme.textSecondary }]}>{strings.roundStarting}</Text>
           <ActionButton label={strings.startRound} theme={theme} onPress={() => setSession((current) => advanceFromOneLineTraining(current, now()))} />
         </View>
       ) : (
@@ -907,7 +945,7 @@ function OneLineSessionView({
 }
 
 export default function OneLineGame(props: OneLineGameProps) {
-  const sessionKey = JSON.stringify([props.seed, props.level]);
+  const sessionKey = JSON.stringify([props.seed, props.level, props.skipIntro ?? false]);
   return <OneLineSessionView {...props} key={sessionKey} />;
 }
 
