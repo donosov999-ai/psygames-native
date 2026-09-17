@@ -73,7 +73,7 @@ export const GAME_VERSIONS: Record<string, GameVersion> = {
   'pseudoword-echo': { ver: 1, date: '19.08.2026' },
   'puzzles-hub': { ver: 2, date: '10.09.2026' },
   'puzzles': { ver: 5, date: '16.09.2026' },
-  'quick-count': { ver: 1, date: '19.08.2026' },
+  'quick-count': { ver: 2, date: '17.09.2026' },
   'reading-span': { ver: 2, date: '23.08.2026' },
   'rhythm-pitch': { ver: 2, date: '20.08.2026' },
   'rmet': { ver: 2, date: '27.08.2026' },
