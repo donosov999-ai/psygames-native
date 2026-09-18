@@ -1,4 +1,4 @@
-/* psygames-game-sudoku-fractal · VER 5 · 17.09.2026 */
+/* psygames-game-sudoku-fractal · VER 6 · 18.09.2026 */
 /**
  * Фрактальная судоку — сетка, вложенная сама в себя.
  *
@@ -59,6 +59,7 @@ import { FieldHeightUp } from '@/src/components/GameFieldHeight';
 import { PencilMarksLayer } from '@/src/components/PencilMarksLayer';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
+import { ResultActions } from '@/src/components/ResultActions';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { FRACTAL_MAX_LEVEL, fractalLevel, fractalTechniqueKey } from '@/src/services/fractalLevels';
 import GlassButton from '@/src/components/GlassButton';
@@ -80,7 +81,7 @@ import { sndPlace, sndWrong } from '@/src/services/feedback';
 import { gameNow } from '@/src/services/gamePause';
 import {
   N, FEED_CELL, conflictsInChild, generateFractal, rootCellForChild, solvedCount, rootEditable, rootSolved,
-  startPlayState, playDigit, revertMove, portalOf,
+  startPlayState, playDigit, revertMove, portalOf, revealSolution,
   type FractalPuzzle, type FractalPlayState, type FractalMove,
 } from '@/src/services/fractal-sudoku';
 
@@ -118,6 +119,12 @@ const WIN_FLOOR = 300;
 const UNDECIDED_MS = 2600;
 
 const PORTAL_COLOR = '#06b6d4';
+
+/**
+ * Заливка кнопки «Показать решение» в вопросе и цвет строки «решение показано». Тон лампочки каркаса
+ * (#d97706), только темнее: белый текст на #d97706 даёт 3,2, на #b45309 — 5,0 (WCAG AA 4,5).
+ */
+const SOLUTION_FILL = '#b45309';
 
 /**
  * Что в поле дочерней сетки занято не доской: зазор 10 + строка «что ты добываешь» (12pt,
@@ -178,6 +185,12 @@ interface FractalResume {
   errors: number;
   elapsed: number;
   history: ReturnType<ReturnType<typeof useMoveHistory<FractalMove>>['serialize']>;
+  /**
+   * В партии показывали решение — ступень за неё уже не засчитать (см. `сдался`).
+   * ⚠️ Поле НЕОБЯЗАТЕЛЬНОЕ, и `RESUME_V` из-за него не поднят: старая запись без поля читается
+   * как «не показывали», и это правда. Подъём версии выбросил бы многочасовые партии с устройств.
+   */
+  solverUsed?: boolean;
 }
 
 const EMPTY_PLAY: FractalPlayState = { rootGrid: [], children: [] };
@@ -281,6 +294,21 @@ export default function FractalSudokuScreen() {
   // Итог партии нужен и в рендере результата — держим в состоянии, а не только в аргументе finish().
   const [won, setWon] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  /**
+   * 🔴 «ПОКАЗАТЬ РЕШЕНИЕ» — ПРАВИЛО СЧЁТА НА ВСЮ ПАРТИЮ (задача 7a96a2d6, отзыв Дениса 585fc14c 18.09.2026).
+   * Показал ответ хоть одной сетки — ступень за эту партию не засчитана, но и не опущена: посмотреть
+   * ответ не значит проиграть (общее правило каркаса и головоломок). Флаг лежит в снимке незаконченной
+   * партии, иначе выход и вход обратно отмывали бы показ.
+   */
+  const [сдался, setСдался] = useState(false);
+  /**
+   * Вопрос перед показом. Партия здесь самая длинная в приложении, а лампочка стоит в одном ряду
+   * с отменой и карандашом: случайное касание не должно стоить часа работы. Вопрос встаёт на место
+   * клавиатуры, под палец, а не окном поверх доски.
+   */
+  const [спросРешения, setСпросРешения] = useState(false);
+  /** Разбор окончен: корень сошёлся в партии, где показывали решение. Партия больше не живая. */
+  const разборОкончен = сдался && !!puzzle && play.rootGrid.length > 0 && rootSolved(play.rootGrid, puzzle.root.solution);
   const startRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -327,6 +355,8 @@ export default function FractalSudokuScreen() {
     setMarks(freshMarks());
     setPaint(freshPaint());
     setTool('digit');
+    setСдался(false);
+    setСпросРешения(false);
     runTimer(0);
     setPhase('map');
   }, [lvl.level, profile?.id]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -427,8 +457,50 @@ export default function FractalSudokuScreen() {
     });
   };
 
+  /**
+   * 🔴 РАЗБОР — ТРЕТИЙ ИСХОД, НЕ ПОБЕДА И НЕ ПРОИГРЫШ (тот же, что у головоломок, `app/games/puzzles.tsx`).
+   * Корень сошёлся в партии, где показывали решение: ступень не засчитана и не опущена. Карточка итога
+   * НЕ накрывает показанный ответ — урок головоломок 12.09.2026 (у 31 игры из 37 «нажал „показать
+   * решение“ — выкинуло в итог»). Ответ остаётся на карте, под ним строка и кнопки итога.
+   */
+  const закончитьРазбором = () => {
+    const pid = profile?.id;
+    if (pid) clearResume(GAME_ID, pid).catch(() => {});   // доиграна показом — продолжать нечего
+    void saveSession({
+      passed: false,
+      game_type: GAME_ID,
+      score: 0,
+      time_seconds: elapsed,
+      difficulty: `lvl${playedLevel}`,
+      mode: 'fractal',
+      errors,
+      // Корень сошёлся — значит все девять нижних отдали цифру наверх.
+      details: { level: playedLevel, opened: 9, of: 9, solver_used: true, tier: cfg.tier },
+    }).catch(() => { /* офлайн — ответ всё равно на экране */ });
+  };
+
+  /**
+   * Показать решение — после «да» в вопросе. Нижняя сетка — её ответ, карта — ответ всей судоку
+   * (`revealSolution` в движке, обычными ходами). Показанное не отменяется: лента ходов сбрасывается,
+   * иначе откат хода, сделанного ДО показа, разобрал бы показанный ответ по клетке.
+   * Из нижней сетки на карту не уводим: человек нажал, чтобы увидеть ответ, — он на доске, а цифра,
+   * ушедшая наверх, видна на мини-карте корня.
+   */
+  const показатьРешение = () => {
+    setСпросРешения(false);
+    if (!puzzle || phase === 'result' || разборОкончен) return;
+    // Какая сетка на экране — решает то же условие, что выбирает вид: карта или нижняя.
+    const next = revealSolution(play, puzzle, phase === 'map' ? null : openChild);
+    hist.reset();
+    setСдался(true);
+    setPlay(next);
+    setSelected(null);
+    setRootSel(null);
+    if (rootSolved(next.rootGrid, puzzle.root.solution)) закончитьРазбором();
+  };
+
   const place = (child: number | null, r: number, c: number, n: number) => {
-    if (!puzzle || phase === 'result') return;
+    if (!puzzle || phase === 'result' || разборОкончен) return;
     if (tool === 'pencil') { mark(child, r, c, n); return; }
     const res = playDigit(play, puzzle, { child, r, c }, n);
     if (!res) return;   // подсказка, кормящая клетка или повтор той же цифры
@@ -501,7 +573,11 @@ export default function FractalSudokuScreen() {
     }
     // Девятая цифра снизу может оказаться последней пустой клеткой корня — тогда партия
     // закончилась прямо здесь. Обычно же корень ещё предстоит добить руками.
-    if (rootSolved(next.rootGrid, puzzle.root.solution)) void finish(true);
+    if (rootSolved(next.rootGrid, puzzle.root.solution)) {
+      // Корень добит рукой, но в партии показывали решение — это разбор, а не победа.
+      if (сдался) закончитьРазбором();
+      else void finish(true);
+    }
   };
 
   const placeDigit = (n: number) => { if (openChild !== null && selected) place(openChild, selected.r, selected.c, n); };
@@ -583,6 +659,7 @@ export default function FractalSudokuScreen() {
     errors,
     elapsed,
     history: hist.serialize(),
+    solverUsed: сдался,
   });
 
   /** Поднять партию из снимка — доска оживает ровно такой, какой её оставили. */
@@ -608,6 +685,8 @@ export default function FractalSudokuScreen() {
     setRootSel(null);
     setLinkSel(null);
     setWon(false);
+    setСдался(s.solverUsed === true);
+    setСпросРешения(false);
     hist.restore(s.history);
     // Таймер продолжаем с НАКОПЛЕННОГО: настенные часы между сессиями ушли вперёд, и от
     // прежнего startRef партия «шла» бы всё то время, что телефон лежал в кармане.
@@ -624,7 +703,13 @@ export default function FractalSudokuScreen() {
     applyResume(saved);
   }, false);
 
-  const liveGame = phase !== 'config' && phase !== 'result' && !!puzzle;
+  const liveGame = phase !== 'config' && phase !== 'result' && !!puzzle && !разборОкончен;
+
+  // Разбор окончен — часы стоят: партию закрыл показ ответа, а не рука (у победы часы глушит `phase`).
+  useEffect(() => {
+    if (!разборОкончен) return;
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  }, [разборОкончен]);
 
   // Автосохранение по ходу партии. Пишем с задержкой: подряд идущие касания не должны
   // бить по хранилищу каждым нажатием.
@@ -786,6 +871,57 @@ export default function FractalSudokuScreen() {
   /** Подсказка под полем — что делает выбранный инструмент. */
   const toolHint = tool === 'pencil' ? t('sudokuPencilHint') : tool === 'paint' ? t('sudokuColorHint') : null;
 
+  /**
+   * Вопрос перед показом решения — на месте клавиатуры (см. `спросРешения`). На карте показ открывает
+   * ответ ВСЕЙ судоку и заканчивает партию разбором, в нижней сетке — только её ответ.
+   */
+  const вопросРешения = спросРешения ? (
+    <View testID="fractal-solution-ask" style={styles.askWrap}>
+      <Text style={[styles.askText, { color: colors.text }]}>
+        {t(phase !== 'map' && openChild !== null ? 'fractalSolutionAskChild' : 'fractalSolutionAskAll')}
+      </Text>
+      <View style={styles.askRow}>
+        <TouchableOpacity
+          accessibilityRole="button"
+          testID="fractal-solution-cancel"
+          onPress={() => setСпросРешения(false)}
+          style={[styles.askBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        >
+          <Text style={[styles.askBtnText, { color: colors.text }]}>{t('btn_cancel')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityRole="button"
+          testID="fractal-solution-confirm"
+          onPress={показатьРешение}
+          style={[styles.askBtn, { backgroundColor: SOLUTION_FILL, borderColor: SOLUTION_FILL }]}
+        >
+          <Text style={[styles.askBtnText, { color: '#FFFFFF' }]}>{t('puzzleShowSolution')}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  ) : null;
+
+  /** Строка-напоминание, пока партия идёт после показа: ступень за неё уже не засчитать. */
+  const строкаПоказа = сдался && !разборОкончен ? (
+    <Text testID="fractal-solution-used" style={[styles.feedHint, { color: SOLUTION_FILL, fontWeight: '600' }]}>
+      {t('fractalSolutionUsed')}
+    </Text>
+  ) : null;
+
+  /** Итог разбора — под показанным ответом, общими кнопками итога (см. `закончитьРазбором`). */
+  const итогРазбора = разборОкончен ? (
+    <View testID="fractal-solution-shown" style={styles.askWrap}>
+      <Text style={[styles.askText, { color: colors.textSecondary }]}>{t('fractalSolutionUsed')}</Text>
+      <ResultActions
+        colors={colors}
+        actions={[
+          { id: 'retry', label: t('retry'), icon: 'refresh', tone: 'primary', onPress: start },
+          { id: 'back', label: t('back'), icon: 'arrow-back', onPress: () => goBackOrHome() },
+        ]}
+      />
+    </View>
+  ) : null;
+
   /** Цифровая клавиатура. Одна и та же и для дочерней, и для корня — иначе две копии разъедутся. */
   const renderPad = (onDigit: (n: number) => void) => (
     <View style={styles.pad}>
@@ -939,6 +1075,8 @@ export default function FractalSudokuScreen() {
         confirmExit={liveGame && hist.canUndo}
         resumable
         onSaveBeforeExit={saveBeforeExit}
+        // На карте — ответ всей судоку. После разбора лампочка гаснет, но остаётся на месте.
+        solution={{ onPress: () => setСпросРешения(true), available: !!puzzle && !разборОкончен }}
         /**
          * Панель цифр — В ЛИПКОМ НИЗУ, а не в конце прокрутки. Репорты Вали 21.08
          * и 23.08 (двумя заходами!): «чтобы поставить цифру, каждый раз листать
@@ -946,13 +1084,14 @@ export default function FractalSudokuScreen() {
          * скролла туда-обратно. Слот `toolbar` каркаса и означает «ответ игрока
          * на текущее задание» — панель принадлежит ему по смыслу.
          */
-        toolbar={!rootDone ? (
+        toolbar={вопросРешения ?? (!rootDone ? (
           <View>
             {paintPalette}
             {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
+            {строкаПоказа}
             {renderPad(placeRootDigit)}
           </View>
-        ) : undefined}
+        ) : (итогРазбора ?? undefined))}
       >
         <View style={styles.mapWrap}>
           <FieldHeightUp onChange={setВысотаПоля} />
@@ -1190,6 +1329,8 @@ export default function FractalSudokuScreen() {
   // месяцами, и запись без порталов уронила бы экран на ровном месте.
   const link = portalOf(puzzle!.portals ?? [], openChild);
   const cell = клеткаСетки({ width, высотаПоля, сПорталом: !!link });
+  /** Сетка уже совпадает с ответом — показывать нечего, лампочка гаснет. */
+  const сошлась = ch.grid.every((row, r) => row.every((v, c) => v === sol[r][c]));
 
   return (
     <GameShell
@@ -1200,11 +1341,14 @@ export default function FractalSudokuScreen() {
       // когда содержимое и правда не влезло: при крупном системном шрифте или в длинных языках.
       scrollableField
       confirmExit={false}
+      // В нижней сетке — ответ только её (см. `revealSolution`).
+      solution={{ onPress: () => setСпросРешения(true), available: !сошлась && !разборОкончен }}
       // Панель цифр в липком низу — как на карте (репорт Вали про скролл к цифрам).
-      toolbar={(
+      toolbar={вопросРешения ?? (
         <View>
           {paintPalette}
           {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
+          {строкаПоказа}
           {/* Первая ошибка партии: объясняем красный цвет словами (см. `redHint`). */}
           {redHint && (
             <Text style={[styles.feedHint, { color: '#f43f5e' }]} accessibilityLiveRegion="polite">
@@ -1404,6 +1548,11 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row' },
   cell: { alignItems: 'center', justifyContent: 'center' },
   feedHint: { fontSize: 12, textAlign: 'center', paddingHorizontal: 20 },
+  askWrap: { alignItems: 'center', gap: 8, paddingTop: 4 },
+  askText: { fontSize: 13, textAlign: 'center', paddingHorizontal: 20, lineHeight: 18 },
+  askRow: { flexDirection: 'row', gap: 10, justifyContent: 'center' },
+  askBtn: { minHeight: 44, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  askBtnText: { fontSize: 14, fontWeight: '700' },
   // Клавиши 48 — ровно порог попадания, на пятую часть меньше прежних 58: панель
   // перестаёт спорить с доской за высоту (Денис 28.08), а промахи не растут.
   pad: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, justifyContent: 'center', maxWidth: 280 },

@@ -1,4 +1,4 @@
-/* psygames-solution-everywhere · VER 1 · 17.09.2026 */
+/* psygames-solution-everywhere · VER 2 · 18.09.2026 */
 /**
  * «ПОКАЗАТЬ РЕШЕНИЕ» У ВСЕХ ИГР НА КАРКАСЕ — РЕЕСТР ОХВАТА С ХРАПОВИКОМ (задача 3afc4172).
  *
@@ -44,7 +44,7 @@ const ЖДУТ_РАЗДЕЛА = new Set<string>([
   'one-line', 'ospan', 'pattern', 'phoneme-pairs', 'phonemic-fluency', 'picture-pairs', 'posner',
   'prl', 'proofreading', 'pseudoword-echo', 'quick-count', 'reading-span', 'rhythm-pitch',
   'rmet', 'scholars-mate', 'schulte', 'sdmt', 'semantic-sort', 'set-game', 'simon', 'spatial-span',
-  'stop-signal', 'story-recall', 'stroop', 'stroop-emotional', 'sudoku', 'sudoku-fractal',
+  'stop-signal', 'story-recall', 'stroop', 'stroop-emotional', 'sudoku',
   'sudoku-fractal-deep', 'sudoku-samurai', 'switching-task', 'targets', 'tower-london', 'trail-making',
   'visual-search', 'vocab-srs', 'water-sort', 'wcst', 'word-pairs',
 ]);
