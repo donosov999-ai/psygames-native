@@ -1085,7 +1085,7 @@ export default function FractalSudokuScreen() {
          * на текущее задание» — панель принадлежит ему по смыслу.
          */
         toolbar={вопросРешения ?? (!rootDone ? (
-          <View>
+          <View style={styles.toolbarCol}>
             {paintPalette}
             {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
             {строкаПоказа}
@@ -1345,7 +1345,7 @@ export default function FractalSudokuScreen() {
       solution={{ onPress: () => setСпросРешения(true), available: !сошлась && !разборОкончен }}
       // Панель цифр в липком низу — как на карте (репорт Вали про скролл к цифрам).
       toolbar={вопросРешения ?? (
-        <View>
+        <View style={styles.toolbarCol}>
           {paintPalette}
           {toolHint && <Text style={[styles.feedHint, { color: colors.textSecondary }]}>{toolHint}</Text>}
           {строкаПоказа}
@@ -1548,8 +1548,21 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row' },
   cell: { alignItems: 'center', justifyContent: 'center' },
   feedHint: { fontSize: 12, textAlign: 'center', paddingHorizontal: 20 },
-  askWrap: { alignItems: 'center', gap: 8, paddingTop: 4 },
-  askText: { fontSize: 13, textAlign: 'center', paddingHorizontal: 20, lineHeight: 18 },
+  /**
+   * ⚠️ `flex: 1` обязателен: липкий низ каркаса (`game-toolbar`) — РЯД с `alignItems: center`, и блок
+   * без flex получает в нём ширину по содержимому. Вопрос вытянулся в одну строку 690 при окне 403,
+   * обрезанную с обеих сторон (кадр экспорта 18.09.2026; `alignSelf: stretch` в ряду тянет высоту,
+   * не ширину). С `flex: 1` блок берёт ширину полосы, текст переносится, поля держат кнопки от края.
+   */
+  askWrap: { flex: 1, alignItems: 'stretch', gap: 8, paddingTop: 4, paddingHorizontal: 16 },
+  askText: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
+  /**
+   * Столбец липкого низа: палитра, подсказка, строка «решение показано», клавиатура. `flex: 1` по той же
+   * причине, что у `askWrap`: без него столбец в ряду каркаса брал ширину самой длинной строки, и
+   * подсказка уезжала влево под кнопку отзыва, таща клавиатуру за собой (кадр экспорта 18.09.2026,
+   * 403×873). Беда старше показа решения: так же уезжали подсказки карандаша и красной цифры.
+   */
+  toolbarCol: { flex: 1 },
   askRow: { flexDirection: 'row', gap: 10, justifyContent: 'center' },
   askBtn: { minHeight: 44, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   askBtnText: { fontSize: 14, fontWeight: '700' },
