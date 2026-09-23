@@ -185,7 +185,7 @@
 | ☐ | `trail-making` | psygames-spatial-claude-mac | | |
 | ☐ | `visual-memory-hub` | psygames-memory-hearing-claude-mac | | |
 | ☐ | `visual-search` | psygames-search-claude-mac | | не «Внимание»: экран «Поиска»: стоит в его рефе, таблица лестниц |
-| ☐ | `vocab-srs` | psygames-languages-claude-mac | | |
+| ◐ | `vocab-srs` | psygames-languages-claude-mac | 23.09 | правила и экран нативно: SM-2, очередь, свои слова, варианты и ПЕЧАТЬ ОТВЕТА — сверены с эталоном из живого TS (`flutter/test/fixtures/vocab-srs-reference.json`, прибор `frontend/scripts/flutter-vocab-srs-reference.test.ts`); 24 пробы модели + 7 партий нажатиями; **15 мутаций краснеют**, среди них «`dueAt <= now` → `<`» — она сначала НЕ ловилась, пришлось добавить в эталон карточку со сроком ровно сейчас. Словарь 283×12 данными (`assets/vocab/`). Подписи из общего словаря, зашитых строк 0. ⚠️ Печать на телефоне доступна всегда, а в вебе её прячет проверка физической клавиатуры — отличие намеренное, разбор у `VocabDirection`. ОСТАЛОСЬ билингво — перехват НЕ включён нарочно. ♻️ Строка уже теряла галочку при уборке таблицы 23.09: перенесённый экран читался как «не начат», и его могли перенести дважды — при правке таблицы галочки не сбрасывать |
 | ✅ | `water-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `sort_tubes` на три игры (как в вебе), уровни выгружены JSON, решатель и генератор не переносились |
 | ☐ | `wcst` | psygames-attention-claude-mac | | |
 | ☐ | `word-pairs` | psygames-memory-hearing-claude-mac | | |

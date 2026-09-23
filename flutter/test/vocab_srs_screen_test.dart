@@ -176,4 +176,66 @@ void main() {
     expect(find.byKey(const Key('vocab-lang')), findsOneWidget);
     expect(find.byType(DropdownButtonFormField<String>), findsOneWidget);
   });
+
+  testWidgets('🔴 печать: опечатка не пускает дальше, но в ошибки сессии не идёт', (tester) async {
+    var clock = 1000;
+    await tester.pumpWidget(app(clock: () => clock));
+    await tester.pumpAndSettle();
+
+    // Третье направление: ответ печатается целиком.
+    await tester.tap(find.byKey(const Key('vocab-dir-typing')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocab-start')));
+    await tester.pumpAndSettle();
+
+    // Показано РОДНОЕ слово, набрать надо изучаемое (пара ru→en).
+    final shown = tester.widget<Text>(find.byKey(const Key('vocab-word'))).data!;
+    final entry = vocab.firstWhere((w) => w['ru'] == shown);
+    final word = entry['en']!;
+    final input = find.byKey(const Key('vocab-typing-input'));
+    expect(input, findsOneWidget, reason: 'поле набора вместо вариантов');
+    expect(find.byKey(Key('vocab-option-${entry['ru']}')), findsNothing);
+
+    // Опечатка на первом же символе: курсор обязан СТОЯТЬ.
+    await tester.enterText(input, 'ы');
+    await tester.pump();
+    expect(find.byKey(const Key('vocab-char-0')), findsOneWidget);
+
+    // Дальше набираем слово целиком.
+    for (final ch in word.split('')) {
+      clock += 200;
+      await tester.enterText(input, ch);
+      await tester.pump();
+    }
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+
+    // Слово набрано → ответ верный, карточка оценена. Опечатка была, значит
+    // «good» (интервал 1 день), а не «easy» (3 дня).
+    expect(stateOf('v:${entry['en']}')!.intervalDays, 1, reason: 'опечатка снимает easy');
+    // И в ошибки сессии опечатка НЕ пошла: счётчик ошибок остался нулём.
+    expect(find.text('1'), findsWidgets);
+  });
+
+  testWidgets('печать без опечаток идёт как easy', (tester) async {
+    var clock = 1000;
+    await tester.pumpWidget(app(clock: () => clock));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocab-dir-typing')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocab-start')));
+    await tester.pumpAndSettle();
+
+    final shown = tester.widget<Text>(find.byKey(const Key('vocab-word'))).data!;
+    final entry = vocab.firstWhere((w) => w['ru'] == shown);
+    final input = find.byKey(const Key('vocab-typing-input'));
+    for (final ch in entry['en']!.split('')) {
+      clock += 100;
+      await tester.enterText(input, ch);
+      await tester.pump();
+    }
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+    expect(stateOf('v:${entry['en']}')!.intervalDays, 3, reason: 'чисто и быстро → easy');
+  });
 }
