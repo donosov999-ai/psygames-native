@@ -191,7 +191,7 @@
 | ☐ | `reading-span` | psygames-span-claude-mac | | |
 | ☐ | `rhythm-pitch` | psygames-languages-claude-mac | | |
 | ☐ | `risk-hub` | — | | ⚠️ ЭКРАНА НЕ СУЩЕСТВУЕТ: развилка расформирована 12.09.2026 (задачи 80eb49c9 и 4dce5eb9), заменена наборами «Стоп и запрет» и «Решения». Файла app/games/risk-hub.tsx нет, карточки в hubContents.ts нет. Переносить нечего — строку удалить с согласия Дениса |
-| ☐ | `rmet` | psygames-memory-hearing-claude-mac | | карточка лежит в его развилке (hubContents.ts), правило «в его хабе — его» |
+| ✅ | `rmet` | psygames-memory-hearing-claude-mac | 24.09 | нативно, перехват в гибриде; материал (18 пунктов × 4 слова × ru/en) и 54 снимка глаз выгружены прибором в `assets/rmet.json` и `assets/rmet/` — один источник на обе половины; проба сверяет целость материала (верное слово среди вариантов, три снимка, файлы на месте) и проходит заход нажатиями. ⚠️ Чужой нормы в переносе нет: упражнение ПО МОТИВАМ парадигмы, материал свой |
 | ☐ | `routes-hub` | psygames-spatial-claude-mac | | |
 | ☐ | `scholars-mate` | psygames-chess-claude-mac | | |
 | ☐ | `sdmt` | psygames-search-claude-mac | | карточка лежит в его развилке (hubContents.ts), правило «в его хабе — его» |

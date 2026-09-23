@@ -71,6 +71,7 @@ void main() {
       '$origin/games/inhibition',
       '$origin/games/faces-names',
       '$origin/games/memory-palace',
+      '$origin/games/rmet',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -157,6 +158,7 @@ void main() {
       '/games/math-sprint',
       '/games/memory-matrix',
       '/games/memory-palace',
+      '/games/rmet',
       '/games/mental-rotation',
       '/games/number-bonds',
       '/games/nut-sort',
