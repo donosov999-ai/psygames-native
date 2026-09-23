@@ -1,2 +1,31 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
+
+// 🔴 ДВИЖОК ТЭТХЭМА ВШИВАЕТСЯ В БИНАРНИК. Рецепт взят у чата «Шахматы» (канал
+// psygames, 23.09.2026) — он прошёл этот путь на устройстве для Rust-движка и
+// назвал три грабли, каждая из которых даёт ЗЕЛЁНУЮ сборку и падение на первом
+// ходе уже у человека в руках. Ни одна не ловится обычным прогоном.
+//
+// Библиотека СТАТИЧЕСКАЯ: iOS не даёт открыть чужой .dylib из файловой системы,
+// годится только подписанный .framework, и App Store такую сборку отклоняет.
+// Поэтому C линкуется в приложение, а Dart берёт символы через
+// `DynamicLibrary.process()` — см. lib/games/puzzles/engine.dart.
+// Сами .a собирает tool/build_tatham_ios.sh — ЗАПУСКАТЬ ПЕРЕД flutter build ipa.
+TATHAM_DEVICE=$(SRCROOT)/../build/tatham-ios-arm64
+TATHAM_SIM=$(SRCROOT)/../build/tatham-ios-x86_64
+OTHER_LDFLAGS[sdk=iphoneos*]=$(inherited) -force_load $(TATHAM_DEVICE)/libtatham.a $(TATHAM_SYMBOLS)
+OTHER_LDFLAGS[sdk=iphonesimulator*]=$(inherited) -force_load $(TATHAM_SIM)/libtatham.a $(TATHAM_SYMBOLS)
+
+// 🔴 ГРАБЛЯ 1: `-force_load` только ЗАГРУЖАЕТ архив, а DEAD_CODE_STRIPPING выбрасывает
+// его обратно — на символы никто не ссылается из Swift, Dart ищет их по имени уже в
+// рантайме. Замер «Шахмат»: флаг стоял, .a содержал символ, бинарник вышел 294 КБ вообще
+// без движка. `-u` делает каждый символ КОРНЕМ линковки.
+// ⚠️ ДОБАВИЛ ЭКСПОРТ В МОСТ — ДОПИШИ ЕГО СЮДА. Иначе пропадёт не всё приложение, а
+// отдельные режимы из 42, и только на устройстве. Список сверяет проба
+// test/tatham_ios_symbols_test.dart.
+TATHAM_SYMBOLS=-Wl,-u,_psy_board -Wl,-u,_psy_can_solve -Wl,-u,_psy_click -Wl,-u,_psy_colours -Wl,-u,_psy_count -Wl,-u,_psy_cursor -Wl,-u,_psy_draw -Wl,-u,_psy_free -Wl,-u,_psy_generate -Wl,-u,_psy_has_board -Wl,-u,_psy_height -Wl,-u,_psy_key -Wl,-u,_psy_midend_statepos -Wl,-u,_psy_name -Wl,-u,_psy_open -Wl,-u,_psy_pointer -Wl,-u,_psy_preset_name -Wl,-u,_psy_preset_params -Wl,-u,_psy_presets -Wl,-u,_psy_redo -Wl,-u,_psy_solve -Wl,-u,_psy_statepos -Wl,-u,_psy_status -Wl,-u,_psy_status_text -Wl,-u,_psy_undo -Wl,-u,_psy_width
+
+// 🔴 ГРАБЛЯ 2: релиз по умолчанию зачищает таблицу символов целиком (STRIP_STYLE=all),
+// и `DynamicLibrary.process().lookup('psy_open')` не находит имени. non-global оставляет
+// экспортируемые и убирает остальное.
+STRIP_STYLE=non-global
