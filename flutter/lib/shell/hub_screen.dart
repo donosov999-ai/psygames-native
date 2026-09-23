@@ -27,6 +27,7 @@ class HubScreen extends StatefulWidget {
     required this.hubRoute,
     required this.icon,
     required this.gradient,
+    this.header,
     this.isNative,
   });
 
@@ -36,6 +37,17 @@ class HubScreen extends StatefulWidget {
   final String hubRoute;
   final IconData icon;
   final List<Color> gradient;
+
+  /// ЧТО ПОКАЗАТЬ НАД СПИСКОМ КАРТОЧЕК. Просьба раздела «Шахматы» 23.09.2026, и
+  /// она не единичная: в вебе над выбором стоит ЗАРЯДКА раздела — карточка,
+  /// которая ставит несколько упражнений подряд по их собственным лестницам.
+  /// Такие есть у «Шахмат» (`ChessWarmup`) и у «Слов» (`WordsWarmup`).
+  ///
+  /// ⚠️ Без этого слота раздел вынужден либо писать свой экран развилки вместо
+  /// общего — и тогда счёт «правок каркаса ноль» кончается, — либо включить
+  /// перехват и молча отнять у человека рабочую зарядку. «Шахматы» выбрали
+  /// третье: не включать маршрут и сказать об этом, что и правильно.
+  final Widget? header;
 
   /// Перенесена ли игра на Flutter. Нужно только для подписи на карточке:
   /// открывает её в любом случае оболочка (см. [HubCardTap]).
@@ -142,6 +154,12 @@ class _HubScreenState extends State<HubScreen> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               children: [
+                // Шапка раздела идёт ПЕРЕД градиентным заголовком: зарядка —
+                // это действие, а заголовок только называет раздел.
+                if (widget.header != null) ...[
+                  widget.header!,
+                  const SizedBox(height: 12),
+                ],
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
