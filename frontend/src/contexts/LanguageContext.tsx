@@ -1029,6 +1029,18 @@ const translations: Translations = {
   teachStepOf: { ru: 'Шаг {i} из {n}', en: 'Step {i} of {n}' },
   teachRow: { ru: 'Строка {n}', en: 'Row {n}' },
   teachCol: { ru: 'Столбец {n}', en: 'Column {n}' },
+  /*
+   * 🎓 РАЗБОР «ДВОРЦА ПАМЯТИ». Объясняется не интерфейс, а ПРИЁМ: связка «место → образ» и
+   * проход по маршруту. Тексты идут на настоящем материале уровня — названия мест и
+   * предметов подставляет экран из словаря самой игры.
+   */
+  teachPalaceIntro: { ru: 'Приём «дворец памяти»: {n} мест знакомого маршрута, и на каждое кладётся один предмет. Вспоминать потом будете не список, а дорогу.', en: 'The memory palace: {n} places along a familiar route, one object on each. Later you recall the walk, not the list.' },
+  teachPalaceLinkFirst: { ru: 'Место 1 — {place}. Кладём сюда: {item}. Свяжите их ОДНОЙ картинкой и сделайте её странной: обычное забывается, нелепое держится.', en: 'Place 1 — {place}. Put {item} here. Tie them with ONE picture and make it odd: the ordinary fades, the absurd sticks.' },
+  teachPalaceLink: { ru: 'Место {n} — {place}. Сюда: {item}. Снова одна картинка, и предмет прямо НА этом месте, а не рядом с ним.', en: 'Place {n} — {place}. Here: {item}. Again one picture, with the object right ON the place, not beside it.' },
+  teachPalaceWalk: { ru: 'Теперь пройдём маршрут. Порядок мест и есть порядок предметов — идите по дороге, а не по списку.', en: 'Now walk the route. The order of places is the order of objects — follow the road, not a list.' },
+  teachPalaceRecall: { ru: '{place} — что здесь? {item}. Если картинка была яркой, ответ приходит сам.', en: '{place} — what is here? {item}. If the picture was vivid, the answer comes on its own.' },
+  teachPalaceBack: { ru: 'Обратный ход — та же дорога с конца: {place} — {item}. Приём работает в обе стороны, поэтому игра и спрашивает так.', en: 'Backwards is the same road from the end: {place} — {item}. The technique works both ways, which is why the game asks for it.' },
+  teachPalaceDone: { ru: 'Так и играйте: разложите предметы по местам, потом пройдите маршрут вперёд и назад.', en: 'Play it the same way: place the objects, then walk the route forward and back.' },
   teachUnrulyPair: { ru: '{line}: две одинаковые клетки стоят рядом. Трёх одинаковых подряд не бывает, поэтому клетки по краям — другого цвета.', en: '{line}: two matching cells sit side by side. Three in a row is not allowed, so the cells at both ends take the other colour.' },
   teachAnagramLook: { ru: 'Сначала осмотри буквы. Самая редкая здесь — «{piece}»: в банке этой длины она есть у {n} слов из {total}. С неё и начинай искать: редкая буква сужает перебор сильнее любой другой.', en: 'Look at the letters first. The rarest one here is “{piece}”: only {n} of the {total} words this length contain it. Start from it — a rare letter narrows the search more than any other.' },
   teachAnagramStart: { ru: 'Ставим начало — «{piece}». Так начинаются {n} слов из {total} этой длины: знакомое начало узнаётся быстрее, чем слово целиком.', en: 'Place the beginning — “{piece}”. {n} of the {total} words this length start like that: a familiar opening is recognised faster than a whole word.' },
