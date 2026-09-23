@@ -17,6 +17,7 @@ import GameShell from '@/src/components/GameShell';
 import { publishFeedbackGameState } from '@/src/services/feedbackGameState';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { hapticTap, hapticMedium, hapticSuccess } from '@/src/components/juice';
+import { eyeGymStepBuzzes } from '@/src/services/eyeGymHaptics';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { eyeGymGeometry } from '@/src/services/eyeGymGeometry';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
@@ -298,9 +299,10 @@ export default function EyeGymGame() {
    */
   useEffect(() => {
     if (phase !== 'exercise') return;
-    if (прошлыйШаг.current === stepIdx) return;
-    if (прошлыйШаг.current >= 0) hapticTap();
-    прошлыйШаг.current = stepIdx;
+    // Правило «когда тычок» лежит в @/src/services/eyeGymHaptics — там же
+    // сказано, почему на первом шаге его быть не должно.
+    if (eyeGymStepBuzzes(прошлыйШаг.current, stepIdx)) hapticTap();
+    if (прошлыйШаг.current !== stepIdx) прошлыйШаг.current = stepIdx;
   }, [stepIdx, phase]);
 
   const renderConfig = () => (
