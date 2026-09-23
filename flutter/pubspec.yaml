@@ -80,6 +80,7 @@ flutter:
     - assets/faces-names.json
     - assets/memory-palace.json
     - assets/rmet.json
+    - assets/word-pairs.json
     - assets/rmet/
     - assets/words/
     - assets/l10n/

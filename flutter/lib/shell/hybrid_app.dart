@@ -55,6 +55,7 @@ import '../games/sorting_hub/screen.dart';
 import '../games/faces_names/screen.dart';
 import '../games/memory_palace/screen.dart';
 import '../games/rmet/screen.dart';
+import '../games/word_pairs/screen.dart';
 import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
@@ -183,6 +184,7 @@ class HybridApp extends StatefulWidget {
          * ступеней; см. `test/puzzles_all_modes_open_test.dart`).
          */
         ...puzzleRoutes(),
+        '/games/word-pairs': (s) => WordPairsScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
