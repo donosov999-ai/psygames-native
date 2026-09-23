@@ -55,6 +55,9 @@ void main() {
       '$origin/games/hanoi',
       '$origin/games/tower-london',
       '$origin/games/sorting-hub',
+      '$origin/games/sudoku',
+      '$origin/games/sudoku.html?mode=levels',
+      '$origin/games/go-no-go',
       '$origin/games/choice-rt',
       '$origin/games/stop-signal',
     ]) {

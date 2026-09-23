@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/spatial_hub/screen.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,6 +21,7 @@ void main() {
       'psygames_spatial_lab_net_level_nzt48': '3',
     });
     state = await SharedState.open();
+    await L.load('ru');
   });
 
   Future<List<String>> boot(WidgetTester tester) async {

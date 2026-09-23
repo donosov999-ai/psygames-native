@@ -40,8 +40,12 @@ void main() {
   ///
   /// Принято: 23.09 — ядро, внимание, слова (160); 23.09 — судоку и головоломки (+124);
   /// 23.09 — «Жми и держись» (+19), в тот же день раздел перевёл его сам (−19).
-  /// 23.09 — служебные сообщения выведены из счёта, числа пересчитаны методом гейта;
-  /// 23.09 — «Пространство» (4 экрана); 23.09 — «Сортировки» (9 экранов).
+  /// 23.09 — служебные сообщения выведены из счёта, числа пересчитаны методом гейта.
+  /// 23.09 — «Пространство» (+224): вращение, ряд, лаборатория, развилка. Замер перед
+  /// заносом: на готовые ключи веб-словаря ложится 51 строка из 274, остальным нужны
+  /// НОВЫЕ ключи и перевод на 12 языков — это отдельная работа, задача заведена.
+  /// 23.09 — та же ветка, развилка «Пространства» переведена сразу (−24, файл ушёл из списка),
+  /// и вместе с ней названия четырёх упражнений лаборатории (−4, deal.dart ушёл туда же).
   ///
   /// Долг на 23.09.2026, пофайлово. МЕНЯТЬ ТОЛЬКО В МЕНЬШУЮ СТОРОНУ.
   ///
@@ -53,13 +57,21 @@ void main() {
     'games/spatial_lab/screen.dart': 51,
     'games/puzzles/ladder.dart': 40,
     'games/sudoku/screen.dart': 31,
-    'games/spatial_hub/screen.dart': 24,
+    'games/math_slider/screen.dart': 27,
+    'games/schulte/screen.dart': 26,
+    'games/pattern/model.dart': 24,
+    'games/object_tracker/screen.dart': 24,
     'games/sort_tubes/screen.dart': 23,
     'games/spatial_span/screen.dart': 21,
+    'games/mahjong/screen.dart': 18,
+    'games/pattern/screen.dart': 18,
+    'games/quick_count/screen.dart': 18,
+    'games/math_sprint/screen.dart': 18,
     'main.dart': 16,
     'games/goods_sort/screen.dart': 15,
     'games/samurai/screen.dart': 14,
     'games/tower_london/screen.dart': 14,
+    'games/object_tracker/model.dart': 14,
     'games/fractal/screen.dart': 13,
     'games/deep/screen.dart': 13,
     'games/anagrams/screen.dart': 13,
@@ -80,15 +92,16 @@ void main() {
     'shell/web_game_screen.dart': 4,
     'games/goods_sort/model.dart': 4,
     'games/spatial_lab/board.dart': 4,
-    'games/spatial_lab/deal.dart': 4,
     'games/tower_london/board.dart': 4,
     'games/sort_tubes/board.dart': 2,
     'games/hanoi/board.dart': 2,
     'games/cake_sort/board.dart': 1,
   };
 
-  // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите.
-  const total = 546;
+  // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите,
+  // плюс 224 принятых при вливании «Пространства» 23.09, минус 28 — развилка раздела и
+  // названия упражнений переведены в том же коммите: они держат КЛЮЧИ, как и веб-сторона.
+  const total = 705;
 
   final counts = _scan(Directory('lib'));
 

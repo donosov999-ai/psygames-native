@@ -34,6 +34,7 @@ import { GameAuxAction } from '@/src/components/GameAuxAction';
 import PuzzleCanvas from '@/src/components/PuzzleCanvas';
 import LessonPlayer, { длительностьШага } from '@/src/components/LessonPlayer';
 import { ЦВЕТ_ОШИБКИ, естьОшибкаНаРисунке } from '@/src/games/tatham-bridge/errorColours';
+import { молчаливыйТупик } from '@/src/games/tatham-bridge/deadend';
 import PlayBoard, { сторонаПоВысоте } from '@/src/components/PlayBoard';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -511,6 +512,18 @@ export default function PuzzlesScreen() {
   const прошёл = победа && !сдался;
   /** Сверка «Где ошибка?» относится к доске на экране: сходил, отменил, начал заново — рамки гаснут. */
   const сверкаНаДоске = сверка && партия && сверка.партия === партия && !победа && !сдался ? сверка : null;
+
+  /**
+   * 🔴 ТРЕТИЙ ИСТОЧНИК КОНЦА ПАРТИИ — РИСУНОК, А НЕ ТЕКСТ ДВИЖКА. Строку состояния
+   * ведут 14 движков из 40; у «Колышков» её нет вовсе (`pegs.c` не зовёт `status_bar`
+   * ни разу), у «Сокобана» тупик — вообще не состояние движка, а положение бочки.
+   * Оба признака читаются по доске (`deadend.ts`) и дают КЛЮЧ ПОДПИСИ, потому что
+   * фразы разные: «ходов больше нет» и «бочка застряла».
+   */
+  const молчание = useMemo(
+    () => (победа || сдался ? '' : молчаливыйТупик(имяРежима, партия)),
+    [имяРежима, партия, победа, сдался],
+  );
   const гдеОшибкаДоступна = ЦВЕТ_ЛИНИИ[имяРежима] !== undefined && решениеДоступно && !победа && !сдался && !урок;
   /**
    * 🔴 ПЯТЬ КОМАНД — ОДНОЙ СТРОКОЙ ЗНАЧКОВ, ПЕРЕКЛЮЧАТЕЛЬ ТОЖЕ ЗНАЧКОМ (правило Дениса 17.09.2026: служебное —
@@ -801,7 +814,8 @@ export default function PuzzlesScreen() {
             единственное осмысленное действие — отменить ход — лежало в меню паузы.
             Человек видит мёртвую доску и не догадывается туда лезть.
           */}
-          {партия?.подорвался || партия?.тупик ? (
+          {/* Третий источник — `молчание` выше: конец партии, который движок не объявляет. */}
+          {партия?.подорвался || партия?.тупик || молчание ? (
             <View style={[styles.тупик, { backgroundColor: colors.card, borderColor: colors.border }]}>
               {/*
                 Два разных положения — две разные подписи. «Подорвался» зовёт отменить
@@ -809,7 +823,7 @@ export default function PuzzlesScreen() {
                 доиграна до конца, просто без победы.
               */}
               <Text style={[styles.тупикТекст, { color: colors.text }]}>
-                {партия?.подорвался ? t('puzzleBlownUp') : t('puzzleNoMoves')}
+                {партия?.подорвался ? t('puzzleBlownUp') : t(молчание || 'puzzleNoMoves')}
               </Text>
               <View style={styles.тупикРяд}>
                 <Pressable

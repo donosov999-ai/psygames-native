@@ -2730,6 +2730,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ Qui si trascina, non si tocca",
   "puzzleNoMoves": "Non ci sono più mosse. Puoi ricominciare",
   "puzzleBlownUp": "Sei esploso. Annulla la mossa e continua",
+  "puzzleBarrelStuck": "Il barile è incastrato nell'angolo. Annulla la mossa o ricomincia",
   "puzzleErrorShown": "In rosso: dove una regola è violata",
   "puzzleWhereError": "Dov'è l'errore?",
   "puzzleWrongLines": "Linee in più cerchiate in rosso: {n}",

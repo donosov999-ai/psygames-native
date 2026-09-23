@@ -79,6 +79,7 @@ const copy = {
     modeHintParallel: 'Две практики одновременно: дыхание держит ритм, глаза работают.',
     modeHintRoute: 'Готовый маршрут: наборы идут друг за другом одной сессией.',
     summaryMin: 'мин',
+    moreAbout: 'Подробнее',
     skipStepBtn: 'Пропустить', extend30: '+30 сек',
     parallel: 'Параллельно', route: 'Маршрут', duration: 'Длительность', context: 'Контекст', guide: 'Подсказка',
     home: 'Дома', desk: 'За столом', discreet: 'Незаметно', both: 'Экран + звук', visual: 'Только экран', audio: 'Только звук',
@@ -158,6 +159,7 @@ const copy = {
     modeHintParallel: 'Two practices at once: breathing keeps the rhythm while the eyes work.',
     modeHintRoute: 'A ready route: sets follow one another in a single session.',
     summaryMin: 'min',
+    moreAbout: 'Details',
     skipStepBtn: 'Skip step', extend30: '+30 sec',
     both: 'Screen + sound', visual: 'Screen only', audio: 'Sound only', masteryTitle: 'Mastered solo',
     masteryCopy: 'I confirm at least three solo completions for each selected set', experimentalTitle: 'Experimental sets',
@@ -957,17 +959,48 @@ function renderCatalog() {
     const experimentalLocked = currentStatus === 'experimental' && !state.recharge.allowExperimental;
     const experienced = Boolean(currentProgram?.requiresPriorExperience);
     const baselineLocked = set.id === 'breathing' && state.recharge.mode !== 'solo';
-    return `<article class="practice-card ${selected ? 'is-selected' : ''} ${currentStatus === 'experimental' ? 'is-experimental' : ''} ${experienced ? 'is-experienced' : ''}" data-set-id="${set.id}">
-      <div class="practice-card-meta">
+    return `<article class="practice-card ${selected ? 'is-selected' : ''} ${currentStatus === 'experimental' ? 'is-experimental' : ''} ${experienced ? 'is-experienced' : ''}" data-set-id="${set.id}" data-block-version="${escapeHtml(blockVersion)}">
+      <div class="practice-card-head">
         <span class="practice-icon" aria-hidden="true">${escapeHtml(setIcon(set.id))}</span>
+        <div class="practice-card-title">
+          <h3>${escapeHtml(catalogText(set.title, state.locale))}</h3>
+          <span class="practice-card-program">${escapeHtml(catalogText(currentProgram?.title ?? set.title, state.locale))}</span>
+        </div>
+        <button class="button ${selected ? 'button--secondary' : 'button--primary'} select-practice" type="button" data-action="select-practice" ${(experimentalLocked || baselineLocked) ? 'disabled' : ''}>${escapeHtml(baselineLocked ? t('alwaysOn') : selected ? t('selected') : t('select'))}</button>
+      </div>
+      <div class="practice-card-meta">
         <div class="practice-badges">
-          <span class="practice-version" aria-label="${escapeHtml(t('blockVersion', { version: blockVersion }))}">v${escapeHtml(blockVersion)}</span>
-          <span class="practice-badge is-${currentStatus === 'approved' ? 'approved' : 'allowed'}">${escapeHtml(t(statusKeys[currentStatus]))}</span>
+          <!--
+            🔴 СЛУЖЕБНЫХ ПОДПИСЕЙ ЗДЕСЬ БОЛЬШЕ НЕТ (23.09.2026, задача 50722250).
+            «v0.1.0» и «Основной» стояли на каждой из десяти карточек — двадцать
+            значков, которые человеку ничего не говорят: номер версии блока нужен
+            разработчику, а «Основной» — это просто «не эксперимент». Замер до
+            правки: 22 служебные подписи на экране, 10 карточек по 295 px, 7,19
+            экрана прокрутки при 390×844.
+            Версия блока осталась в атрибуте карточки (data-block-version) — для
+            отладки её видно в разметке, но она не занимает места на экране.
+            ⚠️ Предупреждающие значки ОСТАЮТСЯ: «Эксперимент», «Нужен опыт» и
+            «Только отдельно» — это не служебное, а условие безопасности.
+          -->
+          ${currentStatus === 'experimental' ? `<span class="practice-badge">${escapeHtml(t(statusKeys[currentStatus]))}</span>` : ''}
           ${experienced ? `<span class="practice-badge">${escapeHtml(t('experienced'))}</span>` : ''}
           ${currentProgram?.soloOnly ? `<span class="practice-badge">${escapeHtml(t('soloOnly'))}</span>` : ''}
         </div>
       </div>
-      <h3>${escapeHtml(catalogText(set.title, state.locale))}</h3>
+      <!--
+        🔴 ОПИСАНИЕ И ВЫБОР ПРОГРАММЫ — ПОД РАСКРЫТИЕ. Десять карточек по 295 px
+        давали 7,19 экрана прокрутки: до нижних практик человек не доходил.
+        Строка «название · выбранная программа · кнопка» видна сразу, подробности
+        открываются по требованию (задача 50722250, решение из её описания).
+        ⚠️ Тег details держит содержимое в DOM и в закрытом виде, поэтому
+        селектор data-program-select и обработчики продолжают находить элементы.
+        ⚠️⚠️ И НИ ОДНОЙ ОБРАТНОЙ КАВЫЧКИ В ЭТОМ КОММЕНТАРИИ. Он лежит ВНУТРИ
+        шаблонной строки: первая же обратная кавычка закрывает шаблон, и разметка
+        становится кодом — 23.09.2026 страница упала с «details is not defined»
+        именно так, хотя сама разметка была верной.
+      -->
+      <details class="practice-more">
+        <summary>${escapeHtml(t('moreAbout'))}</summary>
       <p>${escapeHtml(catalogText(set.summary, state.locale))}</p>
       <div class="practice-card-footer">
         <label class="program-select"><span>${escapeHtml(t('program'))}</span><select data-program-select ${baselineLocked ? `disabled aria-label="${escapeHtml(t('alwaysOn'))}"` : ''}>${set.programs.map((program) => {
@@ -975,9 +1008,9 @@ function renderCatalog() {
           const suffix = programStatus === 'experimental' ? ` · ${t('experimental')}` : '';
           return `<option value="${escapeHtml(program.id)}" ${program.id === currentProgramId ? 'selected' : ''} ${programStatus === 'experimental' && !state.recharge.allowExperimental ? 'disabled' : ''}>${escapeHtml(`${catalogText(program.title, state.locale)}${suffix}`)}</option>`;
         }).join('')}</select></label>
-        <button class="button ${selected ? 'button--secondary' : 'button--primary'} select-practice" type="button" data-action="select-practice" ${(experimentalLocked || baselineLocked) ? 'disabled' : ''}>${escapeHtml(baselineLocked ? t('alwaysOn') : selected ? t('selected') : t('select'))}</button>
       </div>
       ${experienced ? `<p class="experienced-note">${escapeHtml(t('experienceCopy'))}</p>` : ''}
+      </details>
     </article>`;
   }).join('');
   $('#catalog-count').textContent = t('catalogItems', { count: PRACTICE_CATALOG.length });

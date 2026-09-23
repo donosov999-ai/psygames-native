@@ -103,6 +103,51 @@ def fix_probe(path, routes):
 
 
 
+
+def dedupe_routes(path):
+    """Убрать повторы маршрутов в карте перехвата.
+
+    ⚠️ Объединение по СТРОКАМ повторов не видит: один и тот же
+    `'/games/spatial-hub': (s) => …` приходит от двух веток с разными отступами
+    или порядком аргументов, и анализатор потом даёт `equal_keys_in_map`. Ключ
+    карты — маршрут, по нему и дедуплицируем.
+    """
+    src = open(path, encoding='utf-8').read()
+    i = src.index('get native =>')
+    j = src.index('};', i)
+    seen, out = set(), []
+    for line in src[i:j].splitlines():
+        m = re.search(r"'(/games/[a-z0-9-]+)':", line)
+        if m:
+            if m.group(1) in seen:
+                continue
+            seen.add(m.group(1))
+        out.append(line)
+    open(path, 'w', encoding='utf-8').write(src[:i] + '\n'.join(out) + src[j:])
+    return len(seen)
+
+
+def drop_orphan_routes(path, after_line):
+    """Убрать хвост списка, оставшийся от ВТОРОЙ половины разрезанного expect.
+
+    🔴 Ожидаемый набор игр может быть разрезан конфликтом НА НЕСКОЛЬКО блоков.
+    Тогда замена одного блока собранным списком оставляет строки соседнего блока
+    сиротами уже ПОСЛЕ закрывающей скобки — файл перестаёт компилироваться, и
+    видно это только анализатором, не глазами. Сироты бывают и по несколько
+    адресов в строке, поэтому шаблон берёт любую строку из одних адресов.
+    """
+    lines = open(path, encoding='utf-8').read().splitlines()
+    tail = after_line + 1
+    while tail < len(lines) and re.fullmatch(r"\s*(?:'/games/[a-z0-9-]+',\s*)+", lines[tail]):
+        tail += 1
+    if tail < len(lines) and lines[tail].strip() == '});':
+        tail += 1
+    dropped = tail - after_line - 1
+    if dropped:
+        open(path, 'w', encoding='utf-8').write('\n'.join(lines[:after_line + 1] + lines[tail:]) + '\n')
+    return dropped
+
+
 def dedupe_imports(path):
     """Убрать повторы импортов после объединения.
 
@@ -131,10 +176,20 @@ def main():
     mapped = union(MAP, line_key)
     dedupe_imports(MAP)
     union('flutter/pubspec.yaml', line_key)
+    dedupe_routes(MAP)
     routes = routes_of(MAP)
     probe, dropped = fix_probe(PROBE, routes)
+    # Разрезанный на несколько блоков expect оставляет хвост-сироту ПОСЛЕ скобки.
+    text = open(PROBE, encoding='utf-8').read().splitlines()
+    for idx, line in enumerate(text):
+        if line.strip() == '});':
+            if drop_orphan_routes(PROBE, idx):
+                break
 
     print(f'доска: {board} конфликтов · карта: {mapped} · проба: {probe}')
+    print('⚠️ СГЕНЕРИРОВАННОЕ НЕ СЛИВАЮТ, А ПЕРЕСОБИРАЮТ. Если конфликт задел')
+    print('   flutter/assets/l10n/*.json или число долга в ui_text_debt_does_not_grow_test.dart —')
+    print('   возьми любую сторону и выполни: node flutter/tools/embed-l10n.mjs')
     print(f'маршрутов перехвата после вливания: {len(routes)}')
     if dropped:
         print('убрано из списка «остаётся в вебе» (игра уже перенесена): ' + ', '.join(dropped))

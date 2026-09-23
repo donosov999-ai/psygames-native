@@ -2735,6 +2735,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ Hier wird gezogen, nicht getippt",
   "puzzleNoMoves": "Keine Züge mehr. Du kannst neu anfangen",
   "puzzleBlownUp": "Explodiert. Zug zurücknehmen und weiterspielen",
+  "puzzleBarrelStuck": "Das Fass klemmt in der Ecke. Nimm den Zug zurück oder fang neu an",
   "puzzleErrorShown": "Rot zeigt, wo eine Regel verletzt ist",
   "puzzleWhereError": "Wo ist der Fehler?",
   "puzzleWrongLines": "Überzählige Linien rot umrandet: {n}",
