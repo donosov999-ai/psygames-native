@@ -92,6 +92,7 @@ void main() {
       addTearDown(tester.view.reset);
 
       final broken = <String>[];
+      final tops = <String, double>{};
       for (final entry in screens.entries) {
         final cfg = entry.value;
         SharedPreferences.setMockInitialValues({
@@ -117,6 +118,7 @@ void main() {
           continue;
         }
         final field = tester.getRect(fieldFinder);
+        tops[entry.key] = field.top;
         var worst = 0.0;
         var who = '';
         for (final (box, name) in boxesUnder(tester, fieldFinder)) {
@@ -139,6 +141,15 @@ void main() {
         }
       }
       expect(broken, isEmpty, reason: 'на ${size.width.toInt()}×${size.height.toInt()}:\n${broken.join('\n')}');
+      // 🔴 ЕДИНЫЙ ВЕРХ ПОЛЯ — канон SPEC_SCREEN_GEOMETRY (допуск 40). В вебе
+      // маджонг выбивался на +54, потому что служебный ряд стоял НАД полем
+      // (задача 8d60d3e1). Нативно верх даёт каркас, и разброс остаётся один:
+      // полоса показателей переносится на вторую строку там, где значков больше
+      // (замер 23.09.2026 — 92 либо 124, то есть ровно одна строка, 32 точки).
+      final spread = tops.values.reduce((a, b) => a > b ? a : b) -
+          tops.values.reduce((a, b) => a < b ? a : b);
+      expect(spread, lessThanOrEqualTo(40),
+          reason: 'верх поля разъехался на $spread: ${tops.entries.map((e) => '${e.key} ${e.value.toStringAsFixed(0)}').join(' · ')}');
     });
   }
 }
