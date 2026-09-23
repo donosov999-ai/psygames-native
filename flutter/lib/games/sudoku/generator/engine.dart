@@ -50,7 +50,11 @@ class Template {
 }
 
 /// Сколько провалов подряд терпит «Обычная», прежде чем облегчить.
-const normalPatience = 2;
+///
+/// 🔴 ТРИ — РЕШЕНИЕ ДЕНИСА 23.09.2026, а не мой черновик. В первой редакции стояло два,
+/// выбранных мной наугад; спрошено прямо, ответ — «после 3, терпеливее». Число живёт
+/// здесь одно: «Полегче» облегчает сразу (streak > 0), «Пожёстче» не облегчает вовсе.
+const normalPatience = 3;
 
 /// Насколько двигается рейтинг: шаг тем крупнее, чем меньше о человеке известно.
 double stepFor(double uncertainty) => 8 + uncertainty / 10;
@@ -111,7 +115,13 @@ int failStreak(AdaptiveState s) {
 /// 🔴 НОМЕР ПРИ ЭТОМ НЕ ТРОГАЕТСЯ. Облегчение — это про ТРУДНОСТЬ, а счётчик побед живёт
 /// отдельно и падать не умеет. Ровно это и просил Денис: «эффект прогресса остаётся,
 /// даже если уровень по факту не вывез».
-double targetRating(AdaptiveState s, Leniency mode) {
+double targetRating(AdaptiveState s, Leniency mode, {double? repeatRating}) {
+  // 🔴 «ЕЩЁ РАЗ ЭТУ ЖЕ» — РЕШЕНИЕ ДЕНИСА 23.09.2026. Человек сам просит ту же трудность,
+  // и тогда поблажка не применяется НИ В ОДНОМ режиме, включая «Полегче»: молчаливое
+  // облегчение после нажатия «ещё раз эту же» означало бы, что кнопка врёт. Доска при
+  // этом другая — номер попытки входит в зерно (решение того же дня), — а трудность та
+  // же самая. Отдельного пути через «Пожёстче» для этого больше не нужно.
+  if (repeatRating != null) return repeatRating;
   final streak = failStreak(s);
   switch (mode) {
     case Leniency.harder:
@@ -134,9 +144,9 @@ double targetRating(AdaptiveState s, Leniency mode) {
 /// ⚠️ ЗАВИСАТЬ НЕЛЬЗЯ: если после всех запретов не осталось никого, запреты снимаются по
 /// одному, а не ищутся бесконечно. Пустой пул возвращает `null`, и это честный ответ,
 /// на котором экран показывает прописанную лестницу.
-Template? pickNext(AdaptiveState s, List<Template> pool, Leniency mode) {
+Template? pickNext(AdaptiveState s, List<Template> pool, Leniency mode, {double? repeatRating}) {
   if (pool.isEmpty) return null;
-  final target = targetRating(s, mode);
+  final target = targetRating(s, mode, repeatRating: repeatRating);
   final lastVariant = pool
       .where((t) => s.recentTemplateIds.isNotEmpty && t.id == s.recentTemplateIds.last)
       .map((t) => t.variant)
@@ -161,6 +171,19 @@ Template? pickNext(AdaptiveState s, List<Template> pool, Leniency mode) {
     }
   }
   return best;
+}
+
+/// Рейтинг шаблона, который человек играл последним, — цель для «ещё раз эту же».
+///
+/// ⚠️ Возвращает `null`, когда сыгранного шаблона в пуле уже нет (пул пересобран, правило
+/// убрали): тогда кнопка не притворяется работающей, а выбор идёт обычным путём.
+double? lastTemplateRating(AdaptiveState s, List<Template> pool) {
+  if (s.recentTemplateIds.isEmpty) return null;
+  final id = s.recentTemplateIds.last;
+  for (final t in pool) {
+    if (t.id == id) return t.rating;
+  }
+  return null;
 }
 
 extension<T> on Iterable<T> {

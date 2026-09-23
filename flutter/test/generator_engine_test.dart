@@ -91,12 +91,62 @@ void main() {
         reason: '«Полегче» облегчает с первого провала');
     expect(targetRating(after(1), Leniency.normal), greaterThan(1200),
         reason: '«Обычная» первый провал терпит');
-    expect(targetRating(after(normalPatience), Leniency.normal), lessThan(1200),
-        reason: 'а после $normalPatience подряд — облегчает');
+    // 🔴 ЧИСЛО НАЗВАНО ЧИСЛОМ, А НЕ КОНСТАНТОЙ. Первая редакция писала
+    // `after(normalPatience)` — такая проба зелёная при ЛЮБОМ значении терпения и не
+    // заметила бы подмены решения Дениса на мой черновик. Ответ 23.09: «после 3».
+    expect(targetRating(after(2), Leniency.normal), greaterThan(1200),
+        reason: 'два провала подряд «Обычная» ещё терпит (решение Дениса 23.09: после 3)');
+    expect(targetRating(after(3), Leniency.normal), lessThan(1200),
+        reason: 'а после трёх подряд — облегчает');
+    expect(normalPatience, 3, reason: 'терпение «Обычной» — три провала, решение Дениса 23.09');
     for (final n in [1, 3, 6]) {
       expect(targetRating(after(n), Leniency.harder), greaterThan(1200),
           reason: '«Пожёстче» не облегчает никогда: $n провалов');
     }
+  });
+
+  /// 🔴 «ЕЩЁ РАЗ ЭТУ ЖЕ» — КНОПКА ОБЯЗАНА ОТМЕНЯТЬ ПОБЛАЖКУ ВО ВСЕХ ТРЁХ СЛОЖНОСТЯХ.
+  /// Решение Дениса 23.09: упёртому игроку на «Полегче» и «Обычной» даётся кнопка, а не
+  /// путь через «Пожёстче». Если поблажка при этом продолжит работать, кнопка соврёт:
+  /// человек попросил ту же трудность, а получил облегчённую — и не узнает об этом.
+  test('🔴 «ещё раз эту же»: трудность держится даже на «Полегче» после провалов', () {
+    var s = AdaptiveState(skillRating: 1200);
+    for (var i = 0; i < 5; i++) {
+      s = applyOutcome(s, ev('пвт$i', Outcome.failed), template: t);
+    }
+    s.skillRating = 1200;
+
+    const repeat = 1480.0;   // рейтинг только что проваленного шаблона
+    for (final mode in Leniency.values) {
+      expect(targetRating(s, mode, repeatRating: repeat), repeat,
+          reason: 'кнопка «ещё раз эту же» держит трудность в режиме ${mode.name}');
+    }
+    // Без кнопки «Полегче» обязана облегчить — иначе проба выше проверяла бы ничто.
+    expect(targetRating(s, Leniency.easier), lessThan(1200));
+
+    // И выбор действительно держит трудность, а не уходит вниз.
+    //
+    // ⚠️ ТОЧНОЕ ПОПАДАНИЕ В ШАБЛОН ТРЕБОВАТЬ НЕЛЬЗЯ, и первая редакция этой пробы на
+    // этом покраснела: рейтинг — не единственная сила выбора. Запрет «одно правило не
+    // подряд» сдвинул ответ на соседний шаблон (1380 вместо 1460), и это правильное
+    // поведение, а не дефект. Проверяется обещание кнопки: держит против «Полегче».
+    final p = pool(9);
+    final held = pickNext(s, p, Leniency.easier, repeatRating: 1460)!;
+    final eased = pickNext(s, p, Leniency.easier)!;
+    expect(held.rating, greaterThanOrEqualTo(1200),
+        reason: 'с кнопкой задача не легче самого игрока');
+    expect(held.rating, greaterThan(eased.rating + 100),
+        reason: 'без кнопки «Полегче» уводит заметно ниже: ${eased.rating} против ${held.rating}');
+  });
+
+  /// Рейтинг сыгранного шаблона берётся из пула, а пропавший шаблон не притворяется.
+  test('🔴 «ещё раз эту же» молчит, когда сыгранного шаблона в пуле больше нет', () {
+    final p = pool(4);
+    final played = AdaptiveState(recentTemplateIds: ['ш2'], skillRating: 1200);
+    expect(lastTemplateRating(played, p), p[2].rating);
+    expect(lastTemplateRating(played, [p.first]), isNull,
+        reason: 'шаблон убрали из пула — кнопка не выдумывает трудность');
+    expect(lastTemplateRating(AdaptiveState(), p), isNull, reason: 'играть ещё нечего');
   });
 
   test('🔴 одно правило не идёт подряд', () {

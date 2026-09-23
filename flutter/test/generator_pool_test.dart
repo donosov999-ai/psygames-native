@@ -111,4 +111,26 @@ void main() {
         'рейтинг ${pool.first.rating.round()}–${pool.last.rating.round()}');
     expect(pool, isNotEmpty);
   });
+
+  /// 🔴 СТАРТ У ТОГО, КТО УЖЕ ИГРАЛ ЛЕСТНИЦУ — ОТ ЕГО СТУПЕНИ, А НЕ С НУЛЯ.
+  /// Решение Дениса 23.09.2026 про Валю (54-я ступень): «от трудности её ступени».
+  /// Без этой пробы человек с половиной пройденной лестницы получил бы на генераторе
+  /// доски новичка, и путь читался бы как откат назад.
+  test('🔴 пришедший с 54-й ступени стартует от её трудности, а не с 1200', () {
+    final s54 = startFromLadder(levels, 54);
+    expect(s54.skillRating, ratingForLevel(levels, 54));
+    expect(s54.skillRating, greaterThan(AdaptiveState().skillRating),
+        reason: 'на 54-й ступени человек уже труднее новичка');
+
+    // Трудность растёт вместе со ступенью — иначе «от ступени» ничего не значит.
+    final s8 = startFromLadder(levels, 8);
+    final s80 = startFromLadder(levels, 80);
+    expect(s8.skillRating, lessThan(s54.skillRating), reason: '8-я легче 54-й');
+    expect(s54.skillRating, lessThanOrEqualTo(s80.skillRating), reason: '54-я не труднее 80-й');
+
+    // 🔴 А ВОТ НОМЕР НЕ НАСЛЕДУЕТСЯ: победы на генераторе ещё не сыграны.
+    expect(s54.adaptiveWins, 0, reason: 'счётчик побед генератора начинается с нуля');
+    expect(s54.ratingUncertainty, greaterThanOrEqualTo(300),
+        reason: 'ступень говорит ЧТО проходил, но не НАСКОЛЬКО уверенно');
+  });
 }

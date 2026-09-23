@@ -18,6 +18,7 @@
 library;
 
 import '../levels.dart';
+import 'contract.dart';
 import 'engine.dart';
 
 /// Границы шкалы игрока. 1200 — середина, с неё стартует новичок (см. `AdaptiveState`).
@@ -109,3 +110,37 @@ Template templateForBoard({
     variant: variant,
   );
 }
+
+/// Рейтинг ПРОПИСАННОЙ ступени — той же мерой, что и у шаблонов пула.
+double ratingForLevel(SudokuLevels levels, int level) {
+  final cfg = levels.config(level);
+  if (cfg.fromBank) return ratingForBank(levels.bankRating(level));
+  final tiers = <int>[];
+  for (var i = 0; i < levels.boardsFor(level); i++) {
+    final t = levels.boardAt(level, i)?.tier;
+    if (t != null) tiers.add(t);
+  }
+  final tier = tiers.isEmpty
+      ? 4
+      : (tiers.reduce((a, b) => a + b) / tiers.length).round().clamp(1, maxTier);
+  return ratingForTier(tier);
+}
+
+/// Состояние для того, кто ПРИШЁЛ С ПРОПИСАННОЙ ЛЕСТНИЦЫ (решение Дениса 23.09.2026).
+///
+/// 🔴 НЕ С НУЛЯ. Валя стоит на 54-й ступени; старт генератора с рейтинга новичка (1200)
+/// выдал бы ей доски вдвое легче тех, что она уже проходит, и путь читался бы как
+/// откат назад. Спрошено прямо, ответ — «от трудности её 54-й ступени».
+///
+/// ⚠️ НЕУВЕРЕННОСТЬ ОСТАЁТСЯ ШИРОКОЙ. Ступень говорит, ЧТО человек проходил, но не
+/// говорит, насколько уверенно: рейтинг взят у лестницы, а не измерен адаптивными
+/// партиями. Широкая `ratingUncertainty` делает первые шаги крупными, и настоящая
+/// трудность находится за несколько партий, а не за двадцать.
+///
+/// Номер уровня генератора при этом НЕ наследуется: `adaptiveWins` — счётчик побед
+/// именно на генераторе, и начинать его с 54 значило бы приписать победы, которых на
+/// этом пути не было.
+AdaptiveState startFromLadder(SudokuLevels levels, int level) => AdaptiveState(
+      skillRating: ratingForLevel(levels, level),
+      ratingUncertainty: 350,
+    );
