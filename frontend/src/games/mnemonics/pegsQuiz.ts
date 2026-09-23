@@ -39,10 +39,27 @@ export type PegQuestion = {
  *   обратный ход, которым потом и вспоминают. Обе стороны включаются не сразу.
  * · ДЛИНА. Число вопросов в заходе.
  */
-export function pegQuizParams(level: number): { range: number; bothWays: boolean; count: number } {
-  const l = Math.min(20, Math.max(1, Math.floor(level)));
+export function pegQuizParams(level: number): {
+  range: number; bothWays: boolean; count: number; limitMs: number; options: number;
+} {
+  const l = Math.min(40, Math.max(1, Math.floor(level)));
   const range = l <= 2 ? 10 : l <= 5 ? 30 : l <= 9 ? 50 : 100;
-  return { range, bothWays: l >= 4, count: Math.min(20, 6 + Math.floor((l - 1) / 2) * 2) };
+  return {
+    range,
+    bothWays: l >= 4,
+    count: Math.min(24, 6 + Math.floor((l - 1) / 2) * 2),
+    /**
+     * · ВРЕМЯ. Пока опора вспоминается десять секунд, в партии она бесполезна:
+     *   ряд за это время уже рассыпался. Время включается, когда сотня освоена,
+     *   и жмётся до четырёх секунд — это скорость, на которой приём работает.
+     */
+    limitMs: l < 12 ? 0 : Math.max(4000, 12000 - (l - 12) * 500),
+    /**
+     * · ЧИСЛО ВАРИАНТОВ. Последняя ось: чем больше похожих рядом, тем меньше
+     *   помогает узнавание и тем нужнее сам код.
+     */
+    options: l >= 35 ? 6 : l >= 29 ? 5 : 4,
+  };
 }
 
 /**
@@ -52,7 +69,7 @@ export function pegQuizParams(level: number): { range: number; bothWays: boolean
  * четырёх чужих: отвечать можно, не зная кода вовсе. Похожие — те, у кого
  * совпала одна из двух цифр: чтобы их различить, код надо прочитать целиком.
  */
-export function pegDistractors(n: number, range: number, rnd: () => number): number[] {
+export function pegDistractors(n: number, range: number, rnd: () => number, сколько = 3): number[] {
   const все = Array.from({ length: range }, (_, i) => i).filter((x) => x !== n);
   const похожие = все.filter((x) => Math.floor(x / 10) === Math.floor(n / 10) || x % 10 === n % 10);
   const прочие = все.filter((x) => !похожие.includes(x));
@@ -65,10 +82,10 @@ export function pegDistractors(n: number, range: number, rnd: () => number): num
     return взято;
   };
   // Двое похожих — столько, сколько почти всегда есть даже в первом десятке.
-  const набор = выбрать(похожие, 2);
-  набор.push(...выбрать(прочие, 3 - набор.length));
-  if (набор.length < 3) набор.push(...выбрать(все.filter((x) => !набор.includes(x)), 3 - набор.length));
-  return набор;
+  const набор = выбрать(похожие, Math.max(2, сколько - 1));
+  набор.push(...выбрать(прочие, сколько - набор.length));
+  if (набор.length < сколько) набор.push(...выбрать(все.filter((x) => !набор.includes(x)), сколько - набор.length));
+  return набор.slice(0, сколько);
 }
 
 export function makePegQuestion(
@@ -77,14 +94,14 @@ export function makePegQuestion(
   rnd: () => number = Math.random,
   избегать: number[] = [],
 ): PegQuestion {
-  const { range, bothWays } = pegQuizParams(level);
+  const { range, bothWays, options } = pegQuizParams(level);
   const свободные = Array.from({ length: range }, (_, i) => i).filter((x) => !избегать.includes(x));
   const пул = свободные.length ? свободные : Array.from({ length: range }, (_, i) => i);
   const n = пул[Math.floor(rnd() * пул.length)];
   const direction: PegDirection = bothWays && rnd() < 0.5 ? 'toNumber' : 'toWord';
   const слово = pegFor(n, lang) as string;
   const двузначно = (x: number) => String(x).padStart(2, '0');
-  const чужие = pegDistractors(n, range, rnd);
+  const чужие = pegDistractors(n, range, rnd, options - 1);
   const варианты = direction === 'toWord'
     ? [слово, ...чужие.map((x) => PEG_WORDS[lang][x])]
     : [двузначно(n), ...чужие.map(двузначно)];
