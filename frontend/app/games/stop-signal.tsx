@@ -71,6 +71,7 @@ import {
   estimateSsrt,
   fillTemplate,
   getStopSignalStrings,
+  levelCondition,
   levelParams,
   loadLadder,
   nextSsd,
@@ -274,6 +275,13 @@ export default function StopSignalGame() {
         errors: e,
         details: {
           level: levelRef.current,
+          /**
+           * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ (23.09.2026). Не «восстановим через
+           * levelParams(level)»: поменяется формула уровня — и накопленное молча
+           * станет нечитаемым. Список полей руками не пишется, его держит гейт
+           * `attention-condition-recorded`: он сам гоняет levelParams по лестнице.
+           */
+          ...levelCondition(levelRef.current),
           mean_rt: Math.round(meanRt),
           hits: h,
           correct_stops: cs,

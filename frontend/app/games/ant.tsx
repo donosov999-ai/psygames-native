@@ -116,6 +116,25 @@ export function levelParams(level: number): {
 }
 
 /**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТ ПОКАЗАТЕЛЬ, — РЯДОМ С САМИМ ПОКАЗАТЕЛЕМ.
+ *
+ * 🔴 Заведено 23.09.2026: экран считает разностную меру, а условие её снятия едет
+ * вместе с уровнем игрока (решение Дениса 09.09.2026 — «мы меряем прогресс
+ * человека»). Два одинаковых на вид числа из разных партий сравнивать НЕЛЬЗЯ,
+ * пока рядом не лежит условие.
+ *
+ * ⚠️ Не «восстановим через levelParams(level)»: это привязывает разбор старых
+ * партий к сегодняшнему коду — поменяется формула, и накопленное молча станет
+ * нечитаемым. Тот же довод записан у соседей (flanker.tsx, cpt.tsx).
+ *
+ * Список полей руками НЕ пишется: гейт `attention-condition-recorded` сам гоняет
+ * `levelParams` по лестнице и требует сюда КАЖДОЕ меняющееся поле.
+ */
+export function levelCondition(level: number): { trials: number; windowMs: number; preJitterMs: number; ctoaVarMs: number } {
+  return levelParams(level);
+}
+
+/**
  * Доли постоянны и равны трети каждая (Fan 2002). Аргумент `level` оставлен для
  * единообразия с остальными играми раздела: гейт долей моделирует поток проб
  * вызовом `makeTrial(level)` и обязан видеть ту же подпись, что у Струпа,
@@ -305,6 +324,13 @@ export default function ANTGame() {
         errors: e,
         details: {
           level: levelRef.current,
+          /**
+           * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ (23.09.2026). Не «восстановим через
+           * levelParams(level)»: поменяется формула уровня — и накопленное молча
+           * станет нечитаемым. Список полей руками не пишется, его держит гейт
+           * `attention-condition-recorded`: он сам гоняет levelParams по лестнице.
+           */
+          ...levelCondition(levelRef.current),
           accuracy: Math.round(accuracy * 100),
           n_trials: totalTrialsRef.current,
           mean_rt: m.meanRt, alerting_ms: m.alerting, orienting_ms: m.orienting, executive_ms: m.executive,

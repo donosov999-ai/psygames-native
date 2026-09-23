@@ -129,6 +129,25 @@ export function levelParams(level: number): { trials: number; windowMs: number; 
 }
 
 /**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТ ПОКАЗАТЕЛЬ, — РЯДОМ С САМИМ ПОКАЗАТЕЛЕМ.
+ *
+ * 🔴 Заведено 23.09.2026: экран считает разностную меру, а условие её снятия едет
+ * вместе с уровнем игрока (решение Дениса 09.09.2026 — «мы меряем прогресс
+ * человека»). Два одинаковых на вид числа из разных партий сравнивать НЕЛЬЗЯ,
+ * пока рядом не лежит условие.
+ *
+ * ⚠️ Не «восстановим через levelParams(level)»: это привязывает разбор старых
+ * партий к сегодняшнему коду — поменяется формула, и накопленное молча станет
+ * нечитаемым. Тот же довод записан у соседей (flanker.tsx, cpt.tsx).
+ *
+ * Список полей руками НЕ пишется: гейт `attention-condition-recorded` сам гоняет
+ * `levelParams` по лестнице и требует сюда КАЖДОЕ меняющееся поле.
+ */
+export function levelCondition(level: number): { trials: number; windowMs: number; preMinMs: number; preJitterMs: number } {
+  return levelParams(level);
+}
+
+/**
  * Проба уровня. Уровень стоит в подписи НАМЕРЕННО, хотя доля конфликтных от него
  * не зависит: гейт спрашивает игру по уровням и считает долю совпадающих проб по
  * реально сгенерированным пробам, а не по строчке в исходнике.
@@ -286,6 +305,13 @@ export default function SimonGame() {
         errors: e,
         details: {
           level: levelRef.current,
+          /**
+           * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ (23.09.2026). Не «восстановим через
+           * levelParams(level)»: поменяется формула уровня — и накопленное молча
+           * станет нечитаемым. Список полей руками не пишется, его держит гейт
+           * `attention-condition-recorded`: он сам гоняет levelParams по лестнице.
+           */
+          ...levelCondition(levelRef.current),
           mean_rt: Math.round(meanRt),
           simon_effect_ms: simonEffect,
           accuracy: Math.round(accuracy * 100),
