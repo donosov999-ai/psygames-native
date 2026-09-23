@@ -192,7 +192,10 @@ jobs:
       # и ничего красного не загорелось.
       - name: Гейт — движок в бинарнике
         working-directory: flutter
-        run: tool/check_ios_engine.sh build/ios/iphoneos/Runner.app/Runner
+        # ⚠️ БЕЗ ПУТИ: пусть ищет сам. Явный путь здесь и был причиной трёх
+        # отбитых зелёных сборок — на бегунке после `flutter build ipa` нет
+        # ни build/ios/iphoneos, ни распакованного .app, только .ipa.
+        run: tool/check_ios_engine.sh
           mkdir -p "$RUNNER_TEMP/ipa"
           cp build/ios/ipa/*.ipa "$RUNNER_TEMP/ipa/"
           ls -la "$RUNNER_TEMP/ipa"
