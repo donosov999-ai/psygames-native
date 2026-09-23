@@ -49,6 +49,7 @@
 | ✅ | `dots-connect` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `memory-matrix` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `one-line` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
+| ✅ | `sudoku` | psygames-sudoku-claude-mac | 23.09 | нативно, перехват в гибриде; доски данными (банк + 780 выгруженных), правила сверены с живым TS на 640 случаях |
 
 ## Что осталось
 
@@ -134,7 +135,6 @@
 | ☐ | `story-recall` | ❓ вписать себя | | |
 | ☐ | `stroop` | ❓ вписать себя | | |
 | ☐ | `stroop-emotional` | ❓ вписать себя | | |
-| ☐ | `sudoku` | psygames-sudoku-claude-mac | | по рефам: судоку 9 упоминаний экрана, шахматы 1 (строка про ключи словаря) |
 | ☐ | `sudoku-fractal` | psygames-sudoku-claude-mac | | |
 | ☐ | `sudoku-fractal-deep` | psygames-sudoku-claude-mac | | |
 | ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |

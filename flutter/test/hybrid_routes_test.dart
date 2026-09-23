@@ -17,6 +17,8 @@ void main() {
       '$origin/games/one-line.html#top',
       '$origin/games/dots-connect',
       '$origin/games/digit-span.html?mode=free',
+      '$origin/games/sudoku',
+      '$origin/games/sudoku.html?mode=levels',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -28,18 +30,23 @@ void main() {
       '$origin/',
       '$origin/index.html',
       '$origin/games/schulte',
-      '$origin/games/sudoku.html',
       '$origin/collection',
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
+      '$origin/games/sudoku-hub',       // развилка судоку ещё не перенесена
+      '$origin/games/sudoku-fractal',   // фрактал ещё не перенесён
+      '$origin/games/sudoku-samurai',   // самурай ещё не перенесён
+      '$origin/games/puzzles',          // головоломки Тэтхэма ещё не перенесены
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
   });
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
-    expect(HybridApp.native.keys.toSet(),
-        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix'});
+    expect(HybridApp.native.keys.toSet(), {
+      '/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix',
+      '/games/sudoku',
+    });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
     }
