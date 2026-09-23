@@ -1,0 +1,2325 @@
+{
+ "boardSize": 12,
+ "bossEvery": 3,
+ "errorsAllowed": 1,
+ "deckSize": 81,
+ "deckIds": [
+  "circle-solid-red-1",
+  "circle-solid-red-2",
+  "circle-solid-red-3",
+  "circle-solid-green-1",
+  "circle-solid-green-2",
+  "circle-solid-green-3",
+  "circle-solid-purple-1",
+  "circle-solid-purple-2",
+  "circle-solid-purple-3",
+  "circle-striped-red-1",
+  "circle-striped-red-2",
+  "circle-striped-red-3",
+  "circle-striped-green-1",
+  "circle-striped-green-2",
+  "circle-striped-green-3",
+  "circle-striped-purple-1",
+  "circle-striped-purple-2",
+  "circle-striped-purple-3",
+  "circle-open-red-1",
+  "circle-open-red-2",
+  "circle-open-red-3",
+  "circle-open-green-1",
+  "circle-open-green-2",
+  "circle-open-green-3",
+  "circle-open-purple-1",
+  "circle-open-purple-2",
+  "circle-open-purple-3",
+  "square-solid-red-1",
+  "square-solid-red-2",
+  "square-solid-red-3",
+  "square-solid-green-1",
+  "square-solid-green-2",
+  "square-solid-green-3",
+  "square-solid-purple-1",
+  "square-solid-purple-2",
+  "square-solid-purple-3",
+  "square-striped-red-1",
+  "square-striped-red-2",
+  "square-striped-red-3",
+  "square-striped-green-1",
+  "square-striped-green-2",
+  "square-striped-green-3",
+  "square-striped-purple-1",
+  "square-striped-purple-2",
+  "square-striped-purple-3",
+  "square-open-red-1",
+  "square-open-red-2",
+  "square-open-red-3",
+  "square-open-green-1",
+  "square-open-green-2",
+  "square-open-green-3",
+  "square-open-purple-1",
+  "square-open-purple-2",
+  "square-open-purple-3",
+  "triangle-solid-red-1",
+  "triangle-solid-red-2",
+  "triangle-solid-red-3",
+  "triangle-solid-green-1",
+  "triangle-solid-green-2",
+  "triangle-solid-green-3",
+  "triangle-solid-purple-1",
+  "triangle-solid-purple-2",
+  "triangle-solid-purple-3",
+  "triangle-striped-red-1",
+  "triangle-striped-red-2",
+  "triangle-striped-red-3",
+  "triangle-striped-green-1",
+  "triangle-striped-green-2",
+  "triangle-striped-green-3",
+  "triangle-striped-purple-1",
+  "triangle-striped-purple-2",
+  "triangle-striped-purple-3",
+  "triangle-open-red-1",
+  "triangle-open-red-2",
+  "triangle-open-red-3",
+  "triangle-open-green-1",
+  "triangle-open-green-2",
+  "triangle-open-green-3",
+  "triangle-open-purple-1",
+  "triangle-open-purple-2",
+  "triangle-open-purple-3"
+ ],
+ "params": [
+  {
+   "level": 1,
+   "trials": 6,
+   "timeLimit": 0
+  },
+  {
+   "level": 2,
+   "trials": 7,
+   "timeLimit": 0
+  },
+  {
+   "level": 3,
+   "trials": 8,
+   "timeLimit": 0
+  },
+  {
+   "level": 4,
+   "trials": 9,
+   "timeLimit": 0
+  },
+  {
+   "level": 5,
+   "trials": 10,
+   "timeLimit": 0
+  },
+  {
+   "level": 6,
+   "trials": 11,
+   "timeLimit": 0
+  },
+  {
+   "level": 7,
+   "trials": 12,
+   "timeLimit": 0
+  },
+  {
+   "level": 8,
+   "trials": 13,
+   "timeLimit": 0
+  },
+  {
+   "level": 9,
+   "trials": 14,
+   "timeLimit": 0
+  },
+  {
+   "level": 10,
+   "trials": 15,
+   "timeLimit": 0
+  },
+  {
+   "level": 11,
+   "trials": 15,
+   "timeLimit": 26
+  },
+  {
+   "level": 12,
+   "trials": 15,
+   "timeLimit": 22
+  },
+  {
+   "level": 13,
+   "trials": 15,
+   "timeLimit": 18
+  },
+  {
+   "level": 14,
+   "trials": 15,
+   "timeLimit": 14
+  },
+  {
+   "level": 15,
+   "trials": 15,
+   "timeLimit": 10
+  },
+  {
+   "level": 16,
+   "trials": 15,
+   "timeLimit": 8
+  },
+  {
+   "level": 17,
+   "trials": 15,
+   "timeLimit": 8
+  },
+  {
+   "level": 18,
+   "trials": 15,
+   "timeLimit": 8
+  },
+  {
+   "level": 19,
+   "trials": 15,
+   "timeLimit": 8
+  },
+  {
+   "level": 20,
+   "trials": 15,
+   "timeLimit": 8
+  }
+ ],
+ "boards": [
+  {
+   "level": 1,
+   "deals": [
+    {
+     "ids": [
+      "square-solid-green-2",
+      "square-solid-purple-2",
+      "triangle-striped-green-1",
+      "square-striped-green-2",
+      "square-open-purple-3",
+      "triangle-striped-red-3",
+      "circle-open-red-2",
+      "circle-solid-green-3",
+      "triangle-open-green-2",
+      "square-open-green-3",
+      "triangle-solid-purple-3",
+      "circle-solid-green-2"
+     ],
+     "firstSet": [
+      2,
+      9,
+      11
+     ]
+    },
+    {
+     "ids": [
+      "circle-striped-red-3",
+      "square-solid-green-1",
+      "square-solid-green-3",
+      "triangle-open-purple-2",
+      "triangle-striped-red-2",
+      "circle-solid-red-2",
+      "triangle-striped-green-2",
+      "circle-solid-green-1",
+      "triangle-solid-red-2",
+      "triangle-striped-red-3",
+      "triangle-striped-purple-3",
+      "square-solid-green-2"
+     ],
+     "firstSet": [
+      0,
+      1,
+      3
+     ]
+    },
+    {
+     "ids": [
+      "circle-solid-green-2",
+      "triangle-solid-purple-2",
+      "triangle-solid-red-2",
+      "circle-solid-green-3",
+      "triangle-open-red-3",
+      "triangle-striped-red-2",
+      "circle-striped-green-1",
+      "circle-striped-purple-3",
+      "triangle-open-red-2",
+      "triangle-striped-purple-1",
+      "triangle-open-green-1",
+      "square-solid-green-2"
+     ],
+     "firstSet": [
+      2,
+      5,
+      8
+     ]
+    },
+    {
+     "ids": [
+      "circle-striped-purple-2",
+      "circle-open-green-1",
+      "circle-striped-purple-1",
+      "circle-solid-green-1",
+      "triangle-open-purple-2",
+      "triangle-solid-green-3",
+      "circle-open-green-2",
+      "triangle-striped-green-1",
+      "square-striped-purple-2",
+      "circle-solid-green-3",
+      "circle-striped-green-2",
+      "square-open-purple-3"
+     ],
+     "firstSet": [
+      1,
+      9,
+      10
+     ]
+    }
+   ]
+  },
+  {
+   "level": 5,
+   "deals": [
+    {
+     "ids": [
+      "triangle-open-green-2",
+      "triangle-open-purple-2",
+      "circle-open-red-3",
+      "square-solid-purple-2",
+      "square-solid-green-3",
+      "square-open-red-1",
+      "triangle-open-red-2",
+      "circle-striped-purple-2",
+      "circle-open-purple-3",
+      "square-open-purple-2",
+      "circle-solid-green-2",
+      "square-open-red-2"
+     ],
+     "firstSet": [
+      0,
+      1,
+      6
+     ]
+    },
+    {
+     "ids": [
+      "triangle-solid-purple-2",
+      "triangle-striped-green-1",
+      "circle-open-green-3",
+      "triangle-striped-purple-3",
+      "circle-open-green-1",
+      "triangle-open-purple-2",
+      "triangle-open-red-2",
+      "square-striped-green-2",
+      "square-striped-red-1",
+      "square-open-red-1",
+      "square-striped-red-3",
+      "circle-open-purple-3"
+     ],
+     "firstSet": [
+      0,
+      2,
+      8
+     ]
+    },
+    {
+     "ids": [
+      "circle-open-purple-2",
+      "circle-striped-red-2",
+      "square-solid-purple-3",
+      "triangle-striped-red-1",
+      "triangle-open-purple-3",
+      "square-striped-red-1",
+      "triangle-open-purple-1",
+      "triangle-solid-purple-1",
+      "triangle-solid-purple-2",
+      "square-open-green-2",
+      "circle-solid-purple-3",
+      "circle-open-green-1"
+     ],
+     "firstSet": [
+      1,
+      8,
+      9
+     ]
+    },
+    {
+     "ids": [
+      "circle-solid-green-1",
+      "circle-solid-red-1",
+      "square-solid-red-1",
+      "circle-striped-red-3",
+      "circle-solid-purple-3",
+      "square-solid-red-2",
+      "circle-open-green-1",
+      "circle-open-green-2",
+      "triangle-striped-purple-3",
+      "square-solid-purple-1",
+      "square-solid-green-3",
+      "square-open-purple-3"
+     ],
+     "firstSet": [
+      2,
+      7,
+      8
+     ]
+    }
+   ]
+  },
+  {
+   "level": 11,
+   "deals": [
+    {
+     "ids": [
+      "triangle-solid-purple-2",
+      "circle-open-green-2",
+      "triangle-open-red-3",
+      "triangle-solid-green-3",
+      "circle-open-purple-3",
+      "triangle-striped-purple-1",
+      "triangle-solid-red-1",
+      "triangle-striped-green-2",
+      "square-open-purple-3",
+      "circle-solid-purple-2",
+      "triangle-striped-green-3",
+      "circle-open-green-1"
+     ],
+     "firstSet": [
+      0,
+      3,
+      6
+     ]
+    },
+    {
+     "ids": [
+      "triangle-striped-green-2",
+      "square-striped-green-1",
+      "square-open-red-1",
+      "triangle-open-purple-3",
+      "square-open-green-2",
+      "circle-striped-green-3",
+      "circle-striped-red-3",
+      "circle-open-green-3",
+      "square-open-purple-2",
+      "square-solid-green-2",
+      "triangle-solid-purple-1",
+      "circle-solid-green-2"
+     ],
+     "firstSet": [
+      0,
+      1,
+      5
+     ]
+    },
+    {
+     "ids": [
+      "triangle-solid-red-2",
+      "square-striped-red-1",
+      "circle-solid-purple-1",
+      "circle-open-purple-3",
+      "triangle-open-purple-2",
+      "square-solid-red-2",
+      "circle-open-red-2",
+      "circle-open-green-1",
+      "square-open-red-1",
+      "square-open-purple-2",
+      "triangle-striped-red-1",
+      "triangle-solid-red-3"
+     ],
+     "firstSet": [
+      1,
+      6,
+      11
+     ]
+    },
+    {
+     "ids": [
+      "square-striped-green-3",
+      "circle-solid-purple-3",
+      "triangle-striped-red-2",
+      "triangle-striped-red-3",
+      "square-open-purple-1",
+      "square-open-purple-2",
+      "square-open-purple-3",
+      "triangle-striped-purple-1",
+      "circle-solid-red-1",
+      "triangle-solid-purple-1",
+      "circle-striped-red-1",
+      "circle-open-green-2"
+     ],
+     "firstSet": [
+      1,
+      5,
+      7
+     ]
+    }
+   ]
+  },
+  {
+   "level": 15,
+   "deals": [
+    {
+     "ids": [
+      "triangle-solid-green-1",
+      "square-solid-red-2",
+      "triangle-solid-green-2",
+      "circle-solid-red-3",
+      "square-striped-green-3",
+      "square-striped-purple-2",
+      "circle-open-red-1",
+      "square-open-purple-2",
+      "circle-striped-purple-1",
+      "square-open-red-3",
+      "circle-solid-red-2",
+      "circle-striped-green-3"
+     ],
+     "firstSet": [
+      2,
+      8,
+      9
+     ]
+    },
+    {
+     "ids": [
+      "circle-solid-green-2",
+      "square-striped-purple-2",
+      "circle-solid-purple-3",
+      "square-open-green-3",
+      "triangle-solid-purple-3",
+      "circle-open-red-3",
+      "circle-striped-red-1",
+      "square-solid-purple-3",
+      "triangle-open-purple-3",
+      "circle-solid-green-3",
+      "square-striped-red-3",
+      "circle-striped-green-2"
+     ],
+     "firstSet": [
+      2,
+      4,
+      7
+     ]
+    },
+    {
+     "ids": [
+      "square-open-red-2",
+      "triangle-open-green-2",
+      "triangle-open-purple-1",
+      "triangle-solid-purple-2",
+      "circle-solid-red-3",
+      "square-open-red-3",
+      "circle-open-purple-1",
+      "circle-striped-purple-3",
+      "circle-solid-purple-1",
+      "triangle-striped-green-1",
+      "circle-solid-purple-3",
+      "square-striped-purple-1"
+     ],
+     "firstSet": [
+      0,
+      9,
+      10
+     ]
+    },
+    {
+     "ids": [
+      "circle-striped-purple-2",
+      "circle-open-green-1",
+      "triangle-striped-green-1",
+      "triangle-striped-red-2",
+      "square-striped-red-3",
+      "square-striped-red-1",
+      "square-solid-purple-2",
+      "triangle-solid-green-2",
+      "circle-open-red-2",
+      "circle-striped-red-2",
+      "triangle-striped-green-3",
+      "square-open-red-1"
+     ],
+     "firstSet": [
+      0,
+      2,
+      4
+     ]
+    }
+   ]
+  }
+ ],
+ "tripleBoard": [
+  "square-solid-purple-2",
+  "square-striped-purple-2",
+  "circle-open-green-2",
+  "square-striped-green-2",
+  "triangle-open-green-1",
+  "square-striped-purple-3",
+  "circle-open-purple-3",
+  "square-solid-green-1",
+  "circle-solid-red-1",
+  "triangle-solid-green-2",
+  "square-solid-purple-3",
+  "triangle-striped-purple-3"
+ ],
+ "triples": [
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-2",
+    "circle-open-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-2",
+    "square-striped-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-2",
+    "triangle-open-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-2",
+    "square-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-2",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-2",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-2",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-2",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-green-2",
+    "square-striped-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-green-2",
+    "triangle-open-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-green-2",
+    "square-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-green-2",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-green-2",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-green-2",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-green-2",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-green-2",
+    "triangle-open-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-green-2",
+    "square-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-green-2",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-green-2",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-green-2",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-green-2",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "triangle-open-green-1",
+    "square-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "triangle-open-green-1",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "triangle-open-green-1",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "triangle-open-green-1",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "triangle-open-green-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "triangle-open-green-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "triangle-open-green-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-3",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-3",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-3",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-3",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-3",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-striped-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-purple-3",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-purple-3",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-purple-3",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-purple-3",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-open-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-solid-green-1",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-solid-green-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-solid-green-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-solid-green-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-solid-red-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-solid-red-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "circle-solid-red-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "triangle-solid-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "triangle-solid-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-purple-2",
+    "square-solid-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-green-2",
+    "square-striped-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-green-2",
+    "triangle-open-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-green-2",
+    "square-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-green-2",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-green-2",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-green-2",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-green-2",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-green-2",
+    "triangle-open-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-green-2",
+    "square-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-green-2",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-green-2",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-green-2",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-green-2",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "triangle-open-green-1",
+    "square-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "triangle-open-green-1",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "triangle-open-green-1",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "triangle-open-green-1",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "triangle-open-green-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "triangle-open-green-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "triangle-open-green-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-purple-3",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-purple-3",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-purple-3",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-purple-3",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-purple-3",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-striped-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-purple-3",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-purple-3",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-purple-3",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-purple-3",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-open-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-solid-green-1",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-solid-green-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-solid-green-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-solid-green-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-solid-red-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-solid-red-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "circle-solid-red-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "triangle-solid-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "triangle-solid-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-2",
+    "square-solid-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-green-2",
+    "triangle-open-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-green-2",
+    "square-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-green-2",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-green-2",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-green-2",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-green-2",
+    "triangle-solid-green-2"
+   ],
+   "isSet": true
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "triangle-open-green-1",
+    "square-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "triangle-open-green-1",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "triangle-open-green-1",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "triangle-open-green-1",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "triangle-open-green-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "triangle-open-green-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "triangle-open-green-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-purple-3",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-purple-3",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-purple-3",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-purple-3",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-purple-3",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-striped-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "circle-open-purple-3",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "circle-open-purple-3",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "circle-open-purple-3",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "circle-open-purple-3",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "circle-open-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-solid-green-1",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-solid-green-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-solid-green-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-solid-green-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "circle-solid-red-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "circle-solid-red-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "circle-solid-red-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "triangle-solid-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "triangle-solid-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-green-2",
+    "square-solid-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "triangle-open-green-1",
+    "square-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "triangle-open-green-1",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "triangle-open-green-1",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "triangle-open-green-1",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "triangle-open-green-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "triangle-open-green-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "triangle-open-green-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "square-striped-purple-3",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "square-striped-purple-3",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "square-striped-purple-3",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "square-striped-purple-3",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "square-striped-purple-3",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "square-striped-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "circle-open-purple-3",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "circle-open-purple-3",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "circle-open-purple-3",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "circle-open-purple-3",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "circle-open-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "square-solid-green-1",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "square-solid-green-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "square-solid-green-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "square-solid-green-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "circle-solid-red-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "circle-solid-red-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "circle-solid-red-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "triangle-solid-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "triangle-solid-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-green-2",
+    "square-solid-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "square-striped-purple-3",
+    "circle-open-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "square-striped-purple-3",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "square-striped-purple-3",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "square-striped-purple-3",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "square-striped-purple-3",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "square-striped-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "circle-open-purple-3",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "circle-open-purple-3",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "circle-open-purple-3",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "circle-open-purple-3",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "circle-open-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "square-solid-green-1",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "square-solid-green-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "square-solid-green-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "square-solid-green-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "circle-solid-red-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "circle-solid-red-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "circle-solid-red-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "triangle-solid-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "triangle-solid-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-open-green-1",
+    "square-solid-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "circle-open-purple-3",
+    "square-solid-green-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "circle-open-purple-3",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "circle-open-purple-3",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "circle-open-purple-3",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "circle-open-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "square-solid-green-1",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "square-solid-green-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "square-solid-green-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "square-solid-green-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "circle-solid-red-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "circle-solid-red-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "circle-solid-red-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "triangle-solid-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "triangle-solid-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-striped-purple-3",
+    "square-solid-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-purple-3",
+    "square-solid-green-1",
+    "circle-solid-red-1"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-purple-3",
+    "square-solid-green-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-purple-3",
+    "square-solid-green-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-purple-3",
+    "square-solid-green-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-purple-3",
+    "circle-solid-red-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-purple-3",
+    "circle-solid-red-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-purple-3",
+    "circle-solid-red-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-purple-3",
+    "triangle-solid-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-purple-3",
+    "triangle-solid-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-open-purple-3",
+    "square-solid-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": true
+  },
+  {
+   "ids": [
+    "square-solid-green-1",
+    "circle-solid-red-1",
+    "triangle-solid-green-2"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-green-1",
+    "circle-solid-red-1",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-green-1",
+    "circle-solid-red-1",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-green-1",
+    "triangle-solid-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-green-1",
+    "triangle-solid-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "square-solid-green-1",
+    "square-solid-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-solid-red-1",
+    "triangle-solid-green-2",
+    "square-solid-purple-3"
+   ],
+   "isSet": true
+  },
+  {
+   "ids": [
+    "circle-solid-red-1",
+    "triangle-solid-green-2",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "circle-solid-red-1",
+    "square-solid-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  },
+  {
+   "ids": [
+    "triangle-solid-green-2",
+    "square-solid-purple-3",
+    "triangle-striped-purple-3"
+   ],
+   "isSet": false
+  }
+ ]
+}
