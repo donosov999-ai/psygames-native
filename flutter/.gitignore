@@ -46,3 +46,8 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Движок Тэтхэма собирается из чужого канона — бинарники в репозиторий не кладём.
+# iOS: build/tatham-ios-*, Android: jniLibs/<abi>/libtatham.so. Их делают
+# tool/build_tatham_ios.sh и tool/build_tatham_android.sh перед сборкой.
+android/app/src/main/jniLibs/

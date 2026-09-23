@@ -147,6 +147,7 @@ void main() {
       '/games/stop-signal',
       '/games/stroop',
       '/games/stroop-emotional',
+      '/games/switching-task',
       '/games/sudoku',
       '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',

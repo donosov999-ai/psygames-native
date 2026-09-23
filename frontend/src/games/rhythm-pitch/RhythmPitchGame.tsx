@@ -22,8 +22,8 @@ import {
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
 } from 'react-native';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import {
   appendPitchLevel,
   completeAudioRoundPlayback,
@@ -487,9 +487,15 @@ function RhythmPitchSessionView({
    * уезжает на 188 ниже края. Отступы здесь заданы под просторный экран (20 + 18 + 20 + 14),
    * на узком телефоне они и съедают разницу. Высоту берём у себя через onLayout.
    */
-  const окно = useWindowDimensions();
+  /**
+   * ⚠️ ХУК ПРОЕКТА, А НЕ ГОЛЫЙ `useWindowDimensions`. В веб-сборке (Android у нас WebView)
+   * на ПЕРВОМ кадре система отдаёт 0 и больше не обновляет: `resize` при обычной загрузке
+   * не приходит, и ноль запекается в размеры навсегда. Гейт `screen-width-guard` назвал
+   * этот файл 23.09.2026 — и был прав: с нулём высота поля вышла бы −249.
+   */
+  const окно = useScreenSize();
   /** Поле каркаса = окно − 249 (замер 23.09.2026 на 640 и 844). Ниже 450 воздух не по карману. */
-  const тесно = окно.height - 249 < 450;
+  const тесно = окно.h - 249 < 450;
 
   const действиеФазы: RhythmPitchPhaseAction | null = React.useMemo(() => {
     if (session.phase === 'rules') return { label: strings.start, disabled: false, run: begin };
@@ -595,10 +601,10 @@ function RhythmPitchSessionView({
         contentContainerStyle={[styles.gameContent, тесно && styles.тесныйПоток]}
         keyboardShouldPersistTaps="handled"
       >
-        <Text accessibilityRole="header" style={[styles.gameTitle, { color: theme.text }]}>{strings.calibrationTitle}</Text>
-        <Text style={[styles.body, { color: theme.textSecondary }]}>{strings.calibrationBody}</Text>
+        <Text accessibilityRole="header" style={[styles.gameTitle, тесно && styles.тесныйЗаголовок, { color: theme.text }]}>{strings.calibrationTitle}</Text>
+        <Text style={[styles.body, тесно && styles.тесныйТекст, { color: theme.textSecondary }]}>{strings.calibrationBody}</Text>
         <View style={[styles.card, styles.centerCard, тесно && styles.теснаяКарточка, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <Text style={[styles.volumeValue, { color: theme.text }]}>{interpolateRhythmPitch(strings.volume, { value: Math.round(session.volume * 100) })}</Text>
+          <Text style={[styles.volumeValue, тесно && styles.тесныйЗаголовок, { color: theme.text }]}>{interpolateRhythmPitch(strings.volume, { value: Math.round(session.volume * 100) })}</Text>
           <View style={styles.choiceRow}>
             <ActionButton label={strings.quieter} theme={theme} secondary disabled={session.calibrationPlaying} onPress={() => applySession((current) => setCalibrationVolume(current, current.volume - 0.1))} />
             <ActionButton label={strings.louder} theme={theme} secondary disabled={session.calibrationPlaying} onPress={() => applySession((current) => setCalibrationVolume(current, current.volume + 0.1))} />
@@ -626,7 +632,7 @@ function RhythmPitchSessionView({
             disabled={!session.calibrationPlaying}
             onPress={() => applySession((current) => recordCalibrationTap(current, now()))}
           />
-          <Text style={[styles.body, { color: theme.textSecondary }]}>{strings.calibrationTapHint}</Text>
+          <Text style={[styles.body, тесно && styles.тесныйТекст, { color: theme.textSecondary }]}>{strings.calibrationTapHint}</Text>
           {session.calibrationComplete ? (
             <View style={styles.calibrationResult}>
               <Text style={[styles.body, { color: theme.text }]}>{interpolateRhythmPitch(strings.calibrationReady, { samples: session.calibrationSamples })}</Text>
@@ -759,6 +765,9 @@ const styles = StyleSheet.create({
   /* Плотная раскладка низкого поля: те же элементы, меньше воздуха между ними. */
   тесныйПоток: { padding: 10, gap: 8 },
   теснаяКарточка: { padding: 12, gap: 8 },
+  /* Текст на низком поле: тот же смысл, меньше межстрочного воздуха. */
+  тесныйТекст: { fontSize: 14, lineHeight: 19 },
+  тесныйЗаголовок: { fontSize: 17 },
   sectionTitle: { fontSize: 24, fontWeight: '800', textAlign: 'center' },
   gameTitle: { fontSize: 25, fontWeight: '800' },
   body: { fontSize: 16, lineHeight: 24, textAlign: 'center' },

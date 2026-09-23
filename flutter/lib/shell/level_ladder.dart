@@ -1,3 +1,5 @@
+import 'session_report.dart';
+
 /// Лестница уровней игры — перенос хука usePersistentLevel из React-версии.
 ///
 /// 🔴 ОДНО ОТЛИЧИЕ ОТ ОРИГИНАЛА, И ОНО НАМЕРЕННОЕ. В React-версии достигнутое
@@ -37,21 +39,51 @@ class LevelLadder {
   }
 
   /// Победа: следующий уровень, достигнутое подтягивается.
-  Future<void> win() async {
+  ///
+  /// 🔴 И ЗДЕСЬ ЖЕ ПАРТИЯ УХОДИТ В ВЕБ-ПОЛОВИНУ. Лестница — единственное место,
+  /// которое зовёт КАЖДАЯ перенесённая игра в конце круга, поэтому отчёт стоит
+  /// тут, а не в тридцати шести экранах по отдельности. Без него зарядка не
+  /// двигает шаг, а статистика не видит нативных партий вовсе — см.
+  /// [SessionReport].
+  ///
+  /// `score` и `timeSeconds` экран передаёт сам: лестница их не знает и не должна.
+  /// Не передал — уедут нули, и это ЧЕСТНЕЕ выдуманного числа: ноль в статистике
+  /// виден, а придуманный счёт неотличим от настоящего.
+  Future<void> win({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
     _failStreak = 0;
     if (_level < maxLevel) _level += 1;
     if (_level > _best) _best = _level;
     await _save();
+    await SessionReport.send(
+      gameType: gameId,
+      score: score,
+      timeSeconds: timeSeconds,
+      errors: errors,
+      mode: mode,
+      difficulty: '$_level',
+    );
   }
 
   /// Провал. Опускает уровень только на третий подряд — один промах ничего не стоит.
-  Future<void> fail() async {
+  ///
+  /// ⚠️ Проигранная партия — ТОЖЕ партия: она идёт в статистику и двигает шаг
+  /// зарядки так же, как выигранная. Иначе человек, проваливший шаг серии,
+  /// застрял бы на нём навсегда.
+  Future<void> fail({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
     _failStreak += 1;
     if (_failStreak >= failStreakThreshold) {
       _failStreak = 0;
       if (_level > 1) _level -= 1;
     }
     await _save();
+    await SessionReport.send(
+      gameType: gameId,
+      score: score,
+      timeSeconds: timeSeconds,
+      errors: errors,
+      mode: mode,
+      difficulty: '$_level',
+    );
   }
 
   /// Человек сам выбрал уровень на карте: достигнутое при этом не срезается.
