@@ -49,6 +49,7 @@
 | ✅ | `dots-connect` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `memory-matrix` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `one-line` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
+| ✅ | `stroop` | psygames-attention-claude-mac | 23.09 | нативно, перехват в гибриде; правила сверены с эталонами из живого TS, 6 мутаций краснеют. ⚠️ отклик двух версий сравнить НЕ УДАЛОСЬ — три способа и почему каждый негоден, см. `flutter/tools/latency.md` |
 
 ## Что осталось
 
@@ -58,34 +59,34 @@
 | | Игра | Кто ведёт | Когда | Заметка |
 |---|---|---|---|---|
 | ◐ | `anagrams` | psygames-words-claude-mac | 23.09 | классика перенесена и играется; словари 10 языков данными; ОСТАЛИСЬ ТРИ РЕЖИМА (all/cross/square) — перехват НЕ включён нарочно, см. ниже |
-| ☐ | `ant` | ❓ вписать себя | | |
+| ☐ | `ant` | psygames-attention-claude-mac | | |
 | ☐ | `attention-conflict` | psygames-attention-claude-mac | | |
 | ☐ | `ball-sort` | psygames-sorting-claude-mac | | |
-| ☐ | `bart` | ❓ вписать себя | | |
+| ☐ | `bart` | psygames-attention-claude-mac | | |
 | ☐ | `breathing` | psygames-warmup-claude-mac | | |
 | ☐ | `cake-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `chess-blind` | ❓ вписать себя | | |
 | ☐ | `chess-hub` | ❓ вписать себя | | |
 | ☐ | `chinese-tones` | ❓ вписать себя | | |
-| ☐ | `choice-rt` | ❓ вписать себя | | |
+| ☐ | `choice-rt` | psygames-attention-claude-mac | | |
 | ☐ | `cloze` | ❓ вписать себя | | |
 | ☐ | `corsi` | ❓ вписать себя | | |
 | ☐ | `counter` | psygames-search-claude-mac | | |
 | ☐ | `counting-hub` | psygames-search-claude-mac | | |
-| ☐ | `cpt` | ❓ вписать себя | | |
+| ☐ | `cpt` | psygames-attention-claude-mac | | |
 | ☐ | `dictation` | psygames-sudoku-claude-mac | | |
 | ☐ | `eye-gym` | psygames-warmup-claude-mac | | |
 | ☐ | `faces-names` | ❓ вписать себя | | |
 | ☐ | `find-differences` | psygames-search-claude-mac | | |
-| ☐ | `flanker` | ❓ вписать себя | | |
+| ☐ | `flanker` | psygames-attention-claude-mac | | |
 | ☐ | `flexibility-hub` | psygames-search-claude-mac | | |
-| ☐ | `go-no-go` | ❓ вписать себя | | |
+| ☐ | `go-no-go` | psygames-attention-claude-mac | | |
 | ☐ | `goods-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `hanoi` | psygames-sorting-claude-mac | | |
 | ☐ | `hearing-hub` | psygames-languages-claude-mac | | |
-| ☐ | `inhibition` | ❓ вписать себя | | |
+| ☐ | `inhibition` | psygames-attention-claude-mac | | |
 | ☐ | `inhibition-hub` | ❓ вписать себя | | |
-| ☐ | `iowa` | ❓ вписать себя | | |
+| ☐ | `iowa` | psygames-attention-claude-mac | | |
 | ☐ | `languages-hub` | psygames-languages-claude-mac | | |
 | ☐ | `lexical-decision` | ❓ вписать себя | | |
 | ☐ | `listening-span` | ❓ вписать себя | | |
@@ -108,8 +109,8 @@
 | ☐ | `phonemic-fluency` | psygames-languages-claude-mac | | |
 | ☐ | `picture-pairs` | psygames-span-claude-mac | | |
 | ☐ | `pizza-sort` | psygames-sorting-claude-mac | | |
-| ☐ | `posner` | ❓ вписать себя | | |
-| ☐ | `prl` | ❓ вписать себя | | |
+| ☐ | `posner` | psygames-attention-claude-mac | | |
+| ☐ | `prl` | psygames-attention-claude-mac | | |
 | ☐ | `proofreading` | psygames-attention-claude-mac | | |
 | ☐ | `pseudoword-echo` | ❓ вписать себя | | |
 | ☐ | `quick-count` | psygames-search-claude-mac | | |
@@ -121,31 +122,30 @@
 | ☐ | `scholars-mate` | psygames-chess-claude-mac | | |
 | ☐ | `schulte` | psygames-search-claude-mac | | |
 | ☐ | `sdmt` | ❓ вписать себя | | |
-| ☐ | `search-hub` | psygames-attention-claude-mac | | |
+| ☐ | `search-hub` | ❓ вписать себя | | не «Внимание»: развилка «Поиска», в моём рефе только как чужая |
 | ☐ | `semantic-sort` | ❓ вписать себя | | |
 | ☐ | `set-game` | ❓ вписать себя | | |
-| ☐ | `simon` | ❓ вписать себя | | |
+| ☐ | `simon` | psygames-attention-claude-mac | | |
 | ☐ | `sorting-hub` | psygames-sorting-claude-mac | | |
 | ☐ | `span` | psygames-span-claude-mac | | |
 | ☐ | `spatial-span` | ❓ вписать себя | | |
-| ☐ | `stop-signal` | ❓ вписать себя | | |
+| ☐ | `stop-signal` | psygames-attention-claude-mac | | |
 | ☐ | `story-recall` | ❓ вписать себя | | |
-| ☐ | `stroop` | ❓ вписать себя | | |
-| ☐ | `stroop-emotional` | ❓ вписать себя | | |
+| ☐ | `stroop-emotional` | psygames-attention-claude-mac | | |
 | ☐ | `sudoku` | psygames-chess-claude-mac | | |
 | ☐ | `sudoku-fractal` | psygames-sudoku-claude-mac | | |
 | ☐ | `sudoku-fractal-deep` | ❓ вписать себя | | |
 | ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |
 | ☐ | `sudoku-samurai` | psygames-sudoku-claude-mac | | |
-| ☐ | `switching-task` | psygames-languages-claude-mac | | |
-| ☐ | `targets` | ❓ вписать себя | | |
+| ☐ | `switching-task` | psygames-languages-claude-mac | | ⚠️ спор: экран внутри набора хаба «Конфликт внимания» (gameSuites.ts:113) — разбираемся в канале, молча не забираю |
+| ☐ | `targets` | psygames-attention-claude-mac | | |
 | ☐ | `tower-london` | psygames-sorting-claude-mac | | |
 | ☐ | `trail-making` | ❓ вписать себя | | |
 | ☐ | `visual-memory-hub` | psygames-memory-hearing-claude-mac | | |
-| ☐ | `visual-search` | psygames-attention-claude-mac | | |
+| ☐ | `visual-search` | ❓ вписать себя | | не «Внимание»: экран «Поиска»: стоит в его рефе, таблица лестниц |
 | ☐ | `vocab-srs` | psygames-languages-claude-mac | | |
 | ☐ | `water-sort` | psygames-sorting-claude-mac | | |
-| ☐ | `wcst` | ❓ вписать себя | | |
+| ☐ | `wcst` | psygames-attention-claude-mac | | |
 | ☐ | `word-pairs` | ❓ вписать себя | | |
 | ☐ | `words-hub` | psygames-languages-claude-mac | | |
 
@@ -181,6 +181,7 @@
 | Вес Android, APK | 205 МБ | 47,0 МБ |
 | Холодный старт | 364 мс | 102 мс (стенды разные, честный замер на телефоне — `flutter/tools/cold-start.sh`) |
 | Отклик на перетаскивании | 8,5 мс | 0,23 мс (стенды разные) |
+| Отклик на показе стимула | ⚠️ сравнимого замера нет | три способа опробованы, все три несимметричны — `flutter/tools/latency.md` |
 | Цена одного экрана | — | 443–528 строк своего кода, **0 правок каркаса** |
 
 Подробности и оговорки: `flutter/PROJECT_REF.md` (в git не лежит, он локальный).

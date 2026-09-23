@@ -17,6 +17,8 @@ void main() {
       '$origin/games/one-line.html#top',
       '$origin/games/dots-connect',
       '$origin/games/digit-span.html?mode=free',
+      '$origin/games/stroop',
+      '$origin/games/stroop.html?mode=ink',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -39,7 +41,7 @@ void main() {
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
     expect(HybridApp.native.keys.toSet(),
-        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix'});
+        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix', '/games/stroop'});
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
     }
