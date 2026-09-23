@@ -350,6 +350,48 @@ export function minMoves(start: Board, budget = 40000, prune = false): MinMovesR
  *
  * @returns длина найденной партии или `null`, если луч не дошёл за `limit` слоёв.
  */
+/**
+ * 🔴 ТОТ ЖЕ ЛУЧ, НО ВОЗВРАЩАЕТ САМИ ХОДЫ — ради того, чтобы ИСКАТЬ ОДИН РАЗ.
+ *
+ * 📍 ЗАЧЕМ (задача af4c7ff1, замер 23.09.2026). Подсказка и пробы звали
+ * `solvePath` с бюджетом 20000 на каждый вызов, и цена растёт с ветвлением:
+ * L1 (18 продолжений) — 119 мс, L5 (42) — 4,2 с, L10 (102) — 25,0 с, L20 (260)
+ * не уложился и в минуту. На экране бюджет урезан до 400 (82–756 мс), а вот
+ * пробы лестницы искали заново на ста двадцати уровнях — отсюда 1267 с на
+ * `cake-sort-levels` в CI.
+ *
+ * Луч находит путь дёшево и ОФЛАЙН: решение записывается в `levels.json` рядом
+ * с доской, а игра и пробы потом просто ИДУТ ПО НЕМУ. Поиск на устройстве и в
+ * пробах остаётся только там, где игрок свернул с записанного пути.
+ *
+ * ⚠️ Луч НЕ обещает кратчайшего пути — он обещает ПУТЬ. Для подсказки этого
+ * достаточно (она ведёт к победе, а не к рекорду), а для звёзд есть `min`,
+ * посчитанный точным поиском там, где он доходит.
+ */
+export function beamMoves(
+  start: Board, width = 150, limit = 600,
+): { from: number; type: number; to: number }[] | null {
+  if (isCleared(start)) return [];
+  const ключ = (b: Board) => b.plates.map((p) => [...p].sort((x, y) => x - y).join(',')).join('|') + '#' + b.queue.length;
+  let слой: { b: Board; путь: { from: number; type: number; to: number }[] }[] = [{ b: start, путь: [] }];
+  for (let g = 0; g < limit; g += 1) {
+    const дети = new Map<string, { b: Board; h: number; путь: { from: number; type: number; to: number }[] }>();
+    for (const s of слой) {
+      for (const m of moves(s.b, true)) {
+        const n = moveType(s.b, m.from, m.type, m.to);
+        if (!n) continue;
+        const далее = [...s.путь, m];
+        if (isCleared(n)) return далее;
+        const k = ключ(n);
+        if (!дети.has(k)) дети.set(k, { b: n, h: lowerBound(n), путь: далее });
+      }
+    }
+    if (!дети.size) return null;
+    слой = [...дети.values()].sort((a, z) => a.h - z.h).slice(0, width).map((x) => ({ b: x.b, путь: x.путь }));
+  }
+  return null;
+}
+
 export function beamPath(start: Board, width = 150, limit = 600): number | null {
   if (isCleared(start)) return 0;
   const ключ = (b: Board) => b.plates.map((p) => [...p].sort((x, y) => x - y).join(',')).join('|') + '#' + b.queue.length;

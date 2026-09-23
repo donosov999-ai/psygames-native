@@ -64,55 +64,61 @@ export { levelParams };
 
 
 /** Экспортирована для гейта ospan-ladder: формы за L16 проверяются ПОВЕДЕНИЕМ, не чтением исходника. */
-export function makeEquation(load: number, allowMult: boolean): Equation {
+/**
+ * ⚠️ ИСТОЧНИК СЛУЧАЙНОСТИ — ПАРАМЕТР (по умолчанию `Math.random`, поведение прежнее).
+ * Без него равенства нельзя выгрузить детерминированно, а значит нельзя сверить перенос
+ * на Flutter и нельзя проверить формы гейтом иначе, чем долями на большом прогоне.
+ * Тот же приём уже принят в соседних ядрах: `makePuzzle`, `pickSolSize`, `generateSprintProblem`.
+ */
+export function makeEquation(load: number, allowMult: boolean, rnd: () => number = Math.random): Equation {
   // Верно/неверно про равенство; нагрузка растёт плавно: числа крупнее с load,
   // умножение — с порога hardMath (карточка правила) и долей, а не третью пула.
   // За load 1,4/2,0/2,6 в пул ПЛАВНО входят школьные формы (§R: потолков нет).
-  const isCorrect = Math.random() < 0.5;
-  const wobble = () => (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random() * 3));
+  const isCorrect = rnd() < 0.5;
+  const wobble = () => (rnd() < 0.5 ? -1 : 1) * (1 + Math.floor(rnd() * 3));
   // §3 плана (07.09): за цепочками ось форм продолжается — степени 2^k (~L31)
   // и x-равенства «при x=… : a·x±b» (~L28); доли плавные, потолка нет
-  if (load >= 3.4 && Math.random() < Math.min(0.25, (load - 3.4) * 0.2)) {
-    const k = 3 + Math.floor(Math.random() * Math.min(5, 1 + Math.round(load - 2)));
+  if (load >= 3.4 && rnd() < Math.min(0.25, (load - 3.4) * 0.2)) {
+    const k = 3 + Math.floor(rnd() * Math.min(5, 1 + Math.round(load - 2)));
     const real = 2 ** k;
     const sup = '⁰¹²³⁴⁵⁶⁷⁸⁹'[k];
-    const shown = isCorrect ? real : real + (Math.random() < 0.5 ? -1 : 1) * (2 + Math.floor(Math.random() * Math.max(3, real / 8)));
+    const shown = isCorrect ? real : real + (rnd() < 0.5 ? -1 : 1) * (2 + Math.floor(rnd() * Math.max(3, real / 8)));
     return { left: `2${sup}`, right: shown, isCorrect: shown === real };
   }
-  if (load >= 3.0 && Math.random() < Math.min(0.3, (load - 3.0) * 0.22)) {
-    const x = 2 + Math.floor(Math.random() * 7);
-    const a = 2 + Math.floor(Math.random() * Math.round(2 + load));
-    const b = 1 + Math.floor(Math.random() * Math.round(4 + load * 3));
-    const plus = Math.random() < 0.5;
+  if (load >= 3.0 && rnd() < Math.min(0.3, (load - 3.0) * 0.22)) {
+    const x = 2 + Math.floor(rnd() * 7);
+    const a = 2 + Math.floor(rnd() * Math.round(2 + load));
+    const b = 1 + Math.floor(rnd() * Math.round(4 + load * 3));
+    const plus = rnd() < 0.5;
     const real = plus ? a * x + b : a * x - b;
     const shown = isCorrect ? real : real + wobble();
     return { left: `x=${x}: ${a}x ${plus ? '+' : '−'} ${b}`, right: shown, isCorrect: shown === real };
   }
-  if (load >= 2.6 && Math.random() < Math.min(0.35, (load - 2.6) * 0.25)) {
-    const a = 3 + Math.floor(Math.random() * 10);
-    const b = 2 + Math.floor(Math.random() * 8);
-    const c = 5 + Math.floor(Math.random() * Math.round(10 + load * 12));
+  if (load >= 2.6 && rnd() < Math.min(0.35, (load - 2.6) * 0.25)) {
+    const a = 3 + Math.floor(rnd() * 10);
+    const b = 2 + Math.floor(rnd() * 8);
+    const c = 5 + Math.floor(rnd() * Math.round(10 + load * 12));
     const real = a * b - c;
     const shown = isCorrect ? real : real + wobble();
     return { left: `${a} × ${b} − ${c}`, right: shown, isCorrect: shown === real };
   }
-  if (load >= 2.0 && Math.random() < Math.min(0.3, (load - 2.0) * 0.22)) {
-    const k = 6 + Math.floor(Math.random() * Math.round(4 + load * 3));
-    const shown = isCorrect ? k : k + (Math.random() < 0.5 ? -1 : 1);
+  if (load >= 2.0 && rnd() < Math.min(0.3, (load - 2.0) * 0.22)) {
+    const k = 6 + Math.floor(rnd() * Math.round(4 + load * 3));
+    const shown = isCorrect ? k : k + (rnd() < 0.5 ? -1 : 1);
     return { left: `√${k * k}`, right: shown, isCorrect: shown === k };
   }
-  if (load >= 1.4 && Math.random() < Math.min(0.35, (load - 1.4) * 0.25)) {
-    const n = 7 + Math.floor(Math.random() * Math.round(3 + load * 4));
+  if (load >= 1.4 && rnd() < Math.min(0.35, (load - 1.4) * 0.25)) {
+    const n = 7 + Math.floor(rnd() * Math.round(3 + load * 4));
     const real = n * n;
     // Дистрактор квадрата — сосед (n±1)² или сдвиг: маленькое ±1 палится последней цифрой
-    const shown = isCorrect ? real : (Math.random() < 0.5 ? (n + (Math.random() < 0.5 ? 1 : -1)) ** 2 : real + wobble() * n);
+    const shown = isCorrect ? real : (rnd() < 0.5 ? (n + (rnd() < 0.5 ? 1 : -1)) ** 2 : real + wobble() * n);
     return { left: `${n}²`, right: shown, isCorrect: shown === real };
   }
   const top = 9 + Math.round(load * 10);                // 9 → 24 (L16) → дальше растёт
-  const a = 1 + Math.floor(Math.random() * top);
-  const b = 1 + Math.floor(Math.random() * Math.min(top, 12));   // второй множитель — в пределах таблицы
-  const useMult = allowMult && Math.random() < Math.min(0.45, 0.15 + load * 0.3);
-  const op = useMult ? '*' : (Math.random() < 0.5 ? '+' : '-');
+  const a = 1 + Math.floor(rnd() * top);
+  const b = 1 + Math.floor(rnd() * Math.min(top, 12));   // второй множитель — в пределах таблицы
+  const useMult = allowMult && rnd() < Math.min(0.45, 0.15 + load * 0.3);
+  const op = useMult ? '*' : (rnd() < 0.5 ? '+' : '-');
   const real = op === '+' ? a + b : op === '-' ? a - b : a * b;
   const shown = isCorrect ? real : real + wobble();
   return { left: `${a} ${op === '*' ? '×' : op} ${b}`, right: shown, isCorrect: shown === real };

@@ -113,7 +113,7 @@ export const MAX_LEVEL = 15;
  * неопределённость. Выучить одно безопасное число больше нельзя, а мера
  * остаётся сравнимой сама с собой.
  */
-function levelParams(level: number): { balloons: number; maxBurst: number; burstSpread: number } {
+export function levelParams(level: number): { balloons: number; maxBurst: number; burstSpread: number } {
   const balloons = level <= 3 ? 8 : level <= 6 ? 12 : level <= 9 ? 16 : 20;
   const maxBurst = Math.min(128, 16 + (level - 1) * 10);   // L1=16 … L13=128 (cap)
   const burstSpread = Math.min(0.5, (level - 1) * 0.036);  // L1=0 (все шары одинаковы) … L15=0.5
@@ -298,6 +298,13 @@ export default function BARTGame() {
         mode: useLevels ? `lvl${levelRef.current}` : `${total}b`,
         errors: poppedCount,
         details: {
+          /**
+           * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ (23.09.2026). Не «восстановим через
+           * levelParams(level)»: поменяется формула уровня — и накопленное молча
+           * станет нечитаемым. Список полей руками не пишется, его держит гейт
+           * `attention-condition-recorded`: он сам гоняет levelParams по лестнице.
+           */
+          ...(useLevels ? levelCondition(levelRef.current) : {}),
           adj_avg_pumps: Math.round(adjAvg * 10) / 10,   // ключевой BART-биомаркер риска
           total_balloons: total,
           popped_count: poppedCount,

@@ -1,0 +1,5186 @@
+{
+ "generatorVersion": "math-slider-generator-v2",
+ "maxLevel": 52,
+ "workNorm": 12,
+ "hashes": [
+  {
+   "s": "nzt",
+   "h": 394507519
+  },
+  {
+   "s": "math-slider",
+   "h": 1658497867
+  },
+  {
+   "s": "nzt|1|math-slider-generator-v2",
+   "h": 1102750171
+  },
+  {
+   "s": "",
+   "h": 2166136261
+  }
+ ],
+ "normalize": [
+  {
+   "s": "  NZT  ",
+   "out": "nzt"
+  },
+  {
+   "s": "Math_Slider  Проба",
+   "out": "math-slider-проба"
+  },
+  {
+   "s": "--x--",
+   "out": "x"
+  },
+  {
+   "s": "",
+   "out": "math-slider"
+  },
+  {
+   "s": "a__b c",
+   "out": "a-b-c"
+  }
+ ],
+ "draws": [
+  0.5846688605379313,
+  0.8349785604514182,
+  0.3811239667702466,
+  0.3051049814093858,
+  0.532943963073194,
+  0.5388744126539677,
+  0.9673882718198001,
+  0.23430193425156176,
+  0.6360654383897781,
+  0.08010021224617958,
+  0.7951913250144571,
+  0.3812507130205631
+ ],
+ "packs": [
+  {
+   "seed": "nzt",
+   "level": 1,
+   "questions": [
+    {
+     "id": "nzt:1:0",
+     "index": 0,
+     "level": 1,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 16
+      },
+      "right": {
+       "type": "literal",
+       "value": 4
+      }
+     },
+     "answer": 20,
+     "scale": {
+      "min": 0,
+      "max": 75,
+      "width": 75,
+      "majorStep": 15,
+      "keyboardStep": 2.5,
+      "tickCount": 5,
+      "ticks": [
+       0,
+       15,
+       30,
+       45,
+       60,
+       75
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.213889,
+     "expressionDifficulty": 0.125,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "16 + 4",
+     "exprWork": 1.5,
+     "qWork": 2.5666666666666664
+    },
+    {
+     "id": "nzt:1:1",
+     "index": 1,
+     "level": 1,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 7
+      },
+      "right": {
+       "type": "literal",
+       "value": 23
+      }
+     },
+     "answer": 30,
+     "scale": {
+      "min": 0,
+      "max": 100,
+      "width": 100,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 4,
+      "ticks": [
+       0,
+       25,
+       50,
+       75,
+       100
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.2,
+     "expressionDifficulty": 0.125,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "7 + 23",
+     "exprWork": 1.5,
+     "qWork": 2.4
+    },
+    {
+     "id": "nzt:1:2",
+     "index": 2,
+     "level": 1,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 19
+      },
+      "right": {
+       "type": "literal",
+       "value": 10
+      }
+     },
+     "answer": 29,
+     "scale": {
+      "min": 0,
+      "max": 75,
+      "width": 75,
+      "majorStep": 7.5,
+      "keyboardStep": 1,
+      "tickCount": 10,
+      "ticks": [
+       0,
+       7.5,
+       15,
+       22.5,
+       30,
+       37.5,
+       45,
+       52.5,
+       60,
+       67.5,
+       75
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.147222,
+     "expressionDifficulty": 0.083333,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "19 + 10",
+     "exprWork": 1,
+     "qWork": 1.7666666666666666
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 2,
+   "questions": [
+    {
+     "id": "nzt:2:0",
+     "index": 0,
+     "level": 2,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 33
+      },
+      "right": {
+       "type": "literal",
+       "value": 12
+      }
+     },
+     "answer": 45,
+     "scale": {
+      "min": 0,
+      "max": 100,
+      "width": 100,
+      "majorStep": 10,
+      "keyboardStep": 1,
+      "tickCount": 10,
+      "ticks": [
+       0,
+       10,
+       20,
+       30,
+       40,
+       50,
+       60,
+       70,
+       80,
+       90,
+       100
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.208333,
+     "expressionDifficulty": 0.083333,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "33 + 12",
+     "exprWork": 1,
+     "qWork": 2.5
+    },
+    {
+     "id": "nzt:2:1",
+     "index": 1,
+     "level": 2,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "binary",
+       "operator": "+",
+       "left": {
+        "type": "literal",
+        "value": 26
+       },
+       "right": {
+        "type": "literal",
+        "value": 14
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 6
+      }
+     },
+     "answer": 46,
+     "scale": {
+      "min": 15,
+      "max": 90,
+      "width": 75,
+      "majorStep": 7.5,
+      "keyboardStep": 1,
+      "tickCount": 10,
+      "ticks": [
+       15,
+       22.5,
+       30,
+       37.5,
+       45,
+       52.5,
+       60,
+       67.5,
+       75,
+       82.5,
+       90
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.272222,
+     "expressionDifficulty": 0.208333,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "(26 + 14) + 6",
+     "exprWork": 2.5,
+     "qWork": 3.2666666666666675
+    },
+    {
+     "id": "nzt:2:2",
+     "index": 2,
+     "level": 2,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 7
+      },
+      "right": {
+       "type": "literal",
+       "value": 18
+      }
+     },
+     "answer": 25,
+     "scale": {
+      "min": 0,
+      "max": 100,
+      "width": 100,
+      "majorStep": 10,
+      "keyboardStep": 1,
+      "tickCount": 10,
+      "ticks": [
+       0,
+       10,
+       20,
+       30,
+       40,
+       50,
+       60,
+       70,
+       80,
+       90,
+       100
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.234375,
+     "expressionDifficulty": 0.125,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "7 + 18",
+     "exprWork": 1.5,
+     "qWork": 2.8125
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 3,
+   "questions": [
+    {
+     "id": "nzt:3:0",
+     "index": 0,
+     "level": 3,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 27
+      },
+      "right": {
+       "type": "literal",
+       "value": 23
+      }
+     },
+     "answer": 50,
+     "scale": {
+      "min": 0,
+      "max": 100,
+      "width": 100,
+      "majorStep": 20,
+      "keyboardStep": 2.5,
+      "tickCount": 5,
+      "ticks": [
+       0,
+       20,
+       40,
+       60,
+       80,
+       100
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.25,
+     "expressionDifficulty": 0.125,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "27 + 23",
+     "exprWork": 1.5,
+     "qWork": 3
+    },
+    {
+     "id": "nzt:3:1",
+     "index": 1,
+     "level": 3,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 44
+      },
+      "right": {
+       "type": "literal",
+       "value": 29
+      }
+     },
+     "answer": 73,
+     "scale": {
+      "min": 0,
+      "max": 100,
+      "width": 100,
+      "majorStep": 12.5,
+      "keyboardStep": 1.25,
+      "tickCount": 8,
+      "ticks": [
+       0,
+       12.5,
+       25,
+       37.5,
+       50,
+       62.5,
+       75,
+       87.5,
+       100
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.193333,
+     "expressionDifficulty": 0.125,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "44 + 29",
+     "exprWork": 1.5,
+     "qWork": 2.3200000000000003
+    },
+    {
+     "id": "nzt:3:2",
+     "index": 2,
+     "level": 3,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "binary",
+       "operator": "+",
+       "left": {
+        "type": "literal",
+        "value": 20
+       },
+       "right": {
+        "type": "literal",
+        "value": 22
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 16
+      }
+     },
+     "answer": 58,
+     "scale": {
+      "min": 5,
+      "max": 80,
+      "width": 75,
+      "majorStep": 9.375,
+      "keyboardStep": 1,
+      "tickCount": 8,
+      "ticks": [
+       5,
+       14.375,
+       23.75,
+       33.125,
+       42.5,
+       51.875,
+       61.25,
+       70.625,
+       80
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.266111,
+     "expressionDifficulty": 0.166667,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "(20 + 22) + 16",
+     "exprWork": 2,
+     "qWork": 3.1933333333333334
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 4,
+   "questions": [
+    {
+     "id": "nzt:4:0",
+     "index": 0,
+     "level": 4,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 33
+      },
+      "right": {
+       "type": "literal",
+       "value": 37
+      }
+     },
+     "answer": 70,
+     "scale": {
+      "min": 25,
+      "max": 100,
+      "width": 75,
+      "majorStep": 15,
+      "keyboardStep": 2.5,
+      "tickCount": 5,
+      "ticks": [
+       25,
+       40,
+       55,
+       70,
+       85,
+       100
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.166667,
+     "expressionDifficulty": 0.125,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "33 + 37",
+     "exprWork": 1.5,
+     "qWork": 2
+    },
+    {
+     "id": "nzt:4:1",
+     "index": 1,
+     "level": 4,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "binary",
+       "operator": "+",
+       "left": {
+        "type": "literal",
+        "value": 47
+       },
+       "right": {
+        "type": "literal",
+        "value": 48
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 12
+      }
+     },
+     "answer": 107,
+     "scale": {
+      "min": -20,
+      "max": 230,
+      "width": 250,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 10,
+      "ticks": [
+       -20,
+       5,
+       30,
+       55,
+       80,
+       105,
+       130,
+       155,
+       180,
+       205,
+       230
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.305,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "(47 + 48) + 12",
+     "exprWork": 3,
+     "qWork": 3.66
+    },
+    {
+     "id": "nzt:4:2",
+     "index": 2,
+     "level": 4,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "binary",
+       "operator": "+",
+       "left": {
+        "type": "literal",
+        "value": 38
+       },
+       "right": {
+        "type": "literal",
+        "value": 42
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 18
+      }
+     },
+     "answer": 98,
+     "scale": {
+      "min": 50,
+      "max": 100,
+      "width": 50,
+      "majorStep": 10,
+      "keyboardStep": 1,
+      "tickCount": 5,
+      "ticks": [
+       50,
+       60,
+       70,
+       80,
+       90,
+       100
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.283333,
+     "expressionDifficulty": 0.208333,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "(38 + 42) + 18",
+     "exprWork": 2.5,
+     "qWork": 3.4000000000000004
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 5,
+   "questions": [
+    {
+     "id": "nzt:5:0",
+     "index": 0,
+     "level": 5,
+     "kind": "signed-subtraction",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "literal",
+       "value": 38
+      },
+      "right": {
+       "type": "literal",
+       "value": 7
+      }
+     },
+     "answer": 31,
+     "scale": {
+      "min": -5,
+      "max": 95,
+      "width": 100,
+      "majorStep": 20,
+      "keyboardStep": 2.5,
+      "tickCount": 5,
+      "ticks": [
+       -5,
+       15,
+       35,
+       55,
+       75,
+       95
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.2,
+     "expressionDifficulty": 0.125,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "38 - 7",
+     "exprWork": 1.5,
+     "qWork": 2.4
+    },
+    {
+     "id": "nzt:5:1",
+     "index": 1,
+     "level": 5,
+     "kind": "signed-subtraction",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "literal",
+       "value": 22
+      },
+      "right": {
+       "type": "literal",
+       "value": 30
+      }
+     },
+     "answer": -8,
+     "scale": {
+      "min": -100,
+      "max": 100,
+      "width": 200,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 4,
+      "ticks": [
+       -100,
+       -50,
+       0,
+       50,
+       100
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.121667,
+     "expressionDifficulty": 0.133333,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "22 - 30",
+     "exprWork": 1.6,
+     "qWork": 1.46
+    },
+    {
+     "id": "nzt:5:2",
+     "index": 2,
+     "level": 5,
+     "kind": "signed-subtraction",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "literal",
+       "value": 32
+      },
+      "right": {
+       "type": "literal",
+       "value": 3
+      }
+     },
+     "answer": 29,
+     "scale": {
+      "min": -60,
+      "max": 90,
+      "width": 150,
+      "majorStep": 15,
+      "keyboardStep": 2.5,
+      "tickCount": 10,
+      "ticks": [
+       -60,
+       -45,
+       -30,
+       -15,
+       0,
+       15,
+       30,
+       45,
+       60,
+       75,
+       90
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.109167,
+     "expressionDifficulty": 0.083333,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "32 - 3",
+     "exprWork": 1,
+     "qWork": 1.3099999999999994
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 8,
+   "questions": [
+    {
+     "id": "nzt:8:0",
+     "index": 0,
+     "level": 8,
+     "kind": "signed-subtraction",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "literal",
+       "value": 39
+      },
+      "right": {
+       "type": "literal",
+       "value": 63
+      }
+     },
+     "answer": -24,
+     "scale": {
+      "min": -100,
+      "max": 100,
+      "width": 200,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 4,
+      "ticks": [
+       -100,
+       -50,
+       0,
+       50,
+       100
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.195167,
+     "expressionDifficulty": 0.175,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "39 - 63",
+     "exprWork": 2.1,
+     "qWork": 2.3419999999999996
+    },
+    {
+     "id": "nzt:8:1",
+     "index": 1,
+     "level": 8,
+     "kind": "signed-subtraction",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "literal",
+       "value": 48
+      },
+      "right": {
+       "type": "literal",
+       "value": 81
+      }
+     },
+     "answer": -33,
+     "scale": {
+      "min": -80,
+      "max": 70,
+      "width": 150,
+      "majorStep": 15,
+      "keyboardStep": 2.5,
+      "tickCount": 10,
+      "ticks": [
+       -80,
+       -65,
+       -50,
+       -35,
+       -20,
+       -5,
+       10,
+       25,
+       40,
+       55,
+       70
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.198639,
+     "expressionDifficulty": 0.175,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "48 - 81",
+     "exprWork": 2.1,
+     "qWork": 2.3836666666666666
+    },
+    {
+     "id": "nzt:8:2",
+     "index": 2,
+     "level": 8,
+     "kind": "signed-subtraction",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "literal",
+       "value": 83
+      },
+      "right": {
+       "type": "literal",
+       "value": 41
+      }
+     },
+     "answer": 42,
+     "scale": {
+      "min": -100,
+      "max": 100,
+      "width": 200,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 4,
+      "ticks": [
+       -100,
+       -50,
+       0,
+       50,
+       100
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.160208,
+     "expressionDifficulty": 0.125,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "83 - 41",
+     "exprWork": 1.5,
+     "qWork": 1.9225000000000003
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 9,
+   "questions": [
+    {
+     "id": "nzt:9:0",
+     "index": 0,
+     "level": 9,
+     "kind": "mixed-small-multiplication",
+     "expression": {
+      "type": "binary",
+      "operator": "*",
+      "left": {
+       "type": "literal",
+       "value": 3
+      },
+      "right": {
+       "type": "literal",
+       "value": 2
+      }
+     },
+     "answer": 6,
+     "scale": {
+      "min": -10,
+      "max": 15,
+      "width": 25,
+      "majorStep": 2.5,
+      "keyboardStep": 0.25,
+      "tickCount": 10,
+      "ticks": [
+       -10,
+       -7.5,
+       -5,
+       -2.5,
+       0,
+       2.5,
+       5,
+       7.5,
+       10,
+       12.5,
+       15
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.178333,
+     "expressionDifficulty": 0.083333,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "3 × 2",
+     "exprWork": 1,
+     "qWork": 2.1400000000000006
+    },
+    {
+     "id": "nzt:9:1",
+     "index": 1,
+     "level": 9,
+     "kind": "mixed-small-multiplication",
+     "expression": {
+      "type": "binary",
+      "operator": "*",
+      "left": {
+       "type": "literal",
+       "value": 4
+      },
+      "right": {
+       "type": "literal",
+       "value": 2
+      }
+     },
+     "answer": 8,
+     "scale": {
+      "min": -2,
+      "max": 23,
+      "width": 25,
+      "majorStep": 2.5,
+      "keyboardStep": 0.25,
+      "tickCount": 10,
+      "ticks": [
+       -2,
+       0.5,
+       3,
+       5.5,
+       8,
+       10.5,
+       13,
+       15.5,
+       18,
+       20.5,
+       23
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.125,
+     "expressionDifficulty": 0.083333,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "4 × 2",
+     "exprWork": 1,
+     "qWork": 1.5
+    },
+    {
+     "id": "nzt:9:2",
+     "index": 2,
+     "level": 9,
+     "kind": "mixed-small-multiplication",
+     "expression": {
+      "type": "binary",
+      "operator": "*",
+      "left": {
+       "type": "literal",
+       "value": 3
+      },
+      "right": {
+       "type": "literal",
+       "value": 3
+      }
+     },
+     "answer": 9,
+     "scale": {
+      "min": -22.5,
+      "max": 27.5,
+      "width": 50,
+      "majorStep": 6.25,
+      "keyboardStep": 1,
+      "tickCount": 8,
+      "ticks": [
+       -22.5,
+       -16.25,
+       -10,
+       -3.75,
+       2.5,
+       8.75,
+       15,
+       21.25,
+       27.5
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.100833,
+     "expressionDifficulty": 0.083333,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "3 × 3",
+     "exprWork": 1,
+     "qWork": 1.21
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 12,
+   "questions": [
+    {
+     "id": "nzt:12:0",
+     "index": 0,
+     "level": 12,
+     "kind": "mixed-small-multiplication",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "binary",
+       "operator": "*",
+       "left": {
+        "type": "literal",
+        "value": 15
+       },
+       "right": {
+        "type": "literal",
+        "value": 2
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 24
+      }
+     },
+     "answer": 6,
+     "scale": {
+      "min": -2,
+      "max": 18,
+      "width": 20,
+      "majorStep": 5,
+      "keyboardStep": 1,
+      "tickCount": 4,
+      "ticks": [
+       -2,
+       3,
+       8,
+       13,
+       18
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.358333,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "(15 × 2) - 24",
+     "exprWork": 3,
+     "qWork": 4.3
+    },
+    {
+     "id": "nzt:12:1",
+     "index": 1,
+     "level": 12,
+     "kind": "mixed-small-multiplication",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "binary",
+       "operator": "*",
+       "left": {
+        "type": "literal",
+        "value": 11
+       },
+       "right": {
+        "type": "literal",
+        "value": 6
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 53
+      }
+     },
+     "answer": 119,
+     "scale": {
+      "min": -100,
+      "max": 400,
+      "width": 500,
+      "majorStep": 100,
+      "keyboardStep": 10,
+      "tickCount": 5,
+      "ticks": [
+       -100,
+       0,
+       100,
+       200,
+       300,
+       400
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.316292,
+     "expressionDifficulty": 0.291667,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "(11 × 6) + 53",
+     "exprWork": 3.5,
+     "qWork": 3.7954999999999997
+    },
+    {
+     "id": "nzt:12:2",
+     "index": 2,
+     "level": 12,
+     "kind": "mixed-small-multiplication",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "binary",
+       "operator": "*",
+       "left": {
+        "type": "literal",
+        "value": 8
+       },
+       "right": {
+        "type": "literal",
+        "value": 9
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 47
+      }
+     },
+     "answer": 25,
+     "scale": {
+      "min": -25,
+      "max": 75,
+      "width": 100,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 4,
+      "ticks": [
+       -25,
+       0,
+       25,
+       50,
+       75
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.223958,
+     "expressionDifficulty": 0.208333,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "(8 × 9) - 47",
+     "exprWork": 2.5,
+     "qWork": 2.6874999999999996
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 13,
+   "questions": [
+    {
+     "id": "nzt:13:0",
+     "index": 0,
+     "level": 13,
+     "kind": "integer-division",
+     "expression": {
+      "type": "binary",
+      "operator": "/",
+      "left": {
+       "type": "literal",
+       "value": 24
+      },
+      "right": {
+       "type": "literal",
+       "value": 4
+      }
+     },
+     "answer": 6,
+     "scale": {
+      "min": -4,
+      "max": 16,
+      "width": 20,
+      "majorStep": 2,
+      "keyboardStep": 0.25,
+      "tickCount": 10,
+      "ticks": [
+       -4,
+       -2,
+       0,
+       2,
+       4,
+       6,
+       8,
+       10,
+       12,
+       14,
+       16
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.291667,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "24 ÷ 4",
+     "exprWork": 3,
+     "qWork": 3.5
+    },
+    {
+     "id": "nzt:13:1",
+     "index": 1,
+     "level": 13,
+     "kind": "integer-division",
+     "expression": {
+      "type": "binary",
+      "operator": "/",
+      "left": {
+       "type": "literal",
+       "value": 18
+      },
+      "right": {
+       "type": "literal",
+       "value": 3
+      }
+     },
+     "answer": 6,
+     "scale": {
+      "min": -27.5,
+      "max": 22.5,
+      "width": 50,
+      "majorStep": 10,
+      "keyboardStep": 1,
+      "tickCount": 5,
+      "ticks": [
+       -27.5,
+       -17.5,
+       -7.5,
+       2.5,
+       12.5,
+       22.5
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.205,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "18 ÷ 3",
+     "exprWork": 3,
+     "qWork": 2.46
+    },
+    {
+     "id": "nzt:13:2",
+     "index": 2,
+     "level": 13,
+     "kind": "integer-division",
+     "expression": {
+      "type": "binary",
+      "operator": "/",
+      "left": {
+       "type": "literal",
+       "value": 18
+      },
+      "right": {
+       "type": "literal",
+       "value": 3
+      }
+     },
+     "answer": 6,
+     "scale": {
+      "min": -25,
+      "max": 25,
+      "width": 50,
+      "majorStep": 10,
+      "keyboardStep": 1,
+      "tickCount": 5,
+      "ticks": [
+       -25,
+       -15,
+       -5,
+       5,
+       15,
+       25
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.163333,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "18 ÷ 3",
+     "exprWork": 3,
+     "qWork": 1.96
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 16,
+   "questions": [
+    {
+     "id": "nzt:16:0",
+     "index": 0,
+     "level": 16,
+     "kind": "integer-division",
+     "expression": {
+      "type": "binary",
+      "operator": "/",
+      "left": {
+       "type": "literal",
+       "value": 128
+      },
+      "right": {
+       "type": "literal",
+       "value": 8
+      }
+     },
+     "answer": 16,
+     "scale": {
+      "min": 0,
+      "max": 50,
+      "width": 50,
+      "majorStep": 6.25,
+      "keyboardStep": 1,
+      "tickCount": 8,
+      "ticks": [
+       0,
+       6.25,
+       12.5,
+       18.75,
+       25,
+       31.25,
+       37.5,
+       43.75,
+       50
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.49,
+     "expressionDifficulty": 0.375,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "128 ÷ 8",
+     "exprWork": 4.5,
+     "qWork": 5.88
+    },
+    {
+     "id": "nzt:16:1",
+     "index": 1,
+     "level": 16,
+     "kind": "integer-division",
+     "expression": {
+      "type": "binary",
+      "operator": "/",
+      "left": {
+       "type": "literal",
+       "value": 176
+      },
+      "right": {
+       "type": "literal",
+       "value": 11
+      }
+     },
+     "answer": 16,
+     "scale": {
+      "min": -15,
+      "max": 85,
+      "width": 100,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 4,
+      "ticks": [
+       -15,
+       10,
+       35,
+       60,
+       85
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.501667,
+     "expressionDifficulty": 0.75,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "176 ÷ 11",
+     "exprWork": 9,
+     "qWork": 6.02
+    },
+    {
+     "id": "nzt:16:2",
+     "index": 2,
+     "level": 16,
+     "kind": "integer-division",
+     "expression": {
+      "type": "binary",
+      "operator": "/",
+      "left": {
+       "type": "literal",
+       "value": 105
+      },
+      "right": {
+       "type": "literal",
+       "value": 7
+      }
+     },
+     "answer": 15,
+     "scale": {
+      "min": -2.5,
+      "max": 47.5,
+      "width": 50,
+      "majorStep": 5,
+      "keyboardStep": 1,
+      "tickCount": 10,
+      "ticks": [
+       -2.5,
+       2.5,
+       7.5,
+       12.5,
+       17.5,
+       22.5,
+       27.5,
+       32.5,
+       37.5,
+       42.5,
+       47.5
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.5,
+     "expressionDifficulty": 0.375,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "105 ÷ 7",
+     "exprWork": 4.5,
+     "qWork": 6
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 17,
+   "questions": [
+    {
+     "id": "nzt:17:0",
+     "index": 0,
+     "level": 17,
+     "kind": "decimal-arithmetic",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "literal",
+       "value": 25.2
+      },
+      "right": {
+       "type": "literal",
+       "value": 1.9
+      }
+     },
+     "answer": 23.3,
+     "scale": {
+      "min": -30,
+      "max": 70,
+      "width": 100,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 4,
+      "ticks": [
+       -30,
+       -5,
+       20,
+       45,
+       70
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.199583,
+     "expressionDifficulty": 0.166667,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "25,2 - 1,9",
+     "exprWork": 2,
+     "qWork": 2.394999999999999
+    },
+    {
+     "id": "nzt:17:1",
+     "index": 1,
+     "level": 17,
+     "kind": "decimal-arithmetic",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 5.5
+      },
+      "right": {
+       "type": "literal",
+       "value": 14.1
+      }
+     },
+     "answer": 19.6,
+     "scale": {
+      "min": 5,
+      "max": 55,
+      "width": 50,
+      "majorStep": 5,
+      "keyboardStep": 1,
+      "tickCount": 10,
+      "ticks": [
+       5,
+       10,
+       15,
+       20,
+       25,
+       30,
+       35,
+       40,
+       45,
+       50,
+       55
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.263333,
+     "expressionDifficulty": 0.208333,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "5,5 + 14,1",
+     "exprWork": 2.5,
+     "qWork": 3.1599999999999993
+    },
+    {
+     "id": "nzt:17:2",
+     "index": 2,
+     "level": 17,
+     "kind": "decimal-arithmetic",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 19.5
+      },
+      "right": {
+       "type": "literal",
+       "value": 16.6
+      }
+     },
+     "answer": 36.1,
+     "scale": {
+      "min": 0,
+      "max": 100,
+      "width": 100,
+      "majorStep": 10,
+      "keyboardStep": 1,
+      "tickCount": 10,
+      "ticks": [
+       0,
+       10,
+       20,
+       30,
+       40,
+       50,
+       60,
+       70,
+       80,
+       90,
+       100
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.273333,
+     "expressionDifficulty": 0.166667,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "19,5 + 16,6",
+     "exprWork": 2,
+     "qWork": 3.2799999999999994
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 20,
+   "questions": [
+    {
+     "id": "nzt:20:0",
+     "index": 0,
+     "level": 20,
+     "kind": "decimal-arithmetic",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "binary",
+       "operator": "-",
+       "left": {
+        "type": "literal",
+        "value": 35.4
+       },
+       "right": {
+        "type": "literal",
+        "value": 12.6
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 29.2
+      }
+     },
+     "answer": -6.4,
+     "scale": {
+      "min": -14,
+      "max": 6,
+      "width": 20,
+      "majorStep": 5,
+      "keyboardStep": 1,
+      "tickCount": 4,
+      "ticks": [
+       -14,
+       -9,
+       -4,
+       1,
+       6
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.546667,
+     "expressionDifficulty": 0.425,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "(35,4 - 12,6) - 29,2",
+     "exprWork": 5.1,
+     "qWork": 6.56
+    },
+    {
+     "id": "nzt:20:1",
+     "index": 1,
+     "level": 20,
+     "kind": "decimal-arithmetic",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "binary",
+       "operator": "+",
+       "left": {
+        "type": "literal",
+        "value": 50.6
+       },
+       "right": {
+        "type": "literal",
+        "value": 19.6
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 23.7
+      }
+     },
+     "answer": 46.5,
+     "scale": {
+      "min": -10,
+      "max": 90,
+      "width": 100,
+      "majorStep": 20,
+      "keyboardStep": 2.5,
+      "tickCount": 5,
+      "ticks": [
+       -10,
+       10,
+       30,
+       50,
+       70,
+       90
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.404167,
+     "expressionDifficulty": 0.333333,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "(50,6 + 19,6) - 23,7",
+     "exprWork": 4,
+     "qWork": 4.85
+    },
+    {
+     "id": "nzt:20:2",
+     "index": 2,
+     "level": 20,
+     "kind": "decimal-arithmetic",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 74.8
+      },
+      "right": {
+       "type": "literal",
+       "value": 38.6
+      }
+     },
+     "answer": 113.4,
+     "scale": {
+      "min": -40,
+      "max": 210,
+      "width": 250,
+      "majorStep": 31.25,
+      "keyboardStep": 5,
+      "tickCount": 8,
+      "ticks": [
+       -40,
+       -8.75,
+       22.5,
+       53.75,
+       85,
+       116.25,
+       147.5,
+       178.75,
+       210
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.306867,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "74,8 + 38,6",
+     "exprWork": 3,
+     "qWork": 3.6823999999999995
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 21,
+   "questions": [
+    {
+     "id": "nzt:21:0",
+     "index": 0,
+     "level": 21,
+     "kind": "square-power",
+     "expression": {
+      "type": "power",
+      "base": {
+       "type": "literal",
+       "value": 8
+      },
+      "exponent": 2
+     },
+     "answer": 64,
+     "scale": {
+      "min": 20,
+      "max": 120,
+      "width": 100,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 4,
+      "ticks": [
+       20,
+       45,
+       70,
+       95,
+       120
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.181667,
+     "expressionDifficulty": 0.1,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "8²",
+     "exprWork": 1.2,
+     "qWork": 2.1799999999999997
+    },
+    {
+     "id": "nzt:21:1",
+     "index": 1,
+     "level": 21,
+     "kind": "square-power",
+     "expression": {
+      "type": "power",
+      "base": {
+       "type": "literal",
+       "value": 7
+      },
+      "exponent": 2
+     },
+     "answer": 49,
+     "scale": {
+      "min": -20,
+      "max": 180,
+      "width": 200,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 4,
+      "ticks": [
+       -20,
+       30,
+       80,
+       130,
+       180
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.19075,
+     "expressionDifficulty": 0.1,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "7²",
+     "exprWork": 1.2,
+     "qWork": 2.2889999999999997
+    },
+    {
+     "id": "nzt:21:2",
+     "index": 2,
+     "level": 21,
+     "kind": "square-power",
+     "expression": {
+      "type": "power",
+      "base": {
+       "type": "literal",
+       "value": 8
+      },
+      "exponent": 2
+     },
+     "answer": 64,
+     "scale": {
+      "min": -60,
+      "max": 140,
+      "width": 200,
+      "majorStep": 20,
+      "keyboardStep": 2.5,
+      "tickCount": 10,
+      "ticks": [
+       -60,
+       -40,
+       -20,
+       0,
+       20,
+       40,
+       60,
+       80,
+       100,
+       120,
+       140
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.175,
+     "expressionDifficulty": 0.1,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "8²",
+     "exprWork": 1.2,
+     "qWork": 2.1000000000000005
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 24,
+   "questions": [
+    {
+     "id": "nzt:24:0",
+     "index": 0,
+     "level": 24,
+     "kind": "square-power",
+     "expression": {
+      "type": "power",
+      "base": {
+       "type": "literal",
+       "value": 15
+      },
+      "exponent": 2
+     },
+     "answer": 225,
+     "scale": {
+      "min": -50,
+      "max": 450,
+      "width": 500,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 10,
+      "ticks": [
+       -50,
+       0,
+       50,
+       100,
+       150,
+       200,
+       250,
+       300,
+       350,
+       400,
+       450
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.458333,
+     "expressionDifficulty": 0.333333,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "15²",
+     "exprWork": 4,
+     "qWork": 5.5
+    },
+    {
+     "id": "nzt:24:1",
+     "index": 1,
+     "level": 24,
+     "kind": "square-power",
+     "expression": {
+      "type": "power",
+      "base": {
+       "type": "literal",
+       "value": 9
+      },
+      "exponent": 2
+     },
+     "answer": 81,
+     "scale": {
+      "min": 20,
+      "max": 220,
+      "width": 200,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 4,
+      "ticks": [
+       20,
+       70,
+       120,
+       170,
+       220
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.178333,
+     "expressionDifficulty": 0.1,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "9²",
+     "exprWork": 1.2,
+     "qWork": 2.1399999999999997
+    },
+    {
+     "id": "nzt:24:2",
+     "index": 2,
+     "level": 24,
+     "kind": "square-power",
+     "expression": {
+      "type": "power",
+      "base": {
+       "type": "literal",
+       "value": 10
+      },
+      "exponent": 2
+     },
+     "answer": 100,
+     "scale": {
+      "min": 0,
+      "max": 200,
+      "width": 200,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 8,
+      "ticks": [
+       0,
+       25,
+       50,
+       75,
+       100,
+       125,
+       150,
+       175,
+       200
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.141667,
+     "expressionDifficulty": 0.1,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "10²",
+     "exprWork": 1.2,
+     "qWork": 1.7
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 25,
+   "questions": [
+    {
+     "id": "nzt:25:0",
+     "index": 0,
+     "level": 25,
+     "kind": "percentage",
+     "expression": {
+      "type": "percent-of",
+      "percent": 20,
+      "base": 80
+     },
+     "answer": 16,
+     "scale": {
+      "min": -35,
+      "max": 65,
+      "width": 100,
+      "majorStep": 12.5,
+      "keyboardStep": 1.25,
+      "tickCount": 8,
+      "ticks": [
+       -35,
+       -22.5,
+       -10,
+       2.5,
+       15,
+       27.5,
+       40,
+       52.5,
+       65
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.148333,
+     "expressionDifficulty": 0.166667,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "20% × 80",
+     "exprWork": 2,
+     "qWork": 1.78
+    },
+    {
+     "id": "nzt:25:1",
+     "index": 1,
+     "level": 25,
+     "kind": "percentage",
+     "expression": {
+      "type": "percent-of",
+      "percent": 20,
+      "base": 50
+     },
+     "answer": 10,
+     "scale": {
+      "min": -7.5,
+      "max": 42.5,
+      "width": 50,
+      "majorStep": 6.25,
+      "keyboardStep": 1,
+      "tickCount": 8,
+      "ticks": [
+       -7.5,
+       -1.25,
+       5,
+       11.25,
+       17.5,
+       23.75,
+       30,
+       36.25,
+       42.5
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.191667,
+     "expressionDifficulty": 0.166667,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "20% × 50",
+     "exprWork": 2,
+     "qWork": 2.3000000000000003
+    },
+    {
+     "id": "nzt:25:2",
+     "index": 2,
+     "level": 25,
+     "kind": "percentage",
+     "expression": {
+      "type": "percent-of",
+      "percent": 5,
+      "base": 20
+     },
+     "answer": 1,
+     "scale": {
+      "min": -7,
+      "max": 13,
+      "width": 20,
+      "majorStep": 2,
+      "keyboardStep": 0.25,
+      "tickCount": 10,
+      "ticks": [
+       -7,
+       -5,
+       -3,
+       -1,
+       1,
+       3,
+       5,
+       7,
+       9,
+       11,
+       13
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.108333,
+     "expressionDifficulty": 0.166667,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "5% × 20",
+     "exprWork": 2,
+     "qWork": 1.3
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 28,
+   "questions": [
+    {
+     "id": "nzt:28:0",
+     "index": 0,
+     "level": 28,
+     "kind": "percentage",
+     "expression": {
+      "type": "percent-of",
+      "percent": 20,
+      "base": 479
+     },
+     "answer": 95.8,
+     "scale": {
+      "min": 20,
+      "max": 220,
+      "width": 200,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 8,
+      "ticks": [
+       20,
+       45,
+       70,
+       95,
+       120,
+       145,
+       170,
+       195,
+       220
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.213667,
+     "expressionDifficulty": 0.166667,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "20% × 479",
+     "exprWork": 2,
+     "qWork": 2.564
+    },
+    {
+     "id": "nzt:28:1",
+     "index": 1,
+     "level": 28,
+     "kind": "percentage",
+     "expression": {
+      "type": "percent-of",
+      "percent": 65,
+      "base": 299
+     },
+     "answer": 194.35,
+     "scale": {
+      "min": -100,
+      "max": 400,
+      "width": 500,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 10,
+      "ticks": [
+       -100,
+       -50,
+       0,
+       50,
+       100,
+       150,
+       200,
+       250,
+       300,
+       350,
+       400
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.3105,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "65% × 299",
+     "exprWork": 3,
+     "qWork": 3.725999999999999
+    },
+    {
+     "id": "nzt:28:2",
+     "index": 2,
+     "level": 28,
+     "kind": "percentage",
+     "expression": {
+      "type": "percent-of",
+      "percent": 75,
+      "base": 116
+     },
+     "answer": 87,
+     "scale": {
+      "min": 0,
+      "max": 200,
+      "width": 200,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 4,
+      "ticks": [
+       0,
+       50,
+       100,
+       150,
+       200
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.335,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "75% × 116",
+     "exprWork": 3,
+     "qWork": 4.02
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 29,
+   "questions": [
+    {
+     "id": "nzt:29:0",
+     "index": 0,
+     "level": 29,
+     "kind": "discount",
+     "expression": {
+      "type": "discount",
+      "price": 300,
+      "percent": 50
+     },
+     "answer": 150,
+     "scale": {
+      "min": -20,
+      "max": 230,
+      "width": 250,
+      "majorStep": 31.25,
+      "keyboardStep": 5,
+      "tickCount": 8,
+      "ticks": [
+       -20,
+       11.25,
+       42.5,
+       73.75,
+       105,
+       136.25,
+       167.5,
+       198.75,
+       230
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.281667,
+     "expressionDifficulty": 0.166667,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "300 × (1 − 50%)",
+     "exprWork": 2,
+     "qWork": 3.380000000000001
+    },
+    {
+     "id": "nzt:29:1",
+     "index": 1,
+     "level": 29,
+     "kind": "discount",
+     "expression": {
+      "type": "discount",
+      "price": 100,
+      "percent": 25
+     },
+     "answer": 75,
+     "scale": {
+      "min": -30,
+      "max": 170,
+      "width": 200,
+      "majorStep": 20,
+      "keyboardStep": 2.5,
+      "tickCount": 10,
+      "ticks": [
+       -30,
+       -10,
+       10,
+       30,
+       50,
+       70,
+       90,
+       110,
+       130,
+       150,
+       170
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.333333,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "100 × (1 − 25%)",
+     "exprWork": 3,
+     "qWork": 4
+    },
+    {
+     "id": "nzt:29:2",
+     "index": 2,
+     "level": 29,
+     "kind": "discount",
+     "expression": {
+      "type": "discount",
+      "price": 40,
+      "percent": 50
+     },
+     "answer": 20,
+     "scale": {
+      "min": -15,
+      "max": 85,
+      "width": 100,
+      "majorStep": 20,
+      "keyboardStep": 2.5,
+      "tickCount": 5,
+      "ticks": [
+       -15,
+       5,
+       25,
+       45,
+       65,
+       85
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.2,
+     "expressionDifficulty": 0.166667,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "40 × (1 − 50%)",
+     "exprWork": 2,
+     "qWork": 2.4
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 32,
+   "questions": [
+    {
+     "id": "nzt:32:0",
+     "index": 0,
+     "level": 32,
+     "kind": "discount",
+     "expression": {
+      "type": "discount",
+      "price": 122,
+      "percent": 12.5
+     },
+     "answer": 106.75,
+     "scale": {
+      "min": -60,
+      "max": 190,
+      "width": 250,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 10,
+      "ticks": [
+       -60,
+       -35,
+       -10,
+       15,
+       40,
+       65,
+       90,
+       115,
+       140,
+       165,
+       190
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.513333,
+     "expressionDifficulty": 0.416667,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "122 × (1 − 12,5%)",
+     "exprWork": 5,
+     "qWork": 6.16
+    },
+    {
+     "id": "nzt:32:1",
+     "index": 1,
+     "level": 32,
+     "kind": "discount",
+     "expression": {
+      "type": "discount",
+      "price": 553,
+      "percent": 12.5
+     },
+     "answer": 483.875,
+     "scale": {
+      "min": -200,
+      "max": 1800,
+      "width": 2000,
+      "majorStep": 200,
+      "keyboardStep": 25,
+      "tickCount": 10,
+      "ticks": [
+       -200,
+       0,
+       200,
+       400,
+       600,
+       800,
+       1000,
+       1200,
+       1400,
+       1600,
+       1800
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.534953,
+     "expressionDifficulty": 0.5,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "553 × (1 − 12,5%)",
+     "exprWork": 6,
+     "qWork": 6.4194375
+    },
+    {
+     "id": "nzt:32:2",
+     "index": 2,
+     "level": 32,
+     "kind": "discount",
+     "expression": {
+      "type": "discount",
+      "price": 372,
+      "percent": 20
+     },
+     "answer": 297.6,
+     "scale": {
+      "min": 125,
+      "max": 625,
+      "width": 500,
+      "majorStep": 100,
+      "keyboardStep": 10,
+      "tickCount": 5,
+      "ticks": [
+       125,
+       225,
+       325,
+       425,
+       525,
+       625
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.379,
+     "expressionDifficulty": 0.291667,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "372 × (1 − 20%)",
+     "exprWork": 3.5,
+     "qWork": 4.548
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 33,
+   "questions": [
+    {
+     "id": "nzt:33:0",
+     "index": 0,
+     "level": 33,
+     "kind": "proportion",
+     "expression": {
+      "type": "proportion",
+      "leftNumerator": 3,
+      "leftDenominator": 2,
+      "rightDenominator": 6
+     },
+     "answer": 9,
+     "scale": {
+      "min": -10,
+      "max": 40,
+      "width": 50,
+      "majorStep": 6.25,
+      "keyboardStep": 1,
+      "tickCount": 8,
+      "ticks": [
+       -10,
+       -3.75,
+       2.5,
+       8.75,
+       15,
+       21.25,
+       27.5,
+       33.75,
+       40
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.205833,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "3 : 2 = x : 6",
+     "exprWork": 3,
+     "qWork": 2.4699999999999998
+    },
+    {
+     "id": "nzt:33:1",
+     "index": 1,
+     "level": 33,
+     "kind": "proportion",
+     "expression": {
+      "type": "proportion",
+      "leftNumerator": 4,
+      "leftDenominator": 3,
+      "rightDenominator": 15
+     },
+     "answer": 20,
+     "scale": {
+      "min": -15,
+      "max": 85,
+      "width": 100,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 4,
+      "ticks": [
+       -15,
+       10,
+       35,
+       60,
+       85
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.283333,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "4 : 3 = x : 15",
+     "exprWork": 3,
+     "qWork": 3.3999999999999995
+    },
+    {
+     "id": "nzt:33:2",
+     "index": 2,
+     "level": 33,
+     "kind": "proportion",
+     "expression": {
+      "type": "proportion",
+      "leftNumerator": 3,
+      "leftDenominator": 3,
+      "rightDenominator": 9
+     },
+     "answer": 9,
+     "scale": {
+      "min": -7.5,
+      "max": 42.5,
+      "width": 50,
+      "majorStep": 5,
+      "keyboardStep": 1,
+      "tickCount": 10,
+      "ticks": [
+       -7.5,
+       -2.5,
+       2.5,
+       7.5,
+       12.5,
+       17.5,
+       22.5,
+       27.5,
+       32.5,
+       37.5,
+       42.5
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.249167,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "3 : 3 = x : 9",
+     "exprWork": 3,
+     "qWork": 2.9899999999999993
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 36,
+   "questions": [
+    {
+     "id": "nzt:36:0",
+     "index": 0,
+     "level": 36,
+     "kind": "proportion",
+     "expression": {
+      "type": "proportion",
+      "leftNumerator": 6,
+      "leftDenominator": 9,
+      "rightDenominator": 81
+     },
+     "answer": 54,
+     "scale": {
+      "min": -50,
+      "max": 150,
+      "width": 200,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 4,
+      "ticks": [
+       -50,
+       0,
+       50,
+       100,
+       150
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.29125,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "6 : 9 = x : 81",
+     "exprWork": 3,
+     "qWork": 3.495
+    },
+    {
+     "id": "nzt:36:1",
+     "index": 1,
+     "level": 36,
+     "kind": "proportion",
+     "expression": {
+      "type": "proportion",
+      "leftNumerator": 5,
+      "leftDenominator": 11,
+      "rightDenominator": 44
+     },
+     "answer": 20,
+     "scale": {
+      "min": -15,
+      "max": 35,
+      "width": 50,
+      "majorStep": 5,
+      "keyboardStep": 1,
+      "tickCount": 10,
+      "ticks": [
+       -15,
+       -10,
+       -5,
+       0,
+       5,
+       10,
+       15,
+       20,
+       25,
+       30,
+       35
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.291667,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "5 : 11 = x : 44",
+     "exprWork": 3,
+     "qWork": 3.5
+    },
+    {
+     "id": "nzt:36:2",
+     "index": 2,
+     "level": 36,
+     "kind": "proportion",
+     "expression": {
+      "type": "proportion",
+      "leftNumerator": 9,
+      "leftDenominator": 10,
+      "rightDenominator": 130
+     },
+     "answer": 117,
+     "scale": {
+      "min": 40,
+      "max": 240,
+      "width": 200,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 8,
+      "ticks": [
+       40,
+       65,
+       90,
+       115,
+       140,
+       165,
+       190,
+       215,
+       240
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.388333,
+     "expressionDifficulty": 0.333333,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "9 : 10 = x : 130",
+     "exprWork": 4,
+     "qWork": 4.66
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 37,
+   "questions": [
+    {
+     "id": "nzt:37:0",
+     "index": 0,
+     "level": 37,
+     "kind": "cube-nested-power",
+     "expression": {
+      "type": "power",
+      "base": {
+       "type": "literal",
+       "value": 5
+      },
+      "exponent": 3
+     },
+     "answer": 125,
+     "scale": {
+      "min": -20,
+      "max": 230,
+      "width": 250,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 5,
+      "ticks": [
+       -20,
+       30,
+       80,
+       130,
+       180,
+       230
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.191667,
+     "expressionDifficulty": 0.133333,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "5³",
+     "exprWork": 1.6,
+     "qWork": 2.3000000000000003
+    },
+    {
+     "id": "nzt:37:1",
+     "index": 1,
+     "level": 37,
+     "kind": "cube-nested-power",
+     "expression": {
+      "type": "power",
+      "base": {
+       "type": "literal",
+       "value": 6
+      },
+      "exponent": 3
+     },
+     "answer": 216,
+     "scale": {
+      "min": 50,
+      "max": 550,
+      "width": 500,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 10,
+      "ticks": [
+       50,
+       100,
+       150,
+       200,
+       250,
+       300,
+       350,
+       400,
+       450,
+       500,
+       550
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.345,
+     "expressionDifficulty": 0.25,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "6³",
+     "exprWork": 3,
+     "qWork": 4.14
+    },
+    {
+     "id": "nzt:37:2",
+     "index": 2,
+     "level": 37,
+     "kind": "cube-nested-power",
+     "expression": {
+      "type": "power",
+      "base": {
+       "type": "literal",
+       "value": 3
+      },
+      "exponent": 3
+     },
+     "answer": 27,
+     "scale": {
+      "min": 5,
+      "max": 55,
+      "width": 50,
+      "majorStep": 6.25,
+      "keyboardStep": 1,
+      "tickCount": 8,
+      "ticks": [
+       5,
+       11.25,
+       17.5,
+       23.75,
+       30,
+       36.25,
+       42.5,
+       48.75,
+       55
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.255,
+     "expressionDifficulty": 0.133333,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "3³",
+     "exprWork": 1.6,
+     "qWork": 3.06
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 40,
+   "questions": [
+    {
+     "id": "nzt:40:0",
+     "index": 0,
+     "level": 40,
+     "kind": "cube-nested-power",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "power",
+       "base": {
+        "type": "power",
+        "base": {
+         "type": "literal",
+         "value": 3
+        },
+        "exponent": 2
+       },
+       "exponent": 2
+      },
+      "right": {
+       "type": "literal",
+       "value": 16
+      }
+     },
+     "answer": 65,
+     "scale": {
+      "min": -30,
+      "max": 170,
+      "width": 200,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 8,
+      "ticks": [
+       -30,
+       -5,
+       20,
+       45,
+       70,
+       95,
+       120,
+       145,
+       170
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.358333,
+     "expressionDifficulty": 0.283333,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "(3²)² - 16",
+     "exprWork": 3.4,
+     "qWork": 4.300000000000001
+    },
+    {
+     "id": "nzt:40:1",
+     "index": 1,
+     "level": 40,
+     "kind": "cube-nested-power",
+     "expression": {
+      "type": "power",
+      "base": {
+       "type": "literal",
+       "value": 10
+      },
+      "exponent": 3
+     },
+     "answer": 1000,
+     "scale": {
+      "min": -750,
+      "max": 4250,
+      "width": 5000,
+      "majorStep": 1250,
+      "keyboardStep": 125,
+      "tickCount": 4,
+      "ticks": [
+       -750,
+       500,
+       1750,
+       3000,
+       4250
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.691667,
+     "expressionDifficulty": 0.833333,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "10³",
+     "exprWork": 10,
+     "qWork": 8.3
+    },
+    {
+     "id": "nzt:40:2",
+     "index": 2,
+     "level": 40,
+     "kind": "cube-nested-power",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "power",
+       "base": {
+        "type": "power",
+        "base": {
+         "type": "literal",
+         "value": 2
+        },
+        "exponent": 2
+       },
+       "exponent": 2
+      },
+      "right": {
+       "type": "literal",
+       "value": 89
+      }
+     },
+     "answer": -73,
+     "scale": {
+      "min": -150,
+      "max": 50,
+      "width": 200,
+      "majorStep": 20,
+      "keyboardStep": 2.5,
+      "tickCount": 10,
+      "ticks": [
+       -150,
+       -130,
+       -110,
+       -90,
+       -70,
+       -50,
+       -30,
+       -10,
+       10,
+       30,
+       50
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.441667,
+     "expressionDifficulty": 0.375,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "(2²)² - 89",
+     "exprWork": 4.5,
+     "qWork": 5.3
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 41,
+   "questions": [
+    {
+     "id": "nzt:41:0",
+     "index": 0,
+     "level": 41,
+     "kind": "linear-equation",
+     "expression": {
+      "type": "linear-equation",
+      "a": 2,
+      "b": 10,
+      "c": 20
+     },
+     "answer": 5,
+     "scale": {
+      "min": -4,
+      "max": 16,
+      "width": 20,
+      "majorStep": 2.5,
+      "keyboardStep": 0.25,
+      "tickCount": 8,
+      "ticks": [
+       -4,
+       -1.5,
+       1,
+       3.5,
+       6,
+       8.5,
+       11,
+       13.5,
+       16
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.4,
+     "expressionDifficulty": 0.333333,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "2x + 10 = 20,  x = ?",
+     "exprWork": 4,
+     "qWork": 4.799999999999999
+    },
+    {
+     "id": "nzt:41:1",
+     "index": 1,
+     "level": 41,
+     "kind": "linear-equation",
+     "expression": {
+      "type": "linear-equation",
+      "a": 4,
+      "b": 10,
+      "c": 38
+     },
+     "answer": 7,
+     "scale": {
+      "min": -12.5,
+      "max": 37.5,
+      "width": 50,
+      "majorStep": 12.5,
+      "keyboardStep": 1.25,
+      "tickCount": 4,
+      "ticks": [
+       -12.5,
+       0,
+       12.5,
+       25,
+       37.5
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.278333,
+     "expressionDifficulty": 0.333333,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "4x + 10 = 38,  x = ?",
+     "exprWork": 4,
+     "qWork": 3.34
+    },
+    {
+     "id": "nzt:41:2",
+     "index": 2,
+     "level": 41,
+     "kind": "linear-equation",
+     "expression": {
+      "type": "linear-equation",
+      "a": 4,
+      "b": -10,
+      "c": 34
+     },
+     "answer": 11,
+     "scale": {
+      "min": -22.5,
+      "max": 27.5,
+      "width": 50,
+      "majorStep": 10,
+      "keyboardStep": 1,
+      "tickCount": 5,
+      "ticks": [
+       -22.5,
+       -12.5,
+       -2.5,
+       7.5,
+       17.5,
+       27.5
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.356667,
+     "expressionDifficulty": 0.333333,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "4x − 10 = 34,  x = ?",
+     "exprWork": 4,
+     "qWork": 4.28
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 44,
+   "questions": [
+    {
+     "id": "nzt:44:0",
+     "index": 0,
+     "level": 44,
+     "kind": "linear-equation",
+     "expression": {
+      "type": "linear-equation",
+      "a": 10,
+      "b": 16,
+      "c": 136
+     },
+     "answer": 12,
+     "scale": {
+      "min": -5,
+      "max": 45,
+      "width": 50,
+      "majorStep": 6.25,
+      "keyboardStep": 1,
+      "tickCount": 8,
+      "ticks": [
+       -5,
+       1.25,
+       7.5,
+       13.75,
+       20,
+       26.25,
+       32.5,
+       38.75,
+       45
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.823333,
+     "expressionDifficulty": 0.875,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "10x + 16 = 136,  x = ?",
+     "exprWork": 10.5,
+     "qWork": 9.879999999999999
+    },
+    {
+     "id": "nzt:44:1",
+     "index": 1,
+     "level": 44,
+     "kind": "linear-equation",
+     "expression": {
+      "type": "linear-equation",
+      "a": 4,
+      "b": -13,
+      "c": 107
+     },
+     "answer": 30,
+     "scale": {
+      "min": -25,
+      "max": 75,
+      "width": 100,
+      "majorStep": 12.5,
+      "keyboardStep": 1.25,
+      "tickCount": 8,
+      "ticks": [
+       -25,
+       -12.5,
+       0,
+       12.5,
+       25,
+       37.5,
+       50,
+       62.5,
+       75
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.608333,
+     "expressionDifficulty": 0.5,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "4x − 13 = 107,  x = ?",
+     "exprWork": 6,
+     "qWork": 7.300000000000001
+    },
+    {
+     "id": "nzt:44:2",
+     "index": 2,
+     "level": 44,
+     "kind": "linear-equation",
+     "expression": {
+      "type": "linear-equation",
+      "a": 8,
+      "b": 19,
+      "c": 227
+     },
+     "answer": 26,
+     "scale": {
+      "min": -40,
+      "max": 60,
+      "width": 100,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 4,
+      "ticks": [
+       -40,
+       -15,
+       10,
+       35,
+       60
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.556667,
+     "expressionDifficulty": 0.5,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "8x + 19 = 227,  x = ?",
+     "exprWork": 6,
+     "qWork": 6.679999999999999
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 45,
+   "questions": [
+    {
+     "id": "nzt:45:0",
+     "index": 0,
+     "level": 45,
+     "kind": "root-estimation",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "root-estimation",
+       "value": 242
+      },
+      "right": {
+       "type": "literal",
+       "value": 31
+      }
+     },
+     "answer": -15.44365081,
+     "scale": {
+      "min": -35,
+      "max": 15,
+      "width": 50,
+      "majorStep": 10,
+      "keyboardStep": 1,
+      "tickCount": 5,
+      "ticks": [
+       -35,
+       -25,
+       -15,
+       -5,
+       5,
+       15
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.640728,
+     "expressionDifficulty": 0.591667,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "√242 - 31",
+     "exprWork": 7.1,
+     "qWork": 7.688730162
+    },
+    {
+     "id": "nzt:45:1",
+     "index": 1,
+     "level": 45,
+     "kind": "root-estimation",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "root-estimation",
+       "value": 166
+      },
+      "right": {
+       "type": "literal",
+       "value": 39
+      }
+     },
+     "answer": 51.88409873,
+     "scale": {
+      "min": -40,
+      "max": 160,
+      "width": 200,
+      "majorStep": 40,
+      "keyboardStep": 5,
+      "tickCount": 5,
+      "ticks": [
+       -40,
+       0,
+       40,
+       80,
+       120,
+       160
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.620834,
+     "expressionDifficulty": 0.583333,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "√166 + 39",
+     "exprWork": 7,
+     "qWork": 7.450007030925
+    },
+    {
+     "id": "nzt:45:2",
+     "index": 2,
+     "level": 45,
+     "kind": "root-estimation",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "root-estimation",
+       "value": 284
+      },
+      "right": {
+       "type": "literal",
+       "value": 21
+      }
+     },
+     "answer": 37.85229955,
+     "scale": {
+      "min": 5,
+      "max": 105,
+      "width": 100,
+      "majorStep": 20,
+      "keyboardStep": 2.5,
+      "tickCount": 5,
+      "ticks": [
+       5,
+       25,
+       45,
+       65,
+       85,
+       105
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.642898,
+     "expressionDifficulty": 0.541667,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "√284 + 21",
+     "exprWork": 6.5,
+     "qWork": 7.714770045
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 48,
+   "questions": [
+    {
+     "id": "nzt:48:0",
+     "index": 0,
+     "level": 48,
+     "kind": "root-estimation",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "binary",
+       "operator": "-",
+       "left": {
+        "type": "root-estimation",
+        "value": 787
+       },
+       "right": {
+        "type": "literal",
+        "value": 91
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 13
+      }
+     },
+     "answer": -75.94647972,
+     "scale": {
+      "min": -160,
+      "max": 40,
+      "width": 200,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 4,
+      "ticks": [
+       -160,
+       -110,
+       -60,
+       -10,
+       40
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.903155,
+     "expressionDifficulty": 0.808333,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "(√787 - 91) - 13",
+     "exprWork": 9.7,
+     "qWork": 10.8378591888
+    },
+    {
+     "id": "nzt:48:1",
+     "index": 1,
+     "level": 48,
+     "kind": "root-estimation",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "binary",
+       "operator": "-",
+       "left": {
+        "type": "root-estimation",
+        "value": 1201
+       },
+       "right": {
+        "type": "literal",
+        "value": 59
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 58
+      }
+     },
+     "answer": 33.6554469,
+     "scale": {
+      "min": -10,
+      "max": 90,
+      "width": 100,
+      "majorStep": 25,
+      "keyboardStep": 2.5,
+      "tickCount": 4,
+      "ticks": [
+       -10,
+       15,
+       40,
+       65,
+       90
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.883964,
+     "expressionDifficulty": 0.8,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "(√1201 - 59) + 58",
+     "exprWork": 9.6,
+     "qWork": 10.607564248
+    },
+    {
+     "id": "nzt:48:2",
+     "index": 2,
+     "level": 48,
+     "kind": "root-estimation",
+     "expression": {
+      "type": "binary",
+      "operator": "-",
+      "left": {
+       "type": "binary",
+       "operator": "-",
+       "left": {
+        "type": "root-estimation",
+        "value": 561
+       },
+       "right": {
+        "type": "literal",
+        "value": 74
+       }
+      },
+      "right": {
+       "type": "literal",
+       "value": 42
+      }
+     },
+     "answer": -92.31456144,
+     "scale": {
+      "min": -160,
+      "max": 40,
+      "width": 200,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 4,
+      "ticks": [
+       -160,
+       -110,
+       -60,
+       -10,
+       40
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.867285,
+     "expressionDifficulty": 0.766667,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "(√561 - 74) - 42",
+     "exprWork": 9.2,
+     "qWork": 10.4074175424
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 49,
+   "questions": [
+    {
+     "id": "nzt:49:0",
+     "index": 0,
+     "level": 49,
+     "kind": "quad-equation",
+     "expression": {
+      "type": "quad-equation",
+      "a": 3,
+      "b": -20,
+      "c": 328
+     },
+     "answer": 10.77032961,
+     "scale": {
+      "min": -17.5,
+      "max": 32.5,
+      "width": 50,
+      "majorStep": 6.25,
+      "keyboardStep": 1,
+      "tickCount": 8,
+      "ticks": [
+       -17.5,
+       -11.25,
+       -5,
+       1.25,
+       7.5,
+       13.75,
+       20,
+       26.25,
+       32.5
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.780807,
+     "expressionDifficulty": 0.875,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "3x² − 20 = 328,  x = ?",
+     "exprWork": 10.5,
+     "qWork": 9.369686788149998
+    },
+    {
+     "id": "nzt:49:1",
+     "index": 1,
+     "level": 49,
+     "kind": "quad-equation",
+     "expression": {
+      "type": "quad-equation",
+      "a": 5,
+      "b": -27,
+      "c": 478
+     },
+     "answer": 10.04987562,
+     "scale": {
+      "min": -12.5,
+      "max": 37.5,
+      "width": 50,
+      "majorStep": 10,
+      "keyboardStep": 1,
+      "tickCount": 5,
+      "ticks": [
+       -12.5,
+       -2.5,
+       7.5,
+       17.5,
+       27.5,
+       37.5
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.729032,
+     "expressionDifficulty": 0.916667,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "5x² − 27 = 478,  x = ?",
+     "exprWork": 11,
+     "qWork": 8.7483793514
+    },
+    {
+     "id": "nzt:49:2",
+     "index": 2,
+     "level": 49,
+     "kind": "quad-equation",
+     "expression": {
+      "type": "quad-equation",
+      "a": 4,
+      "b": 16,
+      "c": 688
+     },
+     "answer": 12.9614814,
+     "scale": {
+      "min": -10,
+      "max": 40,
+      "width": 50,
+      "majorStep": 12.5,
+      "keyboardStep": 1.25,
+      "tickCount": 4,
+      "ticks": [
+       -10,
+       2.5,
+       15,
+       27.5,
+       40
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.900542,
+     "expressionDifficulty": 0.916667,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "4x² + 16 = 688,  x = ?",
+     "exprWork": 11,
+     "qWork": 10.806503654
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 52,
+   "questions": [
+    {
+     "id": "nzt:52:0",
+     "index": 0,
+     "level": 52,
+     "kind": "quad-equation",
+     "expression": {
+      "type": "quad-equation",
+      "a": 8,
+      "b": 52,
+      "c": 2236
+     },
+     "answer": 16.52271164,
+     "scale": {
+      "min": -12.5,
+      "max": 37.5,
+      "width": 50,
+      "majorStep": 12.5,
+      "keyboardStep": 1.25,
+      "tickCount": 4,
+      "ticks": [
+       -12.5,
+       0,
+       12.5,
+       25,
+       37.5
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.970303,
+     "expressionDifficulty": 0.875,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "8x² + 52 = 2236,  x = ?",
+     "exprWork": 10.5,
+     "qWork": 11.6436338624
+    },
+    {
+     "id": "nzt:52:1",
+     "index": 1,
+     "level": 52,
+     "kind": "quad-equation",
+     "expression": {
+      "type": "quad-equation",
+      "a": 3,
+      "b": 10,
+      "c": 817
+     },
+     "answer": 16.40121947,
+     "scale": {
+      "min": -7.5,
+      "max": 42.5,
+      "width": 50,
+      "majorStep": 12.5,
+      "keyboardStep": 1.25,
+      "tickCount": 4,
+      "ticks": [
+       -7.5,
+       5,
+       17.5,
+       30,
+       42.5
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.931317,
+     "expressionDifficulty": 0.875,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "3x² + 10 = 817,  x = ?",
+     "exprWork": 10.5,
+     "qWork": 11.1758048848
+    },
+    {
+     "id": "nzt:52:2",
+     "index": 2,
+     "level": 52,
+     "kind": "quad-equation",
+     "expression": {
+      "type": "quad-equation",
+      "a": 2,
+      "b": -32,
+      "c": 202
+     },
+     "answer": 10.81665383,
+     "scale": {
+      "min": -22.5,
+      "max": 27.5,
+      "width": 50,
+      "majorStep": 6.25,
+      "keyboardStep": 1,
+      "tickCount": 8,
+      "ticks": [
+       -22.5,
+       -16.25,
+       -10,
+       -3.75,
+       2.5,
+       8.75,
+       15,
+       21.25,
+       27.5
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.759297,
+     "expressionDifficulty": 0.875,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "2x² − 32 = 202,  x = ?",
+     "exprWork": 10.5,
+     "qWork": 9.111569790649998
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 53,
+   "questions": [
+    {
+     "id": "nzt:53:0",
+     "index": 0,
+     "level": 53,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "steps",
+      "dx": 1,
+      "heights": [
+       12,
+       5,
+       3,
+       11,
+       16
+      ]
+     },
+     "answer": 47,
+     "scale": {
+      "min": -10,
+      "max": 90,
+      "width": 100,
+      "majorStep": 20,
+      "keyboardStep": 2.5,
+      "tickCount": 5,
+      "ticks": [
+       -10,
+       10,
+       30,
+       50,
+       70,
+       90
+      ],
+      "precision": 1
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 0.979167,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 11.75,
+     "qWork": 12.55
+    },
+    {
+     "id": "nzt:53:1",
+     "index": 1,
+     "level": 53,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "steps",
+      "dx": 1,
+      "heights": [
+       10,
+       10,
+       9,
+       6,
+       4
+      ]
+     },
+     "answer": 39,
+     "scale": {
+      "min": 5,
+      "max": 105,
+      "width": 100,
+      "majorStep": 10,
+      "keyboardStep": 1,
+      "tickCount": 10,
+      "ticks": [
+       5,
+       15,
+       25,
+       35,
+       45,
+       55,
+       65,
+       75,
+       85,
+       95,
+       105
+      ],
+      "precision": 0
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 0.916667,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 11,
+     "qWork": 12.3
+    },
+    {
+     "id": "nzt:53:2",
+     "index": 2,
+     "level": 53,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "steps",
+      "dx": 1,
+      "heights": [
+       13,
+       8,
+       5,
+       7,
+       14
+      ]
+     },
+     "answer": 47,
+     "scale": {
+      "min": -50,
+      "max": 150,
+      "width": 200,
+      "majorStep": 40,
+      "keyboardStep": 5,
+      "tickCount": 5,
+      "ticks": [
+       -50,
+       -10,
+       30,
+       70,
+       110,
+       150
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.95899,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 12.35,
+     "qWork": 11.507874999999999
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 56,
+   "questions": [
+    {
+     "id": "nzt:56:0",
+     "index": 0,
+     "level": 56,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "steps",
+      "dx": 2,
+      "heights": [
+       17,
+       8,
+       4,
+       8,
+       17,
+       22
+      ]
+     },
+     "answer": 152,
+     "scale": {
+      "min": -125,
+      "max": 375,
+      "width": 500,
+      "majorStep": 100,
+      "keyboardStep": 10,
+      "tickCount": 5,
+      "ticks": [
+       -125,
+       -25,
+       75,
+       175,
+       275,
+       375
+      ],
+      "precision": 0
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 15.7,
+     "qWork": 16.66
+    },
+    {
+     "id": "nzt:56:1",
+     "index": 1,
+     "level": 56,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "steps",
+      "dx": 2,
+      "heights": [
+       20,
+       22,
+       12,
+       5,
+       16
+      ]
+     },
+     "answer": 150,
+     "scale": {
+      "min": 20,
+      "max": 270,
+      "width": 250,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 5,
+      "ticks": [
+       20,
+       70,
+       120,
+       170,
+       220,
+       270
+      ],
+      "precision": 0
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 13.45,
+     "qWork": 14.75
+    },
+    {
+     "id": "nzt:56:2",
+     "index": 2,
+     "level": 56,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "steps",
+      "dx": 1,
+      "heights": [
+       11,
+       19,
+       11,
+       6,
+       9
+      ]
+     },
+     "answer": 56,
+     "scale": {
+      "min": -20,
+      "max": 180,
+      "width": 200,
+      "majorStep": 40,
+      "keyboardStep": 5,
+      "tickCount": 5,
+      "ticks": [
+       -20,
+       20,
+       60,
+       100,
+       140,
+       180
+      ],
+      "precision": 0
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 12.05,
+     "qWork": 12.509
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 61,
+   "questions": [
+    {
+     "id": "nzt:61:0",
+     "index": 0,
+     "level": 61,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "polyline",
+      "dx": 2,
+      "heights": [
+       29,
+       29,
+       21,
+       15,
+       7,
+       8,
+       9,
+       14
+      ]
+     },
+     "answer": 221,
+     "scale": {
+      "min": -50,
+      "max": 450,
+      "width": 500,
+      "majorStep": 125,
+      "keyboardStep": 12.5,
+      "tickCount": 4,
+      "ticks": [
+       -50,
+       75,
+       200,
+       325,
+       450
+      ],
+      "precision": 1
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 23,
+     "qWork": 23.836
+    },
+    {
+     "id": "nzt:61:1",
+     "index": 1,
+     "level": 61,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "polyline",
+      "dx": 2,
+      "heights": [
+       20,
+       27,
+       27,
+       28,
+       21,
+       16,
+       11,
+       9
+      ]
+     },
+     "answer": 289,
+     "scale": {
+      "min": -150,
+      "max": 850,
+      "width": 1000,
+      "majorStep": 125,
+      "keyboardStep": 12.5,
+      "tickCount": 8,
+      "ticks": [
+       -150,
+       -25,
+       100,
+       225,
+       350,
+       475,
+       600,
+       725,
+       850
+      ],
+      "precision": 1
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 24.799999999999997,
+     "qWork": 26.275999999999996
+    },
+    {
+     "id": "nzt:61:2",
+     "index": 2,
+     "level": 61,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "polyline",
+      "dx": 1,
+      "heights": [
+       10,
+       14,
+       19,
+       29,
+       32,
+       33,
+       24,
+       15,
+       8
+      ]
+     },
+     "answer": 175,
+     "scale": {
+      "min": -100,
+      "max": 400,
+      "width": 500,
+      "majorStep": 62.5,
+      "keyboardStep": 10,
+      "tickCount": 8,
+      "ticks": [
+       -100,
+       -37.5,
+       25,
+       87.5,
+       150,
+       212.5,
+       275,
+       337.5,
+       400
+      ],
+      "precision": 0
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 0.666667,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 28.1,
+     "qWork": 29.400000000000002
+    }
+   ]
+  },
+  {
+   "seed": "nzt",
+   "level": 70,
+   "questions": [
+    {
+     "id": "nzt:70:0",
+     "index": 0,
+     "level": 70,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "polyline",
+      "dx": 3,
+      "heights": [
+       -11,
+       -9,
+       9,
+       18,
+       21,
+       22,
+       11,
+       -1,
+       -15,
+       -9
+      ]
+     },
+     "answer": 138,
+     "scale": {
+      "min": -25,
+      "max": 475,
+      "width": 500,
+      "majorStep": 50,
+      "keyboardStep": 5,
+      "tickCount": 10,
+      "ticks": [
+       -25,
+       25,
+       75,
+       125,
+       175,
+       225,
+       275,
+       325,
+       375,
+       425,
+       475
+      ],
+      "precision": 0
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 1,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 32.7,
+     "qWork": 32.6082
+    },
+    {
+     "id": "nzt:70:1",
+     "index": 1,
+     "level": 70,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "curve",
+      "dx": 4,
+      "heights": [
+       -9,
+       -31,
+       -20,
+       0,
+       19,
+       14,
+       -4,
+       -26,
+       -26,
+       -17
+      ]
+     },
+     "answer": -353.16666667,
+     "scale": {
+      "min": -700,
+      "max": 300,
+      "width": 1000,
+      "majorStep": 250,
+      "keyboardStep": 25,
+      "tickCount": 4,
+      "ticks": [
+       -700,
+       -450,
+       -200,
+       50,
+       300
+      ],
+      "precision": 0
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 0,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 24.607741935483872,
+     "qWork": 25.882408602123874
+    },
+    {
+     "id": "nzt:70:2",
+     "index": 2,
+     "level": 70,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "curve",
+      "dx": 2,
+      "heights": [
+       10,
+       36,
+       22,
+       -3,
+       -43,
+       -34,
+       -11,
+       16,
+       28
+      ]
+     },
+     "answer": 5.16666667,
+     "scale": {
+      "min": -4,
+      "max": 16,
+      "width": 20,
+      "majorStep": 4,
+      "keyboardStep": 0.5,
+      "tickCount": 5,
+      "ticks": [
+       -4,
+       0,
+       4,
+       8,
+       12,
+       16
+      ],
+      "precision": 1
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 0.166667,
+     "seed": "nzt",
+     "textRu": "S ≈ ?",
+     "exprWork": 25.317209302325583,
+     "qWork": 23.97431009395442
+    }
+   ]
+  }
+ ],
+ "second": [
+  {
+   "seed": "Math_Slider  Проба",
+   "level": 1,
+   "questions": [
+    {
+     "id": "math-slider-проба:1:0",
+     "index": 0,
+     "level": 1,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 26
+      },
+      "right": {
+       "type": "literal",
+       "value": 4
+      }
+     },
+     "answer": 30,
+     "scale": {
+      "min": 0,
+      "max": 50,
+      "width": 50,
+      "majorStep": 10,
+      "keyboardStep": 1,
+      "tickCount": 5,
+      "ticks": [
+       0,
+       10,
+       20,
+       30,
+       40,
+       50
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.166667,
+     "expressionDifficulty": 0.125,
+     "scaleDifficulty": 0.166667,
+     "seed": "math-slider-проба",
+     "textRu": "26 + 4",
+     "exprWork": 1.5,
+     "qWork": 2
+    },
+    {
+     "id": "math-slider-проба:1:1",
+     "index": 1,
+     "level": 1,
+     "kind": "integer-addition",
+     "expression": {
+      "type": "binary",
+      "operator": "+",
+      "left": {
+       "type": "literal",
+       "value": 1
+      },
+      "right": {
+       "type": "literal",
+       "value": 7
+      }
+     },
+     "answer": 8,
+     "scale": {
+      "min": 0,
+      "max": 50,
+      "width": 50,
+      "majorStep": 12.5,
+      "keyboardStep": 1.25,
+      "tickCount": 4,
+      "ticks": [
+       0,
+       12.5,
+       25,
+       37.5,
+       50
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.148333,
+     "expressionDifficulty": 0.083333,
+     "scaleDifficulty": 0,
+     "seed": "math-slider-проба",
+     "textRu": "1 + 7",
+     "exprWork": 1,
+     "qWork": 1.78
+    }
+   ]
+  },
+  {
+   "seed": "Math_Slider  Проба",
+   "level": 26,
+   "questions": [
+    {
+     "id": "math-slider-проба:26:0",
+     "index": 0,
+     "level": 26,
+     "kind": "percentage",
+     "expression": {
+      "type": "percent-of",
+      "percent": 50,
+      "base": 130
+     },
+     "answer": 65,
+     "scale": {
+      "min": -30,
+      "max": 170,
+      "width": 200,
+      "majorStep": 40,
+      "keyboardStep": 5,
+      "tickCount": 5,
+      "ticks": [
+       -30,
+       10,
+       50,
+       90,
+       130,
+       170
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.1875,
+     "expressionDifficulty": 0.083333,
+     "scaleDifficulty": 0.166667,
+     "seed": "math-slider-проба",
+     "textRu": "50% × 130",
+     "exprWork": 1,
+     "qWork": 2.25
+    },
+    {
+     "id": "math-slider-проба:26:1",
+     "index": 1,
+     "level": 26,
+     "kind": "percentage",
+     "expression": {
+      "type": "percent-of",
+      "percent": 20,
+      "base": 130
+     },
+     "answer": 26,
+     "scale": {
+      "min": -20,
+      "max": 80,
+      "width": 100,
+      "majorStep": 20,
+      "keyboardStep": 2.5,
+      "tickCount": 5,
+      "ticks": [
+       -20,
+       0,
+       20,
+       40,
+       60,
+       80
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.243333,
+     "expressionDifficulty": 0.166667,
+     "scaleDifficulty": 0.166667,
+     "seed": "math-slider-проба",
+     "textRu": "20% × 130",
+     "exprWork": 2,
+     "qWork": 2.9199999999999995
+    }
+   ]
+  },
+  {
+   "seed": "Math_Slider  Проба",
+   "level": 50,
+   "questions": [
+    {
+     "id": "math-slider-проба:50:0",
+     "index": 0,
+     "level": 50,
+     "kind": "quad-equation",
+     "expression": {
+      "type": "quad-equation",
+      "a": 6,
+      "b": 24,
+      "c": 1188
+     },
+     "answer": 13.92838828,
+     "scale": {
+      "min": -17.5,
+      "max": 32.5,
+      "width": 50,
+      "majorStep": 6.25,
+      "keyboardStep": 1,
+      "tickCount": 8,
+      "ticks": [
+       -17.5,
+       -11.25,
+       -5,
+       1.25,
+       7.5,
+       13.75,
+       20,
+       26.25,
+       32.5
+      ],
+      "precision": 0
+     },
+     "difficulty": 0.980786,
+     "expressionDifficulty": 0.958333,
+     "scaleDifficulty": 0.666667,
+     "seed": "math-slider-проба",
+     "textRu": "6x² + 24 = 1188,  x = ?",
+     "exprWork": 11.5,
+     "qWork": 11.769436815
+    },
+    {
+     "id": "math-slider-проба:50:1",
+     "index": 1,
+     "level": 50,
+     "kind": "quad-equation",
+     "expression": {
+      "type": "quad-equation",
+      "a": 7,
+      "b": 24,
+      "c": 1361
+     },
+     "answer": 13.82027496,
+     "scale": {
+      "min": -15,
+      "max": 35,
+      "width": 50,
+      "majorStep": 12.5,
+      "keyboardStep": 1.25,
+      "tickCount": 4,
+      "ticks": [
+       -15,
+       -2.5,
+       10,
+       22.5,
+       35
+      ],
+      "precision": 1
+     },
+     "difficulty": 0.939096,
+     "expressionDifficulty": 0.875,
+     "scaleDifficulty": 0,
+     "seed": "math-slider-проба",
+     "textRu": "7x² + 24 = 1361,  x = ?",
+     "exprWork": 10.5,
+     "qWork": 11.2691460892
+    }
+   ]
+  },
+  {
+   "seed": "Math_Slider  Проба",
+   "level": 58,
+   "questions": [
+    {
+     "id": "math-slider-проба:58:0",
+     "index": 0,
+     "level": 58,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "steps",
+      "dx": 2,
+      "heights": [
+       5,
+       5,
+       7,
+       15,
+       18,
+       14,
+       9
+      ]
+     },
+     "answer": 146,
+     "scale": {
+      "min": -75,
+      "max": 425,
+      "width": 500,
+      "majorStep": 62.5,
+      "keyboardStep": 10,
+      "tickCount": 8,
+      "ticks": [
+       -75,
+       -12.5,
+       50,
+       112.5,
+       175,
+       237.5,
+       300,
+       362.5,
+       425
+      ],
+      "precision": 0
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 0.666667,
+     "seed": "math-slider-проба",
+     "textRu": "S ≈ ?",
+     "exprWork": 18.1,
+     "qWork": 19.528000000000002
+    },
+    {
+     "id": "math-slider-проба:58:1",
+     "index": 1,
+     "level": 58,
+     "kind": "integral-area",
+     "expression": {
+      "type": "integral-area",
+      "form": "polyline",
+      "dx": 1,
+      "heights": [
+       7,
+       18,
+       22,
+       25,
+       16,
+       11,
+       7,
+       4
+      ]
+     },
+     "answer": 104.5,
+     "scale": {
+      "min": -125,
+      "max": 375,
+      "width": 500,
+      "majorStep": 125,
+      "keyboardStep": 12.5,
+      "tickCount": 4,
+      "ticks": [
+       -125,
+       0,
+       125,
+       250,
+       375
+      ],
+      "precision": 1
+     },
+     "difficulty": 1,
+     "expressionDifficulty": 1,
+     "scaleDifficulty": 0,
+     "seed": "math-slider-проба",
+     "textRu": "S ≈ ?",
+     "exprWork": 23.849999999999998,
+     "qWork": 18.274274999999996
+    }
+   ]
+  }
+ ],
+ "training": {
+  "id": "nzt-training:1:0",
+  "index": 0,
+  "level": 1,
+  "kind": "integer-addition",
+  "expression": {
+   "type": "binary",
+   "operator": "+",
+   "left": {
+    "type": "literal",
+    "value": 10
+   },
+   "right": {
+    "type": "literal",
+    "value": 10
+   }
+  },
+  "answer": 20,
+  "scale": {
+   "min": 0,
+   "max": 100,
+   "width": 100,
+   "majorStep": 10,
+   "keyboardStep": 1,
+   "tickCount": 10,
+   "ticks": [
+    0,
+    10,
+    20,
+    30,
+    40,
+    50,
+    60,
+    70,
+    80,
+    90,
+    100
+   ],
+   "precision": 0
+  },
+  "difficulty": 0.1,
+  "expressionDifficulty": 0.083333,
+  "scaleDifficulty": 1,
+  "seed": "nzt-training",
+  "textRu": "10 + 10",
+  "exprWork": 1,
+  "qWork": 1.2
+ },
+ "areas": [
+  {
+   "id": "nzt:53:0",
+   "heights": [
+    12,
+    12,
+    12,
+    12,
+    12,
+    5,
+    5,
+    5,
+    5,
+    5,
+    3,
+    3,
+    3,
+    3,
+    3,
+    11,
+    11,
+    11,
+    11,
+    11,
+    16,
+    16,
+    16,
+    16
+   ]
+  },
+  {
+   "id": "nzt:53:1",
+   "heights": [
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    9,
+    9,
+    9,
+    9,
+    9,
+    6,
+    6,
+    6,
+    6,
+    6,
+    4,
+    4,
+    4,
+    4
+   ]
+  },
+  {
+   "id": "nzt:53:2",
+   "heights": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    8,
+    8,
+    8,
+    8,
+    8,
+    5,
+    5,
+    5,
+    5,
+    5,
+    7,
+    7,
+    7,
+    7,
+    7,
+    14,
+    14,
+    14,
+    14
+   ]
+  }
+ ],
+ "scoreCases": [
+  {
+   "id": "nzt:1:0",
+   "estimate": 20,
+   "elapsedMs": 1000,
+   "score": {
+    "questionId": "nzt:1:0",
+    "answer": 20,
+    "estimate": 20,
+    "elapsedMs": 1000,
+    "absoluteError": 0,
+    "signedError": 0,
+    "normalizedError": 0,
+    "normalizedSignedError": 0,
+    "accuracy": 1,
+    "speedFactor": 0.93635078,
+    "speedTieBreak": 8,
+    "score": 10008,
+    "outsideTarget": false
+   }
+  },
+  {
+   "id": "nzt:1:1",
+   "estimate": 33,
+   "elapsedMs": 9000,
+   "score": {
+    "questionId": "nzt:1:1",
+    "answer": 30,
+    "estimate": 33,
+    "elapsedMs": 9000,
+    "absoluteError": 3,
+    "signedError": 3,
+    "normalizedError": 0.03,
+    "normalizedSignedError": 0.03,
+    "accuracy": 0.97,
+    "speedFactor": 0.42307692,
+    "speedTieBreak": 4,
+    "score": 9704,
+    "outsideTarget": false
+   }
+  },
+  {
+   "id": "nzt:8:0",
+   "estimate": -36,
+   "elapsedMs": 30000,
+   "score": {
+    "questionId": "nzt:8:0",
+    "answer": -24,
+    "estimate": -36,
+    "elapsedMs": 30000,
+    "absoluteError": 12,
+    "signedError": -12,
+    "normalizedError": 0.06,
+    "normalizedSignedError": -0.06,
+    "accuracy": 0.94,
+    "speedFactor": 0,
+    "speedTieBreak": 0,
+    "score": 9400,
+    "outsideTarget": false
+   }
+  },
+  {
+   "id": "nzt:37:2",
+   "estimate": 5,
+   "elapsedMs": 5500,
+   "score": {
+    "questionId": "nzt:37:2",
+    "answer": 27,
+    "estimate": 5,
+    "elapsedMs": 5500,
+    "absoluteError": 22,
+    "signedError": -22,
+    "normalizedError": 0.44,
+    "normalizedSignedError": -0.44,
+    "accuracy": 0.56,
+    "speedFactor": 0.65710723,
+    "speedTieBreak": 6,
+    "score": 5606,
+    "outsideTarget": true
+   }
+  }
+ ],
+ "migrate": [
+  {
+   "from": 1,
+   "to": 1
+  },
+  {
+   "from": 2,
+   "to": 2
+  },
+  {
+   "from": 3,
+   "to": 3
+  },
+  {
+   "from": 4,
+   "to": 4
+  },
+  {
+   "from": 5,
+   "to": 4
+  },
+  {
+   "from": 6,
+   "to": 5
+  },
+  {
+   "from": 7,
+   "to": 6
+  },
+  {
+   "from": 8,
+   "to": 7
+  },
+  {
+   "from": 9,
+   "to": 8
+  },
+  {
+   "from": 10,
+   "to": 8
+  },
+  {
+   "from": 11,
+   "to": 9
+  },
+  {
+   "from": 12,
+   "to": 9
+  },
+  {
+   "from": 13,
+   "to": 9
+  },
+  {
+   "from": 14,
+   "to": 10
+  },
+  {
+   "from": 15,
+   "to": 10
+  },
+  {
+   "from": 16,
+   "to": 10
+  },
+  {
+   "from": 17,
+   "to": 11
+  },
+  {
+   "from": 18,
+   "to": 11
+  },
+  {
+   "from": 19,
+   "to": 11
+  },
+  {
+   "from": 20,
+   "to": 12
+  },
+  {
+   "from": 21,
+   "to": 17
+  },
+  {
+   "from": 22,
+   "to": 18
+  },
+  {
+   "from": 23,
+   "to": 19
+  },
+  {
+   "from": 24,
+   "to": 20
+  },
+  {
+   "from": 25,
+   "to": 25
+  },
+  {
+   "from": 26,
+   "to": 26
+  },
+  {
+   "from": 27,
+   "to": 27
+  },
+  {
+   "from": 28,
+   "to": 28
+  },
+  {
+   "from": 29,
+   "to": 29
+  },
+  {
+   "from": 30,
+   "to": 30
+  },
+  {
+   "from": 31,
+   "to": 31
+  },
+  {
+   "from": 32,
+   "to": 32
+  },
+  {
+   "from": 33,
+   "to": 33
+  },
+  {
+   "from": 34,
+   "to": 34
+  },
+  {
+   "from": 35,
+   "to": 35
+  },
+  {
+   "from": 36,
+   "to": 36
+  },
+  {
+   "from": 37,
+   "to": 37
+  },
+  {
+   "from": 38,
+   "to": 37
+  },
+  {
+   "from": 39,
+   "to": 37
+  },
+  {
+   "from": 40,
+   "to": 37
+  }
+ ]
+}

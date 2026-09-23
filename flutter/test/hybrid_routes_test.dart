@@ -17,11 +17,31 @@ void main() {
       '$origin/games/one-line.html#top',
       '$origin/games/dots-connect',
       '$origin/games/digit-span.html?mode=free',
+      '$origin/games/schulte',
+      '$origin/games/schulte.html?level=3',
+      '$origin/games/mahjong',
+      '$origin/games/math-slider',
+      '$origin/games/math-slider.html?level=21',
+      '$origin/games/object-tracker',
+      '$origin/games/object-tracker.html?level=7',
+      '$origin/games/quick-count',
+      '$origin/games/quick-count.html',
+      '$origin/games/pattern',
+      '$origin/games/pattern.html?level=9',
+      '$origin/games/math-sprint',
+      '$origin/games/math-sprint.html',
+      '$origin/games/number-bonds',
+      '$origin/games/number-bonds.html?level=4',
+      '$origin/games/ospan',
+      '$origin/games/ospan.html',
       '$origin/games/stroop',
       '$origin/games/stroop.html?mode=ink',
       '$origin/games/flanker',
       '$origin/games/flanker.html?autostart=1',
       '$origin/games/simon',
+      '$origin/games/sudoku',
+      '$origin/games/sudoku.html?mode=levels',
+      '$origin/games/go-no-go',
       '$origin/games/mental-rotation',
       '$origin/games/mental-rotation.html?level=12',
       '$origin/games/spatial-span',
@@ -29,11 +49,26 @@ void main() {
       '$origin/games/spatial-lab?mode=netslide',
       '$origin/games/spatial-hub',
       '$origin/games/spatial-lab.html?mode=sixteen&level=9',
+      '$origin/games/goods-sort',
+      '$origin/games/goods-sort.html?level=12',
+      '$origin/games/water-sort',
+      '$origin/games/ball-sort',
+      '$origin/games/nut-sort.html?level=3',
+      '$origin/games/cake-sort',
+      '$origin/games/pizza-sort',
+      '$origin/games/hanoi',
+      '$origin/games/tower-london',
+      '$origin/games/sorting-hub',
       '$origin/games/sudoku',
       '$origin/games/sudoku.html?mode=levels',
       '$origin/games/go-no-go',
       '$origin/games/choice-rt',
       '$origin/games/stop-signal',
+      '$origin/games/posner',
+      '$origin/games/stroop-emotional',
+      '$origin/games/switching-task',
+      '$origin/games/targets',
+      '$origin/games/inhibition',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -67,32 +102,63 @@ void main() {
     for (final url in [
       '$origin/',
       '$origin/index.html',
-      '$origin/games/schulte',
       '$origin/collection',
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
-      '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
       '$origin/games/sudoku-hub',       // развилка судоку ещё не перенесена
       '$origin/games/puzzles',          // головоломки Тэтхэма ещё не перенесены
+      '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
   });
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
-    // ⚠️ ОБЪЕДИНЕНИЕ, А НЕ ДВЕ ПРОВЕРКИ. При сведении веток двух разделов сюда
-    // попали ДВА expect подряд с разными наборами — каждый утверждал, что список
-    // игр исчерпывается его половиной, и любая новая игра ломала обе. Список
-    // перенесённых игр один и общий, и растёт он снизу.
+    // ⚠️ ОДИН СПИСОК НА ВСЕХ, А НЕ ДВА expect ПОДРЯД: два набора рядом
+    // означают, что кто-то проверяет устаревший, и проба краснеет на любой
+    // следующей игре. Набор пересобирается из карты перехвата при вливании.
     expect(HybridApp.native.keys.toSet(), {
-      '/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix',
-      '/games/stroop', '/games/flanker', '/games/simon',
+      '/games/ball-sort',
+      '/games/cake-sort',
+      '/games/choice-rt',
+      '/games/digit-span',
+      '/games/dots-connect',
+      '/games/flanker',
       '/games/go-no-go',
-      '/games/sudoku', '/games/sudoku-samurai', '/games/sudoku-fractal',
+      '/games/goods-sort',
+      '/games/hanoi',
+      '/games/inhibition',
+      '/games/mahjong',
+      '/games/math-slider',
+      '/games/math-sprint',
+      '/games/memory-matrix',
+      '/games/mental-rotation',
+      '/games/number-bonds',
+      '/games/nut-sort',
+      '/games/object-tracker',
+      '/games/one-line',
+      '/games/ospan',
+      '/games/pattern',
+      '/games/posner',
+      '/games/pizza-sort',
+      '/games/quick-count',
+      '/games/schulte',
+      '/games/simon',
+      '/games/sorting-hub',
+      '/games/spatial-hub',
+      '/games/spatial-lab',
+      '/games/spatial-span',
+      '/games/stop-signal',
+      '/games/stroop',
+      '/games/stroop-emotional',
+      '/games/switching-task',
+      '/games/sudoku',
+      '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',
-      '/games/choice-rt', '/games/stop-signal',
-      '/games/mental-rotation', '/games/spatial-span',
-      '/games/spatial-lab', '/games/spatial-hub',
+      '/games/sudoku-samurai',
+      '/games/targets',
+      '/games/tower-london',
+      '/games/water-sort',
     });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);

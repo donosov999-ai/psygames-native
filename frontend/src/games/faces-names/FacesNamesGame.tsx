@@ -48,8 +48,8 @@ import {
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
 } from 'react-native';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import {
   advanceFacesNamesStudy,
   answerFacesNamesInterference,
@@ -365,8 +365,20 @@ function FacesNamesSessionView({
    * Поэтому считаем от ОКНА: высота поля каркаса = окно − 249. Число снято дважды, на обоих
    * размерах (640 → поле 391, 844 → поле 595), и потому взято как константа, а не подогнано.
    */
-  const окно = useWindowDimensions();
-  const свободноПодПортрет = окно.height - ХРОМ_КАРКАСА - КАРТОЧКА_БЕЗ_ПОРТРЕТА;
+  /**
+   * ⚠️ ХУК ПРОЕКТА, А НЕ ГОЛЫЙ `useWindowDimensions`. В веб-сборке (Android у нас WebView)
+   * на ПЕРВОМ кадре система отдаёт 0 и больше не обновляет: `resize` при обычной загрузке
+   * не приходит, и ноль запекается в размеры навсегда. Гейт `screen-width-guard` назвал
+   * этот файл 23.09.2026 — и был прав: с нулём высота поля вышла бы −249.
+   */
+  const окно = useScreenSize();
+  const свободноПодПортрет = окно.h - ХРОМ_КАРКАСА - КАРТОЧКА_БЕЗ_ПОРТРЕТА;
+  /**
+   * Тесно — когда поле каркаса ниже 450 (окно 360×640 даёт 391). Там же, где портрет ужимается,
+   * ужимается и воздух: отступы и подписи заданы под просторный экран, а на узком телефоне
+   * именно они съедают разницу. Замер 23.09.2026: после ужатия одного портрета осталось 125 px.
+   */
+  const тесно = окно.h - ХРОМ_КАРКАСА < 450;
   const sessionRef = React.useRef(session);
   const completedRef = React.useRef(false);
 
@@ -579,7 +591,7 @@ function FacesNamesSessionView({
     <ScrollView
       {...webKeyboardProps}
       style={[styles.root, { backgroundColor: theme.background }]}
-      contentContainerStyle={styles.gameContent}
+      contentContainerStyle={[styles.gameContent, тесно && styles.тесныйПоток]}
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.topRow}>
@@ -592,11 +604,18 @@ function FacesNamesSessionView({
             })}
           </Text>
         </View>
-        <ActionButton label={strings.pause} theme={theme} secondary onPress={() => setSession((current) => pauseFacesNamesSession(current, now()))} />
+        {/*
+          Своя «Пауза» — только вне каркаса. Внутри каркаса пауза уже стоит в шапке (и она же
+          останавливает игровые часы, откуда модуль берёт время), а вторая кнопка тем же словом
+          занимает 48 px высоты на экране, где не хватает 125.
+        */}
+        {ответСнаружи ? null : (
+          <ActionButton label={strings.pause} theme={theme} secondary onPress={() => setSession((current) => pauseFacesNamesSession(current, now()))} />
+        )}
       </View>
 
       {session.phase === 'study' && studiedPerson ? (
-        <View style={[styles.card, styles.studyCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <View style={[styles.card, styles.studyCard, тесно && styles.теснаяКарточка, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <Text style={[styles.progress, { color: theme.textSecondary }]}>{interpolateFacesNames(strings.studyProgress, { current: session.studyIndex + 1, total: session.puzzle.studiedPersonIds.length })}</Text>
           {/*
             Под портретом в карточке живут: строка «N из M», имя с подписью, факт с подписью
@@ -693,7 +712,13 @@ function FacesNamesSessionView({
         </View>
       ) : null}
 
-      <ActionButton label={strings.restart} theme={theme} secondary onPress={restart} />
+      {/*
+        «Заново» в каркасе живёт в меню паузы (`pauseActions` экрана, пункт `restart`
+        зовёт тот же перезапуск). Вторая такая же кнопка внизу поля не даёт ничего
+        нового, а высоту занимает: замер 23.09.2026, окно 360×640 — поле 391,
+        содержимое 462, и 48 из лишнего 71 это она.
+      */}
+      {ответСнаружи ? null : <ActionButton label={strings.restart} theme={theme} secondary onPress={restart} />}
     </ScrollView>
   );
 }
@@ -736,6 +761,9 @@ const styles = StyleSheet.create({
   gameTitle: { fontSize: 22, fontWeight: '900' },
   round: { fontSize: 13, fontWeight: '700', marginTop: 2 },
   studyCard: { alignItems: 'center', maxWidth: 560, alignSelf: 'center', width: '100%' },
+  /* Плотная раскладка низкого поля: те же элементы, меньше воздуха. */
+  тесныйПоток: { paddingVertical: 6, gap: 8 },
+  теснаяКарточка: { padding: 12, gap: 6 },
   recallCard: { alignItems: 'center' },
   progress: { fontSize: 13, fontWeight: '800', textAlign: 'center' },
   memoryPair: { width: '100%', alignItems: 'center', gap: 3 },

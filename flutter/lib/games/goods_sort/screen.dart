@@ -1,0 +1,347 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+
+import '../../shell/aux_action.dart';
+import '../../shell/game_shell.dart';
+import '../../shell/level_ladder.dart';
+import '../../shell/shared_level_store.dart';
+import '../../shell/shared_state.dart';
+import 'board.dart';
+import 'model.dart';
+
+/// «СОРТИРОВКА ТОВАРОВ» на общем каркасе — первый экран раздела на Flutter.
+///
+/// 🔴 ПОЧЕМУ ЭТОТ ЭКРАН ПЕРВЫЙ. По отзывам за 45 дней у него ЧЕТЫРЕ жалобы на
+/// вёрстку — больше, чем у любого другого экрана раздела: «полки мелкие,
+/// непонятные», «тулбары занимают половину экрана». Причина в вебе была одна и
+/// та же: доска считалась от окна, а не от места, которое осталось после шапки,
+/// счётчиков и ряда кнопок. Здесь высоту поля даёт каркас числом.
+///
+/// ⚠️ РЕШАТЕЛЬ И ГЕНЕРАТОР НЕ ПЕРЕНОСИЛИСЬ. Уровни розданы нынешним TS-генератором
+/// (с доказательством решаемости там, где оно есть) и лежат в
+/// `assets/levels/goods_sort.json`. Поэтому нет «Подсказки»: она в вебе считается
+/// поиском по доске. Появится, когда решатель поедет отдельно.
+class GoodsSortScreen extends StatefulWidget {
+  const GoodsSortScreen({super.key, required this.state});
+
+  final SharedState state;
+
+  @override
+  State<GoodsSortScreen> createState() => _GoodsSortScreenState();
+}
+
+/// Снимок партии для отмены: ход необратим по частям — каскад троек, закрытие
+/// полок и приход из очереди случаются разом.
+class _Snapshot {
+  _Snapshot(this.board, this.obstacles, this.covered, this.frozenRow, this.moves, this.score);
+  final GoodsBoard board;
+  final List<Obstacle?> obstacles;
+  final Set<String> covered;
+  final int? frozenRow;
+  final int moves;
+  final int score;
+}
+
+class _GoodsSortScreenState extends State<GoodsSortScreen> {
+  GoodsLevelSet? _set;
+  late LevelLadder _ladder;
+
+  GoodsLevel? _level;
+  GoodsBoard? _board;
+  List<Obstacle?> _obstacles = [];
+  Set<String> _covered = {};
+  int? _frozenRow;
+  int? _frozenType;
+
+  GoodsPick? _sel;
+  int _moves = 0;
+  int _score = 0;
+  bool _won = false;
+  bool _lost = false;
+  final List<_Snapshot> _history = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _ladder = LevelLadder(gameId: 'goods_sort', store: SharedLevelStore(widget.state));
+    _boot();
+  }
+
+  Future<void> _boot() async {
+    final raw = await rootBundle.loadString('assets/levels/goods_sort.json');
+    await _ladder.load();
+    /*
+     * 🔴 РАЗДАЧА БЕРЁТСЯ ПО ШИРИНЕ ЭКРАНА, А НЕ ОДНА НА ВСЕХ. На телефоне сетка
+     * узкая (3 колонки, больше рядов — «вниз экран тянется, вбок нет»), и от неё
+     * зависит не только рисунок: другая маска → другое число ниш → другая доска
+     * и другая цель. Первая выгрузка ушла широкой, и телефон получил бы уровни,
+     * которых в игре нет. Порог тот же, что в вебе: 560.
+     */
+    if (!mounted) return;
+    final set = GoodsLevelSet.fromJsonString(raw, width: MediaQuery.of(context).size.width);
+    setState(() {
+      _set = set;
+      _start(set.byLevel(_ladder.level));
+    });
+  }
+
+  void _start(GoodsLevel level) {
+    _level = level;
+    _board = level.freshBoard();
+    _obstacles = [...level.obstacles];
+    _covered = {...level.covered};
+    _frozenRow = level.frozenRow;
+    _frozenType = level.frozenType;
+    _sel = null;
+    _moves = 0;
+    _score = 0;
+    _won = false;
+    _lost = false;
+    _history.clear();
+  }
+
+  void _restart() => setState(() => _start(_level!));
+
+  Future<void> _next() async {
+    await _ladder.win();
+    setState(() => _start(_set!.byLevel(_ladder.level)));
+  }
+
+  /// Можно ли трогать нишу. ОДНА проверка и на «взять отсюда», и на «положить сюда»:
+  /// поставь запрет на одну сторону — препятствие станет полупрозрачным.
+  bool _usable(int i) {
+    if (i < _obstacles.length && _obstacles[i] != null) return false;
+    if (_frozenRow != null && _level!.rowOfNiche(i) == _frozenRow) return false;
+    return true;
+  }
+
+  /// Ляжет ли взятое в нишу.
+  ///
+  /// ⚠️ ПРОВЕРЯЕТСЯ ТИП ВЗЯТОГО ТОВАРА, А НЕ ВЕРХНЕГО В НИШЕ. В вебе здесь
+  /// расхождение: `canPlaceInto` смотрит на верхний товар (`src[src.length-1]`), а
+  /// `moveItem` переносит тот, по которому ткнули. На строгой укладке (с L30) это
+  /// пускает товар в нишу, куда он по правилу не ложится. Перенесено честно.
+  bool _canDrop(GoodsPick pick, int to) {
+    if (pick.cell == to) return false;
+    if (!_usable(pick.cell) || !_usable(to)) return false;
+    return _board!.canPlace(to, pick.type, _level!.strict);
+  }
+
+  void _pick(GoodsPick p) {
+    if (_won || _lost) return;
+    if (!_usable(p.cell)) return;
+    setState(() {
+      if (_sel != null && _sel!.cell == p.cell && _sel!.index == p.index) {
+        _sel = null;   // повторный тык по тому же товару — отмена выбора
+      } else if (_sel != null && _sel!.cell != p.cell && _canDrop(_sel!, p.cell)) {
+        final from = _sel!;
+        _sel = null;
+        _move(from, p.cell);
+      } else {
+        _sel = p;
+      }
+    });
+  }
+
+  void _tapNiche(int i) {
+    if (_won || _lost) return;
+    final sel = _sel;
+    if (sel == null) return;
+    setState(() {
+      _sel = null;
+      if (sel.cell != i) _move(sel, i);
+    });
+  }
+
+  /// Ход: взятый товар уезжает в нишу, ядро разбирает тройки, препятствия стареют.
+  void _move(GoodsPick pick, int to) {
+    if (!_canDrop(pick, to)) return;
+    final board = _board!;
+    final level = _level!;
+    _history.add(_Snapshot(
+      board.copyWith(),
+      [..._obstacles],
+      {..._covered},
+      _frozenRow,
+      _moves,
+      _score,
+    ));
+
+    final cells = board.cells.map((c) => [...c]).toList();
+    final type = cells[pick.cell].removeAt(pick.index);
+    cells[to].add(type);
+    final report = CollapseReport();
+    final after = collapseTriples(board.copyWith(cells: cells), report);
+
+    _moves += 1;
+    _score += scoreForClears(report.clearedTypes.length);
+
+    /*
+     * Накрытые товары: сперва ключи едут вместе с содержимым ниши (позиции
+     * съезжают после изъятия), потом открывается всё, перед чем никого не
+     * осталось. Обе функции ПЕРЕНЕСЕНЫ из живого TS и сверены эталонами —
+     * самодельная версия этих двух правил тут уже стояла и путала их в одно.
+     */
+    _covered = revealUncovered(
+      shiftCoveredAfterTake(_covered, pick.cell, pick.index),
+      after.cells,
+    ).toSet();
+
+    // Препятствия: замок стареет на ход, запертая ниша открывается тройкой ПО
+    // СОСЕДСТВУ (а не «сосед опустел»: со схлопыванием место тут же занимает
+    // полка из очереди, и запертая не открылась бы никогда).
+    final next = [..._obstacles];
+    for (var i = 0; i < next.length; i += 1) {
+      final o = next[i];
+      if (o == null) continue;
+      if (o.kind == 'locked') {
+        final left = o.movesLeft - 1;
+        next[i] = left <= 0 ? null : Obstacle('locked', movesLeft: left);
+      } else if (o.kind == 'blocked' && report.clearedIds.isNotEmpty) {
+        if (_neighbours(i).any(report.clearedIds.contains)) next[i] = null;
+      }
+    }
+    _obstacles = next;
+
+    if (_frozenType != null && report.clearedTypes.contains(_frozenType)) {
+      _frozenRow = null;
+      _frozenType = null;
+    }
+
+    _board = after;
+
+    if (levelWon(after.cells, level.goal, queueLength: after.queue.length, back: after.back)) {
+      _won = true;
+    } else if (movesExhausted(_moves, level.moveLimit, after.cells, level.goal)) {
+      _lost = true;
+    }
+  }
+
+  /// Соседи ниши по сетке — через места, а не через плотный список: доска с дырами.
+  List<int> _neighbours(int i) {
+    final level = _level!;
+    final places = <int>[];
+    var seen = -1;
+    var place = -1;
+    for (var p = 0; p < level.mask.length; p += 1) {
+      if (!level.mask[p]) continue;
+      seen += 1;
+      places.add(p);
+      if (seen == i) place = p;
+    }
+    if (place < 0) return const [];
+    final r = place ~/ level.cols;
+    final c = place % level.cols;
+    final out = <int>[];
+    for (final d in const [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+      final nr = r + d[0];
+      final nc = c + d[1];
+      if (nr < 0 || nc < 0 || nr >= level.rows || nc >= level.cols) continue;
+      final np = nr * level.cols + nc;
+      final idx = places.indexOf(np);
+      if (idx >= 0) {
+        // Номер ниши: с устойчивыми номерами — их, иначе место в списке.
+        final ids = _board!.ids;
+        out.add(ids != null && idx < ids.length ? ids[idx] : idx);
+      }
+    }
+    return out;
+  }
+
+  void _undo() {
+    if (_history.isEmpty) return;
+    final s = _history.removeLast();
+    setState(() {
+      _board = s.board;
+      _obstacles = s.obstacles;
+      _covered = s.covered;
+      _frozenRow = s.frozenRow;
+      _moves = s.moves;
+      _score = s.score;
+      _sel = null;
+      _won = false;
+      _lost = false;
+    });
+  }
+
+  String _goalText(GoodsLevel level) {
+    switch (level.goal.kind) {
+      case 'pick':
+        return 'Убрать названные';
+      case 'free':
+        return 'Освободить ниши';
+      case 'moves':
+        return 'Уложиться в ходы';
+      default:
+        return 'Убрать всё';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final level = _level;
+    final board = _board;
+    if (level == null || board == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    final progress = goalProgress(board.cells, level.goal);
+    return GameShell(
+      title: 'Сортировка товаров',
+      hud: [
+        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(
+          label: 'Ходы',
+          value: level.moveLimit > 0 ? '$_moves/${level.moveLimit}' : '$_moves',
+          icon: Icons.swap_horiz,
+        ),
+        if (progress != null)
+          HudItem(label: 'Цель', value: '${progress.done}/${progress.total}', icon: Icons.task_alt),
+        HudItem(label: 'Очки', value: '$_score', icon: Icons.star_outline),
+      ],
+      field: (context, h) => GoodsField(
+        level: level,
+        board: board,
+        fieldHeight: h,
+        obstacles: _obstacles,
+        covered: _covered,
+        frozenRow: _frozenRow,
+        selection: _sel,
+        canDrop: _canDrop,
+        onPickItem: _pick,
+        onTapNiche: _tapNiche,
+        onDrop: (pick, to) => setState(() {
+          _sel = null;
+          _move(pick, to);
+        }),
+      ),
+      auxRow: AuxBar(children: [
+        AuxAction(icon: Icons.undo, label: 'Отменить', onPressed: _history.isEmpty ? null : _undo),
+        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _restart),
+        AuxAction(icon: Icons.task_alt, label: _goalText(level), onPressed: null),
+      ]),
+      toolbar: _won
+          ? Padding(
+              padding: const EdgeInsets.all(12),
+              child: FilledButton.icon(
+                onPressed: _next,
+                icon: const Icon(Icons.arrow_forward),
+                label: Text('Уровень взят · ${starsForMoves(_moves, level.reference)}★ — дальше'),
+              ),
+            )
+          : _lost
+              ? Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: FilledButton.icon(
+                    onPressed: _restart,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Ходы кончились — ещё раз'),
+                  ),
+                )
+              : null,
+      pauseActions: [
+        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _restart),
+        if (_history.isNotEmpty) PauseAction(label: 'Отменить ход', icon: Icons.undo, onPressed: _undo),
+      ],
+    );
+  }
+}
