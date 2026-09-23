@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:psygames_flutter/games/chess_blind/bands.dart';
 import 'package:psygames_flutter/games/chess_blind/board.dart';
 import 'package:psygames_flutter/games/chess_blind/ladder.dart';
+import 'package:psygames_flutter/games/chess_blind/game.dart';
 import 'package:psygames_flutter/games/chess_blind/moves.dart';
 import 'package:psygames_flutter/games/chess_blind/positions.dart';
 import 'package:psygames_flutter/games/chess_blind/questions.dart';
@@ -27,6 +28,7 @@ void main() {
   questionsMatchLiveTs(reference);
   corpusMatchesLiveTs(reference);
   movesMatchLiveTs(reference);
+  gameRunsEndToEnd();
 
   test('🔴 полоса лестницы совпадает с живым TS', () {
     expect(puzzleMinLevel, reference['minLevel']);
@@ -489,4 +491,129 @@ void movesMatchLiveTs(Map<String, dynamic> reference) {
       expect(m.from, isNot(m.to), reason: 'ход на месте — не ход');
     }
   });
+}
+
+/// 🔴 ПАРТИЯ ИГРАЕТСЯ ЦЕЛИКОМ БЕЗ ЕДИНОГО ПИКСЕЛЯ.
+///
+/// В веб-версии ход партии сидел внутри файла маршрута, и проверить его можно
+/// было только через отрисовку. Здесь партия прогоняется пробой: позиция,
+/// ходы вслепую, вопросы и счёт.
+void gameRunsEndToEnd() {
+  late PositionCorpus corpus;
+  setUpAll(() {
+    corpus = PositionCorpus.parse(
+      File('assets/chess_blind/positions.json').readAsStringSync(),
+    );
+  });
+
+  test('🔴 партия проходит все фазы и считает верные ответы', () {
+    final game = ChessBlindGame.start(
+      level: 3,
+      corpus: corpus,
+      random: Random(5),
+    );
+    expect(
+      game.phase,
+      ChessBlindPhase.expose,
+      reason: 'сперва показывают позицию',
+    );
+    expect(game.start, isNotEmpty, reason: 'позиция не пустая');
+    expect(
+      game.start.length,
+      inInclusiveRange(4, 8),
+      reason: 'ступень 3 просит 8 фигур, корпус даёт из полосы 4–8',
+    );
+
+    game.beginBlind();
+    expect(game.phase, ChessBlindPhase.blind);
+    expect(
+      game.moves,
+      hasLength(game.params.moves),
+      reason: 'ходов столько, сколько просит ступень',
+    );
+    expect(
+      game.finalPieces,
+      hasLength(game.start.length),
+      reason: 'взятий нет',
+    );
+
+    game.beginQuiz();
+    expect(game.phase, ChessBlindPhase.quiz);
+    expect(game.total, greaterThan(0));
+
+    // Отвечаем ВЕРНО на все вопросы.
+    while (game.current != null) {
+      final q = game.current!;
+      final ok = game.params.quizType == PuzzleQuizType.locate
+          ? game.answer(square: q.sq)
+          : game.answer(piece: q.type, white: q.white);
+      expect(ok, isTrue, reason: 'верный ответ засчитан');
+    }
+    expect(game.phase, ChessBlindPhase.done);
+    expect(game.right, game.total, reason: 'все ответы верные');
+  });
+
+  test(
+    '🔴 неверный ответ НЕ засчитывается и партия всё равно доходит до конца',
+    () {
+      final game = ChessBlindGame.start(
+        level: 12,
+        corpus: corpus,
+        random: Random(9),
+      );
+      game.beginBlind();
+      game.beginQuiz();
+      expect(
+        game.params.quizType,
+        PuzzleQuizType.locate,
+        reason: 'ступень 12 — розыск',
+      );
+
+      var answered = 0;
+      while (game.current != null) {
+        final q = game.current!;
+        // Клетка заведомо не та: соседняя по номеру, но не совпадающая.
+        final wrong = q.sq == 0 ? 1 : q.sq - 1;
+        expect(
+          game.answer(square: wrong),
+          isFalse,
+          reason: 'чужая клетка не верна',
+        );
+        answered++;
+      }
+      expect(answered, game.total);
+      expect(game.right, 0, reason: 'верных нет');
+      expect(game.phase, ChessBlindPhase.done);
+    },
+  );
+
+  test(
+    '🔴 счётчик показывает СКОЛЬКО ВОПРОСОВ БУДЕТ, а не сколько обещано',
+    () {
+      // Замер 07.09.2026: лестница обещала пять, позиция давала три, счётчик
+      // показывал «3/5» и дойти до пяти было нельзя. Теперь total — это факт.
+      for (final level in [11, 12, 13, 20, 25]) {
+        final game = ChessBlindGame.start(
+          level: level,
+          corpus: corpus,
+          random: Random(level),
+        );
+        game.beginBlind();
+        game.beginQuiz();
+        expect(
+          game.total,
+          lessThanOrEqualTo(game.params.questions),
+          reason: 'ступень $level обещает ${game.params.questions}',
+        );
+        expect(
+          game.total,
+          locatableSquares(game.finalPieces).length < game.params.questions
+              ? locatableSquares(game.finalPieces).length
+              : game.params.questions,
+          reason:
+              'на ступени $level вопросов столько, сколько позволяет позиция',
+        );
+      }
+    },
+  );
 }
