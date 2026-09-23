@@ -25,6 +25,7 @@ void main() {
       '$origin/games/sudoku',
       '$origin/games/sudoku.html?mode=levels',
       '$origin/games/go-no-go',
+      '$origin/games/choice-rt',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -80,6 +81,7 @@ void main() {
       '/games/go-no-go',
       '/games/sudoku', '/games/sudoku-samurai', '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',
+      '/games/choice-rt',
     });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
