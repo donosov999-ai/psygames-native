@@ -210,7 +210,7 @@ export default function MnemonicsGame() {
   const [items, setItems] = useState<string[]>([]);
   const [shuffledItems, setShuffledItems] = useState<string[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<string[]>([]);
-  const [startTime, setStartTime] = useState(0);
+  const [, setStartTime] = useState(0);   // значение не читают, сеттер зовут дважды
   const [elapsedTime, setElapsedTime] = useState(0);
   const [errors, setErrors] = useState(0);
   const [clearedPassed, setClearedPassed] = useState(true);

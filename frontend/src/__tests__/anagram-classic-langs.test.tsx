@@ -25,7 +25,9 @@ import { банкКлассики, словаПоДлине } from '@/src/games/
 // Роутер общий: экран анаграмм зеркалит режим в адрес (`setParams`, d359c068), и
 // проба, поднимающая его целиком, обязана дать роутер со ВСЕМИ методами. Перечень
 // общий мок снимает с самого expo-router — рукописные списки 23.09 и разъехались.
-jest.mock('expo-router', () => require('./routerMockShared').мокМодуляРоутера({
+jest.mock('expo-router', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- фабрика jest.mock грузится ДО импортов файла
+  require('./routerMockShared').мокМодуляРоутера({
   путь: '/games/anagrams',
 }));
 

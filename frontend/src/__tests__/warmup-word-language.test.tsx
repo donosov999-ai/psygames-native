@@ -36,7 +36,9 @@ import { WarmupProvider } from '@/src/contexts/WarmupContext';
 const mockПараметры: Record<string, string> = { wu: '1', diff: 'medium', length: '5' };
 // Роутер берётся общий: свой рукописный из трёх методов развалился 23.09, когда
 // экран начал звать `setParams`. Перечень методов общий мок снимает с expo-router.
-jest.mock('expo-router', () => require('./routerMockShared').мокМодуляРоутера({
+jest.mock('expo-router', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- фабрика jest.mock грузится ДО импортов файла
+  require('./routerMockShared').мокМодуляРоутера({
   параметры: () => mockПараметры,
   путь: '/games/anagrams',
 }));
