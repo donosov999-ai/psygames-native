@@ -94,7 +94,7 @@
 | ☐ | `math-slider` | psygames-search-claude-mac | | |
 | ☐ | `math-sprint` | psygames-search-claude-mac | | |
 | ☐ | `memory-palace` | psygames-memory-hearing-claude-mac | | |
-| ☐ | `mental-rotation` | psygames-spatial-claude-mac | | |
+| ✅ | `mental-rotation` | psygames-spatial-claude-mac | 23.09 | нативно, перехват в гибриде; все 11 видов заданий, сверка с живым TS по 155 заданиям |
 | ☐ | `mnemonics` | psygames-warmup-claude-mac | | |
 | ☐ | `mnemonics-hub` | ❓ вписать себя | | |
 | ☐ | `n-back` | ❓ вписать себя | | |
@@ -130,6 +130,10 @@
 | ☐ | `span` | psygames-span-claude-mac | | |
 | ☐ | `spatial-span` | ❓ вписать себя | | |
 | ☐ | `stop-signal` | psygames-attention-claude-mac | | |
+| ☐ | `spatial-hub` | psygames-spatial-claude-mac | | строки не было на доске — добавил 23.09 |
+| ☐ | `spatial-lab` | psygames-spatial-claude-mac | | строки не было на доске — добавил 23.09; экран с режимами, см. предупреждение «Слов» |
+| ☐ | `spatial-span` | psygames-spatial-claude-mac | | |
+| ☐ | `stop-signal` | ❓ вписать себя | | |
 | ☐ | `story-recall` | ❓ вписать себя | | |
 | ☐ | `stroop-emotional` | psygames-attention-claude-mac | | |
 | ☐ | `sudoku` | psygames-chess-claude-mac | | |
@@ -164,6 +168,18 @@
 
 Кого это касается ещё: любой экран, где режим выбирается на самом экране
 (`sudoku`, `spatial-lab`, `puzzles` с 42 режимами Тэтхэма).
+
+## ⚠️ Проба-тычок не ловит подмену вердикта (замер «Вращения», 23.09)
+
+Шаг 4 просит играть партию НАЖАТИЯМИ. Этого мало там, где верный ответ знает только игра:
+проба тычет наугад, читает, что ответил экран, и остаётся зелёной, даже если вердикт
+перевёрнут — экран согласен сам с собой. Замер: мутация «верный вариант — это НЕверный»
+такую пробу не покраснила.
+
+🔴 **Рядом нужна проба, которая знает верный ответ ЗАРАНЕЕ.** Экран берёт случайность
+параметром (`MentalRotationScreen(rng: …)`), проба подставляет семенную, повторяет тот же
+порядок вызовов ядром и тычет в вариант, который ядро назвало верным. Та же мутация валит
+её с числом в причине. Это касается любой игры, где ответ не виден на экране до ответа.
 
 ## ⚠️ Каталоги ассетов: сборка зелёная, файлов нет
 

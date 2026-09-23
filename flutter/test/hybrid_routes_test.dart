@@ -22,6 +22,8 @@ void main() {
       '$origin/games/flanker',
       '$origin/games/flanker.html?autostart=1',
       '$origin/games/simon',
+      '$origin/games/mental-rotation',
+      '$origin/games/mental-rotation.html?level=12',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -37,6 +39,7 @@ void main() {
       '$origin/collection',
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
+      '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
@@ -45,6 +48,14 @@ void main() {
   test('каждая перенесённая игра имеет свой построитель экрана', () {
     expect(HybridApp.native.keys.toSet(),
         {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix', '/games/stroop', '/games/flanker', '/games/simon'});
+        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix', '/games/stroop'});
+    expect(HybridApp.native.keys.toSet(), {
+      '/games/dots-connect',
+      '/games/one-line',
+      '/games/digit-span',
+      '/games/memory-matrix',
+      '/games/mental-rotation',
+    });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
     }
