@@ -5,6 +5,7 @@ import '../games/digit_span/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/one_line/screen.dart';
+import '../games/deep/screen.dart';
 import '../games/fractal/screen.dart';
 import '../games/samurai/screen.dart';
 import '../games/sudoku/screen.dart';
@@ -39,6 +40,7 @@ class HybridApp extends StatefulWidget {
         '/games/sudoku': (s) => SudokuScreen(state: s),
         '/games/sudoku-samurai': (s) => SamuraiScreen(state: s),
         '/games/sudoku-fractal': (s) => FractalScreen(state: s),
+        '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),
       };
 
   /// Путь маршрута из любого вида ссылки: и `…/games/one-line.html`, и

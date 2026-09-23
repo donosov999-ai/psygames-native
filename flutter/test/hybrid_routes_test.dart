@@ -31,8 +31,9 @@ void main() {
     expect(HybridApp.routeOf('$origin/games/sudoku-fractal'), '/games/sudoku-fractal');
     expect(HybridApp.routeOf('$origin/games/sudoku-fractal.html'), '/games/sudoku-fractal');
     expect(HybridApp.routeOf('$origin/games/sudoku-fractal?level=6'), '/games/sudoku-fractal');
-    expect(HybridApp.routeOf('$origin/games/sudoku-fractal-deep'), isNull,
-        reason: 'глубокий фрактал — отдельный экран, он ещё не перенесён');
+    // ⚠️ Глубокий фрактал — ОТДЕЛЬНЫЙ экран и отдельный маршрут: перехват одного не
+    // должен утаскивать второй, иначе человек увидит не ту игру.
+    expect(HybridApp.routeOf('$origin/games/sudoku-fractal-deep'), '/games/sudoku-fractal-deep');
   });
 
   test('🔴 самурай перехватывается: и ссылкой, и файлом, и с якорем', () {
@@ -66,6 +67,7 @@ void main() {
     expect(HybridApp.native.keys.toSet(), {
       '/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix',
       '/games/sudoku', '/games/sudoku-samurai', '/games/sudoku-fractal',
+      '/games/sudoku-fractal-deep',
     });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
