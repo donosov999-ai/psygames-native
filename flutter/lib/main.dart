@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'games/dots_connect/screen.dart';
 import 'games/digit_span/screen.dart';
 import 'games/one_line/screen.dart';
+import 'shell/asset_server.dart';
+import 'shell/hybrid_app.dart';
 import 'shell/shared_state.dart';
 import 'shell/web_game_screen.dart';
 
@@ -21,13 +23,15 @@ const webBase = String.fromEnvironment('PSY_WEB', defaultValue: 'http://localhos
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final state = await SharedState.open();
-  runApp(PsyGamesPilotApp(state: state));
+  final server = await AssetServer.start();
+  runApp(PsyGamesPilotApp(state: state, server: server));
 }
 
 class PsyGamesPilotApp extends StatelessWidget {
-  const PsyGamesPilotApp({super.key, required this.state});
+  const PsyGamesPilotApp({super.key, required this.state, required this.server});
 
   final SharedState state;
+  final AssetServer server;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -39,7 +43,7 @@ class PsyGamesPilotApp extends StatelessWidget {
           brightness: Brightness.dark,
           useMaterial3: true,
         ),
-        home: PilotHome(state: state),
+        home: HybridApp(state: state, server: server),
       );
 }
 

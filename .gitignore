@@ -144,3 +144,4 @@ warmup-chat/
 
 # отчёт прибора геометрии экранов (scripts/screen-geometry.mjs) — локальный, не в репо
 frontend/screen-geometry.json
+flutter/assets/web/
