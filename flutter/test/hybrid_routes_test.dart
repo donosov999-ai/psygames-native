@@ -30,6 +30,8 @@ void main() {
       '$origin/games/pattern.html?level=9',
       '$origin/games/math-sprint',
       '$origin/games/math-sprint.html',
+      '$origin/games/number-bonds',
+      '$origin/games/number-bonds.html?level=4',
       '$origin/games/stroop',
       '$origin/games/stroop.html?mode=ink',
       '$origin/games/flanker',
@@ -67,6 +69,7 @@ void main() {
           '/games/quick-count',
           '/games/pattern',
           '/games/math-sprint',
+          '/games/number-bonds',
           '/games/stroop',
           '/games/flanker',
         });
