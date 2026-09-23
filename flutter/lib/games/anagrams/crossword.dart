@@ -81,6 +81,59 @@ bool crosswordHas(Crossword cw, String word) {
   return cw.words.any((w) => w.word == s);
 }
 
+/// Кроссворд собран: найдены все размещённые слова.
+bool crosswordSolved(Crossword cw, List<String> found) {
+  final f = {for (final w in found) w.toUpperCase()};
+  return cw.words.every((w) => f.contains(w.word));
+}
+
+/// Подсказка: какое слово приоткрыть и сколько букв станет открыто.
+///
+/// 🔴 БЕРЁМ САМОЕ КОРОТКОЕ ИЗ ТЕХ, ГДЕ ЕЩЁ ЕСТЬ ЧТО ОТКРЫВАТЬ. У слова открывают
+/// не больше `длина − 1` буквы: иначе подсказка решает его целиком. Слово, где
+/// открывать уже нечего, пропускается — нажатие, которое списывает подсказку и не
+/// делает НИЧЕГО, и есть то, на что жаловались как «подсказка не работает».
+///
+/// ⚠️ При равной длине берётся ПЕРВОЕ по порядку размещения, а не по алфавиту:
+/// в вебе это `reduce` с строгим «короче», и порядок слов в сетке — тот же.
+({String word, int opened})? crosswordHint(
+  Crossword cw,
+  List<String> found, [
+  Map<String, int> opened = const {},
+]) {
+  final f = {for (final w in found) w.toUpperCase()};
+  final left = [
+    for (final w in cw.words)
+      if (!f.contains(w.word) && (opened[w.word] ?? 0) < w.word.length - 1) w.word,
+  ];
+  if (left.isEmpty) return null;
+  var best = left.first;
+  for (final w in left.skip(1)) {
+    if (w.length < best.length) best = w;
+  }
+  return (word: best, opened: (opened[best] ?? 0) + 1);
+}
+
+/// Клетки, открытые найденными словами и подсказками. Ключ — `r * cols + c`.
+Set<int> crosswordRevealed(
+  Crossword cw,
+  List<String> found, [
+  Map<String, int> opened = const {},
+]) {
+  final out = <int>{};
+  final f = {for (final w in found) w.toUpperCase()};
+  for (final w in cw.words) {
+    final whole = f.contains(w.word);
+    final n = whole ? w.word.length : (opened[w.word] ?? 0);
+    final dr = w.d == crossHoriz ? 0 : 1;
+    final dc = w.d == crossHoriz ? 1 : 0;
+    for (var i = 0; i < n; i++) {
+      out.add((w.r + dr * i) * cw.cols + (w.c + dc * i));
+    }
+  }
+  return out;
+}
+
 const _shift = 64;
 const _width = 256;
 int _key(int r, int c) => (r + _shift) * _width + (c + _shift);

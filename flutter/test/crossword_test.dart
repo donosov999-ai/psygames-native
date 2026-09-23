@@ -76,6 +76,49 @@ void main() {
     expect(crosswordHas(cw, 'ЪЪЪЪ'), g['нет']);
   });
 
+  test('🔴 подсказка берёт те же слова и в том же порядке — пять шагов подряд', () async {
+    for (final raw in ref['подсказки'] as List) {
+      final e = raw as Map<String, dynamic>;
+      final bank = await WordBank.load(e['locale'] as String);
+      final pack = bank.packForLevel(e['level'] as int)!;
+      final cw = buildCrossword(crossWordsOfLevel(pack, e['level'] as int), e['level'] as int);
+      final at = '${e['locale']} L${e['level']}';
+
+      final opened = <String, int>{};
+      final steps = e['шаги'] as List;
+      for (var i = 0; i < steps.length; i++) {
+        final want = steps[i] as Map<String, dynamic>?;
+        final got = crosswordHint(cw, const [], opened);
+        if (want == null) {
+          expect(got, isNull, reason: '$at шаг ${i + 1}: подсказок больше нет');
+          break;
+        }
+        expect(got, isNotNull, reason: '$at шаг ${i + 1}');
+        expect(got!.word, want['слово'], reason: '$at шаг ${i + 1} слово');
+        expect(got.opened, want['открыто'], reason: '$at шаг ${i + 1} открыто букв');
+        opened[got.word] = got.opened;
+      }
+
+      expect(crosswordSolved(cw, const []), e['собранПусто'], reason: '$at собран пусто');
+      expect(crosswordSolved(cw, [for (final w in cw.words) w.word]), e['собранВсе'],
+          reason: '$at собран все');
+    }
+  });
+
+  test('🔴 открытые клетки: найденное слово открыто целиком, подсказанное — по букве', () async {
+    final bank = await WordBank.load('ru');
+    final pack = bank.packForLevel(1)!;
+    final cw = buildCrossword(crossWordsOfLevel(pack, 1), 1);
+    expect(crosswordRevealed(cw, const []), isEmpty);
+
+    final first = cw.words.first;
+    final whole = crosswordRevealed(cw, [first.word]);
+    expect(whole.length, first.word.length, reason: 'найденное слово открыто целиком');
+
+    final partial = crosswordRevealed(cw, const [], {first.word: 2});
+    expect(partial.length, 2, reason: 'подсказка открывает ровно столько букв, сколько взято');
+  });
+
   test('🔴 у каждого слова, кроме первого, есть пересечение — иначе это не кроссворд', () async {
     for (final raw in (ref['сетки'] as List).take(8)) {
       final g = raw as Map<String, dynamic>;
