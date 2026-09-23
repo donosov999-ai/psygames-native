@@ -72,6 +72,8 @@ void main() {
       '/games/digit-span',
       '/games/memory-matrix',
       '/games/stroop',
+      '/games/flanker',
+      '/games/simon',
       '/games/mental-rotation',
       '/games/spatial-span',
       '/games/spatial-lab',
