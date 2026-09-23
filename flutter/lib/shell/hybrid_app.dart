@@ -33,6 +33,7 @@ import '../games/math_slider/screen.dart';
 import '../games/math_sprint/screen.dart';
 import '../games/number_bonds/screen.dart';
 import '../games/ospan/screen.dart';
+import '../games/sdmt/screen.dart';
 import '../games/object_tracker/screen.dart';
 import '../games/pattern/screen.dart';
 import '../games/quick_count/screen.dart';
@@ -79,6 +80,7 @@ class HybridApp extends StatefulWidget {
         '/games/math-sprint': (s) => MathSprintScreen(state: s),
         '/games/number-bonds': (s) => NumberBondsScreen(state: s),
         '/games/ospan': (s) => OspanScreen(state: s),
+        '/games/sdmt': (s) => SdmtScreen(state: s),
         '/games/stroop': (s) => StroopScreen(state: s),
         '/games/flanker': (s) => FlankerScreen(state: s),
         '/games/simon': (s) => SimonScreen(state: s),

@@ -66,7 +66,7 @@ const SDMT_BENEFITS = [
  * ⚠️ Правило для пополнения набора: значок обязан отличаться СИЛУЭТОМ, а не деталью;
  * проверять на 22 px, а не в редакторе.
  */
-const SYMBOLS = [
+export const SYMBOLS = [
   'star', 'heart', 'leaf', 'flash', 'cloud', 'flower', 'snow', 'water', 'moon',
 ];
 
@@ -74,7 +74,7 @@ type GamePhase = 'intro' | 'config' | 'playing' | 'boss' | 'cleared' | 'result';
 // Синергия: каждые BOSS_EVERY уровней прошёл раунд → битва с боссом (резкая смена правила).
 const BOSS_EVERY = 3;
 
-function shuffle<T>(arr: T[]): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function shuffle<T>(arr: T[], rnd: () => number = Math.random): T[] { const a=[...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 
 export interface KeyMap { sym: string; digit: number; }
 
@@ -91,15 +91,15 @@ export interface KeyMap { sym: string; digit: number; }
  * VER 1 от 19.08); функция поднята из компонента и экспортирована, чтобы свойство
  * держал тест (assessment-metrics.test.ts), а не комментарий.
  */
-export function buildKeymap(count: number): KeyMap[] {
-  const syms = shuffle(SYMBOLS).slice(0, count);
-  const digits = shuffle([1,2,3,4,5,6,7,8,9]).slice(0, count);
+export function buildKeymap(count: number, rnd: () => number = Math.random): KeyMap[] {
+  const syms = shuffle(SYMBOLS, rnd).slice(0, count);
+  const digits = shuffle([1,2,3,4,5,6,7,8,9], rnd).slice(0, count);
   return syms.map((sym, i) => ({ sym, digit: digits[i] }));
 }
 
 // Уровень 1..15: символов больше (5→9), раунд короче (60→45с), требуемый темп
 // растёт ~14 → ~36 верных/мин. Цель раунда = темп × длительность.
-function levelParams(level: number): { durationSec: number; symbolCount: number; targetHits: number } {
+export function levelParams(level: number): { durationSec: number; symbolCount: number; targetHits: number } {
   const durationSec = level <= 5 ? 60 : level <= 10 ? 50 : 45;
   const symbolCount = Math.min(9, 5 + Math.floor((level - 1) / 3));   // 5,5,5,6,6,6,7,7,7,8,8,8,9,9,9
   const ratePerMin = 14 + (level - 1) * 1.6;                          // 14 → 36.4 верных/мин
