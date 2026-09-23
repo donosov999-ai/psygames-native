@@ -58,12 +58,14 @@ VoiceLayer layer(
   bool sound = true,
   Map<String, Map<String, String>> live = const {},
   Map<String, Map<String, String>> samples = const {},
+  Map<String, String> letters = const {},
 }) =>
     VoiceLayer(
       backend: b,
       soundOn: () => sound,
       live: live,
       samples: samples,
+      letters: letters,
     );
 
 void main() {
@@ -161,5 +163,22 @@ void main() {
     // Края зажимаются ДО пересчёта — иначе 9.0 у Android уехало бы за шкалу.
     expect(platformTtsRate(9.0, ios: false), 1.6);
     expect(platformTtsRate(0.1, ios: true), closeTo(0.3, 1e-9));
+  });
+
+  test('🔴 буква — своё пространство имён, а не слово в словаре', () async {
+    final b = FakeBackend();
+    // В словаре есть слово «b», у буквы «B» — своя запись. Смешать их значит
+    // произнести слово вместо имени буквы, и слуховой n-back перестанет быть заданием.
+    final l = layer(b, samples: {'en': {'b': 'word.opus'}}, letters: {'B': 'letter.opus'});
+    expect(await l.speakLetter('b'), isTrue);
+    expect(b.steps.single, 'запись https://psy-games.pro/voice-live/letters/letter.opus @0.9');
+  });
+
+  test('🔴 нет записи буквы — честное «нет», а не синтез похожего', () async {
+    final b = FakeBackend();
+    final l = layer(b, letters: {'B': 'letter.opus'});
+    expect(await l.speakLetter('Z'), isFalse);
+    expect(b.steps, isEmpty,
+        reason: 'системный голос прочёл бы «Z» словом своего языка — у двух людей вышли бы разные задания');
   });
 }

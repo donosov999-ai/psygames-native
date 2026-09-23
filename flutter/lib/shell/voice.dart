@@ -76,6 +76,7 @@ class VoiceLayer {
     required this.soundOn,
     this.live = const {},
     this.samples = const {},
+    this.letters = const {},
   });
 
   final VoiceBackend backend;
@@ -95,6 +96,11 @@ class VoiceLayer {
   final Map<String, Map<String, String>> live;
   final Map<String, Map<String, String>> samples;
 
+  /// Имена букв — ОТДЕЛЬНОЕ пространство имён: «B» как буква и «b» как слово это
+  /// разные записи, и в вебе для них своя функция (`letterVoiceUrl`). Нужны
+  /// слуховому n-back и подаче «голосом» у «Запомни цифры».
+  final Map<String, String> letters;
+
   /// Ссылка на запись или `null`, если записи нет.
   ///
   /// ⚠️ ЖИВАЯ ЗАПИСЬ ПРОВЕРЯЕТСЯ ПЕРВОЙ. В вебе так же: `voice-live` — голоса
@@ -105,6 +111,26 @@ class VoiceLayer {
     if (liveName != null) return '$voiceLiveBase/$lang/$liveName';
     final name = samples[lang]?[text];
     return name != null ? '$voiceBase/$lang/$name' : null;
+  }
+
+  /// Адрес записи имени буквы или `null`. Буквы лежат в живом корпусе отдельным
+  /// каталогом `/voice-live/letters/` — там записи людей, машинного синтеза букв нет.
+  String? letterUrl(String letter) {
+    final name = letters[letter.toUpperCase()];
+    return name != null ? '$voiceLiveBase/letters/$name' : null;
+  }
+
+  /// Произнести имя буквы. `false` — нечем, экран показывает заглушку.
+  ///
+  /// ⚠️ СИНТЕЗ БУКВЫ — НЕ ЗАМЕНА ЗАПИСИ. Системный голос читает «B» как слово
+  /// своего языка («бэ», «би», «бета»), и слуховой n-back от этого перестаёт быть
+  /// одним и тем же заданием у двух людей с разными телефонами. Поэтому здесь
+  /// только запись: нет её — честное «нет», а не «что-нибудь похожее».
+  Future<bool> speakLetter(String letter, {double rate = 0.9}) async {
+    if (!soundOn()) return false;
+    final url = letterUrl(letter);
+    if (url == null) return false;
+    return backend.playUrl(url, clampVoiceRate(rate));
   }
 
   /// Есть ли живая запись человека — экран источников показывает чтецов только
