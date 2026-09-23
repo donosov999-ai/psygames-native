@@ -108,7 +108,7 @@
 | ✅ | `cake-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `cake_sort` на торты и пиццу, 120 вшитых уровней взяты ДАННЫМИ как есть, решатель не переносился |
 | ☐ | `chess-blind` | psygames-chess-claude-mac | | |
 | ☐ | `chess-hub` | psygames-chess-claude-mac | | |
-| ☐ | `chinese-tones` | ❓ вписать себя | | |
+| ☐ | `chinese-tones` | psygames-languages-claude-mac | | |
 | ✅ | `choice-rt` | psygames-attention-claude-mac | 23.09 | «Выбор-реакция» нативно, с НАКЛОНОМ ХИКА: блоки 2→3→4 варианта внутри партии при одном окне. Крестовина держит все четыре позиции всегда (неактивные пустыми) — иначе в наклон влезает закон Фиттса; это стережёт проба. 13 проб модели + 3 партии нажатиями, 12 мутаций краснеют, среди них «наклон по всем пробам вместо средних» — под неё в эталон добавлен случай с неравным числом проб на n, на равных числах обе формулы дают одно и то же |
 | ☐ | `cloze` | psygames-languages-claude-mac | | |
 | ☐ | `corsi` | psygames-span-claude-mac | | |
@@ -136,13 +136,13 @@
 | ☐ | `mnemonics` | psygames-warmup-claude-mac | | |
 | ☐ | `mnemonics-hub` | psygames-memory-hearing-claude-mac | | |
 | ☐ | `n-back` | psygames-span-claude-mac | | |
-| ☐ | `navigator` | ❓ вписать себя | | |
+| ☐ | `navigator` | psygames-spatial-claude-mac | | |
 | ☐ | `number-bonds` | psygames-search-claude-mac | | |
 | ✅ | `nut-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `sort_tubes` на три игры (как в вебе), уровни выгружены JSON, решатель и генератор не переносились |
 | ☐ | `object-tracker` | psygames-search-claude-mac | | |
 | ☐ | `ospan` | psygames-search-claude-mac | | |
 | ☐ | `pause` | psygames-warmup-claude-mac | | |
-| ☐ | `phoneme-pairs` | ❓ вписать себя | | |
+| ☐ | `phoneme-pairs` | psygames-languages-claude-mac | | |
 | ☐ | `phonemic-fluency` | psygames-languages-claude-mac | | |
 | ☐ | `picture-pairs` | psygames-span-claude-mac | | |
 | ✅ | `pizza-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `cake_sort` на торты и пиццу, 120 вшитых уровней взяты ДАННЫМИ как есть, решатель не переносился |
@@ -151,12 +151,12 @@
 | ◐ | `puzzles` | psygames-sudoku-claude-mac | 23.09 | экран ОБЩИЙ: 42 режима шести разделов на одном движке. СДЕЛАНО и под гейтами: движок зовётся через dart:ffi (те же исходники C, 13 с сборки, 25 экспортов), разбор кадра и рисование по всем 42 играм, экран с лестницей семи наших сеток, партия играется нажатиями. ЖДЁТ: нативную сборку под iOS/Android — она трогает ios/ и android/, вопрос в канале 23.09. До неё перехват маршрута НЕ включён: на телефоне библиотеки нет, и перехват показал бы ошибку вместо рабочей веб-версии |
 | ☐ | `puzzles-hub` | psygames-sudoku-claude-mac | | |
 | ☐ | `proofreading` | psygames-attention-claude-mac | | |
-| ☐ | `pseudoword-echo` | ❓ вписать себя | | |
+| ☐ | `pseudoword-echo` | psygames-languages-claude-mac | | |
 | ☐ | `reading-span` | psygames-span-claude-mac | | |
 | ☐ | `rhythm-pitch` | psygames-languages-claude-mac | | |
 | ☐ | `risk-hub` | ❓ вписать себя | | |
 | ☐ | `rmet` | ❓ вписать себя | | |
-| ☐ | `routes-hub` | ❓ вписать себя | | |
+| ☐ | `routes-hub` | psygames-spatial-claude-mac | | |
 | ☐ | `scholars-mate` | psygames-chess-claude-mac | | |
 | ☐ | `sdmt` | ❓ вписать себя | | |
 | ☐ | `search-hub` | psygames-search-claude-mac | | не «Внимание»: развилка «Поиска», в моём рефе только как чужая |
@@ -175,7 +175,7 @@
 | ☐ | `switching-task` | psygames-languages-claude-mac | | ⚠️ спор: экран внутри набора хаба «Конфликт внимания» (gameSuites.ts:113) — разбираемся в канале, молча не забираю |
 | ☐ | `targets` | psygames-attention-claude-mac | | |
 | ✅ | `tower-london` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; задачи выгружены JSON с минимумом ходов (160 штук, каждая перепроверена поиском), генератор не переносился |
-| ☐ | `trail-making` | ❓ вписать себя | | |
+| ☐ | `trail-making` | psygames-spatial-claude-mac | | |
 | ☐ | `visual-memory-hub` | psygames-memory-hearing-claude-mac | | |
 | ☐ | `visual-search` | psygames-search-claude-mac | | не «Внимание»: экран «Поиска»: стоит в его рефе, таблица лестниц |
 | ☐ | `vocab-srs` | psygames-languages-claude-mac | | |
