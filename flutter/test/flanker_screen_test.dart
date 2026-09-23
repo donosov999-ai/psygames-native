@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/flanker/model.dart';
 import 'package:psygames_flutter/games/flanker/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +25,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Тексты экрана — из общего словаря, поэтому проба сверяет их через L.t():
+    // так она заодно требует, чтобы assets/l10n/ru.json собрался и читался.
+    await L.load('ru');
   });
 
   /// Куда смотрит ЦЕНТРАЛЬНАЯ стрелка — читаем с экрана, а не у модели.
@@ -46,7 +50,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
     // Сразу после старта стимула ещё нет: идёт подготовительный интервал.
     expect(find.byKey(const Key('flanker-stimulus')), findsNothing,
@@ -64,20 +68,21 @@ void main() {
     }
     await tester.pumpAndSettle();
 
-    expect(find.text('Уровень пройден'), findsOneWidget, reason: '20 верных из 20 — это проход');
-    expect(find.textContaining('Верно 20 из 20'), findsOneWidget);
+    expect(find.textContaining(L.t('levelDone').split('{').first.trim()), findsOneWidget,
+        reason: '20 верных из 20 — это проход');
+    expect(find.textContaining('${L.t('hud_correct')}: 20/20'), findsOneWidget);
     // 🔴 Именно это число ловит сдвиг отсчёта: разность половин сдвиг сокращает, среднее — нет.
-    expect(find.textContaining('Среднее время: 450 мс'), findsOneWidget,
+    expect(find.textContaining('${L.t('meanReaction')}: 450 ${L.t('msShort')}'), findsOneWidget,
         reason: 'отсчёт обязан идти от показа стимула: ожидание 500–1100 мс в него попадать не должно');
     // Все пробы шли поровну, значит разность половин — ноль. Случайность задана
     // семенем, поэтому обе половины набираются в каждом прогоне, а не «обычно».
-    expect(find.textContaining('Эффект фланкера: 0 мс'), findsOneWidget);
+    expect(find.textContaining('${L.t('hud_interference')}: 0 ${L.t('msShort')}'), findsOneWidget);
   });
 
   testWidgets('🔴 нажатие ДО показа стимула не засчитывается — угадать вслепую нельзя', (tester) async {
     await tester.pumpWidget(MaterialApp(home: FlankerScreen(state: state, rnd: Random(3))));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
 
     await tester.tap(answerFor(FlankerDirection.left));
@@ -93,7 +98,7 @@ void main() {
   testWidgets('🔴 просрочка окна — ошибка, и уровень не засчитан', (tester) async {
     await tester.pumpWidget(MaterialApp(home: FlankerScreen(state: state, rnd: Random(11))));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
 
     // Молчим всю партию: интервал ≤1100 мс, окно ответа на L1 — 3000 мс, отклик 350 мс.
@@ -103,18 +108,18 @@ void main() {
       await tester.pump(const Duration(milliseconds: 360));
     }
     await tester.pumpAndSettle();
-    expect(find.text('Уровень не пройден'), findsOneWidget);
-    expect(find.textContaining('Верно 0 из 20 · ошибок 20'), findsOneWidget,
+    expect(find.text(L.t('sameLevelRetry')), findsOneWidget);
+    expect(find.textContaining('${L.t('hud_correct')}: 0/20 · ${L.t('hud_errors')}: 20'), findsOneWidget,
         reason: 'каждая просрочка обязана считаться ошибкой, а не пропускаться молча');
-    expect(find.textContaining('Среднее время: нет верных проб'), findsOneWidget);
-    expect(find.textContaining('не набрано обеих половин'), findsOneWidget,
+    expect(find.textContaining('${L.t('meanReaction')}: —'), findsOneWidget);
+    expect(find.textContaining('${L.t('hud_interference')}: —'), findsOneWidget,
         reason: 'без верных проб эффекта нет — ноль означал бы «конфликт не мешает»');
   });
 
   testWidgets('🔴 ответ не в ту сторону — ошибка, а не «мимо»', (tester) async {
     await tester.pumpWidget(MaterialApp(home: FlankerScreen(state: state, rnd: Random(5))));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
     await tester.pump(preWait);
 

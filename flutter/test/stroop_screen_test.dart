@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/stroop/model.dart';
 import 'package:psygames_flutter/games/stroop/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,6 +23,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Тексты экрана — из общего словаря, поэтому проба сверяет их через L.t():
+    // так она заодно требует, чтобы assets/l10n/ru.json собрался и читался.
+    await L.load('ru');
   });
 
   /// Кнопка ответа того цвета, который сейчас верен по правилу ПРОБЫ.
@@ -30,7 +34,7 @@ void main() {
     final stimulus = tester.widget<Text>(find.byKey(const Key('stroop-stimulus')));
     final word = stroopColorsDefault.firstWhere((c) => c.ru == stimulus.data);
     final ink = stroopColorsDefault.firstWhere((c) => _hexOf(c) == (stimulus.style!.color!.toARGB32() & 0xFFFFFF));
-    final need = rule == 'цвет чернил' ? ink : word;
+    final need = rule == L.t('stroopByInk') ? ink : word;
     return find.byKey(Key('stroop-answer-${need.name}'));
   }
 
@@ -45,7 +49,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: StroopScreen(state: state, clock: () => clock)));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
     expect(find.byKey(const Key('stroop-stimulus')), findsOneWidget, reason: 'после «Начать» должен быть стимул');
 
@@ -60,21 +64,22 @@ void main() {
     }
     await tester.pumpAndSettle();
 
-    expect(find.text('Уровень пройден'), findsOneWidget, reason: '20 верных из 20 — это проход');
-    expect(find.textContaining('Верно 20 из 20'), findsOneWidget);
+    expect(find.textContaining(L.t('levelDone').split('{').first.trim()), findsOneWidget,
+        reason: '20 верных из 20 — это проход');
+    expect(find.textContaining('${L.t('hud_correct')}: 20/20'), findsOneWidget);
     // Все верные пробы шли ровно 500 мс, поэтому разность средних — ноль,
     // а не «нет обеих половин»: на L1 смен правила нет, обе половины набираются.
     // 🔴 Именно это число ловит сдвиг отсчёта: разность половин сдвиг сокращает, среднее — нет.
-    expect(find.textContaining('Среднее время: 500 мс'), findsOneWidget,
+    expect(find.textContaining('${L.t('meanReaction')}: 500 ${L.t('msShort')}'), findsOneWidget,
         reason: 'отсчёт обязан идти от показа стимула: между показом и нажатием прошло ровно 500 мс');
-    expect(find.textContaining('Интерференция: 0 мс'), findsOneWidget,
+    expect(find.textContaining('${L.t('hud_interference')}: 0 ${L.t('msShort')}'), findsOneWidget,
         reason: 'все пробы шли поровну, значит разность половин — ноль');
   });
 
   testWidgets('🔴 просрочка окна — ошибка, и уровень не засчитан', (tester) async {
     await tester.pumpWidget(MaterialApp(home: StroopScreen(state: state)));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
 
     // Молчим всю партию: окно ответа на L1 — 3500 мс, отклик 220 мс.
@@ -83,18 +88,18 @@ void main() {
       await tester.pump(const Duration(milliseconds: 260));
     }
     await tester.pumpAndSettle();
-    expect(find.text('Уровень не пройден'), findsOneWidget);
-    expect(find.textContaining('Верно 0 из 20 · ошибок 20'), findsOneWidget,
+    expect(find.text(L.t('sameLevelRetry')), findsOneWidget);
+    expect(find.textContaining('${L.t('hud_correct')}: 0/20 · ${L.t('hud_errors')}: 20'), findsOneWidget,
         reason: 'каждая просрочка обязана считаться ошибкой, а не пропускаться молча');
-    expect(find.textContaining('Среднее время: нет верных проб'), findsOneWidget);
-    expect(find.textContaining('не набрано обеих половин'), findsOneWidget,
+    expect(find.textContaining('${L.t('meanReaction')}: —'), findsOneWidget);
+    expect(find.textContaining('${L.t('hud_interference')}: —'), findsOneWidget,
         reason: 'без верных проб интерференции нет — ноль означал бы «эффекта нет»');
   });
 
   testWidgets('🔴 неверный ответ считается ошибкой, а не пропускается молча', (tester) async {
     await tester.pumpWidget(MaterialApp(home: StroopScreen(state: state)));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
 
     await tester.tap(wrongAnswer(tester));

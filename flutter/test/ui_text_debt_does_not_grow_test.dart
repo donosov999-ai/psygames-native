@@ -48,9 +48,10 @@ void main() {
   const debt = <String, int>{
     'games/puzzles/ladder.dart': 40,
     'games/sudoku/screen.dart': 31,
-    'games/stroop/screen.dart': 22,
-    'games/flanker/screen.dart': 22,
-    'games/simon/screen.dart': 21,
+    // 23.09.2026: три экрана «Конфликта внимания» переведены на L.t() теми же ключами,
+    // что зовёт их веб-версия, и ушли из долга целиком (22 + 22 + 21 = 65).
+    // Осталась stroop/model.dart: там русские СЛОВА-СТИМУЛЫ (КРАСНЫЙ, СИНИЙ…), и в самой
+    // веб-версии они тоже лежат парой ru/en прямо в коде — это материал пробы, а не подпись.
     'main.dart': 16,
     'games/samurai/screen.dart': 14,
     'games/fractal/screen.dart': 13,
@@ -70,7 +71,8 @@ void main() {
     'shell/asset_server.dart': 1,
   };
 
-  const total = 284;
+  // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите.
+  const total = 219;
 
   final counts = _scan(Directory('lib'));
 
