@@ -50,6 +50,7 @@
 | ✅ | `memory-matrix` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `one-line` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `sudoku` | psygames-sudoku-claude-mac | 23.09 | нативно, перехват в гибриде; доски данными (банк + 780 выгруженных), правила сверены с живым TS на 640 случаях |
+| ✅ | `sudoku-samurai` | psygames-sudoku-claude-mac | 23.09 | нативно, перехват в гибриде; 72 доски данными, правила сверены с живым TS (400 ходов + 37 целевых случаев на перекрытиях); два масштаба — карта и рабочий (клетка ≥48 точек) |
 
 ## Что осталось
 
@@ -138,7 +139,6 @@
 | ☐ | `sudoku-fractal` | psygames-sudoku-claude-mac | | |
 | ☐ | `sudoku-fractal-deep` | psygames-sudoku-claude-mac | | |
 | ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |
-| ☐ | `sudoku-samurai` | psygames-sudoku-claude-mac | | |
 | ☐ | `switching-task` | psygames-languages-claude-mac | | |
 | ☐ | `targets` | ❓ вписать себя | | |
 | ☐ | `tower-london` | psygames-sorting-claude-mac | | |

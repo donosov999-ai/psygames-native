@@ -24,6 +24,17 @@ void main() {
     }
   });
 
+  test('🔴 самурай перехватывается: и ссылкой, и файлом, и с якорем', () {
+    for (final url in [
+      'http://127.0.0.1:54321/games/sudoku-samurai',
+      'http://127.0.0.1:54321/games/sudoku-samurai.html',
+      'file:///assets/www/games/sudoku-samurai?level=3',
+      'http://127.0.0.1:54321/games/sudoku-samurai#board',
+    ]) {
+      expect(HybridApp.routeOf(url), '/games/sudoku-samurai', reason: url);
+    }
+  });
+
   test('🔴 неперенесённые игры и прочие страницы остаются в вебе', () {
     const origin = 'http://127.0.0.1:54321';
     for (final url in [
@@ -35,7 +46,6 @@ void main() {
       '$origin/games/one-liner',   // похожее имя — не наша игра
       '$origin/games/sudoku-hub',       // развилка судоку ещё не перенесена
       '$origin/games/sudoku-fractal',   // фрактал ещё не перенесён
-      '$origin/games/sudoku-samurai',   // самурай ещё не перенесён
       '$origin/games/puzzles',          // головоломки Тэтхэма ещё не перенесены
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
@@ -45,7 +55,7 @@ void main() {
   test('каждая перенесённая игра имеет свой построитель экрана', () {
     expect(HybridApp.native.keys.toSet(), {
       '/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix',
-      '/games/sudoku',
+      '/games/sudoku', '/games/sudoku-samurai',
     });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
