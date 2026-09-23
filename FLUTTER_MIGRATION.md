@@ -157,7 +157,7 @@
 | ☐ | `goods-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `hanoi` | psygames-sorting-claude-mac | | |
 | ☐ | `hearing-hub` | psygames-languages-claude-mac  |  | развилка хаба «Языки», 5 экранов (STRUCTURE.md:62)  |
-| ☐ | `inhibition` | psygames-attention-claude-mac | | |
+| ✅ | `inhibition` | psygames-attention-claude-mac | 23.09 | «Торможение» нативно: две парадигмы в одной игре (Go/No-Go, Стоп-сигнал, Микс через раунд). ОБЕ доли заморожены на каноне 25 % — Verbruggen 2019, eLife 8:e46323, «25% stop signals is recommended»; доля запретных та же, что у go-no-go, и это не совпадение: в вебе она берётся импортом, чтобы два экрана с одним game_type не разошлись. Три оси: SSD 150→480, окно 1300→852, объём 20/26/32. 📚 Отступление от канона числом: SSD на уровне ОДНА, адаптивной лестницы нет, поэтому SSRT по этим партиям не считается — он на отдельном экране «Стоп-сигнал». Найден свой дефект: стимул Go/No-Go не гас между пробами (в вебе `setGngStim(null)`), и пауза бралась из НЕсеянного Random — партия была неповторима по времени. 15 проб модели + 5 партий нажатиями, 39 мутаций |
 | ☐ | `inhibition-hub` | — | | ⚠️ ЭКРАНА НЕ СУЩЕСТВУЕТ: развилка расформирована 12.09.2026 (задачи 80eb49c9 и 4dce5eb9), заменена наборами «Стоп и запрет» и «Решения». Файла app/games/inhibition-hub.tsx нет, карточки в hubContents.ts нет. Переносить нечего — строку удалить с согласия Дениса |
 | ☐ | `iowa` | psygames-attention-claude-mac | | |
 | ☐ | `languages-hub` | psygames-languages-claude-mac | | |
