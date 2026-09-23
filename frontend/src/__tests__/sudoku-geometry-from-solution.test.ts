@@ -153,7 +153,8 @@ describe('геометрия варианта выводится из решен
   });
 
   it('🔴 выданная доска: решение удовлетворяет СВОЕЙ геометрии, и геометрия есть', () => {
-    for (const L of [45, 49, 53, 57]) {
+    // 23.09: джигсо переехал на 62–65 — вместо L57 берём вершину его полосы L65.
+    for (const L of [45, 49, 53, 65]) {
       const cfg = levelConfig(L);
       for (let i = 0; i < 3; i++) {
         const g = generatePuzzle(cfg.blanks, cfg.N, cfg.BR, cfg.BC, cfg.variant);

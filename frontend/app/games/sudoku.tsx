@@ -43,7 +43,7 @@ import { failurePolicy, formatErrorCount, isOver as isFailOver } from '@/src/ser
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Line, Rect } from 'react-native-svg';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
-import { buildLevelHelp, type HelpMode } from '@/src/services/sudoku-level-help';
+import { buildLevelHelp, beltKey, type HelpMode } from '@/src/services/sudoku-level-help';
 
 const GRADIENT = ['#7f7fd5', '#86a8e7'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -1798,11 +1798,15 @@ export default function SudokuGame() {
             {t(fractalTechniqueKey(boardTier) as never)}
           </Text>
         )}
-        {/* Выше 57-го наш оценщик молчит (его лестница кончается на голой тройке) —
-            подпись даёт ПОЯС уровня: ALS (58–65), цепи (66–79), легенда (80). */}
-        {boardTier === null && mode === 'levels' && level >= 58 && (
+        {/* Где оценщик молчит (его лестница кончается на голой тройке), подпись даёт ПОЯС уровня.
+            🔴 23.09.2026: границы поясов были ЗАШИТЫ ЗДЕСЬ вторым экземпляром — `level >= 58` и
+            цепочка номеров, — и после перестановки ступеней (кривые блоки уехали на 62–65, пояс
+            ALS занял 54–61, задача 3d4d4578) уровень 54 остался без имени пояса, хотя доска уже
+            банковская. Теперь имя спрашивается у `beltKey` — единственного места, где лестница
+            поясов записана; номеров экран больше не помнит. */}
+        {boardTier === null && mode === 'levels' && beltKey(level) && (
           <Text style={[styles.statText, { color: colors.textSecondary }]}>
-            {t(level >= 81 ? 'sudokuBeltCombo' : level >= 80 ? 'sudokuBeltLegend' : level >= 66 ? 'sudokuBeltChains' : 'sudokuBeltAls')}
+            {t(beltKey(level) as never)}
           </Text>
         )}
         {null}

@@ -915,7 +915,10 @@ export function targetTier(level: number): { min: number; max: number } {
     if (ceiling === undefined) return band;
     return { min: Math.min(band.min, ceiling), max: band.max };
   }
-  if (lv >= 58) return { min: 6, max: 6 };
+  // Пояса банка держат плоскую вершину. С 23.09 их два куска: 54–61 (ALS) и 66–80
+  // (цепи, легенда) — между ними 62–65 кривые блоки, у них своя полоса по месту в четвёрке.
+  if (lv >= 66 && lv <= 80) return { min: 6, max: 6 };
+  if (lv >= 54 && lv <= 61) return { min: 6, max: 6 };
   // 38–57: четыре ступени внутри каждой полосы варианта — 3..4, 4..5, 5..6, 6..6.
   const band = [{ min: 3, max: 4 }, { min: 4, max: 5 }, { min: 5, max: 6 }, { min: 6, max: 6 }][bandPos(lv)] as { min: number; max: number };
   const ceiling = VARIANT_TIER_CEILING[levelConfig(lv).variant as Variant];
