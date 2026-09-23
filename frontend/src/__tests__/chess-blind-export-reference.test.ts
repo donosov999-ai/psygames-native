@@ -49,6 +49,11 @@ import {
   KNIGHT_MAX_MOVES,
 } from '../games/chess-blind/core/positions';
 import {
+  buildQuestions,
+  уникальныхФигур,
+} from '../games/chess-blind/core/questions';
+import type { PuzzlePiece } from '../games/chess-blind/core/puzzle';
+import {
   PUZZLE_MIN_LEVEL,
   PUZZLE_MAX_LEVEL,
   puzzleLevelParams,
@@ -122,7 +127,46 @@ test('лестница chess-blind читается целиком (и по кл
     knightRange: [KNIGHT_MIN_MOVES, KNIGHT_MAX_MOVES],
   };
 
+  /* Вопросы строятся ТАСОВКОЙ, то есть порядок случаен по устройству. Сверять
+   * поэтому надо не список, а то, что от случая не зависит: сколько фигур
+   * однозначны, сколько вопросов выйдет и с каких клеток они вообще могут быть.
+   * Позиции здесь заданы руками — маленькие и разные по составу. */
+  const sample = (spec: string): PuzzlePiece[] =>
+    spec.split(' ').map((token, i) => ({
+      id: i,
+      sq: i * 3,
+      type: token[0] as PuzzlePiece['type'],
+      white: token[1] === 'w',
+    }));
+  const cases: Record<string, string> = {
+    'все разные': 'Kw Qw Rw Bb Nb',
+    'две пары': 'Kw Qw Rw Rw Nb Nb',
+    'все одинаковые': 'Pw Pw Pw Pw',
+    'одна фигура': 'Kw',
+  };
+  const questionsRef: Record<string, unknown> = {};
+  for (const [name, spec] of Object.entries(cases)) {
+    const pieces = sample(spec);
+    const locate3 = buildQuestions(pieces, 'locate', 3, 12);
+    const locate5 = buildQuestions(pieces, 'locate', 5, 12);
+    const pick3 = buildQuestions(pieces, 'pick', 3, 3);
+    questionsRef[name] = {
+      spec,
+      pieces: pieces.length,
+      unique: уникальныхФигур(pieces),
+      locate3Count: locate3.length,
+      locate5Count: locate5.length,
+      pick3Count: pick3.length,
+      // С каких клеток «розыск» вообще может спросить — множество, не порядок.
+      locateSquares: [...new Set(locate5.map((q) => q.sq))].sort((a, b) => a - b),
+      // У «розыска» вариантов нет вовсе: отвечают касанием по доске.
+      locateOptionsAlwaysEmpty: locate5.every((q) => q.options.length === 0),
+      pickHasOptions: pick3.every((q) => q.options.length > 0),
+    };
+  }
+
   const reference = {
+    questions: questionsRef,
     source: 'живой TS: src/games/chess-blind/core/{puzzle,board,positions}.ts',
     board,
     ladder,

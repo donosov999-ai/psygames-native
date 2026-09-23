@@ -2,9 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+
+import 'dart:math';
+
 import 'package:psygames_flutter/games/chess_blind/bands.dart';
 import 'package:psygames_flutter/games/chess_blind/board.dart';
 import 'package:psygames_flutter/games/chess_blind/ladder.dart';
+import 'package:psygames_flutter/games/chess_blind/questions.dart';
 
 /// 🔴 ЛЕСТНИЦА ПЕРЕНЕСЕНА СО СВЕРКОЙ, А НЕ ПЕРЕПИСАНА НА ГЛАЗ.
 ///
@@ -18,6 +22,7 @@ void main() {
   ) as Map<String, dynamic>;
 
   boardAndBandsMatchLiveTs(reference);
+  questionsMatchLiveTs(reference);
 
   test('🔴 полоса лестницы совпадает с живым TS', () {
     expect(puzzleMinLevel, reference['minLevel']);
@@ -189,5 +194,105 @@ void boardAndBandsMatchLiveTs(Map<String, dynamic> reference) {
         reason: 'край «${entry.key}»',
       );
     }
+  });
+}
+
+/// 🔴 ВОПРОСЫ: СВЕРЯЕТСЯ ТО, ЧТО ОТ СЛУЧАЯ НЕ ЗАВИСИТ.
+///
+/// Порядок вопросов случаен по устройству игры. А вот сколько их выйдет, с
+/// каких клеток может спросить «розыск» и есть ли варианты ответа — от случая
+/// не зависит и обязано совпасть с живым TS. Именно здесь 07.09.2026 нашёлся
+/// дефект: лестница обещала пять вопросов, а позиция давала три, и счётчик
+/// молча показывал «3/5».
+void questionsMatchLiveTs(Map<String, dynamic> reference) {
+  final cases = reference['questions'] as Map<String, dynamic>;
+
+  List<PuzzlePiece> parse(String spec) {
+    final tokens = spec.split(' ');
+    return [
+      for (var i = 0; i < tokens.length; i++)
+        PuzzlePiece(sq: i * 3, type: tokens[i][0], white: tokens[i][1] == 'w'),
+    ];
+  }
+
+  for (final entry in cases.entries) {
+    final want = entry.value as Map<String, dynamic>;
+    test('🔴 вопросы «${entry.key}» совпадают с живым TS', () {
+      final pieces = parse(want['spec'] as String);
+      expect(pieces, hasLength(want['pieces']), reason: 'фигур в позиции');
+      expect(
+        uniquePieceCount(pieces),
+        want['unique'],
+        reason: 'однозначных фигур',
+      );
+      expect(
+        locatableSquares(pieces),
+        (want['locateSquares'] as List<dynamic>).cast<int>(),
+        reason: 'клетки, с которых может спросить «розыск»',
+      );
+
+      final rnd = Random(7);
+      for (final probe in [
+        (q: 3, kind: PuzzleQuizType.locate, key: 'locate3Count'),
+        (q: 5, kind: PuzzleQuizType.locate, key: 'locate5Count'),
+        (q: 3, kind: PuzzleQuizType.pick, key: 'pick3Count'),
+      ]) {
+        final built = buildQuestions(
+          pieces: pieces,
+          quizType: probe.kind,
+          questions: probe.q,
+          level: 12,
+          random: rnd,
+        );
+        expect(built, hasLength(want[probe.key]), reason: probe.key);
+      }
+
+      final locate = buildQuestions(
+        pieces: pieces,
+        quizType: PuzzleQuizType.locate,
+        questions: 5,
+        level: 12,
+        random: rnd,
+      );
+      expect(
+        locate.every((q) => q.options.isEmpty),
+        want['locateOptionsAlwaysEmpty'],
+        reason: 'у «розыска» вариантов нет: отвечают касанием по доске',
+      );
+      final pick = buildQuestions(
+        pieces: pieces,
+        quizType: PuzzleQuizType.pick,
+        questions: 3,
+        level: 3,
+        random: rnd,
+      );
+      expect(
+        pick.every((q) => q.options.isNotEmpty),
+        want['pickHasOptions'],
+        reason: 'у «выбора» варианты обязаны быть',
+      );
+    });
+  }
+
+  test('🔴 недобор вопросов ВИДЕН, а не молчит', () {
+    // Позиция из четырёх одинаковых пешек: однозначных фигур нет вовсе, и
+    // «розыск» не может задать ни одного вопроса. Это не ошибка кода — это
+    // свойство позиции, и экран обязан его учитывать, а не показывать «0/5».
+    final pawns = [
+      for (var i = 0; i < 4; i++)
+        PuzzlePiece(sq: i * 3, type: 'P', white: true),
+    ];
+    expect(uniquePieceCount(pawns), 0);
+    expect(
+      buildQuestions(
+        pieces: pawns,
+        quizType: PuzzleQuizType.locate,
+        questions: 5,
+        level: 12,
+        random: Random(1),
+      ),
+      isEmpty,
+      reason: 'спрашивать нечего, и это должно быть видно числом',
+    );
   });
 }

@@ -1,4 +1,61 @@
 {
+  "questions": {
+    "все разные": {
+      "spec": "Kw Qw Rw Bb Nb",
+      "pieces": 5,
+      "unique": 5,
+      "locate3Count": 3,
+      "locate5Count": 5,
+      "pick3Count": 3,
+      "locateSquares": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "locateOptionsAlwaysEmpty": true,
+      "pickHasOptions": true
+    },
+    "две пары": {
+      "spec": "Kw Qw Rw Rw Nb Nb",
+      "pieces": 6,
+      "unique": 2,
+      "locate3Count": 2,
+      "locate5Count": 2,
+      "pick3Count": 3,
+      "locateSquares": [
+        0,
+        3
+      ],
+      "locateOptionsAlwaysEmpty": true,
+      "pickHasOptions": true
+    },
+    "все одинаковые": {
+      "spec": "Pw Pw Pw Pw",
+      "pieces": 4,
+      "unique": 0,
+      "locate3Count": 0,
+      "locate5Count": 0,
+      "pick3Count": 3,
+      "locateSquares": [],
+      "locateOptionsAlwaysEmpty": true,
+      "pickHasOptions": true
+    },
+    "одна фигура": {
+      "spec": "Kw",
+      "pieces": 1,
+      "unique": 1,
+      "locate3Count": 1,
+      "locate5Count": 1,
+      "pick3Count": 1,
+      "locateSquares": [
+        0
+      ],
+      "locateOptionsAlwaysEmpty": true,
+      "pickHasOptions": true
+    }
+  },
   "source": "живой TS: src/games/chess-blind/core/{puzzle,board,positions}.ts",
   "board": {
     "side": 8,
