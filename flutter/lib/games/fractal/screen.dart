@@ -245,7 +245,7 @@ class _MapView extends StatelessWidget {
                   size: side < 0 ? 0 : side,
                   values: play.rootGrid,
                   given: puzzle.rootPuzzle,
-                  keyPrefix: 'корень',
+                  keyPrefix: 'root_',
                   selected: selected?.child == null ? selected : null,
                   dimmed: (r, cc) => !rootEditable(puzzle.rootPuzzle, r, cc) &&
                       puzzle.rootPuzzle[r][cc] == 0,
@@ -304,7 +304,7 @@ class _Tile extends StatelessWidget {
         color: done ? scheme.primaryContainer : scheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
-          key: Key('плитка$index'),
+          key: Key('tile$index'),
           borderRadius: BorderRadius.circular(8),
           onTap: onTap,
           // ⚠️ СОДЕРЖИМОЕ ПЛИТКИ СЖИМАЕТСЯ, А ПОЛОСА ДЕРЖИТ ВЫСОТУ. Замер на 360×640:
@@ -362,7 +362,7 @@ class _ChildView extends StatelessWidget {
             size: side < 0 ? 0 : side,
             values: play.children[child].grid,
             given: puzzle.children[child].puzzle,
-            keyPrefix: 'клетка',
+            keyPrefix: 'cell_',
             selected: selected?.child == child ? selected : null,
             portal: (r, cc) => isPortalCell(puzzle.portals, child, r, cc),
             onTap: onTap,
@@ -550,7 +550,7 @@ class _Toolbar extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.all(12),
         child: FilledButton.icon(
-          key: const Key('дальше'),
+          key: const Key('next'),
           onPressed: onNext,
           icon: const Icon(Icons.arrow_forward),
           label: const Text('Следующий уровень'),
@@ -579,7 +579,7 @@ class _Toolbar extends StatelessWidget {
                       width: keyWidth,
                       height: keyWidth,
                       child: FilledButton(
-                        key: Key('цифра$v'),
+                        key: Key('digit$v'),
                         onPressed: () => onDigit(v),
                         style: FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: Text('$v', style: const TextStyle(fontSize: 20)),
@@ -589,7 +589,7 @@ class _Toolbar extends StatelessWidget {
                     width: keyWidth,
                     height: keyWidth,
                     child: OutlinedButton(
-                      key: const Key('стереть'),
+                      key: const Key('erase'),
                       onPressed: onErase,
                       style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
                       child: const Icon(Icons.backspace_outlined, size: 18),

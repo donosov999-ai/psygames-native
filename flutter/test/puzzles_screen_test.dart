@@ -48,7 +48,7 @@ void main() {
       for (var i = 0; i < 40; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         await Future<void>.delayed(const Duration(milliseconds: 20));
-        if (find.byKey(const Key('поле')).evaluate().isNotEmpty) break;
+        if (find.byKey(const Key('board')).evaluate().isNotEmpty) break;
       }
     });
     await tester.pump();
@@ -57,8 +57,8 @@ void main() {
   testWidgets('🔴 доска Solo появляется, а не вечная загрузка', (tester) async {
     await boot(tester, 'Solo');
     expect(find.text(L.t('puzzlesSolo')), findsOneWidget);
-    expect(find.byKey(const Key('поле')), findsOneWidget);
-    expect(find.byKey(const Key('цифра9')), findsOneWidget, reason: 'девять клавиш у Solo 9×9');
+    expect(find.byKey(const Key('board')), findsOneWidget);
+    expect(find.byKey(const Key('digit9')), findsOneWidget, reason: 'девять клавиш у Solo 9×9');
     expect(find.text('1/5'), findsOneWidget, reason: 'первая из пяти ступеней');
   });
 
@@ -68,24 +68,24 @@ void main() {
     expect(find.text('👻'), findsOneWidget);
     expect(find.text('🧛'), findsOneWidget);
     expect(find.text('🧟'), findsOneWidget);
-    expect(find.byKey(const Key('цифра4')), findsNothing, reason: 'чудовищ трое');
+    expect(find.byKey(const Key('digit4')), findsNothing, reason: 'чудовищ трое');
   });
 
   testWidgets('🔴 решение доводит партию до победы и двигает ступень', (tester) async {
     await boot(tester, 'Solo');
-    expect(find.byKey(const Key('дальше')), findsNothing);
+    expect(find.byKey(const Key('next')), findsNothing);
 
     await tester.tap(find.byTooltip('Показать решение'));
     await tester.pump();
 
-    expect(find.byKey(const Key('дальше')), findsOneWidget, reason: 'победа видна человеку');
+    expect(find.byKey(const Key('next')), findsOneWidget, reason: 'победа видна человеку');
     expect(state.get('psygames_puzzles_solo_level_nzt48'), '2',
         reason: 'ступень записана в тот же ключ, что у веб-версии');
 
     // «Дальше» раздаёт следующую ступень, а не оставляет решённую доску.
-    await tester.tap(find.byKey(const Key('дальше')));
+    await tester.tap(find.byKey(const Key('next')));
     await tester.pump();
-    expect(find.byKey(const Key('дальше')), findsNothing);
+    expect(find.byKey(const Key('next')), findsNothing);
     expect(find.text('2/5'), findsOneWidget);
   });
 
@@ -98,7 +98,7 @@ void main() {
 
     String digest() {
       final paint = tester.widget<CustomPaint>(
-        find.descendant(of: find.byKey(const Key('поле')), matching: find.byType(CustomPaint)).first,
+        find.descendant(of: find.byKey(const Key('board')), matching: find.byType(CustomPaint)).first,
       );
       final painter = paint.painter! as PuzzlePainter;
       return painter.frame.ops.whereType<OpText>().map((t) => '${t.x},${t.y}:${t.text}').join('|');
@@ -108,7 +108,7 @@ void main() {
     expect(before.isNotEmpty, isTrue, reason: 'на доске Solo есть напечатанные цифры');
 
     // Тычки по сетке 9×9 плюс цифра: где-то попадём в пустую клетку.
-    final box = tester.getRect(find.byKey(const Key('поле')));
+    final box = tester.getRect(find.byKey(const Key('board')));
     var changed = false;
     for (var r = 0; r < 9 && !changed; r++) {
       for (var c = 0; c < 9 && !changed; c++) {
@@ -117,7 +117,7 @@ void main() {
           box.top + (r + 0.5) * box.height / 9,
         ));
         await tester.pump();
-        await tester.tap(find.byKey(const Key('цифра1')));
+        await tester.tap(find.byKey(const Key('digit1')));
         await tester.pump();
         if (digest() != before) changed = true;
       }
