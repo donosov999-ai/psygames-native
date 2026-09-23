@@ -686,5 +686,25 @@ export const HELP_MAP: Record<string, HelpEntry> = {
     "nameKey": "puzzlesUndead",
     "skillKey": "skillLogic",
     "introKey": "puzzlesUndeadDesc"
+  },
+  "/games/anagrams?mode=classic": {
+    "nameKey": "classicLabel",
+    "skillKey": "skillVerbal",
+    "introKey": "anagramClassicIntroDesc"
+  },
+  "/games/anagrams?mode=all": {
+    "nameKey": "anagramAllWords",
+    "skillKey": "skillVerbal",
+    "introKey": "anagramAllIntroDesc"
+  },
+  "/games/anagrams?mode=cross": {
+    "nameKey": "anagramCrossword",
+    "skillKey": "skillVerbal",
+    "introKey": "anagramCrossIntroDesc"
+  },
+  "/games/anagrams?mode=square": {
+    "nameKey": "anagramSquare",
+    "skillKey": "skillVerbal",
+    "introKey": "anagramSquareIntroDesc"
   }
 };

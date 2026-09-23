@@ -1,0 +1,189 @@
+# Гибрид на Flutter → TestFlight, в ТУ ЖЕ карточку приложения (com.psygames.app).
+#
+# 🔴 ЗАПУСКАЕТСЯ ТОЛЬКО РУКАМИ. Это сборка на другом движке: снаружи Flutter,
+# внутри WebView с нынешней веб-частью. Она приходит тестировщикам обычным
+# обновлением PsyGames, поэтому автоматического запуска у неё нет — только
+# осознанный клик.
+#
+# Что делает по шагам: собирает веб-часть с пустым базовым путём и вкладывает её
+# внутрь (иначе на телефоне белый экран — сервера нет), подменяет идентификатор
+# сборки на боевой, выводит сертификат и профиль из ключа API тем же скриптом,
+# что и обычный выпуск, подписывает и грузит.
+name: Flutter → TestFlight (гибрид, вручную)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Версия в магазине (CFBundleShortVersionString)'
+        required: true
+        default: '2.55.0'
+      notes:
+        description: 'Что тестировать — одной строкой'
+        required: false
+        default: 'Гибрид: «Соедини точки», «Одна линия», «Цифровой ряд», «Матрица памяти» уже нативные, остальное как раньше'
+
+env:
+  BUNDLE_ID: com.psygames.app
+  PROFILE_NAME: PsyGames App Store
+
+jobs:
+  testflight:
+    name: Сборка и заливка
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Зависимости веб-части
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.5
+          channel: stable
+          cache: true
+
+      - name: Вложить веб-часть внутрь приложения
+        run: bash flutter/tools/embed-web.sh
+
+      - name: Проверить, что веб-часть действительно вложена
+        run: |
+          # ⚠️ Замер, а не доверие: строка `- assets/web/` в pubspec берёт только
+          # файлы самой папки, и без поимённого перечисления каталогов сборка
+          # выходит ЗЕЛЁНОЙ, но пустой. Ловили 23.09: 17,9 МБ вместо 101,5.
+          DIRS=$(grep -c 'assets/web' flutter/pubspec.yaml || echo 0)
+          FILES=$(find flutter/assets/web -type f | wc -l | tr -d ' ')
+          echo "каталогов в pubspec: $DIRS · файлов вложено: $FILES"
+          if [ "$DIRS" -lt 50 ] || [ "$FILES" -lt 1000 ]; then
+            echo "::error title=Веб-часть::вложено слишком мало — сборка была бы пустой"; exit 1
+          fi
+
+      - name: Пробы пилота
+        working-directory: flutter
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test --reporter compact
+
+      - name: Боевой идентификатор и версия
+        run: |
+          BUILD="${{ github.run_number }}"
+          sed -i '' "s/^version: .*/version: ${{ inputs.version }}+$BUILD/" flutter/pubspec.yaml
+          # ⚠️ В iOS-проекте идентификатор пишется pro.psygames.psygamesFlutter,
+          # а в Android — pro.psygames.psygames_flutter. Первый заход 23.09 искал
+          # второе написание, не заменил ничего, и упал на проверке ниже — она и
+          # спасла: без неё собралась бы сборка с чужим идентификатором.
+          sed -i '' "s/pro\.psygames\.psygamesFlutter/$BUNDLE_ID/g" flutter/ios/Runner.xcodeproj/project.pbxproj
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName PsyGames" flutter/ios/Runner/Info.plist 2>/dev/null \
+            || /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string PsyGames" flutter/ios/Runner/Info.plist
+          echo "версия ${{ inputs.version }}+$BUILD · идентификатор $BUNDLE_ID"
+          NEW=$(grep -c "PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;" flutter/ios/Runner.xcodeproj/project.pbxproj || true)
+          LEFT=$(grep -c "pro\.psygames" flutter/ios/Runner.xcodeproj/project.pbxproj || true)
+          echo "целей с боевым идентификатором: $NEW · осталось старых упоминаний: $LEFT"
+          if [ "$NEW" -lt 1 ] || [ "$LEFT" -ne 0 ]; then
+            echo "::error title=Идентификатор::подмена не прошла — собралась бы сборка с чужим идентификатором"; exit 1
+          fi
+
+      - name: Разложить ключ API
+        env:
+          KEY: ${{ secrets.APPLE_API_KEY }}
+          KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+        run: |
+          mkdir -p ~/private_keys
+          printf '%s' "$KEY" > ~/private_keys/AuthKey_${KEY_ID}.p8
+          chmod 600 ~/private_keys/AuthKey_${KEY_ID}.p8
+
+      - name: Сертификат и профиль (тем же скриптом, что и обычный выпуск)
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          BUNDLE_ID: ${{ env.BUNDLE_ID }}
+        run: |
+          # ⚠️ ТОЛЬКО OPENSSL ОТ HOMEBREW. Системный /usr/bin/openssl на маке — это
+          # LibreSSL, и он не знает флаг `-legacy`, который скрипт передаёт
+          # `pkcs12 -export`. Замер 23.09: «pkcs12: Unrecognized flag legacy»,
+          # прогон встал ровно здесь, уже ПОСЛЕ выпуска сертификата и профиля.
+          export PATH="$(brew --prefix openssl@3)/bin:$PATH"
+          openssl version
+          bash scripts/ios-signing-setup.sh
+
+      - name: Подпись — ТОЛЬКО приложению, не пакетам внутри
+        working-directory: flutter
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # 🔴 ПОЧЕМУ НЕ ФЛАГАМИ xcodebuild. Замер 23.09: передача
+          # PROVISIONING_PROFILE_SPECIFIER в командной строке применяется ко ВСЕМ
+          # целям проекта, включая swift-пакеты плагинов. Сборка встала на
+          # «webview_flutter_wkwebview does not support provisioning profiles,
+          # but provisioning profile PsyGames App Store has been manually specified».
+          # Release.xcconfig подключает только приложение — пакеты остаются
+          # автоматическими, как им и положено.
+          {
+            echo "CODE_SIGN_STYLE=Manual"
+            echo "DEVELOPMENT_TEAM=$TEAM"
+            echo "PROVISIONING_PROFILE_SPECIFIER=$PROFILE_NAME"
+            echo "CODE_SIGN_IDENTITY=Apple Distribution"
+          } >> ios/Flutter/Release.xcconfig
+          tail -5 ios/Flutter/Release.xcconfig
+
+      - name: Сборка .ipa
+        working-directory: flutter
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$TEAM</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Apple Distribution</string>
+            <key>provisioningProfiles</key><dict>
+              <key>$BUNDLE_ID</key><string>$PROFILE_NAME</string>
+            </dict>
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          PLIST
+          flutter build ipa --release --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
+          mkdir -p "$RUNNER_TEMP/ipa"
+          cp build/ios/ipa/*.ipa "$RUNNER_TEMP/ipa/"
+          ls -la "$RUNNER_TEMP/ipa"
+
+      - name: Проверка и заливка в TestFlight
+        env:
+          KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          IPA=$(find "$RUNNER_TEMP/ipa" -name '*.ipa' | head -1)
+          [ -n "$IPA" ] || { echo "::error title=iOS::.ipa не найден"; exit 1; }
+          echo "вес .ipa: $(du -k "$IPA" | cut -f1) КБ"
+          export API_PRIVATE_KEYS_DIR=~/private_keys
+          xcrun altool --validate-app -f "$IPA" -t ios --apiKey "$KEY_ID" --apiIssuer "$ISSUER"
+          xcrun altool --upload-app -f "$IPA" -t ios --apiKey "$KEY_ID" --apiIssuer "$ISSUER"
+          {
+            echo "## Гибрид на Flutter уехал в TestFlight"
+            echo ""
+            echo "· версия ${{ inputs.version }}+${{ github.run_number }}, идентификатор $BUNDLE_ID"
+            echo "· нативные игры: «Соедини точки», «Одна линия», «Цифровой ряд», «Матрица памяти»"
+            echo "· остальные экраны открываются нынешней сборкой внутри приложения"
+            echo ""
+            echo "⚠️ Внутренняя группа видит сборку сразу, внешняя ждёт одобрения Apple."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: flutter-hybrid-ipa
+          path: ${{ runner.temp }}/ipa/*.ipa
+          retention-days: 14

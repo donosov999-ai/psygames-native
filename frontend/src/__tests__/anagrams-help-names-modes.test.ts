@@ -35,7 +35,9 @@ const читать = (p: string) => readFileSync(join(ROOT, p), 'utf8') as strin
 /** Режимы — из объявления состояния в самом экране. */
 function режимыЭкрана(): string[] {
   const экран = читать('app/games/anagrams.tsx');
-  const m = /useState<((?:'[a-z]+'\s*\|\s*)*'[a-z]+')>\(\s*'[a-z]+'\s*\)/.exec(экран);
+  /* Союз типов, а не начальное значение: инициализатор бывает и функцией
+     (режим читается из адреса), и от этого список режимов не меняется. */
+  const m = /useState<((?:'[a-z]+'\s*\|\s*)*'[a-z]+')>\s*\(/.exec(экран);
   expect(m).not.toBeNull();
   return m![1].split('|').map((s) => s.trim().replace(/'/g, ''));
 }

@@ -1,0 +1,518 @@
+{
+  "снято": "прогоном живого TS из frontend/app/games/flanker.tsx",
+  "pCong": 0.4,
+  "pIncong": 0.45,
+  "gapMax": 28,
+  "gapMin": 4,
+  "очередьСлучайных": [
+    0.1,
+    0.05,
+    0.9,
+    0.39,
+    0.49,
+    0.4,
+    0.51,
+    0.84,
+    0,
+    0.85,
+    0.99,
+    0.99,
+    0.25,
+    0.6,
+    0.75,
+    0.1,
+    0.3,
+    0.849,
+    0.7,
+    0.851,
+    0.12,
+    0.33,
+    0.88,
+    0.44,
+    0.02,
+    0.77,
+    0.66,
+    0.86,
+    0.44,
+    0.2,
+    0.56,
+    0.95,
+    0.31,
+    0.41,
+    0.19,
+    0.39,
+    0.81,
+    0.5,
+    0.07,
+    0.999
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "trials": 20,
+      "windowMs": 3000,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 28,
+      "rowWidthPx": 312,
+      "condition": {
+        "windowMs": 3000,
+        "gapPx": 28,
+        "trials": 20
+      }
+    },
+    {
+      "level": 2,
+      "trials": 20,
+      "windowMs": 2800,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 26,
+      "rowWidthPx": 304,
+      "condition": {
+        "windowMs": 2800,
+        "gapPx": 26,
+        "trials": 20
+      }
+    },
+    {
+      "level": 3,
+      "trials": 20,
+      "windowMs": 2600,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 25,
+      "rowWidthPx": 300,
+      "condition": {
+        "windowMs": 2600,
+        "gapPx": 25,
+        "trials": 20
+      }
+    },
+    {
+      "level": 4,
+      "trials": 20,
+      "windowMs": 2400,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 23,
+      "rowWidthPx": 292,
+      "condition": {
+        "windowMs": 2400,
+        "gapPx": 23,
+        "trials": 20
+      }
+    },
+    {
+      "level": 5,
+      "trials": 20,
+      "windowMs": 2200,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 21,
+      "rowWidthPx": 284,
+      "condition": {
+        "windowMs": 2200,
+        "gapPx": 21,
+        "trials": 20
+      }
+    },
+    {
+      "level": 6,
+      "trials": 26,
+      "windowMs": 2000,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 19,
+      "rowWidthPx": 276,
+      "condition": {
+        "windowMs": 2000,
+        "gapPx": 19,
+        "trials": 26
+      }
+    },
+    {
+      "level": 7,
+      "trials": 26,
+      "windowMs": 1900,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 18,
+      "rowWidthPx": 272,
+      "condition": {
+        "windowMs": 1900,
+        "gapPx": 18,
+        "trials": 26
+      }
+    },
+    {
+      "level": 8,
+      "trials": 26,
+      "windowMs": 1800,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 16,
+      "rowWidthPx": 264,
+      "condition": {
+        "windowMs": 1800,
+        "gapPx": 16,
+        "trials": 26
+      }
+    },
+    {
+      "level": 9,
+      "trials": 26,
+      "windowMs": 1700,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 14,
+      "rowWidthPx": 256,
+      "condition": {
+        "windowMs": 1700,
+        "gapPx": 14,
+        "trials": 26
+      }
+    },
+    {
+      "level": 10,
+      "trials": 26,
+      "windowMs": 1600,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 13,
+      "rowWidthPx": 252,
+      "condition": {
+        "windowMs": 1600,
+        "gapPx": 13,
+        "trials": 26
+      }
+    },
+    {
+      "level": 11,
+      "trials": 32,
+      "windowMs": 1400,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 11,
+      "rowWidthPx": 244,
+      "condition": {
+        "windowMs": 1400,
+        "gapPx": 11,
+        "trials": 32
+      }
+    },
+    {
+      "level": 12,
+      "trials": 32,
+      "windowMs": 1300,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 9,
+      "rowWidthPx": 236,
+      "condition": {
+        "windowMs": 1300,
+        "gapPx": 9,
+        "trials": 32
+      }
+    },
+    {
+      "level": 13,
+      "trials": 32,
+      "windowMs": 1200,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 7,
+      "rowWidthPx": 228,
+      "condition": {
+        "windowMs": 1200,
+        "gapPx": 7,
+        "trials": 32
+      }
+    },
+    {
+      "level": 14,
+      "trials": 32,
+      "windowMs": 1100,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 6,
+      "rowWidthPx": 224,
+      "condition": {
+        "windowMs": 1100,
+        "gapPx": 6,
+        "trials": 32
+      }
+    },
+    {
+      "level": 15,
+      "trials": 32,
+      "windowMs": 1000,
+      "pCong": 0.4,
+      "pIncong": 0.45,
+      "gapPx": 4,
+      "rowWidthPx": 216,
+      "condition": {
+        "windowMs": 1000,
+        "gapPx": 4,
+        "trials": 32
+      }
+    }
+  ],
+  "trials": [
+    {
+      "r": [
+        0.1,
+        0.05
+      ],
+      "center": "left",
+      "kind": "congruent",
+      "flankers": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    {
+      "r": [
+        0.9,
+        0.39
+      ],
+      "center": "right",
+      "kind": "congruent",
+      "flankers": [
+        "right",
+        "right",
+        "right",
+        "right"
+      ]
+    },
+    {
+      "r": [
+        0.49,
+        0.4
+      ],
+      "center": "left",
+      "kind": "incongruent",
+      "flankers": [
+        "right",
+        "right",
+        "right",
+        "right"
+      ]
+    },
+    {
+      "r": [
+        0.51,
+        0.84
+      ],
+      "center": "right",
+      "kind": "incongruent",
+      "flankers": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    {
+      "r": [
+        0,
+        0.85
+      ],
+      "center": "left",
+      "kind": "incongruent",
+      "flankers": [
+        "right",
+        "right",
+        "right",
+        "right"
+      ]
+    },
+    {
+      "r": [
+        0.99,
+        0.99
+      ],
+      "center": "right",
+      "kind": "neutral",
+      "flankers": null
+    },
+    {
+      "r": [
+        0.25,
+        0.6
+      ],
+      "center": "left",
+      "kind": "incongruent",
+      "flankers": [
+        "right",
+        "right",
+        "right",
+        "right"
+      ]
+    },
+    {
+      "r": [
+        0.75,
+        0.1
+      ],
+      "center": "right",
+      "kind": "congruent",
+      "flankers": [
+        "right",
+        "right",
+        "right",
+        "right"
+      ]
+    },
+    {
+      "r": [
+        0.3,
+        0.849
+      ],
+      "center": "left",
+      "kind": "incongruent",
+      "flankers": [
+        "right",
+        "right",
+        "right",
+        "right"
+      ]
+    },
+    {
+      "r": [
+        0.7,
+        0.851
+      ],
+      "center": "right",
+      "kind": "neutral",
+      "flankers": null
+    },
+    {
+      "r": [
+        0.12,
+        0.33
+      ],
+      "center": "left",
+      "kind": "congruent",
+      "flankers": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    {
+      "r": [
+        0.88,
+        0.44
+      ],
+      "center": "right",
+      "kind": "incongruent",
+      "flankers": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    {
+      "r": [
+        0.02,
+        0.77
+      ],
+      "center": "left",
+      "kind": "incongruent",
+      "flankers": [
+        "right",
+        "right",
+        "right",
+        "right"
+      ]
+    },
+    {
+      "r": [
+        0.66,
+        0.86
+      ],
+      "center": "right",
+      "kind": "neutral",
+      "flankers": null
+    },
+    {
+      "r": [
+        0.44,
+        0.2
+      ],
+      "center": "left",
+      "kind": "congruent",
+      "flankers": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    {
+      "r": [
+        0.56,
+        0.95
+      ],
+      "center": "right",
+      "kind": "neutral",
+      "flankers": null
+    },
+    {
+      "r": [
+        0.31,
+        0.41
+      ],
+      "center": "left",
+      "kind": "incongruent",
+      "flankers": [
+        "right",
+        "right",
+        "right",
+        "right"
+      ]
+    },
+    {
+      "r": [
+        0.19,
+        0.39
+      ],
+      "center": "left",
+      "kind": "congruent",
+      "flankers": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    {
+      "r": [
+        0.81,
+        0.5
+      ],
+      "center": "right",
+      "kind": "incongruent",
+      "flankers": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ]
+    },
+    {
+      "r": [
+        0.07,
+        0.999
+      ],
+      "center": "left",
+      "kind": "neutral",
+      "flankers": null
+    }
+  ]
+}

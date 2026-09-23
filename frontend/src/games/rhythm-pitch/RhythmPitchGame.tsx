@@ -76,6 +76,9 @@ export interface RhythmPitchTheme {
   warning: string;
 }
 
+/** Главное действие фазы: что написано на кнопке и что она делает. */
+export type RhythmPitchPhaseAction = { label: string; disabled: boolean; run: () => void };
+
 export interface RhythmPitchGameProps {
   seed: string;
   level: number;
@@ -94,6 +97,14 @@ export interface RhythmPitchGameProps {
    * где партия уже что-то накопила.
    */
   onProgress?: (armed: boolean) => void;
+  /**
+   * Главное действие текущей фазы — наверх, чтобы каркас прибил его к низу экрана.
+   * Замер 23.09.2026, окно 360×640: поле каркаса 460 px, экран правил рисуется на
+   * 762 px, и «Начать» оказывалась на 813…861 при видимом крае 579. Кнопки запуска
+   * не видно вовсе — чтобы начать партию, надо догадаться прокрутить поле.
+   * Устройство то же, что у «Дворца памяти» (`onPhaseAction`).
+   */
+  onPhaseAction?: (действие: RhythmPitchPhaseAction | null) => void;
   /**
    * Своя кнопка «Выход» (правила, экран «звук недоступен», свой итог).
    * НЕОБЯЗАТЕЛЬНА, и это принципиально: когда модуль стоит внутри `GameShell`,
@@ -250,6 +261,7 @@ function RhythmPitchSessionView({
   now = monotonicNow,
   onComplete,
   onProgress,
+  onPhaseAction,
   onExit,
 }: RhythmPitchGameProps) {
   const strings = getRhythmPitchStrings(locale);
@@ -332,7 +344,7 @@ function RhythmPitchSessionView({
     applySession((current) => restartRhythmPitchSession(current, now()));
   }, [applySession, engine, now]);
 
-  const begin = () => {
+  const begin = React.useCallback(() => {
     /**
      * 🔴 ЗВУК БУДИМ ЗДЕСЬ — В САМОМ НАЖАТИИ, А НЕ КОГДА ПОНАДОБИТСЯ.
      *
@@ -352,7 +364,7 @@ function RhythmPitchSessionView({
     sessionRef.current = next;
     setSession(next);
     if (!engine?.available) failAudio();
-  };
+  }, [engine, failAudio, now, setSession]);
 
   const runCalibration = () => {
     const generation = ++audioGeneration.current;
@@ -463,6 +475,23 @@ function RhythmPitchSessionView({
     },
   } as const) : {};
 
+  /**
+   * 🔴 БЛОК СТОИТ ДО РАННИХ ВЫХОДОВ. Ровно на этом месте «Дворец памяти» падал
+   * React #310 07.09.2026: хуки после `return` меняют их число между фазами.
+   * Здесь та же ловушка — ниже выходы по `rules`, `audio-error`, `paused`, `result`.
+   */
+  const действиеФазы: RhythmPitchPhaseAction | null = React.useMemo(() => {
+    if (session.phase === 'rules') return { label: strings.start, disabled: false, run: begin };
+    return null;
+  }, [session.phase, strings.start, begin]);
+
+  React.useEffect(() => {
+    onPhaseAction?.(действиеФазы);
+  }, [onPhaseAction, действиеФазы]);
+
+  /** Забрал ли кто-то действие себе: тогда кнопку внизу поля не рисуем. */
+  const действиеСнаружи = typeof onPhaseAction === 'function';
+
   if (session.phase === 'disposed') return null;
 
   if (session.phase === 'rules') {
@@ -481,7 +510,7 @@ function RhythmPitchSessionView({
           <Text style={[styles.keyboardHelp, { color: theme.textSecondary }]}>{strings.keyboardHelp}</Text>
         </View>
         <View style={styles.actions}>
-          <ActionButton label={strings.start} theme={theme} onPress={begin} />
+          {действиеСнаружи ? null : <ActionButton label={strings.start} theme={theme} onPress={begin} />}
           {onExit ? <ActionButton label={strings.exit} theme={theme} secondary onPress={onExit} /> : null}
         </View>
       </ScrollView>

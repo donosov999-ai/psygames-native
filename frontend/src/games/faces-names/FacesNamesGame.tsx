@@ -414,6 +414,22 @@ function FacesNamesSessionView({
   const ответФазы = React.useMemo<FacesNamesAnswer | null>(() => {
     const испытание = currentFacesNamesTrial(session);
     const цель = испытание ? personById(session.puzzle, испытание.targetPersonId) : null;
+    /*
+     * 🔴 ФАЗА ПРАВИЛ ТОЖЕ ОТДАЁТ КНОПКУ КАРКАСУ. Замер 23.09.2026, окно 360×640:
+     * поле каркаса 460 px, объяснение — 683 px, и «Начать изучение» оказывалась
+     * на 736…784 при видимом крае 579. Кнопки запуска на экране не видно вовсе:
+     * чтобы начать, надо догадаться прокрутить поле.
+     */
+    if (session.phase === 'rules') {
+      return {
+        kind: 'action',
+        options: [{
+          key: 'start',
+          label: strings.start,
+          run: () => setSession((current) => startFacesNamesRound(current, now())),
+        }],
+      };
+    }
     if (session.phase === 'study') {
       if (!currentStudiedPerson(session)) return null;
       const последний = session.studyIndex + 1 >= session.puzzle.studiedPersonIds.length;
@@ -513,7 +529,10 @@ function FacesNamesSessionView({
             : null}
         </View>
         <View style={styles.actions}>
-          <ActionButton label={strings.start} theme={theme} onPress={() => setSession((current) => startFacesNamesRound(current, now()))} />
+          {/* Внизу поля — только если действие не забрал каркас (см. `ответСнаружи`). */}
+          {ответСнаружи ? null : (
+            <ActionButton label={strings.start} theme={theme} onPress={() => setSession((current) => startFacesNamesRound(current, now()))} />
+          )}
           {onExit ? <ActionButton label={strings.exit} theme={theme} secondary onPress={onExit} /> : null}
         </View>
       </ScrollView>

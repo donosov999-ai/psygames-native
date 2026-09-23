@@ -86,9 +86,16 @@ describe('звук «Ритма и высоты» будится в жесте',
      * пробуждение стоит ВНУТРИ `begin` — там, где ещё длится жест.
      */
     const исходник: string = читать('../games/rhythm-pitch/RhythmPitchGame.tsx');
-    const начало = исходник.indexOf('const begin = () => {');
-    expect(начало).toBeGreaterThan(0);
-    const конец = исходник.indexOf('\n  };', начало);
+    /*
+     * ⚠️ 23.09.2026: объявление `begin` искалось ОДНОЙ буквальной строкой
+     * `const begin = () => {`. Функцию обернули в `React.useCallback` (иначе новый
+     * `useMemo` действия фазы пересчитывался каждый рендер) — и гейт покраснел не
+     * на дефекте, а на форме записи. Сторожим смысл: любое объявление `begin`.
+     */
+    const объявление = /const begin = (?:React\.useCallback\()?\(\) => \{/.exec(исходник);
+    expect(Boolean(объявление)).toBe(true);
+    const начало = объявление!.index;
+    const конец = исходник.indexOf('\n  }', начало);
     const тело = исходник.slice(начало, конец);
     expect(тело).toContain('engine?.initialize()');
   });

@@ -164,7 +164,7 @@ export function levelCondition(level: number): { windowMs: number; gapPx: number
   return { windowMs, gapPx, trials };
 }
 
-function makeTrial(pCong: number, pIncong: number): Trial {
+export function makeTrial(pCong: number, pIncong: number): Trial {
   const center: Direction = Math.random() < 0.5 ? 'left' : 'right';
   // distribution of trial types comes from levelParams (ex-difficulty table)
   const r = Math.random();
