@@ -15,6 +15,7 @@ import '../games/prl/screen.dart';
 import '../games/simon/screen.dart';
 import '../games/stop_signal/screen.dart';
 import '../games/stroop_emotional/screen.dart';
+import '../games/wcst/screen.dart';
 import '../games/switching_task/screen.dart';
 import '../games/targets/screen.dart';
 import '../games/dots_connect/screen.dart';
@@ -161,6 +162,7 @@ class HybridApp extends StatefulWidget {
         '/games/iowa': (s) => IowaScreen(state: s),
         '/games/prl': (s) => PrlScreen(state: s),
         '/games/bart': (s) => BartScreen(state: s),
+        '/games/wcst': (s) => WcstScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.

@@ -76,6 +76,7 @@ void main() {
       '$origin/games/iowa',
       '$origin/games/prl',
       '$origin/games/bart',
+      '$origin/games/wcst',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -198,6 +199,7 @@ void main() {
       '/games/targets',
       '/games/tower-london',
       '/games/water-sort',
+      '/games/wcst',
     });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
