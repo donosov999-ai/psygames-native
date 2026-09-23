@@ -77,6 +77,7 @@ flutter:
   assets:
     - assets/levels/
     - assets/hubs.json
+    - assets/faces-names.json
     - assets/words/
     - assets/l10n/
     - assets/puzzles/

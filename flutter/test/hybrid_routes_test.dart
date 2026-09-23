@@ -69,6 +69,7 @@ void main() {
       '$origin/games/switching-task',
       '$origin/games/targets',
       '$origin/games/inhibition',
+      '$origin/games/faces-names',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -144,6 +145,7 @@ void main() {
       '/games/choice-rt',
       '/games/digit-span',
       '/games/dots-connect',
+      '/games/faces-names',
       '/games/flanker',
       '/games/go-no-go',
       '/games/goods-sort',

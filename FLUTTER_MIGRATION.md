@@ -151,7 +151,7 @@
 | ☐ | `cpt` | psygames-attention-claude-mac | | |
 | ☐ | `dictation` | psygames-languages-claude-mac | | не наш: по рефам «Языки» 16 упоминаний, «Память и слух» 7, у судоку одно — и то в строке про линт |
 | ☐ | `eye-gym` | psygames-warmup-claude-mac | | |
-| ☐ | `faces-names` | psygames-memory-hearing-claude-mac | | |
+| ✅ | `faces-names` | psygames-memory-hearing-claude-mac | 23.09 | нативно, перехват в гибриде; правила сверены с живым TS по 11 уровням (расклады, варианты ответа, метрики двух партий) — эталон `flutter/test/fixtures/faces-names-reference.json`; библиотека 48 портретов, имён и фактов и подписи на 12 языках выгружены в `assets/faces-names.json`, зашитого текста ноль; портрет рисуется на месте (`face_painter.dart`) — фотографий в игре нет и не будет |
 | ☐ | `find-differences` | psygames-search-claude-mac | | |
 | ✅ | `flanker` | psygames-attention-claude-mac | 23.09 | «Стрелки» нативно, перехват в гибриде. Правила сверены с эталоном из живого TS (`flutter/test/fixtures/flanker-reference.json`, вместе с очередью случайных чисел); 15 проб модели + 4 партии нажатиями; 8 мутаций краснеют, в том числе «отсчёт времени с рождения пробы» и «граница долей зашита 0,85» — в двоичной плавающей точке 0,40 + 0,45 = 0,8500000000000001, и розыгрыш ровно 0,85 даёт конфликтную пробу. ⚠️ отклик двух версий сравнимым числом так и не снят, см. `flutter/tools/latency.md` |
 | ☐ | `flexibility-hub` | psygames-search-claude-mac | | |

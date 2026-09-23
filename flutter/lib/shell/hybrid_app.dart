@@ -45,6 +45,7 @@ import '../games/schulte/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
 import '../games/sorting_hub/screen.dart';
+import '../games/faces_names/screen.dart';
 import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
@@ -147,6 +148,7 @@ class HybridApp extends StatefulWidget {
         '/games/switching-task': (s) => SwitchingTaskScreen(state: s),
         '/games/targets': (s) => TargetsScreen(state: s),
         '/games/inhibition': (s) => InhibitionScreen(state: s),
+        '/games/faces-names': (s) => FacesNamesScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
