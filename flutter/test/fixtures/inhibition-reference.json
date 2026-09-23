@@ -1,0 +1,212 @@
+{
+ "снято": "прогоном живого TS из frontend/app/games/inhibition.tsx (VER 4, origin/main)",
+ "stopProb": 0.25,
+ "nogoProb": 0.25,
+ "maxLevel": 15,
+ "subModes": [
+  "go_no_go",
+  "stop_signal",
+  "mixed"
+ ],
+ "замер доли запретных": {
+  "прогонов": 200000,
+  "доля": 0.2505
+ },
+ "levels": [
+  {
+   "level": 1,
+   "trials": 20,
+   "stopProb": 0.25,
+   "ssd": 150,
+   "goWindow": 1300,
+   "condition": {
+    "trials": 20,
+    "stopProb": 0.25,
+    "ssd": 150,
+    "goWindow": 1300
+   }
+  },
+  {
+   "level": 2,
+   "trials": 20,
+   "stopProb": 0.25,
+   "ssd": 174,
+   "goWindow": 1268,
+   "condition": {
+    "trials": 20,
+    "stopProb": 0.25,
+    "ssd": 174,
+    "goWindow": 1268
+   }
+  },
+  {
+   "level": 3,
+   "trials": 20,
+   "stopProb": 0.25,
+   "ssd": 198,
+   "goWindow": 1236,
+   "condition": {
+    "trials": 20,
+    "stopProb": 0.25,
+    "ssd": 198,
+    "goWindow": 1236
+   }
+  },
+  {
+   "level": 4,
+   "trials": 20,
+   "stopProb": 0.25,
+   "ssd": 222,
+   "goWindow": 1204,
+   "condition": {
+    "trials": 20,
+    "stopProb": 0.25,
+    "ssd": 222,
+    "goWindow": 1204
+   }
+  },
+  {
+   "level": 5,
+   "trials": 20,
+   "stopProb": 0.25,
+   "ssd": 246,
+   "goWindow": 1172,
+   "condition": {
+    "trials": 20,
+    "stopProb": 0.25,
+    "ssd": 246,
+    "goWindow": 1172
+   }
+  },
+  {
+   "level": 6,
+   "trials": 26,
+   "stopProb": 0.25,
+   "ssd": 270,
+   "goWindow": 1140,
+   "condition": {
+    "trials": 26,
+    "stopProb": 0.25,
+    "ssd": 270,
+    "goWindow": 1140
+   }
+  },
+  {
+   "level": 7,
+   "trials": 26,
+   "stopProb": 0.25,
+   "ssd": 294,
+   "goWindow": 1108,
+   "condition": {
+    "trials": 26,
+    "stopProb": 0.25,
+    "ssd": 294,
+    "goWindow": 1108
+   }
+  },
+  {
+   "level": 8,
+   "trials": 26,
+   "stopProb": 0.25,
+   "ssd": 318,
+   "goWindow": 1076,
+   "condition": {
+    "trials": 26,
+    "stopProb": 0.25,
+    "ssd": 318,
+    "goWindow": 1076
+   }
+  },
+  {
+   "level": 9,
+   "trials": 26,
+   "stopProb": 0.25,
+   "ssd": 342,
+   "goWindow": 1044,
+   "condition": {
+    "trials": 26,
+    "stopProb": 0.25,
+    "ssd": 342,
+    "goWindow": 1044
+   }
+  },
+  {
+   "level": 10,
+   "trials": 26,
+   "stopProb": 0.25,
+   "ssd": 366,
+   "goWindow": 1012,
+   "condition": {
+    "trials": 26,
+    "stopProb": 0.25,
+    "ssd": 366,
+    "goWindow": 1012
+   }
+  },
+  {
+   "level": 11,
+   "trials": 32,
+   "stopProb": 0.25,
+   "ssd": 390,
+   "goWindow": 980,
+   "condition": {
+    "trials": 32,
+    "stopProb": 0.25,
+    "ssd": 390,
+    "goWindow": 980
+   }
+  },
+  {
+   "level": 12,
+   "trials": 32,
+   "stopProb": 0.25,
+   "ssd": 414,
+   "goWindow": 948,
+   "condition": {
+    "trials": 32,
+    "stopProb": 0.25,
+    "ssd": 414,
+    "goWindow": 948
+   }
+  },
+  {
+   "level": 13,
+   "trials": 32,
+   "stopProb": 0.25,
+   "ssd": 438,
+   "goWindow": 916,
+   "condition": {
+    "trials": 32,
+    "stopProb": 0.25,
+    "ssd": 438,
+    "goWindow": 916
+   }
+  },
+  {
+   "level": 14,
+   "trials": 32,
+   "stopProb": 0.25,
+   "ssd": 462,
+   "goWindow": 884,
+   "condition": {
+    "trials": 32,
+    "stopProb": 0.25,
+    "ssd": 462,
+    "goWindow": 884
+   }
+  },
+  {
+   "level": 15,
+   "trials": 32,
+   "stopProb": 0.25,
+   "ssd": 480,
+   "goWindow": 852,
+   "condition": {
+    "trials": 32,
+    "stopProb": 0.25,
+    "ssd": 480,
+    "goWindow": 852
+   }
+  }
+ ]
+}

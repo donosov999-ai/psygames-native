@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/puzzles/engine.dart';
 import 'package:psygames_flutter/games/puzzles/frame.dart';
 import 'package:psygames_flutter/games/puzzles/ladder.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/games/puzzles/screen.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,7 +21,8 @@ void main() {
   final flutterDir = Directory.current.path;
   final libPath = '$flutterDir/build/tatham/${TathamEngine.libraryName}';
 
-  setUpAll(() {
+  setUpAll(() async {
+    await L.load('ru');   // подписи берутся из того же словаря, что и в сборке
     if (File(libPath).existsSync()) return;
     final res = Process.runSync('bash', ['tool/build_tatham.sh'], workingDirectory: flutterDir);
     if (!File(libPath).existsSync()) {
@@ -54,7 +56,7 @@ void main() {
 
   testWidgets('🔴 доска Solo появляется, а не вечная загрузка', (tester) async {
     await boot(tester, 'Solo');
-    expect(find.text('Судоку Тэтхэма'), findsOneWidget);
+    expect(find.text(L.t('puzzlesSolo')), findsOneWidget);
     expect(find.byKey(const Key('board')), findsOneWidget);
     expect(find.byKey(const Key('digit9')), findsOneWidget, reason: 'девять клавиш у Solo 9×9');
     expect(find.text('1/5'), findsOneWidget, reason: 'первая из пяти ступеней');
@@ -63,9 +65,9 @@ void main() {
   testWidgets('🔴 «Нежить»: клавиши подписаны чудовищами, а не голыми цифрами', (tester) async {
     await boot(tester, 'Undead');
     // Отзыв 17.09: «1 2 3» не говорили, какое чудовище ставят. Порядок — из undead.c.
-    expect(find.text('призрак'), findsOneWidget);
-    expect(find.text('вампир'), findsOneWidget);
-    expect(find.text('зомби'), findsOneWidget);
+    expect(find.text('👻'), findsOneWidget);
+    expect(find.text('🧛'), findsOneWidget);
+    expect(find.text('🧟'), findsOneWidget);
     expect(find.byKey(const Key('digit4')), findsNothing, reason: 'чудовищ трое');
   });
 
@@ -127,15 +129,39 @@ void main() {
     expect(digest(), before, reason: 'отмена вернула доску ровно к тому, что было');
   });
 
-  test('лестницы семи режимов совпадают с веб-версией по числу ступеней и ключу', () {
-    expect(puzzleModes.length, 7);
-    for (final e in puzzleModes.entries) {
-      expect(e.value.steps.length, 5, reason: '${e.key}: ступеней ${e.value.steps.length}');
+  test('🔴 собраны ВСЕ 42 режима, а не только свои семь', () async {
+    await PuzzleModes.load();
+    expect(PuzzleModes.all.length, 42,
+        reason: 'движок умеет 42 игры, и карточка нужна каждой; '
+            'семь написанных руками были только у раздела «Судоку»');
+  });
+
+  test('🔴 ключ прогресса у каждого режима общий с веб-версией', () async {
+    await PuzzleModes.load();
+    for (final e in PuzzleModes.all.entries) {
       expect(e.value.levelKey, 'puzzles_${e.key.toLowerCase()}',
-          reason: 'ключ прогресса общий с веб-версией');
-      for (final s in e.value.steps) {
-        expect(s.params.isNotEmpty, isTrue, reason: '${e.key}: пустые параметры ступени');
+          reason: 'разойдётся ключ — разойдётся и прогресс, причём молча');
+      expect(e.value.titleKey.isNotEmpty, isTrue,
+          reason: '${e.key}: без ключа словаря название не переведётся');
+      for (final st in e.value.steps) {
+        expect(st.params.isNotEmpty, isTrue, reason: '${e.key}: пустые параметры ступени');
       }
     }
+  });
+
+  test('у каждого режима есть владелец — иначе чинить будет некому', () async {
+    await PuzzleModes.load();
+    final noOwner = PuzzleModes.all.entries.where((e) => (e.value.owner ?? '').isEmpty);
+    expect(noOwner.map((e) => e.key).toList(), isEmpty);
+  });
+
+  test('⚠️ у 28 режимов своей лестницы НЕТ, и это записано, а не забыто', () async {
+    await PuzzleModes.load();
+    final withLadder = PuzzleModes.all.values.where((m) => m.steps.isNotEmpty).length;
+    // Трудность меряют исполнением, а не назначают: у кого лестницы нет, тот
+    // берёт собственные пресеты движка. Число держим на виду, чтобы рост доли
+    // своих лестниц был заметен, а падение — тем более.
+    expect(withLadder, greaterThanOrEqualTo(14),
+        reason: 'своих лестниц стало меньше — кто-то потерял замер раздела');
   });
 }

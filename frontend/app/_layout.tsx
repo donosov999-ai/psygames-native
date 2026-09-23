@@ -1,5 +1,6 @@
 import React from 'react';
 import { hookConsoleErrors } from '@/src/services/crumbs';
+import { installNativeSessionBridge } from '@/src/services/nativeSessionBridge';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +11,10 @@ import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { WarmupProvider, useWarmup } from '@/src/contexts/WarmupContext';
 import { Platform } from 'react-native';
 import { vibrate } from '@/src/services/feedback';
+
+// Приёмник партий от нативной половины гибрида — ставится ДО первого кадра:
+// перенесённый экран может открыться сразу со старта (START_ROUTE, зарядка).
+installNativeSessionBridge();
 import * as Notifications from 'expo-notifications';
 import { ProfileProvider } from '@/src/contexts/ProfileContext';
 import { PlayerLevelProvider } from '@/src/contexts/PlayerLevelContext';

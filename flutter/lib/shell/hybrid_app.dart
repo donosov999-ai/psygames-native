@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -5,9 +6,13 @@ import '../games/digit_span/screen.dart';
 import '../games/choice_rt/screen.dart';
 import '../games/flanker/screen.dart';
 import '../games/gonogo/screen.dart';
+import '../games/inhibition/screen.dart';
 import '../games/posner/screen.dart';
 import '../games/simon/screen.dart';
 import '../games/stop_signal/screen.dart';
+import '../games/stroop_emotional/screen.dart';
+import '../games/switching_task/screen.dart';
+import '../games/targets/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
@@ -41,6 +46,8 @@ import 'asset_server.dart';
 import 'l10n.dart';
 import '../games/sorting_hub/screen.dart';
 import 'hub_screen.dart';
+import 'game_pet.dart';
+import 'session_report.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
 
@@ -136,6 +143,10 @@ class HybridApp extends StatefulWidget {
         '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
         '/games/stop-signal': (s) => StopSignalScreen(state: s),
         '/games/posner': (s) => PosnerScreen(state: s),
+        '/games/stroop-emotional': (s) => EmoStroopScreen(state: s),
+        '/games/switching-task': (s) => SwitchingTaskScreen(state: s),
+        '/games/targets': (s) => TargetsScreen(state: s),
+        '/games/inhibition': (s) => InhibitionScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
@@ -197,6 +208,14 @@ class HybridApp extends StatefulWidget {
 class _HybridAppState extends State<HybridApp> {
   late final WebViewController _c;
   bool _loading = true;
+
+  /// Какой нативный экран сейчас открыт поверх страницы.
+  ///
+  /// ⚠️ Нужен из-за того, что перехват теперь идёт по СМЕНЕ АДРЕСА: страница
+  /// может сообщить об одном и том же маршруте дважды (`replaceState` после
+  /// `pushState` — обычное дело у роутера), и без этого поля поверх экрана
+  /// открылся бы его же двойник.
+  String? _openedRoute;
   final _marks = WebMarkTimer();
 
   /// Сообщение от веб-половины. Кроме записи в общую память здесь одно особое
@@ -207,6 +226,23 @@ class _HybridAppState extends State<HybridApp> {
   /// остались на старом словаре до перезапуска приложения — и это читается как
   /// «перевод сломан», хотя перевод на месте.
   Future<void> _fromWeb(String message) async {
+    // 🔴 СМЕНА МАРШРУТА ВНУТРИ СТРАНИЦЫ — ЕДИНСТВЕННЫЙ РАБОЧИЙ ПЕРЕХВАТ.
+    //
+    // `onNavigationRequest` ниже ловит только настоящую загрузку документа, а
+    // приложение ходит по экранам через History API, и WebView о таком переходе
+    // не сообщает. Замер раздела «Зарядки» 23.09.2026 на симуляторе: перенесённые
+    // экраны открывались ВЕБ-версиями, то есть перехват не работал ни разу.
+    // Делегат оставлен: он нужен для внешних ссылок и первой загрузки.
+    try {
+      final m = jsonDecode(message);
+      if (m is Map && m['op'] == 'route') {
+        final route = HybridApp.routeOf('${m['url']}');
+        if (route != null && route != _openedRoute) _openNative(route);
+        return;
+      }
+    } catch (_) {
+      // не наше сообщение — ниже разберёт общая память
+    }
     final was = L.locale;
     await widget.state.applyFromWeb(message);
     final now = L.resolve(widget.state.language);
@@ -219,6 +255,22 @@ class _HybridAppState extends State<HybridApp> {
   @override
   void initState() {
     super.initState();
+    // 🔴 ПРИЁМНИК ПАРТИЙ. Перенесённая игра не хранит партию сама — она отдаёт
+    // результат сюда, а здесь он уходит в ТУ ЖЕ `saveSession` веб-половины,
+    // которую зовёт непереносённая игра. Одна реализация на обе половины:
+    // вторая разошлась бы с первой молча (см. SessionReport).
+    //
+    // ⚠️ Страница может быть ещё не готова — например, человек открыл нативный
+    // экран сразу со старта. Веб-сторона на этот случай копит отчёты в очередь
+    // и разбирает её, когда регистрирует приёмник; здесь просто отдаём.
+    // Питомец в шапке нативных игр берёт кадры из вложенной веб-сборки —
+    // они там уже лежат, класть их второй раз в ассеты Flutter значило бы
+    // 4,2 МБ впустую.
+    PetHost.state = widget.state;
+    PetHost.origin = widget.server.origin;
+    SessionReport.sink = (json) async {
+      await _c.runJavaScript('window.__psySaveSession && window.__psySaveSession($json);');
+    };
     _c = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
@@ -274,6 +326,7 @@ class _HybridAppState extends State<HybridApp> {
 
   @override
   void dispose() {
+    SessionReport.sink = null;
     // Хук снимается вместе с хостом: оставленный, он звал бы мёртвый WebView.
     if (HybridApp.open == _open) HybridApp.open = null;
     super.dispose();
@@ -296,9 +349,23 @@ class _HybridAppState extends State<HybridApp> {
   Future<void> _openNative(String route) async {
     final build = HybridApp.native[route];
     if (build == null) return;
+    _openedRoute = route;
     final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => build(widget.state)),
     );
+    _openedRoute = null;
+    // 🔴 СТРАНИЦА ПОД НАМИ ОСТАЛАСЬ НА АДРЕСЕ ИГРЫ. Перехват срабатывает ПОСЛЕ
+    // того, как роутер уже сменил адрес, — значит под нативным экраном веб-половина
+    // стоит на той же игре. Не вернуть её назад — человек, закрыв нативный экран,
+    // увидит веб-версию той же игры, то есть ровно то, что перехват и должен был
+    // предотвратить.
+    // ⚠️ Возврат делаем ТОЛЬКО если адрес всё ещё игровой: пока человек играл,
+    // страница могла уехать сама (например, зарядка перевела шаг).
+    if (mounted) {
+      await _c.runJavaScript(
+        "if (String(location.pathname).indexOf('$route') >= 0) history.back();",
+      );
+    }
     // Вернулись из нативной игры — страница обязана перечитать прогресс,
     // иначе на карте уровней останется старое число.
     if (mounted) await _c.runJavaScript(widget.state.bootstrapJs());

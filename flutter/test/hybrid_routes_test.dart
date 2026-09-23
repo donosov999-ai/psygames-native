@@ -65,6 +65,10 @@ void main() {
       '$origin/games/choice-rt',
       '$origin/games/stop-signal',
       '$origin/games/posner',
+      '$origin/games/stroop-emotional',
+      '$origin/games/switching-task',
+      '$origin/games/targets',
+      '$origin/games/inhibition',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -144,6 +148,7 @@ void main() {
       '/games/go-no-go',
       '/games/goods-sort',
       '/games/hanoi',
+      '/games/inhibition',
       '/games/mahjong',
       '/games/math-slider',
       '/games/math-sprint',
@@ -166,6 +171,8 @@ void main() {
       '/games/spatial-span',
       '/games/stop-signal',
       '/games/stroop',
+      '/games/stroop-emotional',
+      '/games/switching-task',
       '/games/sudoku',
       '/games/sudoku-hub',
       '/games/sudoku?mode=towers',
@@ -174,6 +181,7 @@ void main() {
       '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',
       '/games/sudoku-samurai',
+      '/games/targets',
       '/games/tower-london',
       '/games/water-sort',
     });
