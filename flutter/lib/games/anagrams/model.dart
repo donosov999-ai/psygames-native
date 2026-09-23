@@ -134,6 +134,153 @@ class WordBank {
   }
 }
 
+/* ═══════════ РЕЖИМ «ВСЕ СЛОВА» ═══════════ */
+
+/// Исход сданного слова. Перенос `ИсходСлова`.
+enum WordOutcome {
+  /// Слово из списка целей — засчитано.
+  target,
+
+  /// Уже находили.
+  repeat,
+
+  /// Не цель, но настоящее слово из тех же плиток — идёт в бонус.
+  bonus,
+
+  /// Мимо.
+  miss,
+}
+
+/// Лестница режима «Все слова»: наборы отсортированы по ЧИСЛУ ЦЕЛЕЙ.
+///
+/// 🔴 ПОРЯДОК УРОВНЕЙ ЗАДАЁТСЯ ЗДЕСЬ, А НЕ ПОРЯДКОМ СТРОК В ФАЙЛЕ.
+/// Замер раздела 06.09.2026: раскладка бралась по индексу, то есть уровень N был
+/// просто N-й строкой JSON, и у пяти наборов строки лежат по алфавиту — слов на
+/// раскладку по четвертям выходило 12,8 · 12,6 · 12,7 · 12,6. Лестницы не было
+/// ВООБЩЕ: сороковой уровень такой же, как первый.
+///
+/// ⚠️ ВТОРОЙ КЛЮЧ — ИСХОДНЫЙ ПОРЯДОК СТРОК, А НЕ АЛФАВИТ. Строки в JSON лежат по
+/// частотному рангу (так их пишет сборщик), значит индекс и есть «насколько слово
+/// узнаваемо». Сортировка по базе вернула бы тот же дефект этажом ниже: внутри
+/// каждой ступени порядок снова стал бы случайным.
+extension AllWordsLadder on WordBank {
+  static final _ladders = <String, List<WordPack>>{};
+  static final _vocabs = <String, Set<String>>{};
+
+  List<WordPack> ladder() => _ladders.putIfAbsent(locale, () {
+        final place = <String, int>{};
+        for (var i = 0; i < _packs.length; i++) {
+          place[_packs[i].base] = i;
+        }
+        final out = [..._packs];
+        out.sort((a, b) {
+          final byCount = a.words.length.compareTo(b.words.length);
+          return byCount != 0 ? byCount : place[a.base]!.compareTo(place[b.base]!);
+        });
+        return out;
+      });
+
+  /// Раскладка уровня. Детерминированно: уровень N всегда даёт одну и ту же,
+  /// а набор проходится по кругу — от коротких раскладок к длинным.
+  WordPack? packForLevel(int level) {
+    final l = ladder();
+    if (l.isEmpty) return null;
+    return l[((level < 1 ? 1 : level) - 1) % l.length];
+  }
+
+  /// Словарь языка для бонусов: базы и подслова всех наборов.
+  ///
+  /// ⚠️ Кэш общий на язык, а не поле: расширение полей не заводит, а пересчёт
+  /// множества на каждый ход — это обход 3000 наборов на сдачу слова.
+  Set<String> vocabulary() => _vocabs.putIfAbsent(locale, () => {
+        for (final p in _packs) ...[p.base, ...p.words],
+      });
+}
+
+/// Буквы раскладки в показанном порядке. Перенос `allWordsLetters`.
+///
+/// ⚠️ ГЕНЕРАТОР ПЕРЕНЕС�ён ЧИСЛО В ЧИСЛО (линейный конгруэнтный, 1664525 /
+/// 1013904223, деление на 2^32): от него зависит, ЧТО увидит человек, и «такой же
+/// случайный» здесь означал бы другую раскладку при том же зерне.
+List<String> allWordsLetters(WordPack pack, int seed) {
+  final letters = pack.base.runes.map(String.fromCharCode).toList();
+  var s = (seed.floor() == 0 ? 1 : seed.floor()) & 0xFFFFFFFF;
+  double next() {
+    s = (s * 1664525 + 1013904223) & 0xFFFFFFFF;
+    return s / 0x100000000;
+  }
+
+  for (var i = letters.length - 1; i > 0; i--) {
+    final j = (next() * (i + 1)).floor();
+    final t = letters[i];
+    letters[i] = letters[j];
+    letters[j] = t;
+  }
+  return letters;
+}
+
+/// Складывается ли слово из этих плиток. Каждая плитка тратится один раз.
+bool madeOfTiles(String word, List<String> tiles) {
+  final rest = [...tiles];
+  for (final ch in word.runes.map(String.fromCharCode)) {
+    final i = rest.indexOf(ch);
+    if (i < 0) return false;
+    rest.removeAt(i);
+  }
+  return true;
+}
+
+/// Сдача слова в режиме «Все слова». Перенос `сдатьСлово`.
+///
+/// ⚠️ БАЗА НАБОРА — НЕ ЦЕЛЬ И НЕ БОНУС. Она исключена явно: иначе человек сдавал
+/// бы само загаданное слово и получал очки ни за что.
+WordOutcome submitWord(
+  WordPack pack,
+  String word,
+  List<String> found, {
+  Set<String>? vocabulary,
+}) {
+  final w = word.toLowerCase();
+  if (found.contains(w)) return WordOutcome.repeat;
+  if (pack.words.contains(w)) return WordOutcome.target;
+  if (vocabulary != null &&
+      w != pack.base &&
+      madeOfTiles(w, pack.base.runes.map(String.fromCharCode).toList()) &&
+      vocabulary.contains(w)) {
+    return WordOutcome.bonus;
+  }
+  return WordOutcome.miss;
+}
+
+/// Все цели найдены — раскладка закрыта.
+bool allFound(WordPack pack, List<String> found) =>
+    pack.words.every(found.contains);
+
+/// Подсказка: какое слово приоткрыть и сколько букв уже открыто.
+///
+/// 🔴 БЕРЁМ САМОЕ КОРОТКОЕ ИЗ ТЕХ, ГДЕ ЕЩЁ ЕСТЬ ЧТО ОТКРЫВАТЬ.
+/// Найдено игрой 06.09.2026: подсказка всегда бралась за самое короткое слово, а
+/// у него открывать можно не больше `длина − 1` буквы — иначе она решает слово
+/// целиком. Третье нажатие на трёхбуквенном слове списывало подсказку и не делало
+/// НИЧЕГО: ровно то, на что жаловались как «подсказка ни фига не работает».
+({String word, int opened})? allWordsHint(
+  WordPack pack,
+  List<String> found, [
+  Map<String, int> opened = const {},
+]) {
+  final left = [
+    for (final w in pack.words)
+      if (!found.contains(w) && (opened[w] ?? 0) < w.runes.length - 1) w,
+  ];
+  if (left.isEmpty) return null;
+  left.sort((a, b) {
+    final byLen = a.runes.length.compareTo(b.runes.length);
+    return byLen != 0 ? byLen : a.compareTo(b);
+  });
+  final w = left.first;
+  return (word: w, opened: (opened[w] ?? 0) + 1);
+}
+
 /// Одно слово партии: что загадано и какие буквы показаны.
 class AnagramRound {
   const AnagramRound({required this.target, required this.letters});
