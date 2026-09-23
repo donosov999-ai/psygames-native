@@ -32,6 +32,16 @@ void main() {
       '$origin/games/spatial-lab?mode=netslide',
       '$origin/games/spatial-hub',
       '$origin/games/spatial-lab.html?mode=sixteen&level=9',
+      '$origin/games/goods-sort',
+      '$origin/games/goods-sort.html?level=12',
+      '$origin/games/water-sort',
+      '$origin/games/ball-sort',
+      '$origin/games/nut-sort.html?level=3',
+      '$origin/games/cake-sort',
+      '$origin/games/pizza-sort',
+      '$origin/games/hanoi',
+      '$origin/games/tower-london',
+      '$origin/games/sorting-hub',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -79,18 +89,25 @@ void main() {
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
     // ⚠️ ОДИН СПИСОК НА ВСЕХ, А НЕ ДВА expect ПОДРЯД. При сведении веток разделов
-    // сюда дважды попадали два ожидаемых набора рядом, и каждый утверждал, что
+    // сюда трижды попадали два ожидаемых набора рядом, и каждый утверждал, что
     // перенесённые игры исчерпываются его половиной: такая проба краснеет на любой
     // следующей игре, кто бы её ни принёс. Набор растёт снизу, одной строкой на игру.
     expect(HybridApp.native.keys.toSet(), {
+      '/games/ball-sort',
+      '/games/cake-sort',
       '/games/digit-span',
       '/games/dots-connect',
       '/games/flanker',
       '/games/go-no-go',
+      '/games/goods-sort',
+      '/games/hanoi',
       '/games/memory-matrix',
       '/games/mental-rotation',
+      '/games/nut-sort',
       '/games/one-line',
+      '/games/pizza-sort',
       '/games/simon',
+      '/games/sorting-hub',
       '/games/spatial-hub',
       '/games/spatial-lab',
       '/games/spatial-span',
@@ -99,6 +116,8 @@ void main() {
       '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',
       '/games/sudoku-samurai',
+      '/games/tower-london',
+      '/games/water-sort',
     });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);

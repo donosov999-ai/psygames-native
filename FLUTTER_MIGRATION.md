@@ -57,6 +57,17 @@
    Храповик `flutter/test/ui_text_debt_does_not_grow_test.dart` держит числа: они могут
    только уменьшаться, новый файл обязан приходить с нулём.
 
+6. **РАЗВИЛКУ (хаб) НЕ ПИШИ СВОЮ — она уже общая.** `flutter/lib/shell/hub_screen.dart`
+   рисует любую развилку, а её содержимое лежит ДАННЫМИ: `flutter/assets/hubs.json`
+   (выгружено из `src/constants/hubContents.ts` вместе с русскими подписями —
+   там ВСЕ тринадцать развилок, не только «Сортировка»). Свой экран развилки —
+   три строки, образец: `flutter/lib/games/sorting_hub/screen.dart`; отличаются
+   ключ развилки, значок и градиент. Карточка показывает уровень из ОБЩЕЙ памяти,
+   а открывает игру оболочка: хаб возвращает выбранный маршрут наверх (`HubCardTap`),
+   и `hybrid_app.dart` решает — нативный экран или веб-половина.
+   ⚠️ Отбора по профилю в нативной половине пока нет: появится — считать его там
+   же, где он считается в вебе, а не заводить второй список.
+
 **Готово, когда:** `flutter analyze` чист, `flutter test` зелёный, игра открывается из
 приложения нативно, подписи идут через `L.t`, и в таблице ниже стоит твоя галочка.
 
@@ -84,10 +95,10 @@
 | ◐ | `anagrams` | psygames-words-claude-mac | 23.09 | играются ДВА режима из четырёх: классика и «Все слова»; словари 10 языков данными; остались кроссворд и слово-квадрат — перехват НЕ включён нарочно, см. ниже |
 | ☐ | `ant` | psygames-attention-claude-mac | | |
 | ☐ | `attention-conflict` | psygames-attention-claude-mac | | |
-| ☐ | `ball-sort` | psygames-sorting-claude-mac | | |
+| ✅ | `ball-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `sort_tubes` на три игры (как в вебе), уровни выгружены JSON, решатель и генератор не переносились |
 | ☐ | `bart` | psygames-attention-claude-mac | | |
 | ☐ | `breathing` | psygames-warmup-claude-mac | | |
-| ☐ | `cake-sort` | psygames-sorting-claude-mac | | |
+| ✅ | `cake-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `cake_sort` на торты и пиццу, 120 вшитых уровней взяты ДАННЫМИ как есть, решатель не переносился |
 | ☐ | `chess-blind` | ❓ вписать себя | | |
 | ☐ | `chess-hub` | ❓ вписать себя | | |
 | ☐ | `chinese-tones` | ❓ вписать себя | | |
@@ -123,7 +134,7 @@
 | ☐ | `n-back` | ❓ вписать себя | | |
 | ☐ | `navigator` | ❓ вписать себя | | |
 | ☐ | `number-bonds` | psygames-search-claude-mac | | |
-| ☐ | `nut-sort` | psygames-sorting-claude-mac | | |
+| ✅ | `nut-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `sort_tubes` на три игры (как в вебе), уровни выгружены JSON, решатель и генератор не переносились |
 | ☐ | `object-tracker` | psygames-search-claude-mac | | |
 | ☐ | `ospan` | psygames-search-claude-mac | | |
 | ☐ | `pattern` | psygames-search-claude-mac | | |
@@ -131,7 +142,7 @@
 | ☐ | `phoneme-pairs` | ❓ вписать себя | | |
 | ☐ | `phonemic-fluency` | psygames-languages-claude-mac | | |
 | ☐ | `picture-pairs` | psygames-span-claude-mac | | |
-| ☐ | `pizza-sort` | psygames-sorting-claude-mac | | |
+| ✅ | `pizza-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `cake_sort` на торты и пиццу, 120 вшитых уровней взяты ДАННЫМИ как есть, решатель не переносился |
 | ☐ | `posner` | psygames-attention-claude-mac | | |
 | ☐ | `prl` | psygames-attention-claude-mac | | |
 | ◐ | `puzzles` | psygames-sudoku-claude-mac | 23.09 | экран ОБЩИЙ: 42 режима шести разделов на одном движке. СДЕЛАНО и под гейтами: движок зовётся через dart:ffi (те же исходники C, 13 с сборки, 25 экспортов), разбор кадра и рисование по всем 42 играм, экран с лестницей семи наших сеток, партия играется нажатиями. ЖДЁТ: нативную сборку под iOS/Android — она трогает ios/ и android/, вопрос в канале 23.09. До неё перехват маршрута НЕ включён: на телефоне библиотеки нет, и перехват показал бы ошибку вместо рабочей веб-версии |
@@ -151,7 +162,7 @@
 | ☐ | `semantic-sort` | ❓ вписать себя | | |
 | ☐ | `set-game` | ❓ вписать себя | | |
 | ✅ | `simon` | psygames-attention-claude-mac | 23.09 | «Цвет против позиции» нативно, перехват в гибриде. Эталон из живого TS (`flutter/test/fixtures/simon-reference.json`); 13 проб модели + 3 партии нажатиями, среди них «ответ по СТОРОНЕ вспышки — ошибка»; 11 мутаций краснеют, в том числе перевёрнутое правило цвета и снятие конфликта у конфликтных проб. ⚠️ RTL-пин: кнопки не зеркалить — зеркальная раскладка инвертирует согласованность проб |
-| ☐ | `sorting-hub` | psygames-sorting-claude-mac | | |
+| ✅ | `sorting-hub` | psygames-sorting-claude-mac | 23.09 | нативно; ОБЩИЙ `shell/hub_screen.dart` + `assets/hubs.json` на ВСЕ 13 развилок — свой хаб у раздела это три строки, см. §6 выше |
 | ☐ | `span` | psygames-span-claude-mac | | |
 | ✅ | `spatial-hub` | psygames-spatial-claude-mac | 23.09 | нативно, перехват в гибриде; развилке понадобился ХОД В ВЕБ — см. раздел ниже |
 | ✅ | `spatial-lab` | psygames-spatial-claude-mac | 23.09 | нативно, перехват в гибриде; ВСЕ ЧЕТЫРЕ упражнения (поворот чисел, сеть труб, сдвиг чисел, сеть со сдвигом) — по правилу «Слов» |
@@ -162,12 +173,12 @@
 | ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |
 | ☐ | `switching-task` | psygames-languages-claude-mac | | ⚠️ спор: экран внутри набора хаба «Конфликт внимания» (gameSuites.ts:113) — разбираемся в канале, молча не забираю |
 | ☐ | `targets` | psygames-attention-claude-mac | | |
-| ☐ | `tower-london` | psygames-sorting-claude-mac | | |
+| ✅ | `tower-london` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; задачи выгружены JSON с минимумом ходов (160 штук, каждая перепроверена поиском), генератор не переносился |
 | ☐ | `trail-making` | ❓ вписать себя | | |
 | ☐ | `visual-memory-hub` | psygames-memory-hearing-claude-mac | | |
 | ☐ | `visual-search` | ❓ вписать себя | | не «Внимание»: экран «Поиска»: стоит в его рефе, таблица лестниц |
 | ☐ | `vocab-srs` | psygames-languages-claude-mac | | |
-| ☐ | `water-sort` | psygames-sorting-claude-mac | | |
+| ✅ | `water-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `sort_tubes` на три игры (как в вебе), уровни выгружены JSON, решатель и генератор не переносились |
 | ☐ | `wcst` | psygames-attention-claude-mac | | |
 | ☐ | `word-pairs` | ❓ вписать себя | | |
 | ☐ | `words-hub` | psygames-languages-claude-mac | | |
