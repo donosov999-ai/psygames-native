@@ -81,7 +81,7 @@
 
 | | Игра | Кто ведёт | Когда | Заметка |
 |---|---|---|---|---|
-| ◐ | `anagrams` | psygames-words-claude-mac | 23.09 | играются ДВА режима из четырёх: классика и «Все слова»; словари 10 языков данными; остались кроссворд и слово-квадрат — перехват НЕ включён нарочно, см. ниже |
+| ◐ | `anagrams` | psygames-words-claude-mac  | 23.09  | играются ДВА режима из четырёх: классика и «Все слова»; словари 10 языков данными; остались кроссворд и слово-квадрат — перехват НЕ включён нарочно, см. ниже  |
 | ☐ | `ant` | psygames-attention-claude-mac | | |
 | ☐ | `attention-conflict` | psygames-attention-claude-mac | | |
 | ☐ | `ball-sort` | psygames-sorting-claude-mac | | |
@@ -90,9 +90,9 @@
 | ☐ | `cake-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `chess-blind` | ❓ вписать себя | | |
 | ☐ | `chess-hub` | ❓ вписать себя | | |
-| ☐ | `chinese-tones` | ❓ вписать себя | | |
+| ☐ | `chinese-tones` | psygames-languages-claude-mac  |  | развилка «Слух» хаба «Языки» (STRUCTURE.md). ⚠️ пересечение с `psygames-memory-hearing-claude-mac` админом не разрешено — беру, но до его решения предупреждаю владельца до правки  |
 | ✅ | `choice-rt` | psygames-attention-claude-mac | 23.09 | «Выбор-реакция» нативно, с НАКЛОНОМ ХИКА: блоки 2→3→4 варианта внутри партии при одном окне. Крестовина держит все четыре позиции всегда (неактивные пустыми) — иначе в наклон влезает закон Фиттса; это стережёт проба. 13 проб модели + 3 партии нажатиями, 12 мутаций краснеют, среди них «наклон по всем пробам вместо средних» — под неё в эталон добавлен случай с неравным числом проб на n, на равных числах обе формулы дают одно и то же |
-| ☐ | `cloze` | ❓ вписать себя | | |
+| ☐ | `cloze` | psygames-languages-claude-mac  |  | развилка «Слова» хаба «Языки» (STRUCTURE.md)  |
 | ☐ | `corsi` | ❓ вписать себя | | |
 | ☐ | `counter` | psygames-search-claude-mac | | |
 | ☐ | `counting-hub` | psygames-search-claude-mac | | |
@@ -106,12 +106,12 @@
 | ✅ | `go-no-go` | psygames-attention-claude-mac | 23.09 | «Жми и держись» нативно, ответ НАЖАТИЕМ ПО ПОЛЮ (как требует приёмка раздела). Эталон из живого TS; 11 проб модели + 3 партии нажатиями; 10 мутаций краснеют, среди них «нажатие на запрет считается пропуском» и «точность по нажатиям вместо всех четырёх исходов». ⚠️ Проба ждёт СОБЫТИЯ на экране, а не отсчитывает миллисекунды: пауза между пробами случайна, и фиксированные шаги теряли стимул на шестой пробе |
 | ☐ | `goods-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `hanoi` | psygames-sorting-claude-mac | | |
-| ☐ | `hearing-hub` | psygames-languages-claude-mac | | |
+| ☐ | `hearing-hub` | psygames-languages-claude-mac  |  | развилка хаба «Языки», 5 экранов (STRUCTURE.md:62)  |
 | ☐ | `inhibition` | psygames-attention-claude-mac | | |
 | ☐ | `inhibition-hub` | ❓ вписать себя | | |
 | ☐ | `iowa` | psygames-attention-claude-mac | | |
-| ☐ | `languages-hub` | psygames-languages-claude-mac | | |
-| ☐ | `lexical-decision` | ❓ вписать себя | | |
+| ☐ | `languages-hub` | psygames-languages-claude-mac  |  | корневой хаб раздела, две развилки (STRUCTURE.md:70)  |
+| ☐ | `lexical-decision` | psygames-languages-claude-mac  |  | развилка «Слова» хаба «Языки» (STRUCTURE.md)  |
 | ☐ | `listening-span` | ❓ вписать себя | | |
 | ☐ | `mahjong` | psygames-search-claude-mac | | |
 | ☐ | `math-slider` | psygames-search-claude-mac | | |
@@ -128,7 +128,7 @@
 | ☐ | `ospan` | psygames-search-claude-mac | | |
 | ☐ | `pattern` | psygames-search-claude-mac | | |
 | ☐ | `pause` | psygames-warmup-claude-mac | | |
-| ☐ | `phoneme-pairs` | ❓ вписать себя | | |
+| ☐ | `phoneme-pairs` | psygames-languages-claude-mac  |  | развилка «Слух» хаба «Языки» (STRUCTURE.md). ⚠️ пересечение с `psygames-memory-hearing-claude-mac` админом не разрешено — беру, но до его решения предупреждаю владельца до правки  |
 | ☐ | `phonemic-fluency` | psygames-languages-claude-mac | | |
 | ☐ | `picture-pairs` | psygames-span-claude-mac | | |
 | ☐ | `pizza-sort` | psygames-sorting-claude-mac | | |
@@ -137,10 +137,10 @@
 | ◐ | `puzzles` | psygames-sudoku-claude-mac | 23.09 | экран ОБЩИЙ: 42 режима шести разделов на одном движке. СДЕЛАНО и под гейтами: движок зовётся через dart:ffi (те же исходники C, 13 с сборки, 25 экспортов), разбор кадра и рисование по всем 42 играм, экран с лестницей семи наших сеток, партия играется нажатиями. ЖДЁТ: нативную сборку под iOS/Android — она трогает ios/ и android/, вопрос в канале 23.09. До неё перехват маршрута НЕ включён: на телефоне библиотеки нет, и перехват показал бы ошибку вместо рабочей веб-версии |
 | ☐ | `puzzles-hub` | psygames-sudoku-claude-mac | | |
 | ☐ | `proofreading` | psygames-attention-claude-mac | | |
-| ☐ | `pseudoword-echo` | ❓ вписать себя | | |
+| ☐ | `pseudoword-echo` | psygames-languages-claude-mac  |  | развилка «Слух» хаба «Языки» (STRUCTURE.md). ⚠️ пересечение с `psygames-memory-hearing-claude-mac` админом не разрешено — беру, но до его решения предупреждаю владельца до правки  |
 | ☐ | `quick-count` | psygames-search-claude-mac | | |
 | ☐ | `reading-span` | ❓ вписать себя | | |
-| ☐ | `rhythm-pitch` | ❓ вписать себя | | |
+| ☐ | `rhythm-pitch` | psygames-languages-claude-mac  |  | развилка «Слух» хаба «Языки» (STRUCTURE.md). ⚠️ пересечение с `psygames-memory-hearing-claude-mac` админом не разрешено — беру, но до его решения предупреждаю владельца до правки  |
 | ☐ | `risk-hub` | ❓ вписать себя | | |
 | ☐ | `rmet` | ❓ вписать себя | | |
 | ☐ | `routes-hub` | ❓ вписать себя | | |
@@ -148,27 +148,27 @@
 | ☐ | `schulte` | psygames-search-claude-mac | | |
 | ☐ | `sdmt` | ❓ вписать себя | | |
 | ☐ | `search-hub` | ❓ вписать себя | | не «Внимание»: развилка «Поиска», в моём рефе только как чужая |
-| ☐ | `semantic-sort` | ❓ вписать себя | | |
+| ☐ | `semantic-sort` | psygames-languages-claude-mac  |  | развилка «Слова» хаба «Языки» (STRUCTURE.md)  |
 | ☐ | `set-game` | ❓ вписать себя | | |
 | ✅ | `simon` | psygames-attention-claude-mac | 23.09 | «Цвет против позиции» нативно, перехват в гибриде. Эталон из живого TS (`flutter/test/fixtures/simon-reference.json`); 13 проб модели + 3 партии нажатиями, среди них «ответ по СТОРОНЕ вспышки — ошибка»; 11 мутаций краснеют, в том числе перевёрнутое правило цвета и снятие конфликта у конфликтных проб. ⚠️ RTL-пин: кнопки не зеркалить — зеркальная раскладка инвертирует согласованность проб |
 | ☐ | `sorting-hub` | psygames-sorting-claude-mac | | |
 | ☐ | `span` | psygames-span-claude-mac | | |
 | ☐ | `spatial-span` | ❓ вписать себя | | |
 | ✅ | `stop-signal` | psygames-attention-claude-mac | 23.09 | «Стоп-сигнал» нативно ЦЕЛИКОМ: лестница задержки один-вверх-один-вниз, SSRT методом интеграции и ОТКАЗ выдать число с названной причиной (шесть условий применимости). Лестница лежит под ОБЩИМ с веб-версией ключом `psygames_stop_signal_ladder` — половины приложения делят одну точку схождения. Словарь модуля на 12 языках вырезан в `assets/l10n/stop-signal.json` прогоном живого TS. 11 проб модели + 3 партии нажатиями, 15 мутаций краснеют |
-| ☐ | `story-recall` | ❓ вписать себя | | |
+| ☐ | `story-recall` | psygames-languages-claude-mac  |  | развилка «Слова» хаба «Языки» (STRUCTURE.md)  |
 | ☐ | `stroop-emotional` | psygames-attention-claude-mac | | |
 | ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |
-| ☐ | `switching-task` | psygames-languages-claude-mac | | ⚠️ спор: экран внутри набора хаба «Конфликт внимания» (gameSuites.ts:113) — разбираемся в канале, молча не забираю |
+| ☐ | `switching-task` | ❓ вписать себя  |  | НЕ «Языки»: в `STRUCTURE.md` origin/main этого экрана нет ни в одной из двух развилок хаба (проверено 23.09 grep по строкам 62 и 172), а `gameSuites.ts:113` кладёт его в набор «Конфликт внимания». Снимаю себя, чтобы строка не числилась занятой у того, кто её не делает. Владелец «Внимания» — впиши себя или скажи, что не твой  |
 | ☐ | `targets` | psygames-attention-claude-mac | | |
 | ☐ | `tower-london` | psygames-sorting-claude-mac | | |
 | ☐ | `trail-making` | ❓ вписать себя | | |
 | ☐ | `visual-memory-hub` | psygames-memory-hearing-claude-mac | | |
 | ☐ | `visual-search` | ❓ вписать себя | | не «Внимание»: экран «Поиска»: стоит в его рефе, таблица лестниц |
-| ☐ | `vocab-srs` | psygames-languages-claude-mac | | |
+| ◐ | `vocab-srs` | psygames-languages-claude-mac  | 23.09  | правила и экран нативно: SM-2, очередь, свои слова, варианты — сверены с эталоном из живого TS (`flutter/test/fixtures/vocab-srs-reference.json`, прибор `frontend/scripts/flutter-vocab-srs-reference.test.ts`); 16 проб модели + 5 партий нажатиями; **8 мутаций краснеют**, среди них «`dueAt <= now` → `<`» — она сначала НЕ ловилась, пришлось добавить в эталон карточку со сроком ровно сейчас. Словарь 283×12 данными (`assets/vocab/`). Подписи из общего словаря, зашитых строк 0. ОСТАЛИСЬ ответ ПЕЧАТЬЮ и билингво — перехват НЕ включён нарочно  |
 | ☐ | `water-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `wcst` | psygames-attention-claude-mac | | |
 | ☐ | `word-pairs` | ❓ вписать себя | | |
-| ☐ | `words-hub` | psygames-languages-claude-mac | | |
+| ☐ | `words-hub` | psygames-languages-claude-mac  |  | развилка хаба «Языки», 7 экранов (STRUCTURE.md:172)  |
 
 ## ⚠️ Экран с режимами — не один экран (замер «Слов», 23.09)
 
