@@ -19,6 +19,7 @@ void main() {
       '$origin/games/digit-span.html?mode=free',
       '$origin/games/schulte',
       '$origin/games/schulte.html?level=3',
+      '$origin/games/mahjong',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -46,6 +47,7 @@ void main() {
           '/games/digit-span',
           '/games/memory-matrix',
           '/games/schulte',
+          '/games/mahjong',
         });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);

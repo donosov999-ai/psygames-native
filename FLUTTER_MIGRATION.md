@@ -50,6 +50,7 @@
 | ✅ | `memory-matrix` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `one-line` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `schulte` | psygames-search-claude-mac | 23.09 | тап-игра: 18 ступеней, позднее правило и убегающие клетки; правила сверены с живым TS |
+| ✅ | `mahjong` | psygames-search-claude-mac | 23.09 | тап-игра: 84 раскладки ресурсом, раздача решаема по построению, скрытые лица с L10 |
 
 ## Что осталось
 
@@ -90,7 +91,6 @@
 | ☐ | `languages-hub` | psygames-languages-claude-mac | | |
 | ☐ | `lexical-decision` | ❓ вписать себя | | |
 | ☐ | `listening-span` | ❓ вписать себя | | |
-| ☐ | `mahjong` | psygames-search-claude-mac | | |
 | ☐ | `math-slider` | psygames-search-claude-mac | | |
 | ☐ | `math-sprint` | psygames-search-claude-mac | | |
 | ☐ | `memory-palace` | psygames-memory-hearing-claude-mac | | |
