@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/chess_blind/positions.dart';
 import 'package:psygames_flutter/games/chess_blind/screen.dart';
+import 'package:psygames_flutter/shell/hybrid_app.dart';
 
 /// 🔴 ПАРТИЯ ИГРАЕТСЯ НАЖАТИЯМИ, А НЕ ТОЛЬКО В МОДЕЛИ.
 ///
@@ -12,6 +13,7 @@ import 'package:psygames_flutter/games/chess_blind/screen.dart';
 /// проверяется последнее: доходит ли это до пальца. Позиция сперва ВИДНА, потом
 /// маскируется одинаковыми фишками, и ответ касанием по доске засчитывается.
 void main() {
+  routeStaysWebUntilSeriesIsPorted();
   late PositionCorpus corpus;
   setUpAll(() {
     corpus = PositionCorpus.parse(
@@ -110,6 +112,23 @@ void main() {
       board.bottom,
       lessThanOrEqualTo(screen.bottom),
       reason: 'не вылезает вниз',
+    );
+  });
+}
+
+/// 🔴 ПЕРЕХВАТ НЕ ВКЛЮЧЁН, ПОКА НЕТ СЕРИИ — это решение, а не забывчивость.
+///
+/// В вебе «Доска в уме» — ДВА режима одного экрана: партия (лесенка 25 ступеней)
+/// и серия из трёх блоков (цвет поля, маршрут коня, память). Перенесена партия.
+/// Включить перехват сейчас значит молча отнять у человека серию: маршрут один
+/// на оба режима. Так же рассудили «Слова» по анаграммам и «Судоку» по
+/// головоломкам. Проба краснеет, если маршрут включат раньше серии.
+void routeStaysWebUntilSeriesIsPorted() {
+  test('🔴 /games/chess-blind пока НЕ в карте перехвата', () {
+    expect(
+      HybridApp.native.containsKey('/games/chess-blind'),
+      isFalse,
+      reason: 'сперва серия из трёх блоков, потом перехват — тем же коммитом',
     );
   });
 }
