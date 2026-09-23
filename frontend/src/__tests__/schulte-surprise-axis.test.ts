@@ -21,6 +21,7 @@
  */
 import { levelParams, maxGridFor } from '@/app/games/schulte';
 import { SCRIPTS, SCRIPT_IDS } from '@/src/constants/scripts';
+import { schulteSequence } from '@/src/games/schulte/core/table';
 
 declare const __dirname: string;
 declare function require(m: string): any;
@@ -127,7 +128,13 @@ describe('проводка: сюрприз доехал до экрана', () =
   });
 
   it('🔴 чередование умеет начинаться с буквы', () => {
-    expect(текст).toMatch(/const сБуквы = lfArg \?\? lettersFirst;/);
-    expect(текст).toMatch(/if \(сБуквы\) \{/);
+    // 23.09.2026: правило переехало в ядро (`core/table.ts`) при переносе на Flutter —
+    // задача 87bc3f37. Раньше здесь стояла строка исходника; строка переехала вместе с
+    // правилом и проба покраснела, ничего не поймав. Теперь правило проверяется ПРОГОНОМ,
+    // а строкой — только то, ради чего этот блок и заведён: что экран зовёт его с жребием.
+    const общее = { size: 4, contentMode: 'mixed' as const, direction: 'forward' as const, alphabet: 'ABCDEFGH' };
+    expect(schulteSequence({ ...общее, lettersFirst: false }).sequence.slice(0, 4)).toEqual([1, 'A', 2, 'B']);
+    expect(schulteSequence({ ...общее, lettersFirst: true }).sequence.slice(0, 4)).toEqual(['A', 1, 'B', 2]);
+    expect(текст).toMatch(/lettersFirst: lfArg \?\? lettersFirst,/);
   });
 });

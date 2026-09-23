@@ -1,0 +1,1019 @@
+{
+ "maxLevel": 32,
+ "constants": {
+  "ВЕРХ_ПОЛЯ": 119,
+  "ПОЛЯ_ОТВЕТА": 132,
+  "ПАЛЕЦ": 48,
+  "РЯД_ДЕЙСТВИЙ": 56
+ },
+ "bands": [
+  {
+   "level": 1,
+   "band": "plus-minus"
+  },
+  {
+   "level": 2,
+   "band": "plus-minus"
+  },
+  {
+   "level": 3,
+   "band": "plus-minus"
+  },
+  {
+   "level": 4,
+   "band": "plus-minus"
+  },
+  {
+   "level": 5,
+   "band": "mult"
+  },
+  {
+   "level": 6,
+   "band": "mult"
+  },
+  {
+   "level": 7,
+   "band": "mult"
+  },
+  {
+   "level": 8,
+   "band": "mult"
+  },
+  {
+   "level": 9,
+   "band": "div"
+  },
+  {
+   "level": 10,
+   "band": "div"
+  },
+  {
+   "level": 11,
+   "band": "div"
+  },
+  {
+   "level": 12,
+   "band": "div"
+  },
+  {
+   "level": 13,
+   "band": "chain"
+  },
+  {
+   "level": 14,
+   "band": "chain"
+  },
+  {
+   "level": 15,
+   "band": "chain"
+  },
+  {
+   "level": 16,
+   "band": "chain"
+  },
+  {
+   "level": 17,
+   "band": "square"
+  },
+  {
+   "level": 18,
+   "band": "square"
+  },
+  {
+   "level": 19,
+   "band": "square"
+  },
+  {
+   "level": 20,
+   "band": "square"
+  },
+  {
+   "level": 21,
+   "band": "root"
+  },
+  {
+   "level": 22,
+   "band": "root"
+  },
+  {
+   "level": 23,
+   "band": "root"
+  },
+  {
+   "level": 24,
+   "band": "root"
+  },
+  {
+   "level": 25,
+   "band": "equation"
+  },
+  {
+   "level": 26,
+   "band": "equation"
+  },
+  {
+   "level": 27,
+   "band": "equation"
+  },
+  {
+   "level": 28,
+   "band": "equation"
+  },
+  {
+   "level": 29,
+   "band": "mix"
+  },
+  {
+   "level": 30,
+   "band": "mix"
+  },
+  {
+   "level": 31,
+   "band": "mix"
+  },
+  {
+   "level": 32,
+   "band": "mix"
+  },
+  {
+   "level": 33,
+   "band": "mix"
+  },
+  {
+   "level": 34,
+   "band": "mix"
+  },
+  {
+   "level": 35,
+   "band": "mix"
+  },
+  {
+   "level": 36,
+   "band": "mix"
+  },
+  {
+   "level": 37,
+   "band": "mix"
+  },
+  {
+   "level": 38,
+   "band": "mix"
+  },
+  {
+   "level": 39,
+   "band": "mix"
+  },
+  {
+   "level": 40,
+   "band": "mix"
+  }
+ ],
+ "migrate": [
+  {
+   "from": 1,
+   "to": 1
+  },
+  {
+   "from": 2,
+   "to": 2
+  },
+  {
+   "from": 3,
+   "to": 5
+  },
+  {
+   "from": 4,
+   "to": 6
+  },
+  {
+   "from": 5,
+   "to": 9
+  },
+  {
+   "from": 6,
+   "to": 10
+  },
+  {
+   "from": 7,
+   "to": 11
+  },
+  {
+   "from": 8,
+   "to": 12
+  },
+  {
+   "from": 9,
+   "to": 13
+  },
+  {
+   "from": 10,
+   "to": 13
+  },
+  {
+   "from": 11,
+   "to": 13
+  },
+  {
+   "from": 12,
+   "to": 13
+  },
+  {
+   "from": 13,
+   "to": 13
+  },
+  {
+   "from": 14,
+   "to": 13
+  },
+  {
+   "from": 15,
+   "to": 13
+  },
+  {
+   "from": 16,
+   "to": 13
+  },
+  {
+   "from": 17,
+   "to": 13
+  },
+  {
+   "from": 18,
+   "to": 13
+  },
+  {
+   "from": 19,
+   "to": 13
+  },
+  {
+   "from": 20,
+   "to": 13
+  }
+ ],
+ "rows": [
+  {
+   "level": 1,
+   "band": "plus-minus",
+   "problems": [
+    {
+     "display": "12 - 6 = ?",
+     "answer": 6,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "10 + 5 = ?",
+     "answer": 15,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "10 + 7 = ?",
+     "answer": 17,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "11 - 8 = ?",
+     "answer": 3,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "12 + 2 = ?",
+     "answer": 14,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "11 - 10 = ?",
+     "answer": 1,
+     "kind": "plus-minus"
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "band": "plus-minus",
+   "problems": [
+    {
+     "display": "42 − 12 + 5 = ?",
+     "answer": 35,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "26 + 40 = ?",
+     "answer": 66,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "37 - 17 = ?",
+     "answer": 20,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "19 − 8 + 16 = ?",
+     "answer": 27,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "31 − 17 + 4 = ?",
+     "answer": 18,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "28 − 24 + 4 = ?",
+     "answer": 8,
+     "kind": "plus-minus"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "band": "plus-minus",
+   "problems": [
+    {
+     "display": "34 + 60 + 24 = ?",
+     "answer": 118,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "53 − 33 + 28 = ?",
+     "answer": 48,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "10 + 69 + 25 = ?",
+     "answer": 104,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "63 − 32 + 24 = ?",
+     "answer": 55,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "53 + 57 = ?",
+     "answer": 110,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "29 + 41 + 4 = ?",
+     "answer": 74,
+     "kind": "plus-minus"
+    }
+   ]
+  },
+  {
+   "level": 4,
+   "band": "plus-minus",
+   "problems": [
+    {
+     "display": "50 + 68 + 14 = ?",
+     "answer": 132,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "102 − 87 + 10 = ?",
+     "answer": 25,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "68 − 63 + 22 = ?",
+     "answer": 27,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "63 + 81 = ?",
+     "answer": 144,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "96 − 82 + 24 = ?",
+     "answer": 38,
+     "kind": "plus-minus"
+    },
+    {
+     "display": "91 − 43 + 19 = ?",
+     "answer": 67,
+     "kind": "plus-minus"
+    }
+   ]
+  },
+  {
+   "level": 5,
+   "band": "mult",
+   "problems": [
+    {
+     "display": "3 × 3 = ?",
+     "answer": 9,
+     "kind": "mult"
+    },
+    {
+     "display": "5 × 3 = ?",
+     "answer": 15,
+     "kind": "mult"
+    },
+    {
+     "display": "3 × 3 = ?",
+     "answer": 9,
+     "kind": "mult"
+    },
+    {
+     "display": "5 × 2 = ?",
+     "answer": 10,
+     "kind": "mult"
+    },
+    {
+     "display": "6 × 5 = ?",
+     "answer": 30,
+     "kind": "mult"
+    },
+    {
+     "display": "5 × 5 = ?",
+     "answer": 25,
+     "kind": "mult"
+    }
+   ]
+  },
+  {
+   "level": 8,
+   "band": "mult",
+   "problems": [
+    {
+     "display": "13 × 5 = ?",
+     "answer": 65,
+     "kind": "mult"
+    },
+    {
+     "display": "13 × 4 = ?",
+     "answer": 52,
+     "kind": "mult"
+    },
+    {
+     "display": "7 × 2 = ?",
+     "answer": 14,
+     "kind": "mult"
+    },
+    {
+     "display": "7 × 5 = ?",
+     "answer": 35,
+     "kind": "mult"
+    },
+    {
+     "display": "9 × 7 = ?",
+     "answer": 63,
+     "kind": "mult"
+    },
+    {
+     "display": "16 × 2 = ?",
+     "answer": 32,
+     "kind": "mult"
+    }
+   ]
+  },
+  {
+   "level": 9,
+   "band": "div",
+   "problems": [
+    {
+     "display": "8 ÷ 2 = ?",
+     "answer": 4,
+     "kind": "div"
+    },
+    {
+     "display": "24 ÷ 4 = ?",
+     "answer": 6,
+     "kind": "div"
+    },
+    {
+     "display": "20 ÷ 4 = ?",
+     "answer": 5,
+     "kind": "div"
+    },
+    {
+     "display": "12 ÷ 4 = ?",
+     "answer": 3,
+     "kind": "div"
+    },
+    {
+     "display": "16 ÷ 4 = ?",
+     "answer": 4,
+     "kind": "div"
+    },
+    {
+     "display": "12 ÷ 4 = ?",
+     "answer": 3,
+     "kind": "div"
+    }
+   ]
+  },
+  {
+   "level": 12,
+   "band": "div",
+   "problems": [
+    {
+     "display": "48 ÷ 6 = ?",
+     "answer": 8,
+     "kind": "div"
+    },
+    {
+     "display": "24 ÷ 3 = ?",
+     "answer": 8,
+     "kind": "div"
+    },
+    {
+     "display": "90 ÷ 9 = ?",
+     "answer": 10,
+     "kind": "div"
+    },
+    {
+     "display": "60 ÷ 5 = ?",
+     "answer": 12,
+     "kind": "div"
+    },
+    {
+     "display": "104 ÷ 8 = ?",
+     "answer": 13,
+     "kind": "div"
+    },
+    {
+     "display": "85 ÷ 5 = ?",
+     "answer": 17,
+     "kind": "div"
+    }
+   ]
+  },
+  {
+   "level": 13,
+   "band": "chain",
+   "problems": [
+    {
+     "display": "3 × 3 − 9 = ?",
+     "answer": 0,
+     "kind": "chain"
+    },
+    {
+     "display": "3 × 3 + 10 = ?",
+     "answer": 19,
+     "kind": "chain"
+    },
+    {
+     "display": "3 × 3 + 4 = ?",
+     "answer": 13,
+     "kind": "chain"
+    },
+    {
+     "display": "3 × 4 − 9 = ?",
+     "answer": 3,
+     "kind": "chain"
+    },
+    {
+     "display": "6 × 4 − 8 = ?",
+     "answer": 16,
+     "kind": "chain"
+    },
+    {
+     "display": "5 × 4 − 7 = ?",
+     "answer": 13,
+     "kind": "chain"
+    }
+   ]
+  },
+  {
+   "level": 16,
+   "band": "chain",
+   "problems": [
+    {
+     "display": "6 × 8 + 61 = ?",
+     "answer": 109,
+     "kind": "chain"
+    },
+    {
+     "display": "15 × 6 + 78 = ?",
+     "answer": 168,
+     "kind": "chain"
+    },
+    {
+     "display": "6 × 11 + 32 = ?",
+     "answer": 98,
+     "kind": "chain"
+    },
+    {
+     "display": "15 × 3 + 46 = ?",
+     "answer": 91,
+     "kind": "chain"
+    },
+    {
+     "display": "12 × 5 − 42 = ?",
+     "answer": 18,
+     "kind": "chain"
+    },
+    {
+     "display": "7 × 6 + 33 = ?",
+     "answer": 75,
+     "kind": "chain"
+    }
+   ]
+  },
+  {
+   "level": 17,
+   "band": "square",
+   "problems": [
+    {
+     "display": "9² = ?",
+     "answer": 81,
+     "kind": "square"
+    },
+    {
+     "display": "9² = ?",
+     "answer": 81,
+     "kind": "square"
+    },
+    {
+     "display": "5² = ?",
+     "answer": 25,
+     "kind": "square"
+    },
+    {
+     "display": "10² = ?",
+     "answer": 100,
+     "kind": "square"
+    },
+    {
+     "display": "6² = ?",
+     "answer": 36,
+     "kind": "square"
+    },
+    {
+     "display": "7² = ?",
+     "answer": 49,
+     "kind": "square"
+    }
+   ]
+  },
+  {
+   "level": 20,
+   "band": "square",
+   "problems": [
+    {
+     "display": "16² = ?",
+     "answer": 256,
+     "kind": "square"
+    },
+    {
+     "display": "15² = ?",
+     "answer": 225,
+     "kind": "square"
+    },
+    {
+     "display": "15² = ?",
+     "answer": 225,
+     "kind": "square"
+    },
+    {
+     "display": "18² = ?",
+     "answer": 324,
+     "kind": "square"
+    },
+    {
+     "display": "12² = ?",
+     "answer": 144,
+     "kind": "square"
+    },
+    {
+     "display": "15² = ?",
+     "answer": 225,
+     "kind": "square"
+    }
+   ]
+  },
+  {
+   "level": 21,
+   "band": "root",
+   "problems": [
+    {
+     "display": "√25 = ?",
+     "answer": 5,
+     "kind": "root"
+    },
+    {
+     "display": "√16 = ?",
+     "answer": 4,
+     "kind": "root"
+    },
+    {
+     "display": "√81 = ?",
+     "answer": 9,
+     "kind": "root"
+    },
+    {
+     "display": "√81 = ?",
+     "answer": 9,
+     "kind": "root"
+    },
+    {
+     "display": "√49 = ?",
+     "answer": 7,
+     "kind": "root"
+    },
+    {
+     "display": "√16 = ?",
+     "answer": 4,
+     "kind": "root"
+    }
+   ]
+  },
+  {
+   "level": 24,
+   "band": "root",
+   "problems": [
+    {
+     "display": "√324 = ?",
+     "answer": 18,
+     "kind": "root"
+    },
+    {
+     "display": "√256 = ?",
+     "answer": 16,
+     "kind": "root"
+    },
+    {
+     "display": "√256 = ?",
+     "answer": 16,
+     "kind": "root"
+    },
+    {
+     "display": "√144 = ?",
+     "answer": 12,
+     "kind": "root"
+    },
+    {
+     "display": "√81 = ?",
+     "answer": 9,
+     "kind": "root"
+    },
+    {
+     "display": "√400 = ?",
+     "answer": 20,
+     "kind": "root"
+    }
+   ]
+  },
+  {
+   "level": 25,
+   "band": "equation",
+   "problems": [
+    {
+     "display": "2x − 2 = 14,  x = ?",
+     "answer": 8,
+     "kind": "equation"
+    },
+    {
+     "display": "2x − 2 = 8,  x = ?",
+     "answer": 5,
+     "kind": "equation"
+    },
+    {
+     "display": "2x − 6 = 0,  x = ?",
+     "answer": 3,
+     "kind": "equation"
+    },
+    {
+     "display": "2x − 9 = 1,  x = ?",
+     "answer": 5,
+     "kind": "equation"
+    },
+    {
+     "display": "2x − 8 = 8,  x = ?",
+     "answer": 8,
+     "kind": "equation"
+    },
+    {
+     "display": "2x − 7 = 1,  x = ?",
+     "answer": 4,
+     "kind": "equation"
+    }
+   ]
+  },
+  {
+   "level": 28,
+   "band": "equation",
+   "problems": [
+    {
+     "display": "6x + 12 = 114,  x = ?",
+     "answer": 17,
+     "kind": "equation"
+    },
+    {
+     "display": "6x + 62 = 230,  x = ?",
+     "answer": 28,
+     "kind": "equation"
+    },
+    {
+     "display": "5x − 53 = 17,  x = ?",
+     "answer": 14,
+     "kind": "equation"
+    },
+    {
+     "display": "8x − 38 = 66,  x = ?",
+     "answer": 13,
+     "kind": "equation"
+    },
+    {
+     "display": "6x − 62 = 58,  x = ?",
+     "answer": 20,
+     "kind": "equation"
+    },
+    {
+     "display": "5x + 47 = 107,  x = ?",
+     "answer": 12,
+     "kind": "equation"
+    }
+   ]
+  },
+  {
+   "level": 29,
+   "band": "mix",
+   "problems": [
+    {
+     "display": "√16 = ?",
+     "answer": 4,
+     "kind": "root"
+    },
+    {
+     "display": "√121 = ?",
+     "answer": 11,
+     "kind": "root"
+    },
+    {
+     "display": "4x + 18 = 50,  x = ?",
+     "answer": 8,
+     "kind": "equation"
+    },
+    {
+     "display": "3x − 10 = 17,  x = ?",
+     "answer": 9,
+     "kind": "equation"
+    },
+    {
+     "display": "√36 = ?",
+     "answer": 6,
+     "kind": "root"
+    },
+    {
+     "display": "√121 = ?",
+     "answer": 11,
+     "kind": "root"
+    }
+   ]
+  },
+  {
+   "level": 32,
+   "band": "mix",
+   "problems": [
+    {
+     "display": "10 × 7 + 33 = ?",
+     "answer": 103,
+     "kind": "chain"
+    },
+    {
+     "display": "14 × 4 + 36 = ?",
+     "answer": 92,
+     "kind": "chain"
+    },
+    {
+     "display": "17² = ?",
+     "answer": 289,
+     "kind": "square"
+    },
+    {
+     "display": "5x − 35 = 55,  x = ?",
+     "answer": 18,
+     "kind": "equation"
+    },
+    {
+     "display": "2x − 38 = 12,  x = ?",
+     "answer": 25,
+     "kind": "equation"
+    },
+    {
+     "display": "8x − 13 = 83,  x = ?",
+     "answer": 12,
+     "kind": "equation"
+    }
+   ]
+  },
+  {
+   "level": 36,
+   "band": "mix",
+   "problems": [
+    {
+     "display": "√100 = ?",
+     "answer": 10,
+     "kind": "root"
+    },
+    {
+     "display": "24² = ?",
+     "answer": 576,
+     "kind": "square"
+    },
+    {
+     "display": "9 × 3 + 102 = ?",
+     "answer": 129,
+     "kind": "chain"
+    },
+    {
+     "display": "19 × 11 + 92 = ?",
+     "answer": 301,
+     "kind": "chain"
+    },
+    {
+     "display": "2x + 92 = 148,  x = ?",
+     "answer": 28,
+     "kind": "equation"
+    },
+    {
+     "display": "√441 = ?",
+     "answer": 21,
+     "kind": "root"
+    }
+   ]
+  },
+  {
+   "level": 44,
+   "band": "mix",
+   "problems": [
+    {
+     "display": "26 × 8 + 91 = ?",
+     "answer": 299,
+     "kind": "chain"
+    },
+    {
+     "display": "36² = ?",
+     "answer": 1296,
+     "kind": "square"
+    },
+    {
+     "display": "39² = ?",
+     "answer": 1521,
+     "kind": "square"
+    },
+    {
+     "display": "√1369 = ?",
+     "answer": 37,
+     "kind": "root"
+    },
+    {
+     "display": "29 × 28 − 188 = ?",
+     "answer": 624,
+     "kind": "chain"
+    },
+    {
+     "display": "33² = ?",
+     "answer": 1089,
+     "kind": "square"
+    }
+   ]
+  }
+ ],
+ "keypads": [
+  {
+   "w": 320,
+   "h": 568,
+   "low": true,
+   "keyW": 56,
+   "keyH": 48
+  },
+  {
+   "w": 360,
+   "h": 640,
+   "low": true,
+   "keyW": 70,
+   "keyH": 54
+  },
+  {
+   "w": 375,
+   "h": 667,
+   "low": true,
+   "keyW": 75,
+   "keyH": 56
+  },
+  {
+   "w": 390,
+   "h": 844,
+   "low": false,
+   "keyW": 80,
+   "keyH": 56
+  },
+  {
+   "w": 430,
+   "h": 932,
+   "low": false,
+   "keyW": 88,
+   "keyH": 56
+  },
+  {
+   "w": 768,
+   "h": 1024,
+   "low": false,
+   "keyW": 88,
+   "keyH": 56
+  }
+ ]
+}

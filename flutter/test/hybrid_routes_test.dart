@@ -17,6 +17,19 @@ void main() {
       '$origin/games/one-line.html#top',
       '$origin/games/dots-connect',
       '$origin/games/digit-span.html?mode=free',
+      '$origin/games/schulte',
+      '$origin/games/schulte.html?level=3',
+      '$origin/games/mahjong',
+      '$origin/games/math-slider',
+      '$origin/games/math-slider.html?level=21',
+      '$origin/games/object-tracker',
+      '$origin/games/object-tracker.html?level=7',
+      '$origin/games/quick-count',
+      '$origin/games/quick-count.html',
+      '$origin/games/pattern',
+      '$origin/games/pattern.html?level=9',
+      '$origin/games/math-sprint',
+      '$origin/games/math-sprint.html',
       '$origin/games/stroop',
       '$origin/games/stroop.html?mode=ink',
       '$origin/games/flanker',
@@ -77,7 +90,6 @@ void main() {
     for (final url in [
       '$origin/',
       '$origin/index.html',
-      '$origin/games/schulte',
       '$origin/collection',
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
@@ -90,29 +102,37 @@ void main() {
   });
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
-    // ⚠️ ОДИН СПИСОК НА ВСЕХ, А НЕ ДВА expect ПОДРЯД. При сведении веток разделов
-    // сюда трижды попадали два ожидаемых набора рядом, и каждый утверждал, что
-    // перенесённые игры исчерпываются его половиной: такая проба краснеет на любой
-    // следующей игре, кто бы её ни принёс. Набор растёт снизу, одной строкой на игру.
+    // ⚠️ ОДИН СПИСОК НА ВСЕХ, А НЕ ДВА expect ПОДРЯД: два набора рядом
+    // означают, что кто-то проверяет устаревший, и проба краснеет на любой
+    // следующей игре. Набор пересобирается из карты перехвата при вливании.
     expect(HybridApp.native.keys.toSet(), {
       '/games/ball-sort',
       '/games/cake-sort',
+      '/games/choice-rt',
       '/games/digit-span',
       '/games/dots-connect',
       '/games/flanker',
       '/games/go-no-go',
       '/games/goods-sort',
       '/games/hanoi',
+      '/games/mahjong',
+      '/games/math-slider',
+      '/games/math-sprint',
       '/games/memory-matrix',
       '/games/mental-rotation',
       '/games/nut-sort',
+      '/games/object-tracker',
       '/games/one-line',
+      '/games/pattern',
       '/games/pizza-sort',
+      '/games/quick-count',
+      '/games/schulte',
       '/games/simon',
       '/games/sorting-hub',
       '/games/spatial-hub',
       '/games/spatial-lab',
       '/games/spatial-span',
+      '/games/stop-signal',
       '/games/stroop',
       '/games/sudoku',
       '/games/sudoku-fractal',
@@ -120,7 +140,6 @@ void main() {
       '/games/sudoku-samurai',
       '/games/tower-london',
       '/games/water-sort',
-      '/games/choice-rt', '/games/stop-signal',
     });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
