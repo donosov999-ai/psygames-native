@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
@@ -30,6 +32,28 @@ class HanoiScreen extends StatefulWidget {
 }
 
 class _HanoiScreenState extends State<HanoiScreen> {
+  /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
+  /// следующий уровень сам»).
+  ///
+  /// Итог со звёздами показывается 1,4 секунды — столько, чтобы человек увидел
+  /// оценку, — и партия продолжается. Кнопка остаётся для тех, кто не ждёт.
+  ///
+  /// ⚠️ Таймер гасится при уходе с экрана, отмене хода и «начать заново»:
+  /// открытый таймер после размонтирования валит весь прогон проб молча.
+  Timer? _autoNext;
+
+  void _scheduleNext() {
+    _autoNext?.cancel();
+    _autoNext = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted && _won) _next();
+    });
+  }
+
+  void _cancelNext() {
+    _autoNext?.cancel();
+    _autoNext = null;
+  }
+
   late LevelLadder _ladder;
   HanoiState? _board;
   int? _sel;
@@ -37,6 +61,13 @@ class _HanoiScreenState extends State<HanoiScreen> {
   int _errors = 0;
   bool _won = false;
   final List<HanoiState> _history = [];
+
+  @override
+  void dispose() {
+    // Открытый таймер после ухода с экрана валит весь прогон проб молча.
+    _cancelNext();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -60,7 +91,10 @@ class _HanoiScreenState extends State<HanoiScreen> {
     _history.clear();
   }
 
-  void _restart() => setState(_start);
+  void _restart() {
+    _cancelNext();
+    setState(_start);
+  }
 
   Future<void> _next() async {
     await _ladder.win();
@@ -99,10 +133,14 @@ class _HanoiScreenState extends State<HanoiScreen> {
     _history.add(board.copy());
     _moves += 1;
     _board = after;
-    if (after.solved) _won = true;
+    if (after.solved) {
+      _won = true;
+      _scheduleNext();
+    }
   }
 
   void _undo() {
+    _cancelNext();
     if (_history.isEmpty) return;
     setState(() {
       _board = _history.removeLast();
@@ -124,6 +162,16 @@ class _HanoiScreenState extends State<HanoiScreen> {
 
     return GameShell(
       title: 'Ханойская башня',
+      /*
+       * 🔴 ВЫХОД ОТДЕЛЬНОЙ КНОПКОЙ, А НЕ ТОЛЬКО ЧЕРЕЗ ПАУЗУ.
+       *
+       * 📍 Денис 24.09.2026 на живой сборке: «выход через кнопку пауза».
+       * Замер по коду: `GameShell` рисует «Назад» только если экран передал
+       * `onBack`, а его не передавал НИ ОДИН из четырнадцати перенесённых
+       * экранов — ни мои девять, ни чужие пять. То есть уйти из игры можно было
+       * единственным способом: пауза → «Продолжить»… которого там нет.
+       */
+      onBack: () => Navigator.of(context).maybePop(),
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         // Ходы ПРОТИВ МИНИМУМА: без этого числа человек не знает, хорошо ли

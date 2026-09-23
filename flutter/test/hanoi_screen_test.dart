@@ -126,6 +126,37 @@ void main() {
     expect(result.data, contains('★'));
   });
 
+  testWidgets('🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ, без нажатия (Денис 24.09.2026)', (tester) async {
+    /*
+     * 📍 «не переходит на следующий уровень сам» — на живой сборке человек
+     * собрал башню и остался сидеть перед кнопкой. Теперь итог показывается
+     * 1,4 с и партия продолжается; кнопка остаётся для тех, кто не ждёт.
+     */
+    await _boot(tester, state);
+    for (final m in [[0, 2], [0, 1], [2, 1], [0, 2], [1, 0], [1, 2], [0, 2]]) {
+      await _tapMove(tester, m[0], m[1]);
+    }
+    expect(_pegs(tester)[2].length, 3, reason: 'башня собрана');
+    expect(find.byKey(const ValueKey('hanoi-result')), findsOneWidget, reason: 'итог показан');
+
+    await tester.pump(const Duration(milliseconds: 1500));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('hanoi-result')), findsNothing,
+        reason: 'итог ушёл — уровень сменился сам');
+    expect(_pegs(tester)[0].length, 4, reason: 'второй уровень: четыре диска на первом стержне');
+    expect(find.text('0/15'), findsOneWidget, reason: 'ходы обнулились, минимум уже от четырёх дисков');
+  });
+
+  testWidgets('🔴 из игры есть выход КНОПКОЙ, а не только через паузу', (tester) async {
+    /*
+     * 📍 Денис 24.09.2026: «выход через кнопку пауза». Замер по коду: каркас
+     * рисует «Назад» только если экран передал `onBack`, а его не передавал ни
+     * один из четырнадцати перенесённых экранов.
+     */
+    await _boot(tester, state);
+    expect(find.byTooltip('Назад'), findsOneWidget);
+  });
+
   testWidgets('отмена возвращает доску и счётчик ходов', (tester) async {
     await _boot(tester, state);
     await _tapMove(tester, 0, 2);

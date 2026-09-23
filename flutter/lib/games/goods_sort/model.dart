@@ -650,3 +650,39 @@ class GoodsLevelSet {
     return levels[i];
   }
 }
+
+/// СТИЛЬ ШКАФА ПО ПРОФИЛЮ — перенос таблицы `SHELF_BY_PROFILE` из веба
+/// (`src/games/goods-sort/core/level.ts`).
+///
+/// 🔴 ЗАЧЕМ ПЕРЕНОСИТЬ, А НЕ ЗАШИВАТЬ БЕРЁЗУ. Первая редакция переноса рисовала
+/// `niche-birch.webp` всегда. Профиль по умолчанию — `nzt48`, и ему в вебе
+/// назначен ОРЕХ: две половины приложения показывали бы РАЗНЫЙ шкаф на одном и
+/// том же профиле, и заметить это можно было только глазами на двух экранах
+/// рядом. Ни одна проба такого не ловит — они обе зелёные.
+///
+/// ⚠️ У каждого ключа обязан лежать файл `assets/goods/niche-<ключ>.webp`;
+/// это сторожит проба `goods_shelf_test.dart`.
+const Map<String, String> shelfByProfile = {
+  'kids': 'mint',
+  'vasilyeva': 'pink',
+  'women': 'pink',
+  'nzt48': 'walnut',
+  'execs': 'grey',
+  'students': 'pine',
+  'chess': 'white',
+  'polyglot': 'bamboo',
+  'seniors': 'oak',
+  'drivers': 'grey',
+  'odv999': 'walnut',
+  'whatsnew': 'birch',
+  'free': 'birch',
+};
+
+/// Все стили — список источник правды и для картинок, и для пробы.
+const List<String> shelfStyles = [
+  'birch', 'pine', 'white', 'oak', 'mint', 'pink', 'grey', 'walnut', 'bamboo',
+];
+
+/// Стиль шкафа для профиля. Одна дверь: экран и проба спрашивают ЕЁ.
+/// Незнакомый профиль получает берёзу — ровно как `shelfForProfile` в вебе.
+String shelfForProfile(String? id) => shelfByProfile[id ?? 'free'] ?? 'birch';

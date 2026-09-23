@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -28,6 +30,31 @@ class TowerLondonScreen extends StatefulWidget {
 }
 
 class _TowerLondonScreenState extends State<TowerLondonScreen> {
+  /// 🔴 ПАРТИЯ ПРОДОЛЖАЕТСЯ САМА (Денис 24.09.2026: «во всех играх переход в
+  /// конце сломан» — то есть его нет ни в одной). Итог видно 1,8 с — тут он
+  /// длиннее, чем у уровневых игр: человеку показывают сумму лишних ходов за
+  /// пять задач, а не одну звезду.
+  Timer? _autoNext;
+
+  void _scheduleNext() {
+    _autoNext?.cancel();
+    _autoNext = Timer(const Duration(milliseconds: 1800), () {
+      if (mounted && _done) setState(_startGame);
+    });
+  }
+
+  void _cancelNext() {
+    _autoNext?.cancel();
+    _autoNext = null;
+  }
+
+  @override
+  void dispose() {
+    // Открытый таймер после ухода с экрана валит весь прогон проб молча.
+    _cancelNext();
+    super.dispose();
+  }
+
   late LevelLadder _ladder;
   TolLevelSet? _set;
   TolLevel? _level;
@@ -81,12 +108,16 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     _history.clear();
   }
 
-  void _restart() => setState(_startGame);
+  void _restart() {
+    _cancelNext();
+    setState(_startGame);
+  }
 
   Future<void> _finish() async {
     final rounds = _set!.rounds;
     _passed = tolPassed(_extra, rounds);
     _done = true;
+    _scheduleNext();
     // Провал опускает уровень только на третий подряд — так работает общая
     // лестница; один промах ничего не стоит.
     if (_passed) {
@@ -140,6 +171,7 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
   }
 
   void _undo() {
+    _cancelNext();
     if (_history.isEmpty) return;
     setState(() {
       _state = _history.removeLast();
@@ -160,6 +192,16 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
 
     return GameShell(
       title: 'Башня Лондона',
+      /*
+       * 🔴 ВЫХОД ОТДЕЛЬНОЙ КНОПКОЙ, А НЕ ТОЛЬКО ЧЕРЕЗ ПАУЗУ.
+       *
+       * 📍 Денис 24.09.2026 на живой сборке: «выход через кнопку пауза».
+       * Замер по коду: `GameShell` рисует «Назад» только если экран передал
+       * `onBack`, а его не передавал НИ ОДИН из четырнадцати перенесённых
+       * экранов — ни мои девять, ни чужие пять. То есть уйти из игры можно было
+       * единственным способом: пауза → «Продолжить»… которого там нет.
+       */
+      onBack: () => Navigator.of(context).maybePop(),
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Задача', value: '$_round/$rounds', icon: Icons.repeat),

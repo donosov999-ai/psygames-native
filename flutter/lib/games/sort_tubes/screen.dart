@@ -54,6 +54,28 @@ class _Snapshot {
 }
 
 class _SortTubesScreenState extends State<SortTubesScreen> {
+  /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
+  /// следующий уровень сам»).
+  ///
+  /// Итог со звёздами показывается 1,4 секунды — столько, чтобы человек увидел
+  /// оценку, — и партия продолжается. Кнопка остаётся для тех, кто не ждёт.
+  ///
+  /// ⚠️ Таймер гасится при уходе с экрана, отмене хода и «начать заново»:
+  /// открытый таймер после размонтирования валит весь прогон проб молча.
+  Timer? _autoNext;
+
+  void _scheduleNext() {
+    _autoNext?.cancel();
+    _autoNext = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted && _won) _next();
+    });
+  }
+
+  void _cancelNext() {
+    _autoNext?.cancel();
+    _autoNext = null;
+  }
+
   TubeLevelSet? _set;
   List<PieceColor> _palette = const [];
   late LevelLadder _ladder;
@@ -78,6 +100,7 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
 
   @override
   void dispose() {
+    _cancelNext();
     // ⚠️ Открытый таймер после ухода с экрана валит весь прогон проб молча —
     // записано в памяти раздела отдельным уроком.
     _refusalTimer?.cancel();
@@ -115,7 +138,10 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
   /// 📍 Отчёт Дениса 05.09.2026 голосом: «чтобы она не перемешивалась, а
   /// просто… заново». Головоломку перезапускают, когда зашли в тупик и хотят
   /// пройти ЭТУ доску иначе; новый расклад лишает такой возможности вовсе.
-  void _restart() => setState(() => _start(_level!));
+  void _restart() {
+    _cancelNext();
+    setState(() => _start(_level!));
+  }
 
   Future<void> _next() async {
     await _ladder.win();
@@ -175,7 +201,10 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
     _field = sealed.field;
     if (sealed.sealed > 0) _hidden = _shiftHidden(_hidden, after, sealed.field);
     _refusal = null;
-    if (_field!.isSolved) _won = true;
+    if (_field!.isSolved) {
+      _won = true;
+      _scheduleNext();
+    }
   }
 
   /// Ключи скрытых слоёв после отъезда: номера сосудов СЪЕЗЖАЮТ.
@@ -202,6 +231,7 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
   }
 
   void _undo() {
+    _cancelNext();
     if (_history.isEmpty) return;
     final s = _history.removeLast();
     setState(() {
@@ -238,6 +268,16 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
 
     return GameShell(
       title: widget.title,
+      /*
+       * 🔴 ВЫХОД ОТДЕЛЬНОЙ КНОПКОЙ, А НЕ ТОЛЬКО ЧЕРЕЗ ПАУЗУ.
+       *
+       * 📍 Денис 24.09.2026 на живой сборке: «выход через кнопку пауза».
+       * Замер по коду: `GameShell` рисует «Назад» только если экран передал
+       * `onBack`, а его не передавал НИ ОДИН из четырнадцати перенесённых
+       * экранов — ни мои девять, ни чужие пять. То есть уйти из игры можно было
+       * единственным способом: пауза → «Продолжить»… которого там нет.
+       */
+      onBack: () => Navigator.of(context).maybePop(),
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(

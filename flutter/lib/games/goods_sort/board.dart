@@ -31,6 +31,7 @@ class GoodsField extends StatelessWidget {
     required this.level,
     required this.board,
     required this.fieldHeight,
+    required this.shelf,
     required this.obstacles,
     required this.covered,
     required this.frozenRow,
@@ -44,6 +45,11 @@ class GoodsField extends StatelessWidget {
   final GoodsLevel level;
   final GoodsBoard board;
   final double fieldHeight;
+
+  /// Стиль шкафа: имя плитки `assets/goods/niche-<стиль>.webp`. Его выбирает
+  /// профиль (`shelfForProfile`), а не экран — таблица в `model.dart`.
+  final String shelf;
+
   final List<Obstacle?> obstacles;
   final Set<String> covered;
   final int? frozenRow;
@@ -119,6 +125,7 @@ class GoodsField extends StatelessWidget {
                                 row: r,
                                 board: board,
                                 lay: lay,
+                                shelf: shelf,
                                 mixedCaps: mixedCaps,
                                 hiddenLevel: level.hidden,
                                 goal: level.goal,
@@ -164,6 +171,7 @@ class _Niche extends StatelessWidget {
     required this.row,
     required this.board,
     required this.lay,
+    required this.shelf,
     required this.mixedCaps,
     required this.hiddenLevel,
     required this.goal,
@@ -181,6 +189,7 @@ class _Niche extends StatelessWidget {
   final int row;
   final GoodsBoard board;
   final GsLayout lay;
+  final String shelf;
   final bool mixedCaps;
   final bool hiddenLevel;
   final Goal goal;
@@ -221,12 +230,22 @@ class _Niche extends StatelessWidget {
               height: lay.nicheH.toDouble(),
               clipBehavior: Clip.hardEdge,   // тень товара не вылезает из ниши
               decoration: BoxDecoration(
-                // Фон ниши растягивается (fill), а не обрезается: полурейки по
-                // краям обязаны состыковаться в целые доски у соседних ниш.
-                image: const DecorationImage(
-                  image: AssetImage('assets/goods/niche-birch.webp'),
-                  fit: BoxFit.fill,
-                ),
+                /*
+                 * 🔴 ПЛИТКА ПОЛКИ — ТА, ЧТО РИСУЕТ ВЕБ СЕГОДНЯ, А НЕ ПЕРВАЯ
+                 * НАЙДЕННАЯ ПОХОЖАЯ.
+                 *
+                 * 📍 Денис 24.09.2026 на живой сборке: «входит визуально 2 шт».
+                 * Замер: в переносе лежал файл из `assets/images/goods/_styles/`
+                 * — 160×160, просвет между стойками 62,5 % ширины. Ряд из трёх
+                 * товаров занимает 110 px из 111, то есть стоял ПОВЕРХ стоек, и
+                 * глазами это читается как «два влезло, третий не поместился».
+                 * Веб давно рисует другой файл — `assets/images/shelves/`,
+                 * 150×150, просвет 89 % (замер по восьми плиткам: 89–98 %).
+                 *
+                 * Я чуть не «починил» это растяжкой картинки на 1,6 — то есть
+                 * подгонкой под сломанное данное. Правильный ответ был в том,
+                 * чтобы взять ТЕКУЩИЙ файл: формула раскладки не виновата.
+                 */
                 color: const Color(0xFF6B4A2B),   // пока картинка грузится — не дыра цветом экрана
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
@@ -247,6 +266,12 @@ class _Niche extends StatelessWidget {
               child: Stack(
                 alignment: Alignment.bottomCenter,
                 children: [
+                  // Полка во всю нишу. Растягивать её (как в первой попытке
+                  // починки) не нужно: у ПРАВИЛЬНОЙ плитки просвет и так 89 %
+                  // ширины — разбор в комментарии выше.
+                  Positioned.fill(
+                    child: Image.asset('assets/goods/niche-$shelf.webp', fit: BoxFit.fill),
+                  ),
                   // За нишей второй ряд — видно ДО хода, а не после. Рисуем
                   // ПОЗАДИ товаров: значок поверх закрыл бы товар (та самая
                   // ошибка, что чинилась в сосудах шариков).

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -43,6 +45,28 @@ class _Snapshot {
 }
 
 class _GoodsSortScreenState extends State<GoodsSortScreen> {
+  /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
+  /// следующий уровень сам»).
+  ///
+  /// Итог со звёздами показывается 1,4 секунды — столько, чтобы человек увидел
+  /// оценку, — и партия продолжается. Кнопка остаётся для тех, кто не ждёт.
+  ///
+  /// ⚠️ Таймер гасится при уходе с экрана, отмене хода и «начать заново»:
+  /// открытый таймер после размонтирования валит весь прогон проб молча.
+  Timer? _autoNext;
+
+  void _scheduleNext() {
+    _autoNext?.cancel();
+    _autoNext = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted && _won) _next();
+    });
+  }
+
+  void _cancelNext() {
+    _autoNext?.cancel();
+    _autoNext = null;
+  }
+
   GoodsLevelSet? _set;
   late LevelLadder _ladder;
 
@@ -59,6 +83,13 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   bool _won = false;
   bool _lost = false;
   final List<_Snapshot> _history = [];
+
+  @override
+  void dispose() {
+    // Открытый таймер после ухода с экрана валит весь прогон проб молча.
+    _cancelNext();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -100,7 +131,10 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     _history.clear();
   }
 
-  void _restart() => setState(() => _start(_level!));
+  void _restart() {
+    _cancelNext();
+    setState(() => _start(_level!));
+  }
 
   Future<void> _next() async {
     await _ladder.win();
@@ -212,6 +246,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
 
     if (levelWon(after.cells, level.goal, queueLength: after.queue.length, back: after.back)) {
       _won = true;
+      _scheduleNext();
     } else if (movesExhausted(_moves, level.moveLimit, after.cells, level.goal)) {
       _lost = true;
     }
@@ -249,6 +284,7 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   }
 
   void _undo() {
+    _cancelNext();
     if (_history.isEmpty) return;
     final s = _history.removeLast();
     setState(() {
@@ -287,6 +323,16 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     final progress = goalProgress(board.cells, level.goal);
     return GameShell(
       title: 'Сортировка товаров',
+      /*
+       * 🔴 ВЫХОД ОТДЕЛЬНОЙ КНОПКОЙ, А НЕ ТОЛЬКО ЧЕРЕЗ ПАУЗУ.
+       *
+       * 📍 Денис 24.09.2026 на живой сборке: «выход через кнопку пауза».
+       * Замер по коду: `GameShell` рисует «Назад» только если экран передал
+       * `onBack`, а его не передавал НИ ОДИН из четырнадцати перенесённых
+       * экранов — ни мои девять, ни чужие пять. То есть уйти из игры можно было
+       * единственным способом: пауза → «Продолжить»… которого там нет.
+       */
+      onBack: () => Navigator.of(context).maybePop(),
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(
@@ -302,6 +348,9 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
         level: level,
         board: board,
         fieldHeight: h,
+        // Шкаф берёт стиль у ПРОФИЛЯ, как в вебе. Зашитая берёза показывала бы
+        // `nzt48` берёзу вместо ореха — и веб с приложением разошлись бы молча.
+        shelf: shelfForProfile(widget.state.activeProfile),
         obstacles: _obstacles,
         covered: _covered,
         frozenRow: _frozenRow,

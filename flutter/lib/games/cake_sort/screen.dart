@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -42,6 +44,28 @@ class _Snapshot {
 }
 
 class _CakeSortScreenState extends State<CakeSortScreen> {
+  /// 🔴 СЛЕДУЮЩИЙ УРОВЕНЬ ЕДЕТ САМ (Денис 24.09.2026: «не переходит на
+  /// следующий уровень сам»).
+  ///
+  /// Итог со звёздами показывается 1,4 секунды — столько, чтобы человек увидел
+  /// оценку, — и партия продолжается. Кнопка остаётся для тех, кто не ждёт.
+  ///
+  /// ⚠️ Таймер гасится при уходе с экрана, отмене хода и «начать заново»:
+  /// открытый таймер после размонтирования валит весь прогон проб молча.
+  Timer? _autoNext;
+
+  void _scheduleNext() {
+    _autoNext?.cancel();
+    _autoNext = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted && _won) _next();
+    });
+  }
+
+  void _cancelNext() {
+    _autoNext?.cancel();
+    _autoNext = null;
+  }
+
   CakeLevelSet? _set;
   late LevelLadder _ladder;
 
@@ -58,6 +82,13 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
   int _moves = 0;
   bool _won = false;
   final List<_Snapshot> _history = [];
+
+  @override
+  void dispose() {
+    // Открытый таймер после ухода с экрана валит весь прогон проб молча.
+    _cancelNext();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -87,7 +118,10 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
     _history.clear();
   }
 
-  void _restart() => setState(() => _start(_level!));
+  void _restart() {
+    _cancelNext();
+    setState(() => _start(_level!));
+  }
 
   Future<void> _next() async {
     await _ladder.win();
@@ -143,10 +177,14 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
     _history.add(_Snapshot(board.copy(), _moves));
     _moves += 1;
     _board = after;
-    if (after.isCleared) _won = true;
+    if (after.isCleared) {
+      _won = true;
+      _scheduleNext();
+    }
   }
 
   void _undo() {
+    _cancelNext();
     if (_history.isEmpty) return;
     final s = _history.removeLast();
     setState(() {
@@ -174,6 +212,16 @@ class _CakeSortScreenState extends State<CakeSortScreen> {
 
     return GameShell(
       title: widget.title,
+      /*
+       * 🔴 ВЫХОД ОТДЕЛЬНОЙ КНОПКОЙ, А НЕ ТОЛЬКО ЧЕРЕЗ ПАУЗУ.
+       *
+       * 📍 Денис 24.09.2026 на живой сборке: «выход через кнопку пауза».
+       * Замер по коду: `GameShell` рисует «Назад» только если экран передал
+       * `onBack`, а его не передавал НИ ОДИН из четырнадцати перенесённых
+       * экранов — ни мои девять, ни чужие пять. То есть уйти из игры можно было
+       * единственным способом: пауза → «Продолжить»… которого там нет.
+       */
+      onBack: () => Navigator.of(context).maybePop(),
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Ходы', value: '$_moves', icon: Icons.swap_horiz),
