@@ -13,7 +13,8 @@
  */
 import { prebuilt, prebuiltMin, prebuiltPath, PREBUILT_COUNT } from '@/src/games/cake-sort/core/prebuilt';
 import { deal } from '@/src/games/cake-sort/core/level';
-import { makeBoard, allSectors, CIRCLE } from '@/src/games/cake-sort/core/plate';
+import { makeBoard, allSectors, moveType, isCleared, CIRCLE } from '@/src/games/cake-sort/core/plate';
+import { prebuiltSolution } from '@/src/games/cake-sort/core/solutions';
 import { solve, minMoves } from '@/src/games/cake-sort/core/solver';
 import { referenceFor, starsFor, moveReference } from '@/src/games/cake-sort/core/stars';
 
@@ -50,9 +51,20 @@ describe('вшитые уровни', () => {
     expect(PREBUILT_COUNT).toBeGreaterThanOrEqual(12);
   });
 
+  /**
+   * ⚠️ ВЫБОРКОЙ, А НЕ ПО ВСЕМ СТА ДВАДЦАТИ (задача af4c7ff1). `deal(L)` внутри
+   * себя ДОКАЗЫВАЕТ решаемость поиском, а поиск дорожает с ветвлением: замер
+   * 23.09.2026 — L5 4,2 с, L10 25,0 с на бюджете 20000. Сверка всей лестницы
+   * стоила сотни секунд ради инварианта «файл не разошёлся с генератором»,
+   * который ломается КОДОМ, а не отдельным уровнем: разойдись генератор — это
+   * увидит любая из двадцати точек выборки.
+   * Граница названа: за пределами выборки расхождение файла с генератором эта
+   * проба не поймает.
+   */
   it('🔴 вшитая доска совпадает с тем, что раздаёт игра на том же уровне', () => {
     const расхождения: string[] = [];
-    for (let L = 1; L <= PREBUILT_COUNT; L += 1) {
+    const выборка = [1, 2, 3, 5, 8, 12, 17, 23, 30, 38, 47, 57, 68, 80, 93, 107, PREBUILT_COUNT];
+    for (const L of выборка) {
       const у = prebuilt(L);
       if (!у) { расхождения.push(`L${L}: записи нет`); continue; }
       const { board, cfg } = deal(L);
@@ -63,13 +75,31 @@ describe('вшитые уровни', () => {
     expect(расхождения).toEqual([]);
   });
 
+  /**
+   * 🔴 РЕШАЕМОСТЬ ДОКАЗЫВАЕТСЯ ПРОИГРЫВАНИЕМ ЗАПИСАННОГО РЕШЕНИЯ, А НЕ ПОИСКОМ
+   * (задача af4c7ff1). Это и дешевле (33 мс против сотен секунд на сто двадцать
+   * уровней), и доказательнее: видно конкретную последовательность ходов, а не
+   * «поиск что-то нашёл». Решения лежат в `core/solutions.json`, их пишет
+   * `tools/record-solutions.gen.ts` и сторожит `cake-sort-solutions.test.ts`.
+   */
   it('🔴 каждая вшитая доска решаема и кратна кругу', () => {
     const плохо: string[] = [];
     for (let L = 1; L <= PREBUILT_COUNT; L += 1) {
       const у = prebuilt(L) as { plates: number[][]; queue: number[][] };
       const b = makeBoard(у.plates, у.queue);
       if (allSectors(b).length % CIRCLE !== 0) плохо.push(`L${L}: секторов не кратно кругу`);
-      if (!solve(b, 20000).solvable) плохо.push(`L${L}: решаемость не подтверждена`);
+      const решение = prebuiltSolution(L);
+      if (!решение) { плохо.push(`L${L}: решение не записано`); continue; }
+      let стол = b;
+      let сломалось = -1;
+      for (let i = 0; i < решение.length && сломалось < 0; i += 1) {
+        const m = решение[i] as { from: number; type: number; to: number };
+        const следующая = moveType(стол, m.from, m.type, m.to);
+        if (!следующая) { сломалось = i; break; }
+        стол = следующая;
+      }
+      if (сломалось >= 0) плохо.push(`L${L}: ход ${сломалось + 1} записанного решения незаконен`);
+      else if (!isCleared(стол)) плохо.push(`L${L}: записанное решение стол не разобрало`);
     }
     expect(плохо).toEqual([]);
   });

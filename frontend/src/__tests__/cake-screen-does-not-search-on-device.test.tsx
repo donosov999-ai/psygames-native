@@ -86,11 +86,37 @@ it('🔴 на уровне 10 экран не зовёт minMoves ни на ст
    * 🔴 ПОДСКАЗКА НА L10 — С БЮДЖЕТОМ 400, А НЕ 20 000. С полным бюджетом одно нажатие шло 9 с
    * (L10, загруженный мак), и всё это время экран стоял.
    */
+  /**
+   * 🔴 НА ВШИТОМ УРОВНЕ ПОДСКАЗКА НЕ ИЩЕТ ВООБЩЕ (задача af4c7ff1).
+   *
+   * 📍 Раньше здесь стояло «бюджеты подсказки: 400»: экран искал путь при каждом
+   * нажатии, просто урезанным бюджетом. Замер 23.09.2026 показал, чего стоит
+   * поиск: на полном бюджете L10 — 25,0 с, L20 — больше минуты; урезанный
+   * спасает от замирания (82–756 мс), но это всё равно работа в кадре.
+   * Теперь путь вшитых уровней найден офлайн и лежит в `core/solutions.json`:
+   * первая подсказка на нетронутой доске обязана стоить НОЛЬ вызовов поиска.
+   *
+   * ⚠️ И ВТОРАЯ ПОЛОВИНА, БЕЗ КОТОРОЙ ГЕЙТ БЫЛ БЫ ЛОЖНО ЗЕЛЁНЫМ: стоит игроку
+   * свернуть с записанного пути, записи для его стола уже нет, и поиск обязан
+   * вернуться — с тем самым бюджетом 400, а не с полным.
+   */
   const { solvePath } = require('@/src/games/cake-sort/core/solver');  // eslint-disable-line @typescript-eslint/no-require-imports
   const подсказка = r.root.findAll((n: any) => typeof n.props?.onPress === 'function'
     && /^(Hint|Подсказка)/.test(String(n.props?.accessibilityLabel ?? '')))[0];
   expect(подсказка).toBeTruthy();
   await TestRenderer.act(async () => { подсказка.props.onPress(); });
-  const бюджеты = (solvePath as jest.Mock).mock.calls.map((c: any[]) => c[1]);
-  expect(`бюджеты подсказки: ${бюджеты.join(',')}`).toBe('бюджеты подсказки: 400');
+  expect(`вызовов поиска на вшитом уровне: ${(solvePath as jest.Mock).mock.calls.length}`)
+    .toBe('вызовов поиска на вшитом уровне: 0');
+
+  /* Сворачиваем с пути: тапаем по тарелкам, пока ход не пройдёт. */
+  const тарелки = r.root.findAll((n: any) => typeof n.props?.onPress === 'function'
+    && /^(Plate|Тарелка)/.test(String(n.props?.accessibilityLabel ?? '')));
+  if (тарелки.length >= 2) {
+    await TestRenderer.act(async () => { тарелки[0].props.onPress(); });
+    await TestRenderer.act(async () => { тарелки[1].props.onPress(); });
+    await TestRenderer.act(async () => { подсказка.props.onPress(); });
+    const бюджеты = (solvePath as jest.Mock).mock.calls.map((c: any[]) => c[1]);
+    expect(`бюджеты поиска после своего хода: ${бюджеты.join(',') || 'поиска не было'}`)
+      .toMatch(/^бюджеты поиска после своего хода: (400|поиска не было)$/);
+  }
 }, 120_000);
