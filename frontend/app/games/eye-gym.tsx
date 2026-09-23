@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
 import { LinearGradient } from 'expo-linear-gradient';
 import { onGradientText, onGradientTextMuted, textOn } from '@/src/services/onGradientText';
 import GradientSurface from '@/src/components/GradientSurface';
@@ -404,11 +405,12 @@ export default function EyeGymGame() {
             <Text style={[styles.exTimer, { color: colors.text }]}>{t('timeLeftLabel')} {remainTotal}{t('secShort') !== 'secShort' ? t('secShort') : 's'}</Text>
           </View>
         }
-        toolbar={
-          <TouchableOpacity
-            accessibilityRole="button" style={[styles.stopBtn, { borderColor: colors.border }]} onPress={stop}>
-            <Text style={[styles.stopBtnText, { color: colors.textSecondary }]}>{t('btn_stop')}</Text>
-          </TouchableOpacity>
+        /* Решение Дениса 17.09.2026: служебное — рядом значков ПОД полем, а не в
+           полосе ответа. «СТОП» переехал туда же, где он у «Дыхания», CPT и PRL. */
+        headerActions={
+          <GameAuxBar>
+            <GameAuxAction icon="stop-circle" label={t('btn_stop')} danger onPress={stop} />
+          </GameAuxBar>
         }
       >
         <View
@@ -497,8 +499,6 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 },
   exStep: { fontSize: 14, fontWeight: '700' },
   exTimer: { fontSize: 16, fontWeight: '800' },
-  stopBtn: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 30, borderRadius: 16, borderWidth: 1 },
-  stopBtnText: { fontSize: 14, fontWeight: '700' },
   instr: { fontSize: 15, fontWeight: '600', textAlign: 'center', minHeight: 40, paddingHorizontal: 8 },
   stage: { borderRadius: 16, borderWidth: 2, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', gap: 10 },
   palmHint: { color: '#374151', fontSize: 14, fontWeight: '600' },
