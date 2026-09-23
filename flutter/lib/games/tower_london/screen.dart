@@ -159,7 +159,7 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     final rounds = _set!.rounds;
 
     return GameShell(
-      title: 'Лондонская башня',
+      title: 'Башня Лондона',
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Задача', value: '$_round/$rounds', icon: Icons.repeat),

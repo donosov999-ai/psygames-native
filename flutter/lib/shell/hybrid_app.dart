@@ -15,7 +15,9 @@ import '../games/sort_tubes/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
 import '../games/one_line/screen.dart';
+import '../games/sorting_hub/screen.dart';
 import 'asset_server.dart';
+import 'hub_screen.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
 
@@ -49,17 +51,25 @@ class HybridApp extends StatefulWidget {
         '/games/simon': (s) => SimonScreen(state: s),
         '/games/goods-sort': (s) => GoodsSortScreen(state: s),
       '/games/water-sort': (s) => SortTubesScreen(
-            state: s, gameId: 'water_sort', title: 'Переливалка', skin: TubeSkin.water),
+            state: s, gameId: 'water_sort', title: 'Пробирки', skin: TubeSkin.water),
       '/games/ball-sort': (s) => SortTubesScreen(
             state: s, gameId: 'ball_sort', title: 'Сортировка шариков', skin: TubeSkin.balls),
       '/games/nut-sort': (s) => SortTubesScreen(
             state: s, gameId: 'nut_sort', title: 'Сортировка гаек', skin: TubeSkin.nuts),
       '/games/cake-sort': (s) => CakeSortScreen(
-            state: s, gameId: 'cake_sort', title: 'Сортировка тортов', skin: CakeSkin.cake),
+            state: s, gameId: 'cake_sort', title: 'Торты', skin: CakeSkin.cake),
       '/games/pizza-sort': (s) => CakeSortScreen(
-            state: s, gameId: 'pizza_sort', title: 'Сортировка пиццы', skin: CakeSkin.pizza),
+            state: s, gameId: 'pizza_sort', title: 'Пицца', skin: CakeSkin.pizza),
       '/games/hanoi': (s) => HanoiScreen(state: s),
       '/games/tower-london': (s) => TowerLondonScreen(state: s),
+        /*
+         * 🔴 РАЗВИЛКА ТОЖЕ ПЕРЕХВАТЫВАЕТСЯ. Она ведёт на восемь игр, из которых
+         * все восемь уже нативные: оставь её в вебе — и каждый заход в игру шёл
+         * бы через веб-страницу, которую мы всё равно перехватим кадром позже.
+         * Какую игру чем открыть, решает оболочка (см. `_openNative`), а не хаб.
+         */
+        '/games/sorting-hub': (s) =>
+            SortingHubScreen(state: s, isNative: native.containsKey),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
@@ -157,12 +167,24 @@ class _HybridAppState extends State<HybridApp> {
   Future<void> _openNative(String route) async {
     final build = HybridApp.native[route];
     if (build == null) return;
-    await Navigator.of(context).push(
+    final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => build(widget.state)),
     );
     // Вернулись из нативной игры — страница обязана перечитать прогресс,
     // иначе на карте уровней останется старое число.
     if (mounted) await _c.runJavaScript(widget.state.bootstrapJs());
+    /*
+     * 🔴 РАЗВИЛКА ВЕРНУЛА ВЫБРАННЫЙ МАРШРУТ. Перенесённую игру открываем
+     * нативно, остальные — в веб-половине: хаб про это ничего не знает и знать
+     * не должен, иначе он станет второй оболочкой.
+     */
+    if (!mounted || result is! HubCardTap) return;
+    final next = result.route;
+    if (HybridApp.native.containsKey(next)) {
+      await _openNative(next);
+    } else {
+      await _c.loadRequest(Uri.parse('${widget.server.origin}$next'));
+    }
   }
 
   @override

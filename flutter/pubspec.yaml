@@ -71,6 +71,7 @@ flutter:
   # реально попало в сборку, и краснеет на пропущенном каталоге.
   assets:
     - assets/levels/
+    - assets/hubs.json
     - assets/words/
     - assets/goods/
     - assets/tubes/
