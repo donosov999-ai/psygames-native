@@ -40,6 +40,7 @@ import 'asset_server.dart';
 import 'l10n.dart';
 import '../games/sorting_hub/screen.dart';
 import 'hub_screen.dart';
+import 'session_report.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
 
@@ -185,6 +186,17 @@ class _HybridAppState extends State<HybridApp> {
   @override
   void initState() {
     super.initState();
+    // 🔴 ПРИЁМНИК ПАРТИЙ. Перенесённая игра не хранит партию сама — она отдаёт
+    // результат сюда, а здесь он уходит в ТУ ЖЕ `saveSession` веб-половины,
+    // которую зовёт непереносённая игра. Одна реализация на обе половины:
+    // вторая разошлась бы с первой молча (см. SessionReport).
+    //
+    // ⚠️ Страница может быть ещё не готова — например, человек открыл нативный
+    // экран сразу со старта. Веб-сторона на этот случай копит отчёты в очередь
+    // и разбирает её, когда регистрирует приёмник; здесь просто отдаём.
+    SessionReport.sink = (json) async {
+      await _c.runJavaScript('window.__psySaveSession && window.__psySaveSession($json);');
+    };
     _c = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
@@ -240,6 +252,7 @@ class _HybridAppState extends State<HybridApp> {
 
   @override
   void dispose() {
+    SessionReport.sink = null;
     // Хук снимается вместе с хостом: оставленный, он звал бы мёртвый WebView.
     if (HybridApp.open == _open) HybridApp.open = null;
     super.dispose();
