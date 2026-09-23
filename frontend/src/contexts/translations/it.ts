@@ -47,6 +47,7 @@ const t: Record<string, string> = {
   "fractalPortal": "Portale",
   "fractalPortals": "Portali",
   "fractalPortalGo": "Vai alla griglia",
+  "fractalToMap": "Alla mappa",
   "fractalPortalHint": "Una casella cerchiata è una sola e medesima casella in due griglie insieme. Nessuna delle due rivela la cifra da sola: restringi i candidati qui, restringili là, e la risposta è ciò che entrambe ammettono.",
   "fractalRedDigit": "Una cifra rossa è un errore: la stessa è già in quella riga, colonna o riquadro. Resta sulla griglia così vedi cosa correggere.",
   "fractalSolutionAskChild": "Mostrare la soluzione di questa griglia inferiore? Il livello non conterà per questa partita, ma non scenderà neppure.",

@@ -47,6 +47,7 @@ const t: Record<string, string> = {
   "fractalPortal": "ポータル",
   "fractalPortals": "ポータル",
   "fractalPortalGo": "盤面へ移動",
+  "fractalToMap": "マップへ",
   "fractalPortalHint": "輪の付いたマスは、二つの盤面に同時に存在する同じマスです。どちらの盤面も単独では数字を決められません。こちらで候補を絞り、あちらでも絞る——両方が許す数字が答えです。",
   "fractalRedDigit": "赤い数字は誤りです。同じ数字がその行・列・ブロックにすでにあります。どこを直すか分かるよう、そのまま残ります。",
   "fractalSolutionAskChild": "この下のグリッドの答えを表示しますか？ このゲームのレベルは加算されませんが、下がることもありません。",

@@ -43,7 +43,7 @@
  * (fractal-sudoku.ts, playDigit/revertMove).
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -957,6 +957,16 @@ export default function FractalSudokuScreen() {
    * Счётчик пометок, живший подписью, стал цифрой-бейджем на иконке карандаша.
    */
   const written = countPencilMarks(openChild !== null ? marks.children[openChild] : marks.root);
+  /**
+   * 🔴 ПОДЪЁМ НАВЕРХ — СВОИМ ЗНАЧКОМ, А НЕ ТОЛЬКО СТРЕЛКОЙ КАРКАСА.
+   *
+   * Отзыв Дениса `af047c78` (iPhone 403×873, v2.54.22): «Как выйти на уровень обратно
+   * фракталы». Подъём был и раньше, но единственной дверью служила стрелка «назад» в шапке,
+   * а она во ВСЕХ остальных играх значит «выйти из игры» — её не трогают, боясь потерять
+   * партию. Теперь то же действие стоит значком в ряду служебных и открыто нажатием на
+   * мини-карту «где я сейчас»: человек искал выход именно там.
+   */
+  const наКарту = () => { setOpenChild(null); setSelected(null); setPhase('map'); };
   const actions = (
     /**
      * 🔴 ЗНАЧКИ КАРКАСА, А НЕ СВОИ КНОПКИ (правило Дениса 17.09.2026, задача ede4f9fa).
@@ -965,6 +975,14 @@ export default function FractalSudokuScreen() {
      * Счётчик пометок был бейджем на углу значка, стал `count` — числом внутри значка, как везде.
      */
     <GameAuxBar>
+      {/* Только внутри нижней сетки: на карте подниматься некуда. */}
+      {openChild !== null ? (
+        <GameAuxAction
+          icon="grid-outline"
+          label={t('fractalToMap')}
+          onPress={наКарту}
+        />
+      ) : null}
       <GameAuxAction
         icon="arrow-undo"
         ladder="undo"
@@ -1291,7 +1309,13 @@ export default function FractalSudokuScreen() {
    * «блок корня ↔ дочерняя» тут не метафора, а само устройство игры (rootCellForChild).
    */
   const miniMap = (active: number) => (
-    <View style={[styles.mini, { borderColor: colors.border }]} testID="fractal-minimap">
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={t('fractalToMap')}
+      onPress={наКарту}
+      style={[styles.mini, { borderColor: colors.border }]}
+      testID="fractal-minimap"
+    >
       {Array.from({ length: N }, (_, r) => (
         <View key={r} style={styles.miniRow}>
           {Array.from({ length: N }, (_, c) => {
@@ -1316,7 +1340,7 @@ export default function FractalSudokuScreen() {
           })}
         </View>
       ))}
-    </View>
+    </Pressable>
   );
 
   // ── СЕТКА: одна дочерняя во весь экран ──

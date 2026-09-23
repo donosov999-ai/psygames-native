@@ -606,6 +606,7 @@ const t: Record<string, string> = {
   "fractalPortal": "Portal",
   "fractalPortals": "Portais",
   "fractalPortalGo": "Ir para a grade",
+  "fractalToMap": "Para o mapa",
   "fractalPortalHint": "Uma célula com anel é a mesma célula em duas grades ao mesmo tempo. Nenhuma delas revela o dígito sozinha: reduza os candidatos aqui, reduza-os ali, e a resposta é o que ambas permitem.",
   "fractalRedDigit": "Um algarismo vermelho é um erro: o mesmo já está nessa linha, coluna ou quadrado. Ele permanece no tabuleiro para que você veja o que corrigir.",
   "fractalSolutionAskChild": "Mostrar a solução desta grade inferior? O nível não contará nesta partida, mas também não vai cair.",
