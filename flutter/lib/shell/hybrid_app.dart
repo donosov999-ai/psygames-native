@@ -8,6 +8,7 @@ import '../games/choice_rt/screen.dart';
 import '../games/flanker/screen.dart';
 import '../games/gonogo/screen.dart';
 import '../games/inhibition/screen.dart';
+import '../games/iowa/screen.dart';
 import '../games/posner/screen.dart';
 import '../games/simon/screen.dart';
 import '../games/stop_signal/screen.dart';
@@ -155,6 +156,7 @@ class HybridApp extends StatefulWidget {
         '/games/memory-palace': (s) => MemoryPalaceScreen(state: s),
         '/games/rmet': (s) => RmetScreen(state: s),
         '/games/ant': (s) => AntScreen(state: s),
+        '/games/iowa': (s) => IowaScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.

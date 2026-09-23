@@ -1,0 +1,190 @@
+{
+ "снято": "прогоном живого TS из frontend/app/games/iowa.tsx (VER 2, origin/main); схема колод перенесена вербатим и сверена нетто",
+ "maxLevel": 15,
+ "win": {
+  "A": 100,
+  "B": 100,
+  "C": 50,
+  "D": 50
+ },
+ "lossPattern": {
+  "A": [
+   -150,
+   0,
+   -300,
+   0,
+   -200,
+   0,
+   -250,
+   -350,
+   0,
+   0
+  ],
+  "B": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   -1250,
+   0,
+   0,
+   0,
+   0
+  ],
+  "C": [
+   0,
+   -50,
+   0,
+   -50,
+   0,
+   -50,
+   0,
+   -50,
+   0,
+   -50
+  ],
+  "D": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   -250
+  ]
+ },
+ "нетто за 10 карт": {
+  "A": -250,
+  "B": -250,
+  "C": 250,
+  "D": 250
+ },
+ "карт с потерей из 10": {
+  "A": 5,
+  "B": 1,
+  "C": 5,
+  "D": 1
+ },
+ "граничные уровни levelParams": {
+  "0": {
+   "feedbackDelayMs": 0
+  },
+  "16": {
+   "feedbackDelayMs": 700
+  },
+  "100": {
+   "feedbackDelayMs": 700
+  }
+ },
+ "levels": [
+  {
+   "level": 1,
+   "feedbackDelayMs": 0,
+   "condition": {
+    "feedbackDelayMs": 0
+   }
+  },
+  {
+   "level": 2,
+   "feedbackDelayMs": 50,
+   "condition": {
+    "feedbackDelayMs": 50
+   }
+  },
+  {
+   "level": 3,
+   "feedbackDelayMs": 100,
+   "condition": {
+    "feedbackDelayMs": 100
+   }
+  },
+  {
+   "level": 4,
+   "feedbackDelayMs": 150,
+   "condition": {
+    "feedbackDelayMs": 150
+   }
+  },
+  {
+   "level": 5,
+   "feedbackDelayMs": 200,
+   "condition": {
+    "feedbackDelayMs": 200
+   }
+  },
+  {
+   "level": 6,
+   "feedbackDelayMs": 250,
+   "condition": {
+    "feedbackDelayMs": 250
+   }
+  },
+  {
+   "level": 7,
+   "feedbackDelayMs": 300,
+   "condition": {
+    "feedbackDelayMs": 300
+   }
+  },
+  {
+   "level": 8,
+   "feedbackDelayMs": 350,
+   "condition": {
+    "feedbackDelayMs": 350
+   }
+  },
+  {
+   "level": 9,
+   "feedbackDelayMs": 400,
+   "condition": {
+    "feedbackDelayMs": 400
+   }
+  },
+  {
+   "level": 10,
+   "feedbackDelayMs": 450,
+   "condition": {
+    "feedbackDelayMs": 450
+   }
+  },
+  {
+   "level": 11,
+   "feedbackDelayMs": 500,
+   "condition": {
+    "feedbackDelayMs": 500
+   }
+  },
+  {
+   "level": 12,
+   "feedbackDelayMs": 550,
+   "condition": {
+    "feedbackDelayMs": 550
+   }
+  },
+  {
+   "level": 13,
+   "feedbackDelayMs": 600,
+   "condition": {
+    "feedbackDelayMs": 600
+   }
+  },
+  {
+   "level": 14,
+   "feedbackDelayMs": 650,
+   "condition": {
+    "feedbackDelayMs": 650
+   }
+  },
+  {
+   "level": 15,
+   "feedbackDelayMs": 700,
+   "condition": {
+    "feedbackDelayMs": 700
+   }
+  }
+ ]
+}

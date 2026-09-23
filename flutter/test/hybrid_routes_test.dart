@@ -73,6 +73,7 @@ void main() {
       '$origin/games/memory-palace',
       '$origin/games/rmet',
       '$origin/games/ant',
+      '$origin/games/iowa',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -155,6 +156,7 @@ void main() {
       '/games/goods-sort',
       '/games/hanoi',
       '/games/inhibition',
+      '/games/iowa',
       '/games/mahjong',
       '/games/math-slider',
       '/games/math-sprint',
