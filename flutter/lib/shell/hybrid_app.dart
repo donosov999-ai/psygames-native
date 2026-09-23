@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import '../games/deep/screen.dart';
+
 import '../games/digit_span/screen.dart';
-import '../games/dots_connect/screen.dart';
+import '../games/choice_rt/screen.dart';
 import '../games/flanker/screen.dart';
-import '../games/fractal/screen.dart';
 import '../games/gonogo/screen.dart';
+import '../games/simon/screen.dart';
+import '../games/stop_signal/screen.dart';
+import '../games/dots_connect/screen.dart';
+import '../games/memory_matrix/screen.dart';
+import '../games/stroop/screen.dart';
+import '../games/one_line/screen.dart';
+import '../games/deep/screen.dart';
+import '../games/fractal/screen.dart';
 import '../games/goods_sort/screen.dart';
 import '../games/sort_tubes/board.dart' show TubeSkin;
 import '../games/cake_sort/board.dart' show CakeSkin;
@@ -13,15 +20,11 @@ import '../games/cake_sort/screen.dart';
 import '../games/hanoi/screen.dart';
 import '../games/tower_london/screen.dart';
 import '../games/sort_tubes/screen.dart';
-import '../games/memory_matrix/screen.dart';
 import '../games/mental_rotation/screen.dart';
-import '../games/one_line/screen.dart';
 import '../games/samurai/screen.dart';
-import '../games/simon/screen.dart';
 import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
 import '../games/spatial_span/screen.dart';
-import '../games/stroop/screen.dart';
 import '../games/sudoku/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
@@ -91,6 +94,8 @@ class HybridApp extends StatefulWidget {
          */
         '/games/sorting-hub': (s) =>
             SortingHubScreen(state: s, isNative: native.containsKey),
+        '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
+        '/games/stop-signal': (s) => StopSignalScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.

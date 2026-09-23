@@ -42,6 +42,8 @@ void main() {
       '$origin/games/hanoi',
       '$origin/games/tower-london',
       '$origin/games/sorting-hub',
+      '$origin/games/choice-rt',
+      '$origin/games/stop-signal',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -118,6 +120,7 @@ void main() {
       '/games/sudoku-samurai',
       '/games/tower-london',
       '/games/water-sort',
+      '/games/choice-rt', '/games/stop-signal',
     });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
