@@ -40,6 +40,7 @@ void main() {
   ///
   /// Принято: 23.09 — ядро, внимание, слова (160); 23.09 — судоку и головоломки (+124);
   /// 23.09 — «Жми и держись» (+19), в тот же день раздел перевёл его сам (−19).
+  /// 23.09 — служебные сообщения выведены из счёта, числа пересчитаны методом гейта.
   ///
   /// Долг на 23.09.2026, пофайлово. МЕНЯТЬ ТОЛЬКО В МЕНЬШУЮ СТОРОНУ.
   ///
@@ -48,10 +49,6 @@ void main() {
   const debt = <String, int>{
     'games/puzzles/ladder.dart': 40,
     'games/sudoku/screen.dart': 31,
-    // 23.09.2026: три экрана «Конфликта внимания» переведены на L.t() теми же ключами,
-    // что зовёт их веб-версия, и ушли из долга целиком (22 + 22 + 21 = 65).
-    // Осталась stroop/model.dart: там русские СЛОВА-СТИМУЛЫ (КРАСНЫЙ, СИНИЙ…), и в самой
-    // веб-версии они тоже лежат парой ru/en прямо в коде — это материал пробы, а не подпись.
     'main.dart': 16,
     'games/samurai/screen.dart': 14,
     'games/fractal/screen.dart': 13,
@@ -63,16 +60,14 @@ void main() {
     'games/dots_connect/screen.dart': 10,
     'games/anagrams/all_words_screen.dart': 9,
     'games/stroop/model.dart': 8,
-    'shell/tap_latency.dart': 5,
     'shell/game_shell.dart': 4,
+    'shell/tap_latency.dart': 4,
     'shell/web_game_screen.dart': 4,
     'shell/hybrid_app.dart': 3,
-    'games/deep/tree.dart': 2,
-    'shell/asset_server.dart': 1,
   };
 
   // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите.
-  const total = 219;
+  const total = 215;
 
   final counts = _scan(Directory('lib'));
 
@@ -108,18 +103,37 @@ void main() {
   });
 }
 
-/// Считает ровно так же, как замер, давший числа выше: комментарии вырезаются
-/// ДО поиска, ключи виджетов не в счёт.
+/// Считает ровно так же, как замер, давший числа выше.
+///
+/// ⚠️ ЧТО НЕ СЧИТАЕТСЯ И ПОЧЕМУ. Гейт заявляет «зашитый текст ИНТЕРФЕЙСА», значит
+/// и считать он обязан то, что видит игрок. Поэтому из счёта вынуты:
+///   · комментарии — вырезаются ДО поиска (иначе русское пояснение рядом с
+///     переведённой строкой читается как нарушение);
+///   · `Key('…')` — ключи виджетов, их видит только проба (это отдельная беда,
+///     кириллица в именах, и чинится она отдельно);
+///   · `throw`, `assert`, `debugPrint`, `print` — сообщения РАЗРАБОТЧИКУ. Они
+///     обязаны быть внятными на языке того, кто чинит, и в словарь им не место.
+///
+/// 🔴 Уточнение внесено 23.09.2026 после того, как гейт покраснел на строке
+/// `throw ArgumentError('на настольной сборке нужен путь к …')` — на сообщении,
+/// которое игрок не увидит никогда. Гейт, считающий не то, что заявляет, рано
+/// или поздно требует переводить служебные строки, и его перестают читать.
+/// Числа выше пересчитаны этим же методом, а не подогнаны.
 Map<String, int> _scan(Directory root) {
   final out = <String, int>{};
   final lineComment = RegExp(r'//.*');
   final blockComment = RegExp(r'/\*.*?\*/', dotAll: true);
   final keyLiteral = RegExp(r"Key\(\s*'[^'\n]*[А-Яа-яЁё][^'\n]*'\s*\)");
+  final devMessage = RegExp(
+      r"(throw\s+\w+\(|assert\(|debugPrint\(|[^.\w]print\()[^;]*?'[^'\n]*[А-Яа-яЁё][^'\n]*'",
+      dotAll: true);
   final anyLiteral = RegExp(r"'[^'\n]*[А-Яа-яЁё][^'\n]*'");
   for (final f in root.listSync(recursive: true).whereType<File>()) {
     if (!f.path.endsWith('.dart')) continue;
     var src = f.readAsStringSync().replaceAll(blockComment, '').replaceAll(lineComment, '');
-    final n = anyLiteral.allMatches(src).length - keyLiteral.allMatches(src).length;
+    var n = anyLiteral.allMatches(src).length -
+        keyLiteral.allMatches(src).length -
+        devMessage.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length);
     if (n > 0) out[f.path.replaceFirst('lib/', '')] = n;
   }
   return out;
