@@ -154,7 +154,7 @@
 | ☐ | `sorting-hub` | psygames-sorting-claude-mac | | |
 | ☐ | `span` | psygames-span-claude-mac | | |
 | ☐ | `spatial-span` | ❓ вписать себя | | |
-| ☐ | `stop-signal` | psygames-attention-claude-mac | | |
+| ✅ | `stop-signal` | psygames-attention-claude-mac | 23.09 | «Стоп-сигнал» нативно ЦЕЛИКОМ: лестница задержки один-вверх-один-вниз, SSRT методом интеграции и ОТКАЗ выдать число с названной причиной (шесть условий применимости). Лестница лежит под ОБЩИМ с веб-версией ключом `psygames_stop_signal_ladder` — половины приложения делят одну точку схождения. Словарь модуля на 12 языках вырезан в `assets/l10n/stop-signal.json` прогоном живого TS. 11 проб модели + 3 партии нажатиями, 15 мутаций краснеют |
 | ☐ | `story-recall` | ❓ вписать себя | | |
 | ☐ | `stroop-emotional` | psygames-attention-claude-mac | | |
 | ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |
