@@ -35,6 +35,7 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GradientSurface from '@/src/components/GradientSurface';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import DropdownSelect from '@/src/components/DropdownSelect';
+import { GameAuxAction } from '@/src/components/GameAuxAction';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -49,7 +50,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
-import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
+import ScholarsMateGame, { type ScholarsServiceRow } from '@/src/games/scholars-mate/ScholarsMateGame';
 import { КЛЮЧ_ВИДА, LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, mixedMotifCount, namedMotifCount, newMotifAt, видыРежима, подписиВидов } from '@/src/games/scholars-mate/core/deck';
 import { звёздыПодхода, ступеньПоМедиане, порогУровня, допускПромахов } from '@/src/games/scholars-mate/core/run';
 import { levelOutcome } from '@/src/services/levelOutcome';
@@ -103,6 +104,8 @@ export default function ScholarsMateScreen() {
   const [phase, setPhase] = React.useState<Phase>('config');
   const [last, setLast] = React.useState<ScholarsResult | null>(null);
   const [clearedPassed, setClearedPassed] = React.useState(false);
+  /** Состояние служебного действия, поднятое модулем: что показать в ряду каркаса. */
+  const [служебное, setСлужебное] = React.useState<ScholarsServiceRow | null>(null);
   const [armed, setArmed] = React.useState(false);
   const [attempt, setAttempt] = React.useState(0);
   /**
@@ -360,6 +363,22 @@ export default function ScholarsMateScreen() {
         onBack={() => setPhase('config')}
         confirmExit={armed}
         /**
+         * Подсказка — в ОДИН ряд с «Заново», который каркас берёт из пункта паузы.
+         * Пока её нет (первая половина времени, вопрос про угрозу, вердикт), в ряду
+         * остаётся только «Заново»: место под значок не резервируется, чтобы доска не
+         * прыгала.
+         */
+        headerActions={служебное?.hint.visible ? (
+          <GameAuxAction
+            compact
+            icon="bulb-outline"
+            tint={GRADIENT[0]}
+            label={служебное.hint.used ? служебное.hint.label : `${служебное.hint.label} −1⭐`}
+            disabled={служебное.hint.used}
+            onPress={служебное.hint.onPress}
+          />
+        ) : undefined}
+        /**
          * 🔴 МЕНЮ ПАУЗЫ (выпуск 2.52.2). Стрелка больше не выкидывает из партии
          * одним касанием: часы встают, дальше выбор.
          *
@@ -396,6 +415,16 @@ export default function ScholarsMateScreen() {
           onlyKind={режим ?? undefined}
           namedMotif={узор ?? undefined}
           mixedMotifs={микс}
+          /**
+            * 🔴 СЛУЖЕБНОЕ — ЗНАЧКОМ В ОБЩИЙ РЯД КАРКАСА (решение Дениса 17.09.2026, задача 5f6a909d).
+            * Было: своя текстовая кнопка «Подсказка −1⭐» внутри модуля.
+            * ⚠️ Свой ряд под доской я сначала и сделал — и кадр показал ДВА ряда: подсказка на
+            * высоте 650, «Заново» от каркаса на 791. Правило говорит про один ряд, поэтому
+            * состояние уходит наверх, а значок встаёт рядом с «Заново» в `headerActions`.
+            * Правила самой подсказки не изменились: до половины времени и на вопросе «грозит
+            * ли мат» её нет вовсе, это по-прежнему решает модуль.
+            */
+          onServiceState={setСлужебное}
           size={сторона}
           now={gameNow}
           theme={{

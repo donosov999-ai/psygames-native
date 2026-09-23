@@ -44,6 +44,22 @@ function расставить(fen: string): (string | null)[] {
 
 const имяКлетки = (i: number) => `${БУКВЫ[i % 8]}${8 - Math.floor(i / 8)}`;
 
+/**
+ * СОСТОЯНИЕ СЛУЖЕБНОГО РЯДА, который рисует экран значками каркаса.
+ * Модуль не знает ни про значки, ни про ряд: он знает, можно ли сейчас подсказать.
+ */
+export type ScholarsServiceRow = {
+  hint: {
+    /** Показывать ли действие: не раньше половины времени и не на вопросе «грозит ли мат». */
+    visible: boolean;
+    /** Подсказку в этой позиции уже взяли — цена уплачена, второй раз не берут. */
+    used: boolean;
+    /** Уже переведённая подпись: «Подсказка» или «Подсказка использована». */
+    label: string;
+    onPress: () => void;
+  };
+};
+
 export interface ScholarsMateGameProps {
   level: number;
   seed?: number;
@@ -65,6 +81,13 @@ export interface ScholarsMateGameProps {
   motifName?: (motif: string) => string;
   /** Играть только одним видом заданий — так устроен режим «Мат с жертвой». */
   onlyKind?: 'mate' | 'defend' | 'threat' | 'fromGames' | 'sacrifice';
+  /**
+    * Состояние служебного действия наверх, экрану: он кладёт значок в ОБЩИЙ ряд каркаса,
+    * где уже стоит «Заново». Рисовать свой ряд под доской нельзя — их станет два, а
+    * решение Дениса 17.09 говорит про один ряд значков под полем (замер 23.09: свой ряд
+    * вставал на 650, каркасный на 791, между ними 141 px пустоты).
+    */
+  onServiceState?: (row: ScholarsServiceRow) => void;
   /** Отрабатывать один именованный узор (выпадающий список на экране настройки). */
   namedMotif?: string;
   /**
@@ -88,7 +111,7 @@ export interface ScholarsMateGameProps {
 
 export default function ScholarsMateGame({
   level, seed = 1, size, theme, now, onComplete, onProgress, labels, flowMs, motifName, onlyKind, namedMotif,
-  mixedMotifs,
+  mixedMotifs, onServiceState,
 }: ScholarsMateGameProps) {
   const п = React.useMemo(() => levelParams(level), [level]);
   /**
@@ -336,6 +359,41 @@ export default function ScholarsMateGame({
     [задача],
   );
 
+  /**
+   * ПОДСКАЗКА: ДЕЙСТВИЕ И ЕГО СОСТОЯНИЕ — ДО РАННЕГО ВЫХОДА.
+   *
+   * ⚠️ Хуки не ставятся после `if (!задача) return null` — их число обязано совпадать на
+   * каждом кадре (React #310). Первая редакция этого блока стояла ниже, и линт поймал сразу
+   * две вещи: хук после выхода и запись в ссылку во время отрисовки.
+   *
+   * Ссылка на действие обновляется эффектом, как соседний `дальшеRef`: обработчик живёт у
+   * экрана дольше одного кадра, и замыкание в нём успевает устареть.
+   */
+  const взятьПодсказку = React.useCallback(() => {
+    const первый = задача?.solutions?.[0];
+    // Проверка по ССЫЛКЕ, а не по состоянию: второе нажатие иначе проходит насквозь и
+    // удваивает счёт подсказок подхода (поймано пробой 23.09.2026).
+    if (!первый || подсказкаRef.current !== null) return;
+    подсказокЗаПодход.current += 1;
+    подсказкаRef.current = первый.slice(0, 2);
+    setПодсказкаПоле(первый.slice(0, 2));
+  }, [задача]);
+
+  const виднаПодсказка = Boolean(задача) && !вердикт && задача?.kind !== 'threat'
+    && осталось <= п.seconds / 2;
+  const взятаПодсказка = подсказкаПоле !== null;
+  const подписьПодсказки = взятаПодсказка ? labels.hintUsed : labels.hint;
+  React.useEffect(() => {
+    onServiceState?.({
+      hint: {
+        visible: виднаПодсказка,
+        used: взятаПодсказка,
+        label: подписьПодсказки,
+        onPress: взятьПодсказку,
+      },
+    });
+  }, [виднаПодсказка, взятаПодсказка, подписьПодсказки, взятьПодсказку, onServiceState]);
+
   if (!задача) return null;
 
   const тап = (имя: string) => {
@@ -398,6 +456,10 @@ export default function ScholarsMateGame({
     ? Array.from({ length: 64 }, (_, i) => i)
     : Array.from({ length: 64 }, (_, i) => 63 - i);
 
+  /**
+   * Взять подсказку: подсветить поле, с которого начинается решение, и записать
+   * её в счёт подхода. Второй раз в той же позиции не берётся — цена уже уплачена.
+   */
   const настоящийВопрос = задача.kind === 'defend' ? labels.defend
     : задача.kind === 'threat' ? labels.threat
     : задача.kind === 'sacrifice' ? labels.sacrifice
@@ -509,31 +571,17 @@ export default function ScholarsMateGame({
 
       {/*
         🔴 ПОДСКАЗКА ПОЯВЛЯЕТСЯ НА ПОЛОВИНЕ ВРЕМЕНИ И СТОИТ ЗВЕЗДЫ.
-        До половины кнопки нет нарочно: подсказка с первой секунды — это не помощь
+        До половины её нет нарочно: подсказка с первой секунды — это не помощь
         застрявшему, а способ играть. На вопросе «грозит ли мат» её нет вовсе:
         подсказывать там нечего, ответ и так двоичный.
+
+        🔴 РИСУЕТ ЕЁ ЭКРАН, ЗНАЧКОМ В РЯД ПОД ПОЛЕМ (решение Дениса 17.09.2026:
+        «служебное — значками одним рядом под полем»). Модуль отдаёт только
+        СОСТОЯНИЕ: видно ли действие, взято ли оно и что произойдёт по нажатию, —
+        так же устроены «Точки» и «Одна линия» (`renderServiceRow`, 9fc81076).
+        Своей кнопки у модуля больше нет: две разметки одного действия разъезжаются.
       */}
-      {!вердикт && задача.kind !== 'threat' && осталось <= п.seconds / 2 ? (
-        <View style={стили.кнопки}>
-          {подсказкаПоле ? (
-            <Text style={[стили.кнопкаТекст, { color: theme.textSecondary }]}>{labels.hintUsed}</Text>
-          ) : (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={labels.hint}
-              onPress={() => {
-                const первый = задача.solutions?.[0];
-                if (!первый) return;
-                подсказокЗаПодход.current += 1;
-                setПодсказкаПоле(первый.slice(0, 2));
-              }}
-              style={[стили.кнопка, { borderColor: theme.border, backgroundColor: theme.surface }]}
-            >
-              <Text style={[стили.кнопкаТекст, { color: theme.text }]}>{labels.hint} −1⭐</Text>
-            </Pressable>
-          )}
-        </View>
-      ) : null}
+
 
       {задача.kind === 'threat' ? (
         <View style={стили.кнопки}>

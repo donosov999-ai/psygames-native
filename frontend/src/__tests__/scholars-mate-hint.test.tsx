@@ -82,9 +82,17 @@ jest.mock('@/src/contexts/ProfileContext', () => ({
 jest.mock('@/src/contexts/LanguageContext', () => ({
   useLanguage: () => ({ t: (k: string) => `${k}·т`, language: 'ru' }),
 }));
+/**
+ * ⚠️ ПОДДЕЛКА КАРКАСА РИСУЕТ `headerActions`. Настоящий каркас ставит их рядом значков под
+ * полем; подделка, которая их выбрасывает, сделала бы пробу слепой ровно к тому, что экран
+ * туда кладёт, — и «подсказка есть» зеленело бы при любом коде.
+ */
 jest.mock('@/src/components/GameShell', () => {
   const R = require('react'); const { View } = require('react-native');
-  return { __esModule: true, default: ({ children }: any) => R.createElement(View, null, children) };
+  return {
+    __esModule: true,
+    default: ({ children, headerActions }: any) => R.createElement(View, null, headerActions ?? null, children),
+  };
 });
 jest.mock('@/src/components/GradientSurface', () => {
   const R = require('react'); const { View } = require('react-native');
@@ -121,10 +129,16 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
+/**
+ * Подпись кнопки без хвостов. С 23.09.2026 подсказка живёт значком в ряду под полем
+ * (GameAuxAction), и цена приписана к подписи: «Подсказка −1⭐». Требование пробы не
+ * изменилось — изменился путь к кнопке, поэтому подпись режется до слова.
+ */
+const подпись = (n: any) => String(n.props?.accessibilityLabel ?? '').split(',')[0]!.split(' −')[0]!.trim();
+
 function нажать(tree: any, метка: string) {
   const у = tree.root.findAll(
-    (n: any) => typeof n.props?.onPress === 'function'
-      && String(n.props.accessibilityLabel ?? '').split(',')[0] === метка,
+    (n: any) => typeof n.props?.onPress === 'function' && подпись(n) === метка,
     { deep: true },
   )[0];
   if (!у) throw new Error(`нет кнопки «${метка}»`);
@@ -132,8 +146,8 @@ function нажать(tree: any, метка: string) {
 }
 
 const естьКнопка = (tree: any, метка: string) => tree.root.findAll(
-  (n: any) => typeof n.props?.onPress === 'function'
-    && String(n.props.accessibilityLabel ?? '').split(',')[0] === метка,
+  (n: any) => typeof n.props?.onPress === 'function' && подпись(n) === метка
+    && n.props?.disabled !== true,
   { deep: true },
 ).length > 0;
 
@@ -222,6 +236,7 @@ describe('«Детский мат»: подсказка застрявшему �
 describe('«Детский мат»: подсказка отмечена в той позиции, где её взяли', () => {
   it('🔴 hinted стоит там, где нажимали, и не стоит там, где нет', () => {
     let итог: any = null;
+    let служебное: any = null;
     let tree: any;
     TestRenderer.act(() => {
       tree = TestRenderer.create(React.createElement(ScholarsMateGame as any, {
@@ -234,20 +249,22 @@ describe('«Детский мат»: подсказка отмечена в то
           yes: 'да', no: 'нет', best: 'лучше', timeUp: 'время', sec: 'с',
           hint: 'подсказка', hintUsed: 'использована',
         },
+        /**
+         * ⚠️ ПОСЫЛКА ИЗМЕНИЛАСЬ 23.09.2026, И ЭТО НЕ ПОСЛАБЛЕНИЕ. Своей кнопки у модуля
+         * больше нет: он отдаёт состояние наверх, а значок рисует экран в ряду каркаса
+         * (решение Дениса 17.09). Проба ловит это состояние и нажимает то же действие —
+         * требование прежнее: подсказка отмечается в той позиции, где её взяли.
+         */
+        onServiceState: (ряд: any) => { служебное = ряд; },
       }));
       mounted.push(tree);
     });
 
-    const кнопка = (метка: string) => tree.root.findAll(
-      (n: any) => typeof n.props?.onPress === 'function'
-        && String(n.props.accessibilityLabel ?? '') === метка, { deep: true },
-    )[0];
-
     // Первая позиция: доживаем до половины, берём подсказку, дальше молчим до таймаута.
     TestRenderer.act(() => { mockЧасы.t += 11_000; jest.advanceTimersByTime(11_000); });
-    expect(`кнопка подсказки на первой позиции: ${!!кнопка('подсказка')}`)
-      .toBe('кнопка подсказки на первой позиции: true');
-    TestRenderer.act(() => { кнопка('подсказка').props.onPress(); });
+    expect(`подсказка предложена на первой позиции: ${!!служебное?.hint.visible}`)
+      .toBe('подсказка предложена на первой позиции: true');
+    TestRenderer.act(() => { служебное.hint.onPress(); });
 
     // Досиживаем все восемь позиций до таймаута — отвечать не нужно, нужен итог.
     for (let i = 0; i < 9; i += 1) {
@@ -260,5 +277,74 @@ describe('«Детский мат»: подсказка отмечена в то
     expect(`попыток с отмеченной подсказкой: ${сФлагом} (нажимали на одной)`)
       .toBe('попыток с отмеченной подсказкой: 1 (нажимали на одной)');
     expect(`подсказок в итоге подхода: ${итог.hints}`).toBe('подсказок в итоге подхода: 1');
+  });
+
+  /**
+   * Модуль напрямую, с рисовальщиком ряда — как его зовёт экран. Так проверяются правила
+   * самой подсказки, а не путь до кнопки.
+   */
+  function модуль(доп: Record<string, unknown> = {}) {
+    let итог: any = null;
+    let служебное: any = null;
+    let tree: any;
+    TestRenderer.act(() => {
+      tree = TestRenderer.create(React.createElement(ScholarsMateGame as any, {
+        level: 1, seed: 2, size: 390,
+        theme: { surface: '#fff', text: '#000', textSecondary: '#666', border: '#ccc', primary: '#07c', success: '#0a0', danger: '#a00' },
+        now: () => mockЧасы.t,
+        onComplete: (r: any) => { итог = r; },
+        labels: {
+          mate: 'мат', defend: 'защита', threat: 'угроза', sacrifice: 'жертва',
+          yes: 'да', no: 'нет', best: 'лучше', timeUp: 'время', sec: 'с',
+          hint: 'подсказка', hintUsed: 'использована',
+        },
+        onServiceState: (ряд: any) => { служебное = ряд; },
+        ...доп,
+      }));
+      mounted.push(tree);
+    });
+    /** Действие подсказки так, как его видит экран: есть ли оно и что делает нажатие. */
+    const действие = () => (служебное?.hint.visible ? служебное.hint : null);
+    return { tree, действие, итог: () => итог };
+  }
+
+  it('🔴 на вопросе «грозит ли мат» подсказки нет и во второй половине времени', () => {
+    /**
+     * Правило Дениса, записанное в задаче 5f6a909d: подсказывать там нечего, ответ
+     * двоичный. Мутацией 23.09.2026 выяснилось, что правило держалось только кодом: снимаешь
+     * условие — ни одна проба не краснеет. Вопрос ставится напрямую (`onlyKind`), иначе
+     * пришлось бы угадывать зерно, на котором угроза выпадет первой.
+     */
+    const угроза = модуль({ onlyKind: 'threat' });
+    TestRenderer.act(() => { mockЧасы.t += 11_000; jest.advanceTimersByTime(11_000); });
+    expect(`подсказка предложена на вопросе про угрозу: ${!!угроза.действие()}`)
+      .toBe('подсказка предложена на вопросе про угрозу: false');
+
+    // И это не потому, что подсказки нет вообще: на обычном вопросе она в этот же момент есть.
+    const обычный = модуль({ onlyKind: 'mate', seed: 3 });
+    TestRenderer.act(() => { mockЧасы.t += 11_000; jest.advanceTimersByTime(11_000); });
+    expect(`подсказка предложена на вопросе про мат: ${!!обычный.действие()}`)
+      .toBe('подсказка предложена на вопросе про мат: true');
+  });
+
+  it('🔴 подсказку в одной позиции нельзя взять дважды — цена уплачена один раз', () => {
+    /**
+     * Тоже находка мутации: защита «второй раз не берём» стояла в коде, а проба на неё
+     * отсутствовала. Без неё двойное нажатие молча удваивало бы счёт подсказок подхода, то
+     * есть цену звёзд.
+     */
+    const { действие, итог } = модуль();
+    TestRenderer.act(() => { mockЧасы.t += 11_000; jest.advanceTimersByTime(11_000); });
+    const взять = действие()!.onPress;
+    TestRenderer.act(() => { взять(); });
+    TestRenderer.act(() => { взять(); });
+
+    for (let i = 0; i < 9; i += 1) {
+      TestRenderer.act(() => { mockЧасы.t += 21_000; jest.advanceTimersByTime(21_000); });
+      TestRenderer.act(() => { mockЧасы.t += 2_000; jest.advanceTimersByTime(2_000); });
+    }
+    expect(`подход закончился: ${итог() !== null}`).toBe('подход закончился: true');
+    expect(`подсказок в итоге после двух нажатий: ${итог().hints}`)
+      .toBe('подсказок в итоге после двух нажатий: 1');
   });
 });
