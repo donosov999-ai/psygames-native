@@ -77,11 +77,20 @@ jobs:
         run: |
           BUILD="${{ github.run_number }}"
           sed -i '' "s/^version: .*/version: ${{ inputs.version }}+$BUILD/" flutter/pubspec.yaml
-          sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = pro\.psygames\.psygames_flutter;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" flutter/ios/Runner.xcodeproj/project.pbxproj
+          # ⚠️ В iOS-проекте идентификатор пишется pro.psygames.psygamesFlutter,
+          # а в Android — pro.psygames.psygames_flutter. Первый заход 23.09 искал
+          # второе написание, не заменил ничего, и упал на проверке ниже — она и
+          # спасла: без неё собралась бы сборка с чужим идентификатором.
+          sed -i '' "s/pro\.psygames\.psygamesFlutter/$BUNDLE_ID/g" flutter/ios/Runner.xcodeproj/project.pbxproj
           /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName PsyGames" flutter/ios/Runner/Info.plist 2>/dev/null \
             || /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string PsyGames" flutter/ios/Runner/Info.plist
           echo "версия ${{ inputs.version }}+$BUILD · идентификатор $BUNDLE_ID"
-          grep -c "$BUNDLE_ID" flutter/ios/Runner.xcodeproj/project.pbxproj
+          NEW=$(grep -c "PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;" flutter/ios/Runner.xcodeproj/project.pbxproj || true)
+          LEFT=$(grep -c "pro\.psygames" flutter/ios/Runner.xcodeproj/project.pbxproj || true)
+          echo "целей с боевым идентификатором: $NEW · осталось старых упоминаний: $LEFT"
+          if [ "$NEW" -lt 1 ] || [ "$LEFT" -ne 0 ]; then
+            echo "::error title=Идентификатор::подмена не прошла — собралась бы сборка с чужим идентификатором"; exit 1
+          fi
 
       - name: Разложить ключ API
         env:
