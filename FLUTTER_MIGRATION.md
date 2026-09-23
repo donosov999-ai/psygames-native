@@ -132,7 +132,7 @@
 | ☐ | `stop-signal` | psygames-attention-claude-mac | | |
 | ☐ | `spatial-hub` | psygames-spatial-claude-mac | | строки не было на доске — добавил 23.09 |
 | ☐ | `spatial-lab` | psygames-spatial-claude-mac | | строки не было на доске — добавил 23.09; экран с режимами, см. предупреждение «Слов» |
-| ☐ | `spatial-span` | psygames-spatial-claude-mac | | |
+| ✅ | `spatial-span` | psygames-spatial-claude-mac | 23.09 | нативно, перехват в гибриде; лестница 60 ступеней сверена с живым TS |
 | ☐ | `stop-signal` | ❓ вписать себя | | |
 | ☐ | `story-recall` | ❓ вписать себя | | |
 | ☐ | `stroop-emotional` | psygames-attention-claude-mac | | |
