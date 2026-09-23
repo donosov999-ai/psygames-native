@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
+import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// ПЕРЕХВАТ ПЕРЕНЕСЁННЫХ ИГР.
 ///
@@ -11,6 +13,7 @@ import 'package:psygames_flutter/shell/hybrid_app.dart';
 /// экран там, где уже есть новый, — и прогресс поедет двумя путями сразу.
 /// Ссылки приходят в разном виде: с расширением и без, с запросом и якорем.
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   test('🔴 перенесённые игры узнаются во всех видах ссылок', () {
     const origin = 'http://127.0.0.1:54321';
     for (final url in [
@@ -153,6 +156,14 @@ void main() {
     // означают, что кто-то проверяет устаревший, и проба краснеет на любой
     // следующей игре. Набор пересобирается из карты перехвата при вливании.
     expect(HybridApp.native.keys.toSet(), {
+      // 🔴 Анаграммы — ЧЕТЫРЕ игры за одним адресом; голый адрес ведёт на
+      // классику, как и на экране настройки. Все пять ключей появились одним
+      // заходом: один ключ без хвоста накрыл бы все режимы разом.
+      '/games/anagrams',
+      '/games/anagrams?mode=all',
+      '/games/anagrams?mode=classic',
+      '/games/anagrams?mode=cross',
+      '/games/anagrams?mode=square',
       '/games/ant',
       // 🔴 Сорок три адреса головоломок стоят здесь ПОИМЁННО, хотя карта их
       // генерирует. Это не дубль: генератор отвечает на «что собралось», а список
@@ -289,5 +300,34 @@ void main() {
       if (HybridApp.routeOf('https://app.local$decoded') == null) missed.add('$decoded (раскодированный)');
     }
     expect(missed, isEmpty);
+  });
+
+  test('🔴 у анаграмм КАЖДЫЙ режим ведёт на свой экран, а не все на классику', () async {
+    /*
+     * 📍 За `/games/anagrams` стоят четыре разные игры. Пока в карте был бы один
+     * ключ без хвоста, человек, выбравший кроссворд, получил бы классику — и ни
+     * одна проба этого не увидела бы: маршрут-то открывается. Поэтому сверяется
+     * не «узнаётся ли адрес», а КАКОЙ ЭКРАН за ним стоит.
+     */
+    SharedPreferences.setMockInitialValues({});
+    final state = await SharedState.open();
+    final cases = {
+      '/games/anagrams': 'AnagramsScreen',
+      '/games/anagrams?mode=classic': 'AnagramsScreen',
+      '/games/anagrams?mode=all': 'AllWordsScreen',
+      '/games/anagrams?mode=cross': 'CrosswordScreen',
+      '/games/anagrams?mode=square': 'RingScreen',
+    };
+    cases.forEach((url, want) {
+      final route = HybridApp.routeOf('https://psygames.app$url');
+      expect(route, isNotNull, reason: '$url не узнан');
+      final widget = HybridApp.native[route]!(state);
+      expect(widget.runtimeType.toString(), want, reason: '$url открывает не тот экран');
+    });
+
+    // И ссылка из веба с языком в хвосте тоже попадает в свой режим.
+    expect(HybridApp.routeOf('https://psygames.app/games/anagrams?lang=ru&mode=cross'),
+        anyOf('/games/anagrams?mode=cross', '/games/anagrams'),
+        reason: 'хвост с двумя параметрами не должен терять режим');
   });
 }

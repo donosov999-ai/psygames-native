@@ -24,6 +24,10 @@ import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
 import '../games/one_line/screen.dart';
+import '../games/anagrams/screen.dart';
+import '../games/anagrams/all_words_screen.dart';
+import '../games/anagrams/crossword_screen.dart';
+import '../games/anagrams/ring_screen.dart';
 import '../games/deep/screen.dart';
 import '../games/fractal/screen.dart';
 import '../games/goods_sort/screen.dart';
@@ -87,6 +91,21 @@ class HybridApp extends StatefulWidget {
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.
   static Map<String, Widget Function(SharedState)> get native => {
+        /*
+         * 🔴 АНАГРАММЫ — ЧЕТЫРЕ РАЗНЫЕ ИГРЫ ЗА ОДНИМ АДРЕСОМ, и каждая получает
+         * свой ключ. Голый `/games/anagrams` ведёт на классику: это режим по
+         * умолчанию на экране настройки, и человек, пришедший по ссылке без
+         * хвоста, попадает туда же, куда попал бы в вебе.
+         *
+         * ⚠️ Включено ТОЛЬКО когда готовы все четыре. Один ключ без хвоста
+         * накрыл бы разом все режимы, и человек, выбравший кроссворд, получил бы
+         * классику — а проба бы этого не заметила: маршрут-то открывается.
+         */
+        '/games/anagrams': (s) => AnagramsScreen(state: s),
+        '/games/anagrams?mode=classic': (s) => AnagramsScreen(state: s),
+        '/games/anagrams?mode=all': (s) => AllWordsScreen(state: s),
+        '/games/anagrams?mode=cross': (s) => CrosswordScreen(state: s),
+        '/games/anagrams?mode=square': (s) => RingScreen(state: s),
         '/games/dots-connect': (s) => DotsConnectScreen(state: s),
         '/games/one-line': (s) => OneLineScreen(state: s),
         '/games/digit-span': (s) => DigitSpanScreen(state: s),
