@@ -27,6 +27,7 @@ import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
+import { pegFor, pegHint, hasPegTable, PEG_RULE, PEG_TEXT } from '@/src/games/mnemonics/pegs';
 import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -178,6 +179,21 @@ export default function MnemonicsGame() {
   const levelRules = useLevelRules('mnemonics', lvl.level, MNEMONICS_RULES, phase === 'config');
   const [mode, setMode] = useState<GameMode>(() => (str('mode', 'words') as GameMode));
   const [itemCount, setItemCount] = useState(() => num('itemCount', levelParams(1).itemCount));   // дефолт 5, не 10
+  /**
+   * 🔴 ОПОРА — ЭТО И ЕСТЬ ПРИЁМ, А НЕ ПОДСКАЗКА-ПОБЛАЖКА.
+   *
+   * 📍 ОТЧЁТ NZT-48 (app_feedback bf1f53cc, 13.09.2026): «надо проработать
+   * алфавит магический до 100, ввести словарь с подсказками». До этой правки
+   * режим цифр выдавал восемь случайных чисел и не давал НИ ОДНОГО способа их
+   * удержать: игра звалась «Мнемоника» и мнемотехнике не учила.
+   *
+   * Теперь под числом стоит его слово-опора из буквенно-цифрового кода и разбор,
+   * какие согласные дали цифры. Пока опора видна, человек учит приём; лестница
+   * снимает её с седьмого уровня — к этому времени сотня опор уже узнаётся.
+   */
+  const опораЕсть = hasPegTable(language);
+  const [опораВидна, setОпораВидна] = useState(true);
+  const опоруТронули = useRef(false);
   const [items, setItems] = useState<string[]>([]);
   const [shuffledItems, setShuffledItems] = useState<string[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<string[]>([]);
@@ -240,6 +256,12 @@ export default function MnemonicsGame() {
       const capped = lvl.level >= 11 ? ic : Math.min(ic, cap);
       if (capped !== ic) { ic = capped; setItemCount(ic); }
     }
+    /**
+     * Ось лестницы «показ опоры»: до шестого уровня слово-опора стоит под числом
+     * (человек учит приём), с седьмого исчезает — приём должен работать в голове.
+     * Ручной переключатель на экране настройки сильнее: тронул — уважаем выбор.
+     */
+    if (!опоруТронули.current && lvl.loaded) setОпораВидна((useLevel ? lvl.level : levelRef.current || 1) <= 6);
     const newItems = generateItems(ic);
     setItems(newItems);
     setSelectedOrder([]);
@@ -351,7 +373,9 @@ export default function MnemonicsGame() {
   const columns = getColumns();
   const itemWidth = (width - 32 - (columns - 1) * 12) / columns;
   // Increased height for better touch targets and larger text
-  const itemHeight = mode === 'numbers' ? 100 : 90;
+  /** Опора показывается только там, где она есть и где её просили. */
+  const опораПоказана = mode === 'numbers' && опораЕсть && опораВидна;
+  const itemHeight = mode === 'numbers' ? (опораПоказана ? 132 : 100) : 90;
 
   const renderConfig = () => (
     <>
@@ -425,6 +449,55 @@ export default function MnemonicsGame() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/*
+          КАРТОЧКА ПРИЁМА. Показывается только в режиме цифр и только там, где
+          таблица есть (русский, английский). В остальных языках её нет вовсе —
+          это честнее, чем показать переключатель, за которым ничего не стоит.
+        */}
+        {mode === 'numbers' && опораЕсть ? (
+          <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+            <View style={styles.optionButtons}>
+              <Text style={[styles.optionLabel, { color: colors.text, flex: 1 }]}>
+                {PEG_TEXT[language as 'ru' | 'en'].aid}
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityState={{ selected: опораВидна }}
+                testID="mnemonics-peg-aid"
+                style={[
+                  styles.modeButton,
+                  опораВидна
+                    ? { backgroundColor: GRADIENT[0] }
+                    : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                ]}
+                onPress={() => { опоруТронули.current = true; setОпораВидна((v) => !v); }}
+              >
+                <Ionicons
+                  name={опораВидна ? 'eye-outline' : 'eye-off-outline'}
+                  size={22}
+                  color={опораВидна ? textOn(GRADIENT[0]) : colors.text}
+                />
+                <Text style={[styles.modeButtonText, { color: опораВидна ? textOn(GRADIENT[0]) : colors.text }]}>
+                  {опораВидна ? PEG_TEXT[language as 'ru' | 'en'].show : PEG_TEXT[language as 'ru' | 'en'].hide}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={[styles.optionLabel, { color: colors.text, marginTop: 12 }]}>
+              {PEG_TEXT[language as 'ru' | 'en'].codeTitle}
+            </Text>
+            {PEG_RULE[language as 'ru' | 'en'].map((r) => (
+              <View key={r.digit} style={styles.кодСтрока}>
+                <Text style={[styles.кодЦифра, { color: GRADIENT[0] }]}>{r.digit}</Text>
+                <Text style={[styles.кодБуквы, { color: colors.text }]}>{r.letters}</Text>
+                <Text style={[styles.кодПочему, { color: colors.textSecondary }]}>{r.why}</Text>
+              </View>
+            ))}
+            <Text style={[styles.кодХвост, { color: colors.textSecondary }]}>
+              {PEG_TEXT[language as 'ru' | 'en'].codeTail}
+            </Text>
+          </View>
+        ) : null}
 
         {/* Count Selection */}
         <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
@@ -541,6 +614,21 @@ export default function MnemonicsGame() {
             <Text style={[styles.itemText, { color: colors.text, fontSize: mode === 'numbers' ? 32 : 24 }]}>
               {item}
             </Text>
+            {/*
+              Опора под числом: слово из буквенно-цифрового кода и разбор, какие
+              согласные дали цифры. Без разбора слово выглядит произвольным — и
+              приём не передаётся, а запоминается как ещё одна пара «число-слово».
+            */}
+            {опораПоказана && pegFor(Number(item), language) ? (
+              <>
+                <Text style={[styles.опора, { color: colors.text }]} numberOfLines={1}>
+                  {pegFor(Number(item), language)}
+                </Text>
+                <Text style={[styles.опораРазбор, { color: colors.textSecondary }]} numberOfLines={1}>
+                  {(pegHint(Number(item), language) ?? '').split(': ')[1]}
+                </Text>
+              </>
+            ) : null}
           </View>
         ))}
       </View>
@@ -869,6 +957,13 @@ const styles = StyleSheet.create({
   },
   itemNumber: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
   itemText: { fontWeight: '600', textAlign: 'center', fontSize: 24 },
+  опора: { fontSize: 15, fontWeight: '700', textAlign: 'center', marginTop: 2 },
+  опораРазбор: { fontSize: 11, textAlign: 'center', marginTop: 1 },
+  кодСтрока: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 6 },
+  кодЦифра: { fontSize: 15, fontWeight: '800', width: 16, textAlign: 'center' },
+  кодБуквы: { fontSize: 14, fontWeight: '700', width: 64 },
+  кодПочему: { fontSize: 12, flex: 1 },
+  кодХвост: { fontSize: 12, marginTop: 10, lineHeight: 17 },
   checkItemCell: {
     padding: 12,
     borderRadius: 14,
