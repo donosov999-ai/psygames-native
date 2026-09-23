@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { buildQueue, gradeCard, getStats, addCustomWords, type Grade } from '@/src/services/vocab-srs';
 import { buildOptions } from '@/app/games/vocab-srs';
+import { createState, pressChar, backspace, stats as статистикаНабора, isPunct, MARK } from '@/src/services/typing';
 
 /**
  * ⚠️ ФАЙЛОВЫЕ ГЛОБАЛЫ ОБЪЯВЛЕНЫ ЗДЕСЬ, А НЕ ВЗЯТЫ ИЗ @types/node.
@@ -110,6 +111,31 @@ describe('эталоны словаря SRS для переноса на Flutter
     const граница = await buildQueue('ru', 'es', 2);
     const границаСтат = await getStats('ru', 'es');
 
+    // ── 3в. ПЕЧАТЬ ОТВЕТА: движок набора по образцу (тот же, что у диктанта и беглости) ──
+    Date.now = () => ЧАСЫ;
+    const наборы = [
+      { имя: 'словарь: строго, ошибка не пускает', слово: 'casa', lenient: false, blockOnError: true,
+        нажатия: ['c', 'x', 'a', 's', 'a'] },
+      { имя: 'свободный режим: ошибка фиксируется и идём дальше', слово: 'casa', lenient: false, blockOnError: false,
+        нажатия: ['c', 'x', 's', 'a'] },
+      { имя: 'диктант: регистр не важен, знаки сами', слово: '— Привет, мир!', lenient: true, blockOnError: true,
+        нажатия: ['п', 'р', 'и', 'в', 'е', 'т', ' ', 'м', 'и', 'р'] },
+      { имя: 'возврат курсора', слово: 'abc', lenient: false, blockOnError: true,
+        нажатия: ['a', 'b', '<BS>', 'b', 'c'] },
+    ].map((н) => {
+      const st = createState([н.слово], н.lenient);
+      const шаги: unknown[] = [{ старт: { pos: st.pos, marks: Array.from(st.marks) } }];
+      for (const k of н.нажатия) {
+        if (k === '<BS>') { backspace(st); шаги.push({ клавиша: 'BS', pos: st.pos, marks: Array.from(st.marks), errors: st.errors }); continue; }
+        const r = pressChar(st, k, н.blockOnError, н.lenient);
+        шаги.push({ клавиша: k, ...r, pos: st.pos, marks: Array.from(st.marks), errors: st.errors });
+      }
+      const s2 = статистикаНабора(st);
+      return { ...н, шаги, итог: { typed: s2.typed, errors: s2.errors, accuracy: s2.accuracy } };
+    });
+    const знаки = ['.', ',', '!', '?', ';', ':', '…', '—', '«', '»', '(', ')', '-', 'a', 'п', ' ', '1']
+      .map((ch) => ({ ch, знак: isPunct(ch) }));
+
     // ── 4. Свои слова: разбор строк «слово = перевод» ──
     await AsyncStorage.clear();
     const добавлено = await addCustomWords('ru', 'es', [
@@ -152,6 +178,12 @@ describe('эталоны словаря SRS для переноса на Flutter
         due: граница.due.map((c) => ({ id: c.id, isNew: c.isNew })),
         freshПервые: граница.fresh.map((c) => c.id),
         статистика: границаСтат,
+      },
+      печать: {
+        объяснение: 'движок набора src/services/typing.ts: строгий режим словаря и послабление диктанта',
+        метки: { PENDING: MARK.PENDING, CORRECT: MARK.CORRECT, WRONG: MARK.WRONG },
+        знакиПрепинания: знаки,
+        наборы,
       },
       своиСлова: { добавлено, записи: своиСырое.custom.map((c: { base: string; target: string }) => ({ base: c.base, target: c.target })) },
     };

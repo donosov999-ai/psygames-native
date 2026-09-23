@@ -388,6 +388,651 @@
    "nextDueAt": null
   }
  },
+ "печать": {
+  "объяснение": "движок набора src/services/typing.ts: строгий режим словаря и послабление диктанта",
+  "метки": {
+   "PENDING": 0,
+   "CORRECT": 1,
+   "WRONG": 2
+  },
+  "знакиПрепинания": [
+   {
+    "ch": ".",
+    "знак": true
+   },
+   {
+    "ch": ",",
+    "знак": true
+   },
+   {
+    "ch": "!",
+    "знак": true
+   },
+   {
+    "ch": "?",
+    "знак": true
+   },
+   {
+    "ch": ";",
+    "знак": true
+   },
+   {
+    "ch": ":",
+    "знак": true
+   },
+   {
+    "ch": "…",
+    "знак": true
+   },
+   {
+    "ch": "—",
+    "знак": true
+   },
+   {
+    "ch": "«",
+    "знак": true
+   },
+   {
+    "ch": "»",
+    "знак": true
+   },
+   {
+    "ch": "(",
+    "знак": true
+   },
+   {
+    "ch": ")",
+    "знак": true
+   },
+   {
+    "ch": "-",
+    "знак": true
+   },
+   {
+    "ch": "a",
+    "знак": false
+   },
+   {
+    "ch": "п",
+    "знак": false
+   },
+   {
+    "ch": " ",
+    "знак": false
+   },
+   {
+    "ch": "1",
+    "знак": false
+   }
+  ],
+  "наборы": [
+   {
+    "имя": "словарь: строго, ошибка не пускает",
+    "слово": "casa",
+    "lenient": false,
+    "blockOnError": true,
+    "нажатия": [
+     "c",
+     "x",
+     "a",
+     "s",
+     "a"
+    ],
+    "шаги": [
+     {
+      "старт": {
+       "pos": 0,
+       "marks": [
+        0,
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     {
+      "клавиша": "c",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 1,
+      "marks": [
+       1,
+       0,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "x",
+      "accepted": false,
+      "wrong": true,
+      "finished": false,
+      "pos": 1,
+      "marks": [
+       1,
+       0,
+       0,
+       0
+      ],
+      "errors": 1
+     },
+     {
+      "клавиша": "a",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 2,
+      "marks": [
+       1,
+       1,
+       0,
+       0
+      ],
+      "errors": 1
+     },
+     {
+      "клавиша": "s",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 3,
+      "marks": [
+       1,
+       1,
+       1,
+       0
+      ],
+      "errors": 1
+     },
+     {
+      "клавиша": "a",
+      "accepted": true,
+      "wrong": false,
+      "finished": true,
+      "pos": 4,
+      "marks": [
+       1,
+       1,
+       1,
+       1
+      ],
+      "errors": 1
+     }
+    ],
+    "итог": {
+     "typed": 4,
+     "errors": 1,
+     "accuracy": 80
+    }
+   },
+   {
+    "имя": "свободный режим: ошибка фиксируется и идём дальше",
+    "слово": "casa",
+    "lenient": false,
+    "blockOnError": false,
+    "нажатия": [
+     "c",
+     "x",
+     "s",
+     "a"
+    ],
+    "шаги": [
+     {
+      "старт": {
+       "pos": 0,
+       "marks": [
+        0,
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     {
+      "клавиша": "c",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 1,
+      "marks": [
+       1,
+       0,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "x",
+      "accepted": true,
+      "wrong": true,
+      "finished": false,
+      "pos": 2,
+      "marks": [
+       1,
+       2,
+       0,
+       0
+      ],
+      "errors": 1
+     },
+     {
+      "клавиша": "s",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 3,
+      "marks": [
+       1,
+       2,
+       1,
+       0
+      ],
+      "errors": 1
+     },
+     {
+      "клавиша": "a",
+      "accepted": true,
+      "wrong": false,
+      "finished": true,
+      "pos": 4,
+      "marks": [
+       1,
+       2,
+       1,
+       1
+      ],
+      "errors": 1
+     }
+    ],
+    "итог": {
+     "typed": 3,
+     "errors": 1,
+     "accuracy": 75
+    }
+   },
+   {
+    "имя": "диктант: регистр не важен, знаки сами",
+    "слово": "— Привет, мир!",
+    "lenient": true,
+    "blockOnError": true,
+    "нажатия": [
+     "п",
+     "р",
+     "и",
+     "в",
+     "е",
+     "т",
+     " ",
+     "м",
+     "и",
+     "р"
+    ],
+    "шаги": [
+     {
+      "старт": {
+       "pos": 2,
+       "marks": [
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     {
+      "клавиша": "п",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 3,
+      "marks": [
+       1,
+       1,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "р",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 4,
+      "marks": [
+       1,
+       1,
+       1,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "и",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 5,
+      "marks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "в",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 6,
+      "marks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "е",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 7,
+      "marks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "т",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 9,
+      "marks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": " ",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 10,
+      "marks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       0,
+       0,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "м",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 11,
+      "marks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       0,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "и",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 12,
+      "marks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "р",
+      "accepted": true,
+      "wrong": false,
+      "finished": true,
+      "pos": 14,
+      "marks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "errors": 0
+     }
+    ],
+    "итог": {
+     "typed": 14,
+     "errors": 0,
+     "accuracy": 100
+    }
+   },
+   {
+    "имя": "возврат курсора",
+    "слово": "abc",
+    "lenient": false,
+    "blockOnError": true,
+    "нажатия": [
+     "a",
+     "b",
+     "<BS>",
+     "b",
+     "c"
+    ],
+    "шаги": [
+     {
+      "старт": {
+       "pos": 0,
+       "marks": [
+        0,
+        0,
+        0
+       ]
+      }
+     },
+     {
+      "клавиша": "a",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 1,
+      "marks": [
+       1,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "b",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 2,
+      "marks": [
+       1,
+       1,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "BS",
+      "pos": 1,
+      "marks": [
+       1,
+       0,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "b",
+      "accepted": true,
+      "wrong": false,
+      "finished": false,
+      "pos": 2,
+      "marks": [
+       1,
+       1,
+       0
+      ],
+      "errors": 0
+     },
+     {
+      "клавиша": "c",
+      "accepted": true,
+      "wrong": false,
+      "finished": true,
+      "pos": 3,
+      "marks": [
+       1,
+       1,
+       1
+      ],
+      "errors": 0
+     }
+    ],
+    "итог": {
+     "typed": 3,
+     "errors": 0,
+     "accuracy": 100
+    }
+   }
+  ]
+ },
  "своиСлова": {
   "добавлено": 5,
   "записи": [

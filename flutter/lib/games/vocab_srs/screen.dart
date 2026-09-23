@@ -10,6 +10,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
+import 'typing.dart';
 
 /// «Словарь SRS» — первый экран раздела «Языки» на Flutter.
 ///
@@ -28,8 +29,21 @@ import 'model.dart';
 ///
 /// Правила и их сверка с живым TS — в `model.dart` и `test/vocab_srs_test.dart`.
 
-/// Направление опроса: узнавание (L2 → родной) или припоминание (родной → L2).
-enum VocabDirection { recognize, recall }
+/// Направление опроса.
+///
+/// 🔴 ЗАЧЕМ ТРЕТЬЕ. Выбор из вариантов меряет УЗНАВАНИЕ: правильный ответ лежит
+/// на экране, его надо опознать. Печать меряет извлечение из памяти — тот самый
+/// testing effect (Roediger & Karpicke 2006: через неделю вспоминают примерно на
+/// половину больше). Это же структурное отличие от Duolingo.
+///
+/// ⚠️ ОТЛИЧИЕ ОТ ВЕБ-ВЕРСИИ, НАМЕРЕННОЕ И ЗАМЕТНОЕ. В вебе печать показывается
+/// только при ФИЗИЧЕСКОЙ клавиатуре (`hasPhysicalKeyboard`, проверка
+/// `pointer: fine`): там та же сборка открывается и на макбуке, и метод Шестова
+/// без настоящих клавиш не метод. Здесь сборка мобильная, и экранная клавиатура —
+/// это и есть клавиатура телефона; печать слова меряет ПРИПОМИНАНИЕ, а не
+/// слепой набор, поэтому запрет не переносится. Если решим иначе — вернуть
+/// проверку одной строкой.
+enum VocabDirection { recognize, recall, typing }
 
 enum VocabPhase { config, playing, result }
 
@@ -87,6 +101,10 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   int _shownAtMs = 0;
   Timer? _next;
   SrsStats? _stats;
+
+  /// Набор ответа: живёт ровно одну карточку.
+  TypingState? _typing;
+  int _typos = 0;
 
   int get _now => (widget.clock ?? () => DateTime.now().millisecondsSinceEpoch)();
 
@@ -170,13 +188,25 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       _wrong = 0;
       _picked = null;
       _phase = VocabPhase.playing;
-      _options = _optionsFor(cards.first, q.pool);
       _pool = q.pool;
+      _prepare(cards.first, q.pool);
       _shownAtMs = _now;
     });
   }
 
   List<({String base, String target})> _pool = const [];
+
+  /// Что показать под карточкой: варианты ответа или поле набора.
+  void _prepare(CardRef card, List<({String base, String target})> pool) {
+    if (_direction == VocabDirection.typing) {
+      _typing = TypingState.create([card.target], nowMs: () => _now);
+      _typos = 0;
+      _options = const [];
+    } else {
+      _typing = null;
+      _options = _optionsFor(card, pool);
+    }
+  }
 
   List<String> _optionsFor(CardRef card, List<({String base, String target})> pool) {
     final right = _direction == VocabDirection.recognize ? card.base : card.target;
@@ -225,7 +255,52 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       setState(() {
         _idx = next;
         _picked = null;
-        _options = _optionsFor(queue[next], _pool);
+        _prepare(queue[next], _pool);
+        _shownAtMs = _now;
+      });
+    });
+  }
+
+  /// Нажатие клавиши при печати ответа.
+  ///
+  /// Проводка та же, что у выбора, — карточка, оценка SM-2, переход; отличий
+  /// ровно два, и оба по ТЗ веб-версии:
+  ///   · дойти до конца можно только набрав слово ЦЕЛИКОМ верно, значит ответ
+  ///     всегда верный;
+  ///   · опечатки НЕ идут в ошибки сессии — они блокировали курсор и уже
+  ///     исправлены, считать их провалом значило бы наказывать за то, чему
+  ///     упражнение учит. Они уходят в ОЦЕНКУ карточки: без единой опечатки
+  ///     «easy», с опечатками «good».
+  Future<void> _type(String ch) async {
+    final st = _typing;
+    if (st == null || _picked != null || _phase != VocabPhase.playing) return;
+    final r = st.pressChar(ch, blockOnError: true);
+    if (r.wrong) _typos += 1;
+    setState(() {});
+    if (!r.finished) return;
+
+    final card = _queue[_idx];
+    final rt = _now - _shownAtMs;
+    setState(() {
+      _picked = card.target;
+      _correct += 1;
+    });
+    // Порог для печати втрое шире, чем у выбора: набрать слово физически дольше,
+    // чем ткнуть в вариант (веб: rt < EASY_RT_MS * 3).
+    await _srs!.gradeCard(card.id, _typos == 0 && rt < vocabEasyRtMs * 3 ? Grade.easy : Grade.good);
+
+    _next?.cancel();
+    _next = Timer(const Duration(milliseconds: vocabNextDelayOkMs), () {
+      if (!mounted) return;
+      final next = _idx + 1;
+      if (next >= _queue.length) {
+        _finish();
+        return;
+      }
+      setState(() {
+        _idx = next;
+        _picked = null;
+        _prepare(_queue[next], _pool);
         _shownAtMs = _now;
       });
     });
@@ -287,14 +362,16 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
             onAgain: () => setState(() => _phase = VocabPhase.config),
           ),
       },
-      toolbar: _phase == VocabPhase.playing
-          ? _Options(
-              options: _options,
-              picked: _picked,
-              right: _direction == VocabDirection.recognize ? _queue[_idx].base : _queue[_idx].target,
-              onPick: _pick,
-            )
-          : null,
+      toolbar: _phase != VocabPhase.playing
+          ? null
+          : _direction == VocabDirection.typing
+              ? _Typing(state: _typing!, onKey: _type, done: _picked != null)
+              : _Options(
+                  options: _options,
+                  picked: _picked,
+                  right: _direction == VocabDirection.recognize ? _queue[_idx].base : _queue[_idx].target,
+                  onPick: _pick,
+                ),
     );
   }
 }
@@ -409,6 +486,12 @@ class _Config extends StatelessWidget {
                 selected: direction == VocabDirection.recall,
                 onSelected: (_) => onDirection(VocabDirection.recall),
               ),
+              ChoiceChip(
+                key: const Key('vocab-dir-typing'),
+                label: Text(L.t('srsTyping')),
+                selected: direction == VocabDirection.typing,
+                onSelected: (_) => onDirection(VocabDirection.typing),
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -433,10 +516,12 @@ class _Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Узнавание: показываем изучаемое слово, спрашиваем родное. Припоминание — наоборот.
+    // Узнавание: показываем изучаемое слово, спрашиваем родное. Припоминание и
+    // печать — наоборот: на экране родное, набрать надо изучаемое.
     final shown = direction == VocabDirection.recognize ? card.target : card.base;
-    // Подпись задания — та же, что в веб-версии, обоим направлениям (`vocabSrsHint`).
-    final hint = L.t('vocabSrsHint');
+    // Подпись задания — та же, что в веб-версии (`vocabSrsHint`), а при печати
+    // своя (`srsTypingTask`): задание другое, «выбери» там было бы враньём.
+    final hint = direction == VocabDirection.typing ? L.t('srsTypingTask') : L.t('vocabSrsHint');
     return SizedBox(
       height: height,
       child: Center(
@@ -521,6 +606,100 @@ class _Result extends StatelessWidget {
   static String _when(int ms) {
     final d = DateTime.fromMillisecondsSinceEpoch(ms);
     return '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}';
+  }
+}
+
+/// ПОЛЕ НАБОРА: образец нарисован посимвольно, ввод принимает ДВИЖОК.
+///
+/// 🔴 НЕ ОБЫЧНОЕ ПОЛЕ ВВОДА. Обычное разрешает вставку из буфера, стирание
+/// середины и автозамену — то есть даёт обойти саму механику. Поле здесь
+/// невидимое и служит только приёмником нажатий: после каждого символа
+/// содержимое сбрасывается, и движок видит РОВНО ОДНО нажатие. Вставленный
+/// кусок он не примет (проба «вставка целого слова одним куском не проходит»).
+class _Typing extends StatefulWidget {
+  const _Typing({required this.state, required this.onKey, required this.done});
+  final TypingState state;
+  final void Function(String) onKey;
+
+  /// Слово набрано — ввод заперт до следующей карточки.
+  final bool done;
+
+  @override
+  State<_Typing> createState() => _TypingState();
+}
+
+class _TypingState extends State<_Typing> {
+  final _ctrl = TextEditingController();
+  final _focus = FocusNode();
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _changed(String v) {
+    // Сбрасываем СРАЗУ: поле — приёмник, а не хранилище. Иначе второе нажатие
+    // пришло бы как строка из двух символов, и движок посчитал бы её ошибкой.
+    _ctrl.clear();
+    if (v.isEmpty) return;
+    widget.onKey(v.characters.last);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final st = widget.state;
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Wrap(
+            alignment: WrapAlignment.center,
+            children: [
+              for (var i = 0; i < st.pattern.length; i += 1)
+                Container(
+                  key: Key('vocab-char-$i'),
+                  padding: const EdgeInsets.symmetric(horizontal: 1),
+                  decoration: i == st.pos && !widget.done
+                      ? BoxDecoration(border: Border(bottom: BorderSide(color: scheme.primary, width: 2)))
+                      : null,
+                  child: Text(
+                    st.pattern[i],
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w500,
+                      color: switch (st.marks[i]) {
+                        Mark.correct => const Color(0xFF22C55E),
+                        Mark.wrong => const Color(0xFFEF4444),
+                        _ => scheme.onSurfaceVariant,
+                      },
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(
+            height: 1,
+            child: TextField(
+              key: const Key('vocab-typing-input'),
+              controller: _ctrl,
+              focusNode: _focus,
+              autofocus: true,
+              enabled: !widget.done,
+              showCursor: false,
+              autocorrect: false,
+              enableSuggestions: false,
+              style: const TextStyle(color: Colors.transparent, fontSize: 1),
+              decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+              onChanged: _changed,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
