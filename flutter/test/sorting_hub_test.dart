@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/sorting_hub/screen.dart';
 import 'package:psygames_flutter/shell/hub_screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -37,6 +38,9 @@ Future<void> _boot(WidgetTester tester, SharedState state) async {
 
 void main() {
   setUp(() async {
+    // Развилка берёт названия карточек из СЛОВАРЯ (ключи в assets/hubs.json),
+    // а не из готовых строк: без него на экране были бы сами ключи.
+    await L.load('ru');
     SharedPreferences.setMockInitialValues({
       // Уровни пишет веб-половина ТЕМИ ЖЕ ключами: psygames_<игра>_level_<профиль>.
       'psygames_goods_sort_level_nzt48': '7',

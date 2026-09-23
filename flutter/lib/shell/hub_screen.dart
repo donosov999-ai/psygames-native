@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import 'level_ladder.dart';
 import 'shared_level_store.dart';
+import 'l10n.dart';
 import 'shared_state.dart';
 
 /// РАЗВИЛКА (хаб) — ОБЩИЙ ЭКРАН НА ВСЕ РАЗДЕЛЫ.
@@ -59,21 +60,36 @@ class HubScreen extends StatefulWidget {
 
 /// Карточка развилки: куда ведёт, как называется, чем отличается.
 class HubCard {
-  const HubCard({required this.route, required this.icon, required this.name, required this.desc, required this.type});
+  const HubCard({
+    required this.route,
+    required this.icon,
+    required this.nameKey,
+    required this.descKey,
+    required this.type,
+  });
 
   factory HubCard.fromJson(Map<String, dynamic> j) => HubCard(
         route: j['route'] as String,
-        icon: j['icon'] as String? ?? '',
-        name: j['name'] as String,
-        desc: j['desc'] as String? ?? '',
-        type: j['type'] as String? ?? '',
+        icon: j['icon'] as String? ?? 'apps',
+        nameKey: j['nameKey'] as String? ?? '',
+        descKey: j['descKey'] as String? ?? '',
+        type: j['type'] as String?,
       );
 
   final String route;
   final String icon;
-  final String name;
-  final String desc;
-  final String type;
+
+  /// 🔴 КЛЮЧИ СЛОВАРЯ, А НЕ ГОТОВЫЙ ТЕКСТ. До 23.09.2026 здесь лежали русские
+  /// строки, и ВСЕ 13 развилок показывали один язык из двенадцати. Нашёл раздел
+  /// «Судоку», и нашёл не гейтом: храповик зашитого текста смотрит КОД, а текст
+  /// лежал в ДАННЫХ и проходил мимо него.
+  final String nameKey;
+  final String descKey;
+
+  final String? type;
+
+  String get name => nameKey.isEmpty ? route : L.t(nameKey);
+  String get desc => descKey.isEmpty ? '' : L.t(descKey);
 }
 
 /// Значок карточки по имени из веб-реестра. Незнакомое имя — общий значок:
@@ -200,7 +216,7 @@ class _HubScreenState extends State<HubScreen> {
                       title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700)),
                       subtitle: Text(
                         [
-                          if (c.type.isNotEmpty) c.type,
+                          if ((c.type ?? '').isNotEmpty) c.type!,
                           if (c.desc.isNotEmpty) c.desc,
                         ].join(' · '),
                         // ⚠️ ДВЕ СТРОКИ, А НЕ СКОЛЬКО ВЫЙДЕТ. На снимке описания
