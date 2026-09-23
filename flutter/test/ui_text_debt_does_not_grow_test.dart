@@ -63,6 +63,9 @@ void main() {
     'games/object_tracker/screen.dart': 24,
     'games/sort_tubes/screen.dart': 23,
     'games/spatial_span/screen.dart': 21,
+    'games/ospan/screen.dart': 21,
+    'games/ospan/model.dart': 20,
+    'games/number_bonds/screen.dart': 18,
     'games/mahjong/screen.dart': 18,
     'games/pattern/screen.dart': 18,
     'games/quick_count/screen.dart': 18,
@@ -101,7 +104,7 @@ void main() {
   // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите,
   // плюс 224 принятых при вливании «Пространства» 23.09, минус 28 — развилка раздела и
   // названия упражнений переведены в том же коммите: они держат КЛЮЧИ, как и веб-сторона.
-  const total = 705;
+  const total = 764;
 
   final counts = _scan(Directory('lib'));
 
