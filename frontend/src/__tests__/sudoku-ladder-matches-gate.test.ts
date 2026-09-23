@@ -44,9 +44,17 @@ describe('лестница судоку и гейт уровней', () => {
     expect(пустые).toEqual([]);
   });
 
+  /**
+   * 23.09.2026: проба искала подпись в ИСХОДНИКЕ экрана, а границы поясов переехали в
+   * `beltKey` — экран больше не помнит номера (см. гейт «границы поясов живут в одном
+   * месте» в sudoku-rules-match-code). Теперь спрашиваем поведение: имя даёт beltKey,
+   * а экран обязан его звать.
+   */
   it('🔴 верхний пояс не безымянный: у 81+ своя подпись', () => {
+    const { beltKey } = require('@/src/services/sudoku-level-help');
+    expect(`81 → ${beltKey(81)} · 92 → ${beltKey(92)}`).toBe('81 → sudokuBeltCombo · 92 → sudokuBeltCombo');
     const экран: string = fs.readFileSync(
       path.join(__dirname, '../../app/games/sudoku.tsx'), 'utf8');
-    expect(экран).toContain('sudokuBeltCombo');
+    expect(`экран зовёт beltKey: ${экран.includes('beltKey(level)')}`).toBe('экран зовёт beltKey: true');
   });
 });

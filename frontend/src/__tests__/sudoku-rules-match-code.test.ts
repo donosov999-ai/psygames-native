@@ -28,7 +28,9 @@ const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf8') as s
 /** Уровень, с которого включается каждый вариант — вычисляем из кода, не из памяти. */
 function firstLevelOfEachVariant(): Map<string, number> {
   const first = new Map<string, number>();
-  for (let lv = 1; lv <= 60; lv++) {
+  // До 65-го: 23.09 кривые блоки переехали на 62–65, и просмотр до 60-го их уже не видел
+  // (проба показывала «jigsaw: undefined»). Выше 65-го — пояса банка и комбо, их описание не перечисляет.
+  for (let lv = 1; lv <= 65; lv++) {
     const v = levelConfig(lv).variant;
     if (v !== 'none' && !first.has(v)) first.set(v, lv);
   }
@@ -65,13 +67,30 @@ const LOCALES = ['de', 'es', 'pt', 'fr', 'it', 'zh', 'ja', 'ko', 'hi', 'ar'];
 describe('описание судоку не расходится с кодом', () => {
   const ladder = firstLevelOfEachVariant();
 
-  it('лестница в коде: Кропки на L34, джигсо — вершина на L54', () => {
+  it('лестница в коде: Кропки на L34, джигсо — вершина на L62', () => {
     // 27.08.2026: jigsaw и thermocage поменяны местами (порядок по потолкам,
     // задача 25a92d61) — якоря обновлены вместе с текстами всех 12 локалей.
     expect(ladder.get('kropki')).toBe(34);
     expect(ladder.get('thermocage')).toBe(50);
-    expect(ladder.get('jigsaw')).toBe(54);
+    expect(ladder.get('jigsaw')).toBe(62);   // 23.09: кривые блоки встали выше пояса ALS (задача 3d4d4578)
     expect(ladder.size).toBeGreaterThanOrEqual(11);
+  });
+
+  /**
+   * 🔴 ГРАНИЦЫ ПОЯСОВ — В ОДНОМ МЕСТЕ, А НЕ В ДВУХ.
+   *
+   * 📍 Повод, 23.09.2026. Кривые блоки переехали на 62–65, пояс ALS занял 54–61 (задача
+   * 3d4d4578). Лестница правилась в `sudoku-core` и `beltKey`, а экран судоку ПОМНИЛ
+   * номера сам: `level >= 58` и цепочка `level >= 81 ? … : 'sudokuBeltAls'`. Живой прогон
+   * показал итог: на уровне 54 доска уже банковская, а имени пояса под ней нет — подпись
+   * молчит, потому что второй экземпляр границы остался старым.
+   */
+  it('🔴 границы поясов живут в одном месте: экран зовёт beltKey, а не помнит номера', () => {
+    const экран = read('app/games/sudoku.tsx');
+    expect(`экран зовёт beltKey: ${/beltKey\(level\)/.test(экран)}`).toBe('экран зовёт beltKey: true');
+    const зашитые = экран.split('\n')
+      .filter((с) => /sudokuBelt(Als|Chains|Legend|Combo)/.test(с) && /level\s*>=\s*\d+/.test(с));
+    expect(`строк с зашитой границей пояса: ${зашитые.length}`).toBe('строк с зашитой границей пояса: 0');
   });
 
   it.each(['ru', 'en'])('описание на %s перечисляет все границы из кода', (lang) => {

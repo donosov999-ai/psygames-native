@@ -49,7 +49,8 @@ describe('полоса техник по всем уровням', () => {
   });
 
   it('🔴 внутри полосы варианта цель растёт, а не топчется', () => {
-    for (const start of [38, 42, 46, 50, 54]) {
+    // 23.09: последняя полоса варианта уехала с 54 на 62 — на 54–61 встал пояс ALS (плоская вершина).
+    for (const start of [38, 42, 46, 50, 62]) {
       const maxes = [0, 1, 2, 3].map((k) => targetTier(start + k).max);
       const grows = maxes.every((m, i) => i === 0 || m >= (maxes[i - 1] as number));
       const moved = (maxes[3] as number) > (maxes[0] as number);

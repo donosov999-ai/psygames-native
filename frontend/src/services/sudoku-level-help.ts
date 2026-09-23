@@ -97,13 +97,15 @@ export function variantScanKey(v: Variant): string | null {
 
 /**
  * Пояс уровня — когда градатор промолчал. Границы те же, что у подписи в HUD:
- * ALS (58–65), цепи (66–79), легенда (80), комбо (81+).
+ * ALS (54–61), цепи (66–79), легенда (80), комбо (81+); 62–65 — кривые блоки, у них имя варианта.
  */
 export function beltKey(level: number): string | null {
   if (level >= 81) return 'sudokuBeltCombo';
   if (level >= 80) return 'sudokuBeltLegend';
   if (level >= 66) return 'sudokuBeltChains';
-  if (level >= 58) return 'sudokuBeltAls';
+  // 23.09: пояс ALS переехал на 54–61 (кривые блоки встали выше, 62–65). У 62–65
+  // вариант не 'none', и звонящие сюда сначала это проверяют — пояс им не отдаётся.
+  if (level >= 54) return 'sudokuBeltAls';
   return null;
 }
 
