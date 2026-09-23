@@ -22,6 +22,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import GameShell from '@/src/components/GameShell';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
+import DropdownSelect, { type ВариантВыбора } from '@/src/components/DropdownSelect';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useWarmup } from '@/src/contexts/WarmupContext';
@@ -176,6 +177,24 @@ export default function BreathingGame() {
 
   const tech = TECHNIQUES.find((x) => x.key === techKey) || TECHNIQUES[0];
   const cycleDur = tech.phases.reduce((a, p) => a + p.sec, 0) || 1;
+
+  /**
+   * Семь техник для выпадающего списка. Фигуру ритма рисуем тем же `BreathShape`,
+   * что и сама сессия, — форма в выборе не разойдётся с настоящей.
+   * ⚠️ Две копии узла: один и тот же React-элемент нельзя показать и в списке, и в
+   * закрытой строке — второе место осталось бы пустым.
+   */
+  const фигура = (x: Technique, size: number) => (
+    <BreathShape phases={x.phases} phaseIdx={0} local={0} size={size} colors={[GRADIENT[0], GRADIENT[1]]} />
+  );
+  const техникиСписком: ВариантВыбора<string>[] = TECHNIQUES.map((x) => ({
+    значение: x.key,
+    текст: `${t(x.nameKey)}${x.special === 'wimhof' ? '  ⚠️' : ''}`,
+    справа: rhythmOf(x) || undefined,
+    описание: t(x.descKey),
+    значок: фигура(x, 32),
+    значокЗакрытой: фигура(x, 32),
+  }));
   const totalDur = format === 'cycles' ? cycles * cycleDur : timeMin * 60;
 
   const stage = Math.min(width, height) - 80;
@@ -352,46 +371,23 @@ export default function BreathingGame() {
       </GradientSurface>
       <GameAbout descriptionKey="breathingIntroDesc" benefits={BREATH_BENEFITS} accent={GRADIENT[0]} />
 
+      {/* Техника — одной строкой «Техника: <название> · <ритм> ▾» на общем списке.
+          До 23.09.2026 здесь лежали семь карточек: 607 px из 1319 px всей настройки,
+          то есть почти половина. Человек до блока «Формат» просто не доматывал и решил,
+          что параллельного режима в приложении нет (отчёт 8cc27209). Фигуру ритма и
+          описание НЕ теряем — ради них карточки и делались крупными: и то и другое
+          живёт теперь в строке раскрытого списка. */}
       <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.optionLabel, { color: colors.text }]}>{t('brTechniqueLabel')}</Text>
-        {TECHNIQUES.map((x) => (
-          <TouchableOpacity
-            accessibilityRole="button" key={x.key}
-            style={[styles.techRow, techKey === x.key
-              ? { backgroundColor: GRADIENT[0] }
-              : { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }]}
-            onPress={() => setTechKey(x.key)}>
-            {/* Мини-фигура на карточке: квадрат / треугольник / круг видно ДО запуска,
-                и техники перестают быть одинаковыми строчками текста. Рисуем тем же
-                компонентом, что и в сессии, — форма не разойдётся с настоящей. */}
-            <View style={{ width: 40, height: 40, marginRight: 10 }}>
-              <BreathShape
-                phases={x.phases}
-                phaseIdx={0}
-                local={0}
-                size={40}
-                colors={techKey === x.key ? ['#FFFFFF', '#FFFFFF'] : [GRADIENT[0], GRADIENT[1]]}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', maxWidth: '100%' }}>
-                <Text style={[styles.techName, { color: techKey === x.key ? '#FFF' : colors.text }]}>
-                  {t(x.nameKey)}{x.special === 'wimhof' ? '  ⚠️' : ''}
-                </Text>
-                {/* Ритм — второй, мелким: он справка, а не название техники. */}
-                {!!rhythmOf(x) && (
-                  <Text style={[styles.techRhythm, { color: techKey === x.key ? 'rgba(255,255,255,0.8)' : colors.textSecondary }]}>
-                    {rhythmOf(x)}
-                  </Text>
-                )}
-              </View>
-              <Text style={[styles.techDesc, { color: techKey === x.key ? 'rgba(255,255,255,0.85)' : colors.textSecondary }]}>
-                {t(x.descKey)}
-              </Text>
-            </View>
-            {techKey === x.key && <Ionicons name="checkmark-circle" size={22} color="#FFF" />}
-          </TouchableOpacity>
-        ))}
+        <DropdownSelect
+          testID="tech-select"
+          подпись={t('brTechniqueLabel')}
+          значение={techKey}
+          сПрипиской
+          варианты={техникиСписком}
+          onChange={setTechKey}
+          акцент={GRADIENT[0]}
+          цвета={colors}
+        />
       </View>
 
       {tech.special !== 'wimhof' && (
@@ -709,10 +705,6 @@ const styles = StyleSheet.create({
   optionButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', maxWidth: '100%' },
   modeButton: { minHeight: 48, justifyContent: 'center', paddingVertical: 10, paddingHorizontal: 18, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
-  techRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 10, gap: 8 },
-  techName: { fontSize: 15, fontWeight: '700' },
-  techRhythm: { fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
-  techDesc: { fontSize: 12, marginTop: 2 },
   warnText: { fontSize: 14, lineHeight: 21 },
   /** Ритм — нажимаемый: по тапу показывает название техники. Цель нажатия 48. */
   hudNum: { flexDirection: 'row', alignItems: 'center', gap: 4 },

@@ -1,4 +1,4 @@
-/* psygames-dropdown-select · VER 1 · 17.09.2026 */
+/* psygames-dropdown-select · VER 2 · 23.09.2026 */
 /**
  * ВЫПАДАЮЩИЙ СПИСОК ВЫБОРА — ОДИН НА ВСЁ ПРИЛОЖЕНИЕ.
  *
@@ -51,6 +51,19 @@
  * пустой. Поэтому выравнивание задаётся явно от `isRTL()` (атрибут `dir` корня документа,
  * см. `services/rtl.ts`: физический `textAlign` сам не зеркалится).
  *
+ * VER 2, 23.09.2026 — КАРТИНКА И ОПИСАНИЕ В СТРОКЕ. «Дыхание» стало третьим экраном на
+ * этом компоненте (после «Корректуры» и «Пар слов»), и у него варианты различаются не
+ * названием: семь техник — это семь
+ * ритмов, и человек выбирает по «зачем», а не по слову. Поэтому у варианта появились
+ * `описание` (вторая строка) и `значок` (картинка слева; у «Дыхания» — живая фигура
+ * ритма `BreathShape`, тот же компонент, что рисует фигуру в самой сессии).
+ * Заводить ради этого второй список было нельзя — правило «выпадающий список один»
+ * держится ровно тем, что недостающее ДОБАВЛЯЕТСЯ сюда.
+ *
+ * ⚠️ ЗНАЧОК ЗАКРЫТОЙ СТРОКИ — ОТДЕЛЬНЫМ ПОЛЕМ `значокЗакрытой`. Один и тот же React-узел
+ * нельзя отрисовать дважды: если отдать `значок` и в список, и в закрытую строку, второе
+ * место останется пустым. Экран отдаёт две копии.
+ *
  * Сторожит `dropdown-select-one-choice`.
  */
 import React, { useState } from 'react';
@@ -63,13 +76,28 @@ export type ВариантВыбора<V extends string | number | null> = {
   текст: string;
   /** Мелкая приписка справа в строке списка — например, с какого уровня вид строится. */
   справа?: string;
+  /**
+   * Вторая строка под названием: зачем этот вариант нужен. Появилась ради «Дыхания»
+   * (23.09.2026): семь техник различаются не названием, а тем, что делают, — без
+   * описания список перестаёт быть выбором и становится семью похожими словами.
+   */
+  описание?: string;
+  /**
+   * Картинка слева — для «Дыхания» это живая фигура ритма (квадрат / треугольник /
+   * круг). Рисует её экран: компонент не знает, что там внутри, и только отводит место.
+   * ⚠️ Узел один, поэтому в закрытой строке показывается `значокЗакрытой` — тот же
+   * React-узел нельзя вставить в два места, и для выбранного варианта нужен свой.
+   */
+  значок?: React.ReactNode;
+  /** Копия `значок` для закрытой строки — отдельный узел, а не тот же самый. */
+  значокЗакрытой?: React.ReactNode;
 };
 
 /** Текст закрытой строки, когда значения нет среди вариантов: честный прочерк, а не первая строка. */
 export const НЕТ_ВЫБОРА = '—';
 
 export default function DropdownSelect<V extends string | number | null>({
-  подпись, значение, варианты, onChange, акцент, цвета, testID, открыт, наОткрытие,
+  подпись, значение, варианты, onChange, акцент, цвета, testID, открыт, наОткрытие, сПрипиской,
 }: {
   подпись: string;
   значение: V;
@@ -79,6 +107,12 @@ export default function DropdownSelect<V extends string | number | null>({
   акцент?: string;
   цвета?: { text: string; textSecondary: string; border: string };
   testID?: string;
+  /**
+   * Показывать ли `справа` текущего варианта в ЗАКРЫТОЙ строке: «Квадратное дыхание · 4-4-4-4».
+   * По умолчанию нет — у «Корректуры» и «Пар слов» приписка нужна только внутри списка,
+   * и менять им закрытую строку задним числом нельзя.
+   */
+  сПрипиской?: boolean;
   /** Управляемый режим: раскрыт ли список. Не передан — состояние внутреннее. */
   открыт?: boolean;
   наОткрытие?: (открыт: boolean) => void;
@@ -96,6 +130,16 @@ export default function DropdownSelect<V extends string | number | null>({
   const id = testID ?? 'dropdown-select';
   const текущий = варианты.find((в) => в.значение === значение);
   const показ = текущий ? текущий.текст : НЕТ_ВЫБОРА;
+  /**
+   * ⚠️ ПРИПИСКА — ОТДЕЛЬНЫМ УЗЛОМ, А НЕ ВТОРЫМ РЕБЁНКОМ У ЗНАЧЕНИЯ. Две причины, обе
+   * пойманы 23.09.2026. Первая: `{показ}{приписка}` делает `children` массивом, и пробы,
+   * ищущие узел значения по `typeof children === 'string'`, перестают его находить —
+   * так покраснели сторож этого компонента и проба «Корректуры». Вторая, видная только
+   * глазами на снимке: приписка внутри той же строки съедает ширину, и НАЗВАНИЕ
+   * обрезается вместо неё («Квадратное дыхан…  ·  4-4-4-4»), хотя режется как раз то,
+   * ради чего строку и читают.
+   */
+  const приписка = (сПрипиской && текущий?.справа) ? текущий.справа : null;
   // Не реактивно, но компонент перерисовывается вместе с экраном настройки при смене языка.
   const край = { textAlign: isRTL() ? 'right' : 'left' } as const;
 
@@ -110,9 +154,20 @@ export default function DropdownSelect<V extends string | number | null>({
         onPress={() => задать(!раскрыт)}
         style={[styles.строкаВыбора, { borderColor: раскрыт ? цветВыбора : обводка }]}
       >
+        {текущий?.значокЗакрытой ? (
+          <View style={styles.значок} testID={`${id}-icon`}>{текущий.значокЗакрытой}</View>
+        ) : null}
         <View style={styles.текстВыбора}>
           <Text style={[styles.подпись, край, { color: тихий }]} numberOfLines={1}>{подпись}</Text>
-          <Text style={[styles.значение, край, { color: знак }]} numberOfLines={1} testID={`${id}-value`}>{показ}</Text>
+          <View style={styles.строкаЗначения}>
+            {/* С припиской название переносится, а не режется: в 390 px «Квадратное
+                дыхание · 4-4-4-4» одной строкой не помещается, и многоточие съедало
+                то самое слово, ради которого строку читают (снимок 23.09.2026). */}
+            <Text style={[styles.значение, край, { color: знак }]} numberOfLines={приписка ? 2 : 1} testID={`${id}-value`}>{показ}</Text>
+            {приписка ? (
+              <Text style={[styles.приписка, styles.неСжимать, { color: тихий }]} numberOfLines={1} testID={`${id}-suffix`}>{приписка}</Text>
+            ) : null}
+          </View>
         </View>
         <Ionicons name={раскрыт ? 'chevron-up' : 'chevron-down'} size={22} color={тихий} />
       </Pressable>
@@ -127,17 +182,31 @@ export default function DropdownSelect<V extends string | number | null>({
                 accessibilityRole="button"
                 accessibilityState={{ selected: выбран }}
                 aria-selected={выбран}
-                accessibilityLabel={в.справа ? `${в.текст}, ${в.справа}` : в.текст}
+                accessibilityLabel={[в.текст, в.справа, в.описание].filter(Boolean).join(', ')}
                 onPress={() => { onChange(в.значение); задать(false); }}
                 style={[styles.строкаСписка, i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: обводка }]}
               >
-                <Text
-                  style={[styles.текстСтроки, край, { color: выбран ? цветВыбора : знак, fontWeight: выбран ? '800' : '600' }]}
-                  testID={`${id}-${String(в.значение)}-text`}
-                  numberOfLines={1}
-                >
-                  {в.текст}
-                </Text>
+                {в.значок ? <View style={styles.значок}>{в.значок}</View> : null}
+                <View style={styles.столбецСтроки}>
+                  <Text
+                    style={[styles.текстСтроки, край, { color: выбран ? цветВыбора : знак, fontWeight: выбран ? '800' : '600' }]}
+                    testID={`${id}-${String(в.значение)}-text`}
+                    /* Название важнее приписки: с описанием строка и так в два яруса,
+                       обрезать в ней ещё и название незачем («Физиологический вз…»). */
+                    numberOfLines={в.описание ? 2 : 1}
+                  >
+                    {в.текст}
+                  </Text>
+                  {в.описание ? (
+                    <Text
+                      style={[styles.описание, край, { color: тихий }]}
+                      testID={`${id}-${String(в.значение)}-desc`}
+                      numberOfLines={2}
+                    >
+                      {в.описание}
+                    </Text>
+                  ) : null}
+                </View>
                 {в.справа ? <Text style={[styles.приписка, { color: тихий }]}>{в.справа}</Text> : null}
                 <Ionicons name="checkmark" size={20} color={выбран ? цветВыбора : 'transparent'} testID={`${id}-${String(в.значение)}-mark`} />
               </Pressable>
@@ -153,10 +222,15 @@ const styles = StyleSheet.create({
   обёртка: { gap: 8 },
   строкаВыбора: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8 },
   текстВыбора: { flex: 1, minWidth: 0 },
+  строкаЗначения: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, minWidth: 0 },
+  неСжимать: { flexShrink: 0 },
   подпись: { fontSize: 12, fontWeight: '600' },
   значение: { fontSize: 16, fontWeight: '800' },
   список: { borderWidth: 1, borderRadius: 14, overflow: 'hidden' },
-  строкаСписка: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14 },
-  текстСтроки: { flex: 1, minWidth: 0, fontSize: 15 },
+  строкаСписка: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 8 },
+  столбецСтроки: { flex: 1, minWidth: 0, gap: 2 },
+  текстСтроки: { fontSize: 15 },
+  описание: { fontSize: 12, lineHeight: 16 },
   приписка: { fontSize: 12 },
+  значок: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
 });
