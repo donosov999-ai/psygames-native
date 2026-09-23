@@ -86,6 +86,13 @@ jobs:
           git -C "$HOME/puzzles" checkout --quiet "$TATHAM_SHA"
           echo "канон: $(git -C "$HOME/puzzles" rev-parse --short HEAD)"
           PUZZLES_SRC="$HOME/puzzles" tool/build_tatham.sh
+          # 🔴 И ОТДЕЛЬНО ПОД iOS — ЭТО РАЗНЫЕ СБОРКИ, А НЕ ОДНА.
+          # Выше — библиотека ПОД ХОСТ, ею гоняются пробы. Здесь — статическая .a
+          # под устройство: её линкует ios/Flutter/Release.xcconfig (-force_load).
+          # Нет файла — линковка падает, и падает она на ШЕСТНАДЦАТОЙ минуте сборки,
+          # когда уже собран весь Dart.
+          PUZZLES_SRC="$HOME/puzzles" tool/build_tatham_ios.sh arm64
+          ls -l build/tatham-ios-arm64/libtatham.a
 
       - name: Пробы пилота
         working-directory: flutter
@@ -177,6 +184,15 @@ jobs:
           </dict></plist>
           PLIST
           flutter build ipa --release --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
+
+      # 🔴 ДВИЖОК ДОЕХАЛ ДО БИНАРНИКА? Проверяем ДО заливки, а не после.
+      # Линковка молчит, когда движок выпадает: сборка зелёная, размер
+      # правдоподобный, а приложение падает на первом ходе уже у человека.
+      # Замер чата «Шахматы» 23.09.2026: бинарник вышел 294 КБ вообще без движка,
+      # и ничего красного не загорелось.
+      - name: Гейт — движок в бинарнике
+        working-directory: flutter
+        run: tool/check_ios_engine.sh build/ios/iphoneos/Runner.app/Runner
           mkdir -p "$RUNNER_TEMP/ipa"
           cp build/ios/ipa/*.ipa "$RUNNER_TEMP/ipa/"
           ls -la "$RUNNER_TEMP/ipa"

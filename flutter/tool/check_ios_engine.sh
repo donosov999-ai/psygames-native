@@ -13,8 +13,21 @@
 # сборки под устройство её запустить нельзя. Нужны обе: список может сойтись, а линкер —
 # всё равно выбросить код.
 set -e
-BIN="${1:-build/ios/iphoneos/Runner.app/Runner}"
-[ -f "$BIN" ] || { echo "НЕТ БИНАРНИКА: $BIN — сперва flutter build ios|ipa"; exit 1; }
+# ⚠️ Путь к бинарнику зависит от того, чем собирали: `flutter build ios` кладёт его
+# в build/ios/iphoneos, а `flutter build ipa` — ещё и в архив. Гейт, знающий один
+# путь, на другой сборке молча пропустил бы проверку, а это хуже отсутствия гейта.
+BIN="${1:-}"
+if [ -z "$BIN" ]; then
+  for p in build/ios/iphoneos/Runner.app/Runner \
+           build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app/Runner; do
+    [ -f "$p" ] && { BIN="$p"; break; }
+  done
+fi
+[ -n "$BIN" ] && [ -f "$BIN" ] || {
+  echo "НЕ НАШЁЛ БИНАРНИК (искал build/ios/iphoneos и build/ios/archive) — сперва flutter build ios|ipa"
+  exit 1
+}
+echo "бинарник: $BIN"
 
 # Список берётся из ТОГО, ЧТО ИЩЕТ DART, а не из моста: в мосте 26 экспортов, а Dart
 # зовёт 15 — среди прочих есть psy_midend_statepos, служебная заплата канона, которую
