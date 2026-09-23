@@ -14,6 +14,7 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import { publishFeedbackGameState } from '@/src/services/feedbackGameState';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { hapticTap, hapticMedium, hapticSuccess } from '@/src/components/juice';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
@@ -175,6 +176,22 @@ export default function EyeGymGame() {
   const lvl = usePersistentLevel('eye_gym');
   const [playMode, setPlayMode] = useState<'levels' | 'free'>('levels');
   const byLevel = playMode === 'levels' || isPreset;
+
+  /**
+   * 🔴 СОСТОЯНИЕ ЭКРАНА — В ОТЧЁТ ТЕСТИРОВЩИКА. Без этой публикации в отчёте
+   * видно только «eye-gym», и по кадру не понять, какой режим шёл: «Слежение»,
+   * «Фокус», «Расслабление» или полный круг, по уровням человек играл или
+   * свободно. Разбирать такие отчёты приходится догадками.
+   * Ярлык собирается из mode/level/phase — тот же набор полей, что у соседних
+   * экранов (см. `puzzles.tsx`), чтобы шаги в отчёте читались одинаково.
+   */
+  useEffect(() => {
+    publishFeedbackGameState({
+      mode, level: lvl.level, phase,
+      variant: playMode, road: byLevel ? 'levels' : 'free',
+    });
+    return () => publishFeedbackGameState(null);
+  }, [mode, lvl.level, phase, playMode, byLevel]);
   const levelCfg = eyeGymLevel(lvl.level);
   const effScale = byLevel ? levelCfg.scale : scale;
   const effSpeed = byLevel ? levelCfg.speed : speed;
