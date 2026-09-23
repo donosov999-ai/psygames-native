@@ -31,6 +31,8 @@ import type { ОтчётРежима, УправлениеРежима } from '@
 import type { HudItem } from '@/src/components/GameShell';
 import { ПАЛЕЦ } from '@/src/components/gameLayout';
 import { LetterWheel } from '@/src/components/letterWheel/LetterWheel';
+import LessonPlayer from '@/src/components/LessonPlayer';
+import { разборСлова, текстШагаАнаграмм } from '@/src/games/anagrams/anagrams-teach';
 import { WordSquareGame } from '@/src/games/anagrams/WordSquareGame';
 import { AllWordsGame } from '@/src/games/anagrams/AllWordsGame';
 import { CrosswordGame } from '@/src/games/anagrams/CrosswordGame';
@@ -306,6 +308,15 @@ export default function AnagramGame() {
   const [hintsOn, setHintsOn] = useState(true);   // тумблер подсказки (выкл = хардкор, только буквы) — правило, остаётся
   const [letters, setLetters] = useState<string[]>([]);
   const [picked, setPicked] = useState<number[]>([]);
+  /**
+   * 🔴 РАЗБОР ПО ШАГАМ — ТОЛЬКО НА ПЕРВЫХ ТРЁХ УРОВНЯХ («обучить человека в начале»,
+   * Денис 17.09.2026). Дальше он мешал бы: человек уже знает приём.
+   *
+   * ⚠️ Разбор идёт по ТЕКУЩЕМУ слову, а значит показывает ответ. Поэтому слово с
+   * разбором не засчитывается: по закрытии плеера берём новое, не трогая счёт.
+   * Тот же уговор, что у пилота «Чёт-нечета».
+   */
+  const [урок, setУрок] = useState<{ шаги: ReturnType<typeof разборСлова>; индекс: number } | null>(null);
 
   /**
    * ОТМЕНА БУКВЫ — БЕСПЛАТНАЯ, БЕЗ СЧЁТЧИКА, И ЭТО ОСОЗНАННО.
@@ -1079,6 +1090,21 @@ export default function AnagramGame() {
   };
 
   // Подсказка: автоматически открыть следующую правильную букву
+  /**
+   * РАЗБОР: шаги считает чистый модуль раздела, экран только показывает.
+   * Пустой разбор (слово короче трёх букв, банк мал) кнопку не показывает —
+   * лучше без кнопки, чем кнопка, за которой ничего.
+   */
+  const шагиРазбора = React.useMemo(
+    () => (режимИгры === 'classic' && target && letters.length === [...target].length
+      ? разборСлова(target, letters, wordLang.lang) : []),
+    [режимИгры, target, letters, wordLang.lang],
+  );
+  const разборДоступен = lvl.level <= 3 && шагиРазбора.length > 1 && !урок;
+  const начатьРазбор = () => setУрок({ шаги: шагиРазбора, индекс: 0 });
+  /** Закрыли разбор — слово показано, поэтому берём новое и счёт не трогаем. */
+  const закрытьРазбор = () => { setУрок(null); newRound(); };
+
   const revealHint = () => {
     if (wordDoneRef.current) return;
     const nextChar = target[picked.length];
@@ -1239,14 +1265,22 @@ export default function AnagramGame() {
            Кнопка показывается только при включённом тумблере: иначе «хардкор»
            подсказку не выключал. */
         headerActions={
-          hintsOn ? (
+          (hintsOn || разборДоступен) ? (
             <GameAuxBar>
-              <GameAuxAction
-                compact
-                icon="bulb" tint="#d97706"
-                ladder="hint" label={t('btn_hint')} count={hintUses > 0 ? hintUses : undefined}
-                onPress={revealHint}
-              />
+              {hintsOn ? (
+                <GameAuxAction
+                  compact
+                  icon="bulb" tint="#d97706"
+                  ladder="hint" label={t('btn_hint')} count={hintUses > 0 ? hintUses : undefined}
+                  onPress={revealHint}
+                />
+              ) : null}
+              {разборДоступен ? (
+                <GameAuxAction
+                  compact icon="school-outline" tint="#d97706" label={t('teachButton')}
+                  onPress={начатьРазбор}
+                />
+              ) : null}
             </GameAuxBar>
           ) : undefined
         }
@@ -1416,6 +1450,36 @@ export default function AnagramGame() {
             disabled={словоЗакрыто}
           />
         </View>
+        {/*
+          🔴 РАЗБОР НА ВЕСЬ ЭКРАН, КАК РОЛИК (решение Дениса 17.09.2026). Плеер общий
+          (`LessonPlayer`), доску даёт экран: то же колесо, что в партии, но с
+          подсвеченными буквами шага и без нажатий — доску ведёт разбор.
+        */}
+        <LessonPlayer
+          visible={!!урок}
+          индекс={урок?.индекс ?? 0}
+          шагов={Math.max(0, (урок?.шаги.length ?? 1) - 1)}
+          текст={урок ? текстШагаАнаграмм(урок.шаги[урок.индекс]!, t) : ''}
+          сноска={урок?.индекс === 0 ? t('teachNotCounted') : undefined}
+          готово={!!урок && урок.индекс >= урок.шаги.length - 1}
+          занят={false}
+          renderBoard={(сторона) => (
+            <LetterWheel
+              letters={letters}
+              size={сторона}
+              /* След — буквы, поставленные к этому шагу: человек видит, как слово растёт. */
+              trace={урок ? урок.шаги.slice(0, урок.индекс + 1).flatMap((ш) => ш.ставим) : []}
+              onTrace={() => {}}
+              onSubmit={() => {}}
+              colors={{ surface: colors.surface, text: colors.text, primary: GRADIENT[0], border: colors.border }}
+              disabled
+            />
+          )}
+          onДальше={() => setУрок((у) => (у && у.индекс < у.шаги.length - 1 ? { ...у, индекс: у.индекс + 1 } : у))}
+          onНазад={() => setУрок((у) => (у && у.индекс > 0 ? { ...у, индекс: у.индекс - 1 } : у))}
+          onЗакрыть={закрытьРазбор}
+          onНовая={закрытьРазбор}
+        />
       </GameShell>
     );
   }
