@@ -1,0 +1,319 @@
+{
+  "снято": "прогоном живого TS из frontend/app/games/posner.tsx",
+  "validRatio": 0.7,
+  "maxLevel": 15,
+  "levels": [
+    {
+      "level": 1,
+      "trials": 24,
+      "windowMs": 2200,
+      "soaMinMs": 150,
+      "soaMaxMs": 250,
+      "condition": {
+        "trials": 24,
+        "windowMs": 2200,
+        "soaMinMs": 150,
+        "soaMaxMs": 250,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 2,
+      "trials": 24,
+      "windowMs": 2105,
+      "soaMinMs": 145,
+      "soaMaxMs": 283,
+      "condition": {
+        "trials": 24,
+        "windowMs": 2105,
+        "soaMinMs": 145,
+        "soaMaxMs": 283,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 3,
+      "trials": 24,
+      "windowMs": 2010,
+      "soaMinMs": 140,
+      "soaMaxMs": 316,
+      "condition": {
+        "trials": 24,
+        "windowMs": 2010,
+        "soaMinMs": 140,
+        "soaMaxMs": 316,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 4,
+      "trials": 24,
+      "windowMs": 1915,
+      "soaMinMs": 135,
+      "soaMaxMs": 349,
+      "condition": {
+        "trials": 24,
+        "windowMs": 1915,
+        "soaMinMs": 135,
+        "soaMaxMs": 349,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 5,
+      "trials": 24,
+      "windowMs": 1820,
+      "soaMinMs": 130,
+      "soaMaxMs": 382,
+      "condition": {
+        "trials": 24,
+        "windowMs": 1820,
+        "soaMinMs": 130,
+        "soaMaxMs": 382,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 6,
+      "trials": 30,
+      "windowMs": 1725,
+      "soaMinMs": 125,
+      "soaMaxMs": 415,
+      "condition": {
+        "trials": 30,
+        "windowMs": 1725,
+        "soaMinMs": 125,
+        "soaMaxMs": 415,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 7,
+      "trials": 30,
+      "windowMs": 1630,
+      "soaMinMs": 120,
+      "soaMaxMs": 448,
+      "condition": {
+        "trials": 30,
+        "windowMs": 1630,
+        "soaMinMs": 120,
+        "soaMaxMs": 448,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 8,
+      "trials": 30,
+      "windowMs": 1535,
+      "soaMinMs": 115,
+      "soaMaxMs": 481,
+      "condition": {
+        "trials": 30,
+        "windowMs": 1535,
+        "soaMinMs": 115,
+        "soaMaxMs": 481,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 9,
+      "trials": 30,
+      "windowMs": 1440,
+      "soaMinMs": 110,
+      "soaMaxMs": 514,
+      "condition": {
+        "trials": 30,
+        "windowMs": 1440,
+        "soaMinMs": 110,
+        "soaMaxMs": 514,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 10,
+      "trials": 30,
+      "windowMs": 1345,
+      "soaMinMs": 105,
+      "soaMaxMs": 547,
+      "condition": {
+        "trials": 30,
+        "windowMs": 1345,
+        "soaMinMs": 105,
+        "soaMaxMs": 547,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 11,
+      "trials": 36,
+      "windowMs": 1250,
+      "soaMinMs": 100,
+      "soaMaxMs": 580,
+      "condition": {
+        "trials": 36,
+        "windowMs": 1250,
+        "soaMinMs": 100,
+        "soaMaxMs": 580,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 12,
+      "trials": 36,
+      "windowMs": 1155,
+      "soaMinMs": 95,
+      "soaMaxMs": 613,
+      "condition": {
+        "trials": 36,
+        "windowMs": 1155,
+        "soaMinMs": 95,
+        "soaMaxMs": 613,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 13,
+      "trials": 36,
+      "windowMs": 1060,
+      "soaMinMs": 90,
+      "soaMaxMs": 646,
+      "condition": {
+        "trials": 36,
+        "windowMs": 1060,
+        "soaMinMs": 90,
+        "soaMaxMs": 646,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 14,
+      "trials": 36,
+      "windowMs": 965,
+      "soaMinMs": 85,
+      "soaMaxMs": 679,
+      "condition": {
+        "trials": 36,
+        "windowMs": 965,
+        "soaMinMs": 85,
+        "soaMaxMs": 679,
+        "validRatio": 0.7
+      }
+    },
+    {
+      "level": 15,
+      "trials": 36,
+      "windowMs": 900,
+      "soaMinMs": 80,
+      "soaMaxMs": 700,
+      "condition": {
+        "trials": 36,
+        "windowMs": 900,
+        "soaMinMs": 80,
+        "soaMaxMs": 700,
+        "validRatio": 0.7
+      }
+    }
+  ],
+  "trials": [
+    {
+      "взятые": [
+        0,
+        0.1
+      ],
+      "cueDir": "left",
+      "targetSide": "left",
+      "validity": "valid"
+    },
+    {
+      "взятые": [
+        0.6999,
+        0.9
+      ],
+      "cueDir": "right",
+      "targetSide": "right",
+      "validity": "valid"
+    },
+    {
+      "взятые": [
+        0.7,
+        0.1
+      ],
+      "cueDir": null,
+      "targetSide": "left",
+      "validity": "neutral"
+    },
+    {
+      "взятые": [
+        0.84,
+        0.9
+      ],
+      "cueDir": null,
+      "targetSide": "right",
+      "validity": "neutral"
+    },
+    {
+      "взятые": [
+        0.8499,
+        0.1
+      ],
+      "cueDir": null,
+      "targetSide": "left",
+      "validity": "neutral"
+    },
+    {
+      "взятые": [
+        0.85,
+        0.9
+      ],
+      "cueDir": "left",
+      "targetSide": "right",
+      "validity": "invalid"
+    },
+    {
+      "взятые": [
+        0.99,
+        0.1
+      ],
+      "cueDir": "right",
+      "targetSide": "left",
+      "validity": "invalid"
+    },
+    {
+      "взятые": [
+        0.5,
+        0.49
+      ],
+      "cueDir": "left",
+      "targetSide": "left",
+      "validity": "valid"
+    },
+    {
+      "взятые": [
+        0.5,
+        0.5
+      ],
+      "cueDir": "right",
+      "targetSide": "right",
+      "validity": "valid"
+    },
+    {
+      "взятые": [
+        0.72,
+        0.99
+      ],
+      "cueDir": null,
+      "targetSide": "right",
+      "validity": "neutral"
+    },
+    {
+      "взятые": [
+        0.85,
+        0.1
+      ],
+      "cueDir": "right",
+      "targetSide": "left",
+      "validity": "invalid",
+      "почему": "ровно 0,7+0,15 — сумма долей; зашитое 0,85 дало бы другой ответ"
+    }
+  ]
+}

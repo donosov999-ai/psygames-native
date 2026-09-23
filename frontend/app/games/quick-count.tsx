@@ -203,8 +203,15 @@ export function бросокОкна(): number {
   return Math.floor(Math.random() * ANSWER_MAX);
 }
 
-// Раскидать N точек без наложения (rejection sampling, лимит попыток — не зависать).
-function scatterDots(n: number, w: number, h: number, r: number): Dot[] {
+/**
+ * Раскидать N точек без наложения (rejection sampling, лимит попыток — не зависать).
+ *
+ * ⚠️ ЭКСПОРТ НУЖЕН ПРОБАМ И ПЕРЕНОСУ: это правило РАСКЛАДКИ, а не украшение —
+ * отступ `r+8` от края и зазор `r*2.4` между точками задают, читается ли картинка
+ * как отдельные точки. Раскладка переносится на Flutter вместе с правилами, и
+ * сверяться ей надо с этой функцией, а не с переписанной заново.
+ */
+export function scatterDots(n: number, w: number, h: number, r: number): Dot[] {
   const dots: Dot[] = [];
   const pad = r + 8;
   for (let i = 0; i < n; i++) {

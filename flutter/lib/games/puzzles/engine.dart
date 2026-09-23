@@ -71,9 +71,34 @@ class TathamEngine {
           ? 'tatham.dll'
           : 'libtatham.so';
 
-  /// Открыть библиотеку по пути. Путь снаружи нарочно: на телефоне она лежит в
-  /// приложении, в пробах — в build/tatham.
+  /// Открыть библиотеку по пути. Путь снаружи нарочно: в пробах она лежит в
+  /// `build/tatham`, на настольных сборках — рядом с приложением.
   static TathamEngine open(String path) => TathamEngine._(DynamicLibrary.open(path));
+
+  /// ОТКРЫТЬ ТАК, КАК ТРЕБУЕТ ПЛОЩАДКА. Телефоны упаковывают C по-разному, и это
+  /// не деталь сборки, а разное место, откуда берутся символы.
+  ///
+  /// 🔴 iOS — символы В САМОМ ПРИЛОЖЕНИИ, файла нет. Открыть чужой `.dylib` из
+  /// файловой системы там нельзя: годится только подписанный `.framework`, и
+  /// App Store отклоняет сборки, которые грузят код со стороны. Поэтому C
+  /// линкуется статически (`tool/build_tatham_ios.sh`, 1,09 МБ кода и данных на
+  /// arm64), и `DynamicLibrary.process()` находит `psy_*` прямо в процессе.
+  ///
+  /// 🔴 Android — обычный `.so` в APK, по одному на архитектуру, открывается по
+  /// ИМЕНИ, а не по пути: система сама ищет его в `lib/<abi>/`.
+  ///
+  /// ⚠️ Путь нужен только настольным сборкам и пробам — там библиотека лежит
+  /// файлом рядом. Передавать его с телефона бессмысленно, и молчать об этом
+  /// нельзя: `DynamicLibrary.open('/несуществующий/путь')` на Android падает
+  /// невнятной ошибкой загрузчика, а не «файла нет».
+  static TathamEngine openPlatform({String? path}) {
+    if (Platform.isIOS) return TathamEngine._(DynamicLibrary.process());
+    if (Platform.isAndroid) return TathamEngine._(DynamicLibrary.open('libtatham.so'));
+    if (path == null) {
+      throw ArgumentError('на настольной сборке нужен путь к $libraryName');
+    }
+    return open(path);
+  }
 
   /// Сколько игр в сборке. Веб-сборка возит те же 42.
   int get games => _count();

@@ -135,7 +135,7 @@ export function pickGngStimulus(): 'go' | 'nogo' {
  * не считается. Канон с лестницей 250 мс / шаг 50 мс и SSRT — отдельный экран stop-signal
  * (src/games/stop-signal/core/ladder.ts).
  */
-function levelParams(level: number): { trials: number; stopProb: number; ssd: number; goWindow: number } {
+export function levelParams(level: number): { trials: number; stopProb: number; ssd: number; goWindow: number } {
   const trials = level <= 5 ? 20 : level <= 10 ? 26 : 32;
   const ssd = Math.min(480, 150 + (level - 1) * 24);             // 150мс → 480мс
   const goWindow = Math.max(850, 1300 - (level - 1) * 32);       // 1300мс → ~850мс
@@ -307,6 +307,13 @@ export default function InhibitionGame() {
         errors: m + fa,
         details: {
           level: levelRef.current,
+          /**
+           * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ (23.09.2026). Не «восстановим через
+           * levelParams(level)»: поменяется формула уровня — и накопленное молча
+           * станет нечитаемым. Список полей руками не пишется, его держит гейт
+           * `attention-condition-recorded`: он сам гоняет levelParams по лестнице.
+           */
+          ...levelCondition(levelRef.current),
           hits: h, misses: m, falseAlarms: fa, correctRej: cr,
           accuracy: Math.round(accuracy * 100), avgRT, mean_rt: avgRT,
           /**

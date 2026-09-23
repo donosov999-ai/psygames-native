@@ -47,7 +47,7 @@ import {
 import {
   SCHULTE_SERIES_PLAN, afterSeriesRun, blockDone, blockKeyAt, blockTarget, buildSchulteField,
   getSchulteSeriesStrings, interpolate, nextBlock, openBlock, pairSum, parseSeriesProgress,
-  pressSeriesCell, seriesEntry, EMPTY_SERIES_PROGRESS,
+  pressSeriesCell, schulteTable, seriesEntry, EMPTY_SERIES_PROGRESS,
   type SchulteBlockKey, type SchulteSeriesProgress, type SchulteSeriesState, type SeriesOutcome,
 } from '@/src/games/schulte/core';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -153,18 +153,6 @@ export const SCHULTE_LEVELS: number = (() => {
   }
   return последний;
 })();
-
-// От центра наружу: h, h+1, h-1, h+2, h-2... (паттерн drafterleo/schulte «divergent»).
-function centerOutOrder(n: number): number[] {
-  const mid = Math.floor((n + 1) / 2);
-  const order: number[] = [mid];
-  let lo = mid - 1, hi = mid + 1;
-  while (order.length < n) {
-    if (hi <= n) order.push(hi++);
-    if (order.length < n && lo >= 1) order.push(lo--);
-  }
-  return order;
-}
 
 // Персональная лесенка 15 ступеней: размер → обратный → буквы → цвет → Горбов → Горбов+цвет.
 // Буквы держим 5×5 (рус/латиница ограничены алфавитом). Сложность растёт ТРУДНОСТЬЮ.
@@ -419,46 +407,15 @@ export default function SchulteGame() {
     }
     setCellGroup([]);
 
-    let items: (number | string)[];
-    let orderedSequence: (number | string)[];
-
-    if (cm === 'numbers') {
-      items = Array.from({ length: totalCells }, (_, i) => i + 1);
-      orderedSequence = dir === 'center-out' ? centerOutOrder(totalCells) : [...items];
-    } else if (cm === 'letters') {
-      const alphabet = SCRIPTS[script].chars;
-      items = alphabet.slice(0, totalCells).split('');
-      orderedSequence = [...items];
-    } else {
-      // Mixed (Schulte-Gorbov): 1, A, 2, B, 3, C, ... — backward не применяется
-      const half = Math.ceil(totalCells / 2);
-      const numbers = Array.from({ length: half }, (_, i) => i + 1);
-      const alphabet = SCRIPTS[script].chars;
-      const letters = alphabet.slice(0, totalCells - half).split('');
-      orderedSequence = [];
-      // Ось 9: чередование может начинаться с буквы (А-1-Б-2), а не с цифры.
-      const сБуквы = lfArg ?? lettersFirst;
-      for (let i = 0; i < half; i++) {
-        if (сБуквы) {
-          if (i < letters.length) orderedSequence.push(letters[i]);
-          orderedSequence.push(numbers[i]);
-        } else {
-          orderedSequence.push(numbers[i]);
-          if (i < letters.length) orderedSequence.push(letters[i]);
-        }
-      }
-      orderedSequence = orderedSequence.slice(0, totalCells);
-      items = [...orderedSequence];
-    }
-
-    if (dir === 'backward' && cm !== 'mixed') {
-      orderedSequence = [...orderedSequence].reverse();
-    }
-
-    for (let i = items.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [items[i], items[j]] = [items[j], items[i]];
-    }
+    // 🔴 Правила таблицы живут в ядре (`core/table.ts`) — тем же кодом их прогоняет
+    // сверка переноса на Flutter. Здесь только показ.
+    const { items, sequence: orderedSequence } = schulteTable({
+      size: gs,
+      contentMode: cm,
+      direction: dir,
+      alphabet: SCRIPTS[script].chars,
+      lettersFirst: lfArg ?? lettersFirst,
+    });
 
     const colors = items.map(() => COLORS[Math.floor(Math.random() * COLORS.length)]);
 

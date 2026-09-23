@@ -18,15 +18,15 @@
  * после него джобы не идут. Так же сделано в соседних пробах (evening-calm и др.).
  */
 declare const __dirname: string;
-declare function require(m: string): any;   // eslint-disable-line @typescript-eslint/no-explicit-any
-const fs = require('fs');                   // eslint-disable-line @typescript-eslint/no-require-imports
-const path = require('path');               // eslint-disable-line @typescript-eslint/no-require-imports
+declare function require(id: string): any;   // eslint-disable-line @typescript-eslint/no-explicit-any
+const fs = require('fs');                    // eslint-disable-line @typescript-eslint/no-require-imports
+const path = require('path');                // eslint-disable-line @typescript-eslint/no-require-imports
 
-const КОРЕНЬ = path.join(__dirname, '..', '..');
-const читать = (п: string) => fs.readFileSync(path.join(КОРЕНЬ, п), 'utf8');
+const ROOT = path.join(__dirname, '..', '..');
+const read = (rel: string) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 
 /** Слово про завершённость на каждом языке словаря. */
-const ЗАВЕРШЁННОСТЬ: Record<string, RegExp> = {
+const DONE_WORD: Record<string, RegExp> = {
   de: /abgeschlossen/i,
   es: /completad/i,
   fr: /terminée/i,
@@ -41,27 +41,27 @@ const ЗАВЕРШЁННОСТЬ: Record<string, RegExp> = {
 
 describe('счётчик статистики называет то, что считает', () => {
   it('🔴 базовый словарь: подпись про завершённые партии, а не просто «сыграно»', () => {
-    const с = читать('src/contexts/LanguageContext.tsx');
-    const строка = с.match(/gamesPlayed:\s*\{[^}]*\}/)?.[0] ?? '';
-    expect(строка).toMatch(/завершённых/);
-    expect(строка).toMatch(/completed/i);
+    const src = read('src/contexts/LanguageContext.tsx');
+    const entry = src.match(/gamesPlayed:\s*\{[^}]*\}/)?.[0] ?? '';
+    expect(entry).toMatch(/завершённых/);
+    expect(entry).toMatch(/completed/i);
   });
 
   it('🔴 во всех десяти локалях подпись тоже про завершённость', () => {
-    const плохие: string[] = [];
-    for (const [код, узор] of Object.entries(ЗАВЕРШЁННОСТЬ)) {
-      const с = читать(`src/contexts/translations/${код}.ts`);
-      const значение = с.match(/"gamesPlayed":\s*"([^"]*)"/)?.[1];
-      if (!значение) { плохие.push(`${код}: ключа нет`); continue; }
-      if (!узор.test(значение)) плохие.push(`${код}: «${значение}» не говорит о завершённости`);
+    const bad: string[] = [];
+    for (const [loc, pattern] of Object.entries(DONE_WORD)) {
+      const src = read(`src/contexts/translations/${loc}.ts`);
+      const value = src.match(/"gamesPlayed":\s*"([^"]*)"/)?.[1];
+      if (!value) { bad.push(`${loc}: ключа нет`); continue; }
+      if (!pattern.test(value)) bad.push(`${loc}: «${value}» не говорит о завершённости`);
     }
-    expect(плохие).toEqual([]);
+    expect(bad).toEqual([]);
   });
 
   it('🔴 токены и правда начисляются ВНЕ партий — иначе переименование было бы ложью', () => {
-    const вне = ['src/services/achievements.ts', 'src/services/dailyGoal.ts',
-                 'src/services/abilities.ts', 'src/services/wager.ts'];
-    const без = вне.filter((п) => !/addTokens\s*\(/.test(читать(п)));
-    expect(без).toEqual([]);
+    const outsideGames = ['src/services/achievements.ts', 'src/services/dailyGoal.ts',
+                          'src/services/abilities.ts', 'src/services/wager.ts'];
+    const without = outsideGames.filter((rel) => !/addTokens\s*\(/.test(read(rel)));
+    expect(without).toEqual([]);
   });
 });

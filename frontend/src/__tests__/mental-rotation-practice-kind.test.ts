@@ -1,4 +1,9 @@
-/* psygames-mental-rotation-practice-kind · VER 2 · 17.09.2026 */
+/* psygames-mental-rotation-practice-kind · VER 2 · 17.09.2026 *
+ * ⚠️ ИМЕНА УЗЛОВ СМЕНИЛИСЬ 23.09.2026 (задача 298e0ae9): свой выпадающий список экрана заменён
+ * ОБЩИМ `DropdownSelect`. Теперь строка выбора — `mental-kind`, строки списка —
+ * `mental-kind-<вид>`, а «Вперемешку» это значение `null`, то есть `mental-kind-null`.
+ * Проба правится вместе с экраном: она сторожит ПОВЕДЕНИЕ выбора, а не имена узлов.
+ */
 /* psygames-spatial-claude-mac · задача da43411f, отчёт 1263dc58 */
 /**
  * 🔴 «МЫСЛЕННОЕ ВРАЩЕНИЕ»: ОТРАБОТКА ОДНОГО ВИДА ЗАДАНИЙ С ЭКРАНА НАСТРОЙКИ.
@@ -90,7 +95,7 @@ async function нажать(r: any, id: string): Promise<void> {
 }
 /** Выбрать вид: раскрыть список и нажать строку. */
 async function выбратьВид(r: any, вид: string): Promise<void> {
-  await нажать(r, 'mental-kind-select');
+  await нажать(r, 'mental-kind');
   await нажать(r, `mental-kind-${вид}`);
 }
 async function нажатьТекст(r: any, re: RegExp): Promise<void> {
@@ -130,15 +135,15 @@ describe('«Мысленное вращение»: выбор вида зада�
 
   it('🔴 выпадающий список: закрыт — видна строка «Вперемешку»; раскрыт — 12 строк по порядку; выбор закрывает список и показывает подпись', async () => {
     const r = await экран();
-    const строки = () => r.root.findAll((n: any) => typeof n.type !== 'string' && typeof n.props?.onPress === 'function' && /^mental-kind-(?!select)/.test(String(n.props?.testID ?? '')))
+    const строки = () => r.root.findAll((n: any) => typeof n.type !== 'string' && typeof n.props?.onPress === 'function' && /^mental-kind-(?!note$)[a-z-]+$/.test(String(n.props?.testID ?? '')))
       .filter((n: any, i: number, все: any[]) => все.findIndex((m: any) => m.props.testID === n.props.testID) === i);
-    const выбор = () => поId(r, 'mental-kind-select')[0];
+    const выбор = () => поId(r, 'mental-kind')[0];
     // закрыт: строк списка нет, в строке выбора — «вперемешку»
     expect(`строк ${строки().length}, раскрыт ${выбор().props.accessibilityState?.expanded}`).toBe('строк 0, раскрыт false');
     expect(выбор().props.accessibilityLabel).toMatch(/Mixed|Вперемешку/);
-    await нажать(r, 'mental-kind-select');
+    await нажать(r, 'mental-kind');
     expect(строки().map((n: any) => n.props.testID)).toEqual([
-      'mental-kind-mixed', 'mental-kind-rotation', 'mental-kind-projection', 'mental-kind-net', 'mental-kind-viewpoint', 'mental-kind-same',
+      'mental-kind-null', 'mental-kind-rotation', 'mental-kind-projection', 'mental-kind-net', 'mental-kind-viewpoint', 'mental-kind-same',
       'mental-kind-assembly', 'mental-kind-memory', 'mental-kind-formation', 'mental-kind-section', 'mental-kind-missing', 'mental-kind-oblique',
     ]);
     expect(строки()[0].props.accessibilityState).toEqual({ selected: true });
@@ -190,7 +195,7 @@ describe('«Мысленное вращение»: выбор вида зада�
     const r = await экран();
     await выбратьВид(r, 'rotation');
     expect(текст(r.root.findAll((n: any) => n.props?.testID === 'mental-kind-note')[0])).toContain('1');
-    await выбратьВид(r, 'mixed');
+    await выбратьВид(r, 'null');   // «Вперемешку» — значение null у общего списка
     expect(естьId(r, 'mental-kind-note')).toBe(false);
     await выбратьВид(r, 'projection');
     await нажатьТекст(r, /^\s*5\s*$/);

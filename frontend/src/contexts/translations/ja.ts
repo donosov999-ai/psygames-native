@@ -2729,6 +2729,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ ここはタップではなくドラッグです",
   "puzzleNoMoves": "手がありません。やり直せます",
   "puzzleBlownUp": "爆発しました。手を戻して続けましょう",
+  "puzzleBarrelStuck": "たるが角にはまりました。手を戻すか、やり直しましょう",
   "puzzleErrorShown": "赤はルール違反の場所です",
   "puzzleWhereError": "どこが間違い？",
   "puzzleWrongLines": "余分な線を赤で囲みました：{n}",

@@ -168,7 +168,7 @@ export const MAX_LEVEL = 15;
  * проходит до 0,8 секунды, и удерживать «что я только что выбрал» приходится в
  * уме. Приём канонический для задач обучения по обратной связи.
  */
-function levelParams(level: number): {
+export function levelParams(level: number): {
   rewardProb: number; trialsTotal: number; revMin: number; revMax: number; feedbackDelayMs: number;
 } {
   const trialsTotal = level <= 4 ? 30 : level <= 8 ? 40 : 50;
@@ -455,6 +455,13 @@ export default function PRLGame() {
         mode: classic ? `${totalRef.current}t-${Math.round(rewardProbRef.current * 100)}%` : `lvl${levelRef.current}`,
         errors: totalErrors,
         details: {
+          /**
+           * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ (23.09.2026). Не «восстановим через
+           * levelParams(level)»: поменяется формула уровня — и накопленное молча
+           * станет нечитаемым. Список полей руками не пишется, его держит гейт
+           * `attention-condition-recorded`: он сам гоняет levelParams по лестнице.
+           */
+          ...(classic ? {} : levelCondition(levelRef.current)),
           hits: trials.length - totalErrors,
           errors: totalErrors,
           n_trials: trials.length,

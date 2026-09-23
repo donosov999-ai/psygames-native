@@ -315,6 +315,13 @@ export default function PosnerGame() {
         errors: e,
         details: {
           level: levelRef.current,
+          /**
+           * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ (23.09.2026). Не «восстановим через
+           * levelParams(level)»: поменяется формула уровня — и накопленное молча
+           * станет нечитаемым. Список полей руками не пишется, его держит гейт
+           * `attention-condition-recorded`: он сам гоняет levelParams по лестнице.
+           */
+          ...levelCondition(levelRef.current),
           mean_rt: Math.round(meanRt),
           validity_effect_ms: validityEffect,
           accuracy: Math.round(accuracy * 100),

@@ -152,6 +152,25 @@ export function levelParams(level: number): { trials: number; answerWindowMs: nu
 }
 
 /**
+ * УСЛОВИЕ, ПРИ КОТОРОМ СНЯТ ПОКАЗАТЕЛЬ, — РЯДОМ С САМИМ ПОКАЗАТЕЛЕМ.
+ *
+ * 🔴 Заведено 23.09.2026: экран считает разностную меру, а условие её снятия едет
+ * вместе с уровнем игрока (решение Дениса 09.09.2026 — «мы меряем прогресс
+ * человека»). Два одинаковых на вид числа из разных партий сравнивать НЕЛЬЗЯ,
+ * пока рядом не лежит условие.
+ *
+ * ⚠️ Не «восстановим через levelParams(level)»: это привязывает разбор старых
+ * партий к сегодняшнему коду — поменяется формула, и накопленное молча станет
+ * нечитаемым. Тот же довод записан у соседей (flanker.tsx, cpt.tsx).
+ *
+ * Список полей руками НЕ пишется: гейт `attention-condition-recorded` сам гоняет
+ * `levelParams` по лестнице и требует сюда КАЖДОЕ меняющееся поле.
+ */
+export function levelCondition(level: number): { trials: number; answerWindowMs: number; isiBaseMs: number; isiJitterMs: number } {
+  return levelParams(level);
+}
+
+/**
  * Одна проба. Экспортируется ради гейта: проверять помощников по отдельности
  * мало — можно починить их и всё равно обойти в самой пробе.
  */
@@ -309,6 +328,13 @@ export default function StroopEmotionalGame() {
         errors: errorsRef.current,
         details: {
           level: levelRef.current,
+          /**
+           * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ (23.09.2026). Не «восстановим через
+           * levelParams(level)»: поменяется формула уровня — и накопленное молча
+           * станет нечитаемым. Список полей руками не пишется, его держит гейт
+           * `attention-condition-recorded`: он сам гоняет levelParams по лестнице.
+           */
+          ...levelCondition(levelRef.current),
           mean_rt: Math.round(meanRt),
           interference_threat_ms: interferenceThreat,
           interference_positive_ms: interferencePositive,

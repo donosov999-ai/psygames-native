@@ -62,6 +62,7 @@ import {
 } from 'react-native';
 import { useGameKeyboard, type KeyMap } from '@/src/hooks/useGameKeyboard';
 import { useScreenSize, useScreenWidth } from '@/src/hooks/useScreenWidth';
+import { useGameFieldHeight } from '@/src/components/GameFieldHeight';
 import {
   CARDINAL_DIRECTIONS,
   HOME_SECTORS,
@@ -110,6 +111,26 @@ export interface NavigatorTheme {
   warning: string;
 }
 
+/**
+ * СТОРОНА КАРТЫ — ОТ ВЫСОТЫ ПОЛЯ КАРКАСА, А НЕ ОТ ВЫСОТЫ ОКНА.
+ *
+ * Отдельной функцией нарочно: в разметке это правило проверяется только живым layout, а так его
+ * держит обычная проба (`navigator-restart-and-height`). Без этого «карта считается от поля»
+ * оставалось бы обещанием в комментарии.
+ *
+ * · `высотаПоля` — сколько каркас отдал полю (0, если экран без `scrollableField`);
+ * · `высотаПрочего` — измеренная высота всего, что в поле кроме карты;
+ * · `поОкну` — запасной путь по константам, пока замера нет;
+ * · `полКарты` — ниже него клетки нечитаемы, и карта честно уходит в прокрутку.
+ */
+export function сторонаКарты({ поШирине, полКарты, высотаПоля, высотаПрочего, поОкну }: {
+  поШирине: number; полКарты: number; высотаПоля: number; высотаПрочего: number; поОкну: number;
+}): number {
+  const отКаркаса = высотаПоля > 0 && высотаПрочего > 0 ? высотаПоля - высотаПрочего : 0;
+  const поВысоте = отКаркаса > 0 ? отКаркаса : поОкну;
+  return Math.min(поШирине, Math.max(полКарты, поВысоте));
+}
+
 export interface NavigatorGameProps {
   seed: string;
   level: number;
@@ -135,6 +156,15 @@ export interface NavigatorGameProps {
    * Вторая кнопка рядом уводила бы МИМО вопроса.
    */
   onExit?: () => void;
+  /**
+   * 🔴 «НАЧАТЬ ЗАНОВО» — СЛУЖЕБНОЕ ДЕЙСТВИЕ, И ЕГО МЕСТО В РЯДУ ЗНАЧКОВ ПОД ПОЛЕМ
+   * (решение Дениса 17.09.2026, задача b25b1fd5; то же правило уже в «Точках» и «Одной линии»).
+   *
+   * Модуль отдаёт СВОЙ перезапуск наверх, а экран кладёт его в пункт паузы `id: 'restart'` —
+   * дальше каркас сам рисует значок. Текстовой кнопки в теле партии больше нет: она занимала
+   * строку под органами ответа и повторяла то, что уже есть у каркаса.
+   */
+  onRestartReady?: (restart: () => void) => void;
 }
 
 /**
@@ -474,11 +504,28 @@ function NavigatorSessionView({
   onComplete,
   onProgress,
   onExit,
+  onRestartReady,
 }: NavigatorGameProps) {
   const strings = getNavigatorStrings(locale);
   const screenW = useScreenWidth();
   const { h: screenH } = useScreenSize();
   const [session, setSession] = React.useState(() => createNavigatorSession({ seed, level, mode }));
+  /**
+   * Высота поля каркаса. Модуль стоит ВНУТРИ поля, поэтому хук здесь честно её отдаёт
+   * (экран, который сам рисует каркас, получил бы 0 — см. `GameFieldHeight.tsx`).
+   */
+  const высотаПоля = useGameFieldHeight();
+  /**
+   * Высота всего, что в поле КРОМЕ карты: шапка партии, строка хода, подсказки, кнопки ответа.
+   * Меряется живьём, а не считается по языкам: подписи в двенадцати языках переносятся
+   * по-разному, и ровно на этом устарели прежние константы.
+   */
+  const [высотаПрочего, setВысотаПрочего] = React.useState(0);
+  const замерПрочего = React.useCallback((всего: number, карта: number) => {
+    const прочее = Math.max(0, Math.round(всего - карта));
+    // Дребезг в один пиксель не двигаем: иначе замер и перерисовка гоняли бы друг друга.
+    setВысотаПрочего((было) => (Math.abs(было - прочее) > 1 ? прочее : было));
+  }, []);
   const sessionRef = React.useRef(session);
   const completionReported = React.useRef(false);
 
@@ -537,6 +584,9 @@ function NavigatorSessionView({
     map.r = () => restart();
     return map;
   }, [now, restart]);
+
+  /** Наверх уходит сам перезапуск: экран кладёт его в пункт паузы, каркас — в ряд значков. */
+  React.useEffect(() => { onRestartReady?.(restart); }, [onRestartReady, restart]);
   // Слой включён только там, где нажатию есть что делать: на изучении и на
   // экране правил клавиша по доске не ходит.
   useGameKeyboard(keyMap, session.phase === 'recall' || session.phase === 'paused');
@@ -581,9 +631,30 @@ function NavigatorSessionView({
   // по всем двенадцати, а не выводом.
   const ЗАПАС_ПОД_КАРТОЙ: Record<NavigatorMode, number> = { 'route-recall': 257, 'turn-sequence': 257, 'home-direction': 355 };
   const поШирине = Math.min(600, Math.max(220, screenW - 24));
-  const поВысоте = screenH - ВЕРХ_КАРТЫ_В_ОТВЕТЕ - ЗАПАС_ПОД_КАРТОЙ[session.round.mode] - 8;
   const полКарты = session.round.gridSize * 28;
-  const boardSize = Math.min(поШирине, Math.max(полКарты, поВысоте));
+  /**
+   * 🔴 ВЫСОТА БЕРЁТСЯ У КАРКАСА ЗАМЕРОМ, А КОНСТАНТЫ ОСТАЮТСЯ ЗАПАСНЫМ ПУТЁМ (23.09.2026,
+   * задача 2752f33f, отчёт e5bfc2f0 «игры всё ещё ездят»).
+   *
+   * ⚠️ ПОЧЕМУ КОНСТАНТЫ УСТАРЕЛИ. Они были честно замерены 16.09 на собранном экране по двенадцати
+   * языкам — и перестали быть верными, как только каркас изменился: обход координатора 17.09 дал у
+   * «Навигатора» +230 px переполнения на 360×640. Так будет с ЛЮБОЙ константой, вычитаемой из
+   * высоты ОКНА: окно не знает ни про шапку каркаса, ни про полосу счётчиков, ни про ряд значков.
+   *
+   * Теперь карта считается от высоты, которую поле каркаса отдаёт числом, минус ИЗМЕРЕННАЯ высота
+   * всего прочего внутри поля (`высотаПрочего`). Пока замера нет (первый кадр, экран без
+   * `scrollableField`, пробы с заглушкой каркаса) — прежний путь по константам.
+   */
+  /** Карта нарисована не во всех фазах: в «Повороте» её нет, в ответе она бывает спрятана. */
+  const картаНаЭкране = session.round.mode !== 'turn-sequence'
+    && (session.phase === 'study' || !session.round.hideMapDuringRecall);
+  const boardSize = сторонаКарты({
+    поШирине,
+    полКарты,
+    высотаПоля,
+    высотаПрочего,
+    поОкну: screenH - ВЕРХ_КАРТЫ_В_ОТВЕТЕ - ЗАПАС_ПОД_КАРТОЙ[session.round.mode] - 8,
+  });
 
   if (session.phase === 'rules') {
     return (
@@ -664,6 +735,9 @@ function NavigatorSessionView({
       style={[styles.root, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.gameContent}
       keyboardShouldPersistTaps="handled"
+      // Содержимое партии целиком: из него вычитается карта — остальное и есть «прочее».
+      onContentSizeChange={(_, h) => замерПрочего(h, картаНаЭкране ? boardSize : 0)}
+      keyboardDismissMode="none"
     >
       <View style={styles.gameHeader}>
         <View style={styles.titleBlock}>
@@ -760,7 +834,10 @@ function NavigatorSessionView({
           <ActionButton label={strings.ready} theme={theme} onPrimaryText={gameGradientText}
             onPress={() => setSession(completeNavigatorStudy)} />
         ) : null}
-        <ActionButton label={strings.restart} theme={theme} onPrimaryText={gameGradientText} secondary onPress={restart} />
+        {/*
+          «Заново» здесь больше нет: оно ушло значком в ряд под полем (`onRestartReady` → пункт
+          паузы `restart` → каркас). Осталось «Готово» — это ХОД партии, а не служебное действие.
+        */}
       </View>
     </ScrollView>
   );

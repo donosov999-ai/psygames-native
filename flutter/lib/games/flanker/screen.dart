@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -101,7 +102,7 @@ class _FlankerScreenState extends State<FlankerScreen> {
       if (!mounted || _phase != FlankerPhase.playing) return;
       setState(g.showStimulus);
       // Замер: отметка показа поставлена в showStimulus(), меряем до кадра.
-      measureStimulusFrame('Flutter/Стрелки');
+      measureStimulusFrame('Flutter/Flanker');
       _timer = Timer(Duration(milliseconds: g.params.windowMs), () {
         if (!mounted || _phase != FlankerPhase.playing) return;
         _after(g.timeout());
@@ -146,12 +147,13 @@ class _FlankerScreenState extends State<FlankerScreen> {
     final g = _game;
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
-      title: 'Стрелки',
+      // Тексты — из общего словаря теми же ключами, что зовёт веб-версия игры.
+      title: L.t('flanker'),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Проба', value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
-        HudItem(label: 'Верно', value: '${g.hits}', icon: Icons.check),
-        HudItem(label: 'Реакция', value: '${g.meanRtMs ?? 0} мс', icon: Icons.bolt),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('round'), value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
+        HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
+        HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
       ],
       field: (context, h) => _Field(
         game: g,
@@ -201,19 +203,19 @@ class _Field extends StatelessWidget {
         return _Centered(
           height: height,
           children: [
-            Text('Уровень ${game.level}', style: Theme.of(context).textTheme.titleLarge),
+            Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-            const Text('Жми сторону ЦЕНТРАЛЬНОЙ стрелки. Крайние не важны.',
-                textAlign: TextAlign.center),
+            Text(L.t('hint_center_arrow'), textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
-              'Проб: ${game.trialsTotal} · окно ответа ${game.params.windowMs} мс · '
-              'разнос ${game.params.gapPx.round()} px',
+              L.t('flankerLvlParams')
+                  .replaceAll('{p}', '${(flankerPIncong * 100).round()}')
+                  .replaceAll('{w}', (game.params.windowMs / 1000).toStringAsFixed(1)),
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: const Text('Начать')),
+            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],
         );
       case FlankerPhase.done:
@@ -221,21 +223,27 @@ class _Field extends StatelessWidget {
         return _Centered(
           height: height,
           children: [
-            Text(passed ? 'Уровень пройден' : 'Уровень не пройден',
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text('Верно ${game.hits} из ${game.trialsTotal} · ошибок ${game.errors}'),
-            Text(game.meanRtMs == null
-                ? 'Среднее время: нет верных проб'
-                : 'Среднее время: ${game.meanRtMs} мс'),
             Text(
-              // Пусто — честнее нуля: ноль означал бы «конфликт не мешает».
+              passed
+                  ? L.t('levelDone').replaceAll('{n}', '${game.level}')
+                  : L.t('sameLevelRetry'),
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text('${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
+                '${L.t('hud_errors')}: ${game.errors}'),
+            Text(game.meanRtMs == null
+                ? '${L.t('meanReaction')}: —'
+                : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
+            Text(
+              // Прочерк честнее нуля: ноль означал бы «конфликт не мешает».
               effect == null
-                  ? 'Эффект фланкера: не набрано обеих половин'
-                  : 'Эффект фланкера: $effect мс',
+                  ? '${L.t('hud_interference')}: —'
+                  : '${L.t('hud_interference')}: $effect ${L.t('msShort')}',
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: const Text('Ещё раз')),
+            FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],
         );
       case FlankerPhase.playing:
@@ -269,7 +277,7 @@ class _Field extends StatelessWidget {
                       ),
               ),
               const SizedBox(height: 12),
-              const Text('Жми сторону центральной стрелки'),
+              Text(L.t('hint_center_arrow'), textAlign: TextAlign.center),
               const SizedBox(height: 12),
               SizedBox(
                 height: 28,
@@ -378,7 +386,7 @@ class _Answers extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: TapLatency(
-                      where: 'Flutter/Стрелки',
+                      where: 'Flutter/Flanker',
                       child: SizedBox(
                         height: 56,
                         child: FilledButton(

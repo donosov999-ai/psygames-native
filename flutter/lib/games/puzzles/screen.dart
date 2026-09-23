@@ -25,7 +25,7 @@ class PuzzlesScreen extends StatefulWidget {
     super.key,
     required this.state,
     required this.mode,
-    required this.libraryPath,
+    this.libraryPath,
   });
 
   final SharedState state;
@@ -33,9 +33,12 @@ class PuzzlesScreen extends StatefulWidget {
   /// Имя режима из `puzzleModes` — «Solo», «Towers» и так далее.
   final String mode;
 
-  /// Где лежит библиотека движка. Снаружи нарочно: в пробах это сборка под хост,
-  /// на телефоне — библиотека приложения.
-  final String libraryPath;
+  /// Где лежит библиотека движка — ТОЛЬКО для настольных сборок и проб.
+  ///
+  /// На телефоне пути нет и быть не может: на iOS движок влинкован в само
+  /// приложение, на Android лежит в APK и открывается по имени. Поэтому здесь
+  /// `null`, а выбор делает [TathamEngine.openPlatform].
+  final String? libraryPath;
 
   @override
   State<PuzzlesScreen> createState() => _PuzzlesScreenState();
@@ -69,7 +72,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   Future<void> _boot() async {
     await _ladder.load();
     try {
-      final engine = TathamEngine.open(widget.libraryPath);
+      final engine = TathamEngine.openPlatform(path: widget.libraryPath);
       final index = engine.indexOf(_mode.engineName);
       if (index < 0) {
         setState(() => _failure = 'движок не знает игру ${_mode.engineName}');
