@@ -9,6 +9,7 @@ import '../games/posner/screen.dart';
 import '../games/simon/screen.dart';
 import '../games/stop_signal/screen.dart';
 import '../games/stroop_emotional/screen.dart';
+import '../games/switching_task/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
@@ -119,6 +120,7 @@ class HybridApp extends StatefulWidget {
         '/games/stop-signal': (s) => StopSignalScreen(state: s),
         '/games/posner': (s) => PosnerScreen(state: s),
         '/games/stroop-emotional': (s) => EmoStroopScreen(state: s),
+        '/games/switching-task': (s) => SwitchingTaskScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
