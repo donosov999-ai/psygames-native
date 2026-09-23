@@ -55,7 +55,6 @@ void main() {
     'games/mental_rotation/words.dart': 62,
     'games/mental_rotation/screen.dart': 58,
     'games/spatial_lab/screen.dart': 51,
-    'games/puzzles/ladder.dart': 40,
     'games/sudoku/screen.dart': 31,
     'games/math_slider/screen.dart': 27,
     'games/schulte/screen.dart': 26,
@@ -79,9 +78,9 @@ void main() {
     'games/deep/screen.dart': 13,
     'games/anagrams/screen.dart': 13,
     'games/hanoi/screen.dart': 12,
+    'games/puzzles/screen.dart': 12,
     'games/memory_matrix/screen.dart': 12,
     'games/cake_sort/screen.dart': 11,
-    'games/puzzles/screen.dart': 11,
     'games/one_line/screen.dart': 10,
     'games/dots_connect/screen.dart': 10,
     'games/anagrams/all_words_screen.dart': 9,
@@ -104,7 +103,7 @@ void main() {
   // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите,
   // плюс 224 принятых при вливании «Пространства» 23.09, минус 28 — развилка раздела и
   // названия упражнений переведены в том же коммите: они держат КЛЮЧИ, как и веб-сторона.
-  const total = 764;
+  const total = 725;
 
   final counts = _scan(Directory('lib'));
 

@@ -79,6 +79,7 @@ flutter:
     - assets/hubs.json
     - assets/words/
     - assets/l10n/
+    - assets/puzzles/
     - assets/voice/
     - assets/spatial/
     - assets/goods/

@@ -12,7 +12,7 @@
 // `DynamicLibrary.process()` — см. lib/games/puzzles/engine.dart.
 // Сами .a собирает tool/build_tatham_ios.sh — ЗАПУСКАТЬ ПЕРЕД flutter build ipa.
 TATHAM_DEVICE=$(SRCROOT)/../build/tatham-ios-arm64
-TATHAM_SIM=$(SRCROOT)/../build/tatham-ios-x86_64
+TATHAM_SIM=$(SRCROOT)/../build/tatham-ios-sim
 OTHER_LDFLAGS[sdk=iphoneos*]=$(inherited) -force_load $(TATHAM_DEVICE)/libtatham.a $(TATHAM_SYMBOLS)
 OTHER_LDFLAGS[sdk=iphonesimulator*]=$(inherited) -force_load $(TATHAM_SIM)/libtatham.a $(TATHAM_SYMBOLS)
 
