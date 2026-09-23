@@ -1,0 +1,305 @@
+{
+  "снято": "прогоном живого TS из frontend/app/games/stroop-emotional.tsx",
+  "emotionalRatio": 0.6666666666666666,
+  "threatWithinEmotional": 0.5,
+  "emoLangs": [
+    "ru",
+    "en"
+  ],
+  "языки": [
+    {
+      "вход": "ru",
+      "итог": "ru"
+    },
+    {
+      "вход": "en",
+      "итог": "en"
+    },
+    {
+      "вход": "fr",
+      "итог": "en"
+    },
+    {
+      "вход": "ja",
+      "итог": "en"
+    },
+    {
+      "вход": "de",
+      "итог": "en"
+    }
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "trials": 18,
+      "answerWindowMs": 3500,
+      "isiBaseMs": 500,
+      "isiJitterMs": 400,
+      "condition": {
+        "trials": 18,
+        "answerWindowMs": 3500,
+        "isiBaseMs": 500,
+        "isiJitterMs": 400
+      }
+    },
+    {
+      "level": 2,
+      "trials": 18,
+      "answerWindowMs": 3350,
+      "isiBaseMs": 482,
+      "isiJitterMs": 385,
+      "condition": {
+        "trials": 18,
+        "answerWindowMs": 3350,
+        "isiBaseMs": 482,
+        "isiJitterMs": 385
+      }
+    },
+    {
+      "level": 3,
+      "trials": 18,
+      "answerWindowMs": 3200,
+      "isiBaseMs": 464,
+      "isiJitterMs": 370,
+      "condition": {
+        "trials": 18,
+        "answerWindowMs": 3200,
+        "isiBaseMs": 464,
+        "isiJitterMs": 370
+      }
+    },
+    {
+      "level": 4,
+      "trials": 18,
+      "answerWindowMs": 3050,
+      "isiBaseMs": 446,
+      "isiJitterMs": 355,
+      "condition": {
+        "trials": 18,
+        "answerWindowMs": 3050,
+        "isiBaseMs": 446,
+        "isiJitterMs": 355
+      }
+    },
+    {
+      "level": 5,
+      "trials": 18,
+      "answerWindowMs": 2900,
+      "isiBaseMs": 428,
+      "isiJitterMs": 340,
+      "condition": {
+        "trials": 18,
+        "answerWindowMs": 2900,
+        "isiBaseMs": 428,
+        "isiJitterMs": 340
+      }
+    },
+    {
+      "level": 6,
+      "trials": 24,
+      "answerWindowMs": 2750,
+      "isiBaseMs": 410,
+      "isiJitterMs": 325,
+      "condition": {
+        "trials": 24,
+        "answerWindowMs": 2750,
+        "isiBaseMs": 410,
+        "isiJitterMs": 325
+      }
+    },
+    {
+      "level": 7,
+      "trials": 24,
+      "answerWindowMs": 2600,
+      "isiBaseMs": 392,
+      "isiJitterMs": 310,
+      "condition": {
+        "trials": 24,
+        "answerWindowMs": 2600,
+        "isiBaseMs": 392,
+        "isiJitterMs": 310
+      }
+    },
+    {
+      "level": 8,
+      "trials": 24,
+      "answerWindowMs": 2450,
+      "isiBaseMs": 374,
+      "isiJitterMs": 295,
+      "condition": {
+        "trials": 24,
+        "answerWindowMs": 2450,
+        "isiBaseMs": 374,
+        "isiJitterMs": 295
+      }
+    },
+    {
+      "level": 9,
+      "trials": 24,
+      "answerWindowMs": 2300,
+      "isiBaseMs": 356,
+      "isiJitterMs": 280,
+      "condition": {
+        "trials": 24,
+        "answerWindowMs": 2300,
+        "isiBaseMs": 356,
+        "isiJitterMs": 280
+      }
+    },
+    {
+      "level": 10,
+      "trials": 24,
+      "answerWindowMs": 2150,
+      "isiBaseMs": 338,
+      "isiJitterMs": 265,
+      "condition": {
+        "trials": 24,
+        "answerWindowMs": 2150,
+        "isiBaseMs": 338,
+        "isiJitterMs": 265
+      }
+    },
+    {
+      "level": 11,
+      "trials": 30,
+      "answerWindowMs": 2000,
+      "isiBaseMs": 320,
+      "isiJitterMs": 250,
+      "condition": {
+        "trials": 30,
+        "answerWindowMs": 2000,
+        "isiBaseMs": 320,
+        "isiJitterMs": 250
+      }
+    },
+    {
+      "level": 12,
+      "trials": 30,
+      "answerWindowMs": 1850,
+      "isiBaseMs": 302,
+      "isiJitterMs": 235,
+      "condition": {
+        "trials": 30,
+        "answerWindowMs": 1850,
+        "isiBaseMs": 302,
+        "isiJitterMs": 235
+      }
+    },
+    {
+      "level": 13,
+      "trials": 30,
+      "answerWindowMs": 1700,
+      "isiBaseMs": 284,
+      "isiJitterMs": 220,
+      "condition": {
+        "trials": 30,
+        "answerWindowMs": 1700,
+        "isiBaseMs": 284,
+        "isiJitterMs": 220
+      }
+    },
+    {
+      "level": 14,
+      "trials": 30,
+      "answerWindowMs": 1550,
+      "isiBaseMs": 266,
+      "isiJitterMs": 205,
+      "condition": {
+        "trials": 30,
+        "answerWindowMs": 1550,
+        "isiBaseMs": 266,
+        "isiJitterMs": 205
+      }
+    },
+    {
+      "level": 15,
+      "trials": 30,
+      "answerWindowMs": 1400,
+      "isiBaseMs": 250,
+      "isiJitterMs": 200,
+      "condition": {
+        "trials": 30,
+        "answerWindowMs": 1400,
+        "isiBaseMs": 250,
+        "isiJitterMs": 200
+      }
+    }
+  ],
+  "trials": [
+    {
+      "взятые": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "word": "смерть",
+      "valence": "threat",
+      "color": "red"
+    },
+    {
+      "взятые": [
+        0.6666,
+        0.99,
+        0.5,
+        0.5
+      ],
+      "word": "солнце",
+      "valence": "positive",
+      "color": "blue"
+    },
+    {
+      "взятые": [
+        0.6667,
+        0.1,
+        0.2
+      ],
+      "word": "окно",
+      "valence": "neutral",
+      "color": "red"
+    },
+    {
+      "взятые": [
+        0.3,
+        0.99,
+        0.1,
+        0.4
+      ],
+      "word": "любовь",
+      "valence": "positive",
+      "color": "green"
+    },
+    {
+      "взятые": [
+        0.6,
+        0.5,
+        0.4999,
+        0
+      ],
+      "word": "успех",
+      "valence": "positive",
+      "color": "red"
+    },
+    {
+      "взятые": [
+        0.99,
+        0.5,
+        0.5
+      ],
+      "word": "стул",
+      "valence": "neutral",
+      "color": "blue"
+    },
+    {
+      "взятые": [
+        0.6666666666666666,
+        0.1,
+        0.2
+      ],
+      "word": "окно",
+      "valence": "neutral",
+      "color": "red",
+      "почему": "ровно 2/3 — граница; нестрогое сравнение дало бы заряженную пробу"
+    }
+  ]
+}
