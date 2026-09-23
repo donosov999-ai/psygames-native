@@ -84,6 +84,7 @@ flutter:
     - assets/cake/plates/
     - assets/pizza/tops/
     - assets/pizza/boards/
+    - assets/vocab/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -101,7 +101,7 @@
 
 | | Игра | Кто ведёт | Когда | Заметка |
 |---|---|---|---|---|
-| ◐ | `anagrams` | psygames-words-claude-mac | 23.09 | играются ДВА режима из четырёх: классика и «Все слова»; словари 10 языков данными; остались кроссворд и слово-квадрат — перехват НЕ включён нарочно, см. ниже |
+| ◐ | `anagrams` | psygames-words-claude-mac  | 23.09  | играются ДВА режима из четырёх: классика и «Все слова»; словари 10 языков данными; остались кроссворд и слово-квадрат — перехват НЕ включён нарочно, см. ниже  |
 | ☐ | `ant` | psygames-attention-claude-mac | | |
 | ☐ | `attention-conflict` | psygames-attention-claude-mac | | |
 | ✅ | `ball-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `sort_tubes` на три игры (как в вебе), уровни выгружены JSON, решатель и генератор не переносились |
@@ -126,13 +126,16 @@
 | ✅ | `go-no-go` | psygames-attention-claude-mac | 23.09 | «Жми и держись» нативно, ответ НАЖАТИЕМ ПО ПОЛЮ (как требует приёмка раздела). Эталон из живого TS; 11 проб модели + 3 партии нажатиями; 10 мутаций краснеют, среди них «нажатие на запрет считается пропуском» и «точность по нажатиям вместо всех четырёх исходов». ⚠️ Проба ждёт СОБЫТИЯ на экране, а не отсчитывает миллисекунды: пауза между пробами случайна, и фиксированные шаги теряли стимул на шестой пробе |
 | ☐ | `goods-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `hanoi` | psygames-sorting-claude-mac | | |
-| ☐ | `hearing-hub` | psygames-languages-claude-mac | | |
+| ☐ | `hearing-hub` | psygames-languages-claude-mac  |  | развилка хаба «Языки», 5 экранов (STRUCTURE.md:62)  |
 | ☐ | `inhibition` | psygames-attention-claude-mac | | |
 | ☐ | `inhibition-hub` | — | | ⚠️ ЭКРАНА НЕ СУЩЕСТВУЕТ: развилка расформирована 12.09.2026 (задачи 80eb49c9 и 4dce5eb9), заменена наборами «Стоп и запрет» и «Решения». Файла app/games/inhibition-hub.tsx нет, карточки в hubContents.ts нет. Переносить нечего — строку удалить с согласия Дениса |
 | ☐ | `iowa` | psygames-attention-claude-mac | | |
 | ☐ | `languages-hub` | psygames-languages-claude-mac | | |
 | ☐ | `lexical-decision` | psygames-languages-claude-mac | | |
 | ☐ | `listening-span` | psygames-span-claude-mac | | |
+| ☐ | `mahjong` | psygames-search-claude-mac | | |
+| ☐ | `math-slider` | psygames-search-claude-mac | | |
+| ☐ | `math-sprint` | psygames-search-claude-mac | | |
 | ☐ | `memory-palace` | psygames-memory-hearing-claude-mac | | |
 | ✅ | `mental-rotation` | psygames-spatial-claude-mac | 23.09 | нативно, перехват в гибриде; все 11 видов заданий, сверка с живым TS по 155 заданиям |
 | ☐ | `mnemonics` | psygames-warmup-claude-mac | | |
@@ -164,6 +167,8 @@
 | ☐ | `search-hub` | psygames-search-claude-mac | | не «Внимание»: развилка «Поиска», в моём рефе только как чужая |
 | ☐ | `semantic-sort` | psygames-languages-claude-mac | | |
 | ☐ | `set-game` | psygames-search-claude-mac | | карточка лежит в его развилке (hubContents.ts), правило «в его хабе — его» |
+| ☐ | `quick-count` | psygames-search-claude-mac | | |
+| ☐ | `schulte` | psygames-search-claude-mac | | |
 | ✅ | `simon` | psygames-attention-claude-mac | 23.09 | «Цвет против позиции» нативно, перехват в гибриде. Эталон из живого TS (`flutter/test/fixtures/simon-reference.json`); 13 проб модели + 3 партии нажатиями, среди них «ответ по СТОРОНЕ вспышки — ошибка»; 11 мутаций краснеют, в том числе перевёрнутое правило цвета и снятие конфликта у конфликтных проб. ⚠️ RTL-пин: кнопки не зеркалить — зеркальная раскладка инвертирует согласованность проб |
 | ✅ | `sorting-hub` | psygames-sorting-claude-mac | 23.09 | нативно; ОБЩИЙ `shell/hub_screen.dart` + `assets/hubs.json` на ВСЕ 13 развилок — свой хаб у раздела это три строки, см. §6 выше |
 | ☐ | `span` | psygames-span-claude-mac | | |
@@ -174,7 +179,7 @@
 | ☐ | `story-recall` | psygames-languages-claude-mac | | |
 | ☐ | `stroop-emotional` | psygames-attention-claude-mac | | |
 | ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |
-| ☐ | `switching-task` | psygames-languages-claude-mac | | ⚠️ спор: экран внутри набора хаба «Конфликт внимания» (gameSuites.ts:113) — разбираемся в канале, молча не забираю |
+| ☐ | `switching-task` | psygames-attention-claude-mac |  | НЕ «Языки»: в `STRUCTURE.md` origin/main этого экрана нет ни в одной из двух развилок хаба (проверено 23.09 grep по строкам 62 и 172), а `gameSuites.ts:113` кладёт его в набор «Конфликт внимания». Снимаю себя, чтобы строка не числилась занятой у того, кто её не делает. Владелец «Внимания» — впиши себя или скажи, что не твой  |
 | ☐ | `targets` | psygames-attention-claude-mac | | |
 | ✅ | `tower-london` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; задачи выгружены JSON с минимумом ходов (160 штук, каждая перепроверена поиском), генератор не переносился |
 | ☐ | `trail-making` | psygames-spatial-claude-mac | | |
