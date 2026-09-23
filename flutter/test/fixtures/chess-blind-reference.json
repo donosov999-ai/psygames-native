@@ -1,0 +1,245 @@
+{
+  "source": "живой TS: src/games/chess-blind/core/puzzle.ts",
+  "minLevel": 1,
+  "maxLevel": 25,
+  "levels": {
+    "1": {
+      "pieces": 4,
+      "exposeSec": 8,
+      "moves": 1,
+      "quizType": "pick",
+      "questions": 3,
+      "optionCount": 6,
+      "sameColorShare": 0
+    },
+    "2": {
+      "pieces": 6,
+      "exposeSec": 8,
+      "moves": 1,
+      "quizType": "pick",
+      "questions": 3,
+      "optionCount": 6,
+      "sameColorShare": 0
+    },
+    "3": {
+      "pieces": 8,
+      "exposeSec": 7,
+      "moves": 2,
+      "quizType": "pick",
+      "questions": 3,
+      "optionCount": 6,
+      "sameColorShare": 0
+    },
+    "4": {
+      "pieces": 10,
+      "exposeSec": 6,
+      "moves": 2,
+      "quizType": "pick",
+      "questions": 3,
+      "optionCount": 6,
+      "sameColorShare": 0
+    },
+    "5": {
+      "pieces": 12,
+      "exposeSec": 5,
+      "moves": 3,
+      "quizType": "pick",
+      "questions": 3,
+      "optionCount": 6,
+      "sameColorShare": 0
+    },
+    "6": {
+      "pieces": 6,
+      "exposeSec": 8,
+      "moves": 3,
+      "quizType": "pick",
+      "questions": 4,
+      "optionCount": 8,
+      "sameColorShare": 0.5
+    },
+    "7": {
+      "pieces": 6,
+      "exposeSec": 8,
+      "moves": 4,
+      "quizType": "pick",
+      "questions": 4,
+      "optionCount": 8,
+      "sameColorShare": 0.5
+    },
+    "8": {
+      "pieces": 6,
+      "exposeSec": 8,
+      "moves": 5,
+      "quizType": "pick",
+      "questions": 4,
+      "optionCount": 8,
+      "sameColorShare": 0.5
+    },
+    "9": {
+      "pieces": 8,
+      "exposeSec": 8,
+      "moves": 5,
+      "quizType": "pick",
+      "questions": 4,
+      "optionCount": 8,
+      "sameColorShare": 0.5
+    },
+    "10": {
+      "pieces": 8,
+      "exposeSec": 8,
+      "moves": 6,
+      "quizType": "pick",
+      "questions": 4,
+      "optionCount": 8,
+      "sameColorShare": 0.5
+    },
+    "11": {
+      "pieces": 10,
+      "exposeSec": 8,
+      "moves": 6,
+      "quizType": "locate",
+      "questions": 4,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "12": {
+      "pieces": 10,
+      "exposeSec": 7,
+      "moves": 8,
+      "quizType": "locate",
+      "questions": 4,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "13": {
+      "pieces": 12,
+      "exposeSec": 7,
+      "moves": 8,
+      "quizType": "locate",
+      "questions": 4,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "14": {
+      "pieces": 10,
+      "exposeSec": 6,
+      "moves": 10,
+      "quizType": "locate",
+      "questions": 4,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "15": {
+      "pieces": 12,
+      "exposeSec": 6,
+      "moves": 12,
+      "quizType": "locate",
+      "questions": 4,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "16": {
+      "pieces": 12,
+      "exposeSec": 6,
+      "moves": 13,
+      "quizType": "locate",
+      "questions": 4,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "17": {
+      "pieces": 14,
+      "exposeSec": 6,
+      "moves": 14,
+      "quizType": "locate",
+      "questions": 4,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "18": {
+      "pieces": 14,
+      "exposeSec": 5,
+      "moves": 15,
+      "quizType": "locate",
+      "questions": 4,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "19": {
+      "pieces": 16,
+      "exposeSec": 5,
+      "moves": 16,
+      "quizType": "locate",
+      "questions": 4,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "20": {
+      "pieces": 16,
+      "exposeSec": 5,
+      "moves": 17,
+      "quizType": "locate",
+      "questions": 5,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "21": {
+      "pieces": 18,
+      "exposeSec": 5,
+      "moves": 18,
+      "quizType": "locate",
+      "questions": 5,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "22": {
+      "pieces": 18,
+      "exposeSec": 4,
+      "moves": 19,
+      "quizType": "locate",
+      "questions": 5,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "23": {
+      "pieces": 20,
+      "exposeSec": 4,
+      "moves": 20,
+      "quizType": "locate",
+      "questions": 5,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "24": {
+      "pieces": 20,
+      "exposeSec": 4,
+      "moves": 22,
+      "quizType": "locate",
+      "questions": 5,
+      "optionCount": 0,
+      "sameColorShare": 0
+    },
+    "25": {
+      "pieces": 22,
+      "exposeSec": 4,
+      "moves": 24,
+      "quizType": "locate",
+      "questions": 5,
+      "optionCount": 0,
+      "sameColorShare": 0
+    }
+  },
+  "clamp": {
+    "0": 1,
+    "1": 1,
+    "25": 25,
+    "99": 25,
+    "-5": 1
+  },
+  "minUnique": {
+    "pick-3": 2,
+    "locate-3": 3,
+    "pick-1": 2,
+    "locate-5": 5
+  }
+}
