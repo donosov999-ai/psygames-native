@@ -712,7 +712,13 @@ function FacesNamesSessionView({
         </View>
       ) : null}
 
-      <ActionButton label={strings.restart} theme={theme} secondary onPress={restart} />
+      {/*
+        «Заново» в каркасе живёт в меню паузы (`pauseActions` экрана, пункт `restart`
+        зовёт тот же перезапуск). Вторая такая же кнопка внизу поля не даёт ничего
+        нового, а высоту занимает: замер 23.09.2026, окно 360×640 — поле 391,
+        содержимое 462, и 48 из лишнего 71 это она.
+      */}
+      {ответСнаружи ? null : <ActionButton label={strings.restart} theme={theme} secondary onPress={restart} />}
     </ScrollView>
   );
 }
