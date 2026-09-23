@@ -23,10 +23,30 @@ OUT="${OUT_DIR:-$FLUTTER_DIR/build/tatham-ios-$ARCH}"
 [ -d "$SRC" ] || { echo "нет канона Тэтхэма: $SRC"; exit 2; }
 [ -f "$BRIDGE/psy_play.c" ] || { echo "нет моста: $BRIDGE"; exit 2; }
 
+# 🔴 СИМУЛЯТОР ЛИНКУЕТСЯ ДВУМЯ АРХИТЕКТУРАМИ ДАЖЕ НА APPLE SILICON, и это отдельная
+# цель, а не «x86_64 сойдёт». Замер chess-чата 23.09 на живом устройстве: без
+# arm64-слайса симулятора линковка падает семью «Undefined symbol», хотя телефонная
+# сборка при этом зелёная. Поэтому целей три, а симуляторная склеивается из двух:
+#   bash tool/build_tatham_ios.sh sim     — собрать обе и склеить в одну
 case "$ARCH" in
-  arm64)  SDK=iphoneos;        TARGET="arm64-apple-ios13.0" ;;
-  x86_64) SDK=iphonesimulator; TARGET="x86_64-apple-ios13.0-simulator" ;;
-  *) echo "неизвестная архитектура: $ARCH"; exit 2 ;;
+  arm64)     SDK=iphoneos;        TARGET="arm64-apple-ios13.0" ;;
+  arm64-sim) SDK=iphonesimulator; TARGET="arm64-apple-ios13.0-simulator" ;;
+  x86_64)    SDK=iphonesimulator; TARGET="x86_64-apple-ios13.0-simulator" ;;
+  sim)
+    # Склейка: обе симуляторные цели одной командой, как в рецепте.
+    bash "$0" arm64-sim || exit $?
+    bash "$0" x86_64 || exit $?
+    FAT="${OUT_DIR:-$FLUTTER_DIR/build/tatham-ios-simulator}"
+    mkdir -p "$FAT"
+    xcrun lipo -create \
+      "$FLUTTER_DIR/build/tatham-ios-arm64-sim/libtatham.a" \
+      "$FLUTTER_DIR/build/tatham-ios-x86_64/libtatham.a" \
+      -output "$FAT/libtatham.a" || exit 5
+    echo "$FAT/libtatham.a · $(wc -c < "$FAT/libtatham.a" | tr -d ' ') байт"
+    echo "архитектуры: $(xcrun lipo -archs "$FAT/libtatham.a")"
+    echo "экспортов psy_*: $(xcrun nm -g "$FAT/libtatham.a" 2>/dev/null | grep -c ' T _psy_')"
+    exit 0 ;;
+  *) echo "неизвестная архитектура: $ARCH (arm64 | arm64-sim | x86_64 | sim)"; exit 2 ;;
 esac
 SDKROOT="$(xcrun --sdk $SDK --show-sdk-path)"
 
