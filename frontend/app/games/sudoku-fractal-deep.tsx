@@ -1,4 +1,4 @@
-/* psygames-game-sudoku-fractal-deep · VER 2 · 11.09.2026 */
+/* psygames-game-sudoku-fractal-deep · VER 3 · 17.09.2026 */
 /**
  * ФРАКТАЛ: БЕЗДНА — судоку «их масштаба» (Денис 28.08, по референсу Fractal Sudoku).
  *
@@ -40,6 +40,8 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { saveSession } from '@/src/services/api';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction, GameAuxBar } from '@/src/components/GameAuxAction';
+import { FieldHeightUp } from '@/src/components/GameFieldHeight';
 import { ResultActions } from '@/src/components/ResultActions';
 import { PencilMarksLayer } from '@/src/components/PencilMarksLayer';
 import { pencilDigits } from '@/src/services/pencilMarks';
@@ -72,6 +74,27 @@ type ScreenNode = DeepNode & {
 const GRADIENT = ['#312e63', '#5b4d9e'];
 const GAME_ID = 'sudoku_fractal_deep';
 const RESUME_V = 1;
+
+/**
+ * Что в поле занято не доской: отступ сверху 4 + крошки глубины 24 + два зазора по 8 +
+ * строка-подсказка внизу (12pt, до двух строк) 34. Замер экспорта 17.09.2026, WebKit, ru,
+ * окна 360×640 и 384×784 — числа отсюда, шаг проверки в `sudoku-variants-fit-field`.
+ */
+const ВНЕ_ДОСКИ = 4 + 24 + 8 + 8 + 34;
+
+/**
+ * Сторона клетки «Бездны»: доска обязана поместиться в ТО МЕСТО, КОТОРОЕ ДАЛ КАРКАС, а не в окно.
+ *
+ * 📍 До 17.09.2026 клетка считалась только от ширины (42 потолок), и на 360×640 нижний ряд доски
+ * уезжал под служебный ряд каркаса: поле 338, а содержимому нужно было 386. Тот же класс, что
+ * отчёт 57a0e9cd в обычной судоку. `высотаПоля` 0 — поле ещё не измерено, тогда прежний расчёт:
+ * первый кадр не должен мигать крошечной доской.
+ */
+export function клеткаБездны(п: { width: number; высотаПоля: number }): number {
+  const поШирине = Math.floor((Math.min(п.width, 520) - 48) / DEEP_N);
+  const поВысоте = п.высотаПоля > 0 ? Math.floor((п.высотаПоля - ВНЕ_ДОСКИ - 4) / DEEP_N) : Infinity;
+  return Math.max(16, Math.min(42, поШирине, поВысоте));
+}
 
 /**
  * Пресеты ОБЪЁМА — та самая ручка «ограничим вручную»: человек ДО старта видит,
@@ -149,6 +172,8 @@ export default function FractalDeepScreen() {
   const { t } = useLanguage();
   const { profile } = useProfile();
   const width = useScreenWidth();
+  /** Место под содержимое поля каркаса — приходит узлом `FieldHeightUp` изнутри поля (см. `клеткаБездны`). */
+  const [высотаПоля, setВысотаПоля] = useState(0);
 
   const [phase, setPhase] = useState<Phase>('config');
   const [preset, setPreset] = useState<PresetKey>('scout');
@@ -603,7 +628,7 @@ export default function FractalDeepScreen() {
   // ───────────────────── игровой узел ─────────────────────
   const node = nodeAt(path);
   const depth = depthOf(path);
-  const cell = Math.min(42, Math.floor((Math.min(width, 520) - 48) / DEEP_N));
+  const cell = клеткаБездны({ width, высотаПоля });
   const feedSet = new Set(node.feedCells.map(([r, c]) => `${r},${c}`));
   // Приправа листа (§7е пп.56–57): рисунок берётся из общего модуля, чтобы термометр
   // Бездны и термометр классики были ОДНОЙ фигурой, а не двумя похожими.
@@ -673,35 +698,27 @@ export default function FractalDeepScreen() {
       confirmExit={path === '' && liveGame && hist.canUndo}
       resumable
       onSaveBeforeExit={saveBeforeExit}
+      /**
+       * Служебное — значками каркаса одним рядом под полем (правило Дениса 17.09.2026, задача ede4f9fa).
+       * Свои кнопки 48×48 были той же формы, но своей: `active` у карандаша и общая лестница `ladder`
+       * приходят теперь из `GameAuxAction`, как в обычной судоку и у самурая.
+       */
       headerActions={(
-        <View style={styles.headerActionsRow}>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={t('pencilMode')}
-            accessibilityState={{ selected: pencilOn }}
-            testID="deep-pencil"
-            onPress={() => setPencilOn((v) => !v)}
-            style={[styles.undoBtn, {
-              backgroundColor: pencilOn ? GRADIENT[1] : colors.surface,
-              borderColor: pencilOn ? GRADIENT[1] : colors.border,
-            }]}
-          >
-            <Ionicons name="pencil" size={16} color={pencilOn ? '#FFF' : colors.text} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel={t('btn_undo')}
-            testID="deep-undo"
+        <GameAuxBar>
+          <GameAuxAction
+            icon="arrow-undo"
+            ladder="undo"
+            label={t('btn_undo')}
             onPress={undo}
             disabled={!hist.canUndo}
-            style={[styles.undoBtn, {
-              backgroundColor: colors.surface, borderColor: colors.border,
-              opacity: hist.canUndo ? 1 : 0.4,
-            }]}
-          >
-            <Ionicons name="arrow-undo" size={16} color={colors.text} />
-          </TouchableOpacity>
-        </View>
+          />
+          <GameAuxAction
+            icon={pencilOn ? 'pencil' : 'pencil-outline'}
+            label={t('pencilMode')}
+            active={pencilOn}
+            onPress={() => setPencilOn((v) => !v)}
+          />
+        </GameAuxBar>
       )}
       toolbar={(
         <View style={styles.pad}>
@@ -727,6 +744,7 @@ export default function FractalDeepScreen() {
       )}
     >
       <View style={styles.playWrap}>
+        <FieldHeightUp onChange={setВысотаПоля} />
         {crumbs}
         <View style={[styles.grid, { borderColor: colors.text }]}>
           {Array.from({ length: DEEP_N }, (_, r) => (
@@ -857,15 +875,15 @@ const styles = StyleSheet.create({
   layerBarFill: { height: '100%', borderRadius: 3 },
   layerCount: { fontSize: 10.5, fontWeight: '700', minWidth: 34, textAlign: 'right' },
 
-  playWrap: { alignItems: 'center', paddingTop: 4, paddingBottom: 150, gap: 8 },
+  // ⚠️ Запаса снизу нет: 150 точек стояли с 28.08 под цифровую панель, которая с тех пор
+  // живёт в прибитом тулбаре каркаса. Они уводили доску за край поля на узком экране.
+  playWrap: { alignItems: 'center', paddingTop: 4, paddingBottom: 8, gap: 8 },
   crumbs: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   crumbDot: { minWidth: 26, height: 20, borderRadius: 10, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
   crumbText: { fontSize: 10, fontWeight: '800', color: '#FFF' },
   crumbLabel: { fontSize: 12, fontWeight: '600', marginLeft: 4 },
   stats: { flexDirection: 'row', gap: 14, justifyContent: 'center' },
   stat: { fontSize: 13, fontWeight: '700' },
-  headerActionsRow: { flexDirection: 'row', gap: 6, alignItems: 'center' },
-  undoBtn: { width: 48, height: 48, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 
   grid: { borderWidth: 2, borderRadius: 4, overflow: 'hidden' },
   row: { flexDirection: 'row' },

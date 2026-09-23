@@ -1725,6 +1725,41 @@ export function revertMove(state: FractalPlayState, f: FractalPuzzle, move: Frac
   return next;
 }
 
+/**
+ * «Показать решение» — ответ сетки, на которую человек смотрит.
+ *
+ * 📍 Отзыв Дениса 585fc14c (18.09.2026, iPhone, 2.54.22): «Где кнопка показать решение? Решатель где».
+ * У каркаса кнопка есть с 17.09 (проп `solution`), у фрактала не была подключена.
+ *
+ * Нижняя сетка (`child` — её номер) — ответ только её. Корень (`child === null`) — ответ всей
+ * судоку: сперва девять нижних, потому что их центры и кормят корень, затем клетки корня.
+ *
+ * ⚠️ Каждая цифра ставится ОБЫЧНЫМ ходом `playDigit`, а не записью в сетку. Тогда открытие
+ * нижней, цифра, ушедшая наверх, и клетка-близнец портала идут по тем же правилам, что у хода
+ * рукой, и показанная доска не расходится с тем, что движок считает решённым.
+ * Неверные цифры человека показ перезаписывает: это и есть ответ.
+ */
+export function revealSolution(state: FractalPlayState, f: FractalPuzzle, child: number | null): FractalPlayState {
+  let s = state;
+  const put = (target: { child: number | null; r: number; c: number }, n: number) => {
+    const res = playDigit(s, f, target, n);
+    if (res) s = res.next;
+  };
+  const fillChild = (i: number) => {
+    const t = f.children[i];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (t.puzzle[r][c] === 0) put({ child: i, r, c }, t.solution[r][c]);
+    }
+  };
+  if (child !== null) {
+    fillChild(child);
+    return s;
+  }
+  for (let i = 0; i < f.children.length; i++) fillChild(i);
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) put({ child: null, r, c }, f.root.solution[r][c]);
+  return s;
+}
+
 // ─────────────────────── сборка партии ───────────────────────
 
 /**
