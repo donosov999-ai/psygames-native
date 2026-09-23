@@ -670,6 +670,20 @@ function MemoryPalaceSessionView({
    * теперь `memory-palace-phases-dont-crash`.
    */
   const действиеФазы: PalacePhaseAction | null = React.useMemo(() => {
+    /*
+     * 🔴 ФАЗА ПРАВИЛ ТОЖЕ ОТДАЁТ КНОПКУ КАРКАСУ. Замер 23.09.2026, окно 360×640:
+     * поле каркаса 119…579 (460 px), а объяснение приёма рисуется на 977 px, и
+     * «Начать маршрут» оказывалась на 964…1012 — на 385 px ниже видимого края.
+     * Игрок на узком телефоне видел текст и НИ ОДНОЙ кнопки запуска: чтобы начать,
+     * надо было догадаться прокрутить поле. Это и есть жалоба «игры ездят».
+     */
+    if (session.phase === 'rules') {
+      return {
+        label: strings.start,
+        disabled: false,
+        run: () => applySession((current) => startMemoryPalaceRound(current, now())),
+      };
+    }
     if (session.phase === 'route') {
       return { label: strings.continueToPlace, disabled: false, run: () => applySession(continueToPlacement) };
     }
@@ -684,7 +698,7 @@ function MemoryPalaceSessionView({
       return { label: strings.startRecall, disabled: false, run: () => applySession(startMemoryPalaceRecall) };
     }
     return null;
-  }, [session, strings, applySession]);
+  }, [session, strings, applySession, now]);
 
   React.useEffect(() => {
     onPhaseAction?.(действиеФазы);
@@ -711,7 +725,10 @@ function MemoryPalaceSessionView({
           <Text style={[styles.boundary, { color: theme.primary }]}>{strings.methodBoundary}</Text>
           <Text style={[styles.keyboardHelp, { color: theme.textSecondary }]}>{strings.keyboardHelp}</Text>
         </View>
-        <ActionButton label={strings.start} theme={theme} onPress={() => applySession((current) => startMemoryPalaceRound(current, now()))} />
+        {/* Кнопку внизу поля рисуем, только если её никто не забрал в каркас (см. `действиеСнаружи`). */}
+        {действиеСнаружи ? null : (
+          <ActionButton label={strings.start} theme={theme} onPress={() => applySession((current) => startMemoryPalaceRound(current, now()))} />
+        )}
         {onExit ? <ActionButton label={strings.exit} theme={theme} secondary onPress={onExit} /> : null}
       </ScrollView>
     );

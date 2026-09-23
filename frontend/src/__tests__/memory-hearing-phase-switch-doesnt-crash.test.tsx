@@ -69,20 +69,43 @@ function нажать(r: any, надпись: string): boolean {
 describe('Память и слух · смена фазы не роняет игру', () => {
   const палец = getMemoryPalaceStrings('ru');
 
-  it('есть что проверять: «Дворец» монтируется на правилах и кнопка старта видна', () => {
-    let r: any;
+  /**
+   * ⚠️ VER 2, 23.09.2026: КНОПКА СТАРТА ЖИВЁТ В ДВУХ МЕСТАХ, И ПРОВЕРЯЮТСЯ ОБА.
+   * Замер 360×640 показал, что на фазе правил «Начать маршрут» рисовалась в конце
+   * прокрутки — на 964 при видимом крае 579, то есть игрок её не видел. Теперь на
+   * этой фазе действие уезжает в каркас, как на остальных. Значит проба обязана
+   * знать оба режима: с `onPhaseAction` кнопка приходит ВЫЗОВОМ, без него —
+   * рисуется внизу поля. Проверять только один режим — оставить второй без охраны.
+   */
+  it('есть что проверять: старт приходит в каркас, а без каркаса рисуется сам', () => {
+    const действия: any[] = [];
+    let сКаркасом: any;
     TestRenderer.act(() => {
-      r = TestRenderer.create(
+      сКаркасом = TestRenderer.create(
         <MemoryPalaceGame
           seed="проба-перехода" level={1} locale="ru" theme={тема}
           gameGradient={['#7c3aed', '#2dd4bf'] as const} gameGradientText="#fff"
           showOwnResults={false} now={() => 1_000}
-          onPhaseAction={() => {}}
+          onPhaseAction={(д: any) => действия.push(д)}
         />,
       );
     });
-    expect(текстом(r)).toContain(палец.start);
-    r.unmount();
+    expect(действия.filter(Boolean).map((д: any) => д.label)).toContain(палец.start);
+    expect(текстом(сКаркасом)).not.toContain(палец.start);
+    сКаркасом.unmount();
+
+    let безКаркаса: any;
+    TestRenderer.act(() => {
+      безКаркаса = TestRenderer.create(
+        <MemoryPalaceGame
+          seed="проба-перехода" level={1} locale="ru" theme={тема}
+          gameGradient={['#7c3aed', '#2dd4bf'] as const} gameGradientText="#fff"
+          showOwnResults={false} now={() => 1_000}
+        />,
+      );
+    });
+    expect(текстом(безКаркаса)).toContain(палец.start);
+    безКаркаса.unmount();
   });
 
   /**
@@ -104,8 +127,10 @@ describe('Память и слух · смена фазы не роняет иг
       );
     });
 
-    // Само нажатие. Если хуки переставлены — здесь и рвётся, с React #310.
-    expect(нажать(r, палец.start)).toBe(true);
+    // Само нажатие — через действие, отданное каркасу: в этом режиме кнопки внизу поля нет.
+    const старт = действия.filter(Boolean).find((д: any) => д.label === палец.start) as any;
+    expect(Boolean(старт)).toBe(true);
+    TestRenderer.act(() => { старт.run(); });
 
     const после = текстом(r);
     // Экран правил ушёл — значит переход состоялся, а не был проглочен.
@@ -129,9 +154,13 @@ describe('Память и слух · смена фазы не роняет иг
         />,
       );
     });
-    expect(текстом(r)).toContain(лица.start);
-
-    expect(нажать(r, лица.start)).toBe(true);
+    // VER 2: в режиме каркаса старт приходит описанием ответа, а не кнопкой внизу поля.
+    expect(текстом(r)).not.toContain(лица.start);
+    const старт = (ответы.filter(Boolean) as any[])
+      .flatMap((о: any) => (о.kind === 'action' ? о.options : []))
+      .find((в: any) => в.label === лица.start);
+    expect(Boolean(старт)).toBe(true);
+    TestRenderer.act(() => { старт.run(); });
 
     expect(текстом(r)).not.toContain(лица.rulesTitle);
     expect(ответы.filter(Boolean).length).toBeGreaterThan(0);
