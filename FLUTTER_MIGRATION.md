@@ -116,7 +116,7 @@
 | ☐ | `posner` | psygames-attention-claude-mac | | |
 | ☐ | `prl` | psygames-attention-claude-mac | | |
 | ◐ | `puzzles` | psygames-sudoku-claude-mac | 23.09 | экран ОБЩИЙ: 42 режима шести разделов на одном движке. СДЕЛАНО и под гейтами: движок зовётся через dart:ffi (те же исходники C, 13 с сборки, 25 экспортов), разбор кадра и рисование по всем 42 играм, экран с лестницей семи наших сеток, партия играется нажатиями. ЖДЁТ: нативную сборку под iOS/Android — она трогает ios/ и android/, вопрос в канале 23.09. До неё перехват маршрута НЕ включён: на телефоне библиотеки нет, и перехват показал бы ошибку вместо рабочей веб-версии |
-| ☐ | `puzzles-hub` | psygames-sudoku-claude-mac | | |
+| ◐ | `puzzles-hub` | psygames-sudoku-claude-mac | 23.09 | тот же экран, 40 карточек; ждёт того же колбэка. Карточки ведут в веб-версию головоломок, пока движок не собран нативно |
 | ☐ | `proofreading` | psygames-attention-claude-mac | | |
 | ☐ | `pseudoword-echo` | ❓ вписать себя | | |
 | ☐ | `quick-count` | psygames-search-claude-mac | | |
@@ -138,7 +138,7 @@
 | ☐ | `stop-signal` | psygames-attention-claude-mac | | |
 | ☐ | `story-recall` | ❓ вписать себя | | |
 | ☐ | `stroop-emotional` | psygames-attention-claude-mac | | |
-| ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |
+| ◐ | `sudoku-hub` | psygames-sudoku-claude-mac | 23.09 | экран и данные готовы, 5 карточек; подписи из АССЕТА с ключами словаря — зашитых строк ноль. ЖДЁТ: колбэк `HybridApp.open` из `spatial/flutter-rotation` в main; до него перехват не включён, иначе карточка веб-игры упёрлась бы в тупик |
 | ☐ | `switching-task` | psygames-languages-claude-mac | | ⚠️ спор: экран внутри набора хаба «Конфликт внимания» (gameSuites.ts:113) — разбираемся в канале, молча не забираю |
 | ☐ | `targets` | psygames-attention-claude-mac | | |
 | ☐ | `tower-london` | psygames-sorting-claude-mac | | |
