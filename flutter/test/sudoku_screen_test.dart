@@ -31,7 +31,7 @@ void main() {
       for (var i = 0; i < 60; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         await Future<void>.delayed(const Duration(milliseconds: 50));
-        if (find.byKey(const Key('клетка0_0')).evaluate().isNotEmpty) break;
+        if (find.byKey(const Key('cell_0_0')).evaluate().isNotEmpty) break;
       }
     });
     await tester.pump();
@@ -39,7 +39,7 @@ void main() {
 
   /// Что сейчас стоит в клетке по её подписи.
   int digitAt(WidgetTester tester, int r, int c) {
-    final cell = find.byKey(Key('клетка${r}_$c'));
+    final cell = find.byKey(Key('cell_${r}_$c'));
     final text = find.descendant(of: cell, matching: find.byType(Text));
     if (text.evaluate().isEmpty) return 0;
     final s = tester.widget<Text>(text.first).data ?? '';
@@ -80,10 +80,10 @@ void main() {
   testWidgets('🔴 доска появляется, а не вечная загрузка', (tester) async {
     await boot(tester);
     expect(find.text('Судоку'), findsOneWidget);
-    expect(find.byKey(const Key('клетка0_0')), findsOneWidget);
-    expect(find.byKey(const Key('клетка8_8')), findsOneWidget);
-    expect(find.byKey(const Key('цифра9')), findsOneWidget, reason: 'девять клавиш у доски 9×9');
-    expect(find.byKey(const Key('стереть')), findsOneWidget);
+    expect(find.byKey(const Key('cell_0_0')), findsOneWidget);
+    expect(find.byKey(const Key('cell_8_8')), findsOneWidget);
+    expect(find.byKey(const Key('digit9')), findsOneWidget, reason: 'девять клавиш у доски 9×9');
+    expect(find.byKey(const Key('erase')), findsOneWidget);
   });
 
   testWidgets('🔴 тычок в клетку и цифра ставят ответ; неверная цифра считается ошибкой', (tester) async {
@@ -102,9 +102,9 @@ void main() {
     }
 
     // Верная цифра встаёт и ошибок не прибавляет.
-    await tester.tap(find.byKey(Key('клетка${er}_$ec')));
+    await tester.tap(find.byKey(Key('cell_${er}_$ec')));
     await tester.pump();
-    await tester.tap(find.byKey(Key('цифра${solution[er][ec]}')));
+    await tester.tap(find.byKey(Key('digit${solution[er][ec]}')));
     await tester.pump();
     expect(digitAt(tester, er, ec), solution[er][ec]);
     expect(find.text('0/3'), findsOneWidget, reason: 'верный ход — не ошибка');
@@ -118,11 +118,11 @@ void main() {
       }
     }
     final wrong = solution[wr][wc] % 9 + 1;
-    await tester.tap(find.byKey(Key('клетка${wr}_$wc')));
+    await tester.tap(find.byKey(Key('cell_${wr}_$wc')));
     await tester.pump();
-    await tester.tap(find.byKey(Key('цифра$wrong')));
+    await tester.tap(find.byKey(Key('digit$wrong')));
     await tester.pump();
-    expect(find.text('1/3'), findsOneWidget, reason: 'цифра мимо решения — ошибка');
+    expect(find.text('1/3'), findsOneWidget, reason: 'digit мимо решения — ошибка');
   });
 
   testWidgets('🔴 уровень доигрывается нажатиями до конца, и лестница растёт', (tester) async {
@@ -134,14 +134,14 @@ void main() {
     for (var r = 0; r < 9; r++) {
       for (var c = 0; c < 9; c++) {
         if (grid[r][c] != 0) continue;
-        await tester.tap(find.byKey(Key('клетка${r}_$c')));
+        await tester.tap(find.byKey(Key('cell_${r}_$c')));
         await tester.pump();
-        await tester.tap(find.byKey(Key('цифра${solution[r][c]}')));
+        await tester.tap(find.byKey(Key('digit${solution[r][c]}')));
         await tester.pump();
       }
     }
 
-    expect(find.byKey(const Key('дальше')), findsOneWidget, reason: 'доска сошлась — экран зовёт дальше');
+    expect(find.byKey(const Key('next')), findsOneWidget, reason: 'доска сошлась — экран зовёт дальше');
     expect(find.text('Следующий уровень'), findsOneWidget);
     // Уровень записан в ту же память, что у веб-версии.
     expect(state.get('psygames_sudoku_level_nzt48'), '6');
@@ -160,7 +160,7 @@ void main() {
         if (grid[r][c] == 0) { hr = r; hc = c; break outer; }
       }
     }
-    await tester.tap(find.byKey(Key('клетка${hr}_$hc')));
+    await tester.tap(find.byKey(Key('cell_${hr}_$hc')));
     await tester.pump();
     await tester.tap(find.byTooltip('Подсказка'));
     await tester.pump();

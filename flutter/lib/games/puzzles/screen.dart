@@ -173,7 +173,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
             final size = Size(side < 0 ? 0 : side, side < 0 ? 0 : side);
             return Center(
               child: GestureDetector(
-                key: const Key('поле'),
+                key: const Key('board'),
                 behavior: HitTestBehavior.opaque,
                 onTapDown: (d) => _tap(d.localPosition, size),
                 child: CustomPaint(
@@ -251,7 +251,7 @@ class _Toolbar extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.all(12),
         child: FilledButton.icon(
-          key: const Key('дальше'),
+          key: const Key('next'),
           onPressed: onNext,
           icon: const Icon(Icons.arrow_forward),
           label: const Text('Следующая ступень'),
@@ -292,7 +292,7 @@ class _Toolbar extends StatelessWidget {
                       width: keyWidth,
                       height: 48,
                       child: FilledButton(
-                        key: Key('цифра$v'),
+                        key: Key('digit$v'),
                         onPressed: () => onDigit(v),
                         style: FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: Text(
