@@ -7,6 +7,7 @@ import '../games/simon/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/mental_rotation/screen.dart';
+import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
 import '../games/spatial_span/screen.dart';
 import '../games/one_line/screen.dart';
@@ -48,6 +49,7 @@ class HybridApp extends StatefulWidget {
         // Все четыре упражнения лаборатории перенесены, поэтому перехват честен: адрес с
         // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.
         '/games/spatial-lab': (s) => SpatialLabScreen(state: s),
+        '/games/spatial-hub': (s) => SpatialHubScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
@@ -65,6 +67,16 @@ class HybridApp extends StatefulWidget {
   /// Нужно для замера отклика: обе версии открываются на ОДНОМ экране, без
   /// прохода по меню, который сам по себе ничего не проверяет.
   static const String startRoute = String.fromEnvironment('START_ROUTE');
+
+  /// 🔴 ОТКРЫТЬ ЛЮБОЙ МАРШРУТ ПРИЛОЖЕНИЯ ИЗ НАТИВНОГО ЭКРАНА (добавлено 23.09.2026 разделом
+  /// «Пространство» ради развилок). Перенесённый маршрут открывается нативно, НЕ перенесённый —
+  /// в WebView, как и раньше.
+  ///
+  /// ⚠️ ЗАЧЕМ ЭТО ПОНАДОБИЛОСЬ. Развилка — это меню, и половина её карточек ведёт в игры, которые
+  /// ещё в вебе: у «Пространства» перенесено пять карточек из девяти. Нативная развилка без
+  /// такого хода была бы тупиком — человек нажал бы «Клоцки» и не попал никуда. Правок
+  /// `game_shell.dart` при этом НОЛЬ: счёт каркаса держится, тронут только хост гибрида.
+  static void Function(String route)? open;
 
   /// Путь маршрута из любого вида ссылки: и `…/games/one-line.html`, и
   /// `file:///…/games/one-line`, и с якорем или запросом.
@@ -134,12 +146,34 @@ class _HybridAppState extends State<HybridApp> {
       // найдена» — в журнале это видно по запросу unmatched.png. Корень он
       // разбирает как главную.
       ..loadRequest(Uri.parse('${widget.server.origin}${HybridApp.startRoute}'));
+    HybridApp.open = _open;
     // Перенесённая игра по START_ROUTE: перехват на первой загрузке не срабатывает
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
     final first = HybridApp.routeOf('${widget.server.origin}${HybridApp.startRoute}');
     if (first != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _openNative(first));
     }
+  }
+
+  @override
+  void dispose() {
+    // Хук снимается вместе с хостом: оставленный, он звал бы мёртвый WebView.
+    if (HybridApp.open == _open) HybridApp.open = null;
+    super.dispose();
+  }
+
+  /// Маршрут из нативного экрана: перенесённый — нативно, остальной — страницей в WebView.
+  Future<void> _open(String route) async {
+    final native = HybridApp.routeOf('${widget.server.origin}$route');
+    if (native != null) {
+      await _openNative(native);
+      return;
+    }
+    if (!mounted) return;
+    // Возвращаемся к странице и уводим её на нужный адрес: нативные экраны поверх WebView
+    // закрываются, иначе человек остался бы смотреть на развилку, под которой уже другая игра.
+    Navigator.of(context).popUntil((r) => r.isFirst);
+    await _c.loadRequest(Uri.parse('${widget.server.origin}$route'));
   }
 
   Future<void> _openNative(String route) async {

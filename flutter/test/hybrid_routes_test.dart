@@ -27,6 +27,7 @@ void main() {
       '$origin/games/spatial-span',
       '$origin/games/spatial-lab',
       '$origin/games/spatial-lab?mode=netslide',
+      '$origin/games/spatial-hub',
       '$origin/games/spatial-lab.html?mode=sixteen&level=9',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
@@ -44,7 +45,6 @@ void main() {
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
       '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
-      '$origin/games/spatial-hub',   // развилка раздела
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
@@ -62,6 +62,7 @@ void main() {
       '/games/mental-rotation',
       '/games/spatial-span',
       '/games/spatial-lab',
+      '/games/spatial-hub',
     });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
