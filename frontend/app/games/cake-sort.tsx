@@ -45,6 +45,7 @@ import { CIRCLE, Board, canPlace, moveType, isCleared, hasAnyMove, makeBoard } f
 import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
 import { referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { prebuilt, prebuiltMin, prebuiltPath } from '@/src/games/cake-sort/core/prebuilt';
+import { prebuiltSolution } from '@/src/games/cake-sort/core/solutions';
 import { solvePath } from '@/src/games/cake-sort/core/solver';
 import { topFor, boardsFor, type КруглаяШкурка } from '@/src/constants/cakeTops';
 import { plateAtPoint, plateForGrab, PLATE_GAP, SECTOR_MIN, tableFit, cakeRadius } from '@/src/games/cake-sort/core/layout';
@@ -505,7 +506,23 @@ export function CakeSortScreen({ gameId, skin, titleKey }: CakeScreenProps) {
      * На L1–L2 полный бюджет дешёвый (70–137 мс) и даёт кратчайший путь — там его и оставляем.
      * Путь запоминается, так что посчитан он один раз на отрезок партии.
      */
-    const текущий = путь && путь.length ? путь : solvePath(board, level <= 2 ? 20000 : 400);
+    /**
+     * 🔴 СНАЧАЛА ЗАПИСАННОЕ РЕШЕНИЕ, И ТОЛЬКО ПОТОМ ПОИСК (задача af4c7ff1).
+     *
+     * 📍 ЗАМЕР 23.09.2026, бюджет 20000: L1 — 119 мс, L5 — 4,2 с, L10 — 25,0 с,
+     * L20 — больше минуты. Урезанный бюджет 400 спасает от замирания (82–756 мс),
+     * но это всё равно работа в кадре на каждое нажатие — и она видна на слабом
+     * телефоне. Путь для вшитых уровней найден ОФЛАЙН и лежит готовым
+     * (`core/solutions.json`), так что первая подсказка стоит ноль.
+     *
+     * ⚠️ ЗАПИСАННОЕ ГОДИТСЯ ТОЛЬКО НА НЕТРОНУТОЙ ДОСКЕ. Как только игрок сделал
+     * свой ход, стол уже не тот, для которого путь записан: дальше работает
+     * прежний порядок — помним остаток пути, а свернул с него, ищем заново.
+     */
+    const записанное = moves === 0 && !путь ? prebuiltSolution(level) : null;
+    const текущий = путь && путь.length
+      ? путь
+      : записанное ?? solvePath(board, level <= 2 ? 20000 : 400);
     if (текущий !== путь) setПуть(текущий);
     const h = текущий?.[0] ?? null;
     if (!h) { hapticTap(); sndWrong(); return; }
