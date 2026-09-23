@@ -161,6 +161,54 @@ void main() {
         reason: 'и сосуд-цель снова пуст');
   });
 
+  testWidgets('🔴 ПОЛНЫЙ СТЕРЖЕНЬ ВЫГЛЯДИТ ПОЛНЫМ: болт кончается над последней гайкой', (tester) async {
+    /*
+     * 📍 ЗАДАЧА 67f58742, отчёт 17.09.2026: «не даёт перетащить гайку… и в другую
+     * сторону не двигается». Игра была ПРАВА (оба стержня полные), а выглядели
+     * они свободными: замер по кадру показал над полным стержнем 81 px пустой
+     * резьбы — 1,9 высоты гайки. Болт брал всю высоту гнезда и обещал место,
+     * которого нет.
+     *
+     * ⚠️ МЕРЯЕМ НАРИСОВАННОЕ: сколько болта торчит над верхней гайкой ПОЛНОГО
+     * стержня. Порог — половина гайки: столько нужно, чтобы резьба читалась как
+     * резьба, и мало, чтобы пообещать ещё одну.
+     */
+    await _boot(tester, state, TubeSkin.nuts, 'nut_sort');
+    final field = tester.widget<TubesField>(find.byType(TubesField)).field;
+    final full = [
+      for (var i = 0; i < field.length; i += 1)
+        if (field.tubes[i].length == field.usable(i) && field.tubes[i].isNotEmpty) i,
+    ];
+    expect(full, isNotEmpty, reason: 'на первом уровне есть полные стержни');
+
+    final i = full.first;
+    final bolt = find.descendant(
+      of: find.byKey(ValueKey('tube-$i')),
+      matching: find.byWidgetPredicate((w) =>
+          w is Image && w.image is AssetImage && (w.image as AssetImage).assetName.contains('bolt')),
+    );
+    expect(bolt, findsOneWidget, reason: 'болт нарисован');
+    final boltRect = tester.getRect(bolt);
+    /*
+     * ⚠️ САМАЯ ВЕРХНЯЯ ГАЙКА — ПО КООРДИНАТЕ, А НЕ «последняя в дереве». Стопка
+     * рисуется сверху вниз ради порядка наложения (нижняя гайка поверх верхней),
+     * поэтому последняя в дереве — это НИЖНЯЯ, и проба мерила бы весь столб.
+     */
+    final nuts = find.descendant(
+      of: find.byKey(ValueKey('tube-$i')),
+      matching: find.byWidgetPredicate((w) =>
+          w is Image && w.image is AssetImage && (w.image as AssetImage).assetName.contains('nut-')),
+    );
+    expect(nuts, findsWidgets);
+    final rects = nuts.evaluate().map((e) => tester.getRect(find.byWidget(e.widget))).toList();
+    final topNut = rects.reduce((a, b) => a.top < b.top ? a : b);
+    final nutH = topNut.height;
+    final overhang = topNut.top - boltRect.top;
+    expect(overhang, lessThan(nutH * 0.6),
+        reason: 'над полным стержнем торчит ${overhang.toStringAsFixed(1)} при гайке '
+            '${nutH.toStringAsFixed(1)} — столько резьбы читается как «влезет ещё одна»');
+  });
+
   testWidgets('все три шкурки доходят до поля со своим видом порции', (tester) async {
     for (final (skin, game) in [
       (TubeSkin.water, 'water_sort'),
