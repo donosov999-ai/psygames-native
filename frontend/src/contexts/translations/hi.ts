@@ -2738,6 +2738,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ यहाँ उँगली से खींचें, टैप न करें",
   "puzzleNoMoves": "कोई चाल नहीं बची। चाहें तो नए सिरे से शुरू करें",
   "puzzleBlownUp": "आप उड़ गए। चाल पूर्ववत करें और खेलते रहें",
+  "puzzleBarrelStuck": "पीपा कोने में फँस गया। चाल पूर्ववत करें या नए सिरे से शुरू करें",
   "puzzleErrorShown": "लाल रंग बताता है कि नियम कहाँ टूटा",
   "puzzleWhereError": "गलती कहाँ है?",
   "puzzleWrongLines": "अतिरिक्त रेखाएँ लाल घेरे में: {n}",
