@@ -9,6 +9,7 @@ import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
 import '../games/one_line/screen.dart';
 import 'asset_server.dart';
+import 'l10n.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
 
@@ -79,6 +80,23 @@ class _HybridAppState extends State<HybridApp> {
   bool _loading = true;
   final _marks = WebMarkTimer();
 
+  /// Сообщение от веб-половины. Кроме записи в общую память здесь одно особое
+  /// действие: смена ЯЗЫКА должна доехать до нативных экранов сразу.
+  ///
+  /// ⚠️ Иначе получается тихое расхождение: человек переключил язык в настройках
+  /// (они пока в вебе), веб-половина заговорила по-новому, а перенесённые экраны
+  /// остались на старом словаре до перезапуска приложения — и это читается как
+  /// «перевод сломан», хотя перевод на месте.
+  Future<void> _fromWeb(String message) async {
+    final was = L.locale;
+    await widget.state.applyFromWeb(message);
+    final now = L.resolve(widget.state.language);
+    if (now != was) {
+      await L.load(now);
+      if (mounted) setState(() {});
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -86,7 +104,7 @@ class _HybridAppState extends State<HybridApp> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
         SharedState.channel,
-        onMessageReceived: (m) => widget.state.applyFromWeb(m.message),
+        onMessageReceived: (m) => _fromWeb(m.message),
       )
       ..addJavaScriptChannel(latencyChannel, onMessageReceived: (m) {
         final line = _marks.onMark(m.message);
