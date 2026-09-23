@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../games/digit_span/screen.dart';
+import '../games/choice_rt/screen.dart';
 import '../games/flanker/screen.dart';
+import '../games/gonogo/screen.dart';
 import '../games/simon/screen.dart';
+import '../games/stop_signal/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/mental_rotation/screen.dart';
@@ -12,7 +15,12 @@ import '../games/spatial_lab/screen.dart';
 import '../games/spatial_span/screen.dart';
 import '../games/one_line/screen.dart';
 import '../games/stroop/screen.dart';
+import '../games/deep/screen.dart';
+import '../games/fractal/screen.dart';
+import '../games/samurai/screen.dart';
+import '../games/sudoku/screen.dart';
 import 'asset_server.dart';
+import 'l10n.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
 
@@ -50,6 +58,13 @@ class HybridApp extends StatefulWidget {
         // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.
         '/games/spatial-lab': (s) => SpatialLabScreen(state: s),
         '/games/spatial-hub': (s) => SpatialHubScreen(state: s),
+        '/games/sudoku': (s) => SudokuScreen(state: s),
+        '/games/sudoku-samurai': (s) => SamuraiScreen(state: s),
+        '/games/sudoku-fractal': (s) => FractalScreen(state: s),
+        '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),
+        '/games/go-no-go': (s) => GoNoGoScreen(state: s),
+        '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
+        '/games/stop-signal': (s) => StopSignalScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
@@ -99,6 +114,23 @@ class _HybridAppState extends State<HybridApp> {
   bool _loading = true;
   final _marks = WebMarkTimer();
 
+  /// Сообщение от веб-половины. Кроме записи в общую память здесь одно особое
+  /// действие: смена ЯЗЫКА должна доехать до нативных экранов сразу.
+  ///
+  /// ⚠️ Иначе получается тихое расхождение: человек переключил язык в настройках
+  /// (они пока в вебе), веб-половина заговорила по-новому, а перенесённые экраны
+  /// остались на старом словаре до перезапуска приложения — и это читается как
+  /// «перевод сломан», хотя перевод на месте.
+  Future<void> _fromWeb(String message) async {
+    final was = L.locale;
+    await widget.state.applyFromWeb(message);
+    final now = L.resolve(widget.state.language);
+    if (now != was) {
+      await L.load(now);
+      if (mounted) setState(() {});
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -106,7 +138,7 @@ class _HybridAppState extends State<HybridApp> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
         SharedState.channel,
-        onMessageReceived: (m) => widget.state.applyFromWeb(m.message),
+        onMessageReceived: (m) => _fromWeb(m.message),
       )
       ..addJavaScriptChannel(latencyChannel, onMessageReceived: (m) {
         final line = _marks.onMark(m.message);

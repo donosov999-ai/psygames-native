@@ -1,0 +1,271 @@
+{
+  "снято": "прогоном живого TS из frontend/app/games/go-no-go.tsx",
+  "nogoProb": 0.25,
+  "maxLevel": 15,
+  "очередьСлучайных": [
+    0,
+    0.1,
+    0.2499,
+    0.25,
+    0.26,
+    0.5,
+    0.75,
+    0.99,
+    0.24,
+    0.251
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "trials": 24,
+      "windowMs": 1100,
+      "itiMinMs": 600,
+      "itiJitterMs": 400,
+      "condition": {
+        "trials": 24,
+        "windowMs": 1100,
+        "itiMinMs": 600,
+        "itiJitterMs": 400,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 2,
+      "trials": 24,
+      "windowMs": 1060,
+      "itiMinMs": 576,
+      "itiJitterMs": 384,
+      "condition": {
+        "trials": 24,
+        "windowMs": 1060,
+        "itiMinMs": 576,
+        "itiJitterMs": 384,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 3,
+      "trials": 24,
+      "windowMs": 1020,
+      "itiMinMs": 552,
+      "itiJitterMs": 368,
+      "condition": {
+        "trials": 24,
+        "windowMs": 1020,
+        "itiMinMs": 552,
+        "itiJitterMs": 368,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 4,
+      "trials": 24,
+      "windowMs": 980,
+      "itiMinMs": 528,
+      "itiJitterMs": 352,
+      "condition": {
+        "trials": 24,
+        "windowMs": 980,
+        "itiMinMs": 528,
+        "itiJitterMs": 352,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 5,
+      "trials": 24,
+      "windowMs": 940,
+      "itiMinMs": 504,
+      "itiJitterMs": 336,
+      "condition": {
+        "trials": 24,
+        "windowMs": 940,
+        "itiMinMs": 504,
+        "itiJitterMs": 336,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 6,
+      "trials": 32,
+      "windowMs": 900,
+      "itiMinMs": 480,
+      "itiJitterMs": 320,
+      "condition": {
+        "trials": 32,
+        "windowMs": 900,
+        "itiMinMs": 480,
+        "itiJitterMs": 320,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 7,
+      "trials": 32,
+      "windowMs": 860,
+      "itiMinMs": 456,
+      "itiJitterMs": 304,
+      "condition": {
+        "trials": 32,
+        "windowMs": 860,
+        "itiMinMs": 456,
+        "itiJitterMs": 304,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 8,
+      "trials": 32,
+      "windowMs": 820,
+      "itiMinMs": 432,
+      "itiJitterMs": 288,
+      "condition": {
+        "trials": 32,
+        "windowMs": 820,
+        "itiMinMs": 432,
+        "itiJitterMs": 288,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 9,
+      "trials": 32,
+      "windowMs": 780,
+      "itiMinMs": 408,
+      "itiJitterMs": 272,
+      "condition": {
+        "trials": 32,
+        "windowMs": 780,
+        "itiMinMs": 408,
+        "itiJitterMs": 272,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 10,
+      "trials": 32,
+      "windowMs": 740,
+      "itiMinMs": 384,
+      "itiJitterMs": 256,
+      "condition": {
+        "trials": 32,
+        "windowMs": 740,
+        "itiMinMs": 384,
+        "itiJitterMs": 256,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 11,
+      "trials": 40,
+      "windowMs": 700,
+      "itiMinMs": 360,
+      "itiJitterMs": 240,
+      "condition": {
+        "trials": 40,
+        "windowMs": 700,
+        "itiMinMs": 360,
+        "itiJitterMs": 240,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 12,
+      "trials": 40,
+      "windowMs": 660,
+      "itiMinMs": 336,
+      "itiJitterMs": 224,
+      "condition": {
+        "trials": 40,
+        "windowMs": 660,
+        "itiMinMs": 336,
+        "itiJitterMs": 224,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 13,
+      "trials": 40,
+      "windowMs": 620,
+      "itiMinMs": 312,
+      "itiJitterMs": 208,
+      "condition": {
+        "trials": 40,
+        "windowMs": 620,
+        "itiMinMs": 312,
+        "itiJitterMs": 208,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 14,
+      "trials": 40,
+      "windowMs": 580,
+      "itiMinMs": 288,
+      "itiJitterMs": 192,
+      "condition": {
+        "trials": 40,
+        "windowMs": 580,
+        "itiMinMs": 288,
+        "itiJitterMs": 192,
+        "nogoRate": 0.25
+      }
+    },
+    {
+      "level": 15,
+      "trials": 40,
+      "windowMs": 550,
+      "itiMinMs": 280,
+      "itiJitterMs": 180,
+      "condition": {
+        "trials": 40,
+        "windowMs": 550,
+        "itiMinMs": 280,
+        "itiJitterMs": 180,
+        "nogoRate": 0.25
+      }
+    }
+  ],
+  "stims": [
+    {
+      "r": 0,
+      "stim": "nogo"
+    },
+    {
+      "r": 0.1,
+      "stim": "nogo"
+    },
+    {
+      "r": 0.2499,
+      "stim": "nogo"
+    },
+    {
+      "r": 0.25,
+      "stim": "go"
+    },
+    {
+      "r": 0.26,
+      "stim": "go"
+    },
+    {
+      "r": 0.5,
+      "stim": "go"
+    },
+    {
+      "r": 0.75,
+      "stim": "go"
+    },
+    {
+      "r": 0.99,
+      "stim": "go"
+    },
+    {
+      "r": 0.24,
+      "stim": "nogo"
+    },
+    {
+      "r": 0.251,
+      "stim": "go"
+    }
+  ]
+}

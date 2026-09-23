@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -96,7 +97,7 @@ class _SimonScreenState extends State<SimonScreen> {
     _timer = Timer(Duration(milliseconds: g.preDelayMs), () {
       if (!mounted || _phase != SimonPhase.playing) return;
       setState(g.showStimulus);
-      measureStimulusFrame('Flutter/Саймон');
+      measureStimulusFrame('Flutter/Simon');
       _timer = Timer(Duration(milliseconds: g.params.windowMs), () {
         if (!mounted || _phase != SimonPhase.playing) return;
         _after(g.timeout());
@@ -140,12 +141,13 @@ class _SimonScreenState extends State<SimonScreen> {
     final g = _game;
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
-      title: 'Цвет против позиции',
+      // Тексты — из общего словаря теми же ключами, что зовёт веб-версия игры.
+      title: L.t('simon'),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Проба', value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
-        HudItem(label: 'Верно', value: '${g.hits}', icon: Icons.check),
-        HudItem(label: 'Реакция', value: '${g.meanRtMs ?? 0} мс', icon: Icons.bolt),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('round'), value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
+        HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
+        HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
       ],
       field: (context, h) => _Field(
         game: g,
@@ -194,17 +196,20 @@ class _Field extends StatelessWidget {
         return _Centered(
           height: height,
           children: [
-            Text('Уровень ${game.level}', style: Theme.of(context).textTheme.titleLarge),
+            Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-            const Text('Синий — левая кнопка, красный — правая. Сторона, где вспыхнул квадрат, не важна.',
-                textAlign: TextAlign.center),
+            Text(L.t('hint_simon_color_rule'), textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
-              'Проб: ${game.trialsTotal} · окно ответа ${game.params.windowMs} мс',
+              L.t('simonLvlParams')
+                  .replaceAll('{n}', '${game.trialsTotal}')
+                  .replaceAll('{p}', '${(simonIncongruentProb * 100).round()}')
+                  .replaceAll('{w}', (game.params.windowMs / 1000).toStringAsFixed(1)),
               style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: const Text('Начать')),
+            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],
         );
       case SimonPhase.done:
@@ -212,18 +217,24 @@ class _Field extends StatelessWidget {
         return _Centered(
           height: height,
           children: [
-            Text(passed ? 'Уровень пройден' : 'Уровень не пройден',
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              passed
+                  ? L.t('levelDone').replaceAll('{n}', '${game.level}')
+                  : L.t('sameLevelRetry'),
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 8),
-            Text('Верно ${game.hits} из ${game.trialsTotal} · ошибок ${game.errors}'),
+            Text('${L.t('hud_correct')}: ${game.hits}/${game.trialsTotal} · '
+                '${L.t('hud_errors')}: ${game.errors}'),
             Text(game.meanRtMs == null
-                ? 'Среднее время: нет верных проб'
-                : 'Среднее время: ${game.meanRtMs} мс'),
+                ? '${L.t('meanReaction')}: —'
+                : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
             Text(effect == null
-                ? 'Эффект Саймона: не набрано обеих половин'
-                : 'Эффект Саймона: $effect мс'),
+                ? '${L.t('hud_interference')}: —'
+                : '${L.t('hud_interference')}: $effect ${L.t('msShort')}'),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: const Text('Ещё раз')),
+            FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],
         );
       case SimonPhase.playing:
@@ -276,7 +287,7 @@ class _Field extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              const Text('Синий — влево, красный — вправо'),
+              Text(L.t('hint_simon_color_rule'), textAlign: TextAlign.center),
               const SizedBox(height: 12),
               SizedBox(
                 height: 28,
@@ -332,7 +343,7 @@ class _Answers extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: TapLatency(
-                      where: 'Flutter/Саймон',
+                      where: 'Flutter/Simon',
                       child: SizedBox(
                         height: 56,
                         child: FilledButton(

@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   webview_flutter: ^4.14.1
   shared_preferences: ^2.5.5
+  ffi: ^2.1.4
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +74,7 @@ flutter:
     - assets/levels/
     - assets/words/
     - assets/spatial/
+    - assets/l10n/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

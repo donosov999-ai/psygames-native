@@ -29,8 +29,36 @@ void main() {
       '$origin/games/spatial-lab?mode=netslide',
       '$origin/games/spatial-hub',
       '$origin/games/spatial-lab.html?mode=sixteen&level=9',
+      '$origin/games/sudoku',
+      '$origin/games/sudoku.html?mode=levels',
+      '$origin/games/go-no-go',
+      '$origin/games/choice-rt',
+      '$origin/games/stop-signal',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
+    }
+  });
+
+  /// ⚠️ Фрактал и ГЛУБОКИЙ фрактал — РАЗНЫЕ экраны. Перехват одного не должен утаскивать
+  /// второй: он ещё в вебе, и подмена показала бы человеку другую игру.
+  test('🔴 фрактал перехватывается, а глубокий фрактал остаётся в вебе', () {
+    const origin = 'http://127.0.0.1:54321';
+    expect(HybridApp.routeOf('$origin/games/sudoku-fractal'), '/games/sudoku-fractal');
+    expect(HybridApp.routeOf('$origin/games/sudoku-fractal.html'), '/games/sudoku-fractal');
+    expect(HybridApp.routeOf('$origin/games/sudoku-fractal?level=6'), '/games/sudoku-fractal');
+    // ⚠️ Глубокий фрактал — ОТДЕЛЬНЫЙ экран и отдельный маршрут: перехват одного не
+    // должен утаскивать второй, иначе человек увидит не ту игру.
+    expect(HybridApp.routeOf('$origin/games/sudoku-fractal-deep'), '/games/sudoku-fractal-deep');
+  });
+
+  test('🔴 самурай перехватывается: и ссылкой, и файлом, и с якорем', () {
+    for (final url in [
+      'http://127.0.0.1:54321/games/sudoku-samurai',
+      'http://127.0.0.1:54321/games/sudoku-samurai.html',
+      'file:///assets/www/games/sudoku-samurai?level=3',
+      'http://127.0.0.1:54321/games/sudoku-samurai#board',
+    ]) {
+      expect(HybridApp.routeOf(url), '/games/sudoku-samurai', reason: url);
     }
   });
 
@@ -40,44 +68,31 @@ void main() {
       '$origin/',
       '$origin/index.html',
       '$origin/games/schulte',
-      '$origin/games/sudoku.html',
       '$origin/collection',
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
       '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
+      '$origin/games/sudoku-hub',       // развилка судоку ещё не перенесена
+      '$origin/games/puzzles',          // головоломки Тэтхэма ещё не перенесены
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
   });
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
-    // Один список на всех: карта перехвата растёт у каждого раздела, и второй ожидаемый набор
-    // рядом означал бы, что кто-то проверяет устаревший.
+    // ⚠️ ОБЪЕДИНЕНИЕ, А НЕ ДВЕ ПРОВЕРКИ. При сведении веток двух разделов сюда
+    // попали ДВА expect подряд с разными наборами — каждый утверждал, что список
+    // игр исчерпывается его половиной, и любая новая игра ломала обе. Список
+    // перенесённых игр один и общий, и растёт он снизу.
     expect(HybridApp.native.keys.toSet(), {
-      '/games/dots-connect',
-      '/games/one-line',
-      '/games/digit-span',
-      '/games/memory-matrix',
-      '/games/stroop',
-      '/games/flanker',
-      '/games/simon',
-      '/games/mental-rotation',
-      '/games/spatial-span',
-      '/games/spatial-lab',
-      '/games/spatial-hub',
-    });
-    expect(HybridApp.native.keys.toSet(), {
-      '/games/dots-connect',
-      '/games/one-line',
-      '/games/digit-span',
-      '/games/memory-matrix',
-      '/games/stroop',
-      '/games/flanker',
-      '/games/simon',
-      '/games/mental-rotation',
-      '/games/spatial-span',
-      '/games/spatial-lab',
-      '/games/spatial-hub',
+      '/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix',
+      '/games/stroop', '/games/flanker', '/games/simon',
+      '/games/go-no-go',
+      '/games/sudoku', '/games/sudoku-samurai', '/games/sudoku-fractal',
+      '/games/sudoku-fractal-deep',
+      '/games/choice-rt', '/games/stop-signal',
+      '/games/mental-rotation', '/games/spatial-span',
+      '/games/spatial-lab', '/games/spatial-hub',
     });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);

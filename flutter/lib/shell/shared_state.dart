@@ -19,10 +19,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 ///     `psygames_unlocked_themed`               — вид и первый запуск
 /// Список ключей меняется каждую неделю, префикс — нет. Поэтому мост возит
 /// пространство целиком: новая игра появится по обе стороны сама, без правки моста.
+///
+/// ⚠️ 🔴 И ОДНО ИСКЛЮЧЕНИЕ, НАЙДЕННОЕ ЗАМЕРОМ 23.09.2026. Утверждение выше —
+/// «ВСЁ состояние лежит под префиксом» — оказалось неверным. Сплошной проход по
+/// `frontend/src` и `frontend/app` (все `getItem`/`setItem`/`removeItem`, 53
+/// константы-ключа + литералы) нашёл РОВНО ОДИН ключ мимо префикса: `language`,
+/// который пишет `src/contexts/LanguageContext.tsx:4137`. Это язык интерфейса —
+/// двенадцать языков приложения. Без него нативная половина не знает, на каком
+/// языке говорить, и молчание тут не безобидно: экран просто останется русским.
+/// Поэтому рядом с префиксом живёт ЯВНЫЙ список исключений [extraKeys], а гейт
+/// `bridge_carries_every_web_key_test.dart` сверяет его с живым исходником веба:
+/// появится второй голый ключ — проба покраснеет и назовёт его.
 class SharedState {
   SharedState(this._prefs);
 
   static const prefix = 'psygames_';
+
+  /// Ключи веб-стороны МИМО префикса. Список закрытый и сверяется гейтом.
+  ///
+  /// `language` — язык интерфейса (`LanguageContext.tsx`). Единственный на
+  /// 23.09.2026; если станет два, гейт назовёт второй раньше, чем он потеряется.
+  static const extraKeys = {'language'};
+
+  /// Ключ принадлежит приложению — префикс ИЛИ явное исключение.
+  static bool owns(String key) => key.startsWith(prefix) || extraKeys.contains(key);
 
   /// Имя канала, которым веб-сторона отвечает в Dart.
   static const channel = 'PsyBridge';
@@ -35,7 +55,7 @@ class SharedState {
   Map<String, String> snapshot() {
     final out = <String, String>{};
     for (final k in _prefs.getKeys()) {
-      if (!k.startsWith(prefix)) continue;
+      if (!owns(k)) continue;
       final v = _prefs.getString(k);
       if (v != null) out[k] = v;
     }
@@ -53,14 +73,24 @@ class SharedState {
   /// спрашивается у общей памяти и никогда не задаётся числом в коде.
   String get activeProfile => _prefs.getString('${prefix}active_profile') ?? 'nzt48';
 
+  /// Язык интерфейса — тот, что выбран в приложении.
+  ///
+  /// 🔴 ЗАЧЕМ ЭТО ВООБЩЕ НУЖНО. В приложении двенадцать языков и два гейта,
+  /// которые довели веб-сторону до нуля зашитых строк (`ci-i18n-hardcode-guard`,
+  /// `i18n-coverage`). Перенесённые экраны начали заново с зашитого русского:
+  /// замер 23.09.2026 по `flutter/lib` — 789 видимых русских строк на пяти
+  /// ветках. Пока мост не возил `language`, у нативной половины не было даже
+  /// возможности спросить язык. Теперь есть; сами строки — отдельная работа.
+  String get language => _prefs.getString('language') ?? 'ru';
+
 
   Future<void> set(String key, String value) async {
-    if (!key.startsWith(prefix)) return;
+    if (!owns(key)) return;
     await _prefs.setString(key, value);
   }
 
   Future<void> remove(String key) async {
-    if (!key.startsWith(prefix)) return;
+    if (!owns(key)) return;
     await _prefs.remove(key);
   }
 
@@ -82,7 +112,7 @@ class SharedState {
       return false;
     }
     final key = m['key'];
-    if (key is! String || !key.startsWith(prefix)) return false;
+    if (key is! String || !owns(key)) return false;
     switch (m['op']) {
       case 'set':
         final v = m['value'];
@@ -106,6 +136,9 @@ class SharedState {
   /// вкладке не срабатывает, и запись страницы осталась бы незамеченной.
   String bootstrapJs() {
     final data = jsonEncode(snapshot());
+    // Исключения мимо префикса уезжают в страницу списком, а не переписыванием
+    // условия: добавится ключ в [extraKeys] — скрипт подхватит его сам.
+    final extras = jsonEncode(extraKeys.toList());
     return '''
 (function () {
   var snap = $data;
@@ -115,6 +148,8 @@ class SharedState {
   if (window.__psyBridgeReady) return;
   window.__psyBridgeReady = true;
   var P = '$prefix';
+  var EXTRA = $extras;
+  var mine = function (k) { k = String(k); return k.indexOf(P) === 0 || EXTRA.indexOf(k) >= 0; };
   var send = function (msg) {
     try { if (window.$channel && window.$channel.postMessage) window.$channel.postMessage(JSON.stringify(msg)); } catch (e) {}
   };
@@ -122,11 +157,11 @@ class SharedState {
   var setItem = proto.setItem, removeItem = proto.removeItem;
   proto.setItem = function (k, v) {
     setItem.call(this, k, v);
-    if (this === window.localStorage && String(k).indexOf(P) === 0) send({ op: 'set', key: String(k), value: String(v) });
+    if (this === window.localStorage && mine(k)) send({ op: 'set', key: String(k), value: String(v) });
   };
   proto.removeItem = function (k) {
     removeItem.call(this, k);
-    if (this === window.localStorage && String(k).indexOf(P) === 0) send({ op: 'remove', key: String(k) });
+    if (this === window.localStorage && mine(k)) send({ op: 'remove', key: String(k) });
   };
 })();
 ''';

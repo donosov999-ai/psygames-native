@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/simon/model.dart';
 import 'package:psygames_flutter/games/simon/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -21,6 +22,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Тексты экрана — из общего словаря, поэтому проба сверяет их через L.t():
+    // так она заодно требует, чтобы assets/l10n/ru.json собрался и читался.
+    await L.load('ru');
   });
 
   /// Квадрат стимула на экране: его цвет и сторона.
@@ -49,7 +53,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: SimonScreen(state: state, clock: () => clock, rnd: Random(7))));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
     expect(stimulusVisible(), isFalse, reason: 'стимул обязан появиться ПОСЛЕ паузы, а не сразу');
 
@@ -69,18 +73,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(conflicts > 0, isTrue, reason: 'без конфликтных проб партия ничего не мерила бы');
-    expect(find.text('Уровень пройден'), findsOneWidget);
-    expect(find.textContaining('Верно 16 из 16'), findsOneWidget);
-    expect(find.textContaining('Среднее время: 430 мс'), findsOneWidget,
+    expect(find.textContaining(L.t('levelDone').split('{').first.trim()), findsOneWidget);
+    expect(find.textContaining('${L.t('hud_correct')}: 16/16'), findsOneWidget);
+    expect(find.textContaining('${L.t('meanReaction')}: 430 ${L.t('msShort')}'), findsOneWidget,
         reason: 'отсчёт обязан идти от показа стимула');
-    expect(find.textContaining('Эффект Саймона: 0 мс'), findsOneWidget,
+    expect(find.textContaining('${L.t('hud_interference')}: 0 ${L.t('msShort')}'), findsOneWidget,
         reason: 'все пробы шли поровну — разность половин ноль');
   });
 
   testWidgets('🔴 ответ по СТОРОНЕ вспышки, а не по цвету — ошибка', (tester) async {
     await tester.pumpWidget(MaterialApp(home: SimonScreen(state: state, rnd: Random(4))));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
 
     // Идём по пробам, пока не встретим конфликтную, и жмём сторону вспышки.
@@ -104,7 +108,7 @@ void main() {
   testWidgets('🔴 просрочка окна — ошибка, и уровень не засчитан', (tester) async {
     await tester.pumpWidget(MaterialApp(home: SimonScreen(state: state, rnd: Random(11))));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Начать'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
 
     // Молчим всю партию: пауза ≤1100 мс, окно на L1 — 2600 мс, отклик 350 мс.
@@ -114,8 +118,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 360));
     }
     await tester.pumpAndSettle();
-    expect(find.text('Уровень не пройден'), findsOneWidget);
-    expect(find.textContaining('Верно 0 из 16 · ошибок 16'), findsOneWidget);
-    expect(find.textContaining('Среднее время: нет верных проб'), findsOneWidget);
+    expect(find.text(L.t('sameLevelRetry')), findsOneWidget);
+    expect(find.textContaining('${L.t('hud_correct')}: 0/16 · ${L.t('hud_errors')}: 16'), findsOneWidget);
+    expect(find.textContaining('${L.t('meanReaction')}: —'), findsOneWidget);
   });
 }
