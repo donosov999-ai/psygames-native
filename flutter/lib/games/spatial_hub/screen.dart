@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../shell/game_shell.dart';
 import '../../shell/hybrid_app.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -140,9 +139,27 @@ class _SpatialHubScreenState extends State<SpatialHubScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    return GameShell(
-      title: L.t('spatialGroup'),
-      field: (context, h) => ListView(
+    /*
+     * 🔴 РАЗВИЛКА — НЕ ИГРА, И ШАПКА У НЕЁ ДРУГАЯ.
+     *
+     * Здесь стоял `GameShell`. Он даёт то, что нужно ИГРЕ: кнопку паузы, кружок
+     * питомца, «Правила». На развилке паузить нечего — Денис прислал кадр 23.09.2026:
+     * «Пространство» с кнопкой паузы в шапке, «по хабам наксячил солидно».
+     *
+     * Каркас теперь тот же, что у остальных развилок (`shell/hub_screen.dart`):
+     * обычная шапка с кнопкой «назад» и список карточек. Содержимое не тронуто —
+     * состав и порядок карточек прежние, и проба на них остаётся в силе.
+     */
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(L.t('spatialGroup')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: L.t('back'),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+      ),
+      body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
         children: [
           Text(
