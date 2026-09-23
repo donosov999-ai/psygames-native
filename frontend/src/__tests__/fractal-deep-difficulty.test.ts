@@ -19,7 +19,7 @@ import {
   DEEP_BANDS, deepBandRating, deepBandName, clampDeepBand,
   materializePick, type DeepCfg,
 } from '@/src/services/fractal-deep';
-import { RATING_LADDER } from '@/src/services/sudoku-bank';
+import { RATING_LADDER, bankPool } from '@/src/services/sudoku-bank';
 import { LANGUAGES } from '@/src/contexts/LanguageContext';
 
 /** Словарь читается текстом: тянуть React-контекст ради имён ключей незачем. */
@@ -60,10 +60,20 @@ describe(`трудность Бездны: ${DEEP_BANDS.length} ступеней
     expect(LANGUAGES.length).toBeGreaterThan(1);
   });
 
+  /**
+   * ⚠️ 23.09.2026: проба спрашивала не то. Она сверяла полосы «Бездны» с `RATING_LADDER` —
+   * картой «уровень судоку → полоса», — а падает выбор доски от ПУСТОГО ПУЛА банка
+   * (`fractal-deep.ts`: «полоса N пуста»). Перестановка ступеней судоку (54–61 пояс ALS,
+   * 62–65 кривые блоки, задача 3d4d4578) убрала из карты уровней полосы 5.6 и 5.7 — в
+   * банке они как лежали, так и лежат по 40 досок, и «Бездна» работает. Проба краснела на
+   * чужой правке, а на настоящей поломке (пустой пул) промолчала бы. Теперь спрашиваем банк.
+   */
   it('🔴 полосы лестницы существуют в банке — иначе выбор доски упадёт', () => {
-    const есть = new Set(RATING_LADDER.map((r) => r.rating));
-    const чужие = DEEP_BANDS.map((b) => b.rating).filter((r) => !есть.has(r));
-    expect(`вне банка: ${чужие.join(',') || 'нет'}`).toBe('вне банка: нет');
+    const пустые = DEEP_BANDS.filter((b) => bankPool(b.rating).length === 0)
+      .map((b) => `${b.rating}`);
+    expect(`пустых полос: ${пустые.join(',') || 'нет'}`).toBe('пустых полос: нет');
+    // Контроль: проба должна уметь краснеть — в банке есть полосы, которых нет вовсе.
+    expect(bankPool(9.9).length).toBe(0);
   });
 
   /**
