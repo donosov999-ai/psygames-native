@@ -1,4 +1,170 @@
 {
+  "moveCases": [
+    {
+      "sq": 27,
+      "type": "N",
+      "white": true,
+      "occupied": [
+        27
+      ],
+      "moves": [
+        10,
+        12,
+        17,
+        21,
+        33,
+        37,
+        42,
+        44
+      ]
+    },
+    {
+      "sq": 0,
+      "type": "N",
+      "white": true,
+      "occupied": [
+        0
+      ],
+      "moves": [
+        10,
+        17
+      ]
+    },
+    {
+      "sq": 27,
+      "type": "R",
+      "white": true,
+      "occupied": [
+        27,
+        11,
+        29
+      ],
+      "moves": [
+        19,
+        24,
+        25,
+        26,
+        28,
+        35,
+        43,
+        51,
+        59
+      ]
+    },
+    {
+      "sq": 27,
+      "type": "B",
+      "white": false,
+      "occupied": [
+        27,
+        9
+      ],
+      "moves": [
+        6,
+        13,
+        18,
+        20,
+        34,
+        36,
+        41,
+        45,
+        48,
+        54,
+        63
+      ]
+    },
+    {
+      "sq": 27,
+      "type": "Q",
+      "white": true,
+      "occupied": [
+        27,
+        26,
+        19
+      ],
+      "moves": [
+        0,
+        6,
+        9,
+        13,
+        18,
+        20,
+        28,
+        29,
+        30,
+        31,
+        34,
+        35,
+        36,
+        41,
+        43,
+        45,
+        48,
+        51,
+        54,
+        59,
+        63
+      ]
+    },
+    {
+      "sq": 27,
+      "type": "K",
+      "white": true,
+      "occupied": [
+        27,
+        18
+      ],
+      "moves": [
+        19,
+        20,
+        26,
+        28,
+        34,
+        35,
+        36
+      ]
+    },
+    {
+      "sq": 27,
+      "type": "P",
+      "white": true,
+      "occupied": [
+        27
+      ],
+      "moves": [
+        19
+      ]
+    },
+    {
+      "sq": 27,
+      "type": "P",
+      "white": false,
+      "occupied": [
+        27
+      ],
+      "moves": [
+        35
+      ]
+    },
+    {
+      "sq": 11,
+      "type": "P",
+      "white": true,
+      "occupied": [
+        11
+      ],
+      "moves": []
+    },
+    {
+      "sq": 52,
+      "type": "P",
+      "white": false,
+      "occupied": [
+        52
+      ],
+      "moves": []
+    }
+  ],
   "corpus": {
     "meta": {
       "source": "https://database.lichess.org/lichess_db_puzzle.csv.zst",

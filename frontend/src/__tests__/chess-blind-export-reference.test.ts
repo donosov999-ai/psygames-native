@@ -232,7 +232,76 @@ test('лестница chess-blind читается целиком (и по кл
     })),
   }));
 
+  /* ХОДЫ ФИГУР ВСЛЕПУЮ. Правила живут в ФАЙЛЕ ЭКРАНА (app/games/chess-blind.tsx),
+   * то есть наружу не торчат и пробой не закрыты — ровно та беда, из-за которой
+   * раздел уже вытаскивал лестницу и вопросы в ядро. Сверить их можно только
+   * повторив здесь ту же таблицу и потребовав совпадения от переноса. */
+  const movesFor = (sq: number, type: string, white: boolean, occupied: number[]): number[] => {
+    const occ = new Set(occupied);
+    const r = Math.floor(sq / 8);
+    const c = sq % 8;
+    const out: number[] = [];
+    const push = (rr: number, cc: number) => {
+      if (rr >= 0 && rr < 8 && cc >= 0 && cc < 8) {
+        const s = rr * 8 + cc;
+        if (!occ.has(s)) out.push(s);
+      }
+    };
+    const slide = (dirs: number[][]) => {
+      for (const [dr, dc] of dirs) {
+        let rr = r + dr!;
+        let cc = c + dc!;
+        while (rr >= 0 && rr < 8 && cc >= 0 && cc < 8) {
+          const s = rr * 8 + cc;
+          if (occ.has(s)) break;
+          out.push(s);
+          rr += dr!;
+          cc += dc!;
+        }
+      }
+    };
+    const rook = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+    const bishop = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+    const knight = [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]];
+    switch (type) {
+      case 'K':
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) if (dr || dc) push(r + dr, c + dc);
+        }
+        break;
+      case 'N':
+        for (const [dr, dc] of knight) push(r + dr!, c + dc!);
+        break;
+      case 'R': slide(rook); break;
+      case 'B': slide(bishop); break;
+      case 'Q': slide([...rook, ...bishop]); break;
+      case 'P': {
+        const rr = r + (white ? -1 : 1);
+        if (rr >= 1 && rr <= 6) {
+          const s = rr * 8 + c;
+          if (!occ.has(s)) out.push(s);
+        }
+        break;
+      }
+    }
+    return out.sort((a, b) => a - b);
+  };
+  const moveCases = [
+    { sq: 27, type: 'N', white: true, occupied: [27] },
+    { sq: 0, type: 'N', white: true, occupied: [0] },
+    { sq: 27, type: 'R', white: true, occupied: [27, 11, 29] },
+    { sq: 27, type: 'B', white: false, occupied: [27, 9] },
+    { sq: 27, type: 'Q', white: true, occupied: [27, 26, 19] },
+    { sq: 27, type: 'K', white: true, occupied: [27, 18] },
+    { sq: 27, type: 'P', white: true, occupied: [27] },
+    { sq: 27, type: 'P', white: false, occupied: [27] },
+    // Пешка у самого края: превращений в игре нет, поэтому ход пропадает.
+    { sq: 11, type: 'P', white: true, occupied: [11] },
+    { sq: 52, type: 'P', white: false, occupied: [52] },
+  ].map((c) => ({ ...c, moves: movesFor(c.sq, c.type, c.white, c.occupied) }));
+
   const reference = {
+    moveCases,
     corpus,
     parsed,
     questions: questionsRef,

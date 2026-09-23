@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:psygames_flutter/games/chess_blind/bands.dart';
 import 'package:psygames_flutter/games/chess_blind/board.dart';
 import 'package:psygames_flutter/games/chess_blind/ladder.dart';
+import 'package:psygames_flutter/games/chess_blind/moves.dart';
 import 'package:psygames_flutter/games/chess_blind/positions.dart';
 import 'package:psygames_flutter/games/chess_blind/questions.dart';
 
@@ -25,6 +26,7 @@ void main() {
   boardAndBandsMatchLiveTs(reference);
   questionsMatchLiveTs(reference);
   corpusMatchesLiveTs(reference);
+  movesMatchLiveTs(reference);
 
   test('🔴 полоса лестницы совпадает с живым TS', () {
     expect(puzzleMinLevel, reference['minLevel']);
@@ -411,6 +413,80 @@ void corpusMatchesLiveTs(Map<String, dynamic> reference) {
             .toSet(),
         reason: 'позиция «${want['fen']}» разобрана иначе',
       );
+    }
+  });
+}
+
+/// 🔴 ХОДЫ ФИГУР СВЕРЕНЫ С ЭТАЛОНОМ, А ЦЕПОЧКА — СО СВОИМИ СВОЙСТВАМИ.
+///
+/// Сами ходы детерминированы и сверяются клетка в клетку. Цепочка ходов вслепую
+/// случайна по устройству, поэтому у неё проверяется другое: длина, то что
+/// каждый ход идёт с занятой клетки на пустую, и что позиция после цепочки
+/// содержит те же фигуры — фишки ДВИГАЮТСЯ, а не появляются и исчезают.
+void movesMatchLiveTs(Map<String, dynamic> reference) {
+  final cases = (reference['moveCases'] as List<dynamic>)
+      .cast<Map<String, dynamic>>();
+
+  test('🔴 ходы каждой фигуры совпадают с эталоном', () {
+    for (final c in cases) {
+      final got = movesFor(
+        sq: c['sq'] as int,
+        type: c['type'] as String,
+        white: c['white'] as bool,
+        occupied: (c['occupied'] as List<dynamic>).cast<int>().toSet(),
+      );
+      expect(
+        got,
+        (c['moves'] as List<dynamic>).cast<int>(),
+        reason: '${c['type']} с клетки ${c['sq']}',
+      );
+    }
+  });
+
+  test('🔴 цепочка ходов вслепую: фишки ДВИГАЮТСЯ, а не пропадают', () {
+    final start = piecesFromFen(
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1',
+    );
+    final result = generateBlindMoves(
+      pieces: start,
+      count: 8,
+      random: Random(11),
+    );
+    expect(
+      result.moves,
+      hasLength(8),
+      reason: 'на полной доске ходы есть всегда',
+    );
+    expect(result.after, hasLength(start.length), reason: 'фигур столько же');
+    // Состав фигур не изменился: взятий в игре нет.
+    List<String> kinds(List<PuzzlePiece> ps) =>
+        ps.map((p) => '${p.type}${p.white ? 'w' : 'b'}').toList()..sort();
+    expect(kinds(result.after), kinds(start), reason: 'взятий быть не должно');
+    // Ни одна фишка не села на другую.
+    expect(
+      result.after.map((p) => p.sq).toSet(),
+      hasLength(result.after.length),
+      reason: 'две фишки на одной клетке',
+    );
+  });
+
+  test('🔴 цепочка ОБРЫВАЕТСЯ, если ходить некому, и это видно длиной', () {
+    // Король в углу, окружённый своими: ходов нет ни у кого, кроме пешек —
+    // поэтому берём позицию из одних королей вплотную.
+    final locked = [
+      const PuzzlePiece(sq: 0, type: 'K', white: true),
+      const PuzzlePiece(sq: 1, type: 'K', white: false),
+      const PuzzlePiece(sq: 8, type: 'K', white: true),
+      const PuzzlePiece(sq: 9, type: 'K', white: false),
+    ];
+    final result = generateBlindMoves(
+      pieces: locked,
+      count: 5,
+      random: Random(3),
+    );
+    expect(result.moves.length, lessThanOrEqualTo(5));
+    for (final m in result.moves) {
+      expect(m.from, isNot(m.to), reason: 'ход на месте — не ход');
     }
   });
 }
