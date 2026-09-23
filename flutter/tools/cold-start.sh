@@ -21,7 +21,11 @@
 # ошибка). Проверено 23.09.2026, первый вариант скрипта на этом и упал.
 set -u
 
-PKG_OLD=com.odv999.psygames
+# ⚠️ ПАКЕТ МАГАЗИНА, А НЕ ИЗ tauri.conf.json. Замер 23.09.2026: в Play живёт
+# com.psygames.app (отвечает 200), а com.odv999.psygames — настольная сборка,
+# в Play её нет (404). Канон для мобильных берётся у scripts/ios-bundle-id.py.
+# Первая редакция этого скрипта искала настольный пакет и не нашла бы приложение.
+PKG_OLD=com.psygames.app
 PKG_NEW=pro.psygames.psygames_flutter
 RUNS=5
 

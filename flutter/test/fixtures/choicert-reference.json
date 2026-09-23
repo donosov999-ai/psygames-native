@@ -1,0 +1,727 @@
+{
+  "снято": "прогоном живого TS: app/games/choice-rt.tsx и src/games/attention/hick.ts",
+  "neutralRate": 0.15,
+  "windowFloorMs": 1000,
+  "windowStartMs": 2000,
+  "levels": [
+    {
+      "level": 1,
+      "trials": 12,
+      "dirs": [
+        "left",
+        "right"
+      ],
+      "windowMs": 2000,
+      "glyph": "arrow",
+      "hickBlocks": [
+        2,
+        3
+      ],
+      "condition": {
+        "trials": 12,
+        "dirs": [
+          "left",
+          "right"
+        ],
+        "windowMs": 2000,
+        "glyph": "arrow",
+        "hickBlocks": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "level": 2,
+      "trials": 12,
+      "dirs": [
+        "left",
+        "right"
+      ],
+      "windowMs": 1929,
+      "glyph": "arrow",
+      "hickBlocks": [
+        2,
+        3
+      ],
+      "condition": {
+        "trials": 12,
+        "dirs": [
+          "left",
+          "right"
+        ],
+        "windowMs": 1929,
+        "glyph": "arrow",
+        "hickBlocks": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "level": 3,
+      "trials": 12,
+      "dirs": [
+        "left",
+        "right"
+      ],
+      "windowMs": 1857,
+      "glyph": "arrow",
+      "hickBlocks": [
+        2,
+        3
+      ],
+      "condition": {
+        "trials": 12,
+        "dirs": [
+          "left",
+          "right"
+        ],
+        "windowMs": 1857,
+        "glyph": "arrow",
+        "hickBlocks": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "level": 4,
+      "trials": 12,
+      "dirs": [
+        "left",
+        "right"
+      ],
+      "windowMs": 1786,
+      "glyph": "chevron",
+      "hickBlocks": [
+        2,
+        3
+      ],
+      "condition": {
+        "trials": 12,
+        "dirs": [
+          "left",
+          "right"
+        ],
+        "windowMs": 1786,
+        "glyph": "chevron",
+        "hickBlocks": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "level": 5,
+      "trials": 12,
+      "dirs": [
+        "left",
+        "right"
+      ],
+      "windowMs": 1714,
+      "glyph": "chevron",
+      "hickBlocks": [
+        2,
+        3
+      ],
+      "condition": {
+        "trials": 12,
+        "dirs": [
+          "left",
+          "right"
+        ],
+        "windowMs": 1714,
+        "glyph": "chevron",
+        "hickBlocks": [
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "level": 6,
+      "trials": 16,
+      "dirs": [
+        "left",
+        "right",
+        "up"
+      ],
+      "windowMs": 1643,
+      "glyph": "chevron",
+      "hickBlocks": [
+        2,
+        3,
+        4
+      ],
+      "condition": {
+        "trials": 16,
+        "dirs": [
+          "left",
+          "right",
+          "up"
+        ],
+        "windowMs": 1643,
+        "glyph": "chevron",
+        "hickBlocks": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "level": 7,
+      "trials": 16,
+      "dirs": [
+        "left",
+        "right",
+        "up"
+      ],
+      "windowMs": 1571,
+      "glyph": "chevron",
+      "hickBlocks": [
+        2,
+        3,
+        4
+      ],
+      "condition": {
+        "trials": 16,
+        "dirs": [
+          "left",
+          "right",
+          "up"
+        ],
+        "windowMs": 1571,
+        "glyph": "chevron",
+        "hickBlocks": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "level": 8,
+      "trials": 16,
+      "dirs": [
+        "left",
+        "right",
+        "up"
+      ],
+      "windowMs": 1500,
+      "glyph": "chevron",
+      "hickBlocks": [
+        2,
+        3,
+        4
+      ],
+      "condition": {
+        "trials": 16,
+        "dirs": [
+          "left",
+          "right",
+          "up"
+        ],
+        "windowMs": 1500,
+        "glyph": "chevron",
+        "hickBlocks": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "level": 9,
+      "trials": 16,
+      "dirs": [
+        "left",
+        "right",
+        "up"
+      ],
+      "windowMs": 1429,
+      "glyph": "bracket",
+      "hickBlocks": [
+        2,
+        3,
+        4
+      ],
+      "condition": {
+        "trials": 16,
+        "dirs": [
+          "left",
+          "right",
+          "up"
+        ],
+        "windowMs": 1429,
+        "glyph": "bracket",
+        "hickBlocks": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "level": 10,
+      "trials": 16,
+      "dirs": [
+        "left",
+        "right",
+        "up"
+      ],
+      "windowMs": 1357,
+      "glyph": "bracket",
+      "hickBlocks": [
+        2,
+        3,
+        4
+      ],
+      "condition": {
+        "trials": 16,
+        "dirs": [
+          "left",
+          "right",
+          "up"
+        ],
+        "windowMs": 1357,
+        "glyph": "bracket",
+        "hickBlocks": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "level": 11,
+      "trials": 20,
+      "dirs": [
+        "left",
+        "right",
+        "up",
+        "down"
+      ],
+      "windowMs": 1286,
+      "glyph": "bracket",
+      "hickBlocks": [
+        2,
+        3,
+        4
+      ],
+      "condition": {
+        "trials": 20,
+        "dirs": [
+          "left",
+          "right",
+          "up",
+          "down"
+        ],
+        "windowMs": 1286,
+        "glyph": "bracket",
+        "hickBlocks": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "level": 12,
+      "trials": 20,
+      "dirs": [
+        "left",
+        "right",
+        "up",
+        "down"
+      ],
+      "windowMs": 1214,
+      "glyph": "bracket",
+      "hickBlocks": [
+        2,
+        3,
+        4
+      ],
+      "condition": {
+        "trials": 20,
+        "dirs": [
+          "left",
+          "right",
+          "up",
+          "down"
+        ],
+        "windowMs": 1214,
+        "glyph": "bracket",
+        "hickBlocks": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "level": 13,
+      "trials": 20,
+      "dirs": [
+        "left",
+        "right",
+        "up",
+        "down"
+      ],
+      "windowMs": 1143,
+      "glyph": "bracket",
+      "hickBlocks": [
+        2,
+        3,
+        4
+      ],
+      "condition": {
+        "trials": 20,
+        "dirs": [
+          "left",
+          "right",
+          "up",
+          "down"
+        ],
+        "windowMs": 1143,
+        "glyph": "bracket",
+        "hickBlocks": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "level": 14,
+      "trials": 20,
+      "dirs": [
+        "left",
+        "right",
+        "up",
+        "down"
+      ],
+      "windowMs": 1071,
+      "glyph": "bracket",
+      "hickBlocks": [
+        2,
+        3,
+        4
+      ],
+      "condition": {
+        "trials": 20,
+        "dirs": [
+          "left",
+          "right",
+          "up",
+          "down"
+        ],
+        "windowMs": 1071,
+        "glyph": "bracket",
+        "hickBlocks": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    {
+      "level": 15,
+      "trials": 20,
+      "dirs": [
+        "left",
+        "right",
+        "up",
+        "down"
+      ],
+      "windowMs": 1000,
+      "glyph": "bracket",
+      "hickBlocks": [
+        2,
+        3,
+        4
+      ],
+      "condition": {
+        "trials": 20,
+        "dirs": [
+          "left",
+          "right",
+          "up",
+          "down"
+        ],
+        "windowMs": 1000,
+        "glyph": "bracket",
+        "hickBlocks": [
+          2,
+          3,
+          4
+        ]
+      }
+    }
+  ],
+  "blocks": [
+    {
+      "n": 2,
+      "dirs": [
+        "left",
+        "right"
+      ]
+    },
+    {
+      "n": 3,
+      "dirs": [
+        "left",
+        "right",
+        "up"
+      ]
+    },
+    {
+      "n": 4,
+      "dirs": [
+        "left",
+        "right",
+        "up",
+        "down"
+      ]
+    }
+  ],
+  "stims": [
+    {
+      "взятые": [
+        0
+      ],
+      "stim": "neutral"
+    },
+    {
+      "взятые": [
+        0
+      ],
+      "stim": "neutral"
+    },
+    {
+      "взятые": [
+        0.1499
+      ],
+      "stim": "neutral"
+    },
+    {
+      "взятые": [
+        0.99,
+        0.15
+      ],
+      "stim": "left"
+    },
+    {
+      "взятые": [
+        0
+      ],
+      "stim": "neutral"
+    },
+    {
+      "взятые": [
+        0.15,
+        0.34
+      ],
+      "stim": "right"
+    },
+    {
+      "взятые": [
+        0.15,
+        0.67
+      ],
+      "stim": "up"
+    },
+    {
+      "взятые": [
+        0.99,
+        0.99
+      ],
+      "stim": "down"
+    },
+    {
+      "взятые": [
+        0.5,
+        0.25
+      ],
+      "stim": "right"
+    },
+    {
+      "взятые": [
+        0.75,
+        0.5
+      ],
+      "stim": "up"
+    }
+  ],
+  "slopes": [
+    {
+      "points": [
+        {
+          "n": 2,
+          "rt": 400
+        },
+        {
+          "n": 3,
+          "rt": 500
+        },
+        {
+          "n": 4,
+          "rt": 600
+        }
+      ],
+      "out": {
+        "slopeMsPerBit": 198,
+        "interceptMs": 197,
+        "distinctN": 3,
+        "trials": 3,
+        "byN": [
+          {
+            "n": 2,
+            "meanRt": 400,
+            "trials": 1
+          },
+          {
+            "n": 3,
+            "meanRt": 500,
+            "trials": 1
+          },
+          {
+            "n": 4,
+            "meanRt": 600,
+            "trials": 1
+          }
+        ]
+      }
+    },
+    {
+      "points": [
+        {
+          "n": 2,
+          "rt": 400
+        },
+        {
+          "n": 2,
+          "rt": 420
+        }
+      ],
+      "out": {
+        "slopeMsPerBit": null,
+        "interceptMs": null,
+        "distinctN": 1,
+        "trials": 2,
+        "byN": [
+          {
+            "n": 2,
+            "meanRt": 410,
+            "trials": 2
+          }
+        ]
+      }
+    },
+    {
+      "points": [
+        {
+          "n": 2,
+          "rt": 380
+        },
+        {
+          "n": 4,
+          "rt": 520
+        },
+        {
+          "n": 4,
+          "rt": 560
+        },
+        {
+          "n": 3,
+          "rt": 470
+        }
+      ],
+      "out": {
+        "slopeMsPerBit": 160,
+        "interceptMs": 219,
+        "distinctN": 3,
+        "trials": 4,
+        "byN": [
+          {
+            "n": 2,
+            "meanRt": 380,
+            "trials": 1
+          },
+          {
+            "n": 3,
+            "meanRt": 470,
+            "trials": 1
+          },
+          {
+            "n": 4,
+            "meanRt": 540,
+            "trials": 2
+          }
+        ]
+      }
+    },
+    {
+      "points": [],
+      "out": {
+        "slopeMsPerBit": null,
+        "interceptMs": null,
+        "distinctN": 0,
+        "trials": 0,
+        "byN": []
+      }
+    },
+    {
+      "points": [
+        {
+          "n": 2,
+          "rt": 400
+        },
+        {
+          "n": 3,
+          "rt": 500
+        },
+        {
+          "n": 4,
+          "rt": 600
+        },
+        {
+          "n": 4,
+          "rt": 600
+        },
+        {
+          "n": 4,
+          "rt": 900
+        },
+        {
+          "n": 4,
+          "rt": 900
+        }
+      ],
+      "out": {
+        "slopeMsPerBit": 338,
+        "interceptMs": 33,
+        "distinctN": 3,
+        "trials": 6,
+        "byN": [
+          {
+            "n": 2,
+            "meanRt": 400,
+            "trials": 1
+          },
+          {
+            "n": 3,
+            "meanRt": 500,
+            "trials": 1
+          },
+          {
+            "n": 4,
+            "meanRt": 750,
+            "trials": 4
+          }
+        ]
+      }
+    }
+  ]
+}

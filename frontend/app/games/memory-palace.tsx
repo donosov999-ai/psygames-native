@@ -70,7 +70,13 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import { MemoryPalaceGame, type PalacePhaseAction } from '@/src/games/memory-palace/MemoryPalaceGame';
+import LessonPlayer from '@/src/components/LessonPlayer';
+import { GameAuxAction } from '@/src/components/GameAuxAction';
+import { собратьРазборДворца, type КарточкаРазбора } from '@/src/games/memory-palace/teach';
 import {
+  generateMemoryPalaceRound,
+  getItemLabel,
+  getLocusLabel,
   getMemoryPalaceStrings,
   interpolateMemoryPalace,
   type MemoryPalaceLocale,
@@ -147,6 +153,49 @@ export default function MemoryPalaceScreen() {
    * стабильна, а инлайн-функция дала бы бесконечный круг перерисовок.
    */
   const [phaseAction, setPhaseAction] = React.useState<PalacePhaseAction | null>(null);
+
+  /**
+   * 🎓 РАЗБОР ПО ШАГАМ (Денис 17.09.2026: «обучение зашло — раскатывай везде»).
+   *
+   * Шаги считает чистый модуль `memory-palace/teach.ts` на НАСТОЯЩЕМ раскладе этого уровня:
+   * человек слышит связки на тех же местах и предметах, которыми тут же будет играть.
+   * Проба `memory-palace-teach` играет карточками настоящую партию и требует по ней
+   * идеального результата — разбор не может показать не то, что игра засчитает.
+   */
+  const [урок, setУрок] = React.useState<{ карточки: КарточкаРазбора[]; индекс: number } | null>(null);
+  /** Разбор — на первых трёх уровнях: дальше он мешает, приём уже усвоен. */
+  const разборДоступен = phase === 'playing' && !!party && (party.level ?? 1) <= 3;
+  const карточкаУрока = урок ? урок.карточки[урок.индекс] : null;
+  const начатьРазбор = React.useCallback(() => {
+    if (!party) return;
+    const round = generateMemoryPalaceRound(party.seed, party.level);
+    setУрок({ карточки: собратьРазборДворца(round).карточки, индекс: 0 });
+  }, [party]);
+  const урокДальше = React.useCallback(() => {
+    setУрок((у) => (у && у.индекс + 1 < у.карточки.length ? { ...у, индекс: у.индекс + 1 } : у));
+  }, []);
+  const урокНазад = React.useCallback(() => {
+    setУрок((у) => (у && у.индекс > 0 ? { ...у, индекс: у.индекс - 1 } : у));
+  }, []);
+  /**
+   * Текст шага: ключ словаря + подстановка НАЗВАНИЙ. Модуль отдаёт идентификаторы и языка
+   * не знает — иначе разбор заговорил бы по-русски посреди японского экрана.
+   */
+  const текстУрока = React.useMemo(() => {
+    if (!карточкаУрока || !party) return '';
+    const locale = language as MemoryPalaceLocale;
+    const round = generateMemoryPalaceRound(party.seed, party.level);
+    const поля: Record<string, string | number> = { ...(карточкаУрока.поля ?? {}) };
+    if (поля.place !== undefined) {
+      const место = round.loci.find((l) => l.id === поля.place);
+      поля.place = место ? getLocusLabel(место, locale) : String(поля.place);
+    }
+    if (поля.item !== undefined) {
+      const предмет = [...round.targetItems, ...round.distractorItems].find((i) => i.id === поля.item);
+      поля.item = предмет ? getItemLabel(предмет, locale) : String(поля.item);
+    }
+    return interpolateMemoryPalace(t(карточкаУрока.ключ), поля);
+  }, [карточкаУрока, party, language, t]);
 
   /**
    * 🔴 ЯЗЫК ОТДАЁМ МОДУЛЮ ЦЕЛИКОМ, А НЕ СХЛОПЫВАЕМ ДО ПАРЫ RU/EN (19.08.2026).
@@ -353,6 +402,16 @@ export default function MemoryPalaceScreen() {
           { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => start() },
           { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
         ]}
+        /**
+         * 🎓 «Разбор» — значком в общем ряду под полем, как у головоломок: одно служебное
+         * действие живёт в одном месте на всё приложение.
+         */
+        headerActions={разборДоступен ? (
+          <GameAuxAction
+            compact icon="school-outline" tint="#d97706" label={t('teachButton')}
+            onPress={начатьРазбор}
+          />
+        ) : undefined}
         toolbar={phaseAction ? (
           <TouchableOpacity
             accessibilityRole="button"
@@ -393,6 +452,33 @@ export default function MemoryPalaceScreen() {
           />
         ) : null}
       >
+        {/*
+          🎓 РАЗБОР НА ВЕСЬ ЭКРАН, как ролик: плеер общий (`LessonPlayer`), сцену рисует
+          экран. Сцена здесь не игровая, а показательная: те же места и предметы, но без
+          нажатий — на шаге видно, что куда легло и о чём сейчас речь.
+        */}
+        <LessonPlayer
+          visible={!!урок}
+          индекс={урок?.индекс ?? 0}
+          шагов={Math.max(0, (урок?.карточки.length ?? 1) - 1)}
+          текст={текстУрока}
+          сноска={урок?.индекс === 0 ? t('teachNotCounted') : undefined}
+          готово={карточкаУрока?.вид === 'готово'}
+          занят={false}
+          renderBoard={(сторона) => (party && карточкаУрока ? (
+            <РазборСцена
+              seed={party.seed}
+              level={party.level}
+              карточка={карточкаУрока}
+              сторона={сторона}
+              locale={language as MemoryPalaceLocale}
+              colors={colors}
+            />
+          ) : null)}
+          onДальше={урокДальше}
+          onНазад={урокНазад}
+          onЗакрыть={() => setУрок(null)}
+        />
         {phase === 'playing' && party ? (
           <MemoryPalaceGame
             key={`${party.seed}|${party.level}`}
@@ -531,6 +617,67 @@ export default function MemoryPalaceScreen() {
   );
 }
 
+/**
+ * 🎓 СЦЕНА РАЗБОРА: те же места и предметы, но без нажатий.
+ *
+ * ⚠️ ЭТО НЕ ВТОРАЯ ИГРА. Здесь нет ни выбора, ни ошибок — только показ: что куда легло и о
+ * чём идёт речь на этом шаге. Играть человек будет настоящим экраном сразу после разбора, и
+ * раскладка там будет та же, потому что расклад берётся тем же seed.
+ */
+function РазборСцена({ seed, level, карточка, сторона, locale, colors }: {
+  seed: string;
+  level: number;
+  карточка: КарточкаРазбора;
+  сторона: number;
+  locale: MemoryPalaceLocale;
+  colors: { text: string; textSecondary: string; surface: string; border: string; primary: string };
+}) {
+  const round = React.useMemo(() => generateMemoryPalaceRound(seed, level), [seed, level]);
+  const колонок = round.lociCount > 6 ? 4 : 3;
+  const ширина = Math.floor((сторона - (колонок - 1) * 8) / колонок);
+  return (
+    <View style={styles.разборСцена}>
+      {round.loci.map((место, i) => {
+        const предметId = карточка.раскладка[i] ?? null;
+        const предмет = предметId
+          ? [...round.targetItems, ...round.distractorItems].find((x) => x.id === предметId)
+          : null;
+        const текущее = карточка.место === i;
+        return (
+          <View
+            key={место.id}
+            style={[
+              styles.разборПлитка,
+              {
+                width: ширина,
+                backgroundColor: colors.surface,
+                borderColor: текущее ? colors.primary : colors.border,
+                borderWidth: текущее ? 2 : 1,
+              },
+            ]}
+          >
+            <Text style={[styles.разборНомер, { color: место.color }]}>{место.order}</Text>
+            <Text numberOfLines={2} style={[styles.разборМесто, { color: colors.text }]}>
+              {getLocusLabel(место, locale)}
+            </Text>
+            <View
+              style={[
+                styles.разборФигура,
+                предмет
+                  ? { backgroundColor: предмет.color, borderColor: предмет.accent }
+                  : { backgroundColor: 'transparent', borderColor: colors.border },
+              ]}
+            />
+            <Text numberOfLines={2} style={[styles.разборПредмет, { color: colors.textSecondary }]}>
+              {предмет ? getItemLabel(предмет, locale) : ''}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   /** Кнопка действия фазы в слоте каркаса: высота ≥ 52 по канону раздела. */
   phaseAction: { minHeight: 52, flex: 1, maxWidth: 420, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
@@ -558,4 +705,10 @@ const styles = StyleSheet.create({
   reviewText: { flex: 1 },
   reviewLocus: { fontSize: 14, fontWeight: '700' },
   reviewItem: { fontSize: 12 },
+  разборСцена: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+  разборПлитка: { minHeight: 96, borderRadius: 12, padding: 6, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  разборНомер: { fontSize: 16, fontWeight: '900' },
+  разборМесто: { fontSize: 11, fontWeight: '700', textAlign: 'center' },
+  разборФигура: { width: 22, height: 22, borderRadius: 6, borderWidth: 1, marginTop: 2 },
+  разборПредмет: { fontSize: 10, textAlign: 'center' },
 });

@@ -2731,6 +2731,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ هنا تسحب بإصبعك ولا تنقر",
   "puzzleNoMoves": "لم تبقَ نقلات. يمكنك البدء من جديد",
   "puzzleBlownUp": "انفجرت. تراجع عن النقلة وواصل اللعب",
+  "puzzleBarrelStuck": "برميل عالق في الزاوية. تراجع عن النقلة أو ابدأ من جديد",
   "puzzleErrorShown": "الأحمر يبيّن أين خولفت قاعدة",
   "puzzleWhereError": "أين الخطأ؟",
   "puzzleWrongLines": "الخطوط الزائدة محاطة بالأحمر: {n}",

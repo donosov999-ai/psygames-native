@@ -50,7 +50,7 @@ const БЕЗ_РАЗБОРА: Record<string, string> = {
 const ЖДУТ_ЭКРАНЫ: Record<string, string> = {
   corsi: СПАН, 'digit-span': СПАН, 'listening-span': СПАН, 'memory-matrix': СПАН, 'n-back': СПАН,
   'picture-pairs': СПАН, 'reading-span': СПАН, 'spatial-span': СПАН,
-  'faces-names': ПАМЯТЬ_СЛУХ, 'memory-palace': ПАМЯТЬ_СЛУХ, mnemonics: ПАМЯТЬ_СЛУХ, rmet: ПАМЯТЬ_СЛУХ,
+  'faces-names': ПАМЯТЬ_СЛУХ, mnemonics: ПАМЯТЬ_СЛУХ, rmet: ПАМЯТЬ_СЛУХ,
   'word-pairs': ПАМЯТЬ_СЛУХ, 'chinese-tones': ПАМЯТЬ_СЛУХ, dictation: ПАМЯТЬ_СЛУХ, 'phoneme-pairs': ПАМЯТЬ_СЛУХ,
   'pseudoword-echo': ПАМЯТЬ_СЛУХ, 'rhythm-pitch': ПАМЯТЬ_СЛУХ,
   'chess-blind': ШАХМАТЫ, 'scholars-mate': ШАХМАТЫ,

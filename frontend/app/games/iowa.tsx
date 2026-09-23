@@ -177,6 +177,13 @@ export default function IowaGame() {
         mode: `${trials}t`,
         errors: disadvantageous,
         details: {
+          /**
+           * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ (23.09.2026). Не «восстановим через
+           * levelParams(level)»: поменяется формула уровня — и накопленное молча
+           * станет нечитаемым. Список полей руками не пишется, его держит гейт
+           * `attention-condition-recorded`: он сам гоняет levelParams по лестнице.
+           */
+          ...levelCondition(doneRun),
           adv_minus_disadv: advantageous - disadvantageous,
           last_block_adv: lastBlockAdv,
           final_bank: finalBank,

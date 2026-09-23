@@ -28,7 +28,23 @@ class AssetServer {
   static const _root = 'assets/web';
 
   static Future<AssetServer> start() async {
-    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    /*
+     * 🔴 ПОРТ ПОСТОЯННЫЙ, А НЕ СЛУЧАЙНЫЙ. Origin страницы — это `http://127.0.0.1:<порт>`,
+     * и корзина `localStorage` у WebKit заводится НА ORIGIN. Случайный порт означал
+     * бы новую пустую корзину при каждом запуске: прогресс держится только мостом в
+     * общую память, и любой его пробел становится потерей. Занят — берём следующий из
+     * списка, и только когда заняты все, отдаём выбор системе.
+     */
+    HttpServer? bound;
+    for (final p in const [47355, 47356, 47357, 47358]) {
+      try {
+        bound = await HttpServer.bind(InternetAddress.loopbackIPv4, p);
+        break;
+      } on SocketException {
+        continue;
+      }
+    }
+    final server = bound ?? await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     final self = AssetServer._(server, server.port);
     unawaited(self._serve());
     return self;

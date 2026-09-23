@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -100,7 +101,7 @@ class _StroopScreenState extends State<StroopScreen> {
     }
     setState(() {});
     // Замер: отметка показа уже поставлена в nextTrial(), меряем до кадра.
-    measureStimulusFrame('Flutter/Струп');
+    measureStimulusFrame('Flutter/Stroop');
     _window = Timer(Duration(milliseconds: g.params.windowMs), () {
       if (!mounted || _phase != StroopPhase.playing) return;
       _after(g.timeout());
@@ -144,12 +145,13 @@ class _StroopScreenState extends State<StroopScreen> {
     final g = _game;
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
-      title: 'Струп: цвет и слово',
+      // Тексты — из общего словаря теми же ключами, что зовёт веб-версия игры.
+      title: L.t('stroop'),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Проба', value: '${g.round}/${g.params.trials}', icon: Icons.numbers),
-        HudItem(label: 'Верно', value: '${g.hits}', icon: Icons.check),
-        HudItem(label: 'Ошибок', value: '${g.errors}', icon: Icons.close),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('round'), value: '${g.round}/${g.params.trials}', icon: Icons.numbers),
+        HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
+        HudItem(label: L.t('hud_errors'), value: '${g.errors}', icon: Icons.close),
       ],
       field: (context, h) => _Field(game: g, phase: _phase, flash: _flash, passed: _passed, height: h, onStart: _start, onAgain: () => setState(_reset)),
       toolbar: _phase == StroopPhase.playing ? _Answers(game: g, onPick: _answer) : null,
@@ -187,19 +189,23 @@ class _Field extends StatelessWidget {
         return _Centered(
           height: height,
           children: [
-            Text('Уровень ${game.level}', style: Theme.of(context).textTheme.titleLarge),
+            Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(
-              game.mode == 'ink'
-                  ? 'Называй ЦВЕТ ЧЕРНИЛ, а не слово'
-                  : 'Называй СЛОВО, а не цвет чернил',
+              game.mode == 'ink' ? L.t('stroopHintInk') : L.t('stroopHintWord'),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            Text('Проб: ${game.params.trials} · окно ответа ${game.params.windowMs} мс',
-                style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              L.t('stroopLvlParams')
+                  .replaceAll('{n}', '${game.params.trials}')
+                  .replaceAll('{w}', (game.params.windowMs / 1000).toStringAsFixed(1))
+                  .replaceAll('{p}', '${(incongruentRatio * 100).round()}'),
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: const Text('Начать')),
+            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],
         );
       case StroopPhase.done:
@@ -207,21 +213,27 @@ class _Field extends StatelessWidget {
         return _Centered(
           height: height,
           children: [
-            Text(passed ? 'Уровень пройден' : 'Уровень не пройден',
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text('Верно ${game.hits} из ${game.params.trials} · ошибок ${game.errors}'),
-            Text(game.meanRtMs == null
-                ? 'Среднее время: нет верных проб'
-                : 'Среднее время: ${game.meanRtMs} мс'),
             Text(
-              // Пусто — честнее нуля: ноль означал бы «интерференции нет».
+              passed
+                  ? L.t('levelDone').replaceAll('{n}', '${game.level}')
+                  : L.t('sameLevelRetry'),
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text('${L.t('hud_correct')}: ${game.hits}/${game.params.trials} · '
+                '${L.t('hud_errors')}: ${game.errors}'),
+            Text(game.meanRtMs == null
+                ? '${L.t('meanReaction')}: —'
+                : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
+            Text(
+              // Прочерк честнее нуля: ноль означал бы «интерференции нет».
               interference == null
-                  ? 'Интерференция: не набрано обеих половин'
-                  : 'Интерференция: $interference мс',
+                  ? '${L.t('hud_interference')}: —'
+                  : '${L.t('hud_interference')}: $interference ${L.t('msShort')}',
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: const Text('Ещё раз')),
+            FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],
         );
       case StroopPhase.playing:
@@ -248,7 +260,7 @@ class _Field extends StatelessWidget {
               // Правило пробы — под стимулом: часть проб идёт по другому правилу,
               // и человек узнаёт об этом только отсюда.
               Text(
-                game.trialRule == 'ink' ? 'цвет чернил' : 'слово',
+                game.trialRule == 'ink' ? L.t('stroopByInk') : L.t('stroopByWord'),
                 key: const Key('stroop-rule'),
                 style: Theme.of(context).textTheme.labelLarge,
               ),
@@ -333,7 +345,7 @@ class _Answers extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: TapLatency(
-                    where: 'Flutter/Струп',
+                    where: 'Flutter/Stroop',
                     child: SizedBox(
                     height: 56,
                     child: FilledButton(

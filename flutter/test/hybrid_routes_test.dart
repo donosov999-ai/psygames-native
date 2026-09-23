@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
 
@@ -17,11 +20,38 @@ void main() {
       '$origin/games/one-line.html#top',
       '$origin/games/dots-connect',
       '$origin/games/digit-span.html?mode=free',
+      '$origin/games/schulte',
+      '$origin/games/schulte.html?level=3',
+      '$origin/games/mahjong',
+      '$origin/games/math-slider',
+      '$origin/games/math-slider.html?level=21',
+      '$origin/games/object-tracker',
+      '$origin/games/object-tracker.html?level=7',
+      '$origin/games/quick-count',
+      '$origin/games/quick-count.html',
+      '$origin/games/pattern',
+      '$origin/games/pattern.html?level=9',
+      '$origin/games/math-sprint',
+      '$origin/games/math-sprint.html',
+      '$origin/games/number-bonds',
+      '$origin/games/number-bonds.html?level=4',
+      '$origin/games/ospan',
+      '$origin/games/ospan.html',
       '$origin/games/stroop',
       '$origin/games/stroop.html?mode=ink',
       '$origin/games/flanker',
       '$origin/games/flanker.html?autostart=1',
       '$origin/games/simon',
+      '$origin/games/sudoku',
+      '$origin/games/sudoku.html?mode=levels',
+      '$origin/games/go-no-go',
+      '$origin/games/mental-rotation',
+      '$origin/games/mental-rotation.html?level=12',
+      '$origin/games/spatial-span',
+      '$origin/games/spatial-lab',
+      '$origin/games/spatial-lab?mode=netslide',
+      '$origin/games/spatial-hub',
+      '$origin/games/spatial-lab.html?mode=sixteen&level=9',
       '$origin/games/goods-sort',
       '$origin/games/goods-sort.html?level=12',
       '$origin/games/water-sort',
@@ -32,9 +62,76 @@ void main() {
       '$origin/games/hanoi',
       '$origin/games/tower-london',
       '$origin/games/sorting-hub',
+      '$origin/games/sudoku',
+      '$origin/games/sudoku.html?mode=levels',
+      '$origin/games/go-no-go',
+      '$origin/games/choice-rt',
+      '$origin/games/stop-signal',
+      '$origin/games/posner',
+      '$origin/games/stroop-emotional',
+      '$origin/games/switching-task',
+      '$origin/games/targets',
+      '$origin/games/inhibition',
+      '$origin/games/faces-names',
+      '$origin/games/memory-palace',
+      '$origin/games/rmet',
+      '$origin/games/ant',
+      '$origin/games/iowa',
+      '$origin/games/prl',
+      '$origin/games/bart',
+      '$origin/games/wcst',
+      '$origin/games/cpt',
+      '$origin/games/proofreading',
+      '$origin/games/word-pairs',
+      '$origin/games/mnemonics-hub',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
+  });
+
+  /// ⚠️ Фрактал и ГЛУБОКИЙ фрактал — РАЗНЫЕ экраны. Перехват одного не должен утаскивать
+  /// второй: он ещё в вебе, и подмена показала бы человеку другую игру.
+  test('🔴 фрактал перехватывается, а глубокий фрактал остаётся в вебе', () {
+    const origin = 'http://127.0.0.1:54321';
+    expect(HybridApp.routeOf('$origin/games/sudoku-fractal'), '/games/sudoku-fractal');
+    expect(HybridApp.routeOf('$origin/games/sudoku-fractal.html'), '/games/sudoku-fractal');
+    expect(HybridApp.routeOf('$origin/games/sudoku-fractal?level=6'), '/games/sudoku-fractal');
+    // ⚠️ Глубокий фрактал — ОТДЕЛЬНЫЙ экран и отдельный маршрут: перехват одного не
+    // должен утаскивать второй, иначе человек увидит не ту игру.
+    expect(HybridApp.routeOf('$origin/games/sudoku-fractal-deep'), '/games/sudoku-fractal-deep');
+  });
+
+  test('🔴 самурай перехватывается: и ссылкой, и файлом, и с якорем', () {
+    for (final url in [
+      'http://127.0.0.1:54321/games/sudoku-samurai',
+      'http://127.0.0.1:54321/games/sudoku-samurai.html',
+      'file:///assets/www/games/sudoku-samurai?level=3',
+      'http://127.0.0.1:54321/games/sudoku-samurai#board',
+    ]) {
+      expect(HybridApp.routeOf(url), '/games/sudoku-samurai', reason: url);
+    }
+  });
+
+  /// 🔴 РЕЖИМ ОТЛИЧАЕТСЯ ТОЛЬКО ХВОСТОМ АДРЕСА. Срезать его до поиска значит открыть
+  /// «Небоскрёбы» обычной судоку — человек жмёт одно, получает другое.
+  test('🔴 режимы судоку узнаются по хвосту адреса, а не теряются', () {
+    const origin = 'http://127.0.0.1:54321';
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=towers'), '/games/sudoku?mode=towers');
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=unequal'), '/games/sudoku?mode=unequal');
+    expect(HybridApp.routeOf('$origin/games/sudoku.html?mode=towers'), '/games/sudoku?mode=towers',
+        reason: 'и в виде .html тоже');
+    expect(HybridApp.routeOf('$origin/games/sudoku'), '/games/sudoku',
+        reason: 'без хвоста — обычная судоку');
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=killer'), '/games/sudoku',
+        reason: 'неизвестный режим ведёт на обычный экран, а не в никуда');
+    // Игру без режимов хвост не задевает.
+    expect(HybridApp.routeOf('$origin/games/one-line?autostart=1'), '/games/one-line');
+  });
+
+  test('🔴 развилки раздела открываются нативно', () {
+    const origin = 'http://127.0.0.1:54321';
+    expect(HybridApp.routeOf('$origin/games/sudoku-hub'), '/games/sudoku-hub');
+    expect(HybridApp.routeOf('$origin/games/puzzles-hub'), '/games/puzzles-hub');
   });
 
   test('🔴 неперенесённые игры и прочие страницы остаются в вебе', () {
@@ -42,21 +139,155 @@ void main() {
     for (final url in [
       '$origin/',
       '$origin/index.html',
-      '$origin/games/schulte',
-      '$origin/games/sudoku.html',
       '$origin/collection',
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
+      '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
   });
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
-    expect(HybridApp.native.keys.toSet(),
-        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix', '/games/stroop', '/games/flanker', '/games/simon', '/games/goods-sort', '/games/water-sort', '/games/ball-sort', '/games/nut-sort', '/games/cake-sort', '/games/pizza-sort', '/games/hanoi', '/games/tower-london', '/games/sorting-hub'});
+    // ⚠️ ОДИН СПИСОК НА ВСЕХ, А НЕ ДВА expect ПОДРЯД: два набора рядом
+    // означают, что кто-то проверяет устаревший, и проба краснеет на любой
+    // следующей игре. Набор пересобирается из карты перехвата при вливании.
+    expect(HybridApp.native.keys.toSet(), {
+      '/games/ant',
+      // 🔴 Сорок три адреса головоломок стоят здесь ПОИМЁННО, хотя карта их
+      // генерирует. Это не дубль: генератор отвечает на «что собралось», а список
+      // — на «что мы согласились перехватывать». Переименуют режим в реестре —
+      // проба назовёт разницу, а не примет её молча.
+      '/games/puzzles',
+      '/games/puzzles?mode=Black%20Box',
+      '/games/puzzles?mode=Bridges',
+      '/games/puzzles?mode=Cube',
+      '/games/puzzles?mode=Dominosa',
+      '/games/puzzles?mode=Fifteen',
+      '/games/puzzles?mode=Filling',
+      '/games/puzzles?mode=Flip',
+      '/games/puzzles?mode=Flood',
+      '/games/puzzles?mode=Galaxies',
+      '/games/puzzles?mode=Guess',
+      '/games/puzzles?mode=Inertia',
+      '/games/puzzles?mode=Keen',
+      '/games/puzzles?mode=Light%20Up',
+      '/games/puzzles?mode=Loopy',
+      '/games/puzzles?mode=Magnets',
+      '/games/puzzles?mode=Map',
+      '/games/puzzles?mode=Mines',
+      '/games/puzzles?mode=Mosaic',
+      '/games/puzzles?mode=Net',
+      '/games/puzzles?mode=Netslide',
+      '/games/puzzles?mode=Palisade',
+      '/games/puzzles?mode=Pattern',
+      '/games/puzzles?mode=Pearl',
+      '/games/puzzles?mode=Pegs',
+      '/games/puzzles?mode=Range',
+      '/games/puzzles?mode=Rectangles',
+      '/games/puzzles?mode=Same%20Game',
+      '/games/puzzles?mode=Signpost',
+      '/games/puzzles?mode=Singles',
+      '/games/puzzles?mode=Sixteen',
+      '/games/puzzles?mode=Slant',
+      '/games/puzzles?mode=Slide',
+      '/games/puzzles?mode=Sokoban',
+      '/games/puzzles?mode=Solo',
+      '/games/puzzles?mode=Tents',
+      '/games/puzzles?mode=Towers',
+      '/games/puzzles?mode=Train%20Tracks',
+      '/games/puzzles?mode=Twiddle',
+      '/games/puzzles?mode=Undead',
+      '/games/puzzles?mode=Unequal',
+      '/games/puzzles?mode=Unruly',
+      '/games/puzzles?mode=Untangle',
+      '/games/ball-sort',
+      '/games/bart',
+      '/games/cake-sort',
+      '/games/choice-rt',
+      '/games/cpt',
+      '/games/digit-span',
+      '/games/dots-connect',
+      '/games/faces-names',
+      '/games/flanker',
+      '/games/go-no-go',
+      '/games/goods-sort',
+      '/games/hanoi',
+      '/games/inhibition',
+      '/games/iowa',
+      '/games/mahjong',
+      '/games/math-slider',
+      '/games/math-sprint',
+      '/games/memory-matrix',
+      '/games/memory-palace',
+      '/games/rmet',
+      '/games/mnemonics-hub',
+      '/games/word-pairs',
+      '/games/mental-rotation',
+      '/games/number-bonds',
+      '/games/nut-sort',
+      '/games/object-tracker',
+      '/games/one-line',
+      '/games/ospan',
+      '/games/pattern',
+      '/games/posner',
+      '/games/pizza-sort',
+      '/games/prl',
+      '/games/proofreading',
+      '/games/quick-count',
+      '/games/schulte',
+      '/games/simon',
+      '/games/sorting-hub',
+      '/games/spatial-hub',
+      '/games/spatial-lab',
+      '/games/spatial-span',
+      '/games/stop-signal',
+      '/games/stroop',
+      '/games/stroop-emotional',
+      '/games/switching-task',
+      '/games/sudoku',
+      '/games/sudoku-hub',
+      '/games/sudoku?mode=towers',
+      '/games/sudoku?mode=unequal',
+      '/games/puzzles-hub',
+      '/games/sudoku-fractal',
+      '/games/sudoku-fractal-deep',
+      '/games/sudoku-samurai',
+      '/games/targets',
+      '/games/tower-london',
+      '/games/water-sort',
+      '/games/wcst',
+    });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
     }
+  });
+
+  /*
+   * 🔴 ГОЛОВОЛОМКИ: КАРТОЧКА РАЗВИЛКИ — И СРАЗУ НАТИВНЫЙ ЭКРАН.
+   *
+   * Перехват их адресов включён 23.09.2026, когда замер показал, что открываются
+   * все 42 режима. Проверяем не «сколько ключей в карте» (это сверка карты с самой
+   * собой), а то, что КАЖДАЯ карточка развилки `/games/puzzles-hub` и `/games/spatial-hub`
+   * узнаётся разбором адреса. Разойдётся кодировка хвоста — проба назовёт карточку.
+   */
+  test('🔴 каждая карточка головоломок с развилки узнаётся разбором адреса', () {
+    final hubs = jsonDecode(File('assets/hubs.json').readAsStringSync()) as Map<String, dynamic>;
+    final cards = <String>[];
+    for (final list in (hubs['hubs'] as Map<String, dynamic>).values) {
+      for (final c in list as List<dynamic>) {
+        final route = (c as Map<String, dynamic>)['route'] as String;
+        if (route.startsWith('/games/puzzles') && !route.endsWith('-hub')) cards.add(route);
+      }
+    }
+    expect(cards.length, greaterThanOrEqualTo(42), reason: 'карточек головоломок найдено ${cards.length}');
+    final missed = <String>[];
+    for (final route in cards) {
+      if (HybridApp.routeOf('https://app.local$route') == null) missed.add(route);
+      // Тот же адрес в раскодированном виде — так его отдаёт `location.href`.
+      final decoded = Uri.decodeFull(route);
+      if (HybridApp.routeOf('https://app.local$decoded') == null) missed.add('$decoded (раскодированный)');
+    }
+    expect(missed, isEmpty);
   });
 }

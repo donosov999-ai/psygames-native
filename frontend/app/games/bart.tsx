@@ -1,4 +1,4 @@
-/* psygames-game-bart · VER 2 · 16.09.2026 */
+/* psygames-game-bart · VER 3 · 23.09.2026 */
 /**
  * BART — Balloon Analogue Risk Task (Lejuez et al., 2002), клиника склонности к риску.
  *
@@ -113,7 +113,7 @@ export const MAX_LEVEL = 15;
  * неопределённость. Выучить одно безопасное число больше нельзя, а мера
  * остаётся сравнимой сама с собой.
  */
-function levelParams(level: number): { balloons: number; maxBurst: number; burstSpread: number } {
+export function levelParams(level: number): { balloons: number; maxBurst: number; burstSpread: number } {
   const balloons = level <= 3 ? 8 : level <= 6 ? 12 : level <= 9 ? 16 : 20;
   const maxBurst = Math.min(128, 16 + (level - 1) * 10);   // L1=16 … L13=128 (cap)
   const burstSpread = Math.min(0.5, (level - 1) * 0.036);  // L1=0 (все шары одинаковы) … L15=0.5
@@ -298,6 +298,13 @@ export default function BARTGame() {
         mode: useLevels ? `lvl${levelRef.current}` : `${total}b`,
         errors: poppedCount,
         details: {
+          /**
+           * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ (23.09.2026). Не «восстановим через
+           * levelParams(level)»: поменяется формула уровня — и накопленное молча
+           * станет нечитаемым. Список полей руками не пишется, его держит гейт
+           * `attention-condition-recorded`: он сам гоняет levelParams по лестнице.
+           */
+          ...(useLevels ? levelCondition(levelRef.current) : {}),
           adj_avg_pumps: Math.round(adjAvg * 10) / 10,   // ключевой BART-биомаркер риска
           total_balloons: total,
           popped_count: poppedCount,
@@ -545,8 +552,20 @@ export default function BARTGame() {
          */
         hud={[
           { key: 'label_balloon', icon: 'ellipse', label: t('label_balloon'), value: `${round}/${totalBalloons}` },
-          { key: 'hud_bank', icon: 'ellipse', label: t('hud_bank'), value: `${bank}¢` },
-          { key: 'hud_atRisk', icon: 'ellipse', label: t('hud_atRisk'), value: `${pending}¢` },
+          /**
+           * 🔴 ЗНАК «¢» УБРАН ИЗ ЖИВОЙ ПОЛОСЫ — ИНАЧЕ ОНА ПЕРЕНОСИТСЯ И ПОЛЕ УЕЗЖАЕТ.
+           *
+           * 📍 Замер 23.09.2026 (гейт attention-geometry-audit, окно 360×640, самые широкие
+           * значения, какие игра может показать): «88/88 · 8888¢ · 888¢ · 88» — ДВА ряда,
+           * поле уезжает на 54 точки; те же значения без «¢» — ОДИН ряд. Проверено и
+           * промежуточное лечение: спрятать «В игре» тоже даёт один ряд, но эта пилюля —
+           * тот самый риск, ради которого игра существует, и прятать её дороже знака валюты.
+           * Максимумы взяты из самой игры, а не на глаз: нажатие даёт 1¢, порог взрыва не
+           * выше 128, шаров до 20 → банк четырёхзначный, «в игре» трёхзначное.
+           * Валюта остаётся в подписи под значением, в итоге партии и в записи (details).
+           */
+          { key: 'hud_bank', icon: 'ellipse', label: t('hud_bank'), value: `${bank}` },
+          { key: 'hud_atRisk', icon: 'ellipse', label: t('hud_atRisk'), value: `${pending}` },
           { key: 'hud_pops', icon: 'ellipse', label: t('hud_pops'), value: popCount },
         ]}
         toolbar={

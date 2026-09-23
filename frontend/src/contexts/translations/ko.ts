@@ -2730,6 +2730,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ 여기서는 탭이 아니라 끌어야 합니다",
   "puzzleNoMoves": "더 둘 수가 없습니다. 다시 시작할 수 있어요",
   "puzzleBlownUp": "폭발했습니다. 수를 되돌리고 계속하세요",
+  "puzzleBarrelStuck": "통이 구석에 끼었습니다. 수를 되돌리거나 다시 시작하세요",
   "puzzleErrorShown": "빨간색은 규칙을 어긴 곳입니다",
   "puzzleWhereError": "어디가 틀렸나요?",
   "puzzleWrongLines": "필요 없는 선을 빨간색으로 표시: {n}",

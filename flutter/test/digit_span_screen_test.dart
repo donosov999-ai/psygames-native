@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/digit_span/screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,6 +19,10 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Подписи берутся из ТОГО ЖЕ словаря, что и в сборке: проба заодно проверяет,
+    // что `assets/l10n/ru.json` собран и читается. Тексты ниже — через L.t(), а не
+    // переписаны строками: сменится формулировка в словаре — проба не развалится.
+    await L.load('ru');
   });
 
   Future<void> boot(WidgetTester tester) async {
@@ -50,9 +55,9 @@ void main() {
 
   testWidgets('🔴 партия проходится целиком: показ по таймеру и набор клавишами', (tester) async {
     await boot(tester);
-    expect(find.text('Цифровой ряд'), findsOneWidget);
+    expect(find.text(L.t('digitSpan')), findsOneWidget);
 
-    await tester.tap(find.text('Показать ряд'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
 
     final seen = await watch(tester);
@@ -66,12 +71,12 @@ void main() {
 
     expect(find.byKey(const Key('итог')), findsOneWidget);
     expect(tester.widget<Text>(find.byKey(const Key('итог'))).data, 'Верно');
-    expect(find.text('Следующий уровень'), findsOneWidget);
+    expect(find.text(L.t('nextLabel')), findsOneWidget);
   });
 
   testWidgets('🔴 ошибка показывает, каким ряд был на самом деле', (tester) async {
     await boot(tester);
-    await tester.tap(find.text('Показать ряд'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump();
     final seen = await watch(tester);
 
@@ -86,7 +91,7 @@ void main() {
 
   testWidgets('🔴 во время показа клавиатуры нет — набрать вперёд нельзя', (tester) async {
     await boot(tester);
-    await tester.tap(find.text('Показать ряд'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byKey(const Key('клавиша1')).evaluate().isEmpty, isTrue);
     await watch(tester);
@@ -96,7 +101,7 @@ void main() {
 
   testWidgets('🔴 уход с экрана гасит таймер — иначе он тикает в пустоту', (tester) async {
     await boot(tester);
-    await tester.tap(find.text('Показать ряд'));
+    await tester.tap(find.text(L.t('start')));
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpWidget(const MaterialApp(home: SizedBox()));
     // Переживи таймер экран — flutter_test уронит пробу на «pending timer».

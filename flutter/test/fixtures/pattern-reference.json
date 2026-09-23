@@ -1,0 +1,4406 @@
+{
+ "mixFrom": 23,
+ "rows": [
+  {
+   "level": 1,
+   "label": "patternClassArithmetic",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      4,
+      6,
+      8,
+      10
+     ],
+     "answer": 12,
+     "classKey": "patternClassArithmetic",
+     "ruleKey": "patternRuleArithmetic",
+     "ruleParams": {
+      "n": 2
+     }
+    },
+    {
+     "items": [
+      3,
+      9,
+      15,
+      21
+     ],
+     "answer": 27,
+     "classKey": "patternClassArithmetic",
+     "ruleKey": "patternRuleArithmetic",
+     "ruleParams": {
+      "n": 6
+     }
+    },
+    {
+     "items": [
+      8,
+      10,
+      12,
+      14
+     ],
+     "answer": 16,
+     "classKey": "patternClassArithmetic",
+     "ruleKey": "patternRuleArithmetic",
+     "ruleParams": {
+      "n": 2
+     }
+    },
+    {
+     "items": [
+      5,
+      8,
+      11,
+      14
+     ],
+     "answer": 17,
+     "classKey": "patternClassArithmetic",
+     "ruleKey": "patternRuleArithmetic",
+     "ruleParams": {
+      "n": 3
+     }
+    },
+    {
+     "items": [
+      6,
+      13,
+      20,
+      27
+     ],
+     "answer": 34,
+     "classKey": "patternClassArithmetic",
+     "ruleKey": "patternRuleArithmetic",
+     "ruleParams": {
+      "n": 7
+     }
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "label": "patternClassArithmetic",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      6,
+      12,
+      18,
+      24
+     ],
+     "answer": 30,
+     "classKey": "patternClassArithmetic",
+     "ruleKey": "patternRuleArithmetic",
+     "ruleParams": {
+      "n": 6
+     }
+    },
+    {
+     "items": [
+      2,
+      7,
+      12,
+      17
+     ],
+     "answer": 22,
+     "classKey": "patternClassArithmetic",
+     "ruleKey": "patternRuleArithmetic",
+     "ruleParams": {
+      "n": 5
+     }
+    },
+    {
+     "items": [
+      6,
+      8,
+      10,
+      12
+     ],
+     "answer": 14,
+     "classKey": "patternClassArithmetic",
+     "ruleKey": "patternRuleArithmetic",
+     "ruleParams": {
+      "n": 2
+     }
+    },
+    {
+     "items": [
+      8,
+      13,
+      18,
+      23
+     ],
+     "answer": 28,
+     "classKey": "patternClassArithmetic",
+     "ruleKey": "patternRuleArithmetic",
+     "ruleParams": {
+      "n": 5
+     }
+    },
+    {
+     "items": [
+      5,
+      7,
+      9,
+      11
+     ],
+     "answer": 13,
+     "classKey": "patternClassArithmetic",
+     "ruleKey": "patternRuleArithmetic",
+     "ruleParams": {
+      "n": 2
+     }
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "label": "patternClassGeometric",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      2,
+      6,
+      18,
+      54
+     ],
+     "answer": 162,
+     "classKey": "patternClassGeometric",
+     "ruleKey": "patternRuleGeometric",
+     "ruleParams": {
+      "n": 3
+     }
+    },
+    {
+     "items": [
+      3,
+      6,
+      12,
+      24
+     ],
+     "answer": 48,
+     "classKey": "patternClassGeometric",
+     "ruleKey": "patternRuleGeometric",
+     "ruleParams": {
+      "n": 2
+     }
+    },
+    {
+     "items": [
+      3,
+      9,
+      27,
+      81
+     ],
+     "answer": 243,
+     "classKey": "patternClassGeometric",
+     "ruleKey": "patternRuleGeometric",
+     "ruleParams": {
+      "n": 3
+     }
+    },
+    {
+     "items": [
+      3,
+      6,
+      12,
+      24
+     ],
+     "answer": 48,
+     "classKey": "patternClassGeometric",
+     "ruleKey": "patternRuleGeometric",
+     "ruleParams": {
+      "n": 2
+     }
+    },
+    {
+     "items": [
+      2,
+      6,
+      18,
+      54
+     ],
+     "answer": 162,
+     "classKey": "patternClassGeometric",
+     "ruleKey": "patternRuleGeometric",
+     "ruleParams": {
+      "n": 3
+     }
+    }
+   ]
+  },
+  {
+   "level": 4,
+   "label": "patternClassGeometric",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      3,
+      9,
+      27,
+      81
+     ],
+     "answer": 243,
+     "classKey": "patternClassGeometric",
+     "ruleKey": "patternRuleGeometric",
+     "ruleParams": {
+      "n": 3
+     }
+    },
+    {
+     "items": [
+      4,
+      12,
+      36,
+      108
+     ],
+     "answer": 324,
+     "classKey": "patternClassGeometric",
+     "ruleKey": "patternRuleGeometric",
+     "ruleParams": {
+      "n": 3
+     }
+    },
+    {
+     "items": [
+      3,
+      6,
+      12,
+      24
+     ],
+     "answer": 48,
+     "classKey": "patternClassGeometric",
+     "ruleKey": "patternRuleGeometric",
+     "ruleParams": {
+      "n": 2
+     }
+    },
+    {
+     "items": [
+      3,
+      6,
+      12,
+      24
+     ],
+     "answer": 48,
+     "classKey": "patternClassGeometric",
+     "ruleKey": "patternRuleGeometric",
+     "ruleParams": {
+      "n": 2
+     }
+    },
+    {
+     "items": [
+      3,
+      9,
+      27,
+      81
+     ],
+     "answer": 243,
+     "classKey": "patternClassGeometric",
+     "ruleKey": "patternRuleGeometric",
+     "ruleParams": {
+      "n": 3
+     }
+    }
+   ]
+  },
+  {
+   "level": 5,
+   "label": "patternClassSquaresCubes",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      8,
+      27,
+      64
+     ],
+     "answer": 125,
+     "classKey": "patternClassCubes",
+     "ruleKey": "patternRuleCubes",
+     "ruleParams": {
+      "a": 2,
+      "b": 3
+     }
+    },
+    {
+     "items": [
+      16,
+      25,
+      36,
+      49
+     ],
+     "answer": 64,
+     "classKey": "patternClassSquares",
+     "ruleKey": "patternRuleSquares",
+     "ruleParams": {
+      "a": 4,
+      "b": 5,
+      "c": 6
+     }
+    },
+    {
+     "items": [
+      8,
+      27,
+      64
+     ],
+     "answer": 125,
+     "classKey": "patternClassCubes",
+     "ruleKey": "patternRuleCubes",
+     "ruleParams": {
+      "a": 2,
+      "b": 3
+     }
+    },
+    {
+     "items": [
+      1,
+      8,
+      27
+     ],
+     "answer": 64,
+     "classKey": "patternClassCubes",
+     "ruleKey": "patternRuleCubes",
+     "ruleParams": {
+      "a": 1,
+      "b": 2
+     }
+    },
+    {
+     "items": [
+      8,
+      27,
+      64
+     ],
+     "answer": 125,
+     "classKey": "patternClassCubes",
+     "ruleKey": "patternRuleCubes",
+     "ruleParams": {
+      "a": 2,
+      "b": 3
+     }
+    }
+   ]
+  },
+  {
+   "level": 6,
+   "label": "patternClassSquaresCubes",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      16,
+      25,
+      36,
+      49
+     ],
+     "answer": 64,
+     "classKey": "patternClassSquares",
+     "ruleKey": "patternRuleSquares",
+     "ruleParams": {
+      "a": 4,
+      "b": 5,
+      "c": 6
+     }
+    },
+    {
+     "items": [
+      8,
+      27,
+      64
+     ],
+     "answer": 125,
+     "classKey": "patternClassCubes",
+     "ruleKey": "patternRuleCubes",
+     "ruleParams": {
+      "a": 2,
+      "b": 3
+     }
+    },
+    {
+     "items": [
+      1,
+      8,
+      27
+     ],
+     "answer": 64,
+     "classKey": "patternClassCubes",
+     "ruleKey": "patternRuleCubes",
+     "ruleParams": {
+      "a": 1,
+      "b": 2
+     }
+    },
+    {
+     "items": [
+      1,
+      4,
+      9,
+      16
+     ],
+     "answer": 25,
+     "classKey": "patternClassSquares",
+     "ruleKey": "patternRuleSquares",
+     "ruleParams": {
+      "a": 1,
+      "b": 2,
+      "c": 3
+     }
+    },
+    {
+     "items": [
+      1,
+      8,
+      27
+     ],
+     "answer": 64,
+     "classKey": "patternClassCubes",
+     "ruleKey": "patternRuleCubes",
+     "ruleParams": {
+      "a": 1,
+      "b": 2
+     }
+    }
+   ]
+  },
+  {
+   "level": 7,
+   "label": "patternClassFibonacci",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      1,
+      2,
+      3,
+      5
+     ],
+     "answer": 8,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      1,
+      2,
+      3,
+      5
+     ],
+     "answer": 8,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      3,
+      4,
+      7,
+      11
+     ],
+     "answer": 18,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      1,
+      2,
+      3,
+      5
+     ],
+     "answer": 8,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      3,
+      5,
+      8,
+      13
+     ],
+     "answer": 21,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    }
+   ]
+  },
+  {
+   "level": 8,
+   "label": "patternClassFibonacci",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      3,
+      4,
+      7,
+      11
+     ],
+     "answer": 18,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      3,
+      5,
+      8,
+      13
+     ],
+     "answer": 21,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      1,
+      3,
+      4,
+      7
+     ],
+     "answer": 11,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      2,
+      4,
+      6,
+      10
+     ],
+     "answer": 16,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      1,
+      2,
+      3,
+      5
+     ],
+     "answer": 8,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    }
+   ]
+  },
+  {
+   "level": 9,
+   "label": "patternClassGrowingDiff",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      2,
+      4,
+      7,
+      11
+     ],
+     "answer": 16,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 2,
+      "b": 3
+     }
+    },
+    {
+     "items": [
+      4,
+      7,
+      11,
+      16
+     ],
+     "answer": 22,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 3,
+      "b": 4
+     }
+    },
+    {
+     "items": [
+      5,
+      7,
+      10,
+      14
+     ],
+     "answer": 19,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 2,
+      "b": 3
+     }
+    },
+    {
+     "items": [
+      5,
+      7,
+      10,
+      14
+     ],
+     "answer": 19,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 2,
+      "b": 3
+     }
+    },
+    {
+     "items": [
+      4,
+      6,
+      9,
+      13
+     ],
+     "answer": 18,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 2,
+      "b": 3
+     }
+    }
+   ]
+  },
+  {
+   "level": 10,
+   "label": "patternClassGrowingDiff",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      1,
+      4,
+      8,
+      13
+     ],
+     "answer": 19,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 3,
+      "b": 4
+     }
+    },
+    {
+     "items": [
+      3,
+      6,
+      10,
+      15
+     ],
+     "answer": 21,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 3,
+      "b": 4
+     }
+    },
+    {
+     "items": [
+      3,
+      4,
+      6,
+      9
+     ],
+     "answer": 13,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 1,
+      "b": 2
+     }
+    },
+    {
+     "items": [
+      2,
+      5,
+      9,
+      14
+     ],
+     "answer": 20,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 3,
+      "b": 4
+     }
+    },
+    {
+     "items": [
+      2,
+      4,
+      7,
+      11
+     ],
+     "answer": 16,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 2,
+      "b": 3
+     }
+    }
+   ]
+  },
+  {
+   "level": 11,
+   "label": "patternClassLookSayHint",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      1,
+      11,
+      21,
+      1211
+     ],
+     "answer": 111221,
+     "classKey": "patternClassLookSay",
+     "ruleKey": "patternRuleLookSay",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      11,
+      21,
+      1211,
+      111221
+     ],
+     "answer": 312211,
+     "classKey": "patternClassLookSay",
+     "ruleKey": "patternRuleLookSay",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      1,
+      11,
+      21,
+      1211
+     ],
+     "answer": 111221,
+     "classKey": "patternClassLookSay",
+     "ruleKey": "patternRuleLookSay",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      11,
+      21,
+      1211,
+      111221
+     ],
+     "answer": 312211,
+     "classKey": "patternClassLookSay",
+     "ruleKey": "patternRuleLookSay",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      1,
+      11,
+      21,
+      1211
+     ],
+     "answer": 111221,
+     "classKey": "patternClassLookSay",
+     "ruleKey": "patternRuleLookSay",
+     "ruleParams": null
+    }
+   ]
+  },
+  {
+   "level": 12,
+   "label": "patternClassLookSayHint",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      11,
+      21,
+      1211,
+      111221
+     ],
+     "answer": 312211,
+     "classKey": "patternClassLookSay",
+     "ruleKey": "patternRuleLookSay",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      1,
+      11,
+      21,
+      1211
+     ],
+     "answer": 111221,
+     "classKey": "patternClassLookSay",
+     "ruleKey": "patternRuleLookSay",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      1,
+      11,
+      21,
+      1211
+     ],
+     "answer": 111221,
+     "classKey": "patternClassLookSay",
+     "ruleKey": "patternRuleLookSay",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      1,
+      11,
+      21,
+      1211
+     ],
+     "answer": 111221,
+     "classKey": "patternClassLookSay",
+     "ruleKey": "patternRuleLookSay",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      11,
+      21,
+      1211,
+      111221
+     ],
+     "answer": 312211,
+     "classKey": "patternClassLookSay",
+     "ruleKey": "patternRuleLookSay",
+     "ruleParams": null
+    }
+   ]
+  },
+  {
+   "level": 13,
+   "label": "patternClassInterleaved",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      3,
+      9,
+      5,
+      18
+     ],
+     "answer": 7,
+     "classKey": "patternClassInterleaved",
+     "ruleKey": "patternRuleInterleaved",
+     "ruleParams": {
+      "a": 2,
+      "b": 9
+     }
+    },
+    {
+     "items": [
+      4,
+      5,
+      5,
+      10
+     ],
+     "answer": 6,
+     "classKey": "patternClassInterleaved",
+     "ruleKey": "patternRuleInterleaved",
+     "ruleParams": {
+      "a": 1,
+      "b": 5
+     }
+    },
+    {
+     "items": [
+      4,
+      6,
+      7,
+      15
+     ],
+     "answer": 10,
+     "classKey": "patternClassInterleaved",
+     "ruleKey": "patternRuleInterleaved",
+     "ruleParams": {
+      "a": 3,
+      "b": 9
+     }
+    },
+    {
+     "items": [
+      2,
+      7,
+      3,
+      13
+     ],
+     "answer": 4,
+     "classKey": "patternClassInterleaved",
+     "ruleKey": "patternRuleInterleaved",
+     "ruleParams": {
+      "a": 1,
+      "b": 6
+     }
+    },
+    {
+     "items": [
+      3,
+      7,
+      5,
+      13
+     ],
+     "answer": 7,
+     "classKey": "patternClassInterleaved",
+     "ruleKey": "patternRuleInterleaved",
+     "ruleParams": {
+      "a": 2,
+      "b": 6
+     }
+    }
+   ]
+  },
+  {
+   "level": 14,
+   "label": "patternClassInterleaved",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      1,
+      6,
+      2,
+      14
+     ],
+     "answer": 3,
+     "classKey": "patternClassInterleaved",
+     "ruleKey": "patternRuleInterleaved",
+     "ruleParams": {
+      "a": 1,
+      "b": 8
+     }
+    },
+    {
+     "items": [
+      4,
+      8,
+      7,
+      17
+     ],
+     "answer": 10,
+     "classKey": "patternClassInterleaved",
+     "ruleKey": "patternRuleInterleaved",
+     "ruleParams": {
+      "a": 3,
+      "b": 9
+     }
+    },
+    {
+     "items": [
+      2,
+      8,
+      3,
+      17
+     ],
+     "answer": 4,
+     "classKey": "patternClassInterleaved",
+     "ruleKey": "patternRuleInterleaved",
+     "ruleParams": {
+      "a": 1,
+      "b": 9
+     }
+    },
+    {
+     "items": [
+      3,
+      7,
+      6,
+      13
+     ],
+     "answer": 9,
+     "classKey": "patternClassInterleaved",
+     "ruleKey": "patternRuleInterleaved",
+     "ruleParams": {
+      "a": 3,
+      "b": 6
+     }
+    },
+    {
+     "items": [
+      1,
+      5,
+      2,
+      13
+     ],
+     "answer": 3,
+     "classKey": "patternClassInterleaved",
+     "ruleKey": "patternRuleInterleaved",
+     "ruleParams": {
+      "a": 1,
+      "b": 8
+     }
+    }
+   ]
+  },
+  {
+   "level": 15,
+   "label": "patternClassLinear",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      3,
+      5,
+      9,
+      17
+     ],
+     "answer": 33,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 2,
+      "b": "− 1"
+     }
+    },
+    {
+     "items": [
+      5,
+      20,
+      65,
+      200
+     ],
+     "answer": 605,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 3,
+      "b": "+ 5"
+     }
+    },
+    {
+     "items": [
+      1,
+      8,
+      29,
+      92
+     ],
+     "answer": 281,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 3,
+      "b": "+ 5"
+     }
+    },
+    {
+     "items": [
+      1,
+      6,
+      16,
+      36
+     ],
+     "answer": 76,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 2,
+      "b": "+ 4"
+     }
+    },
+    {
+     "items": [
+      4,
+      16,
+      52,
+      160
+     ],
+     "answer": 484,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 3,
+      "b": "+ 4"
+     }
+    }
+   ]
+  },
+  {
+   "level": 16,
+   "label": "patternClassLinear",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      1,
+      4,
+      10,
+      22
+     ],
+     "answer": 46,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 2,
+      "b": "+ 2"
+     }
+    },
+    {
+     "items": [
+      2,
+      3,
+      5,
+      9
+     ],
+     "answer": 17,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 2,
+      "b": "− 1"
+     }
+    },
+    {
+     "items": [
+      3,
+      9,
+      21,
+      45
+     ],
+     "answer": 93,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 2,
+      "b": "+ 3"
+     }
+    },
+    {
+     "items": [
+      3,
+      14,
+      47,
+      146
+     ],
+     "answer": 443,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 3,
+      "b": "+ 5"
+     }
+    },
+    {
+     "items": [
+      1,
+      3,
+      7,
+      15
+     ],
+     "answer": 31,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 2,
+      "b": "+ 1"
+     }
+    }
+   ]
+  },
+  {
+   "level": 17,
+   "label": "patternClassTwoOps",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      1,
+      2,
+      4,
+      5,
+      10
+     ],
+     "answer": 11,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "+ 1",
+      "b": "× 2"
+     }
+    },
+    {
+     "items": [
+      4,
+      12,
+      19,
+      57,
+      64
+     ],
+     "answer": 192,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "× 3",
+      "b": "+ 7"
+     }
+    },
+    {
+     "items": [
+      3,
+      8,
+      24,
+      29,
+      87
+     ],
+     "answer": 92,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "+ 5",
+      "b": "× 3"
+     }
+    },
+    {
+     "items": [
+      4,
+      12,
+      24,
+      32,
+      64
+     ],
+     "answer": 72,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "+ 8",
+      "b": "× 2"
+     }
+    },
+    {
+     "items": [
+      3,
+      9,
+      12,
+      36,
+      39
+     ],
+     "answer": 117,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "× 3",
+      "b": "+ 3"
+     }
+    }
+   ]
+  },
+  {
+   "level": 18,
+   "label": "patternClassTwoOps",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      3,
+      6,
+      9,
+      18,
+      21
+     ],
+     "answer": 42,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 3"
+     }
+    },
+    {
+     "items": [
+      2,
+      4,
+      12,
+      24,
+      32
+     ],
+     "answer": 64,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 8"
+     }
+    },
+    {
+     "items": [
+      4,
+      8,
+      16,
+      20,
+      40
+     ],
+     "answer": 44,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "+ 4",
+      "b": "× 2"
+     }
+    },
+    {
+     "items": [
+      3,
+      6,
+      8,
+      16,
+      18
+     ],
+     "answer": 36,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 2"
+     }
+    },
+    {
+     "items": [
+      4,
+      12,
+      13,
+      39,
+      40
+     ],
+     "answer": 120,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "× 3",
+      "b": "+ 1"
+     }
+    }
+   ]
+  },
+  {
+   "level": 19,
+   "label": "patternClassInterMixed",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      7,
+      4,
+      12,
+      12,
+      17,
+      36
+     ],
+     "answer": 22,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "+ 5",
+      "b": "× 3"
+     }
+    },
+    {
+     "items": [
+      3,
+      3,
+      9,
+      11,
+      27,
+      19
+     ],
+     "answer": 81,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 3",
+      "b": "+ 8"
+     }
+    },
+    {
+     "items": [
+      8,
+      1,
+      11,
+      2,
+      14,
+      4
+     ],
+     "answer": 17,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "+ 3",
+      "b": "× 2"
+     }
+    },
+    {
+     "items": [
+      4,
+      7,
+      12,
+      9,
+      36,
+      11
+     ],
+     "answer": 108,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 3",
+      "b": "+ 2"
+     }
+    },
+    {
+     "items": [
+      3,
+      4,
+      6,
+      10,
+      12,
+      16
+     ],
+     "answer": 24,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 6"
+     }
+    }
+   ]
+  },
+  {
+   "level": 20,
+   "label": "patternClassInterMixed",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      1,
+      9,
+      3,
+      16,
+      9,
+      23
+     ],
+     "answer": 27,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 3",
+      "b": "+ 7"
+     }
+    },
+    {
+     "items": [
+      2,
+      2,
+      4,
+      6,
+      8,
+      10
+     ],
+     "answer": 16,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 4"
+     }
+    },
+    {
+     "items": [
+      2,
+      3,
+      6,
+      11,
+      18,
+      19
+     ],
+     "answer": 54,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 3",
+      "b": "+ 8"
+     }
+    },
+    {
+     "items": [
+      2,
+      3,
+      4,
+      8,
+      8,
+      13
+     ],
+     "answer": 16,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 5"
+     }
+    },
+    {
+     "items": [
+      1,
+      4,
+      2,
+      8,
+      4,
+      12
+     ],
+     "answer": 8,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 4"
+     }
+    }
+   ]
+  },
+  {
+   "level": 21,
+   "label": "patternClassSignFlip",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      3,
+      -5,
+      11,
+      -21
+     ],
+     "answer": 43,
+     "classKey": "patternClassSignFlip",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": "(−2)",
+      "b": "+ 1"
+     }
+    },
+    {
+     "items": [
+      2,
+      -3,
+      7,
+      -13
+     ],
+     "answer": 27,
+     "classKey": "patternClassSignFlip",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": "(−2)",
+      "b": "+ 1"
+     }
+    },
+    {
+     "items": [
+      3,
+      -7,
+      23,
+      -67
+     ],
+     "answer": 203,
+     "classKey": "patternClassSignFlip",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": "(−3)",
+      "b": "+ 2"
+     }
+    },
+    {
+     "items": [
+      5,
+      -7,
+      17,
+      -31
+     ],
+     "answer": 65,
+     "classKey": "patternClassSignFlip",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": "(−2)",
+      "b": "+ 3"
+     }
+    },
+    {
+     "items": [
+      7,
+      -18,
+      32,
+      -68
+     ],
+     "answer": 132,
+     "classKey": "patternClassSignFlip",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": "(−2)",
+      "b": "− 4"
+     }
+    }
+   ]
+  },
+  {
+   "level": 22,
+   "label": "patternClassSignFlip",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      6,
+      -15,
+      27,
+      -57
+     ],
+     "answer": 111,
+     "classKey": "patternClassSignFlip",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": "(−2)",
+      "b": "− 3"
+     }
+    },
+    {
+     "items": [
+      4,
+      -8,
+      28,
+      -80
+     ],
+     "answer": 244,
+     "classKey": "patternClassSignFlip",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": "(−3)",
+      "b": "+ 4"
+     }
+    },
+    {
+     "items": [
+      4,
+      -5,
+      13,
+      -23
+     ],
+     "answer": 49,
+     "classKey": "patternClassSignFlip",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": "(−2)",
+      "b": "+ 3"
+     }
+    },
+    {
+     "items": [
+      3,
+      -7,
+      13,
+      -27
+     ],
+     "answer": 53,
+     "classKey": "patternClassSignFlip",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": "(−2)",
+      "b": "− 1"
+     }
+    },
+    {
+     "items": [
+      2,
+      -8,
+      22,
+      -68
+     ],
+     "answer": 202,
+     "classKey": "patternClassSignFlip",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": "(−3)",
+      "b": "− 2"
+     }
+    }
+   ]
+  },
+  {
+   "level": 23,
+   "label": "patternClassMixed",
+   "mixScale": 1,
+   "seqs": [
+    {
+     "items": [
+      1,
+      2,
+      6,
+      12,
+      16
+     ],
+     "answer": 32,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 4"
+     }
+    },
+    {
+     "items": [
+      6,
+      4,
+      13,
+      9,
+      20,
+      14
+     ],
+     "answer": 27,
+     "classKey": "patternClassInterleaved",
+     "ruleKey": "patternRuleInterleaved",
+     "ruleParams": {
+      "a": 7,
+      "b": 5
+     }
+    },
+    {
+     "items": [
+      4,
+      9,
+      24,
+      69
+     ],
+     "answer": 204,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 3,
+      "b": "− 3"
+     }
+    },
+    {
+     "items": [
+      2,
+      4,
+      6,
+      10
+     ],
+     "answer": 16,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      1,
+      6,
+      16,
+      36
+     ],
+     "answer": 76,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 2,
+      "b": "+ 4"
+     }
+    }
+   ]
+  },
+  {
+   "level": 26,
+   "label": "patternClassMixed",
+   "mixScale": 2,
+   "seqs": [
+    {
+     "items": [
+      8,
+      1,
+      24,
+      2,
+      72,
+      4
+     ],
+     "answer": 216,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 3",
+      "b": "× 2"
+     }
+    },
+    {
+     "items": [
+      8,
+      10,
+      13,
+      17
+     ],
+     "answer": 22,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 2,
+      "b": 3
+     }
+    },
+    {
+     "items": [
+      9,
+      14,
+      20,
+      27
+     ],
+     "answer": 35,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 5,
+      "b": 6
+     }
+    },
+    {
+     "items": [
+      2,
+      5,
+      4,
+      17,
+      8,
+      29
+     ],
+     "answer": 16,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 12"
+     }
+    },
+    {
+     "items": [
+      7,
+      14,
+      28,
+      56,
+      70
+     ],
+     "answer": 140,
+     "classKey": "patternClassTwoOps",
+     "ruleKey": "patternRuleTwoOps",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 14"
+     }
+    }
+   ]
+  },
+  {
+   "level": 30,
+   "label": "patternClassMixed",
+   "mixScale": 4,
+   "seqs": [
+    {
+     "items": [
+      2,
+      5,
+      7,
+      12
+     ],
+     "answer": 19,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    },
+    {
+     "items": [
+      6,
+      3,
+      8,
+      6,
+      10,
+      12
+     ],
+     "answer": 12,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "+ 2",
+      "b": "× 2"
+     }
+    },
+    {
+     "items": [
+      20,
+      38,
+      74,
+      146
+     ],
+     "answer": 290,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 2,
+      "b": "− 2"
+     }
+    },
+    {
+     "items": [
+      3,
+      11,
+      6,
+      26,
+      12,
+      41
+     ],
+     "answer": 24,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 15"
+     }
+    },
+    {
+     "items": [
+      12,
+      33,
+      24,
+      36,
+      48,
+      39
+     ],
+     "answer": 96,
+     "classKey": "patternClassInterMixed",
+     "ruleKey": "patternRuleInterMixed",
+     "ruleParams": {
+      "a": "× 2",
+      "b": "+ 3"
+     }
+    }
+   ]
+  },
+  {
+   "level": 40,
+   "label": "patternClassMixed",
+   "mixScale": 9,
+   "seqs": [
+    {
+     "items": [
+      7,
+      27,
+      48,
+      70
+     ],
+     "answer": 93,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 20,
+      "b": 21
+     }
+    },
+    {
+     "items": [
+      5,
+      29,
+      54,
+      80
+     ],
+     "answer": 107,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 24,
+      "b": 25
+     }
+    },
+    {
+     "items": [
+      26,
+      48,
+      71,
+      95
+     ],
+     "answer": 120,
+     "classKey": "patternClassGrowingDiff",
+     "ruleKey": "patternRuleGrowingDiff",
+     "ruleParams": {
+      "a": 22,
+      "b": 23
+     }
+    },
+    {
+     "items": [
+      7,
+      12,
+      22,
+      42
+     ],
+     "answer": 82,
+     "classKey": "patternClassLinear",
+     "ruleKey": "patternRuleLinear",
+     "ruleParams": {
+      "a": 2,
+      "b": "− 2"
+     }
+    },
+    {
+     "items": [
+      8,
+      22,
+      30,
+      52
+     ],
+     "answer": 82,
+     "classKey": "patternClassFibonacci",
+     "ruleKey": "patternRuleFibonacci",
+     "ruleParams": null
+    }
+   ]
+  }
+ ],
+ "picks": [
+  {
+   "level": 1,
+   "seqs": [
+    {
+     "items": [
+      7,
+      11,
+      15,
+      19
+     ],
+     "answer": 23,
+     "classKey": "patternClassArithmetic"
+    },
+    {
+     "items": [
+      1,
+      6,
+      11,
+      16
+     ],
+     "answer": 21,
+     "classKey": "patternClassArithmetic"
+    },
+    {
+     "items": [
+      9,
+      12,
+      15,
+      18
+     ],
+     "answer": 21,
+     "classKey": "patternClassArithmetic"
+    },
+    {
+     "items": [
+      1,
+      7,
+      13,
+      19
+     ],
+     "answer": 25,
+     "classKey": "patternClassArithmetic"
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "seqs": [
+    {
+     "items": [
+      8,
+      15,
+      22,
+      29
+     ],
+     "answer": 36,
+     "classKey": "patternClassArithmetic"
+    },
+    {
+     "items": [
+      1,
+      6,
+      11,
+      16
+     ],
+     "answer": 21,
+     "classKey": "patternClassArithmetic"
+    },
+    {
+     "items": [
+      5,
+      9,
+      13,
+      17
+     ],
+     "answer": 21,
+     "classKey": "patternClassArithmetic"
+    },
+    {
+     "items": [
+      4,
+      7,
+      10,
+      13
+     ],
+     "answer": 16,
+     "classKey": "patternClassArithmetic"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "seqs": [
+    {
+     "items": [
+      4,
+      12,
+      36,
+      108
+     ],
+     "answer": 324,
+     "classKey": "patternClassGeometric"
+    },
+    {
+     "items": [
+      2,
+      4,
+      8,
+      16
+     ],
+     "answer": 32,
+     "classKey": "patternClassGeometric"
+    },
+    {
+     "items": [
+      2,
+      6,
+      18,
+      54
+     ],
+     "answer": 162,
+     "classKey": "patternClassGeometric"
+    },
+    {
+     "items": [
+      3,
+      9,
+      27,
+      81
+     ],
+     "answer": 243,
+     "classKey": "patternClassGeometric"
+    }
+   ]
+  },
+  {
+   "level": 4,
+   "seqs": [
+    {
+     "items": [
+      4,
+      8,
+      16,
+      32
+     ],
+     "answer": 64,
+     "classKey": "patternClassGeometric"
+    },
+    {
+     "items": [
+      3,
+      9,
+      27,
+      81
+     ],
+     "answer": 243,
+     "classKey": "patternClassGeometric"
+    },
+    {
+     "items": [
+      3,
+      9,
+      27,
+      81
+     ],
+     "answer": 243,
+     "classKey": "patternClassGeometric"
+    },
+    {
+     "items": [
+      3,
+      9,
+      27,
+      81
+     ],
+     "answer": 243,
+     "classKey": "patternClassGeometric"
+    }
+   ]
+  },
+  {
+   "level": 5,
+   "seqs": [
+    {
+     "items": [
+      1,
+      8,
+      27
+     ],
+     "answer": 64,
+     "classKey": "patternClassCubes"
+    },
+    {
+     "items": [
+      1,
+      8,
+      27
+     ],
+     "answer": 64,
+     "classKey": "patternClassCubes"
+    },
+    {
+     "items": [
+      1,
+      4,
+      9,
+      16
+     ],
+     "answer": 25,
+     "classKey": "patternClassSquares"
+    },
+    {
+     "items": [
+      8,
+      27,
+      64
+     ],
+     "answer": 125,
+     "classKey": "patternClassCubes"
+    }
+   ]
+  },
+  {
+   "level": 6,
+   "seqs": [
+    {
+     "items": [
+      16,
+      25,
+      36,
+      49
+     ],
+     "answer": 64,
+     "classKey": "patternClassSquares"
+    },
+    {
+     "items": [
+      8,
+      27,
+      64
+     ],
+     "answer": 125,
+     "classKey": "patternClassCubes"
+    },
+    {
+     "items": [
+      1,
+      4,
+      9,
+      16
+     ],
+     "answer": 25,
+     "classKey": "patternClassSquares"
+    },
+    {
+     "items": [
+      1,
+      4,
+      9,
+      16
+     ],
+     "answer": 25,
+     "classKey": "patternClassSquares"
+    }
+   ]
+  },
+  {
+   "level": 7,
+   "seqs": [
+    {
+     "items": [
+      2,
+      4,
+      6,
+      10
+     ],
+     "answer": 16,
+     "classKey": "patternClassFibonacci"
+    },
+    {
+     "items": [
+      2,
+      4,
+      6,
+      10
+     ],
+     "answer": 16,
+     "classKey": "patternClassFibonacci"
+    },
+    {
+     "items": [
+      1,
+      2,
+      3,
+      5
+     ],
+     "answer": 8,
+     "classKey": "patternClassFibonacci"
+    },
+    {
+     "items": [
+      1,
+      3,
+      4,
+      7
+     ],
+     "answer": 11,
+     "classKey": "patternClassFibonacci"
+    }
+   ]
+  },
+  {
+   "level": 8,
+   "seqs": [
+    {
+     "items": [
+      2,
+      3,
+      5,
+      8
+     ],
+     "answer": 13,
+     "classKey": "patternClassFibonacci"
+    },
+    {
+     "items": [
+      3,
+      4,
+      7,
+      11
+     ],
+     "answer": 18,
+     "classKey": "patternClassFibonacci"
+    },
+    {
+     "items": [
+      2,
+      4,
+      6,
+      10
+     ],
+     "answer": 16,
+     "classKey": "patternClassFibonacci"
+    },
+    {
+     "items": [
+      1,
+      3,
+      4,
+      7
+     ],
+     "answer": 11,
+     "classKey": "patternClassFibonacci"
+    }
+   ]
+  },
+  {
+   "level": 9,
+   "seqs": [
+    {
+     "items": [
+      3,
+      5,
+      8,
+      12
+     ],
+     "answer": 17,
+     "classKey": "patternClassGrowingDiff"
+    },
+    {
+     "items": [
+      5,
+      6,
+      8,
+      11
+     ],
+     "answer": 15,
+     "classKey": "patternClassGrowingDiff"
+    },
+    {
+     "items": [
+      1,
+      2,
+      4,
+      7
+     ],
+     "answer": 11,
+     "classKey": "patternClassGrowingDiff"
+    },
+    {
+     "items": [
+      3,
+      4,
+      6,
+      9
+     ],
+     "answer": 13,
+     "classKey": "patternClassGrowingDiff"
+    }
+   ]
+  },
+  {
+   "level": 10,
+   "seqs": [
+    {
+     "items": [
+      1,
+      4,
+      8,
+      13
+     ],
+     "answer": 19,
+     "classKey": "patternClassGrowingDiff"
+    },
+    {
+     "items": [
+      3,
+      6,
+      10,
+      15
+     ],
+     "answer": 21,
+     "classKey": "patternClassGrowingDiff"
+    },
+    {
+     "items": [
+      4,
+      7,
+      11,
+      16
+     ],
+     "answer": 22,
+     "classKey": "patternClassGrowingDiff"
+    },
+    {
+     "items": [
+      2,
+      4,
+      7,
+      11
+     ],
+     "answer": 16,
+     "classKey": "patternClassGrowingDiff"
+    }
+   ]
+  },
+  {
+   "level": 11,
+   "seqs": [
+    {
+     "items": [
+      1,
+      11,
+      21,
+      1211
+     ],
+     "answer": 111221,
+     "classKey": "patternClassLookSay"
+    },
+    {
+     "items": [
+      1,
+      11,
+      21,
+      1211
+     ],
+     "answer": 111221,
+     "classKey": "patternClassLookSay"
+    },
+    {
+     "items": [
+      11,
+      21,
+      1211,
+      111221
+     ],
+     "answer": 312211,
+     "classKey": "patternClassLookSay"
+    },
+    {
+     "items": [
+      11,
+      21,
+      1211,
+      111221
+     ],
+     "answer": 312211,
+     "classKey": "patternClassLookSay"
+    }
+   ]
+  },
+  {
+   "level": 12,
+   "seqs": [
+    {
+     "items": [
+      11,
+      21,
+      1211,
+      111221
+     ],
+     "answer": 312211,
+     "classKey": "patternClassLookSay"
+    },
+    {
+     "items": [
+      1,
+      11,
+      21,
+      1211
+     ],
+     "answer": 111221,
+     "classKey": "patternClassLookSay"
+    },
+    {
+     "items": [
+      1,
+      11,
+      21,
+      1211
+     ],
+     "answer": 111221,
+     "classKey": "patternClassLookSay"
+    },
+    {
+     "items": [
+      1,
+      11,
+      21,
+      1211
+     ],
+     "answer": 111221,
+     "classKey": "patternClassLookSay"
+    }
+   ]
+  },
+  {
+   "level": 13,
+   "seqs": [
+    {
+     "items": [
+      4,
+      5,
+      6,
+      14
+     ],
+     "answer": 8,
+     "classKey": "patternClassInterleaved"
+    },
+    {
+     "items": [
+      2,
+      5,
+      3,
+      12
+     ],
+     "answer": 4,
+     "classKey": "patternClassInterleaved"
+    },
+    {
+     "items": [
+      4,
+      5,
+      7,
+      10
+     ],
+     "answer": 10,
+     "classKey": "patternClassInterleaved"
+    },
+    {
+     "items": [
+      2,
+      9,
+      4,
+      18
+     ],
+     "answer": 6,
+     "classKey": "patternClassInterleaved"
+    }
+   ]
+  },
+  {
+   "level": 14,
+   "seqs": [
+    {
+     "items": [
+      3,
+      8,
+      4,
+      16
+     ],
+     "answer": 5,
+     "classKey": "patternClassInterleaved"
+    },
+    {
+     "items": [
+      4,
+      8,
+      6,
+      14
+     ],
+     "answer": 8,
+     "classKey": "patternClassInterleaved"
+    },
+    {
+     "items": [
+      2,
+      6,
+      5,
+      12
+     ],
+     "answer": 8,
+     "classKey": "patternClassInterleaved"
+    },
+    {
+     "items": [
+      3,
+      5,
+      6,
+      10
+     ],
+     "answer": 9,
+     "classKey": "patternClassInterleaved"
+    }
+   ]
+  },
+  {
+   "level": 15,
+   "seqs": [
+    {
+     "items": [
+      1,
+      8,
+      29,
+      92
+     ],
+     "answer": 281,
+     "classKey": "patternClassLinear"
+    },
+    {
+     "items": [
+      2,
+      10,
+      34,
+      106
+     ],
+     "answer": 322,
+     "classKey": "patternClassLinear"
+    },
+    {
+     "items": [
+      5,
+      20,
+      65,
+      200
+     ],
+     "answer": 605,
+     "classKey": "patternClassLinear"
+    },
+    {
+     "items": [
+      3,
+      12,
+      39,
+      120
+     ],
+     "answer": 363,
+     "classKey": "patternClassLinear"
+    }
+   ]
+  },
+  {
+   "level": 16,
+   "seqs": [
+    {
+     "items": [
+      2,
+      11,
+      38,
+      119
+     ],
+     "answer": 362,
+     "classKey": "patternClassLinear"
+    },
+    {
+     "items": [
+      1,
+      3,
+      7,
+      15
+     ],
+     "answer": 31,
+     "classKey": "patternClassLinear"
+    },
+    {
+     "items": [
+      4,
+      17,
+      56,
+      173
+     ],
+     "answer": 524,
+     "classKey": "patternClassLinear"
+    },
+    {
+     "items": [
+      3,
+      11,
+      35,
+      107
+     ],
+     "answer": 323,
+     "classKey": "patternClassLinear"
+    }
+   ]
+  },
+  {
+   "level": 17,
+   "seqs": [
+    {
+     "items": [
+      3,
+      10,
+      20,
+      27,
+      54
+     ],
+     "answer": 61,
+     "classKey": "patternClassTwoOps"
+    },
+    {
+     "items": [
+      4,
+      8,
+      13,
+      26,
+      31
+     ],
+     "answer": 62,
+     "classKey": "patternClassTwoOps"
+    },
+    {
+     "items": [
+      3,
+      6,
+      13,
+      26,
+      33
+     ],
+     "answer": 66,
+     "classKey": "patternClassTwoOps"
+    },
+    {
+     "items": [
+      3,
+      9,
+      14,
+      42,
+      47
+     ],
+     "answer": 141,
+     "classKey": "patternClassTwoOps"
+    }
+   ]
+  },
+  {
+   "level": 18,
+   "seqs": [
+    {
+     "items": [
+      1,
+      6,
+      12,
+      17,
+      34
+     ],
+     "answer": 39,
+     "classKey": "patternClassTwoOps"
+    },
+    {
+     "items": [
+      4,
+      12,
+      36,
+      44,
+      132
+     ],
+     "answer": 140,
+     "classKey": "patternClassTwoOps"
+    },
+    {
+     "items": [
+      1,
+      7,
+      14,
+      20,
+      40
+     ],
+     "answer": 46,
+     "classKey": "patternClassTwoOps"
+    },
+    {
+     "items": [
+      4,
+      8,
+      24,
+      28,
+      84
+     ],
+     "answer": 88,
+     "classKey": "patternClassTwoOps"
+    }
+   ]
+  },
+  {
+   "level": 19,
+   "seqs": [
+    {
+     "items": [
+      4,
+      7,
+      12,
+      9,
+      36,
+      11
+     ],
+     "answer": 108,
+     "classKey": "patternClassInterMixed"
+    },
+    {
+     "items": [
+      1,
+      3,
+      8,
+      6,
+      15,
+      12
+     ],
+     "answer": 22,
+     "classKey": "patternClassInterMixed"
+    },
+    {
+     "items": [
+      3,
+      3,
+      5,
+      9,
+      7,
+      27
+     ],
+     "answer": 9,
+     "classKey": "patternClassInterMixed"
+    },
+    {
+     "items": [
+      1,
+      4,
+      5,
+      8,
+      9,
+      16
+     ],
+     "answer": 13,
+     "classKey": "patternClassInterMixed"
+    }
+   ]
+  },
+  {
+   "level": 20,
+   "seqs": [
+    {
+     "items": [
+      3,
+      8,
+      6,
+      14,
+      12,
+      20
+     ],
+     "answer": 24,
+     "classKey": "patternClassInterMixed"
+    },
+    {
+     "items": [
+      5,
+      2,
+      9,
+      4,
+      13,
+      8
+     ],
+     "answer": 17,
+     "classKey": "patternClassInterMixed"
+    },
+    {
+     "items": [
+      3,
+      3,
+      10,
+      9,
+      17,
+      27
+     ],
+     "answer": 24,
+     "classKey": "patternClassInterMixed"
+    },
+    {
+     "items": [
+      1,
+      2,
+      3,
+      6,
+      9,
+      10
+     ],
+     "answer": 27,
+     "classKey": "patternClassInterMixed"
+    }
+   ]
+  },
+  {
+   "level": 21,
+   "seqs": [
+    {
+     "items": [
+      3,
+      -5,
+      19,
+      -53
+     ],
+     "answer": 163,
+     "classKey": "patternClassSignFlip"
+    },
+    {
+     "items": [
+      4,
+      -6,
+      14,
+      -26
+     ],
+     "answer": 54,
+     "classKey": "patternClassSignFlip"
+    },
+    {
+     "items": [
+      2,
+      -3,
+      7,
+      -13
+     ],
+     "answer": 27,
+     "classKey": "patternClassSignFlip"
+    },
+    {
+     "items": [
+      3,
+      -4,
+      10,
+      -18
+     ],
+     "answer": 38,
+     "classKey": "patternClassSignFlip"
+    }
+   ]
+  },
+  {
+   "level": 22,
+   "seqs": [
+    {
+     "items": [
+      5,
+      -8,
+      18,
+      -34
+     ],
+     "answer": 70,
+     "classKey": "patternClassSignFlip"
+    },
+    {
+     "items": [
+      4,
+      -11,
+      19,
+      -41
+     ],
+     "answer": 79,
+     "classKey": "patternClassSignFlip"
+    },
+    {
+     "items": [
+      3,
+      -5,
+      19,
+      -53
+     ],
+     "answer": 163,
+     "classKey": "patternClassSignFlip"
+    },
+    {
+     "items": [
+      3,
+      -8,
+      14,
+      -30
+     ],
+     "answer": 58,
+     "classKey": "patternClassSignFlip"
+    }
+   ]
+  },
+  {
+   "level": 23,
+   "seqs": [
+    {
+     "items": [
+      1,
+      2,
+      3,
+      5
+     ],
+     "answer": 8,
+     "classKey": "patternClassFibonacci"
+    },
+    {
+     "items": [
+      3,
+      4,
+      12,
+      13,
+      39
+     ],
+     "answer": 40,
+     "classKey": "patternClassTwoOps"
+    },
+    {
+     "items": [
+      1,
+      2,
+      7,
+      14,
+      19
+     ],
+     "answer": 38,
+     "classKey": "patternClassTwoOps"
+    },
+    {
+     "items": [
+      4,
+      7,
+      11,
+      16
+     ],
+     "answer": 22,
+     "classKey": "patternClassGrowingDiff"
+    }
+   ]
+  },
+  {
+   "level": 26,
+   "seqs": [
+    {
+     "items": [
+      6,
+      20,
+      60,
+      74,
+      222
+     ],
+     "answer": 236,
+     "classKey": "patternClassTwoOps"
+    },
+    {
+     "items": [
+      15,
+      1,
+      21,
+      14,
+      27,
+      27
+     ],
+     "answer": 33,
+     "classKey": "patternClassInterleaved"
+    },
+    {
+     "items": [
+      11,
+      -27,
+      49,
+      -103
+     ],
+     "answer": 201,
+     "classKey": "patternClassSignFlip"
+    },
+    {
+     "items": [
+      1,
+      4,
+      5,
+      9
+     ],
+     "answer": 14,
+     "classKey": "patternClassFibonacci"
+    }
+   ]
+  },
+  {
+   "level": 30,
+   "seqs": [
+    {
+     "items": [
+      22,
+      -71,
+      208,
+      -629
+     ],
+     "answer": 1882,
+     "classKey": "patternClassSignFlip"
+    },
+    {
+     "items": [
+      2,
+      -5,
+      16,
+      -47
+     ],
+     "answer": 142,
+     "classKey": "patternClassSignFlip"
+    },
+    {
+     "items": [
+      11,
+      18,
+      32,
+      60
+     ],
+     "answer": 116,
+     "classKey": "patternClassLinear"
+    },
+    {
+     "items": [
+      5,
+      15,
+      29,
+      87,
+      101
+     ],
+     "answer": 303,
+     "classKey": "patternClassTwoOps"
+    }
+   ]
+  },
+  {
+   "level": 40,
+   "seqs": [
+    {
+     "items": [
+      25,
+      75,
+      80,
+      240,
+      245
+     ],
+     "answer": 735,
+     "classKey": "patternClassTwoOps"
+    },
+    {
+     "items": [
+      8,
+      11,
+      20,
+      47
+     ],
+     "answer": 128,
+     "classKey": "patternClassLinear"
+    },
+    {
+     "items": [
+      21,
+      62,
+      186,
+      227,
+      681
+     ],
+     "answer": 722,
+     "classKey": "patternClassTwoOps"
+    },
+    {
+     "items": [
+      9,
+      -40,
+      107,
+      -334
+     ],
+     "answer": 989,
+     "classKey": "patternClassSignFlip"
+    }
+   ]
+  }
+ ],
+ "reads": [
+  {
+   "items": [
+    2,
+    3,
+    5,
+    8
+   ],
+   "readings": [
+    {
+     "rule": "fibonacci",
+     "surplus": 2,
+     "answer": 13
+    },
+    {
+     "rule": "growing-by-one",
+     "surplus": 2,
+     "answer": 12
+    },
+    {
+     "rule": "second-difference",
+     "surplus": 1,
+     "answer": 12
+    }
+   ],
+   "fairProof": false
+  },
+  {
+   "items": [
+    4,
+    5,
+    7,
+    10
+   ],
+   "readings": [
+    {
+     "rule": "growing-by-one",
+     "surplus": 2,
+     "answer": 14
+    },
+    {
+     "rule": "second-difference",
+     "surplus": 1,
+     "answer": 14
+    }
+   ],
+   "fairProof": true
+  },
+  {
+   "items": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "readings": [
+    {
+     "rule": "geometric",
+     "surplus": 2,
+     "answer": 32
+    },
+    {
+     "rule": "linear",
+     "surplus": 1,
+     "answer": 32
+    },
+    {
+     "rule": "alternating-ratios",
+     "surplus": 1,
+     "answer": 32
+    },
+    {
+     "rule": "mul-then-add",
+     "surplus": 1,
+     "answer": 20
+    }
+   ],
+   "fairProof": true
+  },
+  {
+   "items": [
+    1,
+    4,
+    9,
+    16,
+    25
+   ],
+   "readings": [
+    {
+     "rule": "squares",
+     "surplus": 4,
+     "answer": 36
+    },
+    {
+     "rule": "second-difference",
+     "surplus": 2,
+     "answer": 36
+    }
+   ],
+   "fairProof": true
+  },
+  {
+   "items": [
+    3,
+    6,
+    9,
+    12
+   ],
+   "readings": [
+    {
+     "rule": "arithmetic",
+     "surplus": 2,
+     "answer": 15
+    },
+    {
+     "rule": "second-difference",
+     "surplus": 1,
+     "answer": 15
+    },
+    {
+     "rule": "linear",
+     "surplus": 1,
+     "answer": 15
+    },
+    {
+     "rule": "alternating-steps",
+     "surplus": 1,
+     "answer": 15
+    }
+   ],
+   "fairProof": true
+  },
+  {
+   "items": [
+    1,
+    11,
+    21,
+    1211
+   ],
+   "readings": [
+    {
+     "rule": "look-say",
+     "surplus": 3,
+     "answer": 111221
+    }
+   ],
+   "fairProof": true
+  },
+  {
+   "items": [
+    2,
+    3,
+    5,
+    7,
+    11
+   ],
+   "readings": [
+    {
+     "rule": "primes",
+     "surplus": 4,
+     "answer": 13
+    }
+   ],
+   "fairProof": true
+  },
+  {
+   "items": [
+    1,
+    4,
+    8,
+    11,
+    22
+   ],
+   "readings": [
+    {
+     "rule": "add-then-mul",
+     "surplus": 2,
+     "answer": 25
+    }
+   ],
+   "fairProof": true
+  },
+  {
+   "items": [
+    5,
+    10,
+    6,
+    12,
+    7
+   ],
+   "readings": [],
+   "fairProof": false
+  }
+ ],
+ "optionSets": [
+  {
+   "answer": 7,
+   "sets": [
+    [
+     17,
+     7,
+     11,
+     13
+    ],
+    [
+     11,
+     15,
+     7,
+     19
+    ],
+    [
+     7,
+     3,
+     9,
+     11
+    ],
+    [
+     9,
+     1,
+     3,
+     7
+    ],
+    [
+     11,
+     5,
+     7,
+     3
+    ],
+    [
+     5,
+     -1,
+     7,
+     3
+    ]
+   ]
+  },
+  {
+   "answer": 12,
+   "sets": [
+    [
+     6,
+     12,
+     10,
+     8
+    ],
+    [
+     16,
+     18,
+     12,
+     20
+    ],
+    [
+     10,
+     14,
+     12,
+     6
+    ],
+    [
+     14,
+     12,
+     10,
+     8
+    ],
+    [
+     12,
+     24,
+     16,
+     20
+    ],
+    [
+     14,
+     12,
+     6,
+     8
+    ]
+   ]
+  },
+  {
+   "answer": 40,
+   "sets": [
+    [
+     16,
+     22,
+     40,
+     34
+    ],
+    [
+     46,
+     40,
+     52,
+     64
+    ],
+    [
+     16,
+     34,
+     40,
+     22
+    ],
+    [
+     40,
+     52,
+     58,
+     46
+    ],
+    [
+     46,
+     58,
+     40,
+     28
+    ],
+    [
+     40,
+     28,
+     34,
+     16
+    ]
+   ]
+  },
+  {
+   "answer": 144,
+   "sets": [
+    [
+     254,
+     144,
+     188,
+     210
+    ],
+    [
+     144,
+     254,
+     188,
+     210
+    ],
+    [
+     100,
+     144,
+     78,
+     188
+    ],
+    [
+     144,
+     56,
+     100,
+     78
+    ],
+    [
+     210,
+     188,
+     122,
+     144
+    ],
+    [
+     144,
+     122,
+     166,
+     78
+    ]
+   ]
+  },
+  {
+   "answer": -18,
+   "sets": [
+    [
+     -14,
+     -8,
+     -12,
+     -18
+    ],
+    [
+     -26,
+     -22,
+     -18,
+     -16
+    ],
+    [
+     -20,
+     -18,
+     -14,
+     -24
+    ],
+    [
+     -22,
+     -18,
+     -16,
+     -14
+    ],
+    [
+     -14,
+     -12,
+     -20,
+     -18
+    ],
+    [
+     -18,
+     -20,
+     -14,
+     -24
+    ]
+   ]
+  },
+  {
+   "answer": 1000,
+   "sets": [
+    [
+     1300,
+     850,
+     1000,
+     700
+    ],
+    [
+     1450,
+     1000,
+     1150,
+     700
+    ],
+    [
+     1450,
+     1000,
+     1300,
+     700
+    ],
+    [
+     1150,
+     1300,
+     1600,
+     1000
+    ],
+    [
+     1000,
+     1750,
+     1450,
+     1150
+    ],
+    [
+     1600,
+     1300,
+     700,
+     1000
+    ]
+   ]
+  }
+ ],
+ "leak": [
+  {
+   "level": 1,
+   "n": 2000,
+   "nearMeanRate": 0.2545,
+   "lastStepRate": 1
+  },
+  {
+   "level": 5,
+   "n": 2000,
+   "nearMeanRate": 0.249,
+   "lastStepRate": 0.603
+  },
+  {
+   "level": 9,
+   "n": 2000,
+   "nearMeanRate": 0.2675,
+   "lastStepRate": 0.876
+  },
+  {
+   "level": 13,
+   "n": 2000,
+   "nearMeanRate": 0.2725,
+   "lastStepRate": 0.2505
+  },
+  {
+   "level": 17,
+   "n": 2000,
+   "nearMeanRate": 0.247,
+   "lastStepRate": 0.227
+  },
+  {
+   "level": 21,
+   "n": 2000,
+   "nearMeanRate": 0.2675,
+   "lastStepRate": 0.2495
+  },
+  {
+   "level": 25,
+   "n": 2000,
+   "nearMeanRate": 0.262,
+   "lastStepRate": 0.4315
+  },
+  {
+   "level": 30,
+   "n": 2000,
+   "nearMeanRate": 0.2495,
+   "lastStepRate": 0.425
+  }
+ ],
+ "cells": [
+  {
+   "width": 0,
+   "labels": [
+    "4",
+    "6",
+    "8",
+    "10",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 0,
+   "labels": [
+    "1",
+    "11",
+    "21",
+    "1211",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 0,
+   "labels": [
+    "5",
+    "−8",
+    "18",
+    "−34",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 0,
+   "labels": [
+    "139",
+    "211",
+    "350",
+    "561",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 0,
+   "labels": [
+    "8",
+    "1",
+    "24",
+    "2",
+    "72",
+    "4",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 0,
+   "labels": [
+    "1234567",
+    "2345678",
+    "3456789",
+    "4567890",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 300,
+   "labels": [
+    "4",
+    "6",
+    "8",
+    "10",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 53,
+    "fits": true
+   }
+  },
+  {
+   "width": 300,
+   "labels": [
+    "1",
+    "11",
+    "21",
+    "1211",
+    "?"
+   ],
+   "out": {
+    "font": 16,
+    "pad": 5,
+    "gap": 6,
+    "cell": 57,
+    "fits": false
+   }
+  },
+  {
+   "width": 300,
+   "labels": [
+    "5",
+    "−8",
+    "18",
+    "−34",
+    "?"
+   ],
+   "out": {
+    "font": 20,
+    "pad": 5,
+    "gap": 6,
+    "cell": 55,
+    "fits": true
+   }
+  },
+  {
+   "width": 300,
+   "labels": [
+    "139",
+    "211",
+    "350",
+    "561",
+    "?"
+   ],
+   "out": {
+    "font": 20,
+    "pad": 5,
+    "gap": 6,
+    "cell": 55,
+    "fits": true
+   }
+  },
+  {
+   "width": 300,
+   "labels": [
+    "8",
+    "1",
+    "24",
+    "2",
+    "72",
+    "4",
+    "?"
+   ],
+   "out": {
+    "font": 16,
+    "pad": 5,
+    "gap": 6,
+    "cell": 37,
+    "fits": true
+   }
+  },
+  {
+   "width": 300,
+   "labels": [
+    "1234567",
+    "2345678",
+    "3456789",
+    "4567890",
+    "?"
+   ],
+   "out": {
+    "font": 16,
+    "pad": 5,
+    "gap": 6,
+    "cell": 88,
+    "fits": false
+   }
+  },
+  {
+   "width": 340,
+   "labels": [
+    "4",
+    "6",
+    "8",
+    "10",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 61,
+    "fits": true
+   }
+  },
+  {
+   "width": 340,
+   "labels": [
+    "1",
+    "11",
+    "21",
+    "1211",
+    "?"
+   ],
+   "out": {
+    "font": 18,
+    "pad": 5,
+    "gap": 6,
+    "cell": 63,
+    "fits": true
+   }
+  },
+  {
+   "width": 340,
+   "labels": [
+    "5",
+    "−8",
+    "18",
+    "−34",
+    "?"
+   ],
+   "out": {
+    "font": 20,
+    "pad": 5,
+    "gap": 6,
+    "cell": 63,
+    "fits": true
+   }
+  },
+  {
+   "width": 340,
+   "labels": [
+    "139",
+    "211",
+    "350",
+    "561",
+    "?"
+   ],
+   "out": {
+    "font": 20,
+    "pad": 5,
+    "gap": 6,
+    "cell": 63,
+    "fits": true
+   }
+  },
+  {
+   "width": 340,
+   "labels": [
+    "8",
+    "1",
+    "24",
+    "2",
+    "72",
+    "4",
+    "?"
+   ],
+   "out": {
+    "font": 20,
+    "pad": 5,
+    "gap": 6,
+    "cell": 43,
+    "fits": true
+   }
+  },
+  {
+   "width": 340,
+   "labels": [
+    "1234567",
+    "2345678",
+    "3456789",
+    "4567890",
+    "?"
+   ],
+   "out": {
+    "font": 16,
+    "pad": 5,
+    "gap": 6,
+    "cell": 88,
+    "fits": false
+   }
+  },
+  {
+   "width": 352,
+   "labels": [
+    "4",
+    "6",
+    "8",
+    "10",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 352,
+   "labels": [
+    "1",
+    "11",
+    "21",
+    "1211",
+    "?"
+   ],
+   "out": {
+    "font": 18,
+    "pad": 5,
+    "gap": 6,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 352,
+   "labels": [
+    "5",
+    "−8",
+    "18",
+    "−34",
+    "?"
+   ],
+   "out": {
+    "font": 20,
+    "pad": 5,
+    "gap": 6,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 352,
+   "labels": [
+    "139",
+    "211",
+    "350",
+    "561",
+    "?"
+   ],
+   "out": {
+    "font": 20,
+    "pad": 5,
+    "gap": 6,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 352,
+   "labels": [
+    "8",
+    "1",
+    "24",
+    "2",
+    "72",
+    "4",
+    "?"
+   ],
+   "out": {
+    "font": 20,
+    "pad": 5,
+    "gap": 6,
+    "cell": 45,
+    "fits": true
+   }
+  },
+  {
+   "width": 352,
+   "labels": [
+    "1234567",
+    "2345678",
+    "3456789",
+    "4567890",
+    "?"
+   ],
+   "out": {
+    "font": 16,
+    "pad": 5,
+    "gap": 6,
+    "cell": 88,
+    "fits": false
+   }
+  },
+  {
+   "width": 390,
+   "labels": [
+    "4",
+    "6",
+    "8",
+    "10",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 390,
+   "labels": [
+    "1",
+    "11",
+    "21",
+    "1211",
+    "?"
+   ],
+   "out": {
+    "font": 20,
+    "pad": 5,
+    "gap": 6,
+    "cell": 67,
+    "fits": true
+   }
+  },
+  {
+   "width": 390,
+   "labels": [
+    "5",
+    "−8",
+    "18",
+    "−34",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 68,
+    "fits": true
+   }
+  },
+  {
+   "width": 390,
+   "labels": [
+    "139",
+    "211",
+    "350",
+    "561",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 68,
+    "fits": true
+   }
+  },
+  {
+   "width": 390,
+   "labels": [
+    "8",
+    "1",
+    "24",
+    "2",
+    "72",
+    "4",
+    "?"
+   ],
+   "out": {
+    "font": 20,
+    "pad": 5,
+    "gap": 6,
+    "cell": 50,
+    "fits": true
+   }
+  },
+  {
+   "width": 390,
+   "labels": [
+    "1234567",
+    "2345678",
+    "3456789",
+    "4567890",
+    "?"
+   ],
+   "out": {
+    "font": 16,
+    "pad": 5,
+    "gap": 6,
+    "cell": 88,
+    "fits": false
+   }
+  },
+  {
+   "width": 430,
+   "labels": [
+    "4",
+    "6",
+    "8",
+    "10",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 64,
+    "fits": true
+   }
+  },
+  {
+   "width": 430,
+   "labels": [
+    "1",
+    "11",
+    "21",
+    "1211",
+    "?"
+   ],
+   "out": {
+    "font": 20,
+    "pad": 5,
+    "gap": 6,
+    "cell": 67,
+    "fits": true
+   }
+  },
+  {
+   "width": 430,
+   "labels": [
+    "5",
+    "−8",
+    "18",
+    "−34",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 68,
+    "fits": true
+   }
+  },
+  {
+   "width": 430,
+   "labels": [
+    "139",
+    "211",
+    "350",
+    "561",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 68,
+    "fits": true
+   }
+  },
+  {
+   "width": 430,
+   "labels": [
+    "8",
+    "1",
+    "24",
+    "2",
+    "72",
+    "4",
+    "?"
+   ],
+   "out": {
+    "font": 24,
+    "pad": 8,
+    "gap": 8,
+    "cell": 54,
+    "fits": true
+   }
+  },
+  {
+   "width": 430,
+   "labels": [
+    "1234567",
+    "2345678",
+    "3456789",
+    "4567890",
+    "?"
+   ],
+   "out": {
+    "font": 16,
+    "pad": 5,
+    "gap": 6,
+    "cell": 88,
+    "fits": false
+   }
+  }
+ ]
+}

@@ -62,6 +62,7 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import DropdownSelect from '@/src/components/DropdownSelect';
 import {ViewpointReference} from '@/src/components/ViewpointReference';
 import {RotationShape,RotationTransition} from '@/src/components/RotationShape';
 import {stillUnit} from '@/src/games/mental-rotation/core/surface';
@@ -663,45 +664,28 @@ export default function MentalRotationGame() {
         «Количество попыток» под кнопку отзыва. Список раскрывается под строкой, как «Выбрать узор» в «Детском мате».
       */}
       <View testID="mental-kind-picker" style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-        <TouchableOpacity
-          testID="mental-kind-select"
-          accessibilityRole="button"
-          accessibilityState={{ expanded: kindListOpen }}
-          // react-native-web не переносит expanded из accessibilityState в aria-expanded (замер 390×844: null) — задаём прямо.
-          aria-expanded={kindListOpen}
-          accessibilityLabel={`${strings.practiceTitle}: ${chosenKind ? kindWord(chosenKind) : strings.practiceMixed}`}
-          onPress={() => setKindListOpen((open) => !open)}
-          style={[styles.kindSelect, { borderColor: kindListOpen ? GRADIENT[0] : colors.border }]}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.kindSelectLabel, { color: colors.textSecondary }]}>{strings.practiceTitle}</Text>
-            <Text style={[styles.kindSelectValue, { color: colors.text }]} numberOfLines={1}>
-              {chosenKind ? kindWord(chosenKind) : strings.practiceMixed}
-            </Text>
-          </View>
-          <Ionicons name={kindListOpen ? 'chevron-up' : 'chevron-down'} size={22} color={colors.textSecondary} />
-        </TouchableOpacity>
-        {kindListOpen && (
-          <View testID="mental-kind-list" style={[styles.kindList, { borderColor: colors.border }]}>
-            {([null, ...(Object.keys(KIND_UNLOCK) as TaskKind[])] as (TaskKind | null)[]).map((k, i) => {
-              const выбран = chosenKind === k;
-              // Вид выше уровня игрока строится с порога — порог виден в строке, а не только после выбора.
-              const порог = k && KIND_UNLOCK[k] > selectedLevel ? KIND_UNLOCK[k] : null;
-              return (
-                <TouchableOpacity
-                  key={k ?? 'mixed'} testID={`mental-kind-${k ?? 'mixed'}`}
-                  accessibilityRole="button" accessibilityState={{ selected: выбран }}
-                  onPress={() => { setChosenKind(k); setKindListOpen(false); }}
-                  style={[styles.kindRow, i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border }]}>
-                  <Text style={[styles.kindRowText, { color: выбран ? GRADIENT[0] : colors.text, fontWeight: выбран ? '800' : '600' }]} numberOfLines={1}>
-                    {k ? kindWord(k) : strings.practiceMixed}
-                  </Text>
-                  {порог ? <Text style={[styles.kindRowHint, { color: colors.textSecondary }]}>{t('level')} {порог}</Text> : null}
-                  <Ionicons name="checkmark" size={20} color={выбран ? GRADIENT[0] : 'transparent'} />
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
+        {/*
+          ОБЩИЙ выпадающий список (задача 298e0ae9): свой был первым, а таких в один день пришло
+          три — «Вид заданий» здесь, «Алфавит» в «Корректуре», язык в «Парах слов». Правило Дениса:
+          список один на приложение. Свою копию убрал целиком, вместе с её стилями и `aria-expanded`:
+          и то и другое теперь внутри DropdownSelect.
+        */}
+        <DropdownSelect
+          testID="mental-kind"
+          подпись={strings.practiceTitle}
+          значение={chosenKind}
+          открыт={kindListOpen}
+          наОткрытие={setKindListOpen}
+          акцент={GRADIENT[0]}
+          цвета={colors}
+          варианты={([null, ...(Object.keys(KIND_UNLOCK) as TaskKind[])] as (TaskKind | null)[]).map((k) => ({
+            значение: k,
+            текст: k ? kindWord(k) : strings.practiceMixed,
+            // Вид выше уровня игрока строится с порога — порог виден в строке, а не после выбора.
+            справа: k && KIND_UNLOCK[k] > selectedLevel ? `${t('level')} ${KIND_UNLOCK[k]}` : undefined,
+          }))}
+          onChange={(k) => setChosenKind(k)}
+        />
         {chosenKind && !kindListOpen && (
           <Text testID="mental-kind-note" style={{ color: colors.textSecondary, fontSize: 13 }}>
             {strings.practiceNote.replace('{level}', String(practiceLevel(chosenKind, selectedLevel)))}
@@ -1066,13 +1050,6 @@ const styles = StyleSheet.create({
   modeButton: { minHeight: 48, justifyContent: 'center', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 16 },
   modeButtonText: { fontSize: 13, fontWeight: '600' },
   // Выбор вида заданий — выпадающий список: строка выбора и строки списка не ниже порога нажатия (48).
-  kindSelect: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8 },
-  kindSelectLabel: { fontSize: 12, fontWeight: '600' },
-  kindSelectValue: { fontSize: 16, fontWeight: '800' },
-  kindList: { borderWidth: 1, borderRadius: 14, overflow: 'hidden' },
-  kindRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14 },
-  kindRowText: { flex: 1, minWidth: 0, fontSize: 15 },
-  kindRowHint: { fontSize: 12 },
   startBtn: { minHeight: 48, justifyContent: 'center', borderRadius: 16, overflow: 'hidden', marginTop: 8 },
   startBtnGrad: { paddingVertical: 16, alignItems: 'center' },
   startBtnText: { color: ON_GRAD.color, fontSize: 16, fontWeight: '700' },

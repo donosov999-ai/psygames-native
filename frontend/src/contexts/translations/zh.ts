@@ -2735,6 +2735,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ 这里要拖动，不是点击",
   "puzzleNoMoves": "没有可走的步了，可以重新开始",
   "puzzleBlownUp": "被炸到了。撤销这一步，继续游戏",
+  "puzzleBarrelStuck": "木桶卡在角落里了。撤销这一步或者重新开始",
   "puzzleErrorShown": "红色标出违反规则的地方",
   "puzzleWhereError": "错在哪里？",
   "puzzleWrongLines": "多余的线已用红色圈出：{n}",

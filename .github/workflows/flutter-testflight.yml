@@ -66,6 +66,34 @@ jobs:
             echo "::error title=Веб-часть::вложено слишком мало — сборка была бы пустой"; exit 1
           fi
 
+      # 🔴 ДВИЖОК ТЭТХЭМА — ТОТ ЖЕ ШАГ, ЧТО В flutter-pilot.yml, И ЭТО НЕ ДУБЛЬ РАДИ ДУБЛЯ.
+      #
+      # Замер 23.09.2026: я починил сборку движка в ОДНОМ рабочем процессе из двух,
+      # и выкладка упала ровно там же — три пробы головоломок (puzzles_engine,
+      # puzzles_frame, puzzles_screen) зовут настоящий движок через dart:ffi, а его
+      # на бегунке нет: 105 149 строк C живут в каноне вне нашего репозитория.
+      # Прогон 35885629221: 580 зелёных, 3 красных, сборка не собралась.
+      #
+      # ⚠️ Метка коммита канона ОБЯЗАНА совпадать с flutter-pilot.yml. Разойдутся —
+      # выкладка соберётся на другом движке, чем проверяли пробы, и это не заметит
+      # никто: обе сборки зелёные, а игры разные.
+      - name: Канон Тэтхэма (по метке) и сборка движка
+        working-directory: flutter
+        run: |
+          set -eu
+          TATHAM_SHA=428913c6a58b60802fe5d734d9a44c34159f4e0f
+          git clone --quiet https://git.tartarus.org/simon/puzzles.git "$HOME/puzzles"
+          git -C "$HOME/puzzles" checkout --quiet "$TATHAM_SHA"
+          echo "канон: $(git -C "$HOME/puzzles" rev-parse --short HEAD)"
+          PUZZLES_SRC="$HOME/puzzles" tool/build_tatham.sh
+          # 🔴 И ОТДЕЛЬНО ПОД iOS — ЭТО РАЗНЫЕ СБОРКИ, А НЕ ОДНА.
+          # Выше — библиотека ПОД ХОСТ, ею гоняются пробы. Здесь — статическая .a
+          # под устройство: её линкует ios/Flutter/Release.xcconfig (-force_load).
+          # Нет файла — линковка падает, и падает она на ШЕСТНАДЦАТОЙ минуте сборки,
+          # когда уже собран весь Dart.
+          PUZZLES_SRC="$HOME/puzzles" tool/build_tatham_ios.sh arm64
+          ls -l build/tatham-ios-arm64/libtatham.a
+
       - name: Пробы пилота
         working-directory: flutter
         run: |
@@ -156,6 +184,23 @@ jobs:
           </dict></plist>
           PLIST
           flutter build ipa --release --export-options-plist="$RUNNER_TEMP/ExportOptions.plist"
+
+      # 🔴 ДВИЖОК ДОЕХАЛ ДО БИНАРНИКА? Проверяем ДО заливки, а не после.
+      # Линковка молчит, когда движок выпадает: сборка зелёная, размер
+      # правдоподобный, а приложение падает на первом ходе уже у человека.
+      # Замер чата «Шахматы» 23.09.2026: бинарник вышел 294 КБ вообще без движка,
+      # и ничего красного не загорелось.
+      - name: Гейт — движок в бинарнике
+        working-directory: flutter
+        # ⚠️ БЕЗ ПУТИ: пусть ищет сам. Явный путь здесь и был причиной трёх
+        # отбитых зелёных сборок — на бегунке после `flutter build ipa` нет
+        # ни build/ios/iphoneos, ни распакованного .app, только .ipa.
+        run: |
+          tool/check_ios_engine.sh
+          # ⚠️ И ТОЛЬКО ПОТОМ КОПИРОВАНИЕ. Заменяя вызов гейта, я срезал вместе с
+          # ним эти три строки — и сборка прошла гейт, но упала на заливке с
+          # «.ipa не найден». Многострочный `run:` обязан начинаться с `|`,
+          # иначе YAML склеивает строки в одну команду.
           mkdir -p "$RUNNER_TEMP/ipa"
           cp build/ios/ipa/*.ipa "$RUNNER_TEMP/ipa/"
           ls -la "$RUNNER_TEMP/ipa"
@@ -178,8 +223,21 @@ jobs:
             echo "· нативные игры: «Соедини точки», «Одна линия», «Цифровой ряд», «Матрица памяти»"
             echo "· остальные экраны открываются нынешней сборкой внутри приложения"
             echo ""
-            echo "⚠️ Внутренняя группа видит сборку сразу, внешняя ждёт одобрения Apple."
+            echo "⚠️ Внешняя группа «Семья и близкие» ждёт одобрения Apple и раздаётся вручную."
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # 🔴 БЕЗ ЭТОГО ШАГА ЗАЛИВКА НИЧЕГО НЕ МЕНЯЕТ НА ТЕЛЕФОНЕ. Сборка появляется в App
+      # Store Connect и остаётся НИ В ОДНОЙ группе: так 23.09.2026 молча простояли четыре
+      # версии подряд, а тестировщики видели предыдущую. Прежний итог прогона писал
+      # «внутренняя группа видит сборку сразу» — это была неправда.
+      - name: Раздать сборку внутренней группе
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check pyjwt cryptography
+          export APPLE_API_KEY_FILE=~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
+          python3 flutter/tool/testflight_assign.py "${{ inputs.version }}" "${{ github.run_number }}"
 
       - uses: actions/upload-artifact@v4
         if: always()

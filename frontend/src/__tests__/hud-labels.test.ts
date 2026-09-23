@@ -237,6 +237,20 @@ const MODULE_DICT: Record<string, { leaves: string[]; getter: string; dict: stri
     dict: 'src/games/proofreading/core/i18n.ts',
     keys: ['blockSign', 'blockWord', 'blockSense'],
   },
+  /*
+   * 📍 23.09.2026. Режим «Опоры» у мнемоники живёт только там, где есть таблица
+   * буквенно-цифрового кода, — а она по построению языковая и есть у двух языков
+   * (`hasPegTable`, `PegLang = 'ru' | 'en'`). Гнать эти строки в общий словарь на
+   * двенадцать языков значило бы обещать перевод там, где самого приёма нет:
+   * английский код «2 = н/n» на немецком неверен. Слово рядом с числом игрок
+   * видит и видит переведённым — `PEG_TEXT[language].left`, «Осталось»/«Left».
+   */
+  'mnemonics.tsx': {
+    leaves: ['PEG_TEXT['],
+    getter: 'PEG_TEXT[',
+    dict: 'src/games/mnemonics/pegs.ts',
+    keys: ['left', 'askWord', 'askNumber'],
+  },
 };
 
 describe('подписи чисел в шапке игры', () => {
@@ -421,6 +435,7 @@ const LIMITS: Record<string, { kind: 'countdown' | 'reaction'; why: string }> = 
   'set-game.tsx': { kind: 'countdown', why: 'с L11 — 26 с на расклад, к L15 сжимается до 10 с' },
   'trail-making.tsx': { kind: 'countdown', why: 'лимит на всю дорожку' },
   'word-pairs.tsx': { kind: 'countdown', why: 'лимит на фазу запоминания' },
+  'mnemonics.tsx': { kind: 'countdown', why: 'режим «Опоры»: до L11 лимита нет, с L12 — 12 с на вопрос, к L28 сжимается до 4 с (pegsQuiz.ts:57); остаток стоит в шапке рядом со счётом' },
   'ant.tsx': { kind: 'reaction', why: 'окно ответа 3000→1040 мс' },
   'choice-rt.tsx': { kind: 'reaction', why: 'окно ответа 2000→750 мс' },
   'flanker.tsx': { kind: 'reaction', why: 'окно ответа 3000→1000 мс' },
@@ -441,10 +456,47 @@ const LIMIT_RE = /\b(timeLimit|windowMs|wordSec|roundSec|limitMs|roundLimit|perR
  * компонент (их меняют), а СМЫСЛ: в шапке есть значение, подписанное словом
  * «осталось», либо значение вида «прошло/лимит».
  */
+function телоФункции(src: string, имя: string): string | null {
+  const объявление = new RegExp(`(?:const\\s+${имя}\\s*=|function\\s+${имя}\\b)`).exec(src);
+  if (!объявление) return null;
+  const начало = src.indexOf('{', объявление.index);
+  if (начало < 0) return null;
+  let глубина = 0;
+  for (let i = начало; i < src.length; i += 1) {
+    if (src[i] === '{') глубина += 1;
+    else if (src[i] === '}') {
+      глубина -= 1;
+      if (глубина === 0) return src.slice(начало, i + 1);
+    }
+  }
+  return null;
+}
+
 function showsRemaining(src: string): boolean {
   const head = statsBlocks(src).join('\n');
   if (/t\('timeLeftLabel'\)/.test(head)) return true;                 // подпись «Осталось»
   if (/\/\$?\{?\s*timeLimit/.test(head)) return true;                     // «12.3/40 c» — лимит виден рядом
+  /**
+   * 🔴 ТРЕТЬЯ ФОРМА — ПО СМЫСЛУ, А НЕ ПО НАПИСАНИЮ.
+   *
+   * Две проверки выше — это два КОНКРЕТНЫХ написания, хотя комментарий обещает
+   * смысл. 23.09.2026 на этом и споткнулись: «Мнемоника» показывает остаток
+   * третьим способом — своей функцией `остатокВремени()`, которая считает
+   * `limitMs - (сейчас - начало)`. Игрок цифру видит, гейт назвал экран
+   * нарушением, и починка «допиши ещё одно написание» вернула бы ту же ловушку
+   * при четвёртом экране.
+   *
+   * Поэтому: берём КАЖДЫЙ вызов без аргументов из шапки, разбираем тело этой
+   * функции в том же файле и спрашиваем два вопроса — опирается ли она на сам
+   * ограничитель (`LIMIT_RE`) и считает ли РАЗНОСТЬ. Функция, которая просто
+   * печатает лимит, разности не содержит и остатком не считается.
+   */
+  // ⚠️ Без `\b`: в JS без флага `u` граница слова считается по `[A-Za-z0-9_]`, и
+  // перед кириллической буквой её НЕТ — `\bостатокВремени` не совпадает никогда.
+  for (const м of head.matchAll(/(?:^|[^\w$.А-Яа-яЁё])([A-Za-zА-Яа-яЁё_][\w$А-Яа-яЁё]*)\s*\(\s*\)/g)) {
+    const тело = телоФункции(src, м[1]);
+    if (тело && LIMIT_RE.test(тело) && тело.includes('-')) return true;
+  }
   return false;
 }
 

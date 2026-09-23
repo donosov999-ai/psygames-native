@@ -28,6 +28,15 @@ import { LanguageProvider } from '@/src/contexts/LanguageContext';
 import { PlayerLevelProvider } from '@/src/contexts/PlayerLevelContext';
 import { WarmupProvider } from '@/src/contexts/WarmupContext';
 
+// Роутер общий: экран анаграмм зеркалит режим в адрес (`setParams`, d359c068), и
+// проба, поднимающая его целиком, обязана дать роутер со ВСЕМИ методами. Перечень
+// общий мок снимает с самого expo-router — рукописные списки 23.09 и разъехались.
+jest.mock('expo-router', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- фабрика jest.mock грузится ДО импортов файла
+  require('./routerMockShared').мокМодуляРоутера({
+  путь: '/games/anagrams',
+}));
+
 let mockКруг: { letters: string[]; disabled: boolean; onTrace: (n: number[]) => void } | null = null;
 jest.mock('@/src/components/letterWheel/LetterWheel', () => ({
   LetterWheel: (props: { letters: string[]; disabled: boolean; onTrace: (n: number[]) => void }) => {

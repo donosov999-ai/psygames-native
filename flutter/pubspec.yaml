@@ -36,8 +36,19 @@ dependencies:
   cupertino_icons: ^1.0.8
   webview_flutter: ^4.14.1
   shared_preferences: ^2.5.5
+  ffi: ^2.1.4
+  flutter_tts: ^4.2.5
+  just_audio: ^0.10.6
+  # 🔴 Забрать прогресс ПРЕЖНЕЙ версии из контейнера приложения (lib/shell/legacy_import.dart).
+  # Tauri-сборка держала его в localStorage WKWebView, а это обычный sqlite внутри
+  # нашего же контейнера. Без чтения этих файлов человек после обновления видит нули.
+  path_provider: ^2.1.5
+  sqlite3: ^2.9.0
+  sqlite3_flutter_libs: ^0.5.41
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
 
@@ -72,7 +83,16 @@ flutter:
   assets:
     - assets/levels/
     - assets/hubs.json
+    - assets/faces-names.json
+    - assets/memory-palace.json
+    - assets/rmet.json
+    - assets/word-pairs.json
+    - assets/rmet/
     - assets/words/
+    - assets/l10n/
+    - assets/puzzles/
+    - assets/voice/
+    - assets/spatial/
     - assets/goods/
     - assets/tubes/
     - assets/balls/
@@ -81,6 +101,7 @@ flutter:
     - assets/cake/plates/
     - assets/pizza/tops/
     - assets/pizza/boards/
+    - assets/vocab/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

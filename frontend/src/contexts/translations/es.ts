@@ -2735,6 +2735,7 @@ const t: Record<string, string> = {
   "puzzleDragHint": "↔ Aquí se arrastra, no se toca",
   "puzzleNoMoves": "No quedan jugadas. Puedes empezar de nuevo",
   "puzzleBlownUp": "Has explotado. Deshaz la jugada y sigue",
+  "puzzleBarrelStuck": "El barril está atascado en la esquina. Deshaz la jugada o empieza de nuevo",
   "puzzleErrorShown": "En rojo: donde se rompe una regla",
   "puzzleWhereError": "¿Dónde está el error?",
   "puzzleWrongLines": "Líneas de más marcadas en rojo: {n}",

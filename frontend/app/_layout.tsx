@@ -1,5 +1,6 @@
 import React from 'react';
 import { hookConsoleErrors } from '@/src/services/crumbs';
+import { installNativeSessionBridge } from '@/src/services/nativeSessionBridge';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +11,7 @@ import { useReducedMotion } from '@/src/hooks/useReducedMotion';
 import { WarmupProvider, useWarmup } from '@/src/contexts/WarmupContext';
 import { Platform } from 'react-native';
 import { vibrate } from '@/src/services/feedback';
+
 import * as Notifications from 'expo-notifications';
 import { ProfileProvider } from '@/src/contexts/ProfileContext';
 import { PlayerLevelProvider } from '@/src/contexts/PlayerLevelContext';
@@ -32,6 +34,13 @@ import { repairWarmupHistoryOnce, loadWarmupHistory } from '@/src/services/warmu
 import { grantWarmupCompensationOnce } from '@/src/services/tokens';
 import { useProfile } from '@/src/contexts/ProfileContext';
 import { getSessions } from '@/src/services/api';
+
+// Приёмник партий от нативной половины гибрида — ставится ДО первого кадра:
+// перенесённый экран может открыться сразу со старта (START_ROUTE, зарядка).
+// ⚠️ ПОСЛЕ ВСЕХ ИМПОРТОВ. Сначала я поставил вызов между ними, и каждый импорт
+// ниже стал нарушением `import/first` — 22 предупреждения одним движением, и
+// линт-храповик покраснел у всех, кто просто подтянул main.
+installNativeSessionBridge();
 
 // Крошки репорта (§3.1): консоль-ошибки ловятся с первого кадра приложения.
 hookConsoleErrors();

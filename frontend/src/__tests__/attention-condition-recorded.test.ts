@@ -47,6 +47,17 @@ import { levelParams as wcstParams, levelCondition as wcstCond } from '@/app/gam
 import { levelParams as choiceParams, levelCondition as choiceCond } from '@/app/games/choice-rt';
 import { levelParams as stroopParams, levelCondition as stroopCond } from '@/app/games/stroop';
 import { levelParams as tgParams, levelCondition as tgCond } from '@/app/games/targets';
+import { levelParams as seParams, levelCondition as seCond } from '@/app/games/stroop-emotional';
+import { levelParams as simonParams, levelCondition as simonCond } from '@/app/games/simon';
+import { levelParams as antParams, levelCondition as antCond } from '@/app/games/ant';
+import { levelParams as gngParams, levelCondition as gngCond } from '@/app/games/go-no-go';
+import { levelParams as inhParams, levelCondition as inhCond } from '@/app/games/inhibition';
+import { levelParams as posnerParams, levelCondition as posnerCond } from '@/app/games/posner';
+import { levelParams as prlParams, levelCondition as prlCond } from '@/app/games/prl';
+import { levelParams as iowaParams, levelCondition as iowaCond } from '@/app/games/iowa';
+import { levelParams as bartParams, levelCondition as bartCond } from '@/app/games/bart';
+import { levelParams as proofParams, levelCondition as proofCond } from '@/app/games/proofreading';
+import { levelParams as ssParams, levelCondition as ssCond } from '@/src/games/stop-signal/core';
 
 const УРОВНИ = Array.from({ length: 15 }, (_, i) => i + 1);
 
@@ -58,7 +69,21 @@ const УРОВНИ = Array.from({ length: 15 }, (_, i) => i + 1);
  * человек видит в итогах партии и сравнивает со своим прошлым проходом, а раздел
  * с 09.09.2026 меряет прогресс человека. Число без условия сравнивать не с чем.
  */
-const БАТАРЕЙНЫЕ = [
+/**
+ * ⚠️ ТИП ЗАПИСАН ЯВНО. Восемнадцать `levelParams` возвращают восемнадцать РАЗНЫХ
+ * форм, и без общего типа TypeScript складывает их в объединение, которое не
+ * подставить в `меняющиеся(…)`. Оба поля читаются гейтом одинаково — как набор
+ * «имя поля → значение», поэтому здесь они так и объявлены.
+ */
+type Батарейный = {
+  имя: string;
+  показатель: string;
+  норма: string;
+  параметры: (l: number) => Record<string, unknown>;
+  условие: (l: number) => Record<string, unknown>;
+};
+
+const БАТАРЕЙНЫЕ: Батарейный[] = [
   { имя: 'flanker',        показатель: 'flanker_effect_ms', норма: '70±30',    параметры: flankerParams, условие: flankerCond },
   { имя: 'cpt',            показатель: 'rt_variability',    норма: '0,20±0,08', параметры: cptParams,     условие: cptCond },
   { имя: 'switching_task', показатель: 'switch_cost_ms',    норма: '150±80',   параметры: swParams,      условие: swCond },
@@ -66,6 +91,30 @@ const БАТАРЕЙНЫЕ = [
   { имя: 'choice_rt',      показатель: 'mean_rt',          норма: 'нет в батарее', параметры: choiceParams, условие: choiceCond },
   { имя: 'stroop',         показатель: 'interference_ms',  норма: 'нет в батарее', параметры: stroopParams, условие: stroopCond },
   { имя: 'targets',        показатель: 'commission_errors', норма: 'нет в батарее', параметры: tgParams,     условие: tgCond },
+  /**
+   * 🔴 ОСТАЛЬНЫЕ ОДИННАДЦАТЬ ДОБАВЛЕНЫ 23.09.2026 — ГЕЙТ ВИДЕЛ СЕМЬ ЭКРАНОВ ИЗ
+   * ВОСЕМНАДЦАТИ И БЫЛ ЗЕЛЁН, ПОТОМУ ЧТО ОСТАЛЬНЫХ НЕ ВИДЕЛ ВОВСЕ.
+   *
+   * Решение Дениса 23.09.2026 («прими своих детишек нормально») — вся развилка
+   * «Конфликт внимания» одна зона: девять карточек, из них две с наборами
+   * («Стоп и запрет» — inhibition/go-no-go/stop-signal, «Решения» — prl/iowa/bart).
+   * Раз экран мой, его условие обязано ехать в партию так же, как у батарейных.
+   *
+   * ⚠️ У ЭТИХ ОДИННАДЦАТИ НОРМЫ В БАТАРЕЕ НЕТ — и это НЕ повод их не стеречь.
+   * Раздел с 09.09.2026 меряет прогресс ЧЕЛОВЕКА: он сравнивает свой проход со
+   * своим прежним, а два числа без условия сравнивать не с чем.
+   */
+  { имя: 'stroop_emotional', показатель: 'interference_threat_ms', норма: 'нет в батарее', параметры: seParams,     условие: seCond },
+  { имя: 'simon',            показатель: 'simon_effect_ms',        норма: 'нет в батарее', параметры: simonParams,  условие: simonCond },
+  { имя: 'ant',              показатель: 'executive_ms',           норма: 'нет в батарее', параметры: antParams,    условие: antCond },
+  { имя: 'go_no_go',         показатель: 'falseAlarms',            норма: 'нет в батарее', параметры: gngParams,    условие: gngCond },
+  { имя: 'inhibition',       показатель: 'inhibition_commission',  норма: 'нет в батарее', параметры: inhParams,    условие: inhCond },
+  { имя: 'stop_signal',      показатель: 'ssrt_ms',                норма: 'нет в батарее', параметры: (l) => ({ ...ssParams(l) }), условие: (l) => ({ ...ssCond(l) }) },  // интерфейс ядра — разворачиваем в набор полей
+  { имя: 'posner',           показатель: 'validity_effect_ms',     норма: '50±30',         параметры: posnerParams, условие: posnerCond },
+  { имя: 'prl',              показатель: 'perseverative_errors',   норма: 'нет в батарее', параметры: prlParams,    условие: prlCond },
+  { имя: 'iowa',             показатель: 'adv_share',              норма: 'нет в батарее', параметры: iowaParams,   условие: iowaCond },
+  { имя: 'bart',             показатель: 'adj_avg_pumps',          норма: 'нет в батарее', параметры: bartParams,   условие: bartCond },
+  { имя: 'proofreading',     показатель: 'proof_omission_pct',     норма: 'нет в батарее', параметры: proofParams,  условие: proofCond },
 ];
 
 /** Поля `levelParams`, которые ДЕЙСТВИТЕЛЬНО меняются по лестнице. Снимается прогоном. */
@@ -82,7 +131,8 @@ function меняющиеся(параметры: (l: number) => Record<string, 
 
 describe('условие, при котором снят показатель батареи, записывается в партию', () => {
   it('есть что проверять — иначе набор зелен вслепую', () => {
-    expect(БАТАРЕЙНЫЕ.length).toBe(7);
+    // Восемнадцать — столько экранов в развилке «Конфликт внимания».
+    expect(БАТАРЕЙНЫЕ.length).toBe(18);
     for (const б of БАТАРЕЙНЫЕ) {
       expect(`${б.имя}: меняющихся полей ${меняющиеся(б.параметры).length > 0}`).toBe(`${б.имя}: меняющихся полей true`);
     }

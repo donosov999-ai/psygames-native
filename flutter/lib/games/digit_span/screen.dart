@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -137,11 +138,11 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final backward = _direction == Direction.backward;
     return GameShell(
-      title: 'Цифровой ряд',
+      title: L.t('digitSpan'),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Цифр', value: '${g.sequence.length}', icon: Icons.pin_outlined),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
+        HudItem(label: L.t('lengthLabel'), value: '${g.sequence.length}', icon: Icons.pin_outlined),
       ],
       field: (context, h) => _Field(
         game: g,
@@ -156,15 +157,15 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.backspace_outlined,
-          label: 'Стереть',
+          label: L.t('a11yErase'),
           onPressed: _phase == Phase.recall && g.entered.isNotEmpty
               ? () => setState(g.undo)
               : null,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: () => setState(_reset)),
+        AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: () => setState(_reset)),
         AuxAction(
           icon: Icons.visibility_outlined,
-          label: 'Показать ответ',
+          label: L.t('puzzleShowSolution'),
           tint: const Color(0xFFB45309),
           onPressed: _phase == Phase.recall
               ? () => setState(() {
@@ -180,12 +181,12 @@ class _DigitSpanScreenState extends State<DigitSpanScreen> {
               child: FilledButton.icon(
                 onPressed: _nextLevel,
                 icon: const Icon(Icons.arrow_forward),
-                label: Text(_won ? 'Следующий уровень' : 'Ещё раз'),
+                label: Text(_won ? L.t('nextLabel') : L.t('retry')),
               ),
             )
           : null,
       pauseActions: [
-        PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: () => setState(_reset)),
+        PauseAction(label: L.t('restart'), icon: Icons.refresh, onPressed: () => setState(_reset)),
       ],
     );
   }
@@ -222,10 +223,10 @@ class _Field extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(backward ? 'Ввод — задом наперёд' : 'Ввод — как показали',
+              Text(backward ? L.t('typeReversed') : L.t('typeAsShown'),
                   style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 12),
-              FilledButton(onPressed: onStart, child: const Text('Показать ряд')),
+              FilledButton(onPressed: onStart, child: Text(L.t('start'))),
             ],
           ),
         );
@@ -255,7 +256,7 @@ class _Field extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  won ? 'Верно' : 'Было: ${game.expected.join(' ')}',
+                  won ? L.t('hud_correct') : '${L.t('label_was')}: ${game.expected.join(' ')}',
                   key: const Key('итог'),
                   style: TextStyle(color: won ? scheme.primary : scheme.error),
                 ),

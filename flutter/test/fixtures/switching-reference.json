@@ -1,0 +1,377 @@
+{
+  "снято": "прогоном живого TS из frontend/app/games/switching-task.tsx",
+  "switchProb": 0.5,
+  "decoysMax": 4,
+  "levels": [
+    {
+      "level": 1,
+      "trials": 12,
+      "switchProb": 0.5,
+      "windowMs": 3400,
+      "decoys": 0,
+      "condition": {
+        "trials": 12,
+        "windowMs": 3400,
+        "decoys": 0
+      }
+    },
+    {
+      "level": 2,
+      "trials": 12,
+      "switchProb": 0.5,
+      "windowMs": 3255,
+      "decoys": 0,
+      "condition": {
+        "trials": 12,
+        "windowMs": 3255,
+        "decoys": 0
+      }
+    },
+    {
+      "level": 3,
+      "trials": 12,
+      "switchProb": 0.5,
+      "windowMs": 3110,
+      "decoys": 0,
+      "condition": {
+        "trials": 12,
+        "windowMs": 3110,
+        "decoys": 0
+      }
+    },
+    {
+      "level": 4,
+      "trials": 12,
+      "switchProb": 0.5,
+      "windowMs": 2965,
+      "decoys": 2,
+      "condition": {
+        "trials": 12,
+        "windowMs": 2965,
+        "decoys": 2
+      }
+    },
+    {
+      "level": 5,
+      "trials": 12,
+      "switchProb": 0.5,
+      "windowMs": 2820,
+      "decoys": 2,
+      "condition": {
+        "trials": 12,
+        "windowMs": 2820,
+        "decoys": 2
+      }
+    },
+    {
+      "level": 6,
+      "trials": 16,
+      "switchProb": 0.5,
+      "windowMs": 2675,
+      "decoys": 2,
+      "condition": {
+        "trials": 16,
+        "windowMs": 2675,
+        "decoys": 2
+      }
+    },
+    {
+      "level": 7,
+      "trials": 16,
+      "switchProb": 0.5,
+      "windowMs": 2530,
+      "decoys": 2,
+      "condition": {
+        "trials": 16,
+        "windowMs": 2530,
+        "decoys": 2
+      }
+    },
+    {
+      "level": 8,
+      "trials": 16,
+      "switchProb": 0.5,
+      "windowMs": 2385,
+      "decoys": 2,
+      "condition": {
+        "trials": 16,
+        "windowMs": 2385,
+        "decoys": 2
+      }
+    },
+    {
+      "level": 9,
+      "trials": 16,
+      "switchProb": 0.5,
+      "windowMs": 2240,
+      "decoys": 4,
+      "condition": {
+        "trials": 16,
+        "windowMs": 2240,
+        "decoys": 4
+      }
+    },
+    {
+      "level": 10,
+      "trials": 16,
+      "switchProb": 0.5,
+      "windowMs": 2095,
+      "decoys": 4,
+      "condition": {
+        "trials": 16,
+        "windowMs": 2095,
+        "decoys": 4
+      }
+    },
+    {
+      "level": 11,
+      "trials": 20,
+      "switchProb": 0.5,
+      "windowMs": 1950,
+      "decoys": 4,
+      "condition": {
+        "trials": 20,
+        "windowMs": 1950,
+        "decoys": 4
+      }
+    },
+    {
+      "level": 12,
+      "trials": 20,
+      "switchProb": 0.5,
+      "windowMs": 1805,
+      "decoys": 4,
+      "condition": {
+        "trials": 20,
+        "windowMs": 1805,
+        "decoys": 4
+      }
+    },
+    {
+      "level": 13,
+      "trials": 20,
+      "switchProb": 0.5,
+      "windowMs": 1660,
+      "decoys": 4,
+      "condition": {
+        "trials": 20,
+        "windowMs": 1660,
+        "decoys": 4
+      }
+    },
+    {
+      "level": 14,
+      "trials": 20,
+      "switchProb": 0.5,
+      "windowMs": 1515,
+      "decoys": 4,
+      "condition": {
+        "trials": 20,
+        "windowMs": 1515,
+        "decoys": 4
+      }
+    },
+    {
+      "level": 15,
+      "trials": 20,
+      "switchProb": 0.5,
+      "windowMs": 1400,
+      "decoys": 4,
+      "condition": {
+        "trials": 20,
+        "windowMs": 1400,
+        "decoys": 4
+      }
+    }
+  ],
+  "trials": [
+    {
+      "mode": "mix",
+      "level": 1,
+      "last": null,
+      "взятые": [
+        0.1,
+        0.2,
+        0.3
+      ],
+      "taskIdx": 0,
+      "num": 3,
+      "letter": "B",
+      "full": "3B",
+      "correctLeft": true,
+      "isSwitch": false,
+      "decoys": []
+    },
+    {
+      "mode": "mix",
+      "level": 1,
+      "last": 0,
+      "взятые": [
+        0.4,
+        0.5,
+        0.6
+      ],
+      "taskIdx": 1,
+      "num": 6,
+      "letter": "M",
+      "full": "6M",
+      "correctLeft": false,
+      "isSwitch": true,
+      "decoys": []
+    },
+    {
+      "mode": "mix",
+      "level": 1,
+      "last": 1,
+      "взятые": [
+        0.7,
+        0.8,
+        0.9
+      ],
+      "taskIdx": 1,
+      "num": 8,
+      "letter": "S",
+      "full": "8S",
+      "correctLeft": false,
+      "isSwitch": false,
+      "decoys": []
+    },
+    {
+      "mode": "num2",
+      "level": 5,
+      "last": 0,
+      "взятые": [
+        0.05,
+        0.45,
+        0.55,
+        0.65
+      ],
+      "taskIdx": 1,
+      "num": 50,
+      "letter": "",
+      "full": "50",
+      "correctLeft": false,
+      "isSwitch": true,
+      "decoys": [
+        "diamond-outline",
+        "diamond-outline"
+      ]
+    },
+    {
+      "mode": "num3",
+      "level": 9,
+      "last": 1,
+      "взятые": [
+        0.75,
+        0.85,
+        0.95,
+        0.15,
+        0.25,
+        0.35
+      ],
+      "taskIdx": 1,
+      "num": 865,
+      "letter": "",
+      "full": "865",
+      "correctLeft": false,
+      "isSwitch": false,
+      "decoys": [
+        "prism-outline",
+        "ellipse-outline",
+        "square-outline",
+        "triangle-outline"
+      ]
+    },
+    {
+      "mode": "letters",
+      "level": 12,
+      "last": 0,
+      "взятые": [
+        0.99,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5
+      ],
+      "taskIdx": 0,
+      "num": 0,
+      "letter": "C",
+      "full": "C",
+      "correctLeft": false,
+      "isSwitch": false,
+      "decoys": [
+        "square-outline",
+        "square-outline",
+        "triangle-outline",
+        "diamond-outline"
+      ]
+    },
+    {
+      "mode": "mix",
+      "level": 12,
+      "last": 1,
+      "взятые": [
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        0.05,
+        0.45,
+        0.55
+      ],
+      "taskIdx": 1,
+      "num": 7,
+      "letter": "R",
+      "full": "7R",
+      "correctLeft": false,
+      "isSwitch": false,
+      "decoys": [
+        "prism-outline",
+        "ellipse-outline",
+        "triangle-outline",
+        "diamond-outline"
+      ]
+    }
+  ],
+  "цены": [
+    {
+      "sw": [
+        900,
+        900
+      ],
+      "rep": [
+        700,
+        700,
+        700
+      ],
+      "cost": 200
+    },
+    {
+      "sw": [],
+      "rep": [
+        700
+      ],
+      "cost": 0
+    },
+    {
+      "sw": [
+        800
+      ],
+      "rep": [],
+      "cost": 0
+    },
+    {
+      "sw": [
+        610,
+        640,
+        700
+      ],
+      "rep": [
+        500,
+        520
+      ],
+      "cost": 140
+    }
+  ]
+}

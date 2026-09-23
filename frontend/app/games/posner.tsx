@@ -1,4 +1,4 @@
-/* psygames-game-posner · VER 3 · 16.09.2026 */
+/* psygames-game-posner · VER 4 · 23.09.2026 */
 /**
  * Posner Cueing Task — пространственное внимание (orienting).
  *
@@ -38,6 +38,7 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
+import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import BossRound from '@/src/components/BossRound';
@@ -160,6 +161,8 @@ export function makeTrial(level: number): Trial {
 
 export default function PosnerGame() {
   const { colors } = useTheme();
+  // Ширина — защищённым хуком: голый useWindowDimensions() на первом кадре веб-сборки отдаёт 0.
+  const screenW = useScreenWidth();
   const { t, language } = useLanguage();
   const router = useRouter();
 
@@ -312,6 +315,13 @@ export default function PosnerGame() {
         errors: e,
         details: {
           level: levelRef.current,
+          /**
+           * УСЛОВИЕ УРОВНЯ — В САМУ ПАРТИЮ (23.09.2026). Не «восстановим через
+           * levelParams(level)»: поменяется формула уровня — и накопленное молча
+           * станет нечитаемым. Список полей руками не пишется, его держит гейт
+           * `attention-condition-recorded`: он сам гоняет levelParams по лестнице.
+           */
+          ...levelCondition(levelRef.current),
           mean_rt: Math.round(meanRt),
           validity_effect_ms: validityEffect,
           accuracy: Math.round(accuracy * 100),
@@ -409,8 +419,29 @@ export default function PosnerGame() {
         hud={[
           { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}` },
           { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
-          { key: 'reaction', icon: 'flash', label: t('reaction'), value: `${meanRtAll}${t('msShort')}`, tone: 'accent' as const },
-          { key: 'hud_cueGain', icon: 'ellipse', label: t('hud_cueGain'), value: `${validityEffect}${t('msShort')}` },
+          /**
+           * 🔴 ЕДИНИЦА «мс» В ЖИВОЙ ПОЛОСЕ НЕ ПИШЕТСЯ — ИНАЧЕ ПОЛЕ УЕЗЖАЕТ НА 54 ТОЧКИ.
+           *
+           * 📍 Замер 23.09.2026, 360×640, партия 24 с (прибор attention-chat/полоса-не-растёт.mjs):
+           * из 18 экранов раздела поле ездит у ЧЕТЫРЁХ — эмоциональный Струп, Стрелки,
+           * Стоп-сигнал и Поснер: верх поля 119 → 173, полоса счётчиков 61 → 115. Значок серии
+           * тут ни при чём (задача cca5f572 уже унесла его на медальон питомца): ряд переносится,
+           * когда РАСТЁТ ШИРИНА ЗНАЧЕНИЙ — «0мс» превращается в «852мс», «1/20» в «10/20».
+           * Прибор худшего случая (attention-chat/полоса-худший-случай.mjs) на самых широких
+           * значениях, какие экран может показать: «сейчас 1р/119 · худший 2р/173 · худший без мс 1р/119».
+           * То есть двух знаков суффикса ровно хватает, чтобы ряд не переносился.
+           * Подпись пилюли («Реакция») уже говорит, что это за число; единица остаётся в записи
+           * партии (details.mean_rt) и в статистике.
+           */
+          { key: 'reaction', icon: 'flash', label: t('reaction'), value: `${meanRtAll}`, tone: 'accent' as const },
+          /**
+           * ⚠️ У ЭТОГО ЭКРАНА ДВА ЗНАЧЕНИЯ ВРЕМЕНИ, И СНЯТОГО СУФФИКСА МАЛО.
+           * Тот же прибор худшего случая: «худший без мс 2р/173» на 360×640 — ряд всё равно
+           * переносится. Зато «без <производной пилюли> 1р/119». Поэтому производная мера
+           * (разность времён) на узком телефоне из живой полосы уходит: посреди партии она
+           * считается по горстке проб и всё равно ни о чём не говорит, а на 375+ остаётся.
+           */
+          ...(screenW >= 375 ? [{ key: 'hud_cueGain', icon: 'ellipse' as const, label: t('hud_cueGain'), value: `${validityEffect}` }] : []),
         ]}
         toolbar={
           /* RTL-пин: кнопка ← физически слева, как и слоты стимула — иначе валидность подсказки инвертируется */

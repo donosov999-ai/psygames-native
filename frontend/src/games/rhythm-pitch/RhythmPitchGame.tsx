@@ -22,8 +22,8 @@ import {
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
 } from 'react-native';
+import { useScreenSize } from '@/src/hooks/useScreenWidth';
 import {
   appendPitchLevel,
   completeAudioRoundPlayback,
@@ -487,14 +487,37 @@ function RhythmPitchSessionView({
    * уезжает на 188 ниже края. Отступы здесь заданы под просторный экран (20 + 18 + 20 + 14),
    * на узком телефоне они и съедают разницу. Высоту берём у себя через onLayout.
    */
-  const окно = useWindowDimensions();
+  /**
+   * ⚠️ ХУК ПРОЕКТА, А НЕ ГОЛЫЙ `useWindowDimensions`. В веб-сборке (Android у нас WebView)
+   * на ПЕРВОМ кадре система отдаёт 0 и больше не обновляет: `resize` при обычной загрузке
+   * не приходит, и ноль запекается в размеры навсегда. Гейт `screen-width-guard` назвал
+   * этот файл 23.09.2026 — и был прав: с нулём высота поля вышла бы −249.
+   */
+  const окно = useScreenSize();
   /** Поле каркаса = окно − 249 (замер 23.09.2026 на 640 и 844). Ниже 450 воздух не по карману. */
-  const тесно = окно.height - 249 < 450;
+  const тесно = окно.h - 249 < 450;
 
   const действиеФазы: RhythmPitchPhaseAction | null = React.useMemo(() => {
     if (session.phase === 'rules') return { label: strings.start, disabled: false, run: begin };
+    /**
+     * 🔴 НА КАЛИБРОВКЕ НАРУЖУ УХОДИТ «ТАП», А НЕ ЗАПУСК. Мишень, по которой бьют
+     * в такт сигналам, обязана стоять на ОДНОМ месте: замер 23.09.2026, окно
+     * 360×640 — «Тап» и своя «Пауза» жили внутри прокрутки, ряд уезжал на 17 точек
+     * под низ экрана и ехал под пальцем вместе с текстом.
+     * ⚠️ Запуск наружу отдавать НЕЛЬЗЯ: тогда одна кнопка сменит подпись ровно в
+     * тот момент, когда пошли сигналы, — это и есть жалоба 02.09.2026 «ни хера
+     * вообще не понимаю». Поэтому запуск остаётся в карточке, а внизу всегда
+     * стоит мишень: до старта погашенная, с подписью, куда бить.
+     */
+    if (session.phase === 'calibration') {
+      return {
+        label: strings.calibrationTap,
+        disabled: !session.calibrationPlaying,
+        run: () => applySession((current) => recordCalibrationTap(current, now())),
+      };
+    }
     return null;
-  }, [session.phase, strings.start, begin]);
+  }, [session.phase, session.calibrationPlaying, strings.start, strings.calibrationTap, begin, applySession, now]);
 
   React.useEffect(() => {
     onPhaseAction?.(действиеФазы);
@@ -595,10 +618,10 @@ function RhythmPitchSessionView({
         contentContainerStyle={[styles.gameContent, тесно && styles.тесныйПоток]}
         keyboardShouldPersistTaps="handled"
       >
-        <Text accessibilityRole="header" style={[styles.gameTitle, { color: theme.text }]}>{strings.calibrationTitle}</Text>
-        <Text style={[styles.body, { color: theme.textSecondary }]}>{strings.calibrationBody}</Text>
+        <Text accessibilityRole="header" style={[styles.gameTitle, тесно && styles.тесныйЗаголовок, { color: theme.text }]}>{strings.calibrationTitle}</Text>
+        <Text style={[styles.body, тесно && styles.тесныйТекст, { color: theme.textSecondary }]}>{strings.calibrationBody}</Text>
         <View style={[styles.card, styles.centerCard, тесно && styles.теснаяКарточка, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <Text style={[styles.volumeValue, { color: theme.text }]}>{interpolateRhythmPitch(strings.volume, { value: Math.round(session.volume * 100) })}</Text>
+          <Text style={[styles.volumeValue, тесно && styles.тесныйЗаголовок, { color: theme.text }]}>{interpolateRhythmPitch(strings.volume, { value: Math.round(session.volume * 100) })}</Text>
           <View style={styles.choiceRow}>
             <ActionButton label={strings.quieter} theme={theme} secondary disabled={session.calibrationPlaying} onPress={() => applySession((current) => setCalibrationVolume(current, current.volume - 0.1))} />
             <ActionButton label={strings.louder} theme={theme} secondary disabled={session.calibrationPlaying} onPress={() => applySession((current) => setCalibrationVolume(current, current.volume + 0.1))} />
@@ -620,13 +643,17 @@ function RhythmPitchSessionView({
           ) : (
             <Text accessibilityLiveRegion="polite" style={[styles.listening, { color: theme.primary }]}>{strings.calibrationPlaying}</Text>
           )}
-          <ActionButton
-            label={strings.calibrationTap}
-            theme={theme}
-            disabled={!session.calibrationPlaying}
-            onPress={() => applySession((current) => recordCalibrationTap(current, now()))}
-          />
-          <Text style={[styles.body, { color: theme.textSecondary }]}>{strings.calibrationTapHint}</Text>
+          {/* В каркасе мишень стоит внизу неподвижно (см. `действиеФазы`); здесь — только
+              когда экран открыт сам по себе и отдавать её некому. */}
+          {действиеСнаружи ? null : (
+            <ActionButton
+              label={strings.calibrationTap}
+              theme={theme}
+              disabled={!session.calibrationPlaying}
+              onPress={() => applySession((current) => recordCalibrationTap(current, now()))}
+            />
+          )}
+          <Text style={[styles.body, тесно && styles.тесныйТекст, { color: theme.textSecondary }]}>{strings.calibrationTapHint}</Text>
           {session.calibrationComplete ? (
             <View style={styles.calibrationResult}>
               <Text style={[styles.body, { color: theme.text }]}>{interpolateRhythmPitch(strings.calibrationReady, { samples: session.calibrationSamples })}</Text>
@@ -648,7 +675,9 @@ function RhythmPitchSessionView({
               </View>
             ) : null}
         </View>
-        <ActionButton label={strings.pause} theme={theme} secondary onPress={stopAndPause} />
+        {/* У каркаса своё меню паузы (`pauseActions`), и вторая кнопка тем же словом
+            только добавляет высоты узкому экрану. */}
+        {действиеСнаружи ? null : <ActionButton label={strings.pause} theme={theme} secondary onPress={stopAndPause} />}
       </ScrollView>
     );
   }
@@ -759,6 +788,9 @@ const styles = StyleSheet.create({
   /* Плотная раскладка низкого поля: те же элементы, меньше воздуха между ними. */
   тесныйПоток: { padding: 10, gap: 8 },
   теснаяКарточка: { padding: 12, gap: 8 },
+  /* Текст на низком поле: тот же смысл, меньше межстрочного воздуха. */
+  тесныйТекст: { fontSize: 14, lineHeight: 19 },
+  тесныйЗаголовок: { fontSize: 17 },
   sectionTitle: { fontSize: 24, fontWeight: '800', textAlign: 'center' },
   gameTitle: { fontSize: 25, fontWeight: '800' },
   body: { fontSize: 16, lineHeight: 24, textAlign: 'center' },

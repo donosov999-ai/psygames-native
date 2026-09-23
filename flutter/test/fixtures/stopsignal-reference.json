@@ -1,0 +1,1610 @@
+{
+  "снято": "прогоном живого TS: src/games/stop-signal/core/{ladder,ssrt,persist}.ts",
+  "константы": {
+    "SSD_START_MS": 250,
+    "SSD_STEP_MS": 50,
+    "SSD_MIN_MS": 50,
+    "SSD_MAX_MS": 700,
+    "STOP_PROB": 0.25,
+    "POOL_MAX_TRIALS": 160,
+    "MAX_LEVEL": 15,
+    "P_RESPOND_MIN": 0.25,
+    "P_RESPOND_MAX": 0.75,
+    "MIN_STOP_TRIALS": 12,
+    "MAX_OMISSION_RATE": 0.1,
+    "LADDER_KEY": "psygames_stop_signal_ladder",
+    "EMPTY_LADDER": {
+      "ssdMs": 250,
+      "trials": []
+    }
+  },
+  "levels": [
+    {
+      "level": 1,
+      "trials": 12,
+      "stopProb": 0.25,
+      "goWindowMs": 1400,
+      "fixMinMs": 700,
+      "fixJitterMs": 700,
+      "interTrialMs": 600,
+      "condition": {
+        "trials": 12,
+        "stopProb": 0.25,
+        "goWindowMs": 1400,
+        "fixMinMs": 700,
+        "fixJitterMs": 700,
+        "interTrialMs": 600
+      }
+    },
+    {
+      "level": 2,
+      "trials": 12,
+      "stopProb": 0.25,
+      "goWindowMs": 1350,
+      "fixMinMs": 675,
+      "fixJitterMs": 670,
+      "interTrialMs": 580,
+      "condition": {
+        "trials": 12,
+        "stopProb": 0.25,
+        "goWindowMs": 1350,
+        "fixMinMs": 675,
+        "fixJitterMs": 670,
+        "interTrialMs": 580
+      }
+    },
+    {
+      "level": 3,
+      "trials": 12,
+      "stopProb": 0.25,
+      "goWindowMs": 1300,
+      "fixMinMs": 650,
+      "fixJitterMs": 640,
+      "interTrialMs": 560,
+      "condition": {
+        "trials": 12,
+        "stopProb": 0.25,
+        "goWindowMs": 1300,
+        "fixMinMs": 650,
+        "fixJitterMs": 640,
+        "interTrialMs": 560
+      }
+    },
+    {
+      "level": 4,
+      "trials": 12,
+      "stopProb": 0.25,
+      "goWindowMs": 1250,
+      "fixMinMs": 625,
+      "fixJitterMs": 610,
+      "interTrialMs": 540,
+      "condition": {
+        "trials": 12,
+        "stopProb": 0.25,
+        "goWindowMs": 1250,
+        "fixMinMs": 625,
+        "fixJitterMs": 610,
+        "interTrialMs": 540
+      }
+    },
+    {
+      "level": 5,
+      "trials": 12,
+      "stopProb": 0.25,
+      "goWindowMs": 1200,
+      "fixMinMs": 600,
+      "fixJitterMs": 580,
+      "interTrialMs": 520,
+      "condition": {
+        "trials": 12,
+        "stopProb": 0.25,
+        "goWindowMs": 1200,
+        "fixMinMs": 600,
+        "fixJitterMs": 580,
+        "interTrialMs": 520
+      }
+    },
+    {
+      "level": 6,
+      "trials": 16,
+      "stopProb": 0.25,
+      "goWindowMs": 1150,
+      "fixMinMs": 575,
+      "fixJitterMs": 550,
+      "interTrialMs": 500,
+      "condition": {
+        "trials": 16,
+        "stopProb": 0.25,
+        "goWindowMs": 1150,
+        "fixMinMs": 575,
+        "fixJitterMs": 550,
+        "interTrialMs": 500
+      }
+    },
+    {
+      "level": 7,
+      "trials": 16,
+      "stopProb": 0.25,
+      "goWindowMs": 1100,
+      "fixMinMs": 550,
+      "fixJitterMs": 520,
+      "interTrialMs": 480,
+      "condition": {
+        "trials": 16,
+        "stopProb": 0.25,
+        "goWindowMs": 1100,
+        "fixMinMs": 550,
+        "fixJitterMs": 520,
+        "interTrialMs": 480
+      }
+    },
+    {
+      "level": 8,
+      "trials": 16,
+      "stopProb": 0.25,
+      "goWindowMs": 1050,
+      "fixMinMs": 525,
+      "fixJitterMs": 490,
+      "interTrialMs": 460,
+      "condition": {
+        "trials": 16,
+        "stopProb": 0.25,
+        "goWindowMs": 1050,
+        "fixMinMs": 525,
+        "fixJitterMs": 490,
+        "interTrialMs": 460
+      }
+    },
+    {
+      "level": 9,
+      "trials": 16,
+      "stopProb": 0.25,
+      "goWindowMs": 1000,
+      "fixMinMs": 500,
+      "fixJitterMs": 460,
+      "interTrialMs": 440,
+      "condition": {
+        "trials": 16,
+        "stopProb": 0.25,
+        "goWindowMs": 1000,
+        "fixMinMs": 500,
+        "fixJitterMs": 460,
+        "interTrialMs": 440
+      }
+    },
+    {
+      "level": 10,
+      "trials": 16,
+      "stopProb": 0.25,
+      "goWindowMs": 950,
+      "fixMinMs": 475,
+      "fixJitterMs": 430,
+      "interTrialMs": 420,
+      "condition": {
+        "trials": 16,
+        "stopProb": 0.25,
+        "goWindowMs": 950,
+        "fixMinMs": 475,
+        "fixJitterMs": 430,
+        "interTrialMs": 420
+      }
+    },
+    {
+      "level": 11,
+      "trials": 20,
+      "stopProb": 0.25,
+      "goWindowMs": 900,
+      "fixMinMs": 450,
+      "fixJitterMs": 400,
+      "interTrialMs": 400,
+      "condition": {
+        "trials": 20,
+        "stopProb": 0.25,
+        "goWindowMs": 900,
+        "fixMinMs": 450,
+        "fixJitterMs": 400,
+        "interTrialMs": 400
+      }
+    },
+    {
+      "level": 12,
+      "trials": 20,
+      "stopProb": 0.25,
+      "goWindowMs": 850,
+      "fixMinMs": 425,
+      "fixJitterMs": 370,
+      "interTrialMs": 380,
+      "condition": {
+        "trials": 20,
+        "stopProb": 0.25,
+        "goWindowMs": 850,
+        "fixMinMs": 425,
+        "fixJitterMs": 370,
+        "interTrialMs": 380
+      }
+    },
+    {
+      "level": 13,
+      "trials": 20,
+      "stopProb": 0.25,
+      "goWindowMs": 800,
+      "fixMinMs": 400,
+      "fixJitterMs": 340,
+      "interTrialMs": 360,
+      "condition": {
+        "trials": 20,
+        "stopProb": 0.25,
+        "goWindowMs": 800,
+        "fixMinMs": 400,
+        "fixJitterMs": 340,
+        "interTrialMs": 360
+      }
+    },
+    {
+      "level": 14,
+      "trials": 20,
+      "stopProb": 0.25,
+      "goWindowMs": 750,
+      "fixMinMs": 375,
+      "fixJitterMs": 310,
+      "interTrialMs": 340,
+      "condition": {
+        "trials": 20,
+        "stopProb": 0.25,
+        "goWindowMs": 750,
+        "fixMinMs": 375,
+        "fixJitterMs": 310,
+        "interTrialMs": 340
+      }
+    },
+    {
+      "level": 15,
+      "trials": 20,
+      "stopProb": 0.25,
+      "goWindowMs": 700,
+      "fixMinMs": 350,
+      "fixJitterMs": 280,
+      "interTrialMs": 320,
+      "condition": {
+        "trials": 20,
+        "stopProb": 0.25,
+        "goWindowMs": 700,
+        "fixMinMs": 350,
+        "fixJitterMs": 280,
+        "interTrialMs": 320
+      }
+    }
+  ],
+  "лестница": [
+    {
+      "ssd": 250,
+      "inhibited": true,
+      "next": 300
+    },
+    {
+      "ssd": 250,
+      "inhibited": false,
+      "next": 200
+    },
+    {
+      "ssd": 700,
+      "inhibited": true,
+      "next": 700
+    },
+    {
+      "ssd": 50,
+      "inhibited": false,
+      "next": 50
+    },
+    {
+      "ssd": 80,
+      "inhibited": false,
+      "next": 50
+    },
+    {
+      "ssd": 690,
+      "inhibited": true,
+      "next": 700
+    }
+  ],
+  "зажим": [
+    {
+      "ms": -100,
+      "clamped": 50
+    },
+    {
+      "ms": 0,
+      "clamped": 50
+    },
+    {
+      "ms": 49,
+      "clamped": 50
+    },
+    {
+      "ms": 50,
+      "clamped": 50
+    },
+    {
+      "ms": 700,
+      "clamped": 700
+    },
+    {
+      "ms": 701,
+      "clamped": 700
+    },
+    {
+      "ms": 1000,
+      "clamped": 700
+    }
+  ],
+  "оценки": [
+    {
+      "имя": "пусто",
+      "trials": [],
+      "out": {
+        "method": "integration",
+        "ssrtMs": null,
+        "trustworthy": false,
+        "doubt": "noStopTrials",
+        "pRespond": 0,
+        "pInhibit": 0,
+        "meanSsdMs": 0,
+        "meanGoRtMs": 0,
+        "meanFailedStopRtMs": 0,
+        "nthGoRtMs": null,
+        "goTrials": 0,
+        "goOmissions": 0,
+        "stopTrials": 0,
+        "failedStops": 0
+      }
+    },
+    {
+      "имя": "безСтопов",
+      "trials": [
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 420,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 380,
+          "goWindowMs": 1400
+        }
+      ],
+      "out": {
+        "method": "integration",
+        "ssrtMs": null,
+        "trustworthy": false,
+        "doubt": "noStopTrials",
+        "pRespond": 0,
+        "pInhibit": 0,
+        "meanSsdMs": 0,
+        "meanGoRtMs": 400,
+        "meanFailedStopRtMs": 0,
+        "nthGoRtMs": 380,
+        "goTrials": 3,
+        "goOmissions": 0,
+        "stopTrials": 0,
+        "failedStops": 0
+      }
+    },
+    {
+      "имя": "малоСтопов",
+      "trials": [
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 420,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": 300,
+          "goWindowMs": 1400
+        }
+      ],
+      "out": {
+        "method": "integration",
+        "ssrtMs": null,
+        "trustworthy": false,
+        "doubt": "tooFewStopTrials",
+        "pRespond": 0.5,
+        "pInhibit": 0.5,
+        "meanSsdMs": 250,
+        "meanGoRtMs": 410,
+        "meanFailedStopRtMs": 300,
+        "nthGoRtMs": 400,
+        "goTrials": 2,
+        "goOmissions": 0,
+        "stopTrials": 2,
+        "failedStops": 1
+      }
+    },
+    {
+      "имя": "годный",
+      "trials": [
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 320,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 330,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 340,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 360,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 370,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 380,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 390,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 410,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 420,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 430,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 440,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 450,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 460,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 470,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 480,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 490,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 500,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 510,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 520,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 530,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 540,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 550,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 200,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 210,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 220,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 230,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 240,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 200,
+          "rtMs": 300,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 210,
+          "rtMs": 310,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 220,
+          "rtMs": 320,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 230,
+          "rtMs": 330,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 240,
+          "rtMs": 340,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        }
+      ],
+      "out": {
+        "method": "integration",
+        "ssrtMs": 205,
+        "trustworthy": true,
+        "doubt": null,
+        "pRespond": 0.5,
+        "pInhibit": 0.5,
+        "meanSsdMs": 225,
+        "meanGoRtMs": 435,
+        "meanFailedStopRtMs": 325,
+        "nthGoRtMs": 430,
+        "goTrials": 24,
+        "goOmissions": 0,
+        "stopTrials": 12,
+        "failedStops": 6
+      }
+    },
+    {
+      "имя": "многоПропусков",
+      "trials": [
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 200,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 210,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 220,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 230,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 240,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 200,
+          "rtMs": 300,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 210,
+          "rtMs": 310,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 220,
+          "rtMs": 320,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 230,
+          "rtMs": 330,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 240,
+          "rtMs": 340,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        }
+      ],
+      "out": {
+        "method": "integration",
+        "ssrtMs": null,
+        "trustworthy": false,
+        "doubt": "tooManyOmissions",
+        "pRespond": 0.5,
+        "pInhibit": 0.5,
+        "meanSsdMs": 225,
+        "meanGoRtMs": 400,
+        "meanFailedStopRtMs": 325,
+        "nthGoRtMs": 400,
+        "goTrials": 14,
+        "goOmissions": 4,
+        "stopTrials": 12,
+        "failedStops": 6
+      }
+    },
+    {
+      "имя": "доляВнеКоридора",
+      "trials": [
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 320,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 330,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 340,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 360,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 370,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 380,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 390,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 410,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 420,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 430,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 440,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 450,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 460,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 470,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 480,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 490,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 500,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 510,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 520,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 530,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 540,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 550,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 200,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 210,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 220,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 230,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 240,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 260,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 270,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 280,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 290,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 300,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": 300,
+          "goWindowMs": 1400
+        }
+      ],
+      "out": {
+        "method": "integration",
+        "ssrtMs": null,
+        "trustworthy": false,
+        "doubt": "pRespondOffTarget",
+        "pRespond": 0.08333333333333333,
+        "pInhibit": 0.9166666666666666,
+        "meanSsdMs": 250,
+        "meanGoRtMs": 435,
+        "meanFailedStopRtMs": 300,
+        "nthGoRtMs": 330,
+        "goTrials": 24,
+        "goOmissions": 0,
+        "stopTrials": 12,
+        "failedStops": 1
+      }
+    },
+    {
+      "имя": "модельГонкиНарушена",
+      "trials": [
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 200,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 210,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 220,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 230,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 240,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": 900,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": 900,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": 900,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": 900,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": 900,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": 900,
+          "goWindowMs": 1400
+        }
+      ],
+      "out": {
+        "method": "integration",
+        "ssrtMs": null,
+        "trustworthy": false,
+        "doubt": "raceModelViolated",
+        "pRespond": 0.5,
+        "pInhibit": 0.5,
+        "meanSsdMs": 238,
+        "meanGoRtMs": 350,
+        "meanFailedStopRtMs": 900,
+        "nthGoRtMs": 350,
+        "goTrials": 24,
+        "goOmissions": 0,
+        "stopTrials": 12,
+        "failedStops": 6
+      }
+    },
+    {
+      "имя": "пропускиВнутриНормы",
+      "trials": [
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 300,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 310,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 320,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 330,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 340,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 360,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 370,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 380,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 390,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 400,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 410,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 420,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 430,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 440,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 450,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 460,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 470,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 480,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": 490,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": false,
+          "ssdMs": null,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 200,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 210,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 220,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 230,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 240,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": null,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 200,
+          "rtMs": 310,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 210,
+          "rtMs": 320,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 220,
+          "rtMs": 330,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 230,
+          "rtMs": 340,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 240,
+          "rtMs": 350,
+          "goWindowMs": 1400
+        },
+        {
+          "isStop": true,
+          "ssdMs": 250,
+          "rtMs": 360,
+          "goWindowMs": 1400
+        }
+      ],
+      "out": {
+        "method": "integration",
+        "ssrtMs": 175,
+        "trustworthy": true,
+        "doubt": null,
+        "pRespond": 0.5,
+        "pInhibit": 0.5,
+        "meanSsdMs": 225,
+        "meanGoRtMs": 395,
+        "meanFailedStopRtMs": 335,
+        "nthGoRtMs": 400,
+        "goTrials": 22,
+        "goOmissions": 2,
+        "stopTrials": 12,
+        "failedStops": 6
+      }
+    }
+  ],
+  "окно": {
+    "poolBefore": 158,
+    "runLength": 3,
+    "mergedLength": 160,
+    "lastIsStop": true,
+    "stopsInMerged": 2
+  },
+  "разбор": [
+    {
+      "raw": null,
+      "out": {
+        "ssdMs": 250,
+        "trials": []
+      }
+    },
+    {
+      "raw": "не json",
+      "out": {
+        "ssdMs": 250,
+        "trials": []
+      }
+    },
+    {
+      "raw": "{\"ssdMs\":-50,\"trials\":[]}",
+      "out": {
+        "ssdMs": 50,
+        "trials": []
+      }
+    },
+    {
+      "raw": "{\"ssdMs\":9999,\"trials\":[{\"isStop\":true,\"ssdMs\":250,\"rtMs\":null,\"goWindowMs\":1400}]}",
+      "out": {
+        "ssdMs": 700,
+        "trials": [
+          {
+            "isStop": true,
+            "ssdMs": 250,
+            "rtMs": null,
+            "goWindowMs": 1400
+          }
+        ]
+      }
+    },
+    {
+      "raw": "{\"ssdMs\":300,\"trials\":[{\"isStop\":false,\"ssdMs\":null,\"rtMs\":400,\"goWindowMs\":0}]}",
+      "out": {
+        "ssdMs": 300,
+        "trials": []
+      }
+    }
+  ]
+}
