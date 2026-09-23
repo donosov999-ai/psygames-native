@@ -20,6 +20,8 @@ void main() {
       '$origin/games/schulte',
       '$origin/games/schulte.html?level=3',
       '$origin/games/mahjong',
+      '$origin/games/math-slider',
+      '$origin/games/math-slider.html?level=21',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -48,6 +50,7 @@ void main() {
           '/games/memory-matrix',
           '/games/schulte',
           '/games/mahjong',
+          '/games/math-slider',
         });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);

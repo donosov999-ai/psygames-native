@@ -6,6 +6,7 @@ import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/one_line/screen.dart';
 import '../games/mahjong/screen.dart';
+import '../games/math_slider/screen.dart';
 import '../games/schulte/screen.dart';
 import 'asset_server.dart';
 import 'shared_state.dart';
@@ -37,6 +38,7 @@ class HybridApp extends StatefulWidget {
         '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
         '/games/mahjong': (s) => MahjongScreen(state: s),
+        '/games/math-slider': (s) => MathSliderScreen(state: s),
       };
 
   /// Путь маршрута из любого вида ссылки: и `…/games/one-line.html`, и
