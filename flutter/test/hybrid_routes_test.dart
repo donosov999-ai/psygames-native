@@ -39,7 +39,7 @@ void main() {
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
     expect(HybridApp.native.keys.toSet(),
-        {'/games/dots-connect', '/games/one-line', '/games/digit-span'});
+        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix'});
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
     }

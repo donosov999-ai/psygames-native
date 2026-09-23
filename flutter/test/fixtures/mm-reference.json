@@ -1,0 +1,704 @@
+{
+ "volumeTop": 15,
+ "decoyRoom": 6,
+ "levels": [
+  {
+   "level": 1,
+   "gridSize": 3,
+   "baseFlashes": 3,
+   "flashMs": 1430,
+   "seriesCount": 1,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 2,
+   "gridSize": 4,
+   "baseFlashes": 4,
+   "flashMs": 1360,
+   "seriesCount": 1,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 3,
+   "gridSize": 5,
+   "baseFlashes": 5,
+   "flashMs": 1290,
+   "seriesCount": 1,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 4,
+   "gridSize": 6,
+   "baseFlashes": 5,
+   "flashMs": 1220,
+   "seriesCount": 1,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 5,
+   "gridSize": 6,
+   "baseFlashes": 6,
+   "flashMs": 1150,
+   "seriesCount": 1,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 6,
+   "gridSize": 6,
+   "baseFlashes": 7,
+   "flashMs": 1080,
+   "seriesCount": 1,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 7,
+   "gridSize": 6,
+   "baseFlashes": 7,
+   "flashMs": 1010,
+   "seriesCount": 1,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 8,
+   "gridSize": 6,
+   "baseFlashes": 8,
+   "flashMs": 940,
+   "seriesCount": 1,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 9,
+   "gridSize": 6,
+   "baseFlashes": 9,
+   "flashMs": 870,
+   "seriesCount": 1,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 10,
+   "gridSize": 6,
+   "baseFlashes": 9,
+   "flashMs": 800,
+   "seriesCount": 1,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 11,
+   "gridSize": 6,
+   "baseFlashes": 10,
+   "flashMs": 730,
+   "seriesCount": 2,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 12,
+   "gridSize": 6,
+   "baseFlashes": 11,
+   "flashMs": 660,
+   "seriesCount": 2,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 13,
+   "gridSize": 6,
+   "baseFlashes": 11,
+   "flashMs": 590,
+   "seriesCount": 2,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 14,
+   "gridSize": 6,
+   "baseFlashes": 12,
+   "flashMs": 520,
+   "seriesCount": 2,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 15,
+   "gridSize": 6,
+   "baseFlashes": 13,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 0,
+   "decoys": 0
+  },
+  {
+   "level": 16,
+   "gridSize": 6,
+   "baseFlashes": 13,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 700,
+   "decoys": 1
+  },
+  {
+   "level": 17,
+   "gridSize": 6,
+   "baseFlashes": 14,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 1400,
+   "decoys": 2
+  },
+  {
+   "level": 18,
+   "gridSize": 6,
+   "baseFlashes": 15,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 2100,
+   "decoys": 3
+  },
+  {
+   "level": 19,
+   "gridSize": 6,
+   "baseFlashes": 15,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 2800,
+   "decoys": 4
+  },
+  {
+   "level": 20,
+   "gridSize": 6,
+   "baseFlashes": 16,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 3500,
+   "decoys": 5
+  },
+  {
+   "level": 21,
+   "gridSize": 6,
+   "baseFlashes": 17,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 4200,
+   "decoys": 6
+  },
+  {
+   "level": 22,
+   "gridSize": 6,
+   "baseFlashes": 17,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 4900,
+   "decoys": 6
+  },
+  {
+   "level": 23,
+   "gridSize": 6,
+   "baseFlashes": 18,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 5600,
+   "decoys": 6
+  },
+  {
+   "level": 24,
+   "gridSize": 6,
+   "baseFlashes": 19,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 6300,
+   "decoys": 6
+  },
+  {
+   "level": 25,
+   "gridSize": 6,
+   "baseFlashes": 19,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 7000,
+   "decoys": 6
+  },
+  {
+   "level": 26,
+   "gridSize": 6,
+   "baseFlashes": 20,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 7700,
+   "decoys": 6
+  },
+  {
+   "level": 27,
+   "gridSize": 6,
+   "baseFlashes": 21,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 8400,
+   "decoys": 6
+  },
+  {
+   "level": 28,
+   "gridSize": 6,
+   "baseFlashes": 21,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 9100,
+   "decoys": 6
+  },
+  {
+   "level": 29,
+   "gridSize": 6,
+   "baseFlashes": 22,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 9800,
+   "decoys": 6
+  },
+  {
+   "level": 30,
+   "gridSize": 6,
+   "baseFlashes": 23,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 10500,
+   "decoys": 6
+  },
+  {
+   "level": 31,
+   "gridSize": 6,
+   "baseFlashes": 23,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 11200,
+   "decoys": 6
+  },
+  {
+   "level": 32,
+   "gridSize": 6,
+   "baseFlashes": 24,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 11900,
+   "decoys": 6
+  },
+  {
+   "level": 33,
+   "gridSize": 6,
+   "baseFlashes": 25,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 12600,
+   "decoys": 6
+  },
+  {
+   "level": 34,
+   "gridSize": 6,
+   "baseFlashes": 25,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 13300,
+   "decoys": 6
+  },
+  {
+   "level": 35,
+   "gridSize": 6,
+   "baseFlashes": 26,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 14000,
+   "decoys": 6
+  },
+  {
+   "level": 36,
+   "gridSize": 6,
+   "baseFlashes": 27,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 14700,
+   "decoys": 6
+  },
+  {
+   "level": 37,
+   "gridSize": 6,
+   "baseFlashes": 27,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 15400,
+   "decoys": 6
+  },
+  {
+   "level": 38,
+   "gridSize": 6,
+   "baseFlashes": 28,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 16100,
+   "decoys": 6
+  },
+  {
+   "level": 39,
+   "gridSize": 6,
+   "baseFlashes": 29,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 16800,
+   "decoys": 6
+  },
+  {
+   "level": 40,
+   "gridSize": 6,
+   "baseFlashes": 29,
+   "flashMs": 500,
+   "seriesCount": 2,
+   "holdMs": 17500,
+   "decoys": 6
+  }
+ ],
+ "cells": [
+  {
+   "level": 1,
+   "round": 1,
+   "mode": "static",
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 1,
+   "mode": "sequential",
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 2,
+   "mode": "static",
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 2,
+   "mode": "sequential",
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 3,
+   "mode": "static",
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 1,
+   "round": 3,
+   "mode": "sequential",
+   "need": 3,
+   "decoys": 0,
+   "free": 6
+  },
+  {
+   "level": 3,
+   "round": 1,
+   "mode": "static",
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 1,
+   "mode": "sequential",
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 2,
+   "mode": "static",
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 2,
+   "mode": "sequential",
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 3,
+   "mode": "static",
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 3,
+   "round": 3,
+   "mode": "sequential",
+   "need": 5,
+   "decoys": 0,
+   "free": 20
+  },
+  {
+   "level": 8,
+   "round": 1,
+   "mode": "static",
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 8,
+   "round": 1,
+   "mode": "sequential",
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 8,
+   "round": 2,
+   "mode": "static",
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 8,
+   "round": 2,
+   "mode": "sequential",
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 8,
+   "round": 3,
+   "mode": "static",
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 8,
+   "round": 3,
+   "mode": "sequential",
+   "need": 8,
+   "decoys": 0,
+   "free": 28
+  },
+  {
+   "level": 15,
+   "round": 1,
+   "mode": "static",
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 15,
+   "round": 1,
+   "mode": "sequential",
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 15,
+   "round": 2,
+   "mode": "static",
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 15,
+   "round": 2,
+   "mode": "sequential",
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 15,
+   "round": 3,
+   "mode": "static",
+   "need": 13,
+   "decoys": 0,
+   "free": 10
+  },
+  {
+   "level": 15,
+   "round": 3,
+   "mode": "sequential",
+   "need": 13,
+   "decoys": 0,
+   "free": 23
+  },
+  {
+   "level": 16,
+   "round": 1,
+   "mode": "static",
+   "need": 13,
+   "decoys": 1,
+   "free": 10
+  },
+  {
+   "level": 16,
+   "round": 1,
+   "mode": "sequential",
+   "need": 13,
+   "decoys": 1,
+   "free": 23
+  },
+  {
+   "level": 16,
+   "round": 2,
+   "mode": "static",
+   "need": 13,
+   "decoys": 1,
+   "free": 10
+  },
+  {
+   "level": 16,
+   "round": 2,
+   "mode": "sequential",
+   "need": 13,
+   "decoys": 1,
+   "free": 23
+  },
+  {
+   "level": 16,
+   "round": 3,
+   "mode": "static",
+   "need": 13,
+   "decoys": 1,
+   "free": 10
+  },
+  {
+   "level": 16,
+   "round": 3,
+   "mode": "sequential",
+   "need": 13,
+   "decoys": 1,
+   "free": 23
+  },
+  {
+   "level": 20,
+   "round": 1,
+   "mode": "static",
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 1,
+   "mode": "sequential",
+   "need": 16,
+   "decoys": 5,
+   "free": 20
+  },
+  {
+   "level": 20,
+   "round": 2,
+   "mode": "static",
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 2,
+   "mode": "sequential",
+   "need": 16,
+   "decoys": 5,
+   "free": 20
+  },
+  {
+   "level": 20,
+   "round": 3,
+   "mode": "static",
+   "need": 14,
+   "decoys": 5,
+   "free": 8
+  },
+  {
+   "level": 20,
+   "round": 3,
+   "mode": "sequential",
+   "need": 16,
+   "decoys": 5,
+   "free": 20
+  },
+  {
+   "level": 30,
+   "round": 1,
+   "mode": "static",
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 1,
+   "mode": "sequential",
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 30,
+   "round": 2,
+   "mode": "static",
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 2,
+   "mode": "sequential",
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  },
+  {
+   "level": 30,
+   "round": 3,
+   "mode": "static",
+   "need": 14,
+   "decoys": 6,
+   "free": 8
+  },
+  {
+   "level": 30,
+   "round": 3,
+   "mode": "sequential",
+   "need": 23,
+   "decoys": 6,
+   "free": 13
+  }
+ ]
+}
