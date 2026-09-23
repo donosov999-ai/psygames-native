@@ -1088,16 +1088,29 @@ h3 {
 .practice-catalog {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  /*
+   * 🔴 align-items: start — иначе сетка тянет каждую карточку до высоты самой
+   * высокой в ряду. Замер 23.09.2026 при 390×844: содержимого в карточке 178 px,
+   * а занимала она 250. Свернуть содержимое и оставить растяжение — значит
+   * сэкономить на бумаге и ничего не выиграть на экране.
+   */
+  align-items: start;
   gap: 15px;
   margin-bottom: 38px;
 }
 
+/*
+ * 🔴 КАРТОЧКА БОЛЬШЕ НЕ ДЕРЖИТ 276 px ВЫСОТЫ (23.09.2026, задача 50722250).
+ * Десять карточек по 295 px давали 7,19 экрана прокрутки при 390×844 — до нижних
+ * практик человек просто не доходил. Теперь высоту задаёт содержимое: строка
+ * «название · программа · кнопка», а описание и выбор программы — в `details`.
+ */
 .practice-card {
   position: relative;
   display: flex;
-  min-height: 276px;
   flex-direction: column;
-  padding: 20px;
+  gap: 10px;
+  padding: 14px 16px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -1122,7 +1135,77 @@ h3 {
 .practice-card-meta {
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
+}
+
+/*
+ * 🔴 ШАПКА КАРТОЧКИ — ОДНОЙ СТРОКОЙ (задача 50722250: «строка название ·
+ * выбранная программа · переключатель»).
+ *
+ * ⚠️ Разметку я поменял раньше, а правил для неё не написал — и `practice-card-head`
+ * раскладывался столбиком по умолчанию. Замер 23.09.2026 при 390×844: карточка
+ * занимала 250 px вместо 295 прежних, то есть свёртка почти ничего не дала.
+ * Само по себе `display: flex` здесь стоит больше, чем все сокращения текста.
+ */
+.practice-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.practice-card-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.practice-card-title h3 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Какая программа включится — видно, не раскрывая карточку. */
+.practice-card-program {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * Переключатель — кружком. Подпись «Всегда включено» растягивала кнопку на всю
+ * строку, и название с программой уезжали под неё.
+ */
+.practice-card-head .select-practice {
+  flex: 0 0 auto;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  font-size: 0;
+}
+
+.practice-card-head .select-practice::before {
+  content: '+';
+  font-size: 20px;
+  line-height: 1;
+}
+
+.practice-card.is-selected .practice-card-head .select-practice::before {
+  content: '✓';
+}
+
+.practice-card-head .select-practice[disabled]::before {
+  content: '•';
 }
 
 .practice-icon {
@@ -1190,9 +1273,46 @@ h3 {
 }
 
 .practice-card p {
-  margin: 0 0 16px;
+  margin: 10px 0 12px;
   color: var(--text-muted);
   font-size: 13px;
+}
+
+/*
+ * Свёрнутая часть карточки. `summary` показывает выбранную программу — то, что
+ * человеку нужно знать, не раскрывая: «какая именно программа сейчас включится».
+ */
+.practice-more {
+  min-width: 0;
+}
+
+.practice-more > summary {
+  cursor: pointer;
+  padding: 4px 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  list-style: none;
+}
+
+.practice-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.practice-more > summary::after {
+  content: ' ▾';
+  opacity: 0.6;
+}
+
+.practice-more[open] > summary::after {
+  content: ' ▴';
+}
+
+/* Значок практики в компактной строке меньше: 46 px съедали половину высоты. */
+.practice-card .practice-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  font-size: 16px;
 }
 
 .practice-card .program-select {
@@ -1718,14 +1838,7 @@ body.is-practice-running #main-content {
   width: 100vw;
   height: 100dvh;
   min-height: 0;
-  /* 🔴 ПЯТЬ СТРОК ПОД ПЯТЬ ДЕТЕЙ, И РАСТЯГИВАЕТСЯ СЦЕНА.
-     Было шесть: `auto 7px auto minmax(0,1fr) auto auto` — при пяти фактических
-     детях (шапка · полоса · сцена · предупреждение · кнопки) третья строка
-     `auto` доставалась СЦЕНЕ, а весь свободный остаток — подписи про боль.
-     Отсюда «шарик летает в узкой горизонтальной трубке» (Денис 30.08.2026):
-     сцена жила по содержимому, то есть по своему нижнему пределу, а под ней
-     пустовало полтораста точек. Замер живьём: детей 5, строк 6. */
-  grid-template-rows: auto 7px minmax(0, 1fr) auto auto;
+  grid-template-rows: auto 7px auto minmax(0, 1fr) auto auto;
   gap: 8px;
   padding: clamp(10px, 1.2vw, 18px);
   overflow: hidden;
@@ -1864,13 +1977,6 @@ body.is-practice-running #main-content {
 .practice-actions {
   margin-top: 0;
   padding-top: 10px;
-  /* Кнопки практики собраны в кучу, а не растянуты по всей ширине.
-     Наследованный `space-between` расставлял четыре кнопки по краям экрана: на
-     мониторе «Выйти без записи» уезжала за правый край, а «Пауза» жалась к
-     левому — между ними полтора метра пустоты (Денис 30.08.2026: «в зарядке в
-     нижнем тулбаре кнопки собери в кучу»). Перенос строкой нужен узкому окну. */
-  justify-content: center;
-  flex-wrap: wrap;
 }
 
 .offer-card {
@@ -1964,13 +2070,7 @@ body.is-practice-running #main-content {
 .parallel-stage {
   position: relative;
   height: 100%;
-  /* 🔴 Нижний предел вместо нуля. Сцена наполнена абсолютно позиционированными
-     слоями (дыхательный круг, точка траектории, карточка подсказки), и при
-     нулевом пределе она схлопывалась в полосу, а слои наезжали друг на друга —
-     ровно то, что Денис снял 30.08.2026 («что-то сузило картинку, сломалось»).
-     Высоту сцене даёт родитель, но если он отдал мало, лучше прокрутка, чем
-     каша: 360 px хватает кругу дыхания и подписи под ним. */
-  min-height: 360px;
+  min-height: 0;
   /* Место под верхнюю строку подсказки: без него картинка снова наползла бы. */
   padding-top: 72px;
   overflow: hidden;
@@ -3083,8 +3183,18 @@ body.is-practice-running #main-content {
     width: 100%;
   }
 
+  /*
+   * 🔴 ТУТ БЫЛО `min-height: 250px` — И ОНО СЪЕДАЛО ВСЮ ЭКОНОМИЮ.
+   *
+   * Замер 23.09.2026: карточку свернули до 113 px содержимого, а на телефоне
+   * она всё равно занимала 250 — правило из медиазапроса держало высоту, и
+   * десять карточек давали 6,17 экрана прокрутки вместо 3,5 на широком.
+   * Искал я его долго, потому что смотрел только основное правило `.practice-card`
+   * и не подумал про медиазапрос: `getComputedStyle` показывал min-height 250,
+   * которого в основном блоке нет.
+   */
   .practice-card {
-    min-height: 250px;
+    min-height: 0;
   }
 
   .plan-actions p {
