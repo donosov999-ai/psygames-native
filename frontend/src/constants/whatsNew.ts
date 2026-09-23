@@ -16,6 +16,22 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.23',
+    date: '2026-09-23',
+    ru: [
+      'Игры открываются на весь экран: панели телефона больше не занимают место у поля',
+      'Фрактальная судоку: кнопка «Показать решение» — ответ нижней сетки или всей судоку',
+      'Самурай, фрактал и бездна: служебные кнопки одной строкой значков, доска крупнее',
+      'Новый значок приложения',
+    ],
+    en: [
+      'Games open full screen: the phone bars no longer eat space around the board',
+      'Fractal sudoku: a Show solution button — the answer for one lower grid or the whole puzzle',
+      'Samurai, fractal and abyss: service buttons in one row of icons, and a bigger board',
+      'A new app icon',
+    ],
+  },
+  {
     version: '2.54.22',
     date: '2026-09-17',
     ru: [

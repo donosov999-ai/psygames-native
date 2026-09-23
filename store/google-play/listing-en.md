@@ -72,8 +72,7 @@ Most brain apps get deleted in three days: no visible progress. This one is buil
 • Boss rounds at milestones: same rule, unexpected twist
 • Streak: skip a day, start over
 • Synapse, your pet, grows with your training and points at what's lagging
-• Points for accuracy and speed, a shop with frames, avatars and titles
-• Daily challenge with its own streak, plus achievements
+• Points for accuracy and speed, a shop of frames and titles
 
 WHAT'S INSIDE
 • 75 exercises for memory, attention, logic, speed and control
@@ -89,7 +88,7 @@ Behind every exercise is a validated paradigm. Schulte tables — search speed a
 That's why the number on screen means something. You're not watching "level 7" — you're watching yourself improve.
 
 DEVELOPERS WHO ANSWER
-A feedback button lives inside the app: write or speak, and a screenshot attaches automatically. When a fix ships, the app tells you exactly what changed because of YOUR message and in which version.
+A feedback button lives inside the app: write or speak, and a screenshot attaches automatically. When a fix ships, the app tells you exactly what changed because of YOUR message and in which version. Every exercise carries its own revision number: it travels with your report and goes up when that exercise is rebuilt.
 
 WHO IT'S FOR
 • Adults — holding focus where you're interrupted every five minutes
