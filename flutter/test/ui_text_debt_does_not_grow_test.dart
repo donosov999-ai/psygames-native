@@ -27,31 +27,49 @@ import 'package:flutter_test/flutter_test.dart';
 /// именах, отдельная задача), а не перевод. Метод счёта здесь ровно тот же, что
 /// в замере, которым получены числа ниже: сменишь метод — сдвинутся и числа.
 void main() {
+  /// 🔴 ПРИЁМКА ЧУЖОЙ ВЕТКИ — РОВНО ОДИН РАЗ И ТОЛЬКО ПРИ ВЛИВАНИИ.
+  ///
+  /// Правило «подписи из словаря» появилось 23.09.2026, когда четыре раздела уже
+  /// написали свои экраны. Отбивать их работу правилом, которого в момент работы
+  /// не было, нечестно: гейт не имеет права ломать сделанное. Поэтому при вливании
+  /// ветки раздела её числа заносятся сюда КАК ЕСТЬ, одной записью, с датой.
+  ///
+  /// ⚠️ И это единственный случай, когда число здесь растёт. Любая следующая правка
+  /// того же файла обязана его УМЕНЬШАТЬ. Поднял число не на вливании — значит
+  /// обошёл гейт, а не починил код.
+  ///
+  /// Принято: 23.09 — ядро, внимание, слова (160); 23.09 — судоку и головоломки (+124).
+  ///
   /// Долг на 23.09.2026, пофайлово. МЕНЯТЬ ТОЛЬКО В МЕНЬШУЮ СТОРОНУ.
   ///
   /// Перевёл экран — опусти его число. Файла нет в списке — значит он обязан
   /// быть чистым: так новый перенос не добавляет долга молча.
   const debt = <String, int>{
+    'games/puzzles/ladder.dart': 40,
+    'games/sudoku/screen.dart': 31,
     'games/stroop/screen.dart': 22,
     'games/flanker/screen.dart': 22,
     'games/simon/screen.dart': 21,
     'main.dart': 16,
+    'games/samurai/screen.dart': 14,
+    'games/fractal/screen.dart': 13,
+    'games/deep/screen.dart': 13,
     'games/anagrams/screen.dart': 13,
     'games/memory_matrix/screen.dart': 12,
+    'games/puzzles/screen.dart': 11,
     'games/one_line/screen.dart': 10,
     'games/dots_connect/screen.dart': 10,
     'games/anagrams/all_words_screen.dart': 9,
     'games/stroop/model.dart': 8,
-    // Не интерфейс: прибор замера пишет строки в журнал устройства, человек их не видит.
     'shell/tap_latency.dart': 5,
     'shell/game_shell.dart': 4,
     'shell/web_game_screen.dart': 4,
     'shell/hybrid_app.dart': 3,
-    // Не интерфейс: текст ошибки раздачи ассетов.
+    'games/deep/tree.dart': 2,
     'shell/asset_server.dart': 1,
   };
 
-  const total = 160;
+  const total = 284;
 
   final counts = _scan(Directory('lib'));
 

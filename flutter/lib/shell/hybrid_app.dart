@@ -8,6 +8,10 @@ import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
 import '../games/one_line/screen.dart';
+import '../games/deep/screen.dart';
+import '../games/fractal/screen.dart';
+import '../games/samurai/screen.dart';
+import '../games/sudoku/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
 import 'shared_state.dart';
@@ -41,6 +45,10 @@ class HybridApp extends StatefulWidget {
         '/games/stroop': (s) => StroopScreen(state: s),
         '/games/flanker': (s) => FlankerScreen(state: s),
         '/games/simon': (s) => SimonScreen(state: s),
+        '/games/sudoku': (s) => SudokuScreen(state: s),
+        '/games/sudoku-samurai': (s) => SamuraiScreen(state: s),
+        '/games/sudoku-fractal': (s) => FractalScreen(state: s),
+        '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.

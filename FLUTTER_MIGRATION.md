@@ -68,6 +68,10 @@
 | ✅ | `dots-connect` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `memory-matrix` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `one-line` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
+| ✅ | `sudoku` | psygames-sudoku-claude-mac | 23.09 | нативно, перехват в гибриде; доски данными (банк + 780 выгруженных), правила сверены с живым TS на 640 случаях |
+| ✅ | `sudoku-samurai` | psygames-sudoku-claude-mac | 23.09 | нативно, перехват в гибриде; 72 доски данными, правила сверены с живым TS (400 ходов + 37 целевых случаев на перекрытиях); два масштаба — карта и рабочий (клетка ≥48 точек) |
+| ✅ | `sudoku-fractal` | psygames-sudoku-claude-mac | 23.09 | нативно, перехват в гибриде; 90 партий данными, правила сверены с живым TS ЛЕНТОЙ из 38 ходов (открытие дочерней, кормление корня, зеркало портала, откат); подъём «На карту» — отзыв af047c78 |
+| ✅ | `sudoku-fractal-deep` | psygames-sudoku-claude-mac | 23.09 | нативно, перехват в гибриде; дерево НЕ данными — материализация узлов перенесена и сверена с живым JS узел в узел (жребий совпадает до бита); продолжение партии — тот же снимок, что пишет веб-версия |
 | ✅ | `stroop` | psygames-attention-claude-mac | 23.09 | нативно, перехват в гибриде; правила сверены с эталонами из живого TS, 6 мутаций краснеют. ⚠️ отклик двух версий сравнить НЕ УДАЛОСЬ — три способа и почему каждый негоден, см. `flutter/tools/latency.md` |
 
 ## Что осталось
@@ -93,7 +97,7 @@
 | ☐ | `counter` | psygames-search-claude-mac | | |
 | ☐ | `counting-hub` | psygames-search-claude-mac | | |
 | ☐ | `cpt` | psygames-attention-claude-mac | | |
-| ☐ | `dictation` | psygames-sudoku-claude-mac | | |
+| ☐ | `dictation` | psygames-languages-claude-mac | | не наш: по рефам «Языки» 16 упоминаний, «Память и слух» 7, у судоку одно — и то в строке про линт |
 | ☐ | `eye-gym` | psygames-warmup-claude-mac | | |
 | ☐ | `faces-names` | ❓ вписать себя | | |
 | ☐ | `find-differences` | psygames-search-claude-mac | | |
@@ -130,6 +134,8 @@
 | ☐ | `pizza-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `posner` | psygames-attention-claude-mac | | |
 | ☐ | `prl` | psygames-attention-claude-mac | | |
+| ◐ | `puzzles` | psygames-sudoku-claude-mac | 23.09 | экран ОБЩИЙ: 42 режима шести разделов на одном движке. СДЕЛАНО и под гейтами: движок зовётся через dart:ffi (те же исходники C, 13 с сборки, 25 экспортов), разбор кадра и рисование по всем 42 играм, экран с лестницей семи наших сеток, партия играется нажатиями. ЖДЁТ: нативную сборку под iOS/Android — она трогает ios/ и android/, вопрос в канале 23.09. До неё перехват маршрута НЕ включён: на телефоне библиотеки нет, и перехват показал бы ошибку вместо рабочей веб-версии |
+| ☐ | `puzzles-hub` | psygames-sudoku-claude-mac | | |
 | ☐ | `proofreading` | psygames-attention-claude-mac | | |
 | ☐ | `pseudoword-echo` | ❓ вписать себя | | |
 | ☐ | `quick-count` | psygames-search-claude-mac | | |
@@ -151,11 +157,7 @@
 | ☐ | `stop-signal` | psygames-attention-claude-mac | | |
 | ☐ | `story-recall` | ❓ вписать себя | | |
 | ☐ | `stroop-emotional` | psygames-attention-claude-mac | | |
-| ☐ | `sudoku` | psygames-chess-claude-mac | | |
-| ☐ | `sudoku-fractal` | psygames-sudoku-claude-mac | | |
-| ☐ | `sudoku-fractal-deep` | ❓ вписать себя | | |
 | ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |
-| ☐ | `sudoku-samurai` | psygames-sudoku-claude-mac | | |
 | ☐ | `switching-task` | psygames-languages-claude-mac | | ⚠️ спор: экран внутри набора хаба «Конфликт внимания» (gameSuites.ts:113) — разбираемся в канале, молча не забираю |
 | ☐ | `targets` | psygames-attention-claude-mac | | |
 | ☐ | `tower-london` | psygames-sorting-claude-mac | | |
