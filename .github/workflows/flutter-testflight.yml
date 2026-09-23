@@ -223,8 +223,21 @@ jobs:
             echo "· нативные игры: «Соедини точки», «Одна линия», «Цифровой ряд», «Матрица памяти»"
             echo "· остальные экраны открываются нынешней сборкой внутри приложения"
             echo ""
-            echo "⚠️ Внутренняя группа видит сборку сразу, внешняя ждёт одобрения Apple."
+            echo "⚠️ Внешняя группа «Семья и близкие» ждёт одобрения Apple и раздаётся вручную."
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # 🔴 БЕЗ ЭТОГО ШАГА ЗАЛИВКА НИЧЕГО НЕ МЕНЯЕТ НА ТЕЛЕФОНЕ. Сборка появляется в App
+      # Store Connect и остаётся НИ В ОДНОЙ группе: так 23.09.2026 молча простояли четыре
+      # версии подряд, а тестировщики видели предыдущую. Прежний итог прогона писал
+      # «внутренняя группа видит сборку сразу» — это была неправда.
+      - name: Раздать сборку внутренней группе
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check pyjwt cryptography
+          export APPLE_API_KEY_FILE=~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
+          python3 flutter/tool/testflight_assign.py "${{ inputs.version }}" "${{ github.run_number }}"
 
       - uses: actions/upload-artifact@v4
         if: always()
