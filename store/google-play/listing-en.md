@@ -14,7 +14,7 @@ PsyGames: Brain Training
 
 Запасной:
 ```
-Schulte tables, Stroop, N-back, sudoku: 90+ memory and focus trainers
+Schulte tables, Stroop, N-back, sudoku: 75 memory and focus trainers
 ```
 24 символов
 
@@ -43,7 +43,7 @@ Hear a foreign language and catch sounds that used to blur into noise.
 
 That's not a gift you're born with. It's trained — and here you can see by how much.
 
-PsyGames is brain training and brain games: 90+ exercises and puzzles for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
+PsyGames is brain training and brain games: 75 exercises and puzzles for memory, attention, logic and thinking speed. Not another "test your IQ", but training with results you can measure.
 
 MEMORY GAMES
 Train visual memory with Corsi blocks, matrices and matching pairs. Build working memory with N-back, operation span and reading span. Hold a pattern in mind and reproduce it later.
@@ -76,7 +76,7 @@ Most brain apps get deleted in three days: no visible progress. This one is buil
 • Daily challenge with its own streak, plus achievements
 
 WHAT'S INSIDE
-• 90+ exercises for memory, attention, logic, speed and control
+• 75 exercises for memory, attention, logic, speed and control
 • Warm-up in one button: morning, daytime, evening and night
 • Dark theme, and a night set for when you can't sleep: 4-7-8 breathing on a dimmed screen, no points, no streak
 • 12 profiles: languages, kids, 50+, focus, reaction, founders and more
