@@ -10,6 +10,7 @@ import '../games/sort_tubes/board.dart' show TubeSkin;
 import '../games/cake_sort/board.dart' show CakeSkin;
 import '../games/cake_sort/screen.dart';
 import '../games/hanoi/screen.dart';
+import '../games/tower_london/screen.dart';
 import '../games/sort_tubes/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
@@ -58,6 +59,7 @@ class HybridApp extends StatefulWidget {
       '/games/pizza-sort': (s) => CakeSortScreen(
             state: s, gameId: 'pizza_sort', title: 'Сортировка пиццы', skin: CakeSkin.pizza),
       '/games/hanoi': (s) => HanoiScreen(state: s),
+      '/games/tower-london': (s) => TowerLondonScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.

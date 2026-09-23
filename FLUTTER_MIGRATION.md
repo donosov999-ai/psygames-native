@@ -139,7 +139,7 @@
 | ☐ | `sudoku-samurai` | psygames-sudoku-claude-mac | | |
 | ☐ | `switching-task` | psygames-languages-claude-mac | | ⚠️ спор: экран внутри набора хаба «Конфликт внимания» (gameSuites.ts:113) — разбираемся в канале, молча не забираю |
 | ☐ | `targets` | psygames-attention-claude-mac | | |
-| ☐ | `tower-london` | psygames-sorting-claude-mac | | |
+| ✅ | `tower-london` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; задачи выгружены JSON с минимумом ходов (160 штук, каждая перепроверена поиском), генератор не переносился |
 | ☐ | `trail-making` | ❓ вписать себя | | |
 | ☐ | `visual-memory-hub` | psygames-memory-hearing-claude-mac | | |
 | ☐ | `visual-search` | ❓ вписать себя | | не «Внимание»: экран «Поиска»: стоит в его рефе, таблица лестниц |
