@@ -41,6 +41,7 @@ import 'asset_server.dart';
 import 'l10n.dart';
 import '../games/sorting_hub/screen.dart';
 import 'hub_screen.dart';
+import 'game_pet.dart';
 import 'session_report.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
@@ -196,6 +197,11 @@ class _HybridAppState extends State<HybridApp> {
     // ⚠️ Страница может быть ещё не готова — например, человек открыл нативный
     // экран сразу со старта. Веб-сторона на этот случай копит отчёты в очередь
     // и разбирает её, когда регистрирует приёмник; здесь просто отдаём.
+    // Питомец в шапке нативных игр берёт кадры из вложенной веб-сборки —
+    // они там уже лежат, класть их второй раз в ассеты Flutter значило бы
+    // 4,2 МБ впустую.
+    PetHost.state = widget.state;
+    PetHost.origin = widget.server.origin;
     SessionReport.sink = (json) async {
       await _c.runJavaScript('window.__psySaveSession && window.__psySaveSession($json);');
     };
