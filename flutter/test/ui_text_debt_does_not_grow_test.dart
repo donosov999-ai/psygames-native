@@ -39,7 +39,7 @@ void main() {
   /// обошёл гейт, а не починил код.
   ///
   /// Принято: 23.09 — ядро, внимание, слова (160); 23.09 — судоку и головоломки (+124);
-  /// 23.09 — «Жми и держись» (+19).
+  /// 23.09 — «Жми и держись» (+19), в тот же день раздел перевёл его сам (−19).
   ///
   /// Долг на 23.09.2026, пофайлово. МЕНЯТЬ ТОЛЬКО В МЕНЬШУЮ СТОРОНУ.
   ///
@@ -47,7 +47,6 @@ void main() {
   /// быть чистым: так новый перенос не добавляет долга молча.
   const debt = <String, int>{
     'games/puzzles/ladder.dart': 40,
-    'games/gonogo/screen.dart': 19,
     'games/sudoku/screen.dart': 31,
     'games/stroop/screen.dart': 22,
     'games/flanker/screen.dart': 22,
@@ -71,7 +70,7 @@ void main() {
     'shell/asset_server.dart': 1,
   };
 
-  const total = 303;
+  const total = 284;
 
   final counts = _scan(Directory('lib'));
 
