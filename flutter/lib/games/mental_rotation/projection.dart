@@ -7,6 +7,7 @@
 library;
 
 import 'geometry.dart';
+import 'occlusion.dart';
 import 'rng.dart';
 import 'shapes.dart';
 import 'task.dart';
@@ -175,7 +176,10 @@ class ProjectionTask implements MentalRotationTask {
 ProjectionTask buildProjectionTask(int minCubes, int maxCubes, int optionCount, Rng rng) {
   final candidates = projectionCandidates(minCubes, maxCubes);
   if (candidates.isEmpty) throw StateError('нет фигур размера $minCubes–$maxCubes');
-  final shape = pick(rng, candidates);
+  // 🔴 Фигура показывается под ракурсом, где видны все её кубики (отчёт 7c8b49d2:
+  // «непонятно, сколько кубиков она содержит»). Крутить безопасно: все три вида
+  // ВЫЧИСЛЯЮТСЯ из самой фигуры, значит вместе с ней поворачивается всё задание.
+  final shape = clearestOrientation(pick(rng, candidates), (options) => pick(rng, options));
   final view = pick(rng, projectionViews);
   final correct = projectShape(shape, view);
 

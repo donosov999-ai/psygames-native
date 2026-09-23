@@ -21,6 +21,7 @@
  * ответ на экране; поэтому он не отбрасывается «на всякий случай», а именно
  * ловится сравнением множеств клеток.
  */
+import { clearestOrientation } from './occlusion';
 import { pick, shuffle } from './rng';
 import { isVolumetric, shapesOfSize } from './shapes';
 import type { Cell2D, ProjectionOption, ProjectionTask, ProjectionView, Rng, Shape } from './types';
@@ -147,7 +148,20 @@ export interface ProjectionParams {
 export function buildProjectionTask(params: ProjectionParams, rng: Rng): ProjectionTask {
   const candidates = projectionCandidates(params.minCubes, params.maxCubes);
   if (candidates.length === 0) throw new Error(`нет фигур размера ${params.minCubes}–${params.maxCubes}`);
-  const shape = pick(rng, candidates);
+  /*
+   * 🔴 ФИГУРА ПОКАЗЫВАЕТСЯ ПОД РАКУРСОМ, ГДЕ ВИДНЫ ВСЕ ЕЁ КУБИКИ.
+   *
+   * 📍 Отчёт 7c8b49d2 (17.09.2026, «Проекция», вид справа): «угол такой, что
+   * перекрывает часть фигуры, и непонятно, сколько кубиков она содержит — тут метод
+   * исключения или всё-таки мысленное вращение?». Вопрос по существу: если фигуру не
+   * сосчитать, задание решается отбрасыванием вариантов, а не пространственным
+   * мышлением, то есть меряет не то, ради чего сделано. Замер координатора: у 500
+   * заданий «Проекции» из 500 хотя бы один кубик эталона не виден ВООБЩЕ.
+   *
+   * Крутить здесь безопасно: все три вида ВЫЧИСЛЯЮТСЯ из самой фигуры, поэтому вместе
+   * с ней поворачиваются и правильный ответ, и подделки — задание остаётся согласованным.
+   */
+  const shape = clearestOrientation(pick(rng, candidates), (варианты) => pick(rng, варианты));
   const view = pick(rng, PROJECTION_VIEWS);
   const correct = projectShape(shape, view);
 
