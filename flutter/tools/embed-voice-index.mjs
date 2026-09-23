@@ -56,15 +56,20 @@ function вынуть(файл, имя) {
 
 const live = вынуть('voiceLive.generated.ts', 'VOICE_LIVE');
 const samples = вынуть('voiceIndex.generated.ts', 'VOICE_INDEX');
+// 🔴 БУКВЫ — ОТДЕЛЬНОЕ ПРОСТРАНСТВО ИМЁН, А НЕ ЕЩЁ ОДИН ЯЗЫК. У слов ключ уникален внутри
+// языка, а буква «B» столкнулась бы с осмысленным словом «b» в любом словаре, где оно есть.
+// В вебе ровно поэтому своя функция letterVoiceUrl и свой каталог /voice-live/letters/.
+const letters = вынуть('letterVoice.generated.ts', 'LETTER_VOICE');
 
 const счёт = (карта) =>
   Object.fromEntries(Object.entries(карта).map(([язык, слова]) => [язык, Object.keys(слова).length]));
 
 mkdirSync(OUT, { recursive: true });
-writeFileSync(join(OUT, 'voice-index.json'), JSON.stringify({ live, samples }), 'utf8');
+writeFileSync(join(OUT, 'voice-index.json'), JSON.stringify({ live, samples, letters }), 'utf8');
 
 const итогЖивых = Object.values(счёт(live)).reduce((a, b) => a + b, 0);
 const итогСемплов = Object.values(счёт(samples)).reduce((a, b) => a + b, 0);
 console.log('✅ assets/voice/voice-index.json');
 console.log(`   живых записей ${итогЖивых} по языкам:`, счёт(live));
 console.log(`   синтезированных ${итогСемплов} по языкам:`, счёт(samples));
+console.log(`   имён букв ${Object.keys(letters).length}:`, Object.keys(letters).join(' '));

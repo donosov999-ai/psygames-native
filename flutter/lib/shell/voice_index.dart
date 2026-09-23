@@ -15,16 +15,20 @@ import 'package:flutter/services.dart' show rootBundle;
 typedef VoiceMaps = Map<String, Map<String, String>>;
 
 class VoiceIndex {
-  VoiceIndex({required this.live, required this.samples});
+  VoiceIndex({required this.live, required this.samples, this.letters = const {}});
 
   final VoiceMaps live;
   final VoiceMaps samples;
+
+  /// Имена букв: «B» → файл. Своё пространство имён, см. voice.dart.
+  final Map<String, String> letters;
 
   static VoiceIndex? _cache;
 
   /// Пустой указатель: ни одной записи. Нужен, когда ассета нет вовсе —
   /// слой в этом случае обязан работать на системном голосе, а не падать.
-  static VoiceIndex get empty => VoiceIndex(live: const {}, samples: const {});
+  static VoiceIndex get empty =>
+      VoiceIndex(live: const {}, samples: const {}, letters: const {});
 
   static VoiceMaps _asMap(Object? raw) {
     if (raw is! Map) return const {};
@@ -44,9 +48,13 @@ class VoiceIndex {
       final raw = jsonDecode(
         await rootBundle.loadString('assets/voice/voice-index.json'),
       ) as Map<String, dynamic>;
+      final rawLetters = raw['letters'];
       _cache = VoiceIndex(
         live: _asMap(raw['live']),
         samples: _asMap(raw['samples']),
+        letters: rawLetters is Map
+            ? rawLetters.map((k, v) => MapEntry(k.toString(), v.toString()))
+            : const {},
       );
     } catch (_) {
       _cache = empty;
