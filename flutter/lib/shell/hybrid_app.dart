@@ -185,6 +185,23 @@ class HybridApp extends StatefulWidget {
          */
         ...puzzleRoutes(),
         '/games/word-pairs': (s) => WordPairsScreen(state: s),
+        /*
+         * 🔴 РАЗВИЛКА «МНЕМОТЕХНИКИ» ПЕРЕХВАТЫВАЕТСЯ, ПОТОМУ ЧТО ЗА НЕЙ УЖЕ
+         * НАТИВНО ЧЕТЫРЕ ЭКРАНА ИЗ ПЯТИ: «Дворец памяти», «Лица и имена»,
+         * «Пары слов» и «Прочти эмоцию». Пятая — «Мнемоника» — ещё в вебе, и
+         * `isNative` честно показывает это на карточке: открывать её будет
+         * оболочка, а не хаб.
+         *
+         * ⚠️ Карточки берутся из `assets/hubs.json`, как у остальных развилок:
+         * свой список в коде был бы вторым реестром рядом с `hubContents.ts`.
+         */
+        '/games/mnemonics-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/mnemonics-hub',
+              icon: Icons.link,
+              gradient: const [Color(0xFFD946EF), Color(0xFFF59E0B)],
+              isNative: native.containsKey,
+            ),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.

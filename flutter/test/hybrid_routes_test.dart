@@ -83,6 +83,7 @@ void main() {
       '$origin/games/cpt',
       '$origin/games/proofreading',
       '$origin/games/word-pairs',
+      '$origin/games/mnemonics-hub',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -220,6 +221,7 @@ void main() {
       '/games/memory-matrix',
       '/games/memory-palace',
       '/games/rmet',
+      '/games/mnemonics-hub',
       '/games/word-pairs',
       '/games/mental-rotation',
       '/games/number-bonds',
