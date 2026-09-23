@@ -1,0 +1,88 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+
+/// У КАЖДОЙ СТРОКИ ДОСКИ ПЕРЕЕЗДА ЕСТЬ ВЛАДЕЛЕЦ.
+///
+/// 🔴 ЗАЧЕМ. 23.09.2026 из 67 оставшихся экранов 27 стояли с «❓ вписать себя»
+/// — треть переезда ни за кем. Денис: «делаем одно и то же, ты не можешь в рефах
+/// зафиксировать чётко». Он прав дважды: владельцы БЫЛИ записаны — поимённо, в
+/// карточках реестра TeamOps, — и шестнадцать строк закрылись простым переносом
+/// оттуда, без единого решения. Пустая клетка означала не «некому», а «никто не
+/// переписал».
+///
+/// Поэтому строка без владельца теперь не проходит молча. Остаток — поимённый
+/// список ниже, и он может только УМЕНЬШАТЬСЯ: имя уходит отсюда, когда Денис
+/// назвал раздел, и никогда не возвращается.
+///
+/// ⚠️ ЧЕГО ЭТА ПРОБА НЕ ЛОВИТ, И ЭТО ВАЖНО. Она видит пустую клетку, но не видит
+/// СПОР: три слуховых экрана записаны СРАЗУ В ДВУХ карточках реестра — «Память и
+/// слух» и «Языки» называют их своими. Двойной владелец для пробы выглядит как
+/// порядок. Такое ловится только чтением карточек рядом, руками.
+void main() {
+  /// Ждут решения Дениса на 23.09.2026. ТОЛЬКО В МЕНЬШУЮ СТОРОНУ.
+  ///
+  /// Спор двух разделов (обе карточки называют экран своим):
+  ///   chinese-tones, phoneme-pairs, pseudoword-echo — «Память и слух» ↔ «Языки»
+  /// Заявлено в переписке, но не записано в карточке:
+  ///   rmet — «Память и слух» называет его своим, в реестре его нет
+  /// Не встречается ни в одной карточке:
+  ///   inhibition-hub, navigator, risk-hub, routes-hub, sdmt, set-game, trail-making
+  const awaitingDenis = {
+    'chinese-tones', 'phoneme-pairs', 'pseudoword-echo',
+    'rmet',
+    'inhibition-hub', 'navigator', 'risk-hub', 'routes-hub', 'sdmt', 'set-game', 'trail-making',
+  };
+
+  test('🔴 у каждой строки доски есть владелец, кроме поимённого остатка', () {
+    final board = File('../FLUTTER_MIGRATION.md');
+    if (!board.existsSync()) {
+      markTestSkipped('нет ../FLUTTER_MIGRATION.md — прогон вне общего дерева');
+      return;
+    }
+    final blank = <String>[];
+    for (final line in board.readAsLinesSync()) {
+      if (!line.trimLeft().startsWith('|')) continue;
+      final cells = line.split('|');
+      if (cells.length < 4) continue;
+      final mark = cells[1].trim();
+      if (mark != '☐' && mark != '◐' && mark != '✅') continue;
+      final name = RegExp(r'`([a-z0-9-]+)`').firstMatch(cells[2]);
+      if (name == null) continue;
+      final owner = cells[3].trim();
+      final empty = owner.isEmpty || owner == '—' || owner == '?' || owner.startsWith('❓');
+      if (empty && !awaitingDenis.contains(name.group(1))) blank.add(name.group(1)!);
+    }
+    expect(
+      blank,
+      isEmpty,
+      reason: 'Эти экраны на доске переезда без владельца и вне списка ожидания. '
+          'Сперва посмотри карточки реестра: `agents_list` называет игры разделов ПОИМЁННО, '
+          'и чаще всего владелец там уже есть — его просто не перенесли. '
+          'Если в карточках экрана нет, добавь имя в awaitingDenis с причиной.\n'
+          '${blank.join(', ')}',
+    );
+  });
+
+  test('список ожидания не растёт и не протух', () {
+    final board = File('../FLUTTER_MIGRATION.md');
+    if (!board.existsSync()) {
+      markTestSkipped('нет доски');
+      return;
+    }
+    final text = board.readAsStringSync();
+    // Имя, которое уже получило владельца, обязано уйти из списка ожидания —
+    // иначе список превращается в свалку и перестаёт что-либо значить.
+    final stale = <String>[];
+    for (final name in awaitingDenis) {
+      final row = RegExp('^.*`$name`.*\$', multiLine: true).firstMatch(text);
+      if (row == null) continue;
+      final cells = row.group(0)!.split('|');
+      if (cells.length < 4) continue;
+      final owner = cells[3].trim();
+      if (owner.isNotEmpty && owner != '—' && !owner.startsWith('❓')) stale.add(name);
+    }
+    expect(stale, isEmpty,
+        reason: 'у этих экранов уже есть владелец — убери их из awaitingDenis: ${stale.join(', ')}');
+  });
+}
