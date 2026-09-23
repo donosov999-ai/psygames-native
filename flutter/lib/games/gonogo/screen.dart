@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -95,7 +96,7 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
       return;
     }
     setState(() => _flash = null);
-    measureStimulusFrame('Flutter/ЖмиДержись');
+    measureStimulusFrame('Flutter/GoNoGo');
     _timer = Timer(Duration(milliseconds: g.params.windowMs), () {
       if (!mounted || _phase != GoNoGoPhase.playing) return;
       final outcome = g.closeTrial();
@@ -136,12 +137,14 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
     final g = _game;
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
-      title: 'Жми и держись',
+      // Тексты — из общего словаря (L.t), а не зашиты: экран обязан говорить на всех
+      // двенадцати языках приложения. Ключи те же, что зовёт веб-версия этой игры.
+      title: L.t('goNoGo'),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
-        HudItem(label: 'Проба', value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
-        HudItem(label: 'Верно', value: '${g.hits + g.correctRejections}', icon: Icons.check),
-        HudItem(label: 'Реакция', value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('round'), value: '${g.round}/${g.trialsTotal}', icon: Icons.numbers),
+        HudItem(label: L.t('hud_correct'), value: '${g.hits + g.correctRejections}', icon: Icons.check),
+        HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
       ],
       field: (context, h) => _Field(
         game: g,
@@ -196,39 +199,49 @@ class _Field extends StatelessWidget {
         return _Centered(
           height: height,
           children: [
-            Text('Уровень ${game.level}', style: Theme.of(context).textTheme.titleLarge),
+            Text('${L.t('level')} ${game.level}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-            const Text('Жми по полю, когда появился ЗЕЛЁНЫЙ круг. На КРАСНОМ квадрате — не жми.',
-                textAlign: TextAlign.center),
+            Text(L.t('goNoGoDesc'), textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
-              'Проб: ${game.trialsTotal} · окно ответа ${game.params.windowMs} мс',
+              // Тот же ключ и тот же вид строки, что на настройке веб-версии.
+              L.t('goNoGoLvlParams')
+                  .replaceAll('{n}', '${game.trialsTotal}')
+                  .replaceAll('{p}', '${(nogoProb * 100).round()}')
+                  .replaceAll('{w}', (game.params.windowMs / 1000).toStringAsFixed(1)),
               style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onStart, child: const Text('Начать')),
+            FilledButton(onPressed: onStart, child: Text(L.t('start'))),
           ],
         );
       case GoNoGoPhase.done:
         return _Centered(
           height: height,
           children: [
-            Text(passed ? 'Уровень пройден' : 'Уровень не пройден',
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              passed
+                  ? L.t('levelDone').replaceAll('{n}', '${game.level}')
+                  : L.t('sameLevelRetry'),
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 8),
-            Text('Поймано ${game.hits} · удержано ${game.correctRejections}'),
-            Text('Пропущено ${game.misses} · нажато на запрет ${game.falseAlarms}'),
+            // Четыре исхода порознь: попадание, удержание, пропуск, ложная тревога.
+            Text('${L.t('hud_correct')}: ${game.hits} · ${L.t('hud_held')}: ${game.correctRejections}'),
+            Text('${L.t('hud_missed')}: ${game.misses} · ${L.t('hud_errors')}: ${game.falseAlarms}'),
             Text(game.meanRtMs == null
-                ? 'Среднее время: нет нажатий на цель'
-                : 'Среднее время: ${game.meanRtMs} мс'),
+                ? '${L.t('meanReaction')}: —'
+                : '${L.t('meanReaction')}: ${game.meanRtMs} ${L.t('msShort')}'),
             const SizedBox(height: 16),
-            FilledButton(onPressed: onAgain, child: const Text('Ещё раз')),
+            FilledButton(onPressed: onAgain, child: Text(L.t('retry'))),
           ],
         );
       case GoNoGoPhase.playing:
         final s = game.stimulus;
         return TapLatency(
-          where: 'Flutter/ЖмиДержись',
+          where: 'Flutter/GoNoGo',
           child: GestureDetector(
             key: const Key('gonogo-field'),
             behavior: HitTestBehavior.opaque,
@@ -264,7 +277,7 @@ class _Field extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text('Круг — жми. Квадрат — держись.'),
+                  Text(L.t('goNoGoDesc'), textAlign: TextAlign.center),
                   const SizedBox(height: 12),
                   SizedBox(
                     height: 28,
