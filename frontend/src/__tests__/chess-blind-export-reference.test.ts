@@ -39,6 +39,14 @@ import {
   screenIndex,
 } from '../games/chess-blind/core/board';
 import { positionFromFen } from '../games/chess-blind/core/board';
+import {
+  CHESS_SERIES_PLAN,
+  QUESTIONS_PER_BLOCK,
+  CHESS_BLOCK_MAX_ERRORS,
+  KNIGHT_WRONG_GAP,
+  blockKeyAt,
+  buildBlockQuestions,
+} from '../games/chess-blind/core/blocks';
 import { toScreenPieces } from '../games/chess-blind/core/puzzle';
 import {
   POSITION_CORPUS,
@@ -300,7 +308,40 @@ test('лестница chess-blind читается целиком (и по кл
     { sq: 52, type: 'P', white: false, occupied: [52] },
   ].map((c) => ({ ...c, moves: movesFor(c.sq, c.type, c.white, c.occupied) }));
 
+  /* СЕРИЯ ИЗ ТРЁХ БЛОКОВ. Строители берут генератор случайных чисел наружу,
+   * значит при ОДИНАКОВОЙ последовательности вопросы обязаны совпасть число в
+   * число — это и сверяется. Генератор здесь тот же, что в переносе: линейный
+   * конгруэнтный 1664525 / 1013904223 по модулю 2^32. */
+  const lcg = (seed: number) => {
+    let state = seed >>> 0;
+    return () => {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      return state / 4294967296;
+    };
+  };
+  const seriesFen = '8/8/3k4/8/4P3/3K4/7R/8 w - - 0 1';
+  const series = {
+    plan: CHESS_SERIES_PLAN,
+    perBlock: QUESTIONS_PER_BLOCK,
+    maxErrors: CHESS_BLOCK_MAX_ERRORS,
+    knightWrongGap: KNIGHT_WRONG_GAP,
+    keyAt: [0, 1, 2, 3, 7].map((i) => ({ index: i, key: blockKeyAt(i) })),
+    fen: seriesFen,
+    // Один и тот же посев на каждый блок: сверяется вся выдача целиком.
+    blocks: [0, 1, 2].map((blockIndex) => ({
+      blockIndex,
+      level: 3,
+      questions: buildBlockQuestions(
+        positionFromFen(seriesFen),
+        3,
+        blockIndex,
+        lcg(20260924),
+      ),
+    })),
+  };
+
   const reference = {
+    series,
     moveCases,
     corpus,
     parsed,

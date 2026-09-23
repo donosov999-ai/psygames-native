@@ -1,4 +1,261 @@
 {
+  "series": {
+    "plan": [
+      "square",
+      "knight",
+      "recall"
+    ],
+    "perBlock": 8,
+    "maxErrors": 2,
+    "knightWrongGap": 2,
+    "keyAt": [
+      {
+        "index": 0,
+        "key": "square"
+      },
+      {
+        "index": 1,
+        "key": "knight"
+      },
+      {
+        "index": 2,
+        "key": "recall"
+      },
+      {
+        "index": 3,
+        "key": "recall"
+      },
+      {
+        "index": 7,
+        "key": "recall"
+      }
+    ],
+    "fen": "8/8/3k4/8/4P3/3K4/7R/8 w - - 0 1",
+    "blocks": [
+      {
+        "blockIndex": 0,
+        "level": 3,
+        "questions": [
+          {
+            "kind": "square",
+            "a": 10,
+            "b": 11,
+            "answer": false
+          },
+          {
+            "kind": "square",
+            "a": 9,
+            "b": 43,
+            "answer": true
+          },
+          {
+            "kind": "square",
+            "a": 4,
+            "b": 58,
+            "answer": false
+          },
+          {
+            "kind": "square",
+            "a": 25,
+            "b": 33,
+            "answer": false
+          },
+          {
+            "kind": "square",
+            "a": 27,
+            "b": 37,
+            "answer": false
+          },
+          {
+            "kind": "square",
+            "a": 42,
+            "b": 26,
+            "answer": true
+          },
+          {
+            "kind": "square",
+            "a": 36,
+            "b": 25,
+            "answer": true
+          },
+          {
+            "kind": "square",
+            "a": 53,
+            "b": 3,
+            "answer": true
+          }
+        ]
+      },
+      {
+        "blockIndex": 1,
+        "level": 3,
+        "questions": [
+          {
+            "kind": "knight",
+            "from": 26,
+            "to": 7,
+            "moves": 2,
+            "distance": 4,
+            "answer": false
+          },
+          {
+            "kind": "knight",
+            "from": 22,
+            "to": 43,
+            "moves": 2,
+            "distance": 2,
+            "answer": true
+          },
+          {
+            "kind": "knight",
+            "from": 59,
+            "to": 22,
+            "moves": 2,
+            "distance": 4,
+            "answer": false
+          },
+          {
+            "kind": "knight",
+            "from": 61,
+            "to": 2,
+            "moves": 2,
+            "distance": 4,
+            "answer": false
+          },
+          {
+            "kind": "knight",
+            "from": 37,
+            "to": 8,
+            "moves": 2,
+            "distance": 4,
+            "answer": false
+          },
+          {
+            "kind": "knight",
+            "from": 20,
+            "to": 18,
+            "moves": 2,
+            "distance": 2,
+            "answer": true
+          },
+          {
+            "kind": "knight",
+            "from": 36,
+            "to": 34,
+            "moves": 2,
+            "distance": 2,
+            "answer": true
+          },
+          {
+            "kind": "knight",
+            "from": 55,
+            "to": 53,
+            "moves": 2,
+            "distance": 2,
+            "answer": true
+          }
+        ]
+      },
+      {
+        "blockIndex": 2,
+        "level": 3,
+        "questions": [
+          {
+            "kind": "recall",
+            "square": 58,
+            "claim": {
+              "color": "w",
+              "type": "k"
+            },
+            "truth": null,
+            "answer": false
+          },
+          {
+            "kind": "recall",
+            "square": 43,
+            "claim": {
+              "color": "b",
+              "type": "k"
+            },
+            "truth": {
+              "color": "b",
+              "type": "k"
+            },
+            "answer": true
+          },
+          {
+            "kind": "recall",
+            "square": 27,
+            "claim": {
+              "color": "w",
+              "type": "p"
+            },
+            "truth": null,
+            "answer": false
+          },
+          {
+            "kind": "recall",
+            "square": 26,
+            "claim": {
+              "color": "w",
+              "type": "p"
+            },
+            "truth": null,
+            "answer": false
+          },
+          {
+            "kind": "recall",
+            "square": 53,
+            "claim": {
+              "color": "w",
+              "type": "r"
+            },
+            "truth": null,
+            "answer": false
+          },
+          {
+            "kind": "recall",
+            "square": 28,
+            "claim": {
+              "color": "w",
+              "type": "p"
+            },
+            "truth": {
+              "color": "w",
+              "type": "p"
+            },
+            "answer": true
+          },
+          {
+            "kind": "recall",
+            "square": 19,
+            "claim": {
+              "color": "w",
+              "type": "k"
+            },
+            "truth": {
+              "color": "w",
+              "type": "k"
+            },
+            "answer": true
+          },
+          {
+            "kind": "recall",
+            "square": 15,
+            "claim": {
+              "color": "w",
+              "type": "r"
+            },
+            "truth": {
+              "color": "w",
+              "type": "r"
+            },
+            "answer": true
+          }
+        ]
+      }
+    ]
+  },
   "moveCases": [
     {
       "sq": 27,
