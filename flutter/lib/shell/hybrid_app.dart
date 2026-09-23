@@ -7,6 +7,8 @@ import '../games/simon/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/goods_sort/screen.dart';
 import '../games/sort_tubes/board.dart' show TubeSkin;
+import '../games/cake_sort/board.dart' show CakeSkin;
+import '../games/cake_sort/screen.dart';
 import '../games/sort_tubes/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
@@ -50,6 +52,10 @@ class HybridApp extends StatefulWidget {
             state: s, gameId: 'ball_sort', title: 'Сортировка шариков', skin: TubeSkin.balls),
       '/games/nut-sort': (s) => SortTubesScreen(
             state: s, gameId: 'nut_sort', title: 'Сортировка гаек', skin: TubeSkin.nuts),
+      '/games/cake-sort': (s) => CakeSortScreen(
+            state: s, gameId: 'cake_sort', title: 'Сортировка тортов', skin: CakeSkin.cake),
+      '/games/pizza-sort': (s) => CakeSortScreen(
+            state: s, gameId: 'pizza_sort', title: 'Сортировка пиццы', skin: CakeSkin.pizza),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.

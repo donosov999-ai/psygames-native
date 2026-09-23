@@ -76,6 +76,10 @@ flutter:
     - assets/tubes/
     - assets/balls/
     - assets/nuts/
+    - assets/cake/tops/
+    - assets/cake/plates/
+    - assets/pizza/tops/
+    - assets/pizza/boards/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

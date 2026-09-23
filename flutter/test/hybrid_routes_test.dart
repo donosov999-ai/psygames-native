@@ -27,6 +27,8 @@ void main() {
       '$origin/games/water-sort',
       '$origin/games/ball-sort',
       '$origin/games/nut-sort.html?level=3',
+      '$origin/games/cake-sort',
+      '$origin/games/pizza-sort',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -49,7 +51,7 @@ void main() {
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
     expect(HybridApp.native.keys.toSet(),
-        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix', '/games/stroop', '/games/flanker', '/games/simon', '/games/goods-sort', '/games/water-sort', '/games/ball-sort', '/games/nut-sort'});
+        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix', '/games/stroop', '/games/flanker', '/games/simon', '/games/goods-sort', '/games/water-sort', '/games/ball-sort', '/games/nut-sort', '/games/cake-sort', '/games/pizza-sort'});
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
     }

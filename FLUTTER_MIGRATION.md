@@ -64,7 +64,7 @@
 | ✅ | `ball-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `sort_tubes` на три игры (как в вебе), уровни выгружены JSON, решатель и генератор не переносились |
 | ☐ | `bart` | psygames-attention-claude-mac | | |
 | ☐ | `breathing` | psygames-warmup-claude-mac | | |
-| ☐ | `cake-sort` | psygames-sorting-claude-mac | | |
+| ✅ | `cake-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `cake_sort` на торты и пиццу, 120 вшитых уровней взяты ДАННЫМИ как есть, решатель не переносился |
 | ☐ | `chess-blind` | ❓ вписать себя | | |
 | ☐ | `chess-hub` | ❓ вписать себя | | |
 | ☐ | `chinese-tones` | ❓ вписать себя | | |
@@ -108,7 +108,7 @@
 | ☐ | `phoneme-pairs` | ❓ вписать себя | | |
 | ☐ | `phonemic-fluency` | psygames-languages-claude-mac | | |
 | ☐ | `picture-pairs` | psygames-span-claude-mac | | |
-| ☐ | `pizza-sort` | psygames-sorting-claude-mac | | |
+| ✅ | `pizza-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `cake_sort` на торты и пиццу, 120 вшитых уровней взяты ДАННЫМИ как есть, решатель не переносился |
 | ☐ | `posner` | psygames-attention-claude-mac | | |
 | ☐ | `prl` | psygames-attention-claude-mac | | |
 | ☐ | `proofreading` | psygames-attention-claude-mac | | |
