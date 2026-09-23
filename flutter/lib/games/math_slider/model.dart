@@ -17,26 +17,14 @@ library;
 
 import 'dart:math' as math;
 
-// ───────────────────────────── JS-совместимая арифметика ─────────────────────
+import '../../shell/js_compat.dart' hide normalizeSeed;
+import '../../shell/js_compat.dart' as jsc;
+export '../../shell/js_compat.dart'
+    show Rng, createRng, hashSeed, jsNum, jsRound, pick, randomInt, roundNumber, shuffle;
 
-int _imul(int a, int b) {
-  final ah = (a >> 16) & 0xffff;
-  final al = a & 0xffff;
-  final bh = (b >> 16) & 0xffff;
-  final bl = b & 0xffff;
-  return (((al * bl) + (((ah * bl + al * bh) & 0xffff) << 16)) & 0xFFFFFFFF).toSigned(32);
-}
-
-/// `Math.round` из JS: ровная половина уходит ВВЕРХ (−2,5 → −2), а не «от нуля».
-double jsRound(double x) => (x + 0.5).floorToDouble();
-
-const double _jsEpsilon = 2.220446049250313e-16;
-
-double roundNumber(double value, [int digits = 8]) {
-  final factor = math.pow(10, digits).toDouble();
-  final rounded = jsRound((value + _jsEpsilon) * factor) / factor;
-  return rounded.abs() < 1e-9 ? 0 : rounded;
-}
+// Общая JS-совместимая арифметика и случайность живут в `shell/js_compat.dart`:
+// та же нужда возникла у «Трекера объектов», и два списка 32-битных операций в
+// двух играх разъехались бы молча.
 
 /// Разрядов в числе — как `String(Math.abs(Math.round(v))).length`.
 int _digits(num v) {
@@ -44,51 +32,10 @@ int _digits(num v) {
   return math.max(1, r.toInt().toString().length);
 }
 
-/// Число в JSON и в подписи: целое печатается без хвоста, как `JSON.stringify`.
-num jsNum(double v) => v == v.roundToDouble() && v.abs() < 1e15 ? v.toInt() : v;
-
 String _jsKey(double v) => jsNum(v).toString();
 
-// ───────────────────────────────── Случайность ───────────────────────────────
-
-typedef Rng = double Function();
-
-int hashSeed(String seed) {
-  var hash = 0x811c9dc5.toSigned(32);
-  for (var i = 0; i < seed.length; i += 1) {
-    hash ^= seed.codeUnitAt(i);
-    hash = _imul(hash, 0x01000193);
-  }
-  return hash & 0xFFFFFFFF;
-}
-
-Rng createRng(String seed) {
-  final h = hashSeed(seed);
-  var state = h == 0 ? 1 : h;
-  return () {
-    var st = (state & 0xFFFFFFFF).toSigned(32);
-    st = ((st + 0x6d2b79f5) & 0xFFFFFFFF).toSigned(32);
-    state = st;
-    var value = _imul(st ^ ((st & 0xFFFFFFFF) >> 15), 1 | st);
-    final sum = value + _imul(value ^ ((value & 0xFFFFFFFF) >> 7), 61 | value);
-    value = ((sum & 0xFFFFFFFF).toSigned(32)) ^ value;
-    return ((value ^ ((value & 0xFFFFFFFF) >> 14)) & 0xFFFFFFFF) / 4294967296.0;
-  };
-}
-
-String normalizeSeed(String seed) {
-  final normalized = seed
-      .trim()
-      .toLowerCase()
-      .replaceAll(RegExp(r'[\s_]+'), '-')
-      .replaceAll(RegExp(r'-{2,}'), '-')
-      .replaceAll(RegExp(r'^-|-$'), '');
-  return normalized.isEmpty ? 'math-slider' : normalized;
-}
-
-int randomInt(Rng rng, int min, int max) => min + (rng() * (max - min + 1)).floor();
-
-T pick<T>(Rng rng, List<T> values) => values[(rng() * values.length).floor()];
+/// Зерно причёсывается с запасным именем этой игры.
+String normalizeSeed(String seed) => jsc.normalizeSeed(seed, 'math-slider');
 
 double _clamp(double v, double lo, double hi) => math.min(hi, math.max(lo, v));
 

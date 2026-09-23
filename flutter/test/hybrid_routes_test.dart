@@ -22,6 +22,8 @@ void main() {
       '$origin/games/mahjong',
       '$origin/games/math-slider',
       '$origin/games/math-slider.html?level=21',
+      '$origin/games/object-tracker',
+      '$origin/games/object-tracker.html?level=7',
       '$origin/games/stroop',
       '$origin/games/stroop.html?mode=ink',
       '$origin/games/flanker',
@@ -55,6 +57,7 @@ void main() {
           '/games/schulte',
           '/games/mahjong',
           '/games/math-slider',
+          '/games/object-tracker',
           '/games/stroop',
           '/games/flanker',
         });

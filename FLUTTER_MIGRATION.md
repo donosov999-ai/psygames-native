@@ -52,6 +52,7 @@
 | ✅ | `schulte` | psygames-search-claude-mac | 23.09 | тап-игра: 18 ступеней, позднее правило и убегающие клетки; правила сверены с живым TS |
 | ✅ | `mahjong` | psygames-search-claude-mac | 23.09 | тап-игра: 84 раскладки ресурсом, раздача решаема по построению, скрытые лица с L10 |
 | ✅ | `math-slider` | psygames-search-claude-mac | 23.09 | первая игра с ПЕРЕТАСКИВАНИЕМ: 13 полос лестницы и раздача по зерну сверены с живым TS (96 вопросов побайтно), проба ведёт маркер пальцем. ⚠️ три мутации из пяти сперва НЕ покраснели — дыры в пробах названы в сообщении коммита |
+| ✅ | `object-tracker` | psygames-search-claude-mac | 23.09 | слежение за несколькими целями: лестница 41 уровня, раздача и физика сверены с живым TS (разбег траектории за круг 1,7e-14), поле КВАДРАТНОЕ от меньшей из сторон + отдельная проба раскладки на 360×640 и 390×844 |
 | ✅ | `stroop` | psygames-attention-claude-mac | 23.09 | нативно, перехват в гибриде; правила сверены с эталонами из живого TS, 6 мутаций краснеют. ⚠️ отклик двух версий сравнить НЕ УДАЛОСЬ — три способа и почему каждый негоден, см. `flutter/tools/latency.md` |
 
 ## Что осталось
@@ -82,7 +83,7 @@
 | ☐ | `faces-names` | ❓ вписать себя | | |
 | ☐ | `find-differences` | psygames-search-claude-mac | | |
 | ✅ | `flanker` | psygames-attention-claude-mac | 23.09 | «Стрелки» нативно, перехват в гибриде. Правила сверены с эталоном из живого TS (`flutter/test/fixtures/flanker-reference.json`, вместе с очередью случайных чисел); 15 проб модели + 4 партии нажатиями; 8 мутаций краснеют, в том числе «отсчёт времени с рождения пробы» и «граница долей зашита 0,85» — в двоичной плавающей точке 0,40 + 0,45 = 0,8500000000000001, и розыгрыш ровно 0,85 даёт конфликтную пробу. ⚠️ отклик двух версий сравнимым числом так и не снят, см. `flutter/tools/latency.md` |
-| ☐ | `flexibility-hub` | psygames-search-claude-mac | | |
+| ✖ | `flexibility-hub` | psygames-search-claude-mac | 23.09 | ПЕРЕНОСИТЬ НЕЧЕГО: развилка «Гибкость» расформирована 12.09.2026 (решение Дениса, вариант Г), игры разошлись по другим разделам. Замер: `ls frontend/app/games \| grep flex` → пусто, `grep flexibility-hub frontend/src/constants` → пусто, маршрута нет |
 | ☐ | `go-no-go` | psygames-attention-claude-mac | | |
 | ☐ | `goods-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `hanoi` | psygames-sorting-claude-mac | | |
@@ -102,7 +103,6 @@
 | ☐ | `navigator` | ❓ вписать себя | | |
 | ☐ | `number-bonds` | psygames-search-claude-mac | | |
 | ☐ | `nut-sort` | psygames-sorting-claude-mac | | |
-| ☐ | `object-tracker` | psygames-search-claude-mac | | |
 | ☐ | `ospan` | psygames-search-claude-mac | | |
 | ☐ | `pattern` | psygames-search-claude-mac | | |
 | ☐ | `pause` | psygames-warmup-claude-mac | | |
