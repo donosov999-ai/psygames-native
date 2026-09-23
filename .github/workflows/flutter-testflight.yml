@@ -66,6 +66,27 @@ jobs:
             echo "::error title=Веб-часть::вложено слишком мало — сборка была бы пустой"; exit 1
           fi
 
+      # 🔴 ДВИЖОК ТЭТХЭМА — ТОТ ЖЕ ШАГ, ЧТО В flutter-pilot.yml, И ЭТО НЕ ДУБЛЬ РАДИ ДУБЛЯ.
+      #
+      # Замер 23.09.2026: я починил сборку движка в ОДНОМ рабочем процессе из двух,
+      # и выкладка упала ровно там же — три пробы головоломок (puzzles_engine,
+      # puzzles_frame, puzzles_screen) зовут настоящий движок через dart:ffi, а его
+      # на бегунке нет: 105 149 строк C живут в каноне вне нашего репозитория.
+      # Прогон 35885629221: 580 зелёных, 3 красных, сборка не собралась.
+      #
+      # ⚠️ Метка коммита канона ОБЯЗАНА совпадать с flutter-pilot.yml. Разойдутся —
+      # выкладка соберётся на другом движке, чем проверяли пробы, и это не заметит
+      # никто: обе сборки зелёные, а игры разные.
+      - name: Канон Тэтхэма (по метке) и сборка движка
+        working-directory: flutter
+        run: |
+          set -eu
+          TATHAM_SHA=428913c6a58b60802fe5d734d9a44c34159f4e0f
+          git clone --quiet https://git.tartarus.org/simon/puzzles.git "$HOME/puzzles"
+          git -C "$HOME/puzzles" checkout --quiet "$TATHAM_SHA"
+          echo "канон: $(git -C "$HOME/puzzles" rev-parse --short HEAD)"
+          PUZZLES_SRC="$HOME/puzzles" tool/build_tatham.sh
+
       - name: Пробы пилота
         working-directory: flutter
         run: |
