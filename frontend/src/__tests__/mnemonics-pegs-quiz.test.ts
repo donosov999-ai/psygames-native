@@ -29,11 +29,42 @@ describe('лестница режима опор', () => {
     expect(pegQuizParams(4).bothWays).toBe(true);
   });
 
-  it('🔴 плато не раньше 20-го уровня: между 1 и 19 параметры меняются', () => {
-    const слепки = Array.from({ length: 19 }, (_, i) => JSON.stringify(pegQuizParams(i + 1)));
-    const подряд = слепки.filter((s, i) => i > 0 && s === слепки[i - 1]).length;
-    expect(подряд).toBeLessThan(10);
-    expect(new Set(слепки).size).toBeGreaterThanOrEqual(8);
+  it('время на ответ включается с 12-го и жмётся до четырёх секунд', () => {
+    expect(pegQuizParams(11).limitMs).toBe(0);
+    expect(pegQuizParams(12).limitMs).toBe(12000);
+    expect(pegQuizParams(20).limitMs).toBe(8000);
+    expect(pegQuizParams(28).limitMs).toBe(4000);
+    expect(pegQuizParams(40).limitMs).toBe(4000);
+  });
+
+  it('вариантов становится больше на верхних уровнях', () => {
+    expect(pegQuizParams(28).options).toBe(4);
+    expect(pegQuizParams(29).options).toBe(5);
+    expect(pegQuizParams(35).options).toBe(6);
+  });
+
+  /**
+   * 🔴 ЗАМЕР ЛЕСТНИЦЫ ИСПОЛНЕНИЕМ, А НЕ ГЛАЗОМ. «Потолков нет нигде»
+   * (CHATS_RULES §4а): уровни, неотличимые друг от друга, — это остановка
+   * роста, замаскированная номером. Считаем самую длинную цепочку одинаковых
+   * уровней и место, где она начинается.
+   */
+  it('🔴 плато не раньше 25-го уровня и не длиннее шести', () => {
+    const слепки = Array.from({ length: 40 }, (_, i) => JSON.stringify(pegQuizParams(i + 1)));
+    let длина = 1; let самая = 1; let началоДлинной = 1; let первоеПлато = 99;
+    for (let i = 1; i < слепки.length; i += 1) {
+      if (слепки[i] === слепки[i - 1]) {
+        длина += 1;
+        if (длина >= 3 && i + 1 - длина + 1 < первоеПлато) первоеПлато = i + 1 - длина + 1;
+        if (длина > самая) { самая = длина; началоДлинной = i + 1 - длина + 1; }
+      } else длина = 1;
+    }
+    // Замер 23.09.2026: единственная цепочка одинаковых — 29…34 (время уже на
+    // полу 4 с, варианты ещё не выросли до шести). Числа записаны, а не «примерно»:
+    // сдвинется любая ось — покраснеет здесь и потребует объяснения.
+    expect({ самая, началоДлинной, первоеПлато }).toEqual({ самая: 6, началоДлинной: 29, первоеПлато: 29 });
+    expect(первоеПлато).toBeGreaterThan(25);
+    expect(new Set(слепки).size).toBeGreaterThanOrEqual(25);
   });
 });
 

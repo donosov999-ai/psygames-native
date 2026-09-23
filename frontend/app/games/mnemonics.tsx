@@ -202,6 +202,9 @@ export default function MnemonicsGame() {
   const [вопрос, setВопрос] = useState<PegQuestion | null>(null);
   const [спрошено, setСпрошено] = useState<number[]>([]);
   const [разбор, setРазбор] = useState<{ верно: boolean; ответ: string } | null>(null);
+  /** Когда показан текущий вопрос: от него считается остаток времени на ответ. */
+  const вопросНачат = useRef(0);
+  const таймерВопроса = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [опораВидна, setОпораВидна] = useState(true);
   const опоруТронули = useRef(false);
   const [items, setItems] = useState<string[]>([]);
@@ -277,6 +280,7 @@ export default function MnemonicsGame() {
       setItems(Array.from({ length: count }, (_, i) => String(i + 1)));
       setСпрошено([]);
       setРазбор(null);
+      вопросНачат.current = gameNow();
       setВопрос(makePegQuestion(уровень, language as 'ru' | 'en'));
       setErrors(0);
       setSelectedOrder([]);
@@ -601,6 +605,44 @@ export default function MnemonicsGame() {
   );
 
   // memorize-фаза — на едином каркасе GameShell (поле в ScrollView, «Проверить» прибита к низу)
+  /** Уровень, по которому идёт заход режима опор: по лесенке или первый. */
+  const уровеньОпор = () => (useLevelRef.current ? levelRef.current : 1);
+
+  /**
+   * Итог захода по опорам.
+   *
+   * 🔴 ПОРОГ ПРОХОЖДЕНИЯ ЗДЕСЬ НЕ «БЕЗ ЕДИНОЙ ОШИБКИ». В основном режиме ряд
+   * короткий (5–15) и ошибка означает развалившееся удержание. Здесь вопросов
+   * до двадцати четырёх, и требовать чистого листа значило бы запереть лестницу
+   * на первых уровнях навсегда. Допуск — десятая часть захода: 0 при шести
+   * вопросах, 1 при десяти-девятнадцати, 2 при двадцати и больше.
+   */
+  const завершитьОпоры = async (ошибок: number) => {
+    const допуск = Math.floor(items.length / 10);
+    const passed = ошибок <= допуск;
+    const isLevelRun = !isPreset && useLevelRef.current;
+    if (isLevelRun) {
+      if (passed) lvl.reach(levelRef.current + 1);
+      else lvl.fail();
+      setClearedPassed(passed);
+    }
+    try {
+      await saveSession({
+        passed,
+        game_type: 'mnemonics',
+        score: items.length - ошибок,
+        time_seconds: elapsedTime,
+        difficulty: `${items.length} pegs`,
+        mode: 'pegs',
+        errors: ошибок,
+        details: { level: levelRef.current, hits: items.length - ошибок, errors: ошибок, item_count: items.length },
+      });
+    } catch (error) {
+      console.error('Error saving session:', error);
+    }
+    setPhase(isLevelRun ? 'cleared' : 'result');
+  };
+
   /**
    * Ответ в режиме опор. Разбор показывается ВСЕГДА, а не только при ошибке:
    * узнать, что промахнулся, мало — надо увидеть, каким согласным разбирается
@@ -613,16 +655,41 @@ export default function MnemonicsGame() {
     setРазбор({ верно, ответ: вопрос.answer });
     const спрошеноТеперь = [...спрошено, вопрос.n];
     setСпрошено(спрошеноТеперь);
+    const ошибок = errors + (верно ? 0 : 1);
     setTimeout(() => {
       setРазбор(null);
       if (спрошеноТеперь.length >= items.length) {
         if (timerRef.current) clearInterval(timerRef.current);
         setВопрос(null);
-        setPhase('result');
+        завершитьОпоры(ошибок);
         return;
       }
-      setВопрос(makePegQuestion(useLevelRef.current ? levelRef.current : 1, language as 'ru' | 'en', Math.random, спрошеноТеперь));
+      вопросНачат.current = gameNow();
+      setВопрос(makePegQuestion(уровеньОпор(), language as 'ru' | 'en', Math.random, спрошеноТеперь));
     }, верно ? 550 : 1600);
+  };
+
+  /**
+   * 🔴 ВРЕМЯ НА ОТВЕТ — ОСЬ, А НЕ УКРАШЕНИЕ. Пока опора вспоминается десять
+   * секунд, в партии она бесполезна: ряд за это время уже рассыпался. Часы
+   * включаются с двенадцатого уровня и жмутся до четырёх секунд.
+   * ⚠️ Хук стоит ДО ранних выходов по фазам — их число не должно меняться.
+   */
+  useEffect(() => {
+    if (таймерВопроса.current) { clearTimeout(таймерВопроса.current); таймерВопроса.current = null; }
+    if (phase !== 'pegs' || !вопрос || разбор) return;
+    const { limitMs } = pegQuizParams(уровеньОпор());
+    if (!limitMs) return;
+    const прошло = gameNow() - вопросНачат.current;
+    таймерВопроса.current = setTimeout(() => ответитьПоОпоре('\u0000'), Math.max(300, limitMs - прошло));
+    return () => { if (таймерВопроса.current) clearTimeout(таймерВопроса.current); };
+  }, [phase, вопрос, разбор]);   // eslint-disable-line react-hooks/exhaustive-deps — ответ и уровень берутся на момент срабатывания
+
+  /** Сколько секунд осталось на ответ; `null` — часов на этом уровне нет. */
+  const остатокВремени = (): number | null => {
+    const { limitMs } = pegQuizParams(уровеньОпор());
+    if (!limitMs || !вопрос || разбор) return null;
+    return Math.max(0, Math.ceil((limitMs - (gameNow() - вопросНачат.current)) / 1000));
   };
 
   const renderPegs = () => (
@@ -640,6 +707,7 @@ export default function MnemonicsGame() {
             <Ionicons name="time-outline" size={20} color={textOn(GRADIENT[0])} />
             <Text style={[styles.timerText, { color: textOn(GRADIENT[0]) }]}>
               {PEG_TEXT[language as 'ru' | 'en'].left} {Math.max(0, items.length - спрошено.length)}
+              {остатокВремени() !== null ? ` · ${остатокВремени()}${t('secShort')}` : ''}
             </Text>
           </View>
         </View>
