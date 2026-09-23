@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
 import 'game.dart';
 import 'ladder.dart';
 import 'positions.dart';
@@ -56,7 +57,7 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
       _tick();
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = 'Не удалось собрать партию: $e');
+      setState(() => _error = "${L.t('chessBlind')}: $e");
     }
   }
 
@@ -95,10 +96,10 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
     final game = _game;
     if (game == null) {
       return GameShell(
-        title: 'Доска в уме',
+        title: L.t('chessBlind'),
         field: (context, h) => Center(
           child: Text(
-            _error ?? 'Собираем позицию…',
+            _error ?? L.t('label_ready'),
             key: const Key('cb-status'),
           ),
         ),
@@ -110,18 +111,18 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
     final shown = masked ? game.finalPieces : game.start;
 
     return GameShell(
-      title: 'Доска в уме',
+      title: L.t('chessBlind'),
       hud: [
-        HudItem(label: 'Уровень', value: '${game.level}'),
+        HudItem(label: L.t('label_level_short'), value: '${game.level}'),
         HudItem(
-          label: 'Вопрос',
+          label: L.t('chessQuestionShort'),
           // 🔴 ЗНАМЕНАТЕЛЬ — ФАКТ, А НЕ ОБЕЩАНИЕ ЛЕСТНИЦЫ: на «розыске» вопросов
           // бывает меньше, чем обещано, и «3/5» без возможности дойти до пяти
           // человек читает как поломку.
           value: '${game.asked}/${game.total}',
         ),
         if (game.phase == ChessBlindPhase.expose)
-          HudItem(label: 'Показ', value: '$_left с'),
+          HudItem(label: L.t('chessCfgExpose'), value: '$_left'),
       ],
       field: (context, fieldHeight) {
         // Доска берёт высоту У КАРКАСА числом, а не от окна: окно не знает про
@@ -163,7 +164,7 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
           ? Padding(
               padding: const EdgeInsets.all(12),
               child: Text(
-                'Верно ${game.right} из ${game.total}',
+                "${L.t('hud_correct')}: ${game.right}/${game.total}",
                 key: const Key('cb-result'),
                 textAlign: TextAlign.center,
               ),

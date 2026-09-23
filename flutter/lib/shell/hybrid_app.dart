@@ -39,12 +39,12 @@ import '../games/quick_count/screen.dart';
 import '../games/schulte/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
+import '../games/chess_blind/entry.dart';
 import '../games/sorting_hub/screen.dart';
 import 'hub_screen.dart';
 import 'session_report.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
-
 
 /// ГИБРИД: снаружи Flutter, внутри — НЫНЕШНЕЕ ПРИЛОЖЕНИЕ ЦЕЛИКОМ.
 ///
@@ -67,59 +67,80 @@ class HybridApp extends StatefulWidget {
 
   /// Игра перенесена → строится нативно. Ключ — путь маршрута веб-сборки.
   static Map<String, Widget Function(SharedState)> get native => {
-        '/games/dots-connect': (s) => DotsConnectScreen(state: s),
-        '/games/one-line': (s) => OneLineScreen(state: s),
-        '/games/digit-span': (s) => DigitSpanScreen(state: s),
-        '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
-        '/games/schulte': (s) => SchulteScreen(state: s),
-        '/games/mahjong': (s) => MahjongScreen(state: s),
-        '/games/math-slider': (s) => MathSliderScreen(state: s),
-        '/games/object-tracker': (s) => ObjectTrackerScreen(state: s),
-        '/games/quick-count': (s) => QuickCountScreen(state: s),
-        '/games/pattern': (s) => PatternScreen(state: s),
-        '/games/math-sprint': (s) => MathSprintScreen(state: s),
-        '/games/number-bonds': (s) => NumberBondsScreen(state: s),
-        '/games/ospan': (s) => OspanScreen(state: s),
-        '/games/stroop': (s) => StroopScreen(state: s),
-        '/games/flanker': (s) => FlankerScreen(state: s),
-        '/games/simon': (s) => SimonScreen(state: s),
-        '/games/sudoku': (s) => SudokuScreen(state: s),
-        '/games/sudoku-samurai': (s) => SamuraiScreen(state: s),
-        '/games/sudoku-fractal': (s) => FractalScreen(state: s),
-        '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),
-        '/games/go-no-go': (s) => GoNoGoScreen(state: s),
-        '/games/mental-rotation': (s) => MentalRotationScreen(state: s),
-        '/games/spatial-span': (s) => SpatialSpanScreen(state: s),
-        // Все четыре упражнения лаборатории перенесены, поэтому перехват честен: адрес с
-        // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.
-        '/games/spatial-lab': (s) => SpatialLabScreen(state: s),
-        '/games/spatial-hub': (s) => SpatialHubScreen(state: s),
-        '/games/goods-sort': (s) => GoodsSortScreen(state: s),
-      '/games/water-sort': (s) => SortTubesScreen(
-            state: s, gameId: 'water_sort', title: 'Пробирки', skin: TubeSkin.water),
-      '/games/ball-sort': (s) => SortTubesScreen(
-            state: s, gameId: 'ball_sort', title: 'Сортировка шариков', skin: TubeSkin.balls),
-      '/games/nut-sort': (s) => SortTubesScreen(
-            state: s, gameId: 'nut_sort', title: 'Сортировка гаек', skin: TubeSkin.nuts),
-      '/games/cake-sort': (s) => CakeSortScreen(
-            state: s, gameId: 'cake_sort', title: 'Торты', skin: CakeSkin.cake),
-      '/games/pizza-sort': (s) => CakeSortScreen(
-            state: s, gameId: 'pizza_sort', title: 'Пицца', skin: CakeSkin.pizza),
-      '/games/hanoi': (s) => HanoiScreen(state: s),
-      '/games/tower-london': (s) => TowerLondonScreen(state: s),
-        /*
+    '/games/dots-connect': (s) => DotsConnectScreen(state: s),
+    '/games/one-line': (s) => OneLineScreen(state: s),
+    '/games/digit-span': (s) => DigitSpanScreen(state: s),
+    '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
+    '/games/schulte': (s) => SchulteScreen(state: s),
+    '/games/mahjong': (s) => MahjongScreen(state: s),
+    '/games/math-slider': (s) => MathSliderScreen(state: s),
+    '/games/object-tracker': (s) => ObjectTrackerScreen(state: s),
+    '/games/quick-count': (s) => QuickCountScreen(state: s),
+    '/games/pattern': (s) => PatternScreen(state: s),
+    '/games/math-sprint': (s) => MathSprintScreen(state: s),
+    '/games/number-bonds': (s) => NumberBondsScreen(state: s),
+    '/games/ospan': (s) => OspanScreen(state: s),
+    '/games/stroop': (s) => StroopScreen(state: s),
+    '/games/flanker': (s) => FlankerScreen(state: s),
+    '/games/simon': (s) => SimonScreen(state: s),
+    '/games/sudoku': (s) => SudokuScreen(state: s),
+    '/games/sudoku-samurai': (s) => SamuraiScreen(state: s),
+    '/games/sudoku-fractal': (s) => FractalScreen(state: s),
+    '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),
+    '/games/go-no-go': (s) => GoNoGoScreen(state: s),
+    '/games/mental-rotation': (s) => MentalRotationScreen(state: s),
+    '/games/spatial-span': (s) => SpatialSpanScreen(state: s),
+    // Все четыре упражнения лаборатории перенесены, поэтому перехват честен: адрес с
+    // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.
+    '/games/spatial-lab': (s) => SpatialLabScreen(state: s),
+    '/games/spatial-hub': (s) => SpatialHubScreen(state: s),
+    '/games/goods-sort': (s) => GoodsSortScreen(state: s),
+    '/games/water-sort': (s) => SortTubesScreen(
+      state: s,
+      gameId: 'water_sort',
+      title: 'Пробирки',
+      skin: TubeSkin.water,
+    ),
+    '/games/ball-sort': (s) => SortTubesScreen(
+      state: s,
+      gameId: 'ball_sort',
+      title: 'Сортировка шариков',
+      skin: TubeSkin.balls,
+    ),
+    '/games/nut-sort': (s) => SortTubesScreen(
+      state: s,
+      gameId: 'nut_sort',
+      title: 'Сортировка гаек',
+      skin: TubeSkin.nuts,
+    ),
+    '/games/cake-sort': (s) => CakeSortScreen(
+      state: s,
+      gameId: 'cake_sort',
+      title: 'Торты',
+      skin: CakeSkin.cake,
+    ),
+    '/games/pizza-sort': (s) => CakeSortScreen(
+      state: s,
+      gameId: 'pizza_sort',
+      title: 'Пицца',
+      skin: CakeSkin.pizza,
+    ),
+    '/games/hanoi': (s) => HanoiScreen(state: s),
+    '/games/tower-london': (s) => TowerLondonScreen(state: s),
+    /*
          * 🔴 РАЗВИЛКА ТОЖЕ ПЕРЕХВАТЫВАЕТСЯ. Она ведёт на восемь игр, из которых
          * все восемь уже нативные: оставь её в вебе — и каждый заход в игру шёл
          * бы через веб-страницу, которую мы всё равно перехватим кадром позже.
          * Какую игру чем открыть, решает оболочка (см. `_openNative`), а не хаб.
          */
-        '/games/sorting-hub': (s) =>
-            SortingHubScreen(state: s, isNative: native.containsKey),
-        '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
-        '/games/stop-signal': (s) => StopSignalScreen(state: s),
-        '/games/posner': (s) => PosnerScreen(state: s),
-        '/games/stroop-emotional': (s) => EmoStroopScreen(state: s),
-      };
+    '/games/chess-blind': (s) => const ChessBlindEntry(),
+    '/games/sorting-hub': (s) =>
+        SortingHubScreen(state: s, isNative: native.containsKey),
+    '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
+    '/games/stop-signal': (s) => StopSignalScreen(state: s),
+    '/games/posner': (s) => PosnerScreen(state: s),
+    '/games/stroop-emotional': (s) => EmoStroopScreen(state: s),
+  };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
   ///
@@ -197,7 +218,9 @@ class _HybridAppState extends State<HybridApp> {
     // экран сразу со старта. Веб-сторона на этот случай копит отчёты в очередь
     // и разбирает её, когда регистрирует приёмник; здесь просто отдаём.
     SessionReport.sink = (json) async {
-      await _c.runJavaScript('window.__psySaveSession && window.__psySaveSession($json);');
+      await _c.runJavaScript(
+        'window.__psySaveSession && window.__psySaveSession($json);',
+      );
     };
     _c = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -205,48 +228,58 @@ class _HybridAppState extends State<HybridApp> {
         SharedState.channel,
         onMessageReceived: (m) => _fromWeb(m.message),
       )
-      ..addJavaScriptChannel(latencyChannel, onMessageReceived: (m) {
-        final line = _marks.onMark(m.message);
-        // ignore: avoid_print — прибор нарочно пишет в журнал устройства
-        if (line != null) print(line);
-      })
+      ..addJavaScriptChannel(
+        latencyChannel,
+        onMessageReceived: (m) {
+          final line = _marks.onMark(m.message);
+          // ignore: avoid_print — прибор нарочно пишет в журнал устройства
+          if (line != null) print(line);
+        },
+      )
       ..setOnConsoleMessage((m) {
         // Замеры страницы (ПОКАЗ/ОТКЛИК) уходят в журнал устройства вместе со строками Flutter.
-        if (tapLatencyProbe && (m.message.startsWith('ОТКЛИК') || m.message.startsWith('ПОКАЗ'))) {
+        if (tapLatencyProbe &&
+            (m.message.startsWith('ОТКЛИК') || m.message.startsWith('ПОКАЗ'))) {
           // ignore: avoid_print — прибор нарочно пишет в журнал устройства
           print(m.message);
         }
       })
-      ..setNavigationDelegate(NavigationDelegate(
-        onNavigationRequest: (req) {
-          final route = HybridApp.routeOf(req.url);
-          if (route == null) return NavigationDecision.navigate;
-          // 🔴 ПЕРЕХВАТ. Веб-версию перенесённой игры не открываем никогда:
-          // иначе человек увидел бы старый экран там, где уже есть новый, и
-          // прогресс писался бы дважды разными путями.
-          _openNative(route);
-          return NavigationDecision.prevent;
-        },
-        onPageStarted: (_) => _c.runJavaScript(widget.state.bootstrapJs()),
-        onPageFinished: (_) {
-          _c.runJavaScript(widget.state.bootstrapJs());
-          if (tapLatencyProbe) {
-            _c.runJavaScript(webTapLatencyJs('Веб/страница'));
-            _c.runJavaScript(webStimulusMarkJs());
-          }
-          if (mounted) setState(() => _loading = false);
-        },
-      ))
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onNavigationRequest: (req) {
+            final route = HybridApp.routeOf(req.url);
+            if (route == null) return NavigationDecision.navigate;
+            // 🔴 ПЕРЕХВАТ. Веб-версию перенесённой игры не открываем никогда:
+            // иначе человек увидел бы старый экран там, где уже есть новый, и
+            // прогресс писался бы дважды разными путями.
+            _openNative(route);
+            return NavigationDecision.prevent;
+          },
+          onPageStarted: (_) => _c.runJavaScript(widget.state.bootstrapJs()),
+          onPageFinished: (_) {
+            _c.runJavaScript(widget.state.bootstrapJs());
+            if (tapLatencyProbe) {
+              _c.runJavaScript(webTapLatencyJs('Веб/страница'));
+              _c.runJavaScript(webStimulusMarkJs());
+            }
+            if (mounted) setState(() => _loading = false);
+          },
+        ),
+      )
       // 🔴 КОРЕНЬ, А НЕ /index.html. Замер 23.09.2026: по адресу `/index.html`
       // приложение грузится целиком (связка на 29,7 МБ доезжает), но
       // маршрутизатор такого маршрута не знает и показывает «страница не
       // найдена» — в журнале это видно по запросу unmatched.png. Корень он
       // разбирает как главную.
-      ..loadRequest(Uri.parse('${widget.server.origin}${HybridApp.startRoute}'));
+      ..loadRequest(
+        Uri.parse('${widget.server.origin}${HybridApp.startRoute}'),
+      );
     HybridApp.open = _open;
     // Перенесённая игра по START_ROUTE: перехват на первой загрузке не срабатывает
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
-    final first = HybridApp.routeOf('${widget.server.origin}${HybridApp.startRoute}');
+    final first = HybridApp.routeOf(
+      '${widget.server.origin}${HybridApp.startRoute}',
+    );
     if (first != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _openNative(first));
     }
@@ -277,9 +310,8 @@ class _HybridAppState extends State<HybridApp> {
   Future<void> _openNative(String route) async {
     final build = HybridApp.native[route];
     if (build == null) return;
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => build(widget.state)),
-    );
+    final result = await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => build(widget.state)));
     // Вернулись из нативной игры — страница обязана перечитать прогресс,
     // иначе на карте уровней останется старое число.
     if (mounted) await _c.runJavaScript(widget.state.bootstrapJs());
@@ -299,13 +331,13 @@ class _HybridAppState extends State<HybridApp> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: SafeArea(
-          child: Stack(
-            children: [
-              WebViewWidget(controller: _c),
-              if (_loading) const Center(child: CircularProgressIndicator()),
-            ],
-          ),
-        ),
-      );
+    body: SafeArea(
+      child: Stack(
+        children: [
+          WebViewWidget(controller: _c),
+          if (_loading) const Center(child: CircularProgressIndicator()),
+        ],
+      ),
+    ),
+  );
 }

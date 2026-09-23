@@ -75,12 +75,24 @@ void main() {
   /// второй: он ещё в вебе, и подмена показала бы человеку другую игру.
   test('🔴 фрактал перехватывается, а глубокий фрактал остаётся в вебе', () {
     const origin = 'http://127.0.0.1:54321';
-    expect(HybridApp.routeOf('$origin/games/sudoku-fractal'), '/games/sudoku-fractal');
-    expect(HybridApp.routeOf('$origin/games/sudoku-fractal.html'), '/games/sudoku-fractal');
-    expect(HybridApp.routeOf('$origin/games/sudoku-fractal?level=6'), '/games/sudoku-fractal');
+    expect(
+      HybridApp.routeOf('$origin/games/sudoku-fractal'),
+      '/games/sudoku-fractal',
+    );
+    expect(
+      HybridApp.routeOf('$origin/games/sudoku-fractal.html'),
+      '/games/sudoku-fractal',
+    );
+    expect(
+      HybridApp.routeOf('$origin/games/sudoku-fractal?level=6'),
+      '/games/sudoku-fractal',
+    );
     // ⚠️ Глубокий фрактал — ОТДЕЛЬНЫЙ экран и отдельный маршрут: перехват одного не
     // должен утаскивать второй, иначе человек увидит не ту игру.
-    expect(HybridApp.routeOf('$origin/games/sudoku-fractal-deep'), '/games/sudoku-fractal-deep');
+    expect(
+      HybridApp.routeOf('$origin/games/sudoku-fractal-deep'),
+      '/games/sudoku-fractal-deep',
+    );
   });
 
   test('🔴 самурай перехватывается: и ссылкой, и файлом, и с якорем', () {
@@ -101,10 +113,10 @@ void main() {
       '$origin/index.html',
       '$origin/collection',
       '$origin/statistics',
-      '$origin/games/one-liner',   // похожее имя — не наша игра
-      '$origin/games/sudoku-hub',       // развилка судоку ещё не перенесена
-      '$origin/games/puzzles',          // головоломки Тэтхэма ещё не перенесены
-      '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
+      '$origin/games/one-liner', // похожее имя — не наша игра
+      '$origin/games/sudoku-hub', // развилка судоку ещё не перенесена
+      '$origin/games/puzzles', // головоломки Тэтхэма ещё не перенесены
+      '$origin/games/mental-rotation-lab', // и это: лаборатория ещё в вебе
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
@@ -117,6 +129,8 @@ void main() {
     expect(HybridApp.native.keys.toSet(), {
       '/games/ball-sort',
       '/games/cake-sort',
+      // «Доска в уме» перенесена целиком: партия и серия, вход спрашивает режим.
+      '/games/chess-blind',
       '/games/choice-rt',
       '/games/digit-span',
       '/games/dots-connect',
