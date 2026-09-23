@@ -5,6 +5,7 @@ import '../games/digit_span/screen.dart';
 import '../games/flanker/screen.dart';
 import '../games/simon/screen.dart';
 import '../games/dots_connect/screen.dart';
+import '../games/goods_sort/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
 import '../games/one_line/screen.dart';
@@ -40,6 +41,7 @@ class HybridApp extends StatefulWidget {
         '/games/stroop': (s) => StroopScreen(state: s),
         '/games/flanker': (s) => FlankerScreen(state: s),
         '/games/simon': (s) => SimonScreen(state: s),
+        '/games/goods-sort': (s) => GoodsSortScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
