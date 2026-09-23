@@ -28,6 +28,7 @@ import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 import { pegFor, pegHint, hasPegTable, PEG_RULE, PEG_TEXT } from '@/src/games/mnemonics/pegs';
+import { makePegQuestion, pegQuizParams, PegQuestion } from '@/src/games/mnemonics/pegsQuiz';
 import { useLevelRules, LevelRuleModal, LevelRule } from '@/src/components/LevelRules';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -60,8 +61,13 @@ export const MNEMONICS_RULES: LevelRule[] = [
   { key: 'method', fromLevel: 7 },   // lr_mnemonics_method_*
 ];
 
-type GamePhase = 'intro' | 'config' | 'memorize' | 'gap' | 'check' | 'cleared' | 'result';
-type GameMode = 'words' | 'numbers';
+type GamePhase = 'intro' | 'config' | 'memorize' | 'gap' | 'check' | 'cleared' | 'result' | 'pegs';
+/**
+ * Третий режим — тренировка самой таблицы опор, без ряда на удержание.
+ * Просил отчёт NZT-48 (bf1f53cc): пока сотня опор не узнаётся мгновенно, приём
+ * В ПАРТИИ мешает — рабочая память уходит на вспоминание слова, а не на ряд.
+ */
+type GameMode = 'words' | 'numbers' | 'pegs';
 // Лесенка: старт 5 элементов (минимум для запоминания списка) → растёт при ЧИСТОМ воспроизведении.
 /** Экспортируется для замера лестницы: `memory-hearing-ladders-scan`. */
 /**
@@ -192,6 +198,10 @@ export default function MnemonicsGame() {
    * снимает её с седьмого уровня — к этому времени сотня опор уже узнаётся.
    */
   const опораЕсть = hasPegTable(language);
+  /** Режим опор: текущий вопрос, что уже спрашивали и чем кончился прошлый ответ. */
+  const [вопрос, setВопрос] = useState<PegQuestion | null>(null);
+  const [спрошено, setСпрошено] = useState<number[]>([]);
+  const [разбор, setРазбор] = useState<{ верно: boolean; ответ: string } | null>(null);
   const [опораВидна, setОпораВидна] = useState(true);
   const опоруТронули = useRef(false);
   const [items, setItems] = useState<string[]>([]);
@@ -255,6 +265,26 @@ export default function MnemonicsGame() {
       const cap = levelParams(lvl.level).itemCount + 2;
       const capped = lvl.level >= 11 ? ic : Math.min(ic, cap);
       if (capped !== ic) { ic = capped; setItemCount(ic); }
+    }
+    /**
+     * Режим опор идёт своим ходом: ряда на удержание нет, есть вопросы по таблице.
+     * `items` заполняем по числу вопросов — по нему итог считает счёт (`items.length − errors`).
+     */
+    if (mode === 'pegs' && опораЕсть) {
+      const уровень = useLevel && lvl.loaded ? lvl.level : 1;
+      if (useLevel) { levelRef.current = уровень; useLevelRef.current = true; }
+      const { count } = pegQuizParams(уровень);
+      setItems(Array.from({ length: count }, (_, i) => String(i + 1)));
+      setСпрошено([]);
+      setРазбор(null);
+      setВопрос(makePegQuestion(уровень, language as 'ru' | 'en'));
+      setErrors(0);
+      setSelectedOrder([]);
+      setPhase('pegs');
+      setStartTime(gameNow());
+      const начало = gameNow();
+      timerRef.current = setInterval(() => { setElapsedTime((gameNow() - начало) / 1000); }, 100);
+      return;
     }
     /**
      * Ось лестницы «показ опоры»: до шестого уровня слово-опора стоит под числом
@@ -447,6 +477,32 @@ export default function MnemonicsGame() {
                 {t('catVocab_numbers')}
               </Text>
             </TouchableOpacity>
+            {/*
+              Третий режим стоит рядом с двумя, а не прячется: это ответ на
+              «ввести отдельный режим для запоминания цифр». Показан только там,
+              где таблица есть, — в русском и английском.
+            */}
+            {опораЕсть ? (
+              <TouchableOpacity
+                accessibilityRole="button"
+                testID="mnemonics-mode-pegs"
+                style={[
+                  styles.modeButton,
+                  mode === 'pegs' && { backgroundColor: GRADIENT[0] },
+                  mode !== 'pegs' && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                ]}
+                onPress={() => setMode('pegs')}
+              >
+                <Ionicons
+                  name="grid-outline"
+                  size={22}
+                  color={mode === 'pegs' ? textOn(GRADIENT[0]) : colors.text}
+                />
+                <Text style={[styles.modeButtonText, { color: mode === 'pegs' ? textOn(GRADIENT[0]) : colors.text }]}>
+                  {PEG_TEXT[language as 'ru' | 'en'].mode}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         </View>
 
@@ -455,9 +511,9 @@ export default function MnemonicsGame() {
           таблица есть (русский, английский). В остальных языках её нет вовсе —
           это честнее, чем показать переключатель, за которым ничего не стоит.
         */}
-        {mode === 'numbers' && опораЕсть ? (
+        {(mode === 'numbers' || mode === 'pegs') && опораЕсть ? (
           <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-            <View style={styles.optionButtons}>
+            <View style={[styles.optionButtons, mode === 'pegs' && { display: 'none' }]}>
               <Text style={[styles.optionLabel, { color: colors.text, flex: 1 }]}>
                 {PEG_TEXT[language as 'ru' | 'en'].aid}
               </Text>
@@ -545,6 +601,99 @@ export default function MnemonicsGame() {
   );
 
   // memorize-фаза — на едином каркасе GameShell (поле в ScrollView, «Проверить» прибита к низу)
+  /**
+   * Ответ в режиме опор. Разбор показывается ВСЕГДА, а не только при ошибке:
+   * узнать, что промахнулся, мало — надо увидеть, каким согласным разбирается
+   * верное слово, иначе следующая встреча с этим числом будет такой же.
+   */
+  const ответитьПоОпоре = (вариант: string) => {
+    if (!вопрос || разбор) return;
+    const верно = вариант === вопрос.answer;
+    if (!верно) setErrors((e) => e + 1);
+    setРазбор({ верно, ответ: вопрос.answer });
+    const спрошеноТеперь = [...спрошено, вопрос.n];
+    setСпрошено(спрошеноТеперь);
+    setTimeout(() => {
+      setРазбор(null);
+      if (спрошеноТеперь.length >= items.length) {
+        if (timerRef.current) clearInterval(timerRef.current);
+        setВопрос(null);
+        setPhase('result');
+        return;
+      }
+      setВопрос(makePegQuestion(useLevelRef.current ? levelRef.current : 1, language as 'ru' | 'en', Math.random, спрошеноТеперь));
+    }, верно ? 550 : 1600);
+  };
+
+  const renderPegs = () => (
+    <GameShell
+      title={t('label_mnemonics')}
+      onBack={() => goBackOrHome()}
+      pauseActions={[
+        { id: 'resume', label: t('exitConfirmStay'), icon: 'play' as const, primary: true },
+        { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame(useLevelRef.current) },
+        { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
+      ]}
+      stats={
+        <View style={styles.gameHeader}>
+          <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
+            <Ionicons name="time-outline" size={20} color={textOn(GRADIENT[0])} />
+            <Text style={[styles.timerText, { color: textOn(GRADIENT[0]) }]}>
+              {PEG_TEXT[language as 'ru' | 'en'].left} {Math.max(0, items.length - спрошено.length)}
+            </Text>
+          </View>
+        </View>
+      }
+      /**
+       * Варианты — в ряду каркаса под полем, как у всего раздела: цель ответа
+       * стоит на одном месте от вопроса к вопросу, и палец не ищет её заново.
+       */
+      toolbar={
+        <View style={styles.опорыВарианты}>
+          {(вопрос?.options ?? []).map((v) => (
+            <TouchableOpacity
+              key={v}
+              accessibilityRole="button"
+              testID={`peg-option-${v}`}
+              disabled={!!разбор}
+              onPress={() => ответитьПоОпоре(v)}
+              style={[
+                styles.опораВариант,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+                разбор && v === разбор.ответ ? { borderColor: colors.success, borderWidth: 2 } : null,
+              ]}
+            >
+              <Text style={[styles.опораВариантТекст, { color: colors.text }]} numberOfLines={1}>{v}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      }
+    >
+      <View style={styles.опорыПоле}>
+        <Text style={[styles.опорыВопрос, { color: colors.textSecondary }]}>
+          {вопрос?.direction === 'toNumber'
+            ? PEG_TEXT[language as 'ru' | 'en'].askNumber
+            : PEG_TEXT[language as 'ru' | 'en'].askWord}
+        </Text>
+        <Text style={[styles.опорыЗагадка, { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit>
+          {вопрос?.prompt ?? ''}
+        </Text>
+        {разбор ? (
+          <Text style={[styles.опорыРазбор, { color: разбор.верно ? colors.success : colors.error }]}>
+            {разбор.верно
+              ? PEG_TEXT[language as 'ru' | 'en'].right
+              : `${PEG_TEXT[language as 'ru' | 'en'].wrong} ${разбор.ответ}`}
+          </Text>
+        ) : null}
+        {разбор && вопрос ? (
+          <Text style={[styles.опораРазбор, { color: colors.textSecondary, fontSize: 14 }]}>
+            {pegHint(вопрос.n, language) ?? ''}
+          </Text>
+        ) : null}
+      </View>
+    </GameShell>
+  );
+
   const renderMemorize = () => (
     <GameShell
       title={t('label_mnemonics')}
@@ -791,6 +940,7 @@ export default function MnemonicsGame() {
   if (phase === 'gap') return <>{renderGap()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
   if (phase === 'memorize') return <>{renderMemorize()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
   if (phase === 'check') return <>{renderCheck()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
+  if (phase === 'pegs') return <>{renderPegs()}<LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} /></>;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -958,6 +1108,22 @@ const styles = StyleSheet.create({
   itemNumber: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
   itemText: { fontWeight: '600', textAlign: 'center', fontSize: 24 },
   опора: { fontSize: 15, fontWeight: '700', textAlign: 'center', marginTop: 2 },
+  опорыПоле: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, padding: 20 },
+  опорыВопрос: { fontSize: 15, fontWeight: '600' },
+  опорыЗагадка: { fontSize: 56, fontWeight: '800', letterSpacing: 1 },
+  опорыРазбор: { fontSize: 17, fontWeight: '700', marginTop: 6 },
+  /**
+   * 🔴 ДВА ВАРИАНТА В РЯД — ДОЛЕЙ ОТ ОБЁРТКИ, А НЕ ЧИСЛОМ ОТ ОКНА.
+   * Замер 23.09.2026, 390×844: сначала кнопки стояли по 140 с `minWidth` —
+   * `flexWrap` в вебе (у нас Android это WebView) ряд НЕ перенёс, все четыре
+   * встали строкой 590 px, и первая уехала за левый край на 30 точек: нажать
+   * её нельзя вовсе. Ширина, посчитанная от ОКНА, тоже мимо: обёртка ряда уже
+   * окна (258 из 390), и по 167 они снова встали по одной в строку.
+   * Доля от обёртки верна при любой её ширине.
+   */
+  опорыВарианты: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', alignSelf: 'stretch' },
+  опораВариант: { flexGrow: 1, flexBasis: '44%', maxWidth: '48%', minHeight: 56, borderWidth: 1, borderRadius: 14, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  опораВариантТекст: { fontSize: 20, fontWeight: '700' },
   опораРазбор: { fontSize: 11, textAlign: 'center', marginTop: 1 },
   кодСтрока: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 6 },
   кодЦифра: { fontSize: 15, fontWeight: '800', width: 16, textAlign: 'center' },

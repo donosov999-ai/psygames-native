@@ -114,6 +114,44 @@ describe('«Мнемоника», режим цифр — приём на экр
     PEG_WORDS.ru.slice(0, 20).forEach((w) => expect(все).not.toContain(` ${w} `));
   });
 
+  it('🔴 третий режим есть и он про саму таблицу', async () => {
+    let tr!: TestRenderer.ReactTestRenderer;
+    await act(async () => { tr = TestRenderer.create(<MnemonicsGame />); });
+    // ⚠️ `findAll` отдаёт и хост-узел, и обёртки с тем же testID — считаем по имени, не по числу узлов.
+    const кнопка = tr.root.findAll((n) => n.props?.testID === 'mnemonics-mode-pegs');
+    expect(кнопка.length).toBeGreaterThan(0);
+    await act(async () => { кнопка[0].props.onPress(); });
+    await нажать(tr, /start/i);
+
+    // Вопрос на экране: загадка и ровно четыре варианта в ряду каркаса.
+    const варианты = [...new Set(tr.root
+      .findAll((n) => typeof n.props?.testID === 'string' && n.props.testID.startsWith('peg-option-'))
+      .map((v) => String(v.props.testID)))];
+    expect(варианты).toHaveLength(4);
+    const все = тексты(tr);
+    const загадка = все.find((s) => /^\d{2}$/.test(s)) ?? '';
+    expect(загадка).not.toBe('');
+    const верное = pegFor(Number(загадка), 'ru');
+    expect(варианты.map((id) => id.replace('peg-option-', ''))).toContain(верное);
+  });
+
+  it('🔴 промах показывает верную опору и её разбор, а не просто «мимо»', async () => {
+    let tr!: TestRenderer.ReactTestRenderer;
+    await act(async () => { tr = TestRenderer.create(<MnemonicsGame />); });
+    await act(async () => { tr.root.findAll((n) => n.props?.testID === 'mnemonics-mode-pegs')[0].props.onPress(); });
+    await нажать(tr, /start/i);
+    const все = тексты(tr);
+    const загадка = Number(все.find((s) => /^\d{2}$/.test(s)));
+    const верное = pegFor(загадка, 'ru');
+    const мимо = tr.root
+      .findAll((n) => typeof n.props?.testID === 'string' && n.props.testID.startsWith('peg-option-'))
+      .find((v) => String(v.props.testID) !== `peg-option-${верное}`);
+    await act(async () => { мимо!.props.onPress(); });
+    const после = тексты(tr).join(' | ');
+    expect(после).toContain(верное);
+    expect(после).toMatch(/=\d \+ .?=\d/);
+  });
+
   it('режим слов опору не показывает: там приём другой', async () => {
     let tr!: TestRenderer.ReactTestRenderer;
     await act(async () => { tr = TestRenderer.create(<MnemonicsGame />); });
