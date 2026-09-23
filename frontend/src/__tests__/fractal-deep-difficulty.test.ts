@@ -20,6 +20,17 @@ import {
   materializePick, type DeepCfg,
 } from '@/src/services/fractal-deep';
 import { RATING_LADDER } from '@/src/services/sudoku-bank';
+/**
+ * 🔴 ПОЛОСЫ БЕРУТСЯ ИЗ САМОГО БАНКА, А НЕ ИЗ ЛЕСТНИЦЫ УРОВНЕЙ СУДОКУ.
+ * Замер 23.09.2026: раньше проба сверяла полосы «Бездны» с `RATING_LADDER` —
+ * таблицей «уровень судоку → полоса». Это был ПРОКСИ, и он развалился, как
+ * только судоку переставило лестницу (коммит 107b2353): полосы 5.6 и 5.7 ушли
+ * из таблицы уровней, и проба закричала «вне банка: 5.7». А в банке 5.7 лежит:
+ * `boards.json` держит 58 полос от 1.2 до 9.2, доски на месте, «Бездна» цела.
+ * Сверяться надо с тем, что проба и обещает названием — с содержимым банка.
+ */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const BANK_BANDS: number[] = require('@/src/services/sudoku-bank/boards.json').bands;
 import { LANGUAGES } from '@/src/contexts/LanguageContext';
 
 /** Словарь читается текстом: тянуть React-контекст ради имён ключей незачем. */
@@ -61,7 +72,7 @@ describe(`трудность Бездны: ${DEEP_BANDS.length} ступеней
   });
 
   it('🔴 полосы лестницы существуют в банке — иначе выбор доски упадёт', () => {
-    const есть = new Set(RATING_LADDER.map((r) => r.rating));
+    const есть = new Set(BANK_BANDS);
     const чужие = DEEP_BANDS.map((b) => b.rating).filter((r) => !есть.has(r));
     expect(`вне банка: ${чужие.join(',') || 'нет'}`).toBe('вне банка: нет');
   });
@@ -86,7 +97,7 @@ describe(`трудность Бездны: ${DEEP_BANDS.length} ступеней
    * сузили — красная; расширили — красная с просьбой поднять число, чтобы
    * достижение закрепилось и назад дороги не было.
    */
-  it(`🔴 охват лестницы банка не сужается (сейчас ${DEEP_BANDS.length} полос из ${new Set(RATING_LADDER.map((r) => r.rating)).size})`, () => {
+  it(`🔴 охват лестницы банка не сужается (сейчас ${DEEP_BANDS.length} полос из ${BANK_BANDS.length})`, () => {
     expect(`ступеней ${DEEP_BANDS.length}, известно ${KNOWN_REACH}`)
       .toBe(`ступеней ${Math.max(DEEP_BANDS.length, KNOWN_REACH)}, известно ${KNOWN_REACH}`);
     expect(`известно ${KNOWN_REACH}, фактически ${DEEP_BANDS.length}`)

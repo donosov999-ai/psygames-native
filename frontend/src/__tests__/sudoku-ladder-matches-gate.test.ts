@@ -45,8 +45,20 @@ describe('лестница судоку и гейт уровней', () => {
   });
 
   it('🔴 верхний пояс не безымянный: у 81+ своя подпись', () => {
-    const экран: string = fs.readFileSync(
-      path.join(__dirname, '../../app/games/sudoku.tsx'), 'utf8');
-    expect(экран).toContain('sudokuBeltCombo');
+    /**
+     * 🔴 СПРАШИВАЕМ ПОВЕДЕНИЕ, А НЕ ЛИТЕРАЛ В ЭКРАНЕ. До 23.09.2026 проба искала
+     * строку 'sudokuBeltCombo' прямо в app/games/sudoku.tsx — и покраснела, как
+     * только судоку убрало ВТОРОЙ экземпляр границ поясов из экрана и оставило
+     * один источник правды (`beltKey`, коммит 107b2353). Правка была верной, а
+     * проба сторожила переехавший адрес. Теперь спрашиваем то, ради чего проба и
+     * заведена: у верхнего пояса есть имя, и это имя переведено.
+     */
+    const { beltKey } = require('@/src/services/sudoku-level-help');
+    const ключ = beltKey(81);
+    expect(`пояс 81: ${ключ || 'без имени'}`).toBe('пояс 81: sudokuBeltCombo');
+
+    const словарь: string = fs.readFileSync(
+      path.join(__dirname, '../contexts/LanguageContext.tsx'), 'utf8');
+    expect(словарь).toContain(`${ключ}:`);
   });
 });
