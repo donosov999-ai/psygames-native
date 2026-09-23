@@ -207,6 +207,13 @@ void main() {
         // до строки подсказки остаётся ещё полоса значков, и этот запас прятал
         // сетку, вылезшую из поля на десяток точек.
         final hint = tester.getRect(find.byType(AuxBar));
+        // ⚠️ ЦЕЛЬ ОБЯЗАНА БЫТЬ ВИДНА, а не просто существовать в дереве. Шапка
+        // поля ужимается FittedBox'ом, и при нулевом бюджете число ужалось бы в
+        // точку: проба, которая только ЧИТАЕТ текст, осталась бы зелёной
+        // (замер 23.09.2026 — мутация «нет бюджета шапки» не краснела).
+        final target = tester.getRect(find.byKey(const Key('target')));
+        expect(target.height, greaterThanOrEqualTo(12),
+            reason: 'цель ужата до ${target.height.toStringAsFixed(1)} px, $screen L$level');
         for (var i = 0; i < cells.length; i += 1) {
           final r = tester.getRect(find.byKey(Key('cell$i')));
           expect(r.left, greaterThanOrEqualTo(-0.01), reason: 'клетка $i ушла влево, $screen L$level');

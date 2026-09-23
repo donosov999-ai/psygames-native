@@ -52,6 +52,10 @@ class GameShell extends StatelessWidget {
             _Header(title: title, onBack: onBack, onRules: onRules, onPause: () => _pause(context)),
             if (hud.isNotEmpty) _HudRow(items: hud),
             Expanded(
+              // Ключ нужен пробам: по нему меряется, вписалась ли доска в поле.
+              // Без него проверить это снаружи нечем — `Wrap` и `Stack` о
+              // переполнении молчат и просто рисуют поверх нижних полос.
+              key: const Key('game-field'),
               child: LayoutBuilder(
                 // 🔴 Высота поля отдаётся игре числом. Игра НЕ считает доску от окна:
                 // окно не знает про шапку, счётчики, ряд значков и липкий низ.

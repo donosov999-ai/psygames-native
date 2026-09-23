@@ -421,14 +421,20 @@ class _NumberLine extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final scale = question.scale;
     return LayoutBuilder(builder: (context, c) {
-      final w = c.maxWidth;
+      // 🔴 ДОРОЖКА УЖЕ ПОЛЯ НА ПОЛПОДПИСИ С КАЖДОЙ СТОРОНЫ. Подписи делений и
+      // маркер рисуются ОТ СЕРЕДИНЫ своей позиции, поэтому крайнее деление
+      // выносило подпись за край поля на 8 точек (замер 23.09.2026, гейт раздела
+      // «доска вписана в поле», 360×640 и 390×844). Обрезать нельзя: под подписью
+      // человек и целится. Дорожка сжимается, отсчёт по ней остаётся тем же.
+      const pad = 24.0;   // половина самой широкой подписи деления (width: 48)
+      final w = math.max(1.0, c.maxWidth - 2 * pad);
       void fromX(double x) {
-        final ratio = math.min(1.0, math.max(0.0, x / w));
+        final ratio = math.min(1.0, math.max(0.0, (x - pad) / w));
         onChange(scale.min + ratio * scale.width);
       }
 
-      final pos = ((estimate - scale.min) / scale.width).clamp(0.0, 1.0) * w;
-      final answerPos = ((question.answer - scale.min) / scale.width).clamp(0.0, 1.0) * w;
+      final pos = pad + ((estimate - scale.min) / scale.width).clamp(0.0, 1.0) * w;
+      final answerPos = pad + ((question.answer - scale.min) / scale.width).clamp(0.0, 1.0) * w;
 
       return GestureDetector(
         key: const Key('шкала'),
@@ -438,14 +444,14 @@ class _NumberLine extends StatelessWidget {
         onHorizontalDragUpdate: enabled ? (d) => fromX(d.localPosition.dx) : null,
         child: Stack(children: [
           Positioned(
-            left: 0,
-            right: 0,
+            left: pad,
+            width: w,
             top: 46,
             child: Container(height: 4, color: scheme.outlineVariant),
           ),
           for (var i = 0; i < scale.ticks.length; i += 1)
             Positioned(
-              left: (i / scale.tickCount) * w - 24,
+              left: pad + (i / scale.tickCount) * w - 24,
               top: 52,
               width: 48,
               child: Column(children: [
