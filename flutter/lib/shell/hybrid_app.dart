@@ -6,6 +6,8 @@ import '../games/flanker/screen.dart';
 import '../games/simon/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/goods_sort/screen.dart';
+import '../games/sort_tubes/board.dart' show TubeSkin;
+import '../games/sort_tubes/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
 import '../games/one_line/screen.dart';
@@ -42,6 +44,12 @@ class HybridApp extends StatefulWidget {
         '/games/flanker': (s) => FlankerScreen(state: s),
         '/games/simon': (s) => SimonScreen(state: s),
         '/games/goods-sort': (s) => GoodsSortScreen(state: s),
+      '/games/water-sort': (s) => SortTubesScreen(
+            state: s, gameId: 'water_sort', title: 'Переливалка', skin: TubeSkin.water),
+      '/games/ball-sort': (s) => SortTubesScreen(
+            state: s, gameId: 'ball_sort', title: 'Сортировка шариков', skin: TubeSkin.balls),
+      '/games/nut-sort': (s) => SortTubesScreen(
+            state: s, gameId: 'nut_sort', title: 'Сортировка гаек', skin: TubeSkin.nuts),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.

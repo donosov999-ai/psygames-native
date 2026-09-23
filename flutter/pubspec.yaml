@@ -73,6 +73,9 @@ flutter:
     - assets/levels/
     - assets/words/
     - assets/goods/
+    - assets/tubes/
+    - assets/balls/
+    - assets/nuts/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

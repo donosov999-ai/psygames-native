@@ -61,7 +61,7 @@
 | ◐ | `anagrams` | psygames-words-claude-mac | 23.09 | классика перенесена и играется; словари 10 языков данными; ОСТАЛИСЬ ТРИ РЕЖИМА (all/cross/square) — перехват НЕ включён нарочно, см. ниже |
 | ☐ | `ant` | psygames-attention-claude-mac | | |
 | ☐ | `attention-conflict` | psygames-attention-claude-mac | | |
-| ☐ | `ball-sort` | psygames-sorting-claude-mac | | |
+| ✅ | `ball-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `sort_tubes` на три игры (как в вебе), уровни выгружены JSON, решатель и генератор не переносились |
 | ☐ | `bart` | psygames-attention-claude-mac | | |
 | ☐ | `breathing` | psygames-warmup-claude-mac | | |
 | ☐ | `cake-sort` | psygames-sorting-claude-mac | | |
@@ -100,7 +100,7 @@
 | ☐ | `n-back` | ❓ вписать себя | | |
 | ☐ | `navigator` | ❓ вписать себя | | |
 | ☐ | `number-bonds` | psygames-search-claude-mac | | |
-| ☐ | `nut-sort` | psygames-sorting-claude-mac | | |
+| ✅ | `nut-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `sort_tubes` на три игры (как в вебе), уровни выгружены JSON, решатель и генератор не переносились |
 | ☐ | `object-tracker` | psygames-search-claude-mac | | |
 | ☐ | `ospan` | psygames-search-claude-mac | | |
 | ☐ | `pattern` | psygames-search-claude-mac | | |
@@ -144,7 +144,7 @@
 | ☐ | `visual-memory-hub` | psygames-memory-hearing-claude-mac | | |
 | ☐ | `visual-search` | ❓ вписать себя | | не «Внимание»: экран «Поиска»: стоит в его рефе, таблица лестниц |
 | ☐ | `vocab-srs` | psygames-languages-claude-mac | | |
-| ☐ | `water-sort` | psygames-sorting-claude-mac | | |
+| ✅ | `water-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; ОДИН движок `sort_tubes` на три игры (как в вебе), уровни выгружены JSON, решатель и генератор не переносились |
 | ☐ | `wcst` | psygames-attention-claude-mac | | |
 | ☐ | `word-pairs` | ❓ вписать себя | | |
 | ☐ | `words-hub` | psygames-languages-claude-mac | | |
