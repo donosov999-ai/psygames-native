@@ -30,7 +30,7 @@ env:
 jobs:
   testflight:
     name: Сборка и заливка
-    runs-on: macos-15
+    runs-on: macos-latest
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
@@ -107,7 +107,14 @@ jobs:
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           BUNDLE_ID: ${{ env.BUNDLE_ID }}
-        run: bash scripts/ios-signing-setup.sh
+        run: |
+          # ⚠️ ТОЛЬКО OPENSSL ОТ HOMEBREW. Системный /usr/bin/openssl на маке — это
+          # LibreSSL, и он не знает флаг `-legacy`, который скрипт передаёт
+          # `pkcs12 -export`. Замер 23.09: «pkcs12: Unrecognized flag legacy»,
+          # прогон встал ровно здесь, уже ПОСЛЕ выпуска сертификата и профиля.
+          export PATH="$(brew --prefix openssl@3)/bin:$PATH"
+          openssl version
+          bash scripts/ios-signing-setup.sh
 
       - name: Архив
         working-directory: flutter
