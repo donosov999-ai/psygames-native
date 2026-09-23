@@ -59,7 +59,7 @@ void main() {
     // Проба выводит правило так же, как человек: пробует и держится за то,
     // что работает. Правило с экрана НЕ читается.
     var guess = SortRule.color;
-    var hits = 0, misses = 0, shiftNotes = 0;
+    var hits = 0, misses = 0;
     final trials = WcstLevel.of(1).trials;
     for (var i = 1; i <= trials; i++) {
       final card = targetOnScreen(tester);
@@ -71,7 +71,6 @@ void main() {
         hits++;
       } else {
         misses++;
-        if (find.byKey(const Key('wcst-shift-note')).evaluate().isNotEmpty) shiftNotes++;
         // Не сработало — пробуем следующее правило.
         guess = SortRule.values[(SortRule.values.indexOf(guess) + 1) % 3];
       }

@@ -56,7 +56,7 @@ void main() {
     expect(balloonSize(), greaterThan(first), reason: 'шар не вырос после нажатия');
     // ⚠️ На экране нет ни одного числа, равного пределу шара: узнать его можно
     // только взрывом. Сам предел лежит в модели и в кадр не попадает.
-    expect(find.textContaining('${L.t('hud_atRisk')}'), findsWidgets);
+    expect(find.textContaining(L.t('hud_atRisk')), findsWidgets);
   });
 
   testWidgets('🔴 взрыв обнуляет поставленное, обналичивание кладёт в банк', (tester) async {

@@ -12,6 +12,7 @@ import '../games/gonogo/screen.dart';
 import '../games/inhibition/screen.dart';
 import '../games/iowa/screen.dart';
 import '../games/posner/screen.dart';
+import '../games/proofreading/screen.dart';
 import '../games/prl/screen.dart';
 import '../games/simon/screen.dart';
 import '../games/stop_signal/screen.dart';
@@ -165,6 +166,7 @@ class HybridApp extends StatefulWidget {
         '/games/bart': (s) => BartScreen(state: s),
         '/games/wcst': (s) => WcstScreen(state: s),
         '/games/cpt': (s) => CptScreen(state: s),
+        '/games/proofreading': (s) => ProofreadingScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
