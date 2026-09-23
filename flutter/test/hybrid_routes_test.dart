@@ -26,6 +26,8 @@ void main() {
       '$origin/games/object-tracker.html?level=7',
       '$origin/games/quick-count',
       '$origin/games/quick-count.html',
+      '$origin/games/pattern',
+      '$origin/games/pattern.html?level=9',
       '$origin/games/stroop',
       '$origin/games/stroop.html?mode=ink',
       '$origin/games/flanker',
@@ -61,6 +63,7 @@ void main() {
           '/games/math-slider',
           '/games/object-tracker',
           '/games/quick-count',
+          '/games/pattern',
           '/games/stroop',
           '/games/flanker',
         });

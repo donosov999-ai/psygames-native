@@ -63,7 +63,7 @@ export { pickSequence, makeSequence } from '@/src/games/counting/patternSequence
  * без рамок ряды «5 −8 18 −34 ?» и «139 211 350 561 ?» на 360 всё равно переносились (замер того же дня).
  * Число не влезает и на кегле 16 (смесь далеко за L100) — перенос строки, как раньше.
  */
-function cellSize(width: number, labels: string[]) {
+export function cellSize(width: number, labels: string[]) {
   const cells = labels.length, chars = Math.max(...labels.map((l) => l.length));
   const variant = (font: number) => {
     const pad = font >= 24 ? 8 : 5, gap = font >= 24 ? 8 : 6;
