@@ -50,7 +50,6 @@ class AnagramBoard extends StatelessWidget {
 
     return LayoutBuilder(builder: (context, c) {
       final side = min(wheelH, c.maxWidth);
-      final r = side / 2 - min(30.0, side / 8);
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -93,25 +92,55 @@ class AnagramBoard extends StatelessWidget {
           SizedBox(
             width: side,
             height: side,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: side,
-                  height: side,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  ),
-                ),
-                for (var i = 0; i < letters.length; i++)
-                  _tile(context, i, letters.length, r, side),
-              ],
-            ),
+            child: LetterRing(letters: letters, picked: picked, side: side, onPick: onPick),
           ),
         ],
       );
     });
+  }
+
+}
+
+/// КОЛЕСО БУКВ — ОДНО НА ВСЕ РЕЖИМЫ АНАГРАММ.
+///
+/// Вынесено из поля классики, когда понадобилось второму режиму: второй экземпляр
+/// того же круга означал бы две раскладки, которые разъедутся при первой правке.
+/// Родня в вебе — `src/components/letterWheel/LetterWheel.tsx`, тоже общий.
+class LetterRing extends StatelessWidget {
+  const LetterRing({
+    super.key,
+    required this.letters,
+    required this.picked,
+    required this.side,
+    required this.onPick,
+  });
+
+  final List<String> letters;
+
+  /// Индексы уже взятых букв: их нельзя нажать повторно.
+  final List<int> picked;
+
+  final double side;
+  final ValueChanged<int> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final r = side / 2 - min(30.0, side / 8);
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: side,
+          height: side,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          ),
+        ),
+        for (var i = 0; i < letters.length; i++) _tile(context, i, letters.length, r, side),
+      ],
+    );
   }
 
   Widget _tile(BuildContext context, int i, int n, double r, double side) {

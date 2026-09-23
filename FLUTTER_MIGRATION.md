@@ -58,7 +58,7 @@
 
 | | Игра | Кто ведёт | Когда | Заметка |
 |---|---|---|---|---|
-| ◐ | `anagrams` | psygames-words-claude-mac | 23.09 | классика перенесена и играется; словари 10 языков данными; ОСТАЛИСЬ ТРИ РЕЖИМА (all/cross/square) — перехват НЕ включён нарочно, см. ниже |
+| ◐ | `anagrams` | psygames-words-claude-mac | 23.09 | играются ДВА режима из четырёх: классика и «Все слова»; словари 10 языков данными; остались кроссворд и слово-квадрат — перехват НЕ включён нарочно, см. ниже |
 | ☐ | `ant` | psygames-attention-claude-mac | | |
 | ☐ | `attention-conflict` | psygames-attention-claude-mac | | |
 | ☐ | `ball-sort` | psygames-sorting-claude-mac | | |
