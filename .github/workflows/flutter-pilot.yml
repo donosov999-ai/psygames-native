@@ -37,6 +37,29 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+
+      # 🔴 ДВИЖОК ТЭТХЭМА СОБИРАЕТСЯ ЗДЕСЬ, ИНАЧЕ ТРИ ПРОБЫ ПАДАЮТ НА CI.
+      #
+      # `puzzles_engine_test`, `puzzles_frame_test` и `puzzles_screen_test` зовут
+      # НАСТОЯЩИЙ движок через dart:ffi, а не заглушку — в этом и смысл. Локально
+      # библиотека лежит в build/tatham после tool/build_tatham.sh, а на CI её
+      # не было: 105 149 строк C живут в каноне Саймона Тэтхэма, вне нашего
+      # репозитория. Замер 23.09.2026: main покраснел ровно на этом, три пробы
+      # упали в setUpAll, остальные 553 прошли.
+      #
+      # ⚠️ Канон берётся ПО МЕТКЕ КОММИТА, а не с ветки: движок обновляется
+      # своей жизнью, и «свежий master» означал бы, что наши эталоны разъезжаются
+      # молча, без единой нашей правки.
+      - name: Канон Тэтхэма (по метке) и сборка движка
+        run: |
+          set -eu
+          TATHAM_SHA=428913c6a58b60802fe5d734d9a44c34159f4e0f
+          git clone --quiet https://git.tartarus.org/simon/puzzles.git "$HOME/puzzles"
+          git -C "$HOME/puzzles" checkout --quiet "$TATHAM_SHA"
+          echo "канон: $(git -C "$HOME/puzzles" rev-parse --short HEAD) · $(git -C "$HOME/puzzles" log -1 --format=%ad --date=short)"
+          PUZZLES_SRC="$HOME/puzzles" tool/build_tatham.sh
+          ls -l build/tatham/
+
       - name: Анализатор — чисто
         run: flutter analyze
       - name: Пробы — все зелёные
