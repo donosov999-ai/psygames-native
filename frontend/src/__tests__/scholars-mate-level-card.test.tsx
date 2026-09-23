@@ -1,4 +1,4 @@
-/* psygames-scholars-mate-level-card · VER 2 · 17.09.2026 */
+/* psygames-scholars-mate-level-card · VER 3 · 17.09.2026 */
 /**
  * 🔴 КАРТОЧКА УРОВНЯ НАЗЫВАЕТ, ЧЕМУ УЧИТ СТУПЕНЬ, А НЕ ТОЛЬКО ЕЁ НОМЕР.
  *
@@ -27,7 +27,10 @@
 import React from 'react';
 
 import ScholarsMateScreen from '@/app/games/scholars-mate';
-import { КЛЮЧ_ВИДА, newMotifAt, видыУровня } from '@/src/games/scholars-mate/core/deck';
+import {
+  КЛЮЧ_ВИДА, NAMED_MOTIFS, buildDeck, buildMixedMotifDeck, buildNamedDeck, counts, mixedMotifCount,
+  namedMotifCount, newMotifAt, видыУровня,
+} from '@/src/games/scholars-mate/core/deck';
 
 declare function require(m: string): any;
 const TestRenderer = require('react-test-renderer');
@@ -76,7 +79,9 @@ jest.mock('@/src/contexts/ProfileContext', () => ({
   useProfileOptional: () => ({ profile: { id: 'p1', display_name: 'Денис' } }),
 }));
 jest.mock('@/src/contexts/LanguageContext', () => ({
-  useLanguage: () => ({ t: (k: string) => `${k}·т`, language: 'ru' }),
+  /* `scholarsBank` — с местом под число: иначе число позиций на карточке не доезжает
+     до текста, и пробе нечего сравнивать (экран подставляет его в `{n}`). */
+  useLanguage: () => ({ t: (k: string) => (k === 'scholarsBank' ? 'bank={n}' : `${k}·т`), language: 'ru' }),
 }));
 jest.mock('@/src/components/GameShell', () => {
   const R = require('react'); const { View } = require('react-native');
@@ -128,6 +133,18 @@ function нажать(tree: any, метка: string) {
   )[0];
   if (!у) throw new Error(`нет кнопки «${метка}»`);
   TestRenderer.act(() => { у.props.onPress(); });
+}
+
+/** Открыть выпадающий список режима и выбрать пункт — так, как это делает человек. */
+function выбрать(tree: any, ключ: string) {
+  for (const id of ['scholars-mode', `scholars-mode-${ключ}`]) {
+    const у = tree.root.findAll(
+      (n: any) => n.props?.testID === id && typeof n.props.onPress === 'function',
+      { deep: true },
+    )[0];
+    if (!у) throw new Error(`нет «${id}»`);
+    TestRenderer.act(() => { у.props.onPress(); });
+  }
 }
 
 /** Все подписи видов, какие вообще бывают: у двух видов подпись одна, поэтому через множество. */
@@ -234,6 +251,71 @@ describe('«Детский мат»: карточка уровня называ�
         .filter((x) => !x.endsWith('×0') && !x.endsWith('×1'));
       expect(`ур.${уровень}: подписей, написанных больше одного раза: ${повторы.join(', ') || 0}`)
         .toBe(`ур.${уровень}: подписей, написанных больше одного раза: 0`);
+      TestRenderer.act(() => { tree.unmount(); });
+    }
+  });
+
+  it('🔴 выбранный режим ПЕРЕПИСЫВАЕТ карточку: виды, «новый узор» и число позиций — по режиму', () => {
+    /**
+     * 📍 Замер 17.09.2026 ДО правки, кадр 390×844 статической сборки: выбран «Мат с
+     * жертвой», а карточка над списком — «Поставь мат в один ход · Новый узор: Детский
+     * мат · Позиций в наборе: 31350». Пока строка режима запускала партию сразу, врать
+     * карточке было нечему: «Начать» запускало ровно лестницу. Выпадающий список
+     * (2d414ddb) завёл состояние «выбрано, но не начато», и карточка стала описывать
+     * не то, что сейчас начнётся.
+     *
+     * ⚠️ ОЖИДАНИЕ СЧИТАЕТСЯ ПО НАСТОЯЩЕЙ КОЛОДЕ режима — по видам позиций, которые
+     * соберёт игра, — а не той функцией, что рисует карточку. Иначе проба сверяла бы
+     * функцию саму с собой.
+     *
+     * ⚠️ СТУПЕНЬ 23 — НАРОЧНО. На ней три подписи лестницы (угроза, защита, мат) и
+     * открывается узор, то есть каждая из трёх строк карточки ОБЯЗАНА смениться. На
+     * первой ступени подпись лестницы совпадает с подписью узора, и проба зеленела бы
+     * на неисправленном экране.
+     */
+    const L = 23;
+    expect(`ступень ${L} открывает узор: ${Boolean(newMotifAt(L))}`).toBe(`ступень ${L} открывает узор: true`);
+    const узор = NAMED_MOTIFS[0]!;
+    const c = counts();
+    const режимы = [
+      { ключ: 'sacrifice', колода: buildDeck(L, 1, 'sacrifice'), позиций: c.sacrifice },
+      { ключ: `motif:${узор}`, колода: buildNamedDeck(узор, L), позиций: namedMotifCount(узор) },
+      { ключ: 'mix', колода: buildMixedMotifDeck(L), позиций: mixedMotifCount() },
+      { ключ: 'levels', колода: null, позиций: c.mate + c.fromGames + c.defend + c.threat + c.sacrifice },
+    ];
+    const tree = открыть(L);
+    for (const р of режимы) {
+      if (р.колода) expect(`${р.ключ}: позиций в колоде ${р.колода.length > 0 ? 'есть' : 'ноль'}`).toBe(`${р.ключ}: позиций в колоде есть`);
+      выбрать(tree, р.ключ);
+      const t = текст(tree);
+      const виды = р.колода ? [...new Set(р.колода.map((x) => x.kind))] : видыУровня(L);
+      const ждём = [...new Set(виды.map((k) => КЛЮЧ_ВИДА[k]))].sort();
+      const есть = ВСЕ_ПОДПИСИ.filter((к) => t.includes(`${к}·т`));
+      expect(`${р.ключ}: подписи на карточке [${есть.join(', ')}]`).toBe(`${р.ключ}: подписи на карточке [${ждём.join(', ')}]`);
+      expect(`${р.ключ}: «новый узор» ${t.includes('scholarsNewMotif·т') ? 'есть' : 'нет'}`)
+        .toBe(`${р.ключ}: «новый узор» ${р.ключ === 'levels' ? 'есть' : 'нет'}`);
+      expect(`${р.ключ}: позиций на карточке ${(t.match(/bank=(\d+)/) ?? [])[1]}`).toBe(`${р.ключ}: позиций на карточке ${р.позиций}`);
+    }
+  });
+
+  it('🔴 в выбранном режиме подпись над доской — из тех, что назвала карточка', () => {
+    /**
+     * Та же сверка «карточка ↔ партия», что выше для лестницы, но для режимов
+     * отработки. Здесь и видно враньё карточки: выбран жертвенный мат, над доской
+     * спрашивают жертву, а карточка обещала угрозу и защиту.
+     */
+    const L = 23;
+    for (const ключ of ['sacrifice', `motif:${NAMED_MOTIFS[0]}`, 'mix']) {
+      const tree = открыть(L);
+      выбрать(tree, ключ);
+      const наКарточке = текст(tree);
+      нажать(tree, 'НАЧАТЬ');
+      TestRenderer.act(() => { jest.advanceTimersByTime(300); });
+      const вПартии = текст(tree);
+      const спросила = ВСЕ_ПОДПИСИ.filter((к) => вПартии.includes(`${к}·т`));
+      expect(`${ключ}: партия что-то спросила: ${спросила.length > 0}`).toBe(`${ключ}: партия что-то спросила: true`);
+      expect(`${ключ}: подписей партии, которых нет на карточке: ${спросила.filter((к) => !наКарточке.includes(`${к}·т`)).join(', ') || 0}`)
+        .toBe(`${ключ}: подписей партии, которых нет на карточке: 0`);
       TestRenderer.act(() => { tree.unmount(); });
     }
   });

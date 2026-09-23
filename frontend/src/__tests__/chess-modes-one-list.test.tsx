@@ -23,6 +23,7 @@ import React from 'react';
  * линта поднимать нельзя.
  */
 import ScholarsMateScreen from '@/app/games/scholars-mate';
+import { counts } from '@/src/games/scholars-mate/core/deck';
 
 declare function require(m: string): any;
 const TestRenderer = require('react-test-renderer');
@@ -142,13 +143,18 @@ function текст(tree: any): string {
   return out.join(' ').replace(/\s+/g, ' ');
 }
 const уник = (n: any[]) => { const s = new Set(); return n.filter((x) => !s.has(x.props.onPress) && s.add(x.props.onPress)); };
-function поМетке(tree: any, метка: string) {
+/**
+ * Метка кнопки без хвоста мока и без приписки. Строки общего `DropdownSelect` подписаны
+ * «текст, приписка» (у режима приписка — число позиций), и сравнивать надо текст.
+ */
+const метка = (n: any) => String(n.props?.accessibilityLabel ?? '').split(', ')[0]!.replace(/·т$/, '');
+function поМетке(tree: any, искомая: string) {
   return уник(tree.root.findAll((n: any) => typeof n.props?.onPress === 'function'
-    && String(n.props.accessibilityLabel ?? '').replace(/·т$/, '') === метка, { deep: true }));
+    && метка(n) === искомая, { deep: true }));
 }
-function нажать(tree: any, метка: string) {
-  const у = поМетке(tree, метка);
-  if (!у.length) throw new Error(`нет кнопки «${метка}»`);
+function нажать(tree: any, искомая: string) {
+  const у = поМетке(tree, искомая);
+  if (!у.length) throw new Error(`нет кнопки «${искомая}»`);
   TestRenderer.act(() => { у[0].props.onPress(); });
 }
 function смонтировать() {
@@ -160,6 +166,29 @@ function смонтировать() {
   return tree;
 }
 
+/** Открыть выпадающий «Режим» — строка с testID, подпись у неё «Режим: <текущий>». */
+function открытьРежим(tree: any) {
+  const строка = tree.root.findAll((n: any) => n.props?.testID === 'scholars-mode'
+    && typeof n.props?.onPress === 'function', { deep: true })[0];
+  if (!строка) throw new Error('нет строки выбора режима');
+  TestRenderer.act(() => { строка.props.onPress(); });
+}
+/** Пункты раскрытого списка — ровно дети контейнера `scholars-mode-list`, без дублей узлов. */
+function пунктыСписка(tree: any): any[] {
+  const список = tree.root.findAll((n: any) => n.props?.testID === 'scholars-mode-list', { deep: true })[0];
+  if (!список) return [];
+  return уник(список.findAll((n: any) => typeof n.props?.onPress === 'function'
+    && String(n.props?.testID ?? '').startsWith('scholars-mode-'), { deep: true }));
+}
+const играИдёт = (tree: any) => tree.root.findAll(
+  (n: any) => /^[a-h][1-8](,|$)/.test(String(n.props?.accessibilityLabel ?? '')), { deep: true }).length > 0;
+
+/**
+ * 🔴 С 17.09.2026 РЕЖИМ ВЫБИРАЕТСЯ ВЫПАДАЮЩИМ СПИСКОМ (просьба Дениса: «портянка в настройках»).
+ * Было: «Отработать один узор» раскрывал 21 строку, и каждая СРАЗУ запускала партию.
+ * Стало: строка «Режим» показывает текущий выбор, список ставит режим, партию запускает «Начать».
+ * Требования трёх прежних проб не ослаблены — изменился только путь к ним.
+ */
 describe('«Детский мат»: жертва — строка общего списка, поток — параметр', () => {
   it('🔴 жертва и именованные узоры лежат в ОДНОМ списке, а не двумя входами', () => {
     const tree = смонтировать();
@@ -167,25 +196,44 @@ describe('«Детский мат»: жертва — строка общего 
     expect(`жертва видна до раскрытия списка: ${поМетке(tree, 'scholarsSacrificeMode').length > 0}`)
       .toBe('жертва видна до раскрытия списка: false');
 
-    нажать(tree, 'scholarsPickMotif');
+    открытьРежим(tree);
 
-    const жертва = поМетке(tree, 'scholarsSacrificeMode');
+    const пункты = пунктыСписка(tree);
+    const жертва = пункты.filter((n: any) => метка(n) === 'scholarsSacrificeMode');
     expect(`жертва в раскрытом списке: ${жертва.length}`).toBe('жертва в раскрытом списке: 1');
+    // Число позиций режима — приписка строки. Своя вёрстка списка ушла в общий компонент, и
+    // число теперь держится только на `справа`: без этой строки оно пропало бы молча.
+    expect(`у жертвы приписано число позиций: ${String(жертва[0]?.props.accessibilityLabel ?? '').endsWith(`, ${counts().sacrifice}`)}`)
+      .toBe('у жертвы приписано число позиций: true');
+    // И рядом с ней — именованные узоры, в том же контейнере.
+    const узоры = пункты.filter((n: any) => /^scholarsMotif/.test(метка(n)));
+    expect(`узоров в том же списке: ${узоры.length >= 2}`).toBe('узоров в том же списке: true');
+  });
 
-    // И рядом с ней — именованные узоры, тем же видом строки.
-    const строкиУзоров = уник(tree.root.findAll((n: any) => typeof n.props?.onPress === 'function'
-      && Array.isArray(n.props?.style)
-      && n.props.style.some((s: any) => s && typeof s === 'object' && s.minHeight === 48 && s.borderWidth === 1),
-      { deep: true }));
-    expect(`строк в списке (жертва + узоры): ${строкиУзоров.length >= 3}`)
-      .toBe('строк в списке (жертва + узоры): true');
+  it('🔴 выбор пункта СТАВИТ режим и НЕ запускает партию; строка показывает выбранное', () => {
+    /**
+     * Суть правки 17.09. До неё каждая строка списка была кнопкой старта: коснулся узора —
+     * партия пошла, передумать нельзя. Теперь выбор и старт разведены.
+     */
+    const tree = смонтировать();
+    открытьРежим(tree);
+    нажать(tree, 'scholarsSacrificeMode');
+
+    expect(`партия пошла от одного выбора: ${играИдёт(tree)}`).toBe('партия пошла от одного выбора: false');
+    expect(`список закрылся после выбора: ${пунктыСписка(tree).length === 0}`).toBe('список закрылся после выбора: true');
+    // Нажимаемая строка, а не сам узел компонента: testID `scholars-mode` несут оба.
+    const строка = tree.root.findAll((n: any) => n.props?.testID === 'scholars-mode'
+      && typeof n.props?.onPress === 'function', { deep: true })[0];
+    expect(`закрытая строка называет выбранное: ${String(строка?.props?.accessibilityLabel ?? '').includes('scholarsSacrificeMode')}`)
+      .toBe('закрытая строка называет выбранное: true');
   });
 
   it('🔴 поток применяется к ЖЕРТВЕ, а не только к лестнице', () => {
     const tree = смонтировать();
     нажать(tree, 'scholarsFlow');          // параметр времени
-    нажать(tree, 'scholarsPickMotif');
-    нажать(tree, 'scholarsSacrificeMode'); // выбор узора
+    открытьРежим(tree);
+    нажать(tree, 'scholarsSacrificeMode'); // выбор режима
+    нажать(tree, 'НАЧАТЬ');                // «Начать» запускает ВЫБРАННОЕ
     // ⚠️ Остаток потока заполняется В ТИКЕ секундомера, а не при отрисовке: до
     // первого тика строка пуста, и проба без этой строки объявляла бы дефект на
     // исправном коде.
@@ -202,16 +250,15 @@ describe('«Детский мат»: жертва — строка общего 
   it('🔴 поток применяется и к ИМЕНОВАННОМУ узору', () => {
     const tree = смонтировать();
     нажать(tree, 'scholarsFlow');
-    нажать(tree, 'scholarsPickMotif');
+    открытьРежим(tree);
 
-    // Первая строка узора после жертвы — берём её метку из дерева.
-    // Строки узоров подписаны ключами вида `scholarsMotif…`; жертва и служебные — нет.
-    const метки: string[] = уник(tree.root.findAll((n: any) => typeof n.props?.onPress === 'function'
-      && /^scholarsMotif/.test(String(n.props.accessibilityLabel ?? '')), { deep: true }))
-      .map((n: any) => String(n.props.accessibilityLabel).replace(/·т$/, ''));
+    const метки: string[] = пунктыСписка(tree)
+      .filter((n: any) => /^scholarsMotif/.test(метка(n)))
+      .map((n: any) => метка(n));
     expect(`строк именованных узоров: ${метки.length >= 2}`).toBe('строк именованных узоров: true');
 
     нажать(tree, метки[0]!);
+    нажать(tree, 'НАЧАТЬ');
     TestRenderer.act(() => { jest.advanceTimersByTime(200); });
     const t = текст(tree);
     expect(`идёт поток: ${/\d+:\d\d/.test(t)}`).toBe('идёт поток: true');
@@ -223,7 +270,23 @@ describe('«Детский мат»: жертва — строка общего 
      */
     expect(`на экране имя выбранного узора «${метки[0]}»: ${t.includes(метки[0]!)}`)
       .toBe(`на экране имя выбранного узора «${метки[0]}»: true`);
-    expect(`доска нарисована: ${tree.root.findAll((n: any) => /^[a-h][1-8](,|$)/.test(String(n.props?.accessibilityLabel ?? '')), { deep: true }).length > 0}`)
-      .toBe('доска нарисована: true');
+    expect(`доска нарисована: ${играИдёт(tree)}`).toBe('доска нарисована: true');
+  });
+
+  it('🔴 «Начать» запускает ВЫБРАННЫЙ режим, а не всегда лестницу', () => {
+    /**
+     * 📍 ДЕФЕКТ, ЗАКРЫТЫЙ ЭТОЙ ПРАВКОЙ. Нижняя «Начать» вызывала `start(поток)` без доводов —
+     * а `start` без доводов сбрасывает узор, жертву и микс в ноль. Пока узоры запускались
+     * своими строками, это не было видно; с выпадающим выбором это было бы прямой ложью:
+     * выбрал «Мат с жертвой», нажал «Начать» — получил обычную лестницу.
+     */
+    const tree = смонтировать();
+    открытьРежим(tree);
+    нажать(tree, 'scholarsSacrificeMode');
+    нажать(tree, 'НАЧАТЬ');
+    TestRenderer.act(() => { jest.advanceTimersByTime(200); });
+    expect(`после «Начать» вопрос про жертву: ${текст(tree).includes('scholarsSacrificeAsk')}`)
+      .toBe('после «Начать» вопрос про жертву: true');
   });
 });
+

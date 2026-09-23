@@ -1,4 +1,4 @@
-/* psygames-game-scholars-mate · VER 2 · 17.09.2026 */
+/* psygames-game-scholars-mate · VER 3 · 17.09.2026 */
 /**
  * «Детский мат» — заученные этюды на СКОРОСТЬ.
  *
@@ -34,6 +34,7 @@ import GameShell from '@/src/components/GameShell';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import GradientSurface from '@/src/components/GradientSurface';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import DropdownSelect from '@/src/components/DropdownSelect';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -49,7 +50,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { useScreenWidth } from '@/src/hooks/useScreenWidth';
 import { useGameMode, shouldChainNextLevel } from '@/src/hooks/useGameMode';
 import ScholarsMateGame from '@/src/games/scholars-mate/ScholarsMateGame';
-import { КЛЮЧ_ВИДА, LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, mixedMotifCount, namedMotifCount, newMotifAt, видыУровня, подписиВидов } from '@/src/games/scholars-mate/core/deck';
+import { КЛЮЧ_ВИДА, LEVELS, MOTIF_KEY, NAMED_MOTIFS, counts, levelParams, mixedMotifCount, namedMotifCount, newMotifAt, видыРежима, подписиВидов } from '@/src/games/scholars-mate/core/deck';
 import { звёздыПодхода, ступеньПоМедиане, порогУровня, допускПромахов } from '@/src/games/scholars-mate/core/run';
 import { levelOutcome } from '@/src/services/levelOutcome';
 import type { ScholarsResult } from '@/src/games/scholars-mate/core/types';
@@ -122,7 +123,6 @@ export default function ScholarsMateScreen() {
   /* Рандом-режим: узоры вперемешку, имя скрыто до ответа. `?mix=1` — чтобы своя
      серия могла попросить именно его («в рандом-режиме детского мата»). */
   const [микс, setМикс] = React.useState(() => bool('mix', false));
-  const [списокОткрыт, setСписокОткрыт] = React.useState(false);
   /**
    * 🔴 ЗЕРНО КОЛОДЫ — ПАРАМЕТРОМ, ИНАЧЕ ПОВТОР ШАГА СДАЁТ ТУ ЖЕ РАЗДАЧУ.
    *
@@ -346,7 +346,6 @@ export default function ScholarsMateScreen() {
     setРежим(только);
     setУзор(имяУзораДляОтработки);
     setМикс(вперемешку);
-    setСписокОткрыт(false);
     setPlayedLevel(null);
     setArmed(false);
     setAttempt((n) => n + 1);
@@ -429,6 +428,38 @@ export default function ScholarsMateScreen() {
 
   const c = counts();
 
+  /**
+   * Пункты выпадающего «Режима». ⚠️ ОБЫЧНЫЕ ВЫЧИСЛЕНИЯ, НЕ ХУКИ: стоят после раннего выхода
+   * партии, а хук здесь поменял бы их число между фазами (React #310).
+   * Один список на подписи, числа и действие — второго перечисления режимов на экране нет.
+   */
+  type ПунктРежима = { ключ: string; имя: string; число: number | null; поставить: () => void };
+  const пунктыРежима: ПунктРежима[] = [
+    { ключ: 'levels', имя: t('modeLevels'), число: null,
+      поставить: () => { setРежим(null); setУзор(null); setМикс(false); } },
+    { ключ: 'mix', имя: t('mixedMode'), число: mixedMotifCount(),
+      поставить: () => { setРежим(null); setУзор(null); setМикс(true); } },
+    { ключ: 'sacrifice', имя: t('scholarsSacrificeMode'), число: c.sacrifice,
+      поставить: () => { setРежим('sacrifice'); setУзор(null); setМикс(false); } },
+    ...NAMED_MOTIFS.map((имя): ПунктРежима => ({
+      ключ: `motif:${имя}`, имя: имяУзора(имя), число: namedMotifCount(имя),
+      поставить: () => { setРежим(null); setУзор(имя); setМикс(false); },
+    })),
+  ];
+  const ключРежима = микс ? 'mix' : режим === 'sacrifice' ? 'sacrifice' : узор ? `motif:${узор}` : 'levels';
+  const пунктРежима = пунктыРежима.find((п) => п.ключ === ключРежима);
+  /**
+   * 🔴 КАРТОЧКА ОПИСЫВАЕТ ТО, ЧТО НАЧНЁТСЯ, А НЕ ЛЕСТНИЦУ ВООБЩЕ. Замер 17.09.2026, кадр
+   * 390×844: выбран «Мат с жертвой», а карточка — «Поставь мат в один ход · Новый узор:
+   * Детский мат · Позиций в наборе: 31350». Время и число позиций у режима отработки те же,
+   * что у уровня, поэтому строка с секундами остаётся; меняются три строки — виды, узор
+   * ступени (он про лестницу) и размер набора (у режима он свой, тот же, что в списке).
+   */
+  const наЛестнице = ключРежима === 'levels';
+  const позицийВНаборе = наЛестнице
+    ? c.mate + c.fromGames + c.defend + c.threat + c.sacrifice
+    : (пунктРежима?.число ?? 0);
+
   return (
     <SafeAreaView style={[стили.корень, { backgroundColor: colors.background }]}>
       <GradientSurface colors={GRADIENT as [string, string]} style={стили.шапка}
@@ -491,12 +522,12 @@ export default function ScholarsMateScreen() {
             <View style={стили.строка}>
               <Ionicons name="school-outline" size={18} color={colors.textSecondary} />
               <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]}>
-                {подписиВидов(видыУровня(level)).map((к) => t(к)).join(' · ')}
+                {подписиВидов(видыРежима(level, режим, узор, микс)).map((к) => t(к)).join(' · ')}
               </Text>
             </View>
             {/* Узор, который ОТКРЫВАЕТСЯ именно здесь: ступень названа тем, что на ней ново. */}
             {(() => {
-              const узорСтупени = newMotifAt(level);
+              const узорСтупени = наЛестнице ? newMotifAt(level) : undefined;
               const имя = узорСтупени ? имяУзора(узорСтупени) : '';
               return имя ? (
                 <View style={стили.строка}>
@@ -513,7 +544,7 @@ export default function ScholarsMateScreen() {
               подписанная цифра: сколько всего позиций в наборе.
             */}
             <Text style={[стили.мелко, { color: colors.textSecondary }]}>
-              {t('scholarsBank').replace('{n}', String(c.mate + c.fromGames + c.defend + c.threat + c.sacrifice))}
+              {t('scholarsBank').replace('{n}', String(позицийВНаборе))}
             </Text>
             {/* Источник называем по правилу лицензии CC0. */}
             <Text style={[стили.мелко, { color: colors.textSecondary }]}>Lichess puzzle DB · CC0</Text>
@@ -553,83 +584,40 @@ export default function ScholarsMateScreen() {
             <Text style={[стили.подсказка, { color: colors.textSecondary }]}>{t('scholarsFlowHint')}</Text>
           </Pressable>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ expanded: списокОткрыт }}
-            accessibilityLabel={t('scholarsPickMotif')}
-            onPress={() => setСписокОткрыт((v) => !v)}
-            style={[стили.карточка, { backgroundColor: colors.surface }]}
-          >
-            <View style={стили.строка}>
-              <Ionicons name={списокОткрыт ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textSecondary} />
-              <Text style={[стили.уровень, { color: colors.text }]}>{t('scholarsPickMotif')}</Text>
-            </View>
-            <Text style={[стили.подсказка, { color: colors.textSecondary }]}>{t('scholarsPickMotifHint')}</Text>
-          </Pressable>
-
           {/*
-            🔴 МИКС — ПЕРВОЙ СТРОКОЙ СПИСКА. Просьба Дениса 07.09.2026: «чтобы в
-            режиме поток было не один режим, а случайно разные подавались, любой
-            из тех приёмов что есть — типа тренировка на реакцию, увидеть какой
-            мат доступен».
+            🔴 РЕЖИМ — ВЫПАДАЮЩИМ СПИСКОМ, А НЕ ПОРТЯНКОЙ ИЗ ДВАДЦАТИ ОДНОЙ КНОПКИ (Денис 17.09.2026).
 
-            Стоит выше отработки одного узора нарочно: отработка меряет скорость
-            ЗНАКОМОГО, а микс — узнавание среди девятнадцати, и это более общий
-            навык. Имя узора в нём до ответа скрыто, иначе подпись выдаёт ответ.
+            📍 ЗАМЕР ДО: «Отработать один узор» раскрывался прямо в экран списком из 21 строки
+            (микс, жертва, 19 узоров), и КАЖДАЯ строка сразу запускала партию. Выбора как такового
+            не было — был набор кнопок старта, а нижняя «Начать» при этом всегда запускала лестницу
+            и молча игнорировала узор.
+
+            Теперь закрытая строка показывает ТЕКУЩИЙ режим, список раскрывается под ней, выбор
+            СТАВИТ режим, а партию запускает одна «Начать». Сам список — ОБЩИЙ `DropdownSelect`
+            (решение Дениса 17.09: «общий делать»), своей копии у экрана больше нет; число позиций
+            режима идёт припиской справа.
+            Подписи — существующие ключи (`mode`, `modeLevels`, `mixedMode`, `scholarsSacrificeMode`,
+            имена узоров): новых строк ноль.
+
+            ⚠️ Карточка уровня выше читает тот же выбор (`видыРежима`, `позицийВНаборе`): «выбрано,
+            но не начато» — это состояние, и всё, что описывает «что начнётся», обязано его видеть.
           */}
-          {списокОткрыт && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('mixedMode')}
-              onPress={() => start(поток, null, null, true)}
-              style={[стили.узорСтрока, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}
-            >
-              <Ionicons name="shuffle-outline" size={18} color={GRADIENT[0]} />
-              <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]} numberOfLines={1}>
-                {t('mixedMode')}
-              </Text>
-              <Text style={[стили.мелко, { color: colors.textSecondary }]}>{mixedMotifCount()}</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
-            </Pressable>
-          )}
-
-          {/* Жертва — следующей строкой того же списка: это такой же узор. */}
-          {списокОткрыт && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('scholarsSacrificeMode')}
-              onPress={() => start(поток, 'sacrifice')}
-              style={[стили.узорСтрока, { backgroundColor: colors.surface, borderColor: GRADIENT[0] }]}
-            >
-              <Ionicons name="flame-outline" size={18} color={GRADIENT[0]} />
-              <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]} numberOfLines={1}>
-                {t('scholarsSacrificeMode')}
-              </Text>
-              <Text style={[стили.мелко, { color: colors.textSecondary }]}>{c.sacrifice}</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
-            </Pressable>
-          )}
-
-          {списокОткрыт && NAMED_MOTIFS.map((имя) => (
-            <Pressable
-              key={имя}
-              accessibilityRole="button"
-              accessibilityLabel={имяУзора(имя)}
-              onPress={() => start(поток, null, имя)}
-              style={[стили.узорСтрока, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            >
-              <Text style={[стили.подсказка, { color: colors.text, flex: 1 }]} numberOfLines={1}>
-                {имяУзора(имя)}
-              </Text>
-              <Text style={[стили.мелко, { color: colors.textSecondary }]}>{namedMotifCount(имя)}</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
-            </Pressable>
-          ))}
+          <DropdownSelect
+            подпись={t('mode')}
+            значение={ключРежима}
+            варианты={пунктыРежима.map((п) => ({ значение: п.ключ, текст: п.имя, справа: п.число === null ? undefined : String(п.число) }))}
+            onChange={(ключ) => пунктыРежима.find((п) => п.ключ === ключ)?.поставить()}
+            акцент={GRADIENT[0]}
+            цвета={colors}
+            testID="scholars-mode"
+          />
         </ScrollView>
       )}
 
       {phase === 'config' && (
-        <GameSetupBar label={t('start')} onStart={() => start(поток)} colors={GRADIENT as [string, string]} />
+        /* «Начать» запускает ВЫБРАННЫЙ режим. До 17.09 здесь стояло `start(поток)` — лестница при
+           любом выбранном узоре: `start` без доводов сбрасывает узор, жертву и микс в ноль. */
+        <GameSetupBar label={t('start')} onStart={() => start(поток, режим, узор, микс)} colors={GRADIENT as [string, string]} />
       )}
 
       {phase === 'cleared' && (
@@ -673,6 +661,7 @@ const стили = StyleSheet.create({
   подсказка: { fontSize: 14 },
   мелко: { fontSize: 12 },
   // 48 — норма цели нажатия: строки списка нажимают пальцем, а не мышью.
+  // Выпадающий режим: строка и пункты не ниже порога нажатия (48), как у «Мысленного вращения».
   узорСтрока: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1 },
   строка: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 });
