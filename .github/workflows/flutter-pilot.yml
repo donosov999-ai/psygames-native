@@ -1,0 +1,86 @@
+# Пилот переезда на Flutter — свои пробы и свои сборки.
+#
+# 🔴 РАБОТАЕТ ТОЛЬКО ПО СВОЕЙ ПАПКЕ. Фильтр `paths` стоит нарочно: пилот лежит в
+# общем репозитории, и без фильтра каждая правка любого раздела гоняла бы сборку
+# Flutter впустую. Обычный выпуск (build.yml) о пилоте не знает и не трогается.
+#
+# Зачем Android здесь: вес и холодный старт нынешней версии против Flutter надо
+# мерить на ОДНОМ телефоне, а Android SDK на маке не стоит. Сборку делает CI,
+# числа снимаются с телефона (`adb shell am start -W`, медиана пяти запусков).
+name: Пилот Flutter (пробы + сборка Android)
+
+on:
+  push:
+    branches: [main]
+    paths: ['flutter/**', '.github/workflows/flutter-pilot.yml']
+  pull_request:
+    paths: ['flutter/**', '.github/workflows/flutter-pilot.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: flutter-pilot-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: flutter
+
+jobs:
+  probes:
+    name: Пробы и анализатор
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.5
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Анализатор — чисто
+        run: flutter analyze
+      - name: Пробы — все зелёные
+        run: flutter test --reporter expanded
+
+  android:
+    name: Сборка Android (вес для замера)
+    needs: probes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.5
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: APK (release, без подписи)
+        run: flutter build apk --release
+      - name: AAB (release, без подписи)
+        run: flutter build appbundle --release
+      - name: Вес — числом в отчёт
+        run: |
+          APK=$(du -k build/app/outputs/flutter-apk/app-release.apk | cut -f1)
+          AAB=$(du -k build/app/outputs/bundle/release/app-release.aab | cut -f1)
+          {
+            echo "## Вес сборки пилота"
+            echo ""
+            echo "| Что | Пилот на Flutter | Нынешняя версия (v2.54.22) |"
+            echo "|---|---|---|"
+            echo "| APK | $((APK / 1024)) МБ | 205 МБ |"
+            echo "| AAB | $((AAB / 1024)) МБ | 195 МБ |"
+            echo ""
+            echo "⚠️ В пилоте три игры и нет ни картинок, ни звуков, ни питомца — прямое сравнение неверно."
+            echo "Честное — после переноса целого хаба."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flutter-pilot-android
+          path: |
+            flutter/build/app/outputs/flutter-apk/app-release.apk
+            flutter/build/app/outputs/bundle/release/app-release.aab
+          retention-days: 14
