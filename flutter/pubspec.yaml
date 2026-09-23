@@ -39,6 +39,12 @@ dependencies:
   ffi: ^2.1.4
   flutter_tts: ^4.2.5
   just_audio: ^0.10.6
+  # 🔴 Забрать прогресс ПРЕЖНЕЙ версии из контейнера приложения (lib/shell/legacy_import.dart).
+  # Tauri-сборка держала его в localStorage WKWebView, а это обычный sqlite внутри
+  # нашего же контейнера. Без чтения этих файлов человек после обновления видит нули.
+  path_provider: ^2.1.5
+  sqlite3: ^2.9.0
+  sqlite3_flutter_libs: ^0.5.41
 
 dev_dependencies:
   integration_test:

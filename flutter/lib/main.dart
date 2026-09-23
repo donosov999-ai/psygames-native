@@ -5,6 +5,7 @@ import 'games/digit_span/screen.dart';
 import 'games/one_line/screen.dart';
 import 'shell/asset_server.dart';
 import 'shell/l10n.dart';
+import 'shell/legacy_import.dart';
 import 'shell/hybrid_app.dart';
 import 'shell/shared_state.dart';
 import 'shell/web_game_screen.dart';
@@ -24,6 +25,19 @@ const webBase = String.fromEnvironment('PSY_WEB', defaultValue: 'http://localhos
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final state = await SharedState.open();
+  /*
+   * 🔴 ПЕРВЫМ ДЕЛОМ — ЗАБРАТЬ ПРОГРЕСС ПРЕЖНЕЙ ВЕРСИИ, И ИМЕННО ЗДЕСЬ.
+   *
+   * Гибрид ставится поверх прежнего приложения (один идентификатор
+   * `com.psygames.app`), а его WebView открывает страницу с другого origin —
+   * значит прежний `localStorage` ему не виден, и человек получает нули:
+   * уровень 1, тренировок 0, «заброшен». Так и вышло 23.09.2026.
+   *
+   * Перенос обязан отработать ДО того, как поднимется WebView: мост вливает
+   * снимок общей памяти в страницу ещё до её кода, и опоздай мы на один шаг —
+   * страница успела бы записать поверх свои пустые значения.
+   */
+  await LegacyImport.seedIfEmpty(state);
   // Язык берётся у общей памяти, а не задаётся числом в коде: его пишет веб-половина
   // (ключ `language`), и мост возит его через границу — см. SharedState.extraKeys.
   await L.load(state.language);

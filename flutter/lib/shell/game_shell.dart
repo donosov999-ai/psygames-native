@@ -1,4 +1,5 @@
 import 'game_pet.dart';
+import 'l10n.dart';
 import 'package:flutter/material.dart';
 
 /// Каркас игрового экрана — перенос GameShell из React-версии PsyGames.
@@ -50,7 +51,14 @@ class GameShell extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            _Header(title: title, onBack: onBack, onRules: onRules, onPause: () => _pause(context)),
+            _Header(
+              title: title,
+              // Кнопка в шапке есть ВСЕГДА: раздел уточняет, куда вести, но не
+              // решает, можно ли уйти. См. `_leave`.
+              onBack: () => _leave(context),
+              onRules: onRules,
+              onPause: () => _pause(context),
+            ),
             if (hud.isNotEmpty) _HudRow(items: hud),
             Expanded(
               child: LayoutBuilder(
@@ -72,28 +80,163 @@ class GameShell extends StatelessWidget {
     );
   }
 
+  /*
+   * 🔴 ИЗ ИГРЫ ОБЯЗАН БЫТЬ ВЫХОД, И ОТВЕЧАЕТ ЗА ЭТО КАРКАС.
+   *
+   * Найдено живьём 23.09.2026, Денис на iPhone: «даже выйти сейчас нельзя из игры».
+   * В листе паузы было «Начать заново», «Отменить ход», «Продолжить» — и всё.
+   * Свайп от края нативный экран тоже не закрывает.
+   *
+   * Замер по коду: экранов на каркасе 38, `onBack` передаёт ОДИН. Тридцать семь
+   * разделов не сговаривались — их одинаково не заставили: поле было
+   * необязательным, и каркас молча рисовал шапку без кнопки.
+   *
+   * Поэтому выход берёт на себя каркас: `onBack`, если раздел его дал, иначе
+   * `Navigator.maybePop` — то самое, что делает системный жест. Раздел может
+   * уточнить поведение, но не может его ОТМЕНИТЬ, и это верно: экран без выхода
+   * — не экран, а ловушка.
+   */
+  void _leave(BuildContext context) {
+    if (onBack != null) {
+      onBack!();
+      return;
+    }
+    Navigator.of(context).maybePop();
+  }
+
   void _pause(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final a in pauseActions)
-              ListTile(
-                leading: Icon(a.icon),
-                title: Text(a.label),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  a.onPressed();
-                },
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => _PauseScreen(
+        hud: hud,
+        actions: pauseActions,
+        onLeave: () => _leave(context),
+      ),
+    ));
+  }
+}
+
+/// 🔴 «НА ГЛАВНУЮ» — ЭТО НЕ ТО ЖЕ, ЧТО «ВЫЙТИ ИЗ УПРАЖНЕНИЯ».
+///
+/// В веб-версии в паузе ДВА разных ухода (`GameShell.tsx:1343-1345`): шаг назад — в
+/// развилку раздела, откуда человек пришёл, и уход на самую главную минуя развилки.
+/// Нативный экран сам про главную ничего не знает — её показывает веб-половина внутри
+/// оболочки. Поэтому оболочка вешает сюда свой обработчик, а каркас его только зовёт.
+class GameExit {
+  /// Ставит [HybridApp]; пусто — значит главной нет (настольная проба), и пункт не рисуем.
+  static VoidCallback? home;
+}
+
+/// Пауза во весь экран — как в веб-версии, а не лист снизу.
+///
+/// 📍 Образец прислал Денис 23.09.2026 кадром: счётчики сверху, «Продолжить игру»
+/// главной кнопкой, ниже служебные пункты, и ДВА ухода в конце. Лист снизу на три
+/// пункта, который стоял здесь до этого, не давал ни выхода, ни счётчиков.
+class _PauseScreen extends StatelessWidget {
+  const _PauseScreen({required this.hud, required this.actions, required this.onLeave});
+
+  final List<HudItem> hud;
+  final List<PauseAction> actions;
+  final VoidCallback onLeave;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    Widget button(String label, IconData icon, VoidCallback onTap, {bool primary = false, Key? key}) {
+      final child = Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 22, color: primary ? scheme.onPrimary : scheme.onSurface),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: primary ? scheme.onPrimary : scheme.onSurface,
               ),
-            ListTile(
-              leading: const Icon(Icons.close),
-              title: const Text('Продолжить'),
-              onTap: () => Navigator.of(ctx).pop(),
             ),
-          ],
+          ),
+        ],
+      );
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: SizedBox(
+          width: double.infinity,
+          height: 58,
+          child: Material(
+            key: key,
+            color: primary ? scheme.primary : scheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(29),
+            child: InkWell(borderRadius: BorderRadius.circular(29), onTap: onTap, child: Center(child: child)),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              const SizedBox(height: 28),
+              // Счётчики те же, что в шапке игры: человек видит, на чём остановился.
+              if (hud.isNotEmpty)
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    for (final h in hud)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: scheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(h.label, style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+                            Text(h.value,
+                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              const SizedBox(height: 28),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      button(L.t('exitConfirmStay'), Icons.play_arrow,
+                          () => Navigator.of(context).pop(),
+                          primary: true, key: const Key('pause-resume')),
+                      for (final a in actions)
+                        button(a.label, a.icon, () {
+                          Navigator.of(context).pop();
+                          a.onPressed();
+                        }),
+                      // Шаг назад: туда, откуда пришли, — в развилку раздела.
+                      button(L.t('pauseExitGame'), Icons.exit_to_app, () {
+                        Navigator.of(context).pop();
+                        onLeave();
+                      }, key: const Key('pause-leave')),
+                      // И на самую главную, минуя развилки, — если оболочка её знает.
+                      if (GameExit.home != null)
+                        button(L.t('goHome'), Icons.home, () {
+                          Navigator.of(context).pop();
+                          GameExit.home!();
+                        }, key: const Key('pause-home')),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -147,7 +290,7 @@ class _Header extends StatelessWidget {
             if (onRules != null)
               IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: 'Правила'),
             if (onBack != null)
-              IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back), tooltip: 'Назад'),
+              IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back), tooltip: L.t('back')),
           ],
         ),
       );

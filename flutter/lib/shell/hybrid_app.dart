@@ -59,6 +59,7 @@ import '../games/word_pairs/screen.dart';
 import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
+import 'game_shell.dart';
 import 'puzzle_routes.g.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
@@ -276,6 +277,7 @@ class _HybridAppState extends State<HybridApp> {
   late final WebViewController _c;
   bool _loading = true;
 
+
   /// Какой нативный экран сейчас открыт поверх страницы.
   ///
   /// ⚠️ Нужен из-за того, что перехват теперь идёт по СМЕНЕ АДРЕСА: страница
@@ -338,6 +340,23 @@ class _HybridAppState extends State<HybridApp> {
     SessionReport.sink = (json) async {
       await _c.runJavaScript('window.__psySaveSession && window.__psySaveSession($json);');
     };
+    /*
+     * 🔴 «НА ГЛАВНУЮ» ИЗ ПАУЗЫ. Нативный экран про главную ничего не знает — её
+     * рисует веб-половина внутри оболочки. Поэтому уход на главную делаем здесь:
+     * снимаем нативный экран и уводим страницу в корень.
+     *
+     * ⚠️ Уводим именно `location.replace`, а не `history.back()`: назад вернуло бы в
+     * ту же игру, из которой человек только что попросился уйти.
+     */
+    GameExit.home = () async {
+      if (!mounted) return;
+      final nav = Navigator.of(context);
+      while (nav.canPop()) {
+        nav.pop();
+      }
+      _openedRoute = null;
+      await _c.runJavaScript("location.replace('${widget.server.origin}/');");
+    };
     _c = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
@@ -394,6 +413,7 @@ class _HybridAppState extends State<HybridApp> {
   @override
   void dispose() {
     SessionReport.sink = null;
+    GameExit.home = null;
     // Хук снимается вместе с хостом: оставленный, он звал бы мёртвый WebView.
     if (HybridApp.open == _open) HybridApp.open = null;
     super.dispose();
@@ -428,7 +448,20 @@ class _HybridAppState extends State<HybridApp> {
     // предотвратить.
     // ⚠️ Возврат делаем ТОЛЬКО если адрес всё ещё игровой: пока человек играл,
     // страница могла уехать сама (например, зарядка перевела шаг).
-    if (mounted) {
+    /*
+     * 🔴 ШАГ НАЗАД ДЕЛАЕМ, ТОЛЬКО ЕСЛИ НИКУДА НЕ ИДЁМ ДАЛЬШЕ.
+     *
+     * Найдено по отчёту Дениса 23.09.2026: «ни одна игра из хаба головоломок не
+     * запускается, вылетает на главную». Развилка — нативный экран, и страница под
+     * ней стоит на `/games/<раздел>-hub`. Мы делали `history.back()` (то есть уводили
+     * страницу на главную) и СРАЗУ следом просили загрузить выбранную игру. Два
+     * перехода в одном такте: `history.back()` в WebKit исполняется асинхронно и
+     * прилетает ПОСЛЕ нашей загрузки, затирая её. Человек видит главную.
+     *
+     * Поэтому: выбрали карточку — идём сразу туда, шаг назад не нужен вовсе.
+     */
+    final goingOn = result is HubCardTap;
+    if (mounted && !goingOn) {
       await _c.runJavaScript(
         "if (String(location.pathname).indexOf('$route') >= 0) history.back();",
       );
