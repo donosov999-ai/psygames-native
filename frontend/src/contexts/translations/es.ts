@@ -606,6 +606,7 @@ const t: Record<string, string> = {
   "fractalPortal": "Portal",
   "fractalPortals": "Portales",
   "fractalPortalGo": "Ir a la cuadrícula",
+  "fractalToMap": "Al mapa",
   "fractalPortalHint": "Una casilla con anillo es una misma casilla en dos cuadrículas a la vez. Ninguna de las dos revela su dígito por separado: reduce los candidatos aquí, redúcelos allí, y la respuesta es lo que ambas admiten.",
   "fractalRedDigit": "Una cifra roja es un error: la misma ya está en esa fila, columna o cuadro. Se queda en el tablero para que veas qué corregir.",
   "fractalSolutionAskChild": "¿Mostrar la solución de esta cuadrícula inferior? El nivel no contará en esta partida, pero tampoco bajará.",

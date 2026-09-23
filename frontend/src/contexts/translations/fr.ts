@@ -47,6 +47,7 @@ const t: Record<string, string> = {
   "fractalPortal": "Portail",
   "fractalPortals": "Portails",
   "fractalPortalGo": "Aller à la grille",
+  "fractalToMap": "Vers la carte",
   "fractalPortalHint": "Une case cerclée est une seule et même case dans deux grilles à la fois. Aucune des deux ne donne son chiffre seule : réduisez les candidats ici, réduisez-les là — la réponse est ce que les deux autorisent.",
   "fractalRedDigit": "Un chiffre rouge est une erreur : le même se trouve déjà dans cette ligne, cette colonne ou ce carré. Il reste affiché pour que tu voies quoi corriger.",
   "fractalSolutionAskChild": "Afficher la solution de cette grille inférieure ? Le niveau ne comptera pas pour cette partie, mais il ne baissera pas non plus.",

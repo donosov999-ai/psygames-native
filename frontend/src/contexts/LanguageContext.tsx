@@ -117,6 +117,9 @@ const translations: Translations = {
   fractalPortal: { ru: 'Портал', en: 'Portal' },
   fractalPortals: { ru: 'Порталы', en: 'Portals' },
   fractalPortalGo: { ru: 'В сетку', en: 'Go to grid' },
+  /** Выход из нижней сетки наверх, к карте. Отзыв Дениса af047c78: «Как выйти на уровень обратно
+   *  фракталы» — стрелка в шапке у всех игр значит «выйти из игры», и подъём читался как выход. */
+  fractalToMap: { ru: 'На карту', en: 'To the map' },
   fractalPortalHint: { ru: 'Клетка с кольцом — одна и та же в двух сетках сразу. Порознь ни одна из них цифру не выдаёт: сузьте кандидатов здесь, сузьте там — ответ даст пересечение.', en: 'A ringed cell is one and the same cell in two grids at once. Neither grid names its digit alone: narrow the candidates here, narrow them there, and the answer is what both allow.' },
   fractalRedDigit: { ru: 'Красная цифра — ошибка: такая уже стоит в этой строке, столбце или квадрате. Она остаётся на доске, чтобы было видно, что исправить.', en: 'A red digit is a mistake: the same one already stands in this row, column or box. It stays on the board so you can see what to fix.' },
   fractalUndecided: { ru: 'Здесь задача пока не определена: цифра не нарушает ни одного правила, но и не выводится. Это не ошибка — сначала разрешите портал.', en: 'This cell is not decided yet: the digit breaks no rule, but it does not follow either. That is not a mistake — resolve the portal first.' },

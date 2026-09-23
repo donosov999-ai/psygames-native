@@ -606,6 +606,7 @@ const t: Record<string, string> = {
   "fractalPortal": "Portal",
   "fractalPortals": "Portale",
   "fractalPortalGo": "Zu Gitter",
+  "fractalToMap": "Zur Karte",
   "fractalPortalHint": "Eine umringte Zelle ist ein und dieselbe Zelle in zwei Gittern zugleich. Keines der beiden nennt ihre Ziffer allein: Grenze die Kandidaten hier ein, grenze sie dort ein — die Antwort ist, was beide zulassen.",
   "fractalRedDigit": "Eine rote Ziffer ist ein Fehler: dieselbe steht bereits in dieser Zeile, Spalte oder in diesem Block. Sie bleibt stehen, damit sichtbar ist, was zu korrigieren ist.",
   "fractalSolutionAskChild": "Die Lösung dieses unteren Gitters zeigen? Das Level zählt in diesem Spiel nicht, sinkt aber auch nicht.",

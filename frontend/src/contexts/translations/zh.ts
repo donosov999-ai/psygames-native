@@ -606,6 +606,7 @@ const t: Record<string, string> = {
   "fractalPortal": "传送门",
   "fractalPortals": "传送门",
   "fractalPortalGo": "前往盘面",
+  "fractalToMap": "返回总览",
   "fractalPortalHint": "带圆环的格子，其实是同时存在于两个盘面里的同一个格子。单看任何一个盘面都定不下它的数字：在这边缩小候选，在那边也缩小，两边都允许的那个数就是答案。",
   "fractalRedDigit": "红色数字表示错误：同一个数字已经出现在这一行、这一列或这个宫里。它会留在盘面上，方便你看清要改什么。",
   "fractalSolutionAskChild": "显示这个下层网格的答案吗？本局不计入等级，但等级也不会下降。",

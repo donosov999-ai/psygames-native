@@ -47,6 +47,7 @@ const t: Record<string, string> = {
   "fractalPortal": "포털",
   "fractalPortals": "포털",
   "fractalPortalGo": "격자로 이동",
+  "fractalToMap": "지도로",
   "fractalPortalHint": "고리가 그려진 칸은 두 격자에 동시에 존재하는 같은 칸입니다. 어느 한쪽만으로는 숫자가 정해지지 않습니다. 여기서 후보를 줄이고 저기서도 줄이면, 양쪽이 모두 허용하는 숫자가 답입니다.",
   "fractalRedDigit": "빨간 숫자는 오답입니다. 같은 숫자가 그 행·열·박스에 이미 있습니다. 무엇을 고쳐야 할지 보이도록 그대로 남습니다.",
   "fractalSolutionAskChild": "이 아래 격자의 답을 보시겠어요? 이번 게임의 레벨은 인정되지 않지만 내려가지도 않습니다.",
