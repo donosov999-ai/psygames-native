@@ -58,6 +58,7 @@ import '../games/rmet/screen.dart';
 import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
+import 'puzzle_routes.g.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
 
@@ -167,6 +168,21 @@ class HybridApp extends StatefulWidget {
         '/games/wcst': (s) => WcstScreen(state: s),
         '/games/cpt': (s) => CptScreen(state: s),
         '/games/proofreading': (s) => ProofreadingScreen(state: s),
+        /*
+         * 🔴 СОРОК ТРИ АДРЕСА ОДНОГО ЭКРАНА — СГЕНЕРИРОВАНЫ, А НЕ ВПИСАНЫ.
+         *
+         * Головоломки устроены не как остальные игры: экран один, а режимов 42, и
+         * отличает их только хвост `?mode=`. Сорок две строки, переписанные с
+         * реестра, — сорок два места молча разойтись с ним. Поэтому карта их
+         * адресов собирается из `assets/puzzles/modes.json`
+         * (`tools/embed-puzzle-routes.mjs`), и там же лежит правило кодирования
+         * пробела в именах вроде «Light Up».
+         *
+         * ⚠️ Перехват включён 23.09.2026 — ПОСЛЕ того, как замер показал, что
+         * открываются все 42 (до этого у 28 из них экран падал на пустом списке
+         * ступеней; см. `test/puzzles_all_modes_open_test.dart`).
+         */
+        ...puzzleRoutes(),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
@@ -218,6 +234,18 @@ class HybridApp extends StatefulWidget {
      * для них ключа с хвостом в карте просто нет, и ответ прежний.
      */
     if (query.isNotEmpty && native.containsKey('$r$query')) return '$r$query';
+    /*
+     * ⚠️ И ТОТ ЖЕ ХВОСТ В ДРУГОМ НАПИСАНИИ. У четырёх головоломок в имени пробел,
+     * веб-версия ходит на `?mode=Light%20Up`, но адрес доходит до нас и в
+     * раскодированном виде — смотря кто его вернул: `location.href` или переход
+     * документа. Одно написание в карте, оба — при разборе.
+     */
+    if (query.isNotEmpty) {
+      final decoded = Uri.decodeFull(query);
+      if (decoded != query && native.containsKey('$r$decoded')) return '$r$decoded';
+      final encoded = Uri.encodeFull(query);
+      if (encoded != query && native.containsKey('$r$encoded')) return '$r$encoded';
+    }
     return native.containsKey(r) ? r : null;
   }
 

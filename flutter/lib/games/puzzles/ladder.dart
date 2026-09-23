@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import '../../shell/l10n.dart';
+import 'engine.dart';
 
 /// ЛЕСТНИЦЫ СЕМИ СЕТОК ТЭТХЭМА — те же пять ступеней, что у веб-версии.
 ///
@@ -121,3 +122,25 @@ class PuzzleModes {
   static void useForTest(Map<String, PuzzleMode> modes) => _all = modes;
 }
 
+/// СТУПЕНИ РЕЖИМА: своя лестница, а нет своей — меню самого движка.
+///
+/// 🔴 ПОВОД, 23.09.2026. Своя лестница есть у 14 режимов из 42. Остальные 28 шли
+/// с пустым списком, а экран лез в него индексом — `steps[(level-1).clamp(0, -1)]`.
+/// Это не «ступеней нет», это падение на открытии: 28 режимов из 42 нельзя было
+/// открыть вовсе. Перехват `/games/puzzles` поэтому и стоял выключенным.
+///
+/// 🔴 И ПОЧЕМУ НЕ ПРИДУМЫВАТЬ ЛЕСТНИЦУ САМИМ. Трудность у этих игр уже размечена
+/// автором — меню пресетов внутри самого движка. Замер по всем 42: своя лестница
+/// 14 · пресеты движка 28 · без того и другого 0. Брать готовую разметку дешевле,
+/// чем назначать свою по названию, и она заведомо играбельна.
+List<PuzzleStep> resolveSteps(PuzzleMode mode, TathamEngine engine, int gameIndex) {
+  if (mode.steps.isNotEmpty) return mode.steps;
+  final presets = engine.presetsOf(gameIndex);
+  if (presets.isNotEmpty) {
+    return presets.map((p) => PuzzleStep(p.name, p.params)).toList();
+  }
+  // Последний рубеж: пустые параметры — «как решит сам движок». Ни один из 42
+  // режимов сюда сегодня не попадает, но пустой экран игроку показывать нельзя,
+  // если следующая версия канона лишит игру и пресетов.
+  return const [PuzzleStep('', '')];
+}

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
 
@@ -137,7 +140,6 @@ void main() {
       '$origin/collection',
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
-      '$origin/games/puzzles',          // головоломки Тэтхэма ещё не перенесены
       '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
@@ -150,6 +152,53 @@ void main() {
     // следующей игре. Набор пересобирается из карты перехвата при вливании.
     expect(HybridApp.native.keys.toSet(), {
       '/games/ant',
+      // 🔴 Сорок три адреса головоломок стоят здесь ПОИМЁННО, хотя карта их
+      // генерирует. Это не дубль: генератор отвечает на «что собралось», а список
+      // — на «что мы согласились перехватывать». Переименуют режим в реестре —
+      // проба назовёт разницу, а не примет её молча.
+      '/games/puzzles',
+      '/games/puzzles?mode=Black%20Box',
+      '/games/puzzles?mode=Bridges',
+      '/games/puzzles?mode=Cube',
+      '/games/puzzles?mode=Dominosa',
+      '/games/puzzles?mode=Fifteen',
+      '/games/puzzles?mode=Filling',
+      '/games/puzzles?mode=Flip',
+      '/games/puzzles?mode=Flood',
+      '/games/puzzles?mode=Galaxies',
+      '/games/puzzles?mode=Guess',
+      '/games/puzzles?mode=Inertia',
+      '/games/puzzles?mode=Keen',
+      '/games/puzzles?mode=Light%20Up',
+      '/games/puzzles?mode=Loopy',
+      '/games/puzzles?mode=Magnets',
+      '/games/puzzles?mode=Map',
+      '/games/puzzles?mode=Mines',
+      '/games/puzzles?mode=Mosaic',
+      '/games/puzzles?mode=Net',
+      '/games/puzzles?mode=Netslide',
+      '/games/puzzles?mode=Palisade',
+      '/games/puzzles?mode=Pattern',
+      '/games/puzzles?mode=Pearl',
+      '/games/puzzles?mode=Pegs',
+      '/games/puzzles?mode=Range',
+      '/games/puzzles?mode=Rectangles',
+      '/games/puzzles?mode=Same%20Game',
+      '/games/puzzles?mode=Signpost',
+      '/games/puzzles?mode=Singles',
+      '/games/puzzles?mode=Sixteen',
+      '/games/puzzles?mode=Slant',
+      '/games/puzzles?mode=Slide',
+      '/games/puzzles?mode=Sokoban',
+      '/games/puzzles?mode=Solo',
+      '/games/puzzles?mode=Tents',
+      '/games/puzzles?mode=Towers',
+      '/games/puzzles?mode=Train%20Tracks',
+      '/games/puzzles?mode=Twiddle',
+      '/games/puzzles?mode=Undead',
+      '/games/puzzles?mode=Unequal',
+      '/games/puzzles?mode=Unruly',
+      '/games/puzzles?mode=Untangle',
       '/games/ball-sort',
       '/games/bart',
       '/games/cake-sort',
@@ -208,5 +257,33 @@ void main() {
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
     }
+  });
+
+  /*
+   * 🔴 ГОЛОВОЛОМКИ: КАРТОЧКА РАЗВИЛКИ — И СРАЗУ НАТИВНЫЙ ЭКРАН.
+   *
+   * Перехват их адресов включён 23.09.2026, когда замер показал, что открываются
+   * все 42 режима. Проверяем не «сколько ключей в карте» (это сверка карты с самой
+   * собой), а то, что КАЖДАЯ карточка развилки `/games/puzzles-hub` и `/games/spatial-hub`
+   * узнаётся разбором адреса. Разойдётся кодировка хвоста — проба назовёт карточку.
+   */
+  test('🔴 каждая карточка головоломок с развилки узнаётся разбором адреса', () {
+    final hubs = jsonDecode(File('assets/hubs.json').readAsStringSync()) as Map<String, dynamic>;
+    final cards = <String>[];
+    for (final list in (hubs['hubs'] as Map<String, dynamic>).values) {
+      for (final c in list as List<dynamic>) {
+        final route = (c as Map<String, dynamic>)['route'] as String;
+        if (route.startsWith('/games/puzzles') && !route.endsWith('-hub')) cards.add(route);
+      }
+    }
+    expect(cards.length, greaterThanOrEqualTo(42), reason: 'карточек головоломок найдено ${cards.length}');
+    final missed = <String>[];
+    for (final route in cards) {
+      if (HybridApp.routeOf('https://app.local$route') == null) missed.add(route);
+      // Тот же адрес в раскодированном виде — так его отдаёт `location.href`.
+      final decoded = Uri.decodeFull(route);
+      if (HybridApp.routeOf('https://app.local$decoded') == null) missed.add('$decoded (раскодированный)');
+    }
+    expect(missed, isEmpty);
   });
 }

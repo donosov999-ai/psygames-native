@@ -24,12 +24,24 @@ import 'package:ffi/ffi.dart';
 typedef _IntF = Int32 Function();
 typedef _IntD = int Function();
 
+/// Ступень из меню самого движка: подпись автора и параметры для [TathamEngine.start].
+class PuzzlePreset {
+  const PuzzlePreset(this.name, this.params);
+  final String name;
+  final String params;
+}
+
 class TathamEngine {
   TathamEngine._(this._lib) {
     _count = _lib.lookupFunction<_IntF, _IntD>('psy_count');
     _name = _lib.lookupFunction<Pointer<Utf8> Function(Int32), Pointer<Utf8> Function(int)>('psy_name');
     _open = _lib.lookupFunction<Int32 Function(Int32, Pointer<Utf8>, Int32),
         int Function(int, Pointer<Utf8>, int)>('psy_open');
+    _presets = _lib.lookupFunction<Int32 Function(Int32), int Function(int)>('psy_presets');
+    _presetParams = _lib.lookupFunction<Pointer<Utf8> Function(Int32, Int32),
+        Pointer<Utf8> Function(int, int)>('psy_preset_params');
+    _presetName = _lib.lookupFunction<Pointer<Utf8> Function(Int32, Int32),
+        Pointer<Utf8> Function(int, int)>('psy_preset_name');
     _width = _lib.lookupFunction<_IntF, _IntD>('psy_width');
     _height = _lib.lookupFunction<_IntF, _IntD>('psy_height');
     _draw = _lib.lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>('psy_draw');
@@ -51,6 +63,9 @@ class TathamEngine {
   late final int Function() _count;
   late final Pointer<Utf8> Function(int) _name;
   late final int Function(int, Pointer<Utf8>, int) _open;
+  late final int Function(int) _presets;
+  late final Pointer<Utf8> Function(int, int) _presetParams;
+  late final Pointer<Utf8> Function(int, int) _presetName;
   late final int Function() _width;
   late final int Function() _height;
   late final Pointer<Utf8> Function() _draw;
@@ -136,6 +151,33 @@ class TathamEngine {
         for (final t in p.toDartString().split(' '))
           if (t.isNotEmpty) t.split(',').map(int.parse).toList(),
       ];
+    } finally {
+      _free(p);
+    }
+  }
+
+  /// СОБСТВЕННЫЕ СТУПЕНИ ДВИЖКА — меню пресетов автора для игры [game].
+  ///
+  /// 🔴 Зачем они здесь. У 28 режимов из 42 своей лестницы в `modes.json` нет, и это
+  /// не пробел: трудность там уже размечена самим автором. Брать его разметку дешевле
+  /// и честнее, чем назначать свою по названию.
+  ///
+  /// ⚠️ У части игр меню устроено иначе и список ПУСТ (замер веб-моста: `psy_presets`
+  /// у Mines и Loopy возвращает 0). Пустой список — не ошибка, а «ступеней нет»:
+  /// зовущий обязан уметь партию без параметров.
+  List<PuzzlePreset> presetsOf(int game) {
+    final n = _presets(game);
+    final out = <PuzzlePreset>[];
+    for (var k = 0; k < n; k++) {
+      out.add(PuzzlePreset(_take(_presetName(game, k)), _take(_presetParams(game, k))));
+    }
+    return out;
+  }
+
+  String _take(Pointer<Utf8> p) {
+    if (p == nullptr) return '';
+    try {
+      return p.toDartString();
     } finally {
       _free(p);
     }

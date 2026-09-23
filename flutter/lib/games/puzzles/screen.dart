@@ -54,6 +54,11 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   TathamEngine? _engine;
   int _gameIndex = -1;
 
+  /// Ступени ЭТОГО режима: своя лестница из `modes.json` либо меню движка.
+  /// Заполняется в [_boot] после открытия игры — до этого числа ступеней не знает
+  /// никто, потому что у 28 режимов оно живёт внутри движка (см. [resolveSteps]).
+  List<PuzzleStep> _steps = const [];
+
   PuzzleFrame _frame = const PuzzleFrame([], []);
   List<List<int>> _palette = const [];
   ({int w, int h}) _size = (w: 0, h: 0);
@@ -79,19 +84,11 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       return;
     }
     _modeOrNull = mode;
-    _ladder = LevelLadder(
-      gameId: _mode.levelKey,
-      store: SharedLevelStore(widget.state),
-      // Своей лестницы у 28 режимов из 42 нет — у них ступени берутся из
-      // пресетов самого движка, и их число известно только после открытия игры.
-      maxLevel: _mode.steps.isEmpty ? 999 : _mode.steps.length,
-    );
   }
 
   Future<void> _boot() async {
     await _prepareMode();
     if (_failure != null) return;
-    await _ladder.load();
     try {
       final engine = TathamEngine.openPlatform(path: widget.libraryPath);
       final index = engine.indexOf(_mode.engineName);
@@ -99,6 +96,16 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
         setState(() => _failure = 'движок не знает игру ${_mode.engineName}');
         return;
       }
+      // ⚠️ ПОРЯДОК ВАЖЕН: ступени известны только после открытия игры, а потолок
+      // лестницы обязан быть настоящим. Прежде лестница строилась ДО движка и у
+      // 28 режимов получала выдуманный потолок 999 — уровень рос в пустоту.
+      _steps = resolveSteps(_mode, engine, index);
+      _ladder = LevelLadder(
+        gameId: _mode.levelKey,
+        store: SharedLevelStore(widget.state),
+        maxLevel: _steps.length,
+      );
+      await _ladder.load();
       if (!mounted) return;
       setState(() {
         _engine = engine;
@@ -115,7 +122,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   void _deal() {
     final engine = _engine;
     if (engine == null) return;
-    final step = _mode.steps[(_ladder.level - 1).clamp(0, _mode.steps.length - 1)];
+    final step = _steps[(_ladder.level - 1).clamp(0, _steps.length - 1)];
     final ok = engine.start(_gameIndex, step.params, DateTime.now().millisecondsSinceEpoch % 100000);
     setState(() {
       _failure = ok ? null : 'партия не собралась: ${step.params}';
@@ -182,12 +189,12 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     if (_modeOrNull == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final step = _mode.steps[(_ladder.level - 1).clamp(0, _mode.steps.length - 1)];
+    final step = _steps[(_ladder.level - 1).clamp(0, _steps.length - 1)];
 
     return GameShell(
       title: _mode.title,
       hud: [
-        HudItem(label: 'Ступень', value: '${_ladder.level}/${_mode.steps.length}', icon: Icons.trending_up),
+        HudItem(label: 'Ступень', value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
         HudItem(label: 'Доска', value: step.title, icon: Icons.grid_on),
       ],
       field: (context, height) {
@@ -232,6 +239,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       ]),
       toolbar: _Toolbar(
         mode: _mode,
+        steps: _steps,
         won: _won,
         status: _status,
         onDigit: _digit,
@@ -250,6 +258,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
     required this.mode,
+    required this.steps,
     required this.won,
     required this.status,
     required this.onDigit,
@@ -257,6 +266,7 @@ class _Toolbar extends StatelessWidget {
   });
 
   final PuzzleMode mode;
+  final List<PuzzleStep> steps;
   final bool won;
   final String status;
   final void Function(int) onDigit;
@@ -265,14 +275,19 @@ class _Toolbar extends StatelessWidget {
   /// Сколько клавиш у ступени: размер поля читается из параметров («6dh» → 6,
   /// «5x5de» → 5, «3x3db» → 9 клеток у Solo).
   int get _keys {
-    final p = mode.steps.first.params;
+    final p = steps.isEmpty ? '' : steps.first.params;
     final m = RegExp(r'^(\d+)x(\d+)').firstMatch(p);
     if (mode.engineName == 'Solo' && m != null) {
       return int.parse(m.group(1)!) * int.parse(m.group(2)!);
     }
     if (mode.digitLabels.isNotEmpty) return mode.digitLabels.length;
     if (m != null) return int.parse(m.group(1)!);
-    return int.parse(RegExp(r'^(\d+)').firstMatch(p)!.group(1)!);
+    // ⚠️ БЕЗ «!» НА КОНЦЕ. Параметры ступени теперь приходят и из меню движка, где
+    // первым символом бывает буква («4de» у Keen — цифра, а у иных пресетов нет).
+    // Восклицательный знак здесь уронил бы ряд клавиш прямо в руках у игрока;
+    // девять — привычный ряд судоку и честное «не смог разобрать».
+    final first = RegExp(r'^(\d+)').firstMatch(p);
+    return first == null ? 9 : int.parse(first.group(1)!);
   }
 
   @override
