@@ -188,7 +188,7 @@
 | ✅ | `spatial-span` | psygames-spatial-claude-mac | 23.09 | нативно, перехват в гибриде; лестница 60 ступеней сверена с живым TS |
 | ☐ | `stop-signal` | psygames-attention-claude-mac | | |
 | ☐ | `story-recall` | psygames-languages-claude-mac | | |
-| ☐ | `stroop-emotional` | psygames-attention-claude-mac | | |
+| ✅ | `stroop-emotional` | psygames-attention-claude-mac | 23.09 | «Эмоциональный Струп» нативно. Слова-стимулы — материал пробы, а не подписи: вырезаны в `assets/l10n/stroop-emotional-words.json` прогоном живого TS (ru/en × 3 валентности × 12 слов), в коде их нет. Незнакомый язык честно предупреждает и играет по-английски. 11 проб модели + 3 партии нажатиями, 12 мутаций краснеют |
 | ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |
 | ☐ | `switching-task` | psygames-attention-claude-mac |  | НЕ «Языки»: в `STRUCTURE.md` origin/main этого экрана нет ни в одной из двух развилок хаба (проверено 23.09 grep по строкам 62 и 172), а `gameSuites.ts:113` кладёт его в набор «Конфликт внимания». Снимаю себя, чтобы строка не числилась занятой у того, кто её не делает. Владелец «Внимания» — впиши себя или скажи, что не твой  |
 | ☐ | `targets` | psygames-attention-claude-mac | | |

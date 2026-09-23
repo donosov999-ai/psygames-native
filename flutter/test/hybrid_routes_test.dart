@@ -65,6 +65,7 @@ void main() {
       '$origin/games/choice-rt',
       '$origin/games/stop-signal',
       '$origin/games/posner',
+      '$origin/games/stroop-emotional',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -145,6 +146,7 @@ void main() {
       '/games/spatial-span',
       '/games/stop-signal',
       '/games/stroop',
+      '/games/stroop-emotional',
       '/games/sudoku',
       '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',
