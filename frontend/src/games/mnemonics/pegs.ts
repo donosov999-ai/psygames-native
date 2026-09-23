@@ -208,6 +208,7 @@ export function pegHint(n: number, lang: string): string | null {
  */
 export const PEG_TEXT: Record<PegLang, {
   aid: string; show: string; hide: string; codeTitle: string; codeTail: string;
+  mode: string; askWord: string; askNumber: string; right: string; wrong: string; left: string;
 }> = {
   ru: {
     aid: 'Опора',
@@ -215,6 +216,12 @@ export const PEG_TEXT: Record<PegLang, {
     hide: 'Скрыть',
     codeTitle: 'Код: цифра → согласные',
     codeTail: 'Гласные свободны. Два согласных в слове — двузначное число: нос = н(2)+с(0) = 20.',
+    mode: 'Опоры',
+    askWord: 'Какое слово?',
+    askNumber: 'Какое число?',
+    right: 'Верно',
+    wrong: 'Верный ответ:',
+    left: 'Осталось',
   },
   en: {
     aid: 'Peg',
@@ -222,5 +229,11 @@ export const PEG_TEXT: Record<PegLang, {
     hide: 'Hide',
     codeTitle: 'Code: digit → consonants',
     codeTail: 'Vowels are free. Two consonants make a two-digit number: nose = n(2)+s(0) = 20.',
+    mode: 'Pegs',
+    askWord: 'Which word?',
+    askNumber: 'Which number?',
+    right: 'Right',
+    wrong: 'The answer was:',
+    left: 'Left',
   },
 };
