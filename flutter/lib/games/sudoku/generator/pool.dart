@@ -80,3 +80,32 @@ List<Template> buildPool(SudokuLevels levels, {int lastLevel = 92}) {
   final pool = byId.values.toList()..sort((a, b) => a.rating.compareTo(b.rating));
   return pool;
 }
+
+/// Шаблон ДЛЯ УЖЕ ВЫДАННОЙ ДОСКИ — тем же именем, что и в пуле.
+///
+/// Нужен теневому шагу (§10.2): доску выдала прописанная лестница, а рейтинг обязан
+/// учиться на ней же — иначе к моменту включения пилота трудность игрока будет
+/// неизвестна, и первая же адаптивная партия окажется случайной.
+Template templateForBoard({
+  required String variant,
+  required bool fromBank,
+  required double bankRating,
+  int? tier,
+}) {
+  if (fromBank) {
+    final band = (bankRating * 10).round();
+    return Template(
+      id: 'sudoku:bank:полоса$band',
+      band: band,
+      rating: ratingForBank(bankRating),
+      variant: 'none',
+    );
+  }
+  final t = (tier ?? 4).clamp(1, maxTier);
+  return Template(
+    id: 'sudoku:$variant:ступень$t',
+    band: t,
+    rating: ratingForTier(t),
+    variant: variant,
+  );
+}

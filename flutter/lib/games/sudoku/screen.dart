@@ -7,6 +7,11 @@ import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import 'generator/contract.dart';
+import 'generator/engine.dart';
+import 'generator/pool.dart';
+import 'generator/shadow.dart';
+import 'generator/store.dart';
 import 'levels.dart';
 
 /// СУДОКУ на общем каркасе — первый экран раздела в переезде на Flutter.
@@ -36,6 +41,14 @@ class _SudokuScreenState extends State<SudokuScreen> {
   SudokuLevels? _levels;
   SudokuBoard? _board;
 
+  /// ТЕНЕВОЙ ШАГ ГЕНЕРАТОРА (§10.2): он записывает, что выбрал бы, и учит рейтинг на
+  /// исходах настоящих партий. Человеку при этом выдаётся ПРЕЖНЯЯ доска прописанной
+  /// лестницы — путь генератора включается отдельным флагом и здесь ничего не решает.
+  GeneratorShadow? _shadow;
+  List<Template> _pool = const [];
+  Template? _givenTemplate;
+  late String _dealId;
+
   List<List<int>> _grid = const [];
   List<List<bool>> _given = const [];
   final List<({int r, int c, int was})> _history = [];
@@ -58,7 +71,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
     await _ladder.load();
     final levels = await SudokuLevels.load();
     if (!mounted) return;
-    setState(() => _levels = levels);
+    setState(() {
+      _levels = levels;
+      _pool = buildPool(levels);
+      _shadow = GeneratorShadow(GeneratorStore(widget.state));
+    });
     _deal();
   }
 
@@ -78,6 +95,40 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _won = false;
       _lost = false;
     });
+    _recordDeal(board);
+  }
+
+  /// Записать теневой выбор: какой шаблон выдала лестница и что предложил бы генератор.
+  void _recordDeal(SudokuBoard? board) {
+    final shadow = _shadow;
+    if (shadow == null || board == null) return;
+    _dealId = 'ур${_ladder.level}-${DateTime.now().millisecondsSinceEpoch}';
+    _givenTemplate = templateForBoard(
+      variant: board.variant,
+      fromBank: board.rating != null,
+      bankRating: board.rating ?? 0,
+      tier: board.tier,
+    );
+    shadow.recordDeal(
+      level: _ladder.level,
+      given: _givenTemplate!,
+      pool: _pool,
+      // Прописанная дорога «Обычная» — у теневого шага та же поблажка по умолчанию.
+      mode: Leniency.normal,
+    );
+  }
+
+  /// Исход настоящей партии — в рейтинг генератора, по шаблону ВЫДАННОЙ доски.
+  void _recordOutcome(Outcome outcome) {
+    final shadow = _shadow, given = _givenTemplate;
+    if (shadow == null || given == null) return;
+    shadow.recordOutcome(
+      given: given,
+      outcome: outcome,
+      eventId: _dealId,
+      errors: _errors,
+      hints: _hintsUsed,
+    );
   }
 
   void _select(int r, int c) {
@@ -98,7 +149,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _grid[sel.r][sel.c] = value;
       if (value != 0 && board.solution[sel.r][sel.c] != value) {
         _errors += 1;
-        if (_errors >= errorLimit) _lost = true;
+        if (_errors >= errorLimit) {
+          _lost = true;
+          _recordOutcome(Outcome.failed);
+        }
         return;
       }
       _checkWin();
@@ -140,6 +194,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
       }
     }
     _won = true;
+    // Подсказками доигранная партия рейтинг не повышает — это правило движка, не экрана.
+    _recordOutcome(_hintsUsed > 0 ? Outcome.assisted : Outcome.passed);
     unawaited(_ladder.win());
   }
 
