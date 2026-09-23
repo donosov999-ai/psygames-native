@@ -2943,5 +2943,7 @@ const t: Record<string, string> = {
   "teachNewBoard": "新棋盘",
   "teachPlay": "播放",
   "teachPause": "暂停",
+  "vsFindAll": "找出所有这种图形 — 任意旋转方向",
+  "vsFindConj": "找出这种颜色和形状的图形",
 };
 export default t;

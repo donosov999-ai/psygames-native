@@ -2939,5 +2939,7 @@ const t: Record<string, string> = {
   "teachNewBoard": "لوحة جديدة",
   "teachPlay": "تشغيل",
   "teachPause": "إيقاف مؤقت",
+  "vsFindAll": "ابحث عن كل هذه الأشكال — بأي اتجاه دوران",
+  "vsFindConj": "ابحث عن الشكل بهذا اللون وهذا الشكل",
 };
 export default t;

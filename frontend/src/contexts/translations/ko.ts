@@ -2938,5 +2938,7 @@ const t: Record<string, string> = {
   "teachNewBoard": "새 판",
   "teachPlay": "재생",
   "teachPause": "일시정지",
+  "vsFindAll": "이 도형을 모두 찾으세요 — 방향은 상관없습니다",
+  "vsFindConj": "이 색과 모양의 도형을 찾으세요",
 };
 export default t;

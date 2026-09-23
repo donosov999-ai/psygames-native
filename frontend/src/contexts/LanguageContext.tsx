@@ -3380,6 +3380,12 @@ const translations: Translations = {
 
   // Авто-растущие уровни (одна строка на игру)
   corsiLvlAuto: { ru: 'Ур. {n} — растёт сам (span → скорость → обратный порядок)', en: 'Lv {n} — grows with results (span → speed → reverse)' },
+  // ОДИН СЛОВАРЬ НА ДВЕ СТОПКИ. Подсказка «Зрительного поиска» жила инлайн-картой
+  // на 7 языков в самом экране; нативный экран зовёт ту же фразу через
+  // flutter/lib/shell/l10n.dart, и два источника одной строки — это место, где
+  // перевод разъезжается молча. Карты убраны, накладки всех 12 языков заполнены.
+  vsFindAll: { ru: 'Найди все такие фигуры — в любом повороте', en: 'Find all of these shapes — in any rotation' },
+  vsFindConj: { ru: 'Найди фигуру такого цвета и формы', en: 'Find the shape with this colour and form' },
   vsearchLvlAuto: { ru: 'Ур. {n} — растёт сам по результату (объектов и целей больше)', en: 'Lv {n} — grows with results (more items & targets)' },
   ospanLvlAuto: { ru: 'Ур. {n} — растёт сам (набор → сложнее счёт → быстрее показ)', en: 'Lv {n} — grows with results (set size → harder math → faster)' },
   hanoiLvlAuto: { ru: 'Ур. {n} — растёт сам: больше дисков, затем 4 и 5 стержней', en: 'Lv {n} — grows with results: more discs, then 4 and 5 pegs' },

@@ -2937,5 +2937,7 @@ const t: Record<string, string> = {
   "teachNewBoard": "新しい盤面",
   "teachPlay": "再生",
   "teachPause": "一時停止",
+  "vsFindAll": "この形をすべて見つけよう — 向きは自由",
+  "vsFindConj": "この色と形の図形を見つけよう",
 };
 export default t;

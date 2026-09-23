@@ -47,7 +47,7 @@ class HubScreen extends StatefulWidget {
 
 /// Карточка развилки: куда ведёт, как называется, чем отличается.
 class HubCard {
-  const HubCard({required this.route, required this.icon, required this.name, required this.desc, required this.type});
+  const HubCard({required this.route, required this.icon, required this.name, required this.desc, required this.type, this.levelKey});
 
   factory HubCard.fromJson(Map<String, dynamic> j) => HubCard(
         route: j['route'] as String,
@@ -55,6 +55,7 @@ class HubCard {
         name: j['name'] as String,
         desc: j['desc'] as String? ?? '',
         type: j['type'] as String? ?? '',
+        levelKey: j['levelKey'] as String?,
       );
 
   final String route;
@@ -62,6 +63,9 @@ class HubCard {
   final String name;
   final String desc;
   final String type;
+
+  /// Чем игра подписывает свой уровень, если это НЕ адрес карточки.
+  final String? levelKey;
 }
 
 /// Значок карточки по имени из веб-реестра. Незнакомое имя — общий значок:
@@ -109,7 +113,12 @@ class _HubScreenState extends State<HubScreen> {
     // Уровень каждой игры — из ОБЩЕЙ памяти, той же, что у веб-половины: на
     // карточке видно, где человек остановился, без захода в игру.
     for (final c in cards) {
-      final id = c.route.split('/').last.replaceAll('-', '_');
+      // 🔴 КЛЮЧ УРОВНЯ БЕРЁТСЯ ИЗ ДАННЫХ, А АДРЕС — ТОЛЬКО ЗАПАСНОЙ ВАРИАНТ.
+      // Вывод ключа из адреса верен для 110 карточек из 113 и ВРЁТ для трёх:
+      // Шульте пишет уровень как `schulte_table`, два режима «Лаборатории» —
+      // с суффиксом режима. Человеку на девятом уровне развилка показывала
+      // «ур. 1» — замер 23.09.2026 пробой развилок «Поиска» и «Счёта».
+      final id = c.levelKey ?? c.route.split('/').last.replaceAll('-', '_');
       final ladder = LevelLadder(gameId: id, store: SharedLevelStore(widget.state));
       await ladder.load();
       _levels[c.route] = ladder.level;

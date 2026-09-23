@@ -2946,5 +2946,7 @@ const t: Record<string, string> = {
   "teachNewBoard": "नया बोर्ड",
   "teachPlay": "चलाएँ",
   "teachPause": "रोकें",
+  "vsFindAll": "ये सभी आकृतियाँ खोजें — किसी भी दिशा में",
+  "vsFindConj": "इस रंग और आकार की आकृति खोजें",
 };
 export default t;

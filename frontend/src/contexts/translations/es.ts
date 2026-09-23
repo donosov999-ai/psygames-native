@@ -2943,5 +2943,7 @@ const t: Record<string, string> = {
   "teachNewBoard": "Nuevo tablero",
   "teachPlay": "Reproducir",
   "teachPause": "Pausa",
+  "vsFindAll": "Encuentra todas estas figuras — en cualquier rotación",
+  "vsFindConj": "Encuentra la figura de este color y forma",
 };
 export default t;
