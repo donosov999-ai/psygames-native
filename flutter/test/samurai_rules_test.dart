@@ -120,7 +120,7 @@ void main() {
           reason: 'цифра из решения в ($r,$c) помечена ошибкой');
       checked++;
     }
-    expect(checked, greaterThan(100), reason: 'проверено пустых клеток: ${checked}');
+    expect(checked, greaterThan(100), reason: 'проверено пустых клеток: $checked');
   });
 
   /// 🔴 ГЛАВНАЯ ПРОБА САМУРАЯ: КЛЕТКА ПЕРЕКРЫТИЯ ДЕРЖИТ ОБЕ СВОИ СЕТКИ.

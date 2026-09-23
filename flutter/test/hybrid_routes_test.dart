@@ -17,6 +17,11 @@ void main() {
       '$origin/games/one-line.html#top',
       '$origin/games/dots-connect',
       '$origin/games/digit-span.html?mode=free',
+      '$origin/games/stroop',
+      '$origin/games/stroop.html?mode=ink',
+      '$origin/games/flanker',
+      '$origin/games/flanker.html?autostart=1',
+      '$origin/games/simon',
       '$origin/games/sudoku',
       '$origin/games/sudoku.html?mode=levels',
     ]) {
@@ -66,6 +71,7 @@ void main() {
   test('каждая перенесённая игра имеет свой построитель экрана', () {
     expect(HybridApp.native.keys.toSet(), {
       '/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix',
+      '/games/stroop', '/games/flanker', '/games/simon',
       '/games/sudoku', '/games/sudoku-samurai', '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',
     });

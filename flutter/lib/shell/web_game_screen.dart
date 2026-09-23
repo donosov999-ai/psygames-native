@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'shared_state.dart';
+import 'tap_latency.dart';
 
 /// Экран для игр, которые ЕЩЁ НЕ ПЕРЕНЕСЕНЫ: их показывает нынешняя сборка
 /// внутри WebView, а снаружи остаётся Flutter.
@@ -49,6 +50,13 @@ class _WebGameScreenState extends State<WebGameScreen> {
           widget.onBridgeMessage?.call(m.message, ok);
         },
       )
+      ..setOnConsoleMessage((m) {
+        // Сообщения страницы видны в журнале устройства — там же, где строки Flutter.
+        if (tapLatencyProbe && (m.message.startsWith('ОТКЛИК') || m.message.startsWith('ПОКАЗ'))) {
+          // ignore: avoid_print — прибор нарочно пишет в журнал устройства
+          print(m.message);
+        }
+      })
       ..setNavigationDelegate(NavigationDelegate(
         // ⚠️ Скрипт вливается на СТАРТЕ страницы, а не в конце: если снимок ляжет
         // после того, как приложение прочитало localStorage, человек увидит чужой
@@ -56,6 +64,8 @@ class _WebGameScreenState extends State<WebGameScreen> {
         onPageStarted: (_) => _c.runJavaScript(widget.state.bootstrapJs()),
         onPageFinished: (_) {
           _c.runJavaScript(widget.state.bootstrapJs());
+          // Прибор отклика: та же величина, что у нативных экранов (см. tap_latency.dart).
+          if (tapLatencyProbe) _c.runJavaScript(webTapLatencyJs('Веб/${widget.title}'));
           if (mounted) setState(() => _loading = false);
         },
       ))

@@ -1,0 +1,1331 @@
+{
+ "incongruentRatio": 0.5,
+ "decoysMax": 4,
+ "decoyGlyphs": [
+  "ellipse-outline",
+  "square-outline",
+  "triangle-outline",
+  "diamond-outline",
+  "cube-outline",
+  "prism-outline"
+ ],
+ "palettes": {
+  "normal": [
+   {
+    "name": "red",
+    "ru": "КРАСНЫЙ",
+    "en": "RED",
+    "hex": "#ef4444"
+   },
+   {
+    "name": "blue",
+    "ru": "СИНИЙ",
+    "en": "BLUE",
+    "hex": "#3b82f6"
+   },
+   {
+    "name": "green",
+    "ru": "ЗЕЛЁНЫЙ",
+    "en": "GREEN",
+    "hex": "#22c55e"
+   },
+   {
+    "name": "yellow",
+    "ru": "ЖЁЛТЫЙ",
+    "en": "YELLOW",
+    "hex": "#eab308"
+   }
+  ],
+  "colorblind": [
+   {
+    "name": "red",
+    "ru": "КРАСНЫЙ",
+    "en": "RED",
+    "hex": "#c1272d"
+   },
+   {
+    "name": "blue",
+    "ru": "СИНИЙ",
+    "en": "BLUE",
+    "hex": "#0072b2"
+   },
+   {
+    "name": "green",
+    "ru": "ЗЕЛЁНЫЙ",
+    "en": "GREEN",
+    "hex": "#006644"
+   },
+   {
+    "name": "yellow",
+    "ru": "ЖЁЛТЫЙ",
+    "en": "YELLOW",
+    "hex": "#f0e442"
+   }
+  ]
+ },
+ "labelColors": [
+  {
+   "hex": "#ef4444",
+   "label": "#111111"
+  },
+  {
+   "hex": "#3b82f6",
+   "label": "#111111"
+  },
+  {
+   "hex": "#22c55e",
+   "label": "#111111"
+  },
+  {
+   "hex": "#eab308",
+   "label": "#111111"
+  },
+  {
+   "hex": "#c1272d",
+   "label": "#FFFFFF"
+  },
+  {
+   "hex": "#0072b2",
+   "label": "#FFFFFF"
+  },
+  {
+   "hex": "#006644",
+   "label": "#FFFFFF"
+  },
+  {
+   "hex": "#f0e442",
+   "label": "#111111"
+  }
+ ],
+ "levels": [
+  {
+   "level": 1,
+   "trials": 20,
+   "windowMs": 3500,
+   "switchRate": 0,
+   "decoys": 0
+  },
+  {
+   "level": 2,
+   "trials": 20,
+   "windowMs": 3335,
+   "switchRate": 0,
+   "decoys": 0
+  },
+  {
+   "level": 3,
+   "trials": 20,
+   "windowMs": 3170,
+   "switchRate": 0,
+   "decoys": 0
+  },
+  {
+   "level": 4,
+   "trials": 20,
+   "windowMs": 3005,
+   "switchRate": 0,
+   "decoys": 2
+  },
+  {
+   "level": 5,
+   "trials": 20,
+   "windowMs": 2840,
+   "switchRate": 0.036,
+   "decoys": 2
+  },
+  {
+   "level": 6,
+   "trials": 24,
+   "windowMs": 2675,
+   "switchRate": 0.073,
+   "decoys": 2
+  },
+  {
+   "level": 7,
+   "trials": 24,
+   "windowMs": 2510,
+   "switchRate": 0.109,
+   "decoys": 2
+  },
+  {
+   "level": 8,
+   "trials": 24,
+   "windowMs": 2345,
+   "switchRate": 0.145,
+   "decoys": 2
+  },
+  {
+   "level": 9,
+   "trials": 24,
+   "windowMs": 2180,
+   "switchRate": 0.182,
+   "decoys": 4
+  },
+  {
+   "level": 10,
+   "trials": 24,
+   "windowMs": 2015,
+   "switchRate": 0.218,
+   "decoys": 4
+  },
+  {
+   "level": 11,
+   "trials": 26,
+   "windowMs": 1850,
+   "switchRate": 0.255,
+   "decoys": 4
+  },
+  {
+   "level": 12,
+   "trials": 28,
+   "windowMs": 1685,
+   "switchRate": 0.291,
+   "decoys": 4
+  },
+  {
+   "level": 13,
+   "trials": 30,
+   "windowMs": 1520,
+   "switchRate": 0.327,
+   "decoys": 4
+  },
+  {
+   "level": 14,
+   "trials": 32,
+   "windowMs": 1355,
+   "switchRate": 0.364,
+   "decoys": 4
+  },
+  {
+   "level": 15,
+   "trials": 34,
+   "windowMs": 1200,
+   "switchRate": 0.4,
+   "decoys": 4
+  },
+  {
+   "level": 16,
+   "trials": 34,
+   "windowMs": 1200,
+   "switchRate": 0.4,
+   "decoys": 4
+  },
+  {
+   "level": 17,
+   "trials": 34,
+   "windowMs": 1200,
+   "switchRate": 0.4,
+   "decoys": 4
+  },
+  {
+   "level": 18,
+   "trials": 34,
+   "windowMs": 1200,
+   "switchRate": 0.4,
+   "decoys": 4
+  },
+  {
+   "level": 19,
+   "trials": 34,
+   "windowMs": 1200,
+   "switchRate": 0.4,
+   "decoys": 4
+  },
+  {
+   "level": 20,
+   "trials": 34,
+   "windowMs": 1200,
+   "switchRate": 0.4,
+   "decoys": 4
+  }
+ ],
+ "decoys": [
+  {
+   "n": 0,
+   "queue": 0,
+   "glyphs": []
+  },
+  {
+   "n": 0,
+   "queue": 1,
+   "glyphs": []
+  },
+  {
+   "n": 0,
+   "queue": 2,
+   "glyphs": []
+  },
+  {
+   "n": 1,
+   "queue": 0,
+   "glyphs": [
+    "ellipse-outline"
+   ]
+  },
+  {
+   "n": 1,
+   "queue": 1,
+   "glyphs": [
+    "prism-outline"
+   ]
+  },
+  {
+   "n": 1,
+   "queue": 2,
+   "glyphs": [
+    "triangle-outline"
+   ]
+  },
+  {
+   "n": 2,
+   "queue": 0,
+   "glyphs": [
+    "ellipse-outline",
+    "ellipse-outline"
+   ]
+  },
+  {
+   "n": 2,
+   "queue": 1,
+   "glyphs": [
+    "prism-outline",
+    "ellipse-outline"
+   ]
+  },
+  {
+   "n": 2,
+   "queue": 2,
+   "glyphs": [
+    "triangle-outline",
+    "diamond-outline"
+   ]
+  },
+  {
+   "n": 3,
+   "queue": 0,
+   "glyphs": [
+    "ellipse-outline",
+    "ellipse-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "n": 3,
+   "queue": 1,
+   "glyphs": [
+    "prism-outline",
+    "ellipse-outline",
+    "cube-outline"
+   ]
+  },
+  {
+   "n": 3,
+   "queue": 2,
+   "glyphs": [
+    "triangle-outline",
+    "diamond-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "n": 4,
+   "queue": 0,
+   "glyphs": [
+    "ellipse-outline",
+    "ellipse-outline",
+    "square-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "n": 4,
+   "queue": 1,
+   "glyphs": [
+    "prism-outline",
+    "ellipse-outline",
+    "cube-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "n": 4,
+   "queue": 2,
+   "glyphs": [
+    "triangle-outline",
+    "diamond-outline",
+    "square-outline",
+    "cube-outline"
+   ]
+  },
+  {
+   "n": 5,
+   "queue": 0,
+   "glyphs": [
+    "ellipse-outline",
+    "ellipse-outline",
+    "square-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "n": 5,
+   "queue": 1,
+   "glyphs": [
+    "prism-outline",
+    "ellipse-outline",
+    "cube-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "n": 5,
+   "queue": 2,
+   "glyphs": [
+    "triangle-outline",
+    "diamond-outline",
+    "square-outline",
+    "cube-outline"
+   ]
+  }
+ ],
+ "rules": [
+  {
+   "base": "ink",
+   "switchRate": 0,
+   "value": 0,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0,
+   "value": 0.03,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0,
+   "value": 0.1,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0,
+   "value": 0.2,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0,
+   "value": 0.35,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0,
+   "value": 0.39,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0,
+   "value": 0.4,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0,
+   "value": 0.5,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0,
+   "value": 0.99,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.036,
+   "value": 0,
+   "rule": "word"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.036,
+   "value": 0.03,
+   "rule": "word"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.036,
+   "value": 0.1,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.036,
+   "value": 0.2,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.036,
+   "value": 0.35,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.036,
+   "value": 0.39,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.036,
+   "value": 0.4,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.036,
+   "value": 0.5,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.036,
+   "value": 0.99,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.145,
+   "value": 0,
+   "rule": "word"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.145,
+   "value": 0.03,
+   "rule": "word"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.145,
+   "value": 0.1,
+   "rule": "word"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.145,
+   "value": 0.2,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.145,
+   "value": 0.35,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.145,
+   "value": 0.39,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.145,
+   "value": 0.4,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.145,
+   "value": 0.5,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.145,
+   "value": 0.99,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.4,
+   "value": 0,
+   "rule": "word"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.4,
+   "value": 0.03,
+   "rule": "word"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.4,
+   "value": 0.1,
+   "rule": "word"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.4,
+   "value": 0.2,
+   "rule": "word"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.4,
+   "value": 0.35,
+   "rule": "word"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.4,
+   "value": 0.39,
+   "rule": "word"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.4,
+   "value": 0.4,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.4,
+   "value": 0.5,
+   "rule": "ink"
+  },
+  {
+   "base": "ink",
+   "switchRate": 0.4,
+   "value": 0.99,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0,
+   "value": 0,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0,
+   "value": 0.03,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0,
+   "value": 0.1,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0,
+   "value": 0.2,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0,
+   "value": 0.35,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0,
+   "value": 0.39,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0,
+   "value": 0.4,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0,
+   "value": 0.5,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0,
+   "value": 0.99,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.036,
+   "value": 0,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.036,
+   "value": 0.03,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.036,
+   "value": 0.1,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.036,
+   "value": 0.2,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.036,
+   "value": 0.35,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.036,
+   "value": 0.39,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.036,
+   "value": 0.4,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.036,
+   "value": 0.5,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.036,
+   "value": 0.99,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.145,
+   "value": 0,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.145,
+   "value": 0.03,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.145,
+   "value": 0.1,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.145,
+   "value": 0.2,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.145,
+   "value": 0.35,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.145,
+   "value": 0.39,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.145,
+   "value": 0.4,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.145,
+   "value": 0.5,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.145,
+   "value": 0.99,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.4,
+   "value": 0,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.4,
+   "value": 0.03,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.4,
+   "value": 0.1,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.4,
+   "value": 0.2,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.4,
+   "value": 0.35,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.4,
+   "value": 0.39,
+   "rule": "ink"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.4,
+   "value": 0.4,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.4,
+   "value": 0.5,
+   "rule": "word"
+  },
+  {
+   "base": "word",
+   "switchRate": 0.4,
+   "value": 0.99,
+   "rule": "word"
+  }
+ ],
+ "trials": [
+  {
+   "level": 1,
+   "queue": 0,
+   "palette": "normal",
+   "word": "red",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": []
+  },
+  {
+   "level": 1,
+   "queue": 0,
+   "palette": "colorblind",
+   "word": "red",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": []
+  },
+  {
+   "level": 1,
+   "queue": 1,
+   "palette": "normal",
+   "word": "yellow",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": []
+  },
+  {
+   "level": 1,
+   "queue": 1,
+   "palette": "colorblind",
+   "word": "yellow",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": []
+  },
+  {
+   "level": 1,
+   "queue": 2,
+   "palette": "normal",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": []
+  },
+  {
+   "level": 1,
+   "queue": 2,
+   "palette": "colorblind",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": []
+  },
+  {
+   "level": 3,
+   "queue": 0,
+   "palette": "normal",
+   "word": "red",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": []
+  },
+  {
+   "level": 3,
+   "queue": 0,
+   "palette": "colorblind",
+   "word": "red",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": []
+  },
+  {
+   "level": 3,
+   "queue": 1,
+   "palette": "normal",
+   "word": "yellow",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": []
+  },
+  {
+   "level": 3,
+   "queue": 1,
+   "palette": "colorblind",
+   "word": "yellow",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": []
+  },
+  {
+   "level": 3,
+   "queue": 2,
+   "palette": "normal",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": []
+  },
+  {
+   "level": 3,
+   "queue": 2,
+   "palette": "colorblind",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": []
+  },
+  {
+   "level": 4,
+   "queue": 0,
+   "palette": "normal",
+   "word": "red",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "level": 4,
+   "queue": 0,
+   "palette": "colorblind",
+   "word": "red",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "level": 4,
+   "queue": 1,
+   "palette": "normal",
+   "word": "yellow",
+   "ink": "green",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "cube-outline"
+   ]
+  },
+  {
+   "level": 4,
+   "queue": 1,
+   "palette": "colorblind",
+   "word": "yellow",
+   "ink": "green",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "cube-outline"
+   ]
+  },
+  {
+   "level": 4,
+   "queue": 2,
+   "palette": "normal",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": [
+    "diamond-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "level": 4,
+   "queue": 2,
+   "palette": "colorblind",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": [
+    "diamond-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "level": 8,
+   "queue": 0,
+   "palette": "normal",
+   "word": "red",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "level": 8,
+   "queue": 0,
+   "palette": "colorblind",
+   "word": "red",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "level": 8,
+   "queue": 1,
+   "palette": "normal",
+   "word": "yellow",
+   "ink": "green",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "cube-outline"
+   ]
+  },
+  {
+   "level": 8,
+   "queue": 1,
+   "palette": "colorblind",
+   "word": "yellow",
+   "ink": "green",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "cube-outline"
+   ]
+  },
+  {
+   "level": 8,
+   "queue": 2,
+   "palette": "normal",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": [
+    "diamond-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "level": 8,
+   "queue": 2,
+   "palette": "colorblind",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": [
+    "diamond-outline",
+    "square-outline"
+   ]
+  },
+  {
+   "level": 9,
+   "queue": 0,
+   "palette": "normal",
+   "word": "red",
+   "ink": "red",
+   "congruent": true,
+   "decoys": [
+    "ellipse-outline",
+    "square-outline",
+    "square-outline",
+    "triangle-outline"
+   ]
+  },
+  {
+   "level": 9,
+   "queue": 0,
+   "palette": "colorblind",
+   "word": "red",
+   "ink": "red",
+   "congruent": true,
+   "decoys": [
+    "ellipse-outline",
+    "square-outline",
+    "square-outline",
+    "triangle-outline"
+   ]
+  },
+  {
+   "level": 9,
+   "queue": 1,
+   "palette": "normal",
+   "word": "yellow",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "cube-outline",
+    "square-outline",
+    "diamond-outline"
+   ]
+  },
+  {
+   "level": 9,
+   "queue": 1,
+   "palette": "colorblind",
+   "word": "yellow",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "cube-outline",
+    "square-outline",
+    "diamond-outline"
+   ]
+  },
+  {
+   "level": 9,
+   "queue": 2,
+   "palette": "normal",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": [
+    "diamond-outline",
+    "square-outline",
+    "cube-outline",
+    "ellipse-outline"
+   ]
+  },
+  {
+   "level": 9,
+   "queue": 2,
+   "palette": "colorblind",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": [
+    "diamond-outline",
+    "square-outline",
+    "cube-outline",
+    "ellipse-outline"
+   ]
+  },
+  {
+   "level": 12,
+   "queue": 0,
+   "palette": "normal",
+   "word": "red",
+   "ink": "red",
+   "congruent": true,
+   "decoys": [
+    "ellipse-outline",
+    "square-outline",
+    "square-outline",
+    "triangle-outline"
+   ]
+  },
+  {
+   "level": 12,
+   "queue": 0,
+   "palette": "colorblind",
+   "word": "red",
+   "ink": "red",
+   "congruent": true,
+   "decoys": [
+    "ellipse-outline",
+    "square-outline",
+    "square-outline",
+    "triangle-outline"
+   ]
+  },
+  {
+   "level": 12,
+   "queue": 1,
+   "palette": "normal",
+   "word": "yellow",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "cube-outline",
+    "square-outline",
+    "diamond-outline"
+   ]
+  },
+  {
+   "level": 12,
+   "queue": 1,
+   "palette": "colorblind",
+   "word": "yellow",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "cube-outline",
+    "square-outline",
+    "diamond-outline"
+   ]
+  },
+  {
+   "level": 12,
+   "queue": 2,
+   "palette": "normal",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": [
+    "diamond-outline",
+    "square-outline",
+    "cube-outline",
+    "ellipse-outline"
+   ]
+  },
+  {
+   "level": 12,
+   "queue": 2,
+   "palette": "colorblind",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": [
+    "diamond-outline",
+    "square-outline",
+    "cube-outline",
+    "ellipse-outline"
+   ]
+  },
+  {
+   "level": 15,
+   "queue": 0,
+   "palette": "normal",
+   "word": "red",
+   "ink": "red",
+   "congruent": true,
+   "decoys": [
+    "ellipse-outline",
+    "square-outline",
+    "square-outline",
+    "triangle-outline"
+   ]
+  },
+  {
+   "level": 15,
+   "queue": 0,
+   "palette": "colorblind",
+   "word": "red",
+   "ink": "red",
+   "congruent": true,
+   "decoys": [
+    "ellipse-outline",
+    "square-outline",
+    "square-outline",
+    "triangle-outline"
+   ]
+  },
+  {
+   "level": 15,
+   "queue": 1,
+   "palette": "normal",
+   "word": "yellow",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "cube-outline",
+    "square-outline",
+    "diamond-outline"
+   ]
+  },
+  {
+   "level": 15,
+   "queue": 1,
+   "palette": "colorblind",
+   "word": "yellow",
+   "ink": "blue",
+   "congruent": false,
+   "decoys": [
+    "ellipse-outline",
+    "cube-outline",
+    "square-outline",
+    "diamond-outline"
+   ]
+  },
+  {
+   "level": 15,
+   "queue": 2,
+   "palette": "normal",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": [
+    "diamond-outline",
+    "square-outline",
+    "cube-outline",
+    "ellipse-outline"
+   ]
+  },
+  {
+   "level": 15,
+   "queue": 2,
+   "palette": "colorblind",
+   "word": "blue",
+   "ink": "blue",
+   "congruent": true,
+   "decoys": [
+    "diamond-outline",
+    "square-outline",
+    "cube-outline",
+    "ellipse-outline"
+   ]
+  }
+ ]
+}

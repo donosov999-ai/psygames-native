@@ -145,6 +145,36 @@ if (базовая) {
   }
 }
 
+/* ── раскрытие `/games/anagrams` по режимам ─────────────────────────────── */
+/**
+ * 🔴 ТА ЖЕ БЕДА, ЧТО У ГОЛОВОЛОМОК, И ТО ЖЕ ЛЕЧЕНИЕ. За `/games/anagrams` стоят
+ * ЧЕТЫРЕ разные игры — классика, «Все слова», кроссворд, слово-квадрат, — а
+ * запись была одна, и все четыре показывали один текст (замер 23.09.2026,
+ * приёмка §4б пункт 1).
+ *
+ * ⚠️ Режимы здесь перечислены ЯВНО, а не сняты с экрана: в отличие от таблиц
+ * Тэтхэма, у анаграмм это союз типов в `useState`, и разбирать его скриптом
+ * значило бы завести второй разборщик TS ради четырёх строк. Расхождение
+ * сторожит проба `src/__tests__/anagrams-help-per-mode.test.ts`: она берёт
+ * режимы ИЗ ЭКРАНА и требует запись на каждый — появится пятый, покраснеет.
+ */
+const АНАГРАММЫ = {
+  classic: ['classicLabel', 'anagramClassicIntroDesc'],
+  all: ['anagramAllWords', 'anagramAllIntroDesc'],
+  cross: ['anagramCrossword', 'anagramCrossIntroDesc'],
+  square: ['anagramSquare', 'anagramSquareIntroDesc'],
+};
+const базоваяАнаграмм = entries.find(([route]) => route === '/games/anagrams');
+if (базоваяАнаграмм) {
+  for (const [режим, [nameKey, introKey]] of Object.entries(АНАГРАММЫ)) {
+    entries.push([`/games/anagrams?mode=${режим}`, {
+      nameKey,
+      skillKey: базоваяАнаграмм[1].skillKey,
+      introKey: keys.has(introKey) ? introKey : базоваяАнаграмм[1].introKey,
+    }]);
+  }
+}
+
 const body = entries
   .map(([route, e]) => `  ${JSON.stringify(route)}: {\n    "nameKey": ${JSON.stringify(e.nameKey)},\n    "skillKey": ${JSON.stringify(e.skillKey)},\n    "introKey": ${JSON.stringify(e.introKey)}\n  }`)
   .join(',\n');

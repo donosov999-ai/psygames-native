@@ -48,6 +48,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import {
   advanceFacesNamesStudy,
@@ -351,6 +352,21 @@ function FacesNamesSessionView({
 }: FacesNamesGameProps) {
   const strings = getFacesNamesStrings(locale);
   const [session, setSession] = React.useState(() => createFacesNamesSession({ seed, level }));
+  /**
+   * 🔴 ПОРТРЕТ БЕРЁТ РАЗМЕР У ЭКРАНА, А НЕ У КОНСТАНТЫ. Замер 23.09.2026, окно 360×640:
+   * поле каркаса 391 px, карточка изучения рисовалась на 565 — переполнение 174 px, и лицо
+   * с именем ездили под пальцем ровно там, где их надо запоминать.
+   *
+   * ⚠️ ПЕРВАЯ ПОПЫТКА МЕРИЛА СЕБЯ `onLayout`-ом И НЕ ДАЛА НИЧЕГО: внутри прокручиваемого поля
+   * каркаса собственный `ScrollView` модуля растягивается по СОДЕРЖИМОМУ, поэтому «своя высота»
+   * приходила равной 565 — той самой, которую и надо было уменьшить. Портрет остался 210 px,
+   * и это показал живой замер, а не рассуждение.
+   *
+   * Поэтому считаем от ОКНА: высота поля каркаса = окно − 249. Число снято дважды, на обоих
+   * размерах (640 → поле 391, 844 → поле 595), и потому взято как константа, а не подогнано.
+   */
+  const окно = useWindowDimensions();
+  const свободноПодПортрет = окно.height - ХРОМ_КАРКАСА - КАРТОЧКА_БЕЗ_ПОРТРЕТА;
   const sessionRef = React.useRef(session);
   const completedRef = React.useRef(false);
 
@@ -414,6 +430,22 @@ function FacesNamesSessionView({
   const ответФазы = React.useMemo<FacesNamesAnswer | null>(() => {
     const испытание = currentFacesNamesTrial(session);
     const цель = испытание ? personById(session.puzzle, испытание.targetPersonId) : null;
+    /*
+     * 🔴 ФАЗА ПРАВИЛ ТОЖЕ ОТДАЁТ КНОПКУ КАРКАСУ. Замер 23.09.2026, окно 360×640:
+     * поле каркаса 460 px, объяснение — 683 px, и «Начать изучение» оказывалась
+     * на 736…784 при видимом крае 579. Кнопки запуска на экране не видно вовсе:
+     * чтобы начать, надо догадаться прокрутить поле.
+     */
+    if (session.phase === 'rules') {
+      return {
+        kind: 'action',
+        options: [{
+          key: 'start',
+          label: strings.start,
+          run: () => setSession((current) => startFacesNamesRound(current, now())),
+        }],
+      };
+    }
     if (session.phase === 'study') {
       if (!currentStudiedPerson(session)) return null;
       const последний = session.studyIndex + 1 >= session.puzzle.studiedPersonIds.length;
@@ -513,7 +545,10 @@ function FacesNamesSessionView({
             : null}
         </View>
         <View style={styles.actions}>
-          <ActionButton label={strings.start} theme={theme} onPress={() => setSession((current) => startFacesNamesRound(current, now()))} />
+          {/* Внизу поля — только если действие не забрал каркас (см. `ответСнаружи`). */}
+          {ответСнаружи ? null : (
+            <ActionButton label={strings.start} theme={theme} onPress={() => setSession((current) => startFacesNamesRound(current, now()))} />
+          )}
           {onExit ? <ActionButton label={strings.exit} theme={theme} secondary onPress={onExit} /> : null}
         </View>
       </ScrollView>
@@ -563,7 +598,16 @@ function FacesNamesSessionView({
       {session.phase === 'study' && studiedPerson ? (
         <View style={[styles.card, styles.studyCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <Text style={[styles.progress, { color: theme.textSecondary }]}>{interpolateFacesNames(strings.studyProgress, { current: session.studyIndex + 1, total: session.puzzle.studiedPersonIds.length })}</Text>
-          <SyntheticFace face={studiedPerson.face} locale={locale} size={210} />
+          {/*
+            Под портретом в карточке живут: строка «N из M», имя с подписью, факт с подписью
+            и отступы — по живому замеру это 230 px. Остаток отдаём лицу, но не меньше 132:
+            мельче портрет перестаёт быть узнаваемым, и упражнение теряет смысл.
+          */}
+          <SyntheticFace
+            face={studiedPerson.face}
+            locale={locale}
+            size={Math.max(132, Math.min(210, свободноПодПортрет))}
+          />
           <View style={styles.memoryPair}>
             <Text style={[styles.memoryLabel, { color: theme.textSecondary }]}>{strings.rememberName}</Text>
             <Text accessibilityRole="header" style={[styles.personName, { color: theme.text }]}>{studiedPerson.name}</Text>
@@ -658,6 +702,11 @@ function FacesNamesSessionView({
  * Смена seed или уровня — новая партия с нуля: ключ пересобирает состояние, а не
  * доливает новый пазл в старую сессию.
  */
+/** Высота каркаса над полем и под ним: замер 23.09.2026 — 640 → поле 391, 844 → поле 595. */
+const ХРОМ_КАРКАСА = 249;
+/** Что в карточке изучения кроме портрета: «N из M», имя с подписью, факт с подписью, отступы. */
+const КАРТОЧКА_БЕЗ_ПОРТРЕТА = 230;
+
 export default function FacesNamesGame(props: FacesNamesGameProps) {
   const sessionKey = JSON.stringify([props.seed, props.level]);
   return <FacesNamesSessionView {...props} key={sessionKey} />;

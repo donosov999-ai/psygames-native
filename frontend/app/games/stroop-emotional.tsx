@@ -1,4 +1,4 @@
-/* psygames-game-stroop-emotional · VER 2 · 16.09.2026 */
+/* psygames-game-stroop-emotional · VER 3 · 23.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, useWindowDimensions, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -412,8 +412,29 @@ export default function StroopEmotionalGame() {
         hud={[
           { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trialsRef.current}` },
           { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
-          { key: 'reaction', icon: 'flash', label: t('reaction'), value: `${meanRtAll}${t('msShort')}`, tone: 'accent' as const },
-          { key: 'hud_interference', icon: 'ellipse', label: t('hud_interference'), value: `${interfThreat}${t('msShort')}` },
+          /**
+           * 🔴 ЕДИНИЦА «мс» В ЖИВОЙ ПОЛОСЕ НЕ ПИШЕТСЯ — ИНАЧЕ ПОЛЕ УЕЗЖАЕТ НА 54 ТОЧКИ.
+           *
+           * 📍 Замер 23.09.2026, 360×640, партия 24 с (прибор attention-chat/полоса-не-растёт.mjs):
+           * из 18 экранов раздела поле ездит у ЧЕТЫРЁХ — эмоциональный Струп, Стрелки,
+           * Стоп-сигнал и Поснер: верх поля 119 → 173, полоса счётчиков 61 → 115. Значок серии
+           * тут ни при чём (задача cca5f572 уже унесла его на медальон питомца): ряд переносится,
+           * когда РАСТЁТ ШИРИНА ЗНАЧЕНИЙ — «0мс» превращается в «852мс», «1/20» в «10/20».
+           * Прибор худшего случая (attention-chat/полоса-худший-случай.mjs) на самых широких
+           * значениях, какие экран может показать: «сейчас 1р/119 · худший 2р/173 · худший без мс 1р/119».
+           * То есть двух знаков суффикса ровно хватает, чтобы ряд не переносился.
+           * Подпись пилюли («Реакция») уже говорит, что это за число; единица остаётся в записи
+           * партии (details.mean_rt) и в статистике.
+           */
+          { key: 'reaction', icon: 'flash', label: t('reaction'), value: `${meanRtAll}`, tone: 'accent' as const },
+          /**
+           * ⚠️ У ЭТОГО ЭКРАНА ДВА ЗНАЧЕНИЯ ВРЕМЕНИ, И СНЯТОГО СУФФИКСА МАЛО.
+           * Тот же прибор худшего случая: «худший без мс 2р/173» на 360×640 — ряд всё равно
+           * переносится. Зато «без <производной пилюли> 1р/119». Поэтому производная мера
+           * (разность времён) на узком телефоне из живой полосы уходит: посреди партии она
+           * считается по горстке проб и всё равно ни о чём не говорит, а на 375+ остаётся.
+           */
+          ...(screenW >= 375 ? [{ key: 'hud_interference', icon: 'ellipse' as const, label: t('hud_interference'), value: `${interfThreat}` }] : []),
         ]}
         toolbar={
           <View style={styles.choiceGrid}>

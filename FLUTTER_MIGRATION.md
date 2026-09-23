@@ -53,6 +53,7 @@
 | ✅ | `sudoku-samurai` | psygames-sudoku-claude-mac | 23.09 | нативно, перехват в гибриде; 72 доски данными, правила сверены с живым TS (400 ходов + 37 целевых случаев на перекрытиях); два масштаба — карта и рабочий (клетка ≥48 точек) |
 | ✅ | `sudoku-fractal` | psygames-sudoku-claude-mac | 23.09 | нативно, перехват в гибриде; 90 партий данными, правила сверены с живым TS ЛЕНТОЙ из 38 ходов (открытие дочерней, кормление корня, зеркало портала, откат); подъём «На карту» — отзыв af047c78 |
 | ✅ | `sudoku-fractal-deep` | psygames-sudoku-claude-mac | 23.09 | нативно, перехват в гибриде; дерево НЕ данными — материализация узлов перенесена и сверена с живым JS узел в узел (жребий совпадает до бита); продолжение партии — тот же снимок, что пишет веб-версия |
+| ✅ | `stroop` | psygames-attention-claude-mac | 23.09 | нативно, перехват в гибриде; правила сверены с эталонами из живого TS, 6 мутаций краснеют. ⚠️ отклик двух версий сравнить НЕ УДАЛОСЬ — три способа и почему каждый негоден, см. `flutter/tools/latency.md` |
 
 ## Что осталось
 
@@ -61,35 +62,35 @@
 
 | | Игра | Кто ведёт | Когда | Заметка |
 |---|---|---|---|---|
-| ☐ | `anagrams` | psygames-words-claude-mac | | |
-| ☐ | `ant` | ❓ вписать себя | | |
+| ◐ | `anagrams` | psygames-words-claude-mac | 23.09 | играются ДВА режима из четырёх: классика и «Все слова»; словари 10 языков данными; остались кроссворд и слово-квадрат — перехват НЕ включён нарочно, см. ниже |
+| ☐ | `ant` | psygames-attention-claude-mac | | |
 | ☐ | `attention-conflict` | psygames-attention-claude-mac | | |
 | ☐ | `ball-sort` | psygames-sorting-claude-mac | | |
-| ☐ | `bart` | ❓ вписать себя | | |
+| ☐ | `bart` | psygames-attention-claude-mac | | |
 | ☐ | `breathing` | psygames-warmup-claude-mac | | |
 | ☐ | `cake-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `chess-blind` | ❓ вписать себя | | |
 | ☐ | `chess-hub` | ❓ вписать себя | | |
 | ☐ | `chinese-tones` | ❓ вписать себя | | |
-| ☐ | `choice-rt` | ❓ вписать себя | | |
+| ☐ | `choice-rt` | psygames-attention-claude-mac | | |
 | ☐ | `cloze` | ❓ вписать себя | | |
 | ☐ | `corsi` | ❓ вписать себя | | |
 | ☐ | `counter` | psygames-search-claude-mac | | |
 | ☐ | `counting-hub` | psygames-search-claude-mac | | |
-| ☐ | `cpt` | ❓ вписать себя | | |
+| ☐ | `cpt` | psygames-attention-claude-mac | | |
 | ☐ | `dictation` | psygames-languages-claude-mac | | не наш: по рефам «Языки» 16 упоминаний, «Память и слух» 7, у судоку одно — и то в строке про линт |
 | ☐ | `eye-gym` | psygames-warmup-claude-mac | | |
 | ☐ | `faces-names` | ❓ вписать себя | | |
 | ☐ | `find-differences` | psygames-search-claude-mac | | |
-| ☐ | `flanker` | ❓ вписать себя | | |
+| ✅ | `flanker` | psygames-attention-claude-mac | 23.09 | «Стрелки» нативно, перехват в гибриде. Правила сверены с эталоном из живого TS (`flutter/test/fixtures/flanker-reference.json`, вместе с очередью случайных чисел); 15 проб модели + 4 партии нажатиями; 8 мутаций краснеют, в том числе «отсчёт времени с рождения пробы» и «граница долей зашита 0,85» — в двоичной плавающей точке 0,40 + 0,45 = 0,8500000000000001, и розыгрыш ровно 0,85 даёт конфликтную пробу. ⚠️ отклик двух версий сравнимым числом так и не снят, см. `flutter/tools/latency.md` |
 | ☐ | `flexibility-hub` | psygames-search-claude-mac | | |
-| ☐ | `go-no-go` | ❓ вписать себя | | |
+| ☐ | `go-no-go` | psygames-attention-claude-mac | | |
 | ☐ | `goods-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `hanoi` | psygames-sorting-claude-mac | | |
 | ☐ | `hearing-hub` | psygames-languages-claude-mac | | |
-| ☐ | `inhibition` | ❓ вписать себя | | |
+| ☐ | `inhibition` | psygames-attention-claude-mac | | |
 | ☐ | `inhibition-hub` | ❓ вписать себя | | |
-| ☐ | `iowa` | ❓ вписать себя | | |
+| ☐ | `iowa` | psygames-attention-claude-mac | | |
 | ☐ | `languages-hub` | psygames-languages-claude-mac | | |
 | ☐ | `lexical-decision` | ❓ вписать себя | | |
 | ☐ | `listening-span` | ❓ вписать себя | | |
@@ -112,8 +113,8 @@
 | ☐ | `phonemic-fluency` | psygames-languages-claude-mac | | |
 | ☐ | `picture-pairs` | psygames-span-claude-mac | | |
 | ☐ | `pizza-sort` | psygames-sorting-claude-mac | | |
-| ☐ | `posner` | ❓ вписать себя | | |
-| ☐ | `prl` | ❓ вписать себя | | |
+| ☐ | `posner` | psygames-attention-claude-mac | | |
+| ☐ | `prl` | psygames-attention-claude-mac | | |
 | ◐ | `puzzles` | psygames-sudoku-claude-mac | 23.09 | экран ОБЩИЙ: 42 режима шести разделов на одном движке. СДЕЛАНО и под гейтами: движок зовётся через dart:ffi (те же исходники C, 13 с сборки, 25 экспортов), разбор кадра и рисование по всем 42 играм, экран с лестницей семи наших сеток, партия играется нажатиями. ЖДЁТ: нативную сборку под iOS/Android — она трогает ios/ и android/, вопрос в канале 23.09. До неё перехват маршрута НЕ включён: на телефоне библиотеки нет, и перехват показал бы ошибку вместо рабочей веб-версии |
 | ☐ | `puzzles-hub` | psygames-sudoku-claude-mac | | |
 | ☐ | `proofreading` | psygames-attention-claude-mac | | |
@@ -127,29 +128,52 @@
 | ☐ | `scholars-mate` | psygames-chess-claude-mac | | |
 | ☐ | `schulte` | psygames-search-claude-mac | | |
 | ☐ | `sdmt` | ❓ вписать себя | | |
-| ☐ | `search-hub` | psygames-attention-claude-mac | | |
+| ☐ | `search-hub` | ❓ вписать себя | | не «Внимание»: развилка «Поиска», в моём рефе только как чужая |
 | ☐ | `semantic-sort` | ❓ вписать себя | | |
 | ☐ | `set-game` | ❓ вписать себя | | |
-| ☐ | `simon` | ❓ вписать себя | | |
+| ✅ | `simon` | psygames-attention-claude-mac | 23.09 | «Цвет против позиции» нативно, перехват в гибриде. Эталон из живого TS (`flutter/test/fixtures/simon-reference.json`); 13 проб модели + 3 партии нажатиями, среди них «ответ по СТОРОНЕ вспышки — ошибка»; 11 мутаций краснеют, в том числе перевёрнутое правило цвета и снятие конфликта у конфликтных проб. ⚠️ RTL-пин: кнопки не зеркалить — зеркальная раскладка инвертирует согласованность проб |
 | ☐ | `sorting-hub` | psygames-sorting-claude-mac | | |
 | ☐ | `span` | psygames-span-claude-mac | | |
 | ☐ | `spatial-span` | ❓ вписать себя | | |
-| ☐ | `stop-signal` | ❓ вписать себя | | |
+| ☐ | `stop-signal` | psygames-attention-claude-mac | | |
 | ☐ | `story-recall` | ❓ вписать себя | | |
-| ☐ | `stroop` | ❓ вписать себя | | |
-| ☐ | `stroop-emotional` | ❓ вписать себя | | |
+| ☐ | `stroop-emotional` | psygames-attention-claude-mac | | |
 | ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |
-| ☐ | `switching-task` | psygames-languages-claude-mac | | |
-| ☐ | `targets` | ❓ вписать себя | | |
+| ☐ | `switching-task` | psygames-languages-claude-mac | | ⚠️ спор: экран внутри набора хаба «Конфликт внимания» (gameSuites.ts:113) — разбираемся в канале, молча не забираю |
+| ☐ | `targets` | psygames-attention-claude-mac | | |
 | ☐ | `tower-london` | psygames-sorting-claude-mac | | |
 | ☐ | `trail-making` | ❓ вписать себя | | |
 | ☐ | `visual-memory-hub` | psygames-memory-hearing-claude-mac | | |
-| ☐ | `visual-search` | psygames-attention-claude-mac | | |
+| ☐ | `visual-search` | ❓ вписать себя | | не «Внимание»: экран «Поиска»: стоит в его рефе, таблица лестниц |
 | ☐ | `vocab-srs` | psygames-languages-claude-mac | | |
 | ☐ | `water-sort` | psygames-sorting-claude-mac | | |
-| ☐ | `wcst` | ❓ вписать себя | | |
+| ☐ | `wcst` | psygames-attention-claude-mac | | |
 | ☐ | `word-pairs` | ❓ вписать себя | | |
 | ☐ | `words-hub` | psygames-languages-claude-mac | | |
+
+## ⚠️ Экран с режимами — не один экран (замер «Слов», 23.09)
+
+За адресом `/games/anagrams` стоят ЧЕТЫРЕ игры: классика, «Все слова», кроссворд,
+слово-квадрат. Правил в них ~1100 строк (`ring` 362 + `allWords` 330 + `crossword` 341
++ `classicLevel` 50) плюс три отдельных UI-файла — против 443–528 строк за экран в
+таблице ниже.
+
+🔴 **Перехват включать только когда готовы ВСЕ режимы.** `HybridApp.routeOf` срезает
+`?query`, то есть `/games/anagrams?mode=cross` попадает в ту же строку карты `native`.
+Включить перехват на одном готовом режиме — значит отнять у человека три остальных,
+и никакая проба этого не заметит: маршрут-то открывается.
+Поэтому у `anagrams` стоит ◐, а не ✅: классика играется, `native` ждёт трёх режимов.
+
+Кого это касается ещё: любой экран, где режим выбирается на самом экране
+(`sudoku`, `spatial-lab`, `puzzles` с 42 режимами Тэтхэма).
+
+## ⚠️ Каталоги ассетов: сборка зелёная, файлов нет
+
+Денис потерял заход 23.09: `- assets/words/` берёт только файлы самой папки, вложенные
+каталоги молча не попадают в сборку — 17,9 МБ вместо 101,5, без единой ошибки.
+Теперь это ловит проба `flutter/test/assets_bundled_test.dart`: она обходит `assets/`
+с диска и сверяет с `AssetManifest` настоящей сборки, а не ищет строку в pubspec.
+Мутация проверена — завёл `assets/words/themes/` без объявления, проба назвала файл.
 
 ## Замеры, ради которых всё затевалось
 
@@ -159,6 +183,7 @@
 | Вес Android, APK | 205 МБ | 47,0 МБ |
 | Холодный старт | 364 мс | 102 мс (стенды разные, честный замер на телефоне — `flutter/tools/cold-start.sh`) |
 | Отклик на перетаскивании | 8,5 мс | 0,23 мс (стенды разные) |
+| Отклик на показе стимула | ⚠️ сравнимого замера нет | три способа опробованы, все три несимметричны — `flutter/tools/latency.md` |
 | Цена одного экрана | — | 443–528 строк своего кода, **0 правок каркаса** |
 
 Подробности и оговорки: `flutter/PROJECT_REF.md` (в git не лежит, он локальный).

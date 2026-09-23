@@ -22,6 +22,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import {
   appendPitchLevel,
@@ -76,6 +77,9 @@ export interface RhythmPitchTheme {
   warning: string;
 }
 
+/** Главное действие фазы: что написано на кнопке и что она делает. */
+export type RhythmPitchPhaseAction = { label: string; disabled: boolean; run: () => void };
+
 export interface RhythmPitchGameProps {
   seed: string;
   level: number;
@@ -94,6 +98,14 @@ export interface RhythmPitchGameProps {
    * где партия уже что-то накопила.
    */
   onProgress?: (armed: boolean) => void;
+  /**
+   * Главное действие текущей фазы — наверх, чтобы каркас прибил его к низу экрана.
+   * Замер 23.09.2026, окно 360×640: поле каркаса 460 px, экран правил рисуется на
+   * 762 px, и «Начать» оказывалась на 813…861 при видимом крае 579. Кнопки запуска
+   * не видно вовсе — чтобы начать партию, надо догадаться прокрутить поле.
+   * Устройство то же, что у «Дворца памяти» (`onPhaseAction`).
+   */
+  onPhaseAction?: (действие: RhythmPitchPhaseAction | null) => void;
   /**
    * Своя кнопка «Выход» (правила, экран «звук недоступен», свой итог).
    * НЕОБЯЗАТЕЛЬНА, и это принципиально: когда модуль стоит внутри `GameShell`,
@@ -250,6 +262,7 @@ function RhythmPitchSessionView({
   now = monotonicNow,
   onComplete,
   onProgress,
+  onPhaseAction,
   onExit,
 }: RhythmPitchGameProps) {
   const strings = getRhythmPitchStrings(locale);
@@ -332,7 +345,7 @@ function RhythmPitchSessionView({
     applySession((current) => restartRhythmPitchSession(current, now()));
   }, [applySession, engine, now]);
 
-  const begin = () => {
+  const begin = React.useCallback(() => {
     /**
      * 🔴 ЗВУК БУДИМ ЗДЕСЬ — В САМОМ НАЖАТИИ, А НЕ КОГДА ПОНАДОБИТСЯ.
      *
@@ -352,7 +365,7 @@ function RhythmPitchSessionView({
     sessionRef.current = next;
     setSession(next);
     if (!engine?.available) failAudio();
-  };
+  }, [engine, failAudio, now, setSession]);
 
   const runCalibration = () => {
     const generation = ++audioGeneration.current;
@@ -463,6 +476,33 @@ function RhythmPitchSessionView({
     },
   } as const) : {};
 
+  /**
+   * 🔴 БЛОК СТОИТ ДО РАННИХ ВЫХОДОВ. Ровно на этом месте «Дворец памяти» падал
+   * React #310 07.09.2026: хуки после `return` меняют их число между фазами.
+   * Здесь та же ловушка — ниже выходы по `rules`, `audio-error`, `paused`, `result`.
+   */
+  /**
+   * 🔴 ПЛОТНАЯ РАСКЛАДКА НА НИЗКОМ ПОЛЕ. Замер 23.09.2026, окно 360×640: поле каркаса
+   * 387 px, а экран калибровки рисуется на 656 — переполнение 269 px, и ряд управления
+   * уезжает на 188 ниже края. Отступы здесь заданы под просторный экран (20 + 18 + 20 + 14),
+   * на узком телефоне они и съедают разницу. Высоту берём у себя через onLayout.
+   */
+  const окно = useWindowDimensions();
+  /** Поле каркаса = окно − 249 (замер 23.09.2026 на 640 и 844). Ниже 450 воздух не по карману. */
+  const тесно = окно.height - 249 < 450;
+
+  const действиеФазы: RhythmPitchPhaseAction | null = React.useMemo(() => {
+    if (session.phase === 'rules') return { label: strings.start, disabled: false, run: begin };
+    return null;
+  }, [session.phase, strings.start, begin]);
+
+  React.useEffect(() => {
+    onPhaseAction?.(действиеФазы);
+  }, [onPhaseAction, действиеФазы]);
+
+  /** Забрал ли кто-то действие себе: тогда кнопку внизу поля не рисуем. */
+  const действиеСнаружи = typeof onPhaseAction === 'function';
+
   if (session.phase === 'disposed') return null;
 
   if (session.phase === 'rules') {
@@ -481,7 +521,7 @@ function RhythmPitchSessionView({
           <Text style={[styles.keyboardHelp, { color: theme.textSecondary }]}>{strings.keyboardHelp}</Text>
         </View>
         <View style={styles.actions}>
-          <ActionButton label={strings.start} theme={theme} onPress={begin} />
+          {действиеСнаружи ? null : <ActionButton label={strings.start} theme={theme} onPress={begin} />}
           {onExit ? <ActionButton label={strings.exit} theme={theme} secondary onPress={onExit} /> : null}
         </View>
       </ScrollView>
@@ -552,12 +592,12 @@ function RhythmPitchSessionView({
       <ScrollView
         {...webKeyboardProps}
         style={[styles.root, { backgroundColor: theme.background }]}
-        contentContainerStyle={styles.gameContent}
+        contentContainerStyle={[styles.gameContent, тесно && styles.тесныйПоток]}
         keyboardShouldPersistTaps="handled"
       >
         <Text accessibilityRole="header" style={[styles.gameTitle, { color: theme.text }]}>{strings.calibrationTitle}</Text>
         <Text style={[styles.body, { color: theme.textSecondary }]}>{strings.calibrationBody}</Text>
-        <View style={[styles.card, styles.centerCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <View style={[styles.card, styles.centerCard, тесно && styles.теснаяКарточка, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <Text style={[styles.volumeValue, { color: theme.text }]}>{interpolateRhythmPitch(strings.volume, { value: Math.round(session.volume * 100) })}</Text>
           <View style={styles.choiceRow}>
             <ActionButton label={strings.quieter} theme={theme} secondary disabled={session.calibrationPlaying} onPress={() => applySession((current) => setCalibrationVolume(current, current.volume - 0.1))} />
@@ -716,6 +756,9 @@ const styles = StyleSheet.create({
   heroSkill: { fontSize: 16, lineHeight: 23 },
   card: { borderWidth: 1, borderRadius: 20, padding: 20, gap: 14 },
   centerCard: { width: '100%', maxWidth: 620, alignItems: 'center' },
+  /* Плотная раскладка низкого поля: те же элементы, меньше воздуха между ними. */
+  тесныйПоток: { padding: 10, gap: 8 },
+  теснаяКарточка: { padding: 12, gap: 8 },
   sectionTitle: { fontSize: 24, fontWeight: '800', textAlign: 'center' },
   gameTitle: { fontSize: 25, fontWeight: '800' },
   body: { fontSize: 16, lineHeight: 24, textAlign: 'center' },

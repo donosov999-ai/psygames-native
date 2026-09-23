@@ -72,7 +72,7 @@ import GameShell, { PAD_H } from '@/src/components/GameShell';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
-import { RhythmPitchGame } from '@/src/games/rhythm-pitch/RhythmPitchGame';
+import { RhythmPitchGame, type RhythmPitchPhaseAction } from '@/src/games/rhythm-pitch/RhythmPitchGame';
 import { createAppToneAudioEngine } from '@/src/games/rhythm-pitch/appAudio';
 import {
   LEVELS,
@@ -177,6 +177,12 @@ export default function RhythmPitchScreen() {
    * держит ответ и отдаёт каркасу: про фазы раунда каркас не знает.
    */
   const [armed, setArmed] = React.useState(false);
+  /**
+ * Главное действие фазы модуля — к низу экрана каркасом. До 23.09.2026 кнопка
+ * «Начать» жила в конце прокрутки правил: на 360×640 она оказывалась на 813 при
+ * видимом крае 579, и запустить партию можно было только прокрутив поле.
+ */
+  const [phaseAction, setPhaseAction] = React.useState<RhythmPitchPhaseAction | null>(null);
 
   React.useEffect(() => {
     let alive = true;
@@ -283,6 +289,19 @@ export default function RhythmPitchScreen() {
           { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => start() },
           { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
         ]}
+        toolbar={phaseAction ? (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityState={{ disabled: phaseAction.disabled }}
+            disabled={phaseAction.disabled}
+            onPress={phaseAction.run}
+            style={[styles.phaseAction, { backgroundColor: phaseAction.disabled ? colors.surface : GRADIENT[0], borderColor: colors.border }]}
+          >
+            <Text style={[styles.phaseActionText, { color: phaseAction.disabled ? colors.textSecondary : ON_GRAD.color }]}>
+              {phaseAction.label}
+            </Text>
+          </TouchableOpacity>
+        ) : undefined}
         /**
          * Спрашиваем только когда терять есть что: на правилах уходим молча, а
          * с первого удара подстройки — уже нет. Задание выпадет то же (зерно
@@ -326,6 +345,7 @@ export default function RhythmPitchScreen() {
             now={gameNow}
             onComplete={onComplete}
             onProgress={setArmed}
+            onPhaseAction={setPhaseAction}
             /**
              * 🔴 `onExit` МОДУЛЮ НЕ ОТДАЁМ, И ЭТО НЕ ЗАБЫВЧИВОСТЬ. Его кнопки
              * «Выход» уводили бы МИМО вопроса при выходе — тем самым способом, от
@@ -421,6 +441,8 @@ export default function RhythmPitchScreen() {
 }
 
 const styles = StyleSheet.create({
+  phaseAction: { minHeight: 52, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
+  phaseActionText: { fontSize: 16, fontWeight: '700' },
   root: { flex: 1 },
   /**
    * Поле каркаса раздвинуто до краёв экрана: `paddingHorizontal: 16` каркаса —

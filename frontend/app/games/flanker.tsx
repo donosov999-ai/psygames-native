@@ -1,4 +1,4 @@
-/* psygames-game-flanker · VER 2 · 16.09.2026 */
+/* psygames-game-flanker · VER 3 · 23.09.2026 */
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
@@ -164,7 +164,7 @@ export function levelCondition(level: number): { windowMs: number; gapPx: number
   return { windowMs, gapPx, trials };
 }
 
-function makeTrial(pCong: number, pIncong: number): Trial {
+export function makeTrial(pCong: number, pIncong: number): Trial {
   const center: Direction = Math.random() < 0.5 ? 'left' : 'right';
   // distribution of trial types comes from levelParams (ex-difficulty table)
   const r = Math.random();
@@ -423,7 +423,21 @@ export default function FlankerGame() {
         hud={[
           { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${trials}`, pop: true },
           { key: 'correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
-          { key: 'rt', icon: 'flash', label: t('reaction'), value: `${meanRtAll}${t('msShort')}`, tone: 'accent' as const },
+          /**
+           * 🔴 ЕДИНИЦА «мс» В ЖИВОЙ ПОЛОСЕ НЕ ПИШЕТСЯ — ИНАЧЕ ПОЛЕ УЕЗЖАЕТ НА 54 ТОЧКИ.
+           *
+           * 📍 Замер 23.09.2026, 360×640, партия 24 с (прибор attention-chat/полоса-не-растёт.mjs):
+           * из 18 экранов раздела поле ездит у ЧЕТЫРЁХ — эмоциональный Струп, Стрелки,
+           * Стоп-сигнал и Поснер: верх поля 119 → 173, полоса счётчиков 61 → 115. Значок серии
+           * тут ни при чём (задача cca5f572 уже унесла его на медальон питомца): ряд переносится,
+           * когда РАСТЁТ ШИРИНА ЗНАЧЕНИЙ — «0мс» превращается в «852мс», «1/20» в «10/20».
+           * Прибор худшего случая (attention-chat/полоса-худший-случай.mjs) на самых широких
+           * значениях, какие экран может показать: «сейчас 1р/119 · худший 2р/173 · худший без мс 1р/119».
+           * То есть двух знаков суффикса ровно хватает, чтобы ряд не переносился.
+           * Подпись пилюли («Реакция») уже говорит, что это за число; единица остаётся в записи
+           * партии (details.mean_rt) и в статистике.
+           */
+          { key: 'rt', icon: 'flash', label: t('reaction'), value: `${meanRtAll}`, tone: 'accent' as const },
           ...(!isPreset ? [{ key: 'lvl', icon: 'flag' as const, label: t('label_level_short'), value: lvl.level }] : []),
         ]}
         toolbar={

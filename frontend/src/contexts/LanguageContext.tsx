@@ -404,6 +404,26 @@ const translations: Translations = {
     ru: 'Из одного набора перемешанных букв собираются слова. Буквы берутся из выбранной темы и языка, с уровнем растут их длина и число.\n\n🎛 Режимы — выбираются перед партией:\n• Классика — собрать одно загаданное слово\n• Все слова — найти в наборе все слова сразу: пустые клетки показывают, сколько букв в каждом\n• Кроссворд — слова вписываются в сетку и пересекаются, открытая буква подсказывает соседнее\n• Слово-квадрат — четыре слова по краям поля, у соседних общие углы\n\nТренирует словарный запас, гибкость мышления и умение видеть структуру в хаосе.',
     en: 'One pile of shuffled letters becomes words. The letters come from the theme and language you pick; they grow longer and more numerous as levels rise.\n\n🎛 Modes — chosen before the round:\n• Classic — rebuild the one hidden word\n• All words — find every word the letters hide: empty cells show how long each one is\n• Crossword — words cross in a grid, and an open letter gives away its neighbour\n• Word square — four words along the edges, sharing their corner letters\n\nTrains vocabulary, mental flexibility and the knack of seeing structure in chaos.',
   },
+  /** Справка режима «classic» — см. разбор у `anagramsIntroDesc`. */
+  anagramClassicIntroDesc: {
+    ru: 'Загадано одно слово, его буквы перемешаны и лежат по кругу. Собери слово, нажимая буквы по порядку.\n\n🎚 Уровни: длина слова растёт с 4 букв до 9 (L1–L11), выше растёт не длина, а спешка — с L7 на слово даётся время, и оно сокращается до 15 секунд.\n\n⚠️ Засчитывается ЛЮБОЕ слово этой длины, которое складывается из тех же букв, а не только загаданное: из одного набора часто выходит несколько.\n\nПодсказка открывает очередную букву, «Перемешать» меняет порядок на круге, слов за партию десять.',
+    en: 'One word is hidden, its letters shuffled around a ring. Rebuild it by tapping the letters in order.\n\n🎚 Levels: the word grows from 4 letters to 9 (L1–L11); above that it is not length that grows but haste — from L7 each word is timed, down to 15 seconds.\n\n⚠️ ANY word of that length made from the same letters counts, not just the hidden one: one set of letters usually yields several.\n\nThe hint opens the next letter, Shuffle reorders the ring, ten words per round.',
+  },
+  /** Справка режима «all» — см. разбор у `anagramsIntroDesc`. */
+  anagramAllIntroDesc: {
+    ru: 'Один набор букв — и все слова, которые из него складываются. Пустые клетки показывают, сколько букв в каждом слове.\n\n🎚 Уровни: целей от 6 до 22, и это и есть трудность — раскладка на шесть закрывается за минуту, на восемнадцать это уже сеанс. Лимита времени нет.\n\n⚠️ Слово вне списка целей не ошибка: оно идёт в бонус, если существует в словаре.\n\nПодсказка открывает одно слово, «Перемешать» меняет порядок букв.',
+    en: 'One set of letters and every word it makes. Empty cells show how long each word is.\n\n🎚 Levels: from 6 to 22 targets — that is the difficulty. A six-word layout is a minute; eighteen is a sitting. No time limit.\n\n⚠️ A word outside the target list is not a mistake: it counts as a bonus if it exists in the dictionary.\n\nThe hint opens one word, Shuffle reorders the letters.',
+  },
+  /** Справка режима «cross» — см. разбор у `anagramsIntroDesc`. */
+  anagramCrossIntroDesc: {
+    ru: 'Слова из одного набора букв вписываются в сетку и пересекаются. Открытая буква — половина соседнего слова: её видно на пересечении.\n\n🎚 Уровни: слов в сетке от 6 до 10, подсказок от 5 и меньше с ростом уровня.\n\n⚠️ Порядок свободный: начинать можно с любого слова, сетка подскажет остальное пересечениями.',
+    en: 'Words from one set of letters fill a grid and cross each other. An open letter is half of its neighbour — you see it at the crossing.\n\n🎚 Levels: from 6 to 10 words in the grid; hints start at 5 and shrink as levels rise.\n\n⚠️ Order is free: start from any word, the crossings will give you the rest.',
+  },
+  /** Справка режима «square» — см. разбор у `anagramsIntroDesc`. */
+  anagramSquareIntroDesc: {
+    ru: 'Четыре слова по краям квадрата, все из одного банка букв. Соседние слова делят угловую букву — поставил её в одно, она встала и во второе.\n\n🎚 Уровни: сторона квадрата 5 букв, растёт число ложных кандидатов — букв, из которых слово почти складывается.\n\n⚠️ Ответ даётся протягиванием по буквам, отдельной кнопки сдачи нет: слово засчитывается, как только собрано.',
+    en: 'Four words along the edges of a square, all from one pool of letters. Neighbouring words share a corner letter — place it in one and it lands in the other.\n\n🎚 Levels: the square side stays 5 letters; what grows is the number of near-misses — letters that almost make a word.\n\n⚠️ You answer by dragging across letters; there is no submit button — a word counts as soon as it is assembled.',
+  },
   lettersInWord: { ru: 'Букв в слове', en: 'Letters' },
   anagramHint: { ru: 'Ведите пальцем по буквам — или нажимайте по одной', en: 'Swipe across the letters — or tap them one by one' },
   clear: { ru: 'Сбросить', en: 'Clear' },
@@ -1002,6 +1022,10 @@ const translations: Translations = {
   teachRow: { ru: 'Строка {n}', en: 'Row {n}' },
   teachCol: { ru: 'Столбец {n}', en: 'Column {n}' },
   teachUnrulyPair: { ru: '{line}: две одинаковые клетки стоят рядом. Трёх одинаковых подряд не бывает, поэтому клетки по краям — другого цвета.', en: '{line}: two matching cells sit side by side. Three in a row is not allowed, so the cells at both ends take the other colour.' },
+  teachAnagramLook: { ru: 'Сначала осмотри буквы. Самая редкая здесь — «{piece}»: в банке этой длины она есть у {n} слов из {total}. С неё и начинай искать: редкая буква сужает перебор сильнее любой другой.', en: 'Look at the letters first. The rarest one here is “{piece}”: only {n} of the {total} words this length contain it. Start from it — a rare letter narrows the search more than any other.' },
+  teachAnagramStart: { ru: 'Ставим начало — «{piece}». Так начинаются {n} слов из {total} этой длины: знакомое начало узнаётся быстрее, чем слово целиком.', en: 'Place the beginning — “{piece}”. {n} of the {total} words this length start like that: a familiar opening is recognised faster than a whole word.' },
+  teachAnagramMiddle: { ru: 'Середину добавляем парами — «{piece}». Две буквы разом держать в уме легче, чем перебирать по одной.', en: 'Add the middle two letters at a time — “{piece}”. Holding a pair in mind is easier than trying letters one by one.' },
+  teachAnagramEnd: { ru: 'Остаётся окончание — «{piece}». Им кончаются {n} слов из {total}: у окончаний вариантов мало, и потому они проверяются последними — но подтверждают слово надёжнее всего.', en: 'The ending is left — “{piece}”. {n} of the {total} words end like that: endings come in few varieties, so you check them last — and they confirm the word best.' },
   teachUnrulyGap: { ru: '{line}: между двумя одинаковыми клетками одна пустая. Того же цвета она быть не может — вышло бы три подряд. Значит, она другого цвета.', en: '{line}: one empty cell sits between two matching cells. It cannot match them — that would make three in a row — so it takes the other colour.' },
   teachUnrulyCount: { ru: '{line}: клетки одного цвета уже заняли половину линии. Больше таких быть не может, поэтому остальные — другого цвета.', en: '{line}: one colour already fills half of the line. There can be no more of it, so the remaining cells take the other colour.' },
   teachUnrulyLineOne: { ru: '{line}: переберём, как дописать линию по правилам — поровну цветов и без трёх подряд. Способ всего один.', en: '{line}: let us try every way to finish the line by the rules — equal colours and no three in a row. There is only one way.' },
@@ -2493,7 +2517,13 @@ const translations: Translations = {
   allGames: { ru: 'Все игры', en: 'All games' },
   totalPlayedCompleted: { ru: 'Всего сыграно: {n} игр (завершённых)', en: 'Total played: {n} games (completed)' },
   tokensLabel: { ru: 'Очки', en: 'Tokens' },
-  gamesPlayed: { ru: 'игр сыграно', en: 'games played' },
+  // 🔴 ПОДПИСЬ НАЗЫВАЕТ ТО, ЧТО СЧИТАЕТ. Замер 23.09.2026 по отзыву с кадром
+  // (экран статистики: «сыграно игр 0», токенов 15, серия 1): счётчик берёт
+  // ЗАВЕРШЁННЫЕ сессии из psygames_sessions, а токены начисляются ещё из шести
+  // мест без всякой партии — достижения, цель дня, возврат способности, приз
+  // пари, компенсация зарядки, бонус уровня. То есть «0 и 15» — законное
+  // состояние, а врала подпись: человек читал «сыграно» и видел ноль.
+  gamesPlayed: { ru: 'завершённых партий', en: 'completed games' },
   inGameTime: { ru: 'в игре', en: 'in game' },
   weekInReview: { ru: 'ИТОГ НЕДЕЛИ', en: 'WEEK IN REVIEW' },
   scoreBestAvg: { ru: 'Очки — рекорд {best} · ⌀ {avg}', en: 'Score — best {best} · avg {avg}' },

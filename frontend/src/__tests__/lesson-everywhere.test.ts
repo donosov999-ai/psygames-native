@@ -67,7 +67,7 @@ const ЖДУТ_ЭКРАНЫ: Record<string, string> = {
   'nut-sort': СОРТИРОВКА, 'pizza-sort': СОРТИРОВКА, 'tower-london': СОРТИРОВКА, 'water-sort': СОРТИРОВКА,
   counter: СЧЁТ, 'math-slider': СЧЁТ, 'math-sprint': СЧЁТ, 'number-bonds': СЧЁТ, 'number-run': СЧЁТ,
   ospan: СЧЁТ, pattern: СЧЁТ,
-  anagrams: СЛОВА, cloze: СЛОВА, 'lexical-decision': СЛОВА, 'phonemic-fluency': СЛОВА, 'semantic-sort': СЛОВА,
+  cloze: СЛОВА, 'lexical-decision': СЛОВА, 'phonemic-fluency': СЛОВА, 'semantic-sort': СЛОВА,
   'story-recall': СЛОВА, 'vocab-srs': СЛОВА,
 };
 

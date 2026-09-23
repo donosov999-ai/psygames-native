@@ -1,4 +1,4 @@
-/* psygames-game-stop-signal · VER 3 · 16.09.2026 */
+/* psygames-game-stop-signal · VER 4 · 23.09.2026 */
 /**
  * Stop-Signal Task — классика inhibitory control (response inhibition).
  *
@@ -486,7 +486,21 @@ export default function StopSignalGame() {
           { key: 'round', icon: 'repeat', label: t('round'), value: `${round}/${totalTrials}` },
           { key: 'hud_correct', icon: 'checkmark-circle', label: t('hud_correct'), value: hits, tone: 'good' as const },
           { key: 'hud_held', icon: 'ellipse', label: t('hud_held'), value: correctStops },
-          { key: 'reaction', icon: 'flash', label: t('reaction'), value: `${meanRt}${t('msShort')}`, tone: 'accent' as const },
+          /**
+           * 🔴 ЕДИНИЦА «мс» В ЖИВОЙ ПОЛОСЕ НЕ ПИШЕТСЯ — ИНАЧЕ ПОЛЕ УЕЗЖАЕТ НА 54 ТОЧКИ.
+           *
+           * 📍 Замер 23.09.2026, 360×640, партия 24 с (прибор attention-chat/полоса-не-растёт.mjs):
+           * из 18 экранов раздела поле ездит у ЧЕТЫРЁХ — эмоциональный Струп, Стрелки,
+           * Стоп-сигнал и Поснер: верх поля 119 → 173, полоса счётчиков 61 → 115. Значок серии
+           * тут ни при чём (задача cca5f572 уже унесла его на медальон питомца): ряд переносится,
+           * когда РАСТЁТ ШИРИНА ЗНАЧЕНИЙ — «0мс» превращается в «852мс», «1/20» в «10/20».
+           * Прибор худшего случая (attention-chat/полоса-худший-случай.mjs) на самых широких
+           * значениях, какие экран может показать: «сейчас 1р/119 · худший 2р/173 · худший без мс 1р/119».
+           * То есть двух знаков суффикса ровно хватает, чтобы ряд не переносился.
+           * Подпись пилюли («Реакция») уже говорит, что это за число; единица остаётся в записи
+           * партии (details.mean_rt) и в статистике.
+           */
+          { key: 'reaction', icon: 'flash', label: t('reaction'), value: `${meanRt}`, tone: 'accent' as const },
         ]}
         toolbar={
           <TouchableOpacity
