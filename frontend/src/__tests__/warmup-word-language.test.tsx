@@ -34,11 +34,11 @@ import { WarmupProvider } from '@/src/contexts/WarmupContext';
 
 /** Параметры шага зарядки — ровно те, что строит `stepToParams`. */
 const mockПараметры: Record<string, string> = { wu: '1', diff: 'medium', length: '5' };
-jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn() }),
-  useLocalSearchParams: () => mockПараметры,
-  useFocusEffect: () => {},
-  Stack: { Screen: () => null },
+// Роутер берётся общий: свой рукописный из трёх методов развалился 23.09, когда
+// экран начал звать `setParams`. Перечень методов общий мок снимает с expo-router.
+jest.mock('expo-router', () => require('./routerMockShared').мокМодуляРоутера({
+  параметры: () => mockПараметры,
+  путь: '/games/anagrams',
 }));
 
 /**

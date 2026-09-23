@@ -22,6 +22,13 @@ import { WarmupProvider } from '@/src/contexts/WarmupContext';
 import { WORD_LANG_LABEL } from '@/src/services/wordLanguage';
 import { банкКлассики, словаПоДлине } from '@/src/games/anagrams/core/allWords';
 
+// Роутер общий: экран анаграмм зеркалит режим в адрес (`setParams`, d359c068), и
+// проба, поднимающая его целиком, обязана дать роутер со ВСЕМИ методами. Перечень
+// общий мок снимает с самого expo-router — рукописные списки 23.09 и разъехались.
+jest.mock('expo-router', () => require('./routerMockShared').мокМодуляРоутера({
+  путь: '/games/anagrams',
+}));
+
 /** Латинские языки, которые классика открыла: у них есть свои наборы. */
 const ОТКРЫТЫЕ = ['de', 'es', 'fr', 'it', 'pt'] as const;
 
