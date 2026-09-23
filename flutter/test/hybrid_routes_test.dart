@@ -24,6 +24,7 @@ void main() {
       '$origin/games/simon',
       '$origin/games/sudoku',
       '$origin/games/sudoku.html?mode=levels',
+      '$origin/games/go-no-go',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -69,9 +70,14 @@ void main() {
   });
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
+    // ⚠️ ОБЪЕДИНЕНИЕ, А НЕ ДВЕ ПРОВЕРКИ. При сведении веток двух разделов сюда
+    // попали ДВА expect подряд с разными наборами — каждый утверждал, что список
+    // игр исчерпывается его половиной, и любая новая игра ломала обе. Список
+    // перенесённых игр один и общий, и растёт он снизу.
     expect(HybridApp.native.keys.toSet(), {
       '/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix',
       '/games/stroop', '/games/flanker', '/games/simon',
+      '/games/go-no-go',
       '/games/sudoku', '/games/sudoku-samurai', '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',
     });
