@@ -6,38 +6,40 @@
  * быть не может, только семплы». Android-ссылка была верной, хотя задача 16dfede6
  * описывала её как битую.
  *
- * ⚠️ Проба смотрит ИСХОДНИК, а не вызывает функцию: она зависит от Platform и
+ * ⚠️ Проба смотрит исходник, а не вызывает функцию: она зависит от Platform и
  * navigator, и подделывать их ради трёх строк дороже, чем проверить сами адреса.
  * Зато проба ловит главное — что в файле нет пути «мобильный → сайт».
  */
-import fs from 'fs';
-import path from 'path';
+declare const __dirname: string;
+declare function require(id: string): any;
+const fs = require('fs');
+const path = require('path');
 
-const ИСХОДНИК = fs.readFileSync(
+const SOURCE = fs.readFileSync(
   path.join(__dirname, '..', 'services', 'appUpdates.ts'), 'utf8');
 
-const ФУНКЦИЯ = ИСХОДНИК.slice(
-  ИСХОДНИК.indexOf('export function updateUrl'),
-  ИСХОДНИК.indexOf('/** Версия, чей'));
+const FUNC = SOURCE.slice(
+  SOURCE.indexOf('export function updateUrl'),
+  SOURCE.indexOf('/** Версия, чей'));
 
 describe('кнопка «Скачать» ведёт в магазин', () => {
   it('🔴 у iOS есть свой адрес и это App Store', () => {
-    expect(ФУНКЦИЯ).toMatch(/Platform\.OS === 'ios'/);
-    expect(ФУНКЦИЯ).toMatch(/apps\.apple\.com\/app\/id6779208225/);
+    expect(FUNC).toMatch(/Platform\.OS === 'ios'/);
+    expect(FUNC).toMatch(/apps\.apple\.com\/app\/id6779208225/);
   });
 
   it('🔴 Android ведёт на магазинный идентификатор com.psygames.app', () => {
-    expect(ФУНКЦИЯ).toMatch(/play\.google\.com[^']*id=com\.psygames\.app/);
+    expect(FUNC).toMatch(/play\.google\.com[^']*id=com\.psygames\.app/);
     // com.odv999.psygames — настольная сборка, в Play её нет (404, замер 23.09)
-    expect(ФУНКЦИЯ).not.toMatch(/id=com\.odv999\.psygames/);
+    expect(FUNC).not.toMatch(/id=com\.odv999\.psygames/);
   });
 
   it('🔴 iPhone внутри Tauri (Platform.OS === web) тоже уходит в App Store', () => {
-    expect(ФУНКЦИЯ).toMatch(/iphone\|ipad\|ipod/i);
+    expect(FUNC).toMatch(/iphone\|ipad\|ipod/i);
   });
 
   it('на сайт остаётся только настольная ветка и веб', () => {
-    const сайт = (ФУНКЦИЯ.match(/psy-games\.pro/g) || []).length;
-    expect(сайт).toBe(2);   // web + Mac/Win; мобильных среди них нет
+    const siteLinks = (FUNC.match(/psy-games\.pro/g) || []).length;
+    expect(siteLinks).toBe(2);   // web + Mac/Win; мобильных среди них нет
   });
 });
