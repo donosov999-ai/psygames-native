@@ -22,6 +22,7 @@ void main() {
       '$origin/games/flanker',
       '$origin/games/flanker.html?autostart=1',
       '$origin/games/simon',
+      '$origin/games/go-no-go',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -44,7 +45,7 @@ void main() {
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
     expect(HybridApp.native.keys.toSet(),
-        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix', '/games/stroop', '/games/flanker', '/games/simon'});
+        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix', '/games/stroop', '/games/flanker', '/games/simon', '/games/go-no-go'});
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
     }
