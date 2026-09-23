@@ -1034,6 +1034,16 @@ const translations: Translations = {
    * проход по маршруту. Тексты идут на настоящем материале уровня — названия мест и
    * предметов подставляет экран из словаря самой игры.
    */
+  /*
+   * 🎓 РАЗБОР «ПАР СЛОВ». Приём: одна картинка, где ОБА слова действуют вместе, и проверка
+   * задом наперёд. Слова подставляет экран из самой партии.
+   */
+  teachPairsIntro: { ru: 'Пара слов держится не повторением, а ОДНОЙ картинкой, где оба слова действуют вместе. Сейчас разберём несколько пар из этих {n}.', en: 'A word pair sticks through ONE picture where both words act together, not through repetition. Let us work through a few of these {n} pairs.' },
+  teachPairsLinkFirst: { ru: '{a} и {b}. Представьте их в одной сцене: не рядом, а во взаимодействии — так, чтобы одно делало что-то со вторым.', en: '{a} and {b}. Put them in one scene: not side by side but interacting — one doing something to the other.' },
+  teachPairsLink: { ru: '{a} и {b}. Снова одна сцена, и пусть она будет нелепой: нелепое держится, обычное стирается.', en: '{a} and {b}. One scene again, and let it be absurd: the absurd sticks, the ordinary fades.' },
+  teachPairsCheck: { ru: 'Проверка задом наперёд: видите «{b}» — всплывает ли «{a}»? Если нет, картинка была вялой: сделайте её ярче, а не повторяйте слова.', en: 'Check it backwards: seeing “{b}”, does “{a}” come up? If not, the picture was weak — make it brighter instead of repeating the words.' },
+  teachPairsMatch: { ru: 'Потом слова перемешаются, и надо будет соединить пары. Соединяйте не по памяти на список, а по картинке: она вернёт второе слово.', en: 'Then the words are shuffled and you match the pairs. Match by the picture, not by the list: the picture brings the second word back.' },
+  teachPairsDone: { ru: 'Так и играйте: на каждую пару — одна яркая сцена, и проверка задом наперёд.', en: 'Play it the same way: one vivid scene per pair, then check it backwards.' },
   teachPalaceIntro: { ru: 'Приём «дворец памяти»: {n} мест знакомого маршрута, и на каждое кладётся один предмет. Вспоминать потом будете не список, а дорогу.', en: 'The memory palace: {n} places along a familiar route, one object on each. Later you recall the walk, not the list.' },
   teachPalaceLinkFirst: { ru: 'Место 1 — {place}. Кладём сюда: {item}. Свяжите их ОДНОЙ картинкой и сделайте её странной: обычное забывается, нелепое держится.', en: 'Place 1 — {place}. Put {item} here. Tie them with ONE picture and make it odd: the ordinary fades, the absurd sticks.' },
   teachPalaceLink: { ru: 'Место {n} — {place}. Сюда: {item}. Снова одна картинка, и предмет прямо НА этом месте, а не рядом с ним.', en: 'Place {n} — {place}. Here: {item}. Again one picture, with the object right ON the place, not beside it.' },

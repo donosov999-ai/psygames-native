@@ -1,5 +1,5 @@
 /* psygames-game-word-pairs · VER 2 · 23.08.2026 */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,9 @@ import { saveSession } from '@/src/services/api';
 import GameResult from '@/src/components/GameResult';
 import GameAbout from '@/src/components/GameAbout';
 import GameShell from '@/src/components/GameShell';
+import LessonPlayer from '@/src/components/LessonPlayer';
+import { GameAuxAction } from '@/src/components/GameAuxAction';
+import { собратьРазборПар, type КарточкаПар } from '@/src/games/word-pairs/teach';
 import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
 import { TRANSLATION_VOCAB , hasVocab } from '@/src/constants/translationVocab';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
@@ -111,6 +114,44 @@ export default function WordPairsGame() {
   // Уровни (persist): ручной селектор числа пар заменён лесенкой 1..15.
   // Пресет зарядки (isPreset) по-прежнему задаёт pairCount сам и без лимита времени.
   const lvl = usePersistentLevel('word_pairs');
+
+  /**
+   * 🎓 РАЗБОР ПО ШАГАМ (Денис 17.09.2026). Шаги считает чистый модуль `word-pairs/teach.ts`
+   * на ЭТИХ ЖЕ парах: человек слышит связку и тут же играет ею. Проба `word-pairs-teach`
+   * соединяет пары прямо из карточек и требует ноль ошибок.
+   */
+  const [урок, setУрок] = useState<{ карточки: КарточкаПар[]; индекс: number } | null>(null);
+  const карточкаУрока = урок ? урок.карточки[урок.индекс] : null;
+  /** Разбор — на первых трёх уровнях: дальше приём уже усвоен, и ролик мешает. */
+  const разборДоступен = lvl.level <= 3 && pairs.length > 0;
+  const начатьРазбор = () => {
+    const п = (pairsRef.current.length ? pairsRef.current : pairs)
+      .map((p) => ({ id: p.id, слово1: p.word1, слово2: p.word2 }));
+    if (!п.length) return;
+    setУрок({ карточки: собратьРазборПар(п).карточки, индекс: 0 });
+  };
+  /**
+   * 🔴 ССЫЛКИ НА ОБРАБОТЧИКИ ОБЯЗАНЫ БЫТЬ СТАБИЛЬНЫМИ. Плеер ведёт шаги сам таймером, и
+   * таймер стоит в эффекте с `onДальше` в зависимостях. Этот экран перерисовывается каждые
+   * 100 мс (счётчик времени запоминания) — с новой стрелкой на каждый кадр эффект
+   * перезапускался, таймер сбрасывался, и разбор МОЛЧА стоял на первой карточке.
+   * Замер 24.09.2026: «Шаг 1 из 7» и через десять секунд.
+   */
+  const урокДальше = useCallback(
+    () => setУрок((у) => (у && у.индекс + 1 < у.карточки.length ? { ...у, индекс: у.индекс + 1 } : у)),
+    [],
+  );
+  const урокНазад = useCallback(
+    () => setУрок((у) => (у && у.индекс > 0 ? { ...у, индекс: у.индекс - 1 } : у)),
+    [],
+  );
+  const урокЗакрыть = useCallback(() => setУрок(null), []);
+  const текстУрока = карточкаУрока
+    ? Object.entries(карточкаУрока.поля ?? {}).reduce(
+      (текст, [ключ, знач]) => текст.replace(new RegExp(`\\{${ключ}\\}`, 'g'), String(знач)),
+      t(карточкаУрока.ключ),
+    )
+    : '';
   // Правила уровня: показать при первом входе и дать перечитать по бейджу.
   /**
    * 🔴 ПРАВИЛА ПОКАЗЫВАЮТСЯ ДО КРУГА, А НЕ В МИГ ВСПОМИНАНИЯ.
@@ -431,6 +472,13 @@ export default function WordPairsGame() {
         { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
       ]}
       scrollableField
+      /** 🎓 «Разбор» — значком в общем ряду под полем, как у всех игр. */
+      headerActions={разборДоступен ? (
+        <GameAuxAction
+          compact icon="school-outline" tint="#d97706" label={t('teachButton')}
+          onPress={начатьРазбор}
+        />
+      ) : undefined}
       stats={
         <View style={styles.gameHeader}>
           <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
@@ -473,6 +521,49 @@ export default function WordPairsGame() {
           <Text style={[styles.pairWord, { color: colors.text, fontWeight: '700' }]}>{pair.word2}</Text>
         </View>
       ))}
+      {/*
+        🎓 РАЗБОР НА ВЕСЬ ЭКРАН, как ролик. Сцена — те же пары; на шаге «проверка» второе
+        слово закрыто: приём проверяется тем, всплывает ли оно само.
+      */}
+      <LessonPlayer
+        visible={!!урок}
+        индекс={урок?.индекс ?? 0}
+        шагов={Math.max(0, (урок?.карточки.length ?? 1) - 1)}
+        текст={текстУрока}
+        сноска={урок?.индекс === 0 ? t('teachNotCounted') : undefined}
+        готово={карточкаУрока?.вид === 'готово'}
+        занят={false}
+        renderBoard={() => (
+          <View style={styles.разборСцена}>
+            {(pairsRef.current.length ? pairsRef.current : pairs).slice(0, 4).map((pair, i) => {
+              const текущая = карточкаУрока?.пара === i;
+              const скрыто = текущая && карточкаУрока?.открыто === false;
+              return (
+                <View
+                  key={pair.id}
+                  style={[
+                    styles.разборПара,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: текущая ? GRADIENT[0] : colors.border,
+                      borderWidth: текущая ? 2 : 1,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.разборСлово, { color: colors.text }]}>{pair.word1}</Text>
+                  <Ionicons name="arrow-forward" size={16} color={colors.textSecondary} />
+                  <Text style={[styles.разборСлово, { color: скрыто ? colors.textSecondary : colors.text, fontWeight: '700' }]}>
+                    {скрыто ? '…' : pair.word2}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+        onДальше={урокДальше}
+        onНазад={урокНазад}
+        onЗакрыть={урокЗакрыть}
+      />
     </GameShell>
   );
 
@@ -722,6 +813,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 12,
   },
+  разборСцена: { gap: 8, width: '100%' },
+  разборПара: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
+  разборСлово: { fontSize: 16, flexShrink: 1 },
   pairWord: { fontSize: 17, flex: 1, fontWeight: '600', minWidth: 0 },  // крупный шрифт: слово ужимается/переносится, а не толкает соседнюю колонку за край
   columnsContainer: {
     flexDirection: 'row',
