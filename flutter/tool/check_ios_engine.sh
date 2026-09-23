@@ -17,22 +17,39 @@ set -e
 # в build/ios/iphoneos, а `flutter build ipa` — ещё и в архив. Гейт, знающий один
 # путь, на другой сборке молча пропустил бы проверку, а это хуже отсутствия гейта.
 BIN="${1:-}"
-# ⚠️ ИЩЕМ ПО СУТИ, А НЕ ПО ИМЕНИ. Две редакции подряд не нашли бинарник на
-# бегунке, хотя сборка была успешной: сперва гейт знал два жёстких пути (прогон
-# 35892704889), потом искал файл с именем `Runner` (прогон 35894706031) — а в
-# архиве .xcarchive приложение и его исполняемый файл называются по продукту.
-# Теперь ищем исполняемый файл ВНУТРИ любого .app: имя у него всегда совпадает
-# с именем пакета, это и есть признак.
+TMPDIR_UNZIP=""
+# 🔴 ГЕЙТ СМОТРИТ НА ТОТ АРТЕФАКТ, КОТОРЫЙ УЕДЕТ К ЧЕЛОВЕКУ.
+#
+# Три прогона подряд я чинил не то: сперва гейт знал два жёстких пути, потом
+# искал файл с именем `Runner`, потом любой `.app` — и каждый раз падал на
+# зелёной сборке. Причина оказалась проще: после `flutter build ipa` на бегунке
+# НЕТ распакованного `.app` вовсе (прогон 35897517101: «найденные .app:» пусто,
+# в build/ios только `archive` и `ipa`). Настоящий артефакт — сам .ipa, это
+# ровно то, что уедет в TestFlight, и проверять надо его.
+#
+# ⚠️ Урок дороже самого гейта: я трижды подправлял ПОИСК, ни разу не спросив,
+# существует ли то, что я ищу. Сторож, отбивающий зелёную сборку, стоит столько
+# же, сколько пропущенная поломка, и злит сильнее.
 if [ -z "$BIN" ]; then
-  for app in $(find build/ios -maxdepth 6 -type d -name '*.app' 2>/dev/null); do
+  for app in $(find build/ios -maxdepth 8 -type d -name '*.app' 2>/dev/null); do
     name=$(basename "$app" .app)
     if [ -f "$app/$name" ]; then BIN="$app/$name"; break; fi
   done
 fi
+if [ -z "$BIN" ]; then
+  IPA=$(find build/ios -maxdepth 3 -name '*.ipa' 2>/dev/null | head -1)
+  if [ -n "$IPA" ]; then
+    TMPDIR_UNZIP=$(mktemp -d)
+    unzip -q "$IPA" -d "$TMPDIR_UNZIP" || { echo "не распаковался $IPA"; exit 1; }
+    for app in "$TMPDIR_UNZIP"/Payload/*.app; do
+      name=$(basename "$app" .app)
+      [ -f "$app/$name" ] && { BIN="$app/$name"; echo "взят из .ipa: $(basename "$IPA")"; break; }
+    done
+  fi
+fi
 [ -n "$BIN" ] && [ -f "$BIN" ] || {
   echo "НЕ НАШЁЛ БИНАРНИК под build/ios — сперва flutter build ios|ipa"
-  echo "что там лежит:"; ls -d build/ios/* 2>/dev/null | head -8
-  echo "найденные .app:"; find build/ios -maxdepth 6 -type d -name '*.app' 2>/dev/null | head -5
+  echo "что там лежит:"; find build/ios -maxdepth 3 2>/dev/null | head -20
   exit 1
 }
 echo "бинарник: $BIN"
@@ -60,3 +77,5 @@ if [ -n "$MISSING" ]; then
   exit 1
 fi
 echo "✅ движок в бинарнике: $COUNT символов psy_*, $SIZE байт"
+[ -n "$TMPDIR_UNZIP" ] && rm -rf "$TMPDIR_UNZIP"
+exit 0
