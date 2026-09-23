@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// стоит код поля, которого не видит ни сверка правил, ни сверка очков.
 void main() {
   late SharedState state;
+  var opens = 0;
 
   Future<void> open(WidgetTester tester, {int level = 1, Size? screen}) async {
     if (screen != null) {
@@ -21,7 +22,11 @@ void main() {
       if (level != 1) '${SharedState.prefix}object_tracker_level_nzt48': '$level',
     });
     state = await SharedState.open();
-    await tester.pumpWidget(MaterialApp(home: ObjectTrackerScreen(state: state)));
+    // Ключ на каждое открытие: иначе повторный pumpWidget переиспользует старое
+    // состояние экрана и проба меряет прошлую партию (поймано на «Быстром счёте»).
+    await tester.pumpWidget(MaterialApp(
+      home: ObjectTrackerScreen(key: ValueKey('открытие${opens += 1}'), state: state),
+    ));
     await tester.pump();
     await tester.pump();
   }

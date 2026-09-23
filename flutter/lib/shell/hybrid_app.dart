@@ -10,6 +10,7 @@ import '../games/one_line/screen.dart';
 import '../games/mahjong/screen.dart';
 import '../games/math_slider/screen.dart';
 import '../games/object_tracker/screen.dart';
+import '../games/quick_count/screen.dart';
 import '../games/schulte/screen.dart';
 import 'asset_server.dart';
 import 'shared_state.dart';
@@ -44,6 +45,7 @@ class HybridApp extends StatefulWidget {
         '/games/mahjong': (s) => MahjongScreen(state: s),
         '/games/math-slider': (s) => MathSliderScreen(state: s),
         '/games/object-tracker': (s) => ObjectTrackerScreen(state: s),
+        '/games/quick-count': (s) => QuickCountScreen(state: s),
         '/games/stroop': (s) => StroopScreen(state: s),
         '/games/flanker': (s) => FlankerScreen(state: s),
       };
