@@ -168,7 +168,7 @@
 | ☐ | `mahjong` | psygames-search-claude-mac | | |
 | ☐ | `math-slider` | psygames-search-claude-mac | | |
 | ☐ | `math-sprint` | psygames-search-claude-mac | | |
-| ☐ | `memory-palace` | psygames-memory-hearing-claude-mac | | |
+| ✅ | `memory-palace` | psygames-memory-hearing-claude-mac | 24.09 | нативно, перехват в гибриде; правила сверены с живым TS по 9 уровням и трём сыгранным партиям (эталон `flutter/test/fixtures/memory-palace-reference.json`), ДВЕ ветки случайности сохранены — маршрут крутит своя; места, предметы и подписи 12 языков в `assets/memory-palace.json`, зашитого текста ноль; раскладка перенесена числами `placeLayout.ts` — лента и сцена в одном экране (отчёт afa77c5a), имя предмета на уровнях 1–3 (отчёты NZT-48) |
 | ✅ | `mental-rotation` | psygames-spatial-claude-mac | 23.09 | нативно, перехват в гибриде; все 11 видов заданий, сверка с живым TS по 155 заданиям |
 | ☐ | `mnemonics` | psygames-warmup-claude-mac | | |
 | ☐ | `mnemonics-hub` | psygames-memory-hearing-claude-mac | | |

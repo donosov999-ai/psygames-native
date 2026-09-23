@@ -46,6 +46,7 @@ import 'asset_server.dart';
 import 'l10n.dart';
 import '../games/sorting_hub/screen.dart';
 import '../games/faces_names/screen.dart';
+import '../games/memory_palace/screen.dart';
 import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
@@ -149,6 +150,7 @@ class HybridApp extends StatefulWidget {
         '/games/targets': (s) => TargetsScreen(state: s),
         '/games/inhibition': (s) => InhibitionScreen(state: s),
         '/games/faces-names': (s) => FacesNamesScreen(state: s),
+        '/games/memory-palace': (s) => MemoryPalaceScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.

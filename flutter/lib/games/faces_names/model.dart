@@ -22,75 +22,25 @@ library;
 import 'dart:convert';
 import 'dart:math' as math;
 
+import '../../shell/js_compat.dart';
+
 const String facesNamesGeneratorVersion = 'faces-names-generator-v1';
 const int facesNamesLevels = 33;
 
 /* ─────────────────────────── случайность ─────────────────────────── */
 
-int _i32(int v) => v.toSigned(32);
-int _u32(int v) => v & 0xFFFFFFFF;
-int _imul(int a, int b) => _i32(_i32(a) * _i32(b));
+/// 🔴 СВОЕЙ АРИФМЕТИКИ ЗДЕСЬ НЕТ. FNV-1a, mulberry32, `Math.imul` и округление
+/// «половина вверх» уже лежат в `shell/js_compat.dart` — общем модуле для всех
+/// перенесённых игр. Вторая копия тех же тридцати строк разошлась бы с первой
+/// молча: одно зерно дало бы в двух играх разные партии.
 
-/// Округление КАК В JS: половина уходит вверх (к плюс бесконечности), а не
-/// «от нуля», как у Dart. Здесь все значения положительные, но правило
-/// записано явно — иначе первый же отрицательный аргумент разойдётся молча.
-num _jsRound(num v) => (v - v.floor()) >= 0.5 ? v.floor() + 1 : v.floor();
-
-double _round8(double value) => _jsRound(value * 100000000) / 100000000;
-
-int hashSeed(String seed) {
-  int hash = 0x811c9dc5;
-  for (final code in seed.codeUnits) {
-    hash = _i32(hash ^ code);
-    hash = _imul(hash, 0x01000193);
-  }
-  return _u32(hash);
-}
-
-/// Тот же генератор, что в вебе (`core/rng.ts`): один seed — одна партия на
-/// любом устройстве и в любой из двух половин приложения.
-class FacesNamesRng {
-  FacesNamesRng(String seed) : _state = hashSeed(seed) == 0 ? 1 : hashSeed(seed);
-
-  int _state;
-
-  double call() {
-    _state = _i32(_state);
-    _state = _i32(_state + 0x6d2b79f5);
-    int value = _imul(_state ^ (_u32(_state) >> 15), 1 | _state);
-    value = _i32(_i32(value + _imul(value ^ (_u32(value) >> 7), 61 | value)) ^ value);
-    return _u32(value ^ (_u32(value) >> 14)) / 4294967296;
-  }
-}
-
-String normalizeSeed(String seed) {
-  final normalized = seed
-      .trim()
-      .toLowerCase()
-      .replaceAll(RegExp(r'[\s_]+'), '-')
-      .replaceAll(RegExp(r'-{2,}'), '-')
-      .replaceAll(RegExp(r'^-|-$'), '');
-  return normalized.isEmpty ? 'faces-names' : normalized;
-}
-
-int randomInt(FacesNamesRng rng, int min, int max) {
-  if (max < min) throw RangeError('Invalid integer range: $min..$max');
-  return min + (rng() * (max - min + 1)).floor();
-}
-
-List<T> shuffleList<T>(FacesNamesRng rng, List<T> values) {
-  final result = [...values];
-  for (var index = result.length - 1; index > 0; index -= 1) {
-    final target = randomInt(rng, 0, index);
-    final tmp = result[index];
-    result[index] = result[target];
-    result[target] = tmp;
-  }
-  return result;
-}
-
-/// Устойчивая сортировка: при равных ключах сохраняется исходный порядок —
-/// как в JS. Без неё подбор вариантов расходится с вебом на том же seed.
+/// Устойчивая сортировка: при равных ключах сохраняется исходный порядок — как
+/// в JS, где `Array.prototype.sort` устойчива по стандарту, а в Dart нет.
+///
+/// ⚠️ ЭТО ГРАБЛИ ВСЕГО ПЕРЕЕЗДА, А НЕ ОДНОЙ ИГРЫ: любой подбор вида
+/// «перемешать, потом отсортировать по близости» молча даст другой результат.
+/// Место этой функции — в `shell/js_compat.dart`, рядом с остальной
+/// совместимостью; пока лежит здесь, потому что каркас не мой. Передано в канал.
 List<T> _stableSortBy<T>(List<T> items, double Function(T) key) {
   final indexed = <MapEntry<int, T>>[
     for (var i = 0; i < items.length; i += 1) MapEntry(i, items[i]),
@@ -404,16 +354,16 @@ double _meanPairSimilarity(
       count += 1;
     }
   }
-  return count == 0 ? 0 : _round8(total / count);
+  return count == 0 ? 0 : roundNumber(total / count);
 }
 
 List<Person> _chooseStudiedPeople(
-  FacesNamesRng rng,
+  Rng rng,
   FacesNamesLibrary lib,
   int count,
   double closeness,
 ) {
-  final shuffled = shuffleList(rng, lib.people);
+  final shuffled = shuffle(rng, lib.people);
   final chosen = <Person>[shuffled.first];
   final remaining = shuffled.sublist(1);
   while (chosen.length < count) {
@@ -439,7 +389,7 @@ List<Person> _chooseStudiedPeople(
 }
 
 List<Person> _chooseControlledPeople(
-  FacesNamesRng rng,
+  Rng rng,
   Person target,
   List<Person> candidates,
   int count,
@@ -448,14 +398,14 @@ List<Person> _chooseControlledPeople(
 ) {
   final desiredDistance = 0.88 - closeness * 0.72;
   final sorted = _stableSortBy(
-    shuffleList(rng, candidates),
+    shuffle(rng, candidates),
     (Person p) => (distance(target, p) - desiredDistance).abs(),
   );
   return sorted.take(count).toList();
 }
 
 List<String> _chooseControlledFacts(
-  FacesNamesRng rng,
+  Rng rng,
   FacesNamesLibrary lib,
   String targetFactId,
   int count,
@@ -464,19 +414,19 @@ List<String> _chooseControlledFacts(
   final desiredDistance = closeness >= 0.5 ? 0.2 : 0.9;
   final pool = lib.facts.where((f) => f.id != targetFactId).toList();
   final sorted = _stableSortBy(
-    shuffleList(rng, pool),
+    shuffle(rng, pool),
     (NeutralFact f) => (factDistance(lib, targetFactId, f.id) - desiredDistance).abs(),
   );
   return [for (final f in sorted.take(count)) f.id];
 }
 
-List<InterferencePrompt> _createInterferencePrompts(FacesNamesRng rng, int count) {
+List<InterferencePrompt> _createInterferencePrompts(Rng rng, int count) {
   return [
     for (var index = 0; index < count; index += 1) _interferencePrompt(rng, index),
   ];
 }
 
-InterferencePrompt _interferencePrompt(FacesNamesRng rng, int index) {
+InterferencePrompt _interferencePrompt(Rng rng, int index) {
   final left = randomInt(rng, 1, 9);
   final right = randomInt(rng, 1, 9);
   final answer = left + right;
@@ -491,7 +441,7 @@ InterferencePrompt _interferencePrompt(FacesNamesRng rng, int index) {
     left: left,
     right: right,
     answer: answer,
-    options: shuffleList(rng, options.toList()),
+    options: shuffle(rng, options.toList()),
   );
 }
 
@@ -500,9 +450,9 @@ FacesNamesPuzzle generateFacesNamesPuzzle(
   String seed,
   int requestedLevel,
 ) {
-  final normalizedSeed = normalizeSeed(seed);
+  final normalizedSeed = normalizeSeed(seed, 'faces-names');
   final level = math.max(1, requestedLevel.floor());
-  final rng = FacesNamesRng('$normalizedSeed:$level:$facesNamesGeneratorVersion');
+  final rng = createRng('$normalizedSeed:$level:$facesNamesGeneratorVersion');
   final closeness = _clamp((level - 1) / 32, 0, 1);
   final studiedPeople = _chooseStudiedPeople(rng, lib, personCountForLevel(level), closeness);
   final studiedIds = {for (final p in studiedPeople) p.id};
@@ -510,7 +460,7 @@ FacesNamesPuzzle generateFacesNamesPuzzle(
   final nameOptionCount = recognitionOptionCount;
   final factRecallEnabled = level >= 8;
   final immediateRecall = level <= 4;
-  final trialTargets = level >= 5 ? shuffleList(rng, studiedPeople) : [...studiedPeople];
+  final trialTargets = level >= 5 ? shuffle(rng, studiedPeople) : [...studiedPeople];
   final peopleById = <String, Person>{for (final p in studiedPeople) p.id: p};
   var recognitionSimilarityTotal = 0.0;
   var recognitionDistractorCount = 0;
@@ -542,7 +492,7 @@ FacesNamesPuzzle generateFacesNamesPuzzle(
       recognitionDistractorCount += 1;
     }
     final factIds = factRecallEnabled
-        ? shuffleList(rng, <String>[
+        ? shuffle(rng, <String>[
             target.factId,
             ..._chooseControlledFacts(rng, lib, target.factId, nameOptionCount - 1, closeness),
           ])
@@ -551,8 +501,8 @@ FacesNamesPuzzle generateFacesNamesPuzzle(
       id: 'trial-$index',
       targetPersonId: target.id,
       recognitionPersonIds:
-          shuffleList(rng, <String>[target.id, ...recognitionDistractors.map((p) => p.id)]),
-      namePersonIds: shuffleList(rng, <String>[target.id, ...nameDistractors.map((p) => p.id)]),
+          shuffle(rng, <String>[target.id, ...recognitionDistractors.map((p) => p.id)]),
+      namePersonIds: shuffle(rng, <String>[target.id, ...nameDistractors.map((p) => p.id)]),
       factIds: factIds,
     ));
   }
@@ -562,9 +512,9 @@ FacesNamesPuzzle generateFacesNamesPuzzle(
   final meanNameSimilarity = _meanPairSimilarity(studiedPeople, nameDistance);
   final meanRecognitionDistractorSimilarity = recognitionDistractorCount == 0
       ? 0.0
-      : _round8(recognitionSimilarityTotal / recognitionDistractorCount);
+      : roundNumber(recognitionSimilarityTotal / recognitionDistractorCount);
   final difficulty = _clamp(
-    _jsRound(5 +
+    jsRound(5 +
             studiedPeople.length * 4 +
             interferenceCount * 3 +
             recognitionOptionCount * 3 +
@@ -908,23 +858,23 @@ FacesNamesMetrics scoreFacesNames(
       (nameRecallTotal - nameRecallCorrect) +
       (factRecallTotal - factRecallCorrect);
   return FacesNamesMetrics(
-    accuracy: _round8(accuracy),
-    durationMs: math.max(0, _jsRound(durationMs).toInt()),
+    accuracy: roundNumber(accuracy),
+    durationMs: math.max(0, jsRound(durationMs.toDouble()).toInt()),
     difficulty: puzzle.difficulty,
     errors: wrongRecall + invalidInteractions,
-    score: _jsRound(accuracy * 100).toInt(),
+    score: jsRound(accuracy * 100).toInt(),
     seed: puzzle.seed,
     level: puzzle.level,
     personCount: puzzle.studiedPersonIds.length,
     faceRecognitionCorrect: faceRecognitionCorrect,
     faceRecognitionTotal: faceRecognitionTotal,
-    faceRecognitionAccuracy: _round8(faceRecognitionAccuracy),
+    faceRecognitionAccuracy: roundNumber(faceRecognitionAccuracy),
     nameRecallCorrect: nameRecallCorrect,
     nameRecallTotal: nameRecallTotal,
-    nameRecallAccuracy: _round8(nameRecallAccuracy),
+    nameRecallAccuracy: roundNumber(nameRecallAccuracy),
     factRecallCorrect: factRecallCorrect,
     factRecallTotal: factRecallTotal,
-    factRecallAccuracy: factRecallAccuracy == null ? null : _round8(factRecallAccuracy),
+    factRecallAccuracy: factRecallAccuracy == null ? null : roundNumber(factRecallAccuracy),
     interferenceRounds: puzzle.interferencePrompts.length,
     interferenceCorrect:
         math.max(0, math.min(puzzle.interferencePrompts.length, interferenceCorrect)),

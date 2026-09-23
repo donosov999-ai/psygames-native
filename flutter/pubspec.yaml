@@ -78,6 +78,7 @@ flutter:
     - assets/levels/
     - assets/hubs.json
     - assets/faces-names.json
+    - assets/memory-palace.json
     - assets/words/
     - assets/l10n/
     - assets/puzzles/
