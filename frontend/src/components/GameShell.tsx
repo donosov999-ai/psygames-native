@@ -13,10 +13,10 @@
  *
  *     ⚠️ И у этого постоянного места должен быть ПОСТОЯННЫЙ СМЫСЛ, чего сперва
  *     не было: полоса называлась «тулбар действий», и туда клали и ответ игрока,
- *     и служебное. Теперь низ — ТОЛЬКО ответ, служебное — только в шапке
- *     (`headerActions`); граница и доводы разобраны в комментарии к обоим
- *     слотам ниже, кнопка служебного действия одна на всё приложение —
- *     `components/GameAuxAction`.
+ *     и служебное. Теперь низ — ТОЛЬКО ответ; служебное — одним рядом значков
+ *     ПОД ПОЛЕМ (`headerActions`; решение Дениса 17.09.2026, до того — шапка).
+ *     Граница и доводы разобраны в комментарии к слотам ниже, кнопка служебного
+ *     действия одна на всё приложение — `components/GameAuxAction`.
  *  2. Скроллящееся поле — ПРОП `scrollableField`, а не второй компонент:
  *     10 игр (mnemonics, counter, cloze, lexical-decision, proofreading,
  *     semantic-sort, schulte, targets, vocab-srs, word-pairs) держат длинный
@@ -60,15 +60,16 @@ import { useLanguage } from '@/src/contexts/LanguageContext';
 import { useWarmupSafe } from '@/src/contexts/WarmupContext';
 import { имяШага } from '@/src/services/stepName';
 import { isRTLLang } from '@/src/services/rtl';
-import { GameAuxAction } from '@/src/components/GameAuxAction';
+import { GameAuxAction, GameAuxBar, РядЗначков } from '@/src/components/GameAuxAction';
 import { FEEDBACK_OPEN_EVENT, FEEDBACK_ENABLED } from '@/src/services/appFeedback';
 import { текущаяЛестница } from '@/src/services/levelRegistry';
 import { router } from 'expo-router';
 import { onGameHold, isGameHeld, holdGame, onPauseMenuRequest } from '@/src/services/gamePause';
 import { immersiveCapable, onImmersiveCapable, immersiveEnabled, setImmersiveEnabled, onImmersivePref } from '@/src/services/immersive';
+import { useImmersive } from '@/src/hooks/useImmersive';
 import { announce } from '@/src/services/a11y';
 import { useExitGuard } from '@/src/hooks/useExitGuard';
-import { HELP_CORNER_SPACE, HELP_CORNER_RESERVE } from '@/src/components/GameHelpOverlay';
+import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 import { ПОЛОСА_ПОКАЗАТЕЛЕЙ } from '@/src/components/gameLayout';
 
 /** Один счётчик в шапке: что показать и каким тоном. */
@@ -281,6 +282,10 @@ export interface GameShellProps {
    * нет, низ отдаётся служебному. Смешения в одной игре по-прежнему не бывает —
    * это и был смысл запрета. Явное объявление вместо угадывания по наличию
    * пропа: игра говорит, что у неё внизу.
+   *
+   * ⚠️ 17.09.2026: служебное больше НЕ уезжает в прибитый низ экрана — у всех игр оно
+   * одним рядом значков сразу под полем (см. `headerActions`). `bottom="actions"`
+   * теперь значит одно: «ответа кнопками нет, нижней полосы нет».
    */
   bottom?: 'answer' | 'actions';
   title: string;
@@ -312,6 +317,26 @@ export interface GameShellProps {
    */
   onRestart?: () => void;
   /**
+   * 🔴 «НАЧАТЬ ЗАНОВО» — ЕЩЁ И ЗНАЧКОМ В РЯДУ ПОД ПОЛЕМ (Денис 17.09.2026: «по 20 играм — да»).
+   *
+   * Каркас берёт пункт паузы игры (`pauseActions`, id `restart`, или `onRestart`) и ставит его значком
+   * в ряд служебных под полем — рядом с отменой и подсказками, как у головоломок и «Точек». Один
+   * источник, два места. Если в партии есть что терять (`confirmExit`), значок сначала спрашивает
+   * «Начать заново?» (урок отчёта a0b6d77f: одно касание у соседней кнопки стирало серию зарядки).
+   *
+   * ⚠️ `false` — у экрана «Заново» уже стоит в СВОЁМ ряду под доской (головоломки), иначе значков будет два.
+   */
+  auxRestart?: boolean;
+  /**
+   * 🔴 ПОЛНЫЙ ЭКРАН — У ВСЕХ ИГР НА КАРКАСЕ (решение Дениса 17.09.2026: «да, делай на все, как дешевле по объёму
+   * работ»; режим проверен им на телефоне в «Числовом забеге»). Пока экран игры открыт, панели телефона спрятаны;
+   * пауза, отзыв поверх игры и сворачивание возвращают их (`useImmersive`). В меню паузы у всех пункт «Не скрывать
+   * панели телефона». Замер цены: на Android тестировщицы (384×784 при плотности 2,8125, экран 832) панели
+   * забирали 48 точек высоты.
+   * `false` — экрану панели нужны (сейчас таких нет); тогда нет и пункта в меню паузы.
+   */
+  immersive?: boolean;
+  /**
    * 🔴 Д6 «ЗАКОНЧИТЬ И ЗАПИСАТЬ» — доиграть досрочно так, чтобы партия ЗАСЧИТАЛАСЬ.
    * Сейчас выход из длинной партии означает, что её не было вовсе.
    *
@@ -329,9 +354,9 @@ export interface GameShellProps {
    * и уйдёшь без шансов». Замер того дня: решение или подсказку имели 7 экранов из 79,
    * и каждый рисовал кнопку сам.
    *
-   * Игра даёт обработчик — каркас ставит кнопку-лампочку в конце поля, под доской
-   * (тот же `GameAuxAction`, что у головоломок), и тот же пункт в меню паузы. Один
-   * источник — два места. ЧТО показать, решает игра: ответ решателя, верную
+   * Игра даёт обработчик — каркас ставит кнопку-лампочку ПОСЛЕДНЕЙ в ряд служебных
+   * значков под полем (тот же `GameAuxAction`, что у головоломок), и тот же пункт в меню
+   * паузы. Один источник — два места. ЧТО показать, решает игра: ответ решателя, верную
    * последовательность последней пробы, разбор ответа.
    *
    * ⚠️ `available: false` — кнопка остаётся на месте, но выключена: спрятанная кнопка
@@ -339,8 +364,8 @@ export interface GameShellProps {
    * паузы недоступный пункт не показывается.
    * ⚠️ Правило счёта общее: показал решение — уровень не засчитан. Отмечает это игра
    * (у головоломок `solver_used`), каркас счёта не знает.
-   * ⚠️ Кнопка занимает строку в поле. Экран, считающий высоту поля своими числами
-   * (например «Корректура», `сеткаКорректуры`), при подключении должен её учесть.
+   * ⚠️ Кнопка занимает строку под полем (ряд служебных значков, 56 pt). Экран, считающий
+   * высоту поля своими числами (например «Корректура», `сеткаКорректуры`), учитывает её.
    */
   solution?: { onPress: () => void; available?: boolean; label?: string };
   /**
@@ -355,44 +380,31 @@ export interface GameShellProps {
    */
   frame?: { stats: number; actions: number; toolbar: number };
   /**
-   * 🔴 СЛУЖЕБНЫЕ действия — ВСЕГДА здесь, под счётчиками. Кладут `GameAuxBar`
-   * с кнопками `GameAuxAction`: подсказка, отмена хода, перетасовка, повтор
-   * задания, «СТОП».
+   * 🔴 СЛУЖЕБНЫЕ действия — ОДНИМ РЯДОМ ЗНАЧКОВ ПОД ПОЛЕМ, рядом с «Отменить» и «Начать заново».
    *
-   * ⚠️ ЗДЕСЬ БЫЛО НАПИСАНО ДРУГОЕ, И ИМЕННО ЭТО РАЗЪЕХАЛОСЬ. Правило звучало
-   * «наверх уносят игры со СВОЕЙ клавиатурой (судоку), остальным низ свободен —
-   * пусть кладут в toolbar». Это описывало не смысл, а обстоятельство: «наверх,
-   * если внизу не помещается». Обстоятельство и породило беду — замер аудита по
-   * 43 играм с нижней полосой: примерно в 17 там ОТВЕТ игрока (← → во фланкере,
-   * Познере, ANT, Саймоне; «Слово/Не слово»; «Накачать/Забрать»), а примерно в
-   * 8 — СЛУЖЕБНОЕ («Отменить» в ханое и башне Лондона, «Перемешать» в маджонге
-   * и сортировке, «СТОП» в дыхании, CPT, PRL, глаз-разрядке). Человек учится во
-   * «Фланкере», что нижняя полоса — это его ответ, и в маджонге бьёт туда же —
-   * а там «Перемешать», которого на уровень всего три.
+   * Кладут `GameAuxBar` с кнопками `GameAuxAction`: подсказка, отмена хода, перетасовка, повтор
+   * задания, «СТОП». Каркас сам ставит их ряд значков под полем (`game-aux-row`): compact-значками,
+   * одной строкой (перенос — только когда в ширину не встают), лампочка `solution` — последней.
+   * Те же кнопки каркас копирует в меню паузы.
    *
-   * НОВОЕ ПРАВИЛО — ПО СМЫСЛУ, А НЕ ПО СВОБОДНОМУ МЕСТУ:
+   * 📍 РЕШЕНИЕ ДЕНИСА 17.09.2026, по кадру «Соедини точки» 375×667, где «Открыть одну пару» и
+   * «Показать решение» стояли подписанными пилюлями ДВУМЯ рядами над полем: «их место снизу
+   * иконками под окном упражнения, рядом с „Отменить“ и „Начать заново“… это надо везде такое
+   * правило делать». Приёмка 16.09.2026 (CHATS_RULES §4б п.4) говорит то же: «вниз под полем —
+   * элементы управления». Образец — ряд значков головоломок (`рядКоманд`) и лаборатории.
    *
-   *   низ (`toolbar`)         = ОТВЕТ игрока на текущее задание, и ничего кроме;
-   *   шапка (`headerActions`) = всё, что трогает ИГРУ помимо ответа.
+   * ⚠️ ЧТО БЫЛО И ЧТО ИЗ ЭТОГО СОХРАНЕНО. С 19.08.2026 здесь стояло «служебное — ВСЕГДА в шапке»:
+   * низ (`toolbar`) = ОТВЕТ игрока, и человек, натренированный «Фланкером» бить по низу, не должен
+   * попадать в маджонге в «Перемешать», которого три на уровень. Этот довод остаётся в силе:
+   * `toolbar` по-прежнему только ответ, а служебный ряд стоит не в нём, а сразу под полем и другим
+   * видом — круглые значки, а не прямоугольные кнопки ответа. Снята ШАПКА как место. У одного
+   * действия было три места и три вида: ряд над полем, полоса счётчиков (`auxInHud`), прибитый
+   * низ (`bottom="actions"`). Ряд над полем отнимал у доски 54 pt, а подписи в два ряда — ~130 pt.
    *
-   * Служебное едет наверх ВСЕГДА — не только когда низ занят ответом. Правило
-   * «не смешивать на одном экране» починило бы два экрана из сорока трёх и
-   * оставило бы главное: полоса всё равно значила бы в разных играх разное, и
-   * рефлекс, натренированный одной игрой, в другой тратил бы ресурс.
-   *
-   * ⚠️ ДОВОД ПРОТИВ ВЗВЕШЕН, А НЕ ОТБРОШЕН. Низ ближе к большому пальцу, и
-   * унося «Отменить» наверх, мы делаем действие дальше. Но близость к пальцу —
-   * преимущество для действия, которое хочешь совершить, и ЛОВУШКА для того,
-   * которое не хочешь. Ни одно перенесённое действие не частое: перетасовка —
-   * 3 за уровень, подсказка — по счётчику, отмена — на ошибках, «СТОП» — один
-   * раз за сеанс. Зато каждое тратит ресурс или обрывает партию. Острее всего
-   * это в CPT: человек полторы минуты лупит по окну стимула на скорость, а
-   * нижняя полоса под ним заканчивает сеанс. Дешёвый доступ к дорогому
-   * действию — не удобство.
-   *
-   * Побочно перенос отдаёт полю место: в маджонге две служебные пилюли не
-   * влезали в ряд (`flexWrap` + отступ под кнопку фидбека) и занимали ДВЕ
-   * строки нижней полосы — 180 px, отобранных у доски.
+   * ⚠️ ИСКЛЮЧЕНИЕ — `frame` (плейлист «Пространства»): слот над полем фиксированной высоты
+   * остаётся, в нём «Мысленное вращение» пишет вид задания подписью, а не действием.
+   * Реестр «что у игры в ряду под полем» — `src/__tests__/slot-meaning.test.ts`, живая проверка
+   * «нарисовано ли и где» — `scripts/slot-audit.mjs`.
    */
   /**
    * Питомец в шапке — реакция игры на действие (см. `GamePet`).
@@ -402,6 +414,10 @@ export interface GameShellProps {
   pet?: PetMood;
   headerActions?: React.ReactNode;
   /**
+   * ⛔ С 17.09.2026 НЕ ДЕЙСТВУЕТ: служебное у всех игр стоит одним рядом значков под полем
+   * (см. `headerActions`). Проп оставлен, чтобы шесть экранов не правились разом, значение
+   * игнорируется. Ниже — история, почему он был заведён.
+   *
    * 🔴 ЕДИНСТВЕННОЕ СЛУЖЕБНОЕ ДЕЙСТВИЕ — В ПОЛОСУ СЧЁТЧИКОВ, А НЕ ТРЕТЬИМ РЯДОМ.
    *
    * 📍 ПОВОД — SPEC_SCREEN_GEOMETRY.md (11.09.2026): канон `ВЕРХ_ПОЛЯ = 119`
@@ -443,7 +459,7 @@ export interface GameShellProps {
    * ⚠️ Служебному действию здесь не место — см. `headerActions`. Реестр
    * «в этой игре низ = ответ / низ пуст» с обоснованием каждой строки:
    * `src/__tests__/slot-meaning.test.ts`; живая проверка того, что кнопка не
-   * только написана, но и нарисована в шапке — `scripts/slot-audit.mjs`.
+   * только написана, но и нарисована в ряду под полем — `scripts/slot-audit.mjs`.
    */
   toolbar?: React.ReactNode;
   /** Слот справа в шапке (обычно «?»-справка). */
@@ -593,18 +609,32 @@ function domesticate(
   return свои.map((a) => (a.leave && a.label === домой ? { ...a, label: t('pauseExitGame') } : a));
 }
 
+/**
+ * Порядок ряда служебных — как у образцов («Точки», головоломки): отменить, ЗАНОВО, потом подсказки.
+ * Значок «Заново» встаёт сразу после «Отменить» (значок `arrow-undo`) внутри `GameAuxBar` игры; нет отмены —
+ * первым в ряду. В чужую разметку (свои кнопки судоку) не лезем: клонирование произвольного дерева сменило бы
+ * ключи и пересоздало бы состояние кнопок — там «Заново» просто первый.
+ */
+function служебныеСЗаново(узел: React.ReactNode, значок: React.ReactElement | null): React.ReactNode {
+  if (!значок) return узел;
+  const вставить = (бар: React.ReactElement): React.ReactElement | null => {
+    const дети = React.Children.toArray((бар.props as { children?: React.ReactNode }).children);
+    const i = дети.findIndex((д) => React.isValidElement(д) && д.type === GameAuxAction && (д.props as { icon?: string }).icon === 'arrow-undo');
+    if (i < 0) return null;
+    return React.cloneElement(бар, undefined, ...дети.slice(0, i + 1), значок, ...дети.slice(i + 1));
+  };
+  if (React.isValidElement(узел) && узел.type === GameAuxBar) {
+    const со = вставить(узел);
+    if (со) return со;
+  }
+  return <>{значок}{узел}</>;
+}
+
 export default function GameShell({
-  title, onBack, stats, hud, mods, bottom, headerActions, auxInHud, toolbar, headerRight, scrollableField, reserveUnderFab, solution, overlay, pet, pauseActions, onRestart, onFinishEarly, frame,
+  title, onBack, stats, hud, mods, headerActions, toolbar, headerRight, scrollableField, reserveUnderFab, solution, overlay, pet, pauseActions, onRestart, auxRestart, immersive, onFinishEarly, frame,
   confirmExit, resumable, onSaveBeforeExit, children,
 }: GameShellProps) {
 
-  /**
-   * Служебное действие рисуется ВНУТРИ полосы счётчиков (см. `auxInHud`).
-   * `frame` не трогаем: в режиме замера каркас рисует слоты фиксированной
-   * высоты, и прятать ряд там значило бы мерить не то, что рисуется.
-   * При `bottom="actions"` ряд и так уезжает вниз — вмешиваться незачем.
-   */
-  const рядВПолосе = Boolean(auxInHud && headerActions && !frame && bottom !== 'actions');
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   // RTL: стрелка «назад» смотрит вправо, отступ под кнопку фидбека зеркалится
@@ -674,6 +704,15 @@ export default function GameShell({
   }), []);
   const [paused, setPaused] = React.useState(isGameHeld());
   /**
+   * Вопрос из ряда значков под полем: «Начать заново?» (при `confirmExit`) или «Остановить упражнение?» (у «СТОП»,
+   * см. `РядЗначков`). Пока висит — игра на паузе.
+   */
+  const [вопросРяда, setВопросРяда] = React.useState<null | { заголовок: string; тело?: string; кнопка: string; действие: () => void }>(null);
+  React.useEffect(() => (вопросРяда ? holdGame() : undefined), [вопросРяда]);
+  const контекстРяда = React.useMemo(() => ({
+    спросить: (подпись: string, действие: () => void) => setВопросРяда({ заголовок: t('stopConfirmTitle'), кнопка: подпись, действие }),
+  }), [t]);
+  /**
    * Отражение звука в меню паузы. Служба хранит флаг в модуле, а не в состоянии
    * React, поэтому подпись кнопки надо пересчитывать — иначе она врёт после нажатия.
    *
@@ -683,14 +722,19 @@ export default function GameShell({
    */
   const [щелчокТишины, дёрнутьТишину] = React.useReducer((x: number) => x + 1, 0);
   /**
-   * Полноэкранный режим в меню паузы — только у игры, объявившей его через
-   * `useImmersive` (сейчас «Числовой забег»). Выбор живёт в службе, как и звук:
+   * Полноэкранный режим: каркас сам объявляет его для любой игры (`immersive`, по умолчанию да) — хук стоит ДО
+   * любого раннего return. Пункт в меню паузы — у экрана, объявившего режим. Выбор живёт в службе, как и звук:
    * здесь только повод перерисовать подпись после нажатия.
    */
   const [полноэкранныйДоступен, setПолноэкранныйДоступен] = React.useState(immersiveCapable());
   const [щелчокЭкрана, дёрнутьЭкран] = React.useReducer((x: number) => x + 1, 0);
   React.useEffect(() => onImmersiveCapable(setПолноэкранныйДоступен), []);
   React.useEffect(() => onImmersivePref(дёрнутьЭкран), []);
+  /**
+   * ⚠️ ХУК — ПОСЛЕ ПОДПИСОК ВЫШЕ. Эффекты идут в порядке объявления: объявление режима, стоящее раньше подписки
+   * на него, прозвучало бы в пустоту, и пункт в меню паузы не появился бы (поймано пробой меню паузы 17.09.2026).
+   */
+  useImmersive(immersive !== false, immersive !== false);
   const тихо = !звукВключён() && !hapticEnabledNow();
   React.useEffect(() => onGameHold((v) => {
     setPaused(v);
@@ -991,18 +1035,62 @@ export default function GameShell({
    *
    * ⚠️ Только у экранов с `reserveUnderFab` — почему не у всех, записано у пропа.
    */
-  /** Кнопка «Показать решение» в конце поля — см. проп `solution`. */
-  const рядРешения = solution ? (
-    <View testID="game-solution-row" style={styles.solutionRow}>
-      <GameAuxAction
-        compact
-        icon="bulb-outline"
-        tint="#d97706"
-        label={solution.label ?? t('puzzleShowSolution')}
-        disabled={solution.available === false}
-        onPress={solution.onPress}
-      />
-    </View>
+  /**
+   * 🔴 РЯД СЛУЖЕБНЫХ ЗНАЧКОВ ПОД ПОЛЕМ — всё из `headerActions` и лампочка `solution`, одной строкой
+   * (решение Дениса 17.09.2026, разбор у пропа `headerActions`).
+   *
+   * Внутри ряда `GameAuxAction` рисуется compact-значком САМА (контекст `РядЗначков`), а `GameAuxBar`
+   * не заводит своей коробки: иначе значки игры и лампочка каркаса встали бы двумя группами, а
+   * подписанные пилюли — двумя рядами, ровно как на кадре, с которого всё началось.
+   *
+   * 🔴 РЯД ПРИБИТ СРАЗУ ПОД ПОЛЕМ — В ОБОИХ ВИДАХ ПОЛЯ, а не дописан в конец содержимого.
+   * Первая редакция 17.09.2026 ставила его в конец содержимого обычного поля («как у головоломок»). Обход
+   * всех 81 экрана на экспорте показал, чем это кончается: у экранов, чьё содержимое и так занимает всё
+   * поле («Найди отличия», «Шульте», «Поиск цели» — размеры от окна), значок «Заново» уехал ниже края
+   * окна на 22–28 pt при 360×640 и на 28 pt у «Найди отличия» при 390×844 — нажать нечем. Прибитый ряд виден
+   * всегда, а поле уступает ему высоту: экраны, что меряют поле, подстраиваются сами. То же у прокручиваемого
+   * поля: конец длинного содержимого за краем экрана, и значки пришлось бы искать прокруткой. Это и есть
+   * «одно место»: как нижняя полоса ответа, ряд не зависит от высоты содержимого.
+   */
+  const служебные = frame ? null : headerActions;
+  /** «Начать заново» в ряд — из пункта паузы игры или `onRestart` (см. проп `auxRestart`). */
+  const пунктЗаново = (pauseActions ?? []).find((a) => a.id === 'restart' && typeof a.onPress === 'function' && !a.disabled);
+  const заново: { label: string; icon: PauseAction['icon']; onPress: () => void } | null = frame || auxRestart === false
+    ? null
+    : пунктЗаново
+      ? { label: пунктЗаново.label, icon: пунктЗаново.icon, onPress: пунктЗаново.onPress! }
+      : onRestart ? { label: t('restart'), icon: 'refresh', onPress: onRestart } : null;
+  const рядСлужебных = служебные || solution || заново ? (
+    <РядЗначков.Provider value={контекстРяда}>
+      <View
+        testID="game-aux-row"
+        style={[styles.auxRow, { paddingHorizontal: PAD_H, paddingBottom: toolbar ? PAD_V : PAD_V + bottomSafe }]}
+      >
+        {служебныеСЗаново(служебные, заново ? (
+          <GameAuxAction
+            key="aux-restart"
+            icon={заново.icon}
+            label={заново.label}
+            onPress={() => {
+              if (!confirmExit) { заново.onPress(); return; }
+              setВопросРяда({ заголовок: t('restartConfirmTitle'), тело: t('exitConfirmLost'), кнопка: заново.label, действие: заново.onPress });
+            }}
+          />
+        ) : null)}
+        {solution ? (
+          <View testID="game-solution-row">
+            <GameAuxAction
+              compact
+              icon="bulb-outline"
+              tint="#d97706"
+              label={solution.label ?? t('puzzleShowSolution')}
+              disabled={solution.available === false}
+              onPress={solution.onPress}
+            />
+          </View>
+        ) : null}
+      </View>
+    </РядЗначков.Provider>
   ) : null;
 
   const field = scrollableField ? (
@@ -1010,7 +1098,7 @@ export default function GameShell({
       ref={fieldScrollRef}
       testID="game-field"
       style={[styles.fieldScroll, безОттяжки]}
-      contentContainerStyle={[styles.fieldScrollContent, toolbar ? null : { paddingBottom: 8 + bottomSafe + применённыйЗапас }]}
+      contentContainerStyle={[styles.fieldScrollContent, toolbar ? null : { paddingBottom: 8 + (рядСлужебных ? 0 : bottomSafe) + применённыйЗапас }]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       scrollEnabled={переполнено}
@@ -1023,19 +1111,17 @@ export default function GameShell({
       <ВысотаПоляКаркаса.Provider value={доступноПолю}>
         {children}
       </ВысотаПоляКаркаса.Provider>
-      {рядРешения}
     </ScrollView>
   ) : (
     <View
       testID="game-field"
-      style={[styles.field, toolbar ? null : { paddingBottom: bottomSafe }, безПрокрутки]}
+      style={[styles.field, toolbar || рядСлужебных ? null : { paddingBottom: bottomSafe }, безПрокрутки]}
       onLayout={(ev) => {
         const { width: w, height: h } = ev.nativeEvent.layout;
         setFieldBox((prev) => (Math.abs(prev.w - w) > 8 || Math.abs(prev.h - h) > 8 ? { w, h } : prev));
       }}
     >
       {children}
-      {рядРешения}
       <ScorePopupLayer popups={popups} />
     </View>
   );
@@ -1356,7 +1442,7 @@ export default function GameShell({
         * вёрсткой из `stats`. Так перевод 72 игр идёт по одной, а вид у всех
         * меняется отсюда.
         */}
-      <View testID="game-hud" style={[styles.statsOuter, рядВПолосе ? styles.statsOuterRow : null]}>
+      <View testID="game-hud" style={styles.statsOuter}>
         {/**
           * Единая ПЛАШКА тулбара: у эталона жанра маскот и все счётчики сидят в
           * одной скруглённой панели, и она одинакова на каждом экране. У нас же
@@ -1431,100 +1517,26 @@ export default function GameShell({
             {stats}
           </View>
         </View>
-        {/**
-          * Служебное действие ВНУТРИ полосы — рядом с плашкой, а не рядом ниже.
-          * Разбор и замеры свободной ширины — в шапке пропа `auxInHud`.
-          * `testID` прежний (`game-header-actions`): живой аудит слотов
-          * (`scripts/slot-audit.mjs`) ищет кнопку по нему и не должен потерять
-          * её только оттого, что она переехала на 54 пикселя выше.
-          */}
-        {рядВПолосе ? (
-          /**
-           * 🔴 КНОПКА НЕ ДОЛЖНА ЗАЕЗЖАТЬ ПОД СКВОЗНОЙ УГОЛ (питомец + «Правила»).
-           *
-           * Угловой ряд висит ПОВЕРХ любого экрана и рисуется абсолютно, поэтому
-           * вёрстка полосы о нём не знает и спокойно кладёт служебную кнопку под
-           * него. Замер 16.09.2026, окно 375×812, статика от 12.09: у всех ЧЕТЫРЁХ
-           * экранов с `auxInHud` кнопка лежала под питомцем — «Тоны китайского»
-           * 76×25 под спрайтом и 38×13 под самой кнопкой «Правила», то есть палец
-           * в правый верхний угол кнопки открывал правила вместо повтора звука.
-           * Контроль с известным ответом: `pseudoword-echo` — тот же раздел, та же
-           * кнопка повтора, но БЕЗ `auxInHud` — перекрытий ноль. Значит виноват
-           * режим, а не экраны и не питомец.
-           *
-           * Отводим ПОЛНОЕ расстояние до края (`HELP_CORNER_RESERVE` = ширина ряда
-           * плюс его собственный отступ). Одной ширины мало: ряд не прижат к краю,
-           * и промах был бы ровно на эти 4 px.
-           *
-           * ⚠️ Минус `PAD_H`: полоса уже отступает от края на эти десять пикселей,
-           * и без вычитания кнопка потеряла бы их дважды. Ширина у неё и так в
-           * обрез — «Повторить» на «Тонах» занимает 124 px из 355 доступных.
-           */
-          <View
-            testID="game-header-actions"
-            style={[styles.auxInHud, rtl ? { marginLeft: HELP_CORNER_RESERVE - PAD_H } : { marginRight: HELP_CORNER_RESERVE - PAD_H }]}
-          >
-            {headerActions}
-          </View>
-        ) : null}
       </View>
 
-      {/* testID — якорь для живого аудита слотов (`scripts/slot-audit.mjs`):
-          он ходит по собранному приложению и смотрит, в КАКОЙ из двух зон
-          реально нарисована служебная кнопка. Проверка «написано ли» в
-          исходнике такое не ловит: в SET бейдж был написан, переведён на 12
-          языков, покрыт гейтом — и не показывался ни разу. */}
       {/**
-        * 🔴 ПЕРЕКЛЮЧАТЕЛЬ НИЖНЕЙ ПОЛОСЫ ЗАЛОЖЕН, НО НЕ ВКЛЮЧЁН НИ У КОГО.
-        *
-        * Решение Дениса 02.09.2026: «нижний тоже заложи». Игра, объявившая
-        * `bottom="actions"`, отдаёт свои служебные кнопки ВНИЗ — туда, где они
-        * у эталона жанра. Одна строка в игре, а не переезд вёрстки.
-        *
-        * ⚠️ ВКЛЮЧАТЬ ПО ОДНОЙ И ВМЕСТЕ С РЕЕСТРОМ. Правило «низ = ответ игрока»
-        * защищено гейтом `slot-meaning.test.ts`, где у каждой игры записано,
-        * что у неё внизу и почему. Переключить игру, не обновив её строку в
-        * реестре, — значит сломать проверку, которая ловит настоящую беду:
-        * человек, натренированный «Фланкером» бить по низу, попадает в
-        * «Перемешать», которого три на уровень.
-        *
-        * Уточнение правила: низ принадлежит ОТВЕТУ; там, где ответ даётся
-        * тапом по полю (сортировка, судоку, маджонг, ханой), низ свободен и
-        * достаётся служебному. Смешения в ОДНОЙ игре по-прежнему нет.
+        * 🔴 НАД ПОЛЕМ СЛОТ ОСТАЁТСЯ ТОЛЬКО У ПЛЕЙЛИСТА (`frame`): там его высота задана числом, чтобы
+        * поле не прыгало между упражнениями, и в нём подпись задания, а не действия. Служебные
+        * действия всех остальных — рядом значков под полем (`game-aux-row`, см. `headerActions`).
+        * `testID` прежний: по нему живой аудит слотов (`scripts/slot-audit.mjs`) проверяет, что над
+        * полем служебных кнопок НЕТ.
         */}
-      {(headerActions || frame) && bottom !== 'actions' && !рядВПолосе ? (
+      {frame ? (
         <View
           testID="game-header-actions"
-          style={[
-            styles.headerActions,
-            { borderBottomColor: colors.border },
-            frame ? { height: frame.actions, flexShrink: 0, justifyContent: 'center' } : null,
-          ]}
+          style={[styles.headerActions, { borderBottomColor: colors.border, height: frame.actions, flexShrink: 0, justifyContent: 'center' }]}
         >
           {headerActions}
         </View>
       ) : null}
 
       {field}
-
-      {headerActions && bottom === 'actions' ? (
-        <View
-          testID="game-bottom-actions"
-          style={[
-            styles.toolbar,
-            {
-              borderTopColor: colors.border,
-              backgroundColor: colors.background,
-              paddingBottom: Math.max(insets.bottom, 10),
-              ...(rtl
-                ? { paddingRight: FAB_GUTTER, paddingLeft: PAD_H }
-                : { paddingLeft: FAB_GUTTER, paddingRight: PAD_H }),
-            },
-          ]}
-        >
-          {headerActions}
-        </View>
-      ) : null}
+      {рядСлужебных}
 
       {toolbar ? (
         <View
@@ -1642,7 +1654,43 @@ export default function GameShell({
         </View>
       )}
 
-      {paused && !exitGuard.asking && (
+      {/*
+        Вопрос из ряда значков — та же карточка, что у выхода: безопасный ответ первым и залитым.
+        «Начать заново?» — только когда есть что терять (`confirmExit`, проп `auxRestart`); «Остановить упражнение?» —
+        у «СТОП» в ряду всегда (разбор у `РядЗначков` в GameAuxAction).
+      */}
+      {вопросРяда ? (
+        <View style={styles.exitOverlay} pointerEvents="auto">
+          <View style={[styles.exitCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text accessibilityRole="header" testID="row-confirm-title" style={[styles.exitTitle, { color: colors.text }]}>
+              {вопросРяда.заголовок}
+            </Text>
+            {вопросРяда.тело ? (
+              <Text testID="row-confirm-body" style={[styles.exitBody, { color: colors.textSecondary }]}>{вопросРяда.тело}</Text>
+            ) : null}
+            <View style={styles.exitButtons}>
+              <TouchableOpacity
+                testID="row-confirm-stay"
+                accessibilityRole="button"
+                onPress={() => setВопросРяда(null)}
+                style={[styles.exitBtn, { backgroundColor: colors.primary }]}
+              >
+                <Text style={[styles.exitBtnText, { color: '#fff' }]}>{t('exitConfirmStay')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="row-confirm-go"
+                accessibilityRole="button"
+                onPress={() => { const д = вопросРяда.действие; setВопросРяда(null); д(); }}
+                style={[styles.exitBtn, styles.exitBtnGhost, { borderColor: colors.border }]}
+              >
+                <Text style={[styles.exitBtnText, { color: colors.text }]}>{вопросРяда.кнопка}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      ) : null}
+
+      {paused && !exitGuard.asking && !вопросРяда && (
         /**
          * 🔴 ПОЛЕ ПРЯЧЕТСЯ ЦЕЛИКОМ, А НЕ ЗАТЕМНЯЕТСЯ. Часы на паузе стоят, и
          * видимая доска при остановленном секундомере превращает рекорд в фикцию:
@@ -1837,6 +1885,12 @@ export const БЕЗ_ЖЕСТА_ПРОКРУТКИ = Platform.OS === 'web'
 
 export const PAD_H = 10;
 const PAD_V = 5;    // вертикальный зазор между полосами (было 6…10)
+/**
+ * Высота ряда служебных значков под полем с полосой ответа внизу: отступ 8 + значок 48 + зазор PAD_V (5).
+ * Нужна экранам, которые держат содержимое в одной линии с соседями БЕЗ ряда (коробка стимула «Внимания»):
+ * ряд отнимает поле снизу — столько же такой экран отдаёт сверху. Замер 17.09.2026, CPT 390×844: ряд 642…703.
+ */
+export const ВЫСОТА_РЯДА_СЛУЖЕБНЫХ = 8 + 48 + PAD_V;
 
 const styles = StyleSheet.create({
   wuPos: { minHeight: 32, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
@@ -1925,17 +1979,6 @@ const styles = StyleSheet.create({
    * и это дешевле, чем разъехавшаяся вертикаль у всех.
    */
   statsOuter: { paddingHorizontal: PAD_H, paddingBottom: PAD_V, minHeight: ПОЛОСА_ПОКАЗАТЕЛЕЙ, justifyContent: 'center' },
-  /** Полоса становится рядом: плашка счётчиков слева, служебное действие справа. */
-  statsOuterRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  /**
-   * Служебное действие в полосе. `alignSelf: 'stretch'` обязателен: `GameAuxBar`
-   * внутри объявлен `flexGrow: 1, flexBasis: 0`, и без заданной высоты обёртка
-   * схлопывается в НОЛЬ, а кнопка свисает ниже полосы. Замер 11.09.2026 до
-   * правки: обёртка h=0, кнопка 86…134 при полосе 58…119 — вылезала на 15 px.
-   * `flexShrink: 0` — ширина кнопки замерена и в свободное место влезает,
-   * сжимать её незачем.
-   */
-  auxInHud: { flexShrink: 0, alignSelf: 'stretch', justifyContent: 'center' },
   /**
    * 🔴 ПЛАШКА НЕ ШИРЕ ЭКРАНА. Два отчёта 02.09.2026 («поехали кнопки верх тулбара»,
    * «с меню пиздец сверху»): счётчики растягивали плашку за край телефона, и вместе
@@ -1997,7 +2040,14 @@ const styles = StyleSheet.create({
   // поведение для всех игр вместо разнобоя.
   field: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: PAD_H },
   fieldScroll: { flex: 1 },
-  solutionRow: { alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'center', paddingTop: 8 },
+  /**
+   * Ряд служебных значков под полем. Зазоры те же, что у ряда головоломок (`рядКоманд`): между
+   * значками 6, между строками 8 — перенос бывает только при пяти-шести значках на 320 pt.
+   */
+  auxRow: {
+    alignSelf: 'stretch', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center',
+    columnGap: 6, rowGap: 8, paddingTop: 8,
+  },
   fieldScrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: PAD_H, paddingVertical: PAD_V },
   toolbar: {
     flexDirection: 'row',

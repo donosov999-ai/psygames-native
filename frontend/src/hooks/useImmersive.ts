@@ -1,4 +1,4 @@
-/* psygames-use-immersive · VER 1 · 16.09.2026 */
+/* psygames-use-immersive · VER 2 · 17.09.2026 */
 /**
  * ПОЛНОЭКРАННЫЙ РЕЖИМ НА ВРЕМЯ ПАРТИИ — одна строка в экране игры:
  *
@@ -20,11 +20,16 @@ import {
   applyImmersive, declareImmersiveCapable, immersiveEnabled, loadImmersivePref, onImmersivePref,
 } from '@/src/services/immersive';
 
-export function useImmersive(идётПартия: boolean): void {
+/**
+ * @param идётПартия прятать ли полосы сейчас
+ * @param умеет объявлять ли режим (пункт в меню паузы). С 17.09.2026 хук зовёт каркас для всех игр, и экран с
+ *   `immersive={false}` режим НЕ объявляет — иначе у него был бы пункт, от которого ничего не меняется.
+ */
+export function useImmersive(идётПартия: boolean, умеет = true): void {
   const [держат, setДержат] = useState(isGameHeld());
   const [включено, setВключено] = useState(immersiveEnabled());
 
-  useEffect(() => declareImmersiveCapable(), []);
+  useEffect(() => (умеет ? declareImmersiveCapable() : undefined), [умеет]);
   useEffect(() => onGameHold(setДержат), []);
   useEffect(() => {
     const отписка = onImmersivePref(() => setВключено(immersiveEnabled()));

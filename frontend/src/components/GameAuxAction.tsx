@@ -1,8 +1,13 @@
+/* psygames-game-aux-action · VER 4 · 17.09.2026 */
 /**
  * GameAuxAction — СЛУЖЕБНОЕ действие игры. Одна кнопка на всё приложение.
  *
- * 🔴 ЗАЧЕМ КОМПОНЕНТ, А НЕ ПРОСТО «ПЕРЕНЕСТИ КНОПКИ». Правило «служебное — в
- * шапку» без общего элемента живёт ровно до следующего экрана: новый автор
+ * 📍 17.09.2026 (решение Дениса): служебное стоит ОДНИМ РЯДОМ ЗНАЧКОВ ПОД ПОЛЕМ, рядом с
+ * «Отменить» и «Начать заново», а не в шапке. Ряд ставит каркас (`GameShell`, `game-aux-row`);
+ * внутри него кнопка сама становится значком — см. `РядЗначков` ниже.
+ *
+ * 🔴 ЗАЧЕМ КОМПОНЕНТ, А НЕ ПРОСТО «ПЕРЕНЕСТИ КНОПКИ». Правило о месте служебного
+ * без общего элемента живёт ровно до следующего экрана: новый автор
  * рисует свою кнопку своим стилем и кладёт куда удобнее. Проверить такое
  * можно только по словам в разметке, а гейты по словам в этом проекте уже
  * шесть раз краснели на ПРАВИЛЬНОЙ правке (переименовал обработчик — упал).
@@ -83,16 +88,48 @@ export interface GameAuxActionProps {
    * пока её автор не назовёт приём.
    */
   ladder?: string;
+  /**
+   * Включённый РЕЖИМ (переключатель: пометки, цвет), а не разовое действие. Отличается ФОРМОЙ, а не
+   * оттенком: заливка цветом `tint` (или основным цветом темы) и белый значок — экран передаёт залитый
+   * вариант значка (`pencil` против `pencil-outline`). Отчёт 33f21fc6 (09.09.2026, судоку): включённый
+   * карандаш «практически сливается с экраном» — промах стоил жизни. Скринридер слышит `selected`.
+   */
+  active?: boolean;
   onPress: () => void;
 }
 
 /** Красный «СТОП» — один и тот же во всех упражнениях с сеансом. */
 const DANGER = '#f43f5e';
 
-export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladder, onPress, compact }: GameAuxActionProps) {
+/**
+ * 🔴 КНОПКА ВНУТРИ РЯДА ЗНАЧКОВ КАРКАСА — ЗНАЧОК, ЧТО БЫ ЕЙ НИ ПЕРЕДАЛИ.
+ *
+ * Денис 17.09.2026 по кадру «Соедини точки»: подписанные пилюли «Открыть одну пару» и «Показать
+ * решение» раздули служебное в два ряда — «их место снизу иконками». Двадцать экранов отдают каркасу
+ * кнопки с подписями и без `compact`; править каждый значило бы двадцать правок и двадцать шансов
+ * забыть. Каркас кладёт ряд в этот контекст, и кнопка внутри рисуется compact-значком сама; слово
+ * остаётся в `accessibilityLabel`, число ресурса — на значке. `GameAuxBar` внутри ряда своей коробки
+ * не заводит, чтобы значки игры и лампочка каркаса встали одной строкой.
+ * Вне ряда (свои ряды экранов, мост зарядки) контекст `null`, и ничего не меняется.
+ *
+ * 🔴 «СТОП» В РЯДУ СНАЧАЛА ПЕРЕСПРАШИВАЕТ (`спросить` из каркаса). В ряду под полем он стоит между окном
+ * стимула и полосой ответа — ровно там, откуда раздел «Внимание» его когда-то убрал: в CPT по окну и по кнопке
+ * ответа бьют полторы минуты на скорость, и промах в «СТОП» обрывал всю пробу. Вопрос держит игру на паузе.
+ */
+export const РядЗначков = React.createContext<null | { спросить: (подпись: string, действие: () => void) => void }>(null);
+
+export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladder, onPress, compact, active }: GameAuxActionProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const { заперт, порог } = useLadderLock(ladder);
+  const ряд = React.useContext(РядЗначков);
+  const вРяду = ряд !== null;
+  /**
+   * «СТОП» приходит без значка (подпись и красная рамка). В ряду значков слово уходит у всех — у
+   * «СТОПа» остаётся красный круглый знак остановки, иначе он был бы единственной пилюлей в строке.
+   */
+  const значок = icon ?? (вРяду && danger ? 'stop-circle-outline' : undefined);
+  const значкомБезСлова = (compact || вРяду) && !!значок;
 
   /**
    * 🔴 ОТВЕТ ЗАПЕРТОЙ КНОПКИ ЕДЕТ В ОБЩИЙ ТОСТ, А НЕ РИСУЕТСЯ ЗДЕСЬ.
@@ -112,6 +149,8 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
    */
 
   const fg = заперт ? colors.textSecondary : (danger ? DANGER : colors.text);
+  const включён = !!active && !заперт;
+  const заливка = tint ?? colors.primary;
   return (
     <TouchableOpacity
       testID="game-aux"
@@ -122,7 +161,9 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
         заперт ? `${label} — ${t('ladderLockedAt').replace('{n}', String(порог))}`
         : count === undefined ? label : `${label} — ${count}`
       }
-      accessibilityState={{ disabled: !!disabled || заперт }}
+      // `selected` — только у переключателя (`active` задан): у обычной кнопки состояния «выбрано» нет, и пробы,
+      // которые узнают вкладки по `selected`, иначе приняли бы за вкладку любой значок ряда (spatial-lab-config-phase).
+      accessibilityState={active === undefined ? { disabled: !!disabled || заперт } : { disabled: !!disabled || заперт, selected: включён }}
       // Запертую кнопку НЕ отключаем: нажатие обязано ответить «откроется на
       // уровне N». Отключённая кнопка на нажатие молчит, и замок превращается
       // в поломку — ровно та жалоба, что уже приходила про кончившийся ресурс.
@@ -131,43 +172,45 @@ export function GameAuxAction({ icon, label, count, tint, danger, disabled, ladd
         ? () => DeviceEventEmitter.emit('psygames:ladder-locked', {
             text: t('ladderLockedAt').replace('{n}', String(порог)),
           })
-        : onPress}
+        : (ряд && danger ? () => ряд.спросить(label, onPress) : onPress)}
       activeOpacity={0.8}
       style={[
         styles.btn,
         {
-          backgroundColor: colors.surface,
-          borderColor: заперт ? colors.border : (danger ? DANGER : colors.border),
+          backgroundColor: включён ? заливка : colors.surface,
+          borderColor: заперт ? colors.border : (danger ? DANGER : (включён ? заливка : colors.border)),
           opacity: заперт ? 0.55 : (disabled ? 0.4 : 1),
         },
       ]}
     >
       {заперт
         ? <Ionicons name="lock-closed" size={18} color={colors.textSecondary} />
-        : (icon ? <Ionicons name={icon} size={18} color={tint ?? fg} /> : null)}
+        : (значок ? <Ionicons name={значок} size={18} color={включён ? '#FFF' : (tint ?? fg)} /> : null)}
 {/* Компактный вид: остаётся иконка, подпись уходит — но НЕ из дерева
           доступности, `accessibilityLabel` кнопки её сохраняет. Нужен там, где
           служебные кнопки стоят в фиксированной по высоте полосе плейлиста. */}
-      {!compact || !icon ? (
-        <Text style={[styles.label, { color: fg }]} numberOfLines={1}>
+      {!значкомБезСлова ? (
+        <Text style={[styles.label, { color: включён ? '#FFF' : fg }]} numberOfLines={1}>
           {заперт || count === undefined ? label : `${label} · ${count}`}
         </Text>
       ) : (!заперт && count !== undefined ? (
         /* Компактный вид: слово ушло, ЧИСЛО осталось — см. разбор у `compact`. */
-        <Text style={[styles.label, { color: fg }]} numberOfLines={1}>{count}</Text>
+        <Text style={[styles.label, { color: включён ? '#FFF' : fg }]} numberOfLines={1}>{count}</Text>
       ) : null)}
     </TouchableOpacity>
   );
 }
 
 /**
- * Ряд служебных действий — то, что кладут в `GameShell.headerActions`.
+ * Ряд служебных действий — то, что кладут в `GameShell.headerActions` (каркас ставит его под полем).
  *
  * Перенос по строкам (`flexWrap`) обязателен: при системном крупном шрифте и в
  * длинных языках (de/fr) три пилюли в 390 pt не встают, а ужатая до многоточия
  * подпись служебного действия — худшее, что тут может быть.
  */
 export function GameAuxBar({ children }: { children: React.ReactNode }) {
+  // Внутри ряда значков каркаса — без своей коробки: значки встают в его строку (см. `РядЗначков`).
+  if (React.useContext(РядЗначков) !== null) return <>{children}</>;
   return <View style={styles.bar}>{children}</View>;
 }
 

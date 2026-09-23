@@ -1,5 +1,5 @@
 /* LOCAL REV spatial-lab/2026-09-09.3 · psygames-codex-mac · not an app release */
-/* psygames-spatial-lab-screen · VER 3 · 17.09.2026 · psygames-spatial-claude-mac */
+/* psygames-spatial-lab-screen · VER 4 · 17.09.2026 · psygames-spatial-claude-mac */
 /** Local-only exercise adapter. Per-profile local saves; no server rewards. */
 /*
  * 🔴 VER 2 — НАСТРОЙКИ ОТДЕЛЬНО ОТ ПАРТИИ, ПОВОРОТ ДВОЙНЫМ НАЖАТИЕМ (17.09.2026, задача f3fae4e2).
@@ -428,6 +428,9 @@ export default function SpatialLab({onBack,preset,initialMode,onComplete,overlay
   }
   return <GameShell title={t(ИМЯ[mode])} onBack={onBack} overlay={overlay}
     frame={preset?spatialFrame(viewportHeight):undefined}
+    // «Новая» уже стоит значком в своём ряду под доской и делает то же, что пункт паузы «Заново» (request('new')),
+    // — второго значка из каркаса не нужно (координатор 17.09.2026, правило «служебное — значками под полем»).
+    auxRestart={false}
     confirmExit={state.past.length>0&&!won} scrollableField
     /*
       МЕНЮ ПАУЗЫ — как в судоку и в играх внимания (09.09.2026): стрелка «назад» открывает

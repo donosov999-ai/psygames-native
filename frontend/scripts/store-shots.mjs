@@ -218,7 +218,8 @@ const READ = () => ({
   buttons: document.querySelectorAll('[role="button"], button').length,
   shell: {
     toolbar: !!document.querySelector('[data-testid="game-toolbar"]'),
-    headerActions: !!document.querySelector('[data-testid="game-header-actions"]'),
+    // С 17.09.2026 служебное — ряд под полем (`game-aux-row`); слот над полем остался у плейлиста.
+    headerActions: !!document.querySelector('[data-testid="game-header-actions"], [data-testid="game-aux-row"]'),
   },
 });
 

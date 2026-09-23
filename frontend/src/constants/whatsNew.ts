@@ -16,6 +16,50 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.54.22',
+    date: '2026-09-17',
+    ru: [
+      'Судоку: цифры под доской снова видны целиком на любом экране',
+      'Судоку: кнопки — одной строкой значков под полем, доска на маленьких экранах крупнее',
+      'Пометки и цвет включаются значками, палитра цвета встаёт на место цифр',
+    ],
+    en: [
+      'Sudoku: the digits under the board are fully visible again on any screen',
+      'Sudoku: buttons now sit in one row of icons under the board, and the board is bigger on small screens',
+      'Notes and color turn on with icons, and the color palette takes the place of the digits',
+    ],
+  },
+  {
+    version: '2.54.21',
+    date: '2026-09-17',
+    ru: [
+      '«Где ошибка?» в «Галактиках» и «Мостах»: лишние линии и мосты обводятся красным, а уровень не сдаётся',
+      '«Мосты»: сверка находит мост не на своём месте, даже когда все числа на островах сошлись',
+      'Карта уровней: первая ступень больше не прячется под кнопкой «Сообщить о проблеме»',
+    ],
+    en: [
+      "Where's the mistake? in Galaxies and Bridges: extra lines and bridges are circled in red, and the level is not given up",
+      'Bridges: the check finds a bridge in the wrong place even when every island number adds up',
+      'Level map: the first step no longer hides under the Send feedback button',
+    ],
+  },
+  {
+    version: '2.54.20',
+    date: '2026-09-17',
+    ru: [
+      'Служебные кнопки всех игр — одним рядом значков под полем: подсказки, отмена, «Показать решение», «Начать заново»',
+      'Головоломки: разбор по шагам в «Косых чертах», «Угадай код» и «Чёрном ящике»; нарушенное правило отмечено красным',
+      '«Клоцки» засчитываются только решёнными, а ходы в головоломках считаются честно',
+      'Выпадающие списки вместо рядов кнопок: языки в «Парах слов», алфавит в «Корректуре», вид заданий в «Мысленном вращении»',
+    ],
+    en: [
+      'Service buttons in every game now sit in one row of icons under the field: hints, undo, Show solution, Start over',
+      'Puzzles: step-by-step walkthroughs in Slashes, Crack the Code and Black Box; a broken rule is marked in red',
+      'Klotski counts a level only when it is solved, and puzzle moves are counted fairly',
+      'Drop-down lists instead of button rows: languages in Word Pairs, alphabet in Proofread, task type in Mental Rotation',
+    ],
+  },
+  {
     version: '2.54.19',
     date: '2026-09-17',
     ru: [

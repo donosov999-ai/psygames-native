@@ -69,7 +69,16 @@ interface Props {
 
 // ─── раскладка ───
 const GAP = 62;          // шаг между узлами
-const PAD_X = 32;        // поля слева/справа, чтобы крайний узел не липнул к краю
+const PAD_X = 32;        // поле справа (и было слева), чтобы крайний узел не липнул к краю
+/**
+ * ⚠️ ПРЕДЛОЖЕНИЕ «ВНИМАНИЯ» КООРДИНАТОРУ, 17.09.2026 (задача 8801a860) — ЛЕВОЕ ПОЛЕ ШИРЕ ПРАВОГО.
+ * В левом нижнем углу висит кнопка отзыва: x 14–62 pt (fabPosition.ts). Карта на настройке стоит в
+ * карточке с левым краем 28 pt, и первая ступень (центр 28 + 32 = 60) ложилась под кнопку: центр
+ * закрыт при открытии у 7 экранов из 95 (pattern, proofreading, switching-task — 390×844; chess-blind,
+ * cpt, n-back, phonemic-fluency — 360×640). Правило координатора (запись 043c03cb): левое поле ряда
+ * в зоне кнопки ≥ 62 + 8 = 70 pt. Отсюда 70 + 24 (половина узла) − 28 (край карточки) = 66.
+ */
+const PAD_LEFT = 66;
 const AMP = 13;          // амплитуда волны аксона
 const WAVE_Y = 76;       // центр волны внутри полотна
 // Высота полотна: питомец сверху + узел + звёзды (+ подпись уровня, если игра её даёт).
@@ -92,7 +101,7 @@ export function mapHeight(hasLabel: boolean, hasTimes: boolean): number {
   return (hasLabel ? H_LABEL : H_BASE) + (hasTimes ? H_TIME : 0);
 }
 
-const nodeX = (i: number) => PAD_X + i * GAP;
+const nodeX = (i: number) => PAD_LEFT + i * GAP;
 const nodeY = (i: number) => WAVE_Y + AMP * Math.sin(i * 0.85);
 
 /**
@@ -310,7 +319,7 @@ export default function LevelProgressMap({ gameId, currentLevel, maxLevel, bestL
   // на прохождение №3» — бессмыслица, там нечего переигрывать.
   const canPick = !!onPickLevel && !countsRuns;
   const replaying = canPick && sel < reached;
-  const totalW = PAD_X * 2 + (cap - 1) * GAP;
+  const totalW = PAD_LEFT + PAD_X + (cap - 1) * GAP;
   const withBoss = hasBoss(gameId);
 
   // Лента сама встаёт на текущем уровне: иначе при 52 уровнях судоку человек видит

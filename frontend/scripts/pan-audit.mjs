@@ -508,7 +508,8 @@ async function main() {
       const вПартии = await page.evaluate(() => Boolean(
         document.querySelector('[data-testid="game-aux"]')
         || document.querySelector('[data-testid="game-toolbar"]')
-        || document.querySelector('[data-testid="game-bottom-actions"]')
+        // С 17.09.2026 служебное каркаса — ряд значков под полем (`game-aux-row`); прибитого низа нет.
+        || document.querySelector('[data-testid="game-aux-row"]')
         || document.querySelector('[data-testid="game-header-actions"]'),
       ));
       if (!вПартии) { итог.push({ route, наЭкране, провал: 'кнопка входа не найдена' }); continue; }

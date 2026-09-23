@@ -1,4 +1,4 @@
-/* psygames-game-proofreading · VER 6 · 17.09.2026 */
+/* psygames-game-proofreading · VER 7 · 17.09.2026 */
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
@@ -19,7 +19,7 @@ import { goBackOrHome } from '@/src/utils/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { hudTime } from '@/src/services/hudTime';
 import { LinearGradient } from 'expo-linear-gradient';
-import { onGradientText, onGradientTextMuted } from '@/src/services/onGradientText';
+import { onGradientText, onGradientTextMuted, contrastRatio } from '@/src/services/onGradientText';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { LANGUAGES, useLanguage } from '@/src/contexts/LanguageContext';
 import { saveSession } from '@/src/services/api';
@@ -33,6 +33,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
+import DropdownSelect from '@/src/components/DropdownSelect';
 import BossRound from '@/src/components/BossRound';
 import { SCRIPTS, SCRIPT_IDS, ScriptId } from '@/src/constants/scripts';
 import { hapticSuccess, hapticError } from '@/src/components/juice';
@@ -1384,30 +1385,29 @@ export default function ProofreadingGame() {
         )}
 
         {/* Скрипт-режимы (Полиглот v1.27.0): 6 письменностей + цифры.
-            У филвордов письменность задаёт язык слов, а не выбор человека, — ряд прячем. */}
+            У филвордов письменность задаёт язык слов, а не выбор человека, — ряд прячем.
+
+            ВЫПАДАЮЩИМ СПИСКОМ, А НЕ КНОПКАМИ (задача 6552ffb5, Денис 17.09.2026). Семь плашек
+            вставали в четыре ряда: группа 192 px, настройка 1,6 экрана на 390×844 и 2,3 на 360×640,
+            а при открытии кнопка отзыва закрывала 28 % плашки «Цифры». Список общий на приложение —
+            `DropdownSelect`; свою копию не писать. */}
         {taskMode === 'letters' && (
         <View style={[styles.optionCard, { backgroundColor: colors.surface, marginBottom: 12 }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {t('scriptLabel')}
-          </Text>
-          <View style={styles.optionButtons}>
-            {([...SCRIPT_IDS, 'digits'] as const).map((m) => (
-              <TouchableOpacity
-                accessibilityRole="button"
-                key={m}
-                style={[
-                  styles.sizeButton,
-                  mode === m && { backgroundColor: GRADIENT[0] },
-                  mode !== m && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-                ]}
-                onPress={() => { письменностьВыбранаРукой.current = true; setMode(m); }}
-              >
-                <Text style={[styles.sizeButtonText, { color: mode === m ? '#333' : colors.text }]}>
-                  {t(m === 'digits' ? 'scriptDigits' : SCRIPTS[m].labelKey)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <DropdownSelect
+            testID="proofreading-script"
+            подпись={t('scriptLabel')}
+            значение={mode}
+            варианты={([...SCRIPT_IDS, 'digits'] as const).map((m) => ({
+              значение: m,
+              текст: t(m === 'digits' ? 'scriptDigits' : SCRIPTS[m].labelKey),
+            }))}
+            onChange={(m) => { письменностьВыбранаРукой.current = true; setMode(m); }}
+            // ⚠️ Акцент списка — цвет ТЕКСТА выбранной строки. Светлый бирюзовый игры (#a8edea) на белой
+            // поверхности даёт контраст 1,32 при норме 4,5 (живой кадр 390×844: «Кириллица» почти не видна).
+            // Поэтому акцент игры — только если читается на поверхности темы, иначе цвет текста темы.
+            акцент={contrastRatio(GRADIENT[0], colors.surface) >= 4.5 ? GRADIENT[0] : colors.text}
+            цвета={colors}
+          />
         </View>
         )}
 

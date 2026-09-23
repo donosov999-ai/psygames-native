@@ -1,4 +1,4 @@
-/* psygames-sudoku-board-hint · VER 1 · 20.08.2026 */
+/* psygames-sudoku-board-hint · VER 2 · 17.09.2026 */
 /**
  * СТРОКА-ОБЪЯСНЕНИЕ НАД ДОСКОЙ: одно место, где судоку говорит, во что человек играет.
  *
@@ -45,6 +45,12 @@ export interface SudokuEdgeClue {
 export type SudokuHintFocus =
   | { kind: 'clue'; clue: SudokuEdgeClue }
   | { kind: 'paint' }
+  /**
+   * Включён карандаш. Подсказка «выбери клетку и жми цифры» жила строкой под кнопками и появлялась с режимом —
+   * эта строка двигала вёрстку. С 17.09.2026 кнопки судоку — значками в ряду под полем (отчёт 57a0e9cd), и
+   * объяснение режима живёт там же, где объяснение цвета: в строке над доской постоянной высоты.
+   */
+  | { kind: 'pencil' }
   | { kind: 'undo' }
   | null;
 
@@ -83,6 +89,7 @@ export function sudokuBoardHint(ctx: SudokuHintCtx, lang: string): string {
   const f = ctx.focus;
   if (f && f.kind === 'clue') return sudokuClueText(f.clue, lang);
   if (f && f.kind === 'paint') return translateFor(lang, 'sudokuColorWhy');
+  if (f && f.kind === 'pencil') return translateFor(lang, 'sudokuPencilHint');
   if (f && f.kind === 'undo') return translateFor(lang, 'sudokuUndoWhy');
   return sudokuBoardRule(ctx, lang);
 }

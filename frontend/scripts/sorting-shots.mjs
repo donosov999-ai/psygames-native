@@ -98,7 +98,7 @@ const READ = () => ({
   text: (document.body.innerText || '').replace(/\s+/g, ' ').trim(),
   buttons: document.querySelectorAll('[role="button"], button').length,
   toolbar: !!document.querySelector('[data-testid="game-toolbar"]'),
-  headerActions: !!document.querySelector('[data-testid="game-header-actions"]'),
+  headerActions: !!document.querySelector('[data-testid="game-header-actions"], [data-testid="game-aux-row"]'),
   canvases: document.querySelectorAll('canvas, svg').length,
   /*
    * 🔴 ДОЛЯ ЗАНЯТОЙ ВЫСОТЫ — ЗДЕСЬ, А НЕ В JEST, И ЭТО ВЫНУЖДЕННО.

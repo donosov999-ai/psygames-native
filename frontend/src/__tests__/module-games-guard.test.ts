@@ -472,7 +472,8 @@ describe('экраны-обёртки лабораторных модулей', 
     const near = at === -1 ? '' : flat.slice(Math.max(0, at - 80), at + 140);
     expect(`сцепка onGameHold→состояние: ${/set[A-Z]\w*\(/.test(near)}`).toBe('сцепка onGameHold→состояние: true');
     // Плашка именно РИСУЕТСЯ, и не поверх вопроса о выходе (иначе она съест его кнопки).
-    expect(flat).toContain('{paused && !exitGuard.asking && (');
+    // 17.09.2026: и не поверх вопросов из ряда значков под полем (`вопросРяда`).
+    expect(flat).toContain('{paused && !exitGuard.asking && !вопросРяда && (');
   });
 
   /**

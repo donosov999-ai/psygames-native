@@ -830,10 +830,10 @@ async function auditHeader(page, routes) {
       const наПоле = await page.evaluate(() => Boolean(
         document.querySelector('[data-testid="game-aux"]')
         || document.querySelector('[data-testid="game-toolbar"]')
-        || document.querySelector('[data-testid="game-bottom-actions"]')
-        // ⚠️ И шапка со служебными: судоку кладёт подсказку именно туда
-        // (`headerActions`), а не в ряд `game-aux`. Без этой строки судоку
-        // оставалась единственной непроверенной игрой.
+        // ⚠️ И ряд служебных под полем (`game-aux-row`, с 17.09.2026 туда каркас ставит всё из
+        // `headerActions`): судоку кладёт подсказку своими кнопками, без якоря `game-aux`. Без этой
+        // строки судоку оставалась единственной непроверенной игрой. Слот над полем — у плейлиста.
+        || document.querySelector('[data-testid="game-aux-row"]')
         || document.querySelector('[data-testid="game-header-actions"]'),
       ));
       if (!наПоле) {

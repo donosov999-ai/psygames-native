@@ -277,7 +277,13 @@ describe('экран действительно показывает строк�
     const at = SCREEN.indexOf('const cellSize =');
     expect(at).toBeGreaterThan(0);
     const block = SCREEN.slice(at, at + 400);
-    expect((block.match(/BOARD_HINT_H/g) || []).length).toBeGreaterThanOrEqual(2);
+    // Ландшафт — формулой на месте; портрет с 17.09.2026 — функцией `клеткаПортрета` (отчёт 57a0e9cd).
+    expect((block.match(/BOARD_HINT_H/g) || []).length).toBeGreaterThanOrEqual(1);
+    expect(block).toMatch(/клеткаПортрета\(/);
+    const fn = SCREEN.slice(SCREEN.indexOf('export function клеткаПортрета'));
+    const тело = fn.slice(0, fn.indexOf('\n}\n') + 2);
+    // обе ветки функции — от поля каркаса и от резерва окна — вычитают строку
+    expect((тело.match(/BOARD_HINT_H/g) || []).length).toBeGreaterThanOrEqual(2);
   });
 
   /**
