@@ -17,14 +17,17 @@ set -e
 # в build/ios/iphoneos, а `flutter build ipa` — ещё и в архив. Гейт, знающий один
 # путь, на другой сборке молча пропустил бы проверку, а это хуже отсутствия гейта.
 BIN="${1:-}"
+# ⚠️ ПУТЬ ИЩЕМ, А НЕ УГАДЫВАЕМ. Первая редакция знала два места — и всё равно
+# промахнулась: на бегунке `flutter build ipa` архивирует и подчищает
+# build/ios/iphoneos, а гейт упал с «не нашёл бинарник» уже ПОСЛЕ успешной сборки
+# (прогон 35892704889). Гейт, который валит зелёную сборку, читать перестанут
+# быстрее, чем он поймает настоящую поломку.
 if [ -z "$BIN" ]; then
-  for p in build/ios/iphoneos/Runner.app/Runner \
-           build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app/Runner; do
-    [ -f "$p" ] && { BIN="$p"; break; }
-  done
+  BIN=$(find build/ios -type f -name Runner -path '*Runner.app/Runner' 2>/dev/null | head -1)
 fi
 [ -n "$BIN" ] && [ -f "$BIN" ] || {
-  echo "НЕ НАШЁЛ БИНАРНИК (искал build/ios/iphoneos и build/ios/archive) — сперва flutter build ios|ipa"
+  echo "НЕ НАШЁЛ БИНАРНИК под build/ios — сперва flutter build ios|ipa"
+  echo "что там лежит:"; ls -d build/ios/* 2>/dev/null | head -8
   exit 1
 }
 echo "бинарник: $BIN"
