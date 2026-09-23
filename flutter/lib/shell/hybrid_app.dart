@@ -6,6 +6,7 @@ import '../games/digit_span/screen.dart';
 import '../games/ant/screen.dart';
 import '../games/bart/screen.dart';
 import '../games/choice_rt/screen.dart';
+import '../games/cpt/screen.dart';
 import '../games/flanker/screen.dart';
 import '../games/gonogo/screen.dart';
 import '../games/inhibition/screen.dart';
@@ -163,6 +164,7 @@ class HybridApp extends StatefulWidget {
         '/games/prl': (s) => PrlScreen(state: s),
         '/games/bart': (s) => BartScreen(state: s),
         '/games/wcst': (s) => WcstScreen(state: s),
+        '/games/cpt': (s) => CptScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.

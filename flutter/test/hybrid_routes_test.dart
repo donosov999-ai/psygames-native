@@ -77,6 +77,7 @@ void main() {
       '$origin/games/prl',
       '$origin/games/bart',
       '$origin/games/wcst',
+      '$origin/games/cpt',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -152,6 +153,7 @@ void main() {
       '/games/bart',
       '/games/cake-sort',
       '/games/choice-rt',
+      '/games/cpt',
       '/games/digit-span',
       '/games/dots-connect',
       '/games/faces-names',
