@@ -94,7 +94,14 @@ function текстУзла(узел: any): string {
  * состояния. Ряд узнаётся по соседству с «Стереть»: берём все кнопки с `accessibilityLabel`,
  * кроме служебных, в порядке дерева.
  */
-function рядКлавиш(дерево: any): { имя: string; видно: string; нажать: () => void }[] {
+/** Рисунок на клавише: `monster-glyph-N` у SVG-фигуры чудовища, иначе пусто. */
+function рисунокУзла(узел: any): string {
+  const svg = узел.findAll((n: any) => typeof n.props?.testID === 'string'
+    && /^monster-glyph-\d$/.test(n.props.testID));
+  return svg.length ? svg[0].props.testID : '';
+}
+
+function рядКлавиш(дерево: any): { имя: string; видно: string; рисунок: string; нажать: () => void }[] {
   const служебные = /^(btn_|puzzle(Second|ShowSolution|Erase|Highlight)|restart|start|pause|a11y)/;
   const узлы = дерево.root.findAll((n: any) => typeof n.props?.onPress === 'function'
     && typeof n.props?.accessibilityLabel === 'string' && n.props.accessibilityRole === 'button'
@@ -103,17 +110,29 @@ function рядКлавиш(дерево: any): { имя: string; видно: st
   return узлы
     .filter((n: any) => !служебные.test(n.props.accessibilityLabel))
     .filter((n: any) => { const k = n.props.accessibilityLabel; if (видели.has(k)) return false; видели.add(k); return true; })
-    .map((n: any) => ({ имя: n.props.accessibilityLabel, видно: текстУзла(n), нажать: n.props.onPress }));
+    .map((n: any) => ({
+      имя: n.props.accessibilityLabel,
+      видно: текстУзла(n),
+      рисунок: рисунокУзла(n),
+      нажать: n.props.onPress,
+    }));
 }
 
 describe('клавиши «Нежити» — чудовища, а не голые цифры', () => {
-  it('🔴 в ряду три клавиши: видно 👻 🧛 🧟, чтецу — имена чудовищ', async () => {
+  /**
+   * 🔴 23.09.2026 КЛАВИША РИСУЕТ ЧУДОВИЩЕ ДВИЖКА, А НЕ ЭМОДЗИ.
+   * Отзыв Дениса `91967288` («Дизайн, нормально сделай иконки»): на доске счётчики нарисованы
+   * фигурами движка, а на клавишах стояли 👻 🧛 🧟 — другой рисунок и другой стиль. Теперь клавиша
+   * рисует ту же фигуру (`MonsterGlyph`, перенос `undead.c:2473`), а имя для чтеца остаётся прежним.
+   */
+  it('🔴 в ряду три клавиши: на каждой нарисовано своё чудовище, чтецу — его имя', async () => {
     const д = await партия('Undead');
     const ряд = рядКлавиш(д).filter((к) => /^puzzleUndead/.test(к.имя));
-    expect(ряд.map((к) => `${к.видно} ${к.имя}`)).toEqual([
-      '👻 puzzleUndeadGhost', '🧛 puzzleUndeadVampire', '🧟 puzzleUndeadZombie',
+    expect(ряд.map((к) => `${к.рисунок} ${к.имя}`)).toEqual([
+      'monster-glyph-1 puzzleUndeadGhost', 'monster-glyph-2 puzzleUndeadVampire', 'monster-glyph-3 puzzleUndeadZombie',
     ]);
-    // Голых цифр на клавишах чудовищ больше нет.
+    // Ни голых цифр, ни эмодзи на клавишах чудовищ не осталось.
+    expect(ряд.map((к) => к.видно)).toEqual(['', '', '']);
     expect(рядКлавиш(д).filter((к) => /^[1-3]$/.test(к.видно)).map((к) => к.имя)).toEqual([]);
   });
 
@@ -123,9 +142,9 @@ describe('клавиши «Нежити» — чудовища, а не голы
     for (const к of рядКлавиш(д).filter((x) => /^puzzleUndead/.test(x.имя))) {
       (клавиша as jest.Mock).mockClear();
       await TestRenderer.act(async () => { к.нажать(); });
-      коды[к.видно] = (клавиша as jest.Mock).mock.calls.at(-1)?.[0];
+      коды[к.рисунок] = (клавиша as jest.Mock).mock.calls.at(-1)?.[0];
     }
-    expect(коды).toEqual({ '👻': 49, '🧛': 50, '🧟': 51 });
+    expect(коды).toEqual({ 'monster-glyph-1': 49, 'monster-glyph-2': 50, 'monster-glyph-3': 51 });
   });
 
   it('у Solo ряд остаётся цифрами 1–9 с цифрами же для чтеца — знаки только там, где заведены', async () => {

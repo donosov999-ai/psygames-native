@@ -18,7 +18,7 @@
  * (проба `tatham-tables-snapshot`): собранные таблицы обязаны совпадать с ним до
  * строчки. Осознанная правка состава меняет и отпечаток — с объяснением в коммите.
  */
-import type { НастройкаРежима, ШагЛестницы } from './sections/тип';
+import type { НастройкаРежима, РисунокКлавиши, ШагЛестницы } from './sections/тип';
 import { РЕЖИМЫ_РАЗДЕЛА as СЧЁТ } from './sections/counting';
 import { РЕЖИМЫ_РАЗДЕЛА as ГОЛОВОЛОМКИ } from './sections/puzzles';
 import { РЕЖИМЫ_РАЗДЕЛА as ПОИСК } from './sections/search';
@@ -297,7 +297,7 @@ export function клавишПодсветки(имя: string, параметр�
 export const ГНЁЗД_ПОДСВЕТКИ = 2;
 
 /** Знаки клавиш цифрового ряда там, где цифра движка — не число (`знакиЦифр` в `sections/тип.ts`). */
-export const ЗНАКИ_ЦИФР: Record<string, readonly { знак: string; имя: string }[]> = Object.fromEntries(
+export const ЗНАКИ_ЦИФР: Record<string, readonly { знак: string; имя: string; рисунок?: РисунокКлавиши }[]> = Object.fromEntries(
   Object.entries(ВСЕ_РЕЖИМЫ).filter(([, н]) => н.знакиЦифр?.length).map(([м, н]) => [м, н.знакиЦифр!]),
 );
 

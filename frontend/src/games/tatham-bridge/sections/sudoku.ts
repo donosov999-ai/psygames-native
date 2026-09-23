@@ -176,9 +176,9 @@ export const РЕЖИМЫ_РАЗДЕЛА: Record<string, НастройкаРе�
      * вампир, `:1945` '3' → зомби. Гейт `sudoku-undead-monster-keys`.
      */
     знакиЦифр: [
-      { знак: '👻', имя: 'puzzleUndeadGhost' },
-      { знак: '🧛', имя: 'puzzleUndeadVampire' },
-      { знак: '🧟', имя: 'puzzleUndeadZombie' },
+      { знак: '👻', имя: 'puzzleUndeadGhost', рисунок: 'undead' },
+      { знак: '🧛', имя: 'puzzleUndeadVampire', рисунок: 'undead' },
+      { знак: '🧟', имя: 'puzzleUndeadZombie', рисунок: 'undead' },
     ],
     лестница: [
       { имя: '4×4, лёгкая', параметры: '4x4de' },
