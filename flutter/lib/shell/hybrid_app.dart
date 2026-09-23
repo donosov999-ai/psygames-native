@@ -7,6 +7,7 @@ import '../games/simon/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/mental_rotation/screen.dart';
+import '../games/spatial_lab/screen.dart';
 import '../games/spatial_span/screen.dart';
 import '../games/one_line/screen.dart';
 import '../games/stroop/screen.dart';
@@ -44,6 +45,9 @@ class HybridApp extends StatefulWidget {
         '/games/simon': (s) => SimonScreen(state: s),
         '/games/mental-rotation': (s) => MentalRotationScreen(state: s),
         '/games/spatial-span': (s) => SpatialSpanScreen(state: s),
+        // Все четыре упражнения лаборатории перенесены, поэтому перехват честен: адрес с
+        // `?mode=` попадает в ту же строку карты, и ни один режим не остаётся в вебе.
+        '/games/spatial-lab': (s) => SpatialLabScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
