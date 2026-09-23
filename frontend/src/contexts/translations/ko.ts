@@ -1183,7 +1183,7 @@ const t: Record<string, string> = {
   "allGames": "모든 게임",
   "totalPlayedCompleted": "총 플레이: {n}판 (완료)",
   "tokensLabel": "포인트",
-  "gamesPlayed": "판 플레이",
+  "gamesPlayed": "판 완료",
   "inGameTime": "플레이 시간",
   "weekInReview": "이번 주 요약",
   "scoreBestAvg": "점수 — 최고 {best} · ⌀ {avg}",

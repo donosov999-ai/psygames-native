@@ -406,7 +406,7 @@ const t: Record<string, string> = {
   "allGames": "すべてのゲーム",
   "totalPlayedCompleted": "合計プレイ：{n}回（完了分）",
   "tokensLabel": "ポイント",
-  "gamesPlayed": "回プレイ",
+  "gamesPlayed": "回完了",
   "inGameTime": "プレイ時間",
   "weekInReview": "今週のまとめ",
   "scoreBestAvg": "スコア — ベスト{best} · ⌀ {avg}",

@@ -1015,7 +1015,7 @@ const t: Record<string, string> = {
   "allGames": "全部游戏",
   "totalPlayedCompleted": "共游玩：{n} 局（已完成）",
   "tokensLabel": "积分",
-  "gamesPlayed": "局游戏",
+  "gamesPlayed": "局已完成",
   "inGameTime": "游戏时长",
   "weekInReview": "本周回顾",
   "scoreBestAvg": "得分——最佳 {best} · ⌀ {avg}",

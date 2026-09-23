@@ -1015,7 +1015,7 @@ const t: Record<string, string> = {
   "allGames": "Alle Spiele",
   "totalPlayedCompleted": "Insgesamt gespielt: {n} Spiele (abgeschlossen)",
   "tokensLabel": "Punkte",
-  "gamesPlayed": "Spiele gespielt",
+  "gamesPlayed": "Spiele abgeschlossen",
   "inGameTime": "im Spiel",
   "weekInReview": "WOCHENRÜCKBLICK",
   "scoreBestAvg": "Punkte — Rekord {best} · ⌀ {avg}",

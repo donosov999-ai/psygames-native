@@ -2517,7 +2517,13 @@ const translations: Translations = {
   allGames: { ru: 'Все игры', en: 'All games' },
   totalPlayedCompleted: { ru: 'Всего сыграно: {n} игр (завершённых)', en: 'Total played: {n} games (completed)' },
   tokensLabel: { ru: 'Очки', en: 'Tokens' },
-  gamesPlayed: { ru: 'игр сыграно', en: 'games played' },
+  // 🔴 ПОДПИСЬ НАЗЫВАЕТ ТО, ЧТО СЧИТАЕТ. Замер 23.09.2026 по отзыву с кадром
+  // (экран статистики: «сыграно игр 0», токенов 15, серия 1): счётчик берёт
+  // ЗАВЕРШЁННЫЕ сессии из psygames_sessions, а токены начисляются ещё из шести
+  // мест без всякой партии — достижения, цель дня, возврат способности, приз
+  // пари, компенсация зарядки, бонус уровня. То есть «0 и 15» — законное
+  // состояние, а врала подпись: человек читал «сыграно» и видел ноль.
+  gamesPlayed: { ru: 'завершённых партий', en: 'completed games' },
   inGameTime: { ru: 'в игре', en: 'in game' },
   weekInReview: { ru: 'ИТОГ НЕДЕЛИ', en: 'WEEK IN REVIEW' },
   scoreBestAvg: { ru: 'Очки — рекорд {best} · ⌀ {avg}', en: 'Score — best {best} · avg {avg}' },

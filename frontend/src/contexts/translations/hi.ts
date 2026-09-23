@@ -1018,7 +1018,7 @@ const t: Record<string, string> = {
   "allGames": "सभी खेल",
   "totalPlayedCompleted": "कुल खेले: {n} खेल (पूर्ण)",
   "tokensLabel": "अंक",
-  "gamesPlayed": "खेल खेले",
+  "gamesPlayed": "पूर्ण खेल",
   "inGameTime": "खेल में",
   "weekInReview": "सप्ताह का सार",
   "scoreBestAvg": "अंक — रिकॉर्ड {best} · ⌀ {avg}",
