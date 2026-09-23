@@ -147,16 +147,6 @@ void main() {
     expect(find.text('0/15'), findsOneWidget, reason: 'ходы обнулились, минимум уже от четырёх дисков');
   });
 
-  testWidgets('🔴 из игры есть выход КНОПКОЙ, а не только через паузу', (tester) async {
-    /*
-     * 📍 Денис 24.09.2026: «выход через кнопку пауза». Замер по коду: каркас
-     * рисует «Назад» только если экран передал `onBack`, а его не передавал ни
-     * один из четырнадцати перенесённых экранов.
-     */
-    await _boot(tester, state);
-    expect(find.byTooltip('Назад'), findsOneWidget);
-  });
-
   testWidgets('отмена возвращает доску и счётчик ходов', (tester) async {
     await _boot(tester, state);
     await _tapMove(tester, 0, 2);

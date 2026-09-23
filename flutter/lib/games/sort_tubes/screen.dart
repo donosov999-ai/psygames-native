@@ -268,16 +268,6 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
 
     return GameShell(
       title: widget.title,
-      /*
-       * 🔴 ВЫХОД ОТДЕЛЬНОЙ КНОПКОЙ, А НЕ ТОЛЬКО ЧЕРЕЗ ПАУЗУ.
-       *
-       * 📍 Денис 24.09.2026 на живой сборке: «выход через кнопку пауза».
-       * Замер по коду: `GameShell` рисует «Назад» только если экран передал
-       * `onBack`, а его не передавал НИ ОДИН из четырнадцати перенесённых
-       * экранов — ни мои девять, ни чужие пять. То есть уйти из игры можно было
-       * единственным способом: пауза → «Продолжить»… которого там нет.
-       */
-      onBack: () => Navigator.of(context).maybePop(),
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(
