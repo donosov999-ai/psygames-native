@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -5,10 +6,13 @@ import '../games/digit_span/screen.dart';
 import '../games/choice_rt/screen.dart';
 import '../games/flanker/screen.dart';
 import '../games/gonogo/screen.dart';
+import '../games/inhibition/screen.dart';
 import '../games/posner/screen.dart';
 import '../games/simon/screen.dart';
 import '../games/stop_signal/screen.dart';
 import '../games/stroop_emotional/screen.dart';
+import '../games/switching_task/screen.dart';
+import '../games/targets/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/stroop/screen.dart';
@@ -27,6 +31,7 @@ import '../games/samurai/screen.dart';
 import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
 import '../games/spatial_span/screen.dart';
+import '../games/sudoku/modes.dart';
 import '../games/sudoku/screen.dart';
 import '../games/mahjong/screen.dart';
 import '../games/math_slider/screen.dart';
@@ -47,7 +52,12 @@ import '../games/schulte/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
 import '../games/sorting_hub/screen.dart';
+import '../games/faces_names/screen.dart';
+import '../games/memory_palace/screen.dart';
+import '../games/rmet/screen.dart';
 import 'hub_screen.dart';
+import 'game_pet.dart';
+import 'session_report.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
 
@@ -95,6 +105,25 @@ class HybridApp extends StatefulWidget {
         '/games/flanker': (s) => FlankerScreen(state: s),
         '/games/simon': (s) => SimonScreen(state: s),
         '/games/sudoku': (s) => SudokuScreen(state: s),
+        // Режимы той же доски: адрес отличается только хвостом, экран — тот же.
+        '/games/sudoku?mode=towers': (s) => SudokuScreen(state: s, mode: SideMode.towers),
+        '/games/sudoku?mode=unequal': (s) => SudokuScreen(state: s, mode: SideMode.unequal),
+        // Развилки раздела — на ОБЩЕМ экране каркаса: карточки уже лежат в
+        // `assets/hubs.json`, вторая копия начала бы отставать молча.
+        '/games/sudoku-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/sudoku-hub',
+              icon: Icons.apps,
+              gradient: const [Color(0xFF3B2F7A), Color(0xFF5B4D9E)],
+              isNative: native.containsKey,
+            ),
+        '/games/puzzles-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/puzzles-hub',
+              icon: Icons.extension,
+              gradient: const [Color(0xFF0F766E), Color(0xFFF59E0B)],
+              isNative: native.containsKey,
+            ),
         '/games/sudoku-samurai': (s) => SamuraiScreen(state: s),
         '/games/sudoku-fractal': (s) => FractalScreen(state: s),
         '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),
@@ -135,6 +164,12 @@ class HybridApp extends StatefulWidget {
         '/games/stop-signal': (s) => StopSignalScreen(state: s),
         '/games/posner': (s) => PosnerScreen(state: s),
         '/games/stroop-emotional': (s) => EmoStroopScreen(state: s),
+        '/games/switching-task': (s) => SwitchingTaskScreen(state: s),
+        '/games/targets': (s) => TargetsScreen(state: s),
+        '/games/inhibition': (s) => InhibitionScreen(state: s),
+        '/games/faces-names': (s) => FacesNamesScreen(state: s),
+        '/games/memory-palace': (s) => MemoryPalaceScreen(state: s),
+        '/games/rmet': (s) => RmetScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
@@ -167,11 +202,25 @@ class HybridApp extends StatefulWidget {
   /// `file:///…/games/one-line`, и с якорем или запросом.
   static String? routeOf(String url) {
     if (webOnly) return null;
-    var u = url.split('#').first.split('?').first;
+    final noHash = url.split('#').first;
+    final qi = noHash.indexOf('?');
+    final query = qi < 0 ? '' : noHash.substring(qi);
+    var u = qi < 0 ? noHash : noHash.substring(0, qi);
     if (u.endsWith('.html')) u = u.substring(0, u.length - 5);
     final i = u.indexOf('/games/');
     if (i < 0) return null;
     final r = u.substring(i);
+    /*
+     * 🔴 СНАЧАЛА ИЩЕМ АДРЕС ВМЕСТЕ С ХВОСТОМ, И ТОЛЬКО ПОТОМ БЕЗ НЕГО.
+     *
+     * Часть игр — это РЕЖИМЫ одного экрана, и отличает их только хвост:
+     * `/games/sudoku?mode=towers` — «Небоскрёбы», `?mode=unequal` — «Неравенства»,
+     * у каждого своя мини-лестница и свой счётчик. Прежний разбор срезал хвост до
+     * поиска, поэтому обе карточки развилки открывали бы ОБЫЧНУЮ судоку: человек
+     * жмёт «Небоскрёбы» и получает не ту игру. Игры без режимов это не задевает —
+     * для них ключа с хвостом в карте просто нет, и ответ прежний.
+     */
+    if (query.isNotEmpty && native.containsKey('$r$query')) return '$r$query';
     return native.containsKey(r) ? r : null;
   }
 
@@ -182,6 +231,14 @@ class HybridApp extends StatefulWidget {
 class _HybridAppState extends State<HybridApp> {
   late final WebViewController _c;
   bool _loading = true;
+
+  /// Какой нативный экран сейчас открыт поверх страницы.
+  ///
+  /// ⚠️ Нужен из-за того, что перехват теперь идёт по СМЕНЕ АДРЕСА: страница
+  /// может сообщить об одном и том же маршруте дважды (`replaceState` после
+  /// `pushState` — обычное дело у роутера), и без этого поля поверх экрана
+  /// открылся бы его же двойник.
+  String? _openedRoute;
   final _marks = WebMarkTimer();
 
   /// Сообщение от веб-половины. Кроме записи в общую память здесь одно особое
@@ -192,6 +249,23 @@ class _HybridAppState extends State<HybridApp> {
   /// остались на старом словаре до перезапуска приложения — и это читается как
   /// «перевод сломан», хотя перевод на месте.
   Future<void> _fromWeb(String message) async {
+    // 🔴 СМЕНА МАРШРУТА ВНУТРИ СТРАНИЦЫ — ЕДИНСТВЕННЫЙ РАБОЧИЙ ПЕРЕХВАТ.
+    //
+    // `onNavigationRequest` ниже ловит только настоящую загрузку документа, а
+    // приложение ходит по экранам через History API, и WebView о таком переходе
+    // не сообщает. Замер раздела «Зарядки» 23.09.2026 на симуляторе: перенесённые
+    // экраны открывались ВЕБ-версиями, то есть перехват не работал ни разу.
+    // Делегат оставлен: он нужен для внешних ссылок и первой загрузки.
+    try {
+      final m = jsonDecode(message);
+      if (m is Map && m['op'] == 'route') {
+        final route = HybridApp.routeOf('${m['url']}');
+        if (route != null && route != _openedRoute) _openNative(route);
+        return;
+      }
+    } catch (_) {
+      // не наше сообщение — ниже разберёт общая память
+    }
     final was = L.locale;
     await widget.state.applyFromWeb(message);
     final now = L.resolve(widget.state.language);
@@ -204,6 +278,22 @@ class _HybridAppState extends State<HybridApp> {
   @override
   void initState() {
     super.initState();
+    // 🔴 ПРИЁМНИК ПАРТИЙ. Перенесённая игра не хранит партию сама — она отдаёт
+    // результат сюда, а здесь он уходит в ТУ ЖЕ `saveSession` веб-половины,
+    // которую зовёт непереносённая игра. Одна реализация на обе половины:
+    // вторая разошлась бы с первой молча (см. SessionReport).
+    //
+    // ⚠️ Страница может быть ещё не готова — например, человек открыл нативный
+    // экран сразу со старта. Веб-сторона на этот случай копит отчёты в очередь
+    // и разбирает её, когда регистрирует приёмник; здесь просто отдаём.
+    // Питомец в шапке нативных игр берёт кадры из вложенной веб-сборки —
+    // они там уже лежат, класть их второй раз в ассеты Flutter значило бы
+    // 4,2 МБ впустую.
+    PetHost.state = widget.state;
+    PetHost.origin = widget.server.origin;
+    SessionReport.sink = (json) async {
+      await _c.runJavaScript('window.__psySaveSession && window.__psySaveSession($json);');
+    };
     _c = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..addJavaScriptChannel(
@@ -259,6 +349,7 @@ class _HybridAppState extends State<HybridApp> {
 
   @override
   void dispose() {
+    SessionReport.sink = null;
     // Хук снимается вместе с хостом: оставленный, он звал бы мёртвый WebView.
     if (HybridApp.open == _open) HybridApp.open = null;
     super.dispose();
@@ -281,9 +372,23 @@ class _HybridAppState extends State<HybridApp> {
   Future<void> _openNative(String route) async {
     final build = HybridApp.native[route];
     if (build == null) return;
+    _openedRoute = route;
     final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => build(widget.state)),
     );
+    _openedRoute = null;
+    // 🔴 СТРАНИЦА ПОД НАМИ ОСТАЛАСЬ НА АДРЕСЕ ИГРЫ. Перехват срабатывает ПОСЛЕ
+    // того, как роутер уже сменил адрес, — значит под нативным экраном веб-половина
+    // стоит на той же игре. Не вернуть её назад — человек, закрыв нативный экран,
+    // увидит веб-версию той же игры, то есть ровно то, что перехват и должен был
+    // предотвратить.
+    // ⚠️ Возврат делаем ТОЛЬКО если адрес всё ещё игровой: пока человек играл,
+    // страница могла уехать сама (например, зарядка перевела шаг).
+    if (mounted) {
+      await _c.runJavaScript(
+        "if (String(location.pathname).indexOf('$route') >= 0) history.back();",
+      );
+    }
     // Вернулись из нативной игры — страница обязана перечитать прогресс,
     // иначе на карте уровней останется старое число.
     if (mounted) await _c.runJavaScript(widget.state.bootstrapJs());

@@ -1,0 +1,341 @@
+{
+ "снято": "прогоном живого TS из frontend/app/games/targets.tsx (VER 4, origin/main)",
+ "targetRate": 0.5,
+ "roundsPerLevel": 10,
+ "maxLevel": 15,
+ "colors": [
+  "#FF6B6B",
+  "#4ECDC4",
+  "#45B7D1",
+  "#FFA07A",
+  "#98D8C8",
+  "#F7DC6F",
+  "#BB8FCE"
+ ],
+ "levels": [
+  {
+   "level": 1,
+   "delay": 1990,
+   "numSquares": 2,
+   "jitterPx": 0,
+   "lifeBonus": 1,
+   "condition": {
+    "delay": 1990,
+    "numSquares": 2,
+    "jitterPx": 0
+   }
+  },
+  {
+   "level": 2,
+   "delay": 1880,
+   "numSquares": 2,
+   "jitterPx": 0,
+   "lifeBonus": 1,
+   "condition": {
+    "delay": 1880,
+    "numSquares": 2,
+    "jitterPx": 0
+   }
+  },
+  {
+   "level": 3,
+   "delay": 1770,
+   "numSquares": 2,
+   "jitterPx": 0,
+   "lifeBonus": 1,
+   "condition": {
+    "delay": 1770,
+    "numSquares": 2,
+    "jitterPx": 0
+   }
+  },
+  {
+   "level": 4,
+   "delay": 1660,
+   "numSquares": 2,
+   "jitterPx": 0,
+   "lifeBonus": 3,
+   "condition": {
+    "delay": 1660,
+    "numSquares": 2,
+    "jitterPx": 0
+   }
+  },
+  {
+   "level": 5,
+   "delay": 1550,
+   "numSquares": 3,
+   "jitterPx": 8,
+   "lifeBonus": 3,
+   "condition": {
+    "delay": 1550,
+    "numSquares": 3,
+    "jitterPx": 8
+   }
+  },
+  {
+   "level": 6,
+   "delay": 1440,
+   "numSquares": 3,
+   "jitterPx": 10,
+   "lifeBonus": 3,
+   "condition": {
+    "delay": 1440,
+    "numSquares": 3,
+    "jitterPx": 10
+   }
+  },
+  {
+   "level": 7,
+   "delay": 1330,
+   "numSquares": 3,
+   "jitterPx": 12,
+   "lifeBonus": 5,
+   "condition": {
+    "delay": 1330,
+    "numSquares": 3,
+    "jitterPx": 12
+   }
+  },
+  {
+   "level": 8,
+   "delay": 1220,
+   "numSquares": 3,
+   "jitterPx": 14,
+   "lifeBonus": 5,
+   "condition": {
+    "delay": 1220,
+    "numSquares": 3,
+    "jitterPx": 14
+   }
+  },
+  {
+   "level": 9,
+   "delay": 1110,
+   "numSquares": 4,
+   "jitterPx": 16,
+   "lifeBonus": 5,
+   "condition": {
+    "delay": 1110,
+    "numSquares": 4,
+    "jitterPx": 16
+   }
+  },
+  {
+   "level": 10,
+   "delay": 1000,
+   "numSquares": 4,
+   "jitterPx": 18,
+   "lifeBonus": 5,
+   "condition": {
+    "delay": 1000,
+    "numSquares": 4,
+    "jitterPx": 18
+   }
+  },
+  {
+   "level": 11,
+   "delay": 890,
+   "numSquares": 4,
+   "jitterPx": 20,
+   "lifeBonus": 5,
+   "condition": {
+    "delay": 890,
+    "numSquares": 4,
+    "jitterPx": 20
+   }
+  },
+  {
+   "level": 12,
+   "delay": 780,
+   "numSquares": 4,
+   "jitterPx": 22,
+   "lifeBonus": 5,
+   "condition": {
+    "delay": 780,
+    "numSquares": 4,
+    "jitterPx": 22
+   }
+  },
+  {
+   "level": 13,
+   "delay": 670,
+   "numSquares": 5,
+   "jitterPx": 24,
+   "lifeBonus": 5,
+   "condition": {
+    "delay": 670,
+    "numSquares": 5,
+    "jitterPx": 24
+   }
+  },
+  {
+   "level": 14,
+   "delay": 560,
+   "numSquares": 5,
+   "jitterPx": 26,
+   "lifeBonus": 5,
+   "condition": {
+    "delay": 560,
+    "numSquares": 5,
+    "jitterPx": 26
+   }
+  },
+  {
+   "level": 15,
+   "delay": 450,
+   "numSquares": 5,
+   "jitterPx": 26,
+   "lifeBonus": 5,
+   "condition": {
+    "delay": 450,
+    "numSquares": 5,
+    "jitterPx": 26
+   }
+  }
+ ],
+ "инварианты": [
+  {
+   "mode": "field",
+   "wantTarget": true,
+   "numSquares": 2,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "field",
+   "wantTarget": true,
+   "numSquares": 3,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "field",
+   "wantTarget": true,
+   "numSquares": 5,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "field",
+   "wantTarget": true,
+   "numSquares": 6,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "field",
+   "wantTarget": false,
+   "numSquares": 2,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "field",
+   "wantTarget": false,
+   "numSquares": 3,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "field",
+   "wantTarget": false,
+   "numSquares": 5,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "field",
+   "wantTarget": false,
+   "numSquares": 6,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "joker",
+   "wantTarget": true,
+   "numSquares": 2,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "joker",
+   "wantTarget": true,
+   "numSquares": 3,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "joker",
+   "wantTarget": true,
+   "numSquares": 5,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "joker",
+   "wantTarget": true,
+   "numSquares": 6,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "joker",
+   "wantTarget": false,
+   "numSquares": 2,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "joker",
+   "wantTarget": false,
+   "numSquares": 3,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "joker",
+   "wantTarget": false,
+   "numSquares": 5,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  },
+  {
+   "mode": "joker",
+   "wantTarget": false,
+   "numSquares": 6,
+   "n": 2000,
+   "isTargetOk": 2000,
+   "invariantOk": 2000
+  }
+ ],
+ "перекос тасовки": {
+  "что": "sort(() => Math.random() - 0.5) на 7 цветах: куда попадает первый элемент",
+  "прогонов": 120000,
+  "равномерно_бы": 14.29,
+  "доли_%": [
+   18.73,
+   18.87,
+   15.33,
+   14.11,
+   13.45,
+   11.54,
+   7.97
+  ]
+ }
+}

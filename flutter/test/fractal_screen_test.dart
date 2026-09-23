@@ -26,7 +26,7 @@ void main() {
       for (var i = 0; i < 60; i++) {
         await tester.pump(const Duration(milliseconds: 50));
         await Future<void>.delayed(const Duration(milliseconds: 50));
-        if (find.byKey(const Key('плитка0')).evaluate().isNotEmpty) break;
+        if (find.byKey(const Key('tile0')).evaluate().isNotEmpty) break;
       }
     });
     await tester.pump();
@@ -49,10 +49,10 @@ void main() {
   testWidgets('🔴 карта: корень крупно и девять плиток дочерних', (tester) async {
     await boot(tester);
     expect(find.text('Фрактал'), findsOneWidget);
-    expect(find.byKey(const Key('корень0_0')), findsOneWidget);
-    expect(find.byKey(const Key('корень8_8')), findsOneWidget);
+    expect(find.byKey(const Key('root_0_0')), findsOneWidget);
+    expect(find.byKey(const Key('root_8_8')), findsOneWidget);
     for (var i = 0; i < 9; i++) {
-      expect(find.byKey(Key('плитка$i')), findsOneWidget, reason: 'плитка $i');
+      expect(find.byKey(Key('tile$i')), findsOneWidget, reason: 'tile $i');
     }
     expect(find.text('0/9'), findsOneWidget, reason: 'открытых сеток на старте нет');
   });
@@ -63,34 +63,34 @@ void main() {
     await boot(tester);
     expect(find.byTooltip('На карту'), findsNothing, reason: 'на карте подниматься некуда');
 
-    await tap(tester, find.byKey(const Key('плитка2')));
-    expect(find.byKey(const Key('клетка0_0')), findsOneWidget, reason: 'открылась дочерняя');
-    expect(find.byKey(const Key('корень0_0')), findsNothing, reason: 'корень уступил место');
+    await tap(tester, find.byKey(const Key('tile2')));
+    expect(find.byKey(const Key('cell_0_0')), findsOneWidget, reason: 'открылась дочерняя');
+    expect(find.byKey(const Key('root_0_0')), findsNothing, reason: 'root_ уступил место');
     expect(find.byTooltip('На карту'), findsOneWidget, reason: 'дверь наверх на виду');
 
     await tap(tester, find.byTooltip('На карту'));
-    expect(find.byKey(const Key('корень0_0')), findsOneWidget, reason: 'вернулись на карту');
+    expect(find.byKey(const Key('root_0_0')), findsOneWidget, reason: 'вернулись на карту');
     expect(find.byTooltip('На карту'), findsNothing);
   });
 
   testWidgets('🔴 цифра встаёт в дочернюю, отмена её снимает', (tester) async {
     await boot(tester);
-    await tap(tester, find.byKey(const Key('плитка0')));
+    await tap(tester, find.byKey(const Key('tile0')));
 
     // Первая пустая клетка дочерней.
     late int er, ec;
     outer:
     for (var r = 0; r < 9; r++) {
       for (var c = 0; c < 9; c++) {
-        if (digitAt(tester, 'клетка', r, c) == 0) { er = r; ec = c; break outer; }
+        if (digitAt(tester, 'cell_', r, c) == 0) { er = r; ec = c; break outer; }
       }
     }
-    await tap(tester, find.byKey(Key('клетка${er}_$ec')));
-    await tap(tester, find.byKey(const Key('цифра5')));
-    expect(digitAt(tester, 'клетка', er, ec), 5);
+    await tap(tester, find.byKey(Key('cell_${er}_$ec')));
+    await tap(tester, find.byKey(const Key('digit5')));
+    expect(digitAt(tester, 'cell_', er, ec), 5);
 
     await tap(tester, find.byTooltip('Отменить'));
-    expect(digitAt(tester, 'клетка', er, ec), 0, reason: 'отмена вернула клетку');
+    expect(digitAt(tester, 'cell_', er, ec), 0, reason: 'отмена вернула клетку');
   });
 
   /// 🔴 ГЛАВНОЕ ПРАВИЛО ИГРЫ ЖИВЬЁМ: дочерняя, добранная до порога, открывается,
@@ -99,16 +99,16 @@ void main() {
     await boot(tester);
 
     // Клетка корня, которую кормит дочерняя 0, — середина её блока: (1,1).
-    expect(digitAt(tester, 'корень', 1, 1), 0, reason: 'кормящая клетка пуста на старте');
+    expect(digitAt(tester, 'root_', 1, 1), 0, reason: 'кормящая клетка пуста на старте');
     // Руками её не заполнить: тычок не выбирает её вовсе.
-    await tap(tester, find.byKey(const Key('корень1_1')));
-    await tap(tester, find.byKey(const Key('цифра7')));
-    expect(digitAt(tester, 'корень', 1, 1), 0, reason: 'кормящую клетку руками не заполняют');
+    await tap(tester, find.byKey(const Key('root_1_1')));
+    await tap(tester, find.byKey(const Key('digit7')));
+    expect(digitAt(tester, 'root_', 1, 1), 0, reason: 'кормящую клетку руками не заполняют');
 
     // Играем дочернюю 0 по решению, пока экран сам не вернётся на карту.
-    await tap(tester, find.byKey(const Key('плитка0')));
+    await tap(tester, find.byKey(const Key('tile0')));
     var guard = 0;
-    while (find.byKey(const Key('клетка0_0')).evaluate().isNotEmpty && guard++ < 90) {
+    while (find.byKey(const Key('cell_0_0')).evaluate().isNotEmpty && guard++ < 90) {
       // Нужна цифра из решения: берём её из подписи плитки — нет, из состояния нельзя.
       // Поэтому идём иначе: перебираем цифры 1..9 в первой пустой клетке и оставляем ту,
       // после которой счётчик прогресса вырос. Это то же, что делает человек.
@@ -116,22 +116,22 @@ void main() {
       var found = false;
       for (var rr = 0; rr < 9 && !found; rr++) {
         for (var cc = 0; cc < 9 && !found; cc++) {
-          if (digitAt(tester, 'клетка', rr, cc) == 0) { r = rr; c = cc; found = true; }
+          if (digitAt(tester, 'cell_', rr, cc) == 0) { r = rr; c = cc; found = true; }
         }
       }
       if (!found) break;
-      await tap(tester, find.byKey(Key('клетка${r}_$c')));
+      await tap(tester, find.byKey(Key('cell_${r}_$c')));
       final before = _progress(tester);
       for (var v = 1; v <= 9; v++) {
-        await tap(tester, find.byKey(Key('цифра$v')));
-        if (find.byKey(const Key('клетка0_0')).evaluate().isEmpty) break;   // вернулись на карту
+        await tap(tester, find.byKey(Key('digit$v')));
+        if (find.byKey(const Key('cell_0_0')).evaluate().isEmpty) break;   // вернулись на карту
         if (_progress(tester) > before) break;                              // цифра верная
       }
     }
 
-    expect(find.byKey(const Key('корень0_0')), findsOneWidget, reason: 'экран сам вернулся на карту');
-    expect(digitAt(tester, 'корень', 1, 1), greaterThan(0),
-        reason: 'цифра пришла снизу в кормящую клетку');
+    expect(find.byKey(const Key('root_0_0')), findsOneWidget, reason: 'экран сам вернулся на карту');
+    expect(digitAt(tester, 'root_', 1, 1), greaterThan(0),
+        reason: 'digit пришла снизу в кормящую клетку');
     expect(find.text('1/9'), findsOneWidget, reason: 'одна сетка открыта');
   });
 
@@ -141,8 +141,8 @@ void main() {
     await boot(tester);
     // Переполнение каркаса Flutter отдаёт исключением — его ловит сам прогон.
     expect(tester.takeException(), isNull);
-    expect(find.byKey(const Key('плитка8')), findsOneWidget, reason: 'плитки на месте');
-    final rect = tester.getRect(find.byKey(const Key('плитка8')));
+    expect(find.byKey(const Key('tile8')), findsOneWidget, reason: 'плитки на месте');
+    final rect = tester.getRect(find.byKey(const Key('tile8')));
     expect(rect.bottom, lessThanOrEqualTo(640.0), reason: 'плитки не уехали за низ: $rect');
   });
 }

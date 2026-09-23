@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import 'level_ladder.dart';
 import 'shared_level_store.dart';
+import 'l10n.dart';
 import 'shared_state.dart';
 
 /// РАЗВИЛКА (хаб) — ОБЩИЙ ЭКРАН НА ВСЕ РАЗДЕЛЫ.
@@ -27,6 +28,7 @@ class HubScreen extends StatefulWidget {
     required this.hubRoute,
     required this.icon,
     required this.gradient,
+    this.header,
     this.isNative,
   });
 
@@ -36,6 +38,17 @@ class HubScreen extends StatefulWidget {
   final String hubRoute;
   final IconData icon;
   final List<Color> gradient;
+
+  /// ЧТО ПОКАЗАТЬ НАД СПИСКОМ КАРТОЧЕК. Просьба раздела «Шахматы» 23.09.2026, и
+  /// она не единичная: в вебе над выбором стоит ЗАРЯДКА раздела — карточка,
+  /// которая ставит несколько упражнений подряд по их собственным лестницам.
+  /// Такие есть у «Шахмат» (`ChessWarmup`) и у «Слов» (`WordsWarmup`).
+  ///
+  /// ⚠️ Без этого слота раздел вынужден либо писать свой экран развилки вместо
+  /// общего — и тогда счёт «правок каркаса ноль» кончается, — либо включить
+  /// перехват и молча отнять у человека рабочую зарядку. «Шахматы» выбрали
+  /// третье: не включать маршрут и сказать об этом, что и правильно.
+  final Widget? header;
 
   /// Перенесена ли игра на Flutter. Нужно только для подписи на карточке:
   /// открывает её в любом случае оболочка (см. [HubCardTap]).
@@ -47,25 +60,43 @@ class HubScreen extends StatefulWidget {
 
 /// Карточка развилки: куда ведёт, как называется, чем отличается.
 class HubCard {
-  const HubCard({required this.route, required this.icon, required this.name, required this.desc, required this.type, this.levelKey});
+  const HubCard({
+    required this.route,
+    required this.icon,
+    required this.nameKey,
+    required this.descKey,
+    required this.type,
+    this.levelKey,
+  });
 
   factory HubCard.fromJson(Map<String, dynamic> j) => HubCard(
         route: j['route'] as String,
-        icon: j['icon'] as String? ?? '',
-        name: j['name'] as String,
-        desc: j['desc'] as String? ?? '',
-        type: j['type'] as String? ?? '',
+        icon: j['icon'] as String? ?? 'apps',
+        nameKey: j['nameKey'] as String? ?? '',
+        descKey: j['descKey'] as String? ?? '',
+        type: j['type'] as String?,
         levelKey: j['levelKey'] as String?,
       );
 
   final String route;
   final String icon;
-  final String name;
-  final String desc;
-  final String type;
+
+  /// 🔴 КЛЮЧИ СЛОВАРЯ, А НЕ ГОТОВЫЙ ТЕКСТ. До 23.09.2026 здесь лежали русские
+  /// строки, и ВСЕ 13 развилок показывали один язык из двенадцати. Нашёл раздел
+  /// «Судоку», и нашёл не гейтом: храповик зашитого текста смотрит КОД, а текст
+  /// лежал в ДАННЫХ и проходил мимо него.
+  final String nameKey;
+  final String descKey;
+
+  final String? type;
 
   /// Чем игра подписывает свой уровень, если это НЕ адрес карточки.
+  /// Пусто — ключ берётся из адреса; расходятся три карточки из 113
+  /// (замер 23.09.2026, см. `_boot`).
   final String? levelKey;
+
+  String get name => nameKey.isEmpty ? route : L.t(nameKey);
+  String get desc => descKey.isEmpty ? '' : L.t(descKey);
 }
 
 /// Значок карточки по имени из веб-реестра. Незнакомое имя — общий значок:
@@ -151,6 +182,12 @@ class _HubScreenState extends State<HubScreen> {
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               children: [
+                // Шапка раздела идёт ПЕРЕД градиентным заголовком: зарядка —
+                // это действие, а заголовок только называет раздел.
+                if (widget.header != null) ...[
+                  widget.header!,
+                  const SizedBox(height: 12),
+                ],
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -191,7 +228,7 @@ class _HubScreenState extends State<HubScreen> {
                       title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700)),
                       subtitle: Text(
                         [
-                          if (c.type.isNotEmpty) c.type,
+                          if ((c.type ?? '').isNotEmpty) c.type!,
                           if (c.desc.isNotEmpty) c.desc,
                         ].join(' · '),
                         // ⚠️ ДВЕ СТРОКИ, А НЕ СКОЛЬКО ВЫЙДЕТ. На снимке описания

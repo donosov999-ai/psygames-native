@@ -35,7 +35,8 @@
  * рисуется своим размером — от этого отпечаток не зависит, потому что сравниваются
  * только ракурсы между собой.
  */
-import { shuffle } from './rng';
+import { clearestOrientation } from './occlusion';
+import { pick, shuffle } from './rng';
 import { shapesOfSize } from './shapes';
 import { levelParams } from './rotation';
 import { shapeSurface } from './surface';
@@ -102,7 +103,20 @@ export function buildViewpointTask(level: number, rng: Rng): ViewpointTask {
   // — просто «та же картинка, что сверху». И вместе с нулём выпадает ЛЮБОЙ угол с
   // тем же отпечатком: у симметричной фигуры вид с 180° бывает неотличим от вида с
   // 0°, и он так же обесценил бы задание.
-  for (const shape of shuffle(rng, candidates)) {
+  for (const исходная of shuffle(rng, candidates)) {
+    /*
+     * 🔴 ЭТАЛОН ПОКАЗЫВАЕТСЯ ПОД РАКУРСОМ, ГДЕ ВИДНЫ ВСЕ КУБИКИ.
+     *
+     * 📍 Отчёт 8db157b4 (17.09.2026, «Точка зрения», раунд 7/10): «кубики изначально
+     * не содержат такое количество, впечатление, что ошибочно считается» — на кадре
+     * верный ответ выглядит фигурой ИЗ БОЛЬШЕГО ЧИСЛА КУБИКОВ, чем видно на эталоне.
+     * Так и было: эталон под своим углом прятал кубик, а вариант с другого угла его
+     * открывал. Замер координатора: 500 заданий из 500 со скрытым кубиком.
+     *
+     * Крутить безопасно: отпечатки ракурсов и все варианты считаются ОТ ЭТОЙ ЖЕ
+     * фигуры, ниже по коду, — повернули её, повернулось и всё задание целиком.
+     */
+    const shape = clearestOrientation(исходная, (варианты) => pick(rng, варианты));
     const distinct = new Map<string, number>();
     for (const a of angles) {
       const key = viewFingerprint(shape, a);

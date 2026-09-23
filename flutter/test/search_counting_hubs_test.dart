@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/counting_hub/screen.dart';
 import 'package:psygames_flutter/games/search_hub/screen.dart';
 import 'package:psygames_flutter/shell/hub_screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -34,6 +35,13 @@ Future<void> seeAll(WidgetTester tester, List<String> names) async {
 }
 
 void main() {
+  // Подписи карточек приехали из общего словаря (main, 23.09): в данных лежат
+  // КЛЮЧИ, а не текст, поэтому без загруженного словаря развилка покажет ключи.
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await L.load('ru');
+  });
+
   setUp(() {
     SharedPreferences.setMockInitialValues({
       // Уровни пишет веб-половина ТЕМИ ЖЕ ключами: psygames_<игра>_level_<профиль>.

@@ -512,6 +512,28 @@ export default function SudokuGame() {
   const DIGIT_IMG = digitsForStyle(digitStyle);
   // Тип цифр: 'plain' = обычный чёткий текст (дефолт — ровный размер, по центру, без тени), 'drawn' = рисованные наборы.
   const [digitMode, setDigitMode] = useState<'plain' | 'drawn'>('plain');
+  /**
+   * 🔴 НОМЕР ПОПЫТКИ — ТРЕТЬЯ СОСТАВЛЯЮЩАЯ ЗЕРНА ДОСКИ (решение Дениса 23.09.2026).
+   *
+   * Замер того же дня: на поясе банка (уровни 58–80) зерно складывалось из профиля и
+   * уровня, поэтому проигранный уровень раздавал ОДНУ И ТУ ЖЕ доску сколько угодно раз —
+   * при сорока досках в полосе человек видел одну. Денис поймал это на 64–65.
+   *
+   * ⚠️ Счётчик НЕ сбрасывается победой и живёт на профиль, а не на уровень: он нужен
+   * только чтобы зерно отличалось, а «какой по счёту раз я тут» — это не показатель для
+   * человека. И он НЕ меняется во время партии: иначе незаконченная партия (resume)
+   * восстановилась бы на другую доску, потому что хранит ходы, а не саму доску.
+   */
+  const tryRef = useRef(0);
+  useEffect(() => {
+    const pid = profile?.id;
+    if (!pid) return;
+    AsyncStorage.getItem(`psygames_sudoku_try_${pid}`).then((v) => {
+      const n = Math.max(0, Math.floor(Number(v ?? 0)) || 0);
+      tryRef.current = n;
+    }).catch(() => {});
+  }, [profile?.id]);
+
   useEffect(() => { AsyncStorage.getItem('psygames_sudoku_digitmode').then((v) => { if (v === 'plain' || v === 'drawn') setDigitMode(v); }).catch(() => {}); }, []);
   const changeDigitMode = (m: 'plain' | 'drawn') => { setDigitMode(m); AsyncStorage.setItem('psygames_sudoku_digitmode', m).catch(() => {}); };
 
@@ -945,7 +967,7 @@ export default function SudokuGame() {
       const lv = lvlOverride ?? level;
       if (vr === 'none' && d.N === BANK_N) {
         const shift = road === 'easy' ? -1 : road === 'hard' ? 1 : 0;
-        const picked = bankBoardForLevel(lv, profile?.id ?? 'guest', shift);
+        const picked = bankBoardForLevel(lv, profile?.id ?? 'guest', shift, tryRef.current);
         // Оценщик техник остаётся — но теперь он ОПИСЫВАЕТ выданную доску, а не
         // назначает ей сложность. Выше SE 3.6 наша лестница техник кончается, и
         // подпись честно не показывается вовсе (см. шапку services/sudoku-bank).
@@ -1249,6 +1271,12 @@ export default function SudokuGame() {
         setOver(true);
         const pid = profile?.id;
         if (pid) clearResume(GAME_ID, pid).catch(() => {});   // партия проиграна — продолжать нечего
+        // Проиграл — следующая попытка этого уровня придёт ДРУГОЙ доской той же полосы.
+        {
+          const next = tryRef.current + 1;
+          tryRef.current = next;
+          if (pid) AsyncStorage.setItem(`psygames_sudoku_try_${pid}`, String(next)).catch(() => {});
+        }
         // ⚠️ В ЗАРЯДКЕ ПРОИГРЫШ ОБЯЗАН ЗАВЕРШИТЬ ШАГ. Зарядка двигается по СОХРАНЁННОЙ
         // сессии, а судоку пишет её только когда доска собрана. Значит проигрыш внутри
         // зарядки не сохранял ничего, и человек оставался на этом шаге навсегда: набор

@@ -45,7 +45,11 @@ class PuzzlesScreen extends StatefulWidget {
 }
 
 class _PuzzlesScreenState extends State<PuzzlesScreen> {
-  late final PuzzleMode _mode;
+  /// ⚠️ Карточка режима приходит ИЗ АССЕТА, а первый кадр рисуется раньше. Поле
+  /// было `late` — и экран падал LateInitializationError на первом же кадре.
+  /// Пусто значит «ещё грузится», и это честное состояние, а не сбой.
+  PuzzleMode? _modeOrNull;
+  PuzzleMode get _mode => _modeOrNull!;
   late LevelLadder _ladder;
   TathamEngine? _engine;
   int _gameIndex = -1;
@@ -60,16 +64,33 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   @override
   void initState() {
     super.initState();
-    _mode = puzzleModes[widget.mode]!;
-    _ladder = LevelLadder(
-      gameId: _mode.levelKey,
-      store: SharedLevelStore(widget.state),
-      maxLevel: _mode.steps.length,
-    );
     _boot();
   }
 
+  /// ⚠️ Карточки режимов теперь ГРУЗЯТСЯ (ассет, собранный из веб-моста), а не
+  /// лежат в коде — значит режим нельзя взять синхронно в initState. Раньше
+  /// `puzzleModes[widget.mode]!` падал бы восклицательным знаком на незнакомом
+  /// имени; теперь незнакомое имя — это честная надпись на экране, а не сбой.
+  Future<void> _prepareMode() async {
+    await PuzzleModes.load();
+    final mode = PuzzleModes.all[widget.mode];
+    if (mode == null) {
+      if (mounted) setState(() => _failure = 'режим ${widget.mode} движку неизвестен');
+      return;
+    }
+    _modeOrNull = mode;
+    _ladder = LevelLadder(
+      gameId: _mode.levelKey,
+      store: SharedLevelStore(widget.state),
+      // Своей лестницы у 28 режимов из 42 нет — у них ступени берутся из
+      // пресетов самого движка, и их число известно только после открытия игры.
+      maxLevel: _mode.steps.isEmpty ? 999 : _mode.steps.length,
+    );
+  }
+
   Future<void> _boot() async {
+    await _prepareMode();
+    if (_failure != null) return;
     await _ladder.load();
     try {
       final engine = TathamEngine.openPlatform(path: widget.libraryPath);
@@ -155,6 +176,12 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_failure != null) {
+      return Scaffold(body: Center(child: Text(_failure!)));
+    }
+    if (_modeOrNull == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final step = _mode.steps[(_ladder.level - 1).clamp(0, _mode.steps.length - 1)];
 
     return GameShell(
@@ -176,7 +203,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
             final size = Size(side < 0 ? 0 : side, side < 0 ? 0 : side);
             return Center(
               child: GestureDetector(
-                key: const Key('поле'),
+                key: const Key('board'),
                 behavior: HitTestBehavior.opaque,
                 onTapDown: (d) => _tap(d.localPosition, size),
                 child: CustomPaint(
@@ -243,7 +270,7 @@ class _Toolbar extends StatelessWidget {
     if (mode.engineName == 'Solo' && m != null) {
       return int.parse(m.group(1)!) * int.parse(m.group(2)!);
     }
-    if (mode.digitLabels != null) return mode.digitLabels!.length;
+    if (mode.digitLabels.isNotEmpty) return mode.digitLabels.length;
     if (m != null) return int.parse(m.group(1)!);
     return int.parse(RegExp(r'^(\d+)').firstMatch(p)!.group(1)!);
   }
@@ -254,7 +281,7 @@ class _Toolbar extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.all(12),
         child: FilledButton.icon(
-          key: const Key('дальше'),
+          key: const Key('next'),
           onPressed: onNext,
           icon: const Icon(Icons.arrow_forward),
           label: const Text('Следующая ступень'),
@@ -274,7 +301,7 @@ class _Toolbar extends StatelessWidget {
       builder: (context, c) {
         const gap = 6.0;
         final keys = _keys;
-        final wide = labels != null;
+        final wide = labels.isNotEmpty;
         final keyWidth = wide ? 96.0 : 48.0;
         final fit = ((c.maxWidth - 8 + gap) / (keyWidth + gap)).floor().clamp(1, keys);
         final rows = (keys / fit).ceil();
@@ -295,11 +322,11 @@ class _Toolbar extends StatelessWidget {
                       width: keyWidth,
                       height: 48,
                       child: FilledButton(
-                        key: Key('цифра$v'),
+                        key: Key('digit$v'),
                         onPressed: () => onDigit(v),
                         style: FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: Text(
-                          labels != null && v <= labels.length ? labels[v - 1] : '$v',
+                          labels.isNotEmpty && v <= labels.length ? labels[v - 1] : '$v',
                           style: TextStyle(fontSize: wide ? 13 : 20),
                         ),
                       ),

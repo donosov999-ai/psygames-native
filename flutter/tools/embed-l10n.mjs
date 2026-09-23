@@ -62,6 +62,32 @@ for (const f of dartFiles(join(FLUTTER, 'lib'))) {
   for (const m of src.matchAll(call)) used.add(m[1]);
 }
 
+// 1б. КЛЮЧИ, КОТОРЫЕ ЗОВУТСЯ ПЕРЕМЕННОЙ, А НЕ ЛИТЕРАЛОМ.
+//
+// 🔴 Шаблон выше находит только `L.t('имя')`. А карточки развилок и режимов
+// головоломок берут ключ ИЗ ДАННЫХ: `L.t(c.nameKey)`. Такие ключи в исходнике
+// не написаны вовсе, и первый же прогон после перевода развилок оставил бы их
+// без строк — экран показал бы сами ключи. Поэтому собираем их из собранных
+// ассетов: там они лежат явно.
+for (const [file, fields] of [
+  ['assets/hubs.json', ['nameKey', 'descKey']],
+  ['assets/puzzles/modes.json', ['titleKey', 'digitNames']],
+]) {
+  let data;
+  try { data = JSON.parse(readFileSync(join(FLUTTER, file), 'utf8')); } catch { continue; }
+  const walk = (node) => {
+    if (Array.isArray(node)) return node.forEach(walk);
+    if (!node || typeof node !== 'object') return;
+    for (const f of fields) {
+      const v = node[f];
+      if (typeof v === 'string' && v) used.add(v);
+      else if (Array.isArray(v)) v.forEach((x) => typeof x === 'string' && x && used.add(x));
+    }
+    Object.values(node).forEach(walk);
+  };
+  walk(data);
+}
+
 // 2. Словари веба.
 const base = evalObjectAfter(
   readFileSync(join(WEB, 'LanguageContext.tsx'), 'utf8'),

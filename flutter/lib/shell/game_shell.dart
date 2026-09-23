@@ -1,3 +1,4 @@
+import 'game_pet.dart';
 import 'package:flutter/material.dart';
 
 /// Каркас игрового экрана — перенос GameShell из React-версии PsyGames.
@@ -140,6 +141,13 @@ class _Header extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleMedium),
             ),
+            // Питомец в шапке — как в веб-половине. Его нет, пока оболочка не
+            // назвала адрес раздачи: кадры лежат во вложенной веб-сборке.
+            if (PetHost.ready)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: GamePet(state: PetHost.state!, origin: PetHost.origin!, size: 34),
+              ),
             if (onRules != null)
               IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: 'Правила'),
             if (onBack != null)

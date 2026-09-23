@@ -7,7 +7,14 @@ import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import 'generator/contract.dart';
+import 'generator/engine.dart';
+import 'generator/pool.dart';
+import 'generator/shadow.dart';
+import 'generator/store.dart';
 import 'levels.dart';
+import 'mode_board.dart';
+import 'modes.dart';
 
 /// СУДОКУ на общем каркасе — первый экран раздела в переезде на Flutter.
 ///
@@ -21,13 +28,22 @@ import 'levels.dart';
 /// Уровень лежит в общей памяти под тем же ключом, что у веб-версии
 /// (`psygames_sudoku_level_<профиль>`), поэтому прогресс один на обе половины.
 class SudokuScreen extends StatefulWidget {
-  const SudokuScreen({super.key, required this.state});
+  const SudokuScreen({super.key, required this.state, this.mode});
 
   final SharedState state;
+
+  /// Режим доски: `null` — обычная лестница на 92 ступени, иначе «Небоскрёбы» или
+  /// «Неравенства» со своей мини-лестницей на 8 ступеней и своим счётчиком.
+  /// В вебе это тот же экран с адресом `/games/sudoku?mode=towers`.
+  final SideMode? mode;
 
   @override
   State<SudokuScreen> createState() => _SudokuScreenState();
 }
+
+/// Одна подпись на обе ветки раздачи: и лестницу, и режим. Второй такой же литерал
+/// в коде — это лишняя строка в долге подписей и лишний ключ при переводе.
+const _noBoards = 'Досок этого уровня нет в данных';
 
 class _SudokuScreenState extends State<SudokuScreen> {
   static const errorLimit = 3;   // «3 ошибки. Сыграй заново» — правило веб-версии
@@ -35,6 +51,25 @@ class _SudokuScreenState extends State<SudokuScreen> {
   late LevelLadder _ladder;
   SudokuLevels? _levels;
   SudokuBoard? _board;
+
+  /// Половина режима: доски, счётчик ступени и текущая доска.
+  SideModes? _sideModes;
+  SideProgress? _side;
+  SideBoard? _sideBoard;
+
+  /// Решение текущей доски — что бы её ни выдало, лестница или режим.
+  List<List<int>>? get _solution => _sideBoard?.solution ?? _board?.solution;
+
+  /// Сторона доски: у небоскрёбов 6, у остальных 9 (у первых ступеней лестницы тоже 6).
+  int get _n => _sideBoard?.n ?? _board?.n ?? 9;
+
+  /// ТЕНЕВОЙ ШАГ ГЕНЕРАТОРА (§10.2): он записывает, что выбрал бы, и учит рейтинг на
+  /// исходах настоящих партий. Человеку при этом выдаётся ПРЕЖНЯЯ доска прописанной
+  /// лестницы — путь генератора включается отдельным флагом и здесь ничего не решает.
+  GeneratorShadow? _shadow;
+  List<Template> _pool = const [];
+  Template? _givenTemplate;
+  late String _dealId;
 
   List<List<int>> _grid = const [];
   List<List<bool>> _given = const [];
@@ -57,18 +92,46 @@ class _SudokuScreenState extends State<SudokuScreen> {
   Future<void> _boot() async {
     await _ladder.load();
     final levels = await SudokuLevels.load();
+    // Лестница нужна и в режиме: потолок подсказок берётся по номеру ступени — ровно
+    // так же, как в веб-половине (там в режиме `level` держит номер ступени).
+    final modes = widget.mode == null ? null : await SideModes.load();
     if (!mounted) return;
-    setState(() => _levels = levels);
+    setState(() {
+      _levels = levels;
+      _pool = buildPool(levels);
+      _shadow = GeneratorShadow(GeneratorStore(widget.state));
+      _sideModes = modes;
+      if (widget.mode != null) _side = SideProgress(widget.state, widget.mode!);
+    });
     _deal();
   }
 
   void _deal() {
+    final mode = widget.mode;
+    if (mode != null) {
+      final modes = _sideModes, side = _side;
+      if (modes == null || side == null) return;
+      final board = modes.boardFor(mode, side.step, seed: DateTime.now().millisecondsSinceEpoch);
+      setState(() {
+        _sideBoard = board;
+        _failure = board == null ? _noBoards : null;
+        _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
+        _given = board == null ? const [] : [for (final row in board.puzzle) [for (final v in row) v != 0]];
+        _history.clear();
+        _selected = null;
+        _errors = 0;
+        _hintsUsed = 0;
+        _won = false;
+        _lost = false;
+      });
+      return;   // теневой шаг генератора живёт на лестнице, а не в режимах
+    }
     final levels = _levels;
     if (levels == null) return;
     final board = levels.boardFor(_ladder.level, seed: DateTime.now().millisecondsSinceEpoch);
     setState(() {
       _board = board;
-      _failure = board == null ? 'Досок этого уровня нет в данных' : null;
+      _failure = board == null ? _noBoards : null;
       _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
       _given = board == null ? const [] : [for (final row in board.puzzle) [for (final v in row) v != 0]];
       _history.clear();
@@ -78,6 +141,40 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _won = false;
       _lost = false;
     });
+    _recordDeal(board);
+  }
+
+  /// Записать теневой выбор: какой шаблон выдала лестница и что предложил бы генератор.
+  void _recordDeal(SudokuBoard? board) {
+    final shadow = _shadow;
+    if (shadow == null || board == null) return;
+    _dealId = 'lv${_ladder.level}-${DateTime.now().millisecondsSinceEpoch}';
+    _givenTemplate = templateForBoard(
+      variant: board.variant,
+      fromBank: board.rating != null,
+      bankRating: board.rating ?? 0,
+      tier: board.tier,
+    );
+    shadow.recordDeal(
+      level: _ladder.level,
+      given: _givenTemplate!,
+      pool: _pool,
+      // Прописанная дорога «Обычная» — у теневого шага та же поблажка по умолчанию.
+      mode: Leniency.normal,
+    );
+  }
+
+  /// Исход настоящей партии — в рейтинг генератора, по шаблону ВЫДАННОЙ доски.
+  void _recordOutcome(Outcome outcome) {
+    final shadow = _shadow, given = _givenTemplate;
+    if (shadow == null || given == null) return;
+    shadow.recordOutcome(
+      given: given,
+      outcome: outcome,
+      eventId: _dealId,
+      errors: _errors,
+      hints: _hintsUsed,
+    );
   }
 
   void _select(int r, int c) {
@@ -88,17 +185,20 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// Поставить цифру. Ошибкой считается расхождение с решением — так же, как в вебе:
   /// доска там уже проверена на единственность, поэтому «не по решению» и есть ошибка.
   void _place(int value) {
-    final board = _board;
+    final solution = _solution;
     final sel = _selected;
-    if (board == null || sel == null || _won || _lost) return;
+    if (solution == null || sel == null || _won || _lost) return;
     if (_given[sel.r][sel.c]) return;   // подсказку задания не трогаем
 
     setState(() {
       _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c]));
       _grid[sel.r][sel.c] = value;
-      if (value != 0 && board.solution[sel.r][sel.c] != value) {
+      if (value != 0 && solution[sel.r][sel.c] != value) {
         _errors += 1;
-        if (_errors >= errorLimit) _lost = true;
+        if (_errors >= errorLimit) {
+          _lost = true;
+          _recordOutcome(Outcome.failed);
+        }
         return;
       }
       _checkWin();
@@ -118,33 +218,41 @@ class _SudokuScreenState extends State<SudokuScreen> {
   /// Подсказка: открывает выбранную клетку по решению. Число подсказок на уровень
   /// задаёт лестница (`hintMax`), как в вебе.
   void _hint() {
-    final board = _board;
+    final solution = _solution;
     final sel = _selected;
-    if (board == null || sel == null || _won || _lost) return;
-    final cfg = _levels!.config(_ladder.level);
-    if (_hintsUsed >= cfg.hintMax) return;
+    if (solution == null || sel == null || _won || _lost) return;
+    if (_hintsUsed >= _hintMax) return;
     setState(() {
-      _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c]));
-      _grid[sel.r][sel.c] = board.solution[sel.r][sel.c];
+      _history.add((r: sel.r, c: sel.c, was: solution[sel.r][sel.c]));
+      _grid[sel.r][sel.c] = solution[sel.r][sel.c];
       _hintsUsed += 1;
       _checkWin();
     });
   }
 
+  /// Потолок подсказок берётся по номеру ступени — как в веб-половине.
+  int get _hintMax {
+    final levels = _levels;
+    if (levels == null) return 0;
+    return levels.config(widget.mode == null ? _ladder.level : (_side?.step ?? 1)).hintMax;
+  }
+
   void _checkWin() {
-    final board = _board;
-    if (board == null) return;
-    for (var r = 0; r < board.n; r++) {
-      for (var c = 0; c < board.n; c++) {
-        if (_grid[r][c] != board.solution[r][c]) return;
+    final solution = _solution;
+    if (solution == null) return;
+    for (var r = 0; r < _n; r++) {
+      for (var c = 0; c < _n; c++) {
+        if (_grid[r][c] != solution[r][c]) return;
       }
     }
     _won = true;
+    if (widget.mode != null) {
+      _side?.win();   // ступень режима — свой счётчик, лестница на 92 ступени не трогается
+      return;
+    }
+    // Подсказками доигранная партия рейтинг не повышает — это правило движка, не экрана.
+    _recordOutcome(_hintsUsed > 0 ? Outcome.assisted : Outcome.passed);
     unawaited(_ladder.win());
-  }
-
-  void _nextLevel() {
-    _deal();
   }
 
   @override
@@ -152,22 +260,44 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final levels = _levels;
     final board = _board;
     final cfg = levels?.config(_ladder.level);
+    // Правило доски: у режима — его имя, у лестницы — имя варианта ступени.
+    final ruleLabel = widget.mode != null
+        ? variantTitle(sideModeName(widget.mode!))
+        : (cfg != null && cfg.variant != 'none' ? variantTitle(cfg.variant) : null);
 
     return GameShell(
       title: 'Судоку',
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.trending_up),
+        // ⚠️ Подпись одна и та же на оба случая: новая строка в коде — это новый долг
+        // храповика подписей, а «Уровень» уже переведён на двенадцать языков.
+        HudItem(
+          label: 'Уровень',
+          value: widget.mode == null ? '${_ladder.level}' : '${_side?.step ?? 1}/$sideSteps',
+          icon: Icons.trending_up,
+        ),
         HudItem(label: 'Ошибки', value: '$_errors/$errorLimit', icon: Icons.close),
-        if (cfg != null && cfg.variant != 'none')
-          HudItem(label: 'Правило', value: variantTitle(cfg.variant), icon: Icons.rule),
+        if (ruleLabel != null) HudItem(label: 'Правило', value: ruleLabel, icon: Icons.rule),
       ],
       field: (context, height) {
-        if (levels == null) return const Center(child: CircularProgressIndicator());
-        if (board == null) {
+        final ready = widget.mode == null ? levels != null : _sideModes != null;
+        if (!ready) return const Center(child: CircularProgressIndicator());
+        final side = _sideBoard;
+        if (widget.mode == null ? board == null : side == null) {
           return Center(child: Text(_failure ?? 'Доска не собралась'));
         }
+        if (widget.mode != null) {
+          return ModeBoard(
+            board: side!,
+            mode: widget.mode!,
+            grid: _grid,
+            given: _given,
+            selected: _selected,
+            height: height,
+            onTap: _select,
+          );
+        }
         return _Board(
-          board: board,
+          board: board!,
           grid: _grid,
           given: _given,
           selected: _selected,
@@ -186,20 +316,20 @@ class _SudokuScreenState extends State<SudokuScreen> {
           icon: Icons.lightbulb_outline,
           label: 'Подсказка',
           tint: const Color(0xFFB45309),
-          onPressed: (cfg != null && _hintsUsed < cfg.hintMax && _selected != null && !_won && !_lost)
+          onPressed: (_hintsUsed < _hintMax && _selected != null && !_won && !_lost)
               ? _hint
               : null,
         ),
       ]),
-      toolbar: board == null
+      toolbar: (board == null && _sideBoard == null)
           ? null
           : _Toolbar(
-              n: board.n,
+              n: _n,
               won: _won,
               lost: _lost,
               onDigit: _place,
               onErase: _erase,
-              onNext: _nextLevel,
+              onNext: _deal,
             ),
       pauseActions: [
         PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
@@ -352,7 +482,7 @@ class _Cell extends StatelessWidget {
       child: Material(
         color: selected ? scheme.primaryContainer : scheme.surface,
         child: InkWell(
-          key: Key('клетка${row}_$col'),
+          key: Key('cell_${row}_$col'),
           onTap: () => onTap(row, col),
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -405,7 +535,7 @@ class _Toolbar extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.all(12),
         child: FilledButton.icon(
-          key: const Key('дальше'),
+          key: const Key('next'),
           onPressed: onNext,
           icon: Icon(won ? Icons.arrow_forward : Icons.refresh),
           label: Text(won ? 'Следующий уровень' : 'Ещё раз'),
@@ -435,7 +565,7 @@ class _Toolbar extends StatelessWidget {
                       width: keyWidth,
                       height: keyWidth,
                       child: FilledButton(
-                        key: Key('цифра$v'),
+                        key: Key('digit$v'),
                         onPressed: () => onDigit(v),
                         style: FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: Text('$v', style: const TextStyle(fontSize: 20)),
@@ -445,7 +575,7 @@ class _Toolbar extends StatelessWidget {
                     width: keyWidth,
                     height: keyWidth,
                     child: OutlinedButton(
-                      key: const Key('стереть'),
+                      key: const Key('erase'),
                       onPressed: onErase,
                       style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
                       child: const Icon(Icons.backspace_outlined, size: 18),

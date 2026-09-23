@@ -350,7 +350,7 @@ class _Cell extends StatelessWidget {
                 ? scheme.tertiaryContainer.withValues(alpha: 0.45)
                 : scheme.surface,
         child: InkWell(
-          key: Key('клетка${row}_$col'),
+          key: Key('cell_${row}_$col'),
           onTap: () => onTap(row, col),
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -423,7 +423,7 @@ class _Toolbar extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.all(12),
         child: FilledButton.icon(
-          key: const Key('дальше'),
+          key: const Key('next'),
           onPressed: onNext,
           icon: const Icon(Icons.arrow_forward),
           label: const Text('Новая партия'),
@@ -452,7 +452,7 @@ class _Toolbar extends StatelessWidget {
                       width: keyWidth,
                       height: keyWidth,
                       child: FilledButton(
-                        key: Key('цифра$v'),
+                        key: Key('digit$v'),
                         onPressed: () => onDigit(v),
                         style: FilledButton.styleFrom(padding: EdgeInsets.zero),
                         child: Text('$v', style: const TextStyle(fontSize: 20)),
@@ -462,7 +462,7 @@ class _Toolbar extends StatelessWidget {
                     width: keyWidth,
                     height: keyWidth,
                     child: OutlinedButton(
-                      key: const Key('стереть'),
+                      key: const Key('erase'),
                       onPressed: onErase,
                       style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
                       child: const Icon(Icons.backspace_outlined, size: 18),

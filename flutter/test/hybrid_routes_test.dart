@@ -76,6 +76,12 @@ void main() {
       '$origin/games/stop-signal',
       '$origin/games/posner',
       '$origin/games/stroop-emotional',
+      '$origin/games/switching-task',
+      '$origin/games/targets',
+      '$origin/games/inhibition',
+      '$origin/games/faces-names',
+      '$origin/games/memory-palace',
+      '$origin/games/rmet',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -104,6 +110,28 @@ void main() {
     }
   });
 
+  /// 🔴 РЕЖИМ ОТЛИЧАЕТСЯ ТОЛЬКО ХВОСТОМ АДРЕСА. Срезать его до поиска значит открыть
+  /// «Небоскрёбы» обычной судоку — человек жмёт одно, получает другое.
+  test('🔴 режимы судоку узнаются по хвосту адреса, а не теряются', () {
+    const origin = 'http://127.0.0.1:54321';
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=towers'), '/games/sudoku?mode=towers');
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=unequal'), '/games/sudoku?mode=unequal');
+    expect(HybridApp.routeOf('$origin/games/sudoku.html?mode=towers'), '/games/sudoku?mode=towers',
+        reason: 'и в виде .html тоже');
+    expect(HybridApp.routeOf('$origin/games/sudoku'), '/games/sudoku',
+        reason: 'без хвоста — обычная судоку');
+    expect(HybridApp.routeOf('$origin/games/sudoku?mode=killer'), '/games/sudoku',
+        reason: 'неизвестный режим ведёт на обычный экран, а не в никуда');
+    // Игру без режимов хвост не задевает.
+    expect(HybridApp.routeOf('$origin/games/one-line?autostart=1'), '/games/one-line');
+  });
+
+  test('🔴 развилки раздела открываются нативно', () {
+    const origin = 'http://127.0.0.1:54321';
+    expect(HybridApp.routeOf('$origin/games/sudoku-hub'), '/games/sudoku-hub');
+    expect(HybridApp.routeOf('$origin/games/puzzles-hub'), '/games/puzzles-hub');
+  });
+
   test('🔴 неперенесённые игры и прочие страницы остаются в вебе', () {
     const origin = 'http://127.0.0.1:54321';
     for (final url in [
@@ -112,7 +140,6 @@ void main() {
       '$origin/collection',
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
-      '$origin/games/sudoku-hub',       // развилка судоку ещё не перенесена
       '$origin/games/puzzles',          // головоломки Тэтхэма ещё не перенесены
       '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
     ]) {
@@ -131,18 +158,22 @@ void main() {
       '/games/digit-span',
       '/games/dots-connect',
       '/games/counter',
-      '/games/find-differences',
-      '/games/visual-search',
-      '/games/search-hub',
       '/games/counting-hub',
+      '/games/faces-names',
+      '/games/find-differences',
+      '/games/search-hub',
+      '/games/visual-search',
       '/games/flanker',
       '/games/go-no-go',
       '/games/goods-sort',
       '/games/hanoi',
+      '/games/inhibition',
       '/games/mahjong',
       '/games/math-slider',
       '/games/math-sprint',
       '/games/memory-matrix',
+      '/games/memory-palace',
+      '/games/rmet',
       '/games/mental-rotation',
       '/games/number-bonds',
       '/games/nut-sort',
@@ -164,10 +195,16 @@ void main() {
       '/games/stop-signal',
       '/games/stroop',
       '/games/stroop-emotional',
+      '/games/switching-task',
       '/games/sudoku',
+      '/games/sudoku-hub',
+      '/games/sudoku?mode=towers',
+      '/games/sudoku?mode=unequal',
+      '/games/puzzles-hub',
       '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',
       '/games/sudoku-samurai',
+      '/games/targets',
       '/games/tower-london',
       '/games/water-sort',
     });
