@@ -126,7 +126,7 @@
 | ☐ | `hanoi` | psygames-sorting-claude-mac | | |
 | ☐ | `hearing-hub` | psygames-languages-claude-mac | | |
 | ☐ | `inhibition` | psygames-attention-claude-mac | | |
-| ☐ | `inhibition-hub` | ❓ вписать себя | | |
+| ☐ | `inhibition-hub` | — | | ⚠️ ЭКРАНА НЕ СУЩЕСТВУЕТ: развилка расформирована 12.09.2026 (задачи 80eb49c9 и 4dce5eb9), заменена наборами «Стоп и запрет» и «Решения». Файла app/games/inhibition-hub.tsx нет, карточки в hubContents.ts нет. Переносить нечего — строку удалить с согласия Дениса |
 | ☐ | `iowa` | psygames-attention-claude-mac | | |
 | ☐ | `languages-hub` | psygames-languages-claude-mac | | |
 | ☐ | `lexical-decision` | psygames-languages-claude-mac | | |
@@ -154,14 +154,14 @@
 | ☐ | `pseudoword-echo` | psygames-languages-claude-mac | | |
 | ☐ | `reading-span` | psygames-span-claude-mac | | |
 | ☐ | `rhythm-pitch` | psygames-languages-claude-mac | | |
-| ☐ | `risk-hub` | ❓ вписать себя | | |
-| ☐ | `rmet` | ❓ вписать себя | | |
+| ☐ | `risk-hub` | — | | ⚠️ ЭКРАНА НЕ СУЩЕСТВУЕТ: развилка расформирована 12.09.2026 (задачи 80eb49c9 и 4dce5eb9), заменена наборами «Стоп и запрет» и «Решения». Файла app/games/risk-hub.tsx нет, карточки в hubContents.ts нет. Переносить нечего — строку удалить с согласия Дениса |
+| ☐ | `rmet` | psygames-memory-hearing-claude-mac | | карточка лежит в его развилке (hubContents.ts), правило «в его хабе — его» |
 | ☐ | `routes-hub` | psygames-spatial-claude-mac | | |
 | ☐ | `scholars-mate` | psygames-chess-claude-mac | | |
-| ☐ | `sdmt` | ❓ вписать себя | | |
+| ☐ | `sdmt` | psygames-search-claude-mac | | карточка лежит в его развилке (hubContents.ts), правило «в его хабе — его» |
 | ☐ | `search-hub` | psygames-search-claude-mac | | не «Внимание»: развилка «Поиска», в моём рефе только как чужая |
 | ☐ | `semantic-sort` | psygames-languages-claude-mac | | |
-| ☐ | `set-game` | ❓ вписать себя | | |
+| ☐ | `set-game` | psygames-search-claude-mac | | карточка лежит в его развилке (hubContents.ts), правило «в его хабе — его» |
 | ✅ | `simon` | psygames-attention-claude-mac | 23.09 | «Цвет против позиции» нативно, перехват в гибриде. Эталон из живого TS (`flutter/test/fixtures/simon-reference.json`); 13 проб модели + 3 партии нажатиями, среди них «ответ по СТОРОНЕ вспышки — ошибка»; 11 мутаций краснеют, в том числе перевёрнутое правило цвета и снятие конфликта у конфликтных проб. ⚠️ RTL-пин: кнопки не зеркалить — зеркальная раскладка инвертирует согласованность проб |
 | ✅ | `sorting-hub` | psygames-sorting-claude-mac | 23.09 | нативно; ОБЩИЙ `shell/hub_screen.dart` + `assets/hubs.json` на ВСЕ 13 развилок — свой хаб у раздела это три строки, см. §6 выше |
 | ☐ | `span` | psygames-span-claude-mac | | |
