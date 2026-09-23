@@ -5,6 +5,7 @@ import '../games/digit_span/screen.dart';
 import '../games/dots_connect/screen.dart';
 import '../games/memory_matrix/screen.dart';
 import '../games/one_line/screen.dart';
+import '../games/schulte/screen.dart';
 import 'asset_server.dart';
 import 'shared_state.dart';
 
@@ -33,6 +34,7 @@ class HybridApp extends StatefulWidget {
         '/games/one-line': (s) => OneLineScreen(state: s),
         '/games/digit-span': (s) => DigitSpanScreen(state: s),
         '/games/memory-matrix': (s) => MemoryMatrixScreen(state: s),
+        '/games/schulte': (s) => SchulteScreen(state: s),
       };
 
   /// Путь маршрута из любого вида ссылки: и `…/games/one-line.html`, и

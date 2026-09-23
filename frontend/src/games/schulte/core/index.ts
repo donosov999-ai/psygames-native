@@ -2,3 +2,4 @@
 export * from './blocks';
 export * from './i18n';
 export * from './progress';
+export * from './table';

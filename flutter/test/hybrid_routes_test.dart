@@ -17,6 +17,8 @@ void main() {
       '$origin/games/one-line.html#top',
       '$origin/games/dots-connect',
       '$origin/games/digit-span.html?mode=free',
+      '$origin/games/schulte',
+      '$origin/games/schulte.html?level=3',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -27,7 +29,6 @@ void main() {
     for (final url in [
       '$origin/',
       '$origin/index.html',
-      '$origin/games/schulte',
       '$origin/games/sudoku.html',
       '$origin/collection',
       '$origin/statistics',
@@ -39,7 +40,13 @@ void main() {
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
     expect(HybridApp.native.keys.toSet(),
-        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix'});
+        {
+          '/games/dots-connect',
+          '/games/one-line',
+          '/games/digit-span',
+          '/games/memory-matrix',
+          '/games/schulte',
+        });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
     }

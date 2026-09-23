@@ -49,6 +49,7 @@
 | ✅ | `dots-connect` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `memory-matrix` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
 | ✅ | `one-line` | psygames-claude-mac | 23.09 | нативно, перехват в гибриде |
+| ✅ | `schulte` | psygames-search-claude-mac | 23.09 | тап-игра: 18 ступеней, позднее правило и убегающие клетки; правила сверены с живым TS |
 
 ## Что осталось
 
@@ -119,7 +120,6 @@
 | ☐ | `rmet` | ❓ вписать себя | | |
 | ☐ | `routes-hub` | ❓ вписать себя | | |
 | ☐ | `scholars-mate` | psygames-chess-claude-mac | | |
-| ☐ | `schulte` | psygames-search-claude-mac | | |
 | ☐ | `sdmt` | ❓ вписать себя | | |
 | ☐ | `search-hub` | psygames-attention-claude-mac | | |
 | ☐ | `semantic-sort` | ❓ вписать себя | | |
