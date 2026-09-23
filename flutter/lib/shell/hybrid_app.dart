@@ -26,6 +26,7 @@ import '../games/samurai/screen.dart';
 import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
 import '../games/spatial_span/screen.dart';
+import '../games/sudoku/modes.dart';
 import '../games/sudoku/screen.dart';
 import '../games/mahjong/screen.dart';
 import '../games/math_slider/screen.dart';
@@ -82,6 +83,25 @@ class HybridApp extends StatefulWidget {
         '/games/flanker': (s) => FlankerScreen(state: s),
         '/games/simon': (s) => SimonScreen(state: s),
         '/games/sudoku': (s) => SudokuScreen(state: s),
+        // Режимы той же доски: адрес отличается только хвостом, экран — тот же.
+        '/games/sudoku?mode=towers': (s) => SudokuScreen(state: s, mode: SideMode.towers),
+        '/games/sudoku?mode=unequal': (s) => SudokuScreen(state: s, mode: SideMode.unequal),
+        // Развилки раздела — на ОБЩЕМ экране каркаса: карточки уже лежат в
+        // `assets/hubs.json`, вторая копия начала бы отставать молча.
+        '/games/sudoku-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/sudoku-hub',
+              icon: Icons.apps,
+              gradient: const [Color(0xFF3B2F7A), Color(0xFF5B4D9E)],
+              isNative: native.containsKey,
+            ),
+        '/games/puzzles-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/puzzles-hub',
+              icon: Icons.extension,
+              gradient: const [Color(0xFF0F766E), Color(0xFFF59E0B)],
+              isNative: native.containsKey,
+            ),
         '/games/sudoku-samurai': (s) => SamuraiScreen(state: s),
         '/games/sudoku-fractal': (s) => FractalScreen(state: s),
         '/games/sudoku-fractal-deep': (s) => DeepScreen(state: s),
@@ -148,11 +168,25 @@ class HybridApp extends StatefulWidget {
   /// `file:///…/games/one-line`, и с якорем или запросом.
   static String? routeOf(String url) {
     if (webOnly) return null;
-    var u = url.split('#').first.split('?').first;
+    final noHash = url.split('#').first;
+    final qi = noHash.indexOf('?');
+    final query = qi < 0 ? '' : noHash.substring(qi);
+    var u = qi < 0 ? noHash : noHash.substring(0, qi);
     if (u.endsWith('.html')) u = u.substring(0, u.length - 5);
     final i = u.indexOf('/games/');
     if (i < 0) return null;
     final r = u.substring(i);
+    /*
+     * 🔴 СНАЧАЛА ИЩЕМ АДРЕС ВМЕСТЕ С ХВОСТОМ, И ТОЛЬКО ПОТОМ БЕЗ НЕГО.
+     *
+     * Часть игр — это РЕЖИМЫ одного экрана, и отличает их только хвост:
+     * `/games/sudoku?mode=towers` — «Небоскрёбы», `?mode=unequal` — «Неравенства»,
+     * у каждого своя мини-лестница и свой счётчик. Прежний разбор срезал хвост до
+     * поиска, поэтому обе карточки развилки открывали бы ОБЫЧНУЮ судоку: человек
+     * жмёт «Небоскрёбы» и получает не ту игру. Игры без режимов это не задевает —
+     * для них ключа с хвостом в карте просто нет, и ответ прежний.
+     */
+    if (query.isNotEmpty && native.containsKey('$r$query')) return '$r$query';
     return native.containsKey(r) ? r : null;
   }
 

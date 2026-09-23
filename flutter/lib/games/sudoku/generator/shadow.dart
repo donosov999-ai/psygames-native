@@ -34,15 +34,15 @@ class GeneratorShadow {
     final state = store.load();
     final would = pickNext(state, pool, mode);
     store.appendShadow({
-      'в': DateTime.now().toUtc().toIso8601String(),
-      'уровень': level,
-      'выдано': {'id': given.id, 'полоса': given.band, 'рейтинг': given.rating.round()},
-      'выбрал_бы': would == null
+      'at': DateTime.now().toUtc().toIso8601String(),
+      'level': level,
+      'given': {'id': given.id, 'band': given.band, 'rating': given.rating.round()},
+      'wouldPick': would == null
           ? null
-          : {'id': would.id, 'полоса': would.band, 'рейтинг': would.rating.round()},
-      'рейтинг_игрока': state.skillRating.round(),
-      'побед': state.adaptiveWins,
-      'режим': mode.name,
+          : {'id': would.id, 'band': would.band, 'rating': would.rating.round()},
+      'playerRating': state.skillRating.round(),
+      'wins': state.adaptiveWins,
+      'mode': mode.name,
     });
   }
 

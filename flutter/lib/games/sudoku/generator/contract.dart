@@ -76,7 +76,7 @@ class TaskId {
       );
 
   @override
-  String toString() => '$gameId/$templateId/полоса$difficultyBand';
+  String toString() => '$gameId/$templateId/band$difficultyBand';
 }
 
 /// Событие исхода — то, что двигает состояние игрока. Идемпотентно по `eventId`:

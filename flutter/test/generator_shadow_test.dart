@@ -74,11 +74,11 @@ void main() {
     expect(log, isNotEmpty, reason: 'теневой журнал пуст — шаг не работает');
 
     final row = log.last;
-    expect(row['уровень'], 5);
-    final given = (row['выдано'] as Map).cast<String, Object?>();
+    expect(row['level'], 5);
+    final given = (row['given'] as Map).cast<String, Object?>();
     expect(given['id'], startsWith('sudoku:'), reason: 'шаблон выданной доски');
-    expect(row['выбрал_бы'], isNotNull, reason: 'генератор обязан назвать свой выбор');
-    expect(row['рейтинг_игрока'], isA<int>());
+    expect(row['wouldPick'], isNotNull, reason: 'генератор обязан назвать свой выбор');
+    expect(row['playerRating'], isA<int>());
   });
 
   testWidgets('🔴 человеку выдаётся доска ЛЕСТНИЦЫ, генератор на неё не влияет', (tester) async {
@@ -127,6 +127,6 @@ void main() {
     expect(raw, isNotNull);
     final parsed = jsonDecode(raw!) as List;
     expect(parsed, isNotEmpty);
-    expect((parsed.first as Map).containsKey('выдано'), isTrue);
+    expect((parsed.first as Map).containsKey('given'), isTrue);
   });
 }

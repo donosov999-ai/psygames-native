@@ -52,7 +52,7 @@ List<Template> buildPool(SudokuLevels levels, {int lastLevel = 92}) {
     if (cfg.fromBank) {
       final bank = levels.bankRating(lv);
       final band = (bank * 10).round();
-      final id = 'sudoku:bank:полоса$band';
+      final id = 'sudoku:bank:band$band';
       byId[id] ??= Template(id: id, band: band, rating: ratingForBank(bank), variant: 'none');
       continue;
     }
@@ -68,7 +68,7 @@ List<Template> buildPool(SudokuLevels levels, {int lastLevel = 92}) {
     final tier = tiers.isEmpty
         ? 4
         : (tiers.reduce((a, b) => a + b) / tiers.length).round().clamp(1, maxTier);
-    final id = 'sudoku:${cfg.variant}:ступень$tier';
+    final id = 'sudoku:${cfg.variant}:tier$tier';
     byId[id] ??= Template(
       id: id,
       band: tier,
@@ -95,7 +95,7 @@ Template templateForBoard({
   if (fromBank) {
     final band = (bankRating * 10).round();
     return Template(
-      id: 'sudoku:bank:полоса$band',
+      id: 'sudoku:bank:band$band',
       band: band,
       rating: ratingForBank(bankRating),
       variant: 'none',
@@ -103,7 +103,7 @@ Template templateForBoard({
   }
   final t = (tier ?? 4).clamp(1, maxTier);
   return Template(
-    id: 'sudoku:$variant:ступень$t',
+    id: 'sudoku:$variant:tier$t',
     band: t,
     rating: ratingForTier(t),
     variant: variant,
