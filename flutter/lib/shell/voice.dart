@@ -74,10 +74,9 @@ class VoiceLayer {
   VoiceLayer({
     required this.backend,
     required this.soundOn,
-    Set<String> liveWords = const {},
-    Set<String> sampleWords = const {},
-  })  : _live = liveWords,
-        _samples = sampleWords;
+    this.live = const {},
+    this.samples = const {},
+  });
 
   final VoiceBackend backend;
 
@@ -85,13 +84,16 @@ class VoiceLayer {
   /// запоминается: человек выключает звук посреди партии.
   final bool Function() soundOn;
 
-  /// Слова, у которых есть живая запись человека, и слова с синтезированной.
-  /// Ключ — «язык:слово» в нижнем регистре, как в индексах веб-стороны.
-  final Set<String> _live;
-  final Set<String> _samples;
-
-  static String _key(String text, String lang) =>
-      '${lang.toLowerCase()}:${text.trim().toLowerCase()}';
+  /// Указатели «язык → слово → ИМЯ ФАЙЛА», ровно как у веб-стороны
+  /// (`VOICE_LIVE` и `VOICE_INDEX`).
+  ///
+  /// 🔴 ИМЯ ФАЙЛА БЕРЁТСЯ ИЗ УКАЗАТЕЛЯ, А НЕ СТРОИТСЯ ИЗ СЛОВА. Первая редакция
+  /// этого слоя складывала адрес из самого слова (`/voice/de/haus.opus`) — и была
+  /// неправа: на psy-games.pro файлы названы хешем («аэропорт» → `c88ffb9f1d5b61e9.opus`).
+  /// Пробы этого не поймали, потому что проверяли перенос ТОЙ ЖЕ формулой, которой
+  /// он делался: такая проба зелёная всегда. Нашлось при переносе указателя.
+  final Map<String, Map<String, String>> live;
+  final Map<String, Map<String, String>> samples;
 
   /// Ссылка на запись или `null`, если записи нет.
   ///
@@ -99,16 +101,15 @@ class VoiceLayer {
   /// людей из Викисловаря, `voice` — синтез, сделанный нами заранее. Порядок
   /// обратный сломал бы то, ради чего живые записи и заводили.
   String? sampleUrl(String text, String lang) {
-    final key = _key(text, lang);
-    final name = Uri.encodeComponent(text.trim().toLowerCase());
-    if (_live.contains(key)) return '$voiceLiveBase/$lang/$name.opus';
-    if (_samples.contains(key)) return '$voiceBase/$lang/$name.opus';
-    return null;
+    final liveName = live[lang]?[text];
+    if (liveName != null) return '$voiceLiveBase/$lang/$liveName';
+    final name = samples[lang]?[text];
+    return name != null ? '$voiceBase/$lang/$name' : null;
   }
 
   /// Есть ли живая запись человека — экран источников показывает чтецов только
   /// для них (условие лицензий CC BY / CC BY-SA, а не украшение).
-  bool isLive(String text, String lang) => _live.contains(_key(text, lang));
+  bool isLive(String text, String lang) => live[lang]?[text] != null;
 
   /// Почему речь сейчас невозможна. `null` — возможна.
   ///
@@ -123,8 +124,8 @@ class VoiceLayer {
 
   /// Есть ли чем озвучить этот язык: запись или системный голос.
   Future<bool> hasVoice(String lang) async {
-    final hasSamples = _live.any((k) => k.startsWith('${lang.toLowerCase()}:')) ||
-        _samples.any((k) => k.startsWith('${lang.toLowerCase()}:'));
+    final hasSamples = (live[lang]?.isNotEmpty ?? false) ||
+        (samples[lang]?.isNotEmpty ?? false);
     if (hasSamples) return true;
     return backend.hasSystemVoice(voiceBcp47[lang] ?? lang);
   }

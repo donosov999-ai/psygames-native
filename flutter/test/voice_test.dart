@@ -56,14 +56,14 @@ class FakeBackend implements VoiceBackend {
 VoiceLayer layer(
   FakeBackend b, {
   bool sound = true,
-  Set<String> live = const {},
-  Set<String> samples = const {},
+  Map<String, Map<String, String>> live = const {},
+  Map<String, Map<String, String>> samples = const {},
 }) =>
     VoiceLayer(
       backend: b,
       soundOn: () => sound,
-      liveWords: live,
-      sampleWords: samples,
+      live: live,
+      samples: samples,
     );
 
 void main() {
@@ -75,29 +75,29 @@ void main() {
 
   test('🔴 живая запись человека звучит ВПЕРЕДИ синтеза', () async {
     final b = FakeBackend();
-    final l = layer(b, live: {'de:haus'});
+    final l = layer(b, live: {'de': {'Haus': 'a1.opus'}});
     expect(await l.speak('Haus', 'de'), isTrue);
-    expect(b.steps.single, 'запись https://psy-games.pro/voice-live/de/haus.opus @0.9');
+    expect(b.steps.single, 'запись https://psy-games.pro/voice-live/de/a1.opus @0.9');
     expect(l.isLive('Haus', 'de'), isTrue, reason: 'чтеца надо показать на экране источников');
   });
 
   test('🔴 синтезированная запись — вторая, живой корпус первым', () async {
     final b = FakeBackend();
-    final l = layer(b, live: {'de:haus'}, samples: {'de:haus', 'de:wasser'});
+    final l = layer(b, live: {'de': {'Haus': 'a1.opus'}}, samples: {'de': {'Haus': 'x.opus', 'Wasser': 'b2.opus'}});
     await l.speak('Haus', 'de');
     await l.speak('Wasser', 'de');
     expect(b.steps, [
-      'запись https://psy-games.pro/voice-live/de/haus.opus @0.9',
-      'запись https://psy-games.pro/voice/de/wasser.opus @0.9',
+      'запись https://psy-games.pro/voice-live/de/a1.opus @0.9',
+      'запись https://psy-games.pro/voice/de/b2.opus @0.9',
     ]);
     expect(l.isLive('Wasser', 'de'), isFalse);
   });
 
   test('🔴 запись не проигралась — синтез остаётся вторым шансом, а не тишиной', () async {
     final b = FakeBackend(samplePlays: false);
-    expect(await layer(b, samples: {'ru:дом'}).speak('дом', 'ru'), isTrue);
+    expect(await layer(b, samples: {'ru': {'дом': 'c3.opus'}}).speak('дом', 'ru'), isTrue);
     expect(b.steps, [
-      'запись https://psy-games.pro/voice/ru/%D0%B4%D0%BE%D0%BC.opus @0.9',
+      'запись https://psy-games.pro/voice/ru/c3.opus @0.9',
       'синтез дом/ru-RU @0.9',
     ]);
   });
@@ -119,7 +119,7 @@ void main() {
 
   test('язык с записями звучит даже без системного голоса', () async {
     final b = FakeBackend(systemHasVoice: false);
-    final l = layer(b, live: {'zh:水'});
+    final l = layer(b, live: {'zh': {'水': 'd4.opus'}});
     expect(await l.hasVoice('zh'), isTrue);
     expect(await l.blockedReason('zh'), isNull);
   });
@@ -135,7 +135,7 @@ void main() {
 
   test('🔴 ряд наружу отдаёт ЧИСЛО прозвучавших, а не «получилось»', () async {
     final b = FakeBackend(systemSpeaks: false, samplePlays: true);
-    final l = layer(b, samples: {'ru:один', 'ru:три'});
+    final l = layer(b, samples: {'ru': {'один': 'e5.opus', 'три': 'f6.opus'}});
     final spoken = await l.speakSequence(
       ['один', 'два', 'три'],
       'ru',
