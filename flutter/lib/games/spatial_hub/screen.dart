@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/game_shell.dart';
 import '../../shell/hybrid_app.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -28,7 +29,7 @@ class SpatialHubScreen extends StatefulWidget {
   State<SpatialHubScreen> createState() => _SpatialHubScreenState();
 }
 
-/// Карточка развилки: маршрут, имя, описание и значок — как в вебе.
+/// Карточка развилки: маршрут, подписи и значок — как в вебе.
 class HubCard {
   const HubCard(this.route, this.name, this.note, this.icon, {this.levelKey});
 
@@ -41,64 +42,72 @@ class HubCard {
   final String? levelKey;
 }
 
-const List<HubCard> spatialHubCards = [
+/// 🔴 СПИСОК СОБИРАЕТСЯ ПРИ ОБРАЩЕНИИ, А НЕ ЛЕЖИТ КОНСТАНТОЙ, и причина не в стиле.
+/// Подписи берутся из общего с веб-стороной словаря (`L.t`), а он загружается на старте —
+/// константа успела бы застыть с ключами вместо текста. Заодно `flutter/tools/embed-l10n.mjs`
+/// видит ключи литералами и вырезает их в `assets/l10n/`: спрячь ключ в поле карточки — и
+/// скрипт его не найдёт, а экран молча покажет `mentalRotation` вместо названия.
+///
+/// ⚠️ Состав и порядок — дословно `src/constants/hubContents.ts`, ключ `/games/spatial-hub`,
+/// вместе с его `nameKey`/`descKey`. Второй список карточек в проекте заводить нельзя.
+List<HubCard> get spatialHubCards => [
   HubCard(
     '/games/mental-rotation',
-    'Ментальная ротация',
-    'Найдите повёрнутую копию фигуры',
+    L.t('mentalRotation'),
+    L.t('mentalRotationDesc'),
     Icons.view_in_ar,
     levelKey: 'mental_rotation',
   ),
   HubCard(
     '/games/spatial-lab?mode=twiddle',
-    'Поворот чисел',
-    'Вращай блок 2×2 и расставь числа по порядку',
+    L.t('spatialTwiddle'),
+    L.t('spatialTwiddleDesc'),
     Icons.rotate_90_degrees_ccw,
     levelKey: 'spatial_lab_twiddle',
   ),
   HubCard(
     '/games/spatial-lab?mode=net',
-    'Сеть труб',
-    'Поверни трубы так, чтобы вода дошла до каждого конца',
+    L.t('spatialNet'),
+    L.t('spatialNetDesc'),
     Icons.hub_outlined,
     levelKey: 'spatial_lab_net',
   ),
   HubCard(
     '/games/puzzles?mode=Slide',
-    'Клоцки',
-    'Тяни блок пальцем в свободное место — выведи главный блок наружу',
+    L.t('puzzlesSlide'),
+    L.t('puzzlesSlideDesc'),
     Icons.view_module,
   ),
   HubCard(
     '/games/puzzles?mode=Sokoban',
-    'Сокобан',
-    'Ходи стрелками и толкай бочки на метки. Загонишь бочку в угол — не вытащишь',
+    L.t('puzzlesSokoban'),
+    L.t('puzzlesSokobanDesc'),
     Icons.inventory_2_outlined,
   ),
   HubCard(
     '/games/dots-connect',
-    'Соедини точки',
-    'Соединяйте одинаковые точки непересекающимися путями и заполните всю сетку',
+    L.t('dotsConnect'),
+    L.t('dotsConnectDesc'),
     Icons.circle_outlined,
     levelKey: 'dots_connect',
   ),
   HubCard(
     '/games/one-line',
-    'Одна линия',
-    'Проведите одну непрерывную линию по всем рёбрам, не проходя ни одно дважды',
+    L.t('oneLine'),
+    L.t('oneLineDesc'),
     Icons.timeline,
     levelKey: 'one_line',
   ),
   HubCard(
     '/games/trail-making',
-    'Соедини цепочку',
-    '1→А→2→Б→3 — переключение внимания',
+    L.t('trailMaking'),
+    L.t('trailMakingDesc'),
     Icons.route_outlined,
   ),
   HubCard(
     '/games/navigator',
-    'Навигатор',
-    'Запоминайте маршруты, последовательности поворотов и направление к старту',
+    L.t('navigator'),
+    L.t('navigatorDesc'),
     Icons.navigation_outlined,
   ),
 ];
@@ -132,16 +141,16 @@ class _SpatialHubScreenState extends State<SpatialHubScreen> {
     final scheme = Theme.of(context).colorScheme;
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
-      title: 'Пространство',
+      title: L.t('spatialGroup'),
       field: (context, h) => ListView(
         padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
         children: [
           Text(
-            'Повернуть в уме, растолкать, проложить путь',
+            L.t('spatialGroupDesc'),
             style: TextStyle(color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 4),
-          Text('Выбери упражнение', style: Theme.of(context).textTheme.titleMedium),
+          Text(L.t('hubPickExercise'), style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           for (final card in spatialHubCards)
             Padding(
@@ -183,7 +192,7 @@ class _SpatialHubScreenState extends State<SpatialHubScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
-                              'ур. ${_levels[card.levelKey]}',
+                              '${L.t('unitLevelShort')} ${_levels[card.levelKey]}',
                               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
                             ),
                           ),
@@ -195,8 +204,7 @@ class _SpatialHubScreenState extends State<SpatialHubScreen> {
             ),
           const SizedBox(height: 4),
           Text(
-            'Общее у всех: ход надо просчитать в голове заранее — на поле почти каждый ход '
-            'выглядит законным и заводит в тупик.',
+            L.t('spatialGroupFootnote'),
             key: const Key('сноска'),
             style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
           ),

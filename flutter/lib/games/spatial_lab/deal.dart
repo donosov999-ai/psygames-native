@@ -10,6 +10,7 @@ library;
 
 import 'board.dart';
 import 'net.dart';
+import '../../shell/l10n.dart';
 import 'netslide.dart';
 import 'sixteen.dart';
 import 'twiddle.dart';
@@ -17,11 +18,14 @@ import 'twiddle.dart';
 /// Четыре упражнения. Порядок — порядок вкладок на экране.
 enum LabMode { twiddle, net, sixteen, netslide }
 
+/// Название упражнения — из общего с веб-стороной словаря, теми же ключами, что стоят
+/// у карточек развилки (`src/constants/hubContents.ts`). Зашитый текст здесь означал бы,
+/// что вкладки экрана говорят по-русски на всех двенадцати языках.
 String labModeWord(LabMode mode) => switch (mode) {
-  LabMode.twiddle => 'Поворот чисел',
-  LabMode.net => 'Сеть труб',
-  LabMode.sixteen => 'Сдвиг чисел',
-  LabMode.netslide => 'Сеть со сдвигом',
+  LabMode.twiddle => L.t('spatialTwiddle'),
+  LabMode.net => L.t('spatialNet'),
+  LabMode.sixteen => L.t('spatialSixteen'),
+  LabMode.netslide => L.t('spatialNetslide'),
 };
 
 /// Упражнения сдвига: ход — строка или столбец по кругу, а не поворот плитки или блока.
