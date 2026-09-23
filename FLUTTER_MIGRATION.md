@@ -128,13 +128,10 @@
 | ✅ | `simon` | psygames-attention-claude-mac | 23.09 | «Цвет против позиции» нативно, перехват в гибриде. Эталон из живого TS (`flutter/test/fixtures/simon-reference.json`); 13 проб модели + 3 партии нажатиями, среди них «ответ по СТОРОНЕ вспышки — ошибка»; 11 мутаций краснеют, в том числе перевёрнутое правило цвета и снятие конфликта у конфликтных проб. ⚠️ RTL-пин: кнопки не зеркалить — зеркальная раскладка инвертирует согласованность проб |
 | ☐ | `sorting-hub` | psygames-sorting-claude-mac | | |
 | ☐ | `span` | psygames-span-claude-mac | | |
-| ☐ | `spatial-span` | ❓ вписать себя | | |
-| ☐ | `stop-signal` | psygames-attention-claude-mac | | |
-| ☐ | `spatial-hub` | psygames-spatial-claude-mac | | строки не было на доске — добавил 23.09 |
 | ✅ | `spatial-hub` | psygames-spatial-claude-mac | 23.09 | нативно, перехват в гибриде; развилке понадобился ХОД В ВЕБ — см. раздел ниже |
 | ✅ | `spatial-lab` | psygames-spatial-claude-mac | 23.09 | нативно, перехват в гибриде; ВСЕ ЧЕТЫРЕ упражнения (поворот чисел, сеть труб, сдвиг чисел, сеть со сдвигом) — по правилу «Слов» |
 | ✅ | `spatial-span` | psygames-spatial-claude-mac | 23.09 | нативно, перехват в гибриде; лестница 60 ступеней сверена с живым TS |
-| ☐ | `stop-signal` | ❓ вписать себя | | |
+| ☐ | `stop-signal` | psygames-attention-claude-mac | | |
 | ☐ | `story-recall` | ❓ вписать себя | | |
 | ☐ | `stroop-emotional` | psygames-attention-claude-mac | | |
 | ☐ | `sudoku` | psygames-chess-claude-mac | | |

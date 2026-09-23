@@ -51,14 +51,27 @@ void main() {
   });
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
-    expect(HybridApp.native.keys.toSet(),
-        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix', '/games/stroop', '/games/flanker', '/games/simon'});
-        {'/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix', '/games/stroop'});
+    // Один список на всех: карта перехвата растёт у каждого раздела, и второй ожидаемый набор
+    // рядом означал бы, что кто-то проверяет устаревший.
     expect(HybridApp.native.keys.toSet(), {
       '/games/dots-connect',
       '/games/one-line',
       '/games/digit-span',
       '/games/memory-matrix',
+      '/games/stroop',
+      '/games/flanker',
+      '/games/simon',
+      '/games/mental-rotation',
+      '/games/spatial-span',
+      '/games/spatial-lab',
+      '/games/spatial-hub',
+    });
+    expect(HybridApp.native.keys.toSet(), {
+      '/games/dots-connect',
+      '/games/one-line',
+      '/games/digit-span',
+      '/games/memory-matrix',
+      '/games/stroop',
       '/games/mental-rotation',
       '/games/spatial-span',
       '/games/spatial-lab',
