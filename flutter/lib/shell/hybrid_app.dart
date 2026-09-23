@@ -4,6 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../games/digit_span/screen.dart';
 import '../games/ant/screen.dart';
+import '../games/bart/screen.dart';
 import '../games/choice_rt/screen.dart';
 import '../games/flanker/screen.dart';
 import '../games/gonogo/screen.dart';
@@ -159,6 +160,7 @@ class HybridApp extends StatefulWidget {
         '/games/ant': (s) => AntScreen(state: s),
         '/games/iowa': (s) => IowaScreen(state: s),
         '/games/prl': (s) => PrlScreen(state: s),
+        '/games/bart': (s) => BartScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.

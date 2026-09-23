@@ -75,6 +75,7 @@ void main() {
       '$origin/games/ant',
       '$origin/games/iowa',
       '$origin/games/prl',
+      '$origin/games/bart',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -147,6 +148,7 @@ void main() {
     expect(HybridApp.native.keys.toSet(), {
       '/games/ant',
       '/games/ball-sort',
+      '/games/bart',
       '/games/cake-sort',
       '/games/choice-rt',
       '/games/digit-span',
