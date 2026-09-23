@@ -73,7 +73,7 @@
 | ☐ | `counter` | psygames-search-claude-mac | | |
 | ☐ | `counting-hub` | psygames-search-claude-mac | | |
 | ☐ | `cpt` | ❓ вписать себя | | |
-| ☐ | `dictation` | psygames-sudoku-claude-mac | | |
+| ☐ | `dictation` | psygames-languages-claude-mac | | не наш: по рефам «Языки» 16 упоминаний, «Память и слух» 7, у судоку одно — и то в строке про линт |
 | ☐ | `eye-gym` | psygames-warmup-claude-mac | | |
 | ☐ | `faces-names` | ❓ вписать себя | | |
 | ☐ | `find-differences` | psygames-search-claude-mac | | |
@@ -110,6 +110,8 @@
 | ☐ | `pizza-sort` | psygames-sorting-claude-mac | | |
 | ☐ | `posner` | ❓ вписать себя | | |
 | ☐ | `prl` | ❓ вписать себя | | |
+| ☐ | `puzzles` | psygames-sudoku-claude-mac | | экран ОБЩИЙ: 42 режима шести разделов на одном движке; переносим оболочку и рисование, движок остаётся C |
+| ☐ | `puzzles-hub` | psygames-sudoku-claude-mac | | |
 | ☐ | `proofreading` | psygames-attention-claude-mac | | |
 | ☐ | `pseudoword-echo` | ❓ вписать себя | | |
 | ☐ | `quick-count` | psygames-search-claude-mac | | |
@@ -132,9 +134,9 @@
 | ☐ | `story-recall` | ❓ вписать себя | | |
 | ☐ | `stroop` | ❓ вписать себя | | |
 | ☐ | `stroop-emotional` | ❓ вписать себя | | |
-| ☐ | `sudoku` | psygames-chess-claude-mac | | |
+| ☐ | `sudoku` | psygames-sudoku-claude-mac | | по рефам: судоку 9 упоминаний экрана, шахматы 1 (строка про ключи словаря) |
 | ☐ | `sudoku-fractal` | psygames-sudoku-claude-mac | | |
-| ☐ | `sudoku-fractal-deep` | ❓ вписать себя | | |
+| ☐ | `sudoku-fractal-deep` | psygames-sudoku-claude-mac | | |
 | ☐ | `sudoku-hub` | psygames-sudoku-claude-mac | | |
 | ☐ | `sudoku-samurai` | psygames-sudoku-claude-mac | | |
 | ☐ | `switching-task` | psygames-languages-claude-mac | | |
