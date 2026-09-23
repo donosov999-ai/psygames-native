@@ -33,12 +33,8 @@ void main() {
 
     final strays = <String, String>{}; // ключ -> где нашли
 
-    for (final f in web.listSync(recursive: true).whereType<File>()) {
+    for (final f in _ourSources(web)) {
       final p = f.path;
-      if (!p.endsWith('.ts') && !p.endsWith('.tsx')) continue;
-      // Пробы самого веба ставят ключи руками для своих же нужд — это не состояние приложения.
-      if (p.contains('__tests__') || p.contains('/scripts/')) continue;
-      if (!p.contains('/src/') && !p.contains('/app/')) continue;
 
       final src = f.readAsStringSync();
       for (final m in calls.allMatches(src)) {
@@ -83,6 +79,39 @@ void main() {
     expect(RegExp(r'indexOf\(P\) === 0\)\s*send').hasMatch(js), isFalse,
         reason: 'ни одна ветка отправки не фильтрует ТОЛЬКО по префиксу');
   });
+}
+
+
+/// ТОЛЬКО НАШИ ИСХОДНИКИ. 🔴 Поймано при первом же прогоне на дереве, где
+/// `node_modules` стоит ссылкой: обход ушёл в чужие пакеты и принёс двенадцать
+/// «нарушений» — `supabase.auth.token`, `REANIMATED_MAGIC_KEY`,
+/// `EXPO_NOTIFICATIONS_INSTALLATION_ID` и прочее. Все они законны: это ключи
+/// СТОРОННИХ библиотек, наш мост их и не должен возить.
+///
+/// ⚠️ Фильтр «путь содержит /src/» на это не годится — у пакетов свои `src`
+/// (`expo-notifications/src/...`). Поэтому отбор идёт от КОРНЯ: ровно
+/// `frontend/src` и `frontend/app`, а `node_modules` отсекается до обхода,
+/// заодно избавляя пробу от прогулки по десяткам тысяч чужих файлов.
+///
+/// Ложное срабатывание хуже отсутствия проверки: гейт, который краснеет на
+/// исправном коде, перестают читать — и вместе с придуманной поломкой он
+/// пропускает настоящую.
+List<File> _ourSources(Directory web) {
+  final out = <File>[];
+  for (final name in ['src', 'app']) {
+    final dir = Directory('${web.path}/$name');
+    if (!dir.existsSync()) continue;
+    for (final e in dir.listSync(recursive: true, followLinks: false)) {
+      if (e is! File) continue;
+      final p = e.path;
+      if (p.contains('/node_modules/')) continue;
+      if (!p.endsWith('.ts') && !p.endsWith('.tsx')) continue;
+      // Пробы самого веба ставят ключи руками для своих же нужд — это не состояние приложения.
+      if (p.contains('__tests__') || p.contains('/scripts/')) continue;
+      out.add(e);
+    }
+  }
+  return out;
 }
 
 /// Статическое начало ключа: из `psygames_resume_${game}` остаётся `psygames_resume_`,
