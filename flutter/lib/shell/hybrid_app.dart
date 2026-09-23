@@ -9,6 +9,7 @@ import '../games/stroop/screen.dart';
 import '../games/one_line/screen.dart';
 import '../games/mahjong/screen.dart';
 import '../games/math_slider/screen.dart';
+import '../games/math_sprint/screen.dart';
 import '../games/object_tracker/screen.dart';
 import '../games/pattern/screen.dart';
 import '../games/quick_count/screen.dart';
@@ -48,6 +49,7 @@ class HybridApp extends StatefulWidget {
         '/games/object-tracker': (s) => ObjectTrackerScreen(state: s),
         '/games/quick-count': (s) => QuickCountScreen(state: s),
         '/games/pattern': (s) => PatternScreen(state: s),
+        '/games/math-sprint': (s) => MathSprintScreen(state: s),
         '/games/stroop': (s) => StroopScreen(state: s),
         '/games/flanker': (s) => FlankerScreen(state: s),
       };
