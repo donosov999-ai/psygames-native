@@ -74,6 +74,7 @@ flutter:
     - assets/levels/
     - assets/words/
     - assets/l10n/
+    - assets/spatial/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

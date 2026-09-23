@@ -40,15 +40,21 @@ void main() {
   ///
   /// Принято: 23.09 — ядро, внимание, слова (160); 23.09 — судоку и головоломки (+124);
   /// 23.09 — «Жми и держись» (+19), в тот же день раздел перевёл его сам (−19).
-  /// 23.09 — служебные сообщения выведены из счёта, числа пересчитаны методом гейта.
+  /// 23.09 — служебные сообщения выведены из счёта, числа пересчитаны методом гейта;
+  /// 23.09 — «Пространство» (4 экрана).
   ///
   /// Долг на 23.09.2026, пофайлово. МЕНЯТЬ ТОЛЬКО В МЕНЬШУЮ СТОРОНУ.
   ///
   /// Перевёл экран — опусти его число. Файла нет в списке — значит он обязан
   /// быть чистым: так новый перенос не добавляет долга молча.
   const debt = <String, int>{
+    'games/mental_rotation/words.dart': 62,
+    'games/mental_rotation/screen.dart': 58,
+    'games/spatial_lab/screen.dart': 51,
     'games/puzzles/ladder.dart': 40,
     'games/sudoku/screen.dart': 31,
+    'games/spatial_hub/screen.dart': 24,
+    'games/spatial_span/screen.dart': 21,
     'main.dart': 16,
     'games/samurai/screen.dart': 14,
     'games/fractal/screen.dart': 13,
@@ -63,11 +69,13 @@ void main() {
     'shell/game_shell.dart': 4,
     'shell/tap_latency.dart': 4,
     'shell/web_game_screen.dart': 4,
+    'games/spatial_lab/board.dart': 4,
+    'games/spatial_lab/deal.dart': 4,
     'shell/hybrid_app.dart': 3,
   };
 
   // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите.
-  const total = 215;
+  const total = 439;
 
   final counts = _scan(Directory('lib'));
 

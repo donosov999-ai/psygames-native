@@ -25,6 +25,13 @@ void main() {
       '$origin/games/sudoku',
       '$origin/games/sudoku.html?mode=levels',
       '$origin/games/go-no-go',
+      '$origin/games/mental-rotation',
+      '$origin/games/mental-rotation.html?level=12',
+      '$origin/games/spatial-span',
+      '$origin/games/spatial-lab',
+      '$origin/games/spatial-lab?mode=netslide',
+      '$origin/games/spatial-hub',
+      '$origin/games/spatial-lab.html?mode=sixteen&level=9',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -64,22 +71,34 @@ void main() {
       '$origin/games/one-liner',   // похожее имя — не наша игра
       '$origin/games/sudoku-hub',       // развилка судоку ещё не перенесена
       '$origin/games/puzzles',          // головоломки Тэтхэма ещё не перенесены
+      '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
   });
 
   test('каждая перенесённая игра имеет свой построитель экрана', () {
-    // ⚠️ ОБЪЕДИНЕНИЕ, А НЕ ДВЕ ПРОВЕРКИ. При сведении веток двух разделов сюда
-    // попали ДВА expect подряд с разными наборами — каждый утверждал, что список
-    // игр исчерпывается его половиной, и любая новая игра ломала обе. Список
-    // перенесённых игр один и общий, и растёт он снизу.
+    // ⚠️ ОДИН СПИСОК НА ВСЕХ, А НЕ ДВА expect ПОДРЯД. При сведении веток разделов
+    // сюда дважды попадали два ожидаемых набора рядом, и каждый утверждал, что
+    // перенесённые игры исчерпываются его половиной: такая проба краснеет на любой
+    // следующей игре, кто бы её ни принёс. Набор растёт снизу, одной строкой на игру.
     expect(HybridApp.native.keys.toSet(), {
-      '/games/dots-connect', '/games/one-line', '/games/digit-span', '/games/memory-matrix',
-      '/games/stroop', '/games/flanker', '/games/simon',
+      '/games/digit-span',
+      '/games/dots-connect',
+      '/games/flanker',
       '/games/go-no-go',
-      '/games/sudoku', '/games/sudoku-samurai', '/games/sudoku-fractal',
+      '/games/memory-matrix',
+      '/games/mental-rotation',
+      '/games/one-line',
+      '/games/simon',
+      '/games/spatial-hub',
+      '/games/spatial-lab',
+      '/games/spatial-span',
+      '/games/stroop',
+      '/games/sudoku',
+      '/games/sudoku-fractal',
       '/games/sudoku-fractal-deep',
+      '/games/sudoku-samurai',
     });
     for (final build in HybridApp.native.values) {
       expect(build, isNotNull);
