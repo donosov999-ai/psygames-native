@@ -57,11 +57,32 @@ export async function checkForUpdateDaily(): Promise<UpdateInfo | null> {
   } catch { return null; }
 }
 
-/** Куда вести по кнопке «Скачать». */
+/**
+ * Куда вести по кнопке «Скачать» — В МАГАЗИН ПО ПЛАТФОРМЕ (решение Дениса 23.09.2026).
+ *
+ * 🔴 ЧТО БЫЛО НЕ ТАК. iPhone и iPad проваливались в последнюю строку и уходили на
+ * сайт, хотя приложение живёт в App Store. Замер 23.09: у iOS ветки не было вовсе.
+ * Android-ссылка при этом оказалась ВЕРНОЙ — `com.psygames.app` отвечает 200;
+ * задача 16dfede6 описывала её как битую по устаревшим сведениям.
+ *
+ * ⚠️ ИДЕНТИФИКАТОРЫ РАЗНЫЕ, И ЭТО НЕ ОПЕЧАТКА. В магазинах приложение —
+ * `com.psygames.app` (сверено 23.09 через App Store Connect API: id 6779208225,
+ * «PsyGames: Brain Training»; и Play отвечает 200 на этот же идентификатор).
+ * А `com.odv999.psygames` из tauri.conf.json — настольная сборка. Канон для
+ * мобильных берётся у `scripts/ios-bundle-id.py`, а не из tauri.conf.json.
+ *
+ * ⚠️ Ссылка на App Store начнёт открываться, только когда Apple одобрит первую
+ * подачу: на 23.09 страница отвечает 404, потому что 2.54.22 ещё на ревью. Это
+ * ожидаемо и не дефект ссылки — до одобрения человек видит страницу «приложение
+ * не найдено», и это честнее, чем вести его на сайт за сборкой, которой там нет.
+ */
 export function updateUrl(): string {
   if (Platform.OS === 'web') return 'https://psy-games.pro/#download';
+  if (Platform.OS === 'ios') return 'https://apps.apple.com/app/id6779208225';
   const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
   if (/android/i.test(ua)) return 'https://play.google.com/store/apps/details?id=com.psygames.app';
+  // Tauri на iPhone отдаёт Platform.OS === 'web': ловим по строке устройства.
+  if (/iphone|ipad|ipod/i.test(ua)) return 'https://apps.apple.com/app/id6779208225';
   return 'https://psy-games.pro/#download';   // Mac/Win desktop (Tauri)
 }
 
