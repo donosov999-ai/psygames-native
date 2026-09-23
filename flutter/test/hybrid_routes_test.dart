@@ -64,6 +64,7 @@ void main() {
       '$origin/games/go-no-go',
       '$origin/games/choice-rt',
       '$origin/games/stop-signal',
+      '$origin/games/posner',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -133,6 +134,7 @@ void main() {
       '/games/one-line',
       '/games/ospan',
       '/games/pattern',
+      '/games/posner',
       '/games/pizza-sort',
       '/games/quick-count',
       '/games/schulte',

@@ -5,6 +5,7 @@ import '../games/digit_span/screen.dart';
 import '../games/choice_rt/screen.dart';
 import '../games/flanker/screen.dart';
 import '../games/gonogo/screen.dart';
+import '../games/posner/screen.dart';
 import '../games/simon/screen.dart';
 import '../games/stop_signal/screen.dart';
 import '../games/dots_connect/screen.dart';
@@ -114,6 +115,7 @@ class HybridApp extends StatefulWidget {
             SortingHubScreen(state: s, isNative: native.containsKey),
         '/games/choice-rt': (s) => ChoiceRtScreen(state: s),
         '/games/stop-signal': (s) => StopSignalScreen(state: s),
+        '/games/posner': (s) => PosnerScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
