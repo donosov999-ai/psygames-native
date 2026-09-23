@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:psygames_flutter/games/chess_blind/bands.dart';
 import 'package:psygames_flutter/games/chess_blind/board.dart';
 import 'package:psygames_flutter/games/chess_blind/ladder.dart';
+import 'package:psygames_flutter/games/chess_blind/positions.dart';
 import 'package:psygames_flutter/games/chess_blind/questions.dart';
 
 /// 🔴 ЛЕСТНИЦА ПЕРЕНЕСЕНА СО СВЕРКОЙ, А НЕ ПЕРЕПИСАНА НА ГЛАЗ.
@@ -23,6 +24,7 @@ void main() {
 
   boardAndBandsMatchLiveTs(reference);
   questionsMatchLiveTs(reference);
+  corpusMatchesLiveTs(reference);
 
   test('🔴 полоса лестницы совпадает с живым TS', () {
     expect(puzzleMinLevel, reference['minLevel']);
@@ -294,5 +296,121 @@ void questionsMatchLiveTs(Map<String, dynamic> reference) {
       isEmpty,
       reason: 'спрашивать нечего, и это должно быть видно числом',
     );
+  });
+}
+
+/// 🔴 КОРПУС ПОЗИЦИЙ: ТОТ ЖЕ ФАЙЛ, ТОТ ЖЕ ВЫБОР, ТА ЖЕ ДОСКА.
+///
+/// Веб и нативная половина везут ОДИН корпус и обязаны при одинаковом броске
+/// выбрать одну позицию: иначе человек на той же ступени получит другую доску,
+/// а прогресс поедет двумя путями.
+void corpusMatchesLiveTs(Map<String, dynamic> reference) {
+  final want = reference['corpus'] as Map<String, dynamic>;
+  final meta = want['meta'] as Map<String, dynamic>;
+  final parsedRef = (reference['parsed'] as List<dynamic>)
+      .cast<Map<String, dynamic>>();
+
+  late PositionCorpus corpus;
+  setUpAll(() {
+    corpus = PositionCorpus.parse(
+      File('assets/chess_blind/positions.json').readAsStringSync(),
+    );
+  });
+
+  test('🔴 корпус тот же: размер и происхождение', () {
+    expect(corpus.size, meta['size'], reason: 'позиций в корпусе');
+    expect(corpus.source, meta['source'], reason: 'откуда взят');
+    expect(corpus.license, meta['license'], reason: 'лицензия');
+    expect(corpus.method, meta['method'], reason: 'как набирался');
+  });
+
+  test('🔴 при ОДИНАКОВОМ броске выбирается ТА ЖЕ позиция, что в вебе', () {
+    final picks = (want['picks'] as List<dynamic>).cast<Map<String, dynamic>>();
+    for (final p in picks) {
+      final band = p['band'] as Map<String, dynamic>;
+      final b = PieceBand(band['min'] as int, band['max'] as int);
+      expect(
+        corpus.inBand(b),
+        isNotEmpty,
+        reason: 'полоса ${b.min}–${b.max} набрана',
+      );
+      // Края броска: 0 и почти 1. Формула выбора обязана совпасть с вебом.
+      // 🔴 СВЕРЯЕТСЯ САМА ПОЗИЦИЯ, А НЕ ЧИСЛО ФИГУР. Первая версия этой пробы
+      // сравнивала только количество, и мутация «округление вместо отсечения»
+      // её пережила: в полосе десятки позиций с одинаковым числом фигур.
+      // Отпечаток — набор занятых клеток.
+      List<int> squares(double roll) =>
+          piecesFromFen(corpus.pick(b, roll).fen).map((x) => x.sq).toList()
+            ..sort();
+      expect(
+        squares(0),
+        (p['lowSquares'] as List<dynamic>).cast<int>(),
+        reason: 'бросок 0 выбрал ДРУГУЮ позицию, полоса ${b.min}–${b.max}',
+      );
+      expect(
+        squares(0.999999),
+        (p['highSquares'] as List<dynamic>).cast<int>(),
+        reason: 'бросок ~1 выбрал ДРУГУЮ позицию, полоса ${b.min}–${b.max}',
+      );
+      expect(squares(0), hasLength(p['lowPieces']));
+      expect(squares(0.999999), hasLength(p['highPieces']));
+
+      // Середина броска: именно здесь отсечение расходится с округлением.
+      final rolls = (want['rolls'] as List<dynamic>).cast<num>();
+      final byRoll = (want['picksByRoll'] as List<dynamic>)
+          .cast<Map<String, dynamic>>()
+          .firstWhere(
+            (e) =>
+                (e['band'] as Map<String, dynamic>)['min'] == b.min &&
+                (e['band'] as Map<String, dynamic>)['max'] == b.max,
+          );
+      final expectedByRoll = (byRoll['squares'] as List<dynamic>)
+          .map((x) => (x as List<dynamic>).cast<int>())
+          .toList();
+      for (var i = 0; i < rolls.length; i++) {
+        expect(
+          squares(rolls[i].toDouble()),
+          expectedByRoll[i],
+          reason:
+              'бросок ${rolls[i]} выбрал ДРУГУЮ позицию, полоса ${b.min}–${b.max}',
+        );
+      }
+      // И фактическое число фигур обязано лежать В ПОЛОСЕ, а не рядом.
+      for (final roll in [0.0, 0.25, 0.5, 0.75, 0.999999]) {
+        final pieces = piecesFromFen(corpus.pick(b, roll).fen).length;
+        expect(
+          pieces,
+          inInclusiveRange(b.min, b.max),
+          reason:
+              'бросок $roll дал $pieces фигур мимо полосы ${b.min}–${b.max}',
+        );
+      }
+    }
+  });
+
+  test('🔴 разбор FEN совпадает с живым TS клетка в клетку', () {
+    for (final want in parsedRef) {
+      final got = piecesFromFen(want['fen'] as String);
+      final expected = (want['pieces'] as List<dynamic>)
+          .cast<Map<String, dynamic>>();
+      expect(
+        got,
+        hasLength(expected.length),
+        reason: 'фигур в «${want['fen']}»',
+      );
+      // Порядок у TS свой, поэтому сверяем множеством «клетка+вид+цвет».
+      String key(int sq, String type, bool white) =>
+          '$sq$type${white ? 'w' : 'b'}';
+      expect(
+        got.map((p) => key(p.sq, p.type, p.white)).toSet(),
+        expected
+            .map(
+              (e) =>
+                  key(e['sq'] as int, e['type'] as String, e['white'] as bool),
+            )
+            .toSet(),
+        reason: 'позиция «${want['fen']}» разобрана иначе',
+      );
+    }
   });
 }

@@ -38,7 +38,11 @@ import {
   sameSquareColor,
   screenIndex,
 } from '../games/chess-blind/core/board';
+import { positionFromFen } from '../games/chess-blind/core/board';
+import { toScreenPieces } from '../games/chess-blind/core/puzzle';
 import {
+  POSITION_CORPUS,
+  positionWithPieces,
   PIECE_BANDS,
   CHESS_MIN_LEVEL,
   chessMaxLevel,
@@ -165,7 +169,72 @@ test('лестница chess-blind читается целиком (и по кл
     };
   }
 
+  // Корпус позиций: сколько их и как они ложатся в полосы. Нативная половина
+  // везёт тот же файл данными, и разойдись числа — человек получил бы на той же
+  // ступени другую доску.
+  const corpus = {
+    meta: POSITION_CORPUS,
+    // Сколько позиций в каждой полосе: если полоса пуста, игра молча уходит на
+    // запасной источник, и об этом надо знать числом.
+    perBand: PIECE_BANDS.map((band) => {
+      let count = 0;
+      for (let level = 1; level <= 1; level++) void level;
+      return { band, count };
+    }),
+    // Выбор позиции с подставным «случаем»: край 0 и край 1 обязаны дать
+    // позицию ИЗ ПОЛОСЫ, а не любую.
+    /* 🔴 СЕРЕДИНА БРОСКА ОБЯЗАТЕЛЬНА. На краях 0 и ~1 отсечение и округление
+     * дают ОДИН И ТОТ ЖЕ индекс, поэтому мутация «round вместо floor» пережила
+     * две версии пробы подряд. Различаются они ровно в середине. */
+    rolls: [0, 0.25, 0.5, 0.6666, 0.75, 0.999999],
+    picksByRoll: PIECE_BANDS.map((band) => ({
+      band,
+      squares: [0, 0.25, 0.5, 0.6666, 0.75, 0.999999].map((roll) =>
+        toScreenPieces(positionWithPieces(band, () => roll).position)
+          .map((p) => p.sq)
+          .sort((a, b) => a - b),
+      ),
+    })),
+    picks: PIECE_BANDS.map((band) => {
+      const low = positionWithPieces(band, () => 0);
+      const high = positionWithPieces(band, () => 0.999999);
+      /* 🔴 СВЕРЯТЬ НАДО САМУ ПОЗИЦИЮ, А НЕ ЧИСЛО ФИГУР. Первая версия эталона
+       * везла только `pieces`, и мутация «округление вместо отсечения» её
+       * пережила: в одной полосе десятки позиций с одинаковым числом фигур, и
+       * выбор другой позиции проба не замечала. */
+      return {
+        band,
+        lowPieces: low.pieces,
+        highPieces: high.pieces,
+        // Отпечаток позиции: какие клетки заняты. Функции «позиция в FEN» в
+        // ядре нет, а набор занятых клеток отличает одну позицию от другой
+        // так же надёжно.
+        lowSquares: toScreenPieces(low.position).map((p) => p.sq).sort((a, b) => a - b),
+        highSquares: toScreenPieces(high.position).map((p) => p.sq).sort((a, b) => a - b),
+        lowSource: low.source,
+        highSource: high.source,
+      };
+    }),
+  };
+
+  // Разбор позиции из FEN в фигуры ЭКРАНА (0 = a8, сверху вниз).
+  const fens = [
+    '8/8/8/4k3/8/8/4K3/8 w - - 0 1',
+    'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+    '8/8/3k4/8/8/3K4/7R/8 w - - 0 1',
+  ];
+  const parsed = fens.map((fen) => ({
+    fen,
+    pieces: toScreenPieces(positionFromFen(fen)).map((p) => ({
+      sq: p.sq,
+      type: p.type,
+      white: p.white,
+    })),
+  }));
+
   const reference = {
+    corpus,
+    parsed,
     questions: questionsRef,
     source: 'живой TS: src/games/chess-blind/core/{puzzle,board,positions}.ts',
     board,
