@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -169,6 +170,14 @@ class HybridApp extends StatefulWidget {
 class _HybridAppState extends State<HybridApp> {
   late final WebViewController _c;
   bool _loading = true;
+
+  /// Какой нативный экран сейчас открыт поверх страницы.
+  ///
+  /// ⚠️ Нужен из-за того, что перехват теперь идёт по СМЕНЕ АДРЕСА: страница
+  /// может сообщить об одном и том же маршруте дважды (`replaceState` после
+  /// `pushState` — обычное дело у роутера), и без этого поля поверх экрана
+  /// открылся бы его же двойник.
+  String? _openedRoute;
   final _marks = WebMarkTimer();
 
   /// Сообщение от веб-половины. Кроме записи в общую память здесь одно особое
@@ -179,6 +188,23 @@ class _HybridAppState extends State<HybridApp> {
   /// остались на старом словаре до перезапуска приложения — и это читается как
   /// «перевод сломан», хотя перевод на месте.
   Future<void> _fromWeb(String message) async {
+    // 🔴 СМЕНА МАРШРУТА ВНУТРИ СТРАНИЦЫ — ЕДИНСТВЕННЫЙ РАБОЧИЙ ПЕРЕХВАТ.
+    //
+    // `onNavigationRequest` ниже ловит только настоящую загрузку документа, а
+    // приложение ходит по экранам через History API, и WebView о таком переходе
+    // не сообщает. Замер раздела «Зарядки» 23.09.2026 на симуляторе: перенесённые
+    // экраны открывались ВЕБ-версиями, то есть перехват не работал ни разу.
+    // Делегат оставлен: он нужен для внешних ссылок и первой загрузки.
+    try {
+      final m = jsonDecode(message);
+      if (m is Map && m['op'] == 'route') {
+        final route = HybridApp.routeOf('${m['url']}');
+        if (route != null && route != _openedRoute) _openNative(route);
+        return;
+      }
+    } catch (_) {
+      // не наше сообщение — ниже разберёт общая память
+    }
     final was = L.locale;
     await widget.state.applyFromWeb(message);
     final now = L.resolve(widget.state.language);
@@ -285,9 +311,23 @@ class _HybridAppState extends State<HybridApp> {
   Future<void> _openNative(String route) async {
     final build = HybridApp.native[route];
     if (build == null) return;
+    _openedRoute = route;
     final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => build(widget.state)),
     );
+    _openedRoute = null;
+    // 🔴 СТРАНИЦА ПОД НАМИ ОСТАЛАСЬ НА АДРЕСЕ ИГРЫ. Перехват срабатывает ПОСЛЕ
+    // того, как роутер уже сменил адрес, — значит под нативным экраном веб-половина
+    // стоит на той же игре. Не вернуть её назад — человек, закрыв нативный экран,
+    // увидит веб-версию той же игры, то есть ровно то, что перехват и должен был
+    // предотвратить.
+    // ⚠️ Возврат делаем ТОЛЬКО если адрес всё ещё игровой: пока человек играл,
+    // страница могла уехать сама (например, зарядка перевела шаг).
+    if (mounted) {
+      await _c.runJavaScript(
+        "if (String(location.pathname).indexOf('$route') >= 0) history.back();",
+      );
+    }
     // Вернулись из нативной игры — страница обязана перечитать прогресс,
     // иначе на карте уровней останется старое число.
     if (mounted) await _c.runJavaScript(widget.state.bootstrapJs());
