@@ -72,6 +72,7 @@ void main() {
       '$origin/games/faces-names',
       '$origin/games/memory-palace',
       '$origin/games/rmet',
+      '$origin/games/ant',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
@@ -142,6 +143,7 @@ void main() {
     // означают, что кто-то проверяет устаревший, и проба краснеет на любой
     // следующей игре. Набор пересобирается из карты перехвата при вливании.
     expect(HybridApp.native.keys.toSet(), {
+      '/games/ant',
       '/games/ball-sort',
       '/games/cake-sort',
       '/games/choice-rt',

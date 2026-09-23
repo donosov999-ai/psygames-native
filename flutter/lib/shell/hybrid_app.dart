@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../games/digit_span/screen.dart';
+import '../games/ant/screen.dart';
 import '../games/choice_rt/screen.dart';
 import '../games/flanker/screen.dart';
 import '../games/gonogo/screen.dart';
@@ -153,6 +154,7 @@ class HybridApp extends StatefulWidget {
         '/games/faces-names': (s) => FacesNamesScreen(state: s),
         '/games/memory-palace': (s) => MemoryPalaceScreen(state: s),
         '/games/rmet': (s) => RmetScreen(state: s),
+        '/games/ant': (s) => AntScreen(state: s),
       };
 
   /// ЗАМЕР: открыть ту же игру в НЫНЕШНЕЙ версии на том же устройстве.
