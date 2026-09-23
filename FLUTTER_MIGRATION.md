@@ -82,7 +82,7 @@
 | ☐ | `flexibility-hub` | psygames-search-claude-mac | | |
 | ☐ | `go-no-go` | psygames-attention-claude-mac | | |
 | ✅ | `goods-sort` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; уровни выгружены JSON в ДВУХ сетках (телефон/широкий), решатель и генератор не переносились |
-| ☐ | `hanoi` | psygames-sorting-claude-mac | | |
+| ✅ | `hanoi` | psygames-sorting-claude-mac | 23.09 | нативно, перехват в гибриде; минимум ходов по Фрейму-Стюарту (4–5 стержней), итог партии числом; провал по ошибкам ждёт решения задачи f911ecd2 |
 | ☐ | `hearing-hub` | psygames-languages-claude-mac | | |
 | ☐ | `inhibition` | psygames-attention-claude-mac | | |
 | ☐ | `inhibition-hub` | ❓ вписать себя | | |
