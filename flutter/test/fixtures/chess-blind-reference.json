@@ -1,5 +1,555 @@
 {
-  "source": "живой TS: src/games/chess-blind/core/puzzle.ts",
+  "source": "живой TS: src/games/chess-blind/core/{puzzle,board,positions}.ts",
+  "board": {
+    "side": 8,
+    "squares": 64,
+    "squares_detail": {
+      "0": {
+        "name": "a1",
+        "file": 0,
+        "rank": 0,
+        "light": false,
+        "screen": 56
+      },
+      "1": {
+        "name": "b1",
+        "file": 1,
+        "rank": 0,
+        "light": true,
+        "screen": 57
+      },
+      "2": {
+        "name": "c1",
+        "file": 2,
+        "rank": 0,
+        "light": false,
+        "screen": 58
+      },
+      "3": {
+        "name": "d1",
+        "file": 3,
+        "rank": 0,
+        "light": true,
+        "screen": 59
+      },
+      "4": {
+        "name": "e1",
+        "file": 4,
+        "rank": 0,
+        "light": false,
+        "screen": 60
+      },
+      "5": {
+        "name": "f1",
+        "file": 5,
+        "rank": 0,
+        "light": true,
+        "screen": 61
+      },
+      "6": {
+        "name": "g1",
+        "file": 6,
+        "rank": 0,
+        "light": false,
+        "screen": 62
+      },
+      "7": {
+        "name": "h1",
+        "file": 7,
+        "rank": 0,
+        "light": true,
+        "screen": 63
+      },
+      "8": {
+        "name": "a2",
+        "file": 0,
+        "rank": 1,
+        "light": true,
+        "screen": 48
+      },
+      "9": {
+        "name": "b2",
+        "file": 1,
+        "rank": 1,
+        "light": false,
+        "screen": 49
+      },
+      "10": {
+        "name": "c2",
+        "file": 2,
+        "rank": 1,
+        "light": true,
+        "screen": 50
+      },
+      "11": {
+        "name": "d2",
+        "file": 3,
+        "rank": 1,
+        "light": false,
+        "screen": 51
+      },
+      "12": {
+        "name": "e2",
+        "file": 4,
+        "rank": 1,
+        "light": true,
+        "screen": 52
+      },
+      "13": {
+        "name": "f2",
+        "file": 5,
+        "rank": 1,
+        "light": false,
+        "screen": 53
+      },
+      "14": {
+        "name": "g2",
+        "file": 6,
+        "rank": 1,
+        "light": true,
+        "screen": 54
+      },
+      "15": {
+        "name": "h2",
+        "file": 7,
+        "rank": 1,
+        "light": false,
+        "screen": 55
+      },
+      "16": {
+        "name": "a3",
+        "file": 0,
+        "rank": 2,
+        "light": false,
+        "screen": 40
+      },
+      "17": {
+        "name": "b3",
+        "file": 1,
+        "rank": 2,
+        "light": true,
+        "screen": 41
+      },
+      "18": {
+        "name": "c3",
+        "file": 2,
+        "rank": 2,
+        "light": false,
+        "screen": 42
+      },
+      "19": {
+        "name": "d3",
+        "file": 3,
+        "rank": 2,
+        "light": true,
+        "screen": 43
+      },
+      "20": {
+        "name": "e3",
+        "file": 4,
+        "rank": 2,
+        "light": false,
+        "screen": 44
+      },
+      "21": {
+        "name": "f3",
+        "file": 5,
+        "rank": 2,
+        "light": true,
+        "screen": 45
+      },
+      "22": {
+        "name": "g3",
+        "file": 6,
+        "rank": 2,
+        "light": false,
+        "screen": 46
+      },
+      "23": {
+        "name": "h3",
+        "file": 7,
+        "rank": 2,
+        "light": true,
+        "screen": 47
+      },
+      "24": {
+        "name": "a4",
+        "file": 0,
+        "rank": 3,
+        "light": true,
+        "screen": 32
+      },
+      "25": {
+        "name": "b4",
+        "file": 1,
+        "rank": 3,
+        "light": false,
+        "screen": 33
+      },
+      "26": {
+        "name": "c4",
+        "file": 2,
+        "rank": 3,
+        "light": true,
+        "screen": 34
+      },
+      "27": {
+        "name": "d4",
+        "file": 3,
+        "rank": 3,
+        "light": false,
+        "screen": 35
+      },
+      "28": {
+        "name": "e4",
+        "file": 4,
+        "rank": 3,
+        "light": true,
+        "screen": 36
+      },
+      "29": {
+        "name": "f4",
+        "file": 5,
+        "rank": 3,
+        "light": false,
+        "screen": 37
+      },
+      "30": {
+        "name": "g4",
+        "file": 6,
+        "rank": 3,
+        "light": true,
+        "screen": 38
+      },
+      "31": {
+        "name": "h4",
+        "file": 7,
+        "rank": 3,
+        "light": false,
+        "screen": 39
+      },
+      "32": {
+        "name": "a5",
+        "file": 0,
+        "rank": 4,
+        "light": false,
+        "screen": 24
+      },
+      "33": {
+        "name": "b5",
+        "file": 1,
+        "rank": 4,
+        "light": true,
+        "screen": 25
+      },
+      "34": {
+        "name": "c5",
+        "file": 2,
+        "rank": 4,
+        "light": false,
+        "screen": 26
+      },
+      "35": {
+        "name": "d5",
+        "file": 3,
+        "rank": 4,
+        "light": true,
+        "screen": 27
+      },
+      "36": {
+        "name": "e5",
+        "file": 4,
+        "rank": 4,
+        "light": false,
+        "screen": 28
+      },
+      "37": {
+        "name": "f5",
+        "file": 5,
+        "rank": 4,
+        "light": true,
+        "screen": 29
+      },
+      "38": {
+        "name": "g5",
+        "file": 6,
+        "rank": 4,
+        "light": false,
+        "screen": 30
+      },
+      "39": {
+        "name": "h5",
+        "file": 7,
+        "rank": 4,
+        "light": true,
+        "screen": 31
+      },
+      "40": {
+        "name": "a6",
+        "file": 0,
+        "rank": 5,
+        "light": true,
+        "screen": 16
+      },
+      "41": {
+        "name": "b6",
+        "file": 1,
+        "rank": 5,
+        "light": false,
+        "screen": 17
+      },
+      "42": {
+        "name": "c6",
+        "file": 2,
+        "rank": 5,
+        "light": true,
+        "screen": 18
+      },
+      "43": {
+        "name": "d6",
+        "file": 3,
+        "rank": 5,
+        "light": false,
+        "screen": 19
+      },
+      "44": {
+        "name": "e6",
+        "file": 4,
+        "rank": 5,
+        "light": true,
+        "screen": 20
+      },
+      "45": {
+        "name": "f6",
+        "file": 5,
+        "rank": 5,
+        "light": false,
+        "screen": 21
+      },
+      "46": {
+        "name": "g6",
+        "file": 6,
+        "rank": 5,
+        "light": true,
+        "screen": 22
+      },
+      "47": {
+        "name": "h6",
+        "file": 7,
+        "rank": 5,
+        "light": false,
+        "screen": 23
+      },
+      "48": {
+        "name": "a7",
+        "file": 0,
+        "rank": 6,
+        "light": false,
+        "screen": 8
+      },
+      "49": {
+        "name": "b7",
+        "file": 1,
+        "rank": 6,
+        "light": true,
+        "screen": 9
+      },
+      "50": {
+        "name": "c7",
+        "file": 2,
+        "rank": 6,
+        "light": false,
+        "screen": 10
+      },
+      "51": {
+        "name": "d7",
+        "file": 3,
+        "rank": 6,
+        "light": true,
+        "screen": 11
+      },
+      "52": {
+        "name": "e7",
+        "file": 4,
+        "rank": 6,
+        "light": false,
+        "screen": 12
+      },
+      "53": {
+        "name": "f7",
+        "file": 5,
+        "rank": 6,
+        "light": true,
+        "screen": 13
+      },
+      "54": {
+        "name": "g7",
+        "file": 6,
+        "rank": 6,
+        "light": false,
+        "screen": 14
+      },
+      "55": {
+        "name": "h7",
+        "file": 7,
+        "rank": 6,
+        "light": true,
+        "screen": 15
+      },
+      "56": {
+        "name": "a8",
+        "file": 0,
+        "rank": 7,
+        "light": true,
+        "screen": 0
+      },
+      "57": {
+        "name": "b8",
+        "file": 1,
+        "rank": 7,
+        "light": false,
+        "screen": 1
+      },
+      "58": {
+        "name": "c8",
+        "file": 2,
+        "rank": 7,
+        "light": true,
+        "screen": 2
+      },
+      "59": {
+        "name": "d8",
+        "file": 3,
+        "rank": 7,
+        "light": false,
+        "screen": 3
+      },
+      "60": {
+        "name": "e8",
+        "file": 4,
+        "rank": 7,
+        "light": true,
+        "screen": 4
+      },
+      "61": {
+        "name": "f8",
+        "file": 5,
+        "rank": 7,
+        "light": false,
+        "screen": 5
+      },
+      "62": {
+        "name": "g8",
+        "file": 6,
+        "rank": 7,
+        "light": true,
+        "screen": 6
+      },
+      "63": {
+        "name": "h8",
+        "file": 7,
+        "rank": 7,
+        "light": false,
+        "screen": 7
+      }
+    },
+    "byName": {
+      "a1": 0,
+      "h8": 63,
+      "e4": 28
+    },
+    "badNames": [
+      {
+        "name": "z9",
+        "index": "throws"
+      },
+      {
+        "name": "",
+        "index": "throws"
+      },
+      {
+        "name": "a",
+        "index": "throws"
+      },
+      {
+        "name": "a9",
+        "index": "throws"
+      },
+      {
+        "name": "i1",
+        "index": "throws"
+      }
+    ],
+    "sameColor": {
+      "a1-h8": true,
+      "a1-a2": false
+    }
+  },
+  "ladder": {
+    "minLevel": 1,
+    "maxLevel": 5,
+    "bands": [
+      {
+        "min": 4,
+        "max": 8
+      },
+      {
+        "min": 9,
+        "max": 14
+      },
+      {
+        "min": 15,
+        "max": 20
+      },
+      {
+        "min": 21,
+        "max": 26
+      },
+      {
+        "min": 27,
+        "max": 32
+      }
+    ],
+    "bandForLevel": {
+      "1": {
+        "min": 4,
+        "max": 8
+      },
+      "2": {
+        "min": 9,
+        "max": 14
+      },
+      "3": {
+        "min": 15,
+        "max": 20
+      },
+      "4": {
+        "min": 21,
+        "max": 26
+      },
+      "5": {
+        "min": 27,
+        "max": 32
+      }
+    },
+    "clamp": {
+      "0": 1,
+      "1": 1,
+      "999": 5,
+      "-3": 1
+    },
+    "knightMoves": {
+      "1": 2,
+      "2": 2,
+      "3": 2,
+      "4": 3,
+      "5": 3
+    },
+    "knightRange": [
+      2,
+      3
+    ]
+  },
   "minLevel": 1,
   "maxLevel": 25,
   "levels": {

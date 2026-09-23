@@ -28,6 +28,27 @@ declare const require: (id: string) => {
 declare const __dirname: string;
 declare const process: { env: Record<string, string | undefined> };
 import {
+  BOARD_SIDE,
+  BOARD_SQUARES,
+  fileOf,
+  rankOf,
+  squareName,
+  squareIndex,
+  isLightSquare,
+  sameSquareColor,
+  screenIndex,
+} from '../games/chess-blind/core/board';
+import {
+  PIECE_BANDS,
+  CHESS_MIN_LEVEL,
+  chessMaxLevel,
+  clampLevel,
+  bandForLevel,
+  knightMovesForLevel,
+  KNIGHT_MIN_MOVES,
+  KNIGHT_MAX_MOVES,
+} from '../games/chess-blind/core/positions';
+import {
   PUZZLE_MIN_LEVEL,
   PUZZLE_MAX_LEVEL,
   puzzleLevelParams,
@@ -40,8 +61,71 @@ test('лестница chess-blind читается целиком (и по кл
   for (let level = PUZZLE_MIN_LEVEL; level <= PUZZLE_MAX_LEVEL; level++) {
     levels[String(level)] = puzzleLevelParams(level);
   }
+  // Доска: имена клеток, цвет поля и перевод в индекс ЭКРАНА (сверху вниз).
+  const squares: Record<string, unknown> = {};
+  for (let i = 0; i < BOARD_SQUARES; i++) {
+    squares[String(i)] = {
+      name: squareName(i),
+      file: fileOf(i),
+      rank: rankOf(i),
+      light: isLightSquare(i),
+      screen: screenIndex(i),
+    };
+  }
+  const board = {
+    side: BOARD_SIDE,
+    squares: BOARD_SQUARES,
+    squares_detail: squares,
+    // Разбор имени обратно в индекс. На мусоре живой TS БРОСАЕТ, а не отдаёт
+    // -1: это часть договора, и нативная половина обязана вести себя так же.
+    byName: {
+      a1: squareIndex('a1'),
+      h8: squareIndex('h8'),
+      e4: squareIndex('e4'),
+    },
+    badNames: ['z9', '', 'a', 'a9', 'i1'].map((name) => {
+      try {
+        return { name, index: squareIndex(name) };
+      } catch {
+        return { name, index: 'throws' };
+      }
+    }),
+    sameColor: {
+      'a1-h8': sameSquareColor(squareIndex('a1'), squareIndex('h8')),
+      'a1-a2': sameSquareColor(squareIndex('a1'), squareIndex('a2')),
+    },
+  };
+
+  // Полосы числа фигур и лестница серии.
+  const ladder = {
+    minLevel: CHESS_MIN_LEVEL,
+    maxLevel: chessMaxLevel(),
+    bands: PIECE_BANDS,
+    bandForLevel: Object.fromEntries(
+      Array.from({ length: chessMaxLevel() }, (_, i) => [
+        String(i + 1),
+        bandForLevel(i + 1),
+      ]),
+    ),
+    clamp: {
+      '-3': clampLevel(-3),
+      '0': clampLevel(0),
+      '1': clampLevel(1),
+      '999': clampLevel(999),
+    },
+    knightMoves: Object.fromEntries(
+      Array.from({ length: chessMaxLevel() }, (_, i) => [
+        String(i + 1),
+        knightMovesForLevel(i + 1),
+      ]),
+    ),
+    knightRange: [KNIGHT_MIN_MOVES, KNIGHT_MAX_MOVES],
+  };
+
   const reference = {
-    source: 'живой TS: src/games/chess-blind/core/puzzle.ts',
+    source: 'живой TS: src/games/chess-blind/core/{puzzle,board,positions}.ts',
+    board,
+    ladder,
     minLevel: PUZZLE_MIN_LEVEL,
     maxLevel: PUZZLE_MAX_LEVEL,
     levels,
