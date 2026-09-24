@@ -252,6 +252,30 @@ export default function HanoiGame() {
   const dragPos = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const [dragging, setDragging] = useState<{ from: number; size: number } | null>(null);
   const [hoverPeg, setHoverPeg] = useState<number | null>(null);
+  /**
+   * 🔴 ПОДСВЕЧЕННЫЙ СТЕРЖЕНЬ ХРАНИТСЯ И РЕФОМ — чтобы НЕ дёргать состояние на
+   * каждом движении пальца.
+   *
+   * 📍 Отчёт 9312047a (задача 45d479ed), пункт (а): «DragandDrop… вроде
+   * работает, но лагает», iOS 2.54.11. Замер 16.09.2026 приборами
+   * `scripts/hanoi-drag-lag-probe.mjs` ЛАГА НЕ ВОСПРОИЗВЁЛ: Chromium с
+   * настоящими касаниями и процессором ×4 — отставание диска 1,4 точки (худшее
+   * 5), выпавших кадров 0; WebKit — 0. ⚠️ Но ни один из двух движков не
+   * телефон, и на устройстве замер не делался.
+   *
+   * Механизм, который дал бы ровно такой лаг именно на медленном устройстве, в
+   * коде был: `onPanResponderMove` звал `setHoverPeg` на КАЖДОМ событии касания,
+   * то есть перерисовывал экран на 861 строку по шестьдесят раз в секунду —
+   * ради значения, которое меняется один раз на переход между стержнями.
+   * Положение диска в руке идёт мимо состояния (`Animated.ValueXY`), и подсветке
+   * место там же: состояние трогаем, только когда стержень ДЕЙСТВИТЕЛЬНО сменился.
+   */
+  const hoverRef = useRef<number | null>(null);
+  const setHoverPegIfChanged = (idx: number | null) => {
+    if (hoverRef.current === idx) return;
+    hoverRef.current = idx;
+    setHoverPeg(idx);
+  };
   const dragRef = useRef<{ from: number; size: number } | null>(null);   // panResponder замыкает старое состояние
 
   /**
@@ -326,28 +350,28 @@ export default function HanoiGame() {
         const size = peg[peg.length - 1];
         dragRef.current = { from: idx, size };
         setDragging({ from: idx, size });
-        setHoverPeg(idx);
+        setHoverPegIfChanged(idx);
         dragPos.setValue(вСлое(e.nativeEvent.pageX, e.nativeEvent.pageY));
       },
 
       onPanResponderMove: (e) => {
         if (!dragRef.current) return;
         dragPos.setValue(вСлое(e.nativeEvent.pageX, e.nativeEvent.pageY));
-        setHoverPeg(pegAtX(e.nativeEvent.pageX));
+        setHoverPegIfChanged(pegAtX(e.nativeEvent.pageX));
       },
 
       onPanResponderRelease: (e) => {
         const held = dragRef.current;
         dragRef.current = null;
         setDragging(null);
-        setHoverPeg(null);
+        setHoverPegIfChanged(null);
         const target = pegAtX(e.nativeEvent.pageX);
 
         if (!held || target === null || target === held.from) return;
         void moveDiscRef.current(held.from, target);
       },
 
-      onPanResponderTerminate: () => { dragRef.current = null; setDragging(null); setHoverPeg(null); },
+      onPanResponderTerminate: () => { dragRef.current = null; setDragging(null); setHoverPegIfChanged(null); },
     }),
   ).current;
 
