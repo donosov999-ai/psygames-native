@@ -31,6 +31,7 @@ class DemoTrial {
     this.color,
     this.sub,
     this.ruleKey,
+    this.art,
   });
 
   /// Сам стимул — то, что человек видит в партии.
@@ -44,6 +45,13 @@ class DemoTrial {
 
   /// Верный ответ словами — ровно так, как подписана кнопка в игре.
   final String answer;
+
+  /// 🔴 СТИМУЛ ВИДЖЕТОМ — КОГДА ЕГО НЕЛЬЗЯ НАПИСАТЬ СЛОВОМ. У Струпа стимул это
+  /// слово и цвет, и текста хватает. У фланкера — ряд стрелок с выверенным
+  /// зазором между ними, и «нарисовать похоже» значило бы учить не той игре:
+  /// зазор у фланкера и есть ось трудности. Поэтому игра отдаёт СВОЙ виджет
+  /// стимула, тот же, что рисует в партии.
+  final Widget? art;
 
   /// Ключ словаря с ИМЕНЕМ ПРАВИЛА этой пробы. У Струпа правило меняется внутри
   /// партии, поэтому ключ живёт на пробе, а не на игре.
@@ -69,16 +77,26 @@ class DemoCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              trial.text,
-              key: const Key('demo-stimulus'),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: (side / 7).clamp(22.0, 44.0),
-                fontWeight: FontWeight.w800,
-                color: trial.color ?? scheme.onSurface,
+            if (trial.art != null)
+              // ⚠️ Карточка разбора УЖЕ ПОЛЯ ПАРТИИ (плеер отдаёт квадрат под
+              // текст и кнопки), и ряд фланкера вылезал за край на 57 px —
+              // померено пробой. Уменьшение целиком сохраняет пропорции: зазор
+              // между стрелками и есть задача, и менять его нельзя.
+              KeyedSubtree(
+                key: const Key('demo-stimulus'),
+                child: FittedBox(fit: BoxFit.scaleDown, child: trial.art!),
+              )
+            else
+              Text(
+                trial.text,
+                key: const Key('demo-stimulus'),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: (side / 7).clamp(22.0, 44.0),
+                  fontWeight: FontWeight.w800,
+                  color: trial.color ?? scheme.onSurface,
+                ),
               ),
-            ),
             if (trial.sub != null) ...[
               const SizedBox(height: 8),
               Text(trial.sub!, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13)),

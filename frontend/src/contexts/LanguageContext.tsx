@@ -1033,6 +1033,9 @@ const translations: Translations = {
    * карточка разбора несёт сам стимул и подпись «что здесь верно» — шаг за шагом.
    */
   teachDemoAnswer: { ru: 'Верно: {a}', en: 'Correct: {a}' },
+  /* Ответ в играх «жми / держись» — один на всё семейство (go/no-go, стоп-сигнал, CPT, торможение). */
+  demoPress: { ru: 'нажать', en: 'press' },
+  demoHold: { ru: 'не нажимать', en: 'hold' },
   teachRow: { ru: 'Строка {n}', en: 'Row {n}' },
   teachCol: { ru: 'Столбец {n}', en: 'Column {n}' },
   /*
