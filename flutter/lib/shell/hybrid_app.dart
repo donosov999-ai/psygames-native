@@ -59,6 +59,7 @@ import '../games/word_pairs/screen.dart';
 import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
+import 'game_preset.dart';
 import 'game_shell.dart';
 import 'puzzle_routes.g.dart';
 import 'shared_state.dart';
@@ -269,6 +270,20 @@ class HybridApp extends StatefulWidget {
     return native.containsKey(r) ? r : null;
   }
 
+  /// Настройки шага из хвоста адреса: `?wu=1&diff=hard&trials=20`.
+  ///
+  /// 🔴 БЕЗ ЭТОГО ПЕРЕНОС ТЕРЯЕТ ЗАРЯДКУ ЦЕЛИКОМ. `routeOf` отвечает на вопрос «какой
+  /// экран открыть», и хвост ему для этого чаще всего не нужен. Но в хвосте едут
+  /// настройки шага зарядки — и признак `wu=1`, при котором лестница НЕ двигается
+  /// (`useGamePreset.ts:22`, правило стоит в 53 веб-экранах). Нативные экраны хвоста
+  /// не видели вовсе, и шаг зарядки молча менял личный уровень игрока.
+  static Map<String, String> queryOf(String url) {
+    final noHash = url.split('#').first;
+    final q = noHash.indexOf('?');
+    if (q < 0) return const {};
+    return Uri.splitQueryString(noHash.substring(q + 1));
+  }
+
   @override
   State<HybridApp> createState() => _HybridAppState();
 }
@@ -306,7 +321,9 @@ class _HybridAppState extends State<HybridApp> {
       final m = jsonDecode(message);
       if (m is Map && m['op'] == 'route') {
         final route = HybridApp.routeOf('${m['url']}');
-        if (route != null && route != _openedRoute) _openNative(route);
+        if (route != null && route != _openedRoute) {
+          _openNative(route, query: HybridApp.queryOf('${m['url']}'));
+        }
         return;
       }
     } catch (_) {
@@ -382,7 +399,7 @@ class _HybridAppState extends State<HybridApp> {
           // 🔴 ПЕРЕХВАТ. Веб-версию перенесённой игры не открываем никогда:
           // иначе человек увидел бы старый экран там, где уже есть новый, и
           // прогресс писался бы дважды разными путями.
-          _openNative(route);
+          _openNative(route, query: HybridApp.queryOf(req.url));
           return NavigationDecision.prevent;
         },
         onPageStarted: (_) => _c.runJavaScript(widget.state.bootstrapJs()),
@@ -406,7 +423,9 @@ class _HybridAppState extends State<HybridApp> {
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
     final first = HybridApp.routeOf('${widget.server.origin}${HybridApp.startRoute}');
     if (first != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _openNative(first));
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _openNative(first, query: HybridApp.queryOf(HybridApp.startRoute)),
+      );
     }
   }
 
@@ -423,7 +442,7 @@ class _HybridAppState extends State<HybridApp> {
   Future<void> _open(String route) async {
     final native = HybridApp.routeOf('${widget.server.origin}$route');
     if (native != null) {
-      await _openNative(native);
+      await _openNative(native, query: HybridApp.queryOf(route));
       return;
     }
     if (!mounted) return;
@@ -433,10 +452,13 @@ class _HybridAppState extends State<HybridApp> {
     await _c.loadRequest(Uri.parse('${widget.server.origin}$route'));
   }
 
-  Future<void> _openNative(String route) async {
+  Future<void> _openNative(String route, {Map<String, String> query = const {}}) async {
     final build = HybridApp.native[route];
     if (build == null) return;
     _openedRoute = route;
+    // Настройки шага живут ровно столько, сколько открыт экран, — как
+    // `useLocalSearchParams` в вебе. См. [GamePreset].
+    GamePreset.set(query);
     final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => build(widget.state)),
     );
@@ -477,7 +499,7 @@ class _HybridAppState extends State<HybridApp> {
     if (!mounted || result is! HubCardTap) return;
     final next = result.route;
     if (HybridApp.native.containsKey(next)) {
-      await _openNative(next);
+      await _openNative(next, query: HybridApp.queryOf(next));
     } else {
       await _c.loadRequest(Uri.parse('${widget.server.origin}$next'));
     }

@@ -1038,6 +1038,18 @@ const translations: Translations = {
    * 🎓 РАЗБОР «ПАР СЛОВ». Приём: одна картинка, где ОБА слова действуют вместе, и проверка
    * задом наперёд. Слова подставляет экран из самой партии.
    */
+  /*
+   * 🎓 РАЗБОР «ЛИЦ И ИМЁН». Приём: цеплять имя за ОДНУ черту лица, факт держать вторым
+   * крючком. Черту подставляет экран из настоящего портрета, факт — из словаря игры.
+   */
+  teachFacesIntro: { ru: 'Лицо запоминается не целиком, а одной ЧЕРТОЙ, которая отличает его от соседних. Сейчас разберём несколько из этих {n}.', en: 'A face is remembered by one distinctive FEATURE, not as a whole. Let us work through a few of these {n}.' },
+  teachFacesFeatureFirst: { ru: '{name}. Черта: {feature}. Свяжите имя именно с ней, а не с «лицом вообще»: на опросе вы будете искать эту черту. Факт — второй крючок: {fact}.', en: '{name}. The feature: {feature}. Tie the name to it, not to “the face” in general: at the test you will look for this feature. The fact is a second hook: {fact}.' },
+  teachFacesFeature: { ru: '{name}. Черта: {feature}. Снова одна зацепка и имя на ней. Факт вторым крючком: {fact}.', en: '{name}. The feature: {feature}. One hook again, with the name on it. The fact as a second hook: {fact}.' },
+  teachFacesInterference: { ru: 'Между показом и вопросами будет счёт — {n} примера. Это не лишняя арифметика: счёт мешает повторять имена про себя, и поэтому меряется память, а не проговаривание.', en: 'Between the showing and the questions there is arithmetic — {n} sums. It is not filler: counting blocks silent rehearsal, so what is measured is memory, not repetition.' },
+  teachFacesRecognition: { ru: 'Сначала спросят лицо среди похожих. Ищите свою черту — «{feature}» — а не «то самое лицо»: похожие сделаны нарочно.', en: 'First you pick the face among look-alikes. Look for your feature — “{feature}” — not for “that face”: the look-alikes are deliberate.' },
+  teachFacesName: { ru: 'Потом имя. Если имя лежало на черте, оно придёт вместе с ней: {name}.', en: 'Then the name. If the name sat on the feature, it comes with it: {name}.' },
+  teachFacesNameAndFact: { ru: 'Потом имя, а на высоких уровнях и факт. Если оба лежали на черте, придут оба: {name} — {fact}.', en: 'Then the name, and at higher levels the fact too. If both sat on the feature, both come back: {name} — {fact}.' },
+  teachFacesDone: { ru: 'Так и играйте: одна черта на лицо, имя и факт — на ней.', en: 'Play it the same way: one feature per face, with the name and the fact resting on it.' },
   teachPairsIntro: { ru: 'Пара слов держится не повторением, а ОДНОЙ картинкой, где оба слова действуют вместе. Сейчас разберём несколько пар из этих {n}.', en: 'A word pair sticks through ONE picture where both words act together, not through repetition. Let us work through a few of these {n} pairs.' },
   teachPairsLinkFirst: { ru: '{a} и {b}. Представьте их в одной сцене: не рядом, а во взаимодействии — так, чтобы одно делало что-то со вторым.', en: '{a} and {b}. Put them in one scene: not side by side but interacting — one doing something to the other.' },
   teachPairsLink: { ru: '{a} и {b}. Снова одна сцена, и пусть она будет нелепой: нелепое держится, обычное стирается.', en: '{a} and {b}. One scene again, and let it be absurd: the absurd sticks, the ordinary fades.' },

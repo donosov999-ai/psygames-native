@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/l10n.dart';
+import 'marks.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -73,7 +75,20 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   List<List<int>> _grid = const [];
   List<List<bool>> _given = const [];
-  final List<({int r, int c, int was})> _history = [];
+  /// 🔴 ШАГ ИСТОРИИ — ТРЁХ ВИДОВ, А НЕ ОДНОГО. Пока история знала только цифры,
+  /// «Отменить» молча не возвращала ни пометку, ни цвет: человек ставит девять
+  /// кандидатов, жмёт отмену — и ничего не происходит. Кнопка, которая работает
+  /// через раз, хуже отсутствующей, потому что в неё верят.
+  final List<_Step> _history = [];
+
+  /// Карандашные пометки и раскраска — бухгалтерия игрока, по клетке на каждую.
+  List<List<int>> _marks = const [];
+  List<List<int>> _colors = const [];
+
+  /// Карандаш и цвет — ВЗАИМОИСКЛЮЧАЮЩИЕ режимы, как в вебе: в цвете цифры не
+  /// вводятся (касание клетки красит), в карандаше касание по-прежнему выбирает.
+  bool _pencil = false;
+  int? _paint;
 
   ({int r, int c})? _selected;
   int _errors = 0;
@@ -118,6 +133,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
         _given = board == null ? const [] : [for (final row in board.puzzle) [for (final v in row) v != 0]];
         _history.clear();
+        _resetNotes(board?.n ?? 0);
         _selected = null;
         _errors = 0;
         _hintsUsed = 0;
@@ -135,6 +151,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
       _given = board == null ? const [] : [for (final row in board.puzzle) [for (final v in row) v != 0]];
       _history.clear();
+      _resetNotes(board?.n ?? 0);
       _selected = null;
       _errors = 0;
       _hintsUsed = 0;
@@ -179,7 +196,63 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   void _select(int r, int c) {
     if (_won || _lost) return;
+    final paint = _paint;
+    if (paint != null) {
+      _paintCell(r, c, paint);
+      return;
+    }
     setState(() => _selected = (r: r, c: c));
+  }
+
+  /// Пустые пометки и раскраска под доску стороны [n].
+  ///
+  /// ⚠️ РАЗМЕР БЕРЁТСЯ У ДОСКИ, А НЕ У ДЕВЯТКИ: на лестнице есть 6×6, и матрица 9×9
+  /// под ними молча ловила бы обращение за край при раскраске правого столбца.
+  void _resetNotes(int n) {
+    _marks = n == 0 ? const [] : emptyPencilMarks(n);
+    _colors = n == 0 ? const [] : emptyCellColors(n);
+    _pencil = false;
+    _paint = null;
+  }
+
+  /// Покрасить клетку. Повтор того же цвета снимает метку.
+  void _paintCell(int r, int c, int color) {
+    if (r >= _colors.length || c >= _colors[r].length) return;
+    setState(() {
+      final was = _colors[r][c];
+      _history.add(_Step(_StepKind.color, r, c, was));
+      _colors[r][c] = toggleCellColor(was, color);
+    });
+  }
+
+  /// Нажатие клавиши: в карандаше — пометка, иначе цифра. Решает общий разбор,
+  /// тот же, что у веб-половины: три игры раздела обязаны вести себя одинаково.
+  void _onKey(int value) {
+    final sel = _selected;
+    final route = routeDigitPress(
+      pencil: _pencil,
+      hasSelection: sel != null,
+      given: sel != null && _given[sel.r][sel.c],
+      blocked: _won || _lost,
+    );
+    switch (route) {
+      case PencilRoute.ignore:
+        return;
+      case PencilRoute.pencil:
+        _mark(sel!.r, sel.c, value);
+      case PencilRoute.digit:
+        _place(value);
+    }
+  }
+
+  /// Пометка карандашом. Ластик (0) чистит клетку целиком — одно движение вместо девяти.
+  void _mark(int r, int c, int digit) {
+    if (r >= _marks.length || c >= _marks[r].length) return;
+    setState(() {
+      final was = _marks[r][c];
+      _history.add(_Step(_StepKind.mark, r, c, was));
+      _marks[r][c] = pencilInput(was, digit);
+    });
   }
 
   /// Поставить цифру. Ошибкой считается расхождение с решением — так же, как в вебе:
@@ -191,7 +264,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (_given[sel.r][sel.c]) return;   // подсказку задания не трогаем
 
     setState(() {
-      _history.add((r: sel.r, c: sel.c, was: _grid[sel.r][sel.c]));
+      _history.add(_Step(_StepKind.digit, sel.r, sel.c, _grid[sel.r][sel.c]));
       _grid[sel.r][sel.c] = value;
       if (value != 0 && solution[sel.r][sel.c] != value) {
         _errors += 1;
@@ -205,13 +278,20 @@ class _SudokuScreenState extends State<SudokuScreen> {
     });
   }
 
-  void _erase() => _place(0);
+  void _erase() => _onKey(0);
 
   void _undo() {
     if (_history.isEmpty || _won || _lost) return;
     setState(() {
       final last = _history.removeLast();
-      _grid[last.r][last.c] = last.was;
+      switch (last.kind) {
+        case _StepKind.digit:
+          _grid[last.r][last.c] = last.was;
+        case _StepKind.mark:
+          _marks[last.r][last.c] = last.was;
+        case _StepKind.color:
+          _colors[last.r][last.c] = last.was;
+      }
     });
   }
 
@@ -223,12 +303,30 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (solution == null || sel == null || _won || _lost) return;
     if (_hintsUsed >= _hintMax) return;
     setState(() {
-      _history.add((r: sel.r, c: sel.c, was: solution[sel.r][sel.c]));
+      // ⚠️ ПОДСКАЗКА В ИСТОРИЮ НЕ ПИШЕТСЯ — так в веб-половине (handleHint,
+      // app/games/sudoku.tsx:1433: истории не касается вовсе), и это осмысленно:
+      // отменить подсказку значит вернуть клетку, не вернув потраченную подсказку.
+      // 🔴 Моя первая редакция шаг писала, и писала НЕВЕРНО — клала в «было» саму
+      // разгадку, поэтому отмена ставила ту же цифру заново и выглядела сломанной.
       _grid[sel.r][sel.c] = solution[sel.r][sel.c];
       _hintsUsed += 1;
       _checkWin();
     });
   }
+
+  /// Карандаш и цвет ВЫКЛЮЧАЮТ ДРУГ ДРУГА. Иначе в цвете нажатие цифры уходило бы
+  /// в пометки, а касание клетки красило — два разных ответа на одно действие.
+  void _togglePencil() => setState(() {
+        _pencil = !_pencil;
+        if (_pencil) _paint = null;
+      });
+
+  /// Включение цвета выбирает первый цвет палитры: режим без выбранного цвета —
+  /// это режим, в котором касание клетки ничего не делает.
+  void _togglePaint() => setState(() {
+        _paint = _paint == null ? 0 : null;
+        if (_paint != null) _pencil = false;
+      });
 
   /// Потолок подсказок берётся по номеру ступени — как в веб-половине.
   int get _hintMax {
@@ -291,6 +389,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
             mode: widget.mode!,
             grid: _grid,
             given: _given,
+            marks: _marks,
+            colors: _colors,
             selected: _selected,
             height: height,
             onTap: _select,
@@ -300,26 +400,50 @@ class _SudokuScreenState extends State<SudokuScreen> {
           board: board!,
           grid: _grid,
           given: _given,
+          marks: _marks,
+          colors: _colors,
           selected: _selected,
           height: height,
           onTap: _select,
         );
       },
+      // 🔴 ЧЕТЫРЕ ЗНАЧКА, КАК В ВЕБЕ, А НЕ ТРИ. Первая редакция нативного экрана
+      // увезла к людям только отмену, «заново» и подсказку — без карандаша и цвета
+      // (кадр Дениса 24.09: «где интерфейс прежний, с которым мы так долго возились»,
+      // «кнопки для заметок, закраски и прочего»). Порядок и смысл — веб-половины
+      // (app/games/sudoku.tsx:2311): отмена с глубиной, подсказка с остатком,
+      // карандаш и цвет — залитыми, когда включены.
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.undo,
           label: 'Отменить',
+          count: _history.isEmpty ? null : _history.length,
           onPressed: _history.isEmpty || _won || _lost ? null : _undo,
         ),
-        AuxAction(icon: Icons.refresh, label: 'Заново', onPressed: _deal),
         AuxAction(
           icon: Icons.lightbulb_outline,
           label: 'Подсказка',
           tint: const Color(0xFFB45309),
+          count: _hintMax > 0 ? (_hintMax - _hintsUsed).clamp(0, _hintMax) : null,
           onPressed: (_hintsUsed < _hintMax && _selected != null && !_won && !_lost)
               ? _hint
               : null,
         ),
+        AuxAction(
+          key: const Key('pencil'),
+          icon: _pencil ? Icons.edit : Icons.edit_outlined,
+          label: L.t('sudokuPencilMode'),
+          active: _pencil,
+          onPressed: (_won || _lost) ? null : _togglePencil,
+        ),
+        AuxAction(
+          key: const Key('paint'),
+          icon: _paint != null ? Icons.palette : Icons.palette_outlined,
+          label: L.t('sudokuColorMode'),
+          active: _paint != null,
+          onPressed: (_won || _lost) ? null : _togglePaint,
+        ),
+        AuxAction(icon: Icons.refresh, label: 'Заново', onPressed: _deal),
       ]),
       toolbar: (board == null && _sideBoard == null)
           ? null
@@ -327,15 +451,30 @@ class _SudokuScreenState extends State<SudokuScreen> {
               n: _n,
               won: _won,
               lost: _lost,
-              onDigit: _place,
+              onDigit: _onKey,
               onErase: _erase,
               onNext: _deal,
+              paint: _paint,
+              onPaint: (i) => setState(() => _paint = i),
             ),
       pauseActions: [
         PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
       ],
     );
   }
+}
+
+/// Что именно вернёт отмена: цифру, пометку или цвет.
+enum _StepKind { digit, mark, color }
+
+/// Один шаг истории. Хранит ТО, ЧТО БЫЛО, а не то, что стало: отмена ставит обратно.
+class _Step {
+  const _Step(this.kind, this.r, this.c, this.was);
+
+  final _StepKind kind;
+  final int r;
+  final int c;
+  final int was;
 }
 
 /// Имя правила для полосы счётчиков: короткое, чтобы не рвало строку.
@@ -367,6 +506,8 @@ class _Board extends StatelessWidget {
     required this.board,
     required this.grid,
     required this.given,
+    required this.marks,
+    required this.colors,
     required this.selected,
     required this.height,
     required this.onTap,
@@ -375,6 +516,8 @@ class _Board extends StatelessWidget {
   final SudokuBoard board;
   final List<List<int>> grid;
   final List<List<bool>> given;
+  final List<List<int>> marks;
+  final List<List<int>> colors;
   final ({int r, int c})? selected;
   final double height;
   final void Function(int r, int c) onTap;
@@ -408,6 +551,10 @@ class _Board extends StatelessWidget {
                             board: board,
                             value: grid[r][col],
                             given: given[r][col],
+                            mask: r < marks.length && col < marks[r].length ? marks[r][col] : 0,
+                            paint: r < colors.length && col < colors[r].length
+                                ? colors[r][col]
+                                : noSudokuColor,
                             selected: selected != null && selected!.r == r && selected!.c == col,
                             scheme: scheme,
                             onTap: onTap,
@@ -432,6 +579,8 @@ class _Cell extends StatelessWidget {
     required this.board,
     required this.value,
     required this.given,
+    required this.mask,
+    required this.paint,
     required this.selected,
     required this.scheme,
     required this.onTap,
@@ -443,6 +592,10 @@ class _Cell extends StatelessWidget {
   final SudokuBoard board;
   final int value;
   final bool given;
+
+  /// Маска карандашных пометок клетки и её цвет (-1 — без цвета).
+  final int mask;
+  final int paint;
   final bool selected;
   final ColorScheme scheme;
   final void Function(int r, int c) onTap;
@@ -480,7 +633,13 @@ class _Cell extends StatelessWidget {
       width: size,
       height: size,
       child: Material(
-        color: selected ? scheme.primaryContainer : scheme.surface,
+        // ⚠️ ВЫБОР ВИДЕН ПОВЕРХ КРАСКИ. Если крашеная клетка перестаёт показывать,
+        // что она выбрана, человек в режиме цифр теряет, куда сейчас пишет.
+        color: selected
+            ? scheme.primaryContainer
+            : (paint >= 0 && paint < sudokuColorCount
+                ? cellColors[paint].withValues(alpha: 0.35)
+                : scheme.surface),
         child: InkWell(
           key: Key('cell_${row}_$col'),
           onTap: () => onTap(row, col),
@@ -493,15 +652,25 @@ class _Cell extends StatelessWidget {
                 right: _side(thickRight),
               ),
             ),
+            // Цифра ГАСИТ пометки, но не стирает их: убрал цифру — кандидаты
+            // снова на месте (visiblePencilDigits, разбор в marks.dart).
             child: Center(
-              child: Text(
-                value == 0 ? '' : '$value',
-                style: TextStyle(
-                  fontSize: size * 0.52,
-                  fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                  color: given ? scheme.onSurface : scheme.primary,
-                ),
-              ),
+              child: value == 0 && mask != 0
+                  ? PencilMarksLayer(
+                      key: Key('marks_${row}_$col'),
+                      mask: mask,
+                      value: value,
+                      cell: size,
+                      color: scheme.onSurfaceVariant,
+                    )
+                  : Text(
+                      value == 0 ? '' : '$value',
+                      style: TextStyle(
+                        fontSize: size * 0.52,
+                        fontWeight: given ? FontWeight.w800 : FontWeight.w500,
+                        color: given ? scheme.onSurface : scheme.primary,
+                      ),
+                    ),
             ),
           ),
         ),
@@ -520,6 +689,8 @@ class _Toolbar extends StatelessWidget {
     required this.onDigit,
     required this.onErase,
     required this.onNext,
+    required this.paint,
+    required this.onPaint,
   });
 
   final int n;
@@ -528,6 +699,10 @@ class _Toolbar extends StatelessWidget {
   final void Function(int) onDigit;
   final VoidCallback onErase;
   final VoidCallback onNext;
+
+  /// Выбранный цвет: не `null` — вместо клавиш стоит палитра.
+  final int? paint;
+  final void Function(int) onPaint;
 
   @override
   Widget build(BuildContext context) {
@@ -550,6 +725,53 @@ class _Toolbar extends StatelessWidget {
         final rows = (keys / fit).ceil();
         final perRow = (keys / rows).ceil();
         final width = perRow * keyWidth + (perRow - 1) * gap;
+
+        // 🔴 ПАЛИТРА ВСТАЁТ НА МЕСТО КЛАВИАТУРЫ И ТОЙ ЖЕ ВЫСОТЫ — правило веб-версии
+        // (`слотКлавиатуры`). Иначе при переключении режима доска прыгает вверх-вниз,
+        // и человек теряет клетку, которую только что смотрел.
+        final slot = rows * keyWidth + (rows - 1) * gap;
+        if (paint != null) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: slot, maxWidth: width),
+                child: Wrap(
+                  spacing: gap,
+                  runSpacing: gap,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    for (var i = 0; i < sudokuColorCount; i++)
+                      SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Material(
+                          color: cellColors[i].withValues(alpha: 0.55),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: paint == i
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Theme.of(context).colorScheme.outlineVariant,
+                              width: paint == i ? 2 : 1,
+                            ),
+                          ),
+                          child: InkWell(
+                            key: Key('swatch$i'),
+                            onTap: () => onPaint(i),
+                            child: paint == i
+                                ? Icon(Icons.check,
+                                    size: 16, color: Theme.of(context).colorScheme.onSurface)
+                                : null,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Center(
