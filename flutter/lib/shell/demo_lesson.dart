@@ -31,6 +31,7 @@ class DemoTrial {
     this.color,
     this.sub,
     this.ruleKey,
+    this.rule,
     this.art,
   });
 
@@ -52,6 +53,10 @@ class DemoTrial {
   /// зазор у фланкера и есть ось трудности. Поэтому игра отдаёт СВОЙ виджет
   /// стимула, тот же, что рисует в партии.
   final Widget? art;
+
+  /// Готовое правило строкой — когда оно собирается из словаря с подстановкой
+  /// (у CPT правило зависит от уровня: «жми на {letter} только после A»).
+  final String? rule;
 
   /// Ключ словаря с ИМЕНЕМ ПРАВИЛА этой пробы. У Струпа правило меняется внутри
   /// партии, поэтому ключ живёт на пробе, а не на игре.
@@ -141,7 +146,8 @@ Future<void> openDemoLesson(
     builder: (_) => LessonPlayerScreen(
       title: title,
       steps: [
-        for (final t in trials) LessonStep(techniqueKey: t.ruleKey, payload: t),
+        for (final t in trials)
+          LessonStep(techniqueKey: t.ruleKey, text: t.rule, payload: t),
       ],
       board: (context, side, shown) => Padding(
         padding: const EdgeInsets.all(8),

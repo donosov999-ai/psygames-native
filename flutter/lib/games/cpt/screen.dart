@@ -14,6 +14,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -185,6 +186,26 @@ class _CptScreenState extends State<CptScreen> {
     }
   }
 
+  /// Примеры разбора: мишень, обманка и (на уровнях с цветом) мишенная буква
+  /// НЕ того цвета. Что «перед этим было» — в подписи: в режиме AX верность
+  /// ответа решает предыдущая буква, а не текущая.
+  List<DemoTrial> _demoTrials() {
+    final g = _game!;
+    final p = g.params;
+    final rule = cptRulesText(p, g.level);
+    final ax = p.mode == CptMode.ax;
+    return [
+      for (final e in cptDemoTrials(p))
+        DemoTrial(
+          text: e.stim.letter,
+          color: cptColorHex[e.stim.color],
+          sub: ax ? L.t('cptPrevLetter').replaceAll('{letter}', e.prev) : null,
+          answer: e.stim.isTarget ? L.t('demoPress') : L.t('demoHold'),
+          rule: rule,
+        ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final g = _game;
@@ -200,6 +221,9 @@ class _CptScreenState extends State<CptScreen> {
         HudItem(label: L.t('hud_missed'), value: '${m.omissions}', icon: Icons.visibility_off_outlined),
         HudItem(label: L.t('hud_false'), value: '${m.commissions}', icon: Icons.close),
       ],
+      onLesson: _game == null
+          ? null
+          : () => openDemoLesson(context, title: L.t('cpt'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
         phase: _phase,
@@ -213,6 +237,20 @@ class _CptScreenState extends State<CptScreen> {
       toolbar: _phase == CptPhase.playing ? _TapButton(onTap: _tap) : null,
     );
   }
+}
+
+/// 🔴 ПРАВИЛО УРОВНЯ ОДНОЙ СТРОКОЙ — И ПАРТИЯ, И РАЗБОР ЗОВУТ ЭТУ ФУНКЦИЮ.
+///
+/// Правило CPT меняется с уровнем: «жми на каждую X» → «X только после A» →
+/// «только КРАСНАЯ {letter} после A». Разбор со своей копией этого текста
+/// однажды разошёлся бы с экраном — и объяснял бы другое упражнение.
+String cptRulesText(CptLevel p, int level) {
+  if (p.colorRule) return L.t('cptLvlParamsColor').replaceAll('{letter}', p.target);
+  if (p.target != 'X') return L.t('cptLvlParamsLetter').replaceAll('{letter}', p.target);
+  if (p.mode == CptMode.ax) {
+    return level >= 11 ? L.t('cptLvlParamsAXHard') : L.t('cptLvlParamsAX');
+  }
+  return L.t('cptLvlParamsX');
 }
 
 class _Field extends StatelessWidget {
@@ -239,15 +277,7 @@ class _Field extends StatelessWidget {
   final VoidCallback onAgain;
 
   /// Строка правил уровня: у каждой ступени своя, и она называет, ЧТО поменялось.
-  String get _rules {
-    final p = game.params;
-    if (p.colorRule) return L.t('cptLvlParamsColor').replaceAll('{letter}', p.target);
-    if (p.target != 'X') return L.t('cptLvlParamsLetter').replaceAll('{letter}', p.target);
-    if (p.mode == CptMode.ax) {
-      return game.level >= 11 ? L.t('cptLvlParamsAXHard') : L.t('cptLvlParamsAX');
-    }
-    return L.t('cptLvlParamsX');
-  }
+  String get _rules => cptRulesText(game.params, game.level);
 
   @override
   Widget build(BuildContext context) {

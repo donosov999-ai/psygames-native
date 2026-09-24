@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/ant/model.dart';
 import 'package:psygames_flutter/games/choice_rt/model.dart';
+import 'package:psygames_flutter/games/cpt/model.dart';
 import 'package:psygames_flutter/games/choice_rt/screen.dart';
 import 'package:psygames_flutter/games/flanker/model.dart';
 import 'package:psygames_flutter/games/gonogo/model.dart';
@@ -309,5 +311,41 @@ void main() {
             reason: 'партия не засчитала ответ, который показывает разбор');
       }
     }
+  });
+
+  test('🔴 ANT: ответ по СРЕДНЕЙ стрелке — и с подсказкой, и без неё', () {
+    final demo = antDemoTrials();
+    expect(demo.any((t) => t.cue == CueType.spatial), isTrue, reason: 'нет пробы с подсказкой');
+    expect(demo.any((t) => t.cue == CueType.none), isTrue, reason: 'нет пробы без подсказки');
+    expect(demo.any((t) => t.cong == Congruence.incongruent), isTrue,
+        reason: 'нет конфликтной пробы — сеть исполнения не показана');
+    for (final t in demo) {
+      // ⚠️ Правило пересказано: верно направление ЦЕЛИ (средней стрелки).
+      if (t.cong == Congruence.incongruent) {
+        expect(t.dir == t.flankers!.first, isFalse, reason: 'конфликт не конфликтует');
+      }
+      final g = AntGame(level: 1, rnd: Random(1));
+      expect(g.nextTrial(), isTrue);
+      g.trial = t;
+      g.showTarget();
+      expect(g.answer(t.dir), AntOutcome.hit, reason: 'партия не засчитала ответ по цели');
+    }
+  });
+
+  test('🔴 CPT: та же буква — мишень после A и НЕ мишень после другой', () {
+    // Режим X: мишень — сама буква, предыдущая ни при чём.
+    final x = cptDemoTrials(CptLevel.of(1));
+    expect(x.every((e) => e.stim.isTarget), isTrue,
+        reason: 'в режиме X обе пробы с мишенной буквой — обе мишени');
+
+    // Режим AX: мишень только после «A». Ради этого различия упражнение и есть.
+    final ax = cptDemoTrials(CptLevel.of(10));
+    expect(ax.length, greaterThanOrEqualTo(2));
+    expect(ax.where((e) => e.prev == 'A').every((e) => e.stim.isTarget), isTrue,
+        reason: 'после A мишень не распозналась');
+    expect(ax.where((e) => e.prev != 'A').any((e) => e.stim.isTarget), isFalse,
+        reason: 'не после A, а разбор зовёт мишенью');
+    expect(ax.map((e) => e.stim.letter).toSet().length, 1,
+        reason: 'буквы разные — примеры показывают не различие по предыдущей');
   });
 }

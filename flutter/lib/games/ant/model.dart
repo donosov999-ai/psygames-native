@@ -170,6 +170,29 @@ AntNetworks calcNetworks(List<AntRt> data) {
   );
 }
 
+/// Примеры для разбора — ДАННЫЕ: согласованная проба со ПРОСТРАНСТВЕННОЙ
+/// подсказкой и конфликтная БЕЗ подсказки.
+///
+/// Обе половины упражнения видны сразу: подсказка говорит, КУДА смотреть
+/// (ориентир), фланги мешают ответу (исполнение). Ответ в обеих — направление
+/// СРЕДНЕЙ стрелки.
+List<AntTrial> antDemoTrials() => const [
+      AntTrial(
+        cue: CueType.spatial,
+        pos: Position.top,
+        dir: Direction.right,
+        cong: Congruence.congruent,
+        flankers: [Direction.right, Direction.right, Direction.right, Direction.right],
+      ),
+      AntTrial(
+        cue: CueType.none,
+        pos: Position.bottom,
+        dir: Direction.right,
+        cong: Congruence.incongruent,
+        flankers: [Direction.left, Direction.left, Direction.left, Direction.left],
+      ),
+    ];
+
 enum AntOutcome { hit, wrong, miss }
 
 /// Порог прохода уровня — 80 % верных, как в веб-версии.

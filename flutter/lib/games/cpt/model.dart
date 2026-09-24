@@ -222,6 +222,31 @@ CptStim makeTrial(int level, String prev, double Function() rnd) {
   );
 }
 
+/// Примеры для разбора — ДАННЫЕ: мишень и не-мишень по ПРАВИЛУ ЭТОГО УРОВНЯ.
+///
+/// 🔴 Признак мишени считается той же формулой, что в `makeTrial`: в режиме X
+/// мишень — сама буква, в режиме AX — та же буква, но только после «A». Вторая
+/// половина примеров и есть предмет упражнения: буква та же, а жать нельзя,
+/// потому что перед ней была другая.
+List<({CptStim stim, String prev})> cptDemoTrials(CptLevel p) {
+  CptStim stim(String letter, String prev, {StimColor? color}) {
+    final target = p.mode == CptMode.x ? letter == p.target : (letter == p.target && prev == 'A');
+    return CptStim(
+      letter: letter,
+      color: color ?? (p.colorRule && target ? StimColor.red : StimColor.ink),
+      isTarget: target && (color == null || color == StimColor.red),
+    );
+  }
+
+  return [
+    (stim: stim(p.target, 'A'), prev: 'A'),
+    (stim: stim(p.target, 'B'), prev: 'B'),
+    if (p.colorRule)
+      // Мишенная буква НЕ того цвета: правило цвета добавляет третий пример.
+      (stim: stim(p.target, 'A', color: StimColor.blue), prev: 'A'),
+  ];
+}
+
 /// Запись одной пробы.
 class CptTrial {
   CptTrial({

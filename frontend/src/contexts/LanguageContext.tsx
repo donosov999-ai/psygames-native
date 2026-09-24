@@ -1036,6 +1036,7 @@ const translations: Translations = {
   /* Ответ в играх «жми / держись» — один на всё семейство (go/no-go, стоп-сигнал, CPT, торможение). */
   demoPress: { ru: 'нажать', en: 'press' },
   demoHold: { ru: 'не нажимать', en: 'hold' },
+  cptPrevLetter: { ru: 'перед этим была {letter}', en: 'preceded by {letter}' },
   teachRow: { ru: 'Строка {n}', en: 'Row {n}' },
   teachCol: { ru: 'Столбец {n}', en: 'Column {n}' },
   /*

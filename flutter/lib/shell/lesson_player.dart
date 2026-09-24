@@ -83,6 +83,8 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
 
   String _text(int i) {
     if (i >= widget.steps.length) return L.t('teachNewBoard');
+    final ready = widget.steps[i].text;
+    if (ready != null) return ready;
     final key = widget.steps[i].techniqueKey;
     // Приёма назвать нечем — говорим только про ход. Это честнее, чем придумать
     // объяснение: разбор показывает, ЧТО поставить, а «почему» приходит отдельным

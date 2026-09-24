@@ -17,6 +17,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -93,6 +94,18 @@ class _AntScreenState extends State<AntScreen> {
     });
     _nextTrial();
   }
+
+  /// Примеры разбора: подсказка ЕСТЬ и подсказки НЕТ, конфликтная и
+  /// согласованная проба. Отвечаем всегда по СРЕДНЕЙ стрелке.
+  List<DemoTrial> _demoTrials() => [
+        for (final t in antDemoTrials())
+          DemoTrial(
+            text: '',
+            art: AntField(trial: t),
+            answer: t.dir == Direction.left ? L.t('a11yLeft') : L.t('a11yRight'),
+            ruleKey: 'hint_center_arrow',
+          ),
+      ];
 
   void _nextTrial() {
     final g = _game!;
@@ -176,6 +189,9 @@ class _AntScreenState extends State<AntScreen> {
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
       ],
+      onLesson: _game == null
+          ? null
+          : () => openDemoLesson(context, title: L.t('ant'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
         phase: _phase,
@@ -189,6 +205,49 @@ class _AntScreenState extends State<AntScreen> {
       toolbar: _phase == AntPhase.playing ? _Answers(onPick: _answer) : null,
     );
   }
+}
+
+/// 🔴 ПОЛЕ ЦЕЛИКОМ ОТДЕЛЬНЫМ ВИДЖЕТОМ — ЧТОБЫ РАЗБОР ПОКАЗЫВАЛ ТО ЖЕ САМОЕ.
+///
+/// Две строки — верх и низ: мишень приходит в одну из них, и пространственная
+/// подсказка показывает, в какую. От точки фиксации между ними и меряется
+/// «ориентир» — одна из трёх сетей, ради которых упражнение существует.
+/// Разбор с одной строкой показывал бы задачу без ориентирования.
+class AntField extends StatelessWidget {
+  const AntField({
+    super.key,
+    required this.trial,
+    this.cueVisible = true,
+    this.targetShown = true,
+  });
+
+  final AntTrial trial;
+  final bool cueVisible;
+  final bool targetShown;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AntRow(
+            slot: 'top',
+            active: trial.pos == Position.top,
+            trial: trial,
+            cueVisible: cueVisible,
+            targetShown: targetShown,
+          ),
+          const SizedBox(height: 24),
+          const Text('+', key: Key('ant-fixation'), style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 24),
+          AntRow(
+            slot: 'bottom',
+            active: trial.pos == Position.bottom,
+            trial: trial,
+            cueVisible: cueVisible,
+            targetShown: targetShown,
+          ),
+        ],
+      );
 }
 
 class _Field extends StatelessWidget {
@@ -268,26 +327,7 @@ class _Field extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Две строки — верх и низ: мишень приходит в одну из них, и
-              // пространственная подсказка показывает, в какую.
-              _Row(
-                slot: 'top',
-                active: t.pos == Position.top,
-                trial: t,
-                cueVisible: cueVisible,
-                targetShown: shown,
-              ),
-              const SizedBox(height: 24),
-              // Точка фиксации — центр экрана, от неё и меряется «ориентир».
-              const Text('+', key: Key('ant-fixation'), style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 24),
-              _Row(
-                slot: 'bottom',
-                active: t.pos == Position.bottom,
-                trial: t,
-                cueVisible: cueVisible,
-                targetShown: shown,
-              ),
+              AntField(trial: t, cueVisible: cueVisible, targetShown: shown),
               const SizedBox(height: 16),
               SizedBox(
                 height: 28,
@@ -306,8 +346,9 @@ class _Field extends StatelessWidget {
 }
 
 /// Одна строка поля: подсказка над ней и, если мишень пришла сюда, сами стрелки.
-class _Row extends StatelessWidget {
-  const _Row({
+class AntRow extends StatelessWidget {
+  const AntRow({
+    super.key,
     required this.slot,
     required this.active,
     required this.trial,
