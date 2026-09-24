@@ -29,6 +29,7 @@ class PuzzleMode {
     required this.engineName,
     required this.titleKey,
     required this.steps,
+    this.descKey,
     this.digits = false,
     this.digitLabels = const [],
     this.digitNames = const [],
@@ -48,6 +49,14 @@ class PuzzleMode {
 
   /// Какому разделу принадлежит режим — чтобы владелец видел свои и не правил чужие.
   final String? owner;
+
+  /// КЛЮЧ СЛОВАРЯ с правилом игры — то, что человек читает в справке.
+  ///
+  /// 🔴 До 24.09.2026 нативный экран головоломок не показывал правил ВОВСЕ: доска
+  /// и всё. У сорока двух игр правила разные, и половина из них не угадывается с
+  /// доски — «Рельсы» человек полтора часа пытался поворачивать, хотя поворота в
+  /// игре нет. Ключ ведётся правилом именования `<ключ названия>Desc`.
+  final String? descKey;
   final List<PuzzleStep> steps;
 
   /// Нужен ли ряд цифр: у Singles ввод только тычками.
@@ -112,6 +121,7 @@ class PuzzleModes {
                     s['params'] as String,
                   ))
               .toList(),
+          descKey: m['descKey'] as String?,
           owner: m['owner'] as String?,
         ),
       );
