@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/anagrams/board.dart';
 import 'package:psygames_flutter/games/anagrams/screen.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,6 +52,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Подписи — из ТОГО ЖЕ словаря, что и в сборке: проба заодно проверяет, что
+    // `assets/l10n/ru.json` собран и читается, а не сверяется с переписанной строкой.
+    await L.load('ru');
   });
 
   testWidgets('🔴 экран доходит до доски, а не крутит загрузку вечно', (tester) async {
@@ -72,7 +76,7 @@ void main() {
     expect(after.picked, isEmpty, reason: 'после зачёта набранное сбрасывается');
     expect(find.textContaining('Собрано'), findsNothing); // подпись в Semantics, не текстом
     final hud = tester.widget<GameShell>(find.byType(GameShell)).hud;
-    final solved = hud.firstWhere((h) => h.label == 'Собрано').value;
+    final solved = hud.firstWhere((h) => h.label == L.t('hud_correct')).value;
     expect(solved, '1', reason: 'собранное слово обязано попасть в счётчик');
   });
 
@@ -99,14 +103,14 @@ void main() {
     await _boot(tester, state);
     expect(_board(tester).revealed, 0);
     for (var i = 1; i <= 3; i++) {
-      await tester.tap(find.byTooltip('Подсказка'));
+      await tester.tap(find.byTooltip(L.t('btn_hint')));
       await tester.pump();
       expect(_board(tester).revealed, i, reason: 'подсказка $i обязана открыть букву');
     }
     // Запас кончился. Проверяем не «кнопка серая», а ПОВЕДЕНИЕ: четвёртое
     // нажатие не открывает четвёртой буквы. Серый вид — оформление, а ресурс,
     // который тратится молча, и есть дефект.
-    await tester.tap(find.byTooltip('Подсказка'), warnIfMissed: false);
+    await tester.tap(find.byTooltip(L.t('btn_hint')), warnIfMissed: false);
     await tester.pump();
     expect(_board(tester).revealed, 3, reason: 'запас подсказок конечен');
   });
@@ -115,12 +119,40 @@ void main() {
     await _boot(tester, state);
     final before = _board(tester);
     final target = before.target;
-    await tester.tap(find.byTooltip('Перемешать'));
+    await tester.tap(find.byTooltip(L.t('shuffleBtn')));
     await tester.pump();
     final after = _board(tester);
     expect(after.target, target, reason: 'слово то же');
     expect(after.letters.toList()..sort(), before.letters.toList()..sort(),
         reason: 'буквы те же');
     expect(after.picked, isEmpty, reason: 'набранное сбрасывается — порядок индексов изменился');
+  });
+
+  /// 🔴 ОБЕЩАНИЕ ПРОВЕРЯЕТСЯ НА ЧУЖОМ ЯЗЫКЕ, А НЕ НА РУССКОМ.
+  ///
+  /// Пробы выше зовут `L.t('ключ')` и на русском словаре получают ровно те слова,
+  /// что раньше были зашиты, — то есть покраснеть от возврата литералов они НЕ
+  /// могут. Обещание тут другое: немец видит немецкое. Поэтому один заход идёт
+  /// на немецком и сверяется с НАПИСАННЫМИ немецкими словами: вернут литерал —
+  /// проба покраснеет, и неважно, каким способом его вернут.
+  ///
+  /// Язык слов и язык интерфейса — РАЗНЫЕ вещи: банк остаётся русским (`locale:
+  /// 'ru'`), подписи становятся немецкими. Так же устроен и веб-экран, где язык
+  /// слов выбирается отдельной строкой `wordLangLabel`.
+  testWidgets('🔴 подписи говорят на языке игрока, а не на языке разработчика', (tester) async {
+    // ⚠️ Словарь читается с диска, а в `testWidgets` время поддельное: голый
+    // `await L.load('de')` здесь НЕ завершается никогда — заход висит все десять
+    // минут и падает по сроку, а не по подписям. Настоящий ввод-вывод идёт
+    // только внутри `runAsync`. (В `setUp` обёртка не нужна: он вне этой зоны.)
+    await tester.runAsync(() => L.load('de'));
+    await _boot(tester, state);
+    expect(find.text('Anagramme'), findsWidgets, reason: 'заголовок');
+    expect(find.byTooltip('Tipp'), findsOneWidget, reason: 'подсказка');
+    expect(find.byTooltip('Mischen'), findsOneWidget, reason: 'перемешать');
+    expect(find.text('Löschen'), findsOneWidget, reason: 'сброс черновика');
+    expect(find.text('Prüfen'), findsOneWidget, reason: 'сдать слово');
+    final hud = tester.widget<GameShell>(find.byType(GameShell)).hud;
+    expect(hud.map((h) => h.label), containsAll(<String>['Stufe', 'Runde', 'Richtig']));
+    await tester.runAsync(() => L.load('ru'));
   });
 }

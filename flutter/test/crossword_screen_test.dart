@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/anagrams/crossword_board.dart';
 import 'package:psygames_flutter/games/anagrams/crossword_screen.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,6 +50,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Подписи — из ТОГО ЖЕ словаря, что и в сборке: проба заодно проверяет, что
+    // `assets/l10n/ru.json` собран и читается, а не сверяется с переписанной строкой.
+    await L.load('ru');
   });
 
   testWidgets('🔴 сетка НАРИСОВАНА: занятых клеток столько же, сколько букв в модели', (tester) async {
@@ -74,7 +78,7 @@ void main() {
     expect(b.revealed.length, word.length, reason: 'найденное слово открыто целиком');
     expect(b.picked, isEmpty, reason: 'после зачёта черновик сбрасывается');
     final hud = tester.widget<GameShell>(find.byType(GameShell)).hud;
-    expect(hud.firstWhere((h) => h.label == 'Найдено').value, startsWith('1/'));
+    expect(hud.firstWhere((h) => h.label == L.t('label_found')).value, startsWith('1/'));
   });
 
   testWidgets('🔴 слова НЕ из сетки не засчитываются, даже если они настоящие', (tester) async {
@@ -104,10 +108,10 @@ void main() {
   testWidgets('🔴 подсказка открывает клетку и тратится по лестнице уровня', (tester) async {
     await _boot(tester, state);
     expect(_board(tester).revealed, isEmpty);
-    await tester.tap(find.byTooltip('Подсказка'));
+    await tester.tap(find.byTooltip(L.t('btn_hint')));
     await tester.pump();
     expect(_board(tester).revealed.length, 1, reason: 'подсказка открывает одну букву');
-    await tester.tap(find.byTooltip('Подсказка'));
+    await tester.tap(find.byTooltip(L.t('btn_hint')));
     await tester.pump();
     expect(_board(tester).revealed.length, 2);
   });
@@ -116,11 +120,11 @@ void main() {
     await _boot(tester, state);
     // На первом уровне их пять (`crossHintsAtLevel`). Жмём шесть раз.
     for (var i = 1; i <= 5; i++) {
-      await tester.tap(find.byTooltip('Подсказка'));
+      await tester.tap(find.byTooltip(L.t('btn_hint')));
       await tester.pump();
       expect(_board(tester).revealed.length, i, reason: 'подсказка $i обязана открыть букву');
     }
-    await tester.tap(find.byTooltip('Подсказка'), warnIfMissed: false);
+    await tester.tap(find.byTooltip(L.t('btn_hint')), warnIfMissed: false);
     await tester.pump();
     expect(_board(tester).revealed.length, 5,
         reason: 'шестая подсказка не выдаётся — иначе ресурс бесконечен');
@@ -128,13 +132,13 @@ void main() {
 
   testWidgets('🔴 «Перемешать» меняет порядок, но не буквы и не открытое', (tester) async {
     await _boot(tester, state);
-    await tester.tap(find.byTooltip('Подсказка'));
+    await tester.tap(find.byTooltip(L.t('btn_hint')));
     await tester.pump();
     final before = _board(tester);
     final openedBefore = before.revealed.length;
     final lettersBefore = before.letters.toList()..sort();
 
-    await tester.tap(find.byTooltip('Перемешать'));
+    await tester.tap(find.byTooltip(L.t('shuffleBtn')));
     await tester.pump();
     final after = _board(tester);
     expect(after.letters.toList()..sort(), lettersBefore, reason: 'буквы те же');

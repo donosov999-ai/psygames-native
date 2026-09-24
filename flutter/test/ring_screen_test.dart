@@ -4,6 +4,7 @@ import 'package:psygames_flutter/games/anagrams/ring.dart';
 import 'package:psygames_flutter/games/anagrams/ring_board.dart';
 import 'package:psygames_flutter/games/anagrams/ring_screen.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -46,6 +47,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Подписи — из ТОГО ЖЕ словаря, что и в сборке: проба заодно проверяет, что
+    // `assets/l10n/ru.json` собран и читается, а не сверяется с переписанной строкой.
+    await L.load('ru');
   });
 
   testWidgets('🔴 рамка 5×5 нарисована, внутренность в игре не участвует', (tester) async {
@@ -79,7 +83,7 @@ void main() {
     expect(b.solved.length, 1, reason: 'одно слово — одна сторона');
     expect(b.picked, isEmpty);
     final hud = tester.widget<GameShell>(find.byType(GameShell)).hud;
-    expect(hud.firstWhere((h) => h.label == 'Сторон').value, '1/4');
+    expect(hud.firstWhere((h) => h.label == L.t('label_found')).value, '1/4');
   });
 
   testWidgets('🔴 чужое слово не засчитывается, и человек это видит', (tester) async {
@@ -106,24 +110,24 @@ void main() {
   testWidgets('🔴 подсказка открывает сторону целиком и запас КОНЕЧЕН', (tester) async {
     await _boot(tester, state);
     for (var i = 1; i <= 2; i++) {
-      await tester.tap(find.byTooltip('Подсказка'));
+      await tester.tap(find.byTooltip(L.t('btn_hint')));
       await tester.pump();
       expect(_board(tester).solved.length, i, reason: 'подсказка $i открывает сторону');
     }
-    await tester.tap(find.byTooltip('Подсказка'), warnIfMissed: false);
+    await tester.tap(find.byTooltip(L.t('btn_hint')), warnIfMissed: false);
     await tester.pump();
     expect(_board(tester).solved.length, 2, reason: 'третья подсказка не выдаётся');
   });
 
   testWidgets('🔴 «Перемешать» меняет порядок, но не буквы и не закрытое', (tester) async {
     await _boot(tester, state);
-    await tester.tap(find.byTooltip('Подсказка'));
+    await tester.tap(find.byTooltip(L.t('btn_hint')));
     await tester.pump();
     final before = _board(tester);
     final lettersBefore = before.letters.toList()..sort();
     final solvedBefore = before.solved.length;
 
-    await tester.tap(find.byTooltip('Перемешать'));
+    await tester.tap(find.byTooltip(L.t('shuffleBtn')));
     await tester.pump();
     final after = _board(tester);
     expect(after.letters.toList()..sort(), lettersBefore, reason: 'буквы те же');

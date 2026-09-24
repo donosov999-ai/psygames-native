@@ -57,7 +57,6 @@ void main() {
   /// Перевёл экран — опусти его число. Файла нет в списке — значит он обязан
   /// быть чистым: так новый перенос не добавляет долга молча.
   const debt = <String, int>{
-    'games/anagrams/crossword_screen.dart': 8,   // приёмка 23.09, владелец — «Слова»
     'games/mental_rotation/words.dart': 62,
     'games/mental_rotation/screen.dart': 58,
     'games/spatial_lab/screen.dart': 51,
@@ -82,14 +81,12 @@ void main() {
     'games/object_tracker/model.dart': 14,
     'games/fractal/screen.dart': 13,
     'games/deep/screen.dart': 13,
-    'games/anagrams/screen.dart': 13,
     'games/hanoi/screen.dart': 12,
     'games/puzzles/screen.dart': 12,
     'games/memory_matrix/screen.dart': 12,
     'games/cake_sort/screen.dart': 11,
     'games/one_line/screen.dart': 10,
     'games/dots_connect/screen.dart': 10,
-    'games/anagrams/all_words_screen.dart': 9,
     'shell/hybrid_app.dart': 8,
     'games/stroop/model.dart': 8,
     'games/goods_sort/board.dart': 5,
@@ -109,7 +106,11 @@ void main() {
   // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите,
   // плюс 224 принятых при вливании «Пространства» 23.09, минус 28 — развилка раздела и
   // названия упражнений переведены в том же коммите: они держат КЛЮЧИ, как и веб-сторона.
-  const total = 733;   // 725 + 8 приёмкой экрана кроссворда (23.09, b2181fd5)
+  // 24.09 — «Слова» перевели все ЧЕТЫРЕ экрана анаграмм целиком (−38, все четыре файла
+  // ушли из списка): 733 + 4 принятых строки слова-квадрата − 38. Новых ключей не
+  // заводилось ни одного: веб-экран тех же режимов зовёт ровно эти подписи, и перевод
+  // на 12 языков у них уже был — `node flutter/tools/embed-l10n.mjs` привёз их сам.
+  const total = 699;
 
   final counts = _scan(Directory('lib'));
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -132,11 +133,11 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return GameShell(
-      title: 'Кроссворд',
+      title: L.t('anagramCrossword'),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(
-          label: 'Найдено',
+          label: L.t('label_found'),
           value: '${_found.length}/${cw.words.length}',
           icon: Icons.check_circle_outline,
         ),
@@ -153,12 +154,12 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
       auxRow: AuxBar(children: [
         AuxAction(
           icon: Icons.lightbulb_outline,
-          label: 'Подсказка',
+          label: L.t('btn_hint'),
           tint: const Color(0xFFB45309),
           count: _hintsLeft,
           onPressed: _hintsLeft > 0 ? _hint : null,
         ),
-        AuxAction(icon: Icons.shuffle, label: 'Перемешать', onPressed: _shuffle),
+        AuxAction(icon: Icons.shuffle, label: L.t('shuffleBtn'), onPressed: _shuffle),
       ]),
       toolbar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
@@ -169,7 +170,7 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
                 key: const ValueKey('crossword-clear'),
                 onPressed: _picked.isEmpty ? null : _clear,
                 icon: const Icon(Icons.backspace_outlined),
-                label: const Text('Сбросить'),
+                label: Text(L.t('clear')),
               ),
             ),
             const SizedBox(width: 10),
@@ -178,14 +179,14 @@ class _CrosswordScreenState extends State<CrosswordScreen> {
                 key: const ValueKey('crossword-check'),
                 onPressed: _picked.isEmpty ? null : () { _submit(); },
                 icon: const Icon(Icons.done),
-                label: const Text('Проверить'),
+                label: Text(L.t('check')),
               ),
             ),
           ],
         ),
       ),
       pauseActions: [
-        PauseAction(label: 'Перемешать', icon: Icons.shuffle, onPressed: _shuffle),
+        PauseAction(label: L.t('shuffleBtn'), icon: Icons.shuffle, onPressed: _shuffle),
       ],
     );
   }
