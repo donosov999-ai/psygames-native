@@ -116,6 +116,26 @@ const overlays = Object.fromEntries(
 
 // 3. Ключ, которого в веб-словаре нет, — это ошибка, а не повод молча пропустить:
 //    словарь один, и заводить строку надо в нём, иначе перевода не будет НИГДЕ.
+/*
+ * 🔴 ПРАВИЛО ЕСТЬ У КАЖДОЙ ПЕРЕХВАЧЕННОЙ ИГРЫ, И КЛЮЧ ЕГО НИКТО НЕ ЗОВЁТ ЯВНО.
+ *
+ * Справку каркас показывает САМ, по адресу открытой игры: ключ выводится правилом
+ * `<имя адреса>Desc` (`/games/go-no-go` → `goNoGoDesc`). Шаблон `L.t('ключ')` таких
+ * ключей не видит — их в исходнике нет, — и десять правил не доехали бы в сборку,
+ * хотя в словаре лежат. Замер 24.09.2026: из двенадцати игр без карточки в развилке
+ * у десяти правило в вебе БЫЛО.
+ */
+for (const файл of ['lib/shell/hybrid_app.dart', 'lib/shell/puzzle_routes.g.dart']) {
+  let код = '';
+  try { код = readFileSync(join(FLUTTER, файл), 'utf8'); } catch { continue; }
+  for (const m of код.matchAll(/'(\/games\/[^']+)':/g)) {
+    const адрес = m[1].split('?')[0].split('/').pop();
+    const camel = адрес.split('-').map((ч, i) => (i ? ч[0].toUpperCase() + ч.slice(1) : ч)).join('');
+    const ключ = `${camel}Desc`;
+    if (base[ключ]) used.add(ключ);
+  }
+}
+
 const orphans = [...used].filter((k) => !base[k]);
 if (orphans.length) {
   console.error(`🔴 ${orphans.length} ключей зовут из Dart, но их нет в веб-словаре:`);

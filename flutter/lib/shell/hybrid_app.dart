@@ -60,6 +60,7 @@ import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
 import 'game_preset.dart';
+import 'game_rules.dart';
 import 'game_shell.dart';
 import 'puzzle_routes.g.dart';
 import 'shared_state.dart';
@@ -521,6 +522,8 @@ class _HybridAppState extends State<HybridApp> {
     // Настройки шага живут ровно столько, сколько открыт экран, — как
     // `useLocalSearchParams` в вебе. См. [GamePreset].
     GamePreset.set(query);
+    // Адрес нужен каркасу, чтобы показать правило ИМЕННО этой игры.
+    GameRules.currentRoute = route;
     final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => build(widget.state)),
     );
@@ -528,6 +531,7 @@ class _HybridAppState extends State<HybridApp> {
     // поверх уже открыт следующий экран, и его отметку затирать нельзя.
     if (_openedRoute == route) _openedRoute = null;
     GamePreset.clear();
+    if (GameRules.currentRoute == route) GameRules.currentRoute = null;
     final closedByPage = _closedByPage;
     _closedByPage = false;
     // 🔴 СТРАНИЦА ПОД НАМИ ОСТАЛАСЬ НА АДРЕСЕ ИГРЫ. Перехват срабатывает ПОСЛЕ

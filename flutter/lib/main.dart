@@ -4,6 +4,7 @@ import 'games/dots_connect/screen.dart';
 import 'games/digit_span/screen.dart';
 import 'games/one_line/screen.dart';
 import 'shell/asset_server.dart';
+import 'shell/game_rules.dart';
 import 'shell/l10n.dart';
 import 'shell/legacy_import.dart';
 import 'shell/hybrid_app.dart';
@@ -41,6 +42,7 @@ Future<void> main() async {
   // Язык берётся у общей памяти, а не задаётся числом в коде: его пишет веб-половина
   // (ключ `language`), и мост возит его через границу — см. SharedState.extraKeys.
   await L.load(state.language);
+  await GameRules.load();   // правила игр — из того же реестра, что карточки развилок
   final server = await AssetServer.start();
   runApp(PsyGamesPilotApp(state: state, server: server));
 }

@@ -1,4 +1,5 @@
 import 'game_pet.dart';
+import 'game_rules.dart';
 import 'l10n.dart';
 import 'package:flutter/material.dart';
 
@@ -71,7 +72,16 @@ class GameShell extends StatelessWidget {
               // Кнопка в шапке есть ВСЕГДА: раздел уточняет, куда вести, но не
               // решает, можно ли уйти. См. `_leave`.
               onBack: () => _leave(context),
-              onRules: onRules,
+              /*
+               * 🔴 СПРАВКА ЕСТЬ У КАЖДОЙ ИГРЫ, И ЭКРАН ЕЁ НЕ ПЕРЕДАЁТ.
+               *
+               * Заводить кнопку в каждый из полусотни перенесённых экранов —
+               * полсотни мест её забыть. Так уже вышло с выходом: `onBack`
+               * передавал ОДИН экран из тридцати восьми. Поэтому правило каркас
+               * спрашивает сам, по адресу открытой игры (`GameRules`), а экран
+               * может уточнить своё — тогда берётся его.
+               */
+              onRules: onRules ?? _rulesByRoute(context),
               onLesson: onLesson,
               onPause: () => _pause(context),
             ),
@@ -112,6 +122,13 @@ class GameShell extends StatelessWidget {
    * уточнить поведение, но не может его ОТМЕНИТЬ, и это верно: экран без выхода
    * — не экран, а ловушка.
    */
+  /// Справка по адресу открытой игры; null — правила для неё нет.
+  VoidCallback? _rulesByRoute(BuildContext context) {
+    final key = GameRules.keyFor(GameRules.currentRoute);
+    if (key == null) return null;
+    return () => showGameRules(context, title: title, ruleKey: key);
+  }
+
   void _leave(BuildContext context) {
     if (onBack != null) {
       onBack!();
