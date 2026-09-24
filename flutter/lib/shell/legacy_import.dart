@@ -42,7 +42,7 @@ class LegacyImport {
   /// где перенос ОТКАЗАЛСЯ по слишком строгому условию (сборка 2.55.5: «в памяти
   /// есть свои ключи» → пропуск). Оставь номер прежним — починка до тех телефонов
   /// не доедет никогда, потому что отметка стоит. Поменял поведение — подними номер.
-  static const doneKey = 'psygames_legacy_import_v3';
+  static const doneKey = 'psygames_legacy_import_v4';
 
   /// Сколько раз пробовать, если перенос НИЧЕГО не нашёл.
   ///
@@ -53,7 +53,9 @@ class LegacyImport {
   /// только при удаче, а пустые заходы считаются и прекращаются на пятом (чтобы
   /// не обходить контейнер на каждом запуске вечно).
   static const maxEmptyTries = 5;
-  static const triesKey = 'psygames_legacy_import_tries';
+  /// Счёт пустых попыток привязан к НОМЕРУ переноса: подняли номер — счёт
+  /// начинается заново, иначе новая починка сразу упрётся в старый лимит.
+  static const triesKey = '${doneKey}_tries';
 
   /// Итог последнего переноса — МАШИННОЙ строкой, а не фразой.
   ///
@@ -107,8 +109,16 @@ class LegacyImport {
            * пустой объект, пустая строка и ноль — это заготовка, её заменяем.
            * Всё, где есть содержимое, не трогаем ни при каких условиях.
            */
-          if (state.get(e.key) != null && !_blank(state.get(e.key)!)) {
-            skipped++;
+          final mine = state.get(e.key);
+          if (mine != null && !_blank(mine)) {
+            // Журнал партий — не «занято», а «есть что слить».
+            final merged = mergeKeys.contains(e.key) ? _merge(e.value, mine) : null;
+            if (merged == null || merged == mine) {
+              skipped++;
+              continue;
+            }
+            await state.set(e.key, merged);
+            here++;
             continue;
           }
           if (_blank(e.value)) {
@@ -136,6 +146,44 @@ class LegacyImport {
       lastReport = 'error=$e';
       debugPrint('LegacyImport: $lastReport');
       return 0;
+    }
+  }
+
+  /// 🔴 ЖУРНАЛЫ СЛИВАЮТСЯ, А НЕ ЗАМЕНЯЮТСЯ — ИНАЧЕ ВЫБОР «СТАРОЕ ИЛИ НОВОЕ».
+  ///
+  /// 📍 Денис 24.09.2026: «у меня новая статистика есть, а старой нет». На его
+  /// телефоне `psygames_sessions` уже НЕ пустой — там партии, сыгранные в
+  /// гибриде. Правило «пустую заготовку заменяем» ему не поможет: значение
+  /// наполнено, и перенос честно его не трогает. А заменить целиком нельзя —
+  /// потеряются новые партии.
+  ///
+  /// Вся история лежит в ОДНОМ ключе массивом, поэтому здесь единственный верный
+  /// ответ — слить: старые записи вперёд (они и по времени раньше), новые следом,
+  /// повторы выкинуть по `id`.
+  ///
+  /// ⚠️ СПИСОК ИМЕНной, а не «сливаем все массивы». Массивом лежат и настройки —
+  /// порядок серий, список выбранных игр. Слить их значило бы вернуть человеку
+  /// то, что он убрал.
+  static const mergeKeys = {'psygames_sessions'};
+
+  /// Слияние двух журналов. Возвращает null, если слить нечем (не массивы).
+  static String? _merge(String oldRaw, String newRaw) {
+    try {
+      final a = jsonDecode(oldRaw);
+      final b = jsonDecode(newRaw);
+      if (a is! List || b is! List) return null;
+      final seen = <String>{};
+      final out = <Object?>[];
+      for (final row in [...a, ...b]) {
+        // Ключ повтора — `id`, а без него вся запись: пропустить повтор лучше,
+        // чем показать человеку одну и ту же партию дважды.
+        final key = row is Map && row['id'] != null ? 'id:${row['id']}' : jsonEncode(row);
+        if (!seen.add(key)) continue;
+        out.add(row);
+      }
+      return jsonEncode(out);
+    } catch (_) {
+      return null;
     }
   }
 

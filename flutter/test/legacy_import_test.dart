@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -165,6 +166,45 @@ void main() {
     final state = await emptyState();
     expect(await LegacyImport.seedIfEmpty(state, libraryDir: store), 1);
     expect(state.get('psygames_points_nzt48'), '900');
+    store.deleteSync(recursive: true);
+  });
+
+  test('🔴 СТАРАЯ история СЛИВАЕТСЯ с новой, а не выбирается одна из двух', () async {
+    /*
+     * 📍 Денис 24.09.2026: «у меня новая статистика есть, а старой нет». На его
+     * телефоне журнал уже НЕ пустой — там партии, сыгранные в гибриде. Правило
+     * «пустую заготовку заменяем» ему не помогает: значение наполнено. А заменить
+     * целиком нельзя — потеряются новые партии. Значит слить.
+     */
+    final store = fakeStore({
+      'psygames_sessions':
+          '[{"id":"old1","game_type":"sudoku"},{"id":"old2","game_type":"hanoi"},{"id":"same","game_type":"schulte"}]',
+    });
+    SharedPreferences.setMockInitialValues({
+      'psygames_sessions':
+          '[{"id":"same","game_type":"schulte"},{"id":"new1","game_type":"stroop"}]',
+    });
+    final state = await SharedState.open();
+    final taken = await LegacyImport.seedIfEmpty(state, libraryDir: store);
+
+    expect(taken, 1, reason: 'журнал обязан считаться перенесённым');
+    final rows = (jsonDecode(state.get('psygames_sessions')!) as List)
+        .map((e) => (e as Map)['id'] as String)
+        .toList();
+    expect(rows, ['old1', 'old2', 'same', 'new1'],
+        reason: 'старые записи вперёд, новые следом, повтор по id выкинут');
+    store.deleteSync(recursive: true);
+  });
+
+  test('настройки-массивы НЕ сливаются — иначе вернётся убранное', () async {
+    // Массивом лежат и настройки: порядок серий, список выбранных игр. Слить их
+    // значило бы вернуть человеку то, что он сам убрал.
+    final store = fakeStore({'psygames_playlists_override': '["a","b","c"]'});
+    SharedPreferences.setMockInitialValues({'psygames_playlists_override': '["a"]'});
+    final state = await SharedState.open();
+    await LegacyImport.seedIfEmpty(state, libraryDir: store);
+    expect(state.get('psygames_playlists_override'), '["a"]',
+        reason: 'настройка не журнал: чужой список назад не возвращаем');
     store.deleteSync(recursive: true);
   });
 }
