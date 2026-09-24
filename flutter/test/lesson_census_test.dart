@@ -23,11 +23,33 @@ void main() {
 
   /// 🔴 КТО УЖЕ УЧИТ — ПОИМЁННО. Список только растёт: игра, у которой разбор
   /// однажды появился, потерять его молча не может. Счёт по цели «разбор у всех
-  /// игр» на 24.09.2026: 29 наших адресов + 37 режимов Тэтхэма (их считает
-  /// `lesson_from_solver_test.dart`).
+  /// игр» на 24.09.2026: 47 наших адресов из 50 + 37 режимов Тэтхэма (их считает
+  /// `lesson_from_solver_test.dart`). Осталось трое: маджонг, товары и «Лица и
+/// имена» — им нужен не показ правила, а свой решатель или описание черты.
   const mustTeach = <String>[
     '/games/dots-connect',
     '/games/one-line',
+    '/games/digit-span',
+    '/games/memory-matrix',
+    '/games/schulte',
+    '/games/math-slider',
+    '/games/object-tracker',
+    '/games/quick-count',
+    '/games/pattern',
+    '/games/math-sprint',
+    '/games/number-bonds',
+    '/games/ospan',
+    '/games/stroop',
+    '/games/flanker',
+    '/games/simon',
+    '/games/sudoku',
+    '/games/sudoku-samurai',
+    '/games/sudoku-fractal',
+    '/games/sudoku-fractal-deep',
+    '/games/go-no-go',
+    '/games/mental-rotation',
+    '/games/spatial-span',
+    '/games/spatial-lab',
     '/games/water-sort',
     '/games/ball-sort',
     '/games/nut-sort',
@@ -35,33 +57,25 @@ void main() {
     '/games/pizza-sort',
     '/games/hanoi',
     '/games/tower-london',
-    // Второй генератор — показ правила на примерах (`shell/demo_lesson.dart`),
-    // для игр на реакцию, где решать нечего.
-    '/games/stroop',
-    '/games/flanker',
-    '/games/go-no-go',
     '/games/choice-rt',
-    '/games/simon',
+    '/games/stop-signal',
     '/games/posner',
     '/games/stroop-emotional',
     '/games/switching-task',
-    '/games/ant',
-    '/games/cpt',
-    // Третий вид разбора: решение у доски уже есть, а учитель называет ПРИЁМ,
-    // которым цифра берётся (`games/sudoku/lesson.dart`).
-    '/games/sudoku',
-    '/games/sudoku-samurai',
-    '/games/sudoku-fractal',
-    '/games/sudoku-fractal-deep',
-    // Четвёртый вид: у игр на запоминание нет ни решателя, ни правила пробы —
-    // учить можно только ПРИЁМУ. Тексты общие с веб-учителем.
-    '/games/word-pairs',
-    '/games/memory-palace',
-    '/games/stop-signal',
-    '/games/inhibition',
     '/games/targets',
+    '/games/inhibition',
+    '/games/memory-palace',
+    '/games/rmet',
+    '/games/ant',
+    '/games/iowa',
+    '/games/prl',
+    '/games/bart',
+    '/games/wcst',
+    '/games/cpt',
     '/games/proofreading',
+    '/games/word-pairs',
   ];
+
 
   testWidgets('🔴 разбор не пропал ни у одной игры, где он уже был', (tester) async {
     SharedPreferences.setMockInitialValues({'psygames_active_profile': 'nzt48'});
@@ -76,6 +90,11 @@ void main() {
       // Головоломки Тэтхэма считает свой гейт: их разбор держит движок через ffi,
       // а он в `flutter test` не поднимается.
       if (e.key.contains('?')) continue;
+      // 🔴 `/games/puzzles` — НЕ ИГРА, а один экран на 42 режима: разбор там
+      // живёт у РЕЖИМА, и считать его как «экран без разбора» значит держать в
+      // остатке строку, которую нечем закрыть. Так же устроен веб-реестр
+      // (`frontend/src/__tests__/lesson-everywhere.test.ts`, список БЕЗ_РАЗБОРА).
+      if (e.key == '/games/puzzles') continue;
       try {
         await tester.runAsync(() async {
           await tester.pumpWidget(MaterialApp(home: e.value(state)));
@@ -106,5 +125,7 @@ void main() {
     // ignore: avoid_print
     print('РАЗБОР: ${has.length} из ${has.length + no.length} наших экранов. '
         'Осталось (${no.length}): ${no.join(', ')}');
+    // ignore: avoid_print
+    print('СПИСОК: ' + has.join(' '));
   });
 }

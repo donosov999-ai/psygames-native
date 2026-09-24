@@ -27,7 +27,7 @@ import 'lesson_player.dart';
 class DemoTrial {
   const DemoTrial({
     required this.text,
-    required this.answer,
+    this.answer,
     this.color,
     this.sub,
     this.ruleKey,
@@ -45,7 +45,13 @@ class DemoTrial {
   final String? sub;
 
   /// Верный ответ словами — ровно так, как подписана кнопка в игре.
-  final String answer;
+  ///
+  /// 🔴 ПУСТО — ЗАКОННЫЙ СЛУЧАЙ, А НЕ ПРОПУСК. У игр на решение под
+  /// неопределённостью (шарик, колоды, смена правила) верного ответа на ОТДЕЛЬНОЙ
+  /// пробе не существует: там выигрывает стратегия, а не ход. Подписать такой
+  /// карточке «Верно: качать» значило бы соврать — человек сделает так и
+  /// проиграет на следующем шаре. Поэтому там карточка несёт только правило.
+  final String? answer;
 
   /// 🔴 СТИМУЛ ВИДЖЕТОМ — КОГДА ЕГО НЕЛЬЗЯ НАПИСАТЬ СЛОВОМ. У Струпа стимул это
   /// слово и цвет, и текста хватает. У фланкера — ряд стрелок с выверенным
@@ -106,24 +112,26 @@ class DemoCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(trial.sub!, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13)),
             ],
-            const SizedBox(height: 16),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                child: Text(
-                  L.t('teachDemoAnswer').replaceFirst('{a}', trial.answer),
-                  key: const Key('demo-answer'),
-                  style: TextStyle(
-                    color: scheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w700,
+            if (trial.answer != null) ...[
+              const SizedBox(height: 16),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  child: Text(
+                    L.t('teachDemoAnswer').replaceFirst('{a}', trial.answer!),
+                    key: const Key('demo-answer'),
+                    style: TextStyle(
+                      color: scheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),

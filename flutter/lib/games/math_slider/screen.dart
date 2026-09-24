@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
+import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -198,12 +200,23 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
     return 'Где примерно находится результат?';
   }
 
+  /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
+  /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
+  String get _title => 'Математическая шкала';
+
+  /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
+  /// а вот чем объём берётся — нет.
+  List<DemoTrial> _demoTrials() => [
+        DemoTrial(text: '', rule: L.t('teachSliderAnchor')),
+      ];
+
   @override
   Widget build(BuildContext context) {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final q = _question;
     return GameShell(
-      title: 'Математическая шкала',
+      title: _title,
+      onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),

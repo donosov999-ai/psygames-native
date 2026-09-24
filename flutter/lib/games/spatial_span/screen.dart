@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
+import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -164,12 +166,24 @@ class _SpatialSpanScreenState extends State<SpatialSpanScreen> {
     if (mounted) setState(() {});
   }
 
+  /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
+  /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
+  String get _title => 'Пространственный ряд';
+
+  /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
+  /// а вот чем объём берётся — нет.
+  List<DemoTrial> _demoTrials() => [
+        DemoTrial(text: '', rule: L.t('teachSpatialSpanPath')),
+        DemoTrial(text: '', rule: L.t('teachSpanBackward')),
+      ];
+
   @override
   Widget build(BuildContext context) {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final g = _game!;
     return GameShell(
-      title: 'Пространственный ряд',
+      title: _title,
+      onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       onRules: () => showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
