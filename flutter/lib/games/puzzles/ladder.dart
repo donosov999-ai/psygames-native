@@ -30,7 +30,6 @@ class PuzzleMode {
     required this.titleKey,
     this.descKey,
     required this.steps,
-    this.descKey,
     this.digits = false,
     this.digitLabels = const [],
     this.digitNames = const [],
@@ -47,9 +46,6 @@ class PuzzleMode {
 
   /// Название на языке человека.
   String get title => L.t(titleKey);
-
-  /// КЛЮЧ СЛОВАРЯ с правилом «чем ходить» — строка под доской.
-  final String? descKey;
 
   /// Правило режима на языке человека, либо `null`, если его нет.
   ///
@@ -138,7 +134,6 @@ class PuzzleModes {
                     s['params'] as String,
                   ))
               .toList(),
-          descKey: m['descKey'] as String?,
           owner: m['owner'] as String?,
         ),
       );

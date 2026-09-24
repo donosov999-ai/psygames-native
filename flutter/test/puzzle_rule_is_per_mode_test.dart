@@ -1,11 +1,7 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/puzzles/engine.dart';
-import 'package:psygames_flutter/games/puzzles/screen.dart';
-import 'package:psygames_flutter/shell/shared_state.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:psygames_flutter/games/puzzles/ladder.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 
@@ -127,36 +123,13 @@ void main() {
   });
 
   /*
-   * 🔴 И ГЛАВНОЕ: ПРОБА СТОИТ ТАМ, ГДЕ ПРАВИЛО РИСУЕТСЯ, А НЕ ТОЛЬКО В МОДЕЛИ.
-   *
-   * ⚠️ Проверки выше доказывают, что правило ЕСТЬ у карточки режима. Мутация
-   * «вернуть экран к общей фразе» их не красит ни одной: они не смотрят на экран.
-   * Ниже — партия целиком, и строка читается с неё.
+   * 📌 ЧЕГО ЗДЕСЬ НЕТ И ПОЧЕМУ. Проверки «правило видно НА ЭКРАНЕ» тут нет —
+   * её ведёт `puzzle_rules_reach_the_screen_test.dart` координатора: он довёз
+   * правило кнопкой справки, и мой вариант строкой под доской оказался ВТОРОЙ
+   * копией того же текста на одном экране (его проба это и поймала — нашла два
+   * виджета вместо одного). Свою копию снял.
+   * Здесь остаётся то, чего его проба не покрывает: состав по всем сорока двум,
+   * молчаливый промах словаря, длина под полосу и требование «чем ходить» по
+   * девяти своим режимам.
    */
-  testWidgets('🔴 НА ЭКРАНЕ под доской стоит правило СВОЕГО режима', (tester) async {
-    SharedPreferences.setMockInitialValues({'psygames_puzzles_bridges_level_nzt48': '1'});
-    final state = await SharedState.open();
-    tester.view.physicalSize = const Size(780, 1688);
-    tester.view.devicePixelRatio = 2;
-    addTearDown(tester.view.reset);
-
-    await tester.runAsync(() async {
-      await tester.pumpWidget(MaterialApp(
-        home: PuzzlesScreen(state: state, mode: 'Bridges', libraryPath: libPath),
-      ));
-      for (var i = 0; i < 40; i++) {
-        await tester.pump(const Duration(milliseconds: 50));
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-        if (find.byKey(const Key('board')).evaluate().isNotEmpty) break;
-      }
-    });
-    await tester.pump();
-
-    final bridges = PuzzleModes.all.values.firstWhere((m) => m.engineName == 'Bridges');
-    final line = tester.widget<Text>(find.byKey(const Key('puzzle-rule')));
-    expect(line.data, bridges.rule,
-        reason: 'под доской обязано стоять правило режима, а не общая фраза');
-    expect(line.data, isNot('Тычок отмечает клетку'),
-        reason: 'для «Мостов» это прямая неправда: ход протяжкой от острова к острову');
-  });
 }

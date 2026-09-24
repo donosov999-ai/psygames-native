@@ -394,8 +394,7 @@ class _Toolbar extends StatelessWidget {
       // Singles: ввод только тычками, ряд клавиш был бы обманом.
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        child: Text(status.isEmpty ? (mode.rule ?? 'Тычок отмечает клетку') : status,
-            key: const Key('puzzle-rule'),
+        child: Text(status.isEmpty ? 'Тычок отмечает клетку' : status,
             textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
       );
     }
