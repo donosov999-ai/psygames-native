@@ -17,6 +17,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -180,6 +181,31 @@ class _TargetsScreenState extends State<TargetsScreen> {
     }
   }
 
+  /// Примеры разбора: раунд С совпадением и БЕЗ него. Сличать надо цвет круга с
+  /// квадратами — этим «Мишени» и отличаются от простого «жми на зелёное».
+  List<DemoTrial> _demoTrials() {
+    final rule = L.t('targetsDesc');
+    const a = '#22C55E', b = '#3B82F6', c = '#EF4444';
+    return [
+      DemoTrial(
+        text: '',
+        art: const TargetsRow(
+          round: TargetsRound(circle: a, squares: [b, a, c], isTarget: true),
+        ),
+        answer: L.t('demoPress'),
+        rule: rule,
+      ),
+      DemoTrial(
+        text: '',
+        art: const TargetsRow(
+          round: TargetsRound(circle: a, squares: [b, c, b], isTarget: false),
+        ),
+        answer: L.t('demoHold'),
+        rule: rule,
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final g = _game;
@@ -191,6 +217,7 @@ class _TargetsScreenState extends State<TargetsScreen> {
         HudItem(label: L.t('score'), value: '${g.score}', icon: Icons.star_outline),
         HudItem(label: L.t('label_lives'), value: '${g.lives}', icon: Icons.favorite_outline),
       ],
+      onLesson: () => openDemoLesson(context, title: L.t('targets'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
         mode: widget.mode,
@@ -207,6 +234,27 @@ class _TargetsScreenState extends State<TargetsScreen> {
 }
 
 Color _hex(String hex) => Color(int.parse(hex.substring(1), radix: 16) | 0xFF000000);
+
+/// Ряд раунда: круг и квадраты. Вынесен из поля, чтобы разбор показывал ровно ту
+/// же картинку, а не «похожую»: цель здесь — СОВПАДЕНИЕ цвета круга с одним из
+/// квадратов, и своя раскладка в разборе легко перестала бы это показывать.
+class TargetsRow extends StatelessWidget {
+  const TargetsRow({super.key, required this.round});
+
+  final TargetsRound round;
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          TargetsShape(color: round.circle, round: true, id: 'circle', dy: 0),
+          for (var i = 0; i < round.squares.length; i += 1)
+            TargetsShape(color: round.squares[i], round: false, id: '$i', dy: 0),
+        ],
+      );
+}
 
 class _Field extends StatelessWidget {
   const _Field({
@@ -296,9 +344,9 @@ class _Field extends StatelessWidget {
                   spacing: 12,
                   runSpacing: 12,
                   children: [
-                    _Shape(color: r.circle, round: true, id: 'circle', dy: r.dy.isEmpty ? 0 : r.dy[0]),
+                    TargetsShape(color: r.circle, round: true, id: 'circle', dy: r.dy.isEmpty ? 0 : r.dy[0]),
                     for (var i = 0; i < r.squares.length; i++)
-                      _Shape(color: r.squares[i], round: false, id: '$i', dy: r.dy.length > i + 1 ? r.dy[i + 1] : 0),
+                      TargetsShape(color: r.squares[i], round: false, id: '$i', dy: r.dy.length > i + 1 ? r.dy[i + 1] : 0),
                   ],
                 ),
               const SizedBox(height: 16),
@@ -329,8 +377,8 @@ class _Field extends StatelessWidget {
   }
 }
 
-class _Shape extends StatelessWidget {
-  const _Shape({required this.color, required this.round, required this.id, required this.dy});
+class TargetsShape extends StatelessWidget {
+  const TargetsShape({super.key, required this.color, required this.round, required this.id, required this.dy});
   final String color;
   final bool round;
   final String id;

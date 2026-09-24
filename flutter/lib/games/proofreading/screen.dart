@@ -15,6 +15,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -153,6 +154,40 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
     }
   }
 
+  /// Примеры разбора: клетка С искомой буквой и клетка без неё.
+  ///
+  /// ⚠️ Буквы берутся из ЭТОЙ партии (`grid.targets` и её же алфавит), а не
+  /// придуманные: на высоких уровнях целей две, и разбор с одной показывал бы
+  /// задачу легче настоящей.
+  List<DemoTrial> _demoTrials() {
+    final g = _game;
+    if (g == null) return const [];
+    // 🔴 ДО НАЧАЛА ПАРТИИ ПОЛЯ ЕЩЁ НЕТ: `grid` заполняется в `begin()`, а разбор
+    // нужен ИМЕННО ДО — объяснять правило после старта поздно, время уже идёт.
+    // Поэтому, если поля нет, оно собирается тем же `buildGrid` и теми же
+    // параметрами уровня: буквы будут настоящие, а не придуманные.
+    final grid = g.grid.targets.isNotEmpty
+        ? g.grid
+        : buildGrid(
+            rows: g.params.rows,
+            cols: g.params.cols,
+            alphabet: g.alphabet,
+            rnd: Random(_ladder.level).nextDouble,
+          );
+    final targets = grid.targets;
+    if (targets.isEmpty) return const [];
+    final other = grid.letters.firstWhere(
+      (l) => !targets.contains(l),
+      orElse: () => '·',
+    );
+    final rule = '${L.t('proofreadingDesc')}: ${targets.join(', ')}';
+    return [
+      for (final t in targets)
+        DemoTrial(text: t, answer: L.t('demoPress'), rule: rule),
+      DemoTrial(text: other, answer: L.t('demoHold'), rule: rule),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final g = _game;
@@ -166,6 +201,9 @@ class _ProofreadingScreenState extends State<ProofreadingScreen> {
         HudItem(label: L.t('label_found'), value: '${g.found.length}/${g.grid.total}', icon: Icons.check),
         HudItem(label: L.t('hud_errors'), value: '${g.errors}', icon: Icons.close),
       ],
+      onLesson: _demoTrials().isEmpty
+          ? null
+          : () => openDemoLesson(context, title: L.t('proofreading'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
         phase: _phase,

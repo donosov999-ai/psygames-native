@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -175,6 +176,23 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
     }
   }
 
+  /// Примеры разбора: обычная проба GO и стоп-проба. Ответ во второй —
+  /// «не нажимать», хотя движение уже началось: в этом и упражнение.
+  List<DemoTrial> _demoTrials() => [
+        DemoTrial(
+          text: '',
+          art: const StopSignalStimulus(stop: false),
+          answer: L.t('demoPress'),
+          ruleKey: 'stopSignalDesc',
+        ),
+        DemoTrial(
+          text: '',
+          art: const StopSignalStimulus(stop: true),
+          answer: L.t('demoHold'),
+          ruleKey: 'stopSignalDesc',
+        ),
+      ];
+
   @override
   Widget build(BuildContext context) {
     final g = _game;
@@ -190,6 +208,7 @@ class _StopSignalScreenState extends State<StopSignalScreen> {
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('hud_held'), value: '${g.inhibited}', icon: Icons.pan_tool_outlined),
       ],
+      onLesson: () => openDemoLesson(context, title: L.t('stopSignal'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
         text: text,
@@ -230,6 +249,32 @@ String _doubtText(StopSignalStrings text, SsrtEstimate est) {
     case null:
       return '';
   }
+}
+
+/// 🔴 СТИМУЛ ОТДЕЛЬНЫМ ВИДЖЕТОМ — ЧТОБЫ РАЗБОР ПОКАЗЫВАЛ ТО ЖЕ САМОЕ.
+///
+/// Стоп-сигнал приходит ПОВЕРХ уже показанного GO: движение надо не «не начать»,
+/// а ОТМЕНИТЬ начатое — в этом вся разница со «жми и держись». Разбор со своей
+/// картинкой мог бы показать их рядом, и тогда объяснялась бы другая задача.
+class StopSignalStimulus extends StatelessWidget {
+  const StopSignalStimulus({super.key, required this.stop});
+
+  /// true — кадр со знаком «стоп», false — кадр с GO.
+  final bool stop;
+
+  @override
+  Widget build(BuildContext context) => stop
+      ? Container(
+          key: const Key('stopsignal-stop'),
+          width: 150,
+          height: 150,
+          decoration: const BoxDecoration(color: _stopRed, shape: BoxShape.circle),
+          child: const Icon(Icons.pan_tool, size: 72, color: Colors.white),
+        )
+      : Icon(Icons.arrow_forward,
+          key: const Key('stopsignal-go'),
+          size: 96,
+          color: Theme.of(context).colorScheme.primary);
 }
 
 class _Field extends StatelessWidget {
@@ -355,19 +400,8 @@ class _Field extends StatelessWidget {
                       child: !game.goShown
                           // Пауза фиксации: крестик, куда смотреть.
                           ? const Text('+', style: TextStyle(fontSize: 44))
-                          : game.stopShown
-                              // Знак «стоп» поверх GO — движение надо отменить.
-                              ? Container(
-                                  key: const Key('stopsignal-stop'),
-                                  width: 150,
-                                  height: 150,
-                                  decoration: const BoxDecoration(color: _stopRed, shape: BoxShape.circle),
-                                  child: const Icon(Icons.pan_tool, size: 72, color: Colors.white),
-                                )
-                              : Icon(Icons.arrow_forward,
-                                  key: const Key('stopsignal-go'),
-                                  size: 96,
-                                  color: Theme.of(context).colorScheme.primary),
+                          // Знак «стоп» приходит ПОВЕРХ GO: движение отменяют.
+                          : StopSignalStimulus(stop: game.stopShown),
                     ),
                   ),
                   const SizedBox(height: 12),
