@@ -3102,6 +3102,15 @@ const translations: Translations = {
   fracTechHiddenPair: { ru: 'Скрытая пара', en: 'Hidden pair' },
   fracTechXwing: { ru: 'X-wing', en: 'X-wing' },
   sudokuPencilMode: { ru: 'Пометки', en: 'Notes' },
+  // «Кошки» (Queens / Star Battle) — новая игра раздела «Судоку», решение Дениса 24.09.2026.
+  // Экран рождается сразу нативным, веб-версии у игры нет: ключи заводятся здесь, потому
+  // что словарь один на два стека (flutter/tools/embed-l10n.mjs вырезает из него ровно то,
+  // что зовут нативные экраны).
+  catsTitle: { ru: 'Кошки', en: 'Cats' },
+  catsFound: { ru: 'Найдено', en: 'Found' },
+  catsRuleColor: { ru: 'На каждый цвет — одна кошка', en: 'One cat per colour' },
+  catsRuleLine: { ru: 'В каждой строке и столбце — одна кошка', en: 'One cat per row and column' },
+  catsRuleTouch: { ru: 'Кошки не могут соприкасаться, даже углами', en: 'Cats may not touch, not even diagonally' },
   sudokuPencilHint: { ru: 'Выбери клетку и жми цифры — они встанут в угол мелким. Повторный тап снимает пометку.', en: 'Pick a cell and tap digits — they go into the corner as small marks. Tap again to remove one.' },
   killerCageRule: { ru: 'Цифры в каждой цветной группе в сумме дают число в её углу и не повторяются.', en: 'Digits in each coloured cage add up to the number in its corner and never repeat.' },
   boardSize: { ru: 'Размер поля', en: 'Board size' },

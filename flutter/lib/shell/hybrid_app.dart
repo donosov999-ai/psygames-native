@@ -32,6 +32,7 @@ import '../games/spatial_hub/screen.dart';
 import '../games/spatial_lab/screen.dart';
 import '../games/spatial_span/screen.dart';
 import '../games/sudoku/modes.dart';
+import '../games/cats/screen.dart';
 import '../games/sudoku/screen.dart';
 import '../games/mahjong/screen.dart';
 import '../games/math_slider/screen.dart';
@@ -93,6 +94,10 @@ class HybridApp extends StatefulWidget {
         // Режимы той же доски: адрес отличается только хвостом, экран — тот же.
         '/games/sudoku?mode=towers': (s) => SudokuScreen(state: s, mode: SideMode.towers),
         '/games/sudoku?mode=unequal': (s) => SudokuScreen(state: s, mode: SideMode.unequal),
+        // «Кошки» (Queens / Star Battle) — первая игра, рождённая сразу нативной:
+        // веб-страницы у неё нет вовсе, поэтому перехват не «отнимает» веб-версию,
+        // а является единственным входом. Карточку в развилку кладёт координатор.
+        '/games/cats': (s) => CatsScreen(state: s),
         // Развилки раздела — на ОБЩЕМ экране каркаса: карточки уже лежат в
         // `assets/hubs.json`, вторая копия начала бы отставать молча.
         '/games/sudoku-hub': (s) => HubScreen(

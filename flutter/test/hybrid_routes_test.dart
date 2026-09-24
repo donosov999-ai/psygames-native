@@ -173,6 +173,7 @@ void main() {
       '/games/stroop',
       '/games/stroop-emotional',
       '/games/switching-task',
+      '/games/cats',
       '/games/sudoku',
       '/games/sudoku-hub',
       '/games/sudoku?mode=towers',
