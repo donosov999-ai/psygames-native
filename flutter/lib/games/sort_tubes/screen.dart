@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -269,7 +270,11 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
     return GameShell(
       title: widget.title,
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+        // Счётчик уровня при шаге зарядки скрыт: шаг лестницу не двигает
+        // (правило каркаса), и число рядом с партией читалось бы как обещание
+        // её засчитать. Так же сделано в вебе — `goods-sort.tsx:2994` и родня.
+        if (!GamePreset.isPreset)
+          HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(
           label: 'Ходы',
           value: level.moveLimit > 0 ? '$_moves/${level.moveLimit}' : '$_moves',

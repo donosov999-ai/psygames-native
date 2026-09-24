@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
@@ -82,8 +84,29 @@ class _HanoiScreenState extends State<HanoiScreen> {
     setState(() => _start());
   }
 
+  /// Сколько дисков раздать.
+  ///
+  /// 🔴 ШАГ ЗАРЯДКИ ИГРАЕТ СВОЮ ДОСКУ, А НЕ ЛИЧНЫЙ УРОВЕНЬ (перенос
+  /// `frontend/app/games/hanoi.tsx:198`). Плейлист задаёт число дисков
+  /// параметром `discs`, и оно проходит через предел `capPresetByLevel`: новичку
+  /// с освоенным уровнем 1 шаг «пять дисков» дал бы 31 ход вместо семи.
+  ///
+  /// ⚠️ Стержней при пресете ВСЕГДА три — так в вебе. Четвёртый и пятый это
+  /// награда лестницы, а не настройка шага.
+  int? _presetDiscs() {
+    if (!GamePreset.isPreset) return null;
+    final want = GamePreset.num('discs', 0);
+    if (want <= 0) return null;
+    return capPresetByLevel(
+      want: want,
+      atLevel: levelParams(_ladder.level).discs,
+      atTop: _ladder.level >= 15,
+    );
+  }
+
   void _start() {
-    _board = HanoiState.start(_ladder.level);
+    final preset = _presetDiscs();
+    _board = preset != null ? HanoiState.ofDiscs(preset, 3) : HanoiState.start(_ladder.level);
     _sel = null;
     _moves = 0;
     _errors = 0;
@@ -156,18 +179,25 @@ class _HanoiScreenState extends State<HanoiScreen> {
     if (board == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final p = levelParams(_ladder.level);
-    final min = frameStewart(p.discs, p.pegs);
+    // 🔴 ЧИСЛА БЕРУТСЯ С ДОСКИ, А НЕ ИЗ ЛЕСТНИЦЫ. Раньше здесь стоял
+    // `levelParams(_ladder.level)` — вторая копия раздачи рядом с настоящей.
+    // Пока пресета не было, копии совпадали; с шагом зарядки доска приходит
+    // мимо лестницы, и шапка показывала бы ЧУЖИЕ диски и чужой минимум ходов
+    // при верной доске на экране.
+    final min = frameStewart(board.discs, board.pegs.length);
     final stars = hanoiStars(_moves, min);
 
     return GameShell(
       title: 'Ханойская башня',
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+        // Счётчик уровня при шаге зарядки не показывается: шаг лестницу не
+        // двигает, и число рядом с партией читалось бы как обещание засчитать.
+        if (!GamePreset.isPreset)
+          HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         // Ходы ПРОТИВ МИНИМУМА: без этого числа человек не знает, хорошо ли
         // играет, и «молодец» в конце берётся ниоткуда.
         HudItem(label: 'Ходы', value: '$_moves/$min', icon: Icons.swap_horiz),
-        HudItem(label: 'Дисков', value: '${p.discs}', icon: Icons.layers_outlined),
+        HudItem(label: 'Дисков', value: '${board.discs}', icon: Icons.layers_outlined),
         HudItem(label: 'Ошибки', value: '$_errors', icon: Icons.error_outline),
       ],
       field: (context, h) => HanoiBoard(

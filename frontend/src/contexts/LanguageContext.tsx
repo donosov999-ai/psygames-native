@@ -3732,6 +3732,7 @@ const translations: Translations = {
   pizzaSort: { ru: "Пицца", en: "Pizza" },
   cakeSort: { ru: 'Торты', en: 'Cake sort' },
   cakeSortDesc: { ru: 'Собирайте круг из шести одинаковых кусков', en: 'Gather a circle of six matching slices' },
+  tolWonPreset: { ru: 'Партия взята: лишних ходов {e} из {r}', en: 'Round cleared: {e} extra moves out of {r}' },
   cakeSortSlice: { ru: 'Кусок', en: 'Slice' },
   cakeSortPickSlice: { ru: 'Выбери кусок, который переложить', en: 'Pick the slice to move' },
   // Текст дословно тот же, что у тортов: правило игры одно, разная только еда.

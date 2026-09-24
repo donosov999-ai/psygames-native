@@ -5,7 +5,10 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/game_preset.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
@@ -87,8 +90,34 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     });
   }
 
+  /// Сколько задач в партии. Шаг зарядки задаёт своё число (`trials`), обычный
+  /// заход берёт число набора.
+  int get _rounds {
+    final set = _set!;
+    if (!GamePreset.isPreset) return set.rounds;
+    final want = GamePreset.num('trials', 0);
+    return want > 0 ? want : set.rounds;
+  }
+
+  /// 🔴 ШАГ ЗАРЯДКИ ИГРАЕТ СВОЮ СЛОЖНОСТЬ (перенос `tower-london.tsx:175`):
+  /// лёгкий — план в 3 хода, средний 5, трудный 7, шаров всегда три. Длина
+  /// плана проходит через тот же предел, что и диски ханоя: шаг не даёт
+  /// прыгнуть выше освоенного больше чем на ступень.
+  TolLevel _pickLevel() {
+    final set = _set!;
+    if (!GamePreset.isPreset) return set.byLevel(_ladder.level);
+    final diff = GamePreset.str('diff', 'medium');
+    final want = diff == 'easy' ? 3 : (diff == 'hard' ? 7 : 5);
+    final capped = capPresetByLevel(
+      want: want,
+      atLevel: set.byLevel(_ladder.level).targetMoves,
+      atTop: _ladder.level >= set.levels.length,
+    );
+    return set.byTarget(capped, 3);
+  }
+
   void _startGame() {
-    _level = _set!.byLevel(_ladder.level);
+    _level = _pickLevel();
     _round = 1;
     _extra = 0;
     _errors = 0;
@@ -114,7 +143,7 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
   }
 
   Future<void> _finish() async {
-    final rounds = _set!.rounds;
+    final rounds = _rounds;
     _passed = tolPassed(_extra, rounds);
     _done = true;
     _scheduleNext();
@@ -161,7 +190,7 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     if (after.key == _puzzle!.goal.key) {
       final extra = _moves - _puzzle!.minMoves;
       _extra += extra > 0 ? extra : 0;
-      if (_round >= _set!.rounds) {
+      if (_round >= _rounds) {
         _finish();
       } else {
         _round += 1;
@@ -188,12 +217,14 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     if (level == null || st == null || puzzle == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final rounds = _set!.rounds;
+    final rounds = _rounds;
 
     return GameShell(
       title: 'Башня Лондона',
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+        // Счётчик уровня при шаге зарядки скрыт: шаг лестницу не двигает.
+        if (!GamePreset.isPreset)
+          HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Задача', value: '$_round/$rounds', icon: Icons.repeat),
         // Ходы ПРОТИВ МИНИМУМА: игра именно про план, и без минимума человек не
         // знает, хорошо ли он спланировал.
@@ -225,8 +256,16 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
+                    // ⚠️ При шаге зарядки уровень НЕ обещаем: лестница не
+                    // двигается, и «дальше уровень N» был бы прямой неправдой.
                     _passed
-                        ? 'Партия взята: лишних ходов $_extra из $rounds · дальше уровень ${_ladder.level}'
+                        ? (GamePreset.isPreset
+                            // Новая строка идёт ЧЕРЕЗ СЛОВАРЬ, а не литералом:
+                            // храповик `ui_text_debt_does_not_grow` требует, чтобы
+                            // зашитого русского в файле не прибавлялось, и он прав —
+                            // в приложении двенадцать языков.
+                            ? L.f('tolWonPreset', {'e': '$_extra', 'r': '$rounds'})
+                            : 'Партия взята: лишних ходов $_extra из $rounds · дальше уровень ${_ladder.level}')
                         : 'Лишних ходов $_extra при пороге $rounds — партия не взята',
                     key: const ValueKey('tol-result'),
                     textAlign: TextAlign.center,
