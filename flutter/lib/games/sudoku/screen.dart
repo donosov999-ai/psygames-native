@@ -370,6 +370,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
       'teachSudokuNaked' => L.t('teachSudokuNaked'),
       'teachSudokuHiddenRow' => L.t('teachSudokuHiddenRow'),
       'teachSudokuHiddenCol' => L.t('teachSudokuHiddenCol'),
+      'teachSudokuHiddenBox' => L.t('teachSudokuHiddenBox'),
       _ => L.t('teachSudokuPlain'),
     };
     for (final e in args.entries) {

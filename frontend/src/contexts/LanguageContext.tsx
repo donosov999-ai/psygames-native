@@ -1045,6 +1045,7 @@ const translations: Translations = {
   teachSudokuNaked: { ru: 'В этой клетке возможна только {d}: остальные цифры уже стоят в её строке, столбце или квадрате.', en: 'Only {d} fits this cell: every other digit already appears in its row, column or box.' },
   teachSudokuHiddenRow: { ru: 'В строке {n} цифре {d} осталось одно место — сюда.', en: 'In row {n} the digit {d} has only one place left — here.' },
   teachSudokuHiddenCol: { ru: 'В столбце {n} цифре {d} осталось одно место — сюда.', en: 'In column {n} the digit {d} has only one place left — here.' },
+  teachSudokuHiddenBox: { ru: 'В этом квадрате цифре {d} осталось одно место — сюда.', en: 'In this box the digit {d} has only one place left — here.' },
   teachSudokuPlain: { ru: 'Здесь стоит {d}. Простым приёмом эта клетка не берётся — дальше нужен перебор.', en: 'This cell is {d}. No simple technique gets it — from here it takes case analysis.' },
   teachRow: { ru: 'Строка {n}', en: 'Row {n}' },
   teachCol: { ru: 'Столбец {n}', en: 'Column {n}' },

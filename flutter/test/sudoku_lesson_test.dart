@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/samurai/levels.dart';
+import 'package:psygames_flutter/games/samurai/rules.dart';
 import 'package:psygames_flutter/games/sudoku/lesson.dart';
 import 'package:psygames_flutter/games/sudoku/levels.dart';
 
@@ -71,5 +73,42 @@ void main() {
       final m = s.payload as SudokuMove;
       expect(started[m.r][m.c], 0, reason: 'разбор объясняет клетку, которую человек уже закрыл');
     }
+  });
+
+  test('🔴 самурай: приём называется и на ЕГО правиле, а не только на классике', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final levels = await SamuraiLevels.load();
+    var named = 0;
+    var total = 0;
+    // ⚠️ Проверяем НЕСКОЛЬКО досок, а не одну: выборка одной уже подводила
+    // (мутация 23.09 на судоку). Берём по доске с пяти ступеней.
+    for (final lv in [1, 3, 5, 7, 9]) {
+      final b = levels.boardAt(lv, 0);
+      if (b == null) continue;
+      final steps = sudokuLessonSteps(
+        say: say,
+        grid: b.puzzle,
+        solution: b.solution,
+        n: samuraiSize,
+        br: 3,
+        bc: 3,
+        candidates: (g, r, c) => [for (var d = 1; d <= 9; d += 1) if (isValid(g, r, c, d)) d],
+        exists: isSamuraiCell,
+        lineSingles: false,
+      );
+      expect(steps, isNotEmpty, reason: 'на ступени $lv разбор пуст');
+      for (final st in steps) {
+        final m = st.payload as SudokuMove;
+        expect(b.puzzle[m.r][m.c], 0, reason: 'ход в занятую клетку на ступени $lv');
+        expect(isSamuraiCell(m.r, m.c), isTrue, reason: 'ход в клетку ВНЕ доски на ступени $lv');
+        expect(m.digit, b.solution[m.r][m.c], reason: 'цифра не из решения на ступени $lv');
+        total += 1;
+        if (!st.text!.startsWith('teachSudokuPlain')) named += 1;
+      }
+    }
+    expect(total, greaterThanOrEqualTo(20), reason: 'шагов для замера мало: $total');
+    // 🔴 ЧИСЛО, А НЕ «ЕСТЬ ИМЕНА». Если однажды разбор самурая выродится в показ
+    // ответа, проба скажет это числом, а не промолчит.
+    expect(named, total, reason: 'приём назван у $named шагов из $total');
   });
 }
