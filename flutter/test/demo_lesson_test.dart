@@ -9,6 +9,7 @@ import 'package:psygames_flutter/games/gonogo/model.dart';
 import 'package:psygames_flutter/games/posner/model.dart';
 import 'package:psygames_flutter/games/posner/screen.dart';
 import 'package:psygames_flutter/games/simon/model.dart';
+import 'package:psygames_flutter/games/switching_task/model.dart';
 import 'package:psygames_flutter/games/simon/screen.dart';
 import 'package:psygames_flutter/games/gonogo/screen.dart';
 import 'package:psygames_flutter/games/flanker/screen.dart';
@@ -282,6 +283,31 @@ void main() {
       LessonUsed.reset();
       await tester.pumpWidget(const SizedBox());
       await tester.pump();
+    }
+  });
+
+  test('🔴 переключение: стимул тот же, а верная кнопка меняется от ЗАДАЧИ', () {
+    for (final mode in StimMode.values) {
+      final demo = switchDemoTrials(mode);
+      expect(demo.length, 2, reason: 'нужны обе задачи режима $mode');
+      expect(demo[0].full, demo[1].full,
+          reason: 'стимул разный — примеры показывают две задачи, а не переключение');
+
+      // ⚠️ Правило пересказано: верную кнопку определяет ЗАДАЧА, а решает её
+      // `judgeLeft` — та же, по которой партия рождает пробу.
+      for (final t in demo) {
+        expect(t.correctLeft, judgeLeft(mode, t.taskIdx, t.num, t.letter),
+            reason: 'разбор зовёт верным не то, что решает задача');
+      }
+      // Партия засчитывает ответ сравнением с этим же полем.
+      final g = SwitchingGame(level: 1, mode: mode, rnd: Random(1));
+      for (final t in demo) {
+        expect(g.nextTrial(), isTrue);
+        g.trial = t;
+        g.showStimulus();
+        expect(g.answer(t.correctLeft), SwitchOutcome.hit,
+            reason: 'партия не засчитала ответ, который показывает разбор');
+      }
     }
   });
 }

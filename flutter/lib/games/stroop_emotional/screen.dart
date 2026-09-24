@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -94,6 +95,43 @@ class _EmoStroopScreenState extends State<EmoStroopScreen> {
     _nextTrial();
   }
 
+  /// Название цвета словом — ключи ЛИТЕРАЛАМИ в каждой ветке.
+  ///
+  /// ⚠️ Сборщик словаря (`tools/embed-l10n.mjs`) видит только `L.t('имя')`:
+  /// запись вида `L.t('color_' + имя)` он пропустил бы молча, и человек увидел
+  /// бы на карточке «color_red».
+  static String _colorWord(String name) => switch (name) {
+        'red' => L.t('color_red'),
+        'green' => L.t('color_green'),
+        'blue' => L.t('color_blue'),
+        _ => L.t('color_yellow'),
+      };
+
+  /// Примеры разбора: нейтральное слово, УГРОЗА и позитив — и на всех трёх ответ
+  /// один по устройству: цвет чернил. В этом и упражнение: заряженное слово
+  /// тормозит ответ, хотя к задаче отношения не имеет.
+  ///
+  /// ⚠️ Чернила и ответ берутся из ОДНОЙ переменной: разойтись им негде, а
+  /// партия засчитывает ответ сравнением с тем же именем цвета (`answer`).
+  List<DemoTrial> _demoTrials() {
+    final w = _words!;
+    const pairs = [
+      (Valence.neutral, 'blue'),
+      (Valence.threat, 'red'),
+      (Valence.positive, 'green'),
+    ];
+    return [
+      for (final (valence, ink) in pairs)
+        if (w.byValence[valence]!.isNotEmpty)
+          DemoTrial(
+            text: w.byValence[valence]!.first,
+            color: _hex(emoColorHex[ink]!),
+            answer: _colorWord(ink),
+            ruleKey: 'stroop2Hint',
+          ),
+    ];
+  }
+
   void _nextTrial() {
     final g = _game!;
     _timer?.cancel();
@@ -160,6 +198,9 @@ class _EmoStroopScreenState extends State<EmoStroopScreen> {
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
       ],
+      onLesson: (_game == null || _words == null)
+          ? null
+          : () => openDemoLesson(context, title: L.t('stroopEmotional'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
         words: w,

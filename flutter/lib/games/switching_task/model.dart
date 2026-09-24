@@ -128,6 +128,32 @@ bool judgeLeft(StimMode mode, int idx, int num, String letter) {
   }
 }
 
+/// Примеры для разбора — ДАННЫЕ: ОДИН и тот же стимул под ДВУМЯ задачами режима.
+///
+/// 🔴 В этом всё упражнение: цифра не изменилась, а верная кнопка другая, потому
+/// что сменилась задача. Показывать два разных стимула значило бы показывать
+/// две разные задачи, а не ПЕРЕКЛЮЧЕНИЕ между ними.
+///
+/// ⚠️ Верный ответ считает `judgeLeft` — та же функция, которой партия рождает
+/// пробу (`makeTrial`) и по которой засчитывает ответ.
+List<SwitchTrial> switchDemoTrials(StimMode mode) {
+  const num = 3;
+  const letter = 'A';
+  final full = mode == StimMode.letters ? letter : (mode == StimMode.mix ? '$num$letter' : '$num');
+  return [
+    for (var idx = 0; idx < 2; idx += 1)
+      SwitchTrial(
+        taskIdx: idx,
+        num: num,
+        letter: letter,
+        full: full,
+        correctLeft: judgeLeft(mode, idx, num, letter),
+        isSwitch: idx == 1,
+        decoys: const [],
+      ),
+  ];
+}
+
 /// Рождение пробы. Поток СВЯЗНЫЙ: следующая задача зависит от предыдущей,
 /// поэтому предыдущая передаётся явно.
 ///

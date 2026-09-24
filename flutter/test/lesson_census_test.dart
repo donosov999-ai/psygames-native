@@ -23,7 +23,7 @@ void main() {
 
   /// 🔴 КТО УЖЕ УЧИТ — ПОИМЁННО. Список только растёт: игра, у которой разбор
   /// однажды появился, потерять его молча не может. Счёт по цели «разбор у всех
-  /// игр» на 24.09.2026: 15 наших адресов + 37 режимов Тэтхэма (их считает
+  /// игр» на 24.09.2026: 17 наших адресов + 37 режимов Тэтхэма (их считает
   /// `lesson_from_solver_test.dart`).
   const mustTeach = <String>[
     '/games/dots-connect',
@@ -43,6 +43,8 @@ void main() {
     '/games/choice-rt',
     '/games/simon',
     '/games/posner',
+    '/games/stroop-emotional',
+    '/games/switching-task',
   ];
 
   testWidgets('🔴 разбор не пропал ни у одной игры, где он уже был', (tester) async {
