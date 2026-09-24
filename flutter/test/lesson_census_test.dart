@@ -133,7 +133,8 @@ void main() {
     // ignore: avoid_print
     print('РАЗБОР: ${has.length} из ${has.length + no.length} наших экранов. '
         'Осталось (${no.length}): ${no.join(', ')}');
+    // Полный список — чтобы следующий заход не собирал его руками.
     // ignore: avoid_print
-    print('СПИСОК: ' + has.join(' '));
+    print('СПИСОК: ${has.join(' ')}');
   });
 }
