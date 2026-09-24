@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -458,6 +459,17 @@ class _HybridAppState extends State<HybridApp> {
       // найдена» — в журнале это видно по запросу unmatched.png. Корень он
       // разбирает как главную.
       ..loadRequest(Uri.parse('${widget.server.origin}${HybridApp.startRoute}'));
+    // 🔴 СМЕНИЛАСЬ ВЛОЖЕННАЯ СБОРКА — СБРАСЫВАЕМ КЭШ WebView.
+    //
+    // 📍 Отчёт Дениса 24.09.2026 (71a0c36e): после обновления «картинки пропали
+    // — логотипы, и питомец в верхнем правом углу тоже», при нуле ошибок в
+    // журнале. Адрес страницы у нас постоянный (127.0.0.1:47355 — он держит
+    // корзину localStorage), поэтому WebView спокойно берёт из кэша СТАРУЮ
+    // страницу, а она просит файлы со старыми хешами: в новой сборке их нет.
+    //
+    // ⚠️ Сбрасываем ТОЛЬКО кэш и только при смене отпечатка. `clearLocalStorage`
+    // здесь звать нельзя ни в каком виде: на нём держится весь прогресс.
+    unawaited(_dropStaleCache());
     HybridApp.open = _open;
     // Перенесённая игра по START_ROUTE: перехват на первой загрузке не срабатывает
     // (это не переход, а первый адрес), поэтому открываем нативный экран сами.
@@ -574,6 +586,16 @@ class _HybridAppState extends State<HybridApp> {
     } else {
       await _c.loadRequest(Uri.parse('${widget.server.origin}$next'));
     }
+  }
+
+  /// Сброс кэша при смене вложенной сборки — см. пояснение в `initState`.
+  Future<void> _dropStaleCache() async {
+    const key = 'psygames_embedded_build';
+    final now = await widget.server.fingerprint();
+    if (now.isEmpty) return;
+    if (widget.state.get(key) == now) return;
+    await _c.clearCache();
+    await widget.state.set(key, now);
   }
 
   @override

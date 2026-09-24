@@ -70,12 +70,25 @@ class AssetServer {
     var data = await _read(key);
 
     // Маршруты без расширения — это страницы: /games/one-line → games/one-line.html.
-    if (data == null && !path.contains('.')) {
+    final file = path.split('/').last.contains('.');
+    if (data == null && !file) {
       data = await _read('$key.html');
       if (data != null) key = '$key.html';
     }
-    // Чего нет вовсе — отдаём главную, как это делает одностраничное приложение.
-    if (data == null) {
+    /*
+     * 🔴 ПОДМЕНА ФАЙЛА ГЛАВНОЙ СТРАНИЦЕЙ — ЭТО МОЛЧАЛИВАЯ ПРОПАЖА КАРТИНКИ.
+     *
+     * 📍 Отчёт Дениса 24.09.2026 (71a0c36e): «верхний тулбар пострадал у всех
+     * профилей, картинки пропали — логотипы, и плюс питомец в верхнем правом
+     * углу тоже». В отчёте НОЛЬ ошибок в журнале и ноль кодов 404 — потому что
+     * на запрос `.webp` уходила главная страница с кодом 200. Браузер её не
+     * декодирует, картинка остаётся пустой, и никто ничего не узнаёт.
+     *
+     * Запас «отдадим главную» нужен только АДРЕСАМ одностраничного приложения
+     * (/games/one-line). У запроса с расширением честный ответ один — 404: он
+     * попадает в журнал страницы, и пропажа перестаёт быть тихой.
+     */
+    if (data == null && !file) {
       data = await _read('$_root/index.html');
       key = '$_root/index.html';
     }
@@ -90,6 +103,25 @@ class AssetServer {
     req.response.headers.set('Cache-Control', 'no-store');
     req.response.add(data);
     await req.response.close();
+  }
+
+  /// Есть ли файл во ВЛОЖЕННОЙ сборке (а не на диске): пробам нужно знать, что
+  /// мерить, а лежащий рядом файл, не перечисленный в pubspec, приложению не виден.
+  Future<bool> has(String rel) async => await _read('$_root/$rel') != null;
+
+  /// ОТПЕЧАТОК ВЛОЖЕННОЙ СБОРКИ — имя связки из `index.html`.
+  ///
+  /// 🔴 Имена файлов веб-сборки хешированы: новая сборка — новые имена. Если
+  /// WebView оставил у себя СТАРУЮ страницу, она будет просить файлы, которых
+  /// в новой сборке уже нет, — и каждая такая картинка станет пустым местом.
+  /// Отпечаток нужен, чтобы заметить смену сборки и сбросить кэш ОДИН раз, а не
+  /// на каждом запуске (сброс на каждом стоит лишней загрузки 30 МБ).
+  Future<String> fingerprint() async {
+    final data = await _read('$_root/index.html');
+    if (data == null) return '';
+    final html = String.fromCharCodes(data);
+    final m = RegExp(r'entry-([a-f0-9]{8,})\.js').firstMatch(html);
+    return m?.group(1) ?? '${data.length}';
   }
 
   Future<List<int>?> _read(String key) async {
