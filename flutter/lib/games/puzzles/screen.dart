@@ -7,8 +7,11 @@ import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import 'engine.dart';
 import 'frame.dart';
+import 'lesson.dart';
 import 'ladder.dart';
 
 /// ГОЛОВОЛОМКИ ТЭТХЭМА на общем каркасе: один экран на все режимы.
@@ -110,6 +113,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       setState(() {
         _engine = engine;
         _gameIndex = index;
+        _canSolve = engine.canSolve(index);
       });
       _deal();
     } catch (e) {
@@ -119,9 +123,61 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
     }
   }
 
+  /// Умеет ли движок решать ЭТУ игру — флаг берётся у автора, а не из нашего списка.
+  bool _canSolve = false;
+
+  /// Шаги разбора ЭТОЙ раздачи. Пусто — разбора нет, и кнопки тоже.
+  List<LessonStep> _lessonSteps = const [];
+
+  /*
+   * 🔴 РАЗБОР БЕРЁТСЯ У РЕШАТЕЛЯ ДВИЖКА И НИЧЕГО НЕ ЗНАЕТ ПРО ИГРУ.
+   *
+   * Шаги строит общий генератор (`TathamLesson`): он просит движок решить, снимает
+   * разность кадров и возвращает доску обратно. Здесь остаётся только нарисовать
+   * доску с раскрытыми шагами — это единственное, что знает про эту игру.
+   *
+   * ⚠️ Партия после разбора в уровень не засчитывается (`LessonUsed.mark`): решение
+   * было показано, и мерить по нему человека нечестно.
+   */
+  Future<void> _openLesson() async {
+    final engine = _engine;
+    if (engine == null) return;
+    final steps = _lessonSteps;
+    if (steps.isEmpty) return;
+    LessonUsed.mark();
+    final base = engine.draw();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _mode.title,
+        steps: steps,
+        onNewBoard: _deal,
+        board: (context, side, shown) {
+          // Доска игрока плюс то, что разбор уже раскрыл. Кадр собирается заново
+          // из тех же строк движка — второго рисователя тут не заводим.
+          final lines = <String>[
+            ...base,
+            for (var i = 0; i < shown && i < steps.length; i++)
+              ...(steps[i].payload as List<String>),
+          ];
+          return CustomPaint(
+            size: Size(side, side),
+            painter: PuzzlePainter(
+              frame: PuzzleFrame.parse(lines),
+              palette: _palette,
+              engineSize: _size,
+              background: Theme.of(context).colorScheme.surface,
+            ),
+          );
+        },
+      ),
+    ));
+    if (mounted) _refresh();
+  }
+
   void _deal() {
     final engine = _engine;
     if (engine == null) return;
+    LessonUsed.reset();   // новая доска — партия снова зачётная
     final step = _steps[(_ladder.level - 1).clamp(0, _steps.length - 1)];
     final ok = engine.start(_gameIndex, step.params, DateTime.now().millisecondsSinceEpoch % 100000);
     setState(() {
@@ -133,6 +189,21 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       }
     });
     _refresh();
+    _prepareLesson();
+  }
+
+  /// Посчитать разбор для нынешней раздачи.
+  ///
+  /// ⚠️ Генератор просит движок решить и возвращает доску обратно отменой — то
+  /// есть после этого вызова доска обязана остаться прежней. Это сторожит проба
+  /// `lesson_from_solver_test.dart`; без неё «Разбор» однажды стал бы «Сдаться».
+  Future<void> _prepareLesson() async {
+    final engine = _engine;
+    if (engine == null || _gameIndex < 0) return;
+    final steps = _canSolve
+        ? await TathamLesson(engine, canSolve: true, gameName: _mode.engineName).steps()
+        : const <LessonStep>[];
+    if (mounted) setState(() => _lessonSteps = steps);
   }
 
   /// Снять кадр у движка. Дёргается после КАЖДОГО действия: промежуточные кадры нам
@@ -193,6 +264,16 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
 
     return GameShell(
       title: _mode.title,
+      /*
+       * 🔴 КНОПКА ЕСТЬ ТОЛЬКО ТАМ, ГДЕ РАЗБОР ДЕЙСТВИТЕЛЬНО ПОЛУЧИЛСЯ.
+       *
+       * Сначала условие стояло по флагу `game.can_solve` — и проба показала, что
+       * флаг врёт в нашу сторону: у «Сапёра» он поднят (решатель нужен движку для
+       * РАЗДАЧИ), а `psy_solve` с позиции игрока решения не даёт. Кнопка была бы
+       * живой и не делала ничего.
+       * Поэтому спрашиваем не флаг, а результат: шаги считаются один раз на раздачу.
+       */
+      onLesson: _lessonSteps.isEmpty ? null : _openLesson,
       hud: [
         HudItem(label: 'Ступень', value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
         HudItem(label: 'Доска', value: step.title, icon: Icons.grid_on),
