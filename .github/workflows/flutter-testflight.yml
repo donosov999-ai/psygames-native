@@ -15,9 +15,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Версия в магазине (CFBundleShortVersionString)'
-        required: true
-        default: '2.55.0'
+        description: 'Версия — ПУСТО значит из frontend/app.json (одна линия на все сборки)'
+        required: false
+        default: ''
       notes:
         description: 'Что тестировать — одной строкой'
         required: false
@@ -103,8 +103,25 @@ jobs:
 
       - name: Боевой идентификатор и версия
         run: |
+          # 🔴 ВЕРСИЯ БЕРЁТСЯ ИЗ frontend/app.json — ОДНА ЛИНИЯ НА ВСЁ.
+          #
+          # 📍 Решение Дениса 24.09.2026: «льём везде на Flutter, никаких двух веток».
+          # До этого номер приходил параметром запуска, и линии разъехались: в Play
+          # уезжала 2.54.x, в TestFlight — 2.55.x. Ручное поле означало, что сверить
+          # их было нечем и некому, и однажды веб дорос бы до занятых гибридом
+          # номеров, а App Store не принимает версию, равную опубликованной.
+          #
+          # Теперь источник один — тот же файл, из которого версию берут Play,
+          # App Store и десктоп. Поле `version` у запуска оставлено ТОЛЬКО как
+          # запасной ход: пусто — берём из app.json.
           BUILD="${{ github.run_number }}"
-          sed -i '' "s/^version: .*/version: ${{ inputs.version }}+$BUILD/" flutter/pubspec.yaml
+          VERSION="${{ inputs.version }}"
+          FROM_APP=$(node -p "require('./frontend/app.json').expo.version")
+          if [ -z "$VERSION" ] || [ "$VERSION" = "из app.json" ]; then VERSION="$FROM_APP"; fi
+          if [ "$VERSION" != "$FROM_APP" ]; then
+            echo "::warning title=Версия::запуск просит $VERSION, а в app.json $FROM_APP — линия расходится"
+          fi
+          sed -i '' "s/^version: .*/version: $VERSION+$BUILD/" flutter/pubspec.yaml
           # ⚠️ В iOS-проекте идентификатор пишется pro.psygames.psygamesFlutter,
           # а в Android — pro.psygames.psygames_flutter. Первый заход 23.09 искал
           # второе написание, не заменил ничего, и упал на проверке ниже — она и
@@ -112,7 +129,7 @@ jobs:
           sed -i '' "s/pro\.psygames\.psygamesFlutter/$BUNDLE_ID/g" flutter/ios/Runner.xcodeproj/project.pbxproj
           /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName PsyGames" flutter/ios/Runner/Info.plist 2>/dev/null \
             || /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string PsyGames" flutter/ios/Runner/Info.plist
-          echo "версия ${{ inputs.version }}+$BUILD · идентификатор $BUNDLE_ID"
+          echo "версия $VERSION+$BUILD · идентификатор $BUNDLE_ID"
           NEW=$(grep -c "PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;" flutter/ios/Runner.xcodeproj/project.pbxproj || true)
           LEFT=$(grep -c "pro\.psygames" flutter/ios/Runner.xcodeproj/project.pbxproj || true)
           echo "целей с боевым идентификатором: $NEW · осталось старых упоминаний: $LEFT"
