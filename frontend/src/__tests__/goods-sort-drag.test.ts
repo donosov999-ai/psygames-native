@@ -309,12 +309,12 @@ describe('перетаскивание не отменяет тапы и не з
   it('подсветка ниши считается тем же предикатом, что и ход', () => {
     // ⚠️ Смысл, а не запись: предикат может быть и стрелкой в одну строку, и
     // телом с ранними выходами — важно, что он один и что спрашивает обе стороны.
-    expect(code).toMatch(/const canPlaceInto = \(fromCell: number, toCell: number\)/);
+    expect(code).toMatch(/const canPlaceInto = \(fromCell: number, toCell: number, fromIdx\?: number\)/);
     const pred = code.slice(code.indexOf('const canPlaceInto'), code.indexOf('const moveItem'));
     expect(pred).toMatch(/cellUsable\(fromCell\)/);
     expect(pred).toMatch(/cellUsable\(toCell\)/);
-    expect(code).toMatch(/const canDrop = !!held && canPlaceInto\(held\.cell, i\)/);
-    expect(moveBody).toMatch(/if \(!canPlaceInto\(fromCell, toCell\)\)/);
+    expect(code).toMatch(/const canDrop = !!held && canPlaceInto\(held\.cell, i, held\.idx\)/);
+    expect(moveBody).toMatch(/if \(!canPlaceInto\(fromCell, toCell, fromIdx\)\)/);
   });
 
   /** Пока идёт карточка итога или партия не начата — тащить нечего. */

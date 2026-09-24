@@ -1537,18 +1537,38 @@ export default function GoodsSortGame() {
   /** Есть ли на этом уровне разные ёмкости — от этого зависит показ насечек. */
   const mixedCaps = new Set(caps).size > 1;
 
-  const canPlaceInto = (fromCell: number, toCell: number): boolean => {
+  /**
+   * 🔴 СУДИМ ПО ВЗЯТОМУ ТОВАРУ, А НЕ ПО ВЕРХНЕМУ (задача 230f2887).
+   *
+   * 📍 Было: проверка брала `src[src.length - 1]` — ВЕРХНИЙ товар ниши, — а
+   * `moveItem` уносил тот, по которому ткнули (`splice` по `fromIdx`). Пока
+   * человек берёт верхний, это одно и то же. Стоит взять из середины ряда — и
+   * проверка считает один вид, а уезжает другой: со строгой укладки (с L30)
+   * ход проходил, и в нише оказывались два разных вида, чего правило не
+   * допускает.
+   *
+   * ⚠️ `fromIdx` НЕОБЯЗАТЕЛЕН и по умолчанию означает ВЕРХНИЙ: подсказка
+   * работает именно с верхним товаром и передаёт его индекс явно, а для
+   * подсветки «сюда можно» индекс известен из руки.
+   *
+   * 📌 В переносе на Flutter это сделано верно с самого начала
+   * (`flutter/lib/games/goods_sort/screen.dart`, `_canDrop` → `pick.type`), и
+   * там же записано, почему предикат ОДИН на тап и на перетаскивание.
+   */
+  const canPlaceInto = (fromCell: number, toCell: number, fromIdx?: number): boolean => {
     if (fromCell === toCell) return false;
     if (!cellUsable(fromCell) || !cellUsable(toCell)) return false;
     const src = cells[fromCell];
     if (!src?.length) return false;
-    return placementOk(cells[toCell] ?? [], src[src.length - 1], strict, capOf(toCell), isJokerNiche(toCell));
+    const i = fromIdx ?? src.length - 1;
+    if (i < 0 || i >= src.length) return false;
+    return placementOk(cells[toCell] ?? [], src[i], strict, capOf(toCell), isJokerNiche(toCell));
   };
 
   const moveItem = (fromCell: number, fromIdx: number, toCell: number) => {
     const src = cells[fromCell];
     if (!src || fromIdx < 0 || fromIdx >= src.length) { setSel(null); return; }
-    if (!canPlaceInto(fromCell, toCell)) {
+    if (!canPlaceInto(fromCell, toCell, fromIdx)) {
       setSel(null);
       // Отказ ПО ПРЕПЯТСТВИЮ отзывается тычком, звуком и дрожанием ниши: «нельзя»
       // должно ощущаться, иначе оно неотличимо от «не нажалось».
@@ -2092,11 +2112,11 @@ export default function GoodsSortGame() {
      */
     const solved = hintMove(makeBoard(cells, capsForBoard(level, cells), jokersForBoard(level, cells)));
     const fromSolver: HintMove | null = solved && cellUsable(solved.from) && cellUsable(solved.to)
-      && canPlaceInto(solved.from, solved.to)
+      && canPlaceInto(solved.from, solved.to, (cells[solved.from]?.length ?? 1) - 1)
       ? { fromCell: solved.from, fromIdx: (cells[solved.from]?.length ?? 1) - 1, toCell: solved.to }
       : null;
     const found = fromSolver ?? findHint(cells, cellUsable);
-    if (!found || !canPlaceInto(found.fromCell, found.toCell)) { hapticTap(); return; }
+    if (!found || !canPlaceInto(found.fromCell, found.toCell, found.fromIdx)) { hapticTap(); return; }
     setHints((n) => n - 1);
     setHint(found);
     setSel(null);
@@ -2576,7 +2596,7 @@ const LAY = gsLayout(width, availH, gridDim.cols, gridDim.rows, capWideHere, hin
      */
     const held = drag ?? sel;
     /** Подсветка «сюда можно» — одна на оба способа хода: `held` уже покрывает и тап, и палец. */
-    const canDrop = !!held && canPlaceInto(held.cell, i);
+    const canDrop = !!held && canPlaceInto(held.cell, i, held.idx);
     /** Ниша прямо под пальцем и туда МОЖНО — самая яркая рамка: сюда и ляжет. */
     const aimed = !!drag && hover === i && canDrop;
     const сдвиг = осадкаСтиль(i);
