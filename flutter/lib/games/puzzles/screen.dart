@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_rules.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -274,6 +275,11 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
        * Поэтому спрашиваем не флаг, а результат: шаги считаются один раз на раздачу.
        */
       onLesson: _lessonSteps.isEmpty ? null : _openLesson,
+      // Правило игры — из словаря по ключу карточки режима. Нет ключа — нет и
+      // кнопки: пустое окно справки хуже её отсутствия.
+      onRules: _modeOrNull?.descKey == null
+          ? null
+          : () => showGameRules(context, title: _mode.title, ruleKey: _mode.descKey!),
       hud: [
         HudItem(label: 'Ступень', value: '${_ladder.level}/${_steps.length}', icon: Icons.trending_up),
         HudItem(label: 'Доска', value: step.title, icon: Icons.grid_on),

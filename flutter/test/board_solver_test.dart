@@ -3,6 +3,8 @@ import 'package:psygames_flutter/games/hanoi/model.dart';
 import 'package:psygames_flutter/games/hanoi/puzzle.dart';
 import 'package:psygames_flutter/games/tower_london/model.dart';
 import 'package:psygames_flutter/games/tower_london/puzzle.dart';
+import 'package:psygames_flutter/games/sort_tubes/model.dart';
+import 'package:psygames_flutter/games/sort_tubes/puzzle.dart';
 import 'package:psygames_flutter/shell/board_solver.dart';
 
 /// 🔴 ОДИН РЕШАТЕЛЬ РЕШАЕТ РАЗНЫЕ ИГРЫ — ТО, ЧЕГО У НАС НЕ БЫЛО.
@@ -94,5 +96,43 @@ void main() {
     );
     expect(moves, isEmpty,
         reason: 'неполный путь хуже отсутствия: человек дошёл бы до тупика с нашей подачи');
+  });
+
+  group('колбы — ТРЕТЬЯ игра на том же решателе, и устроена иначе', () {
+    /*
+     * 🔴 ЗАЧЕМ ИМЕННО КОЛБЫ. Ханой и башни Лондона похожи — «снять верхнее,
+     * положить сверху». Колбы переливают СРАЗУ НЕСКОЛЬКО одинаковых шариков за
+     * ход, и сколько — решает сама игра. Договор, который садится и сюда, — про
+     * ходы вообще, а не про стопки. Если бы не сел, замысел «один решатель на
+     * семейство» был бы опровергнут на третьей же игре.
+     */
+    test('🔴 поле из двух цветов в трёх колбах решается и путь законный', () {
+      const game = TubePuzzle();
+      var f = const TubeField(
+        tubes: [
+          [1, 2, 1, 2],
+          [2, 1, 2, 1],
+          <int>[],
+        ],
+        cap: 4,
+      );
+      expect(game.solved(f), isFalse, reason: 'подготовка: поле обязано быть нерешённым');
+
+      final moves = BoardSolver.solve(game, f);
+      expect(moves, isNotEmpty, reason: 'решения не нашлось там, где оно есть');
+      for (final m in moves) {
+        final next = game.apply(f, m);
+        expect(next, isNotNull, reason: 'разбор предложил незаконный перелив');
+        f = next!;
+      }
+      expect(game.solved(f), isTrue, reason: 'путь не довёл до решения');
+    });
+
+    test('🔴 снимок различает запечатанные колбы — иначе поиск спутает положения', () {
+      const game = TubePuzzle();
+      const a = TubeField(tubes: [[1, 1], <int>[]], cap: 2, sealed: 0);
+      const b = TubeField(tubes: [[1, 1], <int>[]], cap: 2, sealed: 1);
+      expect(game.keyOf(a) == game.keyOf(b), isFalse);
+    });
   });
 }
