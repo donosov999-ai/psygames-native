@@ -1,0 +1,137 @@
+library;
+
+import 'package:flutter/material.dart';
+
+import 'l10n.dart';
+import 'lesson.dart';
+import 'lesson_player.dart';
+
+/// 🔴 ВТОРОЙ ГЕНЕРАТОР РАЗБОРА — ДЛЯ ИГР НА РЕАКЦИЮ.
+///
+/// Первый генератор (`board_solver.dart`) ищет путь к решению и годится там, где
+/// решение вообще есть: башни, колбы, головоломки. У игр на реакцию решать нечего
+/// — там проба длится секунду, и «правильно» задано ПРАВИЛОМ, а не ходом.
+///
+/// Замер переписи 24.09.2026 (`test/lesson_census_test.dart`): из 51 нашего
+/// нативного адреса разбор был у 9, а среди оставшихся 42 большинство — именно
+/// семейство реакций. Писать им учителя по одному значило бы писать тридцать
+/// учителей. Поэтому здесь общий показ: КАРТОЧКА СТИМУЛА + ИМЯ ПРАВИЛА + ЧТО
+/// ЗДЕСЬ ВЕРНО.
+///
+/// 🔴 ЧТО ОСТАЁТСЯ ИГРЕ — ТОЛЬКО СПИСОК ПРИМЕРОВ (десяток строк). Ни плеер, ни
+/// карточка, ни правило засчитывания партии в игру не переезжают.
+///
+/// ⚠️ ПРИМЕРЫ БЕРУТСЯ ИЗ ДАННЫХ ИГРЫ, А НЕ ПРИДУМЫВАЮТСЯ. Слово и цвет у Струпа —
+/// из его же палитры (включая палитру для дальтонизма), стрелки у фланкера — его
+/// же стрелки. Разбор, нарисованный «похоже», научил бы не той игре.
+class DemoTrial {
+  const DemoTrial({
+    required this.text,
+    required this.answer,
+    this.color,
+    this.sub,
+    this.ruleKey,
+  });
+
+  /// Сам стимул — то, что человек видит в партии.
+  final String text;
+
+  /// Цвет стимула, если цвет — часть задачи (Струп). Иначе цвет темы.
+  final Color? color;
+
+  /// Подпись под стимулом: что именно тут показано (например «слева ← справа»).
+  final String? sub;
+
+  /// Верный ответ словами — ровно так, как подписана кнопка в игре.
+  final String answer;
+
+  /// Ключ словаря с ИМЕНЕМ ПРАВИЛА этой пробы. У Струпа правило меняется внутри
+  /// партии, поэтому ключ живёт на пробе, а не на игре.
+  final String? ruleKey;
+}
+
+/// Карточка одного примера — общая на все игры семейства.
+class DemoCard extends StatelessWidget {
+  const DemoCard({super.key, required this.trial, required this.side});
+
+  final DemoTrial trial;
+  final double side;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              trial.text,
+              key: const Key('demo-stimulus'),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: (side / 7).clamp(22.0, 44.0),
+                fontWeight: FontWeight.w800,
+                color: trial.color ?? scheme.onSurface,
+              ),
+            ),
+            if (trial.sub != null) ...[
+              const SizedBox(height: 8),
+              Text(trial.sub!, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13)),
+            ],
+            const SizedBox(height: 16),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                child: Text(
+                  L.t('teachDemoAnswer').replaceFirst('{a}', trial.answer),
+                  key: const Key('demo-answer'),
+                  style: TextStyle(
+                    color: scheme.onPrimaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Открыть разбор-показ. Игра отдаёт примеры — всё остальное общее.
+///
+/// ⚠️ Отметку «партия с разбором не засчитывается» ставит эта же точка входа, а
+/// не экран: забыть её в одном экране из тринадцати — значит поставить лестницу
+/// по показанному ответу.
+Future<void> openDemoLesson(
+  BuildContext context, {
+  required String title,
+  required List<DemoTrial> trials,
+}) {
+  LessonUsed.mark();
+  return Navigator.of(context).push(MaterialPageRoute<void>(
+    builder: (_) => LessonPlayerScreen(
+      title: title,
+      steps: [
+        for (final t in trials) LessonStep(techniqueKey: t.ruleKey, payload: t),
+      ],
+      board: (context, side, shown) => Padding(
+        padding: const EdgeInsets.all(8),
+        child: DemoCard(
+          trial: trials[shown.clamp(0, trials.length - 1)],
+          side: side,
+        ),
+      ),
+    ),
+  ));
+}

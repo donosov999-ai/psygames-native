@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -92,6 +93,25 @@ class _StroopScreenState extends State<StroopScreen> {
     _nextTrial();
   }
 
+  /// Примеры разбора: данные берутся у модели, экран только красит.
+  ///
+  /// ⚠️ «Что здесь верно» считает `stroopCorrect` — та же функция, которой партия
+  /// засчитывает ответ. Второй такой функции быть не должно: разойдясь, они
+  /// научили бы человека не той игре.
+  List<DemoTrial> _demoTrials() {
+    final palette = _game!.palette;
+    StroopColor byName(String n) => palette.firstWhere((c) => c.name == n);
+    return [
+      for (final d in stroopDemoTrials(palette))
+        DemoTrial(
+          text: d.trial.word.ru,
+          color: _hex(d.trial.ink.hex),
+          answer: byName(stroopCorrect(d.trial, d.rule)).ru,
+          ruleKey: d.rule == 'ink' ? 'stroopByInk' : 'stroopByWord',
+        ),
+    ];
+  }
+
   void _nextTrial() {
     final g = _game!;
     _window?.cancel();
@@ -153,6 +173,9 @@ class _StroopScreenState extends State<StroopScreen> {
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('hud_errors'), value: '${g.errors}', icon: Icons.close),
       ],
+      onLesson: _game == null
+          ? null
+          : () => openDemoLesson(context, title: L.t('stroop'), trials: _demoTrials()),
       field: (context, h) => _Field(game: g, phase: _phase, flash: _flash, passed: _passed, height: h, onStart: _start, onAgain: () => setState(_reset)),
       toolbar: _phase == StroopPhase.playing ? _Answers(game: g, onPick: _answer) : null,
     );

@@ -132,6 +132,30 @@ StroopTrial makeTrial(int level, List<StroopColor> palette, double Function() rn
   return StroopTrial(word: word, ink: ink, congruent: false, decoys: decoys);
 }
 
+/// 🔴 ЧТО СЧИТАЕТСЯ ВЕРНЫМ — ОДНА ФУНКЦИЯ НА ИГРУ И НА РАЗБОР.
+///
+/// Разбор показывает «верно: СИНИЙ», партия засчитывает ответ — и если это два
+/// разных места в коде, они однажды разойдутся, и человек будет учиться не той
+/// игре. Поэтому правило живёт здесь, а `correctName` и разбор его зовут.
+String stroopCorrect(StroopTrial t, String rule) => rule == 'ink' ? t.ink.name : t.word.name;
+
+/// Примеры для разбора — ДАННЫЕ, без единого виджета: цвет рисует экран.
+///
+/// Три примера по возрастанию трудности: согласованная проба → конфликтная (та
+/// самая интерференция) → конфликтная по ОБРАТНОМУ правилу. Последняя нужна
+/// потому, что с 5-го уровня правило меняется внутри партии, и узнать об этом
+/// из справки нельзя — только увидеть.
+List<({StroopTrial trial, String rule})> stroopDemoTrials(List<StroopColor> palette) {
+  final word = palette[0], ink = palette[1];
+  final same = StroopTrial(word: word, ink: word, congruent: true, decoys: const []);
+  final clash = StroopTrial(word: word, ink: ink, congruent: false, decoys: const []);
+  return [
+    (trial: same, rule: 'ink'),
+    (trial: clash, rule: 'ink'),
+    (trial: clash, rule: 'word'),
+  ];
+}
+
 /// Правило пробы: обычно базовое, с вероятностью `switchRate` — другое.
 String ruleForTrial(String base, double switchRate, double Function() rnd) {
   if (switchRate <= 0) return base;
@@ -204,8 +228,7 @@ class StroopGame {
   /// Имя цвета, которое сейчас верно — по правилу ПРОБЫ, а не партии.
   String? get correctName {
     final t = trial;
-    if (t == null) return null;
-    return trialRule == 'ink' ? t.ink.name : t.word.name;
+    return t == null ? null : stroopCorrect(t, trialRule);
   }
 
   /// Ответ человека. Время реакции считается от показа стимула.

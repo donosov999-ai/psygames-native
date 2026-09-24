@@ -1027,6 +1027,12 @@ const translations: Translations = {
   teachTitle: { ru: 'Разбор по шагам', en: 'Step-by-step walkthrough' },
   teachButton: { ru: 'Разбор', en: 'Walkthrough' },
   teachStepOf: { ru: 'Шаг {i} из {n}', en: 'Step {i} of {n}' },
+  /*
+   * 🎓 РАЗБОР ИГР НА РЕАКЦИЮ (24.09.2026). У них нет доски и нет пути к решению: там, где
+   * головоломке показывают ход, реакции показывают ПРАВИЛО на конкретном стимуле. Поэтому
+   * карточка разбора несёт сам стимул и подпись «что здесь верно» — шаг за шагом.
+   */
+  teachDemoAnswer: { ru: 'Верно: {a}', en: 'Correct: {a}' },
   teachRow: { ru: 'Строка {n}', en: 'Row {n}' },
   teachCol: { ru: 'Столбец {n}', en: 'Column {n}' },
   /*
