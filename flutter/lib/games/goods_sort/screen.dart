@@ -14,6 +14,7 @@ import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
+import 'solver.dart';
 
 /// «СОРТИРОВКА ТОВАРОВ» на общем каркасе — первый экран раздела на Flutter.
 ///
@@ -147,10 +148,14 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
 
   /// Можно ли трогать нишу. ОДНА проверка и на «взять отсюда», и на «положить сюда»:
   /// поставь запрет на одну сторону — препятствие станет полупрозрачным.
+  ///
+  /// 🔴 ПРАВИЛО ЛЕЖИТ В `GoodsPlay`, А НЕ ЗДЕСЬ. Пока оно было написано на
+  /// экране, правды о доступности ниши было две: у экрана полная, у решателя и
+  /// разбора — никакой, и разбор прокладывал путь сквозь запертую нишу. Одна
+  /// дверь на всех — единственное, что не даёт им разойтись снова.
   bool _usable(int i) {
-    if (i < _obstacles.length && _obstacles[i] != null) return false;
-    if (_frozenRow != null && _level!.rowOfNiche(i) == _frozenRow) return false;
-    return true;
+    if (_board == null || _level == null) return false;
+    return _play.usable(i);
   }
 
   /// Ляжет ли взятое в нишу.
@@ -196,6 +201,19 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     if (!_canDrop(pick, to)) return;
     final board = _board!;
     final level = _level!;
+
+    // 🔴 ХОД ДЕЛАЕТ `GoodsPlay`, А НЕ ЭКРАН. Здесь раньше лежала вторая копия
+    // правил: перенос товара, старение замков, снятие заслона тройкой по
+    // соседству и оттепель примёрзшего ряда. Решатель этих правил не знал, и
+    // разбор показывал ходы, которых игра не приняла бы. Теперь дверь одна.
+    final report = CollapseReport();
+    final played = _play.move(pick.cell, pick.index, to, report);
+    if (played == null) return;
+    final after = played.board;
+
+    // ⚠️ СНИМОК ДЛЯ ОТМЕНЫ — ПОСЛЕ проверки хода, а не до неё: иначе отказанный
+    // ход всё равно клал бы в историю лишний шаг, и «Отменить» откатывало бы
+    // пустоту.
     _history.add(_Snapshot(
       board.copyWith(),
       [..._obstacles],
@@ -204,12 +222,6 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
       _moves,
       _score,
     ));
-
-    final cells = board.cells.map((c) => [...c]).toList();
-    final type = cells[pick.cell].removeAt(pick.index);
-    cells[to].add(type);
-    final report = CollapseReport();
-    final after = collapseTriples(board.copyWith(cells: cells), report);
 
     _moves += 1;
     _score += scoreForClears(report.clearedTypes.length);
@@ -225,27 +237,9 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
       after.cells,
     ).toSet();
 
-    // Препятствия: замок стареет на ход, запертая ниша открывается тройкой ПО
-    // СОСЕДСТВУ (а не «сосед опустел»: со схлопыванием место тут же занимает
-    // полка из очереди, и запертая не открылась бы никогда).
-    final next = [..._obstacles];
-    for (var i = 0; i < next.length; i += 1) {
-      final o = next[i];
-      if (o == null) continue;
-      if (o.kind == 'locked') {
-        final left = o.movesLeft - 1;
-        next[i] = left <= 0 ? null : Obstacle('locked', movesLeft: left);
-      } else if (o.kind == 'blocked' && report.clearedIds.isNotEmpty) {
-        if (_neighbours(i).any(report.clearedIds.contains)) next[i] = null;
-      }
-    }
-    _obstacles = next;
-
-    if (_frozenType != null && report.clearedTypes.contains(_frozenType)) {
-      _frozenRow = null;
-      _frozenType = null;
-    }
-
+    _obstacles = played.obstacles;
+    _frozenRow = played.frozenRow;
+    _frozenType = played.frozenType;
     _board = after;
 
     if (levelWon(after.cells, level.goal, queueLength: after.queue.length, back: after.back)) {
@@ -256,36 +250,9 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     }
   }
 
-  /// Соседи ниши по сетке — через места, а не через плотный список: доска с дырами.
-  List<int> _neighbours(int i) {
-    final level = _level!;
-    final places = <int>[];
-    var seen = -1;
-    var place = -1;
-    for (var p = 0; p < level.mask.length; p += 1) {
-      if (!level.mask[p]) continue;
-      seen += 1;
-      places.add(p);
-      if (seen == i) place = p;
-    }
-    if (place < 0) return const [];
-    final r = place ~/ level.cols;
-    final c = place % level.cols;
-    final out = <int>[];
-    for (final d in const [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-      final nr = r + d[0];
-      final nc = c + d[1];
-      if (nr < 0 || nc < 0 || nr >= level.rows || nc >= level.cols) continue;
-      final np = nr * level.cols + nc;
-      final idx = places.indexOf(np);
-      if (idx >= 0) {
-        // Номер ниши: с устойчивыми номерами — их, иначе место в списке.
-        final ids = _board!.ids;
-        out.add(ids != null && idx < ids.length ? ids[idx] : idx);
-      }
-    }
-    return out;
-  }
+  // ⚠️ СОСЕДИ НИШИ ПЕРЕЕХАЛИ В `GoodsPlay.neighbours`: по ним снимается заслон,
+  // а значит их обязан знать и решатель. Копия на экране была бы вторым местом,
+  // где чинить сетку с дырами.
 
   void _undo() {
     _cancelNext();
@@ -317,70 +284,107 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     }
   }
 
-  /// 🔴 РАЗБОР ТОВАРОВ: ПРАВИЛО ПЛЮС ОДИН ХОД НА ЭТОЙ ЖЕ ДОСКЕ.
+  /// 🔴 РАЗБОР ТОВАРОВ: ПУТЬ РЕШАТЕЛЯ ДО КОНЦА, С ПРИЧИНОЙ НА КАЖДОМ ШАГЕ.
   ///
-  /// Полного пути здесь не показать честно: перебор у товаров стоит секунды
-  /// (замер веб-решателя: бюджет 20 000 узлов — 470 мс, 120 000 — 1,8 с), и
-  /// гонять его на телефоне ради ролика нельзя. Зато ход, СОБИРАЮЩИЙ тройку,
-  /// ищется одним проходом по парам ниш — и именно он показывает правило в деле.
+  /// Прежняя редакция показывала ПРАВИЛО И ОДИН ХОД, и отказ от полного пути был
+  /// записан так: «перебор у товаров стоит секунды, гонять его на телефоне ради
+  /// ролика нельзя». Замер 24.09.2026 это опроверг: перенесённый решатель
+  /// (`solver.dart`) проходит уровни 1–30 целиком, 810 ходов в путях, и самый
+  /// тяжёлый случай — L21, где решения НЕТ вовсе, — упирается в бюджет за 160 мс.
+  /// Цифра «секунды» была взята из веб-замера на предельном бюджете 120 000, а не
+  /// из рабочего 20 000.
   ///
-  /// ⚠️ Законность хода проверяет `canPlace` самой игры, со строгостью УРОВНЯ:
-  /// на строгих уровнях товар кладётся только к своему виду, и разбор, забывший
-  /// про это, показал бы ход, который у человека не сработает.
+  /// ⚠️ ПУТЬ НАХОДИТСЯ НЕ ВСЕГДА, И ЭТО НЕ ВСЕГДА ВИНА ПЕРЕБОРА. Девять уровней
+  /// узкой лестницы из шестидесяти двух НЕВЫИГРЫВАЕМЫ по арифметике: на доске
+  /// лежит вид, которого не кратно трём, а тройка — это три ОДИНАКОВЫХ товара.
+  /// Там разбор честно возвращается к правилу вместо выдуманного решения
+  /// (замер и список — `test/goods_solver_test.dart`).
+  ///
   /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
   String get _title => 'Сортировка товаров';
 
-  GoodsBoard? _lessonMove() {
-    final board = _board;
-    final level = _level;
-    if (board == null || level == null) return null;
-    GoodsBoard? any;
-    for (var from = 0; from < board.cells.length; from += 1) {
-      if (board.isEmptyAt(from)) continue;
-      final type = board.cells[from].last;
-      for (var to = 0; to < board.cells.length; to += 1) {
-        if (to == from || !board.canPlace(to, type, level.strict)) continue;
-        final after = moveTop(board, from, to, level.strict);
-        if (after == null) continue;
-        // Ход, после которого товаров на поле стало меньше, и есть собранная тройка.
-        final was = board.cells.fold<int>(0, (n, c) => n + c.length);
-        final now = after.cells.fold<int>(0, (n, c) => n + c.length);
-        if (now < was) return after;
-        any ??= after;
-      }
-    }
-    return any;
+  /// Положение партии целиком — доска ПЛЮС препятствия и примёрзший ряд. Именно
+  /// его видит решатель, иначе он проложил бы путь сквозь запертую нишу.
+  GoodsPlay get _play => GoodsPlay(
+        level: _level!,
+        board: _board!,
+        obstacles: _obstacles,
+        frozenRow: _frozenRow,
+        frozenType: _frozenType,
+      );
+
+  /// ЗАЧЕМ ЭТОТ ХОД. Причина берётся ЗАМЕРОМ доски до и после, а не положением
+  /// шага в пути: «третий такой же» и «освободили нишу» — разные уроки, и
+  /// раздать их по счётчику значило бы называть ход наугад.
+  ///
+  /// 🔴 СЛОВАРЬ ЗОВЁТСЯ ЗДЕСЬ, ЛИТЕРАЛОМ, А КЛЮЧ НЕ УЕЗЖАЕТ В `techniqueKey`.
+  /// Причина не в красоте: словарь нативных экранов СОБИРАЕТСЯ вырезкой из
+  /// веб-словаря по вхождениям `L.t('…')`/`L.f('…')` в исходнике
+  /// (`tools/embed-l10n.mjs`). Ключ, отданный полем шага или собранный
+  /// переменной, в вырезку не попадает — а `L.t` на промахе возвращает САМ КЛЮЧ
+  /// и ничего не ломает. Замер 24.09.2026: из пяти новых ключей разбора в
+  /// словарь попал ровно один — тот, что зовётся через `L.t`; остальные четыре
+  /// человек увидел бы как «teachGoodsWhyTriple» вместо объяснения.
+  String _why(GoodsPlay before, GoodsMove m, GoodsPlay after) {
+    int goods(GoodsPlay p) => p.board.cells.fold<int>(0, (n, c) => n + c.length);
+    if (goods(after) < goods(before)) return L.t('teachGoodsWhyTriple');
+    if (after.board.cells[m.from].isEmpty) return L.t('teachGoodsWhyFree');
+    if (before.board.cells[m.to].isNotEmpty) return L.t('teachGoodsWhyStack');
+    return L.t('teachGoodsWhyRoom');
   }
 
   Future<void> _openLesson() async {
     final level = _level;
-    final board = _board;
-    if (level == null || board == null) return;
-    final after = _lessonMove();
+    if (level == null || _board == null) return;
+    final start = _play;
+    final solve = solveStrict(start);
+
+    // Первый шаг — само правило: без него путь выглядит набором перекладываний.
     final steps = <LessonStep>[
-      LessonStep(text: L.t('teachGoodsTriple'), payload: board),
-      if (after != null) LessonStep(text: L.t('teachGoodsFree'), payload: after),
-      LessonStep(text: L.t('teachGoodsCap'), payload: after ?? board),
+      LessonStep(text: L.t('teachGoodsTriple'), payload: start),
     ];
+    if (solve.solvable) {
+      var play = start;
+      for (final m in solve.path) {
+        final next = play.moveTopOf(m.from, m.to);
+        // Договор нарушен — короткий разбор честнее ложного.
+        if (next == null) break;
+        steps.add(LessonStep(text: _why(play, m, next), payload: next));
+        play = next;
+      }
+    } else {
+      steps
+        ..add(LessonStep(text: L.t('teachGoodsNoPath'), payload: start))
+        ..add(LessonStep(text: L.t('teachGoodsFree'), payload: start))
+        ..add(LessonStep(text: L.t('teachGoodsCap'), payload: start));
+    }
+
+    if (!mounted) return;
     LessonUsed.mark();
     await Navigator.of(context).push(MaterialPageRoute<void>(
       builder: (_) => LessonPlayerScreen(
         title: _title,
         steps: steps,
-        board: (context, side, shown) => GoodsField(
-          level: level,
-          board: steps[shown.clamp(0, steps.length - 1)].payload! as GoodsBoard,
-          fieldHeight: side,
-          shelf: shelfForProfile(widget.state.activeProfile),
-          obstacles: _obstacles,
-          covered: _covered,
-          frozenRow: _frozenRow,
-          selection: null,
-          canDrop: (_, _) => false,
-          onPickItem: (_) {},
-          onTapNiche: (_) {},
-          onDrop: (_, _) {},
-        ),
+        board: (context, side, shown) {
+          final at = steps[shown.clamp(0, steps.length - 1)].payload! as GoodsPlay;
+          return GoodsField(
+            level: level,
+            board: at.board,
+            fieldHeight: side,
+            shelf: shelfForProfile(widget.state.activeProfile),
+            // Препятствия и оттепель берутся ИЗ ШАГА, а не с экрана: замок по
+            // ходу разбора стареет, заслон снимается тройкой, и доска, на которой
+            // они застыли, показывала бы ход в нишу, закрытую только на картинке.
+            obstacles: at.obstacles,
+            covered: const {},
+            frozenRow: at.frozenRow,
+            selection: null,
+            canDrop: (_, _) => false,
+            onPickItem: (_) {},
+            onTapNiche: (_) {},
+            onDrop: (_, _) {},
+          );
+        },
       ),
     ));
   }
