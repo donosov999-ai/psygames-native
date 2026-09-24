@@ -5,6 +5,9 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_preset.dart';
+import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -314,6 +317,74 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     }
   }
 
+  /// 🔴 РАЗБОР ТОВАРОВ: ПРАВИЛО ПЛЮС ОДИН ХОД НА ЭТОЙ ЖЕ ДОСКЕ.
+  ///
+  /// Полного пути здесь не показать честно: перебор у товаров стоит секунды
+  /// (замер веб-решателя: бюджет 20 000 узлов — 470 мс, 120 000 — 1,8 с), и
+  /// гонять его на телефоне ради ролика нельзя. Зато ход, СОБИРАЮЩИЙ тройку,
+  /// ищется одним проходом по парам ниш — и именно он показывает правило в деле.
+  ///
+  /// ⚠️ Законность хода проверяет `canPlace` самой игры, со строгостью УРОВНЯ:
+  /// на строгих уровнях товар кладётся только к своему виду, и разбор, забывший
+  /// про это, показал бы ход, который у человека не сработает.
+  /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
+  String get _title => 'Сортировка товаров';
+
+  GoodsBoard? _lessonMove() {
+    final board = _board;
+    final level = _level;
+    if (board == null || level == null) return null;
+    GoodsBoard? any;
+    for (var from = 0; from < board.cells.length; from += 1) {
+      if (board.isEmptyAt(from)) continue;
+      final type = board.cells[from].last;
+      for (var to = 0; to < board.cells.length; to += 1) {
+        if (to == from || !board.canPlace(to, type, level.strict)) continue;
+        final after = moveTop(board, from, to, level.strict);
+        if (after == null) continue;
+        // Ход, после которого товаров на поле стало меньше, и есть собранная тройка.
+        final was = board.cells.fold<int>(0, (n, c) => n + c.length);
+        final now = after.cells.fold<int>(0, (n, c) => n + c.length);
+        if (now < was) return after;
+        any ??= after;
+      }
+    }
+    return any;
+  }
+
+  Future<void> _openLesson() async {
+    final level = _level;
+    final board = _board;
+    if (level == null || board == null) return;
+    final after = _lessonMove();
+    final steps = <LessonStep>[
+      LessonStep(text: L.t('teachGoodsTriple'), payload: board),
+      if (after != null) LessonStep(text: L.t('teachGoodsFree'), payload: after),
+      LessonStep(text: L.t('teachGoodsCap'), payload: after ?? board),
+    ];
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _title,
+        steps: steps,
+        board: (context, side, shown) => GoodsField(
+          level: level,
+          board: steps[shown.clamp(0, steps.length - 1)].payload! as GoodsBoard,
+          fieldHeight: side,
+          shelf: shelfForProfile(widget.state.activeProfile),
+          obstacles: _obstacles,
+          covered: _covered,
+          frozenRow: _frozenRow,
+          selection: null,
+          canDrop: (_, _) => false,
+          onPickItem: (_) {},
+          onTapNiche: (_) {},
+          onDrop: (_, _) {},
+        ),
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final level = _level;
@@ -323,7 +394,8 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     }
     final progress = goalProgress(board.cells, level.goal);
     return GameShell(
-      title: 'Сортировка товаров',
+      title: _title,
+      onLesson: _board == null ? null : _openLesson,
       hud: [
         // Счётчик уровня при шаге зарядки скрыт: шаг лестницу не двигает
         // (правило каркаса), и число рядом с партией читалось бы как обещание

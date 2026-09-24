@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -205,6 +208,60 @@ class _MahjongScreenState extends State<MahjongScreen> {
     }
   }
 
+  /// 🔴 РАЗБОР МАДЖОНГА ПОКАЗЫВАЕТ ПАРУ НА ЭТОЙ ЖЕ ДОСКЕ, А НЕ НА ПРИДУМАННОЙ.
+  ///
+  /// Правило свободы («сверху ничего и свободен бок») словами понятно, а глазами
+  /// на завале — нет. Поэтому второй шаг подсвечивает конкретную пару, которую
+  /// можно снять прямо сейчас: её ищет тот же `isFree`, которым ходит игра.
+  /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
+  String get _title => 'Маджонг';
+
+  List<int>? _freePair() {
+    final free = freeFlags(_tiles, _alive);
+    final seen = <int, int>{};
+    // Пара из ВЕРХНЕГО слоя полезнее: каждая верхняя плитка держит нижние.
+    final order = [for (var i = 0; i < _tiles.length; i += 1) i]
+      ..sort((x, y) => _tiles[y].layer.compareTo(_tiles[x].layer));
+    for (final i in order) {
+      if (!_alive[i] || !free[i]) continue;
+      final twin = seen[_tiles[i].symbol];
+      if (twin != null) return [twin, i];
+      seen[_tiles[i].symbol] = i;
+    }
+    return null;
+  }
+
+  Future<void> _openLesson() async {
+    final pair = _freePair();
+    final steps = <LessonStep>[
+      LessonStep(text: L.t('teachMahjongFree'), payload: const <int>[]),
+      if (pair != null) LessonStep(text: L.t('teachMahjongPair'), payload: pair),
+      LessonStep(text: L.t('teachMahjongCount'), payload: const <int>[]),
+    ];
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _title,
+        steps: steps,
+        board: (context, side, shown) {
+          final mark = steps[shown.clamp(0, steps.length - 1)].payload! as List<int>;
+          return MahjongBoard(
+            tiles: _tiles,
+            alive: _alive,
+            selected: mark.isEmpty ? null : mark.first,
+            // Вторая плитка пары подсвечивается тем же способом, которым игра
+            // показывает «кто держит»: свой цвет ради разбора заводить незачем.
+            blockers: mark.length > 1 ? [mark[1]] : const [],
+            hidden: false,
+            won: false,
+            height: side,
+            onTap: (_) {},
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_layouts == null || _tiles.isEmpty) {
@@ -212,7 +269,8 @@ class _MahjongScreenState extends State<MahjongScreen> {
     }
     final left = shufflesLeft(_cfg.shuffles, _shufflesUsed);
     return GameShell(
-      title: 'Маджонг',
+      title: _title,
+      onLesson: _tiles.isEmpty ? null : _openLesson,
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
@@ -224,7 +282,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
           icon: Icons.shuffle,
         ),
       ],
-      field: (context, h) => _Board(
+      field: (context, h) => MahjongBoard(
         tiles: _tiles,
         alive: _alive,
         selected: _selected,
@@ -275,8 +333,9 @@ class _MahjongScreenState extends State<MahjongScreen> {
 }
 
 /// Доска: плитки лежат стопками, поэтому рисуются слоями снизу вверх.
-class _Board extends StatelessWidget {
-  const _Board({
+class MahjongBoard extends StatelessWidget {
+  const MahjongBoard({
+    super.key,
     required this.tiles,
     required this.alive,
     required this.selected,

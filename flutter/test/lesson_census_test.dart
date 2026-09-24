@@ -23,7 +23,7 @@ void main() {
 
   /// 🔴 КТО УЖЕ УЧИТ — ПОИМЁННО. Список только растёт: игра, у которой разбор
   /// однажды появился, потерять его молча не может. Счёт по цели «разбор у всех
-  /// игр» на 24.09.2026: 47 наших адресов из 50 + 37 режимов Тэтхэма (их считает
+  /// игр» на 24.09.2026: 50 наших адресов из 50 + 37 режимов Тэтхэма (их считает
   /// `lesson_from_solver_test.dart`). Осталось трое: маджонг, товары и «Лица и
 /// имена» — им нужен не показ правила, а свой решатель или описание черты.
   const mustTeach = <String>[
@@ -74,6 +74,9 @@ void main() {
     '/games/cpt',
     '/games/proofreading',
     '/games/word-pairs',
+    '/games/mahjong',
+    '/games/goods-sort',
+    '/games/faces-names',
   ];
 
 
@@ -119,6 +122,11 @@ void main() {
 
     final lost = mustTeach.where(no.contains).toList();
     expect(lost, isEmpty, reason: 'разбор пропал у: ${lost.join(', ')}');
+
+    // 🔴 ЦЕЛЬ ВЗЯТА 24.09.2026: учат ВСЕ. Поэтому проба требует уже не «не меньше
+    // прежнего», а ПУСТОЙ остаток: новый экран без разбора красит гейт сразу, а
+    // не ждёт, пока кто-нибудь вспомнит дописать его в список.
+    expect(no, isEmpty, reason: 'без разбора остались: ${no.join(', ')}');
     expect(has.length, greaterThanOrEqualTo(mustTeach.length),
         reason: 'учат ${has.length} из ${has.length + no.length}, а список требует ${mustTeach.length}');
 

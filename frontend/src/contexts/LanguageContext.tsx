@@ -1079,6 +1079,30 @@ const translations: Translations = {
   teachPatternPeriod: { ru: 'Сначала проверьте ПОВТОР: не идёт ли кусок по кругу. Если нет — смотрите на РАЗНОСТИ соседних чисел, и только потом на разность разностей.', en: 'First check for REPETITION: does a block come round again? If not, look at the DIFFERENCES between neighbours, and only then at the differences of those.' },
   teachRotationAnchor: { ru: 'Не вращайте фигуру целиком — выберите ОДНУ примету (хвост, выступ, угол) и следите, куда она уходит при повороте. Сравнивать одну точку быстрее, чем весь силуэт.', en: 'Do not rotate the whole figure — pick ONE landmark (a tail, a notch, a corner) and watch where it goes. Comparing one point is faster than a whole outline.' },
   teachSliderAnchor: { ru: 'Ставьте метку не от края, а от ОПОР: середина шкалы, четверти, десятые. Прикидка «чуть правее трети» точнее, чем попытка отмерить абсолютное расстояние.', en: 'Place the mark from ANCHORS, not from the edge: the midpoint, the quarters, the tenths. “Just past a third” is more accurate than trying to measure an absolute distance.' },
+  /* 🎓 РАЗБОР МАДЖОНГА: правило свободы и порядок разбора завала. */
+  teachMahjongFree: { ru: 'Плитка свободна, если сверху её ничто не накрывает И свободен хотя бы один бок — левый или правый. Ни цвет, ни слой сами по себе ни при чём.', en: 'A tile is free when nothing covers it from above AND at least one side — left or right — is clear. Neither colour nor layer matters by itself.' },
+  teachMahjongPair: { ru: 'Вот пара, которую можно снять сейчас. Снимайте сперва ВЕРХНИЕ плитки: каждая из них держит нижние, и, убрав её, вы открываете сразу несколько ходов.', en: 'Here is a pair you can take right now. Take the UPPER tiles first: each of them holds the ones below, and removing it opens several moves at once.' },
+  teachMahjongCount: { ru: 'Когда одинаковых свободных плиток четыре, снимайте любую пару. Когда две — сперва посмотрите, не откроет ли другая пара больше: снятая не вернётся.', en: 'With four identical free tiles, take any pair. With only two, first check whether another pair opens more: what you remove does not come back.' },
+  /* 🎓 РАЗБОР СОРТИРОВКИ ТОВАРОВ: три одинаковых, ёмкость ниши и порядок разбора. */
+  teachGoodsTriple: { ru: 'Исчезают ТРИ одинаковых товара в одной нише — не два и не пара из разных ниш. Каждый ход — это перенос товара в нишу, где он будет третьим.', en: 'THREE identical goods in one niche disappear — not two, and not a pair from different niches. Every move brings a good to a niche where it will be the third.' },
+  teachGoodsCap: { ru: 'С восемнадцатого уровня ниши разной ёмкости: есть на два и на четыре. В нишу на два третий товар не влезет, а в нише на четыре тройка собирается и остаётся место — смотрите на ёмкость, а не на вид ниши.', en: 'From level eighteen the niches differ in size: some hold two, some hold four. A third good will not fit a two-slot niche, while a four-slot one keeps a free space after a triple — read the capacity, not the look.' },
+  teachGoodsFree: { ru: 'Освобождайте нишу ЦЕЛИКОМ. Полупустые ниши забивают поле: ходов формально много, а собрать тройку негде.', en: 'Clear a niche COMPLETELY. Half-empty niches choke the board: there are moves aplenty, yet nowhere to build a triple.' },
+  /*
+   * 🎓 ЧЕРТА ЛИЦА ДЛЯ РАЗБОРА «ЛИЦ И ИМЁН». Черта берётся из САМОГО портрета и притом та,
+   * что ОТЛИЧАЕТ его от соседних лиц раунда: сказать «у неё тёмные волосы», когда тёмные у
+   * троих, — значит дать зацепку, которая на опросе не сработает.
+   */
+  teachFacesNoFeature: { ru: 'отличить по одной черте тут нечем — держитесь за имя и факт', en: 'no single feature sets this one apart — hold on to the name and the fact' },
+  faceFeatureGlasses: { ru: 'единственный в очках', en: 'the only one wearing glasses' },
+  faceFeatureNoGlasses: { ru: 'единственный без очков', en: 'the only one without glasses' },
+  faceShapeRound: { ru: 'круглое лицо', en: 'a round face' },
+  faceShapeOval: { ru: 'овальное лицо', en: 'an oval face' },
+  faceShapeLong: { ru: 'вытянутое лицо', en: 'a long face' },
+  faceShapeAngular: { ru: 'угловатое лицо', en: 'an angular face' },
+  faceHairCrop: { ru: 'короткая стрижка', en: 'a short crop' },
+  faceHairParted: { ru: 'волосы на пробор', en: 'hair with a parting' },
+  faceHairWave: { ru: 'волнистые волосы', en: 'wavy hair' },
+  faceHairCurve: { ru: 'волосы с изгибом набок', en: 'hair swept to one side' },
   teachRow: { ru: 'Строка {n}', en: 'Row {n}' },
   teachCol: { ru: 'Столбец {n}', en: 'Column {n}' },
   /*
