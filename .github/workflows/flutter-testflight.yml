@@ -235,9 +235,15 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
-          python3 -m pip install --quiet --disable-pip-version-check pyjwt cryptography
+          # ⚠️ ОТДЕЛЬНОЕ ОКРУЖЕНИЕ, А НЕ `pip install` В СИСТЕМНЫЙ PYTHON. На раннере
+          # macOS python3 из Homebrew, и он отбивает установку с
+          # `error: externally-managed-environment` (PEP 668). Прогон 35913577125:
+          # сборка 2.55.5 залилась, а шаг раздачи упал здесь — версия осталась
+          # невидимой для тестировщиков, и отдавать её пришлось руками.
+          python3 -m venv "$RUNNER_TEMP/tfenv"
+          "$RUNNER_TEMP/tfenv/bin/pip" install --quiet --disable-pip-version-check pyjwt cryptography
           export APPLE_API_KEY_FILE=~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
-          python3 flutter/tool/testflight_assign.py "${{ inputs.version }}" "${{ github.run_number }}"
+          "$RUNNER_TEMP/tfenv/bin/python" flutter/tool/testflight_assign.py "${{ inputs.version }}" "${{ github.run_number }}"
 
       - uses: actions/upload-artifact@v4
         if: always()

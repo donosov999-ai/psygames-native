@@ -37,7 +37,12 @@ import 'shared_state.dart';
 /// человек наиграл уже в гибриде.
 class LegacyImport {
   /// Ключ-отметка: перенос отрабатывает один раз, даже если ничего не нашёл.
-  static const doneKey = 'psygames_legacy_import_v1';
+  ///
+  /// ⚠️ НОМЕР В КЛЮЧЕ — НЕ УКРАШЕНИЕ. Отметка `_v1` уже проставлена на телефонах,
+  /// где перенос ОТКАЗАЛСЯ по слишком строгому условию (сборка 2.55.5: «в памяти
+  /// есть свои ключи» → пропуск). Оставь номер прежним — починка до тех телефонов
+  /// не доедет никогда, потому что отметка стоит. Поменял поведение — подними номер.
+  static const doneKey = 'psygames_legacy_import_v2';
 
   /// Итог последнего переноса — МАШИННОЙ строкой, а не фразой.
   ///
@@ -53,11 +58,6 @@ class LegacyImport {
   /// Возвращает число перенесённых ключей; −1 — «не требовалось».
   static Future<int> seedIfEmpty(SharedState state, {Directory? libraryDir}) async {
     if (state.get(doneKey) != null) return -1;
-    final mine = state.snapshot();
-    if (mine.isNotEmpty) {
-      await state.set(doneKey, 'skip own=${mine.length}');
-      return -1;
-    }
     try {
       final files = await _storageFiles(libraryDir);
       if (files.isEmpty) {
@@ -66,19 +66,31 @@ class LegacyImport {
         return 0;
       }
       var taken = 0;
+      var skipped = 0;
       final from = <String>[];
       for (final f in files) {
         final pairs = _readItemTable(f);
         var here = 0;
         for (final e in pairs.entries) {
           if (!SharedState.owns(e.key)) continue;
+          // 🔴 ТОЛЬКО ОТСУТСТВУЮЩЕЕ. Прежняя редакция отказывалась целиком, если в
+          // общей памяти был ХОТЬ ОДИН ключ `psygames_*`, — и это отменило перенос у
+          // Дениса: 2.55.4 без переноса один раз открылась, веб-часть записала свои
+          // служебные ключи (язык, профиль, заготовку питомца), и свежая установка
+          // стала выглядеть как «у него уже есть прогресс». Правильная мера — не
+          // «пусто ли всё», а «есть ли ИМЕННО ЭТОТ ключ»: чужое не затирается, своё
+          // не мешает.
+          if (state.get(e.key) != null) {
+            skipped++;
+            continue;
+          }
           await state.set(e.key, e.value);
           here++;
         }
         if (here > 0) from.add('${f.path.split('/').last}:$here');
         taken += here;
       }
-      lastReport = 'files=${files.length} keys=$taken'
+      lastReport = 'files=${files.length} keys=$taken kept=$skipped'
           '${from.isEmpty ? '' : ' from=${from.join(',')}'}';
       await state.set(doneKey, lastReport!);
       return taken;
