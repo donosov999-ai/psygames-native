@@ -95,13 +95,68 @@ void main() {
     store.deleteSync(recursive: true);
   });
 
-  test('перенос отрабатывает ОДИН раз, даже если ничего не нашёл', () async {
+  test('🔴 ПУСТАЯ ЗАГОТОВКА ЗАМЕНЯЕТСЯ — на ней и потерялась статистика', () async {
+    /*
+     * 📍 Денис 24.09.2026: «статистика пустая по-прежнему». Уровни вернулись, а
+     * история партий — нет. Веб-часть успевает записать `psygames_sessions`
+     * ПУСТЫМ массивом до переноса (первое же чтение журнала пишет его обратно),
+     * и перенос видел «ключ уже есть» — оставляя пустоту вместо 581 партии.
+     *
+     * Наполненное не трогаем ни при каких условиях: наигранное в гибриде дороже.
+     */
+    final store = fakeStore({
+      'psygames_sessions': '[{"id":"1","game_type":"sudoku"},{"id":"2","game_type":"hanoi"}]',
+      'psygames_points_nzt48': '2480',
+      'psygames_sudoku_level_nzt48': '17',
+    });
+    SharedPreferences.setMockInitialValues({
+      'psygames_sessions': '[]',                 // заготовка — обязана замениться
+      'psygames_sudoku_level_nzt48': '3',        // наигранное — обязано устоять
+    });
+    final state = await SharedState.open();
+    final taken = await LegacyImport.seedIfEmpty(state, libraryDir: store);
+
+    expect(taken, 2, reason: 'должны доехать история партий и очки');
+    expect(state.get('psygames_sessions'), contains('"game_type":"sudoku"'),
+        reason: 'пустой массив остался на месте истории — ровно та потеря статистики');
+    expect(state.get('psygames_sudoku_level_nzt48'), '3',
+        reason: 'наигранное в гибриде затирать нельзя');
+    store.deleteSync(recursive: true);
+  });
+
+  test('🔴 пустой заход НЕ последний: отметка ставится только при удаче', () async {
+    /*
+     * 🔴 Одна неудачная попытка запирала перенос навсегда: отметка ставилась и на
+     * нуле, и починка до такого телефона не доезжала уже никогда. Теперь ноль —
+     * это попытка, а не ответ; попытки считаются и кончаются на пятой.
+     */
     final empty = Directory.systemTemp.createTempSync('legacy-empty-');
     final state = await emptyState();
     expect(await LegacyImport.seedIfEmpty(state, libraryDir: empty), 0);
-    expect(state.get(LegacyImport.doneKey), isNotNull, reason: 'отметка обязана остаться');
-    // Второй заход не должен даже смотреть в хранилище.
-    expect(await LegacyImport.seedIfEmpty(state, libraryDir: empty), -1);
+    expect(state.get(LegacyImport.doneKey), isNull,
+        reason: 'на пустом заходе отметка «готово» ставиться не должна');
+    expect(state.get(LegacyImport.triesKey), '1', reason: 'попытка обязана считаться');
+
+    // Следующий запуск ПРОБУЕТ снова — и теперь данные на месте.
+    final store = fakeStore({'psygames_points_nzt48': '2480'});
+    expect(await LegacyImport.seedIfEmpty(state, libraryDir: store), 1,
+        reason: 'вторая попытка обязана забрать прогресс');
+    expect(state.get('psygames_points_nzt48'), '2480');
+    expect(state.get(LegacyImport.doneKey), isNotNull, reason: 'удача — теперь отметка');
+    expect(await LegacyImport.seedIfEmpty(state, libraryDir: store), -1,
+        reason: 'после удачи второй раз не ходим');
+    empty.deleteSync(recursive: true);
+    store.deleteSync(recursive: true);
+  });
+
+  test('пустые заходы не длятся вечно — пятый последний', () async {
+    final empty = Directory.systemTemp.createTempSync('legacy-empty2-');
+    final state = await emptyState();
+    for (var i = 0; i < LegacyImport.maxEmptyTries; i++) {
+      expect(await LegacyImport.seedIfEmpty(state, libraryDir: empty), 0);
+    }
+    expect(await LegacyImport.seedIfEmpty(state, libraryDir: empty), -1,
+        reason: 'обход контейнера на каждом запуске вечно — это расход без толку');
     empty.deleteSync(recursive: true);
   });
 

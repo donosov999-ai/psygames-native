@@ -42,7 +42,18 @@ class LegacyImport {
   /// где перенос ОТКАЗАЛСЯ по слишком строгому условию (сборка 2.55.5: «в памяти
   /// есть свои ключи» → пропуск). Оставь номер прежним — починка до тех телефонов
   /// не доедет никогда, потому что отметка стоит. Поменял поведение — подними номер.
-  static const doneKey = 'psygames_legacy_import_v2';
+  static const doneKey = 'psygames_legacy_import_v3';
+
+  /// Сколько раз пробовать, если перенос НИЧЕГО не нашёл.
+  ///
+  /// 🔴 ОДНА НЕУДАЧНАЯ ПОПЫТКА НЕ ИМЕЕТ ПРАВА БЫТЬ ПОСЛЕДНЕЙ. Отметка ставилась
+  /// даже когда перенос вернул ноль ключей — и починка до такого телефона уже не
+  /// доезжала никогда. Замер 24.09.2026: Денис «статистика пустая по-прежнему»,
+  /// хотя перенос в сборке был. Теперь ноль — это НЕ конец: отметка ставится
+  /// только при удаче, а пустые заходы считаются и прекращаются на пятом (чтобы
+  /// не обходить контейнер на каждом запуске вечно).
+  static const maxEmptyTries = 5;
+  static const triesKey = 'psygames_legacy_import_tries';
 
   /// Итог последнего переноса — МАШИННОЙ строкой, а не фразой.
   ///
@@ -58,11 +69,13 @@ class LegacyImport {
   /// Возвращает число перенесённых ключей; −1 — «не требовалось».
   static Future<int> seedIfEmpty(SharedState state, {Directory? libraryDir}) async {
     if (state.get(doneKey) != null) return -1;
+    final tries = int.tryParse(state.get(triesKey) ?? '0') ?? 0;
+    if (tries >= maxEmptyTries) return -1;
     try {
       final files = await _storageFiles(libraryDir);
       if (files.isEmpty) {
-        lastReport = 'files=0';
-        await state.set(doneKey, lastReport!);
+        lastReport = 'files=0 try=${tries + 1}';
+        await state.set(triesKey, '${tries + 1}');
         return 0;
       }
       var taken = 0;
@@ -80,7 +93,25 @@ class LegacyImport {
           // стала выглядеть как «у него уже есть прогресс». Правильная мера — не
           // «пусто ли всё», а «есть ли ИМЕННО ЭТОТ ключ»: чужое не затирается, своё
           // не мешает.
-          if (state.get(e.key) != null) {
+          /*
+           * 🔴 ПУСТАЯ ЗАГОТОВКА — НЕ «СВОИ ДАННЫЕ», И ИМЕННО НА НЕЙ ПОТЕРЯЛАСЬ
+           * СТАТИСТИКА.
+           *
+           * 📍 Денис 24.09.2026: «статистика пустая по-прежнему». Уровни
+           * вернулись, а история партий — нет. Причина: веб-часть успевает
+           * записать `psygames_sessions` пустым массивом ДО переноса (первое же
+           * чтение журнала пишет его обратно), и перенос честно видит «ключ уже
+           * есть» — и оставляет пустоту вместо 581 партии.
+           *
+           * Поэтому проверяется не наличие ключа, а НАПОЛНЕНИЕ: пустой массив,
+           * пустой объект, пустая строка и ноль — это заготовка, её заменяем.
+           * Всё, где есть содержимое, не трогаем ни при каких условиях.
+           */
+          if (state.get(e.key) != null && !_blank(state.get(e.key)!)) {
+            skipped++;
+            continue;
+          }
+          if (_blank(e.value)) {
             skipped++;
             continue;
           }
@@ -92,7 +123,12 @@ class LegacyImport {
       }
       lastReport = 'files=${files.length} keys=$taken kept=$skipped'
           '${from.isEmpty ? '' : ' from=${from.join(',')}'}';
-      await state.set(doneKey, lastReport!);
+      if (taken > 0) {
+        await state.set(doneKey, lastReport!);
+      } else {
+        // Ничего не взяли — это ещё не ответ: контейнер мог быть не готов.
+        await state.set(triesKey, '${tries + 1}');
+      }
       return taken;
     } catch (e) {
       // ⚠️ Молчать нельзя: «ничего не нашлось» и «упало на чтении» — разные вещи,
@@ -101,6 +137,12 @@ class LegacyImport {
       debugPrint('LegacyImport: $lastReport');
       return 0;
     }
+  }
+
+  /// Пустая заготовка: нечего терять, можно заменить.
+  static bool _blank(String v) {
+    final t = v.trim();
+    return t.isEmpty || t == '[]' || t == '{}' || t == 'null' || t == '0';
   }
 
   /// Файлы `localStorage` WebKit внутри нашего же контейнера.
