@@ -16,6 +16,24 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    version: '2.56.0',
+    date: '2026-09-24',
+    ru: [
+      'Приложение переехало на новый движок: игры открываются заметно быстрее',
+      'Разбор по шагам теперь в КАЖДОЙ игре — показывает решение или объясняет правило',
+      'Судоку, «Пространство», сортировки и игры на реакцию работают нативно, без задержек',
+      'Прогресс прежней версии переносится сам: история партий, очки и уровни',
+      'Кнопка «Правила» у каждой игры, выход и пауза — на своих местах',
+    ],
+    en: [
+      'The app moved to a new engine: games open noticeably faster',
+      'Step-by-step walkthroughs in EVERY game — the solution or the rule explained',
+      'Sudoku, Space, sorting and reaction games now run natively, without lag',
+      'Progress from the previous version carries over: history, points and levels',
+      'A Rules button in every game, with exit and pause where you expect them',
+    ],
+  },
+  {
     version: '2.54.24',
     date: '2026-09-24',
     ru: [
