@@ -28,6 +28,7 @@ class PuzzleMode {
   const PuzzleMode({
     required this.engineName,
     required this.titleKey,
+    this.descKey,
     required this.steps,
     this.digits = false,
     this.digitLabels = const [],
@@ -45,6 +46,21 @@ class PuzzleMode {
 
   /// Название на языке человека.
   String get title => L.t(titleKey);
+
+  /// КЛЮЧ СЛОВАРЯ с правилом «чем ходить» — строка под доской.
+  final String? descKey;
+
+  /// Правило режима на языке человека, либо `null`, если его нет.
+  ///
+  /// ⚠️ ПРОМАХ СЛОВАРЯ МОЛЧАЛИВ: `L.t` при отсутствии ключа возвращает САМ КЛЮЧ,
+  /// а не падает — человек увидел бы на экране `puzzlesBridgesDesc`. Поэтому
+  /// сверяем с ключом и отдаём `null`, чтобы экран показал общую фразу.
+  String? get rule {
+    final k = descKey;
+    if (k == null || k.isEmpty) return null;
+    final t = L.t(k);
+    return (t == k || t.isEmpty) ? null : t;
+  }
 
   /// Какому разделу принадлежит режим — чтобы владелец видел свои и не правил чужие.
   final String? owner;
@@ -103,6 +119,7 @@ class PuzzleModes {
         PuzzleMode(
           engineName: m['engineName'] as String,
           titleKey: m['titleKey'] as String,
+          descKey: m['descKey'] as String?,
           digits: m['digits'] == true,
           digitLabels: ((m['digitLabels'] as List?) ?? const []).cast<String>(),
           digitNames: ((m['digitNames'] as List?) ?? const []).cast<String>(),
