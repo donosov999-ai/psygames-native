@@ -35,20 +35,39 @@ WAIT_SECONDS = 20 * 60          # обработка на стороне Apple �
 POLL_SECONDS = 30
 
 
+_TOKEN = {'value': None, 'born': 0.0}
+
+
 def token() -> str:
+    """Пропуск к App Store Connect, живой на ЭТОТ вызов.
+
+    🔴 ПОЧЕМУ НЕ ОДИН НА ВЕСЬ ЗАПУСК. Apple разрешает жизнь пропуска не больше
+    двадцати минут, а скрипт ЖДЁТ, пока Apple доварит сборку, — это десятки
+    минут. Замер 24.09.2026: 2.55.13 собралась и залилась, а последний шаг
+    «раздать группе» упал с `HTTP Error 401: Unauthorized` — пропуск, выписанный
+    в начале запуска, к моменту раздачи протух. Сборка при этом лежит в
+    TestFlight и НЕ РОЗДАНА: человек её не видит, а прогон выглядит почти
+    успешным.
+
+    Поэтому пропуск выписывается заново, когда ему больше десяти минут.
+    """
     import jwt                                        # ставится шагом прогона
+    if _TOKEN['value'] and time.time() - _TOKEN['born'] < 600:
+        return _TOKEN['value']
     key_id = os.environ['APPLE_API_KEY_ID']
     issuer = os.environ['APPLE_API_ISSUER']
     key_file = os.environ['APPLE_API_KEY_FILE']
     with open(key_file) as f:
         key = f.read()
-    return jwt.encode(
+    _TOKEN['value'] = jwt.encode(
         {'iss': issuer, 'exp': int(time.time()) + 900, 'aud': 'appstoreconnect-v1'},
         key, algorithm='ES256', headers={'kid': key_id, 'typ': 'JWT'})
+    _TOKEN['born'] = time.time()
+    return _TOKEN['value']
 
 
 def call(method: str, path: str, body=None):
-    head = {'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json'}
+    head = {'Authorization': 'Bearer ' + token(), 'Content-Type': 'application/json'}
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(BASE + path, data=data, headers=head, method=method)
     with urllib.request.urlopen(req) as r:
@@ -128,5 +147,4 @@ def main() -> int:
 
 
 if __name__ == '__main__':
-    TOKEN = token()
     sys.exit(main())
