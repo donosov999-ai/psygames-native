@@ -305,7 +305,7 @@ export default function TargetsGame() {
     }, ms);
   };
 
-  useEffect(() => () => { stoppedRef.current = true; clearAllTimers(); }, []);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => { stoppedRef.current = true; clearAllTimers(); }, []);    
 
   const getLifeBonus = (lvl: number): number => {
     if (lvl <= 3) return 1;

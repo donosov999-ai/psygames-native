@@ -515,7 +515,7 @@ export default function ChessBlindGame() {
       return;
     }
     pendingRef.current.forEach((з) => запустить(з, Math.max(0, з.at - gameNow())));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }), []);
 
   const cellSize = Math.floor(Math.min(width - 36, height - 360, 480) / 8);   // 24→36: поле GameShell имеет paddingHorizontal 16×2

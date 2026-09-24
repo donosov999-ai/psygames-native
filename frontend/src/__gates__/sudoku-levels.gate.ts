@@ -120,7 +120,7 @@ describe('гейт: сложность растёт по уровням, а не
       }
       return { lv, variant: cfg.variant, выборка, tier: медиана(выборка) };
     });
-    // eslint-disable-next-line no-console
+     
     console.log('\nсложность по уровням (медиана из ' + ПОВТОРОВ + '):\n'
       + замеры.map((z) => `  L${z.lv} ${z.variant}: [${z.выборка.join(',')}] → ${z.tier}`).join('\n'));
 
@@ -187,7 +187,7 @@ describe('гейт: сложность растёт по уровням, а не
     });
     const плоских = замеры.slice(1).filter((z, i) => z.tier === замеры[i].tier);
     const где = плоских.map((z) => `L${z.lv} ${z.variant}=${z.tier}`).join(' · ');
-    // eslint-disable-next-line no-console
+     
     console.log(`\nплоских шагов: ${плоских.length} из ${замеры.length - 1} — ${где}`);
     expect(`плоских шагов ${плоских.length} (долг ${ДОЛГ_ПЛОСКИХ_ШАГОВ}): ${где}`)
       .toBe(`плоских шагов ${Math.min(плоских.length, ДОЛГ_ПЛОСКИХ_ШАГОВ)} (долг ${ДОЛГ_ПЛОСКИХ_ШАГОВ}): ${где}`);

@@ -78,7 +78,7 @@ function evaluate(src: string): Record<string, any> {
   for (const d of decls) {
     try {
       const keys = Object.keys(scope);
-      // eslint-disable-next-line no-new-func
+       
       scope[d.name] = new Function(...keys, `return (${d.expr});`)(...keys.map((k) => scope[k]));
     } catch { /* выражение опирается на рантайм — пропускаем, ниже это станет провалом */ }
   }

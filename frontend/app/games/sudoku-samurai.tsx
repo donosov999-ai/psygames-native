@@ -1222,7 +1222,7 @@ export default function SamuraiSudokuGame() {
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame());  
 
   const starsFor = (e: number, h: number): number => (e === 0 && h === 0) ? 3 : (e <= 2 && h <= 1) ? 2 : 1;
 

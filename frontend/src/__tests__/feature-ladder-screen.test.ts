@@ -121,7 +121,7 @@ describe('лестница замков на экране судоку', () => {
     const запертая = r.root.findAll((n: any) => typeof n.props?.accessibilityLabel === 'string'
       && /Unlocks at level 2|Откроется на уровне 2/.test(n.props.accessibilityLabel) && typeof n.props?.onPress === 'function')[0];
     expect(`запертая подсказка найдена: ${!!запертая}`).toBe('запертая подсказка найдена: true');
-    const { DeviceEventEmitter } = require('react-native');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const { DeviceEventEmitter } = require('react-native');   
     const тосты: string[] = [];
     const подписка = DeviceEventEmitter.addListener('psygames:ladder-locked', (d: { text: string }) => тосты.push(d.text));
     await TestRenderer.act(async () => { запертая.props.onPress(); });

@@ -240,7 +240,7 @@ export default function QuickCountGame() {
     // ⚠️ Ждём загрузки уровня. Без этого автостарт («Вызов дня», онбординг) играл
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
-  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame()); // eslint-disable-line react-hooks/exhaustive-deps
+  useAutostartWhenReady(() => autostart && lvl.loaded, () => startGame());  
 
   const [phase, setPhase] = useState<GamePhase>('config')   // описание переехало в сворачиваемый блок «Об игре» (GameAbout);
   const [bossWon, setBossWon] = useState<boolean | null>(null);

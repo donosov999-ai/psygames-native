@@ -261,7 +261,7 @@ export default function WalkingPet() {
       setTimeout(() => { if (alive) { setSprite('idle'); setBubble(null); } }, GREET_SHOW);
     }, 1300);
     return () => { alive = false; clearTimeout(id); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [pathname, active]);
 
   // Ползунок и тумблер в настройках шлют события живьём — питомец меняется

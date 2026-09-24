@@ -1,4 +1,4 @@
-/* psygames-cake-reference-boards · VER 1 · 23.09.2026 */
+/* psygames-cake-sort-reference-boards · VER 2 · 24.09.2026 */
 /**
  * СТОЛЫ ДЛЯ КАЛИБРОВКИ ЭТАЛОНА ХОДОВ — ОДИН ИСТОЧНИК НА ЗАМЕР И НА ПРОБУ.
  *

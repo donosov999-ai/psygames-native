@@ -1,3 +1,4 @@
+/* psygames-cake-sort-record-reference · VER 1 · 24.09.2026 */
 /**
  * @jest-environment node
  */
@@ -43,7 +44,7 @@ describe('замер калибровки эталона', () => {
       budget: 200000,
       boards: замеры,
     }, null, 1)}\n`);
-    // eslint-disable-next-line no-console
+     
     console.log(`замерено за ${секунд} с · столов ${замеры.length} · A* дошёл до дна на ${дошли}`);
 
     expect(замеры.length).toBe(24);

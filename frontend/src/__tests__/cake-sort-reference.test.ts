@@ -42,7 +42,7 @@ const УНАСЛЕДОВАННОЕ = 2.2;
  * ПЕРЕМЕРЯЕТСЯ ЖИВЬЁМ каждый прогон и сверяется с записанным: изменится
  * решатель или правила — расхождение назовёт стол и оба числа.
  */
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+ 
 const КАЛИБРОВКА = require('@/src/games/cake-sort/core/reference-calibration.json') as {
   budget: number;
   boards: { types: number; plates: number; seed: number; min: number | null }[];

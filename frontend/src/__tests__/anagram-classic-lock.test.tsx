@@ -33,7 +33,7 @@ import { WarmupProvider } from '@/src/contexts/WarmupContext';
 // общий мок снимает с самого expo-router — рукописные списки 23.09 и разъехались.
 jest.mock('expo-router', () =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- фабрика jest.mock грузится ДО импортов файла
-  require('./routerMockShared').мокМодуляРоутера({
+  require('../test-helpers/routerMockShared').мокМодуляРоутера({
   путь: '/games/anagrams',
 }));
 
