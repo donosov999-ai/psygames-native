@@ -37,6 +37,7 @@ class TathamEngine {
     _name = _lib.lookupFunction<Pointer<Utf8> Function(Int32), Pointer<Utf8> Function(int)>('psy_name');
     _open = _lib.lookupFunction<Int32 Function(Int32, Pointer<Utf8>, Int32),
         int Function(int, Pointer<Utf8>, int)>('psy_open');
+    _canSolve = _lib.lookupFunction<Int32 Function(Int32), int Function(int)>('psy_can_solve');
     _presets = _lib.lookupFunction<Int32 Function(Int32), int Function(int)>('psy_presets');
     _presetParams = _lib.lookupFunction<Pointer<Utf8> Function(Int32, Int32),
         Pointer<Utf8> Function(int, int)>('psy_preset_params');
@@ -63,6 +64,7 @@ class TathamEngine {
   late final int Function() _count;
   late final Pointer<Utf8> Function(int) _name;
   late final int Function(int, Pointer<Utf8>, int) _open;
+  late final int Function(int) _canSolve;
   late final int Function(int) _presets;
   late final Pointer<Utf8> Function(int, int) _presetParams;
   late final Pointer<Utf8> Function(int, int) _presetName;
@@ -155,6 +157,14 @@ class TathamEngine {
       _free(p);
     }
   }
+
+  /// Умеет ли движок РЕШАТЬ эту игру.
+  ///
+  /// ⚠️ Флаг берётся у самого автора (`game.can_solve`), а не из нашего списка:
+  /// список устаревает молча, флаг — нет. У части коллекции решателя нет по
+  /// устройству игры: у аркад единственного решения не существует, у Mines и Guess
+  /// ответ прячется от игрока намеренно.
+  bool canSolve(int game) => _canSolve(game) != 0;
 
   /// СОБСТВЕННЫЕ СТУПЕНИ ДВИЖКА — меню пресетов автора для игры [game].
   ///
