@@ -121,24 +121,33 @@ void main() {
   /// это не дубль: веб сторожит ГЕНЕРАТОР, а здесь — ФАЙЛ, который реально уехал
   /// в приложение. Между генератором и файлом лежит выгрузка, и она уже теряла
   /// товар молча.
-  test('🔴 невыигрываемых уровней нет ни одного', () {
-    final broken = <int, String>{};
-    var full = 0;
-    for (var lvl = 1; lvl <= 120; lvl += 1) {
-      final p = GoodsPlay.start(set.byLevel(lvl));
-      if (!needsFullClear(p.level)) continue;
-      full += 1;
-      final odd = oddTypes(p);
-      if (odd.isNotEmpty) {
-        broken[lvl] = odd.map((e) => 'вид ${e.key}×${e.value}').join(', ');
+  test('🔴 невыигрываемых уровней нет ни одного — на ОБЕИХ лестницах', () {
+    // ⚠️ ЛЕСТНИЦ В ВЫГРУЗКЕ ДВЕ, И ЭТО РАЗНЫЕ УРОВНИ. Узкую (`levels`) играет
+    // телефон, широкую (`wide`) — экран от 560 px. Проверить одну значит
+    // отчитаться за половину: 24.09.2026 битых было семь на узкой и ВОСЕМЬ на
+    // широкой, и списки не совпадали.
+    final raw = File('assets/levels/goods_sort.json').readAsStringSync();
+    for (final ladderKind in [(390.0, 'узкая'), (800.0, 'широкая')]) {
+      final ladder = GoodsLevelSet.fromJsonString(raw, width: ladderKind.$1);
+      final broken = <int, String>{};
+      var full = 0;
+      for (var lvl = 1; lvl <= 120; lvl += 1) {
+        final p = GoodsPlay.start(ladder.byLevel(lvl));
+        if (!needsFullClear(p.level)) continue;
+        full += 1;
+        final odd = oddTypes(p);
+        if (odd.isNotEmpty) {
+          broken[lvl] = odd.map((e) => 'вид ${e.key}×${e.value}').join(', ');
+        }
       }
+      // ignore: avoid_print
+      print('НЕВЫИГРЫВАЕМЫХ УРОВНЕЙ (${ladderKind.$2} лестница): ${broken.length} из $full'
+          '${broken.isEmpty ? '' : ' · ${broken.entries.map((e) => 'L${e.key} (${e.value})').join(' · ')}'}');
+      expect(broken, isEmpty,
+          reason: '${ladderKind.$2} лестница: снова есть уровни, которые нельзя выиграть: $broken');
+      expect(full, greaterThan(50),
+          reason: '${ladderKind.$2}: целей «разобрать всё» осталось $full — состав лестницы изменился');
     }
-    // ignore: avoid_print
-    print('НЕВЫИГРЫВАЕМЫХ УРОВНЕЙ: ${broken.length} из $full'
-        '${broken.isEmpty ? '' : ' · ${broken.entries.map((e) => 'L${e.key} (${e.value})').join(' · ')}'}');
-    expect(broken, isEmpty,
-        reason: 'в выгрузке снова есть уровни, которые нельзя выиграть: $broken');
-    expect(full, 62, reason: 'состав лестницы изменился — замер надо переснять');
   });
 
   test('🔴 препятствия ЖИВУТ: замок тикает по ходам, заслон снимается тройкой', () {
