@@ -15,6 +15,9 @@ import 'generator/pool.dart';
 import 'generator/shadow.dart';
 import 'generator/store.dart';
 import 'levels.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
+import 'lesson.dart';
 import 'mode_board.dart';
 import 'modes.dart';
 
@@ -353,6 +356,90 @@ class _SudokuScreenState extends State<SudokuScreen> {
     unawaited(_ladder.win());
   }
 
+  /// 🔴 РАЗБОР СУДОКУ: ПОЧЕМУ ЭТА ЦИФРА, А НЕ «ВОТ ОТВЕТ».
+  ///
+  /// Шаги считает `sudokuLessonSteps`; экран отвечает за два: собрать текст приёма
+  /// из своего словаря (у приёмов подстановки — ключом их не передать) и нарисовать
+  /// доску СВОИМ же виджетом, чтобы разбор выглядел как партия.
+  ///
+  /// ⚠️ Разбор идёт от НЫНЕШНЕЙ доски, а не от начальной: человек жмёт кнопку,
+  /// когда застрял, и объяснять ему первые десять ходов, которые он уже сделал,
+  /// значит потерять его на первом же шаге.
+  String _teachText(String key, Map<String, String> args) {
+    var out = switch (key) {
+      'teachSudokuNaked' => L.t('teachSudokuNaked'),
+      'teachSudokuHiddenRow' => L.t('teachSudokuHiddenRow'),
+      'teachSudokuHiddenCol' => L.t('teachSudokuHiddenCol'),
+      _ => L.t('teachSudokuPlain'),
+    };
+    for (final e in args.entries) {
+      out = out.replaceAll('{${e.key}}', e.value);
+    }
+    return out;
+  }
+
+  /// Заголовок один на экран и на разбор: вторая строка стала бы вторым долгом
+  /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
+  String get _title => widget.mode == null ? 'Судоку' : L.t('teachTitle');
+
+  List<LessonStep> _lessonSteps() {
+    final solution = _solution;
+    if (solution == null || _grid.isEmpty) return const [];
+    final board = _board;
+    final side = _sideBoard;
+    return sudokuLessonSteps(
+      say: _teachText,
+      grid: _grid,
+      solution: solution,
+      n: _n,
+      br: side?.br ?? board?.br ?? 3,
+      bc: side?.bc ?? board?.bc ?? 3,
+    );
+  }
+
+  Future<void> _openLesson() async {
+    final steps = _lessonSteps();
+    if (steps.isEmpty) return;
+    LessonUsed.mark();
+    final board = _board;
+    final side = _sideBoard;
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _title,
+        steps: steps,
+        board: (context, sideLen, shown) {
+          final i = shown.clamp(0, steps.length - 1);
+          final m = steps[i].payload as SudokuMove;
+          final marks = [for (var r = 0; r < _n; r += 1) List<int>.filled(_n, 0)];
+          final colors = [for (var r = 0; r < _n; r += 1) List<int>.filled(_n, 0)];
+          if (widget.mode != null && side != null) {
+            return ModeBoard(
+              board: side,
+              mode: widget.mode!,
+              grid: m.grid,
+              given: _given,
+              marks: marks,
+              colors: colors,
+              selected: (r: m.r, c: m.c),
+              height: sideLen,
+              onTap: (_, _) {},
+            );
+          }
+          return SudokuBoardView(
+            board: board!,
+            grid: m.grid,
+            given: _given,
+            marks: marks,
+            colors: colors,
+            selected: (r: m.r, c: m.c),
+            height: sideLen,
+            onTap: (_, _) {},
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final levels = _levels;
@@ -364,7 +451,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
         : (cfg != null && cfg.variant != 'none' ? variantTitle(cfg.variant) : null);
 
     return GameShell(
-      title: 'Судоку',
+      title: _title,
+      onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
         // ⚠️ Подпись одна и та же на оба случая: новая строка в коде — это новый долг
         // храповика подписей, а «Уровень» уже переведён на двенадцать языков.
@@ -396,7 +484,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
             onTap: _select,
           );
         }
-        return _Board(
+        return SudokuBoardView(
           board: board!,
           grid: _grid,
           given: _given,
@@ -501,8 +589,9 @@ String variantTitle(String variant) => switch (variant) {
     };
 
 /// Доска: квадрат внутри высоты, которую дал каркас.
-class _Board extends StatelessWidget {
-  const _Board({
+class SudokuBoardView extends StatelessWidget {
+  const SudokuBoardView({
+    super.key,
     required this.board,
     required this.grid,
     required this.given,
