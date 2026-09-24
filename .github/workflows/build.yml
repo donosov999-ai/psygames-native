@@ -221,27 +221,31 @@ jobs:
   unit-tests:
     name: Юнит-пробы (jest, ${{ matrix.label }})
     runs-on: ubuntu-latest
-    # 🔴 ТЯЖЁЛЫЕ ПРОБЫ — СВОИМИ ДВУМЯ ДЖОБАМИ, А НЕ ВНУТРИ ОСКОЛКОВ (17.09.2026).
+    # ✅ ОБХОД ТЯЖЁЛЫХ ПРОБ СНЯТ 24.09.2026 — ПРИЧИНА УСТРАНЕНА В ИСХОДНИКЕ (задача af4c7ff1).
     #
-    # После вливания sorting/on-main (правило тортов «ход любым куском» расширило перебор
-    # решателя) пробы тортов на CI пошли в 3–4 раза дольше. Замер прогонов 7aff5f00 → 54d87ef7:
-    #   cake-sort-levels          302 → 1267 с
-    #   cake-sort-uses-prebuilt   233 →  909 с
-    #   cake-sort-reference         — →  346 с
-    #   water-sort-ladder          86 →  211 с
-    #   cake-sort-hint            312 → не уложилась
-    # Осколок 3 дважды отменён по лимиту (30 и 45 минут): 157 проб из 159 закончились за
-    # 23 минуты, cake-sort-hint и mahjong-human-stuck — нет. Отмена выглядит как `cancelled`,
-    # упавших проб при этом нет.
-    # Поднимать лимит дальше значило бы держать каждую заливку в main больше часа. Поэтому
-    # семь самых долгих проб вынесены из осколков и гоняются двумя отдельными джобами
-    # параллельно. Все они по-прежнему блокируют выпуск: это та же матрица `unit-tests`.
-    # Когда раздел «Сортировка» вернёт пробам тортов прежнее время (решаемость уровней можно
-    # доказывать проигрышем записанной партии `path`, а не новым поиском), их можно вернуть
-    # в осколки.
+    # Обход завели 17.09.2026, когда правило тортов «ход любым куском» расширило перебор
+    # решателя и семь проб перестали укладываться в осколки: cake-sort-levels 302 → 1267 с,
+    # cake-sort-uses-prebuilt 233 → 909 с, cake-sort-reference 346 с, water-sort-ladder
+    # 86 → 211 с, cake-sort-hint не уложилась вовсе. Осколок 3 дважды отменялся по лимиту.
+    #
+    # 🔴 ЧИНИЛСЯ НЕ ЛИМИТ, А ПРИЧИНА: пробы ДОКАЗЫВАЛИ решаемость новым поиском на каждом
+    # прогоне, а цена поиска растёт с ветвлением (замер 23.09 на бюджете 20000: L1 — 119 мс,
+    # L5 — 4,2 с, L10 — 25,0 с, L20 — больше минуты). Теперь путь ищется ОДИН РАЗ офлайн
+    # (`src/games/cake-sort/tools/record-solutions.gen.ts` → `core/solutions.json`, 96 КБ),
+    # а пробы его ПРОИГРЫВАЮТ. Калибровка эталона звёзд тоже снята офлайн
+    # (`tools/record-reference.gen.ts` → `core/reference-calibration.json`), и проба сверяет
+    # с записанным, живьём перемеряя выборку столов — чтобы дрейф решателя не прошёл молча.
+    #
+    # ЗАМЕР 24.09.2026 (Мак, нагрузка 14–19, все семь бывших «тяжёлых» подряд):
+    #   cake-sort-levels        1267 →  36 с      cake-sort-uses-prebuilt   909 →   8 с
+    #   cake-sort-hint      не уложилась →   8 с      cake-sort-reference       346 →  15 с
+    #   cake-sort-prebuilt           →   7 с      water-sort-ladder         211 →  55 с
+    #   mahjong-human-stuck          →   9 с (2 пробы пропущены, стоит ноль — не наш файл)
+    # Суммарно ~138 с против прежних «не уложилась». Все семь возвращены в осколки.
+    #
+    # ⚠️ Если кто-то снимет `skip` с mahjong-human-stuck — померить её заново ПЕРЕД тем,
+    # как полагаться на этот расклад: сегодня она бесплатна именно потому, что пропущена.
     timeout-minutes: 45
-    env:
-      HEAVY_TESTS: 'cake-sort-levels|cake-sort-reference|water-sort-ladder|cake-sort-hint|cake-sort-uses-prebuilt|cake-sort-prebuilt\.test|mahjong-human-stuck'
     # 🔴 ЧЕТЫРЕ ОСКОЛКА ВМЕСТО ОДНОГО ПРОГОНА (09.09.2026). Шаг «Unit tests» шёл
     # 25 минут из 29 у джобы typecheck — и iOS с Play ждали его целиком (замер прогона
     # v2.52.4, run 34322055677). `jest --shard` делит 526 файлов на четыре равные части
@@ -256,15 +260,6 @@ jobs:
           - { shard: 2, label: 'осколок 2 из 4' }
           - { shard: 3, label: 'осколок 3 из 4' }
           - { shard: 4, label: 'осколок 4 из 4' }
-          # ⚠️ ТРИ ГРУППЫ, А НЕ ДВЕ (17.09.2026): в прогоне fc931c9c группа Б отменена по 45 минутам —
-          # cake-sort-hint делил раннер с cake-sort-uses-prebuilt (1082 с) и не успел. Подсказка
-          # тортов теперь едет одна, самые долгие файлы разнесены по разным раннерам.
-          - label: 'тяжёлые пробы A'
-            heavy: 'src/__tests__/cake-sort-levels.test.ts src/__tests__/water-sort-ladder.test.ts src/__tests__/mahjong-human-stuck.test.ts'
-          - label: 'тяжёлые пробы Б'
-            heavy: 'src/__tests__/cake-sort-hint.test.ts'
-          - label: 'тяжёлые пробы В'
-            heavy: 'src/__tests__/cake-sort-uses-prebuilt.test.tsx src/__tests__/cake-sort-reference.test.ts src/__tests__/cake-sort-prebuilt.test.ts'
     steps:
       - uses: actions/checkout@v6
       - name: Setup Node
@@ -298,14 +293,9 @@ jobs:
         working-directory: frontend
         env:
           SAMURAI_FULL: '1'
-          HEAVY: ${{ matrix.heavy }}
           SHARD: ${{ matrix.shard }}
         run: |
-          if [ -n "$HEAVY" ]; then
-            npm test -- --ci --runTestsByPath $HEAVY
-          else
-            npm test -- --ci --shard=$SHARD/4 --testPathIgnorePatterns "$HEAVY_TESTS"
-          fi
+          npm test -- --ci --shard=$SHARD/4
 
   web-gates:
     name: Веб-гейты (${{ matrix.audit }})

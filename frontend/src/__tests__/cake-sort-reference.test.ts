@@ -17,7 +17,8 @@
  * числа из комментария. Столы берутся маленькие: с шести видов A* перестаёт
  * доходить до дна, и это записано как граница замера, а не спрятано.
  */
-import { CIRCLE, makeBoard } from '@/src/games/cake-sort/core/plate';
+import { CIRCLE } from '@/src/games/cake-sort/core/plate';
+import { стол } from '@/src/games/cake-sort/tools/reference-boards';
 import { minMoves, lowerBound } from '@/src/games/cake-sort/core/solver';
 import { REF_PER_TYPE, moveReference, starsForMoves, referenceFor, starsFor } from '@/src/games/cake-sort/core/stars';
 import { deal, levelCfg } from '@/src/games/cake-sort/core/level';
@@ -28,45 +29,32 @@ jest.setTimeout(300000);
 /** Число, которое было бы, унаследуй мы калибровку сортировки товаров. */
 const УНАСЛЕДОВАННОЕ = 2.2;
 
-function rng(seed: number) {
-  let s = (seed * 2654435761) >>> 0;
-  return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
-}
-
-/** Стол из `types` видов на `plates` тарелках. Тот же способ раздачи, что в игре. */
-function стол(types: number, plates: number, seed: number) {
-  const все: number[] = [];
-  for (let t = 0; t < types; t += 1) for (let k = 0; k < CIRCLE; k += 1) все.push(t);
-  const rand = rng(seed);
-  for (let i = все.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(rand() * (i + 1));
-    [все[i], все[j]] = [все[j] as number, все[i] as number];
-  }
-  const out: number[][] = Array.from({ length: plates }, () => []);
-  let i = 0;
-  for (const s of все) { while ((out[i] as number[]).length >= CIRCLE) i += 1; (out[i] as number[]).push(s); }
-  return makeBoard(out, []);
-}
-
-/** Столы, на которых A* заведомо доходит до дна. Границу подобрал замер, а не вкус. */
-const СТОЛЫ: [number, number][] = [[3, 5], [3, 6], [4, 6], [4, 7], [5, 7], [5, 8]];
+/**
+ * 🔴 КАЛИБРОВКА БЕРЁТСЯ ИЗ ДАННЫХ, А НЕ СЧИТАЕТСЯ КАЖДЫЙ ПРОГОН (задача af4c7ff1).
+ *
+ * 📍 Здесь стоял замер: двадцать четыре стола, на каждом точный поиск A* с
+ * бюджетом 200 000 узлов. В CI это 231–346 с НА КАЖДЫЙ ПРОГОН ради числа,
+ * которое меняется раз в полгода. Теперь замер лежит в
+ * `core/reference-calibration.json` (пишет `tools/record-reference.gen.ts`), а
+ * проба сверяет с ним константу.
+ *
+ * ⚠️ ЧТОБЫ ДАННЫЕ НЕ ПРЕВРАТИЛИСЬ В ОБЕЩАНИЕ НА СЛОВО, часть столов
+ * ПЕРЕМЕРЯЕТСЯ ЖИВЬЁМ каждый прогон и сверяется с записанным: изменится
+ * решатель или правила — расхождение назовёт стол и оба числа.
+ */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const КАЛИБРОВКА = require('@/src/games/cake-sort/core/reference-calibration.json') as {
+  budget: number;
+  boards: { types: number; plates: number; seed: number; min: number | null }[];
+};
 
 interface Замер { types: number; min: number }
 
-function замерить(): Замер[] {
-  const out: Замер[] = [];
-  for (const [types, plates] of СТОЛЫ) {
-    for (let seed = 1; seed <= 4; seed += 1) {
-      const m = minMoves(стол(types, plates, seed), 200000);
-      if (m.moves !== null) out.push({ types, min: m.moves });
-    }
-  }
-  return out;
-}
+const замеры: Замер[] = КАЛИБРОВКА.boards
+  .filter((b) => b.min !== null)
+  .map((b) => ({ types: b.types, min: b.min as number }));
 
 describe('эталон ходов для круга из шести', () => {
-  const замеры = замерить();
-
   /**
    * ⚠️ ПОРОГ ОПУЩЕН 20 → 12 ПОСЛЕ СМЕНЫ ПРАВИЛ 16.09.2026. Ход берёт любой кусок,
    * ветвление шире, и A* доходит до дна реже: замер дал 16 досок из 24 против
@@ -75,6 +63,27 @@ describe('эталон ходов для круга из шести', () => {
    */
   it('есть что проверять — A* дошёл до дна на достаточном числе столов', () => {
     expect(замеры.length).toBeGreaterThanOrEqual(12);
+    expect(КАЛИБРОВКА.budget).toBe(200000);
+  });
+
+  /**
+   * 🔴 ЖИВАЯ СВЕРКА ВЫБОРКИ: данные обязаны сходиться с решателем СЕГОДНЯ.
+   *
+   * Без этой пробы записанная калибровка стала бы обещанием на слово: правила
+   * поменяются, минимумы уедут, а константа останется сверяться со старыми
+   * числами и всё так же зеленеть.
+   */
+  it('🔴 записанная калибровка сходится с живым расчётом на выборке столов', () => {
+    const живьём = КАЛИБРОВКА.boards.filter((b) => b.min !== null).slice(0, 3);
+    const врут: string[] = [];
+    for (const b of живьём) {
+      const m = minMoves(стол(b.types, b.plates, b.seed), КАЛИБРОВКА.budget);
+      if (m.moves !== b.min) {
+        врут.push(`стол ${b.types}×${b.plates} зерно ${b.seed}: в файле ${b.min}, живой расчёт ${m.moves}`);
+      }
+    }
+    expect(врут).toEqual([]);
+    expect(живьём.length).toBe(3);
   });
 
   /**
