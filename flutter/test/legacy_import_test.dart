@@ -90,8 +90,16 @@ void main() {
     final state = await SharedState.open();
     final taken = await LegacyImport.seedIfEmpty(state, libraryDir: store);
 
-    expect(taken, 1, reason: 'один ключ занят, второй обязан доехать');
-    expect(state.get('psygames_sudoku_level_nzt48'), '3', reason: 'наигранное в гибриде дороже');
+    /*
+     * ⚠️ ОЖИДАНИЕ ИЗМЕНИЛОСЬ 24.09.2026, И ЭТО РЕШЕНИЕ, А НЕ ПОДГОНКА. Раньше
+     * здесь стояло «наигранное в гибриде дороже» — уровень оставался 3, хотя в
+     * прежней версии человек дошёл до 17. Кадр Дениса показал, чем это кончается:
+     * 515 партий и «Lv 0, Новичок». Для лестницы и счётчиков верное правило —
+     * БОЛЬШЕЕ из двух: оно не отнимает ни старого, ни нового.
+     */
+    expect(taken, 2, reason: 'уровень поднимается до прежнего, очки доезжают');
+    expect(state.get('psygames_sudoku_level_nzt48'), '17',
+        reason: 'прежний уровень выше — забирать его у человека нельзя');
     expect(state.get('psygames_points_nzt48'), '2480', reason: 'свободный ключ перенесён');
     store.deleteSync(recursive: true);
   });
@@ -117,11 +125,12 @@ void main() {
     final state = await SharedState.open();
     final taken = await LegacyImport.seedIfEmpty(state, libraryDir: store);
 
-    expect(taken, 2, reason: 'должны доехать история партий и очки');
+    // Три: история партий, очки и уровень (последний — по большему из двух).
+    expect(taken, 3, reason: 'должны доехать история партий, очки и уровень');
     expect(state.get('psygames_sessions'), contains('"game_type":"sudoku"'),
         reason: 'пустой массив остался на месте истории — ровно та потеря статистики');
-    expect(state.get('psygames_sudoku_level_nzt48'), '3',
-        reason: 'наигранное в гибриде затирать нельзя');
+    expect(state.get('psygames_sudoku_level_nzt48'), '17',
+        reason: 'прежний уровень выше нынешнего — возвращаем его');
     store.deleteSync(recursive: true);
   });
 
@@ -205,6 +214,49 @@ void main() {
     await LegacyImport.seedIfEmpty(state, libraryDir: store);
     expect(state.get('psygames_playlists_override'), '["a"]',
         reason: 'настройка не журнал: чужой список назад не возвращаем');
+    store.deleteSync(recursive: true);
+  });
+
+  test('🔴 ОЧКИ И УРОВНИ — ПО БОЛЬШЕМУ: 515 партий не бывает у «Новичка»', () async {
+    /*
+     * 📍 Кадр Дениса 24.09.2026 после возврата истории: 515 партий, 8,1 часа в
+     * игре — и «65 очков, Lv 0, Новичок». История вернулась, а очки и уровни нет:
+     * они в ОТДЕЛЬНЫХ ключах, и гибрид успел записать туда свои маленькие числа.
+     *
+     * Сложить нельзя (очки тратятся в магазине), оставить новое — потерять всё
+     * накопленное. Берём БОЛЬШЕЕ: оно не отнимает того, что уже есть.
+     */
+    final store = fakeStore({
+      'psygames_tokens_v1': '{"nzt48":4820,"women":300}',
+      'psygames_sudoku_level_nzt48': '34',
+      'psygames_hanoi_level_nzt48': '2',
+    });
+    SharedPreferences.setMockInitialValues({
+      'psygames_tokens_v1': '{"nzt48":65}',        // наиграно в гибриде
+      'psygames_sudoku_level_nzt48': '1',          // лестница сброшена
+      'psygames_hanoi_level_nzt48': '9',           // а здесь новое БОЛЬШЕ старого
+    });
+    final state = await SharedState.open();
+    await LegacyImport.seedIfEmpty(state, libraryDir: store);
+
+    final tokens = jsonDecode(state.get('psygames_tokens_v1')!) as Map;
+    expect(tokens['nzt48'], 4820, reason: 'накопленные очки обязаны вернуться');
+    expect(tokens['women'], 300, reason: 'профиль, которого в гибриде нет, доезжает целиком');
+    expect(state.get('psygames_sudoku_level_nzt48'), '34', reason: 'уровень вернулся');
+    expect(state.get('psygames_hanoi_level_nzt48'), '9',
+        reason: 'новое больше старого — забирать у человека нельзя');
+    store.deleteSync(recursive: true);
+  });
+
+  test('серия дней НЕ берётся по максимуму — там даты, а не счёт', () async {
+    // Взять «большую» серию значило бы нарисовать дни, которых не было.
+    final store = fakeStore({'psygames_streak_v1': '{"nzt48":{"last":"2026-1-1","streak":40}}'});
+    SharedPreferences.setMockInitialValues(
+        {'psygames_streak_v1': '{"nzt48":{"last":"2026-9-24","streak":1}}'});
+    final state = await SharedState.open();
+    await LegacyImport.seedIfEmpty(state, libraryDir: store);
+    expect(state.get('psygames_streak_v1'), contains('"streak":1'),
+        reason: 'серия остаётся нынешней: её дни настоящие');
     store.deleteSync(recursive: true);
   });
 }

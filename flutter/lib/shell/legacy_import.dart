@@ -42,7 +42,7 @@ class LegacyImport {
   /// где перенос ОТКАЗАЛСЯ по слишком строгому условию (сборка 2.55.5: «в памяти
   /// есть свои ключи» → пропуск). Оставь номер прежним — починка до тех телефонов
   /// не доедет никогда, потому что отметка стоит. Поменял поведение — подними номер.
-  static const doneKey = 'psygames_legacy_import_v4';
+  static const doneKey = 'psygames_legacy_import_v5';
 
   /// Сколько раз пробовать, если перенос НИЧЕГО не нашёл.
   ///
@@ -112,7 +112,9 @@ class LegacyImport {
           final mine = state.get(e.key);
           if (mine != null && !_blank(mine)) {
             // Журнал партий — не «занято», а «есть что слить».
-            final merged = mergeKeys.contains(e.key) ? _merge(e.value, mine) : null;
+            final merged = mergeKeys.contains(e.key)
+                ? _merge(e.value, mine)
+                : (_isCounter(e.key) ? _biggest(e.value, mine) : null);
             if (merged == null || merged == mine) {
               skipped++;
               continue;
@@ -165,6 +167,47 @@ class LegacyImport {
   /// порядок серий, список выбранных игр. Слить их значило бы вернуть человеку
   /// то, что он убрал.
   static const mergeKeys = {'psygames_sessions'};
+
+  /// 🔴 СЧЁТЧИКИ БЕРУТСЯ ПО МАКСИМУМУ — СЛИТЬ ИХ НЕЛЬЗЯ, А ВЫБРАТЬ НАДО.
+  ///
+  /// 📍 Денис 24.09.2026, кадр «Статистики» после возврата истории: 515 партий,
+  /// 8,1 часа в игре — и при этом «65 очков, Lv 0, Новичок». История вернулась,
+  /// а очки и уровни нет: они лежат в ОТДЕЛЬНЫХ ключах, и в гибриде уже успели
+  /// записаться своими маленькими значениями.
+  ///
+  /// Сложить их нельзя (очки тратятся в магазине, сумма соврала бы), а оставить
+  /// новое — значит потерять всё накопленное. Верный ответ для счётчика и
+  /// лестницы один: БОЛЬШЕЕ из двух. Оно никогда не отнимает у человека того,
+  /// что у него уже есть.
+  ///
+  /// ⚠️ Серия дней (`psygames_streak_v1`) сюда НЕ входит нарочно: там лежат даты,
+  /// и взять «большую» серию значило бы нарисовать человеку дни, которых не было.
+  static bool _isCounter(String key) =>
+      key == 'psygames_tokens_v1' || key.contains('_level_') || key.contains('_best_');
+
+  /// Большее из двух: число или карта «профиль → число».
+  static String? _biggest(String oldRaw, String newRaw) {
+    final a = num.tryParse(oldRaw.trim());
+    final b = num.tryParse(newRaw.trim());
+    if (a != null && b != null) return (a > b ? oldRaw : newRaw).trim();
+    try {
+      final ma = jsonDecode(oldRaw);
+      final mb = jsonDecode(newRaw);
+      if (ma is! Map || mb is! Map) return null;
+      final out = <String, Object?>{...mb.cast<String, Object?>()};
+      ma.forEach((k, v) {
+        final mine = out[k];
+        if (v is num && mine is num) {
+          if (v > mine) out[k] = v;
+        } else {
+          out[k] ??= v;
+        }
+      });
+      return jsonEncode(out);
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Слияние двух журналов. Возвращает null, если слить нечем (не массивы).
   static String? _merge(String oldRaw, String newRaw) {
