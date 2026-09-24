@@ -3733,6 +3733,7 @@ const translations: Translations = {
   cakeSort: { ru: 'Торты', en: 'Cake sort' },
   cakeSortDesc: { ru: 'Собирайте круг из шести одинаковых кусков', en: 'Gather a circle of six matching slices' },
   tolWonPreset: { ru: 'Партия взята: лишних ходов {e} из {r}', en: 'Round cleared: {e} extra moves out of {r}' },
+  puzzleOutOfMoves: { ru: 'Не уложился в ходы: потрачено {m} из {n}. Тут важно не залить поле, а залить его за отведённые ходы.', en: 'Out of moves: {m} used of {n}. The aim is not just to flood the board, but to flood it within the move budget.' },
   cakeSortSlice: { ru: 'Кусок', en: 'Slice' },
   cakeSortPickSlice: { ru: 'Выбери кусок, который переложить', en: 'Pick the slice to move' },
   // Текст дословно тот же, что у тортов: правило игры одно, разная только еда.
