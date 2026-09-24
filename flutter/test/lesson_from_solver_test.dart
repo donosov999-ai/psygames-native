@@ -52,7 +52,7 @@ void main() {
     expect(steps.length, lessThanOrEqualTo(81), reason: 'шагов больше, чем клеток на доске');
     expect(steps.length, greaterThanOrEqualTo(20), reason: 'шагов подозрительно мало');
     // Клетки не повторяются: две карточки на одну клетку — это и есть «шаг на примитив».
-    final places = steps.map((s) => '${s.box.x}:${s.box.y}').toSet();
+    final places = steps.map((s) => '${s.box!.x}:${s.box!.y}').toSet();
     expect(places.length, steps.length, reason: 'две карточки встали на одну клетку');
   });
 

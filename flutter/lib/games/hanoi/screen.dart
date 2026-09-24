@@ -8,8 +8,12 @@ import '../../shell/game_preset.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
+import '../../shell/board_solver.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
+import 'puzzle.dart';
 import 'model.dart';
 
 /// ЭКРАН «ХАНОЙСКОЙ БАШНИ».
@@ -173,6 +177,49 @@ class _HanoiScreenState extends State<HanoiScreen> {
     });
   }
 
+  /*
+   * 🔴 РАЗБОР БЕРЁТСЯ У ОБЩЕГО РЕШАТЕЛЯ, А НЕ ПИШЕТСЯ ЗДЕСЬ.
+   *
+   * Вся связь игры с разбором — `HanoiPuzzle`: снимок положения, законные ходы,
+   * «применить», «решено». Эти четыре вещи у `HanoiState` уже были, потому что
+   * нужны самой игре. Ни строки про правила ханоя в разборе нет.
+   *
+   * ⚠️ Партия после разбора в уровень не засчитывается (`LessonUsed.mark`):
+   * решение показали, и мерить по нему человека нечестно.
+   */
+  /// ⚠️ Название одной строкой на весь экран: второй литерал был бы вторым местом,
+  /// где его надо переводить, и первым, где забудут.
+  static const _title = 'Ханойская башня';
+
+  Future<void> _openLesson() async {
+    final from = _board;
+    if (from == null) return;
+    final steps = await BoardLesson(const HanoiPuzzle(), from).steps();
+    if (!mounted || steps.isEmpty) return;
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _title,
+        steps: steps,
+        board: (context, side, shown) {
+          // Доска после `shown` ходов разбора. Рисует её сама игра — каркас про
+          // стержни и диски не знает.
+          final at = shown == 0
+              ? from
+              : (steps[(shown - 1).clamp(0, steps.length - 1)].payload
+                  as ({HanoiMove move, HanoiState after})).after;
+          return HanoiBoard(
+            state: at,
+            fieldHeight: side,
+            selected: null,
+            onTapPeg: (_) {},
+            onDrop: (_, _) {},
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final board = _board;
@@ -188,7 +235,10 @@ class _HanoiScreenState extends State<HanoiScreen> {
     final stars = hanoiStars(_moves, min);
 
     return GameShell(
-      title: 'Ханойская башня',
+      title: _title,
+      // Разбор по шагам — общим решателем каркаса. Своего учителя игра не пишет:
+      // договор `HanoiPuzzle` отдаёт снимок, ходы и «решено», остальное общее.
+      onLesson: _board == null ? null : _openLesson,
       hud: [
         // Счётчик уровня при шаге зарядки не показывается: шаг лестницу не
         // двигает, и число рядом с партией читалось бы как обещание засчитать.

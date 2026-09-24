@@ -288,10 +288,40 @@ class HybridApp extends StatefulWidget {
   State<HybridApp> createState() => _HybridAppState();
 }
 
+/// Что делать с нативным экраном, когда страница сменила адрес.
+enum RouteAction {
+  /// Адрес тот же — ничего.
+  keep,
+
+  /// Страница ушла туда, где нативного экрана нет: снять открытый.
+  close,
+
+  /// Страница ушла на другую перенесённую игру: снять открытый и открыть новый.
+  closeThenOpen,
+
+  /// Ничего не открыто, адрес перенесённый: просто открыть.
+  open,
+}
+
+/// Решение о судьбе нативного экрана — ОТДЕЛЬНО от самого съёма.
+///
+/// 🔴 Вынесено ради пробы. Дефект 24.09.2026 («зарядка перевела шаг, а нативный
+/// экран остался лежать поверх») жил именно в этом решении, а не в рисовании.
+/// Пока решение было вплетено в обработчик сообщения, проверить его можно было
+/// только живым телефоном — то есть на деле никак, и оно доехало до людей.
+RouteAction routeAction(String? opened, String? next) {
+  if (opened == next) return RouteAction.keep;
+  if (opened == null) return next == null ? RouteAction.keep : RouteAction.open;
+  return next == null ? RouteAction.close : RouteAction.closeThenOpen;
+}
+
 class _HybridAppState extends State<HybridApp> {
   late final WebViewController _c;
   bool _loading = true;
 
+
+  /// Экран сняли МЫ, потому что страница ушла вперёд, — а не человек кнопкой.
+  bool _closedByPage = false;
 
   /// Какой нативный экран сейчас открыт поверх страницы.
   ///
@@ -320,9 +350,18 @@ class _HybridAppState extends State<HybridApp> {
     try {
       final m = jsonDecode(message);
       if (m is Map && m['op'] == 'route') {
-        final route = HybridApp.routeOf('${m['url']}');
-        if (route != null && route != _openedRoute) {
-          _openNative(route, query: HybridApp.queryOf('${m['url']}'));
+        final url = '${m['url']}';
+        final route = HybridApp.routeOf(url);
+        switch (routeAction(_openedRoute, route)) {
+          case RouteAction.keep:
+            break;
+          case RouteAction.close:
+            _closeNativeBecausePageMoved();
+          case RouteAction.closeThenOpen:
+            _closeNativeBecausePageMoved();
+            _openNative(route!, query: HybridApp.queryOf(url));
+          case RouteAction.open:
+            _openNative(route!, query: HybridApp.queryOf(url));
         }
         return;
       }
@@ -452,6 +491,29 @@ class _HybridAppState extends State<HybridApp> {
     await _c.loadRequest(Uri.parse('${widget.server.origin}$route'));
   }
 
+  /*
+   * 🔴 СТРАНИЦА УШЛА ВПЕРЁД — НАТИВНЫЙ ЭКРАН ОБЯЗАН УЙТИ С НЕЙ.
+   *
+   * Нашёл раздел «Сортировки» 24.09.2026 (задача a912f656), и дефект точный.
+   * Зарядка после партии через две секунды переводит шаг сама
+   * (`WarmupContext.advanceToNext`), а нативный экран оставался лежать поверх:
+   * снимался он только действием человека, потому что `_openNative` ждал
+   * `Navigator.push`. Человек видел ту же игру, и ни победа, ни поражение ничего
+   * не двигали — под экраном зарядка уже была на следующем шаге.
+   * Бьёт по всем перехваченным играм, то есть по зарядке целиком.
+   *
+   * ⚠️ И ЗНАНИЕ ОБ ЭТОМ В КОДЕ БЫЛО. Ниже стоит комментарий «страница могла уехать
+   * сама (например, зарядка перевела шаг)» — а ветки поведения не было. Комментарий
+   * не заменяет кода: вот ровно этот случай.
+   */
+  void _closeNativeBecausePageMoved() {
+    if (_openedRoute == null || !mounted) return;
+    // Возврата страницы назад быть не должно: она ушла вперёд НАМЕРЕННО, и
+    // `history.back()` вернул бы человека в игру, из которой зарядка его вывела.
+    _closedByPage = true;
+    Navigator.of(context).pop();
+  }
+
   Future<void> _openNative(String route, {Map<String, String> query = const {}}) async {
     final build = HybridApp.native[route];
     if (build == null) return;
@@ -462,7 +524,12 @@ class _HybridAppState extends State<HybridApp> {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => build(widget.state)),
     );
-    _openedRoute = null;
+    // ⚠️ Отметку снимаем, ТОЛЬКО если она всё ещё наша: когда страница ушла вперёд,
+    // поверх уже открыт следующий экран, и его отметку затирать нельзя.
+    if (_openedRoute == route) _openedRoute = null;
+    GamePreset.clear();
+    final closedByPage = _closedByPage;
+    _closedByPage = false;
     // 🔴 СТРАНИЦА ПОД НАМИ ОСТАЛАСЬ НА АДРЕСЕ ИГРЫ. Перехват срабатывает ПОСЛЕ
     // того, как роутер уже сменил адрес, — значит под нативным экраном веб-половина
     // стоит на той же игре. Не вернуть её назад — человек, закрыв нативный экран,
@@ -482,7 +549,7 @@ class _HybridAppState extends State<HybridApp> {
      *
      * Поэтому: выбрали карточку — идём сразу туда, шаг назад не нужен вовсе.
      */
-    final goingOn = result is HubCardTap;
+    final goingOn = result is HubCardTap || closedByPage;
     if (mounted && !goingOn) {
       await _c.runJavaScript(
         "if (String(location.pathname).indexOf('$route') >= 0) history.back();",
