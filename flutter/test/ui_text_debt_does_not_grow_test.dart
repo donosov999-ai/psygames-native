@@ -169,12 +169,26 @@ Map<String, int> _scan(Directory root) {
   final devMessage = RegExp(
       r"(throw\s+\w+\(|assert\(|debugPrint\(|[^.\w]print\()[^;]*?'[^'\n]*[А-Яа-яЁё][^'\n]*'",
       dotAll: true);
+  /*
+   * 🔴 КЛЮЧ ЧУЖОГО JSON — НЕ ТЕКСТ ИНТЕРФЕЙСА. Уточнение 24.09.2026.
+   *
+   * Веб-файл состава развилок описан по-русски: `профили`, `хабы`, `маршрут`,
+   * `имя`, `значок`, `описание`. Нативная сторона читает ЭТОТ ЖЕ файл, и обращение
+   * `j['профили']` — имя поля в чужих данных, а не подпись на экране. Переводить
+   * его некуда и незачем: переведёшь — перестанешь находить поле.
+   *
+   * Гейт заявляет «зашитый текст ИНТЕРФЕЙСА», значит и считать обязан то, что
+   * видит игрок. Так же здесь уже вынуты `throw`, `assert` и `debugPrint` — по
+   * той же причине, и с той же оговоркой: числа ниже пересчитаны ЭТИМ методом.
+   */
+  final mapKey = RegExp(r"\[\s*'[^'\n]*[А-Яа-яЁё][^'\n]*'\s*\]");
   final anyLiteral = RegExp(r"'[^'\n]*[А-Яа-яЁё][^'\n]*'");
   for (final f in root.listSync(recursive: true).whereType<File>()) {
     if (!f.path.endsWith('.dart')) continue;
     var src = f.readAsStringSync().replaceAll(blockComment, '').replaceAll(lineComment, '');
     var n = anyLiteral.allMatches(src).length -
         keyLiteral.allMatches(src).length -
+        mapKey.allMatches(src).length -
         devMessage.allMatches(src).fold<int>(0, (a, m) => a + anyLiteral.allMatches(m[0]!).length);
     if (n > 0) out[f.path.replaceFirst('lib/', '')] = n;
   }
