@@ -6,6 +6,10 @@ import 'package:psygames_flutter/games/choice_rt/model.dart';
 import 'package:psygames_flutter/games/choice_rt/screen.dart';
 import 'package:psygames_flutter/games/flanker/model.dart';
 import 'package:psygames_flutter/games/gonogo/model.dart';
+import 'package:psygames_flutter/games/posner/model.dart';
+import 'package:psygames_flutter/games/posner/screen.dart';
+import 'package:psygames_flutter/games/simon/model.dart';
+import 'package:psygames_flutter/games/simon/screen.dart';
 import 'package:psygames_flutter/games/gonogo/screen.dart';
 import 'package:psygames_flutter/games/flanker/screen.dart';
 import 'package:psygames_flutter/games/stroop/model.dart';
@@ -214,5 +218,70 @@ void main() {
       reason: 'в карточке не тот знак, что показывает партия на этом уровне',
     );
     expect(find.text('Верно: Влево'), findsOneWidget);
+  });
+
+  test('🔴 Саймон: сторона ответа по ЦВЕТУ, даже когда позиция тянет в другую', () {
+    final demo = simonDemoTrials();
+    expect(demo.any((t) => t.kind == SimonKind.incongruent), isTrue,
+        reason: 'нет конфликтной пробы — а в ней весь эффект Саймона');
+    for (final t in demo) {
+      // ⚠️ Правило пересказано: синий — левая кнопка, красный — правая, и позиция
+      // вспышки на ответ не влияет.
+      final expected = t.color == SimonColor.blue ? SimonSide.left : SimonSide.right;
+      expect(correctSide(t.color), expected, reason: 'разбор зовёт верным не цвет');
+      if (t.kind == SimonKind.incongruent) {
+        expect(expected == t.position, isFalse,
+            reason: 'конфликтная проба, а ответ совпал с позицией');
+      }
+      final g = SimonGame(level: 1, rnd: Random(1));
+      expect(g.nextTrial(), isTrue);
+      g.trial = t;
+      g.showStimulus();
+      expect(g.answer(expected), SimonOutcome.hit,
+          reason: 'партия не засчитала ответ по цвету');
+    }
+  });
+
+  test('🔴 Познер: отвечаем по МИШЕНИ, даже если подсказка мигнула не там', () {
+    final demo = posnerDemoTrials();
+    expect(demo.any((t) => t.validity == CueValidity.invalid), isTrue,
+        reason: 'нет обманувшей подсказки — ради неё упражнение и существует');
+    for (final t in demo) {
+      // ⚠️ Правило пересказано: верна СТОРОНА МИШЕНИ, подсказка ни при чём.
+      if (t.validity == CueValidity.invalid) {
+        expect(t.cueDir == t.targetSide, isFalse, reason: 'обман не обманывает');
+      }
+      final g = PosnerGame(level: 1, rnd: Random(1));
+      expect(g.nextTrial(), isTrue);
+      g.trial = t;
+      g.showCue();
+      g.showTarget();
+      expect(g.answer(t.targetSide), PosnerOutcome.hit,
+          reason: 'партия не засчитала ответ по мишени');
+    }
+  });
+
+  testWidgets('🔴 Саймон и Познер рисуют в карточке свои же поля стимула', (tester) async {
+    SharedPreferences.setMockInitialValues({'psygames_active_profile': 'nzt48'});
+    final state = await SharedState.open();
+
+    for (final (screen, art) in [
+      (SimonScreen(state: state), find.byType(SimonStimulus)),
+      (PosnerScreen(state: state), find.byType(PosnerBoxes)),
+    ]) {
+      await tester.pumpWidget(MaterialApp(home: screen));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byKey(const Key('game-lesson')), findsOneWidget, reason: 'кнопки разбора нет');
+      await tester.tap(find.byKey(const Key('game-lesson')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.descendant(of: find.byType(DemoCard), matching: art), findsOneWidget,
+          reason: 'стимул в карточке нарисован не виджетом игры');
+      expect(find.byKey(const Key('demo-answer')), findsOneWidget);
+      LessonUsed.reset();
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump();
+    }
   });
 }

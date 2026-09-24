@@ -85,6 +85,12 @@ class PosnerLevel {
   }
 }
 
+/// Примеры для разбора — ДАННЫЕ: подсказка верная и подсказка обманувшая.
+List<PosnerTrial> posnerDemoTrials() => const [
+      PosnerTrial(cueDir: PosnerSide.left, targetSide: PosnerSide.left, validity: CueValidity.valid),
+      PosnerTrial(cueDir: PosnerSide.left, targetSide: PosnerSide.right, validity: CueValidity.invalid),
+    ];
+
 enum PosnerOutcome { hit, wrong, miss }
 
 /// Партия: подсказка → пауза SOA → мишень → окно ответа.
