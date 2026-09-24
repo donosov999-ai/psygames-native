@@ -72,14 +72,26 @@ void main() {
     store.deleteSync(recursive: true);
   });
 
-  test('🔴 свой прогресс НЕ затирается — перенос отступает', () async {
-    final store = fakeStore({'psygames_sudoku_level_nzt48': '17'});
+  test('🔴 свой ключ НЕ затирается, а соседние всё равно доезжают', () async {
+    /*
+     * 🔴 ПОЧЕМУ НЕ «ОТСТУПИТЬ ЦЕЛИКОМ». Так и было в 2.55.5: есть хоть один свой
+     * ключ `psygames_*` — перенос пропускался весь. На телефоне Дениса это отменило
+     * его: гибрид один раз открылся БЕЗ переноса, веб-часть записала служебные ключи
+     * (язык, профиль, заготовка питомца), и свежая установка стала выглядеть как
+     * «у него уже есть прогресс». Статистика осталась пустой.
+     * Мера правильная — не «пусто ли всё», а «есть ли ИМЕННО ЭТОТ ключ».
+     */
+    final store = fakeStore({
+      'psygames_sudoku_level_nzt48': '17',
+      'psygames_points_nzt48': '2480',
+    });
     SharedPreferences.setMockInitialValues({'psygames_sudoku_level_nzt48': '3'});
     final state = await SharedState.open();
     final taken = await LegacyImport.seedIfEmpty(state, libraryDir: store);
 
-    expect(taken, -1, reason: 'есть свой прогресс — переносить нельзя');
+    expect(taken, 1, reason: 'один ключ занят, второй обязан доехать');
     expect(state.get('psygames_sudoku_level_nzt48'), '3', reason: 'наигранное в гибриде дороже');
+    expect(state.get('psygames_points_nzt48'), '2480', reason: 'свободный ключ перенесён');
     store.deleteSync(recursive: true);
   });
 
