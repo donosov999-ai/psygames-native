@@ -79,9 +79,25 @@ void main() {
     expect(set.rounds, 5);
     expect(set.byLevel(1).balls, 3);
     expect(set.byLevel(1).puzzles.first.caps, [3, 2, 1]);
-    expect(set.byLevel(11).balls, 4, reason: 'четвёртый шар приходит с L11');
-    expect(set.byLevel(11).puzzles.first.caps, [4, 3, 1]);
-    expect(set.byLevel(10).targetMoves, 8, reason: 'длина плана упирается в восемь');
+    expect(set.byLevel(8).balls, 4, reason: 'четвёртый шар приходит с L8');
+    expect(set.byLevel(8).puzzles.first.caps, [4, 3, 1]);
+    expect(set.byLevel(14).balls, 6, reason: 'шесть шаров — верхний отрезок лестницы');
+    expect(set.byLevel(14).puzzles.first.caps, [4, 4, 3]);
+
+    /*
+     * 🔴 ЗДЕСЬ СТОЯЛО `expect(set.byLevel(10).targetMoves, 8)` С ПОЯСНЕНИЕМ
+     * «длина плана упирается в восемь» — И ЭТО БЫЛО НЕ ЗАМЕРОМ, А ПЕРЕНЕСЁННЫМ
+     * ИЗ ВЕБА ПРЕДЕЛОМ `Math.min(8, 1 + lvl.level)`. Проба закрепляла ПОТОЛОК
+     * как правило игры, и из-за неё четырнадцать ступеней подряд с одинаковой
+     * трудностью выглядели нормой.
+     * Замер 24.09.2026 (перебор всего пространства положений, поиск в ширину из
+     * каждого): у конфигурации «4 шара, ёмкости 4-3-1», которая стояла с L11,
+     * ДИАМЕТР 14 ходов; у «6 шаров, 4-4-3» — 16. Потолок был не у игры.
+     */
+    expect(set.byLevel(10).targetMoves, greaterThan(8),
+        reason: 'плана длиннее восьми у игры полно — предел 8 был веб-наследием');
+    expect(set.levels.last.targetMoves, 16,
+        reason: 'верх лестницы стоит на измеренном диаметре, а не на круглом числе');
   });
 
   test('🔴 ход ограничен ВМЕСТИМОСТЬЮ, а не размером — тем и отличается от Ханоя', () {
