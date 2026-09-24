@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -85,6 +86,21 @@ class _PosnerScreenState extends State<PosnerScreen> {
     _nextTrial();
   }
 
+  /// Примеры разбора: подсказка ВЕРНАЯ и подсказка ОБМАНУВШАЯ.
+  ///
+  /// Вторая и есть смысл упражнения: рамка мигнула слева, мишень вышла справа —
+  /// отвечать надо по МИШЕНИ. Доля обманов у уровня своя, но обе пробы в партии
+  /// встречаются с первого уровня.
+  List<DemoTrial> _demoTrials() => [
+        for (final t in posnerDemoTrials())
+          DemoTrial(
+            text: '',
+            art: PosnerBoxes(trial: t),
+            answer: t.targetSide == PosnerSide.left ? L.t('a11yLeft') : L.t('a11yRight'),
+            ruleKey: 'posnerHint',
+          ),
+      ];
+
   void _nextTrial() {
     final g = _game!;
     _timer?.cancel();
@@ -157,6 +173,9 @@ class _PosnerScreenState extends State<PosnerScreen> {
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
       ],
+      onLesson: _game == null
+          ? null
+          : () => openDemoLesson(context, title: L.t('posner'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
         phase: _phase,
@@ -174,30 +193,30 @@ class _PosnerScreenState extends State<PosnerScreen> {
 const Color _good = Color(0xFF22C55E);
 const Color _bad = Color(0xFFEF4444);
 
-class _Field extends StatelessWidget {
-  const _Field({
-    required this.game,
-    required this.phase,
-    required this.flash,
-    required this.passed,
-    required this.height,
-    required this.onStart,
-    required this.onAgain,
+/// 🔴 ПАРА РАМОК ОТДЕЛЬНЫМ ВИДЖЕТОМ — ЧТОБЫ РАЗБОР ПОКАЗЫВАЛ ТО ЖЕ САМОЕ.
+///
+/// Подсказка здесь — ВСПЫШКА РАМКИ стороны, а не стрелка в центре: так проба
+/// меряет непроизвольное ориентирование, а не чтение знака. Нарисуй разбор
+/// стрелку — он объяснял бы другую задачу.
+///
+/// ⚠️ В разборе подсказка и мишень показаны ОДНОВРЕМЕННО, хотя в партии идут
+/// одна за другой. Это и есть смысл картинки: видно, совпали они или разошлись.
+class PosnerBoxes extends StatelessWidget {
+  const PosnerBoxes({
+    super.key,
+    required this.trial,
+    this.cueShown = true,
+    this.targetShown = true,
   });
 
-  final PosnerGame game;
-  final PosnerPhase phase;
-  final PosnerOutcome? flash;
-  final bool passed;
-  final double height;
-  final VoidCallback onStart;
-  final VoidCallback onAgain;
+  final PosnerTrial? trial;
+  final bool cueShown;
+  final bool targetShown;
 
-  /// Одна половина поля: рамка слева или справа от центра.
   Widget _box(BuildContext context, PosnerSide side) {
-    final t = game.trial;
-    final cueHere = game.cueShown && t?.cueDir == side;
-    final targetHere = game.targetShown && t?.targetSide == side;
+    final t = trial;
+    final cueHere = cueShown && t?.cueDir == side;
+    final targetHere = targetShown && t?.targetSide == side;
     return Container(
       key: Key('posner-box-${side.name}'),
       width: 96,
@@ -205,8 +224,6 @@ class _Field extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          // Подсказка — это ВСПЫШКА РАМКИ той стороны, а не стрелка в центре:
-          // так проба меряет непроизвольное ориентирование, а не чтение знака.
           color: cueHere ? Theme.of(context).colorScheme.primary : Theme.of(context).dividerColor,
           width: cueHere ? 4 : 1,
         ),
@@ -226,6 +243,39 @@ class _Field extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _box(context, PosnerSide.left),
+          // Точка фиксации между рамками: смотреть надо в центр.
+          const SizedBox(width: 24),
+          const Text('+', style: TextStyle(fontSize: 28)),
+          const SizedBox(width: 24),
+          _box(context, PosnerSide.right),
+        ],
+      );
+}
+
+class _Field extends StatelessWidget {
+  const _Field({
+    required this.game,
+    required this.phase,
+    required this.flash,
+    required this.passed,
+    required this.height,
+    required this.onStart,
+    required this.onAgain,
+  });
+
+  final PosnerGame game;
+  final PosnerPhase phase;
+  final PosnerOutcome? flash;
+  final bool passed;
+  final double height;
+  final VoidCallback onStart;
+  final VoidCallback onAgain;
 
   @override
   Widget build(BuildContext context) {
@@ -285,16 +335,10 @@ class _Field extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _box(context, PosnerSide.left),
-                  // Точка фиксации между рамками: смотреть надо в центр.
-                  const SizedBox(width: 24),
-                  const Text('+', style: TextStyle(fontSize: 28)),
-                  const SizedBox(width: 24),
-                  _box(context, PosnerSide.right),
-                ],
+              PosnerBoxes(
+                trial: game.trial,
+                cueShown: game.cueShown,
+                targetShown: game.targetShown,
               ),
               const SizedBox(height: 12),
               Text(L.t('posnerHint'), textAlign: TextAlign.center),

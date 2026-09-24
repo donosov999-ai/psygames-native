@@ -94,3 +94,28 @@ class BoardLesson<S, M> extends LessonSource {
     return out;
   }
 }
+
+/// РАЗБОР ИЗ ГОТОВОГО РЕШЕНИЯ — КОГДА ИСКАТЬ НЕЧЕГО.
+///
+/// 🔴 ПОЧЕМУ ЭТО ВАЖНЕЕ, ЧЕМ КАЖЕТСЯ. Часть наших игр ВЕЗЁТ эталонное решение прямо
+/// в данных уровня: у «Соедини точки» это `solution` (путь каждой пары), у «Одной
+/// линии» — `solutionEdgeIds`. Генератор посчитал его, когда собирал уровень.
+/// Гонять по такому уровню поиск значило бы решать заново задачу, ответ на которую
+/// лежит рядом, — и рисковать тем, что поиск найдёт ДРУГОЙ путь, не тот, по
+/// которому уровень задуман.
+///
+/// ⚠️ Поэтому правило: есть готовое решение — берём его; нет — ищем [BoardSolver].
+class StepsLesson extends LessonSource {
+  StepsLesson(this._steps, {this.reason});
+
+  final List<LessonStep> _steps;
+
+  /// Почему решения нет, если список пуст.
+  final String? reason;
+
+  @override
+  String? get unavailableReason => _steps.isEmpty ? (reason ?? 'no-solution-in-level') : null;
+
+  @override
+  Future<List<LessonStep>> steps() async => _steps;
+}

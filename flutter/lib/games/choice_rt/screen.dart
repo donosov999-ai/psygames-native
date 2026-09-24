@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -88,6 +89,32 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
     _nextTrial();
   }
 
+  /// Примеры разбора: два направления и НЕЙТРАЛЬ (пустой круг — жать нельзя).
+  ///
+  /// ⚠️ Начертание знака берётся у уровня партии: с 4-го уровня стрелки
+  /// сменяются шевронами, с 9-го — скобками, и разбор со стрелками показывал бы
+  /// знак, которого человек на своём уровне не увидит.
+  List<DemoTrial> _demoTrials(BuildContext context) {
+    final g = _game!;
+    final color = Theme.of(context).colorScheme.onSurface;
+    Widget sign(IconData icon) => Icon(icon, size: 72, color: color);
+    return [
+      for (final d in [ChoiceDirection.left, ChoiceDirection.right])
+        DemoTrial(
+          text: '',
+          art: sign(choiceGlyphIcon(g.params.glyph, d)),
+          answer: d == ChoiceDirection.left ? L.t('a11yLeft') : L.t('a11yRight'),
+          ruleKey: 'choiceRtHint',
+        ),
+      DemoTrial(
+        text: '',
+        art: sign(Icons.circle_outlined),
+        answer: L.t('demoHold'),
+        ruleKey: 'choiceRtHint',
+      ),
+    ];
+  }
+
   void _nextTrial() {
     final g = _game!;
     _timer?.cancel();
@@ -151,6 +178,9 @@ class _ChoiceRtScreenState extends State<ChoiceRtScreen> {
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
       ],
+      onLesson: _game == null
+          ? null
+          : () => openDemoLesson(context, title: L.t('choiceRt'), trials: _demoTrials(context)),
       field: (context, h) => _Field(
         game: g,
         phase: _phase,
@@ -169,7 +199,7 @@ const Color _good = Color(0xFF22C55E);
 const Color _bad = Color(0xFFEF4444);
 
 /// Знак направления: три начертания, одно на уровень.
-IconData _glyphIcon(ChoiceGlyph glyph, ChoiceDirection d) {
+IconData choiceGlyphIcon(ChoiceGlyph glyph, ChoiceDirection d) {
   switch (glyph) {
     case ChoiceGlyph.arrow:
       return switch (d) {
@@ -294,7 +324,7 @@ class _Field extends StatelessWidget {
                               key: const Key('choicert-neutral'),
                               size: 72,
                               color: Theme.of(context).colorScheme.onSurface)
-                          : Icon(_glyphIcon(game.params.glyph, stim),
+                          : Icon(choiceGlyphIcon(game.params.glyph, stim),
                               key: Key('choicert-stim-${stim.name}'),
                               size: 72,
                               color: Theme.of(context).colorScheme.onSurface),
@@ -369,7 +399,7 @@ class _Pad extends StatelessWidget {
           key: Key('choicert-answer-${d.name}'),
           onPressed: () => onPick(d),
           style: FilledButton.styleFrom(padding: EdgeInsets.zero),
-          child: Icon(_glyphIcon(game.params.glyph, d), size: 28),
+          child: Icon(choiceGlyphIcon(game.params.glyph, d), size: 28),
         ),
       ),
     );

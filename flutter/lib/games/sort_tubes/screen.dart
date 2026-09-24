@@ -9,6 +9,10 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
+import '../../shell/board_solver.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
+import 'puzzle.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
@@ -257,6 +261,44 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
     'пусто': 'Сосуд пуст — брать нечего',
   };
 
+  /*
+   * 🔴 РАЗБОР ОБЩИМ ПОИСКОМ, БЕЗ СВОЕГО УЧИТЕЛЯ.
+   *
+   * ⚠️ ПОТОЛОК ПОИСКА ЗДЕСЬ ВАЖЕН КАК НИГДЕ. У колб пространство положений растёт
+   * быстрее, чем у стопок: ход переливает сразу несколько шариков, и ветвление
+   * больше. Не уложились — кнопки разбора просто нет; показать неполный путь
+   * нельзя, человек дошёл бы по нему до тупика с нашей подачи.
+   */
+  Future<void> _openLesson() async {
+    final from = _field;
+    if (from == null) return;
+    final steps = await BoardLesson(const TubePuzzle(), from).steps();
+    if (!mounted || steps.isEmpty) return;
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: widget.title,
+        steps: steps,
+        board: (context, side, shown) {
+          final at = shown == 0
+              ? from
+              : (steps[(shown - 1).clamp(0, steps.length - 1)].payload
+                  as ({TubeMove move, TubeField after})).after;
+          return TubesField(
+            field: at,
+            fieldHeight: side,
+            skin: widget.skin,
+            palette: _palette,
+            hidden: const {},
+            selected: null,
+            onTapTube: (_) {},
+            onPourTo: (_, _) {},
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final level = _level;
@@ -269,6 +311,9 @@ class _SortTubesScreenState extends State<SortTubesScreen> {
 
     return GameShell(
       title: widget.title,
+      // Разбор — общим решателем каркаса. Колбы устроены иначе, чем стопки: за ход
+      // переливается сразу несколько шариков, и договор это выдерживает.
+      onLesson: _field == null ? null : _openLesson,
       hud: [
         // Счётчик уровня при шаге зарядки скрыт: шаг лестницу не двигает
         // (правило каркаса), и число рядом с партией читалось бы как обещание

@@ -21,6 +21,12 @@ const double nogoProb = 0.25;
 /// (окно 550 мс, пауза 280 мс, разброс паузы 180 мс).
 const int gonogoMaxLevel = 15;
 
+/// 🔴 ЧТО ДЕЛАТЬ СО СТИМУЛОМ — ОДНА ФУНКЦИЯ НА ИГРУ И НА РАЗБОР.
+///
+/// Правило в одну строку: на GO нажимаем, на NO-GO держимся. Партия считает по
+/// нему (`respond` и `closeTrial`), разбор показывает его же.
+bool gonogoShouldPress(GoNoGoStim s) => s == GoNoGoStim.go;
+
 /// Стимул пробы. ⚠️ Сравнение строгое: розыгрыш ровно 0,25 даёт GO — строка есть
 /// в эталоне, и нестрогое сравнение покраснит перенос.
 GoNoGoStim pickStim(double Function() rnd) => rnd() < nogoProb ? GoNoGoStim.nogo : GoNoGoStim.go;

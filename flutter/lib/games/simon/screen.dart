@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -86,6 +87,18 @@ class _SimonScreenState extends State<SimonScreen> {
     _nextTrial();
   }
 
+  /// Примеры разбора: согласованная проба и конфликтная — обе рисуются ТЕМ ЖЕ
+  /// полем, что в партии, иначе помеха позиции из задачи исчезнет.
+  List<DemoTrial> _demoTrials() => [
+        for (final t in simonDemoTrials())
+          DemoTrial(
+            text: '',
+            art: SimonStimulus(trial: t),
+            answer: correctSide(t.color) == SimonSide.left ? L.t('a11yLeft') : L.t('a11yRight'),
+            ruleKey: 'hint_simon_color_rule',
+          ),
+      ];
+
   void _nextTrial() {
     final g = _game!;
     _timer?.cancel();
@@ -149,6 +162,9 @@ class _SimonScreenState extends State<SimonScreen> {
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
       ],
+      onLesson: _game == null
+          ? null
+          : () => openDemoLesson(context, title: L.t('simon'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
         phase: _phase,
@@ -167,6 +183,66 @@ Color _hex(String hex) => Color(int.parse(hex.substring(1), radix: 16) | 0xFF000
 
 const Color _good = Color(0xFF22C55E);
 const Color _bad = Color(0xFFEF4444);
+
+/// 🔴 ПОЛЕ СТИМУЛА ОТДЕЛЬНЫМ ВИДЖЕТОМ — ЧТОБЫ РАЗБОР ПОКАЗЫВАЛ ТО ЖЕ САМОЕ.
+///
+/// Поле ШИРОКОЕ, и квадрат вспыхивает слева или справа от центра: именно эта
+/// сторона и мешает ответу по цвету — в ней весь эффект Саймона. Нарисуй разбор
+/// свой квадрат по центру — он показал бы задачу БЕЗ помехи, то есть другую.
+class SimonStimulus extends StatelessWidget {
+  const SimonStimulus({
+    super.key,
+    required this.trial,
+    this.shown = true,
+    this.border,
+    this.thick = false,
+  });
+
+  final SimonTrial trial;
+  final bool shown;
+  final Color? border;
+  final bool thick;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        height: 160,
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: border ?? Theme.of(context).dividerColor,
+            width: thick ? 3 : 1,
+          ),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Крестик фиксации: человек знает, куда смотреть до стимула.
+            Opacity(
+              opacity: 0.4,
+              child: Text('+', style: Theme.of(context).textTheme.headlineSmall),
+            ),
+            if (shown)
+              Align(
+                alignment:
+                    trial.position == SimonSide.left ? Alignment.centerLeft : Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: Container(
+                    key: Key('simon-stimulus-${trial.position.name}'),
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: _hex(trial.color == SimonColor.blue ? simonBlueHex : simonRedHex),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+}
 
 class _Field extends StatelessWidget {
   const _Field({
@@ -252,39 +328,11 @@ class _Field extends StatelessWidget {
             children: [
               // Поле стимула ШИРОКОЕ: квадрат вспыхивает слева или справа от центра,
               // и именно эта сторона мешает ответу по цвету.
-              Container(
-                height: 160,
-                margin: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: border, width: flash == null ? 1 : 3),
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Крестик фиксации: человек знает, куда смотреть до стимула.
-                    Opacity(
-                      opacity: 0.4,
-                      child: Text('+', style: Theme.of(context).textTheme.headlineSmall),
-                    ),
-                    if (game.stimulusShown)
-                      Align(
-                        alignment: t.position == SimonSide.left ? Alignment.centerLeft : Alignment.centerRight,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30),
-                          child: Container(
-                            key: Key('simon-stimulus-${t.position.name}'),
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              color: _hex(t.color == SimonColor.blue ? simonBlueHex : simonRedHex),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+              SimonStimulus(
+                trial: t,
+                shown: game.stimulusShown,
+                border: border,
+                thick: flash != null,
               ),
               const SizedBox(height: 12),
               Text(L.t('hint_simon_color_rule'), textAlign: TextAlign.center),

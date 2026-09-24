@@ -10,6 +10,10 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
+import '../../shell/board_solver.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
+import 'puzzle.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
@@ -209,6 +213,50 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     });
   }
 
+  /*
+   * 🔴 РАЗБОР БЕРЁТСЯ У ОБЩЕГО ПОИСКА, А НЕ ПИШЕТСЯ ЗДЕСЬ.
+   *
+   * Вся связь игры с разбором — `TolPuzzleAdapter`: снимок, ходы, «применить»,
+   * «решено». Эти четыре вещи у `TolState` уже были — они нужны самой игре.
+   *
+   * ⚠️ ЦЕЛЬ У БАШЕН СВОЯ У КАЖДОЙ ЗАДАЧИ, а не встроена в правила, как у ханоя.
+   * Поэтому она передаётся адаптеру параметром: иначе разбор решал бы не ту
+   * задачу, что показана человеку.
+   */
+  /// ⚠️ Название одной строкой на весь экран: второй литерал был бы вторым местом,
+  /// где его переводить, и первым, где забудут.
+  static const _title = 'Башня Лондона';
+
+  Future<void> _openLesson() async {
+    final from = _state;
+    final puzzle = _puzzle;
+    if (from == null || puzzle == null) return;
+    final game = TolPuzzleAdapter(puzzle.goal.key);
+    final steps = await BoardLesson(game, from).steps();
+    if (!mounted || steps.isEmpty) return;
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _title,
+        steps: steps,
+        board: (context, side, shown) {
+          final at = shown == 0
+              ? from
+              : (steps[(shown - 1).clamp(0, steps.length - 1)].payload
+                  as ({TolMove move, TolState after})).after;
+          return TolBoard(
+            state: at,
+            goal: puzzle.goal,
+            fieldHeight: side,
+            selected: null,
+            onTapPeg: (_) {},
+            onDrop: (_, _) {},
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final level = _level;
@@ -220,7 +268,10 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     final rounds = _rounds;
 
     return GameShell(
-      title: 'Башня Лондона',
+      title: _title,
+      // Разбор — общим решателем каркаса: игра отдала снимок, ходы и цель,
+      // своего учителя не писала.
+      onLesson: (_state == null || _puzzle == null) ? null : _openLesson,
       hud: [
         // Счётчик уровня при шаге зарядки скрыт: шаг лестницу не двигает.
         if (!GamePreset.isPreset)
