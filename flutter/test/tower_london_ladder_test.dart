@@ -113,16 +113,20 @@ void main() {
             'экран нарисует их запасным красным, и они сольются');
   });
 
-  testWidgets('🔴 шестишаровая ступень РИСУЕТСЯ, а не падает', (tester) async {
-    final six = set.levels.firstWhere((l) => l.balls >= 6, orElse: () => set.levels.last);
-    expect(six.balls, greaterThanOrEqualTo(6), reason: 'шестишаровых ступеней нет');
-
+  /// 🔴 РИСУЕТСЯ ЛИ ВЕРХНЯЯ СТУПЕНЬ — СПРАШИВАЕТСЯ У ЭКРАНА, А НЕ У ЛЕСТНИЦЫ.
+  ///
+  /// ⚠️ 25.09.2026 лестница выросла до СЕМИ шаров (решение Дениса «растить дальше
+  /// новой осью»), и проба, смотревшая только первую шестишаровую ступень, про
+  /// седьмой шар не узнала бы ничего: у него свой цвет, и запасной красный сделал
+  /// бы два шара неразличимыми ровно там, где задача самая длинная.
+  /// Поэтому проверяются ДВЕ ступени: первая шестишаровая и ПОСЛЕДНЯЯ в лестнице.
+  Future<Set<String>> drawLevel(WidgetTester tester, TolLevel level) async {
     tester.view.physicalSize = const Size(780, 1688);
     tester.view.devicePixelRatio = 2;
     addTearDown(tester.view.reset);
     SharedPreferences.setMockInitialValues({
       'psygames_active_profile': 'nzt48',
-      'psygames_tower_london_level_nzt48': '${six.level}',
+      'psygames_tower_london_level_nzt48': '${level.level}',
     });
     final state = await SharedState.open();
     await tester.runAsync(() async {
@@ -147,8 +151,26 @@ void main() {
       }
     }
     // ignore: avoid_print
-    print('НА ЭКРАНЕ L${six.level}: шары ${(letters.toList()..sort()).join(' ')}');
+    print('НА ЭКРАНЕ L${level.level} (${level.balls} шаров): '
+        '${(letters.toList()..sort()).join(' ')}');
+    return letters;
+  }
+
+  testWidgets('🔴 шестишаровая ступень РИСУЕТСЯ, а не падает', (tester) async {
+    final six = set.levels.firstWhere((l) => l.balls >= 6, orElse: () => set.levels.last);
+    expect(six.balls, greaterThanOrEqualTo(6), reason: 'шестишаровых ступеней нет');
+    final letters = await drawLevel(tester, six);
     expect(letters.length, greaterThanOrEqualTo(6),
         reason: 'на шестишаровой ступени нарисовано ${letters.length} разных шаров');
+  });
+
+  testWidgets('🔴 ВЕРХНЯЯ ступень рисуется, и у каждого шара свой цвет', (tester) async {
+    final top = set.levels.last;
+    final letters = await drawLevel(tester, top);
+    expect(letters.length, top.balls,
+        reason: 'на верхней ступени ${top.balls} шаров, а разных нарисовано ${letters.length} — '
+            'два шара слились, и самая длинная задача стала неразрешимой глазами');
+    final noColour = letters.where((c) => !ballColors.containsKey(c)).toList();
+    expect(noColour, isEmpty, reason: 'шары без своего цвета: $noColour');
   });
 }
