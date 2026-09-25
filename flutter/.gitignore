@@ -51,3 +51,11 @@ app.*.map.json
 # iOS: build/tatham-ios-*, Android: jniLibs/<abi>/libtatham.so. Их делают
 # tool/build_tatham_ios.sh и tool/build_tatham_android.sh перед сборкой.
 android/app/src/main/jniLibs/
+
+# 🔴 ЖУРНАЛ ЭТАЛОНА LEVELDB — ИСКЛЮЧЕНИЕ ИЗ `*.log` ВЫШЕ.
+# Эталон localStorage Android состоит из ДВУХ половин: сортированной таблицы
+# (.ldb) и журнала предзаписи (.log) — в журнале лежат самые свежие ключи.
+# Правило `*.log` выбросило журнал из коммита молча: локально проба оставалась
+# зелёной (файл на диске), а в CI эталон приехал бы без половины и проба
+# «эталон содержит обе половины базы» покраснела бы. Замер 25.09.2026.
+!test/fixtures/chromium_localstorage/*.log
