@@ -259,4 +259,64 @@ void main() {
         reason: 'серия остаётся нынешней: её дни настоящие');
     store.deleteSync(recursive: true);
   });
+
+  // ── ANDROID: корзина Chromium, а не WebKit ─────────────────────────────────
+  //
+  // 🔴 Ветка Android проверяется НА НАСТОЯЩЕЙ БАЗЕ, снятой Chromium
+  // (flutter/tool/make_leveldb_fixture.mjs). Иначе единственным способом её
+  // замерить остался бы живой телефон, а без замера «перенос не работает»
+  // и «переносить нечего» выглядят одинаково.
+
+  /// Раскладывает эталон туда, где его ищет Android-WebView.
+  Directory androidStore() {
+    final root = Directory.systemTemp.createTempSync('legacy-android-');
+    final dst = Directory('${root.path}/app_webview/Default/Local Storage/leveldb')
+      ..createSync(recursive: true);
+    final src = Directory('test/fixtures/chromium_localstorage');
+    for (final f in src.listSync().whereType<File>()) {
+      f.copySync('${dst.path}/${f.path.split('/').last}');
+    }
+    return root;
+  }
+
+  test('🔴 Android: прогресс забирается из базы Chromium', () async {
+    final store = androidStore();
+    final state = await emptyState();
+
+    final taken = await LegacyImport.seedIfEmpty(state, libraryDir: store);
+
+    expect(taken, greaterThan(0), reason: 'из LevelDB не взято ничего');
+    expect(state.get('psygames_profile'), 'nzt48');
+    expect(state.get('psygames_tokens_v1'), '4212');
+    // Ключи из журнала предзаписи — самые свежие, их терять нельзя.
+    expect(state.get('psygames_theme'), 'dark');
+    // Кириллица и эмодзи — проверка кодировки значения.
+    expect(state.get('psygames_nickname'), 'Денис · кот Маркиз 🐈');
+    // История партий целиком, а не обрывком.
+    final sessions = jsonDecode(state.get('psygames_sessions')!) as List;
+    expect(sessions.length, 400);
+    store.deleteSync(recursive: true);
+  });
+
+  test('🔴 Android: чужие ключи не берутся', () async {
+    final store = androidStore();
+    final state = await emptyState();
+    await LegacyImport.seedIfEmpty(state, libraryDir: store);
+
+    // В эталоне лежат 120 балластных и один чужой ключ — все они в том же
+    // origin, и отсечь их обязан перенос, а не разбор базы.
+    expect(state.get('ballast_0'), isNull);
+    expect(state.get('unrelated_cookie_banner'), isNull);
+    store.deleteSync(recursive: true);
+  });
+
+  test('Android: в журнале переноса видно, ОТКУДА взяты ключи', () async {
+    final store = androidStore();
+    final state = await emptyState();
+    await LegacyImport.seedIfEmpty(state, libraryDir: store);
+
+    expect(LegacyImport.lastReport, contains('leveldb@tauri.localhost'),
+        reason: 'без имени источника непонятно, сработала ли ветка Android');
+    store.deleteSync(recursive: true);
+  });
 }

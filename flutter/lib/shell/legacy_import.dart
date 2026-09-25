@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 
+import 'chromium_localstorage.dart';
 import 'shared_state.dart';
 
 /// 🔴 ПРОГРЕСС ПРЕЖНЕЙ ВЕРСИИ — ЗАБРАТЬ, А НЕ ПОТЕРЯТЬ.
@@ -74,7 +75,7 @@ class LegacyImport {
     final tries = int.tryParse(state.get(triesKey) ?? '0') ?? 0;
     if (tries >= maxEmptyTries) return -1;
     try {
-      final files = await _storageFiles(libraryDir);
+      final files = await _sources(libraryDir);
       if (files.isEmpty) {
         lastReport = 'files=0 try=${tries + 1}';
         await state.set(triesKey, '${tries + 1}');
@@ -84,7 +85,7 @@ class LegacyImport {
       var skipped = 0;
       final from = <String>[];
       for (final f in files) {
-        final pairs = _readItemTable(f);
+        final pairs = f.pairs;
         var here = 0;
         for (final e in pairs.entries) {
           if (!SharedState.owns(e.key)) continue;
@@ -130,7 +131,7 @@ class LegacyImport {
           await state.set(e.key, e.value);
           here++;
         }
-        if (here > 0) from.add('${f.path.split('/').last}:$here');
+        if (here > 0) from.add('${f.name}:$here');
         taken += here;
       }
       lastReport = 'files=${files.length} keys=$taken kept=$skipped'
@@ -234,6 +235,79 @@ class LegacyImport {
   static bool _blank(String v) {
     final t = v.trim();
     return t.isEmpty || t == '[]' || t == '{}' || t == 'null' || t == '0';
+  }
+
+  /// Откуда переносить: у каждой платформы своя корзина, но наружу они выглядят
+  /// одинаково — имя для журнала и готовые пары «ключ → значение».
+  ///
+  /// 🔴 ДВЕ ПЛАТФОРМЫ — ДВА РАЗНЫХ ХРАНИЛИЩА, И ЭТО НЕ ДУБЛЬ РАДИ ДУБЛЯ.
+  /// На iOS прежняя линия (Tauri 2) шла через WKWebView: корзина — sqlite в
+  /// `Library/WebKit/**`, значения UTF-16LE блобами. На Android тот же Tauri идёт
+  /// через Android System WebView, то есть Chromium: корзина — база LevelDB в
+  /// `app_webview/**/Local Storage/leveldb`, другой формат целиком. Общего между
+  /// ними только одно — обе лежат В НАШЕМ ЖЕ контейнере, потому что обновление из
+  /// магазина контейнер сохраняет.
+  static Future<List<_Source>> _sources(Directory? libraryDir) async {
+    final out = <_Source>[];
+
+    // iOS/macOS: файлы WebKit.
+    for (final f in await _storageFiles(libraryDir)) {
+      out.add(_Source(f.path.split('/').last, _readItemTable(f)));
+    }
+
+    // Android: база LevelDB.
+    for (final dir in await _chromiumStores(libraryDir)) {
+      for (final origin in _legacyOrigins) {
+        final pairs = ChromiumLocalStorage.read(dir, origin: origin);
+        if (pairs.isEmpty) continue;
+        final host = origin.replaceFirst(RegExp(r'^https?://'), '');
+        out.add(_Source('leveldb@$host', pairs));
+      }
+    }
+    return out;
+  }
+
+  /// Origin, под которым прежняя линия открывала страницу на Android.
+  ///
+  /// ⚠️ ПРОБУЕМ ОБА. Tauri на Android отдаёт страницу с `tauri.localhost`, но
+  /// схема зависит от настройки сборки: по умолчанию `http`, с включённым
+  /// `dangerousUseHttpScheme = false` — `https`. Ключи localStorage привязаны к
+  /// origin ЦЕЛИКОМ, вместе со схемой, поэтому ошибка в одну букву даёт пустой
+  /// перенос, который выглядит как «данных нет».
+  static const _legacyOrigins = <String>[
+    'http://tauri.localhost',
+    'https://tauri.localhost',
+  ];
+
+  /// Каталоги LevelDB, где Android-WebView держит localStorage.
+  static Future<List<Directory>> _chromiumStores(Directory? libraryDir) async {
+    final roots = <Directory>[];
+    if (libraryDir != null) {
+      // Подделка для пробы: ветку Android надо уметь проверять на маке, иначе
+      // единственным способом её замерить остаётся живой телефон.
+      roots.add(libraryDir);
+    } else if (Platform.isAndroid) {
+      try {
+        // `getApplicationSupportDirectory()` на Android — это `<контейнер>/files`;
+        // WebView кладёт своё рядом, поэтому поднимаемся на уровень выше.
+        final files = await getApplicationSupportDirectory();
+        roots.add(files.parent);
+      } catch (_) {
+        // контейнер не отдался — переносить неоткуда
+      }
+    }
+
+    final out = <Directory>[];
+    for (final root in roots) {
+      for (final rel in const [
+        'app_webview/Default/Local Storage/leveldb', // нынешний WebView
+        'app_webview/Local Storage/leveldb', // старые выпуски
+      ]) {
+        final d = Directory('${root.path}/$rel');
+        if (d.existsSync()) out.add(d);
+      }
+    }
+    return out;
   }
 
   /// Файлы `localStorage` WebKit внутри нашего же контейнера.
@@ -340,4 +414,16 @@ class LegacyImport {
     }
     return bad / s.length;
   }
+}
+
+/// Одна корзина прежней линии: имя для журнала переноса и её содержимое.
+///
+/// Имя попадает в `lastReport` (`from=…`) и отвечает на вопрос «откуда вообще
+/// взялись ключи»: `localstorage.sqlite3:12` — корзина WebKit на iOS,
+/// `leveldb@tauri.localhost:12` — база Chromium на Android.
+class _Source {
+  _Source(this.name, this.pairs);
+
+  final String name;
+  final Map<String, String> pairs;
 }
