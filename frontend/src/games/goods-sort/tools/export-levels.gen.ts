@@ -1,4 +1,4 @@
-/* psygames-goods-sort-export-levels · VER 1 · 24.09.2026 */
+/* psygames-goods-sort-export-levels · VER 2 · 25.09.2026 */
 /**
  * 🔴 ВЫГРУЗКА ЛЕСТНИЦЫ ТОВАРОВ ДЛЯ ПРИЛОЖЕНИЯ — ТЕПЕРЬ ПОВТОРЯЕМАЯ.
  *
@@ -16,10 +16,20 @@
  * `loadLevel`. Своя копия здесь означала бы, что приложение играет по одним
  * правилам, а выгрузка сделана по другим, и разойтись они могут молча.
  *
+ * 🔴 ВЫГРУЖАЮТСЯ ВСЕ ШЕСТЬ НАБОРОВ, А НЕ ОДИН «МИКС» (25.09.2026). До этого
+ * инструмент по умолчанию делал только «Микс», и в приложении жил ОДИН набор из
+ * шести: выбор товаров перенос потерял целиком. Наборы не косметика — у них
+ * разные пулы (34 · 6 · 8 · 8 · 9 · 12 видов), а от размера пула зависит,
+ * сколько видов уровень вообще может положить на доску. То есть у каждого набора
+ * СВОЯ лестница, и подменить её нельзя.
+ *
  * ЗАПУСК (из frontend):
- *   npx jest --testMatch '**\/goods-sort/tools/*.gen.ts' --testTimeout 900000
- * Зерно и место выгрузки переопределяются переменными среды:
- *   GOODS_SEED=20260923 GOODS_OUT=../flutter/assets/levels/goods_sort.json
+ *   npx jest --testMatch '**\/goods-sort/tools/*.gen.ts' --testTimeout 1800000
+ * Выгружает все наборы плюс каталог `goods_sets.json`. Переменные среды:
+ *   GOODS_SEED=20260923            зерно
+ *   GOODS_SET=food                 только один набор
+ *   GOODS_OUT=<путь>               куда писать (только с GOODS_SET)
+ *   GOODS_DIR=../flutter/assets/levels   папка выгрузки
  *
  * ⚠️ ЭТО ИНСТРУМЕНТ, А НЕ ПРОБА: обычный `testMatch` берёт только
  * `src/__tests__`, поэтому в общий прогон файл не попадает.
@@ -28,7 +38,8 @@ import type { Shelf } from '../core/board';
 import {
   capsForBoard, collapseLevel, dealBoard, GOOD_SETS, hiddenInfo, hideDeepSpots,
   ITEM_FLOOR, jokersForBoard, levelCfg, liveRowsForFreeze, monochromeLevel, moveReference,
-  movingNiches, rowOfNiche, SCROLL_FROM, shuffle, strictPlacement, целымиТройками,
+  movingNiches, PROFILE_GOOD_SET, rowOfNiche, SCROLL_FROM, setUnlockLevel, shuffle,
+  strictPlacement, WIDEST_POOL, целымиТройками,
   type Goal,
 } from '../core/level';
 
@@ -39,7 +50,7 @@ const path = require('path');
 
 const СТУПЕНЕЙ = Number(process.env.GOODS_LEVELS ?? 60);
 const ЗЕРНО = Number(process.env.GOODS_SEED ?? 20260923);
-const НАБОР = process.env.GOODS_SET ?? 'mix';
+const ОДИН_НАБОР = process.env.GOODS_SET ?? '';
 /** Порог узкой сетки — тот же, что читает приложение (`narrowWidth` в выгрузке). */
 const УЗКАЯ_ДО = 560;
 
@@ -161,62 +172,138 @@ function собратьУровень(L: number, пул: number[], narrow: boole
   };
 }
 
+/** Файл лестницы набора. «Микс» остаётся под прежним именем: его читает выпущенный экран. */
+function файлНабора(ключ: string): string {
+  return ключ === 'mix' ? 'goods_sort.json' : `goods_sort_${ключ}.json`;
+}
+
+const ПАПКА = process.env.GOODS_DIR
+  ?? path.resolve(__dirname, '../../../../../flutter/assets/levels');
+
+/** Одна лестница: собрать обе сетки, проверить себя и записать. */
+function выгрузитьНабор(ключ: string, выход: string): void {
+  const набор = GOOD_SETS.find((s) => s.key === ключ) ?? GOOD_SETS[0];
+  const пул = набор.pool;
+
+  const настоящий = Math.random;
+  Math.random = mulberry32(ЗЕРНО);
+  let levels: ВыгруженныйУровень[];
+  let wide: ВыгруженныйУровень[];
+  try {
+    levels = Array.from({ length: СТУПЕНЕЙ }, (_, i) => собратьУровень(i + 1, пул, true));
+    wide = Array.from({ length: СТУПЕНЕЙ }, (_, i) => собратьУровень(i + 1, пул, false));
+  } finally {
+    Math.random = настоящий;
+  }
+
+  /**
+   * 🔴 ВЫГРУЗКА ПРОВЕРЯЕТ СЕБЯ ДО ЗАПИСИ. Инварианты стоят и в раздаче, но файл,
+   * который уедет в приложение, обязан быть проверен ещё раз ЗДЕСЬ: между
+   * раздачей и записью лежит сборка уровня, и однажды она уже теряла товар молча.
+   *
+   * ⚠️ ПРОВЕРОК ТРИ, И ТРЕТЬЯ ПОЯВИЛАСЬ 25.09.2026 ПО НАСТОЯЩЕМУ ДЕФЕКТУ: доска
+   * не имеет права приехать с ГОТОВОЙ тройкой — она схлопнется первым касанием, и
+   * очко с местом достанутся ни за что. Считаем весь расклад: и доску, и очередь,
+   * и задние ряды.
+   */
+  const битые: string[] = [];
+  for (const [имя, список] of [['узкая', levels], ['широкая', wide]] as const) {
+    for (const lv of список) {
+      if (!целымиТройками(lv.cells, lv.queue, lv.back)) битые.push(`${ключ}/${имя} L${lv.level}: не кратно трём`);
+      const готовая = lv.cells.some((c) => готоваяТройка(c))
+        || lv.queue.some((sh) => готоваяТройка(sh.cell))
+        || lv.back.some((b) => готоваяТройка(b));
+      if (готовая) битые.push(`${ключ}/${имя} L${lv.level}: приехала с готовой тройкой`);
+      const вне = lv.cells.flat().filter((t) => !пул.includes(t));
+      if (вне.length > 0) битые.push(`${ключ}/${имя} L${lv.level}: товар вне пула ${вне[0]}`);
+    }
+  }
+  expect(битые).toEqual([]);
+
+  const данные = {
+    generator: 'goods-sort dealBoard (живой TS)',
+    exportedAt: new Date().toISOString().slice(0, 10),
+    seed: ЗЕРНО,
+    set: набор.key,
+    pool: пул,
+    narrowWidth: УЗКАЯ_ДО,
+    levels,
+    wide,
+  };
+  // ⚠️ ОТСТУП В ОДИН ПРОБЕЛ — КАК БЫЛО У ПЕРВОЙ ВЫГРУЗКИ. Схлопнутый в строку
+  // JSON приложение читает ровно так же, но диффы становятся нечитаемы: правка
+  // одного уровня выглядит как «изменены все 120». Формат файла — это ещё и то,
+  // можно ли увидеть, что в нём поменялось.
+  fs.writeFileSync(выход, `${JSON.stringify(данные, null, 1)}\n`);
+  // eslint-disable-next-line no-console
+  console.log(`ВЫГРУЗКА: ${levels.length} + ${wide.length} ступеней, зерно ${ЗЕРНО}, `
+    + `набор ${набор.key} (${пул.length} видов) → ${выход}\n`
+    + `  одноцветных ${levels.filter((l) => monochromeLevel(l.level)).length}, `
+    + `строгих ${levels.filter((l) => l.strict).length}, `
+    + `со схлопыванием ${levels.filter((l) => l.collapse).length}, `
+    + `с очередью ${levels.filter((l) => l.queue.length > 0).length}`);
+}
+
+/** Три одинаковых товара в одной нише — тройка, которая схлопнется сама. */
+function готоваяТройка(cell: readonly number[]): boolean {
+  const счёт = new Map<number, number>();
+  for (const t of cell) {
+    const n = (счёт.get(t) ?? 0) + 1;
+    if (n >= 3) return true;
+    счёт.set(t, n);
+  }
+  return false;
+}
+
 describe('выгрузка лестницы товаров для приложения', () => {
   it('собирает обе сетки и пишет JSON', () => {
-    const набор = GOOD_SETS.find((s) => s.key === НАБОР) ?? GOOD_SETS[0];
-    const пул = набор.pool;
-
-    const настоящий = Math.random;
-    Math.random = mulberry32(ЗЕРНО);
-    let levels: ВыгруженныйУровень[];
-    let wide: ВыгруженныйУровень[];
-    try {
-      levels = Array.from({ length: СТУПЕНЕЙ }, (_, i) => собратьУровень(i + 1, пул, true));
-      wide = Array.from({ length: СТУПЕНЕЙ }, (_, i) => собратьУровень(i + 1, пул, false));
-    } finally {
-      Math.random = настоящий;
+    if (ОДИН_НАБОР) {
+      выгрузитьНабор(ОДИН_НАБОР, process.env.GOODS_OUT ?? path.join(ПАПКА, файлНабора(ОДИН_НАБОР)));
+      return;
     }
+    for (const набор of GOOD_SETS) выгрузитьНабор(набор.key, path.join(ПАПКА, файлНабора(набор.key)));
+  }, 1800000);
 
-    /**
-     * 🔴 ВЫГРУЗКА ПРОВЕРЯЕТ СЕБЯ ДО ЗАПИСИ. Инвариант «каждый вид целыми
-     * тройками» стоит и в раздаче, но файл, который уедет в приложение, обязан
-     * быть проверен ещё раз ЗДЕСЬ: между раздачей и записью лежит сборка
-     * уровня, и однажды она уже теряла товар молча.
-     */
-    const битые: string[] = [];
-    for (const [имя, список] of [['узкая', levels], ['широкая', wide]] as const) {
-      for (const lv of список) {
-        if (!целымиТройками(lv.cells, lv.queue, lv.back)) битые.push(`${имя} L${lv.level}`);
-      }
-    }
-    expect(битые).toEqual([]);
-
-    const выход = process.env.GOODS_OUT
-      ?? path.resolve(__dirname, '../../../../../flutter/assets/levels/goods_sort.json');
-    const данные = {
-      generator: 'goods-sort dealBoard (живой TS)',
+  /**
+   * 🔴 КАТАЛОГ НАБОРОВ — ДАННЫЕ, А НЕ ПОВТОРЁННОЕ В DART ПРАВИЛО.
+   *
+   * Приложению нужно знать по каждому набору: имя человеку, сколько видов, с
+   * какого уровня открыт, какие шесть товаров показать в витрине и какой набор
+   * ставить профилю по умолчанию. Всё это УЖЕ посчитано в TS (`setUnlockLevel` —
+   * от размера пула через `typeBudget`, `PROFILE_GOOD_SET` — решение 06.09.2026).
+   * Написать те же числа в Dart значило бы завести вторую истину, которая молча
+   * разойдётся с первой на первой же правке пула.
+   */
+  it('пишет каталог наборов', () => {
+    const каталог = {
+      generator: 'goods-sort GOOD_SETS (живой TS)',
       exportedAt: new Date().toISOString().slice(0, 10),
-      seed: ЗЕРНО,
-      set: набор.key,
-      pool: пул,
-      narrowWidth: УЗКАЯ_ДО,
-      levels,
-      wide,
+      widestPool: WIDEST_POOL,
+      sets: GOOD_SETS.map((s) => ({
+        key: s.key,
+        ru: s.ru,
+        en: s.en,
+        pool: s.pool,
+        preview: s.preview,
+        alike: s.alike === true,
+        unlockLevel: setUnlockLevel(s.key),
+        file: файлНабора(s.key),
+      })),
+      byProfile: PROFILE_GOOD_SET,
     };
-    // ⚠️ ОТСТУП В ОДИН ПРОБЕЛ — КАК БЫЛО У ПЕРВОЙ ВЫГРУЗКИ. Схлопнутый в строку
-    // JSON приложение читает ровно так же, но диффы становятся нечитаемы: правка
-    // одного уровня выглядит как «изменены все 120». Формат файла — это ещё и то,
-    // можно ли увидеть, что в нём поменялось.
-    fs.writeFileSync(выход, `${JSON.stringify(данные, null, 1)}\n`);
+    // Самый широкий набор обязан быть открыт с первого уровня: он точка отсчёта
+    // и запасной вариант, когда предпочтение профиля ещё не открылось.
+    const широкий = каталог.sets.find((s) => s.pool.length === WIDEST_POOL);
+    expect(широкий?.unlockLevel).toBe(1);
+    // И каждый файл лестницы обязан существовать — иначе каталог обещает набор,
+    // которого приложение не найдёт.
+    const нет = каталог.sets.filter((s) => !fs.existsSync(path.join(ПАПКА, s.file)));
+    expect(нет.map((s: { key: string }) => s.key)).toEqual([]);
+
+    const выход = path.join(ПАПКА, 'goods_sets.json');
+    fs.writeFileSync(выход, `${JSON.stringify(каталог, null, 1)}\n`);
     // eslint-disable-next-line no-console
-    console.log(`ВЫГРУЗКА: ${levels.length} + ${wide.length} ступеней, зерно ${ЗЕРНО}, `
-      + `набор ${набор.key} (${пул.length} видов) → ${выход}`);
-    // Одноцветные уровни — проверка, что предикаты дожили до выгрузки, а не
-    // потерялись по дороге: без них лестница стала бы ровной.
-    // eslint-disable-next-line no-console
-    console.log(`одноцветных ${levels.filter((l) => monochromeLevel(l.level)).length}, `
-      + `строгих ${levels.filter((l) => l.strict).length}, `
-      + `со схлопыванием ${levels.filter((l) => l.collapse).length}, `
-      + `с очередью ${levels.filter((l) => l.queue.length > 0).length}`);
-  }, 900000);
+    console.log(`КАТАЛОГ: ${каталог.sets.length} наборов → ${выход}\n  `
+      + каталог.sets.map((s) => `${s.key} ${s.pool.length}в с L${s.unlockLevel}`).join(' · '));
+  }, 60000);
 });

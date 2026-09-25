@@ -14,6 +14,7 @@ import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
+import 'sets.dart';
 import 'solver.dart';
 
 /// «СОРТИРОВКА ТОВАРОВ» на общем каркасе — первый экран раздела на Flutter.
@@ -24,10 +25,20 @@ import 'solver.dart';
 /// та же: доска считалась от окна, а не от места, которое осталось после шапки,
 /// счётчиков и ряда кнопок. Здесь высоту поля даёт каркас числом.
 ///
-/// ⚠️ РЕШАТЕЛЬ И ГЕНЕРАТОР НЕ ПЕРЕНОСИЛИСЬ. Уровни розданы нынешним TS-генератором
-/// (с доказательством решаемости там, где оно есть) и лежат в
-/// `assets/levels/goods_sort.json`. Поэтому нет «Подсказки»: она в вебе считается
-/// поиском по доске. Появится, когда решатель поедет отдельно.
+/// ⚠️ ГЕНЕРАТОР НЕ ПЕРЕНОСИЛСЯ. Уровни розданы нынешним TS-генератором (с
+/// доказательством решаемости там, где оно есть) и лежат в `assets/levels/`:
+/// по файлу на каждый из шести наборов плюс каталог `goods_sets.json`.
+///
+/// 🔴 ВЫБОР НАБОРА ТОВАРОВ (25.09.2026, решение Дениса «перенести выбор набора
+/// нативно выпадающим списком»). До этого в приложении жил ОДИН набор из шести:
+/// выгрузка делалась только для «Микса», и выбор перенос потерял целиком — при
+/// том, что все 44 спрайта товаров уже ехали в сборке.
+///
+/// ⚠️ ВЫБОР НЕ СТАЛ ЭКРАНОМ НАСТРОЙКИ ПЕРЕД ИГРОЙ. В вебе он там и живёт, и
+/// именно поэтому экран настройки тянется на 1209 точек при окне 844 (замер
+/// 17.09.2026, задача 473f6023). Здесь набор меняется ИЗ ПАРТИИ — значком в ряду
+/// под полем: игра по-прежнему начинается сразу, а витрина открывается одним
+/// нажатием и закрывается выбором.
 class GoodsSortScreen extends StatefulWidget {
   const GoodsSortScreen({super.key, required this.state});
 
@@ -75,6 +86,12 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   GoodsLevelSet? _set;
   late LevelLadder _ladder;
 
+  /// Каталог наборов и выбранный набор. Ключ хранения — свой у профиля: наборы
+  /// назначаются по профилю, и общий ключ подменил бы ребёнку витрину взрослого.
+  GoodsSets? _sets;
+  String _setKey = 'mix';
+  String get _setStoreKey => '${SharedState.prefix}goods_sort_set_${widget.state.activeProfile}';
+
   GoodsLevel? _level;
   GoodsBoard? _board;
   List<Obstacle?> _obstacles = [];
@@ -104,8 +121,21 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   }
 
   Future<void> _boot() async {
-    final raw = await rootBundle.loadString('assets/levels/goods_sort.json');
+    final sets = await GoodsSets.load();
     await _ladder.load();
+    /*
+     * 🔴 НАБОР БЕРЁТСЯ В ТРИ ШАГА, И ПОРЯДОК ВАЖЕН.
+     * 1. Что человек выбрал сам — если этот набор ему уже открыт.
+     * 2. Иначе набор его ПРОФИЛЯ (таблица из веба), если открыт.
+     * 3. Иначе самый широкий «Микс»: он открыт с первого уровня по построению.
+     * Открытость считается по ПОТОЛКУ (`best`), а не по текущему уровню:
+     * переигровка лёгкого уровня не имеет права отбирать заработанное выше.
+     */
+    final chosen = widget.state.get(_setStoreKey);
+    final key = (chosen != null && sets.available(chosen, _ladder.best))
+        ? chosen
+        : sets.defaultFor(widget.state.activeProfile, _ladder.best);
+    final raw = await rootBundle.loadString('assets/levels/${sets.byKey(key).file}');
     /*
      * 🔴 РАЗДАЧА БЕРЁТСЯ ПО ШИРИНЕ ЭКРАНА, А НЕ ОДНА НА ВСЕХ. На телефоне сетка
      * узкая (3 колонки, больше рядов — «вниз экран тянется, вбок нет»), и от неё
@@ -116,6 +146,76 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     if (!mounted) return;
     final set = GoodsLevelSet.fromJsonString(raw, width: MediaQuery.of(context).size.width);
     setState(() {
+      _sets = sets;
+      _setKey = key;
+      _set = set;
+      _start(set.byLevel(_ladder.level));
+    });
+  }
+
+  /// ВИТРИНА НАБОРОВ — лист снизу, а не экран перед игрой.
+  ///
+  /// ⚠️ ЗАПЕРТЫЕ НАБОРЫ ПОКАЗЫВАЮТСЯ, А НЕ СКРЫВАЮТСЯ, и подписаны уровнем, с
+  /// которого откроются: «с 18-го уровня» — это причина играть дальше, а пустое
+  /// место в списке не говорит ничего. Так же сделано в вебе.
+  Future<void> _pickSet() async {
+    final sets = _sets;
+    if (sets == null) return;
+    final reached = _ladder.best;
+    /*
+     * 🔴 ВСЕ ШЕСТЬ СТРОК ОБЯЗАНЫ БЫТЬ ВИДНЫ БЕЗ ПРОКРУТКИ.
+     *
+     * 📍 ЗАМЕР 25.09.2026: у листа по умолчанию потолок — половина экрана (422
+     * точки на 390×844), шесть строк `ListTile` с подписями «с N-го уровня»
+     * занимали больше, и ШЕСТАЯ («Зверята») уезжала за край. Поймала проба,
+     * печатавшая содержимое витрины: «Микс | Еда | Напитки | Игрушки |
+     * Молочное» — пяти хватило, шестой не было. Прокрутить лист человек мог, но
+     * последний набор — самый дальний по лестнице, то есть ровно тот, за которым
+     * в витрину и заходят.
+     *
+     * `isScrollControlled` снимает потолок половины экрана, `dense` сжимает
+     * строку с 72 до 56 точек — шесть строк с заголовком встают в 376 точек.
+     */
+    final chosen = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(L.t('goodsSetsLabel'), style: Theme.of(context).textTheme.titleMedium),
+            ),
+            for (final s in sets.sets)
+              _SetRow(
+                set: s,
+                sets: sets,
+                current: s.key == _setKey,
+                open: sets.available(s.key, reached, granted: _setKey),
+                onPick: () => Navigator.of(context).pop(s.key),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (chosen != null) await _switchSet(chosen);
+  }
+
+  /// Смена набора из партии: лестницы наборов параллельны, поэтому номер уровня
+  /// сохраняется, а партия начинается заново — доска у другого набора другая.
+  Future<void> _switchSet(String key) async {
+    final sets = _sets;
+    if (sets == null || key == _setKey) return;
+    _cancelNext();
+    final raw = await rootBundle.loadString('assets/levels/${sets.byKey(key).file}');
+    if (!mounted) return;
+    final set = GoodsLevelSet.fromJsonString(raw, width: MediaQuery.of(context).size.width);
+    await widget.state.set(_setStoreKey, key);
+    if (!mounted) return;
+    setState(() {
+      _setKey = key;
       _set = set;
       _start(set.byLevel(_ladder.level));
     });
@@ -437,6 +537,13 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: 'Отменить', onPressed: _history.isEmpty ? null : _undo),
         AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _restart),
+        // Витрина наборов — одним нажатием ИЗ ПАРТИИ, а не экраном перед игрой.
+        AuxAction(
+          key: const Key('goods-set-pick'),
+          icon: Icons.shopping_basket_outlined,
+          label: '${L.t('goodsSetsLabel')}: ${goodsSetTitle(_setKey, _sets)}',
+          onPressed: _sets == null ? null : _pickSet,
+        ),
         AuxAction(icon: Icons.task_alt, label: _goalText(level), onPressed: null),
       ]),
       toolbar: _won
@@ -462,6 +569,80 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
         PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _restart),
         if (_history.isNotEmpty) PauseAction(label: 'Отменить ход', icon: Icons.undo, onPressed: _undo),
       ],
+    );
+  }
+}
+
+/// 🔴 ИМЯ НАБОРА ИЗ СЛОВАРЯ, И КЛЮЧ — ЛИТЕРАЛОМ НА МЕСТЕ ВЫЗОВА.
+///
+/// ⚠️ Сборщик словаря (`flutter/tools/embed-l10n.mjs`) берёт из исходника ТОЛЬКО
+/// литералы `L.t('…')`. Ключ, собранный из частей (`'goodsSet_' + key`), он не
+/// увидит, ключа не окажется в `assets/l10n/<язык>.json`, а `L.t` при промахе
+/// возвращает САМ КЛЮЧ — человек увидел бы в витрине `goodsSet_food`, и ни одна
+/// проба на это не покраснела бы. Поэтому шесть литералов перечислены руками.
+///
+/// Запасной путь — русское имя из каталога: словарь может отстать от нового
+/// набора, но набор от этого не должен становиться безымянным.
+String goodsSetTitle(String key, GoodsSets? sets) {
+  final String word;
+  switch (key) {
+    case 'food': word = L.t('goodsSet_food');
+    case 'drinks': word = L.t('goodsSet_drinks');
+    case 'toys': word = L.t('goodsSet_toys');
+    case 'dairy': word = L.t('goodsSet_dairy');
+    case 'pets': word = L.t('goodsSet_pets');
+    default: word = L.t('goodsSet_mix');
+  }
+  if (!word.startsWith('goodsSet')) return word;
+  return sets?.byKey(key).ru ?? key;
+}
+
+/// Строка набора в витрине: название, сколько видов, шесть картинок и замок.
+class _SetRow extends StatelessWidget {
+  const _SetRow({
+    required this.set,
+    required this.sets,
+    required this.current,
+    required this.open,
+    required this.onPick,
+  });
+
+  final GoodsSet set;
+  final GoodsSets? sets;
+  final bool current;
+  final bool open;
+  final VoidCallback onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final sub = StringBuffer('🛒 ${set.pool.length}');
+    if (set.alike) sub.write(' · ${L.t('goodsSetAlike')}');
+    // ⚠️ `{n}` подставляется, а не склеивается: в других языках срок стоит в
+    // другом месте фразы («from level 18»).
+    if (!open) sub.write(' · ${L.t('goodsSetFromLevel').replaceAll('{n}', '${set.unlockLevel}')}');
+    return ListTile(
+      key: Key('goods-set-${set.key}'),
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      enabled: open,
+      selected: current,
+      leading: Icon(open ? (current ? Icons.check_circle : Icons.storefront) : Icons.lock_outline,
+          color: open ? (current ? scheme.primary : scheme.onSurfaceVariant) : scheme.outline),
+      title: Text(goodsSetTitle(set.key, sets)),
+      subtitle: Text(sub.toString()),
+      // Шесть товаров набора — витрина честно показывает, что внутри.
+      trailing: Wrap(
+        spacing: 2,
+        children: [
+          for (final i in set.preview.take(6))
+            Opacity(
+              opacity: open ? 1 : 0.35,
+              child: Image.asset('assets/goods/good$i.webp', width: 22, height: 22),
+            ),
+        ],
+      ),
+      onTap: open ? onPick : null,
     );
   }
 }
