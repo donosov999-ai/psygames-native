@@ -41,6 +41,8 @@ dependencies:
   # нативной части и без зависимостей — MIT. В вебе ту же работу делает chess.js
   # (BSD-2), своего движка правил в приложении нет и писать его незачем.
   bishop: ^1.4.4
+  # Фигуры Cburnett рисуются SVG — тем же набором, что в вебе (BSD-3).
+  flutter_svg: ^2.0.10
 
 dev_dependencies:
   flutter_test:
@@ -82,6 +84,8 @@ flutter:
     # вложенные каталоги молча не попадают в сборку («Слова» на этом потеряли
     # заход: 17,9 МБ вместо 101,5, а сборка была зелёной).
     - assets/chess_blind/
+    # Фигуры Cburnett (BSD-3), извлечены из frontend/src/games/chess-blind/core/pieces.ts
+    - assets/chess/
     - assets/words/
     - assets/l10n/
     - assets/spatial/

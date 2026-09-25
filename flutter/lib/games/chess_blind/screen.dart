@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../chess_common/board.dart';
+
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import 'game.dart';
@@ -136,20 +138,22 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
             final side = fieldHeight < box.maxWidth
                 ? fieldHeight
                 : box.maxWidth;
+            final highlight =
+                game.phase == ChessBlindPhase.quiz &&
+                    game.params.quizType == PuzzleQuizType.locate
+                ? game.current?.sq
+                : null;
             return Center(
-              child: SizedBox(
-                width: side,
-                height: side,
-                child: _Board(
-                  pieces: shown,
-                  masked: masked,
-                  highlight:
-                      game.phase == ChessBlindPhase.quiz &&
-                          game.params.quizType == PuzzleQuizType.locate
-                      ? game.current?.sq
-                      : null,
-                  onTapSquare: _answerSquare,
-                ),
+              child: ChessBoardView(
+                side: side,
+                keyPrefix: 'cb-sq',
+                masked: masked,
+                selected: highlight,
+                onTapSquare: _answerSquare,
+                pieces: {
+                  for (final p in shown)
+                    p.sq: BoardPiece(p.type, white: p.white),
+                },
               ),
             );
           },
@@ -175,69 +179,6 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
 }
 
 /// Доска 8×8. До маски видны фигуры, после — одинаковые фишки.
-class _Board extends StatelessWidget {
-  const _Board({
-    required this.pieces,
-    required this.masked,
-    required this.onTapSquare,
-    this.highlight,
-  });
-
-  final List<PuzzlePiece> pieces;
-  final bool masked;
-  final void Function(int sq) onTapSquare;
-  final int? highlight;
-
-  static const _glyphs = {
-    'K': '♚',
-    'Q': '♛',
-    'R': '♜',
-    'B': '♝',
-    'N': '♞',
-    'P': '♟',
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final bysquare = {for (final p in pieces) p.sq: p};
-    return GridView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 8,
-      ),
-      itemCount: 64,
-      itemBuilder: (context, i) {
-        final piece = bysquare[i];
-        final light = ((i ~/ 8) + (i % 8)) % 2 == 0;
-        return GestureDetector(
-          key: Key('cb-sq-$i'),
-          onTap: () => onTapSquare(i),
-          child: Container(
-            color: i == highlight
-                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.35)
-                : (light ? const Color(0xFFE8C48A) : const Color(0xFFC8A06A)),
-            alignment: Alignment.center,
-            child: piece == null
-                ? null
-                : masked
-                // Маска: одинаковые фишки, по ним ничего не прочесть.
-                ? const Icon(Icons.circle, size: 18, color: Color(0xFF5B5B5B))
-                : Text(
-                    _glyphs[piece.type] ?? piece.type,
-                    style: TextStyle(
-                      fontSize: 22,
-                      color: piece.white
-                          ? const Color(0xFFFDF6E8)
-                          : const Color(0xFF1C1A17),
-                    ),
-                  ),
-          ),
-        );
-      },
-    );
-  }
-}
-
 /// Варианты ответа для вида «что стоит на поле».
 class _PickBar extends StatelessWidget {
   const _PickBar({required this.question, required this.onPick});

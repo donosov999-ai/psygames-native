@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/chess_common/board.dart';
 import 'package:psygames_flutter/games/chess_blind/positions.dart';
 import 'package:psygames_flutter/games/chess_blind/screen.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
@@ -41,7 +42,14 @@ void main() {
       findsNothing,
       reason: 'до маски фишек нет',
     );
-    expect(find.textContaining('♚'), findsWidgets, reason: 'фигуры видны');
+    // ⚠️ Фигуры — РИСУНКИ, а не знаки шрифта: проба искала «♚» текстом и
+    // прошла бы даже на доске, где обе стороны одного цвета (на iOS система
+    // подставляет к этим знакам свой глиф и цвет из стиля может не примениться).
+    expect(
+      find.byType(ChessPieceImage),
+      findsWidgets,
+      reason: 'фигуры видны рисунком',
+    );
 
     // Ждём весь показ: ступень 12 показывает 7 секунд.
     for (var i = 0; i < 9; i++) {
@@ -53,7 +61,7 @@ void main() {
       reason: 'после показа — фишки',
     );
     expect(
-      find.textContaining('♚'),
+      find.byType(ChessPieceImage),
       findsNothing,
       reason: 'фигур больше не видно',
     );
@@ -78,7 +86,7 @@ void main() {
     final highlighted = tester
         .widgetList<Container>(
           find.descendant(
-            of: find.byType(GridView),
+            of: find.byType(ChessBoardView),
             matching: find.byType(Container),
           ),
         )
@@ -104,7 +112,7 @@ void main() {
     // Замер веб-версии: доска, посчитанная от окна, вылезала за экран — окно не
     // знает ни про шапку, ни про счётчики, ни про липкий низ.
     await boot(tester, 3);
-    final board = tester.getRect(find.byType(GridView));
+    final board = tester.getRect(find.byType(ChessBoardView));
     final screen = tester.getRect(find.byType(MaterialApp));
     expect(board.height, lessThan(screen.height), reason: 'доска ниже экрана');
     expect(board.width, closeTo(board.height, 1), reason: 'доска квадратная');
