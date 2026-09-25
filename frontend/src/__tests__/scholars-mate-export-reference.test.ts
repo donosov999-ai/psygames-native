@@ -26,7 +26,7 @@ declare const require: (id: string) => {
 declare const __dirname: string;
 declare const process: { env: Record<string, string | undefined> };
 
-import { puzzlesOf } from '../games/scholars-mate/core/deck';
+import { puzzlesOf, buildDeck, levelParams } from '../games/scholars-mate/core/deck';
 import {
   shownFen,
   sideToMove,
@@ -91,6 +91,23 @@ describe('эталон «Детского мата»', () => {
       }
       эталон[kind] = строки;
     }
+
+    // Колоды: те же уровни и семена должны давать те же позиции в том же
+    // порядке. Сверяется показанная позиция — она и есть то, что видит человек.
+    const колоды: Record<string, unknown> = {};
+    for (const level of [1, 5, 12, 25, 40]) {
+      const п = levelParams(level);
+      колоды[`L${level}`] = {
+        kinds: п.kinds,
+        count: п.count,
+        seconds: п.seconds,
+        minRating: п.minRating,
+        maxRating: п.maxRating,
+        motifs: п.motifs,
+        deck: buildDeck(level, 1).map((x) => `${x.fen}|${x.pre ?? ''}`),
+      };
+    }
+    эталон['decks'] = колоды;
 
     if (!process.env.SCHOLARS_EXPORT) return;
     const fs = require('fs');

@@ -86,6 +86,8 @@ flutter:
     - assets/chess_blind/
     # Фигуры Cburnett (BSD-3), извлечены из frontend/src/games/chess-blind/core/pieces.ts
     - assets/chess/
+    # Корпус «Детского мата»: 718 своих матовых позиций + задачи Lichess (CC0)
+    - assets/scholars_mate/
     - assets/words/
     - assets/l10n/
     - assets/spatial/

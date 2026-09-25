@@ -18,8 +18,11 @@ library;
 
 import 'package:bishop/bishop.dart' as bishop;
 
-/// Вид задания.
-enum ScholarsKind { mate, fromGames, sacrifice, defend, threat }
+import 'ladder.dart';
+
+// Вид задания объявлен в лестнице — она переносилась первой. Второй такой же
+// enum здесь был бы двумя разными типами с одним именем.
+export 'ladder.dart' show ScholarsKind;
 
 /// Одна задача набора.
 class ScholarsPuzzle {
