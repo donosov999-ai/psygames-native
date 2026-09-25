@@ -1,4 +1,4 @@
-/* psygames-goods-sort-whole-triples · VER 1 · 24.09.2026 */
+/* psygames-goods-sort-whole-triples · VER 2 · 25.09.2026 */
 /**
  * 🔴 УРОВЕНЬ, КОТОРЫЙ НЕЛЬЗЯ ВЫИГРАТЬ, — И ПОЧЕМУ ЕГО НИКТО НЕ ЗАМЕТИЛ.
  *
@@ -26,6 +26,10 @@
  */
 // Лист без React: раздача — чистая функция, экран поднимать незачем.
 import { CAP, dealBoard, GOOD_SETS, целымиТройками } from '@/src/games/goods-sort/core/level';
+import { tripleIn } from '@/src/games/goods-sort/core/board';
+
+declare function require(id: string): any;
+declare const __dirname: string;
 
 const МИКС = GOOD_SETS.find((s) => s.key === 'mix')!.pool;
 
@@ -82,5 +86,80 @@ describe('раздача товаров: каждый вид целыми тро
     expect(целымиТройками([[1, 1]], [], [[1]])).toBe(true);
     // А вот теперь правда не хватает.
     expect(целымиТройками([[1, 1]], [], [[2, 2, 2]])).toBe(false);
+  });
+});
+
+/**
+ * 🔴 ТЕПЕРЬ ТО ЖЕ САМОЕ — ПО ФАЙЛУ, КОТОРЫЙ ЕДЕТ В СБОРКУ (25.09.2026).
+ *
+ * Выше проверяется РАЗДАЧА, то есть генератор. Между генератором и телефоном
+ * лежит запись в `flutter/assets/levels/goods_sort.json`, и приложение читает
+ * ИМЕННО ЕЁ: экран `flutter/lib/games/goods_sort/` не зовёт `dealBoard` вовсе.
+ * Значит зелёный гейт на генераторе ничего не говорит про то, что у человека в
+ * руках — ровно та щель, из-за которой держится правило «эталон замораживает
+ * перенос, а не источник».
+ *
+ * 📍 ЗАМЕР 25.09.2026 ПО ФАЙЛУ (зерно 20260923, порог схлопывания 30): готовых
+ * троек 0, не кратных трём 0, со схлопыванием 20 ступеней из 60, первая — L31.
+ * До заслона в `dealCollapse` файл ИХ СОДЕРЖАЛ: на L38 и L41 приезжали
+ * `[12,5,12,12]`, `[9,12,9,9]`, `[11,11,11,9]`.
+ */
+describe('выгруженная лестница товаров: файл, который едет в сборку', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const файл = path.resolve(__dirname, '../../../flutter/assets/levels/goods_sort.json');
+  const данные = JSON.parse(fs.readFileSync(файл, 'utf8')) as {
+    levels: Ступень[]; wide: Ступень[];
+  };
+  type Ступень = {
+    level: number; collapse: boolean;
+    cells: number[][]; queue: { cell: number[] }[]; back: number[][];
+  };
+  const лестницы: [string, Ступень[]][] = [['узкая', данные.levels], ['широкая', данные.wide]];
+
+  const части = (lv: Ступень): [string, number[][]][] => [
+    ['доска', lv.cells],
+    ['очередь', (lv.queue ?? []).map((s) => s.cell)],
+    ['за спиной', lv.back ?? []],
+  ];
+
+  it('есть что проверять — файл на месте и лестницы полные', () => {
+    expect(данные.levels.length).toBeGreaterThan(50);
+    expect(данные.wide.length).toBe(данные.levels.length);
+    // И механика в файле правда есть: иначе проверки ниже сторожили бы пустоту.
+    expect(данные.levels.filter((l) => l.collapse).length).toBeGreaterThan(0);
+    expect(данные.levels.some((l) => (l.queue ?? []).length > 0)).toBe(true);
+    expect(данные.levels.some((l) => (l.back ?? []).some((b) => b.length > 0))).toBe(true);
+  });
+
+  it('🔴 ни одна ступень в файле не приезжает с готовой тройкой', () => {
+    const плохие: string[] = [];
+    for (const [имя, лестница] of лестницы) {
+      for (const lv of лестница) {
+        for (const [где, группа] of части(lv)) {
+          for (const cell of группа) {
+            if (cell.length > 0 && tripleIn(cell) !== null) {
+              плохие.push(`${имя} L${lv.level} ${где}: [${cell.join(',')}]`);
+            }
+          }
+        }
+      }
+    }
+    expect(плохие).toEqual([]);
+  });
+
+  it('🔴 в файле каждый вид лежит целыми тройками — вместе с очередью и задними рядами', () => {
+    const битые: string[] = [];
+    for (const [имя, лестница] of лестницы) {
+      for (const lv of лестница) {
+        const счёт = new Map<number, number>();
+        for (const [, группа] of части(lv)) {
+          for (const cell of группа) for (const t of cell) счёт.set(t, (счёт.get(t) ?? 0) + 1);
+        }
+        const лишние = [...счёт.entries()].filter(([, n]) => n % CAP !== 0);
+        if (лишние.length > 0) битые.push(`${имя} L${lv.level}: ${лишние.map(([t, n]) => `вид ${t}×${n}`).join(', ')}`);
+      }
+    }
+    expect(битые).toEqual([]);
   });
 });

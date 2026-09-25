@@ -1,4 +1,4 @@
-/* psygames-gate-goods-level-won · VER 1 · 08.09.2026 */
+/* psygames-gate-goods-level-won · VER 2 · 25.09.2026 */
 /**
  * УРОВЕНЬ НЕ ЗАСЧИТЫВАЕТСЯ, ПОКА ОЧЕРЕДЬ НЕ ПУСТА.
  *
@@ -12,12 +12,14 @@
  * самого начала, и рядом записано «пустая доска при непустой очереди — не победа,
  * а промежуточное состояние». Знание было, а экран пользовался другой функцией.
  *
- * 📍 ЗАМЕР 08.09.2026: очередь есть на трёх уровнях из шестидесяти — L56 («убрать
- * всё»), L58 («убрать названные»), L59 («убрать всё»).
+ * 📍 ЗАМЕР 08.09.2026: очередь была на трёх уровнях из шестидесяти — L56, L58, L59.
+ * 📍 ЗАМЕР 25.09.2026: порог схлопывания опущен 56 → 30 (решение Дениса), очередь
+ *    теперь на тридцати ступенях. Сами числа из пробы УБРАНЫ: она сверяется с
+ *    константой `COLLAPSE_FROM` и с `collapseLevel`, потому что на числах она
+ *    краснела от здорового переноса порога.
  */
 import {
-  levelWon, goalMet, goalPlan, queueSize, COLLAPSE_FROM,
-} from '@/src/games/goods-sort/core/level';
+  levelWon, goalMet, goalPlan, queueSize, COLLAPSE_FROM, collapseLevel } from '@/src/games/goods-sort/core/level';
 import { isCleared } from '@/src/games/goods-sort/core/board';
 
 declare function require(m: string): any;
@@ -81,11 +83,24 @@ describe('экран и ядро считают победу ОДИНАКОВО'
 
 describe('замер: где очередь вообще бывает', () => {
   it('очередь появляется только со схлопывания полок и не раньше', () => {
-    expect(COLLAPSE_FROM).toBe(56);
-    for (let L = 1; L < 56; L++) expect(`L${L}: ${queueSize(L)}`).toBe(`L${L}: 0`);
-    const сОчередью = [];
-    for (let L = 1; L <= 60; L++) if (queueSize(L) > 0) сОчередью.push(`L${L}:${goalPlan(L).kind}`);
-    expect(сОчередью.join(' ')).toBe('L56:all L58:pick L59:all');
+    /*
+     * ⚠️ СВЕРЯЕМСЯ С КОНСТАНТОЙ, А НЕ С ЧИСЛОМ. Здесь стояло `toBe(56)` и цикл
+     * `L < 56` — при переносе порога 56 → 30 (решение Дениса 25.09.2026) проба
+     * покраснела на здоровой игре, потому что помнила старое значение наизусть.
+     * Проверяем СВОЙСТВО: до порога очереди нет, с порога она есть на каждом
+     * несхлопывающемся… то есть ровно на тех уровнях, где идёт схлопывание.
+     */
+    for (let L = 1; L < COLLAPSE_FROM; L++) expect(`L${L}: ${queueSize(L)}`).toBe(`L${L}: 0`);
+    const сОчередью: string[] = [];
+    const соСхлопыванием: string[] = [];
+    for (let L = 1; L <= 60; L++) {
+      if (queueSize(L) > 0) сОчередью.push(`L${L}`);
+      if (collapseLevel(L)) соСхлопыванием.push(`L${L}`);
+    }
+    expect(сОчередью).toEqual(соСхлопыванием);
+    expect(сОчередью.length).toBeGreaterThan(0);
+    // Первая схлопывающаяся ступень — следующая за порогом, если сам порог строгий.
+    expect(Number(сОчередью[0]!.slice(1))).toBeGreaterThanOrEqual(COLLAPSE_FROM);
   });
 });
 
