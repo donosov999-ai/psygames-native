@@ -14,6 +14,8 @@ import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
+import 'sets.dart';
+import 'solver.dart';
 
 /// «СОРТИРОВКА ТОВАРОВ» на общем каркасе — первый экран раздела на Flutter.
 ///
@@ -23,10 +25,20 @@ import 'model.dart';
 /// та же: доска считалась от окна, а не от места, которое осталось после шапки,
 /// счётчиков и ряда кнопок. Здесь высоту поля даёт каркас числом.
 ///
-/// ⚠️ РЕШАТЕЛЬ И ГЕНЕРАТОР НЕ ПЕРЕНОСИЛИСЬ. Уровни розданы нынешним TS-генератором
-/// (с доказательством решаемости там, где оно есть) и лежат в
-/// `assets/levels/goods_sort.json`. Поэтому нет «Подсказки»: она в вебе считается
-/// поиском по доске. Появится, когда решатель поедет отдельно.
+/// ⚠️ ГЕНЕРАТОР НЕ ПЕРЕНОСИЛСЯ. Уровни розданы нынешним TS-генератором (с
+/// доказательством решаемости там, где оно есть) и лежат в `assets/levels/`:
+/// по файлу на каждый из шести наборов плюс каталог `goods_sets.json`.
+///
+/// 🔴 ВЫБОР НАБОРА ТОВАРОВ (25.09.2026, решение Дениса «перенести выбор набора
+/// нативно выпадающим списком»). До этого в приложении жил ОДИН набор из шести:
+/// выгрузка делалась только для «Микса», и выбор перенос потерял целиком — при
+/// том, что все 44 спрайта товаров уже ехали в сборке.
+///
+/// ⚠️ ВЫБОР НЕ СТАЛ ЭКРАНОМ НАСТРОЙКИ ПЕРЕД ИГРОЙ. В вебе он там и живёт, и
+/// именно поэтому экран настройки тянется на 1209 точек при окне 844 (замер
+/// 17.09.2026, задача 473f6023). Здесь набор меняется ИЗ ПАРТИИ — значком в ряду
+/// под полем: игра по-прежнему начинается сразу, а витрина открывается одним
+/// нажатием и закрывается выбором.
 class GoodsSortScreen extends StatefulWidget {
   const GoodsSortScreen({super.key, required this.state});
 
@@ -74,6 +86,12 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   GoodsLevelSet? _set;
   late LevelLadder _ladder;
 
+  /// Каталог наборов и выбранный набор. Ключ хранения — свой у профиля: наборы
+  /// назначаются по профилю, и общий ключ подменил бы ребёнку витрину взрослого.
+  GoodsSets? _sets;
+  String _setKey = 'mix';
+  String get _setStoreKey => '${SharedState.prefix}goods_sort_set_${widget.state.activeProfile}';
+
   GoodsLevel? _level;
   GoodsBoard? _board;
   List<Obstacle?> _obstacles = [];
@@ -103,8 +121,21 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
   }
 
   Future<void> _boot() async {
-    final raw = await rootBundle.loadString('assets/levels/goods_sort.json');
+    final sets = await GoodsSets.load();
     await _ladder.load();
+    /*
+     * 🔴 НАБОР БЕРЁТСЯ В ТРИ ШАГА, И ПОРЯДОК ВАЖЕН.
+     * 1. Что человек выбрал сам — если этот набор ему уже открыт.
+     * 2. Иначе набор его ПРОФИЛЯ (таблица из веба), если открыт.
+     * 3. Иначе самый широкий «Микс»: он открыт с первого уровня по построению.
+     * Открытость считается по ПОТОЛКУ (`best`), а не по текущему уровню:
+     * переигровка лёгкого уровня не имеет права отбирать заработанное выше.
+     */
+    final chosen = widget.state.get(_setStoreKey);
+    final key = (chosen != null && sets.available(chosen, _ladder.best))
+        ? chosen
+        : sets.defaultFor(widget.state.activeProfile, _ladder.best);
+    final raw = await rootBundle.loadString('assets/levels/${sets.byKey(key).file}');
     /*
      * 🔴 РАЗДАЧА БЕРЁТСЯ ПО ШИРИНЕ ЭКРАНА, А НЕ ОДНА НА ВСЕХ. На телефоне сетка
      * узкая (3 колонки, больше рядов — «вниз экран тянется, вбок нет»), и от неё
@@ -115,6 +146,76 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     if (!mounted) return;
     final set = GoodsLevelSet.fromJsonString(raw, width: MediaQuery.of(context).size.width);
     setState(() {
+      _sets = sets;
+      _setKey = key;
+      _set = set;
+      _start(set.byLevel(_ladder.level));
+    });
+  }
+
+  /// ВИТРИНА НАБОРОВ — лист снизу, а не экран перед игрой.
+  ///
+  /// ⚠️ ЗАПЕРТЫЕ НАБОРЫ ПОКАЗЫВАЮТСЯ, А НЕ СКРЫВАЮТСЯ, и подписаны уровнем, с
+  /// которого откроются: «с 18-го уровня» — это причина играть дальше, а пустое
+  /// место в списке не говорит ничего. Так же сделано в вебе.
+  Future<void> _pickSet() async {
+    final sets = _sets;
+    if (sets == null) return;
+    final reached = _ladder.best;
+    /*
+     * 🔴 ВСЕ ШЕСТЬ СТРОК ОБЯЗАНЫ БЫТЬ ВИДНЫ БЕЗ ПРОКРУТКИ.
+     *
+     * 📍 ЗАМЕР 25.09.2026: у листа по умолчанию потолок — половина экрана (422
+     * точки на 390×844), шесть строк `ListTile` с подписями «с N-го уровня»
+     * занимали больше, и ШЕСТАЯ («Зверята») уезжала за край. Поймала проба,
+     * печатавшая содержимое витрины: «Микс | Еда | Напитки | Игрушки |
+     * Молочное» — пяти хватило, шестой не было. Прокрутить лист человек мог, но
+     * последний набор — самый дальний по лестнице, то есть ровно тот, за которым
+     * в витрину и заходят.
+     *
+     * `isScrollControlled` снимает потолок половины экрана, `dense` сжимает
+     * строку с 72 до 56 точек — шесть строк с заголовком встают в 376 точек.
+     */
+    final chosen = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(L.t('goodsSetsLabel'), style: Theme.of(context).textTheme.titleMedium),
+            ),
+            for (final s in sets.sets)
+              _SetRow(
+                set: s,
+                sets: sets,
+                current: s.key == _setKey,
+                open: sets.available(s.key, reached, granted: _setKey),
+                onPick: () => Navigator.of(context).pop(s.key),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (chosen != null) await _switchSet(chosen);
+  }
+
+  /// Смена набора из партии: лестницы наборов параллельны, поэтому номер уровня
+  /// сохраняется, а партия начинается заново — доска у другого набора другая.
+  Future<void> _switchSet(String key) async {
+    final sets = _sets;
+    if (sets == null || key == _setKey) return;
+    _cancelNext();
+    final raw = await rootBundle.loadString('assets/levels/${sets.byKey(key).file}');
+    if (!mounted) return;
+    final set = GoodsLevelSet.fromJsonString(raw, width: MediaQuery.of(context).size.width);
+    await widget.state.set(_setStoreKey, key);
+    if (!mounted) return;
+    setState(() {
+      _setKey = key;
       _set = set;
       _start(set.byLevel(_ladder.level));
     });
@@ -147,10 +248,14 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
 
   /// Можно ли трогать нишу. ОДНА проверка и на «взять отсюда», и на «положить сюда»:
   /// поставь запрет на одну сторону — препятствие станет полупрозрачным.
+  ///
+  /// 🔴 ПРАВИЛО ЛЕЖИТ В `GoodsPlay`, А НЕ ЗДЕСЬ. Пока оно было написано на
+  /// экране, правды о доступности ниши было две: у экрана полная, у решателя и
+  /// разбора — никакой, и разбор прокладывал путь сквозь запертую нишу. Одна
+  /// дверь на всех — единственное, что не даёт им разойтись снова.
   bool _usable(int i) {
-    if (i < _obstacles.length && _obstacles[i] != null) return false;
-    if (_frozenRow != null && _level!.rowOfNiche(i) == _frozenRow) return false;
-    return true;
+    if (_board == null || _level == null) return false;
+    return _play.usable(i);
   }
 
   /// Ляжет ли взятое в нишу.
@@ -196,6 +301,19 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     if (!_canDrop(pick, to)) return;
     final board = _board!;
     final level = _level!;
+
+    // 🔴 ХОД ДЕЛАЕТ `GoodsPlay`, А НЕ ЭКРАН. Здесь раньше лежала вторая копия
+    // правил: перенос товара, старение замков, снятие заслона тройкой по
+    // соседству и оттепель примёрзшего ряда. Решатель этих правил не знал, и
+    // разбор показывал ходы, которых игра не приняла бы. Теперь дверь одна.
+    final report = CollapseReport();
+    final played = _play.move(pick.cell, pick.index, to, report);
+    if (played == null) return;
+    final after = played.board;
+
+    // ⚠️ СНИМОК ДЛЯ ОТМЕНЫ — ПОСЛЕ проверки хода, а не до неё: иначе отказанный
+    // ход всё равно клал бы в историю лишний шаг, и «Отменить» откатывало бы
+    // пустоту.
     _history.add(_Snapshot(
       board.copyWith(),
       [..._obstacles],
@@ -204,12 +322,6 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
       _moves,
       _score,
     ));
-
-    final cells = board.cells.map((c) => [...c]).toList();
-    final type = cells[pick.cell].removeAt(pick.index);
-    cells[to].add(type);
-    final report = CollapseReport();
-    final after = collapseTriples(board.copyWith(cells: cells), report);
 
     _moves += 1;
     _score += scoreForClears(report.clearedTypes.length);
@@ -225,27 +337,9 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
       after.cells,
     ).toSet();
 
-    // Препятствия: замок стареет на ход, запертая ниша открывается тройкой ПО
-    // СОСЕДСТВУ (а не «сосед опустел»: со схлопыванием место тут же занимает
-    // полка из очереди, и запертая не открылась бы никогда).
-    final next = [..._obstacles];
-    for (var i = 0; i < next.length; i += 1) {
-      final o = next[i];
-      if (o == null) continue;
-      if (o.kind == 'locked') {
-        final left = o.movesLeft - 1;
-        next[i] = left <= 0 ? null : Obstacle('locked', movesLeft: left);
-      } else if (o.kind == 'blocked' && report.clearedIds.isNotEmpty) {
-        if (_neighbours(i).any(report.clearedIds.contains)) next[i] = null;
-      }
-    }
-    _obstacles = next;
-
-    if (_frozenType != null && report.clearedTypes.contains(_frozenType)) {
-      _frozenRow = null;
-      _frozenType = null;
-    }
-
+    _obstacles = played.obstacles;
+    _frozenRow = played.frozenRow;
+    _frozenType = played.frozenType;
     _board = after;
 
     if (levelWon(after.cells, level.goal, queueLength: after.queue.length, back: after.back)) {
@@ -256,36 +350,9 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     }
   }
 
-  /// Соседи ниши по сетке — через места, а не через плотный список: доска с дырами.
-  List<int> _neighbours(int i) {
-    final level = _level!;
-    final places = <int>[];
-    var seen = -1;
-    var place = -1;
-    for (var p = 0; p < level.mask.length; p += 1) {
-      if (!level.mask[p]) continue;
-      seen += 1;
-      places.add(p);
-      if (seen == i) place = p;
-    }
-    if (place < 0) return const [];
-    final r = place ~/ level.cols;
-    final c = place % level.cols;
-    final out = <int>[];
-    for (final d in const [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-      final nr = r + d[0];
-      final nc = c + d[1];
-      if (nr < 0 || nc < 0 || nr >= level.rows || nc >= level.cols) continue;
-      final np = nr * level.cols + nc;
-      final idx = places.indexOf(np);
-      if (idx >= 0) {
-        // Номер ниши: с устойчивыми номерами — их, иначе место в списке.
-        final ids = _board!.ids;
-        out.add(ids != null && idx < ids.length ? ids[idx] : idx);
-      }
-    }
-    return out;
-  }
+  // ⚠️ СОСЕДИ НИШИ ПЕРЕЕХАЛИ В `GoodsPlay.neighbours`: по ним снимается заслон,
+  // а значит их обязан знать и решатель. Копия на экране была бы вторым местом,
+  // где чинить сетку с дырами.
 
   void _undo() {
     _cancelNext();
@@ -317,70 +384,107 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
     }
   }
 
-  /// 🔴 РАЗБОР ТОВАРОВ: ПРАВИЛО ПЛЮС ОДИН ХОД НА ЭТОЙ ЖЕ ДОСКЕ.
+  /// 🔴 РАЗБОР ТОВАРОВ: ПУТЬ РЕШАТЕЛЯ ДО КОНЦА, С ПРИЧИНОЙ НА КАЖДОМ ШАГЕ.
   ///
-  /// Полного пути здесь не показать честно: перебор у товаров стоит секунды
-  /// (замер веб-решателя: бюджет 20 000 узлов — 470 мс, 120 000 — 1,8 с), и
-  /// гонять его на телефоне ради ролика нельзя. Зато ход, СОБИРАЮЩИЙ тройку,
-  /// ищется одним проходом по парам ниш — и именно он показывает правило в деле.
+  /// Прежняя редакция показывала ПРАВИЛО И ОДИН ХОД, и отказ от полного пути был
+  /// записан так: «перебор у товаров стоит секунды, гонять его на телефоне ради
+  /// ролика нельзя». Замер 24.09.2026 это опроверг: перенесённый решатель
+  /// (`solver.dart`) проходит уровни 1–30 целиком, 810 ходов в путях, и самый
+  /// тяжёлый случай — L21, где решения НЕТ вовсе, — упирается в бюджет за 160 мс.
+  /// Цифра «секунды» была взята из веб-замера на предельном бюджете 120 000, а не
+  /// из рабочего 20 000.
   ///
-  /// ⚠️ Законность хода проверяет `canPlace` самой игры, со строгостью УРОВНЯ:
-  /// на строгих уровнях товар кладётся только к своему виду, и разбор, забывший
-  /// про это, показал бы ход, который у человека не сработает.
+  /// ⚠️ ПУТЬ НАХОДИТСЯ НЕ ВСЕГДА, И ЭТО НЕ ВСЕГДА ВИНА ПЕРЕБОРА. Девять уровней
+  /// узкой лестницы из шестидесяти двух НЕВЫИГРЫВАЕМЫ по арифметике: на доске
+  /// лежит вид, которого не кратно трём, а тройка — это три ОДИНАКОВЫХ товара.
+  /// Там разбор честно возвращается к правилу вместо выдуманного решения
+  /// (замер и список — `test/goods_solver_test.dart`).
+  ///
   /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
   String get _title => 'Сортировка товаров';
 
-  GoodsBoard? _lessonMove() {
-    final board = _board;
-    final level = _level;
-    if (board == null || level == null) return null;
-    GoodsBoard? any;
-    for (var from = 0; from < board.cells.length; from += 1) {
-      if (board.isEmptyAt(from)) continue;
-      final type = board.cells[from].last;
-      for (var to = 0; to < board.cells.length; to += 1) {
-        if (to == from || !board.canPlace(to, type, level.strict)) continue;
-        final after = moveTop(board, from, to, level.strict);
-        if (after == null) continue;
-        // Ход, после которого товаров на поле стало меньше, и есть собранная тройка.
-        final was = board.cells.fold<int>(0, (n, c) => n + c.length);
-        final now = after.cells.fold<int>(0, (n, c) => n + c.length);
-        if (now < was) return after;
-        any ??= after;
-      }
-    }
-    return any;
+  /// Положение партии целиком — доска ПЛЮС препятствия и примёрзший ряд. Именно
+  /// его видит решатель, иначе он проложил бы путь сквозь запертую нишу.
+  GoodsPlay get _play => GoodsPlay(
+        level: _level!,
+        board: _board!,
+        obstacles: _obstacles,
+        frozenRow: _frozenRow,
+        frozenType: _frozenType,
+      );
+
+  /// ЗАЧЕМ ЭТОТ ХОД. Причина берётся ЗАМЕРОМ доски до и после, а не положением
+  /// шага в пути: «третий такой же» и «освободили нишу» — разные уроки, и
+  /// раздать их по счётчику значило бы называть ход наугад.
+  ///
+  /// 🔴 СЛОВАРЬ ЗОВЁТСЯ ЗДЕСЬ, ЛИТЕРАЛОМ, А КЛЮЧ НЕ УЕЗЖАЕТ В `techniqueKey`.
+  /// Причина не в красоте: словарь нативных экранов СОБИРАЕТСЯ вырезкой из
+  /// веб-словаря по вхождениям `L.t('…')`/`L.f('…')` в исходнике
+  /// (`tools/embed-l10n.mjs`). Ключ, отданный полем шага или собранный
+  /// переменной, в вырезку не попадает — а `L.t` на промахе возвращает САМ КЛЮЧ
+  /// и ничего не ломает. Замер 24.09.2026: из пяти новых ключей разбора в
+  /// словарь попал ровно один — тот, что зовётся через `L.t`; остальные четыре
+  /// человек увидел бы как «teachGoodsWhyTriple» вместо объяснения.
+  String _why(GoodsPlay before, GoodsMove m, GoodsPlay after) {
+    int goods(GoodsPlay p) => p.board.cells.fold<int>(0, (n, c) => n + c.length);
+    if (goods(after) < goods(before)) return L.t('teachGoodsWhyTriple');
+    if (after.board.cells[m.from].isEmpty) return L.t('teachGoodsWhyFree');
+    if (before.board.cells[m.to].isNotEmpty) return L.t('teachGoodsWhyStack');
+    return L.t('teachGoodsWhyRoom');
   }
 
   Future<void> _openLesson() async {
     final level = _level;
-    final board = _board;
-    if (level == null || board == null) return;
-    final after = _lessonMove();
+    if (level == null || _board == null) return;
+    final start = _play;
+    final solve = solveStrict(start);
+
+    // Первый шаг — само правило: без него путь выглядит набором перекладываний.
     final steps = <LessonStep>[
-      LessonStep(text: L.t('teachGoodsTriple'), payload: board),
-      if (after != null) LessonStep(text: L.t('teachGoodsFree'), payload: after),
-      LessonStep(text: L.t('teachGoodsCap'), payload: after ?? board),
+      LessonStep(text: L.t('teachGoodsTriple'), payload: start),
     ];
+    if (solve.solvable) {
+      var play = start;
+      for (final m in solve.path) {
+        final next = play.moveTopOf(m.from, m.to);
+        // Договор нарушен — короткий разбор честнее ложного.
+        if (next == null) break;
+        steps.add(LessonStep(text: _why(play, m, next), payload: next));
+        play = next;
+      }
+    } else {
+      steps
+        ..add(LessonStep(text: L.t('teachGoodsNoPath'), payload: start))
+        ..add(LessonStep(text: L.t('teachGoodsFree'), payload: start))
+        ..add(LessonStep(text: L.t('teachGoodsCap'), payload: start));
+    }
+
+    if (!mounted) return;
     LessonUsed.mark();
     await Navigator.of(context).push(MaterialPageRoute<void>(
       builder: (_) => LessonPlayerScreen(
         title: _title,
         steps: steps,
-        board: (context, side, shown) => GoodsField(
-          level: level,
-          board: steps[shown.clamp(0, steps.length - 1)].payload! as GoodsBoard,
-          fieldHeight: side,
-          shelf: shelfForProfile(widget.state.activeProfile),
-          obstacles: _obstacles,
-          covered: _covered,
-          frozenRow: _frozenRow,
-          selection: null,
-          canDrop: (_, _) => false,
-          onPickItem: (_) {},
-          onTapNiche: (_) {},
-          onDrop: (_, _) {},
-        ),
+        board: (context, side, shown) {
+          final at = steps[shown.clamp(0, steps.length - 1)].payload! as GoodsPlay;
+          return GoodsField(
+            level: level,
+            board: at.board,
+            fieldHeight: side,
+            shelf: shelfForProfile(widget.state.activeProfile),
+            // Препятствия и оттепель берутся ИЗ ШАГА, а не с экрана: замок по
+            // ходу разбора стареет, заслон снимается тройкой, и доска, на которой
+            // они застыли, показывала бы ход в нишу, закрытую только на картинке.
+            obstacles: at.obstacles,
+            covered: const {},
+            frozenRow: at.frozenRow,
+            selection: null,
+            canDrop: (_, _) => false,
+            onPickItem: (_) {},
+            onTapNiche: (_) {},
+            onDrop: (_, _) {},
+          );
+        },
       ),
     ));
   }
@@ -433,6 +537,13 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
       auxRow: AuxBar(children: [
         AuxAction(icon: Icons.undo, label: 'Отменить', onPressed: _history.isEmpty ? null : _undo),
         AuxAction(icon: Icons.refresh, label: 'Начать заново', onPressed: _restart),
+        // Витрина наборов — одним нажатием ИЗ ПАРТИИ, а не экраном перед игрой.
+        AuxAction(
+          key: const Key('goods-set-pick'),
+          icon: Icons.shopping_basket_outlined,
+          label: '${L.t('goodsSetsLabel')}: ${goodsSetTitle(_setKey, _sets)}',
+          onPressed: _sets == null ? null : _pickSet,
+        ),
         AuxAction(icon: Icons.task_alt, label: _goalText(level), onPressed: null),
       ]),
       toolbar: _won
@@ -458,6 +569,80 @@ class _GoodsSortScreenState extends State<GoodsSortScreen> {
         PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _restart),
         if (_history.isNotEmpty) PauseAction(label: 'Отменить ход', icon: Icons.undo, onPressed: _undo),
       ],
+    );
+  }
+}
+
+/// 🔴 ИМЯ НАБОРА ИЗ СЛОВАРЯ, И КЛЮЧ — ЛИТЕРАЛОМ НА МЕСТЕ ВЫЗОВА.
+///
+/// ⚠️ Сборщик словаря (`flutter/tools/embed-l10n.mjs`) берёт из исходника ТОЛЬКО
+/// литералы `L.t('…')`. Ключ, собранный из частей (`'goodsSet_' + key`), он не
+/// увидит, ключа не окажется в `assets/l10n/<язык>.json`, а `L.t` при промахе
+/// возвращает САМ КЛЮЧ — человек увидел бы в витрине `goodsSet_food`, и ни одна
+/// проба на это не покраснела бы. Поэтому шесть литералов перечислены руками.
+///
+/// Запасной путь — русское имя из каталога: словарь может отстать от нового
+/// набора, но набор от этого не должен становиться безымянным.
+String goodsSetTitle(String key, GoodsSets? sets) {
+  final String word;
+  switch (key) {
+    case 'food': word = L.t('goodsSet_food');
+    case 'drinks': word = L.t('goodsSet_drinks');
+    case 'toys': word = L.t('goodsSet_toys');
+    case 'dairy': word = L.t('goodsSet_dairy');
+    case 'pets': word = L.t('goodsSet_pets');
+    default: word = L.t('goodsSet_mix');
+  }
+  if (!word.startsWith('goodsSet')) return word;
+  return sets?.byKey(key).ru ?? key;
+}
+
+/// Строка набора в витрине: название, сколько видов, шесть картинок и замок.
+class _SetRow extends StatelessWidget {
+  const _SetRow({
+    required this.set,
+    required this.sets,
+    required this.current,
+    required this.open,
+    required this.onPick,
+  });
+
+  final GoodsSet set;
+  final GoodsSets? sets;
+  final bool current;
+  final bool open;
+  final VoidCallback onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final sub = StringBuffer('🛒 ${set.pool.length}');
+    if (set.alike) sub.write(' · ${L.t('goodsSetAlike')}');
+    // ⚠️ `{n}` подставляется, а не склеивается: в других языках срок стоит в
+    // другом месте фразы («from level 18»).
+    if (!open) sub.write(' · ${L.t('goodsSetFromLevel').replaceAll('{n}', '${set.unlockLevel}')}');
+    return ListTile(
+      key: Key('goods-set-${set.key}'),
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      enabled: open,
+      selected: current,
+      leading: Icon(open ? (current ? Icons.check_circle : Icons.storefront) : Icons.lock_outline,
+          color: open ? (current ? scheme.primary : scheme.onSurfaceVariant) : scheme.outline),
+      title: Text(goodsSetTitle(set.key, sets)),
+      subtitle: Text(sub.toString()),
+      // Шесть товаров набора — витрина честно показывает, что внутри.
+      trailing: Wrap(
+        spacing: 2,
+        children: [
+          for (final i in set.preview.take(6))
+            Opacity(
+              opacity: open ? 1 : 0.35,
+              child: Image.asset('assets/goods/good$i.webp', width: 22, height: 22),
+            ),
+        ],
+      ),
+      onTap: open ? onPick : null,
     );
   }
 }

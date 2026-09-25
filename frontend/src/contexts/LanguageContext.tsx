@@ -1086,6 +1086,15 @@ const translations: Translations = {
   /* 🎓 РАЗБОР СОРТИРОВКИ ТОВАРОВ: три одинаковых, ёмкость ниши и порядок разбора. */
   teachGoodsTriple: { ru: 'Исчезают ТРИ одинаковых товара в одной нише — не два и не пара из разных ниш. Каждый ход — это перенос товара в нишу, где он будет третьим.', en: 'THREE identical goods in one niche disappear — not two, and not a pair from different niches. Every move brings a good to a niche where it will be the third.' },
   teachGoodsCap: { ru: 'С восемнадцатого уровня ниши разной ёмкости: есть на два и на четыре. В нишу на два третий товар не влезет, а в нише на четыре тройка собирается и остаётся место — смотрите на ёмкость, а не на вид ниши.', en: 'From level eighteen the niches differ in size: some hold two, some hold four. A third good will not fit a two-slot niche, while a four-slot one keeps a free space after a triple — read the capacity, not the look.' },
+  /* ⚠️ ЗАЧЕМ ХОД, А НЕ ЧТО ЗА ХОД. Разбор товаров показывает путь решателя, и
+     каждый шаг обязан называть ПРИЧИНУ: «переложи отсюда сюда» человек и сам
+     видит на доске, а зачем — нет. Четыре причины покрывают все ходы решателя,
+     и выбираются они замером доски до и после хода, а не по порядку в пути. */
+  teachGoodsWhyTriple: { ru: 'Третий такой же — тройка исчезает, и ниша освобождается.', en: 'A third of the same kind — the triple clears and the niche frees up.' },
+  teachGoodsWhyStack: { ru: 'Кладём к своему виду: товар ждёт третьего, а не занимает чужое место.', en: 'Place it with its own kind: the good waits for a third instead of taking someone else\u2019s room.' },
+  teachGoodsWhyFree: { ru: 'Ниша опустела целиком — это и есть место под следующую тройку.', en: 'The niche is now completely empty — that is the room for the next triple.' },
+  teachGoodsWhyRoom: { ru: 'Снимаем верхний, чтобы добраться до нужного товара под ним.', en: 'Take the top good off to reach the one you need underneath.' },
+  teachGoodsNoPath: { ru: 'Здесь решение показать нечем — разберём правило.', en: 'No solution to show here — let us go through the rule instead.' },
   teachGoodsFree: { ru: 'Освобождайте нишу ЦЕЛИКОМ. Полупустые ниши забивают поле: ходов формально много, а собрать тройку негде.', en: 'Clear a niche COMPLETELY. Half-empty niches choke the board: there are moves aplenty, yet nowhere to build a triple.' },
   /*
    * 🎓 ЧЕРТА ЛИЦА ДЛЯ РАЗБОРА «ЛИЦ И ИМЁН». Черта берётся из САМОГО портрета и притом та,

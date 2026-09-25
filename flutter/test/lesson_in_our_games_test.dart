@@ -26,14 +26,35 @@ void main() {
   tearDown(LessonUsed.reset);
 
   Future<void> check(WidgetTester tester, Widget screen, String what) async {
-    await tester.pumpWidget(MaterialApp(home: screen));
+    /*
+     * 🔴 ЖДЁМ СОБЫТИЯ, А НЕ ВРЕМЕНИ. Здесь стояло `pump(150 мс)` — и это работало
+     * лишь пока уровни успевали загрузиться в один оборот. `pump(Duration)`
+     * двигает ВЫДУМАННЫЕ часы, а чтение ассета — настоящая асинхронность, и
+     * крутится она только внутри `runAsync`.
+     * 📍 Поймано 24.09.2026: лестница башен Лондона пересобрана и выросла с
+     * 15,9 КБ до 51,8 КБ — проба тут же покраснела «кнопки разбора нет», хотя
+     * кнопка на месте. Красил её размер файла, а не поломка.
+     */
+    await tester.runAsync(() async {
+      await tester.pumpWidget(MaterialApp(home: screen));
+      for (var i = 0; i < 80; i++) {
+        await tester.pump(const Duration(milliseconds: 30));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        if (find.byKey(const Key('game-lesson')).evaluate().isNotEmpty) break;
+      }
+    });
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 150));
 
     expect(find.byKey(const Key('game-lesson')), findsOneWidget, reason: '$what: кнопки разбора нет');
-    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('game-lesson')));
+      for (var i = 0; i < 80; i++) {
+        await tester.pump(const Duration(milliseconds: 30));
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        if (find.byKey(const Key('lesson-counter')).evaluate().isNotEmpty) break;
+      }
+    });
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.byKey(const Key('lesson-counter')), findsOneWidget, reason: '$what: плеер не открылся');
     expect(find.textContaining('Шаг 1 из'), findsOneWidget, reason: '$what: шагов нет');

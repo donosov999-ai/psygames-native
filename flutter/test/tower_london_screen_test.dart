@@ -47,7 +47,24 @@ void main() {
     expect(find.byType(TolBoard), findsOneWidget);
     expect(find.text('Цель'), findsOneWidget, reason: 'держать цель в голове — другая задача');
     expect(find.byKey(const ValueKey('goal-0')), findsOneWidget);
-    expect(_board(tester).state.pegs[0], ['R', 'G', 'B'], reason: 'старт: все шары на первом');
+    /*
+     * ⚠️ ЗДЕСЬ СТОЯЛО `expect(pegs[0], ['R','G','B'])` — то есть проба помнила
+     * ПОРЯДОК шаров первого уровня наизусть. Свойство, которое она хотела
+     * стеречь, называлось в её же пояснении: «все шары на первом». Порядок в
+     * это свойство не входит, а лестница пересобирается
+     * (`tool/export_tol_levels.dart`), и старт теперь БАШНЯ С РАЗНЫМ ПОРЯДКОМ:
+     * при одном порядке целей на нужной длине плана не хватает, оттого в
+     * прежней выгрузке и повторялись задачи. Проверяем само свойство.
+     */
+    final st = _board(tester).state;
+    var spare = false;
+    for (var i = 0; i < st.pegs.length; i += 1) {
+      if (spare) {
+        expect(st.pegs[i], isEmpty, reason: 'старт не башня: шар лежит за неполным стержнем');
+      }
+      if (st.pegs[i].length < st.caps[i]) spare = true;
+    }
+    expect(st.pegs[0], isNotEmpty, reason: 'старт: шары складываются с первого стержня');
   });
 
   testWidgets('🔴 ход ТАПОМ и отказ ПО ВМЕСТИМОСТИ считаются по-разному', (tester) async {
@@ -65,7 +82,10 @@ void main() {
 
   testWidgets('🔴 ход засчитывается ПЕРЕТАСКИВАНИЕМ', (tester) async {
     await _boot(tester, state);
-    final from = tester.getCenter(find.byKey(const ValueKey('peg-ball-0-B')));
+    // Ключ шара берём У ДОСКИ, а не помним наизусть: верхний шар первого
+    // стержня — единственный, который с него можно снять.
+    final top = _board(tester).state.pegs[0].last;
+    final from = tester.getCenter(find.byKey(ValueKey('peg-ball-0-$top')));
     final to = tester.getCenter(find.byKey(const ValueKey('peg-1')));
     final g = await tester.startGesture(from);
     await tester.pump(const Duration(milliseconds: 60));
@@ -76,15 +96,19 @@ void main() {
     await g.up();
     await tester.pumpAndSettle();
     /*
-     * ⚠️ ПРОВЕРЯЕМ НЕ «шар на втором стержне», А ЧТО ХОД ЗАСЧИТАН. На первом
-     * уровне цель достигается ОДНИМ ходом (`minMoves` = 1–2), и правильный
-     * перенос тут же начинает следующую задачу — доска возвращается к старту.
-     * Первая редакция пробы приняла это за «ход не прошёл».
+     * ⚠️ ПРОВЕРЯЕМ НЕ «шар на втором стержне», А ЧТО ХОД ЗАСЧИТАН — доска после
+     * хода может и вернуться к старту, если задача решилась и началась
+     * следующая. Первая редакция пробы приняла это за «ход не прошёл».
+     * ⚠️ И НЕ «партия перешла ко второй задаче»: это верно, только пока план
+     * первого уровня в один ход. На пересобранной лестнице (`tool/export_tol_levels.dart`)
+     * план первого уровня — два хода, и такая проба краснела бы на здоровой
+     * игре. Считаем то, что от длины плана не зависит: счётчик ходов.
      */
     expect(
-      find.byWidgetPredicate((w) => w is Semantics && w.properties.label == 'Задача: 2/5'),
+      find.byWidgetPredicate((w) =>
+          w is Semantics && (w.properties.label ?? '').startsWith('Ходы: 1/')),
       findsOneWidget,
-      reason: 'задача решена перетаскиванием, партия перешла ко второй',
+      reason: 'ход перетаскиванием обязан быть посчитан',
     );
   });
 
