@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="psygames_flutter"
+        <!-- Подпись под значком на экране телефона. Шаблонное «psygames_flutter»
+             человек увидел бы вместо имени приложения; прежняя линия в Play
+             подписана «PsyGames», и при обновлении поверх имя меняться не должно. -->
+        android:label="PsyGames"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
