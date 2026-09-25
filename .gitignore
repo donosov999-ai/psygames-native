@@ -145,3 +145,6 @@ warmup-chat/
 # отчёт прибора геометрии экранов (scripts/screen-geometry.mjs) — локальный, не в репо
 frontend/screen-geometry.json
 flutter/assets/web/
+
+# справка по сторам живёт в приватном odv999-infra: psygames-store/STORES_RELEASE_REF.md
+STORES_RELEASE_REF.md
