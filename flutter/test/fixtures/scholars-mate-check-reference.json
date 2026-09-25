@@ -1,0 +1,8348 @@
+{
+ "mate": [
+  {
+   "kind": "mate",
+   "fen": "rnbqkbnr/pp1p1ppp/2p5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/pp1p1ppp/2p5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/pp1p1Qpp/2p5/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/pp1p1ppp/2p5/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/pp1p1p1p/n1p3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pp1p1p1p/n1p3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pp1p1Q1p/n1p3p1/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pp1p1p1p/n1p3p1/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/p1pp1p2/1pn3pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 6",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/p1pp1p2/1pn3pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/p1pp1Q2/1pn3pp/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/p1pp1p2/1pn3pp/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqkbnr/3p1p2/ppp3pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 7",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/3p1p2/ppp3pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/3p1Q2/ppp3pp/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/3p1p2/ppp3pp/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqkbnr/p1pp1p1p/1p4p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/p1pp1p1p/1p4p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/p1pp1Q1p/1p4p1/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/p1pp1p1p/1p4p1/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/1pp2pp1/p1np3p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 6",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/1pp2pp1/p1np3p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/1pp2Qp1/p1np3p/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/1pp2pp1/p1np3p/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqk2r/ppppbppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 5",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqk2r/ppppbppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk2r/ppppbQpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk2r/ppppbppp/2n2n2/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "1rbqkbnr/2pp1pp1/ppn4p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQk - 0 7",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "1rbqkbnr/2pp1pp1/ppn4p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQk - 0 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1rbqkbnr/2pp1Qp1/ppn4p/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQk - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1rbqkbnr/2pp1pp1/ppn4p/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQk - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqkb1r/2pp1ppp/pp3n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkb1r/2pp1ppp/pp3n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/2pp1Qpp/pp3n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/2pp1ppp/pp3n2/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqk1nr/ppppbppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqk1nr/ppppbppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/ppppbQpp/2n5/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/ppppbppp/2n5/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkb1r/1pp2ppp/p1np1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 6",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/1pp2ppp/p1np1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/1pp2Qpp/p1np1n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/1pp2ppp/p1np1n2/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqkbn1/p1p2ppr/1p1p3p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQq - 0 6",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbn1/p1p2ppr/1p1p3p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQq - 0 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbn1/p1p2Qpr/1p1p3p/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbn1/p1p2ppr/1p1p3p/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqk1nr/pp1p1ppp/2p5/2b1p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqk1nr/pp1p1ppp/2p5/2b1p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqk1nr/pp1p1Qpp/2p5/2b1p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqk1nr/pp1p1ppp/2p5/2b1p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqk2r/ppppnppp/8/2b1p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqk2r/ppppnppp/8/2b1p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqk2r/ppppnQpp/8/2b1p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqk2r/ppppnppp/8/2b1p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqkbnr/p2p1ppp/1pp5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/p2p1ppp/1pp5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/p2p1Qpp/1pp5/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/p2p1ppp/1pp5/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqkbnr/1p1p1ppp/p1p5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/1p1p1ppp/p1p5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/1p1p1Qpp/p1p5/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/1p1p1ppp/p1p5/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkb1r/p2p1ppp/npp5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 7",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/p2p1ppp/npp5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/p2p1Qpp/npp5/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/p2p1ppp/npp5/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "2bqkbnr/rpp2ppp/p2p4/n3p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQk - 0 7",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "2bqkbnr/rpp2ppp/p2p4/n3p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQk - 0 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "2bqkbnr/rpp2Qpp/p2p4/n3p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQk - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "2bqkbnr/rpp2ppp/p2p4/n3p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQk - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqk1nr/pp1p1p1p/n1p3p1/2b1p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 6",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqk1nr/pp1p1p1p/n1p3p1/2b1p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/pp1p1Q1p/n1p3p1/2b1p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/pp1p1p1p/n1p3p1/2b1p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/2p2pp1/ppnp3p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 7",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/2p2pp1/ppnp3p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/2p2Qp1/ppnp3p/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/2p2pp1/ppnp3p/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/pp1p1pp1/n1p4p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pp1p1pp1/n1p4p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pp1p1Qp1/n1p4p/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pp1p1pp1/n1p4p/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqk2r/p1pp1ppp/1pnb1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 6",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqk2r/p1pp1ppp/1pnb1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk2r/p1pp1Qpp/1pnb1n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk2r/p1pp1ppp/1pnb1n2/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/pppp1p2/n5pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pppp1p2/n5pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1Q2/n5pp/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1p2/n5pp/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkb1r/pppp1ppp/n4n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/pppp1ppp/n4n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pppp1Qpp/n4n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pppp1ppp/n4n2/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/p1p2ppp/1pnp4/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/p1p2ppp/1pnp4/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/p1p2Qpp/1pnp4/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/p1p2ppp/1pnp4/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqk1nr/p1pp1ppp/1p6/2b1p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqk1nr/p1pp1ppp/1p6/2b1p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqk1nr/p1pp1Qpp/1p6/2b1p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqk1nr/p1pp1ppp/1p6/2b1p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/pppp1pp1/2n4p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pppp1pp1/2n4p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1Qp1/2n4p/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1pp1/2n4p/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/pppp1ppp/8/n3p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pppp1ppp/8/n3p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1Qpp/8/n3p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1ppp/8/n3p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rn1qk1nr/1bpppp1p/pp4pb/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 6",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rn1qk1nr/1bpppp1p/pp4pb/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rn1qk1nr/1bpppQ1p/pp4pb/8/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rn1qk1nr/1bpppp1p/pp4pb/8/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqkbnr/p1p2p1p/1p1p2p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/p1p2p1p/1p1p2p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/p1p2Q1p/1p1p2p1/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/p1p2p1p/1p1p2p1/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/pppp1pp1/n6p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pppp1pp1/n6p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1Qp1/n6p/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1pp1/n6p/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqk2r/p1ppbppp/1p3n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqk2r/p1ppbppp/1p3n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqk2r/p1ppbQpp/1p3n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqk2r/p1ppbppp/1p3n2/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqkbnr/1pp2ppp/p2p4/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/1pp2ppp/p2p4/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/1pp2Qpp/p2p4/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/1pp2ppp/p2p4/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkb1r/ppp2ppp/2np1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/ppp2ppp/2np1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/ppp2Qpp/2np1n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/ppp2ppp/2np1n2/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/pppp1pp1/2n4p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pppp1pp1/2n4p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1Qp1/2n4p/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1pp1/2n4p/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/pppp1p1p/6p1/4p3/1nB1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pppp1p1p/6p1/4p3/1nB1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1Q1p/6p1/4p3/1nB1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1p1p/6p1/4p3/1nB1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkb1r/ppp2ppp/n2p1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/ppp2ppp/n2p1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/ppp2Qpp/n2p1n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/ppp2ppp/n2p1n2/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/p4pp1/nppp3p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 7",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/p4pp1/nppp3p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/p4Qp1/nppp3p/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/p4pp1/nppp3p/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "r1bqkbnr/p4pp1/nppp3p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 7",
+   "pre": null,
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/p4pp1/nppp3p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/p4Qp1/nppp3p/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/p4pp1/nppp3p/4p2Q/2B1P3/P7/1PPP1PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "mate",
+   "fen": "rnbqkbnr/2pp1ppp/pp6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "pre": null,
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/2pp1ppp/pp6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/2pp1Qpp/pp6/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkbnr/2pp1ppp/pp6/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  }
+ ],
+ "fromGames": [
+  {
+   "kind": "fromGames",
+   "fen": "1B1qkb1r/3ppppp/2p5/8/2BPnQ2/8/1P3PPP/1b2K1NR b Kk - 2 12",
+   "pre": "g7g5",
+   "solutions": [
+    "f4f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "1B1qkb1r/3ppp1p/2p5/6p1/2BPnQ2/8/1P3PPP/1b2K1NR w Kk - 0 13",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f4f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1B1qkb1r/3ppQ1p/2p5/6p1/2BPn3/8/1P3PPP/1b2K1NR b Kk - 0 13",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g1e2",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1B1qkb1r/3ppp1p/2p5/6p1/2BPnQ2/8/1P2NPPP/1b2K2R b Kk - 1 13",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqk2r/ppp2pbp/2np2pB/4p3/2B1P3/2PP1Q2/PP3PPP/RN2K1NR b KQkq - 0 7",
+   "pre": "g7h6",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "r1bqk2r/ppp2p1p/2np2pb/4p3/2B1P3/2PP1Q2/PP3PPP/RN2K1NR w KQkq - 0 8",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk2r/ppp2Q1p/2np2pb/4p3/2B1P3/2PP4/PP3PPP/RN2K1NR b KQkq - 0 8",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk2r/ppp2p1p/2np2pb/4p3/2B1P3/P1PP1Q2/1P3PPP/RN2K1NR b KQkq - 0 8",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkbnr/pp1npppp/2pp4/8/2BPP3/5Q2/PPP2PPP/RNB1K1NR b KQkq - 3 4",
+   "pre": "h7h6",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pp1nppp1/2pp3p/8/2BPP3/5Q2/PPP2PPP/RNB1K1NR w KQkq - 0 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pp1npQp1/2pp3p/8/2BPP3/8/PPP2PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pp1nppp1/2pp3p/8/2BPP3/P4Q2/1PP2PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "rn1qkbnr/pbp1pppp/1p1p4/7Q/2B1P3/2N5/PPPP1PPP/R1B1K1NR b KQkq - 1 4",
+   "pre": "b8d7",
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "r2qkbnr/pbpnpppp/1p1p4/7Q/2B1P3/2N5/PPPP1PPP/R1B1K1NR w KQkq - 2 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkbnr/pbpnpQpp/1p1p4/8/2B1P3/2N5/PPPP1PPP/R1B1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkbnr/pbpnpppp/1p1p4/7Q/2B1P3/2N5/PPPP1PPP/1RB1K1NR b Kkq - 3 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "rn1qkbnr/3bpppp/3P4/p7/1pB5/1Pp1PQ2/5PPP/RNB1K1NR b KQkq - 0 12",
+   "pre": "a8a7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "1n1qkbnr/r2bpppp/3P4/p7/1pB5/1Pp1PQ2/5PPP/RNB1K1NR w KQk - 1 13",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1n1qkbnr/r2bpQpp/3P4/p7/1pB5/1Pp1P3/5PPP/RNB1K1NR b KQk - 0 13",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1n1qkbnr/r2bpppp/3P4/p7/1pB5/1Pp1PQ2/R4PPP/1NB1K1NR b Kk - 2 13",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkb1r/p2pnppp/1p6/2p5/2B1P3/5Q2/PPP2PPP/RNB1K2R b KQkq - 1 8",
+   "pre": "c8b7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "r2qkb1r/pb1pnppp/1p6/2p5/2B1P3/5Q2/PPP2PPP/RNB1K2R w KQkq - 2 9",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkb1r/pb1pnQpp/1p6/2p5/2B1P3/8/PPP2PPP/RNB1K2R b KQkq - 0 9",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkb1r/pb1pnppp/1p6/2p5/2B1P3/P4Q2/1PP2PPP/RNB1K2R b KQkq - 0 9",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "7r/5pk1/5qpp/2pBR3/3p4/2n2Q2/P1P2PPP/6K1 b - - 0 26",
+   "pre": "f6e5",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "7r/5pk1/6pp/2pBq3/3p4/2n2Q2/P1P2PPP/6K1 w - - 0 27",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "7r/5Qk1/6pp/2pBq3/3p4/2n5/P1P2PPP/6K1 b - - 0 27",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "7r/5pk1/6pp/2pBq3/3p4/P1n2Q2/2P2PPP/6K1 b - - 0 27",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r2qkb1r/1bpnpp1p/pp1p1npP/6B1/P1BPP3/2N2Q2/1PP2PP1/R3K1NR b KQkq - 0 10",
+   "pre": "f6g8",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "r2qkbnr/1bpnpp1p/pp1p2pP/6B1/P1BPP3/2N2Q2/1PP2PP1/R3K1NR w KQkq - 1 11",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkbnr/1bpnpQ1p/pp1p2pP/6B1/P1BPP3/2N5/1PP2PP1/R3K1NR b KQkq - 0 11",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkbnr/1bpnpp1p/pp1p2pP/6B1/P1BPP3/2N2Q2/RPP2PP1/4K1NR b Kkq - 2 11",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkbnr/ppp2p1p/2np4/8/2BPP3/4BQ2/PPP3PP/RN2K2R b KQkq - 2 8",
+   "pre": "f8g7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "r1bqk1nr/ppp2pbp/2np4/8/2BPP3/4BQ2/PPP3PP/RN2K2R w KQkq - 3 9",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/ppp2Qbp/2np4/8/2BPP3/4B3/PPP3PP/RN2K2R b KQkq - 0 9",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/ppp2pbp/2np4/8/2BPP3/P3BQ2/1PP3PP/RN2K2R b KQkq - 0 9",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "rnbqkb1r/pp1ppppp/8/2p1P3/2B2n2/2P2Q2/PP1P1PPP/RNB1K1NR b KQkq - 4 5",
+   "pre": "f4g6",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "rnbqkb1r/pp1ppppp/6n1/2p1P3/2B5/2P2Q2/PP1P1PPP/RNB1K1NR w KQkq - 5 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/pp1ppQpp/6n1/2p1P3/2B5/2P5/PP1P1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/pp1ppppp/6n1/2p1P3/2B5/P1P2Q2/1P1P1PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkb1r/pp2pppp/2n5/3B4/3p4/5Q2/PPPP1PPP/R1B1K1NR b KQkq - 0 8",
+   "pre": "c8d7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "r2qkb1r/pp1bpppp/2n5/3B4/3p4/5Q2/PPPP1PPP/R1B1K1NR w KQkq - 1 9",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkb1r/pp1bpQpp/2n5/3B4/3p4/8/PPPP1PPP/R1B1K1NR b KQkq - 0 9",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkb1r/pp1bpppp/2n5/3B4/3p4/5Q2/PPPP1PPP/1RB1K1NR b Kkq - 2 9",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqr1kb/1p2pp1p/p1np1npB/2p5/P1B1PQ2/2NP1N1P/1PP2PP1/R3K2R b KQ - 6 11",
+   "pre": "f6h5",
+   "solutions": [
+    "f4f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "r1bqr1kb/1p2pp1p/p1np2pB/2p4n/P1B1PQ2/2NP1N1P/1PP2PP1/R3K2R w KQ - 7 12",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f4f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqr1kb/1p2pQ1p/p1np2pB/2p4n/P1B1P3/2NP1N1P/1PP2PP1/R3K2R b KQ - 0 12",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqr1kb/1p2pp1p/p1np2pB/2p4n/P1B1PQ2/2NP1N1P/RPP2PP1/4K2R b K - 8 12",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkbnr/p2ppppp/8/1ppB4/4P3/5Q2/PPPP1PPP/RNB1K2R b KQkq - 0 6",
+   "pre": "a8b8",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 399,
+   "threatFlag": null,
+   "shownFen": "1rbqkbnr/p2ppppp/8/1ppB4/4P3/5Q2/PPPP1PPP/RNB1K2R w KQk - 1 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1rbqkbnr/p2ppQpp/8/1ppB4/4P3/8/PPPP1PPP/RNB1K2R b KQk - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1rbqkbnr/p2ppppp/8/1ppB4/4P3/P4Q2/1PPP1PPP/RNB1K2R b KQk - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqk2r/ppp2p1p/2np2pn/4p3/2B1P3/2P2Q1P/PPP1NPP1/R1B1K2R b KQkq - 0 8",
+   "pre": "h6g8",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 400,
+   "threatFlag": null,
+   "shownFen": "r1bqk1nr/ppp2p1p/2np2p1/4p3/2B1P3/2P2Q1P/PPP1NPP1/R1B1K2R w KQkq - 1 9",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/ppp2Q1p/2np2p1/4p3/2B1P3/2P4P/PPP1NPP1/R1B1K2R b KQkq - 0 9",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/ppp2p1p/2np2p1/4p3/2B1P3/2P2Q1P/PPP1NPP1/1RB1K2R b Kkq - 2 9",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bq1knr/ppp2ppp/2np4/2b1p3/2B1P3/2NP1Q2/PPP2PPP/R1B1K1NR b KQ - 1 6",
+   "pre": "c6d4",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 400,
+   "threatFlag": null,
+   "shownFen": "r1bq1knr/ppp2ppp/3p4/2b1p3/2BnP3/2NP1Q2/PPP2PPP/R1B1K1NR w KQ - 2 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bq1knr/ppp2Qpp/3p4/2b1p3/2BnP3/2NP4/PPP2PPP/R1B1K1NR b KQ - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bq1knr/ppp2ppp/3p4/2b1p3/2BnP3/2NP1Q2/PPP2PPP/1RB1K1NR b K - 3 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkb1r/pppnpppp/1n6/8/3P4/1B3Q2/PPP2PPP/RNB1K1NR b KQkq - 5 6",
+   "pre": "h7h6",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 400,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/pppnppp1/1n5p/8/3P4/1B3Q2/PPP2PPP/RNB1K1NR w KQkq - 0 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pppnpQp1/1n5p/8/3P4/1B6/PPP2PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pppnppp1/1n5p/8/3P4/PB3Q2/1PP2PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkbnr/pp1ppp1p/2n3p1/8/2B2Q2/4P3/PPP2PPP/RNB1K1NR b KQkq - 1 5",
+   "pre": "f8g7",
+   "solutions": [
+    "f4f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 400,
+   "threatFlag": null,
+   "shownFen": "r1bqk1nr/pp1pppbp/2n3p1/8/2B2Q2/4P3/PPP2PPP/RNB1K1NR w KQkq - 2 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f4f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/pp1ppQbp/2n3p1/8/2B5/4P3/PPP2PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/pp1pppbp/2n3p1/8/2B2Q2/P3P3/1PP2PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkbnr/pp1npppp/2p5/7Q/2B5/4PN2/PP1P1PPP/RNB1K2R b KQkq - 1 7",
+   "pre": "g8f6",
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 400,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/pp1npppp/2p2n2/7Q/2B5/4PN2/PP1P1PPP/RNB1K2R w KQkq - 2 8",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pp1npQpp/2p2n2/8/2B5/4PN2/PP1P1PPP/RNB1K2R b KQkq - 0 8",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pp1npppp/2p2n2/7Q/2B5/P3PN2/1P1P1PPP/RNB1K2R b KQkq - 0 8",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "rn1qkbnr/pbp1pppp/1p6/8/2BPP3/5Q2/PP3PPP/RNB1K1NR b KQkq - 2 5",
+   "pre": "b8d7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 400,
+   "threatFlag": null,
+   "shownFen": "r2qkbnr/pbpnpppp/1p6/8/2BPP3/5Q2/PP3PPP/RNB1K1NR w KQkq - 3 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkbnr/pbpnpQpp/1p6/8/2BPP3/8/PP3PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkbnr/pbpnpppp/1p6/8/2BPP3/P4Q2/1P3PPP/RNB1K1NR b KQkq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "rnbqkbnr/pp1p1p1p/2p3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 4",
+   "pre": "g8e7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 400,
+   "threatFlag": null,
+   "shownFen": "rnbqkb1r/pp1pnp1p/2p3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 5",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/pp1pnQ1p/2p3p1/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/pp1pnp1p/2p3p1/4p3/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r2qkb1r/pppnppp1/1n4p1/8/6P1/1B3Q1P/PPPP1P2/RNB1K2R b KQkq - 1 10",
+   "pre": "c7c6",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 400,
+   "threatFlag": null,
+   "shownFen": "r2qkb1r/pp1nppp1/1np3p1/8/6P1/1B3Q1P/PPPP1P2/RNB1K2R w KQkq - 0 11",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkb1r/pp1npQp1/1np3p1/8/6P1/1B5P/PPPP1P2/RNB1K2R b KQkq - 0 11",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkb1r/pp1nppp1/1np3p1/8/6P1/PB3Q1P/1PPP1P2/RNB1K2R b KQkq - 0 11",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bq1k1r/4bpp1/3p3p/p3pP1Q/Pp1pP3/1B1P4/1PP3PP/R1B2RK1 b - - 0 17",
+   "pre": "e7f6",
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 400,
+   "threatFlag": null,
+   "shownFen": "r1bq1k1r/5pp1/3p1b1p/p3pP1Q/Pp1pP3/1B1P4/1PP3PP/R1B2RK1 w - - 1 18",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bq1k1r/5Qp1/3p1b1p/p3pP2/Pp1pP3/1B1P4/1PP3PP/R1B2RK1 b - - 0 18",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bq1k1r/5pp1/3p1b1p/p3pP1Q/Pp1pP3/1B1P4/RPP3PP/2B2RK1 b - - 2 18",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkbnr/3ppppp/p7/1p2P3/3p4/1B3Q2/PPPP1PPP/RNB2RK1 b kq - 2 9",
+   "pre": "a8b8",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 402,
+   "threatFlag": null,
+   "shownFen": "1rbqkbnr/3ppppp/p7/1p2P3/3p4/1B3Q2/PPPP1PPP/RNB2RK1 w k - 3 10",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1rbqkbnr/3ppQpp/p7/1p2P3/3p4/1B6/PPPP1PPP/RNB2RK1 b k - 0 10",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1rbqkbnr/3ppppp/p7/1p2P3/3p4/PB3Q2/1PPP1PPP/RNB2RK1 b k - 0 10",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkb1r/pp3ppp/2np1n2/2p1p1P1/2B1P3/2P2Q2/PP1P1P1P/RNB1K1NR b KQkq - 0 6",
+   "pre": "f6d7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 402,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/pp1n1ppp/2np4/2p1p1P1/2B1P3/2P2Q2/PP1P1P1P/RNB1K1NR w KQkq - 1 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pp1n1Qpp/2np4/2p1p1P1/2B1P3/2P5/PP1P1P1P/RNB1K1NR b KQkq - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pp1n1ppp/2np4/2p1p1P1/2B1P3/P1P2Q2/1P1P1P1P/RNB1K1NR b KQkq - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkbnr/ppp1pppp/2np4/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "pre": "c8d7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 403,
+   "threatFlag": null,
+   "shownFen": "r2qkbnr/pppbpppp/2np4/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkbnr/pppbpQpp/2np4/8/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkbnr/pppbpppp/2np4/8/2B1P3/P4Q2/1PPP1PPP/RNB1K1NR b KQkq - 0 4",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r2qkb1r/pppnnppp/3B4/8/2BPP3/5Q2/PPP3PP/RN2K2R b KQkq - 0 8",
+   "pre": "c7d6",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 404,
+   "threatFlag": null,
+   "shownFen": "r2qkb1r/pp1nnppp/3p4/8/2BPP3/5Q2/PPP3PP/RN2K2R w KQkq - 0 9",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkb1r/pp1nnQpp/3p4/8/2BPP3/8/PPP3PP/RN2K2R b KQkq - 0 9",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkb1r/pp1nnppp/3p4/8/2BPP3/P4Q2/1PP3PP/RN2K2R b KQkq - 0 9",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkb1r/2ppnppp/p7/1p6/3pP3/1B3Q2/PPPP1PPP/RNB2RK1 b kq - 1 8",
+   "pre": "c8b7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 405,
+   "threatFlag": null,
+   "shownFen": "r2qkb1r/1bppnppp/p7/1p6/3pP3/1B3Q2/PPPP1PPP/RNB2RK1 w kq - 2 9",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkb1r/1bppnQpp/p7/1p6/3pP3/1B6/PPPP1PPP/RNB2RK1 b kq - 0 9",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qkb1r/1bppnppp/p7/1p6/3pP3/PB3Q2/1PPP1PPP/RNB2RK1 b kq - 0 9",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1b1k1nr/pppp1ppp/2n5/2b1p3/2P3Pq/1PN5/P2PPP1P/R1BQKBNR w KQkq - 1 5",
+   "pre": "g1f3",
+   "solutions": [
+    "h4f2"
+   ],
+   "san": [
+    "Qxf2#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 406,
+   "threatFlag": null,
+   "shownFen": "r1b1k1nr/pppp1ppp/2n5/2b1p3/2P3Pq/1PN2N2/P2PPP1P/R1BQKB1R b KQkq - 2 5",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf2#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h4f2",
+    "correct": true,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": "r1b1k1nr/pppp1ppp/2n5/2b1p3/2P3P1/1PN2N2/P2PPq1P/R1BQKB1R w KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h6",
+    "correct": false,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": "r1b1k2r/pppp1ppp/2n4n/2b1p3/2P3Pq/1PN2N2/P2PPP1P/R1BQKB1R w KQkq - 3 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "rnb1k1nr/pppp1ppp/8/2b1p3/2P4q/1P6/PB1PPPPP/RN1QKBNR w KQkq - 3 4",
+   "pre": "b1c3",
+   "solutions": [
+    "h4f2"
+   ],
+   "san": [
+    "Qxf2#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 407,
+   "threatFlag": null,
+   "shownFen": "rnb1k1nr/pppp1ppp/8/2b1p3/2P4q/1PN5/PB1PPPPP/R2QKBNR b KQkq - 4 4",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf2#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h4f2",
+    "correct": true,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": "rnb1k1nr/pppp1ppp/8/2b1p3/2P5/1PN5/PB1PPqPP/R2QKBNR w KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h6",
+    "correct": false,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": "rnb1k2r/pppp1ppp/7n/2b1p3/2P4q/1PN5/PB1PPPPP/R2QKBNR w KQkq - 5 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1b1k2r/pp3ppp/2n5/2b2q2/4p3/5N2/PPPBPPPP/R2QKB1R w KQkq - 0 12",
+   "pre": "f3g1",
+   "solutions": [
+    "f5f2"
+   ],
+   "san": [
+    "Qxf2#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 408,
+   "threatFlag": null,
+   "shownFen": "r1b1k2r/pp3ppp/2n5/2b2q2/4p3/8/PPPBPPPP/R2QKBNR b KQkq - 1 12",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf2#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f5f2",
+    "correct": true,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": "r1b1k2r/pp3ppp/2n5/2b5/4p3/8/PPPBPqPP/R2QKBNR w KQkq - 0 13",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "2bR1k1r/rp2qpp1/p1p4p/4P3/2B5/2N2Q2/PP3PPP/6K1 b - - 1 18",
+   "pre": "e7d8",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 409,
+   "threatFlag": null,
+   "shownFen": "2bq1k1r/rp3pp1/p1p4p/4P3/2B5/2N2Q2/PP3PPP/6K1 w - - 0 19",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "2bq1k1r/rp3Qp1/p1p4p/4P3/2B5/2N5/PP3PPP/6K1 b - - 0 19",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "2bq1k1r/rp3pp1/p1p4p/4P3/2B5/P1N2Q2/1P3PPP/6K1 b - - 0 19",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqk1nr/2pp1ppp/p7/1p2P3/3p4/1B1P1Q2/PPPN1PPP/R3K2R b KQkq - 2 11",
+   "pre": "a8b8",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 409,
+   "threatFlag": null,
+   "shownFen": "1rbqk1nr/2pp1ppp/p7/1p2P3/3p4/1B1P1Q2/PPPN1PPP/R3K2R w KQk - 3 12",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1rbqk1nr/2pp1Qpp/p7/1p2P3/3p4/1B1P4/PPPN1PPP/R3K2R b KQk - 0 12",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1rbqk1nr/2pp1ppp/p7/1p2P3/3p4/1B1P1Q2/PPPN1PPP/1R2K2R b Kk - 4 12",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r2qk2r/5ppp/2pp1n2/pp2p1P1/4P3/1BPP1Q1P/P1P2P2/2KR3R b kq - 0 14",
+   "pre": "f6d7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 409,
+   "threatFlag": null,
+   "shownFen": "r2qk2r/3n1ppp/2pp4/pp2p1P1/4P3/1BPP1Q1P/P1P2P2/2KR3R w kq - 1 15",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qk2r/3n1Qpp/2pp4/pp2p1P1/4P3/1BPP3P/P1P2P2/2KR3R b kq - 0 15",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r2qk2r/3n1ppp/2pp4/pp2p1P1/4P3/PBPP1Q1P/2P2P2/2KR3R b kq - 0 15",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "1r1qkbnr/1p1b1ppp/3p4/p1pBp3/4P3/P1NP1Q1P/1PP2PP1/R1B1K2R b KQk - 0 10",
+   "pre": "g8e7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 412,
+   "threatFlag": null,
+   "shownFen": "1r1qkb1r/1p1bnppp/3p4/p1pBp3/4P3/P1NP1Q1P/1PP2PP1/R1B1K2R w KQk - 1 11",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1r1qkb1r/1p1bnQpp/3p4/p1pBp3/4P3/P1NP3P/1PP2PP1/R1B1K2R b KQk - 0 11",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "1r1qkb1r/1p1bnppp/3p4/p1pBp3/4P3/P1NP1Q1P/RPP2PP1/2B1K2R b Kk - 2 11",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqk1nr/pppp1p1p/2n3p1/2b1p3/2B1P3/2N2Q2/PPPP1PPP/R1B1K1NR b KQkq - 1 5",
+   "pre": "c5d4",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 413,
+   "threatFlag": null,
+   "shownFen": "r1bqk1nr/pppp1p1p/2n3p1/4p3/2BbP3/2N2Q2/PPPP1PPP/R1B1K1NR w KQkq - 2 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/pppp1Q1p/2n3p1/4p3/2BbP3/2N5/PPPP1PPP/R1B1K1NR b KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/pppp1p1p/2n3p1/4p3/2BbP3/2N2Q2/PPPP1PPP/1RB1K1NR b Kkq - 3 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r1bqkb1r/pp1pnppp/2n1p3/2p2P1Q/2B1P3/8/PPPP2PP/RNB1K1NR b KQkq - 0 5",
+   "pre": "e6f5",
+   "solutions": [
+    "h5f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 414,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/pp1pnppp/2n5/2p2p1Q/2B1P3/8/PPPP2PP/RNB1K1NR w KQkq - 0 6",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h5f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pp1pnQpp/2n5/2p2p2/2B1P3/8/PPPP2PP/RNB1K1NR b KQkq - 0 6",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pp1pnppp/2n5/2p2p1Q/2B1P3/P7/1PPP2PP/RNB1K1NR b KQkq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "r3k1nr/p1p2ppp/2pp4/2b5/4P1bq/2N5/PPPBQPPP/R3KB1R w KQkq - 2 9",
+   "pre": "e2d3",
+   "solutions": [
+    "h4f2"
+   ],
+   "san": [
+    "Qxf2#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 415,
+   "threatFlag": null,
+   "shownFen": "r3k1nr/p1p2ppp/2pp4/2b5/4P1bq/2NQ4/PPPB1PPP/R3KB1R b KQkq - 3 9",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf2#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h4f2",
+    "correct": true,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": "r3k1nr/p1p2ppp/2pp4/2b5/4P1b1/2NQ4/PPPB1qPP/R3KB1R w KQkq - 0 10",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h6",
+    "correct": false,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": "r3k2r/p1p2ppp/2pp3n/2b5/4P1bq/2NQ4/PPPB1PPP/R3KB1R w KQkq - 4 10",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "rnb1k1nr/pppp1ppp/5q2/2b1p3/2P5/1PN5/P2PPPPP/R1BQKBNR w KQkq - 1 4",
+   "pre": "c1b2",
+   "solutions": [
+    "f6f2"
+   ],
+   "san": [
+    "Qxf2#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 417,
+   "threatFlag": null,
+   "shownFen": "rnb1k1nr/pppp1ppp/5q2/2b1p3/2P5/1PN5/PB1PPPPP/R2QKBNR b KQkq - 2 4",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Qxf2#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f6f2",
+    "correct": true,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": "rnb1k1nr/pppp1ppp/8/2b1p3/2P5/1PN5/PB1PPqPP/R2QKBNR w KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h6",
+    "correct": false,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": "rnb1k2r/pppp1ppp/5q1n/2b1p3/2P5/1PN5/PB1PPPPP/R2QKBNR w KQkq - 3 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "rnbqkbnr/p3pppp/2p5/8/PpBP4/4PQ2/1P3PPP/RNB1K1NR b KQkq - 0 6",
+   "pre": "c8d7",
+   "solutions": [
+    "f3f7"
+   ],
+   "san": [
+    "Qxf7#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 419,
+   "threatFlag": null,
+   "shownFen": "rn1qkbnr/p2bpppp/2p5/8/PpBP4/4PQ2/1P3PPP/RNB1K1NR w KQkq - 1 7",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf7#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3f7",
+    "correct": true,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rn1qkbnr/p2bpQpp/2p5/8/PpBP4/4P3/1P3PPP/RNB1K1NR b KQkq - 0 7",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Qxf7#",
+    "reply": null,
+    "fenAfter": "rn1qkbnr/p2bpppp/2p5/8/PpBP4/4PQ2/RP3PPP/1NB1K1NR b Kkq - 2 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "fromGames",
+   "fen": "rnb1k1nr/pppp1ppp/8/2b1p3/2P3Pq/2N5/PP1PPP1P/R1BQKBNR w KQkq - 3 4",
+   "pre": "h2h3",
+   "solutions": [
+    "h4f2"
+   ],
+   "san": [
+    "Qxf2#"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 419,
+   "threatFlag": null,
+   "shownFen": "rnb1k1nr/pppp1ppp/8/2b1p3/2P3Pq/2N4P/PP1PPP2/R1BQKBNR b KQkq - 0 4",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": true,
+   "matingMove": "Bxf2#",
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h4f2",
+    "correct": true,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": "rnb1k1nr/pppp1ppp/8/2b1p3/2P3P1/2N4P/PP1PPq2/R1BQKBNR w KQkq - 0 5",
+    "mated": true,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h6",
+    "correct": false,
+    "best": "Qxf2#",
+    "reply": null,
+    "fenAfter": "rnb1k2r/pppp1ppp/7n/2b1p3/2P3Pq/2N4P/PP1PPP2/R1BQKBNR w KQkq - 1 5",
+    "mated": false,
+    "refutation": null
+   }
+  }
+ ],
+ "sacrifice": [
+  {
+   "kind": "sacrifice",
+   "fen": "1rb2k2/p1p1q1pp/1p3p2/7Q/2B5/8/PP4PP/3R2K1 b - - 3 23",
+   "pre": "h7h6",
+   "solutions": [
+    "d1d8"
+   ],
+   "san": [
+    "Rd8+",
+    "Qxd8",
+    "Qf7#"
+   ],
+   "line": [
+    "d1d8",
+    "e7d8",
+    "h5f7"
+   ],
+   "mateIn": 2,
+   "rating": 1114,
+   "threatFlag": null,
+   "shownFen": "1rb2k2/p1p1q1p1/1p3p1p/7Q/2B5/8/PP4PP/3R2K1 w - - 0 24",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "d1d8",
+    "correct": true,
+    "best": "Rd8+",
+    "reply": "e7d8",
+    "fenAfter": "1rbq1k2/p1p3p1/1p3p1p/7Q/2B5/8/PP4PP/6K1 w - - 0 25",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Rd8+",
+    "reply": null,
+    "fenAfter": "1rb2k2/p1p1q1p1/1p3p1p/7Q/2B5/P7/1P4PP/3R2K1 b - - 0 24",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "3R2Q1/1p6/1q1nkpB1/3pp3/8/7P/5rP1/7K b - - 5 44",
+   "pre": "e6e7",
+   "solutions": [
+    "g8f8"
+   ],
+   "san": [
+    "Qf8+",
+    "Ke6",
+    "Rxd6+",
+    "Qxd6",
+    "Qf7#"
+   ],
+   "line": [
+    "g8f8",
+    "e7e6",
+    "d8d6",
+    "b6d6",
+    "f8f7"
+   ],
+   "mateIn": 3,
+   "rating": 2289,
+   "threatFlag": null,
+   "shownFen": "3R2Q1/1p2k3/1q1n1pB1/3pp3/8/7P/5rP1/7K w - - 6 45",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "g8f8",
+    "correct": true,
+    "best": "Qf8+",
+    "reply": "e7e6",
+    "fenAfter": "3R1Q2/1p6/1q1nkpB1/3pp3/8/7P/5rP1/7K w - - 8 46",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h8",
+    "correct": false,
+    "best": "Qf8+",
+    "reply": null,
+    "fenAfter": "3R3Q/1p2k3/1q1n1pB1/3pp3/8/7P/5rP1/7K b - - 7 45",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r1bqk2r/pp2bpp1/5n1p/2p1p3/2NpP3/1B3Q2/PPP2PPP/R1B1K2R b KQkq - 5 11",
+   "pre": "f6d7",
+   "solutions": [
+    "c4d6"
+   ],
+   "san": [
+    "Nd6+",
+    "Bxd6",
+    "Qxf7#"
+   ],
+   "line": [
+    "c4d6",
+    "e7d6",
+    "f3f7"
+   ],
+   "mateIn": 2,
+   "rating": 1152,
+   "threatFlag": null,
+   "shownFen": "r1bqk2r/pp1nbpp1/7p/2p1p3/2NpP3/1B3Q2/PPP2PPP/R1B1K2R w KQkq - 6 12",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "c4d6",
+    "correct": true,
+    "best": "Nd6+",
+    "reply": "e7d6",
+    "fenAfter": "r1bqk2r/pp1n1pp1/3b3p/2p1p3/3pP3/1B3Q2/PPP2PPP/R1B1K2R w KQkq - 0 13",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": "Nd6+",
+    "reply": null,
+    "fenAfter": "r1bqk2r/pp1nbpp1/7p/2p1p3/2NpP3/1B3Q2/PPP2PPP/1RB1K2R b Kkq - 7 12",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "2b3kr/p1q1pR2/1p5r/2pPp1pB/2P1P1P1/5Q2/P2N4/6K1 b - - 3 27",
+   "pre": "c7d8",
+   "solutions": [
+    "f7g7"
+   ],
+   "san": [
+    "Rg7+",
+    "Kxg7",
+    "Qf7#"
+   ],
+   "line": [
+    "f7g7",
+    "g8g7",
+    "f3f7"
+   ],
+   "mateIn": 2,
+   "rating": 1307,
+   "threatFlag": null,
+   "shownFen": "2bq2kr/p3pR2/1p5r/2pPp1pB/2P1P1P1/5Q2/P2N4/6K1 w - - 4 28",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f7g7",
+    "correct": true,
+    "best": "Rg7+",
+    "reply": "g8g7",
+    "fenAfter": "2bq3r/p3p1k1/1p5r/2pPp1pB/2P1P1P1/5Q2/P2N4/6K1 w - - 0 29",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Rg7+",
+    "reply": null,
+    "fenAfter": "2bq2kr/p3pR2/1p5r/2pPp1pB/2P1P1P1/P4Q2/3N4/6K1 b - - 0 28",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r1q2k2/ppp3p1/2n1R1B1/6p1/2Q5/8/PP3PK1/r7 b - - 1 27",
+   "pre": "c6e7",
+   "solutions": [
+    "e6f6"
+   ],
+   "san": [
+    "Rf6+",
+    "gxf6",
+    "Qf7#"
+   ],
+   "line": [
+    "e6f6",
+    "g7f6",
+    "c4f7"
+   ],
+   "mateIn": 2,
+   "rating": 1796,
+   "threatFlag": null,
+   "shownFen": "r1q2k2/ppp1n1p1/4R1B1/6p1/2Q5/8/PP3PK1/r7 w - - 2 28",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "e6f6",
+    "correct": true,
+    "best": "Rf6+",
+    "reply": "g7f6",
+    "fenAfter": "r1q2k2/ppp1n3/5pB1/6p1/2Q5/8/PP3PK1/r7 w - - 0 29",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Rf6+",
+    "reply": null,
+    "fenAfter": "r1q2k2/ppp1n1p1/4R1B1/6p1/2Q5/P7/1P3PK1/r7 b - - 0 28",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "2rq1k2/pp1br1bQ/2n1RpB1/3p2N1/5P2/B1P5/P5PP/6K1 b - - 4 24",
+   "pre": "f6g5",
+   "solutions": [
+    "e6f6"
+   ],
+   "san": [
+    "Rf6+",
+    "Bxf6",
+    "Qf7#"
+   ],
+   "line": [
+    "e6f6",
+    "g7f6",
+    "h7f7"
+   ],
+   "mateIn": 2,
+   "rating": 1834,
+   "threatFlag": null,
+   "shownFen": "2rq1k2/pp1br1bQ/2n1R1B1/3p2p1/5P2/B1P5/P5PP/6K1 w - - 0 25",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "e6f6",
+    "correct": true,
+    "best": "Rf6+",
+    "reply": "g7f6",
+    "fenAfter": "2rq1k2/pp1br2Q/2n2bB1/3p2p1/5P2/B1P5/P5PP/6K1 w - - 0 26",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g1f2",
+    "correct": false,
+    "best": "Rf6+",
+    "reply": null,
+    "fenAfter": "2rq1k2/pp1br1bQ/2n1R1B1/3p2p1/5P2/B1P5/P4KPP/8 b - - 1 25",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r2qk2r/pb1nn1b1/1p1pR1Qp/2p3p1/2BP1p2/2N2N2/PPP3PP/R1B3K1 b kq - 1 13",
+   "pre": "e8f8",
+   "solutions": [
+    "e6f6"
+   ],
+   "san": [
+    "Rf6+",
+    "Nxf6",
+    "Qf7#"
+   ],
+   "line": [
+    "e6f6",
+    "d7f6",
+    "g6f7"
+   ],
+   "mateIn": 2,
+   "rating": 1161,
+   "threatFlag": null,
+   "shownFen": "r2q1k1r/pb1nn1b1/1p1pR1Qp/2p3p1/2BP1p2/2N2N2/PPP3PP/R1B3K1 w - - 2 14",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "e6f6",
+    "correct": true,
+    "best": "Rf6+",
+    "reply": "d7f6",
+    "fenAfter": "r2q1k1r/pb2n1b1/1p1p1nQp/2p3p1/2BP1p2/2N2N2/PPP3PP/R1B3K1 w - - 0 15",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": "Rf6+",
+    "reply": null,
+    "fenAfter": "r2q1k1r/pb1nn1b1/1p1pR1Qp/2p3p1/2BP1p2/2N2N2/PPP3PP/1RB3K1 b - - 3 14",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "6k1/4R3/Q2p3p/3P4/P2bPp2/3B2q1/2R3P1/1rN3K1 w - - 1 32",
+   "pre": "g1f1",
+   "solutions": [
+    "b1c1"
+   ],
+   "san": [
+    "Rxc1+",
+    "Rxc1",
+    "Qf2#"
+   ],
+   "line": [
+    "b1c1",
+    "c2c1",
+    "g3f2"
+   ],
+   "mateIn": 2,
+   "rating": 1416,
+   "threatFlag": null,
+   "shownFen": "6k1/4R3/Q2p3p/3P4/P2bPp2/3B2q1/2R3P1/1rN2K2 b - - 2 32",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "b1c1",
+    "correct": true,
+    "best": "Rxc1+",
+    "reply": "c2c1",
+    "fenAfter": "6k1/4R3/Q2p3p/3P4/P2bPp2/3B2q1/6P1/2R2K2 b - - 0 33",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "b1b2",
+    "correct": false,
+    "best": "Rxc1+",
+    "reply": null,
+    "fenAfter": "6k1/4R3/Q2p3p/3P4/P2bPp2/3B2q1/1rR3P1/2N2K2 w - - 3 33",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "3r1k2/p1pbR2Q/2p3Bp/6p1/2P2pP1/7P/P1P4K/q7 b - - 4 30",
+   "pre": "d7e6",
+   "solutions": [
+    "e7f7"
+   ],
+   "san": [
+    "Rf7+",
+    "Bxf7",
+    "Qxf7#"
+   ],
+   "line": [
+    "e7f7",
+    "e6f7",
+    "h7f7"
+   ],
+   "mateIn": 2,
+   "rating": 1819,
+   "threatFlag": null,
+   "shownFen": "3r1k2/p1p1R2Q/2p1b1Bp/6p1/2P2pP1/7P/P1P4K/q7 w - - 5 31",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "e7f7",
+    "correct": true,
+    "best": "Rf7+",
+    "reply": "e6f7",
+    "fenAfter": "3r1k2/p1p2b1Q/2p3Bp/6p1/2P2pP1/7P/P1P4K/q7 w - - 0 32",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Rf7+",
+    "reply": null,
+    "fenAfter": "3r1k2/p1p1R2Q/2p1b1Bp/6p1/2P2pP1/P6P/2P4K/q7 b - - 0 31",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "rn3k1r/pb2q1p1/2p2p1p/3np2Q/p1B5/1P2B3/P1P2PPP/3R1RK1 b - - 7 23",
+   "pre": "d5e3",
+   "solutions": [
+    "d1d8"
+   ],
+   "san": [
+    "Rd8+",
+    "Qxd8",
+    "Qf7#"
+   ],
+   "line": [
+    "d1d8",
+    "e7d8",
+    "h5f7"
+   ],
+   "mateIn": 2,
+   "rating": 1253,
+   "threatFlag": null,
+   "shownFen": "rn3k1r/pb2q1p1/2p2p1p/4p2Q/p1B5/1P2n3/P1P2PPP/3R1RK1 w - - 0 24",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "d1d8",
+    "correct": true,
+    "best": "Rd8+",
+    "reply": "e7d8",
+    "fenAfter": "rn1q1k1r/pb4p1/2p2p1p/4p2Q/p1B5/1P2n3/P1P2PPP/5RK1 w - - 0 25",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Rd8+",
+    "reply": null,
+    "fenAfter": "rn3k1r/pb2q1p1/2p2p1p/4p2Q/p1B5/PP2n3/2P2PPP/3R1RK1 b - - 0 24",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r2r1kB1/pp4p1/1b2Rq1p/8/1P5P/PQ3P1n/5P2/5R1K b - - 4 29",
+   "pre": "f6h4",
+   "solutions": [
+    "e6e8"
+   ],
+   "san": [
+    "Re8+",
+    "Rxe8",
+    "Qf7#"
+   ],
+   "line": [
+    "e6e8",
+    "d8e8",
+    "b3f7"
+   ],
+   "mateIn": 2,
+   "rating": 1709,
+   "threatFlag": null,
+   "shownFen": "r2r1kB1/pp4p1/1b2R2p/8/1P5q/PQ3P1n/5P2/5R1K w - - 0 30",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "e6e8",
+    "correct": true,
+    "best": "Re8+",
+    "reply": "d8e8",
+    "fenAfter": "r3rkB1/pp4p1/1b5p/8/1P5q/PQ3P1n/5P2/5R1K w - - 0 31",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h7",
+    "correct": false,
+    "best": "Re8+",
+    "reply": null,
+    "fenAfter": "r2r1k2/pp4pB/1b2R2p/8/1P5q/PQ3P1n/5P2/5R1K b - - 1 30",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r4bkr/2p5/bp1p2Bp/p2PpNp1/1q2P3/4KQB1/PP6/5R2 b - - 3 30",
+   "pre": "a6f1",
+   "solutions": [
+    "f5e7"
+   ],
+   "san": [
+    "Ne7+",
+    "Bxe7",
+    "Qf7#"
+   ],
+   "line": [
+    "f5e7",
+    "f8e7",
+    "f3f7"
+   ],
+   "mateIn": 2,
+   "rating": 1600,
+   "threatFlag": null,
+   "shownFen": "r4bkr/2p5/1p1p2Bp/p2PpNp1/1q2P3/4KQB1/PP6/5b2 w - - 0 31",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f5e7",
+    "correct": true,
+    "best": "Ne7+",
+    "reply": "f8e7",
+    "fenAfter": "r5kr/2p1b3/1p1p2Bp/p2Pp1p1/1q2P3/4KQB1/PP6/5b2 w - - 0 32",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Ne7+",
+    "reply": null,
+    "fenAfter": "r4bkr/2p5/1p1p2Bp/p2PpNp1/1q2P3/P3KQB1/1P6/5b2 b - - 0 31",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "7r/pp2R3/1kp5/3p4/1P1N4/P3PQb1/2Pq4/R4K2 w - - 0 26",
+   "pre": "a1d1",
+   "solutions": [
+    "h8h1"
+   ],
+   "san": [
+    "Rh1+",
+    "Qxh1",
+    "Qf2#"
+   ],
+   "line": [
+    "h8h1",
+    "f3h1",
+    "d2f2"
+   ],
+   "mateIn": 2,
+   "rating": 1588,
+   "threatFlag": null,
+   "shownFen": "7r/pp2R3/1kp5/3p4/1P1N4/P3PQb1/2Pq4/3R1K2 b - - 1 26",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h8h1",
+    "correct": true,
+    "best": "Rh1+",
+    "reply": "f3h1",
+    "fenAfter": "8/pp2R3/1kp5/3p4/1P1N4/P3P1b1/2Pq4/3R1K1Q b - - 0 27",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Rh1+",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r2qkb1r/1b3p1p/pp1p1Np1/2n1pQ2/P1B5/5N2/1PP2PPP/R3K2R b KQkq - 1 14",
+   "pre": "e8e7",
+   "solutions": [
+    "f6g8"
+   ],
+   "san": [
+    "Ng8+",
+    "Rxg8",
+    "Qxf7#"
+   ],
+   "line": [
+    "f6g8",
+    "h8g8",
+    "f5f7"
+   ],
+   "mateIn": 2,
+   "rating": 1920,
+   "threatFlag": null,
+   "shownFen": "r2q1b1r/1b2kp1p/pp1p1Np1/2n1pQ2/P1B5/5N2/1PP2PPP/R3K2R w KQ - 2 15",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f6g8",
+    "correct": true,
+    "best": "Ng8+",
+    "reply": "h8g8",
+    "fenAfter": "r2q1br1/1b2kp1p/pp1p2p1/2n1pQ2/P1B5/5N2/1PP2PPP/R3K2R w KQ - 0 16",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Ng8+",
+    "reply": null,
+    "fenAfter": "r2q1b1r/1b2kp1p/pp1p1Np1/2n1pQ2/P1B5/5N2/RPP2PPP/4K2R b K - 3 15",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r1b1k2r/ppp2pp1/5q1p/2bN4/8/1B1P1nP1/PPP1NK1P/R1BQ3R w kq - 1 13",
+   "pre": "f2g2",
+   "solutions": [
+    "f3h4"
+   ],
+   "san": [
+    "Nh4+",
+    "gxh4",
+    "Qf2#"
+   ],
+   "line": [
+    "f3h4",
+    "g3h4",
+    "f6f2"
+   ],
+   "mateIn": 2,
+   "rating": 1551,
+   "threatFlag": null,
+   "shownFen": "r1b1k2r/ppp2pp1/5q1p/2bN4/8/1B1P1nP1/PPP1N1KP/R1BQ3R b kq - 2 13",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3h4",
+    "correct": true,
+    "best": "Nh4+",
+    "reply": "g3h4",
+    "fenAfter": "r1b1k2r/ppp2pp1/5q1p/2bN4/7P/1B1P4/PPP1N1KP/R1BQ3R b kq - 0 14",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Nh4+",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "2Q5/5pkp/1P6/3B4/3b4/5QPP/Pq5r/3R2K1 w - - 3 39",
+   "pre": "g1f1",
+   "solutions": [
+    "h2h1"
+   ],
+   "san": [
+    "Rh1+",
+    "Qxh1",
+    "Qf2#"
+   ],
+   "line": [
+    "h2h1",
+    "f3h1",
+    "b2f2"
+   ],
+   "mateIn": 2,
+   "rating": 1895,
+   "threatFlag": null,
+   "shownFen": "2Q5/5pkp/1P6/3B4/3b4/5QPP/Pq5r/3R1K2 b - - 4 39",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h2h1",
+    "correct": true,
+    "best": "Rh1+",
+    "reply": "f3h1",
+    "fenAfter": "2Q5/5pkp/1P6/3B4/3b4/6PP/Pq6/3R1K1Q b - - 0 40",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Rh1+",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r3k2N/ppp3pp/5q2/2bBpb2/8/2Q5/PPnP1PPP/RNB1K2R w KQq - 0 11",
+   "pre": "e1f1",
+   "solutions": [
+    "f5d3"
+   ],
+   "san": [
+    "Bd3+",
+    "Qxd3",
+    "Qxf2#"
+   ],
+   "line": [
+    "f5d3",
+    "c3d3",
+    "f6f2"
+   ],
+   "mateIn": 2,
+   "rating": 1715,
+   "threatFlag": null,
+   "shownFen": "r3k2N/ppp3pp/5q2/2bBpb2/8/2Q5/PPnP1PPP/RNB2K1R b q - 1 11",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f5d3",
+    "correct": true,
+    "best": "Bd3+",
+    "reply": "c3d3",
+    "fenAfter": "r3k2N/ppp3pp/5q2/2bBp3/8/3Q4/PPnP1PPP/RNB2K1R b q - 0 12",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Bd3+",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r1b3k1/pp4rp/5R1Q/2p1p2B/3qP3/3P4/PP4PP/5K2 b - - 1 22",
+   "pre": "d4b2",
+   "solutions": [
+    "f6f8"
+   ],
+   "san": [
+    "Rf8+",
+    "Kxf8",
+    "Qf6+",
+    "Rf7",
+    "Qxf7#"
+   ],
+   "line": [
+    "f6f8",
+    "g8f8",
+    "h6f6",
+    "g7f7",
+    "f6f7"
+   ],
+   "mateIn": 3,
+   "rating": 2059,
+   "threatFlag": null,
+   "shownFen": "r1b3k1/pp4rp/5R1Q/2p1p2B/4P3/3P4/Pq4PP/5K2 w - - 0 23",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f6f8",
+    "correct": true,
+    "best": "Rf8+",
+    "reply": "g8f8",
+    "fenAfter": "r1b2k2/pp4rp/7Q/2p1p2B/4P3/3P4/Pq4PP/5K2 w - - 0 24",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Rf8+",
+    "reply": null,
+    "fenAfter": "r1b3k1/pp4rp/5R1Q/2p1p2B/4P3/P2P4/1q4PP/5K2 b - - 0 23",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "8/4Rpk1/1q1p2p1/p2P4/P1B3Q1/1P4nP/5bP1/7K w - - 9 37",
+   "pre": "h1h2",
+   "solutions": [
+    "f2g1"
+   ],
+   "san": [
+    "Bg1+",
+    "Kxg3",
+    "Qf2#"
+   ],
+   "line": [
+    "f2g1",
+    "h2g3",
+    "b6f2"
+   ],
+   "mateIn": 2,
+   "rating": 1724,
+   "threatFlag": null,
+   "shownFen": "8/4Rpk1/1q1p2p1/p2P4/P1B3Q1/1P4nP/5bPK/8 b - - 10 37",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f2g1",
+    "correct": true,
+    "best": "Bg1+",
+    "reply": "h2g3",
+    "fenAfter": "8/4Rpk1/1q1p2p1/p2P4/P1B3Q1/1P4KP/6P1/6b1 b - - 0 38",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Bg1+",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "2r3k1/7Q/1q1b2B1/1p1bp3/8/P4pRP/1P5K/8 b - - 2 43",
+   "pre": "g8f8",
+   "solutions": [
+    "g3f3"
+   ],
+   "san": [
+    "Rxf3+",
+    "Bxf3",
+    "Qf7#"
+   ],
+   "line": [
+    "g3f3",
+    "d5f3",
+    "h7f7"
+   ],
+   "mateIn": 2,
+   "rating": 2013,
+   "threatFlag": null,
+   "shownFen": "2r2k2/7Q/1q1b2B1/1p1bp3/8/P4pRP/1P5K/8 w - - 3 44",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "g3f3",
+    "correct": true,
+    "best": "Rxf3+",
+    "reply": "d5f3",
+    "fenAfter": "2r2k2/7Q/1q1b2B1/1p2p3/8/P4b1P/1P5K/8 w - - 0 45",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Rxf3+",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "6k1/pp3pp1/7p/2b5/4P3/P2r2qP/1P2QPP1/R1B3K1 w - - 0 22",
+   "pre": "g1f1",
+   "solutions": [
+    "d3d1"
+   ],
+   "san": [
+    "Rd1+",
+    "Qxd1",
+    "Qxf2#"
+   ],
+   "line": [
+    "d3d1",
+    "e2d1",
+    "g3f2"
+   ],
+   "mateIn": 2,
+   "rating": 1221,
+   "threatFlag": null,
+   "shownFen": "6k1/pp3pp1/7p/2b5/4P3/P2r2qP/1P2QPP1/R1B2K2 b - - 1 22",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "d3d1",
+    "correct": true,
+    "best": "Rd1+",
+    "reply": "e2d1",
+    "fenAfter": "6k1/pp3pp1/7p/2b5/4P3/P5qP/1P3PP1/R1BQ1K2 b - - 0 23",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h8",
+    "correct": false,
+    "best": "Rd1+",
+    "reply": null,
+    "fenAfter": "7k/pp3pp1/7p/2b5/4P3/P2r2qP/1P2QPP1/R1B2K2 w - - 2 23",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r1bq1b1r/ppppk1p1/2n4p/4P3/2BpnB2/5Q2/PPP2PPP/RN2K2R b KQ - 2 9",
+   "pre": "e4c5",
+   "solutions": [
+    "f4g5"
+   ],
+   "san": [
+    "Bg5+",
+    "hxg5",
+    "Qf7#"
+   ],
+   "line": [
+    "f4g5",
+    "h6g5",
+    "f3f7"
+   ],
+   "mateIn": 2,
+   "rating": 1587,
+   "threatFlag": null,
+   "shownFen": "r1bq1b1r/ppppk1p1/2n4p/2n1P3/2Bp1B2/5Q2/PPP2PPP/RN2K2R w KQ - 3 10",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f4g5",
+    "correct": true,
+    "best": "Bg5+",
+    "reply": "h6g5",
+    "fenAfter": "r1bq1b1r/ppppk1p1/2n5/2n1P1p1/2Bp4/5Q2/PPP2PPP/RN2K2R w KQ - 0 11",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Bg5+",
+    "reply": null,
+    "fenAfter": "r1bq1b1r/ppppk1p1/2n4p/2n1P3/2Bp1B2/P4Q2/1PP2PPP/RN2K2R b KQ - 0 10",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r1b2k1r/1p2q1p1/p2p3p/4Bp1Q/2B1n3/7P/PP3PP1/2KR3R b - - 1 17",
+   "pre": "d6e5",
+   "solutions": [
+    "d1d8"
+   ],
+   "san": [
+    "Rd8+",
+    "Qxd8",
+    "Qf7#"
+   ],
+   "line": [
+    "d1d8",
+    "e7d8",
+    "h5f7"
+   ],
+   "mateIn": 2,
+   "rating": 1224,
+   "threatFlag": null,
+   "shownFen": "r1b2k1r/1p2q1p1/p6p/4pp1Q/2B1n3/7P/PP3PP1/2KR3R w - - 0 18",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "d1d8",
+    "correct": true,
+    "best": "Rd8+",
+    "reply": "e7d8",
+    "fenAfter": "r1bq1k1r/1p4p1/p6p/4pp1Q/2B1n3/7P/PP3PP1/2K4R w - - 0 19",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Rd8+",
+    "reply": null,
+    "fenAfter": "r1b2k1r/1p2q1p1/p6p/4pp1Q/2B1n3/P6P/1P3PP1/2KR3R b - - 0 18",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r1b1k1r1/ppp2p1R/2nqp3/8/5P2/1P1PKNb1/PBP5/RN1Q1B2 w q - 1 14",
+   "pre": "b1c3",
+   "solutions": [
+    "d6f4"
+   ],
+   "san": [
+    "Qxf4+",
+    "Ke2",
+    "Nd4+",
+    "Nxd4",
+    "Qf2#"
+   ],
+   "line": [
+    "d6f4",
+    "e3e2",
+    "c6d4",
+    "f3d4",
+    "f4f2"
+   ],
+   "mateIn": 3,
+   "rating": 1560,
+   "threatFlag": null,
+   "shownFen": "r1b1k1r1/ppp2p1R/2nqp3/8/5P2/1PNPKNb1/PBP5/R2Q1B2 b q - 2 14",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "d6f4",
+    "correct": true,
+    "best": "Qxf4+",
+    "reply": "e3e2",
+    "fenAfter": "r1b1k1r1/ppp2p1R/2n1p3/8/5q2/1PNP1Nb1/PBP1K3/R2Q1B2 b q - 1 15",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h8",
+    "correct": false,
+    "best": "Qxf4+",
+    "reply": null,
+    "fenAfter": "r1b1k2r/ppp2p1R/2nqp3/8/5P2/1PNPKNb1/PBP5/R2Q1B2 w q - 3 15",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r3k2r/pp2n1p1/1qp1Rb1p/7Q/2B5/3P3P/PPP2PP1/2K5 b kq - 2 18",
+   "pre": "e8f8",
+   "solutions": [
+    "e6f6"
+   ],
+   "san": [
+    "Rxf6+",
+    "gxf6",
+    "Qf7#"
+   ],
+   "line": [
+    "e6f6",
+    "g7f6",
+    "h5f7"
+   ],
+   "mateIn": 2,
+   "rating": 1383,
+   "threatFlag": null,
+   "shownFen": "r4k1r/pp2n1p1/1qp1Rb1p/7Q/2B5/3P3P/PPP2PP1/2K5 w - - 3 19",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "e6f6",
+    "correct": true,
+    "best": "Rxf6+",
+    "reply": "g7f6",
+    "fenAfter": "r4k1r/pp2n3/1qp2p1p/7Q/2B5/3P3P/PPP2PP1/2K5 w - - 0 20",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Rxf6+",
+    "reply": null,
+    "fenAfter": "r4k1r/pp2n1p1/1qp1Rb1p/7Q/2B5/P2P3P/1PP2PP1/2K5 b - - 0 19",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r2q2r1/pppbnkpQ/3p3R/3P1p1B/8/8/PP3PPP/R5K1 b - - 7 20",
+   "pre": "f7f8",
+   "solutions": [
+    "h6f6"
+   ],
+   "san": [
+    "Rf6+",
+    "gxf6",
+    "Qf7#"
+   ],
+   "line": [
+    "h6f6",
+    "g7f6",
+    "h7f7"
+   ],
+   "mateIn": 2,
+   "rating": 1588,
+   "threatFlag": null,
+   "shownFen": "r2q1kr1/pppbn1pQ/3p3R/3P1p1B/8/8/PP3PPP/R5K1 w - - 8 21",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h6f6",
+    "correct": true,
+    "best": "Rf6+",
+    "reply": "g7f6",
+    "fenAfter": "r2q1kr1/pppbn2Q/3p1p2/3P1p1B/8/8/PP3PPP/R5K1 w - - 0 22",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": "Rf6+",
+    "reply": null,
+    "fenAfter": "r2q1kr1/pppbn1pQ/3p3R/3P1p1B/8/8/PP3PPP/1R4K1 b - - 9 21",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "2kr2nr/pp3ppp/1bp5/4n3/3P1p1q/2P2B2/PP2Q1PP/RNB2K1R w - - 2 13",
+   "pre": "d4e5",
+   "solutions": [
+    "d8d1"
+   ],
+   "san": [
+    "Rd1+",
+    "Qxd1",
+    "Qf2#"
+   ],
+   "line": [
+    "d8d1",
+    "e2d1",
+    "h4f2"
+   ],
+   "mateIn": 2,
+   "rating": 1059,
+   "threatFlag": null,
+   "shownFen": "2kr2nr/pp3ppp/1bp5/4P3/5p1q/2P2B2/PP2Q1PP/RNB2K1R b - - 0 13",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "d8d1",
+    "correct": true,
+    "best": "Rd1+",
+    "reply": "e2d1",
+    "fenAfter": "2k3nr/pp3ppp/1bp5/4P3/5p1q/2P2B2/PP4PP/RNBQ1K1R b - - 0 14",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h6",
+    "correct": false,
+    "best": "Rd1+",
+    "reply": null,
+    "fenAfter": "2kr3r/pp3ppp/1bp4n/4P3/5p1q/2P2B2/PP2Q1PP/RNB2K1R w - - 1 14",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r7/p2Qnk2/5b2/1p2p3/3p2Bq/PP1P4/1BP2P1r/1K4R1 b - - 12 31",
+   "pre": "h4f2",
+   "solutions": [
+    "g4e6"
+   ],
+   "san": [
+    "Be6+",
+    "Kf8",
+    "Rg8+",
+    "Nxg8",
+    "Qf7#"
+   ],
+   "line": [
+    "g4e6",
+    "f7f8",
+    "g1g8",
+    "e7g8",
+    "d7f7"
+   ],
+   "mateIn": 3,
+   "rating": 1240,
+   "threatFlag": null,
+   "shownFen": "r7/p2Qnk2/5b2/1p2p3/3p2B1/PP1P4/1BP2q1r/1K4R1 w - - 0 32",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "g4e6",
+    "correct": true,
+    "best": "Be6+",
+    "reply": "f7f8",
+    "fenAfter": "r4k2/p2Qn3/4Bb2/1p2p3/3p4/PP1P4/1BP2q1r/1K4R1 w - - 2 33",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "b1a2",
+    "correct": false,
+    "best": "Be6+",
+    "reply": null,
+    "fenAfter": "r7/p2Qnk2/5b2/1p2p3/3p2B1/PP1P4/KBP2q1r/6R1 b - - 1 32",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r2qN3/1pp3k1/p2pb2p/8/1PP2P1P/P1QBP3/2K5/6n1 b - - 2 26",
+   "pre": "g7f7",
+   "solutions": [
+    "c3g7"
+   ],
+   "san": [
+    "Qg7+",
+    "Kxe8",
+    "Bg6+",
+    "Bf7",
+    "Qxf7#"
+   ],
+   "line": [
+    "c3g7",
+    "f7e8",
+    "d3g6",
+    "e6f7",
+    "g7f7"
+   ],
+   "mateIn": 3,
+   "rating": 1524,
+   "threatFlag": null,
+   "shownFen": "r2qN3/1pp2k2/p2pb2p/8/1PP2P1P/P1QBP3/2K5/6n1 w - - 3 27",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "c3g7",
+    "correct": true,
+    "best": "Qg7+",
+    "reply": "f7e8",
+    "fenAfter": "r2qk3/1pp3Q1/p2pb2p/8/1PP2P1P/P2BP3/2K5/6n1 w - - 0 28",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Qg7+",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "3r1kr1/ppp3pp/8/2b1p3/2B1Pp1q/8/PPP1Q1PP/RNB2K1R w - - 2 13",
+   "pre": "c4g8",
+   "solutions": [
+    "d8d1"
+   ],
+   "san": [
+    "Rd1+",
+    "Qxd1",
+    "Qf2#"
+   ],
+   "line": [
+    "d8d1",
+    "e2d1",
+    "h4f2"
+   ],
+   "mateIn": 2,
+   "rating": 1247,
+   "threatFlag": null,
+   "shownFen": "3r1kB1/ppp3pp/8/2b1p3/4Pp1q/8/PPP1Q1PP/RNB2K1R b - - 0 13",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "d8d1",
+    "correct": true,
+    "best": "Rd1+",
+    "reply": "e2d1",
+    "fenAfter": "5kB1/ppp3pp/8/2b1p3/4Pp1q/8/PPP3PP/RNBQ1K1R b - - 0 14",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Rd1+",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r4k1r/ppqn2p1/4R1B1/3Q4/3p1b2/8/PP6/R1B2K2 b - - 0 23",
+   "pre": "f4c1",
+   "solutions": [
+    "e6e8"
+   ],
+   "san": [
+    "Re8+",
+    "Rxe8",
+    "Qf7#"
+   ],
+   "line": [
+    "e6e8",
+    "a8e8",
+    "d5f7"
+   ],
+   "mateIn": 2,
+   "rating": 1901,
+   "threatFlag": null,
+   "shownFen": "r4k1r/ppqn2p1/4R1B1/3Q4/3p4/8/PP6/R1b2K2 w - - 0 24",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "e6e8",
+    "correct": true,
+    "best": "Re8+",
+    "reply": "a8e8",
+    "fenAfter": "4rk1r/ppqn2p1/6B1/3Q4/3p4/8/PP6/R1b2K2 w - - 0 25",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": "Re8+",
+    "reply": null,
+    "fenAfter": "r4k1r/ppqn2p1/4R1B1/3Q4/3p4/8/PP6/1Rb2K2 b - - 1 24",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "8/p5pk/1p5q/3Q4/2P1P3/1P3Pbb/P6P/3R3K w - - 0 32",
+   "pre": "e4e5",
+   "solutions": [
+    "h3g2"
+   ],
+   "san": [
+    "Bg2+",
+    "Kxg2",
+    "Qxh2+",
+    "Kf1",
+    "Qf2#"
+   ],
+   "line": [
+    "h3g2",
+    "h1g2",
+    "h6h2",
+    "g2f1",
+    "h2f2"
+   ],
+   "mateIn": 3,
+   "rating": 1192,
+   "threatFlag": null,
+   "shownFen": "8/p5pk/1p5q/3QP3/2P5/1P3Pbb/P6P/3R3K b - - 0 32",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h3g2",
+    "correct": true,
+    "best": "Bg2+",
+    "reply": "h1g2",
+    "fenAfter": "8/p5pk/1p5q/3QP3/2P5/1P3Pb1/P5KP/3R4 b - - 0 33",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Bg2+",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "2rr2k1/1b4b1/pp3pB1/4p3/2Pq4/1P5Q/P2N2PP/5R1K b - - 0 26",
+   "pre": "d4d2",
+   "solutions": [
+    "h3h7"
+   ],
+   "san": [
+    "Qh7+",
+    "Kf8",
+    "Rxf6+",
+    "Bxf6",
+    "Qf7#"
+   ],
+   "line": [
+    "h3h7",
+    "g8f8",
+    "f1f6",
+    "g7f6",
+    "h7f7"
+   ],
+   "mateIn": 3,
+   "rating": 1216,
+   "threatFlag": null,
+   "shownFen": "2rr2k1/1b4b1/pp3pB1/4p3/2P5/1P5Q/P2q2PP/5R1K w - - 0 27",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h3h7",
+    "correct": true,
+    "best": "Qh7+",
+    "reply": "g8f8",
+    "fenAfter": "2rr1k2/1b4bQ/pp3pB1/4p3/2P5/1P6/P2q2PP/5R1K w - - 2 28",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Qh7+",
+    "reply": null,
+    "fenAfter": "2rr2k1/1b4b1/pp3pB1/4p3/2P5/PP5Q/3q2PP/5R1K b - - 0 27",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r1b2k1r/pp1nq1pp/3R1p2/4p2Q/2B1p3/2P5/P1P2PPP/2K4R b - - 0 14",
+   "pre": "d7b6",
+   "solutions": [
+    "d6d8"
+   ],
+   "san": [
+    "Rd8+",
+    "Qxd8",
+    "Qf7#"
+   ],
+   "line": [
+    "d6d8",
+    "e7d8",
+    "h5f7"
+   ],
+   "mateIn": 2,
+   "rating": 1177,
+   "threatFlag": null,
+   "shownFen": "r1b2k1r/pp2q1pp/1n1R1p2/4p2Q/2B1p3/2P5/P1P2PPP/2K4R w - - 1 15",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "d6d8",
+    "correct": true,
+    "best": "Rd8+",
+    "reply": "e7d8",
+    "fenAfter": "r1bq1k1r/pp4pp/1n3p2/4p2Q/2B1p3/2P5/P1P2PPP/2K4R w - - 0 16",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": "Rd8+",
+    "reply": null,
+    "fenAfter": "r1b2k1r/pp2q1pp/1n1R1p2/4p2Q/2B1p3/P1P5/2P2PPP/2K4R b - - 0 15",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "8/p4ppp/5k2/2b1n3/2r3P1/1Q2PPqP/PP1BP3/R4K1R w - - 3 26",
+   "pre": "f3f4",
+   "solutions": [
+    "c4f4"
+   ],
+   "san": [
+    "Rxf4+",
+    "exf4",
+    "Qf2#"
+   ],
+   "line": [
+    "c4f4",
+    "e3f4",
+    "g3f2"
+   ],
+   "mateIn": 2,
+   "rating": 1564,
+   "threatFlag": null,
+   "shownFen": "8/p4ppp/5k2/2b1n3/2r2PP1/1Q2P1qP/PP1BP3/R4K1R b - - 0 26",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "c4f4",
+    "correct": true,
+    "best": "Rxf4+",
+    "reply": "e3f4",
+    "fenAfter": "8/p4ppp/5k2/2b1n3/5PP1/1Q4qP/PP1BP3/R4K1R b - - 0 27",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Rxf4+",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r4rk1/ppp2ppp/5q2/2b1p3/2B1P3/5nPP/PPP1N3/R1BQ1K1R w - - 3 15",
+   "pre": "f1g2",
+   "solutions": [
+    "f3h4"
+   ],
+   "san": [
+    "Nh4+",
+    "gxh4",
+    "Qf2#"
+   ],
+   "line": [
+    "f3h4",
+    "g3h4",
+    "f6f2"
+   ],
+   "mateIn": 2,
+   "rating": 1268,
+   "threatFlag": null,
+   "shownFen": "r4rk1/ppp2ppp/5q2/2b1p3/2B1P3/5nPP/PPP1N1K1/R1BQ3R b - - 4 15",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f3h4",
+    "correct": true,
+    "best": "Nh4+",
+    "reply": "g3h4",
+    "fenAfter": "r4rk1/ppp2ppp/5q2/2b1p3/2B1P2P/7P/PPP1N1K1/R1BQ3R b - - 0 16",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h8",
+    "correct": false,
+    "best": "Nh4+",
+    "reply": null,
+    "fenAfter": "r4r1k/ppp2ppp/5q2/2b1p3/2B1P3/5nPP/PPP1N1K1/R1BQ3R w - - 5 16",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r3rk2/1Q6/2p2qp1/p5b1/P7/1BP5/2P5/1K5R b - - 0 33",
+   "pre": "a8d8",
+   "solutions": [
+    "h1h8"
+   ],
+   "san": [
+    "Rh8+",
+    "Qxh8",
+    "Qf7#"
+   ],
+   "line": [
+    "h1h8",
+    "f6h8",
+    "b7f7"
+   ],
+   "mateIn": 2,
+   "rating": 1162,
+   "threatFlag": null,
+   "shownFen": "3rrk2/1Q6/2p2qp1/p5b1/P7/1BP5/2P5/1K5R w - - 1 34",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "h1h8",
+    "correct": true,
+    "best": "Rh8+",
+    "reply": "f6h8",
+    "fenAfter": "3rrk1q/1Q6/2p3p1/p5b1/P7/1BP5/2P5/1K6 w - - 0 35",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "b1a2",
+    "correct": false,
+    "best": "Rh8+",
+    "reply": null,
+    "fenAfter": "3rrk2/1Q6/2p2qp1/p5b1/P7/1BP5/K1P5/7R b - - 2 34",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "2kr3r/p1p2ppp/2P1p3/1Pb2b2/8/4QN2/PPq1BPPP/R1B1K2R w KQ - 2 15",
+   "pre": "e3c3",
+   "solutions": [
+    "d8d1"
+   ],
+   "san": [
+    "Rd1+",
+    "Bxd1",
+    "Qxf2#"
+   ],
+   "line": [
+    "d8d1",
+    "e2d1",
+    "c2f2"
+   ],
+   "mateIn": 2,
+   "rating": 1691,
+   "threatFlag": null,
+   "shownFen": "2kr3r/p1p2ppp/2P1p3/1Pb2b2/8/2Q2N2/PPq1BPPP/R1B1K2R b KQ - 3 15",
+   "sideToMove": "b",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "d8d1",
+    "correct": true,
+    "best": "Rd1+",
+    "reply": "e2d1",
+    "fenAfter": "2k4r/p1p2ppp/2P1p3/1Pb2b2/8/2Q2N2/PPq2PPP/R1BBK2R b KQ - 0 16",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Rd1+",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r2qkb1r/pp1bpppp/2np4/3N3Q/2BNn3/8/PPP2PPP/R1B1K2R b KQkq - 1 8",
+   "pre": "c6d4",
+   "solutions": [
+    "d5f6"
+   ],
+   "san": [
+    "Nf6+",
+    "gxf6",
+    "Qxf7#"
+   ],
+   "line": [
+    "d5f6",
+    "g7f6",
+    "h5f7"
+   ],
+   "mateIn": 2,
+   "rating": 1863,
+   "threatFlag": null,
+   "shownFen": "r2qkb1r/pp1bpppp/3p4/3N3Q/2Bnn3/8/PPP2PPP/R1B1K2R w KQkq - 0 9",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "d5f6",
+    "correct": true,
+    "best": "Nf6+",
+    "reply": "g7f6",
+    "fenAfter": "r2qkb1r/pp1bpp1p/3p1p2/7Q/2Bnn3/8/PPP2PPP/R1B1K2R w KQkq - 0 10",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": "Nf6+",
+    "reply": null,
+    "fenAfter": "r2qkb1r/pp1bpppp/3p4/3N3Q/2Bnn3/8/PPP2PPP/1RB1K2R b Kkq - 1 9",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "sacrifice",
+   "fen": "r1b3kr/pp3R2/1qn5/3p2PB/2p5/P4Q2/1P1p2PP/R6K b - - 2 23",
+   "pre": "b6d8",
+   "solutions": [
+    "f7g7"
+   ],
+   "san": [
+    "Rg7+",
+    "Kxg7",
+    "Qf7#"
+   ],
+   "line": [
+    "f7g7",
+    "g8g7",
+    "f3f7"
+   ],
+   "mateIn": 2,
+   "rating": 1605,
+   "threatFlag": null,
+   "shownFen": "r1bq2kr/pp3R2/2n5/3p2PB/2p5/P4Q2/1P1p2PP/R6K w - - 3 24",
+   "sideToMove": "w",
+   "threatAnswer": false,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": {
+    "uci": "f7g7",
+    "correct": true,
+    "best": "Rg7+",
+    "reply": "g8g7",
+    "fenAfter": "r1bq3r/pp4k1/2n5/3p2PB/2p5/P4Q2/1P1p2PP/R6K w - - 0 25",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Rg7+",
+    "reply": null,
+    "fenAfter": "r1bq2kr/pp3R2/2n5/3p2PB/2p5/P4Q2/RP1p2PP/7K b - - 4 24",
+    "mated": false,
+    "refutation": null
+   }
+  }
+ ],
+ "defend": [
+  {
+   "kind": "defend",
+   "fen": "r1bqk1nr/1ppppp1p/p1n3pb/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 7 7",
+   "pre": null,
+   "solutions": [
+    "g8f6",
+    "h6f8",
+    "h6f4",
+    "h6d2",
+    "c6e5",
+    "f7f6",
+    "e7e6",
+    "d7d6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Nf6",
+    "Bf8",
+    "Bf4",
+    "Bxd2+",
+    "Ne5",
+    "f6",
+    "e6",
+    "d6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqk1nr/1ppppp1p/p1n3pb/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 7 7",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "d6",
+   "verdictRight": {
+    "uci": "g8f6",
+    "correct": true,
+    "best": "d6",
+    "reply": null,
+    "fenAfter": "r1bqk2r/1ppppp1p/p1n2npb/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 8 8",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Nf6",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "1rbqk1nr/p1ppppb1/np4pp/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQk - 3 7",
+   "pre": null,
+   "solutions": [
+    "g8f6",
+    "g7f8",
+    "g7f6",
+    "f7f6",
+    "e7e6",
+    "d7d6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Nf6",
+    "Bf8",
+    "Bf6",
+    "f6",
+    "e6",
+    "d6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "1rbqk1nr/p1ppppb1/np4pp/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQk - 3 7",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "d6",
+   "verdictRight": {
+    "uci": "g8f6",
+    "correct": true,
+    "best": "d6",
+    "reply": null,
+    "fenAfter": "1rbqk2r/p1ppppb1/np3npp/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQk - 4 8",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "b8b7",
+    "correct": false,
+    "best": "d6",
+    "reply": null,
+    "fenAfter": "2bqk1nr/prppppb1/np4pp/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQk - 4 8",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbnr/p1pp1ppp/1p6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/p1pp1ppp/1p6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/p1ppnppp/1p6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Bxf7#"
+   },
+   "verdictWrong": {
+    "uci": "b8c6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/p1pp1ppp/1pn5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbr1/1pp2pp1/p2p1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQq - 1 7",
+   "pre": null,
+   "solutions": [
+    "f8e7",
+    "e8d7",
+    "d8e7",
+    "d8d7",
+    "c8e6",
+    "f6h5",
+    "f6d5",
+    "g7g6",
+    "d6d5"
+   ],
+   "san": [
+    "Be7",
+    "Kd7",
+    "Qe7",
+    "Qd7",
+    "Be6",
+    "Nxh5",
+    "Nd5",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbr1/1pp2pp1/p2p1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQq - 1 7",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "f8e7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqk1r1/1pp1bpp1/p2p1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQq - 2 8",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8h8",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/1pp2pp1/p2p1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQq - 2 8",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 4",
+   "pre": null,
+   "solutions": [
+    "e8e7",
+    "d8e7",
+    "f6h5",
+    "f6d5",
+    "c6e7",
+    "g7g6",
+    "d7d5"
+   ],
+   "san": [
+    "Ke7",
+    "Qe7",
+    "Nxh5",
+    "Nd5",
+    "Ne7",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 4",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "e8e7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bq1b1r/ppppkppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQ - 2 5",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Ke7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkb1r/1ppp1ppp/p4n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 4",
+   "pre": null,
+   "solutions": [
+    "e8e7",
+    "d8e7",
+    "f6h5",
+    "f6d5",
+    "g7g6",
+    "d7d5"
+   ],
+   "san": [
+    "Ke7",
+    "Qe7",
+    "Nxh5",
+    "Nd5",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkb1r/1ppp1ppp/p4n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 4",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "e8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbq1b1r/1pppkppp/p4n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQ - 2 5",
+    "mated": false,
+    "refutation": "Qxe5#"
+   },
+   "verdictWrong": {
+    "uci": "b8c6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/1ppp1ppp/p1n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 5",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 3 3",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "c6e7",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Nge7",
+    "Nh6",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "Nce7",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 3 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/ppppnppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+    "mated": false,
+    "refutation": "Bxf7#"
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Nge7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkb1r/ppp2ppp/n2p1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "pre": null,
+   "solutions": [
+    "f8e7",
+    "e8d7",
+    "d8e7",
+    "d8d7",
+    "c8e6",
+    "f6h5",
+    "f6d5",
+    "g7g6",
+    "d6d5"
+   ],
+   "san": [
+    "Be7",
+    "Kd7",
+    "Qe7",
+    "Qd7",
+    "Be6",
+    "Nxh5",
+    "Nd5",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/ppp2ppp/n2p1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "f8e7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqk2r/ppp1bppp/n2p1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 6",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Be7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkb1r/ppp2ppp/2np1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "pre": null,
+   "solutions": [
+    "f8e7",
+    "e8d7",
+    "d8e7",
+    "d8d7",
+    "c8e6",
+    "f6h5",
+    "f6d5",
+    "c6e7",
+    "g7g6",
+    "d6d5"
+   ],
+   "san": [
+    "Be7",
+    "Kd7",
+    "Qe7",
+    "Qd7",
+    "Be6",
+    "Nxh5",
+    "Nd5",
+    "Ne7",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/ppp2ppp/2np1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "f8e7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqk2r/ppp1bppp/2np1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 6",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Be7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbnr/pp1p1ppp/2p5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "e8e7",
+    "d8e7",
+    "d8c7",
+    "d8f6",
+    "d8b6",
+    "d8g5",
+    "d8a5",
+    "d8h4",
+    "g7g6",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Ke7",
+    "Qe7",
+    "Qc7",
+    "Qf6",
+    "Qb6",
+    "Qg5",
+    "Qa5",
+    "Qh4",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/pp1p1ppp/2p5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/pp1pnppp/2p5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   },
+   "verdictWrong": {
+    "uci": "g8f6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/pp1p1ppp/2p2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqk1nr/pppp1ppp/8/2b1p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 3 3",
+   "pre": null,
+   "solutions": [
+    "g8h6",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "c5f2",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Nh6",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "Bxf2+",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqk1nr/pppp1ppp/8/2b1p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 3 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8h6",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqk2r/pppp1ppp/7n/2b1p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqk2r/ppppnppp/8/2b1p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqk1nr/pppp1ppp/8/2b1p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 3 3",
+   "pre": null,
+   "solutions": [
+    "g8h6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "c5f2",
+    "g7g6",
+    "d7d5"
+   ],
+   "san": [
+    "Nh6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "Bxf2+",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqk1nr/pppp1ppp/8/2b1p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 3 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8h6",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqk2r/pppp1ppp/7n/2b1p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8f6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqk2r/pppp1ppp/5n2/2b1p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqk1nr/p1ppppbp/1pn3p1/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 5 5",
+   "pre": null,
+   "solutions": [
+    "g8h6",
+    "g8f6",
+    "g7f8",
+    "g7f6",
+    "c6e5",
+    "f7f6",
+    "e7e6",
+    "d7d6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Nh6",
+    "Nf6",
+    "Bf8",
+    "Bf6",
+    "Ne5",
+    "f6",
+    "e6",
+    "d6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqk1nr/p1ppppbp/1pn3p1/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 5 5",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Nh6",
+   "verdictRight": {
+    "uci": "g8h6",
+    "correct": true,
+    "best": "Nh6",
+    "reply": null,
+    "fenAfter": "r1bqk2r/p1ppppbp/1pn3pn/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 6 6",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Nh6",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkbnr/pppp1ppp/n7/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pppp1ppp/n7/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/ppppnppp/n7/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Bxf7#"
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Ne7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r2qkbnr/pppb1p2/n2p2pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 7",
+   "pre": null,
+   "solutions": [
+    "h8h7",
+    "g8e7",
+    "g8f6",
+    "d8c8",
+    "d8b8",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "d7e6",
+    "d7f5",
+    "f7f6",
+    "d6d5",
+    "f7f5"
+   ],
+   "san": [
+    "Rh7",
+    "Ne7",
+    "Nf6",
+    "Qc8",
+    "Qb8",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "Be6",
+    "Bf5",
+    "f6",
+    "d5",
+    "f5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r2qkbnr/pppb1p2/n2p2pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 7",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "h8h7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r2qkbn1/pppb1p1r/n2p2pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQq - 2 8",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Rh7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkbnr/pp1p1p1p/n1p3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8c7",
+    "d8f6",
+    "d8b6",
+    "d8g5",
+    "d8a5",
+    "d8h4",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qc7",
+    "Qf6",
+    "Qb6",
+    "Qg5",
+    "Qa5",
+    "Qh4",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pp1p1p1p/n1p3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pp1pnp1p/n1p3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 6",
+    "mated": false,
+    "refutation": "Bxf7#"
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Ne7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkb1r/p1pp1ppp/1pn2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "pre": null,
+   "solutions": [
+    "e8e7",
+    "d8e7",
+    "f6h5",
+    "f6d5",
+    "c6e7",
+    "g7g6",
+    "d7d5"
+   ],
+   "san": [
+    "Ke7",
+    "Qe7",
+    "Nxh5",
+    "Nd5",
+    "Ne7",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/p1pp1ppp/1pn2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "e8e7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bq1b1r/p1ppkppp/1pn2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQ - 2 6",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Ke7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqk1nr/ppppppb1/6pp/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 3 4",
+   "pre": null,
+   "solutions": [
+    "g8f6",
+    "g7f8",
+    "g7f6",
+    "f7f6",
+    "e7e6",
+    "d7d6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Nf6",
+    "Bf8",
+    "Bf6",
+    "f6",
+    "e6",
+    "d6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqk1nr/ppppppb1/6pp/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 3 4",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "d6",
+   "verdictRight": {
+    "uci": "g8f6",
+    "correct": true,
+    "best": "d6",
+    "reply": null,
+    "fenAfter": "rnbqk2r/ppppppb1/5npp/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 5",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "b8c6",
+    "correct": false,
+    "best": "d6",
+    "reply": null,
+    "fenAfter": "r1bqk1nr/ppppppb1/2n3pp/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 4 5",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkbnr/1ppp1p1p/p1n3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "c6e7",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Nge7",
+    "Nh6",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "Nce7",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/1ppp1p1p/p1n3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/1pppnp1p/p1n3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 6",
+    "mated": false,
+    "refutation": "Bxf7#"
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Nge7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbnr/ppp2p1p/3p2p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 4",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "g8f6",
+    "f8e7",
+    "e8d7",
+    "d8e7",
+    "d8d7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "c8e6",
+    "c8f5",
+    "f7f6",
+    "d6d5",
+    "f7f5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Nf6",
+    "Be7",
+    "Kd7",
+    "Qe7",
+    "Qd7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "Be6",
+    "Bf5",
+    "f6",
+    "d5",
+    "f5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/ppp2p1p/3p2p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 4",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/ppp1np1p/3p2p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 5",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "b8d7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppn1p1p/3p2p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 5",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbnr/p2p1p1p/1pp3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8c7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qc7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/p2p1p1p/1pp3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 5",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/p2pnp1p/1pp3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 6",
+    "mated": false,
+    "refutation": "Bxf7#"
+   },
+   "verdictWrong": {
+    "uci": "b8a6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/p2p1p1p/npp3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 6",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbnr/pp3p2/2pp2pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 6",
+   "pre": null,
+   "solutions": [
+    "h8h7",
+    "g8e7",
+    "g8f6",
+    "f8e7",
+    "e8d7",
+    "d8e7",
+    "d8d7",
+    "d8c7",
+    "d8f6",
+    "d8b6",
+    "d8g5",
+    "d8a5",
+    "d8h4",
+    "c8e6",
+    "c8f5",
+    "f7f6",
+    "d6d5",
+    "f7f5"
+   ],
+   "san": [
+    "Rh7",
+    "Ne7",
+    "Nf6",
+    "Be7",
+    "Kd7",
+    "Qe7",
+    "Qd7",
+    "Qc7",
+    "Qf6",
+    "Qb6",
+    "Qg5",
+    "Qa5",
+    "Qh4",
+    "Be6",
+    "Bf5",
+    "f6",
+    "d5",
+    "f5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/pp3p2/2pp2pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 6",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "h8h7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkbn1/pp3p1r/2pp2pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQq - 2 7",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "b8d7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pp1n1p2/2pp2pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 7",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rn1qkbnr/1ppb1p2/p2p2pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 7",
+   "pre": null,
+   "solutions": [
+    "h8h7",
+    "g8e7",
+    "g8f6",
+    "d8c8",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "d7e6",
+    "d7f5",
+    "f7f6",
+    "d6d5",
+    "f7f5"
+   ],
+   "san": [
+    "Rh7",
+    "Ne7",
+    "Nf6",
+    "Qc8",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "Be6",
+    "Bf5",
+    "f6",
+    "d5",
+    "f5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rn1qkbnr/1ppb1p2/p2p2pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 7",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "h8h7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rn1qkbn1/1ppb1p1r/p2p2pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQq - 2 8",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "b8c6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r2qkbnr/1ppb1p2/p1np2pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 8",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqk2r/ppppbppp/5n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 5 4",
+   "pre": null,
+   "solutions": [
+    "h8f8",
+    "f6h5",
+    "f6d5",
+    "e8g8",
+    "g7g6",
+    "d7d6",
+    "d7d5"
+   ],
+   "san": [
+    "Rf8",
+    "Nxh5",
+    "Nd5",
+    "O-O",
+    "g6",
+    "d6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqk2r/ppppbppp/5n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 5 4",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Rf8",
+   "verdictRight": {
+    "uci": "h8f8",
+    "correct": true,
+    "best": "Rf8",
+    "reply": null,
+    "fenAfter": "rnbqkr2/ppppbppp/5n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQq - 6 5",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "b8c6",
+    "correct": false,
+    "best": "Rf8",
+    "reply": null,
+    "fenAfter": "r1bqk2r/ppppbppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 6 5",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbnr/ppp2ppp/3p4/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "f8e7",
+    "e8d7",
+    "d8e7",
+    "d8d7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "c8e6",
+    "g7g6",
+    "d6d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Be7",
+    "Kd7",
+    "Qe7",
+    "Qd7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "Be6",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/ppp2ppp/3p4/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/ppp1nppp/3p4/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "g8f6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/ppp2ppp/3p1n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbnr/pppp1pp1/7p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/pppp1pp1/7p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/ppppnpp1/7p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Bxf7#"
+   },
+   "verdictWrong": {
+    "uci": "b8c6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1pp1/2n4p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkb1r/pppp1ppp/n4n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 3 4",
+   "pre": null,
+   "solutions": [
+    "e8e7",
+    "d8e7",
+    "f6h5",
+    "f6d5",
+    "g7g6",
+    "d7d5"
+   ],
+   "san": [
+    "Ke7",
+    "Qe7",
+    "Nxh5",
+    "Nd5",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/pppp1ppp/n4n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 3 4",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "e8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bq1b1r/ppppkppp/n4n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQ - 4 5",
+    "mated": false,
+    "refutation": "Qxe5#"
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Ke7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkb1r/pppp1ppp/5n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 3 3",
+   "pre": null,
+   "solutions": [
+    "e8e7",
+    "d8e7",
+    "f6h5",
+    "f6d5",
+    "g7g6",
+    "d7d5"
+   ],
+   "san": [
+    "Ke7",
+    "Qe7",
+    "Nxh5",
+    "Nd5",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkb1r/pppp1ppp/5n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 3 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "e8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbq1b1r/ppppkppp/5n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQ - 4 4",
+    "mated": false,
+    "refutation": "Qxe5#"
+   },
+   "verdictWrong": {
+    "uci": "b8c6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkb1r/p1p2pp1/1pnp1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 7",
+   "pre": null,
+   "solutions": [
+    "f8e7",
+    "e8d7",
+    "d8e7",
+    "d8d7",
+    "c8e6",
+    "f6h5",
+    "f6d5",
+    "c6e7",
+    "g7g6",
+    "d6d5"
+   ],
+   "san": [
+    "Be7",
+    "Kd7",
+    "Qe7",
+    "Qd7",
+    "Be6",
+    "Nxh5",
+    "Nd5",
+    "Ne7",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/p1p2pp1/1pnp1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 7",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "f8e7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqk2r/p1p1bpp1/1pnp1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 8",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Be7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkb1r/ppp2pp1/2np1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 6",
+   "pre": null,
+   "solutions": [
+    "f8e7",
+    "e8d7",
+    "d8e7",
+    "d8d7",
+    "c8e6",
+    "f6h5",
+    "f6d5",
+    "c6e7",
+    "g7g6",
+    "d6d5"
+   ],
+   "san": [
+    "Be7",
+    "Kd7",
+    "Qe7",
+    "Qd7",
+    "Be6",
+    "Nxh5",
+    "Nd5",
+    "Ne7",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkb1r/ppp2pp1/2np1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 6",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "f8e7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqk2r/ppp1bpp1/2np1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 7",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Be7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbnr/1ppp1ppp/p7/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/1ppp1ppp/p7/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/1pppnppp/p7/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Bxf7#"
+   },
+   "verdictWrong": {
+    "uci": "b8c6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/1ppp1ppp/p1n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbnr/pppp1p1p/6p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/pppp1p1p/6p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/ppppnp1p/6p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Bxf7#"
+   },
+   "verdictWrong": {
+    "uci": "b8c6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/pppp1p1p/2n3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkb1r/2p2pp1/pp1p1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 7",
+   "pre": null,
+   "solutions": [
+    "f8e7",
+    "e8d7",
+    "d8e7",
+    "d8d7",
+    "c8e6",
+    "f6h5",
+    "f6d5",
+    "g7g6",
+    "d6d5"
+   ],
+   "san": [
+    "Be7",
+    "Kd7",
+    "Qe7",
+    "Qd7",
+    "Be6",
+    "Nxh5",
+    "Nd5",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkb1r/2p2pp1/pp1p1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 7",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "f8e7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqk2r/2p1bpp1/pp1p1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 8",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "b8d7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/2pn1pp1/pp1p1n1p/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 8",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbnr/p1pp1ppp/1p6/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "g7g6",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/p1pp1ppp/1p6/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/p1ppnppp/1p6/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   },
+   "verdictWrong": {
+    "uci": "g8f6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/p1pp1ppp/1p3n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "rnbqkbnr/p1pp1p1p/1p4p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 4",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "rnbqkbnr/p1pp1p1p/1p4p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 4",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "rnbqkb1r/p1ppnp1p/1p4p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 5",
+    "mated": false,
+    "refutation": "Bxf7#"
+   },
+   "verdictWrong": {
+    "uci": "b8c6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkbnr/p1pp1p1p/1pn3p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 5",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkbnr/pppp1p1p/n5p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 4",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "g8f6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Nf6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pppp1p1p/n5p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 4",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/ppppnp1p/n5p1/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 5",
+    "mated": false,
+    "refutation": "Bxf7#"
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Ne7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r2qkbnr/p1pp1p2/bpn3pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 7",
+   "pre": null,
+   "solutions": [
+    "h8h7",
+    "g8e7",
+    "g8f6",
+    "e8e7",
+    "d8c8",
+    "d8b8",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "c6e7",
+    "a6c4",
+    "f7f6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Rh7",
+    "Nge7",
+    "Nf6",
+    "Ke7",
+    "Qc8",
+    "Qb8",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "Nce7",
+    "Bxc4",
+    "f6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r2qkbnr/p1pp1p2/bpn3pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 1 7",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "h8h7",
+    "correct": true,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r2qkbn1/p1pp1p1r/bpn3pp/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQq - 2 8",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Rh7",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqk1nr/ppppppbp/n5p1/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 5 4",
+   "pre": null,
+   "solutions": [
+    "g8h6",
+    "g8f6",
+    "g7f8",
+    "g7f6",
+    "f7f6",
+    "e7e6",
+    "d7d6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Nh6",
+    "Nf6",
+    "Bf8",
+    "Bf6",
+    "f6",
+    "e6",
+    "d6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqk1nr/ppppppbp/n5p1/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 5 4",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Nh6",
+   "verdictRight": {
+    "uci": "g8h6",
+    "correct": true,
+    "best": "Nh6",
+    "reply": null,
+    "fenAfter": "r1bqk2r/ppppppbp/n5pn/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 6 5",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Nh6",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqkbnr/pppp1ppp/n7/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "pre": null,
+   "solutions": [
+    "g8e7",
+    "g8h6",
+    "e8e7",
+    "d8e7",
+    "d8f6",
+    "d8g5",
+    "d8h4",
+    "g7g6",
+    "d7d5"
+   ],
+   "san": [
+    "Ne7",
+    "Nh6",
+    "Ke7",
+    "Qe7",
+    "Qf6",
+    "Qg5",
+    "Qh4",
+    "g6",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqkbnr/pppp1ppp/n7/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "Qe7",
+   "verdictRight": {
+    "uci": "g8e7",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/ppppnppp/n7/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   },
+   "verdictWrong": {
+    "uci": "g8f6",
+    "correct": false,
+    "best": "Qe7",
+    "reply": null,
+    "fenAfter": "r1bqkb1r/pppp1ppp/n4n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+    "mated": false,
+    "refutation": "Qxf7#"
+   }
+  },
+  {
+   "kind": "defend",
+   "fen": "r1bqk1nr/pppppp1p/2n3pb/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 5 4",
+   "pre": null,
+   "solutions": [
+    "g8f6",
+    "h6f8",
+    "h6f4",
+    "h6d2",
+    "c6e5",
+    "f7f6",
+    "e7e6",
+    "d7d6",
+    "f7f5",
+    "d7d5"
+   ],
+   "san": [
+    "Nf6",
+    "Bf8",
+    "Bf4",
+    "Bxd2+",
+    "Ne5",
+    "f6",
+    "e6",
+    "d6",
+    "f5",
+    "d5"
+   ],
+   "line": [],
+   "mateIn": 1,
+   "rating": 0,
+   "threatFlag": null,
+   "shownFen": "r1bqk1nr/pppppp1p/2n3pb/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 5 4",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": "d6",
+   "verdictRight": {
+    "uci": "g8f6",
+    "correct": true,
+    "best": "d6",
+    "reply": null,
+    "fenAfter": "r1bqk2r/pppppp1p/2n2npb/8/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 6 5",
+    "mated": false,
+    "refutation": null
+   },
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": "Nf6",
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  }
+ ],
+ "threat": [
+  {
+   "kind": "threat",
+   "fen": "r4rk1/1pp2ppp/p2p4/2bPp3/2P1Pn1q/P1N2B2/1P3P2/R1BQK1R1 w Q - 1 15",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1061,
+   "threatFlag": true,
+   "shownFen": "r4rk1/1pp2ppp/p2p4/2bPp3/2P1Pn1q/P1N2B2/1P3P2/R1BQK1R1 w Q - 1 15",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r4rk1/1pp2ppp/p2p4/2bPp3/2P1Pn1q/P1N2B2/RP3P2/2BQK1R1 b - - 2 15",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "rnb1k1nr/1ppp1ppp/8/p1bPp3/4P2q/2PB4/PP3PPP/RNBQK1NR w KQkq - 3 6",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 710,
+   "threatFlag": true,
+   "shownFen": "rnb1k1nr/1ppp1ppp/8/p1bPp3/4P2q/2PB4/PP3PPP/RNBQK1NR w KQkq - 3 6",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "rnb1k1nr/1ppp1ppp/8/p1bPp3/4P2q/P1PB4/1P3PPP/RNBQK1NR b KQkq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1b2kn1/pppp2p1/2n2p2/2b1p2Q/2B1q3/4N2N/PPPPK2P/R1B5 b - - 1 13",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1113,
+   "threatFlag": true,
+   "shownFen": "r1b2kn1/pppp2p1/2n2p2/2b1p2Q/2B1q3/4N2N/PPPPK2P/R1B5 b - - 1 13",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "g8h6",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r1b2k2/pppp2p1/2n2p1n/2b1p2Q/2B1q3/4N2N/PPPPK2P/R1B5 w - - 2 14",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1b1k1nr/pppp1Npp/4nq2/2b5/2B1P3/8/PPP2PPP/RNBQK2R w KQkq - 1 7",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1044,
+   "threatFlag": true,
+   "shownFen": "r1b1k1nr/pppp1Npp/4nq2/2b5/2B1P3/8/PPP2PPP/RNBQK2R w KQkq - 1 7",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r1b1k1nr/pppp1Npp/4nq2/2b5/2B1P3/P7/1PP2PPP/RNBQK2R b KQkq - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1bq1k1r/pppp2p1/2n2n1p/2b3BB/4P3/1Qp2N2/P4PPP/RN3RK1 b - - 1 11",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 720,
+   "threatFlag": true,
+   "shownFen": "r1bq1k1r/pppp2p1/2n2n1p/2b3BB/4P3/1Qp2N2/P4PPP/RN3RK1 b - - 1 11",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1bqk1r1/ppp2p2/1bnp1n1p/4p1pQ/2B1P2N/2PPB2P/PP3PP1/RN3RK1 b q - 1 10",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1034,
+   "threatFlag": true,
+   "shownFen": "r1bqk1r1/ppp2p2/1bnp1n1p/4p1pQ/2B1P2N/2PPB2P/PP3PP1/RN3RK1 b q - 1 10",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "g8h8",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r1bqk2r/ppp2p2/1bnp1n1p/4p1pQ/2B1P2N/2PPB2P/PP3PP1/RN3RK1 w q - 2 11",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "rn1q1k1r/pp2b3/2ppQp1p/4p2B/3P4/8/PPP1PP2/RN2K2R b KQ - 5 15",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 826,
+   "threatFlag": true,
+   "shownFen": "rn1q1k1r/pp2b3/2ppQp1p/4p2B/3P4/8/PPP1PP2/RN2K2R b KQ - 5 15",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "b8d7",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r2q1k1r/pp1nb3/2ppQp1p/4p2B/3P4/8/PPP1PP2/RN2K2R w KQ - 6 16",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "N1bk3r/pp1p1ppp/2n5/2b1P3/4P3/1RP2N2/q4PPP/3QKB1R w K - 1 15",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 887,
+   "threatFlag": true,
+   "shownFen": "N1bk3r/pp1p1ppp/2n5/2b1P3/4P3/1RP2N2/q4PPP/3QKB1R w K - 1 15",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "h1g1",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "N1bk3r/pp1p1ppp/2n5/2b1P3/4P3/1RP2N2/q4PPP/3QKBR1 b - - 2 15",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1bq1k1r/p5b1/2pp1nBp/4p3/1P2Ppp1/1QP2NP1/P4P1P/R1B1RNK1 b - - 0 18",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 671,
+   "threatFlag": true,
+   "shownFen": "r1bq1k1r/p5b1/2pp1nBp/4p3/1P2Ppp1/1QP2NP1/P4P1P/R1B1RNK1 b - - 0 18",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "2rqk2r/Q4ppp/2pb4/2P1pb2/8/1B1n1P2/PP4PP/R1B2KNR b k - 1 16",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 933,
+   "threatFlag": true,
+   "shownFen": "2rqk2r/Q4ppp/2pb4/2P1pb2/8/1B1n1P2/PP4PP/R1B2KNR b k - 1 16",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1bqk2r/ppppnppp/8/4b2Q/2BNP3/8/PPP2PPP/RN2K2R b KQkq - 3 8",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 699,
+   "threatFlag": true,
+   "shownFen": "r1bqk2r/ppppnppp/8/4b2Q/2BNP3/8/PPP2PPP/RN2K2R b KQkq - 3 8",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1bq1k1r/ppp5/2n2bQ1/3B1P2/3Pp3/8/PPP2PPP/RN2K2R b KQ - 0 12",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 799,
+   "threatFlag": true,
+   "shownFen": "r1bq1k1r/ppp5/2n2bQ1/3B1P2/3Pp3/8/PPP2PPP/RN2K2R b KQ - 0 12",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "4r2Q/pp3bp1/3k1p2/2bp4/6P1/P1NB1K1P/1PP4q/4R3 w - - 7 28",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1094,
+   "threatFlag": true,
+   "shownFen": "4r2Q/pp3bp1/3k1p2/2bp4/6P1/P1NB1K1P/1PP4q/4R3 w - - 7 28",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "rnb1k1nr/ppp2ppp/3p4/2b1p3/2P3Pq/7P/PP1PPPB1/RNBQK1NR w KQkq - 1 5",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 917,
+   "threatFlag": true,
+   "shownFen": "rnb1k1nr/ppp2ppp/3p4/2b1p3/2P3Pq/7P/PP1PPPB1/RNBQK1NR w KQkq - 1 5",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "rnb1k1nr/ppp2ppp/3p4/2b1p3/2P3Pq/P6P/1P1PPPB1/RNBQK1NR b KQkq - 0 5",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "rnb1k2r/pppp1ppp/8/1Bb1p3/4P2q/8/PPPP2PP/RNBQ1KNR w kq - 3 6",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 751,
+   "threatFlag": true,
+   "shownFen": "rnb1k2r/pppp1ppp/8/1Bb1p3/4P2q/8/PPPP2PP/RNBQ1KNR w kq - 3 6",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "rnb1k2r/pppp1ppp/8/1Bb1p3/4P2q/P7/1PPP2PP/RNBQ1KNR b kq - 0 6",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "rnbqk2r/ppp2ppp/3p4/2b1p3/2B1P3/4NQ1P/PPPP1nP1/R1B1K1NR b KQkq - 1 7",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 844,
+   "threatFlag": true,
+   "shownFen": "rnbqk2r/ppp2ppp/3p4/2b1p3/2B1P3/4NQ1P/PPPP1nP1/R1B1K1NR b KQkq - 1 7",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "b8d7",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r1bqk2r/pppn1ppp/3p4/2b1p3/2B1P3/4NQ1P/PPPP1nP1/R1B1K1NR w KQkq - 2 8",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1bqk2r/ppp5/8/4p3/2BnN1N1/3P3P/PPP3P1/R4Q1K b kq - 0 19",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1425,
+   "threatFlag": true,
+   "shownFen": "r1bqk2r/ppp5/8/4p3/2BnN1N1/3P3P/PPP3P1/R4Q1K b kq - 0 19",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r2qk2r/ppp2p2/3p3p/4p3/1bB1P1n1/2NP1QBb/PPP2P2/R3R1K1 b kq - 1 14",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 505,
+   "threatFlag": true,
+   "shownFen": "r2qk2r/ppp2p2/3p3p/4p3/1bB1P1n1/2NP1QBb/PPP2P2/R3R1K1 b kq - 1 14",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r2qk2r/ppp2pQp/3p4/2b5/2BnPB2/2NP1b2/PPP5/R3K2R b KQkq - 0 13",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1393,
+   "threatFlag": true,
+   "shownFen": "r2qk2r/ppp2pQp/3p4/2b5/2BnPB2/2NP1b2/PPP5/R3K2R b KQkq - 0 13",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "6k1/6p1/8/2bPpP2/2P1P1Q1/5K2/1p1q4/1R6 w - - 1 47",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1531,
+   "threatFlag": true,
+   "shownFen": "6k1/6p1/8/2bPpP2/2P1P1Q1/5K2/1p1q4/1R6 w - - 1 47",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "b1b2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "6k1/6p1/8/2bPpP2/2P1P1Q1/5K2/1R1q4/8 b - - 0 47",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r2q1k1r/pp3pbp/2n3pB/3B4/3P4/5Q1P/PPP2PP1/R3R1K1 b - - 0 15",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 768,
+   "threatFlag": true,
+   "shownFen": "r2q1k1r/pp3pbp/2n3pB/3B4/3P4/5Q1P/PPP2PP1/R3R1K1 b - - 0 15",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r2q3r/pp2k1p1/2pbp2p/5R1Q/2BP4/2P5/P1P3PP/R5K1 b - - 2 15",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 938,
+   "threatFlag": true,
+   "shownFen": "r2q3r/pp2k1p1/2pbp2p/5R1Q/2BP4/2P5/P1P3PP/R5K1 b - - 2 15",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "rnb1k1nr/pp3pp1/2pp3p/2b1p1BQ/2B1P3/2NP1N2/PPP2qPP/R2K3R b kq - 1 8",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 529,
+   "threatFlag": true,
+   "shownFen": "rnb1k1nr/pp3pp1/2pp3p/2b1p1BQ/2B1P3/2NP1N2/PPP2qPP/R2K3R b kq - 1 8",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "g8f6",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "rnb1k2r/pp3pp1/2pp1n1p/2b1p1BQ/2B1P3/2NP1N2/PPP2qPP/R2K3R w kq - 2 9",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r2qkb1r/1Q3pp1/p2p1n1p/4pP2/2B5/2N1B3/PP2KPPP/n6R b kq - 0 13",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 944,
+   "threatFlag": true,
+   "shownFen": "r2qkb1r/1Q3pp1/p2p1n1p/4pP2/2B5/2N1B3/PP2KPPP/n6R b kq - 0 13",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1b3",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r2qkb1r/1Q3pp1/p2p1n1p/4pP2/2B5/1nN1B3/PP2KPPP/7R w kq - 1 14",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r3k1nr/ppp2ppp/3pn3/2b1p3/2B1PP1q/2NP1P1P/PPP5/R1BQ1K1R w kq - 3 10",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 642,
+   "threatFlag": true,
+   "shownFen": "r3k1nr/ppp2ppp/3pn3/2b1p3/2B1PP1q/2NP1P1P/PPP5/R1BQ1K1R w kq - 3 10",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r3k1nr/ppp2ppp/3pn3/2b1p3/2B1PP1q/2NP1P1P/PPP5/1RBQ1K1R b kq - 4 10",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "1q1b1k2/6p1/pr1p3p/2pBpp1Q/2P5/P2PP1P1/5PKP/R7 b - - 1 28",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 808,
+   "threatFlag": true,
+   "shownFen": "1q1b1k2/6p1/pr1p3p/2pBpp1Q/2P5/P2PP1P1/5PKP/R7 b - - 1 28",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "b8c8",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "2qb1k2/6p1/pr1p3p/2pBpp1Q/2P5/P2PP1P1/5PKP/R7 w - - 2 29",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1bq1k1r/ppp3p1/2n4p/3Bp2Q/4PN1b/6P1/PPP2P1P/R3K2R b KQ - 0 14",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1215,
+   "threatFlag": true,
+   "shownFen": "r1bq1k1r/ppp3p1/2n4p/3Bp2Q/4PN1b/6P1/PPP2P1P/R3K2R b KQ - 0 14",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r2qkbnr/pppb1ppp/8/4p2Q/2B1Pp2/3P4/PPP3PP/RNB2RK1 b kq - 3 8",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 670,
+   "threatFlag": true,
+   "shownFen": "r2qkbnr/pppb1ppp/8/4p2Q/2B1Pp2/3P4/PPP3PP/RNB2RK1 b kq - 3 8",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "g8h6",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r2qkb1r/pppb1ppp/7n/4p2Q/2B1Pp2/3P4/PPP3PP/RNB2RK1 w kq - 4 9",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r2qkb1r/pp4p1/2npB1p1/2p3P1/4P3/3P1QnP/PPP5/RNB1KR2 b Qkq - 4 14",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 993,
+   "threatFlag": true,
+   "shownFen": "r2qkb1r/pp4p1/2npB1p1/2p3P1/4P3/3P1QnP/PPP5/RNB1KR2 b Qkq - 4 14",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1b1k2N/pppp2pp/2n2n2/2q1p3/2B1P2b/2P5/PP1P2PP/RNBQ1K1R w q - 1 9",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 744,
+   "threatFlag": true,
+   "shownFen": "r1b1k2N/pppp2pp/2n2n2/2q1p3/2B1P2b/2P5/PP1P2PP/RNBQ1K1R w q - 1 9",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r1b1k2N/pppp2pp/2n2n2/2q1p3/2B1P2b/P1P5/1P1P2PP/RNBQ1K1R b q - 0 9",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1b1k2r/5ppp/1Pp2q2/p1bp4/4p3/P7/2PNPPPP/R2QKB1R w KQkq - 0 13",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 904,
+   "threatFlag": true,
+   "shownFen": "r1b1k2r/5ppp/1Pp2q2/p1bp4/4p3/P7/2PNPPPP/R2QKB1R w KQkq - 0 13",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r1b1k2r/5ppp/1Pp2q2/p1bp4/4p3/P7/R1PNPPPP/3QKB1R b Kkq - 1 13",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r2qk1nr/ppp2pb1/3p3p/6pQ/2BnPN2/8/PPP3PP/R1B2RK1 b kq - 0 11",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 975,
+   "threatFlag": true,
+   "shownFen": "r2qk1nr/ppp2pb1/3p3p/6pQ/2BnPN2/8/PPP3PP/R1B2RK1 b kq - 0 11",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "g8f6",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r2qk2r/ppp2pb1/3p1n1p/6pQ/2BnPN2/8/PPP3PP/R1B2RK1 w kq - 1 12",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1b3nr/ppp1kBpp/2np1q2/2b1p1N1/4P3/3P4/PPP2PPP/RNBQK2R w KQ - 1 7",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 809,
+   "threatFlag": true,
+   "shownFen": "r1b3nr/ppp1kBpp/2np1q2/2b1p1N1/4P3/3P4/PPP2PPP/RNBQK2R w KQ - 1 7",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r1b3nr/ppp1kBpp/2np1q2/2b1p1N1/4P3/P2P4/1PP2PPP/RNBQK2R b KQ - 0 7",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "rnb2knr/pppp1B1p/8/2b1N3/4Pppq/8/PPPP2PP/RNBQ1K1R w - - 1 8",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 632,
+   "threatFlag": true,
+   "shownFen": "rnb2knr/pppp1B1p/8/2b1N3/4Pppq/8/PPPP2PP/RNBQ1K1R w - - 1 8",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "rnb2knr/pppp1B1p/8/2b1N3/4Pppq/P7/1PPP2PP/RNBQ1K1R b - - 0 8",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "rnbq2kr/p1p1p1b1/1p1p2Bp/8/3P4/4PQP1/PPP2PP1/RN2K2R b KQ - 0 11",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 868,
+   "threatFlag": true,
+   "shownFen": "rnbq2kr/p1p1p1b1/1p1p2Bp/8/3P4/4PQP1/PPP2PP1/RN2K2R b KQ - 0 11",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "b8d7",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r1bq2kr/p1pnp1b1/1p1p2Bp/8/3P4/4PQP1/PPP2PP1/RN2K2R w KQ - 1 12",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1b1k2r/1p1p1p1p/1q4p1/p2Qp3/4P2b/1PP2P2/P3B1PP/RN3K1R w kq - 1 15",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 755,
+   "threatFlag": true,
+   "shownFen": "r1b1k2r/1p1p1p1p/1q4p1/p2Qp3/4P2b/1PP2P2/P3B1PP/RN3K1R w kq - 1 15",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r1b1k2r/1p1p1p1p/1q4p1/p2Qp3/4P2b/PPP2P2/4B1PP/RN3K1R b kq - 0 15",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r1b1k1nr/1ppp1ppp/5q2/p1b5/P3P3/2PP4/3N1PPP/R1BQKB1R w KQkq - 2 11",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1069,
+   "threatFlag": true,
+   "shownFen": "r1b1k1nr/1ppp1ppp/5q2/p1b5/P3P3/2PP4/3N1PPP/R1BQKB1R w KQkq - 2 11",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "r1b1k1nr/1ppp1ppp/5q2/p1b5/P3P3/2PP4/R2N1PPP/2BQKB1R b Kkq - 3 11",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "r2qk2r/2pnppb1/pNbp2pp/8/2B1P3/5Q2/PPP2PPP/R1B1K2R b KQkq - 0 12",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 723,
+   "threatFlag": true,
+   "shownFen": "r2qk2r/2pnppb1/pNbp2pp/8/2B1P3/5Q2/PPP2PPP/R1B1K2R b KQkq - 0 12",
+   "sideToMove": "b",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1a2",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": null,
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "8/5ppk/6p1/3Q4/6P1/2P1b2P/PP1N3q/5K2 w - - 0 34",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1021,
+   "threatFlag": true,
+   "shownFen": "8/5ppk/6p1/3Q4/6P1/2P1b2P/PP1N3q/5K2 w - - 0 34",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a2a3",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "8/5ppk/6p1/3Q4/6P1/P1P1b2P/1P1N3q/5K2 b - - 0 34",
+    "mated": false,
+    "refutation": null
+   }
+  },
+  {
+   "kind": "threat",
+   "fen": "rnbk3r/ppNp1pp1/7p/2b5/2B1P3/5N2/Pq3PPP/R2QK2R w KQ - 1 11",
+   "pre": null,
+   "solutions": [],
+   "san": [],
+   "line": [],
+   "mateIn": 1,
+   "rating": 1364,
+   "threatFlag": true,
+   "shownFen": "rnbk3r/ppNp1pp1/7p/2b5/2B1P3/5N2/Pq3PPP/R2QK2R w KQ - 1 11",
+   "sideToMove": "w",
+   "threatAnswer": true,
+   "mateInOne": false,
+   "matingMove": null,
+   "bestDefence": null,
+   "verdictRight": null,
+   "verdictWrong": {
+    "uci": "a1b1",
+    "correct": false,
+    "best": null,
+    "reply": null,
+    "fenAfter": "rnbk3r/ppNp1pp1/7p/2b5/2B1P3/5N2/Pq3PPP/1R1QK2R b K - 2 11",
+    "mated": false,
+    "refutation": null
+   }
+  }
+ ]
+}

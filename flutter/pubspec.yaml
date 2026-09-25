@@ -37,6 +37,10 @@ dependencies:
   webview_flutter: ^4.14.1
   shared_preferences: ^2.5.5
   ffi: ^2.1.4
+  # Шахматные правила «Детского мата»: законные ходы, SAN, мат. Чистый Dart без
+  # нативной части и без зависимостей — MIT. В вебе ту же работу делает chess.js
+  # (BSD-2), своего движка правил в приложении нет и писать его незачем.
+  bishop: ^1.4.4
 
 dev_dependencies:
   flutter_test:

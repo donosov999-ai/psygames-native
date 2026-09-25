@@ -1,13 +1,21 @@
 /* ВЫГРУЗКА ЭТАЛОНОВ «Детского мата» — тем, с чем сверяется нативная половина.
  *
- * Как и у «Доски в уме»: правила переносятся СО СВЕРКОЙ, эталон снимается
- * прогоном ЖИВОГО TS. Файл пишется только по ключу, в CI ничего не пишет:
+ * Правила переносятся СО СВЕРКОЙ: эталон снимается прогоном ЖИВОГО TS, а не
+ * переписыванием чисел руками (flutter/test/scholars_mate_check_test.dart
+ * сверяет вердикты позиция в позицию).
+ *
+ * 🔴 ПРОБА НЕ ПИШЕТ ФАЙЛ САМА, И ЭТО НАРОЧНО. Соседи свои выгрузки удаляли
+ * после переноса — тогда повторно снять эталон нечем, а он нужен каждый раз,
+ * когда правила в вебе меняются. Здесь файл переписывается только по явному
+ * ключу, иначе проба просто проверяет, что набор читается:
  *
  *   SCHOLARS_EXPORT=1 npx jest --runTestsByPath \
  *     src/__tests__/scholars-mate-export-reference.test.ts
- *
- * ⚠️ Типов Node в проекте нет (@types/node не стоит), поэтому файловые вызовы
- * объявлены здесь же и живут только под ключом.
+ */
+/*
+ * ⚠️ Типов Node в этом проекте нет (@types/node не стоит), и tsc на импортах
+ * `fs`/`path` краснеет — пре-коммит хук останавливает выпуск ВСЕМ чатам.
+ * Поэтому файловые вызовы объявлены здесь же и живут ТОЛЬКО под ключом.
  */
 declare const require: (id: string) => {
   writeFileSync: (path: string, data: string, enc: string) => void;
@@ -18,104 +26,93 @@ declare const require: (id: string) => {
 declare const __dirname: string;
 declare const process: { env: Record<string, string | undefined> };
 
+import { puzzlesOf } from '../games/scholars-mate/core/deck';
 import {
-  LEVELS,
-  secondsAt,
-  secondsFor,
-  ВРЕМЯ_ПО_ВИДУ,
-  motifsAt,
-  видыУровня,
-  видыРежима,
-  подписиВидов,
-  newMotifAt,
-  levelParams,
-  counts,
-  namedMotifCount,
-  mixedMotifCount,
-  NAMED_MOTIFS,
-} from '../games/scholars-mate/core/deck';
-import {
-  starsFor,
-  звёздыПодхода,
-  допускПромахов,
-  порогУровня,
-  объявлятьВид,
-  медианаМс,
-  размерКлетки,
-  ширинаДоски,
-} from '../games/scholars-mate/core/run';
+  shownFen,
+  sideToMove,
+  check,
+  bestDefence,
+  threatAnswer,
+  естьМатВОдин,
+  матующийХод,
+  movesFrom,
+  дополнитьХод,
+} from '../games/scholars-mate/core/check';
+import type { ScholarsKind, ScholarsPuzzle } from '../games/scholars-mate/core/types';
 
-test('лестница «Детского мата» читается целиком (и по ключу пишет эталон)', () => {
-  const levels: Record<string, unknown> = {};
-  for (let level = 1; level <= LEVELS; level++) {
-    levels[String(level)] = {
-      seconds: secondsAt(level),
-      params: levelParams(level),
-      motifs: motifsAt(level),
-      kinds: видыУровня(level),
-      labels: подписиВидов(видыУровня(level)),
-      newMotif: newMotifAt(level) ?? null,
-      announce: объявлятьВид(level),
-      missAllowance: допускПромахов(level),
-      threshold: порогУровня(level, 20),
-    };
+/** Сколько задач каждого вида уходит в эталон. */
+const НА_ВИД = 40;
+
+/** Заведомо неверный ход — чтобы в эталоне был и отрицательный вердикт. */
+function неверныйХод(p: ScholarsPuzzle): string {
+  const fen = shownFen(p);
+  const свои = new Set(p.solutions ?? []);
+  for (const поле of ['a1', 'a2', 'b1', 'g1', 'g8', 'b8', 'h1']) {
+    const ходы = movesFrom(fen, поле);
+    for (const куда of ходы) {
+      const uci = дополнитьХод(fen, `${поле}${куда}`);
+      if (!свои.has(uci)) return uci;
+    }
   }
-  const reference = {
-    source: 'живой TS: src/games/scholars-mate/core/{deck,run}.ts',
-    levels: LEVELS,
-    perLevel: levels,
-    secondsByKind: ВРЕМЯ_ПО_ВИДУ,
-    // Время у вида и уровня вместе: именно здесь лестница превращается в темп.
-    secondsFor: ['mate', 'fromGames', 'threat', 'defend', 'sacrifice'].flatMap((kind) =>
-      [1, 5, 18, 28, 40].map((level) => ({
-        kind,
-        level,
-        seconds: secondsFor(kind as never, level),
-      })),
-    ),
-    counts: counts(),
-    namedMotifs: NAMED_MOTIFS,
-    namedCounts: NAMED_MOTIFS.map((name) => ({ name, count: namedMotifCount(name) })),
-    mixedCount: mixedMotifCount(),
-    // Звёзды: пороги времени и цена подсказки.
-    stars: [400, 1200, 1399, 1400, 2399, 2400, 5000].flatMap((ms) =>
-      [1, 20, 40].map((level) => ({
-        ms,
-        level,
-        stars: starsFor(ms, level),
-        withHint: звёздыПодхода(ms, level, 1),
-        withoutHint: звёздыПодхода(ms, level, 0),
-      })),
-    ),
-    median: [
-      { input: [], out: медианаМс([]) },
-      { input: [100], out: медианаМс([100]) },
-      { input: [300, 100, 200], out: медианаМс([300, 100, 200]) },
-      { input: [400, 100, 200, 300], out: медианаМс([400, 100, 200, 300]) },
-    ],
-    board: [200, 300, 390].map((size) => ({
-      size,
-      cell: размерКлетки(size),
-      width: ширинаДоски(size),
-    })),
-    modeKinds: [
-      { level: 1, only: 'mate1', motif: '', mixed: false },
-      { level: 20, only: '', motif: 'Детский мат', mixed: false },
-      { level: 30, only: '', motif: '', mixed: true },
-    ].map((c) => ({
-      ...c,
-      kinds: видыРежима(c.level, c.only as never, c.motif, c.mixed),
-    })),
-  };
-  if (process.env.SCHOLARS_EXPORT === '1') {
+  return 'a1a2';
+}
+
+const ВИДЫ: ScholarsKind[] = ['mate', 'fromGames', 'sacrifice', 'defend', 'threat'];
+
+describe('эталон «Детского мата»', () => {
+  it('набор читается, вердикты считаются', () => {
+    const эталон: Record<string, unknown> = {};
+    for (const kind of ВИДЫ) {
+      const все = puzzlesOf(kind);
+      expect(все.length).toBeGreaterThan(0);
+      const строки = [];
+      for (const p of все.slice(0, НА_ВИД)) {
+        const показанный = shownFen(p);
+        const верный = (p.solutions ?? [])[0];
+        строки.push({
+          kind,
+          fen: p.fen,
+          pre: p.pre ?? null,
+          solutions: p.solutions ?? [],
+          san: p.san ?? [],
+          line: p.line ?? [],
+          mateIn: p.mateIn,
+          rating: p.rating,
+          threatFlag: p.threat ?? null,
+          shownFen: показанный,
+          sideToMove: sideToMove(p),
+          threatAnswer: threatAnswer(p),
+          mateInOne: естьМатВОдин(показанный),
+          matingMove: матующийХод(показанный) ?? null,
+          bestDefence: kind === 'defend' ? (bestDefence(p) ?? null) : null,
+          verdictRight: верный ? стройВердикт(p, верный) : null,
+          verdictWrong: стройВердикт(p, неверныйХод(p)),
+        });
+      }
+      эталон[kind] = строки;
+    }
+
+    if (!process.env.SCHOLARS_EXPORT) return;
     const fs = require('fs');
     const path = require('path');
-    const out = path.resolve(
+    const куда = path.resolve(
       __dirname,
-      '../../../flutter/test/fixtures/scholars-mate-reference.json',
+      '../../../flutter/test/fixtures/scholars-mate-check-reference.json',
     );
-    fs.mkdirSync(path.dirname(out), { recursive: true });
-    fs.writeFileSync(out, `${JSON.stringify(reference, null, 2)}\n`, 'utf8');
-  }
-  expect(Object.keys(levels)).toHaveLength(LEVELS);
+    fs.mkdirSync(path.dirname(куда), { recursive: true });
+    fs.writeFileSync(куда, JSON.stringify(эталон, null, 1), 'utf8');
+  });
 });
+
+function стройВердикт(p: ScholarsPuzzle, uci: string) {
+  const v = check(p, uci);
+  return {
+    uci,
+    correct: v.correct,
+    best: v.best ?? null,
+    reply: v.reply ?? null,
+    fenAfter: v.fenAfter ?? null,
+    mated: v.mated ?? false,
+    refutation: v.refutation ?? null,
+  };
+}
