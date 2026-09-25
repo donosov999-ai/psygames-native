@@ -1,8 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- `android:label` — подпись под значком на экране телефона. Шаблонное
+         «psygames_flutter» человек увидел бы вместо имени приложения; прежняя
+         линия в Play подписана «PsyGames», и при обновлении поверх имя меняться
+         не должно.
+         ⚠️ Комментарий стоит ЗДЕСЬ, а не между атрибутами: внутри открывающего
+         тега он делает XML невалидным, и сборка падает «Error parsing LocalFile»,
+         возвращая при этом код выхода 0. Замер 25.09.2026. -->
     <application
-        <!-- Подпись под значком на экране телефона. Шаблонное «psygames_flutter»
-             человек увидел бы вместо имени приложения; прежняя линия в Play
-             подписана «PsyGames», и при обновлении поверх имя меняться не должно. -->
         android:label="PsyGames"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

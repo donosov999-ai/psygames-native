@@ -23,6 +23,8 @@
  * Нужен установленный Chromium Playwright (он есть в frontend/node_modules).
  */
 import http from 'node:http';
+import https from 'node:https';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -37,7 +39,17 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 // Поэтому резолвим явно от `frontend/package.json`.
 const req = createRequire(path.join(HERE, '..', '..', 'frontend', 'package.json'));
 const { chromium } = req('playwright');
-const OUT = path.join(HERE, '..', 'test', 'fixtures', 'chromium_localstorage');
+// 🔴 СХЕМА ORIGIN — НЕ МЕЛОЧЬ. На Android прежняя линия идёт через wry, а тот
+// раздаёт страницу классом `WebViewAssetLoader` (см. wry 0.55.1,
+// src/android/kotlin/RustWebViewClient.kt:21 — Builder без setHttpAllowed).
+// По умолчанию этот загрузчик обслуживает ТОЛЬКО https, то есть настоящий origin
+// прежней линии — `https://tauri.localhost`. Ключи localStorage привязаны к
+// origin ЦЕЛИКОМ, вместе со схемой, поэтому эталон нужен в обоих написаниях.
+const HTTPS = process.argv.includes('--https');
+const OUT = path.join(
+  HERE, '..', 'test', 'fixtures',
+  HTTPS ? 'chromium_localstorage_https' : 'chromium_localstorage',
+);
 
 /** Ключи эталона. Подобраны так, чтобы задеть все ветки разбора значения. */
 function payload() {
@@ -68,24 +80,44 @@ function payload() {
   };
 }
 
-const server = http.createServer((_req, res) => {
+function handler(_req, res) {
   res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
   res.end('<!doctype html><meta charset="utf-8"><title>fixture</title>');
-});
+}
 
+let server;
+if (HTTPS) {
+  // Самоподписанный сертификат на один час: браузеру он не нравится, но origin
+  // от этого не меняется, а страница открывается с ignoreHTTPSErrors.
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'psygames-cert-'));
+  const key = path.join(tmp, 'key.pem');
+  const cert = path.join(tmp, 'cert.pem');
+  execFileSync('openssl', [
+    'req', '-x509', '-newkey', 'rsa:2048', '-nodes',
+    '-keyout', key, '-out', cert, '-days', '1',
+    '-subj', '/CN=tauri.localhost',
+  ], { stdio: 'ignore' });
+  server = https.createServer(
+    { key: fs.readFileSync(key), cert: fs.readFileSync(cert) }, handler);
+} else {
+  server = http.createServer(handler);
+}
+
+const SCHEME = HTTPS ? 'https' : 'http';
 await new Promise((done) => server.listen(0, '127.0.0.1', done));
 const port = server.address().port;
 
 const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'psygames-leveldb-'));
 const ctx = await chromium.launchPersistentContext(userDataDir, {
   headless: true,
+  ignoreHTTPSErrors: true,
   // Подмена имени: страница откроется с origin `http://tauri.localhost`, то есть
   // ровно с тем, под которым лежит прогресс прежней линии на Android.
   args: [`--host-resolver-rules=MAP tauri.localhost 127.0.0.1:${port}`],
 });
 
 const page = await ctx.newPage();
-await page.goto('http://tauri.localhost/');
+await page.goto(`${SCHEME}://tauri.localhost/`);
 
 const data = payload();
 // Порция первая — весь прогресс плюс немного балласта, чтобы крупный JSON
@@ -106,10 +138,11 @@ await ctx.close();
 // который заходил в приложение не один раз.
 const ctx2 = await chromium.launchPersistentContext(userDataDir, {
   headless: true,
+  ignoreHTTPSErrors: true,
   args: [`--host-resolver-rules=MAP tauri.localhost 127.0.0.1:${port}`],
 });
 const page2 = await ctx2.newPage();
-await page2.goto('http://tauri.localhost/');
+await page2.goto(`${SCHEME}://tauri.localhost/`);
 // Порция вторая — мелкая, она останется в свежем `.log` и проверит разбор журнала.
 await page2.evaluate(() => {
   localStorage.setItem('psygames_streak_v1', '9');
@@ -139,7 +172,7 @@ fs.writeFileSync(
   path.join(OUT, 'expected.json'),
   JSON.stringify(
     {
-      origin: 'http://tauri.localhost',
+      origin: `${SCHEME}://tauri.localhost`,
       values: { ...data, psygames_streak_v1: '9', psygames_theme: 'dark' },
       ballast: { count: 120, length: 2000 },
     },

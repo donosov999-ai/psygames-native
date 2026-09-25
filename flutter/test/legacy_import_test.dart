@@ -310,6 +310,29 @@ void main() {
     store.deleteSync(recursive: true);
   });
 
+  test('🔴 Android: origin `https` тоже забирается — это настоящая схема Tauri', () async {
+    // wry раздаёт страницу через `WebViewAssetLoader`, а он по умолчанию
+    // обслуживает ТОЛЬКО https. Уберут `https://tauri.localhost` из списка
+    // origin — перенос на живом телефоне вернёт ноль и будет выглядеть как
+    // «переносить нечего». Эталон снят живым Chromium по https.
+    final root = Directory.systemTemp.createTempSync('legacy-android-https-');
+    final dst = Directory('${root.path}/app_webview/Default/Local Storage/leveldb')
+      ..createSync(recursive: true);
+    for (final f in Directory('test/fixtures/chromium_localstorage_https')
+        .listSync()
+        .whereType<File>()) {
+      f.copySync('${dst.path}/${f.path.split('/').last}');
+    }
+    final state = await emptyState();
+
+    final taken = await LegacyImport.seedIfEmpty(state, libraryDir: root);
+
+    expect(taken, greaterThan(0), reason: 'origin https не прочитан');
+    expect(state.get('psygames_nickname'), 'Денис · кот Маркиз 🐈');
+    expect(state.get('psygames_theme'), 'dark');
+    root.deleteSync(recursive: true);
+  });
+
   test('Android: в журнале переноса видно, ОТКУДА взяты ключи', () async {
     final store = androidStore();
     final state = await emptyState();

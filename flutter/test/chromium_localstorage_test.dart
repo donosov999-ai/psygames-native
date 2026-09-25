@@ -3,7 +3,8 @@
 /// 🔴 Эталон снят не руками и не «похожим» генератором: его пишет настоящий
 /// Chromium через Playwright — `flutter/tool/make_leveldb_fixture.mjs`. Браузеру
 /// подменено имя узла, поэтому origin в базе ровно тот, под которым работала
-/// прежняя линия PsyGames на Android: `http://tauri.localhost`.
+/// прежняя линия PsyGames на Android: `tauri.localhost`. Эталонов два — под обе
+/// схемы, `http` и `https`; какая из них настоящая, объяснено у цикла в `main`.
 ///
 /// ⚠️ ЭТАЛОН СОДЕРЖИТ И `.ldb`, И `.log` — ЭТО НЕ СЛУЧАЙНОСТЬ. Ключи, дописанные
 /// последними, остаются в журнале и в сортированную таблицу ещё не переехали.
@@ -19,7 +20,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/chromium_localstorage.dart';
 
 void main() {
-  final dir = Directory('test/fixtures/chromium_localstorage');
+  // 🔴 ДВА ЭТАЛОНА — ДВЕ СХЕМЫ ORIGIN, И ВТОРАЯ ВАЖНЕЕ ПЕРВОЙ.
+  // На Android прежняя линия идёт через wry, а тот раздаёт страницу классом
+  // `WebViewAssetLoader` (wry 0.55.1, src/android/kotlin/RustWebViewClient.kt:21 —
+  // Builder без setHttpAllowed). По умолчанию загрузчик обслуживает ТОЛЬКО https,
+  // то есть настоящий origin прежней линии — `https://tauri.localhost`.
+  // Ключи localStorage привязаны к origin ЦЕЛИКОМ, вместе со схемой: ошибка в
+  // одну букву даёт пустой перенос, неотличимый от «данных нет».
+  // Оба случая сняты живым Chromium и оба проверены на эмуляторе Android 36.
+  for (final name in ['chromium_localstorage', 'chromium_localstorage_https']) {
+    group(name, () => _suite(name));
+  }
+}
+
+void _suite(String fixture) {
+  final dir = Directory('test/fixtures/$fixture');
   final expected = jsonDecode(
     File('${dir.path}/expected.json').readAsStringSync(),
   ) as Map<String, dynamic>;
