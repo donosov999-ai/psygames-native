@@ -122,6 +122,12 @@ jobs:
             echo "::warning title=Версия::запуск просит $VERSION, а в app.json $FROM_APP — линия расходится"
           fi
           sed -i '' "s/^version: .*/version: $VERSION+$BUILD/" flutter/pubspec.yaml
+          # 🔴 ВЕРСИЮ ОТДАЁМ ДАЛЬШЕ ПО ПРОГОНУ, А НЕ ЧИТАЕМ ПОЛЕ ЗАНОВО.
+          # Замер 24.09.2026: поле запуска стало необязательным, шаги ниже
+          # продолжали брать `inputs.version` — и получали ПУСТО. Раздача искала
+          # сборку «+31» без версии, не нашла и упала «не стала VALID за 20 минут»,
+          # хотя .ipa на 82 МБ залился нормально. Одна переменная на весь прогон.
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           # ⚠️ В iOS-проекте идентификатор пишется pro.psygames.psygamesFlutter,
           # а в Android — pro.psygames.psygames_flutter. Первый заход 23.09 искал
           # второе написание, не заменил ничего, и упал на проверке ниже — она и
@@ -236,7 +242,7 @@ jobs:
           {
             echo "## Гибрид на Flutter уехал в TestFlight"
             echo ""
-            echo "· версия ${{ inputs.version }}+${{ github.run_number }}, идентификатор $BUNDLE_ID"
+            echo "· версия $VERSION+${{ github.run_number }}, идентификатор $BUNDLE_ID"
             echo "· нативные игры: «Соедини точки», «Одна линия», «Цифровой ряд», «Матрица памяти»"
             echo "· остальные экраны открываются нынешней сборкой внутри приложения"
             echo ""
@@ -260,7 +266,7 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/tfenv"
           "$RUNNER_TEMP/tfenv/bin/pip" install --quiet --disable-pip-version-check pyjwt cryptography
           export APPLE_API_KEY_FILE=~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
-          "$RUNNER_TEMP/tfenv/bin/python" flutter/tool/testflight_assign.py "${{ inputs.version }}" "${{ github.run_number }}"
+          "$RUNNER_TEMP/tfenv/bin/python" flutter/tool/testflight_assign.py "$VERSION" "${{ github.run_number }}"
 
       - uses: actions/upload-artifact@v4
         if: always()
