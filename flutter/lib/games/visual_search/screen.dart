@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/boss_round.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -61,6 +62,9 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
   int _hits = 0;
   int _errors = 0;
   bool _won = false;
+
+  /// Итог боя с боссом после этой партии; `null` — боя не было (веб: `bossWon`).
+  bool? _boss;
   bool _ready = false;
   _Phase _phase = _Phase.playing;
   double _side = 0;
@@ -175,14 +179,18 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     if (!mounted) return;
     if (_round >= widget.trials) {
       final passed = _errors <= vsErrorsAllowed;
+      // Веха как в вебе: каждый третий ЗАСЧИТАННЫЙ уровень — бой «сложи подсвеченные».
+      bool? boss;
       if (passed) {
-        await _ladder.win();
+        boss = await BossRound.winThenBoss(context, _ladder,
+            type: BossType.counting, color: const Color(0xFF536976));
       } else {
         await _ladder.fail();
       }
       if (!mounted) return;
       setState(() {
         _won = passed;
+        _boss = boss;
         _phase = _Phase.result;
       });
       return;
@@ -362,6 +370,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
               textAlign: TextAlign.center,
               style: text.titleMedium,
             ),
+            BossOutcomeLine(_boss),
             const SizedBox(height: 8),
             FilledButton.icon(
               key: const Key('next'),
