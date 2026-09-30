@@ -20,6 +20,7 @@
 /// поэтому одно слово в эталоне лежит дважды.
 library;
 
+import 'crossword.dart';
 import 'ring.dart';
 
 /// Приём, которым объясняется шаг.
@@ -594,5 +595,177 @@ String teachRingKey(RingTechnique t) => switch (t) {
 String teachRingText(RingTeachStep s, String Function(String) t) => t(teachRingKey(s.technique))
     .replaceAll('{piece}', s.piece.toUpperCase())
     .replaceAll('{word}', s.word.toUpperCase())
+    .replaceAll('{n}', '${s.n}')
+    .replaceAll('{total}', '${s.total}');
+
+/* ═══════════ КРОССВОРД: САМОЕ ПЕРЕКРЁСТНОЕ, ПОТОМ САМОЕ ОТКРЫТОЕ ═══════════
+ *
+ * Кроссворд решается не словами, а ПЕРЕСЕЧЕНИЯМИ: найденное слово открывает буквы
+ * соседей, и следующее слово угадывается по шаблону. Порядок разбора:
+ *   · первым — слово с наибольшим числом пересечений: оно открывает больше всего;
+ *   · дальше — слово, в котором уже открыто больше всего букв (меньше всего
+ *     вариантов); при равенстве — с большим числом пересечений, затем по порядку
+ *     сетки. Замер доли уровней, где выбор однозначен, — в пробе.
+ *
+ * ⚠️ Слова сетки подняты в регистр ДАРТОВЫМ `toUpperCase` (`crossWordsOfLevel`),
+ * буквы колеса — строчные из набора. Плитки ищутся тем же дартовым подъёмом, а не
+ * `upJs`: сравнение идёт внутри одной половины, и `ß` в ней одинаков с обеих сторон.
+ */
+
+/// Приём шага кроссворда.
+enum CrossTechnique {
+  /// Осмотр: сколько слов и почему важен порядок.
+  look,
+
+  /// Первое слово — самое перекрёстное.
+  first,
+
+  /// Следующее — где открыто больше всего букв.
+  next,
+}
+
+/// Шаг разбора кроссворда.
+class CrossTeachStep {
+  const CrossTeachStep({
+    required this.technique,
+    required this.word,
+    required this.piece,
+    required this.n,
+    required this.total,
+    required this.place,
+  });
+
+  final CrossTechnique technique;
+
+  /// Слово шага, в регистре сетки (у осмотра пусто).
+  final String word;
+
+  /// Шаблон открытых букв («С·А··Я»), у первого слова — пусто.
+  final String piece;
+
+  /// У осмотра — слов в сетке; у первого — пересечений; у следующих — открыто букв.
+  final int n;
+
+  /// У осмотра — слов в сетке; у остальных — длина слова.
+  final int total;
+
+  /// Плитки колеса, складывающие слово, по порядку ввода.
+  final List<int> place;
+}
+
+List<int> _crossCells(Crossword cw, PlacedWord w) {
+  final dr = w.d == crossHoriz ? 0 : 1;
+  final dc = w.d == crossHoriz ? 1 : 0;
+  return [
+    for (var i = 0; i < w.word.length; i++) (w.r + dr * i) * cw.cols + (w.c + dc * i),
+  ];
+}
+
+List<int> _crossTiles(String word, List<String> letters) {
+  final taken = <int>{};
+  final out = <int>[];
+  for (final ch in word.split('')) {
+    var found = -1;
+    for (var k = 0; k < letters.length; k++) {
+      if (!taken.contains(k) && letters[k].toUpperCase() == ch) {
+        found = k;
+        break;
+      }
+    }
+    if (found < 0) return const [];
+    taken.add(found);
+    out.add(found);
+  }
+  return out;
+}
+
+/// Разбор кроссворда: осмотр, самое перекрёстное слово, дальше — самое открытое.
+List<CrossTeachStep> crosswordLesson(Crossword cw, List<String> letters) {
+  if (cw.words.length < 2 || cw.outside.isNotEmpty) return const [];
+  final cells = {for (final w in cw.words) w: _crossCells(cw, w)};
+  final uses = <int, int>{};
+  for (final list in cells.values) {
+    for (final k in list) {
+      uses[k] = (uses[k] ?? 0) + 1;
+    }
+  }
+  int crossings(PlacedWord w) => cells[w]!.where((k) => uses[k]! > 1).length;
+
+  final steps = <CrossTeachStep>[
+    CrossTeachStep(
+      technique: CrossTechnique.look,
+      word: '',
+      piece: '',
+      n: cw.words.length,
+      total: cw.words.length,
+      place: const [],
+    ),
+  ];
+  final open = <int>{};
+  final done = <PlacedWord>{};
+
+  bool add(PlacedWord w, CrossTechnique technique) {
+    final place = _crossTiles(w.word, letters);
+    if (place.isEmpty) return false; // слово не из этого колеса — разбор врал бы
+    final c = cells[w]!;
+    final opened = c.where(open.contains).length;
+    final pattern = [
+      for (var i = 0; i < c.length; i++) open.contains(c[i]) ? w.word[i] : '·',
+    ].join();
+    steps.add(CrossTeachStep(
+      technique: technique,
+      word: w.word,
+      piece: technique == CrossTechnique.first ? '' : pattern,
+      n: technique == CrossTechnique.first ? crossings(w) : opened,
+      total: w.word.length,
+      place: place,
+    ));
+    open.addAll(c);
+    done.add(w);
+    return true;
+  }
+
+  var first = cw.words.first;
+  for (final w in cw.words.skip(1)) {
+    if (crossings(w) > crossings(first)) first = w;
+  }
+  if (!add(first, CrossTechnique.first)) return const [];
+
+  while (done.length < cw.words.length) {
+    PlacedWord? best;
+    var bestOpen = -1;
+    var bestCross = -1;
+    for (final w in cw.words) {
+      if (done.contains(w)) continue;
+      final o = cells[w]!.where(open.contains).length;
+      final x = crossings(w);
+      if (o > bestOpen || (o == bestOpen && x > bestCross)) {
+        best = w;
+        bestOpen = o;
+        bestCross = x;
+      }
+    }
+    if (!add(best!, CrossTechnique.next)) return const [];
+  }
+  return steps;
+}
+
+/// Ключи объяснений кроссворда — списком, чтобы сборщик словаря их увидел.
+const teachCrossKeys = <String>[
+  'teachCrossLook',
+  'teachCrossFirst',
+  'teachCrossNext',
+];
+
+String teachCrossKey(CrossTechnique t) => switch (t) {
+      CrossTechnique.look => 'teachCrossLook',
+      CrossTechnique.first => 'teachCrossFirst',
+      CrossTechnique.next => 'teachCrossNext',
+    };
+
+/// Объяснение шага. Подстановки: {word}, {piece}, {n}, {total}.
+String teachCrossText(CrossTeachStep s, String Function(String) t) => t(teachCrossKey(s.technique))
+    .replaceAll('{word}', s.word)
+    .replaceAll('{piece}', s.piece)
     .replaceAll('{n}', '${s.n}')
     .replaceAll('{total}', '${s.total}');
