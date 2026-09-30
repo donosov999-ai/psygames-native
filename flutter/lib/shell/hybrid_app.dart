@@ -72,6 +72,9 @@ import '../games/memory_palace/screen.dart';
 import '../games/rmet/screen.dart';
 import '../games/word_pairs/screen.dart';
 import '../games/vocab_srs/screen.dart';
+import '../games/semantic_sort/screen.dart';
+import '../games/cloze/screen.dart';
+import '../games/lexical_decision/screen.dart';
 import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
@@ -249,6 +252,22 @@ class HybridApp extends StatefulWidget {
         // Настройки шага языковой зарядки (`targetLang`, `bilingual`, `lang2`,
         // `direction`, `newLimit`) экран берёт из хвоста адреса через GamePreset.
         '/games/vocab-srs': (s) => VocabSrsScreen(state: s),
+        '/games/semantic-sort': (s) => SemanticSortScreen(state: s),
+        '/games/cloze': (s) => ClozeScreen(state: s),
+        '/games/lexical-decision': (s) => LexicalDecisionScreen(state: s),
+        /*
+         * Развилка «Слух» — на общем каркасе: над списком у неё в вебе ничего нет.
+         * ⚠️ «Слова» и «Языки» НЕ перехватываются: над их списком стоит зарядка
+         * раздела (`WordsWarmup`, `LanguagesWarmup`), запустить которую из натива
+         * пока нечем, — перехват молча отнял бы у человека рабочую зарядку.
+         */
+        '/games/hearing-hub': (s) => HubScreen(
+              state: s,
+              hubRoute: '/games/hearing-hub',
+              icon: Icons.hearing,
+              gradient: const [Color(0xFF0D9488), Color(0xFF84CC16)],
+              isNative: native.containsKey,
+            ),
         /*
          * 🔴 РАЗВИЛКА «МНЕМОТЕХНИКИ» ПЕРЕХВАТЫВАЕТСЯ, ПОТОМУ ЧТО ЗА НЕЙ УЖЕ
          * НАТИВНО ЧЕТЫРЕ ЭКРАНА ИЗ ПЯТИ: «Дворец памяти», «Лица и имена»,
