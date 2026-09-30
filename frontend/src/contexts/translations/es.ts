@@ -1083,6 +1083,7 @@ const t: Record<string, string> = {
   "earnWhyStreak": "racha de días — el doble",
   "earnWhyRepeat": "repetición de hoy — sin duplicar",
   "earnWhyWarmup": "paso del calentamiento — bonus al final",
+  "earnWhyLesson": "partida con explicación — sin duplicar",
   "todayEarnedTitle": "Ganado hoy",
   "todayEmptyHint": "Hoy aún no hay partidas. Juega una y aquí verás qué te dio y cuánto.",
   "todayRoundsLabel": "partidas: {n}",

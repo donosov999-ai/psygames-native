@@ -1083,6 +1083,7 @@ const t: Record<string, string> = {
   "earnWhyStreak": "连续天数 — 加倍",
   "earnWhyRepeat": "今日重玩 — 不加倍",
   "earnWhyWarmup": "热身环节 — 奖励在结束时结算",
+  "earnWhyLesson": "看过解析的一局 — 不翻倍",
   "todayEarnedTitle": "今天已赚",
   "todayEmptyHint": "今天还没玩过。来一局 — 这里就会显示玩了什么、赚了多少。",
   "todayRoundsLabel": "局数：{n}",

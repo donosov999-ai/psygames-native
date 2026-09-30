@@ -1251,6 +1251,7 @@ const t: Record<string, string> = {
   "earnWhyStreak": "سلسلة أيام — الضِّعف",
   "earnWhyRepeat": "إعادة اليوم — بلا مضاعفة",
   "earnWhyWarmup": "خطوة الإحماء — المكافأة في النهاية",
+  "earnWhyLesson": "جولة مع الشرح — دون مضاعفة",
   "todayEarnedTitle": "أرباح اليوم",
   "todayEmptyHint": "لا جولات اليوم بعد. العب واحدة — وسيظهر هنا ماذا لعبت وكم كسبت.",
   "todayRoundsLabel": "الجولات: {n}",
