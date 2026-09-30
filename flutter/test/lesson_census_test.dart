@@ -77,6 +77,11 @@ void main() {
     '/games/mahjong',
     '/games/goods-sort',
     '/games/faces-names',
+    '/games/anagrams',
+    '/games/anagrams?mode=classic',
+    '/games/anagrams?mode=all',
+    '/games/anagrams?mode=cross',
+    '/games/anagrams?mode=square',
   ];
 
 
@@ -92,7 +97,13 @@ void main() {
       if (e.key.endsWith('-hub')) continue;
       // Головоломки Тэтхэма считает свой гейт: их разбор держит движок через ffi,
       // а он в `flutter test` не поднимается.
-      if (e.key.contains('?')) continue;
+      //
+      // 🔴 НО НЕ ВСЁ С `?` — ТЭТХЭМ. Режимы анаграмм (`/games/anagrams?mode=…`) —
+      // четыре самостоятельные игры с разбором на Dart, без движка. Пропуская их
+      // вместе с Тэтхэмом, перепись писала «51 из 51», не глядя на три игры, у
+      // которых разбора не было вовсе (замер 30.09.2026, задача 17d894f7). Теперь
+      // они считаются, как обычные экраны.
+      if (e.key.contains('?') && !e.key.startsWith('/games/anagrams?')) continue;
       // 🔴 `/games/puzzles` — НЕ ИГРА, а один экран на 42 режима: разбор там
       // живёт у РЕЖИМА, и считать его как «экран без разбора» значит держать в
       // остатке строку, которую нечем закрыть. Так же устроен веб-реестр

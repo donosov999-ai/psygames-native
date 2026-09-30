@@ -5,6 +5,7 @@ import 'package:psygames_flutter/games/anagrams/ring_board.dart';
 import 'package:psygames_flutter/games/anagrams/ring_screen.dart';
 import 'package:psygames_flutter/shell/game_shell.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -133,5 +134,44 @@ void main() {
     expect(after.letters.toList()..sort(), lettersBefore, reason: 'буквы те же');
     expect(after.solved.length, solvedBefore, reason: 'перемешивание не отнимает закрытое');
     expect(after.picked, isEmpty);
+  });
+
+  /* ═══════════ РАЗБОР ПО ШАГАМ ═══════════
+   *
+   * Перепись разбора пропускает адреса с `?`, а квадрат живёт на
+   * `/games/anagrams?mode=square`. Кнопку и поведение разбора сторожат только эти пробы.
+   */
+  testWidgets('🔴 разбор ставит все четыре стороны — и только слова этого кольца', (tester) async {
+    await _boot(tester, state);
+    final ring = _board(tester).ring;
+    expect(find.byKey(const Key('game-lesson')), findsOneWidget, reason: 'на первом уровне разбор есть');
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 10; i++) {
+      final next = find.byTooltip(L.t('puzzleNextStep'));
+      if (next.evaluate().isEmpty) break;
+      await tester.tap(next);
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    final board = tester.widgetList<RingBoard>(find.byType(RingBoard)).last;
+    expect(board.solved, {ring.top, ring.right, ring.bottom, ring.left});
+  });
+
+  testWidgets('🔴 партия с разбором перестаёт быть зачётной', (tester) async {
+    LessonUsed.reset();
+    await _boot(tester, state);
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pumpAndSettle();
+    expect(LessonUsed.inRound, isTrue, reason: 'иначе лестница пошла бы вверх по показанному решению');
+    LessonUsed.reset();
+  });
+
+  testWidgets('🔴 с четвёртого уровня разбора нет', (tester) async {
+    // Ключ лестницы — тот, что пишет сам экран (`gameId: 'anagrams_square'`).
+    await state.set('psygames_anagrams_square_level_nzt48', '4');
+    await _boot(tester, state);
+    expect(find.byType(RingBoard), findsOneWidget, reason: 'партия на месте');
+    expect(find.byKey(const Key('game-lesson')), findsNothing,
+        reason: 'как у остальных режимов: разбор до третьего уровня включительно');
   });
 }
