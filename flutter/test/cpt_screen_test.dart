@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/cpt/model.dart';
 import 'package:psygames_flutter/games/cpt/screen.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/level_rules.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,6 +19,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 const String _levelKey = 'psygames_cpt_level_nzt48';
 
 void main() {
+  // Карточки правил уровня (каркас, задача e371fd3a) здесь выключены: на уровнях с правилом
+  // они честно всплывают при входе и перехватывают нажатие. Эта проба про игру, а карточки
+  // проверяет test/level_rules_test.dart.
+  setUp(() => LevelRules.debugSetTable(const {}));
+  tearDown(() => LevelRules.debugSetTable(null));
+
   late SharedState state;
 
   /// 🔴 ЧАСЫ ПАРТИИ — ТЕ ЖЕ, ЧТО У ТАЙМЕРОВ ПРОБЫ. Без этого модель смотрит на
