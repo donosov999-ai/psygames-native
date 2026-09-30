@@ -29,7 +29,10 @@ void main() {
     threat: row['threatFlag'] as bool?,
   );
 
-  for (final kind in reference.keys) {
+  // Виды заданий — из самого кода, а не из ключей эталона: в тот же файл с шага 2б
+  // пишется и колода по ступеням (`decks`, её сверяет scholars_mate_deck_test), и
+  // обход «всех ключей» принимал её за шестой вид задания.
+  for (final kind in ScholarsKind.values.map((k) => k.name)) {
     test('$kind: позиция, сторона хода и мат в один совпадают с вебом', () {
       final rows = (reference[kind] as List).cast<Map<String, dynamic>>();
       expect(rows.length, 40, reason: 'эталон вида $kind');

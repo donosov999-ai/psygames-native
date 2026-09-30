@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/chess_hub/screen.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,6 +37,9 @@ Future<void> _boot(WidgetTester tester, SharedState state) async {
 
 void main() {
   setUp(() async {
+    // Развилка берёт названия карточек из СЛОВАРЯ (ключи в assets/hubs.json) —
+    // так общий хаб устроен с main 30.09; без словаря на экране были бы ключи.
+    await L.load('ru');
     SharedPreferences.setMockInitialValues({
       // Ключи те же, что пишет веб-половина: psygames_<игра>_level_<профиль>.
       'psygames_scholars_mate_level_nzt48': '9',
