@@ -2410,8 +2410,6 @@ const t: Record<string, string> = {
   "scholarsMedian": "中央値",
   "scholarsUsually": "直近{n}回",
   "scholarsBest": "正解は",
-  "scholarsYes": "はい",
-  "scholarsNo": "いいえ",
   "ballGlossy": "つやあり",
   "ballGlass": "ガラス",
   "ballFluffy": "ふわふわ",
@@ -3149,5 +3147,6 @@ const t: Record<string, string> = {
   "hcAgain": "もう一回",
   "teachHiddenHalf": "「{q}」と聞こう：はいは{yes}人、いいえは{no}人。いちばんいい質問は、残りをできるだけ半分に分ける。どちらの答えでも半分が消える。",
   "teachHiddenLast": "残りはひとり。それがかくれている人だ。選んで「この人だ！」を押そう。",
+  "rbHeadStart": "先行 {n}",
 };
 export default t;

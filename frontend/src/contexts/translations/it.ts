@@ -2411,8 +2411,6 @@ const t: Record<string, string> = {
   "scholarsMedian": "Mediana",
   "scholarsUsually": "su {n} sessioni",
   "scholarsBest": "Giusto era",
-  "scholarsYes": "Sì",
-  "scholarsNo": "No",
   "ballGlossy": "Lucide",
   "ballGlass": "Di vetro",
   "ballFluffy": "Soffici",
@@ -3150,5 +3148,6 @@ const t: Record<string, string> = {
   "hcAgain": "Ancora una volta",
   "teachHiddenHalf": "Chiedi «{q}»: sì per {yes}, no per {no}. La domanda migliore divide i rimasti il più vicino possibile a metà: ogni risposta ne toglie la metà.",
   "teachHiddenLast": "Ne è rimasto uno: è lui. Sceglilo e premi «È lui!».",
+  "rbHeadStart": "vantaggio {n}",
 };
 export default t;

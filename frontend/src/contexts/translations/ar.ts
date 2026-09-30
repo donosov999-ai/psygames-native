@@ -2412,8 +2412,6 @@ const t: Record<string, string> = {
   "scholarsMedian": "الوسيط",
   "scholarsUsually": "خلال {n} جولات",
   "scholarsBest": "الصواب كان",
-  "scholarsYes": "نعم",
-  "scholarsNo": "لا",
   "ballGlossy": "لامعة",
   "ballGlass": "زجاجية",
   "ballFluffy": "زغبية",
@@ -3151,5 +3149,6 @@ const t: Record<string, string> = {
   "hcAgain": "مرة أخرى",
   "teachHiddenHalf": "اسأل «{q}»: نعم عند {yes}، ولا عند {no}. أفضل سؤال يقسم المتبقين إلى نصفين قدر الإمكان: أي إجابة تُسقط النصف.",
   "teachHiddenLast": "بقي واحد — إنه المختبئ. اختره واضغط «إنه هو!».",
+  "rbHeadStart": "تقدّم {n}",
 };
 export default t;

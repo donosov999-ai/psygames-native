@@ -17,15 +17,6 @@
  * `fs`/`path` краснеет — пре-коммит хук останавливает выпуск ВСЕМ чатам.
  * Поэтому файловые вызовы объявлены здесь же и живут ТОЛЬКО под ключом.
  */
-declare const require: (id: string) => {
-  writeFileSync: (path: string, data: string, enc: string) => void;
-  mkdirSync: (path: string, opts: { recursive: boolean }) => void;
-  dirname: (path: string) => string;
-  resolve: (...parts: string[]) => string;
-};
-declare const __dirname: string;
-declare const process: { env: Record<string, string | undefined> };
-
 import {
   puzzlesOf,
   buildDeck,
@@ -51,6 +42,14 @@ import {
   дополнитьХод,
 } from '../games/scholars-mate/core/check';
 import type { ScholarsKind, ScholarsPuzzle } from '../games/scholars-mate/core/types';
+declare const require: (id: string) => {
+  writeFileSync: (path: string, data: string, enc: string) => void;
+  mkdirSync: (path: string, opts: { recursive: boolean }) => void;
+  dirname: (path: string) => string;
+  resolve: (...parts: string[]) => string;
+};
+declare const __dirname: string;
+declare const process: { env: Record<string, string | undefined> };
 
 /** Сколько задач каждого вида уходит в эталон. */
 const НА_ВИД = 40;
