@@ -361,7 +361,7 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
       ]),
       toolbar: _Toolbar(
         mode: _mode,
-        steps: _steps,
+        params: step.params,
         won: _won,
         status: _status,
         onDigit: _digit,
@@ -376,11 +376,40 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
   }
 }
 
+/// Сколько клавиш цифр у ступени: размер поля читается из её параметров («6dh» → 6,
+/// «5x5de» → 5, «3x3db» → 9 клеток у Solo), у «Угадай код» — число цветов.
+///
+/// 🔴 ДВА ДЕФЕКТА, ИСПРАВЛЕННЫХ 30.09.2026 (задача f5034811, замер по исходнику):
+/// · ряд клавиш считался по ПЕРВОЙ ступени лестницы на всех уровнях — у головоломок,
+///   где поле растёт (Keen, Towers, Unequal, Filling), на верхних ступенях цифр не
+///   хватало бы. Теперь параметры приходят от текущей ступени;
+/// · у «Угадай код» параметры не «сторона поля», а `c6p4g10Bm`, и общий разбор
+///   отдавал девять клавиш на шестицветный код — три лишние, мёртвые. Теперь цветов
+///   столько, сколько у ступени (`c<N>`), как и в веб-версии (`names.ts`).
+int puzzleKeyCount(PuzzleMode mode, String params) {
+  final p = params;
+  if (mode.engineName == 'Guess') {
+    final c = RegExp(r'c(\d+)').firstMatch(p);
+    return c == null ? 6 : int.parse(c.group(1)!).clamp(2, 10);
+  }
+  final m = RegExp(r'^(\d+)x(\d+)').firstMatch(p);
+  if (mode.engineName == 'Solo' && m != null) {
+    return int.parse(m.group(1)!) * int.parse(m.group(2)!);
+  }
+  if (mode.digitLabels.isNotEmpty) return mode.digitLabels.length;
+  if (m != null) return int.parse(m.group(1)!);
+  // ⚠️ БЕЗ «!» НА КОНЦЕ. Параметры ступени приходят и из меню движка, где первым
+  // символом бывает буква. Восклицательный знак здесь уронил бы ряд клавиш прямо в
+  // руках у игрока; девять — привычный ряд судоку и честное «не смог разобрать».
+  final first = RegExp(r'^(\d+)').firstMatch(p);
+  return first == null ? 9 : int.parse(first.group(1)!);
+}
+
 /// Липкий низ: ряд клавиш режима (у «Нежити» они подписаны чудовищами) и победа.
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
     required this.mode,
-    required this.steps,
+    required this.params,
     required this.won,
     required this.status,
     required this.onDigit,
@@ -388,29 +417,15 @@ class _Toolbar extends StatelessWidget {
   });
 
   final PuzzleMode mode;
-  final List<PuzzleStep> steps;
+
+  /// Параметры ТЕКУЩЕЙ ступени — по ним считается ряд клавиш.
+  final String params;
   final bool won;
   final String status;
   final void Function(int) onDigit;
   final VoidCallback onNext;
 
-  /// Сколько клавиш у ступени: размер поля читается из параметров («6dh» → 6,
-  /// «5x5de» → 5, «3x3db» → 9 клеток у Solo).
-  int get _keys {
-    final p = steps.isEmpty ? '' : steps.first.params;
-    final m = RegExp(r'^(\d+)x(\d+)').firstMatch(p);
-    if (mode.engineName == 'Solo' && m != null) {
-      return int.parse(m.group(1)!) * int.parse(m.group(2)!);
-    }
-    if (mode.digitLabels.isNotEmpty) return mode.digitLabels.length;
-    if (m != null) return int.parse(m.group(1)!);
-    // ⚠️ БЕЗ «!» НА КОНЦЕ. Параметры ступени теперь приходят и из меню движка, где
-    // первым символом бывает буква («4de» у Keen — цифра, а у иных пресетов нет).
-    // Восклицательный знак здесь уронил бы ряд клавиш прямо в руках у игрока;
-    // девять — привычный ряд судоку и честное «не смог разобрать».
-    final first = RegExp(r'^(\d+)').firstMatch(p);
-    return first == null ? 9 : int.parse(first.group(1)!);
-  }
+  int get _keys => puzzleKeyCount(mode, params);
 
   @override
   Widget build(BuildContext context) {
