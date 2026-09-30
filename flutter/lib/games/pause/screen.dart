@@ -6,19 +6,19 @@
 // ядро — `practices.dart` (сверено с живым TS, `test/pause_core_test.dart`), сцена —
 // `stage.dart` (взята у Flutter-будильника), экран — этот файл.
 //
-// 🔴 НИЧЕГО НЕ БЛОКИРУЕМ. Предупреждения и «нужен опыт» показываются, но старт не
-// держат: план строится с `advisory: true` (решение Дениса 24.09.2026 — «он
-// запускает и смотрит, а не ты блокируешь»). Галочку «я прочитал» код не ставит и
-// не требует.
+// 🔴 ПАРИТЕТ С ПЛАНИРОВЩИКОМ СТРАНИЦЫ, А НЕ «ПОХОЖЕ». Режимы — отдельно, параллельно,
+// маршрут; длительности — 1, 2, 5, 8 минут; подсказка — экран, звук или оба; обстановка —
+// за столом, незаметно, дома. Подписи — словарём САМОЙ страницы (`assets/pause/copy.json`,
+// 12 языков): человек видит те же слова, что в вебе. Перехват адреса включён только
+// потому, что режимы перенесены все (правило доски переезда, урок «Анаграмм»).
+//
+// 🔴 НИЧЕГО НЕ БЛОКИРУЕМ. Предупреждения, «нужен опыт», «освоено отдельно» — советы:
+// план строится с `advisory: true` (решение Дениса 24.09.2026 — «он запускает и смотрит,
+// а не ты блокируешь»). Галочку «я прочитал» код не ставит и не требует.
 //
 // 🔴 ИТОГ — В ТОТ ЖЕ `saveSession`, ЧТО У ВЕБА, С ТЕМИ ЖЕ ПОЛЯМИ: `game_type: pause`,
 // минуты в `score`, обстановка в `difficulty`, наборы в `details.sets`. На этой записи
 // стоят статистика и шаг зарядки. Выход посреди практики не записывается — как в вебе.
-//
-// ⚠️ Подписи: 16 строк ядра (`PAUSE_STRINGS`) знают русский и английский, остальные
-// языки получают английский — это известный долг ядра, тот же, что у веб-экрана
-// (гейт `pause-i18n-debt`). Названия наборов, программ, шагов и предупреждений
-// приходят из каталога на двенадцати языках. Всё прочее — через `L.t`.
 import 'dart:async';
 import 'dart:convert';
 
@@ -32,6 +32,8 @@ import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/session_report.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/voice.dart';
+import '../../shell/voice_system.dart';
 import 'practices.dart';
 import 'stage.dart';
 
@@ -39,29 +41,40 @@ import 'stage.dart';
 Future<Practices> loadPauseCatalog([AssetBundle? bundle]) async =>
     Practices(jsonDecode(await (bundle ?? rootBundle).loadString('assets/pause/practices.json')) as Json);
 
-/// Контексты — в порядке веб-экрана; `desk-visible` — обстановка по умолчанию там же.
-const pauseContexts = ['desk-visible', 'desk-invisible', 'home'];
-/// Подписи контекстов — в том же порядке. Списком `*Keys`, а не картой: так их видит
-/// `flutter/tools/embed-l10n.mjs` и кладёт в словарь сборки.
-const pauseContextKeys = ['pauseCtxDeskVisible', 'pauseCtxDeskInvisible', 'pauseCtxHome'];
+/// Словарь страницы зарядки: `{язык: {ключ: строка}}`.
+Future<Json> loadPauseCopy([AssetBundle? bundle]) async =>
+    jsonDecode(await (bundle ?? rootBundle).loadString('assets/pause/copy.json')) as Json;
 
-/// Длительности на выбор, минуты. Пресет может задать свою в секундах (`sec`).
-const pauseMinutes = [1, 3, 5, 10];
+/// Обстановка → ключ подписи в словаре страницы. Порядок — как на странице.
+const pauseContexts = {'desk-visible': 'desk', 'desk-invisible': 'discreet', 'home': 'home'};
+
+/// Режимы: значение ядра → ключ подписи.
+const pauseModes = {'solo': 'solo', 'parallel': 'parallel', 'charge': 'route'};
+
+/// Подсказка: значение ядра → ключ подписи.
+const pauseGuides = {'visual': 'visual', 'audio': 'audio', 'both': 'both'};
+
+/// Длительности на выбор, минуты — ровно как у страницы (`dur1`, `dur2`, `dur5`, `dur8`).
+const pauseMinutes = [1, 2, 5, 8];
 
 /// Шаг зарядки без своей длительности идёт полторы минуты — столько же, сколько
 /// закладывает на «Паузу» состав зарядки (`est_duration_sec: 90`).
 const pausePresetSeconds = 90;
 
 class PauseScreen extends StatefulWidget {
-  const PauseScreen({super.key, required this.state, this.engine, this.clock});
+  const PauseScreen({super.key, required this.state, this.engine, this.copy, this.clock, this.voice});
 
   final SharedState state;
 
-  /// Каталог, если его уже загрузили (пробы). Иначе — из ассета.
+  /// Каталог и словарь, если их уже загрузили (пробы). Иначе — из ассетов.
   final Practices? engine;
+  final Json? copy;
 
   /// Часы в миллисекундах, монотонные. Пробы двигают время сами.
   final int Function()? clock;
+
+  /// Голос подсказки. Пробы подают свой, чтобы слышать, что прозвучало.
+  final VoiceLayer? voice;
 
   @override
   State<PauseScreen> createState() => PauseScreenState();
@@ -71,16 +84,21 @@ enum PausePhase { loading, config, playing, done }
 
 class PauseScreenState extends State<PauseScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   Practices? _engine;
+  Json _copy = const {};
   PausePhase phase = PausePhase.loading;
   String _context = 'desk-visible';
   String _mode = 'solo';
+  String _guide = 'visual';
   final List<String> _sets = [];
   final Map<String, String> _programOf = {};
-  int _minutes = 3;
+  int _minutes = 2;
   int? _presetSeconds;
   Json? _session;
+  String _spoken = '';
   late final Ticker _ticker = createTicker((_) => _tick());
   final Stopwatch _watch = Stopwatch()..start();
+  late final VoiceLayer _voice =
+      widget.voice ?? VoiceLayer(backend: SystemVoiceBackend(), soundOn: () => !GamePreset.isCalm);
 
   int get _now => widget.clock?.call() ?? _watch.elapsedMilliseconds;
   String get _locale => L.locales.contains(L.locale) ? L.locale : 'en';
@@ -92,12 +110,12 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     WidgetsBinding.instance.addObserver(this);
     final given = widget.engine;
     if (given != null) {
-      _apply(given);
+      _apply(given, widget.copy ?? const {});
       if (_autostartWanted) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? start() : null);
     } else {
-      unawaited(loadPauseCatalog().then((engine) {
+      unawaited(Future.wait([loadPauseCatalog(), loadPauseCopy()]).then((loaded) {
         if (!mounted) return;
-        setState(() => _apply(engine));
+        setState(() => _apply(loaded[0] as Practices, loaded[1] as Json));
         if (_autostartWanted) start();
       }));
     }
@@ -105,12 +123,15 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
 
   bool get _autostartWanted => GamePreset.autostart && _sets.isNotEmpty;
 
-  void _apply(Practices engine) {
+  void _apply(Practices engine, Json copy) {
     _engine = engine;
+    _copy = copy;
     final ctx = GamePreset.str('context', 'desk-visible');
     final mode = GamePreset.str('mode', 'solo');
-    _context = pauseContexts.contains(ctx) ? ctx : 'desk-visible';
-    _mode = ['solo', 'parallel', 'charge'].contains(mode) ? mode : 'solo';
+    final guide = GamePreset.str('guide', 'visual');
+    _context = pauseContexts.containsKey(ctx) ? ctx : 'desk-visible';
+    _mode = pauseModes.containsKey(mode) ? mode : 'solo';
+    _guide = pauseGuides.containsKey(guide) ? guide : 'visual';
     // ?set=breathing — дверь из карточки «Дыхание» и шаги зарядки. Опечатка в
     // чужой ссылке не должна оставлять пустой выбор и мёртвую кнопку.
     final asked = GamePreset.str('set');
@@ -162,11 +183,15 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   List<Json> _available() =>
       (_engine?.catalog ?? const <Json>[]).where((s) => (s['contexts'] as List).contains(_context)).toList();
 
+  /// Строка ядра (`PAUSE_STRINGS`): у ядра только русский и английский.
   String ps(String key) {
     final strings = _engine!.data['strings'] as Map;
     final own = (strings[_locale == 'ru' ? 'ru' : 'en'] as Map)[key];
     return '${own ?? (strings['en'] as Map)[key] ?? key}';
   }
+
+  /// Строка страницы зарядки: свой язык, иначе английский — как фолбэчит сама страница.
+  String pc(String key) => '${(_copy[_locale] as Map?)?[key] ?? (_copy['en'] as Map?)?[key] ?? key}';
 
   String _text(Object? value) => value == null ? '' : localText(value, _locale);
 
@@ -184,12 +209,18 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
         for (final id in _sets) {'setId': id, if (_programOf[id] != null) 'programId': _programOf[id]},
       ];
 
+  /// Сколько наборов нужно выбрать для режима — как считает ядро.
+  bool get selectionReady {
+    final n = _sets.where((id) => _available().any((s) => s['id'] == id)).length;
+    return switch (_mode) { 'parallel' => n >= 2, 'charge' => n >= 1, _ => n == 1 };
+  }
+
   Json _request() => {
-        'mode': _sets.length > 1 && _mode == 'solo' ? 'charge' : _mode,
+        'mode': _mode,
         'selections': _selections(),
         'durationMs': (_presetSeconds ?? _minutes * 60) * 1000,
         'locale': _locale,
-        'guideMode': 'visual',
+        'guideMode': _guide,
         'context': _context,
         'acknowledgedWarnings': const <String>[],
         'confirmedPriorExperience': const <String>[],
@@ -207,9 +238,11 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       final plan = engine.plan(_request());
       setState(() {
         _session = sessionAction(newSession(plan), 'start', _now);
+        _spoken = '';
         phase = PausePhase.playing;
       });
-      if (!_ticker.isActive) _ticker.start();
+      _syncTicker();
+      _speak();
       return const [];
     } on PlanFailure catch (e) {
       return e.codes;
@@ -221,7 +254,23 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     if (s == null || s['phase'] != 'running') return;
     final next = sessionAction(s, 'tick', _now);
     setState(() => _session = next);
-    if (next['phase'] == 'completed') _complete(next);
+    if (next['phase'] == 'completed') {
+      _complete(next);
+    } else {
+      _speak();
+    }
+  }
+
+  /// Подсказка голосом: сменился шаг — назвать его и что делать. Как у страницы:
+  /// «Только экран» молчит, «Только звук» и «Экран + звук» говорят.
+  void _speak() {
+    final s = _session;
+    if (s == null || s['plan']['guideMode'] == 'visual' || s['phase'] != 'running') return;
+    final cues = objects(_engine!.frame(s['plan'], s['elapsedMs'] as int)['cues']);
+    final key = cues.map((c) => '${c['setId']}/${c['stepId']}').join('|');
+    if (key == _spoken || cues.isEmpty) return;
+    _spoken = key;
+    unawaited(_voice.speak(cues.map((c) => '${c['title']}. ${c['cue']}').join('. '), _locale));
   }
 
   void act(String action) {
@@ -230,7 +279,13 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     final next = sessionAction(s, action, _now);
     setState(() => _session = next);
     _syncTicker();
-    if (next['phase'] == 'completed') _complete(next);
+    if (next['phase'] == 'completed') {
+      _complete(next);
+    } else if (action == 'pause') {
+      unawaited(_voice.cancel());
+    } else {
+      _speak();
+    }
   }
 
   /// Кадры нужны, только пока практика идёт: на паузе телефону незачем
@@ -243,6 +298,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
 
   void _complete(Json s) {
     _ticker.stop();
+    unawaited(_voice.cancel());
     final Json result = s['result'];
     final Json plan = s['plan'];
     final done = List<String>.from(result['completedSetIds']);
@@ -265,6 +321,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
 
   void _again() {
     _ticker.stop();
+    unawaited(_voice.cancel());
     setState(() {
       _session = null;
       _presetSeconds = null;
@@ -283,16 +340,21 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     final leave = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        content: Text(ps('exit')),
+        content: Text(pc('finishWithoutRecord')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(ps('resume'))),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(ps('exit'))),
+          FilledButton(
+            key: const Key('pause-leave'),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(pc('finishWithoutRecord')),
+          ),
         ],
       ),
     );
     if (!mounted) return;
     if (leave == true) {
       _ticker.stop();
+      unawaited(_voice.cancel());
       await nav.maybePop();
     } else if (running) {
       act('resume');
@@ -303,6 +365,7 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _ticker.dispose();
+    unawaited(_voice.cancel());
     super.dispose();
   }
 
@@ -317,9 +380,8 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     if (engine == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = _session;
     final frame = s == null ? null : engine.frame(s['plan'], s['elapsedMs'] as int);
-    final title = L.t('pause');
     return GameShell(
-      title: title,
+      title: L.t('pause'),
       onBack: _back,
       hud: [
         if (s != null)
@@ -337,15 +399,25 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       },
       // «Начать» — в липком низу: панель длинная, и кнопка под ней уезжала за край
       // телефона (поймала проба нажатиями на 390×844).
-      toolbar: phase == PausePhase.config ? _StartBar(screen: this) : null,
+      toolbar: phase == PausePhase.config
+          ? Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: FilledButton.icon(
+                key: const Key('pause-start'),
+                onPressed: selectionReady ? start : null,
+                icon: const Icon(Icons.play_arrow),
+                label: Text(ps('start')),
+              ),
+            )
+          : null,
       auxRow: phase == PausePhase.playing && s != null
           ? AuxBar(children: [
               if (s['phase'] == 'running')
                 AuxAction(key: const Key('pause-pause'), icon: Icons.pause, label: ps('pause'), onPressed: () => act('pause'))
               else
                 AuxAction(key: const Key('pause-resume'), icon: Icons.play_arrow, label: ps('resume'), onPressed: () => act('resume')),
-              AuxAction(key: const Key('pause-skip'), icon: Icons.skip_next, label: L.t('skip'), onPressed: () => act('skip')),
-              AuxAction(key: const Key('pause-extend'), icon: Icons.more_time, label: L.t('pauseExtend'), onPressed: () => act('extend')),
+              AuxAction(key: const Key('pause-skip'), icon: Icons.skip_next, label: pc('skipStepBtn'), onPressed: () => act('skip')),
+              AuxAction(key: const Key('pause-extend'), icon: Icons.more_time, label: pc('extend30'), onPressed: () => act('extend')),
               AuxAction(key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
             ])
           : null,
@@ -359,6 +431,20 @@ class _Config extends StatelessWidget {
   final PauseScreenState screen;
   final double height;
 
+  Widget _chips(String group, Map<String, String> options, String selected, void Function(String) pick) => Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final e in options.entries)
+            ChoiceChip(
+              key: Key('pause-$group-${e.key}'),
+              label: Text(screen.pc(e.value)),
+              selected: selected == e.key,
+              onSelected: (_) => pick(e.key),
+            ),
+        ],
+      );
+
   @override
   Widget build(BuildContext context) {
     final st = screen;
@@ -366,9 +452,9 @@ class _Config extends StatelessWidget {
     final available = st._available();
     final chosen = st._sets.where((id) => available.any((s) => s['id'] == id)).toList();
     final theme = Theme.of(context);
-    final program = chosen.length == 1 ? engine.program(chosen.first, st._programOf[chosen.first]) : null;
+    final program = st._mode == 'solo' && chosen.length == 1 ? engine.program(chosen.first, st._programOf[chosen.first]) : null;
     final warnings = engine.requiredWarnings(st._selections());
-    final parallel = st._mode == 'parallel';
+    final label = theme.textTheme.labelLarge;
     return SizedBox(
       height: height,
       child: SingleChildScrollView(
@@ -377,33 +463,23 @@ class _Config extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Text(st.ps('ready'), style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final c in pauseContexts)
-              ChoiceChip(
-                key: Key('pause-context-$c'),
-                label: Text(L.t(pauseContextKeys[pauseContexts.indexOf(c)])),
-                selected: st._context == c,
-                onSelected: (_) => st.edit(() {
-                  st._context = c;
-                  st._sets.removeWhere((id) => !st._available().any((s) => s['id'] == id));
-                  if (st._sets.isEmpty && st._available().isNotEmpty) st._sets.add(st._available().first['id']);
-                }),
-              ),
-          ]),
+          Text(st.pc('context'), style: label),
+          const SizedBox(height: 6),
+          _chips('context', pauseContexts, st._context, (c) => st.edit(() {
+                st._context = c;
+                st._sets.removeWhere((id) => !st._available().any((s) => s['id'] == id));
+                if (st._sets.isEmpty && st._available().isNotEmpty) st._sets.add(st._available().first['id']);
+              })),
           const SizedBox(height: 12),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            for (final m in ['solo', 'parallel'])
-              ChoiceChip(
-                key: Key('pause-mode-$m'),
-                label: Text(st.ps(m)),
-                selected: (st._mode == 'parallel') == (m == 'parallel'),
-                onSelected: (_) => st.edit(() {
-                  st._mode = m;
-                  if (m == 'solo' && st._sets.length > 1) st._sets.removeRange(1, st._sets.length);
-                }),
-              ),
-          ]),
+          Text(st.pc('mode'), style: label),
+          const SizedBox(height: 6),
+          _chips('mode', pauseModes, st._mode, (m) => st.edit(() {
+                st._mode = m;
+                if (m == 'solo' && st._sets.length > 1) st._sets.removeRange(1, st._sets.length);
+              })),
           const SizedBox(height: 12),
+          Text(st.pc('choosePractices'), style: label),
+          const SizedBox(height: 6),
           Wrap(spacing: 8, runSpacing: 8, children: [
             for (final set in available)
               FilterChip(
@@ -412,7 +488,7 @@ class _Config extends StatelessWidget {
                 selected: chosen.contains(set['id']),
                 onSelected: (on) => st.edit(() {
                   final id = set['id'] as String;
-                  if (!parallel) {
+                  if (st._mode == 'solo') {
                     st._sets
                       ..clear()
                       ..add(id);
@@ -425,13 +501,13 @@ class _Config extends StatelessWidget {
               ),
           ]),
           const SizedBox(height: 12),
-          Text(L.t('duration'), style: theme.textTheme.labelLarge),
+          Text(st.pc('duration'), style: label),
           const SizedBox(height: 6),
           Wrap(spacing: 8, children: [
             for (final m in pauseMinutes)
               ChoiceChip(
                 key: Key('pause-minutes-$m'),
-                label: Text('$m′'),
+                label: Text(st.pc('dur$m')),
                 selected: st._presetSeconds == null && st._minutes == m,
                 onSelected: (_) => st.edit(() {
                   st._minutes = m;
@@ -439,6 +515,10 @@ class _Config extends StatelessWidget {
                 }),
               ),
           ]),
+          const SizedBox(height: 12),
+          Text(st.pc('guide'), style: label),
+          const SizedBox(height: 6),
+          _chips('guide', pauseGuides, st._guide, (g) => st.edit(() => st._guide = g)),
           if (program != null) ...[
             const SizedBox(height: 12),
             DropdownButton<String>(
@@ -465,7 +545,7 @@ class _Config extends StatelessWidget {
           ],
           if (warnings.isNotEmpty) ...[
             const SizedBox(height: 16),
-            Text(st.ps('warnings'), style: theme.textTheme.labelLarge),
+            Text(st.pc('warningsTitle'), style: label),
             for (final id in warnings)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
@@ -473,28 +553,6 @@ class _Config extends StatelessWidget {
               ),
           ],
         ]),
-      ),
-    );
-  }
-}
-
-class _StartBar extends StatelessWidget {
-  const _StartBar({required this.screen});
-
-  final PauseScreenState screen;
-
-  @override
-  Widget build(BuildContext context) {
-    final st = screen;
-    final chosen = st._sets.where((id) => st._available().any((s) => s['id'] == id)).length;
-    final ready = chosen > 0 && (st._mode != 'parallel' || chosen >= 2);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      child: FilledButton.icon(
-        key: const Key('pause-start'),
-        onPressed: ready ? st.start : null,
-        icon: const Icon(Icons.play_arrow),
-        label: Text(st.ps('start')),
       ),
     );
   }
@@ -560,13 +618,19 @@ class _Done extends StatelessWidget {
         const SizedBox(height: 12),
         // Две равные колонки: подпись на длинном языке переносится, а не выталкивает соседа.
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Expanded(child: _Metric(label: L.t('pauseMinutesDone'), value: '${(duration / 60000).round()}', icon: Icons.timer_outlined)),
-          Expanded(child: _Metric(label: L.t('pauseSetsDone'), value: '${sets.length}', icon: Icons.self_improvement)),
+          Expanded(child: _Metric(label: st.pc('summaryMin'), value: '${(duration / 60000).round()}', icon: Icons.timer_outlined)),
+          Expanded(
+            child: _Metric(
+              label: st.pc('catalogItems').replaceAll('{count}', '').trim(),
+              value: '${sets.length}',
+              icon: Icons.self_improvement,
+            ),
+          ),
         ]),
         const SizedBox(height: 12),
         for (final id in sets) Text('✓ ${st._text(engine.set(id)['title'])}', textAlign: TextAlign.center),
         const SizedBox(height: 8),
-        Text(st.ps('completionOnly'), style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
+        Text(st.pc('completionPrivacy'), style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
         const SizedBox(height: 16),
         FilledButton.icon(
           key: const Key('pause-again'),

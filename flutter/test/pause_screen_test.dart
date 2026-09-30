@@ -14,10 +14,13 @@ import 'package:psygames_flutter/games/pause/screen.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:psygames_flutter/shell/voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   final engine = Practices(jsonDecode(File('assets/pause/practices.json').readAsStringSync()) as Json);
+  final copy = jsonDecode(File('assets/pause/copy.json').readAsStringSync()) as Json;
+  late _Voice voice;
   late SharedState state;
   late List<Map<String, dynamic>> reports;
   var now = 0;
@@ -40,7 +43,10 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(MaterialApp(home: PauseScreen(state: state, engine: engine, clock: () => now)));
+    voice = _Voice();
+    await tester.pumpWidget(MaterialApp(
+      home: PauseScreen(state: state, engine: engine, copy: copy, clock: () => now, voice: VoiceLayer(backend: voice, soundOn: () => true)),
+    ));
     await tester.pump();
   }
 
@@ -122,7 +128,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 16));
     await tester.tap(find.byIcon(Icons.arrow_back));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Выйти'));
+    expect(find.text('Выйти без записи'), findsWidgets, reason: 'подпись — словарём страницы, как в вебе');
+    await tester.tap(find.byKey(const Key('pause-leave')));
     await tester.pumpAndSettle();
     now = 999999;
     await tester.pump(const Duration(milliseconds: 16));
@@ -172,4 +179,75 @@ void main() {
     expect(reports.single['mode'], 'parallel');
     expect((reports.single['details']['sets'] as List).toSet(), {'breathing', 'eye-gym'});
   });
+
+  testWidgets('🔴 маршрут: наборы идут друг за другом одной сессией', (tester) async {
+    await open(tester);
+    await tester.tap(find.byKey(const Key('pause-mode-charge')));
+    await tester.pump();
+    for (final id in ['breathing', 'eye-gym']) {
+      final chip = find.byKey(Key('pause-set-$id'));
+      if (!tester.widget<FilterChip>(chip).selected) await tester.tap(chip);
+      await tester.pump();
+    }
+    await tester.ensureVisible(find.byKey(const Key('pause-minutes-2')));
+    await tester.tap(find.byKey(const Key('pause-minutes-2')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('pause-start')));
+    await tester.pump();
+    expect(find.byKey(const Key('pause-playing')), findsOneWidget);
+    now = 121000;
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.pump();
+    expect(reports.single['mode'], 'charge');
+    expect((reports.single['details']['sets'] as List).toSet(), {'breathing', 'eye-gym'});
+    expect(reports.single['time_seconds'], 120);
+  });
+
+  testWidgets('🔴 «экран + звук» называет шаг голосом, «только экран» молчит', (tester) async {
+    await open(tester);
+    await tester.ensureVisible(find.byKey(const Key('pause-guide-both')));
+    await tester.tap(find.byKey(const Key('pause-guide-both')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('pause-start')));
+    await tester.pump();
+    expect(voice.spoken, hasLength(1), reason: 'первый шаг назван сразу');
+    final firstTitle = tester.widgetList<Text>(find.descendant(of: find.byKey(const Key('pause-playing')), matching: find.byType(Text))).first.data!;
+    expect(voice.spoken.single, startsWith(firstTitle));
+    await tester.tap(find.byKey(const Key('pause-pause')));
+    await tester.pump();
+    expect(voice.cancels, greaterThan(0), reason: 'на паузе голос замолкает');
+
+    // Тот же старт с «только экран» — ни слова.
+    await tester.tap(find.byKey(const Key('pause-restart')));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('pause-guide-visual')));
+    await tester.tap(find.byKey(const Key('pause-guide-visual')));
+    await tester.pump();
+    voice.spoken.clear();
+    await tester.tap(find.byKey(const Key('pause-start')));
+    await tester.pump();
+    now = 30000;
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(voice.spoken, isEmpty);
+  });
+}
+
+class _Voice implements VoiceBackend {
+  final spoken = <String>[];
+  var cancels = 0;
+
+  @override
+  Future<bool> playUrl(String url, double rate) async => false;
+
+  @override
+  Future<bool> speakSystem(String text, String bcp47, double rate) async {
+    spoken.add(text);
+    return true;
+  }
+
+  @override
+  Future<bool> hasSystemVoice(String bcp47) async => true;
+
+  @override
+  Future<void> cancel() async => cancels++;
 }

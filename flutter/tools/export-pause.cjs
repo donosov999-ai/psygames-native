@@ -190,6 +190,16 @@ for (const set of e.PRACTICE_CATALOG) {
     }
   }
 }
+// Подписи планировщика — словарь САМОЙ страницы (`copy`, 12 языков): человек видит в
+// нативной «Паузе» те же слова, что в веб-версии, и второй словарь не заводится.
+const copyDecl = ast.program.body
+  .flatMap((n) => n.declarations || (n.declaration && n.declaration.declarations) || [])
+  .find((d) => d.id && d.id.name === 'copy');
+if (!copyDecl) throw Error('в странице зарядки нет словаря copy');
+const pageCopy = vm.runInNewContext('(' + pageSource.slice(copyDecl.init.start, copyDecl.init.end) + ')', {}, { timeout: 1000 });
+fs.writeFileSync(path.join(root, 'flutter/assets/pause/copy.json'), JSON.stringify(pageCopy, null, 1) + '\n');
+console.log(`подписи страницы: ${Object.keys(pageCopy).length} языков, ${Object.keys(pageCopy.ru).length} строк → flutter/assets/pause/copy.json`);
+
 // Фигуры тела и позы — те же webp, что у веб-страницы (652 КБ, а не 9,3 МБ PNG настольной версии).
 const bodies = path.join(root, 'flutter/assets/pause/cosmic-body');
 fs.rmSync(bodies, { recursive: true, force: true });
