@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -84,7 +85,14 @@ class _SetGameScreenState extends State<SetGameScreen> {
     LessonUsed.reset();
     _tick?.cancel();
     _next?.cancel();
-    _params = levelParams(_ladder.level);
+    // 🔴 ШАГ ЗАРЯДКИ — СВОЁ ЧИСЛО РАСКЛАДОВ И БЕЗ ЛИМИТА ВРЕМЕНИ, как в вебе
+    // (`set-game.tsx`: `isPreset ? { trials, timeLimit: 0 } : levelParams(...)`).
+    // Разминка не должна давить часами; число раскладов задаёт шаг (по
+    // умолчанию 6), а не ступень лестницы. Лестница при пресете и так не
+    // двигается — это держит каркас (LevelLadder).
+    _params = GamePreset.isPreset
+        ? SetParams(trials: GamePreset.num('trials', 6), timeLimit: 0)
+        : levelParams(_ladder.level);
     _round = 1;
     _hits = 0;
     _errors = 0;

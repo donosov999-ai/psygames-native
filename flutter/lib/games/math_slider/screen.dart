@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
@@ -80,7 +81,16 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
 
   /// Зерно партии — `math-slider-<уровень>`, как в вебе: один и тот же уровень
   /// даёт одни и те же примеры, поэтому «повторить эти же» имеет смысл.
-  String get _seed => 'math-slider-${_ladder.level}';
+  /// 🔴 УРОВЕНЬ ПАРТИИ — ИЗ ШАГА ЗАРЯДКИ, ЕСЛИ ШАГ ЕГО ЗАДАЛ, ИНАЧЕ ЛИЧНЫЙ.
+  ///
+  /// Шаг передаёт уровень по правилу Дениса от 13.09.2026 «освоенный минус 20 %»
+  /// (`warmup.ts`, `уровеньШага`): разминка заходит чуть ниже потолка, а не
+  /// пытается взять максимум. Веб делает ровно так (`math-slider.tsx`:
+  /// `num('level', lvl.level)`), и от этого же уровня строит зерно. Лестница при
+  /// этом не двигается — это держит каркас.
+  int get _playLevel => GamePreset.num('level', _ladder.level);
+
+  String get _seed => 'math-slider-$_playLevel';
 
   void _reset() {
     // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
@@ -89,7 +99,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
     LessonUsed.reset();
     _auto?.cancel();
     _advance?.cancel();
-    _questions = generateMathSliderQuestions(_seed, _ladder.level, trialsPerRound);
+    _questions = generateMathSliderQuestions(_seed, _playLevel, trialsPerRound);
     _training = generateTrainingQuestion(_seed);
     _trials.clear();
     _phase = _Phase.training;
@@ -223,7 +233,7 @@ class _MathSliderScreenState extends State<MathSliderScreen> {
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: 'Уровень', value: '$_playLevel', icon: Icons.flag_outlined),
         HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(
           label: 'Задание',
