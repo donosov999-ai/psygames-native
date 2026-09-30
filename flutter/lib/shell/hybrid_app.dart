@@ -80,6 +80,7 @@ import 'l10n.dart';
 import '../games/sorting_hub/screen.dart';
 import '../games/faces_names/screen.dart';
 import '../games/memory_palace/screen.dart';
+import '../games/mnemonics/screen.dart';
 import '../games/rmet/screen.dart';
 import '../games/word_pairs/screen.dart';
 import '../games/vocab_srs/screen.dart';
@@ -259,6 +260,7 @@ class HybridApp extends StatefulWidget {
         '/games/inhibition': (s) => InhibitionScreen(state: s),
         '/games/faces-names': (s) => FacesNamesScreen(state: s),
         '/games/memory-palace': (s) => MemoryPalaceScreen(state: s),
+        '/games/mnemonics': (s) => MnemonicsScreen(state: s),
         '/games/rmet': (s) => RmetScreen(state: s),
         '/games/ant': (s) => AntScreen(state: s),
         // РАЗВИЛКА «КОНФЛИКТ ВНИМАНИЯ» — НА ОБЩЕМ ЭКРАНЕ, СВОЕГО НЕ ПИШЕМ. Девять
