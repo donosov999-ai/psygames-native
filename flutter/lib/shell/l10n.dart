@@ -41,7 +41,14 @@ class L {
     final loc = resolve(code);
     final b = bundle ?? rootBundle;
     try {
-      final raw = await b.loadString('assets/l10n/$loc.json');
+      // 🔴 БАЙТЫ И РАЗБОР — ЗДЕСЬ, А НЕ `loadString`. Тот для файла больше 50 КБ уходит в изолят
+      // (`compute`), а изолят в тестовой зоне `testWidgets` не продвигается: любая проба, зовущая
+      // `L.load` без `runAsync`, висит до тайм-аута в 10 минут. Замер 30.09.2026: `ru.json` на main
+      // 50 619 байт — на 581 байт ниже порога; пять новых ключей дали 52 063, и проба витрины
+      // товаров встала тайм-аутом. `hi.json` за порогом уже (61 КБ). Для файла меньше 50 КБ
+      // `loadString` делает ровно это же — без изолята.
+      final data = await b.load('assets/l10n/$loc.json');
+      final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
       _dict = (jsonDecode(raw) as Map<String, dynamic>).cast<String, String>();
       _locale = loc;
     } catch (_) {

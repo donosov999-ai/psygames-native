@@ -12,6 +12,7 @@ import 'package:psygames_flutter/games/navigator/strings.dart';
 import 'package:psygames_flutter/games/navigator/types.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
+import 'package:psygames_flutter/shell/lesson_player.dart';
 import 'package:psygames_flutter/shell/level_ladder.dart';
 import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_level_store.dart';
@@ -316,6 +317,67 @@ void main() {
     await tester.pump();
     expect(shown('nav-resume'), isTrue, reason: 'приложение ушло с экрана — партия на паузе');
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+  });
+
+  testWidgets('🔴 разбор: три приёма названы словами, стимул — карта игры, ответ посчитан ядром', (tester) async {
+    await open(tester);
+    expect(shown('game-lesson'), isTrue, reason: 'кнопка разбора есть до партии — учить надо ДО неё');
+    final trials = navigatorLessonTrials(nav);
+    expect(trials, hasLength(3), reason: 'три режима — три приёма');
+    for (final t in trials) {
+      expect(t.rule, isNotNull);
+      expect(t.rule!.startsWith('teachNavigator'), isFalse, reason: 'приём назван словами, а не ключом: ${t.rule}');
+      expect(t.art, isA<NavigatorMap>(), reason: 'стимул — карта самой игры, а не рисунок «похоже»');
+      expect(t.answer, isNotEmpty);
+    }
+    final route = createNavigatorSession(
+      const NavigatorSessionConfig(seed: 'navigator-lesson', level: 1, mode: NavigatorMode.routeRecall),
+    ).round;
+    expect(trials[0].answer,
+        route.routeDirections.map((d) => navigatorDirectionGlyphs[rotateCardinal(d, route.mapRotation)]).join(' '),
+        reason: 'ответ маршрута — стрелки, посчитанные ядром по той же раздаче');
+    final home = createNavigatorSession(
+      const NavigatorSessionConfig(seed: 'navigator-lesson', level: 3, mode: NavigatorMode.homeDirection),
+    ).round;
+    expect(trials[2].answer, contains(nav.home(rotateHomeSector(home.correctHomeSector, home.mapRotation))));
+    await press(tester, 'game-lesson');
+    await tester.pump(const Duration(milliseconds: 500));   // переход на экран плеера
+    expect(find.byType(LessonPlayerScreen), findsOneWidget);
+  });
+
+  testWidgets('🔴 разбор ДО раунда партию не портит, посреди раунда — лестница стоит', (tester) async {
+    final round = roundFor(1);
+    Future<void> finish() async {
+      for (final d in round.routeDirections) {
+        await tester.sendKeyEvent(arrows[rotateCardinal(d, round.mapRotation)]!);
+        await tester.pump();
+      }
+      await tester.pump();
+    }
+
+    Future<void> lessonAndBack() async {
+      await press(tester, 'game-lesson');
+      tester.state<NavigatorState>(find.byType(Navigator).first).pop();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    // До раунда: разбор показал ДРУГИЕ доски — партия засчитывается.
+    await open(tester);
+    await lessonAndBack();
+    await toRecall(tester);
+    await finish();
+    expect(reports.single['errors'], 0);
+    expect(await storedLevel(), 2, reason: 'разбор до раунда не отнимает зачёт');
+
+    // Посреди раунда: разбор смотрели — партия в лестницу не идёт, но в статистику идёт.
+    reports.clear();
+    GamePreset.set({'level': '1'});
+    await open(tester);
+    await toRecall(tester);
+    await lessonAndBack();
+    await finish();
+    expect(reports, hasLength(1), reason: 'партия с разбором всё равно уходит в статистику');
+    expect(await storedLevel(), 2, reason: 'партия с разбором лестницу не двигает');
   });
 
   testWidgets('🔴 двенадцать языков: ни на правилах, ни в ответе не показан голый ключ', (tester) async {

@@ -4,15 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/js_compat.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'generator.dart';
+import 'geometry.dart';
 import 'scoring.dart';
 import 'session.dart';
 import 'strings.dart';
@@ -94,6 +97,8 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
 
   /// Новая партия на текущем уровне. Уровень из шага зарядки важнее сохранённого.
   void _deal() {
+    // Новая раздача — снова зачётная (договор shell/lesson.dart).
+    LessonUsed.reset();
     _level = GamePreset.num('level', _ladder.level).clamp(1, navigatorLevels);
     final asked = GamePreset.str('mode');
     final mode = NavigatorMode.values.where((m) => m.wire == asked).firstOrNull ?? navigatorModeForLevel(_level);
@@ -172,6 +177,7 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
       onKeyEvent: _onKey,
       child: GameShell(
         title: L.t('navigator'),
+        onLesson: () => openDemoLesson(context, title: L.t('navigator'), trials: navigatorLessonTrials(s)),
         hud: [HudItem(label: L.t('level'), value: '$_level', icon: Icons.flag_outlined)],
         field: (context, h) => _field(context, h, s, session),
         auxRow: AuxBar(children: [
@@ -198,7 +204,15 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
   Widget _field(BuildContext context, double h, NavigatorStrings s, NavigatorSession session) {
     switch (session.phase) {
       case NavigatorPhase.rules:
-        return _RulesView(strings: s, onStart: () => _update((x) => startNavigatorRound(x, _now())));
+        return _RulesView(
+          strings: s,
+          onStart: () {
+            // Доска партии впервые показывается здесь. Разбор, открытый на экране правил, показывал
+            // ДРУГИЕ доски — эту партию он не подсказывал, и засчитывать её можно.
+            LessonUsed.reset();
+            _update((x) => startNavigatorRound(x, _now()));
+          },
+        );
       case NavigatorPhase.paused:
         return _CardView(children: [
           _Heading(s.t('pause')),
@@ -478,4 +492,45 @@ class _RulesView extends StatelessWidget {
       ),
     );
   }
+}
+
+/// РАЗБОР «НАВИГАТОРА»: три режима — три приёма, каждый назван словами.
+///
+/// 🔴 СТИМУЛ — КАРТА САМОЙ ИГРЫ, А НЕ РИСУНОК «ПОХОЖЕ»: тот же [NavigatorMap] с маршрутом, что человек
+/// видит при изучении. Ответ подписан так же, как кнопки в партии (глиф и слово из словаря модуля),
+/// и посчитан ЯДРОМ по той же раздаче — не придуман.
+///
+/// ⚠️ Зерно разбора своё (`navigator-lesson`), не зерно партии: разбор учит приёму на соседней доске и
+/// не подсказывает ответ текущей партии.
+List<DemoTrial> navigatorLessonTrials(NavigatorStrings s) {
+  NavigatorSession deal(int level, NavigatorMode mode) =>
+      createNavigatorSession(NavigatorSessionConfig(seed: 'navigator-lesson', level: level, mode: mode));
+  Widget map(NavigatorSession x) =>
+      NavigatorMap(session: x, strings: s, side: 220, showRoute: true, showCurrent: false);
+  final route = deal(1, NavigatorMode.routeRecall);
+  final turns = deal(2, NavigatorMode.turnSequence);
+  final home = deal(3, NavigatorMode.homeDirection);
+  final homeSector = rotateHomeSector(home.round.correctHomeSector, home.round.mapRotation);
+  return [
+    DemoTrial(
+      text: '',
+      art: map(route),
+      answer: route.round.routeDirections
+          .map((d) => navigatorDirectionGlyphs[rotateCardinal(d, route.round.mapRotation)]!)
+          .join(' '),
+      rule: L.t('teachNavigatorRoute'),
+    ),
+    DemoTrial(
+      text: '',
+      art: map(turns),
+      answer: turns.round.turns.map((t) => '${navigatorTurnGlyphs[t]} ${s.turn(t)}').join(' · '),
+      rule: L.t('teachNavigatorTurns'),
+    ),
+    DemoTrial(
+      text: '',
+      art: map(home),
+      answer: '${navigatorHomeGlyphs[homeSector]} ${s.home(homeSector)}',
+      rule: L.t('teachNavigatorHome'),
+    ),
+  ];
 }

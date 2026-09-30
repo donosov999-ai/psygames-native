@@ -24,14 +24,15 @@ Color navigatorOn(Color background) =>
     ? Colors.white
     : Colors.black;
 
-const _directionGlyphs = {
+/// Глифы кнопок ответа — те же, что у веба; ими же подписан ответ в разборе.
+const navigatorDirectionGlyphs = {
   Cardinal.north: '↑',
   Cardinal.east: '→',
   Cardinal.south: '↓',
   Cardinal.west: '←',
 };
-const _turnGlyphs = {Turn.left: '↰', Turn.straight: '↑', Turn.right: '↱'};
-const _homeGlyphs = {
+const navigatorTurnGlyphs = {Turn.left: '↰', Turn.straight: '↑', Turn.right: '↱'};
+const navigatorHomeGlyphs = {
   HomeSector.north: '↑',
   HomeSector.northEast: '↗',
   HomeSector.east: '→',
@@ -345,7 +346,7 @@ class NavigatorChoices extends StatelessWidget {
         for (final d in Cardinal.values)
           (
             id: d.wire,
-            glyph: _directionGlyphs[d]!,
+            glyph: navigatorDirectionGlyphs[d]!,
             label: strings.direction(d),
             value: d,
           ),
@@ -353,7 +354,7 @@ class NavigatorChoices extends StatelessWidget {
         for (final t in Turn.values)
           (
             id: t.wire,
-            glyph: _turnGlyphs[t]!,
+            glyph: navigatorTurnGlyphs[t]!,
             label: strings.turn(t),
             value: t,
           ),
@@ -361,7 +362,7 @@ class NavigatorChoices extends StatelessWidget {
         for (final h in HomeSector.values)
           (
             id: h.wire,
-            glyph: _homeGlyphs[h]!,
+            glyph: navigatorHomeGlyphs[h]!,
             label: strings.home(h),
             value: h,
           ),
@@ -497,7 +498,7 @@ class NavigatorTurnStudy extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            '${strings.direction(round.startingFacing)} ${_directionGlyphs[round.startingFacing]}',
+            '${strings.direction(round.startingFacing)} ${navigatorDirectionGlyphs[round.startingFacing]}',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
@@ -528,7 +529,7 @@ class NavigatorTurnStudy extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            _turnGlyphs[round.turns[i]]!,
+                            navigatorTurnGlyphs[round.turns[i]]!,
                             style: TextStyle(
                               fontSize: 30,
                               height: 1.13,

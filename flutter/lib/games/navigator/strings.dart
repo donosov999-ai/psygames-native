@@ -49,7 +49,10 @@ class NavigatorStrings {
     if (_loaded != null && _loadedLocale == loc) return _loaded!;
     final b = bundle ?? rootBundle;
     try {
-      final all = jsonDecode(await b.loadString('assets/l10n/navigator.json')) as Map<String, dynamic>;
+      // Байты и разбор здесь, как в `L.load`: `loadString` от 50 КБ уходит в изолят, и в пробах висит.
+      final data = await b.load('assets/l10n/navigator.json');
+      final all = jsonDecode(utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes)))
+          as Map<String, dynamic>;
       final one = (all[loc] ?? all['en']) as Map<String, dynamic>?;
       _loaded = NavigatorStrings._((one ?? const {}).map((k, v) => MapEntry(k, '$v')));
     } catch (_) {
