@@ -73,6 +73,9 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
   /// Уровень партии. Шаг зарядки задаёт свой (profiles.ts: 6 и 12), но не выше личного + 1 —
   /// как в вебе (`capPresetByLevel`). 🔴 До 30.09.2026 шаг читался только вебом: в приложении
   /// зарядка молча играла личный уровень.
+  /// Открыто для пробы: уровень, на котором идёт партия.
+  int get roundLevel => _roundLevel;
+
   int get _roundLevel => GamePreset.isPreset
       ? capPresetByLevel(want: GamePreset.num('level', _ladder.level), atLevel: _ladder.level)
       : _ladder.level;
