@@ -1127,6 +1127,20 @@ const translations: Translations = {
    * 🎓 РАЗБОР «ЛИЦ И ИМЁН». Приём: цеплять имя за ОДНУ черту лица, факт держать вторым
    * крючком. Черту подставляет экран из настоящего портрета, факт — из словаря игры.
    */
+  /*
+   * 🎓 РАЗБОР «МНЕМОНИКИ». Два приёма на два режима: цепочка сцен для слов и
+   * буквенно-цифровой код для чисел. Слова опор подставляет экран из словаря 00–99.
+   */
+  teachMnemoIntroWords: { ru: 'Ряд из {n} слов держится не счётом «первое, второе», а ЦЕПОЧКОЙ сцен: каждое следующее слово что-то делает с предыдущим.', en: 'A row of {n} words holds together not by counting “first, second” but by a CHAIN of scenes: each next word does something to the previous one.' },
+  teachMnemoIntroNumbers: { ru: 'Цифры голой памятью не держатся. Приём: число превращается в СЛОВО по согласным, а слова уже связываются в цепочку. Разберём {n} чисел этого ряда.', en: 'Bare digits do not stick. The technique: turn each number into a WORD by its consonants, then chain the words. Let us work through {n} numbers of this row.' },
+  teachMnemoIntroNumbersNoPegs: { ru: 'Цифры голой памятью не держатся: связывайте их в сцены по две-три, а не повторяйте подряд. Таблицы опор для этого языка пока нет.', en: 'Bare digits do not stick: bind them into scenes two or three at a time instead of repeating the row. There is no peg table for this language yet.' },
+  teachMnemoPegFirst: { ru: '{n} — это «{word}» ({why}). Согласные и дают слово: гласные свободны, поэтому подставляются любые.', en: '{n} is “{word}” ({why}). The consonants make the word: vowels are free, so any of them fit.' },
+  teachMnemoPeg: { ru: '{n} — «{word}» ({why}).', en: '{n} — “{word}” ({why}).' },
+  teachMnemoChain: { ru: 'Свяжите «{a}» и «{b}» в одну сцену: пусть первое действует со вторым. Так порядок держится сам.', en: 'Bind “{a}” and “{b}” into one scene: let the first act on the second. The order then holds by itself.' },
+  teachMnemoWordFirst: { ru: 'Первое слово — «{b}». Представьте его как предмет в конкретном месте, а не как надпись.', en: 'The first word is “{b}”. Picture it as an object in a concrete place, not as text.' },
+  teachMnemoChainWords: { ru: '«{a}» → «{b}»: одна сцена, где первое делает что-то со вторым. Чем нелепее, тем крепче.', en: '“{a}” → “{b}”: one scene where the first does something to the second. The more absurd, the stronger.' },
+  teachMnemoOrder: { ru: 'Отвечать надо ПО ПОРЯДКУ, поэтому цепочка и нужна: вспоминаете первую сцену, она тянет вторую. Всего в ряду {n}.', en: 'You answer IN ORDER, which is why the chain matters: recall the first scene and it pulls the second. The row has {n}.' },
+  teachMnemoDone: { ru: 'Так и играйте: превратили в образы, связали в цепочку, прошли её по порядку.', en: 'Play it the same way: turn them into images, chain them, then walk the chain in order.' },
   teachFacesIntro: { ru: 'Лицо запоминается не целиком, а одной ЧЕРТОЙ, которая отличает его от соседних. Сейчас разберём несколько из этих {n}.', en: 'A face is remembered by one distinctive FEATURE, not as a whole. Let us work through a few of these {n}.' },
   teachFacesFeatureFirst: { ru: '{name}. Черта: {feature}. Свяжите имя именно с ней, а не с «лицом вообще»: на опросе вы будете искать эту черту. Факт — второй крючок: {fact}.', en: '{name}. The feature: {feature}. Tie the name to it, not to “the face” in general: at the test you will look for this feature. The fact is a second hook: {fact}.' },
   teachFacesFeature: { ru: '{name}. Черта: {feature}. Снова одна зацепка и имя на ней. Факт вторым крючком: {fact}.', en: '{name}. The feature: {feature}. One hook again, with the name on it. The fact as a second hook: {fact}.' },
