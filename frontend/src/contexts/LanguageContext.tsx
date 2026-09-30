@@ -3928,6 +3928,7 @@ const translations: Translations = {
   rbBank: { ru: 'Сохранить', en: 'Bank' },
   rbYou: { ru: 'Ты', en: 'You' },
   rbBot: { ru: 'Бот', en: 'Bot' },
+  rbHeadStart: { ru: 'фора {n}', en: 'head start {n}' },
   rbGoal: { ru: 'Финиш', en: 'Finish' },
   rbBusts: { ru: 'Сгорело', en: 'Burnt' },
   rbYourTurn: { ru: 'Твой ход', en: 'Your turn' },
