@@ -3088,6 +3088,11 @@ const t: Record<string, string> = {
   "teachPhAnswerSpot": "刚才是“{w}”——不同之处是 {dx}。",
   "teachPhAnswerVowel": "刚才是“{w}”——不同之处在元音。",
   "teachPhDone": "就这样作答：知道这对词在哪里不同，就只听那个位置。",
+  "teachDictIntro": "整句话记不住——要分段念给自己听。先听完整句，再分成两三个词一段，一段一段地打。",
+  "teachDictListen": "先把整句听完，什么都别打。",
+  "teachDictChunk": "第 {i} 段：“{c}”。先在心里念一遍，再打出来。",
+  "teachDictStuck": "卡在某个字上了？重听整句，而不是乱试：字不对，输入就不会往前走。",
+  "teachDictDone": "就这样写：先听整句 → 分成几段 → 一段一段念给自己听。",
   "block": "关卡",
   "seriesDone": "整轮完成。错误数",
   "yes": "是",
@@ -3179,11 +3184,6 @@ const t: Record<string, string> = {
   "hcAgain": "再来一次",
   "teachHiddenHalf": "问“{q}”：是的有 {yes} 个，不是的有 {no} 个。最好的问题能把剩下的人尽量分成两半：无论答案如何都能排除一半。",
   "teachHiddenLast": "只剩一个——就是他。选中他并点“就是他！”。",
-  "teachDictIntro": "整句话记不住——要分段念给自己听。先听完整句，再分成两三个词一段，一段一段地打。",
-  "teachDictListen": "先把整句听完，什么都别打。",
-  "teachDictChunk": "第 {i} 段：“{c}”。先在心里念一遍，再打出来。",
-  "teachDictStuck": "卡在某个字上了？重听整句，而不是乱试：字不对，输入就不会往前走。",
-  "teachDictDone": "就这样写：先听整句 → 分成几段 → 一段一段念给自己听。",
   "rbHeadStart": "领先 {n}",
 };
 export default t;
