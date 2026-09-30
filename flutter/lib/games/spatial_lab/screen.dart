@@ -33,6 +33,19 @@ import 'twiddle.dart';
 /// (`SpatialLab.tsx`, `ДВОЙНОЕ_НАЖАТИЕ_МС`): порог у двух половин приложения обязан совпадать.
 const labDoubleTapMs = 350;
 
+/// Правила упражнения из общего словаря.
+///
+/// ⚠️ ВЫЗОВЫ `L.t('…')` СТОЯТ ЛИТЕРАЛАМИ НАРОЧНО. `flutter/tools/embed-l10n.mjs` вырезает в
+/// `assets/l10n/` только те ключи, что видит как `L.t('ключ')`. Спрячь ключ в переменную или
+/// в поле — скрипт отработает зелёным, ключа в словаре приложения не будет, и вместо правил
+/// человек увидит `spatialLabRulesNet`. Замер 23.09.2026 на развилке: 49 ключей вместо 69.
+String labRules(LabMode mode) => switch (mode) {
+  LabMode.twiddle => L.t('spatialLabRulesTwiddle'),
+  LabMode.net => L.t('spatialLabRulesNet'),
+  LabMode.sixteen => L.t('spatialLabRulesSixteen'),
+  LabMode.netslide => L.t('spatialLabRulesNetslide'),
+};
+
 enum LabPhase { config, playing }
 
 class SpatialLabScreen extends StatefulWidget {
@@ -297,21 +310,14 @@ class _SpatialLabScreenState extends State<SpatialLabScreen> {
     context: context,
     builder: (ctx) => AlertDialog(
       title: Text(labModeWord(_mode)),
-      content: Text(switch (_mode) {
-        LabMode.twiddle =>
-          'Выбери блок 2×2 и поворачивай его, пока числа не встанут по порядку. Сами числа при '
-              'повороте остаются вертикальными.',
-        LabMode.net =>
-          'Поворачивай трубы, пока вода от источника не дойдёт до каждой из них и нигде не '
-              'останется открытого конца.',
-        LabMode.sixteen =>
-          'Строка или столбец сдвигаются по кругу на одну клетку. Расставь числа по порядку.',
-        LabMode.netslide =>
-          'Трубы не поворачиваются, а ездят целыми строками и столбцами. Источник едет вместе со '
-              'своей строкой.',
-      }),
+      // Правила — у КАЖДОГО упражнения свои, из общего с вебом словаря (задача 848da95d).
+      // Раньше тексты были зашиты по-русски: на любом другом из двенадцати языков правила
+      // открывались на русском. И описывали только цель — теперь ещё и управление, ровно то,
+      // что экран умеет: кнопки под полем, двойное нажатие у сети и поворота чисел, стрелки
+      // у сдвигов.
+      content: Text(labRules(_mode), key: const Key('правила-текст')),
       actions: [
-        TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Понятно')),
+        TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(L.t('btn_got_it'))),
       ],
     ),
   );

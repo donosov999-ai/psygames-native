@@ -60,7 +60,7 @@ void main() {
     'games/anagrams/crossword_screen.dart': 8,   // приёмка 23.09, владелец — «Слова»
     'games/mental_rotation/words.dart': 62,
     'games/mental_rotation/screen.dart': 58,
-    'games/spatial_lab/screen.dart': 51,
+    'games/spatial_lab/screen.dart': 43,
     'games/sudoku/screen.dart': 31,
     'games/math_slider/screen.dart': 27,
     'games/schulte/screen.dart': 26,
@@ -109,7 +109,8 @@ void main() {
   // 284 у соседнего раздела минус 65, погашенных «Конфликтом внимания» в этом же коммите,
   // плюс 224 принятых при вливании «Пространства» 23.09, минус 28 — развилка раздела и
   // названия упражнений переведены в том же коммите: они держат КЛЮЧИ, как и веб-сторона.
-  const total = 733;   // 725 + 8 приёмкой экрана кроссворда (23.09, b2181fd5)
+  const total = 725;   // 725 + 8 приёмкой экрана кроссворда (23.09, b2181fd5) − 8: правила четырёх
+                       // упражнений «Лаборатории» и «Понятно» ушли в словарь (30.09, задача 848da95d)
 
   final counts = _scan(Directory('lib'));
 
