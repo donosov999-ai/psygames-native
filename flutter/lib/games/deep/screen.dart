@@ -6,6 +6,10 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
+import '../sudoku/lesson.dart';
 import 'tree.dart';
 
 /// «БЕЗДНА» — фрактальная судоку с деревом до трёх слоёв, на общем каркасе.
@@ -239,6 +243,81 @@ class _DeepScreenState extends State<DeepScreen> {
     _save();
   }
 
+  /// 🔴 РАЗБОР «БЕЗДНЫ» — ПО ТОЙ СЕТКЕ, ГДЕ ЧЕЛОВЕК СЕЙЧАС (`_path`).
+  ///
+  /// У бездны сеток не девять, а дерево: разбирать не ту, в которую человек
+  /// спустился, значит объяснять доску, которой он не видит.
+  String _teach(String key, Map<String, String> args) {
+    var out = switch (key) {
+      'teachSudokuNaked' => L.t('teachSudokuNaked'),
+      'teachSudokuHiddenRow' => L.t('teachSudokuHiddenRow'),
+      'teachSudokuHiddenCol' => L.t('teachSudokuHiddenCol'),
+      'teachSudokuHiddenBox' => L.t('teachSudokuHiddenBox'),
+      _ => L.t('teachSudokuPlain'),
+    };
+    for (final e in args.entries) {
+      out = out.replaceAll('{${e.key}}', e.value);
+    }
+    return out;
+  }
+
+  /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
+  String get _title => 'Бездна';
+
+  List<LessonStep> _lessonSteps() {
+    if (_bank == null || _seed.isEmpty) return const [];
+    final node = _nodeAt(_path);
+    // Доска шага складывается из введённого И ПОДАННОГО СВЕРХУ: у бездны часть
+    // цифр приходит из родительской сетки, и разбор обязан считать их занятыми.
+    final grid = [
+      for (var r = 0; r < deepN; r += 1)
+        [for (var c = 0; c < deepN; c += 1) deepValueAt(_nodeAt, _grids, _path, r, c)],
+    ];
+    return sudokuLessonSteps(
+      say: _teach, grid: grid, solution: node.solution, n: deepN, br: 3, bc: 3,
+    );
+  }
+
+  Future<void> _openLesson() async {
+    final steps = _lessonSteps();
+    if (steps.isEmpty) return;
+    final node = _nodeAt(_path);
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _title,
+        steps: steps,
+        board: (context, side, shown) {
+          final m = steps[shown.clamp(0, steps.length - 1)].payload as SudokuMove;
+          final cell = side / deepN;
+          return Column(
+            children: [
+              for (var r = 0; r < deepN; r += 1)
+                SizedBox(
+                  height: cell,
+                  child: Row(
+                    children: [
+                      for (var c = 0; c < deepN; c += 1)
+                        _Cell(
+                          size: cell,
+                          row: r,
+                          col: c,
+                          value: m.grid[r][c],
+                          given: node.puzzle[r][c] != 0,
+                          feed: _isFeed(node, r, c),
+                          selected: m.r == r && m.c == c,
+                          onTap: (_, _) {},
+                        ),
+                    ],
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final bank = _bank;
@@ -247,7 +326,8 @@ class _DeepScreenState extends State<DeepScreen> {
     final progress = ready ? deepNodeProgress(_nodeAt, _grids, _path) : 0;
 
     return GameShell(
-      title: 'Бездна',
+      title: _title,
+      onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
         HudItem(
           label: 'Глубина',

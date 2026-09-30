@@ -1,4 +1,5 @@
 import 'game_preset.dart';
+import 'lesson.dart';
 import 'session_report.dart';
 
 /// Лестница уровней игры — перенос хука usePersistentLevel из React-версии.
@@ -64,7 +65,9 @@ class LevelLadder {
    */
   Future<void> win({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
     _failStreak = 0;
-    if (!GamePreset.isPreset) {
+    // Пресет — шаг зарядки, разбор — партия с показанным решением. В обоих
+    // случаях лестница меряла бы не человека, поэтому не двигается.
+    if (!GamePreset.isPreset && !LessonUsed.inRound) {
       if (_level < maxLevel) _level += 1;
       if (_level > _best) _best = _level;
       await _save();
@@ -85,9 +88,10 @@ class LevelLadder {
   /// зарядки так же, как выигранная. Иначе человек, проваливший шаг серии,
   /// застрял бы на нём навсегда.
   Future<void> fail({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
-    if (GamePreset.isPreset) {
-      // Партия-пресет не копит и провалов: иначе три шага зарядки подряд
-      // опустили бы личный уровень, которого человек в зарядке не выбирал.
+    if (GamePreset.isPreset || LessonUsed.inRound) {
+      // Ни пресет, ни партия с разбором не копят провалов: иначе три шага зарядки
+      // подряд (или три подсмотренных решения) опустили бы личный уровень, который
+      // человек в этих партиях и не защищал.
       await SessionReport.send(
         gameType: gameId,
         score: score,

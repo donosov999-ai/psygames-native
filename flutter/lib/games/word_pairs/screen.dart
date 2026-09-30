@@ -21,6 +21,9 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
+import 'lesson.dart';
 import 'model.dart';
 
 class WordPairsScreen extends StatefulWidget {
@@ -132,6 +135,90 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
     if (s.phase == WordPairsPhase.result) _finish(s);
   }
 
+  /// Тексты разбора — из словаря, теми же ключами, что зовёт веб-учитель.
+  String _teach(String key, Map<String, String> args) {
+    var out = switch (key) {
+      'teachPairsIntro' => L.t('teachPairsIntro'),
+      'teachPairsLinkFirst' => L.t('teachPairsLinkFirst'),
+      'teachPairsLink' => L.t('teachPairsLink'),
+      'teachPairsCheck' => L.t('teachPairsCheck'),
+      'teachPairsMatch' => L.t('teachPairsMatch'),
+      _ => L.t('teachPairsDone'),
+    };
+    for (final e in args.entries) {
+      out = out.replaceAll('{${e.key}}', e.value);
+    }
+    return out;
+  }
+
+  /// 🔴 РАЗБОР НУЖЕН ДО ПАРТИИ, А НЕ ПОСЛЕ. Приём запоминания объясняют ПЕРЕД тем,
+  /// как показать слова: узнав его после показа, человек уже проиграл раунд.
+  /// Поэтому, если партии ещё нет, разбор собирает пары сам — теми же правилами
+  /// уровня, какими их соберёт «Начать».
+  List<WordPair> _lessonPairs() {
+    final s = _session;
+    if (s != null) return s.pairs;
+    final c = _content;
+    if (c == null) return const [];
+    return WordPairsSession.build(
+      content: c,
+      locale: L.locale,
+      targetLocale: L.locale == 'en' ? 'es' : 'en',
+      mode: widget.mode,
+      level: _ladder.level,
+      seen: _readSeen(),
+    ).session.pairs;
+  }
+
+  Future<void> _openLesson() async {
+    final pairs = _lessonPairs();
+    if (pairs.isEmpty) return;
+    final steps = wordPairsLessonSteps(say: _teach, pairs: pairs);
+    if (steps.isEmpty) return;
+    LessonUsed.mark();
+    final shown = pairs.take(showPairs).toList();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: L.t('wordPairs'),
+        steps: steps,
+        board: (context, side, i) {
+          final card = steps[i.clamp(0, steps.length - 1)].payload as PairsCard;
+          final scheme = Theme.of(context).colorScheme;
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var k = 0; k < shown.length; k += 1)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: card.pair == k ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      child: Text(
+                        // ⚠️ На проверке второе слово ЗАКРЫТО: открытое не
+                        // проверяет ничего — человек прочитал бы ответ.
+                        card.pair == k && !card.open
+                            ? '${shown[k].left}  →  ?'
+                            : '${shown[k].left}  →  ${shown[k].right}',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: card.pair == k ? FontWeight.w800 : FontWeight.w500,
+                          color: card.pair == k ? scheme.onPrimaryContainer : scheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = _content;
@@ -144,6 +231,7 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
     final s = _session;
     return GameShell(
       title: L.t('wordPairs'),
+      onLesson: _openLesson,
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(

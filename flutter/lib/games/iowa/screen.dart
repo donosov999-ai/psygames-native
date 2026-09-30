@@ -14,6 +14,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -105,12 +106,21 @@ class _IowaScreenState extends State<IowaScreen> {
     _runs.win(score: _game!.bank < 0 ? 0 : _game!.bank, errors: _game!.result.disadvantageous);
   }
 
+  /// 🔴 КАРТОЧКИ БЕЗ ОТВЕТА — И ЭТО НЕ ПРОПУСК. Верного хода на ОТДЕЛЬНОЙ пробе
+  /// здесь нет: выигрывает стратегия. Подписать карточке «верно: так» значило бы
+  /// соврать — человек сделает так и проиграет на следующем шаге.
+  List<DemoTrial> _demoTrials() => [
+        DemoTrial(text: '', rule: L.t('teachIowaTotal')),
+        DemoTrial(text: '', rule: L.t('teachIowaSwitch')),
+      ];
+
   @override
   Widget build(BuildContext context) {
     final g = _game;
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
       title: L.t('iowa'),
+      onLesson: () => openDemoLesson(context, title: L.t('iowa'), trials: _demoTrials()),
       hud: [
         HudItem(label: L.t('hud_bank'), value: '${g.bank}', icon: Icons.account_balance_wallet_outlined),
         HudItem(label: L.t('hud_card'), value: '${g.round}/${g.trials}', icon: Icons.style_outlined),

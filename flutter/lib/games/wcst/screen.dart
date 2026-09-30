@@ -11,6 +11,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -138,12 +139,22 @@ class _WcstScreenState extends State<WcstScreen> {
     }
   }
 
+  /// 🔴 КАРТОЧКИ БЕЗ ОТВЕТА — И ЭТО НЕ ПРОПУСК. Верного хода на ОТДЕЛЬНОЙ пробе
+  /// здесь нет: выигрывает стратегия. Подписать карточке «верно: так» значило бы
+  /// соврать — человек сделает так и проиграет на следующем шаге.
+  List<DemoTrial> _demoTrials() => [
+        DemoTrial(text: '', rule: L.t('teachWcstHypothesis')),
+        DemoTrial(text: '', rule: L.t('teachWcstSwitch')),
+        DemoTrial(text: '', rule: L.t('teachWcstHold')),
+      ];
+
   @override
   Widget build(BuildContext context) {
     final g = _game;
     if (g == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
       title: L.t('wcst'),
+      onLesson: () => openDemoLesson(context, title: L.t('wcst'), trials: _demoTrials()),
       hud: [
         if (!widget.classic) HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('round'), value: '${g.round}/${g.trialsTotal}', icon: Icons.repeat),

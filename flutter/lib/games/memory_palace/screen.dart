@@ -29,6 +29,9 @@ import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
+import 'lesson.dart';
 import 'model.dart';
 
 /// Числа раскладки — те же, что в вебе (`PLACE_LAYOUT`).
@@ -126,6 +129,65 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
     if (s.phase == MemoryPalacePhase.result && r != null) _finish(r);
   }
 
+  /// Тексты разбора — из словаря, теми же ключами, что зовёт веб-учитель.
+  String _teach(String key, Map<String, String> args) {
+    var out = switch (key) {
+      'teachPalaceIntro' => L.t('teachPalaceIntro'),
+      'teachPalaceLinkFirst' => L.t('teachPalaceLinkFirst'),
+      'teachPalaceLink' => L.t('teachPalaceLink'),
+      'teachPalaceWalk' => L.t('teachPalaceWalk'),
+      'teachPalaceRecall' => L.t('teachPalaceRecall'),
+      'teachPalaceBack' => L.t('teachPalaceBack'),
+      _ => L.t('teachPalaceDone'),
+    };
+    for (final e in args.entries) {
+      out = out.replaceAll('{${e.key}}', e.value);
+    }
+    return out;
+  }
+
+  Future<void> _openLesson() async {
+    final s = _session;
+    final c = _content;
+    if (s == null || c == null) return;
+    final round = s.round;
+    final steps = palaceLessonSteps(say: _teach, round: round, locale: L.locale);
+    if (steps.isEmpty) return;
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: c.s(L.locale, 'title'),
+        steps: steps,
+        board: (context, side, i) {
+          final card = steps[i.clamp(0, steps.length - 1)].payload as PalaceCard;
+          final n = card.layout.length;
+          // Места идут в ряд по маршруту: порядок мест и есть порядок предметов,
+          // и показывать их сеткой значило бы стереть дорогу.
+          final w = (side / (n < 1 ? 1 : n)) - 6;
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              for (var k = 0; k < n; k += 1)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: PalaceLocusTile(
+                    locus: round.loci[k],
+                    width: w < 24 ? 24 : w,
+                    height: side * 0.7,
+                    phase: 'study',
+                    locale: L.locale,
+                    item: card.layout[k] == null ? null : round.item(card.layout[k]!),
+                    selected: card.place == k,
+                    showOrder: true,
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = _session;
@@ -138,6 +200,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
     }
     return GameShell(
       title: c.s(L.locale, 'title'),
+      onLesson: _openLesson,
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: c.s(L.locale, 'route'), value: '${s.round.lociCount}', icon: Icons.route_outlined),
@@ -295,7 +358,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> {
           alignment: WrapAlignment.center,
           children: [
             for (var i = 0; i < s.round.loci.length; i += 1)
-              _LocusTile(
+              PalaceLocusTile(
                 key: ValueKey('locus-$i'),
                 locus: s.round.loci[i],
                 width: width,
@@ -429,8 +492,8 @@ class _Pad extends StatelessWidget {
 }
 
 /// Плитка места: номер-ромб, название и слот под предмет.
-class _LocusTile extends StatelessWidget {
-  const _LocusTile({
+class PalaceLocusTile extends StatelessWidget {
+  const PalaceLocusTile({
     super.key,
     required this.locus,
     required this.width,

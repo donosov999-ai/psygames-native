@@ -1,4 +1,5 @@
 import 'game_pet.dart';
+import 'game_rules.dart';
 import 'l10n.dart';
 import 'package:flutter/material.dart';
 
@@ -21,6 +22,7 @@ class GameShell extends StatelessWidget {
     this.toolbar,
     this.onBack,
     this.onRules,
+    this.onLesson,
     this.pauseActions = const [],
   });
 
@@ -41,6 +43,20 @@ class GameShell extends StatelessWidget {
   final VoidCallback? onBack;
   final VoidCallback? onRules;
 
+  /*
+   * 🔴 РАЗБОР ПО ШАГАМ — КНОПКА В КАРКАСЕ, А НЕ В 38 ЭКРАНАХ.
+   *
+   * Решение Дениса 24.09.2026: «решатель и учитель вообще должны быть в каждом
+   * упражнении… кнопку решателя и учителя не забудь поставить в игры». Поставить
+   * её по одной в каждый экран — это тридцать восемь мест разойтись: где-то
+   * значок другой, где-то её забудут вовсе. Поэтому место у кнопки одно, рядом с
+   * «Правилами», и выглядит она везде одинаково.
+   *
+   * Игра передаёт сюда только «что делать по нажатию». Нет разбора у игры — нет и
+   * кнопки: объяснять отсутствие того, чего не видно, незачем.
+   */
+  final VoidCallback? onLesson;
+
   /// Пункты меню паузы: те же служебные действия плюс выход.
   final List<PauseAction> pauseActions;
 
@@ -56,7 +72,17 @@ class GameShell extends StatelessWidget {
               // Кнопка в шапке есть ВСЕГДА: раздел уточняет, куда вести, но не
               // решает, можно ли уйти. См. `_leave`.
               onBack: () => _leave(context),
-              onRules: onRules,
+              /*
+               * 🔴 СПРАВКА ЕСТЬ У КАЖДОЙ ИГРЫ, И ЭКРАН ЕЁ НЕ ПЕРЕДАЁТ.
+               *
+               * Заводить кнопку в каждый из полусотни перенесённых экранов —
+               * полсотни мест её забыть. Так уже вышло с выходом: `onBack`
+               * передавал ОДИН экран из тридцати восьми. Поэтому правило каркас
+               * спрашивает сам, по адресу открытой игры (`GameRules`), а экран
+               * может уточнить своё — тогда берётся его.
+               */
+              onRules: onRules ?? _rulesByRoute(context),
+              onLesson: onLesson,
               onPause: () => _pause(context),
             ),
             if (hud.isNotEmpty) _HudRow(items: hud),
@@ -96,6 +122,13 @@ class GameShell extends StatelessWidget {
    * уточнить поведение, но не может его ОТМЕНИТЬ, и это верно: экран без выхода
    * — не экран, а ловушка.
    */
+  /// Справка по адресу открытой игры; null — правила для неё нет.
+  VoidCallback? _rulesByRoute(BuildContext context) {
+    final key = GameRules.keyFor(GameRules.currentRoute);
+    if (key == null) return null;
+    return () => showGameRules(context, title: title, ruleKey: key);
+  }
+
   void _leave(BuildContext context) {
     if (onBack != null) {
       onBack!();
@@ -258,10 +291,11 @@ class PauseAction {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.title, this.onBack, this.onRules, this.onPause});
+  const _Header({required this.title, this.onBack, this.onRules, this.onLesson, this.onPause});
   final String title;
   final VoidCallback? onBack;
   final VoidCallback? onRules;
+  final VoidCallback? onLesson;
   final VoidCallback? onPause;
 
   @override
@@ -286,6 +320,13 @@ class _Header extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(right: 4),
                 child: GamePet(state: PetHost.state!, origin: PetHost.origin!, size: 34),
+              ),
+            if (onLesson != null)
+              IconButton(
+                key: const Key('game-lesson'),
+                onPressed: onLesson,
+                icon: const Icon(Icons.school_outlined),
+                tooltip: L.t('teachButton'),
               ),
             if (onRules != null)
               IconButton(onPressed: onRules, icon: const Icon(Icons.help_outline), tooltip: 'Правила'),

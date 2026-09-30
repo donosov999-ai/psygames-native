@@ -28,6 +28,7 @@ class PuzzleMode {
   const PuzzleMode({
     required this.engineName,
     required this.titleKey,
+    this.descKey,
     required this.steps,
     this.digits = false,
     this.digitLabels = const [],
@@ -46,8 +47,28 @@ class PuzzleMode {
   /// Название на языке человека.
   String get title => L.t(titleKey);
 
+  /// Правило режима на языке человека, либо `null`, если его нет.
+  ///
+  /// ⚠️ ПРОМАХ СЛОВАРЯ МОЛЧАЛИВ: `L.t` при отсутствии ключа возвращает САМ КЛЮЧ,
+  /// а не падает — человек увидел бы на экране `puzzlesBridgesDesc`. Поэтому
+  /// сверяем с ключом и отдаём `null`, чтобы экран показал общую фразу.
+  String? get rule {
+    final k = descKey;
+    if (k == null || k.isEmpty) return null;
+    final t = L.t(k);
+    return (t == k || t.isEmpty) ? null : t;
+  }
+
   /// Какому разделу принадлежит режим — чтобы владелец видел свои и не правил чужие.
   final String? owner;
+
+  /// КЛЮЧ СЛОВАРЯ с правилом игры — то, что человек читает в справке.
+  ///
+  /// 🔴 До 24.09.2026 нативный экран головоломок не показывал правил ВОВСЕ: доска
+  /// и всё. У сорока двух игр правила разные, и половина из них не угадывается с
+  /// доски — «Рельсы» человек полтора часа пытался поворачивать, хотя поворота в
+  /// игре нет. Ключ ведётся правилом именования `<ключ названия>Desc`.
+  final String? descKey;
   final List<PuzzleStep> steps;
 
   /// Нужен ли ряд цифр: у Singles ввод только тычками.
@@ -103,6 +124,7 @@ class PuzzleModes {
         PuzzleMode(
           engineName: m['engineName'] as String,
           titleKey: m['titleKey'] as String,
+          descKey: m['descKey'] as String?,
           digits: m['digits'] == true,
           digitLabels: ((m['digitLabels'] as List?) ?? const []).cast<String>(),
           digitNames: ((m['digitNames'] as List?) ?? const []).cast<String>(),

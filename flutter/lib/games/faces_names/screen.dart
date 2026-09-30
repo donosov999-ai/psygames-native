@@ -18,12 +18,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'face_painter.dart';
+import 'lesson.dart';
 import 'model.dart';
 
 class FacesNamesScreen extends StatefulWidget {
@@ -94,6 +97,100 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
     return script == null ? p.name : '${p.name} · $script';
   }
 
+  /// 🎓 РАЗБОР «ЛИЦ И ИМЁН»: ЗА ЧТО ЦЕПЛЯТЬ ИМЯ.
+  ///
+  /// Тексты и порядок карточек — из словаря теми же ключами, что зовёт
+  /// веб-учитель (`frontend/src/games/faces-names/teach.ts`).
+  ///
+  /// 🔴 ЧЕРТА НАЗЫВАЕТСЯ ТОЛЬКО РАЗЛИЧАЮЩАЯ. `faceFeatureKey` ищет признак,
+  /// уникальный СРЕДИ ЛИЦ ЭТОГО РАУНДА; если такого нет, черта не называется
+  /// вовсе — зацепка, которая не отличает, на опросе не сработает, и человек
+  /// решит, что приём не работает.
+  ///
+  /// ⚠️ Разбор показывает не больше трёх лиц: лестница доходит до двенадцати, а
+  /// полный разбор двенадцати — полторы минуты ролика, который закроют.
+  List<LessonStep> _lessonSteps(FacesNamesPuzzle puzzle, FacesNamesLibrary lib) {
+    final ids = puzzle.studiedPersonIds.take(3).toList();
+    if (ids.isEmpty) return const [];
+    final all = [for (final id in puzzle.studiedPersonIds) puzzle.person(id)!.face];
+    String say(String key, Map<String, String> args) {
+      var out = L.t(key);
+      for (final e in args.entries) {
+        out = out.replaceAll('{${e.key}}', e.value);
+      }
+      return out;
+    }
+
+    final steps = <LessonStep>[
+      LessonStep(
+        text: say('teachFacesIntro', {'n': '${puzzle.studiedPersonIds.length}'}),
+        payload: null,
+      ),
+    ];
+    for (var i = 0; i < ids.length; i += 1) {
+      final person = puzzle.person(ids[i])!;
+      final key = faceFeatureKey(person.face, all);
+      steps.add(LessonStep(
+        text: say(i == 0 ? 'teachFacesFeatureFirst' : 'teachFacesFeature', {
+          'name': _name(person),
+          // Черты нет — говорим об этом прямо, а не подставляем пустую строку.
+          'feature': key == null ? L.t('teachFacesNoFeature') : L.t(key),
+          'fact': lib.factText(L.locale, person.factId),
+        }),
+        payload: person.id,
+      ));
+    }
+    final first = puzzle.person(ids.first)!;
+    final firstKey = faceFeatureKey(first.face, all);
+    steps.add(LessonStep(
+      text: say('teachFacesInterference', {'n': '${puzzle.interferencePrompts.length}'}),
+      payload: null,
+    ));
+    steps.add(LessonStep(
+      text: say('teachFacesRecognition', {
+        'name': _name(first),
+        'feature': firstKey == null ? L.t('teachFacesNoFeature') : L.t(firstKey),
+      }),
+      payload: first.id,
+    ));
+    steps.add(LessonStep(
+      text: say(puzzle.factRecallEnabled ? 'teachFacesNameAndFact' : 'teachFacesName', {
+        'name': _name(first),
+        'fact': lib.factText(L.locale, first.factId),
+      }),
+      payload: first.id,
+    ));
+    steps.add(LessonStep(text: say('teachFacesDone', const {}), payload: null));
+    return steps;
+  }
+
+  Future<void> _openLesson() async {
+    final s = _session;
+    final lib = _lib;
+    if (s == null || lib == null) return;
+    final steps = _lessonSteps(s.puzzle, lib);
+    if (steps.isEmpty) return;
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: lib.s(L.locale, 'title'),
+        steps: steps,
+        board: (context, side, i) {
+          final id = steps[i.clamp(0, steps.length - 1)].payload as String?;
+          final person = id == null ? null : s.puzzle.person(id);
+          if (person == null) return const SizedBox.shrink();
+          return Center(
+            child: SyntheticFaceView(
+              face: person.face,
+              size: side * 0.8,
+              label: lib.portrait(L.locale, person.id),
+            ),
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = _session;
@@ -107,6 +204,7 @@ class _FacesNamesScreenState extends State<FacesNamesScreen> {
     final phase = s.phase;
     return GameShell(
       title: lib.s(L.locale, 'title'),
+      onLesson: _openLesson,
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(

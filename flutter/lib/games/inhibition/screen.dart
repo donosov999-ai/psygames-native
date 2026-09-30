@@ -13,6 +13,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -175,6 +176,48 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
     }
   }
 
+  /// Примеры разбора — по ПОДРЕЖИМУ, а не все четыре подряд: человек играет
+  /// либо «жми и держись», либо стоп-сигнал, либо их смесь, и показывать ему
+  /// чужой стимул значит объяснять не ту задачу.
+  List<DemoTrial> _demoTrials() {
+    final mode = widget.mode;
+    final rule = switch (mode) {
+      SubMode.goNoGo => L.t('inhibitionGngHint'),
+      SubMode.stopSignal => L.t('inhibitionSsHint'),
+      SubMode.mixed => L.t('inhibitionMixedHint'),
+    };
+    return [
+      if (mode != SubMode.stopSignal) ...[
+        DemoTrial(
+          text: '',
+          art: const InhibitionStimulus.fixed(gng: GngStim.go),
+          answer: L.t('demoPress'),
+          rule: rule,
+        ),
+        DemoTrial(
+          text: '',
+          art: const InhibitionStimulus.fixed(gng: GngStim.nogo),
+          answer: L.t('demoHold'),
+          rule: rule,
+        ),
+      ],
+      if (mode != SubMode.goNoGo) ...[
+        DemoTrial(
+          text: '',
+          art: const InhibitionStimulus.fixed(ss: SsSignal.go),
+          answer: L.t('demoPress'),
+          rule: rule,
+        ),
+        DemoTrial(
+          text: '',
+          art: const InhibitionStimulus.fixed(ss: SsSignal.stop),
+          answer: L.t('demoHold'),
+          rule: rule,
+        ),
+      ],
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final g = _game;
@@ -189,6 +232,7 @@ class _InhibitionScreenState extends State<InhibitionScreen> {
         // «ничего не нажал» в этой игре тоже бывает верным ответом.
         HudItem(label: L.t('hud_held'), value: '${g.correctRejections}', icon: Icons.pan_tool_outlined),
       ],
+      onLesson: () => openDemoLesson(context, title: L.t('inhibition'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
         mode: widget.mode,
@@ -300,7 +344,7 @@ class _Field extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _Stimulus(game: game),
+                InhibitionStimulus(game: game),
                 const SizedBox(height: 16),
                 SizedBox(
                   height: 28,
@@ -322,14 +366,24 @@ class _Field extends StatelessWidget {
 
 /// Сам стимул. Ключ фигуры называет, ЧТО сейчас на экране: пробе этого хватает,
 /// чтобы играть по правилам, не заглядывая в модель.
-class _Stimulus extends StatelessWidget {
-  const _Stimulus({required this.game});
-  final InhibitionGame game;
+class InhibitionStimulus extends StatelessWidget {
+  const InhibitionStimulus({super.key, required this.game}) : gng = null, ss = null;
+
+  /// Стимул БЕЗ партии — для разбора: там партии ещё нет, а показать надо ровно
+  /// те же четыре вида, что увидит человек.
+  const InhibitionStimulus.fixed({super.key, this.gng, this.ss}) : game = null;
+
+  final InhibitionGame? game;
+  final GngStim? gng;
+  final SsSignal? ss;
+
+  TrialKind get _kind => game?.kind ?? (gng != null ? TrialKind.gng : TrialKind.ss);
 
   @override
   Widget build(BuildContext context) {
-    if (game.kind == TrialKind.gng) {
-      final stim = game.gngStim;
+    final game = this.game;
+    if (_kind == TrialKind.gng) {
+      final stim = game?.gngStim ?? gng;
       if (stim == null) return const SizedBox(width: 160, height: 160, key: Key('inhibition-blank'));
       final go = stim == GngStim.go;
       return Container(
@@ -343,7 +397,7 @@ class _Stimulus extends StatelessWidget {
       );
     }
     // Стоп-сигнальная: пока идёт пауза, поле пустое — и это не «экран завис».
-    switch (game.ssSignal) {
+    switch (game?.ssSignal ?? ss ?? SsSignal.idle) {
       case SsSignal.idle:
       case SsSignal.feedback:
         return const SizedBox(width: 160, height: 160, key: Key('inhibition-blank'));

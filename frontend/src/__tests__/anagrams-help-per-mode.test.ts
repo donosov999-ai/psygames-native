@@ -24,7 +24,7 @@ declare function require(id: string): any;
 const { readFileSync } = require('fs');
 const { join } = require('path');
 const ROOT = join(__dirname, '../..');
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- рядом с fs/path выше
+ 
 const { HELP_MAP } = require('../constants/helpMap');
 const читать = (p: string) => readFileSync(join(ROOT, p), 'utf8') as string;
 

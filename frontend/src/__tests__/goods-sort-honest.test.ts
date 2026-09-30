@@ -56,8 +56,8 @@ describe('сортировка: обещание совпадает с игро�
    * ищем ключ в исходнике. Ключ может лежать в файле и не доезжать до экрана.
    */
   it('🔴 задние ряды появились — и справка о них есть на обоих родных языках', () => {
-    const { levelRuleText } = require('@/src/components/LevelRules');  // eslint-disable-line @typescript-eslint/no-require-imports
-    const { GS_RULES } = require('@/src/games/goods-sort/core/level');  // eslint-disable-line @typescript-eslint/no-require-imports
+    const { levelRuleText } = require('@/src/components/LevelRules');   
+    const { GS_RULES } = require('@/src/games/goods-sort/core/level');   
     const правило = GS_RULES.find((r: any) => r.key === 'backrow');
     expect(правило).toBeTruthy();
     for (const язык of ['ru', 'en']) {

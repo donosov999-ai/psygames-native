@@ -116,6 +116,29 @@ class TolLevelSet {
     if (level <= levels.length) return levels[level - 1];
     return levels.last;
   }
+
+  /// Уровень с заданной длиной плана и числом шаров — для ШАГА ЗАРЯДКИ.
+  ///
+  /// 🔴 ЗАЧЕМ ОТДЕЛЬНАЯ ДВЕРЬ. В вебе шаг не берёт уровень лестницы, а СОБИРАЕТ
+  /// задачу по сложности: `frontend/app/games/tower-london.tsx:175` —
+  /// лёгкий 3 хода, средний 5, трудный 7, шаров всегда три. Генератор мы не
+  /// переносили, задачи лежат набором; значит по тем же числам надо ВЫБРАТЬ
+  /// готовый уровень, а не выдумывать свой.
+  ///
+  /// ⚠️ Точного совпадения может не быть (набор даёт планы 2…8): берём
+  /// БЛИЖАЙШИЙ по длине плана среди уровней с нужным числом шаров, а если и
+  /// таких нет — ближайший вообще. Молча отдать уровень лестницы было бы хуже
+  /// всего: шаг выглядел бы работающим и играл чужую сложность.
+  TolLevel byTarget(int targetMoves, int balls) {
+    if (levels.isEmpty) throw StateError('уровней нет');
+    final same = levels.where((l) => l.balls == balls).toList();
+    final pool = same.isNotEmpty ? same : levels;
+    var best = pool.first;
+    for (final l in pool) {
+      if ((l.targetMoves - targetMoves).abs() < (best.targetMoves - targetMoves).abs()) best = l;
+    }
+    return best;
+  }
 }
 
 /// Партия пройдена, если ЛИШНИХ ходов (сверх минимума, по всем задачам) не

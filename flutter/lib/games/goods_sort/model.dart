@@ -686,3 +686,148 @@ const List<String> shelfStyles = [
 /// Стиль шкафа для профиля. Одна дверь: экран и проба спрашивают ЕЁ.
 /// Незнакомый профиль получает берёзу — ровно как `shelfForProfile` в вебе.
 String shelfForProfile(String? id) => shelfByProfile[id ?? 'free'] ?? 'birch';
+
+/// ПОЛОЖЕНИЕ ПАРТИИ — ДОСКА ПЛЮС ВСЁ, ЧТО МЕНЯЕТ ДОСТУПНОСТЬ НИШ.
+///
+/// 🔴 ЗАЧЕМ ОТДЕЛЬНЫЙ ТИП, КОГДА ЕСТЬ `GoodsBoard`. Доска отвечает на вопрос
+/// «что где лежит», но ход в игре зависит не только от неё: ниша под
+/// препятствием и примёрзший ряд не трогаются вовсе, а препятствия ЖИВУТ —
+/// замок тикает по ходам, заслон снимается тройкой по соседству, оттепель
+/// приходит с исчезновением примороженного вида. Пока это знал только экран,
+/// правды о ходе было две: у экрана полная, у всех остальных урезанная.
+///
+/// 📍 ЗАМЕР, ИЗ-ЗА КОТОРОГО ЭТОТ ТИП И ПОЯВИЛСЯ (24.09.2026): препятствия стоят
+/// у 66 уровней из 120, примёрзший ряд — у 19. Решатель со статичным списком
+/// доступных ниш разобрал 29 уровней из 30, а на L21 не нашёл решения и за
+/// 600 тыс. узлов — потому что тот уровень разбирается ровно после того, как
+/// заслон снимут. То есть «урезанная правда» молчала бы на большинстве игры.
+class GoodsPlay {
+  const GoodsPlay({
+    required this.level,
+    required this.board,
+    required this.obstacles,
+    this.frozenRow,
+    this.frozenType,
+  });
+
+  /// Начало партии — ровно то, с чего стартует экран.
+  factory GoodsPlay.start(GoodsLevel level) => GoodsPlay(
+        level: level,
+        board: level.freshBoard(),
+        obstacles: [...level.obstacles],
+        frozenRow: level.frozenRow,
+        frozenType: level.frozenType,
+      );
+
+  final GoodsLevel level;
+  final GoodsBoard board;
+  final List<Obstacle?> obstacles;
+  final int? frozenRow;
+  final int? frozenType;
+
+  /// Можно ли трогать нишу. ОДНА проверка и на «взять отсюда», и на «положить
+  /// сюда»: поставь запрет на одну сторону — препятствие станет полупрозрачным.
+  bool usable(int i) {
+    if (i < obstacles.length && obstacles[i] != null) return false;
+    if (frozenRow != null && level.rowOfNiche(i) == frozenRow) return false;
+    return true;
+  }
+
+  /// Уровень взят: цель плюс пустая очередь и пустые задние ряды.
+  bool get won => levelWon(board.cells, level.goal,
+      queueLength: board.queue.length, back: board.back);
+
+  /// Соседи ниши по сетке — через МЕСТА, а не через плотный список: доска с
+  /// дырами, и сосед по списку бывает через полполя.
+  ///
+  /// ⚠️ Возвращаются НОМЕРА ниш (`ids`), а не места: место меняется под ногами —
+  /// столбец оседает, полка приходит сверху. Заслон снимается по номеру.
+  List<int> neighbours(int i) {
+    final places = <int>[];
+    var seen = -1;
+    var place = -1;
+    for (var p = 0; p < level.mask.length; p += 1) {
+      if (!level.mask[p]) continue;
+      seen += 1;
+      places.add(p);
+      if (seen == i) place = p;
+    }
+    if (place < 0) return const [];
+    final r = place ~/ level.cols;
+    final c = place % level.cols;
+    final out = <int>[];
+    for (final d in const [
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+      [0, 1]
+    ]) {
+      final nr = r + d[0];
+      final nc = c + d[1];
+      if (nr < 0 || nc < 0 || nr >= level.rows || nc >= level.cols) continue;
+      final idx = places.indexOf(nr * level.cols + nc);
+      if (idx < 0) continue;
+      final ids = board.ids;
+      out.add(ids != null && idx < ids.length ? ids[idx] : idx);
+    }
+    return out;
+  }
+
+  /// Ход: взять товар с позиции [index] ниши [from] и положить в нишу [to].
+  /// Возвращает НОВОЕ положение; null — ход незаконен.
+  ///
+  /// Здесь же стареют замки, снимаются заслоны и отходит примёрзший ряд —
+  /// то есть ровно то, что раньше жило в обработчике экрана.
+  GoodsPlay? move(int from, int index, int to, [CollapseReport? report]) {
+    if (from == to) return null;
+    if (from < 0 || from >= board.cells.length) return null;
+    if (to < 0 || to >= board.cells.length) return null;
+    if (!usable(from) || !usable(to)) return null;
+    final src = board.cells[from];
+    if (index < 0 || index >= src.length) return null;
+    final type = src[index];
+    if (!board.canPlace(to, type, level.strict)) return null;
+
+    final cells = board.cells.map((c) => [...c]).toList();
+    cells[from].removeAt(index);
+    cells[to].add(type);
+    final rep = report ?? CollapseReport();
+    final after = collapseTriples(board.copyWith(cells: cells), rep);
+
+    final nextObstacles = [...obstacles];
+    for (var i = 0; i < nextObstacles.length; i += 1) {
+      final o = nextObstacles[i];
+      if (o == null) continue;
+      if (o.kind == 'locked') {
+        final left = o.movesLeft - 1;
+        nextObstacles[i] = left <= 0 ? null : Obstacle('locked', movesLeft: left);
+      } else if (o.kind == 'blocked' && rep.clearedIds.isNotEmpty) {
+        // Заслон снимается тройкой ПО СОСЕДСТВУ, а не «сосед опустел»: со
+        // схлопыванием место тут же занимает полка из очереди, и запертая ниша
+        // не открылась бы никогда.
+        if (neighbours(i).any(rep.clearedIds.contains)) nextObstacles[i] = null;
+      }
+    }
+
+    var nextFrozenRow = frozenRow;
+    var nextFrozenType = frozenType;
+    if (frozenType != null && rep.clearedTypes.contains(frozenType)) {
+      nextFrozenRow = null;
+      nextFrozenType = null;
+    }
+
+    return GoodsPlay(
+      level: level,
+      board: after,
+      obstacles: nextObstacles,
+      frozenRow: nextFrozenRow,
+      frozenType: nextFrozenType,
+    );
+  }
+
+  /// Ход верхним товаром ниши — то, чем ходит перебор.
+  GoodsPlay? moveTopOf(int from, int to) {
+    if (from < 0 || from >= board.cells.length) return null;
+    return move(from, board.cells[from].length - 1, to);
+  }
+}

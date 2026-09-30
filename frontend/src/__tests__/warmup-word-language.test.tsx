@@ -38,7 +38,7 @@ const mockПараметры: Record<string, string> = { wu: '1', diff: 'medium'
 // экран начал звать `setParams`. Перечень методов общий мок снимает с expo-router.
 jest.mock('expo-router', () =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- фабрика jest.mock грузится ДО импортов файла
-  require('./routerMockShared').мокМодуляРоутера({
+  require('../test-helpers/routerMockShared').мокМодуляРоутера({
   параметры: () => mockПараметры,
   путь: '/games/anagrams',
 }));
