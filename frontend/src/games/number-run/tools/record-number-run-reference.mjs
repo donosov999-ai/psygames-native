@@ -145,8 +145,8 @@ function aim(course, path, s) {
 // Водитель с ошибками: с вероятностью noise за кадр уходит на 20–80 кадров в чужую полосу или точку.
 // noiseMode 'answers' — ошибки только до рядов без препятствий (промахи арок, сборов, шкалы, «ровно N»),
 // перед мостом и трамплином он снова ведёт по пути; 'all' — ошибается и там (падение с моста).
-function record({name, course, profile, frameSeed, noise = 0, noiseSeed = 0, noiseMode = 'answers', maxFrames = 20000, stopAtStages = null, pauseAt = null}) {
-  const path = solveCourse(course);
+function record({name, course, profile, frameSeed, noise = 0, noiseSeed = 0, noiseMode = 'answers', maxFrames = 20000, stopAtStages = null, pauseAt = null, script = null}) {
+  const path = script ? [] : solveCourse(course);
   const fr = random(frameSeed), nr = random(noiseSeed);
   let s = resume(initial(course));
   const applied = [], trace = [];
@@ -161,7 +161,7 @@ function record({name, course, profile, frameSeed, noise = 0, noiseSeed = 0, noi
       if (nr() < .5) { const d = nr() < .5 ? -1 : 1; s = changeLane(s, d); applied.push([i, 'lane', d]); lastTarget = s.target; errorX = s.target; }
       else { errorX = Math.round((nr() * 2 - 1) * 1000) / 1000; }
     }
-    const want = errorFrames > 0 ? (errorFrames--, errorX) : aim(course, path, s);
+    const want = script ? (script.find(([at]) => at === i)?.[1] ?? lastTarget) : errorFrames > 0 ? (errorFrames--, errorX) : aim(course, path, s);
     if (want !== lastTarget && s.status === 'running') { s = setTarget(s, want); applied.push([i, 'target', want]); lastTarget = want; }
     s = advanceFrame(s, frameAt(fr, profile), course);
     if (i % 48 === 0 || s.events.length !== lastEvents || s.status !== 'running') {
@@ -173,7 +173,7 @@ function record({name, course, profile, frameSeed, noise = 0, noiseSeed = 0, noi
   }
   const {events, ...state} = s;
   return {name, profile, frameSeed, noise, noiseSeed, noiseMode, maxFrames, stopAtStages, pauseAt,
-    source: course.format === 'level' ? {level: course.levelId, seed: course.seed} : {campaign: course.seed},
+    source: course.format === 'level' ? {level: course.levelId, seed: course.seed} : course.version === 'edge' ? {course: courseJson(course)} : {campaign: course.seed},
     applied, trace, events: plain(events), final: plain(state)};
 }
 const runs = [
@@ -191,10 +191,32 @@ const runs = [
   record({name: 'Забег «Свободно» — три этапа автопилотом', course: campaignCourse, profile: 'rough', frameSeed: 200, stopAtStages: 3, maxFrames: 12000}),
 ];
 
+// Ручные дорожки на границах, которых автопилот не касается: он всегда въезжает точно в полосу.
+// Взлёт — при |x − полоса трамплина| < 0,48 на черте взлёта: 0,5 и 0,52 от полосы — падение, 0,47 — полёт.
+const edgeCourse = (id, rows) => ({version: 'edge', mode: 'journey', levelId: 900 + id, seed: id, start: 10, speed: 8, lateralSpeed: 4, gates: 1,
+  length: 24 * rows.length, rows: rows.map((r, i) => ({...r, id: i, stage: 1, z: 24 * (i + 1)}))});
+const JUMP_ROW = {kind: 'obstacle', terrain: 'jump', span: 12, penalties: [1, 1, 1], jump: {lane: 1, launchOffset: 14, landingOffset: 1, height: 2.8}};
+const LINE_ROW = {kind: 'gate', checkpoint: true, rules: [{min: null, max: null}], stageEnd: true};
+for (const [n, x] of [[1, .5], [2, .52], [3, .53]]) {
+  runs.push(record({name: `трамплин: цель ${x} при полосе 1 — порог взлёта 0,48`, course: edgeCourse(n, [JUMP_ROW, LINE_ROW]), profile: 'smooth', frameSeed: 300 + n, script: [[0, x]]}));
+}
+// Шкала 0…100, ответ 50, допуск 0,1: точка 0,1 → 55 (в допуске, +), 0,3 → 65 («близко», 0), 0,6 → 80 (мимо, −).
+const SCALE_ROW = {kind: 'scale', station: 'scale', prompt: '25 + 25', min: 0, max: 100, answer: 50, ticks: [0, 25, 50, 75, 100], tolerance: .1, reward: 9, penalty: 9,
+  routes: [{id: 'scale', entry: {dz: -8, x: 0}, exit: 0, gain: 9, waypoints: [{dz: 0, x: 0}]}]};
+runs.push(record({name: 'шкала: в допуске, «близко» и мимо', course: edgeCourse(4, [SCALE_ROW, SCALE_ROW, SCALE_ROW, LINE_ROW]), profile: 'smooth', frameSeed: 304,
+  script: [[0, .1], [250, .3], [430, .6]]}));
+
+// «Стоящий на месте» за столбом: широкое красное слева (half 1) дотягивается до точки 0,25 средней полосы,
+// но столб держит её справа — красное не взять. Построения таких чисел не делают, ветку держит эта дорожка.
+const COLUMN_ROW = {kind: 'pickups', shape: 'columns', window: 1, divider: {fromDz: -17, toDz: 0, gap: .25},
+  items: [{x: -.5, dz: -10, half: 1, window: .6, value: -100}, {x: .5, dz: -10, half: .5, window: .6, value: 5}]};
+const stationaryEdges = [edgeCourse(5, [COLUMN_ROW, {...LINE_ROW, rules: [{min: 5, max: null}]}])]
+  .map(course => ({course: courseJson(course), stationary: [-1, 0, 1].map(lane => stationaryWins({...course, start: 0}, lane)), start: 0}));
+
 writeFileSync(OUT_COURSES, JSON.stringify({
   coreVersion: CORE_VERSION, levelVersion: LEVEL_VERSION, campaignVersion: CAMPAIGN_VERSION,
   random: randomTable, exactDelta: exactCases, finale: finaleCases, applyOperation: operationCases,
-  levels, campaign,
+  levels, campaign, stationaryEdges,
 }));
 writeFileSync(OUT_RUNS, JSON.stringify({coreVersion: CORE_VERSION, runs}));
 const kb = f => Math.round(JSON.stringify(f).length / 1024);

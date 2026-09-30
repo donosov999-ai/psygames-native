@@ -18,8 +18,9 @@
 ///
 /// ⚠️ `correct` у ряда-ответа — С НУЛЯ: полосы −1/0/1, верно при `lane + 1 == correct`.
 /// ⚠️ Полоса округляется как `Math.round` в JS (половина — вверх), а не как `round()` в Dart.
-/// ⚠️ Падение с моста пишет событие поверх ПРЕЖНИХ событий шага (как в вебе): сборы того же
-///    шага в журнал не попадают, хотя число их уже учло.
+/// ⚠️ Падение с моста пишет событие поверх событий ДО шага (`s.events`), как в вебе. Это не
+///    теряет ничего: на ряду-препятствии сборов нет, а взлёт с трамплина исключает падение —
+///    к падению событий шага не бывает (порча «поверх событий шага» пробой не отличима).
 library;
 
 import 'dart:math' as math;
@@ -248,6 +249,90 @@ class RoadRow {
         options: (j['options'] as List?)?.cast<Object?>() ?? const ['a', 'b', 'c'],
       );
 
+  /// Ряд любого рода из JSON веба — обратное к [toJson] (эталоны, ручные дорожки проб).
+  factory RoadRow.fromFullJson(Map<String, dynamic> j) {
+    double d(Object? v) => (v as num).toDouble();
+    double? od(Object? v) => (v as num?)?.toDouble();
+    RoadPoint point(Object? v) => RoadPoint(d((v as Map)['dz']), d(v['x']));
+    final kind = j['kind'] as String;
+    final jump = j['jump'] as Map<String, dynamic>?;
+    final exact = j['exact'] as Map<String, dynamic>?;
+    final show = j['show'] as Map<String, dynamic>?;
+    final divider = j['divider'] as Map<String, dynamic>?;
+    return RoadRow.of(
+      kind: kind,
+      id: j['id'] as int,
+      z: d(j['z']),
+      stage: j['stage'] as int?,
+      window: od(j['window']),
+      station: j['station'] as String?,
+      prompt: j['prompt'] as String?,
+      shape: j['shape'] as String?,
+      items: [
+        for (final i in (j['items'] as List? ?? const []).cast<Map<String, dynamic>>())
+          RoadItem(
+            x: d(i['x']),
+            value: d(i['value']),
+            dz: od(i['dz']),
+            window: od(i['window']),
+            half: od(i['half']),
+            part: i['part'] == true,
+            symbol: i['symbol'] as String?,
+          ),
+      ],
+      routes: j['routes'] == null
+          ? null
+          : [
+              for (final r in (j['routes'] as List).cast<Map<String, dynamic>>())
+                RoadRoute(
+                  id: r['id'] as String,
+                  entry: point(r['entry']),
+                  exit: d(r['exit']),
+                  gain: d(r['gain']),
+                  waypoints: [for (final w in r['waypoints'] as List) point(w)],
+                ),
+            ],
+      divider: divider == null
+          ? null
+          : RoadDivider(fromDz: d(divider['fromDz']), toDz: d(divider['toDz']), gap: d(divider['gap'])),
+      jump: jump == null
+          ? null
+          : RoadJump(
+              lane: d(jump['lane']),
+              launchOffset: d(jump['launchOffset']),
+              landingOffset: d(jump['landingOffset']),
+              height: d(jump['height']),
+            ),
+      exact: exact == null ? null : RoadExact(target: d(exact['target']), bonus: d(exact['bonus']), unit: d(exact['unit'])),
+      show: show == null
+          ? null
+          : RoadShow(
+              symbols: (show['symbols'] as List).cast<String>(),
+              dzs: [for (final v in show['dzs'] as List) d(v)],
+            ),
+      recall: j['recall'] == true,
+      options: kind == 'operation'
+          ? (j['options'] as List).cast<String>()
+          : [for (final v in j['options'] as List? ?? const []) d(v)],
+      correct: j['correct'] as int?,
+      reward: od(j['reward']) ?? 0,
+      penalty: od(j['penalty']) ?? 0,
+      terrain: j['terrain'] as String?,
+      span: od(j['span']) ?? 0,
+      penalties: [for (final v in j['penalties'] as List? ?? const []) d(v)],
+      rules: [
+        for (final r in (j['rules'] as List? ?? const []).cast<Map<String, dynamic>>()) RoadRule(od(r['min']), od(r['max'])),
+      ],
+      checkpoint: j['checkpoint'] == true,
+      stageEnd: j['stageEnd'] == true,
+      min: od(j['min']) ?? 0,
+      max: od(j['max']) ?? 0,
+      answer: od(j['answer']) ?? 0,
+      ticks: [for (final v in j['ticks'] as List? ?? const []) d(v)],
+      tolerance: od(j['tolerance']) ?? 0,
+    );
+  }
+
   Map<String, Object?> toJson() => {
         'kind': kind,
         'id': id,
@@ -405,6 +490,44 @@ class RoadCourse {
         start: (j['start'] as num? ?? 0).toDouble(),
         rows: [for (final r in j['rows'] as List) RoadRow.fromJson(r as Map<String, dynamic>)],
       );
+
+  /// Курс любого вида из JSON веба — обратное к [toJson].
+  factory RoadCourse.fromFullJson(Map<String, dynamic> j) {
+    double d(Object? v) => (v as num).toDouble();
+    final finale = j['finale'] as Map<String, dynamic>?;
+    return RoadCourse(
+      levelId: j['levelId'] as int,
+      seed: j['seed'] as int,
+      mode: j['mode'] as String? ?? 'training',
+      speed: d(j['speed']),
+      lateralSpeed: d(j['lateralSpeed']),
+      start: d(j['start'] ?? 0),
+      gates: j['gates'] as int? ?? 0,
+      version: j['version'] as String?,
+      format: j['format'] as String?,
+      boss: j['boss'] == true,
+      rows: [for (final r in j['rows'] as List) RoadRow.fromFullJson(r as Map<String, dynamic>)],
+      stages: j['stages'] == null
+          ? null
+          : [
+              for (final s in (j['stages'] as List).cast<Map<String, dynamic>>())
+                RoadStage(
+                  id: s['id'] as int,
+                  startRow: s['startRow'] as int,
+                  endRow: s['endRow'] as int,
+                  startZ: d(s['startZ']),
+                  endZ: d(s['endZ']),
+                  startValue: d(s['startValue']),
+                  target: d(s['target']),
+                ),
+            ],
+      finale: finale == null
+          ? null
+          : finale['boss'] != null
+              ? RoadFinale.boss(reference: d(finale['reference']), boss: d(finale['boss']))
+              : RoadFinale.ladder(reference: d(finale['reference']), walls: [for (final w in finale['walls'] as List) d(w)]),
+    );
+  }
 
   Map<String, Object?> toJson() => {
         if (version != null) 'version': version,

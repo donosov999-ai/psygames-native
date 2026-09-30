@@ -3,7 +3,9 @@
 //
 // Эталоны (frontend/src/games/number-run/tools/record-number-run-reference.mjs):
 // · number-run-courses-reference.json — жребий, правила, 31 уровень и забег целиком;
-// · number-run-runs-reference.json — 12 прогонов кадров с нажатиями: след и все события.
+// · number-run-runs-reference.json — 15 прогонов кадров с нажатиями: след и все события (12 по
+//   уровням и забегу, 3 ручные дорожки на границе взлёта с трамплина, 1 — три шкалы: в допуске,
+//   «близко», мимо).
 // Кадры прогонов обе стороны выводят из mulberry32 раннера — поэтому жребий сверяется первым.
 import 'dart:convert';
 import 'dart:io';
@@ -103,6 +105,22 @@ void main() {
       });
     }
 
+    test('курс читается из JSON веба и пишется обратно без потерь', () {
+      for (final l in (courses['levels'] as List).cast<Map<String, dynamic>>().take(20)) {
+        final want = l['course'] as Map<String, dynamic>;
+        _expectCourse(RoadCourse.fromFullJson(want), want, 'чтение L${l['level']}');
+      }
+      final c = (courses['campaign'] as Map<String, dynamic>)['course'] as Map<String, dynamic>;
+      _expectCourse(RoadCourse.fromFullJson(c), c, 'чтение забега');
+    });
+
+    test('«стоящий на месте» за столбом: широкое число с чужой стороны не достаётся', () {
+      for (final e in (courses['stationaryEdges'] as List).cast<Map<String, dynamic>>()) {
+        final course = RoadCourse.fromFullJson({...e['course'] as Map<String, dynamic>, 'start': e['start']});
+        expect([for (final lane in const [-1.0, 0.0, 1.0]) stationaryWins(course, lane)], e['stationary']);
+      }
+    });
+
     test('🔴 забег «Свободно»: 12 этапов, путь решателя, лестница', () {
       final c = courses['campaign'] as Map<String, dynamic>;
       final course = makeCampaign(c['seed'] as int);
@@ -118,9 +136,11 @@ void main() {
     for (final run in (runsRef['runs'] as List).cast<Map<String, dynamic>>()) {
       test('🔴 ${run['name']}: след и события совпадают с живым ядром', () {
         final src = run['source'] as Map<String, dynamic>;
-        final course = src.containsKey('campaign')
-            ? makeCampaign(src['campaign'] as int)
-            : makeLevel(src['level'] as int, src['seed'] as int, countingTasks, boss: isBossLevel(src['level'] as int));
+        final course = src.containsKey('course')
+            ? RoadCourse.fromFullJson(src['course'] as Map<String, dynamic>)
+            : src.containsKey('campaign')
+                ? makeCampaign(src['campaign'] as int)
+                : makeLevel(src['level'] as int, src['seed'] as int, countingTasks, boss: isBossLevel(src['level'] as int));
         final fr = runnerRandom(run['frameSeed'] as int);
         final profile = run['profile'] as String;
         final applied = <int, List<List>>{};
