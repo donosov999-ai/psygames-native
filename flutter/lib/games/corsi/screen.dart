@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -63,12 +64,27 @@ class _CorsiScreenState extends State<CorsiScreen> {
 
   Future<void> _boot() async {
     await _ladder.load();
-    if (mounted) setState(_reset);
+    if (!mounted) return;
+    setState(_reset);
+    // Шаг зарядки и «Оценки» стартует сам, как в вебе (`useAutostartWhenReady`):
+    // экран настройки там не показывается.
+    if (GamePreset.autostart) _start();
   }
 
   void _reset() {
     _timer?.cancel();
-    _game = CorsiGame(level: _ladder.level);
+    // В шаге зарядки и «Оценки» правила задаёт шаг: длина ряда, темп и направление
+    // (см. LevelParams.preset). Уровень человека — только потолок длины.
+    _game = GamePreset.isPreset
+        ? CorsiGame(
+            level: _ladder.level,
+            params: LevelParams.preset(
+              level: _ladder.level,
+              want: GamePreset.num('startLen', 3),
+              reverse: GamePreset.str('mode', 'forward') == 'backward',
+            ),
+          )
+        : CorsiGame(level: _ladder.level);
     _phase = Phase.ready;
     _feedback = Feedback.none;
     _lit = null;
@@ -165,12 +181,27 @@ class _CorsiScreenState extends State<CorsiScreen> {
       _feedback = Feedback.none;
       _lit = null;
     });
-    final mode = g.params.reverse ? 'backward' : 'forward';
+    /*
+     * 🔴 МЕТКИ ПАРТИИ — КАК У ВЕБ-ЭКРАНА, А В ШАГЕ «ОЦЕНКИ» — МЕТКИ ШАГА.
+     * «Оценка» опознаёт партию по difficulty и mode ДОСЛОВНО (sessionFitsStep,
+     * frontend/src/services/assessment.ts) и берёт метрику из details.span. Без
+     * этого домен «пространственная рабочая память» молча считался средним
+     * (z = 0): замер 30.09.2026 — партия уходила с difficulty = уровень, без
+     * details. Вне шага — как пишет corsi.tsx: difficulty = направление,
+     * mode = L<уровень>.
+     */
+    final direction = g.params.reverse ? 'backward' : 'forward';
+    final preset = GamePreset.isPreset;
+    final difficulty = preset ? GamePreset.str('diff', 'medium') : direction;
+    final mode = preset ? direction : 'L${g.level}';
+    final details = <String, Object?>{'level': g.level, 'span': g.span};
     // Уровень взят, если человек повторил ряд той длины, с которой уровень начинается.
     if (g.passed) {
-      _ladder.win(score: g.score, timeSeconds: seconds, errors: g.errors, mode: mode);
+      _ladder.win(score: g.score, timeSeconds: seconds, errors: g.errors,
+          mode: mode, difficulty: difficulty, details: details);
     } else {
-      _ladder.fail(score: g.score, timeSeconds: seconds, errors: g.errors, mode: mode);
+      _ladder.fail(score: g.score, timeSeconds: seconds, errors: g.errors,
+          mode: mode, difficulty: difficulty, details: details);
     }
   }
 
