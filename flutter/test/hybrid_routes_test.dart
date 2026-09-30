@@ -107,6 +107,8 @@ void main() {
       '$origin/games/semantic-sort.html?wu=1&targetLang=en&rounds=8&cats=3',
       '$origin/games/cloze',
       '$origin/games/cloze.html?wu=1&targetLang=en&rounds=10&bilingual=1',
+      '$origin/games/lexical-decision',
+      '$origin/games/lexical-decision.html?wu=1&targetLang=es&trials=12&bilingual=1',
       '$origin/games/hearing-hub',
       '$origin/games/mnemonics-hub',
     ]) {
@@ -275,6 +277,7 @@ void main() {
       '/games/vocab-srs',
       '/games/semantic-sort',
       '/games/cloze',
+      '/games/lexical-decision',
       '/games/hearing-hub',
       '/games/mental-rotation',
       '/games/number-bonds',
