@@ -93,6 +93,7 @@ void main() {
       '$origin/games/memory-palace',
       '$origin/games/rmet',
       '$origin/games/ant',
+      '$origin/games/attention-conflict',
       '$origin/games/iowa',
       '$origin/games/prl',
       '$origin/games/bart',
@@ -179,6 +180,7 @@ void main() {
       '/games/anagrams?mode=cross',
       '/games/anagrams?mode=square',
       '/games/ant',
+      '/games/attention-conflict',
       // 🔴 Сорок три адреса головоломок стоят здесь ПОИМЁННО, хотя карта их
       // генерирует. Это не дубль: генератор отвечает на «что собралось», а список
       // — на «что мы согласились перехватывать». Переименуют режим в реестре —
