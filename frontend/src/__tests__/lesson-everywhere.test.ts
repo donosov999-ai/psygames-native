@@ -51,7 +51,7 @@ const ЖДУТ_ЭКРАНЫ: Record<string, string> = {
   corsi: СПАН, 'digit-span': СПАН, 'listening-span': СПАН, 'memory-matrix': СПАН, 'n-back': СПАН,
   'picture-pairs': СПАН, 'reading-span': СПАН, 'spatial-span': СПАН,
   rmet: ПАМЯТЬ_СЛУХ,
-  'chinese-tones': ПАМЯТЬ_СЛУХ, dictation: ПАМЯТЬ_СЛУХ, 'phoneme-pairs': ПАМЯТЬ_СЛУХ,
+  'chinese-tones': ПАМЯТЬ_СЛУХ, 'phoneme-pairs': ПАМЯТЬ_СЛУХ,
   'pseudoword-echo': ПАМЯТЬ_СЛУХ, 'rhythm-pitch': ПАМЯТЬ_СЛУХ,
   'chess-blind': ШАХМАТЫ, 'scholars-mate': ШАХМАТЫ,
   ant: ВНИМАНИЕ, bart: ВНИМАНИЕ, 'choice-rt': ВНИМАНИЕ, cpt: ВНИМАНИЕ, flanker: ВНИМАНИЕ, 'go-no-go': ВНИМАНИЕ,
@@ -75,7 +75,9 @@ const ЖДУТ_ЭКРАНЫ: Record<string, string> = {
 const ЖДУТ_РЕЖИМЫ: Record<string, string> = {
   Mines: ПОИСК, Mosaic: ПОИСК, Pattern: ПОИСК, Range: ПОИСК, Magnets: ПОИСК, Galaxies: ПОИСК, Palisade: ПОИСК,
   'Light Up': ПОИСК, Tents: ПОИСК, Dominosa: ПОИСК, Rectangles: ПОИСК, Map: ПОИСК,
-  Pegs: СОРТИРОВКА, Flood: СОРТИРОВКА, 'Same Game': СОРТИРОВКА, Signpost: СОРТИРОВКА, Inertia: СОРТИРОВКА,
+  Flood: СОРТИРОВКА, 'Same Game': СОРТИРОВКА,
+  // Колышки, Указатели, Инерция переехали из «Сортировки» в «Шахматы» 30.09.2026 (задача 9425fa7b).
+  Pegs: ШАХМАТЫ, Signpost: ШАХМАТЫ, Inertia: ШАХМАТЫ,
   Loopy: СОРТИРОВКА, Pearl: СОРТИРОВКА, Bridges: СОРТИРОВКА, 'Train Tracks': СОРТИРОВКА,
   Slide: ПРОСТРАНСТВО, Sokoban: ПРОСТРАНСТВО, Net: ПРОСТРАНСТВО, Netslide: ПРОСТРАНСТВО, Twiddle: ПРОСТРАНСТВО,
   Cube: ПРОСТРАНСТВО, Flip: ПРОСТРАНСТВО, Sixteen: ПРОСТРАНСТВО, Fifteen: ПРОСТРАНСТВО, Untangle: ПРОСТРАНСТВО,
