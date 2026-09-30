@@ -130,7 +130,16 @@ class LevelLadder {
   /// ⚠️ Проигранная партия — ТОЖЕ партия: она идёт в статистику и двигает шаг
   /// зарядки так же, как выигранная. Иначе человек, проваливший шаг серии,
   /// застрял бы на нём навсегда.
-  Future<void> fail({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
+  ///
+  /// `difficulty` и `details` — как у [win]: не переданы — уходит прежнее.
+  Future<void> fail({
+    int score = 0,
+    int timeSeconds = 0,
+    int? errors,
+    String? mode,
+    String? difficulty,
+    Map<String, Object?>? details,
+  }) async {
     final lesson = LessonUsed.inRound;
     LessonUsed.reset();   // см. [win]: отметку съедает партия, которую она не засчитала
     if (GamePreset.isPreset || lesson) {
@@ -143,7 +152,8 @@ class LevelLadder {
         timeSeconds: timeSeconds,
         errors: errors,
         mode: mode ?? sessionMode,
-        difficulty: '$_level',
+        difficulty: difficulty ?? '$_level',
+        details: details,
       );
       return;
     }
@@ -159,7 +169,8 @@ class LevelLadder {
       timeSeconds: timeSeconds,
       errors: errors,
       mode: mode ?? sessionMode,
-      difficulty: '$_level',
+      difficulty: difficulty ?? '$_level',
+      details: details,
     );
   }
 

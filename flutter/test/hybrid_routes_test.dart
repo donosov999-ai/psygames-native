@@ -103,6 +103,8 @@ void main() {
       '$origin/games/vocab-srs',
       '$origin/games/vocab-srs.html',
       '$origin/games/vocab-srs?wu=1&targetLang=en&bilingual=1&lang2=es',
+      '$origin/games/semantic-sort',
+      '$origin/games/semantic-sort.html?wu=1&targetLang=en&rounds=8&cats=3',
       '$origin/games/mnemonics-hub',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
@@ -259,6 +261,7 @@ void main() {
       '/games/mnemonics-hub',
       '/games/word-pairs',
       '/games/vocab-srs',
+      '/games/semantic-sort',
       '/games/mental-rotation',
       '/games/number-bonds',
       '/games/nut-sort',

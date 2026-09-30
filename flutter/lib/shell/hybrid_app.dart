@@ -71,6 +71,7 @@ import '../games/memory_palace/screen.dart';
 import '../games/rmet/screen.dart';
 import '../games/word_pairs/screen.dart';
 import '../games/vocab_srs/screen.dart';
+import '../games/semantic_sort/screen.dart';
 import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
@@ -234,6 +235,7 @@ class HybridApp extends StatefulWidget {
         // Настройки шага языковой зарядки (`targetLang`, `bilingual`, `lang2`,
         // `direction`, `newLimit`) экран берёт из хвоста адреса через GamePreset.
         '/games/vocab-srs': (s) => VocabSrsScreen(state: s),
+        '/games/semantic-sort': (s) => SemanticSortScreen(state: s),
         /*
          * 🔴 РАЗВИЛКА «МНЕМОТЕХНИКИ» ПЕРЕХВАТЫВАЕТСЯ, ПОТОМУ ЧТО ЗА НЕЙ УЖЕ
          * НАТИВНО ЧЕТЫРЕ ЭКРАНА ИЗ ПЯТИ: «Дворец памяти», «Лица и имена»,
