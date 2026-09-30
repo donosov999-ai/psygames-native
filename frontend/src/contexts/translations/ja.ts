@@ -2410,8 +2410,6 @@ const t: Record<string, string> = {
   "scholarsMedian": "中央値",
   "scholarsUsually": "直近{n}回",
   "scholarsBest": "正解は",
-  "scholarsYes": "はい",
-  "scholarsNo": "いいえ",
   "ballGlossy": "つやあり",
   "ballGlass": "ガラス",
   "ballFluffy": "ふわふわ",
