@@ -3089,5 +3089,10 @@ const t: Record<string, string> = {
   "teachKidsSortRule": "Prima ordina per colore: la carta rossa va al cerchio rosso, quella blu al quadrato blu. La forma per ora non conta.",
   "teachKidsSortSwitch": "La regola può cambiare senza avviso. Il segnale: una ✗ dove una carta uguale era giusta un attimo fa.",
   "teachKidsSortShape": "Allora prova l'altra caratteristica, la forma: cerchio con cerchio, quadrato con quadrato. Tornano i ✓: hai trovato la regola, tienila.",
+  "teachChessBlindChunks": "Memorizza a gruppi, non casa per casa: una catena di pedoni, un re dietro i suoi pedoni, una torre su una colonna aperta. Le posizioni vengono da partite vere, quindi i gruppi ci sono sempre.",
+  "teachChessBlindMove": "Mossa {n}: {piece} {from} → {to}. Aggiorna l’immagine nella testa: {from} ora è vuota, il pezzo è su {to}.",
+  "teachChessBlindStayed": "Su {sq}: {piece}. Il pezzo è lì da quando è stata mostrata la posizione; nessuna mossa l’ha toccato.",
+  "teachChessBlindMoved": "Su {sq}: {piece}. Il pezzo è arrivato con la mossa {n}. Rispondi in base alla sua ultima mossa, non alla prima immagine.",
+  "teachChessBlindCount": "Prima un calcolo. Tieni la posizione come immagine, senza ripeterla: la testa è occupata dai numeri.",
 };
 export default t;

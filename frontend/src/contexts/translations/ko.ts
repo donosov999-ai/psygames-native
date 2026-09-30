@@ -3089,5 +3089,10 @@ const t: Record<string, string> = {
   "teachKidsSortRule": "처음에는 색깔로 나눠요: 빨간 카드는 빨간 동그라미에, 파란 카드는 파란 네모에. 모양은 아직 상관없어요.",
   "teachKidsSortSwitch": "규칙은 예고 없이 바뀔 수 있어요. 신호는: 방금까지 맞았던 같은 카드에 ✗ 가 나오는 거예요.",
   "teachKidsSortShape": "그럼 다른 특징인 모양을 시도해요: 동그라미는 동그라미로, 네모는 네모로. ✓ 가 다시 나오면 규칙을 찾은 거예요 — 계속 지켜요.",
+  "teachChessBlindChunks": "칸마다가 아니라 묶음으로 기억하세요: 폰 사슬, 폰 뒤의 킹, 열린 파일의 룩. 실제 대국에서 가져온 국면이라 묶음은 항상 있습니다.",
+  "teachChessBlindMove": "{n}번째 수: {piece} {from} → {to}. 머릿속 그림을 고치세요: {from}은 이제 비었고, 기물은 {to}에 있습니다.",
+  "teachChessBlindStayed": "{sq}에는 {piece}: 처음 보여 줄 때부터 그 자리에 있었고, 어떤 수도 건드리지 않았습니다.",
+  "teachChessBlindMoved": "{sq}에는 {piece}: {n}번째 수로 왔습니다. 처음 그림이 아니라 그 기물의 마지막 수로 답하세요.",
+  "teachChessBlindCount": "먼저 계산 문제입니다. 국면은 되뇌지 말고 그림으로 붙잡으세요. 머리는 숫자로 바쁩니다.",
 };
 export default t;

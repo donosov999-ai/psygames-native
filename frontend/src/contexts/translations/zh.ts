@@ -3094,5 +3094,10 @@ const t: Record<string, string> = {
   "teachKidsSortRule": "先按颜色放：红色卡片放到红色圆形，蓝色卡片放到蓝色方形。现在形状还不重要。",
   "teachKidsSortSwitch": "规则可能在不提醒的情况下改变。信号是：同样的卡片刚才还是对的，现在却出现 ✗。",
   "teachKidsSortShape": "那就试试另一个特征——形状：圆形对圆形，方形对方形。✓ 又出现了，就说明找到了规则，坚持下去。",
+  "teachChessBlindChunks": "按组合记，而不是一格一格记：兵链、王在自己的兵后面、车在开放线上。局面来自真实对局，组合总是存在。",
+  "teachChessBlindMove": "第 {n} 步：{piece} {from} → {to}。在脑中更新画面：{from} 现在空了，棋子在 {to}。",
+  "teachChessBlindStayed": "{sq} 上是 {piece}：从展示时就在这里，没有任何一步动过它。",
+  "teachChessBlindMoved": "{sq} 上是 {piece}：它是第 {n} 步走过来的。按这枚棋子的最后一步回答，而不是按最初的画面。",
+  "teachChessBlindCount": "先算一道题。把局面当作画面记住，不要默念——你的脑子正忙着算数。",
 };
 export default t;

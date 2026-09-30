@@ -3088,5 +3088,10 @@ const t: Record<string, string> = {
   "teachKidsSortRule": "はじめは色で分けよう：赤いカードは赤い丸へ、青いカードは青い四角へ。形はまだ関係ないよ。",
   "teachKidsSortSwitch": "ルールは合図なしに変わることがあるよ。しるしは、さっきまで正しかった同じカードに ✗ が出ること。",
   "teachKidsSortShape": "そうしたら、もうひとつの手がかり、形をためそう：丸は丸へ、四角は四角へ。✓ がもどったらルール発見、そのまま続けよう。",
+  "teachChessBlindChunks": "マスごとではなく、まとまりで覚えよう：ポーンの鎖、ポーンの後ろのキング、オープンファイルのルーク。局面は実戦から取られているので、まとまりは必ずある。",
+  "teachChessBlindMove": "{n}手目：{piece} {from} → {to}。頭の中の絵を更新しよう：{from} は空になり、駒は {to} にある。",
+  "teachChessBlindStayed": "{sq} には {piece}：表示されたときからそこにあり、どの手も触れていない。",
+  "teachChessBlindMoved": "{sq} には {piece}：{n}手目でここに来た。最初の絵ではなく、その駒の最後の手で答えよう。",
+  "teachChessBlindCount": "まず計算問題。局面は唱えずに絵として保とう——頭は数字で忙しい。",
 };
 export default t;

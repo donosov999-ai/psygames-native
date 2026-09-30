@@ -7,12 +7,15 @@ import 'package:flutter/material.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../chess_common/board.dart';
 import 'board_frame.dart';
 import 'game.dart';
+import 'lesson.dart';
 import 'ladder.dart';
 import 'options.dart';
 import 'positions.dart';
@@ -397,6 +400,55 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
     if (mounted) setState(() {});
   }
 
+  /// 🔴 РАЗБОР ДО ПАРТИИ: материал — партия той же ступени, собранная теми же
+  /// правилами, что «Начать». Кнопка стоит сразу, даже пока читается корпус.
+  Future<void> _openLesson() async {
+    final corpus = _corpus ?? await PositionCorpus.load();
+    if (!mounted) return;
+    final level = _stage == _Stage.play ? _level : _ladder.level;
+    final game = ChessBlindGame.start(
+      level: level,
+      corpus: corpus,
+      random: Random(level * 131 + DateTime.now().millisecond),
+    );
+    final steps = chessBlindLessonSteps(game);
+    if (steps.isEmpty) return;
+    LessonUsed.mark();
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LessonPlayerScreen(
+          title: L.t('chessBlind'),
+          steps: steps,
+          board: (context, side, shown) {
+            final f =
+                steps[shown.clamp(0, steps.length - 1)].payload
+                    as ChessBlindLessonFrame;
+            final outlines = <int, Color>{
+              if (f.from != null) f.from!: const Color(0xFFFBBF24),
+              if (f.to != null) f.to!: const Color(0xFFFBBF24),
+              if (f.reveal != null) f.reveal!: const Color(0xFF22C55E),
+            };
+            return Center(
+              child: ChessBoardView(
+                side: side,
+                keyPrefix: 'cbl-sq',
+                masked: f.masked,
+                sideDiscs: true,
+                revealed: {?f.reveal},
+                outlines: outlines,
+                cornerCoords: true,
+                pieces: {
+                  for (final p in f.pieces)
+                    p.sq: BoardPiece(p.type, white: p.white),
+                },
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Future<void> _setAssist(ChessAssist a) async {
     setState(() => _assist = a);
     await a.write(widget.state);
@@ -408,6 +460,7 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
     final playing = _stage == _Stage.play && g != null;
     return GameShell(
       title: L.t('chessBlind'),
+      onLesson: _openLesson,
       hud: [
         if (!GamePreset.isPreset || playing)
           HudItem(

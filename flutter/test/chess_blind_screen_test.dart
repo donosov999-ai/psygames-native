@@ -342,11 +342,10 @@ void main() {
     );
   });
 
-  test('🔴 /games/chess-blind НЕ перехвачен, пока не догнана серия', () {
-    expect(
-      HybridApp.native.containsKey('/games/chess-blind'),
-      isFalse,
-      reason: 'перехват включён раньше экрана: серия с доской и замером T₁/T₂/T₃ ещё не перенесена',
-    );
+  test('🔴 /games/chess-blind открывается нативно — партия и серия перенесены целиком', () {
+    // Сторож стоял обратным с 30.09 (перехват снимали, пока экран был заглушкой).
+    // Снят тем же коммитом, что включил маршрут: партию и серию держат пробы выше
+    // и chess_blind_series_screen_test.dart.
+    expect(HybridApp.native.containsKey('/games/chess-blind'), isTrue);
   });
 }
