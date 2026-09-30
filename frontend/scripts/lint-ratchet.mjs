@@ -258,7 +258,18 @@ import { execFileSync } from 'node:child_process';
   неиспользуемых переменных там задуманы. Погасите — опустите потолок этой же
   строкой, как опускали «Внимание» и «Языки».
 */
-const CEILING = { errors: 479, warnings: 376 };
+/*
+  ★ 30.09.2026 · psygames-claude-mac (координатор) · 479/376 → 471/373.
+  main стоял красным с 25.09 (471/394), и никто не видел: веб-проверки на PR не шли до #14.
+  С #14 они идут на КАЖДОМ PR — красная main означала бы красный CI у всех разделов.
+  Погашено 21 предупреждение в трёх пробах — механика, поведение то же (66/66):
+    · src/__tests__/earn-multiplier.test.ts (мой, #61) — 5 import/first: импорты над jest.mock;
+    · src/__tests__/chess-blind-export-reference.test.ts — 8 import/first + 4 import/no-duplicates;
+    · src/__tests__/scholars-mate-export-reference.test.ts — 4 import/first.
+  Потолок опущен ПО ЗАМЕРУ: ошибки 471 (их сняли разделы раньше, потолок не опускали),
+  предупреждения 373. Мак и CI на одном коде дают одно число (471/394 и там, и там).
+*/
+const CEILING = { errors: 471, warnings: 373 };
 
 /** Насколько ниже потолка можно опуститься, не переписывая его. */
 const SLACK = 25;

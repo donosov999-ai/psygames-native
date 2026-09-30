@@ -19,14 +19,6 @@
  * девяти чатам. Поэтому файловые вызовы объявлены здесь же и живут ТОЛЬКО под
  * ключом выгрузки: в обычном прогоне к ним никто не обращается.
  */
-declare const require: (id: string) => {
-  writeFileSync: (path: string, data: string, enc: string) => void;
-  mkdirSync: (path: string, opts: { recursive: boolean }) => void;
-  dirname: (path: string) => string;
-  resolve: (...parts: string[]) => string;
-};
-declare const __dirname: string;
-declare const process: { env: Record<string, string | undefined> };
 import {
   BOARD_SIDE,
   BOARD_SQUARES,
@@ -37,8 +29,8 @@ import {
   isLightSquare,
   sameSquareColor,
   screenIndex,
+  positionFromFen,
 } from '../games/chess-blind/core/board';
-import { positionFromFen } from '../games/chess-blind/core/board';
 import {
   CHESS_SERIES_PLAN,
   QUESTIONS_PER_BLOCK,
@@ -47,7 +39,6 @@ import {
   blockKeyAt,
   buildBlockQuestions,
 } from '../games/chess-blind/core/blocks';
-import { toScreenPieces } from '../games/chess-blind/core/puzzle';
 import {
   POSITION_CORPUS,
   positionWithPieces,
@@ -64,14 +55,23 @@ import {
   buildQuestions,
   уникальныхФигур,
 } from '../games/chess-blind/core/questions';
-import type { PuzzlePiece } from '../games/chess-blind/core/puzzle';
 import {
+  toScreenPieces,
+  type PuzzlePiece,
   PUZZLE_MIN_LEVEL,
   PUZZLE_MAX_LEVEL,
   puzzleLevelParams,
   puzzleMinUnique,
   clampPuzzleLevel,
 } from '../games/chess-blind/core/puzzle';
+declare const require: (id: string) => {
+  writeFileSync: (path: string, data: string, enc: string) => void;
+  mkdirSync: (path: string, opts: { recursive: boolean }) => void;
+  dirname: (path: string) => string;
+  resolve: (...parts: string[]) => string;
+};
+declare const __dirname: string;
+declare const process: { env: Record<string, string | undefined> };
 
 test('лестница chess-blind читается целиком (и по ключу пишет эталон)', () => {
   const levels: Record<string, unknown> = {};
