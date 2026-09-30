@@ -84,7 +84,7 @@ void main() {
     expect(bad, isEmpty);
   });
 
-  testWidgets('🔴 «Сортировка» у профиля nzt48 показывает 17 карточек, а не 8', (tester) async {
+  testWidgets('🔴 «Сортировка» у профиля nzt48 показывает состав профиля, а не заводские 8', (tester) async {
     SharedPreferences.setMockInitialValues({'psygames_active_profile': 'nzt48'});
     final state = await SharedState.open();
     await bootHub(tester, state);
