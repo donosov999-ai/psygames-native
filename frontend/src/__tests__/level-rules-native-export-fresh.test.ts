@@ -32,9 +32,7 @@ const ИГРЫ = join(__dirname, '..', '..', 'app', 'games');
 const КОМАНДА = "из frontend: npx jest --testMatch '**/level-rules/tools/*.gen.ts' && node ../flutter/tools/embed-l10n.mjs";
 
 describe('таблица правил уровней для Flutter', () => {
-  /* eslint-disable @typescript-eslint/no-require-imports -- после заглушки expo-router */
   const { levelRulesTable } = require('@/src/games/level-rules/tools/ruleSources');
-  /* eslint-enable @typescript-eslint/no-require-imports */
   const живая = levelRulesTable();
   const вФайле = JSON.parse(readFileSync(ФАЙЛ, 'utf8')).games;
 

@@ -26,9 +26,7 @@ jest.mock('expo-router', () => ({
 }));
 
 it('выгрузка таблицы правил уровней для Flutter', () => {
-  /* eslint-disable @typescript-eslint/no-require-imports -- после заглушки expo-router */
   const { levelRulesTable, MAX_LEVEL } = require('./ruleSources');
-  /* eslint-enable @typescript-eslint/no-require-imports */
   const games = levelRulesTable();
   const file = join(__dirname, '..', '..', '..', '..', '..', 'flutter', 'assets', 'level_rules.json');
   const body = {
