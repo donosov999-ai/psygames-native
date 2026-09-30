@@ -7,6 +7,7 @@ import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -78,6 +79,10 @@ class _QuickCountScreenState extends State<QuickCountScreen> {
   }
 
   void _reset() {
+    // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
+    // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
+    // сброса один открытый разбор выключал бы рост уровня во всех играх.
+    LessonUsed.reset();
     _timer?.cancel();
     _params = levelParams(_ladder.level);
     _phase = _Phase.ready;

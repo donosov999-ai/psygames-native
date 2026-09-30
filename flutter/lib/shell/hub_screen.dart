@@ -66,6 +66,7 @@ class HubCard {
     required this.nameKey,
     required this.descKey,
     required this.type,
+    this.levelKey,
   });
 
   factory HubCard.fromJson(Map<String, dynamic> j) => HubCard(
@@ -74,6 +75,7 @@ class HubCard {
         nameKey: j['nameKey'] as String? ?? '',
         descKey: j['descKey'] as String? ?? '',
         type: j['type'] as String?,
+        levelKey: j['levelKey'] as String?,
       );
 
   final String route;
@@ -87,6 +89,11 @@ class HubCard {
   final String descKey;
 
   final String? type;
+
+  /// Чем игра подписывает свой уровень, если это НЕ адрес карточки.
+  /// Пусто — ключ берётся из адреса; расходятся три карточки из 113
+  /// (замер 23.09.2026, см. `_boot`).
+  final String? levelKey;
 
   String get name => nameKey.isEmpty ? route : L.t(nameKey);
   String get desc => descKey.isEmpty ? '' : L.t(descKey);
@@ -229,7 +236,12 @@ class _HubScreenState extends State<HubScreen> {
     // Уровень каждой игры — из ОБЩЕЙ памяти, той же, что у веб-половины: на
     // карточке видно, где человек остановился, без захода в игру.
     for (final c in cards) {
-      final id = c.route.split('/').last.replaceAll('-', '_');
+      // 🔴 КЛЮЧ УРОВНЯ БЕРЁТСЯ ИЗ ДАННЫХ, А АДРЕС — ТОЛЬКО ЗАПАСНОЙ ВАРИАНТ.
+      // Вывод ключа из адреса верен для 110 карточек из 113 и ВРЁТ для трёх:
+      // Шульте пишет уровень как `schulte_table`, два режима «Лаборатории» —
+      // с суффиксом режима. Человеку на девятом уровне развилка показывала
+      // «ур. 1» — замер 23.09.2026 пробой развилок «Поиска» и «Счёта».
+      final id = c.levelKey ?? c.route.split('/').last.replaceAll('-', '_');
       final ladder = LevelLadder(gameId: id, store: SharedLevelStore(widget.state));
       await ladder.load();
       _levels[c.route] = ladder.level;
