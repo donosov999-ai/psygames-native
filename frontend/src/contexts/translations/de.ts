@@ -303,6 +303,8 @@ const t: Record<string, string> = {
   "teachNavigatorRoute": "Sprich die Route als Pfeile – „hoch, rechts, rechts, runter“: Eine Kette behält man leichter als ein Bild. Wird die Karte gedreht, drehe die Pfeile mit.",
   "teachNavigatorTurns": "Eine Abbiegung zählt von der Laufrichtung aus, nicht vom Bildschirm: Stell dir vor, du schaust in Gehrichtung. Gehst du nach oben und biegst auf dem Bildschirm rechts ab, ist das „Rechts“; gehst du nach unten und biegst auf dem Bildschirm rechts ab, ist es schon „Links“.",
   "teachNavigatorHome": "Führe eine Gesamtbilanz der Verschiebung: wie viele Felder du insgesamt nach rechts oder links und nach oben oder unten gegangen bist. Das Zuhause liegt dieser Summe entgegengesetzt: 2 nach rechts und 1 nach oben – das Zuhause liegt unten links, „Südwesten“.",
+  "teachTrailA": "Suche die nächste Zahl schon vorher: Während du die Linie zur „3“ ziehst, finden deine Augen bereits die „4“. Suchen während der Bewegung – so gewinnt man Zeit.",
+  "teachTrailB": "Behalte das Paar im Kopf, nicht zwei getrennte Zählungen: „1 – A, 2 – B, 3 – C“. Sprich es mit – dann bringt dich der Wechsel von Zahl zu Buchstabe nicht aus dem Takt.",
   "spatialNet": "Rohrnetz",
   "spatialTwiddle": "Zahlendreher",
   "spatialSixteen": "Zahlenschieber",

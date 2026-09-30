@@ -66,6 +66,8 @@ void main() {
       '$origin/games/mental-rotation.html?level=12',
       '$origin/games/navigator',
       '$origin/games/navigator.html?level=9&mode=home-direction',
+      '$origin/games/trail-making',
+      '$origin/games/trail-making.html?mode=A&count=7',
       '$origin/games/spatial-span',
       '$origin/games/spatial-lab',
       '$origin/games/spatial-lab?mode=netslide',
@@ -165,7 +167,6 @@ void main() {
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
       '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
-      '$origin/games/trail-making',   // «Соедини цепочку» — ещё в вебе, переносится следующей
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
@@ -297,6 +298,7 @@ void main() {
       '/games/sudoku-samurai',
       '/games/targets',
       '/games/tower-london',
+      '/games/trail-making',
       '/games/water-sort',
       '/games/wcst',
     });
