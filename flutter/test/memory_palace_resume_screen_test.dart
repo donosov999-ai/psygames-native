@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/memory_palace/model.dart';
 import 'package:psygames_flutter/games/memory_palace/screen.dart';
+import 'package:psygames_flutter/shell/game_clock.dart';
 import 'package:psygames_flutter/shell/game_preset.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,9 +32,15 @@ void main() {
     state = await SharedState.open();
   });
 
-  tearDown(GamePreset.clear);
+  tearDown(() {
+    GamePreset.clear();
+    resetGameClock();
+    gameWallMs = () => DateTime.now().millisecondsSinceEpoch;
+  });
 
   Future<MemoryPalaceSession> boot(WidgetTester tester, {String tag = 'a'}) async {
+    // Отложенная запись идёт по часам партии — ведём их поддельным временем пробы.
+    gameWallMs = () => tester.binding.clock.now().millisecondsSinceEpoch;
     await tester.pumpWidget(MaterialApp(home: MemoryPalaceScreen(key: ValueKey(tag), state: state, content: content)));
     await tester.pump();
     await tester.pump();
