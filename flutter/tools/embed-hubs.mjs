@@ -191,13 +191,47 @@ for (const list of [...Object.values(out.hubs), Object.values(out.extra)]) {
 }
 out._levelKey = 'Ключ уровня карточки, снятый с веб-экрана игры (embed-hubs.mjs). Пусто — ключ совпадает с выводимым из адреса.';
 
-// Заголовки самих развилок оставляем как были: они лежат отдельной таблицей.
-try {
-  const old = JSON.parse(readFileSync(OUT, 'utf8'));
-  out.meta = old.meta ?? {};
-  out.pick = old.pick;
-} catch { /* первый запуск */ }
+/*
+ * 🔴 ШАПКА РАЗВИЛКИ — КЛЮЧАМИ СЛОВАРЯ, СНЯТЫМИ С ВЕБ-ЭКРАНА, КАК И КАРТОЧКИ.
+ *
+ * До 30.09.2026 генератор ПЕРЕНОСИЛ `meta` из прошлого файла: русские строки,
+ * записанные один раз руками. Замер по 13 развилкам, по четыре поля (заголовок,
+ * описание, сноска, призыв «выбери»): в вебе все 52 названы КЛЮЧАМИ, а натив
+ * показывал их по-русски на всех двенадцати языках. И даже по-русски 6 из 52
+ * разошлись с вебом: у «Объёма памяти» не было сноски, у «Конфликта внимания» —
+ * описания и сноски, а «Выбери доску», «Выбери парадигму», «Выбери модальность»
+ * стали общим «Выбери упражнение».
+ *
+ * Ключи снимаются тем же способом, каким их пишет веб:
+ *  · общий `HubScreen` — пропсы `titleKey=` / `descKey=` / `footnoteKey=` / `pickKey=`;
+ *  · свои экраны (`span`, `sudoku-hub`, `attention-conflict`) — вызов `t('…')`
+ *    в заголовке героя (`heroTitle`), его описании (`heroDesc`), подписи выбора
+ *    (`sectionLabel`) и сноске (`footnote`).
+ * Не нашёлся хоть один ключ — генератор падает: молча оставить старую строку
+ * значило бы вернуть ровно этот дефект.
+ */
+const HEADER_FIELDS = [
+  ['titleKey', /titleKey="([A-Za-z0-9_]+)"/, /styles\.heroTitle[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/],
+  ['descKey', /descKey="([A-Za-z0-9_]+)"/, /styles\.heroDesc[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/],
+  ['footnoteKey', /footnoteKey="([A-Za-z0-9_]+)"/, /styles\.footnote[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/],
+  ['pickKey', /pickKey="([A-Za-z0-9_]+)"/, /styles\.sectionLabel[^>]*>\s*\{t\('([A-Za-z0-9_]+)'\)\}/],
+];
+const headerMissing = [];
+for (const route of Object.keys(out.hubs)) {
+  const screenText = экран(route.split('/').pop());
+  const header = {};
+  for (const [field, asProp, asCall] of HEADER_FIELDS) {
+    const key = screenText.match(asProp)?.[1] ?? screenText.match(asCall)?.[1];
+    if (key) header[field] = key;
+    else headerMissing.push(`${route} · ${field}`);
+  }
+  out.meta[route] = header;
+}
+if (headerMissing.length) {
+  console.error(`🔴 не найден ключ шапки развилки: ${headerMissing.join(', ')} — поправь embed-hubs.mjs`);
+  process.exit(1);
+}
 writeFileSync(OUT, JSON.stringify(out, null, 0) + '\n');
-console.log(`развилок: ${Object.keys(out.hubs).length} · карточек: ${cards} · все с ключами словаря`);
+console.log(`развилок: ${Object.keys(out.hubs).length} · карточек: ${cards} · все с ключами словаря · шапка: ${Object.keys(out.meta).length} × ${HEADER_FIELDS.length} ключа`);
 console.log(`ключ уровня снят с экрана у ${сКлючом} карточек · режимов без ключа: ${безКлюча.length}${безКлюча.length ? ' — ' + безКлюча.join(', ') : ''}`);
 console.log(`раскладок по профилям: ${Object.keys(out.layouts).length} · адресов в них: ${layoutCards} · карточек вне реестра: ${Object.keys(out.extra).length}`);

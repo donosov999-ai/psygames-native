@@ -5,6 +5,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'hub_routes.dart';
+
 /// 🔴 РАЗВИЛКА — НЕ ИГРА: ПАУЗЫ НА НЕЙ БЫТЬ НЕ ДОЛЖНО.
 ///
 /// Повод — кадр Дениса 23.09.2026: «Пространство» с кнопкой паузы в шапке, «по хабам
@@ -26,7 +28,8 @@ void main() {
   });
 
   testWidgets('🔴 ни на одной развилке нет кнопки паузы', (tester) async {
-    final hubs = HybridApp.native.keys.where((r) => r.endsWith('-hub')).toList();
+    // Развилки — по данным (`hub_routes.dart`): у «Объёма памяти» адрес без хвоста `-hub`.
+    final hubs = HybridApp.native.keys.where(isHubRoute).toList();
     expect(hubs.length, greaterThanOrEqualTo(4), reason: 'развилок в карте найдено ${hubs.length}');
     final guilty = <String>[];
     for (final route in hubs) {

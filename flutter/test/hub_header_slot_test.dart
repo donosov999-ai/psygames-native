@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/hub_screen.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,6 +17,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// зарядка — это действие, а заголовок только называет раздел. Человек,
 /// пришедший «размяться», не должен искать кнопку под описанием.
 void main() {
+  // Шапка развилки с 30.09.2026 — ключами словаря, как и карточки: без словаря
+  // экран показал бы сами ключи («chessGroup»). Грузим до теста, а не в теле.
+  setUpAll(() async => L.load('ru'));
+
   testWidgets('🔴 шапка показывается над карточками, и без неё развилка прежняя', (t) async {
     // ⚠️ ОДНА ПРОБА НА ОБА СЛУЧАЯ, А НЕ ДВЕ. Две пробы здесь зависели от ПОРЯДКА:
     // вторая не находила шапку, хотя поодиночке проходила обе. Причина — общий
