@@ -3155,5 +3155,10 @@ const t: Record<string, string> = {
   "hcAgain": "Noch einmal",
   "teachHiddenHalf": "Frag „{q}“: ja bei {yes}, nein bei {no}. Die beste Frage teilt die Übrigen möglichst genau in zwei Hälften: Jede Antwort streicht die Hälfte.",
   "teachHiddenLast": "Eine Figur ist übrig – das ist die Versteckte. Wähle sie und drücke „Das ist sie!“.",
+  "teachDictIntro": "Einen ganzen Satz behält man nicht im Kopf — man diktiert ihn sich in Stücken. Ganz hören, in Stücke von zwei, drei Wörtern teilen, Stück für Stück tippen.",
+  "teachDictListen": "Hör dir zuerst den ganzen Satz an, ohne etwas zu tippen.",
+  "teachDictChunk": "Stück {i}: „{c}“. Sag es dir vor — und tipp es.",
+  "teachDictStuck": "Hängst du an einem Zeichen? Hör den Satz noch einmal, statt Buchstaben durchzuprobieren: Die Eingabe bleibt stehen, bis das Zeichen stimmt.",
+  "teachDictDone": "So schreibst du auch: ganz hören → in Stücke teilen → dir Stück für Stück diktieren.",
 };
 export default t;
