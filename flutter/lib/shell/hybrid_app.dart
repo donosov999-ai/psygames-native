@@ -83,6 +83,9 @@ import '../games/cloze/screen.dart';
 import '../games/lexical_decision/screen.dart';
 import '../games/story_recall/screen.dart';
 import '../games/phonemic_fluency/screen.dart';
+import '../games/pseudoword_echo/screen.dart';
+import '../games/phoneme_pairs/screen.dart';
+import '../games/chinese_tones/screen.dart';
 import 'hub_screen.dart';
 import 'game_pet.dart';
 import 'session_report.dart';
@@ -283,6 +286,9 @@ class HybridApp extends StatefulWidget {
         '/games/lexical-decision': (s) => LexicalDecisionScreen(state: s),
         '/games/story-recall': (s) => StoryRecallScreen(state: s),
         '/games/phonemic-fluency': (s) => PhonemicFluencyScreen(state: s),
+        '/games/pseudoword-echo': (s) => PseudowordEchoScreen(state: s),
+        '/games/phoneme-pairs': (s) => PhonemePairsScreen(state: s),
+        '/games/chinese-tones': (s) => ChineseTonesScreen(state: s),
         /*
          * Развилка «Слух» — на общем каркасе: над списком у неё в вебе ничего нет.
          * ⚠️ «Слова» и «Языки» НЕ перехватываются: над их списком стоит зарядка
