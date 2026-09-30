@@ -3064,6 +3064,8 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Ab Level 22 tauschen nach einem Fehler verdeckte Karten die Plätze, und das Paar leuchtet auf. Verschiebe das Bild im Kopf dorthin, wo seine Karte hingewandert ist.",
   "vsFindAll": "Finde alle diese Formen — in jeder Drehung",
   "vsFindConj": "Finde die Form in dieser Farbe",
+  "yes": "Ja",
+  "no": "Nein",
   "teachScholarsKing": "Schau auf den gegnerischen König: Welche Felder um ihn sind von eigenen Figuren besetzt, und was greift schon in der Nähe an?",
   "teachScholarsMate": "{move} ist matt: ein Schach ohne Abwehr. Der König kann nicht fliehen, der Angreifer ist nicht zu schlagen, nichts lässt sich dazwischenstellen.",
   "teachScholarsThreatAsk": "Droht Matt? Gib den Zug in Gedanken an den Gegner ab und prüfe: Hat er Matt in einem Zug?",

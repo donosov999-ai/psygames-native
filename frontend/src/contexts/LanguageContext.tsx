@@ -4190,6 +4190,8 @@ const translations: Translations = {
   chessCfgBlindMoves: { ru: 'ходов вслепую', en: 'blind moves' },
   chessCfgQuizPick: { ru: 'вопрос «что здесь?»', en: '“what is here?” quiz' },
   chessCfgQuizLocate: { ru: 'вопрос «где фигура?»', en: '“where is it?” quiz' },
+  yes: { ru: 'Да', en: 'Yes' },
+  no: { ru: 'Нет', en: 'No' },
   teachChessBlindChunks: { ru: 'Запоминай связками, а не по клетке: пешечная цепь, король за своими пешками, ладья на открытой линии. Позиции из живых партий — связки в них есть всегда.', en: 'Remember in chunks, not square by square: a pawn chain, a king behind its pawns, a rook on an open file. The positions come from real games, so chunks are always there.' },
   teachChessBlindMove: { ru: 'Ход {n}: {piece} {from} → {to}. Обнови картинку в голове: на {from} теперь пусто, фигура стоит на {to}.', en: 'Move {n}: {piece} {from} → {to}. Update the picture in your head: {from} is now empty, the piece stands on {to}.' },
   teachChessBlindStayed: { ru: 'На {sq} — {piece}: фигура стоит здесь с самого показа, ходы её не трогали.', en: 'On {sq}: {piece}. It has stood there since the position was shown; no move touched it.' },

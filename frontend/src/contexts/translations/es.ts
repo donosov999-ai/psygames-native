@@ -3064,6 +3064,8 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Desde el nivel 22, tras un error las cartas boca abajo cambian de lugar y la pareja se ilumina. Mueve la imagen en tu memoria a donde fue su carta.",
   "vsFindAll": "Encuentra todas estas figuras — en cualquier rotación",
   "vsFindConj": "Encuentra la figura de este color y forma",
+  "yes": "Sí",
+  "no": "No",
   "teachScholarsKing": "Mira al rey rival: qué casillas a su alrededor ocupan sus propias piezas y qué ataca ya cerca.",
   "teachScholarsMate": "{move} es mate: un jaque sin defensa. El rey no tiene adónde ir, no se puede capturar al atacante y nada puede interponerse.",
   "teachScholarsThreatAsk": "¿Amenaza mate? Cede el turno al rival en tu cabeza y comprueba: ¿tiene mate en uno?",

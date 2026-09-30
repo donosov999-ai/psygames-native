@@ -3059,6 +3059,8 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Dal livello 22, dopo un errore le carte coperte si scambiano di posto e la coppia si illumina. Sposta l'immagine nella memoria dove è finita la sua carta.",
   "vsFindAll": "Trova tutte queste figure — in qualsiasi rotazione",
   "vsFindConj": "Trova la figura di questo colore e forma",
+  "yes": "Sì",
+  "no": "No",
   "teachScholarsKing": "Guarda il re avversario: quali case intorno a lui sono occupate dai suoi pezzi e cosa attacca già lì vicino.",
   "teachScholarsMate": "{move} è matto: uno scacco senza difesa. Il re non ha dove andare, l’attaccante non si può catturare e niente può interporsi.",
   "teachScholarsThreatAsk": "C’è una minaccia di matto? Cedi la mossa all’avversario nella tua testa e controlla: ha un matto in una?",

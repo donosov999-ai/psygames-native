@@ -3064,6 +3064,8 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "从第22关起，出错后背面朝上的卡片会交换位置，这一对会亮起。把记忆中的图移到它的卡片去的地方。",
   "vsFindAll": "找出所有这种图形 — 任意旋转方向",
   "vsFindConj": "找出这种颜色和形状的图形",
+  "yes": "是",
+  "no": "否",
   "teachScholarsKing": "看对方的王：它周围哪些格子被自己的棋子堵住了，附近已经有什么在攻击？",
   "teachScholarsMate": "{move} 将死：这是无法解除的将军。王无处可逃，攻击的棋子吃不掉，也无法垫将。",
   "teachScholarsThreatAsk": "有将死的威胁吗？在脑中把走棋权交给对方，检查：对方有一步将死吗？",

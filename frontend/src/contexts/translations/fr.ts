@@ -3059,6 +3059,8 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "À partir du niveau 22, après une erreur, des cartes face cachée échangent leur place et la paire s'illumine. Déplace l'image dans ta mémoire là où sa carte est partie.",
   "vsFindAll": "Trouve toutes ces figures — dans n'importe quelle orientation",
   "vsFindConj": "Trouve la figure de cette couleur et de cette forme",
+  "yes": "Oui",
+  "no": "Non",
   "teachScholarsKing": "Regarde le roi adverse : quelles cases autour de lui sont occupées par ses propres pièces, et qu’est-ce qui attaque déjà tout près ?",
   "teachScholarsMate": "{move} est mat : un échec sans défense. Le roi n’a aucune case, l’attaquant ne peut pas être pris, rien ne peut s’interposer.",
   "teachScholarsThreatAsk": "Y a-t-il une menace de mat ? Donne le trait à l’adversaire dans ta tête et vérifie : a-t-il un mat en un coup ?",
