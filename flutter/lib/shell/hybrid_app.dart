@@ -95,6 +95,7 @@ import 'game_preset.dart';
 import 'game_rules.dart';
 import 'game_shell.dart';
 import 'puzzle_routes.g.dart';
+import '../games/chess_hub/screen.dart';
 import '../games/scholars_mate/screen.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
@@ -309,6 +310,8 @@ class HybridApp extends StatefulWidget {
          * веб-карточке (`warmup_bridge.dart`): подписи и число подходов берутся у
          * неё, запуск — её же `startPlaylist`.
          */
+        // «Шахматы»: развилка с шахматной зарядкой-мостом в шапке (01.10.2026).
+        '/games/chess-hub': (s) => chessHubScreen(state: s, isNative: native.containsKey),
         '/games/words-hub': (s) => HubScreen(
               state: s,
               hubRoute: '/games/words-hub',

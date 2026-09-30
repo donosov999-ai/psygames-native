@@ -280,6 +280,7 @@ void main() {
       '/games/ball-sort',
       '/games/bart',
       '/games/cake-sort',
+      '/games/chess-hub',
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',
