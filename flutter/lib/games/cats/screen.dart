@@ -180,7 +180,7 @@ class _CatsScreenState extends State<CatsScreen> {
       hud: [
         HudItem(label: L.t('level'), value: '${_board == null ? 1 : _ladder.level}', icon: Icons.trending_up),
         HudItem(
-          label: L.t('catsFound'),
+          label: L.t('label_found'),
           value: '${_cats.length}/$n',
           icon: Icons.pets,
         ),

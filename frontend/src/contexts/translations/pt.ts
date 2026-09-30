@@ -3053,5 +3053,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "A partir do nível 22, depois de um erro as cartas viradas para baixo trocam de lugar e o par se ilumina. Mova a figura na memória para onde a carta dela foi.",
   "vsFindAll": "Encontre todas estas formas — em qualquer rotação",
   "vsFindConj": "Encontre a forma desta cor e formato",
+  "catsTitle": "Gatos",
+  "catsDesc": "Coloque um gato em cada linha, cada coluna e cada cor. Os gatos não podem se tocar, nem na diagonal.",
+  "catsType": "Regiões de cor · tabuleiro 6–10",
+  "catsRuleColor": "Um gato por cor",
+  "catsRuleLine": "Um gato por linha e por coluna",
+  "catsRuleTouch": "Os gatos não podem se tocar, nem na diagonal",
+  "catsWhyRegion": "Nesta cor só resta uma casa",
+  "catsWhyRow": "Nesta linha só resta uma casa",
+  "catsWhyColumn": "Nesta coluna só resta uma casa",
+  "catsWhyTrial": "Nenhuma jogada forçada — daqui em diante, tentativa",
 };
 export default t;

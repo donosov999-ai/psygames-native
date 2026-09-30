@@ -3047,5 +3047,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "レベル22からは、ミスのあと伏せたカードが入れ替わり、その組が光ります。カードが移った先へ、記憶の中の絵も動かしましょう。",
   "vsFindAll": "この形をすべて見つけよう — 向きは自由",
   "vsFindConj": "この色と形の図形を見つけよう",
+  "catsTitle": "ねこ",
+  "catsDesc": "どの行・列・色にも猫を1匹ずつ置こう。猫どうしは隣り合えない — 斜めもダメ。",
+  "catsType": "色分けエリア · 盤面 6–10",
+  "catsRuleColor": "各色に猫は1匹",
+  "catsRuleLine": "各行・各列に猫は1匹",
+  "catsRuleTouch": "猫どうしは隣り合えない — 斜めもダメ",
+  "catsWhyRegion": "この色に残るマスは1つだけ",
+  "catsWhyRow": "この行に残るマスは1つだけ",
+  "catsWhyColumn": "この列に残るマスは1つだけ",
+  "catsWhyTrial": "確定する手がない — ここから試行",
 };
 export default t;

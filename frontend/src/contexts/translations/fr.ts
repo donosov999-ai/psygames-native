@@ -3048,5 +3048,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "À partir du niveau 22, après une erreur, des cartes face cachée échangent leur place et la paire s'illumine. Déplace l'image dans ta mémoire là où sa carte est partie.",
   "vsFindAll": "Trouve toutes ces figures — dans n'importe quelle orientation",
   "vsFindConj": "Trouve la figure de cette couleur et de cette forme",
+  "catsTitle": "Chats",
+  "catsDesc": "Place un chat dans chaque ligne, chaque colonne et chaque couleur. Les chats ne peuvent pas se toucher, même en diagonale.",
+  "catsType": "Zones de couleur · grille 6–10",
+  "catsRuleColor": "Un chat par couleur",
+  "catsRuleLine": "Un chat par ligne et par colonne",
+  "catsRuleTouch": "Les chats ne peuvent pas se toucher, même en diagonale",
+  "catsWhyRegion": "Il ne reste qu’une case dans cette couleur",
+  "catsWhyRow": "Il ne reste qu’une case dans cette ligne",
+  "catsWhyColumn": "Il ne reste qu’une case dans cette colonne",
+  "catsWhyTrial": "Aucun coup forcé — à partir d’ici, on essaie",
 };
 export default t;

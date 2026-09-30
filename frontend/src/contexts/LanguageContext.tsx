@@ -3257,7 +3257,6 @@ const translations: Translations = {
   catsTitle: { ru: 'Кошки', en: 'Cats' },
   catsDesc: { ru: 'Поставь по одной кошке в каждую строку, каждый столбец и каждый цвет. Кошки не касаются друг друга — даже углами.', en: 'Place one cat in every row, every column and every colour. Cats may not touch — not even diagonally.' },
   catsType: { ru: 'Цветные области · поле 6–10', en: 'Colour regions · board 6–10' },
-  catsFound: { ru: 'Найдено', en: 'Found' },
   catsRuleColor: { ru: 'На каждый цвет — одна кошка', en: 'One cat per colour' },
   catsRuleLine: { ru: 'В каждой строке и столбце — одна кошка', en: 'One cat per row and column' },
   catsRuleTouch: { ru: 'Кошки не могут соприкасаться, даже углами', en: 'Cats may not touch, not even diagonally' },

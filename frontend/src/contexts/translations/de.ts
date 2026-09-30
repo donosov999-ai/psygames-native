@@ -3053,5 +3053,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Ab Level 22 tauschen nach einem Fehler verdeckte Karten die Plätze, und das Paar leuchtet auf. Verschiebe das Bild im Kopf dorthin, wo seine Karte hingewandert ist.",
   "vsFindAll": "Finde alle diese Formen — in jeder Drehung",
   "vsFindConj": "Finde die Form in dieser Farbe",
+  "catsTitle": "Katzen",
+  "catsDesc": "Setze eine Katze in jede Zeile, jede Spalte und jede Farbe. Katzen dürfen sich nicht berühren – auch nicht diagonal.",
+  "catsType": "Farbbereiche · Feld 6–10",
+  "catsRuleColor": "Eine Katze pro Farbe",
+  "catsRuleLine": "Eine Katze pro Zeile und Spalte",
+  "catsRuleTouch": "Katzen dürfen sich nicht berühren, auch nicht diagonal",
+  "catsWhyRegion": "In dieser Farbe ist nur noch ein Feld frei",
+  "catsWhyRow": "In dieser Zeile ist nur noch ein Feld frei",
+  "catsWhyColumn": "In dieser Spalte ist nur noch ein Feld frei",
+  "catsWhyTrial": "Kein erzwungener Zug — ab hier wird probiert",
 };
 export default t;
