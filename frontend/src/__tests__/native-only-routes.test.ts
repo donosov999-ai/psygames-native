@@ -9,7 +9,7 @@
  */
 import { GAMES } from '@/src/constants/games';
 import { NATIVE_ONLY_ROUTES } from '@/src/constants/nativeOnlyGames';
-import { разобрать } from '@/src/services/playlistOverride';
+import { разобрать as parsePlaylists } from '@/src/services/playlistOverride';
 
 /* `require`, а не `import`: node-типов в tsconfig проекта нет (приём соседней
    пробы playlist-editor-data). */
@@ -19,25 +19,25 @@ const { join } = require('path');
 /* eslint-enable @typescript-eslint/no-require-imports */
 declare const __dirname: string;
 
-const КАРТА = join(__dirname, '../../../flutter/lib/shell/hybrid_app.dart');
-const СОСТАВ = join(__dirname, '../constants/defaultPlaylists.json');
+const NATIVE_MAP_FILE = join(__dirname, '../../../flutter/lib/shell/hybrid_app.dart');
+const PLAYLISTS_FILE = join(__dirname, '../constants/defaultPlaylists.json');
 
 describe('игры только с нативным экраном', () => {
   it('🔴 каждый адрес перехвачен нативной картой', () => {
-    const карта = readFileSync(КАРТА, 'utf8');
+    const mapSource = readFileSync(NATIVE_MAP_FILE, 'utf8');
     expect(NATIVE_ONLY_ROUTES.length).toBeGreaterThan(0);
-    expect(NATIVE_ONLY_ROUTES.filter((r) => !карта.includes(`'${r}':`))).toEqual([]);
+    expect(NATIVE_ONLY_ROUTES.filter((r) => !mapSource.includes(`'${r}':`))).toEqual([]);
   });
 
   it('в веб-реестре их нет — иначе это дубль, а не нативная игра', () => {
-    const веб = new Set(GAMES.map((g) => g.route));
-    expect(NATIVE_ONLY_ROUTES.filter((r) => веб.has(r))).toEqual([]);
+    const webRoutes = new Set(GAMES.map((g) => g.route));
+    expect(NATIVE_ONLY_ROUTES.filter((r) => webRoutes.has(r))).toEqual([]);
   });
 
   it('🔴 заводской состав держит их карточки, и разбор их не отбрасывает', () => {
-    const вФайле = readFileSync(СОСТАВ, 'utf8');
-    expect(NATIVE_ONLY_ROUTES.filter((r) => !вФайле.includes(`"маршрут":"${r}"`))).toEqual([]);
-    const р = разобрать(вФайле);
-    expect(р.отброшено.filter((с) => NATIVE_ONLY_ROUTES.some((r) => с.includes(r)))).toEqual([]);
+    const fileText = readFileSync(PLAYLISTS_FILE, 'utf8');
+    expect(NATIVE_ONLY_ROUTES.filter((r) => !fileText.includes(`"маршрут":"${r}"`))).toEqual([]);
+    const parsed = parsePlaylists(fileText);
+    expect(parsed.отброшено.filter((line) => NATIVE_ONLY_ROUTES.some((r) => line.includes(r)))).toEqual([]);
   });
 });

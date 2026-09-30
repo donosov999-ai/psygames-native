@@ -59,7 +59,7 @@ void main() {
   const debt = <String, int>{
     'games/mental_rotation/words.dart': 62,
     'games/mental_rotation/screen.dart': 58,
-    'games/spatial_lab/screen.dart': 51,
+    'games/spatial_lab/screen.dart': 43,
     'games/sudoku/screen.dart': 31,
     'games/math_slider/screen.dart': 27,
     'games/schulte/screen.dart': 26,
@@ -110,7 +110,9 @@ void main() {
   // ушли из списка): 733 + 4 принятых строки слова-квадрата − 38. Новых ключей не
   // заводилось ни одного: веб-экран тех же режимов зовёт ровно эти подписи, и перевод
   // на 12 языков у них уже был — `node flutter/tools/embed-l10n.mjs` привёз их сам.
-  const total = 699;
+  // 30.09 — «Пространство»: правила четырёх упражнений «Лаборатории» и «Понятно» ушли в
+  // словарь (задача 848da95d), spatial_lab 51 → 43: 699 − 8.
+  const total = 691;
 
   final counts = _scan(Directory('lib'));
 
