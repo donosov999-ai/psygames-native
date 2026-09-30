@@ -1063,6 +1063,14 @@ const translations: Translations = {
   teachPrlNoise: { ru: 'Одна неудача — ещё не смена правила: даже верный цвет иногда не даёт очков. Переключайтесь после двух-трёх неудач подряд, а не после первой.', en: 'One failure is not a rule change: even the right colour sometimes pays nothing. Switch after two or three failures in a row, not after the first.' },
   teachRmetEyes: { ru: 'Смотрите на ГЛАЗА — веки, брови, направление взгляда, — а не на «лицо вообще». Варианты близки по смыслу нарочно, поэтому сравнивайте их между собой, а не с первым впечатлением.', en: 'Look at the EYES — lids, brows, direction of gaze — not at “the face” in general. The options are deliberately close in meaning, so compare them with each other rather than with your first impression.' },
   /*
+   * 🎓 РАЗБОР «ПРОЧТИ ЭМОЦИЮ» (веб, 30.09.2026): признаки глаз → сравнение с соседними словами →
+   * выбор. Слова и признаки подставляет экран из пунктов самой игры (ITEMS: hint, correct).
+   */
+  teachRmetCues: { ru: 'Сначала глаза, слова потом. Что видно здесь: {hint}.', en: 'Eyes first, words later. What you can see here: {hint}.' },
+  teachRmetCompare: { ru: '«{word}» выглядел бы так: {cues}. Сравните с этими глазами.', en: '“{word}” would look like this: {cues}. Compare it with these eyes.' },
+  teachRmetPick: { ru: 'К признакам «{hint}» ближе всего «{word}» — это и ответ.', en: 'The cues “{hint}” fit “{word}” best — that is the answer.' },
+  teachRmetDone: { ru: 'Так и отвечайте: признаки глаз → сравнение с соседними словами → выбор того, что ближе к признакам.', en: 'Answer the same way: read the eye cues → compare with the neighbouring words → pick the one closest to the cues.' },
+  /*
    * 🎓 РАЗБОР ИГР НА ОБЪЁМ, СЧЁТ И ПОИСК. Верный ответ человек и так видит по итогу раунда —
    * учить надо ПРИЁМУ, которым объём берётся: группировка, траектория, период, опорная примета.
    */
@@ -1138,7 +1146,7 @@ const translations: Translations = {
    * буквенно-цифровой код для чисел. Слова опор подставляет экран из словаря 00–99.
    */
   teachMnemoIntroWords: { ru: 'Ряд из {n} слов держится не счётом «первое, второе», а ЦЕПОЧКОЙ сцен: каждое следующее слово что-то делает с предыдущим.', en: 'A row of {n} words holds together not by counting “first, second” but by a CHAIN of scenes: each next word does something to the previous one.' },
-  teachMnemoIntroNumbers: { ru: 'Цифры голой памятью не держатся. Приём: число превращается в СЛОВО по согласным, а слова уже связываются в цепочку. Разберём {n} чисел этого ряда.', en: 'Bare digits do not stick. The technique: turn each number into a WORD by its consonants, then chain the words. Let us work through {n} numbers of this row.' },
+  teachMnemoIntroNumbers: { ru: 'Цифры голой памятью не держатся. Приём: число превращается в СЛОВО по согласным, а слова уже связываются в цепочку. Разберём первые {n} — остальные тем же приёмом.', en: 'Bare digits do not stick. The technique: turn each number into a WORD by its consonants, then chain the words. Let us work through the first {n}; the rest go the same way.' },
   teachMnemoIntroNumbersNoPegs: { ru: 'Цифры голой памятью не держатся: связывайте их в сцены по две-три, а не повторяйте подряд. Таблицы опор для этого языка пока нет.', en: 'Bare digits do not stick: bind them into scenes two or three at a time instead of repeating the row. There is no peg table for this language yet.' },
   teachMnemoPegFirst: { ru: '{n} — это «{word}» ({why}). Согласные и дают слово: гласные свободны, поэтому подставляются любые.', en: '{n} is “{word}” ({why}). The consonants make the word: vowels are free, so any of them fit.' },
   teachMnemoPeg: { ru: '{n} — «{word}» ({why}).', en: '{n} — “{word}” ({why}).' },

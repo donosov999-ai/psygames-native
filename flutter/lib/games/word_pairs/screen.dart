@@ -16,9 +16,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/lesson.dart';
@@ -50,9 +52,22 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
   int _leftMs = 0;
   Timer? _timer;
 
+  /// Режим и язык перевода. 🔴 До 30.09.2026 режим приходил только параметром, а перехват строит
+  /// экран без него — «Перевод» в приложении был НЕДОСТИЖИМ, шаг зарядки с mode=translation
+  /// молча играл случайные пары. Теперь: шаг зарядки → иначе выбор на настройке (как в вебе).
+  late String _mode = widget.mode;
+  String _target = 'en';
+
+  /// Шаг зарядки показывает пары без лимита времени (веб: «ручной pairCount, без лимита»).
+  bool _unlimited = false;
+
   /// Ключ запаса невиданного: свой у каждого режима — иначе игра в один режим
   /// выедала бы материал другого.
-  String get _poolKey => 'word_pairs_${widget.mode}_${L.locale}';
+  String get _poolKey => 'word_pairs_${_mode}_${L.locale}';
+
+  /// Языки перевода: со словарём и не язык интерфейса.
+  List<({String code, String name})> get _targets =>
+      [for (final l in _content?.targetLanguages ?? const <({String code, String name})>[]) if (l.code != L.locale) l];
 
   @override
   void initState() {
@@ -78,7 +93,15 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
     setState(() {
       _content = content;
       _booting = false;
+      final wanted = GamePreset.str('mode', widget.mode);
+      _mode = wanted == 'translation' ? 'translation' : 'random';
+      final fallback = L.locale == 'en' ? 'es' : 'en';
+      final t = GamePreset.str('targetLang', fallback);
+      final codes = _targets.map((l) => l.code).toList();
+      _target = codes.contains(t) ? t : (codes.contains(fallback) ? fallback : (codes.isEmpty ? fallback : codes.first));
     });
+    // Шаг зарядки стартует сам (как в вебе: useAutostartWhenReady).
+    if (mounted && GamePreset.autostart) await _start();
   }
 
   /// Запас лежит в общем хранилище каркаса — там же, где его видит веб-половина.
@@ -90,27 +113,43 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
   Future<void> _start() async {
     final c = _content;
     if (c == null) return;
+    final level = _ladder.level;
+    final preset = GamePreset.isPreset;
     final built = WordPairsSession.build(
       content: c,
       locale: L.locale,
-      targetLocale: L.locale == 'en' ? 'es' : 'en',
-      mode: widget.mode,
-      level: _ladder.level,
+      targetLocale: _target,
+      mode: _mode,
+      level: level,
       seen: _readSeen(),
+      // Шаг зарядки: число пар из шага, но не выше уровня + 1 (веб: capPresetByLevel).
+      pairCount: preset
+          ? capPresetByLevel(
+              want: GamePreset.num('pairCount', 10),
+              atLevel: wordPairsLevelParams(level).pairCount,
+              atTop: level >= 15,
+            )
+          : null,
     );
     await _writeSeen(built.seen);
     if (!mounted) return;
     setState(() {
       _session = built.session;
       _leftMs = built.session.memorizeMs;
+      _unlimited = preset;
     });
     _timer?.cancel();
+    if (preset) return;   // без лимита: показ кончается кнопкой «Проверить»
     _timer = Timer.periodic(const Duration(milliseconds: 200), (t) {
       final s = _session;
       if (!mounted || s == null || s.phase != WordPairsPhase.memorize) {
         t.cancel();
         return;
       }
+      // 🔴 Пауза каркаса и разбор — страницы поверх игры: пока экран не текущий, показ не тает.
+      // Веб держит это игровыми часами (`gameNow`); до 30.09.2026 здесь отсчёт шёл и под паузой.
+      final route = ModalRoute.of(context);
+      if (route != null && !route.isCurrent) return;
       setState(() => _leftMs -= 200);
       if (_leftMs <= 0) {
         t.cancel();
@@ -121,9 +160,9 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
 
   Future<void> _finish(WordPairsSession s) async {
     if (s.passed) {
-      await _ladder.win(score: s.score, errors: s.errors, mode: widget.mode);
+      await _ladder.win(score: s.score, errors: s.errors, mode: _mode);
     } else {
-      await _ladder.fail(score: s.score, errors: s.errors, mode: widget.mode);
+      await _ladder.fail(score: s.score, errors: s.errors, mode: _mode);
     }
     if (mounted) setState(() {});
   }
@@ -163,8 +202,8 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
     return WordPairsSession.build(
       content: c,
       locale: L.locale,
-      targetLocale: L.locale == 'en' ? 'es' : 'en',
-      mode: widget.mode,
+      targetLocale: _target,
+      mode: _mode,
       level: _ladder.level,
       seen: _readSeen(),
     ).session.pairs;
@@ -244,7 +283,7 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
           value: s == null
               ? '—'
               : s.phase == WordPairsPhase.memorize
-                  ? '${(_leftMs / 1000).ceil()}'
+                  ? (_unlimited ? '—' : '${(_leftMs / 1000).ceil()}')
                   : '${s.errors}',
           icon: Icons.timer_outlined,
         ),
@@ -263,9 +302,50 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
   Widget _field(BuildContext context, WordPairsSession? s, double h) {
     final scheme = Theme.of(context).colorScheme;
     if (s == null) {
+      final targets = _targets;
       return _Pad(
         height: h,
-        child: Center(child: Text(L.t('desc_word_pairs_rules'), textAlign: TextAlign.center)),
+        child: SingleChildScrollView(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text(L.t('desc_word_pairs_rules'), textAlign: TextAlign.center),
+            const SizedBox(height: 14),
+            Text(L.t('mode'), style: TextStyle(color: scheme.onSurfaceVariant)),
+            const SizedBox(height: 6),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              ChoiceChip(
+                key: const ValueKey('wp-mode-random'),
+                label: Text(L.t('label_random_pairs')),
+                selected: _mode == 'random',
+                onSelected: (_) => setState(() => _mode = 'random'),
+              ),
+              // Перевод — только если словарь есть хоть на одном языке, кроме языка интерфейса.
+              if (targets.isNotEmpty && (_content?.vocab.isNotEmpty ?? false))
+                ChoiceChip(
+                  key: const ValueKey('wp-mode-translation'),
+                  label: Text(L.t('label_translation')),
+                  selected: _mode == 'translation',
+                  onSelected: (_) => setState(() => _mode = 'translation'),
+                ),
+            ]),
+            if (_mode == 'translation' && targets.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              // Выпадающим списком, а не кнопками (Денис 17.09.2026): кнопок было бы одиннадцать.
+              Row(children: [
+                Flexible(child: Text('${L.t('label_translate')}:')),
+                const SizedBox(width: 10),
+                DropdownButton<String>(
+                  key: const ValueKey('wp-target'),
+                  value: targets.any((l) => l.code == _target) ? _target : targets.first.code,
+                  items: [
+                    for (final l in targets)
+                      DropdownMenuItem(value: l.code, key: ValueKey('wp-target-${l.code}'), child: Text(l.name)),
+                  ],
+                  onChanged: (v) => setState(() => _target = v ?? _target),
+                ),
+              ]),
+            ],
+          ]),
+        ),
       );
     }
     if (s.phase == WordPairsPhase.memorize) {
