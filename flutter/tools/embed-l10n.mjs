@@ -98,7 +98,7 @@ for (const f of dartFiles(join(FLUTTER, 'lib'))) {
 // без строк — экран показал бы сами ключи. Поэтому собираем их из собранных
 // ассетов: там они лежат явно.
 for (const [file, fields] of [
-  ['assets/hubs.json', ['nameKey', 'descKey']],
+  ['assets/hubs.json', ['nameKey', 'descKey', 'titleKey', 'pickKey', 'footnoteKey']],
   ['assets/puzzles/modes.json', ['titleKey', 'digitNames']],
 ]) {
   let data;
