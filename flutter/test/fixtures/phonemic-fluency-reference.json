@@ -1,0 +1,538 @@
+{
+ "taken": "2026-09-30",
+ "tool": "frontend/scripts/flutter-phonemic-fluency-reference.test.ts",
+ "ruLetters": [
+  "К",
+  "Л",
+  "М",
+  "П",
+  "С",
+  "Т",
+  "Б",
+  "В",
+  "Г",
+  "Д",
+  "Н",
+  "Р"
+ ],
+ "enLetters": [
+  "F",
+  "A",
+  "S",
+  "B",
+  "C",
+  "D",
+  "M",
+  "P",
+  "R",
+  "T",
+  "L",
+  "N"
+ ],
+ "wordLangs": [
+  "ru",
+  "en"
+ ],
+ "byUi": [
+  {
+   "ui": "en",
+   "defaultWordLang": "en",
+   "script": "en",
+   "pool": [
+    "F",
+    "A",
+    "S",
+    "B",
+    "C",
+    "D",
+    "M",
+    "P",
+    "R",
+    "T",
+    "L",
+    "N"
+   ]
+  },
+  {
+   "ui": "es",
+   "defaultWordLang": "en",
+   "script": "en",
+   "pool": [
+    "F",
+    "A",
+    "S",
+    "B",
+    "C",
+    "D",
+    "M",
+    "P",
+    "R",
+    "T",
+    "L",
+    "N"
+   ]
+  },
+  {
+   "ui": "pt",
+   "defaultWordLang": "en",
+   "script": "en",
+   "pool": [
+    "F",
+    "A",
+    "S",
+    "B",
+    "C",
+    "D",
+    "M",
+    "P",
+    "R",
+    "T",
+    "L",
+    "N"
+   ]
+  },
+  {
+   "ui": "hi",
+   "defaultWordLang": "en",
+   "script": "en",
+   "pool": [
+    "F",
+    "A",
+    "S",
+    "B",
+    "C",
+    "D",
+    "M",
+    "P",
+    "R",
+    "T",
+    "L",
+    "N"
+   ]
+  },
+  {
+   "ui": "zh",
+   "defaultWordLang": "en",
+   "script": "en",
+   "pool": [
+    "F",
+    "A",
+    "S",
+    "B",
+    "C",
+    "D",
+    "M",
+    "P",
+    "R",
+    "T",
+    "L",
+    "N"
+   ]
+  },
+  {
+   "ui": "de",
+   "defaultWordLang": "en",
+   "script": "en",
+   "pool": [
+    "F",
+    "A",
+    "S",
+    "B",
+    "C",
+    "D",
+    "M",
+    "P",
+    "R",
+    "T",
+    "L",
+    "N"
+   ]
+  },
+  {
+   "ui": "fr",
+   "defaultWordLang": "en",
+   "script": "en",
+   "pool": [
+    "F",
+    "A",
+    "S",
+    "B",
+    "C",
+    "D",
+    "M",
+    "P",
+    "R",
+    "T",
+    "L",
+    "N"
+   ]
+  },
+  {
+   "ui": "it",
+   "defaultWordLang": "en",
+   "script": "en",
+   "pool": [
+    "F",
+    "A",
+    "S",
+    "B",
+    "C",
+    "D",
+    "M",
+    "P",
+    "R",
+    "T",
+    "L",
+    "N"
+   ]
+  },
+  {
+   "ui": "ja",
+   "defaultWordLang": "en",
+   "script": "en",
+   "pool": [
+    "F",
+    "A",
+    "S",
+    "B",
+    "C",
+    "D",
+    "M",
+    "P",
+    "R",
+    "T",
+    "L",
+    "N"
+   ]
+  },
+  {
+   "ui": "ko",
+   "defaultWordLang": "en",
+   "script": "en",
+   "pool": [
+    "F",
+    "A",
+    "S",
+    "B",
+    "C",
+    "D",
+    "M",
+    "P",
+    "R",
+    "T",
+    "L",
+    "N"
+   ]
+  },
+  {
+   "ui": "ar",
+   "defaultWordLang": "en",
+   "script": "en",
+   "pool": [
+    "F",
+    "A",
+    "S",
+    "B",
+    "C",
+    "D",
+    "M",
+    "P",
+    "R",
+    "T",
+    "L",
+    "N"
+   ]
+  },
+  {
+   "ui": "ru",
+   "defaultWordLang": "ru",
+   "script": "ru",
+   "pool": [
+    "К",
+    "Л",
+    "М",
+    "П",
+    "С",
+    "Т",
+    "Б",
+    "В",
+    "Г",
+    "Д",
+    "Н",
+    "Р"
+   ]
+  }
+ ],
+ "checks": [
+  {
+   "raw": "кот",
+   "letter": "К",
+   "script": "ru",
+   "valid": true
+  },
+  {
+   "raw": "ко",
+   "letter": "К",
+   "script": "ru",
+   "valid": false,
+   "reason": "too_short"
+  },
+  {
+   "raw": "лампа",
+   "letter": "К",
+   "script": "ru",
+   "valid": false,
+   "reason": "wrong_letter"
+  },
+  {
+   "raw": "кот1",
+   "letter": "К",
+   "script": "ru",
+   "valid": false,
+   "reason": "non_letters"
+  },
+  {
+   "raw": "кран",
+   "letter": "К",
+   "script": "ru",
+   "valid": true
+  },
+  {
+   "raw": "ккк",
+   "letter": "К",
+   "script": "ru",
+   "valid": false,
+   "reason": "no_vowels"
+  },
+  {
+   "raw": "кккот",
+   "letter": "К",
+   "script": "ru",
+   "valid": false,
+   "reason": "repetition_pattern"
+  },
+  {
+   "raw": "кабабаб",
+   "letter": "К",
+   "script": "ru",
+   "valid": false,
+   "reason": "repetition_pattern"
+  },
+  {
+   "raw": "к-т",
+   "letter": "К",
+   "script": "ru",
+   "valid": false,
+   "reason": "no_vowels"
+  },
+  {
+   "raw": "кит-кот",
+   "letter": "К",
+   "script": "ru",
+   "valid": true
+  },
+  {
+   "raw": "kot",
+   "letter": "К",
+   "script": "ru",
+   "valid": false,
+   "reason": "wrong_letter"
+  },
+  {
+   "raw": "ёж",
+   "letter": "Ё",
+   "script": "ru",
+   "valid": false,
+   "reason": "too_short"
+  },
+  {
+   "raw": "ёлка",
+   "letter": "Ё",
+   "script": "ru",
+   "valid": true
+  },
+  {
+   "raw": "свёкла",
+   "letter": "С",
+   "script": "ru",
+   "valid": true
+  },
+  {
+   "raw": "сыр",
+   "letter": "С",
+   "script": "ru",
+   "valid": true
+  },
+  {
+   "raw": "сырррр",
+   "letter": "С",
+   "script": "ru",
+   "valid": false,
+   "reason": "repetition_pattern"
+  },
+  {
+   "raw": "ккккккккккккккккккккккккккккккк",
+   "letter": "К",
+   "script": "ru",
+   "valid": false,
+   "reason": "too_long"
+  },
+  {
+   "raw": "fish",
+   "letter": "F",
+   "script": "en",
+   "valid": true
+  },
+  {
+   "raw": "fff",
+   "letter": "F",
+   "script": "en",
+   "valid": false,
+   "reason": "no_vowels"
+  },
+  {
+   "raw": "fly",
+   "letter": "F",
+   "script": "en",
+   "valid": true
+  },
+  {
+   "raw": "frrr",
+   "letter": "F",
+   "script": "en",
+   "valid": false,
+   "reason": "no_vowels"
+  },
+  {
+   "raw": "fababab",
+   "letter": "F",
+   "script": "en",
+   "valid": false,
+   "reason": "repetition_pattern"
+  },
+  {
+   "raw": "éclair",
+   "letter": "E",
+   "script": "en",
+   "valid": false,
+   "reason": "wrong_letter"
+  },
+  {
+   "raw": "apple",
+   "letter": "A",
+   "script": "en",
+   "valid": true
+  },
+  {
+   "raw": "apple",
+   "letter": "B",
+   "script": "en",
+   "valid": false,
+   "reason": "wrong_letter"
+  },
+  {
+   "raw": "a-b-c",
+   "letter": "A",
+   "script": "en",
+   "valid": true
+  },
+  {
+   "raw": "ab",
+   "letter": "A",
+   "script": "en",
+   "valid": false,
+   "reason": "too_short"
+  },
+  {
+   "raw": "sun",
+   "letter": "S",
+   "script": "en",
+   "valid": true
+  },
+  {
+   "raw": "s1n",
+   "letter": "S",
+   "script": "en",
+   "valid": false,
+   "reason": "non_letters"
+  },
+  {
+   "raw": "кот",
+   "letter": "K",
+   "script": "en",
+   "valid": false,
+   "reason": "wrong_letter"
+  },
+  {
+   "raw": "fish",
+   "letter": "F",
+   "script": "ru",
+   "valid": false,
+   "reason": "non_letters"
+  }
+ ],
+ "summaryInput": {
+  "said": [
+   {
+    "word": "кот",
+    "ts": 1000,
+    "valid": true
+   },
+   {
+    "word": "кит",
+    "ts": 4000,
+    "valid": true
+   },
+   {
+    "word": "кот",
+    "ts": 5000,
+    "valid": false,
+    "reason": "repetition"
+   },
+   {
+    "word": "лампа",
+    "ts": 9000,
+    "valid": false,
+    "reason": "wrong_letter"
+   },
+   {
+    "word": "ко",
+    "ts": 12000,
+    "valid": false,
+    "reason": "too_short"
+   },
+   {
+    "word": "кран",
+    "ts": 30500,
+    "valid": true
+   },
+   {
+    "word": "кекс",
+    "ts": 45500,
+    "valid": true
+   },
+   {
+    "word": "ккк",
+    "ts": 50000,
+    "valid": false,
+    "reason": "no_vowels"
+   }
+  ],
+  "startTs": 1000,
+  "duration": 60
+ },
+ "summary": {
+  "validWords": [
+   "кот",
+   "кит",
+   "кран",
+   "кекс"
+  ],
+  "repetitions": 1,
+  "wrongLetter": 1,
+  "tooShort": 1,
+  "meanInter": 14.833333333333334,
+  "firstHalf": 3,
+  "secondHalf": 1
+ }
+}

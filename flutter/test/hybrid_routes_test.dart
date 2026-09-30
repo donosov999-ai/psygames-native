@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
+import 'package:psygames_flutter/shell/shared_state.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// ПЕРЕХВАТ ПЕРЕНЕСЁННЫХ ИГР.
 ///
@@ -11,6 +13,7 @@ import 'package:psygames_flutter/shell/hybrid_app.dart';
 /// экран там, где уже есть новый, — и прогресс поедет двумя путями сразу.
 /// Ссылки приходят в разном виде: с расширением и без, с запросом и якорем.
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   test('🔴 перенесённые игры узнаются во всех видах ссылок', () {
     const origin = 'http://127.0.0.1:54321';
     for (final url in [
@@ -22,6 +25,8 @@ void main() {
       '$origin/games/digit-span.html?mode=free',
       '$origin/games/corsi',
       '$origin/games/corsi.html?level=12',
+      '$origin/games/picture-pairs',
+      '$origin/games/picture-pairs.html?level=22',
       '$origin/games/schulte',
       '$origin/games/schulte.html?level=3',
       '$origin/games/mahjong',
@@ -59,6 +64,8 @@ void main() {
       '$origin/games/go-no-go',
       '$origin/games/mental-rotation',
       '$origin/games/mental-rotation.html?level=12',
+      '$origin/games/navigator',
+      '$origin/games/navigator.html?level=9&mode=home-direction',
       '$origin/games/spatial-span',
       '$origin/games/spatial-lab',
       '$origin/games/spatial-lab?mode=netslide',
@@ -88,6 +95,7 @@ void main() {
       '$origin/games/memory-palace',
       '$origin/games/rmet',
       '$origin/games/ant',
+      '$origin/games/attention-conflict',
       '$origin/games/iowa',
       '$origin/games/prl',
       '$origin/games/bart',
@@ -95,10 +103,54 @@ void main() {
       '$origin/games/cpt',
       '$origin/games/proofreading',
       '$origin/games/word-pairs',
+      '$origin/games/vocab-srs',
+      '$origin/games/vocab-srs.html',
+      '$origin/games/vocab-srs?wu=1&targetLang=en&bilingual=1&lang2=es',
+      '$origin/games/semantic-sort',
+      '$origin/games/semantic-sort.html?wu=1&targetLang=en&rounds=8&cats=3',
+      '$origin/games/cloze',
+      '$origin/games/cloze.html?wu=1&targetLang=en&rounds=10&bilingual=1',
+      '$origin/games/lexical-decision',
+      '$origin/games/lexical-decision.html?wu=1&targetLang=es&trials=12&bilingual=1',
+      '$origin/games/story-recall',
+      '$origin/games/phonemic-fluency',
+      '$origin/games/pseudoword-echo',
+      '$origin/games/phoneme-pairs',
+      '$origin/games/chinese-tones',
+      '$origin/games/dictation',
+      '$origin/games/dictation.html?wu=1&targetLang=en',
+      '$origin/games/chinese-tones.html?wu=1',
+      '$origin/games/phoneme-pairs.html?wu=1&targetLang=zh',
+      '$origin/games/pseudoword-echo.html?wu=1&targetLang=es',
+      '$origin/games/phonemic-fluency.html?wu=1&targetLang=en&duration=90',
+      '$origin/games/story-recall.html?wu=1',
+      '$origin/games/hearing-hub',
+      '$origin/games/words-hub',
+      '$origin/games/languages-hub',
       '$origin/games/mnemonics-hub',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
+  });
+
+  /// 🔴 Развилки «Слова» и «Языки» перехватываются ТОЛЬКО вместе с зарядкой
+  /// раздела в шапке: без неё перехват молча отнял бы у человека рабочую серию.
+  test('🔴 развилки со своей зарядкой перехватываются с мостом к ней в шапке', () {
+    const origin = 'http://127.0.0.1:54321';
+    for (final route in ['/games/words-hub', '/games/languages-hub']) {
+      expect(HybridApp.routeOf('$origin$route'), route);
+    }
+    expect(HybridApp.routeOf('$origin/games/hearing-hub'), '/games/hearing-hub');
+  });
+
+  /// 🔴 НАСТРОЙКИ ШАГА СНИМАЕТ ТОЛЬКО ТОТ ЭКРАН, ЧЬИ ОНИ. Живой прогон 30.09.2026:
+  /// развилка «Языки» → зарядка → «Словарь» открылся экраном настроек, потому что
+  /// закрытие развилки досрабатывало ПОСЛЕ открытия «Словаря» и стирало его `wu=1`.
+  test('🔴 закрытие старого экрана не стирает настройки шага нового', () {
+    expect(routeOwnsPreset('/games/languages-hub', '/games/languages-hub'), isTrue,
+        reason: 'поверх никого — свои настройки снимаются');
+    expect(routeOwnsPreset('/games/vocab-srs', '/games/languages-hub'), isFalse,
+        reason: 'страница ушла вперёд, открыт «Словарь» — его настройки не трогать');
   });
 
   /// ⚠️ Фрактал и ГЛУБОКИЙ фрактал — РАЗНЫЕ экраны. Перехват одного не должен утаскивать
@@ -155,6 +207,7 @@ void main() {
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
       '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
+      '$origin/games/trail-making',   // «Соедини цепочку» — ещё в вебе, переносится следующей
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
@@ -165,7 +218,18 @@ void main() {
     // означают, что кто-то проверяет устаревший, и проба краснеет на любой
     // следующей игре. Набор пересобирается из карты перехвата при вливании.
     expect(HybridApp.native.keys.toSet(), {
+      // 🔴 Анаграммы — ЧЕТЫРЕ игры за одним адресом; голый адрес ведёт на
+      // классику, как и на экране настройки. Все пять ключей появились одним
+      // заходом: один ключ без хвоста накрыл бы все режимы разом.
+      '/games/anagrams',
+      '/games/anagrams?mode=all',
+      '/games/anagrams?mode=classic',
+      '/games/anagrams?mode=cross',
+      '/games/anagrams?mode=square',
+      // MindLab (30.09.2026): «Очередь зверей» и «Цвета и формы» — только нативные.
+      '/games/animal-queue',
       '/games/ant',
+      '/games/attention-conflict',
       // 🔴 Сорок три адреса головоломок стоят здесь ПОИМЁННО, хотя карта их
       // генерирует. Это не дубль: генератор отвечает на «что собралось», а список
       // — на «что мы согласились перехватывать». Переименуют режим в реестре —
@@ -219,12 +283,14 @@ void main() {
       '/games/choice-rt',
       '/games/cpt',
       '/games/corsi',
+      '/games/picture-pairs',
       '/games/digit-span',
       '/games/dots-connect',
       '/games/counter',
       '/games/counting-hub',
       '/games/faces-names',
       '/games/find-differences',
+      '/games/scholars-mate',
       '/games/search-hub',
       '/games/visual-search',
       '/games/flanker',
@@ -233,6 +299,12 @@ void main() {
       '/games/hanoi',
       '/games/inhibition',
       '/games/iowa',
+      '/games/kids-sort',
+      // MindLab у координатора (задача f5034811): четыре игры только нативные.
+      '/games/traffic-jam',
+      '/games/monster-traits',
+      '/games/roll-and-bank',
+      '/games/hidden-character',
       '/games/mahjong',
       '/games/math-slider',
       '/games/math-sprint',
@@ -241,7 +313,22 @@ void main() {
       '/games/rmet',
       '/games/mnemonics-hub',
       '/games/word-pairs',
+      '/games/vocab-srs',
+      '/games/semantic-sort',
+      '/games/cloze',
+      '/games/lexical-decision',
+      '/games/story-recall',
+      '/games/phonemic-fluency',
+      '/games/pseudoword-echo',
+      '/games/phoneme-pairs',
+      '/games/chinese-tones',
+      '/games/dictation',
+      '/games/rhythm-pitch',
+      '/games/hearing-hub',
+      '/games/words-hub',
+      '/games/languages-hub',
       '/games/mental-rotation',
+      '/games/navigator',
       '/games/number-bonds',
       '/games/nut-sort',
       '/games/object-tracker',
@@ -309,5 +396,34 @@ void main() {
       if (HybridApp.routeOf('https://app.local$decoded') == null) missed.add('$decoded (раскодированный)');
     }
     expect(missed, isEmpty);
+  });
+
+  test('🔴 у анаграмм КАЖДЫЙ режим ведёт на свой экран, а не все на классику', () async {
+    /*
+     * 📍 За `/games/anagrams` стоят четыре разные игры. Пока в карте был бы один
+     * ключ без хвоста, человек, выбравший кроссворд, получил бы классику — и ни
+     * одна проба этого не увидела бы: маршрут-то открывается. Поэтому сверяется
+     * не «узнаётся ли адрес», а КАКОЙ ЭКРАН за ним стоит.
+     */
+    SharedPreferences.setMockInitialValues({});
+    final state = await SharedState.open();
+    final cases = {
+      '/games/anagrams': 'AnagramsScreen',
+      '/games/anagrams?mode=classic': 'AnagramsScreen',
+      '/games/anagrams?mode=all': 'AllWordsScreen',
+      '/games/anagrams?mode=cross': 'CrosswordScreen',
+      '/games/anagrams?mode=square': 'RingScreen',
+    };
+    cases.forEach((url, want) {
+      final route = HybridApp.routeOf('https://psygames.app$url');
+      expect(route, isNotNull, reason: '$url не узнан');
+      final widget = HybridApp.native[route]!(state);
+      expect(widget.runtimeType.toString(), want, reason: '$url открывает не тот экран');
+    });
+
+    // И ссылка из веба с языком в хвосте тоже попадает в свой режим.
+    expect(HybridApp.routeOf('https://psygames.app/games/anagrams?lang=ru&mode=cross'),
+        anyOf('/games/anagrams?mode=cross', '/games/anagrams'),
+        reason: 'хвост с двумя параметрами не должен терять режим');
   });
 }

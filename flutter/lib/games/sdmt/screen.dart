@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/l10n.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
@@ -92,6 +93,12 @@ class _SdmtScreenState extends State<SdmtScreen> {
       _reset();
       _ready = true;
     });
+    // 🔴 ШАГ ЗАРЯДКИ (и «вызов дня») СТАРТУЕТ САМ. Посреди серии ждать кнопку
+    // «Начать» нельзя — человек идёт по шагам. Как в вебе
+    // (`sdmt.tsx`: `useAutostartWhenReady(() => autostart && lvl.loaded, …)`):
+    // запуск только ПОСЛЕ загрузки уровня, иначе партия ушла бы с первого.
+    // Один раз, при открытии: «Начать заново» после этого — снова ручное.
+    if (GamePreset.autostart) _start();
   }
 
   int get _duration => widget.seconds ?? _params.durationSec;

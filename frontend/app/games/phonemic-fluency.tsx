@@ -45,8 +45,7 @@ import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset';
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import {
-  phonemicLetterPool, phonemicScriptFor,
-  type PhonemicScript,
+  phonemicLetterPool, phonemicScriptFor, isValidWord, phonemicSummary,
 } from '@/src/services/phonemicFluency';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
@@ -125,26 +124,9 @@ export default function PhonemicFluencyGame() {
     setPhase('result');
 
     const said = wordsRef.current;   // ← из ref, а не из состояния: таймер видит устаревшее
-    const validWords = said.filter(w => w.valid);
-    const repetitions = said.filter(w => !w.valid && w.reason === 'repetition').length;
-    const wrongLetter = said.filter(w => !w.valid && w.reason === 'wrong_letter').length;
-    const tooShort = said.filter(w => !w.valid && w.reason === 'too_short').length;
-
-    // mean inter-word interval (only on valid)
-    let meanInter = 0;
-    if (validWords.length >= 2) {
-      let totalGap = 0;
-      for (let i = 1; i < validWords.length; i++) {
-        totalGap += (validWords[i].ts - validWords[i-1].ts) / 1000;
-      }
-      meanInter = totalGap / (validWords.length - 1);
-    }
-
-    // First/second half breakdown
-    const halfTime = startTimeRef.current + (duration / 2) * 1000;
-    const firstHalf = validWords.filter(w => w.ts < halfTime).length;
-    const secondHalf = validWords.filter(w => w.ts >= halfTime).length;
-
+    // Подсчёт итога — в `phonemicSummary` (services/phonemicFluency.ts), поведение то же.
+    const { validWords, repetitions, wrongLetter, tooShort, meanInter, firstHalf, secondHalf } =
+      phonemicSummary(said, startTimeRef.current, duration);
     // Подход доводят до конца по таймеру — провалить нельзя. Засчитан завершением.
     const doneRun = runs.level;
     runs.reach(doneRun + 1);
@@ -204,29 +186,7 @@ export default function PhonemicFluencyGame() {
   // ПЕРВЫЙ уровень человеку с двенадцатым: уровень приезжает асинхронно, а
   // эффект монтирования всегда раньше промиса. См. useAutostartWhenReady.
   useAutostartWhenReady(() => autostart && languageReady && wordLang.ready && runs.loaded, () => startGame());
-  /**
-   * ⚠️ ПИСЬМЕННОСТЬ ПРИХОДИТ ИЗ ОДНОГО МЕСТА (`phonemicScriptFor`) — той же
-   * функции, по которой выбрана буква задания. Раньше буква выбиралась в
-   * сервисе, а проверка спрашивала «язык === ru?» здесь: для французского буква
-   * выходила кириллической, проверка латинской, и принять слово было НЕЛЬЗЯ.
-   */
-  const isValidWord = (raw: string, letter: string, lang: PhonemicScript): { valid: boolean; reason?: string } => {
-    if (raw.length < 3) return { valid: false, reason: 'too_short' };
-    if (raw.length > 30) return { valid: false, reason: 'too_long' };
-    if (raw[0].toUpperCase() !== letter) return { valid: false, reason: 'wrong_letter' };
-    // Only language letters
-    const validChars = lang === 'ru' ? /^[а-яё-]+$/i : /^[a-z-]+$/i;
-    if (!validChars.test(raw)) return { valid: false, reason: 'non_letters' };
-    // Reject obvious gibberish: no vowels at all → not a real word
-    const vowels = lang === 'ru' ? /[аеёиоуыэюя]/i : /[aeiouy]/i;
-    if (!vowels.test(raw)) return { valid: false, reason: 'no_vowels' };
-    // Reject 3+ same characters in a row (typing junk)
-    if (/(.)\1\1/.test(raw)) return { valid: false, reason: 'repetition_pattern' };
-    // Reject same 2 chars repeated 3+ times (e.g. "abababab")
-    if (/(..)\1\1/.test(raw)) return { valid: false, reason: 'repetition_pattern' };
-    return { valid: true };
-  };
-
+  // Проверка слова — `isValidWord` из services/phonemicFluency.ts (письменность — из phonemicScriptFor).
   const submitWord = () => {
     const raw = input.trim().toLowerCase();
     setInput('');
