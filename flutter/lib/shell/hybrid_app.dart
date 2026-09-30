@@ -39,6 +39,12 @@ import '../games/cake_sort/board.dart' show CakeSkin;
 import '../games/cake_sort/screen.dart';
 import '../games/hanoi/screen.dart';
 import '../games/tower_london/screen.dart';
+import '../games/animal_queue/screen.dart';
+import '../games/kids_sort/screen.dart';
+import '../games/traffic_jam/screen.dart';
+import '../games/monster_traits/screen.dart';
+import '../games/roll_and_bank/screen.dart';
+import '../games/hidden_character/screen.dart';
 import '../games/sort_tubes/screen.dart';
 import '../games/mental_rotation/screen.dart';
 import '../games/navigator/screen.dart';
@@ -192,6 +198,15 @@ class HybridApp extends StatefulWidget {
             state: s, gameId: 'pizza_sort', title: 'Пицца', skin: CakeSkin.pizza),
       '/games/hanoi': (s) => HanoiScreen(state: s),
       '/games/tower-london': (s) => TowerLondonScreen(state: s),
+      // MindLab (решение Дениса 30.09.2026): только нативные, веб-двойника у них нет.
+      '/games/animal-queue': (s) => AnimalQueueScreen(state: s),
+      '/games/kids-sort': (s) => KidsSortScreen(state: s),
+      // MindLab у координатора (задача f5034811): тоже только нативные, карточки — в
+      // развилках «Пространство», «Поиск глазами», «Конфликт внимания», «Головоломки».
+      '/games/traffic-jam': (s) => TrafficJamScreen(state: s),
+      '/games/monster-traits': (s) => MonsterTraitsScreen(state: s),
+      '/games/roll-and-bank': (s) => RollAndBankScreen(state: s),
+      '/games/hidden-character': (s) => HiddenCharacterScreen(state: s),
         /*
          * 🔴 РАЗВИЛКА ТОЖЕ ПЕРЕХВАТЫВАЕТСЯ. Она ведёт на восемь игр, из которых
          * все восемь уже нативные: оставь её в вебе — и каждый заход в игру шёл
