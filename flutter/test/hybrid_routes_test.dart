@@ -325,6 +325,7 @@ void main() {
       '/games/phoneme-pairs',
       '/games/chinese-tones',
       '/games/dictation',
+      '/games/rhythm-pitch',
       '/games/hearing-hub',
       '/games/words-hub',
       '/games/languages-hub',

@@ -2416,8 +2416,6 @@ const t: Record<string, string> = {
   "scholarsMedian": "中位数",
   "scholarsUsually": "最近 {n} 轮",
   "scholarsBest": "正确应是",
-  "scholarsYes": "是",
-  "scholarsNo": "否",
   "ballGlossy": "光泽",
   "ballGlass": "玻璃",
   "ballFluffy": "毛绒",

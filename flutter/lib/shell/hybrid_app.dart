@@ -87,6 +87,7 @@ import '../games/pseudoword_echo/screen.dart';
 import '../games/phoneme_pairs/screen.dart';
 import '../games/chinese_tones/screen.dart';
 import '../games/dictation/screen.dart';
+import '../games/rhythm_pitch/screen.dart';
 import 'hub_screen.dart';
 import 'warmup_bridge.dart';
 import 'game_pet.dart';
@@ -290,6 +291,7 @@ class HybridApp extends StatefulWidget {
         '/games/phoneme-pairs': (s) => PhonemePairsScreen(state: s),
         '/games/chinese-tones': (s) => ChineseTonesScreen(state: s),
         '/games/dictation': (s) => DictationScreen(state: s),
+        '/games/rhythm-pitch': (s) => RhythmPitchScreen(state: s),
         /*
          * Развилка «Слух» — на общем каркасе: над списком у неё в вебе ничего нет.
          */
