@@ -89,6 +89,11 @@ void main() {
     '/games/monster-traits?mode=missing',
     '/games/search-runner',
     '/games/number-run',
+    // Экраны «Поиска», у которых разбор был, но в храповик они не попали (замер 01.10.2026).
+    '/games/find-differences',
+    '/games/sdmt',
+    '/games/set-game',
+    '/games/visual-search',
   ];
 
 
