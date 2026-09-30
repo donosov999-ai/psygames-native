@@ -128,6 +128,7 @@ export default function WordPairsGame() {
     const п = (pairsRef.current.length ? pairsRef.current : pairs)
       .map((p) => ({ id: p.id, слово1: p.word1, слово2: p.word2 }));
     if (!п.length) return;
+    урокВПартииRef.current = true;
     setУрок({ карточки: собратьРазборПар(п).карточки, индекс: 0 });
   };
   /**
@@ -177,6 +178,13 @@ export default function WordPairsGame() {
   // state в колбэке setTimeout был бы устаревшим (паттерн simon/cpt).
   const levelRef = useRef(1);
   const useLevelRef = useRef(false);   // запущено по уровню? (для reach/fail)
+  /**
+   * 🔴 ПАРТИЯ С РАЗБОРОМ НЕ ЗАСЧИТЫВАЕТСЯ В УРОВЕНЬ — так обещает первая карточка плеера
+   * (`teachNotCounted`). До 30.09.2026 обещание держалось только словами: разбор открывался
+   * посреди запоминания, а итог двигал уровень как обычно. Флаг ставит «Разбор», снимает
+   * новая партия; итог такой партии идёт как свободная тренировка.
+   */
+  const урокВПартииRef = useRef(false);
   const pairsRef = useRef<WordPair[]>([]);
   const checkStartedRef = useRef(false);
   const memorizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -227,6 +235,7 @@ export default function WordPairsGame() {
   };
 
   const startGame = async () => {
+    урокВПартииRef.current = false;
     // Уровневый режим (persist): число пар и лимит запоминания из levelParams.
     // Пресет зарядки — ручной pairCount, без лимита времени.
     const useLevel = !isPreset;
@@ -322,13 +331,14 @@ export default function WordPairsGame() {
         if (timerRef.current) clearInterval(timerRef.current);
         const finalTime = elapsedTime + (errors * PENALTY_SECONDS);
         // Проход уровня: точность ≥80% ⇔ ошибок ≤ пар/4. Вверх мгновенно, вниз с гистерезисом.
-        const passed = useLevelRef.current && errors <= maxErrorsAllowed(pairs.length);
-        if (!isPreset && useLevelRef.current) {
+        const поУровню = useLevelRef.current && !урокВПартииRef.current;
+        const passed = поУровню && errors <= maxErrorsAllowed(pairs.length);
+        if (!isPreset && поУровню) {
           if (passed) lvl.reach(levelRef.current + 1);
           else lvl.fail();
         }
         setClearedPassed(passed);
-        setPhase(useLevelRef.current ? 'cleared' : 'result');   // непрерывный поток: провал → баннер «ещё раз», не тупик
+        setPhase(поУровню ? 'cleared' : 'result');   // непрерывный поток: провал → баннер «ещё раз», не тупик
 
         try {
           await saveSession({
@@ -338,7 +348,7 @@ export default function WordPairsGame() {
             time_seconds: finalTime,
             difficulty: mode === 'translation' ? `${pairs.length} pairs · ${language}→${targetLang}` : `${pairs.length} pairs`,
             errors: errors,
-            details: { hits: pairs.length - errors, errors, pair_count: pairs.length, mode, ...(useLevelRef.current ? { level: levelRef.current } : {}), ...(mode === 'translation' ? { base_lang: language, target_lang: targetLang } : {}) },
+            details: { hits: pairs.length - errors, errors, pair_count: pairs.length, mode, ...(поУровню ? { level: levelRef.current } : {}), ...(mode === 'translation' ? { base_lang: language, target_lang: targetLang } : {}) },
           });
         } catch (error) {
           console.error('Error saving session:', error);

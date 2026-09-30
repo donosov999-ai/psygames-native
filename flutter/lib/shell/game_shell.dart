@@ -1,3 +1,4 @@
+import 'game_clock.dart';
 import 'game_pet.dart';
 import 'game_rules.dart';
 import 'l10n.dart';
@@ -143,10 +144,14 @@ class GameShell extends StatelessWidget {
 
   void _pause(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute<void>(
-      builder: (_) => _PauseScreen(
-        hud: hud,
-        actions: pauseActions,
-        onLeave: () => _leave(context),
+      // Пауза — страница ПОВЕРХ игры: пока она видна, часы и таймеры партии стоят
+      // (game_clock.dart, задача 430d1299). Без этого игра под паузой жила дальше.
+      builder: (_) => GameHoldScope(
+        child: _PauseScreen(
+          hud: hud,
+          actions: pauseActions,
+          onLeave: () => _leave(context),
+        ),
       ),
     ));
   }
