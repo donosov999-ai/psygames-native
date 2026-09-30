@@ -16,6 +16,8 @@ import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/game_clock_fake.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async => L.load('ru'));
@@ -134,6 +136,7 @@ void main() {
       reports = [];
       SessionReport.sink = (json) async => reports.add(jsonDecode(json) as Map<String, dynamic>);
       final state = await SharedState.open();
+      useFakeGameClock(tester);
       await tester.pumpWidget(MaterialApp(home: SubmarinesScreen(key: UniqueKey(), state: state, seed: seed)));
       await tester.pump();
       await tester.pump();

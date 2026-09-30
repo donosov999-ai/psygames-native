@@ -15,6 +15,8 @@ import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/game_clock_fake.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async => L.load('ru'));
@@ -102,6 +104,7 @@ void main() {
       reports = [];
       SessionReport.sink = (json) async => reports.add(jsonDecode(json) as Map<String, dynamic>);
       final state = await SharedState.open();
+      useFakeGameClock(tester);
       await tester.pumpWidget(MaterialApp(home: KidsFindScreen(key: UniqueKey(), state: state, seed: seed)));
       await tester.pump();
       await tester.pump();
@@ -156,6 +159,22 @@ void main() {
       expect(find.text('2/$findBoards'), findsOneWidget, reason: 'по концу времени доска не сменилась');
       final errs = tester.widgetList<Text>(find.text('1'));
       expect(errs, isNotEmpty, reason: 'ошибка за просроченную доску не засчитана');
+    });
+
+    testWidgets('🔴 под разбором время доски стоит — часы партии, а не настенные (гейт game_clock)', (tester) async {
+      // Разбор — страница ПОВЕРХ партии (LessonPlayerScreen держит часы). На настенных часах
+      // доска L16 (10 с) истекала бы, пока человек читает разбор, — ровно то, что лечит
+      // lib/shell/game_clock.dart (задача 430d1299).
+      await open(tester, level: 16, seed: 4);
+      await tester.pump(const Duration(milliseconds: 3000));
+      await tester.tap(find.byKey(const Key('game-lesson')));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 30));
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+      expect(find.text('1/$findBoards'), findsOneWidget, reason: 'доска истекла, пока шёл разбор');
+      await tester.pump(const Duration(milliseconds: 7300));
+      expect(find.text('2/$findBoards'), findsOneWidget, reason: 'после разбора остаток времени не дотёк');
     });
 
     testWidgets('разбор называет приём по оси доски', (tester) async {

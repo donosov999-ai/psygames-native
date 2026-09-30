@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -56,11 +57,12 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
   /// Итог проверки; `null` — ещё отмечаем.
   ({Set<int> missed, Set<int> extras})? _graded;
   int _levelNo = 1;
-  DateTime _started = DateTime.now();
+  // Часы партии (lib/shell/game_clock.dart): стоят под паузой, разбором и в фоне.
+  int _startedMs = gameNow();
 
   /// Время раунда (с L12): сколько секунд осталось; `null` — раунд без времени.
   int? _left;
-  Timer? _tick;
+  GameTimer? _tick;
 
   bool get _checked => _graded != null;
   bool get _won => _graded != null && _graded!.missed.isEmpty && _graded!.extras.isEmpty;
@@ -87,10 +89,10 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
     _round = TraitRound.deal(_levelNo, _rnd);
     _selected.clear();
     _graded = null;
-    _started = DateTime.now();
+    _startedMs = gameNow();
     _left = traitLevelFor(_levelNo).seconds;
     if (_left != null) {
-      _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+      _tick = gameInterval(const Duration(seconds: 1), () {
         if (!mounted || _checked) return;
         if (_left! <= 1) {
           setState(() => _left = 0);
@@ -123,7 +125,7 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
     final g = round.grade(_selected);
     setState(() => _graded = g);
     final errors = g.missed.length + g.extras.length;
-    final seconds = DateTime.now().difference(_started).inSeconds;
+    final seconds = (gameNow() - _startedMs) ~/ 1000;
     final details = <String, Object?>{
       'trait': round.trait.name,
       'value': round.value,

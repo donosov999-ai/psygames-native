@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -45,8 +46,9 @@ class _MonsterMissingScreenState extends State<MonsterMissingScreen> {
   bool? _lastOk;
   bool _won = false;
   int _levelNo = 1;
-  DateTime _started = DateTime.now();
-  Timer? _timer;
+  // Часы партии (lib/shell/game_clock.dart): стоят под паузой, разбором и в фоне.
+  int _startedMs = gameNow();
+  GameTimer? _timer;
 
   @override
   void initState() {
@@ -80,7 +82,7 @@ class _MonsterMissingScreenState extends State<MonsterMissingScreen> {
     _trial = 0;
     _correct = 0;
     _won = false;
-    _started = DateTime.now();
+    _startedMs = gameNow();
     _deal();
   }
 
@@ -90,7 +92,7 @@ class _MonsterMissingScreenState extends State<MonsterMissingScreen> {
     _picked.clear();
     _lastOk = null;
     _phase = _Phase.study;
-    _timer = Timer(Duration(milliseconds: missingLevelFor(_levelNo).studyMs), () {
+    _timer = gameTimeout(Duration(milliseconds: missingLevelFor(_levelNo).studyMs), () {
       if (mounted) setState(() => _phase = _Phase.recall);
     });
   }
@@ -111,7 +113,7 @@ class _MonsterMissingScreenState extends State<MonsterMissingScreen> {
       if (ok) _correct += 1;
       _phase = _Phase.feedback;
     });
-    _timer = Timer(const Duration(milliseconds: 1100), () async {
+    _timer = gameTimeout(const Duration(milliseconds: 1100), () async {
       if (!mounted) return;
       if (_trial + 1 < missingTrials) {
         setState(() {
@@ -126,7 +128,7 @@ class _MonsterMissingScreenState extends State<MonsterMissingScreen> {
 
   Future<void> _finish() async {
     final passed = _correct >= missingPassAt;
-    final seconds = DateTime.now().difference(_started).inSeconds;
+    final seconds = (gameNow() - _startedMs) ~/ 1000;
     final lv = missingLevelFor(_levelNo);
     final details = <String, Object?>{
       'hand': lv.hand,
