@@ -2507,8 +2507,6 @@ const translations: Translations = {
   // ⚠️ `с` и `Время вышло` НЕ заводим — они уже есть как secShort и timeIsUp;
   // гейт дублей это ловит, и правильно: два ключа с одним текстом расходятся
   // при переводе, и в одном месте останется старая формулировка.
-  scholarsYes:         { ru: 'Да', en: 'Yes' },
-  scholarsNo:          { ru: 'Нет', en: 'No' },
   ballGlossy:     { ru: 'Глянцевые',      en: 'Glossy' },
   ballGlass:      { ru: 'Стеклянные',     en: 'Glass' },
   ballFluffy:     { ru: 'Пушистые',       en: 'Fluffy' },
@@ -3928,6 +3926,7 @@ const translations: Translations = {
   rbBank: { ru: 'Сохранить', en: 'Bank' },
   rbYou: { ru: 'Ты', en: 'You' },
   rbBot: { ru: 'Бот', en: 'Bot' },
+  rbHeadStart: { ru: 'фора {n}', en: 'head start {n}' },
   rbGoal: { ru: 'Финиш', en: 'Finish' },
   rbBusts: { ru: 'Сгорело', en: 'Burnt' },
   rbYourTurn: { ru: 'Твой ход', en: 'Your turn' },
