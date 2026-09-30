@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -122,7 +123,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   /// 🔴 ЗНАЧКИ ВМЕСТО ЦИФР (задача f1e1ff9c): предпочтение игрока и набор значков
   /// выданной доски. Внутри игра живёт цифрами — значок меняет только то, что видно.
-  SudokuSkin _skin = SudokuSkin.digits;
+  SkinChoice _choice = const SkinChoice(SudokuSkin.digits);
   SudokuSymbols _symbols = SudokuSymbols.digits(9);
   int _dealSeed = 1;
 
@@ -135,7 +136,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
     _symbols = board == null || widget.mode != null
         ? SudokuSymbols.digits(board?.n ?? 9)
         : symbolsFor(
-            skin: _skin,
+            skin: _choice.skin,
+            style: _choice.style,
             variant: board.variant,
             solution: board.solution,
             language: widget.state.language,
@@ -143,12 +145,86 @@ class _SudokuScreenState extends State<SudokuScreen> {
           );
   }
 
-  /// Переключить значки посреди партии: ход, ошибки и прогресс не меняются.
-  void _toggleSkin() {
-    final next = _skin == SudokuSkin.letters ? SudokuSkin.digits : SudokuSkin.letters;
-    widget.state.set(_skinKey, next.name);
+  /// Что реально видно на доске — для отчёта партии (буквы на термометрах не ставятся,
+  /// поэтому выбор игрока и показанное могут расходиться).
+  String? get _skinShown => _symbols.images != null
+      ? 'drawn:${_choice.style}'
+      : _symbols.isDigits
+          ? null
+          : SudokuSkin.letters.name;
+
+  /// Купленные в магазине наборы — общая память с вебом (frontend/src/services/cosmetics.ts).
+  List<String> get _unlocked {
+    final raw = widget.state.get('${SharedState.prefix}cosmetics_unlocked_${widget.state.activeProfile}');
+    if (raw == null || raw.isEmpty) return const [];
+    try {
+      return (jsonDecode(raw) as List).cast<String>();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Название набора — литералами: ключ, собранный из переменной, в словарь сборки не
+  /// попадает, и экран показал бы сам ключ.
+  static String _styleName(String st) => switch (st) {
+        'rainbow' => L.t('cosName_digits_rainbow'),
+        'pastel' => L.t('cosName_digits_pastel'),
+        'neon' => L.t('cosName_digits_neon'),
+        'elegant' => L.t('cosName_digits_elegant'),
+        _ => L.t('digitsCandy'),
+      };
+
+  /// «Стиль цифр»: обычные, буквы (только где положены), пять рисованных наборов веба.
+  Future<void> _pickSkin() async {
+    final board = _board;
+    final profile = widget.state.activeProfile, unlocked = _unlocked;
+    final picked = await showModalBottomSheet<SkinChoice>(
+      context: context,
+      showDragHandle: true,
+      // Лист растёт по содержимому: по умолчанию он режется на 9/16 экрана, и последние
+      // наборы уходили за край — выбор, который надо искать прокруткой (замер пробой 30.09).
+      isScrollControlled: true,
+      builder: (ctx) {
+        Widget option(Key key, SkinChoice c, Widget leading, String title, {bool enabled = true}) {
+          final on = c.name == _choice.name;
+          return ListTile(
+            key: key,
+            leading: leading,
+            title: Text(title),
+            enabled: enabled,
+            trailing: on ? const Icon(Icons.check) : (enabled ? null : const Icon(Icons.lock_outline)),
+            onTap: enabled ? () => Navigator.of(ctx).pop(c) : null,
+          );
+        }
+
+        return SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                option(const Key('skin-digits'), const SkinChoice(SudokuSkin.digits),
+                    const Icon(Icons.pin_outlined), L.t('digitsPlain')),
+                if (board != null && skinApplies(board.variant))
+                  option(const Key('skin-letters'), const SkinChoice(SudokuSkin.letters),
+                      const Icon(Icons.abc), L.t('sudokuSkinLetters')),
+                for (final st in digitStyles)
+                  option(
+                    Key('skin-drawn-$st'),
+                    SkinChoice(SudokuSkin.drawn, st),
+                    Image.asset(digitImage(st, 5), width: 32, height: 32),
+                    _styleName(st),
+                    enabled: styleOwned(st, profile, unlocked),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (picked == null || !mounted) return;
+    widget.state.set(_skinKey, picked.name);
     setState(() {
-      _skin = next;
+      _choice = picked;
       _applySymbols(_board, _dealSeed);
     });
   }
@@ -182,7 +258,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     if (!mounted) return;
     setState(() {
       _levels = levels;
-      _skin = skinFromName(widget.state.get(_skinKey));
+      _choice = SkinChoice.parse(widget.state.get(_skinKey));
       _pool = buildPool(levels);
       final store = GeneratorStore(widget.state);
       _genStore = store;
@@ -393,7 +469,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'source_level': _pilotLevel,
         'variant': _board?.variant ?? 'none',
         'repeat': _attempt > 0,
-        if (!_symbols.isDigits) 'skin': SudokuSkin.letters.name,
+        if (_skinShown != null) 'skin': _skinShown,
       },
     ));
   }
@@ -610,7 +686,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'level': level,
         'variant': mode == null ? (_board?.variant ?? 'none') : sideModeName(mode),
         if (mode == null) 'road': 'normal',
-        if (!_symbols.isDigits) 'skin': SudokuSkin.letters.name,
+        if (_skinShown != null) 'skin': _skinShown,
       },
     ));
   }
@@ -673,7 +749,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'level': level,
         'variant': _board?.variant ?? 'none',
         'road': 'normal',
-        if (!_symbols.isDigits) 'skin': SudokuSkin.letters.name,
+        if (_skinShown != null) 'skin': _skinShown,
       },
     ));
   }
@@ -881,6 +957,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
               paint: _paint,
               onPaint: (i) => setState(() => _paint = i),
               label: _symbols.glyph,
+              icon: _symbols.images == null
+                  ? null
+                  : (v) => Image.asset(_symbols.image(v)!, width: 30, height: 30, semanticLabel: '$v'),
               wonNote: _won && _symbols.word != null
                   ? L.t('sudokuHiddenWord').replaceAll('{w}', _symbols.word!)
                   : null,
@@ -893,14 +972,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
             icon: _pilot ? Icons.trending_up : Icons.auto_awesome,
             onPressed: _togglePilot,
           ),
-        // Буквы — только на правилах без числового смысла (symbols.dart): на термометрах
-        // пункт не показывается вовсе, а не «работает через раз».
-        if (widget.mode == null && board != null && skinApplies(board.variant))
-          PauseAction(
-            label: _skin == SudokuSkin.letters ? L.t('sudokuSkinDigits') : L.t('sudokuSkinLetters'),
-            icon: _skin == SudokuSkin.letters ? Icons.pin_outlined : Icons.abc,
-            onPressed: _toggleSkin,
-          ),
+        // «Стиль цифр»: буквы внутри — только на правилах без числового смысла
+        // (symbols.dart); рисованные цифры — везде, это всё ещё цифры.
+        if (widget.mode == null && board != null)
+          PauseAction(label: L.t('digitStyle'), icon: Icons.style_outlined, onPressed: _pickSkin),
       ],
     );
   }
@@ -1006,6 +1081,7 @@ class SudokuBoardView extends StatelessWidget {
                             scheme: scheme,
                             onTap: onTap,
                             glyph: symbols?.glyph,
+                            image: symbols?.image,
                           ),
                       ],
                     ),
@@ -1033,6 +1109,7 @@ class _Cell extends StatelessWidget {
     required this.scheme,
     required this.onTap,
     this.glyph,
+    this.image,
   });
 
   final double size;
@@ -1042,6 +1119,9 @@ class _Cell extends StatelessWidget {
 
   /// Значок цифры; `null` — сама цифра.
   final String Function(int)? glyph;
+
+  /// Картинка цифры (рисованный набор); `null` — без картинок.
+  final String? Function(int)? image;
   final int value;
   final bool given;
 
@@ -1057,6 +1137,15 @@ class _Cell extends StatelessWidget {
         color: thick ? scheme.onSurface : scheme.outlineVariant,
         width: thick ? 2 : 0.5,
       );
+
+  /// Картинка рисованной цифры — по правилу веба: только если клетка не выбрана, не
+  /// покрашена и под ней ничего не нарисовано (decorFreeVariants). Иначе текст:
+  /// контраст важнее единообразия начертания.
+  Widget? _picture() {
+    final src = value == 0 ? null : image?.call(value);
+    if (src == null || selected || paint >= 0 || !decorFreeVariants.contains(board.variant)) return null;
+    return Image.asset(src, width: size * 0.72, height: size * 0.72, semanticLabel: '$value');
+  }
 
   bool _regionEdge(int r1, int c1, int r2, int c2) {
     final regions = board.geometry.regions;
@@ -1116,7 +1205,7 @@ class _Cell extends StatelessWidget {
                       color: scheme.onSurfaceVariant,
                       glyph: glyph,
                     )
-                  : Text(
+                  : _picture() ?? Text(
                       value == 0 ? '' : (glyph?.call(value) ?? '$value'),
                       style: TextStyle(
                         fontSize: size * 0.52,
@@ -1146,6 +1235,7 @@ class _Toolbar extends StatelessWidget {
     required this.paint,
     required this.onPaint,
     this.label,
+    this.icon,
     this.wonNote,
   });
 
@@ -1166,6 +1256,9 @@ class _Toolbar extends StatelessWidget {
 
   /// Надписи клавиш — значками доски.
   final String Function(int)? label;
+
+  /// Картинка клавиши (рисованные наборы); `null` — надпись.
+  final Widget Function(int)? icon;
 
   /// Строка над кнопкой после победы — спрятанное слово Wordoku.
   final String? wonNote;
@@ -1217,6 +1310,6 @@ class _Toolbar extends StatelessWidget {
       );
     }
     return SudokuKeys(
-        n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint, label: label);
+        n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint, label: label, icon: icon);
   }
 }

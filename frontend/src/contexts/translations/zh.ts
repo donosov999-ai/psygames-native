@@ -3074,7 +3074,7 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "返回关卡阶梯",
   "sudokuRepeatSame": "同样难度再来一次",
   "sudokuSkinLetters": "用字母代替数字",
-  "sudokuSkinDigits": "恢复数字",
+  "digitsCandy": "糖果",
   "sudokuHiddenWord": "隐藏的单词：{w}",
 };
 export default t;

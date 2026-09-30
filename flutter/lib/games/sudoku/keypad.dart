@@ -22,6 +22,7 @@ class SudokuKeys extends StatelessWidget {
     this.paint,
     required this.onPaint,
     this.label,
+    this.icon,
   });
 
   /// Сколько цифр: 9 у классики и фрактала, 6 у малых досок.
@@ -36,6 +37,9 @@ class SudokuKeys extends StatelessWidget {
   /// Надпись клавиши цифры `v` — та же, что на доске (буквы Wordoku и т. п.).
   /// `null` — сама цифра. Клавиша, подписанная иначе, чем клетка, — это игра вслепую.
   final String Function(int)? label;
+
+  /// Картинка клавиши цифры `v` (рисованные наборы веба); `null` — надпись.
+  final Widget Function(int)? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +116,8 @@ class SudokuKeys extends StatelessWidget {
                         key: Key('digit$v'),
                         onPressed: () => onDigit(v),
                         style: FilledButton.styleFrom(padding: EdgeInsets.zero),
-                        child: Text(label?.call(v) ?? '$v', style: const TextStyle(fontSize: 20)),
+                        child: icon?.call(v) ??
+                            Text(label?.call(v) ?? '$v', style: const TextStyle(fontSize: 20)),
                       ),
                     ),
                   SizedBox(

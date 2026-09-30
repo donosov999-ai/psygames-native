@@ -3070,7 +3070,7 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "العودة إلى سلّم المستويات",
   "sudokuRepeatSame": "مرة أخرى بالصعوبة نفسها",
   "sudokuSkinLetters": "حروف بدل الأرقام",
-  "sudokuSkinDigits": "العودة إلى الأرقام",
+  "digitsCandy": "حلوى",
   "sudokuHiddenWord": "الكلمة المخفية: {w}",
 };
 export default t;

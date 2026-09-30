@@ -44,6 +44,30 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Пауза → «Стиль цифр» → лист выбора.
+  Future<void> openStyles(WidgetTester tester) async {
+    await openPause(tester);
+    await tester.tap(find.text(L.t('digitStyle')));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> pickSkin(WidgetTester tester, Key option) async {
+    await openStyles(tester);
+    await tester.ensureVisible(find.byKey(option));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(option));
+    await tester.pumpAndSettle();
+  }
+
+  /// Картинки внутри виджета: путь ассета и подпись для чтеца (сама цифра).
+  List<({String asset, String label})> imagesIn(WidgetTester tester, Finder f) => [
+        for (final e in find.descendant(of: f, matching: find.byType(Image)).evaluate())
+          (
+            asset: ((e.widget as Image).image as AssetImage).assetName,
+            label: (e.widget as Image).semanticLabel ?? '',
+          ),
+      ];
+
   String textIn(WidgetTester tester, Finder f) => find
       .descendant(of: f, matching: find.byType(Text))
       .evaluate()
@@ -144,9 +168,7 @@ void main() {
   testWidgets('🔴 буквы на доске, на клавишах и в пометках — одни и те же; слово после победы',
       (tester) async {
     await boot(tester, {ladderKey: '5'});
-    await openPause(tester);
-    await tester.tap(find.text(L.t('sudokuSkinLetters')));
-    await tester.pumpAndSettle();
+    await pickSkin(tester, const Key('skin-letters'));
     expect(state.get(skinKey), 'letters', reason: 'выбор значков помнится у профиля');
 
     final labels = keyLabels(tester);
@@ -212,9 +234,77 @@ void main() {
     final labels = keyLabels(tester);
     expect(labels.values.join(), '123456789',
         reason: 'на термометрах цифры — порядок чисел и есть правило');
-    await openPause(tester);
-    expect(find.text(L.t('sudokuSkinLetters')), findsNothing,
-        reason: 'пункт, который ничего не сделает, не показывается');
-    expect(find.text(L.t('sudokuSkinDigits')), findsNothing);
+    await openStyles(tester);
+    expect(find.byKey(const Key('skin-letters')), findsNothing,
+        reason: 'буквы, которые ничего не сделают, не предлагаются');
+    expect(find.byKey(const Key('skin-drawn-candy')), findsOneWidget,
+        reason: 'рисованные — это всё ещё цифры, на термометрах положены');
+  });
+
+  testWidgets('🔴 рисованные цифры веба: на доске и на клавишах — картинки набора', (tester) async {
+    await boot(tester, {ladderKey: '5'});
+    await pickSkin(tester, const Key('skin-drawn-candy'));
+    expect(state.get(skinKey), 'drawn:candy');
+    for (var v = 1; v <= 9; v++) {
+      final im = imagesIn(tester, find.byKey(Key('digit$v')));
+      expect(im.map((i) => i.asset), ['assets/digits/candy/d$v.webp'], reason: 'клавиша $v — картинка набора');
+    }
+    var pictured = 0;
+    for (var r = 0; r < 9; r++) {
+      for (var c = 0; c < 9; c++) {
+        for (final i in imagesIn(tester, find.byKey(Key('cell_${r}_$c')))) {
+          expect(i.asset, 'assets/digits/candy/d${i.label}.webp',
+              reason: 'клетка $r,$c: картинка не той цифры');
+          pictured++;
+        }
+      }
+    }
+    expect(pictured, greaterThan(20), reason: 'подсказки задания нарисованы картинками');
+  });
+
+  testWidgets('🔴 некупленный набор — с замком и не выбирается; купленный — выбирается', (tester) async {
+    // У профиля nzt48 свой набор — «неон» (бесплатный), «элегант» — только купленный.
+    await boot(tester, {ladderKey: '5'});
+    await openStyles(tester);
+    // Все пункты видны сразу, без прокрутки: по умолчанию лист режется на 9/16 экрана,
+    // и последние наборы уходили за край (замер 30.09).
+    final screenH = tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    for (final st in digitStyles) {
+      expect(tester.getRect(find.byKey(Key('skin-drawn-$st'))).bottom, lessThanOrEqualTo(screenH),
+          reason: 'набор «$st» за краем листа — его надо искать прокруткой');
+    }
+    ListTile tile(String st) => tester.widget<ListTile>(find.byKey(Key('skin-drawn-$st')));
+    expect(tile('candy').enabled, isTrue, reason: 'конфетные бесплатны всем');
+    expect(tile('neon').enabled, isTrue, reason: 'набор своего профиля бесплатен');
+    expect(tile('elegant').enabled, isFalse, reason: 'не купленный — под замком');
+    await tester.tap(find.byKey(const Key('skin-drawn-elegant')));
+    await tester.pumpAndSettle();
+    expect(state.get(skinKey), isNull, reason: 'замок не пропускает выбор');
+
+    // Покупка в магазине веба — запись в общую память; владение читается при КАЖДОМ
+    // открытии выбора, а не один раз при запуске экрана.
+    await tester.tapAt(const Offset(8, 8));   // закрыть лист выбора
+    await tester.pumpAndSettle();
+    state.set('psygames_cosmetics_unlocked_nzt48', '["digits_elegant"]');
+    await openStyles(tester);
+    expect(tile('elegant').enabled, isTrue, reason: 'после покупки замок снят');
+    await tester.ensureVisible(find.byKey(const Key('skin-drawn-elegant')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('skin-drawn-elegant')));
+    await tester.pumpAndSettle();
+    expect(state.get(skinKey), 'drawn:elegant', reason: 'купленный в магазине веба — выбирается');
+  });
+
+  testWidgets('🔴 на термометрах клетка берёт текст: под цифрой рисунок (правило веба)', (tester) async {
+    await boot(tester, {ladderKey: '42', skinKey: 'drawn:candy'});
+    expect(imagesIn(tester, find.byKey(const Key('digit1'))), isNotEmpty,
+        reason: 'клавиши — картинками');
+    var pictured = 0;
+    for (var r = 0; r < 9; r++) {
+      for (var c = 0; c < 9; c++) {
+        pictured += imagesIn(tester, find.byKey(Key('cell_${r}_$c'))).length;
+      }
+    }
+    expect(pictured, 0, reason: 'на доске с термометрами цифра — текстом: контраст важнее вида');
   });
 }

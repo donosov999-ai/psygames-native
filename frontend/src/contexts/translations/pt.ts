@@ -3074,7 +3074,7 @@ const t: Record<string, string> = {
   "sudokuPilotOff": "Voltar à escada de níveis",
   "sudokuRepeatSame": "De novo, mesma dificuldade",
   "sudokuSkinLetters": "Letras em vez de números",
-  "sudokuSkinDigits": "Voltar aos números",
+  "digitsCandy": "Doce",
   "sudokuHiddenWord": "Palavra escondida: {w}",
 };
 export default t;

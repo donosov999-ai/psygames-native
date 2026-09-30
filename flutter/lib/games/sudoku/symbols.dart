@@ -16,9 +16,57 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 
 /// Какими значками показывать цифры.
-enum SudokuSkin { digits, letters }
+enum SudokuSkin { digits, letters, drawn }
 
-SudokuSkin skinFromName(String? s) => s == SudokuSkin.letters.name ? SudokuSkin.letters : SudokuSkin.digits;
+/// Выбор игрока: вид значков и, для рисованных, набор. Хранится одной строкой:
+/// `digits` · `letters` · `drawn:<набор>`.
+class SkinChoice {
+  const SkinChoice(this.skin, [this.style = 'candy']);
+  final SudokuSkin skin;
+  final String style;
+
+  static SkinChoice parse(String? s) {
+    if (s == SudokuSkin.letters.name) return const SkinChoice(SudokuSkin.letters);
+    if (s != null && s.startsWith('drawn:')) {
+      final st = s.substring(6);
+      if (digitStyles.contains(st)) return SkinChoice(SudokuSkin.drawn, st);
+    }
+    return const SkinChoice(SudokuSkin.digits);
+  }
+
+  String get name => skin == SudokuSkin.drawn ? 'drawn:$style' : skin.name;
+}
+
+/// 🔴 РИСОВАННЫЕ ЦИФРЫ ВЕБА — потеря переноса, возвращена (задача f1e1ff9c).
+/// Пять наборов и правило владения — ТЕ ЖЕ, что в вебе (frontend/src/constants/digitThemes.ts,
+/// frontend/src/services/cosmetics.ts): бесплатны «конфетные» и набор своего профиля,
+/// остальные — купленные в магазине (`psygames_cosmetics_unlocked_<профиль>`, id `digits_<набор>`).
+/// Второй экономики здесь нет: натив читает ту же общую память, что веб.
+const digitStyles = ['candy', 'rainbow', 'pastel', 'neon', 'elegant'];
+
+/// Набор профиля по умолчанию — таблица веба PROFILE_DIGIT_STYLE.
+const profileDigitStyle = <String, String>{
+  'kids': 'rainbow', 'free': 'rainbow', 'students': 'rainbow',
+  'women': 'pastel', 'vasilyeva': 'pastel', 'seniors': 'pastel',
+  'nzt48': 'neon', 'odv999': 'neon', 'drivers': 'neon',
+  'chess': 'elegant', 'execs': 'elegant', 'polyglot': 'elegant',
+};
+
+String defaultStyleFor(String profile) => profileDigitStyle[profile] ?? 'candy';
+
+/// Владеет ли профиль набором: бесплатные + купленные.
+bool styleOwned(String style, String profile, List<String> unlocked) =>
+    style == 'candy' || style == defaultStyleFor(profile) || unlocked.contains('digits_$style');
+
+/// Картинка цифры набора — ассет, скопированный из веба как есть.
+String digitImage(String style, int v) => 'assets/digits/$style/d$v.webp';
+
+/// 🔴 ПРАВИЛО ВЕБА: картинка — только там, где под цифрой НИЧЕГО не нарисовано.
+/// «Под цифрой что-то нарисовано → цифра рисуется текстом цветом темы. Контраст важнее
+/// единообразия начертания — читаемость цифры и есть игра» (app/games/sudoku.tsx).
+/// У этих правил под клетками ничего нет: знаки Кропки стоят между клетками, подсказки
+/// сэндвича — снаружи.
+const decorFreeVariants = {'none', 'diagonal', 'antiknight', 'hyper', 'antiking', 'jigsaw', 'kropki', 'sandwich', 'nonconsec'};
 
 /// 🔴 ПРАВИЛА, ГДЕ У ЦИФРЫ НЕТ ЧИСЛОВОГО СМЫСЛА — только «девять разных значков».
 ///
@@ -61,7 +109,7 @@ class WordokuWords {
 
 /// Набор значков одной партии: `glyph(v)` — что показать вместо цифры `v`.
 class SudokuSymbols {
-  const SudokuSymbols._(this.glyphs, {this.word, this.wordRow});
+  const SudokuSymbols._(this.glyphs, {this.word, this.wordRow, this.images});
 
   /// `glyphs[v]` — значок цифры v; `glyphs[0]` — пусто.
   final List<String> glyphs;
@@ -69,6 +117,21 @@ class SudokuSymbols {
   /// Спрятанное слово и строка решения, где оно читается. `null` — слова нет.
   final String? word;
   final int? wordRow;
+
+  /// Картинки цифр (рисованные наборы): `images[v]` — ассет цифры v. `null` — без картинок.
+  /// Текстовые значки при этом остаются цифрами: ими говорят пометки и текст разбора.
+  final List<String>? images;
+
+  /// Рисованный набор веба.
+  factory SudokuSymbols.drawn(int n, String style) => SudokuSymbols._(
+        ['', for (var v = 1; v <= n; v++) '$v'],
+        images: ['', for (var v = 1; v <= n; v++) digitImage(style, v)],
+      );
+
+  String? image(int v) {
+    final im = images;
+    return im != null && v > 0 && v < im.length ? im[v] : null;
+  }
 
   /// Обычные цифры.
   factory SudokuSymbols.digits(int n) => SudokuSymbols._(['', for (var v = 1; v <= n; v++) '$v']);
@@ -109,8 +172,12 @@ SudokuSymbols symbolsFor({
   required List<List<int>> solution,
   required String language,
   required int seed,
+  String style = 'candy',
 }) {
   final n = solution.length;
+  // Рисованные — это всё ещё цифры: числовой смысл не теряется ни на одном правиле.
+  // Где под клеткой рисунок, клетка сама возьмёт текст (decorFreeVariants).
+  if (skin == SudokuSkin.drawn && n > 0) return SudokuSymbols.drawn(n, style);
   if (skin != SudokuSkin.letters || !skinApplies(variant) || n == 0) return SudokuSymbols.digits(n);
   final words = WordokuWords.of(language, n);
   if (words == null || words.isEmpty) return SudokuSymbols.alphabet(n);

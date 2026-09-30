@@ -3285,7 +3285,7 @@ const translations: Translations = {
   sudokuRepeatSame: { ru: 'Ещё раз эту же', en: 'Same difficulty again' },
   // Значки вместо цифр (задача f1e1ff9c): пункт паузы и спрятанное слово Wordoku после победы.
   sudokuSkinLetters: { ru: 'Буквы вместо цифр', en: 'Letters instead of digits' },
-  sudokuSkinDigits: { ru: 'Вернуть цифры', en: 'Back to digits' },
+  digitsCandy: { ru: 'Конфетные', en: 'Candy' },
   sudokuHiddenWord: { ru: 'Спрятанное слово: {w}', en: 'Hidden word: {w}' },
   sudokuPencilHint: { ru: 'Выбери клетку и жми цифры — они встанут в угол мелким. Повторный тап снимает пометку.', en: 'Pick a cell and tap digits — they go into the corner as small marks. Tap again to remove one.' },
   killerCageRule: { ru: 'Цифры в каждой цветной группе в сумме дают число в её углу и не повторяются.', en: 'Digits in each coloured cage add up to the number in its corner and never repeat.' },
