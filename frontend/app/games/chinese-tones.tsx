@@ -56,7 +56,7 @@ type GamePhase = 'config' | 'playing' | 'cleared' | 'result';
 /** Знаки тонов на кнопках. Символ понятен без перевода — он и есть контур. */
 const ЗНАКИ = ['ˉ', 'ˊ', 'ˇ', 'ˋ'];
 
-interface Trial {
+export interface Trial {
   syll: ZhSyllable;      // что прозвучит
   tone: 1 | 2 | 3 | 4;   // правильный тон
   options: string[];     // варианты на кнопках (для фазы пиньиня)
@@ -101,7 +101,8 @@ function перемешать<T>(arr: T[]): T[] {
   return a;
 }
 
-function buildTrials(count: number, pinyinMode: boolean): Trial[] {
+/** Экспортирована ради сверки Flutter-переноса с исполнением (`scripts/flutter-chinese-tones-reference.test.ts`). */
+export function buildTrials(count: number, pinyinMode: boolean): Trial[] {
   const out: Trial[] = [];
   for (let i = 0; i < count; i++) {
     const tone = (1 + Math.floor(Math.random() * 4)) as 1 | 2 | 3 | 4;

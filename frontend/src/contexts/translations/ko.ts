@@ -1251,6 +1251,7 @@ const t: Record<string, string> = {
   "earnWhyStreak": "연속 출석 — 2배",
   "earnWhyRepeat": "오늘 반복 — 2배 없음",
   "earnWhyWarmup": "워밍업 단계 — 보너스는 마지막에",
+  "earnWhyLesson": "해설을 본 게임 — 2배 없음",
   "todayEarnedTitle": "오늘 획득",
   "todayEmptyHint": "오늘은 아직 플레이가 없어요. 한 판 해보면 무엇으로 얼마를 벌었는지 여기에 나옵니다.",
   "todayRoundsLabel": "판수: {n}",
