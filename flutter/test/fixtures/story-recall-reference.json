@@ -1,0 +1,2234 @@
+{
+ "taken": "2026-09-30",
+ "tool": "frontend/scripts/flutter-story-recall-reference.test.ts",
+ "maxLevel": 15,
+ "levels": [
+  {
+   "level": 0,
+   "read": [
+    30,
+    32,
+    35,
+    20
+   ],
+   "d1": 30,
+   "d2": 90
+  },
+  {
+   "level": 1,
+   "read": [
+    30,
+    32,
+    35,
+    20
+   ],
+   "d1": 30,
+   "d2": 90
+  },
+  {
+   "level": 2,
+   "read": [
+    29,
+    31,
+    34,
+    19
+   ],
+   "d1": 32,
+   "d2": 96
+  },
+  {
+   "level": 3,
+   "read": [
+    28,
+    30,
+    33,
+    19
+   ],
+   "d1": 34,
+   "d2": 103
+  },
+  {
+   "level": 4,
+   "read": [
+    27,
+    29,
+    32,
+    18
+   ],
+   "d1": 36,
+   "d2": 109
+  },
+  {
+   "level": 5,
+   "read": [
+    27,
+    28,
+    31,
+    18
+   ],
+   "d1": 39,
+   "d2": 116
+  },
+  {
+   "level": 6,
+   "read": [
+    26,
+    28,
+    30,
+    17
+   ],
+   "d1": 41,
+   "d2": 122
+  },
+  {
+   "level": 7,
+   "read": [
+    25,
+    27,
+    29,
+    17
+   ],
+   "d1": 43,
+   "d2": 129
+  },
+  {
+   "level": 8,
+   "read": [
+    24,
+    26,
+    28,
+    16
+   ],
+   "d1": 45,
+   "d2": 135
+  },
+  {
+   "level": 9,
+   "read": [
+    23,
+    25,
+    27,
+    15
+   ],
+   "d1": 47,
+   "d2": 141
+  },
+  {
+   "level": 10,
+   "read": [
+    22,
+    24,
+    26,
+    15
+   ],
+   "d1": 49,
+   "d2": 148
+  },
+  {
+   "level": 11,
+   "read": [
+    21,
+    23,
+    25,
+    15
+   ],
+   "d1": 51,
+   "d2": 154
+  },
+  {
+   "level": 12,
+   "read": [
+    21,
+    22,
+    24,
+    15
+   ],
+   "d1": 54,
+   "d2": 161
+  },
+  {
+   "level": 13,
+   "read": [
+    20,
+    21,
+    23,
+    15
+   ],
+   "d1": 56,
+   "d2": 167
+  },
+  {
+   "level": 14,
+   "read": [
+    19,
+    20,
+    22,
+    15
+   ],
+   "d1": 58,
+   "d2": 174
+  },
+  {
+   "level": 15,
+   "read": [
+    18,
+    19,
+    21,
+    15
+   ],
+   "d1": 60,
+   "d2": 180
+  },
+  {
+   "level": 16,
+   "read": [
+    18,
+    19,
+    21,
+    15
+   ],
+   "d1": 60,
+   "d2": 180
+  }
+ ],
+ "stories": [
+  {
+   "index": 0,
+   "ru": {
+    "stems": [
+     "анна",
+     "мороз",
+     "больн",
+     "ленин",
+     "вечер",
+     "8",
+     "часов",
+     "пешко",
+     "михаи",
+     "выигр",
+     "500",
+     "тысяч",
+     "лотер",
+     "кафе",
+     "углу",
+     "пиццу",
+     "велос",
+     "подар"
+    ],
+    "keys": [
+     "Анна",
+     "Морозова",
+     "больница",
+     "Ленина",
+     "вечером",
+     "8",
+     "часов",
+     "пешком",
+     "Михаил",
+     "выиграл",
+     "500",
+     "тысяч",
+     "лотерею",
+     "кафе",
+     "углу",
+     "пиццу",
+     "велосипед",
+     "подарок"
+    ],
+    "matches": [
+     {
+      "text": "Анна Морозова работает в больнице на улице Ленина. Вчера вечером она вышла с работы в 8 часов и пошла домой пешком. По дороге она встретила старого друга Михаила, который рассказал, что выиграл 500 тысяч рублей в лотерею. Они вместе зашли в кафе на углу и заказали пиццу. Михаил пообещал купить Анне новый велосипед в подарок.",
+      "hits": 18
+     },
+     {
+      "text": "Анна больница вечером часов Михаил 500 лотерею углу велосипед",
+      "hits": 9
+     },
+     {
+      "text": "АННА!,;МОРОЗОВА!,;БОЛЬНИЦА!,;ЛЕНИНА!,;ВЕЧЕРОМ!,;8!,;ЧАСОВ!,;ПЕШКОМ!,;МИХАИЛ!,;ВЫИГРАЛ!,;500!,;ТЫСЯЧ!,;ЛОТЕРЕЮ!,;КАФЕ!,;УГЛУ!,;ПИЦЦУ!,;ВЕЛОСИПЕД!,;ПОДАРОК",
+      "hits": 18
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "anna",
+     "mille",
+     "hospi",
+     "maple",
+     "eveni",
+     "8",
+     "ocloc",
+     "walke",
+     "thoma",
+     "won",
+     "500",
+     "thous",
+     "lotte",
+     "cafe",
+     "corne",
+     "pizza",
+     "bicyc",
+     "gift"
+    ],
+    "keys": [
+     "Anna",
+     "Miller",
+     "hospital",
+     "Maple",
+     "evening",
+     "8",
+     "oclock",
+     "walked",
+     "Thomas",
+     "won",
+     "500",
+     "thousand",
+     "lottery",
+     "cafe",
+     "corner",
+     "pizza",
+     "bicycle",
+     "gift"
+    ],
+    "matches": [
+     {
+      "text": "Anna Miller works at the hospital on Maple Street. Yesterday evening she left work at 8 oclock and walked home. On the way she met an old friend Thomas, who told her he won 500 thousand dollars in the lottery. They went together to the cafe on the corner and ordered a pizza. Thomas promised to buy Anna a new bicycle as a gift.",
+      "hits": 18
+     },
+     {
+      "text": "Anna hospital evening oclock Thomas 500 lottery corner bicycle",
+      "hits": 9
+     },
+     {
+      "text": "ANNA!,;MILLER!,;HOSPITAL!,;MAPLE!,;EVENING!,;8!,;OCLOCK!,;WALKED!,;THOMAS!,;WON!,;500!,;THOUSAND!,;LOTTERY!,;CAFE!,;CORNER!,;PIZZA!,;BICYCLE!,;GIFT",
+      "hits": 18
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 1,
+   "ru": {
+    "stems": [
+     "викто",
+     "ивано",
+     "инжен",
+     "завод",
+     "екате",
+     "три",
+     "собак",
+     "овчар",
+     "рекс",
+     "такса",
+     "мухта",
+     "дворн",
+     "жучка",
+     "суббо",
+     "дачу",
+     "берёз",
+     "два",
+     "часа",
+     "сосед",
+     "грузо",
+     "15",
+     "тысяч"
+    ],
+    "keys": [
+     "Виктор",
+     "Иванович",
+     "инженер",
+     "заводе",
+     "Екатеринбурге",
+     "три",
+     "собаки",
+     "овчарка",
+     "Рекс",
+     "такса",
+     "Мухтар",
+     "дворняжка",
+     "Жучка",
+     "субботу",
+     "дачу",
+     "Берёзовка",
+     "два",
+     "часа",
+     "сосед",
+     "грузовике",
+     "15",
+     "тысяч"
+    ],
+    "matches": [
+     {
+      "text": "Виктор Иванович — инженер на заводе в Екатеринбурге. У него три собаки: овчарка Рекс, такса Мухтар и дворняжка Жучка. В субботу он повёз семью на дачу. По дороге сломалась машина возле деревни Берёзовка. Через два часа их забрал сосед на грузовике. Виктор заплатил за ремонт 15 тысяч рублей.",
+      "hits": 22
+     },
+     {
+      "text": "Виктор инженер Екатеринбурге собаки Рекс Мухтар Жучка дачу два сосед 15",
+      "hits": 11
+     },
+     {
+      "text": "ВИКТОР!,;ИВАНОВИЧ!,;ИНЖЕНЕР!,;ЗАВОДЕ!,;ЕКАТЕРИНБУРГЕ!,;ТРИ!,;СОБАКИ!,;ОВЧАРКА!,;РЕКС!,;ТАКСА!,;МУХТАР!,;ДВОРНЯЖКА!,;ЖУЧКА!,;СУББОТУ!,;ДАЧУ!,;БЕРЁЗОВКА!,;ДВА!,;ЧАСА!,;СОСЕД!,;ГРУЗОВИКЕ!,;15!,;ТЫСЯЧ",
+      "hits": 22
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "victo",
+     "hanse",
+     "engin",
+     "facto",
+     "portl",
+     "three",
+     "dogs",
+     "sheph",
+     "rex",
+     "dachs",
+     "oscar",
+     "mutt",
+     "daisy",
+     "satur",
+     "lake",
+     "ashfo",
+     "two",
+     "hours",
+     "neigh",
+     "truck",
+     "1500",
+     "dolla"
+    ],
+    "keys": [
+     "Victor",
+     "Hansen",
+     "engineer",
+     "factory",
+     "Portland",
+     "three",
+     "dogs",
+     "shepherd",
+     "Rex",
+     "dachshund",
+     "Oscar",
+     "mutt",
+     "Daisy",
+     "Saturday",
+     "lake",
+     "Ashford",
+     "two",
+     "hours",
+     "neighbor",
+     "truck",
+     "1500",
+     "dollars"
+    ],
+    "matches": [
+     {
+      "text": "Victor Hansen is an engineer at a factory in Portland. He has three dogs: a shepherd named Rex, a dachshund named Oscar, and a mutt named Daisy. On Saturday he took his family to the lake house. The car broke down on the way near the village of Ashford. Two hours later their neighbor picked them up in a truck. Victor paid 1500 dollars for the repair.",
+      "hits": 22
+     },
+     {
+      "text": "Victor engineer Portland dogs Rex Oscar Daisy lake two neighbor 1500",
+      "hits": 11
+     },
+     {
+      "text": "VICTOR!,;HANSEN!,;ENGINEER!,;FACTORY!,;PORTLAND!,;THREE!,;DOGS!,;SHEPHERD!,;REX!,;DACHSHUND!,;OSCAR!,;MUTT!,;DAISY!,;SATURDAY!,;LAKE!,;ASHFORD!,;TWO!,;HOURS!,;NEIGHBOR!,;TRUCK!,;1500!,;DOLLARS",
+      "hits": 22
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 2,
+   "ru": {
+    "stems": [
+     "елена",
+     "сокол",
+     "учите",
+     "матем",
+     "школе",
+     "42",
+     "два",
+     "сына",
+     "артём",
+     "12",
+     "дании",
+     "9",
+     "понед",
+     "утром",
+     "ключи",
+     "разде",
+     "3500",
+     "замок",
+     "ресто",
+     "парус",
+     "набер"
+    ],
+    "keys": [
+     "Елена",
+     "Соколова",
+     "учитель",
+     "математики",
+     "школе",
+     "42",
+     "два",
+     "сына",
+     "Артём",
+     "12",
+     "Даниил",
+     "9",
+     "понедельник",
+     "утром",
+     "ключи",
+     "раздевалке",
+     "3500",
+     "замок",
+     "ресторане",
+     "Парус",
+     "набережной"
+    ],
+    "matches": [
+     {
+      "text": "Елена Соколова — учитель математики в школе номер 42. У неё два сына: Артём 12 лет и Даниил 9 лет. В понедельник утром старший сын потерял ключи от квартиры в школьной раздевалке. Елена заплатила слесарю 3500 рублей за новый замок. Вечером семья ужинала в ресторане «Парус» на набережной.",
+      "hits": 20
+     },
+     {
+      "text": "Елена учитель школе два Артём Даниил понедельник ключи 3500 ресторане набережной",
+      "hits": 11
+     },
+     {
+      "text": "ЕЛЕНА!,;СОКОЛОВА!,;УЧИТЕЛЬ!,;МАТЕМАТИКИ!,;ШКОЛЕ!,;42!,;ДВА!,;СЫНА!,;АРТЁМ!,;12!,;ДАНИИЛ!,;9!,;ПОНЕДЕЛЬНИК!,;УТРОМ!,;КЛЮЧИ!,;РАЗДЕВАЛКЕ!,;3500!,;ЗАМОК!,;РЕСТОРАНЕ!,;ПАРУС!,;НАБЕРЕЖНОЙ",
+      "hits": 21
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "ellen",
+     "carte",
+     "teach",
+     "math",
+     "schoo",
+     "42",
+     "two",
+     "sons",
+     "aaron",
+     "12",
+     "danie",
+     "9",
+     "monda",
+     "morni",
+     "keys",
+     "locke",
+     "350",
+     "lock",
+     "resta",
+     "harbo",
+     "water"
+    ],
+    "keys": [
+     "Ellen",
+     "Carter",
+     "teacher",
+     "math",
+     "school",
+     "42",
+     "two",
+     "sons",
+     "Aaron",
+     "12",
+     "Daniel",
+     "9",
+     "Monday",
+     "morning",
+     "keys",
+     "locker",
+     "350",
+     "restaurant",
+     "Harbour",
+     "waterfront"
+    ],
+    "matches": [
+     {
+      "text": "Ellen Carter is a math teacher at school number 42. She has two sons: Aaron age 12 and Daniel age 9. On Monday morning the older son lost the apartment keys in the school locker room. Ellen paid a locksmith 350 dollars for a new lock. In the evening the family had dinner at the Harbour restaurant on the waterfront.",
+      "hits": 20
+     },
+     {
+      "text": "Ellen teacher school two Aaron Daniel Monday keys 350 Harbour",
+      "hits": 10
+     },
+     {
+      "text": "ELLEN!,;CARTER!,;TEACHER!,;MATH!,;SCHOOL!,;42!,;TWO!,;SONS!,;AARON!,;12!,;DANIEL!,;9!,;MONDAY!,;MORNING!,;KEYS!,;LOCKER!,;350!,;RESTAURANT!,;HARBOUR!,;WATERFRONT",
+      "hits": 20
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 3,
+   "ru": {
+    "stems": [
+     "серге",
+     "кузне",
+     "дирек",
+     "автос",
+     "бмв",
+     "новос",
+     "четве",
+     "михаи",
+     "петро",
+     "4",
+     "милли",
+     "налич",
+     "недел",
+     "турци",
+     "четыр",
+     "ривье",
+     "10",
+     "дней"
+    ],
+    "keys": [
+     "Сергей",
+     "Кузнецов",
+     "директор",
+     "автосалона",
+     "БМВ",
+     "Новосибирске",
+     "четверг",
+     "Михаил",
+     "Петров",
+     "4",
+     "миллиона",
+     "наличными",
+     "неделю",
+     "Турцию",
+     "четырёх",
+     "Ривьера",
+     "10",
+     "дней"
+    ],
+    "matches": [
+     {
+      "text": "Сергей Кузнецов — директор автосалона «БМВ» в Новосибирске. В четверг к нему пришёл клиент — Михаил Петров — и купил машину за 4 миллиона рублей наличными. Через неделю Сергей улетел в Турцию на отдых с семьёй из четырёх человек. Они остановились в отеле «Ривьера» на 10 дней.",
+      "hits": 16
+     },
+     {
+      "text": "Сергей директор БМВ четверг Петров миллиона неделю четырёх 10",
+      "hits": 9
+     },
+     {
+      "text": "СЕРГЕЙ!,;КУЗНЕЦОВ!,;ДИРЕКТОР!,;АВТОСАЛОНА!,;БМВ!,;НОВОСИБИРСКЕ!,;ЧЕТВЕРГ!,;МИХАИЛ!,;ПЕТРОВ!,;4!,;МИЛЛИОНА!,;НАЛИЧНЫМИ!,;НЕДЕЛЮ!,;ТУРЦИЮ!,;ЧЕТЫРЁХ!,;РИВЬЕРА!,;10!,;ДНЕЙ",
+      "hits": 18
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "simon",
+     "kelle",
+     "direc",
+     "deale",
+     "bmw",
+     "leeds",
+     "thurs",
+     "marti",
+     "price",
+     "4",
+     "hundr",
+     "cash",
+     "week",
+     "greec",
+     "four",
+     "rivie",
+     "10",
+     "days"
+    ],
+    "keys": [
+     "Simon",
+     "Keller",
+     "director",
+     "dealership",
+     "BMW",
+     "Leeds",
+     "Thursday",
+     "Martin",
+     "Price",
+     "4",
+     "hundred",
+     "cash",
+     "week",
+     "Greece",
+     "four",
+     "Riviera",
+     "10",
+     "days"
+    ],
+    "matches": [
+     {
+      "text": "Simon Keller is the director of the BMW dealership in Leeds. On Thursday a client Martin Price came and bought a car for 4 hundred thousand in cash. A week later Simon flew to Greece on vacation with a family of four. They stayed at Riviera hotel for 10 days.",
+      "hits": 18
+     },
+     {
+      "text": "Simon director BMW Thursday Price hundred week four 10",
+      "hits": 9
+     },
+     {
+      "text": "SIMON!,;KELLER!,;DIRECTOR!,;DEALERSHIP!,;BMW!,;LEEDS!,;THURSDAY!,;MARTIN!,;PRICE!,;4!,;HUNDRED!,;CASH!,;WEEK!,;GREECE!,;FOUR!,;RIVIERA!,;10!,;DAYS",
+      "hits": 18
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 4,
+   "ru": {
+    "stems": [
+     "татья",
+     "лебед",
+     "стома",
+     "жемчу",
+     "невск",
+     "78",
+     "пятни",
+     "пацие",
+     "зубно",
+     "45",
+     "минут",
+     "8500",
+     "дочь",
+     "машу",
+     "сада",
+     "радуг",
+     "морож"
+    ],
+    "keys": [
+     "Татьяна",
+     "Лебедева",
+     "стоматолог",
+     "Жемчуг",
+     "Невском",
+     "78",
+     "пятницу",
+     "пациент",
+     "зубной",
+     "45",
+     "минут",
+     "8500",
+     "дочь",
+     "Машу",
+     "сада",
+     "Радуга",
+     "мороженое"
+    ],
+    "matches": [
+     {
+      "text": "Татьяна Лебедева — врач-стоматолог в клинике «Жемчуг» на Невском проспекте 78. В пятницу к ней пришёл пациент с острой зубной болью. Операция длилась 45 минут и стоила 8500 рублей. После работы Татьяна забрала дочь Машу из детского сада «Радуга» и купила ей мороженое.",
+      "hits": 14
+     },
+     {
+      "text": "Татьяна стоматолог Невском пятницу зубной минут дочь сада мороженое",
+      "hits": 9
+     },
+     {
+      "text": "ТАТЬЯНА!,;ЛЕБЕДЕВА!,;СТОМАТОЛОГ!,;ЖЕМЧУГ!,;НЕВСКОМ!,;78!,;ПЯТНИЦУ!,;ПАЦИЕНТ!,;ЗУБНОЙ!,;45!,;МИНУТ!,;8500!,;ДОЧЬ!,;МАШУ!,;САДА!,;РАДУГА!,;МОРОЖЕНОЕ",
+      "hits": 17
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "tanya",
+     "brook",
+     "denti",
+     "pearl",
+     "chest",
+     "78",
+     "frida",
+     "patie",
+     "tooth",
+     "45",
+     "minut",
+     "850",
+     "daugh",
+     "molly",
+     "kinde",
+     "rainb",
+     "ice"
+    ],
+    "keys": [
+     "Tanya",
+     "Brooks",
+     "dentist",
+     "Pearl",
+     "Chestnut",
+     "78",
+     "Friday",
+     "patient",
+     "toothache",
+     "45",
+     "minutes",
+     "850",
+     "daughter",
+     "Molly",
+     "kindergarten",
+     "Rainbow",
+     "ice"
+    ],
+    "matches": [
+     {
+      "text": "Tanya Brooks is a dentist at the Pearl clinic at 78 Chestnut Avenue. On Friday a patient came with acute toothache. The surgery lasted 45 minutes and cost 850 dollars. After work Tanya picked up her daughter Molly from kindergarten Rainbow and bought her an ice cream.",
+      "hits": 17
+     },
+     {
+      "text": "Tanya dentist Chestnut Friday toothache minutes daughter kindergarten ice",
+      "hits": 9
+     },
+     {
+      "text": "TANYA!,;BROOKS!,;DENTIST!,;PEARL!,;CHESTNUT!,;78!,;FRIDAY!,;PATIENT!,;TOOTHACHE!,;45!,;MINUTES!,;850!,;DAUGHTER!,;MOLLY!,;KINDERGARTEN!,;RAINBOW!,;ICE",
+      "hits": 17
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 5,
+   "ru": {
+    "stems": [
+     "андре",
+     "орлов",
+     "ферме",
+     "красн",
+     "200",
+     "гекта",
+     "пшени",
+     "подсо",
+     "авгус",
+     "12",
+     "милли",
+     "два",
+     "комба",
+     "ростс",
+     "светл",
+     "3",
+     "милли",
+     "ремон"
+    ],
+    "keys": [
+     "Андрей",
+     "Орлов",
+     "фермер",
+     "Краснодарском",
+     "200",
+     "гектаров",
+     "пшеницу",
+     "подсолнечник",
+     "августе",
+     "12",
+     "миллионов",
+     "два",
+     "комбайна",
+     "Ростсельмаш",
+     "Светлана",
+     "3",
+     "ремонт"
+    ],
+    "matches": [
+     {
+      "text": "Андрей Орлов — фермер в Краснодарском крае. У него 200 гектаров земли, на которых он выращивает пшеницу и подсолнечник. В августе он продал урожай за 12 миллионов рублей. На вырученные деньги купил два новых комбайна марки «Ростсельмаш». Жена Светлана взяла 3 миллиона на ремонт дома.",
+      "hits": 16
+     },
+     {
+      "text": "Андрей фермер 200 пшеницу августе миллионов комбайна Светлана ремонт",
+      "hits": 9
+     },
+     {
+      "text": "АНДРЕЙ!,;ОРЛОВ!,;ФЕРМЕР!,;КРАСНОДАРСКОМ!,;200!,;ГЕКТАРОВ!,;ПШЕНИЦУ!,;ПОДСОЛНЕЧНИК!,;АВГУСТЕ!,;12!,;МИЛЛИОНОВ!,;ДВА!,;КОМБАЙНА!,;РОСТСЕЛЬМАШ!,;СВЕТЛАНА!,;3!,;РЕМОНТ",
+      "hits": 17
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "adria",
+     "ford",
+     "farme",
+     "redla",
+     "200",
+     "hecta",
+     "wheat",
+     "sunfl",
+     "augus",
+     "1200",
+     "thous",
+     "two",
+     "combi",
+     "sylvi",
+     "3",
+     "chick",
+     "eggs",
+     "marke"
+    ],
+    "keys": [
+     "Adrian",
+     "Ford",
+     "farmer",
+     "Redland",
+     "200",
+     "hectares",
+     "wheat",
+     "sunflower",
+     "August",
+     "1200",
+     "thousand",
+     "two",
+     "combines",
+     "Sylvia",
+     "3",
+     "chickens",
+     "eggs",
+     "market"
+    ],
+    "matches": [
+     {
+      "text": "Adrian Ford is a farmer in the Redland valley. He has 200 hectares of land where he grows wheat and sunflower. In August he sold the harvest for 1200 thousand and bought two combines. His wife Sylvia keeps 3 thousand chickens and sells eggs to the market.",
+      "hits": 18
+     },
+     {
+      "text": "Adrian farmer 200 wheat August thousand combines 3 eggs",
+      "hits": 9
+     },
+     {
+      "text": "ADRIAN!,;FORD!,;FARMER!,;REDLAND!,;200!,;HECTARES!,;WHEAT!,;SUNFLOWER!,;AUGUST!,;1200!,;THOUSAND!,;TWO!,;COMBINES!,;SYLVIA!,;3!,;CHICKENS!,;EGGS!,;MARKET",
+      "hits": 18
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 6,
+   "ru": {
+    "stems": [
+     "ольга",
+     "семён",
+     "журна",
+     "вечер",
+     "москв",
+     "вторн",
+     "минис",
+     "транс",
+     "метро",
+     "90",
+     "минут",
+     "тверс",
+     "17",
+     "5",
+     "стран",
+     "18"
+    ],
+    "keys": [
+     "Ольга",
+     "Семёнова",
+     "журналист",
+     "Вечерняя",
+     "Москва",
+     "вторник",
+     "министра",
+     "транспорта",
+     "метро",
+     "90",
+     "минут",
+     "Тверской",
+     "17",
+     "5",
+     "страниц",
+     "18"
+    ],
+    "matches": [
+     {
+      "text": "Ольга Семёнова — журналист газеты «Вечерняя Москва». Во вторник она брала интервью у министра транспорта о новой ветке метро. Интервью длилось 90 минут в офисе на Тверской 17. После Ольга поехала в редакцию написать статью на 5 страниц до дедлайна в 18:00.",
+      "hits": 15
+     },
+     {
+      "text": "Ольга журналист Москва министра метро минут 17 страниц",
+      "hits": 8
+     },
+     {
+      "text": "ОЛЬГА!,;СЕМЁНОВА!,;ЖУРНАЛИСТ!,;ВЕЧЕРНЯЯ!,;МОСКВА!,;ВТОРНИК!,;МИНИСТРА!,;ТРАНСПОРТА!,;МЕТРО!,;90!,;МИНУТ!,;ТВЕРСКОЙ!,;17!,;5!,;СТРАНИЦ!,;18",
+      "hits": 16
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "olivi",
+     "stone",
+     "journ",
+     "eveni",
+     "heral",
+     "tuesd",
+     "minis",
+     "trans",
+     "metro",
+     "90",
+     "minut",
+     "bridg",
+     "17",
+     "5",
+     "pages",
+     "18"
+    ],
+    "keys": [
+     "Olivia",
+     "Stone",
+     "journalist",
+     "Evening",
+     "Herald",
+     "Tuesday",
+     "minister",
+     "transport",
+     "metro",
+     "90",
+     "minutes",
+     "Bridge",
+     "17",
+     "5",
+     "pages",
+     "18"
+    ],
+    "matches": [
+     {
+      "text": "Olivia Stone is a journalist for the Evening Herald newspaper. On Tuesday she interviewed the transport minister about the new metro line. The interview lasted 90 minutes in the office at 17 Bridge Street. She wrote 5 pages and the piece came out on the 18th.",
+      "hits": 16
+     },
+     {
+      "text": "Olivia journalist Herald minister metro minutes 17 pages",
+      "hits": 8
+     },
+     {
+      "text": "OLIVIA!,;STONE!,;JOURNALIST!,;EVENING!,;HERALD!,;TUESDAY!,;MINISTER!,;TRANSPORT!,;METRO!,;90!,;MINUTES!,;BRIDGE!,;17!,;5!,;PAGES!,;18",
+      "hits": 16
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 7,
+   "ru": {
+    "stems": [
+     "дмитр",
+     "волко",
+     "прогр",
+     "яндек",
+     "профс",
+     "105",
+     "анаст",
+     "барси",
+     "велос",
+     "сокол",
+     "25",
+     "килом",
+     "шокол",
+     "1800"
+    ],
+    "keys": [
+     "Дмитрий",
+     "Волков",
+     "программист",
+     "Яндекс",
+     "Профсоюзная",
+     "105",
+     "Анастасией",
+     "Барсик",
+     "велосипедах",
+     "Сокольники",
+     "25",
+     "километров",
+     "Шоколадница",
+     "1800"
+    ],
+    "matches": [
+     {
+      "text": "Дмитрий Волков — программист в компании «Яндекс». Он живёт в квартире на улице Профсоюзная 105 с женой Анастасией и кошкой по кличке Барсик. В выходные они поехали на велосипедах в парк «Сокольники». Прокатились 25 километров и пообедали в кафе «Шоколадница» за 1800 рублей.",
+      "hits": 11
+     },
+     {
+      "text": "Дмитрий программист Профсоюзная Анастасией велосипедах 25 Шоколадница",
+      "hits": 7
+     },
+     {
+      "text": "ДМИТРИЙ!,;ВОЛКОВ!,;ПРОГРАММИСТ!,;ЯНДЕКС!,;ПРОФСОЮЗНАЯ!,;105!,;АНАСТАСИЕЙ!,;БАРСИК!,;ВЕЛОСИПЕДАХ!,;СОКОЛЬНИКИ!,;25!,;КИЛОМЕТРОВ!,;ШОКОЛАДНИЦА!,;1800",
+      "hits": 14
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "danie",
+     "wolfe",
+     "progr",
+     "searc",
+     "fairv",
+     "105",
+     "ameli",
+     "biscu",
+     "bikin",
+     "elmwo",
+     "25",
+     "kilom",
+     "sunfl",
+     "180"
+    ],
+    "keys": [
+     "Daniel",
+     "Wolfe",
+     "programmer",
+     "search",
+     "Fairview",
+     "105",
+     "Amelia",
+     "Biscuit",
+     "biking",
+     "Elmwood",
+     "25",
+     "kilometers",
+     "Sunflower",
+     "180"
+    ],
+    "matches": [
+     {
+      "text": "Daniel Wolfe is a programmer at a search company. He lives in an apartment at 105 Fairview Street with his wife Amelia and a cat named Biscuit. On the weekend he goes biking in Elmwood park, about 25 kilometers. On Sunday they had breakfast at the Sunflower cafe for 180 dollars.",
+      "hits": 14
+     },
+     {
+      "text": "Daniel programmer Fairview Amelia biking 25 Sunflower",
+      "hits": 7
+     },
+     {
+      "text": "DANIEL!,;WOLFE!,;PROGRAMMER!,;SEARCH!,;FAIRVIEW!,;105!,;AMELIA!,;BISCUIT!,;BIKING!,;ELMWOOD!,;25!,;KILOMETERS!,;SUNFLOWER!,;180",
+      "hits": 14
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 8,
+   "ru": {
+    "stems": [
+     "натал",
+     "мороз",
+     "цвето",
+     "лилия",
+     "арбат",
+     "среду",
+     "свадь",
+     "50",
+     "букет",
+     "30",
+     "75",
+     "тысяч",
+     "трёх",
+     "микро",
+     "суббо",
+     "11",
+     "кремл"
+    ],
+    "keys": [
+     "Наталья",
+     "Морозова",
+     "цветочного",
+     "Лилия",
+     "Арбате",
+     "среду",
+     "свадьбу",
+     "50",
+     "букетов",
+     "30",
+     "75",
+     "тысяч",
+     "трёх",
+     "микроавтобусах",
+     "субботу",
+     "11",
+     "Кремль"
+    ],
+    "matches": [
+     {
+      "text": "Наталья Морозова — владелица цветочного магазина «Лилия» на Арбате. В среду она получила заказ на свадьбу — 50 букетов роз и 30 бутоньерок. Заказ стоил 75 тысяч рублей. Доставку организовали на трёх микроавтобусах в субботу в 11 утра. Свадьба была в ресторане «Кремль».",
+      "hits": 15
+     },
+     {
+      "text": "Наталья цветочного Арбате свадьбу букетов 75 трёх субботу Кремль",
+      "hits": 9
+     },
+     {
+      "text": "НАТАЛЬЯ!,;МОРОЗОВА!,;ЦВЕТОЧНОГО!,;ЛИЛИЯ!,;АРБАТЕ!,;СРЕДУ!,;СВАДЬБУ!,;50!,;БУКЕТОВ!,;30!,;75!,;ТЫСЯЧ!,;ТРЁХ!,;МИКРОАВТОБУСАХ!,;СУББОТУ!,;11!,;КРЕМЛЬ",
+      "hits": 17
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "nadin",
+     "porte",
+     "flowe",
+     "lily",
+     "baker",
+     "wedne",
+     "weddi",
+     "50",
+     "bouqu",
+     "30",
+     "7500",
+     "three",
+     "minib",
+     "satur",
+     "11",
+     "castl"
+    ],
+    "keys": [
+     "Nadine",
+     "Porter",
+     "flower",
+     "Lily",
+     "Bakerside",
+     "Wednesday",
+     "wedding",
+     "50",
+     "bouquets",
+     "30",
+     "7500",
+     "three",
+     "minibuses",
+     "Saturday",
+     "11",
+     "Castle"
+    ],
+    "matches": [
+     {
+      "text": "Nadine Porter owns the Lily flower shop on Bakerside. On Wednesday she received a wedding order — 50 rose bouquets and 30 boutonnieres. The order cost 7500 dollars. She delivered the flowers in three minibuses on Saturday at 11 oclock to the Old Castle.",
+      "hits": 16
+     },
+     {
+      "text": "Nadine flower Bakerside wedding bouquets 7500 minibuses 11",
+      "hits": 8
+     },
+     {
+      "text": "NADINE!,;PORTER!,;FLOWER!,;LILY!,;BAKERSIDE!,;WEDNESDAY!,;WEDDING!,;50!,;BOUQUETS!,;30!,;7500!,;THREE!,;MINIBUSES!,;SATURDAY!,;11!,;CASTLE",
+      "hits": 16
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 9,
+   "ru": {
+    "stems": [
+     "игорь",
+     "сокол",
+     "пилот",
+     "аэроф",
+     "пятни",
+     "москв",
+     "влади",
+     "234",
+     "пасса",
+     "9",
+     "экипа",
+     "9",
+     "часов",
+     "15",
+     "минут",
+     "верса",
+     "светл",
+     "22"
+    ],
+    "keys": [
+     "Игорь",
+     "Соколов",
+     "пилот",
+     "Аэрофлот",
+     "пятницу",
+     "Москва",
+     "Владивосток",
+     "234",
+     "пассажира",
+     "9",
+     "экипажа",
+     "часов",
+     "15",
+     "минут",
+     "Версаль",
+     "Светланской",
+     "22"
+    ],
+    "matches": [
+     {
+      "text": "Игорь Соколов — пилот авиакомпании «Аэрофлот». В прошлую пятницу он летел рейсом Москва-Владивосток. На борту было 234 пассажира и 9 членов экипажа. Полёт длился 9 часов 15 минут. После приземления Игорь остановился в гостинице «Версаль» на улице Светланской 22.",
+      "hits": 14
+     },
+     {
+      "text": "Игорь пилот пятницу Владивосток пассажира экипажа 15 Версаль 22",
+      "hits": 9
+     },
+     {
+      "text": "ИГОРЬ!,;СОКОЛОВ!,;ПИЛОТ!,;АЭРОФЛОТ!,;ПЯТНИЦУ!,;МОСКВА!,;ВЛАДИВОСТОК!,;234!,;ПАССАЖИРА!,;9!,;ЭКИПАЖА!,;ЧАСОВ!,;15!,;МИНУТ!,;ВЕРСАЛЬ!,;СВЕТЛАНСКОЙ!,;22",
+      "hits": 17
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "ian",
+     "sulli",
+     "pilot",
+     "airli",
+     "frida",
+     "dubli",
+     "toron",
+     "234",
+     "passe",
+     "9",
+     "crew",
+     "9",
+     "hours",
+     "15",
+     "minut",
+     "versa",
+     "kings"
+    ],
+    "keys": [
+     "Ian",
+     "Sullivan",
+     "pilot",
+     "airline",
+     "Friday",
+     "Dublin",
+     "Toronto",
+     "234",
+     "passengers",
+     "9",
+     "crew",
+     "hours",
+     "15",
+     "minutes",
+     "Versailles",
+     "Kingsway"
+    ],
+    "matches": [
+     {
+      "text": "Ian Sullivan is a pilot for a national airline. Last Friday he flew the Dublin-Toronto route. There were 234 passengers and 9 crew members on board. The flight lasted 9 hours and 15 minutes. He stayed at the Versailles hotel on Kingsway street.",
+      "hits": 15
+     },
+     {
+      "text": "Ian pilot Friday Toronto passengers crew 15 Versailles",
+      "hits": 8
+     },
+     {
+      "text": "IAN!,;SULLIVAN!,;PILOT!,;AIRLINE!,;FRIDAY!,;DUBLIN!,;TORONTO!,;234!,;PASSENGERS!,;9!,;CREW!,;HOURS!,;15!,;MINUTES!,;VERSAILLES!,;KINGSWAY",
+      "hits": 16
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 10,
+   "ru": {
+    "stems": [
+     "марин",
+     "зайце",
+     "йоги",
+     "лотос",
+     "мира",
+     "88",
+     "4",
+     "групп",
+     "12",
+     "6500",
+     "месяц",
+     "вторн",
+     "медит",
+     "30",
+     "25",
+     "тысяч"
+    ],
+    "keys": [
+     "Марина",
+     "Зайцева",
+     "йоги",
+     "Лотос",
+     "Мира",
+     "88",
+     "4",
+     "группы",
+     "12",
+     "6500",
+     "месяц",
+     "вторник",
+     "медитации",
+     "30",
+     "25",
+     "тысяч"
+    ],
+    "matches": [
+     {
+      "text": "Марина Зайцева — преподаватель йоги в студии «Лотос» на проспекте Мира 88. У неё 4 группы по 12 человек каждая. Абонемент стоит 6500 рублей в месяц. В прошлый вторник она провела мастер-класс по медитации для 30 участников. Заработала 25 тысяч за один день.",
+      "hits": 15
+     },
+     {
+      "text": "Марина йоги Мира 4 12 месяц медитации 25",
+      "hits": 8
+     },
+     {
+      "text": "МАРИНА!,;ЗАЙЦЕВА!,;ЙОГИ!,;ЛОТОС!,;МИРА!,;88!,;4!,;ГРУППЫ!,;12!,;6500!,;МЕСЯЦ!,;ВТОРНИК!,;МЕДИТАЦИИ!,;30!,;25!,;ТЫСЯЧ",
+      "hits": 16
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "maren",
+     "lindq",
+     "yoga",
+     "lotus",
+     "cedar",
+     "88",
+     "4",
+     "group",
+     "12",
+     "65",
+     "month",
+     "tuesd",
+     "medit",
+     "30",
+     "2500"
+    ],
+    "keys": [
+     "Maren",
+     "Lindqvist",
+     "yoga",
+     "Lotus",
+     "Cedar",
+     "88",
+     "4",
+     "groups",
+     "12",
+     "65",
+     "month",
+     "Tuesday",
+     "meditation",
+     "30",
+     "2500"
+    ],
+    "matches": [
+     {
+      "text": "Maren Lindqvist teaches yoga at the Lotus studio at 88 Cedar Avenue. She has 4 groups of 12 people each. A subscription costs 65 dollars per month. Last Tuesday she held a meditation for 30 people and earned 2500 in one evening.",
+      "hits": 15
+     },
+     {
+      "text": "Maren yoga Cedar 4 12 month meditation 2500",
+      "hits": 8
+     },
+     {
+      "text": "MAREN!,;LINDQVIST!,;YOGA!,;LOTUS!,;CEDAR!,;88!,;4!,;GROUPS!,;12!,;65!,;MONTH!,;TUESDAY!,;MEDITATION!,;30!,;2500",
+      "hits": 15
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 11,
+   "ru": {
+    "stems": [
+     "павел",
+     "григо",
+     "8",
+     "кафе",
+     "бурге",
+     "хаус",
+     "самар",
+     "145",
+     "14",
+     "милли",
+     "апрел",
+     "космо",
+     "5",
+     "милли",
+     "18",
+     "месяц"
+    ],
+    "keys": [
+     "Павел",
+     "Григорьев",
+     "8",
+     "кафе",
+     "Бургер",
+     "Хаус",
+     "Самаре",
+     "145",
+     "миллионов",
+     "апреле",
+     "Космопорт",
+     "5",
+     "18",
+     "месяцев"
+    ],
+    "matches": [
+     {
+      "text": "Павел Григорьев — владелец сети из 8 кафе быстрого питания «Бургер Хаус» в Самаре. На него работают 145 человек. Месячный оборот — 14 миллионов рублей. В апреле он открыл новую точку в торговом центре «Космопорт» с инвестицией 5 миллионов. Окупаемость планируется за 18 месяцев.",
+      "hits": 12
+     },
+     {
+      "text": "Павел 8 Бургер Самаре миллионов Космопорт 18",
+      "hits": 7
+     },
+     {
+      "text": "ПАВЕЛ!,;ГРИГОРЬЕВ!,;8!,;КАФЕ!,;БУРГЕР!,;ХАУС!,;САМАРЕ!,;145!,;МИЛЛИОНОВ!,;АПРЕЛЕ!,;КОСМОПОРТ!,;5!,;18!,;МЕСЯЦЕВ",
+      "hits": 14
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "peter",
+     "grant",
+     "8",
+     "cafes",
+     "burge",
+     "house",
+     "brist",
+     "145",
+     "140",
+     "thous",
+     "april",
+     "cosmo",
+     "18",
+     "month"
+    ],
+    "keys": [
+     "Peter",
+     "Grant",
+     "8",
+     "cafes",
+     "Burger",
+     "House",
+     "Bristol",
+     "145",
+     "140",
+     "thousand",
+     "April",
+     "Cosmoport",
+     "18",
+     "months"
+    ],
+    "matches": [
+     {
+      "text": "Peter Grant owns a network of 8 Burger House fast food cafes in Bristol. He employs 145 people. Monthly turnover is 140 thousand. In April he opened a new spot at the Cosmoport mall and expects it to pay back in 18 months.",
+      "hits": 14
+     },
+     {
+      "text": "Peter 8 Burger Bristol 140 April 18",
+      "hits": 7
+     },
+     {
+      "text": "PETER!,;GRANT!,;8!,;CAFES!,;BURGER!,;HOUSE!,;BRISTOL!,;145!,;140!,;THOUSAND!,;APRIL!,;COSMOPORT!,;18!,;MONTHS",
+      "hits": 14
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 12,
+   "ru": {
+    "stems": [
+     "светл",
+     "егоро",
+     "медсе",
+     "карди",
+     "7",
+     "18",
+     "пацие",
+     "четве",
+     "2",
+     "инфар",
+     "56",
+     "алекс",
+     "3",
+     "12",
+     "часов",
+     "65",
+     "тысяч"
+    ],
+    "keys": [
+     "Светлана",
+     "Егорова",
+     "медсестра",
+     "кардиологическом",
+     "7",
+     "18",
+     "пациентов",
+     "четверг",
+     "2",
+     "инфаркта",
+     "56",
+     "Алексей",
+     "3",
+     "12",
+     "часов",
+     "65",
+     "тысяч"
+    ],
+    "matches": [
+     {
+      "text": "Светлана Егорова — медсестра в кардиологическом отделении больницы №7. В её смене 18 пациентов. В четверг привезли 2 новых после инфаркта. Один из них — мужчина 56 лет по имени Алексей. Светлана дежурит 3 раза в неделю по 12 часов и получает 65 тысяч рублей в месяц.",
+      "hits": 16
+     },
+     {
+      "text": "Светлана медсестра 7 пациентов 2 56 3 часов тысяч",
+      "hits": 9
+     },
+     {
+      "text": "СВЕТЛАНА!,;ЕГОРОВА!,;МЕДСЕСТРА!,;КАРДИОЛОГИЧЕСКОМ!,;7!,;18!,;ПАЦИЕНТОВ!,;ЧЕТВЕРГ!,;2!,;ИНФАРКТА!,;56!,;АЛЕКСЕЙ!,;3!,;12!,;ЧАСОВ!,;65!,;ТЫСЯЧ",
+      "hits": 17
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "sylvi",
+     "reed",
+     "nurse",
+     "cardi",
+     "7",
+     "18",
+     "patie",
+     "thurs",
+     "2",
+     "heart",
+     "attac",
+     "56",
+     "alber",
+     "12",
+     "hours",
+     "650"
+    ],
+    "keys": [
+     "Sylvia",
+     "Reed",
+     "nurse",
+     "cardiology",
+     "7",
+     "18",
+     "patients",
+     "Thursday",
+     "2",
+     "heart",
+     "attacks",
+     "56",
+     "Albert",
+     "12",
+     "hours",
+     "650"
+    ],
+    "matches": [
+     {
+      "text": "Sylvia Reed is a nurse in the cardiology department of hospital number 7. Her shift has 18 patients. On Thursday they brought 2 new ones after heart attacks. One of them, 56 year old Albert, needed surgery. Sylvia worked 12 hours and earned 650 dollars for the shift.",
+      "hits": 16
+     },
+     {
+      "text": "Sylvia nurse 7 patients 2 attacks Albert hours",
+      "hits": 8
+     },
+     {
+      "text": "SYLVIA!,;REED!,;NURSE!,;CARDIOLOGY!,;7!,;18!,;PATIENTS!,;THURSDAY!,;2!,;HEART!,;ATTACKS!,;56!,;ALBERT!,;12!,;HOURS!,;650",
+      "hits": 16
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 13,
+   "ru": {
+    "stems": [
+     "алекс",
+     "никит",
+     "такси",
+     "казан",
+     "5",
+     "toyot",
+     "camry",
+     "2",
+     "милли",
+     "среду",
+     "аэроп",
+     "кремл",
+     "850",
+     "200",
+     "чаевы",
+     "4500"
+    ],
+    "keys": [
+     "Александр",
+     "Никитин",
+     "таксист",
+     "Казани",
+     "5",
+     "Toyota",
+     "Camry",
+     "2",
+     "миллиона",
+     "среду",
+     "аэропорта",
+     "Кремлёвская",
+     "850",
+     "чаевых",
+     "4500"
+    ],
+    "matches": [
+     {
+      "text": "Александр Никитин — таксист в Казани. Работает 5 дней в неделю на машине Toyota Camry, которую купил в кредит за 2 миллиона. В среду вечером он отвёз клиента из аэропорта в гостиницу «Кремлёвская» за 850 рублей. Клиент дал 200 рублей чаевых. За день Александр заработал 4500.",
+      "hits": 14
+     },
+     {
+      "text": "Александр таксист 5 Camry миллиона аэропорта 850 4500",
+      "hits": 8
+     },
+     {
+      "text": "АЛЕКСАНДР!,;НИКИТИН!,;ТАКСИСТ!,;КАЗАНИ!,;5!,;TOYOTA!,;CAMRY!,;2!,;МИЛЛИОНА!,;СРЕДУ!,;АЭРОПОРТА!,;КРЕМЛЁВСКАЯ!,;850!,;ЧАЕВЫХ!,;4500",
+      "hits": 15
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "adam",
+     "nolan",
+     "taxi",
+     "glasg",
+     "5",
+     "toyot",
+     "camry",
+     "20",
+     "thous",
+     "wedne",
+     "airpo",
+     "kings",
+     "85",
+     "20",
+     "tip",
+     "450"
+    ],
+    "keys": [
+     "Adam",
+     "Nolan",
+     "taxi",
+     "Glasgow",
+     "5",
+     "Toyota",
+     "Camry",
+     "20",
+     "thousand",
+     "Wednesday",
+     "airport",
+     "Kingsmill",
+     "85",
+     "tip",
+     "450"
+    ],
+    "matches": [
+     {
+      "text": "Adam Nolan is a taxi driver in Glasgow. He works 5 days a week in a Toyota Camry he bought on credit for 20 thousand. On Wednesday evening he drove a passenger from the airport to Kingsmill street for 85 dollars and got a 20 tip. That day he earned 450.",
+      "hits": 15
+     },
+     {
+      "text": "Adam taxi 5 Camry thousand airport 85 450",
+      "hits": 8
+     },
+     {
+      "text": "ADAM!,;NOLAN!,;TAXI!,;GLASGOW!,;5!,;TOYOTA!,;CAMRY!,;20!,;THOUSAND!,;WEDNESDAY!,;AIRPORT!,;KINGSMILL!,;85!,;TIP!,;450",
+      "hits": 15
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 14,
+   "ru": {
+    "stems": [
+     "ирина",
+     "беляе",
+     "психо",
+     "радос",
+     "гагар",
+     "14",
+     "понед",
+     "6",
+     "50",
+     "минут",
+     "4000",
+     "степа",
+     "8",
+     "трево",
+     "12",
+     "встре"
+    ],
+    "keys": [
+     "Ирина",
+     "Беляева",
+     "психолог",
+     "Радость",
+     "Гагарина",
+     "14",
+     "понедельник",
+     "6",
+     "50",
+     "минут",
+     "4000",
+     "Степан",
+     "8",
+     "тревожным",
+     "12",
+     "встреч"
+    ],
+    "matches": [
+     {
+      "text": "Ирина Беляева — детский психолог в центре «Радость» на улице Гагарина 14. В понедельник у неё было 6 консультаций по 50 минут каждая. Стоимость одной сессии — 4000 рублей. Самый сложный случай — мальчик Степан 8 лет с тревожным расстройством. Курс терапии займёт 12 встреч.",
+      "hits": 15
+     },
+     {
+      "text": "Ирина психолог Гагарина понедельник 50 4000 8 12",
+      "hits": 8
+     },
+     {
+      "text": "ИРИНА!,;БЕЛЯЕВА!,;ПСИХОЛОГ!,;РАДОСТЬ!,;ГАГАРИНА!,;14!,;ПОНЕДЕЛЬНИК!,;6!,;50!,;МИНУТ!,;4000!,;СТЕПАН!,;8!,;ТРЕВОЖНЫМ!,;12!,;ВСТРЕЧ",
+      "hits": 16
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "irene",
+     "bisho",
+     "psych",
+     "joy",
+     "garde",
+     "14",
+     "monda",
+     "6",
+     "50",
+     "minut",
+     "40",
+     "steph",
+     "8",
+     "anxie",
+     "12",
+     "sessi"
+    ],
+    "keys": [
+     "Irene",
+     "Bishop",
+     "psychologist",
+     "Joy",
+     "Garden",
+     "14",
+     "Monday",
+     "6",
+     "50",
+     "minutes",
+     "40",
+     "Stephen",
+     "8",
+     "anxiety",
+     "12",
+     "sessions"
+    ],
+    "matches": [
+     {
+      "text": "Irene Bishop is a child psychologist at the Joy center at 14 Garden Street. On Monday she had 6 consultations of 50 minutes each. One session costs 40 dollars. Her patient Stephen, 8 years old, is afraid of the dark; his anxiety dropped after 12 sessions.",
+      "hits": 16
+     },
+     {
+      "text": "Irene psychologist Garden Monday 50 40 8 12",
+      "hits": 8
+     },
+     {
+      "text": "IRENE!,;BISHOP!,;PSYCHOLOGIST!,;JOY!,;GARDEN!,;14!,;MONDAY!,;6!,;50!,;MINUTES!,;40!,;STEPHEN!,;8!,;ANXIETY!,;12!,;SESSIONS",
+      "hits": 16
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  },
+  {
+   "index": 15,
+   "ru": {
+    "stems": [
+     "денис",
+     "остро",
+     "трене",
+     "плава",
+     "дельф",
+     "три",
+     "групп",
+     "15",
+     "6",
+     "7",
+     "12",
+     "8",
+     "10",
+     "10",
+     "11",
+     "14",
+     "3",
+     "золот",
+     "медал"
+    ],
+    "keys": [
+     "Денис",
+     "Островский",
+     "тренер",
+     "плаванию",
+     "Дельфин",
+     "три",
+     "группы",
+     "15",
+     "6",
+     "7",
+     "12",
+     "8",
+     "10",
+     "11",
+     "14",
+     "3",
+     "золотые",
+     "медали"
+    ],
+    "matches": [
+     {
+      "text": "Денис Островский — тренер по плаванию в спорткомплексе «Дельфин». У него три группы детей: младшая — 15 учеников 6-7 лет, средняя — 12 учеников 8-10 лет, старшая — 10 спортсменов 11-14 лет. В прошлом месяце старшая группа выиграла региональные соревнования и получила 3 золотые медали.",
+      "hits": 15
+     },
+     {
+      "text": "Денис тренер Дельфин группы 6 12 10 14 золотые",
+      "hits": 9
+     },
+     {
+      "text": "ДЕНИС!,;ОСТРОВСКИЙ!,;ТРЕНЕР!,;ПЛАВАНИЮ!,;ДЕЛЬФИН!,;ТРИ!,;ГРУППЫ!,;15!,;6!,;7!,;12!,;8!,;10!,;11!,;14!,;3!,;ЗОЛОТЫЕ!,;МЕДАЛИ",
+      "hits": 18
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   },
+   "en": {
+    "stems": [
+     "denni",
+     "oakle",
+     "coach",
+     "swimm",
+     "dolph",
+     "three",
+     "group",
+     "15",
+     "6",
+     "7",
+     "12",
+     "8",
+     "10",
+     "10",
+     "11",
+     "14",
+     "3",
+     "gold",
+     "medal"
+    ],
+    "keys": [
+     "Dennis",
+     "Oakley",
+     "coach",
+     "swimming",
+     "Dolphin",
+     "three",
+     "groups",
+     "15",
+     "6",
+     "7",
+     "12",
+     "8",
+     "10",
+     "11",
+     "14",
+     "3",
+     "gold",
+     "medals"
+    ],
+    "matches": [
+     {
+      "text": "Dennis Oakley is a swimming coach at the Dolphin sports complex. He has three groups of children: junior — 15 students 6-7 years old, middle — 12 students 8-10, senior — 10 students 11-14. In March his team won 3 gold medals at the regional championship.",
+      "hits": 16
+     },
+     {
+      "text": "Dennis coach Dolphin groups 6 12 10 14 gold",
+      "hits": 9
+     },
+     {
+      "text": "DENNIS!,;OAKLEY!,;COACH!,;SWIMMING!,;DOLPHIN!,;THREE!,;GROUPS!,;15!,;6!,;7!,;12!,;8!,;10!,;11!,;14!,;3!,;GOLD!,;MEDALS",
+      "hits": 18
+     },
+     {
+      "text": "",
+      "hits": 0
+     },
+     {
+      "text": "зебра кит zebra whale 0",
+      "hits": 0
+     }
+    ]
+   }
+  }
+ ]
+}

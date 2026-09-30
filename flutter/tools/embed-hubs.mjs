@@ -128,12 +128,97 @@ try {
   process.exit(1);
 }
 
+/*
+ * 🔴 КЛЮЧ УРОВНЯ КАРТОЧКИ — ИЗ ЭКРАНА ИГРЫ, А НЕ ИЗ АДРЕСА.
+ *
+ * Развилка показывает «ур. N» — то, за чем человек в неё и возвращается. Каркас
+ * выводил ключ из адреса (`/games/schulte` → `schulte`), и замер 23.09.2026 нашёл
+ * три карточки из 113, где это врёт: Шульте пишет уровень как `schulte_table`.
+ * С раскладками по профилям (`extra`) таких стало больше: у 45 карточек в адресе
+ * РЕЖИМ (`/games/puzzles?mode=Slide`), и вывод из адреса даёт бессмыслицу —
+ * человек с десятым уровнем «Клоцек» видел «ур. 1».
+ *
+ * Поэтому ключ снимается ТЕМ ЖЕ способом, каким его пишет веб-экран:
+ *  · обычный адрес — единственный литерал `usePersistentLevel('…')` в экране;
+ *  · головоломки — формула `puzzles.tsx` (режим строчными, пробелы → `_`);
+ *  · «Лаборатория» — литерал `spatial_lab_<режим>` в её экране.
+ * Если веб поменяет формулу — генератор падает, а не пишет тихо старый ключ.
+ * Поле ставится только там, где ключ ОТЛИЧАЕТСЯ от выводимого из адреса.
+ */
+const GAMES = join(FLUTTER, '..', 'frontend', 'app', 'games');
+const экраны = new Map();
+function экран(имя) {
+  if (!экраны.has(имя)) {
+    let текст = '';
+    try { текст = readFileSync(join(GAMES, `${имя}.tsx`), 'utf8'); } catch { /* экрана нет */ }
+    экраны.set(имя, текст);
+  }
+  return экраны.get(имя);
+}
+const формулаГоловоломок = "`puzzles_${имяРежима.toLowerCase().replace(/\\s+/g, '_')}`";
+if (!экран('puzzles').includes(формулаГоловоломок)) {
+  console.error('🔴 в puzzles.tsx сменилась формула ключа уровня — поправь embed-hubs.mjs, иначе развилки покажут чужой уровень');
+  process.exit(1);
+}
+const безКлюча = [];
+function ключУровня(route) {
+  const [путь, хвост = ''] = route.split('?');
+  const имя = путь.split('/').pop();
+  const изАдреса = route.split('/').pop().replace(/-/g, '_');
+  const режим = new URLSearchParams(хвост).get('mode');
+  let ключ = null;
+  if (режим && имя === 'puzzles') {
+    ключ = `puzzles_${режим.toLowerCase().replace(/\s+/g, '_')}`;
+  } else if (режим && имя === 'spatial-lab') {
+    const лит = `spatial_lab_${режим}`;
+    if (экран(имя).includes(`'${лит}'`)) ключ = лит;
+  } else if (!режим) {
+    const найдено = new Set([...экран(имя).matchAll(/usePersistentLevel\(\s*'([a-z0-9_]+)'/g)].map((m) => m[1]));
+    if (найдено.size === 1) ключ = [...найдено][0];
+  }
+  if (!ключ) {
+    if (режим) безКлюча.push(route);
+    return null;
+  }
+  return ключ === изАдреса ? null : ключ;
+}
+let сКлючом = 0;
+for (const list of [...Object.values(out.hubs), Object.values(out.extra)]) {
+  for (const c of list) {
+    const k = ключУровня(c.route);
+    if (k) { c.levelKey = k; сКлючом++; }
+  }
+}
+out._levelKey = 'Ключ уровня карточки, снятый с веб-экрана игры (embed-hubs.mjs). Пусто — ключ совпадает с выводимым из адреса.';
+
 // Заголовки самих развилок оставляем как были: они лежат отдельной таблицей.
 try {
   const old = JSON.parse(readFileSync(OUT, 'utf8'));
   out.meta = old.meta ?? {};
   out.pick = old.pick;
 } catch { /* первый запуск */ }
+
+/*
+ * 🔴 ЗАГОЛОВОК РАЗВИЛКИ — КЛЮЧОМ СЛОВАРЯ, КАК В ВЕБЕ. Нашёл раздел «Языки»
+ * 30.09.2026: `meta` вёз только русский текст («Слух», «Выбери упражнение»),
+ * и нативная развилка на остальных одиннадцати языках говорила по-русски, хотя
+ * веб-экран той же развилки берёт `titleKey`/`descKey`/`pickKey`/`footnoteKey`.
+ * Ключи снимаются с самого веб-экрана — второго реестра нет; текст остаётся
+ * запасным для развилок, у экрана которых ключей нет.
+ */
+const КЛЮЧИ_ЗАГОЛОВКА = ['titleKey', 'descKey', 'pickKey', 'footnoteKey'];
+let заголовковСКлючом = 0;
+for (const route of Object.keys(out.hubs)) {
+  const текст = экран(route.split('/').pop());
+  const m = (out.meta[route] ??= {});
+  let нашлось = false;
+  for (const поле of КЛЮЧИ_ЗАГОЛОВКА) {
+    const hit = текст.match(new RegExp(`\\b${поле}="([A-Za-z0-9_]+)"`));
+    if (hit) { m[поле] = hit[1]; нашлось = true; } else delete m[поле];
+  }
+  if (нашлось) заголовковСКлючом++;
+}
 writeFileSync(OUT, JSON.stringify(out, null, 0) + '\n');
-console.log(`развилок: ${Object.keys(out.hubs).length} · карточек: ${cards} · все с ключами словаря`);
+console.log(`развилок: ${Object.keys(out.hubs).length} · карточек: ${cards} · все с ключами словаря · заголовков с ключом: ${заголовковСКлючом}`);
+console.log(`ключ уровня снят с экрана у ${сКлючом} карточек · режимов без ключа: ${безКлюча.length}${безКлюча.length ? ' — ' + безКлюча.join(', ') : ''}`);
 console.log(`раскладок по профилям: ${Object.keys(out.layouts).length} · адресов в них: ${layoutCards} · карточек вне реестра: ${Object.keys(out.extra).length}`);
