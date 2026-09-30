@@ -3155,5 +3155,6 @@ const t: Record<string, string> = {
   "teachDictChunk": "Morceau {i} : « {c} ». Dis-le-toi — puis tape-le.",
   "teachDictStuck": "Bloqué sur un caractère ? Réécoute la phrase au lieu d’essayer des lettres : la saisie n’avance pas tant que le caractère n’est pas juste.",
   "teachDictDone": "Écris ainsi : entendre en entier → couper en morceaux → te dicter morceau par morceau.",
+  "rbHeadStart": "avance {n}",
 };
 export default t;

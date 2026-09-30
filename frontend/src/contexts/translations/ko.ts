@@ -3155,5 +3155,6 @@ const t: Record<string, string> = {
   "teachDictChunk": "조각 {i}: “{c}”. 속으로 말해 본 다음 입력하세요.",
   "teachDictStuck": "한 글자에서 막혔나요? 글자를 이것저것 넣어 보지 말고 문장을 다시 들으세요: 글자가 맞을 때까지 입력은 앞으로 가지 않습니다.",
   "teachDictDone": "이렇게 쓰세요: 전체를 듣고 → 조각으로 나누고 → 한 조각씩 스스로에게 불러 줍니다.",
+  "rbHeadStart": "앞서 출발 {n}",
 };
 export default t;

@@ -3160,5 +3160,6 @@ const t: Record<string, string> = {
   "teachDictChunk": "第 {i} 段：“{c}”。先在心里念一遍，再打出来。",
   "teachDictStuck": "卡在某个字上了？重听整句，而不是乱试：字不对，输入就不会往前走。",
   "teachDictDone": "就这样写：先听整句 → 分成几段 → 一段一段念给自己听。",
+  "rbHeadStart": "领先 {n}",
 };
 export default t;

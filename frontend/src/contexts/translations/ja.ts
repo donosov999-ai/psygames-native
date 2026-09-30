@@ -3154,5 +3154,6 @@ const t: Record<string, string> = {
   "teachDictChunk": "区切り {i}：「{c}」。心の中で言ってから打ちます。",
   "teachDictStuck": "一文字で止まったら、文字を当てずっぽうに試さず、文を聞き直しましょう：正しい文字になるまで入力は進みません。",
   "teachDictDone": "この要領で書きましょう：全体を聞く → 区切る → 一区切りずつ自分に口述する。",
+  "rbHeadStart": "先行 {n}",
 };
 export default t;

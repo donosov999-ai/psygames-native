@@ -3160,5 +3160,6 @@ const t: Record<string, string> = {
   "teachDictChunk": "Pedaço {i}: “{c}”. Diga para si — e digite.",
   "teachDictStuck": "Travou num caractere? Ouça a frase de novo em vez de tentar letras: a digitação não anda enquanto o caractere não estiver certo.",
   "teachDictDone": "Escreva assim: ouviu inteira → dividiu em pedaços → dita para si pedaço por pedaço.",
+  "rbHeadStart": "vantagem {n}",
 };
 export default t;
