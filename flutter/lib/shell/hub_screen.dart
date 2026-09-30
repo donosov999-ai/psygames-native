@@ -116,6 +116,12 @@ IconData hubIcon(String name) {
     'paw': Icons.pets_outlined,   // «Кошки» — без строки карточка взяла бы значок пазла
     'eye-outline': Icons.visibility_outlined,
     'extension-puzzle': Icons.extension_outlined,
+    'paw': Icons.pets_outlined,
+    'color-palette': Icons.palette_outlined,
+    'car': Icons.directions_car_outlined,
+    'happy': Icons.sentiment_satisfied_alt_outlined,
+    'dice': Icons.casino_outlined,
+    'eye-off': Icons.visibility_off_outlined,
   };
   return map[name] ?? Icons.extension_outlined;
 }
