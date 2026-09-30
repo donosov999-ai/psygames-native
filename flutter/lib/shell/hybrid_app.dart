@@ -79,6 +79,7 @@ import 'game_rules.dart';
 import 'game_shell.dart';
 import 'puzzle_routes.g.dart';
 import '../games/chess_blind/entry.dart';
+import '../games/scholars_mate/screen.dart';
 import 'shared_state.dart';
 import 'tap_latency.dart';
 
@@ -204,6 +205,8 @@ class HybridApp extends StatefulWidget {
         '/games/stroop-emotional': (s) => EmoStroopScreen(state: s),
         // «Доска в уме» перенесена целиком: партия и серия, вход спрашивает режим.
         '/games/chess-blind': (s) => const ChessBlindEntry(),
+        // «Детский мат» перенесён целиком: лестница, узоры, микс, жертва и поток.
+        '/games/scholars-mate': (s) => ScholarsMateScreen(state: s),
         '/games/switching-task': (s) => SwitchingTaskScreen(state: s),
         '/games/targets': (s) => TargetsScreen(state: s),
         '/games/inhibition': (s) => InhibitionScreen(state: s),

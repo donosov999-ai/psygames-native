@@ -66,6 +66,7 @@ class ChessBoardView extends StatelessWidget {
     this.targets = const <int>{},
     this.masked = false,
     this.keyPrefix = 'sq',
+    this.hinted,
   });
 
   /// Клетка → фигура. Пустые клетки просто отсутствуют.
@@ -85,6 +86,10 @@ class ChessBoardView extends StatelessWidget {
 
   /// Приставка к ключам клеток: у каждой игры свои пробы.
   final String keyPrefix;
+
+  /// Клетка, которую показала подсказка («Детский мат»): янтарь, отличный от
+  /// рамки выбора, — иначе человек не отличит «ты выбрал» от «начни отсюда».
+  final int? hinted;
 
   static const _light = Color(0xFFE8C48A);
   static const _dark = Color(0xFFC8A06A);
@@ -115,6 +120,7 @@ class ChessBoardView extends StatelessWidget {
                     masked: masked,
                     keyPrefix: keyPrefix,
                     onTap: onTapSquare,
+                    hinted: hinted == row * 8 + col,
                   ),
               ],
             ),
@@ -138,6 +144,7 @@ class _Square extends StatelessWidget {
     required this.masked,
     required this.keyPrefix,
     required this.onTap,
+    this.hinted = false,
   });
 
   final int index;
@@ -152,6 +159,7 @@ class _Square extends StatelessWidget {
   final bool masked;
   final String keyPrefix;
   final void Function(int square)? onTap;
+  final bool hinted;
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +171,11 @@ class _Square extends StatelessWidget {
         width: step,
         height: step,
         decoration: BoxDecoration(
-          color: light ? lightColor : darkColor,
+          color: hinted
+              ? const Color(0xFFF3B95F)
+              : light
+              ? lightColor
+              : darkColor,
           border: selected ? Border.all(color: mark, width: step * 0.06) : null,
         ),
         alignment: Alignment.center,

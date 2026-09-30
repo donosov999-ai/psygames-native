@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:psygames_flutter/games/scholars_mate/check.dart';
 import 'package:psygames_flutter/games/scholars_mate/deck.dart';
 import 'package:psygames_flutter/games/scholars_mate/ladder.dart';
 

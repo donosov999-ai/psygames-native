@@ -244,6 +244,7 @@ void main() {
       '/games/counting-hub',
       '/games/faces-names',
       '/games/find-differences',
+      '/games/scholars-mate',
       '/games/search-hub',
       '/games/visual-search',
       '/games/flanker',
