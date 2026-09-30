@@ -35,6 +35,9 @@ class LevelLadder {
   int get failStreak => _failStreak;
 
   Future<void> load() async {
+    // Лестницу грузит экран на входе — началась новая партия, и отметка разбора,
+    // оставшаяся от ДРУГОЙ игры, её не касается. Подробно — у [win].
+    LessonUsed.reset();
     _level = await _store.readInt('$gameId.level') ?? 1;
     _best = await _store.readInt('$gameId.best') ?? _level;
     if (_best < _level) _best = _level;
@@ -62,12 +65,23 @@ class LevelLadder {
    *
    * ⚠️ Партия при этом всё равно уходит в статистику — она была, и прятать её
    * нельзя. Не двигается только лестница.
+   *
+   * 🔴 ОТМЕТКУ РАЗБОРА СЪЕДАЕТ ПАРТИЯ, КОТОРУЮ ОНА НЕ ЗАСЧИТАЛА. Нашёл раздел
+   * «Объём памяти» 30.09.2026: [LessonUsed] — одна отметка на всё приложение, а
+   * снимали её только экраны, где сброс вписали руками, — сначала один из 49 с
+   * разбором. Замер поведением: разбор открыт в Корси → победа в «Матрице памяти»
+   * дважды, разбора там не было — уровень стоит. Один взгляд на разбор в любой
+   * игре, и лестница ни одной игры не росла до перезапуска, а человек не видел
+   * почему. Сброс стоит здесь по той же причине, что и само правило. Партия с
+   * разбором по-прежнему не засчитывается — зачётной становится следующая.
    */
   Future<void> win({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
     _failStreak = 0;
     // Пресет — шаг зарядки, разбор — партия с показанным решением. В обоих
     // случаях лестница меряла бы не человека, поэтому не двигается.
-    if (!GamePreset.isPreset && !LessonUsed.inRound) {
+    final counted = !GamePreset.isPreset && !LessonUsed.inRound;
+    LessonUsed.reset();
+    if (counted) {
       if (_level < maxLevel) _level += 1;
       if (_level > _best) _best = _level;
       await _save();
@@ -88,7 +102,9 @@ class LevelLadder {
   /// зарядки так же, как выигранная. Иначе человек, проваливший шаг серии,
   /// застрял бы на нём навсегда.
   Future<void> fail({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
-    if (GamePreset.isPreset || LessonUsed.inRound) {
+    final lesson = LessonUsed.inRound;
+    LessonUsed.reset();   // см. [win]: отметку съедает партия, которую она не засчитала
+    if (GamePreset.isPreset || lesson) {
       // Ни пресет, ни партия с разбором не копят провалов: иначе три шага зарядки
       // подряд (или три подсмотренных решения) опустили бы личный уровень, который
       // человек в этих партиях и не защищал.
