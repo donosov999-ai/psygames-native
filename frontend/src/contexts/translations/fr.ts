@@ -2867,6 +2867,7 @@ const t: Record<string, string> = {
   "teachRunBridge": "Pont et brèche : choisis ta voie à l’avance — tu ne peux en changer qu’avant le début de la travée. Si tu rates le pont, tu tombes et la course s’arrête.",
   "teachRunArches": "Arches de réponse : calcule d’abord l’opération, puis regarde les arches. Les choix diffèrent de 1, 2 ou 10 — vérifie le dernier chiffre et les dizaines.",
   "teachRunGuard": "Gardien : à l’arrivée, ton nombre doit être au moins égal à celui du gardien. Chaque erreur et chaque rouge coûtent, alors protège ton nombre jusqu’au bout.",
+  "teachRunPile": "Un tas au lieu des chiffres : compte les cadres de dix complets et les cases du cadre entamé — 4 cadres et 7 cases font 47. Un cadre, c’est deux colonnes de cinq : on voit d’un coup d’œil combien sont pleines et combien sont vides, sans compter.",
   "pauseExitGame": "Quitter l’exercice",
   "pauseSoundOff": "Mode silencieux",
   "pauseSoundOn": "Réactiver le son",

@@ -2872,6 +2872,7 @@ const t: Record<string, string> = {
   "teachRunBridge": "Ponte e falha: escolha a faixa com antecedência — só dá para trocar antes do início do vão. Errou a ponte, você cai e a corrida acaba.",
   "teachRunArches": "Arcos de resposta: primeiro resolva a conta, depois olhe os arcos. As opções diferem em 1, 2 ou 10 — confira o último algarismo e as dezenas.",
   "teachRunGuard": "Guardião: na chegada, o seu número precisa ser pelo menos igual ao do guardião. Cada erro e cada vermelho custam, então proteja o seu número até o fim.",
+  "teachRunPile": "Um monte em vez de algarismos: conte as molduras de dez completas e as casas da moldura incompleta — 4 molduras e 7 casas dão 47. Uma moldura tem duas colunas de cinco: dá para ver de relance quantas estão cheias e quantas vazias, sem contar.",
   "pauseExitGame": "Sair do exercício",
   "pauseSoundOff": "Modo silencioso",
   "pauseSoundOn": "Ativar o som",

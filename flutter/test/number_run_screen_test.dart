@@ -5,6 +5,7 @@
 // на тех же кадрах и тех же нажатиях. Число на машине и в шапке обязано совпасть с тенью на
 // каждом кадре: так видно, что экран кормит ядро кадрами как есть и ничего не досчитывает сам.
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -133,7 +134,8 @@ void main() {
     final seconds = finaleDuration(course, shadow.sum);
     expect(finaleFrames * .05, closeTo(seconds, .1), reason: 'финал шёл ${finaleFrames * .05} с, а должен $seconds с');
     final o = numberRunOutcome(course, shadow);
-    expect(find.textContaining('${L.t('numberRunWalls')} ${o.walls}/10'), findsOneWidget);
+    // Подпись и число — через неразрывный пробел: «10/10» не отрывается от «Пробито стен».
+    expect(find.textContaining('${L.t('numberRunWalls')}\u00a0${o.walls}/10'), findsOneWidget);
     final r = reports.single;
     expect(r['game_type'], 'number_run');
     expect(r['mode'], 'levels');
@@ -141,7 +143,8 @@ void main() {
     expect(r['score'], o.number);
     final d = r['details'] as Map<String, dynamic>;
     expect([d['walls'], d['walls_total'], d['level'], d['boss'], d['reason'], d['seed']], [o.walls, 10, 1, false, 'finished', seed]);
-    expect(find.text(o.passed ? L.t('nextLabel') : L.t('retry')), findsWidgets);
+    expect(find.text(o.passed ? L.t('levelDone').replaceAll('{n}', '1') : L.t('levelAlmost').replaceAll('{n}', '1')),
+        findsOneWidget, reason: 'вердикт словами итога');
     // Лестница: засчитанный уровень ведёт на следующий.
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('${SharedState.prefix}number_run_level_nzt48'), o.passed ? '2' : '1');
@@ -212,7 +215,7 @@ void main() {
     }
     // Дорога — 5 шагов; блиц +2 (арки и округление), ровно N, ряд, шкала, память — по одному;
     // «Страж» — на уровне-боссе.
-    for (final (level, steps) in const [(1, 5), (4, 7), (6, 8), (16, 11), (18, 12)]) {
+    for (final (level, steps) in const [(1, 5), (4, 7), (6, 8), (16, 11), (18, 12), (22, 12), (24, 13)]) {
       await open(tester, level: level);
       await tester.tap(find.byKey(const Key('game-lesson')));
       await tester.pumpAndSettle();
@@ -225,6 +228,72 @@ void main() {
       await tester.pumpAndSettle();
       LessonUsed.reset();
     }
+  });
+
+  group('кучка клеток вместо цифры (перенос counter)', () {
+    List<(RoadRow, int)> plain(RoadCourse c) => [
+          for (final r in c.rows)
+            if (const {'snake', 'grid'}.contains(r.shape))
+              for (var i = 0; i < r.items.length; i++)
+                if (!r.items[i].part) (r, i),
+        ];
+
+    test('🔴 правило по уровням: до L21 цифры, L22–24 все мелкие — кучкой, с L25 — половина', () {
+      for (var level = 1; level <= 21; level++) {
+        final c = makeLevel(level, seed, countingTasks, boss: isBossLevel(level));
+        expect(plain(c).where((e) => pileOf(c, e.$1, e.$2) != null), isEmpty, reason: 'L$level: кучка раньше главы');
+      }
+      for (final level in const [22, 23, 24]) {
+        final c = makeLevel(level, seed, countingTasks, boss: isBossLevel(level));
+        for (final (r, i) in plain(c)) {
+          final v = r.items[i].value.abs().round();
+          final pile = pileOf(c, r, i);
+          // Предел — РЕШЕНИЕ (49: четыре рамки и неполная), а не константа кода: проба с
+          // `pileMax` из кода сверяла бы правило с самим собой (порча 01.10 выжила).
+          if (v <= 49) {
+            expect(pile, (v ~/ 10, v % 10), reason: 'L$level ряд ${r.id}: $v не кучкой');
+          } else {
+            expect(pile, isNull, reason: 'L$level: $v больше 49, а кучкой');
+          }
+        }
+      }
+      for (final level in const [25, 28, 31]) {
+        final c = makeLevel(level, seed, countingTasks, boss: isBossLevel(level));
+        final small = plain(c).where((e) => e.$1.items[e.$2].value.abs() <= 49).toList();
+        final piled = small.where((e) => pileOf(c, e.$1, e.$2) != null).length;
+        expect(piled, greaterThan(0), reason: 'L$level: в смеси нет кучек');
+        expect(piled, lessThan(small.length), reason: 'L$level: в смеси нет цифр');
+      }
+    });
+
+    test('строй, стопки, трамплин, части «ровно N» и забег «Свободно» — всегда цифрой', () {
+      for (final level in const [22, 25, 30]) {
+        final c = makeLevel(level, seed, countingTasks, boss: isBossLevel(level));
+        for (final r in c.rows) {
+          if (const {'snake', 'grid'}.contains(r.shape)) continue;
+          for (var i = 0; i < r.items.length; i++) {
+            expect(pileOf(c, r, i), isNull, reason: 'L$level ${r.shape}: кучкой');
+          }
+        }
+      }
+      final free = makeCampaign(seed);
+      for (final r in free.rows) {
+        for (var i = 0; i < r.items.length; i++) {
+          expect(pileOf(free, r, i), isNull, reason: 'забег: кучкой');
+        }
+      }
+    });
+
+    testWidgets('🔴 на дороге L22 кучки НАРИСОВАНЫ, на L21 — ни одной за весь уровень', (tester) async {
+      for (final (level, want) in const [(21, false), (22, true)]) {
+        await open(tester, level: level);
+        final course = makeLevel(level, seed, countingTasks, boss: isBossLevel(level));
+        var drawn = 0;
+        RoadPainter.lastPiles = 0;
+        await drive(tester, course, onFrame: (_) => drawn = math.max(drawn, RoadPainter.lastPiles));
+        expect(drawn > 0, want, reason: 'L$level: нарисовано кучек $drawn');
+      }
+    });
   });
 
   for (final screen in const [Size(320, 568), Size(360, 640), Size(390, 844)]) {

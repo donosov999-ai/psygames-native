@@ -2872,6 +2872,7 @@ const t: Record<string, string> = {
   "teachRunBridge": "Puente y hueco: elige tu carril con antelación; solo puedes cambiarlo antes de que empiece el tramo. Si fallas el puente, caes y la carrera termina.",
   "teachRunArches": "Arcos de respuesta: primero resuelve la operación y luego mira los arcos. Las opciones difieren en 1, 2 o 10: comprueba la última cifra y las decenas.",
   "teachRunGuard": "Guardián: en la meta tu número debe ser al menos el del guardián. Cada fallo y cada rojo restan, así que protege tu número hasta el final.",
+  "teachRunPile": "Un montón en vez de cifras: cuenta los marcos de diez completos y las casillas del marco a medias; 4 marcos y 7 casillas son 47. Un marco son dos columnas de cinco: las llenas y las vacías se ven de un vistazo, sin contar.",
   "pauseExitGame": "Salir del ejercicio",
   "pauseSoundOff": "Modo silencioso",
   "pauseSoundOn": "Volver a activar el sonido",

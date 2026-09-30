@@ -2836,6 +2836,10 @@ const translations: Translations = {
     ru: 'Страж: на финише твоё число должно быть не меньше стража. Каждый промах и каждое красное — минус, береги число до конца.',
     en: 'Guardian: at the finish your number must be at least the guardian’s. Every miss and every red costs you, so protect your number to the end.',
   },
+  teachRunPile: {
+    ru: 'Кучка вместо цифры: считай полные рамки по десять и клетки в неполной — 4 рамки и 7 клеток это 47. Рамка — два столбика по пять: сколько клеток и сколько пусто, видно сразу, без пересчёта.',
+    en: 'A pile instead of digits: count the full frames of ten and the cells in the part-filled one — 4 frames and 7 cells make 47. A frame is two columns of five, so you see how many are filled and how many are empty at a glance, without counting.',
+  },
   levelAlmost: { ru: 'Уровень {n} — почти!', en: 'Level {n} — almost!' },
   cleanRunBadge: { ru: '🔥 Серия {n} чистых', en: '🔥 Clean run {n}' },
   levelStarting: { ru: 'Уровень {n} запускается…', en: 'Starting level {n}…' },

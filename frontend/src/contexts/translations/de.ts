@@ -2872,6 +2872,7 @@ const t: Record<string, string> = {
   "teachRunBridge": "Brücke und Lücke: Wähle deine Spur früh – wechseln kannst du nur vor Beginn der Spannweite. Verfehlst du die Brücke, stürzt du, und der Lauf ist vorbei.",
   "teachRunArches": "Antwortbögen: Rechne zuerst die Aufgabe, dann schau auf die Bögen. Die Varianten unterscheiden sich um 1, 2 oder 10 – prüfe die letzte Ziffer und die Zehner.",
   "teachRunGuard": "Wächter: Im Ziel muss deine Zahl mindestens so groß sein wie die des Wächters. Jeder Fehler und jedes Rot kostet, also schütze deine Zahl bis zum Schluss.",
+  "teachRunPile": "Ein Haufen statt Ziffern: Zähle die vollen Zehnerrahmen und die Kästchen im angefangenen – 4 Rahmen und 7 Kästchen ergeben 47. Ein Rahmen besteht aus zwei Spalten zu fünf: Wie viele voll und wie viele leer sind, siehst du auf einen Blick, ohne zu zählen.",
   "pauseExitGame": "Übung verlassen",
   "pauseSoundOff": "Leiser Modus",
   "pauseSoundOn": "Ton wieder an",

@@ -58,12 +58,47 @@ const Color numberRunAccent = Color(0xFF2563EB);
 const int numberRunLevelSeconds = 90;
 const int numberRunStageSeconds = 42;
 
+/// ФОРМА ЧИСЛА — КУЧКА КЛЕТОК вместо цифры: шестой перенос дорожной карты «Числового забега»
+/// (counter, обсуждено с Денисом 13.09.2026: «значение видно только если сосчитал; мост к
+/// субитизации „Поиска“»). В вебе его не было — это нативная ось. Правила НЕ меняются: число
+/// то же, меняется только вид, поэтому курс уровня по-прежнему байт в байт с вебом.
+/// · до L21 — цифры;
+/// · L22–24 — обучающая глава (после смеси станций на L19): числа змейки и сетки — кучкой;
+/// · с L25 — смесь: кучкой половина чисел (по чётности места), остальные цифрой.
+/// Кучка — «рамки десяти»: полная рамка (два столбика по пять) — десяток, в неполной видны и
+/// клетки, и пустые места (47 = 4 рамки + 7 клеток, «семь — это десять без трёх»); знак —
+/// цветом, как у цифр.
+/// ⚠️ ТОЛЬКО ЗМЕЙКА И СЕТКА, НЕ БОЛЬШЕ 49 — по кадрам 01.10: у строя пять чисел через
+/// полполосы и значения 4k–5k (на L22 — 92 и 115), кучки из девяти столбиков сливались в
+/// штрихкод и налезали друг на друга. У змейки и сетки числа k и k/2 (на L22–30 — 11…31) и
+/// между ними целая полоса. Стопки у столба, трамплин и части «ровно N» — цифрой: там приём —
+/// сравнить суммы и набрать точно, а не сосчитать.
+const int pileFromLevel = 22;
+const int pileMixFromLevel = 25;
+
+/// Больше 49 — цифрой: четыре полные рамки и неполная — предел, который схватывается глазом.
+const int pileMax = 49;
+const Set<String> _pileShapes = {'snake', 'grid'};
+
+/// Кучка для числа [index] ряда [row]: (столбиков по десять, клеток). `null` — цифрой.
+(int, int)? pileOf(RoadCourse course, RoadRow row, int index) {
+  if (course.format != 'level' || course.levelId < pileFromLevel) return null;
+  if (!_pileShapes.contains(row.shape)) return null;
+  final it = row.items[index];
+  if (it.part) return null;
+  final v = it.value.abs().round();
+  if (v == 0 || v > pileMax) return null;
+  if (course.levelId >= pileMixFromLevel && (row.id + index).isEven) return null;
+  return (v ~/ 10, v % 10);
+}
+
 /// Ключи шагов разбора. Шаги зовут их через `step(key, …)`, а словарь приложения собирает
 /// только литералы и такие списки (`embed-l10n` читает `const …Keys = <String>[…]`) — без
 /// списка разбор показал бы ключи вместо текста.
 const numberRunLessonKeys = <String>[
   'teachRunMiddle', 'teachRunColumns', 'teachRunWalls', 'teachRunRamp', 'teachRunBridge', 'teachRunArches', //
   'teachMathRound', 'teachBondsTen', 'teachPatternPeriod', 'teachSliderAnchor', 'teachSpanChunks', 'teachRunGuard',
+  'teachRunPile',
 ];
 
 /// Итог партии: одна запись на уровень или на весь забег.
@@ -571,6 +606,8 @@ class _NumberRunScreenState extends State<NumberRunScreen> with SingleTickerProv
       if (known.contains('pattern')) step('teachPatternPeriod', find((r) => r.station == 'pattern', 10)),
       if (known.contains('scale')) step('teachSliderAnchor', find((r) => r.station == 'scale', 13)),
       if (known.contains('memory')) step('teachSpanChunks', find((r) => r.recall, 16)),
+      if (level >= pileFromLevel)
+        step('teachRunPile', find((r) => _pileShapes.contains(r.shape) && r.items.any((i) => !i.part), pileFromLevel)),
       if (course.finale?.boss != null) step('teachRunGuard', null),
     ];
   }
@@ -702,6 +739,12 @@ class RoadPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    piles = 0;
+    _paint(canvas, size);
+    lastPiles = piles;
+  }
+
+  void _paint(Canvas canvas, Size size) {
     final w = size.width, lw = w / 3;
     final ppu = (carY - 8) / viewAhead;
     double y(double z) => carY - (z - camZ) * ppu;
@@ -881,17 +924,58 @@ class RoadPainter extends CustomPainter {
         continue;
       }
       final half = it.half ?? .18;
-      final width = math.max(40.0, math.min(2 * half * lw, 2.9 * lw));
-      final rect = Rect.fromCenter(center: c, width: width, height: 26);
       final color = it.part
           ? _part
           : it.value < 0
               ? _minus
               : _plus;
+      final pile = pileOf(course, r, i);
+      if (pile != null) {
+        _pile(canvas, c, pile.$1, pile.$2, color);
+        continue;
+      }
+      final width = math.max(40.0, math.min(2 * half * lw, 2.9 * lw));
+      final rect = Rect.fromCenter(center: c, width: width, height: 26);
       canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(7)), Paint()..color = color);
       _text(canvas, _num(it.value), c, 16, Colors.white);
     }
   }
+
+  /// Кучка: «рамки десяти» — два столбика по пять клеток. Полные рамки — десятки, последняя —
+  /// единицы: клетки залиты, пустые места обведены, чтобы «сколько не хватает до десяти» было
+  /// видно без пересчёта. Знак — цветом плашки.
+  void _pile(Canvas canvas, Offset c, int tens, int ones, Color color) {
+    const cell = 4.6, gap = 1.2, frameGap = 3.0, pad = 5.0;
+    const frameW = 2 * cell + gap, frameH = 5 * cell + 4 * gap;
+    final frames = tens + (ones > 0 ? 1 : 0);
+    final w = 2 * pad + frames * frameW + (frames - 1) * frameGap;
+    final rect = Rect.fromCenter(center: c, width: w, height: frameH + 2 * pad);
+    canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(7)), Paint()..color = color);
+    final full = Paint()..color = Colors.white;
+    final empty = Paint()
+      ..color = const Color(0x99FFFFFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.9;
+    for (var f = 0; f < frames; f++) {
+      final left = rect.left + pad + f * (frameW + frameGap);
+      final filled = f < tens ? 10 : ones;
+      for (var k = 0; k < 10; k++) {
+        // Сверху вниз по строкам, по две клетки в строке — как заполняют рамку десяти на уроке.
+        final r = Rect.fromLTWH(left + (k % 2) * (cell + gap), rect.top + pad + (k ~/ 2) * (cell + gap), cell, cell);
+        if (k < filled) {
+          canvas.drawRect(r, full);
+        } else {
+          canvas.drawRect(r.deflate(.45), empty);
+        }
+      }
+    }
+    piles++;
+  }
+
+  /// Сколько кучек нарисовано последним кадром — пробе, чтобы мерить НАРИСОВАННОЕ, а не правило.
+  @visibleForTesting
+  static int lastPiles = 0;
+  int piles = 0;
 
   void _badge(Canvas canvas, String symbol, Offset c, double d, Color bg) {
     canvas.drawCircle(c, d / 2, Paint()..color = bg);

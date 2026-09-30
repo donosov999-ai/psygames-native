@@ -2867,6 +2867,7 @@ const t: Record<string, string> = {
   "teachRunBridge": "Ponte e varco: scegli la corsia in anticipo — puoi cambiarla solo prima dell’inizio della campata. Se manchi il ponte cadi, e la corsa finisce.",
   "teachRunArches": "Archi di risposta: prima risolvi l’operazione, poi guarda gli archi. Le opzioni differiscono di 1, 2 o 10: controlla l’ultima cifra e le decine.",
   "teachRunGuard": "Guardiano: al traguardo il tuo numero deve essere almeno pari a quello del guardiano. Ogni errore e ogni rosso costano, quindi proteggi il tuo numero fino alla fine.",
+  "teachRunPile": "Un mucchio al posto delle cifre: conta le cornici da dieci complete e le caselle di quella a metà — 4 cornici e 7 caselle fanno 47. Una cornice è fatta di due colonne da cinque: quante piene e quante vuote si vede a colpo d’occhio, senza contare.",
   "pauseExitGame": "Esci dall’esercizio",
   "pauseSoundOff": "Modalità silenziosa",
   "pauseSoundOn": "Riattiva l’audio",
