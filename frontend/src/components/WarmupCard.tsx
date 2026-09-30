@@ -37,6 +37,28 @@ export interface WarmupCardProps {
    * локалях, где пара другая.
    */
   подЗаголовком?: string;
+  /**
+   * 🔴 ИМЯ МОСТА ДЛЯ НАТИВНОЙ РАЗВИЛКИ (латиницей: `words`, `languages`).
+   *
+   * В приложении развилка рисуется Flutter-экраном ПОВЕРХ этой страницы, и
+   * запустить зарядку оттуда было нечем — поэтому «Слова» и «Языки» оставались
+   * в вебе целиком (30.09.2026). С именем карточка регистрирует в окне
+   * `__psyWarmups[имя] = { info(), start(минут) }`: нативная шапка берёт отсюда
+   * подписи и число подходов и зовёт ТОТ ЖЕ `startPlaylist`. Состав серии
+   * по-прежнему считается только здесь — второй копии правил нет.
+   */
+  bridgeId?: string;
+}
+
+/** Что карточка отдаёт нативной шапке (`flutter/lib/shell/warmup_bridge.dart`). */
+export interface WarmupBridgeInfo {
+  title: string;
+  desc: string;
+  sub: string;
+  unit: string;
+  startLabel: string;
+  options: { min: number; count: number; label: string; names: string[] }[];
+  ready: boolean;
 }
 
 /**
@@ -59,7 +81,7 @@ export function имяИгры(gameId: string, t: (k: string) => string): string
   return g ? (t(g.nameKey) || gameId) : gameId;
 }
 
-export function WarmupCard({ темы, titleKey, descKey, ярлык, accent, loading, подЗаголовком }: WarmupCardProps) {
+export function WarmupCard({ темы, titleKey, descKey, ярлык, accent, loading, подЗаголовком, bridgeId }: WarmupCardProps) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const { startPlaylist } = useWarmup();
@@ -67,6 +89,44 @@ export function WarmupCard({ темы, titleKey, descKey, ярлык, accent, lo
 
   const шаги = темаШаги(темы, минут);
   const готово = !loading && шаги.length > 0;
+
+  // Мост читает СВЕЖИЕ значения при каждом вызове: регистрация одна на жизнь
+  // карточки, а уровни и язык приезжают позже первой отрисовки.
+  const свежее = React.useRef({ темы, titleKey, descKey, ярлык, loading, подЗаголовком, t, startPlaylist });
+  свежее.current = { темы, titleKey, descKey, ярлык, loading, подЗаголовком, t, startPlaylist };
+  React.useEffect(() => {
+    if (!bridgeId || typeof window === 'undefined') return undefined;
+    const w = window as unknown as { __psyWarmups?: Record<string, unknown> };
+    const реестр = (w.__psyWarmups ??= {});
+    const мост = {
+      info: (): WarmupBridgeInfo => {
+        const с = свежее.current;
+        const options = ДЛИТЕЛЬНОСТИ.map((м) => {
+          const ш = темаШаги(с.темы, м);
+          const names = ш.reduce<string[]>((acc, x) => {
+            const имя = имяИгры(x.game_id, с.t);
+            if (acc.indexOf(имя) < 0) acc.push(имя);
+            return acc;
+          }, []);
+          return { min: м, count: ш.length, label: с.t('warmupPlanCount').replace('{n}', String(ш.length)), names };
+        });
+        return {
+          title: с.t(с.titleKey), desc: с.t(с.descKey), sub: с.подЗаголовком ?? '',
+          unit: с.t('unitMin'), startLabel: с.t('start'), options,
+          ready: !с.loading && options.some((o) => o.count > 0),
+        };
+      },
+      start: (м: number): boolean => {
+        const с = свежее.current;
+        if (с.loading || !(ДЛИТЕЛЬНОСТИ as readonly number[]).includes(м)) return false;
+        if (темаШаги(с.темы, м as WarmupMinutes).length === 0) return false;
+        с.startPlaylist(собратьТемуЗарядки(с.темы, м as WarmupMinutes, с.ярлык));
+        return true;
+      },
+    };
+    реестр[bridgeId] = мост;
+    return () => { if (реестр[bridgeId] === мост) delete реестр[bridgeId]; };
+  }, [bridgeId]);
 
   /**
    * 🔴 ЧТО ИМЕННО ЗАПУСКАЕТСЯ — ВИДНО ДО НАЖАТИЯ. Это и есть просьба «чтобы
