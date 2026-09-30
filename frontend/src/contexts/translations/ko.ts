@@ -2411,8 +2411,6 @@ const t: Record<string, string> = {
   "scholarsMedian": "중앙값",
   "scholarsUsually": "최근 {n}회",
   "scholarsBest": "정답은",
-  "scholarsYes": "예",
-  "scholarsNo": "아니오",
   "ballGlossy": "광택",
   "ballGlass": "유리",
   "ballFluffy": "폭신한",
