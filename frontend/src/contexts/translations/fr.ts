@@ -3031,5 +3031,8 @@ const t: Record<string, string> = {
   "teachMnemoChainWords": "« {a} » → « {b} » : une scène où le premier fait quelque chose au second. Plus c’est absurde, plus ça tient.",
   "teachMnemoOrder": "On répond DANS L’ORDRE, c’est pour ça que la chaîne compte : tu te rappelles la première scène et elle entraîne la deuxième. La rangée en compte {n}.",
   "teachMnemoDone": "Joue ainsi : transforme en images, relie en chaîne, puis parcours la chaîne dans l’ordre.",
+  "teachCorsiPath": "Ne mémorisez pas les blocs un par un, mais le CHEMIN que tracent les éclairs : faites passer une ligne imaginaire par eux. Cinq éclairs deviennent un seul trajet — un zigzag, une lettre, un crochet.",
+  "teachCorsiBackward": "En mode inverse, ne retournez pas point par point à la volée. Construisez d’abord le trajet à l’endroit, tel qu’il a été montré, puis parcourez-le depuis la fin en répondant.",
+  "teachCorsiEyes": "Suivez chaque éclair des yeux et ne détournez pas le regard avant la fin de l’affichage. Un éclair manqué brise tout le trajet — ensuite, c’est deviner.",
 };
 export default t;

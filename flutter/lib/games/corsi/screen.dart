@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -168,6 +169,21 @@ class _CorsiScreenState extends State<CorsiScreen> {
     }
   }
 
+  /// Разбор «Кубиков Корси» — карточки приёмов, как у соседних игр на память
+  /// («Цифровой ряд», «Матрица памяти»). Заведён 30.09.2026 координатором: при
+  /// переносе на Flutter экран приехал без разбора, и гейт `lesson_census_test`
+  /// держал main красным для всех разделов — «без разбора остались: /games/corsi».
+  ///
+  /// Приёмы три, и каждый про то, на чём здесь реально ошибаются: вспышки держат
+  /// маршрутом, а не по одной; обратный порядок складывают вперёд и проходят с
+  /// конца, а не разворачивают на лету; и не отводят взгляд — одна пропущенная
+  /// вспышка рвёт весь маршрут.
+  List<DemoTrial> _demoTrials() => [
+        DemoTrial(text: '', rule: L.t('teachCorsiPath')),
+        DemoTrial(text: '', rule: L.t('teachCorsiBackward')),
+        DemoTrial(text: '', rule: L.t('teachCorsiEyes')),
+      ];
+
   @override
   Widget build(BuildContext context) {
     final g = _game;
@@ -176,6 +192,7 @@ class _CorsiScreenState extends State<CorsiScreen> {
     }
     return GameShell(
       title: L.t('corsi'),
+      onLesson: () => openDemoLesson(context, title: L.t('corsi'), trials: _demoTrials()),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
