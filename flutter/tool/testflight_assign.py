@@ -19,7 +19,11 @@ Connect со статусом VALID и НИ В ОДНОЙ группе тест�
 писать без явного «да». Поэтому здесь только внутренняя группа.
 
 Запуск:  python3 tool/testflight_assign.py <версия> <номер сборки> [имя группы]
+         python3 tool/testflight_assign.py --show <версия> <номер сборки>   — только чтение:
+                 состояние сборки и «Что тестировать», где записан коммит
 Окружение: APPLE_API_KEY_ID · APPLE_API_ISSUER · APPLE_API_KEY_FILE (путь к .p8)
+           WHAT_TO_TEST — заметки для тестировщиков; коммит и прогон дописываются сами
+           из GITHUB_SHA / GITHUB_RUN_ID
            и BUNDLE_ID — приложение ищется по нему, чтобы не заводить ещё один секрет
            (APPLE_APP_ID перебивает поиск, если он почему-то понадобится).
 """
@@ -95,7 +99,71 @@ def find_build(app_id: str, version: str, number: str):
     return None
 
 
+PROVENANCE_MARK = 'Коммит '
+
+
+def provenance_line():
+    """Строка происхождения сборки: коммит и прогон — из окружения GitHub Actions.
+
+    🔴 ПОВОД, 26.09.2026 (задача aa56958d). Приёмка TestFlight встала: установленную
+    сборку нельзя было доказательно сопоставить с коммитом — номер версии один на
+    десятки коммитов, а поле «Что тестировать» у гибрида не заполнялось вовсе (вход
+    `notes` рабочего процесса был объявлен и никуда не шёл).
+    """
+    sha = os.environ.get('GITHUB_SHA')
+    if not sha:
+        return None
+    line = PROVENANCE_MARK + sha[:12]
+    run, repo = os.environ.get('GITHUB_RUN_ID'), os.environ.get('GITHUB_REPOSITORY')
+    if run and repo:
+        line += f" · прогон {os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/{repo}/actions/runs/{run}"
+    return line
+
+
+def stamp_what_to_test(bid: str, notes: str) -> None:
+    """«Что тестировать» у сборки: заметки + строка происхождения.
+
+    Поле видит тестировщик на телефоне и читает любой через API (`--show`), поэтому
+    связь «сборка → коммит» переживает журнал прогона. Не вышло — это предупреждение,
+    а не провал: раздача группе важнее подписи.
+    """
+    text = '\n'.join(x for x in (notes.strip(), provenance_line()) if x)
+    if not text:
+        return
+    try:
+        locs = call('GET', f'/builds/{bid}/betaBuildLocalizations?limit=50').get('data', [])
+        if not locs:
+            call('POST', '/betaBuildLocalizations', {'data': {
+                'type': 'betaBuildLocalizations',
+                'attributes': {'locale': 'en-US', 'whatsNew': text},
+                'relationships': {'build': {'data': {'type': 'builds', 'id': bid}}}}})
+        for loc in locs:
+            call('PATCH', f"/betaBuildLocalizations/{loc['id']}", {'data': {
+                'type': 'betaBuildLocalizations', 'id': loc['id'],
+                'attributes': {'whatsNew': text}}})
+        print('· «Что тестировать» записано:', text.replace('\n', ' | '))
+    except urllib.error.HTTPError as e:
+        print(f'::warning title=TestFlight::«Что тестировать» не записалось ({e.code}): '
+              f'{e.read().decode()[:300]}')
+
+
+def show(version: str, number: str) -> int:
+    """Только чтение: состояние сборки и её «Что тестировать» — там коммит."""
+    app_id = os.environ.get('APPLE_APP_ID') or app_by_bundle(os.environ['BUNDLE_ID'])
+    build = find_build(app_id, version, number)
+    if not build:
+        print(f'сборки {version}+{number} нет среди последних двадцати')
+        return 1
+    a = build['attributes']
+    print(f"{version}+{number}: {a.get('processingState')} · залита {a.get('uploadedDate')}")
+    for loc in call('GET', f"/builds/{build['id']}/betaBuildLocalizations?limit=50").get('data', []):
+        print(f"  [{loc['attributes'].get('locale')}] {loc['attributes'].get('whatsNew') or '— пусто —'}")
+    return 0
+
+
 def main() -> int:
+    if len(sys.argv) >= 4 and sys.argv[1] == '--show':
+        return show(sys.argv[2], sys.argv[3])
     if len(sys.argv) < 3:
         print(__doc__)
         return 2
@@ -124,6 +192,8 @@ def main() -> int:
              {'data': {'type': 'builds', 'id': bid,
                        'attributes': {'usesNonExemptEncryption': False}}})
         print('· экспортная декларация проставлена (стандартное шифрование)')
+
+    stamp_what_to_test(bid, os.environ.get('WHAT_TO_TEST', ''))
 
     groups = call('GET', f'/betaGroups?filter[app]={app_id}&limit=20')['data']
     target = next((g for g in groups if g['attributes'].get('name') == group_name), None)

@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
@@ -78,7 +79,14 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
 
   /// Зерно круга — `object-tracker-<уровень>`, как в вебе: тот же уровень даёт
   /// тот же расклад, и «ещё раз» повторяет ровно ту партию.
-  String get _seed => 'object-tracker-${_ladder.level}';
+  /// 🔴 УРОВЕНЬ ПАРТИИ — ИЗ ШАГА ЗАРЯДКИ, ЕСЛИ ШАГ ЕГО ЗАДАЛ, ИНАЧЕ ЛИЧНЫЙ.
+  ///
+  /// Как в вебе (`object-tracker.tsx`: `Math.min(LEVELS, num('level', lvl.level))`):
+  /// шаг несёт уровень по правилу «освоенный минус 20 %», а потолок лестницы
+  /// держится и здесь — выше генератор не растёт. Зерно строится от него же.
+  int get _playLevel => math.min(trackerLevels, GamePreset.num('level', _ladder.level));
+
+  String get _seed => 'object-tracker-$_playLevel';
 
   void _reset() {
     // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
@@ -87,7 +95,7 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
     LessonUsed.reset();
     _ticker.stop();
     _lastTick = Duration.zero;
-    final round = generateObjectTrackerRound(_seed, _ladder.level);
+    final round = generateObjectTrackerRound(_seed, _playLevel);
     _round = round;
     _world = round.initialWorld.copy();
     _phase = _Phase.preview;
@@ -190,7 +198,7 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+        HudItem(label: 'Уровень', value: '$_playLevel', icon: Icons.flag_outlined),
         HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(label: 'Целей', value: '${round.targetCount}', icon: Icons.adjust),
         HudItem(
