@@ -3166,5 +3166,6 @@ const t: Record<string, string> = {
   "hcAgain": "다시 하기",
   "teachHiddenHalf": "「{q}」라고 물어보세요: 예는 {yes}명, 아니요는 {no}명. 가장 좋은 질문은 남은 사람을 반에 가깝게 나눠요. 어떤 답이든 절반이 사라져요.",
   "teachHiddenLast": "한 명 남았어요. 그 사람이 숨은 사람이에요. 골라서 「바로 이 사람!」을 누르세요.",
+  "rbHeadStart": "앞서 출발 {n}",
 };
 export default t;

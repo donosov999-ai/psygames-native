@@ -3171,5 +3171,6 @@ const t: Record<string, string> = {
   "hcAgain": "De novo",
   "teachHiddenHalf": "Pergunte «{q}»: sim para {yes}, não para {no}. A melhor pergunta divide os que restam o mais perto possível da metade: qualquer resposta tira metade.",
   "teachHiddenLast": "Sobrou um: é ele. Escolha-o e toque em «É ele!».",
+  "rbHeadStart": "vantagem {n}",
 };
 export default t;
