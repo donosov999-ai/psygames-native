@@ -3073,6 +3073,11 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "A partir do nível 22, depois de um erro as cartas viradas para baixo trocam de lugar e o par se ilumina. Mova a figura na memória para onde a carta dela foi.",
   "vsFindAll": "Encontre todas estas formas — em qualquer rotação",
   "vsFindConj": "Encontre a forma desta cor e formato",
+  "teachDictIntro": "Uma frase inteira não fica na cabeça — você a dita para si em partes. Ouça inteira, divida em pedaços de duas ou três palavras e digite pedaço por pedaço.",
+  "teachDictListen": "Primeiro ouça a frase inteira sem digitar nada.",
+  "teachDictChunk": "Pedaço {i}: “{c}”. Diga para si — e digite.",
+  "teachDictStuck": "Travou num caractere? Ouça a frase de novo em vez de tentar letras: a digitação não anda enquanto o caractere não estiver certo.",
+  "teachDictDone": "Escreva assim: ouviu inteira → dividiu em pedaços → dita para si pedaço por pedaço.",
   "block": "Bloco",
   "seriesDone": "Série concluída. Erros",
   "yes": "Sim",
@@ -3164,11 +3169,6 @@ const t: Record<string, string> = {
   "hcAgain": "De novo",
   "teachHiddenHalf": "Pergunte «{q}»: sim para {yes}, não para {no}. A melhor pergunta divide os que restam o mais perto possível da metade: qualquer resposta tira metade.",
   "teachHiddenLast": "Sobrou um: é ele. Escolha-o e toque em «É ele!».",
-  "teachDictIntro": "Uma frase inteira não fica na cabeça — você a dita para si em partes. Ouça inteira, divida em pedaços de duas ou três palavras e digite pedaço por pedaço.",
-  "teachDictListen": "Primeiro ouça a frase inteira sem digitar nada.",
-  "teachDictChunk": "Pedaço {i}: “{c}”. Diga para si — e digite.",
-  "teachDictStuck": "Travou num caractere? Ouça a frase de novo em vez de tentar letras: a digitação não anda enquanto o caractere não estiver certo.",
-  "teachDictDone": "Escreva assim: ouviu inteira → dividiu em pedaços → dita para si pedaço por pedaço.",
   "rbHeadStart": "vantagem {n}",
 };
 export default t;
