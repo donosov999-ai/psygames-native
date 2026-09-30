@@ -38,6 +38,13 @@ import { dirname, join } from 'path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CSV_URL = 'https://raw.githubusercontent.com/ivankra/hsk30/master/hsk30.csv';
 const КЭШ = join(__dirname, '../.cache/hsk30.csv');
+/**
+ * Самое употребительное чтение знака — поле kMandarin базы Unihan в выгрузке mozillazg/pinyin-data
+ * (MIT — прочитано файлом LICENSE; сама база Unihan — © Unicode, Unicode License). Нужно одно:
+ * понять, КАК голос прочтёт одиночный иероглиф. Первое значение — чтение для материкового Китая.
+ */
+const KMANDARIN_URL = 'https://raw.githubusercontent.com/mozillazg/pinyin-data/master/kMandarin.txt';
+const КЭШ_ЧТЕНИЙ = join(__dirname, '../.cache/kMandarin.txt');
 const OUT_СЛОВАРЬ = join(__dirname, '../src/constants/zhPinyin.generated.ts');
 const OUT_БАНК = join(__dirname, '../src/constants/zhToneBank.generated.ts');
 
@@ -103,6 +110,23 @@ async function csv() {
   const текст = await отв.text();
   try { writeFileSync(КЭШ, текст, 'utf8'); } catch { /* нет каталога .cache — не беда */ }
   return текст;
+}
+
+async function обычныеЧтения() {
+  let текст;
+  if (existsSync(КЭШ_ЧТЕНИЙ)) текст = readFileSync(КЭШ_ЧТЕНИЙ, 'utf8');
+  else {
+    const отв = await fetch(KMANDARIN_URL);
+    if (!отв.ok) throw new Error(`не скачался kMandarin.txt: ${отв.status}`);
+    текст = await отв.text();
+    try { writeFileSync(КЭШ_ЧТЕНИЙ, текст, 'utf8'); } catch { /* нет каталога .cache — не беда */ }
+  }
+  const карта = new Map();
+  for (const строка of текст.split('\n')) {
+    const м = строка.match(/^U\+([0-9A-F]+): ([^#]+?)\s+#/);
+    if (м) карта.set(String.fromCodePoint(parseInt(м[1], 16)), м[2].trim().split(/\s+/)[0]);
+  }
+  return карта;
 }
 
 /**
@@ -197,6 +221,9 @@ for (const слово of нужные) {
 
 // ── 2. Банк односложных для упражнения на тон ────────────────────────────────
 const банк = { 1: [], 2: [], 3: [], 4: [] };
+const ОБЫЧНЫЕ = await обычныеЧтения();
+/** Что выброшено из-за расхождения с обычным чтением — пишется в банк, его сторожит проба. */
+const отсеяно = [];
 for (const с of данные) {
   if (!с.Simplified || !с.Pinyin) continue;
   if (!['1', '2', '3'].includes(с.Level)) continue;           // HSK 1–3: самые частотные
@@ -215,6 +242,21 @@ for (const с of данные) {
     if (pinyin.includes('/')) return;
     const т = тонСлога(pinyin);
     if (т === 5) return;                                       // нейтральный слог в задании не спрашиваем
+    /**
+     * ⚠️ ЗАПИСАННОЕ ЧТЕНИЕ ≠ ОБЫЧНОЕ — ЗАДАНИЕ СПРАШИВАЛО БЫ НЕ ТО, ЧТО ЗВУЧИТ. Голос читает
+     * одиночный иероглиф его обычным чтением, а не тем, что стоит в строке HSK. 重 в списке —
+     * chóng (тон 2), обычное — zhòng (тон 4): задание просило бы второй тон, а звучал бы
+     * четвёртый, и верный слух засчитывался бы ошибкой. Выбрасываем слог, если ТОН записанного
+     * чтения расходится с тоном обычного; где тон один (还 hái/huán), слог остаётся.
+     * Замер 30.09.2026: из банка ушли 9 из 429 — 干 教 脏 重 为 倒 数 了 地; их места заняли четыре
+     * знака того же звучания, у которых обычное чтение совпадает (交 围 属 弟), — итого 424.
+     * Всего отсеяно 14 форм: ещё пять (长 背 调 血 只) не попадали в банк и раньше — слог был занят.
+     */
+    const обычное = ОБЫЧНЫЕ.get(форма);
+    if (обычное && тонСлога(обычное) !== т) {
+      if (!отсеяно.some((з) => з.zh === форма && з.pinyin === pinyin)) отсеяно.push({ zh: форма, pinyin, customary: обычное });
+      return;
+    }
     if (банк[т].some((з) => з.pinyin === pinyin)) return;      // один слог одного звучания — один раз
     банк[т].push({ zh: форма, pinyin });
   });
@@ -260,8 +302,15 @@ export interface ZhSyllable { zh: string; pinyin: string }
 /** Ключ — номер тона (1–4). Нейтральных здесь нет: их не спрашивают. */
 export const ZH_TONE_BANK: Record<1 | 2 | 3 | 4, ZhSyllable[]> = ${JSON.stringify(банк, null, 0)};
 
+/**
+ * Выброшены: тон записанного чтения расходится с обычным чтением знака (kMandarin, Unihan через
+ * mozillazg/pinyin-data, MIT) — голос прочёл бы другой тон. Сторожит проба zh-pinyin.
+ */
+export const ZH_TONE_BANK_DROPPED: { zh: string; pinyin: string; customary: string }[] = ${JSON.stringify(отсеяно, null, 0)};
+
 export const ZH_TONE_BANK_COUNT = ${Object.values(банк).reduce((s, a) => s + a.length, 0)};
 `, 'utf8');
 
 console.log(`словарь: ${словарь.length} слов (собрано посимвольно ${словарь.filter((з) => з.composed).length}), не нашлось ${пропущены.length}${пропущены.length ? ': ' + пропущены.join(' ') : ''}`);
 console.log(`банк тонов: ${Object.entries(банк).map(([т, а]) => `тон ${т} — ${а.length}`).join(', ')}`);
+console.log(`отсеяно по обычному чтению: ${отсеяно.length}${отсеяно.length ? ' — ' + отсеяно.map((з) => `${з.zh} ${з.pinyin}→${з.customary}`).join(' ') : ''}`);
