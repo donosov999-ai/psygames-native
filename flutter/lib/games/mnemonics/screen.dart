@@ -139,6 +139,10 @@ class MnemonicsScreenState extends State<MnemonicsScreen> {
               ? wanted
               : 'words';
       _freeCount = GamePreset.num('itemCount', levelParams(1).itemCount);
+      // Переключатель опоры сразу в том положении, в каком её покажет партия: с 7-го уровня
+      // лестница снимает опору. В вебе настройка до старта показывала «Показывать» на любом
+      // уровне, а при старте опора молча исчезала — здесь настройка не обещает лишнего.
+      _aidVisible = _ladder.level <= 6;
     });
     // Шаг зарядки стартует сам и НЕ по уровню — как в вебе (`useAutostartWhenReady` → startGame()).
     if (mounted && GamePreset.autostart) _start(byLevel: false);

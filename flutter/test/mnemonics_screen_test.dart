@@ -223,6 +223,37 @@ void main() {
     expect(s.items, hasLength(5), reason: 'свободная партия уровень не меняет');
   });
 
+  testWidgets('📏 узкий экран 360×640: самые тяжёлые фазы без переполнения', (tester) async {
+    tester.view.physicalSize = const Size(360 * 3, 640 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    // 11-й уровень: 15 чисел с опорой (переключатель включён вручную), таблица кода, правило уровня.
+    final s = await boot(tester, level: 11);
+    await tap(tester, 'mnemonics-mode-numbers');
+    expect(tester.widget<ChoiceChip>(find.byKey(const ValueKey('mnemonics-aid'))).selected, isFalse,
+        reason: 'с 7-го уровня опора снята — настройка обязана это показывать до старта');
+    await tap(tester, 'mnemonics-aid');
+    await tap(tester, 'mnemonics-start');
+    expect(s.items, hasLength(15));
+    expect(find.byKey(const ValueKey('mnemonics-peg-word-14')), findsOneWidget, reason: 'опору включили вручную');
+    await tap(tester, 'mnemonics-check');
+    for (var i = 0; i < levelParams(11).mathTrials; i += 1) {
+      await tap(tester, 'mnemonics-gap-${s.example!.answer}');
+    }
+    expect(s.phase, MnemoPhase.check);
+    await restore(tester, s);
+    expect(s.phase, MnemoPhase.result);
+    await tester.pumpWidget(const SizedBox());
+    // 35-й уровень «Опор»: шесть вариантов в ряду ответа.
+    final p = await boot(tester, level: 35);
+    await tap(tester, 'mnemonics-mode-pegs');
+    await tap(tester, 'mnemonics-start');
+    expect(p.question!.options, hasLength(6));
+    await tester.pump(const Duration(seconds: 1));
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('🔴 шаг зарядки: режим из шага, стартует сам, длина ряда не выше уровня + 2', (tester) async {
     GamePreset.set({'wu': '1', 'mode': 'numbers', 'itemCount': '20'});
     final s = await boot(tester);
