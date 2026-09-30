@@ -1,0 +1,1 @@
+{"source":"frontend/src/services/phonemicFluency.ts","scripts":{"ru":{"letters":["К","Л","М","П","С","Т","Б","В","Г","Д","Н","Р"],"chars":"^[а-яё-]+$","vowels":"[аеёиоуыэюя]","ignoreCase":true},"en":{"letters":["F","A","S","B","C","D","M","P","R","T","L","N"],"chars":"^[a-z-]+$","vowels":"[aeiouy]","ignoreCase":true}},"wordLangs":["ru","en"]}

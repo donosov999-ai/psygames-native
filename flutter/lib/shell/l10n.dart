@@ -41,7 +41,20 @@ class L {
     final loc = resolve(code);
     final b = bundle ?? rootBundle;
     try {
-      final raw = await b.loadString('assets/l10n/$loc.json');
+      // 🔴 БАЙТЫ ДЕКОДИРУЕМ САМИ, А НЕ `loadString`. У `AssetBundle.loadString` порог:
+      // строку от 50 КБ он отдаёт в `compute()` — в отдельный изолят
+      // (`asset_bundle.dart`, `lengthInBytes < 50 * 1024`). В пробах `testWidgets`
+      // время поддельное, изолят не дожидается, и загрузка словаря висит до
+      // таймаута в 10 минут — молча, с виду как зависание экрана.
+      // 📍 Замер 30.09.2026: `ru.json` вырос с 50 619 до 52 431 байта (девять ключей
+      // разбора анаграмм) — и `goods_set_picker_test` повис и на CI, и локально,
+      // хотя его код не менялся; на main с 50 619 байтами он зелёный. `hi.json` уже
+      // 61 019 — за порогом. Мина росла с каждым ключом, взорвалась на том, кто
+      // пересёк 51 200 первым.
+      // Цена в приложении — синхронный разбор до ~64 КБ один раз при старте и при
+      // смене языка: по оценке самого Flutter 50 КБ — 2–3 мс на Moto G4.
+      final data = await b.load('assets/l10n/$loc.json');
+      final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
       _dict = (jsonDecode(raw) as Map<String, dynamic>).cast<String, String>();
       _locale = loc;
     } catch (_) {
