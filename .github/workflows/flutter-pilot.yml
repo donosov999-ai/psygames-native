@@ -140,6 +140,22 @@ jobs:
 
       - name: APK (release, без подписи)
         run: flutter build apk --release
+      # 🔴 ИТОГОВЫЙ РЕЛИЗНЫЙ МАНИФЕСТ ПРОСИТ СЕТЬ. Без INTERNET релиз падает на старте:
+      # AssetServer не откроет сокет на 127.0.0.1 (замер 01.10.2026, эмулятор Android 36).
+      # Шаблон Flutter кладёт строку только в debug/profile, и отладка это прячет, поэтому
+      # читаем тот манифест, что уходит в APK, — после слияния манифестов плагинов.
+      - name: Релизный манифест — сеть разрешена
+        run: |
+          set -eu
+          M=build/app/intermediates/packaged_manifests/release/processReleaseManifestForPackage/AndroidManifest.xml
+          [ -f "$M" ] || M=$(find build/app/intermediates -path '*release*' -name AndroidManifest.xml | head -1)
+          if [ -z "$M" ] || [ ! -f "$M" ]; then
+            echo "::error title=Манифест::не найден итоговый релизный манифест"; exit 1
+          fi
+          echo "манифест: $M"
+          grep -o 'uses-permission android:name="[^"]*"' "$M" | sort -u
+          grep -q 'android.permission.INTERNET' "$M" \
+            || { echo "::error title=Сеть::в релизном манифесте нет INTERNET — приложение упадёт на старте"; exit 1; }
       - name: AAB (release, без подписи)
         run: flutter build appbundle --release
       - name: Вес — числом в отчёт
