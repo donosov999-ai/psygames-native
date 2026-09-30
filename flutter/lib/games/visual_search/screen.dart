@@ -210,14 +210,14 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
       DemoTrial(
         text: '',
         rule: L.t('vsFindAll'),
-        art: _Glyph(shape: formOnly.shape, color: formOnly.color, size: 64),
+        art: VsGlyph(shape: formOnly.shape, color: formOnly.color, size: 64),
       ),
       DemoTrial(
         text: '',
         // Со восьмого уровня цель задаётся ПАРОЙ признаков, и отвлекающий делит
         // с ней ровно один — про это и правило второго примера.
         rule: L.t('vsFindConj'),
-        art: _Glyph(shape: pair.shape, color: pair.color, size: 64),
+        art: VsGlyph(shape: pair.shape, color: pair.color, size: 64),
       ),
     ];
   }
@@ -286,7 +286,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
                           color: const Color(0xFF1F2937),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: _Glyph(
+                        child: VsGlyph(
                           shape: _target.shape,
                           color: _target.color,
                           size: 26,
@@ -441,7 +441,7 @@ class _ItemView extends StatelessWidget {
             children: [
               Transform.rotate(
                 angle: item.rot * math.pi / 180,
-                child: _Glyph(shape: item.shape, color: item.color, size: 26),
+                child: VsGlyph(shape: item.shape, color: item.color, size: 26),
               ),
               if (item.decoy)
                 // Точка в середине — единственное отличие приманки от цели. Своя, а
@@ -467,8 +467,10 @@ Color _color(String hex) =>
 
 /// Фигура рисуется теми же черточками, что в вебе: стебель плюс перекладина на
 /// своём месте. T, plus и I держат стебель по центру, L — слева.
-class _Glyph extends StatelessWidget {
-  const _Glyph({
+/// Фигура зрительного поиска. Геометрия — ДОЛЯМИ размера: на 26 точках (доска игры) это
+/// те же 11/5/3 точки, что были; крупнее (разбор, окна раннера «Поиска») — не съезжает.
+class VsGlyph extends StatelessWidget {
+  const VsGlyph({
     super.key,
     required this.shape,
     required this.color,
@@ -482,7 +484,8 @@ class _Glyph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final paint = _color(color.isEmpty ? vsNeutral : color);
-    const sw = 3.0;
+    final u = size / 26;
+    final sw = 3.0 * u;
     final centerStem =
         shape == VsShape.t || shape == VsShape.plus || shape == VsShape.i;
     return SizedBox(
@@ -493,7 +496,7 @@ class _Glyph extends StatelessWidget {
           Positioned(
             top: 0,
             bottom: 0,
-            left: centerStem ? 11 : 5,
+            left: (centerStem ? 11 : 5) * u,
             width: sw,
             child: ColoredBox(color: paint),
           ),
@@ -507,7 +510,7 @@ class _Glyph extends StatelessWidget {
             ),
           if (shape == VsShape.plus)
             Positioned(
-              top: 11,
+              top: 11 * u,
               left: 0,
               right: 0,
               height: sw,
@@ -516,7 +519,7 @@ class _Glyph extends StatelessWidget {
           if (shape == VsShape.l)
             Positioned(
               bottom: 0,
-              left: 5,
+              left: 5 * u,
               right: 0,
               height: sw,
               child: ColoredBox(color: paint),

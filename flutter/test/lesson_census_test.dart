@@ -84,6 +84,7 @@ void main() {
     '/games/anagrams?mode=all',
     '/games/anagrams?mode=cross',
     '/games/anagrams?mode=square',
+    '/games/search-runner',
   ];
 
 
