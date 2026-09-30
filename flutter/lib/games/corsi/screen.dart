@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -6,6 +7,7 @@ import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -72,6 +74,9 @@ class _CorsiScreenState extends State<CorsiScreen> {
     _lit = null;
     _revealed = false;
     _startedAt = null;
+    // Новая раздача — партия снова зачётная. Без этого одна открытая карточка
+    // разбора замораживала лестницу: отметка общая на всё приложение.
+    LessonUsed.reset();
   }
 
   void _start() {
@@ -169,21 +174,6 @@ class _CorsiScreenState extends State<CorsiScreen> {
     }
   }
 
-  /// Разбор «Кубиков Корси» — карточки приёмов, как у соседних игр на память
-  /// («Цифровой ряд», «Матрица памяти»). Заведён 30.09.2026 координатором: при
-  /// переносе на Flutter экран приехал без разбора, и гейт `lesson_census_test`
-  /// держал main красным для всех разделов — «без разбора остались: /games/corsi».
-  ///
-  /// Приёмы три, и каждый про то, на чём здесь реально ошибаются: вспышки держат
-  /// маршрутом, а не по одной; обратный порядок складывают вперёд и проходят с
-  /// конца, а не разворачивают на лету; и не отводят взгляд — одна пропущенная
-  /// вспышка рвёт весь маршрут.
-  List<DemoTrial> _demoTrials() => [
-        DemoTrial(text: '', rule: L.t('teachCorsiPath')),
-        DemoTrial(text: '', rule: L.t('teachCorsiBackward')),
-        DemoTrial(text: '', rule: L.t('teachCorsiEyes')),
-      ];
-
   @override
   Widget build(BuildContext context) {
     final g = _game;
@@ -192,7 +182,7 @@ class _CorsiScreenState extends State<CorsiScreen> {
     }
     return GameShell(
       title: L.t('corsi'),
-      onLesson: () => openDemoLesson(context, title: L.t('corsi'), trials: _demoTrials()),
+      onLesson: () => openDemoLesson(context, title: L.t('corsi'), trials: corsiLessonTrials()),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
@@ -284,37 +274,23 @@ class _Board extends StatelessWidget {
         // 🔴 Доска влезает целиком: масштаб берётся от МЕНЬШЕГО из ширины и высоты
         // поля. Подпись фазы занимает свою строку и в этот расчёт не лезет.
         const captionH = 34.0;
-        final scale = ((c.maxWidth - 24) / corsiBoardWidth)
-            .clamp(0.1, (height - captionH) / corsiBoardHeight);
-        final block = 60 * scale;
         return Column(
           children: [
             SizedBox(
               height: captionH,
               child: Center(child: Text(_caption(), style: Theme.of(context).textTheme.bodyMedium)),
             ),
-            SizedBox(
-              width: corsiBoardWidth * scale,
-              height: corsiBoardHeight * scale,
-              child: Stack(
-                children: [
-                  for (var i = 0; i < corsiPositions.length; i++)
-                    Positioned(
-                      left: corsiPositions[i].x * scale - block / 2,
-                      top: corsiPositions[i].y * scale - block / 2,
-                      width: block,
-                      height: block,
-                      child: _Block(
-                        index: i,
-                        game: game,
-                        phase: phase,
-                        feedback: feedback,
-                        lit: lit,
-                        order: revealed ? game.expected.indexOf(i) + 1 : 0,
-                        onTap: onTap,
-                      ),
-                    ),
-                ],
+            CorsiBoardView(
+              width: c.maxWidth - 24,
+              height: height - captionH,
+              block: (i, side) => _Block(
+                index: i,
+                game: game,
+                phase: phase,
+                feedback: feedback,
+                lit: lit,
+                order: revealed ? game.expected.indexOf(i) + 1 : 0,
+                onTap: onTap,
               ),
             ),
           ],
@@ -392,4 +368,170 @@ class _Block extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Доска Корси — ОДНА для партии и для разбора: девять блоков в точках веб-доски,
+/// масштаб от меньшего из ширины и высоты. Разбор, нарисованный «похоже», учил бы не
+/// той игре: здесь трудность и есть расположение блоков.
+class CorsiBoardView extends StatelessWidget {
+  const CorsiBoardView({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.block,
+    this.route = const [],
+  });
+
+  final double width;
+  final double height;
+  final Widget Function(int index, double side) block;
+
+  /// Линия маршрута через центры блоков — только в разборе.
+  final List<int> route;
+
+  @override
+  Widget build(BuildContext context) {
+    final scale = (width / corsiBoardWidth).clamp(0.1, height / corsiBoardHeight);
+    final side = 60 * scale;
+    return SizedBox(
+      width: corsiBoardWidth * scale,
+      height: corsiBoardHeight * scale,
+      child: Stack(
+        children: [
+          if (route.length > 1)
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _RoutePainter(route, scale, Theme.of(context).colorScheme.primary),
+              ),
+            ),
+          for (var i = 0; i < corsiPositions.length; i++)
+            Positioned(
+              left: corsiPositions[i].x * scale - side / 2,
+              top: corsiPositions[i].y * scale - side / 2,
+              width: side,
+              height: side,
+              child: block(i, side),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoutePainter extends CustomPainter {
+  _RoutePainter(this.route, this.scale, this.color);
+  final List<int> route;
+  final double scale;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.55)
+      ..strokeWidth = 4 * scale
+      ..strokeCap = StrokeCap.round;
+    for (var k = 1; k < route.length; k++) {
+      final a = corsiPositions[route[k - 1]];
+      final b = corsiPositions[route[k]];
+      canvas.drawLine(Offset(a.x * scale, a.y * scale), Offset(b.x * scale, b.y * scale), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RoutePainter old) => old.route != route || old.scale != scale || old.color != color;
+}
+
+/// Доска разбора: блоки ряда пронумерованы в ПОРЯДКЕ НАЖАТИЯ, между ними — маршрут.
+/// `level` и `sequence` — те, по которым пример собран, чтобы проба могла сыграть
+/// показанный ответ настоящей партией.
+class CorsiLessonArt extends StatelessWidget {
+  const CorsiLessonArt({
+    super.key,
+    required this.level,
+    required this.sequence,
+    this.missedStep,
+  });
+
+  final int level;
+
+  /// Ряд в порядке ПОКАЗА.
+  final List<int> sequence;
+
+  /// Шаг ответа (с нуля), вспышку которого человек пропустил взглядом: на доске «?».
+  final int? missedStep;
+
+  /// Порядок нажатия — правилом самой игры, а не своей копией.
+  List<int> get order => CorsiGame(level: level, sequence: sequence).expected;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final answer = order;
+    // ⚠️ Размер подобран под карточку плеера: общая DemoCard сжимает рисунок только
+    // по ширине (FittedBox в столбце), а по высоте нет — доска 280×294 вылезала на
+    // 57 px. Пропорции доски 400×420 сохранены: расположение блоков и есть задача.
+    return CorsiBoardView(
+      width: 200,
+      height: 210,
+      route: missedStep == null ? answer : const [],
+      block: (i, side) {
+        final step = answer.indexOf(i);
+        final missed = step >= 0 && step == missedStep;
+        final fill = step < 0
+            ? scheme.surface
+            : missed
+                ? scheme.errorContainer
+                : scheme.primaryContainer;
+        return DecoratedBox(
+          decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(10)),
+          child: step < 0
+              ? const SizedBox.expand()
+              : Center(
+                  child: Text(
+                    missed ? '?' : '${step + 1}',
+                    key: Key('урок-блок$i'),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: side * 0.42,
+                      color: missed ? scheme.onErrorContainer : scheme.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+        );
+      },
+    );
+  }
+}
+
+/// Примеры разбора — ИЗ ГЕНЕРАТОРА САМОЙ ИГРЫ, не придуманные: ряд тянет
+/// `CorsiGame.drawSequence`, порядок ответа считает `CorsiGame.expected`.
+///
+/// Три приёма, и каждый про то, на чём здесь ошибаются:
+/// · маршрут — вспышки складывают в путь, а не держат по одной (прямой порядок, L2);
+/// · обратный порядок — путь запоминают вперёд, а проходят с конца (с L10);
+/// · взгляд на доске — одна пропущенная вспышка рвёт весь маршрут, «?» на её месте.
+List<DemoTrial> corsiLessonTrials({Random? rnd}) {
+  final r = rnd ?? Random(930);
+  final forward = CorsiGame(level: 2, rnd: r).sequence;
+  final backward = CorsiGame(level: 10, rnd: r).drawSequence(4);
+  return [
+    DemoTrial(
+      text: '',
+      sub: L.t('reproduceForward'),
+      rule: L.t('teachCorsiPath'),
+      art: CorsiLessonArt(level: 2, sequence: forward),
+    ),
+    DemoTrial(
+      text: '',
+      sub: L.t('reproduceBackward'),
+      rule: L.t('teachCorsiBackward'),
+      art: CorsiLessonArt(level: 10, sequence: backward),
+    ),
+    DemoTrial(
+      text: '',
+      sub: L.t('reproduceForward'),
+      rule: L.t('teachCorsiEyes'),
+      art: CorsiLessonArt(level: 2, sequence: forward, missedStep: 2),
+    ),
+  ];
 }
