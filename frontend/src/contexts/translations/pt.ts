@@ -3044,5 +3044,13 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "A partir do nível 22, depois de um erro as cartas viradas para baixo trocam de lugar e o par se ilumina. Mova a figura na memória para onde a carta dela foi.",
   "vsFindAll": "Encontre todas estas formas — em qualquer rotação",
   "vsFindConj": "Encontre a forma desta cor e formato",
+  "teachEchoIntro": "Uma pseudopalavra não se adivinha pelo sentido — só dá para ouvi-la som por som, da esquerda para a direita. As armadilhas diferem em um só ponto.",
+  "teachEchoListen": "Ouça: guarde os sons em ordem na cabeça, não a impressão geral.",
+  "teachEchoVowel": "“{v}” — uma vogal trocada: {b} no lugar de {a}. Descarte.",
+  "teachEchoConsonant": "“{v}” — uma consoante trocada: {b} no lugar de {a}. Descarte.",
+  "teachEchoSwap": "“{v}” — sons vizinhos invertidos: {b} no lugar de {a}. Descarte.",
+  "teachEchoDouble": "“{v}” — um som a mais: {b} no lugar de {a}. Descarte.",
+  "teachEchoPick": "Sobra “{w}” — foi isso que foi dito.",
+  "teachEchoDone": "Responda assim: siga os sons em ordem e descarte qualquer opção em que pelo menos um ponto não bate.",
 };
 export default t;

@@ -3044,5 +3044,13 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "从第22关起，出错后背面朝上的卡片会交换位置，这一对会亮起。把记忆中的图移到它的卡片去的地方。",
   "vsFindAll": "找出所有这种图形 — 任意旋转方向",
   "vsFindConj": "找出这种颜色和形状的图形",
+  "teachEchoIntro": "假词没法靠意思猜——只能一个音一个音、从左到右听出来。干扰项只在一个地方不同。",
+  "teachEchoListen": "听：按顺序记住每个音，而不是整体印象。",
+  "teachEchoVowel": "“{v}”——换了一个元音：{b} 代替 {a}。排除。",
+  "teachEchoConsonant": "“{v}”——换了一个辅音：{b} 代替 {a}。排除。",
+  "teachEchoSwap": "“{v}”——相邻的音换了位置：{b} 代替 {a}。排除。",
+  "teachEchoDouble": "“{v}”——多了一个音：{b} 代替 {a}。排除。",
+  "teachEchoPick": "剩下“{w}”——念的就是它。",
+  "teachEchoDone": "就这样作答：按顺序跟着音走，只要有一处不符就排除。",
 };
 export default t;

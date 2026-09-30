@@ -3039,5 +3039,13 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "레벨 22부터는 실수하면 뒤집힌 카드들이 자리를 바꾸고 그 쌍이 빛나요. 카드가 옮겨 간 곳으로 기억 속 그림도 옮기세요.",
   "vsFindAll": "이 도형을 모두 찾으세요 — 방향은 상관없습니다",
   "vsFindConj": "이 색과 모양의 도형을 찾으세요",
+  "teachEchoIntro": "가짜 단어는 뜻으로 짐작할 수 없습니다 — 왼쪽에서 오른쪽으로 한 소리씩 들어야 합니다. 함정은 한 곳만 다릅니다.",
+  "teachEchoListen": "들으세요: 전체 인상이 아니라 소리를 순서대로 기억하세요.",
+  "teachEchoVowel": "“{v}” — 모음이 바뀌었습니다: {a} 대신 {b}. 제외합니다.",
+  "teachEchoConsonant": "“{v}” — 자음이 바뀌었습니다: {a} 대신 {b}. 제외합니다.",
+  "teachEchoSwap": "“{v}” — 이웃한 소리가 뒤바뀌었습니다: {a} 대신 {b}. 제외합니다.",
+  "teachEchoDouble": "“{v}” — 소리가 하나 더 있습니다: {a} 대신 {b}. 제외합니다.",
+  "teachEchoPick": "남는 것은 “{w}” — 이것이 들린 단어입니다.",
+  "teachEchoDone": "이렇게 답하세요: 소리를 순서대로 따라가고, 한 곳이라도 맞지 않으면 제외하세요.",
 };
 export default t;

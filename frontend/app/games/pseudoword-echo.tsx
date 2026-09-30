@@ -9,7 +9,7 @@
  * zh/hi исключены честно: дистракторы «на слух» для иероглифов/деванагари
  * не дают орфографически близких вариантов той же фонологии.
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -30,6 +30,9 @@ import { sndCorrect, sndWrong } from '@/src/services/feedback';
 import { generatePseudowords } from '@/src/services/pseudowords';
 import GameResult from '@/src/components/GameResult';
 import GameShell from '@/src/components/GameShell';
+import { GameAuxAction } from '@/src/components/GameAuxAction';
+import LessonPlayer from '@/src/components/LessonPlayer';
+import { собратьРазборЭха, type КарточкаЭха } from '@/src/games/pseudoword-echo/teach';
 import GameSetupBar, { SETUP_BAR_SPACE } from '@/src/components/GameSetupBar';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
@@ -72,7 +75,8 @@ const TARGET_LANGS = [
 ];
 
 // Классы букв — как в генераторе псевдослов (замена внутри класса → читается похоже).
-const VOWELS: Record<string, string> = {
+/** Экспорт — для разбора (`src/games/pseudoword-echo/teach.ts`): класс буквы тот же, что у генератора. */
+export const VOWELS: Record<string, string> = {
   en: 'aeiou',
   es: 'aeiouáéíóú',
   pt: 'aeiouáâãéêíóôõú',
@@ -328,7 +332,65 @@ export default function PseudowordEchoGame() {
     AsyncStorage.setItem(TL_KEY, code).catch(() => {});
   };
 
+  /**
+   * 🎓 РАЗБОР ПО ШАГАМ (Денис 17.09.2026, «раскатывай везде»): слушать по звукам и отбрасывать
+   * вариант, где место не совпало; вид каждой ловушки назван (`src/games/pseudoword-echo/teach.ts`).
+   * Пример — свежий раунд теми же правилами уровня (buildRounds), а не раунд партии: тот назвал бы
+   * ответ. Только на уровнях 1–3; партия с разбором не засчитывается.
+   */
+  const [урок, setУрок] = useState<{ карточки: КарточкаЭха[]; индекс: number; варианты: string[] } | null>(null);
+  const карточкаУрока = урок ? урок.карточки[урок.индекс] : null;
+  const урокВПартииRef = useRef(false);
+  const [итогСРазбором, setИтогСРазбором] = useState(false);
+  const разборДоступен = phase === 'playing' && levelRef.current <= 3;
+  const начатьРазбор = () => {
+    ttsCancel();
+    stopNoise();
+    const p = парамRef.current;
+    const текущее = rounds[idx]?.word;
+    let пример = buildRounds(tgtRef.current, 1, p.lenMin, p.lenMax, p.hardShare)[0];
+    for (let i = 0; i < 5 && пример && пример.word === текущее; i++) {
+      пример = buildRounds(tgtRef.current, 1, p.lenMin, p.lenMax, p.hardShare)[0];
+    }
+    if (!пример || пример.word === текущее) return;
+    урокВПартииRef.current = true;
+    const { карточки } = собратьРазборЭха(пример, VOWELS[tgtRef.current] || VOWELS.en!);
+    setУрок({ карточки, индекс: 0, варианты: пример.options });
+  };
+  const урокДальше = useCallback(
+    () => setУрок((у) => (у && у.индекс + 1 < у.карточки.length ? { ...у, индекс: у.индекс + 1 } : у)),
+    [],
+  );
+  const урокНазад = useCallback(
+    () => setУрок((у) => (у && у.индекс > 0 ? { ...у, индекс: у.индекс - 1 } : у)),
+    [],
+  );
+  const урокЗакрыть = useCallback(() => { ttsCancel(); setУрок(null); }, []);
+  const текстУрока = карточкаУрока
+    ? Object.entries(карточкаУрока.поля ?? {}).reduce(
+      (текст, [ключ, знач]) => текст.replace(new RegExp(`\\{${ключ}\\}`, 'g'), String(знач)),
+      t(карточкаУрока.ключ) as string,
+    )
+    : '';
+  /** Карточка со словом звучит сама: разбор про слух. */
+  useEffect(() => {
+    if (!урок) return;
+    const к = урок.карточки[урок.индекс];
+    if (!к || !к.звук.length) return;
+    let отменено = false;
+    const таймер = setTimeout(async () => {
+      for (const слово of к.звук) {
+        if (отменено) return;
+        await speak(слово, tgtRef.current, 0.85);
+      }
+    }, 350);
+    return () => { отменено = true; clearTimeout(таймер); ttsCancel(); };
+  }, [урок]);
+
   const startGame = () => {
+    урокВПартииRef.current = false;
+    setИтогСРазбором(false);
+    setУрок(null);
     const p = levelParams(lvl.level);
     парамRef.current = p;
     levelRef.current = lvl.level;
@@ -352,9 +414,14 @@ export default function PseudowordEchoGame() {
     const h = hitsRef.current;
     const e = errorsRef.current;
     const passed = e <= 1;
-    if (passed && !isPreset) lvl.reach(levelRef.current + 1);
-    if (!passed && !isPreset) lvl.fail();   // симметрия лестницы: три провала подряд → −1 уровень
-    if (isPreset) {
+    const сРазбором = урокВПартииRef.current;
+    setИтогСРазбором(сРазбором);
+    // Партия с разбором не засчитывается: ни подъёма, ни провала.
+    if (passed && !isPreset && !сРазбором) lvl.reach(levelRef.current + 1);
+    if (!passed && !isPreset && !сРазбором) lvl.fail();   // симметрия лестницы: три провала подряд → −1 уровень
+    if (сРазбором) {
+      setPhase('result');
+    } else if (isPreset) {
       setPhase(passed ? 'cleared' : 'result');
     } else {
       setClearedPassed(passed);
@@ -378,6 +445,7 @@ export default function PseudowordEchoGame() {
           trials: total,
           target_lang: tgtRef.current,
           word_len: lenRangeRef.current,
+          ...(сРазбором ? { lesson: true } : {}),
         },
       });
     } catch (err) {
@@ -521,6 +589,10 @@ export default function PseudowordEchoGame() {
             <LevelRuleBadge lr={levelRules} color={GRADIENT[0]} ru={language === 'ru'} />
           </View>
         }
+        /** 🎓 «Разбор» — значком в общем ряду под полем, как у всех игр. */
+        headerActions={разборДоступен ? (
+          <GameAuxAction compact icon="school-outline" tint="#d97706" label={t('teachButton')} onPress={начатьРазбор} />
+        ) : undefined}
         bottom="answer"
         toolbar={<View style={styles.optionsCol}>
               {round.options.map((opt) => {
@@ -568,6 +640,50 @@ export default function PseudowordEchoGame() {
 
         </View>
         <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
+        {/*
+          🎓 РАЗБОР НА ВЕСЬ ЭКРАН. Поле — четыре варианта раунда: отсеянные зачёркнуты, у разбираемого
+          подчёркнуто место отличия, на ответе услышанное слово в зелёной рамке.
+        */}
+        <LessonPlayer
+          visible={!!урок}
+          индекс={урок?.индекс ?? 0}
+          шагов={Math.max(0, (урок?.карточки.length ?? 1) - 1)}
+          текст={текстУрока}
+          сноска={урок?.индекс === 0 ? t('teachNotCounted') : undefined}
+          готово={карточкаУрока?.вид === 'готово'}
+          занят={false}
+          renderBoard={(сторона) => {
+            const к = карточкаУрока;
+            return (
+              <View style={[styles.разборСтолбец, { width: сторона }]}>
+                {(урок?.варианты ?? []).map((в) => {
+                  const отсеян = !!к?.отсеяно.includes(в) && !(к?.вид === 'отсев' && к.вариант === в);
+                  const разбираем = к?.вид === 'отсев' && к.вариант === в;
+                  const ответ = (к?.вид === 'ответ' || к?.вид === 'готово') && в === урок?.карточки.find((x) => x.вид === 'ответ')?.вариант;
+                  const б = Array.from(в);
+                  const [с, по] = разбираем && к?.где ? к.где : [0, 0];
+                  return (
+                    <View key={в} style={[styles.разборВариант, {
+                      borderColor: ответ ? '#22c55e' : разбираем ? GRADIENT[0] : colors.border,
+                      borderWidth: ответ || разбираем ? 3 : 1,
+                      backgroundColor: colors.surface,
+                      opacity: отсеян ? 0.45 : 1,
+                    }]}>
+                      <Text style={[styles.разборВариантТекст, { color: colors.text, textDecorationLine: отсеян ? 'line-through' : 'none' }]}>
+                        {б.slice(0, с).join('')}
+                        {по > с ? <Text style={{ color: GRADIENT[0], textDecorationLine: 'underline' }}>{б.slice(с, по).join('')}</Text> : null}
+                        {б.slice(по).join('')}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          }}
+          onДальше={урокДальше}
+          onНазад={урокНазад}
+          onЗакрыть={урокЗакрыть}
+        />
       </GameShell>
     );
   }
@@ -605,6 +721,7 @@ export default function PseudowordEchoGame() {
           onPlayAgain={() => setPhase('config')}
           onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]}
+          metricsNote={итогСРазбором ? [t('teachNotCounted')] : undefined}
         />
       )}
       <LevelRuleModal lr={levelRules} colors={colors} ru={language === 'ru'} />
@@ -613,6 +730,9 @@ export default function PseudowordEchoGame() {
 }
 
 const styles = StyleSheet.create({
+  разборСтолбец: { alignItems: 'stretch', gap: 10 },
+  разборВариант: { borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center' },
+  разборВариантТекст: { fontSize: 24, fontWeight: '800', letterSpacing: 1 },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 16, justifyContent: 'space-between' },
   backBtn: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },

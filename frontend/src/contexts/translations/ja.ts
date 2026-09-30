@@ -3038,5 +3038,13 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "レベル22からは、ミスのあと伏せたカードが入れ替わり、その組が光ります。カードが移った先へ、記憶の中の絵も動かしましょう。",
   "vsFindAll": "この形をすべて見つけよう — 向きは自由",
   "vsFindConj": "この色と形の図形を見つけよう",
+  "teachEchoIntro": "無意味語は意味から推測できません——左から右へ、一音ずつ聞き取るしかありません。ひっかけは一か所だけ違います。",
+  "teachEchoListen": "聞きましょう：全体の印象ではなく、音を順番に頭に留めます。",
+  "teachEchoVowel": "「{v}」——母音がすり替わっています：{a} の代わりに {b}。除外します。",
+  "teachEchoConsonant": "「{v}」——子音がすり替わっています：{a} の代わりに {b}。除外します。",
+  "teachEchoSwap": "「{v}」——隣り合う音が入れ替わっています：{a} の代わりに {b}。除外します。",
+  "teachEchoDouble": "「{v}」——音が一つ多いです：{a} の代わりに {b}。除外します。",
+  "teachEchoPick": "残るのは「{w}」——これが読まれた語です。",
+  "teachEchoDone": "この要領で答えましょう：音を順に追い、一か所でも合わない選択肢は除外する。",
 };
 export default t;

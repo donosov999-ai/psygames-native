@@ -3044,5 +3044,13 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Ab Level 22 tauschen nach einem Fehler verdeckte Karten die Plätze, und das Paar leuchtet auf. Verschiebe das Bild im Kopf dorthin, wo seine Karte hingewandert ist.",
   "vsFindAll": "Finde alle diese Formen — in jeder Drehung",
   "vsFindConj": "Finde die Form in dieser Farbe",
+  "teachEchoIntro": "Ein Pseudowort lässt sich nicht aus der Bedeutung erraten — man kann es nur Laut für Laut hören, von links nach rechts. Die Fallen weichen an einer Stelle ab.",
+  "teachEchoListen": "Hör zu: Behalte die Laute der Reihe nach im Kopf, nicht den Gesamteindruck.",
+  "teachEchoVowel": "„{v}“ — ein Vokal ist vertauscht: {b} statt {a}. Weg damit.",
+  "teachEchoConsonant": "„{v}“ — ein Konsonant ist vertauscht: {b} statt {a}. Weg damit.",
+  "teachEchoSwap": "„{v}“ — benachbarte Laute sind vertauscht: {b} statt {a}. Weg damit.",
+  "teachEchoDouble": "„{v}“ — ein Laut zu viel: {b} statt {a}. Weg damit.",
+  "teachEchoPick": "Übrig bleibt „{w}“ — genau das wurde gesagt.",
+  "teachEchoDone": "So antwortest du auch: Folge den Lauten der Reihe nach und streiche jede Option, bei der auch nur eine Stelle nicht passt.",
 };
 export default t;

@@ -910,6 +910,18 @@ const translations: Translations = {
   phonemePairsDesc: { ru: 'Услышь разницу: ship или sheep?', en: 'Hear the difference: ship or sheep?' },
   pseudowordEcho: { ru: 'Эхо: псевдослова', en: 'Echo: Pseudowords' },
   pseudowordEchoDesc: { ru: 'Услышал выдуманное слово — найди его написание', en: 'Hear a made-up word — pick its spelling' },
+  /*
+   * 🎓 РАЗБОР «ЭХА ПСЕВДОСЛОВ» (30.09.2026): слушать по звукам и отбрасывать вариант, где место не
+   * совпало. {v} — ловушка, {a} → {b} — что было в слове и что стоит в ловушке (вид — из генератора игры).
+   */
+  teachEchoIntro: { ru: 'Псевдослово не угадать по смыслу — его можно только услышать по звукам, слева направо. Ловушки отличаются от него одним местом.', en: 'A pseudoword cannot be guessed from meaning — you can only hear it sound by sound, left to right. The traps differ from it in one spot.' },
+  teachEchoListen: { ru: 'Слушайте: держите в голове звуки по порядку, а не общее впечатление.', en: 'Listen: keep the sounds in order in your head, not the overall impression.' },
+  teachEchoVowel: { ru: '«{v}» — подменена гласная: {b} вместо {a}. Отбрасываем.', en: '“{v}” — a vowel is swapped: {b} instead of {a}. Rule it out.' },
+  teachEchoConsonant: { ru: '«{v}» — подменена согласная: {b} вместо {a}. Отбрасываем.', en: '“{v}” — a consonant is swapped: {b} instead of {a}. Rule it out.' },
+  teachEchoSwap: { ru: '«{v}» — соседние звуки переставлены: {b} вместо {a}. Отбрасываем.', en: '“{v}” — neighbouring sounds are switched: {b} instead of {a}. Rule it out.' },
+  teachEchoDouble: { ru: '«{v}» — лишний звук: {b} вместо {a}. Отбрасываем.', en: '“{v}” — an extra sound: {b} instead of {a}. Rule it out.' },
+  teachEchoPick: { ru: 'Остаётся «{w}» — его и произнесли.', en: 'That leaves “{w}” — that is what was said.' },
+  teachEchoDone: { ru: 'Так и отвечайте: слушайте звуки по порядку и отбрасывайте вариант, где хоть одно место не совпало.', en: 'Answer the same way: follow the sounds in order and rule out any option where even one spot does not match.' },
   listeningSpan: { ru: 'Слуховой охват', en: 'Listening Span' },
   listeningSpanDesc: { ru: 'Слова на слух — повтори порядок', en: 'Hear the words — repeat the order' },
   // v1.29.0 (Полиглот TIER 1 п.2/4/5): лексическое решение, Cloze, сортировка слов

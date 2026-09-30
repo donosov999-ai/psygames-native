@@ -3039,5 +3039,13 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Dal livello 22, dopo un errore le carte coperte si scambiano di posto e la coppia si illumina. Sposta l'immagine nella memoria dove è finita la sua carta.",
   "vsFindAll": "Trova tutte queste figure — in qualsiasi rotazione",
   "vsFindConj": "Trova la figura di questo colore e forma",
+  "teachEchoIntro": "Una pseudoparola non si indovina dal significato: si può solo sentirla suono per suono, da sinistra a destra. Le trappole differiscono in un solo punto.",
+  "teachEchoListen": "Ascolta: tieni a mente i suoni in ordine, non l’impressione generale.",
+  "teachEchoVowel": "«{v}»: cambiata una vocale, {b} al posto di {a}. Scartala.",
+  "teachEchoConsonant": "«{v}»: cambiata una consonante, {b} al posto di {a}. Scartala.",
+  "teachEchoSwap": "«{v}»: suoni vicini invertiti, {b} al posto di {a}. Scartala.",
+  "teachEchoDouble": "«{v}»: un suono in più, {b} al posto di {a}. Scartala.",
+  "teachEchoPick": "Resta «{w}»: è quello che è stato detto.",
+  "teachEchoDone": "Rispondi così: segui i suoni in ordine e scarta ogni opzione in cui anche un solo punto non torna.",
 };
 export default t;
