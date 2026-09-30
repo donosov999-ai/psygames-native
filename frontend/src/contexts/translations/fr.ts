@@ -2411,8 +2411,6 @@ const t: Record<string, string> = {
   "scholarsMedian": "Médiane",
   "scholarsUsually": "sur {n} manches",
   "scholarsBest": "La bonne réponse était",
-  "scholarsYes": "Oui",
-  "scholarsNo": "Non",
   "ballGlossy": "Brillantes",
   "ballGlass": "En verre",
   "ballFluffy": "Duveteuses",
