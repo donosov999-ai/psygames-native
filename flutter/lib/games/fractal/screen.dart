@@ -10,7 +10,9 @@ import '../../shell/shared_state.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
 import '../../shell/lesson_player.dart';
+import '../sudoku/keypad.dart';
 import '../sudoku/lesson.dart';
+import '../sudoku/marks.dart';
 import 'levels.dart';
 import 'rules.dart';
 
@@ -32,6 +34,13 @@ import 'rules.dart';
 /// Правила — `rules.dart`, сверенный с живым TS лентой из 38 ходов. Партии — данными
 /// (`levels.dart`, 90 штук). Уровень — общий ключ с веб-версией
 /// `psygames_sudoku_fractal_level_<профиль>`.
+///
+/// 🔴 КАРАНДАШ И ЦВЕТ — КАК В КЛАССИКЕ (отзыв Дениса 4b95bced, 18.09: «почему тут не
+/// как в судоку классический интерфейс?»; решение 30.09 — «Делать»). Веб-фрактал их
+/// имел (`tool: digit | pencil | paint`, пометки у корня и у каждой дочерней), а первый
+/// перенос увёз только цифры. Органы теперь общие с классикой: `marks.dart` (пометки,
+/// девять цветов) и `keypad.dart` (клавиши и палитра на их месте). Свой вид фрактала —
+/// карта, плитки, порталы — не трогается.
 class FractalScreen extends StatefulWidget {
   const FractalScreen({super.key, required this.state});
 
@@ -47,7 +56,19 @@ class _FractalScreenState extends State<FractalScreen> {
   FractalPuzzle? _puzzle;
   FractalPlayState? _play;
 
-  final List<FractalMove> _history = [];
+  /// История трёх видов шагов, как в классике: цифра, пометка, цвет. Пока история
+  /// знала только цифры, отмена молча пропускала пометку — кнопка, которая работает
+  /// через раз, хуже отсутствующей.
+  final List<_Step> _history = [];
+
+  /// Пометки и раскраска — своя раскладка у корня и у каждой дочерней, как в вебе
+  /// (`marks.root` / `marks.children[i]`). Индекс 0 — корень, 1…9 — дочерние.
+  List<List<List<int>>> _marks = const [];
+  List<List<List<int>>> _colors = const [];
+
+  /// Карандаш и цвет выключают друг друга — правило классики.
+  bool _pencil = false;
+  int? _paint;
 
   /// `null` — карта, иначе номер открытой дочерней.
   int? _openChild;
@@ -83,11 +104,18 @@ class _FractalScreenState extends State<FractalScreen> {
       _failure = puzzle == null ? 'Партий этой ступени нет в данных' : null;
       _play = puzzle == null ? null : startPlayState(puzzle);
       _history.clear();
+      _marks = [for (var i = 0; i < 10; i++) emptyPencilMarks(9)];
+      _colors = [for (var i = 0; i < 10; i++) emptyCellColors(9)];
+      _pencil = false;
+      _paint = null;
       _openChild = null;
       _selected = null;
       _won = false;
     });
   }
+
+  /// Раскладка пометок/цвета: 0 — корень, 1…9 — дочерние.
+  static int _gridOf(int? child) => child == null ? 0 : child + 1;
 
   int get _unlocked => _play?.children.where((c) => c.done).length ?? 0;
 
@@ -110,6 +138,13 @@ class _FractalScreenState extends State<FractalScreen> {
 
   void _select(int? child, int r, int c) {
     if (_won) return;
+    // В цвете касание КРАСИТ, а не выбирает — как в классике; красить можно и
+    // заданную клетку: цвет — бухгалтерия игрока, а не ход.
+    final paint = _paint;
+    if (paint != null) {
+      _paintCell(child, r, c, paint);
+      return;
+    }
     final f = _puzzle!;
     if (child == null && !rootEditable(f.rootPuzzle, r, c)) return;
     if (child != null && f.children[child].puzzle[r][c] != 0) return;
@@ -124,7 +159,7 @@ class _FractalScreenState extends State<FractalScreen> {
 
     setState(() {
       _play = res.next;
-      _history.add(res.move);
+      _history.add(_Step.digit(res.move));
       // Дочерняя дошла до порога — сама возвращаем на карту: цифра ушла наверх, и это
       // надо показать, а не оставить человека смотреть на уже открытую сетку.
       if (res.move.unlocked && _openChild == sel.child) {
@@ -138,13 +173,72 @@ class _FractalScreenState extends State<FractalScreen> {
     });
   }
 
-  void _erase() => _place(0);
+  /// Ластик: в карандаше чистит пометки клетки целиком, иначе стирает цифру.
+  void _erase() => _onKey(0);
+
+  /// Нажатие клавиши: в карандаше — пометка, иначе цифра. Решает общий разбор
+  /// (`routeDigitPress`), тот же, что у классики.
+  void _onKey(int value) {
+    final sel = _selected;
+    final route = routeDigitPress(
+      pencil: _pencil,
+      hasSelection: sel != null,
+      given: false,   // заданные клетки фрактала не выбираются вовсе (_select)
+      blocked: _won,
+    );
+    switch (route) {
+      case PencilRoute.ignore:
+        return;
+      case PencilRoute.pencil:
+        _mark(sel!.child, sel.r, sel.c, value);
+      case PencilRoute.digit:
+        _place(value);
+    }
+  }
+
+  void _mark(int? child, int r, int c, int digit) {
+    final g = _gridOf(child);
+    setState(() {
+      final was = _marks[g][r][c];
+      _history.add(_Step.note(_StepKind.mark, g, r, c, was));
+      _marks[g][r][c] = pencilInput(was, digit);
+    });
+  }
+
+  void _paintCell(int? child, int r, int c, int color) {
+    final g = _gridOf(child);
+    setState(() {
+      final was = _colors[g][r][c];
+      _history.add(_Step.note(_StepKind.color, g, r, c, was));
+      _colors[g][r][c] = toggleCellColor(was, color);
+    });
+  }
 
   void _undo() {
     final f = _puzzle, p = _play;
     if (f == null || p == null || _history.isEmpty || _won) return;
-    setState(() => _play = revertMove(p, f, _history.removeLast()));
+    setState(() {
+      final last = _history.removeLast();
+      switch (last.kind) {
+        case _StepKind.digit:
+          _play = revertMove(p, f, last.move!);
+        case _StepKind.mark:
+          _marks[last.grid][last.r][last.c] = last.was;
+        case _StepKind.color:
+          _colors[last.grid][last.r][last.c] = last.was;
+      }
+    });
   }
+
+  void _togglePencil() => setState(() {
+        _pencil = !_pencil;
+        if (_pencil) _paint = null;
+      });
+
+  void _togglePaint() => setState(() {
+        _paint = _paint == null ? 0 : null;
+        if (_paint != null) _pencil = false;
+      });
 
   /// 🔴 РАЗБОР ФРАКТАЛА — ПО ТОЙ СЕТКЕ, ГДЕ ЧЕЛОВЕК СЕЙЧАС.
   ///
@@ -231,6 +325,8 @@ class _FractalScreenState extends State<FractalScreen> {
           return _MapView(
             puzzle: f,
             play: p,
+            marks: _marks[0],
+            colors: _colors[0],
             height: height,
             selected: _selected,
             progress: _progress,
@@ -242,6 +338,8 @@ class _FractalScreenState extends State<FractalScreen> {
           puzzle: f,
           play: p,
           child: open,
+          marks: _marks[open + 1],
+          colors: _colors[open + 1],
           height: height,
           selected: _selected,
           onTap: (r, c) => _select(open, r, c),
@@ -255,13 +353,35 @@ class _FractalScreenState extends State<FractalScreen> {
         AuxAction(
           icon: Icons.undo,
           label: 'Отменить',
+          count: _history.isEmpty ? null : _history.length,
           onPressed: _history.isEmpty || _won ? null : _undo,
+        ),
+        AuxAction(
+          key: const Key('pencil'),
+          icon: _pencil ? Icons.edit : Icons.edit_outlined,
+          label: L.t('sudokuPencilMode'),
+          active: _pencil,
+          onPressed: _won ? null : _togglePencil,
+        ),
+        AuxAction(
+          key: const Key('paint'),
+          icon: _paint != null ? Icons.palette : Icons.palette_outlined,
+          label: L.t('sudokuColorMode'),
+          active: _paint != null,
+          onPressed: _won ? null : _togglePaint,
         ),
         AuxAction(icon: Icons.refresh, label: 'Заново', onPressed: _deal),
       ]),
       toolbar: f == null
           ? null
-          : _Toolbar(won: _won, onDigit: _place, onErase: _erase, onNext: _deal),
+          : _Toolbar(
+              won: _won,
+              onDigit: _onKey,
+              onErase: _erase,
+              onNext: _deal,
+              paint: _paint,
+              onPaint: (i) => setState(() => _paint = i),
+            ),
       pauseActions: [
         PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
       ],
@@ -274,6 +394,8 @@ class _MapView extends StatelessWidget {
   const _MapView({
     required this.puzzle,
     required this.play,
+    required this.marks,
+    required this.colors,
     required this.height,
     required this.selected,
     required this.progress,
@@ -283,6 +405,8 @@ class _MapView extends StatelessWidget {
 
   final FractalPuzzle puzzle;
   final FractalPlayState play;
+  final List<List<int>> marks;
+  final List<List<int>> colors;
   final double height;
   final ({int? child, int r, int c})? selected;
   final int Function(int) progress;
@@ -308,6 +432,8 @@ class _MapView extends StatelessWidget {
                   size: side < 0 ? 0 : side,
                   values: play.rootGrid,
                   given: puzzle.rootPuzzle,
+                  marks: marks,
+                  colors: colors,
                   keyPrefix: 'root_',
                   selected: selected?.child == null ? selected : null,
                   dimmed: (r, cc) => !rootEditable(puzzle.rootPuzzle, r, cc) &&
@@ -403,6 +529,8 @@ class _ChildView extends StatelessWidget {
     required this.puzzle,
     required this.play,
     required this.child,
+    required this.marks,
+    required this.colors,
     required this.height,
     required this.selected,
     required this.onTap,
@@ -411,6 +539,8 @@ class _ChildView extends StatelessWidget {
   final FractalPuzzle puzzle;
   final FractalPlayState play;
   final int child;
+  final List<List<int>> marks;
+  final List<List<int>> colors;
   final double height;
   final ({int? child, int r, int c})? selected;
   final void Function(int r, int c) onTap;
@@ -425,6 +555,8 @@ class _ChildView extends StatelessWidget {
             size: side < 0 ? 0 : side,
             values: play.children[child].grid,
             given: puzzle.children[child].puzzle,
+            marks: marks,
+            colors: colors,
             keyPrefix: 'cell_',
             selected: selected?.child == child ? selected : null,
             portal: (r, cc) => isPortalCell(puzzle.portals, child, r, cc),
@@ -448,11 +580,17 @@ class FractalGridView extends StatelessWidget {
     required this.onTap,
     this.portal,
     this.dimmed,
+    this.marks,
+    this.colors,
   });
 
   final double size;
   final List<List<int>> values;
   final List<List<int>> given;
+
+  /// Пометки и раскраска этой сетки; `null` — без них (доска разбора).
+  final List<List<int>>? marks;
+  final List<List<int>>? colors;
   final String keyPrefix;
   final ({int? child, int r, int c})? selected;
   final void Function(int r, int c) onTap;
@@ -480,6 +618,8 @@ class FractalGridView extends StatelessWidget {
                       col: c,
                       keyName: '$keyPrefix${r}_$c',
                       value: values[r][c],
+                      mask: marks?[r][c] ?? 0,
+                      paint: colors?[r][c] ?? noSudokuColor,
                       given: given[r][c] != 0,
                       // Кормящая клетка корня: её приносят снизу, руками не трогают.
                       waiting: dimmed?.call(r, c) ?? false,
@@ -504,6 +644,8 @@ class _Cell extends StatelessWidget {
     required this.col,
     required this.keyName,
     required this.value,
+    required this.mask,
+    required this.paint,
     required this.given,
     required this.waiting,
     required this.portal,
@@ -517,6 +659,8 @@ class _Cell extends StatelessWidget {
   final int col;
   final String keyName;
   final int value;
+  final int mask;
+  final int paint;
   final bool given;
   final bool waiting;
   final bool portal;
@@ -526,11 +670,15 @@ class _Cell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Выбор виден поверх краски — как в классике: иначе в крашеной клетке человек
+    // теряет, куда сейчас пишет.
     final bg = selected
         ? scheme.primaryContainer
-        : waiting
-            ? scheme.surfaceContainerHighest
-            : scheme.surface;
+        : paint >= 0 && paint < sudokuColorCount
+            ? cellColors[paint].withValues(alpha: 0.35)
+            : waiting
+                ? scheme.surfaceContainerHighest
+                : scheme.surface;
     return SizedBox(
       width: size,
       height: size,
@@ -576,14 +724,23 @@ class _Cell extends StatelessWidget {
                     ),
                   ),
                 Center(
-                  child: Text(
-                    value == 0 ? '' : '$value',
-                    style: TextStyle(
-                      fontSize: size * 0.52,
-                      fontWeight: given ? FontWeight.w800 : FontWeight.w500,
-                      color: given ? scheme.onSurface : scheme.primary,
-                    ),
-                  ),
+                  // Цифра гасит пометки, но не стирает их — как в классике.
+                  child: value == 0 && mask != 0
+                      ? PencilMarksLayer(
+                          key: Key('marks_$keyName'),
+                          mask: mask,
+                          value: value,
+                          cell: size,
+                          color: scheme.onSurfaceVariant,
+                        )
+                      : Text(
+                          value == 0 ? '' : '$value',
+                          style: TextStyle(
+                            fontSize: size * 0.52,
+                            fontWeight: given ? FontWeight.w800 : FontWeight.w500,
+                            color: given ? scheme.onSurface : scheme.primary,
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -594,19 +751,23 @@ class _Cell extends StatelessWidget {
   }
 }
 
-/// Липкий низ: девять цифр и «Стереть», ряды делятся поровну.
+/// Липкий низ: общие клавиши раздела (`keypad.dart`) — цифры, «Стереть», палитра.
 class _Toolbar extends StatelessWidget {
   const _Toolbar({
     required this.won,
     required this.onDigit,
     required this.onErase,
     required this.onNext,
+    required this.paint,
+    required this.onPaint,
   });
 
   final bool won;
   final void Function(int) onDigit;
   final VoidCallback onErase;
   final VoidCallback onNext;
+  final int? paint;
+  final void Function(int) onPaint;
 
   @override
   Widget build(BuildContext context) {
@@ -621,50 +782,27 @@ class _Toolbar extends StatelessWidget {
         ),
       );
     }
-    return LayoutBuilder(
-      builder: (context, c) {
-        const keyWidth = 48.0, gap = 6.0, keys = 10;
-        final fit = ((c.maxWidth - 8 + gap) / (keyWidth + gap)).floor().clamp(1, keys);
-        final rows = (keys / fit).ceil();
-        final perRow = (keys / rows).ceil();
-        final width = perRow * keyWidth + (perRow - 1) * gap;
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Center(
-            child: SizedBox(
-              width: width,
-              child: Wrap(
-                spacing: gap,
-                runSpacing: gap,
-                alignment: WrapAlignment.center,
-                children: [
-                  for (var v = 1; v <= 9; v++)
-                    SizedBox(
-                      width: keyWidth,
-                      height: keyWidth,
-                      child: FilledButton(
-                        key: Key('digit$v'),
-                        onPressed: () => onDigit(v),
-                        style: FilledButton.styleFrom(padding: EdgeInsets.zero),
-                        child: Text('$v', style: const TextStyle(fontSize: 20)),
-                      ),
-                    ),
-                  SizedBox(
-                    width: keyWidth,
-                    height: keyWidth,
-                    child: OutlinedButton(
-                      key: const Key('erase'),
-                      onPressed: onErase,
-                      style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
-                      child: const Icon(Icons.backspace_outlined, size: 18),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
+    return SudokuKeys(n: 9, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint);
   }
+}
+
+/// Что вернёт отмена: цифру (ход фрактала целиком), пометку или цвет.
+enum _StepKind { digit, mark, color }
+
+/// Один шаг истории. Хранит ТО, ЧТО БЫЛО: отмена ставит обратно.
+class _Step {
+  const _Step.digit(FractalMove this.move)
+      : kind = _StepKind.digit,
+        grid = 0,
+        r = 0,
+        c = 0,
+        was = 0;
+  const _Step.note(this.kind, this.grid, this.r, this.c, this.was) : move = null;
+
+  final _StepKind kind;
+  final FractalMove? move;
+  final int grid;
+  final int r;
+  final int c;
+  final int was;
 }
