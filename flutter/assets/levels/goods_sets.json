@@ -1,0 +1,206 @@
+{
+ "generator": "goods-sort GOOD_SETS (живой TS)",
+ "exportedAt": "2026-09-25",
+ "widestPool": 34,
+ "sets": [
+  {
+   "key": "mix",
+   "ru": "Микс",
+   "en": "Mix",
+   "pool": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43
+   ],
+   "preview": [
+    0,
+    9,
+    14,
+    3,
+    6,
+    32
+   ],
+   "alike": false,
+   "unlockLevel": 1,
+   "file": "goods_sort.json"
+  },
+  {
+   "key": "food",
+   "ru": "Еда",
+   "en": "Food",
+   "pool": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ],
+   "preview": [
+    6,
+    9,
+    10,
+    7,
+    8,
+    11
+   ],
+   "alike": false,
+   "unlockLevel": 6,
+   "file": "goods_sort_food.json"
+  },
+  {
+   "key": "drinks",
+   "ru": "Напитки",
+   "en": "Drinks",
+   "pool": [
+    0,
+    1,
+    4,
+    12,
+    13,
+    2,
+    5,
+    3
+   ],
+   "preview": [
+    0,
+    4,
+    13,
+    1,
+    12,
+    5
+   ],
+   "alike": false,
+   "unlockLevel": 10,
+   "file": "goods_sort_drinks.json"
+  },
+  {
+   "key": "toys",
+   "ru": "Игрушки",
+   "en": "Toys",
+   "pool": [
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
+   ],
+   "preview": [
+    14,
+    15,
+    21,
+    17,
+    18,
+    16
+   ],
+   "alike": false,
+   "unlockLevel": 10,
+   "file": "goods_sort_toys.json"
+  },
+  {
+   "key": "dairy",
+   "ru": "Молочное",
+   "en": "Dairy",
+   "pool": [
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+   ],
+   "preview": [
+    23,
+    24,
+    25,
+    26,
+    27,
+    28
+   ],
+   "alike": true,
+   "unlockLevel": 12,
+   "file": "goods_sort_dairy.json"
+  },
+  {
+   "key": "pets",
+   "ru": "Зверята",
+   "en": "Critters",
+   "pool": [
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43
+   ],
+   "preview": [
+    32,
+    41,
+    38,
+    35,
+    43,
+    40
+   ],
+   "alike": false,
+   "unlockLevel": 18,
+   "file": "goods_sort_pets.json"
+  }
+ ],
+ "byProfile": {
+  "kids": "toys",
+  "free": "pets",
+  "chess": "mix",
+  "odv999": "mix",
+  "nzt48": "drinks",
+  "execs": "drinks",
+  "drivers": "drinks",
+  "students": "food",
+  "vasilyeva": "food",
+  "polyglot": "food",
+  "women": "pets",
+  "seniors": "pets"
+ }
+}

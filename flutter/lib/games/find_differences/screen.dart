@@ -4,8 +4,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -84,6 +86,10 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
   }
 
   void _reset() {
+    // Новая партия — снова зачётная. Отметку «разбор смотрели» ставит плеер, а
+    // снимать её обязана новая раздача (договор shell/lesson.dart): без этого
+    // один открытый разбор навсегда выключал бы рост уровня — отметка общая.
+    LessonUsed.reset();
     _tick?.cancel();
     _next?.cancel();
     _params = levelParams(_ladder.level);
@@ -156,11 +162,38 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
     });
   }
 
+  /// РАЗБОР — ДВЕ СЦЕНЫ ТЕМ ЖЕ ВИДЖЕТОМ, ЧТО В ПАРТИИ, И ОТЛИЧИЕ ОБВЕДЕНО.
+  ///
+  /// Сцены раздаёт тот же генератор (первый уровень, своё зерно разбора), а
+  /// «найденным» помечено ровно то, что генератор изменил. Нарисовать пример
+  /// «похоже» нельзя: трудность игры — в размере, повороте и сходстве зверей, и
+  /// придуманная картинка учила бы не той игре.
+  List<DemoTrial> _demoTrials() {
+    final p = levelParams(1);
+    final rng = createRng('lesson');
+    const size = SceneSize(150, 112);
+    final scene = generateScene(size.width, size.height, p.objectCount, p.spriteAlphabet, rng);
+    final alt = withDifference(scene, p.diffCount, p.spriteAlphabet, rng);
+    final diff = alt.diffIdx.toSet();
+    return [
+      DemoTrial(
+        text: '',
+        rule: L.t('findDiffDesc'),
+        art: Row(mainAxisSize: MainAxisSize.min, children: [
+          _Scene(shapes: scene, size: size, found: const {}),
+          const SizedBox(width: 8),
+          _Scene(shapes: alt.shapes, size: size, found: diff),
+        ]),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
       title: L.t('findDiff'),
+      onLesson: () => openDemoLesson(context, title: L.t('findDiff'), trials: _demoTrials()),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),

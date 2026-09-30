@@ -4,8 +4,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -89,6 +91,10 @@ class _CounterScreenState extends State<CounterScreen> {
   }
 
   void _reset() {
+    // Новая партия — снова зачётная. Отметку «разбор смотрели» ставит плеер, а
+    // снимать её обязана новая раздача (договор shell/lesson.dart): без этого
+    // один открытый разбор навсегда выключал бы рост уровня — отметка общая.
+    LessonUsed.reset();
     _tick?.cancel();
     _next?.cancel();
     _clear?.cancel();
@@ -192,6 +198,43 @@ class _CounterScreenState extends State<CounterScreen> {
     });
   }
 
+  /// РАЗБОР — НА НАСТОЯЩЕЙ РАЗДАЧЕ, А НЕ НА ПРИДУМАННЫХ ЧИСЛАХ.
+  ///
+  /// Пример берётся у того же генератора, что раздаёт партию, и пара под цель
+  /// ищется перебором — как её ищет человек. Иначе разбор учил бы не той игре:
+  /// в ней цель всегда собирается из клеток ЭТОЙ сетки.
+  List<DemoTrial> _demoTrials() {
+    final trials = <DemoTrial>[];
+    for (final step in [
+      (level: 1, rule: L.t('counterHint')),
+      (level: 26, rule: L.t('desc_counter_rules')),
+    ]) {
+      final cfg = counterLevelParams(step.level);
+      final deal = makeCounterRound(cfg.gridSize, cfg.cellMax, cfg.tripleShare, createRng('lesson-${step.level}'));
+      final pick = _findPick(deal.numbers, deal.target);
+      trials.add(DemoTrial(
+        text: '${deal.target}',
+        sub: pick.map((i) => '${deal.numbers[i]}').join(' + '),
+        answer: pick.map((i) => '${deal.numbers[i]}').join(' · '),
+        rule: step.rule,
+      ));
+    }
+    return trials;
+  }
+
+  /// Клетки под цель — перебором по двум и трём, как ищет человек.
+  List<int> _findPick(List<int> nums, int goal) {
+    for (var i = 0; i < nums.length; i += 1) {
+      for (var j = i + 1; j < nums.length; j += 1) {
+        if (nums[i] + nums[j] == goal) return [i, j];
+        for (var k = j + 1; k < nums.length; k += 1) {
+          if (nums[i] + nums[j] + nums[k] == goal) return [i, j, k];
+        }
+      }
+    }
+    return const [];
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_ready) {
@@ -199,6 +242,7 @@ class _CounterScreenState extends State<CounterScreen> {
     }
     return GameShell(
       title: L.t('counter'),
+      onLesson: () => openDemoLesson(context, title: L.t('counter'), trials: _demoTrials()),
       hud: [
         HudItem(
           label: L.t('level'),

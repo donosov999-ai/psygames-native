@@ -179,7 +179,7 @@ describe('препятствия', () => {
     const pred = src.slice(src.indexOf('const canPlaceInto'), src.indexOf('const moveItem'));
     expect(pred).toMatch(/cellUsable\(fromCell\)/);
     expect(pred).toMatch(/cellUsable\(toCell\)/);
-    expect(src).toMatch(/if \(!canPlaceInto\(fromCell, toCell\)\)/);
+    expect(src).toMatch(/if \(!canPlaceInto\(fromCell, toCell, fromIdx\)\)/);
   });
 
   /** Замер: ради этого препятствия и заводились. */

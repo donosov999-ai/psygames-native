@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -89,6 +90,28 @@ class _FlankerScreenState extends State<FlankerScreen> {
     _nextTrial();
   }
 
+  /// Примеры разбора: ряд рисует ТОТ ЖЕ виджет, что и партия (`FlankerRow`).
+  ///
+  /// ⚠️ Зазор берётся у уровня партии: он и есть ось трудности фланкера, и
+  /// разбор с чужим зазором показывал бы другую задачу.
+  List<DemoTrial> _demoTrials(BuildContext context) {
+    final g = _game!;
+    final color = Theme.of(context).colorScheme.onSurface;
+    return [
+      for (final t in flankerDemoTrials())
+        DemoTrial(
+          text: '',
+          art: FlankerRow(trial: t, gapPx: g.params.gapPx, centerColor: color),
+          // ⚠️ Ключи — ЛИТЕРАЛАМИ в каждой ветке. Сборщик словаря
+          // (`tools/embed-l10n.mjs`) видит только `L.t('имя')`, и запись
+          // `L.t(условие ? 'a' : 'b')` он молча пропустил бы: замер показал
+          // словарь без обоих ключей, а экран показал бы человеку «a11yLeft».
+          answer: flankerCorrect(t) == FlankerDirection.left ? L.t('a11yLeft') : L.t('a11yRight'),
+          ruleKey: 'hint_center_arrow',
+        ),
+    ];
+  }
+
   void _nextTrial() {
     final g = _game!;
     _timer?.cancel();
@@ -155,6 +178,9 @@ class _FlankerScreenState extends State<FlankerScreen> {
         HudItem(label: L.t('hud_correct'), value: '${g.hits}', icon: Icons.check),
         HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
       ],
+      onLesson: _game == null
+          ? null
+          : () => openDemoLesson(context, title: L.t('flanker'), trials: _demoTrials(context)),
       field: (context, h) => _Field(
         game: g,
         phase: _phase,
@@ -269,7 +295,7 @@ class _Field extends StatelessWidget {
                   ),
                 ),
                 child: game.stimulusShown
-                    ? _Row(trial: t, gapPx: game.params.gapPx, centerColor: fb)
+                    ? FlankerRow(trial: t, gapPx: game.params.gapPx, centerColor: fb)
                     // До показа — точка фиксации: человек знает, куда смотреть.
                     : const SizedBox(
                         height: 56,
@@ -298,8 +324,8 @@ class _Field extends StatelessWidget {
 /// Ряд стимулов: два фланга, цель, два фланга. Зазор ОДИНАКОВЫЙ между всеми —
 /// как у Эриксена, где знаки расставлены ровно. Свой отступ у центра означал бы
 /// не «разнос цель ↔ фланги», а что-то другое.
-class _Row extends StatelessWidget {
-  const _Row({required this.trial, required this.gapPx, required this.centerColor});
+class FlankerRow extends StatelessWidget {
+  const FlankerRow({super.key, required this.trial, required this.gapPx, required this.centerColor});
 
   final FlankerTrial trial;
   final double gapPx;

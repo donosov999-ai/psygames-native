@@ -114,6 +114,38 @@ FlankerTrial makeTrial(double pCong, double pIncong, double Function() rnd) {
   return FlankerTrial(center: center, kind: kind, flankers: flankers);
 }
 
+/// 🔴 ЧТО СЧИТАЕТСЯ ВЕРНЫМ — ОДНА ФУНКЦИЯ НА ИГРУ И НА РАЗБОР.
+///
+/// Правило фланкера в одну строку: отвечай направлением ЦЕНТРАЛЬНОЙ стрелки.
+/// Разбор зовёт её же, поэтому разойтись с партией не может.
+FlankerDirection flankerCorrect(FlankerTrial t) => t.center;
+
+/// Примеры для разбора — ДАННЫЕ, без виджетов: ряд стрелок рисует экран своим же
+/// виджетом стимула.
+///
+/// Три вида проб по возрастанию помехи: согласованная (фланги туда же) →
+/// нейтральная (чёрточки) → конфликтная (фланги в другую сторону). Последняя и
+/// есть эффект фланкера, ради которого упражнение существует.
+List<FlankerTrial> flankerDemoTrials() => const [
+      FlankerTrial(
+        center: FlankerDirection.right,
+        kind: FlankerKind.congruent,
+        flankers: [
+          FlankerDirection.right, FlankerDirection.right,
+          FlankerDirection.right, FlankerDirection.right,
+        ],
+      ),
+      FlankerTrial(center: FlankerDirection.right, kind: FlankerKind.neutral, flankers: null),
+      FlankerTrial(
+        center: FlankerDirection.right,
+        kind: FlankerKind.incongruent,
+        flankers: [
+          FlankerDirection.left, FlankerDirection.left,
+          FlankerDirection.left, FlankerDirection.left,
+        ],
+      ),
+    ];
+
 /// Исход одной пробы для экрана.
 enum FlankerOutcome { hit, wrong, miss }
 
@@ -197,7 +229,7 @@ class FlankerGame {
     if (t == null || _answered || !_shown) return FlankerOutcome.miss;
     _answered = true;
     final rt = _now() - _stimAt;
-    if (chosen == t.center) {
+    if (chosen == flankerCorrect(t)) {
       hits += 1;
       rts[t.kind]!.add(rt);
       return FlankerOutcome.hit;

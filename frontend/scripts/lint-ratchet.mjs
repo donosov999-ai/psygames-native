@@ -258,7 +258,7 @@ import { execFileSync } from 'node:child_process';
   неиспользуемых переменных там задуманы. Погасите — опустите потолок этой же
   строкой, как опускали «Внимание» и «Языки».
 */
-const CEILING = { errors: 497, warnings: 405 };
+const CEILING = { errors: 479, warnings: 376 };
 
 /** Насколько ниже потолка можно опуститься, не переписывая его. */
 const SLACK = 25;

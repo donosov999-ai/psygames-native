@@ -5,6 +5,8 @@ import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
@@ -69,6 +71,42 @@ class _OneLineScreenState extends State<OneLineScreen> {
     if (_game!.isWon && !_won) setState(() => _won = true);
   }
 
+  /// ⚠️ Название одной строкой: второй литерал — второе место переводить.
+  static const _title = 'Одна линия';
+
+  /*
+   * 🔴 РАЗБОР ИДЁТ ПО ЭТАЛОНУ УРОВНЯ, А НЕ ПО СВОЕМУ ПОИСКУ.
+   *
+   * Уровень везёт `solutionEdgeIds` и `solutionVertexIds` — маршрут, которым
+   * уровень задуман. Свой поиск нашёл бы ДРУГОЙ обход (у графа их много), и
+   * человек учился бы не тому пути, который уровень проверяет.
+   *
+   * ⚠️ Начальная вершина берётся из эталона, а не угадывается: у обычного ребра
+   * начать можно с любого конца, и без неё правило начала не сходилось у восьми
+   * уровней из тридцати — это записано в самой модели.
+   */
+  Future<void> _openLesson() async {
+    final lvl = _game?.level;
+    if (lvl == null || lvl.solutionEdgeIds.isEmpty) return;
+    final steps = [for (final id in lvl.solutionEdgeIds) LessonStep(payload: id)];
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _title,
+        steps: steps,
+        board: (context, side, shown) {
+          // Линия строится с нуля и проходит первые `shown` рёбер эталона.
+          final g = OneLineGame(lvl);
+          if (lvl.solutionVertexIds.isNotEmpty) g.startAt(lvl.solutionVertexIds.first);
+          for (var i = 0; i < shown && i < lvl.solutionEdgeIds.length; i++) {
+            g.walk(lvl.solutionEdgeIds[i]);
+          }
+          return OneLineBoard(level: lvl, game: g, fieldHeight: side, onChanged: () {});
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final set = _set;
@@ -78,7 +116,10 @@ class _OneLineScreenState extends State<OneLineScreen> {
     }
     final level = game.level;
     return GameShell(
-      title: 'Одна линия',
+      title: _title,
+      // Разбор — по ЭТАЛОННОМУ маршруту уровня: генератор посчитал его при сборке,
+      // и искать заново нечего.
+      onLesson: level.solutionEdgeIds.isEmpty ? null : _openLesson,
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),

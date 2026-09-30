@@ -4,8 +4,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -76,6 +78,10 @@ class _SetGameScreenState extends State<SetGameScreen> {
   }
 
   void _reset() {
+    // Новая партия — снова зачётная. Отметку «разбор смотрели» ставит плеер, а
+    // снимать её обязана новая раздача (договор shell/lesson.dart): без этого
+    // один открытый разбор навсегда выключал бы рост уровня — отметка общая.
+    LessonUsed.reset();
     _tick?.cancel();
     _next?.cancel();
     _params = levelParams(_ladder.level);
@@ -162,11 +168,43 @@ class _SetGameScreenState extends State<SetGameScreen> {
     _judge(late: true);
   }
 
+  /// РАЗБОР — НАСТОЯЩИЙ СЕТ С НАСТОЯЩЕЙ ДОСКИ, НАРИСОВАННЫЙ ТЕМ ЖЕ ХУДОЖНИКОМ.
+  ///
+  /// Тройка берётся у того же генератора и находится тем же поиском, что
+  /// проверяет партию (`findAnySet`), а карты рисует `_CardPainter` — цвета
+  /// Окабэ–Ито и заливки те же, что на поле. Придуманная тройка могла бы
+  /// случайно оказаться не сетом, и разбор научил бы ошибке.
+  List<DemoTrial> _demoTrials() {
+    final board = buildBoard(createRng('lesson'));
+    final set = findAnySet(board) ?? const [0, 1, 2];
+    return [
+      DemoTrial(
+        text: '',
+        rule: L.t('setGameDesc'),
+        art: Row(mainAxisSize: MainAxisSize.min, children: [
+          for (final i in set)
+            Container(
+              width: 64,
+              height: 88,
+              margin: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF22C55E), width: 2),
+              ),
+              child: CustomPaint(painter: _CardPainter(board[i])),
+            ),
+        ]),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
       title: L.t('setGame'),
+      onLesson: () => openDemoLesson(context, title: L.t('setGame'), trials: _demoTrials()),
       hud: [
         HudItem(label: L.t('level'), value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),

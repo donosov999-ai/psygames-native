@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
+import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
@@ -163,6 +165,16 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
     }
   }
 
+  /// Заголовок один на экран и на разбор: вторая такая строка — второй долг
+  /// храповика подписей (`test/ui_text_debt_does_not_grow_test.dart`).
+  String get _title => 'Трекер объектов';
+
+  /// Разбор объясняет ПРИЁМ: верный ответ человек и так увидит по итогу раунда,
+  /// а вот чем объём берётся — нет.
+  List<DemoTrial> _demoTrials() => [
+        DemoTrial(text: '', rule: L.t('teachTrackerGroup')),
+      ];
+
   @override
   Widget build(BuildContext context) {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -170,7 +182,8 @@ class _ObjectTrackerScreenState extends State<ObjectTrackerScreen> with SingleTi
     final world = _world!;
     final left = round.durationMs - world.timeMs;
     return GameShell(
-      title: 'Трекер объектов',
+      title: _title,
+      onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),

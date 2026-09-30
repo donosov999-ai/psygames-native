@@ -1,10 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/game_preset.dart';
+import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
+import '../../shell/board_solver.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
+import 'puzzle.dart';
 import '../../shell/shared_state.dart';
 import 'board.dart';
 import 'model.dart';
@@ -28,6 +37,31 @@ class TowerLondonScreen extends StatefulWidget {
 }
 
 class _TowerLondonScreenState extends State<TowerLondonScreen> {
+  /// 🔴 ПАРТИЯ ПРОДОЛЖАЕТСЯ САМА (Денис 24.09.2026: «во всех играх переход в
+  /// конце сломан» — то есть его нет ни в одной). Итог видно 1,8 с — тут он
+  /// длиннее, чем у уровневых игр: человеку показывают сумму лишних ходов за
+  /// пять задач, а не одну звезду.
+  Timer? _autoNext;
+
+  void _scheduleNext() {
+    _autoNext?.cancel();
+    _autoNext = Timer(const Duration(milliseconds: 1800), () {
+      if (mounted && _done) setState(_startGame);
+    });
+  }
+
+  void _cancelNext() {
+    _autoNext?.cancel();
+    _autoNext = null;
+  }
+
+  @override
+  void dispose() {
+    // Открытый таймер после ухода с экрана валит весь прогон проб молча.
+    _cancelNext();
+    super.dispose();
+  }
+
   late LevelLadder _ladder;
   TolLevelSet? _set;
   TolLevel? _level;
@@ -60,8 +94,34 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     });
   }
 
+  /// Сколько задач в партии. Шаг зарядки задаёт своё число (`trials`), обычный
+  /// заход берёт число набора.
+  int get _rounds {
+    final set = _set!;
+    if (!GamePreset.isPreset) return set.rounds;
+    final want = GamePreset.num('trials', 0);
+    return want > 0 ? want : set.rounds;
+  }
+
+  /// 🔴 ШАГ ЗАРЯДКИ ИГРАЕТ СВОЮ СЛОЖНОСТЬ (перенос `tower-london.tsx:175`):
+  /// лёгкий — план в 3 хода, средний 5, трудный 7, шаров всегда три. Длина
+  /// плана проходит через тот же предел, что и диски ханоя: шаг не даёт
+  /// прыгнуть выше освоенного больше чем на ступень.
+  TolLevel _pickLevel() {
+    final set = _set!;
+    if (!GamePreset.isPreset) return set.byLevel(_ladder.level);
+    final diff = GamePreset.str('diff', 'medium');
+    final want = diff == 'easy' ? 3 : (diff == 'hard' ? 7 : 5);
+    final capped = capPresetByLevel(
+      want: want,
+      atLevel: set.byLevel(_ladder.level).targetMoves,
+      atTop: _ladder.level >= set.levels.length,
+    );
+    return set.byTarget(capped, 3);
+  }
+
   void _startGame() {
-    _level = _set!.byLevel(_ladder.level);
+    _level = _pickLevel();
     _round = 1;
     _extra = 0;
     _errors = 0;
@@ -81,12 +141,16 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     _history.clear();
   }
 
-  void _restart() => setState(_startGame);
+  void _restart() {
+    _cancelNext();
+    setState(_startGame);
+  }
 
   Future<void> _finish() async {
-    final rounds = _set!.rounds;
+    final rounds = _rounds;
     _passed = tolPassed(_extra, rounds);
     _done = true;
+    _scheduleNext();
     // Провал опускает уровень только на третий подряд — так работает общая
     // лестница; один промах ничего не стоит.
     if (_passed) {
@@ -130,7 +194,7 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     if (after.key == _puzzle!.goal.key) {
       final extra = _moves - _puzzle!.minMoves;
       _extra += extra > 0 ? extra : 0;
-      if (_round >= _set!.rounds) {
+      if (_round >= _rounds) {
         _finish();
       } else {
         _round += 1;
@@ -140,12 +204,57 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
   }
 
   void _undo() {
+    _cancelNext();
     if (_history.isEmpty) return;
     setState(() {
       _state = _history.removeLast();
       _moves = _moves > 0 ? _moves - 1 : 0;
       _sel = null;
     });
+  }
+
+  /*
+   * 🔴 РАЗБОР БЕРЁТСЯ У ОБЩЕГО ПОИСКА, А НЕ ПИШЕТСЯ ЗДЕСЬ.
+   *
+   * Вся связь игры с разбором — `TolPuzzleAdapter`: снимок, ходы, «применить»,
+   * «решено». Эти четыре вещи у `TolState` уже были — они нужны самой игре.
+   *
+   * ⚠️ ЦЕЛЬ У БАШЕН СВОЯ У КАЖДОЙ ЗАДАЧИ, а не встроена в правила, как у ханоя.
+   * Поэтому она передаётся адаптеру параметром: иначе разбор решал бы не ту
+   * задачу, что показана человеку.
+   */
+  /// ⚠️ Название одной строкой на весь экран: второй литерал был бы вторым местом,
+  /// где его переводить, и первым, где забудут.
+  static const _title = 'Башня Лондона';
+
+  Future<void> _openLesson() async {
+    final from = _state;
+    final puzzle = _puzzle;
+    if (from == null || puzzle == null) return;
+    final game = TolPuzzleAdapter(puzzle.goal.key);
+    final steps = await BoardLesson(game, from).steps();
+    if (!mounted || steps.isEmpty) return;
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _title,
+        steps: steps,
+        board: (context, side, shown) {
+          final at = shown == 0
+              ? from
+              : (steps[(shown - 1).clamp(0, steps.length - 1)].payload
+                  as ({TolMove move, TolState after})).after;
+          return TolBoard(
+            state: at,
+            goal: puzzle.goal,
+            fieldHeight: side,
+            selected: null,
+            onTapPeg: (_) {},
+            onDrop: (_, _) {},
+          );
+        },
+      ),
+    ));
   }
 
   @override
@@ -156,12 +265,17 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
     if (level == null || st == null || puzzle == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final rounds = _set!.rounds;
+    final rounds = _rounds;
 
     return GameShell(
-      title: 'Башня Лондона',
+      title: _title,
+      // Разбор — общим решателем каркаса: игра отдала снимок, ходы и цель,
+      // своего учителя не писала.
+      onLesson: (_state == null || _puzzle == null) ? null : _openLesson,
       hud: [
-        HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
+        // Счётчик уровня при шаге зарядки скрыт: шаг лестницу не двигает.
+        if (!GamePreset.isPreset)
+          HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Задача', value: '$_round/$rounds', icon: Icons.repeat),
         // Ходы ПРОТИВ МИНИМУМА: игра именно про план, и без минимума человек не
         // знает, хорошо ли он спланировал.
@@ -193,8 +307,16 @@ class _TowerLondonScreenState extends State<TowerLondonScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
+                    // ⚠️ При шаге зарядки уровень НЕ обещаем: лестница не
+                    // двигается, и «дальше уровень N» был бы прямой неправдой.
                     _passed
-                        ? 'Партия взята: лишних ходов $_extra из $rounds · дальше уровень ${_ladder.level}'
+                        ? (GamePreset.isPreset
+                            // Новая строка идёт ЧЕРЕЗ СЛОВАРЬ, а не литералом:
+                            // храповик `ui_text_debt_does_not_grow` требует, чтобы
+                            // зашитого русского в файле не прибавлялось, и он прав —
+                            // в приложении двенадцать языков.
+                            ? L.f('tolWonPreset', {'e': '$_extra', 'r': '$rounds'})
+                            : 'Партия взята: лишних ходов $_extra из $rounds · дальше уровень ${_ladder.level}')
                         : 'Лишних ходов $_extra при пороге $rounds — партия не взята',
                     key: const ValueKey('tol-result'),
                     textAlign: TextAlign.center,

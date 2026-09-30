@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import '../../shell/l10n.dart';
+import 'engine.dart';
 
 /// ЛЕСТНИЦЫ СЕМИ СЕТОК ТЭТХЭМА — те же пять ступеней, что у веб-версии.
 ///
@@ -27,6 +28,7 @@ class PuzzleMode {
   const PuzzleMode({
     required this.engineName,
     required this.titleKey,
+    this.descKey,
     required this.steps,
     this.digits = false,
     this.digitLabels = const [],
@@ -45,8 +47,28 @@ class PuzzleMode {
   /// Название на языке человека.
   String get title => L.t(titleKey);
 
+  /// Правило режима на языке человека, либо `null`, если его нет.
+  ///
+  /// ⚠️ ПРОМАХ СЛОВАРЯ МОЛЧАЛИВ: `L.t` при отсутствии ключа возвращает САМ КЛЮЧ,
+  /// а не падает — человек увидел бы на экране `puzzlesBridgesDesc`. Поэтому
+  /// сверяем с ключом и отдаём `null`, чтобы экран показал общую фразу.
+  String? get rule {
+    final k = descKey;
+    if (k == null || k.isEmpty) return null;
+    final t = L.t(k);
+    return (t == k || t.isEmpty) ? null : t;
+  }
+
   /// Какому разделу принадлежит режим — чтобы владелец видел свои и не правил чужие.
   final String? owner;
+
+  /// КЛЮЧ СЛОВАРЯ с правилом игры — то, что человек читает в справке.
+  ///
+  /// 🔴 До 24.09.2026 нативный экран головоломок не показывал правил ВОВСЕ: доска
+  /// и всё. У сорока двух игр правила разные, и половина из них не угадывается с
+  /// доски — «Рельсы» человек полтора часа пытался поворачивать, хотя поворота в
+  /// игре нет. Ключ ведётся правилом именования `<ключ названия>Desc`.
+  final String? descKey;
   final List<PuzzleStep> steps;
 
   /// Нужен ли ряд цифр: у Singles ввод только тычками.
@@ -102,6 +124,7 @@ class PuzzleModes {
         PuzzleMode(
           engineName: m['engineName'] as String,
           titleKey: m['titleKey'] as String,
+          descKey: m['descKey'] as String?,
           digits: m['digits'] == true,
           digitLabels: ((m['digitLabels'] as List?) ?? const []).cast<String>(),
           digitNames: ((m['digitNames'] as List?) ?? const []).cast<String>(),
@@ -121,3 +144,25 @@ class PuzzleModes {
   static void useForTest(Map<String, PuzzleMode> modes) => _all = modes;
 }
 
+/// СТУПЕНИ РЕЖИМА: своя лестница, а нет своей — меню самого движка.
+///
+/// 🔴 ПОВОД, 23.09.2026. Своя лестница есть у 14 режимов из 42. Остальные 28 шли
+/// с пустым списком, а экран лез в него индексом — `steps[(level-1).clamp(0, -1)]`.
+/// Это не «ступеней нет», это падение на открытии: 28 режимов из 42 нельзя было
+/// открыть вовсе. Перехват `/games/puzzles` поэтому и стоял выключенным.
+///
+/// 🔴 И ПОЧЕМУ НЕ ПРИДУМЫВАТЬ ЛЕСТНИЦУ САМИМ. Трудность у этих игр уже размечена
+/// автором — меню пресетов внутри самого движка. Замер по всем 42: своя лестница
+/// 14 · пресеты движка 28 · без того и другого 0. Брать готовую разметку дешевле,
+/// чем назначать свою по названию, и она заведомо играбельна.
+List<PuzzleStep> resolveSteps(PuzzleMode mode, TathamEngine engine, int gameIndex) {
+  if (mode.steps.isNotEmpty) return mode.steps;
+  final presets = engine.presetsOf(gameIndex);
+  if (presets.isNotEmpty) {
+    return presets.map((p) => PuzzleStep(p.name, p.params)).toList();
+  }
+  // Последний рубеж: пустые параметры — «как решит сам движок». Ни один из 42
+  // режимов сюда сегодня не попадает, но пустой экран игроку показывать нельзя,
+  // если следующая версия канона лишит игру и пресетов.
+  return const [PuzzleStep('', '')];
+}

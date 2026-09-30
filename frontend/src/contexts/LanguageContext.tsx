@@ -1027,8 +1027,127 @@ const translations: Translations = {
   teachTitle: { ru: 'Разбор по шагам', en: 'Step-by-step walkthrough' },
   teachButton: { ru: 'Разбор', en: 'Walkthrough' },
   teachStepOf: { ru: 'Шаг {i} из {n}', en: 'Step {i} of {n}' },
+  /*
+   * 🎓 РАЗБОР ИГР НА РЕАКЦИЮ (24.09.2026). У них нет доски и нет пути к решению: там, где
+   * головоломке показывают ход, реакции показывают ПРАВИЛО на конкретном стимуле. Поэтому
+   * карточка разбора несёт сам стимул и подпись «что здесь верно» — шаг за шагом.
+   */
+  teachDemoAnswer: { ru: 'Верно: {a}', en: 'Correct: {a}' },
+  /* Ответ в играх «жми / держись» — один на всё семейство (go/no-go, стоп-сигнал, CPT, торможение). */
+  demoPress: { ru: 'нажать', en: 'press' },
+  demoHold: { ru: 'не нажимать', en: 'hold' },
+  cptPrevLetter: { ru: 'перед этим была {letter}', en: 'preceded by {letter}' },
+  /*
+   * 🎓 РАЗБОР СУДОКУ: ИМЕНА ПРИЁМОВ. Показать решение построчно — дело пяти строк и ничему
+   * не учит. Каждый шаг называет приём, которым цифра берётся; где ни один не сработал —
+   * разбор честно говорит только ход, без выдуманного объяснения.
+   */
+  teachSudokuNaked: { ru: 'В этой клетке возможна только {d}: остальные цифры уже стоят в её строке, столбце или квадрате.', en: 'Only {d} fits this cell: every other digit already appears in its row, column or box.' },
+  teachSudokuHiddenRow: { ru: 'В строке {n} цифре {d} осталось одно место — сюда.', en: 'In row {n} the digit {d} has only one place left — here.' },
+  teachSudokuHiddenCol: { ru: 'В столбце {n} цифре {d} осталось одно место — сюда.', en: 'In column {n} the digit {d} has only one place left — here.' },
+  teachSudokuHiddenBox: { ru: 'В этом квадрате цифре {d} осталось одно место — сюда.', en: 'In this box the digit {d} has only one place left — here.' },
+  teachSudokuPlain: { ru: 'Здесь стоит {d}. Простым приёмом эта клетка не берётся — дальше нужен перебор.', en: 'This cell is {d}. No simple technique gets it — from here it takes case analysis.' },
+  /*
+   * 🎓 РАЗБОР ИГР НА РЕШЕНИЕ ПОД НЕОПРЕДЕЛЁННОСТЬЮ. У них НЕТ верного ответа на отдельной
+   * пробе: выигрывает стратегия, а не ход. Поэтому карточка здесь несёт только правило —
+   * подписать «верно: качать» значило бы соврать, человек сделает так и проиграет на
+   * следующем шаре.
+   */
+  teachWcstHypothesis: { ru: 'Правило скрыто, и угадать его с одной карточки нельзя. Держите ОДНУ гипотезу — например «сортирую по цвету» — и проверяйте её следующим ходом.', en: 'The rule is hidden and cannot be guessed from one card. Hold ONE hypothesis — say “I am sorting by colour” — and test it with your next move.' },
+  teachWcstSwitch: { ru: 'Ошибка здесь — не случайность, а сигнал: признак сменился. Меняйте его по кругу — цвет, форма, число, — а не наугад.', en: 'An error here is not noise but a signal: the feature has changed. Cycle through them — colour, shape, number — instead of guessing.' },
+  teachWcstHold: { ru: 'Одна удача ещё не подтверждает гипотезу: карточка могла подойти сразу по двум признакам. Держите правило, пока оно даёт верные ходы.', en: 'One success does not confirm the hypothesis: the card may have matched two features at once. Keep the rule while it keeps working.' },
+  teachBartPlan: { ru: 'Каждое накачивание добавляет очки, но лопнувший шар обнуляет раунд целиком. Решайте ДО раунда, на скольких качках заберёте, — и держите это число.', en: 'Every pump adds points, but a burst wipes the whole round. Decide BEFORE the round how many pumps you will take, and stick to that number.' },
+  teachBartScout: { ru: 'Где лопается шар, известно только по опыту: первые шары — разведка, а не заработок. Средняя точка взрыва растёт с уровнем, поэтому число пересматривают, а не угадывают.', en: 'Where a balloon bursts is learned only by trying: the first balloons are scouting, not earning. The mean burst point grows with the level, so revise your number instead of guessing it.' },
+  teachIowaTotal: { ru: 'Считайте не выигрыш, а ИТОГ по колоде за последние ходы. Колода, которая крупно радует и ещё крупнее штрафует, — невыгодная, даже если только что дала много.', en: 'Track the NET result per deck over recent draws, not the wins. A deck with big rewards and bigger penalties is a losing deck, even right after a big win.' },
+  teachIowaSwitch: { ru: 'Проверьте каждую колоду по нескольку раз, прежде чем выбрать. Штрафы приходят редко, и по двум ходам выгодная колода неотличима от разорительной.', en: 'Sample every deck several times before settling. Penalties are rare, and two draws cannot tell a good deck from a ruinous one.' },
+  teachPrlNoise: { ru: 'Одна неудача — ещё не смена правила: даже верный цвет иногда не даёт очков. Переключайтесь после двух-трёх неудач подряд, а не после первой.', en: 'One failure is not a rule change: even the right colour sometimes pays nothing. Switch after two or three failures in a row, not after the first.' },
+  teachRmetEyes: { ru: 'Смотрите на ГЛАЗА — веки, брови, направление взгляда, — а не на «лицо вообще». Варианты близки по смыслу нарочно, поэтому сравнивайте их между собой, а не с первым впечатлением.', en: 'Look at the EYES — lids, brows, direction of gaze — not at “the face” in general. The options are deliberately close in meaning, so compare them with each other rather than with your first impression.' },
+  /*
+   * 🎓 РАЗБОР ИГР НА ОБЪЁМ, СЧЁТ И ПОИСК. Верный ответ человек и так видит по итогу раунда —
+   * учить надо ПРИЁМУ, которым объём берётся: группировка, траектория, период, опорная примета.
+   */
+  teachSpanChunks: { ru: 'Память держит не девять цифр, а четыре КУСКА. Разбивайте ряд на группы по три-четыре — «729 · 418» — и проговаривайте их ритмом, как номер телефона.', en: 'Memory holds four CHUNKS, not nine digits. Break the row into groups of three or four — “729 · 418” — and say them in a rhythm, like a phone number.' },
+  teachSpanBackward: { ru: 'Обратный порядок не запоминают отдельно: запоминайте ряд как обычно, а разворачивайте уже при ответе — по тем же группам, с конца.', en: 'Do not memorise the reversed order separately: learn the row as usual and reverse it when answering, group by group from the end.' },
+  teachSpatialSpanPath: { ru: 'Клетки — не набор точек, а ЛИНИЯ. Соедините их мысленно в ломаную: траектория из пяти узлов держится лучше пяти отдельных мест.', en: 'The cells are not a set of points but a LINE. Join them into a path: a five-node trajectory holds better than five separate places.' },
+  teachMatrixShape: { ru: 'Запоминайте ФИГУРУ, которую образуют клетки — букву, угол, линию, — а не каждую клетку отдельно. Одна фигура вместо семи адресов.', en: 'Memorise the SHAPE the cells form — a letter, a corner, a line — instead of each cell. One shape instead of seven addresses.' },
+  teachOspanOrder: { ru: 'Пример-помеха нарочно мешает повторять буквы. Досчитайте его ДО КОНЦА и только потом верните буквы: метание между задачами стирает обе.', en: 'The equation is there to block rehearsal. Finish it COMPLETELY, then bring the letters back: darting between the two erases both.' },
+  teachSchulteCenter: { ru: 'Держите взгляд в ЦЕНТРЕ таблицы и ищите периферией. Бегая глазами по клеткам, вы читаете таблицу, а тренируется при этом не охват, а скорость чтения.', en: 'Hold your gaze at the CENTRE and search with peripheral vision. Darting from cell to cell is reading the table — that trains reading speed, not span.' },
+  teachTrackerGroup: { ru: 'Не перескакивайте с объекта на объект — держите их ГРУППОЙ, как вершины одной фигуры. Четыре траектории не удержать, а один меняющийся четырёхугольник — можно.', en: 'Do not jump from target to target — hold them as ONE SHAPE, the vertices of a single polygon. Four trajectories cannot be held; one changing quadrilateral can.' },
+  teachCountGroups: { ru: 'До четырёх точек человек видит числом, без счёта. Разбивайте кучку на группы по три-четыре и складывайте группы — это и есть «без пересчёта».', en: 'Up to four dots are seen as a number, without counting. Split the cluster into groups of three or four and add the groups — that is what “without counting” means.' },
+  teachMathRound: { ru: 'Округляйте и поправляйте: 7×48 — это 7×50 минус 7×2. В столбик считать некогда, а поправка почти всегда однозначная.', en: 'Round, then correct: 7×48 is 7×50 minus 7×2. There is no time for long multiplication, and the correction is almost always a single step.' },
+  teachBondsTen: { ru: 'Держите в голове дополнения до десяти — 3+7, 4+6, 2+8. Большинство пар собирается через них, а не перебором всех чисел.', en: 'Keep the complements to ten in mind — 3+7, 4+6, 2+8. Most pairs come together through them rather than through scanning every number.' },
+  teachPatternPeriod: { ru: 'Сначала проверьте ПОВТОР: не идёт ли кусок по кругу. Если нет — смотрите на РАЗНОСТИ соседних чисел, и только потом на разность разностей.', en: 'First check for REPETITION: does a block come round again? If not, look at the DIFFERENCES between neighbours, and only then at the differences of those.' },
+  teachRotationAnchor: { ru: 'Не вращайте фигуру целиком — выберите ОДНУ примету (хвост, выступ, угол) и следите, куда она уходит при повороте. Сравнивать одну точку быстрее, чем весь силуэт.', en: 'Do not rotate the whole figure — pick ONE landmark (a tail, a notch, a corner) and watch where it goes. Comparing one point is faster than a whole outline.' },
+  teachSliderAnchor: { ru: 'Ставьте метку не от края, а от ОПОР: середина шкалы, четверти, десятые. Прикидка «чуть правее трети» точнее, чем попытка отмерить абсолютное расстояние.', en: 'Place the mark from ANCHORS, not from the edge: the midpoint, the quarters, the tenths. “Just past a third” is more accurate than trying to measure an absolute distance.' },
+  /* 🎓 РАЗБОР МАДЖОНГА: правило свободы и порядок разбора завала. */
+  teachMahjongFree: { ru: 'Плитка свободна, если сверху её ничто не накрывает И свободен хотя бы один бок — левый или правый. Ни цвет, ни слой сами по себе ни при чём.', en: 'A tile is free when nothing covers it from above AND at least one side — left or right — is clear. Neither colour nor layer matters by itself.' },
+  teachMahjongPair: { ru: 'Вот пара, которую можно снять сейчас. Снимайте сперва ВЕРХНИЕ плитки: каждая из них держит нижние, и, убрав её, вы открываете сразу несколько ходов.', en: 'Here is a pair you can take right now. Take the UPPER tiles first: each of them holds the ones below, and removing it opens several moves at once.' },
+  teachMahjongCount: { ru: 'Когда одинаковых свободных плиток четыре, снимайте любую пару. Когда две — сперва посмотрите, не откроет ли другая пара больше: снятая не вернётся.', en: 'With four identical free tiles, take any pair. With only two, first check whether another pair opens more: what you remove does not come back.' },
+  /* 🎓 РАЗБОР СОРТИРОВКИ ТОВАРОВ: три одинаковых, ёмкость ниши и порядок разбора. */
+  teachGoodsTriple: { ru: 'Исчезают ТРИ одинаковых товара в одной нише — не два и не пара из разных ниш. Каждый ход — это перенос товара в нишу, где он будет третьим.', en: 'THREE identical goods in one niche disappear — not two, and not a pair from different niches. Every move brings a good to a niche where it will be the third.' },
+  teachGoodsCap: { ru: 'С восемнадцатого уровня ниши разной ёмкости: есть на два и на четыре. В нишу на два третий товар не влезет, а в нише на четыре тройка собирается и остаётся место — смотрите на ёмкость, а не на вид ниши.', en: 'From level eighteen the niches differ in size: some hold two, some hold four. A third good will not fit a two-slot niche, while a four-slot one keeps a free space after a triple — read the capacity, not the look.' },
+  /* ⚠️ ЗАЧЕМ ХОД, А НЕ ЧТО ЗА ХОД. Разбор товаров показывает путь решателя, и
+     каждый шаг обязан называть ПРИЧИНУ: «переложи отсюда сюда» человек и сам
+     видит на доске, а зачем — нет. Четыре причины покрывают все ходы решателя,
+     и выбираются они замером доски до и после хода, а не по порядку в пути. */
+  teachGoodsWhyTriple: { ru: 'Третий такой же — тройка исчезает, и ниша освобождается.', en: 'A third of the same kind — the triple clears and the niche frees up.' },
+  teachGoodsWhyStack: { ru: 'Кладём к своему виду: товар ждёт третьего, а не занимает чужое место.', en: 'Place it with its own kind: the good waits for a third instead of taking someone else\u2019s room.' },
+  teachGoodsWhyFree: { ru: 'Ниша опустела целиком — это и есть место под следующую тройку.', en: 'The niche is now completely empty — that is the room for the next triple.' },
+  teachGoodsWhyRoom: { ru: 'Снимаем верхний, чтобы добраться до нужного товара под ним.', en: 'Take the top good off to reach the one you need underneath.' },
+  teachGoodsNoPath: { ru: 'Здесь решение показать нечем — разберём правило.', en: 'No solution to show here — let us go through the rule instead.' },
+  teachGoodsFree: { ru: 'Освобождайте нишу ЦЕЛИКОМ. Полупустые ниши забивают поле: ходов формально много, а собрать тройку негде.', en: 'Clear a niche COMPLETELY. Half-empty niches choke the board: there are moves aplenty, yet nowhere to build a triple.' },
+  /*
+   * 🎓 ЧЕРТА ЛИЦА ДЛЯ РАЗБОРА «ЛИЦ И ИМЁН». Черта берётся из САМОГО портрета и притом та,
+   * что ОТЛИЧАЕТ его от соседних лиц раунда: сказать «у неё тёмные волосы», когда тёмные у
+   * троих, — значит дать зацепку, которая на опросе не сработает.
+   */
+  teachFacesNoFeature: { ru: 'отличить по одной черте тут нечем — держитесь за имя и факт', en: 'no single feature sets this one apart — hold on to the name and the fact' },
+  faceFeatureGlasses: { ru: 'единственный в очках', en: 'the only one wearing glasses' },
+  faceFeatureNoGlasses: { ru: 'единственный без очков', en: 'the only one without glasses' },
+  faceShapeRound: { ru: 'круглое лицо', en: 'a round face' },
+  faceShapeOval: { ru: 'овальное лицо', en: 'an oval face' },
+  faceShapeLong: { ru: 'вытянутое лицо', en: 'a long face' },
+  faceShapeAngular: { ru: 'угловатое лицо', en: 'an angular face' },
+  faceHairCrop: { ru: 'короткая стрижка', en: 'a short crop' },
+  faceHairParted: { ru: 'волосы на пробор', en: 'hair with a parting' },
+  faceHairWave: { ru: 'волнистые волосы', en: 'wavy hair' },
+  faceHairCurve: { ru: 'волосы с изгибом набок', en: 'hair swept to one side' },
   teachRow: { ru: 'Строка {n}', en: 'Row {n}' },
   teachCol: { ru: 'Столбец {n}', en: 'Column {n}' },
+  /*
+   * 🎓 РАЗБОР «ДВОРЦА ПАМЯТИ». Объясняется не интерфейс, а ПРИЁМ: связка «место → образ» и
+   * проход по маршруту. Тексты идут на настоящем материале уровня — названия мест и
+   * предметов подставляет экран из словаря самой игры.
+   */
+  /*
+   * 🎓 РАЗБОР «ПАР СЛОВ». Приём: одна картинка, где ОБА слова действуют вместе, и проверка
+   * задом наперёд. Слова подставляет экран из самой партии.
+   */
+  /*
+   * 🎓 РАЗБОР «ЛИЦ И ИМЁН». Приём: цеплять имя за ОДНУ черту лица, факт держать вторым
+   * крючком. Черту подставляет экран из настоящего портрета, факт — из словаря игры.
+   */
+  teachFacesIntro: { ru: 'Лицо запоминается не целиком, а одной ЧЕРТОЙ, которая отличает его от соседних. Сейчас разберём несколько из этих {n}.', en: 'A face is remembered by one distinctive FEATURE, not as a whole. Let us work through a few of these {n}.' },
+  teachFacesFeatureFirst: { ru: '{name}. Черта: {feature}. Свяжите имя именно с ней, а не с «лицом вообще»: на опросе вы будете искать эту черту. Факт — второй крючок: {fact}.', en: '{name}. The feature: {feature}. Tie the name to it, not to “the face” in general: at the test you will look for this feature. The fact is a second hook: {fact}.' },
+  teachFacesFeature: { ru: '{name}. Черта: {feature}. Снова одна зацепка и имя на ней. Факт вторым крючком: {fact}.', en: '{name}. The feature: {feature}. One hook again, with the name on it. The fact as a second hook: {fact}.' },
+  teachFacesInterference: { ru: 'Между показом и вопросами будет счёт — {n} примера. Это не лишняя арифметика: счёт мешает повторять имена про себя, и поэтому меряется память, а не проговаривание.', en: 'Between the showing and the questions there is arithmetic — {n} sums. It is not filler: counting blocks silent rehearsal, so what is measured is memory, not repetition.' },
+  teachFacesRecognition: { ru: 'Сначала спросят лицо среди похожих. Ищите свою черту — «{feature}» — а не «то самое лицо»: похожие сделаны нарочно.', en: 'First you pick the face among look-alikes. Look for your feature — “{feature}” — not for “that face”: the look-alikes are deliberate.' },
+  teachFacesName: { ru: 'Потом имя. Если имя лежало на черте, оно придёт вместе с ней: {name}.', en: 'Then the name. If the name sat on the feature, it comes with it: {name}.' },
+  teachFacesNameAndFact: { ru: 'Потом имя, а на высоких уровнях и факт. Если оба лежали на черте, придут оба: {name} — {fact}.', en: 'Then the name, and at higher levels the fact too. If both sat on the feature, both come back: {name} — {fact}.' },
+  teachFacesDone: { ru: 'Так и играйте: одна черта на лицо, имя и факт — на ней.', en: 'Play it the same way: one feature per face, with the name and the fact resting on it.' },
+  teachPairsIntro: { ru: 'Пара слов держится не повторением, а ОДНОЙ картинкой, где оба слова действуют вместе. Сейчас разберём несколько пар из этих {n}.', en: 'A word pair sticks through ONE picture where both words act together, not through repetition. Let us work through a few of these {n} pairs.' },
+  teachPairsLinkFirst: { ru: '{a} и {b}. Представьте их в одной сцене: не рядом, а во взаимодействии — так, чтобы одно делало что-то со вторым.', en: '{a} and {b}. Put them in one scene: not side by side but interacting — one doing something to the other.' },
+  teachPairsLink: { ru: '{a} и {b}. Снова одна сцена, и пусть она будет нелепой: нелепое держится, обычное стирается.', en: '{a} and {b}. One scene again, and let it be absurd: the absurd sticks, the ordinary fades.' },
+  teachPairsCheck: { ru: 'Проверка задом наперёд: видите «{b}» — всплывает ли «{a}»? Если нет, картинка была вялой: сделайте её ярче, а не повторяйте слова.', en: 'Check it backwards: seeing “{b}”, does “{a}” come up? If not, the picture was weak — make it brighter instead of repeating the words.' },
+  teachPairsMatch: { ru: 'Потом слова перемешаются, и надо будет соединить пары. Соединяйте не по памяти на список, а по картинке: она вернёт второе слово.', en: 'Then the words are shuffled and you match the pairs. Match by the picture, not by the list: the picture brings the second word back.' },
+  teachPairsDone: { ru: 'Так и играйте: на каждую пару — одна яркая сцена, и проверка задом наперёд.', en: 'Play it the same way: one vivid scene per pair, then check it backwards.' },
+  teachPalaceIntro: { ru: 'Приём «дворец памяти»: {n} мест знакомого маршрута, и на каждое кладётся один предмет. Вспоминать потом будете не список, а дорогу.', en: 'The memory palace: {n} places along a familiar route, one object on each. Later you recall the walk, not the list.' },
+  teachPalaceLinkFirst: { ru: 'Место 1 — {place}. Кладём сюда: {item}. Свяжите их ОДНОЙ картинкой и сделайте её странной: обычное забывается, нелепое держится.', en: 'Place 1 — {place}. Put {item} here. Tie them with ONE picture and make it odd: the ordinary fades, the absurd sticks.' },
+  teachPalaceLink: { ru: 'Место {n} — {place}. Сюда: {item}. Снова одна картинка, и предмет прямо НА этом месте, а не рядом с ним.', en: 'Place {n} — {place}. Here: {item}. Again one picture, with the object right ON the place, not beside it.' },
+  teachPalaceWalk: { ru: 'Теперь пройдём маршрут. Порядок мест и есть порядок предметов — идите по дороге, а не по списку.', en: 'Now walk the route. The order of places is the order of objects — follow the road, not a list.' },
+  teachPalaceRecall: { ru: '{place} — что здесь? {item}. Если картинка была яркой, ответ приходит сам.', en: '{place} — what is here? {item}. If the picture was vivid, the answer comes on its own.' },
+  teachPalaceBack: { ru: 'Обратный ход — та же дорога с конца: {place} — {item}. Приём работает в обе стороны, поэтому игра и спрашивает так.', en: 'Backwards is the same road from the end: {place} — {item}. The technique works both ways, which is why the game asks for it.' },
+  teachPalaceDone: { ru: 'Так и играйте: разложите предметы по местам, потом пройдите маршрут вперёд и назад.', en: 'Play it the same way: place the objects, then walk the route forward and back.' },
   teachUnrulyPair: { ru: '{line}: две одинаковые клетки стоят рядом. Трёх одинаковых подряд не бывает, поэтому клетки по краям — другого цвета.', en: '{line}: two matching cells sit side by side. Three in a row is not allowed, so the cells at both ends take the other colour.' },
   teachAnagramLook: { ru: 'Сначала осмотри буквы. Самая редкая здесь — «{piece}»: в банке этой длины она есть у {n} слов из {total}. С неё и начинай искать: редкая буква сужает перебор сильнее любой другой.', en: 'Look at the letters first. The rarest one here is “{piece}”: only {n} of the {total} words this length contain it. Start from it — a rare letter narrows the search more than any other.' },
   teachAnagramStart: { ru: 'Ставим начало — «{piece}». Так начинаются {n} слов из {total} этой длины: знакомое начало узнаётся быстрее, чем слово целиком.', en: 'Place the beginning — “{piece}”. {n} of the {total} words this length start like that: a familiar opening is recognised faster than a whole word.' },
@@ -1103,7 +1222,7 @@ const translations: Translations = {
   puzzlesPalisadeDesc: { ru: 'Разрезать поле на области одного размера; число — сколько сторон клетки стали границей, край поля тоже. Тап по линии — граница', en: 'Cut the grid into regions of one size; a number says how many of the cell\'s sides are borders, the board edge included. Tap a line for a border' },
   puzzlesPalisadeIntroDesc: { ru: 'Поле надо разрезать границами на области одного размера. Размер зависит от поля: на 5×5 — по 5 клеток, на 8×6 — по 6, на 10×8 — по 8, на 15×12 — по 10. Число в клетке — сколько из четырёх её сторон стали границей; край поля тоже считается границей. Пример: в угловой клетке 2 — две её стороны уже край поля, значит, к соседям границ нет и оба соседа в её области. 0 — клетка со всех сторон внутри своей области. Нажатие по линии между клетками ставит границу, повторное убирает; кнопка «Пометка» или долгое нажатие ставит метку «границы нет». Решено, когда все области нужного размера, числа сходятся и лишних границ внутри областей нет.', en: 'Cut the board with borders into regions that all have the same size. The size depends on the board: on 5×5 each region has 5 cells, on 8×6 — 6, on 10×8 — 8, on 15×12 — 10. A number in a cell says how many of its four sides are borders; the edge of the board counts as a border too. Example: a corner cell with 2 — two of its sides are already the board edge, so it has no borders towards its neighbours and both belong to its region. A 0 means the cell sits inside its region on all four sides. Tap the line between two cells to place a border, tap again to remove it; the “Mark” button or a long press marks “no border here”. Solved when every region has the right size, every number fits, and there are no extra borders inside regions.' },
   puzzlesBridges: { ru: 'Мосты', en: 'Bridges' },
-  puzzlesBridgesDesc: { ru: 'Соединить острова мостами: число на острове — сколько их к нему сходится. Тяни от острова к острову.', en: 'Join the islands with bridges: the number says how many meet there. Drag from island to island.' },
+  puzzlesBridgesDesc: { ru: 'Соединить острова: число — сколько мостов сходится, двойной за два. Тяни от острова к острову. Не пересекаются, связаны все.', en: 'Join the islands: the number counts bridges, a double counts two. Drag island to island. Bridges never cross; all must connect.' },
   puzzlesUntangle: { ru: 'Распутать', en: 'Untangle' },
   puzzlesUntangleDesc: { ru: 'Тяни узел пальцем и растаскивай их, пока ни одна линия не пересечёт другую', en: 'Drag a node with your finger and pull them apart until no two lines cross' },
   puzzlesNet: { ru: 'Трубы', en: 'Pipes' },
@@ -1156,7 +1275,7 @@ const translations: Translations = {
   puzzlesFillingDesc: { ru: 'В каждой клетке — размер её связной области. Нажми клетку, потом цифру снизу', en: 'Each cell holds the size of its own connected region. Tap a cell, then a digit below' },
   puzzlesDominosaDesc: { ru: 'Найти, где лежит каждая домино полного набора. Тап по линии между числами — домино; «Нет домино» — здесь её нет', en: 'Rebuild how a full set of dominoes lies on the grid. Tap the line between two numbers to join them; the second action marks that no domino is there' },
   puzzlesDominosaIntroDesc: { ru: 'На поле лежал полный набор домино: каждая пара чисел от 0 до наибольшего встречается ровно один раз. Домино убрали, остались только числа — восстанови, где лежала каждая. Нажатие по линии между двумя соседними числами кладёт домино, повторное убирает. Кнопка «Нет домино» или долгое нажатие рисует черту «эти два числа — не одна домино». Кнопки с числами под полем подсвечивают все клетки с этим числом, сразу до двух чисел. Пример: домино 0-0 одно на весь набор — если два нуля стоят рядом только в одном месте, оно лежит там.', en: 'A full set of dominoes once lay on the board: every pair of numbers from 0 up to the largest appears exactly once. The dominoes were removed and only the numbers stayed — work out where each one lay. Tap the line between two neighbouring numbers to lay a domino there; tap again to remove it. The “No domino” button or a long press draws a bar meaning “these two numbers are not one domino”. The number buttons below the board highlight every cell with that number, up to two numbers at once. Example: there is only one 0-0 domino in the set — if two zeros sit side by side in just one place, it lies there.' },
-  puzzlesTracksDesc: { ru: 'Достроить рельсы от края до края по счёту в строках. Тапни клетку — положишь рельс.', en: 'Complete the track from edge to edge, matching row counts. Tap a cell to lay track.' },
+  puzzlesTracksDesc: { ru: 'Достроить рельсы от края до края по счёту в строках и столбцах. Тяни от клетки к клетке: форму задаёт путь, поворачивать ничего не надо.', en: 'Complete the track edge to edge, matching row and column counts. Drag square to square: the path sets the shape, nothing needs rotating.' },
   puzzlesPatternDesc: { ru: 'Числа у строк и столбцов — длины чёрных отрезков по порядку. Тап — чёрная, «Крестик» — белая; нужны все клетки', en: 'Row and column numbers are the lengths of black runs, in order. Tap for black, “Cross” for white; it counts once every cell is decided' },
   puzzlesPatternIntroDesc: { ru: 'Каждую клетку надо сделать чёрной или белой. Числа слева от строки — длины чёрных отрезков в ней по порядку слева направо, числа над столбцом — сверху вниз. Между отрезками — хотя бы одна белая клетка. Пример: у строки «3 1» — три чёрные подряд, дальше хотя бы одна белая, потом одна чёрная; у строки «0» все клетки белые. Нажатие делает клетку чёрной, протяжка по строке или столбцу красит подряд. Кнопка «Крестик» или долгое нажатие делает клетку белой. Решено, только когда решены все клетки: серых не осталось, белые тоже отмечены.', en: 'Every cell must end up black or white. The numbers left of a row are the lengths of its black runs, in order from left to right; the numbers above a column go from top to bottom. Runs are separated by at least one white cell. Example: a row marked “3 1” has three blacks in a row, then at least one white, then one black; a row marked “0” is all white. Tap to make a cell black; drag along a row or column to fill a run. The “Cross” button or a long press makes a cell white. It is solved only when every cell is decided: no grey left, whites marked too.' },
   puzzlesGalaxiesDesc: { ru: 'Разрезать поле на области: одна точка в центре симметрии каждой. Тап по линии — стенка; верная область перекрашивается', en: 'Cut the grid into regions, each symmetric about its one dot. Tap a line for a wall; a correct region changes colour' },
@@ -3704,6 +3823,8 @@ const translations: Translations = {
   pizzaSort: { ru: "Пицца", en: "Pizza" },
   cakeSort: { ru: 'Торты', en: 'Cake sort' },
   cakeSortDesc: { ru: 'Собирайте круг из шести одинаковых кусков', en: 'Gather a circle of six matching slices' },
+  tolWonPreset: { ru: 'Партия взята: лишних ходов {e} из {r}', en: 'Round cleared: {e} extra moves out of {r}' },
+  puzzleOutOfMoves: { ru: 'Не уложился в ходы: потрачено {m} из {n}. Тут важно не залить поле, а залить его за отведённые ходы.', en: 'Out of moves: {m} used of {n}. The aim is not just to flood the board, but to flood it within the move budget.' },
   cakeSortSlice: { ru: 'Кусок', en: 'Slice' },
   cakeSortPickSlice: { ru: 'Выбери кусок, который переложить', en: 'Pick the slice to move' },
   // Текст дословно тот же, что у тортов: правило игры одно, разная только еда.

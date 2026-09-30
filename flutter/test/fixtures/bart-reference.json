@@ -1,0 +1,209 @@
+{
+ "снято": "прогоном живого TS из frontend/app/games/bart.tsx (VER 3, origin/main)",
+ "maxLevel": 15,
+ "maxBurstByDiff": {
+  "easy": 64,
+  "medium": 32,
+  "hard": 16
+ },
+ "мёртвые переходы": [],
+ "граничные уровни": {
+  "0": {
+   "balloons": 8,
+   "maxBurst": 6,
+   "burstSpread": -0.036
+  },
+  "16": {
+   "balloons": 20,
+   "maxBurst": 128,
+   "burstSpread": 0.5
+  },
+  "40": {
+   "balloons": 20,
+   "maxBurst": 128,
+   "burstSpread": 0.5
+  }
+ },
+ "замер предела шара": {
+  "прогонов": 200000,
+  "L1": 16,
+  "L1_min": 16,
+  "L1_max": 16,
+  "L1_maxBurst": 16,
+  "L8": 86.03,
+  "L8_min": 64,
+  "L8_max": 108,
+  "L8_maxBurst": 86,
+  "L15": 128.05,
+  "L15_min": 64,
+  "L15_max": 192,
+  "L15_maxBurst": 128
+ },
+ "levels": [
+  {
+   "level": 1,
+   "balloons": 8,
+   "maxBurst": 16,
+   "burstSpread": 0,
+   "condition": {
+    "balloons": 8,
+    "maxBurst": 16,
+    "burstSpread": 0
+   }
+  },
+  {
+   "level": 2,
+   "balloons": 8,
+   "maxBurst": 26,
+   "burstSpread": 0.036,
+   "condition": {
+    "balloons": 8,
+    "maxBurst": 26,
+    "burstSpread": 0.036
+   }
+  },
+  {
+   "level": 3,
+   "balloons": 8,
+   "maxBurst": 36,
+   "burstSpread": 0.072,
+   "condition": {
+    "balloons": 8,
+    "maxBurst": 36,
+    "burstSpread": 0.072
+   }
+  },
+  {
+   "level": 4,
+   "balloons": 12,
+   "maxBurst": 46,
+   "burstSpread": 0.10799999999999998,
+   "condition": {
+    "balloons": 12,
+    "maxBurst": 46,
+    "burstSpread": 0.10799999999999998
+   }
+  },
+  {
+   "level": 5,
+   "balloons": 12,
+   "maxBurst": 56,
+   "burstSpread": 0.144,
+   "condition": {
+    "balloons": 12,
+    "maxBurst": 56,
+    "burstSpread": 0.144
+   }
+  },
+  {
+   "level": 6,
+   "balloons": 12,
+   "maxBurst": 66,
+   "burstSpread": 0.18,
+   "condition": {
+    "balloons": 12,
+    "maxBurst": 66,
+    "burstSpread": 0.18
+   }
+  },
+  {
+   "level": 7,
+   "balloons": 16,
+   "maxBurst": 76,
+   "burstSpread": 0.21599999999999997,
+   "condition": {
+    "balloons": 16,
+    "maxBurst": 76,
+    "burstSpread": 0.21599999999999997
+   }
+  },
+  {
+   "level": 8,
+   "balloons": 16,
+   "maxBurst": 86,
+   "burstSpread": 0.252,
+   "condition": {
+    "balloons": 16,
+    "maxBurst": 86,
+    "burstSpread": 0.252
+   }
+  },
+  {
+   "level": 9,
+   "balloons": 16,
+   "maxBurst": 96,
+   "burstSpread": 0.288,
+   "condition": {
+    "balloons": 16,
+    "maxBurst": 96,
+    "burstSpread": 0.288
+   }
+  },
+  {
+   "level": 10,
+   "balloons": 20,
+   "maxBurst": 106,
+   "burstSpread": 0.32399999999999995,
+   "condition": {
+    "balloons": 20,
+    "maxBurst": 106,
+    "burstSpread": 0.32399999999999995
+   }
+  },
+  {
+   "level": 11,
+   "balloons": 20,
+   "maxBurst": 116,
+   "burstSpread": 0.36,
+   "condition": {
+    "balloons": 20,
+    "maxBurst": 116,
+    "burstSpread": 0.36
+   }
+  },
+  {
+   "level": 12,
+   "balloons": 20,
+   "maxBurst": 126,
+   "burstSpread": 0.39599999999999996,
+   "condition": {
+    "balloons": 20,
+    "maxBurst": 126,
+    "burstSpread": 0.39599999999999996
+   }
+  },
+  {
+   "level": 13,
+   "balloons": 20,
+   "maxBurst": 128,
+   "burstSpread": 0.43199999999999994,
+   "condition": {
+    "balloons": 20,
+    "maxBurst": 128,
+    "burstSpread": 0.43199999999999994
+   }
+  },
+  {
+   "level": 14,
+   "balloons": 20,
+   "maxBurst": 128,
+   "burstSpread": 0.46799999999999997,
+   "condition": {
+    "balloons": 20,
+    "maxBurst": 128,
+    "burstSpread": 0.46799999999999997
+   }
+  },
+  {
+   "level": 15,
+   "balloons": 20,
+   "maxBurst": 128,
+   "burstSpread": 0.5,
+   "condition": {
+    "balloons": 20,
+    "maxBurst": 128,
+    "burstSpread": 0.5
+   }
+  }
+ ]
+}

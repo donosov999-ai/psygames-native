@@ -55,10 +55,18 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import LevelCleared from '@/src/components/LevelCleared';
 import GameResult from '@/src/components/GameResult';
 import FacesNamesGame, { FacesNamesAnswerBar, type FacesNamesAnswer } from '@/src/games/faces-names/FacesNamesGame';
+import LessonPlayer from '@/src/components/LessonPlayer';
+import { GameAuxAction } from '@/src/components/GameAuxAction';
+import { SyntheticFace } from '@/src/games/faces-names/SyntheticFace';
+import { собратьРазборЛиц, type КарточкаЛиц } from '@/src/games/faces-names/teach';
 import {
+  describeSyntheticFace,
+  generateFacesNamesPuzzle,
+  getFactText,
   getFacesNamesStrings,
   isPassed,
   LEVELS as FACES_NAMES_LEVELS,
+  personById,
   type FacesNamesLocale,
   type FacesNamesMetrics,
 } from '@/src/games/faces-names/core';
@@ -127,6 +135,54 @@ export default function FacesNamesScreen() {
    */
   const [attempt, setAttempt] = React.useState(0);
   const seed = React.useMemo(() => `faces-names-${level}`, [level]);
+
+  /**
+   * 🎓 РАЗБОР ПО ШАГАМ (Денис 17.09.2026). Приём: цеплять имя за ОДНУ черту лица, а факт
+   * держать вторым крючком. Черта берётся из настоящего портрета (`describeSyntheticFace`) —
+   * скажи разбор «рыжие волосы» при тёмных, и приём сломается на первом же опросе.
+   * ⚠️ Ссылки обработчиков стабильные: плеер ведёт шаги таймером, и новая стрелка на каждый
+   * кадр молча остановила бы ролик (замер 24.09 на «Парах слов»).
+   */
+  const разборРасклад = React.useMemo(() => generateFacesNamesPuzzle(seed, level), [seed, level]);
+  const [урок, setУрок] = React.useState<{ карточки: КарточкаЛиц[]; индекс: number } | null>(null);
+  const карточкаУрока = урок ? урок.карточки[урок.индекс] : null;
+  const разборДоступен = phase === 'playing' && level <= 3;
+  const начатьРазбор = React.useCallback(() => {
+    const locale = asLocale(language);
+    /**
+     * ⚠️ ДИКТОРСКОЕ ОПИСАНИЕ ОБРЕЗАЕТСЯ ДО САМОЙ ЧЕРТЫ. `describeSyntheticFace` говорит
+     * «Синтетический иллюстрированный портрет 32: угловатый контур, закруглённая причёска,
+     * круглые очки» — номер портрета человеку не нужен и мешает, а точка в конце давала
+     * двойную («…очки..»). Берём хвост после двоеточия; нет двоеточия — берём как есть.
+     */
+    const черта = (полное: string) => {
+      const срез = полное.indexOf(': ');
+      return (срез >= 0 ? полное.slice(срез + 2) : полное).replace(/\.\s*$/, '');
+    };
+    const { карточки } = собратьРазборЛиц(разборРасклад, (id) => {
+      const человек = personById(разборРасклад, id);
+      return человек ? черта(describeSyntheticFace(locale, человек.face)) : '';
+    });
+    setУрок({ карточки, индекс: 0 });
+  }, [разборРасклад, language]);
+  const урокДальше = React.useCallback(
+    () => setУрок((у) => (у && у.индекс + 1 < у.карточки.length ? { ...у, индекс: у.индекс + 1 } : у)), [],
+  );
+  const урокНазад = React.useCallback(
+    () => setУрок((у) => (у && у.индекс > 0 ? { ...у, индекс: у.индекс - 1 } : у)), [],
+  );
+  const урокЗакрыть = React.useCallback(() => setУрок(null), []);
+  /** Текст шага: ключ словаря + подстановка имён и ФАКТА на языке интерфейса. */
+  const текстУрока = React.useMemo(() => {
+    if (!карточкаУрока) return '';
+    const locale = asLocale(language);
+    const поля: Record<string, string | number> = { ...(карточкаУрока.поля ?? {}) };
+    if (поля.fact !== undefined) поля.fact = getFactText(locale, String(поля.fact));
+    return Object.entries(поля).reduce(
+      (текст, [ключ, знач]) => текст.replace(new RegExp(`\\{${ключ}\\}`, 'g'), String(знач)),
+      t(карточкаУрока.ключ),
+    );
+  }, [карточкаУрока, language, t]);
 
   /**
    * Есть ли что терять — решает МОДУЛЬ (`hasSomethingToLose`), экран только
@@ -274,6 +330,13 @@ export default function FacesNamesScreen() {
          * набор выпадет тот же, а вот минута запоминания не вернётся.
          */
         confirmExit={armed}
+        /** 🎓 «Разбор» — значком в общем ряду под полем, как у всех игр. */
+        headerActions={разборДоступен ? (
+          <GameAuxAction
+            compact icon="school-outline" tint="#d97706" label={t('teachButton')}
+            onPress={начатьРазбор}
+          />
+        ) : undefined}
         toolbar={answer ? (
           <FacesNamesAnswerBar
             answer={answer}
@@ -282,6 +345,32 @@ export default function FacesNamesScreen() {
           />
         ) : undefined}
       >
+        {/*
+          🎓 РАЗБОР НА ВЕСЬ ЭКРАН. Сцена — тот самый портрет, о котором идёт речь: черту
+          человек должен ВИДЕТЬ, а не читать её описание отдельно от лица.
+        */}
+        <LessonPlayer
+          visible={!!урок}
+          индекс={урок?.индекс ?? 0}
+          шагов={Math.max(0, (урок?.карточки.length ?? 1) - 1)}
+          текст={текстУрока}
+          сноска={урок?.индекс === 0 ? t('teachNotCounted') : undefined}
+          готово={карточкаУрока?.вид === 'готово'}
+          занят={false}
+          renderBoard={(сторона) => {
+            const человек = карточкаУрока?.человек ? personById(разборРасклад, карточкаУрока.человек) : null;
+            if (!человек) return null;
+            return (
+              <View style={styles.разборСцена}>
+                <SyntheticFace face={человек.face} locale={asLocale(language)} size={Math.min(220, сторона * 0.6)} />
+                <Text style={[styles.разборИмя, { color: colors.text }]}>{человек.name}</Text>
+              </View>
+            );
+          }}
+          onДальше={урокДальше}
+          onНазад={урокНазад}
+          onЗакрыть={урокЗакрыть}
+        />
         <View style={styles.stage}>
           <FacesNamesGame
             key={attempt}                 /* новый заход — чистое состояние модуля */
@@ -381,6 +470,8 @@ const styles = StyleSheet.create({
    */
   // Поле во всю ширину: гасим боковой отступ каркаса ЕГО ЖЕ числом (см. PAD_H).
   stage: { flex: 1, alignSelf: 'stretch', marginHorizontal: -PAD_H },
+  разборСцена: { alignItems: 'center', gap: 10 },
+  разборИмя: { fontSize: 22, fontWeight: '800' },
   header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   // 48×48 — норма попадания пальцем; у «Прикидки» здесь стоял padding 4 и кнопка
   // выходила 32×34, из-за чего аудит держал по ней долг. Повторять не будем.

@@ -33,7 +33,7 @@ import { CLOZE_PHRASES } from '@/src/constants/clozePhrases';
 import { TRANSLATION_VOCAB } from '@/src/constants/translationVocab';
 import { pickFreshFrom } from '@/src/services/freshPool';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+ 
 declare function require(id: string): any;
 declare const __dirname: string;
 const fs = require('fs');

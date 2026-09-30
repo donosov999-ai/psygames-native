@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -87,6 +88,17 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
     _timer = Timer(const Duration(milliseconds: gonogoFirstDelayMs), _nextTrial);
   }
 
+  /// Примеры разбора: оба вида стимула — и рисует их виджет самой игры.
+  List<DemoTrial> _demoTrials() => [
+        for (final stim in GoNoGoStim.values)
+          DemoTrial(
+            text: '',
+            art: GoNoGoStimulus(stim: stim),
+            answer: gonogoShouldPress(stim) ? L.t('demoPress') : L.t('demoHold'),
+            ruleKey: 'goNoGoDesc',
+          ),
+      ];
+
   void _nextTrial() {
     if (!mounted || _phase != GoNoGoPhase.playing) return;
     final g = _game!;
@@ -146,6 +158,9 @@ class _GoNoGoScreenState extends State<GoNoGoScreen> {
         HudItem(label: L.t('hud_correct'), value: '${g.hits + g.correctRejections}', icon: Icons.check),
         HudItem(label: L.t('reaction'), value: '${g.meanRtMs ?? 0}', icon: Icons.bolt),
       ],
+      onLesson: _game == null
+          ? null
+          : () => openDemoLesson(context, title: L.t('goNoGo'), trials: _demoTrials()),
       field: (context, h) => _Field(
         game: g,
         phase: _phase,
@@ -168,6 +183,36 @@ const Color _bad = Color(0xFFEF4444);
 /// мерила бы зрение вместо торможения.
 const Color _goColor = Color(0xFF22C55E);
 const Color _nogoColor = Color(0xFFEF4444);
+
+/// 🔴 СТИМУЛ ОТДЕЛЬНЫМ ВИДЖЕТОМ — ЧТОБЫ РАЗБОР ПОКАЗЫВАЛ ТО ЖЕ САМОЕ.
+///
+/// Нарисовать в разборе «такой же зелёный круг» значило бы завести вторую
+/// правду о виде стимула: форма здесь несёт смысл (круг ≠ квадрат), и разойдись
+/// они — человек учился бы различать не то.
+class GoNoGoStimulus extends StatelessWidget {
+  const GoNoGoStimulus({super.key, required this.stim});
+
+  final GoNoGoStim stim;
+
+  @override
+  Widget build(BuildContext context) => switch (stim) {
+        GoNoGoStim.go => Container(
+            key: const Key('gonogo-go'),
+            width: 140,
+            height: 140,
+            decoration: const BoxDecoration(color: _goColor, shape: BoxShape.circle),
+          ),
+        GoNoGoStim.nogo => Container(
+            key: const Key('gonogo-nogo'),
+            width: 140,
+            height: 140,
+            decoration: BoxDecoration(
+              color: _nogoColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+      };
+}
 
 class _Field extends StatelessWidget {
   const _Field({
@@ -255,25 +300,8 @@ class _Field extends StatelessWidget {
                   SizedBox(
                     height: 180,
                     child: Center(
-                      child: switch (s) {
-                        GoNoGoStim.go => Container(
-                            key: const Key('gonogo-go'),
-                            width: 140,
-                            height: 140,
-                            decoration: const BoxDecoration(color: _goColor, shape: BoxShape.circle),
-                          ),
-                        GoNoGoStim.nogo => Container(
-                            key: const Key('gonogo-nogo'),
-                            width: 140,
-                            height: 140,
-                            decoration: BoxDecoration(
-                              color: _nogoColor,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        // Между пробами поле пустое: пауза — часть темпа, а не простой.
-                        null => const SizedBox.shrink(),
-                      },
+                      // Между пробами поле пустое: пауза — часть темпа, а не простой.
+                      child: s == null ? const SizedBox.shrink() : GoNoGoStimulus(stim: s),
                     ),
                   ),
                   const SizedBox(height: 12),

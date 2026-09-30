@@ -7,6 +7,10 @@ import '../../shell/game_shell.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
+import '../sudoku/lesson.dart';
 import 'levels.dart';
 import 'rules.dart';
 
@@ -142,6 +146,64 @@ class _FractalScreenState extends State<FractalScreen> {
     setState(() => _play = revertMove(p, f, _history.removeLast()));
   }
 
+  /// 🔴 РАЗБОР ФРАКТАЛА — ПО ТОЙ СЕТКЕ, ГДЕ ЧЕЛОВЕК СЕЙЧАС.
+  ///
+  /// На карте это корневая сетка, внутри плитки — её дочерняя. Разбирать не ту,
+  /// в которую человек смотрит, значит объяснять чужую доску: у фрактала девять
+  /// сеток, и «шаг 1» без привязки к месту ничего не говорит.
+  String _teach(String key, Map<String, String> args) {
+    var out = switch (key) {
+      'teachSudokuNaked' => L.t('teachSudokuNaked'),
+      'teachSudokuHiddenRow' => L.t('teachSudokuHiddenRow'),
+      'teachSudokuHiddenCol' => L.t('teachSudokuHiddenCol'),
+      'teachSudokuHiddenBox' => L.t('teachSudokuHiddenBox'),
+      _ => L.t('teachSudokuPlain'),
+    };
+    for (final e in args.entries) {
+      out = out.replaceAll('{${e.key}}', e.value);
+    }
+    return out;
+  }
+
+  /// Заголовок один на экран и на разбор: вторая строка — второй долг подписей.
+  String get _title => 'Фрактал';
+
+  List<LessonStep> _lessonSteps() {
+    final f = _puzzle, p = _play;
+    if (f == null || p == null) return const [];
+    final open = _openChild;
+    final grid = open == null ? p.rootGrid : p.children[open].grid;
+    final solution = open == null ? f.rootSolution : f.children[open].solution;
+    return sudokuLessonSteps(say: _teach, grid: grid, solution: solution, n: 9, br: 3, bc: 3);
+  }
+
+  Future<void> _openLesson() async {
+    final steps = _lessonSteps();
+    final f = _puzzle, p = _play;
+    if (steps.isEmpty || f == null || p == null) return;
+    final open = _openChild;
+    // ⚠️ `given` здесь — сама загадка, а не маска: так её ждёт виджет сетки.
+    final given = open == null ? f.rootPuzzle : f.children[open].puzzle;
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: _title,
+        steps: steps,
+        board: (context, side, shown) {
+          final m = steps[shown.clamp(0, steps.length - 1)].payload as SudokuMove;
+          return FractalGridView(
+            size: side,
+            values: m.grid,
+            given: given,
+            keyPrefix: 'lesson',
+            selected: (child: open, r: m.r, c: m.c),
+            onTap: (_, _) {},
+          );
+        },
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final levels = _levels;
@@ -150,7 +212,8 @@ class _FractalScreenState extends State<FractalScreen> {
     final open = _openChild;
 
     return GameShell(
-      title: 'Фрактал',
+      title: _title,
+      onLesson: _lessonSteps().isEmpty ? null : _openLesson,
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.trending_up),
         HudItem(label: 'Открыто', value: '$_unlocked/9', icon: Icons.lock_open),
@@ -241,7 +304,7 @@ class _MapView extends StatelessWidget {
             SizedBox(
               height: side < 0 ? 0 : side,
               child: Center(
-                child: _Grid(
+                child: FractalGridView(
                   size: side < 0 ? 0 : side,
                   values: play.rootGrid,
                   given: puzzle.rootPuzzle,
@@ -358,7 +421,7 @@ class _ChildView extends StatelessWidget {
       builder: (context, c) {
         final side = (height < c.maxWidth ? height : c.maxWidth) - 8;
         return Center(
-          child: _Grid(
+          child: FractalGridView(
             size: side < 0 ? 0 : side,
             values: play.children[child].grid,
             given: puzzle.children[child].puzzle,
@@ -374,8 +437,9 @@ class _ChildView extends StatelessWidget {
 }
 
 /// Сетка 9×9 — общая отрисовка корня и дочерней.
-class _Grid extends StatelessWidget {
-  const _Grid({
+class FractalGridView extends StatelessWidget {
+  const FractalGridView({
+    super.key,
     required this.size,
     required this.values,
     required this.given,

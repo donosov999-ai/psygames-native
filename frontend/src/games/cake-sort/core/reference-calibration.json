@@ -1,0 +1,174 @@
+{
+ "note": "Точный минимум ходов на столах калибровки. Пишет tools/record-reference.gen.ts",
+ "budget": 200000,
+ "boards": [
+  {
+   "types": 3,
+   "plates": 5,
+   "seed": 1,
+   "min": 8,
+   "nodes": 97
+  },
+  {
+   "types": 3,
+   "plates": 5,
+   "seed": 2,
+   "min": 10,
+   "nodes": 442
+  },
+  {
+   "types": 3,
+   "plates": 5,
+   "seed": 3,
+   "min": 12,
+   "nodes": 4306
+  },
+  {
+   "types": 3,
+   "plates": 5,
+   "seed": 4,
+   "min": 9,
+   "nodes": 212
+  },
+  {
+   "types": 3,
+   "plates": 6,
+   "seed": 1,
+   "min": 8,
+   "nodes": 97
+  },
+  {
+   "types": 3,
+   "plates": 6,
+   "seed": 2,
+   "min": 10,
+   "nodes": 452
+  },
+  {
+   "types": 3,
+   "plates": 6,
+   "seed": 3,
+   "min": 12,
+   "nodes": 5502
+  },
+  {
+   "types": 3,
+   "plates": 6,
+   "seed": 4,
+   "min": 9,
+   "nodes": 216
+  },
+  {
+   "types": 4,
+   "plates": 6,
+   "seed": 1,
+   "min": null,
+   "nodes": 200001
+  },
+  {
+   "types": 4,
+   "plates": 6,
+   "seed": 2,
+   "min": 14,
+   "nodes": 5872
+  },
+  {
+   "types": 4,
+   "plates": 6,
+   "seed": 3,
+   "min": 16,
+   "nodes": 82839
+  },
+  {
+   "types": 4,
+   "plates": 6,
+   "seed": 4,
+   "min": 14,
+   "nodes": 8804
+  },
+  {
+   "types": 4,
+   "plates": 7,
+   "seed": 1,
+   "min": null,
+   "nodes": 200001
+  },
+  {
+   "types": 4,
+   "plates": 7,
+   "seed": 2,
+   "min": 14,
+   "nodes": 5872
+  },
+  {
+   "types": 4,
+   "plates": 7,
+   "seed": 3,
+   "min": 16,
+   "nodes": 159427
+  },
+  {
+   "types": 4,
+   "plates": 7,
+   "seed": 4,
+   "min": 14,
+   "nodes": 10203
+  },
+  {
+   "types": 5,
+   "plates": 7,
+   "seed": 1,
+   "min": null,
+   "nodes": 200001
+  },
+  {
+   "types": 5,
+   "plates": 7,
+   "seed": 2,
+   "min": null,
+   "nodes": 200001
+  },
+  {
+   "types": 5,
+   "plates": 7,
+   "seed": 3,
+   "min": null,
+   "nodes": 200001
+  },
+  {
+   "types": 5,
+   "plates": 7,
+   "seed": 4,
+   "min": 16,
+   "nodes": 46123
+  },
+  {
+   "types": 5,
+   "plates": 8,
+   "seed": 1,
+   "min": null,
+   "nodes": 200001
+  },
+  {
+   "types": 5,
+   "plates": 8,
+   "seed": 2,
+   "min": null,
+   "nodes": 200001
+  },
+  {
+   "types": 5,
+   "plates": 8,
+   "seed": 3,
+   "min": null,
+   "nodes": 200001
+  },
+  {
+   "types": 5,
+   "plates": 8,
+   "seed": 4,
+   "min": 16,
+   "nodes": 78132
+  }
+ ]
+}

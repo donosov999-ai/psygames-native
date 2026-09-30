@@ -96,7 +96,7 @@ describe('сортировка товаров: подсказка', () => {
     // на скобку образец краснел 06.09.2026 на верном коде, когда к доске добавился
     // третий аргумент (ниши-джокеры): проверка ловила форму записи, а не смысл.
     expect(body).toMatch(/hintMove\(makeBoard\(cells, capsForBoard\(level, cells\)/);
-    expect(body).toMatch(/canPlaceInto\(found\.fromCell, found\.toCell\)/);
+    expect(body).toMatch(/canPlaceInto\(found\.fromCell, found\.toCell, found\.fromIdx\)/);
     // и найденный ход берётся ИМЕННО у решателя, а старая формула — только запасной путь
     expect(body).toMatch(/const found = fromSolver \?\? findHint\(/);
     // и подсказка не списывается раньше проверки

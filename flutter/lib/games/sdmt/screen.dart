@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/l10n.dart';
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -95,6 +97,10 @@ class _SdmtScreenState extends State<SdmtScreen> {
   int get _duration => widget.seconds ?? _params.durationSec;
 
   void _reset() {
+    // Новая партия — снова зачётная. Отметку «разбор смотрели» ставит плеер, а
+    // снимать её обязана новая раздача (договор shell/lesson.dart): без этого
+    // один открытый разбор навсегда выключал бы рост уровня — отметка общая.
+    LessonUsed.reset();
     _tick?.cancel();
     _params = levelParams(_ladder.level);
     // Легенда перемешивается на КАЖДУЮ партию: заученная превращает пробу
@@ -150,6 +156,36 @@ class _SdmtScreenState extends State<SdmtScreen> {
     });
   }
 
+  /// РАЗБОР — ЛЕГЕНДА ТОЙ ЖЕ РАЗДАЧЕЙ И ОДИН СИМВОЛ С ВЕРНОЙ ЦИФРОЙ.
+  ///
+  /// Легенду строит `buildKeymap` — тот же, что в партии, со своим зерном
+  /// разбора; значки те же `_icons`. Второй шаг показывает сам ход игры:
+  /// символ → цифра по легенде. Правило — ключ словаря самой игры.
+  List<DemoTrial> _demoTrials() {
+    final map = buildKeymap(6, createRng('lesson'));
+    final probe = map[2];
+    Widget legend() => Wrap(spacing: 10, runSpacing: 8, children: [
+          for (final k in map)
+            Column(mainAxisSize: MainAxisSize.min, children: [
+              Icon(_icons[k.sym], size: 28),
+              Text('${k.digit}', style: const TextStyle(fontWeight: FontWeight.w700)),
+            ]),
+        ]);
+    return [
+      DemoTrial(text: '', rule: L.t('sdmtDesc'), art: legend()),
+      DemoTrial(
+        text: '',
+        rule: L.t('sdmtDesc'),
+        answer: '${probe.digit}',
+        art: Column(mainAxisSize: MainAxisSize.min, children: [
+          legend(),
+          const SizedBox(height: 16),
+          Icon(_icons[probe.sym], size: 56),
+        ]),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -157,6 +193,7 @@ class _SdmtScreenState extends State<SdmtScreen> {
     final layout = sdmtLayout(size.width, size.height);
     return GameShell(
       title: L.t('sdmt'),
+      onLesson: () => openDemoLesson(context, title: L.t('sdmt'), trials: _demoTrials()),
       hud: [
         HudItem(
           label: L.t('level'),

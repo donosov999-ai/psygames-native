@@ -93,7 +93,7 @@ describe('ответ на действие', () => {
    * замаскировано.
    */
   it('⚠️ (текстом) отказ по препятствию дрожит нишей', () => {
-    const reject = CODE.slice(CODE.indexOf('if (!canPlaceInto(fromCell, toCell))'));
+    const reject = CODE.slice(CODE.indexOf('if (!canPlaceInto(fromCell, toCell, fromIdx))'));
     const body = reject.slice(0, reject.indexOf('const ns ='));
     expect(body).toMatch(/shakeNiche\(/);
   });

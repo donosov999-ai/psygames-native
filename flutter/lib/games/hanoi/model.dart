@@ -72,10 +72,19 @@ class HanoiState {
 
   factory HanoiState.start(int level) {
     final p = levelParams(level);
-    final first = [for (var i = 0; i < p.discs; i += 1) p.discs - i];
+    return HanoiState.ofDiscs(p.discs, p.pegs);
+  }
+
+  /// Доска из заданного числа дисков и стержней — МИНУЯ лестницу.
+  ///
+  /// 🔴 НУЖНА ШАГУ ЗАРЯДКИ: плейлист задаёт доску сам (`?wu=1&discs=5`), и брать
+  /// её из личного уровня игрока в этом случае неверно — человек играл бы не то,
+  /// что ему назначено. Обычный заход по-прежнему идёт через `HanoiState.start`.
+  factory HanoiState.ofDiscs(int discs, int pegs) {
+    final first = [for (var i = 0; i < discs; i += 1) discs - i];
     return HanoiState(
-      [first, for (var i = 1; i < p.pegs; i += 1) <int>[]],
-      p.discs,
+      [first, for (var i = 1; i < pegs; i += 1) <int>[]],
+      discs,
     );
   }
 

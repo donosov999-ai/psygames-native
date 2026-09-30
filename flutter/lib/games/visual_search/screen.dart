@@ -4,8 +4,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -92,6 +94,10 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
   }
 
   void _reset() {
+    // Новая партия — снова зачётная. Отметку «разбор смотрели» ставит плеер, а
+    // снимать её обязана новая раздача (договор shell/lesson.dart): без этого
+    // один открытый разбор навсегда выключал бы рост уровня — отметка общая.
+    LessonUsed.reset();
     _next?.cancel();
     _round = 1;
     _hits = 0;
@@ -184,6 +190,30 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     setState(() => _newRound(_round + 1));
   }
 
+  /// РАЗБОР ПОКАЗЫВАЕТ СТИМУЛ ТЕМ ЖЕ ВИДЖЕТОМ, ЧТО РИСУЕТ ПАРТИЯ.
+  ///
+  /// Фигуру нельзя «нарисовать похоже»: в игре она под случайным поворотом, и
+  /// именно поворот делает поиск трудным. Поэтому образец — `_Glyph`, тот же
+  /// класс, что стоит на поле, и цель берётся у того же выбора цели.
+  List<DemoTrial> _demoTrials() {
+    final formOnly = vsPickTarget(false, vsColors, createRng('lesson-form'));
+    final pair = vsPickTarget(true, vsColors, createRng('lesson-pair'));
+    return [
+      DemoTrial(
+        text: '',
+        rule: L.t('vsFindAll'),
+        art: _Glyph(shape: formOnly.shape, color: formOnly.color, size: 64),
+      ),
+      DemoTrial(
+        text: '',
+        // Со восьмого уровня цель задаётся ПАРОЙ признаков, и отвлекающий делит
+        // с ней ровно один — про это и правило второго примера.
+        rule: L.t('vsFindConj'),
+        art: _Glyph(shape: pair.shape, color: pair.color, size: 64),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_ready) {
@@ -191,6 +221,7 @@ class _VisualSearchScreenState extends State<VisualSearchScreen> {
     }
     return GameShell(
       title: L.t('visualSearch'),
+      onLesson: () => openDemoLesson(context, title: L.t('visualSearch'), trials: _demoTrials()),
       hud: [
         HudItem(
           label: L.t('level'),

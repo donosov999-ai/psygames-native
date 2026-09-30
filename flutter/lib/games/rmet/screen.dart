@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/demo_lesson.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
@@ -99,6 +100,13 @@ class _RmetScreenState extends State<RmetScreen> {
     }
   }
 
+  /// 🔴 КАРТОЧКИ БЕЗ ОТВЕТА — И ЭТО НЕ ПРОПУСК. Верного хода на ОТДЕЛЬНОЙ пробе
+  /// здесь нет: выигрывает стратегия. Подписать карточке «верно: так» значило бы
+  /// соврать — человек сделает так и проиграет на следующем шаге.
+  List<DemoTrial> _demoTrials() => [
+        DemoTrial(text: '', rule: L.t('teachRmetEyes')),
+      ];
+
   @override
   Widget build(BuildContext context) {
     final c = _content;
@@ -111,6 +119,7 @@ class _RmetScreenState extends State<RmetScreen> {
     final s = _session;
     return GameShell(
       title: L.t('rmet'),
+      onLesson: () => openDemoLesson(context, title: L.t('rmet'), trials: _demoTrials()),
       hud: [
         HudItem(label: L.t('score'), value: '${s?.hits ?? 0}', icon: Icons.check_circle_outline),
         HudItem(

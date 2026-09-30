@@ -17,6 +17,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'marks.dart';
 import 'modes.dart';
 
 /// Доска режима: сетка, подсказки и знаки. Ввод — тычком в клетку доски.
@@ -27,6 +28,8 @@ class ModeBoard extends StatelessWidget {
     required this.mode,
     required this.grid,
     required this.given,
+    required this.marks,
+    required this.colors,
     required this.selected,
     required this.height,
     required this.onTap,
@@ -36,6 +39,10 @@ class ModeBoard extends StatelessWidget {
   final SideMode mode;
   final List<List<int>> grid;
   final List<List<bool>> given;
+
+  /// Пометки и раскраска — те же, что у классики: режим это тот же экран.
+  final List<List<int>> marks;
+  final List<List<int>> colors;
   final ({int r, int c})? selected;
   final double height;
   final void Function(int r, int c) onTap;
@@ -122,11 +129,17 @@ class ModeBoard extends StatelessWidget {
     final v = grid[r][c];
     final isGiven = given[r][c];
     final isSel = selected != null && selected!.r == r && selected!.c == c;
+    final mask = r < marks.length && c < marks[r].length ? marks[r][c] : 0;
+    final paint = r < colors.length && c < colors[r].length ? colors[r][c] : noSudokuColor;
     return SizedBox(
       width: cell,
       height: cell,
       child: Material(
-        color: isSel ? scheme.primaryContainer : scheme.surface,
+        color: isSel
+            ? scheme.primaryContainer
+            : (paint >= 0 && paint < sudokuColorCount
+                ? cellColors[paint].withValues(alpha: 0.35)
+                : scheme.surface),
         child: InkWell(
           key: Key('cell_${r}_$c'),
           onTap: () => onTap(r, c),
@@ -140,14 +153,22 @@ class ModeBoard extends StatelessWidget {
               ),
             ),
             child: Center(
-              child: Text(
-                v == 0 ? '' : '$v',
-                style: TextStyle(
-                  fontSize: cell * 0.5,
-                  fontWeight: isGiven ? FontWeight.w800 : FontWeight.w500,
-                  color: isGiven ? scheme.onSurface : scheme.primary,
-                ),
-              ),
+              child: v == 0 && mask != 0
+                  ? PencilMarksLayer(
+                      key: Key('marks_${r}_$c'),
+                      mask: mask,
+                      value: v,
+                      cell: cell,
+                      color: scheme.onSurfaceVariant,
+                    )
+                  : Text(
+                      v == 0 ? '' : '$v',
+                      style: TextStyle(
+                        fontSize: cell * 0.5,
+                        fontWeight: isGiven ? FontWeight.w800 : FontWeight.w500,
+                        color: isGiven ? scheme.onSurface : scheme.primary,
+                      ),
+                    ),
             ),
           ),
         ),

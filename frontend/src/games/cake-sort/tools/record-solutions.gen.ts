@@ -86,7 +86,7 @@ describe('запись решений вшитых уровней', () => {
     })}\n`);
     const килобайт = Math.round(fs.statSync(файл).size / 1024);
     const всегоХодов = Object.values(ходы).reduce((n, v) => n + v.length / 3, 0);
-    // eslint-disable-next-line no-console
+     
     console.log(`записано за ${секунд} с · уровней ${данные.levels.length} · без решения ${нет.length}`
       + ` · не проигрались ${неИграет.length} · ходов ${всегоХодов} · файл ${килобайт} КБ`);
 
