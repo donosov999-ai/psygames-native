@@ -10,6 +10,7 @@ import '../../shell/l10n.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'model.dart';
@@ -182,6 +183,8 @@ class _MathSprintScreenState extends State<MathSprintScreen> {
   Widget build(BuildContext context) {
     if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'math_sprint', level: _ladder.level, state: widget.state, calm: _phase != _Phase.playing),
       title: _title,
       onLesson: () => openDemoLesson(context, title: _title, trials: _demoTrials()),
       hud: [
