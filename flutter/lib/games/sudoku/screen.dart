@@ -23,6 +23,7 @@ import '../../shell/lesson_player.dart';
 import 'lesson.dart';
 import 'mode_board.dart';
 import 'modes.dart';
+import 'symbols.dart';
 
 /// СУДОКУ на общем каркасе — первый экран раздела в переезде на Flutter.
 ///
@@ -119,6 +120,39 @@ class _SudokuScreenState extends State<SudokuScreen> {
   int _errors = 0;
   int _hintsUsed = 0;
 
+  /// 🔴 ЗНАЧКИ ВМЕСТО ЦИФР (задача f1e1ff9c): предпочтение игрока и набор значков
+  /// выданной доски. Внутри игра живёт цифрами — значок меняет только то, что видно.
+  SudokuSkin _skin = SudokuSkin.digits;
+  SudokuSymbols _symbols = SudokuSymbols.digits(9);
+  int _dealSeed = 1;
+
+  String get _skinKey => '${SharedState.prefix}sudoku_skin_${widget.state.activeProfile}';
+
+  /// Значки для доски лестницы или пилота; у режимов («Небоскрёбы», «Неравенства»)
+  /// цифры — высоты и неравенства без чисел не читаются.
+  void _applySymbols(SudokuBoard? board, int seed) {
+    _dealSeed = seed;
+    _symbols = board == null || widget.mode != null
+        ? SudokuSymbols.digits(board?.n ?? 9)
+        : symbolsFor(
+            skin: _skin,
+            variant: board.variant,
+            solution: board.solution,
+            language: widget.state.language,
+            seed: seed,
+          );
+  }
+
+  /// Переключить значки посреди партии: ход, ошибки и прогресс не меняются.
+  void _toggleSkin() {
+    final next = _skin == SudokuSkin.letters ? SudokuSkin.digits : SudokuSkin.letters;
+    widget.state.set(_skinKey, next.name);
+    setState(() {
+      _skin = next;
+      _applySymbols(_board, _dealSeed);
+    });
+  }
+
   /// Переделки — как у веба: в клетке стояла цифра, и её сменили или стёрли.
   /// Веб пишет это число в каждую победу (`backtrack_count`) — «решал неуверенно».
   int _backtracks = 0;
@@ -141,12 +175,14 @@ class _SudokuScreenState extends State<SudokuScreen> {
   Future<void> _boot() async {
     await _ladder.load();
     final levels = await SudokuLevels.load();
+    await WordokuWords.load();
     // Лестница нужна и в режиме: потолок подсказок берётся по номеру ступени — ровно
     // так же, как в веб-половине (там в режиме `level` держит номер ступени).
     final modes = widget.mode == null ? null : await SideModes.load();
     if (!mounted) return;
     setState(() {
       _levels = levels;
+      _skin = skinFromName(widget.state.get(_skinKey));
       _pool = buildPool(levels);
       final store = GeneratorStore(widget.state);
       _genStore = store;
@@ -190,9 +226,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
     }
     final levels = _levels;
     if (levels == null) return;
-    final board = levels.boardFor(_ladder.level, seed: DateTime.now().millisecondsSinceEpoch);
+    final seed = DateTime.now().millisecondsSinceEpoch;
+    final board = levels.boardFor(_ladder.level, seed: seed);
     setState(() {
       _board = board;
+      _applySymbols(board, seed);
       _failure = board == null ? _noBoards : null;
       _grid = board == null ? const [] : [for (final row in board.puzzle) [...row]];
       _given = board == null ? const [] : [for (final row in board.puzzle) [for (final v in row) v != 0]];
@@ -272,6 +310,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
     }
     setState(() {
       _board = board;
+      _applySymbols(board, seed);
       _pilotTemplate = t;
       _pilotLevel = source;
       _pilotSeed = seed;
@@ -354,6 +393,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'source_level': _pilotLevel,
         'variant': _board?.variant ?? 'none',
         'repeat': _attempt > 0,
+        if (!_symbols.isDigits) 'skin': SudokuSkin.letters.name,
       },
     ));
   }
@@ -570,6 +610,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'level': level,
         'variant': mode == null ? (_board?.variant ?? 'none') : sideModeName(mode),
         if (mode == null) 'road': 'normal',
+        if (!_symbols.isDigits) 'skin': SudokuSkin.letters.name,
       },
     ));
   }
@@ -632,6 +673,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'level': level,
         'variant': _board?.variant ?? 'none',
         'road': 'normal',
+        if (!_symbols.isDigits) 'skin': SudokuSkin.letters.name,
       },
     ));
   }
@@ -654,7 +696,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _ => L.t('teachSudokuPlain'),
     };
     for (final e in args.entries) {
-      out = out.replaceAll('{${e.key}}', e.value);
+      // Цифра в тексте разбора — тем же значком, что на доске: «цифре Л», а не «цифре 5»,
+      // которой человек на доске не видит.
+      final v = e.key == 'd' ? _symbols.glyph(int.tryParse(e.value) ?? 0) : e.value;
+      out = out.replaceAll('{${e.key}}', v.isEmpty ? e.value : v);
     }
     return out;
   }
@@ -715,6 +760,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
             selected: (r: m.r, c: m.c),
             height: sideLen,
             onTap: (_, _) {},
+            symbols: _symbols,
           );
         },
       ),
@@ -779,6 +825,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           selected: _selected,
           height: height,
           onTap: _select,
+          symbols: _symbols,
         );
       },
       // 🔴 ЧЕТЫРЕ ЗНАЧКА, КАК В ВЕБЕ, А НЕ ТРИ. Первая редакция нативного экрана
@@ -833,6 +880,10 @@ class _SudokuScreenState extends State<SudokuScreen> {
                   : null,
               paint: _paint,
               onPaint: (i) => setState(() => _paint = i),
+              label: _symbols.glyph,
+              wonNote: _won && _symbols.word != null
+                  ? L.t('sudokuHiddenWord').replaceAll('{w}', _symbols.word!)
+                  : null,
             ),
       pauseActions: [
         PauseAction(label: 'Начать заново', icon: Icons.refresh, onPressed: _deal),
@@ -841,6 +892,14 @@ class _SudokuScreenState extends State<SudokuScreen> {
             label: _pilot ? L.t('sudokuPilotOff') : L.t('sudokuPilotOn'),
             icon: _pilot ? Icons.trending_up : Icons.auto_awesome,
             onPressed: _togglePilot,
+          ),
+        // Буквы — только на правилах без числового смысла (symbols.dart): на термометрах
+        // пункт не показывается вовсе, а не «работает через раз».
+        if (widget.mode == null && board != null && skinApplies(board.variant))
+          PauseAction(
+            label: _skin == SudokuSkin.letters ? L.t('sudokuSkinDigits') : L.t('sudokuSkinLetters'),
+            icon: _skin == SudokuSkin.letters ? Icons.pin_outlined : Icons.abc,
+            onPressed: _toggleSkin,
           ),
       ],
     );
@@ -895,6 +954,7 @@ class SudokuBoardView extends StatelessWidget {
     required this.selected,
     required this.height,
     required this.onTap,
+    this.symbols,
   });
 
   final SudokuBoard board;
@@ -905,6 +965,9 @@ class SudokuBoardView extends StatelessWidget {
   final ({int r, int c})? selected;
   final double height;
   final void Function(int r, int c) onTap;
+
+  /// Значки вместо цифр (`symbols.dart`); `null` — цифры.
+  final SudokuSymbols? symbols;
 
   @override
   Widget build(BuildContext context) {
@@ -942,6 +1005,7 @@ class SudokuBoardView extends StatelessWidget {
                             selected: selected != null && selected!.r == r && selected!.c == col,
                             scheme: scheme,
                             onTap: onTap,
+                            glyph: symbols?.glyph,
                           ),
                       ],
                     ),
@@ -968,12 +1032,16 @@ class _Cell extends StatelessWidget {
     required this.selected,
     required this.scheme,
     required this.onTap,
+    this.glyph,
   });
 
   final double size;
   final int row;
   final int col;
   final SudokuBoard board;
+
+  /// Значок цифры; `null` — сама цифра.
+  final String Function(int)? glyph;
   final int value;
   final bool given;
 
@@ -1046,9 +1114,10 @@ class _Cell extends StatelessWidget {
                       value: value,
                       cell: size,
                       color: scheme.onSurfaceVariant,
+                      glyph: glyph,
                     )
                   : Text(
-                      value == 0 ? '' : '$value',
+                      value == 0 ? '' : (glyph?.call(value) ?? '$value'),
                       style: TextStyle(
                         fontSize: size * 0.52,
                         fontWeight: given ? FontWeight.w800 : FontWeight.w500,
@@ -1076,6 +1145,8 @@ class _Toolbar extends StatelessWidget {
     this.onRepeat,
     required this.paint,
     required this.onPaint,
+    this.label,
+    this.wonNote,
   });
 
   final int n;
@@ -1093,6 +1164,12 @@ class _Toolbar extends StatelessWidget {
   final int? paint;
   final void Function(int) onPaint;
 
+  /// Надписи клавиш — значками доски.
+  final String Function(int)? label;
+
+  /// Строка над кнопкой после победы — спрятанное слово Wordoku.
+  final String? wonNote;
+
   @override
   Widget build(BuildContext context) {
     if (won || lost) {
@@ -1103,9 +1180,8 @@ class _Toolbar extends StatelessWidget {
         label: Text(won ? 'Следующий уровень' : 'Ещё раз'),
       );
       final repeat = onRepeat;
-      return Padding(
-        padding: const EdgeInsets.all(12),
-        child: (lost && repeat != null)
+      final note = wonNote;
+      final Widget body = (lost && repeat != null)
             ? Wrap(
                 alignment: WrapAlignment.center,
                 spacing: 8,
@@ -1120,9 +1196,27 @@ class _Toolbar extends StatelessWidget {
                   ),
                 ],
               )
-            : next,
+            : next;
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: note == null
+            ? body
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    note,
+                    key: const Key('hidden-word'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  body,
+                ],
+              ),
       );
     }
-    return SudokuKeys(n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint);
+    return SudokuKeys(
+        n: n, onDigit: onDigit, onErase: onErase, paint: paint, onPaint: onPaint, label: label);
   }
 }
