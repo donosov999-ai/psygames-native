@@ -20,10 +20,13 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
+import '../../shell/lesson.dart';
+import '../../shell/lesson_player.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'generator.dart';
+import 'lesson.dart';
 import 'rules.dart';
 
 class CatsScreen extends StatefulWidget {
@@ -173,6 +176,7 @@ class _CatsScreenState extends State<CatsScreen> {
     return GameShell(
       title: L.t('catsTitle'),
       onRules: () => _showRules(context),
+      onLesson: board == null ? null : _openLesson,
       hud: [
         HudItem(label: L.t('level'), value: '${_board == null ? 1 : _ladder.level}', icon: Icons.trending_up),
         HudItem(
@@ -188,7 +192,7 @@ class _CatsScreenState extends State<CatsScreen> {
       ],
       field: (context, height) {
         if (board == null) return const Center(child: CircularProgressIndicator());
-        return _Board(
+        return CatsBoardView(
           board: board,
           marks: _marks,
           height: height,
@@ -228,6 +232,31 @@ class _CatsScreenState extends State<CatsScreen> {
     );
   }
 
+  /// Разбор: та же доска, кошки открываются по одной, каждый шаг назван приёмом.
+  ///
+  /// ⚠️ ПАРТИЯ С РАЗБОРОМ В УРОВЕНЬ НЕ ЗАСЧИТЫВАЕТСЯ — отметку ставит плеер каркаса
+  /// (`LessonUsed.mark()`), снимает новая раздача. Правило общее для всех игр.
+  Future<void> _openLesson() async {
+    final board = _board;
+    if (board == null) return;
+    final moves = catsLessonMoves(board);
+    if (moves.isEmpty) return;
+    LessonUsed.mark();
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => LessonPlayerScreen(
+        title: L.t('catsTitle'),
+        steps: catsLessonSteps(board),
+        board: (context, side, shown) => CatsBoardView(
+          board: board,
+          marks: catsLessonMarks(board, moves, shown),
+          height: side,
+          onTap: (_, _) {},
+        ),
+        onNewBoard: _deal,
+      ),
+    ));
+  }
+
   void _showRules(BuildContext context) {
     showDialog<void>(
       context: context,
@@ -265,8 +294,12 @@ const _regionColors = <Color>[
 ///
 /// 🔴 СТОРОНА — ОТ МЕНЬШЕГО ИЗ ВЫСОТЫ ПОЛЯ И ШИРИНЫ. Ровно этого не делала веб-версия
 /// судоку, и ровно про это пять жалоб на вёрстку.
-class _Board extends StatelessWidget {
-  const _Board({
+///
+/// Публичная, потому что ту же доску показывает разбор: вторая копия разъехалась бы
+/// с первой на первой же правке вида.
+class CatsBoardView extends StatelessWidget {
+  const CatsBoardView({
+    super.key,
     required this.board,
     required this.marks,
     required this.height,

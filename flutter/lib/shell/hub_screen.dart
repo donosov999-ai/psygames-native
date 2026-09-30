@@ -106,6 +106,7 @@ IconData hubIcon(String name) {
     'layers': Icons.layers_outlined,
     'list-outline': Icons.list_alt_outlined,
     'grid': Icons.grid_view_outlined,
+    'paw': Icons.pets_outlined,   // «Кошки» — без строки карточка взяла бы значок пазла
     'eye-outline': Icons.visibility_outlined,
     'extension-puzzle': Icons.extension_outlined,
   };
