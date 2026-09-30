@@ -88,6 +88,7 @@ void main() {
     '/games/submarines',
     '/games/monster-traits?mode=missing',
     '/games/search-runner',
+    '/games/number-run',
   ];
 
 

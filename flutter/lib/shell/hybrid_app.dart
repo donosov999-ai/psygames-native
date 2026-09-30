@@ -46,6 +46,7 @@ import '../games/kids_sort/screen.dart';
 import '../games/traffic_jam/screen.dart';
 import '../games/monster_traits/missing_screen.dart';
 import '../games/monster_traits/screen.dart';
+import '../games/number_run/screen.dart';
 import '../games/search_runner/screen.dart';
 import '../games/roll_and_bank/screen.dart';
 import '../games/hidden_character/screen.dart';
@@ -159,6 +160,9 @@ class HybridApp extends StatefulWidget {
         '/games/sdmt': (s) => SdmtScreen(state: s),
         '/games/set-game': (s) => SetGameScreen(state: s),
         '/games/counter': (s) => CounterScreen(state: s),
+        // «Числовой забег» (задача 41845727): на общем ядре дороги раннеров; веб-страница с WebGL
+        // остаётся для веб-сборки, в приложении — нативный экран.
+        '/games/number-run': (s) => NumberRunScreen(state: s),
         '/games/find-differences': (s) => FindDifferencesScreen(state: s),
         '/games/visual-search': (s) => VisualSearchScreen(state: s),
         '/games/stroop': (s) => StroopScreen(state: s),

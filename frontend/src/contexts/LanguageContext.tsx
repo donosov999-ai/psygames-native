@@ -2808,6 +2808,34 @@ const translations: Translations = {
     ru: 'Забег работает в веб-слое приложения; в этой сборке графика недоступна.',
     en: 'The run works in the app web layer; graphics are unavailable in this build.',
   },
+  teachRunMiddle: {
+    ru: 'Берёт середина числа, а не края. Чтобы взять из строки несколько синих, веди число вбок прямо через них, а красное объезжай.',
+    en: 'Your number takes what its middle runs over, not what its edges brush. To take several blues from one row, slide sideways right through them and steer around the reds.',
+  },
+  teachRunColumns: {
+    ru: 'У столба сложи обе стопки и выбирай большую сумму — первое число стопки часто обманывает. Сторону выбирай до столба: через него не перебраться.',
+    en: 'At a pole, add up both stacks and take the bigger sum — the first number of a stack often misleads. Choose your side before the pole: you cannot cross it.',
+  },
+  teachRunWalls: {
+    ru: 'Стена поперёк дороги: бери меньший минус. «×2» выгоднее «+N», только если твоё число уже больше N.',
+    en: 'A wall across the road: take the smaller minus. “×2” beats “+N” only if your number is already bigger than N.',
+  },
+  teachRunRamp: {
+    ru: 'Трамплин: заезжай на зелёную площадку — прыжок пронесёт над большим красным и над разрывом. Синие на другом краю — приманка: после них на площадку не успеть.',
+    en: 'Ramp: drive onto the green pad — the jump carries you over the big red and over the gap. Blues on the far side are bait: after them you will not make it to the pad.',
+  },
+  teachRunBridge: {
+    ru: 'Мост и разрыв: выбирай полосу заранее — сменить её можно только до начала пролёта. Мимо моста — падение, и забег кончается.',
+    en: 'Bridge and gap: pick your lane early — you can only change it before the span begins. Miss the bridge and you fall, and the run is over.',
+  },
+  teachRunArches: {
+    ru: 'Арки с ответами: сначала сосчитай пример, потом смотри на арки. Варианты отличаются на 1, 2 или 10 — сверяй последнюю цифру и десятки.',
+    en: 'Answer arches: solve the problem first, then look at the arches. The options differ by 1, 2 or 10 — check the last digit and the tens.',
+  },
+  teachRunGuard: {
+    ru: 'Страж: на финише твоё число должно быть не меньше стража. Каждый промах и каждое красное — минус, береги число до конца.',
+    en: 'Guardian: at the finish your number must be at least the guardian’s. Every miss and every red costs you, so protect your number to the end.',
+  },
   levelAlmost: { ru: 'Уровень {n} — почти!', en: 'Level {n} — almost!' },
   cleanRunBadge: { ru: '🔥 Серия {n} чистых', en: '🔥 Clean run {n}' },
   levelStarting: { ru: 'Уровень {n} запускается…', en: 'Starting level {n}…' },

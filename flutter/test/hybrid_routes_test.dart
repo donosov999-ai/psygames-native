@@ -49,6 +49,8 @@ void main() {
       '$origin/games/set-game',
       '$origin/games/set-game.html',
       '$origin/games/counter',
+      '$origin/games/number-run',
+      '$origin/games/number-run.html?level=4',
       '$origin/games/find-differences',
       '$origin/games/visual-search',
       '$origin/games/search-hub',
@@ -335,6 +337,8 @@ void main() {
       '/games/mental-rotation',
       '/games/navigator',
       '/games/number-bonds',
+      // «Числовой забег» (задача 41845727): общее ядро дороги раннеров.
+      '/games/number-run',
       '/games/nut-sort',
       '/games/object-tracker',
       '/games/one-line',
