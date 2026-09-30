@@ -3065,5 +3065,16 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "从第22关起，出错后背面朝上的卡片会交换位置，这一对会亮起。把记忆中的图移到它的卡片去的地方。",
   "vsFindAll": "找出所有这种图形 — 任意旋转方向",
   "vsFindConj": "找出这种颜色和形状的图形",
+  "animalQueue": "动物排队",
+  "animalQueueDesc": "按提示给动物排队：🦁 ➜ 🦊 表示狮子排在狐狸前面",
+  "kidsSort": "颜色和形状",
+  "kidsSortDesc": "把每张卡片放进匹配的盒子。先按颜色；之后规则会在不提醒的情况下改变——根据 ✓ 和 ✗ 找出新规则",
+  "kidsSortCards": "卡片",
+  "kidsSortPersev": "按旧规则",
+  "teachQueueFirst": "排第一的是没有任何箭头指向的动物：没有谁必须排在它前面。",
+  "teachQueueNext": "接下来排的是提示都已满足的动物：所有必须排在它前面的动物都已经在队里了。",
+  "teachKidsSortRule": "先按颜色放：红色卡片放到红色圆形，蓝色卡片放到蓝色方形。现在形状还不重要。",
+  "teachKidsSortSwitch": "规则可能在不提醒的情况下改变。信号是：同样的卡片刚才还是对的，现在却出现 ✗。",
+  "teachKidsSortShape": "那就试试另一个特征——形状：圆形对圆形，方形对方形。✓ 又出现了，就说明找到了规则，坚持下去。",
 };
 export default t;
