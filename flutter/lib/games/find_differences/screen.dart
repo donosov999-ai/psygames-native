@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/lesson.dart';
@@ -118,6 +119,11 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
     _diffIdx = alt.diffIdx;
     _elapsedMs = 0;
     _left_ = _params.roundTimeSec.toDouble();
+    // 🔴 ТИХИЙ ШАГ (вечер и ночь) — БЕЗ ТАЙМЕРА ВОВСЕ, как в вебе
+    // (`find-differences.tsx`: `if (isCalm) { setTimeLeft(0); return; }`).
+    // Не «много секунд», а НЕТ ограничения: тикающая цифра торопит всё равно,
+    // а слот задуман как успокоение перед сном (отчёт «нельзя таймер», 18.08).
+    if (GamePreset.isCalm) return;
     _tick = Timer.periodic(const Duration(milliseconds: 100), (_) {
       if (!mounted) return;
       _elapsedMs += 100;
@@ -199,7 +205,9 @@ class _FindDifferencesScreenState extends State<FindDifferencesScreen> {
         HudItem(label: L.t('personalBest'), value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
         HudItem(label: L.t('round'), value: '$_round/${_params.rounds}', icon: Icons.repeat),
         HudItem(label: L.t('label_found'), value: '${_found.length}/${_diffIdx.length}', icon: Icons.search),
-        HudItem(label: L.t('time'), value: '${_left_.ceil()}', icon: Icons.timer_outlined),
+        // В тихом шаге показателя времени нет: считать нечего, и цифра торопила бы.
+        if (!GamePreset.isCalm)
+          HudItem(label: L.t('time'), value: '${_left_.ceil()}', icon: Icons.timer_outlined),
       ],
       field: (context, h) => LayoutBuilder(builder: (context, c) {
         final s = sceneSize(c.maxWidth, h);

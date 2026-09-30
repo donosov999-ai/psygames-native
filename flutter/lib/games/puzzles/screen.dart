@@ -108,6 +108,10 @@ class _PuzzlesScreenState extends State<PuzzlesScreen> {
         gameId: _mode.levelKey,
         store: SharedLevelStore(widget.state),
         maxLevel: _steps.length,
+        // Партию веб пишет типом `puzzles` с режимом рядом (puzzles.tsx) — так же и здесь,
+        // иначе в статистике её нет нигде. Уровень — по-прежнему у каждого режима свой.
+        sessionType: 'puzzles',
+        sessionMode: _mode.engineName,
       );
       await _ladder.load();
       if (!mounted) return;

@@ -1,6 +1,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -110,9 +111,24 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, c) {
-            // Доска — самый крупный квадрат между шапкой и низом, но не больше
-            // 55 % высоты: иначе текст шага и кнопки уедут за край.
-            final side = (c.maxWidth - 24).clamp(0.0, c.maxHeight * 0.55);
+            /*
+             * 🔴 ДОСКА УСТУПАЕТ МЕСТО ТЕКСТУ ПРИЁМА, А ТЕКСТ ПРОКРУЧИВАЕТСЯ.
+             * Замер раздела «Объём памяти» 30.09.2026 на 375×667 (iPhone SE), ru:
+             * столбец переполнялся у 4 игр из 6 проверенных — Корси на 96 px (на
+             * 360×640 на 108), «Цифры» на 72, «Матрица» и «Объём пространства» на 24.
+             * Тексты при этом обычные — медиана по 55 ключам teach* 129 знаков ru,
+             * 151 de, — а на узком экране это 6–7 строк. Плеер был рассчитан только
+             * на высокий экран: доска 55 % высоты, под ней текст без прокрутки и
+             * кнопки, которые он выталкивал за край.
+             * Теперь доска не больше 55 % высоты и оставляет тексту ~6 строк, но не
+             * меньше 40 % высоты — доска и есть разбор. Текст в своей прокрутке,
+             * кнопки прибиты к низу.
+             */
+            const chrome = 150.0;    // счётчик шага, ряд кнопок, «Новая доска», отступы
+            const textRoom = 150.0;  // ~6 строк шрифтом 17
+            final h = c.maxHeight;
+            final byHeight = math.max(h * 0.4, math.min(h * 0.55, h - chrome - textRoom));
+            final side = (c.maxWidth - 24).clamp(0.0, byHeight);
             return Column(
               children: [
                 const SizedBox(height: 8),
@@ -130,16 +146,20 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
                   style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13),
                 ),
                 const SizedBox(height: 6),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    _text(_index),
-                    key: const Key('lesson-text'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                Expanded(
+                  // Ключ по номеру шага: новый шаг начинается с начала текста, а не
+                  // с того места, куда человек прокрутил предыдущий.
+                  child: SingleChildScrollView(
+                    key: ValueKey<int>(_index),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      _text(_index),
+                      key: const Key('lesson-text'),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ),
-                const Spacer(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -151,16 +171,25 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
                       icon: const Icon(Icons.skip_previous),
                     ),
                     const SizedBox(width: 8),
-                    FilledButton.icon(
-                      key: const Key('lesson-play'),
-                      onPressed: done
-                          ? null
-                          : () {
-                              setState(() => _playing = !_playing);
-                              _arm();
-                            },
-                      icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
-                      label: Text(_playing ? L.t('teachPause') : L.t('teachPlay')),
+                    // Подпись ужимается, а не выталкивает «следующий шаг» за край:
+                    // «Mettre en pause» на 320 px и при крупном системном шрифте
+                    // ряду не помещалась — переполнение вправо до 70 px (проба
+                    // lesson_player_small_screens_test.dart).
+                    Flexible(
+                      child: FilledButton.icon(
+                        key: const Key('lesson-play'),
+                        onPressed: done
+                            ? null
+                            : () {
+                                setState(() => _playing = !_playing);
+                                _arm();
+                              },
+                        icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(_playing ? L.t('teachPause') : L.t('teachPlay')),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 8),
                     IconButton(

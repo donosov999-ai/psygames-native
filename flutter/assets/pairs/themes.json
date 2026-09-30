@@ -1,0 +1,183 @@
+{
+ "profiles": {
+  "kids": "animals",
+  "free": "animals",
+  "chess": "chess",
+  "nzt48": "brain",
+  "odv999": "bio",
+  "execs": "biz",
+  "drivers": "car",
+  "students": "edu",
+  "vasilyeva": "edu",
+  "polyglot": "geo",
+  "women": "coz",
+  "seniors": "coz"
+ },
+ "backs": {
+  "animals": {
+   "color": "#34d399",
+   "icon": "paw"
+  },
+  "chess": {
+   "color": "#7c5e3c",
+   "icon": "trophy"
+  },
+  "bio": {
+   "color": "#06b6d4",
+   "icon": "pulse"
+  },
+  "biz": {
+   "color": "#3b82f6",
+   "icon": "briefcase"
+  },
+  "car": {
+   "color": "#ef4444",
+   "icon": "car-sport"
+  },
+  "edu": {
+   "color": "#14b8a6",
+   "icon": "school"
+  },
+  "geo": {
+   "color": "#2563eb",
+   "icon": "earth"
+  },
+  "coz": {
+   "color": "#ec4899",
+   "icon": "flower"
+  },
+  "brain": {
+   "color": "#7f7fd5",
+   "icon": "bulb"
+  }
+ },
+ "sprites": {
+  "animals": [
+   "assets/pairs/animals/0.webp",
+   "assets/pairs/animals/1.webp",
+   "assets/pairs/animals/2.webp",
+   "assets/pairs/animals/3.webp",
+   "assets/pairs/animals/4.webp",
+   "assets/pairs/animals/5.webp",
+   "assets/pairs/animals/6.webp",
+   "assets/pairs/animals/7.webp",
+   "assets/pairs/animals/8.webp",
+   "assets/pairs/animals/9.webp",
+   "assets/pairs/animals/10.webp",
+   "assets/pairs/animals/11.webp"
+  ],
+  "chess": [
+   "assets/pairs/chess/0.webp",
+   "assets/pairs/chess/1.webp",
+   "assets/pairs/chess/2.webp",
+   "assets/pairs/chess/3.webp",
+   "assets/pairs/chess/4.webp",
+   "assets/pairs/chess/5.webp",
+   "assets/pairs/chess/6.webp",
+   "assets/pairs/chess/7.webp",
+   "assets/pairs/chess/8.webp",
+   "assets/pairs/chess/9.webp",
+   "assets/pairs/chess/10.webp",
+   "assets/pairs/chess/11.webp"
+  ],
+  "bio": [
+   "assets/pairs/bio/0.webp",
+   "assets/pairs/bio/1.webp",
+   "assets/pairs/bio/2.webp",
+   "assets/pairs/bio/3.webp",
+   "assets/pairs/bio/4.webp",
+   "assets/pairs/bio/5.webp",
+   "assets/pairs/bio/6.webp",
+   "assets/pairs/bio/7.webp",
+   "assets/pairs/bio/8.webp",
+   "assets/pairs/bio/9.webp",
+   "assets/pairs/bio/10.webp",
+   "assets/pairs/bio/11.webp"
+  ],
+  "biz": [
+   "assets/pairs/biz/0.webp",
+   "assets/pairs/biz/1.webp",
+   "assets/pairs/biz/2.webp",
+   "assets/pairs/biz/3.webp",
+   "assets/pairs/biz/4.webp",
+   "assets/pairs/biz/5.webp",
+   "assets/pairs/biz/6.webp",
+   "assets/pairs/biz/7.webp",
+   "assets/pairs/biz/8.webp",
+   "assets/pairs/biz/9.webp",
+   "assets/pairs/biz/10.webp",
+   "assets/pairs/biz/11.webp"
+  ],
+  "car": [
+   "assets/pairs/car/0.webp",
+   "assets/pairs/car/1.webp",
+   "assets/pairs/car/2.webp",
+   "assets/pairs/car/3.webp",
+   "assets/pairs/car/4.webp",
+   "assets/pairs/car/5.webp",
+   "assets/pairs/car/6.webp",
+   "assets/pairs/car/7.webp",
+   "assets/pairs/car/8.webp",
+   "assets/pairs/car/9.webp",
+   "assets/pairs/car/10.webp",
+   "assets/pairs/car/11.webp"
+  ],
+  "edu": [
+   "assets/pairs/edu/0.webp",
+   "assets/pairs/edu/1.webp",
+   "assets/pairs/edu/2.webp",
+   "assets/pairs/edu/3.webp",
+   "assets/pairs/edu/4.webp",
+   "assets/pairs/edu/5.webp",
+   "assets/pairs/edu/6.webp",
+   "assets/pairs/edu/7.webp",
+   "assets/pairs/edu/8.webp",
+   "assets/pairs/edu/9.webp",
+   "assets/pairs/edu/10.webp",
+   "assets/pairs/edu/11.webp"
+  ],
+  "geo": [
+   "assets/pairs/geo/0.webp",
+   "assets/pairs/geo/1.webp",
+   "assets/pairs/geo/2.webp",
+   "assets/pairs/geo/3.webp",
+   "assets/pairs/geo/4.webp",
+   "assets/pairs/geo/5.webp",
+   "assets/pairs/geo/6.webp",
+   "assets/pairs/geo/7.webp",
+   "assets/pairs/geo/8.webp",
+   "assets/pairs/geo/9.webp",
+   "assets/pairs/geo/10.webp",
+   "assets/pairs/geo/11.webp"
+  ],
+  "coz": [
+   "assets/pairs/coz/0.webp",
+   "assets/pairs/coz/1.webp",
+   "assets/pairs/coz/2.webp",
+   "assets/pairs/coz/3.webp",
+   "assets/pairs/coz/4.webp",
+   "assets/pairs/coz/5.webp",
+   "assets/pairs/coz/6.webp",
+   "assets/pairs/coz/7.webp",
+   "assets/pairs/coz/8.webp",
+   "assets/pairs/coz/9.webp",
+   "assets/pairs/coz/10.webp",
+   "assets/pairs/coz/11.webp"
+  ],
+  "brain": [
+   "assets/pairs/brain/0.webp",
+   "assets/pairs/brain/1.webp",
+   "assets/pairs/brain/2.webp",
+   "assets/pairs/brain/3.webp",
+   "assets/pairs/brain/4.webp",
+   "assets/pairs/brain/5.webp",
+   "assets/pairs/brain/6.webp",
+   "assets/pairs/brain/7.webp",
+   "assets/pairs/brain/8.webp",
+   "assets/pairs/brain/9.webp",
+   "assets/pairs/brain/10.webp",
+   "assets/pairs/brain/11.webp"
+  ]
+ },
+ "fallback": "animals"
+}
