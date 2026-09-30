@@ -89,4 +89,20 @@ void main() {
     expect(s.phase, WordPairsPhase.memorize, reason: 'у шага зарядки показ без лимита — кончается кнопкой');
     expect(find.byKey(const ValueKey('wp-check')), findsOneWidget);
   });
+
+  testWidgets('🔴 показ пар не тает под паузой: страница поверх игры останавливает отсчёт', (tester) async {
+    await boot(tester);
+    await tester.tap(find.byKey(const ValueKey('wp-start')));
+    await tester.pump();
+    final s = session(tester)!;
+    final nav = tester.state<NavigatorState>(find.byType(Navigator));
+    nav.push(MaterialPageRoute<void>(builder: (_) => const Scaffold(body: SizedBox())));
+    await tester.pumpAndSettle();
+    await tester.pump(Duration(milliseconds: s.memorizeMs + 5000));
+    expect(s.phase, WordPairsPhase.memorize, reason: 'под паузой время показа не должно сгорать');
+    nav.pop();
+    await tester.pumpAndSettle();
+    await tester.pump(Duration(milliseconds: s.memorizeMs + 400));
+    expect(s.phase, WordPairsPhase.match, reason: 'после паузы отсчёт идёт дальше и заканчивает показ');
+  });
 }

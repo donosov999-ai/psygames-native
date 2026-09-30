@@ -146,6 +146,10 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
         t.cancel();
         return;
       }
+      // 🔴 Пауза каркаса и разбор — страницы поверх игры: пока экран не текущий, показ не тает.
+      // Веб держит это игровыми часами (`gameNow`); до 30.09.2026 здесь отсчёт шёл и под паузой.
+      final route = ModalRoute.of(context);
+      if (route != null && !route.isCurrent) return;
       setState(() => _leftMs -= 200);
       if (_leftMs <= 0) {
         t.cancel();
