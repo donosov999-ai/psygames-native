@@ -467,12 +467,11 @@ class CorsiLessonArt extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final answer = order;
-    // ⚠️ Размер подобран под карточку плеера: общая DemoCard сжимает рисунок только
-    // по ширине (FittedBox в столбце), а по высоте нет — доска 280×294 вылезала на
-    // 57 px. Пропорции доски 400×420 сохранены: расположение блоков и есть задача.
+    // Пропорции доски 400×420 сохранены: расположение блоков и есть задача. Ужимает
+    // её под экран общая DemoCard — по ширине и, с #22, по высоте.
     return CorsiBoardView(
-      width: 200,
-      height: 210,
+      width: 280,
+      height: 294,
       route: missedStep == null ? answer : const [],
       block: (i, side) {
         final step = answer.indexOf(i);
