@@ -15,6 +15,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import 'core.dart';
+import '../hearing_common/lesson_cue.dart';
 import 'lesson.dart';
 import 'strings.dart';
 import 'tones.dart';
@@ -913,15 +914,16 @@ class _RpLessonBoard extends StatefulWidget {
   State<_RpLessonBoard> createState() => _RpLessonBoardState();
 }
 
-class _RpLessonBoardState extends State<_RpLessonBoard> {
-  Timer? _play;
+class _RpLessonBoardState extends State<_RpLessonBoard> with SingleTickerProviderStateMixin {
+  late final LessonCue _cue = LessonCue(this);
 
   @override
   void initState() {
     super.initState();
     if (widget.card.sound) {
-      _play = Timer(const Duration(milliseconds: 350), () {
-        // Звук выключен или движка нет — разбор идёт текстом и полем, без падения.
+      // Через 350 мс: прошлая карточка успевает остановить свой звук (её dispose — после этого initState).
+      // Звук выключен или движка нет — разбор идёт текстом и полем, без падения.
+      _cue.run(1, (_) {
         unawaited(widget.engine.playRound(widget.round, 0.8).then((_) {}, onError: (Object _) {}));
       });
     }
@@ -929,7 +931,7 @@ class _RpLessonBoardState extends State<_RpLessonBoard> {
 
   @override
   void dispose() {
-    _play?.cancel();
+    _cue.dispose();
     unawaited(widget.engine.stop());
     super.dispose();
   }
