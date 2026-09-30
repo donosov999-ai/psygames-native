@@ -116,7 +116,10 @@ describe('🔴 итог считает СКАЗАННОЕ, а не пустот�
 
   it('подсчёт итога идёт по ref, а не по состоянию', () => {
     expect(screen).toMatch(/const said = wordsRef\.current/);
-    expect(screen).toMatch(/validWords = said\.filter/);
+    // 30.09.2026 подсчёт вынесен в `phonemicSummary` (ради сверки с Flutter): экран
+    // обязан отдать ему именно `said` из ref, а фильтр живёт в сервисе.
+    expect(screen).toMatch(/phonemicSummary\(said, startTimeRef\.current, duration\)/);
+    expect(code(read('../services/phonemicFluency.ts'))).toMatch(/const validWords = said\.filter/);
     // Ни одна из четырёх сводок не должна снова читать состояние.
     expect(screen).not.toMatch(/= words\.filter\(w => !w\.valid/);
   });
