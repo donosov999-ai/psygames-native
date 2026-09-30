@@ -306,6 +306,7 @@ void main() {
       '/games/pseudoword-echo',
       '/games/phoneme-pairs',
       '/games/chinese-tones',
+      '/games/rhythm-pitch',
       '/games/hearing-hub',
       '/games/mental-rotation',
       '/games/navigator',
