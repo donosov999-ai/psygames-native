@@ -1,11 +1,11 @@
-<!-- STRUCTURE.md · СОБИРАЕТСЯ, РУКАМИ НЕ ПРАВИТЬ · 2026-09-30 15:09 · коммит 678c5b505 -->
+<!-- STRUCTURE.md · СОБИРАЕТСЯ, РУКАМИ НЕ ПРАВИТЬ · 2026-09-30 15:20 · коммит 250e2abda -->
 # PsyGames — структура: игры, развилки, потоки, профили
 
 > 🔴 **ЭТОТ ФАЙЛ СОБИРАЕТСЯ, А НЕ ПИШЕТСЯ.** Пересобрать: `node frontend/scripts/build-structure.mjs`
 > из корня репозитория. Правка руками пропадёт при следующей сборке — и, что хуже,
 > соврёт до неё. Числа сняты из тех же данных, что показывает приложение.
 >
-> Снято 2026-09-30 15:09 на коммите `678c5b505`. Копия для Дениса лежит в Obsidian:
+> Снято 2026-09-30 15:20 на коммите `250e2abda`. Копия для Дениса лежит в Obsidian:
 > `PsyGames/Структура игр и развилок.md` — обе печатает один прогон.
 
 > ⚙️ **Состав правится не здесь и не в коде, а ФАЙЛОМ настроек.**
@@ -16,7 +16,7 @@
 
 Развилок 13. Карточка «(группа)» — вход в другую развилку.
 
-### Конфликт внимания · `/games/attention-conflict` — 9 карточек · 18 экранов
+### Конфликт внимания · `/games/attention-conflict` — 10 карточек · 19 экранов
 
 - **Струп: торможение** — `/games/stroop` — набор:
     - Эмоциональный — `/games/stroop-emotional`
@@ -35,6 +35,7 @@
 - **PRL: смена правил** — `/games/prl` — набор:
     - Четыре колоды — `/games/iowa`
     - Надувай шар — `/games/bart`
+- **Рискни и сохрани** — `/games/roll-and-bank`
 - **Корректура: фокус** — `/games/proofreading`
 
 ### Шахматы · `/games/chess-hub` — 2
@@ -80,14 +81,15 @@
 - **Пары слов: память** — `/games/word-pairs`
 - **Прочти эмоцию** — `/games/rmet`
 
-### Головоломки · `/games/puzzles-hub` — 4
+### Головоломки · `/games/puzzles-hub` — 5
 
 - **Чёт-нечет** — `/games/puzzles`
 - **Косые черты** — `/games/puzzles` `?mode=Slant`
 - **Чёрный ящик** — `/games/puzzles` `?mode=Black Box`
 - **Угадай код** — `/games/puzzles` `?mode=Guess`
+- **Кто спрятался?** — `/games/hidden-character`
 
-### Поиск глазами · `/games/search-hub` — 13
+### Поиск глазами · `/games/search-hub` — 14
 
 - **Визуальный поиск** — `/games/visual-search`
 - **Найди отличия** — `/games/find-differences`
@@ -97,6 +99,7 @@
 - **Трекер объектов** — `/games/object-tracker`
 - **SDMT: символ→цифра** — `/games/sdmt`
 - **SET: тройки признаков** — `/games/set-game`
+- **Найди признак** — `/games/monster-traits`
 - **Фонари** — `/games/puzzles` `?mode=Light Up`
 - **Палатки у деревьев** — `/games/puzzles` `?mode=Tents`
 - **Домино** — `/games/puzzles` `?mode=Dominosa`
@@ -136,13 +139,14 @@
 - **N-back: оперативная память** — `/games/n-back`
 - **Парные картинки** — `/games/picture-pairs`
 
-### Пространство · `/games/spatial-hub` — 17
+### Пространство · `/games/spatial-hub` — 18
 
 - **Ментальная ротация** — `/games/mental-rotation`
 - **Пространственная лаборатория** — `/games/spatial-lab` `?mode=twiddle`
 - **Пространственная лаборатория** — `/games/spatial-lab` `?mode=net`
 - **Клоцки** — `/games/puzzles` `?mode=Slide`
 - **Сокобан** — `/games/puzzles` `?mode=Sokoban`
+- **Освободи путь** — `/games/traffic-jam`
 - **Соедини точки** — `/games/dots-connect`
 - **Одна линия** — `/games/one-line`
 - **Соедини цепочку** — `/games/trail-making`
@@ -426,11 +430,11 @@
 
 | профиль | игр | развилок задано файлом | своих серий |
 |---|---|---|---|
-| `odv999` | 3 | 6 | 55 |
+| `odv999` | 3 | 7 | 55 |
 | `whatsnew` | 15 | 6 | 7 |
 | `women` | 31 | 6 | 11 |
 | `free` | 20 | 6 | 7 |
-| `kids` | 27 | 6 | 23 |
+| `kids` | 27 | 7 | 23 |
 | `seniors` | 20 | 6 | 11 |
 | `chess` | 28 | 6 | 11 |
 | `drivers` | 20 | 6 | 7 |
