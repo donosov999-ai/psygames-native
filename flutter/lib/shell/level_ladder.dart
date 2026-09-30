@@ -131,14 +131,13 @@ class LevelLadder {
   /// зарядки так же, как выигранная. Иначе человек, проваливший шаг серии,
   /// застрял бы на нём навсегда.
   ///
-  /// `details` — как у [win]: партия несёт больше, чем уровень (у «Найди признак» —
-  /// кого пропустил и кого отметил лишним). Проигрыш без подробностей в статистике
-  /// не отличить от проигрыша по другой причине.
+  /// `difficulty` и `details` — как у [win]: не переданы — уходит прежнее.
   Future<void> fail({
     int score = 0,
     int timeSeconds = 0,
     int? errors,
     String? mode,
+    String? difficulty,
     Map<String, Object?>? details,
   }) async {
     final lesson = LessonUsed.inRound;
@@ -153,7 +152,7 @@ class LevelLadder {
         timeSeconds: timeSeconds,
         errors: errors,
         mode: mode ?? sessionMode,
-        difficulty: '$_level',
+        difficulty: difficulty ?? '$_level',
         details: details,
       );
       return;
@@ -170,7 +169,7 @@ class LevelLadder {
       timeSeconds: timeSeconds,
       errors: errors,
       mode: mode ?? sessionMode,
-      difficulty: '$_level',
+      difficulty: difficulty ?? '$_level',
       details: details,
     );
   }

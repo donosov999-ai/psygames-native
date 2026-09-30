@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
@@ -12,6 +10,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../languages/bilingual.dart';
+import '../languages/json_asset.dart';
 import 'model.dart';
 import 'typing.dart';
 
@@ -165,7 +164,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     await _runs.load();
     final vocab = widget.vocabOverride ??
         [
-          for (final e in jsonDecode(await rootBundle.loadString('assets/vocab/translation-vocab.json')) as List<dynamic>)
+          for (final e in await loadJsonAsset('assets/vocab/translation-vocab.json') as List<dynamic>)
             (e as Map).map((k, v) => MapEntry('$k', '$v')),
         ];
     if (!mounted) return;
