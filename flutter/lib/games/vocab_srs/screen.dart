@@ -4,11 +4,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../shell/demo_lesson.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
+import '../languages/bilingual.dart';
 import 'model.dart';
 import 'typing.dart';
 
@@ -85,12 +88,18 @@ class VocabSrsScreen extends StatefulWidget {
 class _VocabSrsScreenState extends State<VocabSrsScreen> {
   late LevelLadder _runs;
   List<VocabEntry>? _vocab;
-  VocabSrs? _srs;
 
   VocabPhase _phase = VocabPhase.config;
   String _targetLang = 'es';
   int _newLimit = 10;
   VocabDirection _direction = VocabDirection.recognize;
+
+  /// Режим билингво: две колоды вперемешку в одной партии.
+  bool _bilingual = false;
+
+  /// Второй язык, КАК ЕГО ВЫБРАЛ человек. Настоящий второй — [_second]: он
+  /// гарантированно не совпадает ни с первым, ни с родным.
+  String _wantedSecond = 'es';
 
   List<CardRef> _queue = [];
   int _idx = 0;
@@ -106,6 +115,24 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   TypingState? _typing;
   int _typos = 0;
 
+  /// 🔴 КОЛОДА ЖИВЁТ НА ПАРЕ ЯЗЫКОВ, А В БИЛИНГВО ПАР ДВЕ. Движок и пул
+  /// отвлекающих — по языку карточки: у английского и испанского расписание
+  /// повторов своё, и оценка, ушедшая не в ту колоду, вернула бы карточку по
+  /// чужому графику. Отвлекающие из чужого языка сделали бы ответ очевидным.
+  final Map<String, VocabSrs> _engines = {};
+  Map<String, List<({String base, String target})>> _pools = const {};
+
+  /// Сколько раз язык НА САМОМ ДЕЛЕ сменился за партию (0 вне билингво).
+  int _switches = 0;
+
+  // Замеры партии — те же поля, что пишет веб-версия в `details`.
+  int _startMs = 0;
+  int _answers = 0;
+  int _rtSum = 0;
+  int _typosTotal = 0;
+  int _reviewsDone = 0;
+  final Set<String> _newLearned = {};
+
   int get _now => (widget.clock ?? () => DateTime.now().millisecondsSinceEpoch)();
 
   /// Язык интерфейса — он же базовый язык колоды.
@@ -116,6 +143,10 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
   /// `flutter/test/bridge_carries_every_web_key_test.dart` сторожит, что ни один
   /// ключ веб-стороны не остался за границей.
   String get _baseLang => widget.state.language;
+
+  String get _second => secondNotFirst(_baseLang, _targetLang, _wantedSecond);
+
+  List<String> get _langsInPlay => _bilingual ? [_targetLang, _second] : [_targetLang];
 
   @override
   void initState() {
@@ -140,11 +171,25 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     if (!mounted) return;
     setState(() {
       _vocab = vocab;
-      // Изучаемый язык по умолчанию — как в веб-версии: англичанину испанский,
-      // остальным английский.
-      _targetLang = _baseLang == 'en' ? 'es' : 'en';
+      // 🔴 НАСТРОЙКИ ШАГА ЗАРЯДКИ — ИЗ АДРЕСА, КАК В ВЕБЕ (`useGamePreset`).
+      // Языковая зарядка открывает словарь с `?targetLang=…&bilingual=1&lang2=…`;
+      // без этого шаг зарядки открылся бы с настройками по умолчанию, и «два языка
+      // вперемешку» молча стали бы одним. Умолчание языка — как в веб-версии:
+      // англичанину испанский, остальным английский.
+      _targetLang = GamePreset.str('targetLang', _baseLang == 'en' ? 'es' : 'en');
+      _newLimit = GamePreset.num('newLimit', 10);
+      _direction = switch (GamePreset.str('direction', 'recognize')) {
+        'recall' => VocabDirection.recall,
+        'typing' => VocabDirection.typing,
+        _ => VocabDirection.recognize,
+      };
+      _bilingual = GamePreset.str(bilingualKey) == '1';
+      _wantedSecond = GamePreset.str('lang2', pairFor(_baseLang)[1]);
     });
     await _refreshStats();
+    // Уровень уже загружен — только теперь можно стартовать сам: иначе автостарт
+    // («Вызов дня», шаг зарядки) сыграл бы первый подход человеку с двенадцатым.
+    if (mounted && GamePreset.autostart) await _start();
   }
 
   List<String> get _langs {
@@ -156,24 +201,45 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     ];
   }
 
-  VocabSrs _engine() => VocabSrs(
-        vocab: _vocab ?? const [],
-        baseLang: _baseLang,
-        targetLang: _targetLang,
-        store: widget.storeOverride ?? SharedDeckStore(widget.state),
-        nowMs: () => _now,
-        random: widget.random,
+  VocabSrs _engineFor(String lang) => _engines.putIfAbsent(
+        lang,
+        () => VocabSrs(
+          vocab: _vocab ?? const [],
+          baseLang: _baseLang,
+          targetLang: lang,
+          store: widget.storeOverride ?? SharedDeckStore(widget.state),
+          nowMs: () => _now,
+          random: widget.random,
+        ),
       );
 
   Future<void> _refreshStats() async {
-    final s = await _engine().getStats();
+    final s = await _engineFor(_targetLang).getStats();
     if (mounted) setState(() => _stats = s);
   }
 
   Future<void> _start() async {
-    final srs = _engine();
-    final q = await srs.buildQueue(_newLimit);
-    final cards = [...q.due, ...q.fresh];
+    _engines.clear();
+    final langs = _langsInPlay;
+    final byLang = <String, List<CardRef>>{};
+    final pools = <String, List<({String base, String target})>>{};
+    for (final l in langs) {
+      final q = await _engineFor(l).buildQueue(_newLimit);
+      pools[l] = q.pool;
+      byLang[l] = [for (final c in [...q.due, ...q.fresh]) c.withLang(l)];
+    }
+
+    List<CardRef> cards;
+    var switches = 0;
+    if (_bilingual) {
+      final total = byLang.values.fold<int>(0, (n, v) => n + v.length);
+      final spread = spreadByRow(byLang, total, langs);
+      cards = [for (final x in spread.items) x.item];
+      switches = spread.switches;
+    } else {
+      cards = byLang[_targetLang] ?? const [];
+    }
+
     if (!mounted) return;
     if (cards.isEmpty) {
       await _refreshStats();
@@ -181,37 +247,55 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       return;
     }
     setState(() {
-      _srs = srs;
+      _pools = pools;
+      _switches = switches;
       _queue = cards;
       _idx = 0;
       _correct = 0;
       _wrong = 0;
       _picked = null;
+      _answers = 0;
+      _rtSum = 0;
+      _typosTotal = 0;
+      _reviewsDone = 0;
+      _newLearned.clear();
+      _startMs = _now;
       _phase = VocabPhase.playing;
-      _pool = q.pool;
-      _prepare(cards.first, q.pool);
+      _prepare(cards.first);
       _shownAtMs = _now;
     });
   }
 
-  List<({String base, String target})> _pool = const [];
+  String _langOf(CardRef card) => card.lang ?? _targetLang;
 
   /// Что показать под карточкой: варианты ответа или поле набора.
-  void _prepare(CardRef card, List<({String base, String target})> pool) {
+  void _prepare(CardRef card) {
     if (_direction == VocabDirection.typing) {
       _typing = TypingState.create([card.target], nowMs: () => _now);
       _typos = 0;
       _options = const [];
     } else {
       _typing = null;
-      _options = _optionsFor(card, pool);
+      _options = _optionsFor(card);
     }
   }
 
-  List<String> _optionsFor(CardRef card, List<({String base, String target})> pool) {
+  List<String> _optionsFor(CardRef card) {
+    final pool = _pools[_langOf(card)] ?? const [];
     final right = _direction == VocabDirection.recognize ? card.base : card.target;
     final words = [for (final p in pool) _direction == VocabDirection.recognize ? p.base : p.target];
-    return _engine().buildOptions(right, words);
+    return _engineFor(_langOf(card)).buildOptions(right, words);
+  }
+
+  void _countAnswer(CardRef card, {required bool correct, required int rt}) {
+    _answers += 1;
+    _rtSum += rt;
+    if (!correct) return;
+    if (card.isNew) {
+      _newLearned.add(card.id);
+    } else {
+      _reviewsDone += 1;
+    }
   }
 
   Future<void> _pick(String option) async {
@@ -229,8 +313,10 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
         _wrong += 1;
       }
     });
+    _countAnswer(card, correct: correct, rt: rt);
 
-    await _srs!.gradeCard(card.id, gradeFromAnswer(correct: correct, rtMs: rt));
+    // Оценка уходит в колоду ЯЗЫКА КАРТОЧКИ — в билингво их две.
+    await _engineFor(_langOf(card)).gradeCard(card.id, gradeFromAnswer(correct: correct, rtMs: rt));
 
     var queue = _queue;
     if (!correct) {
@@ -255,7 +341,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       setState(() {
         _idx = next;
         _picked = null;
-        _prepare(queue[next], _pool);
+        _prepare(queue[next]);
         _shownAtMs = _now;
       });
     });
@@ -285,9 +371,12 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       _picked = card.target;
       _correct += 1;
     });
+    _countAnswer(card, correct: true, rt: rt);
+    _typosTotal += _typos;
     // Порог для печати втрое шире, чем у выбора: набрать слово физически дольше,
     // чем ткнуть в вариант (веб: rt < EASY_RT_MS * 3).
-    await _srs!.gradeCard(card.id, _typos == 0 && rt < vocabEasyRtMs * 3 ? Grade.easy : Grade.good);
+    await _engineFor(_langOf(card))
+        .gradeCard(card.id, _typos == 0 && rt < vocabEasyRtMs * 3 ? Grade.easy : Grade.good);
 
     _next?.cancel();
     _next = Timer(const Duration(milliseconds: vocabNextDelayOkMs), () {
@@ -300,7 +389,7 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
       setState(() {
         _idx = next;
         _picked = null;
-        _prepare(_queue[next], _pool);
+        _prepare(_queue[next]);
         _shownAtMs = _now;
       });
     });
@@ -308,11 +397,73 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
 
   Future<void> _finish() async {
     _next?.cancel();
+    final doneRun = _runs.level;
+    // 🔴 ОТЧЁТ О ПАРТИИ — ОДИН, И ШЛЁТ ЕГО ЛЕСТНИЦА. `LevelLadder.win()` сама
+    // отдаёт партию в веб-половину (шаг зарядки, статистика, токены, серия дней).
+    // Первая редакция слала ещё и свой отчёт — проба поймала ДВЕ партии на одну
+    // игру: шаг зарядки двигался бы дважды, статистика удваивалась.
+    //
     // Подход доведён до конца — счётчик прохождений растёт. Это НЕ ступень
-    // сложности: трудность здесь задаёт расписание повторов, а не мы.
-    await _runs.win();
+    // сложности: трудность задаёт расписание повторов. ⚠️ В шаге зарядки счётчик
+    // НЕ растёт — так решила оболочка для всех игр (`GamePreset.isPreset` в
+    // `LevelLadder.win`); веб-версия считала и шаги зарядки. Партия при этом всё
+    // равно уходит в статистику.
+    //
+    // Поля `details` — те же, что пишет веб-версия, до имени. `passed` не пишем
+    // НАМЕРЕННО, как и веб: провала у подхода нет.
+    await _runs.win(
+      score: _correct,
+      timeSeconds: ((_now - _startMs) / 1000).round(),
+      errors: _wrong,
+      mode: _direction.name,
+      difficulty: '$_baseLang→$_targetLang',
+      details: {
+        'level': doneRun,
+        'base_lang': _baseLang,
+        // В билингво цель не одна — пишем пару и ЧИСЛО НАСТОЯЩИХ СМЕН: по флагу
+        // не видно, что материал одного языка кончился на середине.
+        'target_lang': _bilingual ? _langsInPlay.join('+') : _targetLang,
+        if (_bilingual) 'lang_switches': _switches,
+        'cards_total': _queue.length,
+        // ⚠️ Считается по id карточки, как в вебе: в билингво «house» английской и
+        // испанской колоды — один id, и новое слово засчитывается один раз. Так
+        // пишет и веб-версия, а статистика обязана совпадать у обеих половин.
+        'new_learned': _newLearned.length,
+        'reviews_done': _reviewsDone,
+        'accuracy': _answers > 0 ? _correct / _answers : 0,
+        'mean_rt_ms': _answers > 0 ? (_rtSum / _answers).round() : 0,
+        'new_limit': _newLimit,
+        'typos': _typosTotal,
+      },
+    );
     await _refreshStats();
     if (mounted) setState(() => _phase = VocabPhase.result);
+  }
+
+  /// 🔴 РАЗБОР — ДО ПАРТИИ И НА ДАННЫХ САМОЙ ИГРЫ.
+  ///
+  /// Цель Дениса 24.09.2026: разбор у каждой игры; гейт `test/lesson_census_test.dart`
+  /// не пустит нативный экран без кнопки `game-lesson`. Кнопка стоит во всех фазах,
+  /// а не только в партии: разбор, привязанный к начатой партии, до первого раунда
+  /// не виден вовсе, а нужен он именно тогда.
+  ///
+  /// Примеры — первое слово колоды ЭТОЙ пары языков из того же словаря, а не
+  /// выдуманные: разбор на «похожем» слове учил бы не этой колоде. Правило —
+  /// готовые ключи веб-версии (`vocabSrsIntroDesc` — как игра засчитывает ответ и
+  /// двигает интервал; `srsTypingHint` — чем печать отличается), они уже
+  /// переведены на все двенадцать языков, новых строк не заведено.
+  List<DemoTrial> _demoTrials() {
+    final v = _vocab ?? const <VocabEntry>[];
+    final w = v.firstWhere(
+      (e) => (e[_baseLang] ?? '').isNotEmpty && (e[_targetLang] ?? '').isNotEmpty,
+      orElse: () => const <String, String>{},
+    );
+    final base = w[_baseLang] ?? '';
+    final target = w[_targetLang] ?? '';
+    return [
+      DemoTrial(text: target, sub: L.t('vocabSrsHint'), answer: base, rule: L.t('vocabSrsIntroDesc')),
+      DemoTrial(text: base, sub: L.t('srsTypingTask'), answer: target, rule: L.t('srsTypingHint')),
+    ];
   }
 
   @override
@@ -320,17 +471,26 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
     if (_vocab == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+    final card = _phase == VocabPhase.playing ? _queue[_idx] : null;
     return GameShell(
       title: L.t('vocabSrs'),
       onBack: () => Navigator.of(context).maybePop(),
-      hud: _phase == VocabPhase.playing
-          ? [
-              HudItem(label: L.t('language'), value: '${_baseLang.toUpperCase()}·$_targetLang', icon: Icons.translate),
+      onLesson: () => openDemoLesson(context, title: L.t('vocabSrs'), trials: _demoTrials()),
+      hud: card == null
+          ? const []
+          : [
+              // Пилюля языка — там же, где в веб-версии: в билингво и в шаге зарядки.
+              // «EN·es»: текущий прописными, второй строчными — видно, что языков два.
+              if ((_bilingual || GamePreset.isPreset) && card.lang != null)
+                HudItem(
+                  label: L.t('bilingualMode'),
+                  value: pairPill(card.lang!, _bilingual ? _langsInPlay : const []),
+                  icon: Icons.translate,
+                ),
               HudItem(label: L.t('round'), value: '${_idx + 1}/${_queue.length}', icon: Icons.numbers),
               HudItem(label: L.t('hud_correct'), value: '$_correct', icon: Icons.check),
               HudItem(label: L.t('hud_errors'), value: '$_wrong', icon: Icons.close),
-            ]
-          : const [],
+            ],
       field: (context, h) => switch (_phase) {
         VocabPhase.config => _Config(
             height: h,
@@ -340,19 +500,24 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
             direction: _direction,
             stats: _stats,
             runs: _runs.level,
+            bilingual: _bilingual,
+            second: _second,
+            secondChoices: [for (final l in _langs) if (l != _targetLang) l],
             onLang: (l) {
               setState(() => _targetLang = l);
               _refreshStats();
             },
             onLimit: (n) => setState(() => _newLimit = n),
             onDirection: (d) => setState(() => _direction = d),
+            onBilingual: (v) => setState(() => _bilingual = v),
+            onSecond: (l) => setState(() => _wantedSecond = l),
             onStart: _start,
           ),
         VocabPhase.playing => _Card(
             height: h,
-            card: _queue[_idx],
+            card: card!,
             direction: _direction,
-            targetLang: _targetLang,
+            targetLang: _langOf(card),
           ),
         VocabPhase.result => _Result(
             height: h,
@@ -362,14 +527,14 @@ class _VocabSrsScreenState extends State<VocabSrsScreen> {
             onAgain: () => setState(() => _phase = VocabPhase.config),
           ),
       },
-      toolbar: _phase != VocabPhase.playing
+      toolbar: card == null
           ? null
           : _direction == VocabDirection.typing
               ? _Typing(state: _typing!, onKey: _type, done: _picked != null)
               : _Options(
                   options: _options,
                   picked: _picked,
-                  right: _direction == VocabDirection.recognize ? _queue[_idx].base : _queue[_idx].target,
+                  right: _direction == VocabDirection.recognize ? card.base : card.target,
                   onPick: _pick,
                 ),
     );
@@ -397,9 +562,14 @@ class _Config extends StatelessWidget {
     required this.direction,
     required this.stats,
     required this.runs,
+    required this.bilingual,
+    required this.second,
+    required this.secondChoices,
     required this.onLang,
     required this.onLimit,
     required this.onDirection,
+    required this.onBilingual,
+    required this.onSecond,
     required this.onStart,
   });
 
@@ -410,9 +580,16 @@ class _Config extends StatelessWidget {
   final VocabDirection direction;
   final SrsStats? stats;
   final int runs;
+  final bool bilingual;
+
+  /// Настоящий второй язык — уже не совпадающий ни с первым, ни с родным.
+  final String second;
+  final List<String> secondChoices;
   final void Function(String) onLang;
   final void Function(int) onLimit;
   final void Function(VocabDirection) onDirection;
+  final void Function(bool) onBilingual;
+  final void Function(String) onSecond;
   final VoidCallback onStart;
 
   @override
@@ -451,6 +628,29 @@ class _Config extends StatelessWidget {
             items: [for (final l in langs) DropdownMenuItem(value: l, child: Text(l.toUpperCase()))],
             onChanged: (v) => v == null ? null : onLang(v),
           ),
+          const SizedBox(height: 8),
+
+          // 🔴 ДВА ЯЗЫКА СРАЗУ — тот же режим, что в веб-версии (`BilingualToggle`).
+          // Второй язык выбирает человек, а не интерфейс: первая редакция веба
+          // брала его от языка интерфейса и молча отменяла выбор (отчёт 2aa5892c).
+          SwitchListTile(
+            key: const Key('vocab-bilingual'),
+            contentPadding: EdgeInsets.zero,
+            title: Text(L.t('bilingualMode')),
+            subtitle: Text(L.t('bilingualModeDesc'), style: Theme.of(context).textTheme.bodySmall),
+            value: bilingual,
+            onChanged: onBilingual,
+          ),
+          if (bilingual) ...[
+            const SizedBox(height: 6),
+            DropdownButtonFormField<String>(
+              key: const Key('vocab-lang2'),
+              initialValue: secondChoices.contains(second) ? second : null,
+              decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+              items: [for (final l in secondChoices) DropdownMenuItem(value: l, child: Text(l.toUpperCase()))],
+              onChanged: (v) => v == null ? null : onSecond(v),
+            ),
+          ],
           const SizedBox(height: 16),
 
           Text(L.t('srsNewPerSession')),
