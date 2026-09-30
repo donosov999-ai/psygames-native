@@ -63,7 +63,14 @@ void main() {
       expect(build, isNotNull, reason: '${e.key} нет в карте перехвата');
 
       await tester.pumpWidget(MaterialApp(home: build!(state)));
-      for (var i = 0; i < 20; i++) {
+      // Экраны грузят свои ассеты уровней НАСТОЯЩИМ вводом-выводом (у «Пробирок» банк за
+      // 50 КБ уходит в compute), поддельное время пробы его не ждёт: без runAsync пять
+      // экранов из 16 так и стояли на загрузке, и перепись видела «правило не передано».
+      for (var i = 0; i < 40 && find.byKey(const Key('game-level-rule')).evaluate().isEmpty; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 25)));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      for (var i = 0; i < 5; i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
 
