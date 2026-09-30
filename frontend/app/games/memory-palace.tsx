@@ -162,6 +162,13 @@ export default function MemoryPalaceScreen() {
    * Проба `memory-palace-teach` играет карточками настоящую партию и требует по ней
    * идеального результата — разбор не может показать не то, что игра засчитает.
    */
+  /**
+   * 🔴 ПАРТИЯ С РАЗБОРОМ НЕ ЗАСЧИТЫВАЕТСЯ В УРОВЕНЬ — так обещает первая карточка плеера
+   * (`teachNotCounted`). До 30.09.2026 обещание держалось только словами: разбор открывался
+   * посреди партии, а итог двигал уровень как обычно. Флаг ставит «Разбор», снимает новая
+   * партия; итог такой партии идёт без подъёма и без провала, как у пресета.
+   */
+  const урокВПартииRef = React.useRef(false);
   const [урок, setУрок] = React.useState<{ карточки: КарточкаРазбора[]; индекс: number } | null>(null);
   /** Разбор — на первых трёх уровнях: дальше он мешает, приём уже усвоен. */
   const разборДоступен = phase === 'playing' && !!party && (party.level ?? 1) <= 3;
@@ -169,6 +176,7 @@ export default function MemoryPalaceScreen() {
   const начатьРазбор = React.useCallback(() => {
     if (!party) return;
     const round = generateMemoryPalaceRound(party.seed, party.level);
+    урокВПартииRef.current = true;
     setУрок({ карточки: собратьРазборДворца(round).карточки, индекс: 0 });
   }, [party]);
   const урокДальше = React.useCallback(() => {
@@ -297,6 +305,7 @@ export default function MemoryPalaceScreen() {
    * это противоположно «Прикидке»), разобрано в комментарии к makeSeed.
    */
   const start = React.useCallback(() => {
+    урокВПартииRef.current = false;
     const nonce = makeNonce(gameNow(), Math.random());
     sessionRef.current = null;
     setArmed(false);
@@ -330,10 +339,12 @@ export default function MemoryPalaceScreen() {
     if (profile?.id) clearResume(MEMORY_PALACE_GAME_ID, profile.id).catch(() => {});
 
     // Пресет и шаг зарядки уровень НЕ двигают — так во всех экранах.
-    if (!isPreset && passed && shouldChainNextLevel(mode)) lvl.reach(doneLevel + 1);
-    else if (!isPreset && !passed) lvl.fail();
+    const сРазбором = урокВПартииRef.current;
+    урокВПартииRef.current = false;
+    if (!isPreset && !сРазбором && passed && shouldChainNextLevel(mode)) lvl.reach(doneLevel + 1);
+    else if (!isPreset && !сРазбором && !passed) lvl.fail();
 
-    if (isPreset) setPhase('result');
+    if (isPreset || сРазбором) setPhase('result');
     else { setClearedPassed(passed); setPhase('cleared'); }
 
     try {
