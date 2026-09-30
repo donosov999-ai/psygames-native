@@ -88,6 +88,7 @@ export type EarnReason =
   | 'streak'   // ×2 — серия тренировочных дней
   | 'repeat'   // ×1 — суточная квота множителя в этой игре уже выбрана
   | 'warmup'   // ×1 — шаг зарядки, множитель отдан комплексу
+  | 'lesson'   // ×1 — партия с разбором: ответ подсмотрен, удваивать не за что (задача 9660186d)
   | 'plain'    // ×1 — партия с ошибками и без серии
   | 'none';    // 0  — начислять нечего
 
@@ -125,6 +126,14 @@ export interface RoundInput {
   errors: number | undefined;
   /** Партия идёт шагом зарядки (`__psygames_warmup_active`). */
   warmupStep: boolean;
+  /**
+   * Партия с разбором или показанным решением (`details.lesson` / `details.solver_used`).
+   * 🔴 До 30.09.2026 не читалось нигде: экран писал «не засчитывается», а итог — «+100 ×2 ·
+   * чисто — вдвое» (замер раздела «Память и слух», задача 9660186d). В части игр разбор
+   * показывает ответ ТЕКУЩЕГО задания — значит ×2 за «чисто» платил за подсмотренный ответ.
+   * База остаётся: человек сыграл и учился, наказывать за разбор значит учить его не брать.
+   */
+  lesson?: boolean;
   /** Сколько партий В ЭТОЙ ЖЕ игре уже удвоено сегодня. */
   doubledToday: number;
   /** Тренировочных дней подряд, считая сегодняшний. */
@@ -146,6 +155,7 @@ export function earnForRound(i: RoundInput): Earned {
 
   if (base <= 0) return flat('none');
   if (i.warmupStep) return flat('warmup');
+  if (i.lesson) return flat('lesson');
   if (i.doubledToday >= MULT_ROUNDS_PER_GAME_PER_DAY) return flat('repeat');
   if (clean) return doubled('clean');
   if (i.dayStreak >= DAY_STREAK_FOR_MULT) return doubled('streak');
@@ -309,6 +319,8 @@ export interface RecordInput {
   score: number | undefined;
   errors: number | undefined;
   warmupStep: boolean;
+  /** Партия с разбором — см. `RoundInput.lesson`. */
+  lesson?: boolean;
   now?: Date;
 }
 
@@ -326,7 +338,7 @@ const ZERO: Earned = { base: 0, multiplier: 1, total: 0, reason: 'none', clean: 
  * Квоту множителя такие партии не тратят (считаются только удвоенные).
  */
 export async function recordRound(input: RecordInput): Promise<Earned> {
-  const { profileId, game, score, errors, warmupStep } = input;
+  const { profileId, game, score, errors, warmupStep, lesson } = input;
   if (!profileId || !game) return ZERO;
   const now = input.now ?? new Date();
   const today = dayKey(now);
@@ -342,7 +354,7 @@ export async function recordRound(input: RecordInput): Promise<Earned> {
       (e) => e.day === today && e.game === game && e.multiplier > 1,
     ).length;
 
-    const earned = earnForRound({ score, errors, warmupStep, doubledToday, dayStreak });
+    const earned = earnForRound({ score, errors, warmupStep, lesson, doubledToday, dayStreak });
     const entry: EarnEntry = {
       ts: now.getTime(), day: today, game,
       base: earned.base, multiplier: earned.multiplier, total: earned.total, reason: earned.reason,
@@ -381,6 +393,7 @@ export function earnReasonKey(reason: EarnReason): string | null {
     case 'streak': return 'earnWhyStreak';
     case 'repeat': return 'earnWhyRepeat';
     case 'warmup': return 'earnWhyWarmup';
+    case 'lesson': return 'earnWhyLesson';
     default:       return null;
   }
 }

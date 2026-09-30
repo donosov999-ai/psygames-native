@@ -19,9 +19,25 @@ class LevelLadder {
     required LevelStore store,
     this.failStreakThreshold = 3,
     this.maxLevel = 999,
+    this.sessionType,
+    this.sessionMode,
   }) : _store = store;   // ignore: prefer_initializing_formals — поле приватное, а параметр именованный
 
   final String gameId;
+
+  /*
+   * 🔴 КЛЮЧ УРОВНЯ И ТИП ПАРТИИ — НЕ ОДНО И ТО ЖЕ, КОГДА У ИГРЫ МНОГО РЕЖИМОВ.
+   * Головоломки держат уровень у каждого режима свой (`puzzles_mines`), «Лаборатория» —
+   * у каждого упражнения (`spatial_lab_net`), и так же хранит их веб. А партию веб
+   * пишет ОДНИМ типом с режимом рядом: `puzzles` + `Mines`, `spatial_lab` + `net`.
+   * Натив отправлял партию под ключом уровня — и в статистике её не было нигде:
+   * ни в «Балансе тренировок», ни в карточке игры (разбор жалобы Дениса «статистика
+   * не доходит», задача 48298f5f, 30.09.2026). Не задано — партия идёт под [gameId],
+   * как у всех игр с одним режимом.
+   */
+  final String? sessionType;
+  final String? sessionMode;
+
   final LevelStore _store;
   final int failStreakThreshold;
   final int maxLevel;
@@ -75,11 +91,24 @@ class LevelLadder {
    * почему. Сброс стоит здесь по той же причине, что и само правило. Партия с
    * разбором по-прежнему не засчитывается — зачётной становится следующая.
    */
-  Future<void> win({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
+  ///
+  /// `difficulty` и `details` — для игр, у которых партия несёт больше, чем уровень:
+  /// словарь SRS пишет пару языков, число смен языка и точность, как веб-версия.
+  /// Не передали — уходит прежнее (`difficulty` = уровень, без `details`), поэтому
+  /// остальные экраны это не задевает.
+  Future<void> win({
+    int score = 0,
+    int timeSeconds = 0,
+    int? errors,
+    String? mode,
+    String? difficulty,
+    Map<String, Object?>? details,
+  }) async {
     _failStreak = 0;
     // Пресет — шаг зарядки, разбор — партия с показанным решением. В обоих
     // случаях лестница меряла бы не человека, поэтому не двигается.
-    final counted = !GamePreset.isPreset && !LessonUsed.inRound;
+    final lesson = LessonUsed.inRound;
+    final counted = !GamePreset.isPreset && !lesson;
     LessonUsed.reset();
     if (counted) {
       if (_level < maxLevel) _level += 1;
@@ -87,21 +116,41 @@ class LevelLadder {
       await _save();
     }
     await SessionReport.send(
-      gameType: gameId,
+      gameType: sessionType ?? gameId,
       score: score,
       timeSeconds: timeSeconds,
       errors: errors,
-      mode: mode,
-      difficulty: '$_level',
+      mode: mode ?? sessionMode,
+      difficulty: difficulty ?? '$_level',
+      details: _withLesson(details, lesson),
     );
   }
+
+  /*
+   * 🔴 ПАРТИЯ С РАЗБОРОМ НЕСЁТ `lesson: true` — ОДНИМ МЕСТОМ ДЛЯ ВСЕХ НАТИВНЫХ ЭКРАНОВ
+   * (задача 9660186d, 30.09.2026). Уровень такая партия не двигала и раньше, а монеты и
+   * серия «чисто» считаются в `saveSession` веба — и флага там не было: итог писал
+   * «не засчитывается» и тут же «+100 ×2 · чисто». Читатель — `api.ts` (без ×2, серия не
+   * тикается). Экрану ничего делать не нужно: признак берётся из `LessonUsed`.
+   */
+  static Map<String, Object?>? _withLesson(Map<String, Object?>? details, bool lesson) =>
+      lesson ? {...?details, 'lesson': true} : details;
 
   /// Провал. Опускает уровень только на третий подряд — один промах ничего не стоит.
   ///
   /// ⚠️ Проигранная партия — ТОЖЕ партия: она идёт в статистику и двигает шаг
   /// зарядки так же, как выигранная. Иначе человек, проваливший шаг серии,
   /// застрял бы на нём навсегда.
-  Future<void> fail({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
+  ///
+  /// `difficulty` и `details` — как у [win]: не переданы — уходит прежнее.
+  Future<void> fail({
+    int score = 0,
+    int timeSeconds = 0,
+    int? errors,
+    String? mode,
+    String? difficulty,
+    Map<String, Object?>? details,
+  }) async {
     final lesson = LessonUsed.inRound;
     LessonUsed.reset();   // см. [win]: отметку съедает партия, которую она не засчитала
     if (GamePreset.isPreset || lesson) {
@@ -109,12 +158,13 @@ class LevelLadder {
       // подряд (или три подсмотренных решения) опустили бы личный уровень, который
       // человек в этих партиях и не защищал.
       await SessionReport.send(
-        gameType: gameId,
+        gameType: sessionType ?? gameId,
         score: score,
         timeSeconds: timeSeconds,
         errors: errors,
-        mode: mode,
-        difficulty: '$_level',
+        mode: mode ?? sessionMode,
+        difficulty: difficulty ?? '$_level',
+        details: _withLesson(details, lesson),
       );
       return;
     }
@@ -125,12 +175,13 @@ class LevelLadder {
     }
     await _save();
     await SessionReport.send(
-      gameType: gameId,
+      gameType: sessionType ?? gameId,
       score: score,
       timeSeconds: timeSeconds,
       errors: errors,
-      mode: mode,
-      difficulty: '$_level',
+      mode: mode ?? sessionMode,
+      difficulty: difficulty ?? '$_level',
+      details: details,
     );
   }
 
