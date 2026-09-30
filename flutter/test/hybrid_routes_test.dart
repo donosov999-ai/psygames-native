@@ -181,6 +181,8 @@ void main() {
       '/games/anagrams?mode=classic',
       '/games/anagrams?mode=cross',
       '/games/anagrams?mode=square',
+      // MindLab (30.09.2026): «Очередь зверей» и «Цвета и формы» — только нативные.
+      '/games/animal-queue',
       '/games/ant',
       // 🔴 Сорок три адреса головоломок стоят здесь ПОИМЁННО, хотя карта их
       // генерирует. Это не дубль: генератор отвечает на «что собралось», а список
@@ -250,6 +252,7 @@ void main() {
       '/games/hanoi',
       '/games/inhibition',
       '/games/iowa',
+      '/games/kids-sort',
       '/games/mahjong',
       '/games/math-slider',
       '/games/math-sprint',
