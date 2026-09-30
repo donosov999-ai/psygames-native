@@ -4,6 +4,21 @@ on:
   push:
     branches: [main]
     tags:    ['v*']
+  # 🔴 ПРОВЕРКА НА PR — БЕЗ НЕЁ ПРАВИЛО «В MAIN ТОЛЬКО ЧЕРЕЗ PR С ЗЕЛЁНЫМ CI» НЕВЫПОЛНИМО.
+  # Замер 30.09.2026 (раздел памяти, перепроверено координатором): у этого файла был
+  # только push в main и теги, а PR с правками одного frontend/ не получал НИ ОДНОЙ
+  # проверки — `gh pr checks 11` → «no checks reported». Зелёный CI требовался,
+  # а запускаться ему было не на чем; PR #11 и #12 выглядели «CLEAN» ровно потому,
+  # что проверок не было, а не потому, что всё прошло.
+  # Что на PR пойдёт: typecheck, unit-tests, web-gates, lint, smoke, tag-from-main.
+  # Что НЕ пойдёт — и это проверено по условиям джоб, а не предположено: все
+  # нативные сборки и выкладки стоят под `if: startsWith(github.ref, 'refs/tags/v')
+  # || github.event_name == 'workflow_dispatch'`, web-deploy и play-deploy — под
+  # `if: false`. `tag-from-main` на не-метке выходит кодом 0 («не метка выпуска»).
+  # Очередь `concurrency` идёт по `github.ref`, у PR это refs/pull/N/merge — со
+  # своей группой, с прогонами main не сталкивается.
+  pull_request:
+    branches: [main]
     # paths-ignore убран (аудит): раньше '.github/**' → правки самого CI не
     # проверялись этим workflow. Теперь любое изменение, включая CI, валидируется.
   workflow_dispatch:

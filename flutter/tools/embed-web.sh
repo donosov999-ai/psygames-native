@@ -30,7 +30,9 @@ if [ ! -f "$DIST/index.html" ] || [ "${REBUILD:-0}" = "1" ]; then
   echo "собираю веб-часть с baseUrl=\"\" (expo export)…"
   cp "$WEB/app.json" "$WEB/app.json.embed-bak"
   trap 'mv -f "$WEB/app.json.embed-bak" "$WEB/app.json" 2>/dev/null || true' EXIT
-  sed -i '' 's|"baseUrl": "/psygames-web"|"baseUrl": ""|' "$WEB/app.json"
+  # ⚠️ Суффикс -i пишется СЛИТНО: так понимают и BSD sed (мак), и GNU sed (бегунок Linux,
+  # выпуск в Play). Раздельное `-i ''` на GNU читается как пустая программа — шаг падает.
+  sed -i.sedbak 's|"baseUrl": "/psygames-web"|"baseUrl": ""|' "$WEB/app.json" && rm -f "$WEB/app.json.sedbak"
   (cd "$WEB" && rm -rf dist-app && npx expo export -p web --output-dir dist-app >/dev/null)
   mv -f "$WEB/app.json.embed-bak" "$WEB/app.json"
   trap - EXIT
