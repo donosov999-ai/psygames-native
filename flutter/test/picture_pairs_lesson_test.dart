@@ -59,9 +59,9 @@ void main() {
         .map((t) => t.art! as PairsLessonArt)
         .firstWhere((a) => a.swapPair != null);
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: Center(child: art))));
-    final lit = [for (var i = 0; i < art.game.cards.length; i++) if (find.byKey(Key('урок-обмен$i')).evaluate().isNotEmpty) i];
+    final lit = [for (var i = 0; i < art.game.cards.length; i++) if (find.byKey(Key('lesson-обмен$i')).evaluate().isNotEmpty) i];
     expect(lit.length, 2);
-    expect(find.byKey(const Key('урок-лицо0')), findsNothing, reason: 'в примере обмена карты закрыты');
+    expect(find.byKey(const Key('lesson-лицо0')), findsNothing, reason: 'в примере обмена карты закрыты');
   });
 
   testWidgets('примеры — из генератора игры: пары на L1, тройки на L10', (tester) async {

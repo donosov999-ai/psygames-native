@@ -435,7 +435,8 @@ class PairCardView extends StatelessWidget {
   final bool marked;
 
   /// У карт разбора свои ключи: разбор открывается поверх партии, и пробе нужно
-  /// различать, чью карту она читает.
+  /// различать, чью карту она читает. Префикс латиницей: русский литерал вне Key('…')
+  /// гейт ui_text_debt считает зашитым текстом интерфейса.
   final String keyPrefix;
 
   @override
@@ -515,7 +516,7 @@ class PairsLessonArt extends StatelessWidget {
               lit: swapPair?.contains(i) ?? false,
               marked: marked.contains(i),
               onTap: null,
-              keyPrefix: 'урок-',
+              keyPrefix: 'lesson-',
             ),
         ],
       ),
