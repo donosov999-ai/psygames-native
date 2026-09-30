@@ -41,7 +41,18 @@ class L {
     final loc = resolve(code);
     final b = bundle ?? rootBundle;
     try {
-      final raw = await b.loadString('assets/l10n/$loc.json');
+      /*
+       * 🔴 БАЙТЫ, А НЕ `loadString`. `loadString` расшифровывает файл больше
+       * 50 × 1024 байт в отдельном изоляте (`compute`), а внутри `testWidgets`
+       * изолят не завершается никогда: проба, грузящая словарь в теле, висит
+       * 10 минут и падает по таймауту. Замер 30.09.2026: `ru.json` на main —
+       * 50 619 байт, в 581 байте от порога, `hi.json` — 61 019, уже за ним;
+       * шапка развилок (+36 ключей) дала `ru.json` 55 368 — и `goods_set_picker`
+       * повис на 10 минут, хотя на main проходил за секунду. Расшифровка
+       * 60 КБ здесь — единицы миллисекунд один раз на запуск, изолят не нужен.
+       */
+      final data = await b.load('assets/l10n/$loc.json');
+      final raw = utf8.decode(Uint8List.sublistView(data));
       _dict = (jsonDecode(raw) as Map<String, dynamic>).cast<String, String>();
       _locale = loc;
     } catch (_) {
