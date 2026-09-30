@@ -778,17 +778,18 @@ export default function MnemonicsGame() {
         { id: 'restart', label: t('restart'), icon: 'refresh' as const, onPress: () => startGame(useLevelRef.current) },
         { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
       ]}
-      stats={
-        <View style={styles.gameHeader}>
-          <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
-            <Ionicons name="time-outline" size={20} color={textOn(GRADIENT[0])} />
-            <Text style={[styles.timerText, { color: textOn(GRADIENT[0]) }]}>
-              {PEG_TEXT[language as 'ru' | 'en'].left} {Math.max(0, items.length - спрошено.length)}
-              {остатокВремени() !== null ? ` · ${остатокВремени()}${t('secShort')}` : ''}
-            </Text>
-          </View>
-        </View>
-      }
+      /**
+       * 📏 ШАПКА — ДАННЫМИ КАРКАСА, А НЕ СВОЕЙ ПЛАШКОЙ. Своя плашка (поля 12 + отступы 8 и 12)
+       * растила полосу до 80 при каноне 61 (`gameLayout.ts`): поле стояло на 19 точек ниже
+       * соседей по «Зарядке» (замер 30.09.2026, 390×844 и 360×640). Остаток вопросов и остаток
+       * времени — двумя бейджами; обратный отсчёт песочными часами, слово по тапу.
+       */
+      hud={[
+        { key: 'left', icon: 'help-circle-outline' as const, label: PEG_TEXT[language as 'ru' | 'en'].left, value: Math.max(0, items.length - спрошено.length) },
+        ...(остатокВремени() !== null
+          ? [{ key: 'time', icon: 'hourglass-outline' as const, label: t('timeLeftLabel'), value: `${остатокВремени()}${t('secShort')}` }]
+          : []),
+      ]}
       /**
        * Варианты — в ряду каркаса под полем, как у всего раздела: цель ответа
        * стоит на одном месте от вопроса к вопросу, и палец не ищет её заново.
@@ -861,14 +862,10 @@ export default function MnemonicsGame() {
         { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
       ]}
       scrollableField
-      stats={
-        <View style={styles.gameHeader}>
-          <View style={[styles.timerBox, { backgroundColor: GRADIENT[0] }]}>
-            <Ionicons name="time-outline" size={20} color={textOn(GRADIENT[0])} />
-            <Text style={[styles.timerText, { color: textOn(GRADIENT[0]) }]}>{t('time')} {elapsedTime.toFixed(1)}{t('secShort')}</Text>
-          </View>
-        </View>
-      }
+      /** 📏 Шапка данными каркаса — полоса 61, как у всего раздела (см. режим «Опоры»). */
+      hud={[
+        { key: 'time', icon: 'time-outline' as const, label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+      ]}
       /** 🎓 «Разбор» — значком в общем ряду под полем, как у всех игр. */
       headerActions={разборДоступен ? (
         <GameAuxAction
@@ -1001,28 +998,12 @@ export default function MnemonicsGame() {
         { id: 'home', label: t('goHome'), icon: 'home' as const, leave: true },
       ]}
       scrollableField
-      stats={
-        <View style={styles.statsHeader}>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('time')}</Text>
-            <Text style={[styles.statValue, { color: colors.text }]}>{elapsedTime.toFixed(1)}{t('secShort')}</Text>
-          </View>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('errors')}</Text>
-            <Text style={[styles.statValue, { color: errors > 0 ? colors.error : colors.text }]}>
-              {errors} (+{errors * PENALTY_SECONDS}s)
-            </Text>
-          </View>
-          <View style={[styles.statBox, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              {t('label_selected')}
-            </Text>
-            <Text style={[styles.statValue, { color: colors.success }]}>
-              {selectedOrder.length}/{items.length}
-            </Text>
-          </View>
-        </View>
-      }
+      /** 📏 Шапка данными каркаса — полоса 61, как у всего раздела (см. режим «Опоры»). */
+      hud={[
+        { key: 'time', icon: 'time-outline' as const, label: t('time'), value: `${elapsedTime.toFixed(1)}${t('secShort')}` },
+        { key: 'errors', icon: 'close-circle' as const, label: t('errors'), value: errors > 0 ? `${errors} (+${errors * PENALTY_SECONDS}${t('secShort')})` : 0 },
+        { key: 'entered', icon: 'list' as const, label: t('label_selected'), value: `${selectedOrder.length}/${items.length}` },
+      ]}
     >
       <Text style={[styles.phaseTitle, { color: colors.text }]}>
         {t('label_restore_order')}
@@ -1249,34 +1230,6 @@ const styles = StyleSheet.create({
   // Кнопка «Проверить» в тулбаре каркаса: тянется на всю ширину ряда
   toolbarBtn: { flex: 1 },
   toolbarGrad: { marginBottom: 0 },
-  gameHeader: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  timerBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  timerText: { fontSize: 20, fontWeight: '700', color: '#FFFFFF' },
-  statsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  statBox: {
-    flex: 1,
-    minWidth: 0, // крупный шрифт: длинное значение «(+45s)» не раздувает бокс за пределы 1/3 ряда и не выталкивает соседние за край
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  statLabel: { fontSize: 11 },
-  statValue: { fontSize: 14, fontWeight: '700', marginTop: 2 },
   phaseTitle: { fontSize: 18, fontWeight: '700', marginBottom: 4, textAlign: 'center' },
   phaseSubtitle: { fontSize: 13, marginBottom: 12, textAlign: 'center' },
   // ЗАЧЕМ: itemWidth уже резервирует зазор (columns-1)*12, но сам зазор не применялся —
