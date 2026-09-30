@@ -27,6 +27,12 @@ export interface NativeOnlyGame {
 export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   { route: '/games/animal-queue', nameKey: 'animalQueue', descKey: 'animalQueueDesc' },
   { route: '/games/kids-sort', nameKey: 'kidsSort', descKey: 'kidsSortDesc' },
+  // MindLab у координатора (задача f5034811): четыре игры из пилота Codex — по развилкам
+  // «Пространство», «Поиск глазами», «Конфликт внимания», «Головоломки».
+  { route: '/games/traffic-jam', nameKey: 'trafficJam', descKey: 'trafficJamDesc' },
+  { route: '/games/monster-traits', nameKey: 'monsterTraits', descKey: 'monsterTraitsDesc' },
+  { route: '/games/roll-and-bank', nameKey: 'rollAndBank', descKey: 'rollAndBankDesc' },
+  { route: '/games/hidden-character', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
 ];
 
 export const NATIVE_ONLY_ROUTES: readonly string[] = NATIVE_ONLY_GAMES.map((g) => g.route);
