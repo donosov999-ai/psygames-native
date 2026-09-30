@@ -64,6 +64,8 @@ void main() {
       '$origin/games/go-no-go',
       '$origin/games/mental-rotation',
       '$origin/games/mental-rotation.html?level=12',
+      '$origin/games/navigator',
+      '$origin/games/navigator.html?level=9&mode=home-direction',
       '$origin/games/spatial-span',
       '$origin/games/spatial-lab',
       '$origin/games/spatial-lab?mode=netslide',
@@ -164,6 +166,7 @@ void main() {
       '$origin/statistics',
       '$origin/games/one-liner',   // похожее имя — не наша игра
       '$origin/games/mental-rotation-lab',   // и это: лаборатория ещё в вебе
+      '$origin/games/trail-making',   // «Соедини цепочку» — ещё в вебе, переносится следующей
     ]) {
       expect(HybridApp.routeOf(url), isNull, reason: url);
     }
@@ -262,6 +265,7 @@ void main() {
       '/games/word-pairs',
       '/games/vocab-srs',
       '/games/mental-rotation',
+      '/games/navigator',
       '/games/number-bonds',
       '/games/nut-sort',
       '/games/object-tracker',
