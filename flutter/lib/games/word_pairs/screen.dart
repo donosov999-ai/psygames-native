@@ -20,6 +20,7 @@ import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
 import '../../shell/level_ladder.dart';
+import '../../shell/level_rules.dart';
 import '../../shell/preset_cap.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -269,6 +270,8 @@ class _WordPairsScreenState extends State<WordPairsScreen> {
     }
     final s = _session;
     return GameShell(
+      // Правило уровня объявляет каркас — в спокойный момент, не поверх партии (задача e371fd3a).
+      levelRule: LevelRuleSpot(gameId: 'word_pairs', level: _ladder.level, state: widget.state, calm: s == null || s.phase == WordPairsPhase.rules || s.phase == WordPairsPhase.result),
       title: L.t('wordPairs'),
       onLesson: _openLesson,
       hud: [
