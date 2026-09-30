@@ -3078,5 +3078,16 @@ const t: Record<string, string> = {
   "teachScholarsSacrifice": "Sacrifice {move} : on donne une pièce pour ouvrir le roi.",
   "teachScholarsReply": "La réponse de l’adversaire est forcée : {move}.",
   "teachScholarsContinue": "Ensuite {move} : l’attaque sur le roi continue sans répit.",
+  "animalQueue": "La file des animaux",
+  "animalQueueDesc": "Range les animaux en file selon les indices : 🦁 ➜ 🦊 veut dire que le lion passe avant le renard",
+  "kidsSort": "Couleurs et formes",
+  "kidsSortDesc": "Mets chaque carte dans la boîte qui lui correspond. D'abord par couleur ; puis la règle change sans prévenir — trouve la nouvelle grâce aux ✓ et ✗",
+  "kidsSortCards": "Cartes",
+  "kidsSortPersev": "Selon l'ancienne règle",
+  "teachQueueFirst": "En premier vient l'animal vers lequel aucune flèche ne pointe : personne ne doit passer avant lui.",
+  "teachQueueNext": "Ensuite vient un animal dont tous les indices sont respectés : tous ceux qui doivent passer avant lui sont déjà dans la file.",
+  "teachKidsSortRule": "D'abord, trie par couleur : une carte rouge va au cercle rouge, une bleue au carré bleu. La forme ne compte pas encore.",
+  "teachKidsSortSwitch": "La règle peut changer sans prévenir. Le signe : un ✗ là où la même carte était juste à l'instant.",
+  "teachKidsSortShape": "Essaie alors l'autre critère, la forme : cercle avec cercle, carré avec carré. Les ✓ reviennent — tu as trouvé la règle, garde-la.",
 };
 export default t;

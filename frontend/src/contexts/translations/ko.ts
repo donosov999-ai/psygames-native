@@ -3078,5 +3078,16 @@ const t: Record<string, string> = {
   "teachScholarsSacrifice": "희생 {move}: 기물을 내주어 킹을 엽니다.",
   "teachScholarsReply": "상대의 응수는 강제됩니다: {move}.",
   "teachScholarsContinue": "이어서 {move}: 킹에 대한 공격을 쉬지 않고 이어 갑니다.",
+  "animalQueue": "동물 줄 세우기",
+  "animalQueueDesc": "힌트대로 동물을 줄 세워요: 🦁 ➜ 🦊 는 사자가 여우보다 앞에 선다는 뜻이에요",
+  "kidsSort": "색깔과 모양",
+  "kidsSortDesc": "카드를 맞는 상자에 넣어요. 처음에는 색깔로; 그다음 규칙이 예고 없이 바뀌어요 — ✓ 와 ✗ 로 새 규칙을 찾아요",
+  "kidsSortCards": "카드",
+  "kidsSortPersev": "이전 규칙으로",
+  "teachQueueFirst": "맨 앞에는 어떤 화살표도 가리키지 않는 동물이 서요: 그 앞에 서야 할 동물이 없으니까요.",
+  "teachQueueNext": "다음은 힌트가 모두 채워진 동물이에요: 그 앞에 서야 할 동물들이 이미 모두 줄에 있어요.",
+  "teachKidsSortRule": "처음에는 색깔로 나눠요: 빨간 카드는 빨간 동그라미에, 파란 카드는 파란 네모에. 모양은 아직 상관없어요.",
+  "teachKidsSortSwitch": "규칙은 예고 없이 바뀔 수 있어요. 신호는: 방금까지 맞았던 같은 카드에 ✗ 가 나오는 거예요.",
+  "teachKidsSortShape": "그럼 다른 특징인 모양을 시도해요: 동그라미는 동그라미로, 네모는 네모로. ✓ 가 다시 나오면 규칙을 찾은 거예요 — 계속 지켜요.",
 };
 export default t;

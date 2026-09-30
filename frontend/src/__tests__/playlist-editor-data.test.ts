@@ -21,6 +21,7 @@ import { PROFILES, isGameAllowed, filterAllowedGames } from '@/src/constants/pro
 import { GAMES } from '@/src/constants/games';
 import { HUB_CONTENTS } from '@/src/constants/hubContents';
 import { GAME_SUITES, suiteEntryRoute } from '@/src/constants/gameSuites';
+import { NATIVE_ONLY_GAMES } from '@/src/constants/nativeOnlyGames';
 import { БЛОКИ_ГЛАВНОЙ } from '@/src/constants/homeBlocks';
 import { SERIES_KEYS, seriesKind } from '@/src/services/warmupEntries';
 import { ASSESSMENT_PLAYLIST } from '@/src/services/assessment';
@@ -195,6 +196,15 @@ describe('снимок состава для редактора плейлист
      * `mode: 'Net'` — то, что приложение и так понимает. Ничего нового в
      * приложение не добавляется, добавляется только различимость в списке.
      */
+    /**
+     * Игры только с нативным экраном (30.09.2026): в `GAMES` их нет, и без этого
+     * поля редактор и `STRUCTURE.md` звали бы карточку голым маршрутом.
+     */
+    нативные: NATIVE_ONLY_GAMES.map((g) => ({
+      route: g.route,
+      имя: translateFor('ru', g.nameKey),
+      описание: translateFor('ru', g.descKey),
+    })),
     тэтхэма: Object.keys(КЛЮЧ_ИМЕНИ).map((режим) => {
       const имя = translateFor('ru', КЛЮЧ_ИМЕНИ[режим]);
       const опис = translateFor('ru', КЛЮЧ_ОПИСАНИЯ[режим]);

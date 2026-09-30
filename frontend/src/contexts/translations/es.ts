@@ -3083,5 +3083,16 @@ const t: Record<string, string> = {
   "teachScholarsSacrifice": "Sacrificio {move}: entregamos una pieza para abrir al rey.",
   "teachScholarsReply": "La respuesta del rival es forzada: {move}.",
   "teachScholarsContinue": "Luego {move}: el ataque al rey sigue sin respiro.",
+  "animalQueue": "Fila de animales",
+  "animalQueueDesc": "Pon a los animales en fila según las pistas: 🦁 ➜ 🦊 significa que el león va antes que el zorro",
+  "kidsSort": "Colores y formas",
+  "kidsSortDesc": "Pon cada tarjeta en la caja que le corresponde. Primero por color; luego la regla cambia sin aviso: descubre la nueva por ✓ y ✗",
+  "kidsSortCards": "Tarjetas",
+  "kidsSortPersev": "Por la regla anterior",
+  "teachQueueFirst": "Primero va el animal al que no apunta ninguna flecha: nadie tiene que ir antes que él.",
+  "teachQueueNext": "Después va un animal cuyas pistas ya se cumplen: todos los que deben ir antes que él ya están en la fila.",
+  "teachKidsSortRule": "Primero ordena por color: la tarjeta roja va al círculo rojo, la azul al cuadrado azul. La forma aún no importa.",
+  "teachKidsSortSwitch": "La regla puede cambiar sin aviso. La señal: una ✗ donde una tarjeta igual acababa de estar bien.",
+  "teachKidsSortShape": "Entonces prueba la otra característica, la forma: círculo con círculo, cuadrado con cuadrado. Si vuelven los ✓, ya tienes la regla: mantenla.",
 };
 export default t;
