@@ -3066,6 +3066,11 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Desde el nivel 22, tras un error las cartas boca abajo cambian de lugar y la pareja se ilumina. Mueve la imagen en tu memoria a donde fue su carta.",
   "vsFindAll": "Encuentra todas estas figuras — en cualquier rotación",
   "vsFindConj": "Encuentra la figura de este color y forma",
+  "teachDictIntro": "Una frase entera no cabe en la cabeza: te la dictas por partes. Escúchala entera, divídela en trozos de dos o tres palabras y escribe trozo a trozo.",
+  "teachDictListen": "Primero escucha la frase entera sin escribir nada.",
+  "teachDictChunk": "Trozo {i}: «{c}». Dítelo por dentro y escríbelo.",
+  "teachDictStuck": "¿Atascado en un carácter? Vuelve a escuchar la frase en vez de probar letras: la escritura no avanza hasta que el carácter sea correcto.",
+  "teachDictDone": "Escribe igual: la oyes entera → la divides en trozos → te dictas trozo a trozo.",
   "block": "Bloque",
   "seriesDone": "Serie completada. Errores",
   "yes": "Sí",
@@ -3157,11 +3162,6 @@ const t: Record<string, string> = {
   "hcAgain": "Otra vez",
   "teachHiddenHalf": "Pregunta «{q}»: sí para {yes}, no para {no}. La mejor pregunta divide a los que quedan lo más cerca posible de la mitad: cualquier respuesta elimina a la mitad.",
   "teachHiddenLast": "Queda uno: es el escondido. Elígelo y pulsa «¡Es este!».",
-  "teachDictIntro": "Una frase entera no cabe en la cabeza: te la dictas por partes. Escúchala entera, divídela en trozos de dos o tres palabras y escribe trozo a trozo.",
-  "teachDictListen": "Primero escucha la frase entera sin escribir nada.",
-  "teachDictChunk": "Trozo {i}: «{c}». Dítelo por dentro y escríbelo.",
-  "teachDictStuck": "¿Atascado en un carácter? Vuelve a escuchar la frase en vez de probar letras: la escritura no avanza hasta que el carácter sea correcto.",
-  "teachDictDone": "Escribe igual: la oyes entera → la divides en trozos → te dictas trozo a trozo.",
   "rbHeadStart": "ventaja {n}",
 };
 export default t;

@@ -3061,6 +3061,11 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Dal livello 22, dopo un errore le carte coperte si scambiano di posto e la coppia si illumina. Sposta l'immagine nella memoria dove è finita la sua carta.",
   "vsFindAll": "Trova tutte queste figure — in qualsiasi rotazione",
   "vsFindConj": "Trova la figura di questo colore e forma",
+  "teachDictIntro": "Una frase intera non resta in testa: te la detti a pezzi. Ascoltala tutta, dividila in pezzi di due o tre parole e scrivi pezzo per pezzo.",
+  "teachDictListen": "Prima ascolta tutta la frase senza scrivere nulla.",
+  "teachDictChunk": "Pezzo {i}: «{c}». Ripetilo dentro di te e scrivilo.",
+  "teachDictStuck": "Bloccato su un carattere? Riascolta la frase invece di tentare lettere: l’inserimento non avanza finché il carattere non è giusto.",
+  "teachDictDone": "Scrivi così: ascolti tutto → dividi in pezzi → ti detti pezzo per pezzo.",
   "block": "Blocco",
   "seriesDone": "Serie completata. Errori",
   "yes": "Sì",
@@ -3152,11 +3157,6 @@ const t: Record<string, string> = {
   "hcAgain": "Ancora una volta",
   "teachHiddenHalf": "Chiedi «{q}»: sì per {yes}, no per {no}. La domanda migliore divide i rimasti il più vicino possibile a metà: ogni risposta ne toglie la metà.",
   "teachHiddenLast": "Ne è rimasto uno: è lui. Sceglilo e premi «È lui!».",
-  "teachDictIntro": "Una frase intera non resta in testa: te la detti a pezzi. Ascoltala tutta, dividila in pezzi di due o tre parole e scrivi pezzo per pezzo.",
-  "teachDictListen": "Prima ascolta tutta la frase senza scrivere nulla.",
-  "teachDictChunk": "Pezzo {i}: «{c}». Ripetilo dentro di te e scrivilo.",
-  "teachDictStuck": "Bloccato su un carattere? Riascolta la frase invece di tentare lettere: l’inserimento non avanza finché il carattere non è giusto.",
-  "teachDictDone": "Scrivi così: ascolti tutto → dividi in pezzi → ti detti pezzo per pezzo.",
   "rbHeadStart": "vantaggio {n}",
 };
 export default t;
