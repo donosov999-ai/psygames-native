@@ -109,8 +109,22 @@ const EN_DIGRAPHS: Array<[string, number]> = [
  * ⚠️ Удвоенная согласная — ОДИН звук: «lasso» это 50, а не 500.
  */
 export function decodePegWord(word: string, lang: PegLang): number[] {
+  return разобратьПоБуквам(word, lang).map((ч) => ч.цифра);
+}
+
+/**
+ * Разбор слова на пары «буква → цифра». ОДИН на всё: и цифры (`decodePegWord`), и подпись
+ * для человека (`pegHint`) берутся отсюда.
+ *
+ * 🔴 ПОЧЕМУ ОДИН, А НЕ ДВА ПОХОЖИХ. Второй разбор, написанный отдельно для подписи, сразу
+ * разошёлся с первым: «chess» он читал как «c=7 + es=0 + s=0», а «соус» — как одну букву,
+ * потому что не сбрасывал память о предыдущей на гласной. Замер 24.09.2026, поймано пробой
+ * на той же правке. Правило удвоения («lasso» = 50, а не 500) живёт здесь же и поэтому не
+ * может действовать в одном месте и не действовать в другом.
+ */
+function разобратьПоБуквам(word: string, lang: PegLang): { буква: string; цифра: number }[] {
   const letters = word.toLowerCase().replace(lang === 'ru' ? /[^а-яё]/g : /[^a-z]/g, '');
-  const digits: number[] = [];
+  const out: { буква: string; цифра: number }[] = [];
   let prev = '';
   for (let i = 0; i < letters.length; i += 1) {
     const ch = letters[i];
@@ -118,7 +132,7 @@ export function decodePegWord(word: string, lang: PegLang): number[] {
       const pair = letters.slice(i, i + 2);
       const digraph = EN_DIGRAPHS.find(([d]) => d === pair);
       if (digraph) {
-        if (pair !== prev) digits.push(digraph[1]);
+        if (pair !== prev) out.push({ буква: pair, цифра: digraph[1] });
         prev = pair;
         i += 1;
         continue;
@@ -129,18 +143,18 @@ export function decodePegWord(word: string, lang: PegLang): number[] {
         // ⚠️ ПУСТАЯ СТРОКА ВХОДИТ В ЛЮБУЮ: без проверки на непустоту «c» в конце
         // слова («vac») читалась как s, и опора 87 кодировала 80. Поймала проба.
         const value = next !== '' && 'eiy'.includes(next) ? 0 : 7;
-        if (ch !== prev) digits.push(value);
-        prev = ch;
+        if (ch !== prev) out.push({ буква: ch!, цифра: value });
+        prev = ch!;
         continue;
       }
     }
     const map = lang === 'ru' ? RU_MAP : EN_MAP;
-    const value = map[ch];
+    const value = map[ch!];
     if (value === undefined) { prev = ''; continue; }
-    if (ch !== prev) digits.push(value);
-    prev = ch;
+    if (ch !== prev) out.push({ буква: ch!, цифра: value });
+    prev = ch!;
   }
-  return digits;
+  return out;
 }
 
 /**
@@ -190,14 +204,15 @@ export function pegFor(n: number, lang: string): string | null {
 export function pegHint(n: number, lang: string): string | null {
   const word = pegFor(n, lang);
   if (!word || !hasPegTable(lang)) return null;
-  const rows = PEG_RULE[lang];
-  const digits = decodePegWord(word, lang);
-  const parts = digits.map((d) => {
-    const row = rows.find((r) => r.digit === d);
-    return `${row ? row.letters.split(' ')[0] : '?'}=${d}`;
-  });
+  /**
+   * 🔴 НАЗЫВАЕМ БУКВУ ИЗ САМОГО СЛОВА, А НЕ ПЕРВУЮ ИЗ ГРУППЫ. Первая редакция брала начало
+   * группы, и под словом «пух» стояло «к=7»: буквы «к» в слове нет вовсе, а человек ищет
+   * глазами именно её. Увидел в живом разборе 24.09.2026.
+   */
+  const parts = разобратьПоБуквам(word, lang).map((ч) => `${ч.буква}=${ч.цифра}`);
   return `${word}: ${parts.join(' + ')}`;
 }
+
 
 /**
  * Подписи экрана для двух языков, у которых таблица есть.
