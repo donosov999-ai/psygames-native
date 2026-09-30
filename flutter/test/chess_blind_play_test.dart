@@ -120,9 +120,8 @@ void main() {
           reason:
               'ступень $level просит ${p.pieces}, выдано ${game.start.length}',
         );
-        if (uniquePieceCount(game.start) >=
-            puzzleMinUnique(p.quizType, p.questions))
-          unique++;
+        final need = puzzleMinUnique(p.quizType, p.questions);
+        if (uniquePieceCount(game.start) >= need) unique++;
       }
       // Однозначных фигур хватает почти всегда — иначе «розыск» молча короче.
       expect(
