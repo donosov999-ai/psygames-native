@@ -221,7 +221,7 @@ class _TrafficJamScreenState extends State<TrafficJamScreen> {
         },
       ),
       auxRow: AuxBar(children: [
-        AuxAction(icon: Icons.undo, label: L.t('trafficJamUndo'), onPressed: _history.isEmpty || _won ? null : _undo),
+        AuxAction(icon: Icons.undo, label: L.t('btn_undo'), onPressed: _history.isEmpty || _won ? null : _undo),
         AuxAction(icon: Icons.refresh, label: L.t('restart'), onPressed: _restart),
       ]),
       toolbar: _won

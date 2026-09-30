@@ -170,7 +170,7 @@ class _MonsterTraitsScreenState extends State<MonsterTraitsScreen> {
       onLesson: _checked ? null : _openLesson,
       hud: [
         HudItem(label: L.t('level'), value: '$_levelNo', icon: Icons.flag_outlined),
-        HudItem(label: L.t('mtMarked'), value: '${_selected.length}', icon: Icons.touch_app_outlined),
+        HudItem(label: L.t('puzzleHudMarked'), value: '${_selected.length}', icon: Icons.touch_app_outlined),
         if (g != null)
           HudItem(label: L.t('errors'), value: '${g.missed.length + g.extras.length}', icon: Icons.error_outline),
       ],
