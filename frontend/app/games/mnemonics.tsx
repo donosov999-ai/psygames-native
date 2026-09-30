@@ -37,14 +37,11 @@ import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#4facfe', '#00f2fe'];
-// Оранжевая кнопка «уровень N» — свой градиент, значит и свой цвет текста:
-// одним ON_GRAD тут не обойтись, стиль startButtonText лежит сразу на двух плашках.
-const LEVEL_GRADIENT = ['#f7971e', '#ffd200'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
-// Было зашито '#FFFFFF' — контраст 1.39 на бирюзовой и 1.45 на оранжевой (норма AA 4.5).
+// Было зашито '#FFFFFF' — контраст 1.39 на бирюзовой плашке (норма AA 4.5).
+// Оранжевой кнопки «уровень N» больше нет (вариант A, 30.09.2026): запуск по уровню один.
 const ON_GRAD = onGradientText(GRADIENT[0], GRADIENT[1]);
 const ON_GRAD_SOFT = onGradientTextMuted(ON_GRAD);
-const ON_LEVEL = onGradientText(LEVEL_GRADIENT[0], LEVEL_GRADIENT[1]);
 const PENALTY_SECONDS = 15;
 
 const MNEMONICS_BENEFITS = [
@@ -201,6 +198,8 @@ export default function MnemonicsGame() {
    * снимает её с седьмого уровня — к этому времени сотня опор уже узнаётся.
    */
   const опораЕсть = hasPegTable(language);
+  /** Блок «Свободная тренировка» свёрнут по умолчанию: главный путь — по уровню (решение Дениса 30.09.2026, вариант A). */
+  const [свободнаяОткрыта, setСвободнаяОткрыта] = useState(false);
 
   /**
    * 🎓 РАЗБОР ПО ШАГАМ (Денис 17.09.2026). Здесь он отвечает и на отчёт NZT-48 «игра требует
@@ -592,48 +591,84 @@ export default function MnemonicsGame() {
           </View>
         ) : null}
 
-        {/* Count Selection */}
-        <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.optionLabel, { color: colors.text }]}>
-            {t('label_count')}
-          </Text>
-          <View style={styles.optionButtons}>
-            {[5, 8, 12, 20].map((count) => (
-              <TouchableOpacity
-                accessibilityRole="button"
-                key={count}
-                style={[
-                  styles.countButton,
-                  itemCount === count && { backgroundColor: GRADIENT[0] },
-                  itemCount !== count && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
-                ]}
-                onPress={() => setItemCount(count)}
-              >
-                <Text
-                  style={[
-                    styles.countButtonText,
-                    { color: itemCount === count ? textOn(GRADIENT[0]) : colors.text },
-                  ]}
-                >
-                  {count}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        {/*
+          🔴 ОДИН ПУТЬ ЗАПУСКА, И ОН ПО УРОВНЮ (задача 1b92333a, решение Дениса 30.09.2026, вариант A).
 
-        {!isPreset && (
-          <TouchableOpacity
-            accessibilityRole="button" style={styles.startButton} onPress={() => startGame(true)}>
-            <LinearGradient colors={LEVEL_GRADIENT as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.startButtonGradient}>
-              <Ionicons name="flag" size={22} color={ON_LEVEL.color} />
-              <Text style={[styles.startButtonText, { color: ON_LEVEL.color }]}>{t('lvlTargetBtn').replace('{n}', String(lvl.level))}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
+          📍 БЫЛО: две кнопки, похожие на запуск. Оранжевая «Уровень N →» шла по лесенке, а
+          большая нижняя «Начать» — нет: человек выбирал «20», проходил все двадцать без
+          ошибки, и уровень оставался прежним. Экран об этом молчал, а «Количество» спорило
+          с лесенкой за одно и то же — число элементов.
+
+          СТАЛО: нижняя «Начать» всегда по уровню, над ней сказано, что именно она запустит.
+          Свободная тренировка не исчезла, но свёрнута в свой блок, запускается своей кнопкой
+          и прямо пишет «уровень не меняется». Образец внутри раздела — «Пары слов».
+        */}
+        {!isPreset ? (
+          <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.optionLabel, { color: colors.text }]}>
+              {mode === 'pegs'
+                ? t('mnemLevelLinePegs').replace('{level}', String(lvl.level))
+                : t('mnemLevelLine').replace('{level}', String(lvl.level)).replace('{n}', String(levelParams(lvl.level).itemCount))}
+            </Text>
+          </View>
+        ) : null}
+
+        {!isPreset && mode !== 'pegs' ? (
+          <View style={[styles.optionCard, { backgroundColor: colors.surface }]}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityState={{ expanded: свободнаяОткрыта }}
+              aria-expanded={свободнаяОткрыта}
+              testID="mnemonics-free-toggle"
+              style={styles.свободнаяШапка}
+              onPress={() => setСвободнаяОткрыта((v) => !v)}
+            >
+              <Text style={[styles.optionLabel, { color: colors.text, flex: 1 }]}>{t('mnemFreeTraining')}</Text>
+              <Ionicons name={свободнаяОткрыта ? 'chevron-up' : 'chevron-down'} size={22} color={colors.textSecondary} />
+            </TouchableOpacity>
+            {свободнаяОткрыта ? (
+              <>
+                <Text style={[styles.свободнаяПодпись, { color: colors.textSecondary }]}>{t('mnemFreeTrainingNote')}</Text>
+                <View style={styles.optionButtons}>
+                  {[5, 8, 12, 20].map((count) => (
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      key={count}
+                      style={[
+                        styles.countButton,
+                        itemCount === count && { backgroundColor: GRADIENT[0] },
+                        itemCount !== count && { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+                      ]}
+                      onPress={() => setItemCount(count)}
+                    >
+                      <Text
+                        style={[
+                          styles.countButtonText,
+                          { color: itemCount === count ? textOn(GRADIENT[0]) : colors.text },
+                        ]}
+                      >
+                        {count}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  testID="mnemonics-free-start"
+                  style={[styles.свободнаяКнопка, { borderColor: colors.border, backgroundColor: colors.card }]}
+                  onPress={() => startGame(false)}
+                >
+                  <Text style={[styles.свободнаяКнопкаТекст, { color: colors.text }]}>
+                    {t('mnemFreeTrainingStart').replace('{n}', String(itemCount))}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : null}
+          </View>
+        ) : null}
       </View>
     </ScrollView>
-    <GameSetupBar label={t('start')} onStart={() => startGame(false)} colors={GRADIENT as [string, string]} />
+    <GameSetupBar label={t('start')} onStart={() => startGame(!isPreset)} colors={GRADIENT as [string, string]} />
     </>
   );
 
@@ -1193,7 +1228,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countButtonText: { fontSize: 20, fontWeight: '700' },
-  startButton: { marginTop: 10 },
   startButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1258,6 +1292,10 @@ const styles = StyleSheet.create({
   itemNumber: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
   itemText: { fontWeight: '600', textAlign: 'center', fontSize: 24 },
   опора: { fontSize: 15, fontWeight: '700', textAlign: 'center', marginTop: 2 },
+  свободнаяШапка: { flexDirection: 'row', alignItems: 'center', minHeight: 44 },
+  свободнаяПодпись: { fontSize: 13, marginTop: 4, marginBottom: 10 },
+  свободнаяКнопка: { marginTop: 12, minHeight: 48, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  свободнаяКнопкаТекст: { fontSize: 16, fontWeight: '700' },
   разборРяд: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' },
   разборЭлемент: { minWidth: 76, minHeight: 76, borderRadius: 14, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 },
   разборЗнак: { fontSize: 24, fontWeight: '800' },
