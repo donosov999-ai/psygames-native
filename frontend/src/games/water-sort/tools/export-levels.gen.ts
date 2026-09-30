@@ -218,7 +218,6 @@ describe('выгрузка лестницы сосудов для приложе
     for (let L = 1; L <= СОБРАТЬ; L += 1) {
       levels.push(собрать(L, rnd, levels.length ? levels[levels.length - 1]!.forks : 0, прежняя));
       const s = levels[levels.length - 1]!;
-      // eslint-disable-next-line no-console
       console.log(`L${L}: развилок ${s.forks} (цель ${s.forksTarget}) · раздач ${s.candidates} · `
         + `лимит ${s.moveLimit || '—'} · решение лучом ${s.provenMoves ?? '—'} · ${Math.round((Date.now() - t0) / 1000)} с`);
     }
@@ -256,7 +255,6 @@ describe('выгрузка лестницы сосудов для приложе
     };
     // Отступ в один пробел: схлопнутый JSON читается так же, но диффы мертвы.
     fs.writeFileSync(ВЫХОД, `${JSON.stringify(данные, null, 1)}\n`);
-    // eslint-disable-next-line no-console
     console.log(`ВЫГРУЗКА: ${levels.length} ступеней, зерно ${ЗЕРНО} → ${ВЫХОД}, ${Math.round((Date.now() - t0) / 60000)} мин`);
   }, 7200000);
 });

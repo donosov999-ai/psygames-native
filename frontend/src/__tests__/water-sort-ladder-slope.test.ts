@@ -87,7 +87,6 @@ describe('лестница сосудов: трудность растёт', () 
     const от = данные.difficulty!.from;
     const часть = L.filter((s) => s.level >= от);
     const r = спирмен(часть.map((s) => s.level), часть.map((s) => s.forks));
-    // eslint-disable-next-line no-console
     console.log(`РАЗВИЛКИ ПО ЛЕСТНИЦЕ: ${L.map((s) => s.forks).join(' ')} · Спирмен с L${от}: ${r.toFixed(3)}`);
     expect(r).toBeGreaterThanOrEqual(0.9);
   });
@@ -115,7 +114,6 @@ describe('лестница сосудов: трудность растёт', () 
     const различных = new Set(хвост.map((s) => s.forks)).size;
     const низ = хвост.slice(0, 5).map((s) => s.forks), верх = хвост.slice(-5).map((s) => s.forks);
     const med = (a: number[]) => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)]!;
-    // eslint-disable-next-line no-console
     console.log(`ХВОСТ: различных значений ${различных} из ${хвост.length} · медиана L33–37 ${med(низ)} · L56–60 ${med(верх)}`);
     expect(med(верх) - med(низ)).toBeGreaterThanOrEqual(15);
     expect(различных).toBeGreaterThanOrEqual(15);
