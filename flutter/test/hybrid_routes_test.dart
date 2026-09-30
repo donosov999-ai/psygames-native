@@ -117,18 +117,21 @@ void main() {
       '$origin/games/phonemic-fluency.html?wu=1&targetLang=en&duration=90',
       '$origin/games/story-recall.html?wu=1',
       '$origin/games/hearing-hub',
+      '$origin/games/words-hub',
+      '$origin/games/languages-hub',
       '$origin/games/mnemonics-hub',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
   });
 
-  /// 🔴 Развилки «Слова» и «Языки» остаются в вебе, пока зарядку раздела нечем
-  /// запустить из натива: перехват показал бы список без неё.
-  test('🔴 развилки со своей зарядкой не перехватываются', () {
+  /// 🔴 Развилки «Слова» и «Языки» перехватываются ТОЛЬКО вместе с зарядкой
+  /// раздела в шапке: без неё перехват молча отнял бы у человека рабочую серию.
+  test('🔴 развилки со своей зарядкой перехватываются с мостом к ней в шапке', () {
     const origin = 'http://127.0.0.1:54321';
-    expect(HybridApp.routeOf('$origin/games/words-hub'), isNull);
-    expect(HybridApp.routeOf('$origin/games/languages-hub'), isNull);
+    for (final route in ['/games/words-hub', '/games/languages-hub']) {
+      expect(HybridApp.routeOf('$origin$route'), route);
+    }
     expect(HybridApp.routeOf('$origin/games/hearing-hub'), '/games/hearing-hub');
   });
 
@@ -290,6 +293,8 @@ void main() {
       '/games/story-recall',
       '/games/phonemic-fluency',
       '/games/hearing-hub',
+      '/games/words-hub',
+      '/games/languages-hub',
       '/games/mental-rotation',
       '/games/navigator',
       '/games/number-bonds',
