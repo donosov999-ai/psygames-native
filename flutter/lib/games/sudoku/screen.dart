@@ -259,16 +259,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
     t ??= pickNext(s, _pool, Leniency.normal);
     _attempt = repeat ? _attempt + 1 : 0;
     final seed = DateTime.now().millisecondsSinceEpoch + _attempt;
-    final rnd = math.Random(seed);
-    final previous = _board;
-    SudokuBoard? board;
-    var source = _ladder.level;
-    final candidates = t == null ? const <int>[] : (_levelsOfTemplate[t.id] ?? const <int>[]);
-    for (var i = 0; i < 8 && candidates.isNotEmpty; i++) {
-      source = candidates[rnd.nextInt(candidates.length)];
-      board = levels.boardFor(source, seed: seed + i);
-      if (!repeat || board == null || previous == null || !_samePuzzle(board, previous)) break;
-    }
+    final dealt = t == null
+        ? null
+        : boardForTemplate(levels, _levelsOfTemplate, t, seed, avoid: repeat ? _board : null);
+    var board = dealt?.board;
+    var source = dealt?.level ?? _ladder.level;
     if (board == null) {
       source = _ladder.level;
       board = levels.boardFor(source, seed: seed);
@@ -297,16 +292,6 @@ class _SudokuScreenState extends State<SudokuScreen> {
       _won = false;
       _lost = false;
     });
-  }
-
-  static bool _samePuzzle(SudokuBoard a, SudokuBoard b) {
-    if (a.n != b.n || a.variant != b.variant) return false;
-    for (var r = 0; r < a.n; r++) {
-      for (var c = 0; c < a.n; c++) {
-        if (a.puzzle[r][c] != b.puzzle[r][c]) return false;
-      }
-    }
-    return true;
   }
 
   /// Исход партии пилота: в рейтинг и счётчик побед пилота, в статистику — с пометкой

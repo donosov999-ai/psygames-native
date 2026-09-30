@@ -17,6 +17,8 @@
 /// живыми партиями — начальное значение только задаёт старт.
 library;
 
+import 'dart:math';
+
 import '../levels.dart';
 import 'contract.dart';
 import 'engine.dart';
@@ -93,6 +95,46 @@ Map<String, List<int>> levelsByTemplate(SudokuLevels levels, {int lastLevel = 92
     (out[templateForLevel(levels, lv).id] ??= <int>[]).add(lv);
   }
   return out;
+}
+
+/// Одна ли это доска: сторона, правило и все цифры задания.
+bool samePuzzle(SudokuBoard a, SudokuBoard b) {
+  if (a.n != b.n || a.variant != b.variant) return false;
+  for (var r = 0; r < a.n; r++) {
+    for (var c = 0; c < a.n; c++) {
+      if (a.puzzle[r][c] != b.puzzle[r][c]) return false;
+    }
+  }
+  return true;
+}
+
+/// ДОСКА ПОД ШАБЛОН — то, что пилот выдаёт человеку, когда генератор выбрал шаблон.
+///
+/// Ступень берётся из тех, чей шаблон совпал (`levelsByTemplate`), доска — её же, по
+/// зерну. Одно зерно — одна доска (§9.4): всё случайное здесь идёт от `seed`, часов нет.
+/// `avoid` — доска, которую повторять не надо («ещё раз эту же»: трудность та же, доска
+/// другая); уйти от неё — не больше восьми попыток, зависать нельзя (§8.5).
+/// `null` — у шаблона нет ни одной ступени с доской; экран тогда берёт доску лестницы.
+({SudokuBoard board, int level})? boardForTemplate(
+  SudokuLevels levels,
+  Map<String, List<int>> byTemplate,
+  Template t,
+  int seed, {
+  SudokuBoard? avoid,
+}) {
+  final candidates = byTemplate[t.id] ?? const <int>[];
+  if (candidates.isEmpty) return null;
+  final rnd = Random(seed);
+  SudokuBoard? board;
+  var level = candidates.first;
+  for (var i = 0; i < 8; i++) {
+    level = candidates[rnd.nextInt(candidates.length)];
+    // Зерно 0 уровни читают как «от часов» — такого здесь быть не должно.
+    final s = seed + i == 0 ? 1 : seed + i;
+    board = levels.boardFor(level, seed: s);
+    if (board == null || avoid == null || !samePuzzle(board, avoid)) break;
+  }
+  return board == null ? null : (board: board, level: level);
 }
 
 /// Шаблон ДЛЯ УЖЕ ВЫДАННОЙ ДОСКИ — тем же именем, что и в пуле.
