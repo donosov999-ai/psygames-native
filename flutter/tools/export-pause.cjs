@@ -208,6 +208,92 @@ const webp = fs.readdirSync(path.join(warmup, 'assets/cosmic-body')).filter((f) 
 for (const f of webp) fs.copyFileSync(path.join(warmup, 'assets/cosmic-body', f), path.join(bodies, f));
 console.log(`картинки: ${guideCount} SVG шагов → flutter/assets/pause/guides, ${webp.length} webp → flutter/assets/pause/cosmic-body`);
 
+/*
+ * 🔴 «ГИМНАСТИКА ДЛЯ ГЛАЗ» — ЭТАЛОН С ЖИВОГО ЭКРАНА `frontend/app/games/eye-gym.tsx`.
+ *
+ * Её правила живут не в ядре «Паузы», а в самом экране: последовательность из 11
+ * шагов, узоры траектории (`dotFor`, спираль, волна и пульс — по отчётам тестировщицы
+ * 05.09), режимы свободной игры и множитель коротких режимов. Экран на React Native
+ * целиком в node не исполнить — поэтому нужные объявления вырезаются из исходника
+ * разбором и исполняются как есть. Уровни и геометрия — чистые модули сервисов.
+ */
+const eyeSource = fs.readFileSync(path.join(root, 'frontend/app/games/eye-gym.tsx'), 'utf8');
+const eyeAst = parser.parse(eyeSource, { sourceType: 'module', plugins: ['typescript', 'jsx'] });
+const eyePieces = [];
+const eyeWalk = (node) => {
+  if (!node || typeof node.type !== 'string') return;
+  if (node.type === 'VariableDeclarator' && node.id && ['SEQUENCE', 'DIRECTIONS', 'MODE_PHASES', 'modeMul'].includes(node.id.name)) {
+    eyePieces.push([node.id.name, eyeSource.slice(node.init.start, node.init.end)]);
+  }
+  if (node.type === 'FunctionDeclaration' && node.id && node.id.name === 'dotFor') {
+    eyePieces.push(['dotFor', eyeSource.slice(node.start, node.end)]);
+  }
+  for (const key of Object.keys(node)) {
+    const v = node[key];
+    if (Array.isArray(v)) v.forEach(eyeWalk);
+    else if (v && typeof v.type === 'string') eyeWalk(v);
+  }
+};
+eyeWalk(eyeAst.program);
+const eyeGot = Object.fromEntries(eyePieces);
+for (const need of ['SEQUENCE', 'DIRECTIONS', 'MODE_PHASES', 'modeMul', 'dotFor']) {
+  if (!eyeGot[need]) throw Error(`в eye-gym.tsx не найдено ${need}: экран поменялся`);
+}
+const eyeJs = ts.transpileModule(
+  `const SEQUENCE = ${eyeGot.SEQUENCE};\nconst DIRECTIONS = ${eyeGot.DIRECTIONS};\n` +
+    `const MODE_PHASES = ${eyeGot.MODE_PHASES};\nconst modeMulOf = (effMode) => (${eyeGot.modeMul});\n${eyeGot.dotFor}\n` +
+    'module.exports = { SEQUENCE, DIRECTIONS, MODE_PHASES, modeMulOf, dotFor };',
+  { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } },
+).outputText;
+const eyeModule = { exports: {} };
+vm.runInNewContext(eyeJs, { module: eyeModule, exports: eyeModule.exports, Math }, { timeout: 5000 });
+const eye = eyeModule.exports;
+const eyeLevels = load(path.join(root, 'frontend/src/services/eyeGymLevels.ts'));
+const eyeGeometry = load(path.join(root, 'frontend/src/services/eyeGymGeometry.ts'));
+const BASE_TOTAL_SEC = eye.SEQUENCE.reduce((a, s) => a + s.dur, 0);
+// Шаги так, как их строит экран: подмножество режима, длительность × масштаб × множитель, не короче 8 с.
+const eyeSteps = (mode, scale) => {
+  const sel = eye.MODE_PHASES[mode];
+  const mul = eye.modeMulOf(mode);
+  return (sel ? eye.SEQUENCE.filter((s) => sel.includes(s.key)) : eye.SEQUENCE)
+    .map((s) => ({ key: s.key, dur: Math.max(8, Math.round(s.dur * scale * mul)) }));
+};
+const eyeFixture = {
+  sequence: eye.SEQUENCE,
+  directions: eye.DIRECTIONS,
+  modePhases: eye.MODE_PHASES,
+  modeMul: Object.fromEntries(Object.keys(eye.MODE_PHASES).map((m) => [m, eye.modeMulOf(m)])),
+  maxLevel: eyeLevels.EYE_GYM_MAX_LEVEL,
+  baseTotalSec: BASE_TOTAL_SEC,
+  levels: Array.from({ length: eyeLevels.EYE_GYM_MAX_LEVEL + 2 }, (_, i) => i).map((n) => ({
+    level: n,
+    cfg: eyeLevels.eyeGymLevel(n),
+    minutes: eyeLevels.eyeGymLevelMinutes(n, BASE_TOTAL_SEC),
+  })),
+  steps: [],
+  dots: [],
+  geometry: [],
+};
+for (const mode of Object.keys(eye.MODE_PHASES)) {
+  for (const scale of [0.4, 0.7, 1, 1.21, 1.4, 1.7]) eyeFixture.steps.push({ mode, scale, steps: eyeSteps(mode, scale) });
+}
+for (let n = 1; n <= eyeLevels.EYE_GYM_MAX_LEVEL; n++) {
+  eyeFixture.steps.push({ mode: 'full', scale: eyeLevels.eyeGymLevel(n).scale, steps: eyeSteps('full', eyeLevels.eyeGymLevel(n).scale) });
+}
+const patterns = [...new Set(eye.SEQUENCE.map((s) => s.pattern))];
+for (const pattern of patterns) {
+  for (const speed of [0.7, 1, 1.4]) {
+    for (const [local, localSec] of [[0, 0], [0.13, 2.6], [0.5, 11], [0.77, 16.9], [0.999, 21.98], [1, 30]]) {
+      eyeFixture.dots.push({ pattern, local, localSec, speed, out: eye.dotFor(pattern, local, localSec, 150, 212, 179, 246, speed) });
+    }
+  }
+}
+for (const [vw, vh, field] of [[360, 640, null], [390, 844, null], [390, 844, { width: 358, height: 520 }], [1024, 768, { width: 700, height: 500 }], [320, 480, null]]) {
+  eyeFixture.geometry.push({ viewport: { width: vw, height: vh }, field, out: eyeGeometry.eyeGymGeometry({ width: vw, height: vh }, field) });
+}
+fs.writeFileSync(path.join(root, 'flutter/test/fixtures/eye-gym-reference.json'), JSON.stringify(eyeFixture) + '\n');
+console.log(`глаза: ${eye.SEQUENCE.length} шагов, ${patterns.length} узоров, ${eyeFixture.dots.length} точек траектории, ${eyeFixture.levels.length} уровней → flutter/test/fixtures/eye-gym-reference.json`);
+
 const fixtureFile = path.join(root, 'flutter/test/fixtures/pause-reference.json.gz');
 fs.writeFileSync(fixtureFile, gzipSync(JSON.stringify(cases), { level: 9 }));
 const failed = cases.filter((c) => c.issues).length;

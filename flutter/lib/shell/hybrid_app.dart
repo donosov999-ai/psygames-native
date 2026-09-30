@@ -131,6 +131,9 @@ class HybridApp extends StatefulWidget {
         // «Дыхание» слито в «Паузу» (решение Дениса 30.09): тот же экран, режим дыхания,
         // партия пишется под прежним `breathing`. Техника шага зарядки — `?tech=`.
         '/games/breathing': (s) => PauseScreen(state: s, flavor: PauseFlavor.breathing),
+        // «Гимнастика для глаз» слита туда же: лестница 15 уровней и 11 узоров перенесены
+        // со сверкой по живому экрану, партия — под прежним `eye_gym`.
+        '/games/eye-gym': (s) => PauseScreen(state: s, flavor: PauseFlavor.eyeGym),
         '/games/mahjong': (s) => MahjongScreen(state: s),
         '/games/math-slider': (s) => MathSliderScreen(state: s),
         '/games/object-tracker': (s) => ObjectTrackerScreen(state: s),

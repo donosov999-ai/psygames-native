@@ -20,6 +20,7 @@
 // минуты в `score`, обстановка в `difficulty`, наборы в `details.sets`. На этой записи
 // стоят статистика и шаг зарядки. Выход посреди практики не записывается — как в вебе.
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -35,6 +36,7 @@ import '../../shell/shared_state.dart';
 import '../../shell/voice.dart';
 import '../../shell/voice_system.dart';
 import 'breathing.dart';
+import 'eye_gym.dart';
 import 'practices.dart';
 import 'stage.dart';
 
@@ -62,8 +64,9 @@ const pauseMinutes = [1, 2, 5, 8];
 /// закладывает на «Паузу» состав зарядки (`est_duration_sec: 90`).
 const pausePresetSeconds = 90;
 
-/// Чем открыт экран: сама «Пауза» или слитое в неё «Дыхание» (`/games/breathing`).
-enum PauseFlavor { hub, breathing }
+/// Чем открыт экран: сама «Пауза» или слитые в неё «Дыхание» (`/games/breathing`)
+/// и «Гимнастика для глаз» (`/games/eye-gym`).
+enum PauseFlavor { hub, breathing, eyeGym }
 
 class PauseScreen extends StatefulWidget {
   const PauseScreen({
@@ -125,6 +128,22 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   WimHofRun? _wim;
   bool _wimWarning = false;
   late final BreathLedger _ledger = BreathLedger(widget.state);
+
+  // Режим «Гимнастика для глаз»: лестница 15 уровней или свободная игра, как в вебе.
+  bool get _eyes => widget.flavor == PauseFlavor.eyeGym;
+  bool _eyeByLevel = true;
+  String _eyeMode = 'full';
+  double _eyeScale = 1;
+  double _eyeSpeed = 1;
+  int _eyePicked = 1;
+  EyeGymRun? _eye;
+  int _eyeStep = -1;
+  String get _eyeLevelKey => SharedState.levelKey('eye_gym', widget.state.activeProfile);
+  String get _eyeBestKey => '${SharedState.prefix}eye_gym_best_${widget.state.activeProfile}';
+
+  /// Достигнутый уровень и лучший — по ключам веба (`usePersistentLevel('eye_gym')`).
+  int get eyeLevel => clampEyeLevel(int.tryParse(widget.state.get(_eyeLevelKey) ?? '') ?? 1);
+  int get eyeBest => math.max(eyeLevel, clampEyeLevel(int.tryParse(widget.state.get(_eyeBestKey) ?? '') ?? 1));
   late final VoiceLayer _voice =
       widget.voice ?? VoiceLayer(backend: SystemVoiceBackend(), soundOn: () => !GamePreset.isCalm);
 
@@ -149,11 +168,19 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     }
   }
 
-  bool get _autostartWanted => GamePreset.autostart && _sets.isNotEmpty;
+  bool get _autostartWanted => GamePreset.autostart && (_eyes || _sets.isNotEmpty);
 
   void _apply(Practices engine, Json copy) {
     _engine = engine;
     _copy = copy;
+    if (_eyes) {
+      // Пресет (зарядка, вызов дня) — всегда по уровню: там человек не настраивает,
+      // ему выдают нагрузку по его текущему уровню (так в вебе).
+      _eyeByLevel = true;
+      _eyePicked = eyeLevel;
+      phase = PausePhase.config;
+      return;
+    }
     if (_breath) {
       // Шаг зарядки задаёт технику (`settings.tech`) и ночной вид (`dim=1`) — как в вебе.
       _tech = breathTechFor(GamePreset.str('tech', 'box'));
@@ -201,6 +228,19 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   void didChangeDependencies() {
     super.didChangeDependencies();
     final current = ModalRoute.of(context)?.isCurrent ?? true;
+    final eye = _eye;
+    if (eye != null && !eye.done) {
+      if (!current && !eye.paused) {
+        eye.pause(_now);
+        _coveredPause = true;
+        _syncTicker();
+      } else if (current && _coveredPause) {
+        eye.resume(_now);
+        _coveredPause = false;
+        _syncTicker();
+      }
+      return;
+    }
     final wim = _wim;
     if (wim != null && !wim.done) {
       if (!current && !wim.paused) {
@@ -230,7 +270,9 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) return;
-    if (_wim != null && !_wim!.done && !_wim!.paused) {
+    if (_eye != null && !_eye!.done && !_eye!.paused) {
+      act('pause');
+    } else if (_wim != null && !_wim!.done && !_wim!.paused) {
       act('pause');
     } else if (_session?['phase'] == 'running') {
       act('pause');
@@ -271,6 +313,8 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
 
   /// Сколько наборов нужно выбрать для режима — как считает ядро.
   bool get selectionReady {
+    // У гимнастики наборов «Паузы» нет: подход собирается из уровня или ручных настроек.
+    if (_eyes) return true;
     final n = _sets.where((id) => _available().any((s) => s['id'] == id)).length;
     return switch (_mode) { 'parallel' => n >= 2, 'charge' => n >= 1, _ => n == 1 };
   }
@@ -305,6 +349,10 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   /// наборов для режима и т. п.) — советы ядра старт не держат.
   List<String> start() {
     final engine = _engine;
+    if (_eyes) {
+      startEyes();
+      return const [];
+    }
     if (engine == null || _sets.isEmpty) return const ['INVALID_SELECTION_COUNT'];
     if (_breath && _tech.web == 'wimhof') {
       // Сначала безопасность: у веба перед Вимом Хофом свой экран предупреждения,
@@ -333,6 +381,26 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     }
   }
 
+  /// Гимнастика: подход по уровню или по ручным настройкам.
+  void startEyes() {
+    final cfg = eyeGymLevel(_eyePicked);
+    final steps = _eyeByLevel ? eyeSteps('full', cfg.scale) : eyeSteps(_eyeMode, _eyeScale);
+    setState(() {
+      _eye = EyeGymRun(
+        steps: steps,
+        level: _eyePicked,
+        byLevel: _eyeByLevel,
+        speed: _eyeByLevel ? cfg.speed : _eyeSpeed,
+        now: _now,
+      );
+      _eyeStep = 0;
+      phase = PausePhase.playing;
+    });
+    // Отклик вместо взгляда на экран (отчёт тестировщицы 05.09): глаза заняты точкой.
+    unawaited(HapticFeedback.mediumImpact());
+    _syncTicker();
+  }
+
   /// Вим Хоф: предупреждение прочитано — раунды пошли.
   void startWim() {
     setState(() {
@@ -351,6 +419,17 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   }
 
   void _tick() {
+    final e = _eye;
+    if (e != null) {
+      setState(() => e.tick(_now));
+      final idx = e.position.index;
+      if (idx != _eyeStep && !e.done) {
+        _eyeStep = idx;
+        unawaited(HapticFeedback.selectionClick());
+      }
+      if (e.done) _completeEye(e);
+      return;
+    }
     final w = _wim;
     if (w != null) {
       setState(() => w.tick(_now));
@@ -393,6 +472,12 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   }
 
   void act(String action) {
+    final e = _eye;
+    if (e != null) {
+      setState(() => action == 'pause' ? e.pause(_now) : (action == 'resume' ? e.resume(_now) : null));
+      _syncTicker();
+      return;
+    }
     final w = _wim;
     if (w != null) {
       setState(() => action == 'pause' ? w.pause(_now) : (action == 'resume' ? w.resume(_now) : null));
@@ -434,8 +519,11 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   int? _leadLeft;
 
   void _syncTicker() {
+    final e = _eye;
     final w = _wim;
-    final running = w != null
+    final running = e != null
+        ? !e.done && !e.paused
+        : w != null
         ? !w.done && !w.paused
         : (_session?['phase'] == 'running' || (_session?['phase'] == 'ready' && _leadUntil != null));
     if (running && !_ticker.isActive) _ticker.start();
@@ -494,6 +582,35 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     setState(() => phase = PausePhase.done);
   }
 
+  /// Подход гимнастики завершён: уровень вперёд (провалить её нельзя — засчитан
+  /// фактом завершения, и в шаге зарядки тоже, как в вебе), партия под прежним `eye_gym`.
+  void _completeEye(EyeGymRun e) {
+    _ticker.stop();
+    unawaited(HapticFeedback.heavyImpact());
+    final done = e.level;
+    // «Лучший» — до записи уровня: после неё он читается уже от нового уровня.
+    final best = eyeBest;
+    if (e.byLevel && done < eyeMaxLevel && done + 1 > eyeLevel) {
+      unawaited(widget.state.set(_eyeLevelKey, '${done + 1}'));
+      if (done + 1 > best) unawaited(widget.state.set(_eyeBestKey, '${done + 1}'));
+    }
+    final scale = e.byLevel ? eyeGymLevel(done).scale : _eyeScale;
+    unawaited(SessionReport.send(
+      gameType: 'eye_gym',
+      score: e.totalSec,
+      timeSeconds: e.totalSec,
+      difficulty: scale > 1 ? '5min' : '3min',
+      mode: '${e.steps.length}steps',
+      errors: 0,
+      // Уровень — только по лестнице: свободная партия на медленных настройках
+      // занижала бы достигнутое при восстановлении из истории (как в вебе).
+      details: e.byLevel
+          ? {'duration_sec': e.totalSec, 'steps': e.steps.length, 'level': done}
+          : {'duration_sec': e.totalSec, 'steps': e.steps.length},
+    ));
+    setState(() => phase = PausePhase.done);
+  }
+
   void _completeWim(WimHofRun w) {
     _ticker.stop();
     _completeBreath(w.activeMs / 1000, 'wimhof');
@@ -504,6 +621,8 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     unawaited(_voice.cancel());
     setState(() {
       _session = null;
+      _eye = null;
+      _eyePicked = eyeLevel;
       _wim = null;
       _leadUntil = null;
       _leadLeft = null;
@@ -515,7 +634,11 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   Future<void> _back() async {
     final nav = Navigator.of(context);
     final running = phase == PausePhase.playing &&
-        (_wim != null ? !_wim!.paused && !_wim!.done : _session?['phase'] == 'running' || _leadUntil != null);
+        (_eye != null
+            ? !_eye!.paused && !_eye!.done
+            : _wim != null
+                ? !_wim!.paused && !_wim!.done
+                : _session?['phase'] == 'running' || _leadUntil != null);
     if (phase != PausePhase.playing) {
       await nav.maybePop();
       return;
@@ -565,13 +688,18 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     final s = _session;
     final frame = s == null ? null : engine.frame(s['plan'], s['elapsedMs'] as int);
     final wim = _wim;
+    final eye = _eye;
     final lead = s != null && s['phase'] == 'ready'
         ? (((_leadUntil != null ? _leadUntil! - _now : (_leadLeft ?? 0)) / 1000).ceil()).clamp(1, 3)
         : null;
     final shell = GameShell(
-      title: _breath ? L.t('breathing') : L.t('pause'),
+      title: _eyes ? L.t('eyeGym') : (_breath ? L.t('breathing') : L.t('pause')),
       onBack: _back,
       hud: [
+        if (eye != null) ...[
+          HudItem(label: L.t('hud_step'), value: '${eye.position.index + 1}/${eye.steps.length}', icon: Icons.format_list_numbered),
+          HudItem(label: L.t('timeLeftLabel'), value: '${eye.remainSec}${L.t('secShort')}', icon: Icons.timer_outlined),
+        ],
         if (s != null)
           HudItem(
             label: L.t('time'),
@@ -581,8 +709,14 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       ],
       field: (context, h) => switch (phase) {
         PausePhase.loading => const Center(child: CircularProgressIndicator()),
-        PausePhase.config => _breath ? _BreathConfig(screen: this, height: h) : _Config(screen: this, height: h),
-        PausePhase.playing => wim != null
+        PausePhase.config => _eyes
+            ? _EyeConfig(screen: this, height: h)
+            : _breath
+                ? _BreathConfig(screen: this, height: h)
+                : _Config(screen: this, height: h),
+        PausePhase.playing => eye != null
+            ? EyeGymStage(run: eye, height: h)
+            : wim != null
             ? _WimView(screen: this, run: wim)
             : _Playing(engine: engine, session: s!, frame: frame!, progressLabel: ps('progress'), lead: lead, leadLabel: L.t('brGetReady')),
         // У Вима Хофа сессии ядра нет — итог берётся из его раундов.
@@ -608,9 +742,9 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
                     ),
             )
           : null,
-      auxRow: phase == PausePhase.playing && wim != null
+      auxRow: phase == PausePhase.playing && (wim != null || eye != null)
           ? AuxBar(children: [
-              if (!wim.paused)
+              if (!(wim?.paused ?? eye!.paused))
                 AuxAction(key: const Key('pause-pause'), icon: Icons.pause, label: ps('pause'), onPressed: () => act('pause'))
               else
                 AuxAction(key: const Key('pause-resume'), icon: Icons.play_arrow, label: ps('resume'), onPressed: () => act('resume')),
@@ -735,6 +869,72 @@ class _BreathConfig extends StatelessWidget {
                 ),
             ]),
           ],
+        ]),
+      ),
+    );
+  }
+}
+
+class _EyeConfig extends StatelessWidget {
+  const _EyeConfig({required this.screen, required this.height});
+
+  final PauseScreenState screen;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final st = screen;
+    final theme = Theme.of(context);
+    final label = theme.textTheme.labelLarge;
+    Widget chips<T>(String group, List<(T, String)> options, T selected, void Function(T) pick) => Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final (v, key) in options)
+              ChoiceChip(
+                key: Key('pause-eye-$group-$v'),
+                label: Text(L.t(key)),
+                selected: selected == v,
+                onSelected: (_) => st.edit(() => pick(v)),
+              ),
+          ],
+        );
+    return SizedBox(
+      height: height,
+      child: SingleChildScrollView(
+        key: const Key('pause-config'),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          chips<bool>('road', const [(true, 'sudokuModeLevels'), (false, 'sudokuModeFree')], st._eyeByLevel,
+              (v) => st._eyeByLevel = v),
+          const SizedBox(height: 12),
+          if (st._eyeByLevel)
+            // Тропинка уровней: пройденные можно переиграть, дальше лучшего — нельзя.
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (var n = 1; n <= st.eyeBest; n++)
+                ChoiceChip(
+                  key: Key('pause-eye-level-$n'),
+                  label: Text('$n · ${eyeGymLevelMinutes(n)}′'),
+                  selected: st._eyePicked == n,
+                  onSelected: (_) => st.edit(() => st._eyePicked = n),
+                ),
+            ])
+          else ...[
+            Text(L.t('mode'), style: label),
+            const SizedBox(height: 6),
+            chips<String>('mode', const [('full', 'eyeModeFull'), ('pursuit', 'eyeModePursuit'), ('focus', 'eyeModeFocus'), ('relax', 'eyeModeRelax')],
+                st._eyeMode, (v) => st._eyeMode = v),
+            const SizedBox(height: 12),
+            Text(L.t('duration'), style: label),
+            const SizedBox(height: 6),
+            chips<double>('scale', const [(0.4, 'eye1min'), (1.0, 'eye3min'), (1.7, 'eye5min')], st._eyeScale, (v) => st._eyeScale = v),
+            const SizedBox(height: 12),
+            Text(L.t('eyeSpeedLabel'), style: label),
+            const SizedBox(height: 6),
+            chips<double>('speed', const [(0.7, 'eyeSlow'), (1.0, 'eyeNorm'), (1.4, 'eyeFast')], st._eyeSpeed, (v) => st._eyeSpeed = v),
+          ],
+          const SizedBox(height: 16),
+          Text(L.t('eyeDisclaimer'), style: theme.textTheme.bodySmall),
         ]),
       ),
     );
@@ -993,6 +1193,29 @@ class _Done extends StatelessWidget {
     final st = screen;
     final engine = st._engine!;
     final theme = Theme.of(context);
+    if (st._eyes && st._eye != null) {
+      final e = st._eye!;
+      return ListView(
+        key: const Key('pause-done'),
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(st.ps('completed'), style: theme.textTheme.headlineSmall, textAlign: TextAlign.center),
+          const SizedBox(height: 12),
+          Text('${e.totalSec ~/ 60}:${(e.totalSec % 60).toString().padLeft(2, '0')}',
+              style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
+          if (e.byLevel) Text('${e.level} → ${st.eyeLevel}', key: const Key('pause-eye-level'), textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          FilledButton.icon(key: const Key('pause-again'), onPressed: st._again, icon: const Icon(Icons.replay), label: Text(L.t('retry'))),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            key: const Key('pause-home'),
+            onPressed: () => Navigator.of(context).maybePop(),
+            icon: const Icon(Icons.home_outlined),
+            label: Text(L.t('goHome')),
+          ),
+        ],
+      );
+    }
     if (st._breath) {
       final wim = st._wim;
       final ms = wim != null ? wim.activeMs : (session['result']['durationMs'] as int);
