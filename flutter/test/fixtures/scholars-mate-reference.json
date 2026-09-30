@@ -1,0 +1,2047 @@
+{
+  "source": "живой TS: src/games/scholars-mate/core/{deck,run}.ts",
+  "levels": 40,
+  "perLevel": {
+    "1": {
+      "seconds": 20,
+      "params": {
+        "level": 1,
+        "kinds": [
+          "mate"
+        ],
+        "count": 8,
+        "seconds": 20,
+        "minRating": 0,
+        "maxRating": 0,
+        "motifs": [
+          "scholar"
+        ]
+      },
+      "motifs": [
+        "scholar"
+      ],
+      "kinds": [
+        "mate"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": "scholar",
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "2": {
+      "seconds": 20,
+      "params": {
+        "level": 2,
+        "kinds": [
+          "mate"
+        ],
+        "count": 8,
+        "seconds": 20,
+        "minRating": 0,
+        "maxRating": 0,
+        "motifs": [
+          "scholar"
+        ]
+      },
+      "motifs": [
+        "scholar"
+      ],
+      "kinds": [
+        "mate"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "3": {
+      "seconds": 19,
+      "params": {
+        "level": 3,
+        "kinds": [
+          "mate"
+        ],
+        "count": 8,
+        "seconds": 19,
+        "minRating": 0,
+        "maxRating": 0,
+        "motifs": [
+          "scholar"
+        ]
+      },
+      "motifs": [
+        "scholar"
+      ],
+      "kinds": [
+        "mate"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "4": {
+      "seconds": 19,
+      "params": {
+        "level": 4,
+        "kinds": [
+          "mate"
+        ],
+        "count": 8,
+        "seconds": 19,
+        "minRating": 0,
+        "maxRating": 0,
+        "motifs": [
+          "scholar"
+        ]
+      },
+      "motifs": [
+        "scholar"
+      ],
+      "kinds": [
+        "mate"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "5": {
+      "seconds": 18,
+      "params": {
+        "level": 5,
+        "kinds": [
+          "mate"
+        ],
+        "count": 8,
+        "seconds": 18,
+        "minRating": 0,
+        "maxRating": 0,
+        "motifs": [
+          "scholar"
+        ]
+      },
+      "motifs": [
+        "scholar"
+      ],
+      "kinds": [
+        "mate"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "6": {
+      "seconds": 18,
+      "params": {
+        "level": 6,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 18,
+        "minRating": 514,
+        "maxRating": 867,
+        "motifs": [
+          "scholar",
+          "queenKnight"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": "queenKnight",
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "7": {
+      "seconds": 18,
+      "params": {
+        "level": 7,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 18,
+        "minRating": 537,
+        "maxRating": 900,
+        "motifs": [
+          "scholar",
+          "queenKnight"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "8": {
+      "seconds": 17,
+      "params": {
+        "level": 8,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 17,
+        "minRating": 561,
+        "maxRating": 933,
+        "motifs": [
+          "scholar",
+          "queenKnight"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "9": {
+      "seconds": 17,
+      "params": {
+        "level": 9,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 17,
+        "minRating": 584,
+        "maxRating": 967,
+        "motifs": [
+          "scholar",
+          "queenKnight"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "10": {
+      "seconds": 16,
+      "params": {
+        "level": 10,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 16,
+        "minRating": 607,
+        "maxRating": 1000,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": "bishopF7",
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "11": {
+      "seconds": 16,
+      "params": {
+        "level": 11,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 16,
+        "minRating": 630,
+        "maxRating": 1033,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "12": {
+      "seconds": 15,
+      "params": {
+        "level": 12,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 15,
+        "minRating": 653,
+        "maxRating": 1067,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "13": {
+      "seconds": 15,
+      "params": {
+        "level": 13,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 15,
+        "minRating": 676,
+        "maxRating": 1100,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "14": {
+      "seconds": 15,
+      "params": {
+        "level": 14,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 15,
+        "minRating": 699,
+        "maxRating": 1133,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": "queenAlone",
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "15": {
+      "seconds": 14,
+      "params": {
+        "level": 15,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 14,
+        "minRating": 722,
+        "maxRating": 1167,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "16": {
+      "seconds": 14,
+      "params": {
+        "level": 16,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 14,
+        "minRating": 745,
+        "maxRating": 1200,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "17": {
+      "seconds": 13,
+      "params": {
+        "level": 17,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 13,
+        "minRating": 768,
+        "maxRating": 1233,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "18": {
+      "seconds": 13,
+      "params": {
+        "level": 18,
+        "kinds": [
+          "mate",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 13,
+        "minRating": 791,
+        "maxRating": 1267,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool"
+      ],
+      "kinds": [
+        "mate",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsMateAsk"
+      ],
+      "newMotif": "fool",
+      "announce": true,
+      "missAllowance": 2,
+      "threshold": 0.9
+    },
+    "19": {
+      "seconds": 13,
+      "params": {
+        "level": 19,
+        "kinds": [
+          "threat",
+          "defend",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 13,
+        "minRating": 814,
+        "maxRating": 1300,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool"
+      ],
+      "kinds": [
+        "threat",
+        "defend",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsThreatAsk",
+        "scholarsDefendAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "20": {
+      "seconds": 12,
+      "params": {
+        "level": 20,
+        "kinds": [
+          "threat",
+          "defend",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 12,
+        "minRating": 837,
+        "maxRating": 1333,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool"
+      ],
+      "kinds": [
+        "threat",
+        "defend",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsThreatAsk",
+        "scholarsDefendAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "21": {
+      "seconds": 12,
+      "params": {
+        "level": 21,
+        "kinds": [
+          "threat",
+          "defend",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 12,
+        "minRating": 861,
+        "maxRating": 1367,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool"
+      ],
+      "kinds": [
+        "threat",
+        "defend",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsThreatAsk",
+        "scholarsDefendAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "22": {
+      "seconds": 11,
+      "params": {
+        "level": 22,
+        "kinds": [
+          "threat",
+          "defend",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 11,
+        "minRating": 884,
+        "maxRating": 1400,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool"
+      ],
+      "kinds": [
+        "threat",
+        "defend",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsThreatAsk",
+        "scholarsDefendAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "23": {
+      "seconds": 11,
+      "params": {
+        "level": 23,
+        "kinds": [
+          "threat",
+          "defend",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 11,
+        "minRating": 907,
+        "maxRating": 1433,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening"
+      ],
+      "kinds": [
+        "threat",
+        "defend",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsThreatAsk",
+        "scholarsDefendAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": "knightOpening",
+      "announce": true,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "24": {
+      "seconds": 11,
+      "params": {
+        "level": 24,
+        "kinds": [
+          "threat",
+          "defend",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 11,
+        "minRating": 930,
+        "maxRating": 1467,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening"
+      ],
+      "kinds": [
+        "threat",
+        "defend",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsThreatAsk",
+        "scholarsDefendAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "25": {
+      "seconds": 10,
+      "params": {
+        "level": 25,
+        "kinds": [
+          "threat",
+          "defend",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 10,
+        "minRating": 953,
+        "maxRating": 1500,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening"
+      ],
+      "kinds": [
+        "threat",
+        "defend",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsThreatAsk",
+        "scholarsDefendAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "26": {
+      "seconds": 10,
+      "params": {
+        "level": 26,
+        "kinds": [
+          "threat",
+          "defend",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 10,
+        "minRating": 976,
+        "maxRating": 1533,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening"
+      ],
+      "kinds": [
+        "threat",
+        "defend",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsThreatAsk",
+        "scholarsDefendAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "27": {
+      "seconds": 9,
+      "params": {
+        "level": 27,
+        "kinds": [
+          "threat",
+          "defend",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 9,
+        "minRating": 999,
+        "maxRating": 1567,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening"
+      ],
+      "kinds": [
+        "threat",
+        "defend",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsThreatAsk",
+        "scholarsDefendAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": true,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "28": {
+      "seconds": 9,
+      "params": {
+        "level": 28,
+        "kinds": [
+          "threat",
+          "defend",
+          "fromGames"
+        ],
+        "count": 10,
+        "seconds": 9,
+        "minRating": 1022,
+        "maxRating": 1600,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "threat",
+        "defend",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsThreatAsk",
+        "scholarsDefendAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": "smothered",
+      "announce": true,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "29": {
+      "seconds": 9,
+      "params": {
+        "level": 29,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 9,
+        "minRating": 1045,
+        "maxRating": 1633,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "30": {
+      "seconds": 8,
+      "params": {
+        "level": 30,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 8,
+        "minRating": 1068,
+        "maxRating": 1667,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "31": {
+      "seconds": 8,
+      "params": {
+        "level": 31,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 8,
+        "minRating": 1091,
+        "maxRating": 1700,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "32": {
+      "seconds": 7,
+      "params": {
+        "level": 32,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 7,
+        "minRating": 1114,
+        "maxRating": 1733,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "33": {
+      "seconds": 7,
+      "params": {
+        "level": 33,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 7,
+        "minRating": 1137,
+        "maxRating": 1767,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "34": {
+      "seconds": 6,
+      "params": {
+        "level": 34,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 6,
+        "minRating": 1161,
+        "maxRating": 1800,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "35": {
+      "seconds": 6,
+      "params": {
+        "level": 35,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 6,
+        "minRating": 1184,
+        "maxRating": 1833,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "36": {
+      "seconds": 6,
+      "params": {
+        "level": 36,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 6,
+        "minRating": 1207,
+        "maxRating": 1867,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "37": {
+      "seconds": 5,
+      "params": {
+        "level": 37,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 5,
+        "minRating": 1230,
+        "maxRating": 1900,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "38": {
+      "seconds": 5,
+      "params": {
+        "level": 38,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 5,
+        "minRating": 1253,
+        "maxRating": 1933,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "39": {
+      "seconds": 4,
+      "params": {
+        "level": 39,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 4,
+        "minRating": 1276,
+        "maxRating": 1967,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    },
+    "40": {
+      "seconds": 4,
+      "params": {
+        "level": 40,
+        "kinds": [
+          "sacrifice",
+          "fromGames"
+        ],
+        "count": 8,
+        "seconds": 4,
+        "minRating": 1299,
+        "maxRating": 2000,
+        "motifs": [
+          "scholar",
+          "queenKnight",
+          "bishopF7",
+          "queenAlone",
+          "fool",
+          "knightOpening",
+          "smothered"
+        ]
+      },
+      "motifs": [
+        "scholar",
+        "queenKnight",
+        "bishopF7",
+        "queenAlone",
+        "fool",
+        "knightOpening",
+        "smothered"
+      ],
+      "kinds": [
+        "sacrifice",
+        "fromGames"
+      ],
+      "labels": [
+        "scholarsSacrificeAsk",
+        "scholarsMateAsk"
+      ],
+      "newMotif": null,
+      "announce": false,
+      "missAllowance": 1,
+      "threshold": 0.95
+    }
+  },
+  "secondsByKind": {
+    "mate": 1,
+    "fromGames": 1,
+    "threat": 1.1,
+    "defend": 1.7,
+    "sacrifice": 2.4
+  },
+  "secondsFor": [
+    {
+      "kind": "mate",
+      "level": 1,
+      "seconds": 20
+    },
+    {
+      "kind": "mate",
+      "level": 5,
+      "seconds": 18
+    },
+    {
+      "kind": "mate",
+      "level": 18,
+      "seconds": 13
+    },
+    {
+      "kind": "mate",
+      "level": 28,
+      "seconds": 9
+    },
+    {
+      "kind": "mate",
+      "level": 40,
+      "seconds": 4
+    },
+    {
+      "kind": "fromGames",
+      "level": 1,
+      "seconds": 20
+    },
+    {
+      "kind": "fromGames",
+      "level": 5,
+      "seconds": 18
+    },
+    {
+      "kind": "fromGames",
+      "level": 18,
+      "seconds": 13
+    },
+    {
+      "kind": "fromGames",
+      "level": 28,
+      "seconds": 9
+    },
+    {
+      "kind": "fromGames",
+      "level": 40,
+      "seconds": 4
+    },
+    {
+      "kind": "threat",
+      "level": 1,
+      "seconds": 22
+    },
+    {
+      "kind": "threat",
+      "level": 5,
+      "seconds": 20
+    },
+    {
+      "kind": "threat",
+      "level": 18,
+      "seconds": 14
+    },
+    {
+      "kind": "threat",
+      "level": 28,
+      "seconds": 10
+    },
+    {
+      "kind": "threat",
+      "level": 40,
+      "seconds": 4
+    },
+    {
+      "kind": "defend",
+      "level": 1,
+      "seconds": 34
+    },
+    {
+      "kind": "defend",
+      "level": 5,
+      "seconds": 31
+    },
+    {
+      "kind": "defend",
+      "level": 18,
+      "seconds": 22
+    },
+    {
+      "kind": "defend",
+      "level": 28,
+      "seconds": 15
+    },
+    {
+      "kind": "defend",
+      "level": 40,
+      "seconds": 7
+    },
+    {
+      "kind": "sacrifice",
+      "level": 1,
+      "seconds": 48
+    },
+    {
+      "kind": "sacrifice",
+      "level": 5,
+      "seconds": 43
+    },
+    {
+      "kind": "sacrifice",
+      "level": 18,
+      "seconds": 31
+    },
+    {
+      "kind": "sacrifice",
+      "level": 28,
+      "seconds": 22
+    },
+    {
+      "kind": "sacrifice",
+      "level": 40,
+      "seconds": 10
+    }
+  ],
+  "counts": {
+    "mate": 718,
+    "defend": 378,
+    "threat": 3000,
+    "fromGames": 26883,
+    "sacrifice": 371
+  },
+  "namedMotifs": [
+    "bodenMate",
+    "smotheredMate",
+    "cornerMate",
+    "backRankMate",
+    "operaMate",
+    "doubleBishopMate",
+    "swallowstailMate",
+    "epauletteMate",
+    "pillsburysMate",
+    "morphysMate",
+    "hookMate",
+    "dovetailMate",
+    "triangleMate",
+    "anastasiaMate",
+    "arabianMate",
+    "blindSwineMate",
+    "killBoxMate",
+    "vukovicMate",
+    "balestraMate"
+  ],
+  "namedCounts": [
+    {
+      "name": "bodenMate",
+      "count": 1200
+    },
+    {
+      "name": "smotheredMate",
+      "count": 1200
+    },
+    {
+      "name": "cornerMate",
+      "count": 1200
+    },
+    {
+      "name": "backRankMate",
+      "count": 1200
+    },
+    {
+      "name": "operaMate",
+      "count": 1200
+    },
+    {
+      "name": "doubleBishopMate",
+      "count": 1200
+    },
+    {
+      "name": "swallowstailMate",
+      "count": 1200
+    },
+    {
+      "name": "epauletteMate",
+      "count": 1200
+    },
+    {
+      "name": "pillsburysMate",
+      "count": 1200
+    },
+    {
+      "name": "morphysMate",
+      "count": 1200
+    },
+    {
+      "name": "hookMate",
+      "count": 1200
+    },
+    {
+      "name": "dovetailMate",
+      "count": 1200
+    },
+    {
+      "name": "triangleMate",
+      "count": 1200
+    },
+    {
+      "name": "anastasiaMate",
+      "count": 1200
+    },
+    {
+      "name": "arabianMate",
+      "count": 1200
+    },
+    {
+      "name": "blindSwineMate",
+      "count": 1200
+    },
+    {
+      "name": "killBoxMate",
+      "count": 1200
+    },
+    {
+      "name": "vukovicMate",
+      "count": 933
+    },
+    {
+      "name": "balestraMate",
+      "count": 528
+    }
+  ],
+  "mixedCount": 21861,
+  "stars": [
+    {
+      "ms": 400,
+      "level": 1,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 400,
+      "level": 20,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 400,
+      "level": 40,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 1200,
+      "level": 1,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 1200,
+      "level": 20,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 1200,
+      "level": 40,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 1399,
+      "level": 1,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 1399,
+      "level": 20,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 1399,
+      "level": 40,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 1400,
+      "level": 1,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 1400,
+      "level": 20,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 1400,
+      "level": 40,
+      "stars": 3,
+      "withHint": 2,
+      "withoutHint": 3
+    },
+    {
+      "ms": 2399,
+      "level": 1,
+      "stars": 2,
+      "withHint": 2,
+      "withoutHint": 2
+    },
+    {
+      "ms": 2399,
+      "level": 20,
+      "stars": 2,
+      "withHint": 2,
+      "withoutHint": 2
+    },
+    {
+      "ms": 2399,
+      "level": 40,
+      "stars": 2,
+      "withHint": 2,
+      "withoutHint": 2
+    },
+    {
+      "ms": 2400,
+      "level": 1,
+      "stars": 2,
+      "withHint": 2,
+      "withoutHint": 2
+    },
+    {
+      "ms": 2400,
+      "level": 20,
+      "stars": 2,
+      "withHint": 2,
+      "withoutHint": 2
+    },
+    {
+      "ms": 2400,
+      "level": 40,
+      "stars": 2,
+      "withHint": 2,
+      "withoutHint": 2
+    },
+    {
+      "ms": 5000,
+      "level": 1,
+      "stars": 1,
+      "withHint": 1,
+      "withoutHint": 1
+    },
+    {
+      "ms": 5000,
+      "level": 20,
+      "stars": 1,
+      "withHint": 1,
+      "withoutHint": 1
+    },
+    {
+      "ms": 5000,
+      "level": 40,
+      "stars": 1,
+      "withHint": 1,
+      "withoutHint": 1
+    }
+  ],
+  "median": [
+    {
+      "input": [],
+      "out": 0
+    },
+    {
+      "input": [
+        100
+      ],
+      "out": 100
+    },
+    {
+      "input": [
+        300,
+        100,
+        200
+      ],
+      "out": 200
+    },
+    {
+      "input": [
+        400,
+        100,
+        200,
+        300
+      ],
+      "out": 250
+    }
+  ],
+  "board": [
+    {
+      "size": 200,
+      "cell": 24,
+      "width": 196
+    },
+    {
+      "size": 300,
+      "cell": 37,
+      "width": 300
+    },
+    {
+      "size": 390,
+      "cell": 48,
+      "width": 388
+    }
+  ],
+  "modeKinds": [
+    {
+      "level": 1,
+      "only": "mate1",
+      "motif": "",
+      "mixed": false,
+      "kinds": [
+        "mate1"
+      ]
+    },
+    {
+      "level": 20,
+      "only": "",
+      "motif": "Детский мат",
+      "mixed": false,
+      "kinds": [
+        "fromGames"
+      ]
+    },
+    {
+      "level": 30,
+      "only": "",
+      "motif": "",
+      "mixed": true,
+      "kinds": [
+        "fromGames"
+      ]
+    }
+  ]
+}
