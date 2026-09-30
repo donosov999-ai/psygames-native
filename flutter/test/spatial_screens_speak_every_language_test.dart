@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/dots_connect/board.dart';
 import 'package:psygames_flutter/games/dots_connect/screen.dart';
 import 'package:psygames_flutter/games/mental_rotation/screen.dart';
-import 'package:psygames_flutter/games/mental_rotation/words.dart';
 import 'package:psygames_flutter/games/one_line/board.dart';
 import 'package:psygames_flutter/games/one_line/screen.dart';
 import 'package:psygames_flutter/games/spatial_lab/deal.dart';
@@ -66,24 +65,54 @@ void main() {
 
   final cyrillic = RegExp('[А-Яа-яЁё]');
 
+  /// Имя ключа по виду: `camelCase` с горбом или `snake_case` без пробелов. Ловит и ключ с
+  /// опечаткой, которого нет ни в одном словаре, — по списку имён его не узнать.
+  final keyShaped = RegExp(r'^([a-z][a-z0-9]*([A-Z][a-z0-9]*)+|[a-z][a-z0-9]*(_[a-z0-9]+)+)$');
+
+  /*
+   * 🔴 НЕ ТОЛЬКО ВИДИМЫЙ ТЕКСТ. Подписи счётчиков полоса каркаса (`_HudRow`) рисует ИКОНКОЙ, а
+   * слово отдаёт только чтецу экрана — `Semantics(label: 'подпись: число')`; у кнопок ряда
+   * действий подпись живёт в подсказке. 📍 Замер мутацией 30.09.2026: ключ с опечаткой у
+   * «Покрытия» («Точки») проба по одним `Text` пропустила — зелёная при сломанной подписи.
+   * Поэтому смотрятся ещё метки `Semantics` и подсказки `Tooltip`.
+   *
+   * ⚠️ У каркаса две свои русские подсказки («Пауза», «Правила» в `lib/shell/game_shell.dart`,
+   * его долг в храповике). Они берутся из исходника каркаса и пропускаются поимённо: переведёт
+   * каркас — список опустеет сам, и проба начнёт смотреть и их.
+   */
+  final shellOwn = <String>{};
+  setUpAll(() {
+    final src = File('lib/shell/game_shell.dart')
+        .readAsStringSync()
+        .replaceAll(RegExp(r'/\*.*?\*/', dotAll: true), '')
+        .replaceAll(RegExp(r'//.*'), '');
+    for (final m in RegExp("'([^'\\n]*[А-Яа-яЁё][^'\\n]*)'").allMatches(src)) {
+      shellOwn.add(m[1]!);
+    }
+  });
+
   List<String> texts(WidgetTester tester) => [
     for (final t in tester.widgetList<Text>(find.byType(Text))) t.data ?? t.textSpan?.toPlainText() ?? '',
-  ];
+    for (final s in tester.widgetList<Semantics>(find.byType(Semantics)))
+      if (s.properties.label != null) s.properties.label!,
+    for (final t in tester.widgetList<Tooltip>(find.byType(Tooltip)))
+      if (t.message != null) t.message!,
+  ].where((t) => !shellOwn.contains(t)).toList();
 
-  /// Что на экране не так для языка `code`: кириллица на чужом языке или голый ключ.
+  /// Что на экране не так для языка `code`: кириллица на чужом языке или голый ключ. Метка
+  /// счётчика — «подпись: число», поэтому ключ ищется и в каждом куске до двоеточия.
   List<String> faults(WidgetTester tester, String code, String phase) => [
     for (final t in texts(tester))
       if (code != 'ru' && cyrillic.hasMatch(t))
         '$code, $phase: по-русски «$t»'
-      else if (keyNames.contains(t.trim()))
+      else if ([t, ...t.split(': ')].map((p) => p.trim()).any((p) => keyNames.contains(p) || keyShaped.hasMatch(p)))
         '$code, $phase: ключ вместо текста «$t»',
   ];
 
+  /// Только общий словарь. Словарь модуля «Вращения» проба НЕ грузит сама: его обязан загрузить
+  /// экран, и экран, который забыл, должен здесь покраснеть, а не выехать на загрузке пробы.
   Future<void> useLanguage(WidgetTester tester, String code) async {
-    await tester.runAsync(() async {
-      await L.load(code);
-      await loadMentalRotationWords();
-    });
+    await tester.runAsync(() => L.load(code));
   }
 
   Future<void> open(WidgetTester tester, Widget screen) async {
