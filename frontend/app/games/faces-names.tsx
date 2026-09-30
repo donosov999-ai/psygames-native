@@ -144,6 +144,13 @@ export default function FacesNamesScreen() {
    * кадр молча остановила бы ролик (замер 24.09 на «Парах слов»).
    */
   const разборРасклад = React.useMemo(() => generateFacesNamesPuzzle(seed, level), [seed, level]);
+  /**
+   * 🔴 ПАРТИЯ С РАЗБОРОМ НЕ ЗАСЧИТЫВАЕТСЯ В УРОВЕНЬ — так обещает первая карточка плеера
+   * (`teachNotCounted`). До 30.09.2026 обещание держалось только словами: разбор открывался
+   * посреди партии, а итог двигал уровень как обычно. Флаг ставит «Разбор», снимает новая
+   * партия; итог такой партии идёт без подъёма и без провала, как у пресета.
+   */
+  const урокВПартииRef = React.useRef(false);
   const [урок, setУрок] = React.useState<{ карточки: КарточкаЛиц[]; индекс: number } | null>(null);
   const карточкаУрока = урок ? урок.карточки[урок.индекс] : null;
   const разборДоступен = phase === 'playing' && level <= 3;
@@ -163,6 +170,7 @@ export default function FacesNamesScreen() {
       const человек = personById(разборРасклад, id);
       return человек ? черта(describeSyntheticFace(locale, человек.face)) : '';
     });
+    урокВПартииRef.current = true;
     setУрок({ карточки, индекс: 0 });
   }, [разборРасклад, language]);
   const урокДальше = React.useCallback(
@@ -208,10 +216,12 @@ export default function FacesNamesScreen() {
     setDoneLevel(level);   // снимаем ДО повышения — иначе плашка назовёт следующий
 
     // Пресет и шаг зарядки уровень НЕ двигают — так во всех экранах.
-    if (!isPreset && passed && shouldChainNextLevel(mode)) lvl.reach(level + 1);
-    else if (!isPreset && !passed) lvl.fail();
+    const сРазбором = урокВПартииRef.current;
+    урокВПартииRef.current = false;
+    if (!isPreset && !сРазбором && passed && shouldChainNextLevel(mode)) lvl.reach(level + 1);
+    else if (!isPreset && !сРазбором && !passed) lvl.fail();
 
-    if (isPreset) setPhase('result');
+    if (isPreset || сРазбором) setPhase('result');
     else { setClearedPassed(passed); setPhase('cleared'); }
 
     try {
@@ -253,7 +263,7 @@ export default function FacesNamesScreen() {
    */
   const stars = last ? (last.accuracy >= 0.95 ? 3 : last.accuracy >= 0.85 ? 2 : 1) : 1;
 
-  const start = () => { setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
+  const start = () => { урокВПартииRef.current = false; setArmed(false); setAttempt((n) => n + 1); setPhase('playing'); };
 
   /** Уйти в экран настройки — сюда ведёт и «назад» каркаса, и конец партии. */
   const leaveToConfig = React.useCallback(() => { setArmed(false); setPhase('config'); }, []);
