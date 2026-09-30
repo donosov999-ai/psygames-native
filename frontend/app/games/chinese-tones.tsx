@@ -20,7 +20,7 @@
  * ⚠️ Без китайского голоса упражнение невозможно по построению — тогда честно
  * говорим об этом на экране настройки, как в «Минимальных парах».
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackOrHome } from '@/src/utils/nav';
@@ -46,6 +46,9 @@ import LevelProgressMap from '@/src/components/LevelProgressMap';
 import { gameNow } from '@/src/services/gamePause';
 import { ZH_TONE_BANK, type ZhSyllable } from '@/src/constants/zhToneBank.generated';
 import { allTones } from '@/src/games/chinese-tones/core/pinyin';
+import Svg, { Polyline, Rect } from 'react-native-svg';
+import LessonPlayer from '@/src/components/LessonPlayer';
+import { собратьРазборТонов, type КарточкаТона, type Тон } from '@/src/games/chinese-tones/teach';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 const GRADIENT = ['#b91c1c', '#c2410c'];  // белым 5,18 — гейт контраста требует AA 4,5
@@ -55,6 +58,31 @@ type GamePhase = 'config' | 'playing' | 'cleared' | 'result';
 
 /** Знаки тонов на кнопках. Символ понятен без перевода — он и есть контур. */
 const ЗНАКИ = ['ˉ', 'ˊ', 'ˇ', 'ˋ'];
+
+/**
+ * Линии тонов по пятиступенчатой шкале Чжао Юаньжэня (1 — низ, 5 — верх): 55, 35, 214, 51.
+ * Разбор рисует их, чтобы «движение голоса» было видно, а не только названо словами.
+ */
+const ЛИНИИ_ТОНОВ: Record<Тон, number[]> = { 1: [5, 5], 2: [3, 5], 3: [2, 1, 4], 4: [5, 1] };
+/**
+ * ⚠️ РАМКА ОБЯЗАТЕЛЬНА: тон — это не только форма, но и ВЫСОТА. Без рамки шкалы ровная линия
+ * первого тона и падение четвёртого читаются одинаково «где-то наверху» (кадр 30.09.2026).
+ * Неактивные линии приглушены, но видны: цвет рамки делал их невидимыми на светлой теме.
+ */
+function ЛинияТона({ тон, ширина, цвет, рамка, горит }: { тон: Тон; ширина: number; цвет: string; рамка: string; горит: boolean }) {
+  const высота = Math.round(ширина * 0.62);
+  const поле = 8;
+  const ступени = ЛИНИИ_ТОНОВ[тон];
+  const точки = ступени
+    .map((ступень, i) => `${поле + (i * (ширина - 2 * поле)) / (ступени.length - 1)},${поле + ((5 - ступень) * (высота - 2 * поле)) / 4}`)
+    .join(' ');
+  return (
+    <Svg width={ширина} height={высота}>
+      <Rect x={1} y={1} width={ширина - 2} height={высота - 2} rx={8} fill="none" stroke={рамка} strokeWidth={1.5} />
+      <Polyline points={точки} fill="none" stroke={цвет} strokeOpacity={горит ? 1 : 0.45} strokeWidth={6} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
 
 interface Trial {
   syll: ZhSyllable;      // что прозвучит
@@ -167,7 +195,60 @@ export default function ChineseTonesGame() {
   }, []);
 
 
+  /**
+   * 🎓 РАЗБОР ПО ШАГАМ (Денис 17.09.2026, «раскатывай везде»): слушать движение голоса — один слог
+   * в четырёх тонах и пара «второй против третьего», слова из банка игры
+   * (`src/games/chinese-tones/teach.ts`). Только на уровнях 1–3; партия с разбором в уровень не
+   * засчитывается. Обработчики стабильные: экран тикает таймером каждые 100 мс, а плеер ведёт шаги
+   * таймером в эффекте с этими обработчиками в зависимостях.
+   */
+  const [урок, setУрок] = useState<{ карточки: КарточкаТона[]; индекс: number } | null>(null);
+  const карточкаУрока = урок ? урок.карточки[урок.индекс] : null;
+  const урокВПартииRef = useRef(false);
+  const [итогСРазбором, setИтогСРазбором] = useState(false);
+  const разборДоступен = phase === 'playing' && level <= 3;
+  const начатьРазбор = () => {
+    ttsCancel();
+    stopNoise();
+    урокВПартииRef.current = true;
+    const текущее = trialsRef.current[idx]?.syll.pinyin ?? null;
+    setУрок({ карточки: собратьРазборТонов(ZH_TONE_BANK, текущее).карточки, индекс: 0 });
+  };
+  const урокДальше = useCallback(
+    () => setУрок((у) => (у && у.индекс + 1 < у.карточки.length ? { ...у, индекс: у.индекс + 1 } : у)),
+    [],
+  );
+  const урокНазад = useCallback(
+    () => setУрок((у) => (у && у.индекс > 0 ? { ...у, индекс: у.индекс - 1 } : у)),
+    [],
+  );
+  const урокЗакрыть = useCallback(() => { ttsCancel(); setУрок(null); }, []);
+  const текстУрока = карточкаУрока
+    ? Object.entries(карточкаУрока.поля ?? {}).reduce(
+      (текст, [ключ, знач]) => текст.replace(new RegExp(`\\{${ключ}\\}`, 'g'), String(знач)),
+      t(карточкаУрока.ключ) as string,
+    )
+    : '';
+  /** Карточка со словом звучит сама: разбор про слух, и без звука он был бы про картинку. */
+  useEffect(() => {
+    if (!урок || !voiceOk) return;
+    const к = урок.карточки[урок.индекс];
+    if (!к || !к.звук.length) return;
+    let отменено = false;
+    const таймер = setTimeout(async () => {
+      for (const знак of к.звук) {
+        if (отменено) return;
+        await speak(знак, 'zh', 0.85);
+        await new Promise((готово) => setTimeout(готово, 300));
+      }
+    }, 350);
+    return () => { отменено = true; clearTimeout(таймер); ttsCancel(); };
+  }, [урок, voiceOk]);
+
   const startGame = () => {
+    урокВПартииRef.current = false;
+    setИтогСРазбором(false);
+    setУрок(null);
     ttsCancel();
     if (advanceRef.current) clearTimeout(advanceRef.current);
     if (timerRef.current) clearInterval(timerRef.current);
@@ -232,7 +313,11 @@ export default function ChineseTonesGame() {
     const e = errorsRef.current;
     // Ось 10, цена ошибки: две прощаются, потом одна, с одиннадцатого — ни одной.
     const passed = e <= парамRef.current.maxErrors;
-    if (isPreset) {
+    const сРазбором = урокВПартииRef.current;
+    setИтогСРазбором(сРазбором);
+    if (сРазбором) {
+      setPhase('result');   // партия с разбором не засчитывается: ни подъёма, ни провала
+    } else if (isPreset) {
       setPhase(passed ? 'cleared' : 'result');
     } else {
       if (passed) lvl.reach(levelRef.current + 1);
@@ -255,6 +340,7 @@ export default function ChineseTonesGame() {
           errors: e,
           trials: paramsRef.current.trials,
           replays: replaysRef.current,
+          ...(сРазбором ? { lesson: true } : {}),
         },
       });
     } catch (err) { console.error('Error saving session:', err); }
@@ -332,6 +418,9 @@ export default function ChineseTonesGame() {
         ]}
         headerActions={
           <GameAuxBar>
+            {разборДоступен && (
+              <GameAuxAction compact icon="school-outline" tint="#d97706" label={t('teachButton')} onPress={начатьРазбор} />
+            )}
             {/* compact: в полосе счётчиков (auxInHud) подпись «ещё раз» не влезает на длинных языках —
                  замер 16.09.2026 на 390 pt: es «Escuchar otra vez» 177 px, правый край 398 — за экраном на 8;
                  de 175 px, край 389 — впритык. Слово остаётся в accessibilityLabel. */}
@@ -410,6 +499,41 @@ export default function ChineseTonesGame() {
             </Text>
           )}
         </View>
+        {/*
+          🎓 РАЗБОР НА ВЕСЬ ЭКРАН. Поле — слова карточки с линиями тонов: горит та, о которой речь,
+          на паре горят обе. Слово звучит само (эффект выше).
+        */}
+        <LessonPlayer
+          visible={!!урок}
+          индекс={урок?.индекс ?? 0}
+          шагов={Math.max(0, (урок?.карточки.length ?? 1) - 1)}
+          текст={текстУрока}
+          сноска={урок?.индекс === 0 ? t('teachNotCounted') : undefined}
+          готово={карточкаУрока?.вид === 'готово'}
+          занят={false}
+          renderBoard={(сторона) => {
+            const к = карточкаУрока;
+            const слоги = к?.слоги ?? [];
+            const ширинаЛинии = Math.min(96, Math.floor((сторона - 24) / Math.max(4, слоги.length)));
+            return (
+              <View style={[styles.разборРяд, { width: сторона }]}>
+                {слоги.map((с) => {
+                  const горит = к?.вид === 'пара' || к?.тон === с.тон;
+                  return (
+                    <View key={с.pinyin} style={styles.разборСлог}>
+                      <ЛинияТона тон={с.тон} ширина={ширинаЛинии} цвет={горит ? GRADIENT[0] : colors.textSecondary} рамка={colors.border} горит={горит} />
+                      <Text style={[styles.разборЗнак, { color: горит ? colors.text : colors.textSecondary }]}>{с.zh}</Text>
+                      <Text style={[styles.разборПиньинь, { color: colors.textSecondary }]}>{с.pinyin} {ЗНАКИ[с.тон - 1]}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          }}
+          onДальше={урокДальше}
+          onНазад={урокНазад}
+          onЗакрыть={урокЗакрыть}
+        />
       </GameShell>
     );
   }
@@ -446,6 +570,7 @@ export default function ChineseTonesGame() {
           onPlayAgain={() => setPhase('config')}
           onGoHome={() => goBackOrHome()}
           gradient={GRADIENT as [string, string]}
+          metricsNote={итогСРазбором ? [t('teachNotCounted')] : undefined}
         />
       )}
     </SafeAreaView>
@@ -453,6 +578,10 @@ export default function ChineseTonesGame() {
 }
 
 const styles = StyleSheet.create({
+  разборРяд: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
+  разборСлог: { alignItems: 'center', gap: 4 },
+  разборЗнак: { fontSize: 32, fontWeight: '800' },
+  разборПиньинь: { fontSize: 15, fontWeight: '600' },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 },
   backBtn: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },

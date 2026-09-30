@@ -3039,5 +3039,12 @@ const t: Record<string, string> = {
   "teachCorsiPath": "No memorices los bloques uno a uno, sino el CAMINO que trazan los destellos: pasa por ellos una línea imaginaria. Cinco destellos se convierten en una sola ruta: un zigzag, una letra, un gancho.",
   "teachCorsiBackward": "En el modo inverso no des la vuelta punto a punto sobre la marcha. Primero arma la ruta hacia delante, tal como se mostró, y al responder recórrela desde el final.",
   "teachCorsiEyes": "Sigue cada destello con la mirada y no la apartes hasta que termine la muestra. Un destello perdido rompe toda la ruta: a partir de ahí es adivinar.",
+  "teachZhIntro": "No escuches la sílaba, sino cómo SE MUEVE la voz. La misma sílaba en cuatro tonos son cuatro palabras distintas.",
+  "teachZhTone1": "Tono 1 — {zh} {py}: la voz se mantiene alta y plana, como una nota sostenida.",
+  "teachZhTone2": "Tono 2 — {zh} {py}: la voz sube, como en un «¿eh?» de duda.",
+  "teachZhTone3": "Tono 3 — {zh} {py}: la voz baja y vuelve a subir un poco; es el más grave de los cuatro.",
+  "teachZhTone4": "Tono 4 — {zh} {py}: la voz cae de golpe de arriba abajo, como un «¡no!» seco.",
+  "teachZhPair23": "Los tonos 2 y 3 se confunden fácilmente: ambos terminan subiendo. La diferencia está al principio: {a} {pa} sube enseguida, {b} {pb} primero baja.",
+  "teachZhDone": "Responde igual: al oír la sílaba, imagina su línea — plana, subida, hundida o bajada.",
 };
 export default t;

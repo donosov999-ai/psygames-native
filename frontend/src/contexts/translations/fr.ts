@@ -3034,5 +3034,12 @@ const t: Record<string, string> = {
   "teachCorsiPath": "Ne mémorisez pas les blocs un par un, mais le CHEMIN que tracent les éclairs : faites passer une ligne imaginaire par eux. Cinq éclairs deviennent un seul trajet — un zigzag, une lettre, un crochet.",
   "teachCorsiBackward": "En mode inverse, ne retournez pas point par point à la volée. Construisez d’abord le trajet à l’endroit, tel qu’il a été montré, puis parcourez-le depuis la fin en répondant.",
   "teachCorsiEyes": "Suivez chaque éclair des yeux et ne détournez pas le regard avant la fin de l’affichage. Un éclair manqué brise tout le trajet — ensuite, c’est deviner.",
+  "teachZhIntro": "N’écoute pas la syllabe, écoute comment la voix BOUGE. La même syllabe sur quatre tons, ce sont quatre mots différents.",
+  "teachZhTone1": "Ton 1 — {zh} {py} : la voix reste haute et plate, comme une note tenue.",
+  "teachZhTone2": "Ton 2 — {zh} {py} : la voix monte, comme dans un « hein ? » étonné.",
+  "teachZhTone3": "Ton 3 — {zh} {py} : la voix descend puis remonte un peu — le plus grave des quatre.",
+  "teachZhTone4": "Ton 4 — {zh} {py} : la voix tombe d’un coup du haut vers le bas, comme un « non ! » sec.",
+  "teachZhPair23": "Les tons 2 et 3 se confondent facilement : les deux finissent en montant. La différence est au début : {a} {pa} monte tout de suite, {b} {pb} descend d’abord.",
+  "teachZhDone": "Réponds ainsi : tu entends la syllabe, tu imagines sa ligne — plate, montante, en creux ou descendante.",
 };
 export default t;

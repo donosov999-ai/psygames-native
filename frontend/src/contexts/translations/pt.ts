@@ -3039,5 +3039,12 @@ const t: Record<string, string> = {
   "teachCorsiPath": "Não memorize os blocos um a um, e sim o CAMINHO que os lampejos desenham: passe uma linha imaginária por eles. Cinco lampejos viram uma só rota — um zigue-zague, uma letra, um gancho.",
   "teachCorsiBackward": "No modo inverso, não vire ponto a ponto na hora. Primeiro monte a rota para a frente, como foi mostrada, e ao responder percorra-a a partir do fim.",
   "teachCorsiEyes": "Acompanhe cada lampejo com os olhos e não desvie o olhar até a exibição acabar. Um lampejo perdido quebra a rota inteira — daí em diante é chute.",
+  "teachZhIntro": "Não ouça a sílaba, e sim como a voz SE MOVE. A mesma sílaba em quatro tons são quatro palavras diferentes.",
+  "teachZhTone1": "Tom 1 — {zh} {py}: a voz fica alta e reta, como uma nota sustentada.",
+  "teachZhTone2": "Tom 2 — {zh} {py}: a voz sobe, como num “hã?” de dúvida.",
+  "teachZhTone3": "Tom 3 — {zh} {py}: a voz desce e sobe um pouco — é o mais grave dos quatro.",
+  "teachZhTone4": "Tom 4 — {zh} {py}: a voz cai de repente do alto para baixo, como um “não!” seco.",
+  "teachZhPair23": "Os tons 2 e 3 se confundem fácil: os dois terminam subindo. A diferença está no começo: {a} {pa} sobe logo, {b} {pb} primeiro desce.",
+  "teachZhDone": "Responda assim: ouviu a sílaba, imagine a linha dela — reta, subindo, afundando ou caindo.",
 };
 export default t;

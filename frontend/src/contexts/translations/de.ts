@@ -3039,5 +3039,12 @@ const t: Record<string, string> = {
   "teachCorsiPath": "Merke dir nicht die Blöcke einzeln, sondern den WEG, den die Blitze zeichnen: Zieh eine gedachte Linie durch sie. Fünf Blitze werden zu einer Route — Zickzack, Buchstabe, Haken.",
   "teachCorsiBackward": "Im Rückwärtsmodus nicht Punkt für Punkt im Kopf umdrehen. Bau zuerst die Route vorwärts, wie sie gezeigt wurde, und geh sie beim Antworten vom Ende her ab.",
   "teachCorsiEyes": "Folge jedem Blitz mit den Augen und schau bis zum Ende der Anzeige nicht weg. Ein verpasster Blitz zerreißt die ganze Route — danach ist es Raten.",
+  "teachZhIntro": "Hör nicht auf die Silbe, sondern darauf, wie sich die Stimme BEWEGT. Dieselbe Silbe in vier Tönen ergibt vier verschiedene Wörter.",
+  "teachZhTone1": "Ton 1 — {zh} {py}: Die Stimme bleibt hoch und gerade, wie ein gehaltener Ton.",
+  "teachZhTone2": "Ton 2 — {zh} {py}: Die Stimme steigt, wie beim fragenden „hä?“.",
+  "teachZhTone3": "Ton 3 — {zh} {py}: Die Stimme sinkt ab und steigt leicht wieder — der tiefste der vier.",
+  "teachZhTone4": "Ton 4 — {zh} {py}: Die Stimme fällt scharf von oben nach unten, wie ein knappes „nein!“.",
+  "teachZhPair23": "Ton 2 und Ton 3 verwechselt man leicht: Beide enden steigend. Der Unterschied liegt am Anfang: {a} {pa} steigt sofort, {b} {pb} geht zuerst nach unten.",
+  "teachZhDone": "So antwortest du auch: Silbe hören, ihre Linie vorstellen — gerade, steigend, Mulde oder fallend.",
 };
 export default t;

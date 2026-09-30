@@ -2507,6 +2507,17 @@ const translations: Translations = {
   ctPickTone:        { ru: 'Какой тон прозвучал?', en: 'Which tone did you hear?' },
   ctPickPinyin:      { ru: 'Какой слог прозвучал?', en: 'Which syllable did you hear?' },
   ctTone:            { ru: 'тон', en: 'tone' },
+  /*
+   * 🎓 РАЗБОР «ТОНОВ КИТАЙСКОГО» (30.09.2026): слушать движение голоса. {zh} {py} — слово из банка
+   * игры, {a}/{b} — пара второго и третьего тона одного слога.
+   */
+  teachZhIntro: { ru: 'Слушайте не слог, а ДВИЖЕНИЕ голоса. Один и тот же слог в четырёх тонах — четыре разных слова.', en: 'Listen not to the syllable but to how the voice MOVES. One syllable in four tones is four different words.' },
+  teachZhTone1: { ru: 'Тон 1 — {zh} {py}: голос ровный и высокий, как протяжная нота.', en: 'Tone 1 — {zh} {py}: the voice stays high and level, like a held note.' },
+  teachZhTone2: { ru: 'Тон 2 — {zh} {py}: голос идёт снизу вверх, как в переспросе «а?».', en: 'Tone 2 — {zh} {py}: the voice rises, as in a puzzled “huh?”.' },
+  teachZhTone3: { ru: 'Тон 3 — {zh} {py}: голос проваливается вниз и немного поднимается — самый низкий из четырёх.', en: 'Tone 3 — {zh} {py}: the voice dips and rises a little — the lowest of the four.' },
+  teachZhTone4: { ru: 'Тон 4 — {zh} {py}: голос резко падает сверху вниз, как в коротком «нет!».', en: 'Tone 4 — {zh} {py}: the voice drops sharply from high to low, like a curt “no!”.' },
+  teachZhPair23: { ru: 'Второй и третий легко спутать: оба кончаются подъёмом. Разница в начале: {a} {pa} сразу идёт вверх, {b} {pb} сначала уходит вниз.', en: 'Tones 2 and 3 are easy to mix up: both end by rising. The difference is at the start: {a} {pa} goes up right away, {b} {pb} first goes down.' },
+  teachZhDone: { ru: 'Так и отвечайте: услышали слог — представьте его линию: ровная, вверх, яма или вниз.', en: 'Answer the same way: hear the syllable, picture its line — level, up, dip or down.' },
   recoWhyBranch:    { ru: 'Этой ветке достаётся меньше всего', en: 'This branch gets the least practice' },
   recoWhyFresh:     { ru: 'Новое в приложении', en: 'New in the app' },
   recoWhyCalm:      { ru: 'Под вечер — без гонки', en: 'For the evening — no rush' },

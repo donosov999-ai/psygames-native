@@ -3034,5 +3034,12 @@ const t: Record<string, string> = {
   "teachCorsiPath": "Non memorizzare i blocchi uno per uno, ma il PERCORSO che disegnano i lampi: fai passare tra loro una linea immaginaria. Cinque lampi diventano un solo tragitto — uno zigzag, una lettera, un uncino.",
   "teachCorsiBackward": "In modalità inversa non girare punto per punto al volo. Prima costruisci il percorso in avanti, come è stato mostrato, e rispondendo ripercorrilo dalla fine.",
   "teachCorsiEyes": "Segui ogni lampo con lo sguardo e non distoglierlo fino alla fine della sequenza. Un lampo perso spezza tutto il percorso: da lì in poi si tira a indovinare.",
+  "teachZhIntro": "Non ascoltare la sillaba, ma come SI MUOVE la voce. La stessa sillaba in quattro toni sono quattro parole diverse.",
+  "teachZhTone1": "Tono 1 — {zh} {py}: la voce resta alta e piatta, come una nota tenuta.",
+  "teachZhTone2": "Tono 2 — {zh} {py}: la voce sale, come in un «eh?» interrogativo.",
+  "teachZhTone3": "Tono 3 — {zh} {py}: la voce scende e risale un poco — il più basso dei quattro.",
+  "teachZhTone4": "Tono 4 — {zh} {py}: la voce cade di colpo dall’alto in basso, come un «no!» secco.",
+  "teachZhPair23": "I toni 2 e 3 si confondono facilmente: entrambi finiscono salendo. La differenza è all’inizio: {a} {pa} sale subito, {b} {pb} prima scende.",
+  "teachZhDone": "Rispondi così: senti la sillaba, immagina la sua linea — piatta, in salita, a conca o in discesa.",
 };
 export default t;
