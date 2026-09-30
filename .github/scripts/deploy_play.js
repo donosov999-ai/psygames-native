@@ -32,7 +32,13 @@ const auth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/androidpublisher'],
 });
 
-const TRACKS = ['production'];
+/**
+ * Дорожки Play. По умолчанию — продакшн, как было всегда у старой линии (build.yml, тег).
+ * Гибрид на Flutter (flutter-play.yml) передаёт PLAY_TRACKS=internal: сначала внутренний
+ * трек, продакшн — отдельным запуском после «да» Дениса (задача 2f28c441).
+ * ⚠️ Продакшн — только целиком (status 'completed' = 100 %): частичных раскаток не делаем.
+ */
+const TRACKS = (process.env.PLAY_TRACKS || 'production').split(',').map((t) => t.trim()).filter(Boolean);
 
 async function main() {
   // Сначала текст, только потом загрузка: если описания нет, лучше не залить
