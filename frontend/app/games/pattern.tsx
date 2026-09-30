@@ -26,7 +26,7 @@ import { useGamePreset, useAutostartWhenReady } from '@/src/hooks/useGamePreset'
 import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { gameNow } from '@/src/services/gamePause';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
-import { makeSequence, makeOptions, levelLabelKey, type Sequence } from '@/src/games/counting/patternSequences';
+import { makeSequence, makeOptions, tailLure, levelLabelKey, type Sequence } from '@/src/games/counting/patternSequences';
 
 const GRADIENT = ['#7028e4', '#e5b2ca'];
 // Цвет текста поверх плашки считает onGradientText по ОБОИМ концам градиента.
@@ -120,7 +120,8 @@ export default function PatternGame() {
   const newRound = () => {
     const s = makeSequence(levelRef.current);
     setSeq(s);
-    setOptions(makeOptions(s.answer));
+    // Приманка у хвоста: «последний + последний шаг» стоит среди вариантов (patternSequences VER 4, задача 94f9c7c1).
+    setOptions(makeOptions(s.answer, 4, Math.random, tailLure(s.items)));
     setFeedback(null);
     setHintStage(0);
   };

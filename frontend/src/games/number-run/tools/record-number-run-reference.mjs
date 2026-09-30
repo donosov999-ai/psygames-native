@@ -44,7 +44,7 @@ registerHooks({resolve(specifier, context, next) {
 }});
 const {generateSprintProblem} = await import('../../counting/mathSprintCore.ts');
 const {levelParams, makePuzzle} = await import('../../counting/numberBondsLadder.ts');
-const {makeSequence, makeOptions} = await import('../../counting/patternSequences.ts');
+const {makeSequence, makeOptions, tailLure} = await import('../../counting/patternSequences.ts');
 const {levelParams: ospanLevel} = await import('../../counting/ospanLadder.ts');
 const {generateMathSliderQuestions} = await import('../../math-slider/core/generator.ts');
 const {formatExpression} = await import('../../math-slider/core/expression.ts');
@@ -57,7 +57,7 @@ const OUT_RUNS = join(HERE, '../../../../../flutter/test/fixtures/number-run-run
 const tasks = {
   blitz: (L, rnd) => generateSprintProblem(L, rnd),
   exact: (L, rnd) => makePuzzle(levelParams(L), rnd),
-  pattern: (L, rnd) => { const s = makeSequence(L, rnd); return {...s, options: makeOptions(s.answer, 3, rnd)}; },
+  pattern: (L, rnd) => { const s = makeSequence(L, rnd); return {...s, options: makeOptions(s.answer, 3, rnd, tailLure(s.items))}; },
   scale: (L, rnd) => {
     const q = generateMathSliderQuestions(`run-${Math.floor(rnd() * 1e9)}`, Math.min(52, L), 1)[0];
     return {prompt: formatExpression(q.expression, 'ru'), min: q.scale.min, max: q.scale.max, answer: q.answer, ticks: q.scale.ticks};
