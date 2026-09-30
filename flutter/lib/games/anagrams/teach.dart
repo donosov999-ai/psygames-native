@@ -247,3 +247,179 @@ String teachStepText(TeachStep step, String Function(String) t) => t(teachStepKe
     .replaceAll('{piece}', step.piece)
     .replaceAll('{n}', '${step.words}')
     .replaceAll('{total}', '${step.of}');
+
+/* ═══════════ «ВСЕ СЛОВА»: СЕМЬИ ПО НАЧАЛУ ═══════════
+ *
+ * 🔴 ПРИЁМ ВЫБРАН ЗАМЕРОМ ЦЕЛЕЙ, А НЕ БАЗЫ. Первая мысль была «сначала слово из
+ * ВСЕХ букв колеса» — оно есть в 100 % наборов. Но база набора в этом режиме НЕ
+ * цель: `submitWord` её отклоняет явно. Разбор учил бы сдавать то, что игра не
+ * засчитает. Замер 30.09.2026 по самим целям (`pack.words`, ru 2576 наборов,
+ * en 2215, de 2295):
+ *   · самое длинное из целей единственное лишь в 41–48 % наборов — «начни с
+ *     самого длинного» в половине случаев ничего не выбирает;
+ *   · у 56–64 % целей первые две буквы совпадают хотя бы с одной другой целью.
+ * Отсюда приём: нашёл слово — попробуй то же начало с другим хвостом. Больше
+ * половины целей находится семьями, и это навык, который переносится на любое
+ * колесо, а не ответ на одно.
+ *
+ * ⚠️ Регистр здесь не поднимается вовсе: цели и буквы колеса лежат в данных в
+ * одном регистре, а `upJs` менял бы длину немецких слов с `ß`.
+ */
+
+/// Приём шага в режиме «Все слова».
+enum AllWordsTechnique {
+  /// Осмотр: сколько слов и какая семья самая большая.
+  look,
+
+  /// Слово из семьи: начало то же, хвост другой.
+  family,
+
+  /// Одиночка: родни по началу нет.
+  single,
+}
+
+/// Шаг разбора «Все слова».
+class AllWordsTeachStep {
+  const AllWordsTeachStep({
+    required this.technique,
+    required this.word,
+    required this.prefix,
+    required this.place,
+    required this.n,
+    required this.total,
+  });
+
+  final AllWordsTechnique technique;
+
+  /// Слово шага (у осмотра пусто).
+  final String word;
+
+  /// Начало семьи — две первые буквы (у одиночки — его собственные).
+  final String prefix;
+
+  /// Индексы плиток колеса, по порядку ввода.
+  final List<int> place;
+
+  /// Число для объяснения: у осмотра — сколько целей в семьях, у семьи — её размер.
+  final int n;
+
+  /// Всего целей на колесе.
+  final int total;
+}
+
+/// Длина начала, по которому слова собираются в семьи.
+const allWordsPrefixLength = 2;
+
+String _prefixOf(String w) => w.runes.take(allWordsPrefixLength).map(String.fromCharCode).join();
+
+/// Индексы плиток, собирающих слово. Каждая плитка — один раз НА СЛОВО: слова
+/// набираются по отдельности, и одна плитка служит многим словам.
+List<int> _tilesFor(String word, List<String> letters) {
+  final taken = <int>{};
+  final out = <int>[];
+  for (final ch in word.runes.map(String.fromCharCode)) {
+    var found = -1;
+    for (var k = 0; k < letters.length; k++) {
+      if (!taken.contains(k) && letters[k] == ch) {
+        found = k;
+        break;
+      }
+    }
+    if (found < 0) return const [];
+    taken.add(found);
+    out.add(found);
+  }
+  return out;
+}
+
+/// Разбор колеса «Все слова»: осмотр, семьи от большой к малой, одиночки в конце.
+///
+/// Порядок полностью детерминирован (размер семьи, затем начало по алфавиту;
+/// внутри — от коротких к длинным, затем по алфавиту): один и тот же набор всегда
+/// разбирается одинаково, и проба может сверить его число в число.
+List<AllWordsTeachStep> allWordsLesson(List<String> targets, List<String> letters) {
+  if (targets.length < 2) return const [];
+  final families = <String, List<String>>{};
+  for (final w in targets) {
+    families.putIfAbsent(_prefixOf(w), () => []).add(w);
+  }
+  int byWord(String a, String b) {
+    final l = a.runes.length.compareTo(b.runes.length);
+    return l != 0 ? l : a.compareTo(b);
+  }
+
+  final big = families.entries.where((e) => e.value.length > 1).toList()
+    ..sort((a, b) {
+      final s = b.value.length.compareTo(a.value.length);
+      return s != 0 ? s : a.key.compareTo(b.key);
+    });
+  final singles = [
+    for (final e in families.entries)
+      if (e.value.length == 1) e.value.single,
+  ]..sort(byWord);
+
+  // Семей нет — приём не к чему приложить, и разбор честно отсутствует (кнопки не
+  // будет). Замер 30.09.2026 по десяти языкам: таких наборов 0–3 % (ko 0 из 3000,
+  // ja 29 из 970). Выдумывать им другой приём ради охвата значило бы учить наугад.
+  if (big.isEmpty) return const [];
+
+  final inFamilies = big.fold<int>(0, (n, e) => n + e.value.length);
+  final steps = <AllWordsTeachStep>[
+    AllWordsTeachStep(
+      technique: AllWordsTechnique.look,
+      word: '',
+      prefix: big.first.key,
+      place: const [],
+      n: inFamilies,
+      total: targets.length,
+    ),
+  ];
+  for (final e in big) {
+    for (final w in [...e.value]..sort(byWord)) {
+      final place = _tilesFor(w, letters);
+      if (place.isEmpty) return const []; // слово не из этого колеса — разбор врал бы
+      steps.add(AllWordsTeachStep(
+        technique: AllWordsTechnique.family,
+        word: w,
+        prefix: e.key,
+        place: place,
+        n: e.value.length,
+        total: targets.length,
+      ));
+    }
+  }
+  for (final w in singles) {
+    final place = _tilesFor(w, letters);
+    if (place.isEmpty) return const [];
+    steps.add(AllWordsTeachStep(
+      technique: AllWordsTechnique.single,
+      word: w,
+      prefix: _prefixOf(w),
+      place: place,
+      n: 1,
+      total: targets.length,
+    ));
+  }
+  return steps;
+}
+
+/// Ключи объяснений «Все слова» — списком, чтобы сборщик словаря их увидел.
+const teachAllWordsKeys = <String>[
+  'teachAllWordsLook',
+  'teachAllWordsFamily',
+  'teachAllWordsSingle',
+];
+
+String teachAllWordsKey(AllWordsTechnique t) => switch (t) {
+      AllWordsTechnique.look => 'teachAllWordsLook',
+      AllWordsTechnique.family => 'teachAllWordsFamily',
+      AllWordsTechnique.single => 'teachAllWordsSingle',
+    };
+
+/// Объяснение шага. Подстановки: {piece} — начало, {word} — слово, {n}, {total}.
+String teachAllWordsText(AllWordsTeachStep s, String Function(String) t) =>
+    t(teachAllWordsKey(s.technique))
+        .replaceAll('{piece}', s.prefix.toUpperCase())
+        .replaceAll('{word}', s.word.toUpperCase())
+        .replaceAll('{n}', '${s.n}')
+        .replaceAll('{total}', '${s.total}');
