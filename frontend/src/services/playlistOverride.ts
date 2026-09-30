@@ -1,4 +1,4 @@
-/* psygames-playlist-override · VER 1 · 13.09.2026 */
+/* psygames-playlist-override · VER 2 · 30.09.2026 */
 /**
  * СОСТАВ ПРОФИЛЕЙ И ЗАРЯДОК ИЗ ФАЙЛА НАСТРОЕК.
  *
@@ -26,6 +26,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GAMES } from '@/src/constants/games';
 import { заводскиеКарточкиХаба, type ЭлементХаба } from '@/src/constants/hubContents';
+import { NATIVE_ONLY_ROUTES } from '@/src/constants/nativeOnlyGames';
 import { естьТакойБлок, БЛОКИ_ГЛАВНОЙ } from '@/src/constants/homeBlocks';
 import { FEATURE_LADDER } from '@/src/services/featureLadder';
 import { FIGURES } from '@/src/services/collection';
@@ -216,7 +217,11 @@ export interface РазборСостава {
 const ИЗВЕСТНЫЕ_ИГРЫ = new Set(GAMES.map((g) => g.id));
 const МАРШРУТ_ИГРЫ = new Map(GAMES.map((g) => [g.id, g.route]));
 /** Экраны, которые в приложении действительно есть, — по ним сверяются карточки из файла. */
-const ИЗВЕСТНЫЕ_МАРШРУТЫ = new Set(GAMES.map((g) => g.route));
+/**
+ * Куда может вести карточка развилки: веб-реестр и игры только с нативным экраном
+ * (VER 2, 30.09.2026 — без них разбор отбрасывал «Очередь зверей» и «Цвета и формы»).
+ */
+const ИЗВЕСТНЫЕ_МАРШРУТЫ = new Set([...GAMES.map((g) => g.route), ...NATIVE_ONLY_ROUTES]);
 
 /** Шаг зарядки принимается, только если его игра есть в сборке. */
 function отобратьШаги(
