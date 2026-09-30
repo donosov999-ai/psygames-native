@@ -11,6 +11,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../chess_common/board.dart';
+import 'board_frame.dart';
 import 'game.dart';
 import 'ladder.dart';
 import 'options.dart';
@@ -610,14 +611,13 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
 
     return LayoutBuilder(
       builder: (context, box) {
-        const labels = 18.0;
+        const labels = ChessBoardFrame.labels;
         final reserved =
             64.0 + (pick && quizLike ? 34 : 0) + (_assist.coords ? labels : 0);
         final side = min(
           box.maxWidth - 16 - (_assist.coords ? labels : 0),
           fieldHeight - reserved,
         ).clamp(120.0, 560.0);
-        final step = side / 8;
         final board = ChessBoardView(
           side: side,
           keyPrefix: 'cb-sq',
@@ -636,11 +636,6 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
           pieces: {
             for (final p in shown) p.sq: BoardPiece(p.type, white: p.white),
           },
-        );
-        final labelStyle = TextStyle(
-          fontSize: max(10, step * 0.28),
-          fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
         );
         return Column(
           children: [
@@ -674,57 +669,7 @@ class _ChessBlindScreenState extends State<ChessBlindScreen> {
                 ),
               ),
             const SizedBox(height: 6),
-            // Шахматная доска канонически слева направо: a — слева при любом языке.
-            Directionality(
-              textDirection: TextDirection.ltr,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_assist.coords)
-                    SizedBox(
-                      width: labels,
-                      height: side,
-                      child: Column(
-                        children: [
-                          for (var r = 0; r < 8; r++)
-                            SizedBox(
-                              height: step,
-                              child: Center(
-                                child: Text('${8 - r}', style: labelStyle),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      board,
-                      if (_assist.coords)
-                        SizedBox(
-                          width: side,
-                          height: labels,
-                          child: Row(
-                            children: [
-                              for (var c = 0; c < 8; c++)
-                                SizedBox(
-                                  width: step,
-                                  child: Center(
-                                    child: Text(
-                                      'abcdefgh'[c],
-                                      style: labelStyle,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            ChessBoardFrame(board: board, side: side, coords: _assist.coords),
           ],
         );
       },
