@@ -63,6 +63,7 @@ import '../games/object_tracker/screen.dart';
 import '../games/pattern/screen.dart';
 import '../games/quick_count/screen.dart';
 import '../games/schulte/screen.dart';
+import '../games/pause/screen.dart';
 import 'asset_server.dart';
 import 'l10n.dart';
 import '../games/sorting_hub/screen.dart';
@@ -124,6 +125,8 @@ class HybridApp extends StatefulWidget {
         '/games/corsi': (s) => CorsiScreen(state: s),
         '/games/picture-pairs': (s) => PicturePairsScreen(state: s),
         '/games/schulte': (s) => SchulteScreen(state: s),
+        // «Пауза / Зарядка» — хаб практик; `?set=…` доходит до экрана через GamePreset.
+        '/games/pause': (s) => PauseScreen(state: s),
         '/games/mahjong': (s) => MahjongScreen(state: s),
         '/games/math-slider': (s) => MathSliderScreen(state: s),
         '/games/object-tracker': (s) => ObjectTrackerScreen(state: s),

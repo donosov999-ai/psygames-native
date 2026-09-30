@@ -262,6 +262,8 @@ void main() {
       '/games/one-line',
       '/games/ospan',
       '/games/pattern',
+      // «Пауза / Зарядка» — хаб практик; набор приходит хвостом `?set=` через GamePreset.
+      '/games/pause',
       '/games/posner',
       '/games/pizza-sort',
       '/games/prl',
@@ -352,5 +354,19 @@ void main() {
     expect(HybridApp.routeOf('https://psygames.app/games/anagrams?lang=ru&mode=cross'),
         anyOf('/games/anagrams?mode=cross', '/games/anagrams'),
         reason: 'хвост с двумя параметрами не должен терять режим');
+  });
+
+  test('«Пауза» открывается нативно и с набором в хвосте адреса', () async {
+    SharedPreferences.setMockInitialValues({});
+    final state = await SharedState.open();
+    for (final url in [
+      'https://psygames.app/games/pause',
+      'https://psygames.app/games/pause?set=breathing',
+      'https://psygames.app/games/pause.html?set=eye-gym&wu=1',
+    ]) {
+      final route = HybridApp.routeOf(url);
+      expect(route, '/games/pause', reason: url);
+      expect(HybridApp.native[route]!(state).runtimeType.toString(), 'PauseScreen', reason: url);
+    }
   });
 }

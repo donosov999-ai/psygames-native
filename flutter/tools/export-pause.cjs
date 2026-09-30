@@ -123,6 +123,81 @@ const cases = requests.map((req) => {
   }
 });
 
+/*
+ * 🔴 КАРТИНКИ ШАГОВ — ТЕМИ ЖЕ РИСОВАЛКАМИ, ЧТО У ВЕБ-ЭКРАНА.
+ *
+ * Веб-экран `/games/pause` показывает страницу зарядки (`frontend/public/warmup`),
+ * а её рисовалки лежат в `public/warmup/app/app.mjs`. Здесь они исполняются как
+ * есть, и SVG каждого шага пишется файлом: Flutter рисует SVG сам, ни браузера,
+ * ни движка JS в приложение не кладётся. Так же сделан перенос у «Умного
+ * будильника»; разница одна — источник здесь свой, из этого репозитория.
+ * Цвета из CSS-переменных подставляются числами: у SVG-файла своих стилей нет.
+ */
+const warmup = path.join(root, 'frontend/public/warmup');
+const parser = require(path.join(root, 'frontend/node_modules/@babel/parser'));
+const { JSDOM } = require(path.join(root, 'frontend/node_modules/jsdom'));
+const pageSource = fs.readFileSync(path.join(warmup, 'app/app.mjs'), 'utf8');
+const ast = parser.parse(pageSource, { sourceType: 'module' });
+const drawers = ['activeVisualClass', 'renderCosmicEnergyCenters', 'renderCosmicBodyVisual', 'renderFaceVisual',
+  'renderRelaxationVisual', 'renderPelvicVisual', 'renderMobilityVisual', 'renderIsometricVisual', 'renderAbdomenVisual',
+  'renderFeldenkraisVisual'];
+const pageContext = vm.createContext({ cosmicAssetRoot: 'assets/cosmic-body', escapeHtml: (s) => s });
+const found = ast.program.body.filter((n) => n.type === 'FunctionDeclaration' && drawers.includes(n.id.name));
+if (found.length !== drawers.length) {
+  throw Error(`рисовалок найдено ${found.length} из ${drawers.length}: страница зарядки поменялась`);
+}
+vm.runInContext(found.map((n) => pageSource.slice(n.start, n.end)).join('\n'), pageContext);
+const renderers = { 'face-speech': 'renderFaceVisual', relaxation: 'renderRelaxationVisual', 'pelvic-floor': 'renderPelvicVisual',
+  mobility: 'renderMobilityVisual', isometrics: 'renderIsometricVisual', abdomen: 'renderAbdomenVisual',
+  feldenkrais: 'renderFeldenkraisVisual' };
+let css = fs.readFileSync(path.join(warmup, 'styles.css'), 'utf8');
+const cssVars = Object.fromEntries(
+  [...css.slice(0, css.indexOf(':root[data-theme')).matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2]]),
+);
+cssVars['--visual-accent'] = '#8d7bff';
+css = css.replace(/var\((--[\w-]+)\)/g, (_, v) => cssVars[v] || '0');
+css = css.replace(/color-mix\(in srgb, (#[0-9a-f]{6}) (\d+)%, transparent\)/gi, (_, hex, percent) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${Number(percent) / 100})`;
+});
+const guides = path.join(root, 'flutter/assets/pause/guides');
+fs.rmSync(guides, { recursive: true, force: true });
+fs.mkdirSync(guides, { recursive: true });
+let guideCount = 0;
+for (const set of e.PRACTICE_CATALOG) {
+  if (!renderers[set.id]) continue;
+  for (const program of set.programs) {
+    for (const step of program.steps) {
+      const html = pageContext[renderers[set.id]]({ setId: set.id, programId: program.id, stepId: step.id, progress: 0.5 });
+      const dom = new JSDOM(`<style>${css}</style>${html}`);
+      const svg = dom.window.document.querySelector('svg');
+      if (!svg) throw Error(`нет SVG у шага ${set.id}/${program.id}/${step.id}`);
+      for (const node of [svg, ...svg.querySelectorAll('*')]) {
+        const st = dom.window.getComputedStyle(node);
+        for (const prop of ['fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'opacity', 'stroke-dasharray']) {
+          const v = st.getPropertyValue(prop);
+          if (v && !v.includes('var(')) node.setAttribute(prop, v.replace(/px$/, ''));
+        }
+      }
+      for (const node of [svg, ...svg.querySelectorAll('*')]) {
+        node.removeAttribute('class');
+        node.removeAttribute('aria-hidden');
+      }
+      svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      fs.writeFileSync(path.join(guides, `${set.id}__${program.id}__${step.id}.svg`), svg.outerHTML + '\n');
+      dom.window.close();
+      guideCount++;
+    }
+  }
+}
+// Фигуры тела и позы — те же webp, что у веб-страницы (652 КБ, а не 9,3 МБ PNG настольной версии).
+const bodies = path.join(root, 'flutter/assets/pause/cosmic-body');
+fs.rmSync(bodies, { recursive: true, force: true });
+fs.mkdirSync(bodies, { recursive: true });
+const webp = fs.readdirSync(path.join(warmup, 'assets/cosmic-body')).filter((f) => f.endsWith('.webp'));
+for (const f of webp) fs.copyFileSync(path.join(warmup, 'assets/cosmic-body', f), path.join(bodies, f));
+console.log(`картинки: ${guideCount} SVG шагов → flutter/assets/pause/guides, ${webp.length} webp → flutter/assets/pause/cosmic-body`);
+
 const fixtureFile = path.join(root, 'flutter/test/fixtures/pause-reference.json.gz');
 fs.writeFileSync(fixtureFile, gzipSync(JSON.stringify(cases), { level: 9 }));
 const failed = cases.filter((c) => c.issues).length;

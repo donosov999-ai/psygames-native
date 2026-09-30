@@ -4126,6 +4126,12 @@ const translations: Translations = {
    */
   pause: { ru: 'Глаза и дыхание', en: 'Eyes & breathing' },
   pauseDesc: { ru: 'Плюс лицо, осанка, расслабление и подвижность — короткая телесная пауза без оценок', en: 'Plus face, posture, relaxation and mobility — a short body pause with no scoring' },
+  pauseCtxDeskVisible: { ru: 'За столом', en: 'At a desk' },
+  pauseCtxDeskInvisible: { ru: 'Незаметно', en: 'Discreetly' },
+  pauseCtxHome: { ru: 'Дома', en: 'At home' },
+  pauseMinutesDone: { ru: 'Минут', en: 'Minutes' },
+  pauseSetsDone: { ru: 'Наборов', en: 'Sets' },
+  pauseExtend: { ru: '+30 с', en: '+30 s' },
   pauseIntroDesc: { ru: 'Выберите обстановку, минуты и что делать — приложение проведёт по шагам. Здесь ничего не измеряется и не оценивается: это отдых, а не проба.', en: 'Choose the setting, the minutes and what to practise — the app guides you step by step. Nothing here is measured or scored: this is rest, not a test.' },
   dotsConnect: { ru: 'Соедини точки', en: 'Dots Connect' },
   dotsConnectDesc: { ru: 'Соединяйте одинаковые точки непересекающимися путями и заполните всю сетку', en: 'Connect matching dots with non-crossing paths and fill the whole grid' },

@@ -45,6 +45,9 @@ dependencies:
   path_provider: ^2.1.5
   sqlite3: ^2.9.0
   sqlite3_flutter_libs: ^0.5.41
+  # «Пауза»: картинки шагов практик — SVG, выгруженные рисовалками веб-страницы
+  # зарядки (flutter/tools/export-pause.cjs). Тот же пакет у «Умного будильника».
+  flutter_svg: ^2.2.1
 
 dev_dependencies:
   integration_test:
@@ -95,6 +98,8 @@ flutter:
     - assets/voice/
     - assets/spatial/
     - assets/pause/
+    - assets/pause/guides/
+    - assets/pause/cosmic-body/
     - assets/goods/
     - assets/tubes/
     - assets/balls/
