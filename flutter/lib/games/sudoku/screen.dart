@@ -353,6 +353,13 @@ class _SudokuScreenState extends State<SudokuScreen> {
         'hint_uses': _hintsUsed,
         'backtrack_count': _backtracks,
         'progression_kind': 'adaptive',
+        // Снимок состояния после партии (§8.7): где жить рейтингу — на телефоне или ещё
+        // на сервере — открытый вопрос проекта (§5, п.2), но с этими полями сервер уже
+        // держит всё, чтобы восстановить счёт пилота после переустановки: event_id —
+        // защита от двойного применения, рейтинг и неуверенность — канонический снимок.
+        'event_id': _pilotEventId,
+        'skill_rating': (next.skillRating * 10).round() / 10,
+        'rating_uncertainty': (next.ratingUncertainty * 10).round() / 10,
         'adaptive_wins': next.adaptiveWins,
         'template_id': t.id,
         'difficulty_band': t.band,

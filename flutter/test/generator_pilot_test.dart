@@ -227,6 +227,10 @@ void main() {
     expect(d['failed_out'], true);
     final played = s.recentTemplateIds.single;
     expect(d['template_id'], played);
+    // Снимок для восстановления после переустановки (§8.7) — на сервере, в каждой партии.
+    expect(d['event_id'], s.lastEventId, reason: 'по event_id сервер не применит партию дважды');
+    expect((d['skill_rating'] as num).toDouble(), closeTo(s.skillRating, 0.05));
+    expect((d['rating_uncertainty'] as num).toDouble(), closeTo(s.ratingUncertainty, 0.05));
     expect(state.get(ladderKey), '54', reason: 'проигрыш пилота лестницу не трогает');
 
     expect(find.byKey(const Key('repeat')), findsOneWidget,
