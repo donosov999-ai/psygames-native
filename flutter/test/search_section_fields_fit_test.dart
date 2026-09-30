@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/counter/screen.dart';
 import 'package:psygames_flutter/games/find_differences/screen.dart';
+import 'package:psygames_flutter/games/kids_find/screen.dart';
 import 'package:psygames_flutter/games/mahjong/screen.dart';
 import 'package:psygames_flutter/games/math_slider/screen.dart';
 import 'package:psygames_flutter/games/math_sprint/screen.dart';
@@ -53,6 +54,8 @@ final screens = <String, ({String levelKey, int level, Widget Function(SharedSta
   'найди отличия': (levelKey: 'find_differences', level: 31, build: (s) => FindDifferencesScreen(state: s, rnd: createRng('гейт'))),
   'собери сумму': (levelKey: 'counter', level: 15, build: (s) => CounterScreen(state: s, rnd: createRng('гейт'))),
   'зрительный поиск': (levelKey: 'visual_search', level: 25, build: (s) => VisualSearchScreen(state: s, rnd: createRng('гейт'))),
+  // L22: поле 8×8 и время на доску.
+  'найди другую': (levelKey: 'kids_find', level: 22, build: (s) => KidsFindScreen(state: s, seed: 1)),
 };
 
 /// Все нарисованные коробки под полем — в мировых точках.

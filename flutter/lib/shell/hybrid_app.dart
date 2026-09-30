@@ -40,6 +40,7 @@ import '../games/cake_sort/screen.dart';
 import '../games/hanoi/screen.dart';
 import '../games/tower_london/screen.dart';
 import '../games/animal_queue/screen.dart';
+import '../games/kids_find/screen.dart';
 import '../games/kids_sort/screen.dart';
 import '../games/traffic_jam/screen.dart';
 import '../games/monster_traits/screen.dart';
@@ -211,6 +212,8 @@ class HybridApp extends StatefulWidget {
       // развилках «Пространство», «Поиск глазами», «Конфликт внимания», «Головоломки».
       '/games/traffic-jam': (s) => TrafficJamScreen(state: s),
       '/games/monster-traits': (s) => MonsterTraitsScreen(state: s),
+      // MindLab «Найди» (kids/find.py) — раздел «Поиск», задача c8a2783f: только нативная.
+      '/games/kids-find': (s) => KidsFindScreen(state: s),
       '/games/roll-and-bank': (s) => RollAndBankScreen(state: s),
       '/games/hidden-character': (s) => HiddenCharacterScreen(state: s),
         /*

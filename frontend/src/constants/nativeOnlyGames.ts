@@ -31,6 +31,8 @@ export const NATIVE_ONLY_GAMES: readonly NativeOnlyGame[] = [
   // «Пространство», «Поиск глазами», «Конфликт внимания», «Головоломки».
   { route: '/games/traffic-jam', nameKey: 'trafficJam', descKey: 'trafficJamDesc' },
   { route: '/games/monster-traits', nameKey: 'monsterTraits', descKey: 'monsterTraitsDesc' },
+  // MindLab «Найди» (kids/find.py) — раздел «Поиск», задача c8a2783f.
+  { route: '/games/kids-find', nameKey: 'kidsFind', descKey: 'kidsFindDesc' },
   { route: '/games/roll-and-bank', nameKey: 'rollAndBank', descKey: 'rollAndBankDesc' },
   { route: '/games/hidden-character', nameKey: 'hiddenCharacter', descKey: 'hiddenCharacterDesc' },
 ];

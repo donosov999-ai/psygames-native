@@ -303,6 +303,7 @@ void main() {
       // MindLab у координатора (задача f5034811): четыре игры только нативные.
       '/games/traffic-jam',
       '/games/monster-traits',
+      '/games/kids-find',
       '/games/roll-and-bank',
       '/games/hidden-character',
       '/games/mahjong',
