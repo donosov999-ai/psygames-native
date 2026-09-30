@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/demo_lesson.dart';
 import '../../shell/game_preset.dart';
@@ -13,6 +11,7 @@ import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../languages/bilingual.dart';
+import '../languages/json_asset.dart';
 import '../languages/fresh_pool.dart';
 import 'model.dart';
 
@@ -109,12 +108,12 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
     await _ladder.load();
     final vocab = widget.vocabOverride ??
         [
-          for (final e in jsonDecode(await rootBundle.loadString('assets/vocab/translation-vocab.json')) as List<dynamic>)
+          for (final e in await loadJsonAsset('assets/vocab/translation-vocab.json') as List<dynamic>)
             (e as Map).map((k, v) => MapEntry('$k', '$v')),
         ];
     final distractors = widget.distractorsOverride ??
         <String, List<String>>{
-          for (final e in (jsonDecode(await rootBundle.loadString('assets/vocab/semantic-distractors.json')) as Map).entries)
+          for (final e in (await loadJsonAsset('assets/vocab/semantic-distractors.json') as Map).entries)
             '${e.key}': [for (final w in (e.value as List)) '$w'],
         };
     if (!mounted) return;
