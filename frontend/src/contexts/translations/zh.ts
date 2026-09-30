@@ -3060,5 +3060,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "从第22关起，出错后背面朝上的卡片会交换位置，这一对会亮起。把记忆中的图移到它的卡片去的地方。",
   "vsFindAll": "找出所有这种图形 — 任意旋转方向",
   "vsFindConj": "找出这种颜色和形状的图形",
+  "block": "关卡",
+  "seriesDone": "整轮完成。错误数",
+  "yes": "是",
+  "no": "否",
+  "chessBlockSquare": "格子的颜色",
+  "chessBlockKnight": "马的走法",
+  "chessBlockRecall": "局面记忆",
+  "chessAskSquare": "{a} 和 {b} 是同色格吗？",
+  "chessAskKnight": "马能从 {from} 用 {n} 步走到 {to} 吗？",
+  "chessAskRecall": "{sq} 上原来是 {piece} 吗？",
 };
 export default t;

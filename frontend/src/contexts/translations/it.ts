@@ -3055,5 +3055,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Dal livello 22, dopo un errore le carte coperte si scambiano di posto e la coppia si illumina. Sposta l'immagine nella memoria dove è finita la sua carta.",
   "vsFindAll": "Trova tutte queste figure — in qualsiasi rotazione",
   "vsFindConj": "Trova la figura di questo colore e forma",
+  "block": "Blocco",
+  "seriesDone": "Serie completata. Errori",
+  "yes": "Sì",
+  "no": "No",
+  "chessBlockSquare": "Colore delle case",
+  "chessBlockKnight": "Salto del cavallo",
+  "chessBlockRecall": "Memoria della posizione",
+  "chessAskSquare": "{a} e {b} hanno lo stesso colore?",
+  "chessAskKnight": "Il cavallo va da {from} a {to} in {n} mosse?",
+  "chessAskRecall": "Su {sq} c’era {piece}?",
 };
 export default t;

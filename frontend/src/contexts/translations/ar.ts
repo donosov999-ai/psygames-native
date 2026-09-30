@@ -3056,5 +3056,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "من المستوى 22، بعد الخطأ تتبادل البطاقات المقلوبة أماكنها ويضيء الزوج. انقل الصورة في ذاكرتك إلى حيث ذهبت بطاقتها.",
   "vsFindAll": "ابحث عن كل هذه الأشكال — بأي اتجاه دوران",
   "vsFindConj": "ابحث عن الشكل بهذا اللون وهذا الشكل",
+  "block": "المقطع",
+  "seriesDone": "اكتملت السلسلة. الأخطاء",
+  "yes": "نعم",
+  "no": "لا",
+  "chessBlockSquare": "لون المربعات",
+  "chessBlockKnight": "نقلة الحصان",
+  "chessBlockRecall": "ذاكرة الوضعية",
+  "chessAskSquare": "هل {a} و{b} من اللون نفسه؟",
+  "chessAskKnight": "هل يصل الحصان من {from} إلى {to} في {n} نقلات؟",
+  "chessAskRecall": "هل كانت {piece} على {sq}؟",
 };
 export default t;

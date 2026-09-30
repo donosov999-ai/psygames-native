@@ -3063,5 +3063,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "स्तर 22 से गलती के बाद उलटे कार्ड जगह बदलते हैं और वह जोड़ी चमकती है। याद में चित्र को वहीं ले जाएँ जहाँ उसका कार्ड गया।",
   "vsFindAll": "ये सभी आकृतियाँ खोजें — किसी भी दिशा में",
   "vsFindConj": "इस रंग और आकार की आकृति खोजें",
+  "block": "खंड",
+  "seriesDone": "श्रृंखला पूरी। त्रुटियाँ",
+  "yes": "हाँ",
+  "no": "नहीं",
+  "chessBlockSquare": "खानों का रंग",
+  "chessBlockKnight": "घोड़े की चाल",
+  "chessBlockRecall": "स्थिति की स्मृति",
+  "chessAskSquare": "क्या {a} और {b} एक ही रंग के हैं?",
+  "chessAskKnight": "क्या घोड़ा {from} से {to} तक {n} चालों में जाएगा?",
+  "chessAskRecall": "क्या {sq} पर {piece} था?",
 };
 export default t;

@@ -3060,5 +3060,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "Ab Level 22 tauschen nach einem Fehler verdeckte Karten die Plätze, und das Paar leuchtet auf. Verschiebe das Bild im Kopf dorthin, wo seine Karte hingewandert ist.",
   "vsFindAll": "Finde alle diese Formen — in jeder Drehung",
   "vsFindConj": "Finde die Form in dieser Farbe",
+  "block": "Block",
+  "seriesDone": "Serie geschafft. Fehler",
+  "yes": "Ja",
+  "no": "Nein",
+  "chessBlockSquare": "Farbe der Felder",
+  "chessBlockKnight": "Springerzug",
+  "chessBlockRecall": "Gedächtnis für die Stellung",
+  "chessAskSquare": "Haben {a} und {b} dieselbe Farbe?",
+  "chessAskKnight": "Kommt der Springer von {from} nach {to} in {n} Zügen an?",
+  "chessAskRecall": "Stand {piece} auf {sq}?",
 };
 export default t;

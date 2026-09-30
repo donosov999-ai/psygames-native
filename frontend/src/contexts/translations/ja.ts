@@ -3054,5 +3054,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "レベル22からは、ミスのあと伏せたカードが入れ替わり、その組が光ります。カードが移った先へ、記憶の中の絵も動かしましょう。",
   "vsFindAll": "この形をすべて見つけよう — 向きは自由",
   "vsFindConj": "この色と形の図形を見つけよう",
+  "block": "ブロック",
+  "seriesDone": "シリーズ終了。ミス",
+  "yes": "はい",
+  "no": "いいえ",
+  "chessBlockSquare": "マスの色",
+  "chessBlockKnight": "ナイトの動き",
+  "chessBlockRecall": "局面の記憶",
+  "chessAskSquare": "{a} と {b} は同じ色ですか？",
+  "chessAskKnight": "ナイトは {from} から {to} へ {n} 手で行けますか？",
+  "chessAskRecall": "{sq} に {piece} がありましたか？",
 };
 export default t;

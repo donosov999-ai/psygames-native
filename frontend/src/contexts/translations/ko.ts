@@ -3055,5 +3055,15 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "레벨 22부터는 실수하면 뒤집힌 카드들이 자리를 바꾸고 그 쌍이 빛나요. 카드가 옮겨 간 곳으로 기억 속 그림도 옮기세요.",
   "vsFindAll": "이 도형을 모두 찾으세요 — 방향은 상관없습니다",
   "vsFindConj": "이 색과 모양의 도형을 찾으세요",
+  "block": "블록",
+  "seriesDone": "시리즈 완료. 오류",
+  "yes": "예",
+  "no": "아니오",
+  "chessBlockSquare": "칸의 색",
+  "chessBlockKnight": "나이트의 이동",
+  "chessBlockRecall": "국면 기억",
+  "chessAskSquare": "{a}와 {b}는 같은 색인가요?",
+  "chessAskKnight": "나이트가 {from}에서 {to}까지 {n}수에 갈까요?",
+  "chessAskRecall": "{sq}에 {piece}가 있었나요?",
 };
 export default t;
