@@ -1,6 +1,7 @@
 import 'game_pet.dart';
 import 'game_rules.dart';
 import 'l10n.dart';
+import 'level_rules.dart';
 import 'package:flutter/material.dart';
 
 /// Каркас игрового экрана — перенос GameShell из React-версии PsyGames.
@@ -24,6 +25,7 @@ class GameShell extends StatelessWidget {
     this.onRules,
     this.onLesson,
     this.pauseActions = const [],
+    this.levelRule,
   });
 
   final String title;
@@ -60,12 +62,23 @@ class GameShell extends StatelessWidget {
   /// Пункты меню паузы: те же служебные действия плюс выход.
   final List<PauseAction> pauseActions;
 
+  /*
+   * 🔴 ПРАВИЛО УРОВНЯ — ТОЖЕ ДЕЛО КАРКАСА (задача e371fd3a).
+   *
+   * Экран сообщает только «какая игра, какой уровень, спокойный ли момент». Что за
+   * правило на этом уровне, показывал ли человек его раньше и когда открыть карточку —
+   * решает каркас по таблице `assets/level_rules.json` (см. `level_rules.dart`). Нет
+   * правила на уровне — нет и значка в шапке.
+   */
+  final LevelRuleSpot? levelRule;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
+    final spot = levelRule;
+    final ruleKey = spot == null ? null : LevelRules.activeKey(spot.gameId, spot.level);
+    final hasRule = spot != null && ruleKey != null && LevelRules.hasText(spot.gameId, ruleKey);
+    final body = Column(
           children: [
             _Header(
               title: title,
@@ -84,6 +97,8 @@ class GameShell extends StatelessWidget {
               onRules: onRules ?? _rulesByRoute(context),
               onLesson: onLesson,
               onPause: () => _pause(context),
+              levelRuleTitle: hasRule ? L.t(LevelRules.textKey(spot.gameId, ruleKey, 'title')) : null,
+              onLevelRule: hasRule ? () => showLevelRule(context, spot.gameId, ruleKey) : null,
             ),
             if (hud.isNotEmpty) _HudRow(items: hud),
             Expanded(
@@ -105,7 +120,10 @@ class GameShell extends StatelessWidget {
                 child: toolbar,
               ),
           ],
-        ),
+        );
+    return Scaffold(
+      body: SafeArea(
+        child: spot == null ? body : LevelRuleWatcher(spot: spot, child: body),
       ),
     );
   }
@@ -295,12 +313,22 @@ class PauseAction {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.title, this.onBack, this.onRules, this.onLesson, this.onPause});
+  const _Header({
+    required this.title,
+    this.onBack,
+    this.onRules,
+    this.onLesson,
+    this.onPause,
+    this.onLevelRule,
+    this.levelRuleTitle,
+  });
   final String title;
   final VoidCallback? onBack;
   final VoidCallback? onRules;
   final VoidCallback? onLesson;
   final VoidCallback? onPause;
+  final VoidCallback? onLevelRule;
+  final String? levelRuleTitle;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -324,6 +352,13 @@ class _Header extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(right: 4),
                 child: GamePet(state: PetHost.state!, origin: PetHost.origin!, size: 34),
+              ),
+            if (onLevelRule != null)
+              IconButton(
+                key: const Key('game-level-rule'),
+                onPressed: onLevelRule,
+                icon: const Icon(Icons.new_releases_outlined),
+                tooltip: levelRuleTitle,
               ),
             if (onLesson != null)
               IconButton(
