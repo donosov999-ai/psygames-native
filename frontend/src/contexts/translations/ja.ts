@@ -3037,7 +3037,7 @@ const t: Record<string, string> = {
   "mnemFreeTrainingNote": "個数は自由。レベルは変わりません。",
   "mnemFreeTrainingStart": "練習：{n} 個 — レベル変動なし",
   "teachMnemoIntroWords": "{n} 語の並びは「1番目、2番目」と数えて覚えるのではなく、場面の「鎖」でつなぎます。次の語が前の語に何かをするのです。",
-  "teachMnemoIntroNumbers": "数字はそのままでは覚えられません。コツ：数字を子音で「単語」に変え、その単語を鎖のようにつなぎます。この列の {n} 個の数字を見ていきましょう。",
+  "teachMnemoIntroNumbers": "数字はそのままでは覚えられません。コツ：数字を子音で「単語」に変え、その単語を鎖のようにつなぎます。最初の {n} 個を見ていきましょう。残りも同じ要領です。",
   "teachMnemoIntroNumbersNoPegs": "数字はそのままでは覚えられません。列を繰り返すのではなく、2〜3個ずつ場面にまとめましょう。この言語用のペグ表はまだありません。",
   "teachMnemoPegFirst": "{n} は「{word}」（{why}）。子音が単語を作ります。母音は自由なので、どれを入れても構いません。",
   "teachMnemoPeg": "{n} — 「{word}」（{why}）。",
