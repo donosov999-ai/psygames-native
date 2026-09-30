@@ -72,6 +72,7 @@ export function LanguagesWarmup() {
       titleKey="languagesWarmupTitle"
       descKey="languagesWarmupDesc"
       ярлык="языки"
+      bridgeId="languages"
       accent={АКЦЕНТ_ЯЗЫКИ}
       loading={!карточки.loaded || !пропуск.loaded || !категории.loaded || !решение.loaded
         || !анаграммы.loaded || !пары.loaded || !наСлух.loaded}
