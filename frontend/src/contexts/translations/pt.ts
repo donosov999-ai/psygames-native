@@ -3046,5 +3046,10 @@ const t: Record<string, string> = {
   "teachZhTone4": "Tom 4 — {zh} {py}: a voz cai de repente do alto para baixo, como um “não!” seco.",
   "teachZhPair23": "Os tons 2 e 3 se confundem fácil: os dois terminam subindo. A diferença está no começo: {a} {pa} sobe logo, {b} {pb} primeiro desce.",
   "teachZhDone": "Responda assim: ouviu a sílaba, imagine a linha dela — reta, subindo, afundando ou caindo.",
+  "teachPicturePairsPlaces": "Enquanto as cartas estão viradas para cima, ligue cada figura a um lugar: cantos, bordas, centro. Depois abra onde viu o par, não ao acaso.",
+  "teachPicturePairsGroup": "Com trios e quartetos, guarde TODOS os lugares de uma figura: o grupo só some quando todas as suas cartas são abertas em seguida.",
+  "teachPicturePairsSwap": "A partir do nível 22, depois de um erro as cartas viradas para baixo trocam de lugar e o par se ilumina. Mova a figura na memória para onde a carta dela foi.",
+  "vsFindAll": "Encontre todas estas formas — em qualquer rotação",
+  "vsFindConj": "Encontre a forma desta cor e formato",
 };
 export default t;

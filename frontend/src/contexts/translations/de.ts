@@ -3046,5 +3046,10 @@ const t: Record<string, string> = {
   "teachZhTone4": "Ton 4 — {zh} {py}: Die Stimme fällt scharf von oben nach unten, wie ein knappes „nein!“.",
   "teachZhPair23": "Ton 2 und Ton 3 verwechselt man leicht: Beide enden steigend. Der Unterschied liegt am Anfang: {a} {pa} steigt sofort, {b} {pb} geht zuerst nach unten.",
   "teachZhDone": "So antwortest du auch: Silbe hören, ihre Linie vorstellen — gerade, steigend, Mulde oder fallend.",
+  "teachPicturePairsPlaces": "Solange die Karten offen liegen, verknüpfe jedes Bild mit einem Ort: Ecken, Ränder, Mitte. Dann decke dort auf, wo du sein Gegenstück gesehen hast.",
+  "teachPicturePairsGroup": "Bei Dreiern und Vierern behalte ALLE Orte eines Bildes im Kopf: Eine Gruppe verschwindet erst, wenn alle ihre Karten nacheinander aufgedeckt sind.",
+  "teachPicturePairsSwap": "Ab Level 22 tauschen nach einem Fehler verdeckte Karten die Plätze, und das Paar leuchtet auf. Verschiebe das Bild im Kopf dorthin, wo seine Karte hingewandert ist.",
+  "vsFindAll": "Finde alle diese Formen — in jeder Drehung",
+  "vsFindConj": "Finde die Form in dieser Farbe",
 };
 export default t;

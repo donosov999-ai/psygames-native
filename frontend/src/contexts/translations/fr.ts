@@ -3041,5 +3041,10 @@ const t: Record<string, string> = {
   "teachZhTone4": "Ton 4 — {zh} {py} : la voix tombe d’un coup du haut vers le bas, comme un « non ! » sec.",
   "teachZhPair23": "Les tons 2 et 3 se confondent facilement : les deux finissent en montant. La différence est au début : {a} {pa} monte tout de suite, {b} {pb} descend d’abord.",
   "teachZhDone": "Réponds ainsi : tu entends la syllabe, tu imagines sa ligne — plate, montante, en creux ou descendante.",
+  "teachPicturePairsPlaces": "Tant que les cartes sont visibles, associe chaque image à un endroit : coins, bords, milieu. Ensuite, retourne là où tu as vu sa jumelle, pas au hasard.",
+  "teachPicturePairsGroup": "Avec les triplets et les quadruplets, garde en tête TOUS les emplacements d'une image : un groupe disparaît seulement quand toutes ses cartes sont retournées d'affilée.",
+  "teachPicturePairsSwap": "À partir du niveau 22, après une erreur, des cartes face cachée échangent leur place et la paire s'illumine. Déplace l'image dans ta mémoire là où sa carte est partie.",
+  "vsFindAll": "Trouve toutes ces figures — dans n'importe quelle orientation",
+  "vsFindConj": "Trouve la figure de cette couleur et de cette forme",
 };
 export default t;

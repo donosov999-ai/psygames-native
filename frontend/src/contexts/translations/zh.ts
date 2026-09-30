@@ -3046,5 +3046,10 @@ const t: Record<string, string> = {
   "teachZhTone4": "第四声 — {zh} {py}：从高处猛地降下来，像干脆的“不！”。",
   "teachZhPair23": "第二声和第三声容易混：结尾都往上走。区别在开头：{a} {pa} 一开始就往上，{b} {pb} 先往下沉。",
   "teachZhDone": "就这样作答：听到音节，就想象它的线条——平的、上扬、低谷还是下降。",
+  "teachPicturePairsPlaces": "卡片正面朝上时，把每张图和位置联系起来：角落、边缘、中间。之后不要乱翻，而是去翻你看到另一张的位置。",
+  "teachPicturePairsGroup": "三张一组、四张一组时，要记住同一张图的所有位置：只有连续翻开这组的全部卡片，这一组才会消掉。",
+  "teachPicturePairsSwap": "从第22关起，出错后背面朝上的卡片会交换位置，这一对会亮起。把记忆中的图移到它的卡片去的地方。",
+  "vsFindAll": "找出所有这种图形 — 任意旋转方向",
+  "vsFindConj": "找出这种颜色和形状的图形",
 };
 export default t;

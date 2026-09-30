@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import '../../shell/aux_action.dart';
 import '../../shell/demo_lesson.dart';
 import '../../shell/l10n.dart';
+import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
+import '../../shell/lesson.dart';
 import '../../shell/level_ladder.dart';
 import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
@@ -43,6 +45,11 @@ class _PatternScreenState extends State<PatternScreen> {
   Sequence? _seq;
   List<int> _options = const [];
   int _round = 1;
+
+  /// Проб в партии. В шаге зарядки число задаёт шаг (`trials`, по умолчанию
+  /// 10) — так же, как в вебе (`pattern.tsx`: `num('trials', 10)`); вне
+  /// зарядки — постоянное число партии.
+  int _trials = trialsPerRound;
   int _hits = 0;
   int _errors = 0;
   int _hintStage = 0;
@@ -78,7 +85,12 @@ class _PatternScreenState extends State<PatternScreen> {
   }
 
   void _reset() {
+    // Новая партия — снова зачётная (договор shell/lesson.dart: отметку «разбор
+    // смотрели» снимает новая раздача). Отметка общая на всё приложение, и без
+    // сброса один открытый разбор выключал бы рост уровня во всех играх.
+    LessonUsed.reset();
     _timer?.cancel();
+    _trials = GamePreset.isPreset ? GamePreset.num('trials', trialsPerRound) : trialsPerRound;
     _round = 1;
     _hits = 0;
     _errors = 0;
@@ -110,8 +122,8 @@ class _PatternScreenState extends State<PatternScreen> {
     });
     _timer = Timer(_feedbackDelay, () async {
       if (!mounted) return;
-      if (_round >= trialsPerRound) {
-        final passed = _hits / trialsPerRound >= passHitRate;
+      if (_round >= _trials) {
+        final passed = _hits / _trials >= passHitRate;
         if (passed) {
           await _ladder.win();
         } else {
@@ -159,7 +171,7 @@ class _PatternScreenState extends State<PatternScreen> {
       hud: [
         HudItem(label: 'Уровень', value: '${_ladder.level}', icon: Icons.flag_outlined),
         HudItem(label: 'Достигнуто', value: '${_ladder.best}', icon: Icons.emoji_events_outlined),
-        HudItem(label: 'Проба', value: '$_round/$trialsPerRound', icon: Icons.repeat),
+        HudItem(label: 'Проба', value: '$_round/$_trials', icon: Icons.repeat),
         HudItem(label: 'Верно', value: '$_hits', icon: Icons.check_circle_outline),
         HudItem(label: 'Ошибки', value: '$_errors', icon: Icons.error_outline),
       ],
@@ -195,7 +207,7 @@ class _PatternScreenState extends State<PatternScreen> {
   Widget _toolbar(BuildContext context) {
     final text = Theme.of(context).textTheme;
     if (_phase == _Phase.result) {
-      final percent = (_hits / trialsPerRound * 100).round();
+      final percent = (_hits / _trials * 100).round();
       return Padding(
         padding: const EdgeInsets.all(12),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
