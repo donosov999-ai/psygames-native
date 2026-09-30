@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
@@ -5,6 +7,8 @@ import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/lesson.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'support/hub_routes.dart';
 
 /// 🔴 ПЕРЕПИСЬ РАЗБОРА: КТО ИЗ НАШИХ ЭКРАНОВ УЖЕ УМЕЕТ УЧИТЬ.
 ///
@@ -85,6 +89,23 @@ void main() {
   ];
 
 
+  /// 🔴 БЕЗ РАЗБОРА — ПО РЕШЕНИЮ ВЕБ-РЕЕСТРА, А НЕ СВОИМ СПИСКОМ. Практики ведут
+  /// сами (дыхание, гимнастика для глаз), «Пауза» — хаб практик, не игра: у них в
+  /// вебе разбора нет с причиной поимённо (`БЕЗ_РАЗБОРА` в
+  /// `frontend/src/__tests__/lesson-everywhere.test.ts`). Список читается оттуда,
+  /// чтобы решение жило в одном месте: снимут исключение в вебе — нативная
+  /// перепись потребует разбор и здесь.
+  final noLessonByWeb = () {
+    final web = File('../frontend/src/__tests__/lesson-everywhere.test.ts').readAsStringSync();
+    final start = web.indexOf('const БЕЗ_РАЗБОРА');
+    final block = web.substring(start, web.indexOf('};', start));
+    return RegExp(r"^\s*'?([\w-]+)'?\s*:", multiLine: true).allMatches(block).map((m) => m.group(1)!).toSet();
+  }();
+
+  test('исключения веб-реестра прочитаны — иначе перепись молча требовала бы разбор от практик', () {
+    expect(noLessonByWeb, containsAll(['pause', 'breathing', 'eye-gym']));
+  });
+
   testWidgets('🔴 разбор не пропал ни у одной игры, где он уже был', (tester) async {
     SharedPreferences.setMockInitialValues({'psygames_active_profile': 'nzt48'});
     final state = await SharedState.open();
@@ -93,8 +114,10 @@ void main() {
     final broke = <String, String>{};
 
     for (final e in HybridApp.native.entries) {
-      // Развилки — не игры, разбирать там нечего.
-      if (e.key.endsWith('-hub')) continue;
+      // Развилки — не игры, разбирать там нечего. Что такое развилка — одно
+      // определение на все пробы: `test/support/hub_routes.dart` (по реестру, а не
+      // по имени на `-hub`: две развилки из 13 называются иначе).
+      if (isHubRoute(e.key)) continue;
       // Головоломки Тэтхэма считает свой гейт: их разбор держит движок через ffi,
       // а он в `flutter test` не поднимается.
       //
@@ -109,6 +132,7 @@ void main() {
       // остатке строку, которую нечем закрыть. Так же устроен веб-реестр
       // (`frontend/src/__tests__/lesson-everywhere.test.ts`, список БЕЗ_РАЗБОРА).
       if (e.key == '/games/puzzles') continue;
+      if (noLessonByWeb.contains(e.key.replaceFirst('/games/', '').split('?').first)) continue;
       try {
         await tester.runAsync(() async {
           await tester.pumpWidget(MaterialApp(home: e.value(state)));
