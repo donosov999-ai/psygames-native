@@ -27,6 +27,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../../shell/aux_action.dart';
+import '../../shell/game_clock.dart';
 import '../../shell/game_preset.dart';
 import '../../shell/game_shell.dart';
 import '../../shell/l10n.dart';
@@ -92,7 +93,7 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
   /// веб-сессии (`resume.dart`, эталон memory-palace-resume-reference.json). До 30.09.2026 не было:
   /// свернул приложение посреди раскладки — партия начиналась заново.
   late final ResumeStore _resume = ResumeStore(widget.state, memoryPalaceGameId, memoryPalaceResumeVersion);
-  Timer? _saveTimer;
+  GameTimer? _saveTimer;
   final Random _random = Random();
 
   /// Уровень текущей партии: поднятой — из снимка, новой — из адреса (шаг зарядки, вызов дня)
@@ -160,7 +161,9 @@ class _MemoryPalaceScreenState extends State<MemoryPalaceScreen> with WidgetsBin
   /// касания дают ОДНУ запись, и пишется ПОСЛЕДНЕЕ состояние, а не первое.
   void _changed() {
     _saveTimer?.cancel();
-    _saveTimer = Timer(memoryPalaceResumeDebounce, _flush);
+    // Игровые часы (храповик game_clock_discipline): на паузе запись ждёт, а уход в фон и снос
+    // экрана дописывают партию сразу (`didChangeAppLifecycleState`, `dispose`).
+    _saveTimer = gameTimeout(memoryPalaceResumeDebounce, _flush);
   }
 
   void _flush() {

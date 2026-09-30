@@ -15,6 +15,7 @@ import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/voice.dart';
 import '../languages/json_asset.dart';
+import '../hearing_common/lesson_cue.dart';
 import 'lesson.dart';
 import 'model.dart';
 
@@ -391,32 +392,21 @@ class _CtLessonBoard extends StatefulWidget {
   State<_CtLessonBoard> createState() => _CtLessonBoardState();
 }
 
-class _CtLessonBoardState extends State<_CtLessonBoard> {
-  Timer? _next;
-  bool _gone = false;
+class _CtLessonBoardState extends State<_CtLessonBoard> with SingleTickerProviderStateMixin {
+  late final LessonCue _cue = LessonCue(this);
 
   @override
   void initState() {
     super.initState();
-    _sayFrom(0, 350);
+    // Как в вебе: через 350 мс знаки по очереди, между ними 300 мс, темп 0,85.
+    final words = widget.card.speak;
+    _cue.run(words.length, (i) => widget.voice?.speak(words[i], 'zh', rate: 0.85), gap: const Duration(milliseconds: 300));
   }
 
   @override
   void dispose() {
-    _gone = true;
-    _next?.cancel();
+    _cue.dispose();
     super.dispose();
-  }
-
-  /// Как в вебе: через 350 мс знаки по очереди, между ними 300 мс, темп 0,85. Таймер отменяемый.
-  void _sayFrom(int i, int afterMs) {
-    final words = widget.card.speak;
-    if (i >= words.length) return;
-    _next = Timer(Duration(milliseconds: afterMs), () async {
-      if (_gone) return;
-      await widget.voice?.speak(words[i], 'zh', rate: 0.85);
-      if (!_gone) _sayFrom(i + 1, 300);
-    });
   }
 
   @override

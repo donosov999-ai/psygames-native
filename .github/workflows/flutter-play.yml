@@ -24,6 +24,12 @@ on:
         description: 'Для production впиши yes-100 (решение Дениса), иначе оставь пустым'
         required: false
         default: ''
+      promote_version_code:
+        # Проверенную во внутреннем треке сборку в продакшн ПРОДВИГАЮТ, а не заливают заново:
+        # Play берёт каждый versionCode один раз. Задан номер — сборки нет, только назначение.
+        description: 'Продвинуть уже загруженную сборку (versionCode, напр. 2056000) — без пересборки; пусто = собрать и залить'
+        required: false
+        default: ''
 
 concurrency:
   # Две заливки одной версии подряд — гарантированный отказ Play («version code already used»).
@@ -31,8 +37,44 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  promote:
+    name: Продвижение загруженной сборки
+    if: inputs.promote_version_code != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Продакшн — только с подтверждением
+        if: inputs.track == 'production'
+        run: |
+          if [ "${{ inputs.confirm_production }}" != "yes-100" ]; then
+            echo "::error title=Продакшн::нужно поле confirm_production = yes-100 — продакшн идёт только после «да» Дениса"
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Назначить сборку дорожке
+        env:
+          GOOGLE_PLAY_SA_JSON: ${{ secrets.GOOGLE_PLAY_SA_JSON }}
+          PLAY_TRACKS: ${{ inputs.track }}
+          PROMOTE_VERSION_CODE: ${{ inputs.promote_version_code }}
+        run: |
+          # Имя выпуска и «Что нового» — по версии из app.json; номер обязан ей отвечать.
+          VERSION=$(node -p "require('./frontend/app.json').expo.version")
+          IFS=. read -r MA MI PA <<< "$VERSION"
+          CODE=$((MA * 1000000 + MI * 1000 + PA))
+          if [ "$CODE" != "$PROMOTE_VERSION_CODE" ]; then
+            echo "::error title=Номер::app.json $VERSION даёт $CODE, а продвигается $PROMOTE_VERSION_CODE — «Что нового» ушло бы от другой версии"
+            exit 1
+          fi
+          npm install --no-save --prefix "$RUNNER_TEMP/play" googleapis
+          VERSION_NAME="$VERSION" NODE_PATH="$RUNNER_TEMP/play/node_modules" node .github/scripts/deploy_play.js
+          echo "## Google Play — продвижение: $VERSION ($CODE) → ${{ inputs.track }}" >> "$GITHUB_STEP_SUMMARY"
+
   play:
     name: Сборка и заливка
+    if: inputs.promote_version_code == ''
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:

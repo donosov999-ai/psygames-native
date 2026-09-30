@@ -5,6 +5,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'game_clock.dart';
 import 'l10n.dart';
 import 'lesson.dart';
 
@@ -54,15 +55,21 @@ class _LessonPlayerScreenState extends State<LessonPlayerScreen> {
     return Duration(milliseconds: ms);
   }
 
+  /// Разбор открыт ПОВЕРХ партии: пока он на экране, часы партии стоят (задача 430d1299).
+  /// Свой таймер плеера — обычный `Timer`: он листает шаги разбора, а не партию.
+  VoidCallback? _releaseGame;
+
   @override
   void initState() {
     super.initState();
+    _releaseGame = holdGame();
     _arm();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _releaseGame?.call();
     super.dispose();
   }
 

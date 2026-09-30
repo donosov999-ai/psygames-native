@@ -4,6 +4,7 @@ import 'games/dots_connect/screen.dart';
 import 'games/digit_span/screen.dart';
 import 'games/one_line/screen.dart';
 import 'shell/asset_server.dart';
+import 'shell/game_clock.dart';
 import 'shell/game_rules.dart';
 import 'shell/l10n.dart';
 import 'shell/legacy_import.dart';
@@ -44,6 +45,8 @@ Future<void> main() async {
   await L.load(state.language);
   await GameRules.load();   // правила игр — из того же реестра, что карточки развилок
   final server = await AssetServer.start();
+  // Приложение ушло в фон — часы партии стоят (как скрытая вкладка в вебе), задача 430d1299.
+  installGameClockLifecycle();
   runApp(PsyGamesPilotApp(state: state, server: server));
 }
 
