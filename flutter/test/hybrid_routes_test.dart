@@ -279,6 +279,11 @@ void main() {
       '/games/inhibition',
       '/games/iowa',
       '/games/kids-sort',
+      // MindLab у координатора (задача f5034811): четыре игры только нативные.
+      '/games/traffic-jam',
+      '/games/monster-traits',
+      '/games/roll-and-bank',
+      '/games/hidden-character',
       '/games/mahjong',
       '/games/math-slider',
       '/games/math-sprint',
