@@ -126,6 +126,29 @@ void main() {
     await tester.pump(const Duration(seconds: 6));
   });
 
+  testWidgets('🔴 «Показать решение» нумерует блоки в порядке ответа и уровень не трогает', (tester) async {
+    await boot(tester);
+    await tester.tap(find.text(L.t('start')));
+    await tester.pump();
+    final seq = await watch(tester);
+    expect(seq.length, 3);
+
+    await tester.tap(find.byTooltip(L.t('puzzleShowSolution')));
+    await tester.pump();
+    for (var k = 0; k < seq.length; k++) {
+      final f = find.byKey(Key('порядок${seq[k]}'));
+      expect(f, findsOneWidget, reason: 'блок ${seq[k]} входит в ответ и должен показать свой номер');
+      expect(tester.widget<Text>(f).data, '${k + 1}', reason: 'на первом уровне ряд повторяется в том же порядке');
+    }
+    expect(find.byKey(const Key('порядок-1')), findsNothing);
+    expect(hud(tester, 'level', '1'), isTrue, reason: 'подсмотренный ряд уровень не поднимает');
+    expect(hud(tester, 'hud_span', '0'), isTrue, reason: 'и длину не засчитывает');
+
+    await tester.tap(find.text(L.t('retry')));
+    await tester.pump();
+    expect(hud(tester, 'level', '1'), isTrue, reason: 'после ответа — тот же уровень заново');
+  });
+
   testWidgets('уход с экрана гасит таймер показа', (tester) async {
     await boot(tester);
     await tester.tap(find.text(L.t('start')));

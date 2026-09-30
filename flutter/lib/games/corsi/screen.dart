@@ -39,6 +39,9 @@ class _CorsiScreenState extends State<CorsiScreen> {
 
   /// Какой блок горит прямо сейчас (во время показа).
   int? _lit;
+
+  /// Человек попросил ответ: партия кончается без зачёта, блоки показывают порядок.
+  bool _revealed = false;
   Timer? _timer;
   DateTime? _startedAt;
 
@@ -66,6 +69,7 @@ class _CorsiScreenState extends State<CorsiScreen> {
     _phase = Phase.ready;
     _feedback = Feedback.none;
     _lit = null;
+    _revealed = false;
     _startedAt = null;
   }
 
@@ -132,6 +136,19 @@ class _CorsiScreenState extends State<CorsiScreen> {
     });
   }
 
+  /// Показать ответ: как у соседних перенесённых игр — партия заканчивается и в
+  /// лестницу НЕ идёт ни победой, ни провалом. Подсмотренный ряд не должен ни
+  /// поднимать уровень, ни опускать его.
+  void _reveal() {
+    _timer?.cancel();
+    setState(() {
+      _revealed = true;
+      _phase = Phase.done;
+      _feedback = Feedback.none;
+      _lit = null;
+    });
+  }
+
   void _finish() {
     final g = _game!;
     final seconds = _startedAt == null
@@ -170,6 +187,7 @@ class _CorsiScreenState extends State<CorsiScreen> {
         phase: _phase,
         feedback: _feedback,
         lit: _lit,
+        revealed: _revealed,
         height: h,
         onStart: _start,
         onTap: _tap,
@@ -180,6 +198,12 @@ class _CorsiScreenState extends State<CorsiScreen> {
           label: L.t('restart'),
           onPressed: () => setState(_reset),
         ),
+        AuxAction(
+          icon: Icons.visibility_outlined,
+          label: L.t('puzzleShowSolution'),
+          tint: const Color(0xFFB45309),
+          onPressed: _phase == Phase.recall && _feedback == Feedback.none ? _reveal : null,
+        ),
       ]),
       toolbar: _phase == Phase.done
           ? Padding(
@@ -187,7 +211,7 @@ class _CorsiScreenState extends State<CorsiScreen> {
               child: FilledButton.icon(
                 onPressed: () => setState(_reset),
                 icon: const Icon(Icons.arrow_forward),
-                label: Text(g.passed ? L.t('nextLabel') : L.t('retry')),
+                label: Text(g.passed && !_revealed ? L.t('nextLabel') : L.t('retry')),
               ),
             )
           : null,
@@ -205,6 +229,7 @@ class _Board extends StatelessWidget {
     required this.phase,
     required this.feedback,
     required this.lit,
+    required this.revealed,
     required this.height,
     required this.onStart,
     required this.onTap,
@@ -214,6 +239,7 @@ class _Board extends StatelessWidget {
   final Phase phase;
   final Feedback feedback;
   final int? lit;
+  final bool revealed;
   final double height;
   final VoidCallback onStart;
   final void Function(int) onTap;
@@ -267,6 +293,7 @@ class _Board extends StatelessWidget {
                         phase: phase,
                         feedback: feedback,
                         lit: lit,
+                        order: revealed ? game.expected.indexOf(i) + 1 : 0,
                         onTap: onTap,
                       ),
                     ),
@@ -283,6 +310,7 @@ class _Board extends StatelessWidget {
     if (phase == Phase.show) return L.t('memorize');
     if (phase == Phase.hold) return L.t('memorize');
     if (phase == Phase.done) {
+      if (revealed) return L.t('puzzleShowSolution');
       return game.passed ? L.t('nextLabel') : L.t('retry');
     }
     return game.params.reverse ? L.t('reproduceBackward') : L.t('reproduceForward');
@@ -296,6 +324,7 @@ class _Block extends StatelessWidget {
     required this.phase,
     required this.feedback,
     required this.lit,
+    required this.order,
     required this.onTap,
   });
 
@@ -304,6 +333,9 @@ class _Block extends StatelessWidget {
   final Phase phase;
   final Feedback feedback;
   final int? lit;
+
+  /// Номер блока в ответе (1…n), когда показан ответ; 0 — блок в ответ не входит.
+  final int order;
   final void Function(int) onTap;
 
   @override
@@ -313,7 +345,9 @@ class _Block extends StatelessWidget {
     final last = game.answer.isNotEmpty && game.answer.last == index;
 
     Color fill = scheme.surfaceContainerHighest;
-    if (phase == Phase.show && lit == index) {
+    if (order > 0) {
+      fill = scheme.primaryContainer;
+    } else if (phase == Phase.show && lit == index) {
       fill = scheme.primary;
     } else if (feedback == Feedback.right && last) {
       fill = scheme.primary;
@@ -331,7 +365,13 @@ class _Block extends StatelessWidget {
         key: Key('блок$index'),
         borderRadius: BorderRadius.circular(10),
         onTap: enabled ? () => onTap(index) : null,
-        child: const SizedBox.expand(),
+        child: order > 0
+            ? Center(
+                child: Text('$order',
+                    key: Key('порядок$index'),
+                    style: TextStyle(fontWeight: FontWeight.w800, color: scheme.onPrimaryContainer)),
+              )
+            : const SizedBox.expand(),
       ),
     );
   }
