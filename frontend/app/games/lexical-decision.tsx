@@ -56,14 +56,53 @@ const LD_BENEFITS = [
 ];
 
 type GamePhase = 'intro' | 'config' | 'playing' | 'cleared' | 'result';
-interface Trial { text: string; isWord: boolean; язык: string }
+export interface Trial { text: string; isWord: boolean; язык: string }
 
 // Уровень 1..15: окно ответа сокращается 3.0с → 1.1с, число проб растёт ступенями.
 // Языковые параметры уровень НЕ трогает — словники всех языков работают как раньше.
-function levelParams(level: number): { trials: number; windowMs: number } {
+export function levelParams(level: number): { trials: number; windowMs: number } {
   const trials = level <= 5 ? 14 : level <= 10 ? 18 : 22;
   const windowMs = Math.max(1100, 3000 - (level - 1) * 140);
   return { trials, windowMs };
+}
+
+/**
+ * СБОРКА ПРОБ ПАРТИИ. Вынесена из `startGame` без изменения поведения
+ * 30.09.2026 — чтобы Flutter-перенос сверялся с ИСПОЛНЕНИЕМ этой функции
+ * (`scripts/flutter-lexical-decision-reference.test.ts`), а не с пересказом.
+ *
+ * 🔴 В БИЛИНГВО ПРОБЫ ДВУХ ЯЗЫКОВ ИДУТ ПО РЯДУ ЧЕРЕДОВАНИЯ.
+ *
+ * ⚠️ Псевдослова генерируются ПО ЯЗЫКУ: испанское псевдослово среди
+ * английских настоящих узнаётся по одному виду букв, и проба превращается
+ * в «угадай, на каком это языке». Поэтому и настоящие, и псевдо берутся у
+ * каждого языка отдельно и только потом раскладываются вперемешку.
+ *
+ * ⚠️ Порядок здесь НЕ перемешивается случайно, как в одноязычной партии:
+ * узор чередования и есть измеряемая величина.
+ */
+export function buildLexicalTrials(opts: {
+  target: string; second: string; bilingual: boolean; count: number; language: string;
+}): Trial[] {
+  const { target, second, bilingual, count, language } = opts;
+  const langs = bilingual ? [target, second] : [target];
+  const perLang = Math.max(1, Math.round(count / langs.length));
+  const byLang: Record<string, Trial[]> = {};
+  for (const lang of langs) {
+    const half = Math.floor(perLang / 2);
+    const real = sampleRealWords(lang, perLang - half).map((w) => ({ text: w, isWord: true, язык: lang }));
+    const pseudo = generatePseudowords(lang, half).map((w) => ({ text: w, isWord: false, язык: lang }));
+    const mix = [...real, ...pseudo];
+    for (let i = mix.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [mix[i], mix[j]] = [mix[j], mix[i]];
+    }
+    byLang[lang] = mix;
+  }
+  if (bilingual) {
+    return разложитьПоРяду(byLang, count, language, [target, second]).элементы.map((x) => x.элемент);
+  }
+  return byLang[target] ?? [];
 }
 
 export default function LexicalDecisionGame() {
@@ -167,37 +206,8 @@ export default function LexicalDecisionGame() {
     windowMsRef.current = isPreset ? 0 : p.windowMs;   // пресет = прежний self-paced режим
     const count = isPreset ? presetTrials : p.trials;
     tgtRef.current = tgt;
-    /**
-     * 🔴 В БИЛИНГВО ПРОБЫ ДВУХ ЯЗЫКОВ ИДУТ ПО РЯДУ ЧЕРЕДОВАНИЯ.
-     *
-     * ⚠️ Псевдослова генерируются ПО ЯЗЫКУ: испанское псевдослово среди
-     * английских настоящих узнаётся по одному виду букв, и проба превращается
-     * в «угадай, на каком это языке». Поэтому и настоящие, и псевдо берутся у
-     * каждого языка отдельно и только потом раскладываются вперемешку.
-     *
-     * ⚠️ Порядок здесь НЕ перемешивается случайно, как в одноязычной партии:
-     * узор чередования и есть измеряемая величина.
-     */
-    const языки = билингво ? [tgt, второйЯзык] : [tgt];
-    const наЯзык = Math.max(1, Math.round(count / языки.length));
-    const поЯзыку: Record<string, Trial[]> = {};
-    for (const л of языки) {
-      const пол = Math.floor(наЯзык / 2);
-      const r = sampleRealWords(л, наЯзык - пол).map((w) => ({ text: w, isWord: true, язык: л }));
-      const ps = generatePseudowords(л, пол).map((w) => ({ text: w, isWord: false, язык: л }));
-      const смесь = [...r, ...ps];
-      for (let i = смесь.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [смесь[i], смесь[j]] = [смесь[j], смесь[i]];
-      }
-      поЯзыку[л] = смесь;
-    }
-    let all: Trial[];
-    if (билингво) {
-      all = разложитьПоРяду(поЯзыку, count, language, [tgt, второйЯзык]).элементы.map((x) => x.элемент);
-    } else {
-      all = поЯзыку[tgt] ?? [];
-    }
+    // Сборка проб — в `buildLexicalTrials` (выше): там же и пояснение про ряд.
+    const all = buildLexicalTrials({ target: tgt, second: второйЯзык, bilingual: билингво, count, language });
     trialsRef.current = all;
     setTrials(all);
     idxRef.current = 0;
