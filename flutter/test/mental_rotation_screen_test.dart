@@ -3,6 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/mental_rotation/rng.dart';
 import 'package:psygames_flutter/games/mental_rotation/screen.dart';
 import 'package:psygames_flutter/games/mental_rotation/session.dart';
+import 'package:psygames_flutter/games/mental_rotation/task.dart';
+import 'package:psygames_flutter/games/mental_rotation/words.dart';
+import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +27,9 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     state = await SharedState.open();
+    // Подписи — из словарей (общего и модуля): проба сверяет с ними, а не с русской копией.
+    await L.load('ru');
+    await loadMentalRotationWords();
   });
 
   Future<void> boot(WidgetTester tester, {Size size = const Size(390, 844), Rng? rng}) async {
@@ -56,7 +62,7 @@ void main() {
     await tester.tap(find.byKey(const Key('вариант0')));
     await tester.pump();
     expect(
-      find.text('верный ответ'),
+      find.text(mrWord('optionCorrect')),
       findsOneWidget,
       reason: 'после ответа верная карточка обязана подписаться — иначе разбор не о чем',
     );
@@ -76,7 +82,8 @@ void main() {
 
   testWidgets('🔴 партия из пяти заданий играется тычками и считается по-честному', (tester) async {
     await boot(tester);
-    expect(find.text('Мысленное вращение'), findsOneWidget);
+    expect(find.text(L.t('mentalRotation')), findsOneWidget);
+    expect(mrWord('optionCorrect'), 'верный ответ', reason: 'словарь модуля загружен, а не голые ключи');
     expect(find.text('Уровень 1'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('заданий5')));
@@ -93,7 +100,7 @@ void main() {
 
     expect(find.byKey(const Key('итог-партии')), findsOneWidget, reason: 'партия кончилась итогом');
     expect(
-      find.text('$hits из 5'),
+      find.text('$hits/5'),
       findsOneWidget,
       reason: 'в итоге ровно столько верных, сколько экран признал по ходу партии',
     );
@@ -127,7 +134,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 900));
       await tester.pump();
     }
-    expect(find.text('5 из 5'), findsOneWidget, reason: 'пять верных из пяти');
+    expect(find.text('5/5'), findsOneWidget, reason: 'пять верных из пяти');
 
     // Партия без единой ошибки — уровень вырос: правило лестницы тоже проверяется тычками.
     await tester.tap(find.byKey(const Key('ещё-раз')));
@@ -155,7 +162,8 @@ void main() {
       reason: 'промах обязан остановить партию на разборе',
     );
     expect(find.byKey(const Key('разбор')), findsOneWidget);
-    expect(find.text('Эталон поворачивается шаг за шагом к правильному ответу.'), findsOneWidget);
+    expect(find.text(reviewHint(TaskKind.rotation)), findsOneWidget);
+    expect(reviewHint(TaskKind.rotation), 'Эталон поворачивается шаг за шагом к правильному ответу.');
   });
 
   testWidgets(
@@ -170,7 +178,7 @@ void main() {
       // решение Дениса 17.09.2026 — «режимы для ротации, чтобы доступны были те новые».
       // Список из двенадцати строк прокручивается внутри себя — до последнего вида доходим им же.
       await tester.scrollUntilVisible(
-        find.byKey(const Key('вид-oblique')),
+        find.byKey(const Key('kind-oblique')),
         80,
         scrollable: find.descendant(
           of: find.byKey(const Key('список-видов')),
@@ -178,7 +186,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('вид-oblique')));
+      await tester.tap(find.byKey(const Key('kind-oblique')));
       await tester.pump();
       expect(find.byKey(const Key('про-отработку')), findsOneWidget);
       expect(
@@ -196,7 +204,7 @@ void main() {
       for (var round = 1; round <= 5; round++) {
         await answer(tester);
       }
-      expect(find.text('Отработка: Сечение'), findsOneWidget);
+      expect(find.text('${mrWord('practiceTitle')}: Сечение'), findsOneWidget);
 
       // Уровень игрока от отработки не меняется — ни вверх, ни вниз.
       await tester.tap(find.byKey(const Key('ещё-раз')));

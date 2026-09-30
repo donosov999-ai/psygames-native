@@ -57,16 +57,12 @@ void main() {
   /// Перевёл экран — опусти его число. Файла нет в списке — значит он обязан
   /// быть чистым: так новый перенос не добавляет долга молча.
   const debt = <String, int>{
-    'games/mental_rotation/words.dart': 62,
-    'games/mental_rotation/screen.dart': 58,
-    'games/spatial_lab/screen.dart': 43,
     'games/sudoku/screen.dart': 31,
     'games/math_slider/screen.dart': 27,
     'games/schulte/screen.dart': 26,
     'games/pattern/model.dart': 24,
     'games/object_tracker/screen.dart': 24,
     'games/sort_tubes/screen.dart': 23,
-    'games/spatial_span/screen.dart': 21,
     'games/ospan/screen.dart': 21,
     'games/ospan/model.dart': 20,
     'games/number_bonds/screen.dart': 18,
@@ -85,8 +81,6 @@ void main() {
     'games/puzzles/screen.dart': 12,
     'games/memory_matrix/screen.dart': 12,
     'games/cake_sort/screen.dart': 11,
-    'games/one_line/screen.dart': 10,
-    'games/dots_connect/screen.dart': 10,
     'shell/hybrid_app.dart': 8,
     'games/stroop/model.dart': 8,
     'games/goods_sort/board.dart': 5,
@@ -96,7 +90,6 @@ void main() {
     'shell/tap_latency.dart': 4,
     'shell/web_game_screen.dart': 4,
     'games/goods_sort/model.dart': 4,
-    'games/spatial_lab/board.dart': 4,
     'games/tower_london/board.dart': 4,
     'games/sort_tubes/board.dart': 2,
     'games/hanoi/board.dart': 2,
@@ -112,7 +105,11 @@ void main() {
   // на 12 языков у них уже был — `node flutter/tools/embed-l10n.mjs` привёз их сам.
   // 30.09 — «Пространство»: правила четырёх упражнений «Лаборатории» и «Понятно» ушли в
   // словарь (задача 848da95d), spatial_lab 51 → 43: 699 − 8.
-  const total = 691;
+  // 30.09 — «Пространство» погасило долг целиком (задача bda168f4): семь файлов ушли из списка,
+  // 691 − 208. Подписи каркаса — общим словарём теми же ключами, что зовут веб-экраны игр;
+  // текст партии «Вращения» и «Точек» — словарями их модулей (`lib/shell/module_strings.dart`).
+  // Новых ключей семь: у каждого перевод на все двенадцать языков в том же коммите.
+  const total = 483;
 
   final counts = _scan(Directory('lib'));
 
