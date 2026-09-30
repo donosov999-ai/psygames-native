@@ -1070,6 +1070,9 @@ const translations: Translations = {
   teachSpanBackward: { ru: 'Обратный порядок не запоминают отдельно: запоминайте ряд как обычно, а разворачивайте уже при ответе — по тем же группам, с конца.', en: 'Do not memorise the reversed order separately: learn the row as usual and reverse it when answering, group by group from the end.' },
   teachSpatialSpanPath: { ru: 'Клетки — не набор точек, а ЛИНИЯ. Соедините их мысленно в ломаную: траектория из пяти узлов держится лучше пяти отдельных мест.', en: 'The cells are not a set of points but a LINE. Join them into a path: a five-node trajectory holds better than five separate places.' },
   teachMatrixShape: { ru: 'Запоминайте ФИГУРУ, которую образуют клетки — букву, угол, линию, — а не каждую клетку отдельно. Одна фигура вместо семи адресов.', en: 'Memorise the SHAPE the cells form — a letter, a corner, a line — instead of each cell. One shape instead of seven addresses.' },
+  teachCorsiPath: { ru: 'Запоминайте не блоки по одному, а ПУТЬ, который рисуют вспышки: ведите по ним воображаемую линию. Пять вспышек становятся одним маршрутом — ломаной, буквой, зигзагом.', en: 'Memorise not the blocks one by one but the PATH the flashes trace: run an imaginary line through them. Five flashes become one route — a zigzag, a letter, a hook.' },
+  teachCorsiBackward: { ru: 'В обратном режиме не разворачивайте на лету по одной точке. Сначала сложите маршрут вперёд, как его показали, — а при ответе пройдите его с конца.', en: 'In reverse mode do not flip it point by point on the fly. First build the route forwards, as it was shown, then walk it from the end when you answer.' },
+  teachCorsiEyes: { ru: 'Ведите взгляд за каждой вспышкой и не отводите его до конца показа. Пропущенная вспышка рвёт весь маршрут — дальше уже угадывание.', en: 'Follow every flash with your eyes and do not look away until the display ends. One missed flash breaks the whole route — after that it is guessing.' },
   teachOspanOrder: { ru: 'Пример-помеха нарочно мешает повторять буквы. Досчитайте его ДО КОНЦА и только потом верните буквы: метание между задачами стирает обе.', en: 'The equation is there to block rehearsal. Finish it COMPLETELY, then bring the letters back: darting between the two erases both.' },
   teachSchulteCenter: { ru: 'Держите взгляд в ЦЕНТРЕ таблицы и ищите периферией. Бегая глазами по клеткам, вы читаете таблицу, а тренируется при этом не охват, а скорость чтения.', en: 'Hold your gaze at the CENTRE and search with peripheral vision. Darting from cell to cell is reading the table — that trains reading speed, not span.' },
   teachTrackerGroup: { ru: 'Не перескакивайте с объекта на объект — держите их ГРУППОЙ, как вершины одной фигуры. Четыре траектории не удержать, а один меняющийся четырёхугольник — можно.', en: 'Do not jump from target to target — hold them as ONE SHAPE, the vertices of a single polygon. Four trajectories cannot be held; one changing quadrilateral can.' },
@@ -1127,6 +1130,20 @@ const translations: Translations = {
    * 🎓 РАЗБОР «ЛИЦ И ИМЁН». Приём: цеплять имя за ОДНУ черту лица, факт держать вторым
    * крючком. Черту подставляет экран из настоящего портрета, факт — из словаря игры.
    */
+  /*
+   * 🎓 РАЗБОР «МНЕМОНИКИ». Два приёма на два режима: цепочка сцен для слов и
+   * буквенно-цифровой код для чисел. Слова опор подставляет экран из словаря 00–99.
+   */
+  teachMnemoIntroWords: { ru: 'Ряд из {n} слов держится не счётом «первое, второе», а ЦЕПОЧКОЙ сцен: каждое следующее слово что-то делает с предыдущим.', en: 'A row of {n} words holds together not by counting “first, second” but by a CHAIN of scenes: each next word does something to the previous one.' },
+  teachMnemoIntroNumbers: { ru: 'Цифры голой памятью не держатся. Приём: число превращается в СЛОВО по согласным, а слова уже связываются в цепочку. Разберём {n} чисел этого ряда.', en: 'Bare digits do not stick. The technique: turn each number into a WORD by its consonants, then chain the words. Let us work through {n} numbers of this row.' },
+  teachMnemoIntroNumbersNoPegs: { ru: 'Цифры голой памятью не держатся: связывайте их в сцены по две-три, а не повторяйте подряд. Таблицы опор для этого языка пока нет.', en: 'Bare digits do not stick: bind them into scenes two or three at a time instead of repeating the row. There is no peg table for this language yet.' },
+  teachMnemoPegFirst: { ru: '{n} — это «{word}» ({why}). Согласные и дают слово: гласные свободны, поэтому подставляются любые.', en: '{n} is “{word}” ({why}). The consonants make the word: vowels are free, so any of them fit.' },
+  teachMnemoPeg: { ru: '{n} — «{word}» ({why}).', en: '{n} — “{word}” ({why}).' },
+  teachMnemoChain: { ru: 'Свяжите «{a}» и «{b}» в одну сцену: пусть первое действует со вторым. Так порядок держится сам.', en: 'Bind “{a}” and “{b}” into one scene: let the first act on the second. The order then holds by itself.' },
+  teachMnemoWordFirst: { ru: 'Первое слово — «{b}». Представьте его как предмет в конкретном месте, а не как надпись.', en: 'The first word is “{b}”. Picture it as an object in a concrete place, not as text.' },
+  teachMnemoChainWords: { ru: '«{a}» → «{b}»: одна сцена, где первое делает что-то со вторым. Чем нелепее, тем крепче.', en: '“{a}” → “{b}”: one scene where the first does something to the second. The more absurd, the stronger.' },
+  teachMnemoOrder: { ru: 'Отвечать надо ПО ПОРЯДКУ, поэтому цепочка и нужна: вспоминаете первую сцену, она тянет вторую. Всего в ряду {n}.', en: 'You answer IN ORDER, which is why the chain matters: recall the first scene and it pulls the second. The row has {n}.' },
+  teachMnemoDone: { ru: 'Так и играйте: превратили в образы, связали в цепочку, прошли её по порядку.', en: 'Play it the same way: turn them into images, chain them, then walk the chain in order.' },
   teachFacesIntro: { ru: 'Лицо запоминается не целиком, а одной ЧЕРТОЙ, которая отличает его от соседних. Сейчас разберём несколько из этих {n}.', en: 'A face is remembered by one distinctive FEATURE, not as a whole. Let us work through a few of these {n}.' },
   teachFacesFeatureFirst: { ru: '{name}. Черта: {feature}. Свяжите имя именно с ней, а не с «лицом вообще»: на опросе вы будете искать эту черту. Факт — второй крючок: {fact}.', en: '{name}. The feature: {feature}. Tie the name to it, not to “the face” in general: at the test you will look for this feature. The fact is a second hook: {fact}.' },
   teachFacesFeature: { ru: '{name}. Черта: {feature}. Снова одна зацепка и имя на ней. Факт вторым крючком: {fact}.', en: '{name}. The feature: {feature}. One hook again, with the name on it. The fact as a second hook: {fact}.' },
@@ -3556,6 +3573,16 @@ const translations: Translations = {
   // Мнемоника / матрица памяти / n-back / анаграммы
   mnemMemorizeWords: { ru: 'Запомните {n} слов', en: 'Memorize {n} words' },
   mnemMemorizeNumbers: { ru: 'Запомните {n} чисел', en: 'Memorize {n} numbers' },
+  /*
+   * «МНЕМОНИКА», НАСТРОЙКА: ОДИН ПУТЬ ЗАПУСКА ПО УРОВНЮ (задача 1b92333a, вариант A, 30.09.2026).
+   * Строка над «Начать» говорит, что именно запустится; свободная тренировка — отдельно и с
+   * прямой пометкой, что уровень не меняется.
+   */
+  mnemLevelLine: { ru: 'Уровень {level}: запомнить {n} по порядку', en: 'Level {level}: remember {n} in order' },
+  mnemLevelLinePegs: { ru: 'Уровень {level}: тренировка таблицы опор', en: 'Level {level}: practise the peg table' },
+  mnemFreeTraining: { ru: 'Свободная тренировка', en: 'Free practice' },
+  mnemFreeTrainingNote: { ru: 'Любое число элементов. Уровень не меняется.', en: 'Any number of items. Your level does not change.' },
+  mnemFreeTrainingStart: { ru: 'Тренировка: {n} — без уровня', en: 'Practice: {n} — no level change' },
   mmMemorizeRed: { ru: '🔴 Запомни КРАСНЫЕ', en: '🔴 Memorize RED' },
   mmMemorizePurple: { ru: '🟣 Запомни ФИОЛЕТОВЫЕ', en: '🟣 Memorize PURPLE' },
   mmNowRed: { ru: '🔴 Теперь КРАСНЫЕ', en: '🔴 Now RED' },
