@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
-import 'package:flutter/gestures.dart' show DeviceGestureSettings, DragStartBehavior;
+import 'package:flutter/gestures.dart'
+    show DeviceGestureSettings, DragStartBehavior;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -31,7 +32,11 @@ const navigatorDirectionGlyphs = {
   Cardinal.south: '↓',
   Cardinal.west: '←',
 };
-const navigatorTurnGlyphs = {Turn.left: '↰', Turn.straight: '↑', Turn.right: '↱'};
+const navigatorTurnGlyphs = {
+  Turn.left: '↰',
+  Turn.straight: '↑',
+  Turn.right: '↱',
+};
 const navigatorHomeGlyphs = {
   HomeSector.north: '↑',
   HomeSector.northEast: '↗',
@@ -246,11 +251,15 @@ class NavigatorSwipeSurface extends StatefulWidget {
     required this.label,
     required this.hint,
     required this.onSwipe,
+    this.compact = false,
   });
 
   final String label;
   final String hint;
   final void Function(double dx, double dy) onSwipe;
+
+  /// Низкое поле (360×640): ниже и мельче — иначе ответ уходит за край.
+  final bool compact;
 
   @override
   State<NavigatorSwipeSurface> createState() => _NavigatorSwipeSurfaceState();
@@ -283,8 +292,8 @@ class _NavigatorSwipeSurfaceState extends State<NavigatorSwipeSurface> {
           onPanEnd: (_) => widget.onSwipe(_travel.dx, _travel.dy),
           onPanCancel: () => _travel = Offset.zero,
           child: Container(
-            constraints: const BoxConstraints(minHeight: 96),
-            padding: const EdgeInsets.all(14),
+            constraints: BoxConstraints(minHeight: widget.compact ? 64 : 96),
+            padding: EdgeInsets.all(widget.compact ? 8 : 14),
             decoration: BoxDecoration(
               color: scheme.surface,
               borderRadius: BorderRadius.circular(18),
@@ -297,19 +306,19 @@ class _NavigatorSwipeSurfaceState extends State<NavigatorSwipeSurface> {
                   Text(
                     widget.label,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 17,
+                    style: TextStyle(
+                      fontSize: widget.compact ? 14 : 17,
                       height: 1.3,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const SizedBox(height: 5),
+                  SizedBox(height: widget.compact ? 2 : 5),
                   Text(
                     widget.hint,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
+                      fontSize: widget.compact ? 12 : 13,
+                      height: widget.compact ? 1.25 : 1.4,
                       color: scheme.onSurfaceVariant,
                     ),
                   ),
@@ -332,11 +341,16 @@ class NavigatorChoices extends StatelessWidget {
     required this.session,
     required this.strings,
     required this.onAnswer,
+    this.compact = false,
   });
 
   final NavigatorSession session;
   final NavigatorStrings strings;
   final void Function(Object answer) onAnswer;
+
+  /// Низкое поле: по четыре кнопки в ряд. У веба основа кнопки не уже 82 точек, и на ширине 344
+  /// в ряд входят три — восемь сторон «Домой» встают в три ряда и на 360×640 уходят за край.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -370,7 +384,7 @@ class NavigatorChoices extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, c) {
         const gap = 8.0;
-        final basis = math.max(82.0, c.maxWidth * 0.21);
+        final basis = compact ? math.min(82.0, (c.maxWidth - 3 * gap) / 4) : math.max(82.0, c.maxWidth * 0.21);
         final perRow = math.max(
           1,
           math.min(items.length, ((c.maxWidth + gap) / (basis + gap)).floor()),
@@ -477,10 +491,15 @@ class NavigatorTurnStudy extends StatelessWidget {
     super.key,
     required this.session,
     required this.strings,
+    this.compact = false,
   });
 
   final NavigatorSession session;
   final NavigatorStrings strings;
+
+  /// Низкое поле: карточки мельче — пятнадцать поворотов старших ступеней встают в три ряда, а не в
+  /// четыре, и изучение не уходит за край (замер 30.09.2026, 360×640: +33 точки на 32-й ступени).
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -489,7 +508,7 @@ class NavigatorTurnStudy extends StatelessWidget {
     final ink = navigatorOn(navigatorGradient[0]);
     return Container(
       key: const Key('nav-turn-study'),
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(compact ? 12 : 18),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
@@ -507,19 +526,19 @@ class NavigatorTurnStudy extends StatelessWidget {
               color: scheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: compact ? 8 : 12),
           Wrap(
             alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
+            spacing: compact ? 6 : 8,
+            runSpacing: compact ? 6 : 8,
             children: [
               for (var i = 0; i < round.turns.length; i++)
                 Semantics(
                   label: '${i + 1}. ${strings.turn(round.turns[i])}',
                   child: ExcludeSemantics(
                     child: Container(
-                      width: 62,
-                      constraints: const BoxConstraints(minHeight: 70),
+                      width: compact ? 50 : 62,
+                      constraints: BoxConstraints(minHeight: compact ? 56 : 70),
                       decoration: BoxDecoration(
                         color: navigatorGradient[0],
                         borderRadius: BorderRadius.circular(14),
@@ -531,7 +550,7 @@ class NavigatorTurnStudy extends StatelessWidget {
                           Text(
                             navigatorTurnGlyphs[round.turns[i]]!,
                             style: TextStyle(
-                              fontSize: 30,
+                              fontSize: compact ? 24 : 30,
                               height: 1.13,
                               fontWeight: FontWeight.w900,
                               color: ink,
@@ -559,7 +578,9 @@ class NavigatorTurnStudy extends StatelessWidget {
   }
 }
 
-/// Заглушка вместо карты, когда на уровне карта в ответе спрятана.
+/// Заглушка вместо карты, когда на уровне карта в ответе спрятана. Одной строкой, а не карточкой
+/// в 150 точек, как в вебе: на 360×640 карточка вместе со свайпом и восемью кнопками сторон
+/// выталкивала ответ за край поля (замер 30.09.2026: до 282 точек прокрутки).
 class NavigatorHiddenMap extends StatelessWidget {
   const NavigatorHiddenMap({super.key, required this.strings});
 
@@ -570,36 +591,37 @@ class NavigatorHiddenMap extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Container(
       key: const Key('nav-hidden-map'),
-      constraints: const BoxConstraints(minHeight: 150),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: scheme.outlineVariant),
       ),
-      child: Column(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const ExcludeSemantics(
             child: Text(
               '⌖',
               style: TextStyle(
-                fontSize: 54,
+                fontSize: 22,
                 height: 1.1,
                 fontWeight: FontWeight.w900,
                 color: Color(0xFF2563EB),
               ),
             ),
           ),
-          const SizedBox(height: 7),
-          Text(
-            strings.t('mapHidden'),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.4,
-              fontWeight: FontWeight.w800,
-              color: scheme.onSurfaceVariant,
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              strings.t('mapHidden'),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.35,
+                fontWeight: FontWeight.w800,
+                color: scheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],
@@ -615,8 +637,8 @@ class NavigatorHiddenMap extends StatelessWidget {
 /// строка хода и органы ответа раскладываются первыми, их высоты известны сразу, и карте
 /// достаётся остаток поля: `min(ширины, max(пола, поле − прочее))` — формула веба (`сторонаКарты`).
 ///
-/// 🔴 ПРОЧЕЕ ОДНО И ТО ЖЕ ПРИ ИЗУЧЕНИИ И ПРИ ОТВЕТЕ — это обязанность вызывающего: в фазе
-/// изучения органы ответа стоят невидимыми, но с размером (`Visibility.maintainSize`). Правило
+/// 🔴 ПРОЧЕЕ ОДНО И ТО ЖЕ ПРИ ИЗУЧЕНИИ И ПРИ ОТВЕТЕ, ГДЕ КАРТА ЕСТЬ В ОБЕИХ ФАЗАХ, — это обязанность
+/// вызывающего: там в фазе изучения органы ответа стоят невидимыми, но с размером. Правило
 /// веба 16.09.2026: карта обязана быть одной и той же в запоминании и в ответе, иначе меняется
 /// сама задача.
 class NavigatorPlayLayout extends MultiChildRenderObjectWidget {
@@ -626,6 +648,7 @@ class NavigatorPlayLayout extends MultiChildRenderObjectWidget {
     required this.widthLimit,
     required this.minSide,
     required this.squareMap,
+    this.gap = 10,
     required Widget header,
     required Widget progress,
     required Widget map,
@@ -643,6 +666,9 @@ class NavigatorPlayLayout extends MultiChildRenderObjectWidget {
   /// Карта в третьем слоте квадратная (карта сетки), а не карточка (повороты, скрытая карта).
   final bool squareMap;
 
+  /// Зазор между слотами; на низком поле меньше.
+  final double gap;
+
   @override
   RenderNavigatorPlayLayout createRenderObject(BuildContext context) =>
       RenderNavigatorPlayLayout(
@@ -650,6 +676,7 @@ class NavigatorPlayLayout extends MultiChildRenderObjectWidget {
         widthLimit: widthLimit,
         minSide: minSide,
         squareMap: squareMap,
+        gap: gap,
       );
 
   @override
@@ -661,7 +688,8 @@ class NavigatorPlayLayout extends MultiChildRenderObjectWidget {
       ..fieldHeight = fieldHeight
       ..widthLimit = widthLimit
       ..minSide = minSide
-      ..squareMap = squareMap;
+      ..squareMap = squareMap
+      ..gap = gap;
   }
 }
 
@@ -676,14 +704,23 @@ class RenderNavigatorPlayLayout extends RenderBox
     required double widthLimit,
     required double minSide,
     required bool squareMap,
+    double gap = 10,
     // ignore: prefer_initializing_formals — поля приватные, а параметры именованные
   }) : _fieldHeight = fieldHeight,
        _widthLimit = widthLimit, // ignore: prefer_initializing_formals
        _minSide = minSide, // ignore: prefer_initializing_formals
-       _squareMap = squareMap; // ignore: prefer_initializing_formals
+       _squareMap = squareMap, // ignore: prefer_initializing_formals
+       _gap = gap; // ignore: prefer_initializing_formals
 
   static const double padding = 8;
-  static const double gap = 10;
+
+  double _gap;
+  double get gap => _gap;
+  set gap(double v) {
+    if (v == _gap) return;
+    _gap = v;
+    markNeedsLayout();
+  }
 
   double _fieldHeight;
   set fieldHeight(double v) {

@@ -278,7 +278,17 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
     // хода и органы ответа стоят и при изучении — поэтому карта одна и та же в обеих фазах.
     Widget ghost(Widget child) =>
         Visibility(visible: false, maintainSize: true, maintainAnimation: true, maintainState: true, child: child);
-    Widget title(String text) => Text(text, style: const TextStyle(fontSize: 23, height: 1.22, fontWeight: FontWeight.w900));
+    // 🔴 СЖАТЫЙ ВИД НА НИЗКОМ ПОЛЕ. Замер 30.09.2026, 360×640 (поле каркаса 484): шапка партии —
+    // 135 точек (заголовок и строка режима переносятся), поле свайпа — 155, восемь кнопок «Домой» —
+    // три ряда по 75; ответ уходил за край на 74–216 точек. На обычных телефонах (390×844 — поле 688)
+    // вид прежний.
+    final compact = h < 560;
+    Widget title(String text) => Text(
+          text,
+          maxLines: compact ? 1 : null,
+          overflow: compact ? TextOverflow.ellipsis : null,
+          style: TextStyle(fontSize: compact ? 18 : 23, height: 1.22, fontWeight: FontWeight.w900),
+        );
 
     final header = Row(
       children: [
@@ -292,6 +302,8 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
               ]),
               Text(
                 '${s.mode(round.mode)} · ${s.fill('grid', {'size': round.gridSize, 'steps': steps})} · ${round.mapRotation}°',
+                maxLines: compact ? 1 : null,
+                overflow: compact ? TextOverflow.ellipsis : null,
                 style: TextStyle(fontSize: 12, height: 1.4, fontWeight: FontWeight.w700, color: scheme.onSurfaceVariant),
               ),
             ],
@@ -319,16 +331,17 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
         NavigatorSwipeSurface(
           label: prompt,
           hint: s.t('swipeHint'),
+          compact: compact,
           onSwipe: (dx, dy) => _update((x) => handleNavigatorSwipe(x, dx, dy, _now())),
         ),
-        const SizedBox(height: 10),
-        NavigatorChoices(session: session, strings: s, onAnswer: _answer),
+        SizedBox(height: compact ? 6 : 10),
+        NavigatorChoices(session: session, strings: s, onAnswer: _answer, compact: compact),
       ],
     );
 
     final Widget map;
     if (turnMode) {
-      map = isStudy ? NavigatorTurnStudy(session: session, strings: s) : const SizedBox.shrink();
+      map = isStudy ? NavigatorTurnStudy(session: session, strings: s, compact: compact) : const SizedBox.shrink();
     } else if (squareMap) {
       map = LayoutBuilder(
         builder: (context, c) => NavigatorMap(
@@ -343,19 +356,21 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
       map = NavigatorHiddenMap(strings: s);
     }
 
-    final bottom = isStudy
-        ? Stack(
-            alignment: Alignment.center,
-            children: [
-              ghost(answers),
-              FilledButton(
-                key: const Key('nav-ready'),
-                onPressed: () => _update(completeNavigatorStudy),
-                child: Text(s.t('ready')),
-              ),
-            ],
-          )
-        : answers;
+    // 🔴 ЗАПАС ПОД ОРГАНЫ ОТВЕТА ПРИ ИЗУЧЕНИИ — ТОЛЬКО ТАМ, ГДЕ КАРТА ВИДНА И В ОТВЕТЕ (ступени 1–5):
+    // он держит карту одного размера в обеих фазах. Где в ответе карты нет (скрытая карта, «Повороты»),
+    // запас держать нечему — он лишь отнимал у изучения место. Замер 30.09.2026, 390×844: с запасом
+    // везде изучение старших ступеней уходило за край на 16–50 точек.
+    final mapInRecall = !turnMode && !round.hideMapDuringRecall;
+    final ready = FilledButton(
+      key: const Key('nav-ready'),
+      onPressed: () => _update(completeNavigatorStudy),
+      child: Text(s.t('ready')),
+    );
+    final bottom = !isStudy
+        ? answers
+        : mapInRecall
+            ? Stack(alignment: Alignment.center, children: [ghost(answers), ready])
+            : Center(child: ready);
 
     return LayoutBuilder(
       builder: (context, c) => SingleChildScrollView(
@@ -365,8 +380,14 @@ class _NavigatorScreenState extends State<NavigatorScreen> with WidgetsBindingOb
           widthLimit: math.min(600, math.max(220, c.maxWidth - 24)),
           minSide: round.gridSize * navigatorMinCell,
           squareMap: squareMap,
+          gap: compact ? 6 : 10,
           header: header,
-          progress: isStudy ? ghost(progressLine) : progressLine,
+          // У «Домой» строка хода — дословно вопрос с поля свайпа; на низком поле второй раз его не пишем.
+          progress: compact && round.mode == NavigatorMode.homeDirection
+              ? const SizedBox.shrink()
+              : !isStudy
+                  ? progressLine
+                  : (mapInRecall ? ghost(progressLine) : const SizedBox.shrink()),
           map: map,
           bottom: bottom,
         ),

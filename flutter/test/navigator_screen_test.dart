@@ -168,9 +168,11 @@ void main() {
     // настройках — даже протяжку в 10 точек. Порог протяжки и точка отсчёта решают только в СПОРЕ
     // жестов, а спор бывает, когда поле прокручивается: прокрутка забирает вертикаль с 18 точек,
     // протяжка по умолчанию начинается с 36. Поэтому проба стоит именно там — узкое окно и
-    // ступень со скрытой картой, где органы ответа не влезают в поле.
+    // ступень со скрытой картой, где органы ответа не влезают в поле. С 30.09.2026 в портрете поле не
+    // прокручивается ни на одной ступени (проба ниже, вплоть до 360×560), и живой случай прокрутки —
+    // телефон, повёрнутый набок: 740×360, поле каркаса около 200 точек.
     GamePreset.set({'level': '7'});
-    await open(tester, window: const Size(360, 640));
+    await open(tester, window: const Size(740, 360));
     await toRecall(tester);
     final scroll = tester.state<ScrollableState>(
         find.descendant(of: find.byKey(const Key('nav-play')), matching: find.byType(Scrollable)));
@@ -276,6 +278,53 @@ void main() {
         readable('ответ');
       }
     }
+  });
+
+  double scrollExtent(WidgetTester tester) => tester
+      .state<ScrollableState>(find.descendant(of: find.byKey(const Key('nav-play')), matching: find.byType(Scrollable)))
+      .position
+      .maxScrollExtent;
+
+  // 🔴 ЖАЛОБА «ИГРЫ ЕЗДЯТ» (отчёт e5bfc2f0, задача 2752f33f): партия обязана вставать в поле БЕЗ прокрутки.
+  // Замер 30.09.2026 перед правкой: на 360×640 (поле каркаса 484) ответ уходил за край на 102–282 точки,
+  // на 390×844 изучение старших ступеней — на 16–50. Проба идёт по ВСЕМ ступеням: переполнение сидит в
+  // сочетаниях (скрытая карта + восемь кнопок, сетка 8×8, пятнадцать поворотов), а не на первой ступени.
+  testWidgets('🔴 без прокрутки: все 33 ступени, изучение и ответ, на 360×640 и 390×844', (tester) async {
+    for (final window in const [Size(360, 640), Size(390, 844)]) {
+      for (var level = 1; level <= navigatorLevels; level++) {
+        GamePreset.set({'level': '$level'});
+        await open(tester, window: window);
+        await press(tester, 'nav-start');
+        expect(scrollExtent(tester), 0, reason: 'изучение, ур.$level, $window');
+        await press(tester, 'nav-ready');
+        for (var i = 0; i < 5 && shown('nav-continue'); i++) {
+          await press(tester, 'nav-continue');
+        }
+        expect(scrollExtent(tester), 0, reason: 'ответ, ур.$level, $window');
+        expect(tester.takeException(), isNull);
+      }
+    }
+  });
+
+  testWidgets('без прокрутки на 360×640 и в двенадцати языках — на худших ступенях', (tester) async {
+    for (final code in L.locales) {
+      await tester.runAsync(() async {
+        await L.load(code);
+        await NavigatorStrings.load(locale: code);
+      });
+      for (final level in const [3, 6, 7, 32, 33]) {
+        GamePreset.set({'level': '$level'});
+        await open(tester, window: const Size(360, 640));
+        await press(tester, 'nav-start');
+        expect(scrollExtent(tester), 0, reason: '$code: изучение, ур.$level');
+        await press(tester, 'nav-ready');
+        for (var i = 0; i < 5 && shown('nav-continue'); i++) {
+          await press(tester, 'nav-continue');
+        }
+        expect(scrollExtent(tester), 0, reason: '$code: ответ, ур.$level');
+      }
+    }
+    await tester.runAsync(() => L.load('ru'));
   });
 
   testWidgets('на обычном телефоне первая ступень целиком в поле, без прокрутки', (tester) async {
