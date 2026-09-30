@@ -15,7 +15,7 @@
  * проверяет. Развилка никого не оценивает, она уводит.
  */
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,6 +29,8 @@ import GradientSurface from '@/src/components/GradientSurface';
 import GamePreviewBackground from '@/src/components/GamePreviewBackground';
 import { visibleHubCards } from '@/src/constants/hubContents';
 import HubEmpty from '@/src/components/HubEmpty';
+import { gameIconByNameKey } from '@/src/constants/gameIcons';
+import { a11yDecor } from '@/src/services/a11y';
 import { HELP_CORNER_SPACE } from '@/src/components/GameHelpOverlay';
 
 export type { HubSubGame } from '@/src/constants/hubContents';
@@ -142,9 +144,20 @@ export default function HubScreen({ hubRoute, titleKey, descKey, pickKey, footno
             onPress={() => router.push(маршрут as any)}
             activeOpacity={0.7}
           >
-            <View style={[styles.iconCircle, { backgroundColor: gradient[0] + '22' }]}>
-              <Ionicons name={g.icon} size={28} color={gradient[0]} />
-            </View>
+            {/*
+              🔴 ИКОНКА ИГРЫ, А НЕ ЗНАЧОК ТЕМЫ. Реестр иконок-«мини-экранов» (src/constants/gameIcons.ts)
+              читали только карточки каталога, а там после переезда игр в развилки видны 13 карточек.
+              Замер 30.09.2026: из 82 иконок реестра на экране было 5, в строках развилок — 0 из 73.
+              Строка знает nameKey, а не id игры, — ищем тем же путём, что заставка игры
+              (gameIconByNameKey). Нет иконки (набор, новая игра) — прежний значок в кружке.
+            */}
+            {gameIconByNameKey(g.nameKey) ? (
+              <Image {...a11yDecor} source={gameIconByNameKey(g.nameKey)} style={styles.iconTile} resizeMode="cover" />
+            ) : (
+              <View style={[styles.iconCircle, { backgroundColor: gradient[0] + '22' }]}>
+                <Ionicons name={g.icon} size={28} color={gradient[0]} />
+              </View>
+            )}
             <View style={styles.cardBody}>
               <Text style={[styles.cardName, { color: colors.text }]}>{t(g.nameKey)}</Text>
               <Text style={[styles.cardDesc, { color: colors.textSecondary }]}>{t(g.descKey)}</Text>
@@ -175,6 +188,8 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginTop: 8, marginLeft: 4 },
   subCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, gap: 14, borderWidth: 1 },
   iconCircle: { width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center' },
+  // Иконка — скруглённый квадрат, как в каталоге: круг срезал бы углы поля игры.
+  iconTile: { width: 50, height: 50, borderRadius: 12 },
   cardBody: { flex: 1, gap: 2 },
   cardName: { fontSize: 16, fontWeight: '700' },
   cardDesc: { fontSize: 12 },
