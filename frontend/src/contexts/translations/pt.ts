@@ -3063,5 +3063,16 @@ const t: Record<string, string> = {
   "teachPicturePairsSwap": "A partir do nível 22, depois de um erro as cartas viradas para baixo trocam de lugar e o par se ilumina. Mova a figura na memória para onde a carta dela foi.",
   "vsFindAll": "Encontre todas estas formas — em qualquer rotação",
   "vsFindConj": "Encontre a forma desta cor e formato",
+  "animalQueue": "Fila dos animais",
+  "animalQueueDesc": "Coloque os animais na fila pelas pistas: 🦁 ➜ 🦊 significa que o leão fica antes da raposa",
+  "kidsSort": "Cores e formas",
+  "kidsSortDesc": "Coloque cada cartão na caixa certa. Primeiro pela cor; depois a regra muda sem aviso — descubra a nova pelos ✓ e ✗",
+  "kidsSortCards": "Cartões",
+  "kidsSortPersev": "Pela regra antiga",
+  "teachQueueFirst": "Primeiro vem o animal para o qual nenhuma seta aponta: ninguém precisa ficar antes dele.",
+  "teachQueueNext": "Depois vem um animal cujas pistas já foram cumpridas: todos que devem ficar antes dele já estão na fila.",
+  "teachKidsSortRule": "Primeiro separe pela cor: o cartão vermelho vai para o círculo vermelho, o azul para o quadrado azul. A forma ainda não importa.",
+  "teachKidsSortSwitch": "A regra pode mudar sem aviso. O sinal: um ✗ onde um cartão igual estava certo há pouco.",
+  "teachKidsSortShape": "Então tente a outra característica, a forma: círculo com círculo, quadrado com quadrado. Voltaram os ✓ — você achou a regra, continue nela.",
 };
 export default t;
