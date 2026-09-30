@@ -33,9 +33,7 @@ import { собратьРазборМнемоники } from '../teach';
 
 declare const __dirname: string;
 declare function require(m: string): any;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { mkdirSync, writeFileSync } = require('fs');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { dirname, join } = require('path');
 const ROOT = join(__dirname, '../../../../..');
 
@@ -117,7 +115,7 @@ describe('эталон «Мнемоники» для Flutter', () => {
       hints: Array.from({ length: 100 }, (_, n) => pegHint(n, lang)),
     }));
 
-    const lessonInputs: Array<{ items: string[]; mode: 'words' | 'numbers'; lang: string }> = [
+    const lessonInputs: { items: string[]; mode: 'words' | 'numbers'; lang: string }[] = [
       { items: ['дом', 'собака', 'река', 'лампа', 'ключ'], mode: 'words', lang: 'ru' },
       { items: ['house', 'dog'], mode: 'words', lang: 'en' },
       { items: ['окно'], mode: 'words', lang: 'ru' },
