@@ -3574,6 +3574,16 @@ const translations: Translations = {
   // Мнемоника / матрица памяти / n-back / анаграммы
   mnemMemorizeWords: { ru: 'Запомните {n} слов', en: 'Memorize {n} words' },
   mnemMemorizeNumbers: { ru: 'Запомните {n} чисел', en: 'Memorize {n} numbers' },
+  /*
+   * «МНЕМОНИКА», НАСТРОЙКА: ОДИН ПУТЬ ЗАПУСКА ПО УРОВНЮ (задача 1b92333a, вариант A, 30.09.2026).
+   * Строка над «Начать» говорит, что именно запустится; свободная тренировка — отдельно и с
+   * прямой пометкой, что уровень не меняется.
+   */
+  mnemLevelLine: { ru: 'Уровень {level}: запомнить {n} по порядку', en: 'Level {level}: remember {n} in order' },
+  mnemLevelLinePegs: { ru: 'Уровень {level}: тренировка таблицы опор', en: 'Level {level}: practise the peg table' },
+  mnemFreeTraining: { ru: 'Свободная тренировка', en: 'Free practice' },
+  mnemFreeTrainingNote: { ru: 'Любое число элементов. Уровень не меняется.', en: 'Any number of items. Your level does not change.' },
+  mnemFreeTrainingStart: { ru: 'Тренировка: {n} — без уровня', en: 'Practice: {n} — no level change' },
   mmMemorizeRed: { ru: '🔴 Запомни КРАСНЫЕ', en: '🔴 Memorize RED' },
   mmMemorizePurple: { ru: '🟣 Запомни ФИОЛЕТОВЫЕ', en: '🟣 Memorize PURPLE' },
   mmNowRed: { ru: '🔴 Теперь КРАСНЫЕ', en: '🔴 Now RED' },
