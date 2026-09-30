@@ -127,6 +127,9 @@ class HybridApp extends StatefulWidget {
         '/games/schulte': (s) => SchulteScreen(state: s),
         // «Пауза / Зарядка» — хаб практик; `?set=…` доходит до экрана через GamePreset.
         '/games/pause': (s) => PauseScreen(state: s),
+        // «Дыхание» слито в «Паузу» (решение Дениса 30.09): тот же экран, режим дыхания,
+        // партия пишется под прежним `breathing`. Техника шага зарядки — `?tech=`.
+        '/games/breathing': (s) => PauseScreen(state: s, flavor: PauseFlavor.breathing),
         '/games/mahjong': (s) => MahjongScreen(state: s),
         '/games/math-slider': (s) => MathSliderScreen(state: s),
         '/games/object-tracker': (s) => ObjectTrackerScreen(state: s),

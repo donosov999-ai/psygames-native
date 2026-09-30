@@ -34,6 +34,7 @@ import '../../shell/session_report.dart';
 import '../../shell/shared_state.dart';
 import '../../shell/voice.dart';
 import '../../shell/voice_system.dart';
+import 'breathing.dart';
 import 'practices.dart';
 import 'stage.dart';
 
@@ -61,10 +62,26 @@ const pauseMinutes = [1, 2, 5, 8];
 /// закладывает на «Паузу» состав зарядки (`est_duration_sec: 90`).
 const pausePresetSeconds = 90;
 
+/// Чем открыт экран: сама «Пауза» или слитое в неё «Дыхание» (`/games/breathing`).
+enum PauseFlavor { hub, breathing }
+
 class PauseScreen extends StatefulWidget {
-  const PauseScreen({super.key, required this.state, this.engine, this.copy, this.clock, this.voice});
+  const PauseScreen({
+    super.key,
+    required this.state,
+    this.flavor = PauseFlavor.hub,
+    this.engine,
+    this.copy,
+    this.clock,
+    this.voice,
+    this.today,
+  });
 
   final SharedState state;
+  final PauseFlavor flavor;
+
+  /// Сегодняшняя дата для серии дней дыхания. Пробы подают свою.
+  final DateTime Function()? today;
 
   /// Каталог и словарь, если их уже загрузили (пробы). Иначе — из ассетов.
   final Practices? engine;
@@ -97,6 +114,17 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   String _spoken = '';
   late final Ticker _ticker = createTicker((_) => _tick());
   final Stopwatch _watch = Stopwatch()..start();
+  // Режим «Дыхание»: формат веба, отсчёт перед первым вдохом, Вим Хоф.
+  bool get _breath => widget.flavor == PauseFlavor.breathing;
+  BreathTech _tech = breathTechs.first;
+  String _breathFormat = 'cycles';
+  int _breathCycles = 6;
+  int _breathMinutes = 3;
+  bool _dim = false;
+  int? _leadUntil;
+  WimHofRun? _wim;
+  bool _wimWarning = false;
+  late final BreathLedger _ledger = BreathLedger(widget.state);
   late final VoiceLayer _voice =
       widget.voice ?? VoiceLayer(backend: SystemVoiceBackend(), soundOn: () => !GamePreset.isCalm);
 
@@ -126,6 +154,20 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   void _apply(Practices engine, Json copy) {
     _engine = engine;
     _copy = copy;
+    if (_breath) {
+      // Шаг зарядки задаёт технику (`settings.tech`) и ночной вид (`dim=1`) — как в вебе.
+      _tech = breathTechFor(GamePreset.str('tech', 'box'));
+      _dim = GamePreset.flag('dim');
+      _context = 'desk-visible';
+      _mode = 'solo';
+      _guide = pauseGuides.containsKey(GamePreset.str('guide')) ? GamePreset.str('guide') : 'visual';
+      _sets
+        ..clear()
+        ..add('breathing');
+      _programOf['breathing'] = _tech.program;
+      phase = PausePhase.config;
+      return;
+    }
     final ctx = GamePreset.str('context', 'desk-visible');
     final mode = GamePreset.str('mode', 'solo');
     final guide = GamePreset.str('guide', 'visual');
@@ -159,6 +201,19 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   void didChangeDependencies() {
     super.didChangeDependencies();
     final current = ModalRoute.of(context)?.isCurrent ?? true;
+    final wim = _wim;
+    if (wim != null && !wim.done) {
+      if (!current && !wim.paused) {
+        wim.pause(_now);
+        _coveredPause = true;
+        _syncTicker();
+      } else if (current && _coveredPause) {
+        wim.resume(_now);
+        _coveredPause = false;
+        _syncTicker();
+      }
+      return;
+    }
     final s = _session;
     if (s == null) return;
     if (!current && s['phase'] == 'running') {
@@ -174,7 +229,12 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed && _session?['phase'] == 'running') act('pause');
+    if (state == AppLifecycleState.resumed) return;
+    if (_wim != null && !_wim!.done && !_wim!.paused) {
+      act('pause');
+    } else if (_session?['phase'] == 'running') {
+      act('pause');
+    }
   }
 
   /// Правка выбора из панели настройки: `setState` защищён и снаружи не зовётся.
@@ -215,10 +275,22 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     return switch (_mode) { 'parallel' => n >= 2, 'charge' => n >= 1, _ => n == 1 };
   }
 
+  int get _durationMs {
+    if (_breath) {
+      return breathDurationMs(
+        steps: objects(_engine!.program('breathing', _tech.program)['steps']),
+        format: _breathFormat,
+        cycles: _breathCycles,
+        minutes: _breathMinutes,
+      );
+    }
+    return (_presetSeconds ?? _minutes * 60) * 1000;
+  }
+
   Json _request() => {
         'mode': _mode,
         'selections': _selections(),
-        'durationMs': (_presetSeconds ?? _minutes * 60) * 1000,
+        'durationMs': _durationMs,
         'locale': _locale,
         'guideMode': _guide,
         'context': _context,
@@ -234,10 +306,22 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   List<String> start() {
     final engine = _engine;
     if (engine == null || _sets.isEmpty) return const ['INVALID_SELECTION_COUNT'];
+    if (_breath && _tech.web == 'wimhof') {
+      // Сначала безопасность: у веба перед Вимом Хофом свой экран предупреждения,
+      // и начинает его сам человек кнопкой «Понимаю».
+      setState(() => _wimWarning = true);
+      return const [];
+    }
     try {
       final plan = engine.plan(_request());
       setState(() {
-        _session = sessionAction(newSession(plan), 'start', _now);
+        if (_breath) {
+          // Три секунды «устройся поудобнее» — первый вдох не уходит в никуда.
+          _session = newSession(plan);
+          _leadUntil = _now + 3000;
+        } else {
+          _session = sessionAction(newSession(plan), 'start', _now);
+        }
         _spoken = '';
         phase = PausePhase.playing;
       });
@@ -249,7 +333,42 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     }
   }
 
+  /// Вим Хоф: предупреждение прочитано — раунды пошли.
+  void startWim() {
+    setState(() {
+      _wimWarning = false;
+      _wim = WimHofRun(_now);
+      phase = PausePhase.playing;
+    });
+    _syncTicker();
+  }
+
+  /// Задержка Вима Хофа кончается касанием человека.
+  void releaseWimHold() {
+    final w = _wim;
+    if (w == null) return;
+    setState(() => w.release(_now));
+  }
+
   void _tick() {
+    final w = _wim;
+    if (w != null) {
+      setState(() => w.tick(_now));
+      if (w.done) _completeWim(w);
+      return;
+    }
+    final lead = _leadUntil;
+    if (lead != null && _session?['phase'] == 'ready') {
+      if (_now < lead) {
+        setState(() {});
+        return;
+      }
+      setState(() {
+        _session = sessionAction(_session!, 'start', lead);
+        _leadUntil = null;
+      });
+      _speak();
+    }
     final s = _session;
     if (s == null || s['phase'] != 'running') return;
     final next = sessionAction(s, 'tick', _now);
@@ -274,8 +393,30 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
   }
 
   void act(String action) {
+    final w = _wim;
+    if (w != null) {
+      setState(() => action == 'pause' ? w.pause(_now) : (action == 'resume' ? w.resume(_now) : null));
+      _syncTicker();
+      return;
+    }
     final s = _session;
     if (s == null) return;
+    if (s['phase'] == 'ready') {
+      // Пауза во время отсчёта — отсчёт стоит; продолжили — досчитываем остаток.
+      if (action == 'pause' && _leadUntil != null) {
+        setState(() {
+          _leadLeft = _leadUntil! - _now;
+          _leadUntil = null;
+        });
+      } else if (action == 'resume' && _leadLeft != null) {
+        setState(() {
+          _leadUntil = _now + _leadLeft!;
+          _leadLeft = null;
+        });
+      }
+      _syncTicker();
+      return;
+    }
     final next = sessionAction(s, action, _now);
     setState(() => _session = next);
     _syncTicker();
@@ -290,8 +431,13 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
 
   /// Кадры нужны, только пока практика идёт: на паузе телефону незачем
   /// перерисовывать неподвижную сцену шестьдесят раз в секунду.
+  int? _leadLeft;
+
   void _syncTicker() {
-    final running = _session?['phase'] == 'running';
+    final w = _wim;
+    final running = w != null
+        ? !w.done && !w.paused
+        : (_session?['phase'] == 'running' || (_session?['phase'] == 'ready' && _leadUntil != null));
     if (running && !_ticker.isActive) _ticker.start();
     if (!running && _ticker.isActive) _ticker.stop();
   }
@@ -301,6 +447,10 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     unawaited(_voice.cancel());
     final Json result = s['result'];
     final Json plan = s['plan'];
+    if (_breath) {
+      _completeBreath((result['durationMs'] as int) / 1000, _tech.web);
+      return;
+    }
     final done = List<String>.from(result['completedSetIds']);
     final mastery = _mastery();
     for (final id in done) {
@@ -319,11 +469,44 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     setState(() => phase = PausePhase.done);
   }
 
+  /// Подход дыхания завершён: партия под прежним `breathing` с полями веба,
+  /// счётчик подходов вперёд, серия дней — как у веб-экрана.
+  void _completeBreath(double seconds, String technique) {
+    final run = _ledger.run;
+    unawaited(_ledger.complete(widget.today?.call() ?? DateTime.now()));
+    final wim = technique == 'wimhof';
+    unawaited(SessionReport.send(
+      gameType: 'breathing',
+      score: seconds.round(),
+      timeSeconds: seconds.round(),
+      difficulty: technique,
+      // ⚠️ У Вима Хофа в вебе сюда попадал формат циклов (длина «цикла» 1 с) — число
+      // без смысла. Здесь — раунды и настоящая длительность.
+      mode: wim ? '${WimHofRun.rounds}rounds' : (_breathFormat == 'cycles' ? '${_breathCycles}cyc' : '${_breathMinutes}min'),
+      errors: 0,
+      details: {
+        'technique': technique,
+        'format': wim ? 'rounds' : _breathFormat,
+        'dur': seconds.round(),
+        'level': run,
+      },
+    ));
+    setState(() => phase = PausePhase.done);
+  }
+
+  void _completeWim(WimHofRun w) {
+    _ticker.stop();
+    _completeBreath(w.activeMs / 1000, 'wimhof');
+  }
+
   void _again() {
     _ticker.stop();
     unawaited(_voice.cancel());
     setState(() {
       _session = null;
+      _wim = null;
+      _leadUntil = null;
+      _leadLeft = null;
       _presetSeconds = null;
       phase = PausePhase.config;
     });
@@ -331,7 +514,8 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
 
   Future<void> _back() async {
     final nav = Navigator.of(context);
-    final running = phase == PausePhase.playing && _session?['phase'] == 'running';
+    final running = phase == PausePhase.playing &&
+        (_wim != null ? !_wim!.paused && !_wim!.done : _session?['phase'] == 'running' || _leadUntil != null);
     if (phase != PausePhase.playing) {
       await nav.maybePop();
       return;
@@ -380,8 +564,12 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
     if (engine == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final s = _session;
     final frame = s == null ? null : engine.frame(s['plan'], s['elapsedMs'] as int);
-    return GameShell(
-      title: L.t('pause'),
+    final wim = _wim;
+    final lead = s != null && s['phase'] == 'ready'
+        ? (((_leadUntil != null ? _leadUntil! - _now : (_leadLeft ?? 0)) / 1000).ceil()).clamp(1, 3)
+        : null;
+    final shell = GameShell(
+      title: _breath ? L.t('breathing') : L.t('pause'),
       onBack: _back,
       hud: [
         if (s != null)
@@ -393,26 +581,44 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
       ],
       field: (context, h) => switch (phase) {
         PausePhase.loading => const Center(child: CircularProgressIndicator()),
-        PausePhase.config => _Config(screen: this, height: h),
-        PausePhase.playing => _Playing(engine: engine, session: s!, frame: frame!, progressLabel: ps('progress')),
-        PausePhase.done => _Done(screen: this, session: s!),
+        PausePhase.config => _breath ? _BreathConfig(screen: this, height: h) : _Config(screen: this, height: h),
+        PausePhase.playing => wim != null
+            ? _WimView(screen: this, run: wim)
+            : _Playing(engine: engine, session: s!, frame: frame!, progressLabel: ps('progress'), lead: lead, leadLabel: L.t('brGetReady')),
+        // У Вима Хофа сессии ядра нет — итог берётся из его раундов.
+        PausePhase.done => _Done(screen: this, session: s ?? const <String, dynamic>{}),
       },
       // «Начать» — в липком низу: панель длинная, и кнопка под ней уезжала за край
       // телефона (поймала проба нажатиями на 390×844).
       toolbar: phase == PausePhase.config
           ? Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: FilledButton.icon(
-                key: const Key('pause-start'),
-                onPressed: selectionReady ? start : null,
-                icon: const Icon(Icons.play_arrow),
-                label: Text(ps('start')),
-              ),
+              child: _wimWarning
+                  ? FilledButton.icon(
+                      key: const Key('pause-wim-agree'),
+                      onPressed: startWim,
+                      icon: const Icon(Icons.check),
+                      label: Text(L.t('brWimAgree')),
+                    )
+                  : FilledButton.icon(
+                      key: const Key('pause-start'),
+                      onPressed: selectionReady ? start : null,
+                      icon: const Icon(Icons.play_arrow),
+                      label: Text(ps('start')),
+                    ),
             )
           : null,
-      auxRow: phase == PausePhase.playing && s != null
+      auxRow: phase == PausePhase.playing && wim != null
           ? AuxBar(children: [
-              if (s['phase'] == 'running')
+              if (!wim.paused)
+                AuxAction(key: const Key('pause-pause'), icon: Icons.pause, label: ps('pause'), onPressed: () => act('pause'))
+              else
+                AuxAction(key: const Key('pause-resume'), icon: Icons.play_arrow, label: ps('resume'), onPressed: () => act('resume')),
+              AuxAction(key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
+            ])
+          : phase == PausePhase.playing && s != null
+          ? AuxBar(children: [
+              if (s['phase'] == 'running' || _leadUntil != null)
                 AuxAction(key: const Key('pause-pause'), icon: Icons.pause, label: ps('pause'), onPressed: () => act('pause'))
               else
                 AuxAction(key: const Key('pause-resume'), icon: Icons.play_arrow, label: ps('resume'), onPressed: () => act('resume')),
@@ -421,6 +627,166 @@ class PauseScreenState extends State<PauseScreen> with SingleTickerProviderState
               AuxAction(key: const Key('pause-restart'), icon: Icons.replay, label: ps('restart'), onPressed: _again),
             ])
           : null,
+    );
+    // Ночной шаг зарядки («Не спится», `dim=1`): яркий экран в три часа ночи
+    // работает против задачи — как у веба, приглушаем.
+    return _dim ? Theme(data: ThemeData(brightness: Brightness.dark, colorSchemeSeed: const Color(0xff4ca1af)), child: shell) : shell;
+  }
+}
+
+class _BreathConfig extends StatelessWidget {
+  const _BreathConfig({required this.screen, required this.height});
+
+  final PauseScreenState screen;
+  final double height;
+
+  String _rhythm(Practices engine, BreathTech t) {
+    if (t.web == 'wimhof') return '';
+    final steps = objects(engine.program('breathing', t.program)['steps']);
+    return steps.map((s) {
+      final sec = (s['durationMs'] as int) / 1000;
+      return sec == sec.roundToDouble() ? '${sec.round()}' : sec.toStringAsFixed(1);
+    }).join('-');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final st = screen;
+    final engine = st._engine!;
+    final theme = Theme.of(context);
+    final label = theme.textTheme.labelLarge;
+    if (st._wimWarning) {
+      return SizedBox(
+        height: height,
+        child: SingleChildScrollView(
+          key: const Key('pause-wim-warning'),
+          padding: const EdgeInsets.all(16),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text(L.t('brWimWarnTitle'), style: theme.textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(L.t('brWimWarnBody'), style: theme.textTheme.bodyMedium),
+          ]),
+        ),
+      );
+    }
+    final cycles = st._breathFormat == 'cycles';
+    return SizedBox(
+      height: height,
+      child: SingleChildScrollView(
+        key: const Key('pause-config'),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(L.t('brTechniqueLabel'), style: label),
+          DropdownButton<String>(
+            key: const Key('pause-breath-tech'),
+            isExpanded: true,
+            value: st._tech.web,
+            items: [
+              for (final t in breathTechs)
+                DropdownMenuItem(
+                  value: t.web,
+                  child: Text([L.t(t.nameKey), _rhythm(engine, t)].where((x) => x.isNotEmpty).join(' · ')),
+                ),
+            ],
+            onChanged: (web) => st.edit(() {
+              st._tech = breathTechFor(web!);
+              st._programOf['breathing'] = st._tech.program;
+            }),
+          ),
+          Text(L.t(st._tech.descKey), style: theme.textTheme.bodySmall),
+          if (st._tech.web != 'wimhof') ...[
+            const SizedBox(height: 12),
+            Text(L.t('brFormatLabel'), style: label),
+            const SizedBox(height: 6),
+            Wrap(spacing: 8, children: [
+              ChoiceChip(
+                key: const Key('pause-breath-cycles'),
+                label: Text(L.t('brByCycles')),
+                selected: cycles,
+                onSelected: (_) => st.edit(() => st._breathFormat = 'cycles'),
+              ),
+              ChoiceChip(
+                key: const Key('pause-breath-time'),
+                label: Text(L.t('brByTime')),
+                selected: !cycles,
+                onSelected: (_) => st.edit(() => st._breathFormat = 'time'),
+              ),
+            ]),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, children: [
+              for (final n in cycles ? breathCycleOptions : breathMinuteOptions)
+                ChoiceChip(
+                  key: Key('pause-breath-${cycles ? 'n' : 'm'}$n'),
+                  label: Text('$n ${cycles ? L.t('brCyclesUnit') : L.t('unitMin')}'),
+                  selected: cycles ? st._breathCycles == n : st._breathMinutes == n,
+                  onSelected: (_) => st.edit(() => cycles ? st._breathCycles = n : st._breathMinutes = n),
+                ),
+            ]),
+            const SizedBox(height: 12),
+            Text(st.pc('guide'), style: label),
+            const SizedBox(height: 6),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              for (final e in pauseGuides.entries)
+                ChoiceChip(
+                  key: Key('pause-guide-${e.key}'),
+                  label: Text(st.pc(e.value)),
+                  selected: st._guide == e.key,
+                  onSelected: (_) => st.edit(() => st._guide = e.key),
+                ),
+            ]),
+          ],
+        ]),
+      ),
+    );
+  }
+}
+
+/// Раунды Вима Хофа: вдохи идут счётом, задержку заканчивает касание.
+class _WimView extends StatelessWidget {
+  const _WimView({required this.screen, required this.run});
+
+  final PauseScreenState screen;
+  final WimHofRun run;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final sec = L.t('secShort');
+    final (title, big, hint) = switch (run.stage) {
+      'breaths' => (L.t('brWimBreathe'), '${run.breath}/${WimHofRun.breaths}', L.t('brWimBreatheHint')),
+      'hold' => (L.t('brWimHold'), '${run.holdMs ~/ 1000}$sec', L.t('brWimHoldHint')),
+      _ => (L.t('brWimRecover'), '${(run.recoverLeftMs / 1000).ceil()}$sec', ''),
+    };
+    return Column(
+      key: const Key('pause-wim'),
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text('${L.t('round')} ${run.round}/${WimHofRun.rounds}', style: theme.textTheme.titleMedium),
+        ),
+        Expanded(
+          child: Center(
+            child: GestureDetector(
+              key: const Key('pause-wim-box'),
+              onTap: run.stage == 'hold' ? screen.releaseWimHold : null,
+              child: Container(
+                width: 260,
+                height: 260,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: theme.colorScheme.outline, width: 2),
+                ),
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Text(title, style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
+                  Text(big, key: const Key('pause-wim-count'), style: theme.textTheme.displaySmall),
+                  if (hint.isNotEmpty) Text(hint, style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -559,17 +925,37 @@ class _Config extends StatelessWidget {
 }
 
 class _Playing extends StatelessWidget {
-  const _Playing({required this.engine, required this.session, required this.frame, required this.progressLabel});
+  const _Playing({
+    required this.engine,
+    required this.session,
+    required this.frame,
+    required this.progressLabel,
+    this.lead,
+    this.leadLabel = '',
+  });
 
   final Practices engine;
   final Json session;
   final Json frame;
   final String progressLabel;
 
+  /// Секунд до первого вдоха (отсчёт «устройся поудобнее»); `null` — практика идёт.
+  final int? lead;
+  final String leadLabel;
+
   @override
   Widget build(BuildContext context) {
     final cues = objects(frame['cues']);
     final theme = Theme.of(context);
+    if (lead != null) {
+      return Center(
+        key: const Key('pause-lead'),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(leadLabel, style: theme.textTheme.titleMedium),
+          Text('$lead', style: theme.textTheme.displayMedium),
+        ]),
+      );
+    }
     return Column(
       key: const Key('pause-playing'),
       children: [
@@ -606,10 +992,34 @@ class _Done extends StatelessWidget {
   Widget build(BuildContext context) {
     final st = screen;
     final engine = st._engine!;
+    final theme = Theme.of(context);
+    if (st._breath) {
+      final wim = st._wim;
+      final ms = wim != null ? wim.activeMs : (session['result']['durationMs'] as int);
+      final secs = (ms / 1000).round();
+      return ListView(
+        key: const Key('pause-done'),
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(st.ps('completed'), style: theme.textTheme.headlineSmall, textAlign: TextAlign.center),
+          const SizedBox(height: 12),
+          Text(L.t(st._tech.nameKey), style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
+          Text('${secs ~/ 60}:${(secs % 60).toString().padLeft(2, '0')}', style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          FilledButton.icon(key: const Key('pause-again'), onPressed: st._again, icon: const Icon(Icons.replay), label: Text(L.t('retry'))),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            key: const Key('pause-home'),
+            onPressed: () => Navigator.of(context).maybePop(),
+            icon: const Icon(Icons.home_outlined),
+            label: Text(L.t('goHome')),
+          ),
+        ],
+      );
+    }
     final Json result = session['result'];
     final int duration = result['durationMs'];
     final sets = List<String>.from(result['completedSetIds']);
-    final theme = Theme.of(context);
     return ListView(
       key: const Key('pause-done'),
       padding: const EdgeInsets.all(16),

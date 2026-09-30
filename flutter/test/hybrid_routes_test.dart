@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:psygames_flutter/games/pause/screen.dart';
 import 'package:psygames_flutter/shell/hybrid_app.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -179,6 +180,8 @@ void main() {
       '/games/anagrams?mode=cross',
       '/games/anagrams?mode=square',
       '/games/ant',
+      // «Дыхание» слито в «Паузу»: тот же экран в режиме дыхания.
+      '/games/breathing',
       // 🔴 Сорок три адреса головоломок стоят здесь ПОИМЁННО, хотя карта их
       // генерирует. Это не дубль: генератор отвечает на «что собралось», а список
       // — на «что мы согласились перехватывать». Переименуют режим в реестре —
@@ -367,6 +370,21 @@ void main() {
       final route = HybridApp.routeOf(url);
       expect(route, '/games/pause', reason: url);
       expect(HybridApp.native[route]!(state).runtimeType.toString(), 'PauseScreen', reason: url);
+    }
+  });
+
+  test('«Дыхание» открывается «Паузой» в режиме дыхания, с техникой в хвосте', () async {
+    SharedPreferences.setMockInitialValues({});
+    final state = await SharedState.open();
+    for (final url in [
+      'https://psygames.app/games/breathing',
+      'https://psygames.app/games/breathing?tech=sigh&wu=1',
+    ]) {
+      final route = HybridApp.routeOf(url);
+      expect(route, '/games/breathing', reason: url);
+      final screen = HybridApp.native[route]!(state);
+      expect(screen, isA<PauseScreen>(), reason: url);
+      expect((screen as PauseScreen).flavor, PauseFlavor.breathing, reason: url);
     }
   });
 }
