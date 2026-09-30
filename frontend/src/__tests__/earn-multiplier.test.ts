@@ -25,18 +25,6 @@
  * пересчитывает формулу у себя (второй источник правды) и что блок «Сегодня»
  * нарисован БЕЗУСЛОВНО — то есть пустой день не превращается в пустое место.
  */
-jest.mock('@/src/services/supabase', () => ({
-  getSupabase: () => ({ from: () => ({ insert: async () => ({ error: null }) }) }),
-  SUPABASE_TABLE: 'cognitive_sessions',
-  SUPABASE_URL: 'x',
-  SUPABASE_RELAY_URL: 'x',
-  SUPABASE_PUBLISHABLE_KEY: 'x',
-  currentSupabaseBase: () => 'direct',
-}));
-
-declare const __dirname: string;
-declare function require(id: string): any;
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveSession } from '@/src/services/api';
 import { getTokens, TOKEN_DELTA_CAP } from '@/src/services/tokens';
@@ -55,6 +43,17 @@ import {
   DAY_STREAK_FOR_MULT,
   EarnReason,
 } from '@/src/services/earn';
+jest.mock('@/src/services/supabase', () => ({
+  getSupabase: () => ({ from: () => ({ insert: async () => ({ error: null }) }) }),
+  SUPABASE_TABLE: 'cognitive_sessions',
+  SUPABASE_URL: 'x',
+  SUPABASE_RELAY_URL: 'x',
+  SUPABASE_PUBLISHABLE_KEY: 'x',
+  currentSupabaseBase: () => 'direct',
+}));
+
+declare const __dirname: string;
+declare function require(id: string): any;
 
 const fs = require('fs');
 const path = require('path');
