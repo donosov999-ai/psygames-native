@@ -2416,8 +2416,6 @@ const t: Record<string, string> = {
   "scholarsMedian": "中位数",
   "scholarsUsually": "最近 {n} 轮",
   "scholarsBest": "正确应是",
-  "scholarsYes": "是",
-  "scholarsNo": "否",
   "ballGlossy": "光泽",
   "ballGlass": "玻璃",
   "ballFluffy": "毛绒",
@@ -3155,5 +3153,6 @@ const t: Record<string, string> = {
   "hcAgain": "再来一次",
   "teachHiddenHalf": "问“{q}”：是的有 {yes} 个，不是的有 {no} 个。最好的问题能把剩下的人尽量分成两半：无论答案如何都能排除一半。",
   "teachHiddenLast": "只剩一个——就是他。选中他并点“就是他！”。",
+  "rbHeadStart": "领先 {n}",
 };
 export default t;
