@@ -115,6 +115,12 @@ IconData hubIcon(String name) {
     'grid': Icons.grid_view_outlined,
     'eye-outline': Icons.visibility_outlined,
     'extension-puzzle': Icons.extension_outlined,
+    'paw': Icons.pets_outlined,
+    'color-palette': Icons.palette_outlined,
+    'car': Icons.directions_car_outlined,
+    'happy': Icons.sentiment_satisfied_alt_outlined,
+    'dice': Icons.casino_outlined,
+    'eye-off': Icons.visibility_off_outlined,
   };
   return map[name] ?? Icons.extension_outlined;
 }

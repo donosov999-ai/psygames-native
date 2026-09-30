@@ -12,6 +12,7 @@ import '../../shell/shared_level_store.dart';
 import '../../shell/shared_state.dart';
 import '../languages/bilingual.dart';
 import '../languages/json_asset.dart';
+import '../languages/lang_names.dart';
 import '../languages/fresh_pool.dart';
 import 'model.dart';
 
@@ -66,6 +67,7 @@ class SemanticSortScreen extends StatefulWidget {
 class _SemanticSortScreenState extends State<SemanticSortScreen> {
   late LevelLadder _ladder;
   List<Map<String, String>>? _vocab;
+  LangNames _names = LangNames.empty;
   Map<String, List<String>> _distractors = const {};
   late final double Function() _rng = widget.random ?? Random().nextDouble;
 
@@ -116,8 +118,10 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
           for (final e in (await loadJsonAsset('assets/vocab/semantic-distractors.json') as Map).entries)
             '${e.key}': [for (final w in (e.value as List)) '$w'],
         };
+    final names = await LangNames.load();
     if (!mounted) return;
     setState(() {
+      _names = names;
       _vocab = vocab;
       _distractors = distractors;
       // Настройки шага зарядки — из адреса, как `useGamePreset` в вебе.
@@ -329,7 +333,7 @@ class _SemanticSortScreenState extends State<SemanticSortScreen> {
             key: const Key('semantic-bilingual'),
             contentPadding: EdgeInsets.zero,
             title: Text(L.t('bilingualMode')),
-            subtitle: Text(L.t('bilingualModeDesc'), style: Theme.of(context).textTheme.bodySmall),
+            subtitle: Text(_names.bilingualDesc(_targetLang, _second), style: Theme.of(context).textTheme.bodySmall),
             value: _bilingual,
             onChanged: (v) => setState(() => _bilingual = v),
           ),
