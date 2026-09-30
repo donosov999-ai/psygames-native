@@ -227,7 +227,10 @@ class _HubScreenState extends State<HubScreen> {
   }
 
   Future<void> _boot() async {
-    final raw = await rootBundle.loadString('assets/hubs.json');
+    // ⚠️ БАЙТАМИ, А НЕ `loadString`: с 51 200 байт он декодирует в `compute()`,
+    // и testWidgets висит десять минут. 30.09.2026 файл весил 47 979 — запас 3 КБ.
+    final data = await rootBundle.load('assets/hubs.json');
+    final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
     final j = jsonDecode(raw) as Map<String, dynamic>;
     final cards = _cardsFor(j);
     final meta = (j['meta'] as Map<String, dynamic>)[widget.hubRoute] as Map<String, dynamic>?;
@@ -246,12 +249,20 @@ class _HubScreenState extends State<HubScreen> {
       _levels[c.route] = ladder.level;
     }
     if (!mounted) return;
+    // 🔴 КЛЮЧ СЛОВАРЯ ПРЕЖДЕ ТЕКСТА: `meta` несёт ключи, снятые с веб-экрана
+    // развилки (embed-hubs.mjs), а русский текст — только запасной путь для
+    // развилок без ключей. Без этого заголовок говорил по-русски на всех языках.
+    String tr(String keyField, String? text) {
+      final key = meta?[keyField] as String?;
+      return (key != null && key.isNotEmpty) ? L.t(key) : (text ?? '');
+    }
+
     setState(() {
       _cards = cards;
-      _title = meta?['title'] as String? ?? '';
-      _desc = meta?['desc'] as String? ?? '';
-      _footnote = meta?['footnote'] as String? ?? '';
-      _pick = j['pick'] as String? ?? _pick;
+      _title = tr('titleKey', meta?['title'] as String?);
+      _desc = tr('descKey', meta?['desc'] as String?);
+      _footnote = tr('footnoteKey', meta?['footnote'] as String?);
+      _pick = tr('pickKey', j['pick'] as String? ?? _pick);
     });
   }
 

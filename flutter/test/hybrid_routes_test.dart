@@ -107,10 +107,20 @@ void main() {
       '$origin/games/semantic-sort.html?wu=1&targetLang=en&rounds=8&cats=3',
       '$origin/games/cloze',
       '$origin/games/cloze.html?wu=1&targetLang=en&rounds=10&bilingual=1',
+      '$origin/games/hearing-hub',
       '$origin/games/mnemonics-hub',
     ]) {
       expect(HybridApp.routeOf(url), isNotNull, reason: url);
     }
+  });
+
+  /// 🔴 Развилки «Слова» и «Языки» остаются в вебе, пока зарядку раздела нечем
+  /// запустить из натива: перехват показал бы список без неё.
+  test('🔴 развилки со своей зарядкой не перехватываются', () {
+    const origin = 'http://127.0.0.1:54321';
+    expect(HybridApp.routeOf('$origin/games/words-hub'), isNull);
+    expect(HybridApp.routeOf('$origin/games/languages-hub'), isNull);
+    expect(HybridApp.routeOf('$origin/games/hearing-hub'), '/games/hearing-hub');
   });
 
   /// ⚠️ Фрактал и ГЛУБОКИЙ фрактал — РАЗНЫЕ экраны. Перехват одного не должен утаскивать
@@ -265,6 +275,7 @@ void main() {
       '/games/vocab-srs',
       '/games/semantic-sort',
       '/games/cloze',
+      '/games/hearing-hub',
       '/games/mental-rotation',
       '/games/number-bonds',
       '/games/nut-sort',
