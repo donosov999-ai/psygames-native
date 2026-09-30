@@ -3,7 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:psygames_flutter/games/vocab_srs/model.dart';
+import 'package:psygames_flutter/games/languages/bilingual.dart';
 import 'package:psygames_flutter/games/vocab_srs/screen.dart';
+import 'package:psygames_flutter/shell/game_preset.dart';
+import 'package:psygames_flutter/shell/session_report.dart';
 import 'package:psygames_flutter/shell/l10n.dart';
 import 'package:psygames_flutter/shell/shared_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,6 +42,13 @@ void main() {
     // `assets/l10n/ru.json` собран и читается. Сменится формулировка в словаре —
     // проба не развалится, потому что сравнивает через L.t(), а не строкой.
     await L.load('ru');
+  });
+
+  tearDown(() {
+    // Пресет и приёмник отчёта — СТАТИЧЕСКИЕ, как в приложении. Не снять — следующая
+    // проба стартовала бы шагом зарядки и слала отчёты в чужой список.
+    GamePreset.clear();
+    SessionReport.sink = null;
   });
 
   Widget app({required int Function() clock}) => MaterialApp(
@@ -237,5 +247,116 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pumpAndSettle();
     expect(stateOf('v:${entry['en']}')!.intervalDays, 3, reason: 'чисто и быстро → easy');
+  });
+
+  /// Родное слово по показанному: в узнавании на карточке изучаемое (en или es),
+  /// ответ — русское, и оно у обоих языков одно.
+  Map<String, String> entryByShown(String shown) =>
+      vocab.firstWhere((w) => w['en'] == shown || w['es'] == shown);
+
+  Future<void> answerRight(WidgetTester tester, void Function() tick) async {
+    final shown = tester.widget<Text>(find.byKey(const Key('vocab-word'))).data!;
+    tick();
+    await tester.tap(find.byKey(Key('vocab-option-${entryByShown(shown)['ru']}')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('🔴 шаг языковой зарядки: стартует сам, с парой из адреса и двумя колодами', (tester) async {
+    // Ровно то, что шлёт языковая зарядка: шаг серии, цель и второй язык.
+    GamePreset.set({'wu': '1', 'targetLang': 'en', 'bilingual': '1', 'lang2': 'es'});
+    var clock = 1000;
+    await tester.pumpWidget(app(clock: () => clock));
+    await tester.pumpAndSettle();
+
+    // Без нажатия «Начать» — сразу партия, и в ней ОБА языка: 5 + 5 карточек.
+    expect(find.byKey(const Key('vocab-start')), findsNothing, reason: 'автостарт шага зарядки');
+    expect(find.text('1/10'), findsOneWidget);
+
+    // Первая карточка по ряду — английская, пилюля показывает пару.
+    final shown = tester.widget<Text>(find.byKey(const Key('vocab-word'))).data!;
+    expect(vocab.any((w) => w['en'] == shown), isTrue, reason: 'ряд начинается с первого языка');
+    expect(find.text(pairPill('en', ['en', 'es'])), findsOneWidget);
+
+    // Оценка уходит в колоду СВОЕГО языка, вторую не трогает.
+    clock += 1000;
+    await answerRight(tester, () {});
+    final id = 'v:${entryByShown(shown)['en']}';
+    expect(stateOf(id, target: 'en'), isNotNull, reason: 'оценка в колоде ru→en');
+    expect(stateOf(id, target: 'es'), isNull, reason: 'колода ru→es не тронута');
+
+    // Вторая карточка по узору en, es, en, en, es, es — испанская.
+    final second = tester.widget<Text>(find.byKey(const Key('vocab-word'))).data!;
+    expect(vocab.any((w) => w['es'] == second), isTrue, reason: 'второй шаг ряда — второй язык');
+  });
+
+  testWidgets('🔴 партия доезжает до веб-половины: отчёт с парой и числом настоящих смен', (tester) async {
+    final sent = <Map<String, dynamic>>[];
+    SessionReport.sink = (json) async => sent.add(jsonDecode(json) as Map<String, dynamic>);
+    GamePreset.set({'auto': '1', 'targetLang': 'en', 'bilingual': '1', 'lang2': 'es'});
+    var clock = 1000;
+    await tester.pumpWidget(app(clock: () => clock));
+    await tester.pumpAndSettle();
+
+    for (var i = 0; i < 10; i += 1) {
+      await answerRight(tester, () => clock += 1000);
+    }
+    expect(find.text(L.t('resultsTitle')), findsOneWidget);
+
+    expect(sent, hasLength(1), reason: 'одна партия — один отчёт');
+    final r = sent.single;
+    expect(r['game_type'], 'vocab_srs', reason: 'имя совпадает с веб-версией — иначе партия уйдёт не под той игрой');
+    expect(r['score'], 10);
+    expect(r['errors'], 0);
+    expect(r['difficulty'], 'ru→en');
+    expect(r['mode'], 'recognize');
+    final d = r['details'] as Map<String, dynamic>;
+    expect(d['target_lang'], 'en+es');
+    expect(d['cards_total'], 10);
+    // По id карточки, как у веба: одно слово в двух колодах — одно новое.
+    expect(d['new_learned'], 5);
+    // Смены — ПО ФАКТУ раскладки, а не по включённому флагу.
+    final expected = spreadByRow(
+      {'en': List.generate(5, (i) => i), 'es': List.generate(5, (i) => i)}, 10, ['en', 'es']).switches;
+    expect(d['lang_switches'], expected);
+    expect(d.containsKey('passed'), isFalse, reason: 'провала у подхода нет — поле не пишем, как веб');
+  });
+
+  testWidgets('без билингво отчёт одноязычный и без счёта смен', (tester) async {
+    final sent = <Map<String, dynamic>>[];
+    SessionReport.sink = (json) async => sent.add(jsonDecode(json) as Map<String, dynamic>);
+    var clock = 1000;
+    await tester.pumpWidget(app(clock: () => clock));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('vocab-start')));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 5; i += 1) {
+      await answerRight(tester, () => clock += 1000);
+    }
+    final d = sent.single['details'] as Map<String, dynamic>;
+    expect(d['target_lang'], 'en');
+    expect(d.containsKey('lang_switches'), isFalse);
+  });
+
+  testWidgets('переключатель билингво показывает выбор второго языка', (tester) async {
+    await tester.pumpWidget(app(clock: () => 1000));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('vocab-lang2')), findsNothing);
+    await tester.tap(find.byKey(const Key('vocab-bilingual')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('vocab-lang2')), findsOneWidget);
+  });
+
+  testWidgets('🔴 разбор открывается ДО партии и показывает слово из колоды этой пары', (tester) async {
+    await tester.pumpWidget(app(clock: () => 1000));
+    await tester.pumpAndSettle();
+    // Партия не начата — кнопка разбора уже есть.
+    expect(find.byKey(const Key('vocab-start')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('game-lesson')));
+    await tester.pumpAndSettle();
+    // Пример — первое слово словаря для пары ru→en, а не выдуманное: house → дом.
+    expect(find.text('house'), findsWidgets);
+    expect(find.textContaining('дом'), findsWidgets);
   });
 }

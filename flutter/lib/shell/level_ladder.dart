@@ -91,7 +91,19 @@ class LevelLadder {
    * почему. Сброс стоит здесь по той же причине, что и само правило. Партия с
    * разбором по-прежнему не засчитывается — зачётной становится следующая.
    */
-  Future<void> win({int score = 0, int timeSeconds = 0, int? errors, String? mode}) async {
+  ///
+  /// `difficulty` и `details` — для игр, у которых партия несёт больше, чем уровень:
+  /// словарь SRS пишет пару языков, число смен языка и точность, как веб-версия.
+  /// Не передали — уходит прежнее (`difficulty` = уровень, без `details`), поэтому
+  /// остальные экраны это не задевает.
+  Future<void> win({
+    int score = 0,
+    int timeSeconds = 0,
+    int? errors,
+    String? mode,
+    String? difficulty,
+    Map<String, Object?>? details,
+  }) async {
     _failStreak = 0;
     // Пресет — шаг зарядки, разбор — партия с показанным решением. В обоих
     // случаях лестница меряла бы не человека, поэтому не двигается.
@@ -108,7 +120,8 @@ class LevelLadder {
       timeSeconds: timeSeconds,
       errors: errors,
       mode: mode ?? sessionMode,
-      difficulty: '$_level',
+      difficulty: difficulty ?? '$_level',
+      details: details,
     );
   }
 
