@@ -418,6 +418,17 @@ export default function StoryRecallGame() {
     </View>
   );
 
+  /**
+   * 🔴 ЧТЕНИЕ МОЖНО ЗАКОНЧИТЬ РАНЬШЕ — ПОДПИСАННОЙ КНОПКОЙ. Отчёт 3c7b98c5 (26.09.2026,
+   * шаг зарядки): «И где кнопка проверить? Или автопереход дальше». У чтения не было
+   * ни кнопки, ни слова о том, что переход случится сам; единственным кандидатом был
+   * ⏭ зарядки в шапке — а это пропуск всего шага.
+   */
+  const finishReading = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    startDistractor1();
+  };
+
   // Skip distractor → перейти сразу к recall (если юзер чувствует что готов)
   const skipDistractor = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -470,7 +481,7 @@ export default function StoryRecallGame() {
                 onPress={skipDistractor}
               >
                 <Ionicons name="checkmark" size={20} color={textOn('#22c55e')} />
-                <Text style={[styles.addBtnText, { color: textOn('#22c55e') }]}>ГОТОВ К ПЕРЕСКАЗУ</Text>
+                <Text style={[styles.addBtnText, { color: textOn('#22c55e') }]}>{t('storyReadyRecall')}</Text>
               </TouchableOpacity>
             </View>
           ) : isRecall ? (
@@ -478,6 +489,13 @@ export default function StoryRecallGame() {
               accessibilityRole="button" style={[styles.startBtn, styles.recallSubmit]} onPress={which === 1 ? submitRecall1 : submitRecall2}>
               <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
                 <Text style={styles.startBtnText}>{t('storyDone')}</Text>
+              </GradientSurface>
+            </TouchableOpacity>
+          ) : phase === 'reading' ? (
+            <TouchableOpacity
+              accessibilityRole="button" style={[styles.startBtn, styles.recallSubmit]} onPress={finishReading}>
+              <GradientSurface colors={GRADIENT as [string, string]} style={styles.startBtnGrad}>
+                <Text style={styles.startBtnText}>{t('storyReadDone')}</Text>
               </GradientSurface>
             </TouchableOpacity>
           ) : undefined
@@ -491,6 +509,7 @@ export default function StoryRecallGame() {
               </Text>
             </View>
             <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('storyReadHint')}</Text>
+            <Text style={[styles.hintText, { color: colors.textSecondary }]}>{t('storyReadAuto').replace('{n}', String(readRemaining))}</Text>
           </View>
         )}
         {isDistractor && (

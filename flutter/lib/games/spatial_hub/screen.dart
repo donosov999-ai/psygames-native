@@ -108,6 +108,7 @@ List<HubCard> get spatialHubCards => [
     L.t('navigator'),
     L.t('navigatorDesc'),
     Icons.navigation_outlined,
+    levelKey: 'navigator',
   ),
 ];
 
