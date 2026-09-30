@@ -26,7 +26,7 @@ import { useCalmHush } from '@/src/hooks/useCalmHush';
 import { usePersistentLevel } from '@/src/hooks/usePersistentLevel';
 import LevelCleared from '@/src/components/LevelCleared';
 import LevelProgressMap from '@/src/components/LevelProgressMap';
-import { RUSSIAN_WORDS, ENGLISH_WORDS } from '@/src/constants/games';
+import { levelParams, новыйПример, раздатьРяд } from '@/src/games/mnemonics/core';
 import { pegFor, pegHint, hasPegTable, PEG_RULE, PEG_TEXT } from '@/src/games/mnemonics/pegs';
 import LessonPlayer from '@/src/components/LessonPlayer';
 import { GameAuxAction } from '@/src/components/GameAuxAction';
@@ -68,80 +68,11 @@ type GamePhase = 'intro' | 'config' | 'memorize' | 'gap' | 'check' | 'cleared' |
  * В ПАРТИИ мешает — рабочая память уходит на вспоминание слова, а не на ряд.
  */
 type GameMode = 'words' | 'numbers' | 'pegs';
-// Лесенка: старт 5 элементов (минимум для запоминания списка) → растёт при ЧИСТОМ воспроизведении.
-/** Экспортируется для замера лестницы: `memory-hearing-ladders-scan`. */
 /**
- * 🔴 ЛЕСТНИЦА «МНЕМОНИКИ» — ТРИ ОСИ ВМЕСТО ОДНОЙ ДЛИНЫ СПИСКА.
- *
- * 📍 ЗАМЕР ДО (проба memory-hearing-ladders-scan, 06.09.2026): плато с 11-го
- * уровня из 15 — `itemCount` упирается в 15 и дальше не меняется НИЧЕГО. Пять
- * уровней подряд неотличимы.
- *
- * ПОЧЕМУ НЕ РАСТИТЬ СПИСОК ДАЛЬШЕ. Список из двадцати слов — это не труднее, а
- * дольше: человек всё равно дробит его на куски, и меряется усидчивость, а не
- * память. Зато в приёме отсутствуют две классические оси удержания:
- *
- * · ЗАДЕРЖКА (ось 3) — пауза между показом и проверкой. Пока проверка идёт
- *   сразу, список держится в проговаривании: повторил про себя — назвал. Пауза
- *   заставляет его действительно ЗАПОМНИТЬ.
- * · ИНТЕРФЕРЕНЦИЯ (ось 4) — посторонняя задача в этой паузе. Так устроен
- *   классический OSPAN: между элементами решают простой пример, и проговаривание
- *   рушится. Это и отличает объём памяти от объёма проговаривания.
- *
- * Обе оси включаются позже объёма: сначала человек осваивает сам приём.
+ * Лестница, раздача ряда и пример для окна удержания живут в ядре (`src/games/mnemonics/core.ts`):
+ * с него снимается эталон для Flutter-переноса. Реэкспорт — для проб, что берут их отсюда.
  */
-/**
- * Пример для окна удержания: сложение в пределах двадцати и четыре варианта.
- *
- * Считать надо ровно столько, чтобы проговаривание списка развалилось, — это
- * задача-помеха, а не второй тест. Поэтому числа маленькие, ответ один, а
- * варианты стоят рядом (±1, ±2): выбрать наугад нельзя, но и думать долго не о
- * чем. Ни одной буквы: экран не требует перевода на двенадцать языков.
- */
-export function новыйПример(): { a: number; b: number; ответ: number; варианты: number[] } {
-  const a = 2 + Math.floor(Math.random() * 8);
-  const b = 2 + Math.floor(Math.random() * 8);
-  const ответ = a + b;
-  const набор = new Set<number>([ответ]);
-  /*
-   * 🔴 СТОРОЖ ЦИКЛА, НАЙДЕННЫЙ МУТАЦИЕЙ. Набор вариантов собирается случайными
-   * сдвигами, и при штатных ±1/±2 он всегда набирается: ответ не меньше четырёх,
-   * значит ответ−2 положителен. Но стоит сдвигам стать крупнее — а именно это
-   * сделала проверочная мутация 07.09.2026, — как отрицательные кандидаты
-   * отбрасываются, четвёртого варианта не находится, и цикл крутится вечно:
-   * прогон висел полтора часа, пока его не сняли руками. Ошибка была не в
-   * сдвигах, а в отсутствии выхода. Сторож даёт добор соседними числами.
-   */
-  let охрана = 0;
-  while (набор.size < 4 && охрана < 40) {
-    охрана += 1;
-    const сдвиг = [1, -1, 2, -2][Math.floor(Math.random() * 4)];
-    const v = ответ + сдвиг;
-    if (v > 0) набор.add(v);
-  }
-  for (let шаг = 1; набор.size < 4; шаг += 1) набор.add(ответ + шаг + 2);
-  const варианты = Array.from(набор);
-  for (let i = варианты.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [варианты[i], варианты[j]] = [варианты[j], варианты[i]];
-  }
-  return { a, b, ответ, варианты };
-}
-
-export function levelParams(level: number): {
-  itemCount: number;
-  /** Ось 3: пауза между показом и проверкой, мс. */
-  gapMs: number;
-  /** Ось 4: сколько примеров решить в этой паузе (0 — просто ждать). */
-  mathTrials: number;
-} {
-  const l = Math.min(15, Math.max(1, Math.floor(level)));
-  return {
-    itemCount: Math.min(15, 4 + Math.max(1, l)),   // L1=5, L2=6 … L11=15
-    gapMs: l < 5 ? 0 : Math.min(4000, (l - 4) * 350),
-    mathTrials: l < 9 ? 0 : Math.min(3, l - 8),
-  };
-}
+export { levelParams, новыйПример };
 
 export default function MnemonicsGame() {
   const { colors } = useTheme();
@@ -241,29 +172,8 @@ export default function MnemonicsGame() {
     };
   }, []);
 
-  const generateItems = (count: number = itemCount): string[] => {
-    if (mode === 'words') {
-      const words = language === 'ru' ? [...RUSSIAN_WORDS] : [...ENGLISH_WORDS];
-      // Shuffle
-      for (let i = words.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [words[i], words[j]] = [words[j], words[i]];
-      }
-      return words.slice(0, count);
-    } else {
-      // Generate random 2-digit numbers
-      const numbers: string[] = [];
-      const used = new Set<number>();
-      while (numbers.length < count) {
-        const num = Math.floor(Math.random() * 90) + 10; // 10-99
-        if (!used.has(num)) {
-          used.add(num);
-          numbers.push(num.toString());
-        }
-      }
-      return numbers;
-    }
-  };
+  const generateItems = (count: number = itemCount): string[] =>
+    раздатьРяд(mode === 'words' ? 'words' : 'numbers', count, language);
 
   const startGame = (useLevel = false) => {
     // По уровню (не-пресет): число слов из лесенки (старт 5). Иначе — выбранное вручную / preset.
